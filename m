@@ -1,32 +1,23 @@
-From: Turbo Fredriksson <turbo@swe.net>
-Date: Mon, 13 Dec 2004 07:34:24 +0000
-Subject: SPARC64 Warmboot fails - 'version 2.84 booting' and then hang
-Message-Id: <87is76k5xb.fsf@papadoc.bayour.com>
+From: William Lee Irwin III <wli@holomorphy.com>
+Date: Tue, 21 Dec 2004 11:38:26 +0000
+Subject: [sparc32] [1/4] svr4_setcontext() void return in function returning non-void
+Message-Id: <20041221113826.GL771@holomorphy.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-I'm running 2.6.8.1 with some patches I found on this list
-on my SPARC64 (Sun Blade 1000 - 2xUltraSPARC-III/750MHz).
+This thing needs to return something, so might as well return -EFAULT here.
 
-But every (!) time I reboot, it hangs just after the line
-
-    [...]
-    md: ... autorun DONE.
-    kjournald starting.  Commit interval 5 seconds
-    EXT3-fs: mounted filesystem with ordered data mode.
-    VFS: Mounted root (ext3 filesystem) readonly.
-    version 2.84 booting
-    [hung!]
-
-
-I'm booting over serial port (no graphics, usb etc compiled
-in).
-
-Cold boot almost always work (unless I have other problems
-with the system - it's never the kernels fault if it fails),
-but not warm boots...
-
-Anyone have any idea? What can I do to find/pinpoint the problem?
+Index: sparc32-2.6.10-rc3/arch/sparc/kernel/signal.c
+=================================--- sparc32-2.6.10-rc3.orig/arch/sparc/kernel/signal.c	2004-12-16 06:19:27.000000000 -0800
++++ sparc32-2.6.10-rc3/arch/sparc/kernel/signal.c	2004-12-21 02:47:13.144646930 -0800
+@@ -1016,6 +1016,7 @@
+ 
+ sigsegv_and_return:
+ 	force_sig(SIGSEGV, current);
++	return -EFAULT;
+ }
+ 
+ static inline void
