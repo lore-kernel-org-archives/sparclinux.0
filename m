@@ -1,55 +1,41 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Wed, 16 Feb 2005 03:20:18 +0000
-Subject: Re: [atyfb] No display on Sparc Ultra 10 with kernel 2.6.10-rc2 or
-Message-Id: <20050215192018.36c9c7e8.davem@davemloft.net>
+From: "Antonino A. Daplas" <adaplas@hotpop.com>
+Date: Wed, 16 Feb 2005 11:27:57 +0000
+Subject: Re: [atyfb] No display on Sparc Ultra 10 with kernel 2.6.10-rc2 or later
+Message-Id: <200502161927.58344.adaplas@hotpop.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200502140251.00645.aragorn@tiscali.nl>
-	<200502152010.22880.adaplas@hotpop.com>
-	<20050215084958.1f68b39b.davem@davemloft.net>
-	<200502160328.00148.aragorn@tiscali.nl>
-In-Reply-To: <200502160328.00148.aragorn@tiscali.nl>
+References: <200502140251.00645.aragorn@tiscali.nl> <200502152010.22880.adaplas@hotpop.com> <200502160327.47586.aragorn@tiscali.nl>
+In-Reply-To: <200502160327.47586.aragorn@tiscali.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Frans Pop <aragorn@tiscali.nl>
-Cc: adaplas@pol.net, debian-sparc@lists.debian.org, sparclinux@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net
+To: Frans Pop <aragorn@tiscali.nl>, adaplas@pol.net
+Cc: debian-sparc@lists.debian.org, sparclinux@vger.kernel.org, Linux Fbdev development list <linux-fbdev-devel@lists.sourceforge.net>
 
-On Wed, 16 Feb 2005 03:27:51 +0100
-Frans Pop <aragorn@tiscali.nl> wrote:
+On Wednesday 16 February 2005 10:27, Frans Pop wrote:
+> On Tuesday 15 February 2005 13:10, Antonino A. Daplas wrote:
+> > Can you verify if this is the case?  Insert a bunch of printk's in and
+> > around this line "if (node = pcp->prom_node) {" in
+> > atyfb_setup_sparc().  For the 2.6.8 kernel, this line is in
+> > atyfb_init().
+>
+> Tested that and output is identical for both. That condition you cite is
+> true for both kernels and the resolutions are retrieved from prom:
+> atyfb (fjp): crtc.vxres 1152
+> atyfb (fjp): crtc.vyres 900
+>
+> > As a workaround, a boot option can be added for csync, hsync and vsync.
+>
+> Hmm. I looked for the syntax for that, but can't find it.
+> I tried
+>   video=atyfb:1024x768@70,csync:1
+> and
+>   video=atyfb:1024x768@70,csync:high
+> but both failed miserably.
+> (I have checked that csync is sufficient to activate the monitor.)
 
-> Excellent!
-> Tested the patch with 2.6.11-rc3-bk2 and AFAICT it completely restores the 
-> old behavior. I guess that solves the regression since 2.6.10-rc2.
-> 
-> Please let me know if this patch will be submitted for inclusion as is so 
-> I can also submit it for inclusion in the Debian 2.6.10 kernel.
+Nope, those are proposed options.  If nobody disagrees, I can easily add
+this for atyfb.
 
-I applied it and will push upstream.
+Tony
 
-> I would like to set a lower default resolution as my monitor barely 
-> supports 1152x900@66. I tried two things:
-> - # eeprom output-device=screen:r1024x768x70
->   This seems to be completely ignored during boot; resolution is still
->   1152x900.
 
-The PROM console driver will only accept certain settings.  I believe
-the allowable settings is documented in the Sun Framebuffer Handbook
-or something like that.
-
-> - boot with parameter 'video=atyfb:1024x768@70'
->   This does work, but csync is not set to high and so the monitor again
->   goes into suspend; after 'fbset -csync high' the monitor turns on.
->   Is csync something that needs to be set by the user or should the driver
->   take care of that also at frequencies other then 1152x900?
-
-Unfortunately, the user needs to specify this.  I, at one point, even
-convinced the XFREE86 mach64 maintainer to enable CSYNC by default
-and that broke things for some users and thus the default had to be
-changed back to off.
-
-Therefore the kernel fb driver shouldn't turn CSYNC on by default either.
-
-> The second question concerns the use of Stop-A.
-
-If you tell the kernel to use a different resolution than the PROM had,
-stop-a is not going to work.
