@@ -1,26 +1,22 @@
-From: Keith M Wesolowski <wesolows@foobazco.org>
-Date: Mon, 22 Mar 2004 00:22:55 +0000
-Subject: Re: small make clean fix
-Message-Id: <20040322002255.GA4337@foobazco.org>
+From: Ed L Cashin <ecashin@uga.edu>
+Date: Tue, 16 Mar 2004 20:51:47 +0000
+Subject: REAL_PTRS_PER_PMD and TIF_32BIT
+Message-Id: <87llm08qho.fsf@uga.edu>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040321214223.GA17279@spike>
-In-Reply-To: <20040321214223.GA17279@spike>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sun, Mar 21, 2004 at 04:08:54PM -0800, Pete Zaitcev wrote:
+Hi.  As  far as I can tell,  PTRS_PER_PMD will evaluate to  512 when a
+32-bit binary in userland makes a system call or has a page fault,
+since TIF_32BIT will be set in the thread flags.
 
-> I remember the story, but I forgot on what grounds I did it.
-> I seem to recall having it in my tree for a while and something
-> did not work. But maybe it's just my imagination. Why don't you
-> keep it in your work tree for a week, if nothing breaks, call it good?
-
-I can do better than that; it's been in my work tree and the Gentoo
-kernels for 4 months and nobody's had any problems.
-
-Applied, thanks guys.
+I suppose that means that for every second-level page table associated
+with a 32-bit binary's process, there are (2048 - 512) unused
+pmd entries.  Is that correct?
 
 -- 
-Keith M Wesolowski
+--Ed L Cashin            |   PGP public key:
+  ecashin@uga.edu        |   http://noserose.net/e/pgp/
+
