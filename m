@@ -1,35 +1,101 @@
-From: William Lee Irwin III <wli@holomorphy.com>
-Date: Wed, 22 Dec 2004 17:41:58 +0000
-Subject: Re: [sparc32] [3/3] sun4d prom_adjust_ranges extern
-Message-Id: <20041222174158.GU771@holomorphy.com>
+From: Jeremy Huddleston <eradicator@gentoo.org>
+Date: Wed, 08 Dec 2004 10:53:23 +0000
+Subject: Re: [PATCH] updated asm-sparc/{processor,signal,sigcontext}.h to
+Message-Id: <1102503203.20234.7.camel@cid.outersquare.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=-YWc5A/Sm7e3kccPwblIS"
 List-Id: <sparclinux.vger.kernel.org>
-References: <1103693931.3913.72.camel@localhost.localdomain>
-In-Reply-To: <1103693931.3913.72.camel@localhost.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, Dec 21, 2004 at 11:38:51PM -0600, Tom 'spot' Callaway wrote:
-> Chris Newport and Thomas Bogendoerfer's sun4d patch adds a
-> prom_adjust_ranges call to drivers/sbus/sbus.c, but no extern for the
-> function, so we get this warning:
-> drivers/sbus/sbus.c: In function `sbus_bus_ranges_init':
-> drivers/sbus/sbus.c:243: warning: implicit declaration of function
-> `prom_adjust_ranges'
-> Adding the extern makes the warning go away.
 
-Hmm, I don't like the extern decl in code instead of a header; I
-had already dropped a decl into sbus.h before I got this, but am not
-sure if that's the ideal location for it. It doesn't really fit in with
-various other prom functions, but it doesn't really fit in sbus.h either.
+--=-YWc5A/Sm7e3kccPwblIS
+Content-Type: multipart/mixed; boundary="=-xPDscDf8NS3/9zwGooHt"
 
-I'm going to have something to ship rather shortly (it's already put
-together, I've just been interrupted before I can assemble tarballs etc.
-so we should be able to move on this shortly. It will be -mm -style so
-some well-defined kernel.org kernel version will be able to be patched,
-though I'm thinking of rebasing it against 2.6.10-rc3 since 2.6.9 needs
-18MB of diff to get to current. This should all go to 2.6.10, I'm just
-trying to get something that covers enough ground to make people happy.
 
--- wli
+--=-xPDscDf8NS3/9zwGooHt
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+
+On Fri, 2004-12-03 at 17:34 -0800, Jeremy Huddleston wrote:
+> asm-sparc/signal.h needs:
+>=20
+> #include <linux/compiler>
+>=20
+> because it uses __user around line 214.  Without this include, userland
+> code including asm/signal.h will fail to compile.
+
+I've updated the patch to fix a few more problems with redefined
+structs, etc when using they are included after glibc headers.
+
+--=20
+Jeremy Huddleston <eradicator@gentoo.org>
+
+--=-xPDscDf8NS3/9zwGooHt
+Content-Disposition: attachment; filename=linux26-headers-2.6.8.1-sparc-glibcsafe.patch
+Content-Type: text/x-patch; name=linux26-headers-2.6.8.1-sparc-glibcsafe.patch;
+	charset=ISO-8859-1
+Content-Transfer-Encoding: base64
+
+LS0tIGxpbnV4L2luY2x1ZGUvYXNtLXNwYXJjL3NpZ25hbC5oLm9yaWcJMjAwNC0xMi0wNyAxNDo1
+Mzo0Ny43NDc4MTczMTIgLTA4MDANCisrKyBsaW51eC9pbmNsdWRlL2FzbS1zcGFyYy9zaWduYWwu
+aAkyMDA0LTEyLTA3IDE0OjUyOjQyLjE2NTc4NzI5NiAtMDgwMA0KQEAgLTMsNiArMyw3IEBADQog
+I2RlZmluZSBfQVNNU1BBUkNfU0lHTkFMX0gNCiANCiAjaW5jbHVkZSA8YXNtL3NpZ2NvbnRleHQu
+aD4NCisjaW5jbHVkZSA8bGludXgvY29tcGlsZXIuaD4NCiANCiAjaWZkZWYgX19LRVJORUxfXw0K
+ICNpZm5kZWYgX19BU1NFTUJMWV9fDQpAQCAtMTEzLDExICsxMTQsMTQgQEANCiAJdW5zaWduZWQg
+bG9uZwlzaWdbX05TSUdfV09SRFNdOw0KIH0gX19uZXdfc2lnc2V0X3Q7DQogDQorDQorI2lmbmRl
+ZiBfU0lHTkFMX0gNCiAvKiBBIFN1bk9TIHNpZ3N0YWNrICovDQogc3RydWN0IHNpZ3N0YWNrIHsN
+CiAJY2hhciAqdGhlX3N0YWNrOw0KIAlpbnQgICBjdXJfc3RhdHVzOw0KIH07DQorI2VuZGlmDQog
+DQogLyogU2lndmVjIGZsYWdzICovDQogI2RlZmluZSBfU1ZfU1NUQUNLICAgIDF1ICAgIC8qIFRo
+aXMgc2lnbmFsIGhhbmRsZXIgc2hvdWxkIHVzZSBzaWctc3RhY2sgKi8NCkBAIC0xOTEsMTIgKzE5
+NSwxNCBAQA0KICNkZWZpbmUgU0lHX0lHTgkoKF9fc2lnaGFuZGxlcl90KTEpCS8qIGlnbm9yZSBz
+aWduYWwgKi8NCiAjZGVmaW5lIFNJR19FUlIJKChfX3NpZ2hhbmRsZXJfdCktMSkJLyogZXJyb3Ig
+cmV0dXJuIGZyb20gc2lnbmFsICovDQogDQorI2lmbmRlZiBfU0lHTkFMX0gNCiBzdHJ1Y3QgX19u
+ZXdfc2lnYWN0aW9uIHsNCiAJX19zaWdoYW5kbGVyX3QJc2FfaGFuZGxlcjsNCiAJdW5zaWduZWQg
+bG9uZwlzYV9mbGFnczsNCiAJdm9pZAkJKCpzYV9yZXN0b3Jlcikodm9pZCk7CS8qIE5vdCB1c2Vk
+IGJ5IExpbnV4L1NQQVJDICovDQogCV9fbmV3X3NpZ3NldF90CXNhX21hc2s7DQogfTsNCisjZW5k
+aWYNCiANCiAjaWZkZWYgX19LRVJORUxfXw0KIHN0cnVjdCBrX3NpZ2FjdGlvbiB7DQpAQCAtMjA1
+LDYgKzIxMSw3IEBADQogfTsNCiAjZW5kaWYNCiANCisjaWZuZGVmIF9TSUdOQUxfSA0KIHN0cnVj
+dCBfX29sZF9zaWdhY3Rpb24gew0KIAlfX3NpZ2hhbmRsZXJfdAlzYV9oYW5kbGVyOw0KIAlfX29s
+ZF9zaWdzZXRfdAlzYV9tYXNrOw0KQEAgLTIxNyw2ICsyMjQsNyBAQA0KIAlpbnQJCXNzX2ZsYWdz
+Ow0KIAlzaXplX3QJCXNzX3NpemU7DQogfSBzdGFja190Ow0KKyNlbmRpZg0KIA0KICNpZmRlZiBf
+X0tFUk5FTF9fDQogc3RydWN0IHNwYXJjX2RlbGl2ZXJfY29va2llIHsNCi0tLSBsaW51eC9pbmNs
+dWRlL2FzbS1zcGFyYy9zaWdjb250ZXh0Lmgub3JpZwkyMDA0LTEyLTA3IDE0OjQ2OjU0LjQ5MjY0
+MTY0OCAtMDgwMA0KKysrIGxpbnV4L2luY2x1ZGUvYXNtLXNwYXJjL3NpZ2NvbnRleHQuaAkyMDA0
+LTEyLTA3IDE1OjA0OjE5LjE2NzgyNjg4MCAtMDgwMA0KQEAgLTQsOSArNCw5IEBADQogDQogI2lm
+ZGVmIF9fS0VSTkVMX18NCiAjaW5jbHVkZSA8YXNtL3B0cmFjZS5oPg0KLSNlbmRpZg0KIA0KICNp
+Zm5kZWYgX19BU1NFTUJMWV9fDQorI2lmbmRlZiBfU0lHTkFMX0gNCiANCiAjZGVmaW5lIF9fU1VO
+T1NfTUFYV0lOICAgMzENCiANCkBAIC01Nyw4ICs1Nyw2IEBADQogCX0gc2lfZnBxdWV1ZSBbMTZd
+Ow0KIH0gX19zaWdpbmZvX2ZwdV90Ow0KIA0KLSNpZmRlZiBfX0tFUk5FTF9fDQotDQogLyogVGhp
+cyBtYWdpYyBzaG91bGQgYmUgaW4gZ191cHBlclswXSBmb3IgYWxsIHVwcGVyIHBhcnRzDQogICAg
+dG8gYmUgdmFsaWQuDQogICAgVGhpcyBpcyBnZW5lcmF0ZWQgYnkgc3BhcmM2NCBvbmx5LCBidXQg
+Zm9yIDMyYml0IHByb2Nlc3NlcywNCkBAIC02OSw4ICs2NywxMyBAQA0KIAl1bnNpZ25lZCAgIGlu
+dCBvX3VwcGVyWzhdOw0KIH0gc2lnaW5mb19leHRyYV92OHBsdXNfdDsNCiANCi0jZW5kaWYNCisj
+ZW5kaWYgLyogIShfU0lHTkFMX0gpICovDQogDQogI2VuZGlmIC8qICEoX19BU1NFTUJMWV9fKSAq
+Lw0KIA0KKyNlbHNlIC8qICEoX19LRVJORUxfXykgKi8NCisjaW5jbHVkZSA8c2lnbmFsLmg+IC8q
+IFB1bGxzIGluIDxiaXRzL3NpZ2NvbnRleHQuaD4gd2hpY2ggY29udGFpbnMgYm90aCAvKg0KKyAg
+ICAgICAgICAgICAgICAgICAgLyogb2YgdGhlc2Ugc3RydWN0dXJlcy4uLiAqLw0KKyNlbmRpZg0K
+Kw0KICNlbmRpZiAvKiAhKF9fU1BBUkNfU0lHQ09OVEVYVF9IKSAqLw0KLS0tIGxpbnV4L2luY2x1
+ZGUvYXNtLXNwYXJjL3Byb2Nlc3Nvci5oLm9yaWcJMjAwNC0xMi0wNyAxNToxNDozNy4yNjc4NjEz
+OTIgLTA4MDANCisrKyBsaW51eC9pbmNsdWRlL2FzbS1zcGFyYy9wcm9jZXNzb3IuaAkyMDA0LTEy
+LTA3IDE1OjE0OjQ5Ljg5ODk0MTE3NiAtMDgwMA0KQEAgLTQzLDEwICs0MywxMiBAQA0KIA0KIHN0
+cnVjdCB0YXNrX3N0cnVjdDsNCiANCisjaWZuZGVmIF9TWVNfVUNPTlRFWFRfSA0KIHN0cnVjdCBm
+cHEgew0KIAl1bnNpZ25lZCBsb25nICppbnNuX2FkZHI7DQogCXVuc2lnbmVkIGxvbmcgaW5zbjsN
+CiB9Ow0KKyNlbmRpZg0KIA0KIHR5cGVkZWYgc3RydWN0IHsNCiAJaW50IHNlZzsNCg==
+
+
+--=-xPDscDf8NS3/9zwGooHt--
+
+--=-YWc5A/Sm7e3kccPwblIS
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.6 (GNU/Linux)
+
+iD8DBQBBtt0jOpjtAl+gMRURAoZlAKDUVmgNOG/MdRbkwyQfKKN238S93QCg0/zF
+9pQKFkCU3ipAtW4FXtAZOa8=
+=Aboy
+-----END PGP SIGNATURE-----
+
+--=-YWc5A/Sm7e3kccPwblIS--
+
