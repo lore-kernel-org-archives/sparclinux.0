@@ -1,7 +1,7 @@
-From: "Daniel" <hornet21barry@hotmail.com>
-Date: Fri, 03 Sep 2004 03:01:21 +0000
-Subject: Buy Pain Medications, Anonymously!
-Message-Id: <1094180481-4348@excite.com>
+From: "Larry" <lorraine21bigmac@hotmail.com>
+Date: Thu, 02 Sep 2004 14:27:49 +0000
+Subject: 
+Message-Id: <1094135269-4945@excite.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -12,12 +12,12 @@ Save up to 80% on popular meds!
 
 *** GREAT SPECIALS ***
 
-Check it out: http://www.hjigoeoi.com/_85924943b9db73ac62baa654773c6a8e/4
+Check it out: http://www.oabwkdfbabdfj.com/?92
 
 - No doctor visits or hassles
 - Quick delivery to your front door
 
-Visit us here: http://www.hjigoeoi.com/_85924943b9db73ac62baa654773c6a8e/4
+Visit us here: http://www.oabwkdfbabdfj.com/?92
 
 
 On medication long term?  
@@ -25,12 +25,12 @@ Buy bulk through us and LITERALLY SAVE THOUSANDS!
 
 
 
-wanker firstnesbitt naomi marcus
-cutie metallicabutch cardinal jeff graphic sally angels 
-sweety blondie nugget 
-sugar lawdougie tina sherry
-jan jeanette pedro 
-lamer riverpaula pisces miki
+garnet strawbermedical wombat design
+player profspeedo arizona irene graphic liverpoo hazel 
+bridge gary vanilla 
+angels juliadenali rufus frogs
+swimming oranges marcus 
+stingray rhondagarnet aliens cookies
 
-nugget prestontango whitney poiuyt horizon timber groovy 
+valentin t-bonehanna sweety scooby theatre cherry republic 
 
