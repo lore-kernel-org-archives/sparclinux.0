@@ -1,29 +1,33 @@
-From: Kumba <kumba@gentoo.org>
-Date: Sat, 03 Jul 2004 18:07:20 +0000
-Subject: pte_exprotect
-Message-Id: <40E6F5D8.5020902@gentoo.org>
+From: Tom Weustink <t.weustink@home.nl>
+Date: Thu, 29 Jul 2004 07:07:25 +0000
+Subject: Antw: Re: SMP support in 2.6.x kernel for sparc32
+Message-Id: <S265396AbUG2HH1/20040729070727Z+10010@vger.kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-
-Attempting to build a recent 2.6.6/2.6.7 sparc64 kernel w. the PaX 
-patch, and I get a compile error due to an undefined reference to 
-pte_exprotect.  Doing some digging, this function seems to have gotten 
-pulled out of sparc code a way long time ago, around kernel 1.3.4.  It 
-also vanished from mips code about a year or so later (Around 2.0.x or 
-just shortly before).
-
-I can't find any reasoning in the one patch that removed the function 
-that explained its removal, and considering most other archs still seem 
-to have it, I'm curious as to why it was pulled.  Ideas?
+Well, I am far from being a developer but I will try and log as much as I can and report here.
 
 
---Kumba
 
--- 
-"Such is oft the course of deeds that move the wheels of the world: 
-small hands do them because they must, while the eyes of the great are 
-elsewhere."  --Elrond
+> 
+> Van: William Lee Irwin III <wli@holomorphy.com>
+> Aan: Tom Weustink <t.weustink@home.nl>
+> CC: Keith M Wesolowski <wesolows@foobazco.org>,  sparclinux@vger.kernel.org
+> Datum: do 29 jul 04, 7:48
+> Onderwerp: Re: SMP support in 2.6.x kernel for sparc32
+> 
+> On Thu, Jul 29, 2004 at 06:42:06AM +0200, Tom Weustink wrote:
+> > I will try the patch tonight on my supersparcs.
+> > Thanks so far for the replies!
+> 
+> Like I said, if you're looking for stable, what was posted isn't it.
+> If you're prepared to do some debugging, we'd be glad to hear about
+> the results.
+> 
+> 
+> -- wli
+> 
+
