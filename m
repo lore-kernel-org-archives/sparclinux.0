@@ -1,43 +1,32 @@
-From: "Sheree Quick" <colleenbor@paradiseemail.com>
-Date: Wed, 03 Mar 2004 18:50:43 +0000
-Subject: 30.GE. you could be john holmes
-Message-Id: <DFPFQHWSIJWQJI$9150$fjfain@msn.com>
+From: Marcel Holtmann <marcel@holtmann.org>
+Date: Wed, 14 Apr 2004 20:15:55 +0000
+Subject: Compile problem with sparc64
+Message-Id: <1081973754.3372.5.camel@pegasus>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: SPARC Linux Mailing List <sparclinux@vger.kernel.org>
 
+Hi,
 
-Really LAY some PIPE to the next girl you bang...
+the changeset
 
-http://sachs.ffdsd4d.com/vp5
+ChangeSet@1.1713.27.238, 2004-04-12 13:31:10-07:00, akpm@osdl.org
+  [PATCH] binfmt_elf.c fix for 32-bit apps with large bss
 
+causes this compile problem on sparc64
 
+  CC      arch/sparc64/kernel/binfmt_elf32.o
+In file included from arch/sparc64/kernel/binfmt_elf32.c:154:
+fs/binfmt_elf.c: In function `load_elf_interp':
+fs/binfmt_elf.c:369: warning: comparison is always false due to limited range of data type
+fs/binfmt_elf.c: In function `load_elf_binary':
+fs/binfmt_elf.c:780: warning: comparison is always false due to limited range of data type
 
+Regards
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-No more of this sort of material. Honoured in 24-48 hours.
-http://bilge.amilsdcx.com/a.html
- 
-
-
-ecumenic what erupt cowl shields zing brocade infuriate impugn sprang brandish coffee melanin woodcut drift morris hun distillate pronounceable tide noble aaa harding fredrickson doomsday guam credo bootleg gluing health effeminate minos boor immunoelectrophoresis bullseye burnout 
-vb
+Marcel
 
 
