@@ -1,38 +1,45 @@
-From: Christian Joensson <c.christian.joensson@comhem.se>
-Date: Wed, 18 Feb 2004 12:57:01 +0000
-Subject: sunhme in 2.4.2{3,4}?
-Message-Id: <20040218135701.A25557@fw.j-son.org>
+From: bumblebee@myrealbox.com
+Date: Wed, 04 Feb 2004 13:28:48 +0000
+Subject: FW_Employees Revenge
+Message-Id: <200402041330.i14DUej06637@zeus.kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040218131654.A25364@fw.j-son.org>
-In-Reply-To: <20040218131654.A25364@fw.j-son.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-This is on an Ultra1 running 2.4.24 (Aurora SPARC Linux, 1.0 Ansel)
+Ha-ha, brilliant!=20
 
-From dmesg we can read:
+I=92ve tried this for the last three days, worked perfectly and got my =A35=
+0 worth every time.
 
-PROMLIB: Sun IEEE Boot Prom 3.11.1 1997/12/03 15:44
-Linux version 2.4.24-0.1sparc (root@u1sparc.j-son.org) (gcc driver version egcs-
-2.91.66 19990314/Linux (egcs-1.1.2 release) executing gcc version egcs-2.92.11)
-#1 Wed Feb 18 09:30:53 CET 2004 (priority -1)
-ARCH: SUN4U-0.9.19, 19 August 2002 on sd(8,2), internal journal
+Do you know any overworked, underpaid friends or colleagues? Give them this=
+ story to warm their hearts.=20
 
-and further on
 
-eth0: HAPPY MEAL (SBUS) 10/100baseT Ethernet 08:00:20:7c:3b:06
-eth0: Auto-Negotiation unsuccessful, trying force link mode
-eth0: Link has been forced up using internal transceiver at 10Mb/s, Half Duplex.
+-----Original Message-----
+From: Nick Roberts [mailto:nickroberts@hotpop.com]=20
+Sent: 16 January 2004 11:26
+To: Belinda [mailto: bumblebee@myrealbox.com]
+Subject: Employees revenge
 
-Every now and then, the machine hangs due to something with the HAPYY
-MEAL failing... 
 
-Is this what's been talked about problems with sunhme, or is this
-something unrelated?
+Hi,
 
-TIA,
+Once upon a time there was a hard-working software engineer slaving away un=
+der cruel masters. The engineer poured heart and soul into his work till ea=
+rly hours every morning, with the promise of glorious profit sharing. When =
+the work was finally done, this poor engineer was rewarded by being dismiss=
+ed and shown the door.
 
-/ChJ
+The company I used to work for runs a website:-  www.gamesofskill.co.uk. Ho=
+wever after I had left, they went live with the system, WITH THE TESTING BA=
+CKDOOR STILL IN PLACE !!!!! If you call their competition line on 0906 340 =
+1235 and enter "0" instead of a real answer, then the system lets you throu=
+gh to win a prize - Idiots! They do charge the call at =A31.50 per minute b=
+ut it only lasts one and a half minutes.
 
+Moral of this story? Don=92t p*ss off employees, especially one=92s you fir=
+e!=20
+
+Viva the workers! Down with the bosses! Share the wealth!
