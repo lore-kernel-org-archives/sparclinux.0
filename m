@@ -1,57 +1,50 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Tue, 05 Apr 2005 20:57:37 +0000
-Subject: [PATCH] Fix compat stat handling on sparc64
-Message-Id: <20050405135737.0a413358.davem@davemloft.net>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Tue, 05 Apr 2005 23:52:17 +0000
+Subject: Re: [PATCH] Fix compat stat handling on sparc64
+Message-Id: <20050406095217.5a728d04.sfr@canb.auug.org.au>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Signature=_Wed__6_Apr_2005_09_52_17_+1000_+__DcEdER1fyw8/R"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
+References: <20050405135737.0a413358.davem@davemloft.net>
+In-Reply-To: <20050405135737.0a413358.davem@davemloft.net>
+To: "David S. Miller" <davem@davemloft.net>
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
+--Signature=_Wed__6_Apr_2005_09_52_17_+1000_+__DcEdER1fyw8/R
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The compat layer on sparc64 was not filling in the nanosecond
-fields in properly for 32-bit compat tasks.  This caused things
-like the test-utime.c test to fail in the libc sources.
+Hi Dave,
 
-A problem still remains for native 64-bit binaries.  Like Alpha
-the normal stat structure doesn't have the nanosecond fields
-so I have to add in the stat64 syscall entry points in the 64-bit
-syscall table then add the necessary libc magic.
+On Tue, 5 Apr 2005 13:57:37 -0700 "David S. Miller" <davem@davemloft.net> w=
+rote:
+>
+> --- 1.19/include/asm-sparc64/compat.h	2005-02-17 21:53:03 -08:00
+> +++ edited/include/asm-sparc64/compat.h	2005-04-05 12:37:58 -07:00
+> @@ -51,11 +51,11 @@
+>  	compat_dev_t	st_rdev;
+>  	compat_off_t	st_size;
+>  	compat_time_t	st_atime;
+> -	u32		__unused1;
+> +	u32		st_atime_nsec;
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Surely you meant to put compat_ulong_t instead of u32 ... :-)
 
-=== arch/sparc64/kernel/sys_sparc32.c 1.118 vs edited ==--- 1.118/arch/sparc64/kernel/sys_sparc32.c	2005-03-21 09:56:06 -08:00
-+++ edited/arch/sparc64/kernel/sys_sparc32.c	2005-04-05 12:38:54 -07:00
-@@ -352,11 +352,11 @@
- 	err |= put_user(old_encode_dev(stat->rdev), &statbuf->st_rdev);
- 	err |= put_user(stat->size, &statbuf->st_size);
- 	err |= put_user(stat->atime.tv_sec, &statbuf->st_atime);
--	err |= put_user(0, &statbuf->__unused1);
-+	err |= put_user(stat->atime.tv_nsec, &statbuf->st_atime_nsec);
- 	err |= put_user(stat->mtime.tv_sec, &statbuf->st_mtime);
--	err |= put_user(0, &statbuf->__unused2);
-+	err |= put_user(stat->mtime.tv_nsec, &statbuf->st_mtime_nsec);
- 	err |= put_user(stat->ctime.tv_sec, &statbuf->st_ctime);
--	err |= put_user(0, &statbuf->__unused3);
-+	err |= put_user(stat->ctime.tv_nsec, &statbuf->st_ctime_nsec);
- 	err |= put_user(stat->blksize, &statbuf->st_blksize);
- 	err |= put_user(stat->blocks, &statbuf->st_blocks);
- 	err |= put_user(0, &statbuf->__unused4[0]);
-=== include/asm-sparc64/compat.h 1.19 vs edited ==--- 1.19/include/asm-sparc64/compat.h	2005-02-17 21:53:03 -08:00
-+++ edited/include/asm-sparc64/compat.h	2005-04-05 12:37:58 -07:00
-@@ -51,11 +51,11 @@
- 	compat_dev_t	st_rdev;
- 	compat_off_t	st_size;
- 	compat_time_t	st_atime;
--	u32		__unused1;
-+	u32		st_atime_nsec;
- 	compat_time_t	st_mtime;
--	u32		__unused2;
-+	u32		st_mtime_nsec;
- 	compat_time_t	st_ctime;
--	u32		__unused3;
-+	u32		st_ctime_nsec;
- 	compat_off_t	st_blksize;
- 	compat_off_t	st_blocks;
- 	u32		__unused4[2];
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
+
+--Signature=_Wed__6_Apr_2005_09_52_17_+1000_+__DcEdER1fyw8/R
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.0 (GNU/Linux)
+
+iD8DBQFCUyS14CJfqux9a+8RAseYAJ9qg9J1uQpXS88cgkmzrUJ+R9cNzgCfRqRq
+p2gWqx2o27LDxzX32Pf9SnE=
+=FEhu
+-----END PGP SIGNATURE-----
+
+--Signature=_Wed__6_Apr_2005_09_52_17_+1000_+__DcEdER1fyw8/R--
