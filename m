@@ -1,33 +1,42 @@
-From: "David S. Miller" <davem@redhat.com>
-Date: Sun, 28 Mar 2004 09:16:24 +0000
-Subject: Re: Another compile problem on sparc64
-Message-Id: <20040328011624.442bf391.davem@redhat.com>
+From: "Art Haas" <ahaas@airmail.net>
+Date: Thu, 25 Mar 2004 17:07:40 +0000
+Subject: [PATCH] Patch for arch/sparc/math-emu/math.c
+Message-Id: <20040325170740.GB11895@artsapartment.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1080384189.2285.8.camel@pegasus>
-In-Reply-To: <1080384189.2285.8.camel@pegasus>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Hi.
 
-You could have killed all of this by just temporarily removing
-the "-Werror" that gets added in the arch/sparc64/ Makefiles :-)
+Here's a small patch that fixes GCC-3.5 compilation. The compiler
+doesn't like the "label at end of compound statement", so by simply
+adding 'break;' to the "default:" condition the problem is resolved
+if 'DEBUG_MATHEMU' is not defined.
 
-This latest one only happens on uniprocessor builds, which is why
-I didn't catch it.  Only recent debian unstable updates of gcc started
-to emit these warnings fwiw...
+Art Haas
 
-Anyways, here's the fix, I'll push it off to Linus.
+=== arch/sparc/math-emu/math.c 1.2 vs edited ==--- 1.2/arch/sparc/math-emu/math.c	Fri Feb  7 02:20:33 2003
++++ edited/arch/sparc/math-emu/math.c	Thu Mar 25 10:55:31 2004
+@@ -327,6 +327,7 @@
+ #ifdef DEBUG_MATHEMU
+ 			printk("unknown FPop1: %03lx\n",(insn>>5)&0x1ff);
+ #endif
++			break;
+ 		}
+ 	} else if ((insn & 0xc1f80000) = 0x81a80000)	/* FPOP2 */ {
+ 		switch ((insn >> 5) & 0x1ff) {
+@@ -340,6 +341,7 @@
+ #ifdef DEBUG_MATHEMU
+ 			printk("unknown FPop2: %03lx\n",(insn>>5)&0x1ff);
+ #endif
++			break;
+ 		}
+ 	}
+ 
+-- 
+Man once surrendering his reason, has no remaining guard against absurdities
+the most monstrous, and like a ship without rudder, is the sport of every wind.
 
-=== arch/sparc64/mm/init.c 1.55 vs edited ==--- 1.55/arch/sparc64/mm/init.c	Mon Mar  1 06:30:54 2004
-+++ edited/arch/sparc64/mm/init.c	Sun Mar 28 01:13:58 2004
-@@ -104,7 +104,7 @@
-                                 if (page2)
-                                         page2->lru.next = page->lru.next;
-                                 else
--                                        (struct page *)pgd_quicklist = page->lru.next;
-+                                        pgd_quicklist = (void *) page->lru.next;
-                                 pgd_cache_size -= 2;
-                                 __free_page(page);
-                                 if (page2)
+-Thomas Jefferson to James Smith, 1822
