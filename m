@@ -1,64 +1,40 @@
-From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
-Date: Fri, 04 Mar 2005 05:44:39 +0000
-Subject: [PATCH 2.6] More sparc32 ksyms cleanups
-Message-Id: <1109915079.17038.69.camel@localhost.localdomain>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-7Casd1bYroQA7cqJbSq5"
+From: Nagra Tv Offshore <classaction@ripoffreport.com>
+Date: Mon, 28 Mar 2005 06:03:01 +0000
+Subject: RE:Dishnet/Bell/FTA Nagra2 Files Ready: FTA Super Sale
+Message-Id: <E1DFnL3-0004GH-2F@rex.remotelysupported.com>
 List-Id: <sparclinux.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+NagraCode.Com 1-800-386-0314 For Support Questions Sales
 
---=-7Casd1bYroQA7cqJbSq5
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Call In For Your Discounted Rates
 
-The sparc32 ksyms is missing a few more symbols, these are primarily
-related to SMP, and will be needed as SMP gets beaten back into
-functionality.
+Hello and welcome to our beautiful site NagraCode.Com where you can shop in a friendly safe environment for your sat shopping needs.This weeks special includes a (Foretec Ultra Lifetime Free 2 Air Reciever with 1 year nagra 2 support.All Recievers come with cables Disecq switch and shipping included and 1 Year Full support.No more looking for files and such as we have them all.We accept paypal so you can call us for savings on our unit.
 
-Specifically, add __cpu_data (PER_CPU), cpu_online_map, and
-phys_cpu_present_map.
+NagraCode.Com
 
-This patch assumes that the earlier "linux-2.6.11-sparc-fixksyms.patch"
-is applied, otherwise, it will apply with fuzz.
+If you were subject to channel loss and more you came to the right place.We support all smartcards and various FTA recievers.We are a stronghold for all testing needs and offer Excellent quality testing support.All memberships once paid allows you instant access to Nagra 2 Compatibility software.Keep in mind that the Bell stream is stiil on it's way and testing does not stop.
 
-Signed-off-by: Tom 'spot' Callaway <tcallawa@redhat.com>
+NagraCode.Com
 
-~spot
----
-Tom "spot" Callaway: Red Hat Sales Engineer || GPG Fingerprint: 93054260
-Fedora Extras Steering Committee Member (RPM Standards and Practices)
-Aurora Linux Project Leader: http://auroralinux.org
-Lemurs, llamas, and sparcs, oh my!
+Join us today and we are here to help you get going in any way,support is offered in Spanish,French,and English.Why hesitate we offer 30 day money back guarantee on software and hardware.Join Now 
 
---=-7Casd1bYroQA7cqJbSq5
-Content-Disposition: attachment; filename=linux-2.6.11-sparc-fixksyms2.patch
-Content-Type: text/x-patch; name=linux-2.6.11-sparc-fixksyms2.patch; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 
---- linux-2.6.11/arch/sparc/kernel/sparc_ksyms.c.BAD	2005-03-04 00:39:52.444257587 -0500
-+++ linux-2.6.11/arch/sparc/kernel/sparc_ksyms.c	2005-03-04 00:44:03.843039163 -0500
-@@ -148,6 +148,9 @@ EXPORT_SYMBOL(___set_bit);
- EXPORT_SYMBOL(___clear_bit);
- EXPORT_SYMBOL(___change_bit);
- 
-+/* Per-CPU information table */
-+EXPORT_PER_CPU_SYMBOL(__cpu_data);
-+
- #ifdef CONFIG_SMP
- /* IRQ implementation. */
- EXPORT_SYMBOL(synchronize_irq);
-@@ -155,6 +158,10 @@ EXPORT_SYMBOL(synchronize_irq);
- /* Misc SMP information */
- EXPORT_SYMBOL(__cpu_number_map);
- EXPORT_SYMBOL(__cpu_logical_map);
-+
-+/* CPU online map and active count. */
-+EXPORT_SYMBOL(cpu_online_map);
-+EXPORT_SYMBOL(phys_cpu_present_map);
- #endif
- 
- EXPORT_SYMBOL(__udelay);
+NagraCode.Com Top Notch 3m Group and FTA Carrier
 
---=-7Casd1bYroQA7cqJbSq5--
+1-800-386-0314 For Support Questions Sales
+
+
+
+
+If you want to check out Bad Business Bureau please look on www.ripoffreport.com and check out some of the Worlds biggest scammers Today
+
+
+Digital Map Is Onstar Board Loops 07390487902euopit=-5509-T309rquwieu290
+
+
+
 
