@@ -1,36 +1,15 @@
-From: "Larry" <lorraine21bigmac@hotmail.com>
-Date: Thu, 02 Sep 2004 14:27:49 +0000
-Subject: 
-Message-Id: <1094135269-4945@excite.com>
+From: Matt R Hall <mhcomputing@gmail.com>
+Date: Tue, 21 Sep 2004 19:15:23 +0000
+Subject: I'm glad I'm not the only one who noticed SMP Hard Lock issues...
+Message-Id: <703d4eaa0409211215625c27a8@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Save up to 80% on popular meds!
+It's good to hear that other people are grappling with the same
+problem. I'm hoping other people with the same problem and more skills
+with hardware than I have can help with this.
 
-*** GREAT SPECIALS ***
-
-Check it out: http://www.oabwkdfbabdfj.com/?92
-
-- No doctor visits or hassles
-- Quick delivery to your front door
-
-Visit us here: http://www.oabwkdfbabdfj.com/?92
-
-
-On medication long term?  
-Buy bulk through us and LITERALLY SAVE THOUSANDS!
-
-
-
-garnet strawbermedical wombat design
-player profspeedo arizona irene graphic liverpoo hazel 
-bridge gary vanilla 
-angels juliadenali rufus frogs
-swimming oranges marcus 
-stingray rhondagarnet aliens cookies
-
-valentin t-bonehanna sweety scooby theatre cherry republic 
-
+Thanks for all of your informational replies.
