@@ -1,59 +1,65 @@
-From: "Wojciech 'Sas' Cieciwa" <cieciwa@alpha.zarz.agh.edu.pl>
-Date: Fri, 25 Jun 2004 09:31:21 +0000
-Subject: [SPARC64] kernel 2.6.7+cset-20040625_0611 = ERROR
-Message-Id: <Pine.LNX.4.58L.0406251320310.6037@alpha.zarz.agh.edu.pl>
+From: Andrew Morton <akpm@osdl.org>
+Date: Fri, 25 Jun 2004 10:04:30 +0000
+Subject: Re: [SPARC64] kernel 2.6.7+cset-20040625_0611 = ERROR
+Message-Id: <20040625030430.4f494e43.akpm@osdl.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <Pine.LNX.4.58L.0406251320310.6037@alpha.zarz.agh.edu.pl>
+In-Reply-To: <Pine.LNX.4.58L.0406251320310.6037@alpha.zarz.agh.edu.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel <linux-kernel@vger.kernel.org>
-Cc: davem@redhat.com, SPARC Linux kernel list <sparclinux@vger.kernel.org>
+To: Wojciech 'Sas' Cieciwa <cieciwa@alpha.zarz.agh.edu.pl>
+Cc: linux-kernel@vger.kernel.org, davem@redhat.com, sparclinux@vger.kernel.org
 
-I try to build this on my machine 
+"Wojciech 'Sas' Cieciwa" <cieciwa@alpha.zarz.agh.edu.pl> wrote:
+>
+> make[1]: *** [arch/sparc64/kernel/process.o] Error 1
+>  make: *** [arch/sparc64/kernel] Error 2
 
-cpu		: TI UltraSparc II  (BlackBird)
-fpu		: UltraSparc II integrated FPU
-promlib		: Version 3 Revision 12
-prom		: 3.12.3
-type		: sun4u
-ncpus probed	: 4
-ncpus active	: 4
+Here's one:
 
-and:
-make image
-[...]
-  CC      arch/sparc64/kernel/process.o
-In file included from include/linux/byteorder/big_endian.h:11,
-                 from include/asm/byteorder.h:48,
-                 from include/asm/bitops.h:11,
-                 from include/linux/bitops.h:4,
-                 from include/linux/thread_info.h:20,
-                 from include/linux/spinlock.h:12,
-                 from include/linux/capability.h:45,
-                 from include/linux/sched.h:7,
-                 from include/linux/module.h:10,
-                 from arch/sparc64/kernel/process.c:16:
-include/linux/byteorder/swab.h: In function `__swab16p':
-include/linux/byteorder/swab.h:139: warning: passing arg 1 of 
-`___arch__swab16p' discards qualifiers from pointer target type
-include/linux/byteorder/swab.h: In function `__swab32p':
-include/linux/byteorder/swab.h:152: warning: passing arg 1 of 
-`___arch__swab32p' discards qualifiers from pointer target type
-include/linux/byteorder/swab.h: In function `__swab64p':
-include/linux/byteorder/swab.h:172: warning: passing arg 1 of 
-`___arch__swab64p' discards qualifiers from pointer target type
-In file included from include/linux/sched.h:15,
-                 from include/linux/module.h:10,
-                 from arch/sparc64/kernel/process.c:16:
+
+
 include/linux/cpumask.h: In function `__first_cpu':
-include/linux/cpumask.h:210: warning: passing arg 1 of `find_next_bit' 
-discards qualifiers from pointer target type
+include/linux/cpumask.h:210: warning: passing arg 1 of `find_next_bit' discards qualifiers from pointer target type
 include/linux/cpumask.h: In function `__next_cpu':
-include/linux/cpumask.h:216: warning: passing arg 1 of `find_next_bit' 
-discards qualifiers from pointer target type
-make[1]: *** [arch/sparc64/kernel/process.o] Error 1
-make: *** [arch/sparc64/kernel] Error 2
+include/linux/cpumask.h:216: warning: passing arg 1 of `find_next_bit' discards qualifiers from pointer target type
 
--- 
-{Wojciech 'Sas' Cieciwa}  {Member of PLD Team                               }
-{e-mail: cieciwa@alpha.zarz.agh.edu.pl, http://www2.zarz.agh.edu.pl/~cieciwa}
+Signed-off-by: Andrew Morton <akpm@osdl.org>
+---
+
+ 25-sparc64-akpm/arch/sparc64/lib/find_bit.c  |    5 +++--
+ 25-sparc64-akpm/include/asm-sparc64/bitops.h |    3 ++-
+ 2 files changed, 5 insertions(+), 3 deletions(-)
+
+diff -puN arch/sparc64/lib/find_bit.c~sparc64-find_next_bit-fix arch/sparc64/lib/find_bit.c
+--- 25-sparc64/arch/sparc64/lib/find_bit.c~sparc64-find_next_bit-fix	2004-06-25 03:02:00.095102072 -0700
++++ 25-sparc64-akpm/arch/sparc64/lib/find_bit.c	2004-06-25 03:02:00.109099944 -0700
+@@ -6,9 +6,10 @@
+  * @offset: The bitnumber to start searching at
+  * @size: The maximum size to search
+  */
+-unsigned long find_next_bit(unsigned long *addr, unsigned long size, unsigned long offset)
++unsigned long find_next_bit(const unsigned long *addr, unsigned long size,
++				unsigned long offset)
+ {
+-	unsigned long *p = addr + (offset >> 6);
++	const unsigned long *p = addr + (offset >> 6);
+ 	unsigned long result = offset & ~63UL;
+ 	unsigned long tmp;
+ 
+diff -puN include/asm-sparc64/bitops.h~sparc64-find_next_bit-fix include/asm-sparc64/bitops.h
+--- 25-sparc64/include/asm-sparc64/bitops.h~sparc64-find_next_bit-fix	2004-06-25 03:02:00.104100704 -0700
++++ 25-sparc64-akpm/include/asm-sparc64/bitops.h	2004-06-25 03:02:00.110099792 -0700
+@@ -204,7 +204,8 @@ static __inline__ unsigned int hweight8(
+  * @offset: The bitnumber to start searching at
+  * @size: The maximum size to search
+  */
+-extern unsigned long find_next_bit(unsigned long *, unsigned long, unsigned long);
++extern unsigned long find_next_bit(const unsigned long *, unsigned long,
++					unsigned long);
+ 
+ /**
+  * find_first_bit - find the first set bit in a memory region
+_
+
