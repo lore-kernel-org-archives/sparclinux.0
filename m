@@ -1,50 +1,90 @@
-From: Ron Murray <murrayr@dor.state.ma.us>
-Date: Fri, 15 Oct 2004 15:13:12 +0000
-Subject: Re: E250 console on kernel 2.6.8.1
-Message-Id: <416FE908.8010808@dor.state.ma.us>
+From: Matthew Wilcox <matthew@wil.cx>
+Date: Fri, 01 Oct 2004 18:25:00 +0000
+Subject: sym2 on sparc
+Message-Id: <20041001182500.GJ16153@parcelfarce.linux.theplanet.co.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <416D3441.5090702@dor.state.ma.us>
-In-Reply-To: <416D3441.5090702@dor.state.ma.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-RChan wrote:
-> I used to have this working even with home-made kernels before my E250 
-> died.
-> Can I suggest you try the Aurora kernels from www.auroralinux.org - they 
-> are around
-> 2.6.8 by now. If that works then you might wish to compare .config to see
-> if something is missing in yours.
 
-    Thank you. I tried that, but they don't seem to have included the 
-pm2fb driver. And I've searched the net, and haven't found anyone else 
-using it on a 2.6 kernel either.
+Sorry, got the mailing address wrong for sparclinux the first time round.
 
-    I've come to the conclusion that the permedia2 FB driver is broken 
-in 2.6(.8?), at least when it comes to the Raptor GFX board in an E250. 
-The system will boot, but nothing gets displayed on the screen (the 
-monitor doesn't see any signal at this point). I did get the thing to 
-boot with the PROM console, and can log in that way (after I figured out 
-how to disable console keymaps). But the glint X driver doesn't work 
-under these conditions (it segfaults), and neither does the X 
-framebuffer driver (it segfaults too). Both work under a 2.4 kernel 
-(although glint has real problems).
+Could someone with a symbios 53c8xx chip test this patch?  It works
+on non-sparc.  If I don't hear of any problems, it'll be in the next
+driver update.
 
-    So I'm going back to 2.4 kernels for now. At least they work.
+Index: drivers/scsi/sym53c8xx_2/sym_glue.c
+=================================RCS file: /var/cvs/linux-2.6/drivers/scsi/sym53c8xx_2/sym_glue.c,v
+retrieving revision 1.63
+diff -u -p -r1.63 sym_glue.c
+--- drivers/scsi/sym53c8xx_2/sym_glue.c	28 Sep 2004 12:34:20 -0000	1.63
++++ drivers/scsi/sym53c8xx_2/sym_glue.c	1 Oct 2004 18:15:30 -0000
+@@ -56,6 +56,15 @@
+ #define NAME53C		"sym53c"
+ #define NAME53C8XX	"sym53c8xx"
+ 
++/* Bloody SPARC can't do anything normal ... */
++#ifdef __sparc__
++#define IRQ_FMT "%s"
++#define IRQ_PRM(x) __irq_itoa(x)
++#else
++#define IRQ_FMT "%d"
++#define IRQ_PRM(x) (x)
++#endif
++
+ static int __devinit
+ pci_get_base_address(struct pci_dev *pdev, int index, u_long *base)
+ {
+@@ -1400,18 +1409,8 @@ static int sym_host_info(struct sym_hcb 
+ 	copy_info(&info, "Chip " NAME53C "%s, device id 0x%x, "
+ 			 "revision id 0x%x\n",
+ 			 np->s.chip_name, np->device_id, np->revision_id);
+-	copy_info(&info, "At PCI address %s, "
+-#ifdef __sparc__
+-		"IRQ %s\n",
+-#else
+-		"IRQ %d\n",
+-#endif
+-		pci_name(np->s.device),
+-#ifdef __sparc__
+-		__irq_itoa(np->s.irq));
+-#else
+-		(int) np->s.irq);
+-#endif
++	copy_info(&info, "At PCI address %s, IRQ " IRQ_FMT "\n",
++		pci_name(np->s.device), IRQ_PRM(np->s.irq));
+ 	copy_info(&info, "Min. period factor %d, %s SCSI BUS%s\n",
+ 			 (int) (np->minsync_dt ? np->minsync_dt : np->minsync),
+ 			 np->maxwide ? "Wide" : "Narrow",
+@@ -1539,19 +1538,9 @@ static struct Scsi_Host * __devinit sym_
+ 	struct sym_fw *fw;
+ 
+ 	printk(KERN_INFO
+-		"sym%d: <%s> rev 0x%x at pci %s "
+-#ifdef __sparc__
+-		"irq %s\n",
+-#else
+-		"irq %d\n",
+-#endif
++		"sym%d: <%s> rev 0x%x at pci %s irq " IRQ_FMT "\n",
+ 		unit, dev->chip.name, dev->chip.revision_id,
+-		pci_name(dev->pdev),
+-#ifdef __sparc__
+-		__irq_itoa(dev->s.irq));
+-#else
+-		dev->s.irq);
+-#endif
++		pci_name(dev->pdev), IRQ_PRM(dev->s.irq));
+ 
+ 	/*
+ 	 *  Get the firmware for this chip.
 
-    One thing I found while working on this is that I had to enable 
-SERIAL_SUNSU and SERIAL_SUNSU_CONSOLE before I got a functioning 
-keyboard and mouse (never noticed till I got the prom console going). 
-Surprisingly, the default config under arch/sparc64 didn't see fit to 
-include them.
-
-
-**********************************************************************
-This email and any files transmitted with it are confidential and 
-intended solely for the use of the individual or entity to whom they   
-are addressed. If you have received this email in error please notify 
-the system manager at postmaster at dor.state.ma.us.
-**********************************************************************
-
+-- 
+"Next the statesmen will invent cheap lies, putting the blame upon 
+the nation that is attacked, and every man will be glad of those
+conscience-soothing falsities, and will diligently study them, and refuse
+to examine any refutations of them; and thus he will by and by convince 
+himself that the war is just, and will thank God for the better sleep 
+he enjoys after this process of grotesque self-deception." -- Mark Twain
