@@ -1,29 +1,37 @@
-From: William Lee Irwin III <wli@holomorphy.com>
-Date: Sat, 14 Aug 2004 08:27:25 +0000
-Subject: Re: IDE build fails for sparc32
-Message-Id: <20040814082725.GS11200@holomorphy.com>
+From: =?ISO-8859-1?Q?Torbj=F6rn?= Olander <tosse@wlug.westbo.se>
+Date: Sun, 15 Aug 2004 19:22:05 +0000
+Subject: 2.6.8.1 and XFree86
+Message-Id: <1092597725.2550.7.camel@iota>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040814065113.GA19997@darjeeling.triplehelix.org>
-In-Reply-To: <20040814065113.GA19997@darjeeling.triplehelix.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-On Fri, 13 Aug 2004, Joshua Kwan wrote:
->> Someone asked for IDE support for Debian's sparc32 kernel images so they
->> could use their special JavaStations with them. I figured it would not
->> get built into the kernel, so no harm building modules of it. However,
->> with 2.4.27:
+Hi!
 
-On Sat, Aug 14, 2004 at 03:22:47AM -0400, skunky@skunky.org wrote:
-> now, what was it those guys said to be... oh yes, 2.4 is dead, use 2.6... 
-> that's what they said.  I still use 2.4.x but, I should probably upgrade, 
-> seeing as how I can't make anything newer than .24 work.
-
-I'll be getting a JavaStation so I can deal with this and will fix this
-up. Please stick with 2.4 for now. If you could describe your system in
-greater detail that would also be helpful.
+On my Ultra 5, linux kernel 2.6.7 runs fine but after that (2.6.8-rc1
+and on, no change with 2.6.8.1) XFree86 gets this message:
 
 
--- wli
+(II) LoadModule: "pcidata"
+(II) Loading /usr/X11R6/lib/modules/libpcidata.a
+(II) Module pcidata: vendor=3D"The XFree86 Project"
+        compiled for 4.3.0.1, module version =3D 1.0.0
+        ABI class: XFree86 Video Driver, version 0.6
+
+   *** If unresolved symbols were reported above, they might not
+   *** be the reason for the server aborting.
+
+Fatal server error:
+Caught signal 11.  Server aborting
+
+
+I'm running Debian Unstable.
+Any way to solve this issue?
+
+--=20
+Med v=E4nliga h=E4lsningar / Best regards
+Torbj=F6rn Olander
+tosse@wlug.westbo.se
+
