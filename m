@@ -1,23 +1,25 @@
 From: Jiri Gaisler <jiri@gaisler.com>
-Date: Tue, 04 Jan 2005 19:04:37 +0000
-Subject: [6/7] LEON SPARC V8 processor support for linux-2.6.10
-Message-Id: <41DAE8C5.3050308@gaisler.com>
+Date: Wed, 05 Jan 2005 15:18:51 +0000
+Subject: Re: [6/7] LEON SPARC V8 processor support for linux-2.6.10
+Message-Id: <41DC055B.4050309@gaisler.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------050206080802060801090204"
+Content-Type: multipart/mixed; boundary="------------050802030406050001090306"
 List-Id: <sparclinux.vger.kernel.org>
+References: <41DAE8C5.3050308@gaisler.com>
+In-Reply-To: <41DAE8C5.3050308@gaisler.com>
 To: sparclinux@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, wli@holomorphy.com
 
 This is a multi-part message in MIME format.
---------------050206080802060801090204
+--------------050802030406050001090306
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Leon2 serial+ethermac driver:
+Leon2 serial+ethermac driver, updated.
 
 [6/7] diff2.6.10_driver_net.diff:         diff for drivers/net
 
---------------050206080802060801090204
+--------------050802030406050001090306
 Content-Type: text/plain;
  name="diff2.6.10_driver_net.diff"
 Content-Transfer-Encoding: 7bit
@@ -53,39 +55,6 @@ diff -Naur ../linux-2.6.10/drivers/net/Makefile linux-2.6.10/drivers/net/Makefil
  
  obj-$(CONFIG_MACE) += mace.o
  obj-$(CONFIG_BMAC) += bmac.o
-diff -Naur ../linux-2.6.10/drivers/net/Space.c linux-2.6.10/drivers/net/Space.c
---- ../linux-2.6.10/drivers/net/Space.c	2004-12-24 22:33:59.000000000 +0100
-+++ linux-2.6.10/drivers/net/Space.c	2005-01-03 11:36:33.000000000 +0100
-@@ -93,6 +93,7 @@
- extern struct net_device *mc32_probe(int unit);
- extern struct net_device *cops_probe(int unit);
- extern struct net_device *ltpc_probe(void);
-+extern struct net_device *grlib_oeth_probe(int unit);
-   
- /* Detachable devices ("pocket adaptors") */
- extern struct net_device *de620_probe(int unit);
-@@ -312,6 +313,13 @@
- 	{NULL, 0},
- };
- 
-+static struct devprobe2 sparc_probes[] __initdata = {
-+#ifdef CONFIG_GRLIB_OPENCORES_ETHERMAC
-+	{grlib_oeth_probe, 0},
-+#endif
-+	{NULL, 0},
-+};
-+
- /*
-  * Unified ethernet device probe, segmented per architecture and
-  * per bus interface. This drives the legacy devices only for now.
-@@ -326,6 +334,7 @@
- 
- 	(void)(	probe_list2(unit, m68k_probes, base_addr == 0) &&
- 		probe_list2(unit, mips_probes, base_addr == 0) &&
-+		probe_list2(unit, sparc_probes, base_addr == 0) &&
- 		probe_list2(unit, eisa_probes, base_addr == 0) &&
- 		probe_list2(unit, mca_probes, base_addr == 0) &&
- 		probe_list2(unit, isa_probes, base_addr == 0) &&
 diff -Naur ../linux-2.6.10/drivers/net/open_eth.c linux-2.6.10/drivers/net/open_eth.c
 --- ../linux-2.6.10/drivers/net/open_eth.c	1970-01-01 01:00:00.000000000 +0100
 +++ linux-2.6.10/drivers/net/open_eth.c	2005-01-03 11:36:33.000000000 +0100
@@ -1224,4 +1193,4 @@ diff -Naur ../linux-2.6.10/drivers/net/open_eth.h linux-2.6.10/drivers/net/open_
 +#define OETH_MIISTATUS_NVALID   0x00000004 /* Data in MII Status Register is invalid */
 +
 
---------------050206080802060801090204--
+--------------050802030406050001090306--
