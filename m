@@ -1,84 +1,68 @@
-From: "C.Newport" <crn@netunix.com>
-Date: Thu, 09 Sep 2004 19:57:19 +0000
-Subject: Re: Sun4D SMP now works OK, serial console broken - was Re: More Sun4d tests
-Message-Id: <200409092057.19210.crn@netunix.com>
+From: Richard Mortimer <richm@oldelvet.org.uk>
+Date: Thu, 02 Sep 2004 10:58:12 +0000
+Subject: Re: [PATCH] Re: lvm problems on sparc64 - Trying to vfree()
+Message-Id: <1094122692.2117.1704.camel@duncow>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200409091646.21205.crn@netunix.com>
-In-Reply-To: <200409091646.21205.crn@netunix.com>
+References: <1093911340.2116.55.camel@duncow>
+	<20040830174015.10edb69b.davem@davemloft.net>
+	<1093989609.2124.139.camel@duncow>
+	<20040901183737.7bf17a39.davem@davemloft.net>
+In-Reply-To: <20040901183737.7bf17a39.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, debian-sparc@lists.debian.org, linux-lvm@sistina.com, richm@oldelvet.org.uk, marcelo.tosatti@cyclades.com
+
+On Thu, 2004-09-02 at 02:37, David S. Miller wrote:
+> On Tue, 31 Aug 2004 23:00:10 +0100
+> Richard Mortimer <richm@oldelvet.org.uk> wrote:
+> 
+> > How do they look
+> 
+> Please resend your patch without all the line breaks
+> created by your email client.  It looks fine otherwise
+> :)
+
+Bah. Clients are just getting too clever these days. 
+
+Hopefully this should be ok.
+
+Richard
 
 
-Thanks, this seems to help, but the real problem is still there.
-
-To make testing easier I am now using the kbd/screen as console
-and ttyS0 as a login terminal. 
-
-Symptoms on the serial terminal: 
-I can log in OK, and do a few simple things like ls, but as soon as I 
-do something reasonably output intensive such as run top the 
-output continues to be displayed but input is messed up. 
-q or ^C does not work, so I kill the top process from the console.
-now typing from serial (minicom session) gives garbage.
-
-Another clue: 
-stty < /dev/ttyS0  from the console should give me some clues, but this
-hangs until I kill it with ^C.
-
+--- arch/sparc64/kernel/ioctl32.c.orig	2004-08-29 00:12:09.000000000 +0100
++++ arch/sparc64/kernel/ioctl32.c	2004-08-31 22:06:23.000000000 +0100
+@@ -2949,7 +2949,7 @@
+ 	case LV_REMOVE:
+ 	case LV_RENAME:
+ 	case LV_STATUS_BYNAME:
+-	        err = copy_from_user(&u.pv_status, arg, sizeof(u.pv_status.pv_name));
++	        err = copy_from_user(&u.lv_req, arg, sizeof(u.lv_req.lv_name));
+ 		if (err)
+ 			return -EFAULT;
+ 		if (cmd != LV_REMOVE) {
+@@ -2992,7 +2992,7 @@
+ 
+ 	case PV_CHANGE:
+ 	case PV_STATUS:
+-		err = copy_from_user(&u.pv_status, arg, sizeof(u.lv_req.lv_name));
++		err = copy_from_user(&u.pv_status, arg, sizeof(u.pv_status.pv_name));
+ 		if (err)
+ 			return -EFAULT;
+ 		err = __get_user(ptr, &((pv_status_req32_t *)arg)->pv);
+@@ -3064,7 +3064,7 @@
+ 	        if (u.lv_bydev.lv) {
+ 			if (!err)
+ 				err = copy_lv_t(ptr, u.lv_bydev.lv);
+-			put_lv_t(u.lv_byindex.lv);
++			put_lv_t(u.lv_bydev.lv);
+ 	        }
+ 	        break;
  
 
-On Thursday 09 September 2004 6:38 pm, David S. Miller wrote:
-> On Thu, 9 Sep 2004 10:19:35 -0700
->
-> William Lee Irwin III <wli@holomorphy.com> wrote:
-> > On Thu, 9 Sep 2004, C.Newport wrote:
-> > >> My SS1000E seems to be stable with 2.4.27 after fitting a frame
-> > >> buffer and keyboard. It rebuilds a kernel OK in SMP mode.
-> > >> Serial console is still broken, there seems to be a problem
-> > >> with the sunzilog driver.
-> > >> What other Sun machines use sunzilog.c as the serial console ?.
-> > >> Is this problem really a sun4d issue or is it generic to sunzilog ?
-> >
-> > On Thu, Sep 09, 2004 at 12:55:19PM -0400, Chris Ricker wrote:
-> > > I think early Ultras (Ultra2, for example) are Sun Zilog as well. I've
-> > > not tried serial console on mine in a while though....
-> >
-> > Yes, SunZilog appears to be stable on all my UltraSPARC machines. The
-> > bug is likely something specific to older revisions typically used in
-> > sun4d boxen or some such.
->
-> Like the UltraSPARC Enterprise bigger systems using the
-> SunZILOG's for serial, the XBUS/XDBUS on sun4d can
-> defer the completion of writes to I/O registers.
->
-> Thus you should play around with enabling the
-> __sparc_v9__ version of the ZS_WSYNC() macro
-> in drivers/sbus/char/zs.c for all Sparc builds.
->
-> Something like this:
->
-> === drivers/sbus/char/zs.c 1.11 vs edited ==> --- 1.11/drivers/sbus/char/zs.c	2002-03-30 07:45:50 -08:00
-> +++ edited/drivers/sbus/char/zs.c	2004-09-09 10:20:18 -07:00
-> @@ -71,13 +71,13 @@
->  #ifndef __sparc_v9__
->  #define ZSDELAY()		udelay(5)
->  #define ZSDELAY_LONG()		udelay(20)
-> -#define ZS_WSYNC(channel)	do { } while(0)
->  #else
->  #define ZSDELAY()
->  #define ZSDELAY_LONG()
-> +#endif
-> +
->  #define ZS_WSYNC(__channel) \
->  	sbus_readb(&((__channel)->control))
-> -#endif
->
->  struct sun_zslayout **zs_chips;
->  struct sun_zschannel **zs_channels;
-> -
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+-- 
+richm@oldelvet.org.uk
 
