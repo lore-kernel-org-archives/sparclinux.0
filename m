@@ -1,23 +1,26 @@
-From: William Lee Irwin III <wli@holomorphy.com>
-Date: Tue, 21 Dec 2004 11:38:26 +0000
-Subject: [sparc32] [1/4] svr4_setcontext() void return in function returning non-void
-Message-Id: <20041221113826.GL771@holomorphy.com>
+From: "Margarita" <ohjra@ameritech.net>
+Date: Tue, 07 Dec 2004 17:12:08 +0000
+Subject: So agitated that his
+Message-Id: <523376366532-48593943@ameritech.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-This thing needs to return something, so might as well return -EFAULT here.
+Tue, 07 Dec 2004 11:16:08 -0600
+CLIENT: 241-5776-733
 
-Index: sparc32-2.6.10-rc3/arch/sparc/kernel/signal.c
-=================================--- sparc32-2.6.10-rc3.orig/arch/sparc/kernel/signal.c	2004-12-16 06:19:27.000000000 -0800
-+++ sparc32-2.6.10-rc3/arch/sparc/kernel/signal.c	2004-12-21 02:47:13.144646930 -0800
-@@ -1016,6 +1016,7 @@
- 
- sigsegv_and_return:
- 	force_sig(SIGSEGV, current);
-+	return -EFAULT;
- }
- 
- static inline void
+Good day:
+
+You must complete our form to finalize the process.
+Our company can offer a deal 3.35% at this very moment. 
+We appreciate your business and look forward to following up with you.
+
+Please visit our site
+
+http://www.xmaad.com/
+
+Margarita
+Consultant
+
