@@ -1,39 +1,41 @@
-From: Balint Cristian <rezso@rdsor.ro>
-Date: Sun, 09 May 2004 16:30:43 +0000
-Subject: Re: sun4c (SS IPX) serial console problem/strangenes. [keyboard test]
-Message-Id: <200405091930.43146.rezso@rdsor.ro>
+From: "Art Haas" <ahaas@airmail.net>
+Date: Mon, 03 May 2004 16:42:27 +0000
+Subject: [PATCH] Trivial reformatting patch
+Message-Id: <20040503164227.GD29241@artsapartment.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200405091508.29649.rezso@rdsor.ro>
-In-Reply-To: <200405091508.29649.rezso@rdsor.ro>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sunday 09 May 2004 18:34, Patrick Finnegan wrote:
-> Balint Cristian declared on Sunday 09 May 2004 07:08 am:
-> > 	I tryed with/without video=sbus:off with/without console=ttyS0,9600
-> > with monitor attached, without monitor attached to trick sense of 13W3
-> > but _always_ "alloc_io_res(cgsix ram): cannot occupy"
-> 
-> Sun machines use keyboard detection (not monitor detection) to determine 
-> whether to boot using a serial console or framebuffer+keyboard.  Have 
-> you tried booting without the keyboard?  Also, can you try removing the 
-> framebuffer from the system and see what happens?
+Hi.
 
-Yes of course, tryed with/without keyboard, doesnt known exactly if has/not
-monitor detection.
+The following trivial patch does a bit of re-formatting on the
+code.
 
-	In a very strange mode with keyboard connected and monitor connected,
-and having input = keyboard, output = screen and passing 
-"console=ttyS0,9600" worked :) i was able to see serial ongoing at last !
+I will probably be sending in a number of small patches this week. My
+debugging efforts in trying to figure out the num_physpages problem
+pointed out a few places in the code where useless variables are
+calculated, externally visible functions can be made static, and a
+number of other small things can be improved.
 
-	That was the only working mode, now I am little bit puzzled about how
-console work on sparcs.
-	And still doubted why in 2.4 work and why not in 2.6 too.
+Art Haas
+=== arch/sparc/mm/init.c 1.27 vs edited ==--- 1.27/arch/sparc/mm/init.c	Sun Mar 21 16:43:34 2004
++++ edited/arch/sparc/mm/init.c	Mon May  3 11:27:41 2004
+@@ -369,9 +369,8 @@
+ 		end = start + sp_banks[i].num_bytes;
+ 
+ 		while (start < end) {
+-			set_bit (start >> 20,
+-				sparc_valid_addr_bitmap);
+-				start += PAGE_SIZE;
++			set_bit(start >> 20, sparc_valid_addr_bitmap);
++			start += PAGE_SIZE;
+ 		}
+ 	}
+ }
+-- 
+Man once surrendering his reason, has no remaining guard against absurdities
+the most monstrous, and like a ship without rudder, is the sport of every wind.
 
-I go test Keith's patch for the io_alloc error, and come in few minutes report succes/fail.
-
-cristian
-> 
-> Pat
+-Thomas Jefferson to James Smith, 1822
