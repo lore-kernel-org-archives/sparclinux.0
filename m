@@ -1,28 +1,40 @@
-From: "ray" <dmalf1et@hotmail.com>
-Date: Fri, 07 May 2004 22:04:42 +0000
-Subject: CAS1N0: New Deal!! 50% Sign Up Bonus! chaos diane|
-Message-Id: <1083967482-31435@excite.com>
+From: "gail" <campingjan@annuva.com>
+Date: Mon, 31 May 2004 17:15:59 +0000
+Subject: Looking for a promotion?
+Message-Id: <1086023759-15202@excite.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org
 
-PREMI}ERE ONLIN'E CAS{INO!
-50% BONU:S for YOUR FIRST DEPO`SIT as a New Player.
+Need software but not the price that comes with it?
+We sell OEM software at major discounts.
+Don't pay the department store markups, buy on the internet.
 
-SI`GN UP now! Don't wait!
+Free Delivery and Extra Discounts on orders over $200!
 
-http://www.bay-casino.com/_e4faa55afa1972493c43ac8a3f66f869/
+Save yourself or your company thousands of dollars, reap the rewards!
 
-Once you're a Mem'ber, there are near WEEK'LY 2-T{O-1, and 3-T{O-1 depo`sit offers!
+Q:  How can you sell this software as OEM ? It seems too good to be true - is there a catch?
 
-Imagine, put in $25, GET $50 CRE|DIT BE|FORE YOU PL!ACE YO!UR FI`RST BET!!
-
-CLIC'K HER|E!
-
-http://www.bay-casino.com/_e4faa55afa1972493c43ac8a3f66f869/
+A:  There is no catch - the software versions that we sell are OEM (Original Equipment Manufacturer) which means you will receive the installation CDs only (they do not come in their original retail packing and do not include the manual). We do guarantee that all programs are the 100% full working retail versions - no demos or academic versions! When you order, you will receive all materials required for a complete installation - or your money back! Why pay hundreds of dollars more when you can get exactly the same but OEM-CD? You don't have to pay that much for the fancy box and manuals. 
 
 
 
-racerx wolverin blondie andre turbo butch yomama reznor booster buffy gretchen genius christop gordon castle eclipse bfi cookies rambo1 october ladybug sundance tango sailor dgj test2
+Click here!!
+http://compie.net/index.php?su55
+
+
+
+
+
+
+
+
+
+packer dougierobinhoo kingdom oatmeal dgj florida moomoo 
+timber symbolcobra slacker molly1
+justin1 pisces fireball 
+
+REMOV3: http://mycomp.biz/soft/chair.php
