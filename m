@@ -1,7 +1,7 @@
-From: Keith M Wesolowski <wesolows@foobazco.org>
-Date: Wed, 31 Mar 2004 02:40:41 +0000
+From: "Art Haas" <ahaas@airmail.net>
+Date: Wed, 31 Mar 2004 03:30:40 +0000
 Subject: Re: Compiling sunlance as a module
-Message-Id: <20040331024041.GB31163@foobazco.org>
+Message-Id: <20040331033040.GA24270@artsapartment.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040330234412.GB5439@artsapartment.org>
 In-Reply-To: <20040330234412.GB5439@artsapartment.org>
@@ -10,19 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, Mar 30, 2004 at 07:38:32PM -0600, Art Haas wrote:
 
-> I try to make the kernel as modular as I can, so that's why I'm trying
-> to build this driver as a module. It's just how I tend to configure
-> things ...
+WHACK!!!! That clue-stick on the side of my head hurts! :-)
 
-alias eth0 sunlance
+Here I am thinking that there is some deep Sparc-magic that I'm missing,
+and if I'd looked at my own '/etc/modprobe.conf' file I would have saved
+much time and effort. I think I'll go back and hide in a cave for a
+little while ...
 
-SEE ALSO
-
-modules.conf(5), modprobe(8)
-
-I guess hotplug is the pocket calculator of system configuration.
-
+Art Haas
 -- 
-Keith M Wesolowski
+Man once surrendering his reason, has no remaining guard against absurdities
+the most monstrous, and like a ship without rudder, is the sport of every wind.
+
+-Thomas Jefferson to James Smith, 1822
