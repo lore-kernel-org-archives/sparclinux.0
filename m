@@ -1,7 +1,7 @@
-From: Jason Wever <weeve@gentoo.org>
-Date: Mon, 27 Sep 2004 12:03:45 +0000
+From: "David S. Miller" <davem@davemloft.net>
+Date: Mon, 27 Sep 2004 18:17:05 +0000
 Subject: Re: Ultra 2 Enterprise: All 2.6.xx SMP kernels hardlock
-Message-Id: <Pine.LNX.4.61.0409270559400.4569@stargazer.weeve.org>
+Message-Id: <20040927111705.01597acc.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <703d4eaa04092018404389859@mail.gmail.com>
 In-Reply-To: <703d4eaa04092018404389859@mail.gmail.com>
@@ -10,193 +10,14 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Mon, 27 Sep 2004 06:03:45 -0600 (MDT)
+Jason Wever <weeve@gentoo.org> wrote:
 
-On Tue, 21 Sep 2004, Jason Wever wrote:
+> After beating up an Ultra 2 for a while by having it repeatedly unpack a 
+> tarball of several thousand small files (via a never-ending while loop) as 
+> well as building kdepim-3.3.0, here is what i get;
 
-> I've definitely seen this on 2.6 SMP on the Ultra 2 as well.  I'll try to
-> test 2.6.9-rc2 on both machines tonight and see if I can still replicate.
-
-
-After beating up an Ultra 2 for a while by having it repeatedly unpack a 
-tarball of several thousand small files (via a never-ending while loop) as 
-well as building kdepim-3.3.0, here is what i get;
-
-kernel BUG at arch/sparc64/mm/fault.c:336!
-TRAPLOG: Error at trap level 0x2, dumping track stack.
-TRAPLOG: Trap level 1 TSTATE[0000000080009602] TPC[000000000042220c] 
-TNPC[00000]
-TRAPLOG: Trap level 2 TSTATE[0000004480049402] TPC[0000000000408d2c] 
-TNPC[00000]
-TRAPLOG: Trap level 3 TSTATE[0000009911049403] TPC[0000000000408d20] 
-TNPC[00000]
-TRAPLOG: Trap level 4 TSTATE[0000009911049403] TPC[0000000000408d20] 
-TNPC[00000]
-               \|/ ____ \|/
-               "@'/ .. \`@"
-               /_| \__/ |_\
-                  \__U_/
-swapper(0): TL1: Data Access Exception [#1]
-TSTATE: 0000004480049402 TPC: 0000000000408d2c TNPC: 00000000004520e0 Y: 
-000000d
-TPC: <from_tl1_trap+0x20/0x34>
-g0: fffff80001700120 g1: 0000000007ffffff g2: 00000000000ffc00 g3: 
-0000000000000
-g4: 0000000000629280 g5: 000000000000007f g6: 0000000000625280 g7: 
-0000000000004
-o0: fffff8007fe3b400 o1: 00000000fff00000 o2: 0007fffffff80080 o3: 
-000007ffffe0f
-o4: 0000000000000007 o5: fffff80080400000 sp: 0000000000628181 ret_pc: 
-000000000
-RPC: <sbus_unmap_sg+0xc0/0x100>
-l0: 0007fffffff80080 l1: 00000000fff00000 l2: 00000000006a00c0 l3: 
-0000000000630
-l4: 00000000006c7400 l5: 00000000006c7400 l6: 000000000069ac00 l7: 
-0000000000630
-i0: fffff8007fe3b400 i1: 000000000000000f i2: 0000000000000080 i3: 
-0000000000001
-i4: 0000000000686380 i5: 00000000006bb800 i6: 0000000000628241 i7: 
-0000000000560
-I7: <esp_done+0x10/0x60>
-Instruction DUMP: cad8d026  0ec14007  01000000 <caf00b80> 83f00000 
-06f93ffe  8
-TSTATE: 0000000011f09602 TPC: 000000000050e9a0 TNPC: 000000000050e9a4 Y: 
-000000d
-Kernel panic - not syncing: Aiee, killing interrupt handler!
-  <0>Press L1-A to return to the boot prom
-TPC: <__delay+0x20/0x40>
-g0: fffff8007fe43091 g1: 0000000000548a40 g2: fffff8000000e020 g3: 
-0000000000040
-g4: 00000000006a6c00 g5: 00000005e0b7d000 g6: fffff8007fe44000 g7: 
-fffff7ffff960
-o0: 000000000000031c o1: 00000000006bb000 o2: 00000000004162d8 o3: 
-00000000006c0
-o4: 00000000006a1740 o5: 0000000000ffff00 sp: fffff8007fe430e1 ret_pc: 
-000000000
-RPC: <sunzilog_put_char+0x20/0x60>
-l0: 0000000000000798 l1: 00000000014f8c00 l2: 0000000000408cc4 l3: 
-000000000000b
-l4: 0000000000000002 l5: 0000000000000000 l6: fffff8007fe44000 l7: 
-0000000000008
-i0: 000001fff1100004 i1: 000000000000000a i2: 00000000000081a4 i3: 
-00000000005e0
-i4: fffff800017f5000 i5: 0000000000000000 i6: fffff8007fe431a1 i7: 
-000000000054c
-I7: <sunzilog_console_write+0x5c/0xa0>
-Unable to handle kernel NULL pointer dereference
-tsk->{mm,active_mm}->context = 00000000000007a1
-tsk->{mm,active_mm}->pgd = fffff80045320000
-               \|/ ____ \|/
-               "@'/ .. \`@"
-               /_| \__/ |_\
-                  \__U_/
-swapper(0): Oops [#2]
-TSTATE: 0000009980f09604 TPC: 0000000000422c14 TNPC: 0000000000422c18 Y: 
-000000d
-TPC: <sbus_dma_sync_single_for_cpu+0x14/0x80>
-g0: 00000000005e9a8c g1: 0000000000000000 g2: 00000000c238d800 g3: 
-000000000000f
-g4: 0000000000629280 g5: fffff8007fd88b12 g6: 0000000000625280 g7: 
-0000000000500
-o0: 0000000000000000 o1: 0000000000000004 o2: 0000000000000020 o3: 
-0000000000000
-o4: 000000000050c3f0 o5: 0000000000000000 sp: 00000000006277f9 ret_pc: 
-000000008
-RPC: <alloc_skb+0x48/0xc0>
-l0: ffffffffffffffff l1: 00000000000000c0 l2: 00000000006d5800 l3: 
-0000000000000
-l4: 00000000006a17b8 l5: 00000000006a17b8 l6: 00000000006a6018 l7: 
-0000000000620
-i0: fffff8007fcee000 i1: 00000000c238d800 i2: 000000000000008d i3: 
-0000000000002
-i4: 0000000000000000 i5: 0000000000000000 i6: 00000000006278b9 i7: 
-0000000000550
-I7: <happy_meal_rx+0x310/0x380>
-Instruction DUMP: 85366000  a0103fff  87343033 <f0584000> a12c300d 
-8200801a  8
-TSTATE: 0000009911f09602 TPC: 0000000000548a48 TNPC: 0000000000548a4c Y: 
-000000d
-Kernel panic - not syncing: Aiee, killing interrupt handler!
-  <0>Press L1-A to return to the boot prom
-TPC: <sunzilog_put_char+0x28/0x60>
-g0: fffff8007fe43091 g1: 0000000000548a40 g2: fffff8000000e020 g3: 
-0000000000040
-g4: 00000000006a6c00 g5: 00000005e0b7d000 g6: fffff8007fe44000 g7: 
-fffff7ffff960
-o0: ffffffffffffffff o1: 00000000006bb000 o2: 00000000004162d8 o3: 
-00000000006c0
-o4: 00000000006a1740 o5: 0000000000ffff00 sp: fffff8007fe430e1 ret_pc: 
-000000000
-RPC: <sunzilog_put_char+0x20/0x60>
-l0: 000000000000079f l1: 00000000014f8c00 l2: 0000000000408cc4 l3: 
-000000000000b
-l4: 0000000000000002 l5: 0000000000000000 l6: fffff8007fe44000 l7: 
-0000000000008
-i0: 000001fff1100004 i1: 0000000000000030 i2: 00000000000081a4 i3: 
-00000000005e0
-i4: fffff800017f5000 i5: 0000000000000000 i6: fffff8007fe431a1 i7: 
-000000000054c
-I7: <sunzilog_console_write+0x5c/0xa0>
-               \|/ ____ \|/
-               "@'/ .. \`@"
-               /_| \__/ |_\
-                  \__U_/
-(0): Kernel bad sw trap 5 [#3]
-TSTATE: 0000004411f09603 TPC: 0000000000436084 TNPC: 0000000000436088 Y: 
-000000d
-TPC: <do_sparc64_fault+0x244/0x480>
-g0: 0000000000000002 g1: 0000000000630120 g2: 0000000000630120 g3: 
-0000000000000
-g4: 00000000006a6c00 g5: 0000000000000000 g6: fffff8007fe44000 g7: 
-0000000000000
-o0: 000000000000002b o1: 00000000005f2a08 o2: 0000000000000150 o3: 
-fffff8007a984
-o4: 0000000000000000 o5: 0000000000000074 sp: fffff8007fe43621 ret_pc: 
-00000000c
-RPC: <do_sparc64_fault+0x23c/0x480>
-l0: 00000000000000ff l1: 0000000000000096 l2: 00000000000000ff l3: 
-fffff800017f0
-l4: 0000000000000000 l5: 0000000000000000 l6: 0000000000000000 l7: 
-0000000000031
-i0: fffff8007fe43fc0 i1: 00000000006bb000 i2: 00000000004162d8 i3: 
-00000000006c0
-i4: 00000000006a1740 i5: 0000000000ffff00 i6: fffff8007fe43701 i7: 
-000000000040c
-I7: <sparc64_realfault_common+0x14/0x24>
-Instruction DUMP: 110017ca  7fff87e9  90122208 <91d02005> 968c2001 
-02480054  8
-TSTATE: 0000001111f09600 TPC: 0000000000424208 TNPC: 000000000042420c Y: 
-000000d
-TPC: <spitfire_xcall_helper+0xc8/0xe0>
-g0: 0000000000000000 g1: 0000000000000020 g2: 0000000000000050 g3: 
-0000000000000
-g4: 00000000006a6c00 g5: 000000000001869f g6: fffff8007fe44000 g7: 
-0000000000003
-o0: 0000000000630118 o1: 0000000000000001 o2: 0000000000002a5e o3: 
-000000000000e
-o4: ffffffffffffaa5e o5: 0000000000008000 sp: fffff8007fe43091 ret_pc: 
-000000008
-RPC: <vprintk+0x158/0x1e0>
-l0: 0000000000000000 l1: 00000000006bbef9 l2: 000000000000000f l3: 
-00000000006b0
-l4: 0000000000000002 l5: 0000000000000000 l6: fffff8007fe44000 l7: 
-fffff8007a890
-i0: 0000000000435430 i1: 0000000000000000 i2: 0000000000000000 i3: 
-0000000000006
-i4: 0000000000004070 i5: 00000000006bbea8 i6: fffff8007fe43151 i7: 
-0000000000420
-I7: <smp_cross_call_masked+0x90/0x100>
-Kernel panic - not syncing: Attempted to kill the idle task!
-  <0>Press L1-A to return to the boot prom
-
-
-- -- 
-Jason Wever
-Gentoo/Sparc Co-Team Lead
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFBWAGjdKvgdVioq28RArW0AJ9SPZOJjuE8IBiX34Feqr/5B04VVACcCp+B
-Vj4lh7uQA7FoFUJSeOE5jiA=3NV4
------END PGP SIGNATURE-----
+I have to warn you now that I'll not have time to look into this
+kind of report until about later October.  All of my current
+effort needs to be concentrated into the networking and general
+sparc64 port maintainence, sorry :(
