@@ -1,48 +1,61 @@
-From: Keith M Wesolowski <wesolows@foobazco.org>
-Date: Tue, 30 Dec 2003 10:37:05 +0000
-Subject: [2.4 RFC] Do not allow pkmap and fixmaps to overlap
-Message-Id: <20031230103705.GA1797@foobazco.org>
+From: Josh Grebe <josh@brokedown.net>
+Date: Thu, 08 Jan 2004 18:16:03 +0000
+Subject: PSYCHO0 PBMA: PCI streaming byte hole error asserted.
+Message-Id: <1073585763.1669.1.camel@localhost>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On SMP systems, the fixmap and pkmap regions can (will) overlap.
-Although x86 has a check for this condition indicating the box will
-crash if it exists, I found it trying to track down an unrelated
-(non-SMP-specific) bug rather than by directly observing any ill
-effects.  Therefore I need some people to test and tell me if this has
-any effect (positive or negative).
+Hi All,
 
-If you want to understand what's going on here, I have a vaddr map at
-http://foobazco.org/~wesolows/sparc-25-virtmap.
+I'm getting a log message of:
 
-I have some more major surgery in mind for 2.6, which is also
-affected, but this simple fixup seems more appropriate for 2.4.
-Comments?
+PSYCHO0 PBMA: PCI streaming byte hole error asserted.
 
-=== arch/sparc/mm/srmmu.c 1.17 vs edited ==--- 1.17/arch/sparc/mm/srmmu.c	Mon Jul 21 04:57:23 2003
-+++ edited/arch/sparc/mm/srmmu.c	Tue Dec 30 02:20:28 2003
-@@ -356,8 +356,13 @@
- 	srmmu_nocache_end = SRMMU_NOCACHE_VADDR + srmmu_nocache_size;
- 	fix_kmap_begin = srmmu_nocache_end;
- 	fix_kmap_end = fix_kmap_begin + (KM_TYPE_NR * NR_CPUS - 1) * PAGE_SIZE;
--	pkmap_base = SRMMU_NOCACHE_VADDR + srmmu_nocache_size + 0x40000;
-+	pkmap_base = SRMMU_NOCACHE_VADDR + srmmu_nocache_size + 0x400000;
- 	pkmap_base_end = pkmap_base + LAST_PKMAP * PAGE_SIZE;
-+
-+	if (fix_kmap_end >= pkmap_base) {
-+		prom_printf("fix_kmap and pkmap areas overlap!\n");
-+		prom_halt();
-+	}
- 
- 	/* printk("system memory available = %luk\nnocache ram size = %luk\n",
- 		sysmemavail, srmmu_nocache_size / 1024); */
+Pretty frequently. So frequently in fact, that I think it may be logging
+one every packet that crosses my gigabit network card.  I have an E450
+with two Intel E1000 cards in it, here is my lspci (sorry for bad
+formatting):
+
+00:00.0 Host bridge: Sun Microsystems Computer Corp. Psycho PCI Bus Module
+01:00.0 Host bridge: Sun Microsystems Computer Corp. Psycho PCI Bus Module
+02:00.0 Host bridge: Sun Microsystems Computer Corp. Psycho PCI Bus Module
+03:00.0 Host bridge: Sun Microsystems Computer Corp. Psycho PCI Bus Module
+03:01.0 Ethernet controller: Intel Corp. 82542 Gigabit Ethernet Controller (rev 03)
+04:00.0 Host bridge: Sun Microsystems Computer Corp. Psycho PCI Bus Module
+04:01.0 Bridge: Sun Microsystems Computer Corp. EBUS (rev 01)
+04:01.1 Ethernet controller: Sun Microsystems Computer Corp. Happy Meal (rev 01)
+04:02.0 SCSI storage controller: LSI Logic / Symbios Logic 53c875 (rev 03)
+04:03.0 SCSI storage controller: LSI Logic / Symbios Logic 53c875 (rev 03)
+04:04.0 Display controller: 3DLabs Permedia II 2D+3D (rev 01)
+05:00.0 Host bridge: Sun Microsystems Computer Corp. Psycho PCI Bus Module
+05:01.0 PCI bridge: Digital Equipment Corporation DECchip 21154 (rev 05)
+06:04.0 Ethernet controller: Intel Corp. 82557/8/9 [Ethernet Pro 100] (rev 08)
+06:05.0 Ethernet controller: Intel Corp. 82557/8/9 [Ethernet Pro 100] (rev 08)
+06:06.0 Ethernet controller: Intel Corp. 82542 Gigabit Ethernet Controller (rev 03)
 
 
--- 
-Keith M Wesolowski <wesolows@foobazco.org> http://foobazco.org/~wesolows
-------(( Project Foobazco Coordinator and Network Administrator ))------
-	"May Buddha bless all stubborn people!"
-				-- Uliassutai Karakorum Blake
+
+This machine is a quad 400mhz box, with one gig interface to the internet and one
+to a netapp filer. I am running kernel 2.4.24. This problem started when I added
+a second e1000 card to it earlier today. My startup messages for the detection
+of the e1000 cards:
+
+Jan  7 15:44:16 syslogger Intel(R) PRO/1000 Network Driver - version 5.2.20-k1
+Jan  7 15:44:16 syslogger Copyright (c) 1999-2003 Intel Corporation.
+Jan  7 15:44:16 syslogger eth3: Dropping NETIF_F_SG since no checksum feature.
+Jan  7 15:44:16 syslogger eth3: Intel(R) PRO/1000 Network Connection
+Jan  7 15:44:16 syslogger eth4: Dropping NETIF_F_SG since no checksum feature.
+Jan  7 15:44:16 syslogger eth4: Intel(R) PRO/1000 Network Connection
+
+
+
+Any thoughts? I searched the archives and google and didn't come up with anything.
+
+Thanks,
+
+Josh
+
+
