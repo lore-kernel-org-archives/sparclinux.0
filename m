@@ -1,31 +1,43 @@
-From: Jakub Jelinek <jakub@redhat.com>
-Date: Wed, 30 Jun 2004 08:28:05 +0000
+From: wesolows@foobazco.org
+Date: Wed, 30 Jun 2004 15:21:07 +0000
 Subject: Re: A question about PROT_NONE on Sparc and Sparc64
-Message-Id: <20040630082804.GS21264@devserv.devel.redhat.com>
+Message-Id: <20040630152107.GA20438@foobazco.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040630030503.GA25149@mail.shareable.org>
-In-Reply-To: <20040630030503.GA25149@mail.shareable.org>
+References: <20040630030503.GA25149@mail.shareable.org> <20040629221711.77f0fca5.davem@redhat.com>
+In-Reply-To: <20040629221711.77f0fca5.davem@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jamie Lokier <jamie@shareable.org>
-Cc: "Keith M. Wesolowski" <wesolows@foobazco.org>, sparclinux@vger.kernel.org, "David S. Miller" <davem@redhat.com>, ultralinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "David S. Miller" <davem@redhat.com>
+Cc: Jamie Lokier <jamie@shareable.org>, sparclinux@vger.kernel.org, ultralinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Jun 30, 2004 at 04:05:03AM +0100, Jamie Lokier wrote:
-> I'm doing a survey of the different architectural implementations of
-> PROT_* flags for mmap() and mprotect().  I'm looking at linux-2.6.5.
+On Tue, Jun 29, 2004 at 10:17:11PM -0700, David S. Miller wrote:
+
+> > In include/asm-sparc/pgtsrmmu.h, there's:
+> > 
+> > #define SRMMU_PAGE_NONE    __pgprot(SRMMU_VALID | SRMMU_CACHE | \
+> > 				    SRMMU_PRIV | SRMMU_REF)
+> > #define SRMMU_PAGE_RDONLY  __pgprot(SRMMU_VALID | SRMMU_CACHE | \
+> > 				    SRMMU_EXEC | SRMMU_REF)
+> > 
+> > This one bothers me.  The difference is that PROT_NONE pages are not
+> > accessible to userspace, and not executable.
+> > 
+> > So userspace will get a fault if it tries to read a PROT_NONE page.
+> > 
+> > But what happens when the kernel reads one?  Don't those bits mean
+> > that the read will succeed?  I.e. write() on a PROT_NONE page will
+> > succeed, instead of returning EFAULT?
+> > 
+> > If so, this is a bug.  A minor bug, perhaps, but nonetheless I wish to
+> > document it.
 > 
-> The Sparc and Sparc64 implementations are very similar to plain x86:
-> read implies exec, exec implies read and write implies read.
+> Yes this one is a bug and not intentional.
 > 
-> (Aside: A comment in include/asm-sparc/pgtsrmmu.h says that finer-grained
-> access is possible.  Quite a few other architectures do implement
-> finer-grained access, and even x86 is getting it now, so you may want
-> to revisit that.  The code is already available, and tested, if you
-> cut that part out of the PaX security patch).
+> Keith W., we need to fix this.  Probably the simplest fix is just to
+> drop the SRMMU_VALID bit.
 
-I believe R!X and X!R pages ought to be possible on sparc64 too, just use a
-different bit as "read" in the fast ITLB miss handler from the one fast DTLB
-miss uses.
+Ok, I'll try this approach and see what happens.
 
-	Jakub
+-- 
+Keith M Wesolowski
