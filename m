@@ -1,49 +1,42 @@
-From: qiaoxiaol@126.com
-Date: Mon, 14 Jun 2004 17:15:04 +0000
-Subject: flexible printed circuits products
-Message-Id: <EnmY6H5P7y3JZ@iris.seed.net.tw>
+From: Thomas Duffy <Thomas.Duffy.99@alumni.brown.edu>
+Date: Tue, 01 Jun 2004 21:20:13 +0000
+Subject: Re: Announce: kdb v4.4 is available for kernel 2.6.6
+Message-Id: <1086124813.2309.4.camel@d-mpk14-95-140>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=-7FfKaaEQj/N7sJo+36Ev"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+References: <12956.1085377697@kao2.melbourne.sgi.com>
+In-Reply-To: <12956.1085377697@kao2.melbourne.sgi.com>
+To: Keith Owens <kaos@sgi.com>
+Cc: kdb@oss.sgi.com, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
 
- 
+--=-7FfKaaEQj/N7sJo+36Ev
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
+On Mon, 2004-05-24 at 15:48 +1000, Keith Owens wrote:
+>   If you maintain an architecture specific kdb patch, please upgrade to
+>   kdb v4.4 and send it to me.
 
+OK, here is a first pass at updating the sparc64 kdb to kernel 2.6.6 and
+kdb 4.4
 
-Dear sir,
-    Wish you have good business!
-    We are glad to   introduce   a  flexible printed circuit (FPC) factory. we use
-the latest technology make flexible printed circuits (FPC) for use in any
-electronic products.The FACTURE is ISO9001:2000  confirmed and IPC
-criteria.
-    THE MAIN CAPACITY:
-1,WE CAN MAKE RIGID-FLEX PRINTED CIRCUITS. 
-2,WE ALSO CAN PRODUCE 3 LAYERS,4 LAYERS,5 LAYERS,6 LAYERS FPC AND MAKE DOUBLE SIDED WITH MIN 0.06MM TRACE WIDTH. THE SQUARE HOLE OF THE
-COVERLAYER CAN BE  MIN 0.4 MM.
-3,PRODUCTS HAVE EXPORTED TO USA,CANADA,JAPAN,UK,GERMANY,FRANCE,AUSTRALIA ETC
-MORE THEN 20 COUNTRIES.
-4,MAIN CUSTOMER ARE NOKIA,PANASONIC,SONY,DELL,TDK ,PHILIP ETC.
+http://members.dslextreme.com/~tomduffy/kdb-v4.4-2.6.6-sparc64-1.bz2
 
-We would welcome you to visit our factory.
+-tduffy
 
-Please e-mail your circuit design by Gerber file, Auto Cad, protel files and
-advise us of:
-FPC size, and number of layers.  We can make samples for your approval, with
-factory direct pricing.
+--=-7FfKaaEQj/N7sJo+36Ev
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-If you donot want us to send you again, you can use the latest outlook2003
-soft,to enter this e-mail address as reject e-mail address.you can solve all the
-worry.
-Or send an email with: " Remove" in the subject .we'll delete it from our
-list.
-hank you for your support!
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
 
-Best regards!
+iD8DBQBAvPMNdY502zjzwbwRAi3IAJ90dg1dRie9HwoE5kpXg69EGZ6bAwCgjdqD
+ijBmlLup9QM94IlZnnvf334=
+=7q0g
+-----END PGP SIGNATURE-----
 
-Bai zhan yuan
-qiaoxiaol@126.com
-
+--=-7FfKaaEQj/N7sJo+36Ev--
 
