@@ -1,7 +1,7 @@
-From: Vincent Cojot <coyote@step.polymtl.ca>
-Date: Thu, 08 Apr 2004 19:52:10 +0000
+From: Alexey Nezhdanov <snake@penza-gsm.ru>
+Date: Fri, 09 Apr 2004 04:10:36 +0000
 Subject: Re: Can't boot linux on sun blade 2000
-Message-Id: <Pine.GSO.4.58.0404081542420.23673@step.polymtl.ca>
+Message-Id: <200404090810.36124.snake@penza-gsm.ru>
 List-Id: <sparclinux.vger.kernel.org>
 References: <200404071043.30060.snake@penza-gsm.ru>
 In-Reply-To: <200404071043.30060.snake@penza-gsm.ru>
@@ -10,12 +10,12 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, 8 Apr 2004, David S. Miller wrote:
-
+> On Thu, 8 Apr 2004 07:56:54 -0400 (EDT)
+>
+> Vincent Cojot <coyote@step.polymtl.ca> wrote:
 > > On Thu, 8 Apr 2004, Alexey Nezhdanov wrote:
-> >
-> > > Unfortunately it seems that I've already tryed it with the same result. Can
-> > > you please send me md5 of your file?
+> > > Unfortunately it seems that I've already tryed it with the same result.
+> > > Can you please send me md5 of your file?
 > > > Mine is
 > > > b85b3eb7ba3176745b60fa1f47b03bc3  aurora.img
 > >
@@ -26,29 +26,86 @@ On Thu, 8 Apr 2004, David S. Miller wrote:
 >
 > I think it's the graphics card, you probably are using one we
 > don't have any drivers for yet.  What's in the machine?
+My configuration:
+root@STAT # /usr/platform/sun4u/sbin/prtdiag -v
+System Configuration: Sun Microsystems  sun4u SUNW,Sun-Blade-1000 
+(UltraSPARC-I 
+System clock frequency: 150 MHZ
+Memory size: 1GB        
 
-Alexey has both an M64 and an Expert3D-Lite in his sb2k machine and
-they're both pretty standard so I guess it -should- work for him, at least
-via a serial install. I suggested to him on #sparc that he removes both
-cards and tries a serial install again..
+================== CPUs ==================
+               E$          CPU     CPU       Temperature
+CPU  Freq      Size        Impl.   Mask     Die    Ambient
+---  --------  ----------  ------  ----  --------  --------
+ 0    900 MHz  8MB         US-III+   2.3     69 C     25 C
 
-On my side, I have an XVR-1000 (MAJC5200) in my sb2k so it shouldn't work
-but in fact it does.. :) I always got the 'Fast data access MMU miss' at
-the console when netbooting but I have reproductibly installed Aurora 1.0
-from CD-ROM on my machine (netbooting worked fine too) by using the ttya
-serial port. Once I got it installed on a SCSI disk, the console started
-working in text mode just fine with my SUN Type-6 USB keyboard and
-logitech mouse..
+================= IO Devices ================     Bus   Freq
+Brd  Type  MHz   Slot        Name                          Model
+---  ----  ----  ----------  ----------------------------  
+--------------------
+ 0   pci    33            1  SUNW,m64B (display)           SUNW,370-4362      
+ 0   pci    33            2  SUNW,Expert3D-Lite (display)  SUNW,375-0116      
+ 0   pci    66            4  SUNW,qlc-pci1077,2200.5 (scs+                    
+ 0   pci    33            5  ebus/parallel-ns87317-ecpp (+                    
+ 0   pci    33            5  ebus/serial-sab82532 (serial+                    
+ 0   pci    33            5  network-pci108e,1101.1 (netw+ SUNW,pci-eri       
+ 0   pci    33            5  firewire-pci108e,1102.1001 (+                    
+ 0   pci    33            6  scsi-pci1000,f.37 (scsi-2)                       
+ 0   pci    33            6  scsi-pci1000,f.37 (scsi-2)                       
 
-,-*~'`^`'~*-,._.,-*~'`^`'~*-,._.,-*~'`^`'~*-,._.,-*~'`^`'~*-,._.,-*~'`^`'~*-,
-Vincent S. Cojot, Computer Engineering. STEP project. _.,-*~'`^`'~*-,._.,-*~
-Ecole Polytechnique de Montreal, Comite Micro-Informatique. _.,-*~'`^`'~*-,.
-Linux Xview/OpenLook resources page _.,-*~'`^`'~*-,._.,-*~'`^`'~*-,._.,-*~'
-http://step.polymtl.ca/~coyote  _.,-*~'`^`'~*-,._ coyote@step.polymtl.ca
+============== Memory Configuration ==============
+Segment Table:
+-----------------------------------------------------------------------
+Base Address       Size       Interleave Factor  Contains
+-----------------------------------------------------------------------
+0x0                1GB               2           BankIDs 0,2
 
-They cannot scare me with their empty spaces
-Between stars - on stars where no human race is
-I have it in me so much nearer home
-To scare myself with my own desert places.       - Robert Frost
+Bank Table:
+-----------------------------------------------------------
+           Physical Location
+ID       ControllerID  GroupID   Size       Interleave Way
+-----------------------------------------------------------
+0        0             0         512MB           0
+2        0             0         512MB           1
+
+Memory Module Groups:
+--------------------------------------------------
+ControllerID   GroupID  Labels
+--------------------------------------------------
+0              0        J0100,J0202,J0304,J0406
+
+================ usb Devices ===============
+Name          Port#
+------------  -----
+keyboard        3
+mouse           4
+
+============== Environmental Status ==============
+Fan Speeds:
+----------------------------
+Fan Device            Speed
+----------------------------
+system                  19%
+cpu                     22%
+power-supply           100%
+
+================ HW Revisions ================
+ASIC Revisions:
+---------------
+pci: Rev 5
+pci: Rev 5
+ebus: Rev 1
+
+System PROM revisions:
+----------------------
+OBP 4.13.0 2004/01/19 18:27
+POST 4.13.0 2004/03/15 19:13
+
+
+
+-- 
+Respectfully
+Alexey Nezhdanov
+
 
 
