@@ -1,23 +1,38 @@
-From: "Keith M. Wesolowski" <wesolows@foobazco.org>
-Date: Fri, 26 Mar 2004 07:09:20 +0000
-Subject: Re: [PATCH] Patch for arch/sparc/math-emu/math.c
-Message-Id: <20040326070920.GB28857@foobazco.org>
+From: Ed L Cashin <ecashin@uga.edu>
+Date: Tue, 02 Mar 2004 01:28:27 +0000
+Subject: Re: using perfctr to determine cache miss rate
+Message-Id: <871xocdolg.fsf@uga.edu>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040325170740.GB11895@artsapartment.org>
-In-Reply-To: <20040325170740.GB11895@artsapartment.org>
+References: <87u11l6rp8.fsf@uga.edu>
+In-Reply-To: <87u11l6rp8.fsf@uga.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, Mar 25, 2004 at 11:07:40AM -0600, Art Haas wrote:
+"David S. Miller" <davem@redhat.com> writes:
 
-> Here's a small patch that fixes GCC-3.5 compilation. The compiler
-> doesn't like the "label at end of compound statement", so by simply
-> adding 'break;' to the "default:" condition the problem is resolved
-> if 'DEBUG_MATHEMU' is not defined.
+> On Fri, 20 Feb 2004 22:23:47 -0500
+> Ed L Cashin <ecashin@uga.edu> wrote:
+>
+>> Is there a way to measure the number of memory accesses (both reads
+>> and writes) that are not hitting in any cache?  It appears not to be
+>> possible, since only two events can be observed at once, and the
+>> events are quite specific (e.g. observing dcache write hits makes
+>> dcache read hits unobservable).
+>
+> That's right, this is one of the limitations, since you only sample
+> two events there are certain things you can't sample in one go.
+> You could run multiple times, sampling different events each time,
+> but the results won't be so accurate.
 
-Applied, thanks.
+My advisor pointed out that if any level one miss will result in an
+ecache reference, then counting ecache references and subtracting
+ecache hits will measure "cache misses" accurately.
+
+That seems right to me.  Is there some problem with that strategy?
 
 -- 
-Keith M Wesolowski
+--Ed L Cashin            |   PGP public key:
+  ecashin@uga.edu        |   http://noserose.net/e/pgp/
+
