@@ -1,22 +1,44 @@
-From: "Angel Woody" <mjjnwhqbbbn@theplanet.com>
-Date: Wed, 05 Jan 2005 05:38:12 +0000
-Subject: Re: Are you free?' Vassily
-Message-Id: <000301c4f2e8$e499ddc0$fca94acd@ecdzgk>
+From: "Jennifer" <xbfxyqs@verizon.net>
+Date: Thu, 20 Jan 2005 08:10:24 +0000
+Subject: Re: Re: Need assistance
+Message-Id: <000301c4fec7$9539b2b0$486f6483@YRXG>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: yuvevv@theplanet.com
+To: Casey Linux-kernel-owner <linux-kernel-owner@vger.kernel.org>
 
-Good day:
+Order Number: 940029
+Order Date:   Thu, 20 Jan 2005 14:10:02 +0600
 
-Mr. Downing just called from the bank and told me that they can
-decrease your   m o rtg age   payment by 2%. It will take no 
-p a perwork, so just go here and we will take care of the rest.
-http://www.lencors.com/
+We appreciate your patience in the processing of your
+m o rrtgage   request.
 
-Thank you
+We have prepared 3.4% deal for you at this time. Verify
+your information so we can proceed as planned.
 
-Angel Woody
-US Department
+http://www.xpojga.com/
+
+Thank you.
+
+Sincerely,
+Jennifer
+CustomerDepartment
+
+
+
+
+
+
+
+
+
+
+
+
+spoonful the at knifelike
+we our a anne sandy appellant
+a emulate and obverse bath purr
+via Vsofa elephantine beatific avertive
+medial the englander, cushing
 
