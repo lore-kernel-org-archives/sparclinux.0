@@ -1,62 +1,69 @@
-From: Jurij Smakov <jurij@wooyd.org>
-Date: Sat, 04 Dec 2004 05:22:33 +0000
-Subject: mmap breakage
-Message-Id: <Pine.LNX.4.61.0412032354010.1963@bobcat>
+From: Richard Mortimer <richm@oldelvet.org.uk>
+Date: Sat, 04 Dec 2004 23:13:00 +0000
+Subject: Re: mmap breakage
+Message-Id: <1102201980.15654.108.camel@duncow>
 List-Id: <sparclinux.vger.kernel.org>
+References: <Pine.LNX.4.61.0412032354010.1963@bobcat>
+In-Reply-To: <Pine.LNX.4.61.0412032354010.1963@bobcat>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hello,
+On Sat, 2004-12-04 at 05:22, Jurij Smakov wrote:
+> Hello,
+> 
+> In Debian we have recently received a number of bug reports [0,1] about 
+> glibc's ld-linux.so.2 failing (when called via ldd, for example) on some 
+> binaries. The minimum test case, originally mentioned in [0], was the 
+> following:
+> 
+> 
 
-In Debian we have recently received a number of bug reports [0,1] about 
-glibc's ld-linux.so.2 failing (when called via ldd, for example) on some 
-binaries. The minimum test case, originally mentioned in [0], was the 
-following:
+Well I can demonstrate the behaviour (see attached test program) on sparc64 and i386. It allows mappings to be fully or partially replaced and even allows you to replace bits in the middle of a mapping.
 
-char a[134084860];
-int main() { return 0; }
+Now the bad news...
 
-Running the compiled binary under strace on my Ultra1 with 2.6.8 
-(same issue is expected to be present for 2.4.x) kernel results in
+This seems to be POSIX defined behaviour
 
-kundera:~# strace /usr/lib/debug/ld-linux.so.2 ./a.out
-execve("/usr/lib/debug/ld-linux.so.2", ["/usr/lib/debug/ld-linux.so.2", "./a.out"], [/* 22 vars */]) = 0
-uname({sys="Linux", node="kundera", ...}) = 0
-brk(0)                                  = 0x802a000
-access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
-open("./a.out", O_RDONLY)               = 3
-read(3, "\177ELF\1\2\1\0\0\0\0\0\0\0\0\0\0\2\0\2\0\0\0\1\0\1\3P"..., 512) = 512
-fstat64(3, {st_mode=S_IFREG|0755, st_size133, ...}) = 0
-getcwd("/root", 128)                    = 6
-mmap(0x10000, 8192, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED, 3, 0) = 0x10000
-mmap(0x20000, 16384, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_FIXED, 3, 0) = 0x20000
-mmap(0x24000, 134077000, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x24000
-close(3)                                = 0
-open("/etc/ld.so.preload", O_RDONLY)    = -1 ENOENT (No such file or directory)
---- SIGILL (Illegal instruction) @ 0 (0) ---
-+++ killed by SIGILL +++
+http://www.opengroup.org/onlinepubs/009695399/functions/mmap.html
 
-After some debugging I was able to trace the problem to the last mmap 
-syscall. It actually manages to overwrite a portion of the ld-linux.so.2 
-code, causing the SIGILL. Presumably, this happens due to rounding of the 
-size of mmaped chunk upwards to the next full page of 8K, which
-is performed in sys_mmap (arch/sparc64/kernel/sys_sparc.c). In my case 
-that increased the size of mmapped region from 134077000 to 134078464, so 
-that the occupied region of memory extended all the way to 0x8002000
-(0x24000 + 134078464). However, according to gdb, the function 
-_dl_start_user (where SIGILL actually happens) have been previously 
-located at the address 0x8001cac, and so was obliterated by this syscall.
+Specifically
 
-Unfortunately, I don't have a clear idea on how the mmap's memory 
-management is supposed to work, so I would appreciate any clues, which 
-could lead to a solution.
+"The mapping established by mmap() shall replace any previous mappings
+for those whole pages containing any part of the address space of the
+process starting at pa and continuing for len bytes."
 
-[0] http://bugs.debian.org/268450
-[1] http://lists.debian.org/debian-sparc/2004/12/msg00009.html
+and more specifically when MAP_FIXED is supplied
 
-Best regards,
+"If a MAP_FIXED request is successful, the mapping established by mmap()
+replaces any previous mappings for the process' pages in the range
+[pa,pa+len)."
 
-Jurij Smakov                                        jurij@wooyd.org
-Key: http://www.wooyd.org/pgpkey/                   KeyID: C99E03CC
+and
+
+"On the other hand, if the program specifies a fixed address mapping
+(which requires some implementation knowledge to determine a suitable
+address, if the function is supported at all), then the program is
+presumed to be successfully managing its own address space and should be
+trusted when it asks to map over existing data structures."
+
+I guess that this isn't really what you want to hear but it does
+describe why the behaviour exists. I don't have any magic suggestions as
+to how to fix it - sorry.
+
+Richard
+
+P.S. You can see the overwriting of mappings if you look at
+/proc/<pid>/maps. You will see that the second mapping has totally
+superceded the first and the third mapping has split the second one up.
+
+01000000-01002000 rw-p 00000000 00:0b 8               /dev/zero
+01002000-01004000 rw-p 00000000 03:02 863336          /var/log/messages
+01004000-01020000 rw-p 00004000 00:0b 8               /dev/zero
+
+
+
+-- 
+richm@oldelvet.org.uk
+
