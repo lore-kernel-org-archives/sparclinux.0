@@ -1,58 +1,44 @@
-From: "Jurzitza, Dieter" <DJurzitza@harmanbecker.com>
-Date: Fri, 23 Apr 2004 05:01:30 +0000
-Subject: Question
-Message-Id: <CFE6A2529AC5FA439B3D852B0F2A68371A2B0F@OEKAW2EXVS02.hbi.ad.harman.com>
+From: Christian Joensson <christian@j-son.org>
+Date: Mon, 19 Apr 2004 12:17:36 +0000
+Subject: RPC: bad TCP reclen 0x05000b03 (non-terminal)
+Message-Id: <20040419141736.A4049@fw.j-son.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Dear listmembers,
-can anyone propably help me out: what does the message
+Aurora SPARC Linux 1.0 (Ansel) SparcStation20 single SuperSparc-(II) sun4m:
 
-oekalux08 kernel: __alloc_pages: 2-order allocation failed (gfp=3D0x20/0)
-oekalux08 last message repeated 125 times
+kernel--2.4.26-0.1sparc (ftp://ftp.j-son.org/pub/aurora/kernel-2.4.26)
 
-mean? I found it in /var/log/messages. Always my U60 SMP / Kernel 2.4.26.
-Many thanks in advance
-take care
+System serving as NFS server... for instance...
 
+I get this in dmesg:
 
-Dieter Jurzitza
-
-
---=20
-________________________________________________
-
-HARMAN BECKER AUTOMOTIVE SYSTEMS
-
-Dr.-Ing. Dieter Jurzitza
-Manager Hardware Systems
-         ESI
-
-Industriegebiet Ittersbach
-Becker-G=F6ring Str. 16
-D-76307 Karlsbad / Germany
-
-Phone: +49 (0)7248 71-1577
-Fax:   +49 (0)7248 71-1216
-eMail: DJurzitza@harmanbecker.com
-Internet: http://www.becker.de
-=20
+Installing knfsd (copyright (C) 1996 okir@monad.swb.de).
+RPC: bad TCP reclen 0x05000b03 (non-terminal)
+RPC: bad TCP reclen 0x05000b03 (non-terminal)
+RPC: bad TCP reclen 0x05000b03 (non-terminal)
+RPC: bad TCP reclen 0x05000b03 (non-terminal)
+svc: bad direction 268435456, dropping request
+sunmouse: Successfully adjusted to 1200 baud.
+svc: bad direction 268435456, dropping request
+RPC: bad TCP reclen 0x05000b03 (non-terminal)
+svc: bad direction 268501012, dropping request
+RPC: bad TCP reclen 0x05000b03 (non-terminal)
+RPC: bad TCP reclen 0x05000b03 (non-terminal)
+RPC: bad TCP reclen 0x05000b03 (non-terminal)
+RPC: bad TCP reclen 0x05000b03 (non-terminal)
 
 
-*******************************************
-Diese E-Mail enthaelt vertrauliche und/oder rechtlich geschuetzte Informati=
-onen. Wenn Sie nicht der richtige Adressat sind oder diese E-Mail irrtuemli=
-ch erhalten haben, informieren Sie bitte sofort den Absender und loeschen S=
-ie diese Mail. Das unerlaubte Kopieren sowie die unbefugte Weitergabe diese=
-r Mail ist nicht gestattet.
-=20
-This e-mail may contain confidential and/or privileged information. If you =
-are not the intended recipient (or have received this e-mail in error) plea=
-se notify the sender immediately and delete this e-mail. Any unauthorized c=
-opying, disclosure or distribution of the contents in this e-mail is strict=
-ly forbidden.
-*******************************************
+Any idea of what is going on?
+
+The kernel is only patched with hme patch udelay(1)....
+
+Cheers,
+
+/ChJ
+
+
 
