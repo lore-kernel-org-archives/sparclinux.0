@@ -1,7 +1,7 @@
-From: Pete Zaitcev <zaitcev@redhat.com>
-Date: Sun, 04 Jan 2004 08:18:24 +0000
+From: Keith M Wesolowski <wesolows@foobazco.org>
+Date: Sun, 04 Jan 2004 22:26:23 +0000
 Subject: Re: [PATCH] [SPARC] Use drivers/block/Kconfig
-Message-Id: <20040104081824.GA5274@devserv.devel.redhat.com>
+Message-Id: <20040104222623.GC5492@foobazco.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040103212307.GL6982@parcelfarce.linux.theplanet.co.uk>
 In-Reply-To: <20040103212307.GL6982@parcelfarce.linux.theplanet.co.uk>
@@ -16,16 +16,18 @@ On Sat, Jan 03, 2004 at 09:23:08PM +0000, Matthew Wilcox wrote:
 > drivers/blok/Kconfig.  Since there doesn't seem to be any reason not to,
 > this patch switches sparc to use the generic Kconfig file.
 
-> +++ arch/sparc/Kconfig	3 Jan 2004 21:18:53 -0000
-> @@ -300,138 +300,7 @@ if !SUN4
->  source "drivers/sbus/char/Kconfig"
->  endif
->  
-> -
-> -menu "Block devices"
->[...]
+Thanks Matthew.  Your patch looks good.  As Pete mentioned, please
+deliver patches to work with -p1.
 
-Looks good, except that diff must be done for patch -p1 to work.
-Keith?
+This patch goes in a direction I'd like to see us take in general.
+See my earlier patch to use virtually all the generic Kconfigs.
+Perhaps you'd like to work on getting that in a condition to be
+acceptable into the main kernel?  You'd need to work with people to
+make sure all the drivers have correct bus and/or arch dependencies
+(so that for example we don't offer ISA devices on sparc32).
 
--- Pete
+-- 
+Keith M Wesolowski <wesolows@foobazco.org> http://foobazco.org/~wesolows
+------(( Project Foobazco Coordinator and Network Administrator ))------
+	"May Buddha bless all stubborn people!"
+				-- Uliassutai Karakorum Blake
