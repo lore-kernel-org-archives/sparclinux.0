@@ -1,59 +1,160 @@
-From: Jan-Benedict Glaw <jbglaw@lug-owl.de>
-Date: Tue, 06 Jul 2004 09:05:06 +0000
-Subject: Re: [PATCH 2.4] drivers/scsi/esp.c is GPL'd
-Message-Id: <20040706090506.GS18841@lug-owl.de>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="hc1Ad1NXUysMDyjB"
+From: David Dillow <dave@thedillows.org>
+Date: Fri, 09 Jul 2004 02:44:05 +0000
+Subject: [RFC PATCH] Allow larger than 1MB mappings on sparc64 sbus
+Message-Id: <1089341045.3100.38.camel@ori.thedillows.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040706084302.GA3597@darjeeling.triplehelix.org>
-In-Reply-To: <20040706084302.GA3597@darjeeling.triplehelix.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+I've been working on a driver for the lpvi interface of the Sun
+SPARCprinter (again, finally!). This device does not seem to support
+scatter-gather DMA, so I have to rely on the IOMMU to make the streaming
+allocation look like one contiguous address space.
 
---hc1Ad1NXUysMDyjB
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Unfortunately, we only support streaming mappings of up to 1MB in size,
+while printing on letter paper requires up to 1.75MB, and B4 paper
+requires 2.75MB. Worse, if someone asks for more than 1MB, we could
+potentially corrupt memory above the IOMMU page tables.
 
-On Tue, 2004-07-06 01:43:02 -0700, Joshua Kwan <joshk@triplehelix.org>
-wrote in message <20040706084302.GA3597@darjeeling.triplehelix.org>:
-> --- kernel-source-2.4.26/drivers/scsi/esp.c~	2004-07-06 01:34:22.00000000=
-0 -0700
-> +++ kernel-source-2.4.26/drivers/scsi/esp.c	2004-07-06 01:35:00.000000000=
- -0700
-> @@ -4368,4 +4368,6 @@
-> =20
->  #include "scsi_module.c"
-> =20
-> +MODULE_LICENSE("GPL");
-> +
->  EXPORT_NO_SYMBOLS;
+I've modified the allocator to allow mappings up to 127MB (or
+thereabouts). It will allocate a contiguous run of clusters to allow the
+mapping of the request, and return NULL if it is unable to do so. This
+also modifies the deallocator to return those ioptes to the pool.
+
+Plus, it will never try to write above the IOMMU page table.
+
+This boots, and I can print pages. Does this look sane?
+
+Dave
 
 
-While you work on it, you could have removed EXPORT_NO_SYMBOLS, too...
-It's no longer needed these days, IIRC.
 
-MfG, JBG
 
---=20
-   Jan-Benedict Glaw       jbglaw@lug-owl.de    . +49-172-7608481
-   "Eine Freie Meinung in  einem Freien Kopf    | Gegen Zensur | Gegen Krieg
-    fuer einen Freien Staat voll Freier B=FCrger" | im Internet! |   im Ira=
-k!
-   ret =3D do_actions((curr | FREE_SPEECH) & ~(NEW_COPYRIGHT_LAW | DRM | TC=
-PA));
+=== arch/sparc64/kernel/sbus.c 1.14 vs edited ==--- 1.14/arch/sparc64/kernel/sbus.c	Tue Apr 22 02:09:31 2003
++++ edited/arch/sparc64/kernel/sbus.c	Tue Jun 29 22:16:01 2004
+@@ -28,10 +28,10 @@
+  *
+  * On SYSIO, using an 8K page size we have 1GB of SBUS
+  * DMA space mapped.  We divide this space into equally
+- * sized clusters.  Currently we allow clusters up to a
+- * size of 1MB.  If anything begins to generate DMA
+- * mapping requests larger than this we will need to
+- * increase things a bit.
++ * sized clusters. We allocate a DMA mapping from the
++ * cluster that matches the order of the allocation, or
++ * if the order is greater than the number of clusters,
++ * we try to allocate from the last cluster.
+  */
+ 
+ #define NCLUSTERS	8UL
+@@ -134,12 +134,17 @@
+ 
+ static iopte_t *alloc_streaming_cluster(struct sbus_iommu *iommu, unsigned long npages)
+ {
+-	iopte_t *iopte, *limit, *first;
+-	unsigned long cnum, ent, flush_point;
++	iopte_t *iopte, *limit, *first, *cluster;
++	unsigned long cnum, ent, nent, flush_point, found;
+ 
+ 	cnum = 0;
++	nent = 1;
+ 	while ((1UL << cnum) < npages)
+ 		cnum++;
++	if(cnum >= NCLUSTERS) {
++		nent = 1UL << (cnum - NCLUSTERS);
++		cnum = NCLUSTERS - 1;
++	}
+ 	iopte  = iommu->page_table + (cnum * CLUSTER_NPAGES);
+ 
+ 	if (cnum = 0)
+@@ -152,22 +157,31 @@
+ 	flush_point = iommu->alloc_info[cnum].flush;
+ 
+ 	first = iopte;
++	cluster = NULL;
++	found = 0;
+ 	for (;;) {
+ 		if (iopte_val(*iopte) = 0UL) {
+-			if ((iopte + (1 << cnum)) >= limit)
+-				ent = 0;
+-			else
+-				ent = ent + 1;
+-			iommu->alloc_info[cnum].next = ent;
+-			if (ent = flush_point)
+-				__iommu_flushall(iommu);
+-			break;
++			found++;
++			if (!cluster)
++				cluster = iopte;
++		} else {
++			/* Used cluster in the way */
++			cluster = NULL;
++			found = 0;
+ 		}
++
++		if (found = nent)
++			break;
++
+ 		iopte += (1 << cnum);
+ 		ent++;
+ 		if (iopte >= limit) {
+ 			iopte = (iommu->page_table + (cnum * CLUSTER_NPAGES));
+ 			ent = 0;
++
++			/* Multiple cluster allocations must not wrap */
++			cluster = NULL;
++			found = 0;
+ 		}
+ 		if (ent = flush_point)
+ 			__iommu_flushall(iommu);
+@@ -175,8 +189,19 @@
+ 			goto bad;
+ 	}
+ 
++	/* ent/iopte points to the last cluster entry we're going to use,
++	 * so save our place for the next allocation.
++	 */
++	if ((iopte + (1 << cnum)) >= limit)
++		ent = 0;
++	else
++		ent = ent + 1;
++	iommu->alloc_info[cnum].next = ent;
++	if (ent = flush_point)
++		__iommu_flushall(iommu);
++
+ 	/* I've got your streaming cluster right here buddy boy... */
+-	return iopte;
++	return cluster;
+ 
+ bad:
+ 	printk(KERN_EMERG "sbus: alloc_streaming_cluster of npages(%ld) failed!\n",
+@@ -186,15 +211,23 @@
+ 
+ static void free_streaming_cluster(struct sbus_iommu *iommu, u32 base, unsigned long npages)
+ {
+-	unsigned long cnum, ent;
++	unsigned long cnum, ent, nent;
+ 	iopte_t *iopte;
+ 
+ 	cnum = 0;
++	nent = 1;
+ 	while ((1UL << cnum) < npages)
+ 		cnum++;
++	if(cnum >= NCLUSTERS) {
++		nent = 1UL << (cnum - NCLUSTERS);
++		cnum = NCLUSTERS - 1;
++	}
+ 	ent = (base & CLUSTER_MASK) >> (IO_PAGE_SHIFT + cnum);
+ 	iopte = iommu->page_table + ((base - MAP_BASE) >> IO_PAGE_SHIFT);
+-	iopte_val(*iopte) = 0UL;
++	do {
++		iopte_val(*iopte) = 0UL;
++		iopte += 1 << cnum;
++	} while(--nent);
+ 
+ 	/* If the global flush might not have caught this entry,
+ 	 * adjust the flush point such that we will flush before
 
---hc1Ad1NXUysMDyjB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFA6mtCHb1edYOZ4bsRAsU4AJ0R6zq+D44r9pvhsTV4oYXmi+KAgQCfSyhc
-y6pNj2SvazzJsiCZ9i0AGrk=
-=4ol2
------END PGP SIGNATURE-----
-
---hc1Ad1NXUysMDyjB--
