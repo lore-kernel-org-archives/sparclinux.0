@@ -1,7 +1,7 @@
 From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date: Tue, 02 Nov 2004 14:26:31 +0000
+Date: Tue, 02 Nov 2004 18:03:56 +0000
 Subject: Re: [Linux-fbdev-devel] Help re Frame Buffer/Console Problems
-Message-Id: <Pine.LNX.4.10.10411021416590.4390-100000@mtfhpc.demon.co.uk>
+Message-Id: <Pine.LNX.4.10.10411021743001.4822-100000@mtfhpc.demon.co.uk>
 List-Id: <sparclinux.vger.kernel.org>
 References: <200411020746.27871.adaplas@hotpop.com>
 In-Reply-To: <200411020746.27871.adaplas@hotpop.com>
@@ -13,13 +13,30 @@ Cc: linux-fbdev-devel@lists.sourceforge.net, jsimmons@infradead.org, geert@linux
 
 Hi all,
 
-I have already hard wired the fg and bg colours. I have got to the point 
-where I am checking the cfbimgblt code where it converts the mono bit font
-image data to the 8bpp pseudo colour screen image data. It is looking
-like there may be a problem with sign extension at this level as the
-pixel value being used apears to be 255.
+I have identified what is going on. My CG3 console uses the same font and
+exactly overlaps prom console. [I have re-inserted the console margin code
+for my CG3 driver]. The timing is such that the prom overwrites the
+console text (using colour 255) a fraction later than the fbcon code.
 
-I have changed a char *pt to a u8 *pt to see if this helps.
+The two problems to be solved are (apart from seting the red,green and
+blue structures up for the cg series fb cards):
+
+1) The prom write (from -p) needs to be disabled as soon as an alternative
+console becomes active (either prom console, fbcon console or serial
+console). This has probably been the major cause of hassel.
+
+2) The restore pallet function (see cgsix.c in the 2.2.x or 2.4.x kernels)
+needs to be re-introduced in some form and called when exiting fbcon so
+that the prom does not end up as black on black. My prom uses fg%5,
+bg=0. Does any one know if this is standard for all sparc boot proms.
+
+I need to tidy up my code before I start work on the first of these two
+problems. The second one should not catch me out as I am using colour
+255 as my margin colour and it is set to "Dark Slate Grey" so I do not 
+have a black on black prom console.
+
+If any one wants a linux 2.6.10 CG3 driver with software margins then let
+me know and I will post an appropriate patch.
 
 Regards
 	Mark Fortescue.
