@@ -1,21 +1,28 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Thu, 24 Mar 2005 05:46:35 +0000
-Subject: Re: sparc32: module with unresolved symbol causes oops in
-Message-Id: <20050323214635.5ffa08c5.davem@davemloft.net>
+From: "Art Haas" <ahaas@airmail.net>
+Date: Mon, 21 Mar 2005 16:49:18 +0000
+Subject: Current sparc patches question
+Message-Id: <20050321164918.GI7305@artsapartment.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.SOC.4.61.0503231549330.5000@math.ut.ee>
-In-Reply-To: <Pine.SOC.4.61.0503231549330.5000@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Wed, 23 Mar 2005 22:41:59 +0100
-Sam Ravnborg <sam@ravnborg.org> wrote:
+Hi.
 
-> I stopped when the build told me:
+A week or two ago a flurry of sparc32 patches were mailed out, and WLI
+wrote that he was preparing a patchset from these individual patches.
+Since then Linus has added lots of patches to his tree, and bumped the
+version to 2.6.12-rc1, and it looks like some of the individual sparc
+patches may have made it into his tree, in addition to various other
+fixes and improvements from numerous other people. Is there a current
+diff against the latest BK that we can grab? Also, do these patches
+contain the SMP revival code? I've been moving and things have settled
+down again to where I can resume fiddling around with the sparc32 code.
 
-Someone looked into this and discussed it on linux-kernel not
-2 weeks ago, it was an involved thread and the result was
-"mark as non-modular on sparc and other platforms with similar
- issued".
+Art Haas
+-- 
+Man once surrendering his reason, has no remaining guard against absurdities
+the most monstrous, and like a ship without rudder, is the sport of every wind.
+
+-Thomas Jefferson to James Smith, 1822
