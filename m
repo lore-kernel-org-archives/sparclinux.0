@@ -1,22 +1,48 @@
-From: "David S. Miller" <davem@redhat.com>
-Date: Sat, 07 Feb 2004 00:27:06 +0000
-Subject: Re: sparc32 module status
-Message-Id: <20040206162706.1a07724a.davem@redhat.com>
+From: carbonated beverage <ramune@net-ronin.org>
+Date: Mon, 16 Feb 2004 07:29:29 +0000
+Subject: 2.4.24 link err for sparc64
+Message-Id: <20040216072928.GA30923@net-ronin.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040202095005.GD22498@foobazco.org>
-In-Reply-To: <20040202095005.GD22498@foobazco.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
 
-On Wed, 4 Feb 2004 22:46:30 -0800
-Keith M Wesolowski <wesolows@foobazco.org> wrote:
+Hi all,
 
-> On Mon, Feb 02, 2004 at 01:22:40PM -0800, David S. Miller wrote:
-> 
-> > Let me know when you have a version of this patch you'd like me to apply.
-> 
-> Will you consider this?
+I ripped out sysctl support from a 2.4.24 kernel (stock
+tarball from ftp.*.*.kernel.org) and the final link failed
+with:
 
-Yes, applied thanks Keith.
+arch/sparc64/kernel/kernel.o(.text+0x19750): In function `sys32_sysctl':
+: undefined reference to `do_sysctl'
+
+I tossed an #ifndef CONFIG_SYSCTL...#else...#endif
+guard around arch/sparc64/kernel/sys_sparc32.c file in the
+sys32_sysctl() function so it returns -ENOTSUPP, but I'm not sure
+that's the right fix.  Should it be in do_sysctl() instead?
+
+Can anyone comment on this?
+
+--- arch/sparc64/kernel/sys_sparc32.c.old	2003-11-28 10:26:19.000000000 -0800
++++ arch/sparc64/kernel/sys_sparc32.c	2004-02-15 23:21:18.304035000 -0800
+@@ -4454,6 +4454,9 @@
+ 
+ extern asmlinkage long sys32_sysctl(struct __sysctl_args32 *args)
+ {
++#ifndef CONFIG_SYSCTL
++	return -ENOTSUPP;
++#else
+ 	struct __sysctl_args32 tmp;
+ 	int error;
+ 	size_t oldlen, *oldlenp = NULL;
+@@ -4488,4 +4491,5 @@
+ 		copy_to_user(args->__unused, tmp.__unused, sizeof(tmp.__unused));
+ 	}
+ 	return error;
++#endif
+ }
+
+-- DN
+Daniel
