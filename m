@@ -1,22 +1,33 @@
-From: Ricky Beam <jfbeam@bluetronic.net>
-Date: Thu, 08 Jul 2004 05:17:37 +0000
-Subject: Re: 2.6.7+BK: PCI scan gives lots of "bad: scheduling while atomic!"
-Message-Id: <Pine.GSO.4.33.0407080114580.25702-100000@sweetums.bluetronic.net>
+From: till varoquaux <tvaroqua@ie2.u-psud.fr>
+Date: Thu, 01 Jul 2004 17:48:09 +0000
+Subject: initrd problems??
+Message-Id: <20040701194809.3e060eb0.tvaroqua@ie2.u-psud.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.GSO.4.44.0407071734050.18568-100000@math.ut.ee>
-In-Reply-To: <Pine.GSO.4.44.0407071734050.18568-100000@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Wed, 7 Jul 2004, David S. Miller wrote:
->Turn off preemption, it's experimental at best on sparc64.
+I'm having problems netbooting a ultrasparc 1 server.
+I'm using tilo (from silo1.4.6) with a home made initrd. In this initrd
+I have a simple staticly linked busybox shell and a /linuxrc shell
+script there are also a couple of devices under /dev. Now here is were
+things start to get weird:
+My initrd looks alright to me (at least it works find when I
+mount it and chroot into it)
+_If I use it without any changes I get the message you get when calling
+busybox without any parametres ( /bin/busybox when the sha bang of my
+/linuxrc is: #!/bin/sh)
+_If I get rid of busybox put a statically linked bash in /bin and
+replace the first line of /linuxrc with #!/bin/bash I get:
+VFS: Mounted root (ext2 filesystem)
+Kernel panic: No init found. Try passing init= option to your kernel
 
-Somebody should set CONFIG_BROKEN if it isn't already set.  Preempt used
-to not even compile for sparc64, much less run. (It's been a long time
-since I even tried.)
-
---Ricky
-
-
+I'm confused: isn't the standard init for an initrd /linuxrc?
+How do I pass options to the kernel with tilo?
+How come busybox is called when there isn't even an init link??
+My kernel is the one from the Debian boot cd (I don't have the time to
+compile a new one until I get this problem solved).
+Till Varoquaux
+-- 
+"pardon my french"
