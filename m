@@ -1,49 +1,84 @@
-From: "David S. Miller" <davem@redhat.com>
-Date: Wed, 28 Jan 2004 21:46:47 +0000
-Subject: Re: the late arch/sparc64/mm/init.c:__flush_cache_all
-Message-Id: <20040128134647.16e09369.davem@redhat.com>
+From: "Jurzitza, Dieter" <DJurzitza@harmanbecker.com>
+Date: Fri, 09 Jan 2004 10:27:51 +0000
+Subject: Bootproblem with CD
+Message-Id: <1F6206BC53BCD3119059009027D1D3A20CC6AF42@OEKAEX01.becker.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <87ektjdcu9.fsf@uga.edu>
-In-Reply-To: <87ektjdcu9.fsf@uga.edu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-On Wed, 28 Jan 2004 15:42:38 -0500
-Ed L Cashin <ecashin@uga.edu> wrote:
+Dear Listmembers,
+currently I do a lot of testing with the new 2.4.23 kernel. About a year ago
+I posted into this list that I get an error message when booting saying:
+****
+Inspecting /boot/System.map
+Loaded 13363 symbols from /boot/System.map
+Symbols match kernel version 2.4.2X
+Error reading kernel symbols - Cannot allocate memory
+****
+this error is still persistent and is due to the fact that I boot using an
+initrd from a CD (what I have to do because the HDD is connected to a
+aha29160 controler who is not detected prior to loading the appropriate
+module from somewhere) The error happens when the mapfile is accessed the
+*second* time and data are taken from the HDD, not from the CDROM any more
+(since there are only a few modules that have to be loaded at the very
+begin)
 
-> My first question is why the function was removed.  With Seth Arnold's
-> help, I found the patch at bkbits.net that removes __flush_cache_all,
-> but the only clue is the subject header, "[SPARC64]: vmap/vunmap cache
-> flushing need not do anything."  I don't really understand why the
-> function was removed.
+If anybody of you guru's would find the time to test this on your own - I
+cannot figure out what is going wrong. If I boot *this* kernel using *this*
+System.map and *this* initrd from an harddisk attached to the symbios logic
+controler, everything is fine. No error, no allocation issue.
 
-Because we no longer need to flush the whole thing in the kernel
-any more, only specific addresses.
+I did a:
 
-> Can use flushw_all and flush g6 to clear the dcache, icache, and
-> ecache?
+mkisofs -silo-boot /boot/second.b -s /boot/silo.conf -o /home/image.iso -R
+/var/adm/bootCD
 
-No, flushw_all() flushes the cpu register windows and "flush g6" flushes
-one cacheline in the instruction cache.
+and burned the result using xcdroast.
 
-Please download the UltraSPARC programmers manual from, for example:
+Using this initrd from the harddisk directly does not end up in such errors.
 
-	http://www.sun.com/processors/manuals/805-0087.pdf
-
-to learn how to program the chip.
+Therefore there must be something wrong with the initrd (??) or whatsoever.
+I have no clue, maybe you do.
+Many thanks for your efforts in advance,
+take care
 
 
-> Also, and less important---in __flush_cache_all's inline asm, I
-> expected the percent sign to be escaped, as in the other init.c
-> functions.  Why is there only one percent sign?
-> 
-> -- 
-> --Ed L Cashin            |   PGP public key:
->   ecashin@uga.edu        |   http://noserose.net/e/pgp/
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Dieter Jurzitza
+
+
+--=20
+________________________________________________
+
+HARMAN BECKER AUTOMOTIVE SYSTEMS
+
+Dr.-Ing. Dieter Jurzitza
+Manager Hardware Systems
+         ESI
+
+Industriegebiet Ittersbach
+Becker-G=F6ring Str. 16
+D-76307 Karlsbad / Germany
+
+Phone: +49 (0)7248 71-1577
+Fax:   +49 (0)7248 71-1216
+eMail: DJurzitza@harmanbecker.com
+Internet: http://www.becker.de
+=20
+
+
+*******************************************
+Diese E-Mail enthaelt vertrauliche und/oder rechtlich geschuetzte Informati=
+onen. Wenn Sie nicht der richtige Adressat sind oder diese E-Mail irrtuemli=
+ch erhalten haben, informieren Sie bitte sofort den Absender und loeschen S=
+ie diese Mail. Das unerlaubte Kopieren sowie die unbefugte Weitergabe diese=
+r Mail ist nicht gestattet.
+=20
+This e-mail may contain confidential and/or privileged information. If you =
+are not the intended recipient (or have received this e-mail in error) plea=
+se notify the sender immediately and delete this e-mail. Any unauthorised c=
+opying, disclosure or distribution of the contents in this e-mail is strict=
+ly forbidden.
+*******************************************
+
