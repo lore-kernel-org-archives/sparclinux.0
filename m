@@ -1,74 +1,35 @@
-From: RChan <rspchan@starhub.net.sg>
-Date: Tue, 19 Oct 2004 13:25:09 +0000
-Subject: Serial (Sun su) oops on 2.6.9-final
-Message-Id: <417515B5.8050700@starhub.net.sg>
+From: Clemens Buchacher <drizzd@aon.at>
+Date: Fri, 08 Oct 2004 14:55:56 +0000
+Subject: [patch] [SPARC]: Fix warning for changed section attributes
+Message-Id: <20041008145556.GA11450@kzelldran.lan>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: "Keith M. Wesolowsi" <wesolows@foobazco.org>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-login/agetty on a serial port is oopsing on 2.6.9. Posted earlier on 
-2.6.9-rcX but
-no replies from list ;-((.
+This fixes the "Ignoring changed section attributes" warning by commenting out
+the attributes appended by gcc.
 
-Sun Fire V210 with two su 16550A serial ports. 2.6.9 kernel.
-(runs fine with 2.4.27)
+The previous 'fix' created a section '.text,#alloc' (literally), which I guess
+was not intended.
 
-Unable to handle kernel NULL pointer dereference
-tsk->{mm,active_mm}->context = 0000000000000743
-tsk->{mm,active_mm}->pgd = fffff8103dc68000
-\|/ ____ \|/
-"@'/ .. \`@"
-/_| \__/ |_\
-\__U_/
-login(2059): Oops [#1]
-TSTATE: 0000009911009600 TPC: 000000000041d480 TNPC: 000000000041d484 Y: 
-00000000 Not tainted
-TPC: <synchronize_irq+0x0/0x40>
-g0: 0000150000000005 g1: 000000000000003c g2: 00000000000001e0 g3: 
-0000000000000078
-g4: fffff8003ff8f400 g5: 000000000000003d g6: fffff8003f984000 g7: 
-fffff80000430010
-o0: 0000000000000000 o1: 0000000000000000 o2: fffff8103efa75a0 o3: 
-0000000000000000
-o4: 0000000000000000 o5: 0000000000000000 sp: fffff8003f9873a1 ret_pc: 
-0000000000559f80
-RPC: <uart_shutdown+0xa0/0x120>
-l0: fffff8103ecaebc0 l1: 0000000000000000 l2: 0000000000730018 l3: 
-0000000000000008
-l4: 000000000072a0c0 l5: 0000000000000001 l6: 0000000000000000 l7: 
-0000000000747400
-i0: 0000000000761960 i1: 0000000000000000 i2: 0000000000000001 i3: 
-0000000000000000
-i4: 0000000000000000 i5: 8000000000000000 i6: fffff8003f987461 i7: 
-000000000055ba18
-I7: <uart_hangup+0x58/0xc0>
-Caller[000000000055ba18]: uart_hangup+0x58/0xc0
-Caller[000000000053f690]: do_tty_hangup+0x2b0/0x3e0
-Caller[000000000049022c]: sys_vhangup+0x2c/0x40
-Caller[00000000004112b4]: linux_sparc_syscall32+0x34/0x40
-Caller[0000000000014e28]: 0x14e28
-Instruction DUMP: 01000000 01000000 01000000 <c20a2006> 82086010 
-80a06000 02400007 01000000 c20a2006
-TSTATE: 0000001111f09606 TPC: 000000000044b31c TNPC: 000000000044b320 Y: 
-00000000 Not tainted
-TPC: <recalc_task_prio+0xfc/0x220>
-g0: 5f73746172747570 g1: 0000000000000009 g2: 000000000000000a g3: 
-0000000000000000
-g4: fffff8003ff8e560 g5: 0000000000000000 g6: fffff8103e164000 g7: 
-0000000000000000
-o0: 00000001c24281bf o1: 00000000effff398 o2: 000000000000000a o3: 
-fffff8103e167e80
-o4: 000000007001aa38 o5: 0000000000000314 sp: fffff8103e166fb1 ret_pc: 
-000000000041fbb0
-RPC: <sched_clock+0x10/0x40>
-l0: 000000000000e431 l1: 0000000000000000 l2: 000000000000000e l3: 
-fffff8103f84a8c0
-l4: 000000003696b317 l5: 0000000000000000 l6: fffff8103eb68970 l7: 
-0000000000030002
-i0: fffff8103eb719a0 i1: 000000003696b317 i2: 000000000000000a i3: 
-0000000000014548
-i4: 00000000fefefeff i5: 00000000effffe30 i6: fffff8103e167071 i7: 
-000000000044b48c
-I7: <activate_task+0x4c/0xc0>
+Signed-off-by: Clemens Buchacher <drizzd@aon.at>
+---
+
+Runtime tested (Leon2 TSIM SPARC simulation)
+
+ arch/sparc/kernel/init_task.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
+
+--- a/arch/sparc/kernel/init_task.c	2004-10-06 20:19:25 +02:00
++++ b/arch/sparc/kernel/init_task.c	2004-10-06 20:19:25 +02:00
+@@ -23,6 +23,6 @@
+  * in etrap.S which assumes it.
+  */
+ union thread_union init_thread_union
+-	__attribute__((section (".text,#alloc")))
++	__attribute__((section (".text\"\n\t#")))
+ 	__attribute__((aligned (THREAD_SIZE)))
+ 	= { INIT_THREAD_INFO(init_task) };
