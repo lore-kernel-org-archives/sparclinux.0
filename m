@@ -1,94 +1,36 @@
-From: fta@safe-mail.net
-Date: Sun, 12 Sep 2004 21:59:50 +0000
-Subject: Move over Blackbird... We C.O.D. to the U.S. and Canada!!!
-Message-Id: <SIS1athsPvGpqzrQyQP00006809@ms.9682000.com>
+From: "Daniel" <hornet21barry@hotmail.com>
+Date: Fri, 03 Sep 2004 03:01:21 +0000
+Subject: Buy Pain Medications, Anonymously!
+Message-Id: <1094180481-4348@excite.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org
 
-Move over Blackbird here comes the Ariza 400 Ultra!!=20
-The most powerful, quickest, smallest FTA receiver ever made. That=92s righ=
-t we have them in stock and there ready to ship to you! We are the exclusiv=
-e online dealers of this unit and there selling fast.=20
-http://www.ftareceivers.com
+Save up to 80% on popular meds!
 
-WE SHIP C.O.D. TO THE U.S. AND CANADA!!!!
+*** GREAT SPECIALS ***
 
-THE ULTIMATE FTA TV SOLUTION THE ARIZA 400 ULTRA!!!
+Check it out: http://www.hjigoeoi.com/_85924943b9db73ac62baa654773c6a8e/4
 
-You can connect up to 4 different LNBs/satellite dishes to your Ariza 400 U=
-ltra receiver with the DiSEQC 4 in 1 switch  You have over 7 satellites to =
-choose from, and over 2500 channels. The receiver contains all the software=
- for the dishes once you have pointed the dishes outside your home.
+- No doctor visits or hassles
+- Quick delivery to your front door
 
-Tech Details for the Non-techie...
- You can connect up to 4 different LNBs to a 4-way switch  and one output t=
-o the receiver. Ariza will understand each individual LNB signal, and downl=
-oad all the channels for that satellite. For instance, if one LNB were poin=
-ting as Dish Network, you would set up LNB 1 to download all 300 DishNet st=
-ations (PPV, sports, everything). This would populate channels 1 - 300 on t=
-he system.
+Visit us here: http://www.hjigoeoi.com/_85924943b9db73ac62baa654773c6a8e/4
 
- If LNB 2 were pointing at another satellite company, you would then be abl=
-e to set up LNB 2 to download channels 301 - 600. This can continue for up =
-to 4 different satellite signals. Potentially, with enough dishes, you coul=
-d flip from channels 1 - 1200, without missing any stations!!
+
+On medication long term?  
+Buy bulk through us and LITERALLY SAVE THOUSANDS!
 
 
 
-You can use the existing DirecTV or Dish Network dish that you already have=
- on your house as long as you properly re-point the dish to the satellite y=
-ou would like to view, such as Dish Network.
+wanker firstnesbitt naomi marcus
+cutie metallicabutch cardinal jeff graphic sally angels 
+sweety blondie nugget 
+sugar lawdougie tina sherry
+jan jeanette pedro 
+lamer riverpaula pisces miki
 
-
-http://www.ftareceivers.com
-
-WE SHIP C.O.D. TO THE U.S. AND CANADA!!!!
-
-
-It's that easy!
-Imagine 1200 stations, no programming cards, no hashing, no blacklisting, a=
-nd no fear of the dreaded DirecTV "letter". All you need is to plug in the =
-ariza400 ultra to open all channels wide open.
-
--Microprocessor protected
-
--Exclusive software with enhanced EPG details
-
--Exciting new 3D "On screen menu
-
--Remote controlled Picture Zoom features
-
--Close captioning for the hearing impaired
-
--More reliable than other FTA receivers
-
--Many stations available in Spanish, German, Italian and French subtitles/o=
-verdubbing
-
--4:3 and 16:9 Screen Format Selection
-
--The ONLY receiver with full Autoroll for Keys on all major providers
-
--Automatic channel searching and manual PID searching
-
--Works with all Nagravision encrypted networks even with multiple provider =
-ID's
-
--Nagra2" and "Irdeto2" ready for your viewing enjoyment :)
-
--Fully legal free to air branded receiver made by Ariza
-
-- No more JTAGs, AVRs, Atmegas, ROM X Cards, ISO Programmers, and TSOP locks
-- Everything you need is in the receiver
-- With the current keys, you can receive all channels wide open
-- No card needed - EVER!
-
-http://www.ftareceivers.com
-
-WE SHIP C.O.D. TO THE U.S. AND CANADA!!!!
-
-
+nugget prestontango whitney poiuyt horizon timber groovy 
 
