@@ -1,89 +1,46 @@
-From: "Allison" <specials@land.com>
-Date: Sun, 26 Dec 2004 05:35:23 +0000
-Subject: Nunber SUPPORTED FTA Sat Receivers !! Enforcer PLUS
-Message-Id: <ce1b01c4eb64$b7ccb640$43798cae@specials>
+From: William Lee Irwin III <wli@holomorphy.com>
+Date: Tue, 21 Dec 2004 04:56:27 +0000
+Subject: [4/3] fix initrd memcpy
+Message-Id: <20041221045627.GC771@holomorphy.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <0f8201c4e3e2$d9481370$be4323a9@specials>
-In-Reply-To: <0f8201c4e3e2$d9481370$be4323a9@specials>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi,
-Lets start out by saying Silver Bullet Enforcer and the Enforcer PLUS has
-the BEST SUPPORT for any FTA unit on the net..
+The latter hunk of the forwarded patch has already been applied, so
+please apply the patch as it appears in the un-forwarded part. I've
+taken some liberties in adding the Acked/Signed-off lines in what I
+hope is an agreeable way.
 
-Visit ONESTOPSHOP.CC There you will find links to the Live Chat Area and
-Support Forums..
+On Sun, Nov 14, 2004 at 11:16:40PM -0500, Jurij Smakov wrote:
+> As a followup: I have tried fiddling more with the memcpy() routine.
+> Insight from Rob Radez and comments in arch/sparc/lib/blockops.S suggest,
+> that __copy_1page assumes that the memory regions copied are aligned on a
+> double-word boundary. I have checked, that in the cramfs case it wasn't
+> true, the destination was not aligned on the double-word boundary. So, I
+> have implemented a simple workaround (see patch below), which together
+> with Bob Breuer's iommu.c fix [0] made 2.6.8 kernel to boot on my
+> machine (SS10 with Ross Hypersparc CPU)! I also confirm, that adding the
+> suggested fix to the srmmu.c also [1] breaks sunlance on my machine. With
+> that "fix" the line 'eth0: Memory error, status 88c3, addr 3713ba' is
+> displayed continuously during boot, when it comes to configuring network
+> interfaces. The successful patch for me is:
 
-The LIVE CHAT SUPPORT and 24/7 Forum Support have everything from software
-installation to Dish Setup and Pointing.
-We also have the Best Moderators in the FTA industry. Also the support
-forum has over 5000 members. If you are having a
-problem someone knows the answer to it for sure.. A tremdous knowledge base
-is available at your finger tips..
+Acked-by: William Irwin  <wli@holomorphy.com>
+Acked-by: Dave Miller  <davem@davemloft.net>
+Signed-off-by: Jurij Smakov <jurij@wooyd.org>
 
-
-We OFFER The  ALL NEW Silver Bullet Enforcer PLUS IRD. 
-This unit by far is superior to any FTA unit on the market..
-
-
-                                                   SILVER BULLET ENFORCER
-PLUS
-    New Exciting Features
-    The most powerful, quickest, smallest FTA receiver ever made period.!!!
-    As small as a mouse pad
-    Advanced Microprocessor protection with increased memory size
-    Exclusive software with Enhanced EPG details
-    Exciting new 3D "On screen menu"
-    Close captioning for the hearing impaired
-    The most reliable and powerful FTA receiver yet!
-    Many stations available in English, Spanish, German, Italian and French
-subtitles/overdubbing
-    Remote controlled Picture Zoom features
-    4:3 and 16:9 Screen Format Selection
-    Easy to use "Update software "
-    The ONLY receiver with full Autoroll for Keys on all major providers
-    Automatic channel searching and manual PID searching
-    Works with all Nagravision encrypted networks even with multiple
-provider ID's
-    "Nagra2" and "Irdeto2" ready for your viewing enjoyment :)
-
-    Includes:
-    1 Enforcer Plus
-    1 - User Guide
-    1 - Set of RCA A/V cables
-    1 - Null modem cable to connect to your computer for future updates
-    1 - 4-1 Diseqc Switch
-    - Full access to our private customer support forums and LIVE CHAT
-SUPPORT, the best in the biz!
-
-    TECHNICAL SPECS
-    Product Height - 2"
-    Product Width - 7"
-    Product Length - 5.5"
-    Dish Included ? No, but **combo packages are available on website**
-    Maximum Number of LNB signals - 4
-    100% Digital Video and Audio - Yes
-    Units needed per television - 1
-    On-Screen Guide ** Certain Satellites **
-    S-Video Outputs - 0
-    RCA-Type Video Outputs - 1
-    RCA-Type Audio Outputs - 1
-    Remote Control Transmission ? Infrared
-
-In stock and ready to ship NOW
-Exclusively sold by the FTA Originals
-We are authorized dealers
-New Chips already Installed
-
-
-If you by any reason have received this email in error Please go to your
-Forum's User Control Panel and Change your email address...
-
-
-
-
-
-
+Index: sparc32-2.6.10-rc3/include/asm-sparc/string.h
+=================================--- sparc32-2.6.10-rc3.orig/include/asm-sparc/string.h	2004-06-15 22:18:38.000000000 -0700
++++ sparc32-2.6.10-rc3/include/asm-sparc/string.h	2004-12-20 20:53:00.585527010 -0800
+@@ -40,6 +40,9 @@
+ 
+ 	if(n <= 32) {
+ 		__builtin_memcpy(to, from, n);
++	} else if (((unsigned int) to & 7) != 0) {
++		/* Destination is not aligned on the double-word boundary */
++		__memcpy(to, from, n);
+ 	} else {
+ 		switch(n) {
+ 		case PAGE_SIZE:
