@@ -1,45 +1,52 @@
-From: "Keith M. Wesolowski" <wesolows@foobazco.org>
-Date: Mon, 29 Mar 2004 20:28:40 +0000
-Subject: Re: [PATCH] Fix for arch/sparc/kernel/signal.c and GCC-3.5
-Message-Id: <20040329202840.GB24518@foobazco.org>
+From: joshk@triplehelix.org (Joshua Kwan)
+Date: Thu, 11 Mar 2004 07:18:47 +0000
+Subject: Passing arguments to a kernel image within a tftpboot image
+Message-Id: <20040311071847.GE29906@triplehelix.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="7mxbaLlpDEyR1+x6"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040326124831.GA30978@artsapartment.org>
-In-Reply-To: <20040326124831.GA30978@artsapartment.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Fri, Mar 26, 2004 at 06:48:31AM -0600, Art Haas wrote:
 
->  	/* Now see if we want to update the new state. */
->  	if (ssptr) {
-> -		void *ss_sp;
-> +		unsigned long *ptr, ss_sp;
->  
-> -		if (get_user((long)ss_sp, &ssptr->the_stack))
-> +		ptr = (unsigned long *)&ssptr->the_stack;
-> +		if (get_user(ss_sp, ptr))
+--7mxbaLlpDEyR1+x6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I don't think I like the use of unsigned long * here; the real type of
-ssptr->the_stack is char *, so why not just use it?  Does this work
-for you?
+Hello,
 
-=== arch/sparc/kernel/signal.c 1.26 vs edited ==--- 1.26/arch/sparc/kernel/signal.c	Thu Feb 26 22:27:45 2004
-+++ edited/arch/sparc/kernel/signal.c	Mon Mar 29 12:20:33 2004
-@@ -1128,9 +1128,9 @@
- 
- 	/* Now see if we want to update the new state. */
- 	if (ssptr) {
--		void *ss_sp;
-+		char *ss_sp;
- 
--		if (get_user((long)ss_sp, &ssptr->the_stack))
-+		if (get_user(ss_sp, &ssptr->the_stack))
- 			goto out;
- 		/* If the current stack was set with sigaltstack, don't
- 		   swap stacks while we are on it.  */
+Would it be possible to pass kernel arguments using some sort of small
+bootloader within a tftpboot image to, say, a Linux kernel that is
+within?
 
+This is currently wanted for the new Debian installer which should
+preferably pass stuff like "DEBCONF_PRIORITY=3Dmedium devfs=3Dmount" to the
+kernel in the tftpboot image.
 
--- 
-Keith M Wesolowski
+--=20
+Joshua Kwan
+
+--7mxbaLlpDEyR1+x6
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iQIVAwUBQFAS1aOILr94RG8mAQLGwg//c1CpnfZTCH5HGGoMkoYACT8kkjYEwsfX
+j4sPmWXVzqo92XtVxYdJ9VPHQTcbgQH0FzqR2mhq0BFYtp1wNZyBSYDmjm8cLuJh
+ZswEmlGScxI+T6HUbTbrXF3lUGwRR4Y/+hvwxpXMjfbViXc5QqhCFmWla9ypUFoj
+Rq9hf0WE9OwA8QH8nQ4ZMLUyHbIrL+VFvT7hfOr07ZOe3jtuAT63MbAKlD6LjuJ5
+QS0gbswyGv9vuapQwHPTjMtnKmtkiCPMQ32hu33FnssqyscWjWtvHSTXrNlHNSgO
+EVLTOYNOAP0VhSg/yhbN75muYVb4974Ky9eeAhe2ZI+hGm0APgMq9LORNEPV+bCn
+p7tSjXetvhSeFSLXNB6QS0u/Tv2XGeSARfhz9MIEZAcbc006Kk5bUE0ieZ26+8mB
+04PqjHe9NB1+i5C/M93/qmC8ljO9WqAOnjABONuye1T3cSwF0j7kRBh5Pm2nKlXa
+iI+u/vy+1mFGkV5T4P7t4JDym0mZwVIeMMnYRxD/ROj+nbXy+o+J8t0BP2U7buBc
+xNvvGWvnBIpxRydMAcO8+MxiMeG6nuDa5OuxeJ0/40dBnFohW+4PUzBFRxSeXIs9
+WYhmNw1YyZglnlJvsB4n8QGSrkC/vhlFftmkVhTIVnVv45ozYSU7XiYfDZpq6bfd
+Dh8piJXiKCg=
+=U1C7
+-----END PGP SIGNATURE-----
+
+--7mxbaLlpDEyR1+x6--
