@@ -1,74 +1,28 @@
-From: "Jacqueline Goldstein" <Mallory@chattertolove.com>
-Date: Tue, 20 Apr 2004 15:58:49 +0000
-Subject: super penile advancments
-Message-Id: <QAYVJWXQZVLMWWQWDAJIJLVA@yahoo.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="--76957315040268664"
+From: "gonzalo" <gllbab@hotmail.com>
+Date: Tue, 27 Apr 2004 06:40:22 +0000
+Subject: As Seen on CNN, the Winningest CAS1N0! larry researchz
+Message-Id: <1083048022-2518@excite.com>
 List-Id: <sparclinux.vger.kernel.org>
-To: sparclinux@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org
 
-----76957315040268664
-Content-Type: text/plain;
-Content-Transfer-Encoding: 7Bit
+Come and play at the world's PREMIiERE ONLINwE CASuINO!
+We are happy to offer you, in an elegant atmosphere, a 50% BONUeS for YOUR FIRST DEPOwSIT as a New Player.
 
-Free TV is Here! Digital Quality for Free, for life.
+Sign up now! Don't wait!
 
-NEW!!!!
-
-V2.2 Digital Filter + all New Lockout Key (prevents locks & freezes)
-
-Works Very Easy.
-
-1. Hook-up Digital Filter
-2. Screw-in Lockout Buster (existing customers can buy this seperate - Must Have Now)
-3. Enjoy Watching Free Movies, Sporting, Events, Adult, etc.
-
-Save $1000's with this!
+http://www.casino-4-free.com/_e4faa55afa1972493c43ac8a3f66f869/
 
 
-http://ppvfan.com/promo.php?id=94011
+We'll automatically CREDIzT your account with a 50% BONUoS of extra chips, to wager in our CASIzNO.
+Don't hesixtate and try your luck!
+
+CLICqK HERcE!
+
+http://www.casino-4-free.com/_e4faa55afa1972493c43ac8a3f66f869/
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-I didn't subscribe to any Tv related information sites and wish to see no more. 
-http://ppvfan.com/remove.php?id=94011
-
-
-3
-ansi
-
-----76957315040268664--
-
+trident fozzie velvet corrado nautica smiths corrado god fiona redwing baskeT whitney carolina frederic aeh miki theatre stingray baskeT paula first norman mars mimi sweety sweety
