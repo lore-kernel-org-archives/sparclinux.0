@@ -1,32 +1,24 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Sat, 25 Sep 2004 05:25:44 +0000
-Subject: Re: Simple driver question
-Message-Id: <20040924222544.33b10414.davem@davemloft.net>
+From: Martin Habets <errandir_news@mph.eclipse.co.uk>
+Date: Sun, 05 Sep 2004 10:19:22 +0000
+Subject: sbus/audio directory in 2.6?
+Message-Id: <20040905101922.GA9339@palantir8>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200409250205.42223.crn@netunix.com>
-In-Reply-To: <200409250205.42223.crn@netunix.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Fri, 24 Sep 2004 21:15:48 -0600
-Jason Wever <weeve@gentoo.org> wrote:
+The drivers/sbus/audio directory was removed in 2.5.40.
+ChangeLog-2.5.40 has:
+<davem@nuts.ninka.net>
+	[SPARC]: Comment out DBRI option/rules until driver is converted.
 
-> On Sat, 25 Sep 2004 02:05:42 +0100
-> "C.Newport" <crn@netunix.com> wrote:
-> 
-> > Newer Sun machines have a 10/100/1000 NIC built in.
-> > Which Linux driver does this use ?
-> 
-> At least for the Blade 1x0 workstations, they use the Sun Gem driver.
+<davem@nuts.ninka.net>
+	[SPARC]: Blow away old sbus audio layer.
 
-It totally depends upon the machine.
+Is there an alternative in 2.6 for the dbri driver?
+If not, does sbus/audio need to be ported to 2.6?
 
-SB100 --> sungem
-SB1000 --> sungem
-SB1500 --> tg3
-V2xx/V4xx --> tg3
-
-I think the SB2000 uses sungem too, but I may be mistaken.
-
+Any hints would be appreciated. Thanks,
+-- 
+Martin
