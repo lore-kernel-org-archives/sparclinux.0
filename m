@@ -1,39 +1,65 @@
-From: David Dillow <dave@thedillows.org>
-Date: Tue, 17 Feb 2004 04:50:03 +0000
-Subject: Non-PCI build broken on sparc64, maybe others
-Message-Id: <1076993402.21443.5.camel@ori.thedillows.org>
+From: "David S. Miller" <davem@redhat.com>
+Date: Tue, 17 Feb 2004 05:32:20 +0000
+Subject: Re: Non-PCI build broken on sparc64, maybe others
+Message-Id: <20040216213220.594052c7.davem@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1076993402.21443.5.camel@ori.thedillows.org>
+In-Reply-To: <1076993402.21443.5.camel@ori.thedillows.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+To: David Dillow <dave@thedillows.org>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-I believe this changeset in Linus's tree:
-==== ChangeSet 1.1500.12.4 ====
-D 1.1500.12.4 04/02/02 11:04:46-08:00 dsaxena@plexity.net 35779 35702 5/0/1
-P ChangeSet
-C [PATCH] PCI: Replace pci_pool with generic dma_pool
-C
-C - Move drivers/pci/pool.c to drivers/base/pool.c
-C - Initialize struct device.dma_pools in device_initialize()
-C - Remove initialization of struct pci_dev.pools from pci_setup_device()
-------------------------------------------------
+On 16 Feb 2004 23:50:03 -0500
+David Dillow <dave@thedillows.org> wrote:
 
-with key: dsaxena@plexity.net|ChangeSet|20040202190446|51997
+> I believe this changeset in Linus's tree:
+ ...
+> breaks builds that do not include PCI support.
 
-breaks builds that do not include PCI support.
+Indeed, thanks for catching this David.  This patch should fix it
+and I'll be pushing this to Linus.
 
-If I set CONFIG_PCI=y, it builds. If not, I get:
-  LD      init/built-in.o
-  LD      .tmp_vmlinux1
-drivers/built-in.o(.text+0x2056c): In function `pool_alloc_page':
-: undefined reference to `dma_alloc_coherent'
-drivers/built-in.o(.text+0x2060c): In function `pool_free_page':
-: undefined reference to `dma_free_coherent'
-make: *** [.tmp_vmlinux1] Error 1
+Thanks again.
 
-while building BK-latest for my Ultra1.
-
-Just a heads up,
-Dave
+# This is a BitKeeper generated diff -Nru style patch.
+#
+# ChangeSet
+#   2004/02/16 21:28:29-08:00 davem@nuts.davemloft.net 
+#   [SPARC64]: Fix non-PCI build, reported by David Dillow.
+# 
+# include/asm-sparc64/dma-mapping.h
+#   2004/02/16 21:25:35-08:00 davem@nuts.davemloft.net +21 -1
+#   [SPARC64]: Fix non-PCI build, reported by David Dillow.
+# 
+diff -Nru a/include/asm-sparc64/dma-mapping.h b/include/asm-sparc64/dma-mapping.h
+--- a/include/asm-sparc64/dma-mapping.h	Mon Feb 16 21:28:51 2004
++++ b/include/asm-sparc64/dma-mapping.h	Mon Feb 16 21:28:51 2004
+@@ -1,5 +1,25 @@
++#ifndef _ASM_SPARC64_DMA_MAPPING_H
++#define _ASM_SPARC64_DMA_MAPPING_H
++
+ #include <linux/config.h>
+ 
+ #ifdef CONFIG_PCI
+ #include <asm-generic/dma-mapping.h>
+-#endif
++#else
++
++static inline void *dma_alloc_coherent(struct device *dev, size_t size,
++			 dma_addr_t *dma_handle, int flag)
++{
++	BUG();
++	return NULL;
++}
++
++static inline void dma_free_coherent(struct device *dev, size_t size,
++		       void *vaddr, dma_addr_t dma_handle)
++{
++	BUG();
++}
++
++#endif /* PCI */
++
++#endif /* _ASM_SPARC64_DMA_MAPPING_H */
