@@ -1,26 +1,40 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Mon, 25 Apr 2005 03:45:26 +0000
-Subject: Re: [PATCH 2.6] More sparc32 ksyms cleanups
-Message-Id: <20050424204526.058da3b1.davem@davemloft.net>
+From: <softwarenews@freemail.de>
+Date: Fri, 01 Apr 2005 07:02:24 +0000
+Subject: Beursverkoop software
+Message-Id: <539901c53697$b5f0dcb0$4b71dc36@softwarenews>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, 03 Mar 2005 23:44:39 -0600
-"Tom 'spot' Callaway" <tcallawa@redhat.com> wrote:
+Geachte dames en heren,
+ 
+Ergert u zich ook altijd over de hoge prijzen die voor software gevraagd
+worden?
+ 
+Daar komt nu een einde aan. Wij leveren u alle mogelijke software voor een
+fractie van de normale prijs.
+ 
+De software wordt vanuit het buitenland direct naar uw adres verzonden,
+omdat het daar minder kost dan in de winkels alhier.
+ 
+Originele versies met originele serienummers en de normale support voor
+weinig geld, bijvoorbeeld:
+ 
+Microsoft Windows XP prof. voor 50 USD in plaats van 270 USD
+Adobe Photoshop 80 USD in plaats van 650 USD
+ 
+Deze en andere topprodukten kunt u verwachten. Aarzel niet en bezoek onze
+winkel. 
+De winkel is geheel Engelstalig, maar alle produkten kunnen in elke taal
+geinstalleerd worden.
+ 
 
-> The sparc32 ksyms is missing a few more symbols, these are primarily
-> related to SMP, and will be needed as SMP gets beaten back into
-> functionality.
-> 
-> Specifically, add __cpu_data (PER_CPU), cpu_online_map, and
-> phys_cpu_present_map.
-> 
-> This patch assumes that the earlier "linux-2.6.11-sparc-fixksyms.patch"
-> is applied, otherwise, it will apply with fuzz.
-> 
-> Signed-off-by: Tom 'spot' Callaway <tcallawa@redhat.com>
+ 
+Veel winkelplezier.
+ 
+Met vriendelijke groet,
+ 
+ResellerNews
 
-Applied, thanks Tom.
