@@ -1,7 +1,7 @@
-From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
-Date: Mon, 02 Aug 2004 17:00:30 +0000
+From: "Art Haas" <ahaas@airmail.net>
+Date: Mon, 02 Aug 2004 18:09:33 +0000
 Subject: Re: Question about recent copy_user.S change
-Message-Id: <1091466030.2264.7.camel@e2-184-130.sf.shownets.net>
+Message-Id: <20040802180933.GI7321@artsapartment.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040801192158.GB7321@artsapartment.org>
 In-Reply-To: <20040801192158.GB7321@artsapartment.org>
@@ -10,18 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sun, 2004-08-01 at 14:21 -0500, Art Haas wrote:
+On Mon, Aug 02, 2004 at 12:00:30PM -0500, Tom 'spot' Callaway wrote:
+> On Sun, 2004-08-01 at 14:21 -0500, Art Haas wrote:
+> 
+> > Also, just what was the problem with gcc-3.3 that was
+> > resolved by adding the parenthesis? Macro mis-expansion I'm guessing.
+> 
+> Yep. That was it.
+> 
 
-> Also, just what was the problem with gcc-3.3 that was
-> resolved by adding the parenthesis? Macro mis-expansion I'm guessing.
+OK. As the memcpy.S file has similiar macros, is it not susceptible to
+the same mis-expansion?
 
-Yep. That was it.
+Art Haas
+-- 
+Man once surrendering his reason, has no remaining guard against absurdities
+the most monstrous, and like a ship without rudder, is the sport of every wind.
 
-~spot
----
-Tom "spot" Callaway <tcallawa(a)redhat*com> LCA, RHCE 
-Red Hat Sales Engineer || Aurora Linux Project Leader
-
-"If you are going through hell, keep going."
-- Sir Winston Churchill
-
+-Thomas Jefferson to James Smith, 1822
