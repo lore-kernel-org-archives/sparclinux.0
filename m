@@ -1,26 +1,40 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Tue, 14 Sep 2004 20:34:50 +0000
-Subject: Re: Legacy PC IO reservations on sparc64?
-Message-Id: <20040914133450.540e20b5.davem@davemloft.net>
+From: "c.hota" <cghota@mail.midsouth.ualr.edu>
+Date: Thu, 02 Sep 2004 15:52:13 +0000
+Subject: pci_iommu: alloc_streaming_cluster of npages(1) failed!
+Message-Id: <413741AD.2050707@midsouth.ualr.edu>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.GSO.4.44.0409141248500.8479-100000@math.ut.ee>
-In-Reply-To: <Pine.GSO.4.44.0409141248500.8479-100000@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, 14 Sep 2004 12:50:28 +0300 (EEST)
-Meelis Roos <mroos@linux.ee> wrote:
+Hello!
 
-> From /prco/iomem on a Sun Ultra 5, running 2.6.9-rc2:
-> 
->   1ff000a0000-1ff000bffff : Video RAM area
->   1ff000c0000-1ff000c7fff : Video ROM
->   1ff000f0000-1ff000fffff : System ROM
-> 
-> Why are these here on sparc64?
+I am having problems with my SunFire V100.  I loaded Gentoo on it, 
+everything went fine, it boots, gives me a login prompt, and all is well 
+with the world... for about 30 seconds.
 
-We should never allocate them to real devices because
-graphics cards will respond to I/O's in this area.
-This is all legacy VGA stuff.
+Then, I see the following on my screen:
+
+pci_iommu: alloc_streaming_cluster of npages(1) failed!
+
+Over and over again.
+
+Googling this problem brings up:
+    /usr/src/linux/arch/sparc64/kernel/pci_iommu.c
+    http://www2.randomlogic.com/linux_html/140152.html
+
+This isn't much help for me, though.  If anyone can let me know what's 
+wrong and (even better) how to fix it, I'd be very grateful.
+
+Thanks,
+
+chris.
+
+-- 
+Chris Hota
+cghota@midsouth.ualr.edu
+(501)683-7339 desk
+(501)413-1176 cell
+http://www.midsouth.ualr.edu/ 
+
