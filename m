@@ -1,25 +1,57 @@
-From: Keith M Wesolowski <wesolows@foobazco.org>
-Date: Mon, 03 May 2004 14:51:54 +0000
-Subject: Re: Debian 3.01, kernel 2.6 compile error.
-Message-Id: <20040503145154.GB20865@foobazco.org>
+From: "Art Haas" <ahaas@airmail.net>
+Date: Tue, 25 May 2004 00:38:20 +0000
+Subject: PMD_SIZE and compile errors in 2.6.7-rc1
+Message-Id: <20040525003820.GK2632@artsapartment.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <S263600AbUECFmn/20040503054243Z+38@vger.kernel.org>
-In-Reply-To: <S263600AbUECFmn/20040503054243Z+38@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Mon, May 03, 2004 at 01:42:36AM -0400, Jester 2.0 wrote:
+Hi.
 
-> I have a SMP Ultra2 running woody with gcc (GCC) 3.3.3.  When compiling
-> 2.6.5, I receive the following error.
+My attempts to build the 2.6.7-rc1 kernel on my SS20 fail when compiling
+the mm/rmap.c file. The problem is on line 541:
 
-> init/main.c:70: #error Sorry, your GCC is too old. It builds incorrect
-> kernels.
+540	#define CLUSTER_SIZE    (32 * PAGE_SIZE)
+541	#if     CLUSTER_SIZE  > PMD_SIZE
+542	#undef  CLUSTER_SIZE
+543	#define CLUSTER_SIZE    PMD_SIZE
+544	#endif
+545	#define CLUSTER_MASK    (~(CLUSTER_SIZE - 1))
 
-gcc doesn't matter; check sparc64-linux-gcc -v.  You'll probably want
-to check the debian archives for the solution.
+On 32-bit sparc, the PMD_SIZE macro expands to a function call, unlike
+64-bit sparc where it is a plain macro expanding out to a compile-time
+derviable value. So, the pre-processor gets stuck and compiling the file
+fails.
+
+The following patch changes the PMD_SIZE to macros the preprocessor can
+handle, but I'm not sure about the removal of the BTFIXUP_SETHI()
+wrapper and what consequences may result. The kernel is rebuilding as I
+write this so the patch below is untested. Comments?
+
+Art Haas
+
+=== include/asm-sparc/pgtable.h 1.21 vs edited ==--- 1.21/include/asm-sparc/pgtable.h	2004-05-22 16:56:24 -05:00
++++ edited/include/asm-sparc/pgtable.h	2004-05-24 19:26:41 -05:00
+@@ -113,7 +113,13 @@
+ BTFIXUPDEF_INT(page_kernel)
+ 
+ #define PMD_SHIFT       	BTFIXUP_SIMM13(pmd_shift)
+-#define PMD_SIZE        	BTFIXUP_SETHI(pmd_size)
++#ifdef CONFIG_SUN4
++#define PMD_SIZE SUN4C_PMD_SIZE
++#elif SUN4C_PMD_SIZE = SRMMU_PMD_SIZE_SOFT
++#define PMD_SIZE SUN4C_PMD_SIZE
++#else
++#error "unexpected PMD_SIZE values"
++#endif
+ #define PMD_MASK        	BTFIXUP_SETHI(pmd_mask)
+ #define PMD_ALIGN(addr) 	pmd_align(addr)
+ #define PGDIR_SHIFT     	BTFIXUP_SIMM13(pgdir_shift)
 
 -- 
-Keith M Wesolowski
+Man once surrendering his reason, has no remaining guard against absurdities
+the most monstrous, and like a ship without rudder, is the sport of every wind.
+
+-Thomas Jefferson to James Smith, 1822
