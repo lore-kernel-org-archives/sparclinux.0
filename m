@@ -1,27 +1,24 @@
-From: "Adrian Abernathy" <zhmxtsy@swbell.net>
-Date: Sat, 18 Dec 2004 21:58:22 +0000
-Subject: Re: Re: Hope for future cooperation
-Message-Id: <79782498142585.45139.qmail@swbell.net>
+From: "David S. Miller" <davem@davemloft.net>
+Date: Thu, 09 Dec 2004 05:57:03 +0000
+Subject: Re: Fix for break handling in sunsab.c for 2.6
+Message-Id: <20041208215703.3ce64fe4.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Rolando <linux-net@vger.kernel.org>
+To: sparclinux@vger.kernel.org
 
-Need the   m one y   for holiday?
+On Sun, 21 Nov 2004 13:43:05 -0500 (EST)
+Jurij Smakov <jurij@wooyd.org> wrote:
 
-We will   r ef in ance   your   m o rtg age  and get you cash
-for the holidays  in just 3 days.
+> Due to some bugs in break handling in the sunsab.c serial driver, sending 
+> a break over serial console (equivalent of Stop-A sent from keyboard) does 
+> not dump user to the PROM command line. AFAICT, in the 2.4 -> 2.6 
+> transition the checking for break has been moved from check_status() to 
+> receive_chars(). However, in the current version of the driver the BRK 
+> interrupt never reaches receive_chars(). Even if it would, for the break 
+> to take effect a non-zero count of characters must be present in the
+> buffer at the same time, which never happens. The patch below corrects the 
+> problem (I have tried to make it as unintrusive as possible).
 
-And if  we get your applicatoin before the 25th
-of this month we will qualify you for our  r at  e
-of 3%. Buy gifts for your kids, wife or husband and
-Have a Happy Holiday.
-
-go to this offer
-http://www.midord.com/
-
-Thank you.
-
-Adrian Abernathy
-
+Patch applied, thanks a lot Jurij.
