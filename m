@@ -1,8 +1,10 @@
 From: Janet Sabatino <Websitepositioning@ligne-net.info>
-Date: Tue, 03 Aug 2004 20:31:24 +0000
+Date: Sat, 07 Aug 2004 00:21:50 +0000
 Subject: more website traffic
-Message-Id: <S266830AbUHCUb0/20040803203126Z+7352@vger.kernel.org>
+Message-Id: <S267999AbUHGAVx/20040807002153Z+127@vger.kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <S266830AbUHCUb0/20040803203126Z+7352@vger.kernel.org>
+In-Reply-To: <S266830AbUHCUb0/20040803203126Z+7352@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
