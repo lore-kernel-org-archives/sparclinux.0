@@ -1,31 +1,25 @@
-From: "Antonino A. Daplas" <adaplas@hotpop.com>
-Date: Wed, 16 Feb 2005 11:30:14 +0000
-Subject: Re: [atyfb] No display on Sparc Ultra 10 with kernel 2.6.10-rc2 or later
-Message-Id: <200502161930.14689.adaplas@hotpop.com>
+From: "David S. Miller" <davem@davemloft.net>
+Date: Wed, 16 Feb 2005 15:51:40 +0000
+Subject: Re: [atyfb] No display on Sparc Ultra 10 with kernel 2.6.10-rc2 or
+Message-Id: <20050216075140.77ae3563.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200502140251.00645.aragorn@tiscali.nl> <200502160328.00148.aragorn@tiscali.nl> <20050215192018.36c9c7e8.davem@davemloft.net>
-In-Reply-To: <20050215192018.36c9c7e8.davem@davemloft.net>
+References: <200502140251.00645.aragorn@tiscali.nl>
+	<200502152010.22880.adaplas@hotpop.com>
+	<200502160327.47586.aragorn@tiscali.nl>
+	<200502161927.58344.adaplas@hotpop.com>
+In-Reply-To: <200502161927.58344.adaplas@hotpop.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>, Frans Pop <aragorn@tiscali.nl>
-Cc: adaplas@pol.net, debian-sparc@lists.debian.org, sparclinux@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net
+To: adaplas@pol.net
+Cc: adaplas@hotpop.com, aragorn@tiscali.nl, debian-sparc@lists.debian.org, sparclinux@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net
 
-On Wednesday 16 February 2005 11:20, David S. Miller wrote:
-> On Wed, 16 Feb 2005 03:27:51 +0100
->
-> Frans Pop <aragorn@tiscali.nl> wrote:
-> > Excellent!
-> > Tested the patch with 2.6.11-rc3-bk2 and AFAICT it completely restores
-> > the old behavior. I guess that solves the regression since 2.6.10-rc2.
-> >
-> > Please let me know if this patch will be submitted for inclusion as is so
-> > I can also submit it for inclusion in the Debian 2.6.10 kernel.
->
-> I applied it and will push upstream.
+On Wed, 16 Feb 2005 19:27:57 +0800
+"Antonino A. Daplas" <adaplas@hotpop.com> wrote:
 
-Great, I was about to push this upstream. Thanks.
+> Nope, those are proposed options.  If nobody disagrees, I can easily add
+> this for atyfb.
 
-Tony 
+Please do.
 
-
+BTW, for Sparc we may wish to inherit the CSYNC setting from default_var.
