@@ -1,24 +1,37 @@
-From: Firewalls-Owner@greatcircle.com
-Date: Thu, 18 Nov 2004 12:51:16 +0000
-Subject: Your mail to Firewalls
-Message-Id: <20041118125116.B73F532C1FB@mycroft.greatcircle.com>
+From: "Tyree " <87baklava@c21steele.com>
+Date: Fri, 05 Nov 2004 09:57:29 +0000
+Subject: bloodline
+Message-Id: <20041027DZWCZJNDJT1254XYCVA@mariani.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-This pre-recorded message is being sent in response to your recent
-email to Firewalls.
+You're invited...
 
-The Firewalls mailing list has moved to "Firewalls@ISC.ORG".
+You have been nominated by a friend to participate in our new initiative.
 
-Your message has NOT been forwarded. 
+As of this year, we are allowing a select few individuals to obtain an Official Degree from one of ten respected Universities without ever opening a book or taking a test.
 
-You must send your messages directly to Firewalls@ISC.ORG
-rather than to Firewalls@GreatCircle.COM.
+All we require is that you confirm your nomination on our secure site and we will ship the degree of your choice to you worldwide.
 
-For more information, see:
 
-	http://www.isc.org/services/public/lists/firewalls.html
-
+http://quickcollegedegree.com/?partid=wh6
+
+--Tyree 
+Independent University Organization
+I.D. #wh6-457
+
+
+
+If you have recieved this message in error please go here:
+http://quickcollegedegree.com/st.htm
+
+
+
+
+
+
+
+
