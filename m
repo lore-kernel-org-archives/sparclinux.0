@@ -1,45 +1,42 @@
-From: "Keith M. Wesolowski" <wesolows@foobazco.org>
-Date: Fri, 02 Jul 2004 04:11:36 +0000
-Subject: Re: A question about PROT_NONE on Sun4c 32-bit Sparc
-Message-Id: <20040702041136.GA21360@foobazco.org>
+From: Meelis Roos <mroos@linux.ee>
+Date: Mon, 19 Jul 2004 14:14:40 +0000
+Subject: serial console garbled on U5
+Message-Id: <Pine.GSO.4.44.0407191712500.27151-100000@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040630030503.GA25149@mail.shareable.org> <20040702010349.GF8950@mail.shareable.org>
-In-Reply-To: <20040702010349.GF8950@mail.shareable.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jamie Lokier <jamie@shareable.org>
-Cc: "David S. Miller" <davem@redhat.com>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Fri, Jul 02, 2004 at 02:03:49AM +0100, Jamie Lokier wrote:
+I compiled 2.6.8-rc2 on my Ultra 5 and booted it using serial console.
+It boot up fine and works too but serial console output is seriously
+garbled. Like this:
 
-> I would like to know if the Sun4 and Sun4c ports have the same bug.
-> I'm guessing not, but it's not clear to me from the code.
+C:FudSBE anrg t000f0000,wyca 001e00c0
+                                     AR:Sae C ofgsaea 001e1000
+                                                              AR:DM
+tc000 2000]
 
-No, this code is ok.
+0
+C-R:Ruigbs ]so[2 a[]t N[4
+C-R:Ruigbs ]so[3 a[]t N[8
+C0PM) u unn t3Mz
+                C-R:Ruigbs ]so[1 a[]t N[1
+C-R:Ruigbs ]so[2 a[]t N[f
+C-R:Ruigbs ]so[3 a[]t N[0
+C0PM) u unn t3Mz
+                bs:[ui][oe][UWpl s][u s][cp ftre epo][lspo][UWC43]
 
-> #define _SUN4C_PAGE_VALID        0x80000000
-> #define _SUN4C_PAGE_SILENT_READ  0x80000000   /* synonym */
-> ...
-> #define _SUN4C_PAGE_READ         0x00800000   /* implemented in software */
-> ...
-> #define SUN4C_PAGE_NONE		__pgprot(_SUN4C_PAGE_PRESENT)
+Kernel output is very garbled, userland output is less garbled but
+garbled too. This is new.
 
-> SUN4C_PAGE_NONE corresponds to PROT_NONE mmap memory protection.
-> The question is whether PROT_NONE pages are readable by the _kernel_.
-> I.e. whether write() would successfully read from those pages.
+su0 at 0x000001fff13062f8 (irq = 4,7ea) is a 16550A
+su1 at 0x000001fff13083f8 (irq = 9,7e9) is a 16550A
+ttyS0 at MMIO 0x1fff1400000 (irq = 7566176) is a SAB82532 V3.2
+ttyS1 at MMIO 0x1fff1400040 (irq = 7566176) is a SAB82532 V3.2
+Console: ttyS0 (SAB82532)
 
-No, they are not.  The _SUN4C_PAGE_SILENT_READ is the bit that allows
-reading the page without trapping.  If it's not set, you trap, and
-do_sun4c_fault tests _SUN4C_PAGE_READ with no special case for
-user/kernel.  Since PROT_NONE doesn't include that bit, it's an oops.
-
-> (By the way, as the sun4 files don't contain a definition of
-> _SUN4_PAGE_FILE or pgoff_to_pte, but the sun4c one do, I guess the
-> sun4 sub-architecture doesn't build in 2.6 but sun4c does?)
-
-Correct, although I recently fixed this in my tree.  It now builds but
-nobody has tested it in ages and I believe it doesn't work.
 
 -- 
-Keith M Wesolowski
+Meelis Roos (mroos@linux.ee)
+
