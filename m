@@ -1,39 +1,50 @@
-From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date: Thu, 21 Oct 2004 01:35:16 +0000
-Subject: Re: Help Wanted: Floppy and CG3 Problems using Linux-2.6.8.1.
-Message-Id: <Pine.LNX.4.10.10410210232160.865-100000@mtfhpc.demon.co.uk>
+From: "Sarah" <specails@fta-canada.net>
+Date: Tue, 19 Oct 2004 22:04:07 +0000
+Subject: Tired of paying high prices on your FTA testing products ?
+Message-Id: <431001c4b66a$9c086140$c0aa968d@specails>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.10.10410201927410.10087-100000@mtfhpc.demon.co.uk>
-In-Reply-To: <Pine.LNX.4.10.10410201927410.10087-100000@mtfhpc.demon.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi All,
+Tired of paying high prices on your FTA testing products ?
+ 
+Sick of the "Blackbird" wars or have you  got "Green Light Syndrome" ?
+ 
+Come and check out our website, before paying to much at another site for
+all your FTA needs !!!
 
-I only cross compile it. Building gcc on SunOS 4.1 is a pain and with only
-16MB of ram it would take forever.
+http://www.fta-canada.net
 
-Cross compiling on a pentium 233 (32Mb Ram) takes about 2 to 3 hours from 
-scratch.
-
-Regards
-	Mark Fortescue. 
-
-On Thu, 21 Oct 2004, C.Newport wrote:
-
-> On Thursday 21 October 2004 1:47 am, William Lee Irwin III wrote:
-> > On Wed, Oct 20, 2004 at 08:05:10PM +0100, Mark Fortescue wrote:
-> > > I am having a lot of trouble getting things up and running on my sparc
-> > > clone. I have applied a patch to get the PROM Console working and I would
-> > > like some help getting the CGthree console up and running as the code has
-> > > changed substantially from the V2.2 kernels and I can't find the areas of
-> > > code to change.
-> 
-> > Okay, this is nasty. I don't have any ideas.
-> 
-> FWIW I have 2.4.27 working here on an SS1, the fb is cg6 but cg3 should be OK.
-> Sun4c is horribly slow, expect 20+ hours to build the kernel.
-> 
+ 
+Blackbird/SilverBullet Jtags         @  $49.00
+Blackbird/SilverBullet  Receivers  @ $199.00
+Fortec Lifetime  Receivers             @  $119.00
+18" Sat Dish                                  @ $29.00
+ 
+ 
+And featuring our own  " Channel Hog FTA Receiver" !!!
+ 
+-1 full year warranty
+-solid construction (built by Sat Cruiser)
+-easy to follow instructions for our private support s/w .. which is
+included @ no extra charge !!!
+-we have designed this to be the easiest receiver you will ever setup and
+get going !!!
+-Nagravision, T5, ready for you to watch with our private support files
+-our private support files written and designed for the Channel Hog
+receiver ONLY !!
+-the Channel Hog is NOT a clone, or a cheap knockoff !!
+-private and unique private software with the features you really want !!
+ 
+All this for the low price of $279.00
+ 
+Accessories, Dishes, Cables always at the best prices !!!
+ 
+Drop by for a visit , you will be glad you did !!
+ 
+Thank you for reading this email
+ 
+http://www.fta-canada.net
 
