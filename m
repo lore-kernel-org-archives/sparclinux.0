@@ -1,52 +1,40 @@
-From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
-Date: Fri, 04 Mar 2005 04:24:29 +0000
-Subject: [PATCH 2.6] Stop-A printk cleanup
-Message-Id: <1109910269.17038.35.camel@localhost.localdomain>
+From: Bob Breuer <breuerr@mc.net>
+Date: Fri, 04 Mar 2005 05:21:54 +0000
+Subject: [PATCH 2.6] enable sun logo on sparc32
+Message-Id: <4227F072.1040606@mc.net>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-TuIORTSKOXTbdZ2ZKCfk"
+Content-Type: multipart/mixed; boundary="------------080601000905030201080300"
 List-Id: <sparclinux.vger.kernel.org>
 To: sparclinux@vger.kernel.org
 
-
---=-TuIORTSKOXTbdZ2ZKCfk
-Content-Type: text/plain
+This is a multi-part message in MIME format.
+--------------080601000905030201080300
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
-This patch is incredibly trivial, but it does resolve some of the user
-confusion as to what "L1-A" actually is.
+This enables the sun linux logo to be selected on sparc32.
 
-Clarify printk message to refer to Stop-A (L1-A).
+Signed-off-by: Bob Breuer <breuerr@mc.net>
 
-Gentoo has a virtually identical patch in their kernel sources.
+Bob
 
-Signed-off-by: Tom 'spot' Callaway <tcallawa@redhat.com>
-
-~spot
----
-Tom "spot" Callaway: Red Hat Sales Engineer || GPG Fingerprint: 93054260
-Fedora Extras Steering Committee Member (RPM Standards and Practices)
-Aurora Linux Project Leader: http://auroralinux.org
-Lemurs, llamas, and sparcs, oh my!
-
---=-TuIORTSKOXTbdZ2ZKCfk
-Content-Disposition: attachment; filename=linux-2.6.11-sparc-stopafix.patch
-Content-Type: text/x-patch; name=linux-2.6.11-sparc-stopafix.patch; charset=UTF-8
+--------------080601000905030201080300
+Content-Type: text/plain;
+ name="sparc32_sun_logo.patch"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="sparc32_sun_logo.patch"
 
---- linux-2.6.11/kernel/panic.c.BAD	2005-03-03 23:20:53.794641827 -0500
-+++ linux-2.6.11/kernel/panic.c	2005-03-03 23:21:38.598830555 -0500
-@@ -105,9 +105,9 @@ NORET_TYPE void panic(const char * fmt, 
- #ifdef __sparc__
- 	{
- 		extern int stop_a_enabled;
--		/* Make sure the user can actually press L1-A */
-+		/* Make sure the user can actually press Stop-A (L1-A) */
- 		stop_a_enabled = 1;
--		printk(KERN_EMERG "Press L1-A to return to the boot prom\n");
-+		printk(KERN_EMERG "Press Stop-A (L1-A) to return to the boot prom\n");
- 	}
- #endif
- #if defined(CONFIG_ARCH_S390)
+--- linux-2.6.11-clean/drivers/video/logo/Kconfig	2005-03-03 08:24:12.000000000 -0600
++++ linux-2.6.11/drivers/video/logo/Kconfig	2005-03-03 23:01:47.336863000 -0600
+@@ -45,7 +45,7 @@
+ 
+ config LOGO_SUN_CLUT224
+ 	bool "224-color Sun Linux logo"
+-	depends on LOGO && (SPARC || SPARC64)
++	depends on LOGO && (SPARC32 || SPARC64)
+ 	default y
+ 
+ config LOGO_SUPERH_MONO
 
---=-TuIORTSKOXTbdZ2ZKCfk--
-
+--------------080601000905030201080300--
