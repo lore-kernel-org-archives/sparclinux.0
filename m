@@ -1,36 +1,48 @@
-From: Stanley Benoit <sbenoit@verizon.net>
-Date: Fri, 12 Nov 2004 21:32:21 +0000
-Subject: page.h question
-Message-Id: <5628F39A-34F2-11D9-A583-000D93B069F6@verizon.net>
+From: "David S. Miller" <davem@davemloft.net>
+Date: Fri, 12 Nov 2004 21:39:55 +0000
+Subject: Re: page.h question
+Message-Id: <20041112133955.37515e8b.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <5628F39A-34F2-11D9-A583-000D93B069F6@verizon.net>
+In-Reply-To: <5628F39A-34F2-11D9-A583-000D93B069F6@verizon.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hello,
+On Fri, 12 Nov 2004 16:32:21 -0500
+Stanley Benoit <sbenoit@verizon.net> wrote:
 
-I'm bug squashing(well giving it a go) my Ross Hypersparc and ran into 
-this...
+> <--------------------     snip ------------------------>
+> 
+> /* I have my suspicions... -DaveM */
+> 19 #define PAGE_SIZE    (1UL << PAGE_SHIFT)
+> 20 #else
+> 21 #define PAGE_SIZE    (1 << PAGE_SHIFT)
+> 22 #endif
+> 23 #define PAGE_MASK    (~(PAGE_SIZE-1))
+> 24
+> 
+> <----------- end snip ----------------->
+> 
+> Does anyone know what Dave M. was suspicious about....?
 
-<--------------------     snip ------------------------>
+The assembler doesn't grok the "UL" thing normal C
+parsing does.
 
-/* I have my suspicions... -DaveM */
-19 #define PAGE_SIZE    (1UL << PAGE_SHIFT)
-20 #else
-21 #define PAGE_SIZE    (1 << PAGE_SHIFT)
-22 #endif
-23 #define PAGE_MASK    (~(PAGE_SIZE-1))
-24
+In the sparc64 headers we deal with this slightly more
+elegantly using an "_AC()" macro which is defined as:
 
-<----------- end snip ----------------->
+/* Some constant macros are used in both assembler and
+ * C code.  Therefore we cannot annotate them always with
+ * 'UL' and other type specificers unilaterally.  We
+ * use the following macros to deal with this.
+ */
 
-Does anyone know what Dave M. was suspicious about....?
+#ifdef __ASSEMBLY__
+#define _AC(X,Y)	X
+#else
+#define _AC(X,Y)	(X##Y)
+#endif
 
-
-
---
-Stan Benoit<sbenoit@verizon.net>
-http://www.mondorescue.org	
-http://troff.nakedsoul.org
-
+This is in asm-sparc64/const.h
