@@ -1,27 +1,25 @@
-From: "Pat Copeland" <yeebeen@georgenet.net>
-Date: Wed, 03 Jan 2001 10:15:14 +0000
-Subject: Fw: NOTIFICATION -  Have You Ever Profited From a Smallcap?
-Message-Id: <001401c0756e$1022276a$a832d23c@pmtagb>
+From: "Hassan Bin Ismail" <hassanbinismai0088@att.net>
+Date: Sat, 26 Jan 2002 04:35:04 +0000
+Subject: GET BACK TO ME ASAP 1
+Message-Id: <USERCD06892FFE7c694c4754574338910b8e660e68fa01@usercd06892ffe>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Big news expected.
+HASSAN ISMAIL & ASSOCIATES.
+NO. 122A, 1ST FLOOR JALAN
+SULTANAH BATU PAHAT 80000
+JOHOR BAHRU MALAYSIA.
 
-Trade Date : 13 Feb 2006
-Company Name : Harbin Pingchuan Pharmaceutical
-Ticker : PGCN
-Today : $1.03
-Expected Target : $3
-Expectations : 300-500%
+(PRIVATE/CONFIDENTIAL)
 
-The chart on PGCN is a thing of beauty as it shows what we mentioned 
-earlier slow and steady upward movement.
-There is a massive promotion underway this weekend apprising potential 
-eager investors of this emerging situation.
-Breaking news alert issue - big news coming.
-Looking for a company with some good news?  Here's one!
-Do this often enough, and your portfolio can double, even TRIPLE in value.
+My name is Hassan Bin Ismail,a legal practitioner with Hassan Ismail & Associates. A deceased client of mine, that shares the same last name as yours,who died as a result of a heart related condition in 18th November 2004.
+
+I have contacted you to assist in distributing the money left behind by my late client(US$19,000,000.00) Nineteen Million United States Dollars is lodged in the bank.
+
+Sincerely yours.
+Barr.Hassan Bin Ismail (Esq)
+(Attorney at Law
 
