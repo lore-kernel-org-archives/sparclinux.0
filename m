@@ -1,7 +1,7 @@
-From: Georg Chini <georg.chini@triaton-webhosting.com>
-Date: Tue, 08 Feb 2005 16:42:53 +0000
+From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
+Date: Tue, 08 Feb 2005 16:58:07 +0000
 Subject: Re: Xorg does not work on sparc32 in 2.6 (except on cg14)
-Message-Id: <4208EC0D.4040109@triaton-webhosting.com>
+Message-Id: <1107881887.3664.73.camel@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1107553760.3951.211.camel@localhost.localdomain>
 In-Reply-To: <1107553760.3951.211.camel@localhost.localdomain>
@@ -10,24 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Tom 'spot' Callaway wrote:
+On Tue, 2005-02-08 at 17:42 +0100, Georg Chini wrote:
 
-> This is being BTFIXEDUP to pte_pfn. 
-> 
-> Removing the if (srmmu_device_memory(pte_val(pte))) check stops the
-> oops, but it doesn't make X work. The screen goes blank, but the X
-> session never appears.
-> 
+> maybe this is an error in the driver for TGX. My SS5 has a TCX card and
+> I had the same problem (screen blank but no X visible).
 
-Hi,
+I've already got your fix applied, it doesn't look to be related. With a
+similar patch, I can make the cg3 output the framebuffer fine, but not
+X.
 
-maybe this is an error in the driver for TGX. My SS5 has a TCX card and
-I had the same problem (screen blank but no X visible). Some other drivers
-showed the problem too. As I am no kernel programmer, I sent something that
-makes it work for me (but no real patch) in December. I think it didn't
-make it into the kernel yet. Perhaps your problem is similar.
-Have a look at the archive, just search for TCX. Hope this helps.
+~spot
+---
+Tom "spot" Callaway <tcallawa(a)redhat*com> LCA, RHCE 
+Red Hat Sales Engineer || Aurora Linux Project Leader
 
-Regards
-        Georg
+"If you are going through hell, keep going."
+-- Sir Winston Churchill
 
