@@ -1,39 +1,27 @@
-From: David Dillow <dave@thedillows.org>
-Date: Mon, 09 Feb 2004 05:55:54 +0000
-Subject: Increasing max size of sbus_map{single,sg}()?
-Message-Id: <1076306154.3086.41.camel@ori.thedillows.org>
+From: William Lee Irwin III <wli@holomorphy.com>
+Date: Sun, 15 Feb 2004 10:04:05 +0000
+Subject: 2.4 & Solaris work SMP, 2.6 gets RED_state in prom_startcpu()
+Message-Id: <20040215100405.GA631@holomorphy.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-I've been working on a device driver that needs to map 3MB of user
-memory into a contiguous DMA mapping on sparc64. The HW is pretty dumb,
-which is why I cannot give it a scatter-list.
+The RED_state exception goes away when the SMP trampoline is stubbed
+out (just before flushw) with a nop loop, so this pretty much narrows
+it down to an exception taken on secondary of some kind before the
+trampoline code is prepared to recover from it (TLB miss?). The thing
+appears to deadlock when the secondaries spin like that, but it doesn't
+go down in flames.
 
-This works well, up to mappings of 1MB in size. This is not unexpected,
-given the comment about NCLUSTERS in arch/sparc64/kernel/sbus.c. For
-testing my driver, I've increased NCLUSTERS to 16, which works, but I
-wouldn't ask for it to change in a production kernel -- it would
-increase pressure on smaller allocations, and waste mapping space in the
-upper clusters. Not good.
+Reminder of working things matrix for the box I'm futzing with:
 
-However, I looked at alloc_streaming_cluster() and
-free_streaming_cluster() while trying to find a better solution. I
-noticed that when it is calculating the cluster to use for the
-allocation/freeing, it never checks cnum against NCLUSTERS, and so
-passing a request size larger than 1MB will potentially corrupt memory
--- at the very least we'll read from areas that we shouldn't.
+Solaris SMP
+2.4 UP and SMP with native builds, UP only with crossbuilds
+2.6 UP with native builds only, forgot if 2.6 UP with crossbuilds works
 
-I thought it may be possible to clamp cnum in those functions to the
-last cluster, but I see it will take some changes in the search
-algorithm, which I am not sure is a great idea.
-
-Would such a change stand any chance of being merged? Is there a better
-way?
-
-Thanks for any insight,
-Dave
+Ultra2, 2x296MHz, 256MB RAM
 
 
+-- wli
