@@ -1,7 +1,7 @@
-From: Keith M Wesolowski <wesolows@foobazco.org>
-Date: Mon, 05 Apr 2004 23:51:37 +0000
+From: mike@cluon.priv.at (Thomas 'Mike' Michlmayr)
+Date: Tue, 06 Apr 2004 14:54:32 +0000
 Subject: Re: Oops when booting 2.6.5
-Message-Id: <20040405235137.GA23553@foobazco.org>
+Message-Id: <20040406145432.GB854@lust.cluon.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040405153414.GC1430@artsapartment.org>
 In-Reply-To: <20040405153414.GC1430@artsapartment.org>
@@ -10,14 +10,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Mon, Apr 05, 2004 at 11:00:39PM +0200, Thomas 'Mike' Michlmayr wrote:
+On Mon, Apr 05, 2004 at 16:51:37 -0700,
+Keith M Wesolowski <wesolows@foobazco.org> wrote:
+[...]
+> > do you think this (theoretical) fix can be backported to 2.4 easily?
+> > ISTR having the same problem on 2.4/sparc32.
 
-> do you think this (theoretical) fix can be backported to 2.4 easily?
-> ISTR having the same problem on 2.4/sparc32.
+i was remembering things wrongly, and keith just informed me off-list
+that this problem[0] was solved "ages ago". sorry for missing that, i
+thought that bug was still unfixed.
 
-Whatever it is, it's not the same, unless you use 17 or more swapfiles
-(don't do that then).  Can you please confirm this happens in 2.4.25
-and provide a ksymoops trace?
+[0] coredump on swapon.
 
 -- 
-Keith M Wesolowski
+Thomas 'Mike' Michlmayr  | ignorami: n: The BOFH art of folding problem 
+<mike+sig@cluon.priv.at> |           lusers into representational shapes.
+
