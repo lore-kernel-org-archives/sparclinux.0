@@ -1,65 +1,52 @@
-From: joshk@triplehelix.org (Joshua Kwan)
-Date: Mon, 19 Apr 2004 16:08:41 +0000
-Subject: CONFIG_I2C on sparc64
-Message-Id: <20040419160841.GL30964@triplehelix.org>
+From: MAILER-DAEMON@mail.olb.com
+Date: Tue, 27 Apr 2004 12:00:53 +0000
+Subject: WARNING. Mail Delayed: Mail Delivery (failure support@cdknet.com)
+Message-Id: <receipt-7394685@mail.olb.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="XigHxYirkHk2Kxsx"
+Content-Type: multipart/mixed; boundary="_===7394685====mail.olb.com===_"
 List-Id: <sparclinux.vger.kernel.org>
 To: sparclinux@vger.kernel.org
 
 
---XigHxYirkHk2Kxsx
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+--_===7394685====mail.olb.com===_
+Content-Type: text/plain
 
-Hey everyone,
+This is a warning message only.
+  Your message remains in the server queue,
+  the server will try to send it again.
+  You should not try to resend your message now.
 
-I'm dealing with 2.4 sparc kernels for Debian and getting unresolved
-symbols in everything involving i2c, for example:
+Message delivery to 'support@cdknet.com' delayed
+SMTP module(domain @192.168.100.13:cdknet.com) reports:
+ mail.cdknet.com: no response
 
-depmod: *** Unresolved symbols in /lib/modules/2.4.26-sparc64/kernel/driver=
-s/media/video/tuner.o
-depmod:         i2c_detach_client_R13852119
-depmod:         i2c_attach_client_R29fbc42c
-depmod:         i2c_master_recv_R7bd34477
-depmod:         i2c_add_driver_R64fc78c7
-depmod:         i2c_probe_Red036271
-depmod:         i2c_del_driver_Re73c7489
-depmod:         i2c_master_send_Rbcec30fe
 
-I tried adding source drivers/i2c/Config.in in arch/sparc64/config.in
-and enabled I2C and the bit-banging interfaces. This appears to have
-worked just fine...
+--_===7394685====mail.olb.com===_
+Content-Type: message/delivery-status
 
-So am I missing something here? Why has this been overlooked since
-2.4.24?
+Reporting-MTA: dns; mail.olb.com
 
---=20
-Joshua Kwan
+Original-Recipient: rfc822;support@cdknet.com
+Final-Recipient: rfc822;support@cdknet.com
+Action: delayed
+Status: 4.0.0
 
---XigHxYirkHk2Kxsx
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+--_===7394685====mail.olb.com===_
+Content-Type: text/rfc822-headers
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-Comment: http://triplehelix.org/~joshk/pubkey_gpg.asc
+Received: from [130.18.222.122] (HELO cdknet.com)
+  by mail.olb.com (CommuniGate Pro SMTP 3.4.8)
+  with ESMTP id 7367382 for support@cdknet.com; Mon, 26 Apr 2004 16:53:25 -0400
+From: sparclinux@vger.kernel.org
+To: support@cdknet.com
+Subject: Mail Delivery (failure support@cdknet.com)
+Date: Mon, 26 Apr 2004 15:55:59 -0500
+MIME-Version: 1.0
+Content-Type: multipart/related;
+	type="multipart/alternative";
+	boundary="----=_NextPart_000_001B_01C0CA80.6B015D10"
+X-Priority: 3
+X-MSMail-Priority: Normal
+Message-ID: <auto-000007367382@mail.olb.com>
 
-iQIVAwUBQIP5h6OILr94RG8mAQL4Dg/7B52OcCh6bX8bjnz1Zqs2iUgu2qJZAQnJ
-hKjKnTyLCrjJ0FQ1RoM2EX9so0OPz2UUz1lL3hvgccWKadrMpiHIDaYsUvDA/8Bv
-85jZMt9WV/BSzLkHGnyXxkXp1mH7UQlSG/yD+HvWQJesbusHj5Zw/a/ZnHA/ThLa
-eTTyjIUhrRRuEr73Dvec7lPZmI2OEDpQcO3xMa6H9H007WUJfiWL8loFQIj2YgB+
-Vx6jbJrXfF8EHOpH88cgOcs2IXJIdmuBsCgI1HmrzbdOd6sTzWshEolP7e4d6HKi
-Bi+peZxKDPh8iHEc2T33tNp2Z3dLJutUquQ3N4FPg1acMViI2/ndLFY/jotYkgB/
-kyVETCZwgiocujbuHui24XResJNmHe4qGbi6t1Dr6ynAJjXShPzGXt+sVzTl0j3I
-Tl/QJ516NqtIAPcBmucAXD0HSeaSTwBn7SRfVKlqUYhxbcgsHDBW79eEKK20cWt0
-+VQqcoYV8nQBb4cygJV3zlyAH+DesSUXtgqCLe4lYekO8SdLkuvAV5bXj8kFfhVu
-cm02ps9950T9YqhbkNcT7vYxcfrUo64SjEVkDsg04wogSf0c25aygAIkJjyzhAWD
-cvRfoESsQpR2RtogRkanHFq0NMbsLkAnKGGT8r86aGaKAcS7snXzkqDBJD3Psrve
-ANIRL2Ou5WU=
-=kX47
------END PGP SIGNATURE-----
-
---XigHxYirkHk2Kxsx--
+--_===7394685====mail.olb.com===_--
