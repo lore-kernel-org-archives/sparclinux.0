@@ -1,55 +1,68 @@
-From: MRBATESALAN@netscape.net
-Date: Wed, 18 Feb 2004 14:36:56 +0000
-Subject: REPLY SOON
-Message-Id: <HTAB9I00.K16@sicop1.fgma.gov.ve>
+From: "Elsa Rice" <sherilywirsing@yahoo.gr>
+Date: Wed, 04 Feb 2004 11:46:55 +0000
+Subject: 42.N. Here is your CIALIS
+Message-Id: <MQSEYCATXVCAFMMPVCXYBZD@msn.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="--4827161941978771708"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Dear Friend,
+----4827161941978771708
+Content-Type: text/plain;
+Content-Transfer-Encoding: 7Bit
 
-As you read this, I don't want you to feel sorry for 
-me, because, I believe everyone will die someday. 
-My name is BATES ALAN a merchant in Dubai, in the 
-U.A.E.I have been diagnosed with Esophageal cancer.
-It has defiled all forms of medical treatment, and right now 
-I have only about a few months to live, according to medical experts. 
-I have not particularly lived my life so well, as I 
-never really cared for anyone(not even myself)but my 
-business. Though I am very rich, I was never 
-generous, I was always hostile to people and only 
-focused on my business as that was the only thing I 
-cared for. But now I regret all this as I now know 
-that there is more to life than just wanting to have 
-or make all the money in the world. 
-I believe when God gives me a second chance to come 
-to this world I would live my life a different way 
-from how I have lived it. Now that God has called 
-me, I have willed and given most of my property 
-and assets to my immediate and extended family 
-members as well as a few close friends. 
-I want God to be merciful to me and accept my soul 
-so, I have decided to give alms to charity 
-organizations, as I want this to be one of the last 
-good deeds I do on earth. So far, I have distributed 
-money to some charity organizations in the U.A.E, 
-Algeria and Malaysia. Now that my health has 
-deteriorated so badly, I cannot do this myself 
-anymore. I once asked members of my family to close one 
-of my accounts and distribute the money which I have 
-there to charity organization in Bulgaria and 
-Pakistan, they refused and kept the money to 
-themselves. Hence, I do not trust them anymore, as 
-they seem not to be contended with what I have left 
-for them. 
-The last of my money which no one knows of is the 
-huge cash deposit of eighteen million dollars 
-$18,000,000,00 that I have with a finance/Security Company 
-abroad. I will want you to help me collect this deposit 
-and dispatched it to charity organizations.
-I have set aside 10% for you and for your time.
-God be with you. 
-BATES ALAN
+PRIVATE OFFSHORE PHARMACY! No Questions asked!
+
+The Newest Drug on the Market is on SALE
+
+Super Viaggra - CIALIS is Here - as advertised during the SUPER BOWL
+Dubbed "The Weekend Pill"
+
+* LONGER LIFE
+* ACTS FASTER
+* BEST SEX EVER
+
+"Cialis works in 15 minutes and lasts for 36 hours giving you
+strong healthy erections whenever you want or need them!"
+
+COMPLETE PRIVACY & CONFIDENTIATLITY.
+128-bit encrypted website for maximum security.
+
+We also have an assortment of other drugs such as soma, valium, xanax, 
+meridia, etc.
+
+
+http://circumvention.amilsdcx.com/m0013/index.php?id=m0013
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+No more of this sort of material. Honoured in 24-48 hours.
+http://carlton.amilsdcx.com/a.html
+ 
+
+
+drunkard ambling aquarius embedded bloodbath brick scrabble earnest caroline expelling load athlete out legendre edematous boise creekside unify ethane caviar ripoff breathtaking alternate dieldrin clumsy hitler sal type clarendon ascent antisemite course disgustful aluminate 
+ns
+
+
+
+----4827161941978771708--
 
