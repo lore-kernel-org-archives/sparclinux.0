@@ -1,7 +1,7 @@
-From: Pete Zaitcev <zaitcev@redhat.com>
-Date: Tue, 06 Jan 2004 04:55:44 +0000
+From: Keith M Wesolowski <wesolows@foobazco.org>
+Date: Tue, 06 Jan 2004 05:24:10 +0000
 Subject: Re: [SPARC32] Fix BUG-on-swapout
-Message-Id: <20040106045544.GA26852@devserv.devel.redhat.com>
+Message-Id: <20040106052410.GA13478@foobazco.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040106040805.GA13026@foobazco.org>
 In-Reply-To: <20040106040805.GA13026@foobazco.org>
@@ -10,53 +10,47 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Mon, Jan 05, 2004 at 08:08:05PM -0800, Keith M Wesolowski wrote:
+On Mon, Jan 05, 2004 at 11:55:44PM -0500, Pete Zaitcev wrote:
+
+> > -extern struct sparc_phys_banks sp_banks[SPARC_PHYS_BANKS];
+> > +extern struct sparc_phys_banks sp_banks[SPARC_PHYS_BANKS+1];
 > 
-> This fixes BUG-on-swapout for srmmu-based systems.  The problem is
-> caused by kmap_atomic_to_page being fed an aliased (pagetable) address
-> and returning bogons.  This also adjusts the pkmap and fixmap base
-> addresses so they cannot overlap.
+> Seems that the first one can be just removed altogether,
+> since you're on it.
 
-Go, Keith!
+Yes, you're right.  I'll nuke it in my next go-round with mm.  Thanks.
 
-> --- 2.5-sparc/arch/sparc/mm/fault.c	Sat Jan  3 02:08:08 2004
-> +++ 2.5-sparc-smp/arch/sparc/mm/fault.c	Sat Jan  3 02:11:02 2004
-> @@ -36,7 +36,7 @@
->  
->  #define ELEMENTS(arr) (sizeof (arr)/sizeof (arr[0]))
->  
-> -extern struct sparc_phys_banks sp_banks[SPARC_PHYS_BANKS];
-> +extern struct sparc_phys_banks sp_banks[SPARC_PHYS_BANKS+1];
->  extern int prom_node_root;
->  
->  /* At boot time we determine these two values necessary for setting
+> > +	KM_PTE2,
+> 
+> Is this needed for anything?
 
-> --- 2.5-sparc/include/asm-sparc/page.h	Sat Jan  3 02:08:30 2004
-> +++ 2.5-sparc-smp/include/asm-sparc/page.h	Sat Jan  3 02:11:28 2004
-> @@ -54,7 +54,7 @@
->  
->  #define SPARC_PHYS_BANKS 32
->  
-> -extern struct sparc_phys_banks sp_banks[SPARC_PHYS_BANKS];
-> +extern struct sparc_phys_banks sp_banks[SPARC_PHYS_BANKS+1];
->  
->  /* Cache alias structure.  Entry is valid if context != -1. */
->  struct cache_palias {
+Not at the moment.  It is used on other arches for HIGHPTE however.
+Thus far I've not dreamed up a sane way to implement that, but a fresh
+batch of srmmu mushrooms just came in so I'm optimistic. :-)
 
-Seems that the first one can be just removed altogether,
-since you're on it.
+The options I've considered:
 
-> --- 2.5-sparc/include/asm-sparc/kmap_types.h	Sat Jan  3 02:08:30 2004
-> +++ 2.5-sparc-smp/include/asm-sparc/kmap_types.h	Sat Jan  3 02:11:28 2004
-> @@ -11,6 +11,7 @@
->  	KM_BIO_DST_IRQ,
->  	KM_PTE0,
->  	KM_PTE1,
-> +	KM_PTE2,
->  	KM_IRQ0,
->  	KM_IRQ1,
->  	KM_SOFTIRQ0,
+Uncache-in-place.  We can't do large mappings, which wastes memory and
+blows TLB locality to hell.
 
-Is this needed for anything?
+Uncache-in-place for user pagetables, allocate the kernel pagetables
+from an uncached block as we do now.  This effectively requires user
+pagetables in highmem, which not all boxes have.
 
--- Pete
+Abuse the zone allocator to force pagetable allocations to come from
+preassigned regions which are either small-mapped (kernel pte) or
+unmapped (HIGHPTE for user pagetables).  Uncache these in place.
+Incredibly evil, needlessly complex, and you can still run out.
+
+The 2.2 way.
+
+Leave it the way it is and put in a less fragmentation-happy
+allocator.  Sorry, no HIGHPTE.
+
+Please drop your ideas in the suggestion box.  Thanks.
+
+-- 
+Keith M Wesolowski <wesolows@foobazco.org> http://foobazco.org/~wesolows
+------(( Project Foobazco Coordinator and Network Administrator ))------
+	"May Buddha bless all stubborn people!"
+				-- Uliassutai Karakorum Blake
