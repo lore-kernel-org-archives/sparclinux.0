@@ -1,42 +1,44 @@
-From: Thomas Duffy <Thomas.Duffy.99@alumni.brown.edu>
-Date: Tue, 01 Jun 2004 21:20:13 +0000
-Subject: Re: Announce: kdb v4.4 is available for kernel 2.6.6
-Message-Id: <1086124813.2309.4.camel@d-mpk14-95-140>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-7FfKaaEQj/N7sJo+36Ev"
+From: "Jon" <Senderlist@citiz.net>
+Date: Sun, 13 Jun 2004 19:15:46 +0000
+Subject: Boosting Your Business
+Message-Id: <S265252AbUFMTTr/20040613191947Z+59@vger.kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <12956.1085377697@kao2.melbourne.sgi.com>
-In-Reply-To: <12956.1085377697@kao2.melbourne.sgi.com>
-To: Keith Owens <kaos@sgi.com>
-Cc: kdb@oss.sgi.com, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
 
---=-7FfKaaEQj/N7sJo+36Ev
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+E-mail is the fastest growing marketing tool.
 
-On Mon, 2004-05-24 at 15:48 +1000, Keith Owens wrote:
->   If you maintain an architecture specific kdb patch, please upgrade to
->   kdb v4.4 and send it to me.
+We offer E-mail Marketing with quality service and the lowest prices.
 
-OK, here is a first pass at updating the sparc64 kdb to kernel 2.6.6 and
-kdb 4.4
+1. Targeted E-mail Addresses
 
-http://members.dslextreme.com/~tomduffy/kdb-v4.4-2.6.6-sparc64-1.bz2
+We can provide targeted e-mail addresses you need, which are compiled 
+only on your order. We will customize your customer e-mail addresses.
 
--tduffy
+* We have millions of e-mail addresses in a wide variety of categories.
 
---=-7FfKaaEQj/N7sJo+36Ev
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
+2. Send out Targeted E-mails for you
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
+We can send your e-mail message to your targeted customers! We will
+customize your email addresses and send your message for you.
 
-iD8DBQBAvPMNdY502zjzwbwRAi3IAJ90dg1dRie9HwoE5kpXg69EGZ6bAwCgjdqD
-ijBmlLup9QM94IlZnnvf334=
-=7q0g
------END PGP SIGNATURE-----
+* We can Bullet Proof your Web Site $ dedicated server.
 
---=-7FfKaaEQj/N7sJo+36Ev--
+We also offer Fax Broadcasting Service. For more details, you can
+refer to:  Http://www.9206.com
 
+Looking forward to serving you.
+
+
+Regards!
+
+Jon
+www.9206.com
+Support@9206.com
+
+*************************************************************************
+To take your address:  Http://213.172.0x1f.16/index.html
+*************************************************************************
