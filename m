@@ -1,37 +1,39 @@
-From: Pete Zaitcev <zaitcev@redhat.com>
-Date: Mon, 09 Feb 2004 21:58:18 +0000
-Subject: Re: RFC: [sparc32] Mask PIL in local_irq_xxx
-Message-Id: <20040209135818.1b896426.zaitcev@redhat.com>
+From: David Dillow <dave@thedillows.org>
+Date: Tue, 17 Feb 2004 04:50:03 +0000
+Subject: Non-PCI build broken on sparc64, maybe others
+Message-Id: <1076993402.21443.5.camel@ori.thedillows.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040208020239.GA24193@foobazco.org>
-In-Reply-To: <20040208020239.GA24193@foobazco.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-On Sat, 7 Feb 2004 18:02:39 -0800
-Keith M Wesolowski <wesolows@foobazco.org> wrote:
+I believe this changeset in Linus's tree:
+==== ChangeSet 1.1500.12.4 ====
+D 1.1500.12.4 04/02/02 11:04:46-08:00 dsaxena@plexity.net 35779 35702 5/0/1
+P ChangeSet
+C [PATCH] PCI: Replace pci_pool with generic dma_pool
+C
+C - Move drivers/pci/pool.c to drivers/base/pool.c
+C - Initialize struct device.dma_pools in device_initialize()
+C - Remove initialization of struct pci_dev.pools from pci_setup_device()
+------------------------------------------------
 
-> +#ifdef CONFIG_SMP
-> +#define SMP_NOP2 "nop; nop;\n\t"
-> +#define SMP_NOP3 "nop; nop; nop;\n\t"
-> +#else
-> +#define SMP_NOP2
-> +#define SMP_NOP3
-> +#endif /* SMP */
+with key: dsaxena@plexity.net|ChangeSet|20040202190446|51997
 
-Nice touch.
+breaks builds that do not include PCI support.
 
-> +/* XXX cli/sti -> local_irq_xxx here, check this works once SMP is fixed. */
->  void machine_halt(void)
->  {
-> -	sti();
-> +	local_irq_enable();
->  	mdelay(8);
+If I set CONFIG_PCI=y, it builds. If not, I get:
+  LD      init/built-in.o
+  LD      .tmp_vmlinux1
+drivers/built-in.o(.text+0x2056c): In function `pool_alloc_page':
+: undefined reference to `dma_alloc_coherent'
+drivers/built-in.o(.text+0x2060c): In function `pool_free_page':
+: undefined reference to `dma_free_coherent'
+make: *** [.tmp_vmlinux1] Error 1
 
-You might want to consider if jailing would be appropriate. I seem to
-remember that it cannot break through masked CPUs by design, but in
-actuality our SMP IPI shouldn't either (which is what cli() is).
+while building BK-latest for my Ultra1.
 
--- Pete
+Just a heads up,
+Dave
