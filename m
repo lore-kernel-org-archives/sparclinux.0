@@ -1,7 +1,7 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Mon, 06 Dec 2004 05:44:32 +0000
+From: Richard Mortimer <richm@oldelvet.org.uk>
+Date: Mon, 06 Dec 2004 13:55:06 +0000
 Subject: Re: 2.6.8-1-sparc64 nanosleep does not restart if interrupted by
-Message-Id: <20041205214432.50500c25.davem@davemloft.net>
+Message-Id: <1102341305.15654.188.camel@duncow>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1102294691.15654.137.camel@duncow>
 In-Reply-To: <1102294691.15654.137.camel@duncow>
@@ -10,70 +10,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Mon, 06 Dec 2004 00:58:11 +0000
-Richard Mortimer <richm@oldelvet.org.uk> wrote:
+On Mon, 2004-12-06 at 05:44, David S. Miller wrote:
+> Good catch Richard.  In fact all restart block handling is hosed
+> on sparc.  It's because of the return from syscall check for
+> error cases, the return value errno comparison is off by one.
+> 
+> This should fix it, and it does for me on sparc64 for your test
+> program.
+Thanks, that fixes it (tested with nanotest in 32 and 64 bit and
+my original tail -f testcase. However I have a comment on the fix.
 
-> I've noticed a problem on 2.6.8.1 sparc64 kernel with the nanosleep
-> system call (and probably others) where if the system call is
-> interrupted by a signal (TSTP/CONT in my test case) it doesn't get
-> restarted and just ends up returning error code -516. I first noticed
-> this using tail -f <file> terminates if you ctrl-z and then fg it.
+What about the NFSv3 values(521-530) that are defined in
+include/errno.h? Surely these could be returned by the kernel so the fix
+should include them i.e. use EIOCBRETRY. Indeed would it be better to
+have a EMAXERRNO value that could be used with a comment in errno.h to
+make it clear.
 
-Good catch Richard.  In fact all restart block handling is hosed
-on sparc.  It's because of the return from syscall check for
-error cases, the return value errno comparison is off by one.
+Richard
 
-This should fix it, and it does for me on sparc64 for your test
-program.
+-- 
+richm@oldelvet.org.uk
 
-=== arch/sparc/kernel/entry.S 1.28 vs edited ==--- 1.28/arch/sparc/kernel/entry.S	2004-10-19 21:17:00 -07:00
-+++ edited/arch/sparc/kernel/entry.S	2004-12-05 21:08:05 -08:00
-@@ -1508,7 +1508,7 @@
- 	.globl	ret_sys_call
- ret_sys_call:
- 	ld	[%curptr + TI_FLAGS], %l6
--	cmp	%o0, -ENOIOCTLCMD
-+	cmp	%o0, -ERESTART_RESTARTBLOCK
- 	ld	[%sp + STACKFRAME_SZ + PT_PSR], %g3
- 	set	PSR_C, %g2
- 	bgeu	1f
-@@ -1587,7 +1587,7 @@
- 
- 	st	%o0, [%sp + STACKFRAME_SZ + PT_I0]
- 	set	PSR_C, %g2
--	cmp	%o0, -ENOIOCTLCMD
-+	cmp	%o0, -ERESTART_RESTARTBLOCK
- 	bgeu	1f
- 	 ld	[%sp + STACKFRAME_SZ + PT_PSR], %g3
- 
-@@ -1678,7 +1678,7 @@
- 
- 	st	%o0, [%sp + STACKFRAME_SZ + PT_I0]
- 	set	PSR_C, %g2
--	cmp	%o0, -ENOIOCTLCMD
-+	cmp	%o0, -ERESTART_RESTARTBLOCK
- 	bgeu	1f
- 	 ld	[%sp + STACKFRAME_SZ + PT_PSR], %g3
- 
-=== arch/sparc64/kernel/entry.S 1.36 vs edited ==--- 1.36/arch/sparc64/kernel/entry.S	2004-10-19 21:17:00 -07:00
-+++ edited/arch/sparc64/kernel/entry.S	2004-12-05 21:08:14 -08:00
-@@ -1778,7 +1778,7 @@
- 	 stx		%l0, [%curptr + TI_FLAGS]
- 
- 1:
--	cmp		%o0, -ENOIOCTLCMD
-+	cmp		%o0, -ERESTART_RESTARTBLOCK
- 	bgeu,pn		%xcc, 1f
- 	 andcc		%l0, _TIF_SYSCALL_TRACE, %l6	
- 80:
-=== arch/sparc64/solaris/entry64.S 1.6 vs edited ==--- 1.6/arch/sparc64/solaris/entry64.S	2003-08-18 01:08:52 -07:00
-+++ edited/arch/sparc64/solaris/entry64.S	2004-12-05 21:08:22 -08:00
-@@ -109,7 +109,7 @@
- 	sra		%o0, 0, %o0
- 	mov		%ulo(TSTATE_XCARRY | TSTATE_ICARRY), %g2
- 	ldx		[%sp + PTREGS_OFF + PT_V9_TSTATE], %g3
--	cmp		%o0, -ENOIOCTLCMD
-+	cmp		%o0, -ERESTART_RESTARTBLOCK
- 	sllx		%g2, 32, %g2
- 	bgeu,pn		%xcc, 1f
- 	 andcc		%l6, _TIF_SYSCALL_TRACE, %l6	
