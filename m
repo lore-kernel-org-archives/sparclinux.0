@@ -1,7 +1,7 @@
-From: Pete Zaitcev <zaitcev@redhat.com>
-Date: Mon, 05 Jan 2004 04:17:01 +0000
+From: Ricky Beam <jfbeam@bluetronic.net>
+Date: Mon, 05 Jan 2004 08:05:58 +0000
 Subject: Re: [SPARC32] Early kernel panic with 2.6.1rc1
-Message-Id: <20040105041701.GA29126@devserv.devel.redhat.com>
+Message-Id: <Pine.GSO.4.33.0401050257001.26470-100000@sweetums.bluetronic.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1073231988.22653.23.camel@zorak>
 In-Reply-To: <1073231988.22653.23.camel@zorak>
@@ -10,22 +10,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sun, Jan 04, 2004 at 02:48:28PM -0800, Keith M Wesolowski wrote:
-> On Sun, Jan 04, 2004 at 04:38:06PM -0600, Tom 'spot' Callaway wrote:
+On Sun, 4 Jan 2004, David S. Miller wrote:
+>I think we should not disallow this option, as the device may very
+>well appear on PCI systems.
 
-> > @@ -10,6 +10,7 @@
-> >  # The new 8250/16550 serial drivers
-> >  config SERIAL_8250
-> >  	tristate "8250/16550 and compatible serial support"
-> > +	depends on !SPARC32
-> >  	select SERIAL_CORE
-> >  	---help---
-> >  	  This selects whether you want to include the driver for the standard
-> 
-> This really isn't the right thing to depend on, although I'm not sure
-> what is.  This chip is found almost everywhere.
+Correct.
 
-We use sunsu to drive it. I thought about switching to 8250,
-but never got around to do it.
+>We cannot just depend upon PCI however for the 8250 driver options
+>as it may appear also in ISA and onboard forms.
 
--- Pete
+No sparc32 or sparc64 system (that I know of) contain an actual 8250.
+Furthermore, the only systems to have an ISA bus are PCI systems (PCI-ISA
+bridged.) Granted, I've not used an SBUS based system in several years.
+
+--Ricky
+
+
