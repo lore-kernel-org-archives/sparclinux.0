@@ -1,28 +1,49 @@
-From: "David S. Miller" <davem@redhat.com>
-Date: Fri, 20 Aug 2004 21:05:29 +0000
+From: Ciaran McCreesh <ciaranm@gentoo.org>
+Date: Fri, 20 Aug 2004 21:05:34 +0000
 Subject: Re: Buglet making vmlinux with -j
-Message-Id: <20040820140529.6c013b03.davem@redhat.com>
+Message-Id: <20040820220534.50858f5d@snowdrop.home>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Signature=_Fri__20_Aug_2004_22_05_34_+0100_3SJmCSz4PzBPMi.a"
 List-Id: <sparclinux.vger.kernel.org>
 References: <200408202156.06459.crn@netunix.com>
 In-Reply-To: <200408202156.06459.crn@netunix.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Fri, 20 Aug 2004 13:59:56 -0700
-William Lee Irwin III <wli@holomorphy.com> wrote:
+--Signature=_Fri__20_Aug_2004_22_05_34_+0100_3SJmCSz4PzBPMi.a
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 
-> On Fri, Aug 20, 2004 at 09:56:06PM +0100, C.Newport wrote:
-> > If I build a 2.4.27 kernel with -j6 to strsss test an SMP system 
-> > it compiles but silently finishes before linking.
-> > Is this a bug or expected behaviour ?
-> 
-> You're going to have to be more precise in your description for me to
-> tell.
+On Fri, 20 Aug 2004 13:59:56 -0700 William Lee Irwin III
+<wli@holomorphy.com> wrote:
+| On Fri, Aug 20, 2004 at 09:56:06PM +0100, C.Newport wrote:
+| > If I build a 2.4.27 kernel with -j6 to strsss test an SMP system 
+| > it compiles but silently finishes before linking.
+| > Is this a bug or expected behaviour ?
+| 
+| You're going to have to be more precise in your description for me to
+| tell. I am not sure from this description whether this describes a
+| failure to build or an unusual kind of output while otherwise building
+| successfully or maybe even something else.
 
-It's because of all the btfixup stuff in the sparc32
-build machinery, William.
+It's known behaviour for 2.4.x (2.6.x should work). Keith had a patch,
+although I believe it wasn't applied because of suspected side effects.
 
-He doesn't need to give any more description, it is clear
-what the issue is.
+-- 
+Ciaran McCreesh : Gentoo Developer (Sparc, MIPS, Vim, Fluxbox)
+Mail            : ciaranm at gentoo.org
+Web             : http://dev.gentoo.org/~ciaranm
+
+
+--Signature=_Fri__20_Aug_2004_22_05_34_+0100_3SJmCSz4PzBPMi.a
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFBJmeo96zL6DUtXhERAh0jAKCmd/u3dKKpvvoM3+25onXltNmBsgCgq3IN
+EBMq/HRpZeD+JObusZWArbg=
+=SAmG
+-----END PGP SIGNATURE-----
+
+--Signature=_Fri__20_Aug_2004_22_05_34_+0100_3SJmCSz4PzBPMi.a--
