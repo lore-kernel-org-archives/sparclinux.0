@@ -1,49 +1,63 @@
-From: Ciaran McCreesh <ciaranm@gentoo.org>
-Date: Fri, 20 Aug 2004 21:05:34 +0000
+From: Keith M Wesolowski <wesolows@foobazco.org>
+Date: Fri, 20 Aug 2004 21:07:49 +0000
 Subject: Re: Buglet making vmlinux with -j
-Message-Id: <20040820220534.50858f5d@snowdrop.home>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Signature=_Fri__20_Aug_2004_22_05_34_+0100_3SJmCSz4PzBPMi.a"
+Message-Id: <20040820210749.GA14507@foobazco.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <200408202156.06459.crn@netunix.com>
 In-Reply-To: <200408202156.06459.crn@netunix.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
---Signature=_Fri__20_Aug_2004_22_05_34_+0100_3SJmCSz4PzBPMi.a
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
+On Fri, Aug 20, 2004 at 02:05:29PM -0700, David S. Miller wrote:
 
-On Fri, 20 Aug 2004 13:59:56 -0700 William Lee Irwin III
-<wli@holomorphy.com> wrote:
-| On Fri, Aug 20, 2004 at 09:56:06PM +0100, C.Newport wrote:
-| > If I build a 2.4.27 kernel with -j6 to strsss test an SMP system 
-| > it compiles but silently finishes before linking.
-| > Is this a bug or expected behaviour ?
-| 
-| You're going to have to be more precise in your description for me to
-| tell. I am not sure from this description whether this describes a
-| failure to build or an unusual kind of output while otherwise building
-| successfully or maybe even something else.
+> It's because of all the btfixup stuff in the sparc32
+> build machinery, William.
+> 
+> He doesn't need to give any more description, it is clear
+> what the issue is.
 
-It's known behaviour for 2.4.x (2.6.x should work). Keith had a patch,
-although I believe it wasn't applied because of suspected side effects.
+Yes, and there's a patch for it I got long ago, I think from Pete who
+in turn got it from someone else (feel free to speak up).  I doubt
+this was ever integrated, since 2.4 is dead and buried.
+
+diff -ur linux-2.4-export-orig/arch/sparc/Makefile linux-2.4-export-new/arch/sparc/Makefile
+--- linux-2.4-export-orig/arch/sparc/Makefile	Sun Feb 16 01:23:12 2003
++++ linux-2.4-export-new/arch/sparc/Makefile	Sun May 18 14:07:02 2003
+@@ -45,6 +45,7 @@
+ 	$(TOPDIR)/arch/sparc/lib/lib.a
+ 
+ # This one has to come last
++_dir_arch/sparc/boot :  $(patsubst %, _dir_%, $(SUBDIRS))
+ SUBDIRS += arch/sparc/boot
+ CORE_FILES_NO_BTFIX := $(CORE_FILES)
+ CORE_FILES += arch/sparc/boot/btfix.o
+diff -ur linux-2.4-export-orig/arch/sparc/boot/Makefile linux-2.4-export-new/arch/sparc/boot/Makefile
+--- linux-2.4-export-orig/arch/sparc/boot/Makefile	Sun Feb 16 01:24:48 2003
++++ linux-2.4-export-new/arch/sparc/boot/Makefile	Sun May 18 13:55:44 2003
+@@ -26,11 +26,14 @@
+ BTLIBS := $(CORE_FILES_NO_BTFIX) $(FILESYSTEMS) \
+ 	$(DRIVERS) $(NETWORKS)
+ 
+-# I wanted to make this depend upon BTOBJS so that a parallel
+-# build would work, but this fails because $(HEAD) cannot work
+-# properly as it will cause head.o to be built with the implicit
+-# rules not the ones in kernel/Makefile.  Someone please fix. --DaveM
+-vmlinux.o: dummy
++GENFILES := include/linux/version.h include/linux/compile.h $(foreach dirname, $(CORE_FILES_NO_BTFIX), _dir_$(dir $(dirname)))
++.PHONY : $(GENFILES)
++GENFILES += $(BTOBJS)
++
++$(GENFILES) :
++	$(MAKE) -C $(TOPDIR) $@
++
++vmlinux.o: $(GENFILES)
+ 	$(LD) -r $(patsubst %,$(TOPDIR)/%,$(BTOBJS)) \
+ 		--start-group \
+ 		$(patsubst %,$(TOPDIR)/%,$(BTLIBS)) \
+
+
 
 -- 
-Ciaran McCreesh : Gentoo Developer (Sparc, MIPS, Vim, Fluxbox)
-Mail            : ciaranm at gentoo.org
-Web             : http://dev.gentoo.org/~ciaranm
-
-
---Signature=_Fri__20_Aug_2004_22_05_34_+0100_3SJmCSz4PzBPMi.a
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFBJmeo96zL6DUtXhERAh0jAKCmd/u3dKKpvvoM3+25onXltNmBsgCgq3IN
-EBMq/HRpZeD+JObusZWArbg=
-=SAmG
------END PGP SIGNATURE-----
-
---Signature=_Fri__20_Aug_2004_22_05_34_+0100_3SJmCSz4PzBPMi.a--
+Keith M Wesolowski
