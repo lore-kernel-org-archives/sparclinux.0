@@ -1,38 +1,24 @@
 From: Vincent Cojot <coyote@step.polymtl.ca>
-Date: Thu, 18 Mar 2004 14:05:14 +0000
-Subject: 'Inconsistent console: input 3, output 3' with 2.4.25
-Message-Id: <Pine.GSO.4.58.0403180843540.12102@step.polymtl.ca>
+Date: Thu, 18 Mar 2004 16:33:57 +0000
+Subject: Re: 'Inconsistent console: input 3, output 3' with 2.4.25
+Message-Id: <Pine.GSO.4.58.0403181129480.12102@step.polymtl.ca>
 List-Id: <sparclinux.vger.kernel.org>
+References: <Pine.GSO.4.58.0403180843540.12102@step.polymtl.ca>
+In-Reply-To: <Pine.GSO.4.58.0403180843540.12102@step.polymtl.ca>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-Hi everyone,
+Just a quick follow-up, sorry about the noise.
 
-Just rebuilt a tftp64.img boot image using Aurora 1.0, updates
-and Christian Joensson's 2.4.25-0.1 src.rpm (based on Aurora's src.rpm).
+Got a nice Oops by using 'boot net -p console=ssp-serial'. Log below..
 
-Also, this tftp64.img was rebuilt using buildinstall on a fully updated
-Aurora 1.0 machine (Ultra2 Model 1300). I wondering if anyone knows what's
-going on here..
+Vincent
 
-First the problem dump:
-
-{e0} ok boot net -p
-Resetting...
-
-
-Sun Fire 15000, using IOSRAM based Console
-Copyright 1998-2002 Sun Microsystems, Inc.  All rights reserved.
-OpenBoot  4.7.6, 32768 MB memory installed, Serial #44630847.
-Ethernet address 0:0:be:a9:3:3f, Host ID: 82a9033f.
-
-
-
-Rebooting with command: boot net -p
-Boot device: /pci@fc,700000/pci@1/network@0  File and args: -p
+{e0} ok boot net -p console=ssp-serial
+Boot device: /pci@fc,700000/pci@1/network@0  File and args: -p console=ssp-serial
 100 Mbps HDX Link up
 Timeout waiting for ARP/RARP packet
 Timeout waiting for ARP/RARP packet
@@ -43,63 +29,41 @@ Timeout waiting for ARP/RARP packet
 Selecting sun4u kernel...
 /
 PROMLIB: Sun IEEE Boot Prom 4.7.6 2003/02/13 18:57
-<4>Linux version 2.4.25-0.1sparcBOOT (root@u1sparc.j-son.org) (gcc driver version egcs-2.91.66 19990314/Linux (egcs-1.1.2 release) executing gcc
-version egcs-2.92.11) #1 Wed Mar 10 18:55:19 CET 2004
+<4>Linux version 2.4.25-0.1sparcBOOT (root@u1sparc.j-son.org) (gcc driver version egcs-2.91.66 19990314/Linux (egcs-1.1.2 release) executing gcc version egcs-2.92.11) #1 Wed Mar 10 18:55:19 CET 2004
 <4>ARCH: SUN4U
-Linux version 2.4.25-0.1sparcBOOT (root@u1sparc.j-son.org) (gcc driver version egcs-2.91.66 19990314/Linux (egcs-1.1.2 release) executing gcc
-version egcs-2.92.11) #1 Wed Mar 10 18:55:19 CET 2004
+Linux version 2.4.25-0.1sparcBOOT (root@u1sparc.j-son.org) (gcc driver version egcs-2.91.66 19990314/Linux (egcs-1.1.2 release) executing gcc version egcs-2.92.11) #1 Wed Mar 10 18:55:19 CET 2004
 <4>ARCH: SUN4U
 ARCH: SUN4U
 Ethernet address: 00:00:be:a9:03:3f
-Inconsistent console: input 3, output 3
-Program terminated
-{e0} ok
+Remapping the kernel... done.
+TRAPLOG: Error at trap level 0x2, dumping track stack.
+TRAPLOG: Trap level 1 TSTATE[0000008880001401] TPC[00000000f01462a4] TNPC[00000000f01462a8] TT[64]
+TRAPLOG: Trap level 2 TSTATE[0000009880041401] TPC[000000000040f32c] TNPC[000000000040f330] TT[32]
+TRAPLOG: Trap level 3 TSTATE[0000000000000000] TPC[fffffffffffffffc] TNPC[fffffffffffffffc] TT[1ff]
+TRAPLOG: Trap level 4 TSTATE[0000000000000000] TPC[fffffffffffffffc] TNPC[fffffffffffffffc] TT[1ff]
+              \|/ ____ \|/
+<4>              "@'/ .. \`@"
+<4>              /_| \__/ |_\
+<4>                 \__U_/
+              "@'/ .. \`@"
+<4>              /_| \__/ |_\
+<4>                 \__U_/
+              /_| \__/ |_\
+<4>                 \__U_/
+                 \__U_/
+swapper(0): TL1: Data Access Exception
+TSTATE: 0000009880041401 TPC: 000000000040f32c TNPC: 000000000040f330 Y: 00000000    Not tainted
+g0: 0000000000000000 g1: 0000000000000001 g2: 00000000f0000000 g3: 00000000fff78000
+g4: 0000000000000007 g5: 00000000f0029830 g6: 00000000fea0a678 g7: 00000000fea097a0
+o0: 00000000f0014f24 o1: 0000000000000000 o2: 000000000000000d o3: 0000000000612230
+o4: 000000000072e400 o5: 0000000000000006 sp: 00000000fef7b471 ret_pc: 00000000f000fe90
+l0: 00000000f01462a4 l1: 00000000f014629f l2: 0000000000000001 l3: 0000000000000000
+l4: 0000000000000004 l5: 0000000000000004 l6: 0000000000090420 l7: 00000000fef083c0
+i0: 00000000007302f0 i1: 00000000006c6100 i2: 00000000006c6280 i3: 0000000000000180
+i4: 00000000006c6410 i5: 0000000000653000 i6: 00000000fef7b571 i7: 00000000005c7fb0
+Instruction DUMP: 8d313017  8c09a7ff  8d29b002 <ca814286> 02f16684  8b29700b  8d31300d  8c09a3ff  8d29b003
+Kernel panic: Attempted to kill the idle task!
+In idle task - not syncing
+ Press L1-A to return to the boot prom
 
-From an external viewpoint, I don't really understand why it should
-complain about the console considering that the F15K has "/ssp-serial" in
-'show-devs' just like an E10k (I don't know if the E10K still works with
-recent 2.4.x kernels, which might explain some of this but..):
 
-{e0} ok show-devs
-[...snip...]
-/memory-controller@103,400000
-/SUNW,UltraSPARC-III+@103,0
-/memory-controller@102,400000
-/SUNW,UltraSPARC-III+@102,0
-/memory-controller@101,400000
-/SUNW,UltraSPARC-III+@101,0
-/memory-controller@100,400000
-/SUNW,UltraSPARC-III+@100,0
-[...snip...]
-/idprom
-/nvram
-/ssp-serial
-/virtual-memory
-/memory@m0,e0
-/aliases
-/options
-/openprom
-/chosen
-/packages
-[...snip...]
-{e0} ok
-
-Furthermore,
-
-After looking at /usr/src/linux-2.4.25-0.1sparc/arch/sparc/prom/console.c
-and /usr/src/linux-2.4.25-0.1sparc/arch/sparc64/kernel/setup.c, I'm not
-too sure about where I'd start hacking to get this running. If anyone has
-an idea... :)
-
-Cheers,
-
-,-*~'`^`'~*-,._.,-*~'`^`'~*-,._.,-*~'`^`'~*-,._.,-*~'`^`'~*-,._.,-*~'`^`'~*-,
-Vincent S. Cojot, Computer Engineering. STEP project. _.,-*~'`^`'~*-,._.,-*~
-Ecole Polytechnique de Montreal, Comite Micro-Informatique. _.,-*~'`^`'~*-,.
-Linux Xview/OpenLook resources page _.,-*~'`^`'~*-,._.,-*~'`^`'~*-,._.,-*~'
-http://step.polymtl.ca/~coyote  _.,-*~'`^`'~*-,._ coyote@step.polymtl.ca
-
-They cannot scare me with their empty spaces
-Between stars - on stars where no human race is
-I have it in me so much nearer home
-To scare myself with my own desert places.       - Robert Frost
