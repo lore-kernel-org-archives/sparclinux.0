@@ -1,7 +1,7 @@
 From: Ben Collins <bcollins@debian.org>
-Date: Mon, 23 Feb 2004 12:04:55 +0000
+Date: Mon, 23 Feb 2004 12:11:31 +0000
 Subject: Re: oops in sched_init() on E3000
-Message-Id: <20040223120455.GA2992@phunnypharm.org>
+Message-Id: <20040223121131.GC4346@phunnypharm.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040222043448.GG703@holomorphy.com>
 In-Reply-To: <20040222043448.GG703@holomorphy.com>
@@ -10,19 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sun, Feb 22, 2004 at 04:34:50PM -0800, William Lee Irwin III wrote:
-> At some point in the past, davem wrote:
-> >> Ben Collins and I may have messed up net booting when we added SILO+kernel
-> >> support for larger images, but it could also be this STACK phdr thing too.
+On Mon, Feb 23, 2004 at 04:27:31AM -0800, William Lee Irwin III wrote:
+> On Sun, Feb 22, 2004 at 04:34:50PM -0800, William Lee Irwin III wrote:
+> >> OpenBoot 3.2.30 doesn't seem to netboot ELF directly; how did you do it?
 > 
-> On Sun, Feb 22, 2004 at 06:57:12PM -0500, Ben Collins wrote:
-> > My big kernel testing worked with net booting, but I didn't use
-> > elftoaout, I booted the elf image directly.
+> On Mon, Feb 23, 2004 at 07:04:55AM -0500, Ben Collins wrote:
+> > I didn't say I did it on an e3000 :) Just noting that netboot should
+> > still work.
 > 
-> OpenBoot 3.2.30 doesn't seem to netboot ELF directly; how did you do it?
+> Yeah, it turned out to be a config problem (CONFIG_NR_CPUS = 6 is bad
+> with sparse MID's). I'm chasing down a sunhme.c issue how it appears.
+> Bootlog (with some instrumentation) attached.
 
-I didn't say I did it on an e3000 :) Just noting that netboot should
-still work.
+Nope, now you're chasing the same problem I am on e3000. Somehow the
+IRQ's aren't getting setup properly. For me, esp scsi gets initialized
+first, and the machine locks up waiting for the esp to get it's first
+interrupt.
 
 -- 
 Debian     - http://www.debian.org/
