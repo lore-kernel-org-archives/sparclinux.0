@@ -1,7 +1,7 @@
-From: Keith M Wesolowski <wesolows@foobazco.org>
-Date: Thu, 19 Aug 2004 16:18:52 +0000
+From: "C.Newport" <crn@netunix.com>
+Date: Thu, 19 Aug 2004 17:12:07 +0000
 Subject: Re: Sun4d progress
-Message-Id: <20040819161852.GA11284@foobazco.org>
+Message-Id: <200408191812.07958.crn@netunix.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.LNX.4.53.0408182135050.391@mailgate.netunix.com>
 In-Reply-To: <Pine.LNX.4.53.0408182135050.391@mailgate.netunix.com>
@@ -10,14 +10,11 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, Aug 19, 2004 at 07:12:25AM -0700, William Lee Irwin III wrote:
+On Thursday 19 August 2004 3:12 pm, William Lee Irwin III wrote:
 
 > Okay, what gcc/binutils is everyone using and can we start slinging
 > binaries compiled from the same kernel compiled by different gcc's
 > around so I can diagnose this? Thanks.
 
-The last compilers I was using were 3.3.3, although I actually had
-slightly better success with 3.2.3.
+I have a choice of gcc-egcs-2.91.66 or gcc 3.2.2
 
--- 
-Keith M Wesolowski
