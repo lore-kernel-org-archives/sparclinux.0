@@ -1,30 +1,47 @@
-From: Dallas Helquist <dallas@oldbrownjeep.net>
-Date: Tue, 19 Oct 2004 03:43:06 +0000
-Subject: Sun Gigabit Ethernet - Sbus?
-Message-Id: <41748D4A.5070308@oldbrownjeep.net>
+From: Jason Wever <weeve@gentoo.org>
+Date: Sun, 24 Oct 2004 21:09:05 +0000
+Subject: [PATCH] atyfb driver fix for 2.6.10-rc1-bk2
+Message-Id: <20041024150905.10299d17@enterprise.weeve.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Signature=_Sun__24_Oct_2004_15_09_05_-0600_oBlVvVcGvZd=lcZS"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hello,
+--Signature=_Sun__24_Oct_2004_15_09_05_-0600_oBlVvVcGvZd=lcZS
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 
-I am trying to get a Sun GigabitEthernet Sbus (GBE/S) 2.0 working under 
-linux in a E 4500.  The card is listed here: 
-http://sunsolve.sun.com/handbook_pub/Devices/Ethernet/ETHER_GigabitEthernet_2.html
+The following patch for the atyfb driver fixes a compile issue in
+2.6.10-rc1-bk2.  I've tested it here locally on a Blade 100 and all seems
+well from what I can tell.
 
-I can't seem to find anywhere where it is supported, although the post 
-below from 3/2003 states that someone with the hardware should be able 
-to port the sungem driver w/o too many troubles.  Has anyone achieved this?
-http://marc.theaimsgroup.com/?l=linux-sparc&m4911488627253&w=2
+--- linux-2.6.10-rc1-bk2/drivers/video/aty/atyfb_base.c.orig	2004-10-24 09:51:36.000000000 -0600
++++ linux-2.6.10-rc1-bk2/drivers/video/aty/atyfb_base.c	2004-10-24 12:51:05.000000000 -0600
+@@ -2288,7 +2288,7 @@
+ 			default_par->mmap_map[1].voff =
+ 			    default_par->mmap_map[0].voff +
+ 			    info->fix.smem_len;
+-			default_par->mmap_map[1].poff =
++			default_par->mmap_map[1].poff = (unsigned long)
+ 			    default_par->ati_regbase & PAGE_MASK;
+ 			default_par->mmap_map[1].size = PAGE_SIZE;
+ 			default_par->mmap_map[1].prot_mask = _PAGE_CACHE;
 
-Other than this, the box runs great.  All the qfe (well, 4 port hme) and 
-hme cards work w/o any problems, and it seems the fiber channel cards 
-work as well - though I haven't really tested them.
 
-Any help/pointers with the gigE would be appreciated!
+-- 
+Jason Wever
+Gentoo/Sparc Team Co-Lead
 
-Thanks in advance -
+--Signature=_Sun__24_Oct_2004_15_09_05_-0600_oBlVvVcGvZd=lcZS
+Content-Type: application/pgp-signature
 
--dallas
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.6 (GNU/Linux)
+
+iD8DBQFBfBnzdKvgdVioq28RAtLwAJ9FQW2l8wJ9QR1huiM5HW0DgC54CgCfWZDL
+uComf6B3vaYGNaNYFRm+6rM=
+=GogR
+-----END PGP SIGNATURE-----
+
+--Signature=_Sun__24_Oct_2004_15_09_05_-0600_oBlVvVcGvZd=lcZS--
