@@ -1,8 +1,10 @@
-From: Christian Joensson <christian@j-son.org>
-Date: Wed, 18 Feb 2004 12:16:54 +0000
+From: Christian Joensson <c.christian.joensson@comhem.se>
+Date: Wed, 18 Feb 2004 12:57:01 +0000
 Subject: sunhme in 2.4.2{3,4}?
-Message-Id: <20040218131654.A25364@fw.j-son.org>
+Message-Id: <20040218135701.A25557@fw.j-son.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20040218131654.A25364@fw.j-son.org>
+In-Reply-To: <20040218131654.A25364@fw.j-son.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
