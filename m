@@ -1,53 +1,69 @@
-From: Jeremy Huddleston <eradicator@gentoo.org>
-Date: Sun, 05 Dec 2004 22:03:46 +0000
-Subject: Re: system lockup bug in >2.6.7-rc1-bk6 tracked down
-Message-Id: <1102284226.20364.60.camel@cid.outersquare.org>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-w5tQrvzUEbUMBTvBQz+o"
+From: Georg Chini <georg.chini@triaton-webhosting.com>
+Date: Wed, 08 Dec 2004 21:42:04 +0000
+Subject: Sparc32 - SS5 - TCX-Framebuffer und RTC
+Message-Id: <41B7752C.90808@triaton-webhosting.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1101553907.21614.24.camel@cid.outersquare.org>
-In-Reply-To: <1101553907.21614.24.camel@cid.outersquare.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Hello,
 
---=-w5tQrvzUEbUMBTvBQz+o
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+when compiling 2.6.10-rc3 for my SS5 I have
+following problems:
 
-On Sat, 2004-11-27 at 03:11 -0800, Jeremy Huddleston wrote:
-> A change between 2.6.7-rc1-bk6 and 2.6.7-rc2 can results in a system
-> lockdown.  One situation in which this can be triggered is when we are a
-> nfs client, and the nfs server shuts down (or on the server, you simply
-> issue an 'ifconfig eth1 down').  I have tracked this down to a bug in
-> dev_ifconf() in fs/compat_ioctl.c
+1) TCX-Framebuffer:
+    a) drivers/video/tcx.c:
+       prom->devname is "SUNW,tcx", not "tcx" in line 469,
+       so the framebuffer will not be detected without
+       changing that line.
+    b) FB-Console does not work:
+       When I boot the system with FB-Console I get a blank
+       black screen. System boots fine, only nothing is
+       displayed.
+    c) X will not work in 8-Bit mode:
+       Only 32-Bit mode works, maybe this is connected to b)?
 
-Ok, I was mistaken.  The bug isn't triggered by the NFS server becoming
-unavailable.  It's actually triggered by NIS.  ypbind is the process
-which eventually results in the dev_ifconf() call which locks up the
-system.
+2) RTC:
+    When compiling with RTC-support I get following messages
+    from make image:
 
-This problem was originally reported in this post
-http://marc.theaimsgroup.com/?l=3Dlinux-sparc&m=3D109830513430004&w=3D2 and=
- I
-confirmed with the poster of that message that they were using NIS as
-well and their NIS server was the same as the NFS server.
+   ...
 
-Sorry for the confusion.
+       CC      drivers/sbus/char/rtc.o
+     drivers/sbus/char/rtc.c: In function `get_rtc_time':
+     drivers/sbus/char/rtc.c:33: warning: initialization makes integer from pointer without a cast
+     drivers/sbus/char/rtc.c:38: warning: implicit declaration of function `readb'
+     drivers/sbus/char/rtc.c:40: warning: implicit declaration of function `writeb'
+     drivers/sbus/char/rtc.c: In function `set_rtc_time':
+     drivers/sbus/char/rtc.c:60: warning: initialization makes integer from pointer without a cast
 
---=20
-Jeremy Huddleston <eradicator@gentoo.org>
+    ...
 
---=-w5tQrvzUEbUMBTvBQz+o
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
+       LD      arch/sparc/boot/image
+     drivers/built-in.o(.text+0x3bca8): In function `get_rtc_time':
+     : undefined reference to `readb'
+     drivers/built-in.o(.text+0x3bcb8): In function `get_rtc_time':
+     : undefined reference to `writeb'
+     drivers/built-in.o(.text+0x3bdc0): In function `get_rtc_time':
+     : undefined reference to `readb'
+     drivers/built-in.o(.text+0x3bdcc): In function `get_rtc_time':
+     : undefined reference to `writeb'
+     drivers/built-in.o(.text+0x3bdf4): In function `set_rtc_time':
+     : undefined reference to `readb'
+     drivers/built-in.o(.text+0x3be04): In function `set_rtc_time':
+     : undefined reference to `writeb'
+     drivers/built-in.o(.text+0x3bfc0): In function `set_rtc_time':
+     : undefined reference to `readb'
+     drivers/built-in.o(.text+0x3bfcc): In function `set_rtc_time':
+     : undefined reference to `writeb'
+     make[1]: *** [arch/sparc/boot/image] Error 1
+     make: *** [image] Error 2
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.6 (GNU/Linux)
 
-iD8DBQBBs4XCOpjtAl+gMRURAhw3AKDOOPcAhGTmMZupA6A7kYDE4aIU9ACaA5CS
-IL1qcwCuUNDEMTSWGVMza4Q=
-=o8bv
------END PGP SIGNATURE-----
+Can somebody help me to solve my problems or point me to what to do?
 
---=-w5tQrvzUEbUMBTvBQz+o--
+Regards
+        Georg Chini
 
