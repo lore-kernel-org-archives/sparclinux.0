@@ -1,7 +1,7 @@
-From: Ben Collins <bcollins@debian.org>
-Date: Thu, 29 Jan 2004 21:01:03 +0000
+From: dree <dree@gnulinux.nl>
+Date: Thu, 29 Jan 2004 22:20:53 +0000
 Subject: Re: SILO 1.4.2 released
-Message-Id: <20040129210103.GQ532@phunnypharm.org>
+Message-Id: <401A0E39.4030100@gnulinux.nl>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040129182954.GK532@phunnypharm.org>
 In-Reply-To: <20040129182954.GK532@phunnypharm.org>
@@ -10,39 +10,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, Jan 29, 2004 at 02:55:30PM -0600, Otto Solares wrote:
-> On Thu, Jan 29, 2004 at 03:30:39PM -0500, Ben Collins wrote:
-> > On Thu, Jan 29, 2004 at 02:34:02PM -0600, Otto Solares wrote:
-> > > On Thu, Jan 29, 2004 at 01:29:54PM -0500, Ben Collins wrote:
-> > > > I've tested and fixed initrd support for sparc64, so that's safe.
-> > > > 
-> > > > I've also cleaned up some things. Upon further testing, I was able to
-> > > > boot a 6.8Meg image. Not sure why it didn't work the first time, but
-> > > > beware it may be flakey.
-> > > > 
-> > > > I'm a little disappointed. I haven't gotten any feedback from people
-> > > > testing this new version. So either no one cares, or it works good and
-> > > > people don't want to waste their time sending "worked for me" emails :)
-> > > > 
-> > > > Usual place: http://www.sparc-boot.org/pub/silo/
-> > > 
-> > > You talk something about needed kernel changes to properly use this
-> > > new silo, where are the patches or 2.6.2-rc2-bk3 is good for testing?
-> > 
-> > You didn't read everything I said then. I said to make use of the larger
-> > kernel sizes, you need the kernel patches, but to use this silo, you
-> > don't. I wanted to make sure it didn't break existing installs.
-> 
-> That's the point, test the larger kernel sizes.  Is pointless to ask
-> people to test larger sizes and don't provide or make clear where the
-> kernel patches are.  So my original question remains.
+Hi,
 
-Read the fucking email. I want people to test the _old_ smaller kernels
-_first_. I would rather the larger kernels be broken than for the new
-SILO to not work with the older kernels.
+on my ultra10, 128MB, 440Mhz ,running sid:
+a vanilla 2.6.1 vmlinux kernel size 3.8 MB boots fine
+a 2.4.19 vmlinux kernel size 1.3MB boots fine
+a 2.4.24 image image kernel size 3.1 MB boots fine
+a 2.4.18-sun4u vmlinux kernel size  1.4 MB boots fine
 
--- 
-Debian     - http://www.debian.org/
-Linux 1394 - http://www.linux1394.org/
-Subversion - http://subversion.tigris.org/
-WatchGuard - http://www.watchguard.com/
+a 2.6.2-rc2 vmlinux lernel size 3.8 doesn't boot, as reported earlier.
+    booting that kernel with "-p" gives:
+      Remapping the kernel... done.
+      On node 0 totalpages: 15846
+I did not however have to use debian-rescue to rerun "silo -f" again.
+
+All my old kernels work without hassle. All in all a fine job.
+Thanks for the effort Ben , now we can use the shiny new kernel-build 
+system, just like the normal people :)
+
+I used the silo-loaders tar-ball for second.b.
+
+       Andreas
