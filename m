@@ -1,7 +1,7 @@
-From: "David S. Miller" <davem@redhat.com>
-Date: Wed, 28 Jul 2004 15:57:07 +0000
+From: "Art Haas" <ahaas@airmail.net>
+Date: Wed, 28 Jul 2004 18:51:43 +0000
 Subject: Re: [PATCH] Remove duplicated pci_dma_mapping_error function
-Message-Id: <20040728085707.27277fe3.davem@redhat.com>
+Message-Id: <20040728185143.GY3996@artsapartment.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040728150908.GW3996@artsapartment.org>
 In-Reply-To: <20040728150908.GW3996@artsapartment.org>
@@ -11,4 +11,11 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-Applied, thanks Art.
+Replying to my mail about the patch, the kernel built successfully and
+my SS20 is now running 2.6.8-rc2+.
+
+-- 
+Man once surrendering his reason, has no remaining guard against absurdities
+the most monstrous, and like a ship without rudder, is the sport of every wind.
+
+-Thomas Jefferson to James Smith, 1822
