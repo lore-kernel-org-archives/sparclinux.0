@@ -1,69 +1,25 @@
-From: "Jurzitza, Dieter" <DJurzitza@harmanbecker.com>
-Date: Mon, 05 Jul 2004 12:44:11 +0000
-Subject: Testing latest sarge ...
-Message-Id: <CFE6A2529AC5FA439B3D852B0F2A6837DAAF50@OEKAW2EXVS02.hbi.ad.harman.com>
+From: Melissa Thompson <websitepositioning@ligne-net.info>
+Date: Thu, 08 Jul 2004 00:10:04 +0000
+Subject: website positioning
+Message-Id: <S265692AbUGHAKE/20040708001004Z+1961@vger.kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Dear listmembers,
-to whom it might concern:
+Our company will now position any qualified website above all others for their search results. 
+We qualify sites for direct placement on Yahoo!, MSN, CNN, and several other popular engines. This is 
+not a pay per click campaign. 
 
-U60 / 2x360 MHz / 512MB
+If you are interested in being considered, please send your contact information and URL(s) to: 
+websitepositioning@ligne-net.info
 
--> booting from latest sarge-build -> boot failure, cannot mount root FS
-(see thread)
--> booting from latest sarge-build but with an initialized HDD (SuSE) linux
-root=3D/dev/sda4
-	boots, mounts hdd, but no functionality apart from this.
--> booting from sarge-build netinstall - CD: same issue.
--> booting from /cdimage/testing/daily/sparc/current/sarge-sparc-netinst.iso
-- boot failure, as before.
--> booting from "home-grown" SuSE with Silo 1.3.2 and SuSE - built kernel:
-functional as expected.
+Sincerely,
 
-I can verify this behaviour for two different U60's here.
-Many thanks for your efforts in advance,
-take care
+Melissa Thompson
+Keyword Placement Services
+7 Hutton Center
+Irvine, California
 
-
-
-Dieter Jurzitza
-
-
---=20
-________________________________________________
-
-HARMAN BECKER AUTOMOTIVE SYSTEMS
-
-Dr.-Ing. Dieter Jurzitza
-Manager Hardware Systems
-         ESI
-
-Industriegebiet Ittersbach
-Becker-G=F6ring Str. 16
-D-76307 Karlsbad / Germany
-
-Phone: +49 (0)7248 71-1577
-Fax:   +49 (0)7248 71-1216
-eMail: DJurzitza@harmanbecker.com
-Internet: http://www.becker.de
-=20
-
-
-*******************************************
-Diese E-Mail enthaelt vertrauliche und/oder rechtlich geschuetzte Informati=
-onen. Wenn Sie nicht der richtige Adressat sind oder diese E-Mail irrtuemli=
-ch erhalten haben, informieren Sie bitte sofort den Absender und loeschen S=
-ie diese Mail. Das unerlaubte Kopieren sowie die unbefugte Weitergabe diese=
-r Mail ist nicht gestattet.
-=20
-This e-mail may contain confidential and/or privileged information. If you =
-are not the intended recipient (or have received this e-mail in error) plea=
-se notify the sender immediately and delete this e-mail. Any unauthorized c=
-opying, disclosure or distribution of the contents in this e-mail is strict=
-ly forbidden.
-*******************************************
-
+If considering your company is unwanted, please let us know.
