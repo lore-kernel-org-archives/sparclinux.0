@@ -1,8 +1,10 @@
 From: "c.hota" <cghota@mail.midsouth.ualr.edu>
-Date: Thu, 02 Sep 2004 15:52:13 +0000
+Date: Thu, 02 Sep 2004 15:52:30 +0000
 Subject: pci_iommu: alloc_streaming_cluster of npages(1) failed!
-Message-Id: <413741AD.2050707@midsouth.ualr.edu>
+Message-Id: <413741BE.9010603@midsouth.ualr.edu>
 List-Id: <sparclinux.vger.kernel.org>
+References: <413741AD.2050707@midsouth.ualr.edu>
+In-Reply-To: <413741AD.2050707@midsouth.ualr.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
