@@ -1,28 +1,55 @@
 From: William Lee Irwin III <wli@holomorphy.com>
-Date: Tue, 21 Dec 2004 06:34:53 +0000
-Subject: Re: [1/3] fix HyperSPARC DVMA
-Message-Id: <20041221063453.GD771@holomorphy.com>
+Date: Wed, 22 Dec 2004 14:31:13 +0000
+Subject: [sparc32] vm fault code handling
+Message-Id: <20041222143113.GT771@holomorphy.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20041221042037.GY771@holomorphy.com>
-In-Reply-To: <20041221042037.GY771@holomorphy.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-William Lee Irwin III wrote:
->> DVMA is having aliasing problems.
+Convert arch/sparc/mm/fault.c to symbolic fault codes, default to minor
+faults for unrecognized fault codes. Also treat VM_FAULT_OOM similarly
+to VM_FAULT_SIGBUS in force_user_fault(), thereby fixing a latent bug.
 
-On Mon, Dec 20, 2004 at 11:55:35PM -0600, Bob Breuer wrote:
-> Here's an updated description for the patch:
-> HyperSPARC was hit by 2 problems: 1) The iotlb entries must be flushed
-> to ram and 2) to maintain cache coherency on HyperSPARC the page color
-> of a cacheable DVMA address and its physical address must match.
-> This patch adds cache flushes of iotlb changes for all non-viking cpus
-> and optional page coloring of the ranges returned by bit_map_get_string,
-> with the page coloring only being used on HyperSPARCs for now.
-
-Thanks, I'll update the patch description before sending it on.
-
-
--- wli
+Index: sparc32-2.6.10-rc3/arch/sparc/mm/fault.c
+=================================--- sparc32-2.6.10-rc3.orig/arch/sparc/mm/fault.c	2004-10-07 04:01:27.000000000 -0700
++++ sparc32-2.6.10-rc3/arch/sparc/mm/fault.c	2004-12-21 08:10:56.962777738 -0800
+@@ -294,16 +294,17 @@
+ 	 * the fault.
+ 	 */
+ 	switch (handle_mm_fault(mm, vma, address, write)) {
+-	case 1:
+-		current->min_flt++;
+-		break;
+-	case 2:
++	case VM_FAULT_SIGBUS:
++		goto do_sigbus;
++	case VM_FAULT_OOM:
++		goto out_of_memory;
++	case VM_FAULT_MAJOR:
+ 		current->maj_flt++;
+ 		break;
+-	case 0:
+-		goto do_sigbus;
++	case VM_FAULT_MINOR:
+ 	default:
+-		goto out_of_memory;
++		current->min_flt++;
++		break;
+ 	}
+ 	up_read(&mm->mmap_sem);
+ 	return;
+@@ -535,8 +536,11 @@
+ 		if(!(vma->vm_flags & (VM_READ | VM_EXEC)))
+ 			goto bad_area;
+ 	}
+-	if (!handle_mm_fault(mm, vma, address, write))
++	switch (handle_mm_fault(mm, vma, address, write)) {
++	case VM_FAULT_SIGBUS:
++	case VM_FAULT_OOM:
+ 		goto do_sigbus;
++	}
+ 	up_read(&mm->mmap_sem);
+ 	return;
+ bad_area:
