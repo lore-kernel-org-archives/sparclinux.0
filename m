@@ -1,7 +1,7 @@
-From: "Small, Jim" <jim.small@eds.com>
-Date: Tue, 03 Feb 2004 12:37:23 +0000
-Subject: RE: Problems with bridging on Sparc64
-Message-Id: <564DE4477544D411AD2C00508BDF0B6A1CD0E440@usahm018.exmi01.exch.eds.com>
+From: Ben Collins <bcollins@debian.org>
+Date: Tue, 03 Feb 2004 18:18:13 +0000
+Subject: Re: Problems with bridging on Sparc64
+Message-Id: <20040203181813.GK735@phunnypharm.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <8AA870658244D4119AF600508BDF0A361D4BF107@usahm014.exmi01.exch.eds.com>
 In-Reply-To: <8AA870658244D4119AF600508BDF0A361D4BF107@usahm014.exmi01.exch.eds.com>
@@ -10,45 +10,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-David,
+I don't remember if you said what dist you were using, but here's a
+64-bit debian package of the bridge-utils. If you have something other
+than debian, you can use alien to convert the package to rpm, or do:
 
-Please excuse my ignorance, but is there an easy way to build the bridging
-tools/library as 64bit binaries or are you saying that the dependence on
-SIOCDEVPRIVATE makes it extremely difficult without redesigning the bridging
-software?
+ar x bridge-utils64_0.9.6-5_sparc.deb data.tar.gz
 
-If that's the case, I guess it's back to OpenBSD...
+And then gunzip/untar that.
 
-Please let me know.
 
-Thanks,
-   <> Jim
+http://www.phunnypharm.org/pub/for/sparc-folks/bridge-utils64_0.9.6-5_sparc.deb
 
-> -----Original Message-----
-> From: David S. Miller [mailto:davem@redhat.com]
-> Sent: Monday, February 02, 2004 4:20 PM
-> To: Small, Jim
-> Cc: sparclinux@vger.kernel.org; jim.small@eds.com; shemminger@osdl.org
-> Subject: Re: Problems with bridging on Sparc64
-> 
-> On Mon, 2 Feb 2004 15:18:04 -0500
-> "Small, Jim" <jim.small@eds.com> wrote:
-> 
-> > I understand that David S Miller and other Sparc64 Linux networking
-> gurus
-> > hang out in this forum.  I'm hoping you can help me with a bridging
-> problem.
-> >
-> > I am running kernel 2.4.24/Sparc64 on my Ultra 60.  I also have the
-> latest
-> > version of the bridge utils - 0.9.6.
-> 
-> Unfortunately this is not fixable, unless you rebuild your bridging tools
-> as 64-bit binaries.
-> 
-> It is nearly impossible to translate the 32-bit versions of the bridging
-> ioctl interfaces because they use the SIOCDEVPRIVATE ioctl numbers which
-> do not indicate the type that the application is passing into the handler
-> (and thus we don't what to translate it to/from).
-> 
-> Stephen Hemminger (bridge maintainer) CC'd.
+-- 
+Debian     - http://www.debian.org/
+Linux 1394 - http://www.linux1394.org/
+Subversion - http://subversion.tigris.org/
+WatchGuard - http://www.watchguard.com/
