@@ -1,42 +1,45 @@
-From: "joaquin" <mmirtceli@yahoo.com>
-Date: Wed, 04 Aug 2004 06:51:01 +0000
-Subject: UPS Shipped Drugs!  No Prescription!
-Message-Id: <1091602261-30089@yahoo.com>
+From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
+Date: Wed, 25 Aug 2004 00:18:40 +0000
+Subject: [PATCH 2.6] Keep sparc32 consistent
+Message-Id: <1093393120.10698.11.camel@localhost.localdomain>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=-qQrYy8BOqhF3b5AcLSte"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: sparclinux@vger.kernel.org
+
+
+--=-qQrYy8BOqhF3b5AcLSte
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
 
-What do you pay now?
+This patch changes the name of the sparc32 Kconfig menu from "General
+Setup" to "General Machine Setup", to match the changes committed to
+most other arches in 2.6.9-rc1.
 
-If you pay more than these prices, maybe you should click this link....
-http://www.dfjndfv.com/_85924943b9db73ac62baa654773c6a8e/5
+~spot
+---
+Tom "spot" Callaway <tcallawa(a)redhat*com> LCA, RHCE 
+Red Hat Sales Engineer || Aurora Linux Project Leader
 
-VALIUM - $2 a pill! (Anti-Depressant)
-SOMA - $3 a pill! (Pain Relief)
-XANAX - $1.70 a pill! (Anti-Depressant)
-LIPITOR - $3.50 a pill! (Cholesterol Control)
-ZYBAN - $3 a pill! (Stop Smoking)
-ZOLOFT - $2 a pill! (Anti-Depressant)
-PAXIL - $3 a pill! (Anti-Depressant)
-PROZAC - $2 a pill! (Anti-Depressant)
-GLUCOPHAGE - 70 cents a pill! (Diabetes)
-MERIDIA - $2.50 a pill! (Weight Loss)
-VIOXX - $1 a pill! (Pain Relief)
-CELEBREX - $2 a pill! (Pain Relief)
-XENICAL - $2.50 a pill! (Weight Loss)  
+"If you are going through hell, keep going."
+- Sir Winston Churchill
 
-http://www.dfjndfv.com/_85924943b9db73ac62baa654773c6a8e/5
+--=-qQrYy8BOqhF3b5AcLSte
+Content-Disposition: attachment; filename=linux-2.6.9rc1-sparcKconfig.patch
+Content-Type: text/x-patch; name=linux-2.6.9rc1-sparcKconfig.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
+--- linux-2.6.8/arch/sparc/Kconfig.BAD	2004-08-25 00:39:44.370385048 -0400
++++ linux-2.6.8/arch/sparc/Kconfig	2004-08-25 00:39:52.841097304 -0400
+@@ -23,7 +23,7 @@
+ 
+ source "init/Kconfig"
+ 
+-menu "General setup"
++menu "General machine setup"
+ 
+ config VT
+ 	bool
 
+--=-qQrYy8BOqhF3b5AcLSte--
 
-
-
-
-
-
-
-master1 hornetmailman promethe kitty metallic bfi miranda 
-meow tintinmetallica lorraine safety
-orchid cutie fozzie 
