@@ -1,41 +1,48 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Thu, 28 Oct 2004 00:55:24 +0000
-Subject: Re: Would a JTAG port help with sun4d SMP work?
-Message-Id: <20041027175524.1ec2f579.davem@davemloft.net>
+From: RChan <rspchan@starhub.net.sg>
+Date: Wed, 20 Oct 2004 03:04:52 +0000
+Subject: [PATCH] sunsu.c
+Message-Id: <4175D5D4.3090702@starhub.net.sg>
 List-Id: <sparclinux.vger.kernel.org>
-References: <b476569a041027060861767e78@mail.gmail.com>
-In-Reply-To: <b476569a041027060861767e78@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Wed, 27 Oct 2004 10:56:12 -0700
-William Lee Irwin III <wli@holomorphy.com> wrote:
+The following patch fixes an oops in the serial subsystem
+when using a agetty/login on ttyS[01] reported by me on the
+mailing list. I suspect member values from the uart_sunsu_port structure are
+not correctly transferred to the uart_port structure?
 
-> The use of the JTAG would allow rather immediate and enormous advances
-> if we had any notion of how to use it. I suspect this is not an entirely
-> uncommon state of affairs, as I've heard that e.g. Exy00's all have open
-> JTAG ports, none of which we have any notion of how to use AFAIK.
+System: Sun Fire V210
+Kernel: 2.6.[89]
+Problem report: 
+http://marc.theaimsgroup.com/?l=linux-sparc&m9819243824775&w=2
 
-THe Ex000 JTAG's are driven by the registers mapped by
-the arch/sparc64/kernel/central.c driver code.
+--- linux.old/drivers/serial/sunsu.c.ORIG        2004-10-20 
+10:03:52.000000000 +0800
++++ linux/drivers/serial/sunsu.c     2004-10-20 10:43:40.000000000 +0800
+@@ -689,6 +690,7 @@
+        } else {
+                retval = request_irq(up->irq, sunsu_serial_interrupt,
+                                     SA_SHIRQ, su_typev[up->su_type], up);
++               port->irq = up->irq;
+        }
+        if (retval) {
+                printk("su: Cannot register IRQ %d\n", up->irq);
 
-The specific registers are defined in asm-sparc64/fhc.h
 
-But that's where the information stops, sorry :-)
+Somehow the irq setting is not transferred to the uart_port structure 
+causing
+a later oops in synchronize_irq due to NULL pointer dereference. I am 
+now able to login on ttyS[01].
+The kernel still reports irq as 0 during booting; I am still trying to 
+track this
+one down. Any pointers as to the earliest stage at which port->irq has 
+supposedly been
+set to a "good" value, and where does 2.4.2[67] get values for 
+interrupts such as 4,7ac
+from? (BTW I am a total newbie to the Sparc architecture so please forgive
+the dumb questions.)
 
-One thing I do remember is that only one board can be
-declared as the JTAG master and do chain scans.
 
-Each board type (CPU+MEM, SBUS, PCI, etc.) has different
-layout and meanings of the scan chains.
 
-You actually have to use this stuff to hotplug boards.  OBP
-is supposed to take care of it via special OBP prom calls but
-some of those are buggy so you have to jumpstart the board
-by hand using JTAG commands.
-
-I would not be surprised if the sun4d JTAG programming is similar.
-The UltraSPARC main bus, interrupt, streaming cache, and IOMMU
-architecture is largely derived from the sun4d stuff.
