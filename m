@@ -1,53 +1,54 @@
-From: Balint Cristian <rezso@rdsor.ro>
-Date: Sun, 09 May 2004 12:08:29 +0000
-Subject: sun4c (SS IPX) serial console problem/strangenes.
-Message-Id: <200405091508.29649.rezso@rdsor.ro>
+From: Keith M Wesolowski <wesolows@foobazco.org>
+Date: Sun, 09 May 2004 15:30:46 +0000
+Subject: Re: sun4c (SS IPX) serial console problem/strangenes.
+Message-Id: <20040509153046.GA5767@foobazco.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <200405091508.29649.rezso@rdsor.ro>
+In-Reply-To: <200405091508.29649.rezso@rdsor.ro>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi !
+On Sun, May 09, 2004 at 03:08:29PM +0300, Balint Cristian wrote:
 
-	I found weird thing trying (2.6.6-rc3 Keith all sparc32 patches till bk10),
-plus silo-1.4.4 that there are two cases of strangeness:
+> 1) 	Monitor+KeyBoard --> boot OK, but cgsix being enabled
+> half of boot dmesg screen is going on PROM console and only very late swiching to
+> framebuffer. I notice that 2.4.x dont do like this.
 
-1) 	Monitor+KeyBoard --> boot OK, but cgsix being enabled
-half of boot dmesg screen is going on PROM console and only very late swiching to
-framebuffer. I notice that 2.4.x dont do like this.
+We don't have control of where console messages go; each driver
+registers its console when it's initialized, and the tty/printk
+subsystem decides what to write to.  If the framebuffer console does
+get registered, and messages are written to it, it's probably working.
 
-2)  Because esp OOpses while scanning devices (this is another part of the story) i decided
-to catch the OOps via serial but this time more strangeness:
+> boot: test console=ttyS0,9600 video=sbus:off
+
+I have no idea what that argument is supposed to do, but it doesn't
+matter.
+
+> alloc_io_res(cgsix ram): cannot occupy
+
+The TGX+/XGX+ have 4MB framebuffers.  The IO space on sun4c systems is
+3MB.  I had hoped that these cards were not supported by Sun on 4c
+systems so I wouldn't have to fix this, but that's not the case.
+Please test this patch; specifically please take note of any vmalloc
+errors.
+
+=== include/asm-sparc/vaddrs.h 1.5 vs edited ==--- 1.5/include/asm-sparc/vaddrs.h	Mon Jan  5 20:26:21 2004
++++ edited/include/asm-sparc/vaddrs.h	Sun May  9 08:30:01 2004
+@@ -33,9 +33,9 @@
  
-Boot device: /sbus/esp@0,800000/sd@3,0   File and args:
-SILO Version 1.4.4
-boot:
-linux                    test
-boot: test console=ttyS0,9600 video=sbus:off
-Loaded kernel version 2.6.5
-Loading initial ramdisk (825501 bytes at 0x300000)...
-Booting Linux...
-alloc_io_res(cgsix ram): cannot occupy
-Program terminated
-Type b (boot), c (continue), or n (new command mode)
-
-Of course prom is like:
-output-device         ttya                           screen
-input-device          ttya                           keyboard
-
-	I tryed with/without video=sbus:off with/without console=ttyS0,9600 with monitor attached, without monitor attached
-to trick sense of 13W3 but _always_ "alloc_io_res(cgsix ram): cannot occupy"
-	
-	I think i do a digital photo of esp crash.
+ #define SUN4M_IOBASE_VADDR	0xfd000000 /* Base for mapping pages */
+ #define IOBASE_VADDR		0xfe000000
+-#define IOBASE_END		0xfe300000
++#define IOBASE_END		0xfe600000
+ 
+-#define VMALLOC_START		0xfe300000
++#define VMALLOC_START		0xfe600000
+ 
+ /* XXX Alter this when I get around to fixing sun4c - Anton */
+ #define VMALLOC_END		0xffc00000
 
 
-What to gratulate is that silo-1.4.4 on sun4c works ok, i loaded well 1.9 M of uncompressed image.
-
-At all i use an IPX machine for test, with 64Mb RAM.
-gcc-3.3.3 and latest well working binutils (Aurora one)
-
-
-Thanks,
-
-cristian
+-- 
+Keith M Wesolowski
