@@ -1,69 +1,28 @@
-From: Patricia GraK <rdan00@plasa.com>
-Date: Wed, 26 May 2004 00:12:01 +0000
-Subject: dental practice,
-Message-Id: <S265270AbUEZAMC/20040526001246Z+726@vger.kernel.org>
+From: joey@odoherty.net
+Date: Mon, 03 May 2004 19:11:51 +0000
+Subject: Re: Losing my mind, RAID1 on Sparc completely broken?
+Message-Id: <20040503191151.GB23124@odoherty.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-NOTE:  BONUS OFFER BELOW.
- 
-`The best reference I`ve used to communicate with dentists``, 
-Bob Frankford -- President, KY dental products.
- 
-The new edition of The American Directory of Dentists is out!!!!
+Hi James,
 
-(New Dentist directory, dental practice, dental labs, 
-cosmetic dentists, DDO, dental care directory, directory of dentists, 
-dentist CD, dentist lists, orthodontists, periodontology, oral surgeons, 
-dental lists, tooth decay, dental products, gum disease, oral health, 
-genral practice, dental directory.)
+> One thing is that SILO now only gets as far as S and then I get 
+> "Program terminated" - I'm not sure what's causing this, but now I have 
+> to do "boot cdrom /iommu/.....;1/vmlinuz root=/dev/md0 ro" to start my 
+> machine.  Anyone have any ideas about what's up with SILO?
+> 
+> I have the latest SILO from sarge installed.
 
+I had this exact same problem (on Sarge, no less.) The solution was to make
+sure that the same silo boot partition was installed to both disks which
+made up the array. I did this by individually mounting each disk that made-up
+the raid and issued a 'silo -r /mountpoint'. After that it worked fine.. 
 
-From our previous customer feedback, this directory is found to 
-be the leading source of dentist reference in the United States.  
-It is used by professionals and industry business development 
-executives who must communicate with dentists in an efficient 
-and timely manner..
- 
-The American Directory of Dentists contains relevant data on 
-over 200,000 dentists in the United States. Each record is 
-indexed by such features as name, address, phone/fax, county, 
-year licensed, type of practice, type of dentist as well 
-as specialty.  
- 
-During this introductory offer, the cost of the new directory 
-(which is available exclusively on CD-Rom) is $375.00 (reg. $795). 
-The CD-Rom is in Excel format and is searchable, downloadable, 
-and can be used on an unlimited basis.
- 
-To order the American Directory of Dentists, please print this 
-e-mail, complete the information below and fax it to 905-751-0199. 
-(tel: 905-751-0919).
- 
-BONUS OFFER: ORDER NOW AND RECEIVE THE AMERICAN 
-DIRECTORY OF DOCTORS ON CD-ROM 
-FREE OF CHARGE ($845 value).. 
- 
-NAME:
+The only resource I found suggesting this is here:
+http://www.ultralinux.org/faq.html#q_5_40
 
-TITLE:
-
-ORGANIZATION:
-
-ADDRESS:
-
-CITY:
-
-POSTAL:
-
-TEL:
-
-FAX:
-
-E-MAIL:
-
-InfoSource Group of Companies is a leading information publishing firm.
-
+/joeyo
