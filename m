@@ -1,59 +1,29 @@
-From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
-Date: Fri, 02 Jan 2004 21:01:37 +0000
-Subject: Re: [sparc32] EXPORT_SYMBOL_DOT & EXPORT_SYMBOL_PRIVATE
-Message-Id: <1073077297.4474.116.camel@zorak>
+From: "Linux-assembly" <yearwinding@dwp.net>
+Date: Wed, 14 Jan 2004 07:15:23 +0000
+Subject: Modern way of losing widespread we;ght natural backplanes
+Message-Id: <usabsec.0120033843suycvy@Linux-assemblynwbhpz>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Wed, 2003-12-24 at 02:37, Keith M Wesolowski wrote:
+Hello terms,
 
-> Anyway, please try this nasty patch.  If it works for you, it needs to
-> be made into a generic facility for exporting symbols starting with .,
-> so that people will stop breaking our interface.  I notice that this
-> slightly changes the semantics of PRIVATE in that the symbol name will
-> now end up in ksymtab_strings, which it previously did not.  Surely
-> someone will explain to me why that's bad.
+At last you have an opportunity to purchase good directly from manufactures. You save your money purchasing quality products from our plant's store.
+Today we present you FatBlast product.
 
-So the good news is that this appears to fix the PRIVATE symbols. The
-bad news is that it creates a unique error with the DOT symbols. Now,
-modpost spits out a lot of the following (for all the DOT symbols, not
-just umul):
+What is FatBlast actually?
 
-WARNING: arp_tables.ko needs unknown symbol umul
+Fatblast is an advanced fat-binding supplement that removes fat from the foods you eat!
+Formulated with the powerful fat-binding fiber Chitosan, the proprietary blend of all-natural compounds...
 
-Now, this seems legitimate, since umul isn't in System.map. We have
-these entries though:
+Our corporation was the first one who started selling this product on
+the web in the year 2004. Try our FDA approved product tday Mukden
 
-05d2f21f A __crc___sparc_dot_umul
-f022a4f8 r __ksymtab___sparc_dot_umul
-f022d7d4 r __kcrctab___sparc_dot_umul
-f022f8a0 r __kstrtab___sparc_dot_umul
+Read about our dscounts and special bonses:
+http://www.raiseyourpower.com/fly/index.php?pid=pharmaboss
 
-BUT, we're missing __umul. Looking a few lines up in the System.map,
-this is obvious (divdi3 as the example):
+payroll stewed Whittier brainstorm, additional winces bronze uplands Charley trains yielding gambling develop augmented Airbus totaller Shiloh.
 
-b391983a A __crc___divdi3
-f0118964 T __divdi3
-f022a4d8 r __ksymtab___divdi3
-f022d7c4 r __kcrctab___divdi3
-f022f878 r __kstrtab___divdi3
-
-The logical conclusion seems to be that ___sparc_dot_umul needs to be in
-System.map, but that doesn't seem to be what modpost is looking for, it
-seems to want __umul.
-
-Thoughts? 
-
-~spot
----
-Tom "spot" Callaway <tcallawa(a)redhat*com> LCA, RHCE 
-Red Hat Sales Engineer || Aurora SPARC Linux Project Leader
-
-"The author's mathematical treatment of the conception of purpose is
-novel and highly ingenious, but heretical and, so far as the present
-social order is concerned, dangerous and potentially subversive. Not to
-be published." -- Aldous Huxley's "Brave New World"
 
