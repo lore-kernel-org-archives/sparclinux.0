@@ -1,72 +1,80 @@
-From: joshk@triplehelix.org (Joshua Kwan)
-Date: Wed, 07 Apr 2004 20:23:46 +0000
+From: Vincent Cojot <coyote@step.polymtl.ca>
+Date: Wed, 07 Apr 2004 21:03:28 +0000
 Subject: Re: Can't boot linux on sun blade 2000
-Message-Id: <20040407202346.GG12701@triplehelix.org>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Wb5NtZlyOqqy58h0"
+Message-Id: <Pine.GSO.4.58.0404071650190.24861@step.polymtl.ca>
 List-Id: <sparclinux.vger.kernel.org>
 References: <200404071043.30060.snake@penza-gsm.ru>
 In-Reply-To: <200404071043.30060.snake@penza-gsm.ru>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
---Wb5NtZlyOqqy58h0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Alexey,
 
-On Wed, Apr 07, 2004 at 03:17:59PM -0400, Ben Collins wrote:
-> > You should really be using the Sarge tftboot images.
-> > http://people.debian.org/~jbailey/d-i/sparc/daily/sparc64/netboot/boot.=
-img
->=20
-> No, he shouldn't those images aren't tested very well. My woody images
-> are.
+I can't help you with the debian boot images but I have a version of Linux
+working just fine on my SunBlade 2000 (4GB RAM, 2*900 Mhz US-III+):
 
-You seem to have missed the numerous successful (or mostly so) installation
-reports on both sparc and sparc64 and my hijack (to Debian Install System
-Team) of your mostly broken silo-installer package and serial console fixes,
-all of which contributed to successes with the new Debian installer.
+[root@silvanost root]# uname -a
+Linux silvanost SMP Wed Sep 24 14:26:17 EDT 2003 sparc64 unknown
 
-In short, thanks for undermining our past few months' work.
+[root@silvanost root]# cat /proc/cpuinfo
+cpu             : TI UltraSparc III+ (Cheetah+)
+fpu             : UltraSparc III+ integrated FPU
+promlib         : Version 3 Revision 10
+prom            : 4.10.11
+type            : sun4u
+ncpus probed    : 2
+ncpus active    : 2
+Cpu0Bogo        : 599.65
+Cpu0ClkTck      : 0000000035a4e900
+Cpu1Bogo        : 599.65
+Cpu1ClkTck      : 0000000035a4e900
+MMU Type        : Cheetah+
+State:
+CPU0:           online
+CPU1:           online
 
-> > Pass devfs=3Dmount on the command line and it should Just Work.
-> > Note that this crude hack isn't required in the latest images.
->=20
-> That shouldn't matter with the image he is using.
+The OS is Aurora 1.0 and the boot images were taken from the build-1.0
+directories. Although I have not used a TFTP install (I have a DVD-ROM in
+the machine), I know that the tftp64.img boot image works fine for me
+(grab a copy if you wish at: ftp://auroralinux.org/pub/aurora/build-1.0/en/os/sparc/images )
 
-I thought that the images were d-i/sarge based. This was a dominant
-problem until fairly recently (where the hack was to pass devfs=3Dmount on
-the command line.)
+The differences I could spot between your attempts and my install are as
+follows:
+- You're using an old OBP (look for free patch 111292-16 on sunsolve).
 
-I basically know nothing about boot-floppies on !i386, so I'd not have
-spoken up if I had known.
+- The fact you're using OBP 4.5 coupled with the fact you have only 1GB
+RAM in your machine makes me think that perhaps you have the older (i.e:
+Non-CU) 750Mhz or 900Mhz US-III cpus. I don't know if that could make a
+difference..
 
---=20
-Joshua Kwan
+- Also, I installed Aurora using the 1.0 build ISO's whereas you're
+oviously netbooting your machine (can't know if that makes a difference in
+this case...). At any case, I installed Aurora using a serial port, just
+like you (the Aurora kernels didnd't like my console, always resulting in
+a 'Fast data accesss MMU miss' when booting).
 
---Wb5NtZlyOqqy58h0
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+Can't be of much help, here... I hope you get it working.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-Comment: http://triplehelix.org/~joshk/pubkey_gpg.asc
+Cheers,
 
-iQIVAwUBQHRjUaOILr94RG8mAQJV9RAAl8PbMgQcAF3LTdMuaOvdnE6Gjiq77Lwx
-6ZshXmuPeVj4Gghyjl1AWZYFL/NNZc0RTa+DRT7c2LcfEGe9phor/LvksrtK/Pit
-DAhY83PxdaIQ3zyNtFiGq6Jab7yLqkMIT8Z3/fClM+nxbkbyYEpwKDMPp2yx9kWr
-14zbGSk6Gf4UlhQHm2BdVWhHc4CJpXEQGcMDbSXCuocnBum+bot2fUunVtSjoL2S
-CBcYGhf7ATa2+eqOvtaJ/gHfukD1vaYsLwGA0+DGMptr+UfTNh3u0/GRvBlctOmM
-wU+Df796d5lp13402Mk+D0LEgbOewvisxTcgLcaIXic36DtVELdj24T2lGvACtsn
-Jlh3SUsPGxRrVB5/tJpPcF1LAEG64VCInZrX7KBqLWljFkgAh2HTEmFx/XIBDylU
-NIeFrEfxay8TKmWvxuO/YrEc1oItnWyJJzv74PRMy4gnNHNJjHtfhrLFaA4diiET
-AWhPjfIZzv5uur4LjoPjElWVNjtOhADLJH1wWKLP4g5OeccB8HSI7aup3CBlc4zy
-XhRIlvkGCHinvexejra79w9fmcqSOnK2qEgDuN5IGJqYzUOXRmAvbJELaSTskcBR
-L9bkA3aysyzddITYgZYJj+YkQjUqg0PYDvZwToLCiV9X5B1e+KIMrKllPR9NEiol
-e4kf2Sns2Hw=
-=f4LU
------END PGP SIGNATURE-----
+Vincent
 
---Wb5NtZlyOqqy58h0--
+On Wed, 7 Apr 2004, Alexey Nezhdanov wrote:
+
+> Hello. I've already asked my question on debian-sparc and debian boot
+> maillists and got a lot of help but still can't solve the problem entirely.
+> The problem is (slightly edited minicom log):
+> =================
+> Resetting ...
+>
+>  TTYA not found.
+> TTYA not found.
+>
+> SUNW,Sun-Blade-1000 (UltraSPARC-III+) , Keyboard Present
+> Copyright 1998-2002 Sun Microsystems, Inc.  All rights reserved.
+> OpenBoot 4.5, 1024 MB memory installed, Serial #53064360.
+> Ethernet address 0:3:ba:29:b2:a8, Host ID: 8329b2a8.
+>
