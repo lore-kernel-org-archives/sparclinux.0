@@ -1,21 +1,81 @@
-From: "David S. Miller" <davem@redhat.com>
-Date: Wed, 10 Mar 2004 22:01:15 +0000
-Subject: Re: strange exit paths for do_sparc64_fault?
-Message-Id: <20040310140115.29769231.davem@redhat.com>
+From: Adrian Bunk <bunk@fs.tum.de>
+Date: Sat, 13 Mar 2004 17:34:44 +0000
+Subject: modular nfsd requires kernel changes on sh, sparc64, x86_64
+Message-Id: <20040313173444.GX14833@fs.tum.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <87n06oiml6.fsf@uga.edu>
-In-Reply-To: <87n06oiml6.fsf@uga.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: neilb@cse.unsw.edu.au
+Cc: linux-kernel@vger.kernel.org, nfs@lists.sourceforge.net, davem@redhat.com, sparclinux@vger.kernel.org, ak@suse.de, discuss@x86-64.org, gniibe@m17n.org, kkojima@rr.iij4u.or.jp, linux-sh@m17n.org
 
-On Wed, 10 Mar 2004 13:27:49 -0500
-Ed L Cashin <ecashin@uga.edu> wrote:
+Compiling and inserting a module into the currently running kernel 
+should work without needing a reboot.
 
-> Is there a situation where the mmap_sem is taken on entering
-> do_sparc64_fault but released outside of do_sparc64_fault?
+For nfsd this seems to work everywhere except on the sh, sparc64 
+and x86_64 architectures where adding the nfsd module changes 
+non-modular kernel code (checked in 2.6.4-mm1):
 
-Yes, if the process dies due to a fatal fault and thus invokes
-do_exit() to kill the process, it will never return back into
-do_sparc64_fault() if that occurs.
+
+arch/sh/kernel/entry.S:
+
+<--  snip  -->
+
+...
+#if !defined(CONFIG_NFSD) && !defined(CONFIG_NFSD_MODULE)
+#define sys_nfsservctl          sys_ni_syscall
+#endif
+...
+
+<--  snip  -->
+
+
+arch/x86_64/ia32/sys_ia32.c:
+
+<--  snip  -->
+
+...
+#if defined(CONFIG_NFSD) || defined(CONFIG_NFSD_MODULE)
+/* Stuff for NFS server syscalls... */
+struct nfsctl_svc32 {
+        u16                     svc32_port;
+        s32                     svc32_nthreads;
+};
+
+struct nfsctl_client32 {
+...
+
+<--  snip  -->
+
+
+arch/sparc64/kernel/sys_sparc32.c:
+
+<--   snip  -->
+
+...
+#if defined(CONFIG_NFSD) || defined(CONFIG_NFSD_MODULE)
+/* Stuff for NFS server syscalls... */
+struct nfsctl_svc32 {
+        u16                     svc32_port;
+        s32                     svc32_nthreads;
+};
+
+struct nfsctl_client32 {
+...
+
+<--  snip  -->
+
+
+
+
+
+cu
+Adrian
+
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
+
