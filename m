@@ -1,7 +1,7 @@
 From: Andrew Morton <akpm@osdl.org>
-Date: Fri, 25 Jun 2004 10:04:30 +0000
+Date: Fri, 25 Jun 2004 10:05:02 +0000
 Subject: Re: [SPARC64] kernel 2.6.7+cset-20040625_0611 = ERROR
-Message-Id: <20040625030430.4f494e43.akpm@osdl.org>
+Message-Id: <20040625030502.40e25d42.akpm@osdl.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.LNX.4.58L.0406251320310.6037@alpha.zarz.agh.edu.pl>
 In-Reply-To: <Pine.LNX.4.58L.0406251320310.6037@alpha.zarz.agh.edu.pl>
@@ -16,50 +16,52 @@ Cc: linux-kernel@vger.kernel.org, davem@redhat.com, sparclinux@vger.kernel.org
 > make[1]: *** [arch/sparc64/kernel/process.o] Error 1
 >  make: *** [arch/sparc64/kernel] Error 2
 
-Here's one:
+here's t'other:
 
 
 
-include/linux/cpumask.h: In function `__first_cpu':
-include/linux/cpumask.h:210: warning: passing arg 1 of `find_next_bit' discards qualifiers from pointer target type
-include/linux/cpumask.h: In function `__next_cpu':
-include/linux/cpumask.h:216: warning: passing arg 1 of `find_next_bit' discards qualifiers from pointer target type
+include/linux/byteorder/swab.h: In function `__swab16p':
+include/linux/byteorder/swab.h:139: warning: passing arg 1 of `___arch__swab16p' discards qualifiers from pointer target type
+include/linux/byteorder/swab.h: In function `__swab32p':
+include/linux/byteorder/swab.h:152: warning: passing arg 1 of `___arch__swab32p' discards qualifiers from pointer target type
+include/linux/byteorder/swab.h: In function `__swab64p':
+include/linux/byteorder/swab.h:172: warning: passing arg 1 of `___arch__swab64p' discards qualifiers from pointer target type
 
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- 25-sparc64-akpm/arch/sparc64/lib/find_bit.c  |    5 +++--
- 25-sparc64-akpm/include/asm-sparc64/bitops.h |    3 ++-
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ 25-sparc64-akpm/include/asm-sparc64/byteorder.h |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/sparc64/lib/find_bit.c~sparc64-find_next_bit-fix arch/sparc64/lib/find_bit.c
---- 25-sparc64/arch/sparc64/lib/find_bit.c~sparc64-find_next_bit-fix	2004-06-25 03:02:00.095102072 -0700
-+++ 25-sparc64-akpm/arch/sparc64/lib/find_bit.c	2004-06-25 03:02:00.109099944 -0700
-@@ -6,9 +6,10 @@
-  * @offset: The bitnumber to start searching at
-  * @size: The maximum size to search
-  */
--unsigned long find_next_bit(unsigned long *addr, unsigned long size, unsigned long offset)
-+unsigned long find_next_bit(const unsigned long *addr, unsigned long size,
-+				unsigned long offset)
+diff -puN include/asm-sparc64/byteorder.h~sparc64-swab-fix include/asm-sparc64/byteorder.h
+--- 25-sparc64/include/asm-sparc64/byteorder.h~sparc64-swab-fix	2004-06-25 03:00:05.667497712 -0700
++++ 25-sparc64-akpm/include/asm-sparc64/byteorder.h	2004-06-25 03:00:05.670497256 -0700
+@@ -7,7 +7,7 @@
+ 
+ #ifdef __GNUC__
+ 
+-static __inline__ __u16 ___arch__swab16p(__u16 *addr)
++static __inline__ __u16 ___arch__swab16p(const __u16 *addr)
  {
--	unsigned long *p = addr + (offset >> 6);
-+	const unsigned long *p = addr + (offset >> 6);
- 	unsigned long result = offset & ~63UL;
- 	unsigned long tmp;
+ 	__u16 ret;
  
-diff -puN include/asm-sparc64/bitops.h~sparc64-find_next_bit-fix include/asm-sparc64/bitops.h
---- 25-sparc64/include/asm-sparc64/bitops.h~sparc64-find_next_bit-fix	2004-06-25 03:02:00.104100704 -0700
-+++ 25-sparc64-akpm/include/asm-sparc64/bitops.h	2004-06-25 03:02:00.110099792 -0700
-@@ -204,7 +204,8 @@ static __inline__ unsigned int hweight8(
-  * @offset: The bitnumber to start searching at
-  * @size: The maximum size to search
-  */
--extern unsigned long find_next_bit(unsigned long *, unsigned long, unsigned long);
-+extern unsigned long find_next_bit(const unsigned long *, unsigned long,
-+					unsigned long);
+@@ -17,7 +17,7 @@ static __inline__ __u16 ___arch__swab16p
+ 	return ret;
+ }
  
- /**
-  * find_first_bit - find the first set bit in a memory region
+-static __inline__ __u32 ___arch__swab32p(__u32 *addr)
++static __inline__ __u32 ___arch__swab32p(const __u32 *addr)
+ {
+ 	__u32 ret;
+ 
+@@ -27,7 +27,7 @@ static __inline__ __u32 ___arch__swab32p
+ 	return ret;
+ }
+ 
+-static __inline__ __u64 ___arch__swab64p(__u64 *addr)
++static __inline__ __u64 ___arch__swab64p(const __u64 *addr)
+ {
+ 	__u64 ret;
+ 
 _
 
