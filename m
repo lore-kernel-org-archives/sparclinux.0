@@ -1,40 +1,40 @@
-From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date: Wed, 16 Feb 2005 16:27:21 +0000
-Subject: Re: PATCH to fix initialisation issue for GC3 (linux-2.5.64 +).
-Message-Id: <Pine.LNX.4.10.10502161615530.2233-100000@mtfhpc.demon.co.uk>
+From: Michael Tautschnig <michael.tautschnig@zt-consulting.com>
+Date: Tue, 01 Feb 2005 11:17:38 +0000
+Subject: No keyboard/networking on ultra2/SMP
+Message-Id: <Pine.LNX.4.61.0502011209360.10239@l01.thnet>
 List-Id: <sparclinux.vger.kernel.org>
-References: <E1D1Pxz-0003sv-C4@rhn.tartu-labor>
-In-Reply-To: <E1D1Pxz-0003sv-C4@rhn.tartu-labor>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi Mellis,
+Hi!
 
-The register masks are set up for an 8bit byte operation. If you use a
-32bit read/write (readl/writel) you get very different results on a big
-endian system (SPARC) when you apply a byte mask. This is why you need to
-use 8bit (readb/writeb) operations.
+Similar problems might have been posted to the list - still I'd like to 
+add mine:
 
-In addition, using 8bit read/write will prevent corruption of any of the
-next three registers if they have different read/write information.
+The system works fine using 2.4.27/SMP on my 2xUltraSparcI -system. If I 
+switch to 2.6.9/2.6.10 w/ SMP no keyboard input is ever accepted and I get
 
-Regards
-	Mark Fortescue.
+NETDEV WATCHDOG: eth0: transmit timed out
+eth0: transmit timed out, restting
+eth0: Happy Status 03010000 TX[000003ff:00000101]
+eth0: Link is up using internal tranceiver at 100Mb/s, Half Duplex
 
-On Wed, 16 Feb 2005, Meelis Roos wrote:
+soon after setting up the network interfaces (using DHCP, thus the card 
+works for a few seconds).
 
-> MF> This patch fixes an error in the blanking code for the GCThree SBUS
-> MF> video card. Now I get a logo and black screen, not just a blank (no
-> MF> video) screen. It is a trivual fix that has taken too long to identify as
-> MF> it is such a small typing error during the rewriting of the code for
-> MF> the new frame buffer system introduced in the 2.5 series kernels.
-> 
-> The "val &= ~CG3_CR_ENABLE_VIDEO;" bit is in main kernel now. But what
-> about the readl/writel vs readb/writeb - is this also needed? Why?
-> 
-> -- 
-> Meelis Roos
-> 
+If I disable SMP, everything works as expected.
+
+Thanks in advance,
+Michael
+
+-- 
+------------------------------------------------
+Michael Tautschnig
+
+System operator @ Chair Brauer
+Technical University of Munich
+
+________________________________________________
 
