@@ -1,50 +1,51 @@
-From: "Sam" <specials@fta-canada.net>
-Date: Fri, 29 Oct 2004 07:29:47 +0000
-Subject: Techsat FTA Receiver only $249
-Message-Id: <0a2801c4bda9$4ad6cb90$e9ce7c64@specials>
+From: Hitech Recruit <hitech.recruit@gmail.com>
+Date: Fri, 29 Oct 2004 02:40:58 +0000
+Subject: [Job] Senior Software Engineer - Linux Kernel (Silicon Valley)
+Message-Id: <c855509804102819402e31f958@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Tired of paying high prices on your FTA testing products ?
- 
-Sick of the "Blackbird" wars or have you  got "Green Light Syndrome" ?
- 
-Come and check out our website, before paying to much at another site for
-all your FTA needs !!!
+Hi all,
 
-http://www.fta-canada.net
+We are currently working on an immediate opening for a Linux Kernel
+Engineer in Silicon Valley.  If interested, please reply to
+hitech.recruit@gmail.com .  If not, please pass the word around. Thx.
 
- 
-Blackbird/SilverBullet Jtags         @  $49.00
-Blackbird/SilverBullet  Receivers  @ $199.00
-Fortec Lifetime  Receivers             @  $119.00
-18" Sat Dish                                  @ $29.00
- 
- 
-And featuring our own  " Channel Hog FTA Receiver" !!!
- 
--1 full year warranty
--solid construction (built by Sat Cruiser)
--easy to follow instructions for our private support s/w .. which is
-included @ no extra charge !!!
--we have designed this to be the easiest receiver you will ever setup and
-get going !!!
--Nagravision, T5, ready for you to watch with our private support files
--our private support files written and designed for the Channel Hog
-receiver ONLY !!
--the Channel Hog is NOT a clone, or a cheap knockoff !!
--private and unique private software with the features you really want !!
- 
-All this for the low price of $249.00
- 
-Accessories, Dishes, Cables always at the best prices !!!
- 
-Drop by for a visit , you will be glad you did !!
- 
-Thank you for reading this email
- 
-http://www.fta-canada.net
+_________________________________
 
+Senior Software Engineer - Linux Kernel
+
+Our client is developing best of breed remote office solutions that
+unify multiple services, such as routing, firewall, intrusion
+detection, virtual private networking, and directing and filtering
+content into a single, resilient, and highly manageable platform.
+
+Furthermore our client's solution meets customer needs for managing
+remote office networks rather than the remote device, while minimizing
+capital and operational expenses in providing high quality broadband
+services to remote sites.
+
+Role:
+
+Currently seeking an accomplished individual to take on a prominent
+role in the development of our embedded Linux platform. They are
+looking for someone with a deep understanding of the Linux kernel and
+internals, is actively involved in the open source development
+community, and can provide effective technical leadership.
+
+This role will suit candidates who enjoy a wide variety of challenges
+and technologies.  Key to success is your motivation, a dynamic
+approach, and desire to see results.
+
+Requirements:
+
+- BSCS 
+- + 8 yrs development experience with 3+ yrs Linux
+- Extensive Linux Kernel experience. Deep expertise in - design,
+implementation & ongoing dev roadmap of Linux Kernel.
+- Design, implement enhancements to kernel & OS features. Evaluate
+system performance on variety h/w platforms under various workloads.
+- Track, evaluate & integrate dev from open source community.
