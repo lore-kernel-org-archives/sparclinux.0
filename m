@@ -1,70 +1,36 @@
-From: Thomas Nemeth <tnemeth@free.fr>
-Date: Tue, 04 May 2004 16:11:44 +0000
+From: Keith M Wesolowski <wesolows@foobazco.org>
+Date: Tue, 04 May 2004 16:37:35 +0000
 Subject: Re: [PATCH] Small cleanup to kernel/setup.c
-Message-Id: <Pine.LNX.4.53.0405041807590.875@exether.vipere.noire>
+Message-Id: <20040504163735.GA4333@foobazco.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040504132104.GA23807@artsapartment.org>
 In-Reply-To: <20040504132104.GA23807@artsapartment.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Le 04.05.04, Art Haas a tapot=E9 :
+On Tue, May 04, 2004 at 06:11:44PM +0200, Thomas Nemeth wrote:
 
-| On Tue, May 04, 2004 at 10:04:58AM -0400, Ben Collins wrote:
-| > Maybe it's just me, but the original version seems more readable, even
-| > if it isn't proper formatting.
-| >
-| > > -	sparc_cpu_model =3D sun_unknown;
-| > > -	if(!strcmp(&cputypval,"sun4 ")) { sparc_cpu_model=3Dsun4; }
-| > > -	if(!strcmp(&cputypval,"sun4c")) { sparc_cpu_model=3Dsun4c; }
-| > > -	if(!strcmp(&cputypval,"sun4m")) { sparc_cpu_model=3Dsun4m; }
-| > > -	if(!strcmp(&cputypval,"sun4s")) { sparc_cpu_model=3Dsun4m; }  /* CP=
--1200 with PROM 2.30 -E */
-| > > -	if(!strcmp(&cputypval,"sun4d")) { sparc_cpu_model=3Dsun4d; }
-| > > -	if(!strcmp(&cputypval,"sun4e")) { sparc_cpu_model=3Dsun4e; }
-| > > -	if(!strcmp(&cputypval,"sun4u")) { sparc_cpu_model=3Dsun4u; }
-| > > +	if (!strcmp(&cputypval,"sun4 ")) {
-| > > +		sparc_cpu_model=3Dsun4;
-| > > +	} else if (!strcmp(&cputypval,"sun4c")) {
-| > > +		sparc_cpu_model=3Dsun4c;
-| > > +	} else if (!strcmp(&cputypval,"sun4m")) {
-| > > +		sparc_cpu_model=3Dsun4m;
-| > > +	} else if (!strcmp(&cputypval,"sun4s")) {
-| > > +		sparc_cpu_model=3Dsun4m;	 /* CP-1200 with PROM 2.30 -E */
-| > > +	} else if (!strcmp(&cputypval,"sun4d")) {
-| > > +		sparc_cpu_model=3Dsun4d;
-| > > +	} else if (!strcmp(&cputypval,"sun4e")) {
-| > > +		sparc_cpu_model=3Dsun4e;
-| > > +	} else if (!strcmp(&cputypval,"sun4u")) {
-| > > +		sparc_cpu_model=3Dsun4u;
-| > > +	} else {
-| > > +		sparc_cpu_model =3D sun_unknown;
-| > > +	}
-|
-| I don't like the original because it keeps doing strcmp() tests more
-| times than necessary. That was my motivation in doing changing this bit
-| of code.
+> 	Why don't you just remove all strcmp's ?
+> 	Something like
+> if (strlen(&cputypval)=4)
+> 	sparc_cpu_model=sun4;
 
-	Hi.
+It's not "sun4" but rather "sun4 " so this is wrong.
 
-	Why don't you just remove all strcmp's ?
-	Something like
-if (strlen(&cputypval)=3D4)
-	sparc_cpu_model=3Dsun4;
-else if (&cputypval[4]=3D'c')
-	sparc_cpu_model=3Dsun4c;
-else if (&cputypval[4]=3D'd')
-	sparc_cpu_model=3Dsun4d;
-...
+> else if (&cputypval[4]='c')
+> 	sparc_cpu_model=sun4c;
+> else if (&cputypval[4]='d')
+> 	sparc_cpu_model=sun4d;
 
-	Could be better :) But of course, if Sun changes its naming
-	scheme, it won't work anymore...
+See also head.S.
 
+Any patch that modifies this stuff needs to make a significant
+improvement; for example, setting these values early in head.S and
+getting rid of this altogether.
 
-Thomas
---=20
-printk("VFS: Busy inodes after unmount. "
-        "Self-destruct in 5 seconds.  Have a nice day...\n");
-        2.3.99-pre8 /usr/src/linux/fs/super.c
+But really it is not worth spending time on.
+
+-- 
+Keith M Wesolowski
