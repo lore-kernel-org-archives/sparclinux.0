@@ -1,40 +1,28 @@
-From: Jeremy Huddleston <eradicator@gentoo.org>
-Date: Fri, 09 Apr 2004 16:42:27 +0000
-Subject: Kernel compilation issue when enabling Stack Overflow Detection in
-Message-Id: <1081528947.9655.134.camel@eradicator.outersquare.org>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-OQ51vCkaXSM0aeyqOkSC"
+From: Chris Ricker <kaboom@gatech.edu>
+Date: Wed, 07 Apr 2004 17:39:22 +0000
+Subject: non-PROM console and Permedia
+Message-Id: <Pine.GSO.4.58.0404071329010.1810@redfish.gatech.edu>
 List-Id: <sparclinux.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+I've been toying with an Ultra 60 I ran across which has a cruddy Permedia 2
+video card in it:
 
---=-OQ51vCkaXSM0aeyqOkSC
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+0000:02:01.0 Display controller: Texas Instruments TVP4020 [Permedia 2] (rev 
+11)
 
-When I enable 'Stack overflow detection' (CONFIG_STACK_DEBUG) in 2.6.5
-and earlier (tried 2.6.4 and 2.6.5-rcX), it caused the kernel
-compilation to die with the a warning that -pg and -fomit-frame-pointer
-should not be used simultaneously.  I edited Makefile to remove the
-addition of -fomit-frame-pointer from the CFLAGS.  Compilation
-continued, but when the kernel was linking .tmp_vmlinux1, I got
-unresolved symbol messages for '_mount'
+Under 2.4, it comes up fine using the frame buffer.
 
-Turning off CONFIG_STACK_DEBUG fixed the problem for me.
+Under 2.6 (trying with 2.6.5), I can't get it to come up with the frame 
+buffer. Every combination of compile options relating to the frame buffer 
+just causes it to hang after displaying "Booting Linux...". If I disable all 
+the frame buffer support and just leave the PROM console, that works.
 
---Jeremy
+Am I just missing the exact combination of compile options needed, or did 
+the Permedia 2 framebuffer console support break between 2.4 and 2.6?
 
---=-OQ51vCkaXSM0aeyqOkSC
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQBAdtJzgKpk8srJOlIRAqeSAJ9AjOzHpNZbldIB6tdn/WsLizZegwCfYUr8
-hPVnqxTRRA/2cTLg01WOJ5g=
-=XpKo
------END PGP SIGNATURE-----
-
---=-OQ51vCkaXSM0aeyqOkSC--
-
+thanks,
+chris
