@@ -1,41 +1,28 @@
-From: "pat" <easter21theking@hotmail.com>
-Date: Sat, 06 Mar 2004 22:21:21 +0000
-Subject: Use offshore phar-macies to save $$$ on your meds!
-Message-Id: <1078611681-24870@excite.com>
+From: "irvin" <adejoode@hotmail.com>
+Date: Sun, 28 Mar 2004 01:20:14 +0000
+Subject: Super hot CAS1N0 B0nus 0ffers! softball warriorsx
+Message-Id: <1080436814-16122@excite.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org
 
-Buy the drugs you need at huge discounts from Offshore Pharmacy!
+Come and play at the world's PREMIvERE ONLINwE CASrINO!
+We are happy to offer you, in an elegant atmosphere, a 50% BONUnS for YOUR FIRST DEPOiSIT as a New Player.
 
-http://bigdiscounts.selcydc.com/s95/index.php?id=s95
+Sign up now! Don't wait!
+
+http://www.virtualcasinoes.net/_e4faa55afa1972493c43ac8a3f66f869/
 
 
-This weeks specials include great deals on:
+We'll automatically CREDIuT your account with a 50% BONUmS of extra chips, to wager in our CASIrNO.
+Don't hesiotate and try your luck!
 
-- V i a g r a Soft Tabs - (Takes effect in a quarter of the time!)
-- Super V i a g r a - (Lasts 8 times longer!)
-- U l t r a m - (Pain Relief)
-- S o m a - (Muscle Relaxants)
-- Z y b a n - (Stop Smoking)
-- P r o z a c - (Anti-Depressant)
-- X a n a x - (Anti-Depressant)
-- V a l i u m - (Anxiety Relief)
+CLICoK HERnE!
 
-http://bigdiscounts.selcydc.com/s95/index.php?id=s95
+http://www.virtualcasinoes.net/_e4faa55afa1972493c43ac8a3f66f869/
 
 
 
-
-
-
-
-
-
-goblue mikistrawber china guinness bigmac hazel saskia 
-t-bone angusdon larry1 zhongguo
-dexter fozzie qwerty12 
-
-Get off this list by going here: http://royaldrugs.com/pp/applepie.php
+smiths marcus stingray alpha1 theking fireball timber cascade jkm mantra master1 love cannon minou gocougs gibson tootsie scooter1 dirk xxxx peggy goblue josie scooby kleenex mortimer
