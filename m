@@ -1,42 +1,81 @@
-From: Meelis Roos <mroos@ut.ee>
-Date: Thu, 27 May 2004 13:25:21 +0000
-Subject: Re: 2.6.6 SMP on UE2 hangs consistently
-Message-Id: <Pine.GSO.4.44.0405271615180.16974-100000@math.ut.ee>
+From: Patrick Finnegan <pat@computer-refuge.org>
+Date: Fri, 07 May 2004 20:19:49 +0000
+Subject: BUG: 2.6.6-rc3 on SMP/SPARC64 (Sun E3000)? & MD
+Message-Id: <200405071519.49447.pat@computer-refuge.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.GSO.4.44.0405211944150.9554-100000@math.ut.ee>
-In-Reply-To: <Pine.GSO.4.44.0405211944150.9554-100000@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> I have a Ultra Enterprise 2 for testing: dual 168 MHz US I, 1G RAM, 1 9G
-> disk, onboard hme nic, sbus cg6 framebuffer & type 5 keyboard for debugging.
->
-> 2.6 SMP kernel (2.6.6+BK snapshot as of May 21 2004) hangs at random
-> places:
+I've been trying to get 2.6.6-rc3 to work in SMP mode on my E3000 without
+much success yet.  It boots fine with a uniprocessor kernel, but trying
+to enable SMP gives me this as the last few lines of the kernel messages
+(booted with -p early printk option):
 
-Turning on spinlock debugging (after it became compilable) didn't show
-anything additional.
+----------------------------------------------------------------
+CENTRAL: Detected 4 slot Enterprise system. cfreg[aa] cver[fc]
+FHC(board 1): Version[1] PartID[fa0] Manuf[3e] (CENTRAL)
+FHC(board 5): Version[1] PartID[fa0] Manuf[3e] (JTAG Master)
+FHC(board 7): Version[1] PartID[fa0] Manuf[3e]
+FHC(board 1): Version[1] PartID[fa0] Manuf[3e]
+FHC(board 3): Version[1] PartID[fa0] Manuf[3e]
+Built 1 zonelists
+Kernel command line: root=/dev/sda1 ro -p
+PID hash table entries: 2048 (order 11: 32768 bytes)
+Unable to handle kernel NULL pointer dereference
+tsk->{mm,active_mm}->context = 0000000000000000
+tsk->{mm,active_mm}->pgd = fffff8000040f000
+              \|/ ____ \|/
+              "@'/ .. \`@"
+              /_| \__/ |_\
+                 \__U_/
+swapper(0): Oops [#1]
+TSTATE: 0000009980f01603 TPC: 000000000044b704 TNPC: 000000000044b708 Y: 
+000000d
+TPC: <wake_up_forked_process+0x1e4/0x280>
+g0: 00000000006c5c00 g1: 00000000000007f0 g2: 0000000000000000 g3: 
+0000000000628
+g4: 0000000000622000 g5: 0000000000000000 g6: 000000000061e000 g7: 
+0000000000000
+o0: 000000000000007d o1: 0000000000008000 o2: fffff8000005c440 o3: 
+00000000006a0
+o4: 0000000000621d98 o5: 0000000000000008 sp: 00000000006214e1 ret_pc: 
+00000000c
+RPC: <wake_up_forked_process+0x15c/0x280>
+l0: 00000000006a11b8 l1: 00000000006c7400 l2: 00000000006c5c00 l3: 
+0000000000620
+l4: 000000000000fe83 l5: 0000000000000003 l6: 0000000000000000 l7: 
+0000000000620
+i0: 0000000000622000 i1: 0000000000000002 i2: 00000000006a11b8 i3: 
+fffff80000030
+i4: 0000000000000001 i5: fffff8000003de98 i6: 00000000006215b1 i7: 
+000000000068c
+I7: <sched_init+0x12c/0x1a0>
+Instruction DUMP: 9a01e008  82006020  c2762038 <c4586008> c6706008  
+82102001  c
+Kernel panic: Attempted to kill the idle task!
+In idle task - not syncing
+ <0>Press L1-A to return to the boot prom
+---------------------------
 
-But I have one more information bit: it might not be hung completely at
-all! I left yesterdays 2.6.7-rc1+BK+spinlock patch running after "hang"
-and sometimes (once an hour?) it displays the following lines on PROM
-console:
+I've posted my .config, System.map, (uniproc) dmesg (from klogd), and 
+(2.4.26) /proc/cpuinfo files to:
+http://x-ray.rcs.purdue.edu/linux-2.6.6-rc3-e3000.config
+http://x-ray.rcs.purdue.edu/linux-2.6.6-rc3-e3000.System.map
+http://x-ray.rcs.purdue.edu/linux-2.6.6-rc3-e3000.dmesg
+http://x-ray.rcs.purdue.edu/linux-2.4.26-e3000.cpuinfo
 
-NETDEV WATCHDOG: eth0: transmit timed out
-eth0: transmit timed out, resetting
-Happy Status 03030000 TX[000003ff:00000301]
-eth0: Link is up using internal transceiver at 100Mb/s, Full Duplex.
+I have not yet tested any other versions on it.
 
-The machine is not pingable.
+Also, I've noticed the md driver seems to have problems with data 
+corruption 
+(it overwrites other partitions on the same disk, or the disklabel even).  
+I've
+noticed this problem under 2.6.5 on my Sun Ultra 60, as well.  Is it an
+UltrSparc issue, or is it more general?
 
-Additionally, the keyboard has problems even when it does not hang - I
-gaet random garbage and the key lights do not turn on (caps, num etc).
-So it looks like I have just onboard hme and keyboard hosed.
-
-Any ideas now?
-
+Pat
 -- 
-Meelis Roos (mroos@ut.ee)      http://www.cs.ut.ee/~mroos/
-
+Purdue University ITAP/RCS        --- http://www.itap.purdue.edu/rcs/
+The Computer Refuge               --- http://computer-refuge.org
