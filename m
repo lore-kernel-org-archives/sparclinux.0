@@ -1,68 +1,435 @@
 From: William Lee Irwin III <wli@holomorphy.com>
-Date: Fri, 19 Nov 2004 00:59:47 +0000
+Date: Fri, 19 Nov 2004 01:06:25 +0000
 Subject: Re: circular console list in 2.6.9-bk3+
-Message-Id: <20041119005947.GM2268@holomorphy.com>
+Message-Id: <20041119010625.GN2268@holomorphy.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="vmttodhTwj0NAgWp"
 List-Id: <sparclinux.vger.kernel.org>
 References: <20041118144142.GG2268@holomorphy.com>
 In-Reply-To: <20041118144142.GG2268@holomorphy.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, 18 Nov 2004 06:41:42 -0800 William Lee Irwin III <wli@holomorphy.com> wrote:
->> Some changes that added serial console retry logic aren't interacting
->> well with PROM console setup and teardown and whatever sunzilog.c does,
->> and appear to result in a circular console list (hence indefinitely
->> repeated output). The trick is, of course, that I'm not sure which of
->> the three is wrong.
 
-On Thu, Nov 18, 2004 at 02:36:53PM -0800, David S. Miller wrote:
-> Please elaborate.
-> sunzilog_console_init() will be called at most one time and
-> therefore it will register itself one time via register_console().
-> I don't see how anything in register_console() can wind us up with
-> a circular list, and thus the problem you seem to be describing.
+--vmttodhTwj0NAgWp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-We were doing okay until the following patch got merged. Then (booting
-with -p and console=ttyS0,9600) it loops printk'ing the string
-	"PROMLIB: Sun IEEE Boot Prom 3.2.30 2002/10/25 14:03"
-indefinitely.
+On Thu, Nov 18, 2004 at 04:59:47PM -0800, William Lee Irwin III wrote:
+> We were doing okay until the following patch got merged. Then (booting
+> with -p and console=ttyS0,9600) it loops printk'ing the string
+> 	"PROMLIB: Sun IEEE Boot Prom 3.2.30 2002/10/25 14:03"
+> indefinitely.
+
+Okay, correction:
+	boot net:dhcp -p root=/dev/nfs nfsroot=/mnt/f/e3k/debian ip=dhcp debug initcall_debug profile=1
+
+Bootlog of 2.6.9-bk3 attached. 2.6.9-bk2 still booted.
 
 
 -- wli
 
-ChangeSet 1.1988.93.9, 2004/10/19 16:11:22+01:00, rmk@flint.arm.linux.org.uk
+--vmttodhTwj0NAgWp
+Content-Type: application/octet-stream
+Content-Description: e3k.log.162.gz
+Content-Disposition: attachment; filename="e3k.log.162.gz"
+Content-Transfer-Encoding: base64
 
-	[SERIAL] Keep trying to register our console device.
-	
-	Some serial drivers receive their serial port device information via
-	the device model.  This unfortunately means that the selected port
-	may not be available when the console subsystem initialises, so we
-	must keep trying to register the console after each port is added.
+H4sIAAGqnEEAA+zbXY8bR3bG8dtAwHyCuekguVhgZavr1Nsp2k5iax2svLDWWGmRBINAqGo2
+JUIUOUtyvBYW+e7prn9Jmhdq195o7kJAJKf4nOrmy4/VXUU9G/bry2N3OOb9cVx2u233/NVV
+93T3Y2e06/3C9wsjnfS9e3B2ftG/Ob+QOF+56eq7f+7OL353+IfDsB/HbffZT2dnD84v/tX0
+Lr06v9ifX8zB784vfjs1xlfzI1+4L8Lm/MJt5j9enX9Ve/zVN+cX5gtx+5psBfKd6fXswdot
+uv7WpVv7640xST/t6zpcbwzLoTjTreP1RudK7fTJ1PrlMR9eb8bjizwc17vtr/ufVB/1Pxnp
+/+VnBB7nzWbcX9zu+r8/1r7oPtrbX3no7MGpDeWhDKc2VNsX3YsXy92Lw251XO//NPW1Gua+
+XP/RBz6ykaXvT25kbl90N3ry/dST9qdbT3Zvih/die5pX3Sv8nY5PfSCnmRwU1d2fg4feeDk
+RnpN6dRGaJ9e9k0/92PMr+c+po7mDZxoPP0Mgoun3m7aF91wefViPe3q1E2a382hP9V2qusY
+RrUn3uDWvoDqi9fjfjtupq7Mcn4jJ6Aff2RWKf3jUx/b3oV48kWq7fPrUV6s1j9dXU4fnu28
+537e89B//JGPb4zL3Y219knqT329mrvwOnXxZHs47q8qi+43f/z+h8Wdhq43lHd/415ajras
+3PV7Xw7iR5lBf7jXFTH99JKZ7vo9d+JeqPf66/fU2j72vb9xT3oNteL9vfr03PT0nj97/vXz
+bxfdprvM2/XQfdZtd9NX8dvtsN6+XHRfr8fxYfd6vdlMf3br7XHc76+m7+qG4B/nfoJ9fPZ/
+7uZdB+29d2Z61VKY9vT5D49vfH9On27bd8+fnmh23X99aOumy9NpH4553txy3lETPuzo/W2n
+dvTlNWj1W2iYv7KnT6WfduHjgZfTh281X7Tvx2VfwrDS7qW5Pf7YqVE+JHsTVpKl717aa+Wr
+QVw/DzXTDp7dS8cv3bWo5JhdmKL+zmgZu5fhTv2UjHeH0La399Hxrr9Tn7udufvEut31l0BG
+NUn7bmdvlHuj85favLf30vHuxkFHGNPUQbe7edBR3Nx4uLy5pRjUdPtpLL8cbn9yo86fwfj4
+7N56/8Ptz3YbZd5/+P9KYHPjdYw69EPfbcyJ46yNnEram7s/PyfeoHvpeHPqqHBz9zM6NYY7
+jatuE2+9rqvlu729j47Xdz+j0zHszZdgdjYdw8qtZ+vHqdHe6bRRvZeOTxxxm1tH3O+2dMt/
+jHePuMVnN7S9vY+O65F6Pe6ZDkSG3fa43l7Nn2wJ9dhH+fDbabT9OclfMkCJnhygZPjEA+Hf
+t50745zTvzEQfgjcGK9GH5fD8tR41Zdb49WYxjzeGa9Ww+mB8FN1fH28mlqDaD45XpXb49Vc
+/3MHwk/W8c8Zr+oTq+PVh1CYvvmi3h6vpnb/CwbCX9zx9aFq1S63hqp6MbeHqtXqFw6En7T3
+/x8I/77xarpzPwNh6/jTjldzp/cyELaOv7k6HqfTzP988oezB892q+Of837sftj9edx3v396
+9sB9dthM37jPrrbdt/M51eV+fRg7O/X6cPoq7n43vi27vJ++in9/OW6/2U1R+7l8bqdHrU4n
+n99/070Z3+z2b6czsmlUmk6Jlw+7Z+N+nTfdP6XeJtH4+XQSvbt8u1+/fHWcp+Ckbu379bDf
+Hd4ejuObw8PuyXb4vOu+3my6GjtMLA7j/sd5DPj2+GqeCjh2ebmcWg+dLvqF9AtNi3G5KPFh
+99vd4dg9+c2i017TuCzzFqfLX8L/dLvXXZl3eqpfLF8Nl91nl91+avjq0XL88dF2deimfzS8
+2R4frR6N9vX0UFnnbbe+/KqWTH9ezWec6+MwPcEX/Hm5363Wm/ErM73C8wam7tbDuOgeHcrV
+4d/sw/7Rsz8+/Y+Hr96M0x861PeJPej+farrprPWLu9fHhb3sUduepW7s3rwfTad98zXWq9z
+vR7q9Thf+75e17yveV/zvuZ9zfua9zUfaj7UfKj5UPOh5kPNh5oPNR9rPtZ8rPlY87HmY83H
+mo81rzWvNa81rzWvNa81rzWvNZ9qPtV8PQM5SzWfaj7VfKr5VPO55nPN55rPNZ9rPtd8rvlc
+86XmS82Xmi81X2q+1Hyp+VLzdcw8G2p+qPmh5oeaH2p+qPmh5pc1v6z5Zc0va35Z88uaX9b8
+subHmh9rfqz5sebHmh9rfqz5seZXNb+q+VXNr2p+VfOrml/V/Krm60TTfCPcOG4CN8pN5mbg
+hjpDnaHOUGeoM9QZ6gx1hjqhTqgT6oQ6oU6oE+qEOkudpc5SZ6mz1FnqLHWWOkcdQgxEDEYM
+SAxKDEwMTgxQDFIMVAxWDFgMWgxcDF4MYAxiDGQMZgxoDGoMbAxuDHAMcgx0DHYMeAx6DHwM
+fgyADIIMhAyGDIgMigyMDI4MkAySDJQMlgyYDJoMnAyeDKAMogykDKYMqAyqDKwMrgywDLIM
+tAy2DLgMugy8DL4MwAzCDMQMxgzIDMoMzAzODNAM0gzUDNYM2AzaDNwM3gzgDOIM5AzmDOgM
+6gzsDO4M8AzyDPQM9gz4DPoM/Az+BH+CP8Gf4E/wJ/gT/An+BH+CP8Gf4E/wJ/gT/An+BH+C
+P8Gf4E/wJ/gT/An+BH+CP8Gf4E/wJ/gT/An+mF2bbqjDn+BP8Cf4E/wJ/gR/gj/Bn+BP8Cf4
+E/wJ/gR/gj/Bn+BP8Cf4E/wJ/gR/gj/Bn+BP8Cf4E/wJ/gR/gj/Bn+BP8Cf4E/wJ/gR/gj/B
+n+BP8Cf4E/wJ/gR/gj/Bn+BP8Cf4E/wJ/gR/gj/Bn+BP8Cf4E/wJ/gR/gj/Bn+BP8Cf4E/wJ
+/gR/gj/Bn+BP8Cf4E/wJ/gR/gj/Bn+BP8Cf4E/wJ/gR/gj/Bn+BP8Cf4E/wJ/iz+LP4s/iz+
+LP4s/iz+LP4s/iz+LP4s/iz+LP4s/iz+LP4s/iz+LP4s/iz+LP4s/iz+LP4s/iz+LP4s/iz+
+LP4s/iz+LP4s/iz+LP4s/iz+LP4s/iz+LP4s/iz+LP4s/iz+LP4s/iz+LP4s/iz+LP4s/iz+
+LP4s/iz+LP4s/iz+LP4s/iz+LP4s/iz+LP4s/iz+LP4s/iz+LP4s/iz+LP4s/iz+LP4s/iz+
+LP4s/iz+LP4s/iz+LP4s/iz+LP4s/iz+LP4s/iz+LP4s/iz+LP4s/iz+LP4s/iz+LP4s/iz+
+LP4s/iz+LP4s/iz+LP4s/iz+LP4s/iz+LP4s/iz+LP4c/hz+HP4c/hz+HP4c/hz+HP4c/hz+
+HP4c/hz+HP4c/hz+HP4c/hz+HP4c/hz+HP4c/hz+HP4c/hz+HP4c/hz+HP7cuzM06to5WjtJ
+a2dp7TQNfw5/Dn8Ofw5/Dn8Ofw5/Dn8Ofw5/LrRTQurw5/Dn8Ofw5/Dn8Ofw5/Dn8Ofw5/Dn
+8Ofw5/Dn8Oe0nYNShz+HP4c/hz+HP4c/hz+HP4c/hz+HP4c/hz+HP4c/l9tJL3X4c/hz+HP4
+c/hz+HP4c/hz+HP4c/hz+HP4c/hz+HNDO8umDn8Ofw5/Dn8Ofw5/Dn8Ofw5/Dn8Ofw5/Dn8O
+fw5/bmyn9dThz+HP4c/hz+HP4c/hz63ezwfUG2YE8Ofx5/Hn8efx5/Hn8efx5/Hn8efx5/Hn
+8efx56VNQFCHP48/jz+PP48/jz+PP48/jz+PP48/jz+PP48/jz/v2owHdfjz+PP48/jzbZ6k
+TZS0mZI2VdLmStpkSZstadMl+PP48/jzoU2xUIc/jz+PP48/jz+PP48/jz+PP48/jz+PP48/
+jz+PP69tToc6/Hn8efx5/Hn8efx5/Hn8efx5/Hn8efx5/Hn8efz53CaRqMOfx5/Hn8efx5/H
+n8efx5/Hn8efx5/Hn8efx5/Hnx/arBV1+PP48/jz+PP48/jz+PP48/jz+PP48/jz+PP48/jz
+Y5smow5/Hn8efx5/Hn8efx5/fvV+fq3eMMOGv4C/gL+Av4C/gL+Av4C/gL+Av4C/gL+Av4C/
+IG1Cjzr8BfwF/AX8BfwF/AX8BfwF/AX8BfwF/AX8BfwF/AXXZhCpw1/AX8BfwF/AX8BfwF/A
+X8BfwF/AX8BfaPOVbcKyzVi+m7Kkrk1atlnLNm2Jv4C/gL+Av4C/gL+Av4C/gL+Av4C/gL+g
+bY6UOvwF/AX8BfwF/AX8BfwF/AX8BfwF/AX8BfwF/AX8hdwmZanDX8BfwF/AX8BfwF/AX8Bf
+wF/AX8BfwF/AX8BfwF8Y2iwwdfgL+Av4C/gL+Av4C/gL+Av4C/gL+Av4C/gL+Av4C2ObdqYO
+fwF/AX8BfwF/AX8Bf2H1fr663jBjjb+Iv4i/iL+Iv4i/iL+Iv4i/iL+Iv4i/iL+Ivyhtgpw6
+/EX8RfxF/EX8RfxF/EX8RfxF/EX8RfxF/EX8RfxF12bkqcNfxF/EX8RfxF/EX8RfxF/EX8Rf
+xF/EX8RfxF/EXwxtCYA6/EX8RfzFtm7QFg7aykFbOmhrB23xoK0etOUD/EX8RfxF/EVtaw7U
+4S/iL+Iv4i/iL+Iv4i/iL+Iv4i/iL+Iv4i/iL+Iv5rbIQR3+Iv4i/iL+Iv4i/iL+Iv4i/iL+
+Iv4i/iL+Iv4i/uLQVlWow1/EX8RfxF/EX8RfxF/EX8RfxF/EX8RfxF/EX8RfHNsyDnX4i/iL
++Iv4i/iL+Iv4i6v36z/1hhUg/Cn+FH+KP8Wf4k/xp/hT/Cn+FH+KP8Wf4k/xp/hT/Cn+FH+K
+P8Wf4k/xp/hT/Cn+FH+KP8Wf4k/xp/hT/Cn+FH+KP8Wf4k/xp/hT/Cn+FH+KP8Wf4k/xp/hT
+/Cn+FH+KP8Wf4k/xp/hT/Cn+FH+KP8WftvU7/GlbwWtLeO/W8Khrq3htGQ9/ij/Fn+JP8af4
+U/wp/hR/ij/Fn+JP8af4U/wp/hR/ij/Fn+JP8af4U/wp/hR/ij/Fn+JP8af4U/wp/hR/ij/F
+n+JP8af4U/wp/hR/ij/Fn+JP8af4U/wp/hR/ij/Fn+JP8af4U/wp/hR/CX8Jfwl/CX8Jfwl/
+CX8Jfwl/CX8Jfwl/CX8Jfwl/CX8Jfwl/CX8Jfwl/CX8Jfwl/CX8Jfwl/CX8Jfwl/CX8Jfwl/
+CX8Jfwl/CX8Jfwl/CX8Jfwl/CX8Jfwl/CX8Jfwl/CX8Jfwl/CX8Jfwl/CX8Jfwl/CX8Jfwl/
+CX8Jfwl/CX8Jfwl/CX8Jfwl/CX8Jf6mto7eF9LaS3pbS21p6W0xvq+ltOR1/CX8Jfwl/CX8J
+fwl/CX8Jfwl/CX8Jfwl/CX8Jfwl/CX8Jfwl/CX8Jfwl/CX8Jfwl/CX8Jfwl/CX8Jfwl/CX8J
+fwl/CX8Jfwl/CX8Jfwl/CX8Jfwl/CX8Jfwl/CX8Jfwl/GX8Zfxl/GX8Zfxl/GX8Zfxl/GX8Z
+fxl/GX8Zfxl/GX8Zfxl/GX8Zfxl/GX8Zfxl/GX8Zfxl/GX8Zfxl/GX8Zfxl/GX8Zfxl/GX8Z
+fxl/GX8Zfxl/GX8Zfxl/GX8Zfxl/GX8Zfxl/GX8Zfxl/GX8Zfxl/GX8Zfxl/GX8Zfxl/GX8Z
+fxl/GX8Zfxl/GX8Zfxl/GX8Zfxl/GX8Zfxl/GX+5/Z4Ff7n9oqX9pKX9puXdj1qoaz9rwV/G
+X8Zfxl/GX8Zfxl/GX8Zfxl/GX8Zfxl/GX8Zfxl/GX8Zfxl/GX8Zfxl/GX8Zfxl/GX8Zfxl/G
+X8Zfxl/GX8Zfxl/GX8Zfxl/GX8Zfxl/GX8FfwV/BX8FfwV/BX8FfwV/BX8FfwV/BX8FfwV/B
+X8FfwV/BX8FfwV/BX8FfwV/BX8FfwV/BX8FfwV/BX8FfwV/BX8Ef/z9juqEOfwV/BX8FfwV/
+BX8FfwV/BX8FfwV/BX8FfwV/BX8FfwV/BX8FfwV/BX8FfwV/BX8FfwV/BX8FfwV/BX8FfwV/
+BX8FfwV/BX8FfwV/BX8FfwV/BX8FfwV/BX8FfwV/BX8FfwV/BX+l/a6s/bCs/bKs/bSs/bas
+/bis/bqs/bwMfwV/BX8FfwV/BX8FfwV/BX8FfwV/BX8FfwV/BX8FfwV/BX8FfwV/BX8FfwV/
+BX8FfwV/BX8FfwV/BX8FfwV/BX8D/gb8Dfgb8Dfgb8DfgL8BfwP+BvwN+BvwN+BvwN+AvwF/
+A/4G/P0va3fbI/d5nnn67UKAvkMB+0bG2nKd59VstQgEWMf2TrwTZww/DLAwDKNZDxZHFCmQ
+lCfKp9/uvo+boySzGykTAsJNkX1VVz/8uppkHf/rtPo7rf5Oq7/T6u+0+jut/k6rv9Pq77T6
+O63+Tqu/0+rvtPo7rf5Oq7/T6u+0+jut/k6rv9Pq77T6O63+Tqu/0+rvtPo7rf5Oq7/T6u+0
++jut/k6rv9Pq77T6O63+Tqu/0+rvtPo7rf5Oq7/T6u+0+jut/k6rv9Pq77T6O63+Tqu/0+rv
+tPo7rf5Oq7/T6u+0+jut/k6rv9Pq77T6O63+Tqu/0+rvtPo7rf5Oq7/T6u+0+jut/k6rv9Pq
+77T6O63+Tqu/0+rvtPo7rf5Oq7/T6u+0+jt5fufq7+QZnp7i6TmenuS5n+W55lZ/p9XfafV3
+Wv2dVn+n1d9p9Xda/Z1Wf6fV32n1d1r9nVZ/p9XfafV3Wv2dVn+n1d9p9Xda/Z1Wf6fV32n1
+d1r9nVZ/59XfefV3Xv2dV3/n1d959Xde/Z1Xf+fV33n1d179nVd/59XfefV3Xv2dV3/n1d95
+9Xde/Z1Xf+fV33n1d179nVd/59XfefV3Xv2dV3/n1d959Xde/Z1Xf+fV33n1d179nVd/59Xf
+efV3Xv2dV3/n1d959Xde/Z1Xf+fV33n1d179nVd/59XfefV3Xv2dV3/n1d959Xde/Z1Xf+fV
+33n1d179nVd/59XfefV3Xv2dV3/n1d959Xde/Z1Xf+fV33n1d179nVd/59XfefV3Xv2dV3/n
+1d959Xde/Z1Xf+fV33n1d179nVd/59XfefV3Xv2dV3/n1d959Xde/Z1Xf+fV33n1d179nVd/
+59XfefV3Xv2dV3/n1d959Xde/Z09z9oTrT3T2lOtPdfak60929rTrVd/59XfefV3Xv2dV3/n
+1d959Xde/Z1Xf+fV33n1d179nVd/59XfefV3Xv2dV3+X1d9l9XdZ/V1Wf5fV32X1d1n9XVZ/
+l9XfZfV3Wf1dVn+X1d9l9XdZ/V1Wf5fV32X1d1n9XVZ/l9XfZfV3Wf1dVn+X1d9l9XdZ/V1W
+f5fV32X1d1n9XVZ/l9XfZfV3Wf1dVn+X1d9l9XdZ/V1Wf5fV32X1d1n9XVZ/l9XfZfV3Wf1d
+Vn+X1d9l9XdZ/V1Wf5fV32X1d1n9XVZ/l9XfZfV3Wf1dVn+X1d9l9XdZ/V1Wf5fV32X1d1n9
+XVZ/l9XfZfV3Wf1dVn+X1d9l9bcw9cOx5lZ/l9XfZfV3Wf1dVn+X1d9l9XdZ/V1Wf5fV32X1
+d1n9XVZ/l9XfZfV3Wf1dVn+X1d9l9XdZ/V1Wf5fV32X1d1n9XVZ/l9XfZfV3Wf1dVn+X1d9l
+9XdZ/V1Wf5fV32X1d+EdVn8X4gF5YB6gB+phs4c1t/q7rP4uq7/L6u+y+rus/i6rv8vq77r6
+u67+rqu/6+rvuvq7rv6uq7/r6u+6+ruu/q6rv+vq77r6u67+rqu/6+rvuvq7rv6uq7/r6u+6
++ruu/q6rv+vq77r6u67+rqu/6+rvuvq7rv6uq7/r6u+6+ruu/q6rv+vq77r6u67+rqu/6+rv
+uvq7rv6uq7/r6u+6+ruu/q6rv+vq77r6u67+rqu/6+rvuvq7rv6uq7/r6u+6+ruu/q6rv+vq
+77r6u67+rqu/6+rvuvq7rv6uq7/r6u+6+ruu/q6rv+vq77r6u67+rqu/6+rvuvq7rv6uq7/r
+6u+6+ruu/q6rv+vq77r6u67+rqu/6+rvuvq7rv6uq7/r6u+6+ruu/q6rv+vqb6Hch2PNrf6u
+q7/r6u+6+ruu/q6rv+vq77r6u67+rqu/6+rvuvq7rv6uq7/r6u+6+ruu/q6rv+vq77r6u67+
+rtwReEQeoUfsEXxEH+FH3/FH66zzxnnrvHPeO09O8yDSkUQ6okhHFukIIx1ppCOOdOSR1jVw
+Hk/zSNKRSTpCSUcq6YglHbmkI5h0JJOOaNKRTTrCSUc66YgnHfmk4415QumIKB0ZpSOkdKSU
+jpjSkVM6gkpHUumIKh1ZpSOsdKSVjrjSkVc63ponlo7I0pFZOkJLR2rpiC0duaUjuHQkl47o
+0pFdOsJLR3rpiC8d+aXjnXmC6YgwHRmmI8R0pJiOGNORYzqCTEeS6YgyHVmmI8x0pJmOONOR
+ZzremyeajkjTkWk6Qk1HqumINR25piPYdCSbjmjTkW06wk1HuumINx35puPJPOF0RJyOjNMR
+cjpSTkfM6cg5HUGnI+l0RJ2OrNMRdjrSTkfc6cg7HS/miacj8nRkno7Q05F6OmJPR+7pCD4d
+yacj+nRkn47w05F+OuJPR/1vgLgF4iaI2yBuhLgV4maIHxzihohbIm6KuC3ixohbI26OqP8N
+ErdI3CRxm8SNErdK3Cxxu8QNE7dM3DRx28SNE7dO3Dxx+8QNFLdQ3ERxG8WNFLdS3ExxO8UN
+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
+A9OHpg9OH54+QH2I+iD1YeoD1YeqD1Yfrj5gfcj6oPVh6wPXh64PXh++PoB9CPsg9mHsA9mH
+sg9mH84+oH1I+6D2Ye0D24e2D26fy953pv/L3ni2V57tnWd76dneevZh7Zl5/ZP3Qe/D3ge+
+D30f/D78fQD8EPhB8MPgB8IPhR8MPxx+QPyQ+EHxw+IHxg+NHxw/PH6A/BD5QfLD5AfKD5Uf
+LD9cfsD8kPlB88PmB84PnR88P3x+AP0Q+kH0w+gH0g+lH0w/nH5A/ZD6QfXD6gfWD60fXD+8
+foD9EPtB9sPsB9oPtR9sP9x+wP2Q+0H3w+4H3g+9H3w//H4A/hD8QfjD8AfiD8UfjD8cf0D+
+kPxB+cPyB+YPzR+cPzx/gP4Q/UH6w/QH6g/VH6w/XH/A/pD9QfvD9gfuD90fvD98fwD/EP5B
+/MP4B/IP5R/MP5x/QP+Q/kH9w/oH9g/tH9w/vH+A/xD/Qf7D/Af6D/Uf7D/XvfdwLz7cmw/3
+6sO9+3AvP9zbD/f6w+/sP1xnnTfOW+ed8955cpq3CJH/L/9f/r/8f/n/8v/l/8v/l/8v/1/+
+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/
++f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y
+/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/
+y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X
+/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/N3oO6F6HuTah7FerehbqXoe5tqHsdqv75
+//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/
+5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L
+/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/
+L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f
+/r/8f/n/8v/l/8v/l/8v/1/+v3v/cfW/NyDvFch7B/Jegry3IO81yHsP8l6EvDch71XIexfy
+Xoa8tyHvdcgf9iHr/8NG5L0See9E3kuR91bkvRZZ/3sx8t6MvFcj793Iezny3o681yPv/ch7
+QfLekLxXJO8dyXtJ8t6SvNck7z3Je1Hy3pS8VyXvXcl7WfLelrzXJe99yXth8t6YvFcm753J
+e2ny3pq81ybvvcl7cfLenLxXJ+/dyXt58t6evNcn7/3Je4Hy3qC8VyjvHcp7ifLeorzXKO89
+ynuR8t6kvFcp713Ke5ny3qa81ynvfcp7ofLeqLxXKu+dynup8t6qvNcq773Ke7Hy3qy8Vyvv
+3cp7ufLerrzXK+/9ynvB8t6wvFcs7x3Le8ny3rK81yzvPct70fLetLxXLe9dy3vZ8t62vNct
+733Le+Hy3ri8Vy7vnct76fLeurzXLu+9y3vx8t68vFcv793Le/ny3r681y/z/+X/y/+X/y//
+X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/O3ou+F6Pvzeh7Nfre
+jb6Xo+/t6Hs9uv75//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X
+/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//
+X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6/
+/H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//P/T
+w98667xx3jrvnPfOk9O8/vn/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/
+5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L
+/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/
+L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f
+/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8
+f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/
+8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l
+/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/
+l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v
+/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+
+/+mPn+us88Z567xz3jtPTvP65//L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/
+y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X
+/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//
+X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6/
+/H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5
+//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/
+5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L
+/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/
+L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f
+/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8
+f/n/p7/+XWedN85b553z3nlymtc//1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/
+L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f
+/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8
+f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/
+8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l
+/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/
+l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v
+/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+
+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/
++f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y
+/+X/y/8//fPrOuu8cd4675z3zpPTvP75//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+
+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/
++f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y
+/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/
+y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X
+/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//
+X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6/
+/H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5
+//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/
+5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L
+/5f/L/9f/v/p6U/rrPPGeeu8c947T07z+uf/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8
+f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/
+8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l
+/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/
+l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v
+/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+
+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/
++f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y
+/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/
+y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X
+/y//X/6//H/5/6enH6+zzhvnrfPOee88Oc3rn/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5
+//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/
+5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L
+/5f/L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/
+L/9f/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f
+/r/8f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8
+f/n/8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/
+8v/l/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l
+/8v/l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/
+l/8v/1/+v/x/+f/y/+X/y/+X/y//X/6//H/5//L/5f/L/5f/L/9f/r/8f/n/8v/l/8v/l/8v
+/1/+v/x/+f/y/+X/n/jPOuu8cd4675z3zpPTfMzHfMzHfMzHfMzHfM3XfM3XfM3XfM3X/Jgf
+82N+zI/5MT/mx/yN+RvzN+ZvzN+YvzF/Y/7G/DPzz8w/M//M/DPzz8w/M//M/K35W/O35m/N
+35q/NX9r/tb8Z+Y/M/+Z+c/Mf2b+M/Ofmf/M/J35O/N35u/M35m/M39n/s785+Y/N/+5+c/N
+f27+c/Ofm//c/L35e/P35u/N35u/N39v/t78C/MvzL8w/8L8C/MvzL8w/8L8yfzJ/Mn8yfzJ
+/Mn8yfzJ/Nn82fzZ/Nn82fzZ/Nn82fzF/MX8xfzF/MX8xfzF/MX81fzV/NX81fzV/NX81bz+
++f/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/
++P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/
++P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/
++P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/
++P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/
++P/h/4f/H/5/+P/h/4f/H/7/id+us84b563zznnvPDnN65//H/5/+P/h/4f/H/5/+P/h/4f/
+H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/
+H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/
+H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/
+H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/
+H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/
+H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/
+H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/
+H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/
+H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/
+H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P/h/4f/H/5/+P+nT/91
+1nnjvHXeOe+dJ6d5/fP/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P
+/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P
+/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P
+/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P
+/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P
+/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P
+/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P
+/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P
+/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P
+/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P
+/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P///07ec667xx3jrvnPfOk9O8/vn/4f+H/x/+
+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+
+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+
+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+
+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+
+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+
+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+
+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+
+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+
+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+
+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+f/j/4f+H/x/+
+f/j/4f+H/3/665911nnjvHXeOe+dJ6d5/fP/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/
+w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/
+w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/
+w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/
+w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/
+w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/
+w/8P/z/8//D/w/8P/z/8//D/w/8P/z/8//D/w/9/9Jvf/pdf//2v/vb54XffvD786pe//OXh
+b9+8eX/4zds3Xx3m0346x8PDQH+a40/77JCb58f5+KO/f/n6m388/PXy9t3LN68P/fT2089/
+8uLLOXzy31+9/D/vX9+/+vb9y9PL99/+6PDJX06nDy84n86nzw6f/OLy4uX960OeP/3/T/qj
+Hx3+9xx+9+vfHH7/xTeHf3jz10PuDsdnz29un8/d4Te/+/3jPbj5+KOf/fbnf/dwP//wDzd/
++Pij316+uv/665ev/3J4/8Xl8OXl7evLq08//fRwfvP68unHHz2+EY+/+XRPH379449++fBy
+Dy/0/nB/Pr+9vHv3/HC8e348Pu/x+d3nzy/n5y8++/ijn//yH37/25/9/fPDLy7vL6f3l/Ph
+5vDu1cP745ev31/efv325bvL4d23795fvvr0cLq+vfzlj/d3fzqcHt7AP15Pf/r4o//r737+
+yYs392/Ph/zo+eG/rrf7j/nT4Tf3b9//6hd/fPjk+tPh1/evv7n+cS5/Onzi9f3ou5PzvSb/
+79//7D89/P/DXXn7z6affZ/p7w589kMHvtdb9vAR+Oblq/eHHP7p4QPy6uW79+8+/ug/P32U
+Dqc3X311//p8ePXy9eX54SdfH94+fLD+5qfny19/+vr67vDw3/qFr16//+n1p5f58uG3nj5j
+Xn79N+cvTl8fHv73m78cXr5++f50/+rVn9f/fv32zfXlq8vf5OOP1meDX3n8LLi8vn/x6uGD
++cm7L15e3z9/eBMePvF/9YvDF/fvvji8f/y9hxd5//bl5eGz4ub4+e3hkzdvz5e3Dy/YHx8y
+OX7Ww4tv31/ePcz9/M3rd29ePdzx05tXb755ezh/89VX3z7cpb++PF0Od8d/7LOPP/rF4619
+ezjdnx4+N/9nr+TZ4/V67z68ms9/fLjJ5zdzvPnwan71+s358pP/71vo7eMKjg+3cPfjh0g+
+/yzP/scd/fXlqzdvv31+eHgIysOfDr483P/1/uWrp1v55PFyoV+q5uENOV9+fPj8Wb88nO/f
+3z+8xTc3Xz69e390+OP18cfTNz/rx4/3Ty7XJ7J0fPis//n9q5cv3t4/BXe+vLr/9vDqzZuv
+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
+0GXQtNsg77PhpGtinQad/wC02Yy/5YcBAA==
 
-
-
- serial_core.c |    9 +++++++++
- 1 files changed, 9 insertions(+)
-
-
-diff -Nru a/drivers/serial/serial_core.c b/drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c	2004-10-19 20:33:48 -07:00
-+++ b/drivers/serial/serial_core.c	2004-10-19 20:33:48 -07:00
-@@ -2225,6 +2225,15 @@
- 	 */
- 	tty_register_device(drv->tty_driver, port->line, port->dev);
- 
-+	/*
-+	 * If this driver supports console, and it hasn't been
-+	 * successfully registered yet, try to re-register it.
-+	 * It may be that the port was not available.
-+	 */
-+	if (port->type != PORT_UNKNOWN &&
-+	    port->cons && !(port->cons->flags & CON_ENABLED))
-+		register_console(port->cons);
-+
-  out:
- 	up(&port_sem);
- 
+--vmttodhTwj0NAgWp--
