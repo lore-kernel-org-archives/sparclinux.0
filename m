@@ -1,28 +1,26 @@
-From: "irvin" <adejoode@hotmail.com>
-Date: Sun, 28 Mar 2004 01:20:14 +0000
-Subject: Super hot CAS1N0 B0nus 0ffers! softball warriorsx
-Message-Id: <1080436814-16122@excite.com>
+From: LGMAR01%MARZOTTO@marzotto.it
+Date: Tue, 23 Mar 2004 11:45:26 +0000
+Subject: (ScanMail has found a virus)
+Message-Id: <OF574AFB6A.373F49A9-ONC1256E60.004095CB@marzotto.it>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Come and play at the world's PREMIvERE ONLINwE CASrINO!
-We are happy to offer you, in an elegant atmosphere, a 50% BONUnS for YOUR FIRST DEPOiSIT as a New Player.
+ScanMail has detected a virus during a real-time scan of the email traffic.
 
-Sign up now! Don't wait!
+Date:      3/23/2004 12:45:26
+Subject:  Re: Mail Authentification
+Virus:      WORM_NETSKY.P
+File:        message.txt
+.pif
+From:     sparclinux@vger.kernel.org
+To:          aias@marzotto.it;
+Action:   Uncleanable, Deleted;
 
-http://www.virtualcasinoes.net/_e4faa55afa1972493c43ac8a3f66f869/
+Scanned by ScanMail for Lotus Notes 2.5
+with scanengine 6.860-1001
+and patternfile lpt$vpn.833
 
 
-We'll automatically CREDIuT your account with a 50% BONUmS of extra chips, to wager in our CASIrNO.
-Don't hesiotate and try your luck!
-
-CLICoK HERnE!
-
-http://www.virtualcasinoes.net/_e4faa55afa1972493c43ac8a3f66f869/
-
-
-
-smiths marcus stingray alpha1 theking fireball timber cascade jkm mantra master1 love cannon minou gocougs gibson tootsie scooter1 dirk xxxx peggy goblue josie scooby kleenex mortimer
