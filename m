@@ -1,41 +1,46 @@
 From: carbonated beverage <ramune@net-ronin.org>
-Date: Sun, 15 Feb 2004 00:23:14 +0000
-Subject: [Q] sun mouse on 2.6.x
-Message-Id: <20040215002314.GH19221@net-ronin.org>
+Date: Sun, 15 Feb 2004 09:37:55 +0000
+Subject: Re: [Q] sun mouse on 2.6.x
+Message-Id: <20040215093755.GA27548@net-ronin.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20040215002314.GH19221@net-ronin.org>
+In-Reply-To: <20040215002314.GH19221@net-ronin.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi all,
+Okay, tried adding this to drivers/input/mousedev.c:
 
-I'm unable to get the mouse recognized by gpm or X under 2.6.x
-bk pulls although the kernel recognizes it.  I'm using the input
-layer and tried specifying /dev/input/{mice,mouse0} to both gpm
-and X.  /dev/psaux (I have the legacy option turned on) doesn't
-work either.
+=== mousedev.c 1.33 vs edited ==--- 1.33/drivers/input/mousedev.c	Thu Jan 15 03:06:00 2004
++++ edited/mousedev.c	Sat Feb 14 21:49:01 2004
+@@ -428,6 +428,9 @@
+ 
+ 	list->buffer -= count;
+ 
++	printk(KERN_INFO "list->ps2:%x%x%x%x%x%x\n", (char)list->ps2[0], (char)(list->ps2[1]),
++	    (char)(list->ps2[2]), (char)(list->ps2[3]), (char)(list->ps2[4]), (char)(list->ps2[5]));
++
+ 	if (copy_to_user(buffer, list->ps2 + list->bufsiz - list->buffer - count, count))
+ 		return -EFAULT;
 
-The kernel seems to find it fine:
+I see:
 
-mice: PS/2 mouse device common for all mice
-input: Sun Mouse on su/serio0
+list->ps2:fffffffa00000
+list->ps2:fffffffa00000
+list->ps2:fffffffa00000
+list->ps2:fffffffa00000
+list->ps2:fffffffa00000
+list->ps2:fffffffa00000
+list->ps2:fffffffa00000
+list->ps2:fffffffa00000
 
-And everything's enabled in .config:
+Shortly after the module loads.  I move the mouse.  Nothing.
+Doesn't look like it's getting anything at all, ever.
 
-CONFIG_INPUT_MOUSEDEV=m
-CONFIG_INPUT_MOUSEDEV_PSAUX=y
-CONFIG_INPUT_MOUSEDEV_SCREEN_X24
-CONFIG_INPUT_MOUSEDEV_SCREEN_Yv8
-CONFIG_INPUT_MOUSE=y
-CONFIG_MOUSE_PS2=m
-CONFIG_MOUSE_SERIAL=m
+But it works under Solaris... :-/
 
-But nothing from gpm or X.
-
-I'm using a debian/testing setup on an Ultra 5.
-
-Anyone have a suggestion on how to go about debugging this?
+Ideas?
 
 -- DN
 Daniel
