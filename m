@@ -1,7 +1,7 @@
-From: Meelis Roos <mroos@linux.ee>
-Date: Mon, 31 May 2004 10:18:51 +0000
+From: "David S. Miller" <davem@redhat.com>
+Date: Mon, 31 May 2004 19:26:32 +0000
 Subject: Re: hme hang in SMP (was: 2.6.6 SMP on UE2 hangs consistently)
-Message-Id: <Pine.GSO.4.44.0405311318160.16220-100000@math.ut.ee>
+Message-Id: <20040531122632.2dd7f831.davem@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.GSO.4.44.0405280942530.12976-100000@math.ut.ee>
 In-Reply-To: <Pine.GSO.4.44.0405280942530.12976-100000@math.ut.ee>
@@ -10,15 +10,12 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> This is a *very* long shot, but... Have you tried applying the ultra1E
-> hme lockup patch? A Gentoo user reported the same problem, and he is
-> also using dual USI CPUs in an Ultra2.
->
-> If you can't find the patch anywhere, it's included in:
-> http://gentoo.oregonstate.edu/distfiles/patches-2.6.6-sparc.tar.bz2
+On Mon, 31 May 2004 12:41:37 +0300 (EEST)
+Meelis Roos <mroos@linux.ee> wrote:
 
-Unfortuantely it did not help :-(
+> No, I'm not using serial console currently, I did put in a cg6 and I'm
+> using this and a type 5 keyboard as the prom console (console=prom). So
+> this patch problably does not help here?
 
--- 
-Meelis Roos (mroos@linux.ee)
-
+Right, but why aren't you using the suncg6 frame buffer driver?
+console=prom is not only slow, it's deadlock prone as well
