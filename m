@@ -1,83 +1,28 @@
-From: Jonah Lanson <aghannqqju@lhmauto.com>
-Date: Sun, 16 May 2004 01:15:47 +0000
-Subject: Don't Miss The Ride On CGHI.OB,dyenfa
-Message-Id: <S264868AbUEPCUL/20040516022011Z+8814@vger.kernel.org>
+From: "carmelo" <lawvson_44@hotmail.com>
+Date: Tue, 04 May 2004 05:30:48 +0000
+Subject: As Seen on CNN, the Winningest CAS1N0! jan softball}
+Message-Id: <1083648648-4869@excite.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org
 
-9782Jf5m_hxIa12wE12m1fw62a
+PREMI:ERE ONLIN}E CAS`INO!
+50% BONU:S for YOUR FIRST DEPO}SIT as a New Player.
 
-        INVESTORS WEEKLY UPDATE - GET CGHI.OB ASAP
+SI|GN UP now! Don't wait!
 
- SPECIAL-ALERT- Centurion Gold Holdings, Inc CGHI (OTC:BB)
-is located in Johannesburg, South Africa, started three
-years ago to identify and acquire promising ore-bearing
-properties.  In the past six months, it has acquired four
-properties: the Primrose Gold Mine; the Omaruru Gold Mine;
-the Sallies Mine and a chrome bearing operation. The
-Company is positioning itself to become a major producer
-in this market by acquiring mineral bearing properties
-and mineral rights.
+http://www.urban-casino.com/_e4faa55afa1972493c43ac8a3f66f869/
 
-The world=92s largest producer of gold, South Africa=92s
-enormous gold ore reserves represent more than 40% of
-global reserves.
+Once you're a Mem}ber, there are near WEEK{LY 2-T`O-1, and 3-T'O-1 depo:sit offers!
 
-On April 22nd the Company announced that it had
-submitted its application to move to the AMEX.
+Imagine, put in $25, GET $50 CRE'DIT BE|FORE YOU PL|ACE YO{UR FI{RST BET!!
 
-CGHI (OTC:BB) has progressed nicely and is now poised
-to break out to all new highs on the strength of news
-coming out soon on some major acquisitions.
+CLIC:K HER!E!
 
-Watch it move this next week on this news.
-
-Check out the gains from our recent recommendations.
-
-MACE at 2.11 (NASDQ)   High 14.80....701% Gain!
-MAGS at 9.74 (NASDQ)   High 40.35....414% Gain!
-GTVCF (OTC:BB) at .52  High 1.02.....100% in five days
-NOW =85=85....CGHI (OTC:BB) at 1.75
-RECORD SETTING HIGH PREDICTED ON NEWS!
-
-Centurion Gold Holdings, Inc: CGHI (OTC:BB)
-Current-Price:1.58
-Short-Term Target:3.75
-12-month target 15.00 on AMEX
-Shares-Outstanding: 47.8 Million /  Float 5 million
-
-Revenue/Net Income Projections on Current Holdings
-Year    Revenue ($ millions)    Net ($ millions)
-
-2004         5,80               2,270
-2005         9,35               3,565
-2006         9,90               3,785
-2007        10,40               4,010
-2008        22,40               8,510
-
-Centurion Gold Holding=92s fiscal year ends March 31.
-The Company expects to show revenue and net income
-for its fourth-quarter, when it reports for the period
-ending March 31.
-
-Reasons to buy CGHI: After acquisitions, CGHI annual
-revenue will be $45.71 million in 2004, with reserves
-valued at approximately $1.4 billion at 10% of current
-metal values. With the full development of all assets,
-by 2008, revenue will be $200 million at current
-commodity prices in US dollars.
-
-           OUR ADVICE: GET CGHI.OB TODAY!
-
-
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+http://www.urban-casino.com/_e4faa55afa1972493c43ac8a3f66f869/
 
 
 
-
-variate handkerchief tusk patrol torque
-supernumerary magnify rightly plantation
-
+tattoo mimi dragonfl bmw test2 deutsch warriors raptor caesar scuba1 reynolds ssssss sarah1 carolina clipper kleenex yoda reznor players apple1 bmw planet lulu boogie nurse scorpion
