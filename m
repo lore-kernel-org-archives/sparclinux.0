@@ -1,30 +1,88 @@
-From: "C.Newport" <crn@netunix.com>
-Date: Wed, 31 Mar 2004 09:09:43 +0000
-Subject: Re: [PATCH 2.6] Various sparc32 cleanups
-Message-Id: <200403311009.43251.crn@netunix.com>
+From: Bartlomiej Zolnierkiewicz <B.Zolnierkiewicz@elka.pw.edu.pl>
+Date: Wed, 24 Mar 2004 13:42:45 +0000
+Subject: [PATCH] asm-sparc{64}/ide.h cleanup (there are no standard ports)
+Message-Id: <200403241442.45189.bzolnier@elka.pw.edu.pl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1080710480.27295.41.camel@zorak>
-In-Reply-To: <1080710480.27295.41.camel@zorak>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
+Cc: linux-ide@vger.kernel.org
 
-On Wednesday 31 March 2004 6:21 am, Tom 'spot' Callaway wrote:
-> So, as part of an exercise in futility, I built 2.6 with CONFIG_SUN4=y.
-> Not that there appears to be any working method to boot this kernel
-> (yes, I do have a working sun4), but the cleanups needed were minor (and
-> at least partially relevant to more modern sparc32 machines).
->
-> Patch is attached. I have no idea if it works, but the bw2 fix is
-> obviously correct.
 
-Hmm - at last someone else who has a sun4.
-I have not tried this for ages but a few pointers from memory.
-The max size of the boot image is rather small so you need to
-rip out all non-essentials. I am not sure what the PROM limits
-are, but it might not be possible to make 2.6 small enough without
-making an intermediate loader. SILO did not work.
-Did you remember to use elftoaout with -b to remove the a.out
-header bytes, it will not even start without this.
+Hi,
+
+Is this patch correct?
+
+Regards,
+Bartlomiej
+
+[IDE] asm-sparc{64}/ide.h cleanup (there are no standard ports)
+
+ linux-2.6.5-rc2-bk3-root/include/asm-sparc/ide.h   |   20 ++------------------
+ linux-2.6.5-rc2-bk3-root/include/asm-sparc64/ide.h |   20 ++------------------
+ 2 files changed, 4 insertions(+), 36 deletions(-)
+
+diff -puN include/asm-sparc/ide.h~sparc_no_default_ide_ports include/asm-sparc/ide.h
+--- linux-2.6.5-rc2-bk3/include/asm-sparc/ide.h~sparc_no_default_ide_ports	2004-03-24 00:08:03.000000000 +0100
++++ linux-2.6.5-rc2-bk3-root/include/asm-sparc/ide.h	2004-03-24 14:38:06.466086288 +0100
+@@ -53,24 +53,8 @@ static __inline__ void ide_init_hwif_por
+ 	hw->io_ports[IDE_IRQ_OFFSET] = 0;
+ }
+ 
+-/*
+- * This registers the standard ports for this architecture with the IDE
+- * driver.
+- */
+-static __inline__ void ide_init_default_hwifs(void)
+-{
+-#ifndef CONFIG_PCI
+-	hw_regs_t hw;
+-	int index;
+-
+-	for (index = 0; index < MAX_HWIFS; index++) {
+-		memset(&hw, 0, sizeof hw);
+-		ide_init_hwif_ports(&hw, ide_default_io_base(index), 0, NULL);
+-		hw.irq = ide_default_irq(ide_default_io_base(index));
+-		ide_register_hw(&hw, NULL);
+-	}
+-#endif
+-}
++/* There are no standard ports. */
++static inline void ide_init_default_hwifs(void)	{ ; }
+ 
+ #define __ide_insl(data_reg, buffer, wcount) \
+ 	__ide_insw(data_reg, buffer, (wcount)<<1)
+diff -puN include/asm-sparc64/ide.h~sparc_no_default_ide_ports include/asm-sparc64/ide.h
+--- linux-2.6.5-rc2-bk3/include/asm-sparc64/ide.h~sparc_no_default_ide_ports	2004-03-24 00:08:03.000000000 +0100
++++ linux-2.6.5-rc2-bk3-root/include/asm-sparc64/ide.h	2004-03-24 14:38:22.286681192 +0100
+@@ -54,24 +54,8 @@ static __inline__ void ide_init_hwif_por
+ 	hw->io_ports[IDE_IRQ_OFFSET] = 0;
+ }
+ 
+-/*
+- * This registers the standard ports for this architecture with the IDE
+- * driver.
+- */
+-static __inline__ void ide_init_default_hwifs(void)
+-{
+-#ifndef CONFIG_BLK_DEV_IDEPCI
+-	hw_regs_t hw;
+-	int index;
+-
+-	for (index = 0; index < MAX_HWIFS; index++) {
+-		memset(&hw, 0, sizeof hw);
+-		ide_init_hwif_ports(&hw, ide_default_io_base(index), 0, NULL);
+-		hw.irq = ide_default_irq(ide_default_io_base(index));
+-		ide_register_hw(&hw, NULL);
+-	}
+-#endif /* CONFIG_BLK_DEV_IDEPCI */
+-}
++/* There are no standard ports. */
++static inline void ide_init_default_hwifs(void)	{ ; }
+ 
+ #define __ide_insl(data_reg, buffer, wcount) \
+ 	__ide_insw(data_reg, buffer, (wcount)<<1)
+
+_
 
