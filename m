@@ -1,7 +1,7 @@
-From: Ed L Cashin <ecashin@uga.edu>
-Date: Tue, 16 Mar 2004 21:03:23 +0000
+From: "David S. Miller" <davem@redhat.com>
+Date: Tue, 16 Mar 2004 21:08:53 +0000
 Subject: Re: REAL_PTRS_PER_PMD and TIF_32BIT
-Message-Id: <87fzc88pyc.fsf@uga.edu>
+Message-Id: <20040316130853.2ce57f91.davem@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <87llm08qho.fsf@uga.edu>
 In-Reply-To: <87llm08qho.fsf@uga.edu>
@@ -10,29 +10,14 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-"David S. Miller" <davem@redhat.com> writes:
+On Tue, 16 Mar 2004 16:03:23 -0500
+Ed L Cashin <ecashin@uga.edu> wrote:
 
-> On Tue, 16 Mar 2004 15:51:47 -0500
-> Ed L Cashin <ecashin@uga.edu> wrote:
->
->> Hi.  As  far as I can tell,  PTRS_PER_PMD will evaluate to  512 when a
->> 32-bit binary in userland makes a system call or has a page fault,
->> since TIF_32BIT will be set in the thread flags.
->> 
->> I suppose that means that for every second-level page table associated
->> with a 32-bit binary's process, there are (2048 - 512) unused
->> pmd entries.  Is that correct?
->
-> Yes, on sparc64, this is what effectively happens.  We only need one
-> PMD to map the page tables for a 32-bit process on sparc64.
+> I notice that in the kernel "pmd" is used to mean both the second
+> level page table, consisting of 2048 four-byte entries, and also as
+> shorthand for one of those entries.  Did you intentionally use
+> all-caps for "PMD" to distinguish it from a second-level page table
+> entry?
 
-I notice that in the kernel "pmd" is used to mean both the second
-level page table, consisting of 2048 four-byte entries, and also as
-shorthand for one of those entries.  Did you intentionally use
-all-caps for "PMD" to distinguish it from a second-level page table
-entry?
-
--- 
---Ed L Cashin            |   PGP public key:
-  ecashin@uga.edu        |   http://noserose.net/e/pgp/
-
+It's just sylistic for C code that CPP macros are capitalized,
+that's all.
