@@ -1,40 +1,49 @@
-From: "gail" <campingjan@annuva.com>
-Date: Mon, 31 May 2004 17:15:59 +0000
-Subject: Looking for a promotion?
-Message-Id: <1086023759-15202@excite.com>
+From: sale18@citiz.net
+Date: Mon, 24 May 2004 10:05:35 +0000
+Subject: flexible printed circuits
+Message-Id: <b9MM19yqePc39u@ara.seed.net.tw>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-
-Need software but not the price that comes with it?
-We sell OEM software at major discounts.
-Don't pay the department store markups, buy on the internet.
-
-Free Delivery and Extra Discounts on orders over $200!
-
-Save yourself or your company thousands of dollars, reap the rewards!
-
-Q:  How can you sell this software as OEM ? It seems too good to be true - is there a catch?
-
-A:  There is no catch - the software versions that we sell are OEM (Original Equipment Manufacturer) which means you will receive the installation CDs only (they do not come in their original retail packing and do not include the manual). We do guarantee that all programs are the 100% full working retail versions - no demos or academic versions! When you order, you will receive all materials required for a complete installation - or your money back! Why pay hundreds of dollars more when you can get exactly the same but OEM-CD? You don't have to pay that much for the fancy box and manuals. 
+To: sparclinux@vger.kernel.org
 
 
-
-Click here!!
-http://compie.net/index.php?su55
-
+ 
+ 
 
 
+Dear sir,
+    Good luck!
+    We are glad to   introduce   a  flexible printed circuit (FPC) factory. we use
+the latest technology make flexible printed circuits (FPC) for use in any
+electronic products.The FACTURE is ISO9001 and UL certified, and confirmed to IPC
+criteria.
+    THE MAIN CAPACITY:
+1,CAN MAKE DOUBLE SIDED WITH MIN 0.06MM TRACE WIDTH. THE SQUARE HOLE OF THE
+COVERLAYER CAN BE  MIN 0.4 MM.
+2,CAN MAKE 3 LAYERS,4 LAYERS,5 LAYERS,6 LAYERS FPC.
+3,PRODUCTS HAVE EXPORTED TO USA,CANADA,JAPAN,UK,GERMANY,FRANCE,AUSTRALIA ETC
+MORE THEN 20 COUNTRIES.
+4,MAIN CUSTOMER ARE NOKIA,PANASONIC,SONY,DELL,TDK ,PHILIP ETC.
+
+We would welcome you to visit our factory.
+
+Please e-mail your circuit design by Gerber file, Auto Cad, protel files and
+advise us of:
+
+FPC size, and number of layers.  We can make samples for your approval, with
+factory direct pricing.T
+
+If you donot want us to send you again, you can use the latest outlook2003
+soft,to enter this e-mail address as reject e-mail address.you can solve all the
+worry.
+Or send an email with: " Remove" in the subject .we'll delete it from our
+list.
+hank you for your support!
+
+Best regards!
+
+Bai jing qi
 
 
-
-
-
-
-packer dougierobinhoo kingdom oatmeal dgj florida moomoo 
-timber symbolcobra slacker molly1
-justin1 pisces fireball 
-
-REMOV3: http://mycomp.biz/soft/chair.php
