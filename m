@@ -1,7 +1,7 @@
 From: Ben Collins <bcollins@debian.org>
-Date: Wed, 07 Apr 2004 19:17:13 +0000
+Date: Wed, 07 Apr 2004 19:17:59 +0000
 Subject: Re: Can't boot linux on sun blade 2000
-Message-Id: <20040407191713.GZ1947@phunnypharm.org>
+Message-Id: <20040407191759.GA1947@phunnypharm.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <200404071043.30060.snake@penza-gsm.ru>
 In-Reply-To: <200404071043.30060.snake@penza-gsm.ru>
@@ -10,23 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> kbd_init: Assuming USB keyboard.
+On Tue, Apr 06, 2004 at 11:53:59PM -0700, Joshua Kwan wrote:
+> On Wed, Apr 07, 2004 at 10:43:30AM +0400, Alexey Nezhdanov wrote:
+> > <TFTP COUNTER (booting 
+> > http://www.phunnypharm.org/pub/for/sparc-folks/disks-sparc/current/sparc64/tftpboot.img 
+> > image)>
+> 
+> You should really be using the Sarge tftboot images.
+> http://people.debian.org/~jbailey/d-i/sparc/daily/sparc64/netboot/boot.img
 
-> usb.c: registered new driver usbdevfs
-> usb.c: registered new driver hub
-> host/usb-uhci.c: $Revision: 1.275 $ time 15:49:35 Nov 29 2003
-> host/usb-uhci.c: High bandwidth mode enabled
-> host/usb-uhci.c: v1.275:USB Universal Host Controller Interface driver
-> host/usb-ohci.c: USB OHCI at membase 0x7fe01000000, IRQ 9,21f
-> host/usb-ohci.c: usb-00:05.3, PCI device 108e:1103
-> usb.c: new USB bus registered, assigned bus number 1
-> hub.c: USB hub found
-> hub.c: 4 ports detected
-> usb.c: registered new driver hid
-> hid-core.c: v1.8.1 Andreas Gal, Vojtech Pavlik <vojtech@suse.cz>
-> hid-core.c: USB HID support drivers
+No, he shouldn't those images aren't tested very well. My woody images
+are.
 
-Is it a USB keyboard? If it is, it isn't getting detected.
+> > devfs: v1.12c (20020818) Richard Gooch (rgooch@atnf.csiro.au)
+> > devfs: boot_options: 0x0
+> 
+> This is the cause of all your problems.
+> 
+> > VFS: Mounted root (ext2 filesystem).
+> > Warning: unable to open an initial console.
+> 
+> Pass devfs=mount on the command line and it should Just Work.
+> Note that this crude hack isn't required in the latest images.
+
+That shouldn't matter with the image he is using.
+
 
 -- 
 Debian     - http://www.debian.org/
