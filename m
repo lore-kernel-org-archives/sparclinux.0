@@ -1,64 +1,30 @@
-From: "kory" <nikitagod@bekloppt.com>
-Date: Thu, 20 May 2004 10:15:50 +0000
-Subject: Save a bundle on Windows XP!
-Message-Id: <1085091165-14993@excite.com>
+From: Adam Kropelin <akropel1@rochester.rr.com>
+Date: Sun, 06 Jun 2004 04:37:34 +0000
+Subject: [PATCH] sbusfb: Initialize cmap.transp in FBIOPUTCMAP_SPARC
+Message-Id: <20040606010629.A23517@mail.kroptech.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net
+Cc: jsimmons@infradead.org
 
-Incredible DEALS on SOFTWARE you NEED!
+When handling FBIOPUTCMAP_SPARC, sbusfb fails to initialize cmap.transp,
+which quickly leads to an oops when fb_set_cmap() dereferences it.
 
-Save 40% on Windows XP Professional!
-Save 40% on Microsoft Office 2003 Professional!
-Save $90 on Adobe Photoshop!
-Save 60% on Norton AntiVirus!!
+First encountered in Aurora Wombat kernels and seems to afflict mainline
+as well. Patch is against 2.6.7-rc2. xorg still fails to actually get
+anything to display on my CG6, but at least it no longer oopses the kernel.
 
-Save your company thousands of dollars when it needs software!
+Signed-off-by: Adam Kropelin <akropel1@rochester.rr.com>
 
-That promotion just got closer...
-
-Click here!!
-http://teddychoice.biz/index.php?su55
-
-
-Software packages you can save big on:
-
-Windows XP Professional
-Norton Antivirus 2004
-Adobe Photoshop 7.0
-Microsoft Office XP Professional
-Microsoft Office 2003 Professional
-Microsoft Money 2004
-Microsoft 2000 Professional
-Adobe Photoshop CS
-Adobe Pagemaker 7.0
-Adobe Illustrator 10
-Corel Draw Graphics Suite 11
-Adobe Acrobat 6.0 Professional
-Borland Delphi 7 Professional
-Visual Studio.Net Enterprise Architecht
-MS SQL Server 2000 Enterprise
-MS Windows Server 2003 Enterprise
-MS Windows 2000 Server
-Red Hat Linux 7.3
-
-
-
-Click here!!
-http://teddychoice.biz/index.php?su55
-
-
-
-
-
-
-
-
-
-image tacobellzhongguo eugene yoda malcolm goat excalibu 
-khan alisonuser1 gray aylmer
-aylmer kenneth monopoly 
-
-REMOV3: http://teddychoice.biz/soft/chair.php
+--- linux-2.6.7-rc2/drivers/video/sbuslib.c	2004-05-09 22:32:27.000000000 -0400
++++ linux-2.6.7-rc2-adk/drivers/video/sbuslib.c	2004-06-06 04:10:52.682928000 -0400
+@@ -122,6 +122,7 @@
+ 		cmap.red = &red;
+ 		cmap.green = &green;
+ 		cmap.blue = &blue;
++		cmap.transp = NULL;
+ 		for (i = 0; i < count; i++) {
+ 			int err;
+ 
