@@ -1,51 +1,697 @@
-From: "ismael" <gibson21director@hotmail.com>
-Date: Wed, 03 Mar 2004 12:11:54 +0000
-Subject: Feel younger!
-Message-Id: <1078315914-16992@excite.com>
+From: Christian Guggenberger
+Date: Tue, 16 Mar 2004 10:11:51 +0000
+Subject: oops with 2.6.4 while trying to start X11
+Message-Id: <20040316111151.C17238@pc9391.uni-regensburg.de>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=_bg08WKrSYDhXBj"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-
-Tired of looking at your wrinkled face in the mirror as you pluck yet another grey hair and watch the 
-pounds pile on? Is the "spark" missing from your love life? If you're over 40, chances are it is. 
-Wouldn't you enjoy a longer, healthier and happier life? 
-
-http://newmedformula.com/hgh/index.php?pid=eph9106
+To: sparclinux@vger.kernel.org
 
 
-Human Growth Hormone can repair the physiology of the old cell, and rejuvenating the body, and reversing 
-years of damage!
+--=_bg08WKrSYDhXBj
+Content-Type: text/plain; format=flowed; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 
-http://newmedformula.com/hgh/index.php?pid=eph9106
+Hi,
+
+On my Dual UltraEnterprise2 (SBUS), I get the attached oops, when I try to 
+start X11.
+System is Debian/Unstable with XFree86 4.3.0-2 installed, kernel-2.6.4, 
+gcc-3.3.3.
+
+Oops.txt is with xserver-xfree86-dbg, oops1.txt is with xserver-xfree86.
+Besides that, X won't start - but does well with linux-2.4
+
+Feel free to ask for further information.
+
+  - Christian
+
+--=_bg08WKrSYDhXBj
+Content-Type: text/plain
+Content-Disposition: attachment; filename="decoded1.txt"
+
+ksymoops 2.4.9 on sparc64 2.6.4.  Options used
+     -V (default)
+     -K (specified)
+     -l /proc/modules (default)
+     -o /lib/modules/2.6.4/ (default)
+     -m /boot/System.map-2.6.4 (default)
+     -t elf64-sparc -a sparc:v9
+
+No modules in ksyms, skipping objects
+No ksyms, skipping lsmod
+Unable to handle kernel paging request at virtual address 000000004056c000
+tsk->{mm,active_mm}->context = 00000000000006fd
+tsk->{mm,active_mm}->pgd = fffff8004598e000
+              \|/ ____ \|/
+              "@'/ .. \`@"
+              /_| \__/ |_\
+                 \__U_/
+XFree86(451): Oops [#5]
+TSTATE: 0000004480009600 TPC: 000000000059182c TNPC: 0000000000591830 Y: 00000000    Not tainted
+g0: 0000000000000000 g1: 0000000000000000 g2: 0000000000000000 g3: 0000000000000000
+g4: fffff80045562dc0 g5: 0000000000663cb8 g6: fffff80045784000 g7: 0000000000000003
+o0: 000000000072f748 o1: 0000000000000000 o2: 0000000000000000 o3: 0000000000000000
+o4: 000000000000ffff o5: 000000000000004b sp: fffff80045786d61 ret_pc: 000000000053b0f4
+l0: 000000004056d16e l1: fffff800457876da l2: fffff800457876dc l3: fffff800457876de
+l4: 0000000000000000 l5: fffff800457876e0 l6: 0000000000000000 l7: 000000000000fc00
+i0: fffff800457876e0 i1: 0000000000000000 i2: fffff80000d0e000 i3: 0000000000000000
+i4: 0000000000000010 i5: 0000000000000010 i6: fffff80045786e21 i7: 0000000000592da0
 
 
+>>TPC; 0059182c <fb_set_cmap+10c/140>   <=====
 
-Human Growth Hormone (HGH) increases: 
+>>g5; 00663cb8 <cg6_ops+0/90>
+>>ret_pc; 0053b0f4 <vis6+a8/294>
+>>i7; 00592da0 <sbusfb_ioctl_helper+300/340>
 
-Energy 
-Weight Loss 
-Muscle Gain and Endurance  
-Increase Immune Function
-Smoother Skin - More Elasticity
-Quality of Deep Sleep 
-
-http://newmedformula.com/hgh/index.php?pid=eph9106
+Instruction DUMP: 9815e3ff  02f43fda  97306010 <c2942000> 84100000  83286010  106fffd5  99306010  81cfe008 
 
 
+Code;  0000000000591820 <fb_set_cmap+100/140>
+0000000000000000 <_TPC>:
+Code;  0000000000591820 <fb_set_cmap+100/140>
+   0:   98 15 e3 ff       or  %l7, 0x3ff, %o4
+Code;  0000000000591824 <fb_set_cmap+104/140>
+   4:   02 f4 3f da       brz,pn   %l0, ffffffffffffff6c <_TPC+0xffffffffffffff6c>
+Code;  0000000000591828 <fb_set_cmap+108/140>
+   8:   97 30 60 10       srl  %g1, 0x10, %o3
+Code;  000000000059182c <fb_set_cmap+10c/140>
+   c:   c2 94 20 00       lduha  [ %l0 ] %asi, %g1
+Code;  0000000000591830 <fb_set_cmap+110/140>
+  10:   84 10 00 00       mov  %g0, %g2
+Code;  0000000000591834 <fb_set_cmap+114/140>
+  14:   83 28 60 10       sll  %g1, 0x10, %g1
+Code;  0000000000591838 <fb_set_cmap+118/140>
+  18:   10 6f ff d5       b  %xcc, ffffffffffffff6c <_TPC+0xffffffffffffff6c>
+Code;  000000000059183c <fb_set_cmap+11c/140>
+  1c:   99 30 60 10       srl  %g1, 0x10, %o4
+Code;  0000000000591840 <fb_set_cmap+120/140>
+  20:   81 cf e0 08       rett  %i7 + 8
+Code;  0000000000591844 <fb_set_cmap+124/140>
+  24:   00 00 00 00       illtrap  0
+
+TSTATE: 0000009911009607 TPC: 0000000000535210 TNPC: 0000000000535214 Y: 00000000    Not tainted
+g0: fffff800478296b0 g1: 00000000000000ff g2: 0000000005c5ef0d g3: 000000000000003b
+g4: fffff80045562810 g5: 0000000000000036 g6: fffff8004455c000 g7: 0000000000000036
+o0: fffff80045513000 o1: 0000000000000000 o2: 00000000000180dc o3: 0000000070029834
+o4: 000000007003d5f6 o5: 0000000000000001 sp: fffff8004455ef71 ret_pc: 0000000000430a48
+l0: 0000000000000000 l1: 00000000004c6e44 l2: 0000000000000001 l3: 0000000000000000
+l4: 0000000000000308 l5: 000000000000030c l6: 000000000909c9e3 l7: 0000000070028668
+i0: 0000000000699340 i1: 000000000060f0f0 i2: 00000000000180dc i3: 0000000000000020
+i4: 0000000000014f44 i5: 0000000000000000 i6: fffff8004455f041 i7: 00000000004c6e44
 
 
+>>TPC; 0000000000535210 <_do_spin_lock+70/c0>   <=====
+
+>>ret_pc; 0000000000430a48 <sparc32_open+48/c0>
+>>l1; 00000000004c6e44 <proc_lookup+24/120>
+>>i0; 0000000000699340 <kernel_flag+0/40>
+>>i1; 000000000060f0f0 <__func__.4+e8/21900>
+>>i7; 00000000004c6e44 <proc_lookup+24/120>
+
+Unable to handle kernel paging request at virtual address 000000004056c000
+tsk->{mm,active_mm}->context = 000000000000070e
+tsk->{mm,active_mm}->pgd = fffff8004562e000
+              \|/ ____ \|/
+              "@'/ .. \`@"
+              /_| \__/ |_\
+                 \__U_/
+XFree86(461): Oops [#6]
+TSTATE: 0000004480009606 TPC: 000000000059182c TNPC: 0000000000591830 Y: 00000000    Not tainted
+g0: 000000024526b570 g1: 0000000000000000 g2: 0000000000000000 g3: 0000000000000000
+g4: fffff80045562dc0 g5: 0000000000663cb8 g6: fffff80045268000 g7: 0000000000000003
+o0: 000000000072f748 o1: 0000000000000000 o2: 0000000000000000 o3: 0000000000000000
+o4: 000000000000ffff o5: 000000000000004b sp: fffff8004526ad61 ret_pc: 000000000053b0f4
+l0: 000000004056d172 l1: fffff8004526b6da l2: fffff8004526b6dc l3: fffff8004526b6de
+l4: 0000000000000000 l5: fffff8004526b6e0 l6: 0000000000000000 l7: 000000000000fc00
+i0: fffff8004526b6e0 i1: 0000000000000000 i2: fffff80000d0e000 i3: 0000000000000000
+i4: 0000000000000010 i5: 0000000000000010 i6: fffff8004526ae21 i7: 0000000000592da0
 
 
+>>TPC; 000000000059182c <fb_set_cmap+10c/140>   <=====
+
+>>g5; 0000000000663cb8 <cg6_ops+0/90>
+>>ret_pc; 000000000053b0f4 <vis6+a8/294>
+>>i7; 0000000000592da0 <sbusfb_ioctl_helper+300/340>
+
+Caller[0000000000592da0]: sbusfb_ioctl_helper+0x300/0x340
+Caller[000000000058dd94]: fb_ioctl+0x94/0x380
+Caller[00000000004a5a00]: sys_ioctl+0x100/0x2c0
+Caller[0000000000437978]: fbiogetputcmap+0xf8/0x1e0
+Caller[00000000004baf5c]: compat_sys_ioctl+0xfc/0x280
+Caller[0000000000411134]: linux_sparc_syscall32+0x34/0x40
+Caller[000000000005877c]: 0x5877c
+Instruction DUMP: 9815e3ff  02f43fda  97306010 <c2942000> 84100000  83286010  106fffd5  99306010  81cfe008 
 
 
+Trace; 0000000000592da0 <sbusfb_ioctl_helper+300/340>
+Trace; 000000000058dd94 <fb_ioctl+94/380>
+Trace; 00000000004a5a00 <sys_ioctl+100/2c0>
+Trace; 0000000000437978 <fbiogetputcmap+f8/1e0>
+Trace; 00000000004baf5c <compat_sys_ioctl+fc/280>
+Trace; 0000000000411134 <linux_sparc_syscall32+34/40>
+Trace; 000000000005877c Before first symbol
+
+Code;  0000000000591820 <fb_set_cmap+100/140>
+0000000000000000 <_TPC>:
+Code;  0000000000591820 <fb_set_cmap+100/140>
+   0:   98 15 e3 ff       or  %l7, 0x3ff, %o4
+Code;  0000000000591824 <fb_set_cmap+104/140>
+   4:   02 f4 3f da       brz,pn   %l0, ffffffffffffff6c <_TPC+0xffffffffffffff6c>
+Code;  0000000000591828 <fb_set_cmap+108/140>
+   8:   97 30 60 10       srl  %g1, 0x10, %o3
+Code;  000000000059182c <fb_set_cmap+10c/140>
+   c:   c2 94 20 00       lduha  [ %l0 ] %asi, %g1
+Code;  0000000000591830 <fb_set_cmap+110/140>
+  10:   84 10 00 00       mov  %g0, %g2
+Code;  0000000000591834 <fb_set_cmap+114/140>
+  14:   83 28 60 10       sll  %g1, 0x10, %g1
+Code;  0000000000591838 <fb_set_cmap+118/140>
+  18:   10 6f ff d5       b  %xcc, ffffffffffffff6c <_TPC+0xffffffffffffff6c>
+Code;  000000000059183c <fb_set_cmap+11c/140>
+  1c:   99 30 60 10       srl  %g1, 0x10, %o4
+Code;  0000000000591840 <fb_set_cmap+120/140>
+  20:   81 cf e0 08       rett  %i7 + 8
+Code;  0000000000591844 <fb_set_cmap+124/140>
+  24:   00 00 00 00       illtrap  0
+
+TSTATE: 0000009911009600 TPC: 0000000000535210 TNPC: 0000000000535214 Y: 00000000    Not tainted
+g0: 000000000000270b g1: 00000000000000ff g2: 0000000005ea1e7c g3: fffff80040624b70
+g4: fffff80046b0ad00 g5: 0000000000000001 g6: fffff800468fc000 g7: 0000000000000001
+o0: 0000000000067470 o1: 0000000000074e18 o2: 0000000000074e08 o3: 00000000effff428
+o4: 0000000000000000 o5: 0000000000064800 sp: fffff800468ff381 ret_pc: 000000000001b114
+l0: 0000000000000000 l1: 0000000000548eb0 l2: 0000000000000000 l3: 0000000000045000
+l4: 0000000000000000 l5: 0000000000000000 l6: 0000000000000000 l7: 0000000000000000
+i0: 0000000000699340 i1: 000000000060f0f0 i2: 0000000000000000 i3: 00000000006228d8
+i4: 00000000effff038 i5: 0000000000064800 i6: fffff800468ff451 i7: 0000000000548eb0
 
 
+>>TPC; 0000000000535210 <_do_spin_lock+70/c0>   <=====
+
+>>l1; 0000000000548eb0 <tty_write+190/260>
+>>i0; 0000000000699340 <kernel_flag+0/40>
+>>i1; 000000000060f0f0 <__func__.4+e8/21900>
+>>i3; 00000000006228d8 <__func__.4+138d0/21900>
+>>i7; 0000000000548eb0 <tty_write+190/260>
+
+Unable to handle kernel paging request at virtual address 000000004056c000
+tsk->{mm,active_mm}->context = 0000000000000729
+tsk->{mm,active_mm}->pgd = fffff80044f2a000
+              \|/ ____ \|/
+              "@'/ .. \`@"
+              /_| \__/ |_\
+                 \__U_/
+XFree86(476): Oops [#7]
+TSTATE: 0000009980009601 TPC: 000000000042062c TNPC: 0000000000420630 Y: 00000000    Not tainted
+g0: 0000000000000000 g1: 0000000000002000 g2: 000000000614a100 g3: 0000000000000080
+g4: fffff80045562dc0 g5: 0000000000000000 g6: fffff80044db4000 g7: 0000000000000003
+o0: fffff80044db74c8 o1: fffff80044db74c0 o2: 0000000000000001 o3: fffff80045b8f840
+o4: 0000000000000000 o5: 0000000000000000 sp: fffff80044db69f1 ret_pc: 00000000004205e0
+l0: 0000000000000002 l1: 0000000000000001 l2: 0000000000000001 l3: 0000000000000002
+l4: 0000000000000000 l5: 000000004056d179 l6: 0000000000000000 l7: 0000000000000000
+i0: fffff80044db74c0 i1: 00000000c2942000 i2: 000000004056d179 i3: 0000000000800009
+i4: 00000000effffb14 i5: 0000000000000000 i6: fffff80044db6ac1 i7: 0000000000419a68
 
 
+>>TPC; 000000000042062c <kernel_unaligned_trap+26c/364>   <=====
+
+>>ret_pc; 00000000004205e0 <kernel_unaligned_trap+220/364>
+>>i7; 0000000000419a68 <mem_address_unaligned+28/80>
+
+Caller[0000000000419a68]: mem_address_unaligned+0x28/0x80
+Caller[0000000000410dc0]: do_mna+0x3c/0x4c
+Caller[000000000053b0f4]: vis6+0xa8/0x294
+Caller[0000000000592da0]: sbusfb_ioctl_helper+0x300/0x340
+Caller[000000000058dd94]: fb_ioctl+0x94/0x380
+Caller[00000000004a5a00]: sys_ioctl+0x100/0x2c0
+Caller[0000000000437978]: fbiogetputcmap+0xf8/0x1e0
+Caller[00000000004baf5c]: compat_sys_ioctl+0xfc/0x280
+Caller[0000000000411134]: linux_sparc_syscall32+0x34/0x40
+Caller[000000000005877c]: 0x5877c
+Instruction DUMP: 16400019  80a4e004  0248000a <e28d6000> e48d6001  a32c6008  02c94004  a2044012  a32c7030 
 
 
-reznor larry1groovy misha pedro church petunia rux 
-isaac hansonariane wonder lloyd
-tequila lucas benson 
+Trace; 0000000000419a68 <mem_address_unaligned+28/80>
+Trace; 0000000000410dc0 <do_mna+3c/4c>
+Trace; 000000000053b0f4 <vis6+a8/294>
+Trace; 0000000000592da0 <sbusfb_ioctl_helper+300/340>
+Trace; 000000000058dd94 <fb_ioctl+94/380>
+Trace; 00000000004a5a00 <sys_ioctl+100/2c0>
+Trace; 0000000000437978 <fbiogetputcmap+f8/1e0>
+Trace; 00000000004baf5c <compat_sys_ioctl+fc/280>
+Trace; 0000000000411134 <linux_sparc_syscall32+34/40>
+Trace; 000000000005877c Before first symbol
+
+Code;  0000000000420620 <kernel_unaligned_trap+260/364>
+0000000000000000 <_TPC>:
+Code;  0000000000420620 <kernel_unaligned_trap+260/364>
+   0:   16 40 00 19       bge,pn   %icc, 64 <_TPC+0x64>
+Code;  0000000000420624 <kernel_unaligned_trap+264/364>
+   4:   80 a4 e0 04       cmp  %l3, 4
+Code;  0000000000420628 <kernel_unaligned_trap+268/364>
+   8:   02 48 00 0a       be  %icc, 30 <_TPC+0x30>
+Code;  000000000042062c <kernel_unaligned_trap+26c/364>
+   c:   e2 8d 60 00       lduba  [ %l5 ] %asi, %l1
+Code;  0000000000420630 <kernel_unaligned_trap+270/364>
+  10:   e4 8d 60 01       lduba  [ %l5 + 1 ] %asi, %l2
+Code;  0000000000420634 <kernel_unaligned_trap+274/364>
+  14:   a3 2c 60 08       sll  %l1, 8, %l1
+Code;  0000000000420638 <kernel_unaligned_trap+278/364>
+  18:   02 c9 40 04       brz  %g5, 28 <_TPC+0x28>
+Code;  000000000042063c <kernel_unaligned_trap+27c/364>
+  1c:   a2 04 40 12       add  %l1, %l2, %l1
+Code;  0000000000420640 <kernel_unaligned_trap+280/364>
+  20:   a3 2c 70 30       sllx  %l1, 0x30, %l1
+
+TSTATE: 0000009911009600 TPC: 0000000000535210 TNPC: 0000000000535214 Y: 00000000    Not tainted
+g0: fffff800402b62a0 g1: 00000000000000ff g2: 0000000005f3fdea g3: fffff80040624b70
+g4: fffff80046b0ad00 g5: 0000000000000001 g6: fffff800468fc000 g7: 0000000000000001
+o0: 0000000000067470 o1: 0000000000074e18 o2: 0000000000074e08 o3: 00000000effff428
+o4: 0000000000000000 o5: 0000000000064800 sp: fffff800468ff381 ret_pc: 000000000001b114
+l0: 0000000000000000 l1: 0000000000548eb0 l2: 0000000000000000 l3: 0000000000045000
+l4: 0000000000000000 l5: 0000000000000000 l6: 0000000000000000 l7: 0000000000000000
+i0: 0000000000699340 i1: 000000000060f0f0 i2: 0000000000000000 i3: 00000000006228d8
+i4: 00000000effff038 i5: 0000000000064800 i6: fffff800468ff451 i7: 0000000000548eb0
+
+
+>>TPC; 0000000000535210 <_do_spin_lock+70/c0>   <=====
+
+>>l1; 0000000000548eb0 <tty_write+190/260>
+>>i0; 0000000000699340 <kernel_flag+0/40>
+>>i1; 000000000060f0f0 <__func__.4+e8/21900>
+>>i3; 00000000006228d8 <__func__.4+138d0/21900>
+>>i7; 0000000000548eb0 <tty_write+190/260>
+
+Unable to handle kernel paging request at virtual address 000000004056c000
+tsk->{mm,active_mm}->context = 0000000000000742
+tsk->{mm,active_mm}->pgd = fffff8004537e000
+              \|/ ____ \|/
+              "@'/ .. \`@"
+              /_| \__/ |_\
+                 \__U_/
+XFree86(490): Oops [#8]
+TSTATE: 0000004480009606 TPC: 000000000059182c TNPC: 0000000000591830 Y: 00000000    Not tainted
+g0: 0000000244f2b570 g1: 0000000000000000 g2: 0000000000000000 g3: 0000000000000000
+g4: fffff80045562810 g5: 0000000000663cb8 g6: fffff80044f28000 g7: 0000000000000003
+o0: 000000000072f748 o1: 0000000000000000 o2: 0000000000000000 o3: 0000000000000000
+o4: 000000000000ffff o5: 000000000000004b sp: fffff80044f2ad61 ret_pc: 000000000053b0f4
+l0: 000000004056d180 l1: fffff80044f2b6da l2: fffff80044f2b6dc l3: fffff80044f2b6de
+l4: 0000000000000000 l5: fffff80044f2b6e0 l6: 0000000000000000 l7: 000000000000fc00
+i0: fffff80044f2b6e0 i1: 0000000000000000 i2: fffff80000d0e000 i3: 0000000000000000
+i4: 0000000000000010 i5: 0000000000000010 i6: fffff80044f2ae21 i7: 0000000000592da0
+
+
+>>TPC; 000000000059182c <fb_set_cmap+10c/140>   <=====
+
+>>g5; 0000000000663cb8 <cg6_ops+0/90>
+>>ret_pc; 000000000053b0f4 <vis6+a8/294>
+>>i7; 0000000000592da0 <sbusfb_ioctl_helper+300/340>
+
+Caller[0000000000592da0]: sbusfb_ioctl_helper+0x300/0x340
+Caller[000000000058dd94]: fb_ioctl+0x94/0x380
+Caller[00000000004a5a00]: sys_ioctl+0x100/0x2c0
+Caller[0000000000437978]: fbiogetputcmap+0xf8/0x1e0
+Caller[00000000004baf5c]: compat_sys_ioctl+0xfc/0x280
+Caller[0000000000411134]: linux_sparc_syscall32+0x34/0x40
+Caller[000000000005877c]: 0x5877c
+Instruction DUMP: 9815e3ff  02f43fda  97306010 <c2942000> 84100000  83286010  106fffd5  99306010  81cfe008 
+
+
+Trace; 0000000000592da0 <sbusfb_ioctl_helper+300/340>
+Trace; 000000000058dd94 <fb_ioctl+94/380>
+Trace; 00000000004a5a00 <sys_ioctl+100/2c0>
+Trace; 0000000000437978 <fbiogetputcmap+f8/1e0>
+Trace; 00000000004baf5c <compat_sys_ioctl+fc/280>
+Trace; 0000000000411134 <linux_sparc_syscall32+34/40>
+Trace; 000000000005877c Before first symbol
+
+Code;  0000000000591820 <fb_set_cmap+100/140>
+0000000000000000 <_TPC>:
+Code;  0000000000591820 <fb_set_cmap+100/140>
+   0:   98 15 e3 ff       or  %l7, 0x3ff, %o4
+Code;  0000000000591824 <fb_set_cmap+104/140>
+   4:   02 f4 3f da       brz,pn   %l0, ffffffffffffff6c <_TPC+0xffffffffffffff6c>
+Code;  0000000000591828 <fb_set_cmap+108/140>
+   8:   97 30 60 10       srl  %g1, 0x10, %o3
+Code;  000000000059182c <fb_set_cmap+10c/140>
+   c:   c2 94 20 00       lduha  [ %l0 ] %asi, %g1
+Code;  0000000000591830 <fb_set_cmap+110/140>
+  10:   84 10 00 00       mov  %g0, %g2
+Code;  0000000000591834 <fb_set_cmap+114/140>
+  14:   83 28 60 10       sll  %g1, 0x10, %g1
+Code;  0000000000591838 <fb_set_cmap+118/140>
+  18:   10 6f ff d5       b  %xcc, ffffffffffffff6c <_TPC+0xffffffffffffff6c>
+Code;  000000000059183c <fb_set_cmap+11c/140>
+  1c:   99 30 60 10       srl  %g1, 0x10, %o4
+Code;  0000000000591840 <fb_set_cmap+120/140>
+  20:   81 cf e0 08       rett  %i7 + 8
+Code;  0000000000591844 <fb_set_cmap+124/140>
+  24:   00 00 00 00       illtrap  0
+
+TSTATE: 0000009911009600 TPC: 000000000053520c TNPC: 0000000000535210 Y: 00000000    Not tainted
+g0: fffff80000c77130 g1: 00000000000000ff g2: 0000000005c09c06 g3: fffff80040624b70
+g4: fffff80046b0ad00 g5: 0000000000000001 g6: fffff800468fc000 g7: 0000000000000001
+o0: 0000000000067470 o1: 0000000000074e18 o2: 0000000000074e08 o3: 00000000effff428
+o4: 0000000000000000 o5: 0000000000064800 sp: fffff800468ff381 ret_pc: 000000000001b114
+l0: 0000000000000000 l1: 0000000000548eb0 l2: 0000000000000001 l3: 0000000000045000
+l4: 0000000000000000 l5: 0000000000000000 l6: 0000000000000000 l7: 0000000000000000
+i0: 0000000000699340 i1: 000000000060f0f0 i2: 0000000000000000 i3: 00000000006228d8
+i4: 00000000effff038 i5: 0000000000064800 i6: fffff800468ff451 i7: 0000000000548eb0
+
+
+>>TPC; 000000000053520c <_do_spin_lock+6c/c0>   <=====
+
+>>l1; 0000000000548eb0 <tty_write+190/260>
+>>i0; 0000000000699340 <kernel_flag+0/40>
+>>i1; 000000000060f0f0 <__func__.4+e8/21900>
+>>i3; 00000000006228d8 <__func__.4+138d0/21900>
+>>i7; 0000000000548eb0 <tty_write+190/260>
+
+
+--=_bg08WKrSYDhXBj
+Content-Type: text/plain
+Content-Disposition: attachment; filename="decoded.txt"
+
+ksymoops 2.4.9 on sparc64 2.6.4.  Options used
+     -V (default)
+     -K (specified)
+     -l /proc/modules (default)
+     -o /lib/modules/2.6.4/ (default)
+     -m /boot/System.map-2.6.4 (default)
+     -t elf64-sparc -a sparc:v9
+
+No modules in ksyms, skipping objects
+No ksyms, skipping lsmod
+Unable to handle kernel paging request at virtual address 000000004056c000
+tsk->{mm,active_mm}->context = 000000000000060a
+tsk->{mm,active_mm}->pgd = fffff800404b8000
+              \|/ ____ \|/
+              "@'/ .. \`@"
+              /_| \__/ |_\
+                 \__U_/
+XFree86-debug(312): Oops [#1]
+TSTATE: 0000004480009600 TPC: 000000000059182c TNPC: 0000000000591830 Y: 00000000    Not tainted
+g0: 0000000000000000 g1: 0000000000000000 g2: 0000000000000000 g3: 0000000000000000
+g4: fffff80045fa7310 g5: 0000000000663cb8 g6: fffff800465dc000 g7: 0000000000000003
+o0: 0000000000e65020 o1: 0000000000000000 o2: 0000000000000000 o3: 0000000000000000
+o4: 000000000000ffff o5: 000000000000004b sp: fffff800465ded61 ret_pc: 000000000004e79c
+l0: 000000004056cfa8 l1: fffff800465df6da l2: fffff800465df6dc l3: fffff800465df6de
+l4: 0000000000000000 l5: fffff800465df6e0 l6: 0000000000000000 l7: 000000000000fc00
+i0: fffff800465df6e0 i1: 0000000000000000 i2: fffff80000d0e000 i3: 0000000000000000
+i4: 0000000000000010 i5: 0000000000000010 i6: fffff800465dee21 i7: 0000000000592da0
+
+
+>>TPC; 0059182c <fb_set_cmap+10c/140>   <=====
+
+>>g5; 00663cb8 <cg6_ops+0/90>
+>>i7; 00592da0 <sbusfb_ioctl_helper+300/340>
+
+Instruction DUMP: 9815e3ff  02f43fda  97306010 <c2942000> 84100000  83286010  106fffd5  99306010  81cfe008 
+
+
+Code;  0000000000591820 <fb_set_cmap+100/140>
+0000000000000000 <_TPC>:
+Code;  0000000000591820 <fb_set_cmap+100/140>
+   0:   98 15 e3 ff       or  %l7, 0x3ff, %o4
+Code;  0000000000591824 <fb_set_cmap+104/140>
+   4:   02 f4 3f da       brz,pn   %l0, ffffffffffffff6c <_TPC+0xffffffffffffff6c>
+Code;  0000000000591828 <fb_set_cmap+108/140>
+   8:   97 30 60 10       srl  %g1, 0x10, %o3
+Code;  000000000059182c <fb_set_cmap+10c/140>
+   c:   c2 94 20 00       lduha  [ %l0 ] %asi, %g1
+Code;  0000000000591830 <fb_set_cmap+110/140>
+  10:   84 10 00 00       mov  %g0, %g2
+Code;  0000000000591834 <fb_set_cmap+114/140>
+  14:   83 28 60 10       sll  %g1, 0x10, %g1
+Code;  0000000000591838 <fb_set_cmap+118/140>
+  18:   10 6f ff d5       b  %xcc, ffffffffffffff6c <_TPC+0xffffffffffffff6c>
+Code;  000000000059183c <fb_set_cmap+11c/140>
+  1c:   99 30 60 10       srl  %g1, 0x10, %o4
+Code;  0000000000591840 <fb_set_cmap+120/140>
+  20:   81 cf e0 08       rett  %i7 + 8
+Code;  0000000000591844 <fb_set_cmap+124/140>
+  24:   00 00 00 00       illtrap  0
+
+TSTATE: 0000000011009602 TPC: 00000000004d2d00 TNPC: 00000000004d2d04 Y: 00000000    Not tainted
+g0: fffff80047407788 g1: 0000000000000001 g2: fffff80047457df8 g3: fffff80047457df8
+g4: fffff800407be100 g5: fffff80047457e70 g6: fffff80047404000 g7: 0000000000000001
+o0: fffff800407e2570 o1: fffff800404bb4a0 o2: 0000000000001813 o3: 0000000000001862
+o4: 0000000000000000 o5: 00000000004d2f80 sp: fffff80047406fa1 ret_pc: 00000000004d30c0
+l0: fffff80047457c20 l1: fffff800407e2570 l2: 000000000000004f l3: fffff80047457e00
+l4: 000000000060f000 l5: 0000000000000000 l6: 0000000000000000 l7: 0000000000000000
+i0: fffff80000f6a520 i1: fffff80000c344d0 i2: 0000000000001813 i3: 0000000000001862
+i4: 00000000352f5fff i5: 0000000036306100 i6: fffff80047407061 i7: 000000000047654c
+
+
+>>TPC; 00000000004d2d00 <walk_page_buffers+0/c0>   <=====
+
+>>o5; 00000000004d2f80 <ext3_journal_dirty_data+0/60>
+>>ret_pc; 00000000004d30c0 <ext3_ordered_commit_write+40/c0>
+>>l4; 000000000060f000 <__func__.3+8/10>
+>>i7; 000000000047654c <generic_file_aio_write_nolock+32c/860>
+
+Unable to handle kernel paging request at virtual address 000000004056c000
+tsk->{mm,active_mm}->context = 0000000000000616
+tsk->{mm,active_mm}->pgd = fffff800404b8000
+              \|/ ____ \|/
+              "@'/ .. \`@"
+              /_| \__/ |_\
+                 \__U_/
+XFree86-debug(321): Oops [#2]
+TSTATE: 0000009980009601 TPC: 000000000042062c TNPC: 0000000000420630 Y: 00000000    Not tainted
+g0: 0000000000000000 g1: 0000000000002000 g2: 000000000614a100 g3: 0000000000000080
+g4: fffff80045fa7310 g5: 0000000000000000 g6: fffff80045edc000 g7: 0000000000000003
+o0: fffff80045edf4c8 o1: fffff80045edf4c0 o2: 0000000000000001 o3: fffff800467ee0e0
+o4: 0000000000000000 o5: 0000000000000000 sp: fffff80045ede9f1 ret_pc: 00000000004205e0
+l0: 0000000000000002 l1: 0000000000000001 l2: 0000000000000001 l3: 0000000000000002
+l4: 0000000000000000 l5: 000000004056cfab l6: 0000000000000000 l7: 0000000000000000
+i0: fffff80045edf4c0 i1: 00000000c2942000 i2: 000000004056cfab i3: 0000000000800009
+i4: 00000000effffa8c i5: 0000000000000000 i6: fffff80045edeac1 i7: 0000000000419a68
+
+
+>>TPC; 000000000042062c <kernel_unaligned_trap+26c/364>   <=====
+
+>>ret_pc; 00000000004205e0 <kernel_unaligned_trap+220/364>
+>>i7; 0000000000419a68 <mem_address_unaligned+28/80>
+
+Caller[0000000000419a68]: mem_address_unaligned+0x28/0x80
+Caller[0000000000410dc0]: do_mna+0x3c/0x4c
+Caller[000000000004e79c]: 0x4e79c
+Caller[0000000000592da0]: sbusfb_ioctl_helper+0x300/0x340
+Caller[000000000058dd94]: fb_ioctl+0x94/0x380
+Caller[00000000004a5a00]: sys_ioctl+0x100/0x2c0
+Caller[0000000000437978]: fbiogetputcmap+0xf8/0x1e0
+Caller[00000000004baf5c]: compat_sys_ioctl+0xfc/0x280
+Caller[0000000000411134]: linux_sparc_syscall32+0x34/0x40
+Caller[00000000004892a4]: try_to_unmap+0x124/0x1c0
+Instruction DUMP: 16400019  80a4e004  0248000a <e28d6000> e48d6001  a32c6008  02c94004  a2044012  a32c7030 
+
+
+Trace; 0000000000419a68 <mem_address_unaligned+28/80>
+Trace; 0000000000410dc0 <do_mna+3c/4c>
+Trace; 000000000004e79c Before first symbol
+Trace; 0000000000592da0 <sbusfb_ioctl_helper+300/340>
+Trace; 000000000058dd94 <fb_ioctl+94/380>
+Trace; 00000000004a5a00 <sys_ioctl+100/2c0>
+Trace; 0000000000437978 <fbiogetputcmap+f8/1e0>
+Trace; 00000000004baf5c <compat_sys_ioctl+fc/280>
+Trace; 0000000000411134 <linux_sparc_syscall32+34/40>
+Trace; 00000000004892a4 <try_to_unmap+124/1c0>
+
+Code;  0000000000420620 <kernel_unaligned_trap+260/364>
+0000000000000000 <_TPC>:
+Code;  0000000000420620 <kernel_unaligned_trap+260/364>
+   0:   16 40 00 19       bge,pn   %icc, 64 <_TPC+0x64>
+Code;  0000000000420624 <kernel_unaligned_trap+264/364>
+   4:   80 a4 e0 04       cmp  %l3, 4
+Code;  0000000000420628 <kernel_unaligned_trap+268/364>
+   8:   02 48 00 0a       be  %icc, 30 <_TPC+0x30>
+Code;  000000000042062c <kernel_unaligned_trap+26c/364>
+   c:   e2 8d 60 00       lduba  [ %l5 ] %asi, %l1
+Code;  0000000000420630 <kernel_unaligned_trap+270/364>
+  10:   e4 8d 60 01       lduba  [ %l5 + 1 ] %asi, %l2
+Code;  0000000000420634 <kernel_unaligned_trap+274/364>
+  14:   a3 2c 60 08       sll  %l1, 8, %l1
+Code;  0000000000420638 <kernel_unaligned_trap+278/364>
+  18:   02 c9 40 04       brz  %g5, 28 <_TPC+0x28>
+Code;  000000000042063c <kernel_unaligned_trap+27c/364>
+  1c:   a2 04 40 12       add  %l1, %l2, %l1
+Code;  0000000000420640 <kernel_unaligned_trap+280/364>
+  20:   a3 2c 70 30       sllx  %l1, 0x30, %l1
+
+TSTATE: 0000001111009604 TPC: 00000000005351e0 TNPC: 0000000000535208 Y: 00000000    Not tainted
+g0: 000000000061931a g1: 00000000000000ff g2: 0000000005b1271a g3: fffff80000fa2060
+g4: fffff80045fa6d60 g5: 0000000000000001 g6: fffff80045994000 g7: 0000000000000001
+o0: ffffffffffffffff o1: 000000007023c000 o2: 000000000000004a o3: 0000000000087ffe
+o4: 0000000000000002 o5: 0000000000000075 sp: fffff80045997381 ret_pc: 00000000700d5260
+l0: 0000000000000000 l1: 0000000000548eb0 l2: 0000000000000001 l3: 00000000701a2bd0
+l4: 0000000000000001 l5: 0000000000000005 l6: 000000000000000a l7: 00000000701a8c2c
+i0: 0000000000699340 i1: 000000000060f0f0 i2: 000000000000000c i3: 00000000006228d8
+i4: 0000000000000003 i5: 0000000000020788 i6: fffff80045997451 i7: 0000000000548eb0
+
+
+>>TPC; 00000000005351e0 <_do_spin_lock+40/c0>   <=====
+
+>>g0; 000000000061931a <__func__.4+a312/21900>
+>>l1; 0000000000548eb0 <tty_write+190/260>
+>>i0; 0000000000699340 <kernel_flag+0/40>
+>>i1; 000000000060f0f0 <__func__.4+e8/21900>
+>>i3; 00000000006228d8 <__func__.4+138d0/21900>
+>>i7; 0000000000548eb0 <tty_write+190/260>
+
+Unable to handle kernel paging request at virtual address 000000004056c000
+tsk->{mm,active_mm}->context = 0000000000000629
+tsk->{mm,active_mm}->pgd = fffff800404b8000
+              \|/ ____ \|/
+              "@'/ .. \`@"
+              /_| \__/ |_\
+                 \__U_/
+XFree86-debug(332): Oops [#3]
+TSTATE: 0000009980009601 TPC: 000000000042062c TNPC: 0000000000420630 Y: 00000000    Not tainted
+g0: 0000000000000000 g1: 0000000000002000 g2: 000000000614a100 g3: 0000000000000080
+g4: fffff80045fa7310 g5: 0000000000000000 g6: fffff800465e8000 g7: 0000000000000003
+o0: fffff800465eb4c8 o1: fffff800465eb4c0 o2: 0000000000000001 o3: fffff80046e41260
+o4: 0000000000000000 o5: 0000000000000000 sp: fffff800465ea9f1 ret_pc: 00000000004205e0
+l0: 0000000000000002 l1: 0000000000000001 l2: 0000000000000001 l3: 0000000000000002
+l4: 0000000000000000 l5: 000000004056cfb1 l6: 0000000000000000 l7: 0000000000000000
+i0: fffff800465eb4c0 i1: 00000000c2942000 i2: 000000004056cfb1 i3: 0000000000800009
+i4: 00000000effffa8c i5: 0000000000000000 i6: fffff800465eaac1 i7: 0000000000419a68
+
+
+>>TPC; 000000000042062c <kernel_unaligned_trap+26c/364>   <=====
+
+>>ret_pc; 00000000004205e0 <kernel_unaligned_trap+220/364>
+>>i7; 0000000000419a68 <mem_address_unaligned+28/80>
+
+Instruction DUMP: 16400019  80a4e004  0248000a <e28d6000> e48d6001  a32c6008  02c94004  a2044012  a32c7030 
+
+
+Code;  0000000000420620 <kernel_unaligned_trap+260/364>
+0000000000000000 <_TPC>:
+Code;  0000000000420620 <kernel_unaligned_trap+260/364>
+   0:   16 40 00 19       bge,pn   %icc, 64 <_TPC+0x64>
+Code;  0000000000420624 <kernel_unaligned_trap+264/364>
+   4:   80 a4 e0 04       cmp  %l3, 4
+Code;  0000000000420628 <kernel_unaligned_trap+268/364>
+   8:   02 48 00 0a       be  %icc, 30 <_TPC+0x30>
+Code;  000000000042062c <kernel_unaligned_trap+26c/364>
+   c:   e2 8d 60 00       lduba  [ %l5 ] %asi, %l1
+Code;  0000000000420630 <kernel_unaligned_trap+270/364>
+  10:   e4 8d 60 01       lduba  [ %l5 + 1 ] %asi, %l2
+Code;  0000000000420634 <kernel_unaligned_trap+274/364>
+  14:   a3 2c 60 08       sll  %l1, 8, %l1
+Code;  0000000000420638 <kernel_unaligned_trap+278/364>
+  18:   02 c9 40 04       brz  %g5, 28 <_TPC+0x28>
+Code;  000000000042063c <kernel_unaligned_trap+27c/364>
+  1c:   a2 04 40 12       add  %l1, %l2, %l1
+Code;  0000000000420640 <kernel_unaligned_trap+280/364>
+  20:   a3 2c 70 30       sllx  %l1, 0x30, %l1
+
+TSTATE: 0000009911009600 TPC: 000000000053520c TNPC: 0000000000535210 Y: 00000000    Not tainted
+g0: 000000000000270b g1: 00000000000000ff g2: 0000000005f044d3 g3: fffff800468d1b20
+g4: fffff80046b0ad00 g5: fffff80046aaa300 g6: fffff800468fc000 g7: 0000000070015638
+o0: 0000000000067470 o1: 0000000000074e18 o2: 0000000000074e08 o3: 00000000effff428
+o4: 0000000000000000 o5: 0000000000064800 sp: fffff800468ff381 ret_pc: 000000000001b114
+l0: 0000000000000000 l1: 0000000000548c80 l2: 0000000000000000 l3: 0000000000045000
+l4: 0000000000000000 l5: 0000000000000000 l6: 0000000000000000 l7: 0000000000000000
+i0: 0000000000699340 i1: 000000000060f0f0 i2: 0000000000000000 i3: 0000000000622870
+i4: 00000000effff038 i5: 0000000000064800 i6: fffff800468ff451 i7: 0000000000548c80
+
+
+>>TPC; 000000000053520c <_do_spin_lock+6c/c0>   <=====
+
+>>l1; 0000000000548c80 <tty_read+a0/140>
+>>i0; 0000000000699340 <kernel_flag+0/40>
+>>i1; 000000000060f0f0 <__func__.4+e8/21900>
+>>i3; 0000000000622870 <__func__.4+13868/21900>
+>>i7; 0000000000548c80 <tty_read+a0/140>
+
+Unable to handle kernel paging request at virtual address 000000004056c000
+tsk->{mm,active_mm}->context = 000000000000063c
+tsk->{mm,active_mm}->pgd = fffff800465f0000
+              \|/ ____ \|/
+              "@'/ .. \`@"
+              /_| \__/ |_\
+                 \__U_/
+XFree86-debug(343): Oops [#4]
+TSTATE: 0000009980009601 TPC: 000000000042062c TNPC: 0000000000420630 Y: 00000000    Not tainted
+g0: 0000000000000000 g1: 0000000000002000 g2: 000000000614a100 g3: 0000000000000080
+g4: fffff80045fa67b0 g5: 0000000000000000 g6: fffff8004584c000 g7: 0000000000000003
+o0: fffff8004584f4c8 o1: fffff8004584f4c0 o2: 0000000000000001 o3: fffff80045bf5a00
+o4: 0000000000000000 o5: 0000000000000000 sp: fffff8004584e9f1 ret_pc: 00000000004205e0
+l0: 0000000000000002 l1: 0000000000000001 l2: 0000000000000001 l3: 0000000000000002
+l4: 0000000000000000 l5: 000000004056cfb7 l6: 0000000000000000 l7: 0000000000000000
+i0: fffff8004584f4c0 i1: 00000000c2942000 i2: 000000004056cfb7 i3: 0000000000800009
+i4: 00000000effffa8c i5: 0000000000000000 i6: fffff8004584eac1 i7: 0000000000419a68
+
+
+>>TPC; 000000000042062c <kernel_unaligned_trap+26c/364>   <=====
+
+>>ret_pc; 00000000004205e0 <kernel_unaligned_trap+220/364>
+>>i7; 0000000000419a68 <mem_address_unaligned+28/80>
+
+Caller[0000000000419a68]: mem_address_unaligned+0x28/0x80
+Caller[0000000000410dc0]: do_mna+0x3c/0x4c
+Caller[000000000004e79c]: 0x4e79c
+Caller[0000000000592da0]: sbusfb_ioctl_helper+0x300/0x340
+Caller[000000000058dd94]: fb_ioctl+0x94/0x380
+Caller[00000000004a5a00]: sys_ioctl+0x100/0x2c0
+Caller[0000000000437978]: fbiogetputcmap+0xf8/0x1e0
+Caller[00000000004baf5c]: compat_sys_ioctl+0xfc/0x280
+Caller[0000000000411134]: linux_sparc_syscall32+0x34/0x40
+Caller[00000000004892a4]: try_to_unmap+0x124/0x1c0
+Instruction DUMP: 16400019  80a4e004  0248000a <e28d6000> e48d6001  a32c6008  02c94004  a2044012  a32c7030 
+
+
+Trace; 0000000000419a68 <mem_address_unaligned+28/80>
+Trace; 0000000000410dc0 <do_mna+3c/4c>
+Trace; 000000000004e79c Before first symbol
+Trace; 0000000000592da0 <sbusfb_ioctl_helper+300/340>
+Trace; 000000000058dd94 <fb_ioctl+94/380>
+Trace; 00000000004a5a00 <sys_ioctl+100/2c0>
+Trace; 0000000000437978 <fbiogetputcmap+f8/1e0>
+Trace; 00000000004baf5c <compat_sys_ioctl+fc/280>
+Trace; 0000000000411134 <linux_sparc_syscall32+34/40>
+Trace; 00000000004892a4 <try_to_unmap+124/1c0>
+
+Code;  0000000000420620 <kernel_unaligned_trap+260/364>
+0000000000000000 <_TPC>:
+Code;  0000000000420620 <kernel_unaligned_trap+260/364>
+   0:   16 40 00 19       bge,pn   %icc, 64 <_TPC+0x64>
+Code;  0000000000420624 <kernel_unaligned_trap+264/364>
+   4:   80 a4 e0 04       cmp  %l3, 4
+Code;  0000000000420628 <kernel_unaligned_trap+268/364>
+   8:   02 48 00 0a       be  %icc, 30 <_TPC+0x30>
+Code;  000000000042062c <kernel_unaligned_trap+26c/364>
+   c:   e2 8d 60 00       lduba  [ %l5 ] %asi, %l1
+Code;  0000000000420630 <kernel_unaligned_trap+270/364>
+  10:   e4 8d 60 01       lduba  [ %l5 + 1 ] %asi, %l2
+Code;  0000000000420634 <kernel_unaligned_trap+274/364>
+  14:   a3 2c 60 08       sll  %l1, 8, %l1
+Code;  0000000000420638 <kernel_unaligned_trap+278/364>
+  18:   02 c9 40 04       brz  %g5, 28 <_TPC+0x28>
+Code;  000000000042063c <kernel_unaligned_trap+27c/364>
+  1c:   a2 04 40 12       add  %l1, %l2, %l1
+Code;  0000000000420640 <kernel_unaligned_trap+280/364>
+  20:   a3 2c 70 30       sllx  %l1, 0x30, %l1
+
+TSTATE: 0000000011f09600 TPC: 0000000000451378 TNPC: 000000000045137c Y: 00000000    Not tainted
+g0: fffff80047d88800 g1: 00000000000003e8 g2: 0000000000989680 g3: 0000000000000078
+g4: fffff80047421820 g5: 0000000000000064 g6: fffff800473c0000 g7: 0000000000000000
+o0: 0000000000000000 o1: 00000000effff3f0 o2: 000000000000004e o3: 0000000000000000
+o4: 0000000000000000 o5: 00000000701636c8 sp: fffff800473c2ce1 ret_pc: 0000000000492610
+l0: fffff800473c3bd0 l1: 0000000000000000 l2: 000000000000000a l3: 0000000000028679
+l4: 00000000fffff800 l5: 0000000000026400 l6: 0000000000000019 l7: 0000000070184c2c
+i0: 0000000000000073 i1: 00000000effff3f0 i2: 000000000000004e i3: fffff800402b10e0
+i4: 000000000000003e i5: 000000003b961471 i6: fffff800473c2da1 i7: 00000000004515d4
+
+
+>>TPC; 0000000000451378 <effective_prio+38/60>   <=====
+
+>>ret_pc; 0000000000492610 <do_sync_write+50/a0>
+>>i7; 00000000004515d4 <recalc_task_prio+234/260>
+
+
+--=_bg08WKrSYDhXBj--
+
