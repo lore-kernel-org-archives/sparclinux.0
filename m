@@ -1,41 +1,26 @@
-From: Matt R Hall <mhcomputing@gmail.com>
-Date: Tue, 21 Sep 2004 01:40:39 +0000
-Subject: Ultra 2 Enterprise: All 2.6.xx SMP kernels hardlock
-Message-Id: <703d4eaa04092018404389859@mail.gmail.com>
+From: "David S. Miller" <davem@davemloft.net>
+Date: Tue, 21 Sep 2004 06:34:10 +0000
+Subject: Re: Ultra 2 Enterprise: All 2.6.xx SMP kernels hardlock
+Message-Id: <20040920233410.236d85aa.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <703d4eaa04092018404389859@mail.gmail.com>
+In-Reply-To: <703d4eaa04092018404389859@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-I filed a report about this in kernel.org's bugzilla and it has not
-received any comments. I would appreciate it if people could read this
-and provide input. Here is a shortened version of the full report:
+On Mon, 20 Sep 2004 18:40:39 -0700
+Matt R Hall <mhcomputing@gmail.com> wrote:
 
-Distribution: Debian Unstable (Sid) 2004-09-20
-Hardware Environment:
-Sun Ultra Enterprise II
-2x200 mHz UltraSPARC I Processor
-512MB RAM
-2x4.3GB 7200RPM SCSI Disc
-Toshiba SCSI CD-ROM
+> I filed a report about this in kernel.org's bugzilla and it has not
+> received any comments.
 
-Kernel configuration and dmesg output are pasted below for reference purposes.
+Because the sparc64 kernel maintainer, me, doesn't look at
+kernel.org's bugzilla ever. :-)
 
-Software Environment:
-Standard Debian Unstable System
+Can you make sure 2.6.9-rc2 has the same problem?
 
-Problem Description:
-Sun Ultra Enterprise 2 was hardlocking in 2.6.xx. Never responded to keyboard
-input. Sometimes would respond to pings and SSH connections for a while, but
-would always lock hard eventually with no errors. Note that this exact same
-system works perfectly in 2.4.xx. I reiterate, SMP functions correctly there.
-Obviously something has changed and caused functionality to break, hence why I
-have marked this bug high severity. IMHO, "stable" kernel series should not
-result in a step back in hardware compatibility.
-
-Disabling SMP resulted in a working system.
-
-Steps to reproduce:
-Compile with the following kernel configuration, except add the SMP option.
-Witness the machine fail to continue functioning.
+I don't have any of my SBUS SMP systems active in my array
+of machines lately which is why stability on them has fallen
+on the way side, they're just too damn slow to work with :(
