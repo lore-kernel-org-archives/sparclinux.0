@@ -1,29 +1,28 @@
-From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
-Date: Tue, 08 Feb 2005 16:58:07 +0000
-Subject: Re: Xorg does not work on sparc32 in 2.6 (except on cg14)
-Message-Id: <1107881887.3664.73.camel@localhost.localdomain>
+From: "Blue Swirl" <blueswir1@hotmail.com>
+Date: Sun, 20 Feb 2005 18:48:55 +0000
+Subject: Who restores %g6 for trap/irq handlers?
+Message-Id: <BAY12-F4108B6A30787FD6116E685FF600@phx.gbl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1107553760.3951.211.camel@localhost.localdomain>
-In-Reply-To: <1107553760.3951.211.camel@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, 2005-02-08 at 17:42 +0100, Georg Chini wrote:
+Hi,
 
-> maybe this is an error in the driver for TGX. My SS5 has a TCX card and
-> I had the same problem (screen blank but no X visible).
+Qemu's Sparc32 system emulator is getting to the point where the first user 
+space application almost executes. But there is some strangeness with 
+kernel's use of %g6, it's used for example in do_sparc_fault, but nothing is 
+restoring it before that, so there is a kernel zero page access as a result. 
+In  Qemu this means that the emulator halts. If I patch the kernel so that 
+%g6 is restored in trap/irq handlers, the execution goes on (for example, 
+page faults bring in user pages) until the next unpatched use of %g6 
+happens.
 
-I've already got your fix applied, it doesn't look to be related. With a
-similar patch, I can make the cg3 output the framebuffer fine, but not
-X.
+How can this possibly work in a real hardware? The same %g6 system is used 
+in 2.4. series, I'm currently using 2.6.11-rc4.
 
-~spot
----
-Tom "spot" Callaway <tcallawa(a)redhat*com> LCA, RHCE 
-Red Hat Sales Engineer || Aurora Linux Project Leader
-
-"If you are going through hell, keep going."
--- Sir Winston Churchill
+_________________________________________________________________
+Don't just search. Find. Check out the new MSN Search! 
+http://search.msn.click-url.com/go/onm00200636ave/direct/01/
 
