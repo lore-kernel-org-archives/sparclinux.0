@@ -1,82 +1,172 @@
-From: "Frances Gordon" <cmk46ord@alice.asahi-u.ac.jp>
-Date: Sun, 29 Feb 2004 15:02:30 +0000
-Subject: The 2004 edition of The American Medical Directory emergency medicine, exrgnozdp
-Message-Id: <lxvs$z6vi9tg2f$$y40-o3@7huyx.2.572>
+From: David Dillow <dave@thedillows.org>
+Date: Wed, 04 Feb 2004 06:41:33 +0000
+Subject: AIO userspace for sparc 32-bit userspace
+Message-Id: <1075876892.5040.58.camel@ori.thedillows.org>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="_B__D_F5.FC._A0.C1CBE"
+Content-Type: multipart/mixed; boundary="=-H+ADZUM0jldO/YCkreOI"
 List-Id: <sparclinux.vger.kernel.org>
 To: sparclinux@vger.kernel.org
 
 
---_B__D_F5.FC._A0.C1CBE
-Content-Type: text/plain;
+--=-H+ADZUM0jldO/YCkreOI
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
+The attached patch adds sparc support to libaio. It works with sparc and
+the 32 bit userland of sparc64.
+
+This is only the userland side, kernel patches are needed, as the system
+call numbers are duplicated.
+
+To get the base libaio tarball, go to
+ftp://ftp.kernel.org/pub/linux/kernel/people/bcrl/aio
+
+It passes all test cases, except case 5.t, where it expects an -EFAULT,
+but sees a -EHOSTDOWN. The message with the kernel patch points towards
+the problem.
+
+Enjoy!
+
+Dave
+
+--=-H+ADZUM0jldO/YCkreOI
+Content-Disposition: attachment; filename=aio.patch
+Content-Type: text/plain; name=aio.patch; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
-EXCLUSIVELY ON CD-ROM
+--- libaio-0.3.92/src/libaio.h	2002-09-16 18:45:18.000000000 -0400
++++ libaio-new/src/libaio.h	2004-01-23 10:26:09.000000000 -0500
+@@ -47,6 +47,10 @@
+ #define PADDED(x, y)	x; unsigned y
+ #define PADDEDptr(x, y)	x; unsigned y
+ #define PADDEDul(x, y)	unsigned long x; unsigned y
++#elif defined(__sparc__) /* big endian, 32 bits */
++#define PADDED(x, y)	unsigned y; x
++#define PADDEDptr(x, y)	unsigned y; x
++#define PADDEDul(x, y)	unsigned y; unsigned long x
+ #elif defined(__ia64__) || defined(__x86_64__)
+ #define PADDED(x, y)	x, y
+ #define PADDEDptr(x, y)	x
+--- libaio-0.3.92/src/syscall.h	2002-09-13 19:07:20.000000000 -0400
++++ libaio-new/src/syscall.h	2004-01-22 01:24:51.000000000 -0500
+@@ -10,6 +10,8 @@
+ #include "syscall-x86_64.h"
+ #elif defined(__ia64__)
+ #include "syscall-ia64.h"
++#elif defined(__sparc__)
++#include "syscall-sparc.h"
+ #else
+ #error "add syscall-arch.h"
+ #endif
+--- libaio-0.3.92/src/syscall-sparc.h	1969-12-31 19:00:00.000000000 -0500
++++ libaio-new/src/syscall-sparc.h	2004-02-04 01:32:50.000000000 -0500
+@@ -0,0 +1,104 @@
++/* GPL'd, as this is from the kernel, asm-sparc/unistd.h
++ */
++#define __NR_io_setup		268
++#define __NR_io_destroy		232
++#define __NR_io_submit		269
++#define __NR_io_cancel		270
++#define __NR_io_getevents	271
++
++#define io_syscall1(type,name,type1,arg1) \
++type name(type1 arg1) \
++{ \
++long __res; \
++register long __g1 __asm__ ("g1") =3D __NR_##name; \
++register long __o0 __asm__ ("o0") =3D (long)(arg1); \
++__asm__ __volatile__ ("t 0x10\n\t" \
++		      "bcc 1f\n\t" \
++		      "mov %%o0, %0\n\t" \
++		      "sub %%g0, %%o0, %0\n\t" \
++		      "1:\n\t" \
++		      : "=3Dr" (__res), "=3D&r" (__o0) \
++		      : "1" (__o0), "r" (__g1) \
++		      : "cc"); \
++	return (type) __res; \
++}
++
++#define io_syscall2(type,name,type1,arg1,type2,arg2) \
++type name(type1 arg1,type2 arg2) \
++{ \
++long __res; \
++register long __g1 __asm__ ("g1") =3D __NR_##name; \
++register long __o0 __asm__ ("o0") =3D (long)(arg1); \
++register long __o1 __asm__ ("o1") =3D (long)(arg2); \
++__asm__ __volatile__ ("t 0x10\n\t" \
++		      "bcc 1f\n\t" \
++		      "mov %%o0, %0\n\t" \
++		      "sub %%g0, %%o0, %0\n\t" \
++		      "1:\n\t" \
++		      : "=3Dr" (__res), "=3D&r" (__o0) \
++		      : "1" (__o0), "r" (__o1), "r" (__g1) \
++		      : "cc"); \
++	return (type) __res; \
++}
++
++#define io_syscall3(type,name,type1,arg1,type2,arg2,type3,arg3) \
++type name(type1 arg1,type2 arg2,type3 arg3) \
++{ \
++long __res; \
++register long __g1 __asm__ ("g1") =3D __NR_##name; \
++register long __o0 __asm__ ("o0") =3D (long)(arg1); \
++register long __o1 __asm__ ("o1") =3D (long)(arg2); \
++register long __o2 __asm__ ("o2") =3D (long)(arg3); \
++__asm__ __volatile__ ("t 0x10\n\t" \
++		      "bcc 1f\n\t" \
++		      "mov %%o0, %0\n\t" \
++		      "sub %%g0, %%o0, %0\n\t" \
++		      "1:\n\t" \
++		      : "=3Dr" (__res), "=3D&r" (__o0) \
++		      : "1" (__o0), "r" (__o1), "r" (__o2), "r" (__g1) \
++		      : "cc"); \
++	return (type) __res; \
++}
++
++#define io_syscall4(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4)=
+ \
++type name (type1 arg1, type2 arg2, type3 arg3, type4 arg4) \
++{ \
++long __res; \
++register long __g1 __asm__ ("g1") =3D __NR_##name; \
++register long __o0 __asm__ ("o0") =3D (long)(arg1); \
++register long __o1 __asm__ ("o1") =3D (long)(arg2); \
++register long __o2 __asm__ ("o2") =3D (long)(arg3); \
++register long __o3 __asm__ ("o3") =3D (long)(arg4); \
++__asm__ __volatile__ ("t 0x10\n\t" \
++		      "bcc 1f\n\t" \
++		      "mov %%o0, %0\n\t" \
++		      "sub %%g0, %%o0, %0\n\t" \
++		      "1:\n\t" \
++		      : "=3Dr" (__res), "=3D&r" (__o0) \
++		      : "1" (__o0), "r" (__o1), "r" (__o2), "r" (__o3), "r" (__g1) \
++		      : "cc"); \
++	return (type) __res; \
++}=20
++
++#define io_syscall5(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4,=
+ \
++	  type5,arg5) \
++type name (type1 arg1,type2 arg2,type3 arg3,type4 arg4,type5 arg5) \
++{ \
++long __res; \
++register long __g1 __asm__ ("g1") =3D __NR_##name; \
++register long __o0 __asm__ ("o0") =3D (long)(arg1); \
++register long __o1 __asm__ ("o1") =3D (long)(arg2); \
++register long __o2 __asm__ ("o2") =3D (long)(arg3); \
++register long __o3 __asm__ ("o3") =3D (long)(arg4); \
++register long __o4 __asm__ ("o4") =3D (long)(arg5); \
++__asm__ __volatile__ ("t 0x10\n\t" \
++		      "bcc 1f\n\t" \
++		      "mov %%o0, %0\n\t" \
++		      "sub %%g0, %%o0, %0\n\t" \
++		      "1:\n\t" \
++		      : "=3Dr" (__res), "=3D&r" (__o0) \
++		      : "1" (__o0), "r" (__o1), "r" (__o2), "r" (__o3), "r" (__o4), "r" =
+(__g1) \
++		      : "cc"); \
++	return (type) __res; \
++}
++
 
-The 2004 edition of  The American Medical Directory & Physicians Guide has=
- 
-just been completed.
-  
-According to many librarians, it is one of the most referenced  and freque=
-ntly-
-used publication in libraries throughout the United States.
- 
-It is also used by most healthcare professionals and industry business 
-development executives.
-
-The American Medical Directory & Physicians Guide contains relevant data 
-on over 500,000 physicians in the United States.
- 
-Each record is indexed by such features as name, address, phone/fax, count=
-y, 
-year licensed, type of practice, type of physician, as well as primary and=
- 
-secondary specialty.
-
-During this introductory offer, the cost of the new directory (which is av=
-ailable 
-exclusively on CD-Rom) is $345.00 (reg. $795).   
-
-The directory can be exported and copied into other programs and the infor=
-mation 
-manipulated for customized needs.
-  
-It is also offered on an unlimited use basis.
-
-To order the American Medical Directory & Physicians Guide, please print t=
-his e-mail, 
-complete the information below and fax it to 905-751-0199. (tel: 905-751-0=
-919).
-
-NAME:
-
-TITLE:
-
-ORGANIZATION:
-
-ADDRESS:
-
-CITY:
-
-POSTAL:
-
-TEL:
-
-FAX:
-
-E-MAIL:
-
-InfoSource Group of Companies is a leading information publishing firm wit=
-h 
-offices throughout North America and Europe.
-
-gvrb kyphtmraqd 
-f n ram kvcf
-
-hxht
- 
- s pmr jqjffs trivfou coepuwkfgrz
-
---_B__D_F5.FC._A0.C1CBE--
-
+--=-H+ADZUM0jldO/YCkreOI--
