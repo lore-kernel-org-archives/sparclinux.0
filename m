@@ -1,7 +1,7 @@
 From: "Art Haas" <ahaas@airmail.net>
-Date: Wed, 31 Mar 2004 01:38:32 +0000
+Date: Wed, 31 Mar 2004 01:42:16 +0000
 Subject: Re: Compiling sunlance as a module
-Message-Id: <20040331013832.GB6522@artsapartment.org>
+Message-Id: <20040331014216.GC6522@artsapartment.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040330234412.GB5439@artsapartment.org>
 In-Reply-To: <20040330234412.GB5439@artsapartment.org>
@@ -10,28 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Wed, Mar 31, 2004 at 12:25:25AM +0000, C.Newport wrote:
-> On Wednesday 31 March 2004 12:44 am, Art Haas wrote:
-> > Hi.
-> >
-> > I'm still fiddling around with my configuration for my SS20, and I found
-> > that compiling the sunlance.c file as a module has problems. 
-> [snip]
-> > I seek enlightenment from the list.
+On Tue, Mar 30, 2004 at 05:21:08PM -0700, Jason Wever wrote:
+> On Tue, 30 Mar 2004 18:09:24 -0600
+> "Art Haas" <ahaas@airmail.net> wrote:
 > 
-> All supported 32bit sparc machines come with a sunlance NIC, so
-> why would you want this as a module ?. You are always going to
-> need it.
+> > My main computer is an old Pentium computer, and I have an ethernet card
+> > using the 8139too driver, and this machine doesn't have any problem
+> > loading the module, and I haven't (knowingly) done anything special to
+> > load it prior to the machine bringing up the eth0 interface. It would
+> > not be surprising if my problem is a configuration error, but when I
+> > compare my sparc-configuration to the i386-configuration, things look
+> > similiar in the networking type areas.
 > 
-> There is a slightly more obscure issue here - Not all Sun machines
-> have a working CD drive so the ability to boot from the network for
-> both installations and troubleshooting is highly desireable. 
-> Booting from a device which needs a module is not a good idea.
-> 
+> Are you running hotplug on the i386 box?  That can result in the module
+> being auto-loaded as well as any other automatic hardware detection
+> software.
 
-I try to make the kernel as modular as I can, so that's why I'm trying
-to build this driver as a module. It's just how I tend to configure
-things ...
+The machine is configured for hotplug; as I was curious to fiddle around
+with the 'udev' stuff in development. I'm still using a static '/dev'
+directory, though.
+
+> If the kernel is auto-loading the module without outside assistance, I'd
+> be interested to know how that works.
+
+I'm certain that my ethernet driver was being successfully loaded as a
+module long before I'd begun to configure the kernel with hotplug
+capabilities. I should add a few 'lsmod' statements here and there in
+the initscripts and see if I can find just where and when this module is
+getting loaded.
 
 Art Haas
 
