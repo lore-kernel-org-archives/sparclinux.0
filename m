@@ -1,47 +1,29 @@
-From: Jason Wever <weeve@gentoo.org>
-Date: Sun, 24 Oct 2004 21:09:05 +0000
-Subject: [PATCH] atyfb driver fix for 2.6.10-rc1-bk2
-Message-Id: <20041024150905.10299d17@enterprise.weeve.org>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Signature=_Sun__24_Oct_2004_15_09_05_-0600_oBlVvVcGvZd=lcZS"
+From: "Blue Swirl" <blueswir1@hotmail.com>
+Date: Sun, 03 Oct 2004 17:02:31 +0000
+Subject: Sun4m hardware docs?
+Message-Id: <BAY12-F12rhYQYx3G5a000003fb@hotmail.com>
 List-Id: <sparclinux.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
---Signature=_Sun__24_Oct_2004_15_09_05_-0600_oBlVvVcGvZd=lcZS
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
+Hi,
 
-The following patch for the atyfb driver fixes a compile issue in
-2.6.10-rc1-bk2.  I've tested it here locally on a Blade 100 and all seems
-well from what I can tell.
+I'm trying to get Qemu's Sparc system emulation working, Sun4m is the targe=
+t=20
+architecture. Proll is used as prom replacement.   Lance, iommu, nvram and =
 
---- linux-2.6.10-rc1-bk2/drivers/video/aty/atyfb_base.c.orig	2004-10-24 09:51:36.000000000 -0600
-+++ linux-2.6.10-rc1-bk2/drivers/video/aty/atyfb_base.c	2004-10-24 12:51:05.000000000 -0600
-@@ -2288,7 +2288,7 @@
- 			default_par->mmap_map[1].voff =
- 			    default_par->mmap_map[0].voff +
- 			    info->fix.smem_len;
--			default_par->mmap_map[1].poff =
-+			default_par->mmap_map[1].poff = (unsigned long)
- 			    default_par->ati_regbase & PAGE_MASK;
- 			default_par->mmap_map[1].size = PAGE_SIZE;
- 			default_par->mmap_map[1].prot_mask = _PAGE_CACHE;
+TCX  basic functions are implemented. The current status is that Proll=20
+initialises, Linux gets loaded and it can reach=20
+srmmu_early_allocate_ptable_skeleton before dying mysteriously.
 
+Are there any docs for sun4m hardware (interrupt controllers, timers, etc) =
 
--- 
-Jason Wever
-Gentoo/Sparc Team Co-Lead
+and  principles of operation (interrupt handling, dvma, boot state, bus=20
+management)? I don't plan to implement anything that is not used by Linux.
 
---Signature=_Sun__24_Oct_2004_15_09_05_-0600_oBlVvVcGvZd=lcZS
-Content-Type: application/pgp-signature
+_________________________________________________________________
+Help STOP SPAM with the new MSN 8 and get 2 months FREE* =20
+http://join.msn.com/?page=FEatures/junkmail
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.6 (GNU/Linux)
-
-iD8DBQFBfBnzdKvgdVioq28RAtLwAJ9FQW2l8wJ9QR1huiM5HW0DgC54CgCfWZDL
-uComf6B3vaYGNaNYFRm+6rM=
-=GogR
------END PGP SIGNATURE-----
-
---Signature=_Sun__24_Oct_2004_15_09_05_-0600_oBlVvVcGvZd=lcZS--
