@@ -1,40 +1,39 @@
-From: Keith M Wesolowski <wesolows@foobazco.org>
-Date: Thu, 25 Mar 2004 18:18:59 +0000
-Subject: Re: Other GCC-3.5 compilation errors
-Message-Id: <20040325181859.GA2413@foobazco.org>
+From: "C.Newport" <crn@netunix.com>
+Date: Thu, 18 Mar 2004 01:00:54 +0000
+Subject: Ultrasparc 2 SMP 2.4.26-pre4 fails
+Message-Id: <200403180100.54517.crn@netunix.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040325174645.GD11895@artsapartment.org>
-In-Reply-To: <20040325174645.GD11895@artsapartment.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, Mar 25, 2004 at 11:46:45AM -0600, Art Haas wrote:
 
-> arch/sparc/kernel/sun4m_smp.c: line 99: Too few arguments in init_idle()
-> arch/sparc/kernel/sun4d_smp.c: line 103: Too few arguments in init_idle()
-> 
-> The signal.c error looks like something in the get_user() macro
-> needs tweaking. I haven't looked too much at the init_idle() problem,
-> though I guess just stuffing in some arguments would help, and even
-> better solution would be using correct and valid arguments as well. :-)
+I am having problems getting 2.4.x to work in SMP mode on my 
+Ultra2 Creator. 2x 300MHz, 384Mb
 
-SMP doesn't build, period.  I've been applying patches over the last
-few weeks, and I have patches currently that make it build and
-_almost_ boot.  These will be applied when it boots to userland.
+The story so far :- 
+System has 2.2.20-pre2 SMP installed, this works fine.
+Built 2.4.25 using default config, boot fails locking up solid at
+ Remapping the kernel... done.
+ Booting Linux...
+ Starting CPU 1...
 
-> needs some help. I'm guessing that people are sticking with GCC-3.3
-> for kernel compilation, or is the common suggestion using an older
-> compiler like gcc-2.95? Any other tips, tricks, or suggestions
-> regarding compilers that people care to pass along?
+At this point Stop-A does not work, so the lockup is really tight.
+Reboot with maxcpus=1 works fine.
 
-I use 3.3.3.  3.2.3 is also known to work well.  3.4 and 3.5 are more
-or less completely untested.
+Patch to 2.4.26-pre4, rebuild, same symptoms.
+gcc --version
+ 2.95.3
 
-For those using 3.4+, does it get init_thread_union right?  3.3 does
-not, so I'm probably going to change it to
-__attribute__(aligned(THREAD_SIZE)) __attribute__(section(".text")).
+Am I wasting my time trying to get 2.4.x SMP working ?, checking
+back in the list, others seem to have had similar problems but the
+fixes seem to refer to 2.6 only.
 
--- 
-Keith M Wesolowski
+I could do more testing but this would need the latest SILO, the
+above kernels are stripped because the default config is too big.
+
+Thanks,
+Chris Newport
+ 
+
