@@ -1,7 +1,7 @@
-From: "David S. Miller" <davem@redhat.com>
-Date: Fri, 27 Aug 2004 19:19:59 +0000
+From: "David S. Miller" <davem_330@yahoo.com>
+Date: Fri, 27 Aug 2004 22:29:20 +0000
 Subject: Re: [PATCH] SunSAB console problems in 2.6.x
-Message-Id: <20040827121959.0a62326e.davem@redhat.com>
+Message-Id: <20040827152920.3245473b.davem_330@yahoo.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040825233247.237c1fb1.davem@redhat.com>
 In-Reply-To: <20040825233247.237c1fb1.davem@redhat.com>
@@ -13,7 +13,10 @@ To: sparclinux@vger.kernel.org
 On Fri, 27 Aug 2004 05:30:42 -0500
 Ralph Mitchell <rmitchell@eds.com> wrote:
 
-> However, fixing this has exposed something else that I hadn't noticed 
-> due to it being garbled.  I'm getting this when booting 2.6.7:
+> For the record, I found that 2.6.7-rc1 didn't drop every other 
+> character, while 2.6.7-rc2 and above do.
 
-Turn off PREEMPT people...
+Good clue.
+
+Are all of you guys seeing this problem on uniprocessor?
+Ralph, Joshua?
