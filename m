@@ -1,32 +1,28 @@
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
-Date: Sun, 27 Feb 2005 19:43:25 +0000
-Subject: Re: DBRI fixes and improvements [2.4]
-Message-Id: <422222DD.2050604@wp.pl>
+From: Michael Tautschnig <michael.tautschnig@zt-consulting.com>
+Date: Mon, 14 Feb 2005 15:56:13 +0000
+Subject: size-differences of long(userspace) / long(kernel)
+Message-Id: <Pine.LNX.4.61.0502141648360.6890@l01.thnet>
 List-Id: <sparclinux.vger.kernel.org>
-References: <421FA83B.2050901@wp.pl>
-In-Reply-To: <421FA83B.2050901@wp.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-David S. Miller wrote:
-> 
-> Feel free to do a 2.6.x sound layer port of this driver if you
-> wish :-)  It's the only SBUS audio driver that no port attempt
-> was done for.
-> 
+Hello!
 
-DBRI audio needs more work - playback is not fully working (e.g. 8-bit 
-modes, no stereo in A-law, u-law). Recording is even worse - I haven't 
-tested but I see many empty functions.  There is also space for 
-improvements (e.g. replace modulo and division operators with mask and 
-shifting in simple cases).
+Is there any generic way in situations, where (pointers 
+to) structs are transferred from user- to kernelspace and vice versa? 
+Any struct containing a long int or a pointer will have a different 
+size in kernel space! This usually happens when doing ioctls ...
 
-I think that fixing the driver first (at least playback) is better then 
-port it with fixes rather than porting now then prepare two patches for 
-every fix (for 2.4 and 2.6). I don't know much about ALSA architecture 
-either. But I may try with if time allows.
+I'm not sure, whether it causes any troubles, but, e.g., ifreq contains 
+another struct (ifmap) that in turn contains long ints . Thus the size of 
+ifreq is 32 byte in userspace and 40 byte in kernelspace. If an 
+application reserves sizeof(ifreq) bytes, then lets the kernel initialize 
+the struct, which in turn copies it back to userspace - and thus might 
+overwrite 8bytes that were not reserved for that struct ... Oops :-)
 
-Krzysztof
+Any thoughts?
+
+Michael
 
