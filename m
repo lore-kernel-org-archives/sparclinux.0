@@ -1,42 +1,60 @@
-From: Meelis Roos <mroos@linux.ee>
-Date: Thu, 17 Feb 2005 08:14:21 +0000
-Subject: ALSA cs4231 problem on SS5
-Message-Id: <Pine.SOC.4.61.0502170850430.15129@math.ut.ee>
+From: Dennis Jenkins <dennis.jenkins@sbcglobal.net>
+Date: Thu, 17 Feb 2005 01:06:55 +0000
+Subject: gcc 3.3.5, Linux kernel 2.6.11, sched.h Sparc64 compile error (details)
+Message-Id: <20050217010655.54594.qmail@web81309.mail.yahoo.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Well, I've decided to test my SS5 with Linux 2.6 in any way I can. 
-Yesterday evening I tried ALSA sound and it does not seem to work. First 
-it gives this error on startup:
+Hello Everyone,
 
-ALSA sound/sparc/cs4231.c:577: mce_down [fd01d000]: serious init problem - codec still busy
+     I posted to this mailing list this morning (well,
+it was morning for me, about 12 hours ago?).  My post
+has yet to show up.  Anyway, here are the details of
+the compiler error that I get when trying to compile
+an unpatched linux kernel (from ftp.kernel.org) on a
+sparc64 box with a brand new install of Gentoo Linux.
 
-Alsamixer works, aumix via oss mixer emu also seems to work. I turned 
-all channels to max and unmuted everything but Mono out (tried with it 
-on and off).
+Does anyone else have this problem?
 
-But play KDE_Startup.wav emits no sound. On my PC the specific file 
-plays for 8.5s, on SS5 the play command from sox package takes 10.6s to 
-finsh and exits normally then. At the beginning I hear a buzzing click 
-from headphones and that's all. No sound from the internal speaker at 
-all.
+If I were to regress gcc, what version should I fall
+back to?  
 
-OSS driver in 2.4 works well so the hardware is probably OK.
+Does anyone have a suggested fix?  I'm a good c/c++
+programmer; I'm willing to take a whack at this.  I'm
+just looking for some guidence or pointers if anyone
+has any.
 
-/proc/interrupts shows
-   9:          0    cs4231
+Thank you for your time.
 
-/proc/io_map shows
-fd01d000-fd01dfff: cs4231
 
-/proc/openprom settings for SUNW,CS4231@4,c000000:
-device_type	'serial'
-intr		00000039.00000000
-name		'SUNW,CS4231'
-reg		00000004.0c000000.00000040
+wopr src # rm linux
+wopr src # ln -s linux-2.6.11-rc3/ linux
+wopr src # cd linux
+wopr linux # make
+  CHK     include/linux/version.h
+  CC      init/main.o
+In file included from include/linux/module.h:10,
+                 from init/main.c:16:
+include/linux/sched.h: In function
+`lock_need_resched':
+include/linux/sched.h:1127: error: request for member
+`break_lock' in 
+something not a structure or union
+make[1]: *** [init/main.o] Error 1
+make: *** [init] Error 2
 
--- 
-Meelis Roos (mroos@linux.ee)
+wopr linux # gcc --version
+gcc (GCC) 3.3.5  (Gentoo Linux 3.3.5-r1, ssp-3.3.2-3,
+pie-8.7.7.1)
+Copyright (C) 2003 Free Software Foundation, Inc.
+This is free software; see the source for copying
+conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR
+A PARTICULAR PURPOSE.
+
+
+
+==Dennis Jenkins
