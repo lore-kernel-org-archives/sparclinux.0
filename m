@@ -1,88 +1,82 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Tue, 31 Aug 2004 00:40:15 +0000
-Subject: [PATCH] Re: lvm problems on sparc64 - Trying to vfree() nonexistent
-Message-Id: <20040830174015.10edb69b.davem@davemloft.net>
+From: Richard Mortimer <richm@oldelvet.org.uk>
+Date: Tue, 31 Aug 2004 22:00:10 +0000
+Subject: Re: [PATCH] Re: lvm problems on sparc64 - Trying to vfree()
+Message-Id: <1093989609.2124.139.camel@duncow>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1093911340.2116.55.camel@duncow>
-In-Reply-To: <1093911340.2116.55.camel@duncow>
+	<20040830174015.10edb69b.davem@davemloft.net>
+In-Reply-To: <20040830174015.10edb69b.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Richard Mortimer <richm@oldelvet.org.uk>, marcelo.tosatti@cyclades.com
-Cc: sparclinux@vger.kernel.org, linux-lvm@sistina.com, debian-sparc@lists.debian.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, debian-sparc@lists.debian.org, linux-lvm@sistina.com, richm@oldelvet.org.uk, marcelo.tosatti@cyclades.com
 
-On Tue, 31 Aug 2004 01:15:40 +0100
-Richard Mortimer <richm@oldelvet.org.uk> wrote:
+Thanks. Fixes the problem nicely.
 
-> I'm seeing problems with lvm on sparc64. I have a reproducible test case
-> using snapshots where I can reliably reproduce an error similar to
+Whilst I remember I forgot to include the patch below last night. When I
+was looking at the ioctl32.c code I noticed a few inconsistencies in the
+structures used in the copy to/from user calls. I don't think that the
+original versions were incorrect but it seems best to make things
+consistent.
+
+How do they look
+
+Richard
+
+--- arch/sparc64/kernel/ioctl32.c.orig	2004-08-29 00:12:09.000000000
++0100
++++ arch/sparc64/kernel/ioctl32.c	2004-08-31 22:06:23.000000000 +0100
+@@ -2949,7 +2949,7 @@
+ 	case LV_REMOVE:
+ 	case LV_RENAME:
+ 	case LV_STATUS_BYNAME:
+-	        err = copy_from_user(&u.pv_status, arg,
+sizeof(u.pv_status.pv_name));
++	        err = copy_from_user(&u.lv_req, arg,
+sizeof(u.lv_req.lv_name));
+ 		if (err)
+ 			return -EFAULT;
+ 		if (cmd != LV_REMOVE) {
+@@ -2992,7 +2992,7 @@
+ 
+ 	case PV_CHANGE:
+ 	case PV_STATUS:
+-		err = copy_from_user(&u.pv_status, arg, sizeof(u.lv_req.lv_name));
++		err = copy_from_user(&u.pv_status, arg, sizeof(u.pv_status.pv_name));
+ 		if (err)
+ 			return -EFAULT;
+ 		err = __get_user(ptr, &((pv_status_req32_t *)arg)->pv);
+@@ -3064,7 +3064,7 @@
+ 	        if (u.lv_bydev.lv) {
+ 			if (!err)
+ 				err = copy_lv_t(ptr, u.lv_bydev.lv);
+-			put_lv_t(u.lv_byindex.lv);
++			put_lv_t(u.lv_bydev.lv);
+ 	        }
+ 	        break;
+ 
+
+
+
+On Tue, 2004-08-31 at 01:40, David S. Miller wrote:
+> On Tue, 31 Aug 2004 01:15:40 +0100
+> Richard Mortimer <richm@oldelvet.org.uk> wrote:
 > 
-> Trying to vfree() nonexistent vm area (0000000140072000)
+> > I'm seeing problems with lvm on sparc64. I have a reproducible test case
+> > using snapshots where I can reliably reproduce an error similar to
+> > 
+> > Trying to vfree() nonexistent vm area (0000000140072000)
+> 
+> For once it's not sparc64's fault, it's a bug in the generic
+> LVM ioctl handling :-)
+> 
+> It saves both pointers, clobbers the userspace copy, then only
+> restores one of the two pointers correctly.  Easy to fix, see
+> below.
+> 
+> Marcelo, please apply, thanks.
 
-For once it's not sparc64's fault, it's a bug in the generic
-LVM ioctl handling :-)
+-- 
+richm@oldelvet.org.uk
 
-It saves both pointers, clobbers the userspace copy, then only
-restores one of the two pointers correctly.  Easy to fix, see
-below.
-
-Marcelo, please apply, thanks.
-
-# This is a BitKeeper generated diff -Nru style patch.
-#
-# ChangeSet
-#   2004/08/30 17:24:05-07:00 davem@nuts.davemloft.net 
-#   [LVM]: Do not forget to restore both user pointers.
-#   
-#   This in particular can make compatability layers
-#   crash, and it is a bug for regular applications
-#   too.
-#   
-#   Signed-off-by: David S. Miller <davem@davemloft.net>
-# 
-# drivers/md/lvm.c
-#   2004/08/30 17:23:48-07:00 davem@nuts.davemloft.net +12 -0
-#   [LVM]: Do not forget to restore both user pointers.
-#   
-#   This in particular can make compatability layers
-#   crash, and it is a bug for regular applications
-#   too.
-#   
-#   Signed-off-by: David S. Miller <davem@davemloft.net>
-# 
-diff -Nru a/drivers/md/lvm.c b/drivers/md/lvm.c
---- a/drivers/md/lvm.c	2004-08-30 17:24:13 -07:00
-+++ b/drivers/md/lvm.c	2004-08-30 17:24:13 -07:00
-@@ -2689,6 +2689,10 @@
- 			    (&lv_status_byname_req.lv->lv_current_pe,
- 			     &saved_ptr1, sizeof(void *)) != 0)
- 				return -EFAULT;
-+			if (copy_to_user
-+			    (&lv_status_byname_req.lv->lv_block_exception,
-+			     &saved_ptr2, sizeof(void *)) != 0)
-+				return -EFAULT;
- 			return 0;
- 		}
- 	}
-@@ -2743,6 +2747,10 @@
- 	    (&lv_status_byindex_req.lv->lv_current_pe, &saved_ptr1,
- 	     sizeof(void *)) != 0)
- 		return -EFAULT;
-+	if (copy_to_user
-+	    (&lv_status_byindex_req.lv->lv_block_exception, &saved_ptr2,
-+	     sizeof(void *)) != 0)
-+		return -EFAULT;
- 
- 	return 0;
- }				/* lvm_do_lv_status_byindex() */
-@@ -2799,6 +2807,10 @@
- 	/* Restore usermode pointers */
- 	if (copy_to_user
- 	    (&lv_status_bydev_req.lv->lv_current_pe, &saved_ptr1,
-+	     sizeof(void *)) != 0)
-+		return -EFAULT;
-+	if (copy_to_user
-+	    (&lv_status_bydev_req.lv->lv_block_exception, &saved_ptr2,
- 	     sizeof(void *)) != 0)
- 		return -EFAULT;
- 
