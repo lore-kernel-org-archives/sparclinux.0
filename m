@@ -1,104 +1,67 @@
 From: "Antonino A. Daplas" <adaplas@hotpop.com>
-Date: Wed, 16 Feb 2005 23:18:26 +0000
+Date: Thu, 17 Feb 2005 21:30:39 +0000
 Subject: Re: [Linux-fbdev-devel] Re: [atyfb] No display on Sparc Ultra 10 with kernel 2.6.10-rc2 or later
-Message-Id: <200502170718.26946.adaplas@hotpop.com>
+Message-Id: <200502180530.41332.adaplas@hotpop.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200502140251.00645.aragorn@tiscali.nl> <200502162310.12703.aragorn@tiscali.nl> <200502170702.58630.adaplas@hotpop.com>
-In-Reply-To: <200502170702.58630.adaplas@hotpop.com>
+References: <200502140251.00645.aragorn@tiscali.nl> <200502170724.36195.adaplas@hotpop.com> <200502171516.14390.aragorn@tiscali.nl>
+In-Reply-To: <200502171516.14390.aragorn@tiscali.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Frans Pop <aragorn@tiscali.nl>, "David S. Miller" <davem@davemloft.net>
-Cc: adaplas@pol.net, debian-sparc@lists.debian.org, sparclinux@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net
+To: Frans Pop <aragorn@tiscali.nl>, adaplas@pol.net
+Cc: "David S. Miller" <davem@davemloft.net>, debian-sparc@lists.debian.org, sparclinux@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net
 
-On Thursday 17 February 2005 07:02, Antonino A. Daplas wrote:
-> On Thursday 17 February 2005 06:10, Frans Pop wrote:
-> > On Wednesday 16 February 2005 16:51, David S. Miller wrote:
-> > > On Wed, 16 Feb 2005 19:27:57 +0800 Antonino A. Daplas wrote:
-> > > > Nope, those are proposed options.  If nobody disagrees, I can easily
-> > > > add this for atyfb.
+On Thursday 17 February 2005 22:16, Frans Pop wrote:
+> On Thursday 17 February 2005 00:24, Antonino A. Daplas wrote:
+> > > Try this patch and let me know.
 > > >
-> > > Please do.
+> > > video=atyfb:comp_sync:<n>,vert_sync:<n>,hor_sync:<n>
 > > >
-> > > BTW, for Sparc we may wish to inherit the CSYNC setting from
-> > > default_var.
-> >
-> > Sounds like a nice idea.
-> >
-> > If you have a patch that you would like to have tested, feel free to mail
-> > me.
+> > > n = 0 (low), 1 (high)
 >
-> Try this patch and let me know.
+> I've tested with the following combinations:
+> - append="video=atyfb:comp_sync:1,1024x768@70"
+>   Works perfectly: csync is high and good display.
+> - append="video=atyfb:comp_sync:1,hor_sync:1,vert_sync:0,1024x768@70"
+>   csync is high, but for some reason not hsync; display is good.
 
-The previous patch has a bug, try this instead.
+Okay, it seems that overriding the vsync and hsync settings is useless in
+atyfb as it has its own algo to do that:
+
+	if(vdisplay < 400) {
+		h_sync_pol = 1;
+		v_sync_pol = 0;
+	} else if(vdisplay < 480) {
+		h_sync_pol = 0;
+		v_sync_pol = 1;
+	} else if(vdisplay < 768) {
+		h_sync_pol = 0;
+		v_sync_pol = 0;
+	} else {
+		h_sync_pol = 1;
+		v_sync_pol = 1;
+	}
+
+I'll trim the patch for csync only.
+
+> - append="video=atyfb:1024x768@70,comp_sync:1"
+>   Same results as first test.
+>
+> The sync settings were checked with 'fbset -i'.
+>
+> > BTW, the mode string should always be the last parameter, ie;
+> >
+> > video=atyfb:comp_sync:1,1024x768@70
+>
+> Hmmm. Wonder why you say that (considering the result of my last test).
+
+My mistake then.  Thanks for verifying.
+
+>
+> Should these new options also be documented in Documentation/fb/?
+
+I'll add this and fix a few buglets when I push upstream.
 
 Tony
-
-diff -Nru a/drivers/video/aty/atyfb_base.c b/drivers/video/aty/atyfb_base.c
---- a/drivers/video/aty/atyfb_base.c	2005-02-16 00:19:00 +08:00
-+++ b/drivers/video/aty/atyfb_base.c	2005-02-17 07:15:57 +08:00
-@@ -307,6 +307,9 @@
- static int pll;
- static int mclk;
- static int xclk;
-+static int comp_sync __initdata = -1;
-+static int vert_sync __initdata = -1;
-+static int hor_sync  __initdata = -1;
- static char *mode;
- 
- #ifdef CONFIG_PPC
-@@ -2527,6 +2530,27 @@
- 	else
- 		var.accel_flags |= FB_ACCELF_TEXT;
- 
-+	if (comp_sync != -1) {
-+		if (!comp_sync)
-+			var.sync &= ~FB_SYNC_COMP_HIGH_ACT;
-+		else
-+			var.sync |= FB_SYNC_COMP_HIGH_ACT;
-+	}
-+
-+	if (vert_sync != -1) {
-+		if (!vert_sync)
-+			var.sync &= ~FB_SYNC_VERT_HIGH_ACT;
-+		else
-+			var.sync |= FB_SYNC_VERT_HIGH_ACT;
-+	}
-+
-+	if (hor_sync != -1) {
-+		if (!hor_sync)
-+			var.sync &= ~FB_SYNC_HOR_HIGH_ACT;
-+		else
-+			var.sync |= FB_SYNC_HOR_HIGH_ACT;
-+	}
-+
- 	if (var.yres = var.yres_virtual) {
- 		u32 videoram = (info->fix.smem_len - (PAGE_SIZE << 2));
- 		var.yres_virtual = ((videoram * 8) / var.bits_per_pixel) / var.xres_virtual;
-@@ -3611,6 +3635,12 @@
- 			mclk = simple_strtoul(this_opt + 5, NULL, 0);
- 		else if (!strncmp(this_opt, "xclk:", 5))
- 			xclk = simple_strtoul(this_opt+5, NULL, 0);
-+		else if (!strncmp(this_opt, "comp_sync:", 10))
-+			comp_sync = simple_strtoul(this_opt+10, NULL, 0);
-+		else if (!strncmp(this_opt, "vert_sync:", 10))
-+			vert_sync = simple_strtoul(this_opt+10, NULL, 0);
-+		else if (!strncmp(this_opt, "hor_sync:", 9))
-+			hor_sync = simple_strtoul(this_opt+9, NULL, 0);
- #ifdef CONFIG_PPC
- 		else if (!strncmp(this_opt, "vmode:", 6)) {
- 			unsigned int vmode @@ -3701,6 +3731,12 @@
- MODULE_PARM_DESC(mclk, "int: override memory clock");
- module_param(xclk, int, 0);
- MODULE_PARM_DESC(xclk, "int: override accelerated engine clock");
-+module_param(comp_sync, int, 0)
-+MODULE_PARM_DESC(comp_sync, "Set composite sync signal to low (0) or high (1)");
-+module_param(vert_sync, int, 0)
-+MODULE_PARM_DESC(vert_sync, "Set vertical sync signal to low (0) or high (1)");
-+module_param(hor_sync, int, 0)
-+MODULE_PARM_DESC(hor_sync, "Set horizontal sync signal to low (0) or high (1)");
- module_param(mode, charp, 0);
- MODULE_PARM_DESC(mode, "Specify resolution as \"<xres>x<yres>[-<bpp>][@<refresh>]\" ");
- #ifdef CONFIG_MTRR
 
 
