@@ -1,12 +1,16 @@
 From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
-Date: Fri, 04 Feb 2005 21:49:20 +0000
+Date: Fri, 04 Feb 2005 22:40:27 +0000
 Subject: Xorg does not work on sparc32 in 2.6 (except on cg14)
-Message-Id: <1107553760.3951.211.camel@localhost.localdomain>
+Message-Id: <1107556827.3951.213.camel@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1107553760.3951.211.camel@localhost.localdomain>
+In-Reply-To: <1107553760.3951.211.camel@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
+
+Resending, since I think Evolution ate it. Apologies if this shows up twice.
 
 With a working pte_read, and VMALLOC_START set sanely, the next major
 bug that Aurora users have noticed is that Xorg does not work on sparc32
