@@ -1,26 +1,36 @@
-From: "David S. Miller" <davem@redhat.com>
-Date: Fri, 23 Jan 2004 20:58:06 +0000
-Subject: Re: why "mov %0, %0" after "rd %%tick, %0"?
-Message-Id: <20040123125806.215b41da.davem@redhat.com>
+From: Ed L Cashin <ecashin@uga.edu>
+Date: Fri, 23 Jan 2004 20:59:13 +0000
+Subject: why "mov %0, %0" after "rd %%tick, %0"?
+Message-Id: <871xpqtm8u.fsf@uga.edu>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20040123125806.215b41da.davem@redhat.com>
+In-Reply-To: <20040123125806.215b41da.davem@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Fri, 23 Jan 2004 15:59:13 -0500
-Ed L Cashin <ecashin@uga.edu> wrote:
+Hi.  In arch/sparc64/kernel/time.c, there are some routines that use
+the %tick register.  It seems analogous to the Pentium's TSC.  I'm
+planning to use that register in userland via inline asm.  (Thanks for
+making sure that non-privileged access is allowed, BTW!)
 
-> One thing I don't get is why there's a mov %0, %0 instruction after
-> reading the tick register.  Is this because of the delay slot?
+One thing I don't get is why there's a mov %0, %0 instruction after
+reading the tick register.  Is this because of the delay slot?
 
-No, there is a bug in some of the UltraSPARC processors in that if
-you go:
+static unsigned long tick_get_tick(void)
+{
+	unsigned long ret;
 
-	rd	%tick, %reg
-	cmp	%reg, XXX
+	__asm__ __volatile__("rd	%%tick, %0\n\t"
+			     "mov	%0, %0"
+			     : "=r" (ret));
 
-the compare will get an incorrect result.  If we force the %tick result
-into a simple move instruction this prevents the sequence that leads up
-to the bug.
+	return ret & ~TICK_PRIV_BIT;
+}
+
+
+-- 
+--Ed L Cashin            |   PGP public key:
+  ecashin@uga.edu        |   http://noserose.net/e/pgp/
 
