@@ -1,7 +1,7 @@
-From: Pete Zaitcev <zaitcev@redhat.com>
-Date: Wed, 31 Dec 2003 23:35:02 +0000
+From: Aaron Wirtz <awirtz@novapointe.com>
+Date: Wed, 31 Dec 2003 23:43:07 +0000
 Subject: Re: socal
-Message-Id: <20031231233502.GA2051@devserv.devel.redhat.com>
+Message-Id: <200312311543.07514.awirtz@novapointe.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <200312311429.26841.awirtz@novapointe.com>
 In-Reply-To: <200312311429.26841.awirtz@novapointe.com>
@@ -10,25 +10,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Wed, Dec 31, 2003 at 03:19:03PM -0800, Aaron Wirtz wrote:
-> On Wednesday 31 December 2003 15:07, C.Newport wrote:
-> >
-> > Have you tried checking the firmware Fcode ?.
-> > http://www.splack.org/fibrechan.html has the procedure for the soc
-> > cards, the socal stuff is very similar.
+On Wednesday 31 December 2003 23:18, C.Newport wrote:
+> Huh?  The microcode needs to be 64k in size (or less than that if you
+> chop off the 0s at the end).  If you disassemble the solaris driver
+> you will see that their ucode is exactly 64k and that the functions
+> they call to load it expect 64k.  That value fits in an unsigned int
+> on any sane platform.  Probably you've extracted the microcode
+> wrongly.
 > 
-> Given that the Solaris driver (and ucode) work with it under Solaris 9, I 
-> don't think the fcode version is currently an issue.  One thing I had 
-> considered was that if I have to use an older ucode version, I may have to 
-> roll back the fcode to match.
+> However, you might as well load an ASCII-art rendition of Bill Joy,
+> since even with the right microcode the driver does not work.  In
+> fact, I'd recommend it.  Let us know if it helps.
 
-This just makes no sense. FCode carries its own ucode,
-which has nothing to do with the one a driver carries.
-For one thing, FCode always carries a debugging ucode,
-which tops at about 1000 IOPS. A driver carries a normal
-microcode, which reaches 5500 IOPS with small blocks,
-17000 IOPS with null ops (for IP-over-SCSI, for instance).
-They are different and do not have to match, even their
-ABI may be slightly different.
+lol, yeah, I know the driver is currently broken, I thought maybe if I could 
+get my hands on the same version of the ucode that Jakub successfully used in 
+the past, that might fix it especially if used in conjunction with Jakub's 
+last functional version of the driver. (he did report actually getting it 
+working once upon a time)
 
--- Pete
+As for the ucode size, Jakub tried to cut the module size by storing the ucode 
+in his driver without padding and just adding the padding when the driver 
+loads it.  The ucode when extracted from the Solaris socal drivers I have 
+tried is 64k.  Jakub recommended removing the null padding, but the code I 
+get doesn't have any null padding.  If I use a full 64k of ucode in the 
+compile, the preprocessor, when calculating the constant that specifies the 
+offset at which the padding should start overflows because the constant is 
+past the end of the buffer. (sorry, don't know what I was thinking blaming it 
+on unsigned ints. ;-)  Must have been my x86 heritage...)  This issue I can 
+deal with, but what worries me is that this tells me that I have not yet 
+found the same version of the socal ucode that Jakub used when he wrote the 
+driver.
+
+> Unless Jakub wants to look at it or you have the manual for this chip
+> and plenty of patience, forget it.
+
+:-(
+
+I don't have the manual, and I haven't found Jakub, but I was hoping to be 
+able to diff the last working driver and start from there.
+
+-Aaron Wirtz
+
