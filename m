@@ -1,25 +1,38 @@
-From: William Lee Irwin III <wli@holomorphy.com>
-Date: Sat, 07 Aug 2004 23:54:39 +0000
-Subject: Re: sun4d SMP?
-Message-Id: <20040807235439.GA17188@holomorphy.com>
+From: "Art Haas" <ahaas@airmail.net>
+Date: Sun, 01 Aug 2004 19:21:58 +0000
+Subject: Question about recent copy_user.S change
+Message-Id: <20040801192158.GB7321@artsapartment.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <b476569a040807050354b75f39@mail.gmail.com>
-In-Reply-To: <b476569a040807050354b75f39@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sat, Aug 07, 2004 at 05:03:25AM -0700, Adam Hunt wrote:
-> I heard that headway had been made on SMP support for the sun4d.  Is
-> that true?  I found someone with a quad 85MHz 1000E locally and I
-> would really like to add it to my network but if I am only going to
-> get one proc up it isn't really worth it.
+Hi.
 
-Not directly, no. I committed minimalistic changes to get the stuff to
-compile. This was so that viro could do sparse work on the relevant
-arch code. sun4d work will begin in earnest when I get hardware access
-(which is planned to happen, just a month or two off).
+The 1.3->1.4 changes to the arch/sparc/lib/copy_user.S file added
+parenthesis to a number of macros within that file. The BK changlog
+associated with this change indicate the change was to make the
+file work with gcc-3.3.
 
+When looking at the changes made, I see that similar macros exist in
+memcpy.S as well, so would a patch adding parens to that file be
+worthwhile? Also, just what was the problem with gcc-3.3 that was
+resolved by adding the parenthesis? Macro mis-expansion I'm guessing.
 
--- wli
+On a side note, the 2.6.8-rc2 kernel my SS20 has been using for the last
+several days has been, by far, the stablest 2.6 kernel run on that
+machine. I hate to write this for fear of jinxing things, but previous
+2.6 kernels would boot and run for a while, and then the machine would
+get SCSI errors. Typically these errors occurred when doing something
+like 'cvs update', or compiling some software on the machine. The
+current kernel has had numerous cvs operations performed without
+problem, as well as several BitKeeper 'pull' operations and various
+builds without incident. Kudos to the kernel developers.
+
+Art Haas
+-- 
+Man once surrendering his reason, has no remaining guard against absurdities
+the most monstrous, and like a ship without rudder, is the sport of every wind.
+
+-Thomas Jefferson to James Smith, 1822
