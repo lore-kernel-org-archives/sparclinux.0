@@ -1,20 +1,55 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Wed, 09 Feb 2005 06:15:29 +0000
-Subject: Re: Hang in SIOCGIFCONF ioctl handler
-Message-Id: <20050208221529.5e3b05db.davem@davemloft.net>
+From: Ben Collins <bcollins@debian.org>
+Date: Tue, 22 Feb 2005 16:29:33 +0000
+Subject: Re: Patch: SILO/first-isofs/isofs.c (Fix Sun4c)
+Message-Id: <20050222162933.GA25092@internal>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.61.0502071259370.2050@bobcat>
-In-Reply-To: <Pine.LNX.4.61.0502071259370.2050@bobcat>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Wed, 9 Feb 2005 07:04:22 +0100
-"Jurzitza, Dieter" <DJurzitza@harmanbecker.com> wrote:
+Thanks. Committed to the repo. I'll try to get a new version out soon.
 
-> seing the communication between Jurij and Dave I took a glance into the 2.4.29 - tree and found the identical code segment as discussed below. This tells me that 2.4.X is supposed to suffer from the same issues as you tracked down for 2.6.X, isn't it? However, what I did not find is include/asm-sparc64/compat.h; this made me wonder whether I should expect a basic difference here, but maybe I simply misunderstood.
+As for the next error, it looks like it is trying to load it to the
+physical address of 0x0, which is a bad thing. That overwrites silo
+itself.
 
-It's in arch/sparc64/kernel/ioctl32.c and arch/sparc64/kernel/sys_sparc32.c
-and I've already fixed it in my local tree which will push over to Marcelo
-soon.
+So I guess there is an error in silo (not first-isofs). Check the
+memory_find() function in second/memory.c and see why it is using a
+physical address of 0x0.
+
+On Tue, Feb 22, 2005 at 04:55:10PM +0000, Chris Newport wrote:
+> 
+> This small patch fixes silo-1.4.8/first-isofs/isofs.c
+> Copying an int into a string is not a good idea.
+> 
+> Sun4c now loads second.b and the kernel, but still
+> barfs loading the initrd.
+> 
+> boot:
+> Loaded kernel version 2.4.27
+> Loading initial ramdisk (905216 bytes at 0x0 phys, 0x300000 virt)...
+> Data Access ExceptionType b (boot), c(continue), or n (new command mode)
+> >
+> 
+> Does anyone know what is wrong here ?
+> 
+
+> --- silo-1.4.8/first-isofs/isofs.c.orig	2005-02-22 13:26:47.000000000 +0000
+> +++ silo-1.4.8/first-isofs/isofs.c	2005-02-22 16:31:01.000000000 +0000
+> @@ -68,7 +68,7 @@
+>  		*s++ = (ap->boot_dev_ctrl & 07) + '0';
+>  		*s++ = ',';
+>  		// Hopefully it's never > 10
+> -		*s++ = ap->boot_dev_unit;
+> +		*s++ = (ap->boot_dev_unit & 07) + '0';
+>  		*s++ = ','; 
+>  		*s++ = '0';
+>  		*s++ = ')';
+
+
+-- 
+Debian     - http://www.debian.org/
+Linux 1394 - http://www.linux1394.org/
+Subversion - http://subversion.tigris.org/
+WatchGuard - http://www.watchguard.com/
