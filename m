@@ -1,60 +1,60 @@
-From: Dennis Jenkins <dennis.jenkins@sbcglobal.net>
-Date: Thu, 17 Feb 2005 01:06:55 +0000
-Subject: gcc 3.3.5, Linux kernel 2.6.11, sched.h Sparc64 compile error (details)
-Message-Id: <20050217010655.54594.qmail@web81309.mail.yahoo.com>
+From: solicitorfrank@netscape.net
+Date: Sun, 20 Feb 2005 06:04:23 +0000
+Subject: Investment Capital
+Message-Id: <4AA2905B.300B15E0.84B15562@netscape.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hello Everyone,
+Re: Investment Capital.
 
-     I posted to this mailing list this morning (well,
-it was morning for me, about 12 hours ago?).  My post
-has yet to show up.  Anyway, here are the details of
-the compiler error that I get when trying to compile
-an unpatched linux kernel (from ftp.kernel.org) on a
-sparc64 box with a brand new install of Gentoo Linux.
+Your contact has been gotten from after a search for a
+person whom we can jointly invest Trust in and also
+solicit a Honourable partnership with.
 
-Does anyone else have this problem?
+I represent a client and my client has interest to do
+business relative to investments in your country in
+areas related to agriculture or any business of your
+choice, to initiate a proper and structured
+relationship:
 
-If I were to regress gcc, what version should I fall
-back to?  
+Please let me know what your response will be to an
+offer to receive the investment funds :
 
-Does anyone have a suggested fix?  I'm a good c/c++
-programmer; I'm willing to take a whack at this.  I'm
-just looking for some guidence or pointers if anyone
-has any.
+1. The said fund amounts to Ten Million Pounds sterling.
+ 
+2.The said fund will be transferred to you in same
+state.
 
-Thank you for your time.
+3.The fund is intended to be invested through your
+agency in the purchase of facilities and
+assets, for the said purposes within your country.
 
+4. This transaction will result in you being paid a
+commission of 10% off the investment capital and 
+another 10% of after annual tax income.
 
-wopr src # rm linux
-wopr src # ln -s linux-2.6.11-rc3/ linux
-wopr src # cd linux
-wopr linux # make
-  CHK     include/linux/version.h
-  CC      init/main.o
-In file included from include/linux/module.h:10,
-                 from init/main.c:16:
-include/linux/sched.h: In function
-`lock_need_resched':
-include/linux/sched.h:1127: error: request for member
-`break_lock' in 
-something not a structure or union
-make[1]: *** [init/main.o] Error 1
-make: *** [init] Error 2
+5.The fund owners desire absolute confidentiality and
+professionalism in the handling of this matter as the 
+people involved are top government officials.
+Please respond urgently and if you do not intend to 
+help, i will respect your privacy and stop contacting
+you.
 
-wopr linux # gcc --version
-gcc (GCC) 3.3.5  (Gentoo Linux 3.3.5-r1, ssp-3.3.2-3,
-pie-8.7.7.1)
-Copyright (C) 2003 Free Software Foundation, Inc.
-This is free software; see the source for copying
-conditions.  There is NO
-warranty; not even for MERCHANTABILITY or FITNESS FOR
-A PARTICULAR PURPOSE.
+Sincerely.
 
+Solicitor. Frank West
 
+NB: Please reply to: solicitorfrank@netscape.net
 
-==Dennis Jenkins
+__________________________________________________________________
+Switch to Netscape Internet Service.
+As low as $9.95 a month -- Sign up today at http://isp.netscape.com/register
+
+Netscape. Just the Net You Need.
+
+New! Netscape Toolbar for Internet Explorer
+Search from anywhere on the Web and block those annoying pop-ups.
+Download now at http://channels.netscape.com/ns/search/install.jsp
