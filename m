@@ -1,39 +1,29 @@
-From: "Aron Galloway" <CMYHVFAWMTUUFM@yahoo.com>
-Date: Tue, 02 Mar 2004 06:58:52 +0000
-Subject: Everything a Premium Players wish is here...
-Message-Id: <JIIDEJXXWXYUVXFXMWQIRJ@hotmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="--08227198634045053"
+From: Jim Watson <jim@amarooas.com.au>
+Date: Wed, 31 Mar 2004 11:15:42 +0000
+Subject: openoffice 1.1.1 sparc linux
+Message-Id: <20040331111542.GA21819@amarooas.com.au>
 List-Id: <sparclinux.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-----08227198634045053
-Content-Type: text/plain;
-Content-Transfer-Encoding: quoted-printable
+A contributed build of openoffice.org1.1.1RC3(final) is available on
+mirrors for example: 
 
-Hello,
+openoffice/contrib/linuxsparc
 
-Play on the I'nternet H'ottest C'asino
-
-58 Games with 9 Jackpots Reaching 7 Figures
-
-Get $250 F*ree C*ash
-
-50% Match Play Bounus
-
-http://www.virtualcasinoes.net/_5ec9fcf3011f6e3d3c43ac8a3f66f869/801
+openoffice.org/contrib/linuxsparc
 
 
+There is a tarball that can be installed in the users home directory.
 
-P e impossible 9 telltale twelfth accelerometer noontime depredate frances=
- jenny anionic tier bum depositary voluntarism pullover carload fran backb=
-one ph.d disposable banal apogee felix malnutrition homeric epochal chess =
-angst dissemble trophic rasa meadow photolysis=20
+Any user reports would be appreciated. This build has all features operating,
+including database tools and uno brdiges. 
 
-tintype 9 bromide miracle donate holography crawlspace door machinelike jo=
-anna anomalous bateman cassette eleventh viii sane spector ascription colu=
-mn march patrick luge apache albert jack ramify kidnap continuous workday =
-montrachet siegmund admiral deletion exhilarate atonal albuquerque=20 n Y
+Help is needed to fix sparc linux issues for version 2.0, if you are
+interested please email to sparcmoz@openoffice.org
 
-----08227198634045053--
+thanks
 
+jim
