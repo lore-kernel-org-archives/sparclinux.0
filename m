@@ -1,81 +1,166 @@
-From: Georg Chini <georg.chini@triaton-webhosting.com>
-Date: Fri, 24 Dec 2004 15:30:07 +0000
-Subject: Re: 2.6.10-rc3-wli-1
-Message-Id: <41CC35FF.6060004@triaton-webhosting.com>
+From: William Lee Irwin III <wli@holomorphy.com>
+Date: Tue, 21 Dec 2004 04:20:37 +0000
+Subject: [1/3] fix HyperSPARC DVMA
+Message-Id: <20041221042037.GY771@holomorphy.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20041223063730.GY771@holomorphy.com>
-In-Reply-To: <20041223063730.GY771@holomorphy.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hello,
+DVMA is having aliasing problems. Bob originally sent in the following
+description:
 
-here it is, could not find it in rc3-bk17 as well. It adds
-the pan_display function to catch switches from graphic
-mode, changes the prom_name from "tcx" to "SUNW,tcx" and
-adds the lines suggested by Bob Breuer.
+At some point in the past, Bob Breuer wrote:
+> Here's the preliminary patch.  This time around, both the hme
+> and esp drivers are working for me.  This replaces my previous
+> patch and is against the vanilla 2.6.9 kernel.  I've tried to
+> reduce the amount of unnecessary cache flushing, therefore this
+> will need some testing on non-hypersparc cpus also.  It needs
+> some cleanup yet, and will be rediffed against a later kernel.
+> I'm looking for comments and feedback.
 
-Regards
-        Georg Chini
+This patch represents one of those subsequent rediffings.
 
---- linux-2.6.10-rc3/drivers/video/tcx.c        Fri Dec  3 22:52:07 2004
-+++ l10rc3/drivers/video/tcx.c  Fri Dec 10 11:54:31 2004
-@@ -36,6 +36,7 @@
-  static int tcx_mmap(struct fb_info *, struct file *, struct vm_area_struct *);
-  static int tcx_ioctl(struct inode *, struct file *, unsigned int,
-                      unsigned long, struct fb_info *);
-+static int tcx_pan_display(struct fb_var_screeninfo *, struct fb_info *);
+Signed-off-by: Bob Breuer <breuerr@mc.net>
+Acked-by: William Irwin <wli@holomorphy.com>
 
-  /*
-   *  Frame buffer operations
-@@ -45,6 +46,7 @@
-         .owner                  = THIS_MODULE,
-         .fb_setcolreg           = tcx_setcolreg,
-         .fb_blank               = tcx_blank,
-+       .fb_pan_display         = tcx_pan_display,
-         .fb_fillrect            = cfb_fillrect,
-         .fb_copyarea            = cfb_copyarea,
-         .fb_imageblit           = cfb_imageblit,
-@@ -153,6 +155,12 @@
-         spin_unlock_irqrestore(&par->lock, flags);
-  }
-
-+static int tcx_pan_display(struct fb_var_screeninfo *var, struct fb_info *info)
-+{
-+       tcx_reset(info);
-+       return 0;
-+}
-+
-  /**
-   *      tcx_setcolreg - Optional function. Sets a color register.
-   *      @regno: boolean, 0 copy local, 1 get_user() function
-@@ -366,6 +374,9 @@
-         all->par.lowdepth = prom_getbool(sdev->prom_node, "tcx-8-bit");
-
-         sbusfb_fill_var(&all->info.var, sdev->prom_node, 8);
-+       all->info.var.red.length = 8;
-+       all->info.var.green.length = 8;
-+       all->info.var.blue.length = 8;
-
-         linebytes = prom_getintdefault(sdev->prom_node, "linebytes",
-                                        all->info.var.xres);
-@@ -439,6 +450,7 @@
-                 return;
-         }
-
-+       fb_set_cmap(&all->info.cmap, &all->info);
-         tcx_init_fix(&all->info, linebytes);
-
-         if (register_framebuffer(&all->info) < 0) {
-@@ -466,7 +478,7 @@
-                 return -ENODEV;
-
-         for_all_sbusdev(sdev, sbus) {
--               if (!strcmp(sdev->prom_name, "tcx"))
-+               if (!strcmp(sdev->prom_name, "SUNW,tcx"))
-                         tcx_init_one(sdev);
-         }
-
-
+Index: sparc32-2.6.10-rc3/include/asm-sparc/bitext.h
+=================================--- sparc32-2.6.10-rc3.orig/include/asm-sparc/bitext.h	2004-06-15 22:19:43.000000000 -0700
++++ sparc32-2.6.10-rc3/include/asm-sparc/bitext.h	2004-12-20 19:22:33.983495914 -0800
+@@ -17,6 +17,7 @@
+ 	int last_off;
+ 	int last_size;
+ 	int first_free;
++	int num_colors;
+ };
+ 
+ extern int bit_map_string_get(struct bit_map *t, int len, int align);
+Index: sparc32-2.6.10-rc3/arch/sparc/lib/bitext.c
+=================================--- sparc32-2.6.10-rc3.orig/arch/sparc/lib/bitext.c	2004-12-16 06:19:27.000000000 -0800
++++ sparc32-2.6.10-rc3/arch/sparc/lib/bitext.c	2004-12-20 19:22:33.986495458 -0800
+@@ -29,10 +29,17 @@
+ 	int offset, count;	/* siamese twins */
+ 	int off_new;
+ 	int align1;
+-	int i;
++	int i, color;
+ 
+-	if (align = 0)
+-		align = 1;
++	if (t->num_colors) {
++		/* align is overloaded to be the page color */
++		color = align;
++		align = t->num_colors;
++	} else {
++		color = 0;
++		if (align = 0)
++			align = 1;
++	}
+ 	align1 = align - 1;
+ 	if ((align & align1) != 0)
+ 		BUG();
+@@ -40,6 +47,7 @@
+ 		BUG();
+ 	if (len <= 0 || len > t->size)
+ 		BUG();
++	color &= align1;
+ 
+ 	spin_lock(&t->lock);
+ 	if (len < t->last_size)
+@@ -49,7 +57,7 @@
+ 	count = 0;
+ 	for (;;) {
+ 		off_new = find_next_zero_bit(t->map, t->size, offset);
+-		off_new = (off_new + align1) & ~align1;
++		off_new = ((off_new + align1) & ~align1) + color;
+ 		count += off_new - offset;
+ 		offset = off_new;
+ 		if (offset >= t->size)
+@@ -121,6 +129,4 @@
+ 	spin_lock_init(&t->lock);
+ 	t->map = map;
+ 	t->size = size;
+-	t->last_size = 0;
+-	t->first_free = 0;
+ }
+Index: sparc32-2.6.10-rc3/arch/sparc/mm/iommu.c
+=================================--- sparc32-2.6.10-rc3.orig/arch/sparc/mm/iommu.c	2004-12-16 06:19:27.000000000 -0800
++++ sparc32-2.6.10-rc3/arch/sparc/mm/iommu.c	2004-12-20 19:22:33.991494698 -0800
+@@ -119,6 +119,13 @@
+ 		prom_halt();
+ 	}
+ 	bit_map_init(&iommu->usemap, bitmap, IOMMU_NPTES);
++	/* To be coherent on HyperSparc, the page color of DVMA
++	 * and physical addresses must match.
++	 */
++	if (srmmu_modtype = HyperSparc)
++		iommu->usemap.num_colors = vac_cache_size >> PAGE_SHIFT;
++	else
++		iommu->usemap.num_colors = 1;
+ 
+ 	printk("IOMMU: impl %d vers %d table 0x%p[%d B] map [%d b]\n",
+ 	    impl, vers, iommu->page_table,
+@@ -128,7 +135,9 @@
+ }
+ 
+ /* This begs to be btfixup-ed by srmmu. */
+-static void iommu_viking_flush_iotlb(iopte_t *iopte, unsigned int niopte)
++/* Flush the iotlb entries to ram. */
++/* This could be better if we didn't have to flush whole pages. */
++static void iommu_flush_iotlb(iopte_t *iopte, unsigned int niopte)
+ {
+ 	unsigned long start;
+ 	unsigned long end;
+@@ -145,6 +154,11 @@
+ 			viking_flush_page(start);
+ 			start += PAGE_SIZE;
+ 		}
++	} else {
++		while(start < end) {
++			__flush_page_to_ram(start);
++			start += PAGE_SIZE;
++		}
+ 	}
+ }
+ 
+@@ -156,7 +170,8 @@
+ 	unsigned int busa, busa0;
+ 	int i;
+ 
+-	ioptex = bit_map_string_get(&iommu->usemap, npages, 1);
++	/* page color = pfn of page */
++	ioptex = bit_map_string_get(&iommu->usemap, npages, page_to_pfn(page));
+ 	if (ioptex < 0)
+ 		panic("iommu out");
+ 	busa0 = iommu->start + (ioptex << PAGE_SHIFT);
+@@ -172,8 +187,7 @@
+ 		page++;
+ 	}
+ 
+-	iommu_viking_flush_iotlb(iopte0, npages);
+-	flush_cache_all(); // hack to fix dma errors with hypersparc
++	iommu_flush_iotlb(iopte0, npages);
+ 
+ 	return busa0;
+ }
+@@ -328,7 +342,9 @@
+ 	if ((addr & ~PAGE_MASK) != 0) BUG();
+ 	if ((len & ~PAGE_MASK) != 0) BUG();
+ 
+-	ioptex = bit_map_string_get(&iommu->usemap, len >> PAGE_SHIFT, 1);
++	/* page color = physical address */
++	ioptex = bit_map_string_get(&iommu->usemap, len >> PAGE_SHIFT,
++		addr >> PAGE_SHIFT);
+ 	if (ioptex < 0)
+ 		panic("iommu out");
+ 
+@@ -372,7 +388,7 @@
+ 	 *        to handle the latter case as well.
+ 	 */
+ 	flush_cache_all();
+-	iommu_viking_flush_iotlb(first, len >> PAGE_SHIFT);
++	iommu_flush_iotlb(first, len >> PAGE_SHIFT);
+ 	flush_tlb_all();
+ 	iommu_invalidate(iommu->regs);
+ 
