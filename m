@@ -1,78 +1,35 @@
-From: Joshua Kwan <joshk@triplehelix.org>
-Date: Fri, 27 Aug 2004 00:57:27 +0000
+From: "David S. Miller" <davem@redhat.com>
+Date: Fri, 27 Aug 2004 01:06:28 +0000
 Subject: Re: [2.6] busybox EFAULT on sparc64
-Message-Id: <pan.2004.08.27.00.57.25.841201@triplehelix.org>
+Message-Id: <20040826180628.1fd4e09f.davem@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040818235528.GA8070@triplehelix.org>
 In-Reply-To: <20040818235528.GA8070@triplehelix.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, 19 Aug 2004 22:02:59 -0700, David S. Miller wrote:
-> It should definitely fix the busybox mount() problem.
-> The fork() problem probably not, please try to trace
-> into the forked() process.  If that proves too hard
-> get back to me and I'll try to cons up some debugging
-> hacks for the kernel to try and track that one down
-> too.
+On Thu, 26 Aug 2004 17:57:27 -0700
+Joshua Kwan <joshk@triplehelix.org> wrote:
 
-I tried making it not fork:
+> syslog(0x2, 0xefffed20, 0x1000
+> 
+> At this point everything hangs. I'm not sure if there's another four
+> digits after the 0x1000.
+> 
+> Ideas?
 
-~ # strace -f /sbin/klogd -n
-execve("/sbin/klogd", ["/sbin/klogd", "-n"], [/* 3 vars */]) =3D 0
-uname({sys=3D"Linux", node=3D"(none)", ...}) =3D 0
-brk(0)                                  =3D 0x14e000
-access("/etc/ld.so.nohwcap", F_OK)      =3D -1 ENOENT (No such file or dire=
-ctory)
-open("/etc/ld.so.preload", O_RDONLY)    =3D -1 ENOENT (No such file or dire=
-ctory)
-open("/etc/ld.so.cache", O_RDONLY)      =3D -1 ENOENT (No such file or dire=
-ctory)
-open("/lib/v9/libc.so.6", O_RDONLY)     =3D -1 ENOENT (No such file or dire=
-ctory)
-stat64("/lib/v9", 0xeffff390)           =3D -1 ENOENT (No such file or dire=
-ctory)
-open("/lib/libc.so.6", O_RDONLY)        =3D 3
-read(3, "\177ELF\1\2\1\0\0\0\0\0\0\0\0\0\0\3\0\2\0\0\0\1\0\0\366"..., 512) =
-=3D 512
-fstat64(3, {st_mode=3DS_IFREG|0666, st_sizer4900, ...}) =3D 0
-mmap(NULL, 794096, PROT_READ|PROT_EXEC, MAP_PRIVATE, 3, 0) =3D 0x7002c000
-mprotect(0x700d8000, 89584, PROT_NONE)  =3D 0
-mmap(0x700dc000, 73728, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_FIX=
-ED, 3, 0xa0000) =3D 0x700dc000
-close(3)                                =3D 0
-rt_sigaction(SIGINT, {0x477d8, [], SA_RESTART}, {SIG_DFL}, 0x70043958, 3) =
-=3D 0
-rt_sigaction(SIGKILL, {0x477d8, [KILL], SA_RESTART}, {SIG_DFL}, 0x70043958,=
- 3) =3D -1 EINVAL (Invalid argument)
-rt_sigaction(SIGTERM, {0x477d8, [TERM], SA_RESTART}, {SIG_DFL}, 0x70043958,=
- 3) =3D 0
-rt_sigaction(SIGHUP, {SIG_IGN}, {SIG_DFL}, 0x70043958, 3) =3D 0
-syslog(0x1, 0, 0)                       =3D 0
-syslog(0x8, 0, 0x7)                     =3D 0
-brk(0)                                  =3D 0x14e000
-brk(0x170000)                           =3D 0x170000
-brk(0)                                  =3D 0x170000
-time([1093542749])                      =3D 1093542749
-open("/etc/localtime", O_RDONLY)        =3D -1 ENOENT (No such file or dire=
-ctory)
-rt_sigaction(SIGPIPE, {0x700903f0, [], 0}, {SIG_DFL}, 0x70043958, 3) =3D 0
-socket(PF_FILE, SOCK_DGRAM, 0)          =3D 3
-fcntl64(3, F_SETFD, FD_CLOEXEC)         =3D 0
-connect(3, {sa_family=AF_FILE, path=3D"/dev/log"}, 16) =3D -1 ENOENT (No su=
-ch file or directory)
-close(3)                                =3D 0
-rt_sigaction(SIGPIPE, {SIG_DFL}, NULL, 0x70043958, 3) =3D 0
-syslog(0x2, 0xefffed20, 0x1000
+This should fix it.
 
-At this point everything hangs. I'm not sure if there's another four
-digits after the 0x1000.
-
-Ideas?
-
---=20
-Joshua Kwan
-
-
+=== arch/sparc64/kernel/sys32.S 1.9 vs edited ==--- 1.9/arch/sparc64/kernel/sys32.S	2004-06-03 14:51:21 -07:00
++++ edited/arch/sparc64/kernel/sys32.S	2004-08-26 17:49:39 -07:00
+@@ -120,7 +120,7 @@
+ SIGN2(sys32_setpgid, sys_setpgid, %o0, %o1)
+ SIGN3(sys32_setpriority, sys_setpriority, %o0, %o1, %o2)
+ SIGN1(sys32_ssetmask, sys_ssetmask, %o0)
+-SIGN2(sys32_syslog, sys_syslog, %o0, %o1)
++SIGN2(sys32_syslog, sys_syslog, %o0, %o2)
+ SIGN1(sys32_umask, sys_umask, %o0)
+ SIGN3(sys32_tgkill, sys_tgkill, %o0, %o1, %o2)
+ SIGN1(sys32_sendto, sys_sendto, %o0)
