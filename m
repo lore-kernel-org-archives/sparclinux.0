@@ -1,26 +1,22 @@
-From: Chris Newport <crn@netunix.com>
-Date: Mon, 21 Feb 2005 15:49:23 +0000
-Subject: SILO: sun4c does not boot from CD
-Message-Id: <421A0303.2010807@netunix.com>
+From: "Emory Gore" <mhvoxmjzgo@mindspring.com>
+Date: Fri, 04 Feb 2005 05:16:31 +0000
+Subject: Finally the door yielded
+Message-Id: <TvWE78VXVORhxv.S08ZuJkw@QHIIZ>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Hope <linux-scsi-owner@vger.kernel.org>
+
+How have you been? I have very exciting news!
+We FINALLY were able to save an extra $450 a month
+We refinatnced our mortgeage with a 3.75
+and closing was fast and we got several low offers within
+day. You can apply also at
+http://www.ldrim.com/
+
+Hope you do good with money over the coming year
 
 
-Using SILO 1.4.8 and making a bootable CD as per the instructions, the 
-CD works just fine on Sun4m, Sun4d, and Sun4u but fails to boot on my
-Sparc 1 ROM Rev 1.3  64Mb.
-It boots OK from an older Splack 8.0 CD which was made using the old 
-patched mkisofs-sparc.
-
- > n
-ok boot sd(0,6,0)
-Booting from: sd(0,6,0)
-SProgram terminated
-
-Looks like isofs.b cannot find or load second.b ?
-Is this a known problem and is there a workaround ?.
-
+Emory Gore
 
