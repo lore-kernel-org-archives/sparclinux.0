@@ -1,20 +1,32 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Wed, 15 Dec 2004 03:11:58 +0000
-Subject: Re: Mismatched UltraSPARC III CPUs
-Message-Id: <20041214191158.76044ce3.davem@davemloft.net>
+From: Turbo Fredriksson <turbo@swe.net>
+Date: Mon, 13 Dec 2004 07:34:24 +0000
+Subject: SPARC64 Warmboot fails - 'version 2.84 booting' and then hang
+Message-Id: <87is76k5xb.fsf@papadoc.bayour.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20041214190448.6584bf2d@enterprise.weeve.org>
-In-Reply-To: <20041214190448.6584bf2d@enterprise.weeve.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, 14 Dec 2004 19:04:48 -0700
-Jason Wever <weeve@gentoo.org> wrote:
+I'm running 2.6.8.1 with some patches I found on this list
+on my SPARC64 (Sun Blade 1000 - 2xUltraSPARC-III/750MHz).
 
-> As OBP on the Blade 1000/2000 supports mismatched USIII CPUs, I was
-> wondering if the kernel is capable of doing that as well.
+But every (!) time I reboot, it hangs just after the line
 
-Yes, even the cpu frequency changing support in the 2.6.x kernel
-handles this as well.
+    [...]
+    md: ... autorun DONE.
+    kjournald starting.  Commit interval 5 seconds
+    EXT3-fs: mounted filesystem with ordered data mode.
+    VFS: Mounted root (ext3 filesystem) readonly.
+    version 2.84 booting
+    [hung!]
+
+
+I'm booting over serial port (no graphics, usb etc compiled
+in).
+
+Cold boot almost always work (unless I have other problems
+with the system - it's never the kernels fault if it fails),
+but not warm boots...
+
+Anyone have any idea? What can I do to find/pinpoint the problem?
