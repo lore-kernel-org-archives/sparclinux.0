@@ -1,49 +1,65 @@
-From: David Yitzchak Cohen <lists+sparc_linux_kernel@bigfatdave.com>
-Date: Thu, 11 Mar 2004 14:56:50 +0000
-Subject: Re: fdisk geometry issue
-Message-Id: <20040311145640.GC2578@dave.tj>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="DIOMP1UsTsWJauNi"
+From: lists@naasa.net
+Date: Sun, 28 Mar 2004 19:53:19 +0000
+Subject: srmmu: out of nocache
+Message-Id: <200403282153.19509.lists@naasa.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.58.0403111203520.24764@passoa.internal>
-In-Reply-To: <Pine.LNX.4.58.0403111203520.24764@passoa.internal>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
+Hi!
 
---DIOMP1UsTsWJauNi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I have an old SS5 with 128 MB memory. Sometimes, the kernel seems to have s=
+ome=20
+memory problems:
+Mar 24 07:03:05 ferdi kernel: bitmap out: size 8800 used 6242 off 1248 len =
+16=20
+align 16 count 8816
+Mar 24 07:03:05 ferdi kernel: srmmu: out of nocache 4096: 2252800/1597952
+Mar 24 07:03:05 ferdi kernel: VM: killing process sendmail
 
-On Thu, Mar 11, 2004 at 06:23:32AM EST, Willem de Groot wrote:
+Here is an actual memory overview:=20
 
-> cylinders: 155061 (=3D155061/3)
-> heads: 48 (16*3)
->=20
-> With these values, fdisk reports the correct disk size.
+ferdi:~# cat /proc/meminfo
+MemTotal:       125256 kB
+MemFree:          6744 kB
+Buffers:         17836 kB
+Cached:          51156 kB
+SwapCached:      13556 kB
+Active:          73420 kB
+Inactive:        33572 kB
+HighTotal:           0 kB
+HighFree:            0 kB
+LowTotal:       125256 kB
+LowFree:          6744 kB
+SwapTotal:      249652 kB
+SwapFree:       228840 kB
+Dirty:             188 kB
+Writeback:           0 kB
+Mapped:          40640 kB
+Slab:             7736 kB
+Committed_AS:   141536 kB
+PageTables:        856 kB
+VmallocTotal:    25600 kB
+VmallocUsed:       500 kB
+VmallocChunk:    25060 kB
 
-BTW - I assume the cylinder count there is just a typo, but you got it
-right (51687) where it counts ;-)
+These problems are reproducible under high load (e. g. updating spamassassi=
+ns=20
+bayes-database while receiving a lot of mails). What can I do to fix this=20
+behaviour? Are 128 MB memory not enough? My x86-bases systems have no=20
+problems with less memory...
 
- - Dave
+regards,
+J=F6rg
 
 --=20
-Uncle Cosmo, why do they call this a word processor?
-It's simple, Skyler.  You've seen what food processors do to food, right?
-
-Please visit this link:
-http://rotter.net/israel
-
---DIOMP1UsTsWJauNi
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-
-iD8DBQFAUH4otSXacCAthpURAln1AJ9GKp/InLmn8g0JHCME+ZxWfYbqIACePQ3r
-6IeQMajG593YE304bmaLrPg=
-=Pb0k
------END PGP SIGNATURE-----
-
---DIOMP1UsTsWJauNi--
+Hi! I'm a .signature virus! Copy me into your signature to help me spread!.=
+-.
+PGP Key: send mail with subject 'SEND PGP-KEY' PGP Key-ID: FD 4E 21 1D    o=
+o|
+PGP Fingerprint: 388A872AFC5649D3 BCEC65778BE0C605                  _ // /`=
+'\
+I am Ohm of Borg. Resistance is voltage divided by current.         \X/ (\_=
+;/)
