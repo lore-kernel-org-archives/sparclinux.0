@@ -1,56 +1,63 @@
-From: joshk@triplehelix.org (Joshua Kwan)
-Date: Fri, 20 Aug 2004 22:19:43 +0000
-Subject: Re: Buglet making vmlinux with -j
-Message-Id: <20040820221943.GL8070@triplehelix.org>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="1XWsVB21DFCvn2e8"
+From: Richard Mortimer <richm@oldelvet.org.uk>
+Date: Mon, 09 Aug 2004 22:59:20 +0000
+Subject: /dev/random lacks entropy on sparc64
+Message-Id: <1092092360.7938.50.camel@duncow>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200408202156.06459.crn@netunix.com>
-In-Reply-To: <200408202156.06459.crn@netunix.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Whilst creating a new gpg key I noticed that there is typically very
+little entropy in /dev/random.
 
---1XWsVB21DFCvn2e8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+cat /proc/sys/kernel/random/entropy_avail
 
-On Fri, Aug 20, 2004 at 10:05:34PM +0100, Ciaran McCreesh wrote:
-> It's known behaviour for 2.4.x (2.6.x should work). Keith had a patch,
-> although I believe it wasn't applied because of suspected side effects.
+was always showing numbers < 100. After a bit of digging I worked out
+that this was due to add_timer_randomness() using jiffies to measure
+time rather than a hires timesource (i386 and x86_64 use tsc). I knocked
+the following patch and have tried this on 2.4.26 and this solves the
+problem. 
 
-Yes, 2.6.x works; the problem for me on 2.4 is that a make -j2 will omit
-building of init/, and the compile will fail because init/main.o is not
-found.
+I suspect that the patch needs some more work (probably shouldn't use
+assembly directly in drivers/char/random.c). I'm not sure whether we
+should really be calling something like tick_ops->get_tick(). But
+actually tick_get_tick() would probably be appropriate on all machines
+because we know that %tick is available on all v9 machines and
+/dev/random doesn't absolutely need a common tick value across all cpus.
 
-Even though 'vmlinux' explicitly has a make dependency on init/main.o.
-*twilight zone*
+How does this sound?
 
---=20
-Joshua Kwan
+Richard
 
---1XWsVB21DFCvn2e8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-Comment: http://triplehelix.org/~joshk/pubkey_gpg.asc
+shirehall:/tmp# diff -u linux-2.4.26.orig/drivers/char/random.c
+linux-2.4.26/drivers/char/random.c
+--- linux-2.4.26.orig/drivers/char/random.c     2004-02-18
+13:36:31.000000000 +0000
++++ linux-2.4.26/drivers/char/random.c  2004-08-04 00:38:04.000000000
++0100
+@@ -750,6 +750,17 @@
+        __u32 high;
+        rdtsc(time, high);
+        num ^= high;
++#elif defined (__sparc_v9__)
++        unsigned long tmp;
++       unsigned high;
++
++        __asm__ __volatile__("rd        %%tick, %0\n\t"
++                             "srlx      %0, 32, %1\n\t"
++                             "srl       %1, 1, %1"
++                             : "=r" (tmp), "=r" (high));
++
++       time = (unsigned)tmp;
++       num ^= high;
+ #else
+        time = jiffies;
+ #endif
 
-iQIVAwUBQSZ4/qOILr94RG8mAQJ2UhAA8oOMICIKGzoVzimNH7bFbz9adk9eGkX1
-6ap+spb9gXhqATPcIgdurGvEGX2z30eZ4/vzR7RnKeTBaOU4OTMRXkhhs1zj/rbO
-WwIprI8s//ewTM7QVYTSiikhIaYohP7jIKV6X+I+aPVhzbOhWikUEHDaxfIhwHgX
-mqWf9ik6TqlIEf1iI9xZyeMxz/gPjOjqAKi1FrcaQSM/4U52HtrrdjHPlHP04wDO
-fd8ivujUccN9aDs0fBOEYtDCCo5jkZ9niNOZ0Jz97MlSFLG7XdpZn1bRxomsqj6o
-/IcbW4P2J9ywAc6AQX4tciGUYqdIAF9ptrljUX6I1+/2475V+w82BWpPZcvfwBEk
-VzKZQ7BSNfPGN1d4nisXu/t8S6caBe6H6P9G7FBhaWF6Q7IYMsrIlk7QwktWUSi/
-u6Hqp0UoRlWWVHiNjo6+e/d5eig9l6F1qy6DMGyF6dfPx2lZuEdWaevfz2iBqYK9
-I/0UPWV2X9ZqtqlSIjHvRSS/3O4GoBQppULRhQgrhP0RuFWFk56tCLbmEHkozn46
-je7GB92nERg3VAwytdG1s7aGIygQh/DHX6IeegBsGne6Bfd7OTQfLcSZNlxAg43V
-4KNqRXLc/Kb7vgAM31DHcclvZ7xNHfEgjx7p4EUarNwFKEHQEMhvbqSORVtc9tA2
-YKwbpvo3Ugw=
-=xCXL
------END PGP SIGNATURE-----
 
---1XWsVB21DFCvn2e8--
+
+-- 
+richm@oldelvet.org.uk
+
