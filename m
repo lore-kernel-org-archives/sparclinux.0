@@ -1,40 +1,36 @@
-From: Jiri Gaisler <jiri@gaisler.com>
-Date: Tue, 04 Jan 2005 19:04:11 +0000
-Subject: [3/7] LEON SPARC V8 processor support for linux-2.6.10
-Message-Id: <41DAE8AB.1020002@gaisler.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------040002060508040502040601"
+From: Grant Grundler <grundler@parisc-linux.org>
+Date: Mon, 10 Jan 2005 18:28:46 +0000
+Subject: PATCH 2.6.10 pci_psycho brainfart
+Message-Id: <20050110182846.GA17459@colo.lackof.org>
 List-Id: <sparclinux.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, wli@holomorphy.com
 
-This is a multi-part message in MIME format.
---------------040002060508040502040601
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Dave,
+I've had more than my fair share of brainfarts...
+Patch is against 2.6.10.
 
-linux-2.6.10: Kernel patches:
+hth,
+grant
 
-[3/7] diff2.6.10_drivers_sbus.diff:       diff for drivers/sbus
-
---------------040002060508040502040601
-Content-Type: text/plain;
- name="diff2.6.10_drivers_sbus.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="diff2.6.10_drivers_sbus.diff"
-
-diff -Naur ../linux-2.6.10/drivers/sbus/sbus.c linux-2.6.10/drivers/sbus/sbus.c
---- ../linux-2.6.10/drivers/sbus/sbus.c	2004-12-24 22:35:50.000000000 +0100
-+++ linux-2.6.10/drivers/sbus/sbus.c	2005-01-03 11:36:33.000000000 +0100
-@@ -358,6 +358,8 @@
- 		   (nd = prom_searchsiblings(nd, "sbi")) == 0) {
- 		   	panic("sbi not found");
- 		}
-+	} else if(sparc_cpu_model == sparc_leon) {
-+		return 0;
- 	} else if((nd = prom_searchsiblings(topnd, "sbus")) == 0) {
- 		if((iommund = prom_searchsiblings(topnd, "iommu")) == 0 ||
- 		   (nd = prom_getchild(iommund)) == 0 ||
-
---------------040002060508040502040601--
+Index: arch/sparc64/kernel/pci_psycho.c
+=================================RCS file: /var/cvs/linux-2.6/arch/sparc64/kernel/pci_psycho.c,v
+retrieving revision 1.6
+diff -u -p -r1.6 pci_psycho.c
+--- arch/sparc64/kernel/pci_psycho.c	30 Sep 2004 12:07:55 -0000	1.6
++++ arch/sparc64/kernel/pci_psycho.c	10 Jan 2005 18:17:08 -0000
+@@ -453,9 +453,9 @@ static void __psycho_check_one_stc(struc
+ 		tag_base = regbase + PSYCHO_STC_TAG_A;
+ 		line_base = regbase + PSYCHO_STC_LINE_A;
+ 	} else {
+-		err_base = regbase + PSYCHO_STC_ERR_A;
+-		tag_base = regbase + PSYCHO_STC_TAG_A;
+-		line_base = regbase + PSYCHO_STC_LINE_A;
++		err_base = regbase + PSYCHO_STC_ERR_B;
++		tag_base = regbase + PSYCHO_STC_TAG_B;
++		line_base = regbase + PSYCHO_STC_LINE_B;
+ 	}
+ 
+ 	spin_lock(&stc_buf_lock);
