@@ -1,56 +1,30 @@
-From: Jiri Gaisler <jiri@gaisler.com>
-Date: Tue, 04 Jan 2005 19:03:23 +0000
-Subject: [0/7] LEON SPARC V8 processor support for linux-2.6.10
-Message-Id: <41DAE87B.8030405@gaisler.com>
+From: William Lee Irwin III <wli@holomorphy.com>
+Date: Tue, 04 Jan 2005 19:21:57 +0000
+Subject: Re: [0/7] LEON SPARC V8 processor support for linux-2.6.10
+Message-Id: <20050104192157.GO2708@holomorphy.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <41DAE87B.8030405@gaisler.com>
+In-Reply-To: <41DAE87B.8030405@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, wli@holomorphy.com
+To: Jiri Gaisler <jiri@gaisler.com>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+
+On Tue, Jan 04, 2005 at 08:03:23PM +0100, Jiri Gaisler wrote:
+> I am not sure that the pathes for serial and ethernet drivers
+> should be sent to the sparclinux list. If not, please advise on
+> where I should submit them.
+
+Jeff Garzik and netdev@oss.sgi.com generally handle network drivers.
+
+Russell King and linux-kernel@vger.kernel.org probably handle
+serial drivers considered for inclusion.
+
+I don't have a particularly organized or sophisticated plan for a
+staged merging of the drivers. If either should care to absorb the
+drivers instead of merely acking them, it's just as well. Both will
+generally see anything going across linux-kernel.
 
 
-This is a set of patches containing support for the open-source
-LEON SPARC V8 processor. The processor was originally developed
-for critical space applications by the European Space Agency (ESA),
-and is now maintained and further developed by Gaisler Research.
-LEON is also frequently being used in (ground-based) commercial
-and research application, which lead to the development of the
-of the linux-2.6 port.
-
-The patches include support for both the original LEON2 core,
-and the newer LEON3. The MMU in both cores is more or less
-identical, implementing the V8 SRMMU specification with a
-virtual cache. The linux-2.6.x port (as well as a uClinux port)
-has been available for some time in a custom version of the
-snapgear embedded linux distro. I believe it has matured enough
-to be included in the mainstream kernel.
-
-The LEON support is divided on 7 patches:
-
-linux-2.6.10: Kernel patches:
-----------------------------------
-
-[1/7] diff2.6.10_include_asm_sparc.diff:  diff for include/asm-sparc
-[2/7] diff2.6.10_arch_sparc.diff:         diff for arch/sparc
-[3/7] diff2.6.10_drivers_sbus.diff:       diff for drivers/sbus
-
-Leon3 serial+ethermac driver:
--------------------------------------
-
-[4/7] diff2.6.10_driver_amba.diff         diff for drivers/amba
-[5/7] diff2.6.10_arch_sparc_Kocnfig.diff  diff for arch/sparc/Kconfig
-
-Leon2 serial+ethermac driver:
--------------------------------------
-
-[6/7] diff2.6.10_driver_net.diff:         diff for drivers/net
-[7/7] diff2.6.10_driver_serial.diff:      diff for drivers/serial
-
-I am not sure that the pathes for serial and ethernet drivers
-should be sent to the sparclinux list. If not, please advise on
-where I should submit them.
-
-More info on LEON is available at www.gaisler.com
-
-Jiri Gaisler.
+-- wli
