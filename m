@@ -1,28 +1,48 @@
-From: "carmelo" <lawvson_44@hotmail.com>
-Date: Tue, 04 May 2004 05:30:48 +0000
-Subject: As Seen on CNN, the Winningest CAS1N0! jan softball}
-Message-Id: <1083648648-4869@excite.com>
+From: Mathieu Chouquet-Stringer <mchouque@online.fr>
+Date: Wed, 12 May 2004 19:13:48 +0000
+Subject: [PATCH] Fix endianess in modpost when cross-compiling for sparc on i386
+Message-Id: <20040512191348.GA14674@localhost>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+Cc: torvalds@osdl.org
 
-PREMI:ERE ONLIN}E CAS`INO!
-50% BONU:S for YOUR FIRST DEPO}SIT as a New Player.
+	Hi,
 
-SI|GN UP now! Don't wait!
+this simple patch makes the following code work again:
 
-http://www.urban-casino.com/_e4faa55afa1972493c43ac8a3f66f869/
+#ifdef STT_REGISTER
+                if (info->hdr->e_machine = EM_SPARC ||
+                    info->hdr->e_machine = EM_SPARCV9) {
+                        /* Ignore register directives. */
+                        if (ELF_ST_TYPE(sym->st_info) = STT_REGISTER)
+                                break;
+                }
+#endif
 
-Once you're a Mem}ber, there are near WEEK{LY 2-T`O-1, and 3-T'O-1 depo:sit offers!
+This portion of code is sparc specific and nothing else in modpost.c uses
+e_machine meaning cross-compiling for sparc on i386 (or any little endian
+machine) is the only way to experience the bug.
 
-Imagine, put in $25, GET $50 CRE'DIT BE|FORE YOU PL|ACE YO{UR FI{RST BET!!
+Without it, e_machine has the wrong value and modpost then generates a lot
+of "*** Warning: \"symbol\" [filename.ko] undefined" messages.
 
-CLIC:K HER!E!
+--- scripts/modpost.c.orig	2004-05-12 13:58:58.000000000 -0400
++++ scripts/modpost.c	2004-05-12 14:05:20.000000000 -0400
+@@ -267,6 +267,7 @@
+ 	hdr->e_shoff    = TO_NATIVE(hdr->e_shoff);
+ 	hdr->e_shstrndx = TO_NATIVE(hdr->e_shstrndx);
+ 	hdr->e_shnum    = TO_NATIVE(hdr->e_shnum);
++	hdr->e_machine  = TO_NATIVE(hdr->e_machine);
+ 	sechdrs = (void *)hdr + hdr->e_shoff;
+ 	info->sechdrs = sechdrs;
+ 
 
-http://www.urban-casino.com/_e4faa55afa1972493c43ac8a3f66f869/
 
-
-
-tattoo mimi dragonfl bmw test2 deutsch warriors raptor caesar scuba1 reynolds ssssss sarah1 carolina clipper kleenex yoda reznor players apple1 bmw planet lulu boogie nurse scorpion
+-- 
+Mathieu Chouquet-Stringer                 E-Mail: mchouque@online.fr
+       Never attribute to malice that which can be adequately
+                    explained by stupidity.
+                     -- Hanlon's Razor --
