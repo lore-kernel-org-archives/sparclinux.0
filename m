@@ -1,7 +1,7 @@
 From: Ed L Cashin <ecashin@uga.edu>
-Date: Wed, 21 Jan 2004 16:43:20 +0000
+Date: Wed, 21 Jan 2004 17:21:06 +0000
 Subject: Re: TLB miss handler code
-Message-Id: <87fze96ymv.fsf@uga.edu>
+Message-Id: <87brox1am5.fsf@uga.edu>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.GSO.4.43.0401191315430.13707-100000@gatekeeper.ececs.uc.edu>
 In-Reply-To: <Pine.GSO.4.43.0401191315430.13707-100000@gatekeeper.ececs.uc.edu>
@@ -10,28 +10,33 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Nawab Ali <alin@ececs.uc.edu> writes:
+"David S. Miller" <davem@redhat.com> writes:
 
-> Hi Ed,
-> Thanx for pointing out the file. I checked out the do_sparc64_fault
-> function in arch/sparc64/mm/fault.c (2.6.0).
+> So, in nearly 3 days of this thread nobody has discovered
+> the arch/sparc64/kernel/{itlb,dtlb}_*.S files yet.
 >
-> This is the code snippet I found.
-> if ((fault_code & FAULT_CODE_ITLB) && (fault_code & FAULT_CODE_DTLB))
-> 	BUG();
+> I find this particularly amusing :-)
 
-That case is a bug, so it's not what you're looking for.  The test
-checks whether the fault code says that it's a dTLB *and* an iTLB
-miss, which doesn't make any sense.
+It is funny, but I bet there are lurkers who know and aren't speaking
+up.
 
-You're interested in the non-buggy case.  In 2.6.0-test11, I can
-follow that the call sequence: do_sparc64_fault calls
-mm/memory.c:handle_mm_fault which calls handle_pte_fault.  Eventually
-update_mmu_cache and the assembly __update_mmu_cache are called.
+Examining those files (although my sparc asm isn't good) it looks like
+not all TLB misses go through do_sparc64_fault, which I suppose is
+your point.  In fact, it looks like do_sparc64_fault gets invoked only
+when the instruction causing the TLB miss is also causing a page
+fault.  I had mistakenly assumed that (fault_code & FAULT_CODE_?TLB)
+inside of do_sparc64_fault meant it was just a TLB miss.
 
-arch/sparc64/mm/ultra.S has the actual code that fills the TLBs.  All
-you have to do is decide where in that path it makes sense for you to
-add your code.  Maybe about the time update_mmu_cache is called.
+Rather, if it's just a TLB miss, the fast handler itself takes care of
+filling the TLB.  (I'm unfamiliar with the "retry" instruction, but
+the comment says "Trap return".)  
+
+I really do not understand how it is getting the pte so fast.  It
+looks like it doesn't do any locking but just performs a couple quick
+calculations to get the address of the pte.
+
+Incidentally, why are those fast TLB-miss handlers in
+arch/sparc64/kernel and not arch/sparc64/mm?
 
 -- 
 --Ed L Cashin            |   PGP public key:
