@@ -1,32 +1,21 @@
-From: "raymond" <symbol21scarlett@hotmail.com>
-Date: Sun, 18 Apr 2004 20:24:58 +0000
-Subject: PR0ZAC on your doorstep.  Anonymously.
-Message-Id: <1082327045-12141@excite.com>
+From: Meelis Roos <mroos@linux.ee>
+Date: Fri, 02 Apr 2004 09:09:55 +0000
+Subject: SILO 1.4.4 & Fast Data Access MMU Miss on tab completion
+Message-Id: <Pine.GSO.4.44.0404021153540.23192-100000@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
+Hi,
 
-No one needs to know...
+I have SILO 1.4.4-1 from Debian unstable installed on my U5. I use ext3
+as the root filesystem. When I try to use tab completion for kernel
+image files, SILO dies with Fast Data Access MMU Miss. Like, I type
+1/boot/vm<TAB> and then it reports the error and drops to ok prompt.
 
-http://drstrong.net/pr/index.php?pid=eph9106
+-- 
+Meelis Roos (mroos@linux.ee)
 
-
-
-
-
-
-
-
-
-
-
-
-bullet rickyjamaica e-mail whitney cherry fozzie maria
-lorraine jimbodexter catfish sarah1 
-wombat gray robinhoo 
-
-Get off this list by writing to sillybuggers3_73@hotmail.com
 
