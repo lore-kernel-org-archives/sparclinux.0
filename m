@@ -1,63 +1,33 @@
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
-Date: Fri, 25 Feb 2005 22:35:39 +0000
-Subject: DBRI fixes and improvements [2.4]
-Message-Id: <421FA83B.2050901@wp.pl>
+Date: Sat, 26 Feb 2005 20:51:25 +0000
+Subject: Re: DBRI fixes and improvements [2.4]
+Message-Id: <4220E14D.8030405@wp.pl>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------090107080306010309090308"
+Content-Type: multipart/mixed; boundary="------------080105080504050003060401"
 List-Id: <sparclinux.vger.kernel.org>
+References: <421FA83B.2050901@wp.pl>
+In-Reply-To: <421FA83B.2050901@wp.pl>
 To: sparclinux@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------090107080306010309090308
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+--------------080105080504050003060401
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-This patch greatly improves quality of audio output on my Sparcstation 
-20. It also contains some other fixes and improvements.
+There is a mistake in original patch. CS4215 does not support ADPCM and 
+little-endian formats. The corrected patch is attached.
 
-A full list of changes:
-- [audio.c] Added missing semicolon when debug information is enabled 
-(compilation bug).
+Krzysztof
 
-- [audio.c] Number of input and output 8KB buffers is now a module 
-parameter as previous authors requested. More buffers should help on 
-slower machines.
-
-- [audio.c] Fixes some debug strings, so compilation warnings are gone 
-(when debug is enabled).
-
-- [dbri.c] Added missing dbri_get_formats() function, so sox/play now 
-plays sound files without forcing it to Sun audio output interface (OSS 
-works).
-
-- [dbri.c] Enabled burst transfers for DBRI.
-
-- [dbri.c] Added a fix to not leave few bytes in a next memory chunk 
-when building chain of output data buffers for DBRI. It is really a 
-critical thing if the next change is applied.
-
-- [dbri.c] [the most important one] Writing an output data (playback) 
-returns immediately which allows audio player to prepare next data when 
-an audio codec is playing the previous. It removes clicking noise on 
-output signal.
-
-I tested  it on dual SuperSPARC 60MHz CPU (OGG file playback = 50% usage 
-of 1 CPU).
-I am interested in feedback about audio quality change on machines of 
-different speed.
-
-Regards,
-Krzysztof Helt
-
---------------090107080306010309090308
-Content-Type: text/plain;
- name="audio-dbri.diff"
+--------------080105080504050003060401
+Content-Type: text/x-patch;
+ name="audio-dbri2.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="audio-dbri.diff"
+ filename="audio-dbri2.patch"
 
-diff -ru linux-2.4.27/drivers/sbus/audio/audio.c /tmp/drivers/sbus/audio/audio.c
---- linux-2.4.27/drivers/sbus/audio/audio.c	2001-10-11 08:42:46.000000000 +0200
+diff -ur linux-2.4.27/drivers/sbus/audio/audio.c /tmp/drivers/sbus/audio/audio.c
+--- linux-2.4.27/drivers/sbus/audio/audio.c	2005-02-25 23:11:38.000000000 +0100
 +++ /tmp/drivers/sbus/audio/audio.c	2005-02-25 23:05:11.000000000 +0100
 @@ -65,6 +65,14 @@
  #define tprintk(x)
@@ -137,9 +107,9 @@ diff -ru linux-2.4.27/drivers/sbus/audio/audio.c /tmp/drivers/sbus/audio/audio.c
  	drv->input_buffer_size = (4096 * 2);
  	drv->recording_count = 0;
          drv->input_front = 0;
-diff -ru linux-2.4.27/drivers/sbus/audio/dbri.c /tmp/drivers/sbus/audio/dbri.c
---- linux-2.4.27/drivers/sbus/audio/dbri.c	2002-11-29 00:53:14.000000000 +0100
-+++ /tmp/drivers/sbus/audio/dbri.c	2005-02-25 23:09:25.000000000 +0100
+diff -ur linux-2.4.27/drivers/sbus/audio/dbri.c /tmp/drivers/sbus/audio/dbri.c
+--- linux-2.4.27/drivers/sbus/audio/dbri.c	2005-02-25 23:11:39.000000000 +0100
++++ /tmp/drivers/sbus/audio/dbri.c	2005-02-26 21:43:46.000000000 +0100
 @@ -51,6 +51,7 @@
  #include <linux/slab.h>
  #include <linux/version.h>
@@ -272,8 +242,8 @@ diff -ru linux-2.4.27/drivers/sbus/audio/dbri.c /tmp/drivers/sbus/audio/dbri.c
  
                  if (len > ((1 << 13) - 1)) {
 -                        mylen = (1 << 13) - 1;
-+		/* One should not leave a buffer shorter than    */
-+		/* a single sample. Otherwise bad things happen. */
++		/* One should not leave a buffer shorter than	 */
++		/* a single sample. Otherwise bad things happens.*/
 +                        mylen = (1 << 13) - 4;
                  } else {
                          mylen = len;
@@ -338,21 +308,20 @@ diff -ru linux-2.4.27/drivers/sbus/audio/dbri.c /tmp/drivers/sbus/audio/dbri.c
  }
  
  static void dbri_stop_output(struct sparcaudio_driver *drv)
-@@ -1842,6 +1857,13 @@
+@@ -1842,6 +1857,12 @@
  	return dbri_get_output_rate(drv);
  }
  
 +static int dbri_get_formats(struct sparcaudio_driver *drv)
 +{
 +/* 8-bit format is not working */
-+        return (AFMT_MU_LAW | AFMT_A_LAW | AFMT_IMA_ADPCM | 
-+                AFMT_S16_LE | AFMT_S16_BE);
++        return (AFMT_MU_LAW | AFMT_A_LAW | AFMT_S16_BE);
 +}
 +
  /******************* sparcaudio midlevel - ports ***********************/
  
  static int dbri_set_output_port(struct sparcaudio_driver *drv, int port)
-@@ -1983,6 +2005,19 @@
+@@ -1983,6 +2004,19 @@
  	dbri_get_input_ports,
  	dbri_set_output_muted,
  	dbri_get_output_muted,
@@ -372,7 +341,7 @@ diff -ru linux-2.4.27/drivers/sbus/audio/dbri.c /tmp/drivers/sbus/audio/dbri.c
  };
  
  
-@@ -2093,7 +2128,7 @@
+@@ -2093,7 +2127,7 @@
  #endif
  	       *(cmd++) = DBRI_CMD(D_TE, 0, val);
  
@@ -382,5 +351,4 @@ diff -ru linux-2.4.27/drivers/sbus/audio/dbri.c /tmp/drivers/sbus/audio/dbri.c
  	       /* Activate the interface */
                 tmp = sbus_readl(dbri->regs + REG0);
 
---------------090107080306010309090308--
-
+--------------080105080504050003060401--
