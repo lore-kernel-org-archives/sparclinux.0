@@ -1,19 +1,24 @@
 From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
-Date: Mon, 12 Jul 2004 22:30:39 +0000
-Subject: [PATCH 2.6] define pci_dma_mapping_error for sparc
-Message-Id: <1089671439.20813.31.camel@localhost.localdomain>
+Date: Mon, 12 Jul 2004 22:33:23 +0000
+Subject: Re: [PATCH 2.6] define pci_dma_mapping_error for sparc
+Message-Id: <1089671603.20813.33.camel@localhost.localdomain>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-eUA8gMdw1QUenENwE0Z9"
+Content-Type: multipart/mixed; boundary="=-Vh6kjhHYGd67J9ZiPAJ/"
 List-Id: <sparclinux.vger.kernel.org>
+References: <1089671439.20813.31.camel@localhost.localdomain>
+In-Reply-To: <1089671439.20813.31.camel@localhost.localdomain>
 To: sparclinux@vger.kernel.org
 
 
---=-eUA8gMdw1QUenENwE0Z9
+--=-Vh6kjhHYGd67J9ZiPAJ/
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
-Sparc32 is missing the pci_dma_mapping_error function in pci.h, this
-patch adds it.
+On Mon, 2004-07-12 at 17:30 -0500, Tom 'spot' Callaway wrote:
+> Sparc32 is missing the pci_dma_mapping_error function in pci.h, this
+> patch adds it.
+
+Ugh. Use this revision instead, sorry for the nasty whitespace.
 
 ~spot
 ---
@@ -23,9 +28,9 @@ Red Hat Sales Engineer || Aurora Linux Project Leader
 "If you are going through hell, keep going."
 - Sir Winston Churchill
 
---=-eUA8gMdw1QUenENwE0Z9
-Content-Disposition: attachment; filename=linux-2.6.6-sparc-define_pci_dma_mapping_error.patch
-Content-Type: text/x-patch; name=linux-2.6.6-sparc-define_pci_dma_mapping_error.patch; charset=UTF-8
+--=-Vh6kjhHYGd67J9ZiPAJ/
+Content-Disposition: attachment; filename=linux-2.6.6-sparc-define_pci_dma_mapping_error-good.patch
+Content-Type: text/x-patch; name=linux-2.6.6-sparc-define_pci_dma_mapping_error-good.patch; charset=utf-8
 Content-Transfer-Encoding: 7bit
 
 --- linux-2.6.6/include/asm-sparc/pci.h.BAD	2004-05-19 21:38:11.502123000 -0400
@@ -35,7 +40,7 @@ Content-Transfer-Encoding: 7bit
  }
  
 +#define PCI_DMA_ERROR_CODE      (~(dma_addr_t)0x0)
-+                                                                                
++
 +static inline int pci_dma_mapping_error(dma_addr_t dma_addr)
 +{
 +        return (dma_addr == PCI_DMA_ERROR_CODE);
@@ -45,5 +50,5 @@ Content-Transfer-Encoding: 7bit
  
  /* generic pci stuff */
 
---=-eUA8gMdw1QUenENwE0Z9--
+--=-Vh6kjhHYGd67J9ZiPAJ/--
 
