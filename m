@@ -1,63 +1,45 @@
-From: Jamie Lokier <jamie@shareable.org>
-Date: Fri, 02 Jul 2004 01:03:49 +0000
-Subject: A question about PROT_NONE on Sun4c 32-bit Sparc
-Message-Id: <20040702010349.GF8950@mail.shareable.org>
+From: "Keith M. Wesolowski" <wesolows@foobazco.org>
+Date: Fri, 02 Jul 2004 04:11:36 +0000
+Subject: Re: A question about PROT_NONE on Sun4c 32-bit Sparc
+Message-Id: <20040702041136.GA21360@foobazco.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040630030503.GA25149@mail.shareable.org>
-In-Reply-To: <20040630030503.GA25149@mail.shareable.org>
+References: <20040630030503.GA25149@mail.shareable.org> <20040702010349.GF8950@mail.shareable.org>
+In-Reply-To: <20040702010349.GF8950@mail.shareable.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Keith M. Wesolowski" <wesolows@foobazco.org>
+To: Jamie Lokier <jamie@shareable.org>
 Cc: "David S. Miller" <davem@redhat.com>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-Hi Keith,
+On Fri, Jul 02, 2004 at 02:03:49AM +0100, Jamie Lokier wrote:
 
-David Miller suggested I ask you specifically about the Sun4 & Sun4c
-32-bit Sparc ports of Linux.  He's confirmed a bug in the SRMMU 32-bit
-Sparc port, and I just wanted you to confirm it isn't in the other
-32-bit Sparc ports.
+> I would like to know if the Sun4 and Sun4c ports have the same bug.
+> I'm guessing not, but it's not clear to me from the code.
 
-I would like to know if the Sun4 and Sun4c ports have the same bug.
-I'm guessing not, but it's not clear to me from the code.
+No, this code is ok.
 
-In linux-2.6.5/include/asm-sparc/pgtsun4.h (pgtsun4c.h is similar):
+> #define _SUN4C_PAGE_VALID        0x80000000
+> #define _SUN4C_PAGE_SILENT_READ  0x80000000   /* synonym */
+> ...
+> #define _SUN4C_PAGE_READ         0x00800000   /* implemented in software */
+> ...
+> #define SUN4C_PAGE_NONE		__pgprot(_SUN4C_PAGE_PRESENT)
 
-#define _SUN4C_PAGE_VALID        0x80000000
-#define _SUN4C_PAGE_SILENT_READ  0x80000000   /* synonym */
-#define _SUN4C_PAGE_DIRTY        0x40000000
-#define _SUN4C_PAGE_SILENT_WRITE 0x40000000   /* synonym */
-...
-#define _SUN4C_PAGE_READ         0x00800000   /* implemented in software */
-#define _SUN4C_PAGE_WRITE        0x00400000   /* implemented in software */
-#define _SUN4C_PAGE_ACCESSED     0x00200000   /* implemented in software */
-#define _SUN4C_PAGE_MODIFIED     0x00100000   /* implemented in software */
-...
-#define _SUN4C_READABLE		(_SUN4C_PAGE_READ|_SUN4C_PAGE_SILENT_READ|\
-				 _SUN4C_PAGE_ACCESSED)
-#define _SUN4C_WRITEABLE	(_SUN4C_PAGE_WRITE|_SUN4C_PAGE_SILENT_WRITE|\
-				 _SUN4C_PAGE_MODIFIED)
-...
-#define SUN4C_PAGE_NONE		__pgprot(_SUN4C_PAGE_PRESENT)
-#define SUN4C_PAGE_SHARED	__pgprot(_SUN4C_PAGE_PRESENT|_SUN4C_READABLE|\
-					 _SUN4C_PAGE_WRITE)
-#define SUN4C_PAGE_READONLY	__pgprot(_SUN4C_PAGE_PRESENT|_SUN4C_READABLE)
+> SUN4C_PAGE_NONE corresponds to PROT_NONE mmap memory protection.
+> The question is whether PROT_NONE pages are readable by the _kernel_.
+> I.e. whether write() would successfully read from those pages.
 
-SUN4C_PAGE_NONE corresponds to PROT_NONE mmap memory protection.
+No, they are not.  The _SUN4C_PAGE_SILENT_READ is the bit that allows
+reading the page without trapping.  If it's not set, you trap, and
+do_sun4c_fault tests _SUN4C_PAGE_READ with no special case for
+user/kernel.  Since PROT_NONE doesn't include that bit, it's an oops.
 
-The question is whether PROT_NONE pages are readable by the _kernel_.
-I.e. whether write() would successfully read from those pages.
+> (By the way, as the sun4 files don't contain a definition of
+> _SUN4_PAGE_FILE or pgoff_to_pte, but the sun4c one do, I guess the
+> sun4 sub-architecture doesn't build in 2.6 but sun4c does?)
 
-From the names of the above macros, I'm guessing not.  There's nothing
-to indicate that they would be.  I just wanted you to confirm, thanks.
+Correct, although I recently fixed this in my tree.  It now builds but
+nobody has tested it in ages and I believe it doesn't work.
 
-(In the SRMMU 32-Sparc version, PROT_NONE pages _are_ readable in the
-kernel, because of the way they are implemented by making them
-priveleged pages.)
-
-(By the way, as the sun4 files don't contain a definition of
-_SUN4_PAGE_FILE or pgoff_to_pte, but the sun4c one do, I guess the
-sun4 sub-architecture doesn't build in 2.6 but sun4c does?)
-
-Thanks,
--- Jamie
+-- 
+Keith M Wesolowski
