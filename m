@@ -1,7 +1,7 @@
-From: Ed L Cashin <ecashin@uga.edu>
-Date: Wed, 21 Jan 2004 22:11:29 +0000
+From: Nawab Ali <alin@ececs.uc.edu>
+Date: Wed, 21 Jan 2004 23:14:05 +0000
 Subject: Re: TLB miss handler code
-Message-Id: <87broxj6jy.fsf@uga.edu>
+Message-Id: <Pine.GSO.4.43.0401211805010.18713-100000@gatekeeper.ececs.uc.edu>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.GSO.4.43.0401191315430.13707-100000@gatekeeper.ececs.uc.edu>
 In-Reply-To: <Pine.GSO.4.43.0401191315430.13707-100000@gatekeeper.ececs.uc.edu>
@@ -10,30 +10,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-"David S. Miller" <davem@redhat.com> writes:
+On Wed, 21 Jan 2004, Ed L Cashin wrote:
 
-...
-> The page tables of the current process are mapped virtually and linearlly
-> starting at VPTE_BASE, in this way a PTE lookup is merely computed via
-> VPTE_BASE + (tlb_miss_vaddr >> SHIFT).
+> "David S. Miller" <davem@redhat.com> writes:
 >
-> This can, itself, cause a TLB miss, for the VPTE_BASE page table mapping,
-> which is serviced by the code in dtlb_backend.S.
-
-That seems like a very clever idea.  At least it's very efficient!  
-
->> Incidentally, why are those fast TLB-miss handlers in
->> arch/sparc64/kernel and not arch/sparc64/mm?
+> OK.  Thanks much for the response.  It is a lot more concrete now.
 >
-> Bacause these handlers are included directly in the trap table.
+> I think Nawab Ali (the OP) has his work cut out for him, though.
+> Logging the pte on every TLB miss sounds tricky at best, given that
+> these fast handlers will service most misses.
 
-OK.  Thanks much for the response.  It is a lot more concrete now.
+Does it mean I'll have to muck around with the
+arch/sparc64/kernel/{itlb,dtlb}_*.S files if I have to log(create a
+tracefile) of all addresses that result in a TLB miss. My understanding
+of sparc asm is not that great and I was wondering if there is any other way.
 
-I think Nawab Ali (the OP) has his work cut out for him, though.
-Logging the pte on every TLB miss sounds tricky at best, given that
-these fast handlers will service most misses.
+Thanx for all the help guys.
 
--- 
---Ed L Cashin            |   PGP public key:
-  ecashin@uga.edu        |   http://noserose.net/e/pgp/
+-nawab
+
+> --
+> --Ed L Cashin            |   PGP public key:
+>   ecashin@uga.edu        |   http://noserose.net/e/pgp/
+>
+> -
+> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+==
+Ask not what Mozilla can do for you...
+---------------------------------------------------------
+  Nawab Ali.			Graduate Student
+  3238 Bishop Street #2.	www.ececs.uc.edu/~alin
+  Cincinnati. OH - 45220.	Email: alin@ececs.uc.edu
+---------------------------------------------------------
 
