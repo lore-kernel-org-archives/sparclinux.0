@@ -1,33 +1,42 @@
-From: Admar Schoonen <admar@luon.net>
-Date: Sat, 14 Aug 2004 13:41:55 +0000
-Subject: Re: 2.6.8-rc4 on sparc64 oopses at boot and no working XFree86
-Message-Id: <20040814134154.GL21828@azrael.luon.net>
+From: "Stephen P. Becker" <geoman@gentoo.org>
+Date: Sun, 29 Aug 2004 17:26:36 +0000
+Subject: nfsroot w/ smp 2.6.7 on ultra2 bug report
+Message-Id: <413211CC.1020207@gentoo.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-(sorry for the cross posting; I had the wrong list first)
+Hi,
 
-On Fri, Aug 13, 2004 at 09:03:09AM -0700, David S. Miller wrote:
-> I have no idea wrt. your xfree86 problems.
+I have an Ultra 2 with dual 200mhz ultrasparc I processors.  I had been 
+trying to run nfsroot with kernel 2.6.7 on the machine, and could not 
+get it to work:
 
-Well, I guess it's related to the fact that I have 2 Ati mach64
-framebuffers (2 x PGX64) in the machine. On that machine XFree86
-segfaults with 2.6.8-rc4 segfaults, while it works fine with 2.6.7.
+IP-Config: Guessing netmask 255.255.255.0
+IP-Config: Complete:
+       device=eth0, addr2.168.1.7, mask%5.255.255.0, 
+gw%5.255.255.255,
+      host2.168.1.7, domain=, nis-domain=(none),
+      bootserver2.168.1.1, rootserver2.168.1.1, rootpathLooking up port of RPC 100003/2 on 192.168.1.1
+eth0: Link is up using internal transceiver at 100Mb/s, Full Duplex.
+portmap: server 192.168.1.1 not responding, timed out
+Root-NFS: Unable to get nfsd port number from server, using default
+Looking up port of RPC 100005/1 on 192.168.1.1
+portmap: server 192.168.1.1 not responding, timed out
+Root-NFS: Unable to get mountd port number from server, using default
+mount: server 192.168.1.1 not responding, timed out
+Root-NFS: Server returned error -5 while mounting /usr/local/sparc
+VFS: Unable to mount root fs via NFS, trying floppy.
+VFS: Cannot open root device "<NULL>" or unknown-block(2,0)
+Please append a correct "root=" boot option
+Kernel panic: VFS: Unable to mount root fs on unknown-block(2,0)
+  <0>Press Stop-A to return to the boot prom
 
-I've just tried 2.6.8-rc4 on an ultra 5 with just 1 Ati mach64
-framebuffer (PGX24) and XFree86 works fine there too, so I guess it's
-due to the secondary framebuffer.
+On a suggestion from Ciaran McCreesh, I recompiled my kernel without SMP 
+support, and was able to mount nfsroot with no problems at all.  I also 
+successfully compiled and booted a 2.4.27 smp kernel with nfsroot, and 
+had no such problems.
 
-I'll ask the linux-fbdev guys about this issue.
- 
-> Why not post this on the correct list, sparclinux@vger.kernel.org,
-> btw?
-
-Sorry, I didn't know it existed. I should have looked better of course.
-
-Admar
-
-(Please CC any replies to me, as I'm not subscribed to this list.)
+Steve Becker
