@@ -1,21 +1,23 @@
-From: info@qsv17.com
-Date: Sat, 19 Mar 2005 10:50:29 +0000
-Subject: =?ISO-8859-1?Q?=20=1B$B6XCG$N0&!!$D$?= =?ISO-8859-1?Q?$$K!&!&=1B(B?=
-Message-Id: <20050319105029.27175.qmail@mail.qsv17.com>
+From: Meelis Roos <mroos@linux.ee>
+Date: Wed, 23 Mar 2005 12:58:06 +0000
+Subject: 16201MB HIGHMEM in 2.4.30-pre3
+Message-Id: <Pine.SOC.4.61.0503231456330.5000@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-2022-jp"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-東京ラブストーリー
-男女とも完全無料の憩いの場を提供いたします
-春は別れの季節、素敵な4月を迎える為に今から友達作りどうですか？
-きっと見つかる素敵な人★
-http://loves.qsv20.com/
-その他もろもろ特典付！！
-今回のバージョンアップで、東京限定から全国対応になり、あなたを楽しませます
+This is 2.4.30-pre3 on Sparcstation-20 with 256M RAM (4x64M).
 
-T-L-S事務局
+dmesg tells
+16201MB HIGHMEM available.
+On node 0 totalpages: 64854
+zone(0): 49152 pages.
+zone(1): 0 pages.
+zone(2): 16201 pages.
 
+Looks like it confuses pages and megabytes?
 
+-- 
+Meelis Roos (mroos@linux.ee)
