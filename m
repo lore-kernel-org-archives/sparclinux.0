@@ -1,69 +1,70 @@
 From: Richard Mortimer <richm@oldelvet.org.uk>
-Date: Sat, 04 Dec 2004 23:13:00 +0000
+Date: Sat, 04 Dec 2004 23:16:41 +0000
 Subject: Re: mmap breakage
-Message-Id: <1102201980.15654.108.camel@duncow>
+Message-Id: <1102202201.15654.111.camel@duncow>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=-ZKYRirAGop/74JRb/X1p"
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.LNX.4.61.0412032354010.1963@bobcat>
 In-Reply-To: <Pine.LNX.4.61.0412032354010.1963@bobcat>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sat, 2004-12-04 at 05:22, Jurij Smakov wrote:
-> Hello,
-> 
-> In Debian we have recently received a number of bug reports [0,1] about 
-> glibc's ld-linux.so.2 failing (when called via ldd, for example) on some 
-> binaries. The minimum test case, originally mentioned in [0], was the 
-> following:
-> 
-> 
 
-Well I can demonstrate the behaviour (see attached test program) on sparc64 and i386. It allows mappings to be fully or partially replaced and even allows you to replace bits in the middle of a mapping.
+--=-ZKYRirAGop/74JRb/X1p
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Now the bad news...
-
-This seems to be POSIX defined behaviour
-
-http://www.opengroup.org/onlinepubs/009695399/functions/mmap.html
-
-Specifically
-
-"The mapping established by mmap() shall replace any previous mappings
-for those whole pages containing any part of the address space of the
-process starting at pa and continuing for len bytes."
-
-and more specifically when MAP_FIXED is supplied
-
-"If a MAP_FIXED request is successful, the mapping established by mmap()
-replaces any previous mappings for the process' pages in the range
-[pa,pa+len)."
-
-and
-
-"On the other hand, if the program specifies a fixed address mapping
-(which requires some implementation knowledge to determine a suitable
-address, if the function is supported at all), then the program is
-presumed to be successfully managing its own address space and should be
-trusted when it asks to map over existing data structures."
-
-I guess that this isn't really what you want to hear but it does
-describe why the behaviour exists. I don't have any magic suggestions as
-to how to fix it - sorry.
+FWIW. I forgot to attach the program that demonstrates the behaviour.
 
 Richard
 
-P.S. You can see the overwriting of mappings if you look at
-/proc/<pid>/maps. You will see that the second mapping has totally
-superceded the first and the third mapping has split the second one up.
+On Sat, 2004-12-04 at 23:13, Richard Mortimer wrote:
+> On Sat, 2004-12-04 at 05:22, Jurij Smakov wrote:
 
-01000000-01002000 rw-p 00000000 00:0b 8               /dev/zero
-01002000-01004000 rw-p 00000000 03:02 863336          /var/log/messages
-01004000-01020000 rw-p 00004000 00:0b 8               /dev/zero
+> Well I can demonstrate the behaviour (see attached test program) on sparc64 and i386. It allows mappings to be fully or partially replaced and even allows you to replace bits in the middle of a mapping.
 
 
-
+> P.S. You can see the overwriting of mappings if you look at
+> /proc/<pid>/maps. You will see that the second mapping has totally
+> superceded the first and the third mapping has split the second one up.
+> 
+> 01000000-01002000 rw-p 00000000 00:0b 8               /dev/zero
+> 01002000-01004000 rw-p 00000000 03:02 863336          /var/log/messages
+> 01004000-01020000 rw-p 00004000 00:0b 8               /dev/zero
 -- 
 richm@oldelvet.org.uk
+
+--=-ZKYRirAGop/74JRb/X1p
+Content-Disposition: attachment; filename=mmaptest2.c
+Content-Type: text/x-csrc; name=mmaptest2.c; charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: 7bit
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+
+int main()
+{
+	char *addr1;
+	char *addr2;
+	char *addr3;
+	int fd1;
+	int fd2;
+	int fd3;
+	fd1 = open("/var/log/syslog", O_RDONLY);
+	fd2 = open("/dev/zero", O_RDWR);
+	fd3 = open("/var/log/messages", O_RDONLY);
+	addr1 = mmap((void*)0x1000000, 0x2000, PROT_READ, MAP_PRIVATE|MAP_FIXED, fd1,0);
+	addr2 = mmap((void*)0x1000000, 0x20000, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED, fd2,0);
+	addr3 = mmap((void*)0x1002000, 0x2000, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED, fd3,0);
+	printf("addr1 is %p\n", addr1);
+	printf("addr2 is %p\n", addr2);
+	printf("addr3 is %p\n", addr3);
+
+	sleep(100);
+	return 0;
+}
+
+--=-ZKYRirAGop/74JRb/X1p--
 
