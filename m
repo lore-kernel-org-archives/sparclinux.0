@@ -1,23 +1,34 @@
 From: Jiri Gaisler <jiri@gaisler.com>
-Date: Tue, 04 Jan 2005 19:04:20 +0000
-Subject: [4/7] LEON SPARC V8 processor support for linux-2.6.10
-Message-Id: <41DAE8B4.6060109@gaisler.com>
+Date: Wed, 05 Jan 2005 15:18:36 +0000
+Subject: Re: [4/7] LEON SPARC V8 processor support for linux-2.6.10
+Message-Id: <41DC054C.30805@gaisler.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------040207010106040708080102"
+Content-Type: multipart/mixed; boundary="------------000103000105060501050605"
 List-Id: <sparclinux.vger.kernel.org>
+References: <41DAE8B4.6060109@gaisler.com>
+In-Reply-To: <41DAE8B4.6060109@gaisler.com>
 To: sparclinux@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, wli@holomorphy.com
 
 This is a multi-part message in MIME format.
---------------040207010106040708080102
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+--------------000103000105060501050605
+Content-Type: text/plain; charset="iso-8859-1"; format="flowed"
+Content-Transfer-Encoding: quoted-printable
 
-Leon3 serial+ethermac driver:
+Leon3 serial+ethermac driver, updated.
 
 [4/7] diff2.6.10_driver_amba.diff         diff for drivers/amba
 
---------------040207010106040708080102
+
+--=20
+--------------------------------------------------------------------------
+Gaisler Research, 1:a L=E5nggatan 19, 413 27 Goteborg, Sweden, +46-317758650
+fax: +46-31421407 email: info@gaisler.com, home page: www.gaisler.com
+--------------------------------------------------------------------------
+
+
+
+--------------000103000105060501050605
 Content-Type: text/plain;
  name="diff2.6.10_driver_amba.diff"
 Content-Transfer-Encoding: 7bit
@@ -2475,5 +2486,38 @@ diff -Naur ../linux-2.6.10/drivers/amba/opencores/ethermac/open_eth.h linux-2.6.
 +#define OETH_MIISTATUS_BUSY     0x00000002 /* MII Busy */
 +#define OETH_MIISTATUS_NVALID   0x00000004 /* Data in MII Status Register is invalid */
 +
+diff -Naur ../linux-2.6.10/drivers/net/Space.c linux-2.6.10/drivers/net/Space.c
+--- ../linux-2.6.10/drivers/net/Space.c	2004-12-24 22:33:59.000000000 +0100
++++ linux-2.6.10/drivers/net/Space.c	2005-01-03 11:36:33.000000000 +0100
+@@ -93,6 +93,7 @@
+ extern struct net_device *mc32_probe(int unit);
+ extern struct net_device *cops_probe(int unit);
+ extern struct net_device *ltpc_probe(void);
++extern struct net_device *grlib_oeth_probe(int unit);
+   
+ /* Detachable devices ("pocket adaptors") */
+ extern struct net_device *de620_probe(int unit);
+@@ -312,6 +313,13 @@
+ 	{NULL, 0},
+ };
+ 
++static struct devprobe2 sparc_probes[] __initdata = {
++#ifdef CONFIG_GRLIB_OPENCORES_ETHERMAC
++	{grlib_oeth_probe, 0},
++#endif
++	{NULL, 0},
++};
++
+ /*
+  * Unified ethernet device probe, segmented per architecture and
+  * per bus interface. This drives the legacy devices only for now.
+@@ -326,6 +334,7 @@
+ 
+ 	(void)(	probe_list2(unit, m68k_probes, base_addr == 0) &&
+ 		probe_list2(unit, mips_probes, base_addr == 0) &&
++		probe_list2(unit, sparc_probes, base_addr == 0) &&
+ 		probe_list2(unit, eisa_probes, base_addr == 0) &&
+ 		probe_list2(unit, mca_probes, base_addr == 0) &&
+ 		probe_list2(unit, isa_probes, base_addr == 0) &&
 
---------------040207010106040708080102--
+--------------000103000105060501050605--
