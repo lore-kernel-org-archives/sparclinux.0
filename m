@@ -1,45 +1,52 @@
-From: Ben Collins <bcollins@debian.org>
-Date: Tue, 15 Mar 2005 12:34:16 +0000
+From: Dennis Jenkins <dennis.jenkins@sbcglobal.net>
+Date: Wed, 16 Mar 2005 02:27:57 +0000
 Subject: Re: fc-al and A5000
-Message-Id: <20050315123416.GA3857@internal>
+Message-Id: <20050316022757.83509.qmail@web81303.mail.yahoo.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20050315123416.GA3857@internal>
+In-Reply-To: <20050315123416.GA3857@internal>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Yep, I've been given access to an e4500 with a T3 array. So far, I've only
-been able to try the drivers that are currently available. I've gone back
-to 2.2.4 where socal first appeared, and still can't get things working. I
-can only get the socal driver to recognize the live port. Proc shows that
-the device (this T3) failed to respond, usually with a RJT.
 
-Haven't gotten beyond that yet. I'm in the middle of buying a new house,
-so I wont have time to work on this for another week or two. I do intend
-to get it working though.
+--- Ben Collins <bcollins@debian.org> wrote:
+> If anyone has information they want to dump on me
+> about their experience
+> in this driver and trying to get this working,
+> please do so. I'm going
+> into it blind, without any docs, and no reference
+> point for a working
+> system.
 
-If anyone has information they want to dump on me about their experience
-in this driver and trying to get this working, please do so. I'm going
-into it blind, without any docs, and no reference point for a working
-system.
+You will become my new hero. :)
 
-On Mon, Mar 14, 2005 at 10:17:57PM -0800, David S. Miller wrote:
-> On Tue, 15 Mar 2005 01:00:40 -0500
-> Morten Pedersen <camaro468@gmail.com> wrote:
-> 
-> > does anyone know where to find some information or know how to make my
-> > E4500 talk to my A5000?
-> 
-> Unfortunately, you are currently out of luck.  The SBUS
-> fc drivers are in a very poor state and don't work for
-> most people.
-> 
-> Ben Collins is trying to get the SOC/SOCAL driver working
-> with his array on his E4500.  He'll certainly post results
-> if he makes any progress.
+I don't really have anything to offer you directly,
+but I will help you test, if I can.
 
--- 
-Debian     - http://www.debian.org/
-Linux 1394 - http://www.linux1394.org/
-Subversion - http://subversion.tigris.org/
-WatchGuard - http://www.watchguard.com/
+I have an 8 processor e3500 with 8 18.2G disks in the
+built in fiber array.  It is definately a SOCAL and
+not a SOC.  I am unable to access the array using any
+version of Linux.  I am clueless on Solaris and can't
+figure out how to download the formware to flash the
+FC-AL.  I do have Solaris 10 installed on the first
+fiber drive (/dev/dsk/c3t0s0d0 for me).
+
+I run Gentoo Linux, kernel 2.4.29 (but I'll try
+anything that I can get to compile), and I have GCC
+3.3.5 (which can't compile a 2.2 or 2.6 kernel...). 
+ps- I run Linux of a SCSI drive connected to the
+non-fiber scsi chain that also has the CDROM drive on
+it.
+
+So, if you need any sort of testing or just general
+info from my box let me know.  I can give you openprom
+settings, part #s, diagnostics info, an account on the
+box with root.  Unfortunately, I am clueless about sun
+hardware.  I wish I knew how to fix the driver myself.
+
+Good Luck!  I'll keep my figers crossed for you.
+
+
+Dennis Jenkins
