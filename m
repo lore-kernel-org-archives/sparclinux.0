@@ -1,7 +1,7 @@
-From: Stefan Holst <mail@s-holst.de>
-Date: Thu, 18 Mar 2004 00:09:36 +0000
+From: Keith M Wesolowski <wesolows@foobazco.org>
+Date: Thu, 18 Mar 2004 02:45:17 +0000
 Subject: Re: nonzero phys_base
-Message-Id: <20040318000936.GC5754@spike>
+Message-Id: <20040318024517.GA16659@foobazco.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040316114121.GA5170@spike>
 In-Reply-To: <20040316114121.GA5170@spike>
@@ -10,39 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 03/16, Keith M Wesolowski wrote:
-> On Tue, Mar 16, 2004 at 12:41:21PM +0100, Stefan Holst wrote:
-> 
-> > how do you think about this fix? any chances to get this into the
-> > kernel? if yes, how? this is the first time i send kernel patches,
-> > so hints and comments are very welcome :).
-> 
-> Yes, I'll consider this for inclusion.  You get patches into the
-> kernel by sending them to this list, so you're off to a good start
-> there.
-> 
-> Please use pfn_base the way sparc64 does.  Shifting every time this is
-> used is unnecessarily expensive.  It would be nice if we could also
+On Tue, Mar 16, 2004 at 09:10:56AM -0800, Pete Zaitcev wrote:
 
-done, see patch in other post.
-
-> dispense with making __va and __pa nonconstant, but unlike sparc64 we
-> don't have the luxury of huge space to map into.
-
-if phys_base is known at compile time, it could be a macro, at least 
-in __pa and __va to make them constant. would that be an option?
-
+> > +#define __pa(x)			((unsigned long)(x) - PAGE_OFFSET + phys_base)
+> > +#define __va(x)			((void *)((unsigned long) (x) - phys_base + PAGE_OFFSET))
 > 
-> Otherwise this looks pretty good at first glance.
-> 
-> Thanks for doing this, Stefan.
+> This, obviously, overflows on highmem systems.
+> Do we have any users for __pa, __va, virt_to_phys and phys_to_virt?
+> It would be helpful if you enumerated all of them and perhaps
+> removed some.
 
-thanks :)
-but that was not entirely my work. i just tied up to konrad's at
-the moment.
+Pete, this has always been true for highmem.  How does his patch make
+this worse?
 
 -- 
-RY  Stefan
-+-----------------+----------------+
-| mail@s-holst.de | www.s-holst.de |
-+-----------------+----------------+
+Keith M Wesolowski
