@@ -1,23 +1,22 @@
-From: Keith M Wesolowski <wesolows@foobazco.org>
-Date: Tue, 06 Apr 2004 20:35:24 +0000
-Subject: Re: [TEST THIS] sparc32 swap fix
-Message-Id: <20040406203524.GA26900@foobazco.org>
+From: Steven Wilcoxon <swilcoxon@soncom.com>
+Date: Sat, 03 Apr 2004 22:42:02 +0000
+Subject: SOC+ & 2.4/2.6 kernels
+Message-Id: <200404032242.i33Mg7q96503@luna.soncom.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040406044441.GB17154@foobazco.org>
-In-Reply-To: <20040406044441.GB17154@foobazco.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, Apr 06, 2004 at 02:57:11PM -0500, Art Haas wrote:
+What is the status of the SOC+ drivers with the 2.4 & the 2.6 kernels? I've 
+found notes that it wasn't working in 2.4 and the old instructions on how to 
+add the microcode to the driver. I have tried to use those instructions and 
+the SOC+ drivers don't function properly OR I did the micro code wrong.
 
-> Was the cause of the swap space failures due to changes applied to the
-> kernel source between -rc releases and the final release? Enquiring
-> minds want to know and learn ...
+I'd like to see FC support working with the SOC+. Can anyone provide the 
+information I'm looking for?
 
-Yes.  See
-http://linux.bkbits.net:8080/linux-2.5/cset@1.1764?nav=index.html|src/|src/mm|related/mm/swapfile.c.
+P.S. Any chance for IP over FC with SOC+?
 
 -- 
-Keith M Wesolowski
+S.W.
