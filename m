@@ -1,29 +1,52 @@
-From: "David S. Miller" <davem@redhat.com>
-Date: Fri, 27 Aug 2004 00:06:39 +0000
+From: Joshua Kwan <joshk@triplehelix.org>
+Date: Fri, 27 Aug 2004 00:22:57 +0000
 Subject: Re: [PATCH] fix bug in sparc64 user copy patch
-Message-Id: <20040826170639.130f54fd.davem@redhat.com>
+Message-Id: <cglut3$vu7$1@sea.gmane.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------enig2160D18307FD39104B6F8D58"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040820155250.69c09781.davem@redhat.com>
-	<412E7730.4050309@triplehelix.org>
-In-Reply-To: <412E7730.4050309@triplehelix.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+References: <20040820155250.69c09781.davem@redhat.com>	<412E7730.4050309@triplehelix.org> <20040826170639.130f54fd.davem@redhat.com>
+In-Reply-To: <20040826170639.130f54fd.davem@redhat.com>
+To: linux-kernel@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig2160D18307FD39104B6F8D58
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-To: Joshua Kwan <joshk@triplehelix.org>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, 26 Aug 2004 16:50:08 -0700
-Joshua Kwan <joshk@triplehelix.org> wrote:
+David S. Miller wrote:
+> You're not following the list I guess...  I even posted about
+> this to debian-sparc, ho hum.
 
-> 1) clears the screen twice right after Remapping the kernel...
+Oops. New newsreader. Missed it by mistake. Sorry.
 
-No idea.
+-- 
+Joshua Kwan
 
-> 2) omits every other character when it does start printing messages? such as
+--------------enig2160D18307FD39104B6F8D58
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-You're not following the list I guess...  I even posted about
-this to debian-sparc, ho hum.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
-There is a problem with sunsab serial consoles, we're still
-trying to figure out exactly what.  Note that console output
-starts working properly once userland starts up.
+iQIVAwUBQS5+46OILr94RG8mAQJioRAA9DvWGilsCWCaa/N4jVf36bxBaCWrDfBL
+fJZmsiwk4tjlsXW5F8jQH0qkNaeChrUiSUTZg6p8fQDo81onCec7NcSLOHwWysV3
++0aItg2rsTgfPKs4hJcuhLMPoHzJ5Wbl1Kvx5hu+gN5p5+mafz7zInk2MItyi84w
+fOXh5K59UISMUFQmAOxqATi3M64lfaM8rnb24xCIPP7yVnmLt+GhsU86PqXSN4Wo
+ibcvMUFf1ixlSReYxUKA1YQ5RS44ZeU/HVD6864u9Qw7D/699obdzTcxLJm18TRP
+TeVu+k3td3C31Epjw9ad70s3FPI6UTQPsLitm1Uw5ip2p1i+bwTnfgg1hnEyaPrW
+gUTHshjD4x0+ZBO5JZ2acnfFpPHxgYxgDpiLNmP0DJtQLcmo6p8yPJig8EX9Kuyu
+PV2xrpBeeQNMRDNyQoYJTIEQPOkTH/dWAC1pm40iHDorfluLyfFhfCv2MfV6Q9pa
+GCch5dXKU+2N1jUJCFXKafsWd6Gmk7RA9s5MkbN+ZgTaCjJxdPxuIMRhnWB2P0Qz
+4yIu29ePkd4T/nEH5o4Bd6rKW2KEQ0bQRaitmvzmlGykB2CFPHlxJOCHaf3m29JJ
++t1yoWMUU4tbZuh1SJ0cDIEd8J7vLzeER0qawTKo7f2+5Rc9yUk6wvwMVde7Nq02
+MKj/tbNJjzE=
+=70xW
+-----END PGP SIGNATURE-----
+
+--------------enig2160D18307FD39104B6F8D58--
+
