@@ -1,21 +1,58 @@
-From: Keith M Wesolowski <wesolows@foobazco.org>
-Date: Sun, 25 Apr 2004 20:07:44 +0000
-Subject: Re: swapon(131): Kernel bad trap
-Message-Id: <20040425200744.GA26915@foobazco.org>
+From: "Jurzitza, Dieter" <DJurzitza@harmanbecker.com>
+Date: Fri, 23 Apr 2004 05:01:30 +0000
+Subject: Question
+Message-Id: <CFE6A2529AC5FA439B3D852B0F2A68371A2B0F@OEKAW2EXVS02.hbi.ad.harman.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200404252126.45047.lists@naasa.net>
-In-Reply-To: <200404252126.45047.lists@naasa.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-On Sun, Apr 25, 2004 at 09:26:45PM +0200, lists@naasa.net wrote:
+Dear listmembers,
+can anyone propably help me out: what does the message
 
-> New Kernel, new problems...
+oekalux08 kernel: __alloc_pages: 2-order allocation failed (gfp=3D0x20/0)
+oekalux08 last message repeated 125 times
 
-Please read the archives.  There's a patch for this, which shortly
-I'll be pushing into 2.6.6.
+mean? I found it in /var/log/messages. Always my U60 SMP / Kernel 2.4.26.
+Many thanks in advance
+take care
 
--- 
-Keith M Wesolowski
+
+Dieter Jurzitza
+
+
+--=20
+________________________________________________
+
+HARMAN BECKER AUTOMOTIVE SYSTEMS
+
+Dr.-Ing. Dieter Jurzitza
+Manager Hardware Systems
+         ESI
+
+Industriegebiet Ittersbach
+Becker-G=F6ring Str. 16
+D-76307 Karlsbad / Germany
+
+Phone: +49 (0)7248 71-1577
+Fax:   +49 (0)7248 71-1216
+eMail: DJurzitza@harmanbecker.com
+Internet: http://www.becker.de
+=20
+
+
+*******************************************
+Diese E-Mail enthaelt vertrauliche und/oder rechtlich geschuetzte Informati=
+onen. Wenn Sie nicht der richtige Adressat sind oder diese E-Mail irrtuemli=
+ch erhalten haben, informieren Sie bitte sofort den Absender und loeschen S=
+ie diese Mail. Das unerlaubte Kopieren sowie die unbefugte Weitergabe diese=
+r Mail ist nicht gestattet.
+=20
+This e-mail may contain confidential and/or privileged information. If you =
+are not the intended recipient (or have received this e-mail in error) plea=
+se notify the sender immediately and delete this e-mail. Any unauthorized c=
+opying, disclosure or distribution of the contents in this e-mail is strict=
+ly forbidden.
+*******************************************
+
