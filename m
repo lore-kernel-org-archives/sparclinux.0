@@ -1,44 +1,27 @@
-From: Andrew Morton <akpm@osdl.org>
-Date: Tue, 01 Mar 2005 21:44:40 +0000
+From: William Lee Irwin III <wli@holomorphy.com>
+Date: Thu, 03 Mar 2005 02:00:48 +0000
 Subject: Re: [PATCH] sparc: fix compile failure ("struct resource" related)
-Message-Id: <20050301134440.05ae1152.akpm@osdl.org>
+Message-Id: <20050303020048.GU15648@holomorphy.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200503012129.11840.adobriyan@mail.ru>
-In-Reply-To: <200503012129.11840.adobriyan@mail.ru>
+References: <200503012129.11840.adobriyan@mail.ru> <20050301134440.05ae1152.akpm@osdl.org>
+In-Reply-To: <20050301134440.05ae1152.akpm@osdl.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Alexey Dobriyan <adobriyan@mail.ru>
-Cc: wli@holomorphy.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: Alexey Dobriyan <adobriyan@mail.ru>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Alexey Dobriyan <adobriyan@mail.ru> wrote:
->
-> Signed-off-by: Alexey Dobriyan <adobriyan@mail.ru>
+On Tue, Mar 01, 2005 at 01:44:40PM -0800, Andrew Morton wrote:
+> Thanks.  Many of these fixups are due to a 64-bit-resource patch in Greg's
+> bk-pci tree which he has now reverted.  That being said:
+> - That patch will come back sometime
+> - Fixes like the below make sense anyway and can be merged any time.
+> - All the fixes which were only applicable when the 64-bit-resource patch
+>   is present have been sent to Greg for when that patch reemerges.
 
-Thanks.  Many of these fixups are due to a 64-bit-resource patch in Greg's
-bk-pci tree which he has now reverted.  That being said:
+Well, in isolation it's a C99 initializer cleanup, which is good.
 
-- That patch will come back sometime
-
-- Fixes like the below make sense anyway and can be merged any time.
-
-- All the fixes which were only applicable when the 64-bit-resource patch
-  is present have been sent to Greg for when that patch reemerges.
+Acked-by: William Irwin <wli@holomorphy.com>
 
 
-> --- linux-2.6.11-rc5-mm1/arch/sparc/kernel/ioport.c.orig	2005-03-01 21:11:30.000000000 +0200
-> +++ linux-2.6.11-rc5-mm1/arch/sparc/kernel/ioport.c	2005-03-01 21:12:48.000000000 +0200
-> @@ -54,11 +54,11 @@ static void _sparc_free_io(struct resour
->  
->  /* This points to the next to use virtual memory for DVMA mappings */
->  static struct resource _sparc_dvma = {
-> -	"sparc_dvma", DVMA_VADDR, DVMA_END - 1
-> +	.name = "sparc_dvma", .start = DVMA_VADDR, .end = DVMA_END - 1
->  };
->  /* This points to the start of I/O mappings, cluable from outside. */
->  /*ext*/ struct resource sparc_iomap = {
-> -	"sparc_iomap", IOBASE_VADDR, IOBASE_END - 1
-> +	.name = "sparc_iomap", .start = IOBASE_VADDR, .end = IOBASE_END - 1
->  };
->  
->  /*
+-- wli
