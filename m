@@ -1,78 +1,76 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Mon, 07 Feb 2005 19:57:45 +0000
+From: Jurij Smakov <jurij@wooyd.org>
+Date: Tue, 08 Feb 2005 03:34:44 +0000
 Subject: Re: Hang in SIOCGIFCONF ioctl handler
-Message-Id: <20050207115745.61fe43c1.davem@davemloft.net>
+Message-Id: <Pine.LNX.4.61.0502072218510.3446@bobcat>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.LNX.4.61.0502071259370.2050@bobcat>
 In-Reply-To: <Pine.LNX.4.61.0502071259370.2050@bobcat>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-On Mon, 7 Feb 2005 13:21:16 -0500 (EST)
-Jurij Smakov <jurij@wooyd.org> wrote:
+On Mon, 7 Feb 2005, David S. Miller wrote:
 
-> On an unrelated note, during my exploration I came across the function 
-> copy_in_user_fixup in arch/sparc64/lib/user_fixup.c. In this function (and 
-> in other functions in that file) copying is done using a loop like this:
-> 
->    while(size--) {
->      ...
->    }
->    return size;
-> 
-> I am pretty sure that this function is supposed to follow the same error 
-> reporting convention as copy_in_user, i.e. return 0 on success, non-zero 
-> on error. As they are written now, the loop will stop at size = 0, but it 
-> will return -1 due to extra decrement, which is not what one would expect.
+> On Mon, 7 Feb 2005 13:21:16 -0500 (EST)
+> Jurij Smakov <jurij@wooyd.org> wrote:
+>
+>> 510                 size_t len =3D((ifc32.ifc_len / sizeof (struct ifreq=
+32)) + 1) *
+>> 511                         sizeof (struct ifreq);
+>> 512                 uifc =3D compat_alloc_user_space(sizeof(struct ifcon=
+f) + len);
+>> 513                 ifc.ifc_len =3D len;
+>> 514                 ifr =3D ifc.ifc_req =3D (void __user *)(uifc + 1);
+>> 515                 ifr32 =3D compat_ptr(ifc32.ifcbuf);
+>> 516                 for (i =3D 0; i < ifc32.ifc_len; i +=3D sizeof (stru=
+ct ifreq32)) {
+>> 517                         if (copy_in_user(ifr, ifr32, sizeof(struct i=
+freq32)))
+>> 518                                 return -EFAULT;
+>> 519                         ifr++;
+>> 520                         ifr32++;
+>> 521                 }
+>>
+>> By inserting some debugging statements, I was able to figure out that
+>> machine hangs because at some point the call to copy_in_user function do=
+es
+>> not return.
+>
+> How big are the values "ifc32.ifc_len" and the length passed into the
+> compat_alloc_user_space() call for the failure case?
 
-Right, it's buggy.  Good spotting.  This should fix it up:
+Hi Dave,
 
-=== arch/sparc64/lib/user_fixup.c 1.1 vs edited ==--- 1.1/arch/sparc64/lib/user_fixup.c	2004-08-23 14:32:55 -07:00
-+++ edited/arch/sparc64/lib/user_fixup.c	2005-02-07 11:32:54 -08:00
-@@ -20,11 +20,12 @@
- 	char *dst = to;
- 	const char __user *src = from;
- 
--	while (size--) {
-+	while (size) {
- 		if (__get_user(*dst, src))
- 			break;
- 		dst++;
- 		src++;
-+		size--;
- 	}
- 
- 	if (size)
-@@ -38,11 +39,12 @@
- 	char __user *dst = to;
- 	const char *src = from;
- 
--	while (size--) {
-+	while (size) {
- 		if (__put_user(*src, dst))
- 			break;
- 		dst++;
- 		src++;
-+		size--;
- 	}
- 
- 	return size;
-@@ -53,7 +55,7 @@
- 	char __user *dst = to;
- 	char __user *src = from;
- 
--	while (size--) {
-+	while (size) {
- 		char tmp;
- 
- 		if (__get_user(tmp, src))
-@@ -62,6 +64,7 @@
- 			break;
- 		dst++;
- 		src++;
-+		size--;
- 	}
- 
- 	return size;
+I have inserted the printk statements before, after and inside the loop.
+The debugging output (including the previous successfull execution of the=20
+loop) right before the hang looks like this:
+
+dev_ifconf[516]: alloc_size=11056 ifc.ifc_len=11040 ifc32.ifc_len=8800
+dev_ifconf[518]: i=3D0 ifr=00000000713163f8 ifr32=0000000071319050
+dev_ifconf[518]: i2 ifr=0000000071316420 ifr32=0000000071319070
+dev_ifconf[518]: id ifr=0000000071316448 ifr32=0000000071319090
+dev_ifconf[518]: i=96 ifr=0000000071316470 ifr32=00000000713190b0
+[...]
+dev_ifconf[518]: i=8736 ifr=0000000071318ea0 ifr32=000000007131b270
+dev_ifconf[518]: i=8768 ifr=0000000071318ec8 ifr32=000000007131b290
+dev_ifconf[524]: after loop
+dev_ifconf[516]: alloc_size=11056 ifc.ifc_len=11040 ifc32.ifc_len=8800
+dev_ifconf[518]: i=3D0 ifr=00000001efffacf8 ifr32=00000000efffd898
+
+alloc_size is the amount allocated by compat_alloc_user_space(). The only=20
+"strange" thing I can notice is the ifr address. On a few previous calls=20
+to this function starting ifr (at i=3D0) looks like that:
+
+ifr=00000000efffb3b0
+ifr=00000000efffacc0
+ifr=00000000efffb328
+ifr=00000000efffb2b8
+
+and so on. The ifr address right before the hang has an extra bit set.
+
+I hope it helps,
+
+Jurij Smakov                                        jurij@wooyd.org
+Key: http://www.wooyd.org/pgpkey/                   KeyID: C99E03CC
+
