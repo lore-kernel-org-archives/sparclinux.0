@@ -1,46 +1,32 @@
-From: Ciaran McCreesh <ciaranm@gentoo.org>
-Date: Fri, 30 Jan 2004 20:55:42 +0000
+From: Ralph Mitchell <rmitchell@eds.com>
+Date: Sat, 31 Jan 2004 08:34:17 +0000
 Subject: Re: SILO 1.4.2 released
-Message-Id: <20040130205542.027b5b3a@snowdrop.home>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Signature=_Fri__30_Jan_2004_20_55_42_+0000_ZKjMRTJZf+lL5=nV"
+Message-Id: <401B6889.6070306@eds.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040129182954.GK532@phunnypharm.org>
 In-Reply-To: <20040129182954.GK532@phunnypharm.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
---Signature=_Fri__30_Jan_2004_20_55_42_+0000_ZKjMRTJZf+lL5=nV
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
+Ben Collins wrote:
 
-On Fri, 30 Jan 2004 15:19:47 -0500 Ben Collins <bcollins@debian.org>
-wrote:
-| I just uploaded SILO 1.4.4, which fixes this problem.
+>I just uploaded SILO 1.4.4, which fixes this problem.
+>  
+>
 
-This one worksforme on a sparcstation 5. It also boots a Gentoo-patched
-2.6.2_rc2 properly, so I guess it's just sparc64 broken there.
+Works with an old Sparc20/linux-2.4.24:
+bbsnp03 root # uname -a
+Linux bbsnp03 2.4.24-sparc-r1 #2 Wed Jan 28 11:45:09 CST 2004 sparc 
+sun4m Texas Instruments, Inc. - SuperSparc-(II) GNU/Linux
 
-ciaranm@sundrop ciaranm 0 $ qpkg -v -I silo
-sys-boot/silo-1.4.4 *
-ciaranm@sundrop ciaranm 0 $ uname -a
-Linux sundrop 2.6.2-rc2-sparc #1 Thu Jan 29 18:41:07 GMT 2004 sparc
-sun4m Fujitsu  MB86904 GNU/Linux
+Works with a 4-cpu E450/linux-2.6.0:
+bbsnp02 root # uname -a
+Linux bbsnp02 2.6.0-gentoo-r1 #1 SMP Sat Jan 3 01:37:00 CST 2004 sparc64 
+sun4u TI UltraSparc II  (BlackBird) GNU/Linux
 
--- 
-Ciaran McCreesh
-Mail:    ciaranm at gentoo.org
-Web:     http://dev.gentoo.org/~ciaranm
+Thanks,
 
---Signature=_Fri__30_Jan_2004_20_55_42_+0000_ZKjMRTJZf+lL5=nV
-Content-Type: application/pgp-signature
+Ralph Mitchell
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQFAGsTj96zL6DUtXhERAkMrAJ0cEc3m2nr4DUn6GcwJVgWcUV33KwCglYaQ
-KB9vf5dRd+3p8FqC5wF0J0U=
-=bCoA
------END PGP SIGNATURE-----
-
---Signature=_Fri__30_Jan_2004_20_55_42_+0000_ZKjMRTJZf+lL5=nV--
