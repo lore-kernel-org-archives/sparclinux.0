@@ -1,52 +1,69 @@
-From: Joshua Kwan <joshk@triplehelix.org>
-Date: Fri, 27 Aug 2004 00:22:57 +0000
-Subject: Re: [PATCH] fix bug in sparc64 user copy patch
-Message-Id: <cglut3$vu7$1@sea.gmane.org>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------enig2160D18307FD39104B6F8D58"
+From: Matthias Schulz <schulz@sms-softwaretechnik.de>
+Date: Wed, 25 Aug 2004 15:46:27 +0000
+Subject: Re: future of drivers/fc4/
+Message-Id: <412CB453.2050504@sms-softwaretechnik.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040820155250.69c09781.davem@redhat.com>	<412E7730.4050309@triplehelix.org> <20040826170639.130f54fd.davem@redhat.com>
-In-Reply-To: <20040826170639.130f54fd.davem@redhat.com>
-To: linux-kernel@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
-
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig2160D18307FD39104B6F8D58
-Content-Type: text/plain; charset=us-ascii; format=flowed
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
-David S. Miller wrote:
-> You're not following the list I guess...  I even posted about
-> this to debian-sparc, ho hum.
+Hi,
 
-Oops. New newsreader. Missed it by mistake. Sorry.
+I saw your posts on vger.kernel.org but it doesn't seem to find a lot of 
+reaction there.
 
--- 
-Joshua Kwan
+I do have a lot of hardware to test this (S1000E, SSA 100, E5000, 
+A5000). A while back, I had the 2.2.20 kernel running with my SS1000E 
+and the SSA 100 attached. Worked fine. But any version of Linux later 
+than 2.2.20 didn't do it.
 
---------------enig2160D18307FD39104B6F8D58
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Could it be, that the mayjor changes from 2.2 -> 2.4 (SMP, scsi etc.) 
+are the REAL reason for that ?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+I don't think it has to do woth hardware issues other than having the 
+right firmwar on either the soc-board (1.33) and the SSA (3.??).
 
-iQIVAwUBQS5+46OILr94RG8mAQJioRAA9DvWGilsCWCaa/N4jVf36bxBaCWrDfBL
-fJZmsiwk4tjlsXW5F8jQH0qkNaeChrUiSUTZg6p8fQDo81onCec7NcSLOHwWysV3
-+0aItg2rsTgfPKs4hJcuhLMPoHzJ5Wbl1Kvx5hu+gN5p5+mafz7zInk2MItyi84w
-fOXh5K59UISMUFQmAOxqATi3M64lfaM8rnb24xCIPP7yVnmLt+GhsU86PqXSN4Wo
-ibcvMUFf1ixlSReYxUKA1YQ5RS44ZeU/HVD6864u9Qw7D/699obdzTcxLJm18TRP
-TeVu+k3td3C31Epjw9ad70s3FPI6UTQPsLitm1Uw5ip2p1i+bwTnfgg1hnEyaPrW
-gUTHshjD4x0+ZBO5JZ2acnfFpPHxgYxgDpiLNmP0DJtQLcmo6p8yPJig8EX9Kuyu
-PV2xrpBeeQNMRDNyQoYJTIEQPOkTH/dWAC1pm40iHDorfluLyfFhfCv2MfV6Q9pa
-GCch5dXKU+2N1jUJCFXKafsWd6Gmk7RA9s5MkbN+ZgTaCjJxdPxuIMRhnWB2P0Qz
-4yIu29ePkd4T/nEH5o4Bd6rKW2KEQ0bQRaitmvzmlGykB2CFPHlxJOCHaf3m29JJ
-+t1yoWMUU4tbZuh1SJ0cDIEd8J7vLzeER0qawTKo7f2+5Rc9yUk6wvwMVde7Nq02
-MKj/tbNJjzE=
-=70xW
------END PGP SIGNATURE-----
+Did you get any further ?
 
---------------enig2160D18307FD39104B6F8D58--
+Did you have it running with 2.2.??
+
+Sincerly,
+Matthias Schulz
+
+C.Newport schrieb:
+> On Sunday 20 June 2004 7:40 pm, David S. Miller wrote:
+> 
+>>On Sun, 20 Jun 2004 18:03:53 +0200
+>>
+>>Christoph Hellwig <hch@lst.de> wrote:
+>>
+>>>The SUN FCAL support has been non-working for ages and needs major work
+>>>to keep up with scsi API changes.  Is anyone planning to ressurect it
+>>>midterm?  If not I'd like to remove it from the tree.
+>>
+>>Feel free to remove it, interested parties can resurrect the source
+>>really easily.
+> 
+> 
+> If it is that easy could someone tell me what needs doing please ?
+> I am NOT a kernel programmer but given a little handholding and
+> a list of what to do I can build and test it here.
+> 
+> I also have a spare set of hardware if someone in the UK with the
+> needed skills would like it. Sorry, but the disk array is a bit heavy to 
+> ship elsewhere. If someone already has the array I will mail a card
+> anywhere.
+> 
+> We need this if we are ever to get the Sun4D working again.
+> Keith now has a contact for the missing info to get Sun4D working
+> properly, but without the fc, soc and pluto it will be rather restricted in
+> usefulness.
+> 
+>  
+> -
+> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
