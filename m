@@ -1,90 +1,79 @@
-From: Richard Mortimer <richm@oldelvet.org.uk>
-Date: Mon, 06 Dec 2004 00:58:11 +0000
-Subject: 2.6.8-1-sparc64 nanosleep does not restart if interrupted by signal
-Message-Id: <1102294691.15654.137.camel@duncow>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-72RpO3GF/yC7eplDhH0O"
+From: "David S. Miller" <davem@davemloft.net>
+Date: Mon, 06 Dec 2004 05:44:32 +0000
+Subject: Re: 2.6.8-1-sparc64 nanosleep does not restart if interrupted by
+Message-Id: <20041205214432.50500c25.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1102294691.15654.137.camel@duncow>
+In-Reply-To: <1102294691.15654.137.camel@duncow>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+On Mon, 06 Dec 2004 00:58:11 +0000
+Richard Mortimer <richm@oldelvet.org.uk> wrote:
 
---=-72RpO3GF/yC7eplDhH0O
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+> I've noticed a problem on 2.6.8.1 sparc64 kernel with the nanosleep
+> system call (and probably others) where if the system call is
+> interrupted by a signal (TSTP/CONT in my test case) it doesn't get
+> restarted and just ends up returning error code -516. I first noticed
+> this using tail -f <file> terminates if you ctrl-z and then fg it.
 
-All,
+Good catch Richard.  In fact all restart block handling is hosed
+on sparc.  It's because of the return from syscall check for
+error cases, the return value errno comparison is off by one.
 
-I've noticed a problem on 2.6.8.1 sparc64 kernel with the nanosleep
-system call (and probably others) where if the system call is
-interrupted by a signal (TSTP/CONT in my test case) it doesn't get
-restarted and just ends up returning error code -516. I first noticed
-this using tail -f <file> terminates if you ctrl-z and then fg it.
+This should fix it, and it does for me on sparc64 for your test
+program.
 
-pingu:~/src# tail -f /var/log/syslog
-...
-[1]+  Stopped                 tail -f /var/log/syslog
-pingu:~/src# fg
-tail -f /var/log/syslog
-tail: cannot read realtime clock
-pingu:~/src#
-
-Digging into this it turns out that nanosleep is terminating with code
--516 (ERESTART_RESTARTBLOCK). It looks like the kernel is not restarting
-the system call using system call using __NR_restart_syscall.
-
-I haven't managed to work out what is wrong but I suspect that something
-is wrong with the way that rtrap, do_notify_resume, do_signal,
-syscall_restart and handle_signal are playing together. I've run out of
-time tonight and wondered if anyone had any insight that might save me a
-bit of debugging tomorrow.
-
-I've attached a simple test program that does a 100 second nanosleep. If
-you compile this (as 32 or 64 bit binary), run it, then ctrl-z and fg
-you will see that it reports a return code of -516.
-
-pingu:~/src# ./nanotest
-
-[1]+  Stopped                 ./nanotest
-pingu:~/src# fg
-./nanotest
-nanosleep returned -516, remainder 98 s, 970954128 ns
-pingu:~/src#
-
-Other notes:
-
-a) This all works on 2.4.x (not suprising the code was changed for 2.6)
-b) I haven't tested more recent that 2.6.8-1 but the
-asm/sparc64/kernel/signal.c (and rtrap.c) code looks unchanged since
-then.
-
-Richard
-
--- 
-richm@oldelvet.org.uk
-
---=-72RpO3GF/yC7eplDhH0O
-Content-Disposition: attachment; filename=nanotest.c
-Content-Type: text/x-csrc; name=nanotest.c; charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: 7bit
-
-#include <sys/types.h>
-#include <time.h>
-
-int main()
-{
-	struct timespec req;
-	struct timespec rem;
-	int retval;
-	
-	req.tv_sec = 100;
-	req.tv_nsec = 0;
-
-	retval = nanosleep(&req, &rem);
-	printf("nanosleep returned %d, remainder %d s, %d ns\n",
-		retval, rem.tv_sec, rem.tv_nsec);
-
-	return 0;
-}
-
---=-72RpO3GF/yC7eplDhH0O--
-
+=== arch/sparc/kernel/entry.S 1.28 vs edited ==--- 1.28/arch/sparc/kernel/entry.S	2004-10-19 21:17:00 -07:00
++++ edited/arch/sparc/kernel/entry.S	2004-12-05 21:08:05 -08:00
+@@ -1508,7 +1508,7 @@
+ 	.globl	ret_sys_call
+ ret_sys_call:
+ 	ld	[%curptr + TI_FLAGS], %l6
+-	cmp	%o0, -ENOIOCTLCMD
++	cmp	%o0, -ERESTART_RESTARTBLOCK
+ 	ld	[%sp + STACKFRAME_SZ + PT_PSR], %g3
+ 	set	PSR_C, %g2
+ 	bgeu	1f
+@@ -1587,7 +1587,7 @@
+ 
+ 	st	%o0, [%sp + STACKFRAME_SZ + PT_I0]
+ 	set	PSR_C, %g2
+-	cmp	%o0, -ENOIOCTLCMD
++	cmp	%o0, -ERESTART_RESTARTBLOCK
+ 	bgeu	1f
+ 	 ld	[%sp + STACKFRAME_SZ + PT_PSR], %g3
+ 
+@@ -1678,7 +1678,7 @@
+ 
+ 	st	%o0, [%sp + STACKFRAME_SZ + PT_I0]
+ 	set	PSR_C, %g2
+-	cmp	%o0, -ENOIOCTLCMD
++	cmp	%o0, -ERESTART_RESTARTBLOCK
+ 	bgeu	1f
+ 	 ld	[%sp + STACKFRAME_SZ + PT_PSR], %g3
+ 
+=== arch/sparc64/kernel/entry.S 1.36 vs edited ==--- 1.36/arch/sparc64/kernel/entry.S	2004-10-19 21:17:00 -07:00
++++ edited/arch/sparc64/kernel/entry.S	2004-12-05 21:08:14 -08:00
+@@ -1778,7 +1778,7 @@
+ 	 stx		%l0, [%curptr + TI_FLAGS]
+ 
+ 1:
+-	cmp		%o0, -ENOIOCTLCMD
++	cmp		%o0, -ERESTART_RESTARTBLOCK
+ 	bgeu,pn		%xcc, 1f
+ 	 andcc		%l0, _TIF_SYSCALL_TRACE, %l6	
+ 80:
+=== arch/sparc64/solaris/entry64.S 1.6 vs edited ==--- 1.6/arch/sparc64/solaris/entry64.S	2003-08-18 01:08:52 -07:00
++++ edited/arch/sparc64/solaris/entry64.S	2004-12-05 21:08:22 -08:00
+@@ -109,7 +109,7 @@
+ 	sra		%o0, 0, %o0
+ 	mov		%ulo(TSTATE_XCARRY | TSTATE_ICARRY), %g2
+ 	ldx		[%sp + PTREGS_OFF + PT_V9_TSTATE], %g3
+-	cmp		%o0, -ENOIOCTLCMD
++	cmp		%o0, -ERESTART_RESTARTBLOCK
+ 	sllx		%g2, 32, %g2
+ 	bgeu,pn		%xcc, 1f
+ 	 andcc		%l6, _TIF_SYSCALL_TRACE, %l6	
