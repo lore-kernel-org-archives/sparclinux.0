@@ -1,7 +1,7 @@
-From: "Art Haas" <ahaas@airmail.net>
-Date: Fri, 21 Jan 2005 23:05:19 +0000
+From: William Lee Irwin III <wli@holomorphy.com>
+Date: Fri, 21 Jan 2005 23:09:10 +0000
 Subject: Re: Current BK kernel error
-Message-Id: <20050121230519.GK5029@artsapartment.org>
+Message-Id: <20050121230910.GR8896@holomorphy.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20050111143605.GC4514@artsapartment.org>
 In-Reply-To: <20050111143605.GC4514@artsapartment.org>
@@ -11,23 +11,13 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 On Tue, Jan 11, 2005 at 10:24:29PM -0800, William Lee Irwin III wrote:
-> William Lee Irwin III wrote:
-> >> Ship me what you've got and I'll test it on sun4c and BTFIXUP-ize it.
-> 
-> On Wed, Jan 12, 2005 at 12:30:19AM -0600, Bob Breuer wrote:
-> > Ok, how about this patch to start from?
-> 
-> Looks good to work with. I'll send back something probably by the end
-> of the day tomorrow.
-> 
+>> Looks good to work with. I'll send back something probably by the end
+>> of the day tomorrow.
 
-Hi.
+On Fri, Jan 21, 2005 at 05:05:19PM -0600, Art Haas wrote:
+> Has a BTFIXUP'ed patch slipped by? Still being tested/developed?
 
-Has a BTFIXUP'ed patch slipped by? Still being tested/developed?
+I've been shaken up by current events. I'll get to it this weekend.
 
-Art
--- 
-Man once surrendering his reason, has no remaining guard against absurdities
-the most monstrous, and like a ship without rudder, is the sport of every wind.
 
--Thomas Jefferson to James Smith, 1822
+-- wli
