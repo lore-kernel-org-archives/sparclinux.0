@@ -1,127 +1,23 @@
-From: "Alexander Stohr" <Alexander.Stohr@gmx.de>
-Date: Wed, 01 Sep 2004 15:27:09 +0000
-Subject: Fwd: [patch] uts-semaphore fix for sparc64 solaris emu for kernel-2.6.9-rc1-bk6
-Message-Id: <23088.1094052429@www41.gmx.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="========GMXBoundary230881094052429"
+From: "David S. Miller" <davem@davemloft.net>
+Date: Wed, 01 Sep 2004 20:24:59 +0000
+Subject: Re: Fwd: [patch] uts-semaphore fix for sparc64 solaris emu for
+Message-Id: <20040901132459.2d1a1198.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <23088.1094052429@www41.gmx.net>
+In-Reply-To: <23088.1094052429@www41.gmx.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-This is a MIME encapsulated multipart message -
-please use a MIME-compliant e-mail program to open it.
+On Wed, 1 Sep 2004 17:27:09 +0200 (MEST)
+"Alexander Stohr" <Alexander.Stohr@gmx.de> wrote:
 
-Dies ist eine mehrteilige Nachricht im MIME-Format -
-bitte verwenden Sie zum Lesen ein MIME-konformes Mailprogramm.
+> Maybe i put the below patch
+> into the wrong mailslot.
+> I got no reply until now.
+> 
+> Do you have any comments on the subject?
 
---========GMXBoundary230881094052429
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-Hello,
-
-Maybe i put the below patch
-into the wrong mailslot.
-I got no reply until now.
-
-Do you have any comments on the subject?
-
--Alex.
-
-PS: please CC me on replys.
-
---- Forwarded Message ---
-Date: Tue, 31 Aug 2004 12:50:12 +0200 (MEST)
-From: "Alexander Stohr" <Alexander.Stohr@gmx.de>
-To: linux-kernel@vger.kernel.org
-Subject: [patch] uts-semaphore fix for sparc64 solaris emu for
-kernel-2.6.9-rc1-bk6
-
-Hello,
-
-when copy-to-user and alikes does fail=20
-for the solaris personality on sparc64
-did fail then it is possible that the
-current function gets left with an error
-without prior releasing the uts-semphore.
-
-the attached diff provides a patch that
-is supposed to fixe that behaviour.
-i was not able to test test this in the wild
-due to lack of the respective hardware, so=20
-any reports from machine owners would be nice.
-
--Alex.
-
-PS: please CC me on replys, i am not subscribed to this list.
-
---=20
-NEU: Bis zu 10 GB Speicher f=FCr e-mails & Dateien!
-1 GB bereits bei GMX FreeMail http://www.gmx.net/de/go/mail
-
---=20
-Superg=FCnstige DSL-Tarife + WLAN-Router f=FCr 0,- EUR*
-Jetzt zu GMX wechseln und sparen http://www.gmx.net/de/go/dsl
---========GMXBoundary230881094052429
-Content-Type: application/octet-stream; name="linux-2.6.9-rc1-bk6-sparcsolarisutsfield.diff"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="linux-2.6.9-rc1-bk6-sparcsolarisutsfield.diff"
-
-ZGlmZiAtTnVyIGxpbnV4LTIuNi45LXJjMS1iazYub3JpZy9hcmNoL3NwYXJjNjQvc29sYXJpcy9t
-aXNjLmMgbGludXgtMi42LjktcmMxLWJrNi9hcmNoL3NwYXJjNjQvc29sYXJpcy9taXNjLmMKLS0t
-IGxpbnV4LTIuNi45LXJjMS1iazYub3JpZy9hcmNoL3NwYXJjNjQvc29sYXJpcy9taXNjLmMJMjAw
-NC0wOC0yNSAwNzozODo0Mi4wMDAwMDAwMDAgKzAyMDAKKysrIGxpbnV4LTIuNi45LXJjMS1iazYv
-YXJjaC9zcGFyYzY0L3NvbGFyaXMvbWlzYy5jCTIwMDQtMDgtMzEgMTI6MzA6MjkuMDAwMDAwMDAw
-ICswMjAwCkBAIC0xMzcsMjAgKzEzNywyMiBAQAogCXJldHVybiBzdW5vc19icmsoYnJrKTsKIH0K
-IAotI2RlZmluZSBzZXRfdXRzZmllbGQodG8sIGZyb20sIGRvdGNob3AsIGNvdW50ZnJvbSkgewkJ
-CVwKLQljaGFyICpwOyAJCQkJCQkJXAotCWludCBpLCBsZW4gPSAoY291bnRmcm9tKSA/IAkJCQkJ
-XAotCQkoKHNpemVvZih0bykgPiBzaXplb2YoZnJvbSkgPyAJCQkJXAotCQkJc2l6ZW9mKGZyb20p
-IDogc2l6ZW9mKHRvKSkpIDogc2l6ZW9mKHRvKTsgCVwKLQlpZiAoY29weV90b191c2VyKHRvLCBm
-cm9tLCBsZW4pKQkJCQlcCi0JCXJldHVybiAtRUZBVUxUOwkJCQkJCVwKLQlpZiAoZG90Y2hvcCkg
-CQkJCQkJCVwKLQkJZm9yIChwPWZyb20saT0wOyAqcCAmJiAqcCAhPSAnLicgJiYgLS1sZW47IHAr
-KyxpKyspOyAJXAotCWVsc2UgCQkJCQkJCQlcCi0JCWkgPSBsZW4gLSAxOyAJCQkJCQlcCi0JaWYg
-KF9fcHV0X3VzZXIoJ1wwJywgKGNoYXIgX191c2VyICopKCh0bykraSkpKQkJCVwKLQkJcmV0dXJu
-IC1FRkFVTFQ7CQkJCQkJXAotfQorI2RlZmluZSBzZXRfdXRzZmllbGQodG8sIGZyb20sIGRvdGNo
-b3AsIGNvdW50ZnJvbSwgcGVycm9yKSBkbyB7CQkJXAorCWNoYXIgKnA7IAkJCQkJCQkJXAorCWlu
-dCBpLCBsZW4gPSAoY291bnRmcm9tKSA/IAkJCQkJCVwKKwkJKChzaXplb2YodG8pID4gc2l6ZW9m
-KGZyb20pID8gCQkJCQlcCisJCQlzaXplb2YoZnJvbSkgOiBzaXplb2YodG8pKSkgOiBzaXplb2Yo
-dG8pOyAJCVwKKwlpZiAoY29weV90b191c2VyKHRvLCBmcm9tLCBsZW4pKQkJCQkJXAorCQkqcGVy
-cm9yID0gLUVGQVVMVDsJCQkJCQlcCisJZWxzZSB7CQkJCQkJCQkJXAorCQlpZiAoZG90Y2hvcCkg
-CQkJCQkJCVwKKwkJCWZvciAocD1mcm9tLGk9MDsgKnAgJiYgKnAgIT0gJy4nICYmIC0tbGVuOyBw
-KyssaSsrKTsgCVwKKwkJZWxzZSAJCQkJCQkJCVwKKwkJCWkgPSBsZW4gLSAxOyAJCQkJCQlcCisJ
-CWlmIChfX3B1dF91c2VyKCdcMCcsIChjaGFyIF9fdXNlciAqKSgodG8pK2kpKSkJCQlcCisJCQkq
-cGVycm9yID0gLUVGQVVMVDsJCQkJCVwKKwl9CQkJCQkJCQkJXAorfSB3aGlsZSAoMCkKIAogc3Ry
-dWN0IHNvbF91bmFtZSB7CiAJY2hhciBzeXNuYW1lWzldOwpAQCAtMjIxLDE1ICsyMjMsMTcgQEAK
-IAlzdHJ1Y3Qgc29sX3VuYW1lIF9fdXNlciAqdiA9IEEoYnVmKTsKIAlzd2l0Y2ggKHdoaWNoKSB7
-CiAJY2FzZSAwOgkvKiBvbGQgdW5hbWUgKi8KLQkJLyogTGV0J3MgY2hlYXQgKi8KLQkJc2V0X3V0
-c2ZpZWxkKHYtPnN5c25hbWUsICJTdW5PUyIsIDEsIDApOwotCQlkb3duX3JlYWQoJnV0c19zZW0p
-OwotCQlzZXRfdXRzZmllbGQodi0+bm9kZW5hbWUsIHN5c3RlbV91dHNuYW1lLm5vZGVuYW1lLCAx
-LCAxKTsKLQkJdXBfcmVhZCgmdXRzX3NlbSk7Ci0JCXNldF91dHNmaWVsZCh2LT5yZWxlYXNlLCAi
-Mi42IiwgMCwgMCk7Ci0JCXNldF91dHNmaWVsZCh2LT52ZXJzaW9uLCAiR2VuZXJpYyIsIDAsIDAp
-OwotCQlzZXRfdXRzZmllbGQodi0+bWFjaGluZSwgbWFjaGluZSgpLCAwLCAwKTsKLQkJcmV0dXJu
-IDA7CisJCXsJaW50IGVycm9yID0gMDsKKwkJCS8qIExldCdzIGNoZWF0ICovCisJCQlzZXRfdXRz
-ZmllbGQodi0+c3lzbmFtZSwgIlN1bk9TIiwgMSwgMCwgJmVycm9yKTsKKwkJCWRvd25fcmVhZCgm
-dXRzX3NlbSk7CisJCQlzZXRfdXRzZmllbGQodi0+bm9kZW5hbWUsIHN5c3RlbV91dHNuYW1lLm5v
-ZGVuYW1lLCAxLCAxLCAmZXJyb3IpOworCQkJdXBfcmVhZCgmdXRzX3NlbSk7CisJCQlzZXRfdXRz
-ZmllbGQodi0+cmVsZWFzZSwgIjIuNiIsIDAsIDAsICZlcnJvcik7CisJCQlzZXRfdXRzZmllbGQo
-di0+dmVyc2lvbiwgIkdlbmVyaWMiLCAwLCAwLCAmZXJyb3IpOworCQkJc2V0X3V0c2ZpZWxkKHYt
-Pm1hY2hpbmUsIG1hY2hpbmUoKSwgMCwgMCwgJmVycm9yKTsKKwkJCXJldHVybiBlcnJvcjsKKwkJ
-fQogCWNhc2UgMjogLyogdXN0YXQgKi8KIAkJcmV0dXJuIC1FTk9TWVM7CiAJY2FzZSAzOiAvKiBm
-dXNlcnMgKi8KQEAgLTI0MSwxNiArMjQ1LDE3IEBACiAKIGFzbWxpbmthZ2UgaW50IHNvbGFyaXNf
-dXRzbmFtZSh1MzIgYnVmKQogeworCWludCBlcnJvciA9IDA7CiAJc3RydWN0IHNvbF91dHNuYW1l
-IF9fdXNlciAqdiA9IEEoYnVmKTsKIAkvKiBXaHkgc2hvdWxkIHdlIG5vdCBsaWUgYSBiaXQ/ICov
-CiAJZG93bl9yZWFkKCZ1dHNfc2VtKTsKLQlzZXRfdXRzZmllbGQodi0+c3lzbmFtZSwgIlN1bk9T
-IiwgMCwgMCk7Ci0Jc2V0X3V0c2ZpZWxkKHYtPm5vZGVuYW1lLCBzeXN0ZW1fdXRzbmFtZS5ub2Rl
-bmFtZSwgMSwgMSk7Ci0Jc2V0X3V0c2ZpZWxkKHYtPnJlbGVhc2UsICI1LjYiLCAwLCAwKTsKLQlz
-ZXRfdXRzZmllbGQodi0+dmVyc2lvbiwgIkdlbmVyaWMiLCAwLCAwKTsKLQlzZXRfdXRzZmllbGQo
-di0+bWFjaGluZSwgbWFjaGluZSgpLCAwLCAwKTsKKwlzZXRfdXRzZmllbGQodi0+c3lzbmFtZSwg
-IlN1bk9TIiwgMCwgMCwgJmVycm9yKTsKKwlzZXRfdXRzZmllbGQodi0+bm9kZW5hbWUsIHN5c3Rl
-bV91dHNuYW1lLm5vZGVuYW1lLCAxLCAxLCAmZXJyb3IpOworCXNldF91dHNmaWVsZCh2LT5yZWxl
-YXNlLCAiNS42IiwgMCwgMCwgJmVycm9yKTsKKwlzZXRfdXRzZmllbGQodi0+dmVyc2lvbiwgIkdl
-bmVyaWMiLCAwLCAwLCAmZXJyb3IpOworCXNldF91dHNmaWVsZCh2LT5tYWNoaW5lLCBtYWNoaW5l
-KCksIDAsIDAsICZlcnJvcik7CiAJdXBfcmVhZCgmdXRzX3NlbSk7Ci0JcmV0dXJuIDA7CisJcmV0
-dXJuIGVycm9yOwogfQogCiAjZGVmaW5lIFNJX1NZU05BTUUJCTEgICAgICAgLyogcmV0dXJuIG5h
-bWUgb2Ygb3BlcmF0aW5nIHN5c3RlbSAqLwo=
-
-
---========GMXBoundary230881094052429--
-
+It's a good fix, I'm just too busy to integrate it.
+I'll get to it, be patient.
