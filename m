@@ -1,25 +1,37 @@
-From: "Hassan Bin Ismail" <hassanbinismai0088@att.net>
-Date: Sat, 26 Jan 2002 04:35:04 +0000
-Subject: GET BACK TO ME ASAP 1
-Message-Id: <USERCD06892FFE7c694c4754574338910b8e660e68fa01@usercd06892ffe>
+From: "Patrick" <kezunli999@eyou.com>
+Date: Tue, 01 Jan 2002 18:51:32 +0000
+Subject: Custom data for you
+Message-Id: <200508181638.j7IGcSdD022366@zeus2.kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-HASSAN ISMAIL & ASSOCIATES.
-NO. 122A, 1ST FLOOR JALAN
-SULTANAH BATU PAHAT 80000
-JOHOR BAHRU MALAYSIA.
+  
+Dear sparclinux@vger.kernel.org:
 
-(PRIVATE/CONFIDENTIAL)
+Search and compile custom-built data as your requirements. 
+We will customize the data list for your specific need.
 
-My name is Hassan Bin Ismail,a legal practitioner with Hassan Ismail & Associates. A deceased client of mine, that shares the same last name as yours,who died as a result of a heart related condition in 18th November 2004.
 
-I have contacted you to assist in distributing the money left behind by my late client(US$19,000,000.00) Nineteen Million United States Dollars is lodged in the bank.
+Examples:
 
-Sincerely yours.
-Barr.Hassan Bin Ismail (Esq)
-(Attorney at Law
+     Custom company list (Name, Site, Email, Phone...)
 
+     Custom Client list (Name, Site, Email, Phone...)
+
+     Custom Email list (Opt-in)
+
+
+Hope to hear from you soon. We believe we can be an asset to you. 
+
+
+Regards!
+
+Patrick
+Support Team
+kzl123123@sohu.com
+Custom Data Provider
+
+For delete: Sayno@aol.com
