@@ -1,44 +1,36 @@
-From: "Jon" <Senderlist@citiz.net>
-Date: Sun, 13 Jun 2004 19:15:46 +0000
-Subject: Boosting Your Business
-Message-Id: <S265252AbUFMTTr/20040613191947Z+59@vger.kernel.org>
+From: netwalk@applix.com
+Date: Thu, 10 Jun 2004 08:11:22 +0000
+Subject: RE:Die Deform der sozialen Ordnung -5082-
+Message-Id: <APLXMADB1J2q3UWowOu0000280c@APLXMAMAIL.applix.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Dear Customer,
 
-E-mail is the fastest growing marketing tool.
+Your new support issue has been logged as inquiry # 277244.
 
-We offer E-mail Marketing with quality service and the lowest prices.
+You can expect a Customer Support Engineer to contact you within 4 business hours (U.S. ET). If this is not a support issue, your request will be forwarded to the appropriate department.
 
-1. Targeted E-mail Addresses
+Thank you for using Applix.
 
-We can provide targeted e-mail addresses you need, which are compiled 
-only on your order. We will customize your customer e-mail addresses.
+Regards,
+Applix, Inc.
 
-* We have millions of e-mail addresses in a wide variety of categories.
+Web:   http://www.applix.com/support
+Email: support@applix.com
+Phone: 508-870-0300
+       800-827-7549 (North America toll-free)
 
-2. Send out Targeted E-mails for you
-
-We can send your e-mail message to your targeted customers! We will
-customize your email addresses and send your message for you.
-
-* We can Bullet Proof your Web Site $ dedicated server.
-
-We also offer Fax Broadcasting Service. For more details, you can
-refer to:  Http://www.9206.com
-
-Looking forward to serving you.
+http://www.applix.com
 
 
-Regards!
 
-Jon
-www.9206.com
-Support@9206.com
+This communication may contain privileged or other confidential information. 
+If you have received it in error, please advise the sender by reply e-mail and 
+immediately delete the message and any attachments without copying or 
+disclosing the contents. 
 
-*************************************************************************
-To take your address:  Http://213.172.0x1f.16/index.html
-*************************************************************************
+Thank you.
