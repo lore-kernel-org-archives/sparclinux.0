@@ -1,99 +1,26 @@
-From: Jan-Benedict Glaw <jbglaw@lug-owl.de>
-Date: Thu, 21 Oct 2004 08:47:29 +0000
-Subject: Re: [discuss] Re: [PATCH] Add key management syscalls to non-i386 archs
-Message-Id: <20041021084728.GA5033@lug-owl.de>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="bpnyAEUPSyO7P1Gm"
+From: matt@mattfoster.homelinux.net
+Date: Wed, 20 Oct 2004 14:00:32 +0000
+Subject: SS20 SMP status?
+Message-Id: <20041020140033.864.qmail@matt-foster.me.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <3506.1098283455@redhat.com> <20041020150149.7be06d6d.davem@davemloft.net> <20041020225625.GD995@wotan.suse.de> <20041020160450.0914270b.davem@davemloft.net>
-In-Reply-To: <20041020160450.0914270b.davem@davemloft.net>
-To: "David S. Miller" <davem@davemloft.net>
-Cc: Andi Kleen <ak@suse.de>, dhowells@redhat.com, torvalds@osdl.org, akpm@osdl.org, linux-kernel@vger.kernel.org, discuss@x86-64.org, sparclinux@vger.kernel.org, linuxppc64-dev@ozlabs.org, linux-m68k@vger.kernel.org, linux-sh@m17n.org, linux-arm-kernel@lists.arm.linux.org.uk, parisc-linux@parisc-linux.org, linux-ia64@vger.kernel.org, linux-390@vm.marist.edu, linux-mips@linux-mips.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
+Hi,
 
---bpnyAEUPSyO7P1Gm
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I've picked up an SS20 with dual Ross cpus in it.
+Reading the archives suggests that this may
+not be totally stable under either 2.4 or 2.6.
 
-On Wed, 2004-10-20 16:04:50 -0700, David S. Miller <davem@davemloft.net>
-wrote in message <20041020160450.0914270b.davem@davemloft.net>:
-> On Thu, 21 Oct 2004 00:56:25 +0200
-> Andi Kleen <ak@suse.de> wrote:
+Are these things stable now, or still needing
+additional work?
 
-*VAX hacker's hat on*
+I could probably arrange for serial console
+access (via SSH) to be available if the
+hardware would be useful for testing.
 
-> I disagree quite strongly.  One major frustration for users of
-> non-x86 platforms is that functionality is often missing for some
-> time that we can make trivial to keep in sync.
+Cheers,
 
-Full ACK.
-
-> Simply put, if you're not watching the tree in painstaking detail
-> every day, you miss all of these enhancements.
-
-Right; and these missing enhancements will cause extra-pain when they're
-used some time later from core code. That is, you missed the feature
-while it was discusses/accepted and need to put it in place later on. So
-you've got to do extra searching etc.
-
-> The knowledge should come from the person putting the changes into
-> the tree, therefore it gets done once and this makes it so that
-> the other platform maintainers will find out about it automatically
-> next time they update their tree.
-
-Here's my proposal:
-
-$ mkdir ./Documentation/new_enhancements_to_implement
-$ cat ./Documentation/new_enhancements_to_implement/new_key_syscalls << EOF
-> Dear Architecture Maintailers,
->=20
-> please add these four new cryptographic key functions to your syscall
-> table. It's quite easy; just extend the ./include/arch-xxx/unistd.h
-> for four new defines and then add them to your ./arch/xxx/kernel/entry.S
-> file. For reference, here's my i386 patch doing this:
->=20
-> diff -Nurp
-> --- path-old/to/file/one
-> +++ path-new/to/file/one
->  text
-> -del
-> +add
->  more text
->=20
->=20
-> Thanks, your keychain hacker:-)
-> EOF
-$
-
-This way, all arch maintainers just *see* what needs to be done and
-get a small introduction on how to do that. I'd *really* like to see
-that! That would particularly help those that cannot do full-time
-hacking on their port (like us VAX hackers:-)
-
-MfG, JBG
-
---=20
-Jan-Benedict Glaw       jbglaw@lug-owl.de    . +49-172-7608481             =
-_ O _
-"Eine Freie Meinung in  einem Freien Kopf    | Gegen Zensur | Gegen Krieg  =
-_ _ O
- fuer einen Freien Staat voll Freier B=FCrger" | im Internet! |   im Irak! =
-  O O O
-ret =3D do_actions((curr | FREE_SPEECH) & ~(NEW_COPYRIGHT_LAW | DRM | TCPA)=
-);
-
---bpnyAEUPSyO7P1Gm
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQFBd3egHb1edYOZ4bsRAjiYAKCGSC9V5w2kdxwg0IEMdrNz/AtYggCdFNim
-HrmvljvO83mhAXd2vnQzg5w=
-=kfus
------END PGP SIGNATURE-----
-
---bpnyAEUPSyO7P1Gm--
+Matt
