@@ -1,31 +1,33 @@
-From: Marcel Holtmann <marcel@holtmann.org>
-Date: Sat, 27 Mar 2004 10:43:09 +0000
-Subject: Another compile problem on sparc64
-Message-Id: <1080384189.2285.8.camel@pegasus>
+From: "David S. Miller" <davem@redhat.com>
+Date: Sun, 28 Mar 2004 09:16:24 +0000
+Subject: Re: Another compile problem on sparc64
+Message-Id: <20040328011624.442bf391.davem@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1080384189.2285.8.camel@pegasus>
+In-Reply-To: <1080384189.2285.8.camel@pegasus>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi,
 
-my compile problem with arch/sparc64/kernel/process.o is gone, but I get
-another compile problem with the latest 2.6 Bitkeeper sources:
+You could have killed all of this by just temporarily removing
+the "-Werror" that gets added in the arch/sparc64/ Makefiles :-)
 
-  CC      arch/sparc64/mm/init.o
-arch/sparc64/mm/init.c: In function `check_pgt_cache':
-arch/sparc64/mm/init.c:107: warning: use of cast expressions as lvalues is deprecated
+This latest one only happens on uniprocessor builds, which is why
+I didn't catch it.  Only recent debian unstable updates of gcc started
+to emit these warnings fwiw...
 
-My compiler is still the latest GCC from Debian Sid:
+Anyways, here's the fix, I'll push it off to Linus.
 
-gcc (GCC) 3.3.3 (Debian 20040321)
-Copyright (C) 2003 Free Software Foundation, Inc.
-This is free software; see the source for copying conditions.  There is NO
-warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-Regards
-
-Marcel
-
-
+=== arch/sparc64/mm/init.c 1.55 vs edited ==--- 1.55/arch/sparc64/mm/init.c	Mon Mar  1 06:30:54 2004
++++ edited/arch/sparc64/mm/init.c	Sun Mar 28 01:13:58 2004
+@@ -104,7 +104,7 @@
+                                 if (page2)
+                                         page2->lru.next = page->lru.next;
+                                 else
+-                                        (struct page *)pgd_quicklist = page->lru.next;
++                                        pgd_quicklist = (void *) page->lru.next;
+                                 pgd_cache_size -= 2;
+                                 __free_page(page);
+                                 if (page2)
