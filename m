@@ -1,7 +1,7 @@
 From: "Jurzitza, Dieter" <DJurzitza@harmanbecker.com>
-Date: Tue, 13 Jan 2004 16:38:43 +0000
-Subject: To whom it may concern - driving a CD-burner on the sparc
-Message-Id: <1F6206BC53BCD3119059009027D1D3A20CC6AF59@OEKAEX01.becker.de>
+Date: Fri, 23 Jan 2004 09:10:45 +0000
+Subject: RE: Happy Meal Ethernet-Driver / II
+Message-Id: <1F6206BC53BCD3119059009027D1D3A20CC6AFC3@OEKAEX01.becker.de>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
@@ -9,16 +9,15 @@ Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
 Dear listmembers,
-we finally succeded to get a dvd-burner into operation on my Ultra 60.
-
-If anyone would be interested to share the knowledge, I would be pleased to
-supply the appropriate information (and patches ...), just send me a mail.
+me again. I just compared the old and the new hme drivers and found only
+slight changes. The udelay() one-liner patch from 2.4.19 is missing, is this
+propably something that should be there and slipped through when upgrading
+the kernel?
 Take care
 
 
 
 Dieter Jurzitza
-
 
 --=20
 ________________________________________________
