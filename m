@@ -1,35 +1,31 @@
-From: William Lee Irwin III <wli@holomorphy.com>
-Date: Wed, 28 Jul 2004 15:01:30 +0000
-Subject: Re: Build error due to pci_dma_mapping_error duplication
-Message-Id: <20040728150130.GW2334@holomorphy.com>
+From: "David S. Miller" <davem@redhat.com>
+Date: Thu, 01 Jul 2004 05:25:47 +0000
+Subject: Re: A question about PROT_NONE on Sparc and Sparc64
+Message-Id: <20040630222547.65d793da.davem@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040728145140.GV3996@artsapartment.org>
-In-Reply-To: <20040728145140.GV3996@artsapartment.org>
+References: <20040630030503.GA25149@mail.shareable.org>
+	<20040630082804.GS21264@devserv.devel.redhat.com>
+	<20040630135419.25b843b8.davem@redhat.com>
+	<20040630225220.GA32560@mail.shareable.org>
+In-Reply-To: <20040630225220.GA32560@mail.shareable.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Jamie Lokier <jamie@shareable.org>
+Cc: jakub@redhat.com, wesolows@foobazco.org, sparclinux@vger.kernel.org, ultralinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Jul 28, 2004 at 09:51:40AM -0500, Art Haas wrote:
-> I tried building the BK kernel a day or two ago on my SS20, and things
-> failed due to the following error:
-> include/asm/pci.h:160: error: redefinition of `pci_dma_mapping_error'
-> include/asm/pci.h:92: error: `pci_dma_mapping_error' previously defined
-> here
-> It seems pcm_dma_mapping_error() is duplicated in this header file.
-> The first instance reads as follows:
-> static inline int pci_dma_mapping_error(dma_addr_t dma_addr)
-> {
->         return 0;
-> }
-> The second, and the newly added version in the 1.15->1.16 change to the
-> file is:
-> static inline int pci_dma_mapping_error(dma_addr_t dma_addr)
-> {
->         return (dma_addr = PCI_DMA_ERROR_CODE);
-> }
-> I'd guess the first one needs to go. Correct?
+On Wed, 30 Jun 2004 23:52:20 +0100
+Jamie Lokier <jamie@shareable.org> wrote:
 
-Yes, please send that in ASAP.
+> The PaX security patch already implements R!X pages on Sparc64, so you
+> could just cut out that part of the patch.  Just pick out the changes
+> to arch/sparc64/* and include/asm-sparc64/*:
+> 
+> 	http://pax.grsecurity.net/pax-linux-2.6.7-200406252135.patch
+> 
+> It appears to use exactly the technique Jakub describes, and has been tested.
 
--- wli
+Great, I'm integrating something along these lines right now.
+
+Do you have any idea who authored the sparc64 bits so I can give
+them credit?
