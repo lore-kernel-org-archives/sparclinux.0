@@ -1,7 +1,7 @@
-From: christian@j-son.org
-Date: Tue, 13 Jan 2004 20:52:47 +0000
+From: Keith M Wesolowski <wesolows@foobazco.org>
+Date: Wed, 14 Jan 2004 01:39:46 +0000
 Subject: Re: Status of Ross hyperSPARC on linux-2.4.x and linux-2.6.x?
-Message-Id: <20040113215247.A1007@sparky.j-son.org>
+Message-Id: <20040114013946.GA6047@foobazco.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040113204206.A988@sparky.j-son.org>
 In-Reply-To: <20040113204206.A988@sparky.j-son.org>
@@ -10,42 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, Jan 13, 2004 at 09:06:41PM +0100, christian@j-son.org wrote:
-> On Tue, Jan 13, 2004 at 08:42:06PM +0100, christian@j-son.org wrote:
-> > Just a little ping for me (and anyone else).. what's the status of the
-> > linux kernels 2.4 and 2.6 for running Ross' hyperSPARC processors?
-> > 
-> > This is what I have (running up to date Aurora SPARC Linux 1.0)
-> > 
-> > cpu		: ROSS HyperSparc RT625 or RT626
-> > fpu		: ROSS HyperSparc combined IU/FPU
-> > promlib		: Version 3 Revision 2
-> > prom		: 2.25
-> > type		: sun4m
-> > ncpus probed	: 4
-> > ncpus active	: 4
-> > Cpu0Bogo	: 124.92
-> > Cpu1Bogo	: 125.33
-> > Cpu2Bogo	: 125.33
-> > Cpu3Bogo	: 125.33
-> > MMU type	: ROSS HyperSparc
-> > contexts	: 4096
-> > nocache total	: 5242880
-> > nocache used	: 159232
-> > CPU0		: online
-> > CPU1		: online
-> > CPU2		: online
-> > CPU3		: online
+On Tue, Jan 13, 2004 at 08:42:06PM +0100, christian@j-son.org wrote:
 
-and I got spin locks...
+> Just a little ping for me (and anyone else).. what's the status of the
+> linux kernels 2.4 and 2.6 for running Ross' hyperSPARC processors?
 
-spin_lock (f0269000) CPU#3 stuck at f0020a34, owner PC(f007124c): CPU(0)
-spin_lock (f01f83d0) CPU#2 stuck at f0024b7c, owner PC(f0024b7c): CPU(1)
+2.4 is more or less hosed.  I don't plan to fix it, no time.  2.6
+boots UP and seems to work as well as SuperSPARC given the limited
+testing I've done so far.  It may be possible later to backport
+whatever changes are made in 2.6, but frankly I don't recommend to use
+2.4.  If you want to help development, use 2.6.  If you need first
+rate stability, use 2.2.
 
-if anyone care for additional info, pls let me know. this was on
-Aurora SPARC Linux running spot's kernel-2.4.23-0.1sparc.src.rpm built
-on my own SS20 system.
-
-Cheers,
-
-/ChJ
+-- 
+Keith M Wesolowski <wesolows@foobazco.org> http://foobazco.org/~wesolows
+------(( Project Foobazco Coordinator and Network Administrator ))------
+	"May Buddha bless all stubborn people!"
+				-- Uliassutai Karakorum Blake
