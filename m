@@ -1,25 +1,29 @@
-From: Roland Dreier <roland@topspin.com>
-Date: Tue, 04 Jan 2005 19:22:14 +0000
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Date: Wed, 05 Jan 2005 00:01:22 +0000
 Subject: Re: [7/7] LEON SPARC V8 processor support for linux-2.6.10
-Message-Id: <528y7957a1.fsf@topspin.com>
+Message-Id: <1104877702.17166.53.camel@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
 References: <41DAE8CC.3010904@gaisler.com>
-In-Reply-To: <41DAE8CC.3010904@gaisler.com> (Jiri Gaisler's message of "Tue,
- 04 Jan 2005 20:04:44 +0100")
+In-Reply-To: <41DAE8CC.3010904@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Jiri Gaisler <jiri@gaisler.com>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, wli@holomorphy.com
+Cc: sparclinux@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, wli@holomorphy.com
 
-Is there no way to do this:
+On Maw, 2005-01-04 at 19:04, Jiri Gaisler wrote:
+> +            if (tty->flip.count >= TTY_FLIPBUF_SIZE) {
+> +			tty->flip.work.func((void *)tty);
+> +			if (tty->flip.count >= TTY_FLIPBUF_SIZE) {
+> +				printk(KERN_WARNING "TTY_DONT_FLIP set\n");
+> +				return;
+> +			}
 
-    > +ifneq ($(CONFIG_LEON_3),y)
-    > +obj-$(CONFIG_SERIAL_LEON) += leon.o
-    > +endif
+This code is broken. Please copy the fixes from the other
+drivers/serial/*.c files as you've copied a bug from the reference code.
+There are some other small cleanups in the base code that are worth
+adding too in particular removing direct (ab)use of tty->flip. because
+that will be changing some time in the future (when I finish debugging
+the tty layer mess)
 
-by using dependencies in Kconfig rather than adding conditionals to
-the Makefile?  Does it work to make SERIAL_LEON depend on LEON && !LEON_3?
-
- - R.
 
