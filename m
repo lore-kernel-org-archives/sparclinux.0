@@ -1,19 +1,46 @@
-From: "David S. Miller" <davem@redhat.com>
-Date: Sun, 28 Mar 2004 09:27:55 +0000
-Subject: Re: [PATCH] asm-sparc{64}/ide.h cleanup (there are no standard
-Message-Id: <20040328012755.2317c66a.davem@redhat.com>
+From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
+Date: Sun, 07 Mar 2004 16:28:55 +0000
+Subject: [PATCH 2.6] Fix parport_sunbpp so it compiles
+Message-Id: <1078676935.12295.31.camel@zorak>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=-3KYgyq2YFIVkZe+HPLEm"
 List-Id: <sparclinux.vger.kernel.org>
-References: <200403241442.45189.bzolnier@elka.pw.edu.pl>
-In-Reply-To: <200403241442.45189.bzolnier@elka.pw.edu.pl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: sparclinux@vger.kernel.org
+
+
+--=-3KYgyq2YFIVkZe+HPLEm
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-To: Bartlomiej Zolnierkiewicz <B.Zolnierkiewicz@elka.pw.edu.pl>
-Cc: sparclinux@vger.kernel.org, linux-ide@vger.kernel.org
 
-On Wed, 24 Mar 2004 14:42:45 +0100
-Bartlomiej Zolnierkiewicz <B.Zolnierkiewicz@elka.pw.edu.pl> wrote:
+Given the history of this driver, I doubt this gets it into "working"
+state, but it should at least compile now.
 
-> Is this patch correct?
+~spot
+---
+Tom "spot" Callaway <tcallawa(a)redhat*com> LCA, RHCE 
+Red Hat Sales Engineer || Aurora SPARC Linux Project Leader
 
-I believe so.
+"The author's mathematical treatment of the conception of purpose is
+novel and highly ingenious, but heretical and, so far as the present
+social order is concerned, dangerous and potentially subversive. Not 
+to be published." -- Aldous Huxley's "Brave New World"
+
+--=-3KYgyq2YFIVkZe+HPLEm
+Content-Disposition: attachment; filename=linux-2.6.3-parport_sunbpp_fix.patch
+Content-Type: text/x-diff; name=linux-2.6.3-parport_sunbpp_fix.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+--- linux-2.6.3/drivers/parport/parport_sunbpp.c.OLD	2004-03-07 11:23:12.000000000 -0500
++++ linux-2.6.3/drivers/parport/parport_sunbpp.c	2004-03-07 11:25:24.000000000 -0500
+@@ -384,7 +384,7 @@
+ 
+ static void __exit parport_sunbpp_exit(void)
+ {
+-	while (!list_empty(port_list)) {
++	while (!list_empty(&port_list)) {
+ 		Node *node = list_entry(port_list.next, Node, list);
+ 		struct parport *p = node->port;
+ 		struct parport_operations *ops = p->ops;
+
+--=-3KYgyq2YFIVkZe+HPLEm--
+
