@@ -1,113 +1,126 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Fri, 12 Nov 2004 05:51:05 +0000
-Subject: Re: hme broken on 2.6 hypersparc
-Message-Id: <20041111215105.34cfe59c.davem@davemloft.net>
+From: Jeremy Huddleston <eradicator@gentoo.org>
+Date: Sat, 27 Nov 2004 11:11:47 +0000
+Subject: system lockup bug in >2.6.7-rc1-bk6 tracked down
+Message-Id: <1101553907.21614.24.camel@cid.outersquare.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=-/BJnYsYON62eTE0ZcNtB"
 List-Id: <sparclinux.vger.kernel.org>
-References: <4192D294.8090305@mc.net>
-In-Reply-To: <4192D294.8090305@mc.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, 11 Nov 2004 21:41:04 -0600
-Bob Breuer <breuerr@mc.net> wrote:
 
-> I think I have an idea on what is going wrong.
-> 
-> First off, I came across an old publication:
-> http://www.usenix.org/publications/library/proceedings/sd96/full_papers/chu.txt
-> In section 5.3, it states that cache aliasing can occur between
-> DVMA and host memory addresses.  I'm not sure if that is physical
-> or virtual host addresses, but either way cache aliasing can
-> happen.  The cache aliasing is most prominent with the hypersparcs
-> because of the virtually indexed, phyically tagged cache.
-> 
-> Before the iommu rewrite, dvma addresses were pre-allocated and
-> mapped 1 to 1 with the kernel low memory.  Because of the 1:1
-> mapping, no cache aliases will ever occur in low memory.
-> 
-> After the iommu rewrite, all dvma addresses are allocated on
-> the fly.  I suspect that very little consideration was given
-> to cache aliasing.
+--=-/BJnYsYON62eTE0ZcNtB
+Content-Type: multipart/mixed; boundary="=-xARQhotaT/lpkbal6xxE"
 
-Perhaps.  But it could also be the IOMMU page tables and caching
-causing some problem too.
 
-I don't think the actual data mappings are causing aliasing
-problems.  Even though the hypersparc is virtually indexed
-it has physical tags.  And device DVMA data transfers make
-physical address transactions appear on the bus, if the HyperSPARC
-cache sees that this physical tag matches one of it's cache
-lines it acts accordingly to keep the cacheline uptodate or
-to flush it.
+--=-xARQhotaT/lpkbal6xxE
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-> I have found two easy ways in a low-memory only hypersparc
-> machine to make the hme work: 1) revert my srmmu fix, and
-> 2) revert the iommu back to the fixed 1:1 dvma mapping.
-> Neither fix should be considered correct.
+A change between 2.6.7-rc1-bk6 and 2.6.7-rc2 can results in a system
+lockdown.  One situation in which this can be triggered is when we are a
+nfs client, and the nfs server shuts down (or on the server, you simply
+issue an 'ifconfig eth1 down').  I have tracked this down to a bug in
+dev_ifconf() in fs/compat_ioctl.c
 
-Hmmm, in many ways what you see mostly disagrees with my
-(admittedly foggy) understanding of the hardware described
-above :)
+The attached patch will revert this function to it's pre-2.6.7-rc2
+state.  This is not meant to be the suggested fix, but it is a
+workaround for now for anyone who is in need of it, and hopefully now
+that I've narrowed down the problem, someone else might be willing/able
+to fix it since it's past 3am here, and I don't have much experience
+with the fs/ section of the kernel...
 
-> The hme driver uses a consistent dma mapping for it's transmit
-> descriptors.  If those descriptors are cacheable, they must
-> not be aliased in the cache.  Fix 1 makes them uncached, and
-> fix 2 eliminates the cache alias.
-> 
-> Looking on to the esp dma errors, I think there are only 2
-> reasons why it was failing: A) the iotlb changes were not
-> seen by the iommu, or B) a cache alias prevented the cpu
-> from seeing the new data.  Doing a flush_cache_all happens
-> to fix both possible problems.  Being unfamiliar with the
-> iommu, it is hard to rule out A.  However, after trying to
-> figure out the hme problem, I'm leaning toward B as the core
-> problem here.
-> 
-> After all this, I think that if the dvma address allocation
-> could be made to actively avoid cache aliasing, it might
-> fix both problems.
+Thanks.
 
-Another issue here is how the cacheability bits are set
-in both the srmmu page tables and the IOMMU page table
-entries.
+--=20
+Jeremy Huddleston <eradicator@gentoo.org>
 
-As we see in the ld_mmu_iommu() routine, the IOPTE_CACHE
-bit is set for consistent mappings on HyperSPARC and Viking
-w/MXCC.
+--=-xARQhotaT/lpkbal6xxE
+Content-Disposition: attachment; filename=dev_ifconf-revert-2.6.7-rc1-bk6.patch
+Content-Type: text/x-patch; name=dev_ifconf-revert-2.6.7-rc1-bk6.patch;
+	charset=ISO-8859-1
+Content-Transfer-Encoding: base64
 
-When we setup a consistent DMA mapping, in iommu_map_dma_area(),
-we flush the page out before setting up the DMA mapping to it
-as follows:
+ZGlmZiAtTmF1cnAgbGludXgtMi42LjctcmMyL2ZzL2NvbXBhdF9pb2N0bC5jIGxpbnV4LTIuNi43
+LXJjMi5uZnNyZXZlcnQvZnMvY29tcGF0X2lvY3RsLmMNCi0tLSBsaW51eC0yLjYuNy1yYzIvZnMv
+Y29tcGF0X2lvY3RsLmMJMjAwNC0xMS0yNiAxOTo0MTowOC4wMDAwMDAwMDAgLTA4MDANCisrKyBs
+aW51eC0yLjYuNy1yYzIubmZzcmV2ZXJ0L2ZzL2NvbXBhdF9pb2N0bC5jCTIwMDQtMTEtMjcgMDI6
+NTY6MjkuMTgwMTQwNzc3IC0wODAwDQpAQCAtNDkwLDkgKzQ5MCw5IEBAIHN0YXRpYyBpbnQgZGV2
+X2lmY29uZih1bnNpZ25lZCBpbnQgZmQsIHUNCiB7DQogCXN0cnVjdCBpZmNvbmYzMiBpZmMzMjsN
+CiAJc3RydWN0IGlmY29uZiBpZmM7DQotCXN0cnVjdCBpZmNvbmYgX191c2VyICp1aWZjOw0KIAlz
+dHJ1Y3QgaWZyZXEzMiBfX3VzZXIgKmlmcjMyOw0KIAlzdHJ1Y3QgaWZyZXEgX191c2VyICppZnI7
+DQorCW1tX3NlZ21lbnRfdCBvbGRfZnM7DQogCXVuc2lnbmVkIGludCBpLCBqOw0KIAlpbnQgZXJy
+Ow0KIA0KQEAgLTUwMiw1OSArNTAyLDYzIEBAIHN0YXRpYyBpbnQgZGV2X2lmY29uZih1bnNpZ25l
+ZCBpbnQgZmQsIHUNCiAJaWYgKGlmYzMyLmlmY2J1ZiA9PSAwKSB7DQogCQlpZmMzMi5pZmNfbGVu
+ID0gMDsNCiAJCWlmYy5pZmNfbGVuID0gMDsNCi0JCWlmYy5pZmNfcmVxID0gTlVMTDsNCi0JCXVp
+ZmMgPSBjb21wYXRfYWxsb2NfdXNlcl9zcGFjZShzaXplb2Yoc3RydWN0IGlmY29uZikpOw0KKwkJ
+aWZjLmlmY19idWYgPSBOVUxMOw0KIAl9IGVsc2Ugew0KLQkJc2l6ZV90IGxlbiA9KChpZmMzMi5p
+ZmNfbGVuIC8gc2l6ZW9mIChzdHJ1Y3QgaWZyZXEzMikpICsgMSkgKg0KKwkJaWZjLmlmY19sZW4g
+PSAoKGlmYzMyLmlmY19sZW4gLyBzaXplb2YgKHN0cnVjdCBpZnJlcTMyKSkgKyAxKSAqDQogCQkJ
+c2l6ZW9mIChzdHJ1Y3QgaWZyZXEpOw0KLQkJdWlmYyA9IGNvbXBhdF9hbGxvY191c2VyX3NwYWNl
+KHNpemVvZihzdHJ1Y3QgaWZjb25mKSArIGxlbik7DQotCQlpZmMuaWZjX2xlbiA9IGxlbjsNCi0J
+CWlmciA9IGlmYy5pZmNfcmVxID0gKHZvaWQgX191c2VyICopKHVpZmMgKyAxKTsNCi0JCWlmcjMy
+ID0gY29tcGF0X3B0cihpZmMzMi5pZmNidWYpOw0KLQkJZm9yIChpID0gMDsgaSA8IGlmYzMyLmlm
+Y19sZW47IGkgKz0gc2l6ZW9mIChzdHJ1Y3QgaWZyZXEzMikpIHsNCi0JCQlpZiAoY29weV9pbl91
+c2VyKGlmciwgaWZyMzIsIHNpemVvZihzdHJ1Y3QgaWZyZXEzMikpKQ0KLQkJCQlyZXR1cm4gLUVG
+QVVMVDsNCi0JCQlpZnIrKzsNCi0JCQlpZnIzMisrOyANCi0JCX0NCisJCS8qIHNob3VsZCB0aGUg
+c2l6ZSBiZSBsaW1pdGVkPyAtYXJuZCAqLw0KKwkJaWZjLmlmY19idWYgPSBrbWFsbG9jIChpZmMu
+aWZjX2xlbiwgR0ZQX0tFUk5FTCk7DQorCQlpZiAoIWlmYy5pZmNfYnVmKQ0KKwkJCXJldHVybiAt
+RU5PTUVNOw0KIAl9DQotCWlmIChjb3B5X3RvX3VzZXIodWlmYywgJmlmYywgc2l6ZW9mKHN0cnVj
+dCBpZmNvbmYpKSkNCi0JCXJldHVybiAtRUZBVUxUOw0KLQ0KLQllcnIgPSBzeXNfaW9jdGwgKGZk
+LCBTSU9DR0lGQ09ORiwgKHVuc2lnbmVkIGxvbmcpdWlmYyk7CQ0KLQlpZiAoZXJyKQ0KLQkJcmV0
+dXJuIGVycjsNCi0NCi0JaWYgKGNvcHlfZnJvbV91c2VyKCZpZmMsIHVpZmMsIHNpemVvZihzdHJ1
+Y3QgaWZjb25mKSkpIA0KLQkJcmV0dXJuIC1FRkFVTFQ7DQotDQogCWlmciA9IGlmYy5pZmNfcmVx
+Ow0KIAlpZnIzMiA9IGNvbXBhdF9wdHIoaWZjMzIuaWZjYnVmKTsNCi0JZm9yIChpID0gMCwgaiA9
+IDA7IGkgPCBpZmMzMi5pZmNfbGVuICYmIGogPCBpZmMuaWZjX2xlbjsNCi0JICAgICBpICs9IHNp
+emVvZiAoc3RydWN0IGlmcmVxMzIpLCBqICs9IHNpemVvZiAoc3RydWN0IGlmcmVxKSkgew0KLQkJ
+aWYgKGNvcHlfaW5fdXNlcihpZnIzMiwgaWZyLCBzaXplb2YgKHN0cnVjdCBpZnJlcTMyKSkpDQor
+CWZvciAoaSA9IDA7IGkgPCBpZmMzMi5pZmNfbGVuOyBpICs9IHNpemVvZiAoc3RydWN0IGlmcmVx
+MzIpKSB7DQorCQlpZiAoY29weV9mcm9tX3VzZXIoaWZyLCBpZnIzMiwgc2l6ZW9mIChzdHJ1Y3Qg
+aWZyZXEzMikpKSB7DQorCQkJa2ZyZWUgKGlmYy5pZmNfYnVmKTsNCiAJCQlyZXR1cm4gLUVGQVVM
+VDsNCisJCX0NCiAJCWlmcjMyKys7DQogCQlpZnIrKzsNCiAJfQ0KLQ0KLQlpZiAoaWZjMzIuaWZj
+YnVmID09IDApIHsNCi0JCS8qIFRyYW5zbGF0ZSBmcm9tIDY0LWJpdCBzdHJ1Y3R1cmUgbXVsdGlw
+bGUgdG8NCi0JCSAqIGEgMzItYml0IG9uZS4NCi0JCSAqLw0KLQkJaSA9IGlmYy5pZmNfbGVuOw0K
+LQkJaSA9ICgoaSAvIHNpemVvZihzdHJ1Y3QgaWZyZXEpKSAqIHNpemVvZihzdHJ1Y3QgaWZyZXEz
+MikpOw0KLQkJaWZjMzIuaWZjX2xlbiA9IGk7DQotCX0gZWxzZSB7DQotCQlpZiAoaSA8PSBpZmMz
+Mi5pZmNfbGVuKQ0KLQkJCWlmYzMyLmlmY19sZW4gPSBpOw0KLQkJZWxzZQ0KLQkJCWlmYzMyLmlm
+Y19sZW4gPSBpIC0gc2l6ZW9mIChzdHJ1Y3QgaWZyZXEzMik7DQorCW9sZF9mcyA9IGdldF9mcygp
+OyBzZXRfZnMgKEtFUk5FTF9EUyk7DQorCWVyciA9IHN5c19pb2N0bCAoZmQsIFNJT0NHSUZDT05G
+LCAodW5zaWduZWQgbG9uZykmaWZjKTsJDQorCXNldF9mcyAob2xkX2ZzKTsNCisJaWYgKCFlcnIp
+IHsNCisJCWlmciA9IGlmYy5pZmNfcmVxOw0KKwkJaWZyMzIgPSBjb21wYXRfcHRyKGlmYzMyLmlm
+Y2J1Zik7DQorCQlmb3IgKGkgPSAwLCBqID0gMDsgaSA8IGlmYzMyLmlmY19sZW4gJiYgaiA8IGlm
+Yy5pZmNfbGVuOw0KKwkJICAgICBpICs9IHNpemVvZiAoc3RydWN0IGlmcmVxMzIpLCBqICs9IHNp
+emVvZiAoc3RydWN0IGlmcmVxKSkgew0KKwkJCWludCBrID0gY29weV90b191c2VyKGlmcjMyLCBp
+ZnIsIHNpemVvZiAoc3RydWN0IGlmcmVxMzIpKTsNCisJCQlpZnIzMisrOw0KKwkJCWlmcisrOw0K
+KwkJCWlmIChrKSB7DQorCQkJCWVyciA9IC1FRkFVTFQ7DQorCQkJCWJyZWFrOw0KKwkJCX0NCisJ
+CSAgICAgICANCisJCX0NCisJCWlmICghZXJyKSB7DQorCQkJaWYgKGlmYzMyLmlmY2J1ZiA9PSAw
+KSB7DQorCQkJCS8qIFRyYW5zbGF0ZSBmcm9tIDY0LWJpdCBzdHJ1Y3R1cmUgbXVsdGlwbGUgdG8N
+CisJCQkJICogYSAzMi1iaXQgb25lLg0KKwkJCQkgKi8NCisJCQkJaSA9IGlmYy5pZmNfbGVuOw0K
+KwkJCQlpID0gKChpIC8gc2l6ZW9mKHN0cnVjdCBpZnJlcSkpICogc2l6ZW9mKHN0cnVjdCBpZnJl
+cTMyKSk7DQorCQkJCWlmYzMyLmlmY19sZW4gPSBpOw0KKwkJCX0gZWxzZSB7DQorCQkJCWlmIChp
+IDw9IGlmYzMyLmlmY19sZW4pDQorCQkJCQlpZmMzMi5pZmNfbGVuID0gaTsNCisJCQkJZWxzZQ0K
+KwkJCQkJaWZjMzIuaWZjX2xlbiA9IGkgLSBzaXplb2YgKHN0cnVjdCBpZnJlcTMyKTsNCisJCQl9
+DQorCQkJaWYgKGNvcHlfdG9fdXNlcihjb21wYXRfcHRyKGFyZyksICZpZmMzMiwgc2l6ZW9mKHN0
+cnVjdCBpZmNvbmYzMikpKQ0KKwkJCQllcnIgPSAtRUZBVUxUOw0KKwkJfQ0KIAl9DQotCWlmIChj
+b3B5X3RvX3VzZXIoY29tcGF0X3B0cihhcmcpLCAmaWZjMzIsIHNpemVvZihzdHJ1Y3QgaWZjb25m
+MzIpKSkNCi0JCXJldHVybiAtRUZBVUxUOw0KLQ0KLQlyZXR1cm4gMDsNCisJaWYoaWZjLmlmY19i
+dWYgIT0gTlVMTCkNCisJCWtmcmVlIChpZmMuaWZjX2J1Zik7DQorCXJldHVybiBlcnI7DQogfQ0K
+IA0KIHN0YXRpYyBpbnQgZXRodG9vbF9pb2N0bCh1bnNpZ25lZCBpbnQgZmQsIHVuc2lnbmVkIGlu
+dCBjbWQsIHVuc2lnbmVkIGxvbmcgYXJnKQ0K
 
-			if (viking_mxcc_present)
-				viking_mxcc_flush_page(page);
-			else if (viking_flush)
-				viking_flush_page(page);
-			else
-				__flush_page_to_ram(page);
 
-Then we change the srmmu page table mapping over to
-"dvma_prot" which has the cacheability bit set in
-the same cases that we set IOPTE_CACHE for consistent
-IOMMU mappings.
+--=-xARQhotaT/lpkbal6xxE--
 
-So in the HyperSPARC case the __flush_page_to_ram() is
-superfluous.
+--=-/BJnYsYON62eTE0ZcNtB
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-And we know that before your bug fix the other day,
-srmmu_modtype was not being set correctly at all so
-these things above were not correctly occuring for
-HyperSPARC.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.6 (GNU/Linux)
 
-So this should actually work just fine.
+iD8DBQBBqGDzOpjtAl+gMRURAvsAAJ41vxVKUWAp6maQ/E4RCPrVe8OjIwCfVKUE
+c19vRl+K0Fqt0LC0f5Y8Ou4=
+=Ppyp
+-----END PGP SIGNATURE-----
 
-Just as an offhand idea, one thing you could play around
-with is programming the HyperSPARC cache to not use
-write-back mode.  The way you do that is to clear the
-HYPERSPARC_WBENABLE bit in poke_hypersparc().
+--=-/BJnYsYON62eTE0ZcNtB--
 
-Let me know if you get some more clues or ideas.
-It really is interesting that returning to straight
-1:1 DVMA mappings makes the problems go away.
