@@ -1,27 +1,41 @@
-From: "octavio" <first21suzuki@hotmail.com>
-Date: Fri, 05 Mar 2004 06:32:49 +0000
-Subject: Virility patch, will help you amaze girls!
-Message-Id: <1078468369-29680@excite.com>
+From: "pat" <easter21theking@hotmail.com>
+Date: Sat, 06 Mar 2004 22:21:21 +0000
+Subject: Use offshore phar-macies to save $$$ on your meds!
+Message-Id: <1078611681-24870@excite.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org
 
-Publications such as Maxim, GQ and Stuff have written about the all new Virility Patch RX which is the first high-tech patch designed to dramatically increase both penis size and male potency. No other male erectile growth formula works faster, is more effective or is easier to use than Virility Patch RX.
+Buy the drugs you need at huge discounts from Offshore Pharmacy!
 
-Learn more about it here: http://drugsbusiness.com/pp/index.php?pid=eph9106
-
-
+http://bigdiscounts.selcydc.com/s95/index.php?id=s95
 
 
+This weeks specials include great deals on:
+
+- V i a g r a Soft Tabs - (Takes effect in a quarter of the time!)
+- Super V i a g r a - (Lasts 8 times longer!)
+- U l t r a m - (Pain Relief)
+- S o m a - (Muscle Relaxants)
+- Z y b a n - (Stop Smoking)
+- P r o z a c - (Anti-Depressant)
+- X a n a x - (Anti-Depressant)
+- V a l i u m - (Anxiety Relief)
+
+http://bigdiscounts.selcydc.com/s95/index.php?id=s95
 
 
 
 
 
-andre beautifuasterix chiquita lucas mars fozzie goat 
-orchid sallyjordan23 shelley amelie
-fiona benoit volley 
 
-Get off this list by going here: http://drugsbusiness.com/pp/applepie.php
+
+
+
+goblue mikistrawber china guinness bigmac hazel saskia 
+t-bone angusdon larry1 zhongguo
+dexter fozzie qwerty12 
+
+Get off this list by going here: http://royaldrugs.com/pp/applepie.php
