@@ -1,36 +1,40 @@
-From: Bob Breuer <breuerr@mc.net>
-Date: Wed, 10 Nov 2004 05:59:34 +0000
-Subject: Re: Fix for HyperSPARC DMA errors
-Message-Id: <4191AFDE.1090909@mc.net>
+From: Eric Brower <ebrower@gmail.com>
+Date: Wed, 10 Nov 2004 22:51:07 +0000
+Subject: [PATCH] remove unnecessary pm_idle comment
+Message-Id: <ec7cefb04111014511a1326a3@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----=_Part_393_2483895.1100127067898"
 List-Id: <sparclinux.vger.kernel.org>
-References: <419188A0.3010307@mc.net>
-In-Reply-To: <419188A0.3010307@mc.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Should probably test for hypersparc so it doesn't slow down the non-hypersparcs.
+------=_Part_393_2483895.1100127067898
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-BTW, I had tried __flush_page_to_ram as used in iommu_map_dma_area, but that
-didn't work.  Might flush_cache_range or something similar work?
+This is a trivial matter, but we ought to remove the 2.6 kernel
+comments that indicate confusion over the conditional use of pm_idle
+in process.c-- systems with APC or PMC (basically, SS4/5 and Voyager)
+have the ability to idle the CPU and do so.  Please see
+.../kernel/apc.c or pmc.c for details.
 
-David S. Miller wrote:
-> On Tue, 9 Nov 2004 21:23:29 -0800
-> William Lee Irwin III <wli@holomorphy.com> wrote:
-> 
-> 
->>Bob, how do you feel about your arch/sparc/mm/iommu.c flush_cache_all()
->>hack? Would you prefer to have that in mainline for the time being, or
->>would you rather wait until you devise a better solution?
-> 
-> 
-> I think even this part of Bob's patch should just go in.
-> At worst it will slow things down for people, and it will
-> fix real bugs for people.
-> -
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+Please review attached patch-- no need for confusion.
+
+Thanks,
+E
+
+------=_Part_393_2483895.1100127067898
+Content-Type: application/octet-stream; name="pm_idle_comment.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="pm_idle_comment.patch"
+
+LS0tIGFyY2gvc3BhcmMva2VybmVsL3Byb2Nlc3MuYy5vcmlnCTIwMDQtMTEtMDggMjA6MzA6NTQu
+MDAwMDAwMDAwIC0wODAwCisrKyBhcmNoL3NwYXJjL2tlcm5lbC9wcm9jZXNzLmMJMjAwNC0xMS0x
+MCAxMzo1ODozOC4wMDAwMDAwMDAgLTA4MDAKQEAgLTQ1LDcgKzQ1LDcgQEAKIAogLyogCiAgKiBQ
+b3dlciBtYW5hZ2VtZW50IGlkbGUgZnVuY3Rpb24gCi0gKiBTZXQgaW4gcG0gcGxhdGZvcm0gZHJp
+dmVycworICogU2V0IGluIHBtIHBsYXRmb3JtIGRyaXZlcnMgKGFwYy5jIGFuZCBwbWMuYykKICAq
+Lwogdm9pZCAoKnBtX2lkbGUpKHZvaWQpOwogCkBAIC0xMjIsNyArMTIyLDcgQEAKIAkJfQogCiAJ
+CXdoaWxlKCghbmVlZF9yZXNjaGVkKCkpICYmIHBtX2lkbGUpIHsKLQkJCSgqcG1faWRsZSkoKTsJ
+CS8qIFhYWCBIdWg/IE9uIHNwYXJjPyEgKi8KKwkJCSgqcG1faWRsZSkoKTsKIAkJfQogCiAJCXNj
+aGVkdWxlKCk7Cg==
+------=_Part_393_2483895.1100127067898--
