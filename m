@@ -1,29 +1,62 @@
-From: Tomas Szepe <szepe@pinerecords.com>
-Date: Thu, 27 May 2004 06:51:52 +0000
-Subject: Re: patch to fix XFS recovery on sparc64
-Message-Id: <20040527065152.GE3692@louise.pinerecords.com>
+From: "clark" <jamaicawarriors@beer-garden.com>
+Date: Mon, 17 May 2004 11:10:00 +0000
+Subject: Save a ton on Microsoft Office!
+Message-Id: <1084792200-10821@excite.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040515020745.GA3359@tintin>
-In-Reply-To: <20040515020745.GA3359@tintin>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
 
-On May-15 2004, Sat, 04:07 +0200
-Nicolas Boullis <nboullis@debian.org> wrote:
+Incredible DEALS on SOFTWARE you NEED!
 
-> I guess I'm not the only one who has been hit by this bug on sparc64: on 
-> XFS recovery, the kernel freezes for several minutes, and then breaks in 
-> some semi-random way.
-> 
-> After much investigation, I discovered that the bug lied in the 
-> xfs_contig_bits function in xfs_bit.c; that function is broken on 64-bit 
-> big-endian architectures. The attached patch is an attempt to fix that.
-> 
-> Any comment about this patch? Any idea where I should try to push it?
+Save 40% on Windows XP Professional!
+Save 40% on Microsoft Office 2003 Professional!
+Save $90 on Adobe Photoshop!
+Save 60% on Norton AntiVirus!!
 
-Try discussing the problem with Nathan Scott <nathans@sgi.com>.
+Save your company thousands of dollars when it needs software!
 
--- 
-Tomas Szepe <szepe@pinerecords.com>
+That promotion just got closer...
+
+Click here!!
+http://teddychoice.biz/index.php?su55
+
+
+Software packages you can save big on:
+
+Windows XP Professional
+Norton Antivirus 2004
+Adobe Photoshop 7.0
+Microsoft Office XP Professional
+Microsoft Office 2003 Professional
+Microsoft Money 2004
+Microsoft 2000 Professional
+Adobe Photoshop CS
+Adobe Pagemaker 7.0
+Adobe Illustrator 10
+Corel Draw Graphics Suite 11
+Adobe Acrobat 6.0 Professional
+Borland Delphi 7 Professional
+Visual Studio.Net Enterprise Architecht
+MS SQL Server 2000 Enterprise
+MS Windows Server 2003 Enterprise
+MS Windows 2000 Server
+Red Hat Linux 7.3
+
+
+
+Click here!!
+http://teddychoice.biz/index.php?su55
+
+
+
+
+
+
+
+
+
+pirate campbellbenson blowfish player dougie scooter1 chevy 
+sweety nauticasafety wolverin speedo
+canced petunia bozo 
