@@ -1,43 +1,99 @@
-From: Meelis Roos <mroos@linux.ee>
-Date: Tue, 22 Mar 2005 08:40:12 +0000
-Subject: sparc32 kernel panic on modprobe sg
-Message-Id: <Pine.SOC.4.61.0503221036540.29185@math.ut.ee>
+From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
+Date: Fri, 04 Mar 2005 04:41:17 +0000
+Subject: [PATCH 2.6] TCX Framebuffer fixes
+Message-Id: <1109911277.17038.44.camel@localhost.localdomain>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=-mAfL3pFX6DaQtSwHCYBV"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-This is 2.6.12-rc1 on a SparcStation 20, 1 SCSI disk installed. SCSI 
-generic is compiled modular and when I do "modprobe sg" I get this 
-panic. It seems similar to the sunbmac panic because it has to do with 
-softirq's but it may be a coincidence.
 
-Seems it happened while syslogd tried to write something to the tty?
+--=-mAfL3pFX6DaQtSwHCYBV
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Attached scsi generic sg0 at scsi0, channel 0, id 3, lun 0,  type 0
-Unable to handle kernel NULL pointer dereference
-tsk->{mm,active_mm}->context = 000003cc
-tsk->{mm,active_mm}->pgd = fc01d400
-               \|/ ____ \|/
-               "@'/ ,. \`@"
-               /_| \__/ |_\
-                  \__U_/
-syslogd(684): Oops [#1]
-PSR: 400000c4 PC: f00df4d0 NPC: f00df4d4 Y: 00000000    Not tainted
-PC: <tty_wakeup+0x4/0x64>
-%G: 00000000 f0034afc  00000001 404000a6  f0034aa0 00000000  fbf90000 00000001
-%O: ffffffff 00000000  00000000 fbf9df38  50019778 00000314  fbf91db0 f00116dc
-RPC: <__udelay+0x1c/0x24>
-%L: f01a13a4 404000e5  f01a1378 00000080  00000001 00000001  fbf9c000 50028660
-%I: 00000000 00049000  00000000 00000000  00014070 0000000a  fbf91e18 f0034afc
-Caller[f0034afc]: tasklet_action+0x6c/0xb8
-Caller[f00347b0]: __do_softirq+0xa0/0xc4
-Caller[f0034814]: do_softirq+0x40/0x54
-Caller[f00108e8]: patch_handler_irq+0x0/0x24
-Caller[00011aec]: 0x11aec
-Instruction DUMP: 81c3e008  90023fe7  9de3bf98 <c20620b8> 80886020  12800006  b
-Kernel panic - not syncing: Aiee, killing interrupt handler!
+Using the same logic as the other framebuffer fixes committed in 2.6.11,
+this is a set of fixes to make TCX functional on the console again. Adds
+the tcx_pan_display function, sets the
+all->info.var.{red,green,blue}.length values to 8, and runs fb_set_cmap.
+Also looks for the correct SUNW,tcx prom value.
 
--- 
-Meelis Roos (mroos@linux.ee)
+This patch just slipped through the cracks.
+
+Originally by: Georg Chini <georg.chini@triaton-webhosting.com>
+
+Signed-off-by: Tom 'spot' Callaway <tcallawa@redhat.com>
+
+~spot
+---
+Tom "spot" Callaway: Red Hat Sales Engineer || GPG Fingerprint: 93054260
+Fedora Extras Steering Committee Member (RPM Standards and Practices)
+Aurora Linux Project Leader: http://auroralinux.org
+Lemurs, llamas, and sparcs, oh my!
+
+--=-mAfL3pFX6DaQtSwHCYBV
+Content-Disposition: attachment; filename=linux-2.6.11-sparc-tcxfixes.patch
+Content-Type: text/x-patch; name=linux-2.6.11-sparc-tcxfixes.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+--- linux-2.6.11/drivers/video/tcx.c.BAD	2005-03-03 23:30:15.621231203 -0500
++++ linux-2.6.11/drivers/video/tcx.c	2005-03-03 23:34:02.963669899 -0500
+@@ -36,6 +36,7 @@ static int tcx_blank(int, struct fb_info
+ static int tcx_mmap(struct fb_info *, struct file *, struct vm_area_struct *);
+ static int tcx_ioctl(struct inode *, struct file *, unsigned int,
+ 		     unsigned long, struct fb_info *);
++static int tcx_pan_display(struct fb_var_screeninfo *, struct fb_info *);
+ 
+ /*
+  *  Frame buffer operations
+@@ -45,6 +46,7 @@ static struct fb_ops tcx_ops = {
+ 	.owner			= THIS_MODULE,
+ 	.fb_setcolreg		= tcx_setcolreg,
+ 	.fb_blank		= tcx_blank,
++	.fb_pan_display		= tcx_pan_display,
+ 	.fb_fillrect		= cfb_fillrect,
+ 	.fb_copyarea		= cfb_copyarea,
+ 	.fb_imageblit		= cfb_imageblit,
+@@ -153,6 +155,12 @@ static void tcx_reset (struct fb_info *i
+ 	spin_unlock_irqrestore(&par->lock, flags);
+ }
+ 
++static int tcx_pan_display(struct fb_var_screeninfo *var, struct fb_info *info)
++{
++	tcx_reset(info);
++	return 0;
++}
++
+ /**
+  *      tcx_setcolreg - Optional function. Sets a color register.
+  *      @regno: boolean, 0 copy local, 1 get_user() function
+@@ -366,6 +374,9 @@ static void tcx_init_one(struct sbus_dev
+ 	all->par.lowdepth = prom_getbool(sdev->prom_node, "tcx-8-bit");
+ 
+ 	sbusfb_fill_var(&all->info.var, sdev->prom_node, 8);
++	all->info.var.red.length = 8;
++	all->info.var.green.length = 8;
++	all->info.var.blue.length = 8;
+ 
+ 	linebytes = prom_getintdefault(sdev->prom_node, "linebytes",
+ 				       all->info.var.xres);
+@@ -439,6 +450,7 @@ static void tcx_init_one(struct sbus_dev
+ 		return;
+ 	}
+ 
++	fb_set_cmap(&all->info.cmap, &all->info);
+ 	tcx_init_fix(&all->info, linebytes);
+ 
+ 	if (register_framebuffer(&all->info) < 0) {
+@@ -466,7 +478,7 @@ int __init tcx_init(void)
+ 		return -ENODEV;
+ 
+ 	for_all_sbusdev(sdev, sbus) {
+-		if (!strcmp(sdev->prom_name, "tcx"))
++		if (!strcmp(sdev->prom_name, "SUNW,tcx"))
+ 			tcx_init_one(sdev);
+ 	}
+ 
+
+--=-mAfL3pFX6DaQtSwHCYBV--
+
