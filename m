@@ -1,39 +1,35 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Wed, 22 Sep 2004 03:35:17 +0000
-Subject: Re: RED State Exception on Ultra 1, 2.6.9-rc2
-Message-Id: <20040921203517.3a171f0b.davem@davemloft.net>
+From: Admar Schoonen <admar@luon.net>
+Date: Thu, 23 Sep 2004 15:17:45 +0000
+Subject: Re: 2.6.8.1 and XFree86
+Message-Id: <20040923151745.GG31137@azrael.luon.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1095742791.3421.3.camel@ori.thedillows.org>
-In-Reply-To: <1095742791.3421.3.camel@ori.thedillows.org>
+References: <1092597725.2550.7.camel@iota>
+In-Reply-To: <1092597725.2550.7.camel@iota>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 21 Sep 2004 23:25:48 -0400
-David Dillow <dave@thedillows.org> wrote:
+> On my Ultra 5, linux kernel 2.6.7 runs fine but after that (2.6.8-rc1
+> and on, no change with 2.6.8.1) XFree86 gets this message:
 
-> > Anyways, in free_streaming_cluster() we took a vectored interrupt (trap
-> > type 0x60).  In tl0_ivec we took an illegal instruction trap, which is
-> > very odd because the instruction at 0x408c00:tl0_ivec is a branch.
-> 
-> Should I track the vectored interrupt? What's it used for -- it looks
-> like its used for cross-CPU calls, but this is a single CPU. Are there
-> other uses?
-> 
-> I ask, because we took the first trap on "stx %g0, [%o2]", which
-> corresponds with this line in free_streaming_cluster():
-> 	iopte_val(*iopte) = 0UL;
-> 
-> Could iopte point somewhere nasty?
-> Does this seem like a possible pointer to a bug, or just a red herring?
+[snip, X server gest signal 11]
 
-Just a red herring.  And the ivector is not going to be anything
-special.
+> I'm running Debian Unstable.
+> Any way to solve this issue?
 
-The interesting bit is the illegal instruction trap at the first
-instruction of tl0_ivec, which should be a branch.  That's where
-things start to go downhill.
+I have exactly the same problem on my blade 100. I expected the problem
+to be with the 2nd framebuffer as my ultra 5 works fine and has only 1
+fb. I haven't found the time yet to open up the blade 100 and try X with
+2.6.8 and only 1 framebuffer.
 
-Something is writing garbage to that instruction, that is my current
-guess.
+Both my machines are running debian unstable. Only the blade 100 has a
+second framebuffer (Ati mach64, 8 MB, same as on board chip, but on a
+pci card). Ultra 5 has a slightly older Ati mach64 4 MB onboard.
+
+Do you have a second framebuffer in your ultra 5?
+And do you have a working X with 2.6.8 already?
+
+Best regards
+
+Admar
