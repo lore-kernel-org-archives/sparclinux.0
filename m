@@ -1,68 +1,139 @@
 From: Aaron Wirtz <awirtz@novapointe.com>
-Date: Thu, 01 Jan 2004 03:10:18 +0000
+Date: Tue, 06 Jan 2004 03:06:49 +0000
 Subject: Re: socal
-Message-Id: <200312311910.18815.awirtz@novapointe.com>
+Message-Id: <200401051906.49968.awirtz@novapointe.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Boundary-00=_JZi+/Fa7EvwHJV/"
 List-Id: <sparclinux.vger.kernel.org>
 References: <200312311429.26841.awirtz@novapointe.com>
 In-Reply-To: <200312311429.26841.awirtz@novapointe.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Wednesday 31 December 2003 16:26, Keith M Wesolowski wrote:
-> On Wed, Dec 31, 2003 at 04:19:24PM -0800, Aaron Wirtz wrote:
-> > here's the procedure I'm using:
-> > (socal is the driver copied from solaris)
-> >
-> > $ nm socal
-> > ---unimportant lines removed---
-> > 0000360c t socal_transport_poll
-> > 000002a0 D socal_ucode
-> > 000102a0 D socal_ucode_end
-> > 00004f0c t socal_us_els
-> > ---unimportant lines removed---
-> > $ dd bs=1 skipg2 counte536 if=socal of=socal.ucode
-> > 65536+0 records in
-> > 65536+0 records out
-> > 65536 bytes transferred in 2.512516 seconds (26084 bytes/sec)
-> >
-> >
-> > Then I used Jakub's sed command to make the header.
-> > If I hexedit the socal.ucode file I see the same thing as I see in the .h
-> > file, so I know that the sed step works fine.
->
-> It's wrong.  An offset of 2a0 into the .rodata section is not the same
-> as an offset of 2a0 into the binary on disk.  Use readelf and/or
-> objdump to figure out where the ucode actually starts.
->
-> Also, the stuff you'll get with his script is in bytes, so it should
-> be u8 not u32.
 
-I am using bs=1, so it is counting in bytes.
+--Boundary-00=_JZi+/Fa7EvwHJV/
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-After looking more closely, I realized that you are right; I was using the 
-data offset, not the file offset.  After a bit of fiddling, I have a command 
-that seems to extract the ucode properly from the solaris binary driver.  If 
-anyone wants to incorporate this into a FAQ, be my guest. (Or if I ever get 
-the whole thing working, I'll write a HOWTO.)
+On Wednesday 31 December 2003 19:10, Aaron Wirtz wrote:
+> I will do a compile and will try the driver on Monday.
 
-perl -e'($o,$s,$l)=(split /\s+/,(grep{/\s$ARGV[1]$/}(split /\n/,
-`objdump -t $ARGV[0]`))[0])[0,3,4];$o=hex($o)+hex((split /\s+/,(grep{
-/\s$s\s/}(split /\n\s*/,`objdump -h $ARGV[0]`))[0])[5]);open I,$ARGV[0];
-seek I,$o,0;read I,$d,hex($l);$d=~s/\x00+$//s;open O,">$ARGV[2]";print
-O "static __u32 socal_ucode[] __initdata = {\n";for(split "",$d){print
-O "0x".unpack("h2",$_).(++$c%16=0?",\n":",")}print O "};\n"' \
-socal socal_ucode socal_asm.h
-
-The last three arguments specify input file, the symbol name, and the output 
-file respectively.  This will strip null padding as well.  If you want to use 
-it for other purposes, removing the "$d=~s/\x00+$//s;" command will leave 
-null padding on the data.
-
-I will do a compile and will try the driver on Monday.
-
-Thanks.
+Well, (as expected) this didn't work.  The machine freezes when the module 
+loads.  I at least got the module to compile without complaining with the 
+debugging turned on (patch to fix the debugging calls and the ucode size is 
+attached).  I also got the ucode extraction working right (new script 
+attached; cleaner, fixed endianness and datasize bugs).  I'll have to try the 
+2.2.x kernel version next. (to see if it is just a 2.4 issue).
 
 -Aaron Wirtz
+
+
+--Boundary-00=_JZi+/Fa7EvwHJV/
+Content-Type: text/x-diff;
+  charset="iso-8859-1";
+  name="socal.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="socal.patch"
+
+--- linux-2.4.23-old/drivers/fc4/socal.c	2003-06-13 07:51:33.000000000 -0700
++++ linux-2.4.23/drivers/fc4/socal.c	2004-01-05 14:10:48.000000000 -0800
+@@ -82,7 +82,7 @@
+ }
+ 
+ #ifdef HAVE_SOCAL_UCODE
+-static void socal_bzero(unsigned long xram, int size)
++static void socal_bzero(unsigned long xram, unsigned long size)
+ {
+ 	while (size) {
+ 		sbus_writel(0, xram);
+@@ -229,7 +229,7 @@
+ 	SOCAL_SETIMASK(s, s->imask & ~(cmd & SOCAL_CMD_REQ_QALL));
+ 	SOD(("imask %08x %08x\n", s->imask, sbus_readl(s->regs + IMASK)));
+ 
+-	SOD(("Queues available %08x OUT %X\n", cmd, s->regs->reqpr[0]))
++	SOD(("Queues available %08x OUT %X\n", cmd, (u32)(s->regs + REQP)));
+ 	if (s->port[s->curr_port].fc.state != FC_STATE_OFFLINE) {
+ 		fcp_queue_empty ((fc_channel *)&(s->port[s->curr_port]));
+ 		if (((s->req[1].in + 1) & s->req[1].last) != (s->req[1].out))
+@@ -447,7 +447,7 @@
+ 		qno = 1;
+ 	else
+ 		qno = 0;
+-	SOD(("Putting a FCP packet type %d into hw queue %d\n", fcmd->proto, qno))
++	SOD(("Putting a FCP packet type %d into hw queue %ld\n", fcmd->proto, qno))
+ 	if (s->imask & (SOCAL_IMASK_REQ_Q0 << qno)) {
+ 		SOD(("EIO %08x\n", s->imask))
+ 		return -EIO;
+@@ -457,7 +457,7 @@
+ 	
+ 	if (cq_next_in == sw_cq->out &&
+ 	    cq_next_in == (sw_cq->out = sbus_readb(s->regs + REQP + qno))) {
+-		SOD(("%d IN %d OUT %d LAST %d\n",
++		SOD(("%ld IN %d OUT %d LAST %d\n",
+ 		     qno, sw_cq->in,
+ 		     sw_cq->out, sw_cq->last))
+ 		SOCAL_SETIMASK(s, s->imask | (SOCAL_IMASK_REQ_Q0 << qno));
+@@ -605,7 +605,7 @@
+ static inline void socal_download_fw(struct socal *s)
+ {
+ #ifdef HAVE_SOCAL_UCODE
+-	SOD(("Loading %ld bytes from %p to %p\n", sizeof(socal_ucode), socal_ucode, s->xram))
++	SOD(("Loading %ld bytes from %p to %p\n", sizeof(socal_ucode), socal_ucode, (u32 *)s->xram))
+ 	socal_copy_to_xram(s->xram, socal_ucode, sizeof(socal_ucode));
+ 	SOD(("Clearing the rest of memory\n"))
+ 	socal_bzero (s->xram + sizeof(socal_ucode), 65536 - sizeof(socal_ucode));
+
+--Boundary-00=_JZi+/Fa7EvwHJV/
+Content-Type: text/x-perl;
+  charset="iso-8859-1";
+  name="getucode.pl"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="getucode.pl"
+
+#!/usr/bin/perl
+use warnings;
+use strict;
+
+unless(scalar(@ARGV) == 3)
+{
+    print "Usage: getucode.pl inputfile symbol outputfile\n";
+    print "e.g.: getucode.pl socal socal_ucode socal_asm.h\n";
+    exit;
+}
+
+my @symbols = split(/\n/, `objdump -t $ARGV[0]`);
+@symbols = grep{/\s$ARGV[1]$/}(@symbols);
+my($offset, $section, $length) = (split(/\s+/, $symbols[0]))[0, 3, 4];
+
+my @sections = split(/\n\s*/, `objdump -h $ARGV[0]`);
+@sections = grep{/\s$section\s/}(@sections);
+$section = (split(/\s+/, $sections[0]))[5];
+
+$offset = hex($offset) + hex($section);
+$length = hex($length);
+
+open INPUT, $ARGV[0];
+seek INPUT, $offset, 0;
+my $data;
+read INPUT, $data, hex($length);
+close INPUT;
+
+# this is necessary because socal.c copies the data 4 bytes at a time,
+# so the length needs to be a multiple of 4.
+while($data =~ s/\x00{4}$//s){}
+
+open OUTPUT, ">$ARGV[2]";
+print OUTPUT "static __u8 socal_ucode[] __initdata = {\n";
+my $counter = 0;
+for(split '',$data)
+{
+    print OUTPUT '0x'.unpack('H2', $_).(++$counter%16==0?",\n":',');
+}
+print OUTPUT "};\n";
+close OUTPUT;
+
+--Boundary-00=_JZi+/Fa7EvwHJV/--
 
