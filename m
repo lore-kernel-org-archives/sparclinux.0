@@ -1,30 +1,31 @@
-From: William Lee Irwin III <wli@holomorphy.com>
-Date: Tue, 04 Jan 2005 19:21:57 +0000
-Subject: Re: [0/7] LEON SPARC V8 processor support for linux-2.6.10
-Message-Id: <20050104192157.GO2708@holomorphy.com>
+From: "Art Haas" <ahaas@airmail.net>
+Date: Tue, 11 Jan 2005 14:36:05 +0000
+Subject: Current BK kernel error
+Message-Id: <20050111143605.GC4514@artsapartment.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <41DAE87B.8030405@gaisler.com>
-In-Reply-To: <41DAE87B.8030405@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jiri Gaisler <jiri@gaisler.com>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Tue, Jan 04, 2005 at 08:03:23PM +0100, Jiri Gaisler wrote:
-> I am not sure that the pathes for serial and ethernet drivers
-> should be sent to the sparclinux list. If not, please advise on
-> where I should submit them.
+Hi.
 
-Jeff Garzik and netdev@oss.sgi.com generally handle network drivers.
+A pull of the current BK kernel failed to build, with an error in
+mm/memory.c about pte_read() not being defined. This function was added
+in at revsion 1.204, and the 'bk prs' with this comment:
 
-Russell King and linux-kernel@vger.kernel.org probably handle
-serial drivers considered for inclusion.
+D 1.204 05/01/04 18:48:23-08:00 gnb@melbourne.sgi.com[torvalds] 213 212 18/2/215
+6
+P mm/memory.c
+C oprofile: add check_user_page_readable()
 
-I don't have a particularly organized or sophisticated plan for a
-staged merging of the drivers. If either should care to absorb the
-drivers instead of merely acking them, it's just as well. Both will
-generally see anything going across linux-kernel.
+The pte_read() function is defined at include/asm-sparc64/pgtable.h for
+64-bit Sparc, but is not defined for 32-bit Sparc. Anyone taken a shot
+at making a patch for this yet?
 
+Art Haas
+-- 
+Man once surrendering his reason, has no remaining guard against absurdities
+the most monstrous, and like a ship without rudder, is the sport of every wind.
 
--- wli
+-Thomas Jefferson to James Smith, 1822
