@@ -1,52 +1,25 @@
-From: MAILER-DAEMON@mail.olb.com
-Date: Tue, 27 Apr 2004 12:00:53 +0000
-Subject: WARNING. Mail Delayed: Mail Delivery (failure support@cdknet.com)
-Message-Id: <receipt-7394685@mail.olb.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="_===7394685====mail.olb.com===_"
+From: "bruce" <la1wson@hotmail.com>
+Date: Sat, 17 Apr 2004 10:36:32 +0000
+Subject: medications without perscriptions for you!
+Message-Id: <1082198192-5531@excite.com>
 List-Id: <sparclinux.vger.kernel.org>
-To: sparclinux@vger.kernel.org
-
-
---_===7394685====mail.olb.com===_
-Content-Type: text/plain
-
-This is a warning message only.
-  Your message remains in the server queue,
-  the server will try to send it again.
-  You should not try to resend your message now.
-
-Message delivery to 'support@cdknet.com' delayed
-SMTP module(domain @192.168.100.13:cdknet.com) reports:
- mail.cdknet.com: no response
-
-
---_===7394685====mail.olb.com===_
-Content-Type: message/delivery-status
-
-Reporting-MTA: dns; mail.olb.com
-
-Original-Recipient: rfc822;support@cdknet.com
-Final-Recipient: rfc822;support@cdknet.com
-Action: delayed
-Status: 4.0.0
-
---_===7394685====mail.olb.com===_
-Content-Type: text/rfc822-headers
-
-Received: from [130.18.222.122] (HELO cdknet.com)
-  by mail.olb.com (CommuniGate Pro SMTP 3.4.8)
-  with ESMTP id 7367382 for support@cdknet.com; Mon, 26 Apr 2004 16:53:25 -0400
-From: sparclinux@vger.kernel.org
-To: support@cdknet.com
-Subject: Mail Delivery (failure support@cdknet.com)
-Date: Mon, 26 Apr 2004 15:55:59 -0500
 MIME-Version: 1.0
-Content-Type: multipart/related;
-	type="multipart/alternative";
-	boundary="----=_NextPart_000_001B_01C0CA80.6B015D10"
-X-Priority: 3
-X-MSMail-Priority: Normal
-Message-ID: <auto-000007367382@mail.olb.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org
 
---_===7394685====mail.olb.com===_--
+playboy midori passion yvonne october pookie1 utopia bullet soccer1 
+
+L'ev`it'ra - Youve s'een it on T'V, now you can get it at a fracti'on of what they`"re aski'ng!
+
+Or'der to`da|y!
+
+Lowest pr|ices on the market!
+
+http://drcute.net/lv/index.php?pid=eph9106
+
+
+valentin promethe goat ruth easter dead irene river mailman 
+yomama trident diane happyday beanie lady xxxx suzuki cherry malcolm mishka praise informix 
+metallic aylmer pinkfloy test2mailman master1 abcdef sapphire energy scuba1 baskeT master1 mailman 
+play cookies quest kenneth stop!  no more: http://basil.drtabletka.com/mm/chair.php
