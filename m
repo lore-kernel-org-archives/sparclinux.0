@@ -1,63 +1,42 @@
-From: "darlene" <specialsjguowbght@fta-usa.net>
-Date: Tue, 26 Oct 2004 06:36:18 +0000
-Subject: Tired of paying high prices on your FTA testing products ?ember me?
-Message-Id: <16bb01c4bb26$1941f1c0$9d51624d@specialsjguowbght>
+From: "Blue Swirl" <blueswir1@hotmail.com>
+Date: Thu, 07 Oct 2004 18:22:38 +0000
+Subject: Linux prom mmu mapping expectations?
+Message-Id: <BAY12-F40FRaqbC8wSA0001e56f@hotmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <431001c4b66a$9c086140$c0aa968d@specails>
-In-Reply-To: <431001c4b66a$9c086140$c0aa968d@specails>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Hi!
-Tired of paying high prices on your FTA testing products ?
-Sick of the High Prices and when Something goes Wrong your dealer
-Disappearing ???
+Hi,
 
+What kind of memory mappings Linux expects from Prom side?
 
-You must come check us out all your FTA needs !!! Best prices best service
-on the net!!!
- 
-http://www.fta-usa.net
- 
+Background: I've been trying to get Qemu run Linux 2.6.8.1 for sparc32, but=
+=20
+currently there is a MMU fault at srmmu_early_allocate_ptable_skeleton.  Th=
+e=20
+code in question is as follows:
+0xf00fdec4:  ldd  [ %o1 + -64 ], %g2
+0xf00fdec8:  ldd  [ %o1 + -56 ], %g4
+0xf00fdecc:  st  %g2, [ %o0 + -64 ]
+0xf00fded0:  st  %g3, [ %o0 + -60 ]
+0xf00fded4:  st  %g4, [ %o0 + -56 ]
+0xf00fded8:  st  %g5, [ %o0 + -52 ]
+0xf00fdedc:  ldd  [ %o1 + -48 ], %g2
+0xf00fdee0:  ldd  [ %o1 + -40 ], %g4
 
-Where else can you find better prices on these great receivers:
-- Blackbird/SilverBullet  Receivers  @ $319.00
-- Cyclone Pro / Silverbullet Enforcer Plus++ @349.00
-- Blackbird/SilverBullet Jtags @  $49.00
-- Channel Hog @ 279.00
+This code is in memcpy, but I can't find where it is called from in the=20
+function (srmmu_early_allocate_ptable_skeleton, srmmu.c).
 
- 
-Featuring the brand new Techsat / Channel Hog Receiver" !!!
+The faulting address is 0xf00fdec4, %o1 is 0xf0000000. There is no MMU=20
+mapping at the address. I tried adding some code into Proll to map the area=
+,=20
+but that didn't help.
 
-TECHSAT FEATURES
+Any clues, please?
 
-- Opens ALL PPV/Movies/Sports/Music/Adult/Locals/HBO!!!
-- Complete Program Guide & Channel Listings for Dish/Bev/FTA
-- Compatible with DirecTV TiVo Recorders (Pause, Rewind, Replay Live TV)
-- Simply Plug & Play Technology
-- Null Modem Cable Included
-- Compatible with DirecTV Dish & LNB
-- Fully Flashable with Private Software on Computer
-- Does Not Require Jtags, ISO, Atmega, DSS Rev, DigiLock, etc.
-- No Technical Knowledge Required!
-- No Channel Editor Needed, Already Named !
-- Simple-Touch Remote Opens All Channels Instantaneously
-- AutoGrabber Software Pre-Loaded For Autoroll Keys
-- No Card Needed... Ever!
-
-
- 
-All this for the low price of $279.00
-
-We also have Accesories and Cable that you might need!!
- 
-Come by and see us you are missing out if you don't!!
-
-Thank you for reading this email
- 
-http://www.fta-usa.net
-!
-
+_________________________________________________________________
+Add photos to your messages with MSN 8. Get 2 months FREE*.=20
+http://join.msn.com/?page=FEatures/featuredemail
 
