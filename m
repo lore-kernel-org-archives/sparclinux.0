@@ -1,36 +1,32 @@
-From: "randal" <tanya21redwing@hotmail.com>
-Date: Thu, 02 Sep 2004 10:44:26 +0000
-Subject: Purchase Prescription Pills Cheap and Anonymous!
-Message-Id: <1094121866-28088@excite.com>
+From: "Terry" <dasha21wombat@hotmail.com>
+Date: Sat, 11 Sep 2004 11:55:20 +0000
+Subject: This drug makes Vi-ag-ra look like the minor leagues!
+Message-Id: <1094903720-30340@excite.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org
 
-Save up to 80% on popular meds!
 
-*** GREAT SPECIALS ***
+CIAL1S delivered discreetly to your door in an unmarked envelope
 
-Check it out: http://www.oabwkdfbabdfj.com/?92 
+Lasts 8x times longer than V1AGRA, take one Friday, still working on Sunday!
 
-- No doctor visits or hassles
-- Quick delivery to your front door
+No one needs to know!
 
-Visit us here: http://www.oabwkdfbabdfj.com/?92 
+Buy generic (exactly the same drug, but not with the big company prices..) to save 70%!!
 
+Check it out HERE!
 
-On medication long term?  
-Buy bulk through us and LITERALLY SAVE THOUSANDS!
+http://www.hfdabfdgsdf.info/c/?92
 
 
 
-space graphicchaos jimbo magnum
-ariane skidooamanda1 mantra corrado cuddles ruby rusty 
-mailman players abcd 
-dundee bigmangroovy jordan23 lovely
-benson vanilla orchid 
-laddie josieguinness katie design
 
-boogie pinkfloylove bfi sailor buttons volley user1 
 
+
+
+julia planetflorida paula jeff naomi camping kitty 
+minou honda1jared obiwan strawber
+memory tracy metallic 
