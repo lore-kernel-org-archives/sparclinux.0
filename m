@@ -1,31 +1,36 @@
-From: David Dillow <dave@thedillows.org>
-Date: Sat, 07 Feb 2004 06:22:25 +0000
-Subject: Re: AIO syscall patch, and problem
-Message-Id: <1076134945.10346.44.camel@ori.thedillows.org>
+From: Christian Joensson <christian@j-son.org>
+Date: Wed, 18 Feb 2004 12:16:54 +0000
+Subject: sunhme in 2.4.2{3,4}?
+Message-Id: <20040218131654.A25364@fw.j-son.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1075876893.5035.60.camel@ori.thedillows.org>
-In-Reply-To: <1075876893.5035.60.camel@ori.thedillows.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Fri, 2004-02-06 at 22:36, David S. Miller wrote:
-> On 04 Feb 2004 02:02:30 -0500
-> David Dillow <dave@thedillows.org> wrote:
-> 
-> > The attached patch fixes a mis-numbering of the AIO syscalls under sparc
-> > and sparc64.
-> 
-> The syscall tables were right, the header was wrong.  This patch below
-> is the correct fix.  I don't know how the AIO tests passed for you
-> with your posted patch, maybe nothing depends upon io_destroy() and
-> subsequently numbered AIO syscalls doing anything :-)
+This is on an Ultra1 running 2.4.24 (Aurora SPARC Linux, 1.0 Ansel)
 
-Teaches me to redo a patch before sending it in.... I did the same thing
-you did -- renumber to 272 -- and did all my testing (on sparc64) with
-that. I redid the patch with the other numbering to be compatible with
-sparc (and subsequently forgot about fixing up the table...) Doh!
+From dmesg we can read:
 
-And of course, I didn't test the one I sent -- it was trivial! I'll
-blame the lure of sleep.... :)
+PROMLIB: Sun IEEE Boot Prom 3.11.1 1997/12/03 15:44
+Linux version 2.4.24-0.1sparc (root@u1sparc.j-son.org) (gcc driver version egcs-
+2.91.66 19990314/Linux (egcs-1.1.2 release) executing gcc version egcs-2.92.11)
+#1 Wed Feb 18 09:30:53 CET 2004 (priority -1)
+ARCH: SUN4U-0.9.19, 19 August 2002 on sd(8,2), internal journal
+
+and further on
+
+eth0: HAPPY MEAL (SBUS) 10/100baseT Ethernet 08:00:20:7c:3b:06
+eth0: Auto-Negotiation unsuccessful, trying force link mode
+eth0: Link has been forced up using internal transceiver at 10Mb/s, Half Duplex.
+
+Every now and then, the machine hangs due to something with the HAPYY
+MEAL failing... 
+
+Is this what's been talked about problems with sunhme, or is this
+something unrelated?
+
+TIA,
+
+/ChJ
+
