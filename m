@@ -1,28 +1,46 @@
-From: "santiago" <dmcalish@hotmail.com>
-Date: Sun, 02 May 2004 09:23:09 +0000
-Subject: CAS1N0: New Deal!! 50% Sign Up Bonus! groovy catfish!
-Message-Id: <1083489789-14505@excite.com>
+From: Stan Benoit <sbenoit@verizon.net>
+Date: Thu, 13 May 2004 21:10:06 +0000
+Subject: 2.2.6smp build problem
+Message-Id: <1084482606.5080.25.camel@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-PREMI|ERE ONLIN'E CAS`INO!
-50% BONU}S for YOUR FIRST DEPO:SIT as a New Player.
+All,
 
-SI!GN UP now! Don't wait!
+System: 	SPARCStation 20sx, Dual Ross HyperSPARC 150 processors
+Base OS: 	RedHat 6.2 Zoot
+GCC 		2.95.3
+Binutils 	2.14
+make		3.78.1
+glibc		2.1.3-15
 
-http://www.bettingcasinoes.com/_e4faa55afa1972493c43ac8a3f66f869/
-
-Once you're a Mem`ber, there are near WEEK|LY 2-T`O-1, and 3-T{O-1 depo!sit offers!
-
-Imagine, put in $25, GET $50 CRE}DIT BE|FORE YOU PL{ACE YO{UR FI{RST BET!!
-
-CLIC`K HER{E!
-
-http://www.bettingcasinoes.com/_e4faa55afa1972493c43ac8a3f66f869/
+#make mrproper    	OK
+#make menuconfig  	Ok
+#make vmlinux		Fault
 
 
+<snip>
+gcc -D__KERNEL__ -I/usr/src/linux/include -D__ASSEMBLY__ -D__SMP__ -pipe
+-mno-fpu -fcall-used-g5 -fcall-used-g7 -DEXPORT_SYMTAB -c sprac_ksyms.c
+gcc -D_KERNEL-- -I/usr/src/linux/include -D__ASSEMBLY__ -D__SMP__ -ansi
+-c entry.S -o entry.o
+entry.S: Assembler messages:
+entry.S:959: Error: relocation overflow
+entry.S:1120: Error: relocation overflow
+make[1]: *** [entry.o] Error 1
+make[1]: Leaving directory '/usr/src/linux/arch/sparc/kernel'
+make: *** [_dir_arch/sparc/kernel] Error 2
+[root@localhost linux]#
 
-oranges tina money1 irene theatre passion naomi pookie1 goblue tanya chance energy safety kleenex roxy trident ladybug dirk politics nautica sally republic law dragonfl law irene
+
+Do I need to update any of my base packages? 
+Is 2.2.26 broke? 
+
+ 
+
+-- 
+Stan Benoit <sbenoit@verizon.net>
+
