@@ -1,7 +1,7 @@
-From: "Allison" <specialsiihjavegowdsfq@fta-usa.net>
-Date: Wed, 20 Oct 2004 22:19:42 +0000
-Subject: Tired of paying high prices on your FTA testing products ?
-Message-Id: <9bfe01c4b6f2$e5da3400$59ec179d@specialsiihjavegowdsfq>
+From: "darlene" <specialsjguowbght@fta-usa.net>
+Date: Tue, 26 Oct 2004 06:36:18 +0000
+Subject: Tired of paying high prices on your FTA testing products ?ember me?
+Message-Id: <16bb01c4bb26$1941f1c0$9d51624d@specialsjguowbght>
 List-Id: <sparclinux.vger.kernel.org>
 References: <431001c4b66a$9c086140$c0aa968d@specails>
 In-Reply-To: <431001c4b66a$9c086140$c0aa968d@specails>
@@ -10,6 +10,7 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Hi!
 Tired of paying high prices on your FTA testing products ?
 Sick of the High Prices and when Something goes Wrong your dealer
 Disappearing ???
@@ -57,5 +58,6 @@ Come by and see us you are missing out if you don't!!
 Thank you for reading this email
  
 http://www.fta-usa.net
+!
 
 
