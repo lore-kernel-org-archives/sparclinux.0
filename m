@@ -1,50 +1,65 @@
-From: Adrian Bunk <bunk@fs.tum.de>
-Date: Sat, 07 Aug 2004 17:25:18 +0000
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Sat, 07 Aug 2004 18:12:56 +0000
 Subject: Re: architectures with their own "config PCMCIA"
-Message-Id: <20040807172518.GA25169@fs.tum.de>
+Message-Id: <200408072013.01168.arnd@arndb.de>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Boundary-02=_suRFB4KiDJLgURv"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040807170122.GM17708@fs.tum.de> <20040807181051.A19250@infradead.org>
-In-Reply-To: <20040807181051.A19250@infradead.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@infradead.org>, wli@holomorphy.com, davem@redhat.com, geert@linux-m68k.org, schwidefsky@de.ibm.com, linux390@de.ibm.com, sparclinux@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-kernel@vger.kernel.org
-
-On Sat, Aug 07, 2004 at 06:10:51PM +0100, Christoph Hellwig wrote:
-> On Sat, Aug 07, 2004 at 07:01:22PM +0200, Adrian Bunk wrote:
-> > The following architetures have their own "config PCMCIA" instead of 
-> > including drivers/pcmcia/Kconfig (in 2.6.8-rc3-mm1):
-> > - m68k
-> > - s390
-> > - sparc
-> > - sparc64
-> > 
-> > Is there any good reason for this, or would a patch to change these 
-> > architectures to include drivers/pcmcia/Kconfig be OK?
-> 
-> What about switching them to use drivers/Kconfig instead?
-
-drivers/Kconfig doesn't source drivers/pcmcia/Kconfig (and m68k 
-already uses drivers/Kconfig).
+References: <20040807170122.GM17708@fs.tum.de> <20040807181051.A19250@infradead.org> <20040807172518.GA25169@fs.tum.de>
+In-Reply-To: <20040807172518.GA25169@fs.tum.de>
+To: Adrian Bunk <bunk@fs.tum.de>
+Cc: Christoph Hellwig <hch@infradead.org>, wli@holomorphy.com, davem@redhat.com, geert@linux-m68k.org, schwidefsky@de.ibm.com, linux390@de.ibm.com, sparclinux@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-kernel@vger.kernel.org
 
 
-But after a second look, I begin to understand a bit more:
-Most of the architectures in question even have help text for the PCMCIA 
-option, but the option itself isn't asked.
+--Boundary-02=_suRFB4KiDJLgURv
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-IOW: It's impossible to enable them.
+> On Sat, Aug 07, 2004 at 06:10:51PM +0100, Christoph Hellwig wrote:
+> > What about switching them to use drivers/Kconfig instead?
 
-Is there eny reason for such options that are never visible nor enabled, 
-or could they be removed?
+I'd prefer not to switch s390 to use drivers/Kconfig unless someone
+volunteers to clean up all included Kconfig files by adding proper
+'depends on PCI' etc. flags. Otherwise too many broken options are
+offered.
 
+On Samstag, 7. August 2004 19:25, Adrian Bunk wrote:
+> Is there eny reason for such options that are never visible nor enabled, =
+=20
+> or could they be removed?
 
-cu
-Adrian
+Yes, the reason is that some other options depend on them. We added the
+PCMCIA option to arch/s390/Kconfig to stop kbuild from asking about
+some drivers that won't work anyway.
 
--- 
+E.g. drivers/scsi/pcmcia starts with
 
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
+menu "PCMCIA SCSI adapter support"
+	depends on SCSI!=3Dn && PCMCIA!=3Dn && MODULES
 
+which evaluate to true if the PCMCIA option is not known. Changing
+that to
+
+menu "PCMCIA SCSI adapter support"
+	depends on SCSI && PCMCIA && MODULES
+
+solves this in a different way, but I'm not 100% sure if it still has
+the same meaning.
+
+	Arnd <><
+
+--Boundary-02=_suRFB4KiDJLgURv
+Content-Type: application/pgp-signature
+Content-Description: signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQBBFRus5t5GS2LDRf4RAgYxAJ9C9wsxWgp8j939QEdqZdW1BWLtIQCeP5Sx
+o/OFG73rGq3bI4Jw7AEm5xY=
+=LmTS
+-----END PGP SIGNATURE-----
+
+--Boundary-02=_suRFB4KiDJLgURv--
