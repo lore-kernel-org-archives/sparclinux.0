@@ -1,32 +1,39 @@
-From: Eric Brower <ebrower@usa.net>
-Date: Thu, 04 Mar 2004 20:02:43 +0000
-Subject: [ANNOUNCE] a few cs patches for experimental Nell driver
-Message-Id: <40478B63.3070707@usa.net>
+From: Antonio Prioglio <a.prioglio@city.ac.uk>
+Date: Sat, 06 Mar 2004 11:02:23 +0000
+Subject: Re: [ANNOUNCE] a few cs patches for experimental Nell driver
+Message-Id: <Pine.LNX.4.44.0403061059550.1873-100000@viper.dogbert.ntt.it>
 List-Id: <sparclinux.vger.kernel.org>
+References: <40478B63.3070707@usa.net>
+In-Reply-To: <40478B63.3070707@usa.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Patches to a few PCMCIA cs drivers are available for use with the 
-experimental Nell (PCMCIA-Sbus bridge) driver.  Both the driver and the 
-patches can be found at:
+On Thu, 4 Mar 2004, Eric Brower wrote:
 
-	http://sparclinux.net/pub/patches/nell_v0.1.2.tgz
-	http://sparclinux.net/pub/patches/nell_v0.1.2_cs_patches.tgz
+> Patches to a few PCMCIA cs drivers are available for use with the 
+> experimental Nell (PCMCIA-Sbus bridge) driver.  Both the driver and the 
+> patches can be found at:
+> 
+> 	http://sparclinux.net/pub/patches/nell_v0.1.2.tgz
+> 	http://sparclinux.net/pub/patches/nell_v0.1.2_cs_patches.tgz
+> 
 
-The patches are for orinoco_cs (hermes.h) and axnet_cs.  Also included 
-for reference is a 3c589_cs.c that has been converted to use the 
-virtual_bus interface for educational purposes (not required for use). 
-All drivers have been minimally tested and seem to work.
+Hi, maybe there is a problem with the permissions on the sc_patches file.
 
-I've received feedback from a few folks that the Nell driver has worked 
-for them.  Please note the virtual_bus interface required by this driver 
-has been removed from late 2.5 and all 2.6 kernels.  Please see the 
-README within the nell driver tar file for an explaination of what 
-kernels are supported.
+I can download the nell driver but I get a access error on the cs one.
 
-Many thanks to Uzi for hosting these files.
 
-E
+Saluti,
+Antonio Prioglio [antonio.prioglio@britishlibrary.net]
+
+-- 
+    /"\
+    \ /    ASCII RIBBON CAMPAIGN - AGAINST HTML MAIL 
+     X                           - AGAINST MS ATTACHMENTS
+    / \
+
+http://www.gnu.org/philosophy/no-word-attachments.html
+
 
