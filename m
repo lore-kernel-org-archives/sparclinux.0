@@ -1,18 +1,29 @@
-From: "David S. Miller" <davem@redhat.com>
-Date: Fri, 07 May 2004 22:14:16 +0000
-Subject: Re: [PATCH] Use $(CC) in check for egcs/gcc3 [2/4]
-Message-Id: <20040507151416.03e55229.davem@redhat.com>
+From: Ben Collins <bcollins@debian.org>
+Date: Thu, 13 May 2004 20:21:46 +0000
+Subject: initrd testing
+Message-Id: <20040513202146.GD1098@phunnypharm.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040506223535.GB29131@triplehelix.org>
-In-Reply-To: <20040506223535.GB29131@triplehelix.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, 6 May 2004 15:35:35 -0700
-joshk@triplehelix.org (Joshua Kwan) wrote:
+Some people have reported problems with initrd on sparc64. I'm trying to
+trace that problem (hard, because I can't reproduce it). If you've had
+the problem where silo reports loading the initrd into memory, but the
+kernel fails to detect and use it, please try the second.b in the url
+below, and recompile a kernel using one of the two patches there aswell
+(2.4 and 2.6).
 
-> patch 2: use $(CC) in check for egcs/gcc3
+The new second.b will show the phys address that the initrd was loaded
+to, in addition to the virtual address.
 
-Applied.
+Thanks.
+
+http://www.sparc-boot.org/pub/testing/
+
+-- 
+Debian     - http://www.debian.org/
+Linux 1394 - http://www.linux1394.org/
+Subversion - http://subversion.tigris.org/
+WatchGuard - http://www.watchguard.com/
