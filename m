@@ -1,55 +1,88 @@
-From: Ed L Cashin <ecashin@uga.edu>
-Date: Fri, 23 Jan 2004 21:31:47 +0000
-Subject: Re: why "mov %0, %0" after "rd %%tick, %0"?
-Message-Id: <87r7xqgxmk.fsf@uga.edu>
+From: Ciaran McCreesh <ciaranm@gentoo.org>
+Date: Sat, 03 Jan 2004 13:31:47 +0000
+Subject: [2.6.1-rc1] CONFIG_DRM_FFB=y Fix
+Message-Id: <20040103133147.0182a1dc@snowdrop.home>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Signature=_Sat__3_Jan_2004_13_31_47_+0000_4LsqC_LY2sIVbP8g"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040123125806.215b41da.davem@redhat.com>
-In-Reply-To: <20040123125806.215b41da.davem@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-"David S. Miller" <davem@redhat.com> writes:
+--Signature=_Sat__3_Jan_2004_13_31_47_+0000_4LsqC_LY2sIVbP8g
+Content-Type: multipart/mixed;
+ boundary="Multipart=_Sat__3_Jan_2004_13_31_47_+0000_jz.KcyTih9+Muxq1"
 
-> On Fri, 23 Jan 2004 15:59:13 -0500
-> Ed L Cashin <ecashin@uga.edu> wrote:
->
->> One thing I don't get is why there's a mov %0, %0 instruction after
->> reading the tick register.  Is this because of the delay slot?
->
-> No, there is a bug in some of the UltraSPARC processors in that if
-> you go:
->
-> 	rd	%tick, %reg
-> 	cmp	%reg, XXX
->
-> the compare will get an incorrect result.  If we force the %tick result
-> into a simple move instruction this prevents the sequence that leads up
-> to the bug.
 
-Oh!  Thanks.  Do you think it's worth a comment?
+--Multipart=_Sat__3_Jan_2004_13_31_47_+0000_jz.KcyTih9+Muxq1
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 
---- linux-2.6.1/arch/sparc64/kernel/time.c.orig	Fri Jan 23 16:21:38 2004
-+++ linux-2.6.1/arch/sparc64/kernel/time.c	Fri Jan 23 16:24:44 2004
-@@ -108,6 +108,14 @@
- {
- 	unsigned long ret;
- 
-+	/* There is a bug in some of the UltraSPARC processors
-+	 * where a compare following a read of the %tick 
-+	 * register gets an incorrect result.
-+	 *
-+	 * If we force the %tick result into a simple move
-+	 * instruction this prevents the sequence that leads up
-+	 * to the bug.
-+	 */
- 	__asm__ __volatile__("rd	%%tick, %0\n\t"
- 			     "mov	%0, %0"
- 			     : "=r" (ret));
+2.6.1-rc1 gives compile errors with CONFIG_DRM_FFB=y:
 
+  CC      drivers/char/drm/ffb_drv.o
+drivers/char/drm/ffb_drv.c:386: error: redefinition of `ffb_options'
+drivers/char/drm/drm_drv.h:153: error: `ffb_options' previously defined
+here
+make[3]: *** [drivers/char/drm/ffb_drv.o] Error 1
+make[2]: *** [drivers/char/drm] Error 2
+make[1]: *** [drivers/char] Error 2
+make: *** [drivers] Error 2
+
+I seem to remember this being fixed in 2.4.x recently, but 2.6.1-rc1 is
+still affected. The attached patch sorts it out.
 
 -- 
---Ed L Cashin            |   PGP public key:
-  ecashin@uga.edu        |   http://noserose.net/e/pgp/
+Ciaran McCreesh
+Mail:    ciaranm at gentoo.org
+Web:     http://dev.gentoo.org/~ciaranm
 
+--Multipart=_Sat__3_Jan_2004_13_31_47_+0000_jz.KcyTih9+Muxq1
+Content-Type: text/x-diff;
+ name="linux-2.6-ffb-fix.patch"
+Content-Disposition: attachment;
+ filename="linux-2.6-ffb-fix.patch"
+Content-Transfer-Encoding: 7bit
+
+--- linux-2.6.1-rc1/drivers/char/drm/ffb_drv.c.orig	2004-01-03 13:10:54.851000000 +0000
++++ linux-2.6.1-rc1/drivers/char/drm/ffb_drv.c	2004-01-03 13:11:45.311000000 +0000
+@@ -372,25 +372,6 @@
+ 	return ret;
+ }
+ 
+-#ifndef MODULE
+-/* DRM(options) is called by the kernel to parse command-line options
+- * passed via the boot-loader (e.g., LILO).  It calls the insmod option
+- * routine, drm_parse_drm.
+- */
+-
+-/* JH- We have to hand expand the string ourselves because of the cpp.  If
+- * anyone can think of a way that we can fit into the __setup macro without
+- * changing it, then please send the solution my way.
+- */
+-static int __init ffb_options(char *str)
+-{
+-	DRM(parse_options)(str);
+-	return 1;
+-}
+-
+-__setup(DRIVER_NAME "=", ffb_options);
+-#endif
+-
+ #include "drm_fops.h"
+ #include "drm_init.h"
+ #include "drm_ioctl.h"
+
+--Multipart=_Sat__3_Jan_2004_13_31_47_+0000_jz.KcyTih9+Muxq1--
+
+--Signature=_Sat__3_Jan_2004_13_31_47_+0000_4LsqC_LY2sIVbP8g
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQE/9sRL96zL6DUtXhERAmSAAJ4obqzImBjwxbDEmD6apEWTh+WAMwCg0y6U
+M3gnKmTLnQLkeNlU+w4A2h0=
+=6EjG
+-----END PGP SIGNATURE-----
+
+--Signature=_Sat__3_Jan_2004_13_31_47_+0000_4LsqC_LY2sIVbP8g--
