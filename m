@@ -1,7 +1,7 @@
 From: "David S. Miller" <davem@davemloft.net>
-Date: Mon, 07 Feb 2005 19:55:33 +0000
+Date: Mon, 07 Feb 2005 19:57:45 +0000
 Subject: Re: Hang in SIOCGIFCONF ioctl handler
-Message-Id: <20050207115533.763fbd46.davem@davemloft.net>
+Message-Id: <20050207115745.61fe43c1.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.LNX.4.61.0502071259370.2050@bobcat>
 In-Reply-To: <Pine.LNX.4.61.0502071259370.2050@bobcat>
@@ -13,22 +13,66 @@ To: sparclinux@vger.kernel.org
 On Mon, 7 Feb 2005 13:21:16 -0500 (EST)
 Jurij Smakov <jurij@wooyd.org> wrote:
 
-> 510                 size_t len =((ifc32.ifc_len / sizeof (struct ifreq32)) + 1) *
-> 511                         sizeof (struct ifreq);
-> 512                 uifc = compat_alloc_user_space(sizeof(struct ifconf) + len);
-> 513                 ifc.ifc_len = len;
-> 514                 ifr = ifc.ifc_req = (void __user *)(uifc + 1);
-> 515                 ifr32 = compat_ptr(ifc32.ifcbuf);
-> 516                 for (i = 0; i < ifc32.ifc_len; i += sizeof (struct ifreq32)) {
-> 517                         if (copy_in_user(ifr, ifr32, sizeof(struct ifreq32)))
-> 518                                 return -EFAULT;
-> 519                         ifr++;
-> 520                         ifr32++; 
-> 521                 }
+> On an unrelated note, during my exploration I came across the function 
+> copy_in_user_fixup in arch/sparc64/lib/user_fixup.c. In this function (and 
+> in other functions in that file) copying is done using a loop like this:
 > 
-> By inserting some debugging statements, I was able to figure out that 
-> machine hangs because at some point the call to copy_in_user function does 
-> not return.
+>    while(size--) {
+>      ...
+>    }
+>    return size;
+> 
+> I am pretty sure that this function is supposed to follow the same error 
+> reporting convention as copy_in_user, i.e. return 0 on success, non-zero 
+> on error. As they are written now, the loop will stop at size = 0, but it 
+> will return -1 due to extra decrement, which is not what one would expect.
 
-How big are the values "ifc32.ifc_len" and the length passed into the
-compat_alloc_user_space() call for the failure case?
+Right, it's buggy.  Good spotting.  This should fix it up:
+
+=== arch/sparc64/lib/user_fixup.c 1.1 vs edited ==--- 1.1/arch/sparc64/lib/user_fixup.c	2004-08-23 14:32:55 -07:00
++++ edited/arch/sparc64/lib/user_fixup.c	2005-02-07 11:32:54 -08:00
+@@ -20,11 +20,12 @@
+ 	char *dst = to;
+ 	const char __user *src = from;
+ 
+-	while (size--) {
++	while (size) {
+ 		if (__get_user(*dst, src))
+ 			break;
+ 		dst++;
+ 		src++;
++		size--;
+ 	}
+ 
+ 	if (size)
+@@ -38,11 +39,12 @@
+ 	char __user *dst = to;
+ 	const char *src = from;
+ 
+-	while (size--) {
++	while (size) {
+ 		if (__put_user(*src, dst))
+ 			break;
+ 		dst++;
+ 		src++;
++		size--;
+ 	}
+ 
+ 	return size;
+@@ -53,7 +55,7 @@
+ 	char __user *dst = to;
+ 	char __user *src = from;
+ 
+-	while (size--) {
++	while (size) {
+ 		char tmp;
+ 
+ 		if (__get_user(tmp, src))
+@@ -62,6 +64,7 @@
+ 			break;
+ 		dst++;
+ 		src++;
++		size--;
+ 	}
+ 
+ 	return size;
