@@ -1,74 +1,119 @@
-From: "Antonino A. Daplas" <adaplas@hotpop.com>
-Date: Mon, 14 Feb 2005 16:59:10 +0000
+From: Frans Pop <aragorn@tiscali.nl>
+Date: Mon, 14 Feb 2005 17:55:19 +0000
 Subject: Re: [atyfb] No display on Sparc Ultra 10 with kernel 2.6.10-rc2 or later
-Message-Id: <200502150059.12789.adaplas@hotpop.com>
+Message-Id: <200502141855.29202.aragorn@tiscali.nl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="nextPart1348582.FrAVtacAmy"
 List-Id: <sparclinux.vger.kernel.org>
 References: <200502140251.00645.aragorn@tiscali.nl>
 In-Reply-To: <200502140251.00645.aragorn@tiscali.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-On Monday 14 February 2005 23:34, Frans Pop wrote:
-> On Monday 14 February 2005 12:32, Ben Collins wrote:
+--nextPart1348582.FrAVtacAmy
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-> atyfb:  Set Visible Mode to 1024x768-8
-> atyfb:  Virtual resolution 1024x2016, pixclock_in_ps 22349 (calculated
-> 22349) atyfb:  Dot clock:           44 MHz
-> atyfb:  Horizontal sync:     35 kHz
-> atyfb:  Vertical refresh:    84 Hz
+Hello Tony,
 
-The above timings are screwed.  This is 1024x768 at 85Hz INTERLACED.
-The fb_find_mode() function picked up this mode when you specified
-1024x768@75, since there is no such mode in the mode database.
-And the atyfb driver accepted the mode without differentiating between
-interlaced and non-interlaced.
+Thanks for your reaction.
 
-Try the following modes instead (all present in the mode database):
+On Monday 14 February 2005 17:59, Antonino A. Daplas wrote:
+> The above timings are screwed.  This is 1024x768 at 85Hz INTERLACED.
+> The fb_find_mode() function picked up this mode when you specified
+> 1024x768@75, since there is no such mode in the mode database.
+> And the atyfb driver accepted the mode without differentiating between
+> interlaced and non-interlaced.
 
-1024x768@60, 1024x768@70, 1024x768@76, 1024x768@100. You can also try
-1024x768@85 but you might get the interlaced mode again.
+Right. I tried with 1024x768@70 and that gives some improvement.
+=46or a very, very short time I see the Linux logo and some boot messages
+flash on the display, but then the monitor still goes into suspend.
 
-Tony
+It really is just a flash, but I think I see some of the atyfb debug
+messages. That would indicate that the suspend is activated somewhere near
+the end of console initialization (maybe at the "switching to colour frame
+buffer device 128x48"?). But again, this is based on an impression.
 
-PS:  There was also a massive atyfb update between 2.6.10-rc1 and rc2.  Her=
-e's
-the changelog:
+So it seems there are two bugs:
+=2D missing/incorrect default mode settings for sparc in the driver;
+=2D incorrect activation of suspend.
 
-#   Alexander Kern <alex.kern@gmx.de>
-#   [PATCH] port Daniel Mantione 2.4 driver to 2.6
-#   [PATCH] add more pci_id number
-#   [PATCH] add accelerated imgblit
-#   [PATCH] revert SDRAM_MAGIC_PLL to old behaviour
-#   [PATCH] do a "from BIOS" initialisation only by __i386__
-#  =20
-#   Arnaud FONTAINE <arnaud.fontaine@free.fr>
-#   [PATCH atyfb] correction for 3D Rage Mobility L
-#  =20
-#   Geert Uytterhoeven <geert@linux-m68k.org>
-#   [PATCH atyfb] Atari Atyfb fixes
-#   [PATCH atyfb] Atyfb on Mach64 GX or Atari
-#   [PATCH 468] m68k sparse floating point
-#  =20
-#   James Simmons <jsimmons@infradead.org>
-#   [PATCH add] port to framebuffer_alloc api
-#  =20
-#   Nicolas Souchu <nsouch@free.fr>
-#   [PATCH] I do not found a copy, but it was incorporated too
-#  =20
-#   Ville Syrj=E4l=E4 <syrjala@sci.fi>
-#   [PATCH] fix pan with doublescan
-#   [PATCH] another double scan fix
-#   [PATCH] disable linear aperture register access
-#   [PATCH] Memory type correction
-#   [PATCH] atyfb (2.6): Fix mmio_start
-#   [PATCH] atyfb (2.6): Fix mem_refresh_rate for Mobility
-#   [PATCH] atyfb (2.6): Add RGB565 support
-#   [PATCH] atyfb: Blank LCD by turning off backlight voltage
-#   [PATCH] atyfb: Rage LT LCD register access
-#   [PATCH] atyfb: vblank irq support
-#   [PATCH] atyfb: MTRR support
-#=20
+> PS:  There was also a massive atyfb update between 2.6.10-rc1 and rc2.=20
+> Here's the changelog:
+
+How best to proceed? Can you help?
+
+Cheers,
+=46rans Pop
 
 
+=46or comparison, here are the relevant lines from kern.log when
+booting with a Debian 2.6.8 kernel:
+atyfb: 3D RAGE (GT) [0x4754 rev 0x9a] 2M SGRAM, 14.31818 MHz XTAL, 200 MHz =
+PLL, 67 Mhz MCLK
+fb0: ATY Mach64 frame buffer device on PCI
+Console: switching to mono PROM 80x34
+Console: switching to colour frame buffer device 144x56
+
+And here the lines from 2.6.10-rc2 with video=3Datyfb:1024x768@70:
+atyfb: 3D RAGE (Mach64 GT) [0x4754 rev 0x02]
+atyfb: 2M SGRAM (1:1), 14.31818 MHz XTAL, 200 MHz PLL, 67 Mhz MCLK, 67 MHz =
+XCLK
+atyfb: setting up CRTC
+atyfb: set primary CRT to 1024x768 NN composite N
+atyfb: CRTC_H_TOTAL_DISP: 7f00a5
+atyfb: CRTC_H_SYNC_STRT_WID: 310082
+atyfb: CRTC_V_TOTAL_DISP: 2ff0325
+atyfb: CRTC_V_SYNC_STRT_WID: 260302
+atyfb: CRTC_OFF_PITCH: 20000000
+atyfb: CRTC_VLINE_CRNT_VLINE: 0
+atyfb: CRTC_GEN_CNTL: b000200
+atyfb: atyfb_set_par
+atyfb:  Set Visible Mode to 1024x768-8
+atyfb:  Virtual resolution 1024x2016, pixclock_in_ps 13373 (calculated 1337=
+3)
+atyfb:  Dot clock:           74 MHz
+atyfb:  Horizontal sync:     56 kHz
+atyfb:  Vertical refresh:    69 Hz
+atyfb:  x  style: 74.10398 1024 1048 1184 1328   768 771 777 806
+atyfb:  fb style: 13373  144 1024 24 136 29 768 3 6
+debug atyfb: Mach64 non-shadow register values:
+debug atyfb: 0x2000:  007F00A5 00310082 02FF0325 00260302
+debug atyfb: 0x2010:  01AA0000 20000000 08000020 0B000200
+debug atyfb: 0x2020:  00380727 0120051B 00000000 00000000
+debug atyfb: 0x2030:  00000000 00000031 00000000 00000000
+debug atyfb: 0x2040:  00000000 00000000 00000000 00000000
+debug atyfb: 0x2050:  00000000 00000000 00000000 00000000
+debug atyfb: 0x2060:  00000000 AAAAAA0F 00000000 00000000
+debug atyfb: 0x2070:  00000000 00000000 00003020 00000000
+debug atyfb: 0x2080:  00000000 00000000 00000000 00000000
+debug atyfb: 0x2090:  00A63000 00000000 00000000 00000000
+debug atyfb: 0x20A0:  7B23A040 00000000 00000000 05000001
+debug atyfb: 0x20B0:  004210B3 00010000 00010000 00000000
+debug atyfb: 0x20C0:  00FF0000 86010182 00000000 00000000
+debug atyfb: 0x20D0:  00000100 00000000 00000000 00003842
+debug atyfb: 0x20E0:  9A004754 0000001D 00000000 00000000
+debug atyfb: 0x20F0:  00000000 00008E0D E17FFCF8 00000000
+
+debug atyfb: Mach64 PLL register values:
+debug atyfb: 0x00:  CDD52414 A80341BC 8E82E701 A61B0000
+debug atyfb: 0x10:  CDD52414 A80341BC 8E82E701 A61B0000
+debug atyfb: 0x20:  CDD52414 A80341BC 8E82E701 A61B0000
+debug atyfb: 0x30:  CDD52414 A80341BC 8E82E701 A61B0000
+
+Console: switching to colour frame buffer device 128x48
+atyfb: fb0: ATY Mach64 frame buffer device on PCI
+
+--nextPart1348582.FrAVtacAmy
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQBCEOYRgm/Kwh6ICoQRAj2jAJ9RtmgXy2lBBSxP7z/A0ee0pVTfhgCgmkS+
+3nINSuMPY/WLGzMh1d6w3gk=
+=jJI2
+-----END PGP SIGNATURE-----
+
+--nextPart1348582.FrAVtacAmy--
