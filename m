@@ -1,7 +1,7 @@
-From: "grady" <hornetguess@antihunt.com>
-Date: Thu, 03 Jun 2004 09:44:40 +0000
+From: "cedric" <kisseugene@backtomyplace.com>
+Date: Mon, 07 Jun 2004 18:18:51 +0000
 Subject: Save a ton on Microsoft Office!
-Message-Id: <1086255880-17764@excite.com>
+Message-Id: <1086632331-14647@excite.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1084792200-10821@excite.com>
 In-Reply-To: <1084792200-10821@excite.com>
@@ -25,7 +25,7 @@ A:  There is no catch - the software versions that we sell are OEM (Original Equ
 
 
 Click here!!
-http://magicisland.biz/index.php?su55
+http://allpackages.com/index.php?su55
 
 
 
@@ -35,8 +35,8 @@ http://magicisland.biz/index.php?su55
 
 
 
-bird cancedroman reznor pearl wanker megan vermont 
-fiona promethecorwin first mortimer
-garnet rambo1 trek 
+bullet softballgenius shit politics bigmac horizon barry 
+gambit reznorscuba1 tequila gordon
+hanna warriors timber 
 
 REMOV3: http://mycomp.biz/soft/chair.php
