@@ -1,39 +1,51 @@
-From: "C.Newport" <crn@netunix.com>
-Date: Sun, 20 Jun 2004 20:05:00 +0000
-Subject: Re: future of drivers/fc4/
-Message-Id: <200406202105.00577.crn@netunix.com>
+From: "Tomasz 'Furgas' Sawicki" <tomek@sawka.prv.pl>
+Date: Fri, 04 Jun 2004 23:30:42 +0000
+Subject: SunFire V240 and SILO
+Message-Id: <opr83flgn6g7548t@polaris.student.put.poznan.pl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040620160353.GA17163@lst.de> <20040620114010.73f1b98a.davem@redhat.com>
-In-Reply-To: <20040620114010.73f1b98a.davem@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@redhat.com>, Christoph Hellwig <hch@lst.de>
-Cc: linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Sunday 20 June 2004 7:40 pm, David S. Miller wrote:
-> On Sun, 20 Jun 2004 18:03:53 +0200
->
-> Christoph Hellwig <hch@lst.de> wrote:
-> > The SUN FCAL support has been non-working for ages and needs major work
-> > to keep up with scsi API changes.  Is anyone planning to ressurect it
-> > midterm?  If not I'd like to remove it from the tree.
->
-> Feel free to remove it, interested parties can resurrect the source
-> really easily.
+Hi.
 
-If it is that easy could someone tell me what needs doing please ?
-I am NOT a kernel programmer but given a little handholding and
-a list of what to do I can build and test it here.
+I've been trying to install Linux on SunFire V240 for a few days now.
+Finally I've managed to boot from boot image via network.
+I used Debian boot.img ( http://tinyurl.com/2rjp2 ). I've installed
+base system via network too.
 
-I also have a spare set of hardware if someone in the UK with the
-needed skills would like it. Sorry, but the disk array is a bit heavy to 
-ship elsewhere. If someone already has the array I will mail a card
-anywhere.
+Unfortunately I'm not able to boot this installed system from
+hard disc using SILO. I'm also almost sure that SILO was also
+responsible for booting problems with few other Linux distribution
+I've tried. Everytime boot process hangs after:
+Remapping the kernel...done.
+and before
+Booting Linux...
 
-We need this if we are ever to get the Sun4D working again.
-Keith now has a contact for the missing info to get Sun4D working
-properly, but without the fc, soc and pluto it will be rather restricted in
-usefulness.
+Booting via network works perfectly ok, and booting the same
+kernel from SILO always fails.
 
- 
+Using network boot I've managed to compile 2.4.26 (sparc64) kernel
+and insert some prom_printf statements in various places between
+"Remapping the kernel" and "Booting Linux...". Apparently booting
+process hangs in cheetah_flush_dtlb_all() function which has
+some assembler instructions. This function is called from
+flush_tlb_all in arch/sparc64/mm/init.c
+
+} else if (tlb_type = cheetah || tlb_type = cheetah_plus) {
+     prom_printf("just before hang\n");
+     cheetah_flush_dtlb_all();
+     prom_printf("this will never show up\n");
+     cheetah_flush_itlb_all();
+}
+
+SunFire v240 has Two 1-GHz UltraSPARC IIIi Cu Processors,
+and 2 GB Memory.
+
+Once again - booting via network works fine, only SILO fails.
+
+I'd appreciate any help you can provide.
+
+-- 
+Tomasz 'Furgas' Sawicki
