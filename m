@@ -1,24 +1,21 @@
-From: Autoreply@lindhardt.com
-Date: Thu, 08 Apr 2004 13:56:02 +0000
-Subject: Re: Phone number
-Message-Id: <OFC1256E70.004C8ADE-ONC1256E70.004C8ADE-C1256E70.004C8ADE@lindhardt.com>
+From: "MetaCard Corporation" <info@metacard.com>
+Date: Fri, 09 Apr 2004 07:44:45 +0000
+Subject: info@metacard.com deactivated
+Message-Id: <E1BBqgv-0005Du-4q@iron.nocdirect.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-K=E6re kunde
+Due to the acquisition of the MetaCard engine technology by Runtime
+Revolution (see http://www.runrev.com/) all marketing, sales, and
+support are now handled through that organization.  You can email them
+at www(at)runrev.com, or see their WWW site for more options.
 
-Tak for din e-mail. Vi svarer p=E5 den s=E5 hurtigt som muligt; og som
-beskrevet i vores servicepolitik. Den kan du l=E6se p=E5 vores hjemmeside
-www.antivirus.dk under menupunktet Service/Servicepolitik.
+Our apologies for any inconvenience this change causes,
+  Regards,
+    Scott (raney(at)metacard.com)
 
-M=E5ske finder du allerede nu svaret p=E5 dit sp=F8rgsm=E5l p=E5 vores hjem=
-meside.
-Pr=F8v at se p=E5 www.antivirus.dk under menupunktet Service, Erhverv.
 
-Venlig hilsen
-Lindhardt A/S - IT med Tryghedsgaranti
-Panda Software Danmark
 
