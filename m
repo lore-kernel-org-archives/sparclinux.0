@@ -1,58 +1,49 @@
-From: Jeremy Huddleston <eradicator@gentoo.org>
-Date: Sat, 04 Dec 2004 01:34:25 +0000
-Subject: [PATCH] missing include in asm-sparc/signal.h
-Message-Id: <1102124065.20364.4.camel@cid.outersquare.org>
+From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
+Date: Wed, 22 Dec 2004 15:59:35 +0000
+Subject: [sparc64] rtc compile warning fix
+Message-Id: <1103731175.3913.84.camel@localhost.localdomain>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-XITFlbPy4WQ1DrFCdGn+"
+Content-Type: multipart/mixed; boundary="=-J7TJe9OjnrEOPMH1Hsjw"
 List-Id: <sparclinux.vger.kernel.org>
 To: sparclinux@vger.kernel.org
 
 
---=-XITFlbPy4WQ1DrFCdGn+
-Content-Type: multipart/mixed; boundary="=-XBRU2ZHf1tuMu2Ba5GSe"
-
-
---=-XBRU2ZHf1tuMu2Ba5GSe
+--=-J7TJe9OjnrEOPMH1Hsjw
 Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 
-asm-sparc/signal.h needs:
+Wli's change to sbus/char/rtc.c (see: http://marc.theaimsgroup.com/?
+l=linux-sparc&m=110362936306577&w=2) causes sparc64 to throw warnings.
 
-#include <linux/compiler>
+This is fixed upstream for sparc32 by adding asm/io.h as an include in
+asm/mostek.h. Doing the same for sparc64 resolves the warnings, so
+here's the patch.
 
-because it uses __user around line 214.  Without this include, userland
-code including asm/signal.h will fail to compile.
+Signed-off-by: Tom 'spot' Callaway <tcallawa@redhat.com>
 
---=20
-Jeremy Huddleston <eradicator@gentoo.org>
+~spot
+---
+Tom "spot" Callaway <tcallawa(a)redhat*com> LCA, RHCE 
+Red Hat Sales Engineer || Aurora Linux Project Leader
 
---=-XBRU2ZHf1tuMu2Ba5GSe
-Content-Disposition: attachment; filename=linux26-headers-2.6.8.1-sparc-signal_h.patch
-Content-Type: text/x-patch; name=linux26-headers-2.6.8.1-sparc-signal_h.patch;
-	charset=ISO-8859-1
-Content-Transfer-Encoding: base64
+"If you are going through hell, keep going."
+- Sir Winston Churchill
 
-LS0tIGxpbnV4L2luY2x1ZGUvYXNtLXNwYXJjL3NpZ25hbC5oLm9yaWcJMjAwNC0wNy0yMCAxMTow
-NDozOC40NTk3MjE0ODAgLTA3MDANCisrKyBsaW51eC9pbmNsdWRlL2FzbS1zcGFyYy9zaWduYWwu
-aAkyMDA0LTA3LTIwIDExOjA2OjA2Ljk0NTA2NzgxNCAtMDcwMA0KQEAgLTMsNiArMyw3IEBADQog
-I2RlZmluZSBfQVNNU1BBUkNfU0lHTkFMX0gNCiANCiAjaW5jbHVkZSA8YXNtL3NpZ2NvbnRleHQu
-aD4NCisjaW5jbHVkZSA8bGludXgvY29tcGlsZXIuaD4NCiANCiAjaWZkZWYgX19LRVJORUxfXw0K
-ICNpZm5kZWYgX19BU1NFTUJMWV9fDQo=
+--=-J7TJe9OjnrEOPMH1Hsjw
+Content-Disposition: attachment; filename=linux-2.6.9-sparc64-mostek.patch
+Content-Type: text/x-patch; name=linux-2.6.9-sparc64-mostek.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
+--- linux-2.6.9/include/asm-sparc64/mostek.h.BAD	2004-12-22 10:44:10.554754475 -0500
++++ linux-2.6.9/include/asm-sparc64/mostek.h	2004-12-22 10:44:14.821105891 -0500
+@@ -9,6 +9,7 @@
+ #define _SPARC64_MOSTEK_H
+ 
+ #include <asm/idprom.h>
++#include <asm/io.h>
+ 
+ /*       M48T02 Register Map (adapted from Sun NVRAM/Hostid FAQ)
+  *
 
---=-XBRU2ZHf1tuMu2Ba5GSe--
-
---=-XITFlbPy4WQ1DrFCdGn+
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.6 (GNU/Linux)
-
-iD8DBQBBsRQgOpjtAl+gMRURAgqJAKCTKtcKptQsyRMeQSDvOy5vIfg64QCg0GdU
-VKGdxXU6THxk6kLaYiCyUDM=
-=dZ2f
------END PGP SIGNATURE-----
-
---=-XITFlbPy4WQ1DrFCdGn+--
+--=-J7TJe9OjnrEOPMH1Hsjw--
 
