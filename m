@@ -1,7 +1,7 @@
-From: "David S. Miller" <davem@redhat.com>
-Date: Fri, 09 Apr 2004 23:30:25 +0000
+From: Jason Wever <weeve@gentoo.org>
+Date: Sat, 10 Apr 2004 00:50:24 +0000
 Subject: Re: [PATCH] Add amd7930 to include/sound/sndmagic.h
-Message-Id: <20040409163025.13d5c527.davem@redhat.com>
+Message-Id: <Pine.LNX.4.58.0404091850020.13366@stargazer.weeve.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040405231229.4ae000fe@enterprise.weeve.org>
 In-Reply-To: <20040405231229.4ae000fe@enterprise.weeve.org>
@@ -10,20 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Mon, 5 Apr 2004 23:12:29 -0600
-Jason Wever <weeve@gentoo.org> wrote:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> The included patch adds amd7930 to the include/sound/sndmagic.h in 2.6,
-> allowing the sun-snd-amd7930 driver to build.
+On Fri, 9 Apr 2004, David S. Miller wrote:
+
 > 
-> According to the ALSA doc about writing drivers, the define in sndmagic.h
-> doesn't need to be a particular value as long as it is
-> unique, so that is what I did here.
+> Hey, can you "-p1" root your patches in the future?  That will
+> save me a little bit of work and get your changes installed
+> faster as a result :-)
 
-Applied, thanks Jason.
+Sure thing. 
 
-Hey, can you "-p1" root your patches in the future?  That will
-save me a little bit of work and get your changes installed
-faster as a result :-)
+Thanks,
+- -- 
+Jason Wever
+Gentoo/Sparc Co-Team Lead
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
 
-Thanks again.
+iD8DBQFAd0TTdKvgdVioq28RAjwCAJ0WNL6bZuv1HRedbazyG/2G4kjzBQCgh7hW
+4oQKdx9coJgKiXxFMbneDSw=umlL
+-----END PGP SIGNATURE-----
