@@ -1,47 +1,58 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Sat, 02 Oct 2004 23:41:54 +0000
-Subject: Re: sym2 on sparc
-Message-Id: <20041002164154.6918a43c.davem@davemloft.net>
+From: mcgrof@studorgs.rutgers.edu (Luis R. Rodriguez)
+Date: Tue, 26 Oct 2004 00:32:12 +0000
+Subject: Re: Booting an Ultra sparc with 2.6
+Message-Id: <20041026003212.GG17506@ruslug.rutgers.edu>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="tKW2IUtsqtDRztdT"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20041001182056.GI16153@parcelfarce.linux.theplanet.co.uk>
-	<1096724000.2157.1.camel@mulgrave>
-	<20041002144408.GS16153@parcelfarce.linux.theplanet.co.uk>
-In-Reply-To: <20041002144408.GS16153@parcelfarce.linux.theplanet.co.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: James.Bottomley@SteelEye.com, matthew@wil.cx, sparclinux@vger.kernel.org, linux-scsi@vger.kernel.org
+References: <20040913143811.GH30464@ruslug.rutgers.edu>
+In-Reply-To: <20040913143811.GH30464@ruslug.rutgers.edu>
+To: sparclinux@vger.kernel.org
 
-On Sat, 2 Oct 2004 15:44:08 +0100
-Matthew Wilcox <matthew@wil.cx> wrote:
 
-> > Putting architecture specific knowledge into a device driver is almost
-> > never a good thing to do.  If all you want to do is print out the IRQ
-> > designation, I suspect this is a generic problem, not a sym2 specific
-> > problem, so what we need is something like an irq_to_string()
-> > abstraction.
-> 
-> I agree.  We could probably use something similar on PA-RISC.  There's
-> about 25 drivers in-tree that're currently using __irq_itoa().  Most
-> of them would be better-written if everybody were using a string.
+--tKW2IUtsqtDRztdT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The strings used to be useful in debugging IRQ routing issues
-on sparc64, but that's no longer the case now that I print
-out all of the PCI irq routing info at boot time on sparc64 like
-so:
+On Mon, Sep 13, 2004 at 03:38:45PM -0700, David S. Miller wrote:
+> On Mon, 13 Sep 2004 18:21:02 -0400
+> mcgrof@studorgs.rutgers.edu (Luis R. Rodriguez) wrote:
+>=20
+> > I also would like an explanation as
+> > to this 2.6 MB kernel size limitation.
+>=20
+> It was a bootloader limitation which is fixed in current
+> SILO bootloader versions.
 
-PCI-IRQ: Routing bus[ 0] slot[ 2] map[0] to INO[10]
-PCI-IRQ: Routing bus[ 0] slot[ 3] map[0] to INO[14]
-PCI-IRQ: Routing bus[ 0] slot[ 5] map[0] to INO[1d]
-PCI-IRQ: Routing bus[ 0] slot[ 5] map[0] to INO[1e]
-PCI-IRQ: Routing bus[ 0] slot[ 5] map[0] to INO[1f]
-PCI-IRQ: Routing bus[ 0] slot[ 6] map[0] to INO[18]
-PCI-IRQ: Routing bus[ 0] slot[ 6] map[0] to INO[19]
-PCI-IRQ: Routing bus[ 1] slot[ 0] map[1] to INO[0d]
-PCI-IRQ: Routing bus[ 1] slot[ 1] map[1] to INO[0e]
-PCI-IRQ: Routing bus[ 1] slot[ 2] map[1] to INO[0f]
-PCI-IRQ: Routing bus[ 1] slot[ 3] map[1] to INO[0c]
-PCI0(PBMB): Bus running at 33MHz
-PCI-IRQ: Routing bus[ 0] slot[ 1] map[0] to INO[00]
-PCI-IRQ: Routing bus[ 0] slot[ 4] map[0] to INO[04]
-PCI0(PBMA): Bus running at 66MHz
+OK -- I have silo 1.4.8 and I can't still boot into a 2.6 kernel. I've
+tried many things:
+
+a. boot into vmlinux (48MB)
+	result: image too large
+b. boot into vmlinuz (24MB)
+	result: image too large
+c. boot into image (5.1MB)
+	result: it hangs on trying to boot 2.6.9
+
+and no luck. What version of silo fixed this kernel size limitation?
+Also any suggestions?
+
+	Luis
+
+--=20
+GnuPG Key fingerprint =3D 113F B290 C6D2 0251 4D84  A34A 6ADD 4937 E20A 525E
+
+--tKW2IUtsqtDRztdT
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFBfZsMat1JN+IKUl4RAibcAKCguCjcflotjdZMUtKgjNh7OZ+5rgCgr7L3
+TTRkm4xzccxMsnJpQhrFWKw=
+=ozij
+-----END PGP SIGNATURE-----
+
+--tKW2IUtsqtDRztdT--
