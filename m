@@ -1,103 +1,180 @@
 From: "David S. Miller" <davem@davemloft.net>
-Date: Thu, 09 Dec 2004 05:24:29 +0000
+Date: Thu, 09 Dec 2004 07:34:45 +0000
 Subject: Re: mmap breakage
-Message-Id: <20041208212429.72329374.davem@davemloft.net>
+Message-Id: <20041208233445.6a837c82.davem@davemloft.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Multipart=_Wed__8_Dec_2004_23_34_45_-0800_aqYOfdT_ZRbDpwhK"
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.LNX.4.61.0412032354010.1963@bobcat>
 In-Reply-To: <Pine.LNX.4.61.0412032354010.1963@bobcat>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, 7 Dec 2004 10:38:02 -0500 (EST)
-Jurij Smakov <jurij@wooyd.org> wrote:
+This is a multi-part message in MIME format.
 
-> No, this bug has been triggered during autobuilding of at least two 
-> different Debian packages, kmd [0] and fet [1]. kmd is a graphical 
-> debugger for ARM boards, and fet is some sort of personal organizer.
-> 
-> When ldd is run on the binaries late in the building stage to extract
-> the information about the dynamic libraries and generate the correct 
-> dependencies, it (among other things) invokes the command:
-> 
-> /lib/ld-linux.so.2 --verify ./a.out
-> 
-> which fails with SIGILL, if one is unlucky.
+--Multipart=_Wed__8_Dec_2004_23_34_45_-0800_aqYOfdT_ZRbDpwhK
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-I understand, and as others pointed it this problem is due to
-the ELF_ET_DYN_BASE setting in the kernel used for 32-bit binaries.
 
-This triggered a memory, and now I sort of recall why I choose
-this value.  It had something to do with emacs and how it would
-dump itself.
+Ok, here is what I'm going to do about this.  Patches for
+2.6.x and 2.4.x attached.
 
-Let's turn on the "way back machine" and look into the vger CVS
-logs for the answer, and indeed we end up finding this:
+As I described in a previous email, the ELF_ET_DYN_BASE
+value used for 32-bit sparc was choosen simple to make
+"/lib/ld-linux.so.2 emacs" work.
 
-CVSROOT:        /vger/u4/cvs
-Module name:    linux
-Changes by:     davem@vger.rutgers.edu  98/09/14 05:11:15
+That case is obscure, and even i386 doesn't work in this
+case either.  In fact, this choice on sparc has shown to
+break many more important things.
 
-Modified files:
-        arch/sparc64/kernel: binfmt_elf32.c
-        include/asm-sparc: elf.h
+So I'm going to go back to using TASK_UNMAPPED_BASE for
+this and it should fix the test cases in the debian bugs.
 
-Log message:
-        Tweak ELF_ET_DYN_BASE so that emacs can be run
-        properly with the intepreter as the command line.
-        Note, this comment above these defines is wrong I believe.
-        The brk of ld.so is what is used for sys_brk calls, not that
-        of the later mapped main executable.  The reason emacs would
-        barf is that it wants the top 4 bits of malloc obtained
-        addresses to be zero so it can store lisp type information
-        there.
 
-And this explains the value we are using.
+--Multipart=_Wed__8_Dec_2004_23_34_45_-0800_aqYOfdT_ZRbDpwhK
+Content-Type: text/plain;
+ name="et_dyn_base_24.diff"
+Content-Disposition: attachment;
+ filename="et_dyn_base_24.diff"
+Content-Transfer-Encoding: 7bit
 
-When we run /lib/ld-linux.so.2 from the command line as
-the executable, the end of this mapping choosen is where
-the BRK area of the program begins.
+# This is a BitKeeper generated diff -Nru style patch.
+#
+# ChangeSet
+#   2004/12/08 23:08:19-08:00 davem@nuts.davemloft.net 
+#   [SPARC]: Adjust 32-bit ELF_ET_DYN_BASE.
+#   
+#   We were using 0x08000000 instead of TASK_UNMAPPED_BASE
+#   so that running something like "/lib/ld-linux.so.2 emacs"
+#   would work.
+#   
+#   The issue there was that wherever /lib/ld-linux.so.2 gets
+#   mapped (controlled by ELF_ET_DYN_BASE), that is where the
+#   BSS start for the process ends up.  Now, emacs allocates
+#   dynamic memory for LISP objects from the BSS, and needs
+#   the top 4 bits of the virtual address to be clear so that
+#   it can encode LISP type and GC marking information there.
+#   
+#   But making this obscure emacs case work breaks lots of other
+#   stuff.  For example, programs with a reasonably large data
+#   section fail to load via direct ld.so interpreter execution
+#   because the data section is large enough to begin overlapping
+#   with the ELF_ET_DYN_BASE area.
+#   
+#   The /lib/ld-linux.so.2 emacs case does not work on a lot of
+#   platforms due to this issue, including i386, so it is not
+#   worth making work on sparc either.  It is indeed useful
+#   sometimes when debugging a new experimental build of glibc
+#   for example, but people doing that can hack the value of
+#   ELF_ET_DYN_BASE in their kernels.  Perhaps at some point
+#   we will make a sysctl controllable value.
+#   
+#   Signed-off-by: David S. Miller <davem@davemloft.net>
+# 
+# include/asm-sparc/elf.h
+#   2004/12/08 23:08:07-08:00 davem@nuts.davemloft.net +1 -1
+#   [SPARC]: Adjust 32-bit ELF_ET_DYN_BASE.
+# 
+# arch/sparc64/kernel/binfmt_elf32.c
+#   2004/12/08 23:08:07-08:00 davem@nuts.davemloft.net +1 -1
+#   [SPARC]: Adjust 32-bit ELF_ET_DYN_BASE.
+# 
+diff -Nru a/arch/sparc64/kernel/binfmt_elf32.c b/arch/sparc64/kernel/binfmt_elf32.c
+--- a/arch/sparc64/kernel/binfmt_elf32.c	2004-12-08 23:09:43 -08:00
++++ b/arch/sparc64/kernel/binfmt_elf32.c	2004-12-08 23:09:43 -08:00
+@@ -81,7 +81,7 @@
+ 
+ #define elf_check_arch(x)	(((x)->e_machine == EM_SPARC) || ((x)->e_machine == EM_SPARC32PLUS))
+ 
+-#define ELF_ET_DYN_BASE         0x08000000
++#define ELF_ET_DYN_BASE         0x70000000
+ 
+ 
+ #include <asm/processor.h>
+diff -Nru a/include/asm-sparc/elf.h b/include/asm-sparc/elf.h
+--- a/include/asm-sparc/elf.h	2004-12-08 23:09:43 -08:00
++++ b/include/asm-sparc/elf.h	2004-12-08 23:09:43 -08:00
+@@ -81,7 +81,7 @@
+    the loader.  We need to make sure that it is out of the way of the program
+    that it will "exec", and that there is sufficient room for the brk.  */
+ 
+-#define ELF_ET_DYN_BASE         (0x08000000)
++#define ELF_ET_DYN_BASE         (TASK_UNMAPPED_BASE)
+ 
+ /* This yields a mask that user programs can use to figure out what
+    instruction set this cpu supports.  This can NOT be done in userspace
 
-If the addresses used for the BRK area have any of the top bits
-set, this makes emacs explode due to how it encodes type
-information in the upper bits of pointers.  So at the time
-I was debugging a new build of glibc by doing something like:
+--Multipart=_Wed__8_Dec_2004_23_34_45_-0800_aqYOfdT_ZRbDpwhK
+Content-Type: text/plain;
+ name="et_dyn_base_26.diff"
+Content-Disposition: attachment;
+ filename="et_dyn_base_26.diff"
+Content-Transfer-Encoding: 7bit
 
-/path/to/glibc/build-sparc-linux/ld-linux.so.2 ./emacs
+# This is a BitKeeper generated diff -Nru style patch.
+#
+# ChangeSet
+#   2004/12/08 23:02:03-08:00 davem@nuts.davemloft.net 
+#   [SPARC]: Adjust 32-bit ELF_ET_DYN_BASE.
+#   
+#   We were using 0x08000000 instead of TASK_UNMAPPED_BASE
+#   so that running something like "/lib/ld-linux.so.2 emacs"
+#   would work.
+#   
+#   The issue there was that wherever /lib/ld-linux.so.2 gets
+#   mapped (controlled by ELF_ET_DYN_BASE), that is where the
+#   BSS start for the process ends up.  Now, emacs allocates
+#   dynamic memory for LISP objects from the BSS, and needs
+#   the top 4 bits of the virtual address to be clear so that
+#   it can encode LISP type and GC marking information there.
+#   
+#   But making this obscure emacs case work breaks lots of other
+#   stuff.  For example, programs with a reasonably large data
+#   section fail to load via direct ld.so interpreter execution
+#   because the data section is large enough to begin overlapping
+#   with the ELF_ET_DYN_BASE area.
+#   
+#   The /lib/ld-linux.so.2 emacs case does not work on a lot of
+#   platforms due to this issue, including i386, so it is not
+#   worth making work on sparc either.  It is indeed useful
+#   sometimes when debugging a new experimental build of glibc
+#   for example, but people doing that can hack the value of
+#   ELF_ET_DYN_BASE in their kernels.  Perhaps at some point
+#   we will make a sysctl controllable value.
+#   
+#   Signed-off-by: David S. Miller <davem@davemloft.net>
+# 
+# include/asm-sparc/elf.h
+#   2004/12/08 22:56:54-08:00 davem@nuts.davemloft.net +1 -1
+#   [SPARC]: Adjust 32-bit ELF_ET_DYN_BASE.
+# 
+# arch/sparc64/kernel/binfmt_elf32.c
+#   2004/12/08 22:56:54-08:00 davem@nuts.davemloft.net +1 -1
+#   [SPARC]: Adjust 32-bit ELF_ET_DYN_BASE.
+# 
+diff -Nru a/arch/sparc64/kernel/binfmt_elf32.c b/arch/sparc64/kernel/binfmt_elf32.c
+--- a/arch/sparc64/kernel/binfmt_elf32.c	2004-12-08 23:05:11 -08:00
++++ b/arch/sparc64/kernel/binfmt_elf32.c	2004-12-08 23:05:11 -08:00
+@@ -79,7 +79,7 @@
+ 
+ #define elf_check_arch(x)	(((x)->e_machine == EM_SPARC) || ((x)->e_machine == EM_SPARC32PLUS))
+ 
+-#define ELF_ET_DYN_BASE         0x08000000
++#define ELF_ET_DYN_BASE         0x70000000
+ 
+ 
+ #include <asm/processor.h>
+diff -Nru a/include/asm-sparc/elf.h b/include/asm-sparc/elf.h
+--- a/include/asm-sparc/elf.h	2004-12-08 23:05:11 -08:00
++++ b/include/asm-sparc/elf.h	2004-12-08 23:05:11 -08:00
+@@ -143,7 +143,7 @@
+    the loader.  We need to make sure that it is out of the way of the program
+    that it will "exec", and that there is sufficient room for the brk.  */
+ 
+-#define ELF_ET_DYN_BASE         (0x08000000)
++#define ELF_ET_DYN_BASE         (TASK_UNMAPPED_BASE)
+ 
+ /* This yields a mask that user programs can use to figure out what
+    instruction set this cpu supports.  This can NOT be done in userspace
 
-and it wouldn't work, which led to the change above.
-
-Before I researched all of this, I was about to just plainly
-set ELF_ET_DYN_BASE back to TASK_UNMAPPED_AREA.  That would
-fix the given test case we're discussing, but it would also
-break emacs per the discussion above.
-
-The situation is pretty dire.  Our 32-bit address space on
-different cpus looks like this:
-
-1) sun4c,sun4
-
-   Two virtual segments, one from 0x0 to 0x20000000 and
-   another from 0xe0000000 to 0xf0000000.
-
-   We set TASK_UNMAPPED_BASE to 0xe0000000 for this chip.
-
-2) sun4m/sun4d
-
-   One whole virtual segment from 0x0 to 0xf0000000.
-
-   We set TASK_UNMAPPED_BASE to 0x50000000 for this chip.
-
-3) 32-bit binary running on sparc64
-
-   One whole virtual segment from 0x0 to 0xffffffff.
-
-   We set TASK_UNMAPPED_BASE to 0x70000000 for this chip.
-
-The biggest problematic case is sun4c, we simply don't have
-much address space to work with.  Because of emacs wanting
-the top 4 bits to be clear, we are basically limited to
-some place between 0x0 and 0x10000000.
-
-Let me think about this some more.
+--Multipart=_Wed__8_Dec_2004_23_34_45_-0800_aqYOfdT_ZRbDpwhK--
