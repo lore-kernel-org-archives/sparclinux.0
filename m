@@ -1,29 +1,36 @@
-From: Keith M Wesolowski <wesolows@foobazco.org>
-Date: Mon, 22 Mar 2004 00:35:48 +0000
-Subject: Re: srmmu_nocache_calcsize with low memory
-Message-Id: <20040322003548.GA4519@foobazco.org>
+From: "Art Haas" <ahaas@airmail.net>
+Date: Tue, 30 Mar 2004 23:44:12 +0000
+Subject: Compiling sunlance as a module
+Message-Id: <20040330234412.GB5439@artsapartment.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040321155052.GA10374@spike>
-In-Reply-To: <20040321155052.GA10374@spike>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sun, Mar 21, 2004 at 07:44:46PM +0100, Stefan Holst wrote:
+Hi.
 
-> i was currently using 64 pages, but didn't test with more than 3 processes
-> or with high load. so 128 seems to be a good tradeoff for now.
-> here's a small patch:
+I'm still fiddling around with my configuration for my SS20, and I found
+that compiling the sunlance.c file as a module has problems. When
+booting up and the various init scripts are running, the eth0 interface
+fails to start correctly. By doing 'modprobe sunlance' after I log in I
+am able to start eth0 and things move smoothly, but I'm an curious to
+find out why having this code as a module fails. Searching via Google
+brought me to the following link regarding Suse-Linux:
 
-This needs to be tested extensively.  People with less than about
-144MB of memory will have their pagetable area reduced in size, in
-some cases by a lot.  I'm not going to apply this until I see some
-favorable test results.
+http://lists.suse.com/archive/suse-sparc/2002-Feb/0103.html
 
-I'll try to do some testing myself, but people with smaller-memory
-machines need to give this a spin on their workloads and provide
-feedback.
+The original poster had a problem due to compiling sunlance as a module,
+and the response was "you can't do that". So, after looking around a bit
+more and not finding any more info on exactly why that is true, or even
+if it is still true, I seek enlightenment from the list.
 
+The machine is now running 2.6.5-rc3 thanks to the help I've received
+here, btw.
+
+Art Haas
 -- 
-Keith M Wesolowski
+Man once surrendering his reason, has no remaining guard against absurdities
+the most monstrous, and like a ship without rudder, is the sport of every wind.
+
+-Thomas Jefferson to James Smith, 1822
