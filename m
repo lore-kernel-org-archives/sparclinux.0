@@ -1,15 +1,21 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Tue, 07 Sep 2004 01:19:54 +0000
-Subject: Re: Please test: 2.6 read of openpromfs entries loops
-Message-Id: <20040906181954.34def6a8.davem@davemloft.net>
+From: Meelis Roos <mroos@linux.ee>
+Date: Tue, 14 Sep 2004 09:50:28 +0000
+Subject: Legacy PC IO reservations on sparc64?
+Message-Id: <Pine.GSO.4.44.0409141248500.8479-100000@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040906120109.GA1169@palantir8>
-In-Reply-To: <20040906120109.GA1169@palantir8>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+From /prco/iomem on a Sun Ultra 5, running 2.6.9-rc2:
 
-This fix I wrote already and is in the current 2.6.x sources.
-Thanks anyways.
+  1ff000a0000-1ff000bffff : Video RAM area
+  1ff000c0000-1ff000c7fff : Video ROM
+  1ff000f0000-1ff000fffff : System ROM
+
+Why are these here on sparc64?
+
+-- 
+Meelis Roos (mroos@linux.ee)
+
