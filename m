@@ -1,84 +1,48 @@
-From: David Yitzchak Cohen <lists+sparc_linux_kernel@bigfatdave.com>
-Date: Wed, 04 Feb 2004 23:46:11 +0000
-Subject: Re: FW_Employees Revenge
-Message-Id: <20040204234554.GH14769@dave.tj>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="6lXr1rPCNTf1w0X8"
+From: Keith M Wesolowski <wesolows@foobazco.org>
+Date: Mon, 02 Feb 2004 09:43:47 +0000
+Subject: [sparc32] Copy full soft PMD in fault handler
+Message-Id: <20040202094347.GB22498@foobazco.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200402041330.i14DUej06637@zeus.kernel.org>
-In-Reply-To: <200402041330.i14DUej06637@zeus.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+sparc_do_fault assumes that pmd_val(*pmd) = pmd_val(*pmd_k) will
+duplicate a PMD entry.  With large soft-PMDs this doesn't work.
 
---6lXr1rPCNTf1w0X8
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Is this ok?  Specifically I'm wondering whether it's necessary to use
+swap here is in pmd_set.  The comment in the i386 handler "Do _not_
+use "tsk" here. We might be inside an interrupt in the middle of a
+task switch.." doesn't make me feel too good about this function's
+health and well-being either, since we use tsk.
 
-Did you actually send this?  AT&T complains that it can't figure out
-what country to route the call to :-(
+# This is a BitKeeper generated patch for the following project:
+# Project Name: Linux kernel tree
+# This patch format is intended for GNU patch command version 2.5 or higher.
+# This patch includes the following deltas:
+#	           ChangeSet	1.1551  -> 1.1552 
+#	arch/sparc/mm/fault.c	1.15    -> 1.16   
+#
+# The following is the BitKeeper ChangeSet Log
+# --------------------------------------------
+# 04/02/02	wesolows@foobazco.org	1.1552
+# Copy all 16 sub-pmd-entries, not just the first one.
+# --------------------------------------------
+#
+diff -Nru a/arch/sparc/mm/fault.c b/arch/sparc/mm/fault.c
+--- a/arch/sparc/mm/fault.c	Mon Feb  2 01:25:54 2004
++++ b/arch/sparc/mm/fault.c	Mon Feb  2 01:25:54 2004
+@@ -392,7 +392,7 @@
+ 
+ 		if (pmd_present(*pmd) || !pmd_present(*pmd_k))
+ 			goto bad_area_nosemaphore;
+-		pmd_val(*pmd) = pmd_val(*pmd_k);
++		*pmd = *pmd_k;
+ 		return;
+ 	}
+ }
 
- - Dave
 
-
-On Wed, Feb 04, 2004 at 08:28:48AM EST, bumblebee@myrealbox.com wrote:
-> Ha-ha, brilliant!=20
->=20
-> I=E2=80=99ve tried this for the last three days, worked perfectly and got=
- my =C2=A350 worth every time.
->=20
-> Do you know any overworked, underpaid friends or colleagues? Give them th=
-is story to warm their hearts.=20
->=20
->=20
-> -----Original Message-----
-> From: Nick Roberts [mailto:nickroberts@hotpop.com]=20
-> Sent: 16 January 2004 11:26
-> To: Belinda [mailto: bumblebee@myrealbox.com]
-> Subject: Employees revenge
->=20
->=20
-> Hi,
->=20
-> Once upon a time there was a hard-working software engineer slaving away =
-under cruel masters. The engineer poured heart and soul into his work till =
-early hours every morning, with the promise of glorious profit sharing. Whe=
-n the work was finally done, this poor engineer was rewarded by being dismi=
-ssed and shown the door.
->=20
-> The company I used to work for runs a website:-  www.gamesofskill.co.uk. =
-However after I had left, they went live with the system, WITH THE TESTING =
-BACKDOOR STILL IN PLACE !!!!! If you call their competition line on 0906 34=
-0 1235 and enter "0" instead of a real answer, then the system lets you thr=
-ough to win a prize - Idiots! They do charge the call at =C2=A31.50 per min=
-ute but it only lasts one and a half minutes.
->=20
-> Moral of this story? Don=E2=80=99t p*ss off employees, especially one=E2=
-=80=99s you fire!=20
->=20
-> Viva the workers! Down with the bosses! Share the wealth!
-> -
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---=20
-Uncle Cosmo, why do they call this a word processor?
-It's simple, Skyler.  You've seen what food processors do to food, right?
-
-Please visit this link:
-http://rotter.net/israel
-
---6lXr1rPCNTf1w0X8
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-
-iD8DBQFAIYQytSXacCAthpURAthxAJ0WMGolXBG2mepBP9ptPwEYmcUXbQCeIojJ
-4YgqT+flPoAZNMgNjEoNOWA=
-=JyCt
------END PGP SIGNATURE-----
-
---6lXr1rPCNTf1w0X8--
+-- 
+Keith M Wesolowski
