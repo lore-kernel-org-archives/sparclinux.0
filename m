@@ -1,22 +1,32 @@
-From: Ben Collins <bcollins@debian.org>
-Date: Tue, 13 Jul 2004 21:54:41 +0000
-Subject: Re: Test second.b for helping to fix initrd problems
-Message-Id: <20040713215441.GC28588@phunnypharm.org>
+From: "Tom Weustink" <t.weustink@home.nl>
+Date: Wed, 28 Jul 2004 19:47:14 +0000
+Subject: SMP support in 2.6.x kernel for sparc32
+Message-Id: <001301c474db$af707860$3c01a8c0@cascade>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040712003817.GC16609@phunnypharm.org>
-In-Reply-To: <20040712003817.GC16609@phunnypharm.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Well, I had one tester, but I think it was enough to nail down this
-problem. Everyone having problems, could you just give this a try?
+Hello,
 
-http://www.sparc-boot.org/pub/testing/second-fixed-initrd.b
+I got this e-mail address from people in #gentoo-sparc over at freenode.net.
+My SparcStation 10 dual CPU machine is having problems running a kernel
+higher then vesion 2.4.23.
+The higher versions don't load, or lock up the machine after a while without
+a log the check on why.
 
--- 
-Debian     - http://www.debian.org/
-Linux 1394 - http://www.linux1394.org/
-Subversion - http://subversion.tigris.org/
-WatchGuard - http://www.watchguard.com/
+So, I would like to try out the 2.6.x versions but gentoo has no stable
+support for SMP sparc32.
+
+I was told I should talk to you since you have some patches (unstable I was
+told) that might do the trick in getting 2.6.x on SMP sparc32 machines.
+Is it possible you can give me your patches to me to try them out?
+
+Hope to hear back from you.
+
+With kind regards,
+
+freshy98
+
+
