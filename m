@@ -1,36 +1,45 @@
-From: Ben Collins <bcollins@debian.org>
-Date: Sat, 05 Jun 2004 13:06:17 +0000
+From: Frederik Dannemare <frederik@dannemare.net>
+Date: Sat, 05 Jun 2004 13:21:59 +0000
 Subject: Re: Take 3: sparc64 CDs work?
-Message-Id: <20040605130616.GA7008@phunnypharm.org>
+Message-Id: <200406051522.19502.frederik@dannemare.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040605001932.GA22926@darjeeling.triplehelix.org>
 In-Reply-To: <20040605001932.GA22926@darjeeling.triplehelix.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1254"
+Content-Transfer-Encoding: base64
 To: sparclinux@vger.kernel.org
 
-On Fri, Jun 04, 2004 at 05:19:32PM -0700, Joshua Kwan wrote:
-> Folks,
-> 
-> Thanks to some surprising sleuth work by Boris Gontar we might have a
-> workaround for the dastardly initrd bug affecting certain sparc64
-> machines.
-> 
-> So, without further ado:
-> 
-> * http://june.voxel.net/~joshk/d-i/images/2004-06-04/cdrom-mini.iso (4.7M)
-> * http://gluck.debian.org/cdimage/testing/daily/sparc/current/ (whole
->   shebang, if you're really confident)
-> 
-> I'm hoping one of these works. If neither do, make sure silo.conf
-> includes 'rootfstype=ext2'. I could have screwed up.
-
-I downloaded the cdrom-mini.iso and the silo.conf looks right. I'll test
-it on all my machines today.
-
--- 
-Debian     - http://www.debian.org/
-Linux 1394 - http://www.linux1394.org/
-Subversion - http://subversion.tigris.org/
-WatchGuard - http://www.watchguard.com/
+LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQpIYXNoOiBTSEExCgpPbiBTYXR1cmRh
+eSAwNSBKdW5lIDIwMDQgMDI6MTksIEpvc2h1YSBLd2FuIHdyb3RlOgo+IEZvbGtzLAo+Cj4gVGhh
+bmtzIHRvIHNvbWUgc3VycHJpc2luZyBzbGV1dGggd29yayBieSBCb3JpcyBHb250YXIgd2UgbWln
+aHQgaGF2ZSBhCj4gd29ya2Fyb3VuZCBmb3IgdGhlIGRhc3RhcmRseSBpbml0cmQgYnVnIGFmZmVj
+dGluZyBjZXJ0YWluIHNwYXJjNjQKPiBtYWNoaW5lcy4KPgo+IFNvLCB3aXRob3V0IGZ1cnRoZXIg
+YWRvOgo+Cj4gKiBodHRwOi8vanVuZS52b3hlbC5uZXQvfmpvc2hrL2QtaS9pbWFnZXMvMjAwNC0w
+Ni0wNC9jZHJvbS1taW5pLmlzbwo+ICg0LjdNKSAqIGh0dHA6Ly9nbHVjay5kZWJpYW4ub3JnL2Nk
+aW1hZ2UvdGVzdGluZy9kYWlseS9zcGFyYy9jdXJyZW50Lwo+ICh3aG9sZSBzaGViYW5nLCBpZiB5
+b3UncmUgcmVhbGx5IGNvbmZpZGVudCkKClNpbmNlIEknbSAoc3RpbGwpIHVuYWJsZSAoaXQgdGlt
+ZXMgb3V0KSB0byBhY2Nlc3MganVuZS52b3hlbC5uZXQgKGFuZCBJIApoYXZlIG1pc3BsYWNlZCB0
+aGUgYWx0ZXJuYXRpdmUgVVJMLCB5b3Ugc2VudCBtZSBhIGZldyBkYXlzIGFnbyksIEkgd2VudCAK
+d2l0aCB0aGUgd2hvbGUgc2hlYmFuZyA6KQoKPiBJJ20gaG9waW5nIG9uZSBvZiB0aGVzZSB3b3Jr
+cy4gSWYgbmVpdGhlciBkbywgbWFrZSBzdXJlIHNpbG8uY29uZgo+IGluY2x1ZGVzICdyb290ZnN0
+eXBlPWV4dDInLiBJIGNvdWxkIGhhdmUgc2NyZXdlZCB1cC4KCkF0IGxlYXN0LCB0aGUgbmV0aW5z
+dCBpbWFnZSBoYXMKYXBwZW5kPSJjZHJvbSBkZXZmcz1tb3VudCBydyByYW1kaXNrX3NpemWBOTIg
+cm9vdGZzdHlwZT1leHQyIgpzbyBpdCBsb29rIGdvb2QsIEkgZ3Vlc3MKCj4gSG9waW5nIHRvIGVu
+ZCB0aGlzIGJ1ZyEKCkl0J3Mgbm90IGFsbCBvdmVyIHlldCwgc29ycnkgOiggIApJdCBnZXRzIGEg
+Yml0ICJmdXJ0aGVyIiAoZG9lc24ndCBjb21wbGFpbiBhYm91dCB0aGUgcmVpc2VyZnMgc3R1ZmYp
+LCAKaG93ZXZlcjoKClsuLi5dCk5FVDQ6IFVuaXggZG9tYWluIHNvY2tldHMgMS4wL1NNUCBmb3Ig
+TGludXggTkVUNC4wLgpLZXJuZWwgcGFuaWM6IFZGUzogVW5hYmxlIHRvIG1vdW50IHJvb3QgZnMg
+b24gMDA6MDAKIFByZXNzIEwxLUEgdG8gcmV0dXJuIHRvIHRoZSBib290IHByb20KCgpIYXJkd2Fy
+ZTogU3VuIFVsdHJhIDUgKFVsdHJhU1BBUkMtSUlpIDMzM01IeiAoc3VuNHUgYXJjaCkpLgoKVGhh
+bmtzIGZvciBhbGwgdGhlIGVmZm9ydCBwdXQgaW50byB0aGlzLi4uCi0gLS0gCkZyZWRlcmlrIERh
+bm5lbWFyZSB8IGZyZWRlcmlrQGRhbm5lbWFyZS5uZXQgfCBodHRwOi8vZGFubmVtYXJlLm5ldApH
+bnVQRyBrZXk6IHNlYXJjaCBmb3IgJ2Rhbm5lbWFyZScgb24gaHR0cDovL3BncGtleXMubWl0LmVk
+dQpLZXkgZmluZ2VycHJpbnQ6IEJCN0IgMDc4QSAwREJGIDc2NjMgMTgwQSAgRjg0QSAyRDI1IEZB
+RDUgOUM0RSBCNUE4Ci0tLS0tQkVHSU4gUEdQIFNJR05BVFVSRS0tLS0tClZlcnNpb246IEdudVBH
+IHYxLjIuNCAoR05VL0xpbnV4KQoKaUQ4REJRRkF3Y2o4TFNYNjFaeE90YWdSQWx4NEFKOXQwOStL
+cHZpS1Q2eHJjL3N1NTB4azRmTHBpd0NncDA3UgpjcGFzeDBGY2cwL2s0TmQ4ZGwwZ0YvMD11NW16
+Ci0tLS0tRU5EIFBHUCBTSUdOQVRVUkUtLS0tLQotClRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBs
+aXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBzcGFyY2xpbnV4IiBpbgp0aGUgYm9keSBv
+ZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZwpNb3JlIG1ham9yZG9tbyBp
+bmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWw=
