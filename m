@@ -1,70 +1,54 @@
-From: Richard Mortimer <richm@oldelvet.org.uk>
-Date: Sat, 04 Dec 2004 23:16:41 +0000
+From: Jurij Smakov <jurij@wooyd.org>
+Date: Mon, 06 Dec 2004 04:30:53 +0000
 Subject: Re: mmap breakage
-Message-Id: <1102202201.15654.111.camel@duncow>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-ZKYRirAGop/74JRb/X1p"
+Message-Id: <Pine.LNX.4.61.0412052314550.5504@bobcat>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.LNX.4.61.0412032354010.1963@bobcat>
 In-Reply-To: <Pine.LNX.4.61.0412032354010.1963@bobcat>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+On Sat, 4 Dec 2004, Richard Mortimer wrote:
 
---=-ZKYRirAGop/74JRb/X1p
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+> I guess that this isn't really what you want to hear but it does 
+> describe why the behaviour exists. I don't have any magic suggestions as
+> to how to fix it - sorry.
+>
+> Richard
 
-FWIW. I forgot to attach the program that demonstrates the behaviour.
+Hi,
 
-Richard
+Thanks for the input. I have forwarded the question to debian-glibc [0], 
+asking whether they consider it glibc or kernel problem. So far I have 
+received response from Daniel Jacobowitz [1]:
 
-On Sat, 2004-12-04 at 23:13, Richard Mortimer wrote:
-> On Sat, 2004-12-04 at 05:22, Jurij Smakov wrote:
-
-> Well I can demonstrate the behaviour (see attached test program) on sparc64 and i386. It allows mappings to be fully or partially replaced and even allows you to replace bits in the middle of a mapping.
-
-
-> P.S. You can see the overwriting of mappings if you look at
-> /proc/<pid>/maps. You will see that the second mapping has totally
-> superceded the first and the third mapping has split the second one up.
+> ld-linux ought to check.  In this particular case, it doesn't.  But if
+> it did check, the only thing it could do would be to print an error
+> message and quit.  The executable _must_ be mapped at the linked
+> address (since it isn't position independent).  ld can't move itself.
+> The kernel picked where to load ld; it would be nice if it picked
+> somewhere more useful than 0x08000000 on your architecture.  On i386,
+> it picks:
+>
+> 80000000-80016000 r-xp 00000000 09:00 11993980   /lib/ld-2.3.2.so
+> 80016000-80017000 rw-p 00015000 09:00 11993980   /lib/ld-2.3.2.so
+> 80017000-8006e000 rw-p 80017000 00:00 0 
 > 
-> 01000000-01002000 rw-p 00000000 00:0b 8               /dev/zero
-> 01002000-01004000 rw-p 00000000 03:02 863336          /var/log/messages
-> 01004000-01020000 rw-p 00004000 00:0b 8               /dev/zero
--- 
-richm@oldelvet.org.uk
+> which gives you up to 2GB for the executable.
 
---=-ZKYRirAGop/74JRb/X1p
-Content-Disposition: attachment; filename=mmaptest2.c
-Content-Type: text/x-csrc; name=mmaptest2.c; charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: 7bit
+So now the question is why ld-linux.so.2 on sparc64 is mapped at 
+0x08000000 instead of something higher, like 0x80000000 on i386? This
+actually limits the size of an executable plus all the shared libraries 
+required by it (if I understand it correctly) to 128MB. Can this limit be 
+easily modified, or are there some special architectural considerations, 
+preventing that?
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <sys/mman.h>
+[0] http://lists.debian.org/debian-glibc/2004/12/msg00057.html
+[1] http://lists.debian.org/debian-glibc/2004/12/msg00060.html
 
-int main()
-{
-	char *addr1;
-	char *addr2;
-	char *addr3;
-	int fd1;
-	int fd2;
-	int fd3;
-	fd1 = open("/var/log/syslog", O_RDONLY);
-	fd2 = open("/dev/zero", O_RDWR);
-	fd3 = open("/var/log/messages", O_RDONLY);
-	addr1 = mmap((void*)0x1000000, 0x2000, PROT_READ, MAP_PRIVATE|MAP_FIXED, fd1,0);
-	addr2 = mmap((void*)0x1000000, 0x20000, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED, fd2,0);
-	addr3 = mmap((void*)0x1002000, 0x2000, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED, fd3,0);
-	printf("addr1 is %p\n", addr1);
-	printf("addr2 is %p\n", addr2);
-	printf("addr3 is %p\n", addr3);
+Best regards,
 
-	sleep(100);
-	return 0;
-}
-
---=-ZKYRirAGop/74JRb/X1p--
-
+Jurij Smakov                                        jurij@wooyd.org
+Key: http://www.wooyd.org/pgpkey/                   KeyID: C99E03CC
