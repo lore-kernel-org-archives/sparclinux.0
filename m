@@ -1,37 +1,69 @@
-From: "Sonya" <hkeller1@earthlink.net>
-Date: Sat, 05 Jun 2004 22:21:17 +0000
-Subject: Apogee
-Message-Id: <S262874AbUFFFVH/20040606052107Z+15920@vger.kernel.org>
+From: Keith Owens <kaos@sgi.com>
+Date: Sun, 06 Jun 2004 10:04:14 +0000
+Subject: Announce: kdb v4.4 updates for for kernel 2.6.6
+Message-Id: <12428.1086516254@ocs3.ocs.com.au>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: kdb@oss.sgi.com, linux-kernel@vger.kernel.org
+Cc: linux-ia64@vger.kernel.org, sparclinux@vger.kernel.org
 
-sparclinux@vger.kernel.org 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Are You One Of The Millions Searching
-For A Safe, Ethical Secondary Income?
+KDB (Linux Kernel Debugger) has been updated.
 
-No Risk        No MLM    Weekly Pay
+ftp://oss.sgi.com/projects/kdb/download/v4.4/
 
-Documented Income Statistics.
-Stable Company
+Current versions are :-
 
-START TODAY
-INTERVIEW    http://ambition.captureform.net/frg/health
+  kdb-v4.4-2.6.6-common-2.bz2
+  kdb-v4.4-2.6.6-i386-2.bz2
+  kdb-v4.4-2.6.6-ia64-040521-2.bz2
+  kdb-v4.4-2.6.6-sparc64-1.bz2
 
+Changelog extract since kdb-v4.3-2.6.6-common-2.
 
+2004-06-06 Keith Owens  <kaos@sgi.com>
 
+	* Avoid recursion problems in kdb_init().
+	* Add standard archkdb commands.
+	* Add per_cpu command.
+	* Move kdb_{get,put}userarea_size definitions to linux/kdb.h.
+	* kdb v4.4-2.6.6-common-2.
 
+Changelog extract since kdb-v4.3-2.6.6-i386-1.
 
+2004-06-06 Keith Owens  <kaos@sgi.com>
 
+	* Correct Kconfig help text.
+	* Coexist with CONFIG_REGPARM.
+	* Add standard archkdb commands.
+	* Move kdb_{get,put}userarea_size definitions to linux/kdb.h.
+	* kdb v4.4-2.6.6-i386-2.
 
+Changelog extract since kdb v4.3-2.6.6-rc3-ia64-1.
 
+2004-06-06 Keith Owens  <kaos@sgi.com>
 
-exclude link
+	* Add standard archkdb commands.
+	* Move kdb_{get,put}userarea_size definitions to linux/kdb.h.
+	* kdb v4.4-2.6.6-ia64-040521-2.
 
-http://ending.captureform.net/frg/14thunder/freedom/gone.php
+Changelog extract for sparc64.
 
-953 E Sahara.
-Las Vegas NV 89109
+2004-05-24 Tom Duffy <Thomas.Duffy.99@alumni.brown.edu>
+
+	* bump up to 2.6.6 kernel
+	* move to kdb 4.4 base
+	* kdb v4.4-2.6.6-sparc64-1
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+Comment: Exmh version 2.1.1 10/15/1999
+
+iD8DBQFAwuwdi4UHNye0ZOoRAsJkAJ4iH0j6IaZsYZMEOabW4xMHw1wciACcCFey
+ceeg7EBi97KqtgXUQe0Nw84=FvEk
+-----END PGP SIGNATURE-----
+
