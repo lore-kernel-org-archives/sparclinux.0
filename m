@@ -1,66 +1,42 @@
-From: "Jurzitza, Dieter" <DJurzitza@harmanbecker.com>
-Date: Mon, 21 Jun 2004 09:22:22 +0000
-Subject: Question
-Message-Id: <CFE6A2529AC5FA439B3D852B0F2A6837DAAEDA@OEKAW2EXVS02.hbi.ad.harman.com>
+From: "grady" <hornetguess@antihunt.com>
+Date: Thu, 03 Jun 2004 09:44:40 +0000
+Subject: Save a ton on Microsoft Office!
+Message-Id: <1086255880-17764@excite.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CFE6A2529AC5FA439B3D852B0F2A68371A2B0F@OEKAW2EXVS02.hbi.ad.harman.com>
-In-Reply-To: <CFE6A2529AC5FA439B3D852B0F2A68371A2B0F@OEKAW2EXVS02.hbi.ad.harman.com>
+References: <1084792200-10821@excite.com>
+In-Reply-To: <1084792200-10821@excite.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org
 
-Dear listmemebers,
-could any friendly soul tell me what is the meaning of:
+Need software but not the price that comes with it?
+We sell OEM software at major discounts.
+Don't pay the department store markups, buy on the internet.
 
-Jun 21 11:14:30 oekalux08 kernel: __alloc_pages: 2-order allocation failed
-(gfp=3D0x20/0)
+Free Delivery and Extra Discounts on orders over $200!
 
-or=20
+Save yourself or your company thousands of dollars, reap the rewards!
 
-Jun 21 11:14:35 oekalux08 kernel: __alloc_pages: 1-order allocation failed
-(gfp=3D0x20/0)
+Q:  How can you sell this software as OEM ? It seems too good to be true - is there a catch?
 
-when suddenly occuring in /var/log/messages?
-Many thanks for your help,
-take care
+A:  There is no catch - the software versions that we sell are OEM (Original Equipment Manufacturer) which means you will receive the installation CDs only (they do not come in their original retail packing and do not include the manual). We do guarantee that all programs are the 100% full working retail versions - no demos or academic versions! When you order, you will receive all materials required for a complete installation - or your money back! Why pay hundreds of dollars more when you can get exactly the same but OEM-CD? You don't have to pay that much for the fancy box and manuals. 
 
 
 
-Dieter Jurzitza
+Click here!!
+http://magicisland.biz/index.php?su55
 
 
---=20
-________________________________________________
-
-HARMAN BECKER AUTOMOTIVE SYSTEMS
-
-Dr.-Ing. Dieter Jurzitza
-Manager Hardware Systems
-         ESI
-
-Industriegebiet Ittersbach
-Becker-G=F6ring Str. 16
-D-76307 Karlsbad / Germany
-
-Phone: +49 (0)7248 71-1577
-Fax:   +49 (0)7248 71-1216
-eMail: DJurzitza@harmanbecker.com
-Internet: http://www.becker.de
-=20
 
 
-*******************************************
-Diese E-Mail enthaelt vertrauliche und/oder rechtlich geschuetzte Informati=
-onen. Wenn Sie nicht der richtige Adressat sind oder diese E-Mail irrtuemli=
-ch erhalten haben, informieren Sie bitte sofort den Absender und loeschen S=
-ie diese Mail. Das unerlaubte Kopieren sowie die unbefugte Weitergabe diese=
-r Mail ist nicht gestattet.
-=20
-This e-mail may contain confidential and/or privileged information. If you =
-are not the intended recipient (or have received this e-mail in error) plea=
-se notify the sender immediately and delete this e-mail. Any unauthorized c=
-opying, disclosure or distribution of the contents in this e-mail is strict=
-ly forbidden.
-*******************************************
 
+
+
+
+
+bird cancedroman reznor pearl wanker megan vermont 
+fiona promethecorwin first mortimer
+garnet rambo1 trek 
+
+REMOV3: http://mycomp.biz/soft/chair.php
