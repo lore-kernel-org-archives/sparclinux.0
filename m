@@ -1,180 +1,72 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Thu, 09 Dec 2004 07:34:45 +0000
-Subject: Re: mmap breakage
-Message-Id: <20041208233445.6a837c82.davem@davemloft.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Multipart=_Wed__8_Dec_2004_23_34_45_-0800_aqYOfdT_ZRbDpwhK"
+From: Richard Mortimer <richm@oldelvet.org.uk>
+Date: Mon, 06 Dec 2004 15:16:07 +0000
+Subject: strace and restartable syscalls (was Re: ... nanosleep does not
+Message-Id: <1102346167.15654.228.camel@duncow>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.61.0412032354010.1963@bobcat>
-In-Reply-To: <Pine.LNX.4.61.0412032354010.1963@bobcat>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-This is a multi-part message in MIME format.
+All,
 
---Multipart=_Wed__8_Dec_2004_23_34_45_-0800_aqYOfdT_ZRbDpwhK
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+I have been looking at strace for sparc - a number of things seem broken
+so I'm scratching the itch and looking at fixing things (will report on
+findings later).
 
+But related to the restart block handling strace gets it wrong and
+reports that the restarted system call is SYS_516 (where I would expect
+0 - or setup as it used to be called).
 
-Ok, here is what I'm going to do about this.  Patches for
-2.6.x and 2.4.x attached.
+13:10:02 nanosleep({100, 0},
+[1]+  Stopped                 strace -t ./nanotest32
+pingu:~/src# fg
+strace -t ./nanotest32
+0xeffffc98) = ? ERESTART_RESTARTBLOCK (To be restarted)
+13:10:07 --- SIGCONT (Continued) @ 0 (0) ---
+13:10:07 syscall_516(0xeffffc98, 0, 0, 0, 0, 0xeffffc30, 0x104f8,
+0x104f8, 0x91d02010, 0x153ec, 0x4c388, 0x4c3b0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) = 0
+13:11:42 fstat64(1, {st_mode=S_IFCHR|0600, st_rdev=makedev(136, 0),
+...}) = 0
 
-As I described in a previous email, the ELF_ET_DYN_BASE
-value used for 32-bit sparc was choosen simple to make
-"/lib/ld-linux.so.2 emacs" work.
+Now this is due to a few lines in the syscall.c file in strace.
+Specifically
 
-That case is obscure, and even i386 doesn't work in this
-case either.  In fact, this choice on sparc has shown to
-break many more important things.
+                        scno = regs.r_g1;
+                if (scno = 0) {
+                        scno = regs.r_o0;
+                        memmove (&regs.r_o0, &regs.r_o1,
+7*sizeof(regs.r_o0));
+                }
 
-So I'm going to go back to using TASK_UNMAPPED_BASE for
-this and it should fix the test cases in the debian bugs.
+Am I right in thinking that the scno = 0 block is there for Solaris
+compatibility. I think that it relates to the block of code in
+arch/sparc64/solaris/entry64.S labelled "solaris_sucks".
 
+That gets called if %g1 is zero and moves %i0 to %g1 and all of the
+other %i registers down one.
 
---Multipart=_Wed__8_Dec_2004_23_34_45_-0800_aqYOfdT_ZRbDpwhK
-Content-Type: text/plain;
- name="et_dyn_base_24.diff"
-Content-Disposition: attachment;
- filename="et_dyn_base_24.diff"
-Content-Transfer-Encoding: 7bit
+If that is the case then I have the following questions:
 
-# This is a BitKeeper generated diff -Nru style patch.
-#
-# ChangeSet
-#   2004/12/08 23:08:19-08:00 davem@nuts.davemloft.net 
-#   [SPARC]: Adjust 32-bit ELF_ET_DYN_BASE.
-#   
-#   We were using 0x08000000 instead of TASK_UNMAPPED_BASE
-#   so that running something like "/lib/ld-linux.so.2 emacs"
-#   would work.
-#   
-#   The issue there was that wherever /lib/ld-linux.so.2 gets
-#   mapped (controlled by ELF_ET_DYN_BASE), that is where the
-#   BSS start for the process ends up.  Now, emacs allocates
-#   dynamic memory for LISP objects from the BSS, and needs
-#   the top 4 bits of the virtual address to be clear so that
-#   it can encode LISP type and GC marking information there.
-#   
-#   But making this obscure emacs case work breaks lots of other
-#   stuff.  For example, programs with a reasonably large data
-#   section fail to load via direct ld.so interpreter execution
-#   because the data section is large enough to begin overlapping
-#   with the ELF_ET_DYN_BASE area.
-#   
-#   The /lib/ld-linux.so.2 emacs case does not work on a lot of
-#   platforms due to this issue, including i386, so it is not
-#   worth making work on sparc either.  It is indeed useful
-#   sometimes when debugging a new experimental build of glibc
-#   for example, but people doing that can hack the value of
-#   ELF_ET_DYN_BASE in their kernels.  Perhaps at some point
-#   we will make a sysctl controllable value.
-#   
-#   Signed-off-by: David S. Miller <davem@davemloft.net>
-# 
-# include/asm-sparc/elf.h
-#   2004/12/08 23:08:07-08:00 davem@nuts.davemloft.net +1 -1
-#   [SPARC]: Adjust 32-bit ELF_ET_DYN_BASE.
-# 
-# arch/sparc64/kernel/binfmt_elf32.c
-#   2004/12/08 23:08:07-08:00 davem@nuts.davemloft.net +1 -1
-#   [SPARC]: Adjust 32-bit ELF_ET_DYN_BASE.
-# 
-diff -Nru a/arch/sparc64/kernel/binfmt_elf32.c b/arch/sparc64/kernel/binfmt_elf32.c
---- a/arch/sparc64/kernel/binfmt_elf32.c	2004-12-08 23:09:43 -08:00
-+++ b/arch/sparc64/kernel/binfmt_elf32.c	2004-12-08 23:09:43 -08:00
-@@ -81,7 +81,7 @@
- 
- #define elf_check_arch(x)	(((x)->e_machine == EM_SPARC) || ((x)->e_machine == EM_SPARC32PLUS))
- 
--#define ELF_ET_DYN_BASE         0x08000000
-+#define ELF_ET_DYN_BASE         0x70000000
- 
- 
- #include <asm/processor.h>
-diff -Nru a/include/asm-sparc/elf.h b/include/asm-sparc/elf.h
---- a/include/asm-sparc/elf.h	2004-12-08 23:09:43 -08:00
-+++ b/include/asm-sparc/elf.h	2004-12-08 23:09:43 -08:00
-@@ -81,7 +81,7 @@
-    the loader.  We need to make sure that it is out of the way of the program
-    that it will "exec", and that there is sufficient room for the brk.  */
- 
--#define ELF_ET_DYN_BASE         (0x08000000)
-+#define ELF_ET_DYN_BASE         (TASK_UNMAPPED_BASE)
- 
- /* This yields a mask that user programs can use to figure out what
-    instruction set this cpu supports.  This can NOT be done in userspace
+1) Does this only apply to the Solaris system calls (i.e. not native
+linux ones)
 
---Multipart=_Wed__8_Dec_2004_23_34_45_-0800_aqYOfdT_ZRbDpwhK
-Content-Type: text/plain;
- name="et_dyn_base_26.diff"
-Content-Disposition: attachment;
- filename="et_dyn_base_26.diff"
-Content-Transfer-Encoding: 7bit
+2) Is it safe to use zero for the restart system call? e.g. if nanosleep
+gets called via the "solaris sucks" method then restarting it will be a
+little tricky.
 
-# This is a BitKeeper generated diff -Nru style patch.
-#
-# ChangeSet
-#   2004/12/08 23:02:03-08:00 davem@nuts.davemloft.net 
-#   [SPARC]: Adjust 32-bit ELF_ET_DYN_BASE.
-#   
-#   We were using 0x08000000 instead of TASK_UNMAPPED_BASE
-#   so that running something like "/lib/ld-linux.so.2 emacs"
-#   would work.
-#   
-#   The issue there was that wherever /lib/ld-linux.so.2 gets
-#   mapped (controlled by ELF_ET_DYN_BASE), that is where the
-#   BSS start for the process ends up.  Now, emacs allocates
-#   dynamic memory for LISP objects from the BSS, and needs
-#   the top 4 bits of the virtual address to be clear so that
-#   it can encode LISP type and GC marking information there.
-#   
-#   But making this obscure emacs case work breaks lots of other
-#   stuff.  For example, programs with a reasonably large data
-#   section fail to load via direct ld.so interpreter execution
-#   because the data section is large enough to begin overlapping
-#   with the ELF_ET_DYN_BASE area.
-#   
-#   The /lib/ld-linux.so.2 emacs case does not work on a lot of
-#   platforms due to this issue, including i386, so it is not
-#   worth making work on sparc either.  It is indeed useful
-#   sometimes when debugging a new experimental build of glibc
-#   for example, but people doing that can hack the value of
-#   ELF_ET_DYN_BASE in their kernels.  Perhaps at some point
-#   we will make a sysctl controllable value.
-#   
-#   Signed-off-by: David S. Miller <davem@davemloft.net>
-# 
-# include/asm-sparc/elf.h
-#   2004/12/08 22:56:54-08:00 davem@nuts.davemloft.net +1 -1
-#   [SPARC]: Adjust 32-bit ELF_ET_DYN_BASE.
-# 
-# arch/sparc64/kernel/binfmt_elf32.c
-#   2004/12/08 22:56:54-08:00 davem@nuts.davemloft.net +1 -1
-#   [SPARC]: Adjust 32-bit ELF_ET_DYN_BASE.
-# 
-diff -Nru a/arch/sparc64/kernel/binfmt_elf32.c b/arch/sparc64/kernel/binfmt_elf32.c
---- a/arch/sparc64/kernel/binfmt_elf32.c	2004-12-08 23:05:11 -08:00
-+++ b/arch/sparc64/kernel/binfmt_elf32.c	2004-12-08 23:05:11 -08:00
-@@ -79,7 +79,7 @@
- 
- #define elf_check_arch(x)	(((x)->e_machine == EM_SPARC) || ((x)->e_machine == EM_SPARC32PLUS))
- 
--#define ELF_ET_DYN_BASE         0x08000000
-+#define ELF_ET_DYN_BASE         0x70000000
- 
- 
- #include <asm/processor.h>
-diff -Nru a/include/asm-sparc/elf.h b/include/asm-sparc/elf.h
---- a/include/asm-sparc/elf.h	2004-12-08 23:05:11 -08:00
-+++ b/include/asm-sparc/elf.h	2004-12-08 23:05:11 -08:00
-@@ -143,7 +143,7 @@
-    the loader.  We need to make sure that it is out of the way of the program
-    that it will "exec", and that there is sufficient room for the brk.  */
- 
--#define ELF_ET_DYN_BASE         (0x08000000)
-+#define ELF_ET_DYN_BASE         (TASK_UNMAPPED_BASE)
- 
- /* This yields a mask that user programs can use to figure out what
-    instruction set this cpu supports.  This can NOT be done in userspace
+Richard
 
---Multipart=_Wed__8_Dec_2004_23_34_45_-0800_aqYOfdT_ZRbDpwhK--
+On Mon, 2004-12-06 at 13:55, Richard Mortimer wrote:
+> On Mon, 2004-12-06 at 05:44, David S. Miller wrote:
+> > Good catch Richard.  In fact all restart block handling is hosed
+> > on sparc.  It's because of the return from syscall check for
+> > error cases, the return value errno comparison is off by one.
+> > 
+> > This should fix it, and it does for me on sparc64 for your test
+> > program.
+
+-- 
+richm@oldelvet.org.uk
+
