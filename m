@@ -1,7 +1,7 @@
 From: Eric Brower <ebrower@gmail.com>
-Date: Wed, 23 Mar 2005 02:42:10 +0000
+Date: Wed, 23 Mar 2005 02:55:38 +0000
 Subject: Re: sunbmac panic when no card present
-Message-Id: <ec7cefb050322184239166189@mail.gmail.com>
+Message-Id: <ec7cefb05032218553ae45c3a@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.SOC.4.61.0503221030220.29185@math.ut.ee>
 In-Reply-To: <Pine.SOC.4.61.0503221030220.29185@math.ut.ee>
