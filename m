@@ -1,7 +1,7 @@
 From: Meelis Roos <mroos@linux.ee>
-Date: Fri, 02 Apr 2004 12:20:20 +0000
+Date: Wed, 07 Apr 2004 16:16:31 +0000
 Subject: Re: serial console confusion
-Message-Id: <Pine.GSO.4.44.0404021513001.22261-100000@math.ut.ee>
+Message-Id: <Pine.GSO.4.44.0404031650380.29798-100000@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.GSO.4.44.0404021400470.23192-100000@math.ut.ee>
 In-Reply-To: <Pine.GSO.4.44.0404021400470.23192-100000@math.ut.ee>
@@ -13,17 +13,12 @@ To: sparclinux@vger.kernel.org
 > On the Ultra-5 (or almost any other PCI Ultra), you should use
 > CONFIG_SERIAL_SUNSAB. su is used for keyboard I/O on this plateform.
 
-Thanks! This clears up the confusion. sunsab serial works fine, also as
-a console.
-
-sunsab.c gives a warning though. I looked at it but I don't know whether
-prepending a (void) to the call to uart_handle_sysrq_char() would just
-fix it or paper over a bug.
-
-  CC      drivers/serial/sunsab.o
-drivers/serial/sunsab.c: In function `receive_chars':
-drivers/serial/sunsab.c:149: warning: statement with no effect
+What about 2.4 kernels? I can switch on sunsab serial ports and they are
+detected fine but I cannot use them as serial console. PROM console
+seems to work. Is this a 2.4 defficiency or have I overlooked something
+more?
 
 -- 
 Meelis Roos (mroos@linux.ee)
+
 
