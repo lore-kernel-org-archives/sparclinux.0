@@ -1,66 +1,77 @@
-From: "David S. Miller" <davem@redhat.com>
-Date: Fri, 20 Aug 2004 22:52:50 +0000
-Subject: [PATCH] fix bug in sparc64 user copy patch
-Message-Id: <20040820155250.69c09781.davem@redhat.com>
+From: Joshua Kwan <joshk@triplehelix.org>
+Date: Thu, 26 Aug 2004 23:50:08 +0000
+Subject: Re: [PATCH] fix bug in sparc64 user copy patch
+Message-Id: <412E7730.4050309@triplehelix.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------enigFDB2027838FC4A445F970F99"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: joshk@triplehelix.org
+References: <20040820155250.69c09781.davem@redhat.com>
+In-Reply-To: <20040820155250.69c09781.davem@redhat.com>
+To: "David S. Miller" <davem@redhat.com>
 Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enigFDB2027838FC4A445F970F99
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-There were a few slight bugs in the UltraSPARC-I/II/IIi/IIe
-parts of that patch I sent you, here is the fix.
+David S. Miller wrote:
+> There were a few slight bugs in the UltraSPARC-I/II/IIi/IIe
+> parts of that patch I sent you, here is the fix.
 
-=== arch/sparc64/lib/U1copy_from_user.S 1.1 vs edited ==--- 1.1/arch/sparc64/lib/U1copy_from_user.S	2004-08-19 20:10:28 -07:00
-+++ edited/arch/sparc64/lib/U1copy_from_user.S	2004-08-20 10:22:41 -07:00
-@@ -20,4 +20,14 @@
- #define LOAD_BLK(addr,dest)	ldda [addr] ASI_BLK_AIUS, dest
- #define EX_RETVAL(x)		0
- 
-+	/* Writing to %asi is _expensive_ so we hardcode it.
-+	 * Reading %asi to check for KERNEL_DS is comparatively
-+	 * cheap.
-+	 */
-+#define PREAMBLE					\
-+	rd		%asi, %g1;			\
-+	cmp		%g1, ASI_AIUS;			\
-+	bne,pn		%icc, memcpy_user_stub;		\
-+	 nop;						\
-+
- #include "U1memcpy.S"
-=== arch/sparc64/lib/U1memcpy.S 1.1 vs edited ==--- 1.1/arch/sparc64/lib/U1memcpy.S	2004-08-19 20:10:30 -07:00
-+++ edited/arch/sparc64/lib/U1memcpy.S	2004-08-20 11:37:27 -07:00
-@@ -193,6 +193,7 @@
- 	and		%g2, 7, %g2
- 	andncc		%g3, 0x7, %g3
- 	fmovd		%f0, %f2
-+	sub		%g3, 0x8, %g3
- 	sub		%o2, %o4, %o2
- 
- 	add		%g1, %o4, %g1
-@@ -444,7 +445,7 @@
- 2:	membar		#StoreLoad | #StoreStore
- 	VISExit
- 	retl
--	 mov		%g5, %o0
-+	 mov		EX_RETVAL(%g5), %o0
- 
- 	.align		64
- 70:	/* 16 < len <= (5 * 64) */
-@@ -539,7 +540,7 @@
- 	 add		%o1, 4, %o1
- 
- 85:	retl
--	 mov		%g5, %o0
-+	 mov		EX_RETVAL(%g5), %o0
- 
- 	.align		32
- 90:	EX_LD(LOAD(ldub, %o1, %g1))
-@@ -548,4 +549,4 @@
- 	bgu,pt		%XCC, 90b
- 	 add		%o1, 1, %o1
- 	retl
--	 mov		%g5, %o0
-+	 mov		EX_RETVAL(%g5), %o0
+This patch was merged into our kernel tree, thanks; I'm testing it now.
+
+Since I have you 'on the line', would you know why serial output on 
+sparc64 now:
+
+1) clears the screen twice right after Remapping the kernel...
+2) omits every other character when it does start printing messages? such as
+
+Iv vrIv unln rvr
+
+which means
+
+IPv6 over IPv4 tunneling driver
+
+Some stuff, though, appears intact:
+
+Vno: PLEXTOR  oe: CD-ROM PX-20TS   e: 1.00
+
+which really says
+
+Vendor: PLEXTOR   Model: CD-ROM PX-20TS    Rev: 1.00
+
+It looks to me that when formats are being expanded, there is no 
+problem. Hope that helps.
+
+Anyway.. yes, I've asked before, but at least a confident "I don't know" 
+from the Man would be better than nothing :)
+
+-- 
+Joshua Kwan
+
+--------------enigFDB2027838FC4A445F970F99
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iQIVAwUBQS53NKOILr94RG8mAQI5fBAAl8nlUSuIL0OXCdS7xBaUC+jyiiNJgaas
+eNvw36pnF+R33VLevc3wxhNoYS2Q7tg8Ef06LmZOrdQnEWLvGeGdX7BMEOYU6D4u
+azAbXqMDttvz5Z0T/FqHpIIwFn8eg6THYrDQW6t1BswKeWo2TfRYLwk/ZALtJ+R/
+cc00GqUUqan03MdbMToTnmVrSiWnCkAZPSz4ZJmpjPJ6IANwLLoE5kXnQwUdZeIu
+pJ3+juN3RLvD6GNlVVz4todoBZdIAwqgSKqnZqp8wlXxJ5JglLhzMGiK1xrArnfU
+So78KpU9LLPUznZzXn00GYA/QN3m7ahUSpeES8ReDjwglZdFxS/T2ZUp4a4CVfj3
+fDOFiLJIKlA3I8OFXMY5VnY0uda2oj2AxQKGzj3lp9A/7Hmb7cy6xuWoGHT6CEDp
+oSFJMLdh+E5hktT9tPmH8+8jAcLBknqGIddAfjNQUY5P/WJQll60X0v351oTFdW1
+TVoIffvq/wlqMkPTQkkjqa8hJTscKf7iHo/yFICSZliqjk2OrQfMz3GnuiHi2V16
+EYuLbdQ4nYhYpsw2CbkQyQQaKy12ud6mE/OggQwmQ5BP73i2geToOgzeUWwTSqTF
+D9mY7n8HutEG+SFstA0gQxuGazxH0aSsgWzHNy/xLVv1wkdS+0N0XEAibxsCTbFW
++xZRHRo5qpE=
+=6DnD
+-----END PGP SIGNATURE-----
+
+--------------enigFDB2027838FC4A445F970F99--
