@@ -1,46 +1,31 @@
-From: Christian Joensson <c.christian.joensson@comhem.se>
-Date: Wed, 21 Apr 2004 08:43:10 +0000
-Subject: RPC: bad TCP reclen 0x05000b03 (non-terminal)
-Message-Id: <20040421104310.A22918@fw.j-son.org>
+From: Meelis Roos <mroos@linux.ee>
+Date: Thu, 01 Apr 2004 06:06:50 +0000
+Subject: ioctl32 translations for clock
+Message-Id: <Pine.GSO.4.44.0404010904270.8073-100000@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040419141736.A4049@fw.j-son.org>
-In-Reply-To: <20040419141736.A4049@fw.j-son.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Aurora SPARC Linux 1.0 (Ansel) SparcStation20 single SuperSparc-(II) sun4m:
+This is 2.6.5-rc1 on an Ultra 5 running Debian unstable up-to-date (with
+udev 0.23-3).
 
-kernel--2.4.26-0.1sparc (ftp://ftp.j-son.org/pub/aurora/kernel-2.4.26)
+ioctl32(hwclock:451): Unknown cmd fd(3) cmd(00004b50){00} arg(effffc58) on /dev/tty1
+ioctl32(hwclock:454): Unknown cmd fd(3) cmd(00004b50){00} arg(effffc48) on /dev/tty1
+ioctl32(hwclock:455): Unknown cmd fd(3) cmd(00004b50){00} arg(effffc58) on /dev/tty1
 
-System serving as NFS server... for instance...
+and hwclock tells at the same time
+Cannot access the Hardware Clock via any known method.
+Use the --debug option to see the details of our search for an access method.
+System time was Thu Apr  1 06:01:10 UTC 2004.
+Setting the System Clock using the Hardware Clock as reference...
+Cannot access the Hardware Clock via any known method.
+Use the --debug option to see the details of our search for an access method.
+System Clock set. System local time is now Thu Apr  1 06:01:11 UTC 2004.
 
-I get this in dmesg:
+Looks like a missing ioctl32 translation?
 
-Installing knfsd (copyright (C) 1996 okir@monad.swb.de).
-RPC: bad TCP reclen 0x05000b03 (non-terminal)
-RPC: bad TCP reclen 0x05000b03 (non-terminal)
-RPC: bad TCP reclen 0x05000b03 (non-terminal)
-RPC: bad TCP reclen 0x05000b03 (non-terminal)
-svc: bad direction 268435456, dropping request
-sunmouse: Successfully adjusted to 1200 baud.
-svc: bad direction 268435456, dropping request
-RPC: bad TCP reclen 0x05000b03 (non-terminal)
-svc: bad direction 268501012, dropping request
-RPC: bad TCP reclen 0x05000b03 (non-terminal)
-RPC: bad TCP reclen 0x05000b03 (non-terminal)
-RPC: bad TCP reclen 0x05000b03 (non-terminal)
-RPC: bad TCP reclen 0x05000b03 (non-terminal)
-
-
-Any idea of what is going on?
-
-The kernel is only patched with hme patch udelay(1)....
-
-Cheers,
-
-/ChJ
-
-
+-- 
+Meelis Roos (mroos@linux.ee)
 
