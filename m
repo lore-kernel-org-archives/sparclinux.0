@@ -1,32 +1,19 @@
-From: admin <sun-info@internode.com.au>
-Date: Tue, 08 Mar 2005 09:57:14 +0000
-Subject: current status of gigaswift drivers in 2.6...
-Message-Id: <200503082025.00094.sun-info@internode.com.au>
+From: info@qsv12.com
+Date: Sun, 27 Mar 2005 03:20:51 +0000
+Subject: =?ISO-8859-1?Q?=20=1B$BBp5^JX!JBh0l9?= =?ISO-8859-1?Q?f!K=1B(B?=
+Message-Id: <20050327032051.16528.qmail@mail.qsv12.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="iso-2022-jp"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi all.
-
-I want to get a 2.6 gentoo system running on some b100s blades 
-(UltraSPARC-IIe, dual gigaswift ethernet, ALI ide)
-
-A 2.4 netboot image from gentoo comes up minus networking. Trawling the sparc 
-linux lists (and *bsd) shows a distinct lack of movement on drivers for the 
-gigaswift chipset.
-
-Sun have released a driver for 2.4 (second from the bottom)
-http://www.sun.com/products/networking/downloads.html
-
-The source make at least one reference to 2.6, and this page
-http://www.sun.com/download/products.xml?idA40b67e
-suggests that it is the build options that prevent it from compiling rather 
-than the driver code. Whilst that fairly unlikely to be the case, I was just 
-wondering if anyone more knowledgeable has tried getting this to work on a 
-2.6 kernel.
-
-Thanks
-Nick
+当サイトのご利用は全て無料（男女共￥0円）
+やっぱり出逢うならご近所で気軽に話し合えるメール・エ○チフレンドがいいですよ
+ね。当サイトは全国地域別の市町村単位で近くの友達探しができます。
+http://loves.qsv20.com/
+男性、女性共にプライバシー保護重視で、不必要な時の新着メールの一時停止や、特
+定の
+送信者からの受け取り拒否、掲示板書込みをすぐに最新発言に更新する
+※只今の時間より、ご近所異性の写真＆動画(裏)情報を大量公開しております。
 
