@@ -1,34 +1,59 @@
-From: Greg KH <greg@kroah.com>
-Date: Mon, 05 Jan 2004 22:39:51 +0000
-Subject: Re: Linux 2.4.23-rc1
-Message-Id: <20040105223950.GE30464@kroah.com>
+From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
+Date: Fri, 02 Jan 2004 21:01:37 +0000
+Subject: Re: [sparc32] EXPORT_SYMBOL_DOT & EXPORT_SYMBOL_PRIVATE
+Message-Id: <1073077297.4474.116.camel@zorak>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.44.0311101723110.2001-100000@logos.cnet> <009001c3a89a$af611130$54dc10c3@amos> <002701c3a8a1$b1ce6380$54dc10c3@amos> <20031111145734.46d19c87.davem@redhat.com> <20031111231027.GC24159@parcelfarce.linux.theplanet.co.uk> <20031111150815.6a8aff01.davem@redhat.com> <20031112015433.GA20145@kroah.com> <20031111223630.6f2bf759.davem@redhat.com>
-In-Reply-To: <20031111223630.6f2bf759.davem@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@redhat.com>
-Cc: viro@parcelfarce.linux.theplanet.co.uk, milang@tal.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Tue, Nov 11, 2003 at 10:36:30PM -0800, David S. Miller wrote:
-> On Tue, 11 Nov 2003 17:54:33 -0800
-> Greg KH <greg@kroah.com> wrote:
-> 
-> > Then how is the ir-usb driver supposed to be able to set a baud rate of
-> > 4000000 in a portable manner?
-> 
-> You just won't get support for it on Sparc, nor any other
-> platform that does not have the B4000000 macro defined.
-> Ie.
-> 
-> #ifdef B4000000
-> 		case B4000000:
-> 			....
-> #endif
+On Wed, 2003-12-24 at 02:37, Keith M Wesolowski wrote:
 
-I've finally made this change, and will send it onward in a few days.
+> Anyway, please try this nasty patch.  If it works for you, it needs to
+> be made into a generic facility for exporting symbols starting with .,
+> so that people will stop breaking our interface.  I notice that this
+> slightly changes the semantics of PRIVATE in that the symbol name will
+> now end up in ksymtab_strings, which it previously did not.  Surely
+> someone will explain to me why that's bad.
 
-thanks,
+So the good news is that this appears to fix the PRIVATE symbols. The
+bad news is that it creates a unique error with the DOT symbols. Now,
+modpost spits out a lot of the following (for all the DOT symbols, not
+just umul):
 
-greg k-h
+WARNING: arp_tables.ko needs unknown symbol umul
+
+Now, this seems legitimate, since umul isn't in System.map. We have
+these entries though:
+
+05d2f21f A __crc___sparc_dot_umul
+f022a4f8 r __ksymtab___sparc_dot_umul
+f022d7d4 r __kcrctab___sparc_dot_umul
+f022f8a0 r __kstrtab___sparc_dot_umul
+
+BUT, we're missing __umul. Looking a few lines up in the System.map,
+this is obvious (divdi3 as the example):
+
+b391983a A __crc___divdi3
+f0118964 T __divdi3
+f022a4d8 r __ksymtab___divdi3
+f022d7c4 r __kcrctab___divdi3
+f022f878 r __kstrtab___divdi3
+
+The logical conclusion seems to be that ___sparc_dot_umul needs to be in
+System.map, but that doesn't seem to be what modpost is looking for, it
+seems to want __umul.
+
+Thoughts? 
+
+~spot
+---
+Tom "spot" Callaway <tcallawa(a)redhat*com> LCA, RHCE 
+Red Hat Sales Engineer || Aurora SPARC Linux Project Leader
+
+"The author's mathematical treatment of the conception of purpose is
+novel and highly ingenious, but heretical and, so far as the present
+social order is concerned, dangerous and potentially subversive. Not to
+be published." -- Aldous Huxley's "Brave New World"
+
