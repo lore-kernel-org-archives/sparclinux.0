@@ -1,63 +1,38 @@
-From: Chris Newport <crn@netunix.com>
-Date: Thu, 19 Aug 2004 13:32:47 +0000
-Subject: Patch - Sun4d SMP now boots
-Message-Id: <Pine.LNX.4.53.0408191358400.2910@mailgate.netunix.com>
+From: William Lee Irwin III <wli@holomorphy.com>
+Date: Thu, 19 Aug 2004 14:12:13 +0000
+Subject: Re: Patch - Sun4d SMP now boots
+Message-Id: <20040819141213.GM11200@holomorphy.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <Pine.LNX.4.53.0408191358400.2910@mailgate.netunix.com>
+In-Reply-To: <Pine.LNX.4.53.0408191358400.2910@mailgate.netunix.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+On Thu, Aug 19, 2004 at 02:32:47PM +0100, Chris Newport wrote:
+> I have now applied the patch posted to the list by Pasi Pirhonen
+> on 19Nov2003. This needs to be applied AFTER the patches from Thomas.
+> More work is needed to get rid of the previously reported compiler
+> warnings in the same function before this is fit to be submitted, but
+> I will have to leave that to those who understand what they are doing
+> <B-).
+> This now boots and runs, but is horribly unstable.
 
-I have now applied the patch posted to the list by Pasi Pirhonen
-on 19Nov2003. This needs to be applied AFTER the patches from Thomas.
+Okay, this is great news. I know the spin_lock_bh() is wrong, but it
+gets us to a point where we can actually do something and we actually
+have enough to reproduce all this.
 
-More work is needed to get rid of the previously reported compiler
-warnings in the same function before this is fit to be submitted, but
-I will have to leave that to those who understand what they are doing
-<B-).
+One major question is *WHY* spin_lock_bh() vs. spin_lock_irqsave()
+works. Only trouble there is that we can't see what happens after
+spin_lock_irqsave() very easily. One rather large possibility is that
+since disabling bh's doesn't disable interrupts, some smp_call_function()
+or similar that would deadlock if interrupts weren't disabled suddenly
+appears to work and/or works for some limited cases...
 
-This now boots and runs, but is horribly unstable.
+This is in my queue also, though preferably some explanation of what's
+going on with this (e.g. the real issue, maybe a better fix) will
+happen instead.
 
-==== BEGIN INCLUDE
 
-root@phobos:~# cd /usr/src/linux/arch/sparc/kernel
-root@phobos:/usr/src/linux/arch/sparc/kernel# diff -ru sun4d_smp.csaved sun4d_s
-mp.c
-
---- sun4d_smp.csaved	2004-08-19 13:12:24.000000000 +0100
-+++ sun4d_smp.c	2004-08-19 13:46:07.000000000 +0100
-@@ -340,7 +340,8 @@
- 		register int high = smp_highest_cpu;
- 		unsigned long flags;
-
--		spin_lock_irqsave(&cross_call_lock, flags);
-+		//spin_lock_irqsave(&cross_call_lock, flags);
-+		spin_lock_bh(&cross_call_lock);
-
- 		{
- 			/* If you make changes here, make sure gcc generates proper code... */
-@@ -373,6 +374,8 @@
- 				}
- 			}
- 		}
-+		/* first run local copy */
-+		func(arg1, arg2, arg3, arg4, arg5);
-
- 		{
- 			register int i;
-@@ -390,8 +393,10 @@
- 			} while(++i <= high);
- 		}
-
--		spin_unlock_irqrestore(&cross_call_lock, flags);
--	}
-+		//spin_unlock_irqrestore(&cross_call_lock, flags);
-+		spin_unlock_bh(&cross_call_lock);
-+	} else
-+		func(arg1, arg2, arg3, arg4, arg5); /* just need to run local copy */
- }
-
- /* Running cross calls. */
-
-===== END INCLUDE
+-- wli
