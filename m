@@ -1,7 +1,7 @@
-From: Meelis Roos <mroos@math.ut.ee>
-Date: Fri, 30 Jan 2004 18:49:00 +0000
+From: Meelis Roos <mroos@linux.ee>
+Date: Fri, 30 Jan 2004 19:17:37 +0000
 Subject: Re: SILO 1.4.2 released
-Message-Id: <Pine.GSO.4.44.0401302047570.2307-100000@math.ut.ee>
+Message-Id: <Pine.GSO.4.44.0401302112300.2307-100000@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040129182954.GK532@phunnypharm.org>
 In-Reply-To: <20040129182954.GK532@phunnypharm.org>
@@ -15,9 +15,12 @@ To: sparclinux@vger.kernel.org
 > mean time, give the attached second.b a try (put it in /boot/ and run
 > "silo -f").
 
-I will be able to do it tomorrow since my RARP boot server is in use in
-another network currently.
+OK, found out that the old RARP server can not come back any time soon
+and installed another netboot server.
+
+Still Data Access Exception. This time PC(6760 and nPC(6764 but
+other regs are the same as before.
 
 -- 
-Meelis Roos (mroos@ut.ee)      http://www.cs.ut.ee/~mroos/
+Meelis Roos (mroos@linux.ee)
 
