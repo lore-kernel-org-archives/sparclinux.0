@@ -1,39 +1,49 @@
-From: info@qsv15.com
-Date: Tue, 29 Mar 2005 13:55:11 +0000
-Subject: =?ISO-8859-1?Q?=20=1B$B!~=3DP2q$$7OI,>?= =?ISO-8859-1?Q?!>pJs!~=1B(B?=
-Message-Id: <20050329135511.2883.qmail@mail.qsv15.com>
+From: domen@coderock.org
+Date: Sun, 06 Mar 2005 22:28:56 +0000
+Subject: [patch 1/4] Re: sbus/aurora: replace schedule_timeout() with msleep_interruptible()
+Message-Id: <20050306222857.302E11EC90@trashy.coderock.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-2022-jp"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          ┏━┓  ┏━┓  ┏━┓  ┏━┓  
-          ┃出┣━┫い┣━┫必┣━┫情┣━┓
-          ┗━┫会┣━┫系┣━┫勝┣━┫報┃
-              ┗━┛  ┗━┛  ┗━┛  ┗━┛
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-□■―――――――――――――――――――――――――――――――――□■
 
 
-知ってますか？実に会員様の３０％が、登録して１墻以内に出会っているのを！
+Use msleep_interruptible() instead of
+schedule_timeout() to guarantee the task delays as expected.
 
-日本最大のネットコミュニティー！！　その名も「出会いＰＣ」
+Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
+Signed-off-by: Maximilian Attems <janitor@sternwelten.at>
+Signed-off-by: Domen Puncer <domen@coderock.org>
+---
 
-　　　　　　　　　　　　http://com.deai-pc.com/?num0010
 
-□■―――――――――――――――――――――――――――――――――□■
+ kj-domen/drivers/sbus/char/aurora.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
-      ┌─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┐
-      │最│強│出│会│サ│イ│ト│が│リ│ニ│ュ│ー│ア│ル│      
-      └─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┘
-          │こ│れ│で│貴│方│も│モ│テ│モ│テ│に│！│
-          └─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┘
-
-　　　　　　　　　　　　http://com.deai-pc.com/?num@010
-
-□■―――――――――――――――――――――――――――――――――□■
-
+diff -puN drivers/sbus/char/aurora.c~msleep_interruptible-drivers_sbus_char_aurora drivers/sbus/char/aurora.c
+--- kj/drivers/sbus/char/aurora.c~msleep_interruptible-drivers_sbus_char_aurora	2005-03-05 16:09:38.000000000 +0100
++++ kj-domen/drivers/sbus/char/aurora.c	2005-03-05 16:09:38.000000000 +0100
+@@ -1519,8 +1519,7 @@ static void aurora_close(struct tty_stru
+ 		 */
+ 		timeout = jiffies+HZ;
+ 		while(port->SRER & SRER_TXEMPTY)  {
+-			current->state = TASK_INTERRUPTIBLE;
+-			schedule_timeout(port->timeout);
++			msleep_interruptible(jiffies_to_msecs(port->timeout));
+ 			if (time_after(jiffies, timeout))
+ 				break;
+ 		}
+@@ -1537,8 +1536,7 @@ static void aurora_close(struct tty_stru
+ 	port->tty = 0;
+ 	if (port->blocked_open) {
+ 		if (port->close_delay) {
+-			current->state = TASK_INTERRUPTIBLE;
+-			schedule_timeout(port->close_delay);
++			msleep_interruptible(jiffies_to_msecs(port->close_delay));
+ 		}
+ 		wake_up_interruptible(&port->open_wait);
+ 	}
+_
