@@ -1,82 +1,68 @@
-From: Richard Mortimer <richm@oldelvet.org.uk>
-Date: Tue, 31 Aug 2004 22:00:10 +0000
-Subject: Re: [PATCH] Re: lvm problems on sparc64 - Trying to vfree()
-Message-Id: <1093989609.2124.139.camel@duncow>
+From: joshk@triplehelix.org (Joshua Kwan)
+Date: Wed, 18 Aug 2004 23:55:28 +0000
+Subject: [2.6] busybox EFAULT on sparc64
+Message-Id: <20040818235528.GA8070@triplehelix.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="WIyZ46R2i8wDzkSu"
 List-Id: <sparclinux.vger.kernel.org>
-References: <1093911340.2116.55.camel@duncow>
-	<20040830174015.10edb69b.davem@davemloft.net>
-In-Reply-To: <20040830174015.10edb69b.davem@davemloft.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org, debian-sparc@lists.debian.org, linux-lvm@sistina.com, richm@oldelvet.org.uk, marcelo.tosatti@cyclades.com
-
-Thanks. Fixes the problem nicely.
-
-Whilst I remember I forgot to include the patch below last night. When I
-was looking at the ioctl32.c code I noticed a few inconsistencies in the
-structures used in the copy to/from user calls. I don't think that the
-original versions were incorrect but it seems best to make things
-consistent.
-
-How do they look
-
-Richard
-
---- arch/sparc64/kernel/ioctl32.c.orig	2004-08-29 00:12:09.000000000
-+0100
-+++ arch/sparc64/kernel/ioctl32.c	2004-08-31 22:06:23.000000000 +0100
-@@ -2949,7 +2949,7 @@
- 	case LV_REMOVE:
- 	case LV_RENAME:
- 	case LV_STATUS_BYNAME:
--	        err = copy_from_user(&u.pv_status, arg,
-sizeof(u.pv_status.pv_name));
-+	        err = copy_from_user(&u.lv_req, arg,
-sizeof(u.lv_req.lv_name));
- 		if (err)
- 			return -EFAULT;
- 		if (cmd != LV_REMOVE) {
-@@ -2992,7 +2992,7 @@
- 
- 	case PV_CHANGE:
- 	case PV_STATUS:
--		err = copy_from_user(&u.pv_status, arg, sizeof(u.lv_req.lv_name));
-+		err = copy_from_user(&u.pv_status, arg, sizeof(u.pv_status.pv_name));
- 		if (err)
- 			return -EFAULT;
- 		err = __get_user(ptr, &((pv_status_req32_t *)arg)->pv);
-@@ -3064,7 +3064,7 @@
- 	        if (u.lv_bydev.lv) {
- 			if (!err)
- 				err = copy_lv_t(ptr, u.lv_bydev.lv);
--			put_lv_t(u.lv_byindex.lv);
-+			put_lv_t(u.lv_bydev.lv);
- 	        }
- 	        break;
- 
+To: sparclinux@vger.kernel.org
+Cc: linux-kernel mailing list <linux-kernel@vger.kernel.org>
 
 
+--WIyZ46R2i8wDzkSu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, 2004-08-31 at 01:40, David S. Miller wrote:
-> On Tue, 31 Aug 2004 01:15:40 +0100
-> Richard Mortimer <richm@oldelvet.org.uk> wrote:
-> 
-> > I'm seeing problems with lvm on sparc64. I have a reproducible test case
-> > using snapshots where I can reliably reproduce an error similar to
-> > 
-> > Trying to vfree() nonexistent vm area (0000000140072000)
-> 
-> For once it's not sparc64's fault, it's a bug in the generic
-> LVM ioctl handling :-)
-> 
-> It saves both pointers, clobbers the userspace copy, then only
-> restores one of the two pointers correctly.  Easy to fix, see
-> below.
-> 
-> Marcelo, please apply, thanks.
+Here's an example of a strange phenomenon seen by me and more recently
+Jeff Bailey...
 
--- 
-richm@oldelvet.org.uk
+http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=3D264482
 
+I'm not sure exactly what's happening here. Summary: passing static
+memory to mount(2) returns Bad address, and starting klogd hangs on a
+fork(2) call. A mount call will succeed if the memory is copied first
+onto the heap. This is 2.6.8 without any SPARC-specific patches, built
+for sparc64.
+
+You can check this out at (misnomer)
+http://people.debian.org/~joshk/2.4.27/kernel-image-2.6.8-sparc/kernel-imag=
+e-2.6.8-1-sparc64_2.4.27-1_sparc.deb
+for yourself.
+
+I'm inclined to believe that the two bugs are related; these both happen
+with busybox-cvs and the exact same programs work with 2.4. Bastian
+Blank suggests that it is the compat wrapper for sys_mount that is not
+clean.
+
+Could I get any idea of what is going on here? I'm CC:ing lkml because
+this may be a general 2.6 bug that neither Jeff or I have encountered.
+
+--=20
+Joshua Kwan
+
+--WIyZ46R2i8wDzkSu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+Comment: http://triplehelix.org/~joshk/pubkey_gpg.asc
+
+iQIVAwUBQSPsb6OILr94RG8mAQL9ChAAoVivg5h79ctFmi9KvYUMMYDrGBeH+lLL
+B0k3eJmWD91E7s3g0ZxJE9rog7gy3BS7XDTMBTUBv/milnQrtLMTLxDcDk18qOBp
+QFK+Y72Htrq0N6QPg/OAdV3Wh4tMCXMKyplqwtOodrBDyksxhkue1Sm01/HGwRGQ
+h+uoJBw+kO4uoa0VgUtX6/Ms383fcPuPk2v94+wTAiwIcFDA9ky3koR4fhVQ4WBe
+CQdhM0k+Qd2Sg27daye+AyG4kCB13PCRiqbnxtYvUCuBtMY7RcT69CyF7z3WBjUV
+vjmxsDAiuaQfpMxWW9w+/DxX5Rdb2LiNGjUcRbXyR8se9e9Zs3TG3QEKMyG3n821
++vJFHrH0Oa9wyoBpKro3ubm3G5NU8OgXprivGQ4/WQ4fYihv4VcdZ9Jodox8Rv0B
+EOKcM11Aa7r0PqlMh3rqZ3qwXWaWOs0Sqd2pLpcguoY7GMjF1sLGY5o0qHuucdMW
+qI7yenBfChFsq/yX19/vqb/2R5OgJSpjp/SLt7sLdhUMr8zML5kwBzd/5QUsHTF2
+Hw33I0fMRowvfGkw16yIjU+cGFwFBoaOi6huwIo34XG6HnlZNsofQHotTCpuRzMd
+u6G5yWn1jeeQpAdokCtd9PoEyXjXlLD09BTpQJWUFeGjVRrSzMSS41DO3borLG4q
+E670AnVSvEs=
+=x+6X
+-----END PGP SIGNATURE-----
+
+--WIyZ46R2i8wDzkSu--
