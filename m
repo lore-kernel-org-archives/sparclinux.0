@@ -1,29 +1,53 @@
-From: William Lee Irwin III <wli@holomorphy.com>
-Date: Tue, 21 Dec 2004 08:59:23 +0000
-Subject: Re: [2/3] sun4d updates (guys, please send me real descriptions!)
-Message-Id: <20041221085923.GI771@holomorphy.com>
+From: Jeremy Huddleston <eradicator@gentoo.org>
+Date: Sun, 05 Dec 2004 22:03:46 +0000
+Subject: Re: system lockup bug in >2.6.7-rc1-bk6 tracked down
+Message-Id: <1102284226.20364.60.camel@cid.outersquare.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=-w5tQrvzUEbUMBTvBQz+o"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20041221042836.GZ771@holomorphy.com>
-In-Reply-To: <20041221042836.GZ771@holomorphy.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+References: <1101553907.21614.24.camel@cid.outersquare.org>
+In-Reply-To: <1101553907.21614.24.camel@cid.outersquare.org>
 To: sparclinux@vger.kernel.org
 
-On Mon, 2004-12-20 20:28:36 -0800, William Lee Irwin III wrote:
->> -static void
->> +/* static */ void
->>  prom_adjust_ranges(struct linux_prom_ranges *ranges1, int nranges1,
->>  		   struct linux_prom_ranges *ranges2, int nranges2)
->>  {
 
-On Tue, Dec 21, 2004 at 09:57:46AM +0100, Jan-Benedict Glaw wrote:
-> I don't know this function (or where it is ment to be called from), but
-> isn't this an example for __attribute__((unused)) ?
+--=-w5tQrvzUEbUMBTvBQz+o
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-It's used in drivers/sbus/sbus.c; the commenting out of "static" should
-probably die, and the thing should get declared in a header instead of
-tripping a warning.
+On Sat, 2004-11-27 at 03:11 -0800, Jeremy Huddleston wrote:
+> A change between 2.6.7-rc1-bk6 and 2.6.7-rc2 can results in a system
+> lockdown.  One situation in which this can be triggered is when we are a
+> nfs client, and the nfs server shuts down (or on the server, you simply
+> issue an 'ifconfig eth1 down').  I have tracked this down to a bug in
+> dev_ifconf() in fs/compat_ioctl.c
 
+Ok, I was mistaken.  The bug isn't triggered by the NFS server becoming
+unavailable.  It's actually triggered by NIS.  ypbind is the process
+which eventually results in the dev_ifconf() call which locks up the
+system.
 
--- wli
+This problem was originally reported in this post
+http://marc.theaimsgroup.com/?l=3Dlinux-sparc&m=3D109830513430004&w=3D2 and=
+ I
+confirmed with the poster of that message that they were using NIS as
+well and their NIS server was the same as the NFS server.
+
+Sorry for the confusion.
+
+--=20
+Jeremy Huddleston <eradicator@gentoo.org>
+
+--=-w5tQrvzUEbUMBTvBQz+o
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.6 (GNU/Linux)
+
+iD8DBQBBs4XCOpjtAl+gMRURAhw3AKDOOPcAhGTmMZupA6A7kYDE4aIU9ACaA5CS
+IL1qcwCuUNDEMTSWGVMza4Q=
+=o8bv
+-----END PGP SIGNATURE-----
+
+--=-w5tQrvzUEbUMBTvBQz+o--
+
