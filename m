@@ -1,35 +1,45 @@
-From: Keith M Wesolowski <wesolows@foobazco.org>
-Date: Wed, 12 May 2004 23:22:54 +0000
-Subject: Re: mystery backtrace
-Message-Id: <20040512232254.GA24017@foobazco.org>
+From: Jason Wever <weeve@gentoo.org>
+Date: Sat, 01 May 2004 03:14:00 +0000
+Subject: Re: Illegal instruction with silo 1.4.4 and ultra 1
+Message-Id: <20040430211400.4129bdc6@excelsior.weeve.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Signature=_Fri__30_Apr_2004_21_14_01_-0600_lm/ueMSTP.Qg9Jju"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040512220458.GA4624@amarooas.com.au>
-In-Reply-To: <20040512220458.GA4624@amarooas.com.au>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+References: <Pine.LNX.4.58.0404292048550.13989@stargazer.weeve.org>
+In-Reply-To: <Pine.LNX.4.58.0404292048550.13989@stargazer.weeve.org>
 To: sparclinux@vger.kernel.org
 
-On Thu, May 13, 2004 at 08:04:58AM +1000, Jim Watson wrote:
+--Signature=_Fri__30_Apr_2004_21_14_01_-0600_lm/ueMSTP.Qg9Jju
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 
-> this is from openoffice.org 680 on linux sparc
-> 
-> Any advice would be appreciated, is this valid output of the "list" command
-> [1], and what can i do next?
-> 
-> 0x00000000 in ?? ()
-> (gdb) where
-> #0  0x00000000 in ?? ()
-> (gdb) list
-> 1       /build/buildd/glibc-2.3.2.ds1/build-tree/sparc-libc/csu/crti.S: No
-> such file or directory.
->         in /build/buildd/glibc-2.3.2.ds1/build-tree/sparc-libc/csu/crti.S
+On Fri, 30 Apr 2004 07:32:04 -0400
+Ben Collins <bcollins@debian.org> wrote:
 
-No, the program has for some reason jumped to NULL.  You need a full
-backtrace if you can get one.  If not, your registers are trashed as
-well, and you'll have to use breakpoints or some other method to catch
-it before it happens.  It shows you crti.S because the lowest address
-in the binary (closest to the 0x0 shown) is in that standard C runtime.
+> Doesn't look like a silo problem off-hand. This PC is in the start of
+> the kernel. What compiler are you compiling your kernels with?
 
+Used gcc-3.3.3.  Had to power-off the box for a while today, and when I
+turned it back up, it was booting fine.  Both before when it was
+having this problem and now if I enabled diag-switch? everything checked
+out.  I'll keep an eye on it and see if it does crop up again if I can
+better pinpoint conditions.
+
+Thanks for the help,
 -- 
-Keith M Wesolowski
+Jason Wever
+Gentoo/Sparc Team Co-Lead
+
+--Signature=_Fri__30_Apr_2004_21_14_01_-0600_lm/ueMSTP.Qg9Jju
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFAkxX8dKvgdVioq28RAqXYAJ9e4bteWMotPbxm2EDyDQO+YLkb8ACggbQC
+lhZDUQEwpqdL6yxYJAB4TxE=
+=T/V1
+-----END PGP SIGNATURE-----
+
+--Signature=_Fri__30_Apr_2004_21_14_01_-0600_lm/ueMSTP.Qg9Jju--
