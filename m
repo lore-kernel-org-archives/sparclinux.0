@@ -1,40 +1,39 @@
-From: Nagra Tv Offshore <classaction@ripoffreport.com>
-Date: Mon, 28 Mar 2005 06:03:01 +0000
-Subject: RE:Dishnet/Bell/FTA Nagra2 Files Ready: FTA Super Sale
-Message-Id: <E1DFnL3-0004GH-2F@rex.remotelysupported.com>
+From: info@qsv15.com
+Date: Tue, 29 Mar 2005 13:55:11 +0000
+Subject: =?ISO-8859-1?Q?=20=1B$B!~=3DP2q$$7OI,>?= =?ISO-8859-1?Q?!>pJs!~=1B(B?=
+Message-Id: <20050329135511.2883.qmail@mail.qsv15.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="iso-2022-jp"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-NagraCode.Com 1-800-386-0314 For Support Questions Sales
 
-Call In For Your Discounted Rates
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          ┏━┓  ┏━┓  ┏━┓  ┏━┓  
+          ┃出┣━┫い┣━┫必┣━┫情┣━┓
+          ┗━┫会┣━┫系┣━┫勝┣━┫報┃
+              ┗━┛  ┗━┛  ┗━┛  ┗━┛
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Hello and welcome to our beautiful site NagraCode.Com where you can shop in a friendly safe environment for your sat shopping needs.This weeks special includes a (Foretec Ultra Lifetime Free 2 Air Reciever with 1 year nagra 2 support.All Recievers come with cables Disecq switch and shipping included and 1 Year Full support.No more looking for files and such as we have them all.We accept paypal so you can call us for savings on our unit.
-
-NagraCode.Com
-
-If you were subject to channel loss and more you came to the right place.We support all smartcards and various FTA recievers.We are a stronghold for all testing needs and offer Excellent quality testing support.All memberships once paid allows you instant access to Nagra 2 Compatibility software.Keep in mind that the Bell stream is stiil on it's way and testing does not stop.
-
-NagraCode.Com
-
-Join us today and we are here to help you get going in any way,support is offered in Spanish,French,and English.Why hesitate we offer 30 day money back guarantee on software and hardware.Join Now 
+□■―――――――――――――――――――――――――――――――――□■
 
 
-NagraCode.Com Top Notch 3m Group and FTA Carrier
+知ってますか？実に会員様の３０％が、登録して１墻以内に出会っているのを！
 
-1-800-386-0314 For Support Questions Sales
+日本最大のネットコミュニティー！！　その名も「出会いＰＣ」
 
+　　　　　　　　　　　　http://com.deai-pc.com/?num0010
 
+□■―――――――――――――――――――――――――――――――――□■
 
+      ┌─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┐
+      │最│強│出│会│サ│イ│ト│が│リ│ニ│ュ│ー│ア│ル│      
+      └─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┘
+          │こ│れ│で│貴│方│も│モ│テ│モ│テ│に│！│
+          └─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┘
 
-If you want to check out Bad Business Bureau please look on www.ripoffreport.com and check out some of the Worlds biggest scammers Today
+　　　　　　　　　　　　http://com.deai-pc.com/?num@010
 
-
-Digital Map Is Onstar Board Loops 07390487902euopit=-5509-T309rquwieu290
-
-
-
+□■―――――――――――――――――――――――――――――――――□■
 
