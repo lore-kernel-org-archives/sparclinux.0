@@ -1,7 +1,7 @@
-From: Keith M Wesolowski <wesolows@foobazco.org>
-Date: Wed, 07 Jan 2004 20:03:31 +0000
+From: "David S. Miller" <davem@redhat.com>
+Date: Wed, 07 Jan 2004 20:07:53 +0000
 Subject: Re: [BKPATCH]: Add option to define default command line to kernel.
-Message-Id: <20040107200331.GA22976@foobazco.org>
+Message-Id: <20040107120753.67198523.davem@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040107182529.GK17280@phunnypharm.org>
 In-Reply-To: <20040107182529.GK17280@phunnypharm.org>
@@ -10,21 +10,11 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Wed, Jan 07, 2004 at 01:25:30PM -0500, Ben Collins wrote:
+On Wed, 7 Jan 2004 12:03:31 -0800
+Keith M Wesolowski <wesolows@foobazco.org> wrote:
 
-> +	  Say Y here if you want to be able to pass default arguments to
-> +	  the kernel. This will be overridden by the bootloader, if you
-> +	  use one (such as SILO). This is most useful if you want to boot
-> +	  a kernel from TFTP, and want default options to be available
-> +	  with having them passed on the command line.
-> +
-> +	  NOTE: This option WILL override the PROM bootargs setting!
+> I don't really understand the need for this.  Why not just use the
+> PROM boot arguments if you're booting from TFTP?
 
-I don't really understand the need for this.  Why not just use the
-PROM boot arguments if you're booting from TFTP?
-
--- 
-Keith M Wesolowski <wesolows@foobazco.org> http://foobazco.org/~wesolows
-------(( Project Foobazco Coordinator and Network Administrator ))------
-	"May Buddha bless all stubborn people!"
-				-- Uliassutai Karakorum Blake
+I agree.  You can even tweak the prom environment vars to force
+the command line you want.
