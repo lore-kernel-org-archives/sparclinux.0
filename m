@@ -1,74 +1,83 @@
-From: Georg Chini <georg.chini@triaton-webhosting.com>
-Date: Thu, 09 Dec 2004 21:15:31 +0000
-Subject: Re: Sparc32 - SS5 - TCX-Framebuffer and RTC
-Message-Id: <41B8C073.7080008@triaton-webhosting.com>
+From: mredmondhaziem1@zipmail.com.br
+Date: Mon, 13 Dec 2004 19:18:54 +0000
+Subject: =?iso-8859-1?Q?Please=20reply=20quickly=2E?=
+Message-Id: <41BD3DF500001508@www.zipmail.com.br>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hello,
+Mr.Edmond Haziem.
+Republic of Benin 
 
-Bob Breuer wrote:
-> Georg Chini wrote:
->  > 1) TCX-Framebuffer:
-> ...
->  >    b) FB-Console does not work:
->  >       When I boot the system with FB-Console I get a blank
->  >       black screen. System boots fine, only nothing is
->  >       displayed.
-> 
-> I had a similar problem with the cg14 framebuffer, maybe this snippet from
-> the cg14 fix will help you:
+Good day, 
 
-Yes, this helped a lot. I get FB-console working. But I still have a
-problem with X. I cannot start X in 8-Bit mode and the console
-is inaccessible after starting X in 32-Bit mode. Here is what
-I changed:
+With warm heart i offer my friendship and my greetings and i hope this letter
+meets you in good time. It will be surprising for you to receive this proposal
+from me since you do not know me personally.However, i am sincerely seeking
+your confidence in this transaction, which i, propose with my free mind
+and as a person of integrity. 
 
---- linux-2.6.10-rc3/drivers/video/tcx.c        Fri Dec  3 22:52:07 2004
-+++ l10rc3/drivers/video/tcx.c  Thu Dec  9 19:22:20 2004
-@@ -366,6 +366,9 @@
-         all->par.lowdepth = prom_getbool(sdev->prom_node, "tcx-8-bit");
-
-         sbusfb_fill_var(&all->info.var, sdev->prom_node, 8);
-+       all->info.var.red.length = 8;
-+       all->info.var.green.length = 8;
-+       all->info.var.blue.length = 8;
-
-         linebytes = prom_getintdefault(sdev->prom_node, "linebytes",
-                                        all->info.var.xres);
-@@ -439,6 +442,7 @@
-                 return;
-         }
-
-+       fb_set_cmap(&all->info.cmap, &all->info);
-         tcx_init_fix(&all->info, linebytes);
-
-         if (register_framebuffer(&all->info) < 0) {
-@@ -466,7 +470,7 @@
-                 return -ENODEV;
-
-         for_all_sbusdev(sdev, sbus) {
--               if (!strcmp(sdev->prom_name, "tcx"))
-+               if (!strcmp(sdev->prom_name, "SUNW,tcx"))
-                         tcx_init_one(sdev);
-         }
+A) It is practically impossible for me to carry out this business alone.
 
 
-> 
->  >
->  > 2) RTC:
-> 
-> Broken by a recent change in include/asm-sparc/mostek.h, need to include
-> <asm/io.h> from there now.
-> 
+B) You live in a foreign land far away from mine. This should normally not
+be a requirement, but when you understand the transaction then you will
+understand why it is important that you live far away from me. 
 
-Works fine with <asm/io.h> included.
+C) The amount of money involved in this transaction is Fifteen Million one
+hundred thousand united states dollars (US$15,100,000.00) which is too much
+for a man of modest means like myself to handle in my country. 
 
-Thanks for the fast help.
+I believe from my few points above, you can begin to get an idea why i need
+your participation.I am writing you in respect of a foreign customer who
+has a Domicilliary account in my bank. His name was Engineer Frank oliver.
+He was among those who died in a plane crash, Since the demise of this our
+customer, Engineer Frank oliver, who was an oil merchant/import & exporter,
+i have kept a close watch of the deposit records and accounts and since
+then nobody has come to claim the money in this a/c as next of kin to the
+late Engineer.He had only Fifteen Million one hundred thousand united states
+dollars (S$15,100,000.00) in his account and the account is coded. 
 
-Regards
-        Georg Chini
+It is only an insider that could produce the code of the deposit particulars.
+As it stands now, there is nobody in that position to produce the needed
+information other than my very self considering my position in the bank.
+Based on the reason that nobody has come forward to claim the deposit as
+next of kin, i hereby ask you to send an application to the bank as the
+next of kin to the deceased and get this fund transfered into your foreign
+bank a/c for mutual sharing between myself and you, 5% for expences we will
+incure 35% for you and 60% for me. 
+
+All i need is for you to follow my instructions closely because i am experienced
+in inheritance matters here and i am on ground here to advice you on every
+step until you receive the fund. What is required of you is to send an application
+to the bank as next of kin to this late Engineer and i promise you that
+everything will go smoothly. 
+
+I also indulge you not to make undo use of the information given to you,
+i need also to trust that you will not tell people or your bank about this
+business.You will collect the money first, then I get my share, then you
+can tell anybody what you chose thereafter. I shall need your help to invest
+in your country therefore, any experience you have in this area will be
+beneficial. 
+
+Please feel free to ask any question and seek for explanations if required
+and upon the receipt of your favourable esponses,you should including your
+telephone number for easy communication. 
+
+Yours treuly, 
+Mr.Edmond Haziem.
+Phone:+229-844986.
+
+
+
+
+
+
+------------------------------------------
+Use o melhor sistema de busca da Internet
+Radar UOL - http://www.radaruol.com.br
+
+
 
