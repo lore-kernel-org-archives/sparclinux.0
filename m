@@ -1,42 +1,64 @@
-From: "c.hota" <cghota@mail.midsouth.ualr.edu>
-Date: Thu, 02 Sep 2004 15:52:30 +0000
-Subject: pci_iommu: alloc_streaming_cluster of npages(1) failed!
-Message-Id: <413741BE.9010603@midsouth.ualr.edu>
+From: Joshua Kwan <joshk@triplehelix.org>
+Date: Thu, 16 Sep 2004 05:54:14 +0000
+Subject: [SPARC32] sunzilog problems with lots of output at once
+Message-Id: <cib9qa$elu$1@sea.gmane.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------enig00678CA5D1B8D7ABFC4AEC9B"
 List-Id: <sparclinux.vger.kernel.org>
-References: <413741AD.2050707@midsouth.ualr.edu>
-In-Reply-To: <413741AD.2050707@midsouth.ualr.edu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hello!
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig00678CA5D1B8D7ABFC4AEC9B
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-I am having problems with my SunFire V100.  I loaded Gentoo on it, 
-everything went fine, it boots, gives me a login prompt, and all is well 
-with the world... for about 30 seconds.
+Hello,
 
-Then, I see the following on my screen:
+I'm experiencing a problem with the sunzilog driver on 2.6.8.1 on 
+sparc32. Recently I did:
 
-pci_iommu: alloc_streaming_cluster of npages(1) failed!
+fantaisie:~# dmesg
 
-Over and over again.
+and the serial console stopped receiving output. I had to ssh in and 
+kill the parent process (bash) for things to start working again.
 
-Googling this problem brings up:
-    /usr/src/linux/arch/sparc64/kernel/pci_iommu.c
-    http://www2.randomlogic.com/linux_html/140152.html
+Alternatively, ptracing the process was enough to un-wedge it. (strace 
+-p). Here are the first few lines of the strace output:
 
-This isn't much help for me, though.  If anyone can let me know what's 
-wrong and (even better) how to fix it, I'd be very grateful.
-
-Thanks,
-
-chris.
+# strace -p 966
+Process 966 attached - interrupt to quit
+ioctl(0, TCSETAF or SNDCTL_TMR_SELECT, {B38400 opost isig -icanon -echo 
+...}) = 0
+ioctl(0, TCXONC, {B38400 opost isig icanon echo ...}) = 0
+ioctl(0, TCSETAF or SNDCTL_TMR_SELECT, {B38400 opost isig icanon echo 
+...}) = 0
 
 -- 
-Chris Hota
-cghota@midsouth.ualr.edu
-(501)683-7339 desk
-(501)413-1176 cell
-http://www.midsouth.ualr.edu/ 
+Joshua Kwan
+
+--------------enig00678CA5D1B8D7ABFC4AEC9B
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iQIVAwUBQUkqiaOILr94RG8mAQL0VRAAgWfintDMCSnOBXgmNYqipesO4PMIcuAP
+L4L2yjWWujWofX1xz+4eWCG3Bvl06qnHOVgPlygLLbZQRlmvSCzWwt1h2EaW1g6j
+QHLcT21uGax+P+krKuFcUcc3IzQE8WoM96E32Y0Ij+hwJzUimrVqIjSeoPvLAT8/
+cBdxkHI4sp4nzUfgKGUxzOBZoJZ12mllc0q2MrWMoCg2QqNl/YD+tkiy09itbyo+
+8u8uz8AHZFPLSBFpHDm8brkO9I9bwbk7yxo3SNvERT1yihcRTyF953TggvKoKPPl
+1LvFNUECeoSzNQWj/xCkam3bex7E333vJQoB8B2DaFgVL+8AwPct8BTxYxMUEU7Y
+6paabY4fcFB56NpEvCdc6E6CqCuyaB2LazlFF3CUxN2rtHFy7xoja8lYfcGZqFxf
+L3QMuDYAwvLvLgvq+PutpLGLN2JN7fP4OqVUYhjm9X9rUDaLCDy+9y4cQN0SS5IX
+sYrdW0lEcNCgCgr1ttTRG1rIyXDMJ0EODJQFDcytYLlADHIJdpMxo/4pH0IApkB6
++/UMHR5JAuvcRjRR8FC3hrNEGLIm7gqj7i7tg/3eyq2nfkXE5Dira8404AKKEREy
+pcw88JlJvJ8/z+twy9gSRkW5bNfKkF3i6x6cIbsgbkvUj6bpKy9OsTEIgSHBHmnY
+bTB5gB0fYoE=
+=0cc3
+-----END PGP SIGNATURE-----
+
+--------------enig00678CA5D1B8D7ABFC4AEC9B--
 
