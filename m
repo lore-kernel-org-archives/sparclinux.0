@@ -1,7 +1,7 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Tue, 26 Oct 2004 02:53:28 +0000
+From: mcgrof@studorgs.rutgers.edu (Luis R. Rodriguez)
+Date: Tue, 26 Oct 2004 06:11:28 +0000
 Subject: Re: Booting an Ultra sparc with 2.6
-Message-Id: <20041025195328.0614bfe3.davem@davemloft.net>
+Message-Id: <20041026061128.GM17506@ruslug.rutgers.edu>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040913143811.GH30464@ruslug.rutgers.edu>
 In-Reply-To: <20040913143811.GH30464@ruslug.rutgers.edu>
@@ -10,11 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Mon, 25 Oct 2004 20:32:12 -0400
-mcgrof@studorgs.rutgers.edu (Luis R. Rodriguez) wrote:
+On Mon, Oct 25, 2004 at 07:53:28PM -0700, David S. Miller wrote:
+> On Mon, 25 Oct 2004 20:32:12 -0400
+> mcgrof@studorgs.rutgers.edu (Luis R. Rodriguez) wrote:
+> 
+> > a. boot into vmlinux (48MB)
+> > 	result: image too large
+> 
+> Please, why in the world do you need a 48MB kernel
+> image?
 
-> a. boot into vmlinux (48MB)
-> 	result: image too large
+Hey -- I can reduce the size, sure but that is besides the point. I want
+to know the details of the size limitations of the kernel image for
+sparc64. You told me last that there was no size limitations, that this
+was fixed in the latest version of silo.
 
-Please, why in the world do you need a 48MB kernel
-image?
+	Luis
+
+-- 
+GnuPG Key fingerprint = 113F B290 C6D2 0251 4D84  A34A 6ADD 4937 E20A 525E
