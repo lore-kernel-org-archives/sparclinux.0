@@ -1,37 +1,74 @@
-From: Keith M Wesolowski <wesolows@foobazco.org>
-Date: Thu, 01 Apr 2004 10:11:32 +0000
-Subject: SPARC32 out of iommu/nocache
-Message-Id: <20040401101131.GA23540@foobazco.org>
+From: "Jacqueline Goldstein" <Mallory@chattertolove.com>
+Date: Tue, 20 Apr 2004 15:58:49 +0000
+Subject: super penile advancments
+Message-Id: <QAYVJWXQZVLMWWQWDAJIJLVA@yahoo.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="--76957315040268664"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-I'm sure moving to first/next for allocation instead of straight next
-helps with fragmentation.
+----76957315040268664
+Content-Type: text/plain;
+Content-Transfer-Encoding: 7Bit
 
-However, what will help a lot more, especially with iommu, is to fix
-this bug that prevents the allocator from ever reallocating anything
-once it uses the area at the end of the map.
+Free TV is Here! Digital Quality for Free, for life.
 
-Please test.
+NEW!!!!
 
-Enjoy this one, folks. :-)
+V2.2 Digital Filter + all New Lockout Key (prevents locks & freezes)
 
-=== arch/sparc/lib/bitext.c 1.1 vs edited ==--- 1.1/arch/sparc/lib/bitext.c	Wed Apr 30 01:05:41 2003
-+++ edited/arch/sparc/lib/bitext.c	Thu Apr  1 01:57:22 2004
-@@ -60,8 +60,8 @@
- 		}
- 
- 		if (offset + len > t->size) {
--			offset = 0;
- 			count += t->size - offset;
-+			offset = 0;
- 			continue;
- 		}
- 
+Works Very Easy.
+
+1. Hook-up Digital Filter
+2. Screw-in Lockout Buster (existing customers can buy this seperate - Must Have Now)
+3. Enjoy Watching Free Movies, Sporting, Events, Adult, etc.
+
+Save $1000's with this!
 
 
--- 
-Keith M Wesolowski
+http://ppvfan.com/promo.php?id=94011
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+I didn't subscribe to any Tv related information sites and wish to see no more. 
+http://ppvfan.com/remove.php?id=94011
+
+
+3
+ansi
+
+----76957315040268664--
+
