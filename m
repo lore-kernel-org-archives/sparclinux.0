@@ -1,37 +1,29 @@
-From: "monte" <fr8eedmanbill@hotmail.com>
-Date: Sun, 07 Mar 2004 16:53:42 +0000
-Subject: Save up to 80% on your medications!
-Message-Id: <1078678422-29920@excite.com>
+From: William Lee Irwin III <wli@holomorphy.com>
+Date: Fri, 12 Mar 2004 06:03:50 +0000
+Subject: NR_SYSCALLS vs. io_getevents()
+Message-Id: <20040312060350.GE655@holomorphy.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
+
+Sure enough, io_getevents() is getting back -ENOSYS when it shouldn't.
+At first glance it looks like a one-off in entry.S; Maybe this helps:
 
 
-Buy the drugs you need at huge discounts from Offshore Pharmacy!
-
-http://bigdiscounts.selcydc.com/s95/index.php?id=s95
+-- wli
 
 
-This weeks specials include great deals on:
+--- mm1-2.6.4-3/arch/sparc64/kernel/entry.S	2004-03-10 18:55:20.000000000 -0800
++++ mm1-2.6.4-4/arch/sparc64/kernel/entry.S	2004-03-11 22:00:49.608397000 -0800
+@@ -26,7 +26,7 @@
+ 
+ #define curptr      g6
+ 
+-#define NR_SYSCALLS 272      /* Each OS is different... */
++#define NR_SYSCALLS 273      /* Each OS is different... */
+ 
+ 	.text
+ 	.align		32
 
-- V i a g r a Soft Tabs - (Takes effect in a quarter of the time!)
-- Super V i a g r a - (Lasts 8 times longer!)
-- U l t r a m - (Pain Relief)
-- S o m a - (Muscle Relaxants)
-- Z y b a n - (Stop Smoking)
-- P r o z a c - (Anti-Depressant)
-- X a n a x - (Anti-Depressant)
-- V a l i u m - (Anxiety Relief)
-
-http://bigdiscounts.selcydc.com/s95/index.php?id=s95
-
-
-
-
-
-
-
-gillaspie death venus colleen moira stimpson   sweety kristiDenver kristi mondana kbuchan   mdougher defilippis  cori dobkin rjhoban  hansolo madge 
-Get off this list by writing to getmeoff731@excitemail.com
