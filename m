@@ -1,50 +1,50 @@
-From: "Art Haas" <ahaas@airmail.net>
-Date: Wed, 31 Mar 2004 00:09:24 +0000
+From: Jason Wever <weeve@gentoo.org>
+Date: Wed, 31 Mar 2004 00:21:08 +0000
 Subject: Re: Compiling sunlance as a module
-Message-Id: <20040331000924.GC5439@artsapartment.org>
+Message-Id: <20040330172108.351d4813@enterprise.weeve.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Signature=_Tue__30_Mar_2004_17_21_08_-0700_548dLlyoK=pAP7jm"
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040330234412.GB5439@artsapartment.org>
 In-Reply-To: <20040330234412.GB5439@artsapartment.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, Mar 30, 2004 at 05:00:25PM -0700, Jason Wever wrote:
-> On Tue, 30 Mar 2004 17:44:12 -0600
-> "Art Haas" <ahaas@airmail.net> wrote:
-> 
-> > I'm still fiddling around with my configuration for my SS20, and I found
-> > that compiling the sunlance.c file as a module has problems. When
-> > booting up and the various init scripts are running, the eth0 interface
-> > fails to start correctly. By doing 'modprobe sunlance' after I log in I
-> > am able to start eth0 and things move smoothly, but I'm an curious to
-> > find out why having this code as a module fails
-> 
-> I'm currently doing this on a ss4 and my first guess would be is that
-> nothing is loading the module before the init scripts try to make use of
-> the network device.  As long as I have the module loaded *before* the
-> network dependent init scripts run, everything is fine.  Not sure which
-> distribution you are using or I'd make a suggestion as to where to setup
-> the module to load.
-> 
-> Additionally network drives don't seem to fall under the drivers the
-> kernel will auto-load as needed (since it probably can't determine what
-> you may have or in the case of multiple NICs, which one you want to use).
-> 
+--Signature=_Tue__30_Mar_2004_17_21_08_-0700_548dLlyoK=pAP7jm
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 
-My main computer is an old Pentium computer, and I have an ethernet card
-using the 8139too driver, and this machine doesn't have any problem
-loading the module, and I haven't (knowingly) done anything special to
-load it prior to the machine bringing up the eth0 interface. It would
-not be surprising if my problem is a configuration error, but when I
-compare my sparc-configuration to the i386-configuration, things look
-similiar in the networking type areas.
+On Tue, 30 Mar 2004 18:09:24 -0600
+"Art Haas" <ahaas@airmail.net> wrote:
 
-Art Haas
+> My main computer is an old Pentium computer, and I have an ethernet card
+> using the 8139too driver, and this machine doesn't have any problem
+> loading the module, and I haven't (knowingly) done anything special to
+> load it prior to the machine bringing up the eth0 interface. It would
+> not be surprising if my problem is a configuration error, but when I
+> compare my sparc-configuration to the i386-configuration, things look
+> similiar in the networking type areas.
+
+Are you running hotplug on the i386 box?  That can result in the module
+being auto-loaded as well as any other automatic hardware detection
+software.
+
+If the kernel is auto-loading the module without outside assistance, I'd
+be interested to know how that works.
 
 -- 
-Man once surrendering his reason, has no remaining guard against absurdities
-the most monstrous, and like a ship without rudder, is the sport of every wind.
+Jason Wever
+Gentoo/Sparc Team Co-Lead
 
--Thomas Jefferson to James Smith, 1822
+--Signature=_Tue__30_Mar_2004_17_21_08_-0700_548dLlyoK=pAP7jm
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFAag70dKvgdVioq28RAsyxAKCzGBP26FGf7ekgNOVpaoJjob4G5QCcCdKy
+nVZfgBDlDmuwvnzDqtv4OLE=
+=asKP
+-----END PGP SIGNATURE-----
+
+--Signature=_Tue__30_Mar_2004_17_21_08_-0700_548dLlyoK=pAP7jm--
