@@ -1,33 +1,67 @@
-From: Ben Collins <bcollins@debian.org>
-Date: Thu, 08 Jan 2004 18:53:52 +0000
-Subject: Re: Question on SILO
-Message-Id: <20040108185352.GG17280@phunnypharm.org>
+From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
+Date: Tue, 13 Jan 2004 16:47:16 +0000
+Subject: [PATCH] removing interruptible_sleep_on in
+Message-Id: <1074055200.4990.37.camel@zorak>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=-KMPb3kOLTJOy0Qo1KofB"
 List-Id: <sparclinux.vger.kernel.org>
-References: <1F6206BC53BCD3119059009027D1D3A20CC6AF3A@OEKAEX01.becker.de>
-In-Reply-To: <1F6206BC53BCD3119059009027D1D3A20CC6AF3A@OEKAEX01.becker.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, Jan 08, 2004 at 11:16:10AM +0100, Jurzitza, Dieter wrote:
-> Dear listmembers,
-> I have tried to install the new Silo (1.3.2) on my Ultra 60. However, when
-> booting I get now:
-> *****
-> OK boot <ENTER>
-> SILOFast Data Access MMU Miss
-> OK
-> *****
-> Does propably anyone has an idea what could have gone wrong here? Many
-> thanks for your efforts in advance,
-> take care
 
-Have you tried backing down to an older version to see if it works? I
-assume you ran "silo -f" after installing the new bootblocks.
+--=-KMPb3kOLTJOy0Qo1KofB
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
--- 
-Debian     - http://www.debian.org/
-Linux 1394 - http://www.linux1394.org/
-Subversion - http://subversion.tigris.org/
-WatchGuard - http://www.watchguard.com/
+Fedora Core 2's 2.6.1 kernel package is patching interruptible_sleep_on
+(and sleep_on) as deprecated. This causes 
+sparc64 to stop building, since it uses interruptible_sleep_on in
+arch/sparc64/kernel/power.c. I made a best effort to fix this in the
+attached patch, feedback is appreciated.
+
+~spot
+---
+Tom "spot" Callaway <tcallawa(a)redhat*com> LCA, RHCE 
+Red Hat Sales Engineer || Aurora SPARC Linux Project Leader
+
+"The author's mathematical treatment of the conception of purpose is
+novel and highly ingenious, but heretical and, so far as the present
+social order is concerned, dangerous and potentially subversive. Not to
+be published." -- Aldous Huxley's "Brave New World"
+
+--=-KMPb3kOLTJOy0Qo1KofB
+Content-Disposition: attachment; filename=linux-2.6.1-sparc64-powerdfix.patch
+Content-Type: text/x-patch; name=linux-2.6.1-sparc64-powerdfix.patch; charset=
+Content-Transfer-Encoding: 7bit
+
+--- linux-2.6.1/arch/sparc64/kernel/power.c.BAD	2004-01-13 16:42:36.000000000 -0500
++++ linux-2.6.1/arch/sparc64/kernel/power.c	2004-01-13 17:00:35.000000000 -0500
+@@ -69,13 +69,16 @@
+ {
+ 	static char *envp[] = { "HOME=/", "TERM=linux", "PATH=/sbin:/usr/sbin:/bin:/usr/bin", NULL };
+ 	char *argv[] = { "/sbin/shutdown", "-h", "now", NULL };
++	DECLARE_WAITQUEUE(wait, current);
++	add_wait_queue(&powerd_wait, &wait);
++	set_current_state(TASK_INTERRUPTIBLE);
+ 
+ 	daemonize("powerd");
+ 
+ again:
+ 	while (button_pressed == 0) {
+ 		flush_signals(current);
+-		interruptible_sleep_on(&powerd_wait);
++		schedule();
+ 	}
+ 
+ 	/* Ok, down we go... */
+@@ -84,6 +87,8 @@
+ 		button_pressed = 0;
+ 		goto again;
+ 	}
++	remove_wait_queue(&powerd_wait, &wait);
++	set_current_state(TASK_RUNNING);
+ 	return 0;
+ }
+ 
+
+--=-KMPb3kOLTJOy0Qo1KofB--
+
