@@ -1,26 +1,32 @@
-From: Christoph Hellwig <hch@infradead.org>
-Date: Wed, 11 Aug 2004 16:45:23 +0000
+From: William Lee Irwin III <wli@holomorphy.com>
+Date: Wed, 11 Aug 2004 16:54:59 +0000
 Subject: Re: architectures with their own "config PCMCIA"
-Message-Id: <20040811174523.A30087@infradead.org>
+Message-Id: <20040811165459.GR11200@holomorphy.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040807170122.GM17708@fs.tum.de> <200408072013.01168.arnd@arndb.de> <Pine.GSO.4.58.0408072234290.23642@waterleaf.sonytel.be> <200408072341.17721.arnd@arndb.de>
-In-Reply-To: <200408072341.17721.arnd@arndb.de>; from arnd@arndb.de on Sat, Aug 07, 2004 at 11:41:17PM +0200
+References: <20040807170122.GM17708@fs.tum.de>
+In-Reply-To: <20040807170122.GM17708@fs.tum.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>, Adrian Bunk <bunk@fs.tum.de>, Christoph Hellwig <hch@infradead.org>, wli@holomorphy.com, "David S. Miller" <davem@redhat.com>, schwidefsky@de.ibm.com, linux390@de.ibm.com, sparclinux@vger.kernel.org, Linux/m68k <linux-m68k@lists.linux-m68k.org>, Linux Kernel Development <linux-kernel@vger.kernel.org>
+To: Adrian Bunk <bunk@fs.tum.de>
+Cc: davem@redhat.com, geert@linux-m68k.org, schwidefsky@de.ibm.com, linux390@de.ibm.com, sparclinux@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-kernel@vger.kernel.org
 
-On Sat, Aug 07, 2004 at 11:41:17PM +0200, Arnd Bergmann wrote:
-> However, I just tried and found that out of the 23 driver submenus, only
-> "Generic Driver Options", "Block devices", "SCSI device support",
-> "Multi-device support", "Networking support" and "Character devices"
-> make any sense at all. All others depend on some hardware that has
-> never been attached to an s390 box. 
-> 
-> We could of course build some subsystems like MTD, ISDN or FB, but
-> there is still little point without any low-level drivers.
+On Sat, Aug 07, 2004 at 07:01:22PM +0200, Adrian Bunk wrote:
+> The following architetures have their own "config PCMCIA" instead of 
+> including drivers/pcmcia/Kconfig (in 2.6.8-rc3-mm1):
+> - m68k
+> - s390
+> - sparc
+> - sparc64
+> Is there any good reason for this, or would a patch to change these 
+> architectures to include drivers/pcmcia/Kconfig be OK?
 
-That gives this type of code additional build coverage, which is a good
-thing.  Just allow it in the menues, no need to add it to your defconfigs :)
+I'd like to switch things over to drivers/Kconfig and/or
+drivers/pcmcia/Kconfig. If the drivers are bust I'll just sweep them
+when someone complains about the build being bust. One could
+proactively find these with make allmodconfig and/or allyesconfig, but
+I suspect that may be too large a set of drivers to digest all at once.
+Or maybe not -- akpm does scale, after all.
 
+
+-- wli
