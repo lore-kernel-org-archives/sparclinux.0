@@ -1,59 +1,43 @@
-From: "Jurzitza, Dieter" <DJurzitza@harmanbecker.com>
-Date: Fri, 30 Apr 2004 12:03:08 +0000
-Subject: Stability issues
-Message-Id: <CFE6A2529AC5FA439B3D852B0F2A68371A2B34@OEKAW2EXVS02.hbi.ad.harman.com>
+From: Andrew Morton <akpm@osdl.org>
+Date: Fri, 30 Apr 2004 03:39:01 +0000
+Subject: Re: Problem with recent changes to fs/dcache.c
+Message-Id: <20040429203901.4cd21fdc.akpm@osdl.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20040430020525.GI27793@artsapartment.org>
+In-Reply-To: <20040430020525.GI27793@artsapartment.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Art Haas <ahaas@airmail.net>
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-Dear listmembers,
-I have cooled down somewhat :-). However, please note: IDE is unstable on
-U60, 2.4.26 is worse than 2.4.25 and 2.4.24 (on my system) using a
-PCI-Promise U100 controller.
-2.4.24 and 2.4.25 allowed accessing ide burners via ide-scsi interface,
-2.4.26 does not (burner hangs, shortly after that the U60 crashes)
-To whom it might concern ....
+"Art Haas" <ahaas@airmail.net> wrote:
+>
+> I run linux on a SparcStation SS20 in addition to a PC, and found that
+>  none of the 2.6.6-rc kernels would boot. After trying the latest -rc3
+>  kernel and seeing it fail also, my debugging quest began. Adding a few
+>  printk() statements pointed the problem to be in fs/dcache.c in the
+>  vfs_caches_init() function. The 1.69->1.70 changes to this file added in
+>  a call to nr_free_pages() and used that result to adjust the global
+>  mempages variable. This change caused the boot failures.
+> 
+>  The printk() statements I'd added showed that vfs_caches_init() was
+>  being called with 'mempages' set to 46073. The nr_free_pages() call
+>  returned 127661, and this value being subtracted from mempages went
+>  negative, but the value is unsigned, so mempages became enormous. Things
+>  ended up getting stuck in the inode_init() call down a bit, having
+>  seeming survived the dcache_init() call only because of values
+>  wrapping around.
+> 
+>  I commented out the 'mempages -= reserve;' line in the file, and the
+>  boot continued along. Unfortunately I encounter a kernel trap when
+>  mounting the hard drives, so there are other problems still needing to
+>  be looked at.
+> 
+>  The possiblity of nr_free_pages() being larger than mempages looks like
+>  a silent bug that was tripped. If not, then another bug in the Sparc
+>  port may be responsible for values being used in these functions. The
+>  memory-management gurus can take a peek and see what they find.
 
-Take care
-
-
-
-Dieter Jurzitza
-
-
---=20
-________________________________________________
-
-HARMAN BECKER AUTOMOTIVE SYSTEMS
-
-Dr.-Ing. Dieter Jurzitza
-Manager Hardware Systems
-         ESI
-
-Industriegebiet Ittersbach
-Becker-G=F6ring Str. 16
-D-76307 Karlsbad / Germany
-
-Phone: +49 (0)7248 71-1577
-Fax:   +49 (0)7248 71-1216
-eMail: DJurzitza@harmanbecker.com
-Internet: http://www.becker.de
-=20
-
-
-*******************************************
-Diese E-Mail enthaelt vertrauliche und/oder rechtlich geschuetzte Informati=
-onen. Wenn Sie nicht der richtige Adressat sind oder diese E-Mail irrtuemli=
-ch erhalten haben, informieren Sie bitte sofort den Absender und loeschen S=
-ie diese Mail. Das unerlaubte Kopieren sowie die unbefugte Weitergabe diese=
-r Mail ist nicht gestattet.
-=20
-This e-mail may contain confidential and/or privileged information. If you =
-are not the intended recipient (or have received this e-mail in error) plea=
-se notify the sender immediately and delete this e-mail. Any unauthorized c=
-opying, disclosure or distribution of the contents in this e-mail is strict=
-ly forbidden.
-*******************************************
-
+Yes, something's bust in the sparc port's calculation of num_physpages. 
+Clearly it should be larger than nr_free_pages().
