@@ -1,7 +1,7 @@
-From: "Art Haas" <ahaas@airmail.net>
-Date: Wed, 31 Mar 2004 01:42:16 +0000
+From: Pete Zaitcev <zaitcev@redhat.com>
+Date: Wed, 31 Mar 2004 01:51:10 +0000
 Subject: Re: Compiling sunlance as a module
-Message-Id: <20040331014216.GC6522@artsapartment.org>
+Message-Id: <20040330175110.38eb7f2a.zaitcev@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040330234412.GB5439@artsapartment.org>
 In-Reply-To: <20040330234412.GB5439@artsapartment.org>
@@ -10,39 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, Mar 30, 2004 at 05:21:08PM -0700, Jason Wever wrote:
-> On Tue, 30 Mar 2004 18:09:24 -0600
-> "Art Haas" <ahaas@airmail.net> wrote:
-> 
-> > My main computer is an old Pentium computer, and I have an ethernet card
-> > using the 8139too driver, and this machine doesn't have any problem
-> > loading the module, and I haven't (knowingly) done anything special to
-> > load it prior to the machine bringing up the eth0 interface. It would
-> > not be surprising if my problem is a configuration error, but when I
-> > compare my sparc-configuration to the i386-configuration, things look
-> > similiar in the networking type areas.
-> 
-> Are you running hotplug on the i386 box?  That can result in the module
-> being auto-loaded as well as any other automatic hardware detection
-> software.
+On Wed, Mar 31, 2004 at 12:25:25AM +0000, C.Newport wrote:
 
-The machine is configured for hotplug; as I was curious to fiddle around
-with the 'udev' stuff in development. I'm still using a static '/dev'
-directory, though.
+> All supported 32bit sparc machines come with a sunlance NIC, so
+> why would you want this as a module ?. You are always going to
+> need it.
 
-> If the kernel is auto-loading the module without outside assistance, I'd
-> be interested to know how that works.
+JavaStation-NC, JavaEngine-1, CP-1200 all have HME. Solaris never
+supported those, but Linux is better.
 
-I'm certain that my ethernet driver was being successfully loaded as a
-module long before I'd begun to configure the kernel with hotplug
-capabilities. I should add a few 'lsmod' statements here and there in
-the initscripts and see if I can find just where and when this module is
-getting loaded.
+> There is a slightly more obscure issue here - Not all Sun machines
+> have a working CD drive so the ability to boot from the network for
+> both installations and troubleshooting is highly desireable. 
+> Booting from a device which needs a module is not a good idea.
 
-Art Haas
+On sparc, initrd is easy to piggyback onto the kernel, so it should
+pose no problem to netboot over a modular sunlance.
+Please refer to arch/sparc/boot/piggyback.c.
 
--- 
-Man once surrendering his reason, has no remaining guard against absurdities
-the most monstrous, and like a ship without rudder, is the sport of every wind.
-
--Thomas Jefferson to James Smith, 1822
+-- Pete
