@@ -1,7 +1,7 @@
 From: Private Dish <privatedishfiles@sympatico.ca>
-Date: Sun, 16 Jan 2005 10:20:38 +0000
-Subject: Free fourms / Nagra2 info
-Message-Id: <385-220051016102038843@sluts-b97ufjx2q>
+Date: Sat, 15 Jan 2005 01:19:42 +0000
+Subject: Superior Uptime for Dish/Bev/Nagra2 ready.
+Message-Id: <385-22005161511941968@sluts-b97ufjx2q>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
