@@ -1,7 +1,7 @@
-From: Marc Zyngier <mzyngier@freesurf.fr>
-Date: Fri, 02 Apr 2004 12:07:51 +0000
+From: Meelis Roos <mroos@linux.ee>
+Date: Fri, 02 Apr 2004 12:20:20 +0000
 Subject: Re: serial console confusion
-Message-Id: <wrplllevazs.fsf@panther.wild-wind.fr.eu.org>
+Message-Id: <Pine.GSO.4.44.0404021513001.22261-100000@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.GSO.4.44.0404021400470.23192-100000@math.ut.ee>
 In-Reply-To: <Pine.GSO.4.44.0404021400470.23192-100000@math.ut.ee>
@@ -10,17 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
->>>>> "Meelis" = Meelis Roos <mroos@linux.ee> writes:
+> On the Ultra-5 (or almost any other PCI Ultra), you should use
+> CONFIG_SERIAL_SUNSAB. su is used for keyboard I/O on this plateform.
 
-Meelis> With no PROM console, sun su & sun su console, I get the dmesg
-Meelis> that is below. Where should I dig? Is serial console on su
-Meelis> serial ports working for others?
+Thanks! This clears up the confusion. sunsab serial works fine, also as
+a console.
 
-On the Ultra-5 (or almost any other PCI Ultra), you should use
-CONFIG_SERIAL_SUNSAB. su is used for keyboard I/O on this plateform.
+sunsab.c gives a warning though. I looked at it but I don't know whether
+prepending a (void) to the call to uart_handle_sysrq_char() would just
+fix it or paper over a bug.
 
-Regards,
+  CC      drivers/serial/sunsab.o
+drivers/serial/sunsab.c: In function `receive_chars':
+drivers/serial/sunsab.c:149: warning: statement with no effect
 
-	M.
 -- 
-Places change, faces change. Life is so very strange.
+Meelis Roos (mroos@linux.ee)
+
