@@ -1,134 +1,33 @@
-From: BlackBird X-Treme III <dsscommunication@hotmail.com>
-Date: Wed, 11 Aug 2004 01:56:01 +0000
-Subject: Cardless Reciever BlackBird X-Treme III Free To Air NagraVision Easiest Setup EVER
-Message-Id: <E1BuiLR-0007Pb-HX@galaxy.ovelix.com>
+From: Admar Schoonen <admar@luon.net>
+Date: Sat, 14 Aug 2004 13:41:55 +0000
+Subject: Re: 2.6.8-rc4 on sparc64 oopses at boot and no working XFree86
+Message-Id: <20040814134154.GL21828@azrael.luon.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Price per unit is $319.00 For immediate service, You can call us at
-1-800-649-6703 or email us at blackbirdxtreme@elitemail.org
-Limit Of 3 Per Customer=20
+(sorry for the cross posting; I had the wrong list first)
 
-Price per unit is $319.00 , includes everything you need to be up and runni=
-ng right out of the box. Units come PRE FLASHED upon request, just ask us w=
-hen you make your order. No dish is included, but you can use any dishnet 5=
-00 dish with dual lnb and use the switch we include with your order. The fe=
-male to female db9 cable is also included, you will need this to perform fu=
-ture flashing of the unit when doing upgrades. The switch and the cable are=
- a $30 value, we give them to you free of charge!
+On Fri, Aug 13, 2004 at 09:03:09AM -0700, David S. Miller wrote:
+> I have no idea wrt. your xfree86 problems.
 
-Price per unit is $319.00 For immediate service, You can call us at
-1-800-649-6703 or email us at blackbirdxtreme@elitemail.org
+Well, I guess it's related to the fact that I have 2 Ati mach64
+framebuffers (2 x PGX64) in the machine. On that machine XFree86
+segfaults with 2.6.8-rc4 segfaults, while it works fine with 2.6.7.
 
-The memory size in this receiver is very big xtremely big (hense the xtreme=
- name). the original blackbird is 2mb's and the pansats are 2mbs. These uni=
-ts come with 4mb's, that's plenty of room for future upgrades.=20
-Includes new software for faster channel changing and an auto-roll=20
-=BD the size of previous models=20
-Faster=20
-Autoroll=20
-All accessories included: Audio/Video cable, Remote, Batteries, Manual=20
-As of july 15th the null modem cable is included=20
-BLACKBIRD XTREME FEATURES
+I've just tried 2.6.8-rc4 on an ultra 5 with just 1 Ati mach64
+framebuffer (PGX24) and XFree86 works fine there too, so I guess it's
+due to the secondary framebuffer.
 
-- No more JTAGs, AVRs, Atmegas, ROM X Cards, ISO Programmers, and TSOP locks
-- Everything you need is in the receiver
-- With the current keys, you can receive all channels wide open
-- No card needed - EVER!
+I'll ask the linux-fbdev guys about this issue.
+ 
+> Why not post this on the correct list, sparclinux@vger.kernel.org,
+> btw?
 
+Sorry, I didn't know it existed. I should have looked better of course.
 
+Admar
 
-Price per unit is $319.00 For immediate service, You can call us at
-1-800-649-6703 or email us at blackbirdxtreme@elitemail.org
-
-You can connect up to 4 different LNBs/satellite dishes to your Blackbird X=
-treme receiver with the DiSEQC 4 in 1 switch. You have over 7 satellites to=
- choose from, and over 2500 channels. The receiver contains all the softwar=
-e for the dishes once you have pointed the dishes outside your home.=20
-
-
-
-The Blackbird Xtreme is now available for purchase and in high demand, as w=
-e are the exclusive online dealers of the unit, so you should consider orde=
-ring soon. They are shipping now!! We are offering this product to American=
-s and Canadian customers, as the receiver is a legal free-to-air system.
-
-
-
-Tech Details for the Non-techie...=20
-
-
-
-You cannot use DirecTV with the Blackbird Xtreme. Rather, you can connect u=
-p to 4 different LNBs to a 4-way switch and one output to the receiver. Bla=
-ckbird Xtreme will understand each individual LNB signal, and download all =
-the channels for that satellite. For instance, if one LNB were pointing as =
-Dish Network, you would set up LNB 1 to download all 300 DishNet stations (=
-PPV, sports, everything). This would populate channels 1 - 300 on the syste=
-m.=20
-
-
-
-If LNB 2 were pointing at another satellite company, you would then be able=
- to set up LNB 2 to download channels 301 - 600. This can continue for up t=
-o 4 different satellite signals. Potentially, with enough dishes, you could=
- flip from channels 1 - 1200, without missing any stations!!=20
-
-
-
-Although you cannot get DirecTV, you can use your existing DirecTV dish on =
-your house, and the LNB, as long as you properly re-point the dish to anoth=
-er satellite, such as Dish Network.=20
-
-Price per unit is $319.00 For immediate service, You can call us at
-1-800-649-6703 or email us at blackbirdxtreme@elitemail.org
-
-
-It's that easy!=20
-
-
-
-Imagine, 1200 stations, no programming cards, no hashing, no blacklisting, =
-and no fear of the dreaded DirecTV "letter". All you need is to plug in the=
- ENFORCER to open all channels wide open in Dish Network.
-
-
-
-
-What Channels will I get?
-
-
-ALL Dish Network Channels, including all PPV's, HBO's, Locals and premium c=
-hannels.
-- View channels on Dishnet Sat 61.5
-- View channels on Dishnet Sat 110
-- View channels on Dishnet Sat 119
-
-
-You will NOT get HDTV Channels!
-
-
-
-You will get all other NAGRAVISION Encoded channels!!!
-
-
-
-The Blackbird Xtreme gets approximately 60 Free To Air satellites around th=
-e world making this receiver the most versatile unit around by far! Weather=
- you want to watch just your locals or stuff from around the world you can =
-get it all.=20
-
-
-Price per unit is $319.00 For immediate service, You can call us at
-1-800-649-6703 or email us at blackbirdxtreme@elitemail.org
-
-
-
-
-
-
-
-
+(Please CC any replies to me, as I'm not subscribed to this list.)
