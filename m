@@ -1,38 +1,53 @@
-From: Adam Kropelin <akropel1@rochester.rr.com>
-Date: Sat, 11 Dec 2004 16:18:47 +0000
-Subject: [PATCH] cg6 framebuffer no display
-Message-Id: <20041211131340.A16522@mail.kroptech.com>
+From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
+Date: Wed, 22 Dec 2004 05:38:43 +0000
+Subject: [sparc32] [2/3] Remove conflicting _exit
+Message-Id: <1103693923.3913.71.camel@localhost.localdomain>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=-6iWtBJOZzK4NScGJjcQ7"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Although the CG6 framebuffer is detected and initialized, without this
-patch all it displays is a blank screen. Tested on an Ultra 1 with a
-TGX+.
 
-Originally from Bob Breuer for the CG14.
+--=-6iWtBJOZzK4NScGJjcQ7
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Adam Kropelin <akropel1@rochester.rr.com>
+sparc32 had a conflicting _exit, removed the line from asm-
+sparc/unistd.h. This is the same change that DaveM made to sparc64 here:
+http://linux.bkbits.net:8080/linux-2.6/diffs/include/asm-
+sparc64/unistd.h@1.33
 
---- linux-2.6.9-rc3-bk5/drivers/video/cg6.c	2004-12-11 15:35:03.106749591 -0500
-+++ linux-2.6.9-rc3-bk5.adk/drivers/video/cg6.c	2004-12-11 15:30:18.000000000 -0500
-@@ -689,6 +689,9 @@
- 	all->par.physbase = sdev->reg_addrs[0].phys_addr;
+Warning was:
+In file included from include/linux/unistd.h:9,
+                 from init/main.c:45:
+include/asm/unistd.h:489: warning: conflicting types for built-in
+function '_exit'
+
+Signed-off-by: Tom 'spot' Callaway <tcallawa@redhat.com>
+
+~spot
+---
+Tom "spot" Callaway <tcallawa(a)redhat*com> LCA, RHCE 
+Red Hat Sales Engineer || Aurora Linux Project Leader
+
+"If you are going through hell, keep going."
+- Sir Winston Churchill
+
+--=-6iWtBJOZzK4NScGJjcQ7
+Content-Disposition: attachment; filename=linux-2.6.9-sparc-unistdexitfix.patch
+Content-Type: text/x-patch; name=linux-2.6.9-sparc-unistdexitfix.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+--- linux-2.6.9/include/asm-sparc/unistd.h.BAD	2004-12-21 23:03:42.211033891 -0500
++++ linux-2.6.9/include/asm-sparc/unistd.h	2004-12-21 23:03:45.657509947 -0500
+@@ -486,7 +486,6 @@ static __inline__ _syscall1(int,dup,int,
+ static __inline__ _syscall3(int,execve,__const__ char *,file,char **,argv,char **,envp)
+ static __inline__ _syscall3(int,open,__const__ char *,file,int,flag,int,mode)
+ static __inline__ _syscall1(int,close,int,fd)
+-static __inline__ _syscall1(int,_exit,int,exitcode)
+ static __inline__ _syscall3(pid_t,waitpid,pid_t,pid,int *,wait_stat,int,options)
  
- 	sbusfb_fill_var(&all->info.var, sdev->prom_node, 8);
-+	all->info.var.red.length = 8;
-+	all->info.var.green.length = 8;
-+	all->info.var.blue.length = 8;
- 
- 	linebytes = prom_getintdefault(sdev->prom_node, "linebytes",
- 				       all->info.var.xres);
-@@ -732,6 +735,7 @@
- 		return;
- 	}
- 
-+	fb_set_cmap(&all->info.cmap, &all->info);
- 	cg6_init_fix(&all->info, linebytes);
- 
- 	if (register_framebuffer(&all->info) < 0) {
+ #include <linux/linkage.h>
+
+--=-6iWtBJOZzK4NScGJjcQ7--
+
