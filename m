@@ -1,47 +1,33 @@
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
-Date: Wed, 19 Jan 2005 19:48:37 +0000
-Subject: FPU context and fork
-Message-Id: <41EEB995.8070402@wp.pl>
+From: "David S. Miller" <davem@davemloft.net>
+Date: Wed, 19 Jan 2005 20:25:51 +0000
+Subject: Re: FPU context and fork
+Message-Id: <20050119122551.30e4342f.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <41EEB995.8070402@wp.pl>
+In-Reply-To: <41EEB995.8070402@wp.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-I struggle to build a self-compiled toolchain and glibc for Sparcstation 
-20 M612. I am running testsuite for both and I run into a failure from 
-test-fenv test from glibc testsuite. This is a test of FP exceptions 
-(IEEE 754 compliant) -each exception is disabled or enabled and checked 
-if a handler is called when the exception is raised.
+On Wed, 19 Jan 2005 20:48:37 +0100
+Krzysztof Helt <krzysztof.h1@wp.pl> wrote:
 
-The test fails with 11 errors on UP kernel 2.4.27. This is probably 
-incorrect as SuperSparc should be IEEE 754 compliant. But a problem is 
-that it fails with 21 errors on SMP kernel 2.4.27. I suppose that a 
-different behavior between UP and SMP version is a serious bug. I see it 
-is done the same way in 2.6.10 series.
+> How  should it be done?  Should copy_flags() during do_fork() preserve 
+> FPU context/registers for child task? Should SMP and UP context 
+> switching be handled differently?
 
- I dug into a problem and found that it comes from not copying the FPU 
-state in do_fork function. Actually, the FPU is disabled in every new 
-created task and enabled later when the FPU operation is done. So the 
-glibc test must have failed, because it enables or disables FP 
-exceptions than forks and wait for the FP exception signal. After the 
-fork, the FPU in the new task is initialized to a default state so 
-rounding and exception settings are lost.
+copy_thread(), via do_fork(), copies the FPU state in this code here:
 
-I also observed that a system of handling FPU context reloading is 
-different in SMP and UP version.
-
-I did a little research on Internet and found that FPU context 
-initialization and reloading happened to other architectures (MIPS, SH) 
-too. Various arguments were given how it should be done.
-
-How  should it be done?  Should copy_flags() during do_fork() preserve 
-FPU context/registers for child task? Should SMP and UP context 
-switching be handled differently?
-
-I am eager to fix this,
-Krzysztof Helt
-
-
-
-
+#ifndef CONFIG_SMP
+	if(last_task_used_math = current) {
+#else
+	if(current_thread_info()->flags & _TIF_USEDFPU) {
+#endif
+		put_psr(get_psr() | PSR_EF);
+		fpsave(&p->thread.float_regs[0], &p->thread.fsr,
+		       &p->thread.fpqueue[0], &p->thread.fpqdepth);
+#ifdef CONFIG_SMP
+		current_thread_info()->flags &= ~_TIF_USEDFPU;
+#endif
+	}
