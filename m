@@ -1,22 +1,19 @@
-From: Ben Collins <bcollins@debian.org>
-Date: Mon, 05 Apr 2004 17:32:25 +0000
-Subject: Re: Question on OOPS / U60 / Kernel 2.4.24-SMP
-Message-Id: <20040405173225.GK13168@phunnypharm.org>
+From: Meelis Roos <mroos@linux.ee>
+Date: Mon, 12 Apr 2004 08:01:56 +0000
+Subject: smartctl & ioctl translation
+Message-Id: <Pine.GSO.4.44.0404121100260.28876-100000@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CFE6A2529AC5FA439B3D852B0F2A68371A2A96@OEKAW2EXVS02.hbi.ad.harman.com>
-In-Reply-To: <CFE6A2529AC5FA439B3D852B0F2A68371A2A96@OEKAW2EXVS02.hbi.ad.harman.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> I think I should give some option regarding the system architecture to the
-> ksymoops call. I did not find out which ones; ksymoops -a '?' tells me
+smartctl -a does not work on 2.6.5 sparc64 (Debian unstable). Does the
+kernel need some more ioctl32 translations or does smartmontools need a
+recompile against newer headers?
 
--t elf64-sparc -a sparc:v9
+ioctl32(smartctl:3717): Unknown cmd fd(3) cmd(0000031e){00} arg(effe0790) on /dev/hda
 
 -- 
-Debian     - http://www.debian.org/
-Linux 1394 - http://www.linux1394.org/
-Subversion - http://subversion.tigris.org/
-WatchGuard - http://www.watchguard.com/
+Meelis Roos (mroos@linux.ee)
+
