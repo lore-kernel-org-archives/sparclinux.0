@@ -1,40 +1,105 @@
 From: Jeremy Huddleston <eradicator@gentoo.org>
-Date: Thu, 09 Dec 2004 05:25:51 +0000
+Date: Thu, 09 Dec 2004 06:00:42 +0000
 Subject: Re: [PATCH] updated asm-sparc/{processor,signal,sigcontext}.h to
-Message-Id: <1102569951.20234.15.camel@cid.outersquare.org>
+Message-Id: <1102572042.20234.21.camel@cid.outersquare.org>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-JI7OO/mNa/Xy3cY1HNEw"
+Content-Type: multipart/mixed; boundary="=-/IHwlT293To4a4BQDJEh"
 List-Id: <sparclinux.vger.kernel.org>
 References: <1102503203.20234.7.camel@cid.outersquare.org>
 In-Reply-To: <1102503203.20234.7.camel@cid.outersquare.org>
 To: sparclinux@vger.kernel.org
 
 
---=-JI7OO/mNa/Xy3cY1HNEw
+--=-/IHwlT293To4a4BQDJEh
+Content-Type: multipart/mixed; boundary="=-hOvHr+4Ql8dvduYlkLow"
+
+
+--=-hOvHr+4Ql8dvduYlkLow
 Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2004-12-08 at 21:01 -0800, David S. Miller wrote:
-> Please use __KERNEL__ instead of things like _SIGNAL_H
-> Thanks.
+On Wed, 2004-12-08 at 21:25 -0800, David S. Miller wrote:
+> > Ok, I'll keep that in mind for next time.  I was just copying the same
+> > behavior from asm-x86_64.  Do you want me to update/resend the patch?=20
+>=20
+> Please do, I'd like to apply your patch and have this fixed. :-)
 
-Ok, I'll keep that in mind for next time.  I was just copying the same
-behavior from asm-x86_64.  Do you want me to update/resend the patch?=20
+Ok, here's the updated one.  It's much cleaner now, and I also did NOT
+do asm-x86_64's '#include <signal.h>' if we're !__KERNEL__.  I found
+that to be a rather ugly kludge.  It's the userland code that should
+change there, not us.
 
 --=20
 Jeremy Huddleston <eradicator@gentoo.org>
 
---=-JI7OO/mNa/Xy3cY1HNEw
+--=-hOvHr+4Ql8dvduYlkLow
+Content-Disposition: attachment; filename=sparcheaders.patch
+Content-Type: text/x-patch; name=sparcheaders.patch; charset=ISO-8859-1
+Content-Transfer-Encoding: base64
+
+ZGlmZiAtTmF1ciBsaW51eC0yLjYuOC4xLXZhbmlsbGEvaW5jbHVkZS9hc20tc3BhcmMvcHJvY2Vz
+c29yLmggbGludXgtMi42LjguMS5maXhzcGFyYy9pbmNsdWRlL2FzbS1zcGFyYy9wcm9jZXNzb3Iu
+aA0KLS0tIGxpbnV4LTIuNi44LjEtdmFuaWxsYS9pbmNsdWRlL2FzbS1zcGFyYy9wcm9jZXNzb3Iu
+aAkyMDA0LTA4LTE0IDAzOjU2OjIzLjAwMDAwMDAwMCAtMDcwMA0KKysrIGxpbnV4LTIuNi44LjEu
+Zml4c3BhcmMvaW5jbHVkZS9hc20tc3BhcmMvcHJvY2Vzc29yLmgJMjAwNC0xMi0wOCAyMTo1MToz
+OC41MzkzNzg0NTcgLTA4MDANCkBAIC00MywxMCArNDMsMTIgQEANCiANCiBzdHJ1Y3QgdGFza19z
+dHJ1Y3Q7DQogDQorI2lmZGVmIF9fS0VSTkVMX18NCiBzdHJ1Y3QgZnBxIHsNCiAJdW5zaWduZWQg
+bG9uZyAqaW5zbl9hZGRyOw0KIAl1bnNpZ25lZCBsb25nIGluc247DQogfTsNCisjZW5kaWYNCiAN
+CiB0eXBlZGVmIHN0cnVjdCB7DQogCWludCBzZWc7DQpkaWZmIC1OYXVyIGxpbnV4LTIuNi44LjEt
+dmFuaWxsYS9pbmNsdWRlL2FzbS1zcGFyYy9zaWdjb250ZXh0LmggbGludXgtMi42LjguMS5maXhz
+cGFyYy9pbmNsdWRlL2FzbS1zcGFyYy9zaWdjb250ZXh0LmgNCi0tLSBsaW51eC0yLjYuOC4xLXZh
+bmlsbGEvaW5jbHVkZS9hc20tc3BhcmMvc2lnY29udGV4dC5oCTIwMDQtMDgtMTQgMDM6NTQ6NTIu
+MDAwMDAwMDAwIC0wNzAwDQorKysgbGludXgtMi42LjguMS5maXhzcGFyYy9pbmNsdWRlL2FzbS1z
+cGFyYy9zaWdjb250ZXh0LmgJMjAwNC0xMi0wOCAyMTo1Njo0Ni40MTk1MTU0MTMgLTA4MDANCkBA
+IC00LDcgKzQsNiBAQA0KIA0KICNpZmRlZiBfX0tFUk5FTF9fDQogI2luY2x1ZGUgPGFzbS9wdHJh
+Y2UuaD4NCi0jZW5kaWYNCiANCiAjaWZuZGVmIF9fQVNTRU1CTFlfXw0KIA0KQEAgLTU3LDggKzU2
+LDYgQEANCiAJfSBzaV9mcHF1ZXVlIFsxNl07DQogfSBfX3NpZ2luZm9fZnB1X3Q7DQogDQotI2lm
+ZGVmIF9fS0VSTkVMX18NCi0NCiAvKiBUaGlzIG1hZ2ljIHNob3VsZCBiZSBpbiBnX3VwcGVyWzBd
+IGZvciBhbGwgdXBwZXIgcGFydHMNCiAgICB0byBiZSB2YWxpZC4NCiAgICBUaGlzIGlzIGdlbmVy
+YXRlZCBieSBzcGFyYzY0IG9ubHksIGJ1dCBmb3IgMzJiaXQgcHJvY2Vzc2VzLA0KQEAgLTY5LDgg
+KzY2LDkgQEANCiAJdW5zaWduZWQgICBpbnQgb191cHBlcls4XTsNCiB9IHNpZ2luZm9fZXh0cmFf
+djhwbHVzX3Q7DQogDQotI2VuZGlmDQotDQogI2VuZGlmIC8qICEoX19BU1NFTUJMWV9fKSAqLw0K
+IA0KKyNlbmRpZiAvKiAoX19LRVJORUxfXykgKi8NCisNCiAjZW5kaWYgLyogIShfX1NQQVJDX1NJ
+R0NPTlRFWFRfSCkgKi8NCisNCmRpZmYgLU5hdXIgbGludXgtMi42LjguMS12YW5pbGxhL2luY2x1
+ZGUvYXNtLXNwYXJjL3NpZ25hbC5oIGxpbnV4LTIuNi44LjEuZml4c3BhcmMvaW5jbHVkZS9hc20t
+c3BhcmMvc2lnbmFsLmgNCi0tLSBsaW51eC0yLjYuOC4xLXZhbmlsbGEvaW5jbHVkZS9hc20tc3Bh
+cmMvc2lnbmFsLmgJMjAwNC0wOC0xNCAwMzo1NTozNC4wMDAwMDAwMDAgLTA3MDANCisrKyBsaW51
+eC0yLjYuOC4xLmZpeHNwYXJjL2luY2x1ZGUvYXNtLXNwYXJjL3NpZ25hbC5oCTIwMDQtMTItMDgg
+MjE6NDk6MTkuMTI0NDEwMzc0IC0wODAwDQpAQCAtMyw2ICszLDcgQEANCiAjZGVmaW5lIF9BU01T
+UEFSQ19TSUdOQUxfSA0KIA0KICNpbmNsdWRlIDxhc20vc2lnY29udGV4dC5oPg0KKyNpbmNsdWRl
+IDxsaW51eC9jb21waWxlci5oPg0KIA0KICNpZmRlZiBfX0tFUk5FTF9fDQogI2lmbmRlZiBfX0FT
+U0VNQkxZX18NCkBAIC0xMTEsMTEgKzExMiwxNCBAQA0KIAl1bnNpZ25lZCBsb25nCXNpZ1tfTlNJ
+R19XT1JEU107DQogfSBfX25ld19zaWdzZXRfdDsNCiANCisNCisjaWZkZWYgX19LRVJORUxfXw0K
+IC8qIEEgU3VuT1Mgc2lnc3RhY2sgKi8NCiBzdHJ1Y3Qgc2lnc3RhY2sgew0KIAljaGFyICp0aGVf
+c3RhY2s7DQogCWludCAgIGN1cl9zdGF0dXM7DQogfTsNCisjZW5kaWYNCiANCiAvKiBTaWd2ZWMg
+ZmxhZ3MgKi8NCiAjZGVmaW5lIF9TVl9TU1RBQ0sgICAgMXUgICAgLyogVGhpcyBzaWduYWwgaGFu
+ZGxlciBzaG91bGQgdXNlIHNpZy1zdGFjayAqLw0KQEAgLTE4OSw2ICsxOTMsNyBAQA0KICNkZWZp
+bmUgU0lHX0lHTgkoKF9fc2lnaGFuZGxlcl90KTEpCS8qIGlnbm9yZSBzaWduYWwgKi8NCiAjZGVm
+aW5lIFNJR19FUlIJKChfX3NpZ2hhbmRsZXJfdCktMSkJLyogZXJyb3IgcmV0dXJuIGZyb20gc2ln
+bmFsICovDQogDQorI2lmZGVmIF9fS0VSTkVMX18NCiBzdHJ1Y3QgX19uZXdfc2lnYWN0aW9uIHsN
+CiAJX19zaWdoYW5kbGVyX3QJc2FfaGFuZGxlcjsNCiAJdW5zaWduZWQgbG9uZwlzYV9mbGFnczsN
+CkBAIC0xOTYsMTIgKzIwMSwxMCBAQA0KIAlfX25ld19zaWdzZXRfdAlzYV9tYXNrOw0KIH07DQog
+DQotI2lmZGVmIF9fS0VSTkVMX18NCiBzdHJ1Y3Qga19zaWdhY3Rpb24gew0KIAlzdHJ1Y3QgX19u
+ZXdfc2lnYWN0aW9uCXNhOw0KIAl2b2lkCQkJX191c2VyICprYV9yZXN0b3JlcjsNCiB9Ow0KLSNl
+bmRpZg0KIA0KIHN0cnVjdCBfX29sZF9zaWdhY3Rpb24gew0KIAlfX3NpZ2hhbmRsZXJfdAlzYV9o
+YW5kbGVyOw0KQEAgLTIxNiw3ICsyMTksNiBAQA0KIAlzaXplX3QJCXNzX3NpemU7DQogfSBzdGFj
+a190Ow0KIA0KLSNpZmRlZiBfX0tFUk5FTF9fDQogc3RydWN0IHNwYXJjX2RlbGl2ZXJfY29va2ll
+IHsNCiAJaW50IHJlc3RhcnRfc3lzY2FsbDsNCiAJdW5zaWduZWQgbG9uZyBvcmlnX2kwOw0K
+
+
+--=-hOvHr+4Ql8dvduYlkLow--
+
+--=-/IHwlT293To4a4BQDJEh
 Content-Type: application/pgp-signature; name=signature.asc
 Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.6 (GNU/Linux)
 
-iD8DBQBBt+HfOpjtAl+gMRURAjTjAJ96O8X03WZBoW9JF3bpRM4fAIR2DwCg0DMD
-d5kh5PyOQz03XYsq8s5GrEo=
-=RjuZ
+iD8DBQBBt+oJOpjtAl+gMRURAg+aAKCRqIH+iKHGQwJbVV117YUk+DDBugCfSIJR
+sZH+SfkxPmgIgtMQX2CT0kk=
+=ZN5Y
 -----END PGP SIGNATURE-----
 
---=-JI7OO/mNa/Xy3cY1HNEw--
+--=-/IHwlT293To4a4BQDJEh--
 
