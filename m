@@ -1,42 +1,22 @@
-From: Uli Luckas <luckas@musoft.de>
-Date: Thu, 15 Jul 2004 06:21:46 +0000
-Subject: Re: sun4c driver/dma problems
-Message-Id: <200407150821.46973.luckas@musoft.de>
+From: Ben Collins <bcollins@debian.org>
+Date: Tue, 27 Jul 2004 13:39:47 +0000
+Subject: Re: slab corruption and stuck CPU under 2.6.8rc2
+Message-Id: <20040727133947.GA12350@phunnypharm.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200406020818.13705.luckas@musoft.de>
-In-Reply-To: <200406020818.13705.luckas@musoft.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Am Donnerstag, 15. Juli 2004 00:23 schrieb Keith M Wesolowski:
-> On Tue, Jul 13, 2004 at 11:39:00PM +0200, Uli Luckas wrote:
-> > > > So what can I do to help, getting this fixed? Who works on this code?
-> > > > I already know, it's not only the version detection. Defining a new
-> > > > version 70000000 "Revision 1 broken" and initialising it just as a
-> > > > "Revision 1" works around the above message, but all the device
-> > > > drivers report all kind of DMA related problems later on and of
-> > > > course don't work.
-> >
-> > As I have read, you are retiering from sparc32 kernel development. Is
-> > there any hint that could get me going on fixing the above problems
-> > myself? Do you have asumptions on where the problem can be found?
->
-> I do not know the cause of this problem.  However, it's entirely
-> possible it's just a detection issue.  You might consider grepping for
-> these messages in the source, then diffing between a working and
-> non-working kernel to see what's changed.  If it's not simple
-> detection, it may be related to the hypersparc DMA issue I've noted,
-> which has not been diagnosed.
-Hi Keith,
-thanks for your reply. I'll see what I can do. Even though I might not be 
-clued in to sparc internals enough.
+> Jul 27 09:18:44 scratchmonkey kernel: read_lock(00000000006fde40) CPU#0 stuck at 0045ae18, writer PC(00451808):CPU(2)
+> Jul 27 09:18:44 scratchmonkey kernel: read_lock(00000000006fde40) CPU#0 stuck at 0045ae18, writer PC(00451808):CPU(2)
 
-Regards
-Uli
+Try looking up the 0x006fde40, 0x0045ae18 and 0x00451808 addresses in the
+System.map for your kernel. See if we can find out where this is
+occuring.
 
 -- 
-Im Kapitalismus beutet der Mensch den Menschen aus.
-Im Sozialismus ist es genau umgekehrt.
-- Ben Tucker
+Debian     - http://www.debian.org/
+Linux 1394 - http://www.linux1394.org/
+Subversion - http://subversion.tigris.org/
+WatchGuard - http://www.watchguard.com/
