@@ -1,65 +1,95 @@
-From: "David S. Miller" <davem@redhat.com>
-Date: Tue, 17 Feb 2004 05:32:20 +0000
-Subject: Re: Non-PCI build broken on sparc64, maybe others
-Message-Id: <20040216213220.594052c7.davem@redhat.com>
+From: Ed L Cashin <ecashin@uga.edu>
+Date: Sat, 21 Feb 2004 03:23:47 +0000
+Subject: using perfctr to determine cache miss rate
+Message-Id: <87u11l6rp8.fsf@uga.edu>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1076993402.21443.5.camel@ori.thedillows.org>
-In-Reply-To: <1076993402.21443.5.camel@ori.thedillows.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Dillow <dave@thedillows.org>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On 16 Feb 2004 23:50:03 -0500
-David Dillow <dave@thedillows.org> wrote:
+Hi.  I'm starting to use the sparc64-specific perfctr system call,
+after reading the UltraSPARC IIi User's Manual Appendix B on
+Performance Instrumentation.
 
-> I believe this changeset in Linus's tree:
- ...
-> breaks builds that do not include PCI support.
+What I really want to do is to find out how often loads and stores are
+having to go out to RAM instead of hitting in "the cache" (any cache).
+Specifically, I'm interested in whether the loads and stores in a
+running userspace program are low-latency or high-latency.
 
-Indeed, thanks for catching this David.  This patch should fix it
-and I'll be pushing this to Linus.
+I wrote the test program below, which observes the number of dcache
+read misses between calls.  In conjunction with the tick register, I
+could efficiently estimate the miss rate on dcache reads.  
 
-Thanks again.
+Is there a way to measure the number of memory accesses (both reads
+and writes) that are not hitting in any cache?  It appears not to be
+possible, since only two events can be observed at once, and the
+events are quite specific (e.g. observing dcache write hits makes
+dcache read hits unobservable).
 
-# This is a BitKeeper generated diff -Nru style patch.
-#
-# ChangeSet
-#   2004/02/16 21:28:29-08:00 davem@nuts.davemloft.net 
-#   [SPARC64]: Fix non-PCI build, reported by David Dillow.
-# 
-# include/asm-sparc64/dma-mapping.h
-#   2004/02/16 21:25:35-08:00 davem@nuts.davemloft.net +21 -1
-#   [SPARC64]: Fix non-PCI build, reported by David Dillow.
-# 
-diff -Nru a/include/asm-sparc64/dma-mapping.h b/include/asm-sparc64/dma-mapping.h
---- a/include/asm-sparc64/dma-mapping.h	Mon Feb 16 21:28:51 2004
-+++ b/include/asm-sparc64/dma-mapping.h	Mon Feb 16 21:28:51 2004
-@@ -1,5 +1,25 @@
-+#ifndef _ASM_SPARC64_DMA_MAPPING_H
-+#define _ASM_SPARC64_DMA_MAPPING_H
-+
- #include <linux/config.h>
- 
- #ifdef CONFIG_PCI
- #include <asm-generic/dma-mapping.h>
--#endif
-+#else
-+
-+static inline void *dma_alloc_coherent(struct device *dev, size_t size,
-+			 dma_addr_t *dma_handle, int flag)
-+{
-+	BUG();
-+	return NULL;
-+}
-+
-+static inline void dma_free_coherent(struct device *dev, size_t size,
-+		       void *vaddr, dma_addr_t dma_handle)
-+{
-+	BUG();
-+}
-+
-+#endif /* PCI */
-+
-+#endif /* _ASM_SPARC64_DMA_MAPPING_H */
+
+/* main.c - try out sparc64 the kernel's performance counter exporting
+ */
+#include <stdio.h>
+#include <stdlib.h>
+#include <linux/unistd.h>
+#include <asm-sparc64/perfctr.h>
+#include <errno.h>
+
+_syscall4(int, perfctr, int, opcode, 
+	  unsigned long, arg0, unsigned long, arg1, unsigned long, arg2);
+
+unsigned long long d0;	/* dc reads */
+unsigned long long d1;	/* dc read hits */
+
+void usemem(void)
+{
+    static unsigned int data[10];
+    int i;
+
+    for (i = 0; i < 1000; ++i) {
+      unsigned int n = data[random() % 10];
+
+      data[random() % 10] = n;
+    }
+}
+
+void test(void)
+{
+    usemem();
+    printf("after usemem dc read misses:0x%016llx\n", d0 - d1);
+    if (perfctr(PERFCTR_READ, 0,0,0)) {
+      perror("read");
+      exit(EXIT_FAILURE);
+    }
+}    
+
+int main(void)
+{
+    unsigned long pcr = USR|DC_RD|DC_RD_HIT;
+    int i;
+
+    if (perfctr(PERFCTR_ON, 
+		(unsigned long) &d0,
+		(unsigned long) &d1,
+		pcr)) {
+      perror("turn on");
+      exit(EXIT_FAILURE);
+    }
+
+    for (i = 0; i < 100; ++i)
+      test();
+
+    if (perfctr(PERFCTR_OFF, 0,0,0)) {
+      perror("turn off");
+      exit(EXIT_FAILURE);
+    }
+
+    return 0;
+}
+
+
+-- 
+--Ed L Cashin            |   PGP public key:
+  ecashin@uga.edu        |   http://noserose.net/e/pgp/
+
