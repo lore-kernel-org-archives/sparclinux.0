@@ -1,7 +1,7 @@
-From: Keith M Wesolowski <wesolows@foobazco.org>
-Date: Tue, 16 Mar 2004 16:55:28 +0000
+From: Pete Zaitcev <zaitcev@redhat.com>
+Date: Tue, 16 Mar 2004 17:10:56 +0000
 Subject: Re: nonzero phys_base
-Message-Id: <20040316165528.GA2858@foobazco.org>
+Message-Id: <20040316091056.3d35109f.zaitcev@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040316114121.GA5170@spike>
 In-Reply-To: <20040316114121.GA5170@spike>
@@ -10,24 +10,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, Mar 16, 2004 at 12:41:21PM +0100, Stefan Holst wrote:
+On Tue, 16 Mar 2004 12:41:21 +0100
+Stefan Holst <mail@s-holst.de> wrote:
 
-> how do you think about this fix? any chances to get this into the
-> kernel? if yes, how? this is the first time i send kernel patches,
-> so hints and comments are very welcome :).
+Looks good on the whole, especially in that you accepted a correct
+relationship between PFN and indexing into mem_map.
 
-Yes, I'll consider this for inclusion.  You get patches into the
-kernel by sending them to this list, so you're off to a good start
-there.
+The only little problem is:
 
-Please use pfn_base the way sparc64 does.  Shifting every time this is
-used is unnecessarily expensive.  It would be nice if we could also
-dispense with making __va and __pa nonconstant, but unlike sparc64 we
-don't have the luxury of huge space to map into.
+> +#define __pa(x)			((unsigned long)(x) - PAGE_OFFSET + phys_base)
+> +#define __va(x)			((void *)((unsigned long) (x) - phys_base + PAGE_OFFSET))
 
-Otherwise this looks pretty good at first glance.
+This, obviously, overflows on highmem systems.
+Do we have any users for __pa, __va, virt_to_phys and phys_to_virt?
+It would be helpful if you enumerated all of them and perhaps
+removed some.
 
-Thanks for doing this, Stefan.
+> -#define virt_to_page(kaddr)	(mem_map + (__pa(kaddr) >> PAGE_SHIFT))
+> +#define virt_to_page(kaddr)	pfn_to_page(PFN(__pa(kaddr)))
 
--- 
-Keith M Wesolowski
+This was correct before, because of the way mem_map was placed,
+its physical address never overflowed. But with nonzero phys_base,
+it is not correct anymore.
+
+In fact you do not need this, just use
+
+ mem_map + ((unsigned long)(x) - PAGE_OFFSET)
+
+> +#define virt_addr_valid(kaddr)	pfn_valid(PFN(__pa(kaddr)))
+
+Ditto
+
+-- Pete
