@@ -1,36 +1,52 @@
-From: netwalk@applix.com
-Date: Thu, 10 Jun 2004 08:11:22 +0000
-Subject: RE:Die Deform der sozialen Ordnung -5082-
-Message-Id: <APLXMADB1J2q3UWowOu0000280c@APLXMAMAIL.applix.com>
+From: "Erick Parks" <ErickParks63@canoemail.com>
+Date: Wed, 09 Jun 2004 11:06:26 +0000
+Subject: Approval #44
+Message-Id: <200405052002.i45K2sU9362290@outmail.canoemail.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Dear Customer,
+***F-I-N-A-L   N-O-T-I-C-E***
 
-Your new support issue has been logged as inquiry # 277244.
+We have tried to contact you 2 times, with no success.
+Your loan/mortgage has been approved at 3.01%, but we
+need more information from you.  This will only take a 
+second, then a representative will contact you. 
 
-You can expect a Customer Support Engineer to contact you within 4 business hours (U.S. ET). If this is not a support issue, your request will be forwarded to the appropriate department.
 
-Thank you for using Applix.
+I-N-F-O-R-M-A-T-I-O-N    F-O-R-M   
+"http://crvalues.com?partid=tc1"
 
-Regards,
-Applix, Inc.
-
-Web:   http://www.applix.com/support
-Email: support@applix.com
-Phone: 508-870-0300
-       800-827-7549 (North America toll-free)
-
-http://www.applix.com
+Thanks
+Erick Parks
 
 
 
-This communication may contain privileged or other confidential information. 
-If you have received it in error, please advise the sender by reply e-mail and 
-immediately delete the message and any attachments without copying or 
-disclosing the contents. 
 
-Thank you.
+
+
+
+
+
+
+
+
+
+
+D-O-N-T  N-E-E-D  THIS?
+"http://msquote.net/st.html"
+
+
+
+
+
+
+
+
+
+
+
+
+
