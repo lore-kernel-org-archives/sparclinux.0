@@ -1,22 +1,55 @@
 From: Meelis Roos <mroos@linux.ee>
-Date: Fri, 18 Mar 2005 14:11:24 +0000
-Subject: Re: Sunsab serial console problems - partially solved
-Message-Id: <E1DCICC-0003fo-DG@rhn.tartu-labor>
+Date: Tue, 22 Mar 2005 08:51:26 +0000
+Subject: sunqe driver does not recognize the card
+Message-Id: <Pine.SOC.4.61.0503221048210.29185@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.61.0503092118230.2897@bobcat>
-In-Reply-To: <Pine.LNX.4.61.0503092118230.2897@bobcat>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-JS> For the last few days I have been trying to fix the problems with serial 
-JS> console on the machines with sunsab serial controller (I can reproduce 
-JS> them myself on my Ultra 5, another person reported similar issues on an 
-JS> Ultra 10). When booting a 2.6 kernel using serial console, some junk gets 
+I have a Sparcstation 20 with qec/be card (Sun FastEthernet). I have 
+compiled the sunqe module in 2.6.12-rc1 and it does not load - complains 
+about no such device:
+FATAL: Error inserting sunqe (/lib/modules/2.6.12-rc1/kernel/drivers/net/sunqe.ko): No such device
+Nothing is in the dmesg.
 
-It cures the long delay on booting on my Ultra 5 too (with 2.6.12-rc1)
-but some characters are still missing.
+This is the info about the card - should it be supported?
+
+kirss:/proc/openprom/iommu@f,e0000000/sbus@f,e0001000# find qec\@1\,20000 qec\@1\,20000/be\@0\,0/ -type f -exec echo {} \; -exec cat {} \;
+qec@1,20000/.node
+ffd767d0
+qec@1,20000/#channels
+00000001
+qec@1,20000/ranges
+00000000.00000000.00000001.00030000.00004000.00000010.00000000.00000001.00010000.00008000.00000020.00000000.00000001.00018000.00008000
+qec@1,20000/reg
+00000001.00020000.00010000.00000001.00040000.00020000
+qec@1,20000/model
+'SUNW,270-2450'
+qec@1,20000/name
+'qec'
+qec@1,20000/be@0,0/.node
+ffd77960
+qec@1,20000/be@0,0/board-version
+00000001
+qec@1,20000/be@0,0/reg
+00000000.00000000.00004000.00000010.00000000.00008000.00000020.00000000.00008000
+qec@1,20000/be@0,0/device_type
+'network'
+qec@1,20000/be@0,0/intr
+00000037.00000000
+qec@1,20000/be@0,0/interrupts
+00000004
+qec@1,20000/be@0,0/address-bits
+00000030
+qec@1,20000/be@0,0/max-frame-size
+00004000
+qec@1,20000/be@0,0/channel#
+00000000
+qec@1,20000/be@0,0/name
+'be'
+
 
 -- 
-Meelis Roos
+Meelis Roos (mroos@linux.ee)
