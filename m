@@ -1,24 +1,49 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Thu, 09 Dec 2004 05:57:03 +0000
-Subject: Re: Fix for break handling in sunsab.c for 2.6
-Message-Id: <20041208215703.3ce64fe4.davem@davemloft.net>
+From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
+Date: Wed, 22 Dec 2004 05:38:37 +0000
+Subject: [sparc32] [1/3] Floppy compile warning
+Message-Id: <1103693917.3913.70.camel@localhost.localdomain>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=-SvtyWau8c8OnGrM+uXYC"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sun, 21 Nov 2004 13:43:05 -0500 (EST)
-Jurij Smakov <jurij@wooyd.org> wrote:
 
-> Due to some bugs in break handling in the sunsab.c serial driver, sending 
-> a break over serial console (equivalent of Stop-A sent from keyboard) does 
-> not dump user to the PROM command line. AFAICT, in the 2.4 -> 2.6 
-> transition the checking for break has been moved from check_status() to 
-> receive_chars(). However, in the current version of the driver the BRK 
-> interrupt never reaches receive_chars(). Even if it would, for the break 
-> to take effect a non-zero count of characters must be present in the
-> buffer at the same time, which never happens. The patch below corrects the 
-> problem (I have tried to make it as unintrusive as possible).
+--=-SvtyWau8c8OnGrM+uXYC
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Patch applied, thanks a lot Jurij.
+Squelch the floppy compile warning:
+
+include/asm/floppy.h: In function `sun_fd_request_irq':
+include/asm/floppy.h:276: warning: passing arg 2 of `request_fast_irq'
+from incompatible pointer type
+
+Signed-off-by: Tom 'spot' Callaway <tcallawa@redhat.com>
+
+~spot
+---
+Tom "spot" Callaway <tcallawa(a)redhat*com> LCA, RHCE 
+Red Hat Sales Engineer || Aurora Linux Project Leader
+
+"If you are going through hell, keep going."
+- Sir Winston Churchill
+
+--=-SvtyWau8c8OnGrM+uXYC
+Content-Disposition: attachment; filename=linux-2.6.9-sparc-floppyfix.patch
+Content-Type: text/x-patch; name=linux-2.6.9-sparc-floppyfix.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+--- linux-2.6.9/include/asm-sparc/floppy.h.BAD	2004-12-21 22:54:16.229076227 -0500
++++ linux-2.6.9/include/asm-sparc/floppy.h	2004-12-21 22:58:26.304059051 -0500
+@@ -264,7 +264,7 @@ static __inline__ void sun_fd_enable_dma
+ }
+ 
+ /* Our low-level entry point in arch/sparc/kernel/entry.S */
+-extern void floppy_hardint(int irq, void *unused, struct pt_regs *regs);
++extern irqreturn_t floppy_hardint(int irq, void *unused, struct pt_regs *regs);
+ 
+ static int sun_fd_request_irq(void)
+ {
+
+--=-SvtyWau8c8OnGrM+uXYC--
+
