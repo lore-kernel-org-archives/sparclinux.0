@@ -1,21 +1,40 @@
-From: "Art Haas" <ahaas@airmail.net>
-Date: Wed, 28 Jul 2004 18:51:43 +0000
-Subject: Re: [PATCH] Remove duplicated pci_dma_mapping_error function
-Message-Id: <20040728185143.GY3996@artsapartment.org>
+From: David Dillow <dave@thedillows.org>
+Date: Thu, 01 Jul 2004 04:15:33 +0000
+Subject: dma_get_required_mask() breaks sparc64
+Message-Id: <1088655333.2382.29.camel@ori.thedillows.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040728150908.GW3996@artsapartment.org>
-In-Reply-To: <20040728150908.GW3996@artsapartment.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Building with the latest BK (as of 2200 EST) breaks sparc64 builds. This
+may be related to the fact that I only enable SBUS and not PCI, but I
+think it is more general.
 
-Replying to my mail about the patch, the kernel built successfully and
-my SS20 is now running 2.6.8-rc2+.
+The attached patch (untested, but compiling) seems to fix the issue,
+though it may not be the proper place to add the include.
 
--- 
-Man once surrendering his reason, has no remaining guard against absurdities
-the most monstrous, and like a ship without rudder, is the sport of every wind.
+Dave
 
--Thomas Jefferson to James Smith, 1822
+
+
+In file included from include/asm/sbus.h:10,
+                 from include/asm/dma.h:15,
+                 from include/linux/bootmem.h:8,
+                 from init/main.c:30:
+include/linux/dma-mapping.h: In function `dma_get_required_mask':
+include/linux/dma-mapping.h:41: error: dereferencing pointer to
+incomplete type
+
+=== sbus.h 1.5 vs edited ==--- 1.5/include/asm-sparc64/sbus.h      2004-06-02 19:00:47 -04:00
++++ edited/include/asm-sparc64/sbus.h       2004-06-30 23:53:49 -04:00
+@@ -7,6 +7,7 @@
+ #ifndef _SPARC64_SBUS_H
+ #define _SPARC64_SBUS_H
+  
++#include <linux/device.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/ioport.h>
+  
+
