@@ -1,7 +1,7 @@
-From: David Dillow <dave@thedillows.org>
-Date: Wed, 21 Jul 2004 02:50:40 +0000
+From: "David S. Miller" <davem@redhat.com>
+Date: Wed, 21 Jul 2004 20:34:06 +0000
 Subject: Re: [RFC PATCH] Allow larger than 1MB mappings on sparc64 sbus
-Message-Id: <1090378240.4229.5.camel@ori.thedillows.org>
+Message-Id: <20040721133406.6ebc78cd.davem@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1089341045.3100.38.camel@ori.thedillows.org>
 In-Reply-To: <1089341045.3100.38.camel@ori.thedillows.org>
@@ -10,27 +10,12 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, 2004-07-20 at 22:05, David S. Miller wrote:
-> On 09 Jul 2004 20:42:19 -0400
-> David Dillow <dave@thedillows.org> wrote:
-> 
-> > Unfortunately, all at once AFAICT. I don't have real docs -- this has
-> > been built from the documentation provided by the NetBSD driver and some
-> > investigation by myself.
-> 
-> David, can you send me a copy of this lpvi.c netbsd driver?
-> Thanks.
+On 08 Jul 2004 22:44:05 -0400
+David Dillow <dave@thedillows.org> wrote:
 
-Sure, I can do that, or I could do you one better -- I'll send my Linux
-lpvi driver. :)
+> I've modified the allocator to allow mappings up to 127MB (or
+> thereabouts). It will allocate a contiguous run of clusters to allow the
+> mapping of the request, and return NULL if it is unable to do so. This
+> also modifies the deallocator to return those ioptes to the pool.
 
-Since I'd like to finish cleaning up my version (almost there), here's a
-pointer to der Mouse's NetBSD driver.
-http://www.netsys.com/netbsd-port-sparc/2002/03/msg00063.html
-
-I cannot get to ftp.netbsd.org right now to see if it is still there;
-let me know and I'll bundle up my local copy.
-
-Dave
-
-
+I've put this patch into my tree, thanks David.
