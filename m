@@ -1,30 +1,29 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Tue, 15 Jun 2004 18:04:33 +0000
-Subject: Re: sparc env monitorin vs tasklist_lock
-Message-Id: <20040615180433.GA21929@lst.de>
+From: Ben Collins <bcollins@debian.org>
+Date: Tue, 01 Jun 2004 00:17:23 +0000
+Subject: Re: RFC: defining sbus dma direction bits in terms of enum dma_data_direction?
+Message-Id: <20040601001723.GD11678@phunnypharm.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040615172956.GA21361@lst.de>
-In-Reply-To: <20040615172956.GA21361@lst.de>
+References: <20040531124455.GA16822@lst.de>
+In-Reply-To: <20040531124455.GA16822@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, Jun 15, 2004 at 01:42:08PM -0400, Ben Collins wrote:
-> On Tue, Jun 15, 2004 at 07:29:56PM +0200, Christoph Hellwig wrote:
-> > Strange stuff going on here, bbc_envctrl.c and envctrl.c iterate over
-> > the complete task list to check whether the thread has been killed,
-> > yikes!
-> > 
-> > I've attached a patch to convert it to the kthread infrastructure, but
-> > it has been completely untested, not even compiled.
-> > 
-> > p.s. the drivers also have other strangenesses like calling execve
-> > directly instead of call_usermodehelper and the bbc driver having it's
-> 
-> You took out the use of poll_interval, so wouldn't that cause the thread
-> to eat up all the cpu with this patch?
+> @@ -231,7 +227,7 @@
+>  		case FC_STATUS_ERR_OFFLINE:
+>  			fc->state = FC_STATE_OFFLINE;
+>  			dma_unmap_single (fc->dev, l->fcmds[i].cmd, 3 * sizeof(logi),
+> -					  FC_DMA_BIDIRECTIONAL);
+> +					  _DMA_BIDIRECTIONAL);
+>  			printk ("%s: FC is offline\n", fc->name);
+>  			if (atomic_dec_and_test (&l->todo))
+>  				up(&l->sem);
 
-Sorry, that was a bug then.  This is really just a very crude draft
-patch.
+Typo? s/_DMA_BIDIRECTIONAL/DMA_BIDIRECTIONAL/
 
+-- 
+Debian     - http://www.debian.org/
+Linux 1394 - http://www.linux1394.org/
+Subversion - http://subversion.tigris.org/
+WatchGuard - http://www.watchguard.com/
