@@ -1,374 +1,56 @@
-From: Meelis Roos <mroos@linux.ee>
-Date: Mon, 14 Feb 2005 10:53:21 +0000
-Subject: Too big 2.6 kernels on SS5
-Message-Id: <Pine.SOC.4.61.0502141245530.25663@math.ut.ee>
+From: Ben Collins <bcollins@debian.org>
+Date: Mon, 14 Feb 2005 11:23:09 +0000
+Subject: Re: Too big 2.6 kernels on SS5
+Message-Id: <20050214112309.GA6838@phunnypharm.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <Pine.SOC.4.61.0502141245530.25663@math.ut.ee>
+In-Reply-To: <Pine.SOC.4.61.0502141245530.25663@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-I'm trying to test the new framebuffer driver fixes on my SS5-170 (256M 
-RAM). I have Debian unstable installed, running 2.6.8 kernel with 
-initrd.
+Kill these config options.
 
-I took the lastest 2.6 snapshot and built it. SILO 2.4.8 tells the 
-kernel image is too big. Trimmed the config to minimal normal non-initrd 
-config (ESP, scsi disk and framebuffers static), still too big. Tried 
-with gcc-3.3, gcc-2.95 and gcc-3.4, still too big.
+> CONFIG_KALLSYMS=y
+> CONFIG_KALLSYMS_EXTRA_PASS=y
 
-Tried both vmlinux and arch/sparc/boot/image (what's the difference - 
-why is the later smeller), still no go. Tried uncompressed image, still 
-nothing.
+Pretty sure you don't need all of these framebuffers, right?
 
-What am I doing wrong? Is there anything I'm missing? Current .config is 
-below.
+> CONFIG_FB_CG3=y
+> CONFIG_FB_CG6=y
+> CONFIG_FB_TCX=y
 
--rwxr-xr-x  1 root root 2647650 2005-02-14 11:22 image
--rw-r--r--  1 root root  907307 2005-02-12 23:35 vmlinuz-2.4.30-pre1
--rw-r--r--  1 root root 1110460 2005-02-14 11:22 vmlinuz-2.6.11-rc4
--rw-r--r--  1 root root  993499 2004-12-28 23:31 vmlinuz-2.6.8-2-sparc32
+Don't need either of these.
 
-Smallest image (of "make image") I got is 2.6M.
+> CONFIG_PROM_CONSOLE=y
+> CONFIG_DUMMY_CONSOLE=y
 
-CONFIG_MMU=y
-CONFIG_UID16=y
-CONFIG_HIGHMEM=y
-CONFIG_GENERIC_ISA_DMA=y
-CONFIG_EXPERIMENTAL=y
-# CONFIG_CLEAN_COMPILE is not set
-CONFIG_BROKEN=y
-CONFIG_BROKEN_ON_SMP=y
-CONFIG_LOCALVERSION=""
-CONFIG_SWAP=y
-CONFIG_SYSVIPC=y
-# CONFIG_POSIX_MQUEUE is not set
-# CONFIG_BSD_PROCESS_ACCT is not set
-CONFIG_SYSCTL=y
-# CONFIG_AUDIT is not set
-CONFIG_LOG_BUF_SHIFT
-CONFIG_HOTPLUG=y
-# CONFIG_KOBJECT_UEVENT is not set
-# CONFIG_IKCONFIG is not set
-# CONFIG_EMBEDDED is not set
-CONFIG_KALLSYMS=y
-CONFIG_KALLSYMS_EXTRA_PASS=y
-CONFIG_FUTEX=y
-CONFIG_EPOLL=y
-# CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
-CONFIG_SHMEM=y
-CONFIG_CC_ALIGN_FUNCTIONS=0
-CONFIG_CC_ALIGN_LABELS=0
-CONFIG_CC_ALIGN_LOOPS=0
-CONFIG_CC_ALIGN_JUMPS=0
-# CONFIG_TINY_SHMEM is not set
-CONFIG_MODULES=y
-CONFIG_MODULE_UNLOAD=y
-# CONFIG_MODULE_FORCE_UNLOAD is not set
-CONFIG_OBSOLETE_MODPARM=y
-# CONFIG_MODVERSIONS is not set
-# CONFIG_MODULE_SRCVERSION_ALL is not set
-# CONFIG_KMOD is not set
-CONFIG_VT=y
-CONFIG_VT_CONSOLE=y
-CONFIG_HW_CONSOLE=y
-# CONFIG_SMP is not set
-CONFIG_SPARC32=y
-CONFIG_SBUS=y
-CONFIG_SBUSCHAR=y
-CONFIG_SERIAL_CONSOLE=y
-CONFIG_SUN_AUXIO=y
-CONFIG_SUN_IO=y
-CONFIG_RWSEM_GENERIC_SPINLOCK=y
-CONFIG_GENERIC_CALIBRATE_DELAY=y
-CONFIG_SUN_PM=y
-# CONFIG_SUN4 is not set
-# CONFIG_PCI is not set
-CONFIG_SUN_OPENPROMFS=m
-CONFIG_BINFMT_ELF=y
-# CONFIG_BINFMT_AOUT is not set
-# CONFIG_BINFMT_MISC is not set
-# CONFIG_SUNOS_EMUL is not set
-CONFIG_PARPORT=m
-# CONFIG_PARPORT_PC is not set
-CONFIG_PARPORT_SUNBPP=m
-CONFIG_PARPORT_OTHER=y
-CONFIG_PARPORT_1284=y
-CONFIG_PRINTER=m
-CONFIG_STANDALONE=y
-CONFIG_PREVENT_FIRMWARE_BUILD=y
-# CONFIG_FW_LOADER is not set
-CONFIG_FB=y
-# CONFIG_FB_MODE_HELPERS is not set
-# CONFIG_FB_TILEBLITTING is not set
-# CONFIG_FB_BW2 is not set
-CONFIG_FB_CG3=y
-CONFIG_FB_CG6=y
-CONFIG_FB_SBUS=y
-CONFIG_FB_TCX=y
-# CONFIG_FB_CG14 is not set
-# CONFIG_FB_P9100 is not set
-# CONFIG_FB_LEO is not set
-# CONFIG_FB_VIRTUAL is not set
-CONFIG_PROM_CONSOLE=y
-CONFIG_DUMMY_CONSOLE=y
-CONFIG_FRAMEBUFFER_CONSOLE=y
-# CONFIG_FONTS is not set
-CONFIG_FONT_SUN8x16=y
-CONFIG_FONT_SUN12x22=y
-# CONFIG_LOGO is not set
-# CONFIG_BACKLIGHT_LCD_SUPPORT is not set
-# CONFIG_MTD is not set
-# CONFIG_SERIAL_8250 is not set
-CONFIG_SERIAL_SUNCORE=y
-CONFIG_SERIAL_SUNZILOG=y
-CONFIG_SERIAL_SUNZILOG_CONSOLE=y
-CONFIG_SERIAL_CORE=y
-CONFIG_SERIAL_CORE_CONSOLE=y
-CONFIG_SUN_OPENPROMIO=m
-CONFIG_SUN_MOSTEK_RTC=m
-CONFIG_SUN_BPP=m
-# CONFIG_SUN_VIDEOPIX is not set
-# CONFIG_SUN_AURORA is not set
-# CONFIG_TADPOLE_TS102_UCTRL is not set
-# CONFIG_SUN_JSFLASH is not set
-# CONFIG_BLK_DEV_FD is not set
-# CONFIG_PARIDE is not set
-# CONFIG_BLK_DEV_COW_COMMON is not set
-CONFIG_BLK_DEV_LOOP=m
-# CONFIG_BLK_DEV_CRYPTOLOOP is not set
-# CONFIG_BLK_DEV_NBD is not set
-# CONFIG_BLK_DEV_RAM is not set
-CONFIG_BLK_DEV_RAM_COUNT
-CONFIG_INITRAMFS_SOURCE=""
-# CONFIG_CDROM_PKTCDVD is not set
-CONFIG_IOSCHED_NOOP=y
-CONFIG_IOSCHED_AS=y
-CONFIG_IOSCHED_DEADLINE=m
-CONFIG_IOSCHED_CFQ=m
-# CONFIG_ATA_OVER_ETH is not set
-# CONFIG_ISDN is not set
-CONFIG_SCSI=y
-CONFIG_SCSI_PROC_FS=y
-CONFIG_BLK_DEV_SD=y
-CONFIG_CHR_DEV_ST=m
-# CONFIG_CHR_DEV_OSST is not set
-CONFIG_BLK_DEV_SR=m
-CONFIG_BLK_DEV_SR_VENDOR=y
-CONFIG_CHR_DEV_SG=m
-CONFIG_SCSI_MULTI_LUN=y
-# CONFIG_SCSI_CONSTANTS is not set
-# CONFIG_SCSI_LOGGING is not set
-# CONFIG_SCSI_SPI_ATTRS is not set
-# CONFIG_SCSI_FC_ATTRS is not set
-# CONFIG_SCSI_ISCSI_ATTRS is not set
-# CONFIG_SCSI_SATA is not set
-# CONFIG_SCSI_PPA is not set
-# CONFIG_SCSI_IMM is not set
-# CONFIG_SCSI_QLOGICPTI is not set
-# CONFIG_SCSI_DEBUG is not set
-CONFIG_SCSI_SUNESP=y
-# CONFIG_FC4 is not set
-# CONFIG_MD is not set
-CONFIG_NET=y
-CONFIG_PACKET=y
-CONFIG_PACKET_MMAP=y
-CONFIG_NETLINK_DEV=y
-CONFIG_UNIX=y
-# CONFIG_NET_KEY is not set
-CONFIG_INET=y
-CONFIG_IP_MULTICAST=y
-# CONFIG_IP_ADVANCED_ROUTER is not set
-# CONFIG_IP_PNP is not set
-# CONFIG_NET_IPIP is not set
-# CONFIG_NET_IPGRE is not set
-# CONFIG_IP_MROUTE is not set
-# CONFIG_ARPD is not set
-# CONFIG_SYN_COOKIES is not set
-# CONFIG_INET_AH is not set
-# CONFIG_INET_ESP is not set
-# CONFIG_INET_IPCOMP is not set
-# CONFIG_INET_TUNNEL is not set
-# CONFIG_IP_TCPDIAG is not set
-# CONFIG_IP_TCPDIAG_IPV6 is not set
-# CONFIG_IPV6 is not set
-# CONFIG_NETFILTER is not set
-# CONFIG_IP_SCTP is not set
-# CONFIG_ATM is not set
-# CONFIG_BRIDGE is not set
-# CONFIG_VLAN_8021Q is not set
-# CONFIG_DECNET is not set
-# CONFIG_LLC2 is not set
-# CONFIG_IPX is not set
-# CONFIG_ATALK is not set
-# CONFIG_X25 is not set
-# CONFIG_LAPB is not set
-# CONFIG_NET_DIVERT is not set
-# CONFIG_ECONET is not set
-# CONFIG_WAN_ROUTER is not set
-# CONFIG_NET_SCHED is not set
-# CONFIG_NET_CLS_ROUTE is not set
-# CONFIG_NET_PKTGEN is not set
-# CONFIG_NETPOLL is not set
-# CONFIG_NET_POLL_CONTROLLER is not set
-# CONFIG_HAMRADIO is not set
-# CONFIG_IRDA is not set
-# CONFIG_BT is not set
-CONFIG_NETDEVICES=y
-# CONFIG_DUMMY is not set
-# CONFIG_BONDING is not set
-# CONFIG_EQUALIZER is not set
-# CONFIG_TUN is not set
-# CONFIG_ETHERTAP is not set
-CONFIG_NET_ETHERNET=y
-# CONFIG_MII is not set
-CONFIG_SUNLANCE=y
-# CONFIG_HAPPYMEAL is not set
-# CONFIG_SUNBMAC is not set
-# CONFIG_SUNQE is not set
-# CONFIG_MYRI_SBUS is not set
-# CONFIG_NET_RADIO is not set
-# CONFIG_WAN is not set
-# CONFIG_PLIP is not set
-# CONFIG_PPP is not set
-# CONFIG_SLIP is not set
-# CONFIG_SHAPER is not set
-# CONFIG_NETCONSOLE is not set
-CONFIG_UNIX98_PTYS=y
-CONFIG_UNIX98_PTY_COUNT%6
-CONFIG_INPUT=y
-CONFIG_INPUT_MOUSEDEV=y
-# CONFIG_INPUT_MOUSEDEV_PSAUX is not set
-CONFIG_INPUT_MOUSEDEV_SCREEN_X24
-CONFIG_INPUT_MOUSEDEV_SCREEN_Yv8
-# CONFIG_INPUT_JOYDEV is not set
-# CONFIG_INPUT_TSDEV is not set
-# CONFIG_INPUT_EVDEV is not set
-# CONFIG_INPUT_EVBUG is not set
-# CONFIG_GAMEPORT is not set
-CONFIG_SOUND_GAMEPORT=y
-CONFIG_SERIO=y
-# CONFIG_SERIO_I8042 is not set
-# CONFIG_SERIO_SERPORT is not set
-# CONFIG_SERIO_CT82C710 is not set
-# CONFIG_SERIO_PARKBD is not set
-# CONFIG_SERIO_RAW is not set
-CONFIG_INPUT_KEYBOARD=y
-# CONFIG_KEYBOARD_ATKBD is not set
-CONFIG_KEYBOARD_SUNKBD=y
-# CONFIG_KEYBOARD_LKKBD is not set
-# CONFIG_KEYBOARD_XTKBD is not set
-# CONFIG_KEYBOARD_NEWTON is not set
-CONFIG_INPUT_MOUSE=y
-# CONFIG_MOUSE_PS2 is not set
-# CONFIG_MOUSE_SERIAL is not set
-# CONFIG_MOUSE_VSXXXAA is not set
-# CONFIG_INPUT_JOYSTICK is not set
-# CONFIG_INPUT_TOUCHSCREEN is not set
-# CONFIG_INPUT_MISC is not set
-# CONFIG_EXT2_FS is not set
-CONFIG_EXT3_FS=y
-CONFIG_EXT3_FS_XATTR=y
-CONFIG_EXT3_FS_POSIX_ACL=y
-CONFIG_EXT3_FS_SECURITY=y
-CONFIG_JBD=y
-# CONFIG_JBD_DEBUG is not set
-CONFIG_FS_MBCACHE=y
-# CONFIG_REISERFS_FS is not set
-# CONFIG_JFS_FS is not set
-CONFIG_FS_POSIX_ACL=y
-# CONFIG_XFS_FS is not set
-# CONFIG_MINIX_FS is not set
-# CONFIG_ROMFS_FS is not set
-# CONFIG_QUOTA is not set
-CONFIG_DNOTIFY=y
-# CONFIG_AUTOFS_FS is not set
-# CONFIG_AUTOFS4_FS is not set
-# CONFIG_ISO9660_FS is not set
-# CONFIG_UDF_FS is not set
-# CONFIG_MSDOS_FS is not set
-# CONFIG_VFAT_FS is not set
-# CONFIG_NTFS_FS is not set
-CONFIG_PROC_FS=y
-CONFIG_PROC_KCORE=y
-CONFIG_SYSFS=y
-# CONFIG_DEVFS_FS is not set
-# CONFIG_DEVPTS_FS_XATTR is not set
-CONFIG_TMPFS=y
-# CONFIG_TMPFS_XATTR is not set
-# CONFIG_HUGETLBFS is not set
-# CONFIG_HUGETLB_PAGE is not set
-CONFIG_RAMFS=y
-# CONFIG_ADFS_FS is not set
-# CONFIG_AFFS_FS is not set
-# CONFIG_HFS_FS is not set
-# CONFIG_HFSPLUS_FS is not set
-# CONFIG_BEFS_FS is not set
-# CONFIG_BFS_FS is not set
-# CONFIG_EFS_FS is not set
-# CONFIG_CRAMFS is not set
-# CONFIG_VXFS_FS is not set
-# CONFIG_HPFS_FS is not set
-# CONFIG_QNX4FS_FS is not set
-# CONFIG_SYSV_FS is not set
-# CONFIG_UFS_FS is not set
-CONFIG_NFS_FS=m
-CONFIG_NFS_V3=y
-CONFIG_NFS_V4=y
-CONFIG_NFS_DIRECTIO=y
-# CONFIG_NFSD is not set
-CONFIG_LOCKD=m
-CONFIG_LOCKD_V4=y
-CONFIG_SUNRPC=m
-CONFIG_SUNRPC_GSS=m
-CONFIG_RPCSEC_GSS_KRB5=m
-# CONFIG_RPCSEC_GSS_SPKM3 is not set
-# CONFIG_SMB_FS is not set
-# CONFIG_CIFS is not set
-# CONFIG_NCP_FS is not set
-# CONFIG_CODA_FS is not set
-# CONFIG_AFS_FS is not set
-# CONFIG_PARTITION_ADVANCED is not set
-CONFIG_MSDOS_PARTITION=y
-CONFIG_SUN_PARTITION=y
-# CONFIG_NLS is not set
-# CONFIG_SOUND is not set
-# CONFIG_USB_ARCH_HAS_HCD is not set
-# CONFIG_USB_ARCH_HAS_OHCI is not set
-# CONFIG_USB_GADGET is not set
-# CONFIG_INFINIBAND is not set
-# CONFIG_WATCHDOG is not set
-# CONFIG_DEBUG_KERNEL is not set
-CONFIG_DEBUG_BUGVERBOSE=y
-# CONFIG_KEYS is not set
-# CONFIG_SECURITY is not set
-CONFIG_CRYPTO=y
-# CONFIG_CRYPTO_HMAC is not set
-# CONFIG_CRYPTO_NULL is not set
-# CONFIG_CRYPTO_MD4 is not set
-CONFIG_CRYPTO_MD5=m
-# CONFIG_CRYPTO_SHA1 is not set
-# CONFIG_CRYPTO_SHA256 is not set
-# CONFIG_CRYPTO_SHA512 is not set
-# CONFIG_CRYPTO_WP512 is not set
-CONFIG_CRYPTO_DES=m
-# CONFIG_CRYPTO_BLOWFISH is not set
-# CONFIG_CRYPTO_TWOFISH is not set
-# CONFIG_CRYPTO_SERPENT is not set
-# CONFIG_CRYPTO_AES is not set
-# CONFIG_CRYPTO_CAST5 is not set
-# CONFIG_CRYPTO_CAST6 is not set
-# CONFIG_CRYPTO_TEA is not set
-# CONFIG_CRYPTO_ARC4 is not set
-# CONFIG_CRYPTO_KHAZAD is not set
-# CONFIG_CRYPTO_ANUBIS is not set
-# CONFIG_CRYPTO_DEFLATE is not set
-# CONFIG_CRYPTO_MICHAEL_MIC is not set
-# CONFIG_CRYPTO_CRC32C is not set
-# CONFIG_CRYPTO_TEST is not set
-# CONFIG_CRC_CCITT is not set
-CONFIG_CRC32=y
-# CONFIG_LIBCRC32C is not set
+Kill the 12x22, it's huge.
+
+> CONFIG_FONT_SUN12x22=y
+
+These can be modules, right?
+
+> CONFIG_PACKET=y
+> CONFIG_NETLINK_DEV=y
+
+> CONFIG_INPUT_MOUSEDEV=y
+
+> CONFIG_SOUND_GAMEPORT=y
+
+> CONFIG_INPUT_MOUSE=y
+
+> CONFIG_TMPFS=y
+> CONFIG_RAMFS=y
+
+Disable this, it adds a lot to the kernel.
+
+> CONFIG_DEBUG_BUGVERBOSE=y
+
 
 -- 
-Meelis Roos (mroos@linux.ee)
+Debian     - http://www.debian.org/
+Linux 1394 - http://www.linux1394.org/
+Subversion - http://subversion.tigris.org/
+WatchGuard - http://www.watchguard.com/
