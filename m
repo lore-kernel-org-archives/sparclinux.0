@@ -1,8 +1,10 @@
-From: "Heather" <specials@land.com>
-Date: Thu, 16 Dec 2004 22:16:54 +0000
+From: "Allison" <specials@land.com>
+Date: Sun, 26 Dec 2004 05:35:23 +0000
 Subject: Nunber SUPPORTED FTA Sat Receivers !! Enforcer PLUS
-Message-Id: <0f8201c4e3e2$d9481370$be4323a9@specials>
+Message-Id: <ce1b01c4eb64$b7ccb640$43798cae@specials>
 List-Id: <sparclinux.vger.kernel.org>
+References: <0f8201c4e3e2$d9481370$be4323a9@specials>
+In-Reply-To: <0f8201c4e3e2$d9481370$be4323a9@specials>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
