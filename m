@@ -1,41 +1,33 @@
-From: Mathieu Chouquet-Stringer <mathieu@newview.com>
-Date: Mon, 17 May 2004 22:18:43 +0000
-Subject: Re: [SPARC64] Need help..
-Message-Id: <20040517221843.GA9136@shookay.newview.com>
+From: carbonated beverage <ramune@net-ronin.org>
+Date: Thu, 20 May 2004 06:41:42 +0000
+Subject: unkillable process in R state, 2.6.6
+Message-Id: <20040520064141.GA30223@net-ronin.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.58L.0405171051230.1247@alpha.zarz.agh.edu.pl>
-In-Reply-To: <Pine.LNX.4.58L.0405171051230.1247@alpha.zarz.agh.edu.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, May 18, 2004 at 12:06:10AM +0200, Wojciech 'Sas' Cieciwa wrote:
-> Nope, this patch is applayed in cset-20050517_*
-> and I still got this message.
+Noticed any site I go through my proxy chain was not reachable, and poked
+about.  squid sits in the 'R' state forever, and I can't shut it down with
+kill -KILL | -STOP | -ILL | -FPU | -SEGV
 
-Alright so if you still get this, it means:
-1 - you're not crosscompiling (right?)
-2 - you've got a real problem :-)
+The first site I go to through it works fine.  I can browse pages off it
+and follow links within that domain.  When I go to another site through
+squid, it hits the 'R' state and sits there forever.  I can't even attach
+with gdb/strace to find out what code it's looping on.
 
-It's strange because the "current_thread_info_reg" error is supposed to be
-skipped by this piece of code in modpost.c (if I understand the whole thing
-correctly):
+It's the binary out of debian/testing for sparc, using a bk pull of 2.6.6.
 
-#ifdef STT_REGISTER
-                if (info->hdr->e_machine = EM_SPARC ||
-                    info->hdr->e_machine = EM_SPARCV9) {
-                        /* Ignore register directives. */
-                        if (ELF_ST_TYPE(sym->st_info) = STT_REGISTER)
-                                break;
-                }
-#endif
+Anyone have ideas how I can go about debugging this to see what's going on?
 
-So do some debug, add some printfs: print e_machine and check whether it
-matches EM_SPARC* and also check sym->st_info.
+It's an Ultra 5 (Ultra IIi/333MHz), gcc 3.3.3, binutils 2.14.90.0.7,
+make 3.80, following possibly relevant flags set:
+CONFIG_IOSCHED_AS=y
+CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+CONFIG_PREEMPT=y
 
--- 
-Mathieu Chouquet-Stringer              E-Mail : mathieu@newview.com
-       Never attribute to malice that which can be adequately
-                    explained by stupidity.
-                     -- Hanlon's Razor --
+Previous kernel, 2.6.5 from a bk pull, worked fine.
+
+-- DN
+Daniel
