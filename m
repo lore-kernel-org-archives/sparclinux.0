@@ -1,42 +1,46 @@
-From: Meelis Roos <mroos@math.ut.ee>
-Date: Fri, 30 Jan 2004 20:35:39 +0000
+From: Ciaran McCreesh <ciaranm@gentoo.org>
+Date: Fri, 30 Jan 2004 20:55:42 +0000
 Subject: Re: SILO 1.4.2 released
-Message-Id: <Pine.GSO.4.44.0401302217450.2307-100000@math.ut.ee>
+Message-Id: <20040130205542.027b5b3a@snowdrop.home>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Signature=_Fri__30_Jan_2004_20_55_42_+0000_ZKjMRTJZf+lL5=nV"
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040129182954.GK532@phunnypharm.org>
 In-Reply-To: <20040129182954.GK532@phunnypharm.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> Can you get the silo source and do some compiles for me? Would be easier
-> than me sending you loaders and waiting. I need you to check the address
-> image_base and ret_offset in the function bootmain() in the file
-> second/main.c. Just add some printf's.
+--Signature=_Fri__30_Jan_2004_20_55_42_+0000_ZKjMRTJZf+lL5=nV
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 
-before load_file: image_base@00, ret_offset=0
-before parse_executable: same.
-after parse_executable: same.
+On Fri, 30 Jan 2004 15:19:47 -0500 Ben Collins <bcollins@debian.org>
+wrote:
+| I just uploaded SILO 1.4.4, which fixes this problem.
 
-This is the load_file+parse_executable in the "else" block, just before
-kernel_params is assigned 0 and if(solaris).
+This one worksforme on a sparcstation 5. It also boots a Gentoo-patched
+2.6.2_rc2 properly, so I guess it's just sparc64 broken there.
 
-kernel_params pointer is FFC00000.
-
-Data Access Exception occurs after this conditional assign to
-kernel_params.
-
-Putting in some checkpoints shows that the data access exception comes
-from the block
-if (kernel_params( {
-	...
-}
-
-I saw the announcement about 1.4.4 but will try it tomorrow - it's
-really getting too late.
+ciaranm@sundrop ciaranm 0 $ qpkg -v -I silo
+sys-boot/silo-1.4.4 *
+ciaranm@sundrop ciaranm 0 $ uname -a
+Linux sundrop 2.6.2-rc2-sparc #1 Thu Jan 29 18:41:07 GMT 2004 sparc
+sun4m Fujitsu  MB86904 GNU/Linux
 
 -- 
-Meelis Roos (mroos@ut.ee)      http://www.cs.ut.ee/~mroos/
+Ciaran McCreesh
+Mail:    ciaranm at gentoo.org
+Web:     http://dev.gentoo.org/~ciaranm
 
+--Signature=_Fri__30_Jan_2004_20_55_42_+0000_ZKjMRTJZf+lL5=nV
+Content-Type: application/pgp-signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQFAGsTj96zL6DUtXhERAkMrAJ0cEc3m2nr4DUn6GcwJVgWcUV33KwCglYaQ
+KB9vf5dRd+3p8FqC5wF0J0U=
+=bCoA
+-----END PGP SIGNATURE-----
+
+--Signature=_Fri__30_Jan_2004_20_55_42_+0000_ZKjMRTJZf+lL5=nV--
