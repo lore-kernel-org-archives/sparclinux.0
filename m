@@ -1,38 +1,40 @@
-From: Jurij Smakov <jurij@wooyd.org>
-Date: Tue, 07 Dec 2004 15:38:02 +0000
+From: Richard Mortimer <richm@oldelvet.org.uk>
+Date: Wed, 08 Dec 2004 00:54:11 +0000
 Subject: Re: mmap breakage
-Message-Id: <Pine.LNX.4.61.0412071028590.2693@bobcat>
+Message-Id: <1102467250.3704.37.camel@duncow>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.LNX.4.61.0412032354010.1963@bobcat>
 In-Reply-To: <Pine.LNX.4.61.0412032354010.1963@bobcat>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Mon, 6 Dec 2004, David S. Miller wrote:
+On Tue, 2004-12-07 at 06:00, Jurij Smakov wrote:
+> On the sparclinux@vger list we have been recently discussing an issue of 
+> ld-linux.so.2 failing with SIGILL when executed directly with the 
+> executable name as an argument [0]. This problem was traced to the mmap 
+> call overwriting portions of ld-linux.so.2 itself.
+...
+> 
+> > We could put ld-linux.so.2 somewhere else, that's not too hard.  I
+> > would suggest putting it at that 0xfffff80000000000 address I quoted
+> > above since that is where the rest of the shared objects are going
+> > to end up anyways.
 
-> What needs to execute ld-linux.so.2 directly in order to run
-> and has a huge data section? :-)  Is it some part of the GLIBC
-> build, perhaps during locale generation?
+Just thinking about the nasty way that this fails (ld-linux.so.2
+overwrites itself presumably causing seemingly random failures depending
+on what it overwrites with). How about adding a check prior to mapping
+to detect when the situation arises and then fail gracefully.
 
-No, this bug has been triggered during autobuilding of at least two=20
-different Debian packages, kmd [0] and fet [1]. kmd is a graphical=20
-debugger for ARM boards, and fet is some sort of personal organizer.
+It would probably require adding a few symbols at the start and end of
+each executable section (text, data, bss). Then rounding them to page
+aligned values and just checking that you aren't overwriting them. Then
+again I don't know the code so it might not turn out to be quite that
+easy.
 
-When ldd is run on the binaries late in the building stage to extract
-the information about the dynamic libraries and generate the correct=20
-dependencies, it (among other things) invokes the command:
+Richard
 
-/lib/ld-linux.so.2 --verify ./a.out
+-- 
+richm@oldelvet.org.uk
 
-which fails with SIGILL, if one is unlucky.
-
-[0] http://bugs.debian.org/268450
-[1] http://buildd.debian.org/fetch.php?&pkg=FEt&ver=3D3.9.19-1&arch=3Dsparc=
-&stamp=1101448389&file=3Dlog&as=3Draw
-
-Best regards,
-
-Jurij Smakov                                        jurij@wooyd.org
-Key: http://www.wooyd.org/pgpkey/                   KeyID: C99E03CC
