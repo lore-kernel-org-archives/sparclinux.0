@@ -1,7 +1,7 @@
-From: Bob Breuer <breuerr@mc.net>
-Date: Wed, 10 Nov 2004 06:13:42 +0000
+From: "David S. Miller" <davem@davemloft.net>
+Date: Wed, 10 Nov 2004 06:14:03 +0000
 Subject: Re: PATCH for cg14 framebuffer
-Message-Id: <4191B196.5000906@mc.net>
+Message-Id: <20041109221403.4dfd9e4e.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <419180CC.3060708@mc.net>
 In-Reply-To: <419180CC.3060708@mc.net>
@@ -10,24 +10,12 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Well, it looks as if it can display 8, 16, or 24 bit modes (implied
-from the CG14_MCR_PIXMODE_* defines).  The __cg14_reset function
-drops it back into 8 bit mode.  Something to do with cg3 emulation
-maybe.
+On Wed, 10 Nov 2004 00:13:42 -0600
+Bob Breuer <breuerr@mc.net> wrote:
 
-David S. Miller wrote:
-> On Tue, 09 Nov 2004 20:45:32 -0600
-> Bob Breuer <breuerr@mc.net> wrote:
-> 
-> 
->>This patch fixes the cg14 framebuffer.  Fixed the initialization with
->>a NULL sbus_dev and also the colormap setup.  Tested with 2.6.9 and
->>both the linux logo and console text are displayed without problems.
->>
->>Looks like the other sbus framebuffers are also missing the fb_set_cmap call.
-> 
-> 
-> Doesn't the cg14 come up in 24-bit color mode?  That's why I used
-> "24" and TRUECOLOR.  And that's also what the 2.4.x driver uses.
-> 
-> 
+> Well, it looks as if it can display 8, 16, or 24 bit modes (implied
+> from the CG14_MCR_PIXMODE_* defines).  The __cg14_reset function
+> drops it back into 8 bit mode.  Something to do with cg3 emulation
+> maybe.
+
+That's right, my bad.
