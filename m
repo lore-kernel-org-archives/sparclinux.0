@@ -1,7 +1,7 @@
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
-Date: Mon, 14 Feb 2005 18:05:04 +0000
+From: Bob Breuer <breuerr@mc.net>
+Date: Mon, 28 Feb 2005 00:47:02 +0000
 Subject: Re: sparc32 SMP for 2.6
-Message-Id: <4210E850.8020009@wp.pl>
+Message-Id: <42226A06.5010009@mc.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <420F070B.8010000@mc.net>
 In-Reply-To: <420F070B.8010000@mc.net>
@@ -10,17 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Do not forget about the patch for FPU context switching in SMP I posted 
-last month.
+I was able to narrow down a couple problems.
 
-Without the patch,  I am able to reproduce unexpected FP exceptions in 
-linker (ld) during the SMP compilation (make -j3 on 2-way SS20). With 
-the patch they are gone. I found it in the 2.4 kernel, but the buggy 
-code is the same in 2.4 and 2.6 so I suspect that 2.6 needs it too.
+- scsi problems
+also exists with a UP kernel, seems to be CONFIG_SCSI=m and
+CONFIG_SCSI_MULTI_LUN=y that causes it.
 
-It is maybe not so critical now, but it definitely adds to stability of 
-32-bit SPARC SMP.
+- init hangs from serial console
+I had a bug in synchronize_irq, drop this version in instead:
 
-Regards,
-Krzysztof
+void synchronize_irq(unsigned int irq)
+{
+	unsigned int cpu_irq;
 
+	cpu_irq = irq & (NR_IRQS - 1);
+	while (sparc_irq[cpu_irq].flags & IRQ_INPROGRESS)
+		cpu_relax();
+}
+
+- only cpu #0 handles interrupts
+Need to implement smp4m_irq_rotate().
+
+Bob
