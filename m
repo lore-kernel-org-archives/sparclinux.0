@@ -1,43 +1,34 @@
-From: Antonio Prioglio <a.prioglio@city.ac.uk>
-Date: Sun, 07 Mar 2004 01:23:06 +0000
-Subject: Re: [Re: [ANNOUNCE] a few cs patches for experimental Nell driver]
-Message-Id: <Pine.LNX.4.44.0403070122060.2283-100000@viper.dogbert.ntt.it>
+From: "Art Haas" <ahaas@airmail.net>
+Date: Mon, 29 Mar 2004 20:19:01 +0000
+Subject: Compiling modules question
+Message-Id: <20040329201901.GD30251@artsapartment.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <506icFVuZ6112S18.1078608025@uwdvg018.cms.usa.net>
-In-Reply-To: <506icFVuZ6112S18.1078608025@uwdvg018.cms.usa.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sat, 6 Mar 2004, Eric wrote:
+Hi.
 
-> 
-> Antonio Prioglio <a.prioglio@city.ac.uk> wrote:
-> 
-> > > 	http://sparclinux.net/pub/patches/nell_v0.1.2.tgz
-> > > 	http://sparclinux.net/pub/patches/nell_v0.1.2_cs_patches.tgz
-> > > 
-> > 
-> > Hi, maybe there is a problem with the permissions on the sc_patches file.
-> > 
-> > I can download the nell driver but I get a access error on the cs one.
-> 
-> Try again-- it should be working now.
+Here's another question for the list that I've not been able to
+answer. When I compile a kernel with modules, the modules all have
+problems with undefined symbols like 'udiv', 'urem', etc. As
+my machine is a 'v8' machine, my solution to resolving this
+problem was to edit the makefile and add '-mcpu=v8' in a couple
+of places, and things work fine. But, if I had to run my kernel
+on a 'v7' machine, things would fail.
 
-Yes, no problems now.
+In 'arch/sparc/lib' there are routines that provide the missing
+functions, so am I missing some step where this library gets linked
+into the building of the module? If not, then these missing
+functions must get picked up in libc, correct? My ignorance of how
+things work in SparcLinux is showing ...
 
-Thank you.
+Thanks in advance for any info you can send my way.
 
-Saluti,
-Antonio Prioglio [antonio.prioglio@britishlibrary.net]
-
+Art Haas
 -- 
-    /"\
-    \ /    ASCII RIBBON CAMPAIGN - AGAINST HTML MAIL 
-     X                           - AGAINST MS ATTACHMENTS
-    / \
+Man once surrendering his reason, has no remaining guard against absurdities
+the most monstrous, and like a ship without rudder, is the sport of every wind.
 
-http://www.gnu.org/philosophy/no-word-attachments.html
-
-
+-Thomas Jefferson to James Smith, 1822
