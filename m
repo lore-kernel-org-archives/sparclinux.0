@@ -1,24 +1,24 @@
-From: "David S. Miller" <davem@redhat.com>
-Date: Fri, 07 May 2004 22:16:01 +0000
-Subject: Re: [PATCH] Major warning fixes for sparc64 [3/4]
-Message-Id: <20040507151601.36eb2ecd.davem@redhat.com>
+From: "Art Haas" <ahaas@airmail.net>
+Date: Wed, 05 May 2004 13:15:51 +0000
+Subject: Swap patch not yet sent to Andrew/Linus?
+Message-Id: <20040505131551.GE26458@artsapartment.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040506223752.GC29131@triplehelix.org>
-In-Reply-To: <20040506223752.GC29131@triplehelix.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, 6 May 2004 15:37:52 -0700
-joshk@triplehelix.org (Joshua Kwan) wrote:
+Hi.
 
-> patch 3: Fixes a pile of lvalue casts in asm-sparc64/pgalloc.h.
-> 
-> This is a backport of DaveM's fix for 2.6's pgalloc.h, which is slightly
-> different due to the different interfaces used. I think I got it right
-> though, and I've compiled a kernel with this patch that seems to work
-> alright.
+I see the num_physpages patch has arrived in Linus's tree, but it looks
+like the swap patches are not yet there. Are there still issues with
+these patches? Without them the 2.6.5 kernel would not mount the swap
+partitions, and with the patches applied the swap partitions work
+normally, at least on my machine.
 
-Applied.
+Art Haas
+-- 
+Man once surrendering his reason, has no remaining guard against absurdities
+the most monstrous, and like a ship without rudder, is the sport of every wind.
 
+-Thomas Jefferson to James Smith, 1822
