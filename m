@@ -1,7 +1,7 @@
-From: Otto Solares <solca@guug.org>
-Date: Thu, 29 Jan 2004 22:58:03 +0000
+From: Erlend Aasland <erlend-a@ux.his.no>
+Date: Fri, 30 Jan 2004 00:22:35 +0000
 Subject: Re: SILO 1.4.2 released
-Message-Id: <20040129225803.GD14503@guug.org>
+Message-Id: <20040130002234.GA25728@badne4.ux.his.no>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040129182954.GK532@phunnypharm.org>
 In-Reply-To: <20040129182954.GK532@phunnypharm.org>
@@ -10,32 +10,33 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, Jan 29, 2004 at 04:01:03PM -0500, Ben Collins wrote:
-> Read the fucking email. I want people to test the _old_ smaller kernels
-> _first_. I would rather the larger kernels be broken than for the new
-> SILO to not work with the older kernels.
+Hi,
 
-Sorry, i think the point was test larger kernels.  Anyway
-my older kernels boots properly with the new second.b. Newer
-larger kernel 2.6.2-rc2-bk3 4M boots perfectly too on 3
-different machines.
+Using an Ultra10, silo-1.4.3 (compiled w/gcc-3.2.3) I can successfully
+boot kernel 2.4.23 and 2.4.24 (both 2.9MB).
 
-FYI compiling silo-1.4.3 from source:
+Regards,
+		Erlend Aasland
 
-gcc -m32 -Os -Wall -I. -I../include -fomit-frame-pointer -fno-strict-aliasing -DSMALL_RELOC=0x280000 -DLARGE_RELOC=0x380000 -c fs/ufs.c -o fs/ufs.o
-In file included from /usr/include/linux/fs.h:16,
-                 from /usr/include/linux/ufs_fs.h:34,
-                 from fs/ufs.c:36:
-/usr/include/linux/list.h:594:2: warning: #warning "don't include kernel headers in userspace"
-In file included from /usr/include/linux/fs.h:20,
-                 from /usr/include/linux/ufs_fs.h:34,
-                 from fs/ufs.c:36:
-/usr/include/linux/radix-tree.h: In function `radix_tree_preload_end':
-/usr/include/linux/radix-tree.h:54: error: invalid type argument of `->'
-/usr/include/linux/radix-tree.h:54: error: `TIF_NEED_RESCHED' undeclared (first use in this function)
-/usr/include/linux/radix-tree.h:54: error: (Each undeclared identifier is reported only once
-/usr/include/linux/radix-tree.h:54: error: for each function it appears in.)
-make: *** [fs/ufs.o] Error 1
-
--solca
-
+On 01/29/04 13:29, Ben Collins wrote:
+> I've tested and fixed initrd support for sparc64, so that's safe.
+> 
+> I've also cleaned up some things. Upon further testing, I was able to
+> boot a 6.8Meg image. Not sure why it didn't work the first time, but
+> beware it may be flakey.
+> 
+> I'm a little disappointed. I haven't gotten any feedback from people
+> testing this new version. So either no one cares, or it works good and
+> people don't want to waste their time sending "worked for me" emails :)
+> 
+> Usual place: http://www.sparc-boot.org/pub/silo/
+> 
+> -- 
+> Debian     - http://www.debian.org/
+> Linux 1394 - http://www.linux1394.org/
+> Subversion - http://subversion.tigris.org/
+> WatchGuard - http://www.watchguard.com/
+> -
+> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
