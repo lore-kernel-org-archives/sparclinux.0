@@ -1,7 +1,7 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Date: Tue, 30 Mar 2004 00:21:12 +0000
+From: "Art Haas" <ahaas@airmail.net>
+Date: Tue, 30 Mar 2004 01:35:18 +0000
 Subject: Re: Compiling modules question
-Message-Id: <1080606072.24982.17.camel@bach>
+Message-Id: <20040330013518.GA1352@artsapartment.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040329201901.GD30251@artsapartment.org>
 In-Reply-To: <20040329201901.GD30251@artsapartment.org>
@@ -10,44 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, 2004-03-30 at 08:42, Keith M Wesolowski wrote:
-> On Mon, Mar 29, 2004 at 02:19:01PM -0600, Art Haas wrote:
+On Mon, Mar 29, 2004 at 01:19:48PM -0800, Keith M Wesolowski wrote:
+> On Mon, Mar 29, 2004 at 12:30:43PM -0800, David S. Miller wrote:
 > 
-> > Here's another question for the list that I've not been able to
-> > answer. When I compile a kernel with modules, the modules all have
-> > problems with undefined symbols like 'udiv', 'urem', etc. As
+> > "Art Haas" <ahaas@airmail.net> wrote:
+> > 
+> > > Here's another question for the list that I've not been able to
+> > > answer. When I compile a kernel with modules, the modules all have
+> > > problems with undefined symbols like 'udiv', 'urem', etc.
+> > 
+> > Keith, I thought we had fixed this?
 > 
-> The problem is with depmod, not with the kernel.  Your modules will
-> build, load and work fine without any changes.
+> Yes, this was fixed on February 6.  I just checked it again and it
+> works fine.
 > 
-> Rusty, this matches the change to modpost.c from a while back; does it
-> look OK to you?
+> Art, where are you getting your sources?
 
-Ick, I missed that change to modpost.c.
+I'm pulling the code from Linus's BK tree:
 
-I really dislike this approach: we already have the code everywhere to
-ignore the first dot, and I'd prefer sparc use that same trick.
+http://linux.bkbits.net/linux-2.5
 
-ie:
-
-1) make rem, urem, mul, umul, div and udiv aliases to .rem, .urem etc:
-
-   extern int rem(int, int) __attribute__((weak,alias(".rem")));
-
-2) EXPORT_SYMBOL(rem) etc.
-
-3) Check genksyms recognises that prototype (it should).
-
-4) Copy "dedotify" from ppc64 to handle them on load.
-
-The only real downside is the risk that someone else will export
-those names, but I think that's pretty unlikely.
-
-I don't have sparc here: if noone wants to do the work I can produce
-a patch, but someone will need to test...
-
-Cheers,
-Rusty.
+Art
 -- 
-Anyone who quotes me in their signature is an idiot -- Rusty Russell
+Man once surrendering his reason, has no remaining guard against absurdities
+the most monstrous, and like a ship without rudder, is the sport of every wind.
 
+-Thomas Jefferson to James Smith, 1822
