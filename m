@@ -1,31 +1,45 @@
-From: bert hubert <ahu@ds9a.nl>
-Date: Thu, 21 Oct 2004 18:24:10 +0000
-Subject: Re: [2.6.9] headless SMP ultra2 has grave serial problem which lock up the box
-Message-Id: <20041021182410.GA31577@outpost.ds9a.nl>
+From: David Dillow <dave@thedillows.org>
+Date: Fri, 08 Oct 2004 16:51:07 +0000
+Subject: Re: RED State Exception on Ultra 1, 2.6.9-rc2
+Message-Id: <1097254267.4711.18.camel@ori.thedillows.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20041021111317.GB21579@outpost.ds9a.nl>
-In-Reply-To: <20041021111317.GB21579@outpost.ds9a.nl>
+References: <1095742791.3421.3.camel@ori.thedillows.org>
+In-Reply-To: <1095742791.3421.3.camel@ori.thedillows.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, Oct 21, 2004 at 10:49:04PM +0800, Richard Chan wrote:
-> Is your system using the su driver by any chance? - I have a patch just 
-> posted to the list
+On Tue, 2004-09-21 at 23:35, David S. Miller wrote:
+> On 21 Sep 2004 23:25:48 -0400
+> David Dillow <dave@thedillows.org> wrote:
+> 
+> > > Anyways, in free_streaming_cluster() we took a vectored interrupt (trap
+> > > type 0x60).  In tl0_ivec we took an illegal instruction trap, which is
+> > > very odd because the instruction at 0x408c00:tl0_ivec is a branch.
+[snip]
+> Something is writing garbage to that instruction, that is my current
+> guess.
 
-Sadly, no, this is an SBUS system:
+Ok, I've reproduced one more RED exception, and several silent lockups.
 
-zs2 at 0x000001fff1000004 (irq = 12,7e8) is a SunZilog
-zs3 at 0x000001fff1000000 (irq = 12,7e8) is a SunZilog
-ttyS0 at MMIO 0x0 (irq = 7467840) is a SunZilog
-ttyS1 at MMIO 0x0 (irq = 7467840) is a SunZilog
+I got a RED exception with arch/sparck64/kernel/sbus.c v1.17, but
+without loading my lpvi driver. It's been a while, but I believe I've
+seen a silent lockup on this kernel as well.
 
-However, this looks a bit like the problem you reported. Might the same bug
-exist here?
+I backed that patch out, and using sbus.c 1.16 I've gotten 3 or 4 silent
+lockups.
 
-Thanks!
+So, I think there is a problem somewhere, and its probably not the sbus
+changes.
 
--- 
-http://www.PowerDNS.com      Open source, database driven DNS Software 
-http://lartc.org           Linux Advanced Routing & Traffic Control HOWTO
+I'm using 2.4.9-rc2 built by gcc version 3.2.3 (Debian). 
+
+Any suggestions on things I can do to rule out flaky hardware, or other
+useful steps before I start a binary search on where it broke? It can
+take from 15 minutes to 5 or more hours to reproduce using a network
+load and back-to-back "dbench 24" runs.
+
+Thanks,
+Dave
+
