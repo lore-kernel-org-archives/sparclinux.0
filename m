@@ -1,36 +1,31 @@
-From: "David S. Miller" <davem@redhat.com>
-Date: Wed, 31 Mar 2004 20:24:18 +0000
-Subject: Re: [SPARC64]: Use correct register values for OBP names
-Message-Id: <20040331122418.1d0d73c9.davem@redhat.com>
+From: William Lee Irwin III <wli@holomorphy.com>
+Date: Thu, 18 Mar 2004 14:22:25 +0000
+Subject: fix ENOSYS from io_getevents()/NR_SYSCALLS
+Message-Id: <20040318142225.GA2045@holomorphy.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040329200503.GA24518@foobazco.org>
-In-Reply-To: <20040329200503.GA24518@foobazco.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Mon, 29 Mar 2004 12:05:04 -0800
-Keith M Wesolowski <wesolows@foobazco.org> wrote:
+NR_SYSCALLS appears to be off by one, and so aio tests/etc. are failing
+with -ENOSYS. __NR_io_getevents is 272, so the bgeu,pn NR_SYSCALLS etc.
+checks mistakenly punt io_getevents() off to linux_sparc_ni_syscall().
+The following patch gets the aio tests running.
 
-> This looks like a lot of voodoo, but it fixes two real problems: (1)
-> SMP systems end up with duplicate entries in openpromfs, and (2) the
-> names there don't match what's shown by OBP which is confusing.
-> 
-> It works properly on U1, U2, and E3500, but I suspect it only works on
-> spitfire systems.  I don't have access to any cheetahs.  Probably at
-> least upa-portid is wrong there, but I have no idea what OBP shows on
-> such systems anyway.
 
-Yikes, this function is full of other bugs too.  F.e. for PCI devices
-it assumes the parent is PCI host yet it could be a PCI-PCI bridge.
+-- wli
 
-The problem is that each and every node type needs different reg
-decoding, PCI is one way, cpus are another, and EBUS is different
-as well.
 
-I would like to put more thought into this issue before we put in
-a change like this.  The bit masking, as you suspected, is going
-to be wrong on other platforms.  The "board ID" or whatever first
-unit of the address is at a different set of upper bits on different
-platforms and bus types, for one thing.
+--- mm1-2.6.4-3/arch/sparc64/kernel/entry.S	2004-03-10 18:55:20.000000000 -0800
++++ mm1-2.6.4-4/arch/sparc64/kernel/entry.S	2004-03-11 22:00:49.608397000 -0800
+@@ -26,7 +26,7 @@
+ 
+ #define curptr      g6
+ 
+-#define NR_SYSCALLS 272      /* Each OS is different... */
++#define NR_SYSCALLS 273      /* Each OS is different... */
+ 
+ 	.text
+ 	.align		32
+
