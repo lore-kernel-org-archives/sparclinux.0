@@ -1,84 +1,41 @@
-From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
-Date: Tue, 30 Mar 2004 03:19:59 +0000
-Subject: 2.6.5rc2 panics on ss5/110
-Message-Id: <1080616798.16068.37.camel@zorak>
+From: Keith M Wesolowski <wesolows@foobazco.org>
+Date: Wed, 31 Mar 2004 16:10:06 +0000
+Subject: Re: 2.6.5rc2 panics on ss5/110
+Message-Id: <20040331161006.GA13251@foobazco.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1080616798.16068.37.camel@zorak>
+In-Reply-To: <1080616798.16068.37.camel@zorak>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-2.6.5rc2 panics on my ss5/110. I am booting off an external scsi disk on
-lun 5, with an external scsi cdrom at lun 6. The kernel panics after
-hitting the internal disk on lun 3, which i am NOT using for linux. It
-seems to have trouble scanning the whole bus.
+On Mon, Mar 29, 2004 at 09:19:59PM -0600, Tom 'spot' Callaway wrote:
 
-Panic is as follows (handcopied):
+> PC: <vsnprintf+0x4f0/0x604>
+...
+> Instruction DUMP: 9210001b  40000ea0  9007bff0 <d41a0000> 1080002b
+> b606e008  12800008  8219605a  c206c000
 
-Loading esp.ko module
-esp0: IRQ 36 SCSI ID 7 Clk 40 MHz CCYC%000 CCF=8 TOut 167
-NCR53C9XF(espfast)
-ESP: Total of 1 ESP hosts found, 1 actually in use.
-scsi0 : Sparc ESP100A-FAST
-  Vendor: SEAGATE   Model: ST31200W SUN 1.05  Rev: 8566
-  Type:   Direct-Access                       ANSI SCSI revision: 02
-esp0: target 3 [period 100ns offset 15 10.00MHz FAST SCSI-II]
-Unable to handle kernel NULL pointer dereference
-tsk->{mm,active_mm}->context = 00000006
-tsk->{mm,active_mm}->pgd = fc02d000
-              \|/ ____ \|/
-              "@'/ ,. \'@"
-              /_| \__/ |_\
-                 \__U_/
-insmod(144): Oops [#1]
-PSR: 04401fc2 PC: f00cc780 NPC: f00cc784 Y: 00000000    Not tainted
-PC: <vsnprintf+0x4f0/0x604>
-%G: f10fd778 00000008  00000000 001f7334  fe3152c4 0000004c  f10fc000
-00000008
-%O: 00000000 f10fd954  00000008 00000463  fffffecc 00000000  f10fd7b0
-f00cc778
-RPC: <vsnprintf+0x4e8/0x604>
-%L: ffffffff 00000000  f021684f ffffffff  f0216450 00000000  0098963c
-f012fc80
-%I: f0216464 00000400  0000000a f10fd94c  00000018 f106069c  f10fd828
-f00cc8a8
-Caller[f00cc8a8]: vscnprintf+0x14/0x30
-Caller[f0030f40]: printk+0x60/0x188
-Caller[fe3143bc]: sd_read_capacity+0x364/0x3d4 [sd_mod]
-Caller[fe314958]: sd_revalidate_disk+0xf4/0x154 [sd_mod]
-Caller[fe314c70]: sd_probe+0x2b8/0x370 [sd_mod]
-Caller[f00f31a8]: bus_match+0x40/0x6c
-Caller[f00f3224]: device_attach+0x50/0x9c
-Caller[f00f33e4]: bus_add_device+0x48/0x74
-Caller[f00f2550]: device_add+0x6c/0x108
-Caller[fe33164c]: scsi_sysfs_add_sdev+0x20/0x208 [scsi_mod]
-Caller[fe3302fc]: scsi_add_lun+0x410/0x424 [scsi_mod]
-Caller[fe33046c]: scsi_probe_and_add_lun+0x15c/0x230 [scsi_mod]
-Caller[fe330bb4]: scsi_scan_target+0x58/0xd4 [scsi_mod]
-Caller[fe330c8c]: scsi_scan_channel+0x5c/0x8c [scsi_mod]
-Caller[fe330d9c]: scso_scan_host_selected+0xe0/0x144 [scsi_mod]
-Caller[fe30dd40]: init_this_scsi_driver+0x8c/0xe0 [esp]
-Caller[f0047330]: sys_init_module+0x138/0x278
-Caller[f0012968]: syscall_is_too_hard+0x34/0x40
-Caller[00013c8c]: 0x13c8c
-Instruction DUMP: 9210001b  40000ea0  9007bff0 <d41a0000> 1080002b
-b606e008  12800008  8219605a  c206c000
-ERROR: /bin/insmod exited abnormally!
-Loading jbd.ko module
-Loading ext3.ko module
-Creating block devices
-VFS: Cannot open root device "LABEL=/" or unknown-block(0,0)
-Please append a correct "root=" boot option
-Kernel panic: VFS: Unable to mount root fs on unknown-block(0,0)
-  <0>Press L1-A to return to the boot prom
+This works out to:
 
-~spot
----
-Tom "spot" Callaway <tcallawa(a)redhat*com> LCA, RHCE 
-Red Hat Sales Engineer || Aurora SPARC Linux Project Leader
+   0:   92 10 00 1b     mov  %i3, %o1
+   4:   40 00 0e a0     call  0x3a84
+   8:   90 07 bf f0     add  %fp, -16, %o0
+   c:   d4 1a 00 00     ldd  [ %o0 ], %o2 	<<<=  10:   10 80 00 2b     b  0xbc
+  14:   b6 06 e0 08     add  %i3, 8, %i3
+  18:   12 80 00 08     bne  0x38
+  1c:   82 19 60 5a     xor  %g5, 0x5a, %g1
+  20:   c2 06 c0 00     ld  [ %i3 ], %g1
 
-"The author's mathematical treatment of the conception of purpose is
-novel and highly ingenious, but heretical and, so far as the present
-social order is concerned, dangerous and potentially subversive. Not 
-to be published." -- Aldous Huxley's "Brave New World"
+So it's sane (o0 is NULL).  However, I can't reproduce this with your
+config and stock gcc 3.3.3, nor does my vsnprintf contain any code
+sequence that looks anything like this.
 
+Please send me your kernel off-list, and indicate here exactly what
+compiler you're using.  The call from scsi is a little odd in that a
+64-bit value is split between o5 and the stack; I'm having some
+compiler doubts.
+
+-- 
+Keith M Wesolowski
