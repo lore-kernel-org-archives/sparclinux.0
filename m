@@ -1,61 +1,32 @@
-From: Josh Grebe <josh@brokedown.net>
-Date: Thu, 08 Jan 2004 18:16:03 +0000
-Subject: PSYCHO0 PBMA: PCI streaming byte hole error asserted.
-Message-Id: <1073585763.1669.1.camel@localhost>
+From: "David S. Miller" <davem@redhat.com>
+Date: Thu, 08 Jan 2004 20:08:43 +0000
+Subject: Re: PSYCHO0 PBMA: PCI streaming byte hole error asserted.
+Message-Id: <20040108120843.46df711c.davem@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1073585763.1669.1.camel@localhost>
+In-Reply-To: <1073585763.1669.1.camel@localhost>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi All,
+On Thu, 08 Jan 2004 12:16:03 -0600
+Josh Grebe <josh@brokedown.net> wrote:
 
-I'm getting a log message of:
+> I'm getting a log message of:
+> 
+> PSYCHO0 PBMA: PCI streaming byte hole error asserted.
+> 
+> Pretty frequently. So frequently in fact, that I think it may be logging
+> one every packet that crosses my gigabit network card.  I have an E450
+> with two Intel E1000 cards in it, here is my lspci (sorry for bad
+> formatting):
 
-PSYCHO0 PBMA: PCI streaming byte hole error asserted.
+Scott, does the DMA engine of the e1000 do read/write of PCI cache lines
+with not all the byte enables on?  In particular, with descriptor reads/writes?
 
-Pretty frequently. So frequently in fact, that I think it may be logging
-one every packet that crosses my gigabit network card.  I have an E450
-with two Intel E1000 cards in it, here is my lspci (sorry for bad
-formatting):
+That's not allowed on many RISC platform PCI controllers due to how they
+implement caching of DMA traffic, sparc64 is one such instance.
 
-00:00.0 Host bridge: Sun Microsystems Computer Corp. Psycho PCI Bus Module
-01:00.0 Host bridge: Sun Microsystems Computer Corp. Psycho PCI Bus Module
-02:00.0 Host bridge: Sun Microsystems Computer Corp. Psycho PCI Bus Module
-03:00.0 Host bridge: Sun Microsystems Computer Corp. Psycho PCI Bus Module
-03:01.0 Ethernet controller: Intel Corp. 82542 Gigabit Ethernet Controller (rev 03)
-04:00.0 Host bridge: Sun Microsystems Computer Corp. Psycho PCI Bus Module
-04:01.0 Bridge: Sun Microsystems Computer Corp. EBUS (rev 01)
-04:01.1 Ethernet controller: Sun Microsystems Computer Corp. Happy Meal (rev 01)
-04:02.0 SCSI storage controller: LSI Logic / Symbios Logic 53c875 (rev 03)
-04:03.0 SCSI storage controller: LSI Logic / Symbios Logic 53c875 (rev 03)
-04:04.0 Display controller: 3DLabs Permedia II 2D+3D (rev 01)
-05:00.0 Host bridge: Sun Microsystems Computer Corp. Psycho PCI Bus Module
-05:01.0 PCI bridge: Digital Equipment Corporation DECchip 21154 (rev 05)
-06:04.0 Ethernet controller: Intel Corp. 82557/8/9 [Ethernet Pro 100] (rev 08)
-06:05.0 Ethernet controller: Intel Corp. 82557/8/9 [Ethernet Pro 100] (rev 08)
-06:06.0 Ethernet controller: Intel Corp. 82542 Gigabit Ethernet Controller (rev 03)
-
-
-
-This machine is a quad 400mhz box, with one gig interface to the internet and one
-to a netapp filer. I am running kernel 2.4.24. This problem started when I added
-a second e1000 card to it earlier today. My startup messages for the detection
-of the e1000 cards:
-
-Jan  7 15:44:16 syslogger Intel(R) PRO/1000 Network Driver - version 5.2.20-k1
-Jan  7 15:44:16 syslogger Copyright (c) 1999-2003 Intel Corporation.
-Jan  7 15:44:16 syslogger eth3: Dropping NETIF_F_SG since no checksum feature.
-Jan  7 15:44:16 syslogger eth3: Intel(R) PRO/1000 Network Connection
-Jan  7 15:44:16 syslogger eth4: Dropping NETIF_F_SG since no checksum feature.
-Jan  7 15:44:16 syslogger eth4: Intel(R) PRO/1000 Network Connection
-
-
-
-Any thoughts? I searched the archives and google and didn't come up with anything.
-
-Thanks,
-
-Josh
-
-
+If there is some way to tweak the config of the e1000 such that it will not
+generate these transactions, we should do so on sparc64 at least.
