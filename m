@@ -1,27 +1,24 @@
-From: "millard" <research21catfish@hotmail.com>
-Date: Sun, 25 Apr 2004 11:27:51 +0000
-Subject: V_I_A_G_R_A!!
-Message-Id: <1082899468-6778@excite.com>
+From: Autoreply@lindhardt.com
+Date: Thu, 08 Apr 2004 13:56:02 +0000
+Subject: Re: Phone number
+Message-Id: <OFC1256E70.004C8ADE-ONC1256E70.004C8ADE-C1256E70.004C8ADE@lindhardt.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-Only $2 a dose!
+K=E6re kunde
 
-http://bestforyour.biz/gv/index.php?pid=eph9106
+Tak for din e-mail. Vi svarer p=E5 den s=E5 hurtigt som muligt; og som
+beskrevet i vores servicepolitik. Den kan du l=E6se p=E5 vores hjemmeside
+www.antivirus.dk under menupunktet Service/Servicepolitik.
 
+M=E5ske finder du allerede nu svaret p=E5 dit sp=F8rgsm=E5l p=E5 vores hjem=
+meside.
+Pr=F8v at se p=E5 www.antivirus.dk under menupunktet Service, Erhverv.
 
+Venlig hilsen
+Lindhardt A/S - IT med Tryghedsgaranti
+Panda Software Danmark
 
-
-
-
-
-
-
-
-
-softball mazda1moroni dasha nirvana1 hazel dolphins grandma
-eclipse angelszenith tigre venus 
-asdfghjk cracker new 
