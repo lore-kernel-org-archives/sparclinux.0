@@ -1,28 +1,44 @@
-From: William Lee Irwin III <wli@holomorphy.com>
-Date: Thu, 03 Mar 2005 11:02:57 +0000
-Subject: Re: [PATCH] procfs: fix printk format warning
-Message-Id: <20050303110257.GW15648@holomorphy.com>
+From: Andrew Morton <akpm@osdl.org>
+Date: Tue, 01 Mar 2005 21:44:40 +0000
+Subject: Re: [PATCH] sparc: fix compile failure ("struct resource" related)
+Message-Id: <20050301134440.05ae1152.akpm@osdl.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20050301211005.6a23f2b4.rddunlap@osdl.org>
-In-Reply-To: <20050301211005.6a23f2b4.rddunlap@osdl.org>
+References: <200503012129.11840.adobriyan@mail.ru>
+In-Reply-To: <200503012129.11840.adobriyan@mail.ru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Alexey Dobriyan <adobriyan@mail.ru>
+Cc: wli@holomorphy.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-William Lee Irwin III wrote:
->> The UL qualifier can't be used directly as VMALLOC_START is used in
->> assembly (check arch/sparc/kernel/entry.S).
+Alexey Dobriyan <adobriyan@mail.ru> wrote:
+>
+> Signed-off-by: Alexey Dobriyan <adobriyan@mail.ru>
 
-On Wed, Mar 02, 2005 at 06:49:05PM -0800, Randy.Dunlap wrote:
-> Darn, that gives me some lack of confidence in my cross-build
-> tools.  Cross-build results are at:
-> https://www.osdl.org/plm-cgi/plm?module=patch_info&patch_idB38
-> and sparc build with this patch passed....
-> But I do trust that you know what you are talking about and
-> that I probably have a toolchain problem.
+Thanks.  Many of these fixups are due to a 64-bit-resource patch in Greg's
+bk-pci tree which he has now reverted.  That being said:
 
-Okay, in that case, I wonder why it worked.
+- That patch will come back sometime
+
+- Fixes like the below make sense anyway and can be merged any time.
+
+- All the fixes which were only applicable when the 64-bit-resource patch
+  is present have been sent to Greg for when that patch reemerges.
 
 
--- wli
+> --- linux-2.6.11-rc5-mm1/arch/sparc/kernel/ioport.c.orig	2005-03-01 21:11:30.000000000 +0200
+> +++ linux-2.6.11-rc5-mm1/arch/sparc/kernel/ioport.c	2005-03-01 21:12:48.000000000 +0200
+> @@ -54,11 +54,11 @@ static void _sparc_free_io(struct resour
+>  
+>  /* This points to the next to use virtual memory for DVMA mappings */
+>  static struct resource _sparc_dvma = {
+> -	"sparc_dvma", DVMA_VADDR, DVMA_END - 1
+> +	.name = "sparc_dvma", .start = DVMA_VADDR, .end = DVMA_END - 1
+>  };
+>  /* This points to the start of I/O mappings, cluable from outside. */
+>  /*ext*/ struct resource sparc_iomap = {
+> -	"sparc_iomap", IOBASE_VADDR, IOBASE_END - 1
+> +	.name = "sparc_iomap", .start = IOBASE_VADDR, .end = IOBASE_END - 1
+>  };
+>  
+>  /*
