@@ -1,26 +1,31 @@
-From: Kai-Min Sung <k@kaisung.com>
-Date: Sat, 17 Jan 2004 01:33:01 +0000
-Subject: SP_TRAP_LINUX
-Message-Id: <Pine.LNX.4.44.0401161725530.20441-100000@eq4.oversee.net>
+From: Otto Solares <solca@guug.org>
+Date: Wed, 28 Jan 2004 20:29:23 +0000
+Subject: GEM nic disabled problem
+Message-Id: <20040128202923.GD10435@guug.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi all,
+Hi!
 
-I was looking at the file include/asm-sparc/traps.h and the following 
-sequence caught my eye:
+i am getting repetitive errors with a Sun GEM nic,
+the errors:
 
-#define SP_TRAP_SOLARIS 0x88 /* Solaris System Call */ 
-#define SP_TRAP_NETBSD 0x89 /* NetBSD System Call */
-#define SP_TRAP_LINUX   0x90         /* Linux System Call */
+eth0: Link down
+eth0: MII PHY ID: 437420 Enable Semiconductor
+eth0: Link is up at 100 Mbps, full-duplex.
+eth0: Pause is disabled
 
-Shouldn't SP_TRAP_LINUX be defined as 0x8a? 
+when it exhibits this problem, network traffic
+stops for aprox. 5 seconds, then continues to
+work again until the problem presents again.
 
-Also, where's the corresponding traps.h file for asm-sparc64?
+I know for sure that 2.4.18 to 2.4.22 have this
+problem.  2.6 fixes the problem, i am running woody
+and will not use a 2.6 kernel so if somebody knows
+if this is a known issue in 2.4?
 
-Thanks,
--Kai
+-solca
 
