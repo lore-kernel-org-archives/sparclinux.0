@@ -1,29 +1,41 @@
-From: William Lee Irwin III <wli@holomorphy.com>
-Date: Fri, 29 Oct 2004 18:27:28 +0000
-Subject: Re: Help re Frame Buffer/Console Problems
-Message-Id: <20041029182728.GE12934@holomorphy.com>
+From: bert hubert <ahu@ds9a.nl>
+Date: Thu, 21 Oct 2004 11:13:17 +0000
+Subject: [2.6.9] headless SMP ultra2 has grave serial problem which lock up the box
+Message-Id: <20041021111317.GB21579@outpost.ds9a.nl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.10.10410291849480.2831-100000@mtfhpc.demon.co.uk>
-In-Reply-To: <Pine.LNX.4.10.10410291849480.2831-100000@mtfhpc.demon.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Cc: linux-fbdev-devel@lists.sourceforge.net, jsimmons@infradead.org, geert@linux-m68k.org, sparclinux@vger.kernel.org, ultralinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Fri, Oct 29, 2004 at 07:22:11PM +0100, Mark Fortescue wrote:
-> I have been trying to get a CG3 sparc clone up and running with linux.
-> Under 2.2.26, the console is fine. During the development of the
-> 2.5.x/2.6.x frame buffer system the CG3 support got broken. I have managed
-> to track done one of the problems (the blanking code had some typing
-> errors in it) and this gave me a logo + black screen and cursor using a
-> linux-2.2.8.1 kernel. Still no console text.
-> Given that 2.2.10-rc1-bk6 is available, I have downloaded and applied the
-> appropriate patches and made some additional mods to keep the
-> compiler/linker happy. Now I have a black console, no text, logo or cursor
-> and if I redirect the console output to a serial port I get the following:
+Hi,
 
-Okay, sounds like a relatively major disaster. =(
+I've been given an Ultra 2 to develop PowerDNS on for use with UltraSparc
+processors but Linux is giving me some problems. The box is headless and has
+no display adapter at all.
 
+While 2.4.27 works well, 2.6.9 will only boot for me if I specify 'smp=no
+nosmp' on the SILO command line, and even then the machine often blocks.
 
--- wli
+I can unblock it, when booted with 'smp=no nosmp', by sending a break and
+entering go. It does not block if there is no traffic over the serial port,
+so once booted and logged in with ssh things are fine.
+
+When truly blocked, which so far only happens when booting in SMP mode,
+sending a break does not bring up the 'ok' prompt anymore. The nosmp locks
+appear to be temporary and fixable with the break.
+
+When blocked, the entire machine is dead - not just the serial device!
+
+I've tried compiling with both gcc 3.3 and 3.4 (debian unstable, I think),
+both exhibit the same problem. I've compiled with both 'OpenBoot PROM
+serial' on or off and with Zilog serial on and off, oddly neither seem to
+help. 
+
+Anything I can do to help, let me know!
+
+Thanks.
+
+-- 
+http://www.PowerDNS.com      Open source, database driven DNS Software 
+http://lartc.org           Linux Advanced Routing & Traffic Control HOWTO
