@@ -1,8 +1,10 @@
-From: Christian Joensson <christian@j-son.org>
-Date: Mon, 19 Apr 2004 12:17:36 +0000
+From: Christian Joensson <c.christian.joensson@comhem.se>
+Date: Wed, 21 Apr 2004 08:43:10 +0000
 Subject: RPC: bad TCP reclen 0x05000b03 (non-terminal)
-Message-Id: <20040419141736.A4049@fw.j-son.org>
+Message-Id: <20040421104310.A22918@fw.j-son.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20040419141736.A4049@fw.j-son.org>
+In-Reply-To: <20040419141736.A4049@fw.j-son.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
