@@ -1,37 +1,58 @@
 From: "Art Haas" <ahaas@airmail.net>
-Date: Fri, 02 Apr 2004 01:30:09 +0000
-Subject: CG6 Framebuffer questions
-Message-Id: <20040402013009.GB23279@artsapartment.org>
+Date: Mon, 05 Apr 2004 19:10:29 +0000
+Subject: Re: CG6 Framebuffer questions
+Message-Id: <20040405191029.GB5004@artsapartment.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20040402013009.GB23279@artsapartment.org>
+In-Reply-To: <20040402013009.GB23279@artsapartment.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+On Thu, Apr 01, 2004 at 07:30:09PM -0600, Art Haas wrote:
+> Hi.
+> 
+> [ ... snip screenbuffer problems using CG6 driver ... ]
+> 
+
 Hi.
 
-My SS20 has a few problems while running the 2.6 BK kernels with the
-framebuffer display. First, the screen never goes blank, whereas when
-running a 2.4 kernel it does so after several minutes of inactivity.
-Second, the display gets slightly messed up when a line of text has to
-wrap. What appears to happen is the final character on the line ends up
-appearing over and over itself between the left side of the screen and
-the first character, and the last character and the right edge of the
-screen. The text in the middle of the screen is fine, it is just the
-stuff outside the normal text boundary that gets the extra junk written
-over and over, producing an odd looking line. Running the 2.4 kernel
-there is no display corrupution when lines wrap. Lastly, running a
-'make menuconfig' under 2.6 display different colors than the normal
-cyan/yellow combination that are shown when a 2.4 kernel is running, or
-when I use 'make menuconfig' on my intel box.
+I'm still digging into the failure of the screen to blank, and after
+adding a few printk() statements I'm more puzzled. What appears to be
+happening is the screen blanks then immediately unblanks. Below is
+some edited output from my printk() addition. The 'do_blank_screen()'
+call is in 'drivers/char/vt.c', which calls 'fbcon_blank()' in
+'drivers/video/console/fbcon.c', which then calls 'fb_blank()' in
+'drivers/video/fbmem.c', and finally calls 'cg6_blank()' in
+'drivers/video/cg6.c'. When 'blank' is 1, the screen blanks itself, and
+when blank is 0, the screen unblanks. Unblanking starts with
+'do_unblank_screen()' in 'drivers/char/vt.c', from there on the code
+path is the same. Here's the output:
 
-I've looked around a bit for postings regarding these issues, but have
-found zilch. So, I turn to the list again. I've read the info on
-'fbset', but that appears to be used primarily when the frame buffer is
-displaying X stuff, and I'm just at the console. The text corruption
-stuff looks like a bug somewhere, but possibly the other two problems
-are configuation issues? Anyone else running things with a CG6 driver
-and seeing these problems?
+13:04:51 kernel: do_blank_scrren(): entering_gfx = 0
+13:04:51 kernel: calling sw->con_blank() ...
+13:04:51 kernel: in fbcon_blank(): blank = 1, mode_switch = 0
+13:04:51 kernel: has fb_blank() ...
+13:04:51 kernel: in fb_blank() => blank: 1
+13:04:51 kernel: cg6_blank(): blank: 1
+13:04:51 kernel: sw->con_blank returned 0
+13:04:51 kernel: vesa_blank_mode: 0
+13:04:51 kernel: unblank_screen() ...
+13:04:51 kernel: do_unblank_screen(): leaving_gfx = 0
+13:04:51 kernel: blankinterval: 180000
+13:04:51 kernel: calling sw->con_blank() ...
+13:04:51 kernel: in fbcon_blank(): blank = 0, mode_switch = 0
+13:04:51 kernel: has fb_blank() ...
+13:04:51 kernel: in fb_blank() => blank: 0
+13:04:51 kernel: cg6_blank(): blank: 0
+
+I'm adding more printk() statements, and am looking at how the
+automatic blanking is supposed to work with console_work/console_callback
+stuff in 'drivers/char/vt.c' looking like the code to examime, but I'm
+so far baffled as to why unblanking is called immediately after
+blanking. Anyone on the list have knowledge of framebuffer code workings
+that they could pass on?
 
 Art Haas
 -- 
