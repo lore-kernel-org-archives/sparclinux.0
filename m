@@ -1,7 +1,7 @@
-From: Keith M Wesolowski <wesolows@foobazco.org>
-Date: Mon, 03 May 2004 05:51:20 +0000
+From: "Art Haas" <ahaas@airmail.net>
+Date: Mon, 03 May 2004 18:15:14 +0000
 Subject: Re: Found the cause of my 2.6.6-rc boot failures
-Message-Id: <20040503055120.GA2314@foobazco.org>
+Message-Id: <20040503181514.GE29241@artsapartment.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040430015234.GH27793@artsapartment.org>
 In-Reply-To: <20040430015234.GH27793@artsapartment.org>
@@ -10,67 +10,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, Apr 29, 2004 at 08:52:34PM -0500, Art Haas wrote:
+Hi.
 
-> The 1.69->1.70 changes in fs/dcache.c are the problem keeping my system
-> from booting. This change introduced the bit of code where the global
-> 'mempages' variable is reduced by calling nr_free_pages() and
-> subtracting that result. By commenting out the change to on line 1634
+After applying the patch, and building and installing the kernel, I am
+happy to report my first successful boot of the 2.6.6-rc kernels! My
+kernel code is Linus's BK from yesterday afternoon/evening, so the
+version I'm running is really 2.6.6-rc3 + BK.
 
-Nice work, thanks.  This patch should solve the problem.  Please test.
+Here's a bit of dmesg output with the memory info ...
 
-=== arch/sparc/mm/init.c 1.27 vs edited ==--- 1.27/arch/sparc/mm/init.c	Sun Mar 21 14:43:34 2004
-+++ edited/arch/sparc/mm/init.c	Sun May  2 22:42:14 2004
-@@ -400,6 +400,7 @@
- 	int codepages = 0;
- 	int datapages = 0;
- 	int initpages = 0; 
-+	int reservedpages = 0;
- 	int i;
- 
- 	highmem_start_page = pfn_to_page(highstart_pfn);
-@@ -434,12 +435,14 @@
- 	max_mapnr = last_valid_pfn - pfn_base;
- 	high_memory = __va(max_low_pfn << PAGE_SHIFT);
- 
--	num_physpages = totalram_pages = free_all_bootmem();
-+	totalram_pages = free_all_bootmem();
- 
- 	for (i = 0; sp_banks[i].num_bytes != 0; i++) {
- 		unsigned long start_pfn = sp_banks[i].base_addr >> PAGE_SHIFT;
- 		unsigned long end_pfn = (sp_banks[i].base_addr + sp_banks[i].num_bytes) >> PAGE_SHIFT;
- 
-+		num_physpages += sp_banks[i].num_bytes >> PAGE_SHIFT;
-+
- 		if (end_pfn <= highstart_pfn)
- 			continue;
- 
-@@ -458,13 +461,20 @@
- 	initpages = (((unsigned long) &__init_end) - ((unsigned long) &__init_begin));
- 	initpages = PAGE_ALIGN(initpages) >> PAGE_SHIFT;
- 
--	printk(KERN_INFO "Memory: %dk available (%dk kernel code, %dk data, %dk init, %ldk highmem) [%08lx,%08lx]\n",
--	       nr_free_pages() << (PAGE_SHIFT-10),
-+	/* Ignore memory holes for the purpose of counting reserved pages */
-+	for (i=0; i < max_low_pfn; i++)
-+		if (test_bit(i >> (20 - PAGE_SHIFT), sparc_valid_addr_bitmap)
-+		    && PageReserved(pfn_to_page(i)))
-+			reservedpages++;
-+
-+	printk(KERN_INFO "Memory: %luk/%luk available (%dk kernel code, %dk reserved, %dk data, %dk init, %ldk highmem)\n",
-+	       (unsigned long) nr_free_pages() << (PAGE_SHIFT-10),
-+	       num_physpages << (PAGE_SHIFT - 10),
- 	       codepages << (PAGE_SHIFT-10),
-+	       reservedpages << (PAGE_SHIFT - 10),
- 	       datapages << (PAGE_SHIFT-10), 
- 	       initpages << (PAGE_SHIFT-10),
--	       totalhigh_pages << (PAGE_SHIFT-10),
--	       (unsigned long)PAGE_OFFSET, (last_valid_pfn << PAGE_SHIFT));
-+	       totalhigh_pages << (PAGE_SHIFT-10));
- }
- 
- void free_initmem (void)
+319MB HIGHMEM available.
+On node 0 totalpages: 130399
+  DMA zone: 48656 pages, LIFO batch:11
+  Normal zone: 0 pages, LIFO batch:1
+  HighMem zone: 81743 pages, LIFO batch:16
+Power off control detected.
+Built 1 zonelists
+Kernel command line: root=/dev/sda1 ro
+PID hash table entries: 2048 (order 11: 16384 bytes)
+Console: colour dummy device 80x25
+Memory: 510644k/523580k available (1364k kernel code, 12312k reserved,
+        344k data, 120k init, 326972k highmem)
+Calibrating delay loop... 59.80 BogoMIPS
+Dentry cache hash table entries: 65536 (order: 6, 262144 bytes)
+Inode-cache hash table entries: 32768 (order: 5, 131072 bytes)
+Mount-cache hash table entries: 512 (order: 0, 4096 bytes)
 
+I had been fiddling with a patch that set 'num_physpages' to the value
+of 'highend_pfn', but my patch had failed. I believe the value that my
+patch produced, and your patch produced, are identical - a printk()
+addition would confirm this. Still, the kernel I had built failed to
+boot, whereas the kernel with your patch is up and running. Yay!
 
+Please send this patch to Linus so it can get into the official 2.6.6
+release.
+
+Art Haas
 -- 
-Keith M Wesolowski
+Man once surrendering his reason, has no remaining guard against absurdities
+the most monstrous, and like a ship without rudder, is the sport of every wind.
+
+-Thomas Jefferson to James Smith, 1822
