@@ -1,41 +1,48 @@
-From: Keith M Wesolowski <wesolows@foobazco.org>
-Date: Wed, 31 Mar 2004 16:10:06 +0000
-Subject: Re: 2.6.5rc2 panics on ss5/110
-Message-Id: <20040331161006.GA13251@foobazco.org>
+From: Stefan Holst <mail@s-holst.de>
+Date: Sun, 21 Mar 2004 21:42:23 +0000
+Subject: small make clean fix
+Message-Id: <20040321214223.GA17279@spike>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1080616798.16068.37.camel@zorak>
-In-Reply-To: <1080616798.16068.37.camel@zorak>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Mon, Mar 29, 2004 at 09:19:59PM -0600, Tom 'spot' Callaway wrote:
+hi,
 
-> PC: <vsnprintf+0x4f0/0x604>
-...
-> Instruction DUMP: 9210001b  40000ea0  9007bff0 <d41a0000> 1080002b
-> b606e008  12800008  8219605a  c206c000
+yet another small patch from me:
+this fixes make clean/mrproper to remove arch/sparc/boot/System.map, too.
+it was all along in the way while making patches...
 
-This works out to:
+maybe it is a bug in kbuild that clean target is not executed
+in arch/sparc/boot/Makefile?
 
-   0:   92 10 00 1b     mov  %i3, %o1
-   4:   40 00 0e a0     call  0x3a84
-   8:   90 07 bf f0     add  %fp, -16, %o0
-   c:   d4 1a 00 00     ldd  [ %o0 ], %o2 	<<<=  10:   10 80 00 2b     b  0xbc
-  14:   b6 06 e0 08     add  %i3, 8, %i3
-  18:   12 80 00 08     bne  0x38
-  1c:   82 19 60 5a     xor  %g5, 0x5a, %g1
-  20:   c2 06 c0 00     ld  [ %i3 ], %g1
-
-So it's sane (o0 is NULL).  However, I can't reproduce this with your
-config and stock gcc 3.3.3, nor does my vsnprintf contain any code
-sequence that looks anything like this.
-
-Please send me your kernel off-list, and indicate here exactly what
-compiler you're using.  The call from scsi is a little odd in that a
-64-bit value is split between o5 and the stack; I'm having some
-compiler doubts.
+diff -urN a/arch/sparc/boot/Makefile b/arch/sparc/boot/Makefile
+--- a/arch/sparc/boot/Makefile	2004-02-29 23:35:40.000000000 +0100
++++ b/arch/sparc/boot/Makefile	2004-03-21 22:16:02.096364040 +0100
+@@ -32,6 +32,3 @@
+ 
+ $(obj)/btfix.s: $(obj)/btfixupprep vmlinux FORCE
+ 	$(call if_changed,btfix)
+-
+-clean:
+-	rm $(obj)/System.map
+diff -urN a/arch/sparc/Makefile b/arch/sparc/Makefile
+--- a/arch/sparc/Makefile	2004-03-11 11:32:58.000000000 +0100
++++ b/arch/sparc/Makefile	2004-03-21 22:13:17.005461672 +0100
+@@ -67,7 +67,8 @@
+ 	$(call filechk,gen-asm-offsets)
+ 
+ CLEAN_FILES +=	include/asm-$(ARCH)/asm_offsets.h	\
+-		arch/$(ARCH)/kernel/asm-offsets.s
++		arch/$(ARCH)/kernel/asm-offsets.s	\
++		arch/$(ARCH)/boot/System.map
+ 
+ # Don't use tabs in echo arguments.
+ define archhelp
 
 -- 
-Keith M Wesolowski
+RY  Stefan
++-----------------+----------------+
+| mail@s-holst.de | www.s-holst.de |
++-----------------+----------------+
