@@ -1,26 +1,19 @@
-From: "David S. Miller" <davem@redhat.com>
-Date: Mon, 07 Jun 2004 02:58:58 +0000
-Subject: Re: [PATCH] sbusfb: Initialize cmap.transp in FBIOPUTCMAP_SPARC
-Message-Id: <20040606195858.6fe4c75e.davem@redhat.com>
+From: Meelis Roos <mroos@linux.ee>
+Date: Tue, 01 Jun 2004 08:49:57 +0000
+Subject: Re: hme hang in SMP (was: 2.6.6 SMP on UE2 hangs consistently)
+Message-Id: <Pine.GSO.4.44.0406011149230.22714-100000@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040606010629.A23517@mail.kroptech.com>
-In-Reply-To: <20040606010629.A23517@mail.kroptech.com>
+References: <Pine.GSO.4.44.0405280942530.12976-100000@math.ut.ee>
+In-Reply-To: <Pine.GSO.4.44.0405280942530.12976-100000@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Adam Kropelin <akropel1@rochester.rr.com>
-Cc: sparclinux@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net, jsimmons@infradead.org
+To: sparclinux@vger.kernel.org
 
-On Sun, 6 Jun 2004 01:06:29 -0400
-Adam Kropelin <akropel1@rochester.rr.com> wrote:
+> Right, but why aren't you using the suncg6 frame buffer driver?
 
-> When handling FBIOPUTCMAP_SPARC, sbusfb fails to initialize cmap.transp,
-> which quickly leads to an oops when fb_set_cmap() dereferences it.
-> 
-> First encountered in Aurora Wombat kernels and seems to afflict mainline
-> as well. Patch is against 2.6.7-rc2. xorg still fails to actually get
-> anything to display on my CG6, but at least it no longer oopses the kernel.
-> 
-> Signed-off-by: Adam Kropelin <akropel1@rochester.rr.com>
+Tried it, still hangs :-(
 
-Applied, thanks a lot Adam.
+-- 
+Meelis Roos (mroos@linux.ee)
+
