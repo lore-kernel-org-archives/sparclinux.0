@@ -1,55 +1,28 @@
-From: William Lee Irwin III <wli@holomorphy.com>
-Date: Thu, 23 Dec 2004 06:37:30 +0000
-Subject: 2.6.10-rc3-wli-1
-Message-Id: <20041223063730.GY771@holomorphy.com>
+From: Georg Chini <georg.chini@triaton-webhosting.com>
+Date: Thu, 23 Dec 2004 22:19:06 +0000
+Subject: Re: 2.6.10-rc3-wli-1
+Message-Id: <41CB445A.6090302@triaton-webhosting.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20041223063730.GY771@holomorphy.com>
+In-Reply-To: <20041223063730.GY771@holomorphy.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Here it is. All sparc32 updates.
+Hello,
 
-Most critical here are the HyperSPARC and sun4d updates as they get
-things booting that weren't before, though neither fixes things all
-the way. Another pretty nasty failure-to-boot issue that brings down
-distro kernels is also resolved with Jurij Smakov's initrd memcpy() fix.
+William Lee Irwin III wrote:
+> Here it is. All sparc32 updates.
 
-The main purpose of all this is so that sparc32 hackers and users can
-see what's in and what isn't so they can complain about the fixes that
-didn't get in and then I can include those when they remind me.
+> + kropelin-breuer-cg6.patch
+> 	Adam Kropelin and Bob Breuer's cg6 fixes
 
-Available from:
-ftp://ftp.kernel.org/pub/linux/kernel/people/wli/kernels/2.6.10-rc3/2.6.10-rc3-wli-1/2.6.10-rc3-wli-1.patch.bz2
+Will you include a patch for TCX as well? I sent something
+a couple of days ago, but I don't know if you can call it
+a patch because I'm no kernel programmer. It is also based on
+Bob Breuers patch and at least console and X in trucolor mode work.
 
-+ linus.patch
-	sync with last night's bk
-+ fix-hypersparc-dvma.patch
-	fix DVMA on UP HyperSPARC
-+ newport-sun4d.patch
-	Christ Newport and Thomas Bogendoerfer's sun4d work
-+ jurij-initrd-memcpy.patch
-	Jurij Smakov's memcpy() fixes
-+ svr4-setcontext-return.patch
-	return something in an error path of svr4_setcontext()
-+ pcic-warnings.patch
-	kill off some warnings in pcic.c
-+ sunsu-warnings.patch
-	kill off some warnings in sunsu.c
-+ rtc-warnings.patch
-	kill off some sparc RTC driver warnings
-+ vm-fault-codes.patch
-	fix up VM fault code handling
-+ spot-floppy-fix.patch
-	Tom Callaway's include/asm-sparc/floppy.h fixes
-+ spot-exit-fix.patch
-	Tom Callaway's include/asm-sparc/unistd.h fixes
-+ defconfig-update.patch
-	Tentative defconfig update. Bug wli if you want an option
-	turned on in the defconfig.
-+ kropelin-breuer-cg6.patch
-	Adam Kropelin and Bob Breuer's cg6 fixes
+Regards
+        Georg Chini
 
-
--- wli
