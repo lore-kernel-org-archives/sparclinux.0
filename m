@@ -1,42 +1,85 @@
-From: "Stephen P. Becker" <geoman@gentoo.org>
-Date: Sun, 29 Aug 2004 17:26:36 +0000
-Subject: nfsroot w/ smp 2.6.7 on ultra2 bug report
-Message-Id: <413211CC.1020207@gentoo.org>
+From: Richard Mortimer <richm@oldelvet.org.uk>
+Date: Tue, 31 Aug 2004 00:15:40 +0000
+Subject: lvm problems on sparc64 - Trying to vfree() nonexistent vm area
+Message-Id: <1093911340.2116.55.camel@duncow>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org, debian-sparc@lists.debian.org
+Cc: richm@oldelvet.org.uk, linux-lvm@sistina.com
 
-Hi,
+All,
 
-I have an Ultra 2 with dual 200mhz ultrasparc I processors.  I had been 
-trying to run nfsroot with kernel 2.6.7 on the machine, and could not 
-get it to work:
+I'm seeing problems with lvm on sparc64. I have a reproducible test case
+using snapshots where I can reliably reproduce an error similar to
 
-IP-Config: Guessing netmask 255.255.255.0
-IP-Config: Complete:
-       device=eth0, addr2.168.1.7, mask%5.255.255.0, 
-gw%5.255.255.255,
-      host2.168.1.7, domain=, nis-domain=(none),
-      bootserver2.168.1.1, rootserver2.168.1.1, rootpathLooking up port of RPC 100003/2 on 192.168.1.1
-eth0: Link is up using internal transceiver at 100Mb/s, Full Duplex.
-portmap: server 192.168.1.1 not responding, timed out
-Root-NFS: Unable to get nfsd port number from server, using default
-Looking up port of RPC 100005/1 on 192.168.1.1
-portmap: server 192.168.1.1 not responding, timed out
-Root-NFS: Unable to get mountd port number from server, using default
-mount: server 192.168.1.1 not responding, timed out
-Root-NFS: Server returned error -5 while mounting /usr/local/sparc
-VFS: Unable to mount root fs via NFS, trying floppy.
-VFS: Cannot open root device "<NULL>" or unknown-block(2,0)
-Please append a correct "root=" boot option
-Kernel panic: VFS: Unable to mount root fs on unknown-block(2,0)
-  <0>Press Stop-A to return to the boot prom
+Trying to vfree() nonexistent vm area (0000000140072000)
 
-On a suggestion from Ciaran McCreesh, I recompiled my kernel without SMP 
-support, and was able to mount nfsroot with no problems at all.  I also 
-successfully compiled and booted a 2.4.27 smp kernel with nfsroot, and 
-had no such problems.
+Under some circumstances I can get this to lead to a panic where the
+kernel reports that it is unable to handle a paging request for the same
+request (the address below is different because it comes from a
+different attempt to reproduce it)
 
-Steve Becker
+Unable to handle kernel paging request at virtual address
+000000014007a000
+
+First off the obligatory "what I'm using" statement.
+
+I've seen this with debian/testing on sparc using the stock 2.4.26
+kernel.
+Using lvm1.0.8
+
+pingu:~# apt-show-versions | grep lvm
+lvm10/testing uptodate 1:1.0.8-4
+lvm-common/testing uptodate 1.5.16
+
+kernel-image-2.4.26-sparc64/testing uptodate 39
+
+
+I've done a fair amount of detective work and am now fairly confident
+that the problem is somewhere in the sparc64 ioctl32 glue code in
+arch/sparc64/kernel/ioctl32.c
+
+Adding printk tracing into the kernel and using strace I can see that
+the problem occurs on a call to 
+
+ioctl(4, LV_STATUS_BYNAME, 0xeffff9f8)  = 0
+
+The message only gets reported on second and subsequent calls to this
+ioctl. So I'm guessing that something gets freed wrongly during the
+first call.
+
+I added some tracing into do_lvm_ioctl() in ioctl32.c. From this I can
+see that the problem gets reported after calling the "real" ioctl
+routine whilst transferring the result data back into the 32 bit
+structures.
+
+Specifically the problem is occurring in put_lv_t(u.lv_req.lv) as called
+from the LV_CREATE/EXTEND/REDUCE case in the switch statement.
+
+This means that the problem is related to the vfree of either
+l->lv_current_pe or l->lv_block_exception.
+
+I cannot see anything obviously wrong there (and need some sleep!) so
+hopefully someone else will have some ideas as to what the problem is.
+
+Thanks
+
+Richard
+
+P.S.
+
+Forgot to mention. The steps to reproduct the problem are (assuming that
+you have a vg called test)
+
+lvcreate --size 128M --name fsone /dev/test
+lvcreate --size 128M --name fstwo /dev/test
+lvcreate --snapshot --size 128M --name bakone /dev/test/fsone
+lvremove /dev/test/bakone
+
+You get the problem even before you answer the y/n question in lvremove.
+
+-- 
+richm@oldelvet.org.uk
+
