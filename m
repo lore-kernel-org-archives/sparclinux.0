@@ -1,7 +1,7 @@
-From: Dennis Jenkins <dennis.jenkins@sbcglobal.net>
-Date: Thu, 03 Mar 2005 23:39:08 +0000
+From: "David S. Miller" <davem@davemloft.net>
+Date: Fri, 04 Mar 2005 07:06:58 +0000
 Subject: Re: [PATCH] sparc: fix compile failure ("struct resource" related)
-Message-Id: <20050303233908.77803.qmail@web81309.mail.yahoo.com>
+Message-Id: <20050303230658.21b54e56.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20050301134440.05ae1152.akpm@osdl.org>
 In-Reply-To: <20050301134440.05ae1152.akpm@osdl.org>
@@ -10,36 +10,13 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+On Thu, 03 Mar 2005 23:21:15 +0000
+Chris Newport <crn@netunix.com> wrote:
 
---- Chris Newport <crn@netunix.com> wrote:
+> In general, you should not need to have the Sun firmware in your
+> drivers, just upload them to the card and array from Solaris and they
+> will stay there in nvram.
 
-> I have no idea about Gentoo versions, but Splack 8.0
-> has a working 2.2 
-> kernel with soc and socal modules. Everything you
-> need to experiment 
-> with 2.4 is there, but the toolset and compiler are
-> too old for 2.6
-> In general, you should not need to have the Sun
-> firmware in your
-> drivers, just upload them to the card and array from
-> Solaris and they
-> will stay there in nvram. This avoids contaminating
-> Linux with Sun's code.
-> The procedure for socal is similar to my procedure
-> for soc, take a look 
-> at the Solaris man pages for luxadm etc.
-
-Ah.  I just did some reading and learned that 'splack'
-is a slackware distro for Sparc.  Cool.  I've been
-using Slackware for x86 since 1995 (I remember booting
-kernel 1.2.13 on a 486sx25 with 2M ram!)  I recently
-moved to Gentoo because I like the "portage" thingy. 
-Anyway....
-
-I will try booting splack on the box too.  And
-flashing the socal drivers, and running "luxadm".
-
-Thank you for your help.  I really do appreciate it.
-
-
-==Dennis Jenkins
+Not true if you boot from the SOC/SOCAL disks, OBP will load it's
+own firmware which is very slow and has tons of debugging enabled
+in it.
