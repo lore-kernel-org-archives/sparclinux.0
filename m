@@ -1,7 +1,7 @@
-From: Brian Bartholomew <bb@stat.ufl.edu>
-Date: Wed, 24 Nov 2004 16:23:42 +0000
+From: William Lee Irwin III <wli@holomorphy.com>
+Date: Wed, 24 Nov 2004 16:25:20 +0000
 Subject: Re: redhat and SPARC
-Message-Id: <200411241623.iAOGNgf5028686@stat.ufl.edu>
+Message-Id: <20041124162520.GV2714@holomorphy.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <8B69BC677ED97440A67554F9C4AFE8D705312A@ABLEEVS.ablelabs.com>
 In-Reply-To: <8B69BC677ED97440A67554F9C4AFE8D705312A@ABLEEVS.ablelabs.com>
@@ -10,21 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> You can look at other distributions, such a Debian GNU/Linux
-> (http://www.debian.org) for actively supported Linux/SPARC
-> distributions.
+On Wed, Nov 24, 2004 at 09:44:22AM -0500, Laxminarayan Kulkarni wrote:
+> I am not able to see any mention of support for SPARC architecture on
+> redhat.com therefore I am confused. Has redhat stopped support for
+> SPARC as one of the threads mentioned. 
+> I hope to get some response to this question of mine.
 
-I am running gentoo Linux version 2004.0 on about 50 Sun Ultra 5 and
-Ultra 1 desktops.  It works fine, and the SPARC gentoo software
-versions are very similar to my Intel software versions.
+AFAIK all commercial distros have dropped 32-bit SPARC like a rock.
+It's not entirely clear but it seems similar is also going on or has
+also already happened to UltraSPARC.
 
-> Can Debain distribution be installed on a Sun Workgroup Server E420,
-> I did see mention of series of server but could not make out which
-> series SPARC e420 belongs to.
 
-I am running gentoo on a Sun E420 that is about to become my
-mailserver, and the main problem is that after powerup the machine
-must be booted in Solaris to initialize something before Linux will
-boot.  I have yet to find the right place to file this bug.
-
-							Brian
+-- wli
