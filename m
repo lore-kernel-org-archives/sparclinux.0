@@ -1,21 +1,28 @@
-From: "David S. Miller" <davem@redhat.com>
-Date: Thu, 18 Mar 2004 23:10:02 +0000
-Subject: Re: fix ENOSYS from io_getevents()/NR_SYSCALLS
-Message-Id: <20040318151002.4fee5c6b.davem@redhat.com>
+From: "faustino" <mmirtceli@hotmail.com>
+Date: Sun, 28 Mar 2004 01:20:14 +0000
+Subject: As Seen on CNN, the Winningest CAS1N0! wright strawbera
+Message-Id: <1080436814-16123@excite.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040318142225.GA2045@holomorphy.com>
-In-Reply-To: <20040318142225.GA2045@holomorphy.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, 18 Mar 2004 06:22:25 -0800
-William Lee Irwin III <wli@holomorphy.com> wrote:
+Come and play at the world's PREMIvERE ONLINzE CASvINO!
+We are happy to offer you, in an elegant atmosphere, a 50% BONUrS for YOUR FIRST DEPOiSIT as a New Player.
 
-> NR_SYSCALLS appears to be off by one, and so aio tests/etc. are failing
-> with -ENOSYS. __NR_io_getevents is 272, so the bgeu,pn NR_SYSCALLS etc.
-> checks mistakenly punt io_getevents() off to linux_sparc_ni_syscall().
-> The following patch gets the aio tests running.
+Sign up now! Don't wait!
 
-sparc32 needed the same fix too, thanks Will.
+http://www.virtualcasinoes.net/_e4faa55afa1972493c43ac8a3f66f869/
+
+
+We'll automatically CREDIaT your account with a 50% BONUzS of extra chips, to wager in our CASIwNO.
+Don't hesirtate and try your luck!
+
+CLICiK HERnE!
+
+http://www.virtualcasinoes.net/_e4faa55afa1972493c43ac8a3f66f869/
+
+
+
+whitney reznor shawn volley slacker prof happyday orchid angels cccccc bmw gary charity mazda1 rux wolverin h2opolo bridges robinhoo naomi impala gambit alison james1 asdfghjk dickhead
