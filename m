@@ -1,40 +1,41 @@
-From: Ben Collins <bcollins@debian.org>
-Date: Sat, 05 Jun 2004 14:01:55 +0000
+From: Frederik Dannemare <frederik@dannemare.net>
+Date: Sat, 05 Jun 2004 14:13:32 +0000
 Subject: Re: new debian-installer images for sparc
-Message-Id: <20040605140155.GA7515@phunnypharm.org>
+Message-Id: <200406051613.37360.frederik@dannemare.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040531034458.GF2384@triplehelix.org>
 In-Reply-To: <20040531034458.GF2384@triplehelix.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1254"
+Content-Transfer-Encoding: base64
 To: sparclinux@vger.kernel.org
 
-On Sat, Jun 05, 2004 at 04:13:32PM +0200, Frederik Dannemare wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
-> 
-> On Saturday 05 June 2004 14:57, Ben Collins wrote:
-> > FYI, someone reported that adding rootfstype=ext2 made the images
-> > bootable. Looks like something in the kernel isn't checking the
-> > initrd for ext2. So this may not be a SILO problem (I know Josh is
-> > already aware of this, but others are probably interested in the
-> > results here).
-> 
-> I've just tried[1] out the latest netinst image, and even though 
-> silo.conf has rootfstype=ext2, I also gave it a test run with 
-> rootfstype=ext2 explicitly entered at the silo prompt - but without any 
-> luck. 
-
-Ok, so it seems we have a two-fold problem. I suspect the initrd
-detection in the kernel is broke (I probably broke it), but we also have
-the fs detection broken.
-
-Josh, could you build images with the old silo, this new silo.conf and
-make sure the kernels don't have the patch I sent you recently?
-
--- 
-Debian     - http://www.debian.org/
-Linux 1394 - http://www.linux1394.org/
-Subversion - http://subversion.tigris.org/
-WatchGuard - http://www.watchguard.com/
+LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQpIYXNoOiBTSEExCgpPbiBTYXR1cmRh
+eSAwNSBKdW5lIDIwMDQgMTQ6NTcsIEJlbiBDb2xsaW5zIHdyb3RlOgo+IEZZSSwgc29tZW9uZSBy
+ZXBvcnRlZCB0aGF0IGFkZGluZyByb290ZnN0eXBlPWV4dDIgbWFkZSB0aGUgaW1hZ2VzCj4gYm9v
+dGFibGUuIExvb2tzIGxpa2Ugc29tZXRoaW5nIGluIHRoZSBrZXJuZWwgaXNuJ3QgY2hlY2tpbmcg
+dGhlCj4gaW5pdHJkIGZvciBleHQyLiBTbyB0aGlzIG1heSBub3QgYmUgYSBTSUxPIHByb2JsZW0g
+KEkga25vdyBKb3NoIGlzCj4gYWxyZWFkeSBhd2FyZSBvZiB0aGlzLCBidXQgb3RoZXJzIGFyZSBw
+cm9iYWJseSBpbnRlcmVzdGVkIGluIHRoZQo+IHJlc3VsdHMgaGVyZSkuCgpJJ3ZlIGp1c3QgdHJp
+ZWRbMV0gb3V0IHRoZSBsYXRlc3QgbmV0aW5zdCBpbWFnZSwgYW5kIGV2ZW4gdGhvdWdoIApzaWxv
+LmNvbmYgaGFzIHJvb3Rmc3R5cGU9ZXh0MiwgSSBhbHNvIGdhdmUgaXQgYSB0ZXN0IHJ1biB3aXRo
+IApyb290ZnN0eXBlPWV4dDIgZXhwbGljaXRseSBlbnRlcmVkIGF0IHRoZSBzaWxvIHByb21wdCAt
+IGJ1dCB3aXRob3V0IGFueSAKbHVjay4gCgpKdXN0IGZvciB0aGUgc2FrZSBvZiBpdCwgSSBldmVu
+IGRpZCBhIHRlc3QgcnVuIGV4cGxpY2l0bHkgZW50ZXJpbmcgYWxsIApvZiB0aGUgcGFyYW1ldGVy
+c1syXSBmcm9tIHRoZSBzaWxvLmNvbmYsIGJ1dCBpdCBzdGlsbCBkaWQgbm90IHRha2UgbWUgCmFu
+eSBmdXJ0aGVyIHRoYW46CgpbLi4uXQpORVQ0OiBVbml4IGRvbWFpbiBzb2NrZXRzIDEuMC9TTVAg
+Zm9yIExpbnV4IE5FVDQuMC4KS2VybmVsIHBhbmljOiBWRlM6IFVuYWJsZSB0byBtb3VudCByb290
+IGZzIG9uIDAwOjAwCiBQcmVzcyBMMS1BIHRvIHJldHVybiB0byB0aGUgYm9vdCBwcm9tCgoKWzFd
+aHR0cDovL2xpc3RzLmRlYmlhbi5vcmcvZGViaWFuLWJvb3QvMjAwNC8wNi9tc2cwMDI1Mi5odG1s
+ClsyXWNkcm9tIGRldmZzPW1vdW50IHJ3IHJhbWRpc2tfc2l6ZYE5MiByb290ZnN0eXBlPWV4dDIK
+LSAtLSAKRnJlZGVyaWsgRGFubmVtYXJlIHwgZnJlZGVyaWtAZGFubmVtYXJlLm5ldCB8IGh0dHA6
+Ly9kYW5uZW1hcmUubmV0CkdudVBHIGtleTogc2VhcmNoIGZvciAnZGFubmVtYXJlJyBvbiBodHRw
+Oi8vcGdwa2V5cy5taXQuZWR1CktleSBmaW5nZXJwcmludDogQkI3QiAwNzhBIDBEQkYgNzY2MyAx
+ODBBICBGODRBIDJEMjUgRkFENSA5QzRFIEI1QTgKLS0tLS1CRUdJTiBQR1AgU0lHTkFUVVJFLS0t
+LS0KVmVyc2lvbjogR251UEcgdjEuMi40IChHTlUvTGludXgpCgppRDhEQlFGQXdkVVBMU1g2MVp4
+T3RhZ1JBaDN1QUtDSWZxVzBCL0xQVWV6MC9hdHNqWW96YjI1MHZnQ2RGUDhBCnFaaE1GbGJpWVRu
+NHJvWFBjZnFEdjhjPUdOb2IKLS0tLS1FTkQgUEdQIFNJR05BVFVSRS0tLS0tCi0KVG8gdW5zdWJz
+Y3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIHNwYXJjbGlu
+dXgiIGluCnRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3Jn
+Ck1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21v
+LWluZm8uaHRtbA==
