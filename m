@@ -1,7 +1,7 @@
-From: dree <dree@gnulinux.nl>
-Date: Thu, 29 Jan 2004 22:20:53 +0000
+From: Otto Solares <solca@guug.org>
+Date: Thu, 29 Jan 2004 22:58:03 +0000
 Subject: Re: SILO 1.4.2 released
-Message-Id: <401A0E39.4030100@gnulinux.nl>
+Message-Id: <20040129225803.GD14503@guug.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040129182954.GK532@phunnypharm.org>
 In-Reply-To: <20040129182954.GK532@phunnypharm.org>
@@ -10,24 +10,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi,
+On Thu, Jan 29, 2004 at 04:01:03PM -0500, Ben Collins wrote:
+> Read the fucking email. I want people to test the _old_ smaller kernels
+> _first_. I would rather the larger kernels be broken than for the new
+> SILO to not work with the older kernels.
 
-on my ultra10, 128MB, 440Mhz ,running sid:
-a vanilla 2.6.1 vmlinux kernel size 3.8 MB boots fine
-a 2.4.19 vmlinux kernel size 1.3MB boots fine
-a 2.4.24 image image kernel size 3.1 MB boots fine
-a 2.4.18-sun4u vmlinux kernel size  1.4 MB boots fine
+Sorry, i think the point was test larger kernels.  Anyway
+my older kernels boots properly with the new second.b. Newer
+larger kernel 2.6.2-rc2-bk3 4M boots perfectly too on 3
+different machines.
 
-a 2.6.2-rc2 vmlinux lernel size 3.8 doesn't boot, as reported earlier.
-    booting that kernel with "-p" gives:
-      Remapping the kernel... done.
-      On node 0 totalpages: 15846
-I did not however have to use debian-rescue to rerun "silo -f" again.
+FYI compiling silo-1.4.3 from source:
 
-All my old kernels work without hassle. All in all a fine job.
-Thanks for the effort Ben , now we can use the shiny new kernel-build 
-system, just like the normal people :)
+gcc -m32 -Os -Wall -I. -I../include -fomit-frame-pointer -fno-strict-aliasing -DSMALL_RELOC=0x280000 -DLARGE_RELOC=0x380000 -c fs/ufs.c -o fs/ufs.o
+In file included from /usr/include/linux/fs.h:16,
+                 from /usr/include/linux/ufs_fs.h:34,
+                 from fs/ufs.c:36:
+/usr/include/linux/list.h:594:2: warning: #warning "don't include kernel headers in userspace"
+In file included from /usr/include/linux/fs.h:20,
+                 from /usr/include/linux/ufs_fs.h:34,
+                 from fs/ufs.c:36:
+/usr/include/linux/radix-tree.h: In function `radix_tree_preload_end':
+/usr/include/linux/radix-tree.h:54: error: invalid type argument of `->'
+/usr/include/linux/radix-tree.h:54: error: `TIF_NEED_RESCHED' undeclared (first use in this function)
+/usr/include/linux/radix-tree.h:54: error: (Each undeclared identifier is reported only once
+/usr/include/linux/radix-tree.h:54: error: for each function it appears in.)
+make: *** [fs/ufs.o] Error 1
 
-I used the silo-loaders tar-ball for second.b.
+-solca
 
-       Andreas
