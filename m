@@ -1,33 +1,66 @@
-From: "C.Newport" <crn@netunix.com>
-Date: Wed, 09 Jun 2004 10:44:40 +0000
-Subject: Re: Anyone using Linux on Sun E10k ?
-Message-Id: <200406091144.40695.crn@netunix.com>
+From: "Jurzitza, Dieter" <DJurzitza@harmanbecker.com>
+Date: Mon, 21 Jun 2004 09:22:22 +0000
+Subject: Question
+Message-Id: <CFE6A2529AC5FA439B3D852B0F2A6837DAAEDA@OEKAW2EXVS02.hbi.ad.harman.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040609101606.GW6658@magicbluesmoke.net>
-In-Reply-To: <20040609101606.GW6658@magicbluesmoke.net>
+References: <CFE6A2529AC5FA439B3D852B0F2A68371A2B0F@OEKAW2EXVS02.hbi.ad.harman.com>
+In-Reply-To: <CFE6A2529AC5FA439B3D852B0F2A68371A2B0F@OEKAW2EXVS02.hbi.ad.harman.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-On Wednesday 09 June 2004 11:16 am, John P. Looney wrote:
->  Hi, I'd like to hear from anyone that's used Linux on E10k systems in
-> production. How reliable it is, how much of the E10k's functionality do
-> you get, compared to Solaris etc. (mail me off list, if this isn't really
-> on topic).
+Dear listmemebers,
+could any friendly soul tell me what is the meaning of:
 
-I did some tests a few years ago using 2.2.x and it all worked well after
-rebuilding the kernel to support more CPUs.
-2.2 did not scale well beyond about 16 CPUs but this should now be
-improved.
+Jun 21 11:14:30 oekalux08 kernel: __alloc_pages: 2-order allocation failed
+(gfp=3D0x20/0)
 
-FC and FCAL are both broken in 2.4 and 2.6 so your storage options
-are rather limited until this gets fixed. [could someone with the required 
-skills please pick up this ball, the maintainer seems to have vanished].
+or=20
 
-The big killer is that Linux has no support for Dynamic Reconfiguration
-so you cannot pull boards or move resources between domains without
-shutting down the system. It may be possible to hack the Linux hotplug
-system to do DR but this sounds like a major project. 
-Ditto Dynamic Multipathing and InterDomain Networking.
+Jun 21 11:14:35 oekalux08 kernel: __alloc_pages: 1-order allocation failed
+(gfp=3D0x20/0)
+
+when suddenly occuring in /var/log/messages?
+Many thanks for your help,
+take care
+
+
+
+Dieter Jurzitza
+
+
+--=20
+________________________________________________
+
+HARMAN BECKER AUTOMOTIVE SYSTEMS
+
+Dr.-Ing. Dieter Jurzitza
+Manager Hardware Systems
+         ESI
+
+Industriegebiet Ittersbach
+Becker-G=F6ring Str. 16
+D-76307 Karlsbad / Germany
+
+Phone: +49 (0)7248 71-1577
+Fax:   +49 (0)7248 71-1216
+eMail: DJurzitza@harmanbecker.com
+Internet: http://www.becker.de
+=20
+
+
+*******************************************
+Diese E-Mail enthaelt vertrauliche und/oder rechtlich geschuetzte Informati=
+onen. Wenn Sie nicht der richtige Adressat sind oder diese E-Mail irrtuemli=
+ch erhalten haben, informieren Sie bitte sofort den Absender und loeschen S=
+ie diese Mail. Das unerlaubte Kopieren sowie die unbefugte Weitergabe diese=
+r Mail ist nicht gestattet.
+=20
+This e-mail may contain confidential and/or privileged information. If you =
+are not the intended recipient (or have received this e-mail in error) plea=
+se notify the sender immediately and delete this e-mail. Any unauthorized c=
+opying, disclosure or distribution of the contents in this e-mail is strict=
+ly forbidden.
+*******************************************
 
