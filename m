@@ -1,48 +1,27 @@
-From: carbonated beverage <ramune@net-ronin.org>
-Date: Mon, 16 Feb 2004 07:29:29 +0000
-Subject: 2.4.24 link err for sparc64
-Message-Id: <20040216072928.GA30923@net-ronin.org>
+From: "David S. Miller" <davem@redhat.com>
+Date: Tue, 17 Feb 2004 06:29:34 +0000
+Subject: Re: 2.4.24 link err for sparc64
+Message-Id: <20040216222934.498910c1.davem@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20040216072928.GA30923@net-ronin.org>
+In-Reply-To: <20040216072928.GA30923@net-ronin.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
+To: carbonated beverage <ramune@net-ronin.org>
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-Hi all,
+On Sun, 15 Feb 2004 23:29:29 -0800
+carbonated beverage <ramune@net-ronin.org> wrote:
 
-I ripped out sysctl support from a 2.4.24 kernel (stock
-tarball from ftp.*.*.kernel.org) and the final link failed
-with:
+> I ripped out sysctl support from a 2.4.24 kernel (stock
+> tarball from ftp.*.*.kernel.org) and the final link failed
+> with:
+> 
+> arch/sparc64/kernel/kernel.o(.text+0x19750): In function `sys32_sysctl':
+> : undefined reference to `do_sysctl'
 
-arch/sparc64/kernel/kernel.o(.text+0x19750): In function `sys32_sysctl':
-: undefined reference to `do_sysctl'
+-ENOSYS is the right error to return, to be consistent with what
+kernel/sysctl.c itself does in this case.
 
-I tossed an #ifndef CONFIG_SYSCTL...#else...#endif
-guard around arch/sparc64/kernel/sys_sparc32.c file in the
-sys32_sysctl() function so it returns -ENOTSUPP, but I'm not sure
-that's the right fix.  Should it be in do_sysctl() instead?
-
-Can anyone comment on this?
-
---- arch/sparc64/kernel/sys_sparc32.c.old	2003-11-28 10:26:19.000000000 -0800
-+++ arch/sparc64/kernel/sys_sparc32.c	2004-02-15 23:21:18.304035000 -0800
-@@ -4454,6 +4454,9 @@
- 
- extern asmlinkage long sys32_sysctl(struct __sysctl_args32 *args)
- {
-+#ifndef CONFIG_SYSCTL
-+	return -ENOTSUPP;
-+#else
- 	struct __sysctl_args32 tmp;
- 	int error;
- 	size_t oldlen, *oldlenp = NULL;
-@@ -4488,4 +4491,5 @@
- 		copy_to_user(args->__unused, tmp.__unused, sizeof(tmp.__unused));
- 	}
- 	return error;
-+#endif
- }
-
--- DN
-Daniel
+Thanks for the report, I'll push the fix around.
