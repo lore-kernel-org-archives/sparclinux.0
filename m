@@ -1,40 +1,32 @@
-From: Jason Wever <weeve@gentoo.org>
-Date: Sat, 25 Sep 2004 03:15:48 +0000
+From: "David S. Miller" <davem@davemloft.net>
+Date: Sat, 25 Sep 2004 05:25:44 +0000
 Subject: Re: Simple driver question
-Message-Id: <20040924211548.4c6ee79a@voyager.weeve.org>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Signature=_Fri__24_Sep_2004_21_15_48_-0600_dG42O/BDkrSJIcfO"
+Message-Id: <20040924222544.33b10414.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <200409250205.42223.crn@netunix.com>
 In-Reply-To: <200409250205.42223.crn@netunix.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
---Signature=_Fri__24_Sep_2004_21_15_48_-0600_dG42O/BDkrSJIcfO
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
+On Fri, 24 Sep 2004 21:15:48 -0600
+Jason Wever <weeve@gentoo.org> wrote:
 
-On Sat, 25 Sep 2004 02:05:42 +0100
-"C.Newport" <crn@netunix.com> wrote:
+> On Sat, 25 Sep 2004 02:05:42 +0100
+> "C.Newport" <crn@netunix.com> wrote:
+> 
+> > Newer Sun machines have a 10/100/1000 NIC built in.
+> > Which Linux driver does this use ?
+> 
+> At least for the Blade 1x0 workstations, they use the Sun Gem driver.
 
-> Newer Sun machines have a 10/100/1000 NIC built in.
-> Which Linux driver does this use ?
+It totally depends upon the machine.
 
-At least for the Blade 1x0 workstations, they use the Sun Gem driver.
+SB100 --> sungem
+SB1000 --> sungem
+SB1500 --> tg3
+V2xx/V4xx --> tg3
 
--- 
-Jason Wever
-Gentoo/Sparc Team Co-Lead
+I think the SB2000 uses sungem too, but I may be mistaken.
 
---Signature=_Fri__24_Sep_2004_21_15_48_-0600_dG42O/BDkrSJIcfO
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.6 (GNU/Linux)
-
-iD8DBQFBVOLndKvgdVioq28RAnvLAKCH1+ccGZwqMfEMBhCu2QxiUQQUrACeIgmh
-lQRhT8O6ZutLvQvG54gd7Bk=
-=T7NH
------END PGP SIGNATURE-----
-
---Signature=_Fri__24_Sep_2004_21_15_48_-0600_dG42O/BDkrSJIcfO--
