@@ -1,18 +1,41 @@
-From: "David S. Miller" <davem@redhat.com>
-Date: Mon, 02 Feb 2004 18:23:35 +0000
-Subject: Re: [sparc32] Remove spurious newline
-Message-Id: <20040202102335.5b3e8e62.davem@redhat.com>
+From: carbonated beverage <ramune@net-ronin.org>
+Date: Sun, 15 Feb 2004 00:23:14 +0000
+Subject: [Q] sun mouse on 2.6.x
+Message-Id: <20040215002314.GH19221@net-ronin.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040202094453.GC22498@foobazco.org>
-In-Reply-To: <20040202094453.GC22498@foobazco.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Mon, 2 Feb 2004 01:44:53 -0800
-Keith M Wesolowski <wesolows@foobazco.org> wrote:
+Hi all,
 
-> Wastes space when oopsing.  Please apply.  Thanks.
+I'm unable to get the mouse recognized by gpm or X under 2.6.x
+bk pulls although the kernel recognizes it.  I'm using the input
+layer and tried specifying /dev/input/{mice,mouse0} to both gpm
+and X.  /dev/psaux (I have the legacy option turned on) doesn't
+work either.
 
-Applied, thanks Keith.
+The kernel seems to find it fine:
+
+mice: PS/2 mouse device common for all mice
+input: Sun Mouse on su/serio0
+
+And everything's enabled in .config:
+
+CONFIG_INPUT_MOUSEDEV=m
+CONFIG_INPUT_MOUSEDEV_PSAUX=y
+CONFIG_INPUT_MOUSEDEV_SCREEN_X24
+CONFIG_INPUT_MOUSEDEV_SCREEN_Yv8
+CONFIG_INPUT_MOUSE=y
+CONFIG_MOUSE_PS2=m
+CONFIG_MOUSE_SERIAL=m
+
+But nothing from gpm or X.
+
+I'm using a debian/testing setup on an Ultra 5.
+
+Anyone have a suggestion on how to go about debugging this?
+
+-- DN
+Daniel
