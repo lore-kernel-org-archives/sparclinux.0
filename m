@@ -1,179 +1,49 @@
 From: Chris Ricker <kaboom@gatech.edu>
-Date: Thu, 19 Feb 2004 03:42:00 +0000
+Date: Fri, 20 Feb 2004 15:49:08 +0000
 Subject: Re: another Ultra2 SMP crash
-Message-Id: <Pine.GSO.4.58.0402182240570.9460@redfish.gatech.edu>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="-559023410-1804928587-1077162120=:9460"
+Message-Id: <Pine.GSO.4.58.0402201047530.3968@redfish.gatech.edu>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.GSO.4.58.0402181628060.21617@redfish.gatech.edu>
 In-Reply-To: <Pine.GSO.4.58.0402181628060.21617@redfish.gatech.edu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
+On Wed, 18 Feb 2004, Chris Ricker wrote:
 
----559023410-1804928587-1077162120=:9460
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+After I upgraded to 2.6.3-smp, I got another crash on a stuck spinlock:
 
-On Wed, 18 Feb 2004, Ben Collins wrote:
+spin_lock(00000000006481c8) CPU#1 stuck at 0046ae40, owner PC(0046ae40):CPU(1)
+spin_lock(fffff8003e291370) CPU#0 stuck at 005c5390, owner PC(005848a8):CPU(1)
+spin_lock(00000000006481c8) CPU#1 stuck at 0046ae40, owner PC(0046ae40):CPU(1)
+spin_lock(fffff8003e291370) CPU#0 stuck at 005c5390, owner PC(005848a8):CPU(1)
+spin_lock(00000000006481c8) CPU#1 stuck at 0046ae40, owner PC(0046ae40):CPU(1)
+spin_lock(fffff8003e291370) CPU#0 stuck at 005c5390, owner PC(005848a8):CPU(1)
 
-> On Wed, Feb 18, 2004 at 04:29:30PM -0500, Chris Ricker wrote:
-> > This is with 2.6.3-rc2, compiled SMP
-> > 
-> > All I had on the serial console was
-> 
-> Do you have preempt enabled? I've already noticed from other people that
-> it is causing problems (one showed as a race conditition with autoload
-> of modules).
+0046ae40 is near:
 
-I don't have it enabled.
+000000000046ad00 t m_next
+000000000046ad40 t m_stop
+000000000046ad60 t m_show
+000000000046ae20 T search_module_extables
+000000000046aec0 T module_text_address
+000000000046af40 T struct_module
+000000000046af60 T kallsyms_lookup
 
-I've attached my complete config, in case there's anything else potentially 
-suspicious
+005c5390 is near:
 
-thanks,
-chris
----559023410-1804928587-1077162120=:9460
-Content-Type: APPLICATION/octet-stream; name="config-2.6.3-rc2-smp.gz"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.GSO.4.58.0402182242000.9460@redfish.gatech.edu>
-Content-Description: 
-Content-Disposition: attachment; filename="config-2.6.3-rc2-smp.gz"
+00000000005c4a60 t tcp_v4_checksum_init
+00000000005c4be0 T tcp_v4_do_rcv
+00000000005c4d40 T tcp_v4_rcv
+00000000005c5820 t __tcp_v4_rehash
+00000000005c5860 t tcp_v4_reselect_saddr
+00000000005c5ac0 T tcp_v4_rebuild_header
+00000000005c5d00 t v4_addr2sockaddr
 
-H4sICBUwNEACA2NvbmZpZy0yLjYuMy1yYzItc21wAIxcW3PbOLJ+31/B2nk4
-maqdjSjJtLRVeQBBUMKIIGEClKW8sDQxk+jElnxkORP/+9MgdQFIgN6HXNhf
-d6MBNBqNm377x28eej3unzbH7ZfN4+Ob963aVYfNsXrwnjY/Ku/Lfvd1++0/
-3sN+9z9Hr3rYHv/x2z9wlsZ0VgbjkMpPb+dPxgr4APg3D+8fKpA/vh62xzfv
-sfpZPXr75+N2v3u5ipMVJzllJJUouWrBCUFpiTPGaUKuZCFRGqEkS8m5jFlt
-6KP3Uh1fn69axT3imthaLCnHV0IoopLnGSZClAhjabBiqRmSZMBdxKWY01h+
-8sdnOl00/7lynim1YiBD/U81ZCGJIhJ52xdvtz8qU88yC5QkYs3EVUtcSLK6
-fhKeJZo1NBN4TqIyzTLepSLRpUUERQmt2+tiEMZlxiVl9DMp4ywvBfxHN65u
-2GS/edj89QgduH94hX9eXp+f9wet31kWFQnRimwIZZEmGYo6ZCgId8EsFFlC
-JFFcHOXMEFuSXNAs1YpYANXV85fqhSEu6RBbmnupdfRSgnulqvQrbX7fpQnG
-9bbjOSGMS4vyNC8xL8Sn4cWHeVHGObnTvPpEKSUKoYynM70Qo4ZTowxJi3QR
-Vv5V0lTGFiwiMSoSWc6yZQnjChqdoRSbvW/jLQS0NUeYWCp2EegqtXJk96AL
-LYnFPKMowLtGDccl4tRiBYjkOBhrnZVJnhTaAMzvBWHlCs9nKILBkMyynMq5
-5lLzYkZkEpYczUjt9OWYhXrTdBlu/OFCN6aHNRgvLGbPSArhDfpLoDJiSPOr
-sBDmF56jXKMUaYmKFc1Mkv7NMTU+yihjiOrjJZfY5EjIDOH1OURpQIqYPpZV
-URknKTCyWFx7su6F0bCOzEgbTe3vgkZ+oMVbmsZMliSJR0O9wU90lBVyNLS0
-3lWuo4tRgXUPAoszAbG2SKz9BYMa5bTLUAcOvoFA8gizk4pw3UgHdeZZLq+t
-cCJAw+kWXKllTOPMaobGIwo18WWWWp+ZoEoh57YiMjkneY+kP5xoI4XnEC1I
-frWfpEss8+RKiKjgCVrfCjK7Eu+RxPMoU4PTX61WFgDMNwYxq6eaMsyybhvX
-4Xr7xYsO25/VwcvaeUB8X6qpoTazEThsnr9vv7x0+yM2Bm0clngdknw4GAys
-bQ4MlAkpXWB4P3RBeDZyQ4ELyukSuTCGZJ6tnJLQAFnqQpFcQ8f2oC5IUOGC
-UgIxY0axC1+s88yFjaLYWZNllkVZ5rtgmdMIUj6LCytzjdAIhLjT4xKv3B3j
-j10Yn/puJ0lIZrenibNG7WguC9R1cgwuvYdk6WH78vy4efMeGme/evBFCYvQ
-OdewjWMIu91UJCoYW3fJcQ6xG3LUmORdUMX2rkSWSmFUCQjl5JfDtxrQD9xo
-8Mv33SgnKE/61SOc5WmbRWeAWKhM6BgNdH/4azi05K/f9qd1yyusZCDYXAMI
-JPWZrkl9lxC6ihWknand3zWe5Qw5GkNjwkkhh8OxpT41k5pgTyznhFZAfIR8
-tvGZF91ZIGOiCFpweDPo1DPd7/6ogZdG3D6FnTRAqdDQenZ7oX+mYJcTsOTF
-FwZR2Km9Mih0kJ1SVsMVUZOoW4RtX754yXb3+utjna5oLWrJbuopTKOzTEiy
-qDOnp+sqhZdxgsTcZG1Nzoq0hLCWcWoPTk1Kl2c56vQiq572hzdPVl++7/aP
-+29vXlT93H6pXrwPTEa/G5FDRh3x8HH/5Yf30Ihc6xkmC8jyl2UctZIIsNJq
-oRLAHJYGqBfGFNbNPTyqzAjhaTDoZSkYYbak7wQnapH71KbifM1lZsfSMOoS
-ITpqyeOVWGftnyb+dNgGaUplfllnIok+wh9OP7KYfcyTxBbOWw3ajGcs6KlP
-LAMSQM2b4atZ18XiEg6U+EnOO749V94HmFZ+/Ms7bp6rf3k4+gO89/duZwtt
-eY3neUPTktczLRM69SKd22jlkqRRllsUz87pmtg/VXqVwXOrf3/7N9jp/e/r
-j+qv/a/fL7V5en08bp9hnkyK1Ax0qh0gQ5ewUilS2ypQMeSkTnKBQ7SaUEUC
-iZrJTadDBJvRdGY07eP+7z+aPSlLxD1XfXRfQuq7An+hkX1MK/UIo7wPRvgd
-eYpvoZR3GcoseUfLtFdLtESpWAs3B4PlYb+pAoaCG4XEDZrakU02PcTvYix7
-TIjYauRP/R4TSK8JCi05zdwccSELmDWaxbKbbRbJuRulvKcOEECQK9Fshjrv
-qQFlrKf91+xmhCfgC0M3013dCSUs6t7lifG7LLDmGLiGYsPCJdVmxoaOhmrN
-+NZRiYZ+n48qhuF7DKO+tq0Zhr2tg4KR/x5Dn4YIj6Y3v/rxgezBIV2fuZoU
-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
-NeiQ5X+ZP2c7sloAAA==
+The 006481c8 spinlock is modlist_lock:
 
----559023410-1804928587-1077162120=:9460--
+00000000006481a0 D cpucontrol
+00000000006481c8 d modlist_lock
+00000000006481d8 d module_mutex
+0000000000648200 d modules
