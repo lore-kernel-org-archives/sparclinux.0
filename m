@@ -1,51 +1,51 @@
-From: William Lee Irwin III <wli@holomorphy.com>
-Date: Thu, 12 Feb 2004 09:55:19 +0000
-Subject: Re: 2.6.x SMP RED_state in prom_startcpu()
-Message-Id: <20040212095519.GZ699@holomorphy.com>
+From: Ben Collins <bcollins@debian.org>
+Date: Tue, 24 Feb 2004 14:42:45 +0000
+Subject: Re: Linux 2.6.3 still doesn't boot on UltraSparc I
+Message-Id: <20040224144245.GA468@phunnypharm.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040131025909.GD624@holomorphy.com>
-In-Reply-To: <20040131025909.GD624@holomorphy.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Fri, Jan 30, 2004 at 10:52:12PM -0500, Ben Collins wrote:
->>> The cross-compilation may be the issue. Want to try a native build to
->>> make sure?
+> > > > Try this, keep the new head.S and newer SILO, and edit head.S so that
+> > > > "HdrS version" is 0x202 instead of 0x300. See if that boots for you
+> > > > (would confirm my suspicion).
+> > > 
+> > > It boots correctly this way. What can we do to help now ?
+> > 
+> > Can you enable CONFIG_DEBUG_BOOTMEM and boot with "linux -p"?
+> 
+> Here is the output :
+> 
+> boot: linux -p
+> Allocated 8 Megs of memory at 0x4000000 for kernel
+> Kernel doesn't support loading to high memory, relocating done.
+> Loaded kernel version 2.6.3
+> 
+> PROMLIB: Sun IEEE Boot Prom 3.2.4 1996/05/30 11:17
+> Linux version 2.6.3 (root@ensilinx8) (gcc version 3.3.3 20040125 (prerelease) (Debian)) #4 SMP [...]
+> ARCH: SUN4U
+> PROMLIB: Sun IEEE Boot Prom 3.2.4 1996/05/30 11:17
+> PROMLIB: Sun IEEE Boot Prom 3.2.4 1996/05/30 11:17
+> PROMLIB: Sun IEEE Boot Prom 3.2.4 1996/05/30 11:17
+> PROMLIB: Sun IEEE Boot Prom 3.2.4 1996/05/30 11:17
+> [...]
+> Looping, had to stop it using Break+A.
+> 
+> The same kernel boots without -p.
 
-On Fri, Jan 30, 2004 at 08:24:26PM -0800, William Lee Irwin III wrote:
->> Trying to get luserspace bootstrapped enough to do this now. I'll start
->> pinging gcc hackers if that works and hence shows cross builds bust.
+Oooh...that's interesting. It looks like it actually gets all the way
+through head.S. The PROMLIB line is from the call to prom_init() in
+head.S just before it finally calls start_kernel(), and the the "ARCH:
+SUN4U" is in setup_arch(), which is well after head.S has jumped to the
+main kernel.
 
-On Sat, Feb 07, 2004 at 09:06:10PM -0800, William Lee Irwin III wrote:
-> I got a native toolchain going. 2.4.24 flies with the 2nd cpu online.
-> 2.6.x fails in prom_startcpu(). Cross-builds fail for both.
+Why it's looping with prom_init(), I'm not sure. Maybe the prom cif
+handler and stack aren't getting setup properly. Dave, any ideas?
 
-I've "reseated" the cpus and the RAM, as best I can anyway (I couldn't
-fully dislodge them for reinsertion, so I had to settle for pressing
-down on them a bit without actually removing them). Going over things
-again shows that the current conclusions are:
-
-(a) cross-builds of both 2.4 and 2.6 are bust in SMP regardless of
-	compiler version, but both 2.4 and 2.6 work UP regardless of
-	compiler version
-(b) 2.6 SMP is also bust built natively, regardless of compiler version
-(c) The only working Linux SMP datapoints are native builds of 2.4.24,
-	regardless of compiler version.
-(d) Solaris still boots and works SMP.
-
-This is weird, because u2's supposedly fly in 2.6 for others.
-
-I'm going to have to ignore the cross-build issue and move on to why
-2.6 is exploding. I've narrowed the window where the exception happens
-down to the call to prom_startcpu() via prom_printf(). I like to think
-that I usually have more clue but I'm a bit new to UltraSPARC, so a
-general direction like "go dump $FOO via prom_printf()" or "try to
-install a RED_state handler" (which I've actually tried and failed at
-once) might be handy here.
-
-Thanks.
-
-
--- wli
+-- 
+Debian     - http://www.debian.org/
+Linux 1394 - http://www.linux1394.org/
+Subversion - http://subversion.tigris.org/
+WatchGuard - http://www.watchguard.com/
