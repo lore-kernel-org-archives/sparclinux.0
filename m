@@ -1,26 +1,23 @@
-From: "C.Newport" <crn@netunix.com>
-Date: Sat, 21 Aug 2004 12:24:58 +0000
-Subject: More Sun4d tests
-Message-Id: <200408211324.58120.crn@netunix.com>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Date: Tue, 31 Aug 2004 17:00:15 +0000
+Subject: Re: [parisc-linux] [PATCH] New error codes for Alpha, MIPS,
+Message-Id: <1093971614.599.20.camel@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20040830232445.0b5aad79.akpm@osdl.org>
+	 <13071.1093965134@redhat.com>
+In-Reply-To: <13071.1093965134@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: David Howells <dhowells@redhat.com>
+Cc: Andrew Morton <akpm@osdl.org>, rth@twiddle.net, linux-mips@linux-mips.org, HPPA List <parisc-linux@parisc-linux.org>, sparclinux@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
+On Maw, 2004-08-31 at 16:12, David Howells wrote:
+> The attached patch adds the new error codes I added for key-related errors to
+> those archs that don't make use of <asm-generic/errno.h>, including Alpha,
+> MIPS, PA-RISC, Sparc and Sparc64. This is required to compile with CONFIG_KEYS
+> on those platforms.
 
-Another interesting result -
-Running 2.4.27 SMP on the SS1000E with only one system board 
-fails in similar ways but much sooner. For example the serial
-console keyboard reading starts producing garbage almost
-immediately rather than after several minutes with 3 boards.
-
-I suspect a marginal timng issue of some kind.
-
-The Sun4d hardware adds latency issues because arbitration has 
-to go via the XDBus to the control board and back, rather than
-being local as on the single board Sun4M systems.
-The local bus on a system board is therefore faster than that on
-(for example) the SS20 in order to reduce total latency with
-multiple boards. 
+The patch seems to be mixing the fixups for remapping these error codes
+into sparc, hpux, osf/1 and other compatibility layers on the platforms
 
