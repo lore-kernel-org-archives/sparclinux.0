@@ -1,31 +1,55 @@
 From: William Lee Irwin III <wli@holomorphy.com>
-Date: Mon, 20 Dec 2004 12:59:33 +0000
-Subject: Re: [PATCH] Fix for structure declaration error
-Message-Id: <20041220125933.GW771@holomorphy.com>
+Date: Thu, 23 Dec 2004 06:37:30 +0000
+Subject: 2.6.10-rc3-wli-1
+Message-Id: <20041223063730.GY771@holomorphy.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20041219160643.GN32704@artsapartment.org>
-In-Reply-To: <20041219160643.GN32704@artsapartment.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
 
-On Sun, Dec 19, 2004 at 10:06:43AM -0600, Art Haas wrote:
->> The patch below fixed this problem. The SMP kernel itself ultimately did
->> not link due to other problems, but as SMP on 32-bit Sparc is still broken,
->> I couldn't try and run what I'd built. Building of an SMP kernel was
->> just something to try and see if all the files would even compile, as
->> was not the case several months ago. BTW, the link error was:
->> kernel/built-in.o(.spinlock.text+0x4): In function '_write_trylock':
->> ksysfs.c: undefined reference to '_raw_write_trylock'.
+Here it is. All sparc32 updates.
 
-On Sun, Dec 19, 2004 at 08:55:08AM -0800, William Lee Irwin III wrote:
-> I'm aware of this and have pending code for it. I'll send in this
-> change with the rest of the pending patches. Hopefully I can get them
-> out today.
+Most critical here are the HyperSPARC and sun4d updates as they get
+things booting that weren't before, though neither fixes things all
+the way. Another pretty nasty failure-to-boot issue that brings down
+distro kernels is also resolved with Jurij Smakov's initrd memcpy() fix.
 
-I've not wrapped up testing just yet. I should have an update out in
-a couple of hours.
+The main purpose of all this is so that sparc32 hackers and users can
+see what's in and what isn't so they can complain about the fixes that
+didn't get in and then I can include those when they remind me.
+
+Available from:
+ftp://ftp.kernel.org/pub/linux/kernel/people/wli/kernels/2.6.10-rc3/2.6.10-rc3-wli-1/2.6.10-rc3-wli-1.patch.bz2
+
++ linus.patch
+	sync with last night's bk
++ fix-hypersparc-dvma.patch
+	fix DVMA on UP HyperSPARC
++ newport-sun4d.patch
+	Christ Newport and Thomas Bogendoerfer's sun4d work
++ jurij-initrd-memcpy.patch
+	Jurij Smakov's memcpy() fixes
++ svr4-setcontext-return.patch
+	return something in an error path of svr4_setcontext()
++ pcic-warnings.patch
+	kill off some warnings in pcic.c
++ sunsu-warnings.patch
+	kill off some warnings in sunsu.c
++ rtc-warnings.patch
+	kill off some sparc RTC driver warnings
++ vm-fault-codes.patch
+	fix up VM fault code handling
++ spot-floppy-fix.patch
+	Tom Callaway's include/asm-sparc/floppy.h fixes
++ spot-exit-fix.patch
+	Tom Callaway's include/asm-sparc/unistd.h fixes
++ defconfig-update.patch
+	Tentative defconfig update. Bug wli if you want an option
+	turned on in the defconfig.
++ kropelin-breuer-cg6.patch
+	Adam Kropelin and Bob Breuer's cg6 fixes
 
 
 -- wli
