@@ -1,7 +1,7 @@
-From: Keith M Wesolowski <wesolows@foobazco.org>
-Date: Fri, 06 Feb 2004 02:59:51 +0000
+From: Nicolas Boullis <nboullis@debian.org>
+Date: Fri, 06 Feb 2004 22:16:15 +0000
 Subject: Re: kernel 2.4.25-pre8 fails to build for sparc32
-Message-Id: <20040206025951.GA27446@foobazco.org>
+Message-Id: <20040206221615.GA1558@tintin>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040206012437.GB2057@tintin>
 In-Reply-To: <20040206012437.GB2057@tintin>
@@ -10,21 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Fri, Feb 06, 2004 at 02:24:38AM +0100, Nicolas Boullis wrote:
+Hi,
 
-> First of all, sorry if I'm doing something wrong with this report, I'm 
-> still quite a newbie on this list...
-> 
-> I just tried to build a sparc32 kernel for my Ultra5. (I know this is 
-> sparc64 hardware, but I need to test some things with a sparc32 kernel, 
-> and I think it's supposed to work fine...) Unfortunately, the build 
-> fails with the following message:
+On Thu, Feb 05, 2004 at 06:59:51PM -0800, Keith M Wesolowski wrote:
 
-I think you're confused.  You probably mean you want to use a 32-bit
-userland, which you can do just fine with a sparc64 kernel.  The
-sparc32 kernel does not support ultrasparc CPUs nor any of the
-associated hardware in ultras.  Please do not bother trying to make it
-work.  Use ARCH=sparc64 and all will be well.
+> I think you're confused.  You probably mean you want to use a 32-bit
+> userland, which you can do just fine with a sparc64 kernel.
 
--- 
-Keith M Wesolowski
+Well, I dont' think I am that confused. I'm currently using a 64-bit 
+kernel, with 32-bit applications, and everything works fine.
+
+But I'd like to check if XFS is as broken in 32-bit as in 64-bit (the
+64-bit kernel freezes when a XFS restore is attemted), and to try a
+driver module in 32-bit mode. As far as I know, both require a 64-bit 
+kernel...
+
+> The
+> sparc32 kernel does not support ultrasparc CPUs nor any of the
+> associated hardware in ultras.  Please do not bother trying to make it
+> work.  Use ARCH=sparc64 and all will be well.
+
+Well, I thought that some distribution were using a 32-bit kernel for 
+installation, even on sparc64... Was I wrong?
+
+
+Regards,
+
+Nicolas
