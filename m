@@ -1,25 +1,35 @@
-From: William Lee Irwin III <wli@holomorphy.com>
-Date: Tue, 21 Dec 2004 08:28:34 +0000
-Subject: Re: [4/3] fix initrd memcpy
-Message-Id: <20041221082834.GH771@holomorphy.com>
+From: Jason Wever <weeve@gentoo.org>
+Date: Wed, 15 Dec 2004 02:04:48 +0000
+Subject: Mismatched UltraSPARC III CPUs
+Message-Id: <20041214190448.6584bf2d@enterprise.weeve.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Signature_Tue__14_Dec_2004_19_04_48_-0700_4ITXEI_04BjXz7sj"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20041221045627.GC771@holomorphy.com>
-In-Reply-To: <20041221045627.GC771@holomorphy.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Mon, 20 Dec 2004 23:00:25 -0800 William Lee Irwin III wrote:
->> tentative sparc32 analogue (not booted it yet):
+--Signature_Tue__14_Dec_2004_19_04_48_-0700_4ITXEI_04BjXz7sj
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Mon, Dec 20, 2004 at 11:58:12PM -0800, David S. Miller wrote:
-> Won't work, you have to fixup the memcpy.S code to return
-> 
-> And you can't use the SETUP_RETL et al. stuff already there
-> since %g6 is used for the current thread pointer.
+Hi All,
 
-Amazingly, the kernel runs anyway, but I'll do that.
+As OBP on the Blade 1000/2000 supports mismatched USIII CPUs, I was
+wondering if the kernel is capable of doing that as well.
 
+Thanks,
+-- 
+Jason Wever
+Gentoo/Sparc Team Co-Lead
 
--- wli
+--Signature_Tue__14_Dec_2004_19_04_48_-0700_4ITXEI_04BjXz7sj
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.6 (GNU/Linux)
+
+iD8DBQFBv5vDdKvgdVioq28RAqS2AJ9lSoLvZkJyS8RYty8vU+V9GlsOWwCggV1x
+xfUeh+ZnIRudrtX/HQAFurQ=
+=KV3d
+-----END PGP SIGNATURE-----
+
+--Signature_Tue__14_Dec_2004_19_04_48_-0700_4ITXEI_04BjXz7sj--
