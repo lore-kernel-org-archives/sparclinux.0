@@ -1,27 +1,54 @@
-From: William Lee Irwin III <wli@holomorphy.com>
-Date: Thu, 03 Mar 2005 02:00:48 +0000
+From: Dennis Jenkins <dennis.jenkins@sbcglobal.net>
+Date: Thu, 03 Mar 2005 13:06:05 +0000
 Subject: Re: [PATCH] sparc: fix compile failure ("struct resource" related)
-Message-Id: <20050303020048.GU15648@holomorphy.com>
+Message-Id: <20050303130605.1826.qmail@web81301.mail.yahoo.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200503012129.11840.adobriyan@mail.ru> <20050301134440.05ae1152.akpm@osdl.org>
+References: <20050301134440.05ae1152.akpm@osdl.org>
 In-Reply-To: <20050301134440.05ae1152.akpm@osdl.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@osdl.org>
-Cc: Alexey Dobriyan <adobriyan@mail.ru>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Tue, Mar 01, 2005 at 01:44:40PM -0800, Andrew Morton wrote:
-> Thanks.  Many of these fixups are due to a 64-bit-resource patch in Greg's
-> bk-pci tree which he has now reverted.  That being said:
-> - That patch will come back sometime
-> - Fixes like the below make sense anyway and can be merged any time.
-> - All the fixes which were only applicable when the 64-bit-resource patch
->   is present have been sent to Greg for when that patch reemerges.
+Does this mean that I will be able to successfully
+compile a 2.6 kernel using gcc 3.3.5 on my sparc64
+gentoo box?  Yeah!
 
-Well, in isolation it's a C99 initializer cleanup, which is good.
+now.. If only I (or someone) could fix the fcal/socal
+driver.  I even tried using the socal_asm.h firmware
+patch derived from the Solaris 10 "socal" firmware. 
+No luck. :(
 
-Acked-by: William Irwin <wli@holomorphy.com>
+--- William Lee Irwin III <wli@holomorphy.com> wrote:
+
+> On Tue, Mar 01, 2005 at 01:44:40PM -0800, Andrew
+> Morton wrote:
+> > Thanks.  Many of these fixups are due to a
+> 64-bit-resource patch in Greg's
+> > bk-pci tree which he has now reverted.  That being
+> said:
+> > - That patch will come back sometime
+> > - Fixes like the below make sense anyway and can
+> be merged any time.
+> > - All the fixes which were only applicable when
+> the 64-bit-resource patch
+> >   is present have been sent to Greg for when that
+> patch reemerges.
+> 
+> Well, in isolation it's a C99 initializer cleanup,
+> which is good.
+> 
+> Acked-by: William Irwin <wli@holomorphy.com>
+> 
+> 
+> -- wli
+> -
+> To unsubscribe from this list: send the line
+> "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at 
+> http://vger.kernel.org/majordomo-info.html
+> 
 
 
--- wli
+==Dennis Jenkins
