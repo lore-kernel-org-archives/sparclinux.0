@@ -1,73 +1,64 @@
 From: Jurij Smakov <jurij@wooyd.org>
-Date: Thu, 04 Nov 2004 05:38:27 +0000
-Subject: initrd testing [possible solution]
-Message-Id: <Pine.LNX.4.61.0411032344240.25808@bobcat>
+Date: Mon, 15 Nov 2004 04:16:40 +0000
+Subject: Re: initrd testing [possible solution]
+Message-Id: <Pine.LNX.4.61.0411142254280.16540@bobcat>
 List-Id: <sparclinux.vger.kernel.org>
+References: <Pine.LNX.4.61.0411032344240.25808@bobcat>
+In-Reply-To: <Pine.LNX.4.61.0411032344240.25808@bobcat>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-[Please CC the responses to me as I am not on the list.]
+On Thu, 4 Nov 2004, Jurij Smakov wrote:
+[skipped]
+> So, my conclusion is that __copy_1page is broken, at least under certain (yet 
+> undetermined) conditions. If that's really the case, it either should be 
+> fixed (requires knowledge of assembler, which I lack) or its use should be 
+> avoided whatsoever. The latter is easy to achieve by modifying the memcpy() 
+> definition in include/asm-sparc/string.h to call __memcpy instead.
 
-Hello,
+As a followup: I have tried fiddling more with the memcpy() routine. 
+Insight from Rob Radez and comments in arch/sparc/lib/blockops.S suggest, 
+that __copy_1page assumes that the memory regions copied are aligned on a 
+double-word boundary. I have checked, that in the cramfs case it wasn't 
+true, the destination was not aligned on the double-word boundary. So, I
+have implemented a simple workaround (see patch below), which together
+with Bob Breuer's iommu.c fix [0] made 2.6.8 kernel to boot on my 
+machine (SS10 with Ross Hypersparc CPU)! I also confirm, that adding the 
+suggested fix to the srmmu.c also [1] breaks sunlance on my machine. With 
+that "fix" the line 'eth0: Memory error, status 88c3, addr 3713ba' is
+displayed continuously during boot, when it comes to configuring network
+interfaces. The successful patch for me is:
 
-I have made a little research into the infamous initrd problem (short 
-story: initrd cannot be mounted with 'cramfs: wrong magic', long story may 
-be found in the May 2004 thread starting at [0]). I have used Debian's 
-unstable 2.4.27 kernel, which suffers from that problem on my Sparcstation 
-10. After inserting some debugging code I was able to figure out, that 
-the initrd contents got loaded into the memory by silo and then passed 
-into the /dev/ram correctly. After that kernel attempts to mount root on 
-it. The relevant calls go like this:
+--- build-sparc32.orig/include/asm-sparc/string.h	2004-08-14 01:36:11.000000000 -0400
++++ build-sparc32/include/asm-sparc/string.h	2004-11-14 22:09:49.000000000 -0500
+@@ -40,6 +40,9 @@
 
-init/do_mounts.c: handle_initrd:
-  fs/namespace.c: sys_mount
-   fs/namespace.c: do_mount
-    fs/namespace.c: do_add_mount
-     fs/super.c: do_kern_mount
-      fs/super.c: get_sb_bdev
-       fs/cramfs/inode.c cramfs_read_super (via fs_type->read_super)
-        fs/cramfs/inode.c cramfs_read(sb, 0, sizeof(super)) (via memcpy)
+  	if(n <= 32) {
+  		__builtin_memcpy(to, from, n);
++	} else if (((unsigned int) to & 7) != 0) {
++		/* Destination is not aligned on the double-word boundary */
++		__memcpy(to, from, n);
+  	} else {
+  		switch(n) {
+  		case PAGE_SIZE:
+--- build-sparc32.orig/arch/sparc/mm/iommu.c	2004-08-14 01:38:08.000000000 -0400
++++ build-sparc32/arch/sparc/mm/iommu.c	2004-11-14 22:10:09.000000000 -0500
+@@ -173,6 +173,7 @@
+  	}
 
-In the last call cramfs_read is called to read in the superblock of the
-cramfs filesystem. The source data was ok (i.e. contained the expected
-cramfs magic in the beginning) all the way up to this code snippet from
-cramfs_read() from fs/cramfs/inode.c:
+  	iommu_viking_flush_iotlb(iopte0, npages);
++	flush_cache_all();
 
-         data = read_buffers[buffer];
-         for (i = 0; i < BLKS_PER_BUF; i++) {
-                 struct page *page = pages[i];
-                 if (page) {
-                         memcpy(data, kmap(page), PAGE_CACHE_SIZE);
-                         kunmap(page);
-                         page_cache_release(page);
-                 } else
-                         memset(data, 0, PAGE_CACHE_SIZE);
-                 data += PAGE_CACHE_SIZE;
-         }
+  	return busa0;
+  }
 
-So, memory at address kmap(pages[0]) contained the correct byte sequence 
-for the cramfs magic, but the memory at location 'data' after the 
-call to memcpy() did not (in fact, it appeared as if the first 4 bytes 
-were not copied to the destination)! It turned out that memcpy() calls 
-different copying routines depending on the size of the copied block (see 
-include/asm-sparc/string.h). It has a special routine for copying the 
-memory chunks of size PAGE_SIZE (equal to PAGE_CACHE_SIZE), called 
-__copy_1page and defined in arch/sparc/lib/blockops.S. Having narrowed it 
-down that much I have tried replacing memcpy() in the code above by 
-__memcpy(), thus avoiding the use of __copy_1page and invoking the more 
-generic (probably, slower) subroutine (__memcpy in arch/sparc/lib/memcpy.S). 
-As a result, the initrd was correctly mounted!
+Note, that this patch is against the unpacked Debian kernel package's 
+build-sparc32 tree, so it may be fuzzy w/respect to the pristine kernel.
 
-So, my conclusion is that __copy_1page is broken, at least under certain 
-(yet undetermined) conditions. If that's really the case, it either 
-should be fixed (requires knowledge of assembler, which I lack) or its use 
-should be avoided whatsoever. The latter is easy to achieve by modifying 
-the memcpy() definition in include/asm-sparc/string.h to call __memcpy 
-instead.
-
-[0] http://marc.theaimsgroup.com/?t8448100400006&r=1&w=2
+[0] http://marc.theaimsgroup.com/?l=linux-sparc&m0005632921213&w=2
+[1] http://marc.theaimsgroup.com/?l=linux-sparc&m0014079917049&w=2
 
 Best regards,
 
