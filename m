@@ -1,53 +1,88 @@
-From: Ralph Mitchell <rmitchell@eds.com>
-Date: Sat, 28 Aug 2004 07:06:54 +0000
-Subject: Re: [PATCH] SunSAB console problems in 2.6.x
-Message-Id: <41302F0E.7060302@eds.com>
+From: "David S. Miller" <davem@davemloft.net>
+Date: Tue, 31 Aug 2004 00:40:15 +0000
+Subject: [PATCH] Re: lvm problems on sparc64 - Trying to vfree() nonexistent
+Message-Id: <20040830174015.10edb69b.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040825233247.237c1fb1.davem@redhat.com>
-In-Reply-To: <20040825233247.237c1fb1.davem@redhat.com>
+References: <1093911340.2116.55.camel@duncow>
+In-Reply-To: <1093911340.2116.55.camel@duncow>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Richard Mortimer <richm@oldelvet.org.uk>, marcelo.tosatti@cyclades.com
+Cc: sparclinux@vger.kernel.org, linux-lvm@sistina.com, debian-sparc@lists.debian.org
 
-Works just fine.  Thanks!  Took me a minute to realise it was a patch 
-against 2.6.9-rc1, though.  Are there any stability issues with this 
-RC?  If not, I'll leave it running, otherwise I'll go back to 2.6.8.
+On Tue, 31 Aug 2004 01:15:40 +0100
+Richard Mortimer <richm@oldelvet.org.uk> wrote:
 
-Works even better with PREEMPT off.  Thought I probably had something 
-stupid in the .config  :)
+> I'm seeing problems with lvm on sparc64. I have a reproducible test case
+> using snapshots where I can reliably reproduce an error similar to
+> 
+> Trying to vfree() nonexistent vm area (0000000140072000)
 
-Thanks,
+For once it's not sparc64's fault, it's a bug in the generic
+LVM ioctl handling :-)
 
-Ralph Mitchell
+It saves both pointers, clobbers the userspace copy, then only
+restores one of the two pointers correctly.  Easy to fix, see
+below.
 
+Marcelo, please apply, thanks.
 
-David S. Miller wrote:
-
->On Fri, 27 Aug 2004 17:01:01 -0700
->Joshua Kwan <joshk@triplehelix.org> wrote:
->
->  
->
->>>-	 mcount.o ipcsum.o rwsem.o xor.o splock.o find_bit.o
->>>+	 mcount.o ipcsum.o rwsem.o xor.o splock.o find_bit.o delay.o
->>> 
->>> lib-$(CONFIG_DEBUG_SPINLOCK) += debuglocks.o
->>> lib-$(CONFIG_HAVE_DEC_LOCK) += dec_and_lock.o
->>>      
->>>
->>You forgot delay.c.
->>    
->>
->
->Sorry, I'm a retard.
->
->This patch should be better.
->
-># This is a BitKeeper generated diff -Nru style patch.
->#
-># ChangeSet
->#   2004/08/27 16:12:23-07:00 davem@nuts.davemloft.net 
->#   [SPARC64]: Fix delay with HZ=1000.
->  
->
+# This is a BitKeeper generated diff -Nru style patch.
+#
+# ChangeSet
+#   2004/08/30 17:24:05-07:00 davem@nuts.davemloft.net 
+#   [LVM]: Do not forget to restore both user pointers.
+#   
+#   This in particular can make compatability layers
+#   crash, and it is a bug for regular applications
+#   too.
+#   
+#   Signed-off-by: David S. Miller <davem@davemloft.net>
+# 
+# drivers/md/lvm.c
+#   2004/08/30 17:23:48-07:00 davem@nuts.davemloft.net +12 -0
+#   [LVM]: Do not forget to restore both user pointers.
+#   
+#   This in particular can make compatability layers
+#   crash, and it is a bug for regular applications
+#   too.
+#   
+#   Signed-off-by: David S. Miller <davem@davemloft.net>
+# 
+diff -Nru a/drivers/md/lvm.c b/drivers/md/lvm.c
+--- a/drivers/md/lvm.c	2004-08-30 17:24:13 -07:00
++++ b/drivers/md/lvm.c	2004-08-30 17:24:13 -07:00
+@@ -2689,6 +2689,10 @@
+ 			    (&lv_status_byname_req.lv->lv_current_pe,
+ 			     &saved_ptr1, sizeof(void *)) != 0)
+ 				return -EFAULT;
++			if (copy_to_user
++			    (&lv_status_byname_req.lv->lv_block_exception,
++			     &saved_ptr2, sizeof(void *)) != 0)
++				return -EFAULT;
+ 			return 0;
+ 		}
+ 	}
+@@ -2743,6 +2747,10 @@
+ 	    (&lv_status_byindex_req.lv->lv_current_pe, &saved_ptr1,
+ 	     sizeof(void *)) != 0)
+ 		return -EFAULT;
++	if (copy_to_user
++	    (&lv_status_byindex_req.lv->lv_block_exception, &saved_ptr2,
++	     sizeof(void *)) != 0)
++		return -EFAULT;
+ 
+ 	return 0;
+ }				/* lvm_do_lv_status_byindex() */
+@@ -2799,6 +2807,10 @@
+ 	/* Restore usermode pointers */
+ 	if (copy_to_user
+ 	    (&lv_status_bydev_req.lv->lv_current_pe, &saved_ptr1,
++	     sizeof(void *)) != 0)
++		return -EFAULT;
++	if (copy_to_user
++	    (&lv_status_bydev_req.lv->lv_block_exception, &saved_ptr2,
+ 	     sizeof(void *)) != 0)
+ 		return -EFAULT;
+ 
