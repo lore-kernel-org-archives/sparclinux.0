@@ -1,99 +1,32 @@
-From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
-Date: Fri, 04 Mar 2005 04:41:17 +0000
-Subject: [PATCH 2.6] TCX Framebuffer fixes
-Message-Id: <1109911277.17038.44.camel@localhost.localdomain>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-mAfL3pFX6DaQtSwHCYBV"
+From: admin <sun-info@internode.com.au>
+Date: Tue, 08 Mar 2005 09:57:14 +0000
+Subject: current status of gigaswift drivers in 2.6...
+Message-Id: <200503082025.00094.sun-info@internode.com.au>
 List-Id: <sparclinux.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Hi all.
 
---=-mAfL3pFX6DaQtSwHCYBV
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+I want to get a 2.6 gentoo system running on some b100s blades 
+(UltraSPARC-IIe, dual gigaswift ethernet, ALI ide)
 
-Using the same logic as the other framebuffer fixes committed in 2.6.11,
-this is a set of fixes to make TCX functional on the console again. Adds
-the tcx_pan_display function, sets the
-all->info.var.{red,green,blue}.length values to 8, and runs fb_set_cmap.
-Also looks for the correct SUNW,tcx prom value.
+A 2.4 netboot image from gentoo comes up minus networking. Trawling the sparc 
+linux lists (and *bsd) shows a distinct lack of movement on drivers for the 
+gigaswift chipset.
 
-This patch just slipped through the cracks.
+Sun have released a driver for 2.4 (second from the bottom)
+http://www.sun.com/products/networking/downloads.html
 
-Originally by: Georg Chini <georg.chini@triaton-webhosting.com>
+The source make at least one reference to 2.6, and this page
+http://www.sun.com/download/products.xml?idA40b67e
+suggests that it is the build options that prevent it from compiling rather 
+than the driver code. Whilst that fairly unlikely to be the case, I was just 
+wondering if anyone more knowledgeable has tried getting this to work on a 
+2.6 kernel.
 
-Signed-off-by: Tom 'spot' Callaway <tcallawa@redhat.com>
-
-~spot
----
-Tom "spot" Callaway: Red Hat Sales Engineer || GPG Fingerprint: 93054260
-Fedora Extras Steering Committee Member (RPM Standards and Practices)
-Aurora Linux Project Leader: http://auroralinux.org
-Lemurs, llamas, and sparcs, oh my!
-
---=-mAfL3pFX6DaQtSwHCYBV
-Content-Disposition: attachment; filename=linux-2.6.11-sparc-tcxfixes.patch
-Content-Type: text/x-patch; name=linux-2.6.11-sparc-tcxfixes.patch; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
---- linux-2.6.11/drivers/video/tcx.c.BAD	2005-03-03 23:30:15.621231203 -0500
-+++ linux-2.6.11/drivers/video/tcx.c	2005-03-03 23:34:02.963669899 -0500
-@@ -36,6 +36,7 @@ static int tcx_blank(int, struct fb_info
- static int tcx_mmap(struct fb_info *, struct file *, struct vm_area_struct *);
- static int tcx_ioctl(struct inode *, struct file *, unsigned int,
- 		     unsigned long, struct fb_info *);
-+static int tcx_pan_display(struct fb_var_screeninfo *, struct fb_info *);
- 
- /*
-  *  Frame buffer operations
-@@ -45,6 +46,7 @@ static struct fb_ops tcx_ops = {
- 	.owner			= THIS_MODULE,
- 	.fb_setcolreg		= tcx_setcolreg,
- 	.fb_blank		= tcx_blank,
-+	.fb_pan_display		= tcx_pan_display,
- 	.fb_fillrect		= cfb_fillrect,
- 	.fb_copyarea		= cfb_copyarea,
- 	.fb_imageblit		= cfb_imageblit,
-@@ -153,6 +155,12 @@ static void tcx_reset (struct fb_info *i
- 	spin_unlock_irqrestore(&par->lock, flags);
- }
- 
-+static int tcx_pan_display(struct fb_var_screeninfo *var, struct fb_info *info)
-+{
-+	tcx_reset(info);
-+	return 0;
-+}
-+
- /**
-  *      tcx_setcolreg - Optional function. Sets a color register.
-  *      @regno: boolean, 0 copy local, 1 get_user() function
-@@ -366,6 +374,9 @@ static void tcx_init_one(struct sbus_dev
- 	all->par.lowdepth = prom_getbool(sdev->prom_node, "tcx-8-bit");
- 
- 	sbusfb_fill_var(&all->info.var, sdev->prom_node, 8);
-+	all->info.var.red.length = 8;
-+	all->info.var.green.length = 8;
-+	all->info.var.blue.length = 8;
- 
- 	linebytes = prom_getintdefault(sdev->prom_node, "linebytes",
- 				       all->info.var.xres);
-@@ -439,6 +450,7 @@ static void tcx_init_one(struct sbus_dev
- 		return;
- 	}
- 
-+	fb_set_cmap(&all->info.cmap, &all->info);
- 	tcx_init_fix(&all->info, linebytes);
- 
- 	if (register_framebuffer(&all->info) < 0) {
-@@ -466,7 +478,7 @@ int __init tcx_init(void)
- 		return -ENODEV;
- 
- 	for_all_sbusdev(sdev, sbus) {
--		if (!strcmp(sdev->prom_name, "tcx"))
-+		if (!strcmp(sdev->prom_name, "SUNW,tcx"))
- 			tcx_init_one(sdev);
- 	}
- 
-
---=-mAfL3pFX6DaQtSwHCYBV--
+Thanks
+Nick
 
