@@ -1,7 +1,7 @@
-From: Nicolas Boullis <nboullis@debian.org>
-Date: Thu, 22 Jul 2004 22:00:17 +0000
+From: Meelis Roos <mroos@linux.ee>
+Date: Fri, 23 Jul 2004 15:27:32 +0000
 Subject: Re: Weird serial problems in 2.6.7
-Message-Id: <20040722220015.GA4259@tintin>
+Message-Id: <E1Bo1xM-0001p1-5H@rhn.tartu-labor>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20040721064705.GE23921@triplehelix.org>
 In-Reply-To: <20040721064705.GE23921@triplehelix.org>
@@ -10,15 +10,13 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, Jul 22, 2004 at 07:06:12PM +0300, Meelis Roos wrote:
-> JK> eh:HPYMA PICerO 010ae tent 8:0:0:d:3:7
-> 
-> So the same symptoms that I saw were not PC serial problems afterall...
+>> So the same symptoms that I saw were not PC serial problems afterall...
+NB> 
+NB> Not that sure, since I experienced the same problem between two PC, 
+NB> while the one acting as the console was under heavy load...
 
-Not that sure, since I experienced the same problem between two PC, 
-while the one acting as the console was under heavy load...
+I tried 2.4.27-rc3 on the same Ultra5 and same cable and same PC, serial
+console works fine. So it's serial console in 2.6 on U5 it seems.
 
-
-HTH,
-
-Nicolas
+-- 
+Meelis Roos
