@@ -1,132 +1,80 @@
-From: Jason Wever <weeve@gentoo.org>
-Date: Mon, 10 May 2004 16:29:42 +0000
-Subject: Re: 2.6.6: pci_{alloc,free}_consistent missing?
-Message-Id: <Pine.LNX.4.58.0405101025410.16685@stargazer.weeve.org>
+From: joshk@triplehelix.org (Joshua Kwan)
+Date: Thu, 06 May 2004 22:35:35 +0000
+Subject: [PATCH] Use $(CC) in check for egcs/gcc3 [2/4]
+Message-Id: <20040506223535.GB29131@triplehelix.org>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="-1463810780-563827713-1084206582=:16969"
+Content-Type: multipart/mixed; boundary="EP0wieDxd4TSJjHq"
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.GSO.4.44.0405101420310.13504-100000@math.ut.ee>
-In-Reply-To: <Pine.GSO.4.44.0405101420310.13504-100000@math.ut.ee>
 To: sparclinux@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
 
----1463810780-563827713-1084206582=:16969
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+--EP0wieDxd4TSJjHq
+Content-Type: multipart/mixed; boundary="FsscpQKzF/jJk6ya"
+Content-Disposition: inline
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
 
-On Mon, 10 May 2004, Meelis Roos wrote:
+--FsscpQKzF/jJk6ya
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Compiling 2.6.6 on sparc64 with modular ALSA sound gives these
-> unresolved symbols:
-> 
-> *** Warning: "pci_free_consistent" [sound/core/snd-page-alloc.ko] undefined!
-> *** Warning: "pci_alloc_consistent" [sound/core/snd-page-alloc.ko] undefined!
-> 
-> Is this a sparc64 specific symbol export problem or something deeper?
+patch 2: use $(CC) in check for egcs/gcc3
 
-Presumably it was an ALSA bug.  I've run into it since 2.6.5 on any 
-sparc64 machine that does not enable PCI support (like an Ultra 2 or Ultra 
-1 workstation).
+The makefile currentsly hardcodes 'gcc' in its test. This is not good if
+'gcc' points to an i386-linux-gcc :)
 
-The attached patch was taken from the ALSA kernel cvs tree and seems to 
-fix the problem.  I haven't been able to test it against a working SBUS 
-sound card yet as there are problems with the snd-sun-cs4231 
-driver currently.  If anyone is currently looking into this I'd be 
-interested to hear any findings or results.
+(The patch explains itself. However, note that it doesn't address)
 
-Cheers,
-- -- 
-Jason Wever
-Gentoo/Sparc Co-Team Lead
+--=20
+Joshua Kwan
+
+--FsscpQKzF/jJk6ya
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="02_sparc64_use_CC.diff"
+Content-Transfer-Encoding: quoted-printable
+
+--- kernel-source-2.4.26/arch/sparc64/Makefile	2004-04-25 16:41:16.00000000=
+0 -0700
++++ kernel-source-2.4.26/arch/sparc64/Makefile~	2004-04-25 16:40:52.0000000=
+00 -0700
+@@ -12,7 +12,7 @@
+ # line...
+ SHELL  =3D/bin/bash
+=20
+-CC		:=3D $(shell if gcc -m64 -S -o /dev/null -xc /dev/null >/dev/null 2>&1=
+; then echo gcc; else echo sparc64-linux-gcc; fi )
++CC		:=3D $(shell if $(CC) -m64 -S -o /dev/null -xc /dev/null >/dev/null 2>=
+&1; then echo $(CC); else echo sparc64-linux-gcc; fi )
+=20
+ NEW_GCC :=3D $(shell if $(CC) -m64 -mcmodel=3Dmedlow -S -o /dev/null -xc /=
+dev/null >/dev/null 2>&1; then echo y; else echo n; fi; )
+ NEW_GAS :=3D $(shell if $(LD) -V 2>&1 | grep 'elf64_sparc' > /dev/null; th=
+en echo y; else echo n; fi)
+
+--FsscpQKzF/jJk6ya--
+
+--EP0wieDxd4TSJjHq
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
+Comment: http://triplehelix.org/~joshk/pubkey_gpg.asc
 
-iD8DBQFAn634dKvgdVioq28RAoV9AJ4l1IM6OYOW9nt9/fNPOt09sl/7pgCgudhP
-Up0j4un/Ua+SVwePKJlhfMs=
-=mDl5
+iQIVAwUBQJq9taOILr94RG8mAQKdAw/8DzDYTRXlOUbN6hNGKBP9KCUYR6txsMfK
+ZwlqTrEDMg/T85jxyEjyPqhf6kI2CIEXSGrmiL8DdlEYt55J+45p4tRFzdzPZHse
+ZKzp6QCzts5OIc0J9/vlVHysyGZ8a6ojb0Pv7qQcyCWXxv5wH46Xe5GHtTfAvAIu
+JgjLuStUTqHeaNlqS8LMSDgSwsJq1KdV7DBDlQMAs1PtgzvYbjYAK09sfnBg1KTO
+Jln4HU0/hBRAiVisz51PcI8B48B1anXN/2JvNu/GASlUMCGEM7621metiwbkLKCD
+8IJP+rgThZwSuVveUfwA8hNU6miswR0wNxFvWTqHiqLFR3I8lFgw/ecriqeMp294
+WNwJfkXAfG53AE4M7oLFTtqXkh63L3+bzVuNJl1HTeIML5QzdvxeSXwLXBwB9ax6
+bz10Bz/MCLQGwzj8/DAiRBhOWnBgizTWyc8Z/1YIBoNWdkJqJwcnFf4Gy5A1cudp
+SO8mm/TUsOlSQ4F2CYTxmxWymx8z2rVVYjePL7r4e6hneLU3QqfzqRhw3TERapcy
+HObAVGpNl3hA6md/qft9/JUkRMvRCrVQBUoObIYUoZSGnDmw3OX2hwZ2ClvzEC3C
+l+YworHV2ui/dw8JLg4WzCGQaxHG7LEwcUE1nQTSUUTnWXVubuclBc4gZfcXSRUM
+W3u3KoD+LmY=
+=yP/U
 -----END PGP SIGNATURE-----
----1463810780-563827713-1084206582=:16969
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name="memalloc.c.patch"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.58.0405101029420.16969@stargazer.weeve.org>
-Content-Description: 
-Content-Disposition: attachment; filename="memalloc.c.patch"
 
-LS0tIGEvc291bmQvY29yZS9tZW1hbGxvYy5jCTIwMDQtMDUtMTAgMDg6NDE6
-MTQuMDAwMDAwMDAwIC0wNjAwDQorKysgYi9zb3VuZC9jb3JlL21lbWFsbG9j
-LmMJMjAwNC0wNS0wOCAxMjoxNjoyNC4wMDAwMDAwMDAgLTA2MDANCkBAIC0y
-OSw2ICsyOSw3IEBADQogI2luY2x1ZGUgPGxpbnV4L3NsYWIuaD4NCiAjaW5j
-bHVkZSA8bGludXgvbW0uaD4NCiAjaW5jbHVkZSA8bGludXgvZG1hLW1hcHBp
-bmcuaD4NCisjaW5jbHVkZSA8bGludXgvbW9kdWxlcGFyYW0uaD4NCiAjaW5j
-bHVkZSA8YXNtL3NlbWFwaG9yZS5oPg0KICNpbmNsdWRlIDxzb3VuZC9tZW1h
-bGxvYy5oPg0KICNpZmRlZiBDT05GSUdfU0JVUw0KQEAgLTQ1LDcgKzQ2LDgg
-QEANCiAjZGVmaW5lIFNORFJWX0NBUkRTCTgNCiAjZW5kaWYNCiBzdGF0aWMg
-aW50IGVuYWJsZVtTTkRSVl9DQVJEU10gPSB7WzAgLi4uIChTTkRSVl9DQVJE
-Uy0xKV0gPSAxfTsNCi1NT0RVTEVfUEFSTShlbmFibGUsICIxLSIgX19NT0RV
-TEVfU1RSSU5HKFNORFJWX0NBUkRTKSAiaSIpOw0KK3N0YXRpYyBpbnQgYm9v
-dF9kZXZzOw0KK21vZHVsZV9wYXJhbV9hcnJheShlbmFibGUsIGJvb2wsIGJv
-b3RfZGV2cywgMDQ0NCk7DQogTU9EVUxFX1BBUk1fREVTQyhlbmFibGUsICJF
-bmFibGUgY2FyZHMgdG8gYWxsb2NhdGUgYnVmZmVycy4iKTsNCiANCiAvKg0K
-QEAgLTg5LDMyICs5MSw3IEBADQogICogIEhhY2tzDQogICovDQogDQotc3Rh
-dGljIHZvaWQgKnNuZF9kbWFfYWxsb2NfY29oZXJlbnQxKHN0cnVjdCBkZXZp
-Y2UgKmRldiwgc2l6ZV90IHNpemUsDQotCQkJCSAgICAgZG1hX2FkZHJfdCAq
-ZG1hX2hhbmRsZSwgaW50IGZsYWdzKQ0KLXsNCi0JaWYgKGRldikNCi0JCXJl
-dHVybiBkbWFfYWxsb2NfY29oZXJlbnQoZGV2LCBzaXplLCBkbWFfaGFuZGxl
-LCBmbGFncyk7DQotCWVsc2UgLyogRklYTUU6IGRtYV9hbGxvY19jb2hlcmVu
-dCBkb2VzJ3QgYWx3YXlzIGFjY2VwdCBkZXY9TlVMTCAqLw0KLQkJcmV0dXJu
-IHBjaV9hbGxvY19jb25zaXN0ZW50KE5VTEwsIHNpemUsIGRtYV9oYW5kbGUp
-Ow0KLX0NCi0NCi1zdGF0aWMgdm9pZCBzbmRfZG1hX2ZyZWVfY29oZXJlbnQx
-KHN0cnVjdCBkZXZpY2UgKmRldiwgc2l6ZV90IHNpemUsIHZvaWQgKmRtYV9h
-ZGRyLA0KLQkJCQkgICBkbWFfYWRkcl90IGRtYV9oYW5kbGUpDQotew0KLQlp
-ZiAoZGV2KQ0KLQkJcmV0dXJuIGRtYV9mcmVlX2NvaGVyZW50KGRldiwgc2l6
-ZSwgZG1hX2FkZHIsIGRtYV9oYW5kbGUpOw0KLQllbHNlDQotCQlyZXR1cm4g
-cGNpX2ZyZWVfY29uc2lzdGVudChOVUxMLCBzaXplLCBkbWFfYWRkciwgZG1h
-X2hhbmRsZSk7DQotfQ0KLQ0KLSN1bmRlZiBkbWFfYWxsb2NfY29oZXJlbnQN
-Ci0jZGVmaW5lIGRtYV9hbGxvY19jb2hlcmVudCBzbmRfZG1hX2FsbG9jX2Nv
-aGVyZW50MQ0KLSN1bmRlZiBkbWFfZnJlZV9jb2hlcmVudA0KLSNkZWZpbmUg
-ZG1hX2ZyZWVfY29oZXJlbnQgc25kX2RtYV9mcmVlX2NvaGVyZW50MQ0KLQ0K
-LQ0KICNpZiBkZWZpbmVkKF9faTM4Nl9fKSB8fCBkZWZpbmVkKF9fcHBjX18p
-IHx8IGRlZmluZWQoX194ODZfNjRfXykNCi0NCiAvKg0KICAqIEEgaGFjayB0
-byBhbGxvY2F0ZSBsYXJnZSBidWZmZXJzIHZpYSBkbWFfYWxsb2NfY29oZXJl
-bnQoKQ0KICAqDQpAQCAtMTM1LDE0ICsxMTIsMTcgQEANCiAJCQkJCSBkbWFf
-YWRkcl90ICpkbWFfaGFuZGxlLCBpbnQgZmxhZ3MpDQogew0KIAl2b2lkICpy
-ZXQ7DQotCXU2NCBkbWFfbWFzazsNCisJdTY0IGRtYV9tYXNrLCBjb2hlcmVu
-dF9kbWFfbWFzazsNCiANCiAJaWYgKGRldiA9PSBOVUxMIHx8ICFkZXYtPmRt
-YV9tYXNrKQ0KIAkJcmV0dXJuIGRtYV9hbGxvY19jb2hlcmVudChkZXYsIHNp
-emUsIGRtYV9oYW5kbGUsIGZsYWdzKTsNCiAJZG1hX21hc2sgPSAqZGV2LT5k
-bWFfbWFzazsNCisJY29oZXJlbnRfZG1hX21hc2sgPSBkZXYtPmNvaGVyZW50
-X2RtYV9tYXNrOw0KIAkqZGV2LT5kbWFfbWFzayA9IDB4ZmZmZmZmZmY7IAkv
-KiBkbyB3aXRob3V0IG1hc2tpbmcgKi8NCisJZGV2LT5jb2hlcmVudF9kbWFf
-bWFzayA9IDB4ZmZmZmZmZmY7IAkvKiBkbyB3aXRob3V0IG1hc2tpbmcgKi8N
-CiAJcmV0ID0gZG1hX2FsbG9jX2NvaGVyZW50KGRldiwgc2l6ZSwgZG1hX2hh
-bmRsZSwgZmxhZ3MpOw0KIAkqZGV2LT5kbWFfbWFzayA9IGRtYV9tYXNrOwkv
-KiByZXN0b3JlICovDQorCWRldi0+Y29oZXJlbnRfZG1hX21hc2sgPSBjb2hl
-cmVudF9kbWFfbWFzazsJLyogcmVzdG9yZSAqLw0KIAlpZiAocmV0KSB7DQog
-CQkvKiBvYnRhaW5lZCBhZGRyZXNzIGlzIG91dCBvZiByYW5nZT8gKi8NCiAJ
-CWlmICgoKHVuc2lnbmVkIGxvbmcpKmRtYV9oYW5kbGUgKyBzaXplIC0gMSkg
-JiB+ZG1hX21hc2spIHsNCkBAIC0xNTIsOCArMTMyLDEyIEBADQogCQl9DQog
-CX0gZWxzZSB7DQogCQkvKiB3aXNoIHRvIHN1Y2Nlc3Mgbm93IHdpdGggdGhl
-IHByb3BlciBtYXNrLi4uICovDQotCQlpZiAoZG1hX21hc2sgIT0gMHhmZmZm
-ZmZmZlVMKQ0KKwkJaWYgKGRtYV9tYXNrICE9IDB4ZmZmZmZmZmZVTCkgew0K
-KwkJCS8qIGFsbG9jYXRpb24gd2l0aCBHRlBfQVRPTUlDIHRvIGF2b2lkIHRo
-ZSBsb25nIHN0YWxsICovDQorCQkJZmxhZ3MgJj0gfkdGUF9LRVJORUw7DQor
-CQkJZmxhZ3MgfD0gR0ZQX0FUT01JQzsNCiAJCQlyZXQgPSBkbWFfYWxsb2Nf
-Y29oZXJlbnQoZGV2LCBzaXplLCBkbWFfaGFuZGxlLCBmbGFncyk7DQorCQl9
-DQogCX0NCiAJcmV0dXJuIHJldDsNCiB9DQpAQCAtODQyLDI1ICs4MjYsNiBA
-QA0KIG1vZHVsZV9leGl0KHNuZF9tZW1fZXhpdCkNCiANCiANCi0jaWZuZGVm
-IE1PRFVMRQ0KLQ0KLS8qIGZvcm1hdCBpczogc25kLXBhZ2UtYWxsb2M9ZW5h
-YmxlICovDQotDQotc3RhdGljIGludCBfX2luaXQgc25kX21lbV9zZXR1cChj
-aGFyICpzdHIpDQotew0KLQlzdGF0aWMgdW5zaWduZWQgX19pbml0ZGF0YSBu
-cl9kZXYgPSAwOw0KLQ0KLQlpZiAobnJfZGV2ID49IFNORFJWX0NBUkRTKQ0K
-LQkJcmV0dXJuIDA7DQotCSh2b2lkKShnZXRfb3B0aW9uKCZzdHIsJmVuYWJs
-ZVtucl9kZXZdKSA9PSAyKTsNCi0JbnJfZGV2Kys7DQotCXJldHVybiAxOw0K
-LX0NCi0NCi1fX3NldHVwKCJzbmQtcGFnZS1hbGxvYz0iLCBzbmRfbWVtX3Nl
-dHVwKTsNCi0NCi0jZW5kaWYNCi0NCiAvKg0KICAqIGV4cG9ydHMNCiAgKi8N
-Cg==
-
----1463810780-563827713-1084206582=:16969--
+--EP0wieDxd4TSJjHq--
