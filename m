@@ -1,28 +1,57 @@
 From: "David S. Miller" <davem@davemloft.net>
-Date: Mon, 25 Apr 2005 18:54:15 +0000
-Subject: Re: [PATCH 2.6] Silence missing CONFIG_ symbol noise
-Message-Id: <20050425115415.126b4d74.davem@davemloft.net>
+Date: Tue, 05 Apr 2005 20:57:37 +0000
+Subject: [PATCH] Fix compat stat handling on sparc64
+Message-Id: <20050405135737.0a413358.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1109914288.17038.64.camel@localhost.localdomain>
-In-Reply-To: <1109914288.17038.64.camel@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
 
-On Mon, 25 Apr 2005 07:02:50 +0200
-Sam Ravnborg <sam@ravnborg.org> wrote:
 
-> kconfig throws a warning when it see:
-> 	select I386_FOO
-> 
-> in sparc context, because the config symbol I386_FOO is not defined.
-> We do not see this with I386, cause people make sure to define all
-> selected CONFIG symbols. But most other architectures suffer from this.
+The compat layer on sparc64 was not filling in the nanosecond
+fields in properly for 32-bit compat tasks.  This caused things
+like the test-utime.c test to fail in the libc sources.
 
-Thanks for the explanation.
+A problem still remains for native 64-bit binaries.  Like Alpha
+the normal stat structure doesn't have the nanosecond fields
+so I have to add in the stat64 syscall entry points in the 64-bit
+syscall table then add the necessary libc magic.
 
-> But the better solution would be to drop the warning from kconfig.
-> I will do that next time I get around to do some kernel hacking.
+Signed-off-by: David S. Miller <davem@davemloft.net>
 
-Ok, thanks again.
+=== arch/sparc64/kernel/sys_sparc32.c 1.118 vs edited ==--- 1.118/arch/sparc64/kernel/sys_sparc32.c	2005-03-21 09:56:06 -08:00
++++ edited/arch/sparc64/kernel/sys_sparc32.c	2005-04-05 12:38:54 -07:00
+@@ -352,11 +352,11 @@
+ 	err |= put_user(old_encode_dev(stat->rdev), &statbuf->st_rdev);
+ 	err |= put_user(stat->size, &statbuf->st_size);
+ 	err |= put_user(stat->atime.tv_sec, &statbuf->st_atime);
+-	err |= put_user(0, &statbuf->__unused1);
++	err |= put_user(stat->atime.tv_nsec, &statbuf->st_atime_nsec);
+ 	err |= put_user(stat->mtime.tv_sec, &statbuf->st_mtime);
+-	err |= put_user(0, &statbuf->__unused2);
++	err |= put_user(stat->mtime.tv_nsec, &statbuf->st_mtime_nsec);
+ 	err |= put_user(stat->ctime.tv_sec, &statbuf->st_ctime);
+-	err |= put_user(0, &statbuf->__unused3);
++	err |= put_user(stat->ctime.tv_nsec, &statbuf->st_ctime_nsec);
+ 	err |= put_user(stat->blksize, &statbuf->st_blksize);
+ 	err |= put_user(stat->blocks, &statbuf->st_blocks);
+ 	err |= put_user(0, &statbuf->__unused4[0]);
+=== include/asm-sparc64/compat.h 1.19 vs edited ==--- 1.19/include/asm-sparc64/compat.h	2005-02-17 21:53:03 -08:00
++++ edited/include/asm-sparc64/compat.h	2005-04-05 12:37:58 -07:00
+@@ -51,11 +51,11 @@
+ 	compat_dev_t	st_rdev;
+ 	compat_off_t	st_size;
+ 	compat_time_t	st_atime;
+-	u32		__unused1;
++	u32		st_atime_nsec;
+ 	compat_time_t	st_mtime;
+-	u32		__unused2;
++	u32		st_mtime_nsec;
+ 	compat_time_t	st_ctime;
+-	u32		__unused3;
++	u32		st_ctime_nsec;
+ 	compat_off_t	st_blksize;
+ 	compat_off_t	st_blocks;
+ 	u32		__unused4[2];
