@@ -1,27 +1,24 @@
-From: bert hubert <ahu@ds9a.nl>
-Date: Sat, 05 Feb 2005 21:00:49 +0000
-Subject: Re: SMP Ultra2 locks up in many cases, UP kernel works fine - 2.6.11-rc3-mm1
-Message-Id: <20050205210049.GA27226@outpost.ds9a.nl>
+From: Michael Tautschnig <michael.tautschnig@zt-consulting.com>
+Date: Mon, 14 Feb 2005 19:41:33 +0000
+Subject: TUNSETIFF: data not copied back to userspace
+Message-Id: <Pine.LNX.4.61.0502141928510.11663@l01.thnet>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20050205194152.GB25413@outpost.ds9a.nl>
-In-Reply-To: <20050205194152.GB25413@outpost.ds9a.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sat, Feb 05, 2005 at 08:41:52PM +0100, bert hubert wrote:
+Hello!
 
-> 	- I'll put this log up on http://ds9a.nl/tmp/sun-bootlog when I've
-> 	  captured it
+Thanks for the information regarding userland/kernelspace - I think I 
+understood ...
 
-Is up now, but the odd screenwiping phenomenon did not reappear. I have an
-additional datapoint, which would be significant on i386 I think, not sure
-if it matters on sparc: an SMP-capable kernel booted with 'maxcpus=1' works
-fine, just as well as an UP kernel.
+The reason of my question were problems using the tun/tap interface - I've 
+got an application (namely l2tpns) demanding the ifreq-structure being 
+copied back to userspace - which AFAIK doesn't happen in case of the 
+TUNSETIFF-ioctl. Is this a bug or are there any reasons why this shouldn't 
+happen in dev_ifsioc ?
 
-Thanks!
+Thanks,
+Michael
 
--- 
-http://www.PowerDNS.com      Open source, database driven DNS Software 
-http://netherlabs.nl              Open and Closed source services
