@@ -1,7 +1,7 @@
-From: Ed L Cashin <ecashin@uga.edu>
-Date: Thu, 22 Jan 2004 02:15:58 +0000
+From: "David S. Miller" <davem@redhat.com>
+Date: Thu, 22 Jan 2004 02:16:07 +0000
 Subject: Re: TLB miss handler code
-Message-Id: <87n08gaftt.fsf@uga.edu>
+Message-Id: <20040121181607.25f623b4.davem@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.GSO.4.43.0401191315430.13707-100000@gatekeeper.ececs.uc.edu>
 In-Reply-To: <Pine.GSO.4.43.0401191315430.13707-100000@gatekeeper.ececs.uc.edu>
@@ -10,32 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-"David S. Miller" <davem@redhat.com> writes:
+On Wed, 21 Jan 2004 21:15:58 -0500
+Ed L Cashin <ecashin@uga.edu> wrote:
 
-> On Wed, 21 Jan 2004 18:14:05 -0500 (EST)
-> Nawab Ali <alin@ececs.uc.edu> wrote:
->
->> Does it mean I'll have to muck around with the
->> arch/sparc64/kernel/{itlb,dtlb}_*.S files if I have to log(create a
->> tracefile) of all addresses that result in a TLB miss.
->
-> That's exactly correct.
->
-> In fact, you must not even change the number of instructions in these
-> routines because they fit _PRECISELY_ into the sparc v9 trap table
-> slots they are in.  You would have to branch to some routine somewhere
-> else in the kernel in order to add even one extra instruction of code.
+> Is it just that simple?  Nawab Ali could, e.g., copy a section "S" of
+> the trap handler code to a different part of the kernel and replace S
+> with a jump to the new location.  It would be a lot slower, I
+> suppose. 
+> 
+> Then, with S in the regular kernel, he could add whatever he wanted,
+> including jumps to C functions that he writes himself.  That way he
+> could write his own stuff in C with minimal modifications to the asm.
 
-Is it just that simple?  Nawab Ali could, e.g., copy a section "S" of
-the trap handler code to a different part of the kernel and replace S
-with a jump to the new location.  It would be a lot slower, I
-suppose. 
+There are also very strict restrictions regarding register usage, you only
+have 4 or 5 global registers to use, the other 2 or 3 global registers
+have hardcoded values and furthermore if the VPTE_BASE mapping takes a TLB
+miss the miss handler for that knows what values are precomputed in global
+registers by the top-level TLB miss handler.
 
-Then, with S in the regular kernel, he could add whatever he wanted,
-including jumps to C functions that he writes himself.  That way he
-could write his own stuff in C with minimal modifications to the asm.
+He cannot even touch any data structures as that would cause potential
+recursive TLB misses and corrupt the current handler.
 
--- 
---Ed L Cashin            |   PGP public key:
-  ecashin@uga.edu        |   http://noserose.net/e/pgp/
-
+In short, I would only recommend this work to a true expert in Sparc v9
+and UltraSPARC TLB programming.  I myself would take a few long days to
+implement said tracing support.
