@@ -1,32 +1,33 @@
 From: William Lee Irwin III <wli@holomorphy.com>
-Date: Wed, 22 Dec 2004 09:06:00 +0000
-Subject: Re: [sparc32] [4/4] rtc warnings and link errors
-Message-Id: <20041222090600.GR771@holomorphy.com>
+Date: Thu, 30 Dec 2004 11:07:07 +0000
+Subject: PAGE_SIZE and native vs. emulated 32-bit SPARC ABI
+Message-Id: <20041230110707.GC29332@holomorphy.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20041221114234.GO771@holomorphy.com>
-In-Reply-To: <20041221114234.GO771@holomorphy.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-William Lee Irwin III wrote:
->>--- sparc32-2.6.10-rc3.orig/drivers/sbus/char/rtc.c	2004-10-07 04:01:41.000000000 -0700
->>+++ sparc32-2.6.10-rc3/drivers/sbus/char/rtc.c	2004-12-21 03:29:32.959536378 -0800
->>@@ -20,6 +20,7 @@
->> #include <linux/poll.h>
->> #include <linux/init.h>
->> #include <linux/smp_lock.h>
->>+#include <asm/io.h>
->> #include <asm/mostek.h>
+It seems that most/all 32-bit SPARC programs are written and compiled
+for emulated 32-bit on sun4u, which has an 8KB PAGE_SIZE, and returns
+8KB for getpagesize(). This is unfortunately causing spectacular
+failures on some of my favorite regression tests for memory management,
+which are interpreters using memory protection-based garbage collectors.
 
-On Tue, Dec 21, 2004 at 10:07:06PM -0600, Bob Breuer wrote:
-> In the bk snapshots, this is already fixed but in an alternate way by 
-> including asm/io.h from asm/mostek.h.
+In particular, with a simple LD_PRELOAD to return a falsified 8KB
+PAGE_SIZE, sbcl (a Common Lisp interpreter and compiler) may be made to
+run, where it can't without such. The installation procedure runs the
+interpreter, which is basically the extent of what I do with the ones
+that run themselves during the installation procedure. For others just
+starting up the interpreter serves as a simple testcase.
 
-Brilliant... this is getting messy already. I may need to start some
-kind of -mm -style tree to keep based off a current enough bk snapshot
-while having everyone synchronized.
+So, the question arises as to what to do about these ABI breakages.
+It's unclear that changing the page size to 8192 unconditionally will
+work, as there are suspected breakages in the other direction, as
+another of those interpreters with protection-based GC that is strongly
+suspected of being hardwired to a 4KB PAGE_SIZE.
+
+Any ideas?
 
 
 -- wli
