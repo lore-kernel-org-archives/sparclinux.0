@@ -1,26 +1,42 @@
-From: Keith Owens <kaos@sgi.com>
-Date: Fri, 16 Jul 2004 04:59:20 +0000
-Subject: Re: Announce: kdb v4.4 is available for kernel 2.6.6
-Message-Id: <7588.1089953960@kao2.melbourne.sgi.com>
+From: "melvin" <doug21charity@hotmail.com>
+Date: Tue, 06 Jul 2004 20:31:15 +0000
+Subject: Really low rates for prescription drugs
+Message-Id: <1089145875-2652@excite.com>
 List-Id: <sparclinux.vger.kernel.org>
-In-Reply-To: Your message of "Tue, 01 Jun 2004 14:20:13 MST."
-             <1086124813.2309.4.camel@d-mpk14-95-140> 
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Thomas Duffy <Thomas.Duffy.99@alumni.brown.edu>
-Cc: kdb@oss.sgi.com, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
 
-On Tue, 01 Jun 2004 14:20:13 -0700, 
-Thomas Duffy <Thomas.Duffy.99@alumni.brown.edu> wrote:
->On Mon, 2004-05-24 at 15:48 +1000, Keith Owens wrote:
->>   If you maintain an architecture specific kdb patch, please upgrade to
->>   kdb v4.4 and send it to me.
->
->OK, here is a first pass at updating the sparc64 kdb to kernel 2.6.6 and
->kdb 4.4
->
->http://members.dslextreme.com/~tomduffy/kdb-v4.4-2.6.6-sparc64-1.bz2
+What do you pay now?
 
-Thanks.  Uploaded to ftp://oss.sgi.com/projects/kdb/download/v4.4
+If you pay more than these prices, maybe you should click this link....
+http://www.cutpricerxpills.com/_85924943b9db73ac62baa654773c6a8e/
 
+VALIUM - $2 a pill! (Anti-Depressant)
+SOMA - $3 a pill! (Pain Relief)
+XANAX - $1.70 a pill! (Anti-Depressant)
+LIPITOR - $3.50 a pill! (Cholesterol Control)
+ZYBAN - $3 a pill! (Stop Smoking)
+ZOLOFT - $2 a pill! (Anti-Depressant)
+PAXIL - $3 a pill! (Anti-Depressant)
+PROZAC - $2 a pill! (Anti-Depressant)
+GLUCOPHAGE - 70 cents a pill! (Diabetes)
+MERIDIA - $2.50 a pill! (Weight Loss)
+VIOXX - $1 a pill! (Pain Relief)
+CELEBREX - $2 a pill! (Pain Relief)
+XENICAL - $2.50 a pill! (Weight Loss)  
+
+http://www.cutpricerxpills.com/_85924943b9db73ac62baa654773c6a8e/
+
+
+
+
+
+
+
+
+
+hazel charlie1larry lamer robinhoo marcus bridge chiquita 
+gray amelieguinness marvin minou
+cosmos wolverin butch 
