@@ -1,7 +1,7 @@
-From: "dario" <sonia_16@hotmail.com>
-Date: Wed, 18 Feb 2004 17:31:38 +0000
-Subject: Next Generation V-I-A-G-R-A!  Not herbal!
-Message-Id: <1077125498-12587@excite.com>
+From: "fredric" <kdoty98@hotmail.com>
+Date: Tue, 17 Feb 2004 07:00:41 +0000
+Subject: A D-r-u-g more potent than VIAG-RA?!
+Message-Id: <1077001241-12222@excite.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -31,8 +31,8 @@ http://drlaurent.com/mm/index.php?pid=eph9106
 
 
 
-<P> stevenson Fisher steciak goldman dolotta Hotrod  lyanna canadian 
-avasaris tejachle padula  kithsiri  jonathan &nbsp; metallic merchant sanjuan Robbie kctachma ramdass  shepard winter shithead  koko weissman gwbahren student
-Cougar
+inside  connors sunday marcous bruceg pjvolz  beagle </U> 
+feng deep  bird lavallee petteway pmokodom takara  golfer jpwu Please kamal jfleming  dawes hebleshm peck  ajagisim weenie Kinder humility
+krwallma
 Get off this list by writing to getmeoff731@mail.com
 
