@@ -1,54 +1,68 @@
-From: Marcel Holtmann <marcel@holtmann.org>
-Date: Thu, 25 Mar 2004 23:25:54 +0000
-Subject: Re: Compile problem on sparc64
-Message-Id: <1080257154.2283.24.camel@pegasus>
+From: Willem de Groot <willem@byte.nl>
+Date: Thu, 11 Mar 2004 11:23:32 +0000
+Subject: fdisk geometry issue
+Message-Id: <Pine.LNX.4.58.0403111203520.24764@passoa.internal>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20040324121914.00fb9bf9.davem@redhat.com>
-In-Reply-To: <20040324121914.00fb9bf9.davem@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Hi Dave,
+Hello,
 
-> Marcel, I think you're using gcc-3.5, because gcc-3.3.x does not
-> even warn for these things at all, else I'd be seeing this for
-> ages.
-> 
-> Can you double check what "gcc --version" gives?
+After 12 hours fiddling with disk geometry issues, I give up :)
 
-actually it is the default gcc from Debian Sid and it looks like the
-3.3.x version.
+I want to fdisk an IDE WD800JB drive for use with Linux in a Sun.
+According to Western Digital, the geometry is [1]:
 
-gcc (GCC) 3.3.3 (Debian 20040321)
-Copyright (C) 2003 Free Software Foundation, Inc.
-This is free software; see the source for copying conditions.  There is NO
-warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+Cylinders 16383
+Heads 16
+Sectors/Track 63
+Landing Zone 16383
+WPC 16383
 
-This is only an Ultra5, so compiling takes some time and for fixing big
-endian and 64-bit bugs in the Bluetooth subsystem I made use of ccache.
+According to the Linux kernel (booted from Debian CD) the geometry is
+hda: 156301488 sectors (80026 MB) w/8192KiB Cache, CHS=155061/16/63,
+UDMA(66)
 
-ccache version 2.3
-Copyright Andrew Tridgell 2002
-Released under the GNU GPL v2 or later
+If I try to create a Sun disklabel using the WDC paramters, I end up with
+a disk that is too small:
 
-And this is my only important modification to the kernel source
+Disk /dev/hda (Sun disk label): 16 heads, 63 sectors, 16383 cylinders
+Units =3D cylinders of 1008 * 512 bytes
+   Device Flag    Start       End    Blocks   Id  System
+/dev/hda1             0     16282   8206128   83  Linux native
+/dev/hda2  u      16282     16383     50904   82  Linux swap
+/dev/hda3             0     16383   8257032    5  Whole disk
 
---- 1.468/Makefile      Sun Mar 21 09:00:57 2004
-+++ edited/Makefile     Sun Mar 21 20:12:07 2004
-@@ -160,7 +160,7 @@
-          else if [ -x /bin/bash ]; then echo /bin/bash; \
-          else echo sh; fi ; fi)
- 
--HOSTCC         = gcc
-+HOSTCC         = sparc32 gcc
- HOSTCXX        = g++
- HOSTCFLAGS     = -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer
- HOSTCXXFLAGS   = -O2
+If I try to enter the linux kernel geometry, I get a "Value out of range"
+error because it only accepts a maximum of 65535 cylinders (linux reports
+155061).
 
-Regards
+So I followed the suggestion of a previous mail on this list [2], I use
+the following figures:
 
-Marcel
+cylinders: 155061 (=155061/3)
+heads: 48 (16*3)
 
+With these values, fdisk reports the correct disk size.
 
+HOWEVER, after booting 2.4.25 from the newly partitioned disk, 'df' shows
+a total disk size of about 2.2 petabytes! I didn't get any seeking errors
+yet, but it does look a bit fragile to me :)
+
+goldstrike:~# df
+Filesystem           1k-blocks      Used Available Use% Mounted on
+/dev/hda1            2384623153927 16439106515 2247050084910   1% /
+
+What am I doing wrong ?
+
+Thanks!
+
+Willem
+
+[1] http://wdc.custhelp.com/cgi-bin/wdc.cfg/php/enduser/std_adp.php?p_sid=
+=3DmyER*16h&p_lva=3D&p_faqidi9&p_created=1037217622&p_sp=CF9zcmNoPTEmcF9ncm=
+lkc29ydD0mcF9yb3dfY250PTEmcF9zZWFyY2hfdGV4dD13ZDgwMGpiJnBfc2VhcmNoX3R5cGU9N=
+CZwX2NhdF9sdmwxPTgyJnBfc29ydF9ieT1kZmx0JnBfcGFnZT0x&p_li[2] http://marc.the=
+aimsgroup.com/?l=3Dlinux-sparc&m=103929302422468&w=3D2
