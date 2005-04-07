@@ -1,20 +1,20 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Mon, 25 Apr 2005 03:42:12 +0000
-Subject: Re: [PATCH 2.6] Missing sparc32 ksyms
-Message-Id: <20050424204212.26122bd2.davem@davemloft.net>
+From: info@kqsv18.com
+Date: Thu, 07 Apr 2005 03:56:08 +0000
+Subject: =?ISO-8859-1?Q?=20=1B$B!y=1B(B10000=1B$B?= =?ISO-8859-1?Q?1=5FJ,L5NA!y=1B(B?=
+Message-Id: <20050407035608.16439.qmail@mail.kqsv18.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="iso-2022-jp"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, 03 Mar 2005 22:54:40 -0600
-"Tom 'spot' Callaway" <tcallawa@redhat.com> wrote:
+■■■「10000円」分無料ポイント贈呈キャンペーン実施中！■■■
 
-> This patch adds some missing sparc32 ksyms that are needed.
-> Specifically, ___rw_read_enter, ___rw_read_exit, ___rw_write_enter, and
-> sys_close.
-> 
-> Signed-off-by: Tom 'spot' Callaway <tcallawa@redhat.com>
+この春の出会いを強力に支援します！
+今すぐ登録して頂いた方には、始めに10000円分のポイントを無料で差し上げます！
 
-Applied, thanks Tom.
+◆10000円無料ポイントと新しい出会いGET！→→→ http://awg.qsv20.com/?springr
+
+★無料で相当遊べますので是非お試し下さいね♪
+★使用してみて「これは！」と思って頂いた方のみ「有料」へお進み下さい。
+
