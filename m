@@ -1,25 +1,61 @@
-From: Christian Joensson <christian.joensson@gmail.com>
-Date: Mon, 25 Apr 2005 10:28:08 +0000
-Subject: Ross hyperSPARC specifically and sparc32 generally SMP [Was: [PATCH 2.6] Fix mxcc warning]
-Message-Id: <5460e333050425032830a003b5@mail.gmail.com>
+From: "Electronic Giveaways" <reply@solidbay.com>
+Date: Wed, 13 Apr 2005 21:41:35 +0000
+Subject: Did you get your IPod TiVO TV or CD player
+Message-Id: <20050413165502.gqxsayxtcy@solidbay.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 4/25/05, Heitzso <heitzso@bellsouth.net> wrote:
+To register at Electronics Source follow the link below
+http://solidbay.com/dbm83/l.php?6531&98742592&page420-1113404288238320
 
-> BTW, anytime someone believes a kernel may have a small
-> chance of running ROSS HyperSparc SMP I'll be glad to
-> compile and test.
 
-pls join us in trying to fix issues as well. as far as I understand,
-Ross pretty much work UP... sparc32 does not work for SMP yet... so,
-the issue is perhaps as much to hammer 2.6 into running on sparc32
-SMP...
+IPO DVD player TiVo Digital Cameras, It's your choice
+http://solidbay.com/dbm83/l.php?6531&98742592&page420-1113404288238320
 
--- 
-Cheers,
 
-/ChJ
+For more information please use the following link
+http://solidbay.com/dbm83/l.php?6531&98742592&page420-1113404288238320
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(subject to terms and conditions)
+
+
+Advertiser Unsubscribe:
+http://solidbay.com/dbm83/l.php?6532&98742592
+Entering your email address here only removes you from future mailings on behalf of
+EducationSource4u.com.
+
+10693 Wiles Road #149
+Pompano Beach, FL 33076
+
+
+
+
+
+
+
+
+--------------------------------------------
+Your privacy is extremely important to us. You requested to receive this mailing by subscribing to one or more of our offers. To leave our lists Proceed here http://solidbay.com/dbm83/un.php?2179&98742592 Third-party offers contained in this email are the sole responsibility of the offer originator. If you would like to mail your unsubscribe request mail to: Eastolympian.com | 2198 Princeton St Suite 17 | Sarasota, FL 34237
+
+
+vzqxidzatrxmqkjftotgqecxnwdcflxdebghmqqqziocjzqpqohkeyaltkdpjqgqtnebwiwgzzruxljq
+
+
