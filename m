@@ -1,40 +1,50 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Fri, 01 Apr 2005 06:08:24 +0000
-Subject: Re: [PATCH 2.6] pte_read confusion resolved (was Re: [PATCH] A
-Message-Id: <20050331220824.0fb61895.davem@davemloft.net>
+From: Georg Chini <georg.chini@triaton-webhosting.com>
+Date: Thu, 14 Apr 2005 21:15:54 +0000
+Subject: cs4231 ALSA-driver on ultra1 - no sound
+Message-Id: <425EDD8A.60607@triaton-webhosting.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Fri, 04 Mar 2005 00:08:40 -0600
-"Tom 'spot' Callaway" <tcallawa@redhat.com> wrote:
+Hello,
 
-> On Thu, 2005-02-03 at 01:13 -0800, William Lee Irwin III wrote:
-> >On Wed, 2005-02-02 at 15:32 -0800, David S. Miller wrote:
-> >>> I disagree with Tom's patch in that it puts this huge switch()
-> >>> statement inline.  The whole point of BTFIXUP_HIGH() is that it
-> >>> resolves the call to a single instruction which can be easily
-> >>> patched at runtime.
-> >>> If it's going to expand to multiple BTFIXUP_HIGH() calls and a
-> >>> switch statement, just make it a normal BTFIXUP() to a function
-> >>> and place the implementation in sun4c.c and sun4m.c
-> >
-> >On Wed, Feb 02, 2005 at 10:22:24PM -0600, Tom 'spot' Callaway wrote:
-> >> How about this instead?
-> >> Signed-off-by: Tom 'spot' Callaway <tcallawa@redhat.com>
-> >
-> >I'll make sure this gets into 2.6.11-final.
-> 
-> The second pte_read patch did not really make it into 2.6.11 final (but
-> my original patch, which DaveM pointed out as faulty, did). I've made a
-> new patch which reverts the huge switch inline statement logic, and uses
-> the normal BTFIXUP instead.
-> 
-> With this patch applied, we should have the preferred pte_read mechanism
-> in place for sparc32.
-> 
-> Signed-off-by: Tom 'spot' Callaway <tcallawa@redhat.com>
+when I try to use the cs4231 driver on a ultra1 (sparc64) I get the following messages in
+/var/log/messages:
 
-Looks great, patch applied.  Thanks Tom.
+Apr 14 19:45:09 ultra kernel: ALSA sound/sparc/cs4231.c:1349: cs4231: port = 000001ffdc000000, id = 0xa
+Apr 14 19:45:09 ultra kernel: ALSA sound/sparc/cs4231.c:571: mce_down [000001ffdc000000] - auto calibration time out (0)
+Apr 14 19:45:09 ultra kernel: ALSA sound/sparc/cs4231.c:577: mce_down [000001ffdc000000]: serious init problem - codec 
+still busy
+Apr 14 19:45:09 ultra kernel: ALSA sound/sparc/cs4231.c:443: out: auto calibration time out - reg = 0x0, value = 0x0
+Apr 14 19:45:09 ultra kernel: ALSA sound/sparc/cs4231.c:443: out: auto calibration time out - reg = 0x1, value = 0x0
+Apr 14 19:45:09 ultra kernel: ALSA sound/sparc/cs4231.c:443: out: auto calibration time out - reg = 0x2, value = 0x9f
+Apr 14 19:45:09 ultra kernel: ALSA sound/sparc/cs4231.c:443: out: auto calibration time out - reg = 0x3, value = 0x9f
+Apr 14 19:45:09 ultra kernel: ALSA sound/sparc/cs4231.c:443: out: auto calibration time out - reg = 0x4, value = 0x9f
+Apr 14 19:45:09 ultra kernel: ALSA sound/sparc/cs4231.c:443: out: auto calibration time out - reg = 0x5, value = 0x9f
+Apr 14 19:45:09 ultra kernel: ALSA sound/sparc/cs4231.c:443: out: auto calibration time out - reg = 0x6, value = 0xbf
+
+I can use alsamixer to unmute everything but I get no sound. When I try
+
+aplay /usr/local/mozilla/res/samples/test.wav
+
+I get the following output:
+
+Playing WAVE '/usr/local/mozilla/res/samples/test.wav' : Unsigned 8 bit, Rate 22050 Hz, Mono
+aplay: pcm_write:1146: write error: Input/output error
+
+/var/log/messages shows:
+
+Apr 14 19:46:36 ultra kernel: ALSA sound/core/pcm_native.c:1424: playback drain error (DMA or IRQ trouble?)
+
+/proc/interrupts shows 0 IRQ's for cs4231.
+
+I tried kernel 2.6.11.7 and 2.6.12-rc2 with the same results.
+If I increase all udelay's in cs4231.c by a factor of ten, the timeout messages vanish, but there is still no sound.
+
+Any ideas?
+
+Regards
+        Georg Chini
+
