@@ -1,50 +1,64 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Tue, 05 Apr 2005 23:52:17 +0000
-Subject: Re: [PATCH] Fix compat stat handling on sparc64
-Message-Id: <20050406095217.5a728d04.sfr@canb.auug.org.au>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Signature=_Wed__6_Apr_2005_09_52_17_+1000_+__DcEdER1fyw8/R"
+From: "David S. Miller" <davem@davemloft.net>
+Date: Fri, 22 Apr 2005 05:08:34 +0000
+Subject: Re: Weird Mouse Behaviour with 2.6
+Message-Id: <20050421220834.6bb61f44.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20050405135737.0a413358.davem@davemloft.net>
-In-Reply-To: <20050405135737.0a413358.davem@davemloft.net>
-To: "David S. Miller" <davem@davemloft.net>
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
---Signature=_Wed__6_Apr_2005_09_52_17_+1000_+__DcEdER1fyw8/R
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi Dave,
+Ok, let's kill this bug already :-)
 
-On Tue, 5 Apr 2005 13:57:37 -0700 "David S. Miller" <davem@davemloft.net> w=
-rote:
->
-> --- 1.19/include/asm-sparc64/compat.h	2005-02-17 21:53:03 -08:00
-> +++ edited/include/asm-sparc64/compat.h	2005-04-05 12:37:58 -07:00
-> @@ -51,11 +51,11 @@
->  	compat_dev_t	st_rdev;
->  	compat_off_t	st_size;
->  	compat_time_t	st_atime;
-> -	u32		__unused1;
-> +	u32		st_atime_nsec;
+We were neglecting to invoke sunsu_change_speed() when first
+setting up the keyboard and mouse ports.  That's why things
+were not working.
 
-Surely you meant to put compat_ulong_t instead of u32 ... :-)
+This should fix it and I'll push this upsteam.
 
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
+[SPARC64]: In sunsu driver, make sure to fully init chip for kbd/ms
 
---Signature=_Wed__6_Apr_2005_09_52_17_+1000_+__DcEdER1fyw8/R
-Content-Type: application/pgp-signature
+We were forgetting to call sunsu_change_speed().  The reason
+that replugging in the mouse cable "fixes things" is that
+causes a BREAK interrupt which in turn caused a call to
+sunsu_change_speed() which would get the chip setup properly.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.0 (GNU/Linux)
+Signed-off-by: David S. Miller <davem@davemloft.net>
 
-iD8DBQFCUyS14CJfqux9a+8RAseYAJ9qg9J1uQpXS88cgkmzrUJ+R9cNzgCfRqRq
-p2gWqx2o27LDxzX32Pf9SnE=
-=FEhu
------END PGP SIGNATURE-----
-
---Signature=_Wed__6_Apr_2005_09_52_17_+1000_+__DcEdER1fyw8/R--
+--- a/drivers/serial/sunsu.c	2005-04-20 10:17:40.000000000 -0700
++++ b/drivers/serial/sunsu.c	2005-04-21 22:01:41.000000000 -0700
+@@ -1285,6 +1285,7 @@
+ 
+ static int __init sunsu_kbd_ms_init(struct uart_sunsu_port *up, int channel)
+ {
++	int quot, baud;
+ #ifdef CONFIG_SERIO
+ 	struct serio *serio;
+ #endif
+@@ -1293,10 +1294,14 @@
+ 	up->port.type = PORT_UNKNOWN;
+ 	up->port.uartclk = (SU_BASE_BAUD * 16);
+ 
+-	if (up->su_type = SU_PORT_KBD)
++	if (up->su_type = SU_PORT_KBD) {
+ 		up->cflag = B1200 | CS8 | CLOCAL | CREAD;
+-	else
++		baud = 1200;
++	} else {
+ 		up->cflag = B4800 | CS8 | CLOCAL | CREAD;
++		baud = 4800;
++	}
++	quot = up->port.uartclk / (16 * baud);
+ 
+ 	sunsu_autoconfig(up);
+ 	if (up->port.type = PORT_UNKNOWN)
+@@ -1337,6 +1342,8 @@
+ 	}
+ #endif
+ 
++	sunsu_change_speed(&up->port, up->cflag, 0, quot);
++
+ 	sunsu_startup(&up->port);
+ 	return 0;
+ }
