@@ -1,35 +1,24 @@
-From: Tomas Cernaj <tcernaj@gmx.de>
-Date: Fri, 22 Apr 2005 18:38:08 +0000
-Subject: Re: Weird Mouse Behaviour with 2.6
-Message-Id: <1114195088.8937.3.camel@dingsto>
+From: "David S. Miller" <davem@davemloft.net>
+Date: Mon, 25 Apr 2005 03:46:19 +0000
+Subject: Re: [PATCH 2.6] Fix mxcc warning
+Message-Id: <20050424204619.16064e9e.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20050421220834.6bb61f44.davem@davemloft.net>
-In-Reply-To: <20050421220834.6bb61f44.davem@davemloft.net>
+References: <1109917519.17038.87.camel@localhost.localdomain>
+In-Reply-To: <1109917519.17038.87.camel@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Am Donnerstag, den 21.04.2005, 22:08 -0700 schrieb David S. Miller:
-> Ok, let's kill this bug already :-)
+On Fri, 04 Mar 2005 00:25:19 -0600
+"Tom 'spot' Callaway" <tcallawa@redhat.com> wrote:
+
+> Peter Jones uncovered this one while we were debugging the framebuffer
+> issues. There are some references to -1 in the mxcc asm code, which
+> should be 0xffffffff.
 > 
-> We were neglecting to invoke sunsu_change_speed() when first
-> setting up the keyboard and mouse ports.  That's why things
-> were not working.
+> This patch gets rid of the -1s.
 > 
-> This should fix it and I'll push this upsteam.
-> 
-> [SPARC64]: In sunsu driver, make sure to fully init chip for kbd/ms
-> 
-> We were forgetting to call sunsu_change_speed().  The reason
-> that replugging in the mouse cable "fixes things" is that
-> causes a BREAK interrupt which in turn caused a call to
-> sunsu_change_speed() which would get the chip setup properly.
+> Signed-off-by: Tom 'spot' Callaway <tcallawa@redhat.com>
 
-[... skipped patch ...]
-
-Now it's working fine, many thanks!
-
-Tomas
-
-
+Applied, thanks.
