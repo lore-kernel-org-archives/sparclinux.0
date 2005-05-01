@@ -1,61 +1,57 @@
-From: Ben Collins <bcollins@debian.org>
-Date: Wed, 25 May 2005 23:37:42 +0000
-Subject: Re: NR_CPUS and kernel 2.4.30 for sparc64
-Message-Id: <20050525233742.GA13980@phunnypharm.org>
+From: "George Tumulak" <business_george@walla.com>
+Date: Sun, 01 May 2005 11:22:45 +0000
+Subject: Tried and Tested Genuine Opportunity!
+Message-Id: <200505011122.j41BMVYg028976@zeus1.kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4294E414.80003@wp.pl>
-In-Reply-To: <4294E414.80003@wp.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-That's not the issue. You have to remember that this cpu count is not "the
-number of cpu's supported", it's the range of cpu id's supported.
 
-For example, in my e3000, the cpu's are numbers 0,1,6,7,8,9
+Hello,
 
-So I have to set the number of cpu's to atleast 10 so that all six my of
-cpu's work.
+I've found a very rewarding career -- built on a part-time basis, 
+and I thought you might be interested. 
 
-My suggestion is to set the number of cpu's to 32, always. Changing it
-really doesn't give any sort of performance increase or make anything any
-simpler. Might use a bit more memory, but the length of the arrays
-searched for cpu's will always be just the length of the number of cpu's
-you have active (and the extra memory used is negligible anyway).
+Our system is AUTOMATED so you don't have to worry about personal 
+rejection. And, when you do find someone who's really serious 
+aboutimproving their finances, our automated system presents your 
+businessopportunity to them, one step at a time. 
 
-On Wed, May 25, 2005 at 10:46:12PM +0200, Krzysztof Helt wrote:
-> I built a kernel 2.4.30 with SMP and number of cpus set to 2, but This 
-> kernel actevated only one cpu. A quick look at the smp.c file 
-> (arch/sparc64/kernel/smp.c) revealed a root of this:
-> 
-> In the smp_boot_cpus() function there are lines:
-> 
-> 	for (i = 0; i < NR_CPUS; i++) {
-> 		if (i = boot_cpu_id)
-> 			continue;
-> 
-> 		if ((cpucount + 1) = max_cpus)
-> 			goto ignorecpu;
->            ...
-> 
-> The first condition eliminates the first cpu from the list of found ones 
-> (I assume the first is a boot cpu). The second condition eliminates the 
-> last cpu. So on dual smp machine if the first cpu (number 0) is the boot 
-> cpu and NR_CPUS is set to 2 no other cpu is found.
-> 
-> I think the second condition and goto should be removed, but please 
-> advice in case I do not understand something with SMP initialization.
-> 
-> Regards,
-> Krzysztof Helt
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+People that have read this same email just 1-2 months ago, are 
+now making the kind of income they knew they were worth! If you 
+have 10-15 hours a week, you can do this too.
 
--- 
-Debian     - http://www.debian.org/
-Linux 1394 - http://www.linux1394.org/
-Subversion - http://subversion.tigris.org/
+What would you do, and whom would you spend your time with when 
+you're earning the kind of profits you'd like?
+
+If you're interested to get a FREE tour please send an email to
+
+			biz_explore2005@walla.com  
+	 
+with the subject  "Let Me Evaluate Your Program".
+	
+Also include the following in the body of the email.
+
+	1.) FirstName 
+	2.) LastName 
+	3.) Country
+	
+I will then send you an email that contains the FREE tour link. 
+
+The FREE tour has NO COST, NO OBLIGATION, NO COMMITMENT.
+In case you feel that it is not for you,  you can unsubscribe 
+anytime. 
+
+Hope to receive an email from you sooner.
+
+
+Best Regards,
+George Tumulak
+
+=================================
+If you wish to no longer receive emails from me,just send an email to 
+business_george@walla.com with the subject"REMOVE ME" 
+
+================================== 
