@@ -1,83 +1,32 @@
-From: Eric Brower <ebrower@gmail.com>
-Date: Tue, 03 May 2005 16:49:06 +0000
+From: David Johnson <dj@david-web.co.uk>
+Date: Tue, 03 May 2005 16:50:10 +0000
 Subject: Re: Envctrl support for E450
-Message-Id: <ec7cefb0505030949687e6b00@mail.gmail.com>
+Message-Id: <200505031750.11071.dj@david-web.co.uk>
 List-Id: <sparclinux.vger.kernel.org>
 References: <200505031047.20224.dj@david-web.co.uk>
 In-Reply-To: <200505031047.20224.dj@david-web.co.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Whomever takes this on for 2.6 should seriously consider using the
-envctrl framework I posted to the sparclinux list for SUNW,envctrltwo
-support.  Contact me off-list if you want the latest 2.6 kernel patch.
- Adding E450 support should be straightforward, and a lot lless work
-than the current roll-your-own method.
-
-I'd just do it, but alas I don't have the hardware, either.  I'd
-consider remote access, but folks are usually not dedicated enough to
-make this work.
-
-E
-
-On 5/3/05, Ben Collins <bcollins@debian.org> wrote:
+On Tuesday 03 May 2005 17:34, Ben Collins wrote:
 > It's not something that can just be "access". A developer for something
 > like this would need to have one for some time (we developers can't just
 > set aside a couple of days just to do this). If I had one, I could
 > probably get around to it within a few weeks. Would be the same for David
 > (he probably has less time than I do).
-> 
-> On Tue, May 03, 2005 at 10:20:53AM -0600, Davin Carter wrote:
-> >
-> > I could arrange for access to one in the Denver Colorado US area.
-> >
-> > -----Original Message-----
-> > From: David Johnson [mailto:dj@david-web.co.uk]
-> > Sent: Tue 5/3/2005 10:03 AM
-> > To: Ben Collins
-> > Cc: sparclinux@vger.kernel.org; debian-sparc@lists.debian.org
-> > Subject: Re: Envctrl support for E450
-> >
-> > On Tuesday 03 May 2005 16:48, Ben Collins wrote:
-> > > How about throwing in a machine to work on it...the problem isn't time or
-> > > money, it's having _physical_ access to the equipment.
-> > >
-> >
-> > Ah yes but that's a lot more complicated (and expensive) to arrange...
-> > The best I can offer is shell access.
-> >
-> > Maybe I could loan my machine to someone in the UK, but I'm not sure there are
-> > any UK-based SPARC kernel hackers.
-> >
-> > Regards,
-> > David.
-> >
-> > --
-> > David Johnson
-> > www.david-web.co.uk - My Personal Website
-> > www.ethereye.org.uk - EtherEye Network Host Checker
-> > www.penguincomputing.co.uk - Need a Web Developer?
-> >
-> >
-> > --
-> > To UNSUBSCRIBE, email to debian-sparc-REQUEST@lists.debian.org
-> > with a subject of "unsubscribe". Trouble? Contact listmaster@lists.debian.org
-> >
-> >
-> 
-> --
-> Debian     - http://www.debian.org/
-> Linux 1394 - http://www.linux1394.org/
-> Subversion - http://subversion.tigris.org/
-> 
-> --
-> To UNSUBSCRIBE, email to debian-sparc-REQUEST@lists.debian.org
-> with a subject of "unsubscribe". Trouble? Contact listmaster@lists.debian.org
-> 
-> 
+>
 
+OK, how about I scrap the bounty idea and instead offer $150 (=A380/117EUR)=
+=20
+towards shipping?
 
--- 
-E
+Regards,
+David.
+
+--=20
+David Johnson
+www.david-web.co.uk - My Personal Website
+www.ethereye.org.uk - EtherEye Network Host Checker
+www.penguincomputing.co.uk - Need a Web Developer?
