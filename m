@@ -1,33 +1,38 @@
-From: Jurij Smakov <jurij@wooyd.org>
-Date: Tue, 17 May 2005 06:35:01 +0000
-Subject: Re: sparc32 2.6 work
-Message-Id: <Pine.LNX.4.61.0505170233140.7777@bobcat>
+From: "David S. Miller" <davem@davemloft.net>
+Date: Wed, 04 May 2005 00:05:09 +0000
+Subject: [PATCH] 2.6.x SMP UltraSPARC instability
+Message-Id: <20050503170509.5fa93b26.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4285EE7A.7090200@bellsouth.net>
-In-Reply-To: <4285EE7A.7090200@bellsouth.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Mon, 16 May 2005, Bob Breuer wrote:
->
-> Reverting that change should not be needed for 2.6.11 (but it did cause other 
-> problems with 2.6.10).  Mounting an initrd under 2.6.11 works for me on my 
-> hypersparc ss20.  I think there was a memcpy fix for the initrd failures. 
-> Anyway, if there is still a problem that requires the change, I'm willing to 
-> help track it down.
->
-> Bob
 
-Hi Bob,
+Can folks seeing problems on SMP sparc64 boxes with 2.6.x
+give this patch a try?
 
-I have now tried building Debian's 2.6.11 kernel with and without this 
-change applied, however in both cases it fails to mount the initrd. I'll 
-build the vanilla kernel without any extra patches tomorrow and check how 
-it will behave.
-
-Thanks and best regards,
-
-Jurij Smakov                                        jurij@wooyd.org
-Key: http://www.wooyd.org/pgpkey/                   KeyID: C99E03CC
+--- 1/arch/sparc64/kernel/irq.c.~1~	2005-04-29 05:51:44.000000000 -0700
++++ 2/arch/sparc64/kernel/irq.c	2005-04-29 05:52:10.000000000 -0700
+@@ -756,7 +756,7 @@
+ 		clear_softint(clr_mask);
+ 	}
+ #else
+-	int should_forward = 1;
++	int should_forward = 0;
+ 
+ 	clear_softint(1 << irq);
+ #endif
+@@ -1007,10 +1007,10 @@
+ 	}
+ 	upa_writel(tid | IMAP_VALID, imap);
+ 
+-	while (!cpu_online(goal_cpu)) {
++	do {
+ 		if (++goal_cpu >= NR_CPUS)
+ 			goal_cpu = 0;
+-	}
++	} while (!cpu_online(goal_cpu));
+ 
+ 	return goal_cpu;
+ }
