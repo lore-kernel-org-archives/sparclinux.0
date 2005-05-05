@@ -1,98 +1,80 @@
-From: Heitzso <heitzso@growthmodels.com>
-Date: Thu, 05 May 2005 14:50:27 +0000
+From: Ulrich Teichert <krypton@ulrich-teichert.org>
+Date: Thu, 05 May 2005 18:04:41 +0000
 Subject: Re: ss20/ross/smp
-Message-Id: <427A32B3.2090701@growthmodels.com>
+Message-Id: <200505051804.j45I4fS5021466@arbas.nms.ulrich-teichert.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4279EFEB.2070705@growthmodels.com>
 In-Reply-To: <4279EFEB.2070705@growthmodels.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
+Hi,
 
->>Then you're better off than me. Mine dies hard during init, 2.4.30
->>
->>
->>I don't know a lot about this.  Guessing that the gentoo
->>specific ross optimizations may be helping me.
->>    
->>
->
->I thought you were running stock kernel.org?
->
->  
->
-I am running stock kernel.  But the tool chain is gentoo sparc
-and the entire tool chain, libraries, etc. was compiled for my
-sparc/ross box.  From another email response, guessing the
-gentoo optimizations for the libraries/compilers/et al are not
-the issue.
+[del]
+>Debian woody will use a very different (older) tool chain stack then gento=
+o.
+>(gcc/libs).  Guessing this is likely diff letting me run SMP on roughly
+>equiv. box.
 
->>What setup or distro are you running.  I threw out my email to 3 lists
->>that cover the gamut.
->>    
->>
->
->Debian woody, sorry, I should have mentioned this.
->
->  
->
-Debian woody will use a very different (older) tool chain stack then gentoo.
-(gcc/libs).  Guessing this is likely diff letting me run SMP on roughly
-equiv. box.
+It should not, but it may be. The versions of the tool chain I'm using shou=
+ld
+be alright for any 2.4.x kernel, SMP or not. For 2.6.x, they would be too o=
+ld.
 
->>Are you running gentoo?  If so, I
->>can give you my USE and other flags from make.conf to see
->>what the diff is.  Any other of the sparc distros will have a
->>slightly different setup for gcc, libraries, etc.  I wanted
->>gentoo to get a sun4m optimized ssl setup.  Otherwise
->>gentoo takes an incredibly long time to compile.
->>    
->>
->
->Having only one ISDN line for internet access rules out gentoo or
->Debian testing/unstable or any other download intensive distro for now.
->
->  
->
->>Related to that, I did a series of emerges (gentoo speak)
->>to insure that gcc/libs/kernel were sort-of in sync as I settled
->>in the environment.  You may be fighting some variation of a
->>kernel/lib problem.
->>    
->>
->
->I don't think so, else 2.4.30 would not run UP on my box:
->
->maril:~# uname -a
->Linux maril 2.4.30 #3 Sat Apr 30 20:00:51 CEST 2005 sparc unknown
->maril:~# gcc -v
->Reading specs from /usr/lib/gcc-lib/sparc-linux/2.95.4/specs
->gcc version 2.95.4 20011002 (Debian prerelease)
->
->  
->
-I'm compiling with gcc 3.3.5   Yours is 2.95.4
-My understanding is this is very important re kernel compiles.
-Somebody else may want to chime in and note why the gcc
-version is (or isn't) important re SMP versus UP.
+[del]
+>I'm compiling with gcc 3.3.5   Yours is 2.95.4
+>My understanding is this is very important re kernel compiles.
+>Somebody else may want to chime in and note why the gcc
+>version is (or isn't) important re SMP versus UP.
 
->[del]
->  
->
->>The one kernel that is sort-of guaranteed sparc32 smp
->>for ross is 2.2 series.  May be possible for you to compile
->>latest 2.2 kernel SMP and try that out.  Though I believe
->>interest is in getting SMP smoothed out and working 2.6.x
->>    
+Well, I would be surprised if you could compile any 2.2.x kernel with such
+bleeding edge gcc.
+
+>>I will give 2.2 a spin to gather more info. I bought the system from ebay,
+>>so there may be a hardware glitch I don't know about, but when it's runni=
+ng
+>>2.2.x SMP, I think we can rule that out.
+>> =20
 >>
->
->I will give 2.2 a spin to gather more info. I bought the system from ebay,
->so there may be a hardware glitch I don't know about, but when it's running
->2.2.x SMP, I think we can rule that out.
->  
->
-You may want to swap out CPUs, i.e. run with just one, then
-just the other, and double check that they're both good.
-This is a possibility.
+>You may want to swap out CPUs, i.e. run with just one, then
+>just the other, and double check that they're both good.
+>This is a possibility.
+
+It runs well with 2.2.26, stock kernel.org:
+
+maril:~> uname -a
+Linux maril 2.2.26 #1 SMP Thu May 5 16:35:15 CEST 2005 sparc unknown
+maril:~> cat /proc/cpuinfo=20
+cpu             : ROSS HyperSparc RT625 or RT626
+fpu             : ROSS HyperSparc combined IU/FPU
+promlib         : Version 3 Revision 2
+prom            : 2.25
+type            : sun4m
+ncpus probed    : 2
+ncpus active    : 2
+Cpu0Bogo        : 150.32
+Cpu1Bogo        : 149.91
+MMU type        : ROSS HyperSparc
+invall          : 0
+invmm           : 0
+invrnge         : 0
+invpg           : 0
+contexts        : 4096
+CPU0            : online
+CPU1            : online
+maril:~> uptime
+ 20:01:33 up  1:16,  2 users,  load average: 1.04, 1.71, 1.92
+
+Currently doing the third kernel compile in a row to provide some load.
+The only thing which looks fishy are the different BogoMips values for
+my CPUs. Is this normal?
+
+TIA,
+Uli
+--=20
+Dipl. Inf. Ulrich Teichert|e-mail: Ulrich.Teichert@gmx.de
+Stormweg 24               |listening to: Suicide Drive (The Deep Eynde)
+24539 Neumuenster, Germany|Public Pervert (Interpol) Cauchemar (Op=E9ration=
+ S)
