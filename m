@@ -1,24 +1,34 @@
-From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
-Date: Mon, 09 May 2005 15:21:06 +0000
-Subject: Re: atyfb not working correctly (black on black) on SB100
-Message-Id: <1115652067.3017.66.camel@localhost.localdomain>
+From: Heitzso <heitzso@growthmodels.com>
+Date: Thu, 05 May 2005 10:05:31 +0000
+Subject: ss20/ross/smp
+Message-Id: <4279EFEB.2070705@growthmodels.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1115651925.3017.64.camel@localhost.localdomain>
-In-Reply-To: <1115651925.3017.64.camel@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Mon, 2005-05-09 at 10:18 -0500, Tom 'spot' Callaway wrote:
-> While doing some Aurora installer testing, I noticed that 2.6.11-rc3
+Some data points in case they are useful.
 
-s/2.6.11/2.6.12/
+On a current gentoo ss20 (512M ram, standard internal scsi)
+with dual hypersparc (ross) 150s, I can compile SMP current
+2.4.30 stable kernel (pulled down from kernel.org, no extra patches)
+and it seems to be running stable SMP provided I don't attempt to
+run X (xorg is what's on the box, via gentoo).  With xorg X running
+the system locks up after awhile (few minutes to an hour or so,
+seems to depend on how much I'm trying to do).
 
-~spot
--- 
-Tom "spot" Callaway: Red Hat Sales Engineer || GPG Fingerprint: 93054260
-Fedora Extras Steering Committee Member (RPM Standards and Practices)
-Aurora Linux Project Leader: http://auroralinux.org
-Lemurs, llamas, and sparcs, oh my!
+I'm compiling current 2.6.x stable (again from kernel.org) now
+just to get a baseline.  It seems to have SMP disabled in the
+config in a way that would have to be manually edited to enable.
+
+I'm not in a position to do in-the-guts debugging by myself
+of SMP sparc32/ross issues.  BUT, am quite willing to download
+kernels, patches, etc. and run tests, report on those tests, etc.
+Just let me know.
+
+
+
+Heitzso
+
 
