@@ -1,59 +1,42 @@
-From: domen@coderock.org
-Date: Fri, 13 May 2005 22:22:51 +0000
-Subject: [patch 1/1] min/max : drivers/sbus/char/aurora.c
-Message-Id: <20050513222250.340315000@nd47.coderock.org>
+From: gdnixon1@enterate.com.ar
+Date: Thu, 05 May 2005 22:48:02 +0000
+Subject: Inquiry From Gerald
+Message-Id: <1115333282.427aa2a28289a@mail.enterate.com.ar>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Christophe Lucas <clucas@rotomalug.org>
+Dear Friend,
+I am Mr. Gerald Nixon, I write to inform you of my desire to acquire properties 
+Hence i am contacting you if you would agree to assist me in other to actualize 
+this transaction. the funds to carry out this proposed investments is presently 
+lodged in a finance security firm i honestly request your assistance to provide 
+for me a safe account in your country to receive the money before we can put 
+the funds into use. The total sum is 4.5Million Great Britain Pounds.  
+As soon as the amount mentioned above is successfully transferred into your 
+account, you can go ahead in buying the properties. It might interest you to 
+note that transaction of such may raise suspicion of irrationality but i assure 
+you it will be executed safely without breaching our limited personal integrity 
+that we have in one way or the other aspire to protect. So let us allow trust 
+to play a very minimal role until performance is seen.  Thank you in 
+anticipation of your co-operation.
+Best Regards,
+Mr. Gerald Nixon
+
+Note: I have set aside 25% of this fund to consult your assistance.
 
 
 
-min/max macros from kernel.h are safe, a lot of handcrafted MIN/MAX are
-not.
 
-Signed-off-by: Christophe Lucas <clucas@rotomalug.org>
-Signed-off-by: Domen Puncer <domen@coderock.org>
+* Este mensaje fue enviado desde http://www.enterate.com.ar/ 
+____________________________________________________________ 
 
+* Conectate GRATIS a Internet desde Enterate ! 
+Usuario   : enterate@enterate.com.ar 
+Clave     : enterate 
+desde Buenos Aires : 4004-8007 
+desde otras ciudades, consulta en : 
+http://www.enterate.com.ar/InternetGratis.htm 
 
----
- aurora.c |    8 ++------
- 1 files changed, 2 insertions(+), 6 deletions(-)
-
-Index: quilt/drivers/sbus/char/aurora.c
-=================================--- quilt.orig/drivers/sbus/char/aurora.c
-+++ quilt/drivers/sbus/char/aurora.c
-@@ -81,10 +81,6 @@ unsigned char irqs[4] = {
- int irqhit=0;
- #endif
- 
--#ifndef MIN
--#define MIN(a,b) ((a) < (b) ? (a) : (b))
--#endif
--
- static struct tty_driver *aurora_driver;
- static struct Aurora_board aurora_board[AURORA_NBOARD] = {
- 	{0,},
-@@ -594,7 +590,7 @@ static void aurora_transmit(struct Auror
- 					    &bp->r[chip]->r[CD180_TDR]);
- 				port->COR2 &= ~COR2_ETC;
- 			}
--			count = MIN(port->break_length, 0xff);
-+			count = min(port->break_length, 0xff);
- 			sbus_writeb(CD180_C_ESC,
- 				    &bp->r[chip]->r[CD180_TDR]);
- 			sbus_writeb(CD180_C_DELAY,
-@@ -1573,7 +1569,7 @@ static int aurora_write(struct tty_struc
- 	save_flags(flags);
- 	while (1) {
- 		cli();
--		c = MIN(count, MIN(SERIAL_XMIT_SIZE - port->xmit_cnt - 1,
-+		c = min(count, min(SERIAL_XMIT_SIZE - port->xmit_cnt - 1,
- 				   SERIAL_XMIT_SIZE - port->xmit_head));
- 		if (c <= 0) {
- 			restore_flags(flags);
-
---
