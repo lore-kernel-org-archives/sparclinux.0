@@ -1,50 +1,40 @@
-From: Bob Breuer <breuerr@mc.net>
-Date: Fri, 20 May 2005 03:45:15 +0000
-Subject: Re: 2.6.11.10 failure on Hypersparc sparc32 [was: Re: sparc32 2.6
-Message-Id: <428D5D4B.2090205@mc.net>
+From: Adrian Bunk <bunk@stusta.de>
+Date: Sat, 07 May 2005 14:41:35 +0000
+Subject: select of non-existing I2C* symbols
+Message-Id: <20050507144135.GL3590@stusta.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.61.0505190111530.13987@bobcat>
-In-Reply-To: <Pine.LNX.4.61.0505190111530.13987@bobcat>
+References: <Pine.LNX.4.58.0503021553140.25732@ppc970.osdl.org> <20050303002733.GH10124@redhat.com> <20050302203812.092f80a0.akpm@osdl.org> <20050304105247.B3932@flint.arm.linux.org.uk> <20050304032632.0a729d11.akpm@osdl.org> <20050304113626.E3932@flint.arm.linux.org.uk> <20050506235842.A23651@flint.arm.linux.org.uk> <427C9DBD.1030905@ppp0.net> <20050507122622.C11839@flint.arm.linux.org.uk> <427CC082.4000603@ppp0.net>
+In-Reply-To: <427CC082.4000603@ppp0.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Jan Dittmer <jdittmer@ppp0.net>, spyro@f2s.com, zippel@linux-m68k.org, starvik@axis.com, wli@holomorphy.com
+Cc: linux-kernel@vger.kernel.org, kbuild-devel@lists.sourceforge.net, dev-etrax@axis.com, sparclinux@vger.kernel.org
 
-Jurij Smakov wrote:
-> 
-> strip -R .comment -R .note -K sun4u_init -K _end -K _start image
+On Sat, May 07, 2005 at 03:20:02PM +0200, Jan Dittmer wrote:
+>...
+> Link to this page: http://l4x.org/k/?diff[v1]=mm
 
-Yes, that worked.  I'll have to remember that next time.
+arm26, cris, sparc: select of non-existing I2C* symbols:
 
-> Interesting. I guess that it actually uses initramfs capability to load 
-> cpio archives into ramdisk. We are planning this transition at some 
-> point, but at the moment cramfs/ext2 initrds is what is used.
+@ Ian, Mikael, William:
+This could be fixed by sourcing drivers/i2c/Kconfig in arch/*/Kconfig,
+but it would be better to switch to use drivers/Kconfig.
 
-I just noticed the initramfs messages earlier in the boot:
+@ Roman:
+Shouldn't kconfig exit with an error if a not available symbol gets
+selected?
 
-Mount-cache hash table entries: 512 (order: 0, 4096 bytes)
-checking if image is initramfs... it is
-Freeing initrd memory: 741k freed
 
-Does a cramfs/ext2 initrd get freed at that point also?
+> Jan
 
-Even though my build loads the initrd, it still has 2 problems.
-1) it complains about udiv:
-scsi_mod: no version for "udiv" found: kernel tainted.
+cu
+Adrian
 
-2) blows up when probing the scsi bus:
-Attached scsi disk sda at scsi0, channel 0, id 1, lun 0
-esp0: Aborting command
-esp0: dumping state
-esp0: dma -- cond_reg<a6400310> addr<f0083e41>
-esp0: SW [sreg<11> sstep<04> ireg<18>]
-esp0: HW reread [sreg<01> sstep<c4> ireg<00>]
-esp0: current command [tgt<01> lun<01> pphase<CLUELESS> cphase<DATAIN>]
-esp0: disconnected
-...
-   and more scsi errors, eventually leading to a kernel panic.
+-- 
 
-I've seen this scsi problem before and worked around it by un-selecting 
-SCSI_MULTI_LUN when scsi was a module.
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
 
-Bob
