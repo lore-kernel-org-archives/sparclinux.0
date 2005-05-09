@@ -1,65 +1,60 @@
-From: Jeremy Huddleston <eradicator@gentoo.org>
-Date: Wed, 04 May 2005 10:53:33 +0000
-Subject: Re: [PATCH] 2.6.x SMP UltraSPARC instability
-Message-Id: <1115204014.32454.75.camel@cid.outersquare.org>
+From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
+Date: Mon, 09 May 2005 15:09:31 +0000
+Subject: [PATCH] Fix p9100 framebuffer in 2.6
+Message-Id: <1115651371.3017.58.camel@localhost.localdomain>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-2iJ76gkhxAnbrb5PugwB"
+Content-Type: multipart/mixed; boundary="=-b0mfw+bMgG5W0JQ7aLZc"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20050503170509.5fa93b26.davem@davemloft.net>
-In-Reply-To: <20050503170509.5fa93b26.davem@davemloft.net>
 To: sparclinux@vger.kernel.org
 
 
---=-2iJ76gkhxAnbrb5PugwB
+--=-b0mfw+bMgG5W0JQ7aLZc
 Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 
-On Tue, 2005-05-03 at 21:18 -0700, Jeremy Huddleston wrote:
-> On Tue, 2005-05-03 at 17:05 -0700, David S. Miller wrote:
-> > Can folks seeing problems on SMP sparc64 boxes with 2.6.x
-> > give this patch a try?
->=20
-> Both cases compiled with gcc-3_3-branch dated 20040623 (post 3.3.4)
->=20
-> 2.6.11 without patch:
-> crashes after about 2 minutes of uptime
->=20
-> 2.6.12-rc3 with patch:
-> so far it's been up for about 10 minutes with no problems so far... I'm
-> going to leave it doing some high load tasks while I head out to go see
-> a movie... hopefully it'll still be up when I get back.
->=20
-> --Jeremy
->=20
-> system is an ultra2
+The attached patch fixes the p9100 framebuffer so that text is viewable
+(not black on black, like it was before the patch). The linux logo
+displays for a very short period of time, then is replaced by a grey
+box. This leads me to believe that this framebuffer would have problems
+in X, but since there hasn't been a weitek driver for X in several
+millennia, this isn't something that I can confirm or deny.
 
-Looking good still after almost 7 hours...  also looks like I'm not
-affected by the SCSI bugs others have hit as I've been doing a ton of
-disk i/o with no problems... =3D)
+But this patch does get color console working on my SPARCbook 3TX.
 
-$ uname -a                                                            =20
-Linux yuffie 2.6.12-rc3-gentoo #1 SMP Tue May 3 20:21:05 PDT 2005
-sparc64 sun4u=20
-TI UltraSparc II  (BlackBird)
-GNU/Linux                                        =20
-                                                                           =
-    =20
-$ uptime                                                              =20
- 03:51:23 up  6:43,  2 users,  load average: 3.00, 3.00,
-2.75                  =20
+Signed-off-by: Tom 'spot' Callaway <tcallawa@redhat.com>
 
+~spot
+-- 
+Tom "spot" Callaway: Red Hat Sales Engineer || GPG Fingerprint: 93054260
+Fedora Extras Steering Committee Member (RPM Standards and Practices)
+Aurora Linux Project Leader: http://auroralinux.org
+Lemurs, llamas, and sparcs, oh my!
 
---=-2iJ76gkhxAnbrb5PugwB
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
+--=-b0mfw+bMgG5W0JQ7aLZc
+Content-Disposition: attachment; filename=linux-2.6.11-sparc-p9100fix.patch
+Content-Type: text/x-patch; name=linux-2.6.11-sparc-p9100fix.patch; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+--- linux-2.6.11/drivers/video/p9100.c.BAD	2005-05-05 19:43:10.703531238 -0400
++++ linux-2.6.11/drivers/video/p9100.c	2005-05-05 19:44:17.947308630 -0400
+@@ -288,6 +288,9 @@ static void p9100_init_one(struct sbus_d
+ 	all->par.physbase = sdev->reg_addrs[2].phys_addr;
+ 
+ 	sbusfb_fill_var(&all->info.var, sdev->prom_node, 8);
++	all->info.var.red.length = 8;
++	all->info.var.green.length = 8;
++	all->info.var.blue.length = 8;
+ 
+ 	linebytes = prom_getintdefault(sdev->prom_node, "linebytes",
+ 				       all->info.var.xres);
+@@ -323,6 +326,7 @@ static void p9100_init_one(struct sbus_d
+ 		kfree(all);
+ 		return;
+ 	}
++	fb_set_cmap(&all->info.cmap, &all->info);
+ 
+ 	list_add(&all->list, &p9100_list);
+ 
 
-iD8DBQBCeKmtOpjtAl+gMRURAgunAKDOyxjb/8rQn2Z6tzexMaMY13qyoACgtFQ0
-ubSB7rlXx4u9NZhEMWzPyOE=
-=nkvT
------END PGP SIGNATURE-----
-
---=-2iJ76gkhxAnbrb5PugwB--
+--=-b0mfw+bMgG5W0JQ7aLZc--
 
