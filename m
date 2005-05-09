@@ -1,7 +1,7 @@
-From: David Johnson <dj@david-web.co.uk>
-Date: Mon, 09 May 2005 21:13:25 +0000
+From: Jeff Adams <jadams@hoovers.com>
+Date: Mon, 09 May 2005 21:39:59 +0000
 Subject: Re: Envctrl support for E450
-Message-Id: <200505092213.25212.dj@david-web.co.uk>
+Message-Id: <427FD8AF.7010204@hoovers.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <200505031047.20224.dj@david-web.co.uk>
 In-Reply-To: <200505031047.20224.dj@david-web.co.uk>
@@ -10,16 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-OK, this thread has gone quiet...
+We've got a E450 we're willing to donate and ship to someone in the US.
 
-If I agree to pay the shipping, is there someone (preferably in the US) who 
-has an E450 they can loan to a developer for at least a month?
+Please let me know me know any further requirements and I'll see what we 
+can do to meet them.
 
-Cheers,
-David.
+Regards,
 
--- 
-David Johnson
-www.david-web.co.uk - My Personal Website
-www.ethereye.org.uk - EtherEye Network Host Checker
-www.penguincomputing.co.uk - Need a Web Developer?
+Jeff Adams
+Webmaster
+Hoover's Online
+
+David Johnson wrote:
+> OK, this thread has gone quiet...
+> 
+> If I agree to pay the shipping, is there someone (preferably in the US) who 
+> has an E450 they can loan to a developer for at least a month?
+> 
+> Cheers,
+> David.
+> 
