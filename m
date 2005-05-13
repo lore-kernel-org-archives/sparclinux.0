@@ -1,57 +1,59 @@
-From: "George Tumulak" <business_george@walla.com>
-Date: Sun, 01 May 2005 11:22:45 +0000
-Subject: Tried and Tested Genuine Opportunity!
-Message-Id: <200505011122.j41BMVYg028976@zeus1.kernel.org>
+From: Heitzso <heitzso@bellsouth.net>
+Date: Fri, 13 May 2005 13:13:09 +0000
+Subject: re working on sparc32 2.6 kernel
+Message-Id: <4284A7E5.4000303@bellsouth.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Having offered to help work on sparc32 smp w/ 2.6 kernel
+I feel foolish asking the following trivial questions, but ...
 
-Hello,
+I'm trying to get basic UP 2.6 sparc32 functioning.
+Took current stable 2.6 from kernel.org (11.8 at the time),
+compiled as per gentoo sparc setup instructions (also
+cross checking w/ my athlon 2.6 kernel config) and configured
+UP and, when it boots, nothing displays when the normal
+linux text-on-black-w/-logo would normally appear.
+Disks clatter as though we're going through a normal startup,
+but nada on the display. I try to ssh into it and cannot
+get in (though sshd is functioning fine in 2.4 SMP on that
+ss20 box).
 
-I've found a very rewarding career -- built on a part-time basis, 
-and I thought you might be interested. 
+So, re-downloaded current 2.6 kernel (now 2.6.11.9, above
+notes re 2.6.11.8) and downloaded the full patchset for
+2.6.12-rc4 and applied the patchset against 2.6.11.9
+source tree.  There were some patch hunk failures, though
+none in sparc specific areas.
 
-Our system is AUTOMATED so you don't have to worry about personal 
-rejection. And, when you do find someone who's really serious 
-aboutimproving their finances, our automated system presents your 
-businessopportunity to them, one step at a time. 
+=> should I have applied the 2.6.12-rc4 patch against
+the 2.6.11 source tree and not against 2.6.11.9 ???
 
-People that have read this same email just 1-2 months ago, are 
-now making the kind of income they knew they were worth! If you 
-have 10-15 hours a week, you can do this too.
+Anyway, because no problems in sparc specific areas
+(though numerous patches applied) I went ahead and compiled
+UP and attempted to boot and hit the same problem as noted
+above with (then) current stable 2.6.11.8 -- no linux
+boot sequence text being displayed.
 
-What would you do, and whom would you spend your time with when 
-you're earning the kind of profits you'd like?
+I noticed on one of the lists a problem with black-on-black
+and a patch to fix that problem, but it was not clear that
+the patch should be used on sparc32/ss20 turbogx setup.
 
-If you're interested to get a FREE tour please send an email to
+=> should I grab that patch and apply it to a (correctly
+patched) 2.6.12-rc4 tree?
 
-			biz_explore2005@walla.com  
-	 
-with the subject  "Let Me Evaluate Your Program".
-	
-Also include the following in the body of the email.
+Just hard for me to begin to debug anything when the basic
+boot sequence is invisible.  Though I have to admit I'll have
+to learn how to do some of this when working in SMP/ross/sparc32
+stuff because I'll probably being dealing with some failure-to-boot
+problems.
 
-	1.) FirstName 
-	2.) LastName 
-	3.) Country
-	
-I will then send you an email that contains the FREE tour link. 
-
-The FREE tour has NO COST, NO OBLIGATION, NO COMMITMENT.
-In case you feel that it is not for you,  you can unsubscribe 
-anytime. 
-
-Hope to receive an email from you sooner.
+Any suggestions would be appreciated.  I'll also be glad to email
+anyone my .config if it is likely I'm missing one of those odd
+basic FB/Console setup parameters (though was on the lookout).
 
 
-Best Regards,
-George Tumulak
-
-=================================
-If you wish to no longer receive emails from me,just send an email to 
-business_george@walla.com with the subject"REMOVE ME" 
-
-================================== 
+Thanks,
+Heitzso
