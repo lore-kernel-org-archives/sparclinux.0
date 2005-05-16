@@ -1,60 +1,75 @@
-From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
-Date: Mon, 09 May 2005 15:09:31 +0000
-Subject: [PATCH] Fix p9100 framebuffer in 2.6
-Message-Id: <1115651371.3017.58.camel@localhost.localdomain>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-b0mfw+bMgG5W0JQ7aLZc"
+From: "Photoshop Training" <photosh@allsaintsfan.com>
+Date: Mon, 16 May 2005 22:38:24 +0000
+Subject: 7 Hours of Photoshop Video Training
+Message-Id: <526b01c55a8e$3e3195a0$f02784be@photosh>
 List-Id: <sparclinux.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+7 Hours of Photoshop Video Training - $29.95
 
---=-b0mfw+bMgG5W0JQ7aLZc
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Download a DEMO Here
 
-The attached patch fixes the p9100 framebuffer so that text is viewable
-(not black on black, like it was before the patch). The linux logo
-displays for a very short period of time, then is replaced by a grey
-box. This leads me to believe that this framebuffer would have problems
-in X, but since there hasn't been a weitek driver for X in several
-millennia, this isn't something that I can confirm or deny.
+http://www.photoshop-video-teacher.com/DEMO.htm
 
-But this patch does get color console working on my SPARCbook 3TX.
 
-Signed-off-by: Tom 'spot' Callaway <tcallawa@redhat.com>
+Adobe Photoshop CS 
 
-~spot
--- 
-Tom "spot" Callaway: Red Hat Sales Engineer || GPG Fingerprint: 93054260
-Fedora Extras Steering Committee Member (RPM Standards and Practices)
-Aurora Linux Project Leader: http://auroralinux.org
-Lemurs, llamas, and sparcs, oh my!
+Adobe Photoshop CS is a professional tool for editing digital images. With
+Photoshop Tutorials on Video, you'll get to peek over the shoulder of a
+professional graphic designer and learn at your own pace. With access to
+more than 7 hours of Photoshop instruction, you'll discover the secrets of
+editing digital photos like a pro, how-to create cool objects for web
+sites,
+and learn a myriad of other useful tricks - all in one comprehensive
+step-by-step course. 
 
---=-b0mfw+bMgG5W0JQ7aLZc
-Content-Disposition: attachment; filename=linux-2.6.11-sparc-p9100fix.patch
-Content-Type: text/x-patch; name=linux-2.6.11-sparc-p9100fix.patch; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 
---- linux-2.6.11/drivers/video/p9100.c.BAD	2005-05-05 19:43:10.703531238 -0400
-+++ linux-2.6.11/drivers/video/p9100.c	2005-05-05 19:44:17.947308630 -0400
-@@ -288,6 +288,9 @@ static void p9100_init_one(struct sbus_d
- 	all->par.physbase = sdev->reg_addrs[2].phys_addr;
- 
- 	sbusfb_fill_var(&all->info.var, sdev->prom_node, 8);
-+	all->info.var.red.length = 8;
-+	all->info.var.green.length = 8;
-+	all->info.var.blue.length = 8;
- 
- 	linebytes = prom_getintdefault(sdev->prom_node, "linebytes",
- 				       all->info.var.xres);
-@@ -323,6 +326,7 @@ static void p9100_init_one(struct sbus_d
- 		kfree(all);
- 		return;
- 	}
-+	fb_set_cmap(&all->info.cmap, &all->info);
- 
- 	list_add(&all->list, &p9100_list);
- 
+7 hours of Video Training
 
---=-b0mfw+bMgG5W0JQ7aLZc--
+All Photoshop tutorials are presented in crystal-clear 1024x768 video
+quality, and are available to you as a downloadable file. No streaming, no
+activation, no copyright protection - simply download a file and watch it
+as
+many times as you like. A picture may be worth a thousand words, but a
+video
+explains things far more clearly and concisely. Try our demo and discover
+how easy working in Adobe Photoshop can be. 
+
+
+Editing Digital Photos
+
+Digital photography is one of the fastest-growing tech markets, but
+learning how image editing software works hasn't been easy. With this set
+of
+clearly-worded Photoshop tutorials, you can enter the digital photography
+world at your own pace and discover ways to improve your imagery with Adobe
+Photoshop. We'll show you how-to remove distracting objects, assemble
+panoramas, restore damaged photos, remove red-eye, adjust color, and
+address
+a myriad of other digital photo issues and projects. 
+
+
+Step By Step Course
+
+"I wish I had known about this video before. I've bought four books, but
+this set of Photoshop tutorials gave me much more." "Books are great as a
+quick reference, but if you really want to learn how-to edit digital
+photos,
+Photoshop Tutorials on Video is the way to go. It's so much easier to
+follow! Thanks for your great service!" - Don Bryant, Woodland Hills, CA 
+
+No future mailings
+
+http://www.photoshop-video-teacher.com/r.htm
+
+
+
+
+
+
+
+
 
