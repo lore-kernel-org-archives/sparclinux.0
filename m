@@ -1,39 +1,33 @@
-From: Benjamin Schieder <blindcoder@scavenger.homeip.net>
-Date: Mon, 30 May 2005 07:02:09 +0000
-Subject: Re: __you_cannot_kmalloc_that_much error
-Message-Id: <20050530070209.GA28328@scavenger.homeip.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="0F1p//8PRICkK4MW"
+From: Jurij Smakov <jurij@wooyd.org>
+Date: Thu, 19 May 2005 05:20:14 +0000
+Subject: 2.6.11.10 failure on Hypersparc sparc32 [was: Re: sparc32 2.6 work]
+Message-Id: <Pine.LNX.4.61.0505190111530.13987@bobcat>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20050525103523.GA20728@scavenger.homeip.net>
-In-Reply-To: <20050525103523.GA20728@scavenger.homeip.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Hi again,
 
---0F1p//8PRICkK4MW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I have now tried the pristine 2.6.11.10 kernel and it fails on mounting 
+initrd too on my Hypersparc-powered SS10. The last messages (same as with 
+Debian kernels) I see are:
 
-> [ __you_cannot_kmalloc_that_much error ]
+NET: Registered protocol family 1
+NET: Registered protocol family 17
+RAMDISK: cramfs filesystem found at block 0
+RAMDISK: Loading 2556KiB [1 disk] into ram disk... done.
+Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block(0,0)
+  <0>Press L1-A to return to the boot prom
 
-So, anyone got an idea or a hint to another mailinglist I can ask?
-I need to present some results on Wednesday and a running system would
-be a nice result to show off :)
+It would be nice if you (or someone else) could confirm (or not :-) that, 
+since it would eliminate possible initrd/toolchain problems.
 
+http://www.wooyd.org/misc/sparc32.config
 
-Thanks in advance,
-       Benjamin
+Thanks and best regards,
 
---0F1p//8PRICkK4MW
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.0 (GNU/Linux)
-
-iD8DBQFCmrpx7Wabow2Um2YRAuFdAJ9Sdj4Y8lIYfB4kVs7oP5kdK5uVQwCeIE3K
-s/5wBULr5Z7VA18BE64WApc=
-=Rqvy
------END PGP SIGNATURE-----
-
---0F1p//8PRICkK4MW--
+Jurij Smakov                                        jurij@wooyd.org
+Key: http://www.wooyd.org/pgpkey/                   KeyID: C99E03CC
+A
