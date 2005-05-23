@@ -1,7 +1,7 @@
-From: Eric Brower <ebrower@gmail.com>
-Date: Wed, 18 May 2005 17:49:41 +0000
+From: David Johnson <dj@david-web.co.uk>
+Date: Mon, 23 May 2005 19:18:26 +0000
 Subject: Re: Envctrl support for E450
-Message-Id: <ec7cefb0505181049767387be@mail.gmail.com>
+Message-Id: <200505232018.26932.dj@david-web.co.uk>
 List-Id: <sparclinux.vger.kernel.org>
 References: <200505031047.20224.dj@david-web.co.uk>
 In-Reply-To: <200505031047.20224.dj@david-web.co.uk>
@@ -10,22 +10,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 5/17/05, Tom 'spot' Callaway <tcallawa@redhat.com> wrote:
+On Wednesday 18 May 2005 18:49, Eric Brower wrote:
+>
+> Shipping the system across the country twice likely costs more than
+> the value of the system.  I don't mind working via network console or
+> interactively with the Aurora folks (or anyone who would be
+> responsive).
+>
 
-> We could hold the box in Chicago, IL, Westford, MA, or maybe Raleigh,
-> NC. Network console at the prom level is easy, network power would be a
-> little more difficult (I don't have any network controlled power
-> switches).
-> 
-> Alternately, why don't we just send this machine to Eric, let him fix
-> the code directly, then send it to Aurora when he's done?
+In that case, I think we should continue with having it hosted at Aurora.
 
-Shipping the system across the country twice likely costs more than
-the value of the system.  I don't mind working via network console or
-interactively with the Aurora folks (or anyone who would be
-responsive).
+Tom & Jeff: could you two make contact and arrange the shipping?
+Eric: will try the initial patch you sent me this week.
 
-E
+Thanks all,
+David.
 
 -- 
-E
+David Johnson
+www.david-web.co.uk - My Personal Website
+www.ethereye.org.uk - EtherEye Network Host Checker
+www.penguincomputing.co.uk - Need a Web Developer?
