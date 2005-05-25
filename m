@@ -1,36 +1,25 @@
-From: Adrian McMenamin <adrian@mcmen.demon.co.uk>
-Date: Wed, 25 May 2005 16:13:15 +0000
-Subject: Sparc Linux kernel build newbie
-Message-Id: <1117037595.3863.8.camel@mayday.localdomain>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-ycGyzSEUNUea/Mqbt4ta"
+From: Ben Collins <bcollins@debian.org>
+Date: Wed, 25 May 2005 18:50:18 +0000
+Subject: Re: Sparc Linux kernel build newbie
+Message-Id: <20050525185018.GA11107@phunnypharm.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1117037595.3863.8.camel@mayday.localdomain>
+In-Reply-To: <1117037595.3863.8.camel@mayday.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+On Wed, May 25, 2005 at 05:13:15PM +0100, Adrian McMenamin wrote:
+> Sorry to be stupid ...but while I can build the (2.4) kernel on my box I
+> cannot build the modules (the standard ia32 syntax doesn't seem to work)
+> and nor can I do a make install.
+> 
+> What are the commands for these on Sparc?
 
---=-ycGyzSEUNUea/Mqbt4ta
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+"make modules" and "make modules_install" work on sparc.
 
-Sorry to be stupid ...but while I can build the (2.4) kernel on my box I
-cannot build the modules (the standard ia32 syntax doesn't seem to work)
-and nor can I do a make install.
-
-What are the commands for these on Sparc?
---=20
-Adrian McMenamin <adrian@mcmen.demon.co.uk>
-
---=-ycGyzSEUNUea/Mqbt4ta
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.6 (GNU/Linux)
-
-iD8DBQBClKQbGRPWBxe0MBkRAoevAJ0WvAEuvyc9sGyU9aHEGghEDZnPswCdEACV
-zWaktX/kgILOLyBV3BFSnSU=
-=ViL2
------END PGP SIGNATURE-----
-
---=-ycGyzSEUNUea/Mqbt4ta--
-
+-- 
+Debian     - http://www.debian.org/
+Linux 1394 - http://www.linux1394.org/
+Subversion - http://subversion.tigris.org/
