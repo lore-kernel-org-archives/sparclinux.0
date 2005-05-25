@@ -1,25 +1,69 @@
-From: Bob Breuer <breuerr@mc.net>
-Date: Fri, 06 May 2005 14:50:15 +0000
-Subject: Re: [gentoo-sparc] ss20/ross/smp
-Message-Id: <427B8427.6090403@mc.net>
+From: Benjamin Schieder <blindcoder@scavenger.homeip.net>
+Date: Wed, 25 May 2005 10:35:23 +0000
+Subject: __you_cannot_kmalloc_that_much error
+Message-Id: <20050525103523.GA20728@scavenger.homeip.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="FCuugMFkClbJLl1L"
 List-Id: <sparclinux.vger.kernel.org>
-References: <4279EFEB.2070705@growthmodels.com>
-In-Reply-To: <4279EFEB.2070705@growthmodels.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Heitzso wrote:
-> If someone could point to a couple of the broken places
-> that need work for sparc32 smp to function I'll look at them.
-> 
-> Does someone maintain a task list for sparc32 SMP?
-> I.e. a list of code blocks that need to be cleaned up in order
-> for sparc32 SMP to work?
-> 
 
-The closest thing to working smp on 2.6 that I've seen is what I sent to 
-the sparclinux list back in February.
+--FCuugMFkClbJLl1L
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Bob
+Hello.
+
+I'm trying to create a sparc64 live system to boot from and have an install
+server up and running.
+I'm using the ROCK Linux toolkit for that.
+
+Now, everything but silo works fine until the kernel (2.6.10) is built, whi=
+ch
+fails with:
+
+  LD      arch/sparc/boot/image
+drivers/built-in.o(.text+0x456c): In function `fbcon_startup':
+synaptics.c: undefined reference to `__you_cannot_kmalloc_that_much'
+make[1]: *** [arch/sparc/boot/image] Error 1
+make: *** [image] Error 2
+
+Now, all references to that error I've found aren't as recent as 2.6.10.
+2.6.6 being the most recent one I've found.
+
+I'm building on a SunBlade 150 using gcc 3.4.0.
+I've put the build log and kernel configuration here:
+http://scavenger.homeip.net/~blindcoder/ERROR-LOG
+http://scavenger.homeip.net/~blindcoder/ERROR-LOG.gz
+http://scavenger.homeip.net/~blindcoder/config
+
+The patches mentioned in the ERROR-LOG are available here:
+http://www.rocklinux.net/svn/rock-linux/trunk/package/base/linux/linux26/
+
+Can someone tell me what I'm doing wrong here?
+
+
+Thank you,
+      Benjamin.
+
+--=20
+Benjamin 'blindCoder' Schieder
+Registered Linux User #289529: http://counter.li.org
+finger blindcoder@scavenger.homeip.net | gpg --import
+--=20
+/lusr/bin/brain: received signal: SIGIDIOT
+
+--FCuugMFkClbJLl1L
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.0 (GNU/Linux)
+
+iD8DBQFClFTr7Wabow2Um2YRAloWAJ4weHSssDGwodNqq7JjXHZQYFsAdwCfbE/Q
+xwGYEZcqXxbOXZFR2cJ/1IM=
+=vABY
+-----END PGP SIGNATURE-----
+
+--FCuugMFkClbJLl1L--
