@@ -1,7 +1,7 @@
-From: Chris Newport <crn@netunix.com>
-Date: Wed, 25 May 2005 23:37:39 +0000
+From: Ben Collins <bcollins@debian.org>
+Date: Wed, 25 May 2005 23:37:42 +0000
 Subject: Re: NR_CPUS and kernel 2.4.30 for sparc64
-Message-Id: <42950C43.6030106@netunix.com>
+Message-Id: <20050525233742.GA13980@phunnypharm.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4294E414.80003@wp.pl>
 In-Reply-To: <4294E414.80003@wp.pl>
@@ -10,30 +10,52 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Krzysztof Helt wrote:
+That's not the issue. You have to remember that this cpu count is not "the
+number of cpu's supported", it's the range of cpu id's supported.
 
-> You must set CONFIG_NR_CPUS to one plus the largest "physical cpu"
->
->> number in your machine if you want all processors to be detected
->> properly.  In your case, the correct setting would be 3.
->
->
-> This works differnetly than on sparc32 kernel (it works there).
->
-It works on Sun4m because all of the processors are confined to a single 
-system board.
-On Sun4d and Sun4u you can have multiple system boards.
-CPU0 is the first CPU slot in the first system board slot. There is no 
-universal requirement that any slot is filled [1], so if the only system 
-board on an E10k is in slot 15 the 4 possible processors will be numbers 
-60 to 63.
+For example, in my e3000, the cpu's are numbers 0,1,6,7,8,9
 
-Think of it as "how many places do I look to find a possible CPU before 
-giving up".
-32 is a safe choice on all except the biggest machines and it is wise to 
-not change this default unless you have some big iron.
+So I have to set the number of cpu's to atleast 10 so that all six my of
+cpu's work.
 
-[1] Not strictly true - some versions of the OBP require a CPU to exist 
-on board 0 cpu 0.  Some other versions require a CPU to exist in the 
-first CPU slot of the first occupied board slot. YMMV. Here be dragons.
+My suggestion is to set the number of cpu's to 32, always. Changing it
+really doesn't give any sort of performance increase or make anything any
+simpler. Might use a bit more memory, but the length of the arrays
+searched for cpu's will always be just the length of the number of cpu's
+you have active (and the extra memory used is negligible anyway).
 
+On Wed, May 25, 2005 at 10:46:12PM +0200, Krzysztof Helt wrote:
+> I built a kernel 2.4.30 with SMP and number of cpus set to 2, but This 
+> kernel actevated only one cpu. A quick look at the smp.c file 
+> (arch/sparc64/kernel/smp.c) revealed a root of this:
+> 
+> In the smp_boot_cpus() function there are lines:
+> 
+> 	for (i = 0; i < NR_CPUS; i++) {
+> 		if (i = boot_cpu_id)
+> 			continue;
+> 
+> 		if ((cpucount + 1) = max_cpus)
+> 			goto ignorecpu;
+>            ...
+> 
+> The first condition eliminates the first cpu from the list of found ones 
+> (I assume the first is a boot cpu). The second condition eliminates the 
+> last cpu. So on dual smp machine if the first cpu (number 0) is the boot 
+> cpu and NR_CPUS is set to 2 no other cpu is found.
+> 
+> I think the second condition and goto should be removed, but please 
+> advice in case I do not understand something with SMP initialization.
+> 
+> Regards,
+> Krzysztof Helt
+> 
+> -
+> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+Debian     - http://www.debian.org/
+Linux 1394 - http://www.linux1394.org/
+Subversion - http://subversion.tigris.org/
