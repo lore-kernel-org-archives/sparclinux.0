@@ -1,8 +1,10 @@
-From: "Photoshop Training" <photosh@allsaintsfan.com>
-Date: Mon, 16 May 2005 22:38:24 +0000
+From: "Photoshop Training" <martink@evolnetworks.com>
+Date: Thu, 26 May 2005 05:06:41 +0000
 Subject: 7 Hours of Photoshop Video Training
-Message-Id: <526b01c55a8e$3e3195a0$f02784be@photosh>
+Message-Id: <C3F09A3E.C1AAB2D@evolnetworks.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <526b01c55a8e$3e3195a0$f02784be@photosh>
+In-Reply-To: <526b01c55a8e$3e3195a0$f02784be@photosh>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -12,7 +14,7 @@ To: sparclinux@vger.kernel.org
 
 Download a DEMO Here
 
-http://www.photoshop-video-teacher.com/DEMO.htm
+http://www.photoshop-teacher.net/DEMO.htm
 
 
 Adobe Photoshop CS 
@@ -63,7 +65,8 @@ follow! Thanks for your great service!" - Don Bryant, Woodland Hills, CA
 
 No future mailings
 
-http://www.photoshop-video-teacher.com/r.htm
+http://www.photoshop-teacher.net/r.htm
+
 
 
 
