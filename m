@@ -1,30 +1,25 @@
-From: David Johnson <dj@david-web.co.uk>
-Date: Mon, 30 May 2005 14:38:22 +0000
-Subject: Re: Envctrl support for E450
-Message-Id: <200505301538.23132.dj@david-web.co.uk>
+From: "Blue Swirl" <blueswir1@hotmail.com>
+Date: Thu, 26 May 2005 16:20:36 +0000
+Subject: Power fail handler
+Message-Id: <BAY104-F356724EEBC319B7F41103AFF0F0@phx.gbl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200505031047.20224.dj@david-web.co.uk>
-In-Reply-To: <200505031047.20224.dj@david-web.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thursday 26 May 2005 18:32, you wrote:
->
-> I'm coming into this a bit late, but I've got an E450 which I've
-> squandered at work and could get access to it set up for Ben or whoever
-> is necessary.
->
+Hi,
 
-I don't think access to another machine is needed, but I'm sure Eric would 
-find it useful if you could test his patches. The more testers the better!
+I implemented to Qemu a part of Slavio chip which sends a level 15 interrupt 
+when the power is failing. After that I was surprised to find out that Linux 
+doesn't handle that at all.
 
-Regards,
-David.
+It shouldn't be very difficult to add a driver to Linux, but would it be 
+useful? In Qemu, user could send the power fail event to conveniently signal 
+shutdown. Do you know if some real-life power supply generates the signal? 
+Or are drivers for Qemu-only stuff OK?
 
--- 
-David Johnson
-www.david-web.co.uk - My Personal Website
-www.ethereye.org.uk - EtherEye Network Host Checker
-www.penguincomputing.co.uk - Need a Web Developer?
+_________________________________________________________________
+Express yourself instantly with MSN Messenger! Download today it's FREE! 
+http://messenger.msn.click-url.com/go/onm00200471ave/direct/01/
+
