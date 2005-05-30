@@ -1,7 +1,7 @@
-From: Patrick Finnegan <pat@computer-refuge.org>
-Date: Thu, 26 May 2005 17:32:36 +0000
+From: David Johnson <dj@david-web.co.uk>
+Date: Mon, 30 May 2005 14:38:22 +0000
 Subject: Re: Envctrl support for E450
-Message-Id: <200505261232.36535.pat@computer-refuge.org>
+Message-Id: <200505301538.23132.dj@david-web.co.uk>
 List-Id: <sparclinux.vger.kernel.org>
 References: <200505031047.20224.dj@david-web.co.uk>
 In-Reply-To: <200505031047.20224.dj@david-web.co.uk>
@@ -10,24 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Monday 23 May 2005 14:18, you wrote:
-> On Wednesday 18 May 2005 18:49, Eric Brower wrote:
-> > Shipping the system across the country twice likely costs more than
-> > the value of the system.  I don't mind working via network console
-> > or interactively with the Aurora folks (or anyone who would be
-> > responsive).
+On Thursday 26 May 2005 18:32, you wrote:
 >
-> In that case, I think we should continue with having it hosted at
-> Aurora.
+> I'm coming into this a bit late, but I've got an E450 which I've
+> squandered at work and could get access to it set up for Ben or whoever
+> is necessary.
 >
-> Tom & Jeff: could you two make contact and arrange the shipping?
-> Eric: will try the initial patch you sent me this week.
 
-I'm coming into this a bit late, but I've got an E450 which I've 
-squandered at work and could get access to it set up for Ben or whoever 
-is necessary.
+I don't think access to another machine is needed, but I'm sure Eric would 
+find it useful if you could test his patches. The more testers the better!
 
-Pat
+Regards,
+David.
+
 -- 
-Purdue University ITAP/RCS        ---  http://www.itap.purdue.edu/rcs/
-The Computer Refuge               ---  http://computer-refuge.org
+David Johnson
+www.david-web.co.uk - My Personal Website
+www.ethereye.org.uk - EtherEye Network Host Checker
+www.penguincomputing.co.uk - Need a Web Developer?
