@@ -1,60 +1,43 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Mon, 13 Jun 2005 22:47:49 +0000
-Subject: Re: Working config wanted for 2.6.11, Ultra 5, sparc64
-Message-Id: <20050613.154749.27780799.davem@davemloft.net>
+From: Jurij Smakov <jurij@wooyd.org>
+Date: Sat, 04 Jun 2005 04:21:22 +0000
+Subject: Re: 2.6.11.10 failure on Hypersparc sparc32 [was: Re: sparc32 2.6
+Message-Id: <Pine.LNX.4.61.0506040011390.7379@bobcat>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20050613195547.6BC1B42B25@bass.stat.ufl.edu>
-In-Reply-To: <20050613195547.6BC1B42B25@bass.stat.ufl.edu>
+References: <Pine.LNX.4.61.0505190111530.13987@bobcat>
+In-Reply-To: <Pine.LNX.4.61.0505190111530.13987@bobcat>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Jason Wever <weeve@gentoo.org>
-Date: Mon, 13 Jun 2005 16:43:15 -0600 (MDT)
+Hi,
 
-> When abouts in the 2.6 series was this?  I used 2.6.6 for a long time on =
+I have tried to dig a little bit more on this issue, with some success. 
+It appears that initrd does not mount because something is wrong with the
+__copy_1page function, invoked by memcpy() for copying page-sized chunks.
+It is used in fs/cramfs/inode.c to read in the superblock of the cramfs 
+filesystem and, surprisingly, in this process first 16 bytes (containing 
+the magic cramfs number, among other things), get lost somehow. After I've 
+replaced a call to __copy_1page with a call to __memcpy in 
+include/asm-sparc/string.h, initrd mounted, however boot still fails. The 
+next problem is that /linuxrc script from initrd is not executed as it 
+should. This script is supposed to save real-root-device from /proc and 
+set the real-root-device to ramdisk, where initrd is located (it all 
+happens in do_mounts_initrd.c). However, the execve call to /linuxrc 
+quietly fails, and the script is never executed. After that kernel tries 
+to immediately mount /dev/sda1 (which is the real root) and fails, because 
+the scsi modules have not been loaded. So it now looks like this:
 
-> the Blade 100 with this config (due to SCSI lockup issues with a SYMBIOS =
+RAMDISK: cramfs filesystem found at block 0
+RAMDISK: Loading 2580KiB [1 disk] into ram disk... done.
+VFS: Mounted root (cramfs filesystem) readonly.
+VFS: Cannot open root device "sda1" or unknown-block(0,0)
+Please append a correct "root=" boot option
+Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block(0,0)
 
-> card in other versions of 2.6) but I haven't tested >=C2.6.11 in a=20
-> non-headless configuration.
+I don't know how I should proceed with debugging this.
 
-It was the following change, which went into Linus's bitkeeper
-tree on Feb. 15, 2005
+Thanks and best regards,
 
-# This is a BitKeeper generated diff -Nru style patch.
-#
-# ChangeSet
-#   2005/02/15 08:23:00-08:00 davem@nuts.davemloft.net=20
-#   [SPARC]: Fix video mode probing in atyfb driver.
-#  =20
-#   On Sparc, if the user does not specify a mode option, we
-#   should use the PROM probed values in default_var always.
-#  =20
-#   Signed-off-by: David S. Miller <davem@davemloft.net>
-#=20
-# drivers/video/aty/atyfb_base.c
-#   2005/02/15 08:22:09-08:00 davem@nuts.davemloft.net +9 -1
-#   [SPARC]: Fix video mode probing in atyfb driver.
-#=20
-diff -Nru a/drivers/video/aty/atyfb_base.c b/drivers/video/aty/atyfb_base.c
---- a/drivers/video/aty/atyfb_base.c	2005-06-13 15:46:56 -07:00
-+++ b/drivers/video/aty/atyfb_base.c	2005-06-13 15:46:56 -07:00
-@@ -2511,7 +2511,15 @@
- 		}
- 	} else
- #endif /* !CONFIG_PPC */
--	if (!fb_find_mode(&var, info, mode, NULL, 0, &defmode, 8))
-+	if (
-+#if defined(CONFIG_SPARC32) || defined(CONFIG_SPARC64)
-+	   /* On Sparc, unless the user gave a specific mode
-+	    * specification, use the PROM probed values in
-+	    * default_var.
-+	    */
-+	    !mode ||
-+#endif
-+	    !fb_find_mode(&var, info, mode, NULL, 0, &defmode, 8))
- 		var =3D default_var;
-=20
- 	if (noaccel)
+Jurij Smakov                                        jurij@wooyd.org
+Key: http://www.wooyd.org/pgpkey/                   KeyID: C99E03CC
