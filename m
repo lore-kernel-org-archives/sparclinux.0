@@ -1,42 +1,26 @@
-From: Jason Wever <weeve@gentoo.org>
-Date: Wed, 22 Jun 2005 02:25:48 +0000
-Subject: Re: 2.4 kernels and max # of rules with iptables
-Message-Id: <20050621202548.62425578@enterprise.weeve.org>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Signature_Tue__21_Jun_2005_20_25_48_-0600_dHsLBJRpMvcotX+Q"
+From: Brian Bartholomew <bb@stat.ufl.edu>
+Date: Mon, 13 Jun 2005 19:55:47 +0000
+Subject: Working config wanted for 2.6.11, Ultra 5, sparc64
+Message-Id: <20050613195547.6BC1B42B25@bass.stat.ufl.edu>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20050619200712.036920e1@enterprise.weeve.org>
-In-Reply-To: <20050619200712.036920e1@enterprise.weeve.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
---Signature_Tue__21_Jun_2005_20_25_48_-0600_dHsLBJRpMvcotX+Q
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+I want to use Gentoo 2005.5 on my Ultra 5s (among others).  I want to
+use kernel 2.6.something for better performance on these slow
+machines, and to be consistent with my Intels.  I am attempting to use
+kernel linux-2.6.11-gentoo-r8, but after a week of trying to construct
+a working config file, I still can't get console video that doesn't
+wrap on my monitor, or a working keyboard.  I've tried the config file
+that Gentoo's genkernel produces, the one shipped in arch/sparc64/defconfig,
+and quite a few that I've constructed by walking every option in
+menuconfig.
 
-On Sun, 19 Jun 2005 20:27:12 -0600
-Jason Wever <weeve@gentoo.org> wrote:
+I just can't believe 2.6 is as broken on Ultra 5 as my experience with
+it has been.  Can someone offer me a 2.6.11 config file that's known
+to work on Ultra 5?  Or any Ultra 5 config for 2.6.anything?
 
-> I used a C program[1] written by Gustavo Zacarias to replicate here
-> and I'll post a follow-up once I get a response from the user.
->=20
-> [1] - http://dev.gentoo.org/~gustavoz/source/iptables_test.c
-
-User posted his ruleset and it also fails at 857 rules.
-
-Cheers,
---=20
-Jason Wever
-Gentoo/Sparc Team Co-Lead
-
---Signature_Tue__21_Jun_2005_20_25_48_-0600_dHsLBJRpMvcotX+Q
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD4DBQFCuMwudKvgdVioq28RAlFfAJ9XjcD5KHSAcNiJ4U3gd3InL7oZbwCY5KWq
-yg+ItaB3w+xO25dRAr9z5w==
-=paIT
------END PGP SIGNATURE-----
-
---Signature_Tue__21_Jun_2005_20_25_48_-0600_dHsLBJRpMvcotX+Q--
+Thanks.
+							Brian
