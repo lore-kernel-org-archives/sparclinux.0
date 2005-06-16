@@ -1,34 +1,30 @@
-From: Anton van den Hengel <anton@cs.adelaide.edu.au>
-Date: Sat, 25 Jun 2005 12:59:25 +0000
-Subject: Javastation X resolution
-Message-Id: <42BD54AB.6090102@cs.adelaide.edu.au>
+From: "KEN  TAYLOR" <kenn_tay@yahoo.com>
+Date: Thu, 16 Jun 2005 02:57:22 +0000
+Subject: YOUR REPLY PLS.
+Message-Id: <200506160257.j5G2vMG11573@ns2.porta.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi everyone,
+PARTNERSHIP NEEDED 
 
-I've attached my javastation to an LCD touch screen, only to find that I 
-can't change the screen resolution of the X server to match what the LCD 
-expects.
-
-I actually need to lower the resolution, which I expected would be 
-easy.  It's a Krups, I'm using NFS root at the moment with one of the 
-HOWTO kernels (2.4.2).  I'm hoping the LCD will do 800x600, but it might 
-only go to 640x480.
-
-Any help appreciated
-
-Thanks
-
-Anton
-
--- 
-Dr. Anton van den Hengel        mailto:anton@cs.adelaide.edu.au
-Department of Computer Science  http://www.cs.adelaide.edu.au/~hengel
-University of Adelaide,         Phone: +61 8 8303 5309
-Adelaide, SA 5005, Australia    Fax:   +61 8 8303 4366
+Dear Friend,
 
 
+Having gone through your very impressive profile I was impressed and 
+willing to do this life time dream business with you. 
+
+The business involves investing some good amount of money into real 
+estate or any profit oriented business venture in your country. 
+
+I will open full communication with you concerning this business after 
+your response. 
+
+For now,this is all I can say till I hear from you indicating your 
+willingness. 
+
+Yours Faithfully, 
+
+KEN TAYLOR
