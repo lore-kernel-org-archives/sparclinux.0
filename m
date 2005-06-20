@@ -1,25 +1,49 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Tue, 14 Jun 2005 19:41:03 +0000
-Subject: Re: [PATCH 2.4][SPARC64] fix sys32_utimes(somefile, NULL)
-Message-Id: <20050614.124103.23013433.davem@davemloft.net>
+From: Jason Wever <weeve@gentoo.org>
+Date: Mon, 20 Jun 2005 02:07:12 +0000
+Subject: 2.4 kernels and max # of rules with iptables
+Message-Id: <20050619200712.036920e1@enterprise.weeve.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Signature_Sun__19_Jun_2005_20_07_12_-0600_r7zCy_3lb1wW4EwO"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20050614192306.GC13702@fngna.oyu>
-In-Reply-To: <20050614192306.GC13702@fngna.oyu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: qboosh@pld-linux.org
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Jakub Bogusz <qboosh@pld-linux.org>
-Date: Tue, 14 Jun 2005 21:23:06 +0200
+--Signature_Sun__19_Jun_2005_20_07_12_-0600_r7zCy_3lb1wW4EwO
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-> This patch fixes utimes(somefile, NULL) syscalls on sparc64 kernel with
-> 32-bit userland - use of uninitialized value resulted in making random
-> timestamps, which confused e.g. sudo.
-> It has been already fixed (by davem) in linux-2.6 tree 30 months ago.
-> 
-> Signed-off-by: Jakub Bogusz <qboosh@pld-linux.org>
+Hi All,
 
-Thanks a lot Jakub, I'll push this to Marcelo as soon as he
-opens up his 2.4.x GIT tree.
+I don't know if anyone else has run into this or not, but over in Gentoo
+we've had a user report[1] of a "hard limit" as to the number of rules
+you can have with iptables on the 2.4 kernels before it starts erroring
+out. Currently, it seems that the limit is 857 rules, and the error
+given is "iptables: Memory allocation problem".
+
+I've been able to confirm this behavior on 2.4.31 (using
+iptables 1.2.11 and 1.3.1) and was able to load more than 10,000 rules
+in 2.6.12-rc3 before I gave up.
+
+Current Gentoo userland is using either kernel headers from 2.4.23 (for
+stable keywords) and 2.4.26 (for testing keywords).
+
+If anyone has any suggestions or pointers, I'd be glad to hear them.
+
+[1] - https://bugs.gentoo.org/show_bug.cgi?id=3D75668
+
+Thanks,
+--=20
+Jason Wever
+Gentoo/Sparc Team Co-Lead
+
+--Signature_Sun__19_Jun_2005_20_07_12_-0600_r7zCy_3lb1wW4EwO
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFCtiTTdKvgdVioq28RAihoAJ4rp3TiMumhERT8SLrh/3Uif1Kk+QCdGD95
+G+XQnn8fddAgk5KTnipLh6Y=
+=eyi0
+-----END PGP SIGNATURE-----
+
+--Signature_Sun__19_Jun_2005_20_07_12_-0600_r7zCy_3lb1wW4EwO--
