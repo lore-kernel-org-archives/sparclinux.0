@@ -1,42 +1,71 @@
-From: gdnixon1@enterate.com.ar
-Date: Thu, 05 May 2005 22:48:02 +0000
-Subject: Inquiry From Gerald
-Message-Id: <1115333282.427aa2a28289a@mail.enterate.com.ar>
+From: Christoph Hellwig <hch@lst.de>
+Date: Mon, 20 Jun 2005 10:57:50 +0000
+Subject: [PATCH] bpp: remove sleep_on usage
+Message-Id: <20050620105750.GA4679@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Dear Friend,
-I am Mr. Gerald Nixon, I write to inform you of my desire to acquire properties 
-Hence i am contacting you if you would agree to assist me in other to actualize 
-this transaction. the funds to carry out this proposed investments is presently 
-lodged in a finance security firm i honestly request your assistance to provide 
-for me a safe account in your country to receive the money before we can put 
-the funds into use. The total sum is 4.5Million Great Britain Pounds.  
-As soon as the amount mentioned above is successfully transferred into your 
-account, you can go ahead in buying the properties. It might interest you to 
-note that transaction of such may raise suspicion of irrationality but i assure 
-you it will be executed safely without breaching our limited personal integrity 
-that we have in one way or the other aspire to protect. So let us allow trust 
-to play a very minimal role until performance is seen.  Thank you in 
-anticipation of your co-operation.
-Best Regards,
-Mr. Gerald Nixon
-
-Note: I have set aside 25% of this fund to consult your assistance.
+Use schedule_timeout() instead of sleep_on + timer.  Totally untested
+due to lack of hardware, but the changes are rather trivial.
 
 
-
-
-* Este mensaje fue enviado desde http://www.enterate.com.ar/ 
-____________________________________________________________ 
-
-* Conectate GRATIS a Internet desde Enterate ! 
-Usuario   : enterate@enterate.com.ar 
-Clave     : enterate 
-desde Buenos Aires : 4004-8007 
-desde otras ciudades, consulta en : 
-http://www.enterate.com.ar/InternetGratis.htm 
-
+Index: linux-2.6/drivers/sbus/char/bpp.c
+=================================--- linux-2.6.orig/drivers/sbus/char/bpp.c	2005-04-30 10:17:16.000000000 +0200
++++ linux-2.6/drivers/sbus/char/bpp.c	2005-05-27 14:13:47.000000000 +0200
+@@ -79,10 +79,6 @@
+ 
+       unsigned char run_length;
+       unsigned char repeat_byte;
+-
+-      /* These members manage timeouts for programmed delays */
+-      wait_queue_head_t wait_queue;
+-      struct timer_list timer_list;
+ };
+ 
+ static struct inst instances[BPP_NO];
+@@ -297,16 +293,10 @@
+ 
+ #endif /* __sparc__ */
+ 
+-static void bpp_wake_up(unsigned long val)
+-{ wake_up(&instances[val].wait_queue); }
+-
+ static void snooze(unsigned long snooze_time, unsigned minor)
+ {
+-      init_timer(&instances[minor].timer_list);
+-      instances[minor].timer_list.expires = jiffies + snooze_time + 1;
+-      instances[minor].timer_list.data    = minor;
+-      add_timer(&instances[minor].timer_list);
+-      sleep_on (&instances[minor].wait_queue);
++	set_current_state(TASK_UNINTERRUPTIBLE);
++	schedule_timeout(snooze_time + 1);
+ }
+ 
+ static int wait_for(unsigned short set, unsigned short clr,
+@@ -880,11 +870,8 @@
+       instances[idx].enhanced = 0;
+       instances[idx].direction = 0;
+       instances[idx].mode = COMPATIBILITY;
+-      instances[idx].wait_queue = 0;
+       instances[idx].run_length = 0;
+       instances[idx].run_flag = 0;
+-      init_timer(&instances[idx].timer_list);
+-      instances[idx].timer_list.function = bpp_wake_up;
+       if (!request_region(lpAddr,3, dev_name)) return;
+ 
+       /*
+@@ -977,11 +964,8 @@
+       instances[idx].enhanced = 0;
+       instances[idx].direction = 0;
+       instances[idx].mode = COMPATIBILITY;
+-      init_waitqueue_head(&instances[idx].wait_queue);
+       instances[idx].run_length = 0;
+       instances[idx].run_flag = 0;
+-      init_timer(&instances[idx].timer_list);
+-      instances[idx].timer_list.function = bpp_wake_up;
+ 
+       if (!rp) return;
+ 
