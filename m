@@ -1,28 +1,28 @@
-From: Dixie Keenan <feqyfahuk@lissamail.com>
-Date: Mon, 20 Jun 2005 13:19:59 +0000
-Subject: Customer recognition with your custom logo (8919601)
-Message-Id: <58563660241.64290953834850@cpe-24-165-160-135.midsouth.res.rr.com>
+From: Orlann Peterson <brady96@myself.com>
+Date: Sat, 25 Jun 2005 16:09:09 +0000
+Subject: Immediate work available for right candidates
+Message-Id: <d73d01c579a0$7b8d87a3$e7cf9382@myself.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Our art team creates a custom logo for you, based on your needs.  Years of experience have taught us how to create a logo that makes a statement that is unique to you.
+This opportunity is great for people looking for extra income.
+We need right candidates that would like to make money from home!
+You CAN have a career with no commute, no hassle, and no boss! Work from home or office!
+Your personal coach will explain you how to put the internet and your computer to work for you.
+We are looking for people that want to make money working part time.
+We will need a couple of hour's commitment per day. Work as much as you want.
+Be part of the fastest growing industry and successful team today.
+Many successful members started with no previous experience.
+Just 10 hours per week you need to contribute. No start up costs or any expenses!
+Get paid fix wages plus commission for completed work. Make more money doing less work.
+Spend more time with your family doing the things that bring enjoyment to your life!
+Live Life To Its Fullest! You can do it all!
 
-In a pr ofessional manner we learn about your image and how you would like the world to perceive you and your company.  With this information we then create a logo that is not only unique but reflects the purpose of you and your company.
+APPLY NOW to get more information about this exciting opportunity.
+To continue with the application please fill out the form at:
 
-For value and a logo that reflects your image, take a few minutes and visit Try Logos!
-
-http://www4.trylogos.biz/
-
-Sincerely,
-Logo Design Team
- 
-
-
-
-
-
-http://www4.trylogos.biz/uns.php
+http://www.globaltransfer.org/vacancies.html
 
