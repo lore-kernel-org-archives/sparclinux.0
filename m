@@ -1,7 +1,7 @@
-From: "Wade Burris" <gvudqi@hotmail.com>
-Date: Wed, 13 Jul 2005 14:32:58 +0000
-Subject: The Best Super Vaigra xYSpU
-Message-Id: <E1A572M-4988nV-00gvudqi@hotmail.com>
+From: "Trisha Dillard" <IFPOPANN@msn.com>
+Date: Mon, 04 Jul 2005 13:03:36 +0000
+Subject: Porns Star Use This O05Hzi
+Message-Id: <E3A4nm6-5679Yt-00@mail.nitros2.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,19 +9,20 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-"Ci-ialis Softabs" is better than Pfizer Viiagrra
-and normal Ci-ialis because:
+"SPUR-M" is the latest breakthrough of all natural male enhancement 
+formula which gua-rantees:
 
-- Guaaraantees 36 hours lasting
-- Safe to take, no side effects at all
-- Boost and increase se-xual performance
-- Haarder e-rectiions and quick recharge
-- Proven and certified by experts and doctors
-- only $3.99 per tabs
+- Longer orgasms
+- Rock-hard E-rections like "steel"
+- Increased se xual desire - Enhanced libido
+- Strong Ejaculate like a porn star
+- Multiple orgasms - Cum again and again
+- Up to 500% more volume - Cover her in it if you want 
+- Or money back without questions asked
 
-Cllick heree:
-http://lipase.net/cs/?ronn
+Check it out 2day!
 
+http://smilingly.net/spur/?ronn
 
 
 
@@ -32,6 +33,6 @@ http://lipase.net/cs/?ronn
 
 
 o-ut of mai-lling lisst:
-http://lipase.net/rm.php?ronn
+http://smilingly.net/rm.php?ronn
 
-Ndx
+7XO
