@@ -1,21 +1,20 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Mon, 18 Jul 2005 22:41:50 +0000
-Subject: Re: [patch 4/4] sbus/vfc_i2c: remove sleep_on() usage
-Message-Id: <20050718.154150.78706200.davem@davemloft.net>
+From: Elsie <Fabian@mbass.com>
+Date: Sun, 10 Jul 2005 08:33:35 +0000
+Subject: All the Software You'll Ever Need To Successfully Make Money Online!
+Message-Id: <1045896447.5395585970@82.129.235.163>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: domen@coderock.org
-Date: Mon, 20 Jun 2005 23:50:35 +0200
+The No.1 source for software superstore.
+http://hchwtld.6va3rnozlgov3po.tiltlikecm.info
 
-> Use wait-queue directly instead of the deprecated sleep_on()
-> function. This required adding a local wait-queue. Also use new (added in
-> separate patch to K-J) usecs to jiffies function to convert value.
-> 
-> Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
-> Signed-off-by: Domen Puncer <domen@coderock.org>
 
-Applied, thanks.
+
+
+Give death a better name or die trying.     
+Propaganda does not deceive people; it merely helps them to deceive themselves. 
+
+
