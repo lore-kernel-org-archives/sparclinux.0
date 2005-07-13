@@ -1,12 +1,14 @@
 From: fabbione@fabbione.net (Fabio Massimo Di Nitto)
-Date: Wed, 13 Jul 2005 06:21:34 +0000
-Subject: [PATCH] modpost needs to cope with new glibc elf header on sparc
-Message-Id: <20050713062134.AD0E35031@trider-g7.fabbione.net>
+Date: Wed, 13 Jul 2005 06:25:49 +0000
+Subject: [PATCH] modpost needs to cope with new glibc elf header on sparc (resend - my MTA did eat the previo
+Message-Id: <20050713062549.1ED325032@trider-g7.fabbione.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20050713062134.AD0E35031@trider-g7.fabbione.net>
+In-Reply-To: <20050713062134.AD0E35031@trider-g7.fabbione.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: davem@davemloft.net, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
 Hi everybody,
   recently a change in the glibc elf.h header has been introduced causing
