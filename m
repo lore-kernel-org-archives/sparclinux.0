@@ -1,18 +1,25 @@
 From: Adrian Bunk <bunk@stusta.de>
-Date: Sat, 02 Jul 2005 21:56:18 +0000
+Date: Fri, 15 Jul 2005 20:36:32 +0000
 Subject: [2.6 patch] sparc: remove the useless APM_RTC_IS_GMT option
-Message-Id: <20050702215618.GH5346@stusta.de>
+Message-Id: <20050715203632.GD18059@stusta.de>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20050702215618.GH5346@stusta.de>
+In-Reply-To: <20050702215618.GH5346@stusta.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: wli@holomorphy.com
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: wli@holomorphy.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 I can't see any effect of this option outside the i386-specific APM 
 code.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
+
+---
+
+This patch was already sent on:
+- 2 Jul 2005
 
 --- linux-2.6.13-rc1-mm1-full/drivers/sbus/char/Kconfig.old	2005-07-02 20:24:49.000000000 +0200
 +++ linux-2.6.13-rc1-mm1-full/drivers/sbus/char/Kconfig	2005-07-02 20:25:20.000000000 +0200
