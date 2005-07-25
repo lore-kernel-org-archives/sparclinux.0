@@ -1,22 +1,22 @@
-From: Isolde <comfortabilities@aldridge.net>
-Date: Sat, 23 Jul 2005 14:15:16 +0000
-Subject: Software store
-Message-Id: <3055113856.1262547479@host-84-220-43-79.cust-adsl.tiscali.it>
+From: Matthew <gracefully@timmons.net>
+Date: Mon, 25 Jul 2005 02:55:08 +0000
+Subject: Microsoft Money Premium 2005 - $19.95
+Message-Id: <11508758626.28510108676@reverse.218.210.178.66.static.ldmi.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Microsoft Office System Professional 2003 - $54.95
-http://disabled.rubid.com/
+Adobe Creative Suite CS CE Premium Edition - $99
+http://Baltimorean.useid.com/
 
 
 
 
 
-Patience is the greatest of all virtues.      
-Emancipate yourself from mental slavery; none but ourselves can free our minds. 
-Laws too gentle are seldom obeyed; too severe, seldom executed.   
+Men will fight long and hard for a bit of colored ribbon. 
+He of whom many are afraid ought to fear many.   
+I am responsible only to God and history.     
 
 
