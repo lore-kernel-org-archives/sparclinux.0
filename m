@@ -1,34 +1,39 @@
-From: Jurij Smakov <jurij@wooyd.org>
-Date: Sat, 23 Jul 2005 01:07:43 +0000
-Subject: Re: nuke string.h micro-optimizations from orbit
-Message-Id: <Pine.LNX.4.61.0507222100390.2883@bobcat>
+From: Kent Tong <kent@cpttm.org.mo>
+Date: Tue, 26 Jul 2005 10:58:27 +0000
+Subject: fd0 not found
+Message-Id: <42E61753.8050502@cpttm.org.mo>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20050607031302.GA2621@holomorphy.com>
-In-Reply-To: <20050607031302.GA2621@holomorphy.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sat, 16 Jul 2005, Bob Breuer wrote:
+Hi,
 
-> Bob Breuer wrote:
->> 
->> My suspicion is that highmem may cause problems.  I'll try rearranging 
->> the ram this weekend and see if I can make an initrd fail.
->
-> Yes, there are problems with highmem on hypersparcs.
+I'm running Debian Sarge (kernel 2.6) on a Sun Blade 100.
+I tried to to format my floppy using "fdformat /dev/fd0h1440"
+but it says "no such device or address". In addition, mesg
+shows there is an error:
 
-Hi Bob,
+SABRE0: Uncorrectable Error, primary error type[DMA Write:Translation Error]
+SABRE0: bytemask[00ff] dword_offset[0] was_block(0)
+SABRE0: UE AFAR [000000005fa7c000]
+SABRE0: UE Secondary errors [(none)]
+SABRE0: IOMMU Error, type[Invalid Error]
+SABRE0: IOMMU TAG(4)[RAW(0000000000c6f800)error(Invalid 
+Error)wr(0)sz(8K)vpg(df0
+00000)]
+SABRE0: IOMMU 
+DATA(4)[RAW(000000006fe00000)valid(1)used(1)cache(0)ppg(0000000000
+000000)
 
-I've tried disabling CONFIG_HIGHMEM, but even after that I was able to 
-trigger the filesystem corruption. As we were not able to find a 
-combination of options/patches which would make it run without crashing, 
-there are currently no plans to build 2.6.12 sparc32 kernel images for 
-Debian.
+and it doesn't mention anything about floppy or fd at all.
+Any idea?
 
-Best regards,
+Thanks!
 
-Jurij Smakov                                        jurij@wooyd.org
-Key: http://www.wooyd.org/pgpkey/                   KeyID: C99E03CC
+-- 
+Kent Tong, Msc, MCSE, SCJP, CCSA, Delphi Certified
+Manager of IT Dept, CPTTM
+Authorized training for Borland, Cisco, Microsoft, Oracle, RedFlag & RedHat
 
