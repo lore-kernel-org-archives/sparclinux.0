@@ -1,21 +1,31 @@
-From: Baurzhan Ismagulov <ibr@radix50.net>
-Date: Mon, 11 Jul 2005 13:54:20 +0000
-Subject: Re: Flashing of an Ultra2?
-Message-Id: <20050711135420.GB28348@radix50.net>
+From: Kent Tong <kent@cpttm.org.mo>
+Date: Tue, 26 Jul 2005 09:56:55 +0000
+Subject: Setting the clock hangs Sun Blade 100
+Message-Id: <42E608E7.5090905@cpttm.org.mo>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200507091845.j69IjwBL027851@arbas.nms.ulrich-teichert.org>
-In-Reply-To: <200507091845.j69IjwBL027851@arbas.nms.ulrich-teichert.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Mon, Jul 11, 2005 at 10:40:05AM +0200, Christian Joensson wrote:
-> would you pls elaborate a little on that?
+Hi,
 
-http://wiki.debian.net/?SparcUpdateOBP
+I'm running Debian Sarge on a Sun Blade 100. Everything
+works fine except that I can't set the system clock
+using the "date" command. Whenever I do that, the system
+hangs completely and I have to turn off the power to
+get it back to life.
 
-Comments welcome.
+All I want is to correct the time (it's about 30 minutes
+too early). Is there any other way to do that?
 
-With kind regards,
-Baurzhan.
+Could this be related to
+http://040.digital-bless.com/texts/Unofficial_Sun_Blade_100_FAQ.htm#file_76
+?
+
+Thanks!
+
+-- 
+Kent Tong, Msc, MCSE, SCJP, CCSA, Delphi Certified
+Manager of IT Dept, CPTTM
+Authorized training for Borland, Cisco, Microsoft, Oracle, RedFlag & RedHat
