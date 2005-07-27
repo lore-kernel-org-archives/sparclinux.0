@@ -1,181 +1,30 @@
-From: Jeremy Huddleston <eradicator@gentoo.org>
-Date: Sun, 31 Jul 2005 03:22:43 +0000
-Subject: [2.6 Patch 2/3] Kconfig updates and cleanup: drivers/char/Kconfig
-Message-Id: <1122780163.15363.26.camel@cloud.outersquare.org>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-olN1fBy/dYXFWaMR4WI2"
+From: Kent Tong <kent@cpttm.org.mo>
+Date: Wed, 27 Jul 2005 10:31:35 +0000
+Subject: eth0: TX MAC max packet size error
+Message-Id: <42E76287.1010907@cpttm.org.mo>
 List-Id: <sparclinux.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Hi,
 
---=-olN1fBy/dYXFWaMR4WI2
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+I'm running Debian sarge (kernel 2.6.8-2-sparc64) on a
+Sun Blade 100. I'm getting the following errors from
+time to time:
 
-This one is also rather trivial.
+Jul 27 14:22:37 cladms003 kernel: eth0: TX MAC max packet size error.
+Jul 27 14:22:38 cladms003 kernel: eth0: TX MAC xmit underrun.
+Jul 27 14:22:38 cladms003 kernel: eth0: TX MAC xmit underrun.
 
-Added missing dependencies on PCI/ISA to some Kconfig options
+Once it happens, eth0 will be dead, eg, it won't respond
+to ping or other connection attempts. It will work again
+if I issue "/etc/init.d/network restart".
 
-Signed-off-by: Jeremy Huddleston <eradicator@gentoo.org>
+Any help would be much appreciated!
 
-diff -Naurp linux-2.6.13-rc3-git4/drivers/char/Kconfig
-linux-2.6.13-rc3-git4-gentoo/drivers/char/Kconfig
---- linux-2.6.13-rc3-git4/drivers/char/Kconfig	2005-07-24
-14:07:00.675871584 -0700
-+++ linux-2.6.13-rc3-git4-gentoo/drivers/char/Kconfig	2005-07-24
-14:05:19.753572397 -0700
-@@ -80,7 +80,7 @@ config SERIAL_NONSTANDARD
-=20
- config COMPUTONE
- 	tristate "Computone IntelliPort Plus serial support"
--	depends on SERIAL_NONSTANDARD && BROKEN_ON_SMP
-+	depends on SERIAL_NONSTANDARD && BROKEN_ON_SMP && (PCI || ISA)
- 	---help---
- 	  This driver supports the entire family of Intelliport II/Plus
- 	  controllers with the exception of the MicroChannel controllers and
-@@ -95,7 +95,7 @@ config COMPUTONE
-=20
- config ROCKETPORT
- 	tristate "Comtrol RocketPort support"
--	depends on SERIAL_NONSTANDARD
-+	depends on SERIAL_NONSTANDARD && (PCI || ISA)
- 	help
- 	  This driver supports Comtrol RocketPort and RocketModem PCI
-boards.  =20
-           These boards provide 2, 4, 8, 16, or 32 high-speed serial
-ports or
-@@ -110,7 +110,7 @@ config ROCKETPORT
-=20
- config CYCLADES
- 	tristate "Cyclades async mux support"
--	depends on SERIAL_NONSTANDARD
-+	depends on SERIAL_NONSTANDARD && (PCI || ISA)
- 	---help---
- 	  This driver supports Cyclades Z and Y multiserial boards.
- 	  You would need something like this to connect more than two modems
-to
-@@ -138,7 +138,7 @@ config CYZ_INTR
-=20
- config DIGIEPCA
- 	tristate "Digiboard Intelligent Async Support"
--	depends on SERIAL_NONSTANDARD && BROKEN_ON_SMP
-+	depends on SERIAL_NONSTANDARD && BROKEN_ON_SMP && (PCI || ISA)
- 	---help---
- 	  This is a driver for Digi International's Xx, Xeve, and Xem series
- 	  of cards which provide multiple serial ports. You would need
-@@ -166,7 +166,7 @@ config ESPSERIAL
-=20
- config MOXA_INTELLIO
- 	tristate "Moxa Intellio support"
--	depends on SERIAL_NONSTANDARD && BROKEN_ON_SMP
-+	depends on SERIAL_NONSTANDARD && BROKEN_ON_SMP && (PCI || ISA)
- 	help
- 	  Say Y here if you have a Moxa Intellio multiport serial card.
-=20
-@@ -175,7 +175,7 @@ config MOXA_INTELLIO
-=20
- config MOXA_SMARTIO
- 	tristate "Moxa SmartIO support"
--	depends on SERIAL_NONSTANDARD
-+	depends on SERIAL_NONSTANDARD && (PCI || ISA)
- 	help
- 	  Say Y here if you have a Moxa SmartIO multiport serial card.
-=20
-@@ -208,7 +208,7 @@ config SYNCLINK
-=20
- config SYNCLINKMP
- 	tristate "SyncLink Multiport support"
--	depends on SERIAL_NONSTANDARD
-+	depends on SERIAL_NONSTANDARD && (PCI || ISA)
- 	help
- 	  Enable support for the SyncLink Multiport (2 or 4 ports)
- 	  serial adapter, running asynchronous and HDLC communications up
-@@ -234,7 +234,7 @@ config N_HDLC
-=20
- config RISCOM8
- 	tristate "SDL RISCom/8 card support"
--	depends on SERIAL_NONSTANDARD && BROKEN_ON_SMP
-+	depends on SERIAL_NONSTANDARD && BROKEN_ON_SMP && (PCI || ISA)
- 	help
- 	  This is a driver for the SDL Communications RISCom/8 multiport card,
- 	  which gives you many serial ports. You would need something like
-@@ -247,7 +247,7 @@ config RISCOM8
-=20
- config SPECIALIX
- 	tristate "Specialix IO8+ card support"
--	depends on SERIAL_NONSTANDARD
-+	depends on SERIAL_NONSTANDARD && (PCI || ISA)
- 	help
- 	  This is a driver for the Specialix IO8+ multiport card (both the
- 	  ISA and the PCI version) which gives you many serial ports. You
-@@ -271,7 +271,7 @@ config SPECIALIX_RTSCTS
-=20
- config SX
- 	tristate "Specialix SX (and SI) card support"
--	depends on SERIAL_NONSTANDARD
-+	depends on SERIAL_NONSTANDARD && (PCI || ISA)
- 	help
- 	  This is a driver for the SX and SI multiport serial cards.
- 	  Please read the file <file:Documentation/sx.txt> for details.
-@@ -282,7 +282,7 @@ config SX
-=20
- config RIO
- 	tristate "Specialix RIO system support"
--	depends on SERIAL_NONSTANDARD && BROKEN_ON_SMP
-+	depends on SERIAL_NONSTANDARD && BROKEN_ON_SMP && (PCI || ISA)
- 	help
- 	  This is a driver for the Specialix RIO, a smart serial card which
- 	  drives an outboard box that can support up to 128 ports.  Product
-@@ -291,7 +291,7 @@ config RIO
-=20
- config RIO_OLDPCI
- 	bool "Support really old RIO/PCI cards"
--	depends on RIO
-+	depends on RIO && PCI
- 	help
- 	  Older RIO PCI cards need some initialization-time configuration to
- 	  determine the IRQ and some control addresses.  If you have a RIO and
-@@ -299,7 +299,7 @@ config RIO_OLDPCI
-=20
- config STALDRV
- 	bool "Stallion multiport serial support"
--	depends on SERIAL_NONSTANDARD
-+	depends on SERIAL_NONSTANDARD && (PCI || ISA)
- 	help
- 	  Stallion cards give you many serial ports.  You would need something
- 	  like this to connect more than two modems to your Linux box, for
-@@ -687,7 +687,8 @@ config NVRAM
-=20
- config RTC
- 	tristate "Enhanced Real Time Clock Support"
--	depends on !PPC32 && !PARISC && !IA64 && !M68K
-+	depends on !PPC32 && !PARISC && !IA64 && !M68K && (!SPARC32 || PCI) &&
-(!SPARC64 || PCI)
-+	default y if SPARC64
- 	---help---
- 	  If you say Y here and create a character special file /dev/rtc with
- 	  major number 10 and minor number 135 using mknod ("man mknod"), you
-@@ -792,6 +793,7 @@ config COBALT_LCD
-=20
- config DTLK
- 	tristate "Double Talk PC internal speech card support"
-+	depends on ISA
- 	help
- 	  This driver is for the DoubleTalk PC, a speech synthesizer
- 	  manufactured by RC Systems (<http://www.rcsys.com/>).  It is also
-
-
---=-olN1fBy/dYXFWaMR4WI2
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQBC7EQDOpjtAl+gMRURAsd1AJkBkWL3/v/fTkCcNjT+BMFw1Bbg5ACaArj4
-oyjohkJiyMkmYrzVHyK2OzA=
-=P43o
------END PGP SIGNATURE-----
-
---=-olN1fBy/dYXFWaMR4WI2--
-
+-- 
+Kent Tong, Msc, MCSE, SCJP, CCSA, Delphi Certified
+Manager of IT Dept, CPTTM
+Authorized training for Borland, Cisco, Microsoft, Oracle, RedFlag & RedHat
