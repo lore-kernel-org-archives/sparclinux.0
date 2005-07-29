@@ -1,22 +1,37 @@
-From: Alexander <Armada@xris.com>
-Date: Fri, 22 Jul 2005 03:07:19 +0000
-Subject: Software Megastore
-Message-Id: <1364544434.33606280@localhost>
+From: "Annette Stanley" <ecyufndemxyy@msn.com>
+Date: Fri, 29 Jul 2005 06:47:58 +0000
+Subject: Does Ur Cock Hard Enough? JUO9GO
+Message-Id: <E1A572M-4470nV-00ecyufndemxyy@msn.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Pinnacle Liquid Edition 6.0 - $39.95
-http://bloodstain.jetlow.com/
+
+"Ci-ialis Softabs" is better than Pfizer Viiagrra
+and normal Ci-ialis because:
+
+- Guaaraantees 36 hours lasting
+- Safe to take, no side effects at all
+- Boost and increase se-xual performance
+- Haarder e-rectiions and quick recharge
+- Proven and certified by experts and doctors
+- only $3.99 per tabs
+
+Cllick heree:
+http://pockmarked.com/cs/?ronn
 
 
 
 
 
-Cogito ergo sum. (I think; therefore I am.)     
-I dont want to be cross, Love cannot be forced.   
-Sometimes I think war is God's way of teaching us geography.  
 
 
+
+
+
+o-ut of mai-lling lisst:
+http://pockmarked.com/rm.php?ronn
+
+26eR
