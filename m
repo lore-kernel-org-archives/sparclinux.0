@@ -1,39 +1,38 @@
-From: Jason Wever <weeve@gentoo.org>
-Date: Sun, 28 Aug 2005 03:14:53 +0000
-Subject: kenvctrld using excessive CPU
-Message-Id: <20050827211453.14abe4ba@enterprise.weeve.org>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Signature_Sat__27_Aug_2005_21_14_53_-0600_mLrXQK7khImlPGtM"
+From: "Sauerwald Fridrich" <fridwd03@msn.com>
+Date: Tue, 02 Aug 2005 15:56:01 +0000
+Subject: REPRESENTATIVE NEEDED,
+Message-Id: <BAY105-F36C4D4C325411E754D1D2DCCC20@phx.gbl>
 List-Id: <sparclinux.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
---Signature_Sat__27_Aug_2005_21_14_53_-0600_mLrXQK7khImlPGtM
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Dear friend,
 
-Hi All,
+I represent WFS INC based in Finland. My company markets and exports 
+cotton,cocoa and other products for world trade. We are searching for 
+representatives who can help us establish a medium of getting to our 
+customers in Europe and America as well as making payments through you as 
+our payment officer. It is upon this note that we seek your assistance to 
+stand as our representative in your country.
 
-In both linux-2.6.13-rc6-git10 and 2.6.13-rc7 on a Blade 1000, kenvctrld
-is using excessive amounts of CPU (at some points just shy of 100%).=20
-The amount of CPU used fluxuates greatly and dramatically impacts system
-performance.
+Note that, as our representative, you will receive 5% of whatever amount you 
+clear for the company and the balance will be paid into an account we will 
+avail to you. Please, to facilitate the conclusion of this transaction if 
+accepted, do send me promptly by email the following:
 
-Has anyone else experienced anything like this?
+(1)Your full names.
+(2)Contact address.and,Phone/fax numbers.
+(3)Age.
 
-Thanks,
---=20
-Jason Wever
-Gentoo/Sparc Team Co-Lead
+Thank you for your time.
 
---Signature_Sat__27_Aug_2005_21_14_53_-0600_mLrXQK7khImlPGtM
-Content-Type: application/pgp-signature
+Very Respectfully,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDESwvdKvgdVioq28RAny9AKChrS67NqPHa+8xr9wQg940AD807QCgsXpP
-5U+t5mRA/3/TORvAJ0FmWiQ=
-=TrtM
------END PGP SIGNATURE-----
+Mr Sauerwald Wilhelm Fridrich. President,
+WFS INC.
+Finland.
 
---Signature_Sat__27_Aug_2005_21_14_53_-0600_mLrXQK7khImlPGtM--
+
