@@ -1,55 +1,30 @@
-From: Jiri Slaby <jirislaby@gmail.com>
-Date: Mon, 29 Aug 2005 22:27:42 +0000
-Subject: [PATCH 7/7] arch: pci_find_device remove (sparc64/kernel/ebus.c)
-Message-Id: <200508292227.j7TMRgNY020033@wscnet.wsc.cz>
+From: Alex Deucher <alexdeucher@gmail.com>
+Date: Tue, 02 Aug 2005 23:06:34 +0000
+Subject: strange issues with JFS on sparc64
+Message-Id: <a728f9f90508021606e3cf975@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-In-Reply-To: <200508292220.j7TMKbNC019793@wscnet.wsc.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <gregkh@suse.de>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pci@atrey.karlin.mff.cuni.cz, davem@davemloft.net, ecd@brainaid.de, jj@sunsite.ms.mff.cuni.cz, anton@samba.org, sparclinux@vger.kernel.org, ultralinux@vger.kernel.org
+To: sparclinux@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Dave Kleikamp <shaggy@austin.ibm.com>, ag@m-cam.com
 
-Generated in 2.6.13-rc6-mm2 kernel version.
+I have a 7 TB JFS volume on a sparc64 box (sun enterprise 220R)
+running 2.6.12.2 on debian sparc.   When copying large numbers of
+files, files start to dissappear, but they are not actually gone they
+just stop showing up.  when you delete enough files from the
+directory, all of a sudden all of the remaining files show up.  If I
+try and run an fsck on the volume I get a bus error.  It seems to be
+an issue with JFS on sparc64 as I have the same setup on AMD64 with no
+problems.  I talked to some of the IBM engineers and it seems like it
+may be an alignment problem on SPARC64.  I was hoping someone with
+more experience with SPARC hardware may have some input that could
+help us solve the problem.
+The full thread is here:
+http://sourceforge.net/mailarchive/forum.php?thread_idx52301&forum_idC911
 
-Signed-off-by: Jiri Slaby <xslaby@fi.muni.cz>
+Any insight is much appreciated.
 
- ebus.c |   17 ++++++-----------
- 1 files changed, 6 insertions(+), 11 deletions(-)
+Thanks,
 
-diff --git a/arch/sparc64/kernel/ebus.c b/arch/sparc64/kernel/ebus.c
---- a/arch/sparc64/kernel/ebus.c
-+++ b/arch/sparc64/kernel/ebus.c
-@@ -527,19 +527,13 @@ static struct pci_dev *find_next_ebus(st
- {
- 	struct pci_dev *pdev = start;
- 
--	do {
--		pdev = pci_find_device(PCI_VENDOR_ID_SUN, PCI_ANY_ID, pdev);
--		if (pdev &&
--		    (pdev->device = PCI_DEVICE_ID_SUN_EBUS ||
--		     pdev->device = PCI_DEVICE_ID_SUN_RIO_EBUS))
-+	while (pdev = pci_get_device(PCI_VENDOR_ID_SUN, PCI_ANY_ID, pdev))
-+		if (pdev->device = PCI_DEVICE_ID_SUN_EBUS ||
-+			pdev->device = PCI_DEVICE_ID_SUN_RIO_EBUS)
- 			break;
--	} while (pdev != NULL);
--
--	if (pdev && (pdev->device = PCI_DEVICE_ID_SUN_RIO_EBUS))
--		*is_rio_p = 1;
--	else
--		*is_rio_p = 0;
- 
-+	*is_rio_p = !!(pdev && (pdev->device = PCI_DEVICE_ID_SUN_RIO_EBUS));
-+	
- 	return pdev;
- }
- 
-@@ -637,6 +631,7 @@ void __init ebus_init(void)
- 		ebus->is_rio = is_rio;
- 		++num_ebus;
- 	}
-+	pci_dev_put(pdev); /* XXX for the case, when ebusnd is 0, is it OK? */
- 
- #ifdef CONFIG_SUN_AUXIO
- 	auxio_probe();
+Alex
