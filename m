@@ -1,41 +1,64 @@
-From: Jurij Smakov <jurij@wooyd.org>
-Date: Thu, 04 Aug 2005 01:26:19 +0000
-Subject: atyfb driver regression between 2.6.8 and 2.6.11/12
-Message-Id: <Pine.LNX.4.61.0508032115450.9739@bobcat>
+From: "Harken T. Exposition" <lenny@allsaintsfan.com>
+Date: Wed, 03 Aug 2005 23:22:24 +0000
+Subject: =?koi8-r?B?PT9rb2k4LXI/Qj9kMmhsY21VZ2VXOTFQd289PT89DQ==?=
+Message-Id: <3400698357.20050804064424@allsaintsfan.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi,
+Dear Sir/Madam
 
-We have received a couple of reports [0] of atyfb driver misbehaving on 
-Blade 100 in 2.6.11 and .12 (works fine in 2.6.8). It is reported that in 
-console the first column of symbols is corrupt/missing and in X the mouse 
-cursor is not visible, even though X appears to function properly 
-otherwise. Bug submitter noticed, that the driver prints out different 
-MCLK value during initalization on 2.6.8 and 2.6.11. On 2.6.8 (where 
-everything works properly) he gets:
+Are you really looking for job?
 
-atyfb: 3D RAGE (XL) [0x4752 rev 0x27] 8M SDRAM, 29.498928 MHz XTAL, 230 MHz PLL, 100 Mhz MCLK
+One of the biggest Finance Company of East Europe is glad to offer
+excellent work providing real money to you!! No need to invest or buy
+products in order to work with us.
 
-while on 2.6.11 it reads
+No money to start?
 
-atyfb: 3D RAGE XL (Mach64 GR, PCI-33MHz) [0x4752 rev 0x27]
-atyfb: 8M SDRAM (1:1), 29.498928 MHz XTAL, 230 MH z PLL, 83 Mhz MCLK, 63 MHz XCLK
+About us:
 
-Disabling framebuffer by passing a 'video=atyfb:off vga=normal' boot 
-option fixes the cursor in X, however there are still some issues on the 
-console.
+Real Capitalz Finance Company, Lithuania  was founded in 1995 by a team of
+antiquities experts. By now our company has grown from a small company
+with 7 employees to an international group with several representative
+offices in different countries of the world. Nowadays we are not just
+selling and buying antiques, but are also dealing with organizations of
+international exhibitions, seminars, tours and many other things. For more
+information:  http://www.realcapitalz.net
 
-I have tried to poke it myself, but it looks like there has been a ton of 
-changes to the driver, which will take me ages to figure out. If you have 
-any ideas on how to fix it, please let me know.
+Our vacancies:
 
-[0] http://bugs.debian.org/317756
+Now clients of our company conduct financial operations all over the world
+including UK, but due to sufficient perfection in Banking Service
+we have some difficulties in translation and reorganization of our
+business, therefore we are planning to open branches in which we require
+UK. Now we are looking for financial assistants who will be
+responsible to accept payments from our clients. At this moment we provide
+and offer work at home, after opening offices in UK, you will have
+an opportunity for working in our offices as well.
 
-Best regards,
+Today we are looking for financial assistants that will be responsible to
+accept payments from clients through bank transfer, because of
+imperfection of bank system. UK partners of our clients have some
+difficulties with sending bank translations and cheques to East Europe.
+You can make 10 % commission from every transfer you will receive through
+relative to our business. The rest needs to be transferred to our
+company's representative by Western Union; all Western Union fees are paid
+by us. On average you will be making 2,000 US Dollars per week.
 
-Jurij Smakov                                        jurij@wooyd.org
-Key: http://www.wooyd.org/pgpkey/                   KeyID: C99E03CC
+We believe that you can get good future and achievements in our business.
+If our offer is interesting to you, please feel free in sending a mail to
+our HR office. For more information our crew of Human Resources is ready
+to answer all your questions.
+
+If you are ready to begin work with us to you it is necessary to make
+registration at us on a site. The personal account from our site with
+which you also will receive constantly to work. After your registration on
+a site during 24 hours we start to work for us with you. If you are ready
+come on our site click " REGISTER"
+
+Best Regards
+Real Capitalz Company Lithuania
+
