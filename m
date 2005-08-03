@@ -1,48 +1,29 @@
-From: Olaf Hering <olh@suse.de>
-Date: Sat, 06 Aug 2005 16:27:56 +0000
-Subject: [PATCH] remove linux/pagemap.h from linux/swap.h
-Message-Id: <20050806162756.GA10132@suse.de>
+From: "Art Haas" <ahaas@airmail.net>
+Date: Wed, 03 Aug 2005 14:38:53 +0000
+Subject: Problems with current git on sparc32
+Message-Id: <20050803143853.GH8930@artsapartment.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org
-Cc: sparclinux@vger.kernel.org, bboissin@gmail.com
+To: sparclinux@vger.kernel.org
 
+Hi.
 
-sparc can not include linux/pagemap.h because of the following circular
-dependency:
+I'm unable to build the current git kernel on my SS20. Things have not
+worked for me since after the 2.6.13-rc2 release, a successful build of
+which is currently running. The kernel build fails with lots of warnings
+and errors spewing forth from pagemap.h, highmem.h, pgtable.h issues.
+As I've not seen much traffic on the list lately, I'm curious to know if
+others can build the current kernel on sparc32 machines. If so then I've
+got some config option set that is wreaking havoc, or some other
+localized problem.
 
-asm-sparc/pgtable include linux/swap.h
-linux/swap.h include now linux/pagemap.h
-linux/pagemap.h include linux/mm.h
-linux/mm.h include asm/pgtable.h
+Thanks in advance.
 
-It needs to have the swp_entry_t type fully visible in pgtable.h,
-we can't work around this using macros.
+Art Haas
+-- 
+Man once surrendering his reason, has no remaining guard against absurdities
+the most monstrous, and like a ship without rudder, is the sport of every wind.
 
-Signed-off-by: Olaf Hering <olh@suse.de>
-
- include/linux/swap.h |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
-
-Index: linux-2.6.13-rc5-git3.sparc/include/linux/swap.h
-=================================--- linux-2.6.13-rc5-git3.sparc.orig/include/linux/swap.h
-+++ linux-2.6.13-rc5-git3.sparc/include/linux/swap.h
-@@ -7,7 +7,6 @@
- #include <linux/mmzone.h>
- #include <linux/list.h>
- #include <linux/sched.h>
--#include <linux/pagemap.h>
- 
- #include <asm/atomic.h>
- #include <asm/page.h>
-@@ -255,6 +254,8 @@ static inline void put_swap_token(struct
- 
- #define si_swapinfo(val) \
- 	do { (val)->freeswap = (val)->totalswap = 0; } while (0)
-+/* only sparc can not include linux/pagemap.h in this file
-+ * so leave page_cache_release and release_pages undeclared... */
- #define free_page_and_swap_cache(page) \
- 	page_cache_release(page)
- #define free_pages_and_swap_cache(pages, nr) \
+-Thomas Jefferson to James Smith, 1822
