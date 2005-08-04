@@ -1,23 +1,35 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Sat, 06 Aug 2005 15:49:50 +0000
-Subject: Re: [PATCH] implicit declaration of function `page_cache_release'
-Message-Id: <20050806.084950.74730249.davem@davemloft.net>
+From: Mathieu Chouquet-Stringer <mchouque@free.fr>
+Date: Thu, 04 Aug 2005 13:48:03 +0000
+Subject: [PATCH] Remove errno declaration in drivers/sbus/char/envctrl.c
+Message-Id: <20050804134803.GA32109@localhost>
 List-Id: <sparclinux.vger.kernel.org>
-References: <40f323d00508051218c30d7af@mail.gmail.com>
-	<20050806.065520.85401639.davem@davemloft.net>
-	<20050806150103.GA21821@suse.de>
-In-Reply-To: <20050806150103.GA21821@suse.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: olh@suse.de
-Cc: bboissin@gmail.com, akpm@osdl.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Olaf Hering <olh@suse.de>
-Date: Sat, 6 Aug 2005 17:01:03 +0200
+errno is already declarded in linux/errno.h:
 
-> So the patch should be reverted? Its only for CONFIG_SWAP=n, rather
-> unusual for KDE/GNOME tainted workstations...
+drivers/sbus/char/envctrl.c:40: error: static declaration of 'errno' follows non-static declaration
+include/linux/unistd.h:4: error: previous declaration of 'errno' was here
+make[3]: *** [drivers/sbus/char/envctrl.o] Error 1
+make[2]: *** [drivers/sbus/char] Error 2
+make[1]: *** [drivers/sbus] Error 2
+make: *** [drivers] Error 2
 
-Not necessarily, but the header dependencies should be fixed
-up somehow.
+
+Moreover errno isn't used in this file at all so the following patch
+(against latest git tree) just removes it (kernel compiles fine).
+
+Signed-off-by: Mathieu Chouquet-Stringer <mchouque@free.fr>
+
+--- linux-2.6/drivers/sbus/char/envctrl.c	2005-07-25 20:28:43.000000000 -0400
++++ linux-2.6-mat/drivers/sbus/char/envctrl.c	2005-08-04 09:13:48.000000000 -0400
+@@ -37,7 +37,6 @@
+ #include <asm/uaccess.h>
+ #include <asm/envctrl.h>
+ 
+-static int errno;
+ #include <asm/unistd.h>
+ 
+ #define ENVCTRL_MINOR	162
