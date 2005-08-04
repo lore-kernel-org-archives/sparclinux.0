@@ -1,30 +1,41 @@
-From: Alex Deucher <alexdeucher@gmail.com>
-Date: Tue, 02 Aug 2005 23:06:34 +0000
-Subject: strange issues with JFS on sparc64
-Message-Id: <a728f9f90508021606e3cf975@mail.gmail.com>
+From: Jurij Smakov <jurij@wooyd.org>
+Date: Thu, 04 Aug 2005 01:26:19 +0000
+Subject: atyfb driver regression between 2.6.8 and 2.6.11/12
+Message-Id: <Pine.LNX.4.61.0508032115450.9739@bobcat>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Dave Kleikamp <shaggy@austin.ibm.com>, ag@m-cam.com
+To: sparclinux@vger.kernel.org
 
-I have a 7 TB JFS volume on a sparc64 box (sun enterprise 220R)
-running 2.6.12.2 on debian sparc.   When copying large numbers of
-files, files start to dissappear, but they are not actually gone they
-just stop showing up.  when you delete enough files from the
-directory, all of a sudden all of the remaining files show up.  If I
-try and run an fsck on the volume I get a bus error.  It seems to be
-an issue with JFS on sparc64 as I have the same setup on AMD64 with no
-problems.  I talked to some of the IBM engineers and it seems like it
-may be an alignment problem on SPARC64.  I was hoping someone with
-more experience with SPARC hardware may have some input that could
-help us solve the problem.
-The full thread is here:
-http://sourceforge.net/mailarchive/forum.php?thread_idx52301&forum_idC911
+Hi,
 
-Any insight is much appreciated.
+We have received a couple of reports [0] of atyfb driver misbehaving on 
+Blade 100 in 2.6.11 and .12 (works fine in 2.6.8). It is reported that in 
+console the first column of symbols is corrupt/missing and in X the mouse 
+cursor is not visible, even though X appears to function properly 
+otherwise. Bug submitter noticed, that the driver prints out different 
+MCLK value during initalization on 2.6.8 and 2.6.11. On 2.6.8 (where 
+everything works properly) he gets:
 
-Thanks,
+atyfb: 3D RAGE (XL) [0x4752 rev 0x27] 8M SDRAM, 29.498928 MHz XTAL, 230 MHz PLL, 100 Mhz MCLK
 
-Alex
+while on 2.6.11 it reads
+
+atyfb: 3D RAGE XL (Mach64 GR, PCI-33MHz) [0x4752 rev 0x27]
+atyfb: 8M SDRAM (1:1), 29.498928 MHz XTAL, 230 MH z PLL, 83 Mhz MCLK, 63 MHz XCLK
+
+Disabling framebuffer by passing a 'video=atyfb:off vga=normal' boot 
+option fixes the cursor in X, however there are still some issues on the 
+console.
+
+I have tried to poke it myself, but it looks like there has been a ton of 
+changes to the driver, which will take me ages to figure out. If you have 
+any ideas on how to fix it, please let me know.
+
+[0] http://bugs.debian.org/317756
+
+Best regards,
+
+Jurij Smakov                                        jurij@wooyd.org
+Key: http://www.wooyd.org/pgpkey/                   KeyID: C99E03CC
