@@ -1,42 +1,39 @@
-From: Jurij Smakov <jurij@wooyd.org>
-Date: Sat, 09 Jul 2005 02:41:51 +0000
-Subject: [PATCH] panic on sparc32 in tty_wakeup on shutdown
-Message-Id: <Pine.LNX.4.61.0507082223570.3006@bobcat>
+From: Benoit Boissinot <bboissin@gmail.com>
+Date: Fri, 05 Aug 2005 19:18:38 +0000
+Subject: Re: [PATCH] implicit declaration of function `page_cache_release'
+Message-Id: <40f323d00508051218c30d7af@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20050708150313.GA30373@suse.de>
+	 <40f323d005080511516a81a7d6@mail.gmail.com>
+	 <20050805190006.GA6747@suse.de>
+In-Reply-To: <20050805190006.GA6747@suse.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Olaf Hering <olh@suse.de>
+Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-Hi,
+On 8/5/05, Olaf Hering <olh@suse.de> wrote:
+>  On Fri, Aug 05, Benoit Boissinot wrote:
+> 
+> > On 7/8/05, Olaf Hering <olh@suse.de> wrote:
+> > >
+> > > In file included from include2/asm/tlb.h:31,
+> > >                  from linux-2.6.13-rc2-olh/arch/ppc64/kernel/pSeries_lpar.c:37:
+> > > linux-2.6.13-rc2-olh/include/asm-generic/tlb.h: In function `tlb_flush_mmu':
+> > > linux-2.6.13-rc2-olh/include/asm-generic/tlb.h:77: warning: implicit declaration of function `release_pages'
+> > > linux-2.6.13-rc2-olh/include/asm-generic/tlb.h: In function `tlb_remove_page':
+> > > linux-2.6.13-rc2-olh/include/asm-generic/tlb.h:117: warning: implicit declaration of function `page_cache_release'
+> > >
+> > This went in 2.6.13-rc3 (commit
+> > 542d1c88bd7f73e2e59d41b12e4a9041deea89e4), and broke sparc compilation
+> > because of the following circular dependency:
+> > asm-sparc/pgtable include linux/swap.h
+> 
+> Why does it need swap.h? Do the users of pgtable.h rely on swap.h?
+> 
+sparc is the only architecture to do that, it looks like it uses it
+for boot time linking (BTFIXUP_*). I don't know anything about sparc,
+so i can't fix it.
 
-The panic in tty_wakeup panic on shutdown, triggered on sparc32 with 
-pristine kernels, is not present in Debian kernels. It turns out that the 
-following patch (which I was not aware of) has been used in Debian for a 
-while now to take care of that problem:
-
----------------------------cut here--------------------------------
---- kernel-source-2.6.11-2.6.11-orig/drivers/serial/serial_core.c	2005-03-02 08:37:50.000000000 +0100
-+++ kernel-source-2.6.11-2.6.11/drivers/serial/serial_core.c	2005-03-05 10:46:43.417109240 +0100
-@@ -108,7 +108,8 @@
-  static void uart_tasklet_action(unsigned long data)
-  {
-  	struct uart_state *state = (struct uart_state *)data;
--	tty_wakeup(state->info->tty);
-+	if (state->info->tty)
-+		tty_wakeup(state->info->tty);
-  }
-
-  static inline void
----------------------------cut here--------------------------------
-
-As I understand it, the cause of the problem is a race condition, with 
-state->info->tty being destroyed somewhere between scheduling of the 
-tasklet and its execution. This patch is not a proper solution, as it does 
-not eliminate the source of the race, but hopefully it can provide the 
-insight needed to fix the problem.
-
-Best regards,
-
-Jurij Smakov                                        jurij@wooyd.org
-Key: http://www.wooyd.org/pgpkey/                   KeyID: C99E03CC
+(adding sparclinux@vger.kernel.org to the cc list)
