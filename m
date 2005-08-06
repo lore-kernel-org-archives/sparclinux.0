@@ -1,79 +1,48 @@
-From: david Coulman <jgqiytc@acmeindustry.com>
-Date: Fri, 26 Aug 2005 22:27:04 +0000
-Subject: Small-cap market advisors soldered
-Message-Id: <13376647800744190333.079900.871904@decor-cw055.acmeindustry.com>
+From: Olaf Hering <olh@suse.de>
+Date: Sat, 06 Aug 2005 16:27:56 +0000
+Subject: [PATCH] remove linux/pagemap.h from linux/swap.h
+Message-Id: <20050806162756.GA10132@suse.de>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org
+Cc: sparclinux@vger.kernel.org, bboissin@gmail.com
 
-mastoid
 
-    Hot Oil Pick Of The Week- ORTE
+sparc can not include linux/pagemap.h because of the following circular
+dependency:
 
-We have uncovered a diamond here, ORTE is
-on the move for strong continued success.
-We are recommending it to all of our readers
-this week. With experts saying oil can reach
-five dollars per gallon by the end of the
-year, the oil industry is in strong demand
-more than ever before. This is why we are
-recommending ORTE now, this one will sky
-rocket easily, get it immediately.
+asm-sparc/pgtable include linux/swap.h
+linux/swap.h include now linux/pagemap.h
+linux/pagemap.h include linux/mm.h
+linux/mm.h include asm/pgtable.h
 
-*Company: Oretech, Inc.
-*Symb0l: ORTE . Pk
-*Current-Price: . 53
-*52 Wk High:  1. 60
-*3 to 4 Day target: 1. 10+
-*6 months taeget: 2. 30+
+It needs to have the swp_entry_t type fully visible in pgtable.h,
+we can't work around this using macros.
 
-Company Inside News:
+Signed-off-by: Olaf Hering <olh@suse.de>
 
-Oretech Announces Positive Test Results Extracting
-Oil from Tar Sands.
+ include/linux/swap.h |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-Oretech, Inc. announced today that the company has
-recently completed test processing on tar sands from
-the Athabasca region of Alberta, Canada. Preliminary
-results indicate the extraction of oil is apparently
-a higher percentage than that which is extracted by
-conventional methods, while remaining extremely
-environmentally friendly. The API gravity of the
-bitumen (oil) is significantly upgraded during the
-extraction process.
+Index: linux-2.6.13-rc5-git3.sparc/include/linux/swap.h
+=================================--- linux-2.6.13-rc5-git3.sparc.orig/include/linux/swap.h
++++ linux-2.6.13-rc5-git3.sparc/include/linux/swap.h
+@@ -7,7 +7,6 @@
+ #include <linux/mmzone.h>
+ #include <linux/list.h>
+ #include <linux/sched.h>
+-#include <linux/pagemap.h>
  
-Alberta's tar sands comprise one of the world's two
-largest sources of bitumen; the other is in Venezuela.
-These oil reserves are second only to Saudi Arabia,
-and are found only in three places in Alberta -- the
-Athabasca, Peace River and Cold Lake regions -- covering
-a total of nearly 140,800 square kilometers. These tar
-sands currently represent 54 per cent of Alberta's total
-oil production, and about one-third of all the oil
-produced in Canada. Output of marketable tar sands
-production increased to 858,000 barrels per day
-(bbl/d) in 2003, up from 741,000 bbl/d the year
-before. It is anticipated that in 2005, Alberta's
-tar sands production may account for one-half of
-Canada's total crude output and 10 per cent of
-North American production. 
-
-Oretech, Inc. has developed a proof of concept model
-that represents a breakthrough in oil extraction from
-Tar Sand processing technology. Its business model
-is to be a leading edge developer and licensor of
-proprietary innovative technology that reduces the
-cost of extraction of noble metals (Gold / Silver
-/ Platinum / Titanium) and energy resources (Oil
-Extraction from Tar Sand and Shale). Focusing on
-reducing pollution of the environment, Oretech
-is known for its breakthrough materials processing
-technology, which extracts specific minerals from
-diverse feedstock and raw materials without the
-use of harmful chemicals or the emission of
-environmentally unsafe gases. taproot
-
-rewritten amuser
-
+ #include <asm/atomic.h>
+ #include <asm/page.h>
+@@ -255,6 +254,8 @@ static inline void put_swap_token(struct
+ 
+ #define si_swapinfo(val) \
+ 	do { (val)->freeswap = (val)->totalswap = 0; } while (0)
++/* only sparc can not include linux/pagemap.h in this file
++ * so leave page_cache_release and release_pages undeclared... */
+ #define free_page_and_swap_cache(page) \
+ 	page_cache_release(page)
+ #define free_pages_and_swap_cache(pages, nr) \
