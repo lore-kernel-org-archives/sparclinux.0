@@ -1,29 +1,37 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Tue, 09 Aug 2005 20:31:26 +0000
-Subject: Re: [PATCH] use kthread infrastructure in envctrl
-Message-Id: <20050809.133126.03088922.davem@davemloft.net>
+From: Christoph Hellwig <hch@lst.de>
+Date: Tue, 09 Aug 2005 20:31:19 +0000
+Subject: [PATCH] remove ifdef CONFIG_PCI from envctrl.c
+Message-Id: <20050809203118.GA28805@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20050809135128.GA22257@lst.de>
-In-Reply-To: <20050809135128.GA22257@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Christoph Hellwig <hch@lst.de>
-Date: Tue, 9 Aug 2005 22:28:59 +0200
+The driver already depends on CONFIG_PCI in Kconfig.  What I don't quite
+understand yet is why a PCI-only driver sits in drivers/sbus/ ..
 
-> Sure.  While we're at it, is there a specific reason various sbus
-> drivers reimplement i2c functionality instead of using the common
-> code?
 
-There wer no suitable i2c client registry, sharing, and
-mutual exclusion facilities in the i2c layer at the time.
-That has, of course, changed.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-Another problem is that the device probing this driver
-wants to do is via the string names that are in the
-firmware device tree, and the i2c layer has no way for
-me to really plug in that stuff.
-
-Anyways, I'll apply this patch, thanks a lot.
+Index: linux-2.6/drivers/sbus/char/envctrl.c
+=================================--- linux-2.6.orig/drivers/sbus/char/envctrl.c	2005-08-09 20:16:59.000000000 +0200
++++ linux-2.6/drivers/sbus/char/envctrl.c	2005-08-09 22:29:45.000000000 +0200
+@@ -1041,7 +1041,6 @@
+ 
+ static int __init envctrl_init(void)
+ {
+-#ifdef CONFIG_PCI
+ 	struct linux_ebus *ebus = NULL;
+ 	struct linux_ebus_device *edev = NULL;
+ 	struct linux_ebus_child *edev_child = NULL;
+@@ -1133,9 +1132,6 @@
+ 			kfree(i2c_childlist[i].tables);
+ 	}
+ 	return err;
+-#else
+-	return -ENODEV;
+-#endif
+ }
+ 
+ static void __exit envctrl_cleanup(void)
