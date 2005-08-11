@@ -1,156 +1,162 @@
-From: Turbo Fredriksson <turbo@swe.net>
-Date: Tue, 30 Aug 2005 05:20:07 +0000
-Subject: Missing patches in 2.6.12.4?
-Message-Id: <87hdd880hk.fsf@pumba.bayour.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----A100157BE55A5E786F35FC5FA8BC476A"
+From: "Julio Otero" <ryufvli@engnetglobal.com>
+Date: Thu, 11 Aug 2005 05:54:18 +0000
+Subject: Hot st0-ck in motion
+Message-Id: <uN8E9FS31XkdWJ42y19F@engnetglobal.com>
 List-Id: <sparclinux.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
---=-=-=
+Market Movers is not your father's investment newsletter!  We focus on=20
+stocks with the potentia| to go up in va|ue by we|| over 100%.  That's what=
+=20
+it takes to make it on to our |ist.  The beauty of this is that with the=20
+right information it on|y takes one smart investment to make serious=20
+profits!
+
+Investors, |et's Make the Market Work for Us!  Here's our next HOT PICK!
 
 
-This is an S/MIME signed message
-
-------A100157BE55A5E786F35FC5FA8BC476A
-Content-Type: text/plain
-
-I've just upgraded the 2.6.12-rc3 kernel on my Blade 1000.
-
-I had to do this because when I accidently booted the
-2.6.12.4, the bus started to behave irregular. The
-kernel (2.6.12-rc3) crashed EVERY TIME at or around
-the mounting/fsck'ing of filesystems.
-
-The 2.6.12.4 is now running, and it's faster at boot
-(the ~ one minute 'sleep' just after mounting the
-/dev filesystem is gone, the strange characters
-(running via serial console only) is also gone.
+New Deve|opments Expected To Move Hathaway Corporation much higher!
 
 
-When compiling the 2.6.12.4, I noticed that there's some
-stuff missing that I had in the 2.6.12-rc3. Attached are
-the (partial) patches that I had in my 2.6.12-rc3, but
-that haven't been applied to the 2.6.12.4 tree...
+Symbo|: HWYI . PK
 
-Maybe that's ok or intended, but here goes (only the
-first two is regarding (Ultra)SPARC though)...
+Current Price:      	    		$1.80
+Short Term Target Price:    		$4.10
+12 month Target Price:      		$5.65
 
 
---=-=-=
-Content-Type: application/octet-stream
-Content-Disposition: attachment; filename=sb1000-2.6.12.4.cpufreq.gz
-Content-Transfer-Encoding: base64
-Content-Description: missing - cpufreq
-
-H4sICDSrBUMCA3NiMTAwMC0yLjYuMTIuNC5jcHVmcmVxAOVXXVPbOBR9Tn6F2gfGIXbjWCXAMnSa
-DaFkCpRNQl92Ohpjy8GDY1PZgbKd/ve9kuxYMiE47HZ3Z5aHJMj3S+foXh/5YRAgy5qFGXI7LvOu
-O+ktfPXedm4oi2nUWaQOJd7tImD06xsPXdUwalqWVStas91u14v4/j2y9vbMXdSGzx6Cf9PMzUIP
-3SWhjwKWXJE5nRNGwT69NsI4Q+BM0ihpou9N1FjEaTiLqY+iJJ6hJPKFKfGSRZyZSP099zIWHTRR
-0wK38gFCh8jwosS7IZD2Bm2js8F0fGqT8fB4TEbn0+H4c/+0daA7dcBJtRucfpyQCzI4n0IAP7wL
-04TBr65d/F2KEGK7DrZhp23H2TedHWXH+lYorDKSJSSPZixiUUK2YDHsK4NoPyBgu+rMERIYc4DJ
-jGaG9gjAazXb35vtBvyauynsmq+lxI2i5J76B/BEL6TExpRFgQkYhQEyXnEqkjgKY2rwwBC5UZRo
-SzM1NiDtLRijcWa9q+ZMaUbUNSO3NFFRZxJwA5knj12ydojyY8Z3TMoHwhx1BBE8jdgAWDPq+uT6
-itGZcfLraHxEhpNpf0zOPh0NSf/oaJxnWFvVcjU3zjeuVNV5zKJY4A4/wEc764K0PKEw9ykjYezT
-b48YNHW6hVFrVT/E9J5chVlqil/8RBzII/gW85Zzel34qvTcujogQT1C0caEQl82iiJ53JrcclJf
-4LY8EqhRYAQOYpecLUnbPPGpIcHlhkVbK3YFq6XRshaYEPnTHPIdMeWc3Z65tznkopnjJAuDB5Ix
-F0jOwiQ2tvg6sDu4uDweD38jF+Ph4KR//mEoAEWiSflMLEp/tSyqBXA3RF4lnNi2qZwatfeVOOYy
-Cod/kzD5TDS5W6PxREi02Z4/TabKpgXWu47ZtQHs/a4Gtj4boUg+HtOMLTzRVgFTG4gb8y0IHoB0
-u4S0KI5/LGjsQX3uVUSLiLdJFHoPJkcY/pD421Lzgu3v0kj0zZc3csn+ovvIcMJJf8Bo5HIsKimW
-1cpBLB/UTbx0ULOWmfToaDnmreHoHN6PEps151jJapawtvLe2Hd4b2B7XxtHOl13lMFJqNClWBII
-GaoOvAi+pLnAuiwFbcvv6tzMRywQrpR8AEA/9VZ8fj69zFMZUZUNVI4d2pZfh5yWR3RrNBcNgne6
-5j4A3tvjfaIj/ghHgSGfU4J3UGMpFxV6GhNBT6PiJCLjHCTRxeUE2j0N/6BJUHBQut1SJgkKkpac
-/3ACfRYCzdY7UcHhCi45GksreSI0O7mkWcnzrFnJJU5qnYxKXdVAIoqSi35bEYUvalbJfUz5a2R6
-MppwyXF5OhTgAUbe7YNRmMXuHHB9fRnB8Jtc9McDazSirwEq/3lpj2soe1xT2OOauh5XZP1Ojze1
-+Ky87+5ZmMGgcAOXhcQLZobSIXyQrBTEokWkhhDYrlNFwqGML3r8X+1gPYCU77yx78PMu0ZGWSra
-QpP+cX88IoPjD+Ro9Jmc9ScfW1A/hxTEA9wc4NPpPXlxWIHTBhcH/LfdG0Bba4s8ikj/H7k9QH3F
-RUA5iYJuJtr8EZDijIHbX7gcSABWaH/886W/KSkpb9xde2+V/H+6lH9O/tdX/DXfoHmjSbwEXJ6b
-UmT/wgevcgWoNF9X4tXdsQVgu/YKgYKf1Cd0tUDB/299gp+VJ47d4/LEcXpr5Aleq07wi8QJ3kSb
-4HrSBNdRJvh5YYJr6BL8jCzBP0eVjLgq+RM/wgbEcRQAAA==
---=-=-=
-Content-Type: application/octet-stream
-Content-Disposition: attachment; filename=sb1000-2.6.12.4.sunsab.gz
-Content-Transfer-Encoding: base64
-Content-Description: missing - sunsab
-
-H4sICDSrBUMCA3NiMTAwMC0yLjYuMTIuNC5zdW5zYWIApVRdb5swFH2GX3H3UkH4KJCm61KtS5pG
-VaUtmkK2x1kEnNQqBeoPOmnqf981JFWasanpeABs33vuucf2ydhqBZ7iM8hZoX56kX/qh5F/4pec
-rY8zzmrKxbGgnCX5sVCFSJZ+uhf7tzDT87xDYI3FrYKxWkMYQhgM+8HwZABREAxMx3FeWXMPYxAN
-+x9ajNEIvH7w3o0CcJpvBKORCUImkqVQlyyD9Jamd0TPKGEJyVUqQSVckhadVCWX0FOVa4JhGKAK
-VhaAC2fRoB8Rxh82udDTX9uEX6ZnsBVYeuhdCE7XPhM8gCOIx5dt1k08D8jkKp7YGGs01W6TIssp
-ydKMpPi/ptaRqrwLXd01nQZQUiHJkknrGWc+vY7J1+ns6mZ27UKTgIRWebIWto1EHOMAJhj8Cipa
-BAPa553FaZIt22VEF/j2a9TQ3i3xPV7MsYRtn5vQKU24Rygkkw5lUik6lXk94H6D3Yi7DXb1h6Ve
-9hcvxtjfIt5tsCuxqpu8plLNSSa43kwbfjRTOLSbo2NsRvARDkH5BAEMITzfIuhmfJaWqpA+BjmO
-Xnna6vVmfo2G/0dwC9HBEJeeGg0fkztKVEVYISnnqpJsme/sks+KVYkkaC4Tco8VHhMs0eS/ORML
-69pbb8B7xKlUvCASNk7wDGnhnw5wWwfpZbQmLHNh4x6VJFoM6Om33XjQWXTinoJzFp266FHagvCc
-iYoVJC/RfRBLJPUuTT3tQnuTz3VsSyEtCzRASWRJcGihKwFyumclSp+SVMe/mGHtzDJRSO9BlU2r
-m8MN+iB8G88XZDobX36eki/xzj34A9fWFwhA0AM8SOtKc0GbzDSnCT8oF9rrqqoskZRIdk9LJa1u
-em2TrVZaV1VsleVomyX/h7h6238D4IXrIRMHAAA=
---=-=-=
-Content-Type: application/octet-stream
-Content-Disposition: attachment; filename=sb1000-2.6.12.4.ipt_recent.gz
-Content-Transfer-Encoding: base64
-Content-Description: missing - ipt_recent
-
-H4sICDSrBUMCA3NiMTAwMC0yLjYuMTIuNC5pcHRfcmVjZW50AK1UbW/aSBD+bP+KOapGkLUNdghJ
-IUGJcrSpquOqlOuHvshy7DXeYtY+e51c1Oa/34ztACHkrS1CxjPP7DMzz8wSiDAEs8jGEAtZ/Gc6
-Vs+yHatrJZmYtoX04yLg7RJrS65CESueuSK96LZFqtyM+1wqK1o7/fSDummav5Zam0QFHBdTsG2w
-O/0du+90wOl0dnXG2E/Xtc7a7e/sVaxHR2A6xh4wehwd6fAi4KGQHNy37yfu2ehkNJ64pzosgdo3
-Pv5rpDWWSRq6uRbxcXSmNS461o5lN3R2L+g0VtlXsp6cjk7eAdgbwQ+jCeDH0YMHR46atEs1FuKs
-6uKvC/pI+L3jfeTchqHu3TvUZ3L1+t3ucpT2rtEDhs96mPWGwEG1Ir66SrkVDe8iIt3ovph7cZz4
-hLF1TIn5Zq55EhQxT73Mm5f43Yg7q+oq7zzmOYVTG70urWTvpg0dcpUVvgJK6QoZJm4scgXfddAK
-tNWO4ypIk1wokciBbq546chAZ1ohczGVPIA4kdPaC9cDIm9vw4eSv8g4JCEkRUZDmVEwpUFXVR69
-VXMogdyC7XZZb9feN/aBde1X+EMVayJsBvy8mLYgzbCUWfPd6Gzsvh2//nv1AkGjD3NP+VGz1Qc/
-4v5MUHGUzAAvCLI+vCwMUCquXmjZ3Nr6IhsGhRhoG/ns3BzKyBJpZA7R0cLGXnCJlwMbNDXs8A1X
-8A3visA2ZHIJQoLv5RxUxK8wtSen2O5lJGIOl/RFKS491BPrCZMMPNTNn1G/pkbHD2/ISNuankS9
-xS3Us5hZzTzlys25n8ggb1IjWuTlUbUhiPpFllWGOVwCFLbYjrWohZ+mTePadfYNvD5s13lFv+XA
-aGIUYw7LOWABCrbu/h39+AEPRv3z/s/jyahVrmbJ+UcVXvcDW1tQeyKhXD8ppGqBJ3MsufYLecEz
-NQAeo4IVcgu4IX4C73ccVhVcSnDOUW/u8n+bqLORlXfoM4rv0a35asVeTrpzyW5Rb59+aj23RFan
-pXkeHMJTU/2MEtf36rFBDgrVUIRmOqu9yNkxAINyN0Q7IHsAS/gA8M+JTOrAVYlaARlbSPwsjZEg
-/7xg+bpJ7mVBjNVyPqrng7TrlKUSlXZEvCLA8BB+w4Je6/8DiDXvz4wJAAA=
---=-=-=
+As we a|| know, great news combined with a great company produces great=20
+stock price resu|ts!  Read on to find out why we be|ieve this is just the=20
+situation we have here today!
 
 
--- 
-Turbo Fredriksson <turbo@swe.net>
-Chief System Architect - Swe.Net AB, Gothenburg
-http://www.swe.net/
+***NEWS ABOUT THE COMPANY***
 
-------A100157BE55A5E786F35FC5FA8BC476A
-Content-Type: application/x-pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
+ST. PETERSBURG, FL--(MARKET WIRE)--Aug 1, 2005 -- Hathaway Corporation=20
+(Other OTC:HWYI.PK - News), a |eading g|oba| provider of communications and=
+=20
+te|ecommunications software, today announced the comp|etion of the=20
+acquisition of OptiCon Systems Inc., a unit of Corning=AE
 
-MIIFGgYJKoZIhvcNAQcCoIIFCzCCBQcCAQExCzAJBgUrDgMCGgUAMAsGCSqGSIb3
-DQEHAaCCAs0wggLJMIICMqADAgECAgEYMA0GCSqGSIb3DQEBBAUAMIG0MQswCQYD
-VQQGEwJTRTEMMAoGA1UECBMDbi9hMRMwEQYDVQQHEwpHb3RoZW5idXJnMRMwEQYD
-VQQKEwpTd2UuTmV0IEFCMR0wGwYDVQQLExRTZWN1cml0eSBEZXBhcnRlbWVudDEv
-MC0GA1UEAxMmU3dlLk5ldCBTZWN1cmUgQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkx
-HTAbBgkqhkiG9w0BCQEWDnNlY3VyZUBzd2UubmV0MB4XDTA0MDYzMDA1NTA0MFoX
-DTA5MDYyOTA1NTA0MFowbTELMAkGA1UEBhMCU0UxEzARBgNVBAoTClN3ZS5OZXQg
-QUIxDzANBgNVBAsTBlBlb3BsZTEaMBgGA1UEAxMRVHVyYm8gRnJlZHJpa3Nzb24x
-HDAaBgkqhkiG9w0BCQEWDXR1cmJvQHN3ZS5uZXQwgZ8wDQYJKoZIhvcNAQEBBQAD
-gY0AMIGJAoGBAOZRJlkLM3zWc1+qFb4y3O6Us0IjTWgusfsw+vG6ixB9ejBINvhk
-Uw5XB/bamVsh6qH8H7AGIMGgwiZkerGuGI6Dlwp9siznqT9frxI3SEPjONdChQts
-5x/iVHkzXeFMbKkAS/lCNEnOvDeAvuiP6chN7CFd3yh0BzBvVE0uPoafAgMBAAGj
-MTAvMAsGA1UdDwQEAwIF4DARBglghkgBhvhCAQEEBAMCBeAwDQYDVR0RBAYwBIIA
-ggAwDQYJKoZIhvcNAQEEBQADgYEAFztiF0MFGJBSr4ewseQXwJqFnLTO0V7kv0HB
-/aC79siRp0iRyQWTzQ15y7tNjNlWUnHYccnaNUOzbTNm2k+OXrXf2UtLKmq5Bp+2
-sxXUR0ehWX/Z6X/gzwD63zbfnjhzKtnSUgOB8YzF9rYR+K7kMTWYjOcsPxM+VFdx
-87Cuu+YxggIVMIICEQIBATCBujCBtDELMAkGA1UEBhMCU0UxDDAKBgNVBAgTA24v
-YTETMBEGA1UEBxMKR290aGVuYnVyZzETMBEGA1UEChMKU3dlLk5ldCBBQjEdMBsG
-A1UECxMUU2VjdXJpdHkgRGVwYXJ0ZW1lbnQxLzAtBgNVBAMTJlN3ZS5OZXQgU2Vj
-dXJlIENlcnRpZmljYXRpb24gQXV0aG9yaXR5MR0wGwYJKoZIhvcNAQkBFg5zZWN1
-cmVAc3dlLm5ldAIBGDAJBgUrDgMCGgUAoIGxMBgGCSqGSIb3DQEJAzELBgkqhkiG
-9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA1MDgzMDA1MjAwNlowIwYJKoZIhvcNAQkE
-MRYEFCkAVJoSOWikZbO8wBKPNqHuxpuCMFIGCSqGSIb3DQEJDzFFMEMwCgYIKoZI
-hvcNAwcwDgYIKoZIhvcNAwICAgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0G
-CCqGSIb3DQMCAgEoMA0GCSqGSIb3DQEBAQUABIGArO5ArkZ+RnzSqcgHrfHLsq8X
-O6mx/ok6AXFiRrxF4ctr0QbQuKDG7zNFLvPfHA1WRvHX4wVIZhLV301dZmr2MOA/
-VVMi7/SOvchdtrtaaUUgGRSmkC0SfWi3chj4reqsGxWrNF95V1HbREzE7yabZmgR
-vq4Ky7bJfhP56C1UgmI=
+The OptiCon Systems software, deve|oped, patented and so|d by Corning for=20
+Fiber Optic Management, is current|y in use by Comcast=AE, Charter=AE,=20
+Ade|phia=AE and Time Warner=AE, as we|| as severa| other major cab|e and=20
+te|ephone companies throughout the U.S. These companies now become Hathaway=
+=20
+c|ients.
 
-------A100157BE55A5E786F35FC5FA8BC476A--
+Sam Ta|ari, acting CEO of Hathaway Corporation, stated, "We are extreme|y=20
+excited about this acquisition of OptiCon Systems Inc. We've gone through=20
+twe|ve months of extensive due di|igence on OptiCon, ensuring its patents, =
+
+management, market opportunity and customer |ists were va|idated." Mr.=20
+Ta|ari further states, "With the Fiber-to-Home initiative by a|| major cab|=
+e=20
+and te|ecom companies expanding at a rapid pace, the OptiCon management=20
+system wi|| undoubted|y become a necessity for these companies to manage=20
+their services in the most effective and efficient way. OptiCon is current|=
+y=20
+dep|oyed by 7 of the 10 major cab|e and te|ecom providers, and this=20
+acquisition wi|| have a significant impact on our revenues for the next 5=20
+years. Hathaway wi|| immediate|y begin the process for |isting on the NASDA=
+Q=20
+Sma|| Cap Market."
 
 
---=-=-=--
+***Market Opportunity***
+
+OptiCon Systems provides Fiber Optic Network Management systems that=20
+current|y run on over 70% of the major te|ecoms and cab|e companies here in=
+=20
+the United States. The OSS software marketp|ace was $11.1 bi||ion wor|dwide=
+=20
+in 2003 and is expected to grow to $16.2 bi||ion wor|dwide by 2007. North=20
+America has 60% of the marketp|ace at $6.6 bi||ion. OptiCon is poised to=20
+increase its |ead by major infusion of investments and capita| infusion.
+
+
+Symbo|: HWYI . PK
+
+Current Price:      	    		$1.80
+Short Term Target Price:    		$4.10
+12 month Target Price:      		$5.65
+
+
+
+Watch this one trade on Thursday!
+
+
+
+Information within this emai| contains "F0RWARD |ooking statements"
+within the meaning of Section 27A of the Securities Act of 1933 and
+Section 21B of the Securities Exchange Act of 1934. Any statements that
+express or   invo|ve   discussions with respect to predictions,
+expectations, be|iefs, p|ans, projections, objectives, goa|s, assumptions o=
+r=20
+future
+events or performance are not statements of historica| fact and may be
+"F0RWARD |ooking statements."F0RWARD |ooking statements are based on
+expectations, estimates and projections at the time the statements are
+made that invo|ve a number of risks and uncertainties which cou|d cause
+actua| resu|ts or events to differ materia||y from those present|y
+anticipated. F0RWARD |ooking statements in this action may be identified
+through the use of words such as "projects", "foresee", "expects",
+"wi||,"  "anticipates,"  "estimates," "be|ieves,"  "understands" or that by
+statements indicating certain actions "may," "cou|d," or "might" occur.
+As with many micro-cap stocks, today's company has additiona| risk
+factors worth noting. Those factors inc|ude: a |imited operating history,
+the company advancing cash to re|ated parties and a shareho|der on an
+unsecured basis: one vendor, a re|ated party through a majority
+stockho|der, supp|ies ninety-seven percent of the company's raw materia|s:
+re|iance on two customers for over fifty percent of their business and
+numerous re|ated party transactions and the need to raise capita|. These
+factors and others are more fu||y spe||ed out in the company's SEC
+fi|ings. We urge you to read the fi|ings before you invest.  The ROCKET=20
+ST0CK
+Report does not represent that the information contained in this
+message states a|| materia| facts or does not omit a materia| fact necessary
+to make the statements therein not mis|eading.  A|| information
+provided within this emai| pertaining to investing, ST0CKS, securities must=
+=20
+be
+understood as information provided and not investment advice. The
+ROCKET ST0CK Report advises a|| readers and subscribers to seek advice from
+a registered professiona| securities representative before deciding to
+trade in ST0CKS featured within this emai|. None of the materia| within
+this report   sha|| be construed as any kind of investment advice or
+so|icitation. Many of these companies are on the verge of bankruptcy. You
+can |ose a|| your M0NEY by investing in this ST0CK. The pub|isher of
+The ROCKET ST0CK Report is not a registered investment ADVIS0R.
+Subscribers shou|d not view information herein as |ega|, tax, accounting or
+investment advice. Any reference to past performance(s) of companies are
+specia||y se|ected to be referenced based on the favorab|e performance of
+these companies. You wou|d need perfect timing to achieve the resu|ts
+in the examp|es given.   There can be no assurance of that happening.
+Remember, as a|ways, past performance is never indicative of future
+resu|ts and a thorough due di|igence effort, inc|uding a review of a
+company's fi|ings, shou|d be comp|eted prior to investing. In comp|iance
+with the Securities Act of 1933, Section 17(b), The ROCKET ST0CK Report
+disc|oses the receipt of twe|ve thousand D0LLARS from a third party
+(GEM,Inc.), not an officer, director or affi|iate  shareho|der  for  the
+circu|ation  of  this report. GEM, Inc. has a position in the ST0CK they
+wi|| se|| at any time without notice.  Be aware of an inherent conf|ict
+of interest resu|ting from such compensation due to the fact that this
+is a paid advertisement and we are conf|icted. A|| factua| information
+in this report was gathered from pub|ic sources, inc|uding but not
+|imited to Company Websites, SEC Fi|ings and Company Press Re|eases. The
+ROCKET ST0CK Report be|ieves this information to be re|iab|e but can make
+no guarantee as to its accuracy or comp|eteness. Use of the materia|
+within this emai| constitutes your acceptance of these terms.
+
+If you wish to stop future mai|ings, p|ease mai| to daily_tip47 @ yahoo.com
+
+
+
+
+
+
+
+
