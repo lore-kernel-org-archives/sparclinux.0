@@ -1,29 +1,63 @@
-From: "Art Haas" <ahaas@airmail.net>
-Date: Wed, 03 Aug 2005 14:38:53 +0000
-Subject: Problems with current git on sparc32
-Message-Id: <20050803143853.GH8930@artsapartment.org>
+From: Kumar Gala <galak@freescale.com>
+Date: Wed, 24 Aug 2005 17:00:59 +0000
+Subject: [PATCH 13/15] sparc64: remove use of asm/segment.h
+Message-Id: <Pine.LNX.4.61.0508241159570.23956@nylon.am.freescale.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <Pine.LNX.4.61.0508241139100.23956@nylon.am.freescale.net>
+In-Reply-To: <Pine.LNX.4.61.0508241139100.23956@nylon.am.freescale.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Andrew Morton <akpm@osdl.org>, davem@davemloft.net, sparclinux@vger.kernel.org, ultralinux@vger.kernel.org
 
-Hi.
+Removed sparc64 architecture specific users of asm/segment.h and
+asm-sparc64/segment.h itself
 
-I'm unable to build the current git kernel on my SS20. Things have not
-worked for me since after the 2.6.13-rc2 release, a successful build of
-which is currently running. The kernel build fails with lots of warnings
-and errors spewing forth from pagemap.h, highmem.h, pgtable.h issues.
-As I've not seen much traffic on the list lately, I'm curious to know if
-others can build the current kernel on sparc32 machines. If so then I've
-got some config option set that is wreaking havoc, or some other
-localized problem.
+Signed-off-by: Kumar Gala <kumar.gala@freescale.com>
 
-Thanks in advance.
+---
+commit 4c42a86cb24cd46d20ccb883b196e29bef6df18f
+tree 83888c48157ecf0783f19cd73634d6446ac29482
+parent 6ee9ded730a875d63e42add1c3094eca7d5a6cdf
+author Kumar K. Gala <kumar.gala@freescale.com> Wed, 24 Aug 2005 11:04:10 -0500
+committer Kumar K. Gala <kumar.gala@freescale.com> Wed, 24 Aug 2005 11:04:10 -0500
 
-Art Haas
--- 
-Man once surrendering his reason, has no remaining guard against absurdities
-the most monstrous, and like a ship without rudder, is the sport of every wind.
+ b/arch/sparc64/kernel/setup.c     |    1 -
+ b/include/asm-sparc64/processor.h |    1 -
+ include/asm-sparc64/segment.h     |    6 ------
+ 3 files changed, 8 deletions(-)
 
--Thomas Jefferson to James Smith, 1822
+diff --git a/arch/sparc64/kernel/setup.c b/arch/sparc64/kernel/setup.c
+--- a/arch/sparc64/kernel/setup.c
++++ b/arch/sparc64/kernel/setup.c
+@@ -33,7 +33,6 @@
+ #include <linux/cpu.h>
+ #include <linux/initrd.h>
+ 
+-#include <asm/segment.h>
+ #include <asm/system.h>
+ #include <asm/io.h>
+ #include <asm/processor.h>
+diff --git a/include/asm-sparc64/processor.h b/include/asm-sparc64/processor.h
+--- a/include/asm-sparc64/processor.h
++++ b/include/asm-sparc64/processor.h
+@@ -18,7 +18,6 @@
+ #include <asm/a.out.h>
+ #include <asm/pstate.h>
+ #include <asm/ptrace.h>
+-#include <asm/segment.h>
+ #include <asm/page.h>
+ 
+ /* The sparc has no problems with write protection */
+diff --git a/include/asm-sparc64/segment.h b/include/asm-sparc64/segment.h
+deleted file mode 100644
+--- a/include/asm-sparc64/segment.h
++++ /dev/null
+@@ -1,6 +0,0 @@
+-#ifndef __SPARC64_SEGMENT_H
+-#define __SPARC64_SEGMENT_H
+-
+-/* Only here because we have some old header files that expect it.. */
+-
+-#endif
