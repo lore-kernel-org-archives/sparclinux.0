@@ -1,22 +1,26 @@
-From: "Jacklyn" <briantkqkn@completebook.com>
-Date: Fri, 02 Sep 2005 15:03:48 +0000
-Subject: Very beautiful amateur girls and posing nude
-Message-Id: <9875937392.608104739007@completebook.com>
+From: David Johnson <dj@david-web.co.uk>
+Date: Fri, 02 Sep 2005 15:44:53 +0000
+Subject: Re: Very beautiful amateur girls and posing nude
+Message-Id: <200509021644.53571.dj@david-web.co.uk>
 List-Id: <sparclinux.vger.kernel.org>
+References: <9875937392.608104739007@completebook.com>
+In-Reply-To: <9875937392.608104739007@completebook.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Alrite :)
+Could people please report this spam at the address below. Not only is sending 
+spam against the code of practice every UK premium rate phone number operator 
+must agree to, it is now also illegal under UK law.
 
-Mature / Mommy Phone sex
-Mature sex phone women at home
-Call Now!
-UK: 0908 391 8975
+http://www.icstis.org.uk/
 
-18+ only, bill payers permission required. Calls cost =A31.50 per minute al=
-l times, mobiles may vary.=20
-Service operated by Adult Voice Services LTD. P.O Box 111, Aldershot, GU12 =
-4DB
+Thanks,
+David.
 
+-- 
+David Johnson
+www.david-web.co.uk - My Personal Website
+www.ethereye.org.uk - EtherEye Network Host Checker
+www.penguincomputing.co.uk - Need a Web Developer?
