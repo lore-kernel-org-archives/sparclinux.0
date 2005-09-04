@@ -1,277 +1,154 @@
-From: Metalhead <metalhead@metalhead.ws>
-Date: Wed, 28 Sep 2005 14:28:41 +0000
-Subject: Re: [sparc32] Kernel module to control front LED
-Message-Id: <20050928162729.791340cc@huginn.midgard.yggdrasill>
+From: Jason Wever <weeve@gentoo.org>
+Date: Sun, 04 Sep 2005 21:30:24 +0000
+Subject: PCI device issues between Blade 100 and Blade 100
+Message-Id: <20050904153024.630204cb@enterprise.weeve.org>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Signature_Wed__28_Sep_2005_16_27_29_+0100_znWuawvJzV0g=h/J"
+Content-Type: multipart/mixed; boundary="Multipart_Sun__4_Sep_2005_15_30_24_-0600_es+DuEq7=WfViKod"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20050826192113.02c642a4@huginn.midgard.yggdrasill>
-In-Reply-To: <20050826192113.02c642a4@huginn.midgard.yggdrasill>
 To: sparclinux@vger.kernel.org
 
---Signature_Wed__28_Sep_2005_16_27_29_+0100_znWuawvJzV0g=h/J
+--Multipart_Sun__4_Sep_2005_15_30_24_-0600_es+DuEq7=WfViKod
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Hi,
+Hi All,
 
- I've changed the patch to use simple_strtoul() and included a signed-off-by
-line, thanks for the tip. Although this change was small, please be aware t=
-hat I
-didn't test this version, as I unfortunately don't have access to a sparcst=
-ation
-right now.
+I've been noticing some differences using PCI devices in 2.6 kernels
+between a Blade 100 and Blade 1000.
 
-Thanks.
+On a Blade 100, I've gotten a PCI USB2 controller (NEC chipset) to work
+using the ehci driver with no problems as well as a PCI cs46xx sound
+card (Hercules GameTheater XP).  However, when I try to use the same
+cards in the Blade 1000, the drivers appear to have issues getting IRQs
+when the drivers load.  Below is sample output from the 2.6.13 kernel of
+what happens when the drivers attempt to load;
 
-Lars
+USB controller;
+ehci_hcd 0001:00:01.2: NEC Corporation USB 2.0
+ehci_hcd 0001:00:01.2: reset hcs_params 0x2385 dbg=0 cc=2 pcc=3 !ppc
+ports=5 ehci_hcd 0001:00:01.2: reset portroute 1 0 1 0 0 
+ehci_hcd 0001:00:01.2: reset hcc_params 0002 thresh 0 uframes
+256/512/1024 ehci_hcd 0001:00:01.2: new USB bus registered, assigned bus
+number 1 ehci_hcd 0001:00:01.2: request interrupt 10,20e failed
+ehci_hcd 0001:00:01.2: USB bus 1 deregistered
+ehci_hcd 0001:00:01.2: init 0001:00:01.2 fail, -16
+ehci_hcd: probe of 0001:00:01.2 failed with error -16
+ohci_hcd: 2005 April 22 USB 1.1 'Open' Host Controller (OHCI) Driver
+(PCI) ohci_hcd: block sizes: ed 80 td 96
+ohci_hcd 0001:00:01.0: NEC Corporation USB
+ohci_hcd 0001:00:01.0: new USB bus registered, assigned bus number 1
+ohci_hcd 0001:00:01.0: request interrupt 10,20c failed
+ohci_hcd 0001:00:01.0: USB bus 1 deregistered
+ohci_hcd 0001:00:01.0: init 0001:00:01.0 fail, -16
+ohci_hcd: probe of 0001:00:01.0 failed with error -16
+ohci_hcd 0001:00:01.1: NEC Corporation USB (#2)
+ohci_hcd 0001:00:01.1: new USB bus registered, assigned bus number 1
+ohci_hcd 0001:00:01.1: request interrupt 10,20d failed
+ohci_hcd 0001:00:01.1: USB bus 1 deregistered
+ohci_hcd 0001:00:01.1: init 0001:00:01.1 fail, -16
+ohci_hcd: probe of 0001:00:01.1 failed with error -16
 
-diff -uprN linux-2.4.30-vanilla/Documentation/Configure.help linux-2.4.30-m=
-od/Documentation/Configure.help
---- linux-2.4.30-vanilla/Documentation/Configure.help	2005-04-04 01:42:19.0=
-00000000 +0000
-+++ linux-2.4.30-mod/Documentation/Configure.help	2005-08-25 20:32:22.00000=
-0000 +0000
-@@ -23069,6 +23083,17 @@ CONFIG_SUN_OPENPROMFS
-   <file:Documentation/modules.txt>.
-   The module will be called openpromfs.o.  If unsure, say M.
-=20
-+Control front LED on sun4m machines via /proc/led (EXPERIMENTAL)
-+CONFIG_SUN_LED
-+  This allows you to control the front LED on sun4m machines via /proc/led=
-. The
-+  state of the LED can also be queried.
-+
-+  On, off and toggle do what their names suggest, an integer number makes =
-the
-+  LED blink at this interval seconds, load makes it blink according to the
-+  system load (not available when compiled as a module).
-+
-+  If unsure, say N.
-+
- Kernel support for Linux/Sparc 32bit binary compatibility
- CONFIG_SPARC32_COMPAT
-   This allows you to run 32-bit binaries on your Ultra.
-diff -uprN linux-2.4.30-vanilla/arch/sparc/config.in linux-2.4.30-mod/arch/=
-sparc/config.in
---- linux-2.4.30-vanilla/arch/sparc/config.in	2004-11-17 11:54:21.000000000=
- +0000
-+++ linux-2.4.30-mod/arch/sparc/config.in	2005-08-25 20:32:38.000000000 +00=
-00
-@@ -64,6 +64,10 @@ else
-    define_bool CONFIG_PCI n
- fi
-=20
-+if [ "$CONFIG_PROC_FS" =3D "y" ]; then
-+   tristate 'Control front LED on sun4m machines via /proc/led (EXPERIMENT=
-AL)' CONFIG_SUN_LED
-+fi
-+
- tristate 'Openprom tree appears in /proc/openprom' CONFIG_SUN_OPENPROMFS
- bool 'Networking support' CONFIG_NET
- bool 'System V IPC' CONFIG_SYSVIPC
-diff -uprN linux-2.4.30-vanilla/arch/sparc/kernel/Makefile linux-2.4.30-mod=
-/arch/sparc/kernel/Makefile
---- linux-2.4.30-vanilla/arch/sparc/kernel/Makefile	2003-11-28 18:26:19.000=
-000000 +0000
-+++ linux-2.4.30-mod/arch/sparc/kernel/Makefile	2005-08-25 20:32:59.0000000=
-00 +0000
-@@ -33,6 +33,7 @@ obj-$(CONFIG_SMP) +=3D trampoline.o smp.o=20
- obj-$(CONFIG_SUN_AUXIO) +=3D auxio.o
- obj-$(CONFIG_PCI) +=3D ebus.o
- obj-$(CONFIG_SUN_PM) +=3D apc.o pmc.o
-+obj-$(CONFIG_SUN_LED) +=3D led.o
-=20
- ifdef CONFIG_SUNOS_EMUL
- obj-y +=3D sys_sunos.o sunos_ioctl.o
-diff -uprN linux-2.4.30-vanilla/arch/sparc/kernel/led.c linux-2.4.30-mod/ar=
-ch/sparc/kernel/led.c
---- linux-2.4.30-vanilla/arch/sparc/kernel/led.c	1970-01-01 00:00:00.000000=
-000 +0000
-+++ linux-2.4.30-mod/arch/sparc/kernel/led.c	2005-08-25 20:32:03.000000000 =
-+0000
-@@ -0,0 +1,170 @@
-+#include <linux/module.h>
-+#include <linux/proc_fs.h>
-+#include <linux/string.h>
-+#include <linux/timer.h>
-+#include <asm/auxio.h>
-+#include <asm/uaccess.h>
-+
-+#define MODULE_VERSION "0.1"
-+#define MODULE_NAME "led"
-+
-+MODULE_AUTHOR("Lars Kotthoff <metalhead@metalhead.ws>");
-+MODULE_DESCRIPTION("Provides control of the front LED on SPARC systems.");
-+MODULE_LICENSE("GPL");
-+
-+EXPORT_NO_SYMBOLS;
-+
-+#define LED_MAX_LENGTH 8 /* maximum chars written to proc file */
-+
-+struct proc_dir_entry *led;
-+struct timer_list led_blink_timer;
-+
-+inline void print_debug(const char *msg)
-+{
-+	printk(KERN_DEBUG "[%s] %s\n", MODULE_NAME, msg);
-+}
-+
-+inline void led_toggle(void)
-+{
-+	/* set_auxio takes 2 arguments, first the bits to enable, second the
-+	 * bits to disable (huh?) */
-+	set_auxio(get_auxio() ^ AUXIO_LED, get_auxio() & AUXIO_LED);
-+}
-+
-+void led_blink(unsigned long timeout)
-+{
-+	led_toggle();
-+
-+	/* reschedule */
-+#ifndef CONFIG_SUN_LED_MODULE
-+	if(!timeout) { /* blink according to load */
-+		led_blink_timer.expires =3D jiffies +
-+			((1 + (avenrun[0] >> FSHIFT)) * HZ);
-+		/* avenrun isn't exported by the kernel, hence the ifndefs */
-+		led_blink_timer.data =3D 0;
-+	} else { /* blink at user specified interval */
-+#endif
-+		led_blink_timer.expires =3D jiffies + (timeout * HZ);
-+		led_blink_timer.data =3D timeout;
-+#ifndef CONFIG_SUN_LED_MODULE
-+	}
-+#endif
-+	add_timer(&led_blink_timer);
-+}
-+
-+int led_read_proc(char *buf, char **start, off_t offset, int count,
-+		int *eof, void *data)
-+{
-+	int len =3D 0;
-+
-+	MOD_INC_USE_COUNT;
-+
-+	if(get_auxio() & AUXIO_LED) {
-+		len =3D sprintf(buf, "on\n");
-+	} else {
-+		len =3D sprintf(buf, "off\n");
-+	}
-+
-+	MOD_DEC_USE_COUNT;
-+
-+	return len;
-+}
-+
-+int led_write_proc(struct file *file, const char *buffer,
-+		unsigned long count, void *data)
-+{
-+	char *buf =3D NULL;
-+	unsigned long l =3D 0;
-+
-+	if(count > LED_MAX_LENGTH) {
-+		count =3D LED_MAX_LENGTH;
-+	}
-+
-+	buf =3D kmalloc(sizeof(char) * (count + 1), GFP_KERNEL);
-+	if(!buf) {
-+		return -ENOMEM;
-+	}
-+
-+	MOD_INC_USE_COUNT;
-+
-+	if(copy_from_user(buf, buffer, count)) {
-+		MOD_DEC_USE_COUNT;
-+		kfree(buf);
-+		return -EFAULT;
-+	}
-+	buf[count] =3D '\0';
-+
-+	/* work around \n when echo'ing into proc */
-+	if(buf[count - 1] =3D=3D '\n') {
-+		buf[count - 1] =3D '\0';
-+	}
-+
-+	/* before we change anything we want to stop any running timers,
-+	 * otherwise calls such as on will have no persistent effect */
-+	if(timer_pending(&led_blink_timer)) {
-+		del_timer_sync(&led_blink_timer);
-+	}
-+
-+	if(!strcmp(buf, "on")) {
-+		print_debug("Turning LED on...");
-+		auxio_set_led(AUXIO_LED_ON);
-+	} else if(!strcmp(buf, "toggle")) {
-+		print_debug("Toggling LED...");
-+		led_toggle();
-+	} else if((*buf > '0') && (*buf <=3D '9')) { /* 0 would cause division by
-+						      zero */
-+		print_debug("Starting to blink...");
-+		led_blink(simple_strtoul(buf, NULL, 10));
-+#ifndef CONFIG_SUN_LED_MODULE
-+	} else if(!strcmp(buf, "load")) {
-+		print_debug("Starting to display load...");
-+		led_blink(0);
-+#endif
-+	} else {
-+		print_debug("Turning LED off...");
-+		auxio_set_led(AUXIO_LED_OFF);
-+	}
-+
-+	MOD_DEC_USE_COUNT;
-+	kfree(buf);
-+
-+	return count;
-+}
-+
-+static int __init init_led(void)
-+{
-+	led =3D create_proc_entry(MODULE_NAME,
-+			0, /* default mode */
-+			NULL /* parent dir */);
-+	if(!led) {
-+		return -ENOMEM;
-+	}
-+
-+	led->read_proc =3D led_read_proc; /* reader function */
-+	led->write_proc =3D led_write_proc; /* writer function */
-+	led->owner =3D THIS_MODULE;
-+
-+	/* initialize timer for blinking */
-+	init_timer(&led_blink_timer);
-+	led_blink_timer.function =3D led_blink; /* blinking function */
-+
-+	printk(KERN_INFO
-+		"%s version %s, Lars Kotthoff <metalhead@metalhead.ws>\n",
-+		MODULE_NAME, MODULE_VERSION);
-+
-+	return 0;
-+}
-+
-+static void __exit cleanup_led(void)
-+{
-+	remove_proc_entry(MODULE_NAME, NULL);
-+	if(timer_pending(&led_blink_timer)) { /* kill timer if necessary */
-+		del_timer_sync(&led_blink_timer);
-+	}
-+}
-+
-+module_init(init_led);
-+module_exit(cleanup_led);
-Signed-off-by: Lars Kotthoff
 
---=20
-Horses trust their riders, even when not so deserved.
+Sound controller;
+unable to grab IRQ 8752768
+Sound Fusion CS46xx: probe of 0001:00:02.0 failed with error -16
 
---Signature_Wed__28_Sep_2005_16_27_29_+0100_znWuawvJzV0g=h/J
-Content-Type: application/pgp-signature
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1-ecc0.1.6 (GNU/Linux)
+At first I was thinking that maybe there was an issue with the PCI bus
+on the Blade 1000, but I have a r8169 chipset based Gigabit Ethernet
+card in there and that works just fine.  The IRQ it shows its using when
+the driver loads seems a bit high, but doesn't seem to affect
+performance.  Kernel output from the driver loading for that is;
 
-iD8DBQFDOrZoBxI10Jc2zuIRApIkAJ49MO4B9tRlJTSTiSd3KRUyt9riSwCdF/Sc
-cvHI3o26oqr57jNjjpJ0QOM=
-=MSVA
------END PGP SIGNATURE-----
+r8169 Gigabit Ethernet driver 2.2LK-NAPI loaded
+eth0: Identified chip type is 'RTL8169s/8110s'.
+eth0: RTL8169 at 0x7fe00134000, 00:c0:49:fa:1d:71, IRQ 8752896
 
---Signature_Wed__28_Sep_2005_16_27_29_+0100_znWuawvJzV0g=h/J--
+
+I've also tried rotating the location of the PCI cards around a bit
+based on the 33MHz and 66MHz PCI slots, but no noticeable difference in
+behaviors.
+
+For reference, I've included the lspci output from the Sun Blade 100 and
+Sun Blade 1000.
+
+Sun Blade 100;
+
+0000:00:00.0 Host bridge: Sun Microsystems Computer Corp. Ultra IIe
+0000:00:03.0 Non-VGA unclassified device: ALi Corporation M7101 Power
+Management Controller [PMU]
+0000:00:05.0 PCI bridge: Digital Equipment Corporation DECchip 21152
+(rev 03)
+0000:00:07.0 ISA bridge: ALi Corporation M1533 PCI to ISA Bridge
+[Aladdin IV]
+0000:00:08.0 Multimedia audio controller: ALi Corporation M5451 PCI
+AC-Link Controller Audio Device (rev 01)
+0000:00:0c.0 Bridge: Sun Microsystems Computer Corp. RIO EBUS (rev 01)
+0000:00:0c.1 Ethernet controller: Sun Microsystems Computer Corp. RIO
+GEM (rev 01)
+0000:00:0c.2 FireWire (IEEE 1394): Sun Microsystems Computer Corp. RIO
+1394 (rev 01)
+0000:00:0c.3 USB Controller: Sun Microsystems Computer Corp. RIO USB
+(rev 01)
+0000:00:0d.0 IDE interface: ALi Corporation M5229 IDE (rev c3)
+0000:00:13.0 VGA compatible controller: ATI Technologies Inc Rage XL
+(rev 27)
+0000:01:00.0 USB Controller: NEC Corporation USB (rev 43)
+0000:01:00.1 USB Controller: NEC Corporation USB (rev 43)
+0000:01:00.2 USB Controller: NEC Corporation USB 2.0 (rev 04)
+0000:01:01.0 Multimedia audio controller: Aureal Semiconductor Vortex 2
+(rev fe)
+0000:01:02.0 SCSI storage controller: LSI Logic / Symbios Logic 53c875
+(rev 26)
+
+
+Sun Blade 1000;
+
+0000:00:00.0 Host bridge: Sun Microsystems Computer Corp. Schizo PCI Bus
+Module
+0000:00:01.0 VGA compatible controller: ATI Technologies Inc Radeon
+RV100 QY [Radeon 7000/VE]
+0000:00:04.0 SCSI storage controller: QLogic Corp. QLA2200 64-bit Fibre
+Channel Adapter (rev 05)
+0001:00:00.0 Host bridge: Sun Microsystems Computer Corp. Schizo PCI Bus
+Module
+0001:00:01.0 USB Controller: NEC Corporation USB (rev 41)
+0001:00:01.1 USB Controller: NEC Corporation USB (rev 41)
+0001:00:01.2 USB Controller: NEC Corporation USB 2.0 (rev 02)
+0001:00:02.0 Multimedia audio controller: Cirrus Logic CS 4614/22/24
+[CrystalClear SoundFusion Audio Accelerator] (rev 01)
+0001:00:03.0 Ethernet controller: U.S. Robotics USR997902 10/100/1000
+Mbps PCI Network Card (rev 10)
+0001:00:05.0 Bridge: Sun Microsystems Computer Corp. RIO EBUS (rev 01)
+0001:00:05.1 Ethernet controller: Sun Microsystems Computer Corp. RIO
+GEM (rev 01)
+0001:00:05.2 FireWire (IEEE 1394): Sun Microsystems Computer Corp. RIO
+1394 (rev 01)
+0001:00:05.3 USB Controller: Sun Microsystems Computer Corp. RIO USB
+(rev 01)
+0001:00:06.0 SCSI storage controller: LSI Logic / Symbios Logic 53c875
+(rev 37)
+0001:00:06.1 SCSI storage controller: LSI Logic / Symbios Logic 53c875
+(rev 37)
+
+
+If anyone has any ideas or suggestions or would like any more
+information, please let me know.
+
+Cheers,
+-- 
+Jason Wever
+Gentoo/Sparc Team Co-Lead
+
+--Multipart_Sun__4_Sep_2005_15_30_24_-0600_es+DuEq7=WfViKod
+Content-Type: application/pgp-signature; name=
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename=
+
+LS0tLS1CRUdJTiBQR1AgU0lHTkFUVVJFLS0tLS0KVmVyc2lvbjogR251UEcgdjEuNC4xIChHTlUv
+TGludXgpCgppRDhEQlFGQ3NpYVNkS3ZnZFZpb3EyOFJBdEgyQUtDY3BSSUlWK0lVamFScDcrR3pa
+Rmg3VWRiSXBnQ2ZXako4Ck9rZFM4Q1FBUi9oNHZ0UVNRc2I0UWZVPQo9ZmxSOQotLS0tLUVORCBQ
+R1AgU0lHTkFUVVJFLS0tLS0K
+
+--Multipart_Sun__4_Sep_2005_15_30_24_-0600_es+DuEq7=WfViKod--
