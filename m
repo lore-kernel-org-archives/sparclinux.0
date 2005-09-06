@@ -1,12 +1,18 @@
 From: Christopher Zimmermann <madroach@zakweb.de>
-Date: Mon, 05 Sep 2005 20:29:13 +0000
+Date: Tue, 06 Sep 2005 11:46:17 +0000
 Subject: Sparc CS4231 sound driver
-Message-Id: <20050905202913.GA769@sparc>
+Message-Id: <20050906114617.GA575@sparc>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="cWoXeonUoKmBZSoM"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+References: <20050905202913.GA769@sparc>
+In-Reply-To: <20050905202913.GA769@sparc>
 To: sparclinux@vger.kernel.org
+
+
+--cWoXeonUoKmBZSoM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
 Hi, 
 
@@ -22,6 +28,9 @@ The output of the driver with all the debug ifdefs enabled is attached.
 
 Christopher
 
+--cWoXeonUoKmBZSoM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="debug.txt"
 
 PROMLIB: Sun IEEE Boot Prom 3.25.0 1999/12/03 11:35
 Linux version 2.6.12.5 (madroach@sparc) (gcc version 4.0.1 (Debian 4.0.1-2)) #2 SMP Sat Sep 3 22:31:12 CEST 2005
@@ -38,9 +47,9 @@ Console: colour dummy device 80x25
 Dentry cache hash table entries: 131072 (order: 7, 1048576 bytes)
 Inode-cache hash table entries: 65536 (order: 6, 524288 bytes)
 Memory: 1034960k available (2096k kernel code, 632k data, 152k init) [fffff80000000000,000000003ff44000]
-Calibrating delay loop... 587.77 BogoMIPS (lpj)3888)
+Calibrating delay loop... 587.77 BogoMIPS (lpj=293888)
 Mount-cache hash table entries: 512
-Calibrating delay loop... 587.77 BogoMIPS (lpj)3888)
+Calibrating delay loop... 587.77 BogoMIPS (lpj=293888)
 CPU 1: synchronized TICK with master CPU (last diff -7 cycles,maxerr 536 cycles)
 Brought up 2 CPUs
 Total of 2 processors activated (1175.55 BogoMIPS).
@@ -76,7 +85,7 @@ loop: loaded (max 8 devices)
 sunhme.c:v2.02 8/24/03 David S. Miller (davem@redhat.com)
 eth0: HAPPY MEAL (SBUS) 10/100baseT Ethernet 08:00:20:86:08:46 
 eth1: HAPPY MEAL (SBUS) 10/100baseT Ethernet 08:00:20:86:08:46 
-esp0: IRQ 4,7e0 SCSI ID 7 Clk 40MHz CCYC%000 CCF=8 TOut 167 NCR53C9XF(espfast)
+esp0: IRQ 4,7e0 SCSI ID 7 Clk 40MHz CCYC=25000 CCF=8 TOut 167 NCR53C9XF(espfast)
 ESP: Total of 1 ESP hosts found, 1 actually in use.
 scsi0 : Sparc ESP366-HME
   Vendor: FUJITSU   Model: MAJ3182M SUN18G   Rev: 0804
@@ -287,9 +296,8 @@ ALSA sound/sparc/cs4231.c:625: (4) jiffies = 4294785232
 ALSA sound/sparc/cs4231.c:626: mce_down - exit = 0xb
 
 
-after typing
+
 echo Hello >/dev/dsp
-I get the following:
 
 
 ALSA sound/sparc/cs4231.c:452: codec out - reg 0x18 = 0x70
@@ -414,3 +422,5 @@ ALSA sound/sparc/cs4231.c:516:   0x0f: ply lwr count   = 0xff  ALSA sound/sparc/
 ALSA sound/sparc/cs4231.c:517:   0x1f: rec lwr count   = 0x00
 ALSA sound/sparc/cs4231.c:452: codec out - reg 0x18 = 0x0
 ALSA sound/sparc/cs4231.c:452: codec out - reg 0x18 = 0x0
+
+--cWoXeonUoKmBZSoM--
