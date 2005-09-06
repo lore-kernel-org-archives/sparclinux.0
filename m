@@ -1,52 +1,35 @@
-From: Jason Wever <weeve@gentoo.org>
-Date: Mon, 05 Sep 2005 15:41:31 +0000
+From: "David S. Miller" <davem@davemloft.net>
+Date: Tue, 06 Sep 2005 01:57:54 +0000
 Subject: Re: PCI device issues between Blade 100 and Blade 100
-Message-Id: <20050905094131.085f25b9@enterprise.weeve.org>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Signature_Mon__5_Sep_2005_09_41_31_-0600_4=4pTKIhalfGjvG0"
+Message-Id: <20050905.185754.72907624.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20050904153024.630204cb@enterprise.weeve.org>
 In-Reply-To: <20050904153024.630204cb@enterprise.weeve.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
---Signature_Mon__5_Sep_2005_09_41_31_-0600_4=4pTKIhalfGjvG0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+From: Jason Wever <weeve@gentoo.org>
+Date: Mon, 5 Sep 2005 09:41:31 -0600
 
-On Sun, 04 Sep 2005 21:14:17 -0700 (PDT)
-"David S. Miller" <davem@davemloft.net> wrote:
+> Looking at the ehci driver messages, it shows (among other things);
+> ehci_hcd 0001:00:01.2: request interrupt 10,20e failed
+> 
+> Then looking for interrupt 10 in /proc/interrupts shows;
+> 10:          0          0  rtc:224
 
-> Error -16 from request_irq() means EBUSY, ie. another device
-> has registered a handler for that interrupt number already.
-> This usually means some driver has failed to specify SA_SHIRQ
-> in it's request_irq() call.  It's either the EHCI driver (not
-> very likely) or whatever other device has already registered
-> with that IRQ, you can figure that out using /proc/interrupts
-> output.
+Give this a spin:
 
-Thanks for the info.  Looking into this a bit more, it appears that the
-RTC on ebus0 loaded via the bbc_i2c driver is already using the same
-interrupt.
-
-Looking at the ehci driver messages, it shows (among other things);
-ehci_hcd 0001:00:01.2: request interrupt 10,20e failed
-
-Then looking for interrupt 10 in /proc/interrupts shows;
-10:          0          0  rtc:224
-
---=20
-Jason Wever
-Gentoo/Sparc Team Co-Lead
-
---Signature_Mon__5_Sep_2005_09_41_31_-0600_4=4pTKIhalfGjvG0
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQFDHGcrdKvgdVioq28RAi4/AJ44eufQAThv9U5sMpp/YSumKZlZlgCfUgM1
-pUY4fcBRCKcIpkMmGkd8iOs=
-=waLu
------END PGP SIGNATURE-----
-
---Signature_Mon__5_Sep_2005_09_41_31_-0600_4=4pTKIhalfGjvG0--
+diff --git a/drivers/char/rtc.c b/drivers/char/rtc.c
+--- a/drivers/char/rtc.c
++++ b/drivers/char/rtc.c
+@@ -941,7 +941,7 @@ found:
+ 	 * PCI Slot 2 INTA# (and some INTx# in Slot 1). SA_INTERRUPT here
+ 	 * is asking for trouble with add-on boards. Change to SA_SHIRQ.
+ 	 */
+-	if (request_irq(rtc_irq, rtc_interrupt, SA_INTERRUPT, "rtc", (void *)&rtc_port)) {
++	if (request_irq(rtc_irq, rtc_interrupt, SA_SHIRQ, "rtc", (void *)&rtc_port)) {
+ 		/*
+ 		 * Standard way for sparc to print irq's is to use
+ 		 * __irq_itoa(). I think for EBus it's ok to use %d.
