@@ -1,7 +1,7 @@
-From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
-Date: Sat, 10 Sep 2005 19:50:46 +0000
+From: "David S. Miller" <davem@davemloft.net>
+Date: Sun, 11 Sep 2005 00:11:03 +0000
 Subject: Re: sparc family optimising support
-Message-Id: <1126381846.25031.29.camel@localhost.localdomain>
+Message-Id: <20050910.171103.20974079.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20050910134013.GB7072@inskipp.digriz.org.uk>
 In-Reply-To: <20050910134013.GB7072@inskipp.digriz.org.uk>
@@ -10,30 +10,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sat, 2005-09-10 at 14:40 +0100, Alexander Clouter wrote:
-> Hi All,
+From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
+Date: Sat, 10 Sep 2005 14:50:46 -0500
+
+> This has been brought up before (my archives show a reference back in
+> March of 2004), and the answer was that doing this is pointless. The
+> sparc kernel patches in the hw versions of the muldiv functions at
+> kernel startup anyway, so passing -mcpu=v8 is just a waste.
 > 
-> Digging around I cannot see any reference to someone having done this before, 
-> and not to come over as a Gentoo Ricer ;) but I rolled out the following 
-> patch which does give me a bit more umpft from my old Sun 50Mhz Lunchbox[1].
+> So, any improvement that you see from -mcpu=v8 should be
+> psychosomatic...
 
-This has been brought up before (my archives show a reference back in
-March of 2004), and the answer was that doing this is pointless. The
-sparc kernel patches in the hw versions of the muldiv functions at
-kernel startup anyway, so passing -mcpu=v8 is just a waste.
+Half true, half false :-)
 
-So, any improvement that you see from -mcpu=v8 should be
-psychosomatic... instead, I suspect the real valuable speed-up will come
-from compiling the userspace applications with v8 opt.
+True, the kernel patches the muldiv functions, so calls to
+.mul, .div, .udiv, .umul et al. do end up using the hw
+instructions, but:
 
-Now, if you've got solid benchmark data showing repeatable performance
-improvement by using some set of compiler opts on a sparc32 kernel, that
-might be more interesting. ;)
+1) When libcalls are used like this for such fundamental integer
+   operations, gcc fails to optimize many things, including important
+   strength reduction loop optimizations among other things.
 
-~spot
--- 
-Tom "spot" Callaway: Red Hat Senior Sales Engineer || GPG ID: 93054260
-Fedora Extras Steering Committee Member (RPM Standards and Practices)
-Aurora Linux Project Leader: http://auroralinux.org
-Lemurs, llamas, and sparcs, oh my!
+2) It costs a call, and return.  It also makes it impossible for
+   functions doing a multiply or divide from being leaf functions
+   which is an incredibly big deal on sparc.  Something as trivial
+   as:
 
+	int foo(int a, int b)
+	{
+		return a * b;
+	}
+
+   needs a stack frame even though everything fits in registers
+   without one.  And all of this merely because gcc had to emit
+   a function call to '.mul'.
+
+So a -mcpu=v8 kernel would be significantly faster than the
+default.
