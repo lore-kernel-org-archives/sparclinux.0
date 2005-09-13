@@ -1,19 +1,24 @@
-From: "Fidel" <lcidgsm@logiccontrols.com>
-Date: Thu, 15 Sep 2005 12:50:20 +0000
-Subject: Job in UK
-Message-Id: <6104434671.929207827451@logiccontrols.com>
+From: "Kerri Morales" <birtctuf@rcn.net>
+Date: Tue, 13 Sep 2005 22:38:34 +0000
+Subject: Use Your chance to earn some extra cash.
+Message-Id: <3536439008.8319276441@rcn.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-US based financial company searching of the agents in the United Kingdom.
-You have to be older then 23.
-Honest and serious.
-Also you need to have basic financial skills and accounting skills.
-Salry is about 2700-3500 pounds per month.
-It is possible to use as a part-time job.
-Send me resume to email : uk@marketz-bond.net
-Regards,
+
+Good day!
+
+We are world-known microelectronics producer.
+And today we need you for mutually beneficial cooperation.
+
+You can earn cash and become an employee of our company.
+
+If you are interested, ask for details by e-mail, we will answer you during the day!
+
+e-mail adress: uk@mikro-tech.com
+
+
 
