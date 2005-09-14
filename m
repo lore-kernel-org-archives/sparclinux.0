@@ -1,76 +1,42 @@
 From: =?ISO-8859-2?Q?Tomasz_K=B3oczko?= <kloczek@rudy.mif.pg.gda.pl>
-Date: Wed, 14 Sep 2005 11:16:20 +0000
+Date: Wed, 14 Sep 2005 11:40:39 +0000
 Subject: Re: [2.6.13-rc6-git13/sparc64]: Slab corruption (possible stack or
-Message-Id: <Pine.BSO.4.62.0509141252050.5000@rudy.mif.pg.gda.pl>
+Message-Id: <Pine.BSO.4.62.0509141333000.5000@rudy.mif.pg.gda.pl>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="0-1816641569-1126695664=:5000"
+Content-Type: multipart/mixed; boundary="0-307547128-1126698039=:5000"
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.BSO.4.62.0509121604360.5000@rudy.mif.pg.gda.pl>
  <20050912.161326.131841878.davem@davemloft.net>
  <Pine.BSO.4.62.0509131148020.5000@rudy.mif.pg.gda.pl>
- <20050913.130842.52078742.davem@davemloft.net>
-In-Reply-To: <20050913.130842.52078742.davem@davemloft.net>
+ <20050913.130842.52078742.davem@davemloft.net> <Pine.BSO.4.62.0509141252050.5000@rudy.mif.pg.gda.pl>
+In-Reply-To: <Pine.BSO.4.62.0509141252050.5000@rudy.mif.pg.gda.pl>
 To: "David S. Miller" <davem@davemloft.net>
 Cc: linux-kernel@vger.kernel.org, davem@redhat.com, sparclinux@vger.kernel.org, aurora-sparc-devel@lists.auroralinux.org
 
   This message is in MIME format.  The first part should be readable text,
   while the remaining parts are likely unreadable without MIME-aware tools.
 
---0-1816641569-1126695664=:5000
+--0-307547128-1126698039=:5000
 Content-Type: TEXT/PLAIN; charset="iso-8859-2"; format="flowed"
 Content-Transfer-Encoding: quoted-printable
-Content-ID: <Pine.BSO.4.62.0509141301181.5000@rudy.mif.pg.gda.pl>
 
-On Tue, 13 Sep 2005, David S. Miller wrote:
+On Wed, 14 Sep 2005, Tomasz K=B3oczko wrote:
+[..]
+> Dave you touch core of problems .. messages occures constantly but high=20
+> network activity occures only at night on this interface (backup). In=20
+> attachment is weekly graph network acivity measured on SNMP agent on swit=
+ch=20
+> on this port.
+> At day usualaly on this interface activity is is very low (5-40Kb/s in/ou=
+t).
 
-> From: Tomasz K=B3oczko <kloczek@rudy.mif.pg.gda.pl>
-> Date: Tue, 13 Sep 2005 12:12:22 +0200 (CEST)
->
->> # grep "^Sep 12" /var/log/messages | grep kernel: | uniq | cut -d " " -f=
- 6- | sort | uniq -c | sort -n | tail -n 2
->>      509 svc: bad direction 268435456, dropping request
->>      653 eth0: Happy Meal out of receive descriptors, packet dropped.
->>
->> As you see one of this two messagess occures avarange one time per ~two
->> minutes.
->> Second looks like some error in sunhme.c. eth0 it is:
->
-> It's not a bug, per se, your system is simply receiving more
-> network traffic than the kernel can receive.
-> So the network adapter runs out of receive descriptors in which to receive
-> new packets, and starts dropping them until the kernel catches
-> up again.  That's what that message means.
-
-Dave you touch core of problems .. messages occures constantly but=20
-high network activity occures only at night on this interface (backup). In =
-
-attachment is weekly graph network acivity measured on SNMP agent on=20
-switch on this port.
-At day usualaly on this interface activity is is very low (5-40Kb/s=20
-in/out).
-
-> The "svc: " one I've seen before, it looks like something is
-> clobbering the sunrpc message, for example a freed up buffer is having
-> some bit set in one of it's words.  This 268435456 value is
-> "0x10000000" hexadecimal.  The code expects the value zero, and we
-> have a stray bit being set in there, bit 28 to be exact.  This would
-> actually be expected after you trigger something like that
-> destroy_inode() bug as a buffer is being free'd up twice.
-
-Good news. After switch to kernel 2.6.13-1.1552sp1 from corona with your=20
-patch I don't see "svc: .." messages, but "eth0: Happy Meal .." still=20
-occures (seems less but still).
-After ~half of day (and pass one time backup at night):
-
-[root@boss ~]# grep "^Sep 14" /var/log/kernel | grep kernel: | uniq | cut -=
-d " " -f 6- | sort | uniq -c | sort -n | tail -n 3
-       2 udp v4 hw csum failure.
-      15 eth0: Happy Meal out of receive descriptors, packet dropped.
-      22 hw tcp v4 csum failed
-[root@boss ~]# LANG=3D date
-Wed Sep 14 13:15:01 CEST 2005
-
-I'll try count of this for compare again at ~12:00 pm.
+In attachemnt is filtered kernel log with timestamps which shows all=20
+"eth0: Happy Meal .." and "hw tcp/udp v4 csum failed" which was occure=20
+after yesterday boot on kernel 2.6.13-1.1552sp1 (which bases on=20
+2.6.14-rc1).
+Backup was between 1:00 am and 4:00 am.
+As you see there is no corelation between messages and high/low network=20
+activity.
 
 kloczek
 --=20
@@ -79,90 +45,132 @@ kloczek
 -----------------------------------------------------------
 Tomasz K=B3oczko, sys adm @zie.pg.gda.pl|*e-mail: kloczek@rudy.mif.pg.gda.p=
 l*
---0-1816641569-1126695664=:5000
-Content-Type: APPLICATION/OCTET-STREAM; NAME=sunset163_2-week.png
+--0-307547128-1126698039=:5000
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name=kernel
 Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.BSO.4.62.0509141301040.5000@rudy.mif.pg.gda.pl>
+Content-ID: <Pine.BSO.4.62.0509141340390.5000@rudy.mif.pg.gda.pl>
 Content-Description: 
-Content-Disposition: ATTACHMENT; FILENAME=sunset163_2-week.png
+Content-Disposition: attachment; filename=kernel
 
-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
-rxPURSJ1sj63ow5rZVehSaKe2utkfe6R8EVhV+Hp6doJH2paZIQP3ZM9LeGL
-oraqgFOnKMYm/Iv+Qh08R6l7s7moSxDhXrfOVYjn70nUY3v9pL9M6XVXsEsQ
-/pn99Xb18XH0kkMh/tNua/31efVxj8Vp9QvMndC/d/QnUJ8yEMe7BOGfh9ct
-dN4cvut1k/TPx+Oe6JUFFofq9WYP9eZtnCMJr+1DCd82TdQliKiEN/u7aNKo
-kwm/T6POQFPdboTvqA9HuP3xhFEXNhUjhJ6iTs4W9yPUrzWHl7UqiuEQ93I6
-NYg9RVE2CRaf7HWCuhihztfeI+2uTEx4Rb3nK16WpyfMbKTXo6jrJ/+m9HpY
-Jia8pN4MGf+yBG+pBXHOoz7TL96dlPDhpdv0hG9qNiQ8Tp3q9VUidTmcYdRX
-49RDp2mmJfzscDB/eY+tWurgoVgjBPWMoP4O2FeQ+h6nngH7L1p5XsKvyiB1
-dmAvNevHoaylDp4DN3FeEqm/4NRXFPUXmnrS5UYzQ8l66jnr/4huLybUS09d
-1S07lYq6vlKU66odDfVngymbBKeu7HvcgbqkaFOv+zhD/DxEHcxi3ClNzpqi
-e49BURVZe7CS+6685ljlRdUt1ODRq3ipDuzb6dTXbXVsqctiI6vUtKKqlh1P
-w/GpaNodpHtcudmWrd6hXleSurKv5J+JfWKFol6oOGosyRvW/N1oBB0/r9jD
-e4e6I9hTEBx5uPmzpILpTbE8nY6tlbEviTjYw9OU/k9Hr7+Q9TH2X9++jaeO
-D3CdUPvID6x/CFDHnoL4P5GH4TGC14e94oQTs11qcdfaoxkDL+Raol6i4Ket
-92IJG3daPdN6XT0L5VVEjoTyPaVeRTjr/sC81yTSRfjv6ZB2a8H9+CqS9y4b
-hevr4+o5gbrfpvIxddnBGHX12BxCBZ0kCXkfJ9LFgojDUX1cPdOpIzms3g/A
-sW7squZVgaDeG3urCaVPpB6s5+sw9zPK7+zXu7404Z7yP3JaSWL9dWIIAAAA
-AElFTkSuQmCC
+U2VwIDEzIDIxOjU4OjIyIGJvc3Mga2VybmVsOiBkZXZpY2UgZXRoMCBlbnRl
+cmVkIHByb21pc2N1b3VzIG1vZGUNClNlcCAxMyAyMjowNjo1MyBib3NzIGtl
+cm5lbDogaHcgdGNwIHY0IGNzdW0gZmFpbGVkDQpTZXAgMTMgMjI6MTY6NDQg
+Ym9zcyBrZXJuZWw6IGV0aDA6IEhhcHB5IE1lYWwgb3V0IG9mIHJlY2VpdmUg
+ZGVzY3JpcHRvcnMsIHBhY2tldCBkcm9wcGVkLg0KU2VwIDEzIDIyOjIxOjAw
+IGJvc3MgbGFzdCBtZXNzYWdlIHJlcGVhdGVkIDMgdGltZXMNClNlcCAxMyAy
+Mjo1MToxMCBib3NzIGxhc3QgbWVzc2FnZSByZXBlYXRlZCAzIHRpbWVzDQpT
+ZXAgMTMgMjI6NTE6MTEgYm9zcyBrZXJuZWw6IGV0aDA6IEhhcHB5IE1lYWwg
+b3V0IG9mIHJlY2VpdmUgZGVzY3JpcHRvcnMsIHBhY2tldCBkcm9wcGVkLg0K
+U2VwIDEzIDIyOjU4OjA2IGJvc3Mga2VybmVsOiBodyB0Y3AgdjQgY3N1bSBm
+YWlsZWQNClNlcCAxMyAyMjo1ODowNyBib3NzIGtlcm5lbDogaHcgdGNwIHY0
+IGNzdW0gZmFpbGVkDQpTZXAgMTMgMjI6NTg6NTAgYm9zcyBrZXJuZWw6IGV0
+aDA6IEhhcHB5IE1lYWwgb3V0IG9mIHJlY2VpdmUgZGVzY3JpcHRvcnMsIHBh
+Y2tldCBkcm9wcGVkLg0KU2VwIDEzIDIzOjAyOjE2IGJvc3MgbGFzdCBtZXNz
+YWdlIHJlcGVhdGVkIDMgdGltZXMNClNlcCAxMyAyMzowODowMiBib3NzIGxh
+c3QgbWVzc2FnZSByZXBlYXRlZCAzIHRpbWVzDQpTZXAgMTMgMjM6Mjc6MDMg
+Ym9zcyBsYXN0IG1lc3NhZ2UgcmVwZWF0ZWQgMyB0aW1lcw0KU2VwIDEzIDIz
+OjU1OjQ1IGJvc3MgbGFzdCBtZXNzYWdlIHJlcGVhdGVkIDIgdGltZXMNClNl
+cCAxNCAwMDoxMDo1OCBib3NzIGxhc3QgbWVzc2FnZSByZXBlYXRlZCA2IHRp
+bWVzDQpTZXAgMTQgMDA6MTE6MDggYm9zcyBsYXN0IG1lc3NhZ2UgcmVwZWF0
+ZWQgMyB0aW1lcw0KU2VwIDE0IDAwOjIzOjA5IGJvc3Mga2VybmVsOiBodyB0
+Y3AgdjQgY3N1bSBmYWlsZWQNClNlcCAxNCAwMDoyNDoxNiBib3NzIGtlcm5l
+bDogZXRoMDogSGFwcHkgTWVhbCBvdXQgb2YgcmVjZWl2ZSBkZXNjcmlwdG9y
+cywgcGFja2V0IGRyb3BwZWQuDQpTZXAgMTQgMDA6MjQ6MjYgYm9zcyBsYXN0
+IG1lc3NhZ2UgcmVwZWF0ZWQgNCB0aW1lcw0KU2VwIDE0IDAwOjUwOjMxIGJv
+c3Mga2VybmVsOiBodyB0Y3AgdjQgY3N1bSBmYWlsZWQNClNlcCAxNCAwMDo1
+MzozNiBib3NzIGtlcm5lbDogaHcgdGNwIHY0IGNzdW0gZmFpbGVkDQpTZXAg
+MTQgMDA6NTM6MzcgYm9zcyBrZXJuZWw6IGh3IHRjcCB2NCBjc3VtIGZhaWxl
+ZA0KU2VwIDE0IDAxOjEwOjMxIGJvc3Mga2VybmVsOiBldGgwOiBIYXBweSBN
+ZWFsIG91dCBvZiByZWNlaXZlIGRlc2NyaXB0b3JzLCBwYWNrZXQgZHJvcHBl
+ZC4NClNlcCAxNCAwMToxMjoyMyBib3NzIGtlcm5lbDogaHcgdGNwIHY0IGNz
+dW0gZmFpbGVkDQpTZXAgMTQgMDE6Mjk6MjIgYm9zcyBsYXN0IG1lc3NhZ2Ug
+cmVwZWF0ZWQgNyB0aW1lcw0KU2VwIDE0IDAxOjMzOjIyIGJvc3MgbGFzdCBt
+ZXNzYWdlIHJlcGVhdGVkIDMgdGltZXMNClNlcCAxNCAwMTozNToxOCBib3Nz
+IGxhc3QgbWVzc2FnZSByZXBlYXRlZCA0IHRpbWVzDQpTZXAgMTQgMDE6MzU6
+MzcgYm9zcyBrZXJuZWw6IGh3IHRjcCB2NCBjc3VtIGZhaWxlZA0KU2VwIDE0
+IDAxOjQwOjQ5IGJvc3Mga2VybmVsOiBldGgwOiBIYXBweSBNZWFsIG91dCBv
+ZiByZWNlaXZlIGRlc2NyaXB0b3JzLCBwYWNrZXQgZHJvcHBlZC4NClNlcCAx
+NCAwMTo0MDo1MSBib3NzIGxhc3QgbWVzc2FnZSByZXBlYXRlZCAyIHRpbWVz
+DQpTZXAgMTQgMDE6NDM6MTYgYm9zcyBrZXJuZWw6IGh3IHRjcCB2NCBjc3Vt
+IGZhaWxlZA0KU2VwIDE0IDAxOjU3OjM3IGJvc3Mga2VybmVsOiBodyB0Y3Ag
+djQgY3N1bSBmYWlsZWQNClNlcCAxNCAwMjowNjozMCBib3NzIGtlcm5lbDog
+ZXRoMDogSGFwcHkgTWVhbCBvdXQgb2YgcmVjZWl2ZSBkZXNjcmlwdG9ycywg
+cGFja2V0IGRyb3BwZWQuDQpTZXAgMTQgMDI6MTQ6MzQgYm9zcyBsYXN0IG1l
+c3NhZ2UgcmVwZWF0ZWQgMyB0aW1lcw0KU2VwIDE0IDAyOjE0OjM2IGJvc3Mg
+bGFzdCBtZXNzYWdlIHJlcGVhdGVkIDIgdGltZXMNClNlcCAxNCAwMjozMDo1
+NiBib3NzIGtlcm5lbDogaHcgdGNwIHY0IGNzdW0gZmFpbGVkDQpTZXAgMTQg
+MDI6MzY6MDQgYm9zcyBrZXJuZWw6IGh3IHRjcCB2NCBjc3VtIGZhaWxlZA0K
+U2VwIDE0IDAyOjU5OjA2IGJvc3Mga2VybmVsOiBldGgwOiBIYXBweSBNZWFs
+IG91dCBvZiByZWNlaXZlIGRlc2NyaXB0b3JzLCBwYWNrZXQgZHJvcHBlZC4N
+ClNlcCAxNCAwMzoxMjozNyBib3NzIGxhc3QgbWVzc2FnZSByZXBlYXRlZCAy
+IHRpbWVzDQpTZXAgMTQgMDM6NDk6MDggYm9zcyBsYXN0IG1lc3NhZ2UgcmVw
+ZWF0ZWQgMyB0aW1lcw0KU2VwIDE0IDA0OjQzOjU1IGJvc3MgbGFzdCBtZXNz
+YWdlIHJlcGVhdGVkIDMgdGltZXMNClNlcCAxNCAwNToxMDowMCBib3NzIGxh
+c3QgbWVzc2FnZSByZXBlYXRlZCAzIHRpbWVzDQpTZXAgMTQgMDU6NDQ6NDQg
+Ym9zcyBsYXN0IG1lc3NhZ2UgcmVwZWF0ZWQgMyB0aW1lcw0KU2VwIDE0IDA1
+OjUyOjE4IGJvc3MgbGFzdCBtZXNzYWdlIHJlcGVhdGVkIDMgdGltZXMNClNl
+cCAxNCAwNTo1Njo0NSBib3NzIGxhc3QgbWVzc2FnZSByZXBlYXRlZCAzIHRp
+bWVzDQpTZXAgMTQgMDY6MDk6NDEgYm9zcyBsYXN0IG1lc3NhZ2UgcmVwZWF0
+ZWQgMyB0aW1lcw0KU2VwIDE0IDA2OjA5OjQ2IGJvc3MgbGFzdCBtZXNzYWdl
+IHJlcGVhdGVkIDQgdGltZXMNClNlcCAxNCAwNjoyNDoyOCBib3NzIGtlcm5l
+bDogZXRoMDogSGFwcHkgTWVhbCBvdXQgb2YgcmVjZWl2ZSBkZXNjcmlwdG9y
+cywgcGFja2V0IGRyb3BwZWQuDQpTZXAgMTQgMDY6MjQ6MzAgYm9zcyBsYXN0
+IG1lc3NhZ2UgcmVwZWF0ZWQgMiB0aW1lcw0KU2VwIDE0IDA3OjA1OjU5IGJv
+c3Mga2VybmVsOiBldGgwOiBIYXBweSBNZWFsIG91dCBvZiByZWNlaXZlIGRl
+c2NyaXB0b3JzLCBwYWNrZXQgZHJvcHBlZC4NClNlcCAxNCAwNzo0MjoxNiBi
+b3NzIGxhc3QgbWVzc2FnZSByZXBlYXRlZCAzIHRpbWVzDQpTZXAgMTQgMDc6
+NDI6MTggYm9zcyBsYXN0IG1lc3NhZ2UgcmVwZWF0ZWQgMiB0aW1lcw0KU2Vw
+IDE0IDA4OjA4OjM4IGJvc3Mga2VybmVsOiBodyB0Y3AgdjQgY3N1bSBmYWls
+ZWQNClNlcCAxNCAwOTowMzoxOSBib3NzIGtlcm5lbDogZXRoMDogSGFwcHkg
+TWVhbCBvdXQgb2YgcmVjZWl2ZSBkZXNjcmlwdG9ycywgcGFja2V0IGRyb3Bw
+ZWQuDQpTZXAgMTQgMDk6NTM6NTggYm9zcyBsYXN0IG1lc3NhZ2UgcmVwZWF0
+ZWQgMyB0aW1lcw0KU2VwIDE0IDA5OjU4OjQ4IGJvc3MgbGFzdCBtZXNzYWdl
+IHJlcGVhdGVkIDMgdGltZXMNClNlcCAxNCAwOTo1ODo1MCBib3NzIGxhc3Qg
+bWVzc2FnZSByZXBlYXRlZCAyIHRpbWVzDQpTZXAgMTQgMTA6MDE6MjEgYm9z
+cyBrZXJuZWw6IGh3IHRjcCB2NCBjc3VtIGZhaWxlZA0KU2VwIDE0IDEwOjA1
+OjI5IGJvc3Mga2VybmVsOiBodyB0Y3AgdjQgY3N1bSBmYWlsZWQNClNlcCAx
+NCAxMDoyNTowOCBib3NzIGtlcm5lbDogZXRoMDogSGFwcHkgTWVhbCBvdXQg
+b2YgcmVjZWl2ZSBkZXNjcmlwdG9ycywgcGFja2V0IGRyb3BwZWQuDQpTZXAg
+MTQgMTA6MjU6MTAgYm9zcyBsYXN0IG1lc3NhZ2UgcmVwZWF0ZWQgMiB0aW1l
+cw0KU2VwIDE0IDEwOjUwOjM1IGJvc3Mga2VybmVsOiBodyB0Y3AgdjQgY3N1
+bSBmYWlsZWQNClNlcCAxNCAxMDo1MzoyNSBib3NzIGtlcm5lbDogaHcgdGNw
+IHY0IGNzdW0gZmFpbGVkDQpTZXAgMTQgMTE6MDA6NTMgYm9zcyBsYXN0IG1l
+c3NhZ2UgcmVwZWF0ZWQgMiB0aW1lcw0KU2VwIDE0IDExOjA1OjQ5IGJvc3Mg
+a2VybmVsOiBodyB0Y3AgdjQgY3N1bSBmYWlsZWQNClNlcCAxNCAxMToxMTo0
+NSBib3NzIGtlcm5lbDogZXRoMDogSGFwcHkgTWVhbCBvdXQgb2YgcmVjZWl2
+ZSBkZXNjcmlwdG9ycywgcGFja2V0IGRyb3BwZWQuDQpTZXAgMTQgMTE6MTE6
+NDcgYm9zcyBsYXN0IG1lc3NhZ2UgcmVwZWF0ZWQgMiB0aW1lcw0KU2VwIDE0
+IDExOjEyOjA0IGJvc3Mga2VybmVsOiB1ZHAgdjQgaHcgY3N1bSBmYWlsdXJl
+Lg0KU2VwIDE0IDExOjEyOjEyIGJvc3Mga2VybmVsOiBodyB0Y3AgdjQgY3N1
+bSBmYWlsZWQNClNlcCAxNCAxMToyNjo1MiBib3NzIGtlcm5lbDogaHcgdGNw
+IHY0IGNzdW0gZmFpbGVkDQpTZXAgMTQgMTE6Mjc6NTIgYm9zcyBrZXJuZWw6
+IHVkcCB2NCBodyBjc3VtIGZhaWx1cmUuDQpTZXAgMTQgMTE6MzE6MzggYm9z
+cyBrZXJuZWw6IGh3IHRjcCB2NCBjc3VtIGZhaWxlZA0KU2VwIDE0IDExOjM3
+OjQwIGJvc3Mga2VybmVsOiBldGgwOiBIYXBweSBNZWFsIG91dCBvZiByZWNl
+aXZlIGRlc2NyaXB0b3JzLCBwYWNrZXQgZHJvcHBlZC4NClNlcCAxNCAxMTo0
+MzozNSBib3NzIGxhc3QgbWVzc2FnZSByZXBlYXRlZCAzIHRpbWVzDQpTZXAg
+MTQgMTE6NTg6MDkgYm9zcyBsYXN0IG1lc3NhZ2UgcmVwZWF0ZWQgMyB0aW1l
+cw0KU2VwIDE0IDExOjU4OjExIGJvc3MgbGFzdCBtZXNzYWdlIHJlcGVhdGVk
+IDIgdGltZXMNClNlcCAxNCAxMjowMzozOSBib3NzIGtlcm5lbDogaHcgdGNw
+IHY0IGNzdW0gZmFpbGVkDQpTZXAgMTQgMTI6MTA6NDggYm9zcyBrZXJuZWw6
+IGV0aDA6IEhhcHB5IE1lYWwgb3V0IG9mIHJlY2VpdmUgZGVzY3JpcHRvcnMs
+IHBhY2tldCBkcm9wcGVkLg0KU2VwIDE0IDEyOjEwOjU0IGJvc3MgbGFzdCBt
+ZXNzYWdlIHJlcGVhdGVkIDMgdGltZXMNClNlcCAxNCAxMjoxNTowMCBib3Nz
+IGtlcm5lbDogaHcgdGNwIHY0IGNzdW0gZmFpbGVkDQpTZXAgMTQgMTI6MTk6
+MDIgYm9zcyBrZXJuZWw6IGV0aDA6IEhhcHB5IE1lYWwgb3V0IG9mIHJlY2Vp
+dmUgZGVzY3JpcHRvcnMsIHBhY2tldCBkcm9wcGVkLg0KU2VwIDE0IDEyOjE5
+OjAzIGJvc3Mga2VybmVsOiBldGgwOiBIYXBweSBNZWFsIG91dCBvZiByZWNl
+aXZlIGRlc2NyaXB0b3JzLCBwYWNrZXQgZHJvcHBlZC4NClNlcCAxNCAxMjoz
+MTozOSBib3NzIGtlcm5lbDogaHcgdGNwIHY0IGNzdW0gZmFpbGVkDQpTZXAg
+MTQgMTI6NDQ6NTAgYm9zcyBrZXJuZWw6IGV0aDA6IEhhcHB5IE1lYWwgb3V0
+IG9mIHJlY2VpdmUgZGVzY3JpcHRvcnMsIHBhY2tldCBkcm9wcGVkLg0KU2Vw
+IDE0IDEzOjA1OjI3IGJvc3MgbGFzdCBtZXNzYWdlIHJlcGVhdGVkIDMgdGlt
+ZXMNClNlcCAxNCAxMzoxNzowNiBib3NzIGxhc3QgbWVzc2FnZSByZXBlYXRl
+ZCAzIHRpbWVzDQpTZXAgMTQgMTM6MjM6MTcgYm9zcyBsYXN0IG1lc3NhZ2Ug
+cmVwZWF0ZWQgMyB0aW1lcw0KU2VwIDE0IDEzOjIzOjE5IGJvc3MgbGFzdCBt
+ZXNzYWdlIHJlcGVhdGVkIDIgdGltZXMNClNlcCAxNCAxMzoyNDozNCBib3Nz
+IGtlcm5lbDogaHcgdGNwIHY0IGNzdW0gZmFpbGVkDQpTZXAgMTQgMTM6Mjc6
+MjYgYm9zcyBrZXJuZWw6IGV0aDA6IEhhcHB5IE1lYWwgb3V0IG9mIHJlY2Vp
+dmUgZGVzY3JpcHRvcnMsIHBhY2tldCBkcm9wcGVkLg0K
 
---0-1816641569-1126695664=:5000--
+--0-307547128-1126698039=:5000--
