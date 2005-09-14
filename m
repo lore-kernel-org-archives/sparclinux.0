@@ -1,24 +1,27 @@
-From: "Kerri Morales" <birtctuf@rcn.net>
-Date: Tue, 13 Sep 2005 22:38:34 +0000
-Subject: Use Your chance to earn some extra cash.
-Message-Id: <3536439008.8319276441@rcn.net>
+From: "Gabriel Langford" <nnmlinux-kernel-owner@vger.kernel.org>
+Date: Wed, 14 Sep 2005 05:02:19 +0000
+Subject: Astounding Funding with options.
+Message-Id: <19011.gH67FuOVX@211.243.235.103>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Hows it going?
 
-Good day!
+Homeowner
 
-We are world-known microelectronics producer.
-And today we need you for mutually beneficial cooperation.
+You have been pre-approved for a $488,926 Home Loan at a Introductory APR of 3.44%
+This offer is being extended to you unconditionally and your credit is in no way a factor.
 
-You can earn cash and become an employee of our company.
+To take Advantage of this Limited Time opportunity
 
-If you are interested, ask for details by e-mail, we will answer you during the day!
+All we ask is that you visit our Website and complete
+The 1 minute post Approval Form
 
-e-mail adress: uk@mikro-tech.com
+http://deoT.telopsis.com/?ra=s1250
 
+Chat Later,
 
-
+Gabriel Langford
