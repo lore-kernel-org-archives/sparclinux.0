@@ -1,7 +1,7 @@
 From: "David S. Miller" <davem@redhat.com>
-Date: Fri, 16 Sep 2005 19:57:15 +0000
+Date: Fri, 16 Sep 2005 19:59:19 +0000
 Subject: Re: [2.6.14-rc1/sparc54]: BUG: soft lockup detected on CPU#0!
-Message-Id: <20050916.155715.74748747.davem@redhat.com>
+Message-Id: <20050916.155919.41629794.davem@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.BSO.4.62.0509151929580.5000@rudy.mif.pg.gda.pl>
 	<20050915.133026.21581824.davem@davemloft.net>
@@ -16,14 +16,25 @@ Cc: davem@davemloft.net, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.or
 From: Tomasz K=B3oczko <kloczek@rudy.mif.pg.gda.pl>
 Date: Fri, 16 Sep 2005 14:42:56 +0200 (CEST)
 
-> Also I have question about second (hw tcp v4 csum failed):
-...
-> As you see in both errors is "0". Is this correct reporting broken packet=
-s=20
-> in kernel messages instead in RX errors ?
+> On Thu, 15 Sep 2005, David S. Miller wrote:
+>=20
+> > I wonder if the NFS daemon code needs to have some limits put on
+> > how much cpu it consumes handling requests before it gives up the
+> > cpu.  Perhaps, it has such throttling already, I don't know.
+>=20
+> But this not case NFS server but NSF client. During this lookups I observ=
+e=20
+> rpciod takes 90-99% time of single processor. Load is between 10 and 20.
 
-It is protocol level error, therefore it is not counted
-in raw device level statistics.
+After studying some code yesterday, NFS client has the same
+exact problem as NFS daemon, namely that if you give it enough
+work it will never give up the cpu so that other tasks can
+be scheduled.
 
-BTW, when you get the "hw tcp v4 csum failed", the kernel ignores
-the hw checksum and rechecks it using software.
+This is a serious bug, and can easily trigger those soft lockup
+messages.  Based upon some other reports seen on linux-kernel
+and elsewhere, things like the raid1 kernel daemon have a similar
+issue as well.
+
+I think you can help things _enormusly_ by turning off SLAB
+poisioning, as I said that debugging feature is _VERY_ expensive.
