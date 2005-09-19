@@ -1,58 +1,75 @@
-From: Kumba <kumba@gentoo.org>
-Date: Mon, 19 Sep 2005 02:35:31 +0000
-Subject: Blade 100, 2.6.13.2, atyfb
-Message-Id: <432E23F3.9030603@gentoo.org>
+From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
+Date: Mon, 19 Sep 2005 04:18:47 +0000
+Subject: Re: Blade 100, 2.6.13.2, atyfb
+Message-Id: <1127103527.2639.3.camel@localhost.localdomain>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------090206010800000200000803"
+Content-Type: multipart/mixed; boundary="=-z1pipB3PNrdDBS5YvNxB"
 List-Id: <sparclinux.vger.kernel.org>
+References: <432E23F3.9030603@gentoo.org>
+In-Reply-To: <432E23F3.9030603@gentoo.org>
 To: sparclinux@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------090206010800000200000803
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+
+--=-z1pipB3PNrdDBS5YvNxB
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
+On Sun, 2005-09-18 at 22:35 -0400, Kumba wrote:
+> Couple minor issues noted on Blade 100 running a 2.6.13.2 kernel.  They're 
+> probably already known, but...
+> 
+> A) atyfb seems h0rked still.  I think this has been looked at, but I don't 
+> recall a resolution yet.
 
-Couple minor issues noted on Blade 100 running a 2.6.13.2 kernel.  They're 
-probably already known, but...
+I can confirm this as well.
 
-A) atyfb seems h0rked still.  I think this has been looked at, but I don't 
-recall a resolution yet.
+> B) atyfb's build seems broken due to the following:
+> 
+>    LD      vmlinux
+> drivers/built-in.o: In function `atyfb_xl_init':
+> : undefined reference to `aty_st_lcd'
+> make: *** [vmlinux] Error 1
+> 
+> The attached patch (attempts to) correct for this based on some studying of the 
+> function causing the problem.
 
-B) atyfb's build seems broken due to the following:
+Aurora's had a similar patch in our 2.6 kernel for some time now. The
+only difference is that we move the int i; variable declaration inside
+the conditional to avoid unnecessary compiler noise. 
 
-   LD      vmlinux
-drivers/built-in.o: In function `atyfb_xl_init':
-: undefined reference to `aty_st_lcd'
-make: *** [vmlinux] Error 1
+(I thought I had sent this to the list long ago, but I didn't. My bad.)
 
-The attached patch (attempts to) correct for this based on some studying of the 
-function causing the problem.
+Signed-off-by: Tom 'spot' Callaway <tcallawa@redhat.com>
 
-
---Kumba
-
+~spot
 -- 
-Gentoo/MIPS Team Lead
-Gentoo Foundation Board of Trustees
+Tom "spot" Callaway: Red Hat Senior Sales Engineer || GPG ID: 93054260
+Fedora Extras Steering Committee Member (RPM Standards and Practices)
+Aurora Linux Project Leader: http://auroralinux.org
+Lemurs, llamas, and sparcs, oh my!
 
-"Such is oft the course of deeds that move the wheels of the world: small hands 
-do them because they must, while the eyes of the great are elsewhere."  --Elrond
-
---------------090206010800000200000803
-Content-Type: text/plain;
- name="sparc64-atyfb_xl_init.patch"
+--=-z1pipB3PNrdDBS5YvNxB
+Content-Disposition: attachment; filename=linux-2.6.11-atyfb-nolcd.patch
+Content-Type: text/x-patch; name=linux-2.6.11-atyfb-nolcd.patch; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="sparc64-atyfb_xl_init.patch"
 
---- drivers/video/aty/xlinit.c.orig	2005-09-18 21:50:18.000000000 -0400
-+++ drivers/video/aty/xlinit.c	2005-09-18 21:50:28.000000000 -0400
-@@ -252,9 +252,11 @@ int atyfb_xl_init(struct fb_info *info)
+--- linux-2.6.11/drivers/video/aty/xlinit.c.BAD	2005-03-04 20:01:29.526690531 -0500
++++ linux-2.6.11/drivers/video/aty/xlinit.c	2005-03-04 20:04:49.384307555 -0500
+@@ -174,7 +174,7 @@ int atyfb_xl_init(struct fb_info *info)
+ 	const struct xl_card_cfg_t * card = &card_cfg[xl_card];
+ 	struct atyfb_par *par = (struct atyfb_par *) info->par;
+ 	union aty_pll pll;
+-	int i, err;
++	int err;
+ 	u32 temp;
+ 	
+ 	aty_st_8(CONFIG_STAT0, 0x85, par);
+@@ -252,9 +252,12 @@ int atyfb_xl_init(struct fb_info *info)
  	aty_st_le32(0xEC, 0x00000000, par);
  	aty_st_le32(0xFC, 0x00000000, par);
  
-+#ifdef CONFIG_FB_ATY_GENERIC_LCD
++#if defined (CONFIG_FB_ATY_GENERIC_LCD)
++	int i;
  	for (i=0; i<sizeof(lcd_tbl)/sizeof(lcd_tbl_t); i++) {
  		aty_st_lcd(lcd_tbl[i].lcd_reg, lcd_tbl[i].val, par);
  	}
@@ -61,4 +78,5 @@ Content-Disposition: inline;
  	aty_st_le16(CONFIG_STAT0, 0x00A4, par);
  	mdelay(10);
 
---------------090206010800000200000803--
+--=-z1pipB3PNrdDBS5YvNxB--
+
