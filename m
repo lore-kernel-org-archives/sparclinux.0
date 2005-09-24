@@ -1,30 +1,47 @@
-From: Martin Habets <errandir_news@mph.eclipse.co.uk>
-Date: Mon, 05 Sep 2005 10:48:00 +0000
-Subject: Re: [PATCH 2/2] Add OpenBoot magic SysRq command
-Message-Id: <20050905104800.GA9564@palantir8>
+From: Christopher Zimmermann <madroach@zakweb.de>
+Date: Sat, 24 Sep 2005 09:20:14 +0000
+Subject: Ultra2 poweroff patch
+Message-Id: <20050924092014.GA852@sparc>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="C7zPtVaVf+AK4Oqc"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20050817205527.GA9362@palantir8>
-In-Reply-To: <20050817205527.GA9362@palantir8>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, Sep 01, 2005 at 02:56:46PM -0700, David S. Miller wrote:
-> From: Martin Habets <errandir_news@mph.eclipse.co.uk>
-> Date: Wed, 17 Aug 2005 21:55:27 +0100
-> 
-> > This patch against 2.6.10 adds key 'o' to the Magic SysRq commands, which
-> > drops down to the OpenBoot prompt.
-> 
-> This should be registered in a common place so that both
-> sparc and sparc64 get this feature.
 
-Unfortunately I'm not aware of such a common place. Could you (or someone
-else) please enlighten me?
-I was considering a similar patch for sparc64, but it would be great if
-that is not needed.
+--C7zPtVaVf+AK4Oqc
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Thanks,
--- 
-Martin
+Hi,
+
+I don't know why, but the following change lets my Ultra2 poweroff.
+
+Christopher
+
+--C7zPtVaVf+AK4Oqc
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline; filename=patch
+
+--- linux-2.6.13.1/arch/sparc64/prom/misc.c	2005-09-10 04:42:58.000000000 +0200
++++ linux-2.6.13.1_patched/arch/sparc64/prom/misc.c	2005-09-24 11:10:46.000000000 +0200
+@@ -83,17 +83,17 @@
+ #endif
+ again:
+ 	p1275_cmd("exit", P1275_INOUT(0, 0));
+ 	goto again; /* PROM is out to get me -DaveM */
+ }
+ 
+ void prom_halt_power_off(void)
+ {
+-#ifdef CONFIG_SMP
++#ifdef 0 /*CONFIG_SMP*/
+ 	smp_promstop_others();
+ 	udelay(8000);
+ #endif
+ 	p1275_cmd("SUNW,power-off", P1275_INOUT(0, 0));
+ 
+ 	/* if nothing else helps, we just halt */
+ 	prom_halt();
+ }
+
+--C7zPtVaVf+AK4Oqc--
