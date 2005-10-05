@@ -1,47 +1,65 @@
-From: <NAGRA42@FTAPATRIOT.NET>
-Date: Tue, 11 Oct 2005 11:02:53 +0000
-Subject: Re: Dishnet/Bev/Nagra2 Files And Hardware
-Message-Id: <E1EPHuH-0003m8-LP@ofelia.farciert.com>
+From: "Tracey McNeil" <t.mcNeilad@embe.at>
+Date: Wed, 05 Oct 2005 03:37:55 +0000
+Subject: yPink sheet news ASCE . PK
+Message-Id: <46ee01c5c95e$543f359b$98694745@cija.se>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-HTTP://www.ftapatriot.net
+ATTENTION INVESTING PUBLIC
 
-I would like to invite you to the site of all sites.Packed full of information
-on Pansat, Fortec, Viewsat, and CoolSat Fta units.We are also the "Official
-Release site of all files related to CoolSat4000 Pro Units And other units.Find
-out the truth to the nag2 information and much more.Come and see what all the
-fuss is about.Find out the truth others don't want you to know.Get the help you
-need without all of the BS.A place were newbies and pros alike help each other
-out.If you think you may be interested in such a site then come on over.We look
-forward to seeing you there.
+ 
 
-HTTP://www.ftapatriot.net
+ASCE . PK
+Recent Trading Range: $.80 - $.90
+Expected Trading Range: $1.50 - $2.00
+ASCE . PK
 
-To end since the CoolsatPro 4000 release it has been the hottest FTA seller,and
-thats for good reasoning,with its cardslot embedded there WILL be endless
-amounts of testing that you the end user can endure as our time passes.Being
-fully equipped for Nagra 2 Testing and Flash cababilities we are happy to
-anounce that rumours have it that Dishnet/Bev have been compromised in the past
-month,allthough BEV was hit we forsee teh ROM 102 since the cards were
-dumped.Nevertheless we have full script for others right now,Offered is 1 FULL
-year support with every order at thsi present time,so take advantage and climb
-aboard today.We accept WORLDIWIDE orders and shipping is FREE,C.O.D. is
-available for large orders only to US and CANADA.All Shipping is processed via
-FEDEX 2 day air.
-
-HTTP://www.ftapatriot.net
-
-Please note that we did not send you the email solicitation, as we do not
-directly conduct direct email campaigns. Entry of your email will not stop email
-delivery from the publisher from which you received the original offer (i.e. you
-may still receive emails from this publisher, with offers other than our
-services). To opt out of receiving any email offers from the publisher, please
-email us on the link which was provided in the email, and ask to be removed as
-we will without issues.
+ 
+BELLEVUE, WA. September 14, 2005 . Ascentia Biomedical Corporation (OTC Pink Sheets; ASCE), a leading researcher and developer of efficacious 
+pharmaceuticals, compounds and other products, announces it has received an initial commitment for up to $1 million in funding for continued research 
+particularly in anti-cancer compounds and for organizational growth.
 
 
+BELLEVUE, WA. September 27th, 2005 . Ascentia Biomedical Corporation (OTC Pink Sheets; ASCE), a leading researcher and developer of efficacious 
+pharmaceuticals, compounds and other products, announces the addition of Dr. Philip Mease to its Scientific Advisory Board. Dr. James Clagett, 
+President and CEO of Ascentia said, .We are privileged to have such an internationally recognized rheumatologist who has a distinguished career in the 
+clinical development of therapies for rheumatic diseases.  Dr. Mease.s experience in clinical drug discovery along with his respected relationship with 
+drug regulatory agencies will greatly assist Ascentia in its drug discovery and commercialization program..
+
+
+Dr. Mease is Chief of the Rheumatology Clinical Research Division at Swedish Hospital, Clinical Professor at the University of Washington, and founder 
+of Seattle Rheumatology Associates.  Dr. Mease graduated from Stanford University Medical School and completed his medical training at University of 
+Washington, Seattle.
+
+ 
+About Ascentia Biomedical Corporation
+
+Our focus is SOLUTIONS through RESEARCH and DISCOVERY. Ascentia is developing and commercializing new pharmaceutical and biomedical products for 
+application in a number of areas, including treatment for asthma, arthritis, psoriasis and cancer.  Initially, a majority of these products will be 
+secured through direct purchase or through licensing. As the Company grows and evolves, more products will be developed internally. Ascentia is focused 
+on therapies for cancer and diseases of inflammation.
+
+
+Forward-Looking Statements
+
+ 
+
+This release may contain forward-looking statements that involve risks
+
+and uncertainties. These statements do not constitute representations
+
+or promises. Rather, these statements express opinions, hopes and
+
+desires that may not be based on objective or factual criteria or
+
+measurable results. No one should rely on such statements for any
+
+purpose except as specifically stated
+
+ 
+
+To get taken off the list email NOSTK@Yahoo.com
 
