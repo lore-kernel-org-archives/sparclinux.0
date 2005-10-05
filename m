@@ -1,26 +1,25 @@
-From: "Allyson A. Richter" <a.a.richterpu@monumentweb.com>
-Date: Fri, 14 Oct 2005 15:59:28 +0000
-Subject: =?iso-8859-1?b?VG9wIExvYW4gRXhwZXJ0cw==?=
-Message-Id: <5fbc01c5d0d8$a7c59973$4364c23d@dpps0c1>
+From: "David S. Miller" <davem@davemloft.net>
+Date: Wed, 05 Oct 2005 19:19:55 +0000
+Subject: Re: [PATCH] Remove some duplicated sparc32 config items
+Message-Id: <20051005.121955.91772603.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Homeowner
+From: Martin Habets <errandir_news@mph.eclipse.co.uk>
+Date: Thu, 8 Sep 2005 03:56:16 +0100
 
-Any past Mortages you currently have
-were locked in at a Higher ra.te then what is offered presently.
+> Remove some duplicated items due to the inclusion of the general
+> drivers/Kconfig file. These are now taken from drivers/char/Kconfig,
+> and can be turned off there as well (which is desirable sometimes).
+> 
+> Patch is against stock 2.6.13.
+> 
+> Martin
+> 
+> 	Signed-off-by: Martin Habets <errandir_news@mph.eclipse.co.uk>
 
-Quite honestly, you could be keeping $1000's yearly with a lowered interest=
- %.
-The decision falls apon you,
-
-Pay your current rate and try to cope?
-or see what your options are and enjoy the extra money.
-
-Free information:
-
-=C2http://a.refi05.com/6/index/owner/
-
+This has been in my backlog, sorry for taking so long.
+I'll apply this, thanks.
