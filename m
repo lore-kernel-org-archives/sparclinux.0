@@ -1,37 +1,21 @@
 From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
-Date: Wed, 05 Oct 2005 22:10:54 +0000
-Subject: div, udiv, mul, umul, rem, urem broken again?!?
-Message-Id: <1128550254.2140.103.camel@localhost.localdomain>
+Date: Wed, 05 Oct 2005 22:17:40 +0000
+Subject: Re: div, udiv, mul, umul, rem, urem broken again?!?
+Message-Id: <1128550660.2140.105.camel@localhost.localdomain>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-J2mIktikSVFG+3Sq03Qf"
+Content-Type: multipart/mixed; boundary="=-el5hPJ/L9i2Gw22/FqVQ"
 List-Id: <sparclinux.vger.kernel.org>
+References: <1128550254.2140.103.camel@localhost.localdomain>
+In-Reply-To: <1128550254.2140.103.camel@localhost.localdomain>
 To: sparclinux@vger.kernel.org
 
 
---=-J2mIktikSVFG+3Sq03Qf
+--=-el5hPJ/L9i2Gw22/FqVQ
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
-Built 2.6.14-rc3-git4 today for sparc32 and I got pages of this from
-depmod -aeF /boot/System.map-2.6.13-1.1594sp1 2.6.13-1.1594sp1:
 
-WARNING: /lib/modules/2.6.13-1.1594sp1/kernel/sound/sparc/snd-sun-dbri.ko needs unknown symbol udiv
-WARNING: /lib/modules/2.6.13-1.1594sp1/kernel/sound/sparc/snd-sun-dbri.ko needs unknown symbol div
-WARNING: /lib/modules/2.6.13-1.1594sp1/kernel/sound/sparc/snd-sun-dbri.ko needs unknown symbol urem
-WARNING: /lib/modules/2.6.13-1.1594sp1/kernel/sound/sparc/snd-sun-dbri.ko needs unknown symbol rem
-WARNING: /lib/modules/2.6.13-1.1594sp1/kernel/sound/sparc/snd-sun-dbri.ko needs unknown symbol umul
-
-Not just for dbri, but for pretty much everything built as a module. I
-tested the latest revision of module-utils to see if it made any
-difference, and it did not.
-
-This looks like it tracks to:
-http://kernel.org/git/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=7caaeabb17758295edff9703c18a840073c5b8f4
-
-Unfortunately, depmod had a workaround case for .* symbols, and it is
-now seems to be broken for these sparc symbols. I worked up the attached
-patch to resolve the issue, but I'm not sure if it is the most correct
-way to fix it.
+I accidentally sent a broken version of this patch, the attached version works.
 
 ~spot
 -- 
@@ -40,7 +24,7 @@ Fedora Extras Steering Committee Member (RPM Standards and Practices)
 Aurora Linux Project Leader: http://auroralinux.org
 Lemurs, llamas, and sparcs, oh my!
 
---=-J2mIktikSVFG+3Sq03Qf
+--=-el5hPJ/L9i2Gw22/FqVQ
 Content-Disposition: attachment; filename=module-init-tools-3.2-sparc.patch
 Content-Type: text/x-patch; name=module-init-tools-3.2-sparc.patch; charset=UTF-8
 Content-Transfer-Encoding: 7bit
@@ -84,6 +68,17 @@ Content-Transfer-Encoding: 7bit
  			struct module *owner;
  			int weak;
  
+--- module-init-tools-3.2-pre9/depmod.h.BAD	2005-10-05 18:19:53.451485241 -0400
++++ module-init-tools-3.2-pre9/depmod.h	2005-10-05 18:19:58.472721897 -0400
+@@ -12,7 +12,7 @@ void *do_nofail(void *ptr, const char *f
+ #define NOFAIL(ptr)	do_nofail((ptr), __FILE__, __LINE__, #ptr)
+ 
+ void add_symbol(const char *name, struct module *owner);
+-struct module *find_symbol(const char *name, const char *modname, int weak);
++struct module *find_symbol(char *name, const char *modname, int weak);
+ void add_dep(struct module *mod, struct module *depends_on);
+ 
+ /* I hate strcmp. */
 
---=-J2mIktikSVFG+3Sq03Qf--
+--=-el5hPJ/L9i2Gw22/FqVQ--
 
