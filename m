@@ -1,53 +1,41 @@
-From: Jaron Duke <clang@zeitenwen.de>
-Date: Tue, 11 Oct 2005 10:10:12 +0000
-Subject: Actual News Bulletin.
-Message-Id: <522555302.20051009213227@pl345.nas922.sapporo.nttpc.ne.jp>
+From: Malcolm Wheeler <peculiarly@zitroneneis.de>
+Date: Wed, 05 Oct 2005 13:34:37 +0000
+Subject: News. Are AXCP's shares ready to Go Higher?
+Message-Id: <244244923.118656432@dsl.dynamic81214178201.ttnet.net.tr>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-MOMENTUM ALERT ISSUED FOR OCTOBER 11, 2005
+EXPLOSIVE PICK FOR OUR MEMBERS.
+TRADING ALERT!
 
-EXPLOSIVE PICK FOR OUR MEMBERS
-
-!!!RIDE THE STAIRWAY TO HEAVEN!!!!
-
-Date: 11 Oct 2005
-Stock Name: CWTD . OB
-Company Name: China World Trade Corporation
-Current Price: $2.06
-10 Day Target: $4
+Date: 5 Oct 2005
+Company: Allixon International Corporation
+Symbol: AXCP . PK
+Price: 4.11
+Projection 3 to 5 Days: 5.50 - 6.50
+Projection 7 to 9 Days: 8.00 - 10.00
 
 
-About China World Trade Corporation
+About Allixon International Corporation
 
-China World Trade Corporation (CWTC) has established its business
-in three distinct areas: the club and business centers throughout
-major cities in China, business travel-related services,
-and business value-added services. The Club and Business Center Division
-is devoted to the building of the World Trade brand throughout China
-via the opening and operating of business clubs in China's major,
-positioning the CWTC to act as a platform to facilitate trade
-between China and the world markets. The acquisition
-of CEO Clubs China Limited ("CEO Clubs") in May 2004
-further complements CWTC's offerings by targeting
-high-level corporate executives from premier companies.
-The Business Traveling Services Division, New Generation,
-provides CWTC access to the rapidly growing travel-related industry.
-New Generation is a pioneer and market leader in the travel agency business
-through its strong network of ticketing sales operations
-throughout Southern China. The Business Value- Added Services Division
-focuses on value-added services of credit cards, merchant-related
-business services, as well as consultancy services to CWTC members
-and clients. Guangdong World Trade Link Information Services Limited
-("WTC Link"), a subsidiary of CWTC, manages the Company's co-branded
-credit card project and is an active provider of CRM solutions
-and services in China.
+Allixon is a leading provider of RFID Middleware 
+and Mobile Internet solution for device computing. 
+Allixon combines its products, expertise, partnerships 
+and integration capability into solutions for a wide range 
+of device computing applications, including RFID Middleware 
+and m-banking solution. Allixon's products, 
+based on ubiquitous technologies, direct companies 
+looking to tap into the wealth of data captured 
+by networked devices such as RFID readers or handhelds 
+to extend the quality of information to any device anywhere 
+they want. 
 
 
-YOU COULD MAKE THOUSANDS OF DOLLARS TRADING.
-CWTD is ready to ROCK !!!!
+GET AXCP FIRST THING WEDNESDAY, THIS IS GOING TO EXPLODE 
+IN THE NEXT 2-5 DAYS. GOOD LUCK AND TRADE OUT AT THE TOP!!!
+
 
 
