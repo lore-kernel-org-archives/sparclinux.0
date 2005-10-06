@@ -1,21 +1,78 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Mon, 10 Oct 2005 18:11:26 +0000
-Subject: Re: Fix for sparc64 irq.c compile error
-Message-Id: <20051010.111126.46931482.davem@davemloft.net>
+From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
+Date: Thu, 06 Oct 2005 13:34:19 +0000
+Subject: [PATCH 2.6] sparc32 unresolved symbols
+Message-Id: <1128605659.2140.127.camel@localhost.localdomain>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=-nRPyIPxTOL/fIA8FLvpI"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20051009.202412.110750797.davem@davemloft.net>
-In-Reply-To: <20051009.202412.110750797.davem@davemloft.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sven Hartge <hartge@ds9.argh.org>
-Date: Mon, 10 Oct 2005 08:20:37 +0200 (CEST)
 
-> The Debian variant of 2.6.12 works fine and does shutdown correct. I have 
-> yet to check, if they include any patch to solve this issue or if only 
-> 2.6.13 and higher are affected.
+--=-nRPyIPxTOL/fIA8FLvpI
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-I believe they have a hack workaround that checks for a NULL tty in
-the wakeup routine, it's the wrong fix.
+When compiling for sparc32, I noticed that there were some undefined
+symbols, specifically:
+
+*** Warning: "ioread8" [drivers/scsi/sym53c8xx_2/sym53c8xx.ko]
+undefined!
+*** Warning: "pci_iounmap" [drivers/scsi/sym53c8xx_2/sym53c8xx.ko]
+undefined!
+*** Warning: "iowrite8" [drivers/scsi/sym53c8xx_2/sym53c8xx.ko]
+undefined!
+*** Warning: "iowrite16" [drivers/scsi/sym53c8xx_2/sym53c8xx.ko]
+undefined!
+*** Warning: "ioread16" [drivers/scsi/sym53c8xx_2/sym53c8xx.ko]
+undefined!
+*** Warning: "pci_iomap" [drivers/scsi/sym53c8xx_2/sym53c8xx.ko]
+undefined!
+*** Warning: "iowrite32" [drivers/scsi/sym53c8xx_2/sym53c8xx.ko]
+undefined!
+*** Warning: "ioread32" [drivers/scsi/sym53c8xx_2/sym53c8xx.ko]
+undefined!
+
+(The sym53c8xx driver is used for the SPARCStation 2)
+
+Not terribly difficult to fix, patch attached.
+
+Signed-off-by: Tom 'spot' Callaway <tcallawa@redhat.com>
+
+~spot
+-- 
+Tom "spot" Callaway: Red Hat Senior Sales Engineer || GPG ID: 93054260
+Fedora Extras Steering Committee Member (RPM Standards and Practices)
+Aurora Linux Project Leader: http://auroralinux.org
+Lemurs, llamas, and sparcs, oh my!
+
+--=-nRPyIPxTOL/fIA8FLvpI
+Content-Disposition: attachment; filename=linux-2.6.13-sparc-genericiomap.patch
+Content-Type: text/x-patch; name=linux-2.6.13-sparc-genericiomap.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+--- linux-2.6.13/arch/sparc/Kconfig.BAD	2005-10-05 12:07:24.104102481 -0400
++++ linux-2.6.13/arch/sparc/Kconfig	2005-10-05 12:07:45.977777177 -0400
+@@ -21,6 +21,10 @@ config GENERIC_ISA_DMA
+ 	bool
+ 	default y
+ 
++config GENERIC_IOMAP
++	bool
++	default y
++
+ source "init/Kconfig"
+ 
+ menu "General machine setup"
+--- linux-2.6.13/arch/sparc/defconfig.BAD	2005-10-05 12:08:07.042574841 -0400
++++ linux-2.6.13/arch/sparc/defconfig	2005-10-05 12:08:19.885622401 -0400
+@@ -5,6 +5,7 @@ CONFIG_MMU=y
+ CONFIG_UID16=y
+ CONFIG_HIGHMEM=y
+ CONFIG_GENERIC_ISA_DMA=y
++CONFIG_GENERIC_IOMAP=y
+ 
+ #
+ # Code maturity level options
+
+--=-nRPyIPxTOL/fIA8FLvpI--
+
