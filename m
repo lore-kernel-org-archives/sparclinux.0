@@ -1,78 +1,29 @@
-From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
-Date: Thu, 06 Oct 2005 13:34:19 +0000
-Subject: [PATCH 2.6] sparc32 unresolved symbols
-Message-Id: <1128605659.2140.127.camel@localhost.localdomain>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-nRPyIPxTOL/fIA8FLvpI"
+From: "David S. Miller" <davem@davemloft.net>
+Date: Fri, 07 Oct 2005 05:12:40 +0000
+Subject: Re: [PATCH 2.6] sparc32 unresolved symbols
+Message-Id: <20051006.221240.81151515.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1128605659.2140.127.camel@localhost.localdomain>
+In-Reply-To: <1128605659.2140.127.camel@localhost.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
+Date: Thu, 06 Oct 2005 08:34:19 -0500
 
---=-nRPyIPxTOL/fIA8FLvpI
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+> (The sym53c8xx driver is used for the SPARCStation 2)
 
-When compiling for sparc32, I noticed that there were some undefined
-symbols, specifically:
+SparcStation 2 is sun4c and SBUS, so there is no way this PCI driver
+is needed there. :-)
 
-*** Warning: "ioread8" [drivers/scsi/sym53c8xx_2/sym53c8xx.ko]
-undefined!
-*** Warning: "pci_iounmap" [drivers/scsi/sym53c8xx_2/sym53c8xx.ko]
-undefined!
-*** Warning: "iowrite8" [drivers/scsi/sym53c8xx_2/sym53c8xx.ko]
-undefined!
-*** Warning: "iowrite16" [drivers/scsi/sym53c8xx_2/sym53c8xx.ko]
-undefined!
-*** Warning: "ioread16" [drivers/scsi/sym53c8xx_2/sym53c8xx.ko]
-undefined!
-*** Warning: "pci_iomap" [drivers/scsi/sym53c8xx_2/sym53c8xx.ko]
-undefined!
-*** Warning: "iowrite32" [drivers/scsi/sym53c8xx_2/sym53c8xx.ko]
-undefined!
-*** Warning: "ioread32" [drivers/scsi/sym53c8xx_2/sym53c8xx.ko]
-undefined!
+> Not terribly difficult to fix, patch attached.
+> 
+> Signed-off-by: Tom 'spot' Callaway <tcallawa@redhat.com>
 
-(The sym53c8xx driver is used for the SPARCStation 2)
+I think it's better to write a sparc specific version in
+the end.  A lot of the PIO gunk in lib/iomap.c might not be
+appropriate on sparc32.
 
-Not terribly difficult to fix, patch attached.
-
-Signed-off-by: Tom 'spot' Callaway <tcallawa@redhat.com>
-
-~spot
--- 
-Tom "spot" Callaway: Red Hat Senior Sales Engineer || GPG ID: 93054260
-Fedora Extras Steering Committee Member (RPM Standards and Practices)
-Aurora Linux Project Leader: http://auroralinux.org
-Lemurs, llamas, and sparcs, oh my!
-
---=-nRPyIPxTOL/fIA8FLvpI
-Content-Disposition: attachment; filename=linux-2.6.13-sparc-genericiomap.patch
-Content-Type: text/x-patch; name=linux-2.6.13-sparc-genericiomap.patch; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
---- linux-2.6.13/arch/sparc/Kconfig.BAD	2005-10-05 12:07:24.104102481 -0400
-+++ linux-2.6.13/arch/sparc/Kconfig	2005-10-05 12:07:45.977777177 -0400
-@@ -21,6 +21,10 @@ config GENERIC_ISA_DMA
- 	bool
- 	default y
- 
-+config GENERIC_IOMAP
-+	bool
-+	default y
-+
- source "init/Kconfig"
- 
- menu "General machine setup"
---- linux-2.6.13/arch/sparc/defconfig.BAD	2005-10-05 12:08:07.042574841 -0400
-+++ linux-2.6.13/arch/sparc/defconfig	2005-10-05 12:08:19.885622401 -0400
-@@ -5,6 +5,7 @@ CONFIG_MMU=y
- CONFIG_UID16=y
- CONFIG_HIGHMEM=y
- CONFIG_GENERIC_ISA_DMA=y
-+CONFIG_GENERIC_IOMAP=y
- 
- #
- # Code maturity level options
-
---=-nRPyIPxTOL/fIA8FLvpI--
-
+But for now I'll apply your patch, thanks.
