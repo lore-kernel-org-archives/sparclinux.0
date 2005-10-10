@@ -1,7 +1,7 @@
 From: Meelis Roos <mroos@linux.ee>
-Date: Mon, 10 Oct 2005 20:10:16 +0000
+Date: Mon, 10 Oct 2005 20:22:59 +0000
 Subject: Re: Yesterdays git does not boot on U5
-Message-Id: <Pine.SOC.4.61.0510102309530.10419@math.ut.ee>
+Message-Id: <Pine.SOC.4.61.0510102322100.10419@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.SOC.4.61.0510101057330.28936@math.ut.ee>
 In-Reply-To: <Pine.SOC.4.61.0510101057330.28936@math.ut.ee>
@@ -10,11 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> Actually, we are calling into the firmware explicitly.
-> Can you get a deeper call trace?  So we can see who is calling
-> prom_cif_interface() and likewise that function's caller as well?
+> I bet the timer interrupt in the OBP is still firing and that's
+> why we crash.  We must not, in any way, call into the firmware
+> between the setup_tba() call and the completion of
+> inherit_prom_mappings_post() because the firmware page tables
+> are not active and we'll fault on any access to the firmware's
+> address space.
+>
+> Does this fix it?
 
-How can I get the deeper trace?
+Tested it to be sure it's something else. No, this does not fix it as 
+you probably already guessed by the next mail.
 
 -- 
 Meelis Roos (mroos@linux.ee)
