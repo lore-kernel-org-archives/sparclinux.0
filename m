@@ -1,7 +1,7 @@
 From: "David S. Miller" <davem@davemloft.net>
-Date: Mon, 10 Oct 2005 20:26:56 +0000
+Date: Mon, 10 Oct 2005 20:27:30 +0000
 Subject: Re: Yesterdays git does not boot on U5
-Message-Id: <20051010.132656.51283338.davem@davemloft.net>
+Message-Id: <20051010.132730.65707848.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.SOC.4.61.0510101057330.28936@math.ut.ee>
 In-Reply-To: <Pine.SOC.4.61.0510101057330.28936@math.ut.ee>
@@ -11,11 +11,15 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 From: Meelis Roos <mroos@linux.ee>
-Date: Mon, 10 Oct 2005 23:22:59 +0300 (EEST)
+Date: Mon, 10 Oct 2005 23:10:16 +0300 (EEST)
 
-> > Does this fix it?
+> > Actually, we are calling into the firmware explicitly.
+> > Can you get a deeper call trace?  So we can see who is calling
+> > prom_cif_interface() and likewise that function's caller as well?
 > 
-> Tested it to be sure it's something else. No, this does not fix it as 
-> you probably already guessed by the next mail.
+> How can I get the deeper trace?
 
-Thanks for testing, it's good to cover all possibilities :-)
+Nevermind... looking at your original "-p" dump it double
+faulted when it tried to print the backtrace :-)
+
+I've fired up my ultra5 and I'll try to fix this.
