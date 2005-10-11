@@ -1,102 +1,47 @@
-From: "Kory Solomon" <kory_solomonll@moebel-koch.de>
-Date: Thu, 13 Oct 2005 13:26:38 +0000
-Subject: Do You Like PenanySt0cks
-Message-Id: <822901c5cff9$02b3b56b$f60294b8@starbaseomega.de>
+From: <NAGRA42@FTAPATRIOT.NET>
+Date: Tue, 11 Oct 2005 11:02:53 +0000
+Subject: Re: Dishnet/Bev/Nagra2 Files And Hardware
+Message-Id: <E1EPHuH-0003m8-LP@ofelia.farciert.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Company Profile:
+HTTP://www.ftapatriot.net
 
-CEO AMERICA INC.
+I would like to invite you to the site of all sites.Packed full of information
+on Pansat, Fortec, Viewsat, and CoolSat Fta units.We are also the "Official
+Release site of all files related to CoolSat4000 Pro Units And other units.Find
+out the truth to the nag2 information and much more.Come and see what all the
+fuss is about.Find out the truth others don't want you to know.Get the help you
+need without all of the BS.A place were newbies and pros alike help each other
+out.If you think you may be interested in such a site then come on over.We look
+forward to seeing you there.
 
-Symbol: CEOA . pk
-Recent Price: $3.00
-Expected Trading Range: $5.50 - $6.00 (post split)
-Shares Outstanding: 35M (est.)
-Float (est.): 5M
+HTTP://www.ftapatriot.net
+
+To end since the CoolsatPro 4000 release it has been the hottest FTA seller,and
+thats for good reasoning,with its cardslot embedded there WILL be endless
+amounts of testing that you the end user can endure as our time passes.Being
+fully equipped for Nagra 2 Testing and Flash cababilities we are happy to
+anounce that rumours have it that Dishnet/Bev have been compromised in the past
+month,allthough BEV was hit we forsee teh ROM 102 since the cards were
+dumped.Nevertheless we have full script for others right now,Offered is 1 FULL
+year support with every order at thsi present time,so take advantage and climb
+aboard today.We accept WORLDIWIDE orders and shipping is FREE,C.O.D. is
+available for large orders only to US and CANADA.All Shipping is processed via
+FEDEX 2 day air.
+
+HTTP://www.ftapatriot.net
+
+Please note that we did not send you the email solicitation, as we do not
+directly conduct direct email campaigns. Entry of your email will not stop email
+delivery from the publisher from which you received the original offer (i.e. you
+may still receive emails from this publisher, with offers other than our
+services). To opt out of receiving any email offers from the publisher, please
+email us on the link which was provided in the email, and ask to be removed as
+we will without issues.
 
 
-
-This st0ck has just started a Major PR Campaign!!
-How will it react to th0usands of investors
-in the know now?
-
-Could this be some fast cash?
-We are expecting a explosion in the price.
-Don't wait act early watch this one trade Friday
-and ALL following days!!
-
-*Read Below Why we think this one is going to take
-off this week with this major PR campaign.
-
-Recent News Headlines Late September:
-
-  1. CEO America announces 3 for 1 forward split.
-
-  2. Sales and marketing expertise joins CEO America
-
-  3. Creditz used to fund local education foundation
-
-*Goto Your Favorite Financial Site to read the Full Stories!
-
-CEO America, Inc. is the sole licensee of the Creditz
-Digital Currency System - Creditz is the world's first
-digital currency, transforming cash, reward points, and
-miles into digital form enabling secure transactions in
-retail stores, online, and wireless.
-
-CEOA believes it will generate approximately $45M in
-revenue it's first full year of operations as a Digital
-Currency Vendor, commencing in 2006 and will produce
-$25OM, with net income of $35M in calendar 2007.
-
-Partners & Alliances:
-IBM
-MERRILL LYNCH
-FIRST DATA
-VERIFONE
-SCRIP ADVANTAGE
-*In negotiations with national retailers
-
-Editor's Pick:
-
-We have selected CEOA as an editor's pick based on the
-following fundamentals:
-
-1. Strong Management
-2. World-Class Partners
-3. Cutting Edge Technology
-4. Secure Financing
-5. High Consumer Demand
-6. Undervalued (Post-Split)
-
-CEOA is postured to dominate the retail community in the US
-and internationally.
-
-Researchers say "Creditz is fast becoming the country's foremost
-choice of currency in e-commerce, a $2O_bill10n a year industry."
-
-________________________________________
-
-This is a marketing and information firm, and is n0t a f1nancial
-analyst. This report is based on independent analysis but also
-relies on information supplied by sources believed to be reliable.
-This report may or may not be the opinion of CEOA's management.
-We have been retained to reprint and distribute this information.
-We have not been compensated by CEOA. Compensation was made by a
-third party investor of CEOA The Market Invest0r_Al3rt and its
-officers and directors may from time to time buy and sell CEOA
-shares in the open market without notice. Ongoing technical
-analysis may from time to time cause the target price to fluctuate
-  without notice. The information contained in this report is not
-intended to be, and shall not constitute, an offer to sell or
-s0licitation of any offer to buy any security. This report contains
-f0rw4rd-l00k1ng_st4tem3nts, which involve risks and uncertainties
-that may cause actual results to differ materially from those
-set forth in the f0rw4rd-l00k1ng_st4tem3nts.It is intended for
-information only. Consult with your financial advis0r about CEOA.
-To be taken off our data base please Em4il us Nostk@Yahoo.com 
 
