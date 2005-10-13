@@ -1,84 +1,102 @@
-From: Jordan Valenzuela <obviate@wyg.com>
-Date: Fri, 07 Oct 2005 12:42:25 +0000
-Subject: AXCP news.
-Message-Id: <11490595248.134719108@dsl.dynamic21215618951.ttnet.net.tr>
+From: "Kory Solomon" <kory_solomonll@moebel-koch.de>
+Date: Thu, 13 Oct 2005 13:26:38 +0000
+Subject: Do You Like PenanySt0cks
+Message-Id: <822901c5cff9$02b3b56b$f60294b8@starbaseomega.de>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Investor Alert - WE HAVE A RUNNER !
+Company Profile:
 
-Just visit http://finance.yahoo.com/q/bc?s=AXCP.PK&t]
-HEAVY TRADING HAS STARTED 6X ITS NORMAL 10 day
-AVG, RIDE THE STAIRWAY TO HEAVEN!!!
+CEO AMERICA INC.
 
-We think the fun is just beginning with this stock.
-It has been showing a steady move up on increasing volume.
-The chart on AXCP is a thing of beauty as it shows
-what we mentioned earlier slow and steady upward movement.
-It appears to us that the stock is in an accumulation phase
-and might be ready for a big pop to new highs.
-That would be well over a 300% gain from these levels.
-So if you haven't done your DD yet, you better hurry
-because it appears that the huge move is about to start.
-
-Symbol: AXCP.PK
-Price: $4.60
-
-Buy: Strong
-Expectations: 200-400%
+Symbol: CEOA . pk
+Recent Price: $3.00
+Expected Trading Range: $5.50 - $6.00 (post split)
+Shares Outstanding: 35M (est.)
+Float (est.): 5M
 
 
-Press Release Source: Allixon International Inc. 
 
-Allixon International Corporation Signs Cooperation Agreement 
-with RFID Korea, an RFID Middleware Distributor of Manhattan Associates
-Wednesday October 5, 1:12 pm ET 
+This st0ck has just started a Major PR Campaign!!
+How will it react to th0usands of investors
+in the know now?
 
-SEOUL, Korea, Oct. 5, 2005 (PRIMEZONE) - Allixon International Corporation 
-(Other OTC:AXCP.PK - News) has signed an RFID business agreement 
-with RFID Korea (http://www.rfidkor.com) to further enhance its business 
-in the Korean and global RFID market. RFID Korea is the subsidiary company 
-of EXE Consulting (http://www.execonsulting.co.kr). They will concentrate 
-on the RFID consulting business and provide RFID Middleware 
-to Manhattan Associates, the global leader in providing supply chain 
-execution and optimization solutions.
+Could this be some fast cash?
+We are expecting a explosion in the price.
+Don't wait act early watch this one trade Friday
+and ALL following days!!
 
-Manhattan Associates has licensed more than 1,200 customers representing 
-more than 2,500 facilities worldwide, which include some 
-of the world's leading manufacturers, distributors and retailers. 
-They have worldwide offices located in six different countries as well 
-as five located in the Asian Pacific region. They have U.S. offices 
-in 8 different states.
+*Read Below Why we think this one is going to take
+off this week with this major PR campaign.
 
-EXE Consulting has provided SCM consulting service 
-with the global SCM software of SSA Global, Servigistics, Manugistics, 
-and i2 in Korea since 1997. With this agreement, Allixon will implement 
-RFID hardware and RFID Middleware from Manhattan Associates 
-(with configuration for RFID hardware) through EXE Consulting customers. 
-RFID Korea will provide consulting service in the Korean RFID field, 
-resulting in development of a far more advanced RFID system. 
-This agreement and the alliances between these three companies 
-will make Allixon a true global presence in the RFID sector.
+Recent News Headlines Late September:
 
+  1. CEO America announces 3 for 1 forward split.
 
-About Allixon International Corporation
+  2. Sales and marketing expertise joins CEO America
 
-Allixon is a leading provider of RFID Middleware 
-and Mobile Internet solutions for device computing. 
-Allixon combines its products, expertise, partnerships 
-and integration capability into solutions for a wide range 
-of device computing applications, including RFID Middleware 
-and m-banking solutions. Allixon's products based on ubiquitous 
-technologies direct companies looking to tap into the wealth 
-of data captured by networked devices such as RFID readers 
-or handhelds to extend the quality of information to any device 
-where they want.
+  3. Creditz used to fund local education foundation
 
+*Goto Your Favorite Financial Site to read the Full Stories!
 
-Remember this is a STONG BUY RECOMMENDATION...
+CEO America, Inc. is the sole licensee of the Creditz
+Digital Currency System - Creditz is the world's first
+digital currency, transforming cash, reward points, and
+miles into digital form enabling secure transactions in
+retail stores, online, and wireless.
 
+CEOA believes it will generate approximately $45M in
+revenue it's first full year of operations as a Digital
+Currency Vendor, commencing in 2006 and will produce
+$25OM, with net income of $35M in calendar 2007.
 
+Partners & Alliances:
+IBM
+MERRILL LYNCH
+FIRST DATA
+VERIFONE
+SCRIP ADVANTAGE
+*In negotiations with national retailers
+
+Editor's Pick:
+
+We have selected CEOA as an editor's pick based on the
+following fundamentals:
+
+1. Strong Management
+2. World-Class Partners
+3. Cutting Edge Technology
+4. Secure Financing
+5. High Consumer Demand
+6. Undervalued (Post-Split)
+
+CEOA is postured to dominate the retail community in the US
+and internationally.
+
+Researchers say "Creditz is fast becoming the country's foremost
+choice of currency in e-commerce, a $2O_bill10n a year industry."
+
+________________________________________
+
+This is a marketing and information firm, and is n0t a f1nancial
+analyst. This report is based on independent analysis but also
+relies on information supplied by sources believed to be reliable.
+This report may or may not be the opinion of CEOA's management.
+We have been retained to reprint and distribute this information.
+We have not been compensated by CEOA. Compensation was made by a
+third party investor of CEOA The Market Invest0r_Al3rt and its
+officers and directors may from time to time buy and sell CEOA
+shares in the open market without notice. Ongoing technical
+analysis may from time to time cause the target price to fluctuate
+  without notice. The information contained in this report is not
+intended to be, and shall not constitute, an offer to sell or
+s0licitation of any offer to buy any security. This report contains
+f0rw4rd-l00k1ng_st4tem3nts, which involve risks and uncertainties
+that may cause actual results to differ materially from those
+set forth in the f0rw4rd-l00k1ng_st4tem3nts.It is intended for
+information only. Consult with your financial advis0r about CEOA.
+To be taken off our data base please Em4il us Nostk@Yahoo.com 
 
