@@ -1,30 +1,29 @@
-From: Marc Zyngier <mzyngier@freesurf.fr>
-Date: Wed, 12 Oct 2005 11:20:06 +0000
+From: "David S. Miller" <davem@davemloft.net>
+Date: Fri, 14 Oct 2005 22:35:38 +0000
 Subject: Re: Still some serial console corruption on sunsab
-Message-Id: <wrpfyr7j82h.fsf@wild-wind.fr.eu.org>
+Message-Id: <20051014.153538.101724836.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.SOC.4.61.0510121223230.29862@math.ut.ee>
 In-Reply-To: <Pine.SOC.4.61.0510121223230.29862@math.ut.ee>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
->>>>> "Meelis" =3D Meelis Roos <mroos@linux.ee> writes:
+From: Meelis Roos <mroos@linux.ee>
+Date: Wed, 12 Oct 2005 12:28:17 +0300 (EEST)
 
-Meelis> ..=C9.=A5=BD..2.86 booting
-Meelis> Starting the hotplug events dispatcher: udevd.
+> Is this known to corrupt sometimes or is it thought to be fixed?
+> I'm running todays 2.6.14-rc4-gda64c6ee.
 
-Meelis> M.=A5=D1.=A1=A5...to runlevel: 6
-Meelis> ..=A5...processes the TERM signal
+It's known, and unfortunate.
 
-Meelis> Is this known to corrupt sometimes or is it thought to be fixed?
-Meelis> I'm running todays 2.6.14-rc4-gda64c6ee.
+I tried everything to correct this problem, but to no avail.  The
+current 2.6.x sunsab driver even defers all parameter changing in the
+chip until the transmitter is %100 idle.  That still doesn't help,
+as your trace shows.
 
-I've seen this kind of things for ages with sunsab. Looks like init
-messes with the tty settings, and maybe it confuses the chip for a
-while...=20
+I'll have to dig into init and see what kind of terminal setting
+calls it does.
 
-	M.
---=20
-And if you don't know where you're going, any road will take you there...
+Thanks for the reminder about this problem.
