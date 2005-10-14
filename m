@@ -1,7 +1,7 @@
-From: Peter Jones <pjones@redhat.com>
-Date: Fri, 14 Oct 2005 21:07:43 +0000
+From: "David S. Miller" <davem@davemloft.net>
+Date: Fri, 14 Oct 2005 21:42:24 +0000
 Subject: Re: qlogicpti kernel panic
-Message-Id: <1129324063.5334.9.camel@localhost.localdomain>
+Message-Id: <20051014.144224.39338476.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1129315998.2243.35.camel@localhost.localdomain>
 In-Reply-To: <1129315998.2243.35.camel@localhost.localdomain>
@@ -10,16 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Fri, 2005-10-14 at 17:04 -0400, Peter Jones wrote:
+From: Peter Jones <pjones@redhat.com>
+Date: Fri, 14 Oct 2005 16:49:34 -0400
 
-> The closest thing I see to something that does something like this, but
-> handles both sg and a single buffer is scsi_debug.c's
-> fill_from_dev_buffer (which is of course not exported, nor should it
-> be).
-> 
-> Is the right way something along those lines?
+> Roughly, what's the portable way?
 
-Ok, I see that your patch does something like that ;)
--- 
-  Peter
+See the followup patch I posted.
 
+libata-scsi.c is where I culled the code from.
+
+It should be generically somewhere, but the problem
+is that the "KM_*" kmap type depends upon the context
+in which the routine is called (user or IRQ).
