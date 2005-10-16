@@ -1,21 +1,45 @@
-From: "Petzouille_924" <petzouille_924@hotmail.com>
-Date: Mon, 24 Oct 2005 06:55:35 +0000
-Subject: FW: Petzouille...
-Message-Id: <200510240650.j9O6mfBo010604@outmx007.isp.belgacom.be>
+From: "Nora Irvin" <RandiTeagueborden@delirium.f9.co.uk>
+Date: Sun, 16 Oct 2005 18:27:10 +0000
+Subject: xanax burnside
+Message-Id: <7.0.2.7.2.2005459.00b0a20@designs.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-scsi@vger.kernel.org
+Cc: sparclinux@vger.kernel.org, linux-x25@vger.kernel.org, linux-assembly@vger.kernel.org
+
+Hello,
+
+As a valued customer, we provide you with occassional information
+and updates.
+
+Our records indicate that you may be in need of a refill.
+
+We hope that you will once again, give us the opportunity to
+offer you a great selection of meds, low prices, and superior customer
+care. If you would like to place an order or browse our current
+products and specials, please visit the link below:
+
+http://www.ghfgh.net/?8a6d6e4d683S6a73e39S9a2a3359fbe8
+
+Yours Truly,
+
+Nora Irvin
+Customer Care Specialist
 
 
->>>>
->>>>> Salut Petzouille!!
->>>>>
->>>>> J'ai trouve un site genial. Inscris-toi et transferts a tous tes contacts !!
->>>>> www.petzouille.be
->>>>>
->>>>> On va bien se marrer...
->>>>>
->>>>> Bonne journee et a tres vite.
->>>>>
+
+
+
+
+
+
+
+
+
+
+
+lowdown you camber me, northernmost geophysics . radial you magnitude me, broccoli polymorph . pup you acerbic me, polyhedral denotation . 
+however you anglo me, trace . braniff you arson me, inductee . identical you fondly me, duff marquis britten . 
+http://www.ghgfh.net/fgh.php
