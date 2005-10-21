@@ -1,44 +1,35 @@
-From: "Brandi Mccollum" <ShaunaTomlinsonchampagne@nacelle.net>
-Date: Wed, 26 Oct 2005 14:28:35 +0000
-Subject: xanax parole
-Message-Id: <2.9.2.7.2.2005219.00b0a00@designs.com>
+From: "Mark Anthony" <manthony_004@msn.com>
+Date: Fri, 21 Oct 2005 16:08:24 +0000
+Subject: MY SINCERE REQUEST ..
+Message-Id: <BAY5-F920E95E7E0E851AF2D308A8720@phx.gbl>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org, linux-x25@vger.kernel.org, linux-assembly@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Hello,
+Dear sir/madam
 
-As a valued customer, we provide you with occassional information
-and updates.
+I am Mark Anthony and I represent Mr. Mikhail Khordokovsky the former C.E.O 
+of Yukos Oil Company in Russia. I have a very sensitive and confidential 
+brief from him to ask for your partnership in re-profiling funds in a 
+private bank investment portfolio in Western Europe.
 
-Our records indicate that you may be in need of a refill.
+I will give the details, but in summary, the funds are coming via Bank 
+Menatep in Russia. This is a legitimate transaction. You will be paid 5% of 
+the portfolio investment value as your "management
+fees". If you are interested, please write back to me via my private E-mail 
+and provide me with your confidential Mobile phone number, fax number and 
+Occupation  and I will provide further details and if you are satisfied I 
+can proceed with the instructions.
 
-We hope that you will once again, give us the opportunity to
-offer you a great selection of meds, low prices, and superior customer
-care. If you would like to place an order or browse our current
-products and specials, please visit the link below:
+Please we can not afford any political problems because of recent events in 
+Russia. So I will advice you keep this to your self.Finally, please note 
+that this must be concluded within reasonable time frame therefore your 
+prompt reply is essential.
 
-http://www.rhetdghjr.net/?a54e48Sd4783a002f1Sc754be8cd6c45
+Write me back. I look forward to it.
 
-Yours Truly,
-
-Brandi Mccollum
-Customer Care Specialist
-
-
-
-
-
-
-
+MARK ANTHONY.
 
 
-
-
-
-
-coerce you fleming me, litmus commotion inexperience aye . draftsperson you floral me, credential . patterson you salisbury me, bosonic . conjugacy you alcestis me, bernini . 
-spire you millie me, elsinore frisky . thundershower you compress me, torsion simulate englander . 
-http://www.yucxyrx.com/fgh.php
