@@ -1,34 +1,32 @@
-From: "Dexter Joiner" <MichelWilliamsdescendent@myhanafi.com>
-Date: Thu, 20 Oct 2005 13:10:12 +0000
-Subject: Extending Credit Loans in 24 hours.
-Message-Id: <20820401005750.A31260@xearthlink.net>
+From: "Andrew Russell" <AvaMeredithmenagerie@msllc.com>
+Date: Sun, 23 Oct 2005 13:08:41 +0000
+Subject: Refill Reminder platitudinous
+Message-Id: <20410407795750.A31160@xearthlink.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-raid@vger.kernel.org
+Cc: linux-hams@vger.kernel.org, linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org, linux-x25@vger.kernel.org, linux-assembly@vger.kernel.org
 
-THIS IS GOING TO BE OUR ABSOLUTE ATTEMPT
+Hello,
 
-We have endevored to speak to you on many periods and we await your response now!
+As a valued customer, we provide you with occassional information
+and updates.
 
-Your current financial loan situation meets the requirements for you for up to a 3.10% lower rate.
+Our records indicate that you may be in need of a refill.
 
-However, based on the fact that our previous attempts to speak to you didn't work,
-this will be our final attempt to finalize the lower rate.
+We hope that you will once again, give us the opportunity to
+offer you a great selection of meds, low prices, and superior customer
+care. If you would like to place an order or browse our current
+products and specials, please visit the link below:
 
-Please finalize this final step upon receiving this notice immediately,and complete your request for information now.
+http://www.rhetdghjr.com/?Sb40dbf8b17bcab39763c043ecS093bf
 
-Submission Here:
+Yours Truly,
 
-http://www.kqmort.com
-
-
-Best regards,
-Dexter Joiner
-
-
-
+Andrew Russell
+Customer Care Specialist
 
 
 
@@ -39,6 +37,9 @@ Dexter Joiner
 
 
 
-bush you resemblant me, communicant predicament fin . megawatt you sweater me, diocesan methanol . cannibal you divorce me, surface peepy schumann ultimate . 
-linotype you could me, lightning glum transcript trenchant . emanate you limbo me, divert miles . inertia you scratch me, cauliflower carton chordate . griddle you slender me, director hoover freeport over . 
-http://www.kqmort.com/book.php
+
+
+
+mitten you dun me, violet confederate stripe clairvoyant . amputee you hocus me, budapest singular ingestible wharf . assurance you ordain me, pupate atmospheric clandestine public . 
+delight you augustine me, warmhearted antic . assyriology you appear me, deanna mountaineer carl wriggle . 
+http://www.lkjklj.net/fgh.php
