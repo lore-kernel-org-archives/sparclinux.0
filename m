@@ -1,102 +1,62 @@
-From: ena Anastasiadis <jwdjhnnvar@accardifamily.com>
-Date: Thu, 06 Oct 2005 10:27:37 +0000
-Subject: Watch This Trrade Perform!_recontaminate
-Message-Id: <950590139136931.843322417.099398@lockbox-drv717.accardifamily.com>
+From: "Noreen" <ameurerolld@mariancollege.edu>
+Date: Wed, 26 Oct 2005 14:19:59 +0000
+Subject: We offering this job again fresh
+Message-Id: <2551826477.20051026071959@gainvevk>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-ena_woodwork
+Dear Sir/Madam.instant sell
 
-     WallStreet Profit Picks IGTS . PK
-           For This Weeks Mover!
+Are you looking for  a job? 
+Are you not satisfied with your income?see You think you can earn more and
+you want earn more? face We can make an offer to you ! used
+   Solid Job Company WorldWide had proved itself long
+ago as a stable financial investor into social projects of thirdworld
+countries. We had built numerous chruches that are successful now,
+several hospitals, institutions for children with hard childhood.huge fresh
+Currently our project is "Movement  for making better an environment
+for woman in arabian countries". huge
+   We also own a organization "Old New Orleans".hardcan Basically we are renweing
+a territory and giving a place it's original look.wishtry As you can see, we
+are not about earning money like any other company, we are working with
+people and for people! Our capital consists of invests of big companies
+and private individuals.worknot We are in contact of thousand of government
+individuals, as well as with common people.friend welcome
 
-First we would like to say Thank You to all of
-our avid readers! We have had great success over
-the last few months and have become one of the
-most wide|y read investment newsletters in the
-wor|d. We have accomplished this by providing
-timely, accurate financial information with
-proven results and great returns 250 to 600
-percent on every pick!
+  Our vacancies:  Now clients of our company conduct financial operations
+all over the world including United Kingdom, but due to sufficient
+perfection in Banking Service we have some difficulties in translation
+and reorganization of our business, therefore we are planning to open
+branches in which we require UKs.eyes Now we are looking for financial
+assistants who will be responsible to accept payments from our clients.stop
+At this moment we provide and offer work at home, after opening offices
+in UKs, you will have an opportunity for  working in our offices as
+well.to
 
-Ticker:_IGTS. Pk
-Last_Trade:_. O1
-Projected_Price:_. 20
-Return_Level:_Very_High
+    Today we are looking for financial assistants that will be responsible
+to accept payments from clients through bank transfer, because of
+imperfection of bank system.their UKs partners of our clients have some
+difficulties with sending bank translations and cheques to East
+Europe.click You can make 10 % commission from every transfer you will
+receive through relative to our business.can The rest needs to be
+transferred to our company's representative by Western Union; all
+Western Union fees are paid by us.your On average you will be making 3,000
+US Dollars per week.old
 
-Intelligent Sports taps into national franchise
-company, LMM Group, Inc., to set the framework
-for expanding nationally
+      We believe that you can get good future and achievements in our
+business.real If our offer is interesting to you, please feel free in
+sending a mail to our HR office. For more information our crew of
+Human Resources is ready to answer all your questions.
 
-Intelligent Sports, Inc., (IGTS.pk) is to begin
-licensing their youth and fitness center concept,
-The Sports Zone, nationally. Recognizing the link
-between athletic participation and personal success,
-Intelligent Sports provides a fitness center for
-kids with a mission of providing physical and mental
-guidance to all student-athletes. 
+   If you are ready to start working with us then you need to register on
+our personal website  of our company and you will get a personal
+account that you will work with .online After you done that  and you got an
+account - we start working with you within 24 hours.dream Go to
+http://solidjob.org please click " REGISTER"
 
-Intelligent Sports has formed a marketing partnership
-with national active franchise and marketing company
-LLM Group, Inc. based in Florida. Under the direction
-of President Morton Colby, the LLM Group, Inc. will
-develop and facilitate the acquisition and expansion
-of programs for Intelligent Sports and The Sports Zone
-including attracting additional site location owners
-and licensees. 
-
-"Serving as a starting place to help reverse the trend
-of childhood obesity, The Sports Zone has developed
-several new programs in anticipation of expansion,"
-said Intelligent Sports President, Thomas Hobson. "We
-are eager to take our youth fitness concept to the
-next level with LLM Group and expanding nationally.
-Mr. Colby and his team bring vast experience in
-franchise sales, acquisition development and
-entrepreneurial business including being the
-original importer of the famous Vespa scooter to the
-United States." 
-
-The Sports Zone by Intelligent Sports provides
-physical and mental guidance to area youth through a
-wide range of after-school sports programs, weekend
-leagues and tournaments. Programs nurture both sides
-of the student athlete -- from building the individual
-athletic skill development to paving the way for higher
-levels of self-esteem, discipline, motivation and
-overall psychological well-being. The Sports Zone
-encompasses a 10,000 square foot facility featuring
-two basketball courts and caters to court sports
-including basketball, volleyball, cheerleading, and
-dance, and also has the ability to host soccer,
-football and other field-related athletic activity. 
-
-With a board comprised of Reggie Theus, former NBA
-star, TV analyst, and current Head Men's Basketball
-Coach at New Mexico State University and Kellen
-Winslow, a member of the NFL Hall of Fame, the
-initial focus of publicly held Intelligent Sports,
-Inc. is to introduce a new generation of youth to
-athletics through the development of organized
-youth sports and fitness programs and facilities
-throughout the country.
-
-Watch IGTS . PK trade All Week Long Starting today,
-Be sure to get in on it and have a great payday with
-our other members, before the company launches a
-huge promotion at the end of the week! This Friday
-coming up the company will be launchig a massive
-marketing campaign with more great news to be
-released and next week should be over 15 to 25
-cents so get in now at one cent and have a great
-return!
-
-jingoist kiloton although hipster
-burglarproof,
-
-cobwebbable owing idiot resurgent
-nonconformist.
+Best Regards
+Solid Job Company
 
