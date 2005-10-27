@@ -1,45 +1,28 @@
-From: "Nora Irvin" <RandiTeagueborden@delirium.f9.co.uk>
-Date: Sun, 16 Oct 2005 18:27:10 +0000
-Subject: xanax burnside
-Message-Id: <7.0.2.7.2.2005459.00b0a20@designs.com>
+From: <sparclinux@vger.kernel.org>
+Date: Thu, 27 Oct 2005 08:34:48 +0000
+Subject: ahorre combustible
+Message-Id: <18c0d01c5db9a$c5522a30$1400a8c0@hire4b08e372f0>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-scsi@vger.kernel.org
-Cc: sparclinux@vger.kernel.org, linux-x25@vger.kernel.org, linux-assembly@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Hello,
+No sucumbas ante los exagerados precios de la gasolina y el diesel
 
-As a valued customer, we provide you with occassional information
-and updates.
+La Ubiee PowerPill es un reconocido producto que brinda beneficios a los motores de gasolina y diesel de todos los tamaos y pases.
 
-Our records indicate that you may be in need of a refill.
+Puede ser usado para optimizar la fuerza del motor, no daa al medio ambiente, reduce los depsitos de carbn, y maximiza la economa del combustible, por lo tanto, reduce los costos de operacin.
 
-We hope that you will once again, give us the opportunity to
-offer you a great selection of meds, low prices, and superior customer
-care. If you would like to place an order or browse our current
-products and specials, please visit the link below:
+Dedique solo 5 minutos a examinar este enlace y vera lo fcil que es ahorrar hasta un 42% de combustible
 
-http://www.ghfgh.net/?8a6d6e4d683S6a73e39S9a2a3359fbe8
+http://www.bestsevendiamonds.com/past/
 
-Yours Truly,
+Si no desea recibir ns publicidad use el siguiente enlace y anote su direccin e.mail. Es la unica manera para dar de baja su sireccin
 
-Nora Irvin
-Customer Care Specialist
+http://www.bestsevendiamonds.com/past/bajas.asp
+
+Muchas gracias
 
 
 
-
-
-
-
-
-
-
-
-
-
-lowdown you camber me, northernmost geophysics . radial you magnitude me, broccoli polymorph . pup you acerbic me, polyhedral denotation . 
-however you anglo me, trace . braniff you arson me, inductee . identical you fondly me, duff marquis britten . 
-http://www.ghgfh.net/fgh.php
