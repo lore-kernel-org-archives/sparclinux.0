@@ -1,25 +1,47 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Sun, 02 Oct 2005 01:26:20 +0000
-Subject: Re: [2.6 patch] sparc: "extern inline" -> "static inline"
-Message-Id: <20051001.182620.32883151.davem@davemloft.net>
+From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
+Date: Sun, 30 Oct 2005 15:12:01 +0000
+Subject: sparc64 errors
+Message-Id: <1130685122.7972.27.camel@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20050902202444.GS3657@stusta.de>
-	<20050902.132754.118393946.davem@davemloft.net>
-	<20051001230628.GF4212@stusta.de>
-In-Reply-To: <20051001230628.GF4212@stusta.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: bunk@stusta.de
-Cc: wli@holomorphy.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Adrian Bunk <bunk@stusta.de>
-Date: Sun, 2 Oct 2005 01:06:28 +0200
+For the purpose of documentation, I'm posting the errors that I'm seeing
+with buildcheck under 2.6 sparc64. I have no idea if these are false
+positives or not.
 
-> I just tried 2.6.14-rc3 and 2.6.14-rc2-mm2, and it applied against both.
++ make ARCH=sparc64 buildcheck
+perl /usr/src/redhat/BUILD/kernel-2.6.13/linux-2.6.13/scripts/reference_discarded.pl
+perl /usr/src/redhat/BUILD/kernel-2.6.13/linux-2.6.13/scripts/reference_init.pl
+Finding objects, 3551 objects, ignoring 1875 module(s)
+Finding conglomerates, ignoring 98 conglomerate(s)
+Scanning objects
+Error: ./arch/sparc64/kernel/time.o .data.read_mostly refers to
+0000000000000000 R_SPARC_64        .init.data
+Error: ./drivers/serial/sunsu.o .data refers to 0000000000000048
+R_SPARC_64        .init.text+0x00000000000001d8
+Error: ./drivers/serial/sunzilog.o .data refers to 0000000000000028
+R_SPARC_64        .init.text+0x0000000000000058
+Error: ./drivers/video/aty/atyfb_base.o .text refers to 0000000000002968
+R_SPARC_HI22      .init.data
+Error: ./drivers/video/aty/atyfb_base.o .text refers to 000000000000296c
+R_SPARC_LO10      .init.data
+Error: ./drivers/video/console/promcon.o .text refers to
+0000000000000334 R_SPARC_WDISP30   .init.text+0x0000000000000118
+Error: ./init/main.o .text refers to 00000000000000d0
+R_SPARC_HI22      .init.data+0x0000000000000160
+Error: ./init/main.o .text refers to 00000000000000d4
+R_SPARC_LO10      .init.data+0x0000000000000160
+Done
 
-'patch' and friends are much more lenient about white space
-and other types of "fuzz" than the git patch application code
-is.  So that can often be the reason.
+Thanks,
 
-But this version applies properly, thanks a lot Adrian.
+~spot
+-- 
+Tom "spot" Callaway: Red Hat Senior Sales Engineer || GPG ID: 93054260
+Fedora Extras Steering Committee Member (RPM Standards and Practices)
+Aurora Linux Project Leader: http://auroralinux.org
+Lemurs, llamas, and sparcs, oh my!
+
