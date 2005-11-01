@@ -1,29 +1,38 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Sat, 05 Nov 2005 23:56:54 +0000
-Subject: Re: sparc64 errors
-Message-Id: <20051105.155654.77195500.davem@davemloft.net>
+From: "Carey Bauer" <HEJZVRF@yahoo.com>
+Date: Tue, 01 Nov 2005 07:56:44 +0000
+Subject: Guys Need This fE1Bs3
+Message-Id: <5286277.103133HEJZVRF@yahoo.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
-Date: Sun, 30 Oct 2005 09:12:01 -0600
 
-> For the purpose of documentation, I'm posting the errors that I'm seeing
-> with buildcheck under 2.6 sparc64. I have no idea if these are false
-> positives or not.
 
-They nearly all are, but I've quieted a few of them nonetheless in my
-tree.
+"Ci-ialis Softabs" is better than "Pfhizer Vaiggra"
+and normal Ci-ialis because:
 
-For example, in the arch/sparc64/kernel/time.c case we set the
-timer_ops to a "dummy" version that just returns zero in case a super
-early call to sched_clock() or similar occurs.  But we always reset
-that pointer to the correct ops vector long before the init stuff gets
-freed up.
+- Guaaraantees 36 hours lasting
+- Safe to take, no side effects at all
+- Boost and increase se-xual performance
+- Haarder e-rectiions and quick recharge
+- Proven and certified by experts and doctors
+- only $3.99 per tabs
 
-The buildcheck scripts are very simple and have no way to know that it
-truly isn't referenced improperly.  They just grep for .data section
-references to .init et al. areas.
+Cllick heree:
+http://uk.geocities.com/Maggi8994Ivie28001/
+
+
+
+
+
+
+
+
+
+
+
+o-ut of mai-lling lisst:
+
+0e6xG
