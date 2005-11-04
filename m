@@ -1,27 +1,25 @@
 From: "David S. Miller" <davem@davemloft.net>
-Date: Wed, 30 Nov 2005 00:26:32 +0000
-Subject: Re: CG3 frame buffer is broaken (2.6.12 onwards) again [PATCH]
-Message-Id: <20051129.162632.02559568.davem@davemloft.net>
+Date: Fri, 04 Nov 2005 21:23:54 +0000
+Subject: Re: PATCH: cs4231 on sbus
+Message-Id: <20051104.132354.104647320.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.10.10511221501160.30262-100000@mtfhpc.demon.co.uk>
-In-Reply-To: <Pine.LNX.4.10.10511221501160.30262-100000@mtfhpc.demon.co.uk>
+References: <43527FA3.8090301@triaton-webhosting.com>
+In-Reply-To: <43527FA3.8090301@triaton-webhosting.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mark@mtfhpc.demon.co.uk
-Cc: adaplas@pol.net, wli@holomorphy.com, zippel@linux-m68k.org, linux-fbdev-devel@lists.sourceforge.net, sparclinux@vger.kernel.org, kbuild-devel@lists.sourceforge.net
+To: sparclinux@vger.kernel.org
 
-From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date: Tue, 22 Nov 2005 15:17:04 +0000 (GMT)
+From: Georg Chini <georg.chini@triaton-webhosting.com>
+Date: Sun, 16 Oct 2005 18:28:19 +0200
 
->  config FB_FFB
->  	bool "Creator/Creator3D/Elite3D support"
->  	depends on FB_SBUS && SPARC64
-> +	select FB_CFB_FILLRECT
->  	select FB_CFB_COPYAREA
->  	select FB_CFB_IMAGEBLIT
->  	select FB_SOFT_CURSOR
+> here is another cs4231 patch which makes
+> it work on my ultra2. Tested by Christopher
+> Zimmermann and myself. It introduces some
+> sbus_dma routines similar to the ebus_dma
+> stuff to make the code look nearly the same
+> for both cases. I hope it does not break ebus.
+> Patch against 2.6.14-rc2-git4. Thanks to
+> Christopher for testing.
 
-Unnecessary, the ffb.c driver does accelerated fillrect, and
-therefore does not references the cfb_fillrect software
-rendering code.
+Patch applied, thanks Georg.
