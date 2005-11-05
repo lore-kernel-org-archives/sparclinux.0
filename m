@@ -1,7 +1,7 @@
 From: "David S. Miller" <davem@davemloft.net>
-Date: Fri, 04 Nov 2005 22:44:42 +0000
-Subject: Re: PATCH: cs4231 on sbus
-Message-Id: <20051104.144442.24094297.davem@davemloft.net>
+Date: Sat, 05 Nov 2005 00:24:09 +0000
+Subject: Re: PATCH: cs4231 on SBus
+Message-Id: <20051104.162409.10136443.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <43527FA3.8090301@triaton-webhosting.com>
 In-Reply-To: <43527FA3.8090301@triaton-webhosting.com>
@@ -11,9 +11,10 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 From: Georg Chini <georg.chini@triaton-webhosting.com>
-Date: Fri, 04 Nov 2005 22:50:11 +0100
+Date: Sat, 29 Oct 2005 14:23:04 +0200
 
-> have you seen the second patch I sent on the 29th? It is a little
-> different and fixes one bug more.
+> Not tested on EBus, could somebody please
+> give it a spin?
 
-ok, I'll check it out
+Where is the implementation of the ebus_dma_addr() function you've
+added references to?
