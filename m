@@ -1,33 +1,29 @@
-From: "Leopoldo Grimm" <MQRAMJW@hotmail.com>
-Date: Wed, 16 Nov 2005 04:45:23 +0000
-Subject: Watches Lovers Love this 5C5
-Message-Id: <5234277.103133MQRAMJW@hotmail.com>
+From: "David S. Miller" <davem@davemloft.net>
+Date: Sat, 05 Nov 2005 23:56:54 +0000
+Subject: Re: sparc64 errors
+Message-Id: <20051105.155654.77195500.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
+Date: Sun, 30 Oct 2005 09:12:01 -0600
 
+> For the purpose of documentation, I'm posting the errors that I'm seeing
+> with buildcheck under 2.6 sparc64. I have no idea if these are false
+> positives or not.
 
-Why pay more for originals when replikas are 
-look 99.9% alike?
-Highest quality of replikas assured which
-can't differentiate the difference with originals.
-And available at 95% original prices.
+They nearly all are, but I've quieted a few of them nonetheless in my
+tree.
 
-Try us out today..
+For example, in the arch/sparc64/kernel/time.c case we set the
+timer_ops to a "dummy" version that just returns zero in case a super
+early call to sched_clock() or similar occurs.  But we always reset
+that pointer to the correct ops vector long before the init stuff gets
+freed up.
 
-http://043.smartwytoshop.com
-
-
-
-
-
-
-
-
-o-ut of mai-lling lisst:
-http://043.smartwytoshop.com/rm/
-
-j3br1
+The buildcheck scripts are very simple and have no way to know that it
+truly isn't referenced improperly.  They just grep for .data section
+references to .init et al. areas.
