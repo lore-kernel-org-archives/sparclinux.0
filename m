@@ -1,41 +1,31 @@
 From: "David S. Miller" <davem@davemloft.net>
-Date: Wed, 23 Nov 2005 04:46:16 +0000
-Subject: Re: [PATCH]: IRQ stacks for sparc64
-Message-Id: <20051122.204616.76335012.davem@davemloft.net>
+Date: Sat, 05 Nov 2005 00:36:23 +0000
+Subject: Re: possible cg6 fix for pixels repeating at display edge or fading
+Message-Id: <20051104.163623.29339177.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20051110.210234.59468958.davem@davemloft.net>
-In-Reply-To: <20051110.210234.59468958.davem@davemloft.net>
+References: <4363EE58.1090508@mc.net>
+In-Reply-To: <4363EE58.1090508@mc.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Jason Wever <weeve@gentoo.org>
-Date: Fri, 11 Nov 2005 21:03:27 -0700
+From: Bob Breuer <breuerr@mc.net>
+Date: Sat, 29 Oct 2005 16:49:12 -0500
 
-> I've tried this patch against 2.6.14-git14 on a 2x750 Blade 1000.  When
-> I let the blade boot normally, it for some reason fails to mount the
-> root filesystem and dies with the following error;
+> Has anyone else using a cg6 seen the color banding or fading and pixels
+> on the right side being repeated off to the edges of the monitor?
 > 
-> kernel BUG at kernel/fork.c:731
+> I think I've found the cause of the problem.  Contrary to the comment,
+> changing the bt->control register affects something other than the
+> cursor.  Also, it looks like cg6_bt_init() already sets up the DAC and
+> this chunk of the code may be redundant.
 > 
-> If I try booting the same kernel with the -p argument, this doesn't
-> happen and the system boots as expected.  Will let the system run like
-> this and see how it goes.
+> The following patch seems to work for me on a TGX+.  If you are seeing
+> problems, can you give this a try and report if it works or not?
 
-I'm trying to reproduce this here locally and not having
-any luck.  On my SB1000 I also have 2x750 cpus and I have
-2GB of ram.  I'm using a creator3D framebuffer as the console
-with a USB keyboard.
+That register sets the overlay plane, we should just leave it
+alone since as you correctly noted other code inits that register
+already.
 
-And it works perfectly fine with the IRQ stack patch applied to
-2.6.15-rc2.
-
-Also, I'm using gcc-4.0.2-20050808 (Ubuntu 4.0.1-4ubuntu9) as my
-compiler.
-
-Can you let me know your compiler, ".config" and what you're using as
-the console?  It's the only place where I think there might be
-differences between our two setups.
-
-Thanks Jason.
+I'll delete those bogus lines, thanks Bob.
