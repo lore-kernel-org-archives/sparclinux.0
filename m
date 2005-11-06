@@ -1,7 +1,7 @@
 From: "David S. Miller" <davem@davemloft.net>
-Date: Sun, 06 Nov 2005 20:56:45 +0000
+Date: Sun, 06 Nov 2005 20:58:48 +0000
 Subject: Re: div, udiv, mul, umul, rem, urem broken again?!?
-Message-Id: <20051106.125645.09897025.davem@davemloft.net>
+Message-Id: <20051106.125848.29593875.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1128550254.2140.103.camel@localhost.localdomain>
 In-Reply-To: <1128550254.2140.103.camel@localhost.localdomain>
@@ -10,17 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
-Date: Sat, 05 Nov 2005 22:13:39 -0600
+From: Rusty Russell <rusty@rustcorp.com.au>
+Date: Sun, 06 Nov 2005 17:27:20 +1100
 
-> On Sat, 2005-11-05 at 16:40 -0800, David S. Miller wrote:
-> 
-> > I think I missed the idea whilst trying to implement
-> > your suggestion, as below, but it will not compile:
-> 
-> Whoever "fixes" this issue, please test with module-init-tools as part
-> of the confirmation process. It's never fun to discover that kernel
-> modules just don't work.
+> Argh, it would need to use the alias trick, yes.  As I said, untested.
+> But, looking in 2.6.12, sparc already did this aliasing?
 
-If I do the work I'll send you a patch to test since I lack
-any 32-bit sparc system on which to test this.
+And that aliasing trick is what we were trying to get rid
+of.  It's nearly impossible to get it to work on all versions
+of the compiler at once.
+
+I thought you had proposed a way to do it without aliases :-)
+
+> So my question is (I missed the beginning of this thread), why do you
+> want to avoid the simple "omit the . at the front" name mangling scheme
+> which modpost, kernel/module.c and module-init-tools already understand,
+> and use a different mangling scheme?  Name clash with something else?
+> Why is "_Udiv" a better name than "udiv"?
+
+Good question, I'll think about this some more.
