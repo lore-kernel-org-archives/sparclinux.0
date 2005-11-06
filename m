@@ -1,35 +1,33 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Tue, 29 Nov 2005 21:46:57 +0000
-Subject: Re: Bad pte in exit_mmap, 2.6.15-rc3
-Message-Id: <20051129.134657.120175360.davem@davemloft.net>
+From: "Anteing L. Scoreboard" <stephane@juno.com>
+Date: Sun, 06 Nov 2005 23:12:54 +0000
+Subject: Software
+Message-Id: <5676038165.20051106181254@juno.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.SOC.4.61.0511291602270.20932@math.ut.ee>
-In-Reply-To: <Pine.SOC.4.61.0511291602270.20932@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Meelis Roos <mroos@linux.ee>
-Date: Tue, 29 Nov 2005 16:05:03 +0200 (EET)
+Photoshop, Windows, Office. CHEAP. 
+Looking for cheap high-quality software? 
 
-> Testbooted 2.6.15-rc3 on my U5. All services started fine and then it 
-> started flooding this.
-> 
-> This is just FYI - I will be away from that machine for 3 next days and 
-> can't test any patches this time.
+New software on our site:
 
-This will fix it, thanks for the report:
+WordPerfect Office 10 - $69.95
+Exchange 2003 Enterprise Server - $69.95
+FileMaker 7.0 Professional - $69.95
+Premiere 6.5 - $89.95
+Creative Suite Standard (3 CD) - $129.95
+Encarta Encyclopedia Delux 2004 (3CD) - $89.95
+PageMaker 7 (2CD) - $69.95
+Encarta Encyclopedia Delux 2004 (3CD) - $89.95
+Norton System Works 2003 - $59.95
+Creative Suite Premium (5 CD) - $149.95
+LiveMotion 2.0 - $69.95
+Creative Suite Premium (5 CD) - $149.95
+Illustrator CS CE - $69.95
+Photoshop CS $99.95
 
-diff --git a/arch/sparc64/mm/generic.c b/arch/sparc64/mm/generic.c
-index d9396c1..580b63d 100644
---- a/arch/sparc64/mm/generic.c
-+++ b/arch/sparc64/mm/generic.c
-@@ -77,6 +77,7 @@ static inline void io_remap_pte_range(st
- 			BUG_ON(!pte_none(*pte));
- 			set_pte_at(mm, address, pte, entry);
- 			address += PAGE_SIZE;
-+			pte_val(entry) += PAGE_SIZE;
- 			pte++;
- 		} while (address < curend);
- 	} while (address < end);
+Our site:
+http://sbuvdar.m6strj9ma6ah544z9mmz9444.babiismcb.com
+
