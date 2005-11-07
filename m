@@ -1,21 +1,37 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Wed, 09 Nov 2005 20:03:15 +0000
-Subject: Re: [PATCH] arch/sparc: Use ARRAY_SIZE macro
-Message-Id: <20051109.120315.108937810.davem@davemloft.net>
+From: Christoph Hellwig <hch@lst.de>
+Date: Mon, 07 Nov 2005 04:05:20 +0000
+Subject: [PATCH] remove alloc_user_space()
+Message-Id: <20051107040520.GA16485@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20051108201706.GA7935@neon.tklauser.home>
-In-Reply-To: <20051108201706.GA7935@neon.tklauser.home>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: kernel-janitors@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Tobias Klauser <tklauser@nuerscht.ch>
-Date: Tue, 8 Nov 2005 21:17:06 +0100
+this inline routine in arch/sparc64/kernel/ioctl32.c is completely
+unused and superceeded by compat_alloc_user_space()
 
-> Use ARRAY_SIZE macro instead of sizeof(x)/sizeof(x[0]) and remove a
-> duplicate of ARRAY_SIZE which is never used anyways.
-> 
-> Signed-off-by: Tobias Klauser <tklauser@nuerscht.ch>
 
-Applied, thanks.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+
+Index: linux-2.6/arch/sparc64/kernel/ioctl32.c
+=================================--- linux-2.6.orig/arch/sparc64/kernel/ioctl32.c	2005-11-06 20:21:59.000000000 +0100
++++ linux-2.6/arch/sparc64/kernel/ioctl32.c	2005-11-06 20:22:01.000000000 +0100
+@@ -27,17 +27,6 @@
+  */
+ #define A(__x) compat_ptr(__x)
+ 
+-static __inline__ void *alloc_user_space(long len)
+-{
+-	struct pt_regs *regs = current_thread_info()->kregs;
+-	unsigned long usp = regs->u_regs[UREG_I6];
+-
+-	if (!(test_thread_flag(TIF_32BIT)))
+-		usp += STACK_BIAS;
+-
+-	return (void *) (usp - len);
+-}
+-
+ #define CODE
+ #include "compat_ioctl.c"
+ 
