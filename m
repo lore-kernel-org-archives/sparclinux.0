@@ -1,91 +1,133 @@
-From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date: Tue, 22 Nov 2005 15:33:48 +0000
-Subject: sun4c problems in radix_tree_gang_lookup_tag
-Message-Id: <Pine.LNX.4.10.10511221518580.30262-100000@mtfhpc.demon.co.uk>
+From: IPSI Conferences <mont2006@ipsiconferences.org>
+Date: Thu, 10 Nov 2005 00:18:31 +0000
+Subject: Invitation to France, Spain, and Montreal, Canada; c/ba
+Message-Id: <E1Ea1AL-0000zT-Ks@ipsiconferences.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi,
+Dear potential Speaker:
 
-Is any one working on sun4c issues at the moment ?
+Based on your explicit interest expressed in the past and/or a recommendation from a colleague who read your past publication(s), on behalf of the organizing committee, we would like to extend a cordial
+invitat on for you to submit a paper to the IPSI Transactions journal, or to attend one of the upcoming multidisciplinary, interdisciplinary, and transdisciplinary (M+I+T++) conferences:
+_______________________________________________________________________
 
-I am getting a somewhat random occourance of a 'kernel BUG'.
+The 1st one will take place in Carcassone, France
+(UNESCO-protected medieval city; easy access from Paris or Cote d'Azur):
 
-I am using a cross compiled linux based on Linux 2.6.14.2. The cross
-compiler is gcc-4.0.2 with cross binutils-2.16.1. I am using an nfs
-mounted root. The sparc host is an OPUS sparcstation clone.
+IPSI-2006 FRANCE
 
-I also had the same issues with the 2.6.13 kernel.
+Hotel de la Cite (arrival: 27 Apr / departure: 30 Apr 2006)
+Deadlines: 1 January 2006 (abstract) / 30 January 2006 (full paper)
 
-Advice on debugging this to identify the real problem would be usefull. My
-efforts with gcc-3.4.x only highlight that gcc-3.4.x is not good at
-compiling sparc (32) code.
+-----------------------------------------------------------------------
 
-Regards
-	Mark Fortescue.
+The 2nd one will take place in S'Agaro, Costa Brava, Spain
+(easy to access from Barcelona and close to Carcassone; a paradize):
 
-kernel BUG at /L64/src/linux-2.6/linux-2.6.14.2-p02/lib/radix-tree.c:581!
-              \|/ ____ \|/
-              "@'/ ,. \`@"
-              /_| \__/ |_\
-                 \__U_/
-as(945): Kernel bad trap [#1]
-PSR: 004000c0 PC: f00e1cdc NPC: f00e1ce0 Y: 00000000    Not tainted
-PC: <radix_tree_gang_lookup_tag+0x144/0x1ac>
-%G: 00000001 f0234400  f02347ec 00400fe5  f002fc14 f0234800  ff032000 00000000
-%O: 0000004d f02010b0  00000245 00000000  00000001 00000000  ff033a48 f00e1cd4
-RPC: <radix_tree_gang_lookup_tag+0x13c/0x1ac>
-%L: 00000001 ff033b14  0000003f 00000008  00000010 00000000  ff032000 f006f690
-%I: 00000000 ff033b14  00000001 00000001  00000008 ff033b10  ff033ab0 f00b1fb4
-Caller[f00b1fb4]: nfs_wait_on_requests+0x98/0xb8
-Caller[f00b3950]: nfs_sync_inode+0x20/0x74
-Caller[f00b151c]: nfs_readpage+0x44/0x44c
-Caller[f004fb8c]: do_generic_mapping_read+0x290/0x564
-Caller[f005074c]: __generic_file_aio_read+0x168/0x1cc
-Caller[f005092c]: generic_file_aio_read+0x44/0x54
-Caller[f006e6f4]: do_sync_read+0x94/0xc8
-Caller[f006ea88]: vfs_read+0xa0/0x15c
-Caller[f006f65c]: sys_read+0x30/0x64
-Caller[f001149c]: syscall_is_too_hard+0x34/0x40
-Caller[e009ac14]: 0xe009ac14
-Instruction DUMP: 901220b0  7ffcc1ee  01000000 <91d02005> 9402a001  80a28010  0280000f  c4244001  8600e001 
-kernel BUG at /L64/src/linux-2.6/linux-2.6.14.2-p02/lib/radix-tree.c:581!
-              \|/ ____ \|/
-              "@'/ ,. \`@"
-              /_| \__/ |_\
-                 \__U_/
-as(945): Kernel bad trap [#2]
-PSR: 004000c4 PC: f00e1cdc NPC: f00e1ce0 Y: 00000000    Not tainted
-PC: <radix_tree_gang_lookup_tag+0x144/0x1ac>
-%G: 00000001 f0234400  f02347ec 00400fe2  f002fc14 f0234800  ff032000 00000000
-%O: 0000004d f02010b0  00000245 00000000  00000001 00000000  ff033560 f00e1cd4
-RPC: <radix_tree_gang_lookup_tag+0x13c/0x1ac>
-%L: 00000001 ff03362c  0000003f 00000001  00000002 00000000  ff032000 00000000
-%I: 00000000 ff03362c  00000001 00000001  00000008 f02c4be8  ff0335c8 f00b1fb4
-Caller[f00b1fb4]: nfs_wait_on_requests+0x98/0xb8
-Caller[f00b3950]: nfs_sync_inode+0x20/0x74
-Caller[f00aa650]: nfs_file_flush+0x54/0xb0
-Caller[f006c7f8]: filp_close+0x48/0x80
-Caller[f003103c]: put_files_struct+0x8c/0xe8
-Caller[f0031f44]: do_exit+0x1b4/0xbb4
-Caller[f0012734]: die_if_kernel+0x110/0x11c
-Caller[f0012788]: do_hw_interrupt+0x48/0x8c
-Caller[f0010940]: bad_trap_handler+0x20/0x30
-Caller[f00e1cd4]: radix_tree_gang_lookup_tag+0x13c/0x1ac
-Caller[f00b1fb4]: nfs_wait_on_requests+0x98/0xb8
-Caller[f00b3950]: nfs_sync_inode+0x20/0x74
-Caller[f00b151c]: nfs_readpage+0x44/0x44c
-Caller[f004fb8c]: do_generic_mapping_read+0x290/0x564
-Caller[f005074c]: __generic_file_aio_read+0x168/0x1cc
-Caller[f005092c]: generic_file_aio_read+0x44/0x54
-Caller[f006e6f4]: do_sync_read+0x94/0xc8
-Caller[f006ea88]: vfs_read+0xa0/0x15c
-Caller[f006f65c]: sys_read+0x30/0x64
-Caller[f001149c]: syscall_is_too_hard+0x34/0x40
-Caller[e009ac14]: 0xe009ac14
-Instruction DUMP: 901220b0  7ffcc1ee  01000000 <91d02005> 9402a001  80a28010  0280000f  c4244001  8600e001 
-Fixing recursive fault but reboot is needed!
+IPSI-2006 SPAIN
 
+Hotel Hostal de la Gavina  (arrival: 4 May / departure: 7 May 2006)
+Deadlines: 2 January 2006 (abstract) / 31 January 2006 (full paper)
+
+-----------------------------------------------------------------------
+
+Please note that the 1st and the 2nd conference are in the same geographical area, on two consecutive weekends, and can be combined!
+
+-----------------------------------------------------------------------
+
+The 3rd one will take place in Montreal, Canada
+(the most beautiful city of Canada):
+
+IPSI-2006 MONTREAL
+
+University UQAM (arrival: 30 June 2006 / departure: 3 July 2006)
+Dadline: 20 February 2006 (abstract) / 20 March 2006 (full paper)
+_______________________________________________________________________
+
+Please, note that it is still not too late to submit your abstract and/or paper for the "Latest Research" sessions at the following IPSI conferences in the near future:
+
+-----------------------------------------------------------------------
+
+New York, USA
+(in the heart of Manhattan):
+
+IPS-USA-2006 NEW YORK
+
+Hotel Beacon (arrival: January 5 / departure: January 8, 2006)
+Last Deadline: December 20, 2005.
+
+-----------------------------------------------------------------------
+
+Palo Alto, California, USA
+(in the heart of Silicon Valley, near Stanford U. and San Francisco):
+
+IPS-USA-2006 CALIFORNIA
+
+Hotel Stanford Terrace (arrival: 8 Jan 2006 / departure: 11 Jan 2006)
+Last Deadline: December 20, 2005
+
+------------------------------------------------------------------------
+
+Marbella, SPAIN
+(Marbella is in the heart of Costa del Sol, with a unique climate):
+
+IPSI-2006 MARBELLA
+
+Hotel Puente Romano (arrival: 10 Febr 2006 / departure: 13 Febr 2006)
+Last Deadline: 30 January 2006
+
+------------------------------------------------------------------------
+
+Amalfi, ITALY
+(near Naples + Pompei, in the heart of the famous Costiera Amalfitana):
+
+IPSI-2006 AMALFI
+
+Hotel Santa Caterina (arrival: 23 March 2006 / departure: 26 March 2006)
+Last Deadline: 20 February 2006
+
+------------------------------------------------------------------------
+
+All our conferences are non-profit. They bring together the elite of the world science; so far, we have had seven Nobel Laureates speaking at the opening ceremonies. The conferences always take place in some of the most attractive places of the world. All those who come to our conferences once, always love to come back (because of the unique professional quality and the extremely creative atmosphere); lists of past participants are on the web, as well as the details of all future conferences.
+
+These conferences are in line with the newest recommendations of the US National Science Foundation and of the EU research sponsoring agencies, to stress multidisciplinary, interdisciplinary, and transdisciplinary research (M+I+T++ research). The speakers and activities at our conferences truly support this type of scientific interaction.
+
+Among the main topics of these conferences are: "E-education and E-business with special emphasis on the Internet related research in technical and non-technical fields." All topics directly or indirectly related to current and future DARPA and NASA projects are also welcome (all papers from all past IPSI conferneces are stored by NASA).
+
+Other topics of interest include, but are not limited to:
+
+* Internet
+* Computer Science and Engineering
+* Mobile Communications/Computing for Science and Business
+* Management and Business Administration
+* Education
+* e-Medicine
+* e-Oriented Bio Engineering/Science and Molecular Engineering/Science
+* Environmental Protection
+* e-Economy
+* e-Law
+* Technology Based Art and Art to Inspire Technology Developments
+* Internet Psychology
+* Internet Phylosophy
+* Humanities in General
+
+If you would like to get more information on either conference, please reply to this e-mail message.
+
+If you plan to submit an abstract and paper, please let us know that immediately for planning purposes. Remember that you can submit your paper also to one of the two IPSI Transactions journals.
+
+Sincerely Yours,
+
+Prof. Veljko Milutinovic, Chairman,
+IPSI Conferences, Journals, and Tutorials
+
+
+* * * CONTROLLING OUR E-MAILS TO YOU * * *
+
+If you like to obtain more information about a conference from this call, please reply with the conference CITY and COUNTRY in the subject.
+
+If you would like to continue to be informed about our future conferences, please reply to this e-mail message with a subject line of SUBSCRIBE.
+
+If you would like to be removed from our mailing list, please reply to this e-mail message with a subject line of REMOVE.
