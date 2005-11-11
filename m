@@ -1,87 +1,33 @@
-From: simoneau@ele.uri.edu
-Date: Mon, 21 Nov 2005 19:21:57 +0000
-Subject: Re: [PATCH] kill qlogicpti inquiry sniffing
-Message-Id: <20051121142157.jp5jizqls04og448@webmail.ele.uri.edu>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=_5w5nysjse9c8"
+From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
+Date: Fri, 11 Nov 2005 18:54:09 +0000
+Subject: detecting smp systems
+Message-Id: <1131735249.2300.21.camel@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20051017120229.GA5834@lst.de> <20051112091251.GA15402@lst.de>
-	<20051119184447.GA29275@lst.de>
-	<20051121080951.zmygxh5miows4wk4@webmail.ele.uri.edu>
-	<5460e3330511210931w5b0ff188o56feaeab66e41e22@mail.gmail.com>
-In-Reply-To: <5460e3330511210931w5b0ff188o56feaeab66e41e22@mail.gmail.com>
-To: Christian Joensson <christian.joensson@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>, jejb@steeleye.com, davem@davemloft.net, tcallawa@redhat.com, linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org
-
-This message is in MIME format and has been PGP signed.
-
---=_5w5nysjse9c8
-Content-Type: text/plain;
-	charset=ISO-8859-1;
-	format="flowed"
-Content-Disposition: inline
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
-Quoting Christian Joensson <christian.joensson@gmail.com>:
+In 2.6, it appears that the behavior for SMP systems has changed.
 
-> On 11/21/05, simoneau@ele.uri.edu <simoneau@ele.uri.edu> wrote:
->> Quoting Christoph Hellwig <hch@lst.de>:
->>
->> > On Sat, Nov 12, 2005 at 10:12:51AM +0100, Christoph Hellwig wrote:
->> >> On Mon, Oct 17, 2005 at 02:02:29PM +0200, Christoph Hellwig wrote:
->> >> > Inquiry sniffing is a really bad idea, and sneaking a patch in without
->> >> > talking to the scsi maintainers doesn't make it any better ;-)
->> >> >
->> >> > Could one of the sparc people please test the patch below to kill it?
->> >>
->> >> ping?
->> >
->> > ping^2.  Hey, there must be sparc users with this hardware that noticed
->> > the initial bug, could you please test this patch?
->> >
->>
->> I have an SBUS qpti card which had some major problem (kernel BUG()
->> during boot
->> in the qlogicpti driver) last time when I tried 2.6.14, I can test 
->> the patch.
->> SS20MP 2xSuperSPARC here, just give me a while to compile a kernel.
->
-> what is the status of linux SMP kernel 2.6 and sun4m?
->
-> --
-> Cheers,
->
-> /ChJ
->
+In 2.4, we could parse /proc/cpuinfo and look at the value of 
+ncpus probed    : ####
 
+Using this, we could determine whether the hardware was SMP or not, and
+install the SMP kernel package. In 2.6, with the UP kernel, this value
+always shows up as 1, regardless of the number of the physical cpus in
+the system.
 
-Either I did something wrong or the 2.6+sparc32 build is completely broken...
-lots of this on every module:
+This means that 2.6 is not probing all of the cpus with the UP kernel,
+instead, stopping at the first one it finds.
 
-WARNING: /lib/modules/2.6.14.2/kernel/drivers/cdrom/cdrom.ko needs unknown
-symbol div
-WARNING: /lib/modules/2.6.14.2/kernel/drivers/cdrom/cdrom.ko needs unknown
-symbol rem
-WARNING: /lib/modules/2.6.14.2/kernel/drivers/cdrom/cdrom.ko needs unknown
-symbol umul
+Is there some other method we should be using (with the UP kernel
+booted) to detect whether the hardware is SMP capable or not?
 
-I'm using module-init-tools 3.2_pre7, gcc 3.4.4, and binutils 2.16.1 in 
-case it
-matters.
-
---=_5w5nysjse9c8
-Content-Type: application/pgp-signature
-Content-Description: PGP Digital Signature
-Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD4DBQBDgh5VLYBaX8VDLLURAgMTAKC6KlcUHq7vmHYa0MTO/rwF5/jtXgCXf46H
-ZT4c0FkphAygnt7hBlkAYA==
-=JpOz
------END PGP SIGNATURE-----
-
---=_5w5nysjse9c8--
+~spot
+-- 
+Tom "spot" Callaway: Red Hat Senior Sales Engineer || GPG ID: 93054260
+Fedora Extras Steering Committee Member (RPM Standards and Practices)
+Aurora Linux Project Leader: http://auroralinux.org
+Lemurs, llamas, and sparcs, oh my!
 
