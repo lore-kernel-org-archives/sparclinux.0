@@ -1,51 +1,27 @@
-From: Ferris McCormick <fmccor@gentoo.org>
-Date: Fri, 11 Nov 2005 21:35:48 +0000
+From: "David S. Miller" <davem@davemloft.net>
+Date: Fri, 11 Nov 2005 22:47:21 +0000
 Subject: Re: [PATCH]: IRQ stacks for sparc64
-Message-Id: <1131744948.4652.6.camel@polylepis.inforead.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-vgQ8X+obi5s1Bfa9M0wj"
+Message-Id: <20051111.144721.118697563.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20051110.210234.59468958.davem@davemloft.net>
 In-Reply-To: <20051110.210234.59468958.davem@davemloft.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+From: Ferris McCormick <fmccor@gentoo.org>
+Date: Fri, 11 Nov 2005 21:35:48 +0000
 
---=-vgQ8X+obi5s1Bfa9M0wj
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+> I'm running it on U2(2x400) currently with 2.6.14-U2-2x400-g393b0725.
+> So far, it's doing fine, and this is on a system which has never been
+> stable with a 2.6 kernel.  With this kernel + IRQ patch, though, it's
+> stayed up through a lot of stress tests which I would have expected
+> would have killed it.
+> (But uptime is only 6 hours so far).
 
-On Thu, 2005-11-10 at 21:02 -0800, David S. Miller wrote:
-> Anyone feeling dangerous? :-)
->=20
-> Today I put together a patch for IRQ stack support.
-> This allows using single pages for the thread_struct
-> plus kernel stack allocation.
->=20
+It would be interesting to know if that exact kernel,
+but without the IRQ stacks patch, works just as well.
 
-I'm running it on U2(2x400) currently with 2.6.14-U2-2x400-g393b0725.
-So far, it's doing fine, and this is on a system which has never been
-stable with a 2.6 kernel.  With this kernel + IRQ patch, though, it's
-stayed up through a lot of stress tests which I would have expected
-would have killed it.
-(But uptime is only 6 hours so far).
-
-Regards,
-Ferris
---=20
-Ferris McCormick (P44646, MI) <fmccor@gentoo.org>
-Developer, Gentoo Linux (Sparc, Devrel)
-
---=-vgQ8X+obi5s1Bfa9M0wj
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQBDdQ60Qa6M3+I///cRAiGsAKDQVjEu8YtRzAytwI6fK/EZHx3ryQCeL1bD
-1QXYFaRt/4ksSVvvnm3/Dc8=
-=2jWd
------END PGP SIGNATURE-----
-
---=-vgQ8X+obi5s1Bfa9M0wj--
-
+It's nice that it's stable, but we should find out exactly
+why :-)
