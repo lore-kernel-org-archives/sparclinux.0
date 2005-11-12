@@ -1,51 +1,56 @@
-From: Ferris McCormick <fmccor@gentoo.org>
-Date: Sat, 12 Nov 2005 02:58:36 +0000
+From: Jason Wever <weeve@gentoo.org>
+Date: Sat, 12 Nov 2005 04:03:27 +0000
 Subject: Re: [PATCH]: IRQ stacks for sparc64
-Message-Id: <Pine.LNX.4.64.0511120246230.26359@terciopelo.krait.us>
+Message-Id: <20051111210327.3974b5fb@enterprise.weeve.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Signature_Fri__11_Nov_2005_21_03_27_-0700_wIX6KhQgU/.wDd6o"
 List-Id: <sparclinux.vger.kernel.org>
 References: <20051110.210234.59468958.davem@davemloft.net>
 In-Reply-To: <20051110.210234.59468958.davem@davemloft.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+--Signature_Fri__11_Nov_2005_21_03_27_-0700_wIX6KhQgU/.wDd6o
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, 11 Nov 2005, David S. Miller wrote:
+On Thu, 10 Nov 2005 21:02:34 -0800 (PST)
+"David S. Miller" <davem@davemloft.net> wrote:
 
-> From: Ferris McCormick <fmccor@gentoo.org>
-> Date: Fri, 11 Nov 2005 21:35:48 +0000
->
->> I'm running it on U2(2x400) currently with 2.6.14-U2-2x400-g393b0725.
->> So far, it's doing fine, and this is on a system which has never been
->> stable with a 2.6 kernel.  With this kernel + IRQ patch, though, it's
->> stayed up through a lot of stress tests which I would have expected
->> would have killed it.
->> (But uptime is only 6 hours so far).
->
-> It would be interesting to know if that exact kernel,
-> but without the IRQ stacks patch, works just as well.
->
-> It's nice that it's stable, but we should find out exactly
-> why :-)
->
-If the system is still up Monday and if no one else has reported on the U2 
-(and U1) stability, I'll try to make a test using Josh Grebe's (squash's) 
-crashme script against that kernel with the IRQ patch removed.  I can't 
-give a good estimate of when the test will be possible because Monday 
-morning the U2 will be helping with a fairly lengthy upgrade unrelated to 
-the kernel.
+> Anyone feeling dangerous? :-)
+>=20
+> Today I put together a patch for IRQ stack support.
+> This allows using single pages for the thread_struct
+> plus kernel stack allocation.
+>=20
+> I've run it for half of today on my workstation with
+> no ill results so far.  But more testing would be really
+> nice, so if you can give this patch a spin that would
+> be great.
 
-Regards,
-Ferris
-- --
-Ferris McCormick (P44646, MI) <fmccor@gentoo.org>
-Developer, Gentoo Linux (sparc, devrel)
+I've tried this patch against 2.6.14-git14 on a 2x750 Blade 1000.  When
+I let the blade boot normally, it for some reason fails to mount the
+root filesystem and dies with the following error;
+
+kernel BUG at kernel/fork.c:731
+
+If I try booting the same kernel with the -p argument, this doesn't
+happen and the system boots as expected.  Will let the system run like
+this and see how it goes.
+
+Cheers,
+--=20
+Jason Wever
+Gentoo/Sparc Team Co-Lead
+
+--Signature_Fri__11_Nov_2005_21_03_27_-0700_wIX6KhQgU/.wDd6o
+Content-Type: application/pgp-signature
+
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDdVpgQa6M3+I///cRAoh6AKCHJfFYVWRISLfpB4SSRSeE3CdPbACgtxnF
-FloXJHIgbtQvu2IYtXgDAoY=lxeP
+iD8DBQFDdWmSdKvgdVioq28RAkmxAJ4yohkapoiHnJqTBy+veeULTE6KfACdGRgp
+qaWxpbzOy/C7K4TzSfh9TeE=
+=aw5b
 -----END PGP SIGNATURE-----
+
+--Signature_Fri__11_Nov_2005_21_03_27_-0700_wIX6KhQgU/.wDd6o--
