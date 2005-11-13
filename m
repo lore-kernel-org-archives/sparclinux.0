@@ -1,133 +1,80 @@
-From: IPSI Conferences <mont2006@ipsiconferences.org>
-Date: Thu, 10 Nov 2005 00:18:31 +0000
-Subject: Invitation to France, Spain, and Montreal, Canada; c/ba
-Message-Id: <E1Ea1AL-0000zT-Ks@ipsiconferences.org>
+From: Christopher Zimmermann <madroach@zakweb.de>
+Date: Sun, 13 Nov 2005 19:31:44 +0000
+Subject: Sun mouse using 5-byte MSC protocol
+Message-Id: <20051113193144.GA3039@sparc>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Dear potential Speaker:
+Hi,
 
-Based on your explicit interest expressed in the past and/or a recommendation from a colleague who read your past publication(s), on behalf of the organizing committee, we would like to extend a cordial
-invitat on for you to submit a paper to the IPSI Transactions journal, or to attend one of the upcoming multidisciplinary, interdisciplinary, and transdisciplinary (M+I+T++) conferences:
-_______________________________________________________________________
+I asked this question already two months ago.
+Maybe now someone has an idea.
 
-The 1st one will take place in Carcassone, France
-(UNESCO-protected medieval city; easy access from Paris or Cote d'Azur):
+I use a Sun mouse which sends 5-byte MSC packets instead of the normal
+3-byte ones. The current sermouse driver just drops the last two bytes
+making the cursor move slow. I changed the driver to switch to the
+5-byte protocol after dropping too many bytes.
+Maybe someone knows a better method of probing for such mice. Please let
+me know.
+Unfortunately I don't have any "real" sun mouse sending 3-byte packets;
+therefore I could not test if my modifications breaks support for those
+sun mice.
 
-IPSI-2006 FRANCE
+Christopher
 
-Hotel de la Cite (arrival: 27 Apr / departure: 30 Apr 2006)
-Deadlines: 1 January 2006 (abstract) / 30 January 2006 (full paper)
-
------------------------------------------------------------------------
-
-The 2nd one will take place in S'Agaro, Costa Brava, Spain
-(easy to access from Barcelona and close to Carcassone; a paradize):
-
-IPSI-2006 SPAIN
-
-Hotel Hostal de la Gavina  (arrival: 4 May / departure: 7 May 2006)
-Deadlines: 2 January 2006 (abstract) / 31 January 2006 (full paper)
-
------------------------------------------------------------------------
-
-Please note that the 1st and the 2nd conference are in the same geographical area, on two consecutive weekends, and can be combined!
-
------------------------------------------------------------------------
-
-The 3rd one will take place in Montreal, Canada
-(the most beautiful city of Canada):
-
-IPSI-2006 MONTREAL
-
-University UQAM (arrival: 30 June 2006 / departure: 3 July 2006)
-Dadline: 20 February 2006 (abstract) / 20 March 2006 (full paper)
-_______________________________________________________________________
-
-Please, note that it is still not too late to submit your abstract and/or paper for the "Latest Research" sessions at the following IPSI conferences in the near future:
-
------------------------------------------------------------------------
-
-New York, USA
-(in the heart of Manhattan):
-
-IPS-USA-2006 NEW YORK
-
-Hotel Beacon (arrival: January 5 / departure: January 8, 2006)
-Last Deadline: December 20, 2005.
-
------------------------------------------------------------------------
-
-Palo Alto, California, USA
-(in the heart of Silicon Valley, near Stanford U. and San Francisco):
-
-IPS-USA-2006 CALIFORNIA
-
-Hotel Stanford Terrace (arrival: 8 Jan 2006 / departure: 11 Jan 2006)
-Last Deadline: December 20, 2005
-
-------------------------------------------------------------------------
-
-Marbella, SPAIN
-(Marbella is in the heart of Costa del Sol, with a unique climate):
-
-IPSI-2006 MARBELLA
-
-Hotel Puente Romano (arrival: 10 Febr 2006 / departure: 13 Febr 2006)
-Last Deadline: 30 January 2006
-
-------------------------------------------------------------------------
-
-Amalfi, ITALY
-(near Naples + Pompei, in the heart of the famous Costiera Amalfitana):
-
-IPSI-2006 AMALFI
-
-Hotel Santa Caterina (arrival: 23 March 2006 / departure: 26 March 2006)
-Last Deadline: 20 February 2006
-
-------------------------------------------------------------------------
-
-All our conferences are non-profit. They bring together the elite of the world science; so far, we have had seven Nobel Laureates speaking at the opening ceremonies. The conferences always take place in some of the most attractive places of the world. All those who come to our conferences once, always love to come back (because of the unique professional quality and the extremely creative atmosphere); lists of past participants are on the web, as well as the details of all future conferences.
-
-These conferences are in line with the newest recommendations of the US National Science Foundation and of the EU research sponsoring agencies, to stress multidisciplinary, interdisciplinary, and transdisciplinary research (M+I+T++ research). The speakers and activities at our conferences truly support this type of scientific interaction.
-
-Among the main topics of these conferences are: "E-education and E-business with special emphasis on the Internet related research in technical and non-technical fields." All topics directly or indirectly related to current and future DARPA and NASA projects are also welcome (all papers from all past IPSI conferneces are stored by NASA).
-
-Other topics of interest include, but are not limited to:
-
-* Internet
-* Computer Science and Engineering
-* Mobile Communications/Computing for Science and Business
-* Management and Business Administration
-* Education
-* e-Medicine
-* e-Oriented Bio Engineering/Science and Molecular Engineering/Science
-* Environmental Protection
-* e-Economy
-* e-Law
-* Technology Based Art and Art to Inspire Technology Developments
-* Internet Psychology
-* Internet Phylosophy
-* Humanities in General
-
-If you would like to get more information on either conference, please reply to this e-mail message.
-
-If you plan to submit an abstract and paper, please let us know that immediately for planning purposes. Remember that you can submit your paper also to one of the two IPSI Transactions journals.
-
-Sincerely Yours,
-
-Prof. Veljko Milutinovic, Chairman,
-IPSI Conferences, Journals, and Tutorials
-
-
-* * * CONTROLLING OUR E-MAILS TO YOU * * *
-
-If you like to obtain more information about a conference from this call, please reply with the conference CITY and COUNTRY in the subject.
-
-If you would like to continue to be informed about our future conferences, please reply to this e-mail message with a subject line of SUBSCRIBE.
-
-If you would like to be removed from our mailing list, please reply to this e-mail message with a subject line of REMOVE.
+--- linux-2.6.15-rc1.orig/drivers/input/mouse/sermouse.c	2005-11-13 19:51:38.000000000 +0100
++++ linux-2.6.15-rc1/drivers/input/mouse/sermouse.c	2005-11-13 20:07:37.000000000 +0100
+@@ -60,6 +60,16 @@
+  * sermouse_process_msc() analyzes the incoming MSC/Sun bytestream and
+  * applies some prediction to the data, resulting in 96 updates per
+  * second, which is as good as a PS/2 or USB mouse.
++ * The first byte of the MSC protocol contains the button state of the
++ * mouse and has a certain format. If we expect the mouse button state
++ * byte, but receive one which doesn't look like one, we drop it.
++ * There are two variations of the MSC protocol for Sun mice. Some use
++ * a 3-byte protocol (SERIO_SUN), others use a 5-byte protocol (SERIO_MSC).
++ * First we try the 3-byte protocol. If the mouse uses a 5-byte one,
++ * the last two bytes will be dropped as bad bytes resulting in a slower
++ * mouse motion.
++ * If we receive more bad button state bytes than good ones, we will
++ * switch to the 5-byte protocol.
+  */
+ 
+ static void sermouse_process_msc(struct sermouse *sermouse, signed char data, struct pt_regs *regs)
+@@ -67,12 +77,32 @@
+ 	struct input_dev *dev = sermouse->dev;
+ 	signed char *buf = sermouse->buf;
+ 
++	static unsigned char bad_byte;
++
+ 	input_regs(dev, regs);
+ 
+ 	switch (sermouse->count) {
+ 
+ 		case 0:
+-			if ((data & 0xf8) != 0x80) return;
++			/* Check if the data looks like button state data */
++			if ((data & 0xf8) != 0x80) {
++				/* If we are currently using the 3-byte protocol
++				 * increment the bad_byte counter. If we received
++				 * more bad bytes than good ones, switch to the
++				 * 5-byte prococol. The user will notice this as
++				 * speedup of the mouse cursor :-) */
++				if(sermouse->type = SERIO_SUN && ++bad_byte > 20) {
++					sermouse->type = SERIO_MSC;
++					bad_byte = 0; /* I don't know, why I do this. */
++					printk(KERN_INFO
++						"sermouse.c: Switched to the 5-byte MSC mouse protocol.\n");
++				}
++				return;
++			}
++			/* Decrement the bad_byte counter so that a 3-byte Sun mouse
++			 * can make up for a bad button state byte it sent. */
++			if(sermouse->type = SERIO_SUN && bad_byte > 0) bad_byte--;
++			
+ 			input_report_key(dev, BTN_LEFT,   !(data & 4));
+ 			input_report_key(dev, BTN_RIGHT,  !(data & 1));
+ 			input_report_key(dev, BTN_MIDDLE, !(data & 2));
