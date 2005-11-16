@@ -1,25 +1,40 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Tue, 15 Nov 2005 22:07:55 +0000
+From: Jason Wever <weeve@gentoo.org>
+Date: Wed, 16 Nov 2005 00:22:55 +0000
 Subject: Re: [PATCH]: IRQ stacks for sparc64
-Message-Id: <20051115.140755.48263640.davem@davemloft.net>
+Message-Id: <20051115172255.7b7b3a2f@enterprise.weeve.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Signature_Tue__15_Nov_2005_17_22_55_-0700_VYH7ltGtD.kIZ=oh"
 List-Id: <sparclinux.vger.kernel.org>
 References: <20051110.210234.59468958.davem@davemloft.net>
 In-Reply-To: <20051110.210234.59468958.davem@davemloft.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Jason Wever <weeve@gentoo.org>
-Date: Sat, 12 Nov 2005 13:39:05 -0700
+--Signature_Tue__15_Nov_2005_17_22_55_-0700_VYH7ltGtD.kIZ=oh
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-> On Sat, 12 Nov 2005 11:45:28 -0800 (PST)
-> "David S. Miller" <davem@davemloft.net> wrote:
-> 
-> > And without the IRQ stack patch applied the "kernel BUG at
-> > kernel/fork.c:731" problem does not occur?
-> 
-> Correct, an unpatched 2.6.14, 2.6.14-git14 or 2.6.15-rc1 does not show
-> this problem.  All 3 of those kernels when patched, do.
+On Tue, 15 Nov 2005 14:07:55 -0800 (PST)
+"David S. Miller" <davem@davemloft.net> wrote:
 
-Do you happen to have CONFIG_PREEMPT enabled by chance?
+> Do you happen to have CONFIG_PREEMPT enabled by chance?
+
+Nope, preempt is disabled.  Since that's been the suggested course of
+action in the past, I haven't tempted fate there yet :)
+
+Cheers,
+--=20
+Jason Wever
+Gentoo/Sparc Team Co-Lead
+
+--Signature_Tue__15_Nov_2005_17_22_55_-0700_VYH7ltGtD.kIZ=oh
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFDenvidKvgdVioq28RApPRAJ95BF+a4i8dyJKjwKceuV5bBhWPJACePiki
+3bcLa+ipeePX7IcZ7BDgCYA=
+=tbp9
+-----END PGP SIGNATURE-----
+
+--Signature_Tue__15_Nov_2005_17_22_55_-0700_VYH7ltGtD.kIZ=oh--
