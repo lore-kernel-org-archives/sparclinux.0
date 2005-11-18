@@ -1,32 +1,29 @@
-From: <ionizador@fusiongroup.com>
-Date: Mon, 28 Nov 2005 18:36:18 +0000
-Subject: los mejores limpiafonfos purificadores
-Message-Id: <33a1701c5f44a$9ef96970$0900a8c0@hiree8dc06e1b5>
+From: <barbacoas@uol.com.br>
+Date: Fri, 18 Nov 2005 04:18:58 +0000
+Subject: Las mejores barbacoas, garajes, spas.
+Message-Id: <33be901c5ebf7$32426a30$41001aac@hiree8dc06e1b5>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Maginificas barbacoas
 
+Magnigicos Spas
 
-Los mejores limpia fondos del mercado
+Magnigicos garajes
 
-Los mejores ionizadores
-
-El mejor sistema para calentar el agua
-
-
-Desea representar nuestros productos?
+A unos precios increibles
 
 
 Mediante este enlace tiene toda la informacin.
 
-http://www.bestsevendiamonds.com/ionpure/
+http://www.bestsevendiamonds.com/trigano/
 
 Si es su deseo darse de baja, para no recibir ms publicidad es necesario lo haga en el siguiente enlace.
 
-http://www.bestsevendiamonds.com/ionpure/bajas.asp
+http://www.bestsevendiamonds.com/trigano/bajas.asp
 
 Muchas gracias
 
