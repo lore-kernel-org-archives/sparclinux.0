@@ -1,26 +1,33 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Sat, 12 Nov 2005 09:12:51 +0000
+Date: Sat, 19 Nov 2005 18:44:47 +0000
 Subject: Re: [PATCH] kill qlogicpti inquiry sniffing
-Message-Id: <20051112091251.GA15402@lst.de>
+Message-Id: <20051119184447.GA29275@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20051017120229.GA5834@lst.de>
-In-Reply-To: <20051017120229.GA5834@lst.de>
+References: <20051017120229.GA5834@lst.de> <20051112091251.GA15402@lst.de>
+In-Reply-To: <20051112091251.GA15402@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: jejb@steeleye.com, davem@davemloft.net, tcallawa@redhat.com
 Cc: linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org
 
-On Mon, Oct 17, 2005 at 02:02:29PM +0200, Christoph Hellwig wrote:
-> Inquiry sniffing is a really bad idea, and sneaking a patch in without
-> talking to the scsi maintainers doesn't make it any better ;-)
+On Sat, Nov 12, 2005 at 10:12:51AM +0100, Christoph Hellwig wrote:
+> On Mon, Oct 17, 2005 at 02:02:29PM +0200, Christoph Hellwig wrote:
+> > Inquiry sniffing is a really bad idea, and sneaking a patch in without
+> > talking to the scsi maintainers doesn't make it any better ;-)
+> > 
+> > Could one of the sparc people please test the patch below to kill it?
 > 
-> Could one of the sparc people please test the patch below to kill it?
+> ping?
 
-ping?
+ping^2.  Hey, there must be sparc users with this hardware that noticed
+the initial bug, could you please test this patch?
 
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Dave, could you look at the inquiry sniffing bug atleast?  I'm pretty
+the driver is doing the wrong thing about wide devices.  In general
+it might be worth to resync some code with the qla1280 driver which
+drivers the same chip with a pci bus interface (and more recent
+versions)
 
 Index: linux-2.6/drivers/scsi/qlogicpti.c
 =================================--- linux-2.6.orig/drivers/scsi/qlogicpti.c	2005-10-17 13:53:19.000000000 +0200
