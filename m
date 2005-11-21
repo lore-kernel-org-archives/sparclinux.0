@@ -1,32 +1,58 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Sat, 19 Nov 2005 21:44:08 +0000
+From: simoneau@ele.uri.edu
+Date: Mon, 21 Nov 2005 13:09:51 +0000
 Subject: Re: [PATCH] kill qlogicpti inquiry sniffing
-Message-Id: <20051119.134408.127496042.davem@davemloft.net>
+Message-Id: <20051121080951.zmygxh5miows4wk4@webmail.ele.uri.edu>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=_67y324s82z8c"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20051017120229.GA5834@lst.de>
-	<20051112091251.GA15402@lst.de>
+References: <20051017120229.GA5834@lst.de> <20051112091251.GA15402@lst.de>
 	<20051119184447.GA29275@lst.de>
 In-Reply-To: <20051119184447.GA29275@lst.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: Christoph Hellwig <hch@lst.de>
+Cc: jejb@steeleye.com, davem@davemloft.net, tcallawa@redhat.com, linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org
+
+This message is in MIME format and has been PGP signed.
+
+--=_67y324s82z8c
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	format="flowed"
+Content-Disposition: inline
 Content-Transfer-Encoding: 7bit
-To: hch@lst.de
-Cc: jejb@steeleye.com, tcallawa@redhat.com, linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org
 
-From: Christoph Hellwig <hch@lst.de>
-Date: Sat, 19 Nov 2005 19:44:47 +0100
+Quoting Christoph Hellwig <hch@lst.de>:
 
+> On Sat, Nov 12, 2005 at 10:12:51AM +0100, Christoph Hellwig wrote:
+>> On Mon, Oct 17, 2005 at 02:02:29PM +0200, Christoph Hellwig wrote:
+>> > Inquiry sniffing is a really bad idea, and sneaking a patch in without
+>> > talking to the scsi maintainers doesn't make it any better ;-)
+>> >
+>> > Could one of the sparc people please test the patch below to kill it?
+>>
+>> ping?
+>
 > ping^2.  Hey, there must be sparc users with this hardware that noticed
 > the initial bug, could you please test this patch?
+>
 
-Tom's probably busy with other stuff, I'm sure he can get to
-testing it eventually.
+I have an SBUS qpti card which had some major problem (kernel BUG() 
+during boot
+in the qlogicpti driver) last time when I tried 2.6.14, I can test the patch.
+SS20MP 2xSuperSPARC here, just give me a while to compile a kernel.
 
-> Dave, could you look at the inquiry sniffing bug atleast?  I'm pretty
-> the driver is doing the wrong thing about wide devices.  In general
-> it might be worth to resync some code with the qla1280 driver which
-> drivers the same chip with a pci bus interface (and more recent
-> versions)
+--=_67y324s82z8c
+Content-Type: application/pgp-signature
+Content-Description: PGP Digital Signature
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 
-Yes it would be nice to write a SBUS front end to that driver.
-Testing is always the issue though :-)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQBDgccfLYBaX8VDLLURAte9AJ9bDvPXbWrJoTsOud2kNeFyIZ2mLwCdFUkS
+zzP7KhzID9vpdJTc9LFIMLo=
+=juFv
+-----END PGP SIGNATURE-----
+
+--=_67y324s82z8c--
+
