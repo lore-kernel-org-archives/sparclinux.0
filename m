@@ -1,106 +1,91 @@
-From: Jim Gifford <maillist@jg555.com>
-Date: Fri, 11 Nov 2005 00:32:46 +0000
-Subject: Silo - Modern Toolchain - Without elftoaout
-Message-Id: <4373E6AE.9030007@jg555.com>
+From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
+Date: Tue, 22 Nov 2005 15:33:48 +0000
+Subject: sun4c problems in radix_tree_gang_lookup_tag
+Message-Id: <Pine.LNX.4.10.10511221518580.30262-100000@mtfhpc.demon.co.uk>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-I have a team of people trying to figure out how to remove elftoaout=20
-from the Kernel and Silo builds.
+Hi,
 
-We started with silo, because it won't compile with a modern toolchain,=20
-and after we get these techniques developed, it could then be merged=20
-into the kernel to also remove the depency on elftoaout.
+Is any one working on sun4c issues at the moment ?
 
-You will need to use a 2.16.1 binutils with a patch that's going to be=20
-merged into the main tree.
-http://sourceware.org/ml/binutils/2005-10/msg00420.html
+I am getting a somewhat random occourance of a 'kernel BUG'.
 
-Now we got the first.b to build with the patch at the end of this email,=20
-which shows our proof concept. When we tried to apply our ideas to=20
-second.b that's where we ran into a problem, because of the gzipping =20
-and whatever the util program does to the compiled object. If anyone has=20
-any suggestions on how to get around that issue, feel free to send me an=20
-email, we will try anything. We are thinking we will have to utilize an=20
-linker.script, but that's as far as we have gone and hence my email to=20
-sparc liinux community.
+I am using a cross compiled linux based on Linux 2.6.14.2. The cross
+compiler is gcc-4.0.2 with cross binutils-2.16.1. I am using an nfs
+mounted root. The sparc host is an OPUS sparcstation clone.
 
-Patch for first/Makefile
+I also had the same issues with the 2.6.13 kernel.
 
---- Makefile.orig       2005-10-11 14:30:12.000000000 -0700
-+++ Makefile    2005-10-11 14:47:54.000000000 -0700
-@@ -41,12 +41,12 @@
-       $(STRIP) first
+Advice on debugging this to identify the real problem would be usefull. My
+efforts with gcc-3.4.x only highlight that gcc-3.4.x is not good at
+compiling sparc (32) code.
 
-first.b: first
--       $(ELFTOAOUT) -o first.b first
-+       $(OBJCOPY) -O a.out-sunos-big first first.b
-       echo -n 'SILO'$(IMGVERSION) | $(DD) of=3Dfirst.b bs=3D8 conv=3Dnotru=
-nc=20
-seek=3D3 count=3D1
-       $(DD) if=3D/dev/zero of=3Dfirst.b bs=3D4 count=3D1 seek=127
+Regards
+	Mark Fortescue.
 
-ultra.o: ultra.S
--       $(CC) $(CFLAGS) -c -Wa,-Av9a ultra.S
-+       $(CC) $(CFLAGS) -Wa,-Av9a -c ultra.S
-
-ultra: ultra.o
-       $(LD) $(LDFLAGS) -o ultra ultra.o
-@@ -54,13 +54,13 @@
-       $(STRIP) ultra
-
-ultra.b: ultra
--       $(ELFTOAOUT) -o ultra.b ultra
-+       $(OBJCOPY) -I elf32-sparc -O a.out-sunos-big ultra ultra.b
-       echo -n 'SILO'$(IMGVERSION) | $(DD) of=3Dultra.b bs=3D8 conv=3Dnotru=
-nc=20
-seek=3D3 count=3D1
-       echo -n -e '\340' | $(DD) of=3Dultra.b bs=3D1 count=3D1 seek=3D7=20
-conv=3Dnotrunc
-       $(DD) if=3D/dev/zero of=3Dultra.b bs=3D4 count=3D1 seek=127
-
-generic.o: generic.S
--       $(CC) $(CFLAGS) -c -Wa,-Av9a generic.S
-+       $(CC) $(CFLAGS) -Wa,-Av9a -c generic.S
-
-generic: generic.o
-       $(LD) $(LDFLAGS) -o generic generic.o
-@@ -68,13 +68,13 @@
-       $(STRIP) generic
-
-generic.b: generic
--       $(ELFTOAOUT) -o generic.b generic
-+       $(OBJCOPY) -I elf32-sparc -O a.out-sunos-big generic generic.b
-       echo -n 'SILO'$(IMGVERSION) | $(DD) of=3Dgeneric.b bs=3D8=20
-conv=3Dnotrunc seek=3D3 count=3D1
-       echo -n -e '\340' | $(DD) of=3Dgeneric.b bs=3D1 count=3D1 seek=3D7=20
-conv=3Dnotrunc
-       $(DD) if=3D/dev/zero of=3Dgeneric.b bs=3D4 count=3D1 seek%5
-
-fd.o: fd.S
--       $(CC) $(CFLAGS) -c -Wa,-Av9a fd.S
-+       $(CC) $(CFLAGS) -Wa,-Av9a -c fd.S
-
-fd: fd.o
-       $(LD) $(LDFLAGS) -o fd fd.o
-@@ -82,7 +82,7 @@
-       $(STRIP) fd
-
-fd.b: fd
--       $(ELFTOAOUT) -o fd.b fd
-+       $(OBJCOPY) -I elf32-sparc -O a.out-sunos-big fd fd.b
-       echo -n 'SILO'$(IMGVERSION) | $(DD) of=FD.b bs=3D8 conv=3Dnotrunc=20
-seek=3D3 count=3D1
-       echo -n -e '\340' | $(DD) of=FD.b bs=3D1 count=3D1 seek=3D7 conv=3Dn=
-otrunc
-       $(DD) if=3D/dev/zero of=FD.b bs=3D4 count=3D1 seek%5
-
-
---=20
-----
-Jim Gifford
-maillist@jg555.com
+kernel BUG at /L64/src/linux-2.6/linux-2.6.14.2-p02/lib/radix-tree.c:581!
+              \|/ ____ \|/
+              "@'/ ,. \`@"
+              /_| \__/ |_\
+                 \__U_/
+as(945): Kernel bad trap [#1]
+PSR: 004000c0 PC: f00e1cdc NPC: f00e1ce0 Y: 00000000    Not tainted
+PC: <radix_tree_gang_lookup_tag+0x144/0x1ac>
+%G: 00000001 f0234400  f02347ec 00400fe5  f002fc14 f0234800  ff032000 00000000
+%O: 0000004d f02010b0  00000245 00000000  00000001 00000000  ff033a48 f00e1cd4
+RPC: <radix_tree_gang_lookup_tag+0x13c/0x1ac>
+%L: 00000001 ff033b14  0000003f 00000008  00000010 00000000  ff032000 f006f690
+%I: 00000000 ff033b14  00000001 00000001  00000008 ff033b10  ff033ab0 f00b1fb4
+Caller[f00b1fb4]: nfs_wait_on_requests+0x98/0xb8
+Caller[f00b3950]: nfs_sync_inode+0x20/0x74
+Caller[f00b151c]: nfs_readpage+0x44/0x44c
+Caller[f004fb8c]: do_generic_mapping_read+0x290/0x564
+Caller[f005074c]: __generic_file_aio_read+0x168/0x1cc
+Caller[f005092c]: generic_file_aio_read+0x44/0x54
+Caller[f006e6f4]: do_sync_read+0x94/0xc8
+Caller[f006ea88]: vfs_read+0xa0/0x15c
+Caller[f006f65c]: sys_read+0x30/0x64
+Caller[f001149c]: syscall_is_too_hard+0x34/0x40
+Caller[e009ac14]: 0xe009ac14
+Instruction DUMP: 901220b0  7ffcc1ee  01000000 <91d02005> 9402a001  80a28010  0280000f  c4244001  8600e001 
+kernel BUG at /L64/src/linux-2.6/linux-2.6.14.2-p02/lib/radix-tree.c:581!
+              \|/ ____ \|/
+              "@'/ ,. \`@"
+              /_| \__/ |_\
+                 \__U_/
+as(945): Kernel bad trap [#2]
+PSR: 004000c4 PC: f00e1cdc NPC: f00e1ce0 Y: 00000000    Not tainted
+PC: <radix_tree_gang_lookup_tag+0x144/0x1ac>
+%G: 00000001 f0234400  f02347ec 00400fe2  f002fc14 f0234800  ff032000 00000000
+%O: 0000004d f02010b0  00000245 00000000  00000001 00000000  ff033560 f00e1cd4
+RPC: <radix_tree_gang_lookup_tag+0x13c/0x1ac>
+%L: 00000001 ff03362c  0000003f 00000001  00000002 00000000  ff032000 00000000
+%I: 00000000 ff03362c  00000001 00000001  00000008 f02c4be8  ff0335c8 f00b1fb4
+Caller[f00b1fb4]: nfs_wait_on_requests+0x98/0xb8
+Caller[f00b3950]: nfs_sync_inode+0x20/0x74
+Caller[f00aa650]: nfs_file_flush+0x54/0xb0
+Caller[f006c7f8]: filp_close+0x48/0x80
+Caller[f003103c]: put_files_struct+0x8c/0xe8
+Caller[f0031f44]: do_exit+0x1b4/0xbb4
+Caller[f0012734]: die_if_kernel+0x110/0x11c
+Caller[f0012788]: do_hw_interrupt+0x48/0x8c
+Caller[f0010940]: bad_trap_handler+0x20/0x30
+Caller[f00e1cd4]: radix_tree_gang_lookup_tag+0x13c/0x1ac
+Caller[f00b1fb4]: nfs_wait_on_requests+0x98/0xb8
+Caller[f00b3950]: nfs_sync_inode+0x20/0x74
+Caller[f00b151c]: nfs_readpage+0x44/0x44c
+Caller[f004fb8c]: do_generic_mapping_read+0x290/0x564
+Caller[f005074c]: __generic_file_aio_read+0x168/0x1cc
+Caller[f005092c]: generic_file_aio_read+0x44/0x54
+Caller[f006e6f4]: do_sync_read+0x94/0xc8
+Caller[f006ea88]: vfs_read+0xa0/0x15c
+Caller[f006f65c]: sys_read+0x30/0x64
+Caller[f001149c]: syscall_is_too_hard+0x34/0x40
+Caller[e009ac14]: 0xe009ac14
+Instruction DUMP: 901220b0  7ffcc1ee  01000000 <91d02005> 9402a001  80a28010  0280000f  c4244001  8600e001 
+Fixing recursive fault but reboot is needed!
 
