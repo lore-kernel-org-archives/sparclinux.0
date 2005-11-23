@@ -1,40 +1,41 @@
-From: Jason Wever <weeve@gentoo.org>
-Date: Wed, 16 Nov 2005 00:22:55 +0000
+From: "David S. Miller" <davem@davemloft.net>
+Date: Wed, 23 Nov 2005 04:46:16 +0000
 Subject: Re: [PATCH]: IRQ stacks for sparc64
-Message-Id: <20051115172255.7b7b3a2f@enterprise.weeve.org>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Signature_Tue__15_Nov_2005_17_22_55_-0700_VYH7ltGtD.kIZ=oh"
+Message-Id: <20051122.204616.76335012.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20051110.210234.59468958.davem@davemloft.net>
 In-Reply-To: <20051110.210234.59468958.davem@davemloft.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
---Signature_Tue__15_Nov_2005_17_22_55_-0700_VYH7ltGtD.kIZ=oh
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+From: Jason Wever <weeve@gentoo.org>
+Date: Fri, 11 Nov 2005 21:03:27 -0700
 
-On Tue, 15 Nov 2005 14:07:55 -0800 (PST)
-"David S. Miller" <davem@davemloft.net> wrote:
+> I've tried this patch against 2.6.14-git14 on a 2x750 Blade 1000.  When
+> I let the blade boot normally, it for some reason fails to mount the
+> root filesystem and dies with the following error;
+> 
+> kernel BUG at kernel/fork.c:731
+> 
+> If I try booting the same kernel with the -p argument, this doesn't
+> happen and the system boots as expected.  Will let the system run like
+> this and see how it goes.
 
-> Do you happen to have CONFIG_PREEMPT enabled by chance?
+I'm trying to reproduce this here locally and not having
+any luck.  On my SB1000 I also have 2x750 cpus and I have
+2GB of ram.  I'm using a creator3D framebuffer as the console
+with a USB keyboard.
 
-Nope, preempt is disabled.  Since that's been the suggested course of
-action in the past, I haven't tempted fate there yet :)
+And it works perfectly fine with the IRQ stack patch applied to
+2.6.15-rc2.
 
-Cheers,
---=20
-Jason Wever
-Gentoo/Sparc Team Co-Lead
+Also, I'm using gcc-4.0.2-20050808 (Ubuntu 4.0.1-4ubuntu9) as my
+compiler.
 
---Signature_Tue__15_Nov_2005_17_22_55_-0700_VYH7ltGtD.kIZ=oh
-Content-Type: application/pgp-signature
+Can you let me know your compiler, ".config" and what you're using as
+the console?  It's the only place where I think there might be
+differences between our two setups.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQFDenvidKvgdVioq28RApPRAJ95BF+a4i8dyJKjwKceuV5bBhWPJACePiki
-3bcLa+ipeePX7IcZ7BDgCYA=
-=tbp9
------END PGP SIGNATURE-----
-
---Signature_Tue__15_Nov_2005_17_22_55_-0700_VYH7ltGtD.kIZ=oh--
+Thanks Jason.
