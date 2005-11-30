@@ -1,29 +1,22 @@
-From: <sparclinux@vger.kernel.org>
-Date: Tue, 08 Nov 2005 18:10:36 +0000
-Subject: barbacoas spas garajes a precios increibles
-Message-Id: <18ab101c5e48f$b7ab4bc0$0600a8c0@hairoffice>
+From: "Yong Hadley" <xbdwy@hotmail.com>
+Date: Wed, 30 Nov 2005 06:54:19 +0000
+Subject: Guys Need This pyLA
+Message-Id: <CFE5.9A0.3020298B8C@mopalinux.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Maginificas barbacoas
 
-Magnigicos Spas
+High quality Caiilis available at
+affordable price. 
+Only $3.99 per tabls which last you
+36 hours of e rectiions
 
-Magnigicos garajes
+Try us out today...
 
-A unos precios increibles
+http://de.geocities.com/Luther26780Dun96673/
 
 
-Mediante este enlace tiene toda la informacin.
-
-http://www.bestsevendiamonds.com/trigano/
-
-Si es su deseo darse de baja, para no recibir ms publicidad es necesario lo haga en el siguiente enlace.
-
-http://www.bestsevendiamonds.com/trigano/bajas.asp
-
-Muchas gracias
-
+TrR
