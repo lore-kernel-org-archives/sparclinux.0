@@ -1,45 +1,57 @@
-From: "Robyn Patton" <robynpattonoz@webtv.com>
-Date: Sun, 18 Dec 2005 03:55:11 +0000
-Subject: more girls waiting!    gw2x4e2thx2ge20tl
-Message-Id: <CMLPMALCBHDBAJDPIJIKBDIBONAB.robynpattonoz@webtv.com>
+From: <businessdirectory@emailaccount.com>
+Date: Fri, 02 Dec 2005 13:54:20 +0000
+Subject: Finance your projects
+Message-Id: <214d01c5f7a4$187141e0$eea1a466@businessdirectory>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-How funny is this !?
+To: sparclinux@vger.kernel.org
 
-http://www.dealingwithdates.com/extra/shena/
+Canadian Business Publications
+4865 Hwy.  138, r.r. 1
+St-Andrews west
+Ontario, Canada
+KOC 2A0
 
-I get online and I get this email from this girl
-Gina. She invites me to join her favourite dating
-site and see all her friends.
+Press release
 
-Now even FUNNIER is that all these girls live in my
-own city in Europe.
+Canadian Grants & Loans directories 2005
 
-We ended up going out and I ended up getting laid
-with the hottest blond ever!
+Canadian Business Publications is offering to the public a revised edition 
+of the grants & loans directories, guides containing thousands of direct 
+and indirect financial subsidies, grants and loans offered by government 
+departments and agencies, foundations, associations and organizations.  
+In these new 2005 edition all programs are well described.
+
+Each directory includes; Federal & provincial programs, associations &
+foundations.
+
+               CD-Roms, Acrobat Reader files
+Ontario subsidy directory.......................................$ 49.95
+Quebec subsidy directory (french only).................$ 49.95
+New Brunswick subsidy directory.........................$ 49.95
+PEI subsidy directory............................................$ 49.95
+Nova Scotia subsidy directory..............................$ 49.95
+NL subsidy directory.............................................$ 49.95
+Manitoba subsidy directory...................................$ 49.95
+Saskatchewan subsidy directory..........................$ 49.95
+Alberta subsidy directory.......................................$ 49.95
+British Columbia subsidy directory.........................$ 49.95
+
+Canada (more then 3000 programs listed)........... $ 69.95  or $ 149.95
+Academic (printed) 430 pages)
+To obtain a copy please call toll free: 1/866/322/3376.
 
 
-Trust me on this one, go join, it doesn't cost a thing!
-Don't let the good ones go away !!!
-
-http://www.dealingwithdates.com/extra/shena/
 
 
-Come on board, the party only started!
 
 
-See You
-
-http://www.dealingwithdates.com/extra/shena/getmeoff.php
 
 
-sparclinux@vger.kernel.org wrote:
-> Much much happier today
-qmpupq1vbk6
-FZjGn9H3W3pHuC0dkM7EjOvQr	
-
+# E-671073810501373267378577073405864658
+Removal email address: canpub@email.com
 
