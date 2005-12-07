@@ -1,40 +1,34 @@
-From: Christopher Zimmermann <madroach@zakweb.de>
-Date: Wed, 07 Dec 2005 13:56:27 +0000
+From: Ben Collins <bcollins@ubuntu.com>
+Date: Wed, 07 Dec 2005 14:07:18 +0000
 Subject: Re: Sparc: Kernel 2.6.13 to 2.6.15-rc2 bug when running X11
-Message-Id: <20051207135627.GA767@sparc>
+Message-Id: <1133964439.23898.1.camel@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20051205.181732.34234732.davem@davemloft.net>
-In-Reply-To: <20051205.181732.34234732.davem@davemloft.net>
+References: <Pine.LNX.4.64.0512060257160.27930@lai.local.lan>
+ <20051205.181732.34234732.davem@davemloft.net>
+ <Pine.LNX.4.64.0512061658190.14952@lai.local.lan>
+ <20051206.152316.82233251.davem@davemloft.net>
+ <Pine.LNX.4.64.0512071203460.8861@localhost.localdomain>
+In-Reply-To: <Pine.LNX.4.64.0512071203460.8861@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "J.O. Aho" <trizt@iname.com>
+Cc: "David S. Miller" <davem@davemloft.net>, linux-kernel maillist <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org
 
-On Tue, Dec 06, 2005 at 03:39:58PM -0800, David S. Miller wrote:
-> From: Christopher Zimmermann <madroach@zakweb.de>
-> Date: Tue, 6 Dec 2005 16:08:10 +0100
-> 
-> > I'm not sure, if this is the same problem, but since 2.6.15rc3 my X11 broke
-> > too. I'm working on an Ultra2 Creator. This is what my X11 says on 2.6.15rc5:
-> > 
-> > Call Trace:
-> >  [0000000000439de4] copy_process+0x8e4/0xe40
-> 
-> This was fixed in 2.6.15rc4 and later.
+On Wed, 2005-12-07 at 12:05 +0100, J.O. Aho wrote:
+> Xorg jumps to VT7, you see a console cursor, "_", at the top left corner 
+> and thats it. It's impossible to change back to VT1 (or any other), the 
+> only thing that works is to press [stop]-[a] so that you get back to the
+> OBP from where I can reset the machine (resetting by the reset button 
+> don't work). It's still possible to ssh to the machine, more and dmesg is 
+> possible, but running ps causes the machine to completly lock up, change 
+> init mode don't give any affects att all and trying to turn off or kill X 
+> results in the same as ps.
 
-As I said, I tested 2.6.15rc5, too. It performs as badly as rc3.
-The symptoms are the same J.H. Aho described. But in contrast to J.H.
-Aho I can switch back to a vt. By pressing CTRL+c on the vt I started X
-on, I can kill the X server. This is the output I get after pressing
-CTRL+c:
+Does the dmesg contain any sort of oops?
 
-waiting for X server to shut down Bad pte = 800001fc00600e88, process = Xorg, vm_flags = 184473, vaddr = 7001e000
-Call Trace:
- [000000000046c390] unmap_region+0x90/0x140
- [000000000046cad4] do_munmap+0x174/0x240
- [000000000046cbbc] sys_munmap+0x1c/0x40
- [0000000000406cd4] linux_sparc_syscall32+0x34/0x40
- [00000000003d3ee0] 0x3d3ee0
+-- 
+   Ben Collins <ben.collins@ubuntu.com>
+   Developer
+   Ubuntu Linux
 
-
-xinit:  unexpected signal 2.
