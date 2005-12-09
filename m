@@ -1,45 +1,42 @@
-From: Paul Jackson <pj@sgi.com>
-Date: Fri, 09 Dec 2005 11:51:26 +0000
-Subject: [PATCH] sparc32 block needed in final image link build fix
-Message-Id: <20051209115126.3286.25224.sendpatchset@jackhammer.engr.sgi.com>
+From: "Huynh" <tlyaynr@smartweb.net>
+Date: Fri, 09 Dec 2005 20:49:56 +0000
+Subject: Tip Top Equities for sparclinux
+Message-Id: <000d$0212b6a1$08c00784@livre-kh0x8znku>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@osdl.org>
-Cc: sparclinux@vger.kernel.org, Paul Jackson <pj@sgi.com>, linux-kernel@vger.kernel.org, wli@holomorphy.com
+To: sparclinux@vger.kernel.org
 
-With this fix, sparc links vmlinuz again using crosstool.
-Without this fix, the final link fails missing several dozen
-dozen symbols, beginning with:
+A Must Watch ALERT
+Cash Now Corporation, 
 
-    kernel/built-in.o(.text+0x6fd0): In function `do_exit':
-    : undefined reference to `exit_io_context'
+Symbol: CHNW. PK
+Price: .24
+Up 0.14 (127.27%) on Thursday Dec 8th alone
+Active (strong)
 
-(exit_io_context is defined in block/ll_rw_blk.c).
+Volume Has Been Pretty Good. PR Program This Weekend Apprising Potential Investors of This
+One. A new PR campiagn will start Thursday. Get in before this starts for the best gains
 
-No further testing whatsoever was done after the link succeeded.
+News
 
-Signed-off-by: Paul Jackson <pj@sgi.com>
+Great news just released. This should really start to move!
 
----
+The News 
 
- arch/sparc/Makefile |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+Payday Loan Leader Cash Now Re-Launches Infomercials, Fueling Expansion of Licensees and Further Organic Growth 
+Market Wire (Wed 10:00am)
 
---- 2.6.15-rc3-mm1.orig/arch/sparc/Makefile	2005-12-04 01:42:16.842337555 -0800
-+++ 2.6.15-rc3-mm1/arch/sparc/Makefile	2005-12-09 03:38:53.226046309 -0800
-@@ -34,7 +34,7 @@ libs-y += arch/sparc/prom/ arch/sparc/li
- # Renaming is done to avoid confusing pattern matching rules in 2.5.45 (multy-)
- INIT_Y		:= $(patsubst %/, %/built-in.o, $(init-y))
- CORE_Y		:= $(core-y)
--CORE_Y		+= kernel/ mm/ fs/ ipc/ security/ crypto/
-+CORE_Y		+= kernel/ mm/ fs/ ipc/ security/ crypto/ block/
- CORE_Y		:= $(patsubst %/, %/built-in.o, $(CORE_Y))
- DRIVERS_Y	:= $(patsubst %/, %/built-in.o, $(drivers-y))
- NET_Y		:= $(patsubst %/, %/built-in.o, $(net-y))
+Payday Loan Leader Cash Now Strengthens Infrastructure to Handle Increase in Business -- 'Scaling for the Future'
+Market Wire (Wed 10:00am)  
 
--- 
-                          I won't rest till it's the best ...
-                          Programmer, Linux Scalability
-                          Paul Jackson <pj@sgi.com> 1.650.933.1373
+
+DiscIaimer: Statements regarding financial matters in this press release other than historical facts are
+``f0rward-lO0king statements'' within the meaning of section 27 A of the Securities Act of 1933, Section 21 E
+of the Securities Exchange Act of 1934, and as that term is defined in the Private Securities Litigation
+Reform Act of 1995. The company intends that such statements about the company's future expectations,
+including future revenues and earnings, and all other f0rward-l0Oking statements, be subject to the safe
+harbors created thereby. Since these statements (future operational results and sales) involve risks and
+uncertainties and are subject to change at any time, the company's actual results may differ materially from
+expected results.
