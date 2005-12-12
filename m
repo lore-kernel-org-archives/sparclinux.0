@@ -1,54 +1,51 @@
-From: "J.O. Aho" <trizt@iname.com>
-Date: Mon, 12 Dec 2005 08:26:16 +0000
+From: "Mark Fortescue" <mark@mtfhpc.demon.co.uk>
+Date: Mon, 12 Dec 2005 10:13:37 +0000
 Subject: Re: Sparc: Kernel 2.6.13 to 2.6.15-rc2 bug when running X11
-Message-Id: <Pine.LNX.4.64.0512120919410.12409@lai.local.lan>
+Message-Id: <DGEKIABPPPEBAOMKAJCEKEAKCBAA.mark@mtfhpc.demon.co.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.0512102350310.4739@lai.local.lan>
- <20051210.150034.67577008.davem@davemloft.net> <Pine.LNX.4.64.0512110020050.4809@lai.local.lan>
- <20051211.210752.83944980.davem@davemloft.net>
-In-Reply-To: <20051211.210752.83944980.davem@davemloft.net>
+References: <20051205.181732.34234732.davem@davemloft.net>
+In-Reply-To: <20051205.181732.34234732.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>
+To: trizt@iname.com, "David S. Miller" <davem@davemloft.net>
 Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-On Sun, 11 Dec 2005, David S. Miller wrote:
-> From: "J.O. Aho" <trizt@iname.com>
+Hi Aho and David,
 
->> sbusfb_mmap: start[71800000] size[410000] off[4000000]
->> sbusfb_mmap: page[0] map_size[2000]
->> sbusfb_mmap: map_size is now 2000
->> IO[X:6712]:
->> remap_pfn_range(s[71800000]e[71c10000],f[71800000],pfn[1fc0060],sz[2000],prot[80000000000006b0])
->> sbusfb_mmap: page[2000] map_size[2000]
->> sbusfb_mmap: map_size is now 2000
->> IO[X:6712]:
->> remap_pfn_range(s[71800000]e[71c10000],f[71802000],pfn[1fc0060],sz[2000],prot[80000000000006b0])
->
-> This means, it passes in "vma->vm_start + page" in as the start
-> address.
->
-> Yet the last line, printed by the tracing code in io_remap_pfn_range()
-> is getting 0x71800000, when it should be 0x71802000.
->
-> I strongly believe your kernel is being miscompiled by whatever
-> gcc is being used to build your kernels.
+I have been having a number of sparc-linux kernel build problems with both
+gcc-3.4.x and gcc-4.0.x so I would be interested to know what versions of
+gcc you are using.
 
-Okey, good that there is something I can try and see. I'll see what a 
-rebuild does of the gcc 64bit and have as basic CFLAGS as possible doing 
-this and rebuild the kernel and see what happens, if not, I guess I'll 
-bugger the Gentoo Sparc guys again.
+I am cross compiling as my Sparc1's are not up to building large amounts of
+code so I may have additional 'bugs' in gcc to muddy the issue.
 
-Thanks for the help.
+My gcc-3.4.4 has an issue with '%llu' in printk statements. After changing
+the offending printk '%llu' to '%lu' versions I end up with a system that
+appears to boot OK.
+Providing you are patient, I can compile/run simple programs but there is
+something fishy in the memory handling code that results in intermittent
+memory faults. This may be a Bash or libc issue but I have not looked into
+this. (gcc-3.4.2 and gcc-3.4.3 have the same problem with the %llu printk
+statements.)
 
--- 
-      //Aho
+My gcc-4.0.2 has a different issue. It appears to work find and the
+unmodified kernel boots fine. If I try to compile a program on the Sparc1
+using a canadian cross compiled gcc/binutils, the linker fails with a Kernel
+BUG (see 22 Nov: sun4c problems in radix_tree_gang_lookup_tag in
+sparclinux@vger.kernel.org) in the radix-tree code. The same gcc/binutils
+works without any kernel BUGs if I use the gcc-3.4.4 compiled kernel but
+with everything ell compiled using gcc-4.0.2/binutils 2.16.1.
 
-  ------------------------------------------------------------------------
-   E-Mail: trizt@iname.com            URL: http://www.kotiaho.net/~trizt/
-      ICQ: 13696780
-   System: Linux System                        (PPC7447/1000 AMD K7A/2000)
-  ------------------------------------------------------------------------
-             EU forbids you to send spam without my permission
-  ------------------------------------------------------------------------
+The affected kernels that I have tested ate 2.6.13.4, 2.6.14.2, 2.6.14.3 and
+2.6.15-rc4.
+
+Note: I am using an NFS root as the UFS filing system code is not write safe
+on SUNOS 4.1 BSD UFS 4.2 partitions. My efforts to investigate/fix the UFS
+filing system issues on my x86 system locked the system up, requiring a
+power-up reset so for the moment, I have to live with the NFS root.
+
+Regards
+	Mark Fortescue.
+
+
