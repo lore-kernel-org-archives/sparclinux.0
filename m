@@ -1,28 +1,44 @@
 From: "J.O. Aho" <trizt@iname.com>
-Date: Mon, 12 Dec 2005 10:38:32 +0000
+Date: Mon, 12 Dec 2005 16:28:57 +0000
 Subject: Re: Sparc: Kernel 2.6.13 to 2.6.15-rc2 bug when running X11
-Message-Id: <Pine.LNX.4.64.0512121127240.12856@lai.local.lan>
+Message-Id: <Pine.LNX.4.64.0512121725430.25109@lai.local.lan>
 List-Id: <sparclinux.vger.kernel.org>
-References: <DGEKIABPPPEBAOMKAJCEKEAKCBAA.mark@mtfhpc.demon.co.uk>
-In-Reply-To: <DGEKIABPPPEBAOMKAJCEKEAKCBAA.mark@mtfhpc.demon.co.uk>
+References: <Pine.LNX.4.64.0512102350310.4739@lai.local.lan>
+ <20051210.150034.67577008.davem@davemloft.net> <Pine.LNX.4.64.0512110020050.4809@lai.local.lan>
+ <20051211.210752.83944980.davem@davemloft.net>
+In-Reply-To: <20051211.210752.83944980.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Cc: "David S. Miller" <davem@davemloft.net>, linux-kernel maillist <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-On Mon, 12 Dec 2005, Mark Fortescue wrote:
+On Sun, 11 Dec 2005, David S. Miller wrote:
 
-> Hi Aho and David,
+> From: "J.O. Aho" <trizt@iname.com>
+> Date: Sun, 11 Dec 2005 00:22:22 +0100 (CET)
 >
-> I have been having a number of sparc-linux kernel build problems with both
-> gcc-3.4.x and gcc-4.0.x so I would be interested to know what versions of
-> gcc you are using.
+>> sbusfb_mmap: start[71800000] size[410000] off[4000000]
+>> sbusfb_mmap: page[0] map_size[2000]
+>> sbusfb_mmap: map_size is now 2000
+>> IO[X:6712]:
+>> remap_pfn_range(s[71800000]e[71c10000],f[71800000],pfn[1fc0060],sz[2000],prot[80000000000006b0])
+>> sbusfb_mmap: page[2000] map_size[2000]
+>> sbusfb_mmap: map_size is now 2000
+>> IO[X:6712]:
+>> remap_pfn_range(s[71800000]e[71c10000],f[71802000],pfn[1fc0060],sz[2000],prot[80000000000006b0])
+>
+> This is the trace we needed.
+>
+> I strongly believe your kernel is being miscompiled by whatever
+> gcc is being used to build your kernels.
 
-I have been using gcc-3.3.5 (64bits) when building the kernel, today I did 
-upgrade to gcc-3.3.6 (64bits), but still have the same problem with the 
-X11.
-For build normal system applications and tools I have gcc-3.3.6 (32bit).
+Now I have tested all the gcc-sparc64 thats in Gentoo, 3.3.5, 3.3.6 and 
+3.4.4. The results on kernels are the same, I get that crash/bug when 
+starting X11.
+
+Would love to know what gcc you do use for the 64bit kernel, to see if I 
+can't test that one on my machine too.
 
 
 -- 
