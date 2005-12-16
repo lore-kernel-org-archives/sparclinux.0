@@ -1,26 +1,44 @@
-From: <robots@mail.info>
-Date: Wed, 02 Nov 2005 07:24:04 +0000
-Subject: Get an Extra job! Find our offer in this e-mail
-Message-Id: <6971203504.20050416203836@mail.info>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----------EA7202FC519D"
+From: Adrian Bunk <bunk@stusta.de>
+Date: Fri, 16 Dec 2005 22:21:54 +0000
+Subject: Re: linux 2.6.14.4 sparc compile problem
+Message-Id: <20051216222154.GK23349@stusta.de>
 List-Id: <sparclinux.vger.kernel.org>
-To: sparclinux@vger.kernel.org
+References: <Pine.LNX.4.64.0512160832350.995@innerfire.net>
+In-Reply-To: <Pine.LNX.4.64.0512160832350.995@innerfire.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Gerhard Mack <gmack@innerfire.net>
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-------------EA7202FC519D
-Content-Type: text/plain; charset=windows-1251
-Content-Transfer-Encoding: 8bit
+On Fri, Dec 16, 2005 at 08:33:48AM -0500, Gerhard Mack wrote:
+> Hello, 
+> 
+> I tried to compile kernel 2.6.14.4 on my sparc and I got this:
+> 
+> drivers/built-in.o(.init.text+0x1184): In function `rtc_init':
+> : undefined reference to `ebus_chain'
+> drivers/built-in.o(.init.text+0x1188): In function `rtc_init':
+> : undefined reference to `ebus_chain'
+> drivers/built-in.o(.init.text+0x1190): In function `rtc_init':
+> : undefined reference to `isa_chain'
+> drivers/built-in.o(.init.text+0x11d4): In function `rtc_init':
+> : undefined reference to `isa_chain'
+> drivers/built-in.o(.init.text+0x11d8): In function `rtc_init':
+> : undefined reference to `isa_chain'
+> make: *** [.tmp_vmlinux1] Error 1
 
-Midterra Inc is a major international force in software services - offering management and IT consultancy, systems integration and outsourcing services in a diverse range of sectors. Our latest product became very popular and our sales grow up very high. We are looking for a trade representative in Turkey, as we have sometimes difficulties with our Turkish clients. We need a person who will be able to communicate with our clients and control theirs financial operations.
-It takes only several hours a day and it's great opportunity to get the additional earnings.
-If you 18+, have minimal PC skills, speak fluent English and interested in that position, feel free to visit our web-site www.midterra.net to read more about vacancy. Send us your contacts by filling form at www.midterra.net/career
+Please send your .config .
 
-Our aim is to sell our product everywhere fast as our software product very popular, exclusive and we have no competitors in other software companies.
+> Gerhard Mack
 
-With best regards,
-Midterra Inc Support Manager.
+cu
+Adrian
 
-[do not reply]
-------------EA7202FC519D--
+-- 
 
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
 
