@@ -1,24 +1,28 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Sun, 18 Dec 2005 23:10:07 +0000
-Subject: Re: Sparc: Kernel 2.6.13 to 2.6.15-rc2 bug when running X11
-Message-Id: <20051218.151007.45256983.davem@davemloft.net>
+From: boera@rdslink.ro
+Date: Sun, 18 Dec 2005 10:15:36 +0000
+Subject: BTTV and SPARC
+Message-Id: <20051218101536.22906.qmail@webmail.rdslink.ro>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.0512121127240.12856@lai.local.lan>
-	<20051212.142654.62759069.davem@davemloft.net>
-	<Pine.LNX.4.64.0512182257520.11208@lai.local.lan>
-In-Reply-To: <Pine.LNX.4.64.0512182257520.11208@lai.local.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: trizt@iname.com
-Cc: mark@mtfhpc.demon.co.uk, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: "J.O. Aho" <trizt@iname.com>
-Date: Sun, 18 Dec 2005 23:03:37 +0100 (CET)
+Hi,
 
-> I have tried gcc-3.4.5, but still I have a process that can lock the 
-> console totally if you run something that looks into the /proc specially 
-> the process after X itself (that one can't be kill). So I wonder if you do 
-> use some patches for gcc or do you use the "vanilla" gcc?
+I have posted already my problem on the Debian SPARC list, but unfortunately I didn't 
+receive any suggestions.
+The problem is connected with the bttv driver.
+Machine: Sun Ultra 10 (360 MHz), onboard ATI video card.
+Kernels tested: 2.6.14, 2.6.15 rc4 and rc5
+The bttv driver seems to work fine but the machine locks up hard after about 20 minutes.
+No error messages in the logs.
+It seems to me that the lockup happens everytime after the same time interval.
+I have tried with 2 different TV tuners (Jetway PCITV and Leadtek Winfast 2000 XP), the
+result is the same.
+I would like to know if bttv is supposed to work under SPARC, or the machine just cannot
+handle the I/O bandwidth.
 
-I use whatever ships with Debian.
+Best regards,
+Boer Attila
+
