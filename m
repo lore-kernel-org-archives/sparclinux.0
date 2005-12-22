@@ -1,17 +1,14 @@
-From: "Hugo Berry" <berry_ns@embarmenia.it.pl>
-Date: Mon, 19 Dec 2005 10:20:34 +0000
-Subject: Buly cials-tabs Online For Less
-Message-Id: <b16401c60485$737201a6$dead5db9@cidesi.mx>
+From: "Brice" <scottbf@alltel.net>
+Date: Thu, 22 Dec 2005 01:53:05 +0000
+Subject: The Pill Service co
+Message-Id: <200512220153.jBM1r3mR032354@zeus2.kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+We are your source for Astronomical Soft Tab ~ <I@L1S Savings
 
-Be ERECT in less than 15 mins
-
-PRlCE: $ 2 / use
-
-check our website --> onlinesuperday.com
+http://uk.geocities.com/LoriWilkes8149/
 
