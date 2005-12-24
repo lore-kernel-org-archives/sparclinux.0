@@ -1,18 +1,18 @@
-From: "Maggie" <rogerwx@alltel.net>
-Date: Fri, 30 Dec 2005 04:33:43 +0000
-Subject: Top Discount Professionals vb
-Message-Id: <200512300433.jBU4XFCo014767@zeus2.kernel.org>
+From: "Deanna" <Gordonux@alltel.net>
+Date: Sat, 24 Dec 2005 21:00:29 +0000
+Subject: Exclusive Medicine Support oj
+Message-Id: <200512242100.jBOL08br001153@zeus2.kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Come See our new Online Ph=C1rm@cy and Keep up to 85%
+Check Out our new Online Ph@rmacy and withhold up to 85%
 
-Hundreds of Brands to Browse
+Pleny of Products to Browse
 
-http://uk.geocities.com/WillieCooper2822/
+http://uk.geocities.com/HarrietKern8918/
 
-We are your Online Store for Substantial Offers
+We are your Online Store for Substantial Deals
 
