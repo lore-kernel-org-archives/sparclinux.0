@@ -1,18 +1,18 @@
-From: "Dallas" <kelleygc@alltel.net>
-Date: Thu, 29 Dec 2005 15:35:39 +0000
-Subject: Rare Medicine Experts rx
-Message-Id: <200512291535.jBTFZ0gd016625@zeus2.kernel.org>
+From: "Billy Giles" <billygilesjv@cibavision.co.uk>
+Date: Wed, 28 Dec 2005 05:23:15 +0000
+Subject: Budy cials-tabs Online For Less
+Message-Id: <ed8c01c60b6e$6caf4a0b$aa4f34d7@tvg.vg>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Check Out our new Online Ph=C1rm@cy and Keep up to 85%
 
-Tons of Pills to Purchase
+Be ERECT in only 15 mins
 
-http://uk.geocities.com/SusanZuniga5307/
+PRlCE: $ 2 / use
 
-We are your source for Extensive Deals
+go to our website --> onlineclear.com
+
 
