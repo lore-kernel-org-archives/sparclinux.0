@@ -1,27 +1,18 @@
-From: "Rosa Payne" <gzncdksumtgw@msn.com>
-Date: Fri, 16 Dec 2005 22:04:09 +0000
-Subject: Wow..Mens Love This i7C2g
-Message-Id: <68IW87FE.0D24.gzncdksumtgw@msn.com>
+From: "Roman" <Adamhe@alltel.net>
+Date: Wed, 28 Dec 2005 12:07:10 +0000
+Subject: Top Discount Professionals cf
+Message-Id: <200512281207.jBSC76ui022304@zeus2.kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Check Out our new web Ph@rmacy and withhold up to 85%
 
+Pleny of Meds to Purchase
 
-Suffering from short penniss?
-Introduce revolution "Thunder" formula which
-gauranteees sizes increase or moneey baack.
+http://uk.geocities.com/SheriBeach2611/
 
-Users reported:
-- 2 inches extra in size
-- 3x pleasurable orgasms
-- 27% thicker
+We are your Online Store for Substantial Dicounts
 
-Why waiting?
-
-http://thunder14.erectus.biz
-
-
-UedBz0
