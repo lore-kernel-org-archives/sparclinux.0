@@ -1,18 +1,18 @@
-From: "Forrest" <Shannonjt@alltel.net>
-Date: Sat, 31 Dec 2005 10:21:30 +0000
-Subject: Flawless Perscription Offerings tn
-Message-Id: <200512311021.jBVAKxIU015954@zeus2.kernel.org>
+From: "Dallas" <kelleygc@alltel.net>
+Date: Thu, 29 Dec 2005 15:35:39 +0000
+Subject: Rare Medicine Experts rx
+Message-Id: <200512291535.jBTFZ0gd016625@zeus2.kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Come Visit our new Online Ph=C1rm=C1cy and S=C1VE up to 85%
+Check Out our new Online Ph=C1rm@cy and Keep up to 85%
 
-Hundreds of Products to Browse
+Tons of Pills to Purchase
 
-http://uk.geocities.com/NaomiFry7152/
+http://uk.geocities.com/SusanZuniga5307/
 
-We are your solution for Considerable Dicounts
+We are your source for Extensive Deals
 
