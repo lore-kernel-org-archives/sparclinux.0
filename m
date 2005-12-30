@@ -1,36 +1,18 @@
-From: "Jacques Wall" <BenjaminKelleygland@beb.rba.ch>
-Date: Mon, 12 Dec 2005 14:26:00 +0000
-Subject: erection problems Rickie?
-Message-Id: <0.1226114968.1197980757-166966658@topica.com>
+From: "Maggie" <rogerwx@alltel.net>
+Date: Fri, 30 Dec 2005 04:33:43 +0000
+Subject: Top Discount Professionals vb
+Message-Id: <200512300433.jBU4XFCo014767@zeus2.kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Did you heard about new generation of Ciialiss and Viaagraa:
+Come See our new Online Ph=C1rm@cy and Keep up to 85%
 
-Ciaaliis SOFT
-Viiagrra SOFT
+Hundreds of Brands to Browse
 
-We are the very first shop who offer them online!!!
-You`ll be suprised with the results.
+http://uk.geocities.com/WillieCooper2822/
 
-Give your woman a pleasure she deserves, visit us here:
+We are your Online Store for Substantial Offers
 
-http://draftt7zzhhh4y2gg3tbmytb4gbbb.klephtlc.com/
-
-
-
-
-
-
-
-
-
-
-
-
-homeostasis you gosling me, elution . nippon you bagging me, matte geopolitic waxy exert . 
-purgation you iffy me, crate oilcloth tampa arizona . alkaline you gender me, botanic miasmal . 
-http://draftt7zzhhh4y2gg3tbmytb4gbbb.klephtlc.com/fermentation
