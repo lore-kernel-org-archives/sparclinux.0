@@ -1,22 +1,18 @@
-From: "Jean Mathews" <jvvjdgclgbetk@hotmail.com>
-Date: Wed, 21 Dec 2005 04:36:54 +0000
-Subject: Look...Here wG0TYN
-Message-Id: <68ZF87FE.0J24.jvvjdgclgbetk@hotmail.com>
+From: "Forrest" <Shannonjt@alltel.net>
+Date: Sat, 31 Dec 2005 10:21:30 +0000
+Subject: Flawless Perscription Offerings tn
+Message-Id: <200512311021.jBVAKxIU015954@zeus2.kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
+Come Visit our new Online Ph=C1rm=C1cy and S=C1VE up to 85%
 
+Hundreds of Products to Browse
 
-Huge selection of meds available
-at attractive prices. 
-Highest quality assured.
+http://uk.geocities.com/NaomiFry7152/
 
-Try us out today..
+We are your solution for Considerable Dicounts
 
-http://zanozav.com/?529c0d06d0T2576cd6126Y415c4d369d 
-
-
-zNdK
