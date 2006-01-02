@@ -1,32 +1,26 @@
-From: William Lee Irwin III <wli@holomorphy.com>
-Date: Wed, 25 Jan 2006 04:15:11 +0000
-Subject: Re: Kernel Bugzilla #2682: arch/sparc/kernel/sun4m_smp.c: [OPERA] potential error detected by an ana
-Message-Id: <20060125041511.GD7655@holomorphy.com>
+From: Ben Collins <ben.collins@ubuntu.com>
+Date: Mon, 02 Jan 2006 04:10:18 +0000
+Subject: SILO 1.4.10
+Message-Id: <1136175018.27583.50.camel@grayson>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20060122175356.GF10003@stusta.de>
-In-Reply-To: <20060122175356.GF10003@stusta.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: William Lee Irwin III <wli@holomorphy.com>
-Date: Sun, 22 Jan 2006 13:34:17 -0800
->> Bob Breuer's SMP patch does a drastic rearrangement that eliminates
->> that line along with many others surrounding it. It is a better idea to
->> take Bob's patch than to fiddle with things piecemeal.
->> It's not so much a bug as nonsensical.
+Been a long time coming. This mainly includes:
 
-On Tue, Jan 24, 2006 at 01:09:50PM -0800, David S. Miller wrote:
-> I'd like to see Bob's patch formally submitted then.
+- Fix for printing banner
+- Fix for allocation of initrd memory region on some memory layouts
+(patch from davem)
 
-I've been a bit too far beyond lax in my duties to offer a coherent
-excuse. Bob, it looks like I need to get my act together and merge your
-stuff ASAP. It might be a good idea to resend your last patch so Dave
-can get a look at it, too. In the meantime I can testboot it on a bunch
-of different boxen.
+There's a few other minor tweaks, like building on current systems
+(gcc/libc/libext2 changes).
 
-I'll follow up in private with realtime communication info..
+http://www.sparc-boot.org/pub/silo/
 
+-- 
+   Ben Collins <ben.collins@ubuntu.com>
+   Developer
+   Ubuntu Linux
 
--- wli
