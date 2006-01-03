@@ -1,7 +1,7 @@
-From: Ben Collins <ben.collins@ubuntu.com>
-Date: Tue, 03 Jan 2006 03:22:27 +0000
+From: Jim Gifford <maillist@jg555.com>
+Date: Tue, 03 Jan 2006 15:43:12 +0000
 Subject: Re: SILO 1.4.10
-Message-Id: <1136258547.27583.81.camel@grayson>
+Message-Id: <43BA9B90.50207@jg555.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1136175018.27583.50.camel@grayson>
 In-Reply-To: <1136175018.27583.50.camel@grayson>
@@ -10,22 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Mon, 2006-01-02 at 18:53 -0800, Jim Gifford wrote:
-> Building 32bit on a multilib system. Here's a complete link to the 
-> complete build log
-> 
-> http://ftp.jg555.com/silo_build.log
+When I do that, I get the same problem. Also when the -m elf32_sparc is 
+there, all the other files are different.
 
-ld -N -Ttext 0x280000 -Bstatic -o second crt0.o
-decomp.o ../common/console.o ../common/printf.o
-malloc.o ../common/jmp.o ../common/prom.o ../common/tree.o ../common/urem.o ../common/udiv.o ../common/stringops1.o ../common/ffs.o ../common/divdi3.o ../common/udivdi3.o bmark.o main.o cmdline.o disk.o file.o misc.o cfg.o strtol.o ranges.o timer.o memory.o fs/libfs.a mul.o ../common/rem.o ../common/sdiv.o umul.o ../common/stringops2.o ls.o muldi3.o -lext2fs mark.o
-ld: warning: sparc:v8plus architecture of input file `crt0.o' is incompatible with sparc:v9 output
-ld: warning: sparc architecture of input file `decomp.o' is incompatible with sparc:v9 output
-ld: warning: sparc architecture of input file `../common/console.o' is incompatible with sparc:v9 output
+ cmp /boot/fd.b fd.b
+/boot/fd.b fd.b differ: char 1, line 1
 
-Your linker is defaulting to elf64_sparc. Edit Rules.make, and make LD=ld -m elf32_sparc
+Which made me thing there was something else wrong elsewhere, I rebuild 
+elftoaout as 32bit, and now everything works.
+
 -- 
-   Ben Collins <ben.collins@ubuntu.com>
-   Developer
-   Ubuntu Linux
+----
+Jim Gifford
+maillist@jg555.com
 
