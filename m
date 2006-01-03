@@ -1,7 +1,7 @@
 From: Jim Gifford <maillist@jg555.com>
-Date: Tue, 03 Jan 2006 15:43:12 +0000
+Date: Tue, 03 Jan 2006 17:39:19 +0000
 Subject: Re: SILO 1.4.10
-Message-Id: <43BA9B90.50207@jg555.com>
+Message-Id: <43BAB6C7.2070203@jg555.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1136175018.27583.50.camel@grayson>
 In-Reply-To: <1136175018.27583.50.camel@grayson>
@@ -10,14 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-When I do that, I get the same problem. Also when the -m elf32_sparc is 
-there, all the other files are different.
+Further testing is showing the elftoaout built as 64bit will create all 
+the files except for second.b correctly. Which is kinda of wierd.
 
- cmp /boot/fd.b fd.b
-/boot/fd.b fd.b differ: char 1, line 1
+Further testing when compiled silo as 64 bit(just did it to see) the 
+same issue only second.b is not created properly. Compared to the 32 bit 
+build the .b files are the same except for second.b.
 
-Which made me thing there was something else wrong elsewhere, I rebuild 
-elftoaout as 32bit, and now everything works.
+So we have 2 potential issues
+
+1 - elftoaout is not creating proper files when it's compiled as 64bit
+2 - second.b is not being created properly
 
 -- 
 ----
