@@ -1,7 +1,7 @@
-From: Jim Gifford <maillist@jg555.com>
-Date: Tue, 03 Jan 2006 17:39:19 +0000
+From: "David S. Miller" <davem@davemloft.net>
+Date: Tue, 03 Jan 2006 20:50:36 +0000
 Subject: Re: SILO 1.4.10
-Message-Id: <43BAB6C7.2070203@jg555.com>
+Message-Id: <20060103.125036.05541695.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1136175018.27583.50.camel@grayson>
 In-Reply-To: <1136175018.27583.50.camel@grayson>
@@ -10,20 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Further testing is showing the elftoaout built as 64bit will create all 
-the files except for second.b correctly. Which is kinda of wierd.
+From: Jim Gifford <maillist@jg555.com>
+Date: Tue, 03 Jan 2006 09:39:19 -0800
 
-Further testing when compiled silo as 64 bit(just did it to see) the 
-same issue only second.b is not created properly. Compared to the 32 bit 
-build the .b files are the same except for second.b.
+> So we have 2 potential issues
+> 
+> 1 - elftoaout is not creating proper files when it's compiled as 64bit
+> 2 - second.b is not being created properly
 
-So we have 2 potential issues
+It's probably just some 64-bit arithmatic coding error
+in elftoaout that only gets triggered by the second.b
+image and not by most other uses of the utility.
 
-1 - elftoaout is not creating proper files when it's compiled as 64bit
-2 - second.b is not being created properly
-
--- 
-----
-Jim Gifford
-maillist@jg555.com
-
+Someone with the time and inclination can probably look
+at the final image differences, and use that to pinpoint
+the elftoaout problem when built 64-bit.
