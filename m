@@ -1,18 +1,17 @@
-From: "Terrell" <seandv@alltel.net>
-Date: Tue, 03 Jan 2006 19:29:31 +0000
-Subject: The Narcotic Service sc
-Message-Id: <200601031929.k03JTTbE018815@zeus2.kernel.org>
+From: <npa@npa.org>
+Date: Wed, 04 Jan 2006 15:17:16 +0000
+Subject: Auto Reply from the NPA
+Message-Id: <13887296_57301971@mail1.webcontrolcenter.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Have a look at our new Online Ph=C1rm=C1cy and withhold up to 85%
+You recently sent an email to npa@npa.org which is the Network Professional Association (NPA).
 
-Tons of Meds to Check out
+We are sorry but we no longer monitor this email address due to excessive unsolicited email.  For inquiries to the NPA please visit www.npa.org and use our Contact Us page.
 
-http://uk.geocities.com/RosalindBullard7403/
+http://www.npanet.org/public/contactus.cfm
 
-We are your Online Store for Extensive Dicounts
 
