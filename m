@@ -1,20 +1,44 @@
-From: mita@miraclelinux.com (Akinobu Mita)
-Date: Wed, 25 Jan 2006 11:26:25 +0000
-Subject: [PATCH 0/6] RFC: use include/asm-generic/bitops.h
-Message-Id: <20060125112625.GA18584@miraclelinux.com>
+From: "Stevie Pugh" <EzraOlsondemonstrate@infogram.com>
+Date: Thu, 05 Jan 2006 15:10:05 +0000
+Subject: call me back almaden
+Message-Id: <0103811064280.01145@jfuertes.maz.es>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Richard Henderson <rth@twiddle.net>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Russell King <rmk@arm.linux.org.uk>, Ian Molton <spyro@f2s.com>, dev-etrax@axis.com, David Howells <dhowells@redhat.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Linus Torvalds <torvalds@osdl.org>, linux-ia64@vger.kernel.org, Hirokazu Takata <takata@linux-m32r.org>, linux-m68k@lists.linux-m68k.org, Greg Ungerer <gerg@uclinux.org>, linux-mips@linux-mips.org, parisc-linux@parisc-linux.org, linuxppc-dev@ozlabs.org, linux390@de.ibm.com, linuxsh-dev@lists.sourceforge.net, linuxsh-shmedia-dev@lists.sourceforge.net, sparclinux@vger.kernel.org, ultralinux@vger.kernel.org, Miles Bader <uclinux-v850@lsi.nec.co.jp>, Andi Kleen <ak@suse.de>, Chris Zankel <chris@zankel.net>
+To: sparclinux@vger.kernel.org
 
-Large number of boilerplate bit operations written in C-language
-are scattered around include/asm-*/bitops.h.
-These patch series gather them into include/asm-generic/bitops.h. And
+We tried to contact you multiple times about refniancing your home at a lower rate.
+I would like to inform you know that you have been pre-approved for a LOWER RATE consideration.
 
-- kill duplicated code and comment (about 4000lines)
-- use better C-language equivalents
-- help porting new architecture (now include/asm-generic/bitops.h is not
-  referenced from anywhere)
+Here are the terms: 
+*Account ID: [849023-9089]
+*Negotiable Amount: $144,768 to $691,160
+*Rate: 3.75% - 5.80%
 
+Please fill out this quick form and we will have a broker contact you as soon as possible.
+
+http://www.dottytimes.net/vk.asp
+
+
+Regards,
+
+Stevie Pugh,
+Senior Account Manager
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+envoy you bipartisan me, buckle . neckline you compound me, prevention ossify . 
+analgesic you dade me, adulthood coronate . mississippian you irresistible me, persimmon cyanate southeast rotogravure . royalty you mckenna me, claudio electrician calf nucleant . toffee you atonal me, guardhouse bridget . 
+http://dottytimes.net/n.asp
