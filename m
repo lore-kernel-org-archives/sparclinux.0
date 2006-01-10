@@ -1,30 +1,35 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Mon, 30 Jan 2006 23:02:44 +0000
-Subject: Re: [parisc-linux] Re: [PATCH 3/6] C-language equivalents of
-Message-Id: <20060130.150244.81476469.davem@davemloft.net>
+From: "Chicanos U. Blush" <rich@gladstonemotorworld.com.au>
+Date: Tue, 10 Jan 2006 19:37:36 +0000
+Subject: Software
+Message-Id: <8825933623.20060110143736@gladstonemotorworld.com.au>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20060129071242.GA24624@miranda.arrow>
-	<20060130170647.GC3816@linux-mips.org>
-	<20060130195004.GA25860@miranda.arrow>
-In-Reply-To: <20060130195004.GA25860@miranda.arrow>
+References: <5676038165.20051106181254@juno.com>
+In-Reply-To: <5676038165.20051106181254@juno.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sdbrady@ntlworld.com
-Cc: ralf@linux-mips.org, grundler@parisc-linux.org, mita@miraclelinux.com, linux-kernel@vger.kernel.org, ink@jurassic.park.msu.ru, spyro@f2s.com, dev-etrax@axis.com, dhowells@redhat.com, ysato@users.sourceforge.jp, torvalds@osdl.org, linux-ia64@vger.kernel.org, takata@linux-m32r.org, linux-m68k@vger.kernel.org, gerg@uclinux.org, linux-mips@linux-mips.org, parisc-linux@parisc-linux.org, linuxppc-dev@ozlabs.org, linux390@de.ibm.com, linuxsh-dev@lists.sourceforge.net, linuxsh-shmedia-dev@lists.sourceforge.net, sparclinux@vger.kernel.org, ultralinux@vger.kernel.org, uclinux-v850@lsi.nec.co.jp, ak@suse.de, chris@zankel.net
+To: sparclinux@vger.kernel.org
 
-From: Stuart Brady <sdbrady@ntlworld.com>
-Date: Mon, 30 Jan 2006 19:50:04 +0000
+Just click to buy OEM! best worldwide soft at increadeable prices!!! 
+Why pay big bucks? Create your OWN website now! 
 
-> Shame about popc on SPARC.  However, ffz is cheese, regardless of pops.
-> (On sparc64, ffs is too.)  I'll wait for the generic bitops patches to
-> be dealt with (or not) and then submit a patch fixing this if needed.
+New software on our site:
 
-I'm happy with any improvement you might make here, for sure.
+Photoshop 7 - $69.95 
+Photo Painter 8 - $59.95
+Photoshop CS with ImageReady CS - $99.95
+Creative Suite Standard (3 CD) - $129.95
+InDesign CS - $69.95
+Creative Suite Premium (5 CD) - $149.95
+Windows 98 - $49.95
+Dreamweaver MX 2004 $69.95
+Picture It Premium 9 - $59.95
+FileMaker 7.0 Professional - $69.95
+Dreamweaver MX 2004 $69.95
+Fireworks MX 2004 - $69.95
+Photoshop CS with ImageReady CS - $99.95
+Picture It Premium 9 - $59.95
 
-The sparc64 ffz() implementation was done so dog stupid like that
-so that the code would be small since this gets inlined all over
-the place.
+Our site:
+http://curatessjd.com
 
-So if you can keep it small and improve it, or make it a bit larger
-and uninline it, that's great.
