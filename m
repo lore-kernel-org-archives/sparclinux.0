@@ -1,7 +1,7 @@
 From: Jim Gifford <maillist@jg555.com>
-Date: Thu, 12 Jan 2006 21:30:56 +0000
+Date: Thu, 12 Jan 2006 21:32:13 +0000
 Subject: Re: Build Issue - Sparc64
-Message-Id: <43C6CA90.4050900@jg555.com>
+Message-Id: <43C6CADD.30602@jg555.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <43C6A8A3.9090100@jg555.com>
 In-Reply-To: <43C6A8A3.9090100@jg555.com>
@@ -30,34 +30,35 @@ Fixed the issue with this patch.
 --- process.c.orig      2006-01-12 13:27:03.000000000 -0800
 +++ process.c   2006-01-12 13:28:21.000000000 -0800
 @@ -164,6 +164,7 @@
-        panic("Reboot failed!");
- }
+       panic("Reboot failed!");
+}
 
 +#ifdef CONFIG_COMPAT
- static void show_regwindow32(struct pt_regs *regs)
- {
-        struct reg_window32 __user *rw;
+static void show_regwindow32(struct pt_regs *regs)
+{
+       struct reg_window32 __user *rw;
 @@ -189,6 +190,7 @@
-               r_w.ins[0], r_w.ins[1], r_w.ins[2], r_w.ins[3],
-               r_w.ins[4], r_w.ins[5], r_w.ins[6], r_w.ins[7]);
- }
+              r_w.ins[0], r_w.ins[1], r_w.ins[2], r_w.ins[3],
+              r_w.ins[4], r_w.ins[5], r_w.ins[6], r_w.ins[7]);
+}
 +#endif
 
- static void show_regwindow(struct pt_regs *regs)
- {
+static void show_regwindow(struct pt_regs *regs)
+{
 @@ -214,7 +216,11 @@
-                        set_fs (old_fs);
-                }
-        } else {
+                       set_fs (old_fs);
+               }
+       } else {
 -               show_regwindow32(regs);
 +               #ifdef CONFIG_COMPAT
 +                       show_regwindow32(regs);
 +               #else
 +                       show_regwindow(regs);
 +               #endif
-                return;
-        }
-        printk("l0: %016lx l1: %016lx l2: %016lx l3: %016lx\n",
+               return;
+       }
+       printk("l0: %016lx l1: %016lx l2: %016lx l3: %016lx\n",
+
 
 -- 
 ----
