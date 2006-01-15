@@ -1,71 +1,81 @@
-From: Ferris McCormick <fmccor@gentoo.org>
-Date: Tue, 31 Jan 2006 14:23:12 +0000
-Subject: Re: afbinit failure with 2.6.15 kernels (can no longer load Elite
-Message-Id: <1138717392.8129.4.camel@polylepis.inforead.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-MokJ9fewDJvn5igzA0/e"
+From: Christoph Hellwig <hch@lst.de>
+Date: Sun, 15 Jan 2006 20:55:54 +0000
+Subject: [PATCH] fix up sbuslib for new fb_comapt_ioctl prototype
+Message-Id: <20060115205554.GA19609@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1138649666.7197.17.camel@polylepis.inforead.com>
-In-Reply-To: <1138649666.7197.17.camel@polylepis.inforead.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+After ages my fb ioctl prototype cleanup finally got in.  Unfortunately
+the patch are so old that the sbus compat_ioctl helper didn't exist back
+then, so it's not covered.  This patch should fix that issue.
 
---=-MokJ9fewDJvn5igzA0/e
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, 2006-01-30 at 20:05 -0800, David S. Miller wrote:
-> From: Jurij Smakov <jurij@wooyd.org>
-> Date: Mon, 30 Jan 2006 19:15:36 -0800 (PST)
->=20
-> > After looking at the description of the problem, I recalled that I've s=
-een=20
-> > something like this reported on the debian-sparc list. It turns out tha=
-t=20
-> > we have a bug #346085 [0] filed exactly for this issue, and Ian Viemeis=
-ter=20
-> > has recently submitted a patch [1] for afbinit which reportedly fixes t=
-his=20
-> > problem. I don't have a possibility to test it myself.
-> >=20
-> > [0] http://bugs.debian.org/346085
-> > [1] http://bugs.debian.org/cgi-bin/bugreport.cgi/afbinit.c.diff?bug=3D3=
-46085;msg=3D10;att=3D1
->=20
-> That patch looks good to me.
->=20
-> Ferris can you test that out and say if it works for you
-> as well?  Thanks.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-Tested.
-Patch (MAP_PRIVATE ---> MAP_SHARED) works for me (SB1000-SMP, Elite
-3dm3) with kernels 2.6.13-r3, 2.6.15-r1.  Thanks.
-
-GENTOO SPARC PEOPLE:  I will be making a revision bump (as ~sparc) to
-afbinit to add this patch.  If you try it and experience any
-difficulties, please let me know.
-> -
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-Regards,
-Ferris
---=20
-Ferris McCormick (P44646, MI) <fmccor@gentoo.org>
-Developer, Gentoo Linux (Sparc, Devrel)
-
---=-MokJ9fewDJvn5igzA0/e
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQBD33LPQa6M3+I///cRAp5uAJ9EQuzUPgendfei4l9x3OQbi3ASIQCg4+Tq
-fod70u9P0WL5Fc70LwCvYtw=
-=SedN
------END PGP SIGNATURE-----
-
---=-MokJ9fewDJvn5igzA0/e--
-
+Index: linux-2.6/drivers/video/sbuslib.c
+=================================--- linux-2.6.orig/drivers/video/sbuslib.c	2005-12-27 18:30:31.000000000 +0100
++++ linux-2.6/drivers/video/sbuslib.c	2006-01-15 21:55:26.000000000 +0100
+@@ -216,10 +216,10 @@
+ 	ret |= put_user(compat_ptr(addr), &p->blue);
+ 	if (ret)
+ 		return -EFAULT;
+-	return info->fbops->fb_ioctl(file->f_dentry->d_inode, file,
++	return info->fbops->fb_ioctl(info,
+ 			(cmd = FBIOPUTCMAP32) ?
+ 			FBIOPUTCMAP_SPARC : FBIOGETCMAP_SPARC,
+-			(unsigned long)p, info);
++			(unsigned long)p);
+ }
+ 
+ struct fbcursor32 {
+@@ -260,12 +260,11 @@
+ 	ret |= put_user(compat_ptr(addr), &p->image);
+ 	if (ret)
+ 		return -EFAULT;
+-	return info->fbops->fb_ioctl(file->f_dentry->d_inode, file,
+-			FBIOSCURSOR, (unsigned long)p, info);
++	return info->fbops->fb_ioctl(info, FBIOSCURSOR, (unsigned long)p);
+ }
+ 
+-long sbusfb_compat_ioctl(struct file *file, unsigned int cmd,
+-		unsigned long arg, struct fb_info *info)
++long sbusfb_compat_ioctl(struct fb_info *info, unsigned int cmd,
++		unsigned long arg)
+ {
+ 	switch (cmd) {
+ 	case FBIOGTYPE:
+@@ -278,14 +277,13 @@
+ 	case FBIOSCURPOS:
+ 	case FBIOGCURPOS:
+ 	case FBIOGCURMAX:
+-		return info->fbops->fb_ioctl(file->f_dentry->d_inode,
+-				file, cmd, arg, info);
++		return info->fbops->fb_ioctl(info, cmd, arg);
+ 	case FBIOPUTCMAP32:
+-		return fbiogetputcmap(file, info, cmd, arg);
++		return fbiogetputcmap(info, cmd, arg);
+ 	case FBIOGETCMAP32:
+-		return fbiogetputcmap(file, info, cmd, arg);
++		return fbiogetputcmap(info, cmd, arg);
+ 	case FBIOSCURSOR32:
+-		return fbiogscursor(file, info, arg);
++		return fbiogscursor(info, arg);
+ 	default:
+ 		return -ENOIOCTLCMD;
+ 	}
+Index: linux-2.6/drivers/video/sbuslib.h
+=================================--- linux-2.6.orig/drivers/video/sbuslib.h	2005-12-27 18:30:31.000000000 +0100
++++ linux-2.6/drivers/video/sbuslib.h	2006-01-15 21:51:45.000000000 +0100
+@@ -20,7 +20,7 @@
+ int sbusfb_ioctl_helper(unsigned long cmd, unsigned long arg,
+ 			struct fb_info *info,
+ 			int type, int fb_depth, unsigned long fb_size);
+-long sbusfb_compat_ioctl(struct file *file, unsigned int cmd,
+-		unsigned long arg, struct fb_info *info);
++long sbusfb_compat_ioctl(struct fb_info *info, unsigned int cmd,
++		unsigned long arg);
+ 
+ #endif /* _SBUSLIB_H */
