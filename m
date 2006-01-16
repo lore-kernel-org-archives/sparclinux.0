@@ -1,32 +1,95 @@
-From: Paul Mackerras <paulus@samba.org>
-Date: Thu, 26 Jan 2006 04:12:37 +0000
-Subject: Re: [PATCH 5/6] fix warning on test_ti_thread_flag()
-Message-Id: <17368.19509.43692.401946@cargo.ozlabs.ibm.com>
+From: Richard Mortimer <richm@oldelvet.org.uk>
+Date: Mon, 16 Jan 2006 23:05:06 +0000
+Subject: [SPARC64]: Eliminate race condition reading Hummingbird STICK
+Message-Id: <1137452706.9208.109.camel@duncow>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.62.0601251814350.19174@pademelon.sonytel.be>
-	<200601252002.k0PK2Mg31276@unix-os.sc.intel.com>
-	<20060126035004.GA11543@miraclelinux.com>
-In-Reply-To: <20060126035004.GA11543@miraclelinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Akinobu Mita <mita@miraclelinux.com>
-Cc: linux-m68k@vger.kernel.org, linux-ia64@vger.kernel.org, ultralinux@vger.kernel.org, Andi Kleen <ak@suse.de>, Linux Kernel Development <linux-kernel@vger.kernel.org>, Linux/PPC Development <linuxppc-dev@ozlabs.org>, "Chen,
-	Kenneth W" <kenneth.w.chen@intel.com>, 'Geert Uytterhoeven' <geert@linux-m68k.org>, sparclinux@vger.kernel.org, linux390@de.ibm.com, linuxsh-dev@lists.sourceforge.net, parisc-linux@parisc-linux.org
+To: sparclinux@vger.kernel.org
 
-Akinobu Mita writes:
+Various Debian/SPARC users (myself include) have noticed problems with
+Hummingbird based systems. The symptoms are that the system time is
+seen to jump forward 3 days, 6 hours, 11 minutes give or take a few
+seconds. In many cases the system then hangs some time afterwards.
 
-> I can fix this without changing the flags size for those architectures.
-> 
-> 1. Introduce *_le_bit() bit operations which takes void *addr
->    (already I have these functions in the scope of
->     HAVE_ARCH_EXT2_NON_ATOMIC_BITOPS in my patch)
-> 
-> 2. Change flags to __u8 flags[4] or __u8 flags[8] for each architectures.
-> 
-> 3. Use *_le_bit() in include/linux/thread_info.h
+I've spotted a race condition in the code to read the STICK register.
+I could not work out why 3d, 6h, 11m is important but guess that it is
+due to the 2^32 jump of STICK (forwards on one read and then the next
+read will seem to be backwards) during a timer interrupt. I'm guessing
+that a change of -2^32 will get converted to a large unsigned increment
+after the arithmetic manipulation between STICK, nanoseconds, jiffies
+etc.
 
-Please don't do this, you'll break the powerpc assembly code that
-tests bits in thread_info()->flags.
+I did a test where I modified __hbird_read_stick to artificially inject
+rollover faults forcefully every few seconds. With this I saw the clock
+jump over 6 times in 12 hours compared to once every month or so.
 
-Paul.
+Fix below - hopefully I've got my mailer to keep it intact this time!
+
+Regards
+
+Richard
+
+
+[SPARC64]: Eliminate race condition reading Hummingbird STICK register
+
+Ensure a consistent value is read from the STICK register by ensuring
+that both high and low are read without high changing due to a roll
+over of the low register.
+
+Signed-off-by: Richard Mortimer <richm@oldelvet.org.uk>
+
+
+diff --git a/arch/sparc64/kernel/time.c b/arch/sparc64/kernel/time.c
+index 459c8fb..a22930d 100644
+--- a/arch/sparc64/kernel/time.c
++++ b/arch/sparc64/kernel/time.c
+@@ -280,9 +280,9 @@ static struct sparc64_tick_ops stick_ope
+  * Since STICK is constantly updating, we have to access it carefully.
+  *
+  * The sequence we use to read is:
+- * 1) read low
+- * 2) read high
+- * 3) read low again, if it rolled over increment high by 1
++ * 1) read high
++ * 2) read low
++ * 3) read high again, if it rolled re-read both low and high again.
+  *
+  * Writing STICK safely is also tricky:
+  * 1) write low to zero
+@@ -295,18 +295,18 @@ static struct sparc64_tick_ops stick_ope
+ static unsigned long __hbird_read_stick(void)
+ {
+ 	unsigned long ret, tmp1, tmp2, tmp3;
+-	unsigned long addr = HBIRD_STICK_ADDR;
++	unsigned long addr = HBIRD_STICK_ADDR+8;
+ 
+-	__asm__ __volatile__("ldxa	[%1] %5, %2\n\t"
+-			     "add	%1, 0x8, %1\n\t"
+-			     "ldxa	[%1] %5, %3\n\t"
++	__asm__ __volatile__("ldxa	[%1] %5, %2\n"
++			     "1:\n\t"
+ 			     "sub	%1, 0x8, %1\n\t"
++			     "ldxa	[%1] %5, %3\n\t"
++			     "add	%1, 0x8, %1\n\t"
+ 			     "ldxa	[%1] %5, %4\n\t"
+ 			     "cmp	%4, %2\n\t"
+-			     "blu,a,pn	%%xcc, 1f\n\t"
+-			     " add	%3, 1, %3\n"
+-			     "1:\n\t"
+-			     "sllx	%3, 32, %3\n\t"
++			     "bne,a,pn	%%xcc, 1b\n\t"
++			     " mov	%4, %2\n\t"
++			     "sllx	%4, 32, %4\n\t"
+ 			     "or	%3, %4, %0\n\t"
+ 			     : "=&r" (ret), "=&r" (addr),
+ 			       "=&r" (tmp1), "=&r" (tmp2), "=&r" (tmp3)
+
+
+
+
+
+-- 
+Richard Mortimer <richm@oldelvet.org.uk>
+
