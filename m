@@ -1,58 +1,38 @@
-From: Jeffrey Forman <jforman@gentoo.org>
-Date: Tue, 17 Jan 2006 00:19:43 +0000
-Subject: qla2200 borkage on 2.6.15.x ?
-Message-Id: <1137457183.9960.130.camel@sixthstreet.jeffreyforman.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-dGSj7qTuFg5MtspEA8YG"
+From: "David S. Miller" <davem@davemloft.net>
+Date: Tue, 17 Jan 2006 23:27:03 +0000
+Subject: Re: qla2200 borkage on 2.6.15.x ?
+Message-Id: <20060117.152703.107339008.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1137457183.9960.130.camel@sixthstreet.jeffreyforman.net>
+In-Reply-To: <1137457183.9960.130.camel@sixthstreet.jeffreyforman.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+From: Jeffrey Forman <jforman@gentoo.org>
+Date: Mon, 16 Jan 2006 19:19:43 -0500
 
---=-dGSj7qTuFg5MtspEA8YG
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+> http://dev.gentoo.org/~jforman/blade1000-2.6.15.1.qla2200output
+> 
+> Gentoo Sources 2.6.15-gentoo-r1:
+> http://dev.gentoo.org/~jforman/blade1000-gentoo-2.6.15-gentoo-r1.output
 
-Hey guys,
+I believe this bug was fixed post-2.6.15, but I can't say for sure.
 
-I've got a sun blade 1000, 2x750, with one FCAL drive in there:
+One workaround you can use for now is to simply not enable both
+QLOGIC_FC and QLA2XXX at the same time.
 
-  Vendor: SEAGATE   Model: ST336605FSUN36G   Rev: 0438
-  Type:   Direct-Access                      ANSI SCSI revision: 03
+You definitely should not be using both of those drivers.  In fact
+QLOGIC_FC is deprecated, so I would recommend using QLA2XXX in favor
+of QLOGIC_FC in your builds.  This is what I've had the Ubuntu folks
+do as well.  I use QLA2XXX on my SunBlade1000 and it works quite
+well.
 
-was just trying to get the machine up on 2.6.15 and I got some lovely
-kernel panic output.
+What is happening is that the former loads first, takes over driving
+the device, then QLA2XXX comes along and cannot register itself as a
+result.  There is some bug in the QLA2XXX driver init failure path
+error handling.  You have a good trace, so perhaps you should forward
+it to the QLA2XXX maintainers in case it hasn't been solved yet.
 
-Vanilla 2.6.15.1:
-http://dev.gentoo.org/~jforman/blade1000-2.6.15.1.qla2200output
-
-Gentoo Sources 2.6.15-gentoo-r1:
-http://dev.gentoo.org/~jforman/blade1000-gentoo-2.6.15-gentoo-r1.output
-
-Hopefully that provides some help as to whats going on.
-
-Regards,
-Jeffrey
---=20
-
------------------------
-Jeffrey Forman
-Gentoo Infrastructure
-Gentoo Release Engineering
-Bugs.Gentoo.org Administrator
-jforman@gentoo.org
------------------------
-
---=-dGSj7qTuFg5MtspEA8YG
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQBDzDgf/VRN5BlQ3dQRAqEcAJ4hBlgJyFsSJTaEt9EkHWp3pt2XKQCfTlzQ
-R+kdBcjUTWdynZFNJjouhso=
-=rmGE
------END PGP SIGNATURE-----
-
---=-dGSj7qTuFg5MtspEA8YG--
-
+Thanks.
