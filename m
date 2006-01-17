@@ -1,95 +1,30 @@
-From: Richard Mortimer <richm@oldelvet.org.uk>
-Date: Mon, 16 Jan 2006 23:05:06 +0000
-Subject: [SPARC64]: Eliminate race condition reading Hummingbird STICK
-Message-Id: <1137452706.9208.109.camel@duncow>
+From: "David S. Miller" <davem@davemloft.net>
+Date: Tue, 17 Jan 2006 23:19:10 +0000
+Subject: Re: [SPARC64]: Eliminate race condition reading Hummingbird STICK
+Message-Id: <20060117.151910.98654666.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1137452706.9208.109.camel@duncow>
+In-Reply-To: <1137452706.9208.109.camel@duncow>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Various Debian/SPARC users (myself include) have noticed problems with
-Hummingbird based systems. The symptoms are that the system time is
-seen to jump forward 3 days, 6 hours, 11 minutes give or take a few
-seconds. In many cases the system then hangs some time afterwards.
+From: Richard Mortimer <richm@oldelvet.org.uk>
+Date: Mon, 16 Jan 2006 23:05:06 +0000
 
-I've spotted a race condition in the code to read the STICK register.
-I could not work out why 3d, 6h, 11m is important but guess that it is
-due to the 2^32 jump of STICK (forwards on one read and then the next
-read will seem to be backwards) during a timer interrupt. I'm guessing
-that a change of -2^32 will get converted to a large unsigned increment
-after the arithmetic manipulation between STICK, nanoseconds, jiffies
-etc.
+> [SPARC64]: Eliminate race condition reading Hummingbird STICK register
+> 
+> Ensure a consistent value is read from the STICK register by ensuring
+> that both high and low are read without high changing due to a roll
+> over of the low register.
+> 
+> Signed-off-by: Richard Mortimer <richm@oldelvet.org.uk>
 
-I did a test where I modified __hbird_read_stick to artificially inject
-rollover faults forcefully every few seconds. With this I saw the clock
-jump over 6 times in 12 hours compared to once every month or so.
+It's so sad that I spent such an enormous amount time specifically
+trying to get this sequence right and yet still messed it up!
 
-Fix below - hopefully I've got my mailer to keep it intact this time!
+Nice job Richard, I'll apply your patch and submit it to -stable
+as well.
 
-Regards
-
-Richard
-
-
-[SPARC64]: Eliminate race condition reading Hummingbird STICK register
-
-Ensure a consistent value is read from the STICK register by ensuring
-that both high and low are read without high changing due to a roll
-over of the low register.
-
-Signed-off-by: Richard Mortimer <richm@oldelvet.org.uk>
-
-
-diff --git a/arch/sparc64/kernel/time.c b/arch/sparc64/kernel/time.c
-index 459c8fb..a22930d 100644
---- a/arch/sparc64/kernel/time.c
-+++ b/arch/sparc64/kernel/time.c
-@@ -280,9 +280,9 @@ static struct sparc64_tick_ops stick_ope
-  * Since STICK is constantly updating, we have to access it carefully.
-  *
-  * The sequence we use to read is:
-- * 1) read low
-- * 2) read high
-- * 3) read low again, if it rolled over increment high by 1
-+ * 1) read high
-+ * 2) read low
-+ * 3) read high again, if it rolled re-read both low and high again.
-  *
-  * Writing STICK safely is also tricky:
-  * 1) write low to zero
-@@ -295,18 +295,18 @@ static struct sparc64_tick_ops stick_ope
- static unsigned long __hbird_read_stick(void)
- {
- 	unsigned long ret, tmp1, tmp2, tmp3;
--	unsigned long addr = HBIRD_STICK_ADDR;
-+	unsigned long addr = HBIRD_STICK_ADDR+8;
- 
--	__asm__ __volatile__("ldxa	[%1] %5, %2\n\t"
--			     "add	%1, 0x8, %1\n\t"
--			     "ldxa	[%1] %5, %3\n\t"
-+	__asm__ __volatile__("ldxa	[%1] %5, %2\n"
-+			     "1:\n\t"
- 			     "sub	%1, 0x8, %1\n\t"
-+			     "ldxa	[%1] %5, %3\n\t"
-+			     "add	%1, 0x8, %1\n\t"
- 			     "ldxa	[%1] %5, %4\n\t"
- 			     "cmp	%4, %2\n\t"
--			     "blu,a,pn	%%xcc, 1f\n\t"
--			     " add	%3, 1, %3\n"
--			     "1:\n\t"
--			     "sllx	%3, 32, %3\n\t"
-+			     "bne,a,pn	%%xcc, 1b\n\t"
-+			     " mov	%4, %2\n\t"
-+			     "sllx	%4, 32, %4\n\t"
- 			     "or	%3, %4, %0\n\t"
- 			     : "=&r" (ret), "=&r" (addr),
- 			       "=&r" (tmp1), "=&r" (tmp2), "=&r" (tmp3)
-
-
-
-
-
--- 
-Richard Mortimer <richm@oldelvet.org.uk>
-
+Thanks a lot.
