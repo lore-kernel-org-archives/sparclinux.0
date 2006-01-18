@@ -1,7 +1,7 @@
-From: Mellisa <vermeer@lopezclub.com>
-Date: Sat, 28 Jan 2006 06:37:12 +0000
-Subject: We need partners for business!
-Message-Id: <7304319987.20060128013712@lopezclub.com>
+From: Mellisa <yohamed@postaldigital.com>
+Date: Wed, 18 Jan 2006 14:06:41 +0000
+Subject: Bookie partnership(business offer)
+Message-Id: <3460082650.20060118090641@postaldigital.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -24,5 +24,5 @@ we will pay  money for your work via paypal or via western union:
 Small packages and letters  - - 20$ per package
 Normall packages >5 lbs- 40$ per package 
 Our partners ship about 10-15 packages per week 
-If intersted in partnership please email me shipbookin@yahoo.com
+If intersted in partnership please email me ssbookieus@yahoo.com
 
