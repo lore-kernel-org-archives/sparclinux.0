@@ -1,28 +1,38 @@
-From: Mellisa <yohamed@postaldigital.com>
-Date: Wed, 18 Jan 2006 14:06:41 +0000
-Subject: Bookie partnership(business offer)
-Message-Id: <3460082650.20060118090641@postaldigital.com>
+From: "Robert Harrison" <robertharrison_sy@wxs.nl>
+Date: Thu, 19 Jan 2006 14:20:00 +0000
+Subject: RE: We approved your loan 53v4
+Message-Id: <1137695108.5600@wxs.nl>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi, I am Mellisa 
-I am manager of Russian reseller company Bookie company
-http://www.bookie.ru/
-Our company need US partners for dropshipping. 
-We buy electronics in usa and ressel for our clients in Russia
-We have contracts with US resellers  but unfortunately this resselers not supporting
-shipping to other country then US. 
-If you are interested in cooperation we offer the following conditions
- You will receiving packages
- We have own USPS account we will pay for shipping to russia and  email you shipping label
-(you need print and put on box)
- You will go to USPS store and ship package to russia within 1-2 days
-we will pay  money for your work via paypal or via western union:
-Small packages and letters  - - 20$ per package
-Normall packages >5 lbs- 40$ per package 
-Our partners ship about 10-15 packages per week 
-If intersted in partnership please email me ssbookieus@yahoo.com
+Dear Homeowner,
 
+http://bigsaveinc.com/?ra=ciel
+
+
+You have been approved for a $402,000 house loan at a 3.45% Fixed R.ate.
+This offer is being presented to you right now!. Your credit history is in no way a factor.
+We have 99% approval rate.
+To take advantage of this Limited Time Opportunity,
+
+please take a minute and confirm your curiosity or intention to accept this loan, at the following web-site:
+
+http://bigsaveinc.com/?ra=ciel
+
+
+Best Regards
+Danny DeCapri
+
+http://bigsaveinc.com/lit.html
+
+
+
+
+
+webmaster@vger.kernel.org wrote:
+> RE:RE We want approve yours loan
+y553ww2mxj
+1Hef12MHAj4lh3UeR1PhxmKj
