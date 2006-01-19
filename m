@@ -1,19 +1,18 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Thu, 19 Jan 2006 00:38:10 +0000
-Subject: Re: Build Issue - Sparc64
-Message-Id: <20060118.163810.12250072.davem@davemloft.net>
+From: Jim Gifford <maillist@jg555.com>
+Date: Thu, 19 Jan 2006 17:44:54 +0000
+Subject: UFS Write Support
+Message-Id: <43CFD016.70600@jg555.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <43C6A8A3.9090100@jg555.com>
-In-Reply-To: <43C6A8A3.9090100@jg555.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Jim Gifford <maillist@jg555.com>
-Date: Wed, 18 Jan 2006 16:32:43 -0800
+What is the current status of UFS write support in the kernel? Is it 
+been actively maintained or is it a dead?
 
-> Worked like a champ. Thank you.
+-- 
+----
+Jim Gifford
+maillist@jg555.com
 
-Thanks for testing.  That fix is in Linus's tree now, I'll
-push your symbol export fix later.
