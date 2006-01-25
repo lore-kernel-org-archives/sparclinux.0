@@ -1,53 +1,38 @@
-From: Jurij Smakov <jurij@wooyd.org>
-Date: Thu, 12 Jan 2006 08:16:09 +0000
-Subject: Re: strace broken on SPARC64
-Message-Id: <Pine.LNX.4.63.0601120016011.4439@bobcat>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="-1463804416-139331997-1137053761=:4439"
+From: mita@miraclelinux.com (Akinobu Mita)
+Date: Wed, 25 Jan 2006 11:34:46 +0000
+Subject: [PATCH 5/6] fix warning on test_ti_thread_flag()
+Message-Id: <20060125113446.GF18584@miraclelinux.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1136767843.9208.15.camel@duncow>
-In-Reply-To: <1136767843.9208.15.camel@duncow>
-To: sparclinux@vger.kernel.org
+References: <20060125112625.GA18584@miraclelinux.com>
+In-Reply-To: <20060125112625.GA18584@miraclelinux.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org
+Cc: Richard Henderson <rth@twiddle.net>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Russell King <rmk@arm.linux.org.uk>, Ian Molton <spyro@f2s.com>, dev-etrax@axis.com, David Howells <dhowells@redhat.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Linus Torvalds <torvalds@osdl.org>, linux-ia64@vger.kernel.org, Hirokazu Takata <takata@linux-m32r.org>, linux-m68k@lists.linux-m68k.org, Greg Ungerer <gerg@uclinux.org>, linux-mips@linux-mips.org, parisc-linux@parisc-linux.org, linuxppc-dev@ozlabs.org, linux390@de.ibm.com, linuxsh-dev@lists.sourceforge.net, linuxsh-shmedia-dev@lists.sourceforge.net, sparclinux@vger.kernel.org, ultralinux@vger.kernel.org, Miles Bader <uclinux-v850@lsi.nec.co.jp>, Andi Kleen <ak@suse.de>, Chris Zankel <chris@zankel.net>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+If the arechitecture is
+- BITS_PER_LONG = 64
+- struct thread_info.flag 32 is bits
+- second argument of test_bit() was void *
 
----1463804416-139331997-1137053761=:4439
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Then compiler print error message on test_ti_thread_flags()
+in include/linux/thread_info.h
 
-On Thu, 12 Jan 2006, Jurij Smakov wrote:
->
-> Hi,
->
-> I can confirm that this patch (after rediffing) fixes strace problems and 
-> does not seem to introduce any negative side effects. Actual patch which I've 
-> used for testing (applied to 2.6.15) is attached.
+Signed-off-by: Akinobu Mita <mita@miraclelinux.com>
+---
+ thread_info.h |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-... and, of course, I attached the wrong patch :-P. The one attached to 
-this message is correct, md5sum is d8475d31bfe23c927e6d2348fa634ea6.
-
-Best regards,
-
-Jurij Smakov                                        jurij@wooyd.org
-Key: http://www.wooyd.org/pgpkey/                   KeyID: C99E03CC
----1463804416-139331997-1137053761=:4439
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name=strace.patch
-Content-Transfer-Encoding: BASE64
-Content-Description: 
-Content-Disposition: attachment; filename=strace.patch
-
-LS0tIGEvYXJjaC9zcGFyYzY0L2tlcm5lbC9lbnRyeS5TCTIwMDYtMDEtMDIg
-MTk6MjE6MTAuMDAwMDAwMDAwIC0wODAwDQorKysgYi9hcmNoL3NwYXJjNjQv
-a2VybmVsL2VudHJ5LlMJMjAwNi0wMS0xMSAyMTo1Njo1Mi4wMDAwMDAwMDAg
-LTA4MDANCkBAIC0xNjU3LDEzICsxNjU3LDEwIEBADQogCS8qIENoZWNrIGlm
-IGZvcmNlX3N1Y2Nlc3NmdWxfc3lzY2FsbF9yZXR1cm4oKQ0KIAkgKiB3YXMg
-aW52b2tlZC4NCiAJICovDQotCWxkdWIJCVslY3VycHRyICsgVElfU1lTX05P
-RVJST1JdLCAlbDANCi0JYnJ6LHB0CQklbDAsIDFmDQotCSBub3ANCi0JYmEs
-cHQJCSV4Y2MsIDgwZg0KKwlsZHViCQlbJWN1cnB0ciArIFRJX1NZU19OT0VS
-Uk9SXSwgJWwyDQorCWJybnosYSxwbgklbDIsIDgwZg0KIAkgc3RiCQklZzAs
-IFslY3VycHRyICsgVElfU1lTX05PRVJST1JdDQogDQotMToNCiAJY21wCQkl
-bzAsIC1FUkVTVEFSVF9SRVNUQVJUQkxPQ0sNCiAJYmdldSxwbgkJJXhjYywg
-MWYNCiAJIGFuZGNjCQklbDAsIChfVElGX1NZU0NBTExfVFJBQ0V8X1RJRl9T
-RUNDT01QfF9USUZfU1lTQ0FMTF9BVURJVCksICVsNg0K
-
----1463804416-139331997-1137053761=:4439--
+Index: 2.6-git/include/linux/thread_info.h
+=================================--- 2.6-git.orig/include/linux/thread_info.h	2006-01-25 19:07:12.000000000 +0900
++++ 2.6-git/include/linux/thread_info.h	2006-01-25 19:14:26.000000000 +0900
+@@ -49,7 +49,7 @@
+ 
+ static inline int test_ti_thread_flag(struct thread_info *ti, int flag)
+ {
+-	return test_bit(flag,&ti->flags);
++	return test_bit(flag, (void *)&ti->flags);
+ }
+ 
+ #define set_thread_flag(flag) \
