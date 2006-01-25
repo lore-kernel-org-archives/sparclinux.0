@@ -1,47 +1,56 @@
-From: Mr Chang Lee <mrchanglee14@msn.com>
-Date: Fri, 27 Jan 2006 16:56:55 +0000
-Subject: Business Proposal!
-Message-Id: <E1F2Wu7-0003Iu-1l@dover.micfo.com>
+From: "Bryan Lucas" <bryanlucas@cu.maz.uasnet.mx>
+Date: Wed, 25 Jan 2006 09:18:34 +0000
+Subject: Yukos oil company in Russia
+Message-Id: <20060125091750.M13067@cu.maz.uasnet.mx>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Dear Intended partner, 
+Mr. Brian Bacon Evans  (Agent)
+Representing Mr. Mikhail Khordokovsky=20
+Yukos Oil Company in Russia.=20
 
-On behalf of China HuaMao Arts & Crafts  Organisation, its our pleasure to  introduce to you 
+Dear Friend,
 
-our new sales/marketing  initiative as we are world leading producer  and export of artificial 
+I am Mr. Brian Bacon Evans and I represent Mr. Mikhail Khordokovsky the=20
+former C.E.O of Yukos Oil Company and Mentap bank (Russia).
 
-arts and  crafts.  The company maintains a comprehensive  database of inter-national trade in  
+I have a very sensitive and confidential brief from him to ask for your=20
+partnership in liquidating funds in Gibraltar.
 
-artificial arts and  crafts, we export into   Canada/America and some parts of Europe. 
+I will give the details, but in summary, the funds are coming via private=20
+security investment in Gibraltar. This is a legitimate transaction. You wil=
+l=20
+be paid 30% of the portfolio investment value as your "management fees". If=
+=20
+you are interested, please write back to me via my private E-
+mail.bryanans1965@satellite-email.com.
 
-We are suffering for genuine and honest  agents who are capable of sales and  marketing of our 
+Kindly, provide me with your confidential telephone number, fax number and =
 
-goods and services in what  ever location they are. 
+email address and I will provide further details and if you are satisfied I=
+=20
+can proceed with the instructions.
 
-Our motive is to start off from collections  of outstanding accounts owed by various  customers 
+Please we cannot afford any political problems because of recent events in =
 
-willing to make out payments now  after which  agents shall be promoted to  sales/marketing 
+Russia. So I will advice you keep this to your self.
 
-section of this programme  based on their  credibilities/accountabilities of accounts  
+Finally, please note that this must be concluded within reasonable time=20
+frame therefore your prompt reply is essential.
 
-collected/retrieved. 
+Write me back. I look forward to it.
 
-Please if you are interested reply by email with  your phone/fax  number and your full contact  
-
-addresses and note,there is no obligation  whatsoever. 
-
-A remuneration can be worked out for your  services as our overseas representative. We  
-
-anticipate your earliest response in this  regard. 
-Mr Chang Lee
-mrchanglee_11@yahoo.com.cn 
-CEO HuaMao Arts & Crafts 
-No.46 Shangnan Road, Shanggan Town 
-Minhou County Fujian,China
-
+Wishing   you a prosperous New Year,
 
 
+Best Regards
+Mr. Brian Bacon Evans=20
+Reply To:bryanans1965@satellite-email.com
+
+Universidad Aut=F3noma de Sinaloa - Campus Mazatl=E1n
+Vis=EDtenos en: http://www.maz.uasnet.mx
+
+=20
