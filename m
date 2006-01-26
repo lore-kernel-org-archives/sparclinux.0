@@ -1,21 +1,40 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Mon, 30 Jan 2006 23:51:32 +0000
-Subject: Re: Attempts to set date with 'date -s' hang the machine
-Message-Id: <20060130.155132.30300851.davem@davemloft.net>
+From: Nicolas Pitre <nico@cam.org>
+Date: Thu, 26 Jan 2006 16:30:43 +0000
+Subject: Re: [parisc-linux] Re: [PATCH 3/6] C-language equivalents of
+Message-Id: <Pine.LNX.4.64.0601261128280.16649@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.63.0601300019430.4017@bobcat>
-In-Reply-To: <Pine.LNX.4.63.0601300019430.4017@bobcat>
+References: <20060125112625.GA18584@miraclelinux.com>
+ <20060125113206.GD18584@miraclelinux.com>
+ <20060125200250.GA26443@flint.arm.linux.org.uk>
+ <20060126000618.GA5592@twiddle.net>
+ <20060126085540.GA15377@flint.arm.linux.org.uk>
+ <20060126161849.GA13632@colo.lackof.org>
+In-Reply-To: <20060126161849.GA13632@colo.lackof.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Grant Grundler <grundler@parisc-linux.org>
+Cc: Akinobu Mita <mita@miraclelinux.com>, lkml <linux-kernel@vger.kernel.org>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Ian Molton <spyro@f2s.com>, dev-etrax@axis.com, David Howells <dhowells@redhat.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Linus Torvalds <torvalds@osdl.org>, linux-ia64@vger.kernel.org, Hirokazu Takata <takata@linux-m32r.org>, linux-m68k@vger.kernel.org, Greg Ungerer <gerg@uclinux.org>, linux-mips@linux-mips.org, parisc-linux@parisc-linux.org, linuxppc-dev@ozlabs.org, linux390@de.ibm.com, linuxsh-dev@lists.sourceforge.net, linuxsh-shmedia-dev@lists.sourceforge.net, sparclinux@vger.kernel.org, ultralinux@vger.kernel.org, Miles Bader <uclinux-v850@lsi.nec.co.jp>, Andi Kleen <ak@suse.de>, Chris Zankel <chris@zankel.net>
 
-From: Frans Pop <aragorn@tiscali.nl>
-Date: Mon, 30 Jan 2006 14:07:24 +0100
+On Thu, 26 Jan 2006, Grant Grundler wrote:
 
-> I've tested this patch on my Ultra10 and it works. The date is now set 
-> correctly without hanging.
+> On Thu, Jan 26, 2006 at 08:55:41AM +0000, Russell King wrote:
+> > Unfortunately that's not correct.  You do not appear to have checked
+> > the compiler output like I did - this code does _not_ generate
+> > constant shifts.
 > 
-> Thanks David.
+> Russell,
+> By "written stupidly", I thought Richard meant they could have
+> used constants instead of "s".  e.g.:
+> 	if (word << 16 = 0) { b += 16; word >>= 16); }
+> 	if (word << 24 = 0) { b +=  8; word >>=  8); }
+> 	if (word << 28 = 0) { b +=  4; word >>=  4); }
+> 
+> But I prefer what Edgar Toernig suggested.
 
-Thanks for testing.
+It is just as bad on ARM since it requires large constants that cannot 
+be expressed with immediate litteral values.  The constant shift 
+approach is really the best on ARM.
+
+
+Nicolas
