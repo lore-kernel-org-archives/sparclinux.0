@@ -1,50 +1,50 @@
-From: "J.O. Aho" <trizt@iname.com>
-Date: Tue, 03 Jan 2006 21:15:20 +0000
-Subject: Re: Sparc: Kernel 2.6.13 to 2.6.15-rc2 bug when running X11
-Message-Id: <Pine.LNX.4.64.0601032213290.2921@lai.local.lan>
+From: Jurij Smakov <jurij@wooyd.org>
+Date: Mon, 30 Jan 2006 08:34:51 +0000
+Subject: Attempts to set date with 'date -s' hang the machine
+Message-Id: <Pine.LNX.4.63.0601300019430.4017@bobcat>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.0512121127240.12856@lai.local.lan>
- <20051212.142654.62759069.davem@davemloft.net> <Pine.LNX.4.64.0601031456240.25341@lai.local.lan>
- <20060103.121801.18743523.davem@davemloft.net>
-In-Reply-To: <20060103.121801.18743523.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>
-Cc: mark@mtfhpc.demon.co.uk, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-On Tue, 3 Jan 2006, David S. Miller wrote:
+Hi,
 
-> From: "J.O. Aho" <trizt@iname.com>
-> Date: Tue, 3 Jan 2006 15:01:09 +0100 (CET)
->
->> After a small chat at #Gentoo-Sparc at freenode, I thought that I should
->> just say that the problem with X locking up is still there (15-rc7),
->> regardless of gcc version, and that the problem has to do with the UPA
->> code according those who know a lot more than I do.
->
-> What "UPA code"?
->
-> We don't even have so much as a UPA driver in the Linux kernel.
-> So it's hard to know what is being spoken about.  Maybe something
-> in the X server?
+It has been recently reported on debian-sparc mailing list [0] that=20
+attempting to set date using 'date -s' results in a hang. I was able to=20
+reproduce it with 2.6.15.1 (on Ultra60, original report was for Ultra5)=20
+and did some preliminary debugging. It appears that the hang happens in=20
+get_compat_timespec(), called from compat_sys_clock_settime() in=20
+kernel/compat.c. I have printed the values of pointers passed to=20
+get_compat_timespec(), for the call which hangs the box they looked like=20
+this:
 
-Nah, the UPA code in the 2.6 kernel, if it had been in the X I hardly can 
-think that X had worked under 2.4.
+get_compat_timespec: ts=FFfff800bf7a7e80
+get_compat_timespec: ts->tv_sec=FFfff800bf7a7e80
+get_compat_timespec: ts->tv_nsec=FFfff800bf7a7e88
+get_compat_timespec: cts=FFffffffef8d7cd8
+get_compat_timespec: cts->tv_sec=FFffffffef8d7cd8
+get_compat_timespec: cts->tv_nsec=FFffffffef8d7cdc
 
+I've also got the debugging output from a few other (successful)
+calls to get_compat_timespec(), the output then typically looks=20
+like that:
 
-> Perhaps these experts should explain :-)
+get_compat_timespec: ts=FFfff800bfbc7e80
+get_compat_timespec: ts->tv_sec=FFfff800bfbc7e80
+get_compat_timespec: ts->tv_nsec=FFfff800bfbc7e88
+get_compat_timespec: cts=00000000efa23c88
+get_compat_timespec: cts->tv_sec=00000000efa23c88
+get_compat_timespec: cts->tv_nsec=00000000efa23c8c
 
-That could be a lot better if they could post a reply and explaiin so you 
-will know what they really are talking about.
+Here the higher byte of the cts is set to zero, as I believe it should be=20
+for a userspace address. In the failing case the upper byte is set to
+ffffffff, which probably causes the problem. I'd appreciate any ideas on=20
+how to resolve this issue.
 
--- 
-      //Aho
+[0] http://lists.debian.org/debian-sparc/2006/01/msg00129.html
 
-  ------------------------------------------------------------------------
-   E-Mail: trizt@iname.com            URL: http://www.kotiaho.net/~trizt/
-      ICQ: 13696780
-   System: Linux System                        (PPC7447/1000 AMD K7A/2000)
-  ------------------------------------------------------------------------
-             EU forbids you to send spam without my permission
-  ------------------------------------------------------------------------
+Best regards,
+
+Jurij Smakov                                        jurij@wooyd.org
+Key: http://www.wooyd.org/pgpkey/                   KeyID: C99E03CC
