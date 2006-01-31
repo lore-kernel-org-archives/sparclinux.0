@@ -1,16 +1,16 @@
 From: Ferris McCormick <fmccor@gentoo.org>
-Date: Tue, 31 Jan 2006 13:31:30 +0000
+Date: Tue, 31 Jan 2006 14:23:12 +0000
 Subject: Re: afbinit failure with 2.6.15 kernels (can no longer load Elite
-Message-Id: <1138714290.20416.0.camel@polylepis.inforead.com>
+Message-Id: <1138717392.8129.4.camel@polylepis.inforead.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-WamIuVyTyGaCJAacppdq"
+Content-Type: multipart/mixed; boundary="=-MokJ9fewDJvn5igzA0/e"
 List-Id: <sparclinux.vger.kernel.org>
 References: <1138649666.7197.17.camel@polylepis.inforead.com>
 In-Reply-To: <1138649666.7197.17.camel@polylepis.inforead.com>
 To: sparclinux@vger.kernel.org
 
 
---=-WamIuVyTyGaCJAacppdq
+--=-MokJ9fewDJvn5igzA0/e
 Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
@@ -37,27 +37,35 @@ his=20
 > Ferris can you test that out and say if it works for you
 > as well?  Thanks.
 
-Yes; will do later today.
+Tested.
+Patch (MAP_PRIVATE ---> MAP_SHARED) works for me (SB1000-SMP, Elite
+3dm3) with kernels 2.6.13-r3, 2.6.15-r1.  Thanks.
 
+GENTOO SPARC PEOPLE:  I will be making a revision bump (as ~sparc) to
+afbinit to add this patch.  If you try it and experience any
+difficulties, please let me know.
 > -
 > To unsubscribe from this list: send the line "unsubscribe sparclinux" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Regards,
+Ferris
 --=20
 Ferris McCormick (P44646, MI) <fmccor@gentoo.org>
 Developer, Gentoo Linux (Sparc, Devrel)
 
---=-WamIuVyTyGaCJAacppdq
+--=-MokJ9fewDJvn5igzA0/e
 Content-Type: application/pgp-signature; name=signature.asc
 Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQBD32ayQa6M3+I///cRAkrtAJ9q/jsZTYlGHWZsN/8iu0KizL26eACg0Ccn
-fi5HD8kHTaZX4G2AbB43em4=
-=+Nog
+iD8DBQBD33LPQa6M3+I///cRAp5uAJ9EQuzUPgendfei4l9x3OQbi3ASIQCg4+Tq
+fod70u9P0WL5Fc70LwCvYtw=
+=SedN
 -----END PGP SIGNATURE-----
 
---=-WamIuVyTyGaCJAacppdq--
+--=-MokJ9fewDJvn5igzA0/e--
 
