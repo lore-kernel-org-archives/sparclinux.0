@@ -1,60 +1,42 @@
-From: Jason Wever <weeve@gentoo.org>
-Date: Mon, 27 Feb 2006 01:06:57 +0000
-Subject: Re: possible spinlock/esp bug in 2.6.16-rc4
-Message-Id: <20060226180657.2c9b177a@enterprise.weeve.org>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Sig_EKp4EbGHqQ3DEmpqXu0N80R"
+From: Akinobu Mita <mita@miraclelinux.com>
+Date: Wed, 01 Feb 2006 09:02:34 +0000
+Subject: [patch 10/44] generic fls64()
+Message-Id: <20060201090323.294297000@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20060219101701.6f2ce579@enterprise.weeve.org>
-In-Reply-To: <20060219101701.6f2ce579@enterprise.weeve.org>
-To: sparclinux@vger.kernel.org
+References: <20060201090224.536581000@localhost.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org
+Cc: Richard Henderson <rth@twiddle.net>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Russell King <rmk@arm.linux.org.uk>, Ian Molton <spyro@f2s.com>, dev-etrax@axis.com, David Howells <dhowells@redhat.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Linus Torvalds <torvalds@osdl.org>, linux-ia64@vger.kernel.org, Hirokazu Takata <takata@linux-m32r.org>, linux-m68k@lists.linux-m68k.org, Greg Ungerer <gerg@uclinux.org>, linux-mips@linux-mips.org, parisc-linux@parisc-linux.org, linuxppc-dev@ozlabs.org, linux390@de.ibm.com, linuxsh-dev@lists.sourceforge.net, linuxsh-shmedia-dev@lists.sourceforge.net, sparclinux@vger.kernel.org, ultralinux@vger.kernel.org, Miles Bader <uclinux-v850@lsi.nec.co.jp>, Andi Kleen <ak@suse.de>, Chris Zankel <chris@zankel.net>, Akinobu Mita <mita@miraclelinux.com>
 
---Sig_EKp4EbGHqQ3DEmpqXu0N80R
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+This patch introduces the C-language equivalent of the function:
+int fls64(__u64 x);
 
-On Sun, 26 Feb 2006 16:50:20 -0800 (PST)
-"David S. Miller" <davem@davemloft.net> wrote:
+In include/asm-generic/bitops/fls64.h
 
-> So what _exact_ GIT tree did you first test Christophe's ESP spinlock
-> fix with, the one you refer to as "the same tree on the Ultra 1 as the
-> original bug was posted against"?  Please always list such details and
-> do not refer to specific kernel trees in such a vague manner.
+This code largely copied from:
+include/linux/bitops.h
 
-Sorry about that.
+Signed-off-by: Akinobu Mita <mita@miraclelinux.com>
+ include/asm-generic/bitops/fls64.h |   12 ++++++++++++
+ 1 files changed, 12 insertions(+)
 
-The tree (non-git) that I originally ran into this with and tested
-Christoph's patch against was 2.6.16-rc4 as a regular joe user
-would download it from kernel.org (grab linux-2.6.15.tar.bz2
-tarball and patch-2.6.16-rc4.bz2, unpack, apply 2.6.16-rc4 patch,
-apply Christoph's patch).
+Index: 2.6-git/include/asm-generic/bitops/fls64.h
+=================================--- /dev/null
++++ 2.6-git/include/asm-generic/bitops/fls64.h
+@@ -0,0 +1,12 @@
++#ifndef _ASM_GENERIC_BITOPS_FLS64_H_
++#define _ASM_GENERIC_BITOPS_FLS64_H_
++
++static inline int fls64(__u64 x)
++{
++	__u32 h = x >> 32;
++	if (h)
++		return fls(x) + 32;
++	return fls(x);
++}
++
++#endif /* _ASM_GENERIC_BITOPS_FLS64_H_ */
 
-When I did the "git bisect" method this time, I cloned the latest tree
-(2.6.16-rc4-git7 I believe) so as to already have Christoph's patch
-applied (and not taint the cloned tree with local modifications).
-=20
-> If have to admit that I do all of my kernel work with gcc-4.0.x these
-> days as that has become the default compiler on all the Debian derive
-> dists.
-
-I'll try to setup a chroot for gcc-4.0.x to test this out and see if it
-behaves any differently.
-
-Cheers,
---=20
-Jason Wever
-Gentoo/Sparc Team Co-Lead
-
---Sig_EKp4EbGHqQ3DEmpqXu0N80R
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2.1 (GNU/Linux)
-
-iD8DBQFEAlCxdKvgdVioq28RAvsUAKCSHq1Cyyo7urS0oTTBbT0X7Y02KQCgpfTQ
-lJyYm9j6Z7MyIe+HW0kPVb0=
-=dKVM
------END PGP SIGNATURE-----
-
---Sig_EKp4EbGHqQ3DEmpqXu0N80R--
+--
