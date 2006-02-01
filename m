@@ -1,35 +1,66 @@
-From: "Ascending C. Marsha" <kraai@grdpvfb.mibarrio.com>
-Date: Tue, 14 Feb 2006 20:26:33 +0000
-Subject: Software
-Message-Id: <2755805071.20060214152633@grdpvfb.mibarrio.com>
+From: Akinobu Mita <mita@miraclelinux.com>
+Date: Wed, 01 Feb 2006 09:02:36 +0000
+Subject: [patch 12/44] generic sched_find_first_bit()
+Message-Id: <20060201090325.497639000@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
-References: <5676038165.20051106181254@juno.com>
-In-Reply-To: <5676038165.20051106181254@juno.com>
+References: <20060201090224.536581000@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Russell King <rmk@arm.linux.org.uk>, Ian Molton <spyro@f2s.com>, dev-etrax@axis.com, David Howells <dhowells@redhat.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Linus Torvalds <torvalds@osdl.org>, linux-ia64@vger.kernel.org, Hirokazu Takata <takata@linux-m32r.org>, linux-m68k@lists.linux-m68k.org, Greg Ungerer <gerg@uclinux.org>, linux-mips@linux-mips.org, parisc-linux@parisc-linux.org, linuxppc-dev@ozlabs.org, linux390@de.ibm.com, linuxsh-dev@lists.sourceforge.net, linuxsh-shmedia-dev@lists.sourceforge.net, sparclinux@vger.kernel.org, ultralinux@vger.kernel.org, Miles Bader <uclinux-v850@lsi.nec.co.jp>, Andi Kleen <ak@suse.de>, Chris Zankel <chris@zankel.net>, Akinobu Mita <mita@miraclelinux.com>
 
-Software taking a bite out of your budget? Try 0EM!
-P0pular software at low low price. 
+This patch introduces the C-language equivalent of the function:
+int sched_find_first_bit(const unsigned long *b);
 
-New software on our site:
+In include/asm-generic/bitops/sched.h
 
-Acrobat 6 Professional - $79.95
-Illustrator CS - $69.95
-Windows NT 4.0 Terminal Server - $49.95
-Freehand MX 11 - $69.95
-Picture It Premium 9 - $59.95
-Borland Delphi 7 Enterprise Edition (2CD) - $69.95
-Office XP Professional - $79.95
-FreeHand MX - $69.95
-Freehand MX 11 - $69.95
-Director MX 2004 - $69.95
-Windows NT 4.0 Terminal Server - $49.95
-Office XP Professional - $79.95
-Illustrator CS - $69.95
-Windows Millenium - $59.95
+This code largely copied from:
+include/asm-powerpc/bitops.h
 
-Our site:
-http://scarnmm.com
+Signed-off-by: Akinobu Mita <mita@miraclelinux.com>
+ include/asm-generic/bitops/sched.h |   36 ++++++++++++++++++++++++++++++++++++
+ 1 files changed, 36 insertions(+)
 
+Index: 2.6-git/include/asm-generic/bitops/sched.h
+=================================--- /dev/null
++++ 2.6-git/include/asm-generic/bitops/sched.h
+@@ -0,0 +1,36 @@
++#ifndef _ASM_GENERIC_BITOPS_SCHED_H_
++#define _ASM_GENERIC_BITOPS_SCHED_H_
++
++#include <linux/compiler.h>	/* unlikely() */
++#include <asm/types.h>
++
++/*
++ * Every architecture must define this function. It's the fastest
++ * way of searching a 140-bit bitmap where the first 100 bits are
++ * unlikely to be set. It's guaranteed that at least one of the 140
++ * bits is cleared.
++ */
++static inline int sched_find_first_bit(const unsigned long *b)
++{
++#if BITS_PER_LONG = 64
++	if (unlikely(b[0]))
++		return __ffs(b[0]);
++	if (unlikely(b[1]))
++		return __ffs(b[1]) + 64;
++	return __ffs(b[2]) + 128;
++#elif BITS_PER_LONG = 32
++	if (unlikely(b[0]))
++		return __ffs(b[0]);
++	if (unlikely(b[1]))
++		return __ffs(b[1]) + 32;
++	if (unlikely(b[2]))
++		return __ffs(b[2]) + 64;
++	if (b[3])
++		return __ffs(b[3]) + 96;
++	return __ffs(b[4]) + 128;
++#else
++#error BITS_PER_LONG not defined
++#endif
++}
++
++#endif /* _ASM_GENERIC_BITOPS_SCHED_H_ */
+
+--
