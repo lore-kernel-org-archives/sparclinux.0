@@ -1,33 +1,43 @@
-From: mita@miraclelinux.com (Akinobu Mita)
-Date: Tue, 07 Feb 2006 02:02:16 +0000
-Subject: Re: [patch 11/44] generic find_{next,first}{,_zero}_bit()
-Message-Id: <20060207020216.GA9323@miraclelinux.com>
+From: "J.O. Aho" <trizt@iname.com>
+Date: Wed, 01 Feb 2006 13:15:21 +0000
+Subject: Re: Sparc: Kernel 2.6.13 to 2.6.15-rc2 bug when running X11
+Message-Id: <Pine.LNX.4.64.0602011406260.27149@lai.local.lan>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20060201090324.373982000@localhost.localdomain> <20060201090224.536581000@localhost.localdomain> <12367.1139221560@warthog.cambridge.redhat.com>
-In-Reply-To: <12367.1139221560@warthog.cambridge.redhat.com>
+References: <Pine.LNX.4.64.0512102350310.4739@lai.local.lan>
+ <20051210.150034.67577008.davem@davemloft.net> <Pine.LNX.4.64.0512110020050.4809@lai.local.lan>
+ <20051211.210752.83944980.davem@davemloft.net>
+In-Reply-To: <20051211.210752.83944980.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Howells <dhowells@redhat.com>
-Cc: linux-kernel@vger.kernel.org, Richard Henderson <rth@twiddle.net>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, dev-etrax@axis.com, Yoshinori Sato <ysato@users.sourceforge.jp>, linux-ia64@vger.kernel.org, Hirokazu Takata <takata@linux-m32r.org>, Greg Ungerer <gerg@uclinux.org>, linux-mips@linux-mips.org, parisc-linux@parisc-linux.org, linuxsh-dev@lists.sourceforge.net, linuxsh-shmedia-dev@lists.sourceforge.net, sparclinux@vger.kernel.org, ultralinux@vger.kernel.org, Miles Bader <uclinux-v850@lsi.nec.co.jp>, Chris Zankel <chris@zankel.net>
+To: "David S. Miller" <davem@davemloft.net>
+Cc: linux-kernel maillist <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org
 
-On Mon, Feb 06, 2006 at 10:26:00AM +0000, David Howells wrote:
-> Akinobu Mita <mita@miraclelinux.com> wrote:
-> 
-> > This patch introduces the C-language equivalents of the functions below:
-> > 
-> > unsigned logn find_next_bit(const unsigned long *addr, unsigned long size,
-> >                             unsigned long offset);
-> > unsigned long find_next_zero_bit(const unsigned long *addr, unsigned long size,
-> >                                  unsigned long offset);
-> > unsigned long find_first_zero_bit(const unsigned long *addr,
-> >                                   unsigned long size);
-> > unsigned long find_first_bit(const unsigned long *addr, unsigned long size);
-> 
-> These big functions should perhaps be out of line.
+On Sun, 11 Dec 2005, David S. Miller wrote:
 
-Yes. I'll make them and below out of line.
+> I strongly believe your kernel is being miscompiled by whatever
+> gcc is being used to build your kernels.
 
-- hweight*()
-- ext2_find_*_zero_bit()
-- minix_find_first_zero_bit()
+After a bit posting at comp.sys.sun.hardware I found a person with an 
+Ultra60 using Creator3D (UPA) too on it, he had a working X. He did run 
+kernel 2.6.8, so today I did install 2.6.8.1 (vanilla) and tested Xorg 
+and it worked as well as it does under 2.4.x.
+
+I guess there has been some bad change in the sparc kernel code somewhere 
+between 2.6.8.1 and 2.6.13. I can say that 2.6.15.1 still "crashes" the 
+kernel. I don't know if there has been any discussion if it's the small 
+amount of UPA relatad code that causes the problem or not, but I think 
+it's plausible that the UPA code has been "damaged" in the later versions 
+of the kernel.
+
+
+-- 
+      //Aho
+
+  ------------------------------------------------------------------------
+   E-Mail: trizt@iname.com            URL: http://www.kotiaho.net/~trizt/
+      ICQ: 13696780
+   System: Linux System                        (PPC7447/1000 AMD K7A/2000)
+  ------------------------------------------------------------------------
+             EU forbids you to send spam without my permission
+  ------------------------------------------------------------------------
