@@ -1,57 +1,188 @@
-From: Jason Wever <weeve@gentoo.org>
-Date: Mon, 27 Feb 2006 00:56:29 +0000
-Subject: Re: U1/U2 failures with kernel 2.6.<anything> --- maybe a clue?
-Message-Id: <20060226175629.0c931497@enterprise.weeve.org>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Sig_9131PfylRDemYRXmg3a.yYw"
+From: Akinobu Mita <mita@miraclelinux.com>
+Date: Wed, 01 Feb 2006 09:02:39 +0000
+Subject: [patch 15/44] generic ext2_{set,clear,test,find_first_zero,find_next_zero}_bit()
+Message-Id: <20060201090326.139510000@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.0602260312230.17700@terciopelo.krait.us>
-In-Reply-To: <Pine.LNX.4.64.0602260312230.17700@terciopelo.krait.us>
-To: sparclinux@vger.kernel.org
+References: <20060201090224.536581000@localhost.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org
+Cc: Richard Henderson <rth@twiddle.net>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, dev-etrax@axis.com, David Howells <dhowells@redhat.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Linus Torvalds <torvalds@osdl.org>, linux-ia64@vger.kernel.org, Hirokazu Takata <takata@linux-m32r.org>, linux-m68k@lists.linux-m68k.org, linux-mips@linux-mips.org, parisc-linux@parisc-linux.org, linuxsh-dev@lists.sourceforge.net, linuxsh-shmedia-dev@lists.sourceforge.net, sparclinux@vger.kernel.org, ultralinux@vger.kernel.org, Miles Bader <uclinux-v850@lsi.nec.co.jp>, Andi Kleen <ak@suse.de>, Chris Zankel <chris@zankel.net>, Akinobu Mita <mita@miraclelinux.com>
 
---Sig_9131PfylRDemYRXmg3a.yYw
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+This patch introduces the C-language equivalents of the functions below:
 
-On Sun, 26 Feb 2006 03:14:58 +0000 (UTC)
-Ferris McCormick <fmccor@gentoo.org> wrote:
+int ext2_set_bit(int nr, volatile unsigned long *addr);
+int ext2_clear_bit(int nr, volatile unsigned long *addr);
+int ext2_test_bit(int nr, const volatile unsigned long *addr);
+unsigned long ext2_find_first_zero_bit(const unsigned long *addr,
+                                       unsigned long size);
+unsinged long ext2_find_next_zero_bit(const unsigned long *addr,
+                                      unsigned long size);
 
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
->=20
-> OK, I've been thinking about this, and here is what we have.
-> (1) Some U1/U2 systems do very well on these kernels;
-> (2) Some are unusable:  I have one which on 2.6.xx, has mean time
-> between (very hard lock) failure of about a day, on kernel-2.4.32,
-> it's never (literally).
-> (3) Weeve and (I believe) squash are as in point 2.
+In include/asm-generic/bitops/ext2-non-atomic.h
 
-Yes, I have an Ultra 2 (2x300, 2GB RAM) and an Ultra 1 (143MHz, 448MB
-RAM) that can readily be locked up with what appears to be the I/O
-issue.  In both cases, neither running the systems with a serial
-console or graphical console reveals anything when they lock up
-(even with the syslog daemon turned off).
+This code largely copied from:
 
-For both systems, I've tried kernels built with gcc-3.4.5 and gcc-3.3.6
-and the only possible difference is that it *seems* to take longer to
-crash on the gcc-3.4.5 built kernels (but let me generate some data to
-back that up).
+include/asm-powerpc/bitops.h
+include/asm-parisc/bitops.h
 
-Cheers,
---=20
-Jason Wever
-Gentoo/Sparc Team Co-Lead
+Signed-off-by: Akinobu Mita <mita@miraclelinux.com>
+ include/asm-generic/bitops/ext2-non-atomic.h |   18 +++
+ include/asm-generic/bitops/le.h              |  126 +++++++++++++++++++++++++++
+ 2 files changed, 144 insertions(+)
 
---Sig_9131PfylRDemYRXmg3a.yYw
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
+Index: 2.6-git/include/asm-generic/bitops/ext2-non-atomic.h
+=================================--- /dev/null
++++ 2.6-git/include/asm-generic/bitops/ext2-non-atomic.h
+@@ -0,0 +1,18 @@
++#ifndef _ASM_GENERIC_BITOPS_EXT2_NON_ATOMIC_H_
++#define _ASM_GENERIC_BITOPS_EXT2_NON_ATOMIC_H_
++
++#include <asm-generic/bitops/le.h>
++
++#define ext2_set_bit(nr,addr)	\
++	generic___test_and_set_le_bit((nr),(unsigned long *)(addr))
++#define ext2_clear_bit(nr,addr)	\
++	generic___test_and_clear_le_bit((nr),(unsigned long *)(addr))
++
++#define ext2_test_bit(nr,addr)	\
++	generic_test_le_bit((nr),(unsigned long *)(addr))
++#define ext2_find_first_zero_bit(addr, size) \
++	generic_find_first_zero_le_bit((unsigned long *)(addr), (size))
++#define ext2_find_next_zero_bit(addr, size, off) \
++	generic_find_next_zero_le_bit((unsigned long *)(addr), (size), (off))
++
++#endif /* _ASM_GENERIC_BITOPS_EXT2_NON_ATOMIC_H_ */
+Index: 2.6-git/include/asm-generic/bitops/le.h
+=================================--- /dev/null
++++ 2.6-git/include/asm-generic/bitops/le.h
+@@ -0,0 +1,126 @@
++#ifndef _ASM_GENERIC_BITOPS_LE_H_
++#define _ASM_GENERIC_BITOPS_LE_H_
++
++#include <asm/types.h>
++#include <asm/byteorder.h>
++
++#define BITOP_WORD(nr)		((nr) / BITS_PER_LONG)
++#define BITOP_LE_SWIZZLE	((BITS_PER_LONG-1) & ~0x7)
++
++#if defined(__LITTLE_ENDIAN)
++
++static __inline__ int generic_test_le_bit(unsigned long nr,
++				  __const__ unsigned long *addr)
++{
++	__const__ unsigned char	*tmp = (__const__ unsigned char *) addr;
++	return (tmp[nr >> 3] >> (nr & 7)) & 1;
++}
++
++#define generic___set_le_bit(nr, addr) __set_bit(nr, addr)
++#define generic___clear_le_bit(nr, addr) __clear_bit(nr, addr)
++
++#define generic_test_and_set_le_bit(nr, addr) test_and_set_bit(nr, addr)
++#define generic_test_and_clear_le_bit(nr, addr) test_and_clear_bit(nr, addr)
++
++#define generic___test_and_set_le_bit(nr, addr) __test_and_set_bit(nr, addr)
++#define generic___test_and_clear_le_bit(nr, addr) __test_and_clear_bit(nr, addr)
++
++#define generic_find_next_zero_le_bit(addr, size, offset) find_next_zero_bit(addr, size, offset)
++
++#elif defined(__BIG_ENDIAN)
++
++static __inline__ int generic_test_le_bit(unsigned long nr,
++				  __const__ unsigned long *addr)
++{
++	__const__ unsigned char	*tmp = (__const__ unsigned char *) addr;
++	return (tmp[nr >> 3] >> (nr & 7)) & 1;
++}
++
++#define generic___set_le_bit(nr, addr) \
++	__set_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
++#define generic___clear_le_bit(nr, addr) \
++	__clear_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
++
++#define generic_test_and_set_le_bit(nr, addr) \
++	test_and_set_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
++#define generic_test_and_clear_le_bit(nr, addr) \
++	test_and_clear_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
++
++#define generic___test_and_set_le_bit(nr, addr) \
++	__test_and_set_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
++#define generic___test_and_clear_le_bit(nr, addr) \
++	__test_and_clear_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
++
++/* include/linux/byteorder does not support "unsigned long" type */
++static inline unsigned long ext2_swabp(const unsigned long * x)
++{
++#if BITS_PER_LONG = 64
++	return (unsigned long) __swab64p((u64 *) x);
++#elif BITS_PER_LONG = 32
++	return (unsigned long) __swab32p((u32 *) x);
++#else
++#error BITS_PER_LONG not defined
++#endif
++}
++
++/* include/linux/byteorder doesn't support "unsigned long" type */
++static inline unsigned long ext2_swab(const unsigned long y)
++{
++#if BITS_PER_LONG = 64
++	return (unsigned long) __swab64((u64) y);
++#elif BITS_PER_LONG = 32
++	return (unsigned long) __swab32((u32) y);
++#else
++#error BITS_PER_LONG not defined
++#endif
++}
++
++static __inline__ unsigned long generic_find_next_zero_le_bit(const unsigned long *addr,
++				unsigned long size, unsigned long offset)
++{
++	const unsigned long *p = addr + BITOP_WORD(offset);
++	unsigned long result = offset & ~(BITS_PER_LONG - 1);
++	unsigned long tmp;
++
++	if (offset >= size)
++		return size;
++	size -= result;
++	offset &= (BITS_PER_LONG - 1UL);
++	if (offset) {
++		tmp = ext2_swabp(p++);
++		tmp |= (~0UL >> (BITS_PER_LONG - offset));
++		if (size < BITS_PER_LONG)
++			goto found_first;
++		if (~tmp)
++			goto found_middle;
++		size -= BITS_PER_LONG;
++		result += BITS_PER_LONG;
++	}
++
++	while (size & ~(BITS_PER_LONG - 1)) {
++		if (~(tmp = *(p++)))
++			goto found_middle_swap;
++		result += BITS_PER_LONG;
++		size -= BITS_PER_LONG;
++	}
++	if (!size)
++		return result;
++	tmp = ext2_swabp(p);
++found_first:
++	tmp |= ~0UL << size;
++	if (tmp = ~0UL)	/* Are any bits zero? */
++		return result + size; /* Nope. Skip ffz */
++found_middle:
++	return result + ffz(tmp);
++
++found_middle_swap:
++	return result + ffz(ext2_swab(tmp));
++}
++#else
++#error "Please fix <asm/byteorder.h>"
++#endif
++
++#define generic_find_first_zero_le_bit(addr, size) \
++        generic_find_next_zero_le_bit((addr), (size), 0)
++
++#endif /* _ASM_GENERIC_BITOPS_LE_H_ */
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2.1 (GNU/Linux)
-
-iD8DBQFEAk49dKvgdVioq28RAmIfAJkBgT8ffzHSlJTxTnmCn/rhtCo7egCcCPhr
-ZQIXe22dZtXHMa91GuOPdfA=
-=V9HD
------END PGP SIGNATURE-----
-
---Sig_9131PfylRDemYRXmg3a.yYw--
+--
