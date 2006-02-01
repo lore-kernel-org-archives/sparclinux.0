@@ -1,37 +1,75 @@
-From: "Kelley M. Sousa, V" <boysflammableqhdc@yahoo.es>
-Date: Fri, 17 Feb 2006 08:37:16 +0000
-Subject: sup
-Message-Id: <0A204.QW77.2st0.383Y3G7Q6@localhost>
+From: Akinobu Mita <mita@miraclelinux.com>
+Date: Wed, 01 Feb 2006 09:02:41 +0000
+Subject: [patch 17/44] generic minix_{test,set,test_and_clear,test,find_first_zero}_bit()
+Message-Id: <20060201090326.484695000@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20060201090224.536581000@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Richard Henderson <rth@twiddle.net>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, dev-etrax@axis.com, David Howells <dhowells@redhat.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Linus Torvalds <torvalds@osdl.org>, linux-ia64@vger.kernel.org, Hirokazu Takata <takata@linux-m32r.org>, Greg Ungerer <gerg@uclinux.org>, linux-mips@linux-mips.org, linux390@de.ibm.com, linuxsh-dev@lists.sourceforge.net, linuxsh-shmedia-dev@lists.sourceforge.net, sparclinux@vger.kernel.org, ultralinux@vger.kernel.org, Miles Bader <uclinux-v850@lsi.nec.co.jp>, Andi Kleen <ak@suse.de>, Chris Zankel <chris@zankel.net>, Akinobu Mita <mita@miraclelinux.com>
 
+This patch introduces the C-language equivalents of the functions below:
 
-Hey sparclinux@vger.kernel.org,
+int minix_test_and_set_bit(int nr, volatile unsigned long *addr);
+int minix_set_bit(int nr, volatile unsigned long *addr);
+int minix_test_and_clear_bit(int nr, volatile unsigned long *addr);
+int minix_test_bit(int nr, const volatile unsigned long *addr);
+unsigned long minix_find_first_zero_bit(const unsigned long *addr,
+                                        unsigned long size);
 
-Reduced documentation options. 
+In include/asm-generic/bitops/minix.h
+   and include/asm-generic/bitops/minix-le.h
 
-Lock-in low MO RT GAGE r@tess for new home purchases.
+This code largely copied from:
+include/asm-sparc/bitops.h
 
-$335k for 325 pm, v r just    Givingi        away
+Signed-off-by: Akinobu Mita <mita@miraclelinux.com>
 
------ ------------------- ---------
+ include/asm-generic/bitops/minix-le.h |   17 +++++++++++++++++
+ include/asm-generic/bitops/minix.h    |   15 +++++++++++++++
+ 2 files changed, 32 insertions(+)
 
-COPY the Address below and paste in your BROiWSER:
+Index: 2.6-git/include/asm-generic/bitops/minix.h
+=================================--- /dev/null
++++ 2.6-git/include/asm-generic/bitops/minix.h
+@@ -0,0 +1,15 @@
++#ifndef _ASM_GENERIC_BITOPS_MINIX_H_
++#define _ASM_GENERIC_BITOPS_MINIX_H_
++
++#define minix_test_and_set_bit(nr,addr)	\
++	__test_and_set_bit((nr),(unsigned long *)(addr))
++#define minix_set_bit(nr,addr)		\
++	__set_bit((nr),(unsigned long *)(addr))
++#define minix_test_and_clear_bit(nr,addr) \
++	__test_and_clear_bit((nr),(unsigned long *)(addr))
++#define minix_test_bit(nr,addr)		\
++	test_bit((nr),(unsigned long *)(addr))
++#define minix_find_first_zero_bit(addr,size) \
++	find_first_zero_bit((unsigned long *)(addr),(size))
++
++#endif /* _ASM_GENERIC_BITOPS_MINIX_H_ */
+Index: 2.6-git/include/asm-generic/bitops/minix-le.h
+=================================--- /dev/null
++++ 2.6-git/include/asm-generic/bitops/minix-le.h
+@@ -0,0 +1,17 @@
++#ifndef _ASM_GENERIC_BITOPS_MINIX_LE_H_
++#define _ASM_GENERIC_BITOPS_MINIX_LE_H_
++
++#include <asm-generic/bitops/le.h>
++
++#define minix_test_and_set_bit(nr,addr)	\
++	generic___test_and_set_le_bit((nr),(unsigned long *)(addr))
++#define minix_set_bit(nr,addr)		\
++	generic___set_le_bit((nr),(unsigned long *)(addr))
++#define minix_test_and_clear_bit(nr,addr) \
++	generic___test_and_clear_le_bit((nr),(unsigned long *)(addr))
++#define minix_test_bit(nr,addr)		\
++	generic_test_le_bit((nr),(unsigned long *)(addr))
++#define minix_find_first_zero_bit(addr,size) \
++	generic_find_first_zero_le_bit((unsigned long *)(addr),(size))
++
++#endif /* _ASM_GENERIC_BITOPS_MINIX_LE_H_ */
 
-lowestpay.net
-
------ ------ ---- ---- ------- --------
-
-
-Weep not, my darling,.
-From the beach, the child, holding the hand of her father, .
-Remember my sweat, my pain, my despair. .
-Dares keep down the children of the Negro Mother..
-It might be the one little bite.
-
-
-Bye,
-Ila Cusack
+--
