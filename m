@@ -1,48 +1,71 @@
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Date: Tue, 14 Feb 2006 10:54:08 +0000
-Subject: [PATCH] unify pfn_to_page take3 [18/23] sparc pfn_to_page
-Message-Id: <43F1B6D0.9010201@jp.fujitsu.com>
+From: Akinobu Mita <mita@miraclelinux.com>
+Date: Wed, 01 Feb 2006 09:02:37 +0000
+Subject: [patch 13/44] generic ffs()
+Message-Id: <20060201090325.696670000@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
-References: <43F1A753.2020003@jp.fujitsu.com>
-In-Reply-To: <43F1A753.2020003@jp.fujitsu.com>
+References: <20060201090224.536581000@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Andrew Morton <akpm@osdl.org>, sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Greg Ungerer <gerg@uclinux.org>, linux-mips@linux-mips.org, sparclinux@vger.kernel.org, ultralinux@vger.kernel.org, Akinobu Mita <mita@miraclelinux.com>
 
-sparc can use generic funcs.
+This patch introduces the C-language equivalent of the function:
+int ffs(int x);
 
-Signed-Off-By: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+In include/asm-generic/bitops/ffs.h
 
-Index: testtree/include/asm-sparc/page.h
-=================================--- testtree.orig/include/asm-sparc/page.h
-+++ testtree/include/asm-sparc/page.h
-@@ -9,6 +9,7 @@
-  #define _SPARC_PAGE_H
+This code largely copied from:
+include/linux/bitops.h
 
-  #include <linux/config.h>
+Signed-off-by: Akinobu Mita <mita@miraclelinux.com>
+ include/asm-generic/bitops/ffs.h |   41 +++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 41 insertions(+)
+
+Index: 2.6-git/include/asm-generic/bitops/ffs.h
+=================================--- /dev/null
++++ 2.6-git/include/asm-generic/bitops/ffs.h
+@@ -0,0 +1,41 @@
++#ifndef _ASM_GENERIC_BITOPS_FFS_H_
++#define _ASM_GENERIC_BITOPS_FFS_H_
 +
-  #ifdef CONFIG_SUN4
-  #define PAGE_SHIFT   13
-  #else
-@@ -152,8 +153,7 @@ extern unsigned long pfn_base;
-  #define virt_to_phys		__pa
-  #define phys_to_virt		__va
++/**
++ * ffs - find first bit set
++ * @x: the word to search
++ *
++ * This is defined the same way as
++ * the libc and compiler builtin ffs routines, therefore
++ * differs in spirit from the above ffz (man ffs).
++ */
++static inline int ffs(int x)
++{
++	int r = 1;
++
++	if (!x)
++		return 0;
++	if (!(x & 0xffff)) {
++		x >>= 16;
++		r += 16;
++	}
++	if (!(x & 0xff)) {
++		x >>= 8;
++		r += 8;
++	}
++	if (!(x & 0xf)) {
++		x >>= 4;
++		r += 4;
++	}
++	if (!(x & 3)) {
++		x >>= 2;
++		r += 2;
++	}
++	if (!(x & 1)) {
++		x >>= 1;
++		r += 1;
++	}
++	return r;
++}
++
++#endif /* _ASM_GENERIC_BITOPS_FFS_H_ */
 
--#define pfn_to_page(pfn)	(mem_map + ((pfn)-(pfn_base)))
--#define page_to_pfn(page)	((unsigned long)(((page) - mem_map) + pfn_base))
-+#define ARCH_PFN_OFFSET		(pfn_base)
-  #define virt_to_page(kaddr)	(mem_map + ((((unsigned long)(kaddr)-PAGE_OFFSET)>>PAGE_SHIFT)))
-
-  #define pfn_valid(pfn)		(((pfn) >= (pfn_base)) && (((pfn)-(pfn_base)) < max_mapnr))
-@@ -164,6 +164,7 @@ extern unsigned long pfn_base;
-
-  #endif /* __KERNEL__ */
-
-+#include <asm-generic/memory_model.h>
-  #include <asm-generic/page.h>
-
-  #endif /* _SPARC_PAGE_H */
-
-
+--
