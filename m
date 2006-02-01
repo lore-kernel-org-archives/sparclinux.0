@@ -1,30 +1,43 @@
-From: Martin Habets <errandir_news@mph.eclipse.co.uk>
-Date: Wed, 15 Feb 2006 11:56:59 +0000
-Subject: Re: [PATCH] sparc32: Fix div, udiv, mul, umul, rem, urem breakage
-Message-Id: <20060215115659.GC6465@palantir8>
+From: Akinobu Mita <mita@miraclelinux.com>
+Date: Wed, 01 Feb 2006 09:02:32 +0000
+Subject: [patch 08/44] generic ffz()
+Message-Id: <20060201090322.900876000@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20060211113817.GA25564@palantir8>
-In-Reply-To: <20060211113817.GA25564@palantir8>
+References: <20060201090224.536581000@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Russell King <rmk@arm.linux.org.uk>, Ian Molton <spyro@f2s.com>, David Howells <dhowells@redhat.com>, Hirokazu Takata <takata@linux-m32r.org>, Greg Ungerer <gerg@uclinux.org>, linux-mips@linux-mips.org, parisc-linux@parisc-linux.org, sparclinux@vger.kernel.org, ultralinux@vger.kernel.org, Miles Bader <uclinux-v850@lsi.nec.co.jp>, Akinobu Mita <mita@miraclelinux.com>
 
-So is anyone coming up with other patches regarding this?
-I like the idea of having an asm equivalent of EXPORT_SYMBOL().
+This patch introduces the C-language equivalent of the function:
 
-If no other fixes are forthcoming, please apply either Rusty's
-patch or mine. I'd still prefer mine because it's simpler, which
-for me outweighs the namespace pollution issue.
+unsigned long ffz(unsigned long word);
 
-Martin
+In include/asm-generic/bitops/ffz.h
 
-On Sun, Feb 12, 2006 at 09:39:59PM +1100, Rusty Russell wrote:
-> On Sun, 2006-02-12 at 03:14 +0000, Al Viro wrote:
-> [snip condescending rant]
-> 
-> > And do an equivalent of EXPORT_SYMBOL() for use in .s, which would
-> > be very useful thing in its own right...
-> 
-> So you're going to do this and fix binutils?  Great!  Send me the patch
-> when you're done.
+This code largely copied from:
+include/asm-parisc/bitops.h
+
+Signed-off-by: Akinobu Mita <mita@miraclelinux.com>
+ include/asm-generic/bitops/ffz.h |   12 ++++++++++++
+ 1 files changed, 12 insertions(+)
+
+Index: 2.6-git/include/asm-generic/bitops/ffz.h
+=================================--- /dev/null
++++ 2.6-git/include/asm-generic/bitops/ffz.h
+@@ -0,0 +1,12 @@
++#ifndef _ASM_GENERIC_BITOPS_FFZ_H_
++#define _ASM_GENERIC_BITOPS_FFZ_H_
++
++/*
++ * ffz - find first zero in word.
++ * @word: The word to search
++ *
++ * Undefined if no zero exists, so code should check against ~0UL first.
++ */
++#define ffz(x)  __ffs(~(x))
++
++#endif /* _ASM_GENERIC_BITOPS_FFZ_H_ */
+
+--
