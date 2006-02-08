@@ -1,43 +1,37 @@
-From: Akinobu Mita <mita@miraclelinux.com>
-Date: Wed, 01 Feb 2006 09:02:32 +0000
-Subject: [patch 08/44] generic ffz()
-Message-Id: <20060201090322.900876000@localhost.localdomain>
+From: "Mari Golux" <tntkinfolkZurichhxrg@yahoo.co.in>
+Date: Wed, 08 Feb 2006 15:07:49 +0000
+Subject: aFor you
+Message-Id: <cp6aZs501.II00.sk9.801J1N2H5@localhost>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20060201090224.536581000@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Russell King <rmk@arm.linux.org.uk>, Ian Molton <spyro@f2s.com>, David Howells <dhowells@redhat.com>, Hirokazu Takata <takata@linux-m32r.org>, Greg Ungerer <gerg@uclinux.org>, linux-mips@linux-mips.org, parisc-linux@parisc-linux.org, sparclinux@vger.kernel.org, ultralinux@vger.kernel.org, Miles Bader <uclinux-v850@lsi.nec.co.jp>, Akinobu Mita <mita@miraclelinux.com>
+To: sparclinux@vger.kernel.org
 
-This patch introduces the C-language equivalent of the function:
+How are you,
 
-unsigned long ffz(unsigned long word);
+Connect With The Best
 
-In include/asm-generic/bitops/ffz.h
+We process all customer payments at our state-of-the-art payment processing center, which ensures timely, accurate processing of payments on the day they are received.
 
-This code largely copied from:
-include/asm-parisc/bitops.h
+U S  $ 250 ,000       aL0 aANS        are avai lable for only $225 / month! WE'RE aPRACT ICALLY aGIVIaNG aAWAY MOaNEY!
 
-Signed-off-by: Akinobu Mita <mita@miraclelinux.com>
- include/asm-generic/bitops/ffz.h |   12 ++++++++++++
- 1 files changed, 12 insertions(+)
+----- ----------------- ---------
 
-Index: 2.6-git/include/asm-generic/bitops/ffz.h
-=================================--- /dev/null
-+++ 2.6-git/include/asm-generic/bitops/ffz.h
-@@ -0,0 +1,12 @@
-+#ifndef _ASM_GENERIC_BITOPS_FFZ_H_
-+#define _ASM_GENERIC_BITOPS_FFZ_H_
-+
-+/*
-+ * ffz - find first zero in word.
-+ * @word: The word to search
-+ *
-+ * Undefined if no zero exists, so code should check against ~0UL first.
-+ */
-+#define ffz(x)  __ffs(~(x))
-+
-+#endif /* _ASM_GENERIC_BITOPS_FFZ_H_ */
+COPY the Addreass below and paste in your WEaB BROaWSER:
 
---
+buhrstone.quickkform.net
+
+----------- -------- ---------------
+
+ V a l id for 24 Hrs.
+
+And his smelly old sock has been stuck to the wall..
+Remember the whip and the slaver's track. .
+His raincoat is there in the overstuffed chair,.
+Next, select the source and destination currencies using the scrolling selection boxes. .
+Of a tear that runs down an angel's face..
+
+
+Best Regards,
+Duncan Kinsella 
