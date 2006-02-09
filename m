@@ -1,26 +1,36 @@
-From: root@codejungle.is-a-geek.org (root)
-Date: Sat, 04 Feb 2006 07:38:34 +0000
-Subject: Ich liebe Dich !!!
-Message-Id: <20060204073834.4B981709F0F@codejungle.is-a-geek.org>
+From: "Baez" <marcusdarkangelddxj@yahoo.de>
+Date: Thu, 09 Feb 2006 03:49:26 +0000
+Subject: sup buddyi
+Message-Id: <qx6cBh997.SN52.yf2.414J4S2H3@localhost>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hallo liebe Lissi,
- ich wolllt dir auf den Weg sagen wie sehr Ich dich Liebe!!!
- Und um meiner Mail etwas mehr ausdruck zu verleihen, dachte ich mir mal ic=
-h leite es gleich an jedden =D6sterreicher weiter... =20
- ICH LIEBE DICH !!! =20
+Hey whats up,
 
- LG=20
+We makes it easy to oar der the mee dica ations you need.
 
- Andreas=20
+We bring you our wide selection of me edice ines, all of them are available to you online, 24x7. 
+
+-------------- ------------------
+
+copy the address below and paste in a your web browser:
+
+Basilicae.maintaininar.com
+
+--------------------------------
+
+V ali d  for 24 hars.
 
 
- Please Note: A Hacker loves U=20
+To find the windows dark --.
+The smell of gas in no 8. She was skinny, with long straight black hair and a severe fringe..
+Swim the delicate brothers, the Pleiades..
+Still bar you the way, and deny you life --  .
+On the big bouncy belly.
 
- so hack me if you can=20
-=20
- http://hackerz.da.cx
+TTYL,
+
+Elena Adams
