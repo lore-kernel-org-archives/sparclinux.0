@@ -1,37 +1,28 @@
-From: "Mari Golux" <tntkinfolkZurichhxrg@yahoo.co.in>
-Date: Wed, 08 Feb 2006 15:07:49 +0000
-Subject: aFor you
-Message-Id: <cp6aZs501.II00.sk9.801J1N2H5@localhost>
+From: David Jensen <davidJ@1stinline.info>
+Date: Fri, 10 Feb 2006 18:53:48 +0000
+Subject: about your website
+Message-Id: <200602101853.k1AIrgwB004453@zeus2.kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-How are you,
+You can have the #1 position on Yahoo! AND Google today.
+ 
+Our company is unmatched in the Search Engine Optimization industry. If you want the top position on 
+ALL the major search engines without headache, expense or time - we are your solution. Our technology 
+is exclusive and our results are proven.  We will get you to the top today.
 
-Connect With The Best
+Even better, we will beat any competitors pricing AND we guarantee our work. If you have lost money, 
+time and position and you want unlimited traffic with guaranteed results, contact us today for a free quote 
+at: moreinfo@1stinline.info or simply reply to this message. Please include the Website(s) you are 
+interested in promoting and the best way to contact you.
 
-We process all customer payments at our state-of-the-art payment processing center, which ensures timely, accurate processing of payments on the day they are received.
+THIS IS NOT PAY PER CLICK. Examples/Demo will be provided.  
 
-U S  $ 250 ,000       aL0 aANS        are avai lable for only $225 / month! WE'RE aPRACT ICALLY aGIVIaNG aAWAY MOaNEY!
+Sincerely,
+David Jensen
+Web Results Team
 
------ ----------------- ---------
-
-COPY the Addreass below and paste in your WEaB BROaWSER:
-
-buhrstone.quickkform.net
-
------------ -------- ---------------
-
- V a l id for 24 Hrs.
-
-And his smelly old sock has been stuck to the wall..
-Remember the whip and the slaver's track. .
-His raincoat is there in the overstuffed chair,.
-Next, select the source and destination currencies using the scrolling selection boxes. .
-Of a tear that runs down an angel's face..
-
-
-Best Regards,
-Duncan Kinsella 
+To unsubscribe, simply reply to this message with 'remove' as the subject
