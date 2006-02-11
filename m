@@ -1,42 +1,41 @@
-From: Akinobu Mita <mita@miraclelinux.com>
-Date: Tue, 14 Feb 2006 05:04:00 +0000
-Subject: [patch 09/47] generic ffz()
-Message-Id: <20060214050443.468528000@localhost.localdomain>
+From: Bob Breuer <breuerr@mc.net>
+Date: Sat, 11 Feb 2006 19:58:18 +0000
+Subject: sparc32-smp: rwlock wrong owner
+Message-Id: <43EE4251.1040302@mc.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20060214050351.252615000@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: akpm@osdl.org, Russell King <rmk@arm.linux.org.uk>, Ian Molton <spyro@f2s.com>, David Howells <dhowells@redhat.com>, Hirokazu Takata <takata@linux-m32r.org>, Greg Ungerer <gerg@uclinux.org>, linux-mips@linux-mips.org, parisc-linux@parisc-linux.org, sparclinux@vger.kernel.org, ultralinux@vger.kernel.org, Miles Bader <uclinux-v850@lsi.nec.co.jp>, Akinobu Mita <mita@miraclelinux.com>
+To: sparclinux@vger.kernel.org
 
-This patch introduces the C-language equivalent of the function:
-unsigned long ffz(unsigned long word);
+Running the previously posted SMP patch with 2.6.16-rc1-git4 on dual
+SuperSPARC II's, it eventually died during updatedb:
 
-In include/asm-generic/bitops/ffz.h
+BUG: rwlock wrong owner on CPU#0, pdflush/31, faeaeb48
+[f0197518 : _write_unlock_irqrestore+0x8/0x1c ]
+[f00639a8 : test_set_page_writeback+0xc8/0x12c ]
+[f0083a30 : __block_write_full_page+0x104/0x418 ]
+[f00a820c : mpage_writepages+0x25c/0x3e8 ]
+[f006329c : do_writepages+0x40/0x74 ]
+[f00a66f4 : __sync_single_inode+0x44/0x234 ]
+[f00a6958 : __writeback_single_inode+0x74/0x17c ]
+[f00a6c4c : sync_sb_inodes+0x1ec/0x30c ]
+[f00a6e54 : writeback_inodes+0xe8/0xfc ]
+[f006302c : wb_kupdate+0xc4/0x158 ]
+[f0063b2c : __pdflush+0xe4/0x1c4 ]
+[f0063c34 : pdflush+0x28/0x38 ]
+[f004f768 : kthread+0xa8/0xc0 ]
+[f001964c : kernel_thread+0x34/0x50 ]
+[f004f790 : keventd_create_kthread+0x10/0x50 ]
+Kernel panic - not syncing: bad locking
 
-This code largely copied from:
-include/asm-parisc/bitops.h
 
-Signed-off-by: Akinobu Mita <mita@miraclelinux.com>
- include/asm-generic/bitops/ffz.h |   12 ++++++++++++
- 1 files changed, 12 insertions(+)
+Any ideas on how to track this down?  Could it be a buggy rwlock
+function, or something else?
 
-Index: 2.6-rc/include/asm-generic/bitops/ffz.h
-=================================--- /dev/null
-+++ 2.6-rc/include/asm-generic/bitops/ffz.h
-@@ -0,0 +1,12 @@
-+#ifndef _ASM_GENERIC_BITOPS_FFZ_H_
-+#define _ASM_GENERIC_BITOPS_FFZ_H_
-+
-+/*
-+ * ffz - find first zero in word.
-+ * @word: The word to search
-+ *
-+ * Undefined if no zero exists, so code should check against ~0UL first.
-+ */
-+#define ffz(x)  __ffs(~(x))
-+
-+#endif /* _ASM_GENERIC_BITOPS_FFZ_H_ */
+The only spinlock and rwlock changes I've made are at the end of the
+patch in:
+  http://marc.theaimsgroup.com/?l=linux-sparc&m3822757706953&w=2
 
---
+Bob
+
