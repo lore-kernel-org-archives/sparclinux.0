@@ -1,71 +1,75 @@
 From: Akinobu Mita <mita@miraclelinux.com>
-Date: Tue, 14 Feb 2006 05:04:05 +0000
-Subject: [patch 14/47] generic ffs()
-Message-Id: <20060214050444.425684000@localhost.localdomain>
+Date: Tue, 14 Feb 2006 05:04:09 +0000
+Subject: [patch 18/47] generic minix_{test,set,test_and_clear,test,find_first_zero}_bit()
+Message-Id: <20060214050445.212426000@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20060214050351.252615000@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org
-Cc: akpm@osdl.org, Greg Ungerer <gerg@uclinux.org>, linux-mips@linux-mips.org, sparclinux@vger.kernel.org, ultralinux@vger.kernel.org, Akinobu Mita <mita@miraclelinux.com>
+Cc: akpm@osdl.org, Richard Henderson <rth@twiddle.net>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, dev-etrax@axis.com, David Howells <dhowells@redhat.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Linus Torvalds <torvalds@osdl.org>, linux-ia64@vger.kernel.org, Hirokazu Takata <takata@linux-m32r.org>, Greg Ungerer <gerg@uclinux.org>, linux-mips@linux-mips.org, linux390@de.ibm.com, linuxsh-dev@lists.sourceforge.net, linuxsh-shmedia-dev@lists.sourceforge.net, sparclinux@vger.kernel.org, ultralinux@vger.kernel.org, Miles Bader <uclinux-v850@lsi.nec.co.jp>, Andi Kleen <ak@suse.de>, Chris Zankel <chris@zankel.net>, Akinobu Mita <mita@miraclelinux.com>
 
-This patch introduces the C-language equivalent of the function:
-int ffs(int x);
+This patch introduces the C-language equivalents of the functions below:
 
-In include/asm-generic/bitops/ffs.h
+int minix_test_and_set_bit(int nr, volatile unsigned long *addr);
+int minix_set_bit(int nr, volatile unsigned long *addr);
+int minix_test_and_clear_bit(int nr, volatile unsigned long *addr);
+int minix_test_bit(int nr, const volatile unsigned long *addr);
+unsigned long minix_find_first_zero_bit(const unsigned long *addr,
+                                        unsigned long size);
+
+In include/asm-generic/bitops/minix.h
+   and include/asm-generic/bitops/minix-le.h
 
 This code largely copied from:
-include/linux/bitops.h
+include/asm-sparc/bitops.h
 
 Signed-off-by: Akinobu Mita <mita@miraclelinux.com>
- include/asm-generic/bitops/ffs.h |   41 +++++++++++++++++++++++++++++++++++++++
- 1 files changed, 41 insertions(+)
 
-Index: 2.6-rc/include/asm-generic/bitops/ffs.h
+ include/asm-generic/bitops/minix-le.h |   17 +++++++++++++++++
+ include/asm-generic/bitops/minix.h    |   15 +++++++++++++++
+ 2 files changed, 32 insertions(+)
+
+Index: 2.6-rc/include/asm-generic/bitops/minix.h
 =================================--- /dev/null
-+++ 2.6-rc/include/asm-generic/bitops/ffs.h
-@@ -0,0 +1,41 @@
-+#ifndef _ASM_GENERIC_BITOPS_FFS_H_
-+#define _ASM_GENERIC_BITOPS_FFS_H_
++++ 2.6-rc/include/asm-generic/bitops/minix.h
+@@ -0,0 +1,15 @@
++#ifndef _ASM_GENERIC_BITOPS_MINIX_H_
++#define _ASM_GENERIC_BITOPS_MINIX_H_
 +
-+/**
-+ * ffs - find first bit set
-+ * @x: the word to search
-+ *
-+ * This is defined the same way as
-+ * the libc and compiler builtin ffs routines, therefore
-+ * differs in spirit from the above ffz (man ffs).
-+ */
-+static inline int ffs(int x)
-+{
-+	int r = 1;
++#define minix_test_and_set_bit(nr,addr)	\
++	__test_and_set_bit((nr),(unsigned long *)(addr))
++#define minix_set_bit(nr,addr)		\
++	__set_bit((nr),(unsigned long *)(addr))
++#define minix_test_and_clear_bit(nr,addr) \
++	__test_and_clear_bit((nr),(unsigned long *)(addr))
++#define minix_test_bit(nr,addr)		\
++	test_bit((nr),(unsigned long *)(addr))
++#define minix_find_first_zero_bit(addr,size) \
++	find_first_zero_bit((unsigned long *)(addr),(size))
 +
-+	if (!x)
-+		return 0;
-+	if (!(x & 0xffff)) {
-+		x >>= 16;
-+		r += 16;
-+	}
-+	if (!(x & 0xff)) {
-+		x >>= 8;
-+		r += 8;
-+	}
-+	if (!(x & 0xf)) {
-+		x >>= 4;
-+		r += 4;
-+	}
-+	if (!(x & 3)) {
-+		x >>= 2;
-+		r += 2;
-+	}
-+	if (!(x & 1)) {
-+		x >>= 1;
-+		r += 1;
-+	}
-+	return r;
-+}
++#endif /* _ASM_GENERIC_BITOPS_MINIX_H_ */
+Index: 2.6-rc/include/asm-generic/bitops/minix-le.h
+=================================--- /dev/null
++++ 2.6-rc/include/asm-generic/bitops/minix-le.h
+@@ -0,0 +1,17 @@
++#ifndef _ASM_GENERIC_BITOPS_MINIX_LE_H_
++#define _ASM_GENERIC_BITOPS_MINIX_LE_H_
 +
-+#endif /* _ASM_GENERIC_BITOPS_FFS_H_ */
++#include <asm-generic/bitops/le.h>
++
++#define minix_test_and_set_bit(nr,addr)	\
++	generic___test_and_set_le_bit((nr),(unsigned long *)(addr))
++#define minix_set_bit(nr,addr)		\
++	generic___set_le_bit((nr),(unsigned long *)(addr))
++#define minix_test_and_clear_bit(nr,addr) \
++	generic___test_and_clear_le_bit((nr),(unsigned long *)(addr))
++#define minix_test_bit(nr,addr)		\
++	generic_test_le_bit((nr),(unsigned long *)(addr))
++#define minix_find_first_zero_bit(addr,size) \
++	generic_find_first_zero_le_bit((unsigned long *)(addr),(size))
++
++#endif /* _ASM_GENERIC_BITOPS_MINIX_LE_H_ */
 
 --
