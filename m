@@ -1,71 +1,66 @@
 From: Akinobu Mita <mita@miraclelinux.com>
-Date: Wed, 01 Feb 2006 09:02:37 +0000
-Subject: [patch 13/44] generic ffs()
-Message-Id: <20060201090325.696670000@localhost.localdomain>
+Date: Tue, 14 Feb 2006 05:04:04 +0000
+Subject: [patch 13/47] generic sched_find_first_bit()
+Message-Id: <20060214050444.235416000@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20060201090224.536581000@localhost.localdomain>
+References: <20060214050351.252615000@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org
-Cc: Greg Ungerer <gerg@uclinux.org>, linux-mips@linux-mips.org, sparclinux@vger.kernel.org, ultralinux@vger.kernel.org, Akinobu Mita <mita@miraclelinux.com>
+Cc: akpm@osdl.org, Russell King <rmk@arm.linux.org.uk>, Ian Molton <spyro@f2s.com>, dev-etrax@axis.com, David Howells <dhowells@redhat.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Linus Torvalds <torvalds@osdl.org>, linux-ia64@vger.kernel.org, Hirokazu Takata <takata@linux-m32r.org>, linux-m68k@lists.linux-m68k.org, Greg Ungerer <gerg@uclinux.org>, linux-mips@linux-mips.org, parisc-linux@parisc-linux.org, linuxppc-dev@ozlabs.org, linux390@de.ibm.com, linuxsh-dev@lists.sourceforge.net, linuxsh-shmedia-dev@lists.sourceforge.net, sparclinux@vger.kernel.org, ultralinux@vger.kernel.org, Miles Bader <uclinux-v850@lsi.nec.co.jp>, Andi Kleen <ak@suse.de>, Chris Zankel <chris@zankel.net>, Akinobu Mita <mita@miraclelinux.com>
 
 This patch introduces the C-language equivalent of the function:
-int ffs(int x);
+int sched_find_first_bit(const unsigned long *b);
 
-In include/asm-generic/bitops/ffs.h
+In include/asm-generic/bitops/sched.h
 
 This code largely copied from:
-include/linux/bitops.h
+include/asm-powerpc/bitops.h
 
 Signed-off-by: Akinobu Mita <mita@miraclelinux.com>
- include/asm-generic/bitops/ffs.h |   41 +++++++++++++++++++++++++++++++++++++++
- 1 files changed, 41 insertions(+)
+ include/asm-generic/bitops/sched.h |   36 ++++++++++++++++++++++++++++++++++++
+ 1 files changed, 36 insertions(+)
 
-Index: 2.6-git/include/asm-generic/bitops/ffs.h
+Index: 2.6-rc/include/asm-generic/bitops/sched.h
 =================================--- /dev/null
-+++ 2.6-git/include/asm-generic/bitops/ffs.h
-@@ -0,0 +1,41 @@
-+#ifndef _ASM_GENERIC_BITOPS_FFS_H_
-+#define _ASM_GENERIC_BITOPS_FFS_H_
++++ 2.6-rc/include/asm-generic/bitops/sched.h
+@@ -0,0 +1,36 @@
++#ifndef _ASM_GENERIC_BITOPS_SCHED_H_
++#define _ASM_GENERIC_BITOPS_SCHED_H_
 +
-+/**
-+ * ffs - find first bit set
-+ * @x: the word to search
-+ *
-+ * This is defined the same way as
-+ * the libc and compiler builtin ffs routines, therefore
-+ * differs in spirit from the above ffz (man ffs).
++#include <linux/compiler.h>	/* unlikely() */
++#include <asm/types.h>
++
++/*
++ * Every architecture must define this function. It's the fastest
++ * way of searching a 140-bit bitmap where the first 100 bits are
++ * unlikely to be set. It's guaranteed that at least one of the 140
++ * bits is cleared.
 + */
-+static inline int ffs(int x)
++static inline int sched_find_first_bit(const unsigned long *b)
 +{
-+	int r = 1;
-+
-+	if (!x)
-+		return 0;
-+	if (!(x & 0xffff)) {
-+		x >>= 16;
-+		r += 16;
-+	}
-+	if (!(x & 0xff)) {
-+		x >>= 8;
-+		r += 8;
-+	}
-+	if (!(x & 0xf)) {
-+		x >>= 4;
-+		r += 4;
-+	}
-+	if (!(x & 3)) {
-+		x >>= 2;
-+		r += 2;
-+	}
-+	if (!(x & 1)) {
-+		x >>= 1;
-+		r += 1;
-+	}
-+	return r;
++#if BITS_PER_LONG = 64
++	if (unlikely(b[0]))
++		return __ffs(b[0]);
++	if (unlikely(b[1]))
++		return __ffs(b[1]) + 64;
++	return __ffs(b[2]) + 128;
++#elif BITS_PER_LONG = 32
++	if (unlikely(b[0]))
++		return __ffs(b[0]);
++	if (unlikely(b[1]))
++		return __ffs(b[1]) + 32;
++	if (unlikely(b[2]))
++		return __ffs(b[2]) + 64;
++	if (b[3])
++		return __ffs(b[3]) + 96;
++	return __ffs(b[4]) + 128;
++#else
++#error BITS_PER_LONG not defined
++#endif
 +}
 +
-+#endif /* _ASM_GENERIC_BITOPS_FFS_H_ */
++#endif /* _ASM_GENERIC_BITOPS_SCHED_H_ */
 
 --
