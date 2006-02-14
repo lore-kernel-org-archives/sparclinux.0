@@ -1,63 +1,203 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Thu, 23 Feb 2006 12:19:35 +0000
-Subject: [PATCH]: Fix SILO initrd calculations
-Message-Id: <20060223.041935.49765803.davem@davemloft.net>
+From: Akinobu Mita <mita@miraclelinux.com>
+Date: Tue, 14 Feb 2006 05:04:07 +0000
+Subject: [patch 16/47] generic ext2_{set,clear,test,find_first_zero,find_next_zero}_bit()
+Message-Id: <20060214050444.795734000@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20060214050351.252615000@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: akpm@osdl.org, Richard Henderson <rth@twiddle.net>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, dev-etrax@axis.com, David Howells <dhowells@redhat.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Linus Torvalds <torvalds@osdl.org>, linux-ia64@vger.kernel.org, Hirokazu Takata <takata@linux-m32r.org>, linux-m68k@lists.linux-m68k.org, linux-mips@linux-mips.org, parisc-linux@parisc-linux.org, linuxsh-dev@lists.sourceforge.net, linuxsh-shmedia-dev@lists.sourceforge.net, sparclinux@vger.kernel.org, ultralinux@vger.kernel.org, Miles Bader <uclinux-v850@lsi.nec.co.jp>, Andi Kleen <ak@suse.de>, Chris Zankel <chris@zankel.net>, Akinobu Mita <mita@miraclelinux.com>
 
+This patch introduces the C-language equivalents of the functions below:
 
-SILO uses a different idea of "phys_base" than the kernel
-does when deciding the value to stick into the ramdisk
-cookie of the kernel.
+int ext2_set_bit(int nr, volatile unsigned long *addr);
+int ext2_clear_bit(int nr, volatile unsigned long *addr);
+int ext2_test_bit(int nr, const volatile unsigned long *addr);
+unsigned long ext2_find_first_zero_bit(const unsigned long *addr,
+                                       unsigned long size);
+unsinged long ext2_find_next_zero_bit(const unsigned long *addr,
+                                      unsigned long size);
 
-The kernel uses the smallest "phys" found in the "available"
-properties, whereas SILO uses the "phys" of the first element of the
-"reg" property.  This can be different, as the following Niagara
-system /memory node dump shows:
+In include/asm-generic/bitops/ext2-non-atomic.h
 
-reg                      00000000 00800000 00000003 ff800000 
-available                00000003 fffd0000 00000000 00002000 
-                         00000003 fffcc000 00000000 00002000 
-                         00000003 fffc0000 00000000 00006000 
-                         00000003 fffa4000 00000000 0000c000 
-                         00000003 ff000000 00000000 00fa2000 
-                         00000000 00c00000 00000003 fe3fe000 
-name                     memory
+This code largely copied from:
 
-0x800000 vs. 0xc00000
+include/asm-powerpc/bitops.h
+include/asm-parisc/bitops.h
 
-The fix is simple, please apply.
+Signed-off-by: Akinobu Mita <mita@miraclelinux.com>
+ include/asm-generic/bitops/ext2-non-atomic.h |   18 ++++++
+ include/asm-generic/bitops/le.h              |   53 +++++++++++++++++++
+ lib/find_next_bit.c                          |   73 +++++++++++++++++++++++++++
+ 3 files changed, 144 insertions(+)
 
---- second/memory.c.~1~	2006-02-20 19:53:01.000000000 -0800
-+++ second/memory.c	2006-02-23 04:05:38.000000000 -0800
-@@ -289,14 +289,6 @@
+Index: 2.6-rc/include/asm-generic/bitops/ext2-non-atomic.h
+=================================--- /dev/null
++++ 2.6-rc/include/asm-generic/bitops/ext2-non-atomic.h
+@@ -0,0 +1,18 @@
++#ifndef _ASM_GENERIC_BITOPS_EXT2_NON_ATOMIC_H_
++#define _ASM_GENERIC_BITOPS_EXT2_NON_ATOMIC_H_
++
++#include <asm-generic/bitops/le.h>
++
++#define ext2_set_bit(nr,addr)	\
++	generic___test_and_set_le_bit((nr),(unsigned long *)(addr))
++#define ext2_clear_bit(nr,addr)	\
++	generic___test_and_clear_le_bit((nr),(unsigned long *)(addr))
++
++#define ext2_test_bit(nr,addr)	\
++	generic_test_le_bit((nr),(unsigned long *)(addr))
++#define ext2_find_first_zero_bit(addr, size) \
++	generic_find_first_zero_le_bit((unsigned long *)(addr), (size))
++#define ext2_find_next_zero_bit(addr, size, off) \
++	generic_find_next_zero_le_bit((unsigned long *)(addr), (size), (off))
++
++#endif /* _ASM_GENERIC_BITOPS_EXT2_NON_ATOMIC_H_ */
+Index: 2.6-rc/include/asm-generic/bitops/le.h
+=================================--- /dev/null
++++ 2.6-rc/include/asm-generic/bitops/le.h
+@@ -0,0 +1,53 @@
++#ifndef _ASM_GENERIC_BITOPS_LE_H_
++#define _ASM_GENERIC_BITOPS_LE_H_
++
++#include <asm/types.h>
++#include <asm/byteorder.h>
++
++#define BITOP_WORD(nr)		((nr) / BITS_PER_LONG)
++#define BITOP_LE_SWIZZLE	((BITS_PER_LONG-1) & ~0x7)
++
++#if defined(__LITTLE_ENDIAN)
++
++#define generic_test_le_bit(nr, addr) test_bit(nr, addr)
++#define generic___set_le_bit(nr, addr) __set_bit(nr, addr)
++#define generic___clear_le_bit(nr, addr) __clear_bit(nr, addr)
++
++#define generic_test_and_set_le_bit(nr, addr) test_and_set_bit(nr, addr)
++#define generic_test_and_clear_le_bit(nr, addr) test_and_clear_bit(nr, addr)
++
++#define generic___test_and_set_le_bit(nr, addr) __test_and_set_bit(nr, addr)
++#define generic___test_and_clear_le_bit(nr, addr) __test_and_clear_bit(nr, addr)
++
++#define generic_find_next_zero_le_bit(addr, size, offset) find_next_zero_bit(addr, size, offset)
++
++#elif defined(__BIG_ENDIAN)
++
++#define generic_test_le_bit(nr, addr) \
++	test_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
++#define generic___set_le_bit(nr, addr) \
++	__set_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
++#define generic___clear_le_bit(nr, addr) \
++	__clear_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
++
++#define generic_test_and_set_le_bit(nr, addr) \
++	test_and_set_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
++#define generic_test_and_clear_le_bit(nr, addr) \
++	test_and_clear_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
++
++#define generic___test_and_set_le_bit(nr, addr) \
++	__test_and_set_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
++#define generic___test_and_clear_le_bit(nr, addr) \
++	__test_and_clear_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
++
++extern unsigned long generic_find_next_zero_le_bit(const unsigned long *addr,
++		unsigned long size, unsigned long offset);
++
++#else
++#error "Please fix <asm/byteorder.h>"
++#endif
++
++#define generic_find_first_zero_le_bit(addr, size) \
++        generic_find_next_zero_le_bit((addr), (size), 0)
++
++#endif /* _ASM_GENERIC_BITOPS_LE_H_ */
+Index: 2.6-rc/lib/find_next_bit.c
+=================================--- 2.6-rc.orig/lib/find_next_bit.c
++++ 2.6-rc/lib/find_next_bit.c
+@@ -12,6 +12,7 @@
+ #include <linux/bitops.h>
+ #include <linux/module.h>
+ #include <asm/types.h>
++#include <asm/byteorder.h>
  
- 	node = prom_finddevice("/memory");
+ #define BITOP_WORD(nr)		((nr) / BITS_PER_LONG)
  
--	if (prom_getproperty(node, "reg", (char *)p, 2048) = -1) {
--		free (p);
--		printf("Could not get reg property\n");
--		return (char *)0;
--	}
--
--	phys_base = p[0].phys;
--
- 	n = prom_getproplen(node, "available");
+@@ -106,3 +107,75 @@ found_middle:
+ }
  
- 	if (!n || n = -1 || prom_getproperty(node, "available", (char *)p, 2048) = -1) {
-@@ -308,6 +300,12 @@
- 	phys = 0;
-         n /= sizeof(*p);
- 
-+	phys_base = ~(unsigned long long)0;
-+	for (i = 0; i < n; i++) {
-+		if (p[i].phys < phys_base)
-+			phys_base = p[i].phys;
+ EXPORT_SYMBOL(find_next_zero_bit);
++
++#ifdef __BIG_ENDIAN
++
++/* include/linux/byteorder does not support "unsigned long" type */
++static inline unsigned long ext2_swabp(const unsigned long * x)
++{
++#if BITS_PER_LONG = 64
++	return (unsigned long) __swab64p((u64 *) x);
++#elif BITS_PER_LONG = 32
++	return (unsigned long) __swab32p((u32 *) x);
++#else
++#error BITS_PER_LONG not defined
++#endif
++}
++
++/* include/linux/byteorder doesn't support "unsigned long" type */
++static inline unsigned long ext2_swab(const unsigned long y)
++{
++#if BITS_PER_LONG = 64
++	return (unsigned long) __swab64((u64) y);
++#elif BITS_PER_LONG = 32
++	return (unsigned long) __swab32((u32) y);
++#else
++#error BITS_PER_LONG not defined
++#endif
++}
++
++unsigned long generic_find_next_zero_le_bit(const unsigned long *addr, unsigned
++		long size, unsigned long offset)
++{
++	const unsigned long *p = addr + BITOP_WORD(offset);
++	unsigned long result = offset & ~(BITS_PER_LONG - 1);
++	unsigned long tmp;
++
++	if (offset >= size)
++		return size;
++	size -= result;
++	offset &= (BITS_PER_LONG - 1UL);
++	if (offset) {
++		tmp = ext2_swabp(p++);
++		tmp |= (~0UL >> (BITS_PER_LONG - offset));
++		if (size < BITS_PER_LONG)
++			goto found_first;
++		if (~tmp)
++			goto found_middle;
++		size -= BITS_PER_LONG;
++		result += BITS_PER_LONG;
 +	}
 +
- 	for (i = 0; i < n; i++) {
- 		/* Do not mess with first 4 Megs of memory */
- 		if (p[i].phys = phys_base) {
++	while (size & ~(BITS_PER_LONG - 1)) {
++		if (~(tmp = *(p++)))
++			goto found_middle_swap;
++		result += BITS_PER_LONG;
++		size -= BITS_PER_LONG;
++	}
++	if (!size)
++		return result;
++	tmp = ext2_swabp(p);
++found_first:
++	tmp |= ~0UL << size;
++	if (tmp = ~0UL)	/* Are any bits zero? */
++		return result + size; /* Nope. Skip ffz */
++found_middle:
++	return result + ffz(tmp);
++
++found_middle_swap:
++	return result + ffz(ext2_swab(tmp));
++}
++
++EXPORT_SYMBOL(generic_find_next_zero_le_bit);
++
++#endif /* __BIG_ENDIAN */
+
+--
