@@ -1,42 +1,48 @@
-From: "Tyrone Milton" <tntleprecaunvpoz@yahoo.es>
-Date: Mon, 13 Feb 2006 16:29:49 +0000
-Subject: hey, are you there
-Message-Id: <200308411.1tntleprecaunvpoz@yahoo.es>
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Date: Tue, 14 Feb 2006 10:54:08 +0000
+Subject: [PATCH] unify pfn_to_page take3 [18/23] sparc pfn_to_page
+Message-Id: <43F1B6D0.9010201@jp.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <43F1A753.2020003@jp.fujitsu.com>
+In-Reply-To: <43F1A753.2020003@jp.fujitsu.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Andrew Morton <akpm@osdl.org>, sparclinux@vger.kernel.org
 
-Good day,
+sparc can use generic funcs.
 
-Get Low rates on Software. We 0f fer Software to download or it can be ship=
-pedv to you on CD.=20
+Signed-Off-By: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Get all the software you ever imagined for extremely low prices! Our softwa=
-re is 2-10 times cheaper than sold by our competitors. Get the copy of your=
- favorite softwares now at di rt che aap pri ce.
+Index: testtree/include/asm-sparc/page.h
+=================================--- testtree.orig/include/asm-sparc/page.h
++++ testtree/include/asm-sparc/page.h
+@@ -9,6 +9,7 @@
+  #define _SPARC_PAGE_H
 
-------------------------------------------------------------------------
+  #include <linux/config.h>
++
+  #ifdef CONFIG_SUN4
+  #define PAGE_SHIFT   13
+  #else
+@@ -152,8 +153,7 @@ extern unsigned long pfn_base;
+  #define virt_to_phys		__pa
+  #define phys_to_virt		__va
 
-copy the address below and paste in i your web browser:
+-#define pfn_to_page(pfn)	(mem_map + ((pfn)-(pfn_base)))
+-#define page_to_pfn(page)	((unsigned long)(((page) - mem_map) + pfn_base))
++#define ARCH_PFN_OFFSET		(pfn_base)
+  #define virt_to_page(kaddr)	(mem_map + ((((unsigned long)(kaddr)-PAGE_OFFSET)>>PAGE_SHIFT)))
 
-Carlina.supertryo.com
+  #define pfn_valid(pfn)		(((pfn) >= (pfn_base)) && (((pfn)-(pfn_base)) < max_mapnr))
+@@ -164,6 +164,7 @@ extern unsigned long pfn_base;
 
-------------------------------------------------------------------------
+  #endif /* __KERNEL__ */
+
++#include <asm-generic/memory_model.h>
+  #include <asm-generic/page.h>
+
+  #endif /* _SPARC_PAGE_H */
 
 
-
-and the results of your conversion will be displayed..
-They shall not long possess the sky=97shall devour the stars only in appari=
-tion: .
-And make of those years a torch for tomorrow. .
--- Boeing, Hewlett-Packard twice, Sara Lee, 3M twice. The leadership pipeli=
-ne .
-And Dollie -- gone!.
-with him -- indeed, he is here at my invitation.".
-I've had to do with fifty murderers in my career, .
-That night will never be --.
-
-Later,
-Olin Hartman
