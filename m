@@ -1,37 +1,35 @@
-From: "Nestor Stephan" <nickeMr.AhmadBorrachotevkjm@yahoo.fr>
-Date: Mon, 27 Feb 2006 21:56:15 +0000
-Subject: yo
-Message-Id: <qM384.RE13.8ok0.750N1D7W4w@localhost>
+From: "Ascending C. Marsha" <kraai@grdpvfb.mibarrio.com>
+Date: Tue, 14 Feb 2006 20:26:33 +0000
+Subject: Software
+Message-Id: <2755805071.20060214152633@grdpvfb.mibarrio.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4A270.JU08.7eq1.548U4T9W0@localhost>
-In-Reply-To: <4A270.JU08.7eq1.548U4T9W0@localhost>
+References: <5676038165.20051106181254@juno.com>
+In-Reply-To: <5676038165.20051106181254@juno.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Software taking a bite out of your budget? Try 0EM!
+P0pular software at low low price. 
 
-Hey,
+New software on our site:
 
-Simple, Quick and affordab1e.
+Acrobat 6 Professional - $79.95
+Illustrator CS - $69.95
+Windows NT 4.0 Terminal Server - $49.95
+Freehand MX 11 - $69.95
+Picture It Premium 9 - $59.95
+Borland Delphi 7 Enterprise Edition (2CD) - $69.95
+Office XP Professional - $79.95
+FreeHand MX - $69.95
+Freehand MX 11 - $69.95
+Director MX 2004 - $69.95
+Windows NT 4.0 Terminal Server - $49.95
+Office XP Professional - $79.95
+Illustrator CS - $69.95
+Windows Millenium - $59.95
 
-Np        Pres_cr!pt!0n       required.
+Our site:
+http://scarnmm.com
 
-************************************************************************
-
-copy the address below and paste in o your web browser:
-
-antisensuousness.grindscull.net
-
-************************************************************************
-
-
-Huh? You say it's mine? Oh, dear,.
-Children sold away from me, I'm husband sold, too. .
-I nourished the dream that nothing could smother .
-his mouth in pain and ended up with a mouthful of concrete..
-I am the one who labored as a slave, .
-
-Later,
-
-Paulette Mertens
