@@ -1,41 +1,57 @@
-From: Bob Breuer <breuerr@mc.net>
-Date: Sat, 11 Feb 2006 19:58:18 +0000
-Subject: sparc32-smp: rwlock wrong owner
-Message-Id: <43EE4251.1040302@mc.net>
+From: Jason Wever <weeve@gentoo.org>
+Date: Wed, 15 Feb 2006 14:03:42 +0000
+Subject: 2.6.16-rc1 failed to boot on Blade 100
+Message-Id: <20060215070342.28c7b14c@enterprise.weeve.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Sig_KPUT=7e6nbGxbCH/moJiZXE"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Running the previously posted SMP patch with 2.6.16-rc1-git4 on dual
-SuperSPARC II's, it eventually died during updatedb:
+--Sig_KPUT=7e6nbGxbCH/moJiZXE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-BUG: rwlock wrong owner on CPU#0, pdflush/31, faeaeb48
-[f0197518 : _write_unlock_irqrestore+0x8/0x1c ]
-[f00639a8 : test_set_page_writeback+0xc8/0x12c ]
-[f0083a30 : __block_write_full_page+0x104/0x418 ]
-[f00a820c : mpage_writepages+0x25c/0x3e8 ]
-[f006329c : do_writepages+0x40/0x74 ]
-[f00a66f4 : __sync_single_inode+0x44/0x234 ]
-[f00a6958 : __writeback_single_inode+0x74/0x17c ]
-[f00a6c4c : sync_sb_inodes+0x1ec/0x30c ]
-[f00a6e54 : writeback_inodes+0xe8/0xfc ]
-[f006302c : wb_kupdate+0xc4/0x158 ]
-[f0063b2c : __pdflush+0xe4/0x1c4 ]
-[f0063c34 : pdflush+0x28/0x38 ]
-[f004f768 : kthread+0xa8/0xc0 ]
-[f001964c : kernel_thread+0x34/0x50 ]
-[f004f790 : keventd_create_kthread+0x10/0x50 ]
-Kernel panic - not syncing: bad locking
+Hi All,
 
+Had what may appear to be a fluke occurance of the 2.6.16-rc1 kernel
+failing to boot on a Blade 100 running OBP 4.17.1.  I've booted this
+kernel before without seeing this problem, and when I rebooted (with
+the -p argument), I didn't run into it.
 
-Any ideas on how to track this down?  Could it be a buggy rwlock
-function, or something else?
+Failure is as follows:
 
-The only spinlock and rwlock changes I've made are at the end of the
-patch in:
-  http://marc.theaimsgroup.com/?l=linux-sparc&m3822757706953&w=2
+boot: 2.6.16-rc1
+Allocated 8 Megs of memory at 0x40000000 for kernel
+Loaded kernel version 2.6.16
 
-Bob
+Remapping the kernel... done.
+Registering callbacks... done.
+Booting Linux...
+PCI: Bogus PROM assignment. BUS[00] DEVFN[40]
+PCI: phys[81004010:00000000:00000900] size[00000000:00000100]
+PCI: RES[0000000000000c00-->0000000000000cff:(101)]
+Please email this information to davem@redhat.com
+Program terminated
+ok=20
 
+I've also tried 2.6.16-rc3-git3 and that seems to boot normally.  I'll
+keep an eye on it to see if it has this type of problem.
+
+Cheers,
+--=20
+Jason Wever
+Gentoo/Sparc Team Co-Lead
+
+--Sig_KPUT=7e6nbGxbCH/moJiZXE
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD4DBQFD8zS+dKvgdVioq28RAsRZAKCyNExDb3ctl+yWb0GKmc2/DY/PiwCYt+Jx
+tb1aAHpBUGmllga04aWlgg==
+=3+FE
+-----END PGP SIGNATURE-----
+
+--Sig_KPUT=7e6nbGxbCH/moJiZXE--
