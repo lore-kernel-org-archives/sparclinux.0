@@ -1,19 +1,37 @@
-From: Horms <horms@verge.net.au>
-Date: Wed, 01 Feb 2006 01:10:21 +0000
-Subject: Re: Attempts to set date with 'date -s' hang the machine
-Message-Id: <drp1pt$d6s$1@sea.gmane.org>
+From: "Mayer" <Borrachoteeyxf@yahoo.ca>
+Date: Sun, 19 Feb 2006 12:26:45 +0000
+Subject: yo
+Message-Id: <4A270.JU08.7eq1.548U4T9W0@localhost>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.63.0601300019430.4017@bobcat>
-In-Reply-To: <Pine.LNX.4.63.0601300019430.4017@bobcat>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-For anyone who cares, this problem has now been assigned CVE-2006-0482
-http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2006-0482
-(That link isn't active yet, but hopefully it will be soon)
 
--- 
-Horms
+Good day,
 
+Last week for low inter-rest r@atess.
+
+Low r@tess are fixed.
+
+$335k for 325 pm, v r just    Givinga        away
+
+----- ------------------- ---------
+
+COPY the Address below and paste in your BROaWSER:
+
+lowestpay.net
+
+----- ------ ---- ---- ------- --------
+
+
+Impel you forever up the great stairs --  .
+So shake the very Heaven on high.
+I'll bear it better now --.
+Believe in the right, let none push you back. .
+Then, dearest child, mournest thou only for Jupiter? .
+
+
+TTYL,
+Jo Scofield
