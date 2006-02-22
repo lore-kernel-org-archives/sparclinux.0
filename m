@@ -1,35 +1,36 @@
-From: "Rune Torgersen" <runet@innovsys.com>
-Date: Thu, 02 Feb 2006 15:05:33 +0000
-Subject: RE: [patch 10/44] generic fls64()
-Message-Id: <DCEAAC0833DD314AB0B58112AD99B93B859547@ismail.innsys.innovsys.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Wed, 22 Feb 2006 15:36:15 +0000
+Subject: [PATCH] esp: fix eh locking
+Message-Id: <20060222153615.GA23488@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20060201090323.294297000@localhost.localdomain>
-In-Reply-To: <20060201090323.294297000@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Akinobu Mita <mita@miraclelinux.com>, linux-kernel@vger.kernel.org
-Cc: linux-mips@linux-mips.org, linux-ia64@vger.kernel.org, Ian Molton <spyro@f2s.com>, David Howells <dhowells@redhat.com>, linuxppc-dev@ozlabs.org, Greg Ungerer <gerg@uclinux.org>, sparclinux@vger.kernel.org, Miles Bader <uclinux-v850@lsi.nec.co.jp>, Linus Torvalds <torvalds@osdl.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Hirokazu Takata <takata@linux-m32r.org>, linuxsh-shmedia-dev@lists.sourceforge.net, linux-m68k@lists.linux-m68k.org, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Richard Henderson <rth@twiddle.net>, Chris Zankel <chris@zankel.net>, dev-etrax@axis.com, ultralinux@vger.kernel.org, Andi Kleen <ak@suse.de>, linuxsh-dev@lists.sourceforge.net, linux390@de.ibm.com, Russell King <rmk@arm.linux.org.uk>, parisc-linux@parisc-linux.org
+To: davem@davemloft.net, weeve@gentoo.org
+Cc: linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org
 
-> From: Akinobu Mita
-> Sent: Wednesday, February 01, 2006 03:03
-> +static inline int fls64(__u64 x)
-> +{
-> +	__u32 h = x >> 32;
-> +	if (h)
-> +		return fls(x) + 32;
+esp_reset didn't get fixed when the EH locking changed.
+->eh_bus_reset_handler is now called without the host lock held.
 
-Shouldn't this be return fls(h) + 32; ??
-                            ^^^
-> +	return fls(x);
-> +}
-> +
-> +#endif /* _ASM_GENERIC_BITOPS_FLS64_H_ */
-> 
-> --
-> _______________________________________________
-> Linuxppc-dev mailing list
-> Linuxppc-dev@ozlabs.org
-> https://ozlabs.org/mailman/listinfo/linuxppc-dev
-> 
-> 
+
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+
+Index: xfs-2.6.x/drivers/scsi/esp.c
+=================================--- xfs-2.6.x.orig/drivers/scsi/esp.c	2005-10-30 22:00:21.000000000 +0100
++++ xfs-2.6.x/drivers/scsi/esp.c	2006-02-22 16:34:09.000000000 +0100
+@@ -2068,14 +2068,12 @@
+ {
+ 	struct esp *esp = (struct esp *) SCptr->device->host->hostdata;
+ 
++	spin_lock_irq(esp->ehost->host_lock);
+ 	(void) esp_do_resetbus(esp);
+-
+ 	spin_unlock_irq(esp->ehost->host_lock);
+ 
+ 	wait_event(esp->reset_queue, (esp->resetting_bus = 0));
+ 
+-	spin_lock_irq(esp->ehost->host_lock);
+-
+ 	return SUCCESS;
+ }
+ 
