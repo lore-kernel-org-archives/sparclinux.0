@@ -1,37 +1,38 @@
-From: "Mayer" <Borrachoteeyxf@yahoo.ca>
-Date: Sun, 19 Feb 2006 12:26:45 +0000
+From: "Frankie T. Johnson" <adamissdreamNoAngelHonestlygohx@yahoo.es>
+Date: Wed, 22 Feb 2006 10:55:16 +0000
 Subject: yo
-Message-Id: <4A270.JU08.7eq1.548U4T9W0@localhost>
+Message-Id: <229.10e730d5.2a9EJT44@yahoo.no>
 List-Id: <sparclinux.vger.kernel.org>
+References: <4A270.JU08.7eq1.548U4T9W0@localhost>
+In-Reply-To: <4A270.JU08.7eq1.548U4T9W0@localhost>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+How have you been,
 
-Good day,
+We offer a wide selection of the most popular          med!c#c!nes        0n1!ne! 
 
-Last week for low inter-rest r@atess.
+We are the on1y store which gives great deal.
 
-Low r@tess are fixed.
+--------------------------------
 
-$335k for 325 pm, v r just    Givinga        away
+copy the address below and paste in u your web browser:
 
------ ------------------- ---------
+actinophone.herownpc.com/?zz=lowcost
 
-COPY the Address below and paste in your BROaWSER:
+--------------------------------
 
-lowestpay.net
-
------ ------ ---- ---- ------- --------
-
-
-Impel you forever up the great stairs --  .
-So shake the very Heaven on high.
-I'll bear it better now --.
-Believe in the right, let none push you back. .
-Then, dearest child, mournest thou only for Jupiter? .
+vali d  for 24 hurs.
 
 
-TTYL,
-Jo Scofield
+Beaten and mistreated for the work that I gave --  .
+As if all of the other kids in the cafeteria weren't even there..
+of the large counties recorded lower mean real wages..
+How many people with those qualities are you likely to find if you just go out looking?.
+Taught me my alphabet to say,.
+
+Sincerely,
+
+Garland Rupprecht
