@@ -1,29 +1,37 @@
-From: "Gertie Finley" <ynyislgc@dental-focus.com>
-Date: Fri, 10 Feb 2006 16:42:14 +0000
-Subject: Fw: ATTENTION -  Your New Growth Stock Report
-Message-Id: <001c01c62e60$f225a7d0$851b6344@nxydq>
+From: "Beverley T. Faris, III" <leprecaungpjf@yahoo.co.uk>
+Date: Wed, 22 Feb 2006 10:18:17 +0000
+Subject: Re: Re:
+Message-Id: <649.65e663d5.2a9UVJ44@yahoo.es>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Trading alert!
-We focus on stocks that have great potential to move up in price!!!
-So if you haven't done your DD yet, you better hurry because it appears 
-that the huge move is about to start.
+Good day to you sir,
 
-Trading Date : 10/02/06
-Company Name : Pingchuan Pharmaceutical, Inc.
-S t o c k  : PGCN
-Today : $1.05
-1 WEEK PROJECTION : $2 - $5
-Status : 100-300%
+No          M0RTG4G3           !nsurance (M!)        pay mentsa.
 
-Our mission is to claw our way through the thousands of underperforming 
-companies out there to find the golden needle in the haystack.
-Urgent watch alert for all members starting now.
-New news expected this comming week.
-Will it go crazy Friday morning?
-Put it on your radar screen right now.
+0ur RA aT EsS          are competitive.
 
+
+$325k for 315 pm, v are    Justa    Giving    away
+
+******************************************************************
+
+COPY the Address below and paste in your BROaWSER:
+
+attractableness.lowestpay.net
+
+******************************************************************
+
+
+Out of the darkness, the ignorance, the night. .
+Toward the end of August it was already a handsome little gray elephant the length of .
+And no more Dollie -- mark --.
+Who lived in a shoe..
+Than one old wet picture puzzle piece..
+
+
+Sincerely,
+Melody Battelle
