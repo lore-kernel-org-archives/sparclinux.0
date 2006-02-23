@@ -1,148 +1,63 @@
-From: Akinobu Mita <mita@miraclelinux.com>
-Date: Tue, 14 Feb 2006 05:03:58 +0000
-Subject: [patch 07/47] generic __{,test_and_}{set,clear,change}_bit() and test_bit()
-Message-Id: <20060214050443.068971000@localhost.localdomain>
+From: "David S. Miller" <davem@davemloft.net>
+Date: Thu, 23 Feb 2006 12:19:35 +0000
+Subject: [PATCH]: Fix SILO initrd calculations
+Message-Id: <20060223.041935.49765803.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20060214050351.252615000@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: akpm@osdl.org, Russell King <rmk@arm.linux.org.uk>, Ian Molton <spyro@f2s.com>, dev-etrax@axis.com, Hirokazu Takata <takata@linux-m32r.org>, linux-mips@linux-mips.org, parisc-linux@parisc-linux.org, linuxppc-dev@ozlabs.org, linuxsh-dev@lists.sourceforge.net, linuxsh-shmedia-dev@lists.sourceforge.net, sparclinux@vger.kernel.org, ultralinux@vger.kernel.org, Chris Zankel <chris@zankel.net>, Akinobu Mita <mita@miraclelinux.com>
+To: sparclinux@vger.kernel.org
 
-This patch introduces the C-language equivalents of the functions below:
 
-void __set_bit(int nr, volatile unsigned long *addr);
-void __clear_bit(int nr, volatile unsigned long *addr);
-void __change_bit(int nr, volatile unsigned long *addr);
-int __test_and_set_bit(int nr, volatile unsigned long *addr);
-int __test_and_clear_bit(int nr, volatile unsigned long *addr);
-int __test_and_change_bit(int nr, volatile unsigned long *addr);
-int test_bit(int nr, const volatile unsigned long *addr);
+SILO uses a different idea of "phys_base" than the kernel
+does when deciding the value to stick into the ramdisk
+cookie of the kernel.
 
-In include/asm-generic/bitops/non-atomic.h
+The kernel uses the smallest "phys" found in the "available"
+properties, whereas SILO uses the "phys" of the first element of the
+"reg" property.  This can be different, as the following Niagara
+system /memory node dump shows:
 
-This code largely copied from:
-asm-powerpc/bitops.h
+reg                      00000000 00800000 00000003 ff800000 
+available                00000003 fffd0000 00000000 00002000 
+                         00000003 fffcc000 00000000 00002000 
+                         00000003 fffc0000 00000000 00006000 
+                         00000003 fffa4000 00000000 0000c000 
+                         00000003 ff000000 00000000 00fa2000 
+                         00000000 00c00000 00000003 fe3fe000 
+name                     memory
 
-Signed-off-by: Akinobu Mita <mita@miraclelinux.com>
- include/asm-generic/bitops/non-atomic.h |  111 ++++++++++++++++++++++++++++++++
- 1 files changed, 111 insertions(+)
+0x800000 vs. 0xc00000
 
-Index: 2.6-rc/include/asm-generic/bitops/non-atomic.h
-=================================--- /dev/null
-+++ 2.6-rc/include/asm-generic/bitops/non-atomic.h
-@@ -0,0 +1,111 @@
-+#ifndef _ASM_GENERIC_BITOPS_NON_ATOMIC_H_
-+#define _ASM_GENERIC_BITOPS_NON_ATOMIC_H_
-+
-+#include <asm/types.h>
-+
-+#define BITOP_MASK(nr)		(1UL << ((nr) % BITS_PER_LONG))
-+#define BITOP_WORD(nr)		((nr) / BITS_PER_LONG)
-+
-+/**
-+ * __set_bit - Set a bit in memory
-+ * @nr: the bit to set
-+ * @addr: the address to start counting from
-+ *
-+ * Unlike set_bit(), this function is non-atomic and may be reordered.
-+ * If it's called on the same region of memory simultaneously, the effect
-+ * may be that only one operation succeeds.
-+ */
-+static inline void __set_bit(int nr, volatile unsigned long *addr)
-+{
-+	unsigned long mask = BITOP_MASK(nr);
-+	unsigned long *p = ((unsigned long *)addr) + BITOP_WORD(nr);
-+
-+	*p  |= mask;
-+}
-+
-+static inline void __clear_bit(int nr, volatile unsigned long *addr)
-+{
-+	unsigned long mask = BITOP_MASK(nr);
-+	unsigned long *p = ((unsigned long *)addr) + BITOP_WORD(nr);
-+
-+	*p &= ~mask;
-+}
-+
-+/**
-+ * __change_bit - Toggle a bit in memory
-+ * @nr: the bit to change
-+ * @addr: the address to start counting from
-+ *
-+ * Unlike change_bit(), this function is non-atomic and may be reordered.
-+ * If it's called on the same region of memory simultaneously, the effect
-+ * may be that only one operation succeeds.
-+ */
-+static inline void __change_bit(int nr, volatile unsigned long *addr)
-+{
-+	unsigned long mask = BITOP_MASK(nr);
-+	unsigned long *p = ((unsigned long *)addr) + BITOP_WORD(nr);
-+
-+	*p ^= mask;
-+}
-+
-+/**
-+ * __test_and_set_bit - Set a bit and return its old value
-+ * @nr: Bit to set
-+ * @addr: Address to count from
-+ *
-+ * This operation is non-atomic and can be reordered.  
-+ * If two examples of this operation race, one can appear to succeed
-+ * but actually fail.  You must protect multiple accesses with a lock.
-+ */
-+static inline int __test_and_set_bit(int nr, volatile unsigned long *addr)
-+{
-+	unsigned long mask = BITOP_MASK(nr);
-+	unsigned long *p = ((unsigned long *)addr) + BITOP_WORD(nr);
-+	unsigned long old = *p;
-+
-+	*p = old | mask;
-+	return (old & mask) != 0;
-+}
-+
-+/**
-+ * __test_and_clear_bit - Clear a bit and return its old value
-+ * @nr: Bit to clear
-+ * @addr: Address to count from
-+ *
-+ * This operation is non-atomic and can be reordered.  
-+ * If two examples of this operation race, one can appear to succeed
-+ * but actually fail.  You must protect multiple accesses with a lock.
-+ */
-+static inline int __test_and_clear_bit(int nr, volatile unsigned long *addr)
-+{
-+	unsigned long mask = BITOP_MASK(nr);
-+	unsigned long *p = ((unsigned long *)addr) + BITOP_WORD(nr);
-+	unsigned long old = *p;
-+
-+	*p = old & ~mask;
-+	return (old & mask) != 0;
-+}
-+
-+/* WARNING: non atomic and it can be reordered! */
-+static inline int __test_and_change_bit(int nr,
-+					    volatile unsigned long *addr)
-+{
-+	unsigned long mask = BITOP_MASK(nr);
-+	unsigned long *p = ((unsigned long *)addr) + BITOP_WORD(nr);
-+	unsigned long old = *p;
-+
-+	*p = old ^ mask;
-+	return (old & mask) != 0;
-+}
-+
-+/**
-+ * test_bit - Determine whether a bit is set
-+ * @nr: bit number to test
-+ * @addr: Address to start counting from
-+ */
-+static inline int test_bit(int nr, const volatile unsigned long *addr)
-+{
-+	return 1UL & (addr[BITOP_WORD(nr)] >> (nr & (BITS_PER_LONG-1)));
-+}
-+
-+#endif /* _ASM_GENERIC_BITOPS_NON_ATOMIC_H_ */
+The fix is simple, please apply.
 
---
+--- second/memory.c.~1~	2006-02-20 19:53:01.000000000 -0800
++++ second/memory.c	2006-02-23 04:05:38.000000000 -0800
+@@ -289,14 +289,6 @@
+ 
+ 	node = prom_finddevice("/memory");
+ 
+-	if (prom_getproperty(node, "reg", (char *)p, 2048) = -1) {
+-		free (p);
+-		printf("Could not get reg property\n");
+-		return (char *)0;
+-	}
+-
+-	phys_base = p[0].phys;
+-
+ 	n = prom_getproplen(node, "available");
+ 
+ 	if (!n || n = -1 || prom_getproperty(node, "available", (char *)p, 2048) = -1) {
+@@ -308,6 +300,12 @@
+ 	phys = 0;
+         n /= sizeof(*p);
+ 
++	phys_base = ~(unsigned long long)0;
++	for (i = 0; i < n; i++) {
++		if (p[i].phys < phys_base)
++			phys_base = p[i].phys;
++	}
++
+ 	for (i = 0; i < n; i++) {
+ 		/* Do not mess with first 4 Megs of memory */
+ 		if (p[i].phys = phys_base) {
