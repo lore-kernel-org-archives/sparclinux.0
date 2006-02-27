@@ -1,7 +1,7 @@
-From: "Frankie T. Johnson" <adamissdreamNoAngelHonestlygohx@yahoo.es>
-Date: Wed, 22 Feb 2006 10:55:16 +0000
+From: "Nestor Stephan" <nickeMr.AhmadBorrachotevkjm@yahoo.fr>
+Date: Mon, 27 Feb 2006 21:56:15 +0000
 Subject: yo
-Message-Id: <229.10e730d5.2a9EJT44@yahoo.no>
+Message-Id: <qM384.RE13.8ok0.750N1D7W4w@localhost>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4A270.JU08.7eq1.548U4T9W0@localhost>
 In-Reply-To: <4A270.JU08.7eq1.548U4T9W0@localhost>
@@ -10,29 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-How have you been,
 
-We offer a wide selection of the most popular          med!c#c!nes        0n1!ne! 
+Hey,
 
-We are the on1y store which gives great deal.
+Simple, Quick and affordab1e.
 
---------------------------------
+Np        Pres_cr!pt!0n       required.
 
-copy the address below and paste in u your web browser:
+************************************************************************
 
-actinophone.herownpc.com/?zz=lowcost
+copy the address below and paste in o your web browser:
 
---------------------------------
+antisensuousness.grindscull.net
 
-vali d  for 24 hurs.
+************************************************************************
 
 
-Beaten and mistreated for the work that I gave --  .
-As if all of the other kids in the cafeteria weren't even there..
-of the large counties recorded lower mean real wages..
-How many people with those qualities are you likely to find if you just go out looking?.
-Taught me my alphabet to say,.
+Huh? You say it's mine? Oh, dear,.
+Children sold away from me, I'm husband sold, too. .
+I nourished the dream that nothing could smother .
+his mouth in pain and ended up with a mouthful of concrete..
+I am the one who labored as a slave, .
 
-Sincerely,
+Later,
 
-Garland Rupprecht
+Paulette Mertens
