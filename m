@@ -1,35 +1,31 @@
-From: Peter Jones <pjones@redhat.com>
-Date: Tue, 21 Mar 2006 22:12:58 +0000
-Subject: Re: Switch default page size to 64k?
-Message-Id: <1142979178.11485.21.camel@vroomfondel.internal.datastacks.com>
+From: "Terri" <slickeleleprecaunbettyaqzd@yahoo.es>
+Date: Thu, 02 Mar 2006 12:35:49 +0000
+Subject: yo
+Message-Id: <gF068.BZ18.7kg0.0E9V7S5a@localhost>
 List-Id: <sparclinux.vger.kernel.org>
-References: <ed9ea0040603191435t36c95a80k47d2bf4903a66811@mail.gmail.com>
-In-Reply-To: <ed9ea0040603191435t36c95a80k47d2bf4903a66811@mail.gmail.com>
+References: <4A270.JU08.7eq1.548U4T9W0@localhost>
+In-Reply-To: <4A270.JU08.7eq1.548U4T9W0@localhost>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-On Tue, 2006-03-21 at 13:41 -0800, David S. Miller wrote:
-> From: Peter Jones <pjones@redhat.com>
-> Date: Tue, 21 Mar 2006 14:54:56 -0500
-> 
-> > I'm sure I'm being somewhat naive here, but how much of my eroding
-> > sanity is actually saved here?  There are some obvious places where
-> > userland is affected, such as mkswap, things that do raw i/o accesses
-> > and thus need aligned pages, etc., but those already have to do the
-> > right detection, or else they don't work with a common 32-bit userland
-> > between sparc32 and sparc64 machines.  What's the big scary part?
-> 
-> Building and fielding bug reports against multiple kernels.
-> That's very real, and the reason the distribution vendors try
-> to minimize the number of kernel variants they have to ship
-> on each platform.
 
-Very true; I was thinking you meant your statement in a context more
-directly regarding code maintenance.  But you're right, that's a very
-valid concern.
+Good day sparclinux@vger.kernel.org,
 
--- 
-  Peter
+We are your solution for   substantial      Pres_cr!pt!0n        De@1s.=20
 
+Get       C!pr0,        Pr0#zac    and more      oNliNE.
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+
+copy the address below and paste in e your web browser:
+
+bagatine.iyodopack.com
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+
+
+Not physiognomy alone, nor brain alone, is worthy for the muse=97I say the
