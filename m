@@ -1,7 +1,7 @@
-From: "Kristi D. Jones, V" <blueoceandilemmaWHITEMANhllp@yahoo.co.in>
-Date: Fri, 03 Mar 2006 22:52:31 +0000
+From: "Penny V. Titor" <missdreamesry@yahoo.ca>
+Date: Sun, 05 Mar 2006 06:44:47 +0000
 Subject: Re[1]:
-Message-Id: <99.OD25.9ba9.1Q7C4Y9z@localhost>
+Message-Id: <wI200.CP35.4w7.8I5S5A6I3q@localhost>
 List-Id: <sparclinux.vger.kernel.org>
 References: <L799.SR32.5iu6.887C3E4G6@localhost>
 In-Reply-To: <L799.SR32.5iu6.887C3E4G6@localhost>
@@ -10,27 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-How are you,
+Hey sparclinux@vger.kernel.org,
 
-Enjoy  convenience, 24 hour     sh!p_p!ngg    and a huge selection 0f   MmeDsSS.
+Pri_vate     0n1_!ne     0rd_er!ng.
 
-Val!!urm - $0.97; S0m@ - $3; X@njx - $1.09; Mer!d!a - $2.2
-
-====================================
-
-copy the address below and paste in u your web browser:
-
-bayberry.iyodopack.com
+No Embarrassing            D0c#T0rS          Visits.
 
 ====================================
 
+copy the address below and paste in o your web browser:
 
-The only other county that reported negative wage growth was King County,.
-One picture puzzle piece.
-Something there is,.
-They were humble without having a self to humble..
-Soakin' in the rain..
+ape.coralstrategy.com
 
-Later,
+====================================
 
-Tommie Black
+
+But I had to keep on till my work was done: .
+Three hundred years in the deepest South: .
+Something that shall endure longer even than lustrous Jupiter,.
+when you stand before the serpents in the Zoo, and see the slithery, .
+While in the wild wood I did lie,.
+
+Regards,
+
+Lorrie Kerry 
