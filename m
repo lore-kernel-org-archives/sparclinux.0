@@ -1,31 +1,23 @@
-From: Ben Collins <bcollins@ubuntu.com>
-Date: Thu, 09 Mar 2006 22:54:07 +0000
-Subject: Re: silo-1.4.11
-Message-Id: <1141944847.4406.10.camel@grayson>
+From: "Alex Deucher" <alexdeucher@gmail.com>
+Date: Tue, 07 Mar 2006 22:26:16 +0000
+Subject: Best bet for SPARC SMP and Sunfire V240
+Message-Id: <a728f9f90603071426g547ba79at30c36e545db70f01@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4410A7F7.9090405@gmail.com>
-In-Reply-To: <4410A7F7.9090405@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, 2006-03-09 at 17:11 -0500, Joe Ciccone wrote:
-> One update to this monster of a patch because with the version change in
-> Rules.make it didn't apply cleanly.
-> 
-> http://www.crazyeyesoft.com/silo-1.4.11-fixes-1.patch
+I have a couple questions about Linux support for the sunfire V240. 
+I've only been able to find limited information about the status of
+the V240s.  I have several that I'd like to install linux on.  My
+other question is, what is the status of SMP on 2.6 kernels?  The last
+few times I tried it locked the boxes hard, however I seem to recall
+hearing that the problem had been fixed.  I'm currently running debian
+w/ 2.4 kernels on our SMP SPARC boxes and debian with 2.6 kernels on
+our UP SPARC boxes (E4500, 420R, 220R, etc.) and both have been rock
+solid.  What's my best bet for SMP V240 servers?  2.4? 2.6?
 
-I can't really take this patch into silo directly. Can you separate the
-parts that patch up the current code from the part where you basically
-import all of libext2fs and add the emul_32 headers?
+Thanks,
 
-I can take the build changes, but the rest of it is just creating
-headache for me because it requires syncing to external source.
-
--- 
-Ubuntu     - http://www.ubuntu.com/
-Debian     - http://www.debian.org/
-Linux 1394 - http://www.linux1394.org/
-SwissDisk  - http://www.swissdisk.com/
-
+Alex
