@@ -1,31 +1,38 @@
-From: "Terri" <slickeleleprecaunbettyaqzd@yahoo.es>
-Date: Thu, 02 Mar 2006 12:35:49 +0000
+From: "Jess Labovitz" <antoshkademm@yahoo.se>
+Date: Tue, 07 Mar 2006 03:44:56 +0000
 Subject: yo
-Message-Id: <gF068.BZ18.7kg0.0E9V7S5a@localhost>
+Message-Id: <aJ752.PR17.3mg0.3L1Y5uv65T9p@localhost>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4A270.JU08.7eq1.548U4T9W0@localhost>
 In-Reply-To: <4A270.JU08.7eq1.548U4T9W0@localhost>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Good day,
 
-Good day sparclinux@vger.kernel.org,
+Regulates Blud Sooger.
 
-We are your solution for   substantial      Pres_cr!pt!0n        De@1s.=20
+Hoo d ia is an all-natural, her,bal dieatary sup-ple,ment.
 
-Get       C!pr0,        Pr0#zac    and more      oNliNE.
+Powerful weapon in the war against   obe ci ty.
 
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-copy the address below and paste in e your web browser:
+COPY the Address below and paste in your BROaWSER:
 
-bagatine.iyodopack.com
+antiroyalist.landoftheburd.com
 
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-Not physiognomy alone, nor brain alone, is worthy for the muse=97I say the
+Washington but when inflation was added to the calculation a total of 105.
+The Modern Man I sing..
+His raincoat is there in the overstuffed chair,.
+She always looked at me like she really cared..
+With tumult as they thunder by,.
+
+
+Best Regards,
+Beau Lewis
