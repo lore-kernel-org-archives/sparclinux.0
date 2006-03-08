@@ -1,45 +1,37 @@
-From: Josh Grebe <josh@brokedown.net>
-Date: Wed, 08 Mar 2006 20:51:44 +0000
+From: Richard Mortimer <richm@oldelvet.org.uk>
+Date: Wed, 08 Mar 2006 21:54:54 +0000
 Subject: Re: Best bet for SPARC SMP and Sunfire V240
-Message-Id: <440F43E0.1080506@brokedown.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=_unix1.shortcutsolutions.net-4314-1141851288-0001-2"
+Message-Id: <1141854894.5815.165.camel@duncow>
 List-Id: <sparclinux.vger.kernel.org>
 References: <a728f9f90603071426g547ba79at30c36e545db70f01@mail.gmail.com>
 In-Reply-To: <a728f9f90603071426g547ba79at30c36e545db70f01@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-This is a MIME-formatted message.  If you see this text it means that your
-E-mail software does not support MIME-formatted messages.
-
---=_unix1.shortcutsolutions.net-4314-1141851288-0001-2
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-David S. Miller wrote:
+On Wed, 2006-03-08 at 14:33 -0600, Josh Grebe wrote:
+> Full dmesg log is at: http://dev.gentoo.org/~squash/v240-3.txt
 > 
-> Are you using an initrd?
+> I'll now give you the entire first error per CPU as well as the System.map
+> functions summary for all of them. There are a bunch of duplicates, which
+> I'll include for completeness but only give the function name the first
+> time. Hopefully this is a complete enough report for you.
 
-Hi Dave,
+I'm not sure if you noticed this (but neither you or Dave mentioned it)
+so I'll mention it. But there is an earlier error in your log...
 
-No initrd. In fact, RAMdisk support is disabled in the kernel. For completeness,
-I've just posted my .config at: http://dev.gentoo.org/~squash/v240-config.txt
+[   13.886016] BUG: spinlock wrong CPU on CPU#1, swapper/0
+[   13.886023]  lock: 00000000006bfa40, .magic: dead4ead, .owner: swapper/0, .owner_cpu: 0
+[   13.886029] Call Trace:
+[   13.886034]  [00000000006cc838] start_kernel+0x1d8/0x200
+[   13.886050]  [00000000004043f4] tlb_fixup_done+0x5c/0x64
+[   13.886060]  [0000000000000000] _start+0xffffffffffbfc000/0x12
 
-Josh
+Could that have been the start of things going wrong?
 
---=_unix1.shortcutsolutions.net-4314-1141851288-0001-2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Transfer-Encoding: 7bit
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Richard
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+-- 
+Richard Mortimer <richm@oldelvet.org.uk>
 
-iD8DBQFED0PiT/OY5rt9JCMRA956AJ9uCi7SJxvKrxIZyQESwZNiswbD2QCfRzI9
-wVpRUXRMyN115ghrN26gAMI=
-=58Ft
------END PGP SIGNATURE-----
-
---=_unix1.shortcutsolutions.net-4314-1141851288-0001-2--
