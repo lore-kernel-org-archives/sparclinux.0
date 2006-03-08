@@ -1,39 +1,23 @@
-From: "Phyllis R. Duran" <phyllis.rduran_wb@mailcity.com>
-Date: Tue, 21 Mar 2006 20:42:14 +0000
-Subject: RERE: Your loan application is approved 5qx
-Message-Id: <6d6d01c64d27$56be811e$ac34907f@rgain41>
+From: Ben Collins <bcollins@ubuntu.com>
+Date: Wed, 08 Mar 2006 19:56:55 +0000
+Subject: SILO 1.4.11 (sun4v support)
+Message-Id: <1141847816.22707.5.camel@grayson>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Dear  sparclinux@vger.kernel.org
+A new version of silo has been released. The only real changes are to
+support the Niagara (sun4v) platform. Patches are from Dave Miller.
+There's another patch that fixes memory allocation for kernel+initrd on
+some platforms.
 
-http://geocities.com/completed4677/	
+http://www.sparc-boot.org/pub/silo/
 
-
-You have been approved for a $402,000 house loan at a 3.45% Fixed R.ate.
-This offer is being presented to you right now!. Your credit history is in no way a factor.
-We have 99% approval rate.
-To take advantage of this Limited Time Opportunity,
-
-please take a minute and confirm your curiosity or intention to accept this loan, at the following web-site:
-
-http://geocities.com/completed4677/	
-
-
-Best Regards
-Danny DeCapri
-
-http://geocities.com/completed4677/	
-
-
-
-
-
-sparclinux@vger.kernel.org wrote:
-> We want approve yours loan
-rdvhg63eiawsb
-Z3catySpl2OEKuPtYfbfaIGcw
+-- 
+Ubuntu     - http://www.ubuntu.com/
+Debian     - http://www.debian.org/
+Linux 1394 - http://www.linux1394.org/
+SwissDisk  - http://www.swissdisk.com/
 
