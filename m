@@ -1,79 +1,83 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Wed, 08 Mar 2006 22:08:37 +0000
+From: Josh Grebe <josh@brokedown.net>
+Date: Wed, 08 Mar 2006 22:33:52 +0000
 Subject: Re: Best bet for SPARC SMP and Sunfire V240
-Message-Id: <20060308.140837.101496420.davem@davemloft.net>
+Message-Id: <440F5BD0.9010601@brokedown.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=_unix1.shortcutsolutions.net-16807-1141857418-0001-2"
 List-Id: <sparclinux.vger.kernel.org>
 References: <a728f9f90603071426g547ba79at30c36e545db70f01@mail.gmail.com>
 In-Reply-To: <a728f9f90603071426g547ba79at30c36e545db70f01@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Richard Mortimer <richm@oldelvet.org.uk>
-Date: Wed, 08 Mar 2006 21:54:54 +0000
+This is a MIME-formatted message.  If you see this text it means that your
+E-mail software does not support MIME-formatted messages.
 
-> I'm not sure if you noticed this (but neither you or Dave mentioned it)
-> so I'll mention it. But there is an earlier error in your log...
+--=_unix1.shortcutsolutions.net-16807-1141857418-0001-2
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+David S. Miller wrote:
 > 
-> [   13.886016] BUG: spinlock wrong CPU on CPU#1, swapper/0
-> [   13.886023]  lock: 00000000006bfa40, .magic: dead4ead, .owner: swapper/0, .owner_cpu: 0
-> [   13.886029] Call Trace:
-> [   13.886034]  [00000000006cc838] start_kernel+0x1d8/0x200
-> [   13.886050]  [00000000004043f4] tlb_fixup_done+0x5c/0x64
-> [   13.886060]  [0000000000000000] _start+0xffffffffffbfc000/0x12
-> 
-> Could that have been the start of things going wrong?
+> Josh please give this a test as soon as you can, thanks a lot:
 
-No, it's an unrelated bug... to be sure we should track it down,
-but one thing at a time :)
+Hi Dave,
 
-I think the following patch will fix the problem Josh is
-seeing.
+Different, but still a crash. Here is the first ERROR per cpu.
+The entire dmesg (including System.map references for all TPCs)
+is at: http://dev.gentoo.org/~squash/v240crash.txt
 
-Josh please give this a test as soon as you can, thanks a lot:
+For my reference, are the TPCs following the initial ERROR lines useful?
+I want to make sure all useful info is in these while keeping the SNR low...
 
---- a/arch/sparc64/mm/init.c.~1~	2006-03-08 02:19:32.000000000 -0800
-+++ b/arch/sparc64/mm/init.c	2006-03-08 14:07:25.000000000 -0800
-@@ -1324,8 +1324,7 @@
- 		    min_low_pfn, bootmap_pfn, max_low_pfn);
- #endif
- 	bootmap_size = init_bootmem_node(NODE_DATA(0), bootmap_pfn,
--					 (phys_base >> PAGE_SHIFT),
--					 end_pfn);
-+					 min_low_pfn, end_pfn);
- 
- 	/* Now register the available physical memory with the
- 	 * allocator.
-@@ -1569,7 +1568,7 @@
- 	pages_avail = 0;
- 	last_valid_pfn = end_pfn = bootmem_init(&pages_avail, phys_base);
- 
--	max_mapnr = last_valid_pfn - (phys_base >> PAGE_SHIFT);
-+	max_mapnr = last_valid_pfn;
- 
- #ifdef CONFIG_DEBUG_PAGEALLOC
- 	kernel_physical_mapping_init();
-@@ -1578,18 +1577,17 @@
- 	{
- 		unsigned long zones_size[MAX_NR_ZONES];
- 		unsigned long zholes_size[MAX_NR_ZONES];
--		unsigned long npages;
- 		int znum;
- 
- 		for (znum = 0; znum < MAX_NR_ZONES; znum++)
- 			zones_size[znum] = zholes_size[znum] = 0;
- 
--		npages = end_pfn - (phys_base >> PAGE_SHIFT);
--		zones_size[ZONE_DMA] = npages;
--		zholes_size[ZONE_DMA] = npages - pages_avail;
-+		zones_size[ZONE_DMA] = end_pfn;
-+		zholes_size[ZONE_DMA] = end_pfn - pages_avail;
- 
- 		free_area_init_node(0, &contig_page_data, zones_size,
--				    phys_base >> PAGE_SHIFT, zholes_size);
-+				    __pa(PAGE_OFFSET) >> PAGE_SHIFT,
-+				    zholes_size);
- 	}
- 
- 	device_scan();
+Josh
+
+
+[    2.230494] VFS: Mounted root (ext3 filesystem) readonly.
+[    2.517749] ERROR(0): Cheetah error trap taken afsr[0020400000000000] afar[000007f600001180] TL1(0)
+[    2.517842] ERROR(1): Cheetah error trap taken afsr[0010100000000000] afar[000000007fcea000] TL1(0)
+[    2.517851] ERROR(1): TPC[000000000051ff18] TNPC[000000000051ff1c] TSTATE[0000000080009604]
+000000000051fbc0 T U3memcpy
+
+[    2.517857] ERROR(1): M_SYND(0),  E_SYND(0), Privileged
+[    2.517864] ERROR(1): Highest priority error (0000100000000000) "Unmapped error from system bus"
+[    2.517871] ERROR(1): D-cache idx[0] tag[0000000000000000] utag[0000000000000000] stag[0000000000000000]
+[    2.517877] ERROR(1): D-cache data0[0000000000000000] data1[0000000000000000] data2[0000000000000000] data3[0000000000000000]
+[    2.517885] ERROR(1): I-cache idx[0] tag[0000000000000000] utag[0000000000000000] stag[0000000000000000] u[0000000000000000] l[0000000000000000]
+[    2.517893] ERROR(1): I-cache INSN0[0000000000000000] INSN1[0000000000000000] INSN2[0000000000000000] INSN3[0000000000000000]
+[    2.517901] ERROR(1): I-cache INSN4[0000000000000000] INSN5[0000000000000000] INSN6[0000000000000000] INSN7[0000000000000000]
+[    2.517908] ERROR(1): E-cache idx[800] tag[000000001e040fcf]
+[    2.517915] ERROR(1): E-cache data0[0000000001724000] data1[0000000001724000] data2[0000000001724000] data3[0000000001724000]
+[    2.517923] Kernel panic - not syncing: Irrecoverable deferred error trap.
+[    2.517927]
+[    2.517929]  <0>Press Stop-A (L1-A) to return to the boot prom
+[    4.200187] ERROR(0): TPC[0000000000405138] TNPC[000000000040513c] TSTATE[0000000011f09604]
+0000000000405164 T etraptl1
+
+[    4.309986] ERROR(0): M_SYND(0),  E_SYND(0), Multiple Errors
+[    4.384332] ERROR(0): Highest priority error (0000400000000000) "Error due to unsupported store"
+[    4.499848] ERROR(0): AFAR E-syndrome [???]
+[    4.554748] ERROR(0): D-cache idx[0] tag[0000000000000000] utag[0000000000000000] stag[0000000000000000]
+[    4.679417] ERROR(0): D-cache data0[0000000000000000] data1[0000000000000000] data2[0000000000000000] data3[0000000000000000]
+[    4.828105] ERROR(0): I-cache idx[0] tag[0000000000000000] utag[0000000000000000] stag[0000000000000000] u[0000000000000000] l[0000000000000000]
+[    4.998524] ERROR(0): I-cache INSN0[0000000000000000] INSN1[0000000000000000] INSN2[0000000000000000] INSN3[0000000000000000]
+[    5.147212] ERROR(0): I-cache INSN4[0000000000000000] INSN5[0000000000000000] INSN6[0000000000000000] INSN7[0000000000000000]
+[    5.295901] ERROR(0): E-cache idx[1080] tag[000000001e040fb4]
+[    5.371388] ERROR(0): E-cache data0[0000000000000000] data1[0000000000000000] data2[0000000000000000] data3[0000000000000000]
+
+
+--=_unix1.shortcutsolutions.net-16807-1141857418-0001-2
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Transfer-Encoding: 7bit
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iD8DBQFED1vVT/OY5rt9JCMRAyhsAKDHKbujTO/eTaYljpEk7F305QA0AgCgyrbq
+QmLnOVIUhPIyNkxuBVjwp8s=
+=BEwM
+-----END PGP SIGNATURE-----
+
+--=_unix1.shortcutsolutions.net-16807-1141857418-0001-2--
