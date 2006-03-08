@@ -1,367 +1,160 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Wed, 08 Mar 2006 10:36:11 +0000
+From: Josh Grebe <josh@brokedown.net>
+Date: Wed, 08 Mar 2006 20:33:39 +0000
 Subject: Re: Best bet for SPARC SMP and Sunfire V240
-Message-Id: <20060308.023611.97613447.davem@davemloft.net>
+Message-Id: <440F3FA3.5000807@brokedown.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=_unix1.shortcutsolutions.net-2023-1141850207-0001-2"
 List-Id: <sparclinux.vger.kernel.org>
 References: <a728f9f90603071426g547ba79at30c36e545db70f01@mail.gmail.com>
 In-Reply-To: <a728f9f90603071426g547ba79at30c36e545db70f01@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: "David S. Miller" <davem@davemloft.net>
-Date: Wed, 08 Mar 2006 00:02:35 -0800 (PST)
+This is a MIME-formatted message.  If you see this text it means that your
+E-mail software does not support MIME-formatted messages.
 
-> I guess I should code up some sparsemem support, it would help for
-> cases like this.
+--=_unix1.shortcutsolutions.net-2023-1141850207-0001-2
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Give this patch a try, it is against 2.6.16-current but should
-apply with only minor fixups to things like 2.6.15
+Hi Dave,
 
-Thanks.
+David S. Miller wrote:
+> From: "David S. Miller" <davem@davemloft.net>
+> Date: Wed, 08 Mar 2006 00:02:35 -0800 (PST)
+> 
+> 
+>>I guess I should code up some sparsemem support, it would help for
+>>cases like this.
+> 
+> 
+> Give this patch a try, it is against 2.6.16-current but should
+> apply with only minor fixups to things like 2.6.15
 
-diff-tree f9b2926038557a08b652eae008cd487c45f331af (from e5cde15481a62564fe7bb6b5a7ea6325edc7c38c)
-Author: David S. Miller <davem@sunset.davemloft.net>
-Date:   Wed Mar 8 02:18:43 2006 -0800
+(killing auto word wrap so pasting works)
 
-    [SPARC64]: Move over to sparsemem.
-    
-    This has been pending for a long time, and the fact
-    that we waste a ton of ram on some configurations
-    kind of pushed things over the edge.
-    
-    Signed-off-by: David S. Miller <davem@davemloft.net>
+This patch gives a full 2G to me, however it bombs at the end of kernel
+init. We stream ERRORs for a while, until eventually the box either
+flat hangs or throws a RED and resets.
 
-diff --git a/arch/sparc64/Kconfig b/arch/sparc64/Kconfig
-index 4c0a50a..a253a39 100644
---- a/arch/sparc64/Kconfig
-+++ b/arch/sparc64/Kconfig
-@@ -186,6 +186,12 @@ endchoice
- 
- endmenu
- 
-+config ARCH_SPARSEMEM_ENABLE
-+	def_bool y
-+
-+config ARCH_SPARSEMEM_DEFAULT
-+	def_bool y
-+
- source "mm/Kconfig"
- 
- config GENERIC_ISA_DMA
-diff --git a/arch/sparc64/kernel/sparc64_ksyms.c b/arch/sparc64/kernel/sparc64_ksyms.c
-index 3c06bfb..b9f508c 100644
---- a/arch/sparc64/kernel/sparc64_ksyms.c
-+++ b/arch/sparc64/kernel/sparc64_ksyms.c
-@@ -95,9 +95,6 @@ extern int __ashrdi3(int, int);
- 
- extern int dump_fpu (struct pt_regs * regs, elf_fpregset_t * fpregs);
- 
--extern unsigned long phys_base;
--extern unsigned long pfn_base;
--
- extern unsigned int sys_call_table[];
- 
- extern void xor_vis_2(unsigned long, unsigned long *, unsigned long *);
-@@ -342,11 +339,7 @@ EXPORT_SYMBOL(__strncpy_from_user);
- EXPORT_SYMBOL(__bzero_noasi);
- 
- /* Various address conversion macros use this. */
--EXPORT_SYMBOL(phys_base);
--EXPORT_SYMBOL(pfn_base);
- EXPORT_SYMBOL(sparc64_valid_addr_bitmap);
--EXPORT_SYMBOL(page_to_pfn);
--EXPORT_SYMBOL(pfn_to_page);
- 
- /* No version information on this, heavily used in inline asm,
-  * and will always be 'void __ret_efault(void)'.
-diff --git a/arch/sparc64/mm/init.c b/arch/sparc64/mm/init.c
-index 1e44ee2..cc1fc37 100644
---- a/arch/sparc64/mm/init.c
-+++ b/arch/sparc64/mm/init.c
-@@ -111,11 +111,9 @@ static void __init read_obp_memory(const
- 
- unsigned long *sparc64_valid_addr_bitmap __read_mostly;
- 
--/* Ugly, but necessary... -DaveM */
--unsigned long phys_base __read_mostly;
-+/* Kernel physical address base and size in bytes.  */
- unsigned long kern_base __read_mostly;
- unsigned long kern_size __read_mostly;
--unsigned long pfn_base __read_mostly;
- 
- /* get_new_mmu_context() uses "cache + 1".  */
- DEFINE_SPINLOCK(ctx_alloc_lock);
-@@ -320,16 +318,6 @@ void __kprobes flush_icache_range(unsign
- 	}
- }
- 
--unsigned long page_to_pfn(struct page *page)
--{
--	return (unsigned long) ((page - mem_map) + pfn_base);
--}
--
--struct page *pfn_to_page(unsigned long pfn)
--{
--	return (mem_map + (pfn - pfn_base));
--}
--
- void show_mem(void)
- {
- 	printk("Mem-info:\n");
-@@ -1196,9 +1184,78 @@ void sparc_ultra_dump_dtlb(void)
- 
- extern unsigned long cmdline_memory_size;
- 
--unsigned long __init bootmem_init(unsigned long *pages_avail)
-+/* Find a free area for the bootmem map, avoiding the kernel image
-+ * and the initial ramdisk.
-+ */
-+static unsigned long __init choose_bootmap_pfn(unsigned long start_pfn,
-+					       unsigned long end_pfn)
- {
--	unsigned long bootmap_size, start_pfn, end_pfn;
-+	unsigned long avoid_start, avoid_end, bootmap_size;
-+	int i;
-+
-+	bootmap_size = ((end_pfn - start_pfn) + 7) / 8;
-+	bootmap_size = ALIGN(bootmap_size, sizeof(long));
-+
-+	avoid_start = avoid_end = 0;
-+#ifdef CONFIG_BLK_DEV_INITRD
-+	avoid_start = initrd_start;
-+	avoid_end = PAGE_ALIGN(initrd_end);
-+#endif
-+
-+#ifdef CONFIG_DEBUG_BOOTMEM
-+	prom_printf("choose_bootmap_pfn: kern[%lx:%lx] avoid[%lx:%lx]\n",
-+		    kern_base, PAGE_ALIGN(kern_base + kern_size),
-+		    avoid_start, avoid_end);
-+#endif
-+	for (i = 0; i < pavail_ents; i++) {
-+		unsigned long start, end;
-+
-+		start = pavail[i].phys_addr;
-+		end = start + pavail[i].reg_size;
-+
-+		while (start < end) {
-+			if (start >= kern_base &&
-+			    start < PAGE_ALIGN(kern_base + kern_size)) {
-+				start = PAGE_ALIGN(kern_base + kern_size);
-+				continue;
-+			}
-+			if (start >= avoid_start && start < avoid_end) {
-+				start = avoid_end;
-+				continue;
-+			}
-+
-+			if ((end - start) < bootmap_size)
-+				break;
-+
-+			if (start < kern_base &&
-+			    (start + bootmap_size) > kern_base) {
-+				start = PAGE_ALIGN(kern_base + kern_size);
-+				continue;
-+			}
-+
-+			if (start < avoid_start &&
-+			    (start + bootmap_size) > avoid_start) {
-+				start = avoid_end;
-+				continue;
-+			}
-+
-+			/* OK, it doesn't overlap anything, use it.  */
-+#ifdef CONFIG_DEBUG_BOOTMEM
-+			prom_printf("choose_bootmap_pfn: Using %lx [%lx]\n",
-+				    start >> PAGE_SHIFT, start);
-+#endif
-+			return start >> PAGE_SHIFT;
-+		}
-+	}
-+
-+	prom_printf("Cannot find free area for bootmap, aborting.\n");
-+	prom_halt();
-+}
-+
-+static unsigned long __init bootmem_init(unsigned long *pages_avail,
-+					 unsigned long phys_base)
-+{
-+	unsigned long bootmap_size, end_pfn;
- 	unsigned long end_of_phys_memory = 0UL;
- 	unsigned long bootmap_pfn, bytes_avail, size;
- 	int i;
-@@ -1236,14 +1293,6 @@ unsigned long __init bootmem_init(unsign
- 
- 	*pages_avail = bytes_avail >> PAGE_SHIFT;
- 
--	/* Start with page aligned address of last symbol in kernel
--	 * image.  The kernel is hard mapped below PAGE_OFFSET in a
--	 * 4MB locked TLB translation.
--	 */
--	start_pfn = PAGE_ALIGN(kern_base + kern_size) >> PAGE_SHIFT;
--
--	bootmap_pfn = start_pfn;
--
- 	end_pfn = end_of_phys_memory >> PAGE_SHIFT;
- 
- #ifdef CONFIG_BLK_DEV_INITRD
-@@ -1260,23 +1309,23 @@ unsigned long __init bootmem_init(unsign
- 		                 	 "(0x%016lx > 0x%016lx)\ndisabling initrd\n",
- 			       initrd_end, end_of_phys_memory);
- 			initrd_start = 0;
--		}
--		if (initrd_start) {
--			if (initrd_start >= (start_pfn << PAGE_SHIFT) &&
--			    initrd_start < (start_pfn << PAGE_SHIFT) + 2 * PAGE_SIZE)
--				bootmap_pfn = PAGE_ALIGN (initrd_end) >> PAGE_SHIFT;
-+			initrd_end = 0;
- 		}
- 	}
- #endif	
- 	/* Initialize the boot-time allocator. */
- 	max_pfn = max_low_pfn = end_pfn;
--	min_low_pfn = pfn_base;
-+	min_low_pfn = (phys_base >> PAGE_SHIFT);
-+
-+	bootmap_pfn = choose_bootmap_pfn(min_low_pfn, end_pfn);
- 
- #ifdef CONFIG_DEBUG_BOOTMEM
- 	prom_printf("init_bootmem(min[%lx], bootmap[%lx], max[%lx])\n",
- 		    min_low_pfn, bootmap_pfn, max_low_pfn);
- #endif
--	bootmap_size = init_bootmem_node(NODE_DATA(0), bootmap_pfn, pfn_base, end_pfn);
-+	bootmap_size = init_bootmem_node(NODE_DATA(0), bootmap_pfn,
-+					 (phys_base >> PAGE_SHIFT),
-+					 end_pfn);
- 
- 	/* Now register the available physical memory with the
- 	 * allocator.
-@@ -1324,6 +1373,20 @@ unsigned long __init bootmem_init(unsign
- 	reserve_bootmem((bootmap_pfn << PAGE_SHIFT), size);
- 	*pages_avail -= PAGE_ALIGN(size) >> PAGE_SHIFT;
- 
-+	for (i = 0; i < pavail_ents; i++) {
-+		unsigned long start_pfn, end_pfn;
-+
-+		start_pfn = pavail[i].phys_addr >> PAGE_SHIFT;
-+		end_pfn = (start_pfn + (pavail[i].reg_size >> PAGE_SHIFT));
-+#ifdef CONFIG_DEBUG_BOOTMEM
-+		prom_printf("memory_present(0, %lx, %lx)\n",
-+			    start_pfn, end_pfn);
-+#endif
-+		memory_present(0, start_pfn, end_pfn);
-+	}
-+
-+	sparse_init();
-+
- 	return end_pfn;
- }
- 
-@@ -1448,7 +1511,7 @@ pgd_t swapper_pg_dir[2048];
- 
- void __init paging_init(void)
- {
--	unsigned long end_pfn, pages_avail, shift;
-+	unsigned long end_pfn, pages_avail, shift, phys_base;
- 	unsigned long real_end, i;
- 
- 	/* Find available physical memory... */
-@@ -1458,8 +1521,6 @@ void __init paging_init(void)
- 	for (i = 0; i < pavail_ents; i++)
- 		phys_base = min(phys_base, pavail[i].phys_addr);
- 
--	pfn_base = phys_base >> PAGE_SHIFT;
--
- 	kern_base = (prom_boot_mapping_phys_low >> 22UL) << 22UL;
- 	kern_size = (unsigned long)&_end - (unsigned long)KERNBASE;
- 
-@@ -1506,7 +1567,9 @@ void __init paging_init(void)
- 
- 	/* Setup bootmem... */
- 	pages_avail = 0;
--	last_valid_pfn = end_pfn = bootmem_init(&pages_avail);
-+	last_valid_pfn = end_pfn = bootmem_init(&pages_avail, phys_base);
-+
-+	max_mapnr = last_valid_pfn - (phys_base >> PAGE_SHIFT);
- 
- #ifdef CONFIG_DEBUG_PAGEALLOC
- 	kernel_physical_mapping_init();
-@@ -1521,7 +1584,7 @@ void __init paging_init(void)
- 		for (znum = 0; znum < MAX_NR_ZONES; znum++)
- 			zones_size[znum] = zholes_size[znum] = 0;
- 
--		npages = end_pfn - pfn_base;
-+		npages = end_pfn - (phys_base >> PAGE_SHIFT);
- 		zones_size[ZONE_DMA] = npages;
- 		zholes_size[ZONE_DMA] = npages - pages_avail;
- 
-@@ -1596,7 +1659,6 @@ void __init mem_init(void)
- 
- 	taint_real_pages();
- 
--	max_mapnr = last_valid_pfn - pfn_base;
- 	high_memory = __va(last_valid_pfn << PAGE_SHIFT);
- 
- #ifdef CONFIG_DEBUG_BOOTMEM
-diff --git a/include/asm-sparc64/page.h b/include/asm-sparc64/page.h
-index 5426bb2..af13d32 100644
---- a/include/asm-sparc64/page.h
-+++ b/include/asm-sparc64/page.h
-@@ -124,17 +124,10 @@ typedef unsigned long pgprot_t;
- #define __pa(x)			((unsigned long)(x) - PAGE_OFFSET)
- #define __va(x)			((void *)((unsigned long) (x) + PAGE_OFFSET))
- 
--/* PFNs are real physical page numbers.  However, mem_map only begins to record
-- * per-page information starting at pfn_base.  This is to handle systems where
-- * the first physical page in the machine is at some huge physical address,
-- * such as 4GB.   This is common on a partitioned E10000, for example.
-- */
--extern struct page *pfn_to_page(unsigned long pfn);
--extern unsigned long page_to_pfn(struct page *);
-+#define pfn_to_kaddr(pfn)	__va((pfn) << PAGE_SHIFT)
- 
- #define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr)>>PAGE_SHIFT)
- 
--#define pfn_valid(pfn)		(((pfn)-(pfn_base)) < max_mapnr)
- #define virt_addr_valid(kaddr)	pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
- 
- #define virt_to_phys __pa
-diff --git a/include/asm-sparc64/pgtable.h b/include/asm-sparc64/pgtable.h
-index f0a9b44..2178796 100644
---- a/include/asm-sparc64/pgtable.h
-+++ b/include/asm-sparc64/pgtable.h
-@@ -212,9 +212,6 @@
- 
- #ifndef __ASSEMBLY__
- 
--extern unsigned long phys_base;
--extern unsigned long pfn_base;
--
- extern struct page *mem_map_zero;
- #define ZERO_PAGE(vaddr)	(mem_map_zero)
- 
---- a/include/asm-sparc64/numnodes.h	2006-02-15 04:00:56.000000000 -0800
-+++ b/include/asm-sparc64/numnodes.h	2006-03-08 02:19:18.000000000 -0800
-@@ -0,0 +1,6 @@
-+#ifndef _SPARC64_NUMNODES_H
-+#define _SPARC64_NUMNODES_H
-+
-+#define NODES_SHIFT	0
-+
-+#endif /* !(_SPARC64_NUMNODES_H) */
---- a/include/asm-sparc64/sparsemem.h	2006-02-15 04:00:56.000000000 -0800
-+++ b/include/asm-sparc64/sparsemem.h	2006-03-08 02:19:18.000000000 -0800
-@@ -0,0 +1,12 @@
-+#ifndef _SPARC64_SPARSEMEM_H
-+#define _SPARC64_SPARSEMEM_H
-+
-+#ifdef __KERNEL__
-+
-+#define SECTION_SIZE_BITS       26
-+#define MAX_PHYSADDR_BITS       42
-+#define MAX_PHYSMEM_BITS        42
-+
-+#endif /* !(__KERNEL__) */
-+
-+#endif /* !(_SPARC64_SPARSEMEM_H) */
+Full dmesg log is at: http://dev.gentoo.org/~squash/v240-3.txt
+
+I'll now give you the entire first error per CPU as well as the System.map
+functions summary for all of them. There are a bunch of duplicates, which
+I'll include for completeness but only give the function name the first
+time. Hopefully this is a complete enough report for you.
+
+This is against 2.6.16-rc5-git11 + your parsemem patch.
+
+Initial full messages:
+
+
+[    7.895483] VFS: Mounted root (ext3 filesystem) readonly.
+[    8.265859] ERROR(0): Cheetah error trap taken afsr[0020400000000000] afar[000007f600001180] TL1(0)
+[    8.266322] ERROR(0): Cheetah error trap taken afsr[0020400000000000] afar[000007f600001180] TL1(0)
+[    8.266330] ERROR(0): TPC[0000000000405138] TNPC[000000000040513c] TSTATE[0000000011f09605]
+[    8.266337] ERROR(0): M_SYND(0),  E_SYND(0), Multiple Errors
+[    8.266344] ERROR(0): Highest priority error (0000400000000000) "Error due to unsupported store"
+[    8.266351] ERROR(0): AFAR E-syndrome [???]
+[    8.266356] ERROR(0): D-cache idx[0] tag[0000000000000000] utag[0000000000000000] stag[0000000000000000]
+[    8.266363] ERROR(0): D-cache data0[0000000000000000] data1[0000000000000000] data2[0000000000000000] data3[0000000000000000]
+[    8.266371] ERROR(0): I-cache idx[0] tag[0000000000000000] utag[0000000000000000] stag[0000000000000000] u[0000000000000000] l[0000000000000000]
+[    8.266380] ERROR(0): I-cache INSN0[0000000000000000] INSN1[0000000000000000] INSN2[0000000000000000] INSN3[0000000000000000]
+[    8.266387] ERROR(0): I-cache INSN4[0000000000000000] INSN5[0000000000000000] INSN6[0000000000000000] INSN7[0000000000000000]
+[    8.266395] ERROR(0): E-cache idx[1080] tag[0000000006000049]
+[    8.266400] ERROR(0): E-cache data0[0000000000000000] data1[0000000000000000] data2[0000000000000000] data3[0000000000000000]
+[    8.266416] ERROR(1): Cheetah error trap taken afsr[0030100000000000] afar[000000007ee66000] TL1(0)
+[    8.266425] ERROR(1): TPC[000000000051d4a0] TNPC[000000000051d4a4] TSTATE[0000004411009606]
+[    8.266431] ERROR(1): M_SYND(0),  E_SYND(0), Multiple Errors, Privileged
+[    8.266439] ERROR(1): Highest priority error (0000100000000000) "Unmapped error from system bus"
+[    8.266445] ERROR(1): D-cache idx[0] tag[0000000000000000] utag[0000000000000000] stag[0000000000000000]
+[    8.266462] ERROR(1): D-cache data0[0000000000000000] data1[0000000000000000] data2[0000000000000000] data3[0000000000000000]
+[    8.266479] ERROR(1): I-cache idx[0] tag[0000000000000000] utag[0000000000000000] stag[0000000000000000] u[0000000000000000] l[0000000000000000]
+[    8.266493] ERROR(1): I-cache INSN0[0000000000000000] INSN1[0000000000000000] INSN2[0000000000000000] INSN3[0000000000000000]
+[    8.266508] ERROR(1): I-cache INSN4[0000000000000000] INSN5[0000000000000000] INSN6[0000000000000000] INSN7[0000000000000000]
+[    8.266521] ERROR(1): E-cache idx[800] tag[000000000e000056]
+[    8.266536] ERROR(1): E-cache data0[000000000172e000] data1[000000000172e000] data2[000000000172e000] data3[000000000172e000]
+
+All TPC lines including function names:
+
+
+[    8.266330] ERROR(0): TPC[0000000000405138] TNPC[000000000040513c] TSTATE[0000000011f09605]
+0000000000405044 T etrap_irq
+[    8.266425] ERROR(1): TPC[000000000051d4a0] TNPC[000000000051d4a4] TSTATE[0000004411009606]
+000000000051d450 t cheetah_copy_page_insn
+[    8.266471] ERROR(0): TPC[0000000000411880] TNPC[0000000000411884] TSTATE[0000000011f09604]
+0000000000411880 T cheetah_cee_handler
+[    8.266652] ERROR(0): TPC[0000000000405138] TNPC[000000000040513c] TSTATE[0000000011f09603]
+[    8.266770] ERROR(0): TPC[0000000000411880] TNPC[0000000000411884] TSTATE[0000000011f09602]
+[    8.266889] ERROR(0): TPC[0000000000405138] TNPC[000000000040513c] TSTATE[0000000011f09601]
+[    8.267007] ERROR(0): TPC[000000000051fbc8] TNPC[000000000051fbcc] TSTATE[0000004411f09600]
+000000000051fbc0 T U3memcpy
+[    8.267125] ERROR(0): TPC[0000000000405138] TNPC[000000000040513c] TSTATE[0000000011f09606]
+[    8.267243] ERROR(0): TPC[0000000000411880] TNPC[0000000000411884] TSTATE[0000000011f09605]
+[    8.267361] ERROR(0): TPC[0000000000405138] TNPC[000000000040513c] TSTATE[0000000011f09604]
+[    8.267479] ERROR(0): TPC[0000000000411880] TNPC[0000000000411884] TSTATE[0000000011f09603]
+[    8.267597] ERROR(0): TPC[0000000000405138] TNPC[000000000040513c] TSTATE[0000000011f09602]
+[    8.267715] ERROR(0): TPC[0000000000411880] TNPC[0000000000411884] TSTATE[0000000011f09601]
+[    8.267832] ERROR(0): TPC[0000000000405138] TNPC[000000000040513c] TSTATE[0000000011f09600]
+[    8.267944] ERROR(0): TPC[0000000000411880] TNPC[0000000000411884] TSTATE[0000000011f09607]
+[    8.268062] ERROR(0): TPC[0000000000547c48] TNPC[0000000000547c4c] TSTATE[0000004411f09606]
+0000000000547c00 t serial_in
+[   14.266436] ERROR(0): TPC[0000000000405138] TNPC[000000000040513c] TSTATE[0000000011f09605]
+[   15.705378] ERROR(0): TPC[000000000051fbe0] TNPC[000000000051fbe4] TSTATE[0000000011f09604]
+000000000051fbc0 T U3memcpy
+[   17.144321] ERROR(0): TPC[0000000000405138] TNPC[000000000040513c] TSTATE[0000000011f09602]
+[    1.403398] ERROR(0): TPC[0000000000411880] TNPC[0000000000411884] TSTATE[0000000011f09601]
+[    2.842342] ERROR(0): TPC[0000000000405138] TNPC[000000000040513c] TSTATE[0000000011f09600]
+[    4.281285] ERROR(0): TPC[0000000000411880] TNPC[0000000000411884] TSTATE[0000000011f09607]
+[    5.720229] ERROR(0): TPC[0000000000405138] TNPC[000000000040513c] TSTATE[0000000011f09606]
+[    7.159172] ERROR(0): TPC[000000000051fdd8] TNPC[000000000051fddc] TSTATE[0000004411f09605]
+000000000051fbc0 T U3memcpy
+[    8.598117] ERROR(0): TPC[0000000000405138] TNPC[000000000040513c] TSTATE[0000000011f09603]
+[   10.037061] ERROR(0): TPC[000000000051fbe0] TNPC[000000000051fbe4] TSTATE[0000000011f09602]
+[   11.476004] ERROR(0): TPC[0000000000405138] TNPC[000000000040513c] TSTATE[0000000011f09600]
+[   12.914948] ERROR(0): TPC[000000000041184c] TNPC[0000000000411850] TSTATE[0000000911f09607]
+0000000000411820 t cheetah_check_main_memory
+[   14.353893] ERROR(0): TPC[0000000000405138] TNPC[000000000040513c] TSTATE[0000000011f09605]
+[   15.792836] ERROR(0): TPC[000000000051b500] TNPC[000000000051b504] TSTATE[0000000011f09604]
+000000000051b500 T memcpy
+[    0.051911] ERROR(0): TPC[0000000000405138] TNPC[000000000040513c] TSTATE[0000000011f09602]
+[    1.385630] ERROR(0): TPC[000000000040ea24] TNPC[000000000040ea28] TSTATE[0000004411009601]
+000000000040e9e0 T cpu_idle
+
+
+Finally, our RED, plus function names below:
+
+RED State Exception
+Error enable reg: 0000.0001.00f0.001f
+CPU: 0000.0000.0000.0000
+TL=0000.0000.0000.0005 TT=0000.0000.0000.0010
+   TPC=0000.0000.0040.d020 TnPC=0000.0000.0040.d024 TSTATE=0000.0000.1100.9507
+TL=0000.0000.0000.0004 TT=0000.0000.0000.0080
+   TPC=0000.0000.0040.5098 TnPC=0000.0000.0040.509c TSTATE=0000.0000.1100.9505
+TL=0000.0000.0000.0003 TT=0000.0000.0000.0010
+   TPC=0000.0000.0040.d020 TnPC=0000.0000.0040.d024 TSTATE=0000.0000.1100.9505
+TL=0000.0000.0000.0002 TT=0000.0000.0000.0080
+   TPC=0000.0000.0040.5098 TnPC=0000.0000.0040.509c TSTATE=0000.0000.1100.9503
+TL=0000.0000.0000.0001 TT=0000.0000.0000.0010
+   TPC=0000.0000.0041.26c0 TnPC=0000.0000.0041.26c4 TSTATE=0000.0000.1100.960
+
+000000000040d000 t tl1_s0n
+0000000000405044 T etrap_irq
+00000000004126c0 T do_illegal_instruction
+
+
+--=_unix1.shortcutsolutions.net-2023-1141850207-0001-2
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Transfer-Encoding: 7bit
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iD8DBQFEDz+mT/OY5rt9JCMRA25vAKCXwOkbRiLRaRkhYZymTIlTcCTZ+wCfS8wu
+NAFk6DEOmcLP1J012MicRLU=
+=js0e
+-----END PGP SIGNATURE-----
+
+--=_unix1.shortcutsolutions.net-2023-1141850207-0001-2--
