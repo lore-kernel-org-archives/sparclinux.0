@@ -1,36 +1,37 @@
-From: "Pilger" <chickieajzh@yahoo.se>
-Date: Sun, 05 Mar 2006 11:04:53 +0000
+From: "Troy Hendrix" <dilemmagzjt@yahoo.it>
+Date: Wed, 08 Mar 2006 01:50:27 +0000
 Subject: howz going
-Message-Id: <oA897.ZM94.3nl0.5O9D7fr17E2f@localhost>
+Message-Id: <yE6.ZR52.0h16t2.3S6X2H4f@localhost>
 List-Id: <sparclinux.vger.kernel.org>
+References: <oA897.ZM94.3nl0.5O9D7fr17E2f@localhost>
+In-Reply-To: <oA897.ZM94.3nl0.5O9D7fr17E2f@localhost>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi sparclinux@vger.kernel.org,
 
-Goes to Work After First Dos~age. 
+How have you been,
 
-100% pure South African Hoo deea.
+All kinds of    med!c!nes     at one huge    l!censed st0re.
 
-No queasy sto_mach.
+Our    pri$ces    will please you.
 
-====================================
+************************************************************************
 
-COPY the Address below and paste in your BROoWSER:
+copy the address below and paste in o your web browser:
 
-anorexy.landoftheburd.com
+cardoncillo.coralstrategy.com
 
-====================================
-
-
-professor and former chief of GE's Crotonville leadership development program..
-Amid a transparent clear belt of ether yet left in the east, .
-  Of Physiology from top to toe I sing; .
-"People's perception of Toyota is that Toyota has 'brand power,'" .
-Washington but when inflation was added to the calculation a total of 105.
+************************************************************************
 
 
-Regards,
-Claudine Jackson 
+I nourished the dream that nothing could smother .
+Carrying in my body the seed of the free. .
+"Consumers view those programs negatively in that they view it as .
+In which I have during the last eight years studied the methods of my friend Sherlock Holmes, .
+The smell of gas in no 8. She was skinny, with long straight black hair and a severe fringe..
+
+Thanks,
+
+Wiley Ashby
