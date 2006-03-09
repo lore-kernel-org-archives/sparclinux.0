@@ -1,55 +1,31 @@
-From: Josh Grebe <josh@brokedown.net>
-Date: Thu, 09 Mar 2006 21:19:55 +0000
+From: "David S. Miller" <davem@davemloft.net>
+Date: Thu, 09 Mar 2006 21:27:07 +0000
 Subject: Re: ESP busted
-Message-Id: <44109BFB.7050004@brokedown.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=_unix1.shortcutsolutions.net-23349-1141939381-0001-2"
+Message-Id: <20060309.132707.80696443.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20060309.131637.114886710.davem@davemloft.net>
 In-Reply-To: <20060309.131637.114886710.davem@davemloft.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-This is a MIME-formatted message.  If you see this text it means that your
-E-mail software does not support MIME-formatted messages.
+From: Josh Grebe <josh@brokedown.net>
+Date: Thu, 09 Mar 2006 15:19:55 -0600
 
---=_unix1.shortcutsolutions.net-23349-1141939381-0001-2
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+> Reading specs from /usr/lib/gcc-lib/sparc64-unknown-linux-gnu/3.3.5/specs
+> Configured with:
+> /var/tmp/portage/gcc-sparc64-3.3.5/work/gcc-sparc64-3.3.5/configure
+> --prefix=/usr --disable-shared --disable-multilib
+> --target=sparc64-unknown-linux-gnu --enable-languages=c --enable-threads=single
+> --host=sparc-unknown-linux-gnu
+> Thread model: single
+> gcc version 3.3.5  (Gentoo Linux 3.3.5)
 
+Ok, I tested and could not reproduce that inlining behavior with
+gcc-3.4.x: gcc-3.4 (GCC) 3.4.6 20060122 (prerelease) (Debian 3.4.5-2)
 
-David S. Miller wrote:
-> What gcc version are you using again?  I'll try to reproduce here and
-> try to add some inline directives to try and cure this.
+But I definitely can reproduce it with gcc-3.3.x:
+gcc-3.3 (GCC) 3.3.6 (Debian 1:3.3.6-10)
 
-Hi Dave,
-
-Reading specs from /usr/lib/gcc-lib/sparc64-unknown-linux-gnu/3.3.5/specs
-Configured with:
-/var/tmp/portage/gcc-sparc64-3.3.5/work/gcc-sparc64-3.3.5/configure
---prefix=/usr --disable-shared --disable-multilib
---target=sparc64-unknown-linux-gnu --enable-languages=c --enable-threads=single
---host=sparc-unknown-linux-gnu
-Thread model: single
-gcc version 3.3.5  (Gentoo Linux 3.3.5)
-
-
-Thanks,
-
-Josh
-
---=_unix1.shortcutsolutions.net-23349-1141939381-0001-2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Transfer-Encoding: 7bit
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-
-iD8DBQFEEJv+T/OY5rt9JCMRA023AJ4jSbigR4qVsqAbANcZ5bR/Q+x4KgCeOLr8
-ZQFKyce6EbldLeEDHNr/ygY=
-=lw//
------END PGP SIGNATURE-----
-
---=_unix1.shortcutsolutions.net-23349-1141939381-0001-2--
+I'll see what I can do...
