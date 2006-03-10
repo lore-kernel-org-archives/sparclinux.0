@@ -1,31 +1,19 @@
-From: "Brain William" <williamjf@netscape.net>
-Date: Thu, 30 Mar 2006 13:12:29 +0000
-Subject: Re: US RealEstate Market Will COllapse sw5vw
-Message-Id: <2.2.32.20060230131229008fc262@netscape.net>
+From: "David S. Miller" <davem@davemloft.net>
+Date: Fri, 10 Mar 2006 10:55:33 +0000
+Subject: Re: [Patch] BUG_ON() Conversion in arch/sparc/kernel/ioport.c
+Message-Id: <20060310.025533.71195150.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: kernel-janitors@vger.kernel.org
 
-Newsletter Subscriber, 
+From: Eric Sesterhenn / snakebyte <snakebyte@gmx.de>
+Date: Thu, 26 Jan 2006 20:12:04 +0100
 
-As we all know the real estate market is about to crash. 
-In Feb 2006 there were 117,259 foreclosures alone(68% higher 
-than 2005 and rates are going higher everyday). Many investors 
-are now playing the stock market which is expected to explode 
-25 to 50% over the next 3 years. Now is the time to get in the 
-game and we will show you step by step so you can profit very 
-big. We also give you the very best picks all around the world 
-on every exchange that are profitable not just the U.S. Markets. 
-This is your chance to learn the game and make huge daily returns. 
-Now you can "Profit Like A Pro" And Win Big! We will not only 
-give you the very best daily picks around the world that have 
-the most profit potential but you will become financially savvy 
-and learn the inside of the markets how they work and how your 
-broker makes a fortune if you win or lose. Now you can win! 
+> this changes if() BUG(); constructs to BUG_ON() which is
+> cleaner and can better optimized away
+> 
+> Signed-off-by: Eric Sesterhenn <snakebyte@gmx.de>
 
-Get A Complimentary Copy Our 195 Page Book By Going Too: 
-
-http://www.superstockprofits.com
-
+Patch applied, thanks Eric.
