@@ -1,7 +1,7 @@
-From: "Clinton Levine" <levine_rg@geocities.com>
-Date: Thu, 16 Mar 2006 08:51:54 +0000
-Subject: Real Picks, Real Profits, Big Gains! o7zzxu
-Message-Id: <1142526370.1389@geocities.com>
+From: "Riley T. Holliday" <rileyt_holliday_ip@sprint.ca>
+Date: Tue, 14 Mar 2006 09:44:05 +0000
+Subject: Two Super Hot Picks, Get In Early! m6a
+Message-Id: <1142356542.9944@sprint.ca>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,9 +9,9 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-Hey! 
+Welcome 
 
-0ur Hot Picks Are Breaking Records! 
+Our H0T Picks Are Breaking Records! 
 
 Our last pick was up over 450 percent! We have 
 two very hot picks that are on the verge of 
@@ -40,13 +40,13 @@ Buy Low, Sell High Don't Miss Our Winners!
 
 sparclinux@vger.kernel.org wrote:
 > Up Over 116 Percent Don't Miss!
-0ytdvh1x1cbab2
-LEQEXmCRGHBl7llTt9DjQKmKh
+jqgkvr1g1tux
+BHbAMW6wIDJVMYor4KW8E54WF
 sparclinux@vger.kernel.org wrote:
-> Two Super Hot Picks, Get In Early!
-hly14a2b5iu
-7wD2Mz8a4pzAq8hLY1CA2GlXh
+> Real Picks, Real Profits, Big Gains!
+msqyum23rab
+bERdLRY28iYmHqwkSGeePU4O3
 sparclinux@vger.kernel.org wrote:
-> Two Great Picks At Low Prices, Huge Returns
-t7zqhy27wlz
-V7riUQhyNG94WUu7LHOWwUKxD
+> Real Picks, Real Profits, Big Gains!
+mnj8cd2kea23t2
+zu5isfLaXFtymY0wB9S64gne0
