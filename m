@@ -1,7 +1,7 @@
-From: "Edmund" <bad_boyMaguadairamfhqr@yahoo.co.uk>
-Date: Sun, 12 Mar 2006 06:12:16 +0000
+From: "Diggs" <jilntschcu@yahoo.ca>
+Date: Wed, 15 Mar 2006 02:11:49 +0000
 Subject: yo
-Message-Id: <LXzC944.UB375zd7.3W8P9K3m@localhost>
+Message-Id: <007.15e148d5.2a9UKM44@yahoo.es>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4A270.JU08.7eq1.548U4T9W0@localhost>
 In-Reply-To: <4A270.JU08.7eq1.548U4T9W0@localhost>
@@ -10,28 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Hey,
 
-Hi sparclinux@vger.kernel.org,
+Men's    PEE ils (from $140) (Veeagra,Leviitra).
 
-We are your solution for Substantial     Pres_cr!pt!0n     Deals. 
+Need     m3d!_ca_tion    without a prior    pre_scri_ption?
 
-Revolution in     pharmwacology!
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-------------------------------------------------------------------------
+copy the address below and paste in a your web browser:
 
-copy the address below and paste in e your web browser:
+bemuzzle.beecomrad.net
 
-arrased.candyball.net
-
-------------------------------------------------------------------------
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-gliding, venomous creatures, with their deadly eyes and wicked, .
-Washington but when inflation was added to the calculation a total of 105.
-just talking about heaven..
-A lizard named Ed is asleep in his bed,.
-A sour Scotswoman called Hooch..
+Lift high my banner out of the dust. .
+In the evening she would sit for hours outside her caravan writing in a ledger..
+Believe in the right, let none push you back. .
+I've had to do with fifty murderers in my career, .
+Who lived in a shoe..
 
-Thanks,
+Thanks Alot,
 
-Humberto Cisneros
+Jessie Lujan
