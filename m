@@ -1,8 +1,10 @@
 From: "Daniel 'NebuchadnezzaR' Dehennin" <sparc@asgardr.info>
-Date: Thu, 16 Mar 2006 18:28:15 +0000
+Date: Thu, 16 Mar 2006 21:37:37 +0000
 Subject: bbc, envctrl and sun blade 2000
-Message-Id: <87k6auqm68.fsf@thorr.asgardr.info>
+Message-Id: <87hd5yoyu6.fsf@thorr.asgardr.info>
 List-Id: <sparclinux.vger.kernel.org>
+References: <87k6auqm68.fsf@thorr.asgardr.info>
+In-Reply-To: <87k6auqm68.fsf@thorr.asgardr.info>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
