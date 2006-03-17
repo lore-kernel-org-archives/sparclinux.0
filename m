@@ -1,7 +1,7 @@
-From: "Daniel 'NebuchadnezzaR' Dehennin" <sparc@asgardr.info>
-Date: Fri, 17 Mar 2006 10:55:48 +0000
+From: "Daniel 'NebuchadnezzaR' Dehennin" <nebuchadnezzar@asgardr.info>
+Date: Fri, 17 Mar 2006 10:56:39 +0000
 Subject: Re: bbc, envctrl and sun blade 2000
-Message-Id: <874q1xpcgb.fsf@thorr.asgardr.info>
+Message-Id: <873bhhpcew.fsf@thorr.asgardr.info>
 List-Id: <sparclinux.vger.kernel.org>
 References: <87k6auqm68.fsf@thorr.asgardr.info>
 In-Reply-To: <87k6auqm68.fsf@thorr.asgardr.info>
