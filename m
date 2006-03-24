@@ -1,55 +1,59 @@
-From: Dennis Jenkins <dennis.jenkins@sbcglobal.net>
-Date: Sat, 25 Mar 2006 02:34:47 +0000
-Subject: Fwd: Re: Sun Enterprise 6500. 10xUltraSPARC/400MHz, 10Gb mem
-Message-Id: <20060325023447.95781.qmail@web81309.mail.mud.yahoo.com>
+From: "deangela jaylee" <grandsires@processlibrary.com>
+Date: Fri, 24 Mar 2006 01:58:13 +0000
+Subject: Re[8]: He loves but little who can say and count in words, how much he loves
+Message-Id: <578101c64ee6$09426c45$4918de54@host-84-222-24-73.cust-adsl.tiscali.it>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Ugh.  Sorry David, I ment to send this to the entire
-list.
+Hey!
 
---- Dennis Jenkins <dennis.jenkins@sbcglobal.net>
-wrote:
+Just one bottle will change your life!
+Gain MASSIVE Sexual Chemistry on Demand!
 
-> Date: Fri, 24 Mar 2006 18:34:09 -0800 (PST)
-> From: Dennis Jenkins <dennis.jenkins@sbcglobal.net>
-> Subject: Re: Sun Enterprise 6500.
-> 10xUltraSPARC/400MHz, 10Gb mem
-> To: "David S. Miller" <davem@davemloft.net>
-> 
-> --- "David S. Miller" <davem@davemloft.net> wrote:
-> 
-> > The SOC/SOC+ drivers are known to be busted. Ben
-> > Collins and
-> > I have taken stabs recently to try and get it
-> > working with
-> > only limited luck.
-> 
-> Sweet.  I look forward to it.
-> 
-> > And even if we get it working, folks will need to
-> > extract the SOC/SOC+
-> > firmware out of the Solaris driver by hand and
-> > include it into a
-> > custom build of the Linux driver in order to get a
-> > working setup.
-> 
-> I've tried that before too.  I extracted the
-> firmware
-> per the instructions on the web, rebuilt my kernel,
-> but I was still unable to get the driver to work.
-> 
-> I have Solaris 9 installed on one of the fiber
-> channel
-> disks.  I have Gentoo installed on an external 18.2G
-> scsi disk.
-> 
-> 
-> Dennis Jenkins
-> 
+Instantly Arouse, Attract, Excite, Intrigue and Seduce
+Gorgeous Women Whenever You Want, Wherever You Want,
+As Often As You Want ... Any Time YOU Are In the Mood.
+
+Increase your self-confidence and masculinity big-time.
+then this may be the most important news you will read all year.
+Here's why ...
+
+If YOU have ever experienced even one of those frustrating 
+"What did I do wrong?" moments, trying to meet and seduce good-looking 
+women, it's time for you to stop wondering and fumbling, ever again.
+
+But the fact of the matter is, for most guys, this "chemistry" is rare.
+Way more often you have awkward silences, embarrassing miscues,
+wrong turns and dead ends .
+
+You know what I mean? It hurts. Well, just suppose for a moment .
+Suppose you could have total control. Suppose you could turn on the
+chemistry whenever and with whoever YOU want?
+Suppose you knew you could turn ON this magical attraction with
+as many women as you want, whenever YOU want it?
+
+"Now You Can!!!" 
+
+More information you will get on our wwwebbbsssitee: yournewpower[DOT]info (replace "[DOT]" to ".") 
 
 
-Dennis Jenkins
+------------
+Pokrovskoe, at her sister Kitty Levin's.  The house on her own
+estate was quite in ruins, and Levin and his wife had persuaded
+her to spend the summer with them.  Stepan Arkadyevitch greatly
+approved of the arrangement.  He said he was very sorry his
+official duties prevented him from spending the summer in the
+country with his family, which would have been the greatest
+happiness for him; and remaining in Moscow, he came down to the
+country from time to time for a day or two.  Besides the
+Oblonskys, with all their children and their governess, the old
+princess too came to stay that summer with the Levins, as she
+considered it her duty to watch over her inexperienced daughter in
+her _interesting condition_.  Moreover, Varenka, Kitty's friend
+abroad, kept her promise to come to Kitty when she was married,
+and stayed with her friend.  All of these were friends or
+relations of Levin's wife.  And though he liked them all, he
+
