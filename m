@@ -1,35 +1,35 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Fri, 10 Mar 2006 09:23:33 +0000
-Subject: Re: [PATCH] sparc64: fix sparc_floppy_irq's auxio_register reseting
-Message-Id: <20060310.012333.52015340.davem@davemloft.net>
+From: Chris Boot <bootc@bootc.net>
+Date: Fri, 24 Mar 2006 18:45:45 +0000
+Subject: USB PCI problems on Ultra 5
+Message-Id: <44243E59.8070203@bootc.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: "Bernhard R. Link" <brlink@debian.org>
-Date: Sat, 21 Jan 2006 18:49:40 +0100
+Hi all,
 
-> The patch "[SPARC64]: Get rid of fast IRQ feature"
-> moved the the code from arch/sparc64/kernel/entry.S:
->       lduba           [%g7] ASI_PHYS_BYPASS_EC_E, %g5
->       or              %g5, AUXIO_AUX1_FTCNT, %g5
->       stba            %g5, [%g7] ASI_PHYS_BYPASS_EC_E
->       andn            %g5, AUXIO_AUX1_FTCNT, %g5
->       stba            %g5, [%g7] ASI_PHYS_BYPASS_EC_E
-> to arch/sparc64/kernel/irq.c:
->               val = readb(auxio_register);
->               val |= AUXIO_AUX1_FTCNT;
->               writeb(val, auxio_register); 
->               val &= AUXIO_AUX1_FTCNT;
->               writeb(val, auxio_register);
-> This looks like it it missing a bitwise not, which is reintroduced 
-> by this patch.
-> 
-> Due to lack of a floppy device, I could not test it, but it looks
-> evident.
-> 
-> Signed-off-by: Bernhard R Link <brlink@debian.org>
+I've been trying to add a PCI USB card to a Sun Ultra 5 workstation, and
+I'm not naving much luck. Basically, I see two behaviours when the
+machine boots up:
 
-Patch applied, thanks Bernhard.
+1. The machine doesn't even reach PROM (screen remains black).
+2. The machine boots fine, but ignores the USB card and one of the other
+PCI cards (usually the one in PCI slot 3).
+
+Has anyone seen this sort of behaviour, let alone solved it?
+
+It's a PCI card based on a VIA VT6212L chip, and works fine in the few
+x86 PCs that I tried it in.
+
+Many thanks,
+Chris
+
+PS: I'm not subscribed so please CC me.
+
+-- 
+Chris Boot
+bootc@bootc.net
+http://www.bootc.net/
+
