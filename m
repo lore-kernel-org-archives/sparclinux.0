@@ -1,7 +1,7 @@
-From: Lamar Owen <lowen@pari.edu>
-Date: Thu, 23 Mar 2006 20:30:10 +0000
+From: Dennis Jenkins <dennis.jenkins@sbcglobal.net>
+Date: Fri, 24 Mar 2006 04:08:33 +0000
 Subject: Re: Sun Enterprise 6500. 10xUltraSPARC/400MHz, 10Gb mem
-Message-Id: <200603231530.11060.lowen@pari.edu>
+Message-Id: <20060324040833.78336.qmail@web81302.mail.mud.yahoo.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <87d5gegxf3.fsf@pumba.bayour.com>
 In-Reply-To: <87d5gegxf3.fsf@pumba.bayour.com>
@@ -10,50 +10,68 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thursday 23 March 2006 15:11, David S. Miller wrote:
-> From: Lamar Owen <lowen@pari.edu>
-> Date: Thu, 23 Mar 2006 14:29:38 -0500
->
-> > but having to netboot and netinstall
-> > means to me that it's probably not ready for production
 
-> The CDROM images boot just fine and I absolutely challenge you find a
-> way to crash a Niagara machine running the current Dapper release.
 
-Certainly no offense intended, David, as to the kernel's stability.  But a 
-distribution is far more than a kernel, and the whole system's stability 
-depends on the whole distribution, and particularly on the compiler chain and 
-glibc.
+--- Turbo Fredriksson <turbo@swe.net> wrote:
 
-Unless you have access to some images that are not public, the latest Dapper 
-on ports.ubuntu.com, dated yesterday, does not include full installer CDROMS;  
-you have the choice to either netboot and netinstall, or boot the mini.iso 
-and netinstall.  I'll consider it for production when two things happen:
-1.) Dapper Drake itself is fully released in non-alpha non-beta form;
-2.) The SPARC port is released in non-alpha non-beta full installer form.
+> How does this sound as a Linux machine? Stability?
+> Scalability?
+> How good is Linux/SPARC64 in taking advantage of
+> this amount
+> of CPU's? I've heard that Linux scales up to 32
+> CPU's (old number?)
+> but I guess that's on x86, not SPARC64?
+> 
+> 
+> Would it (Linux) even run on such a machine? I've
+> tried getting
+> it to work on a E3000, but is getting huge problems
+> with the SCSI
+> interface (esp if I remember correctly)...
+> This was a friends machine, and I was only called in
+> as help. Never
+> got it to work correctly with any of the standard
+> Debian GNU/Linux
+> kernels we tried. Next step was to make a custom
+> kernel, but friend
+> travels a lot so there's little time to work on
+> this.
+> Now he's shopping for a E6500 (eBay). But I'm a
+> little skeptical
+> on getting it to work (at all and/or good). Any
+> pointers? Ideas?
+> -
+> To unsubscribe from this list: send the line
+> "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at 
+> http://vger.kernel.org/majordomo-info.html
+> 
 
-From my vantage point, there are very few SPARC Linux distributions that 
-qualify for production.  The current Debian STABLE is one of them, as is 
-Aurora 1.0.  I have not had the time to do any stage Gentoo to comment on its 
-stability.  Out of sheer necessity I am running a box in production on Aurora 
-1.92, and it has proven stable; Aurora 2.0 looks promising as well.  And, 
-again, once Ubuntu SPARC has its non-beta release it will likewise be 
-considered; although I might grab it to experiment.
+I have a 8 processor E3500.  Linux (Gentoo for me)
+works great, except that it CAN NOT use the internal
+Fiber Channel disk array.  (I've been told that the
+2.2 kernel series used to work, but I don't want to
+run a kernel that old).  Really sucks two, as my box
+as 8x 18.2G drives.
 
-As far as the kernel is concerned, you are almost assuredly completely correct 
-as to its stability (you would be the one person who could be that sure); but 
-there's more than a kernel I have to think about.
+The damn thing could probably heat my house in the
+winter.  The power supply is almost 2 Kilowatts.  The
+little air vents at teh bottom make nice foot warmers.
 
-I'm not as nearly concerned with Niagara stability as I am with sun4u Ex500 
-stability, since I have the latter and depend upon the latter.  However, this 
-is very good to know for those using any SPARC box with a large number of 
-processors, and it is absolutely wonderful that you have it working that well 
-on that processor.
--- 
-Lamar Owen
-Director of Information Technology
-Pisgah Astronomical Research Institute
-1 PARI Drive
-Rosman, NC  28772
-(828)862-5554
-www.pari.edu
+Doing a "make -j8" is very satisfying.
+
+Just remember that the CPUs themselves run at 334MHz
+or 400 MHZ.  An E6500 only does 334MHz b/c the
+back-plane is too long to support faster CPUs.  Not
+sure why yours does 400MHz.  The backplane can move
+3GB/s.  The box is not super fast at raw # crunching. 
+The total bogomips are only twice that of my AMD
+Athlon 1.4GHz.  However, the sun box can do termendous
+I/O.  In my opnion, the box would make a great
+database server, but would not be useful for high-end
+math or 3-d applications.
+
+
+
+Dennis Jenkins
