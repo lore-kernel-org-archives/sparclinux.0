@@ -1,33 +1,31 @@
-From: "Consider J. Addendum" <ssnodgra@gobiernofederal.com>
-Date: Fri, 31 Mar 2006 08:06:07 +0000
-Subject: Software
-Message-Id: <1376874131.20060331160549@gobiernofederal.com>
+From: "Brain William" <williamjf@netscape.net>
+Date: Thu, 30 Mar 2006 13:12:29 +0000
+Subject: Re: US RealEstate Market Will COllapse sw5vw
+Message-Id: <2.2.32.20060230131229008fc262@netscape.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-cheap oem soft shipping worldwide 
-Looking for cheap high-quality software? 
+Newsletter Subscriber, 
 
-New software on our site:
+As we all know the real estate market is about to crash. 
+In Feb 2006 there were 117,259 foreclosures alone(68% higher 
+than 2005 and rates are going higher everyday). Many investors 
+are now playing the stock market which is expected to explode 
+25 to 50% over the next 3 years. Now is the time to get in the 
+game and we will show you step by step so you can profit very 
+big. We also give you the very best picks all around the world 
+on every exchange that are profitable not just the U.S. Markets. 
+This is your chance to learn the game and make huge daily returns. 
+Now you can "Profit Like A Pro" And Win Big! We will not only 
+give you the very best daily picks around the world that have 
+the most profit potential but you will become financially savvy 
+and learn the inside of the markets how they work and how your 
+broker makes a fortune if you win or lose. Now you can win! 
 
-Office XP Professional - $79.95
-Illustrator CS CE - $69.95
-Illustrator CS CE - $69.95
-Office XP Professional - $79.95
-Project 2003 Professional - $69.95
-Illustrator CS - $69.95
-Visual Studio .NET Architect Edition (8CD) - $139.95
-Visual Studio .NET Architect Edition (8CD) - $139.95
-PageMaker 7 (2CD) - $69.95
-PhotoRetouch Pro 3.0 - $59.95
-Extensis Portfolio 7.0 - $59.95
-Picture It Premium 9 - $59.95
-Money 2004 - $69.95
-InDesign CS PageMaker Edition (2CD) - $69.95
+Get A Complimentary Copy Our 195 Page Book By Going Too: 
 
-Our site:
-http://e0kp2r182mjrfew91we91wwe.canarseeai.com/
+http://www.superstockprofits.com
 
