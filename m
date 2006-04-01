@@ -1,13 +1,31 @@
-From: "Lauren" <lauren88x@fuse.net>
-Date: Wed, 12 Apr 2006 05:54:29 +0000
-Subject: lidixoqcugi
-Message-Id: <814754327504$71378499$26509209@nemumhuzuk>
+From: "Jamaal E. Kendrick" <jkendrickek@wxs.nl>
+Date: Sat, 01 Apr 2006 03:49:14 +0000
+Subject: The US Economy WIll Collapse, Be Prepared qzu7b
+Message-Id: <6c9a01c6553f$0966756b$e65721ec@2x87vb2>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Would you want to be the first to have and own watch? http://www.qazumaj.giftsreplika.com/
+Newsletter Subscriber, 
 
+As we all know the real estate market is about to crash. 
+In Feb 2006 there were 117,259 foreclosures alone(68% higher 
+than 2005 and rates are going higher everyday). Many investors 
+are now playing the stock market which is expected to explode 
+25 to 50% over the next 3 years. Now is the time to get in the 
+game and we will show you step by step so you can profit very 
+big. We also give you the very best picks all around the world 
+on every exchange that are profitable not just the U.S. Markets. 
+This is your chance to learn the game and make huge daily returns. 
+Now you can "Profit Like A Pro" And Win Big! We will not only 
+give you the very best daily picks around the world that have 
+the most profit potential but you will become financially savvy 
+and learn the inside of the markets how they work and how your 
+broker makes a fortune if you win or lose. Now you can win! 
+
+Get A Complimentary Copy Our 195 Page Book By Going Too: 
+
+http://www.superstockprofits.com
 
