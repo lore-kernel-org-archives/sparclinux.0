@@ -1,28 +1,25 @@
-From: Dustin Lang <dalang@cs.ubc.ca>
-Date: Mon, 10 Apr 2006 23:02:32 +0000
-Subject: Re: PCI card problem on a Sun Ultra 10
-Message-Id: <Pine.LNX.4.60.0604101557510.6936@tin.icics.ubc.ca>
+From: Ludovic =?iso-8859-1?Q?Court=E8s?= <ludo@chbouib.org>
+Date: Tue, 04 Apr 2006 15:20:42 +0000
+Subject: Building a small sparc32 kernel
+Message-Id: <20060404151927.GC2358@cassis>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1144684178.443a7e9215d7d@imp5-g19.free.fr>
-In-Reply-To: <1144684178.443a7e9215d7d@imp5-g19.free.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Hello,
 
-> Are you from the Microsoft marketing department, or what?
->
-> Parallel-port cards aren't expensive - why not save yourself the trouble and 
-> use hardware that works?
+I'm trying to build a 2.6.11 kernel with Bob Breuer's sparc32 SMP
+patch[0] for a bi-processor SS20 (currently running a 2.4 SMP kernel).
+I'm having a hard time trying to figure out an appropriate build
+configuration such that the resulting kernel image is small enough
+(i.e., avoiding the "uncompressed image too long" message at boot time).
 
-Heh, but then, I sound like the Microsoft tech support department: "It 
-doesn't work?  You probably need new hardware."
+Does anyone have an appropriate `.config' that may be posted?
 
-I apologize if my original response sounded dismissive.  I am neither the 
-author of that driver nor a particularly knowledgeable sparc/linux user; 
-I'm just a guy with an opinion :)
+Thanks,
+Ludovic.
 
-Cheers,
-dstn.
+[0] http://article.gmane.org/gmane.linux.ports.sparc/5650/
 
