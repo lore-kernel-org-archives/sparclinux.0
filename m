@@ -1,33 +1,35 @@
-From: "Blockhouse M. Slenderize" <knute@yahoo.com>
-Date: Thu, 06 Apr 2006 11:33:28 +0000
-Subject: Boost you carreer
-Message-Id: <6775673656.20060406204630@yahoo.com>
+From: "Robbie Malone" <robbie.maloneqj@videotron.ca>
+Date: Tue, 04 Apr 2006 12:01:00 +0000
+Subject: How Long Can The US Market Hold On? ryhfi7
+Message-Id: <FLCJMCNHMEHMFBMJLIOADDCOLFAB.robbie.maloneqj@videotron.ca>
 List-Id: <sparclinux.vger.kernel.org>
+In-Reply-To: <3c4001c654a3$a9ecfba8$0faf3380@xmeugt4>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: autoanswer@vger.kernel.org
 
-Please read this letter attentively! 
+Newsletter Subscriber, 
 
-Hello, our company opens a new vacancy. 
-Now we have started our activity in the territory of the UK a nd we need to  
-employ people who will work as our representative in the territory of the UK. 
-Any interested person can become our manager. 
+http://222.133.3.196
 
-Our vacancy is opened for you if you are:
+As we all know the real estate market is about to crash. 
+In Feb 2006 there were 117,259 foreclosures alone(68% higher 
+than 2005 and rates are going higher everyday). Many investors 
+are now playing the stock market which is expected to explode 
+25 to 50% over the next 3 years. Now is the time to get in the 
+game and we will show you step by step so you can profit very 
+big. We also give you the very best picks all around the world 
+on every exchange that are profitable not just the U.S. Markets. 
+This is your chance to learn the game and make huge daily returns. 
+Now you can "Profit Like A Pro" And Win Big! We will not only 
+give you the very best daily picks around the world that have 
+the most profit potential but you will become financially savvy 
+and learn the inside of the markets how they work and how your 
+broker makes a fortune if you win or lose. Now you can win! 
 
-- Age: from 18 till 60 years  
-- Located in the territory of the UK 
-- Have a skill to communicate and access to the Internet.  
- 
-You will earn from 1000 up to 3000 pounds, working only some hours per day.
-You can work part time or full time. 
-Any person located in the UK can become our employee.  
- 
-If you are interested in our offer send the following data to our e-mail uk@ExlDisc.com  
-  
-- Your full name   
-- Your contact e-mail  
-- Your phone number
+Get A Complimentary Copy Our 195 Page Book By Going Too: 
+
+http://222.133.3.196
+
 
