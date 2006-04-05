@@ -1,64 +1,23 @@
-From: Emmanuel Eleganza <emmanuel_eleganza4@virgilio.it>
-Date: Fri, 28 Apr 2006 03:04:18 +0000
-Subject: Accept in good faith.
-Message-Id: <10ade743689.emmanuel_eleganza4@virgilio.it>
+From: "Daniel 'NebuchadnezzaR' Dehennin" <sparc@asgardr.info>
+Date: Wed, 05 Apr 2006 20:46:45 +0000
+Subject: clone return code
+Message-Id: <87psjvu4wa.fsf@thorr.asgardr.info>
 List-Id: <sparclinux.vger.kernel.org>
-References: <443E4BCB0001D3C7@nzoth.tiscali.cz>
-In-Reply-To: <443E4BCB0001D3C7@nzoth.tiscali.cz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: sparclinux@vger.kernel.org
 
-Goodday,
+Hello,
 
-I got your contact over the internet as a 
-trustworthy and 
-reliable person.please pay 
-attention and understand my reason of 
-contacting you today through this email. 
-My name is Hon.EMMANUEL 
-ELEGANZA..I am the 
-personal solicitor to a foreinger, Late 
-Mr. Morris 
-Thompson ,an American who 
-unfortunately lost his life in the plane 
-crash of Alaska Airlines Flight 261, which 
-crashed on January 31 2000. 
-You may read 
-more about the crash on visiting this C.N.N 
-News 
-internet website. 
+Sorry if that question seems idiot but is it normal that clone return
+the parent pid in the child ?
 
-http://archives.cnn.com/2000/US/02/01/alaska.
-airlines.list/ 
+Is seems that on other architectures it have the same behavior than
+fork: return 0 in the child.
 
-I desprately need your assistance to secure 
-and move 
-huge sums of money left behind by 
-my late client to the tune of 
-$85,000,000 
-(Eight five million united states dollars). 
-I will pay 
-you 20% of the total sum for your 
-coperation in this matter.I will 
-give you more 
-details,on your positive response, also 
-include in your 
-reply and acknowledgement of 
-this mail your tel number so that we can 
-disscuss in details. I can be reached 
-urgently through my private mail 
-address 
-below. 
-
-emmaeleganza2003@kaixo.com
-
-Yours Faithfully, 
-
-EMMANUEL ELEGANZA
-Address: 3 Presley Way
-Crownhill, Milton Keynes
-Buckinghamshire MK8 OES
-United Kingdom.
-TELEPHONE +44 702 4082191
+Regards.
+-- 
+Daniel 'NebuchadnezzaR' Dehennin
+Récupérer ma clef GPG:
+gpg --keyserver pgp.mit.edu --recv-keys 0x2A408F69
