@@ -1,53 +1,58 @@
-From: Ludovic =?iso-8859-1?Q?Court=E8s?= <ludo@chbouib.org>
-Date: Sat, 08 Apr 2006 14:24:28 +0000
+From: Wolfram Quester <wolfi@mittelerde.physik.uni-konstanz.de>
+Date: Sat, 08 Apr 2006 20:38:46 +0000
 Subject: Re: Building a small sparc32 kernel
-Message-Id: <20060408142423.GA2630@cassis>
+Message-Id: <20060408203846.GA6266@halley.zuhause>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="TB36FDmn/VVEgNH/"
 List-Id: <sparclinux.vger.kernel.org>
 References: <20060404151927.GC2358@cassis>
 In-Reply-To: <20060404151927.GC2358@cassis>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi,
 
-2 days, 21 hours, 9 minutes, 50 seconds ago, 
-Bob Breuer wrote:
-> 2.6.11?  You shouldn't need to go back that far.  The patch in the
-> message you referenced was for 2.6.14, and also works for 2.6.15.  As
-> long as you don't enable spinlock debugging, you will never get the lock
-> errors.
+--TB36FDmn/VVEgNH/
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Right.  I really meant 2.6.14.
+Hi altogether!
 
-> It's nearly a requirement for the kernel to be stripped before silo will
-> load it.  Try using "strip arch/sparc/boot/image -o /boot/vmlinux" to
-> copy and strip the kernel in one step.
+On Sat, Apr 08, 2006 at 04:24:28PM +0200, Ludovic Court=E8s wrote:
+[...snip...]
+>=20
+> The machine has two SuperSPARC 390Z50.  In your original message you
+> mentioned that support for SuperSPARC II was relatively stable, so maybe
+> this just means that support for this older SuperSPARC flavor is not yet
+> in such a good shape?  ;-)
 
-Oh yes, I had skipped this step.
+Probably I'm wrong but wasn't there an issue with the 390Z50 not having
+cache (in contrast to Z55) an thus not being supported in SMP mode?
 
-So, I now have a 2.6.14 SMP kernel I can boot from.  On my SS20, it
-doesn't even get to the point of spawning `init'.  I get a number of the
-following messages at boot time:
+With best regards,
 
-  esp0: Resetting scsi bus
-  esp0: SCSI bus reset interrupt
-  esp0: DMA error a4400302
+Wolfi
+>=20
+> Let me know how I can help with this.
+>=20
+> Thanks,
+> Ludovic.
+>=20
+> -
+> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-And finally, I get spinlock debugging messages followed by a stack trace
-telling that something went wrong ("BUG: spinlock lockup on CPU#2",
-etc.), and nothing more.  I guess I'm going to have to capture the
-console output via a serial line in order to provide you with meaningful
-data.
+--TB36FDmn/VVEgNH/
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-The machine has two SuperSPARC 390Z50.  In your original message you
-mentioned that support for SuperSPARC II was relatively stable, so maybe
-this just means that support for this older SuperSPARC flavor is not yet
-in such a good shape?  ;-)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.3 (GNU/Linux)
 
-Let me know how I can help with this.
+iD8DBQFEOB9WH0o2mefAfsQRAmJ/AJ9h9+jaX/LfF2tP2eIgamZ3E4n3xgCeLDXp
+DbnWUw1gSa54gyOl1e738LQ=
+=p97V
+-----END PGP SIGNATURE-----
 
-Thanks,
-Ludovic.
-
+--TB36FDmn/VVEgNH/--
