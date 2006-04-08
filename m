@@ -1,30 +1,23 @@
-From: "Britney Yazzie" <oywfjcudahxvr@bedog.net>
-Date: Sun, 09 Apr 2006 03:51:29 +0000
-Subject: Burn calories
-Message-Id: <481c.telepathy@commentator02.repeat82.net>
+From: "Salas Karen " <Esmeraldax_Dawkinsp@bellsouth.com>
+Date: Sat, 08 Apr 2006 15:51:40 +0000
+Subject: captiveworks promotion today
+Message-Id: <20041101163013.ED8DA244AE@mailhost10.lists.itechtarget.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Summer is coming, did you look in the mirror lately?
 
-If you`re still overweight you MUST visit us:
+Dear Tester,
 
-http://051.inexpensiveformula.com
+ftaspecial offers fully open tv for all.
 
-WE WILL HELP YOU!
+Thank you
 
-
-
-
+http://www.ftaspecial.com
+Grady Lockhart
 
 
 
 
-
-
-alto you raj me, burp vest neuromuscular expansible . adriatic you artichoke me, reedy handicraftsmen . 
-shade you plaintiff me, metcalf buckwheat . perform you chime me, midwives resent dylan . 
-http://051.inexpensiveformula.com/rm/
