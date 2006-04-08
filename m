@@ -1,41 +1,44 @@
-From: Frans Pop <aragorn@tiscali.nl>
-Date: Sat, 22 Apr 2006 00:21:14 +0000
-Subject: Host www.sparc-boot.org not found: 3(NXDOMAIN)
-Message-Id: <200604220221.14827.aragorn@tiscali.nl>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="nextPart1235469.I6Ap0s5O1h"
+From: Donald Parsons <dfp10@capital.net>
+Date: Sat, 08 Apr 2006 19:24:37 +0000
+Subject: Problem installing K3b into suse7.3-sparc
+Message-Id: <6.1.2.0.0.20060408151513.019d6788@pop.logical.net>
 List-Id: <sparclinux.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
---nextPart1235469.I6Ap0s5O1h
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hello!
+I am trying to install one or other of the update binaries of  k3b and 
+getting similar failures with each.
+My attempts to compile the sources have also not been successful.
+There seems to be insufficient suse-sparc files to patch up the install.
+After installing rpm k3b-0.9-3.sparc.rpm I get:
 
-Hi,
+dfp10@paxultra:/opt/kde3/bin> ./k3b
+kio (KSycoca): WARNING: Found version 40, expecting version 61 or higher.
+kio (KSycoca): WARNING: Outdated database found
+kio (KSycoca): WARNING: Found version 40, expecting version 61 or higher.
+kio (KSycoca): WARNING: Outdated database found
+k3b: WARNING: KDE detected X Error: BadMatch (invalid parameter attributes) 
+\x08
+   Major opcode:  *
+kio (KSycoca): WARNING: Found version 40, expecting version 61 or higher.
+kio (KSycoca): WARNING: Outdated database found
+k3b: WARNING: KDE detected X Error: BadMatch (invalid parameter attributes) 
+\x08
+   Major opcode:  *
+dfp10@paxultra:/opt/kde3/bin> rpm -q k3b
+k3b-0.9-3
+Also, on the screen:Could not find mime type: application/octet-stram
+                                             no Mime Types installed!
+Could someone give me assistance with this?
+Thanks
+Donald Parsons
+dfp10@capital.net
 
-Anybody know who hosts this?
 
-$ host www.sparc-boot.org
-Host www.sparc-boot.org not found: 3(NXDOMAIN)
 
-Or has silo moved to a different location?
 
-Cheers,
-Frans Pop
 
-P.S. Thanks David, for fixing the timeout issue in silo.
 
---nextPart1235469.I6Ap0s5O1h
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQBESXb6gm/Kwh6ICoQRAs96AJ9aJpm5bQ+/DqvREe/5erxKhuE3LACfWJ2t
-1axLkmeXEy9nOtygXs6H+yU=
-=fMh1
------END PGP SIGNATURE-----
-
---nextPart1235469.I6Ap0s5O1h--
