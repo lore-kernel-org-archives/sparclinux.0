@@ -1,29 +1,54 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Fri, 28 Apr 2006 23:00:41 +0000
-Subject: Re: kernel oops with 2.6.17-rc1 & 2.6.17-rc2
-Message-Id: <20060428.160041.42740323.davem@davemloft.net>
+From: Christophe Jacquet <jacquetc@free.fr>
+Date: Sun, 09 Apr 2006 15:33:50 +0000
+Subject: Parallel port problems on Sun Ultra10
+Message-Id: <1144596830.4439295e52873@imp1-g19.free.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200604280042.08024.pkarlsen@mandriva.com>
-In-Reply-To: <200604280042.08024.pkarlsen@mandriva.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Per =D8yvind Karlsen <pkarlsen@mandriva.com>
-Date: Fri, 28 Apr 2006 00:42:07 +0200
+Hi,
 
-> When running 2.6.17-rc1 or rc2 I seem to get a lot of these oops, not cer=
-tain=20
-> about what exactly causes those, but might seem to happen during a little=
-=20
-> load..
-> 2.6.16 runs fine without this ever happening.
->=20
-> Machine is a blade 100..
+I have an Ubuntu distribution running on a Sun Ultra10, with kernel 2.6.15.
+Printing causes the workstation to crash. Here are the steps I can reproduce:
 
-Thanks, this is the second report like this.  The theory is
-that tlb->nr is becoming negative for some reason or otherwise
-being corrupted.
+1) Inserting the module "parport_pc":
 
-I'll try to reproduce that here.
+I type "modprobe parport_pc", and I get the following output on the console:
+
+parport0: PC-style at 0x1fff13043bc (0x1fff13047bc), irq
+7567552<7>0x1fff13043bc: F
+IFO is 16 bytes
+0x1fff13043bc: readIntrThreshold is 8
+ , dma 0 [PCSPP,TRISTATE,COMPAT,ECP,DMA]
+parport0: Printer, Hewlett-Packard HP LaserJet 1100
+
+This seems to be OK: the driver can communicate with the printer, since it
+retrieves its model string.
+
+
+2) Inserting the module "lp"
+
+I type "modprobe lp" and I just get the message:
+
+lp0: using parport0 (interrupt-driven).
+
+
+3) Testing the printer
+
+When I type " echo 'Hello world' >/dev/lp0 ", I get the message:
+
+lp0: ECP mode
+
+The string gets printed on the printer.
+
+Then, Linux crashes. I get no more messages. The Bash prompt never comes back. I
+can interact with OBP by hitting "Stop-A", and reboot the machine.
+
+
+I hope this report will be useful. Thanks for any help you could give me. Best
+regards.
+
+
+Christophe Jacquet.
