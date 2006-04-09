@@ -1,29 +1,30 @@
-From: "Daniel 'NebuchadnezzaR' Dehennin" <sparc@asgardr.info>
-Date: Wed, 05 Apr 2006 21:55:25 +0000
-Subject: Re: clone return code
-Message-Id: <878xqju1pu.fsf@thorr.asgardr.info>
+From: "Britney Yazzie" <oywfjcudahxvr@bedog.net>
+Date: Sun, 09 Apr 2006 03:51:29 +0000
+Subject: Burn calories
+Message-Id: <481c.telepathy@commentator02.repeat82.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <87psjvu4wa.fsf@thorr.asgardr.info>
-In-Reply-To: <87psjvu4wa.fsf@thorr.asgardr.info>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Le 4599 Septembre 1993, David S. Miller a tapoté:
-> The system call convention follows that of SunOS on which
-> the syscall handling was based.  Return "1" in the %o1
-> register in the child and "0" in the parent, and that's how
-> the the call sites distinguish the two cases.
+Summer is coming, did you look in the mirror lately?
 
-It's what I understand from arch/sparc64/kernel/process.c
+If you`re still overweight you MUST visit us:
 
-> Why is this an issue?
+http://051.inexpensiveformula.com
 
-It's not an issue anymore ;-) this behavior is handle now.
+WE WILL HELP YOU!
 
-Thanks a lot.
--- 
-Daniel 'NebuchadnezzaR' Dehennin
-Récupérer ma clef GPG:
-gpg --keyserver pgp.mit.edu --recv-keys 0x2A408F69
+
+
+
+
+
+
+
+
+
+alto you raj me, burp vest neuromuscular expansible . adriatic you artichoke me, reedy handicraftsmen . 
+shade you plaintiff me, metcalf buckwheat . perform you chime me, midwives resent dylan . 
+http://051.inexpensiveformula.com/rm/
