@@ -1,7 +1,7 @@
 From: Christophe Jacquet <jacquetc@free.fr>
-Date: Mon, 10 Apr 2006 09:11:55 +0000
+Date: Mon, 10 Apr 2006 15:36:48 +0000
 Subject: Re: Parallel port problems on Sun Ultra10
-Message-Id: <1144660315.443a215b81270@imp1-g19.free.fr>
+Message-Id: <1144683408.443a7b90eabaa@imp5-g19.free.fr>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1144596830.4439295e52873@imp1-g19.free.fr>
 In-Reply-To: <1144596830.4439295e52873@imp1-g19.free.fr>
@@ -12,23 +12,16 @@ To: sparclinux@vger.kernel.org
 
 Hi,
 
-> this reminds me of a problem I had a few week ago while playing with
-> an homebuild parallel port project. The machine would lock totally, but
-> as soon as I disconnected the circuit from the port the machine would
-> unlock.
->
-> Maybe you could try disconnecting the printer and see what happens?
+> I have an Ubuntu distribution running on a Sun Ultra10, with kernel 2.6.15.
+> Printing causes the workstation to crash.
 
-I reproduced the steps described in my previous post, but I tried various things
-after the machine froze:
+I have a few updates on the problem.
 
-1) I swicthed off the printer's power supply: the machine remained frozen,
-2) I disconnected the printer cable: the machine remained frozen,
-3) I switched on the printer again, and I reconnected the cable: the machine
-remained frozen.
+1) Here is a rough "stack trace" of the crash:
+It happens in the function parport_write()
+Called from lp.c, function lp_write(), line 343.
 
-So the machine seems to be locked for good after doing a write() to /dev/lp0.
-
+2) Setting CONFIG_PARPORT_1284 to false solves the issue.
 
 Regards,
 
