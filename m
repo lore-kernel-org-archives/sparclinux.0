@@ -1,52 +1,46 @@
-From: "Enid Camp" <enid.camp_lo@geocities.com>
-Date: Tue, 14 Mar 2006 09:44:05 +0000
-Subject: Trade To Win, With Our Picks! 9878do
-Message-Id: <1142356755.3267@geocities.com>
+From: Christophe Jacquet <jacquetc@free.fr>
+Date: Mon, 10 Apr 2006 15:49:38 +0000
+Subject: PCI card problem on a Sun Ultra 10
+Message-Id: <1144684178.443a7e9215d7d@imp5-g19.free.fr>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Hi,
 
-Welcome 
+I tried to plug a PCI card on a Sun Ultra 10, whose purpose is to provide an
+additional parallel port.
 
-Out Hot Picks Are Breaking Records! 
+When booting, Linux stopped with an error message. I am posting the message here
+to provide feedback to the community, as well as to possibly get some ideas to
+solve the issue.
 
-Our last pick was up over 450 percent! We have 
-two very hot picks that are on the verge of 
-exploding! We give you Real Picks that make 
-Real Money Fast! You can easily turn $500 into 
-$2,500 or more! Our two picks are: 
+---
+ok boot
+Boot device: disk  File and args:
+SILO Version 1.4.10
+boot:
+Allocated 8 Megs of memory at 0x40000000 for kernel
+Uncompressing image...
+Loaded kernel version 2.6.15
+Loading initial ramdisk (6381383 bytes at 0x10800000 phys, 0x40C00000 virt)...
+/
+Remapping the kernel... done.
+Booting Linux...
+PCI: Bogus PROM assignment. BUS[02] DEVFN[8]
+PCI: phys[81020810:00000000:00000400] size[00000000:00000008]
+PCI: RES[0000000000000440-->0000000000000447:(101)]
+Please email this information to davem@redhat.com
+Program terminated
+ok
+---
 
-1)WDCV - UP 116 Percent Today - 52 wk High .18 
-Current .01 - Buy Now! Huge Promotion expected 
-asap it will make a new 52 wk high! 
+Note that I have experienced stability problems using this card
+on a PC: it randomly caused the PC to crash, and even
+prevented it from booting sometimes. Otherwise, the PCI card worked fine.
 
-2)GFDI Up 60 Percent Today - 52 wk high .15 
-Current .03 - Buy Now! Huge Promotion expected 
-asap it will make a new 52 wk high! 
+Regards,
 
-These are two real winners you will see very fast 
-they will take off and you will profit HUGE! Don't 
-miss the boat get them immediately for excellent 
-earnings! 
-
-
-Buy Low, Sell High Don't Miss Our Winners!
-
-
-
-
-sparclinux@vger.kernel.org wrote:
-> Winners Circle, Our Picks Are Hot!
-jcatt536a7
-nyKdJ1AfxzwoNaA2ghmlBJDCM
-sparclinux@vger.kernel.org wrote:
-> Only Winning Trades, Two Hot Ones!
-4to68rzxdi1p0
-xVWgcf9qrGNnmdF4sOdnpZE15
-sparclinux@vger.kernel.org wrote:
-> Only Winning Trades, Two Hot Ones!
-ph79mw3iamk5
-TGYY1azRnMHQBMwtG2xnuuEEr
+Christophe Jacquet.
