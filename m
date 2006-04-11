@@ -1,7 +1,7 @@
-From: Jim Gifford <maillist@jg555.com>
-Date: Tue, 11 Apr 2006 03:24:40 +0000
+From: "David S. Miller" <davem@davemloft.net>
+Date: Tue, 11 Apr 2006 06:03:22 +0000
 Subject: Re: More on the Sun Disk Label Issue
-Message-Id: <443B2178.1080000@jg555.com>
+Message-Id: <20060410.230322.05329365.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <443AE0BA.8070706@jg555.com>
 In-Reply-To: <443AE0BA.8070706@jg555.com>
@@ -10,56 +10,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
- Dave,
-       They both give the same output exactly.
+From: Jim Gifford <maillist@jg555.com>
+Date: Mon, 10 Apr 2006 20:24:40 -0700
 
-sizeof: 512
-offsetof: info 0
-offsetof: spare0 128
-offsetof: infos 142
-offsetof: spare 174
-offsetof: rspeed 420
-offsetof: pcylcount 422
-offsetof: sparecyl 424
-offsetof: spare2 426
-offsetof: ilfact 430
-offsetof: ncyl 432
-offsetof: nacyl 434
-offsetof: ntrks 436
-offsetof: nsect 438
-offsetof: spare3 440
-offsetof: partitions 444
-offsetof: magic 508
-offsetof: csum 510
-Test checksum is 0
+>     I think the problem may be with the way fdisk is creating the 
+> labels. Here is how they are doing it.
 
-    I think the problem may be with the way fdisk is creating the 
-labels. Here is how they are doing it.
+It's how they are "doing it" eh?
 
-typedef struct {
-        unsigned char info[128];   /* Informative text string */
-        unsigned char spare0[14];
-        struct sun_info {
-                unsigned char spare1;
-                unsigned char id;
-                unsigned char spare2;
-                unsigned char flags;
-        } infos[8];
-        unsigned char spare1[246]; /* Boot information etc. */
-        unsigned short rspeed;     /* Disk rotational speed */
-        unsigned short pcylcount;  /* Physical cylinder count */
-        unsigned short sparecyl;   /* extra sects per cylinder */
-        unsigned char spare2[4];   /* More magic... */
-        unsigned short ilfact;     /* Interleave factor */
-        unsigned short ncyl;       /* Data cylinder count */
-        unsigned short nacyl;      /* Alt. cylinder count */
-        unsigned short ntrks;      /* Tracks per cylinder */
-        unsigned short nsect;      /* Sectors per track */
-        unsigned char spare3[4];   /* Even more magic... */
-        struct sun_partition {
-                __u32 start_cylinder;
-                __u32 num_sectors;
-        } partitions[8];
-        unsigned short magic;      /* Magic number */
-        unsigned short csum;       /* Label xor'd checksum */
-} sun_partition;
+You've shown a data structure, data structures don't "do" anything,
+whereas code executes and "does" things.
+
+What about this data structure layout makes you think fdisk is
+doing something wrong?
+
+Please don't just dump information into the discussion without saying
+what you think it's showing us.  What's wrong with it?
+
+It's declared almost identically to the kernel one, the only
+difference is that the kernel copy uses the big-endian tagged types
+which are not available in userspace.  None of the type sizes or
+required alignment is different, the structure layout should be
+identical.
+
+Furthermore, you stated that if the only thing you change in the
+test is to use a kernel compiled with gcc-4.1, that fails.  How
+can fdisk have any influence upon such a case?
+
+People really need to learn how to report bugs properly and help the
+process move forward, instead of backward.  Many people who report
+sparc64 bugs do things which waste time and hinder the debugging
+process.  Cheers to the folks who do not fall into this category, but
+sadly most do and since I'm the only person working on the sparc64
+kernel actively this is incredibly frustrating.
