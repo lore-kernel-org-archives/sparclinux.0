@@ -1,42 +1,40 @@
-From: Bob Breuer <breuerr@mc.net>
-Date: Sun, 09 Apr 2006 15:05:23 +0000
+From: Ludovic =?iso-8859-1?Q?Court=E8s?= <ludo@chbouib.org>
+Date: Tue, 18 Apr 2006 21:15:53 +0000
 Subject: Re: Building a small sparc32 kernel
-Message-Id: <443922B3.2080204@mc.net>
+Message-Id: <20060418211549.GB2484@cassis>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20060404151927.GC2358@cassis>
 In-Reply-To: <20060404151927.GC2358@cassis>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Ludovic Court=E8s wrote:
-> So, I now have a 2.6.14 SMP kernel I can boot from.  On my SS20, it
-> doesn't even get to the point of spawning `init'.  I get a number of the
-> following messages at boot time:
->=20
->   esp0: Resetting scsi bus
->   esp0: SCSI bus reset interrupt
->   esp0: DMA error a4400302
+Hi,
 
-Are you using multiple drives?  I've seen this problem before when using
-multiple drives, even with a 2.6 UP kernel, but I've not had a problem
-when only actively using one drive.
+9 days, 5 hours, 9 minutes, 57 seconds ago, 
+Bob Breuer wrote:
+> Are you using multiple drives?  I've seen this problem before when using
+> multiple drives, even with a 2.6 UP kernel, but I've not had a problem
+> when only actively using one drive.
 
-> And finally, I get spinlock debugging messages followed by a stack trace
-> telling that something went wrong ("BUG: spinlock lockup on CPU#2",
-> etc.), and nothing more.  I guess I'm going to have to capture the
-> console output via a serial line in order to provide you with meaningful
-> data.
+I tried to remove an SCSI disk but this did not yield any noticeable
+change.
 
-Try configuring the kernel with spinlock debugging turned off.
+I also tried to apply a change that was made to `esp_reset ()' in 2.6.16
+but that did not improve anything either [0].
 
-> The machine has two SuperSPARC 390Z50.  In your original message you
-> mentioned that support for SuperSPARC II was relatively stable, so maybe
-> this just means that support for this older SuperSPARC flavor is not yet
-> in such a good shape?  ;-)
+Any idea of what else could go wrong?  Maybe my kernel config is broken
+in some obvious way?
 
-I think you're almost there.  I don't see any reason why a pair of older
-SuperSPARCs wouldn't work, but I don't have any to test against.
+> Try configuring the kernel with spinlock debugging turned off.
 
-Bob
+Hmm, I'll try that, but (i) that shouldn't make a big difference and
+(ii) the whole point of trying out your patch is to get more information
+on what goes wrong, isn't it?  ;-)
+
+Thanks,
+Ludovic.
+
+[0] http://lists.debian.org/debian-sparc/2006/04/msg00081.html
+
