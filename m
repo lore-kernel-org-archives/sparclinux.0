@@ -1,7 +1,7 @@
 From: "David S. Miller" <davem@davemloft.net>
-Date: Wed, 12 Apr 2006 03:26:28 +0000
+Date: Fri, 21 Apr 2006 04:13:19 +0000
 Subject: Re: Issues with SILO 1.4.11
-Message-Id: <20060411.202628.20150763.davem@davemloft.net>
+Message-Id: <20060420.211319.103974459.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.LNX.4.63.0604101839350.3168@bobcat>
 In-Reply-To: <Pine.LNX.4.63.0604101839350.3168@bobcat>
@@ -24,9 +24,37 @@ Date: Tue, 11 Apr 2006 19:47:21 -0700 (PDT)
 > register (which Ultra10 obviously has). Any pointers to documentation 
 > would be greatly appreciated.
 
-In fact the code was a nop as far as I could tell, that's
-why I removed it.
+So here's the full analysis, thanks for the report.
 
-Perhaps we can put it back in, I don't know.  I'm very busy
-with gdb and Mono bug fixing at the moment, so I don't have
-time to look at it right now.
+First, a reminder that we can't write to the %tick register
+on sun4v, and since I thought this code couldn't possibly
+be doing anything I removed it.  Obviously I was wrong and
+this code is needed for the timeout to work on Ultra10 as
+the reports indicate.
+
+What the old code does is disable TICK interrupts by setting bit 63 of
+the %tick_cmpr register.  That's the only functional effect of this
+code.  It means that TICK interrupts will no longer arrive, and since
+OBP owns the trap table this means OBP is who would service the TICK
+interrupt on it's trap table.
+
+So what it seems is happening on Ultra10 is that OBP has the TICK
+interrupts going, and instead of using the normal method of just
+advancing the %tick_cmpr register at every interrupt to schedule the
+next TICK interrupt, it decrements the value of %tick instead.
+
+That's why getting rid of this code makes the timeout never trigger in
+SILO, the %tick register never gets past a certain value, since OBP
+just keeps dragging it backwards over and over at every TICK interrupt
+when %tick = %tick_cmpr.
+
+Another thing I note is that writing %tick to zero is a very bad bug
+even on sun4u systems because it means that on pre-Ultra-III SMP the
+%tick register of the boot processor will be unsynchronized with all
+the other sibling cpus in the machine and we use that for timekeeping.
+
+I think the thing to do is probably to restore the old code and only
+remove the line which writes "0" to %tick.  I'll test that on my
+Niagara to make sure it doesn't regress.
+
+I'll post the patch after I test it out.
