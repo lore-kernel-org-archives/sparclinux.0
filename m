@@ -1,61 +1,56 @@
 From: "David S. Miller" <davem@davemloft.net>
-Date: Sat, 15 Apr 2006 02:56:36 +0000
-Subject: Re: More on the Sun Disk Label Issue
-Message-Id: <20060414.195636.100023372.davem@davemloft.net>
+Date: Fri, 21 Apr 2006 04:30:59 +0000
+Subject: [PATCH]: Fix Ultra10 SILO timer
+Message-Id: <20060420.213059.126448042.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <443AE0BA.8070706@jg555.com>
-In-Reply-To: <443AE0BA.8070706@jg555.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: "David S. Miller" <davem@davemloft.net>
-Date: Fri, 14 Apr 2006 19:44:44 -0700 (PDT)
 
-> From: Jim Gifford <maillist@jg555.com>
-> Date: Fri, 14 Apr 2006 17:47:47 -0700
-> 
-> > http://www.linuxfromscratch.org/patches/downloads/util-linux/util-linux-2.12r-gcc41_sun_disklabel_fixes-1.patch
-> 
-> Looks like you're simply working around a bug in the compiler.
-> That code has been in the kernel and util-linux for 10+ years.
-> 
-> Submit a bug report for gcc and get that bug fixed instead of papering
-> around the problem.
+Ok, this should fix the Ultra10 problem and keep Niagara
+working at the same time.  I tested this successfully on my
+T2 box.
 
-When I see stuff like this, I literally want to cry....
-
-I seriously question the correctness of your change:
-
--	for (csum = 0; ush >= (unsigned short *)sunlabel;) csum ^= *ush--;
-+	while (ush < (unsigned short *)sunlabel) csum ^= *ush--;
-
-That's can't be correct, we're _DECREMENTING_ the pointer from the top
-of the structure (minus one "unsigned short") _DOWN_ to the base at
-"sunlabel", yet you've changed the pointer test into "less-than".  "ush"
-will _NEVER_ be less-than sunlabel, so the loop will exit immediately
-and we won't compute a checksum at all.
-
-If anything it should be:
-
-+	while (ush >= (unsigned short *)sunlabel) csum ^= *ush--;
-
-Look at how we initialize "ush":
-
- 	ush = ((unsigned short *) (sunlabel + 1)) - 1;
-
-That's "sunlabel + sizeof(struct sunlabel)" minus "sizeof(unsigned
-short)" and then we march down from the top computing the checksum one
-unsigned short at a time.
-
-But even my "correct version" is wrong fundamentally because the code
-is correct as-is so you're likely triggering some gcc bug that needs
-to be investigated and fixed.
-
-You really need to properly figure out what the bug is in gcc's loop
-optimizer that the existing code is triggering, instead of papering
-around it with incorrect patches to the source.
-
-Patching this correct code is not the way to fix this problem.
-Why do people do stuff like this without thinking? :-/
+--- second/timer.c.~1~	2006-04-20 21:18:49.000000000 -0700
++++ second/timer.c	2006-04-20 21:21:19.000000000 -0700
+@@ -40,6 +40,8 @@
+ static volatile struct sun4c_timer_info *sun4c_timer;
+ static unsigned char *addr_to_free = 0;
+ static int len_to_free;
++static unsigned long long sun4u_tickcmpr;
++static int sun4u_notimer = 0;
+ static struct mostek48t02 *mregs;
+ static long clock_frequency;
+ 
+@@ -154,6 +156,16 @@
+     }
+     if (!foundcpu || !clock_frequency)
+         clock_frequency = prom_getint(prom_root_node, "clock-frequency") / 100;
++    if (notimer) {
++        sun4u_notimer = 1;
++        __asm__ __volatile__ ("\t"
++        	"rd	%%tick_cmpr, %%g1\n\t"
++        	"stx	%%g1, [%0]\n\t"
++        	"mov	1, %%g1\n\t"
++        	"sllx    %%g1, 63, %%g1\n\t"
++        	"wr      %%g1, 0, %%tick_cmpr"
++        	: : "r" (&sun4u_tickcmpr) : "g1");
++    }
+     return 0;
+ }
+ 
+@@ -194,6 +206,12 @@
+ 
+ void close_timer ()
+ {
++    if (sun4u_notimer) {
++        __asm__ __volatile__("\t"
++        	"ldx	[%0], %%g1\n\t"
++        	"wr	%%g1, 0, %%tick_cmpr"
++        	: : "r" (&sun4u_tickcmpr) : "g1");
++    }
+     if (addr_to_free) {
+         if (addr_to_free = (unsigned char *)0xffffffff)
+             sun4c_unmapio (TICKER_VIRTUAL);
