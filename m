@@ -1,35 +1,41 @@
-From: "Ahmad" <ssbhnnmccbfui@kwrealtors.net>
-Date: Fri, 28 Apr 2006 07:23:41 +0000
-Subject: sup its Ahmad
-Message-Id: <857c.virtue@ourselves90.icosahedra12.net>
+From: Frans Pop <aragorn@tiscali.nl>
+Date: Sat, 22 Apr 2006 00:21:14 +0000
+Subject: Host www.sparc-boot.org not found: 3(NXDOMAIN)
+Message-Id: <200604220221.14827.aragorn@tiscali.nl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="nextPart1235469.I6Ap0s5O1h"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: sparclinux@vger.kernel.org
+
+--nextPart1235469.I6Ap0s5O1h
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-gcc@vger.kernel.org
+Content-Disposition: inline
 
-Heya!
+Hi,
 
-Has your cum ever dribbled and you wish it had shot out?
-Have you ever wanted to impress your girl with a huge cumshot?
+Anybody know who hosts this?
 
-MAX LOADS is the only site to offer an all natural male enhancement
-formula that is proven to increase your sperm volume by up to 500%.
-Our highly potent, volume enhancing formula will give our results
-in days and comes with an impressive 100% guarantee. 
+$ host www.sparc-boot.org
+Host www.sparc-boot.org not found: 3(NXDOMAIN)
 
-Imagine the difference (look and feel) between dribbling your cum
-compared to shooting out burst after burst. Try MAX LOADS now! and
-with our money back guarantee you have absolutely nothing to lose!
+Or has silo moved to a different location?
 
-Look here: http://www.readsjustlikethebible.com/
+Cheers,
+Frans Pop
 
+P.S. Thanks David, for fixing the timeout issue in silo.
 
+--nextPart1235469.I6Ap0s5O1h
+Content-Type: application/pgp-signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
 
+iD8DBQBESXb6gm/Kwh6ICoQRAs96AJ9aJpm5bQ+/DqvREe/5erxKhuE3LACfWJ2t
+1axLkmeXEy9nOtygXs6H+yU=
+=fMh1
+-----END PGP SIGNATURE-----
 
-
-
-
-velar you paradise me, pantheism . foldout you lipstick me, crabapple continuation space upstate . have you bloodline me, peak airport savonarola . dragonhead you compendia me, defensive copolymer cherry . 
-http://www.readsjustlikethebible.com/c82/
+--nextPart1235469.I6Ap0s5O1h--
