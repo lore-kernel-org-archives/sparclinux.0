@@ -1,44 +1,48 @@
-From: Donald Parsons <dfp10@capital.net>
-Date: Sat, 08 Apr 2006 19:24:37 +0000
-Subject: Problem installing K3b into suse7.3-sparc
-Message-Id: <6.1.2.0.0.20060408151513.019d6788@pop.logical.net>
+From: <infoadverts@o2.co.uk>
+Date: Mon, 24 Apr 2006 18:40:41 +0000
+Subject: REPRESENTATIVE/MANAGER WANTED
+Message-Id: <30195402.1145904041902.JavaMail.root@frodo>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hello!
-I am trying to install one or other of the update binaries of  k3b and 
-getting similar failures with each.
-My attempts to compile the sources have also not been successful.
-There seems to be insufficient suse-sparc files to patch up the install.
-After installing rpm k3b-0.9-3.sparc.rpm I get:
+AGROHERB EXPORT
+16 Bartly Wood Business Park Bartly Way
+Hook RG27 9UZ
+UK
+We are exporters of raw materials. We need
+representatives who can help us establish
+a medium of getting to our customers in U.S.A
+and Canada, Asia and the rest of Europe. You
+shall also receive payments from our creditors.
+Subject to your Satisfaction you will be given 
+the opportunity to Negotiate your mode of which 
+we will pay for your services as our representative 
+in U.S.A ,Canada, Asia & Europe.
+Please If Your Are Interested contact our
+Procurement officer, 
+Name: Austin Francis 
 
-dfp10@paxultra:/opt/kde3/bin> ./k3b
-kio (KSycoca): WARNING: Found version 40, expecting version 61 or higher.
-kio (KSycoca): WARNING: Outdated database found
-kio (KSycoca): WARNING: Found version 40, expecting version 61 or higher.
-kio (KSycoca): WARNING: Outdated database found
-k3b: WARNING: KDE detected X Error: BadMatch (invalid parameter attributes) 
-\x08
-   Major opcode:  *
-kio (KSycoca): WARNING: Found version 40, expecting version 61 or higher.
-kio (KSycoca): WARNING: Outdated database found
-k3b: WARNING: KDE detected X Error: BadMatch (invalid parameter attributes) 
-\x08
-   Major opcode:  *
-dfp10@paxultra:/opt/kde3/bin> rpm -q k3b
-k3b-0.9-3
-Also, on the screen:Could not find mime type: application/octet-stram
-                                             no Mime Types installed!
-Could someone give me assistance with this?
-Thanks
-Donald Parsons
-dfp10@capital.net
+email : info_world_export@yahoo.com.cn
 
+With the following information so that we can
+Forward to you immediately our agent form
+for official enlistment.
+1) Your Full name
+2) Your Mailing address
+3) Your Phone and Fax Number
+4) Your Age & Your business experience 
 
-
+NOTE:
+We are sending you this email because you may 
+have subscribe to 
+one or more website requesting information on 
+business, we do not wish 
+to disturb your private life so if you feel 
+you received this email 
+erroneously please delete and do not reply 
 
 
 
