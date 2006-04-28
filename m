@@ -1,31 +1,39 @@
-From: "Jamaal E. Kendrick" <jkendrickek@wxs.nl>
-Date: Sat, 01 Apr 2006 03:49:14 +0000
-Subject: The US Economy WIll Collapse, Be Prepared qzu7b
-Message-Id: <6c9a01c6553f$0966756b$e65721ec@2x87vb2>
+From: "Jenny Espinoza" <jenny.espinozadw@swipnet.se>
+Date: Fri, 28 Apr 2006 21:43:38 +0000
+Subject: More earning power! z35eg
+Message-Id: <77d601c66b0c$c28459a1$45d1f4db@nql5do1>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Newsletter Subscriber, 
+Genuine College Degree in 2 Weeks! 
 
-As we all know the real estate market is about to crash. 
-In Feb 2006 there were 117,259 foreclosures alone(68% higher 
-than 2005 and rates are going higher everyday). Many investors 
-are now playing the stock market which is expected to explode 
-25 to 50% over the next 3 years. Now is the time to get in the 
-game and we will show you step by step so you can profit very 
-big. We also give you the very best picks all around the world 
-on every exchange that are profitable not just the U.S. Markets. 
-This is your chance to learn the game and make huge daily returns. 
-Now you can "Profit Like A Pro" And Win Big! We will not only 
-give you the very best daily picks around the world that have 
-the most profit potential but you will become financially savvy 
-and learn the inside of the markets how they work and how your 
-broker makes a fortune if you win or lose. Now you can win! 
+(831) 603-4625  Call Now and leave us message
 
-Get A Complimentary Copy Our 195 Page Book By Going Too: 
+Have you ever thought that the only thing stopping you from a
+a great j0b and better pay was a few letters behind your name? 
 
-http://www.superstockprofits.com
+Well now you can get them! 
 
+BA BSc MA MSc MBA PHD 
+
+Within 2 weeks!
+No Study Required!
+100% Verifiable 
+
+(831) 603-4625  Call Now and leave us message
+
+These are real, genuine degrees that include Bachelors, Masters 
+and Doctorate degrees. They are verifiable and student records and
+transcripts are also available. This little known s.ecret has been
+kept quiet for years. The opp0rtunity exists due to a lega.l loophole
+allowing some established colleges to award degrees at their discretion.
+
+
+With all of the attention that this news has been generating, I wouldn't 
+be surprised to see this loophole closed very soon. 
+
+Call n0w for more information today, you'll thank me later... 
+(831) 603-4625  Call Now and leave us message
