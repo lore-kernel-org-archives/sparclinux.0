@@ -1,31 +1,34 @@
-From: "Phil T. Rushing" <philt.rushing_du@btinternet.com>
-Date: Sat, 01 Apr 2006 03:48:12 +0000
-Subject: Fwd: Complete Guide To Stock Investing. wmqgy
-Message-Id: <f04b01c6553f$2a3de1f4$3cc6bd11@fov82x2>
+From: "Casandra Horton" <horton_fe@zaz.com.br>
+Date: Sun, 30 Apr 2006 21:20:48 +0000
+Subject: Yours loan is approved 9sxlyv
+Message-Id: <LKPKGMPDIDNPKMLKPAMOKLKLLEAB.horton_fe@zaz.com.br>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Newsletter Subscriber, 
+Dear Homeowner,  
+autoanswer@vger.kernel.org
 
-As we all know the real estate market is about to crash. 
-In Feb 2006 there were 117,259 foreclosures alone(68% higher 
-than 2005 and rates are going higher everyday). Many investors 
-are now playing the stock market which is expected to explode 
-25 to 50% over the next 3 years. Now is the time to get in the 
-game and we will show you step by step so you can profit very 
-big. We also give you the very best picks all around the world 
-on every exchange that are profitable not just the U.S. Markets. 
-This is your chance to learn the game and make huge daily returns. 
-Now you can "Profit Like A Pro" And Win Big! We will not only 
-give you the very best daily picks around the world that have 
-the most profit potential but you will become financially savvy 
-and learn the inside of the markets how they work and how your 
-broker makes a fortune if you win or lose. Now you can win! 
+http://publiclender.com/goodstep/
 
-Get A Complimentary Copy Our 195 Page Book By Going Too: 
+You have been approved for a $ 687,698 house loan (2.9 fixed)
+This offer is being presented to you right now!. Your credit history is in no way a factor.
+To take advantage of this Limited Time Opportunity,
+please take a minute and confirm your curiosity or intention to accept this loan, at the following web-site:
 
-http://www.superstockprofits.com
+http://publiclender.com/goodstep/
+
+Best Regards
+Don Nut
+Loan Manager
+
+http://publiclender.com/lit.html
+
+
+autoanswer@vger.kernel.org wrote:
+> RERE: Loan Application
+7f9l5q3ufz
+
 
