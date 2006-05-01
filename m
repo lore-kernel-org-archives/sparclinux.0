@@ -1,51 +1,63 @@
-From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date: Wed, 10 May 2006 11:41:49 +0000
-Subject: Re: Question on cross-compiler
-Message-Id: <Pine.LNX.4.10.10605101238360.15487-100000@mtfhpc.demon.co.uk>
+From: "David S. Miller" <davem@davemloft.net>
+Date: Mon, 01 May 2006 05:51:00 +0000
+Subject: Re: kernel oops with 2.6.17-rc1 & 2.6.17-rc2
+Message-Id: <20060430.225100.62708777.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <DA6197CAE190A847B662079EF7631C06015691BD@OEKAW2EXVS03.hbi.ad.harman.com>
-In-Reply-To: <DA6197CAE190A847B662079EF7631C06015691BD@OEKAW2EXVS03.hbi.ad.harman.com>
+References: <200604280042.08024.pkarlsen@mandriva.com>
+In-Reply-To: <200604280042.08024.pkarlsen@mandriva.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
+From: Per =D8yvind Karlsen <pkarlsen@mandriva.com>
+Date: Fri, 28 Apr 2006 00:42:07 +0200
 
-See http://kegel.com and look for 'crosstool'. The last version I
-downloaded was crosstool-0.35.
+> When running 2.6.17-rc1 or rc2 I seem to get a lot of these oops, not cer=
+tain=20
+> about what exactly causes those, but might seem to happen during a little=
+=20
+> load..
+> 2.6.16 runs fine without this ever happening.
+>=20
+> Machine is a blade 100..
 
-Dan Kegel has done exstensive cross compilation in the past.
+I did some investigating.  Do you have preemption enabled?  That's the
+only way this bug could possibly trigger.
 
-I used his scripts as the basis of my cross compilation scripts for
-building Sparc32 code on my AMD64 Linux system.
+Jim reported a nearly identical OOPS to your's and his provided config
+has preemption enabled.
 
-(It takes too long on Sparc32.)
+This patch should fix the problem:
 
-Regards
-	Mark Fortescue.
-
-On Tue, 9 May 2006, Jurzitza, Dieter wrote:
-
-> Dear listmembers,
-> is there anyone out who could give me a hint on how to build a cross-compiler for Ultra Sparc 64 Bit on a native 32 Bit environment? My build always barfs about incompatible libc.so - what is clear since it is 32 and not 64 Bit.
-> Any pointer to some FAQ / whatsoever would be highly appreciated!
-> Thanks in advance,
-> take care
-> 
-> 
-> 
-> Dieter Jurzitza
-> 
-> 
-> *******************************************
-> Diese E-Mail enthaelt vertrauliche und/oder rechtlich geschuetzte Informationen. Wenn Sie nicht der richtige Adressat sind oder diese E-Mail irrtuemlich erhalten haben, informieren Sie bitte sofort den Absender und loeschen Sie diese Mail. Das unerlaubte Kopieren sowie die unbefugte Weitergabe dieser Mail ist nicht gestattet.
->  
-> This e-mail may contain confidential and/or privileged information. If you are not the intended recipient (or have received this e-mail in error) please notify the sender immediately and delete this e-mail. Any unauthorized copying, disclosure or distribution of the contents in this e-mail is strictly forbidden.
-> *******************************************
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+diff --git a/arch/sparc64/mm/tlb.c b/arch/sparc64/mm/tlb.c
+index a079cf4..3f10fc9 100644
+--- a/arch/sparc64/mm/tlb.c
++++ b/arch/sparc64/mm/tlb.c
+@@ -8,6 +8,7 @@ #include <linux/init.h>
+ #include <linux/percpu.h>
+ #include <linux/mm.h>
+ #include <linux/swap.h>
++#include <linux/preempt.h>
+=20
+ #include <asm/pgtable.h>
+ #include <asm/pgalloc.h>
+@@ -24,6 +25,8 @@ void flush_tlb_pending(void)
+ {
+ 	struct mmu_gather *mp =3D &__get_cpu_var(mmu_gathers);
+=20
++	preempt_disable();
++
+ 	if (mp->tlb_nr) {
+ 		flush_tsb_user(mp);
+=20
+@@ -38,6 +41,8 @@ #endif
+ 		}
+ 		mp->tlb_nr =3D 0;
+ 	}
++
++	preempt_enable();
+ }
+=20
+ void tlb_batch_add(struct mm_struct *mm, unsigned long vaddr, pte_t *ptep,=
+ pte_t orig)
