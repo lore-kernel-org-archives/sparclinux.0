@@ -1,30 +1,40 @@
-From: "pheylen" <MarcieiJLee@exis.net>
-Date: Sat, 27 May 2006 12:11:30 +0000
-Subject: Prestige Repli!a Watches 86
-Message-Id: <9BBAB4BC.CA1D157@exis.net>
+From: "Ora Thompson" <thompson_bt@netscape.net>
+Date: Tue, 02 May 2006 18:32:42 +0000
+Subject: Invest in yourself! m1d
+Message-Id: <2.2.32.2006040218324200fc816c@netscape.net>
 List-Id: <sparclinux.vger.kernel.org>
+In-Reply-To: <f17701c66a7e$ff829fbc$6e5dd7aa@4swynp3>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: phil_chez_2001 <linux-scsi@vger.kernel.org>
+To: autoanswer@vger.kernel.org
 
-Get the Finest Watch Replica!
+Genuine College Degree in 2 Weeks! 
 
-We only sell premium watches. There's no battery in these replicas just
-like the real ones since they charge themselves as you move. The second hand
-moves JUST like the real ones, too. These original watches sell in stores
-for thousands of dollars. We sell them for much less.
+(831) 603-4625  Call Now and leave us message
 
-- Replicated to the Smallest Detail
-- 98% Perfectly Accurate Markings
-- Signature Green Sticker w/ Serial Number on Watch Back
-- Magnified Quickset Date
-- Includes all Proper Markings
+Have you ever thought that the only thing stopping you from a
+a great j0b and better pay was a few letters behind your name? 
 
-http://nca.rolzbulgari.com/
+Well now you can get them! 
 
-Shang, before you jump to conclusions, Sitting next to Nellie 
-Will that frown turn upside down! Six of the best
-What? Skin and blister 
+BA BSc MA MSc MBA PHD 
+
+Within 2 weeks!
+No Study Required!
+100% Verifiable 
+
+(831) 603-4625  Call Now and leave us message
+
+These are real, genuine degrees that include Bachelors, Masters 
+and Doctorate degrees. They are verifiable and student records and
+transcripts are also available. This little known s.ecret has been
+kept quiet for years. The opp0rtunity exists due to a lega.l loophole
+allowing some established colleges to award degrees at their discretion.
 
 
+With all of the attention that this news has been generating, I wouldn't 
+be surprised to see this loophole closed very soon. 
+
+Call n0w for more information today, you'll thank me later... 
+(831) 603-4625  Call Now and leave us message
