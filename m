@@ -1,40 +1,19 @@
-From: "Ora Thompson" <thompson_bt@netscape.net>
-Date: Tue, 02 May 2006 18:32:42 +0000
-Subject: Invest in yourself! m1d
-Message-Id: <2.2.32.2006040218324200fc816c@netscape.net>
+From: "Laverne" <rnxqsbfcng@gi.is>
+Date: Tue, 02 May 2006 09:50:43 +0000
+Subject: my chance
+Message-Id: <B84A5CCA.C8A5BA8@gi.is>
 List-Id: <sparclinux.vger.kernel.org>
-In-Reply-To: <f17701c66a7e$ff829fbc$6e5dd7aa@4swynp3>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: autoanswer@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Genuine College Degree in 2 Weeks! 
-
-(831) 603-4625  Call Now and leave us message
-
-Have you ever thought that the only thing stopping you from a
-a great j0b and better pay was a few letters behind your name? 
-
-Well now you can get them! 
-
-BA BSc MA MSc MBA PHD 
-
-Within 2 weeks!
-No Study Required!
-100% Verifiable 
-
-(831) 603-4625  Call Now and leave us message
-
-These are real, genuine degrees that include Bachelors, Masters 
-and Doctorate degrees. They are verifiable and student records and
-transcripts are also available. This little known s.ecret has been
-kept quiet for years. The opp0rtunity exists due to a lega.l loophole
-allowing some established colleges to award degrees at their discretion.
+Hi there lovely,
+I was searching the net few days ago. I am new to this thing.
+and saw your profile. Ib decided to email you cause I found 
+you attractive. I might come down to your city in few weeks.
+Let me know iaf we can meet each other in person.
+I am attractive gbirl. I am sure you won't regret it.
+Reply to my personal email at sphs@popmailme.com
 
 
-With all of the attention that this news has been generating, I wouldn't 
-be surprised to see this loophole closed very soon. 
-
-Call n0w for more information today, you'll thank me later... 
-(831) 603-4625  Call Now and leave us message
