@@ -1,24 +1,34 @@
-From: "Dino Linux" <dinolinux@gmail.com>
-Date: Wed, 24 May 2006 22:46:42 +0000
-Subject: Getting started
-Message-Id: <7f10e41f0605241546t597ebcfaocf85c60971900ff3@mail.gmail.com>
+From: "Julio Booker" <julio.bookernz@superonline.com>
+Date: Wed, 03 May 2006 18:10:33 +0000
+Subject: We can approve Yours loan today frz
+Message-Id: <2.2.32.20060403181033007ddd5a@superonline.com>
 List-Id: <sparclinux.vger.kernel.org>
+In-Reply-To: <f6dd01c66e0d$ba2f049b$9ad48940@ch2ffh1>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: autoanswer@vger.kernel.org
 
-Hi
+Dear Homeowner,  
+autoanswer@vger.kernel.org
 
-I hope I'm posting this in the right place, if not please let me know.
+http://valuloan.net
 
-I've decided to help develop the Linux SPARC port. I wrote a few
-printk_* patches once, and that's all the expirience I have in kernel
-hacking. So I was wondering if you could recommend a few places to
-learn about the Linux kernel and Linux on SPARC. I've seen a tutorial
-somewhere called Linux Device Drivers, but it was a long time ago. I
-was also wondering if there is a Linux/SPARC specific TODO list
-somewhere so I can get started with the hacking :). I looked around on
-ultralinux.org, but I didn't find one there.
+You have been approved for a $ 946,594 house loan (2.9 fixed)
+This offer is being presented to you right now!. Your credit history is in no way a factor.
+To take advantage of this Limited Time Opportunity,
+please take a minute and confirm your curiosity or intention to accept this loan, at the following web-site:
 
-     -dinolinux
+http://valuloan.netL
+
+Best Regards
+Don Nut
+Loan Manager
+
+http://valuloan.net/redirect
+
+autoanswer@vger.kernel.org wrote:
+> Yours loan is approved
+r8b8k72rf0
+
+
