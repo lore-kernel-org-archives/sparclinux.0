@@ -1,49 +1,38 @@
-From: "Krzysztof Helt" <krzysztof.h1@wp.pl>
-Date: Mon, 29 May 2006 06:03:34 +0000
-Subject: Re: 2.6.17-rc5 does not build for sparc
-Message-Id: <447a8eb6efe1f@wp.pl>
+From: Martin Habets <errandir_news@mph.eclipse.co.uk>
+Date: Sun, 07 May 2006 15:24:50 +0000
+Subject: [PATCH] sparc: fix warning on prom_getproperty in openprom.c
+Message-Id: <20060507152450.GA3426@palantir8>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4478bffd45960@wp.pl>
-In-Reply-To: <4478bffd45960@wp.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Dnia 28-05-2006 o godz. 0:43 Bob Breuer napisa=B3:
-=20
-> That's not all that is broken.  I think I have what could be 4
-separate
-> patches for smp here: (combined in the attached patch)
->   1. add topology_init - fixes a boot time crash
->   2. setup cpu_possible_map - actually boot the additional cpu's
->   3. fix smp related section mismatch warnings
->   4. add the missing *_can_lock macros
->=20
-> If you are running a local framebuffer, you may encounter a
-problem with
-> vmalloc.  Adding "migration_cost=10000" to the kernel command line
-> should cover up the problem.
->=20
+This patch resolves the following build warnings seen in 2.6.17-rc3:
+drivers/sbus/char/openprom.c:395: warning: ignoring return value of `prom_getproperty', declared with attribute warn_unused_result
 
-Thank you for the patch. It's a pity you haven't post it earlier
-as I lost few hours fixing missing topology_init.
+Please apply.
+Martin
 
-Anyway, it is a huge improvement other the current state of
-official kernel. Is this patch on its way to the kernel?
+	Signed-off-by: Martin Habets <errandir_news@mph.eclipse.co.uk>
+---
 
-> I haven't had the time to give it a thorough testing and see if it
-> self-recompiles recently, but I was previously able to successfully
-> rebuild the kernel with "make -j6" on a dual SuperSPARC II.
->=20
-
-I was not so lucky. I was able to boot and two cpus were detected
- (Supersparc II) but the machine opened PROM console after
-mounting tmpfs filesystem (for the /tmp directory). The harddisk
-filesystems were mounted correctly. I will try to look into this
-problem.
-
-Krzysztof
-
-
-
+--- 2.6.17-rc3/drivers/sbus/char/openprom.c.orig	2006-05-06 18:48:44.000000000 +0100
++++ 2.6.17-rc3/drivers/sbus/char/openprom.c	2006-05-06 18:59:40.000000000 +0100
+@@ -392,12 +392,13 @@
+ 			return -ENOMEM;
+ 		}
+ 
+-		prom_getproperty(op.op_nodeid, str, tmp, len);
++		error = prom_getproperty(op.op_nodeid, str, tmp, len);
+ 
+ 		tmp[len] = '\0';
+ 
+-		if (__copy_to_user(argp, &op, sizeof(op)) != 0
+-		    || copy_to_user(op.op_buf, tmp, len) != 0)
++		if ((error <= 0) ||
++		    __copy_to_user(argp, &op, sizeof(op)) != 0 ||
++		    copy_to_user(op.op_buf, tmp, len) != 0)
+ 			error = -EFAULT;
+ 
+ 		kfree(tmp);
