@@ -1,32 +1,32 @@
-From: "Nora McConnell" <nmcConnell_af@t-online.de>
-Date: Thu, 18 May 2006 06:24:10 +0000
-Subject: RERE: Loan Application 4f30cu
-Message-Id: <BODHAPECGEGFEOBCLFOGIGILLAAB.nmcConnell_af@t-online.de>
+From: "Sebastien LANGE" <doownek@doownek.org>
+Date: Mon, 08 May 2006 19:41:20 +0000
+Subject: bbc and Sun Blade 1000
+Message-Id: <50253.192.168.16.49.1147117280.squirrel@webmail.doownek.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Dear Homeowner,  
-autoanswer@vger.kernel.org
+Hello,
 
-http://joerate.com/goodstep
+With the kernel 2.6.16 and 2.6.17, the module bbc doesn't work correctly
+on my Sun Blade 1000.
+I load the module and the bbc change the fan speed, it's normal.
+But after 5 minutes approximately, the fan speed accelerates.
+I booted with the Solaris 10 and the fan speeds is to minimum.
+Then I would like to know if normally the bbc module works correctly ?
 
-You have been approved for a $ 796,465 house loan (2.9 fixed)
-This offer is being presented to you right now!. Your credit history is in no way a factor.
-To take advantage of this Limited Time Opportunity,
-please take a minute and confirm your curiosity or intention to accept this loan, at the following web-site:
+--=20
+Best Regards,
 
-http://joerate.com/goodstep
+S=E9bastien LANGE
+                            _(__)_
+     Secr=E9taire d'Ornix    '-e e -'__,--.__)
+(=B0>  Groupe d'utilisateur   (o_o)        )
+//\  des logiciels libres     \. /___.  |
+V_/_ dans l'Orne               |||  )/ )/
+     http://ornix.org          //_(/_(/_(
 
-Best Regards
-Don Nut
-Loan Manager
-
-http://joerate.com/lit.html
-autoanswer@vger.kernel.org wrote:
-> RE: We can approve yours loan
-whc1p827u5
-
+Registered Linux-User #313144
 
