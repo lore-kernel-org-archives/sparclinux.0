@@ -1,32 +1,27 @@
-From: Martin Habets <errandir_news@mph.eclipse.co.uk>
-Date: Thu, 11 May 2006 16:33:29 +0000
-Subject: Re: sparc: cannot load any modules with 2.6.17-rc3
-Message-Id: <20060511163329.GA16957@palantir8>
+From: "Jurzitza, Dieter" <DJurzitza@harmanbecker.com>
+Date: Tue, 09 May 2006 05:03:59 +0000
+Subject: Question on cross-compiler
+Message-Id: <DA6197CAE190A847B662079EF7631C06015691BD@OEKAW2EXVS03.hbi.ad.harman.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20060505113514.GA28863@palantir8>
-In-Reply-To: <20060505113514.GA28863@palantir8>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Wed, May 10, 2006 at 12:15:08AM -0700, Jurij Smakov wrote:
-> I've recently built 2.6.16 and 2.6.17-rc3 kernels with Debian's gcc 
-> 4.0.3-2, and they boot. Modules load fine. There is some kind of issue 
-> with the network, loading sunlance on my SS20 does not work every time. I 
-> haven't had a chance to investigate it in detail yet. Martin, you can 
-> fetch the "most stable for me" 2.6.16 kernel from [1].
-...
-> [1] http://www.wooyd.org/debian/kernels
+Dear listmembers,
+is there anyone out who could give me a hint on how to build a cross-compiler for Ultra Sparc 64 Bit on a native 32 Bit environment? My build always barfs about incompatible libc.so - what is clear since it is 32 and not 64 Bit.
+Any pointer to some FAQ / whatsoever would be highly appreciated!
+Thanks in advance,
+take care
 
-Hi Jurij,
 
-Testing another 2.6.16 is not that usefull at this point, as I have a
-working 2.6.16-rc2. Your 2.6.17-rc2 is for sparc64.
-I have a feeling of deja-vu, so excuse me if you've heard this before :).
-Where is the source for these kernels? Most notably any additional
-patches applied.
 
-Cheers,
--- 
-Martin
+Dieter Jurzitza
+
+
+*******************************************
+Diese E-Mail enthaelt vertrauliche und/oder rechtlich geschuetzte Informationen. Wenn Sie nicht der richtige Adressat sind oder diese E-Mail irrtuemlich erhalten haben, informieren Sie bitte sofort den Absender und loeschen Sie diese Mail. Das unerlaubte Kopieren sowie die unbefugte Weitergabe dieser Mail ist nicht gestattet.
+ 
+This e-mail may contain confidential and/or privileged information. If you are not the intended recipient (or have received this e-mail in error) please notify the sender immediately and delete this e-mail. Any unauthorized copying, disclosure or distribution of the contents in this e-mail is strictly forbidden.
+*******************************************
+
