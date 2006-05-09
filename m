@@ -1,35 +1,45 @@
-From: Rene Rebe <rene@exactcode.de>
-Date: Tue, 09 May 2006 06:53:58 +0000
+From: "Christian Joensson" <christian.joensson@gmail.com>
+Date: Tue, 09 May 2006 07:09:02 +0000
 Subject: Re: Question on cross-compiler
-Message-Id: <200605090853.58352.rene@exactcode.de>
+Message-Id: <5460e3330605090009g370107b0sbb472c33fd3e4bbd@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <DA6197CAE190A847B662079EF7631C06015691BD@OEKAW2EXVS03.hbi.ad.harman.com>
 In-Reply-To: <DA6197CAE190A847B662079EF7631C06015691BD@OEKAW2EXVS03.hbi.ad.harman.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi,
+On 5/9/06, Rene Rebe <rene@exactcode.de> wrote:
+> Hi,
+>
+> On Tuesday 09 May 2006 07:03, Jurzitza, Dieter wrote:
+> > Dear listmembers,
+> > is there anyone out who could give me a hint on how to build a
+> > cross-compiler for Ultra Sparc 64 Bit on a native 32 Bit environment? My
+> > build always barfs about incompatible libc.so - what is clear since it is
+> > 32 and not 64 Bit. Any pointer to some FAQ / whatsoever would be highly
+> > appreciated!
+>
+> Despite a bit off-topic here, crosstool (http://www.kegel.com/crosstool/) or
+> Development Environments such as T2 (http://www.t2-project.org) can help you
+> to build the cross compiler.
 
-On Tuesday 09 May 2006 07:03, Jurzitza, Dieter wrote:
-> Dear listmembers,
-> is there anyone out who could give me a hint on how to build a
-> cross-compiler for Ultra Sparc 64 Bit on a native 32 Bit environment? My
-> build always barfs about incompatible libc.so - what is clear since it is
-> 32 and not 64 Bit. Any pointer to some FAQ / whatsoever would be highly
-> appreciated!
+also from me, perhaps off-topic, but still, wouldn't it be neat to
+have 64 bit Ada? :)
 
-Despite a bit off-topic here, crosstool (http://www.kegel.com/crosstool/) o=
-r=20
-Development Environments such as T2 (http://www.t2-project.org) can help yo=
-u=20
-to build the cross compiler.
+there's two gcc bugzilla PR about this, to my knowledge... pls have a
+look at them also
 
-> Thanks in advance,
-> take care
+http://gcc.gnu.org/bugzilla/show_bug.cgi?id%743
 
---=20
-Ren=E9 Rebe - Rubensstr. 64 - 12157 Berlin (Europe / Germany)
-            http://exactcode.de | http://t2-project.org | http://rebe.name
-            +49 (0)30 / 255 897 45
+and
+
+http://gcc.gnu.org/bugzilla/show_bug.cgi?id 035
+
+If anyone gets to it, pls let me know...
+
+--
+Cheers,
+
+/ChJ
