@@ -1,7 +1,7 @@
-From: "Christian Joensson" <christian.joensson@gmail.com>
-Date: Tue, 09 May 2006 07:09:02 +0000
+From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
+Date: Wed, 10 May 2006 11:41:49 +0000
 Subject: Re: Question on cross-compiler
-Message-Id: <5460e3330605090009g370107b0sbb472c33fd3e4bbd@mail.gmail.com>
+Message-Id: <Pine.LNX.4.10.10605101238360.15487-100000@mtfhpc.demon.co.uk>
 List-Id: <sparclinux.vger.kernel.org>
 References: <DA6197CAE190A847B662079EF7631C06015691BD@OEKAW2EXVS03.hbi.ad.harman.com>
 In-Reply-To: <DA6197CAE190A847B662079EF7631C06015691BD@OEKAW2EXVS03.hbi.ad.harman.com>
@@ -10,36 +10,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 5/9/06, Rene Rebe <rene@exactcode.de> wrote:
-> Hi,
->
-> On Tuesday 09 May 2006 07:03, Jurzitza, Dieter wrote:
-> > Dear listmembers,
-> > is there anyone out who could give me a hint on how to build a
-> > cross-compiler for Ultra Sparc 64 Bit on a native 32 Bit environment? My
-> > build always barfs about incompatible libc.so - what is clear since it is
-> > 32 and not 64 Bit. Any pointer to some FAQ / whatsoever would be highly
-> > appreciated!
->
-> Despite a bit off-topic here, crosstool (http://www.kegel.com/crosstool/) or
-> Development Environments such as T2 (http://www.t2-project.org) can help you
-> to build the cross compiler.
 
-also from me, perhaps off-topic, but still, wouldn't it be neat to
-have 64 bit Ada? :)
+See http://kegel.com and look for 'crosstool'. The last version I
+downloaded was crosstool-0.35.
 
-there's two gcc bugzilla PR about this, to my knowledge... pls have a
-look at them also
+Dan Kegel has done exstensive cross compilation in the past.
 
-http://gcc.gnu.org/bugzilla/show_bug.cgi?id%743
+I used his scripts as the basis of my cross compilation scripts for
+building Sparc32 code on my AMD64 Linux system.
 
-and
+(It takes too long on Sparc32.)
 
-http://gcc.gnu.org/bugzilla/show_bug.cgi?id 035
+Regards
+	Mark Fortescue.
 
-If anyone gets to it, pls let me know...
+On Tue, 9 May 2006, Jurzitza, Dieter wrote:
 
---
-Cheers,
+> Dear listmembers,
+> is there anyone out who could give me a hint on how to build a cross-compiler for Ultra Sparc 64 Bit on a native 32 Bit environment? My build always barfs about incompatible libc.so - what is clear since it is 32 and not 64 Bit.
+> Any pointer to some FAQ / whatsoever would be highly appreciated!
+> Thanks in advance,
+> take care
+> 
+> 
+> 
+> Dieter Jurzitza
+> 
+> 
+> *******************************************
+> Diese E-Mail enthaelt vertrauliche und/oder rechtlich geschuetzte Informationen. Wenn Sie nicht der richtige Adressat sind oder diese E-Mail irrtuemlich erhalten haben, informieren Sie bitte sofort den Absender und loeschen Sie diese Mail. Das unerlaubte Kopieren sowie die unbefugte Weitergabe dieser Mail ist nicht gestattet.
+>  
+> This e-mail may contain confidential and/or privileged information. If you are not the intended recipient (or have received this e-mail in error) please notify the sender immediately and delete this e-mail. Any unauthorized copying, disclosure or distribution of the contents in this e-mail is strictly forbidden.
+> *******************************************
+> 
+> -
+> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-/ChJ
