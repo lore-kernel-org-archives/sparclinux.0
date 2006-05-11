@@ -1,7 +1,7 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Wed, 10 May 2006 20:29:34 +0000
+From: Martin Habets <errandir_news@mph.eclipse.co.uk>
+Date: Thu, 11 May 2006 16:33:29 +0000
 Subject: Re: sparc: cannot load any modules with 2.6.17-rc3
-Message-Id: <20060510.132934.100052401.davem@davemloft.net>
+Message-Id: <20060511163329.GA16957@palantir8>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20060505113514.GA28863@palantir8>
 In-Reply-To: <20060505113514.GA28863@palantir8>
@@ -10,49 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Jurij Smakov <jurij@wooyd.org>
-Date: Wed, 10 May 2006 00:15:08 -0700 (PDT)
+On Wed, May 10, 2006 at 12:15:08AM -0700, Jurij Smakov wrote:
+> I've recently built 2.6.16 and 2.6.17-rc3 kernels with Debian's gcc 
+> 4.0.3-2, and they boot. Modules load fine. There is some kind of issue 
+> with the network, loading sunlance on my SS20 does not work every time. I 
+> haven't had a chance to investigate it in detail yet. Martin, you can 
+> fetch the "most stable for me" 2.6.16 kernel from [1].
+...
+> [1] http://www.wooyd.org/debian/kernels
 
-> --- a/drivers/scsi/esp.c
-> +++ b/drivers/scsi/esp.c
-> @@ -2068,14 +2068,12 @@ static int esp_reset(struct scsi_cmnd *S
->   {
->   	struct esp *esp = (struct esp *) SCptr->device->host->hostdata;
-> 
-> +	spin_lock_irq(esp->ehost->host_lock);
->   	(void) esp_do_resetbus(esp);
-> -
->   	spin_unlock_irq(esp->ehost->host_lock);
-> 
->   	wait_event(esp->reset_queue, (esp->resetting_bus = 0));
-> 
-> -	spin_lock_irq(esp->ehost->host_lock);
-> -
->   	return SUCCESS;
->   }
-> 
-> I have not nearly enough knowledge to tell whether that is correct, but 
-> the fact that in the previous version the function is left with the lock 
-> held and in the new one - without it, struck me as suspicious.
+Hi Jurij,
 
-I don't know where you got that weird patch from, the current function
-looks like this:
+Testing another 2.6.16 is not that usefull at this point, as I have a
+working 2.6.16-rc2. Your 2.6.17-rc2 is for sparc64.
+I have a feeling of deja-vu, so excuse me if you've heard this before :).
+Where is the source for these kernels? Most notably any additional
+patches applied.
 
-static int esp_reset(struct scsi_cmnd *SCptr)
-{
-	struct esp *esp = (struct esp *) SCptr->device->host->hostdata;
-
-	spin_lock_irq(esp->ehost->host_lock);
-	(void) esp_do_resetbus(esp);
-	spin_unlock_irq(esp->ehost->host_lock);
-
-	wait_event(esp->reset_queue, (esp->resetting_bus = 0));
-
-	return SUCCESS;
-}
-
-The caller from the EH subsystem in drivers/scsi/scsi_error.c does not
-hold the host lock, so we need to acquire it around the critical
-section, which in this case is esp_do_resetbus(), then we drop
-the lock in order to wait on the reset queue which is a blocking
-operation and thus cannot hold any spinlocks.
+Cheers,
+-- 
+Martin
