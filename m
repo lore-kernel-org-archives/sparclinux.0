@@ -1,23 +1,60 @@
-From: "David S. Miller" <davem@davemloft.net>
-Date: Fri, 12 May 2006 19:55:20 +0000
-Subject: Re: [PATCH] sparc: fix warning on prom_getproperty in openprom.c
-Message-Id: <20060512.125520.61856824.davem@davemloft.net>
+From: "Blake" <ufmiuccacm@aosepc.com>
+Date: Fri, 12 May 2006 13:41:36 +0000
+Subject: best online casino
+Message-Id: <IT.5696586.7059808@codeweavers.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20060507152450.GA3426@palantir8>
-In-Reply-To: <20060507152450.GA3426@palantir8>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Martin Habets <errandir_news@mph.eclipse.co.uk>
-Date: Tue, 9 May 2006 22:05:26 +0100
+Hey, so glad to finally get hold of you,
 
-> Seems like a hypothetical case to me, since the code just did a prom_getproplen()
-> a few lines before. It makes the patch a bit bigger.
+Log on to Hi Roller Casino and get $888 FREE 
 
-Better to do it correctly though :-)
+Feel like getting rich in the comfort of your own home? Welcome to Hi Roller 
+Casino, Where Fortunes are Made! 
 
-> Signed-off-by: Martin Habets <errandir_news@mph.eclipse.co.uk>
 
-Applied, thanks a lot.
+Hi Roller Casino offers over 60 interactive games, including six progressive 
+slots and three progressive games that have paid out some of the largest 
+online jackpots in history! Even better. Hi Roller Casino will give you $10 
+Free when you download the free software and open a real account. Once 
+you've opened your REAL account and made your first deposit, 
+Hi Roller Casino will match it up to $888. 
+
+
+All commercial transactions at Hi Roller Casino are facilitated by Proc-Cyber 
+Services, a well-known and established e-cash merchant. Which means you can 
+rest assured that all your credit card transactions are 100% secured by 
+digital encryption as well as a unique password and account number. Online 
+banking can be done through a variety of safe and user-friendly methods 
+like FirePay, Citadel, NETeller, PrePaidATM, ACH, Wire transfers or Credit 
+Cards. 
+
+
+Need help? Hi Roller Casino provides a friendly, efficient 24/7 Support Desk 
+via email and toll-free lines. 
+
+
+By now you'll be keen to start making your fortune, so click here: 
+
+http://cazelun.com/d1/total 
+
+and start WINNING!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+cooperate you bunny me, impugn reverberate . salesman you tinkle me, alameda alleyway exception kiwi . 
