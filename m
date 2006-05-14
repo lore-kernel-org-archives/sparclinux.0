@@ -1,33 +1,33 @@
-From: "Kirk B. Galindo" <kirk_b_galindohz@cs.com>
-Date: Fri, 26 May 2006 04:23:04 +0000
-Subject: RERE: Loan Application y6ish1
-Message-Id: <MIGBOPBCMMDMIJPIIOLMHNIKDLAA.kirk_b_galindohz@cs.com>
+From: "Daisy B. Boyle" <d_boyleza@att.net>
+Date: Sun, 14 May 2006 17:33:38 +0000
+Subject: We can approve yours loan 14ls2l
+Message-Id: <2.2.32.2006041417333800d59b26@att.net>
 List-Id: <sparclinux.vger.kernel.org>
-In-Reply-To: <1d3801c67c3e$682f8ead$0c4b19af@f954n13>
+In-Reply-To: <d48e01c67535$8058422a$b9e8c5a7@9y1dkg1>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: autoanswer@vger.kernel.org
 
 Dear Homeowner,  
-sparclinux@vger.kernel.org
+autoanswer@vger.kernel.org
 
-http://blahmortz.com
+http://easymortz.com
 
-You have been approved for a $ 466,675 house loan (2.9 fixed)
+You have been approved for a $ 456,677 house loan (2.9 fixed)
 This offer is being presented to you right now!. Your credit history is in no way a factor.
 To take advantage of this Limited Time Opportunity,
 please take a minute and confirm your curiosity or intention to accept this loan, at the following web-site:
 
-http://blahmortz.com
+http://easymortz.com
 
 Best Regards
 Don Nut
 Loan Manager
 
-http://blahmortz.com/redirect
-sparclinux@vger.kernel.org wrote:
-> We can approve Yours loan today
-lq17tg1p9y
+http://easymortz.com/redirect
+autoanswer@vger.kernel.org wrote:
+> RERE: Loan Application
+jakh2o1959
 
 
