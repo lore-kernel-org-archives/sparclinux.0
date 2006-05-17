@@ -1,46 +1,28 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Date: Wed, 17 May 2006 20:37:12 +0000
-Subject: klibc and SPARC
-Message-Id: <e4g1ho$dae$1@terminus.zytor.com>
+From: "David S. Miller" <davem@davemloft.net>
+Date: Wed, 17 May 2006 20:40:42 +0000
+Subject: Re: klibc and SPARC
+Message-Id: <20060517.134042.27108210.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <e4g1ho$dae$1@terminus.zytor.com>
+In-Reply-To: <e4g1ho$dae$1@terminus.zytor.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hello all,
+From: "H. Peter Anvin" <hpa@zytor.com>
+Date: Wed, 17 May 2006 13:37:12 -0700 (PDT)
 
-As most of you know, I'm trying to move a bunch of Linux
-initialization code into early userspace, "klibc".  This is now in
-2.6.17-rc4-mm1, and I've gotten a sparc64-related bug report,
-specifially related to the following:
+> Is there a way to get that information from userspace, and if not,
+> should there be a general way to do it or an ad hoc solution?  It sort
+> of looks like arch/sparc64/prom describes a form of filesystem, but I
+> don't see any obvious userspace interface.
 
-[arch/sparc64/kernel/setup.c]
+There are two ways.
 
+First option is to mount the "openpromfs" filesystem under
+/proc/openprom, the full firmware device tree and properties are
+available under there as a filesystem.
 
-#ifdef CONFIG_IP_PNP
-        if (!ic_set_manually) {
-                int chosen = prom_finddevice ("/chosen");
-                u32 cl, sv, gw;
-
-                cl = prom_getintdefault (chosen, "client-ip", 0);
-                sv = prom_getintdefault (chosen, "server-ip", 0);
-                gw = prom_getintdefault (chosen, "gateway-ip", 0);
-                if (cl && sv) {
-                        ic_myaddr = cl;
-                        ic_servaddr = sv;
-                        if (gw)
-                                ic_gateway = gw;
-#if defined(CONFIG_IP_PNP_BOOTP) || defined(CONFIG_IP_PNP_RARP)
-                        ic_proto_enabled = 0;
-#endif
-                }
-        }
-#endif
-
-Is there a way to get that information from userspace, and if not,
-should there be a general way to do it or an ad hoc solution?  It sort
-of looks like arch/sparc64/prom describes a form of filesystem, but I
-don't see any obvious userspace interface.
-
-	-hpa
+The second option is to load the /dev/openprom driver, which you open,
+and then access using ioctls() defined in <asm/openpromio.h>
