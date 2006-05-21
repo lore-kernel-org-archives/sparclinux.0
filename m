@@ -1,14 +1,85 @@
-From: Jim Gifford <maillist@jg555.com>
-Date: Thu, 11 May 2006 06:52:47 +0000
-Subject: Re: Fwd: Re: Question on cross-compiler
-Message-Id: <4462DF3F.90105@jg555.com>
+From: Raymond Burns <rayburns@comcast.net>
+Date: Sun, 21 May 2006 16:00:41 +0000
+Subject: serial console
+Message-Id: <Pine.LNX.4.10.10605211029540.11270-200000@coalcreekmill.cm.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="279707904-814494355-1148233685=:11270"
 List-Id: <sparclinux.vger.kernel.org>
-References: <200605110701.20971.DJurzitza@harmanbecker.com>
-In-Reply-To: <200605110701.20971.DJurzitza@harmanbecker.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Dieter,
-    You can try the project I work with http://www.cross-lfs.org.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime@docserver.cac.washington.edu for more info.
+
+--279707904-814494355-1148233685=:11270
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+
+Hi
+
+It's tough to debug a headless box :)
+
+I believe the call to register_console() is the significant code.
+Where it should go I have no idea.
+
+I did not cleanup the patch in case something else mattered. 
+
+I've had a sparc booted to linux for all of one week so I know the
+code is not "right" but it works. Therefore it may save some one some
+time in making the "right" patch.
+
+Now to track down the "BUG_ON(sparc_cpu_model != sun4m)"  's and find
+some code that will work for a sun4d
+
+Thanx
+  Ray
+
+
+--279707904-814494355-1148233685=:11270
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name=serial_con_patch
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.10.10605211048050.11270@coalcreekmill.cm.com>
+Content-Description: context diff serial console
+Content-Disposition: attachment; filename=serial_con_patch
+
+KioqIGFyY2gvc3BhcmMva2VybmVsL3NldHVwLmMJVGh1IE1heSAxMSAyMzoz
+MTo1MyAyMDA2DQotLS0gL3NwYXJjLmQyL2xpbnV4LTIuNi4xNi4xNS9hcmNo
+L3NwYXJjL2tlcm5lbC9zZXR1cC5jCUZyaSBNYXkgMTkgMDg6NTc6MjggMjAw
+Ng0KKioqKioqKioqKioqKioqDQoqKiogMTU4LDE2MyAqKioqDQotLS0gMTU4
+LDE3MCAtLS0tDQogIAl9DQogIH0NCiAgDQorIHN0YXRpYyBzdHJ1Y3QgY29u
+c29sZSBib290X3NlcmlhbF9jb25zb2xlID0gew0KKyAJLm5hbWUgPQkJInR0
+eVMwIiwNCisgCS53cml0ZSA9CXByb21fY29uc29sZV93cml0ZSwNCisgCS5m
+bGFncyA9CUNPTl9FTkFCTEVELA0KKyAJLmluZGV4ID0JLTEsDQorIH07DQor
+IA0KICBzdGF0aWMgdm9pZCBfX2luaXQgcHJvY2Vzc19jb25zb2xlKGNoYXIg
+KmNvbW1hbmRzKQ0KICB7DQogIAlzZXJpYWxfY29uc29sZSA9IDA7DQoqKioq
+KioqKioqKioqKioNCioqKiAxNzAsMTc1ICoqKioNCi0tLSAxNzcsMTg1IC0t
+LS0NCiAgCQkvKiBTb2xhcmlzLXN0eWxlIHNlcmlhbCAqLw0KICAJCWlmIChj
+ID09ICdhJyB8fCBjID09ICdiJykNCiAgCQkJc2VyaWFsX2NvbnNvbGUgPSBj
+IC0gJ2EnICsgMTsNCisgCQlyZWdpc3Rlcl9jb25zb2xlKCZib290X3Nlcmlh
+bF9jb25zb2xlKTsNCisgCQlhZGRfcHJlZmVycmVkX2NvbnNvbGUoInR0eVMi
+LHNlcmlhbF9jb25zb2xlIC0gMSxOVUxMKTsNCisgCQlwcm9tX3ByaW50ZiAo
+IlVzaW5nIC9kZXYvdHR5JWMgYXMgY29uc29sZS5cbiIsJ2EnIC0xICsgc2Vy
+aWFsX2NvbnNvbGUpOw0KICAJCS8qIGVsc2UgTGludXgtc3R5bGUgZmJjb24s
+IG5vdCBzZXJpYWwgKi8NCiAgCX0NCiAgI2lmIGRlZmluZWQoQ09ORklHX1BS
+T01fQ09OU09MRSkNCioqKioqKioqKioqKioqKg0KKioqIDMwMiwzMDkgKioq
+Kg0KLS0tIDMxMywzMjIgLS0tLQ0KICAJfTsNCiAgDQogICNpZmRlZiBDT05G
+SUdfRFVNTVlfQ09OU09MRQ0KKyBpZiAoc2VyaWFsX2NvbnNvbGU9PTApIA0K
+ICAJY29uc3dpdGNocCA9ICZkdW1teV9jb247DQogICNlbGlmIGRlZmluZWQo
+Q09ORklHX1BST01fQ09OU09MRSkNCisgaWYgKHNlcmlhbF9jb25zb2xlPT0w
+KSANCiAgCWNvbnN3aXRjaHAgPSAmcHJvbV9jb247DQogICNlbmRpZg0KICAJ
+Ym9vdF9mbGFnc19pbml0KCpjbWRsaW5lX3ApOw0KKioqKioqKioqKioqKioq
+DQoqKiogMzU2LDM2MyAqKioqDQogIAlpbnQgaWRldiwgb2RldjsNCiAgDQog
+IAkvKiBUaGUgdXNlciBoYXMgcmVxdWVzdGVkIGEgY29uc29sZSBzbyB0aGlz
+IGlzIGFscmVhZHkgc2V0IHVwLiAqLw0KISAJaWYgKHNlcmlhbF9jb25zb2xl
+ID49IDApDQohIAkJcmV0dXJuIC1FQlVTWTsNCiAgDQogIAlpZGV2ID0gcHJv
+bV9xdWVyeV9pbnB1dF9kZXZpY2UoKTsNCiAgCW9kZXYgPSBwcm9tX3F1ZXJ5
+X291dHB1dF9kZXZpY2UoKTsNCi0tLSAzNjksMzgwIC0tLS0NCiAgCWludCBp
+ZGV2LCBvZGV2Ow0KICANCiAgCS8qIFRoZSB1c2VyIGhhcyByZXF1ZXN0ZWQg
+YSBjb25zb2xlIHNvIHRoaXMgaXMgYWxyZWFkeSBzZXQgdXAuICovDQohIAlp
+ZiAoc2VyaWFsX2NvbnNvbGUgPj0gMCkgew0KISAJCXByb21fcHJpbnRmKCJr
+ZWVwaW5nIGNvbnNvbGUgJWRcbiIsc2VyaWFsX2NvbnNvbGUpOw0KISAJCS8q
+IGV2ZXJ5dGhpbmcgdGhhdCBpcyBleGNlcHQgKi8NCiEgCQlyZXR1cm4gYWRk
+X3ByZWZlcnJlZF9jb25zb2xlKCJ0dHlTIiwgc2VyaWFsX2NvbnNvbGUgLSAx
+LCBOVUxMKTsNCiEgLyoJCXJldHVybiAtRUJVU1k7Ki8NCiEgICAgICAgICB9
+DQogIA0KICAJaWRldiA9IHByb21fcXVlcnlfaW5wdXRfZGV2aWNlKCk7DQog
+IAlvZGV2ID0gcHJvbV9xdWVyeV9vdXRwdXRfZGV2aWNlKCk7DQo=
+--279707904-814494355-1148233685=:11270--
