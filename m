@@ -1,18 +1,26 @@
-From: Daniel Smolik <marvin@mydatex.cz>
-Date: Mon, 29 May 2006 20:55:59 +0000
-Subject: Permedia2 framebuffer
-Message-Id: <447B5FDF.6010602@mydatex.cz>
+From: Olaf Hering <olh@suse.de>
+Date: Mon, 22 May 2006 07:11:07 +0000
+Subject: Re: [PATCH] implicit declaration of function `page_cache_release'
+Message-Id: <20060522071107.GA7715@suse.de>
 List-Id: <sparclinux.vger.kernel.org>
+References: <40f323d00508051218c30d7af@mail.gmail.com> <20050806.065520.85401639.davem@davemloft.net> <20050806150103.GA21821@suse.de> <20050806.084950.74730249.davem@davemloft.net>
+In-Reply-To: <20050806.084950.74730249.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: bboissin@gmail.com, akpm@osdl.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-Hi,
-have anybody working Permedia2 frame buffer on 2.6.x kernel ? Tested 
-it on E250 with 2.6.14-17rc4. Frame buffer work but fonts look ugly 
-and are unreadable. With 2.2.x kernel from Sarge work nice. And Xfbdev 
-xserver doesn't start at top of fbdev.
+ On Sat, Aug 06, David S. Miller wrote:
 
+> From: Olaf Hering <olh@suse.de>
+> Date: Sat, 6 Aug 2005 17:01:03 +0200
+> 
+> > So the patch should be reverted? Its only for CONFIG_SWAP=n, rather
+> > unusual for KDE/GNOME tainted workstations...
+> 
+> Not necessarily, but the header dependencies should be fixed
+> up somehow.
 
-			Dan
+I think you are right once again.
+(Just the time got a bit out of sync.)
