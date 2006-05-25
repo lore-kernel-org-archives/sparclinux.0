@@ -1,32 +1,27 @@
-From: "Clint Schroeder" <clintschroederbw@erols.com>
-Date: Sun, 21 May 2006 03:43:45 +0000
-Subject: RE: We can approve yours loan h0d3vv
-Message-Id: <446FE1F1.F7793CD4@erols.com>
+From: "Ivy Gordon" <BlytheCasey@netpipe.com>
+Date: Thu, 25 May 2006 03:26:48 +0000
+Subject: Premium Rep#ic%ted Watches 71
+Message-Id: <fb7101c67fcc$958fe810$c8be1ac1@BlytheCasey>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Dear Homeowner,  
-autoanswer@vger.kernel.org
+Low priced replicas available in all styles. 
+Mens, womans and childrens.
 
-http://joerate.com/goodstep
+These watches are of great quality and 
+are replicated to mirror the real thing.
 
-You have been approved for a $ 859,545 house loan (2.9 fixed)
-This offer is being presented to you right now!. Your credit history is in no way a factor.
-To take advantage of this Limited Time Opportunity,
-please take a minute and confirm your curiosity or intention to accept this loan, at the following web-site:
+Excellent prices that cannot be passed up
+Take a look at our selection of watches
 
-http://joerate.com/goodstep
+http://mmj.selectreplics.com/
 
-Best Regards
-Don Nut
-Loan Manager
 
-http://joerate.com/lit.html
-autoanswer@vger.kernel.org wrote:
-> We can approve yours loan
-4jsf6l1rrr
+To get rid of this fan While you live, tell truth and shame the Devil! 
+You know how I gab. Whipping boy
+Now, let's get down to business. Whistle and flute 
 
 
