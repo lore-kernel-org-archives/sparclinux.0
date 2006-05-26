@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 24 May 2006 06:24:46 +0000
+Date: Fri, 26 May 2006 09:52:31 +0000
 Subject: Re: 2.6.17-rc3+git seems to corrupt dpkg databases
-Message-Id: <20060523.232446.85689175.davem@davemloft.net>
+Message-Id: <20060526.025231.123919023.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.SOC.4.61.0605151108040.27015@math.ut.ee>
 In-Reply-To: <Pine.SOC.4.61.0605151108040.27015@math.ut.ee>
@@ -10,17 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Jurij Smakov <jurij@wooyd.org>
-Date: Tue, 23 May 2006 22:32:03 -0700 (PDT)
 
-> From a quick look at the code (dpkg-1.13.19), it appears that the status 
-> file is mmap'ed for reading with
-> 
-> mmap(NULL, stat.st_size, PROT_READ, MAP_SHARED, fd, 0)
-> 
-> at lib/parse.c:114. When the database is written to disk, it is 
-> constructed line by line, which are written out to disk using fputs()
-> at lib/dump.c:306. The file is fflush'ed and fsync'ed after writing.
+Can you guys give this patch a spin?  I think this might
+cure it.  Please be sure to add this patch to a kernel
+you know produced the symptoms before.
 
-This means it's probably a D-cache aliasing issue.  I'll try to figure
-it out, thanks.
+Thanks.
+
+diff --git a/arch/sparc64/lib/U1memcpy.S b/arch/sparc64/lib/U1memcpy.S
+index bafd2fc..7293020 100644
+--- a/arch/sparc64/lib/U1memcpy.S
++++ b/arch/sparc64/lib/U1memcpy.S
+@@ -97,7 +97,7 @@
+ 	EX_ST(STORE_BLK(%fsrc, %dest));			\
+ 	add			%dest, 0x40, %dest;	\
+ 	ba,pt			%xcc, target;		\
+-	 nop;
++	 DO_SYNC
+ 
+ #define FINISH_VISCHUNK(dest, f0, f1, left)	\
+ 	subcc			%left, 8, %left;\
