@@ -1,172 +1,56 @@
-From: Bob Breuer <breuerr@mc.net>
-Date: Sat, 27 May 2006 22:43:27 +0000
+From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <mt1@systella.fr>
+Date: Sun, 28 May 2006 09:30:55 +0000
 Subject: Re: 2.6.17-rc5 does not build for sparc
-Message-Id: <4478D60F.9070603@mc.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------000105090008080404050509"
+Message-Id: <44796DCF.1030209@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4478bffd45960@wp.pl>
 In-Reply-To: <4478bffd45960@wp.pl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000105090008080404050509
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Bob Breuer a =E9crit :
+> Krzysztof Helt wrote:
+>=20
+>>Hello,
+>>
+>>I tried to build the 2.6.17-rc5 for sparc with SMP enabled. The
+>>kernel was not build due to a missing macro. Here is a patch
+>>which fixes this (I copied the macro from a sparc64 header).
+>>
+>=20
+>=20
+> That's not all that is broken.  I think I have what could be 4 separate
+> patches for smp here: (combined in the attached patch)
+>   1. add topology_init - fixes a boot time crash
+>   2. setup cpu_possible_map - actually boot the additional cpu's
+>   3. fix smp related section mismatch warnings
+>   4. add the missing *_can_lock macros
+>=20
+> If you are running a local framebuffer, you may encounter a problem with
+> vmalloc.  Adding "migration_cost=10000" to the kernel command line
+> should cover up the problem.
+>=20
+> I haven't had the time to give it a thorough testing and see if it
+> self-recompiles recently, but I was previously able to successfully
+> rebuild the kernel with "make -j6" on a dual SuperSPARC II.
 
-Krzysztof Helt wrote:
-> Hello,
-> 
-> I tried to build the 2.6.17-rc5 for sparc with SMP enabled. The
-> kernel was not build due to a missing macro. Here is a patch
-> which fixes this (I copied the macro from a sparc64 header).
-> 
+	I have tried your patch too and I only can randomly use a SS20 with two=20
+SSI/75 (448 MB). I have tested the last kernel proposed on the=20
+debian-sparc mailing list without any trouble but with only one SSII=20
+(SMP is broken but I haven't seen any DMA error).
 
-That's not all that is broken.  I think I have what could be 4 separate
-patches for smp here: (combined in the attached patch)
-  1. add topology_init - fixes a boot time crash
-  2. setup cpu_possible_map - actually boot the additional cpu's
-  3. fix smp related section mismatch warnings
-  4. add the missing *_can_lock macros
+	Question : does somebody use a SS20 with four ROSS ? I have seens a=20
+very strange trouble. I have a lot of RT626, SS20 and memory chips. With=20
+all configurations I have tested with more than two RT626, Solaris 9=20
+returns "watchdog reset". All motherboards have been tested and work=20
+fine. Same observations for RT626 and memory. Thus, I don't know if the=20
+trouble I have seen with Linux 2.6 and 4*RT626 come from hardware=20
+incompatibility or software mistake. Any idea ? Currently, I retest a=20
+SS20 with Solaris 9 and 2*RT626 and I have built without any trouble=20
+gcc-4.1.0 and gcc-4.1.1.
 
-If you are running a local framebuffer, you may encounter a problem with
-vmalloc.  Adding "migration_cost=10000" to the kernel command line
-should cover up the problem.
+	Regards,
 
-I haven't had the time to give it a thorough testing and see if it
-self-recompiles recently, but I was previously able to successfully
-rebuild the kernel with "make -j6" on a dual SuperSPARC II.
-
-Bob
-
---------------000105090008080404050509
-Content-Type: application/patch;
- name="sparc32-smp-2.6.17-rc4.patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename="sparc32-smp-2.6.17-rc4.patch"
-
-ZGlmZiAtWCBkb250ZGlmZiAtdXJwIGxpbnV4LTIuNi4xNy1yYzQtY2xlYW4vYXJjaC9zcGFy
-Yy9rZXJuZWwvc2V0dXAuYyBsaW51eC0yLjYuMTctcmM0L2FyY2gvc3BhcmMva2VybmVsL3Nl
-dHVwLmMKLS0tIGxpbnV4LTIuNi4xNy1yYzQtY2xlYW4vYXJjaC9zcGFyYy9rZXJuZWwvc2V0
-dXAuYwkyMDA1LTEwLTI4IDIwOjEzOjI5LjAwMDAwMDAwMCAtMDUwMAorKysgbGludXgtMi42
-LjE3LXJjNC9hcmNoL3NwYXJjL2tlcm5lbC9zZXR1cC5jCTIwMDYtMDQtMjIgMjE6NTU6MzMu
-MDAwMDAwMDAwIC0wNTAwCkBAIC0zMSw2ICszMSw3IEBACiAjaW5jbHVkZSA8bGludXgvY29u
-c29sZS5oPgogI2luY2x1ZGUgPGxpbnV4L3NwaW5sb2NrLmg+CiAjaW5jbHVkZSA8bGludXgv
-cm9vdF9kZXYuaD4KKyNpbmNsdWRlIDxsaW51eC9jcHUuaD4KIAogI2luY2x1ZGUgPGFzbS9z
-eXN0ZW0uaD4KICNpbmNsdWRlIDxhc20vaW8uaD4KQEAgLTM0OCw2ICszNDksOCBAQCB2b2lk
-IF9faW5pdCBzZXR1cF9hcmNoKGNoYXIgKipjbWRsaW5lX3ApCiAJaW5pdF9tbS5jb250ZXh0
-ID0gKHVuc2lnbmVkIGxvbmcpIE5PX0NPTlRFWFQ7CiAJaW5pdF90YXNrLnRocmVhZC5rcmVn
-cyA9ICZmYWtlX3N3YXBwZXJfcmVnczsKIAorCXNtcF9zZXR1cF9jcHVfcG9zc2libGVfbWFw
-KCk7CisKIAlwYWdpbmdfaW5pdCgpOwogfQogCkBAIC0zODksNiArMzkyLDggQEAgY29uc29s
-ZV9pbml0Y2FsbChzZXRfcHJlZmVycmVkX2NvbnNvbGUpOwogZXh0ZXJuIGNoYXIgKnNwYXJj
-X2NwdV90eXBlOwogZXh0ZXJuIGNoYXIgKnNwYXJjX2ZwdV90eXBlOwogCitzdGF0aWMgaW50
-IG5jcHVzX3Byb2JlZDsKKwogc3RhdGljIGludCBzaG93X2NwdWluZm8oc3RydWN0IHNlcV9m
-aWxlICptLCB2b2lkICpfX3VudXNlZCkKIHsKIAlzZXFfcHJpbnRmKG0sCkBAIC00MTEsNyAr
-NDE2LDcgQEAgc3RhdGljIGludCBzaG93X2NwdWluZm8oc3RydWN0IHNlcV9maWxlIAogCQkg
-ICByb212ZWMtPnB2X3ByaW50cmV2ID4+IDE2LAogCQkgICByb212ZWMtPnB2X3ByaW50cmV2
-ICYgMHhmZmZmLAogCQkgICAmY3B1dHlwdmFsLAotCQkgICBudW1fcG9zc2libGVfY3B1cygp
-LAorCQkgICBuY3B1c19wcm9iZWQsCiAJCSAgIG51bV9vbmxpbmVfY3B1cygpCiAjaWZuZGVm
-IENPTkZJR19TTVAKIAkJICAgLCBjcHVfZGF0YSgwKS51ZGVsYXlfdmFsLyg1MDAwMDAvSFop
-LApAQCAtNDcxLDMgKzQ3NiwzMCBAQCB2b2lkIHN1bl9kb19icmVhayh2b2lkKQogCiBpbnQg
-c2VyaWFsX2NvbnNvbGUgPSAtMTsKIGludCBzdG9wX2FfZW5hYmxlZCA9IDE7CisKK3N0YXRp
-YyBpbnQgX19pbml0IHRvcG9sb2d5X2luaXQodm9pZCkKK3sKKwlpbnQgaSwgbmNwdXMsIGVy
-cjsKKworCS8qIENvdW50IHRoZSBudW1iZXIgb2YgcGh5c2ljYWxseSBwcmVzZW50IHByb2Nl
-c3NvcnMgaW4KKwkgKiB0aGUgbWFjaGluZSwgZXZlbiBvbiB1bmlwcm9jZXNzb3IsIHNvIHRo
-YXQgL3Byb2MvY3B1aW5mbworCSAqIG91dHB1dCBpcyBjb25zaXN0ZW50IHdpdGggMi40LngK
-KwkgKi8KKwluY3B1cyA9IDA7CisJd2hpbGUgKCFjcHVfZmluZF9ieV9pbnN0YW5jZShuY3B1
-cywgTlVMTCwgTlVMTCkpCisJCW5jcHVzKys7CisJbmNwdXNfcHJvYmVkID0gbmNwdXM7CisK
-KwllcnIgPSAwOworCWZvcl9lYWNoX29ubGluZV9jcHUoaSkgeworCQlzdHJ1Y3QgY3B1ICpw
-ID0ga3phbGxvYyhzaXplb2YoKnApLCBHRlBfS0VSTkVMKTsKKwkJaWYgKCFwKQorCQkJZXJy
-ID0gLUVOT01FTTsKKwkJZWxzZQorCQkJcmVnaXN0ZXJfY3B1KHAsIGksIE5VTEwpOworCX0K
-KworCXJldHVybiBlcnI7Cit9CisKK3N1YnN5c19pbml0Y2FsbCh0b3BvbG9neV9pbml0KTsK
-ZGlmZiAtWCBkb250ZGlmZiAtdXJwIGxpbnV4LTIuNi4xNy1yYzQtY2xlYW4vYXJjaC9zcGFy
-Yy9rZXJuZWwvc21wLmMgbGludXgtMi42LjE3LXJjNC9hcmNoL3NwYXJjL2tlcm5lbC9zbXAu
-YwotLS0gbGludXgtMi42LjE3LXJjNC1jbGVhbi9hcmNoL3NwYXJjL2tlcm5lbC9zbXAuYwky
-MDA2LTA0LTMwIDE0OjE1OjQyLjAwMDAwMDAwMCAtMDUwMAorKysgbGludXgtMi42LjE3LXJj
-NC9hcmNoL3NwYXJjL2tlcm5lbC9zbXAuYwkyMDA2LTA0LTIzIDExOjEwOjEyLjAwMDAwMDAw
-MCAtMDUwMApAQCAtNTgsNyArNTgsNyBAQCBjcHVtYXNrX3Qgc21wX2NvbW1lbmNlZF9tYXNr
-ID0gQ1BVX01BU0tfCiAvKiBVc2VkIHRvIG1ha2UgYml0b3BzIGF0b21pYyAqLwogdW5zaWdu
-ZWQgY2hhciBiaXRvcHNfc3BpbmxvY2sgPSAwOwogCi12b2lkIF9faW5pdCBzbXBfc3RvcmVf
-Y3B1X2luZm8oaW50IGlkKQordm9pZCBfX2NwdWluaXQgc21wX3N0b3JlX2NwdV9pbmZvKGlu
-dCBpZCkKIHsKIAlpbnQgY3B1X25vZGU7CiAKQEAgLTI1NiwyMiArMjU2LDE4IEBAIGludCBz
-ZXR1cF9wcm9maWxpbmdfdGltZXIodW5zaWduZWQgaW50IG0KIHZvaWQgX19pbml0IHNtcF9w
-cmVwYXJlX2NwdXModW5zaWduZWQgaW50IG1heF9jcHVzKQogewogCWV4dGVybiB2b2lkIHNt
-cDRtX2Jvb3RfY3B1cyh2b2lkKTsKLQlpbnQgaSwgY3B1aWQsIG5jcHVzLCBleHRyYTsKKwlp
-bnQgaSwgY3B1aWQsIGV4dHJhOwogCiAJQlVHX09OKHNwYXJjX2NwdV9tb2RlbCAhPSBzdW40
-bSk7CiAJcHJpbnRrKCJFbnRlcmluZyBTTVAgTW9kZS4uLlxuIik7CiAKLQluY3B1cyA9IDE7
-CiAJZXh0cmEgPSAwOwogCWZvciAoaSA9IDA7ICFjcHVfZmluZF9ieV9pbnN0YW5jZShpLCBO
-VUxMLCAmY3B1aWQpOyBpKyspIHsKLQkJaWYgKGNwdWlkID09IGJvb3RfY3B1X2lkKQotCQkJ
-Y29udGludWU7Ci0JCWlmIChjcHVpZCA8IE5SX0NQVVMgJiYgbmNwdXMrKyA8IG1heF9jcHVz
-KQotCQkJY3B1X3NldChjcHVpZCwgcGh5c19jcHVfcHJlc2VudF9tYXApOwotCQllbHNlCisJ
-CWlmIChjcHVpZCA+PSBOUl9DUFVTKQogCQkJZXh0cmErKzsKIAl9Ci0JaWYgKG1heF9jcHVz
-ID49IE5SX0NQVVMgJiYgZXh0cmEpCisJLyogaSA9IG51bWJlciBvZiBjcHVzICovCisJaWYg
-KGV4dHJhICYmIG1heF9jcHVzID4gaSAtIGV4dHJhKQogCQlwcmludGsoIldhcm5pbmc6IE5S
-X0NQVVMgaXMgdG9vIGxvdyB0byBzdGFydCBhbGwgY3B1c1xuIik7CiAKIAlzbXBfc3RvcmVf
-Y3B1X2luZm8oYm9vdF9jcHVfaWQpOwpAQCAtMjc5LDcgKzI3NSwyNSBAQCB2b2lkIF9faW5p
-dCBzbXBfcHJlcGFyZV9jcHVzKHVuc2lnbmVkIGluCiAJc21wNG1fYm9vdF9jcHVzKCk7CiB9
-CiAKLXZvaWQgX19kZXZpbml0IHNtcF9wcmVwYXJlX2Jvb3RfY3B1KHZvaWQpCisvKiBTZXQg
-dGhpcyB1cCBlYXJseSBzbyB0aGF0IHRoaW5ncyBsaWtlIHRoZSBzY2hlZHVsZXIgY2FuIGlu
-aXQKKyAqIHByb3Blcmx5LiAgV2UgdXNlIHRoZSBzYW1lIGNwdSBtYXNrIGZvciBib3RoIHRo
-ZSBwcmVzZW50IGFuZAorICogcG9zc2libGUgY3B1IG1hcC4KKyAqLwordm9pZCBfX2luaXQg
-c21wX3NldHVwX2NwdV9wb3NzaWJsZV9tYXAodm9pZCkKK3sKKwlpbnQgaW5zdGFuY2UsIG1p
-ZDsKKworCWluc3RhbmNlID0gMDsKKwl3aGlsZSAoIWNwdV9maW5kX2J5X2luc3RhbmNlKGlu
-c3RhbmNlLCBOVUxMLCAmbWlkKSkgeworCQlpZiAobWlkIDwgTlJfQ1BVUykgeworCQkJY3B1
-X3NldChtaWQsIHBoeXNfY3B1X3ByZXNlbnRfbWFwKTsKKwkJCWNwdV9zZXQobWlkLCBjcHVf
-cHJlc2VudF9tYXApOworCQl9CisJCWluc3RhbmNlKys7CisJfQorfQorCit2b2lkIF9faW5p
-dCBzbXBfcHJlcGFyZV9ib290X2NwdSh2b2lkKQogewogCWludCBjcHVpZCA9IGhhcmRfc21w
-X3Byb2Nlc3Nvcl9pZCgpOwogCkBAIC0yOTUsNyArMzA5LDcgQEAgdm9pZCBfX2RldmluaXQg
-c21wX3ByZXBhcmVfYm9vdF9jcHUodm9pZAogCWNwdV9zZXQoY3B1aWQsIHBoeXNfY3B1X3By
-ZXNlbnRfbWFwKTsKIH0KIAotaW50IF9fZGV2aW5pdCBfX2NwdV91cCh1bnNpZ25lZCBpbnQg
-Y3B1KQoraW50IF9fY3B1aW5pdCBfX2NwdV91cCh1bnNpZ25lZCBpbnQgY3B1KQogewogCWV4
-dGVybiBpbnQgc21wNG1fYm9vdF9vbmVfY3B1KGludCk7CiAJaW50IHJldDsKZGlmZiAtWCBk
-b250ZGlmZiAtdXJwIGxpbnV4LTIuNi4xNy1yYzQtY2xlYW4vYXJjaC9zcGFyYy9rZXJuZWwv
-c3VuNG1fc21wLmMgbGludXgtMi42LjE3LXJjNC9hcmNoL3NwYXJjL2tlcm5lbC9zdW40bV9z
-bXAuYwotLS0gbGludXgtMi42LjE3LXJjNC1jbGVhbi9hcmNoL3NwYXJjL2tlcm5lbC9zdW40
-bV9zbXAuYwkyMDA2LTA0LTMwIDE0OjE1OjQyLjAwMDAwMDAwMCAtMDUwMAorKysgbGludXgt
-Mi42LjE3LXJjNC9hcmNoL3NwYXJjL2tlcm5lbC9zdW40bV9zbXAuYwkyMDA2LTA0LTIzIDEx
-OjE0OjI1LjAwMDAwMDAwMCAtMDUwMApAQCAtNjYsNyArNjYsNyBAQCBzdGF0aWMgaW5saW5l
-IHVuc2lnbmVkIGxvbmcgc3dhcCh2b2xhdGlsCiBzdGF0aWMgdm9pZCBzbXBfc2V0dXBfcGVy
-Y3B1X3RpbWVyKHZvaWQpOwogZXh0ZXJuIHZvaWQgY3B1X3Byb2JlKHZvaWQpOwogCi12b2lk
-IF9faW5pdCBzbXA0bV9jYWxsaW4odm9pZCkKK3ZvaWQgX19jcHVpbml0IHNtcDRtX2NhbGxp
-bih2b2lkKQogewogCWludCBjcHVpZCA9IGhhcmRfc21wX3Byb2Nlc3Nvcl9pZCgpOwogCkBA
-IC0xMTIsMTMgKzExMiw4IEBAIHZvaWQgX19pbml0IHNtcDRtX2NhbGxpbih2b2lkKQogCWxv
-Y2FsX2lycV9lbmFibGUoKTsKIAogCWNwdV9zZXQoY3B1aWQsIGNwdV9vbmxpbmVfbWFwKTsK
-LQkvKiBsYXN0IG9uZSBpbiBnZXRzIGFsbCB0aGUgaW50ZXJydXB0cyAoZm9yIHRlc3Rpbmcp
-ICovCi0Jc2V0X2lycV91ZHQoYm9vdF9jcHVfaWQpOwogfQogCi1leHRlcm4gdm9pZCBpbml0
-X0lSUSh2b2lkKTsKLWV4dGVybiB2b2lkIGNwdV9wYW5pYyh2b2lkKTsKLQogLyoKICAqCUN5
-Y2xlIHRocm91Z2ggdGhlIHByb2Nlc3NvcnMgYXNraW5nIHRoZSBQUk9NIHRvIHN0YXJ0IGVh
-Y2ggb25lLgogICovCkBAIC0xMzQsNyArMTI5LDcgQEAgdm9pZCBfX2luaXQgc21wNG1fYm9v
-dF9jcHVzKHZvaWQpCiAJbG9jYWxfZmx1c2hfY2FjaGVfYWxsKCk7CiB9CiAKLWludCBzbXA0
-bV9ib290X29uZV9jcHUoaW50IGkpCitpbnQgX19jcHVpbml0IHNtcDRtX2Jvb3Rfb25lX2Nw
-dShpbnQgaSkKIHsKIAlleHRlcm4gdW5zaWduZWQgbG9uZyBzdW40bV9jcHVfc3RhcnR1cDsK
-IAl1bnNpZ25lZCBsb25nICplbnRyeSA9ICZzdW40bV9jcHVfc3RhcnR1cDsKZGlmZiAtWCBk
-b250ZGlmZiAtdXJwIGxpbnV4LTIuNi4xNy1yYzQtY2xlYW4vaW5jbHVkZS9hc20tc3BhcmMv
-c21wLmggbGludXgtMi42LjE3LXJjNC9pbmNsdWRlL2FzbS1zcGFyYy9zbXAuaAotLS0gbGlu
-dXgtMi42LjE3LXJjNC1jbGVhbi9pbmNsdWRlL2FzbS1zcGFyYy9zbXAuaAkyMDA2LTA0LTMw
-IDE0OjE4OjE5LjAwMDAwMDAwMCAtMDUwMAorKysgbGludXgtMi42LjE3LXJjNC9pbmNsdWRl
-L2FzbS1zcGFyYy9zbXAuaAkyMDA2LTA0LTIyIDIxOjU1OjMzLjAwMDAwMDAwMCAtMDUwMApA
-QCAtMTQ2LDYgKzE0Niw4IEBAIHN0YXRpYyBpbmxpbmUgaW50IGhhcmRfc21wX3Byb2Nlc3Nv
-cl9pZCgKICNkZWZpbmUgcHJvZl9tdWx0aXBsaWVyKF9fY3B1KQkJY3B1X2RhdGEoX19jcHUp
-Lm11bHRpcGxpZXIKICNkZWZpbmUgcHJvZl9jb3VudGVyKF9fY3B1KQkJY3B1X2RhdGEoX19j
-cHUpLmNvdW50ZXIKIAordm9pZCBzbXBfc2V0dXBfY3B1X3Bvc3NpYmxlX21hcCh2b2lkKTsK
-KwogI2VuZGlmIC8qICEoX19BU1NFTUJMWV9fKSAqLwogCiAvKiBTcGFyYyBzcGVjaWZpYyBt
-ZXNzYWdlcy4gKi8KQEAgLTE2Miw3ICsxNjQsMTEgQEAgc3RhdGljIGlubGluZSBpbnQgaGFy
-ZF9zbXBfcHJvY2Vzc29yX2lkKAogI2RlZmluZSBNQk9YX0lETEVDUFUyICAgICAgICAgMHhG
-RAogI2RlZmluZSBNQk9YX1NUT1BDUFUyICAgICAgICAgMHhGRQogCi0jZW5kaWYgLyogU01Q
-ICovCisjZWxzZSAvKiBTTVAgKi8KKworI2RlZmluZSBzbXBfc2V0dXBfY3B1X3Bvc3NpYmxl
-X21hcCgpIGRvIHsgfSB3aGlsZSAoMCkKKworI2VuZGlmIC8qICEoU01QKSAqLwogCiAjZGVm
-aW5lIE5PX1BST0NfSUQgICAgICAgICAgICAweEZGCiAKZGlmZiAtWCBkb250ZGlmZiAtdXJw
-IGxpbnV4LTIuNi4xNy1yYzQtY2xlYW4vaW5jbHVkZS9hc20tc3BhcmMvc3BpbmxvY2suaCBs
-aW51eC0yLjYuMTctcmM0L2luY2x1ZGUvYXNtLXNwYXJjL3NwaW5sb2NrLmgKLS0tIGxpbnV4
-LTIuNi4xNy1yYzQtY2xlYW4vaW5jbHVkZS9hc20tc3BhcmMvc3BpbmxvY2suaAkyMDA2LTA0
-LTMwIDE0OjE4OjE5LjAwMDAwMDAwMCAtMDUwMAorKysgbGludXgtMi42LjE3LXJjNC9pbmNs
-dWRlL2FzbS1zcGFyYy9zcGlubG9jay5oCTIwMDYtMDUtMTMgMTI6MDI6MjYuMDAwMDAwMDAw
-IC0wNTAwCkBAIC0xNDksNiArMTQ5LDggQEAgc3RhdGljIGlubGluZSBpbnQgX19yYXdfd3Jp
-dGVfdHJ5bG9jayhyYQogCXJldHVybiAodmFsID09IDApOwogfQogCisjZGVmaW5lIF9fcmF3
-X3JlYWRfY2FuX2xvY2socncpICghKChydyktPmxvY2sgJiAweGZmKSkKKyNkZWZpbmUgX19y
-YXdfd3JpdGVfY2FuX2xvY2socncpICghKHJ3KS0+bG9jaykKICNkZWZpbmUgX19yYXdfd3Jp
-dGVfdW5sb2NrKHJ3KQlkbyB7IChydyktPmxvY2sgPSAwOyB9IHdoaWxlKDApCiAKICNkZWZp
-bmUgX19yYXdfc3Bpbl9sb2NrX2ZsYWdzKGxvY2ssIGZsYWdzKSBfX3Jhd19zcGluX2xvY2so
-bG9jaykK
---------------000105090008080404050509--
+	JKB
