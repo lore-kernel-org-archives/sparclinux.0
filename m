@@ -1,13 +1,18 @@
-From: "Dr. David Frankson" <dfrankson7ulh@verizon.net>
-Date: Fri, 05 May 2006 19:09:25 +0000
-Subject: texo
-Message-Id: <000201c67077$00003363$6f5ba8c0@wuvo>
+From: Daniel Smolik <marvin@mydatex.cz>
+Date: Mon, 29 May 2006 20:55:59 +0000
+Subject: Permedia2 framebuffer
+Message-Id: <447B5FDF.6010602@mydatex.cz>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-If u need prescription drugs over the internet http://eedown.com/
+Hi,
+have anybody working Permedia2 frame buffer on 2.6.x kernel ? Tested 
+it on E250 with 2.6.14-17rc4. Frame buffer work but fonts look ugly 
+and are unreadable. With 2.2.x kernel from Sarge work nice. And Xfbdev 
+xserver doesn't start at top of fbdev.
 
 
+			Dan
