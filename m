@@ -1,24 +1,30 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 05 Jun 2006 18:19:04 +0000
-Subject: Re: Checksum problem on sparc64
-Message-Id: <20060605.111904.63130788.davem@davemloft.net>
+From: Jurij Smakov <jurij@wooyd.org>
+Date: Sat, 03 Jun 2006 02:29:20 +0000
+Subject: Re: Sun Blade 2500
+Message-Id: <Pine.LNX.4.63.0606021919280.2727@bobcat>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20060323223510.GA7683@sceen.net>
-In-Reply-To: <20060323223510.GA7683@sceen.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Richard Braun <syn@sceen.net>
-Date: Mon, 5 Jun 2006 14:05:28 +0200
+Hi,
 
-> On Sun, Jun 04, 2006 at 09:32:46PM -0700, David Miller wrote:
-> > > Let me know if it works for you.
-> > 
-> > Here is the current patch:
-> 
-> I've applied the latest patch today, and didn't get any trouble since.
-> Thanks.
+Tobias have posted a question on the debian-sparc mailing list, asking 
+whether he can install Debian on Blade 2500. I was able to find an old 
+thread [0] from May 2005, where Dave mentioned that at that time the 
+machine was not yet supported. It looks like there was at least some 
+progress since then (likely due to Dave's efforts :-), because Tobias is 
+at least able to boot the installer on it. It does not find the disks 
+though, so I wonder what kind of drivers are required for its SCSI 
+controller. Thread [1] mentions message/fusion/mpt* modules, however the 
+original poster never confirmed that he got it working, so it would be 
+nice to hear from someone who is actually running Linux on such a box.
 
-Thanks for testing.
+[0] http://lists.debian.org/debian-sparc/2005/05/msg00166.html
+[1] http://lists.debian.org/debian-boot/2005/12/msg00554.html
+
+Best regards,
+
+Jurij Smakov                                        jurij@wooyd.org
+Key: http://www.wooyd.org/pgpkey/                   KeyID: C99E03CC
