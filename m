@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 03 Jun 2006 06:09:04 +0000
+From: Jurij Smakov <jurij@wooyd.org>
+Date: Sat, 03 Jun 2006 19:01:24 +0000
 Subject: Re: [PATCH]: Fix D-cache corruption in mremap()
-Message-Id: <20060602.230904.30184837.davem@davemloft.net>
+Message-Id: <Pine.LNX.4.63.0606031159160.4066@bobcat>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20060601.175258.41634623.davem@davemloft.net>
 In-Reply-To: <20060601.175258.41634623.davem@davemloft.net>
@@ -10,16 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Gustavo Zacarias <gustavoz@gentoo.org>
-Date: Fri, 02 Jun 2006 12:31:37 -0300
+On Fri, 2 Jun 2006, David Miller wrote:
 
-> On a side note it seems to have fixed the alsa oops i reported some time 
-> ago that's missing from the archives.
-> Basically listen to some ogg file with alsa output with ogg123 
-> (vorbis-tools), usually when it's finished or if you break it you'll get 
-> it nicely (at least with snd-sun-cs4231, i think ens1371 too but i have 
-> it out of my box atm).
+> Great, please watch for any dpkg database file corruption.  That's the
+> reason all of this started :)
 
-Glad to hear it fixes other bugs :)
+I've finally got to reinstalling my machine and re-run the same 
+upgrade/install which triggered the bug last time. With patched up kernel 
+everything worked fine. Thanks a lot for taking care of it so fast, Dave.
 
-Thanks for testing.
+Best regards,
+
+Jurij Smakov                                        jurij@wooyd.org
+Key: http://www.wooyd.org/pgpkey/                   KeyID: C99E03CC
