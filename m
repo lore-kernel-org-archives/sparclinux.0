@@ -1,44 +1,61 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 12 Jun 2006 03:54:41 +0000
-Subject: Re: [PATCH] migration cost tune up in sparc smp
-Message-Id: <20060611.205441.105429173.davem@davemloft.net>
+From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
+Date: Sat, 03 Jun 2006 14:36:47 +0000
+Subject: [PATCH] Build mptspi.c on architectures where CONFIG_PM is unset
+Message-Id: <1149345407.14611.49.camel@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4483db6b9a343@wp.pl>
-In-Reply-To: <4483db6b9a343@wp.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org
+Cc: davem@davemloft.net
 
-From: Bob Breuer <breuerr@mc.net>
-Date: Sun, 11 Jun 2006 20:21:09 -0500
+When trying to build mpt* for sparc64 (my T2000 needs mptsas and
+friends), I noticed that mptspi.o was not building:
 
-> David Miller wrote:
-> > But why in the world does the scheduler "lock up" just because the
-> > migration cost is too large?
-> 
-> There is an address space collision between the vmalloc area and where
-> the prom maps the framebuffer.
+  CC [M]  drivers/message/fusion/mptspi.o
+drivers/message/fusion/mptspi.c: In function `mptspi_resume':
+drivers/message/fusion/mptspi.c:844: error: implicit declaration of
+function `mptscsih_resume'
+drivers/message/fusion/mptspi.c: At top level:
+drivers/message/fusion/mptspi.c:839: warning: 'mptspi_resume' defined
+but not used
+make[3]: *** [drivers/message/fusion/mptspi.o] Error 1
+make[2]: *** [drivers/message/fusion] Error 2
+make[1]: *** [drivers/message] Error 2
 
-And this is what locks up the scheduler when a bad migration cost
-calculation is made?
+sparc64 does not have CONFIG_PM defined, and mptscsih_resume is wrapped
+in an #ifdef CONFIG_PM in mptscsih.h. mptscsih_resume is only used in
+the mptspi_resume function in mptspi.c, and its only call is in the
+pci_driver struct (and that call is also #ifdef CONFIG_PM). In order to
+get the code to compile, I just needed to wrap the actual function in
+#ifdef CONFIG_PM, which is what this patch does. I can confirm that it
+gets the module building again without errors.
 
-Please start a new thread if you are talking about some new topic,
-it gets confusing :-/
+Signed-off-by: Tom "spot" Callaway <tcallawa@redhat.com>
 
-> The vmalloc range is 0xfe600000 to 0xffc00000.  I have a cg6 that gets
-> mapped to 0xfee00000, and a cg14 with 8MB vsimm that gets mapped to
-> 0xfe700000.  These leave only 8MB and 1MB of usable vmalloc space before
-> bad things happen.
-> 
-> We may want to find a different vm hole to put vmalloc into.  Is there
-> any documentation on what address spaces are reserved with the different
-> prom versions?
+--- linux-2.6.16-sparc64/drivers/message/fusion/mptspi.c.BAD
++++ linux-2.6.16-sparc64/drivers/message/fusion/mptspi.c
+@@ -831,6 +831,7 @@
+ 	return rc;
+ }
+ 
++#ifdef CONFIG_PM
+ /*
+  * spi module resume handler
+  */
+@@ -846,6 +847,7 @@
+ 
+ 	return rc;
+ }
++#endif
+ 
+ /*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
+ /*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
-I don't know, but from your report it seems that OBP takes
-0xfe000000 up to 0xfff00000.
-
-Actually, you can look at the "available" property of the
-virtual-memory node.  Or, you can see if there is a "translations"
-node in the /virtual-memory node like there is on sparc64.
+~spot
+-- 
+Tom "spot" Callaway: Red Hat Senior Sales Engineer || GPG ID: 93054260
+Fedora Extras Steering Committee Member (RPM Standards and Practices)
+Aurora Linux Project Leader: http://auroralinux.org
+Lemurs, llamas, and sparcs, oh my!
 
