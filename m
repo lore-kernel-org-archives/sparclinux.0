@@ -1,34 +1,41 @@
-From: "Lourdes" <eyuzbkzld@integy.net>
-Date: Sun, 25 Jun 2006 00:30:07 +0000
-Subject: clutches soap
-Message-Id: <99094912.6756336376311.JavaMail.vmail@service3.colo.webmworld.every1.net>
+From: "Shannon Boucher" <shannonboucher_rf@zaz.com.br>
+Date: Sun, 04 Jun 2006 08:40:06 +0000
+Subject: Changing careers but lack the right Degree? fz1crh
+Message-Id: <1149410406.6402@zaz.com.br>
 List-Id: <sparclinux.vger.kernel.org>
+In-Reply-To: <d8e701c68705$9268bbf9$74ee450c@kvv94a3>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: autoanswer@vger.kernel.org
 
-FABULOUS REPLICAS - AMAZING PRICES
+A Genuine University Degree in 4-6 weeks! 
 
-Handbags =95 Jewelry =95 Pens =95 Watches =95 Neckties =95 Clutches =95 and=
- More
+Have you ever thought that the only thing stopping you from a great job and better pay was a few letters behind you name?
 
-All our products are made with the finest leather and silks, and come
-with certificate, tags and all the extras, just as you would find in a=20
-boutique. Extreme care is taken to pay special attention to detail.=20
+Well now you can get them!
 
-You will be immediately surprised by the craftsmanship and strength of=20
-our fine, high-quality luxury items, whether it be a watch, handbag, or tie.
+BA BSc MA MSc MBA PhD 
 
-Visit Now to See our Current Specials!=20
+Within 4-6 weeks! 
 
-http://051.receivvedfidlles.com
+Call US now and leave message.We will call you back soon.
+1-520-844-1041
 
 
+No Study Required! 
+
+100% Verifiable!
+
+These are real, genuine degrees that include Bachelors, Masters, MBA and Doctorate Degrees. They are fully verifiable and certified transcripts are also available. 
+
+Just call the number below. 
+
+You'll thank me later...
+
+Call US now and leave message.We will call you back soon.
+1-520-844-1041
+
+24 hours a day, 7 days a week including Sundays and Holidays
 
 
-
-
-
-conscious structure
-http://051.receivvedfidlles.com/rm
