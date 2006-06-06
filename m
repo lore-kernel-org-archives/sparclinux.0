@@ -1,28 +1,26 @@
-From: Raymond Burns <rayburns@comcast.net>
-Date: Thu, 29 Jun 2006 22:19:15 +0000
-Subject: Re: [PATCH] sparc: remove sunzilog_console_init
-Message-Id: <Pine.LNX.4.10.10606291451070.16067-100000@coalcreekmill.cm.com>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 06 Jun 2006 04:15:41 +0000
+Subject: Re: 2.6.17-rc5 does not build for sparc
+Message-Id: <20060605.211541.59656905.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20060628141601.GA31139@palantir8>
-In-Reply-To: <20060628141601.GA31139@palantir8>
+References: <4478bffd45960@wp.pl>
+In-Reply-To: <4478bffd45960@wp.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi
+From: "Krzysztof Helt" <krzysztof.h1@wp.pl>
+Date: Sat, 27 May 2006 23:09:17 +0200
 
-On further review, console_init is called at an inapropriate time,
-prior to probing the prom for zilog serial ports
+> I tried to build the 2.6.17-rc5 for sparc with SMP enabled. The
+> kernel was not build due to a missing macro. Here is a patch
+> which fixes this (I copied the macro from a sparc64 header).
 
-On the other hand, SUNZILOG_CONSOLE is called out while probing /
-performing initialization of the serial ports.
+I was going to apply this just to fix the build, but it's
+not correct.
 
-Your solution appears correct.
-
-
-Thanx
-  Ray
-
-
-
+Because we embed a spinlock in the rwlock_t, we have to spin
+waiting for the lock bits to be clear before we can trust the
+sample of the rest of the lock.  We used to have to do this
+when we embedded a spinlock into the atomic_t's on sparc32.
