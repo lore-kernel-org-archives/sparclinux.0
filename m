@@ -1,7 +1,7 @@
-From: Meelis Roos <mroos@linux.ee>
-Date: Sun, 04 Jun 2006 16:13:38 +0000
+From: Marc Zyngier <maz@misterjones.org>
+Date: Tue, 06 Jun 2006 10:05:57 +0000
 Subject: Re: [PATCH]: Fix D-cache corruption in mremap()
-Message-Id: <Pine.SOC.4.61.0606041913030.29655@math.ut.ee>
+Message-Id: <wrpzmgqfvju.fsf@wild-wind.fr.eu.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20060601.175258.41634623.davem@davemloft.net>
 In-Reply-To: <20060601.175258.41634623.davem@davemloft.net>
@@ -10,14 +10,13 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
->> Works on my Ulta 5 - without the patch I get the error at once and with
->> the patch I get no error for half an hour.
->
-> Great, please watch for any dpkg database file corruption.  That's the
-> reason all of this started :)
+Just to add yet another testing point.
 
-Seems to have survived a large debian update since the patch was in 
-place, so it seems to work. Thanks!
+The latest git runs nicely on my oddest sparc64 system, a Netra AX1105
+(a strange crossover between a Blade-100 and a Netra-X1).
 
+Thanks a lot for fixing that, David.
+
+	M.
 -- 
-Meelis Roos (mroos@linux.ee)
+And if you don't know where you're going, any road will take you there...
