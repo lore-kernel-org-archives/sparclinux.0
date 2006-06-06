@@ -1,7 +1,7 @@
-From: Bob Breuer <breuerr@mc.net>
-Date: Tue, 06 Jun 2006 04:59:29 +0000
+From: David Miller <davem@davemloft.net>
+Date: Tue, 06 Jun 2006 05:08:38 +0000
 Subject: Re: 2.6.17-rc5 does not build for sparc
-Message-Id: <44850BB1.9020007@mc.net>
+Message-Id: <20060605.220838.88476823.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4478bffd45960@wp.pl>
 In-Reply-To: <4478bffd45960@wp.pl>
@@ -10,49 +10,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-David Miller wrote:
-> From: "Krzysztof Helt" <krzysztof.h1@wp.pl>
-> Date: Sat, 27 May 2006 23:09:17 +0200
-> 
->> I tried to build the 2.6.17-rc5 for sparc with SMP enabled. The
->> kernel was not build due to a missing macro. Here is a patch
->> which fixes this (I copied the macro from a sparc64 header).
-> 
-> I was going to apply this just to fix the build, but it's
-> not correct.
-> 
-> Because we embed a spinlock in the rwlock_t, we have to spin
-> waiting for the lock bits to be clear before we can trust the
-> sample of the rest of the lock.  We used to have to do this
-> when we embedded a spinlock into the atomic_t's on sparc32.
+From: Bob Breuer <breuerr@mc.net>
+Date: Mon, 05 Jun 2006 23:59:29 -0500
 
-Correct me if I am wrong, but...
+> rw->lock in this case is the full 32-bit raw_rwlock_t, so a value of
+> 0x000000ff is locked by a writer, 0x00000100 would be locked by a
+> reader, and 0x000001ff would be locked by a reader and updating the counter.
 
-From asm-sparc/spinlock.h:
+For a moment I thought you were right, but the spinlock acts
+to atomicize the reader counter updates too.
 
- *      ------------------------------------
- *      | 24-bit counter           | wlock |  raw_rwlock_t
- *      ------------------------------------
- *       31                       8 7     0
- *
- * wlock signifies the one writer is in or somebody is updating
- * counter. For a writer, if he successfully acquires the wlock,
- * but counter is non-zero, he has to release the lock and wait,
- * till both counter and wlock are zero.
+That lock could be set transiently, while decrementing the
+reader counter down to zero.
 
+So it really does matter, and in fact you have to be even more
+careful that I originally indicated.  In fact I can't even see
+how you can implement this %100 correctly.
 
-rw->lock in this case is the full 32-bit raw_rwlock_t, so a value of
-0x000000ff is locked by a writer, 0x00000100 would be locked by a
-reader, and 0x000001ff would be locked by a reader and updating the counter.
+We simply can't tell if the spinlock is held because the writer
+is trying to get in, or because a reader is holding is just to
+increment or decrement the counter.
 
-For __raw_write_can_lock(), we should be able to return true when the
-whole 32-bits is zero (i.e. no readers, no counter being updated, and no
-writers).  rw->lock is the whole 32-bits, so a check of !(rw)->lock
-should be the right thing.
+If the reader count is zero, for example, the spinlock could be held
+by a writer and we don't want to spin waiting for it to clear in that
+case.  If, however, the reader count is zero but the spinlock is
+held so that a reader can increment the count, we would want to
+spin waiting for the spinlock to release in that case.
 
-While we are at it, another one we are missing is __raw_read_can_lock(),
-and I think that a check of !((rw)->lock & 0xff) will work (i.e. no
-writers and no updating of the counter), or might it be better if the
-counter was negated and we checked  rw->lock <= 0 ?
+There is a way to fix this.  Rewrite the rwlock stuff to use the
+atomic_t hashed spinlocks to update rwlock_t and just modify it
+as a 32-bit atomically updatable value just like platforms which
+have compare-and-swap primitives do.
 
-Bob
+Then we could implement the "can lock" primitives just like the
+other platforms do.
