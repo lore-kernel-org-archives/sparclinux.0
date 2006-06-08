@@ -1,72 +1,77 @@
-From: Bob Breuer <breuerr@mc.net>
-Date: Tue, 06 Jun 2006 07:09:00 +0000
+From: "Krzysztof Helt" <krzysztof.h1@wp.pl>
+Date: Thu, 08 Jun 2006 11:33:20 +0000
 Subject: Re: 2.6.17-rc5 does not build for sparc
-Message-Id: <44852A0C.4030603@mc.net>
+Message-Id: <44880b0026284@wp.pl>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4478bffd45960@wp.pl>
 In-Reply-To: <4478bffd45960@wp.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-David Miller wrote:
-> From: Bob Breuer <breuerr@mc.net>
-> Date: Mon, 05 Jun 2006 23:59:29 -0500
-> 
->> rw->lock in this case is the full 32-bit raw_rwlock_t, so a value of
->> 0x000000ff is locked by a writer, 0x00000100 would be locked by a
->> reader, and 0x000001ff would be locked by a reader and updating the counter.
-> 
-> For a moment I thought you were right, but the spinlock acts
-> to atomicize the reader counter updates too.
+My two cents to this discussion.
 
-Is it ok if the can_lock macros are conservative and maybe return a
-false failure?
+I consider both of these macros (write_can_lock and
+read_can_lock) brain-damaged as they do not guarantee anything.=20
+That's why I haven't copied the read_can_lock macro - it is not
+used in the sparc kernel and let it be this way.
 
-> That lock could be set transiently, while decrementing the
-> reader counter down to zero.
-> 
-> So it really does matter, and in fact you have to be even more
-> careful that I originally indicated.  In fact I can't even see
-> how you can implement this %100 correctly.
+The write_can_lock is used in one place only - in ptrace.c file
+when it is used to add a little efficiency into a waiting for two
+spinlocks to be free. I suppose this call can be removed but I
+afraid changing it. A whole idea there is simple: obtain one
+lock, try to obtain another one and if it is not successful use
+the write_can_lock macro to wait before repeating former steps. I
+think that without this macro the waiting may become less
+efficient - more trials of obtaining lock will be made. See the
+code below:
 
-Even if can_lock() is 100% correct, there is no guarantee that the lock
-will still be available right after, only a trylock could give that kind
-of guarantee.
+repeat:
+    /*
+     * Nasty, nasty.
+     *
+     * We want to hold both the task-lock and the
+     * tasklist_lock for writing at the same time.
+     * But that's against the rules (tasklist_lock
+     * is taken for reading by interrupts on other
+     * cpu's that may have task_lock).
+     */
+    task_lock(task);
+    local_irq_disable();
+    if (!write_trylock(&tasklist_lock)) {
+        local_irq_enable();
+        task_unlock(task);
+        do {
+            cpu_relax();
+        } while (!write_can_lock(&tasklist_lock));
+        goto repeat;
+    }
 
-> We simply can't tell if the spinlock is held because the writer
-> is trying to get in, or because a reader is holding is just to
-> increment or decrement the counter.
+There is no need for this macro to be 100% accurate. It is enough
+to be conservative as Bob Breuer suggested (it should not spin
+waiting either). The other way is to remove the call to
+write_can_lock from the code above.
 
-If we can't tell, then be conservative and return 0.
+I beg you (sparc32 maintainers) to start pushing smp patches (or
+even parts of them) into the kernel tree. I have another patch
+which clears sun4m_smp.c a little (replaced loops with
+for_each_online_cpu, removed one unused global variable) but this
+will stop Bob Breuer's patch from applying so I wait sitting on it.
 
-> If the reader count is zero, for example, the spinlock could be held
-> by a writer and we don't want to spin waiting for it to clear in that
-> case.  If, however, the reader count is zero but the spinlock is
-> held so that a reader can increment the count, we would want to
-> spin waiting for the spinlock to release in that case.
+I am able to boot a dual SM81 in SS20 with all the smp patches
+from this list, but the kernel hangs on first module load. It is
+something I will investigate.
 
-The can_lock macros never need to spin.
+Regards,
+Krzysztof
 
-Ok, how about a truth table to cover all combinations:
 
-reader count | wlock | lock value | write_can_lock | read_can_lock
--------------+-------+------------+----------------+--------------
-1)     0     |   0   | 000000 00  |       1        |      1
-2)     0     | not 0 | 000000 xx  |       0        |      0
-3)   not 0   |   0   | xxxxxx 00  |       0        |      1
-4)   not 0   | not 0 | xxxxxx xx  |       0        |      0
-
-reader count and wlock are part the _same_ 32-bit value, therefore when
-we read the value we get a simultaneous snapshot of both and it must be
-in one of these 4 states.
-
-State 2 is a questionable state and could be caused by either a reader
-or a writer, therefore neither one can be guaranteed to succeed.
-
-State 4 would be a bigger concern because read_can_lock() could be
-expected to return true, but then again the caller must be expecting
-potential failure, or they wouldn't be checking with can_lock.
+----------------------------------------------------
+Nowe serie superksi=B1=BFek o Czarodziejkach WITCH!
+Poznaj =B6wiat bohaterek WITCH!=20
+Will, Irma, Taranee, Cornelia i Hay-Lin zapraszaj=B1 do ksi=EAgarni.
+http://klik.wp.pl/?adr=3Dhttp%3A%2F%2Fadv.reklama.wp.pl%2Fas%2Fwitch.html&s=
+idx1
 
 
