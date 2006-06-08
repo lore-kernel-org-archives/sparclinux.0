@@ -1,7 +1,7 @@
-From: "Antwan Briggs" <antwan.briggs_ft@club-internet.fr>
-Date: Tue, 06 Jun 2006 00:28:06 +0000
-Subject: Yours loan is approved z62p79
-Message-Id: <2.2.32.2006050600280600371c1b@club-internet.fr>
+From: "Henry Hartley" <h.hartleyjf@pacbell.net>
+Date: Thu, 08 Jun 2006 22:23:50 +0000
+Subject: Yours loan is approved kqm
+Message-Id: <OLAOGLOGOFKNDDLCEPIHMDJONPAA.h.hartleyjf@pacbell.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,24 +9,24 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 Dear Homeowner,  
-linux-kernel@vger.kernel.org
+autoanswer@vger.kernel.org
 
-http://lithome.com/goodstep
+http://templeloans.net
 
-You have been approved for a $ 694,697 house loan (2.9 fixed)
+You have been approved for a $ 884,988 house loan (2.9 fixed)
 This offer is being presented to you right now!. Your credit history is in no way a factor.
 To take advantage of this Limited Time Opportunity,
 please take a minute and confirm your curiosity or intention to accept this loan, at the following web-site:
 
-http://lithome.com/goodstep
+http://templeloans.net
 
 Best Regards
 Don Nut
 Loan Manager
 
-http://lithome.com/lit.html
-linux-kernel@vger.kernel.org wrote:
-> We can approve Yours loan today
-5x1frr1erc
+http://templeloans.net/redirect
+autoanswer@vger.kernel.org wrote:
+> RERE: Loan Application
+y37mt715i7
 
 
