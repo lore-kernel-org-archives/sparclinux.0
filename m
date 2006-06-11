@@ -1,77 +1,93 @@
-From: "Krzysztof Helt" <krzysztof.h1@wp.pl>
-Date: Thu, 08 Jun 2006 11:33:20 +0000
-Subject: Re: 2.6.17-rc5 does not build for sparc
-Message-Id: <44880b0026284@wp.pl>
+From: Bob Breuer <breuerr@mc.net>
+Date: Sun, 11 Jun 2006 06:20:39 +0000
+Subject: [PATCH 4/4] sparc32: mark smp init functions as cpuinit
+Message-Id: <448BB637.7010301@mc.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------090701020805090809070208"
 List-Id: <sparclinux.vger.kernel.org>
-References: <4478bffd45960@wp.pl>
-In-Reply-To: <4478bffd45960@wp.pl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-My two cents to this discussion.
+This is a multi-part message in MIME format.
+--------------090701020805090809070208
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-I consider both of these macros (write_can_lock and
-read_can_lock) brain-damaged as they do not guarantee anything.=20
-That's why I haven't copied the read_can_lock macro - it is not
-used in the sparc kernel and let it be this way.
+Fix the smp related section mismatch warnings by marking the smp init
+functions as cpuinit.
 
-The write_can_lock is used in one place only - in ptrace.c file
-when it is used to add a little efficiency into a waiting for two
-spinlocks to be free. I suppose this call can be removed but I
-afraid changing it. A whole idea there is simple: obtain one
-lock, try to obtain another one and if it is not successful use
-the write_can_lock macro to wait before repeating former steps. I
-think that without this macro the waiting may become less
-efficient - more trials of obtaining lock will be made. See the
-code below:
-
-repeat:
-    /*
-     * Nasty, nasty.
-     *
-     * We want to hold both the task-lock and the
-     * tasklist_lock for writing at the same time.
-     * But that's against the rules (tasklist_lock
-     * is taken for reading by interrupts on other
-     * cpu's that may have task_lock).
-     */
-    task_lock(task);
-    local_irq_disable();
-    if (!write_trylock(&tasklist_lock)) {
-        local_irq_enable();
-        task_unlock(task);
-        do {
-            cpu_relax();
-        } while (!write_can_lock(&tasklist_lock));
-        goto repeat;
-    }
-
-There is no need for this macro to be 100% accurate. It is enough
-to be conservative as Bob Breuer suggested (it should not spin
-waiting either). The other way is to remove the call to
-write_can_lock from the code above.
-
-I beg you (sparc32 maintainers) to start pushing smp patches (or
-even parts of them) into the kernel tree. I have another patch
-which clears sun4m_smp.c a little (replaced loops with
-for_each_online_cpu, removed one unused global variable) but this
-will stop Bob Breuer's patch from applying so I wait sitting on it.
-
-I am able to boot a dual SM81 in SS20 with all the smp patches
-from this list, but the kernel hangs on first module load. It is
-something I will investigate.
-
-Regards,
-Krzysztof
+Signed-off-by: Bob Breuer <breuerr@mc.net>
+---
 
 
-----------------------------------------------------
-Nowe serie superksi=B1=BFek o Czarodziejkach WITCH!
-Poznaj =B6wiat bohaterek WITCH!=20
-Will, Irma, Taranee, Cornelia i Hay-Lin zapraszaj=B1 do ksi=EAgarni.
-http://klik.wp.pl/?adr=3Dhttp%3A%2F%2Fadv.reklama.wp.pl%2Fas%2Fwitch.html&s=
-idx1
+--------------090701020805090809070208
+Content-Type: text/plain;
+ name="sparc32-smp-cpuinit.patch.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="sparc32-smp-cpuinit.patch.txt"
 
+--- linux-2.6.17-rc3/arch/sparc/kernel/smp.c.old	2006-04-22 21:55:33.000000000 -0500
++++ linux-2.6.17-rc3/arch/sparc/kernel/smp.c	2006-04-23 11:10:12.000000000 -0500
+@@ -58,7 +58,7 @@ cpumask_t smp_commenced_mask = CPU_MASK_
+ /* Used to make bitops atomic */
+ unsigned char bitops_spinlock = 0;
+ 
+-void __init smp_store_cpu_info(int id)
++void __cpuinit smp_store_cpu_info(int id)
+ {
+ 	int cpu_node;
+ 
+@@ -293,7 +293,7 @@ void __init smp_setup_cpu_possible_map(v
+ 	}
+ }
+ 
+-void __devinit smp_prepare_boot_cpu(void)
++void __init smp_prepare_boot_cpu(void)
+ {
+ 	int cpuid = hard_smp_processor_id();
+ 
+@@ -309,7 +309,7 @@ void __devinit smp_prepare_boot_cpu(void
+ 	cpu_set(cpuid, phys_cpu_present_map);
+ }
+ 
+-int __devinit __cpu_up(unsigned int cpu)
++int __cpuinit __cpu_up(unsigned int cpu)
+ {
+ 	extern int smp4m_boot_one_cpu(int);
+ 	int ret;
+--- linux-2.6.17-rc3/arch/sparc/kernel/sun4m_smp.c.old	2006-04-22 18:21:37.000000000 -0500
++++ linux-2.6.17-rc3/arch/sparc/kernel/sun4m_smp.c	2006-04-23 11:14:25.000000000 -0500
+@@ -66,7 +66,7 @@ static inline unsigned long swap(volatil
+ static void smp_setup_percpu_timer(void);
+ extern void cpu_probe(void);
+ 
+-void __init smp4m_callin(void)
++void __cpuinit smp4m_callin(void)
+ {
+ 	int cpuid = hard_smp_processor_id();
+ 
+@@ -112,13 +112,8 @@ void __init smp4m_callin(void)
+ 	local_irq_enable();
+ 
+ 	cpu_set(cpuid, cpu_online_map);
+-	/* last one in gets all the interrupts (for testing) */
+-	set_irq_udt(boot_cpu_id);
+ }
+ 
+-extern void init_IRQ(void);
+-extern void cpu_panic(void);
+-
+ /*
+  *	Cycle through the processors asking the PROM to start each one.
+  */
+@@ -134,7 +129,7 @@ void __init smp4m_boot_cpus(void)
+ 	local_flush_cache_all();
+ }
+ 
+-int smp4m_boot_one_cpu(int i)
++int __cpuinit smp4m_boot_one_cpu(int i)
+ {
+ 	extern unsigned long sun4m_cpu_startup;
+ 	unsigned long *entry = &sun4m_cpu_startup;
 
+--------------090701020805090809070208--
