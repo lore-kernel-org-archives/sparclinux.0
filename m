@@ -1,32 +1,24 @@
-From: "Dale Smiley" <dalesmileyka@icqmail.com>
-Date: Tue, 16 May 2006 00:19:55 +0000
-Subject: Yours loan is approved gyl2i
-Message-Id: <69aa01c6787e$e2e7be4f$0c171b05@hx4zat3>
+From: Bob Breuer <breuerr@mc.net>
+Date: Sun, 11 Jun 2006 06:15:00 +0000
+Subject: [PATCH 0/4] sparc32: smp fixes
+Message-Id: <448BB4E4.4060408@mc.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Dear Homeowner,  
-ultralinux@vger.kernel.org
+Here's a set of patches to get sparc32 caught back up to the moving SMP
+target:
+ 1 - add topology_init
+ 2 - setup cpu_possible_map
+ 3 - add missing rw can_lock macros
+ 4 - mark smp init functions as cpuinit
 
-http://easymortz.com
+I have tested these successfully with 2.6.17-rc5.  With 2x
+SuperSPARC-II, I can rebuild the kernel with "make -j6" while running
+the SMP kernel.  I've verified that UP still builds and runs.  No luck
+yet with dual hyperSPARC's, but it will fully boot when restricted to
+just one.
 
-You have been approved for a $ 659,554 house loan (2.9 fixed)
-This offer is being presented to you right now!. Your credit history is in no way a factor.
-To take advantage of this Limited Time Opportunity,
-please take a minute and confirm your curiosity or intention to accept this loan, at the following web-site:
-
-http://easymortz.com
-
-Best Regards
-Don Nut
-Loan Manager
-
-http://easymortz.com/redirect
-ultralinux@vger.kernel.org wrote:
-> Yours loan is approved
-gy50gw2c7j
-
-
+Bob
