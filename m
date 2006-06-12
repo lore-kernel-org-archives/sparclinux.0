@@ -1,33 +1,35 @@
-From: "Shaffer C. Foresters" <gweather@glogirldesigns.com>
-Date: Mon, 05 Jun 2006 21:47:15 +0000
-Subject: Software
-Message-Id: <6111427210.20060605164715@glogirldesigns.com>
+From: "Winnie Ferris" <WinnieFerris@0451.com>
+Date: Mon, 12 Jun 2006 17:24:00 +0000
+Subject: Your cash, pain spot
+Message-Id: <461181675.20060612191200@0451.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Photoshop, Windows, Office. CHEAP. 
-Corel draw! just at best price 
+Even if you have no erectin problems SOFT CIAzLIS 
+would help you to make BETTER SE  X MORE OFTEN!
+and to bring  unimagnable plesure to her.
 
-New software on our site:
+Just disolve half a pil under your tongue 
+and get ready for action in 15 minutes. 
 
-Streets and Trips 2004 North America (2CD) - $69.95
-Quark Xpress 6 Passport Multilanguage - $69.95
-Fireworks MX 2004 - $69.95
-Borland Delphi 7 Enterprise Edition (2CD) - $69.95
-Office 2003 Professional (1 CD Edition) - $89.95
-InDesign CS PageMaker Edition (2CD) - $69.95
-Photoshop CS $99.95
-Photoshop CS $99.95
-Dreamweaver MX 2004 $69.95
-WordPerfect Office 10 - $69.95
-Plus! XP - $59.95
-PhotoRetouch Pro 3.0 - $59.95
-Windows 98 Second Edition - $49.95
-InDesign CS - $69.95
+The tests showed that the majority of men 
+after taking this medic ation were able to have 
+PERFECT ER ECTI ON during 36 hours!
 
-Our site:
-http://9vxkxmwlxhw4a99me994e99r.ariamk.com/
+VISIT US, AND GET OUR SPECIAL 70% DISC OUNT OFER!
 
+http://hlfvfn.freshstem.net/?67294463
+
+=====
+     And so he shut his eyes.
+on. They didn't go completely blind, but got sort of night blindness. By the
+     In a moment they  were  airborne  again,  practicing.  The  formation
+and ordered a flying boot. I looked over his map to see what  was  on it. It
+and the speed was joy, and the speed was pure beauty.
+the controls without my  orders,  no matter what, even if the earth  catches
+
+his name. Just been made Outcast, ready to fight the Flock to  the  death,
+of Security Captain Herzog.
