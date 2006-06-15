@@ -1,21 +1,25 @@
-From: "Jennifer" <JenniferVelasquez@comic.com>
-Date: Thu, 15 Jun 2006 08:21:13 +0000
-Subject: The newest  =?ISO-8859-1?Q?=20It=92s?= the best thing you had ever seen!
-Message-Id: <42025497405276.FF78A6995F@SS5KJ>
+From: "Silvia" <SilviaVelasquez@clerk.com>
+Date: Thu, 15 Jun 2006 08:31:52 +0000
+Subject: Hot and new Now you have chance to do it
+Message-Id: <30059416905429.BF6952CFF8@80RTLC34>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Happy day!
-Make other men envy you and girls worship you Most efficient products for men 
+Good day Bro,
 
-Enjoy secure ordering, lowest possible prices and almost instant shipment.
+Impress your girl with prolonged hardness, plentiful explosions and increas=
+ed duration=20
 
- State-of-the-art goods from the highest class brands, recognized everywhere
- Check up: http://www.dryishmm.com	
+Don=92t hesitate and you will love the lowest possible pricing and the fast=
+est possible shipment
 
- We thank you for your interest!
+ Millions of people enjoy goods from these brands, and they are more than h=
+appy
+
+ Find what you need here: http://www.kissyii.com
+ We offer reliable service and 5 years expirience on the marcket!
 
 
