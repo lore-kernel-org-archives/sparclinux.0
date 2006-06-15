@@ -1,18 +1,18 @@
-From: "Charmaine" <Charmainealoha@catlover.com>
-Date: Fri, 23 Jun 2006 11:31:23 +0000
-Subject: Get the freshest Onlinee Casino. Go and Play  It
-Message-Id: <82934101793331.2632315FD3@IR1KW>
+From: "Ervin" <Ervin.Burnette@earthlink.net>
+Date: Thu, 15 Jun 2006 20:52:48 +0000
+Subject: Just published I am sure it was
+Message-Id: <61653305568622.AECFF2F5D7@632FOIFO>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-If the cap fits, wear it 
+Dear member.
+Have more success with women and impress them with your power and stamina in bed 
+Low prices, handy delivery, everything for your convenience.
 
-
-  Online Casino  with 85+ games. Play It Now!  http://tdvid.com/d1/check 
-
-
- Everyone must row with the oars he has.
+ Unique offers on most recognized and famous brands on Earth.
+ Enter: http://www.kyklopescf.com
+ We offer reliable service and 5 years expirience on the marcket!
 
