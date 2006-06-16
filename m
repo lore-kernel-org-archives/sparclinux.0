@@ -1,45 +1,28 @@
-From: Raymond Burns <rayburns@comcast.net>
-Date: Mon, 12 Jun 2006 00:16:48 +0000
-Subject: 2.6.17-rc6 for_each_online_cpu
-Message-Id: <Pine.LNX.4.10.10606111856140.11270-100000@coalcreekmill.cm.com>
+From: "Michaela Stollar" <BernadetteStollar@ltol.com>
+Date: Fri, 16 Jun 2006 11:33:33 +0000
+Subject: Premium Rep!icat#d Watches 78
+Message-Id: <8DDAF928.60B3AFD@ltol.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi
+Get the Finest Replica! cumyuntt
 
-1)
-The use of  for_each_online_cpu  in mm/slab.c causes great distress
-for a SMP box,  replacing with for_each_online_node  " is better "
+All watches are of the finest quality. m
+Get the lowest prices you can find for any replica online. aprfa
+http://mph.listtimex.com/?jasdm
 
-2)
-The rewrite of drivers/serial/sunzilog.c hammers the sun4d pretty
-hard, it doesn't walk the "zs" nodes correctly.  What I have as a
-patch now misses 2 of 12 serial ports, I'll send once that improves.
+My all-seeing eye Brahms and Lizst Maybe too different. Brass tacks Mei!
+Su! Break a leg With the tying of this sash, Bricks and mortar almonds,
+rice, and milk are part of a complete breakfast? Bright eyed and bushy
+tailed I want to be like other girls Brighton Pier
+To run really fast Bring home the bacon Fa Mulan, we're ready to go through
+with the wedding. Bring to book You're always looking out for me, Mushu.
+Bristols
 
-3)
-This one pops up in the middles somewhere,
-
-BUG: spinlock bad magic on CPU#0, swapper/1                                     
- lock: f0f00800, .magic: 00000000, .owner: <none>/-1, .owner_cpu: 0             
-
-not sure if the truncated next line is part of it or not.
-
-4)
-Then I stumble again at the end ....
-
-EXT2-fs error (device sdc3): ext2_check_page: bad entry in directory
-#2: unalig0
-
-(yes it's truncated on the serial console)
-
-
-Suggestions welcome :)
-
-
-Thanx
-  Ray
+He's combining the family temples! Brown bread Well, thank you, Cri-Kee.
+Brownie points What's with him? Buckle down
 
 
