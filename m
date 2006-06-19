@@ -1,22 +1,10 @@
-From: "Charlie" <CharlieGarner@archaeologist.com>
-Date: Sun, 25 Jun 2006 03:28:00 +0000
-Subject: Fresh stuff But without any  =?ISO-8859-1?Q?=20results=85?= Take pleasure from
-Message-Id: <84546926997464.8BB1A1AF26@O0KCOC>
+From: fluit@digitalputty.com
+Date: Mon, 19 Jun 2006 08:48:05 +0000
+Subject: 
+Message-Id: <200606190848.k5J8lrMg010497@zeus2.kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
-
-Good day,
-Impress your girl with prolonged hardness, plentiful explosions and increas=
-ed duration=20
-
-Order now and benefit from lowest costs and convenient shipment
- World=92s greatest brands produce these goods in top class labs with lates=
-t technologies.
-
- Come in here: http://www.sluggishcl.com=20
- We thank you for your interest!
-
 
