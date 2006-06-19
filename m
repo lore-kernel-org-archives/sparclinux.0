@@ -1,14 +1,23 @@
-From: "B.J.Whitaker" <kevan.lomas@tig.com.au>
-Date: Sun, 18 Jun 2006 14:51:21 +0000
-Subject: Cats and dogs. Fur for money. Kill or protect. Sign or leave.
-Message-Id: <C71F0665.88F43F5@tig.com.au>
+From: Jurij Smakov <jurij@wooyd.org>
+Date: Mon, 19 Jun 2006 02:39:02 +0000
+Subject: 2.6.17 SMP kernel problems
+Message-Id: <Pine.LNX.4.63.0606181910050.3512@bobcat>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Please sign the domestic animal's protection letter to Chineese govt. I did
-it allready:   - http://animalprot.org/   == http://www.animalprot.org/ 
-Hi. It'l take one min only.
+Hi,
 
+Test build of the 2.6.17 released yesterday does not boot on my Ultra60 
+SMP machine: it hangs at random places during boot. After that even 
+sending a break over serial console to get into prom does not work, 
+machine has to be power-cycled. Kernel was built using gcc-4.0, config 
+used is available at http://www.wooyd.org/junk/config-2.6.17-sparc64-smp. 
+UP kernel does not appear to be affected. Anyone seeing anything similar?
+
+Best regards,
+
+Jurij Smakov                                        jurij@wooyd.org
+Key: http://www.wooyd.org/pgpkey/                   KeyID: C99E03CC
