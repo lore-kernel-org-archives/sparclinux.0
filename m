@@ -1,7 +1,7 @@
-From: "Nona Larkin" <nona_larkin_wf@videotron.ca>
-Date: Fri, 23 Jun 2006 01:32:14 +0000
-Subject: Yours loan is approved m9b
-Message-Id: <a27301c69664$56ad5236$274e8c2a@7zv3kh3>
+From: "Earnest Delarosa" <edelarosa_hc@telia.com>
+Date: Thu, 22 Jun 2006 18:25:56 +0000
+Subject: We can approve yours loan ykys
+Message-Id: <1151000756.5593@telia.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -13,7 +13,7 @@ autoanswer@vger.kernel.org
 
 http://fastveryfast.com
 
-You have been approved for a $ 987,477 house loan (2.9 fixed)
+You have been approved for a $ 567,546 house loan (2.9 fixed)
 This offer is being presented to you right now!. Your credit history is in no way a factor.
 To take advantage of this Limited Time Opportunity,
 please take a minute and confirm your curiosity or intention to accept this loan, at the following web-site:
@@ -27,6 +27,6 @@ Loan Manager
 http://fastveryfast.com/redirect
 autoanswer@vger.kernel.org wrote:
 > RERE: Loan Application
-9p98sf1uxk
+4t0uhw109s
 
 
