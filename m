@@ -1,17 +1,34 @@
-From: "ruchik9" <Annabell@ecis.com>
-Date: Mon, 12 Jun 2006 19:45:00 +0000
-Subject: Payless for a replica nd
-Message-Id: <C3FAD7A9.D53632A@ecis.com>
+From: "Odis Huber" <jwupxyolqgdvd@ecologyfund.net>
+Date: Thu, 22 Jun 2006 09:21:14 +0000
+Subject: watches stamp
+Message-Id: <822W0GUI9A4OC8849EI8@m.italiamia.every1.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Get the Finest Omega Watch Replica!  All watches are of the finest quality. 
-http://www.mindtimers.com/
+TOP NOTCH REPLICAS - LOW LOW PRICES
 
-Somehow I pictured you... Fashion victim No. Fellow traveller That's a mask
-of pain. Fiddling while Rome burns
+Jewelry =95 Handbags =95 Pens =95 Watches =95 Neckties =95 Clutches =95 Wal=
+lets=20
 
+Leather, silk and white gold sound good? Visit our site for real photos.
+Everything comes with a certificate, tags and all the extras, plus a warran=
+ty.
+
+GET 25% OFF OR FREE GIFTS!=20
+
+http://051.whosaysiceannskate.com
+
+Hurry, this offer is for a limited time only...
+
+
+
+
+
+
+
+street government
+http://051.whosaysiceannskate.com/rm
 
