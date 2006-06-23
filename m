@@ -1,23 +1,32 @@
-From: Jurij Smakov <jurij@wooyd.org>
-Date: Mon, 19 Jun 2006 02:39:02 +0000
-Subject: 2.6.17 SMP kernel problems
-Message-Id: <Pine.LNX.4.63.0606181910050.3512@bobcat>
+From: "Monique N. Hendricks" <moniquenhendricksgh@tm.net.my>
+Date: Fri, 23 Jun 2006 23:28:36 +0000
+Subject: We can approve yours loan ogyzbr
+Message-Id: <304401c6971c$8820dd93$2f96f351@1k8il43>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi,
+Dear Homeowner,  
+sparclinux@vger.kernel.org
 
-Test build of the 2.6.17 released yesterday does not boot on my Ultra60 
-SMP machine: it hangs at random places during boot. After that even 
-sending a break over serial console to get into prom does not work, 
-machine has to be power-cycled. Kernel was built using gcc-4.0, config 
-used is available at http://www.wooyd.org/junk/config-2.6.17-sparc64-smp. 
-UP kernel does not appear to be affected. Anyone seeing anything similar?
+http://loanzquick.com
 
-Best regards,
+You have been approved for a $ 499,876 house loan (2.9 fixed)
+This offer is being presented to you right now!. Your credit history is in no way a factor.
+To take advantage of this Limited Time Opportunity,
+please take a minute and confirm your curiosity or intention to accept this loan, at the following web-site:
 
-Jurij Smakov                                        jurij@wooyd.org
-Key: http://www.wooyd.org/pgpkey/                   KeyID: C99E03CC
+http://loanzquick.com
+
+Best Regards
+Don Nut
+Loan Manager
+
+http://loanzquick.com/redirect
+sparclinux@vger.kernel.org wrote:
+> RE: We can approve yours loan
+3b1slggk51
+
+
