@@ -1,7 +1,7 @@
-From: "Adeline Hastings" <a.hastingsqo@sympatico.ca>
-Date: Wed, 07 Jun 2006 18:08:58 +0000
-Subject: RERE: Loan Application o1l
-Message-Id: <d7c901c68a5d$e03b8e1f$ec3d0e6a@cq9d7a1>
+From: "Nona Larkin" <nona_larkin_wf@videotron.ca>
+Date: Fri, 23 Jun 2006 01:32:14 +0000
+Subject: Yours loan is approved m9b
+Message-Id: <a27301c69664$56ad5236$274e8c2a@7zv3kh3>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -11,22 +11,22 @@ To: sparclinux@vger.kernel.org
 Dear Homeowner,  
 autoanswer@vger.kernel.org
 
-http://fastestloanz.com
+http://fastveryfast.com
 
-You have been approved for a $ 497,657 house loan (2.9 fixed)
+You have been approved for a $ 987,477 house loan (2.9 fixed)
 This offer is being presented to you right now!. Your credit history is in no way a factor.
 To take advantage of this Limited Time Opportunity,
 please take a minute and confirm your curiosity or intention to accept this loan, at the following web-site:
 
-http://fastestloanz.com
+http://fastveryfast.com
 
 Best Regards
 Don Nut
 Loan Manager
 
-http://fastestloanz.com/redirect
+http://fastveryfast.com/redirect
 autoanswer@vger.kernel.org wrote:
 > RERE: Loan Application
-vzojwd2vci
+9p98sf1uxk
 
 
