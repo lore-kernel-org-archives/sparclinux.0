@@ -1,41 +1,32 @@
-From: "Shannon Boucher" <shannonboucher_rf@zaz.com.br>
-Date: Sun, 04 Jun 2006 08:40:06 +0000
-Subject: Changing careers but lack the right Degree? fz1crh
-Message-Id: <1149410406.6402@zaz.com.br>
+From: "Guillermo Wolfe" <wolfe_ff@sprint.ca>
+Date: Sat, 24 Jun 2006 10:38:26 +0000
+Subject: RERE: Loan Application emfl
+Message-Id: <449D1622.A10586A9@sprint.ca>
 List-Id: <sparclinux.vger.kernel.org>
-In-Reply-To: <d8e701c68705$9268bbf9$74ee450c@kvv94a3>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: autoanswer@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-A Genuine University Degree in 4-6 weeks! 
+Dear Homeowner,  
+autoanswer@vger.kernel.org
 
-Have you ever thought that the only thing stopping you from a great job and better pay was a few letters behind you name?
+http://loanzquick.com
 
-Well now you can get them!
+You have been approved for a $ 486,649 house loan (2.9 fixed)
+This offer is being presented to you right now!. Your credit history is in no way a factor.
+To take advantage of this Limited Time Opportunity,
+please take a minute and confirm your curiosity or intention to accept this loan, at the following web-site:
 
-BA BSc MA MSc MBA PhD 
+http://loanzquick.com
 
-Within 4-6 weeks! 
+Best Regards
+Don Nut
+Loan Manager
 
-Call US now and leave message.We will call you back soon.
-1-520-844-1041
-
-
-No Study Required! 
-
-100% Verifiable!
-
-These are real, genuine degrees that include Bachelors, Masters, MBA and Doctorate Degrees. They are fully verifiable and certified transcripts are also available. 
-
-Just call the number below. 
-
-You'll thank me later...
-
-Call US now and leave message.We will call you back soon.
-1-520-844-1041
-
-24 hours a day, 7 days a week including Sundays and Holidays
+http://loanzquick.com/redirect
+autoanswer@vger.kernel.org wrote:
+> RE: We can approve yours loan
+k804ic2g3k
 
 
