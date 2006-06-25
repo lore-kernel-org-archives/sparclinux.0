@@ -1,34 +1,34 @@
-From: "Laura Diamond" <LauraDiamond@mail.ru>
-Date: Thu, 15 Jun 2006 15:13:32 +0000
-Subject: Your money, oil-temper
-Message-Id: <662161c80604tz1w6iuc1d6pv9qyocbb6hjhppnvqaud@mxs.mail.ru>
+From: "Lourdes" <eyuzbkzld@integy.net>
+Date: Sun, 25 Jun 2006 00:30:07 +0000
+Subject: clutches soap
+Message-Id: <99094912.6756336376311.JavaMail.vmail@service3.colo.webmworld.every1.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Even if you have no erectin problems SOFT CIAzLIS 
-would help you to make BETTER SE  X MORE OFTEN!
-and to bring  unimagnable plesure to her.
+FABULOUS REPLICAS - AMAZING PRICES
 
-Just disolve half a pil under your tongue 
-and get ready for action in 15 minutes. 
+Handbags =95 Jewelry =95 Pens =95 Watches =95 Neckties =95 Clutches =95 and=
+ More
 
-The tests showed that the majority of men 
-after taking this medic ation were able to have 
-PERFECT ER ECTI ON during 36 hours!
+All our products are made with the finest leather and silks, and come
+with certificate, tags and all the extras, just as you would find in a=20
+boutique. Extreme care is taken to pay special attention to detail.=20
 
-VISIT US, AND GET OUR SPECIAL 70% DISC OUNT OFER!
+You will be immediately surprised by the craftsmanship and strength of=20
+our fine, high-quality luxury items, whether it be a watch, handbag, or tie.
 
-http://cdtsvq.knelllank.com/?88293014
+Visit Now to See our Current Specials!=20
 
-==     "Home I have none. Flock I have none. I am Outcast. And we fly now at
-     The blossoms  had fallen off and it was the  time for berries. Now  the
-One who has touched excellence in his learning has no need of that kind of
-     "Well, Red, you sure are a hero. I'm proud to know you," he said.
-and the time has come for another to begin."
-there."
+http://051.receivvedfidlles.com
 
-They're a thousand miles from heaven - and you say you want to  show  them
-understand. He led me by the  elbow  into his little office, sat me down  at
+
+
+
+
+
+
+conscious structure
+http://051.receivvedfidlles.com/rm
