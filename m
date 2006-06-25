@@ -1,33 +1,34 @@
-From: Jurij Smakov <jurij@wooyd.org>
-Date: Sat, 10 Jun 2006 19:47:30 +0000
-Subject: Re: Sun Blade 2500
-Message-Id: <Pine.LNX.4.63.0606101240280.2781@bobcat>
+From: Jim Gifford <maillist@jg555.com>
+Date: Sun, 25 Jun 2006 18:36:12 +0000
+Subject: Sparc32 Netboot - Build Errors - 2.6.17.1
+Message-Id: <449ED79C.3030101@jg555.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.63.0606021919280.2727@bobcat>
-In-Reply-To: <Pine.LNX.4.63.0606021919280.2727@bobcat>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, 6 Jun 2006, David Miller wrote:
+Hey all trying to make a sparc netboot image for 32 bit. Ran the make 
+tftpboot.img and got the following errors. This is just a 10 lines or so 
+of the error, there are about 10 pages of errors. Before I attempted to 
+fix, anyone already talked this one?
 
-> From: Tobias Marx <tmarx@uni-wuppertal.de>
-> Date: Tue, 06 Jun 2006 19:08:25 +0200
->
->> do you know what the module for this is called?
->
-> mptsas.ko, enabled by config option CONFIG_FUSION_SAS
+  LD      arch/sparc/boot/image
+drivers/built-in.o: In function `sym_free_resources':
+sym_glue.c:(.text+0x5e118): undefined reference to `pci_iounmap'
+sym_glue.c:(.text+0x5e130): undefined reference to `pci_iounmap'
+drivers/built-in.o: In function `sym_detach':
+sym_glue.c:(.text+0x5e198): undefined reference to `iowrite8'
+sym_glue.c:(.text+0x5e1a4): undefined reference to `ioread8'
+sym_glue.c:(.text+0x5e1c4): undefined reference to `iowrite8'
+drivers/built-in.o: In function `sym53c8xx_proc_info':
+sym_glue.c:(.text+0x5f210): undefined reference to `iowrite8'
+sym_glue.c:(.text+0x5f37c): undefined reference to `iowrite8'
+drivers/built-in.o: In function `sym2_probe':
+sym_glue.c:(.text+0x5fe2c): undefined reference to `pci_iomap'
+sym_glue.c:(.text+0x5fe94): undefined reference to `pci_iomap'
+sym_glue.c:(.text+0x6035c): undefined reference to `pci_iomap'
+drivers/built-in.o: In function `sym_reset_scsi_target':
+(.text+0x61728): undefined reference to `iowrite8'
+drivers/built-in.o: In function `sym_put_start_queue':
 
-Tom Marble of Sun sent me the lsmod and lspci output from his Blade2500 
-machine (thanks, Tom!). It turns out that it has both an IDE controller 
-(alim15x3 driver) and a SCSI controller (sym53c8xx and scsi_transport_spi 
-modules). All these modules are currently included in the installer, so 
-it's still not clear why the Debian installer fails to detect them. 
-Tobias, can you please try loading these modules manually, and look at 
-kernel/installer logs to see what's happening?
-
-Best regards,
-
-Jurij Smakov                                        jurij@wooyd.org
-Key: http://www.wooyd.org/pgpkey/                   KeyID: C99E03CC
