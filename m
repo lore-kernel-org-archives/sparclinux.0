@@ -1,22 +1,25 @@
-From: Bob Breuer <breuerr@mc.net>
-Date: Fri, 23 Jun 2006 16:40:17 +0000
+From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <mt1@systella.fr>
+Date: Mon, 26 Jun 2006 12:01:21 +0000
 Subject: Re: [PATCH] sparc32: fix iommu_flush_iotlb end address
-Message-Id: <449C1971.3090001@mc.net>
+Message-Id: <449FCC91.2020603@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
 References: <449774DB.6090201@mc.net>
 In-Reply-To: <449774DB.6090201@mc.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-BERTRAND Jo=EBl wrote:
->     Thanks for this patch. I shall test it in smp configuration. Do you
-> know the release of the official kernel that supports sparc32 smp mode ?
-> I have tested the 2.6.17.1 kernel without success (ot doesn't build due
-> to a undefined symbol...).
+	Hello,
 
-For sparc32 smp without extra patches, 2.6.17.X won't work.  You will
-need at least 2.6.17-git2 or newer.
+	I have build a 2.6.17-git7. It can boot with init=/bin/bash but if I 
+try to boot with init=2 (debian system), kernel craches when it tries to 
+mount local filesystem (watchdog reset or dead lock).
 
-Bob
+	Configuration : 448 MB, 2*SM71, CG14, raid1.
+
+	I will try a -git10...
+
+	Regards,
+
+	JKB
