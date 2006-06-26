@@ -1,44 +1,45 @@
-From: Bob Breuer <breuerr@mc.net>
-Date: Tue, 20 Jun 2006 05:03:14 +0000
-Subject: Re: [PATCH 0/4] sparc32: smp fixes
-Message-Id: <44978192.8060304@mc.net>
+From: Rene Rebe <rene@exactcode.de>
+Date: Mon, 26 Jun 2006 07:02:12 +0000
+Subject: sparc64 fmulq emulation glitch?
+Message-Id: <200606260902.12375.rene@exactcode.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <448BB4E4.4060408@mc.net>
-In-Reply-To: <448BB4E4.4060408@mc.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Ludovic Court=E8s wrote:
-> Hi,
->=20
-> 5 days, 2 hours, 52 minutes, 18 seconds ago,=20
-> Ludovic Court=E8s wrote:
->> Using GCC 3.4.6 (from Debian sid) fixes the problem.
->=20
-> Actually it doesn't.  For some reason, I now hit the following ICE with
-> 3.4.6 (Debian's `gcc-3.4', version 3.4.6-2) systematically:
->=20
->     CC      fs/proc/proc_misc.o
->     CC      fs/dnotify.o
->   distcc[13671] ERROR: compile
-    ^^^^^^
-Jumping through extra hoops here?  Or in other words, is there any
-chance that distcc may cause problems?
+Hi all,
 
-> I finally used 3.3.6 to built the whole kernel and I don't hit any ICE
-> there.  Is anybody building SPARC kernels with 3.4 or 4.x?
->=20
->> However, the resulting kernel hangs right after the "Booting Linux..."
->> message.
->=20
-> The kernel (once cleanly recompiled with 3.3.6) still hangs at the same
-> point, whether there are one or two CPUs in the machine.
+during some testing I accidently found fmulq that I think is emulated by
+the kernel for this CPU type:
 
-I've put my SMP kernel image up at: http://user.mc.net/~breuerr/sparc/
-if you want to give it a try.  No initrd needed, and it's a pretty
-trimmed down config, but it works for me.  The config and patch to
-recreate it are also there.
+cpu             : TI UltraSparc II  (BlackBird)
+fpu             : UltraSparc II integrated FPU
 
-Bob
+to not yield the corrent results for powers of two in the range [-8,+8] . F=
+or
+example this tiny example:
+
+int main ()
+{
+        long double a =3D 2;
+        long double b =3D 1.0;
+        a *=3D b;
+        printf ("%Lf\n", a);
+}
+
+built with: gcc -m64 -mhard-quad-float
+
+yields: 4
+
+I tried to get thru the kernel code but have not yet garsped
+all the macro magic ... Maybe someone has an idea?
+
+(Kernel is 2.6.17-rc6)
+
+Yours,
+
+--=20
+Ren=E9 Rebe - Rubensstr. 64 - 12157 Berlin (Europe / Germany)
+            http://exactcode.de | http://t2-project.org | http://rebe.name
+            +49 (0)30 / 255 897 45
