@@ -1,8 +1,10 @@
 From: Martin Habets <errandir_news@mph.eclipse.co.uk>
-Date: Wed, 28 Jun 2006 14:16:01 +0000
+Date: Wed, 28 Jun 2006 14:34:02 +0000
 Subject: [PATCH] sparc: remove sunzilog_console_init
-Message-Id: <20060628141601.GA31139@palantir8>
+Message-Id: <20060628143402.GB31139@palantir8>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20060628141601.GA31139@palantir8>
+In-Reply-To: <20060628141601.GA31139@palantir8>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,6 +20,8 @@ It was tested on a SS20 with the console on a sunzilog.
 
 Martin
 
+	Signed-off-by: Martin Habets <errandir_news@mph.eclipse.co.uk>
+---
 --- 2.6.17/drivers/serial/sunzilog.c.old	2006-06-28 15:04:17.000000000 +0100
 +++ 2.6.17/drivers/serial/sunzilog.c	2006-06-28 15:07:43.000000000 +0100
 @@ -1386,28 +1386,6 @@
