@@ -1,39 +1,39 @@
-From: Rene Rebe <rene@exactcode.de>
-Date: Thu, 29 Jun 2006 11:09:54 +0000
+From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
+Date: Thu, 29 Jun 2006 20:27:58 +0000
 Subject: Re: booting the T1000
-Message-Id: <200606291309.54737.rene@exactcode.de>
+Message-Id: <1151612878.5166.1.camel@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
 References: <200606290937.49481.rene@exactcode.de>
 In-Reply-To: <200606290937.49481.rene@exactcode.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi,
+On Thu, 2006-06-29 at 09:37 +0200, Rene Rebe wrote:
+> Hi all,
+> 
+> I gave the current Ubuntu boot image a try on a T1000. The file I got has this
+> md5sum:
+> 
+> 49f61b1efbc662b4f12061a9571ac65b  boot.img
+> 
+> I used the existing arpd and hpa-tftpd setup to network boot that new box, but
+> the box does not appear to like loading the kerne image.
 
-On Thursday 29 June 2006 11:04, David Miller wrote:
-> From: Rene Rebe <rene@exactcode.de>
-> Date: Thu, 29 Jun 2006 09:37:49 +0200
->=20
-> > In a blog of someone working on the Ubuntu suport I found a note
-> > about "problems with hpa-tftpd", so I tried iputils/tftpd and atftpd wi=
-thout
-> > success. Note  that an Ultra30 booted the same image served from the
-> > same daemons just fine.
->=20
-> iputils inetd doesn't work well with tftpd at all, it propagates the
-> non-blocking setting of the socket down to tftpd which is not expecting
-> this.
->=20
-> Use netkit-inetd and it should go fine.  That's what I'm using here.
+Try this:
 
-Thanks for this hints, switching to netkit-tftpd made the OBP tftp client
-load the image ,-)
+T2000 fails to net boot from a Linux tftp boot server 
+ALOM issues a broadcast not the ip of the tftp server 
+Introduced in OBP 4.17 as part of WANboot project 
+Workaround is to force OBP to transmit an ip address:
 
-Yours,
+setenv network-boot-arguments rarp,file=tftp://10.20.30.40
 
---=20
-Ren=E9 Rebe - Rubensstr. 64 - 12157 Berlin (Europe / Germany)
-            http://exactcode.de | http://t2-project.org | http://rebe.name
-            +49 (0)30 / 255 897 45
+~spot
+-- 
+Tom "spot" Callaway: Red Hat Senior Sales Engineer || GPG ID: 93054260
+Fedora Extras Steering Committee Member (RPM Standards and Practices)
+Aurora Linux Project Leader: http://auroralinux.org
+Lemurs, llamas, and sparcs, oh my!
+
