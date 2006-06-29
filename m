@@ -1,7 +1,7 @@
 From: Rene Rebe <rene@exactcode.de>
-Date: Mon, 26 Jun 2006 07:02:12 +0000
-Subject: sparc64 fmulq emulation glitch?
-Message-Id: <200606260902.12375.rene@exactcode.de>
+Date: Thu, 29 Jun 2006 07:37:49 +0000
+Subject: booting the T1000
+Message-Id: <200606290937.49481.rene@exactcode.de>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
@@ -10,34 +10,32 @@ To: sparclinux@vger.kernel.org
 
 Hi all,
 
-during some testing I accidently found fmulq that I think is emulated by
-the kernel for this CPU type:
+I gave the current Ubuntu boot image a try on a T1000. The file I got has t=
+his
+md5sum:
 
-cpu             : TI UltraSparc II  (BlackBird)
-fpu             : UltraSparc II integrated FPU
+49f61b1efbc662b4f12061a9571ac65b  boot.img
 
-to not yield the corrent results for powers of two in the range [-8,+8] . F=
-or
-example this tiny example:
+I used the existing arpd and hpa-tftpd setup to network boot that new box, =
+but
+the box does not appear to like loading the kerne image.
 
-int main ()
-{
-        long double a =3D 2;
-        long double b =3D 1.0;
-        a *=3D b;
-        printf ("%Lf\n", a);
-}
+In a blog of someone working on the Ubuntu suport I found a note
+about "problems with hpa-tftpd", so I tried iputils/tftpd and atftpd without
+success. Note  that an Ultra30 booted the same image served from the
+same daemons just fine.
 
-built with: gcc -m64 -mhard-quad-float
+This is what atftp logged:
 
-yields: 4
+Jun 29 09:21:22 g5 atftpd[7209]: Serving C0A80271 to 192.168.2.113:32768
+Jun 29 09:21:27 g5 atftpd[7209]: timeout: retrying...
+Jun 29 09:21:47 g5 last message repeated 4 times
+Jun 29 09:21:52 g5 atftpd[7209]: client (192.168.2.113) not responding
 
-I tried to get thru the kernel code but have not yet garsped
-all the macro magic ... Maybe someone has an idea?
+Maybe someone can enlighten me which tftp server is compaible with
+the Niagara boxes?
 
-(Kernel is 2.6.17-rc6)
-
-Yours,
+Thanks in advance,
 
 --=20
 Ren=E9 Rebe - Rubensstr. 64 - 12157 Berlin (Europe / Germany)
