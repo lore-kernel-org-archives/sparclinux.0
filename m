@@ -1,7 +1,7 @@
-From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
-Date: Thu, 29 Jun 2006 20:27:58 +0000
+From: "David S. Miller" <davem@davemloft.net>
+Date: Thu, 29 Jun 2006 20:45:00 +0000
 Subject: Re: booting the T1000
-Message-Id: <1151612878.5166.1.camel@localhost.localdomain>
+Message-Id: <20060629.134500.78731918.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <200606290937.49481.rene@exactcode.de>
 In-Reply-To: <200606290937.49481.rene@exactcode.de>
@@ -10,30 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, 2006-06-29 at 09:37 +0200, Rene Rebe wrote:
-> Hi all,
-> 
-> I gave the current Ubuntu boot image a try on a T1000. The file I got has this
-> md5sum:
-> 
-> 49f61b1efbc662b4f12061a9571ac65b  boot.img
-> 
-> I used the existing arpd and hpa-tftpd setup to network boot that new box, but
-> the box does not appear to like loading the kerne image.
+From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
+Date: Thu, 29 Jun 2006 15:27:58 -0500
 
-Try this:
+> Try this:
 
-T2000 fails to net boot from a Linux tftp boot server 
-ALOM issues a broadcast not the ip of the tftp server 
-Introduced in OBP 4.17 as part of WANboot project 
-Workaround is to force OBP to transmit an ip address:
+As you can see from my response and his acknowledgment, this
+wasn't the problem he was running into.
 
-setenv network-boot-arguments rarp,file=tftp://10.20.30.40
+The default inetd package in Ubuntu, from iputils, is simply buggy,
+because it sets it's sockets to non-blocking and leaves that setting
+on the socket when it passes the connection on to the real application
+from inetd.  Applications expect the socket to be in blocking mode.
+As a result, tftpd craps out because it unexpectedly gets -EAGAIN on a
+read().
 
-~spot
--- 
-Tom "spot" Callaway: Red Hat Senior Sales Engineer || GPG ID: 93054260
-Fedora Extras Steering Committee Member (RPM Standards and Practices)
-Aurora Linux Project Leader: http://auroralinux.org
-Lemurs, llamas, and sparcs, oh my!
+To be honest this is a horrible selection of a default inetd
+implementation, netkit-inetd is probably what should be used instead.
 
+Changing over to netkit-inetd fixes the problem.
