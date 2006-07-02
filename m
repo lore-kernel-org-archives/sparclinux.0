@@ -1,23 +1,17 @@
-From: Rene Rebe <rene@exactcode.de>
-Date: Sun, 02 Jul 2006 17:35:04 +0000
+From: Jurij Smakov <jurij@wooyd.org>
+Date: Sun, 02 Jul 2006 19:13:50 +0000
 Subject: Re: Oops in tcp_sendmsg on T1000
-Message-Id: <200607021935.04770.rene@exactcode.de>
+Message-Id: <Pine.LNX.4.63.0607021208120.2810@bobcat>
 List-Id: <sparclinux.vger.kernel.org>
 References: <200607011421.56811.rene@exactcode.de>
 In-Reply-To: <200607011421.56811.rene@exactcode.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sunday 02 July 2006 18:32, David Miller wrote:
-> From: Rene Rebe <rene@exactcode.de>
-> Date: Sun, 2 Jul 2006 17:14:19 +0200
->
-> > Is there any chance the post 2.6.17 sparc64 and tg3 changes make a
-> > difference or should I rather really try hard to reprouce it with the
-> > 2.6.17.2 kernel to find the real culprit?
->
+On Sun, 2 Jul 2006, David Miller wrote:
+
 > 2.6.17.x should be extremely stable and there is nothing
 > in the current tree that ought to fix this.
 >
@@ -27,12 +21,11 @@ On Sunday 02 July 2006 18:32, David Miller wrote:
 > problem so we can investigate it using this test case and
 > fix it :)
 
-Understood. However so far it did not reoccur, still testing
-the box under continous high load :-(
+FWIW, I have experienced exactly the opposite while preparing the 2.6.17 
+for Debian: the SMP kernel built with gcc-4.0 was hanging randomly 
+during boot, but works fine when built with gcc-4.1.
 
 Best regards,
 
---=20
-Ren=E9 Rebe - Rubensstr. 64 - 12157 Berlin (Europe / Germany)
-            http://exactcode.de | http://t2-project.org | http://rebe.name
-            +49 (0)30 / 255 897 45
+Jurij Smakov                                        jurij@wooyd.org
+Key: http://www.wooyd.org/pgpkey/                   KeyID: C99E03CC
