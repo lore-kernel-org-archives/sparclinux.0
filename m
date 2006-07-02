@@ -1,28 +1,38 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 02 Jul 2006 16:32:31 +0000
+From: Rene Rebe <rene@exactcode.de>
+Date: Sun, 02 Jul 2006 17:35:04 +0000
 Subject: Re: Oops in tcp_sendmsg on T1000
-Message-Id: <20060702.093231.74721293.davem@davemloft.net>
+Message-Id: <200607021935.04770.rene@exactcode.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <200607011421.56811.rene@exactcode.de>
 In-Reply-To: <200607011421.56811.rene@exactcode.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-From: Rene Rebe <rene@exactcode.de>
-Date: Sun, 2 Jul 2006 17:14:19 +0200
+On Sunday 02 July 2006 18:32, David Miller wrote:
+> From: Rene Rebe <rene@exactcode.de>
+> Date: Sun, 2 Jul 2006 17:14:19 +0200
+>
+> > Is there any chance the post 2.6.17 sparc64 and tg3 changes make a
+> > difference or should I rather really try hard to reprouce it with the
+> > 2.6.17.2 kernel to find the real culprit?
+>
+> 2.6.17.x should be extremely stable and there is nothing
+> in the current tree that ought to fix this.
+>
+> Please retry with gcc-4.0.x, I really want to eliminate
+> gcc-4.1.x because that compiler has caused problems for
+> other folks.  In fact I'm almost hoping it's a gcc-4.1.x
+> problem so we can investigate it using this test case and
+> fix it :)
 
-> Is there any chance the post 2.6.17 sparc64 and tg3 changes make a
-> difference or should I rather really try hard to reprouce it with the
-> 2.6.17.2 kernel to find the real culprit?
+Understood. However so far it did not reoccur, still testing
+the box under continous high load :-(
 
-2.6.17.x should be extremely stable and there is nothing
-in the current tree that ought to fix this.
+Best regards,
 
-Please retry with gcc-4.0.x, I really want to eliminate
-gcc-4.1.x because that compiler has caused problems for
-other folks.  In fact I'm almost hoping it's a gcc-4.1.x
-problem so we can investigate it using this test case and
-fix it :)
-
+--=20
+Ren=E9 Rebe - Rubensstr. 64 - 12157 Berlin (Europe / Germany)
+            http://exactcode.de | http://t2-project.org | http://rebe.name
+            +49 (0)30 / 255 897 45
