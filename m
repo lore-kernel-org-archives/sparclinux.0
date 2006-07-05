@@ -1,34 +1,42 @@
-From: Mikael Pettersson <mikpe@it.uu.se>
-Date: Tue, 04 Jul 2006 10:03:19 +0000
+From: Ludovic =?iso-8859-1?Q?Court=E8s?= <ludo@chbouib.org>
+Date: Wed, 05 Jul 2006 21:07:31 +0000
 Subject: Re: [BUG sparc64] 2.6.16-git6 broke X11 on Ultra5 with ATI Mach64
-Message-Id: <200607041003.k64A3JEL029677@harpo.it.uu.se>
+Message-Id: <20060705210728.GC2347@cassis>
 List-Id: <sparclinux.vger.kernel.org>
 References: <200607031117.k63BHiDa007719@harpo.it.uu.se>
 In-Reply-To: <200607031117.k63BHiDa007719@harpo.it.uu.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mikpe@it.uu.se, rene@exactcode.de
-Cc: davem@davemloft.net, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Tue, 4 Jul 2006 11:32:31 +0200, Rene Rebe wrote:
-> On Tuesday 04 July 2006 09:41, Rene Rebe wrote:
+Hi,
+
+(Stripped `linux-kernel@'.)
+
+2 days, 9 hours, 28 minutes, 40 seconds ago, Mikael Pettersson wrote:
+> In 2.6.17 sparc64 kernels, X11 runs _extremely_ slowly with
+> frequent lock-up like behaviour on my Ultra5 (ATI Mach64).
 > 
-> > On Monday 03 July 2006 13:17, Mikael Pettersson wrote:
-> > > In 2.6.17 sparc64 kernels, X11 runs _extremely_ slowly with
-> > > frequent lock-up like behaviour on my Ultra5 (ATI Mach64).
-> > > I finally managed to trace the cause to this change in 2.6.16-git6:
-> > 
-> > I can confirm this behaviour, on a U5 with ATi onboard, but for me it
-> > happens also on the Creator 3D of a U30, likewise.
-> > 
-> > I'll try to test if this changeset makes a difference for me as well
-> > as soon as possible.
-> 
-> I can confirm that backing out this changeset fixes X on ATi@U5 as
-> well as Creator3D@U30 to not stall and hang every few seconds for
-> many more seconds/minutes.
+> I finally managed to trace the cause to this change in 2.6.16-git6:
 
-Thanks.
+Can you be more specific as to which version of Xorg you are using?
 
-/Mikael
+Several people including me have reported being unable to run Xorg 7.0
+on ATI-based sparc64 machines such as U5s [0].  Symptoms include kernel
+hangs as well as transient [1,2] or permanent [3] filesystem corruptions.
+
+I just recompiled a kernel with your patch and it doesn't make any
+difference in that respect (besides, re-adding the
+`prot = __pgprot(...)' line looks questionable since the input value of
+PROT becomes unused as a result).
+
+Xorg 6.9, OTOH, was apparently working fine for most people.
+
+Thanks,
+Ludovic.
+
+[0] http://lists.debian.org/debian-sparc/2006/04/msg00096.html
+[1] http://lists.debian.org/debian-sparc/2006/05/msg00008.html
+[2] http://lists.debian.org/debian-sparc/2006/06/msg00112.html
+[3] http://lists.debian.org/debian-sparc/2006/06/msg00141.html
