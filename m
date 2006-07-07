@@ -1,33 +1,21 @@
-From: Daniel Kweh <dakweh29@yahoo.com>
-Date: Tue, 11 Jul 2006 09:52:14 +0000
-Subject: Loading Debian R3r1 onto Sun SparcStation 5
-Message-Id: <20060711095214.5668.qmail@web52207.mail.yahoo.com>
+From: David Miller <davem@davemloft.net>
+Date: Fri, 07 Jul 2006 23:34:17 +0000
+Subject: Re: sun4d cpu-unit prom node
+Message-Id: <20060707.163417.02279522.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-I have this Old machine which I though of using to do
-very basic networking tools. So I intend to load
-Debian Linux onto it. I have download the Debian R3r1
-software . Burn the debain-31r1a-sparc-netinst.iso or
-the debain-31r1a-sparc-businesscard.iso into CD and
-boot up the sparcstation. I am able to get into the
-initiate install session where I can select the
-language etc etc. Until it come to the point of
-"Detecting hardware to find CD-Rom drives". It able to
-do the initial scan on some devices until about 92% @
-"Loading Module "sd_mod" for Scsi disk support" and it
-just stops there or hang there. Not able to proceed.
+From: Raymond Burns <rayburns@comcast.net>
+Date: Mon, 5 Jun 2006 14:42:55 -0700 (PDT)
 
-Just wondering what could be the possible cause? Any
-advise.
+> The sun4d prom still has the cpu-unit node in the prom tree.
+> 
+> By dragging forward the attached code snippet/patch, applying the
+> patchs of Bob Breuer and Krzysztof Helt with the essence of Bob
+> Breuer's patch applied to the sun4d files allows a SMP sun4d boot to
+> progress past populate_rootfs
 
-Thank you in advance
-
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+Patch applied, thanks Raymond.
