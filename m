@@ -1,21 +1,37 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 07 Jul 2006 10:30:17 +0000
-Subject: Re: [PATCH 2.6.17 sparc64] 32-bit compat for Mach64 framebuffer
-Message-Id: <20060707.033017.112830612.davem@davemloft.net>
+Date: Fri, 07 Jul 2006 23:38:41 +0000
+Subject: Re: vmalloc can clobber framebuffer on sparc32
+Message-Id: <20060707.163841.34582674.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200607060020.k660Krv1009111@harpo.it.uu.se>
-In-Reply-To: <200607060020.k660Krv1009111@harpo.it.uu.se>
+References: <448D0D0D.8080606@mc.net>
+In-Reply-To: <448D0D0D.8080606@mc.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Daniel Smolik <marvin@mydatex.cz>
-Date: Fri, 07 Jul 2006 12:25:29 +0200
+From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
+Date: Tue, 13 Jun 2006 10:23:56 +0100 (BST)
 
-> And have you this card used as console ? When I use this card as 
-> console in 2.4.x  work OK. But under 2.6.x work but font looks ugly 
-> and I cannot find solution.
+> Why don't you just move the VMALLOC area to say FC000000. I did this on my
+> sparc32 system to alow me to debug some PROM Console/CG3 issues. I did not
+> observe any failures/anomalies with this and is gets around any problems
+> with the PROM memory mapping of frame buffers.
 
-It works perfectly fine as a console, the X server is the thing
-that doesn't work.
+As Bob mentioned, we can't do this because the SRMMU no-cache
+area lives there.
+
+I have the foundations of a better solution in the current 2.6.18-rc1
+tree.
+
+The cg14 et al. drivers always IO map the framebuffer and registers
+explicitly, and do not try to use the "address" property based
+existing mapping of the device.
+
+The only part missing is the code in the bootup VM initialization
+that needs to ignore all existing mappings outside of the designated
+OBP area.
+
+Bob, could you work on and test that?
+
+Thanks a lot.
