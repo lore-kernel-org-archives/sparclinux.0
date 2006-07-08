@@ -1,97 +1,188 @@
-From: Raymond Burns <rayburns@comcast.net>
-Date: Sat, 08 Jul 2006 19:40:52 +0000
-Subject: sparc-2.6.git sparc32
-Message-Id: <Pine.LNX.4.10.10607081238470.30008-200000@coalcreekmill.cm.com>
+From: Bob Breuer <breuerr@mc.net>
+Date: Sat, 08 Jul 2006 23:10:49 +0000
+Subject: Re: sparc-2.6.git sparc32
+Message-Id: <44B03B79.3000703@mc.net>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="279707904-772498206-1152389462=:30008"
+Content-Type: multipart/mixed; boundary="------------070805090905040906000906"
 List-Id: <sparclinux.vger.kernel.org>
+References: <Pine.LNX.4.10.10607081238470.30008-200000@coalcreekmill.cm.com>
+In-Reply-To: <Pine.LNX.4.10.10607081238470.30008-200000@coalcreekmill.cm.com>
 To: sparclinux@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
+This is a multi-part message in MIME format.
+--------------070805090905040906000906
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
---279707904-772498206-1152389462=:30008
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Raymond Burns wrote:
+> Hi
+> 
+> Working with a June 29th pull of davem's tree I found a sequence of
+> events which poses a problem causing BUG and then Oops.
+> 
+> This impacts platforms with the mostek clock 
+> 
+> kernel/main.c calls out time_init() which ultimatly leads to a call
+> of clock_init() which calls of_register_driver() for the mostek clock.
+> 
+> This occurs prior to the kobject, klist and friends being initialized
+> which occurs as postcore_initcall(of_bus_driver_init), This leads to
+> the BUGs and oops.
+> 
+> The clock initialization is needed prior to local_irq_enable
+> 
+> I have not found reasons for the postcore_initcall calls timing but
+> assume they're concrete for other platforms.
+> 
+> I have not found a work around.
 
-Hi
+I'm seeing the same thing.
 
-Working with a June 29th pull of davem's tree I found a sequence of
-events which poses a problem causing BUG and then Oops.
+Based on sparc64, it should be possible to defer the initialization of
+the mostek clock until later.
 
-This impacts platforms with the mostek clock 
+The attached patch gets me past the clock driver, but it ends up with a
+watchdog reset after switching to malloc:
 
-kernel/main.c calls out time_init() which ultimatly leads to a call
-of clock_init() which calls of_register_driver() for the mostek clock.
+  io scheduler cfq registered (default)
+  ioremap: done with statics, switching to malloc
 
-This occurs prior to the kobject, klist and friends being initialized
-which occurs as postcore_initcall(of_bus_driver_init), This leads to
-the BUGs and oops.
+  Watchdog Reset
+  Type  help  for more information
+  <#0> ok
 
-The clock initialization is needed prior to local_irq_enable
+Bob
 
-I have not found reasons for the postcore_initcall calls timing but
-assume they're concrete for other platforms.
+--------------070805090905040906000906
+Content-Type: text/plain;
+ name="sparc32-delayed-clock_init.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="sparc32-delayed-clock_init.txt"
 
-I have not found a work around.
+diff --git a/arch/sparc/kernel/time.c b/arch/sparc/kernel/time.c
+index 04eb1ea..845081b 100644
+--- a/arch/sparc/kernel/time.c
++++ b/arch/sparc/kernel/time.c
+@@ -225,6 +225,32 @@ static __inline__ int has_low_battery(vo
+ 	return (data1 == data2);	/* Was the write blocked? */
+ }
+ 
++static void __init mostek_set_system_time(void)
++{
++	unsigned int year, mon, day, hour, min, sec;
++	struct mostek48t02 *mregs;
++
++	mregs = (struct mostek48t02 *)mstk48t02_regs;
++	if(!mregs) {
++		prom_printf("Something wrong, clock regs not mapped yet.\n");
++		prom_halt();
++	}		
++	spin_lock_irq(&mostek_lock);
++	mregs->creg |= MSTK_CREG_READ;
++	sec = MSTK_REG_SEC(mregs);
++	min = MSTK_REG_MIN(mregs);
++	hour = MSTK_REG_HOUR(mregs);
++	day = MSTK_REG_DOM(mregs);
++	mon = MSTK_REG_MONTH(mregs);
++	year = MSTK_CVT_YEAR( MSTK_REG_YEAR(mregs) );
++	xtime.tv_sec = mktime(year, mon, day, hour, min, sec);
++	xtime.tv_nsec = (INITIAL_JIFFIES % HZ) * (NSEC_PER_SEC / HZ);
++        set_normalized_timespec(&wall_to_monotonic,
++                                -xtime.tv_sec, -xtime.tv_nsec);
++	mregs->creg &= ~MSTK_CREG_READ;
++	spin_unlock_irq(&mostek_lock);
++}
++
+ /* Probe for the real time clock chip on Sun4 */
+ static __inline__ void sun4_clock_probe(void)
+ {
+@@ -273,6 +299,7 @@ #ifdef CONFIG_SUN4
+ #endif
+ }
+ 
++#ifndef CONFIG_SUN4
+ static int __devinit clock_probe(struct of_device *op, const struct of_device_id *match)
+ {
+ 	struct device_node *dp = op->node;
+@@ -307,6 +334,8 @@ static int __devinit clock_probe(struct 
+ 	if (mostek_read(mstk48t02_regs + MOSTEK_SEC) & MSTK_STOP)
+ 		kick_start_clock();
+ 
++	mostek_set_system_time();
++
+ 	return 0;
+ }
+ 
+@@ -325,56 +354,37 @@ static struct of_platform_driver clock_d
+ 
+ 
+ /* Probe for the mostek real time clock chip. */
+-static void clock_init(void)
++static int __init clock_init(void)
+ {
+-	of_register_driver(&clock_driver, &of_bus_type);
++	return of_register_driver(&clock_driver, &of_bus_type);
+ }
+ 
++/* Must be after subsys_initcall() so that busses are probed.  Must
++ * be before device_initcall() because things like the RTC driver
++ * need to see the clock registers.
++ */
++fs_initcall(clock_init);
++#endif /* !CONFIG_SUN4 */
++
+ void __init sbus_time_init(void)
+ {
+-	unsigned int year, mon, day, hour, min, sec;
+-	struct mostek48t02 *mregs;
+-
+-#ifdef CONFIG_SUN4
+-	int temp;
+-	struct intersil *iregs;
+-#endif
+ 
+ 	BTFIXUPSET_CALL(bus_do_settimeofday, sbus_do_settimeofday, BTFIXUPCALL_NORM);
+ 	btfixup();
+ 
+ 	if (ARCH_SUN4)
+ 		sun4_clock_probe();
+-	else
+-		clock_init();
+ 
+ 	sparc_init_timers(timer_interrupt);
+ 	
+ #ifdef CONFIG_SUN4
+ 	if(idprom->id_machtype == (SM_SUN4 | SM_4_330)) {
+-#endif
+-	mregs = (struct mostek48t02 *)mstk48t02_regs;
+-	if(!mregs) {
+-		prom_printf("Something wrong, clock regs not mapped yet.\n");
+-		prom_halt();
+-	}		
+-	spin_lock_irq(&mostek_lock);
+-	mregs->creg |= MSTK_CREG_READ;
+-	sec = MSTK_REG_SEC(mregs);
+-	min = MSTK_REG_MIN(mregs);
+-	hour = MSTK_REG_HOUR(mregs);
+-	day = MSTK_REG_DOM(mregs);
+-	mon = MSTK_REG_MONTH(mregs);
+-	year = MSTK_CVT_YEAR( MSTK_REG_YEAR(mregs) );
+-	xtime.tv_sec = mktime(year, mon, day, hour, min, sec);
+-	xtime.tv_nsec = (INITIAL_JIFFIES % HZ) * (NSEC_PER_SEC / HZ);
+-        set_normalized_timespec(&wall_to_monotonic,
+-                                -xtime.tv_sec, -xtime.tv_nsec);
+-	mregs->creg &= ~MSTK_CREG_READ;
+-	spin_unlock_irq(&mostek_lock);
+-#ifdef CONFIG_SUN4
++		mostek_set_system_time();
+ 	} else if(idprom->id_machtype == (SM_SUN4 | SM_4_260) ) {
+ 		/* initialise the intersil on sun4 */
++		unsigned int year, mon, day, hour, min, sec;
++		int temp;
++		struct intersil *iregs;
+ 
+ 		iregs=intersil_clock;
+ 		if(!iregs) {
 
-Thanx
-  Ray
-
-
-
---279707904-772498206-1152389462=:30008
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name="oops.txt"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.10.10607081311020.30008@coalcreekmill.cm.com>
-Content-Description: log of boot
-Content-Disposition: attachment; filename="oops.txt"
-
-U0lMTyBib290OiBzbQ0KVXNpbmcgL2Rldi90dHlhIGFzIGNvbnNvbGUuDQpU
-WVBFOiBTUEFSQ3NlcnZlciAxMDAwRQ0KRXRoZXJuZXQgYWRkcmVzczogODow
-OjIwOjdlOjE5OmVlDQpCb290IHRpbWUgZml4dXAgdjEuNi4gNC9NYXIvOTgg
-SmFrdWIgSmVsaW5layAoampAdWx0cmEubGludXguY3opLiBQYXRjaGluZyBr
-ZXJuZQ0KbCBmb3Igc3JtbXVbVEkgVmlraW5nL01YQ0NdL2lvLXVuaXQNCjMx
-OE1CIEhJR0hNRU0gYXZhaWxhYmxlLg0KUFJPTTogQnVpbHQgZGV2aWNlIHRy
-ZWUgd2l0aCAxNDAwNSBieXRlcyBvZiBtZW1vcnkuDQpCb290aW5nIExpbnV4
-Li4uDQpCdWlsdCAxIHpvbmVsaXN0cy4gIFRvdGFsIHBhZ2VzOiAxMzAwNjYN
-Cktlcm5lbCBjb21tYW5kIGxpbmU6IHJvb3Q9L2Rldi9zZGMzIGNvbnNvbGU9
-dHR5YQ0KUElEIGhhc2ggdGFibGUgZW50cmllczogMTAyNCAob3JkZXI6IDEw
-LCA0MDk2IGJ5dGVzKQ0KQlVHOiB3YXJuaW5nIGF0IGxpYi9rcmVmLmM6MzIv
-a3JlZl9nZXQoKQ0KW2YwMTNkZjM4IDogZ2V0X2J1cysweDIwLzB4NTAgXSBb
-ZjAxM2RkMDQgOiBidXNfYWRkX2RyaXZlcisweDgvMHhhOCBdIFtmMDI1YmM3
-NA0KOiBzYnVzX3NldHVwX2FyY2hfcHJvcHMrMHgzMC8weDU0IF0gW2YwMjU2
-MGE0IDogZm91bmRfdmVyc2lvbisweDVjLzB4NjggXSBbZjAyNTUNCjdjOCA6
-IF9ldGV4dCsweDc2YzIwLzB4Nzc0NTggXSBbMDAwMDAwMDAgOiBfX3N0ZXh0
-KzB4ZmZmYzAwMC8weDEwIF0NCkJVRzogd2FybmluZyBhdCBsaWIva3JlZi5j
-OjMyL2tyZWZfZ2V0KCkNCltmMDEwOWQ3YyA6IGtvYmplY3RfaW5pdCsweDM4
-LzB4NzAgXSBbZjAxMDlmNjQgOiBrb2JqZWN0X3JlZ2lzdGVyKzB4MTAvMHg0
-NCBdIFtmDQowMTNkZDQ0IDogYnVzX2FkZF9kcml2ZXIrMHg0OC8weGE4IF0g
-W2YwMjViYzc0IDogc2J1c19zZXR1cF9hcmNoX3Byb3BzKzB4MzAvMHg1NA0K
-IF0gW2YwMjU2MGE0IDogZm91bmRfdmVyc2lvbisweDVjLzB4NjggXSBbZjAy
-NTU3YzggOiBfZXRleHQrMHg3NmMyMC8weDc3NDU4IF0gWzANCjAwMDAwMDAg
-OiBfX3N0ZXh0KzB4ZmZmYzAwMC8weDEwIF0NClVuYWJsZSB0byBoYW5kbGUg
-a2VybmVsIE5VTEwgcG9pbnRlciBkZXJlZmVyZW5jZQ0KdHNrLT57bW0sYWN0
-aXZlX21tfS0+Y29udGV4dCA9IGZmZmZmZmZmDQp0c2stPnttbSxhY3RpdmVf
-bW19LT5wZ2QgPSBmYzAwMDAwMA0Kc3dhcHBlcigwKTogT29wcyBbIzFdDQpQ
-U1I6IDQwNDAxZmMyIFBDOiBmMDEwOWVmNCBOUEM6IGYwMTA5ZWY4IFk6IDAw
-MDAwMDAwICAgIE5vdCB0YWludGVkDQpQQzogPGtvYmplY3RfYWRkKzB4ZWMv
-MHgxNGM+DQolRzogZjAyMTc3ZDggZjAxMTBkYjggIDQwNDAxMGUxIDQwNDAx
-ZmU2ICBmMDAzYWYzNCBmMDI3ZWMwMCAgZjAwMTIwMDAgMDAwMDAxMDANCiVP
-OiBmMDIxNzdlMCBmMDIxNzI2MCAgMDAwMDAwMDAgMDAwMDAwNzMgIGZmZmZm
-ZmZmIGZmZmZmZmZmICBmMDAxM2Q5MCBmMDEwOWYxMA0KUlBDOiA8a29iamVj
-dF9hZGQrMHgxMDgvMHgxNGM+DQolTDogMDAwMDAwMDAgZjAyMTc3ZWMgIGZm
-ZmZmZmZkIGYwMjE3MjQ4ICAwMDAwMDA0MCAwMDAwMDAwMCAgMDAwMDAwMWYg
-ZjAwMTNkMDgNCiVJOiBmMDIxNzI0NCAwMDAwMDAxNCAgZjAxZTg1ODIgZjAw
-MTNlYjAgIGYwMjdmNWUwIGZmZmZmZmZmICBmMDAxM2RmOCBmMDEwOWY2Yw0K
-Q2FsbGVyW2YwMTA5ZjZjXToga29iamVjdF9yZWdpc3RlcisweDE4LzB4NDQN
-CkNhbGxlcltmMDEzZGQ0NF06IGJ1c19hZGRfZHJpdmVyKzB4NDgvMHhhOA0K
-Q2FsbGVyW2YwMjViYzc0XTogc2J1c19zZXR1cF9hcmNoX3Byb3BzKzB4MzAv
-MHg1NA0KQ2FsbGVyW2YwMjU2MGE0XTogZm91bmRfdmVyc2lvbisweDVjLzB4
-NjgNCkNhbGxlcltmMDI1NTdjOF06IF9ldGV4dCsweDc2YzIwLzB4Nzc0NTgN
-CkNhbGxlclswMDAwMDAwMF06IF9fc3RleHQrMHhmZmZjMDAwLzB4MTANCklu
-c3RydWN0aW9uIERVTVA6IGQ0MDIyMDA0ICBkMDI2MjAxYyAgZDIyMjIwMDQg
-PGQyMjI4MDAwPiBkNDIyNjAwNCAgZDAwNjIwMjggIDkwDQowMjIwMTAgIGMw
-MmEwMDAwICAxMGJmZmZkNQ0KUHJvZ3JhbSB0ZXJtaW5hdGVkDQpUeXBlICBo
-ZWxwICBmb3IgbW9yZSBpbmZvcm1hdGlvbg0KPCMwPiBvaw0KDQoNCg==
---279707904-772498206-1152389462=:30008--
+--------------070805090905040906000906--
