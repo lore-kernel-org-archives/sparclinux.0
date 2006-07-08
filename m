@@ -1,39 +1,20 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 18 Jul 2006 04:35:39 +0000
-Subject: Re: sparc32 smp
-Message-Id: <20060717.213539.58452399.davem@davemloft.net>
+Date: Sat, 08 Jul 2006 00:28:38 +0000
+Subject: Re: sparc64 fmulq emulation glitch?
+Message-Id: <20060707.172838.58432246.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.10.10607130208320.4657-300000@coalcreekmill.cm.com>
-In-Reply-To: <Pine.LNX.4.10.10607130208320.4657-300000@coalcreekmill.cm.com>
+References: <200606260902.12375.rene@exactcode.de>
+In-Reply-To: <200606260902.12375.rene@exactcode.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Raymond Burns <rayburns@comcast.net>
-Date: Thu, 13 Jul 2006 03:41:25 -0700 (PDT)
+From: Rene Rebe <rene@exactcode.de>
+Date: Mon, 26 Jun 2006 09:02:12 +0200
 
-> The attached oops occurs during boot when the cache is converted from
-> static to allocated cache ( kmem_cache_create() )
-> 
-> The attached patch might be a work around until mainline kernel slab
-> code does something
-> 
-> The occurance in kmem_cache_destroy() is a best guess, my boot hasn't
-> made it far enough to test it.
-> 
-> static cache is initialized prior to smp_init, the boot cpu is the
-> only one running. There is no mechanism to initialize numa style cache
-> heads per smp cpu (that I found). after the memcpy, accessing the
-> array list_lock for cpu 2 causes the oops.
-> 
-> This got me past the slab stuff into the sunzilog oops ...
+> I tried to get thru the kernel code but have not yet garsped
+> all the macro magic ... Maybe someone has an idea?
 
-I don't think this patch is right.  It wants to iterate over
-online cpus, not online NUMA nodes.  Since CONFIG_NUMA is
-not enabled in sparc builds, what you've changed it to do
-is simply iterate over cpu "0".
-
-Something else is afoot here.  Perhaps the cpu maps or similar
-are not setup early enough.  But if that was the case, Bob
-would be seeing this problem on his smp sparc32 machines too.
+It looks like the rounding logic is a bit overzealous here.
+I'll look into it, thanks for the report.
