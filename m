@@ -1,23 +1,97 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 31 Jul 2006 20:47:08 +0000
-Subject: Re: serial console broken on Ultra 5
-Message-Id: <20060731.134708.63997744.davem@davemloft.net>
+From: Raymond Burns <rayburns@comcast.net>
+Date: Sat, 08 Jul 2006 19:40:52 +0000
+Subject: sparc-2.6.git sparc32
+Message-Id: <Pine.LNX.4.10.10607081238470.30008-200000@coalcreekmill.cm.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="279707904-772498206-1152389462=:30008"
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.SOC.4.61.0607311538510.25364@math.ut.ee>
-In-Reply-To: <Pine.SOC.4.61.0607311538510.25364@math.ut.ee>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Meelis Roos <mroos@linux.ee>
-Date: Mon, 31 Jul 2006 15:43:22 +0300 (EEST)
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime@docserver.cac.washington.edu for more info.
 
-> Linux version 2.6.18-rc3 (mroos@mandariin) (gcc version 4.1.2 20060715 (prerelease) (Debian 4.1.1-9)) #137 Mon Jul 31 15:09:20o6
+--279707904-772498206-1152389462=:30008
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
-Retry with gcc-4.0.x please.
+Hi
 
-Debian's 4.1.x sparc gcc couldn't even build the sun partition
-handling code corrently just a few months ago.
+Working with a June 29th pull of davem's tree I found a sequence of
+events which poses a problem causing BUG and then Oops.
 
-Therefore, my confidence in Debian's 4.1.x compiler is basically nil.
+This impacts platforms with the mostek clock 
+
+kernel/main.c calls out time_init() which ultimatly leads to a call
+of clock_init() which calls of_register_driver() for the mostek clock.
+
+This occurs prior to the kobject, klist and friends being initialized
+which occurs as postcore_initcall(of_bus_driver_init), This leads to
+the BUGs and oops.
+
+The clock initialization is needed prior to local_irq_enable
+
+I have not found reasons for the postcore_initcall calls timing but
+assume they're concrete for other platforms.
+
+I have not found a work around.
+
+Thanx
+  Ray
+
+
+
+--279707904-772498206-1152389462=:30008
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name="oops.txt"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.10.10607081311020.30008@coalcreekmill.cm.com>
+Content-Description: log of boot
+Content-Disposition: attachment; filename="oops.txt"
+
+U0lMTyBib290OiBzbQ0KVXNpbmcgL2Rldi90dHlhIGFzIGNvbnNvbGUuDQpU
+WVBFOiBTUEFSQ3NlcnZlciAxMDAwRQ0KRXRoZXJuZXQgYWRkcmVzczogODow
+OjIwOjdlOjE5OmVlDQpCb290IHRpbWUgZml4dXAgdjEuNi4gNC9NYXIvOTgg
+SmFrdWIgSmVsaW5layAoampAdWx0cmEubGludXguY3opLiBQYXRjaGluZyBr
+ZXJuZQ0KbCBmb3Igc3JtbXVbVEkgVmlraW5nL01YQ0NdL2lvLXVuaXQNCjMx
+OE1CIEhJR0hNRU0gYXZhaWxhYmxlLg0KUFJPTTogQnVpbHQgZGV2aWNlIHRy
+ZWUgd2l0aCAxNDAwNSBieXRlcyBvZiBtZW1vcnkuDQpCb290aW5nIExpbnV4
+Li4uDQpCdWlsdCAxIHpvbmVsaXN0cy4gIFRvdGFsIHBhZ2VzOiAxMzAwNjYN
+Cktlcm5lbCBjb21tYW5kIGxpbmU6IHJvb3Q9L2Rldi9zZGMzIGNvbnNvbGU9
+dHR5YQ0KUElEIGhhc2ggdGFibGUgZW50cmllczogMTAyNCAob3JkZXI6IDEw
+LCA0MDk2IGJ5dGVzKQ0KQlVHOiB3YXJuaW5nIGF0IGxpYi9rcmVmLmM6MzIv
+a3JlZl9nZXQoKQ0KW2YwMTNkZjM4IDogZ2V0X2J1cysweDIwLzB4NTAgXSBb
+ZjAxM2RkMDQgOiBidXNfYWRkX2RyaXZlcisweDgvMHhhOCBdIFtmMDI1YmM3
+NA0KOiBzYnVzX3NldHVwX2FyY2hfcHJvcHMrMHgzMC8weDU0IF0gW2YwMjU2
+MGE0IDogZm91bmRfdmVyc2lvbisweDVjLzB4NjggXSBbZjAyNTUNCjdjOCA6
+IF9ldGV4dCsweDc2YzIwLzB4Nzc0NTggXSBbMDAwMDAwMDAgOiBfX3N0ZXh0
+KzB4ZmZmYzAwMC8weDEwIF0NCkJVRzogd2FybmluZyBhdCBsaWIva3JlZi5j
+OjMyL2tyZWZfZ2V0KCkNCltmMDEwOWQ3YyA6IGtvYmplY3RfaW5pdCsweDM4
+LzB4NzAgXSBbZjAxMDlmNjQgOiBrb2JqZWN0X3JlZ2lzdGVyKzB4MTAvMHg0
+NCBdIFtmDQowMTNkZDQ0IDogYnVzX2FkZF9kcml2ZXIrMHg0OC8weGE4IF0g
+W2YwMjViYzc0IDogc2J1c19zZXR1cF9hcmNoX3Byb3BzKzB4MzAvMHg1NA0K
+IF0gW2YwMjU2MGE0IDogZm91bmRfdmVyc2lvbisweDVjLzB4NjggXSBbZjAy
+NTU3YzggOiBfZXRleHQrMHg3NmMyMC8weDc3NDU4IF0gWzANCjAwMDAwMDAg
+OiBfX3N0ZXh0KzB4ZmZmYzAwMC8weDEwIF0NClVuYWJsZSB0byBoYW5kbGUg
+a2VybmVsIE5VTEwgcG9pbnRlciBkZXJlZmVyZW5jZQ0KdHNrLT57bW0sYWN0
+aXZlX21tfS0+Y29udGV4dCA9IGZmZmZmZmZmDQp0c2stPnttbSxhY3RpdmVf
+bW19LT5wZ2QgPSBmYzAwMDAwMA0Kc3dhcHBlcigwKTogT29wcyBbIzFdDQpQ
+U1I6IDQwNDAxZmMyIFBDOiBmMDEwOWVmNCBOUEM6IGYwMTA5ZWY4IFk6IDAw
+MDAwMDAwICAgIE5vdCB0YWludGVkDQpQQzogPGtvYmplY3RfYWRkKzB4ZWMv
+MHgxNGM+DQolRzogZjAyMTc3ZDggZjAxMTBkYjggIDQwNDAxMGUxIDQwNDAx
+ZmU2ICBmMDAzYWYzNCBmMDI3ZWMwMCAgZjAwMTIwMDAgMDAwMDAxMDANCiVP
+OiBmMDIxNzdlMCBmMDIxNzI2MCAgMDAwMDAwMDAgMDAwMDAwNzMgIGZmZmZm
+ZmZmIGZmZmZmZmZmICBmMDAxM2Q5MCBmMDEwOWYxMA0KUlBDOiA8a29iamVj
+dF9hZGQrMHgxMDgvMHgxNGM+DQolTDogMDAwMDAwMDAgZjAyMTc3ZWMgIGZm
+ZmZmZmZkIGYwMjE3MjQ4ICAwMDAwMDA0MCAwMDAwMDAwMCAgMDAwMDAwMWYg
+ZjAwMTNkMDgNCiVJOiBmMDIxNzI0NCAwMDAwMDAxNCAgZjAxZTg1ODIgZjAw
+MTNlYjAgIGYwMjdmNWUwIGZmZmZmZmZmICBmMDAxM2RmOCBmMDEwOWY2Yw0K
+Q2FsbGVyW2YwMTA5ZjZjXToga29iamVjdF9yZWdpc3RlcisweDE4LzB4NDQN
+CkNhbGxlcltmMDEzZGQ0NF06IGJ1c19hZGRfZHJpdmVyKzB4NDgvMHhhOA0K
+Q2FsbGVyW2YwMjViYzc0XTogc2J1c19zZXR1cF9hcmNoX3Byb3BzKzB4MzAv
+MHg1NA0KQ2FsbGVyW2YwMjU2MGE0XTogZm91bmRfdmVyc2lvbisweDVjLzB4
+NjgNCkNhbGxlcltmMDI1NTdjOF06IF9ldGV4dCsweDc2YzIwLzB4Nzc0NTgN
+CkNhbGxlclswMDAwMDAwMF06IF9fc3RleHQrMHhmZmZjMDAwLzB4MTANCklu
+c3RydWN0aW9uIERVTVA6IGQ0MDIyMDA0ICBkMDI2MjAxYyAgZDIyMjIwMDQg
+PGQyMjI4MDAwPiBkNDIyNjAwNCAgZDAwNjIwMjggIDkwDQowMjIwMTAgIGMw
+MmEwMDAwICAxMGJmZmZkNQ0KUHJvZ3JhbSB0ZXJtaW5hdGVkDQpUeXBlICBo
+ZWxwICBmb3IgbW9yZSBpbmZvcm1hdGlvbg0KPCMwPiBvaw0KDQoNCg==
+--279707904-772498206-1152389462=:30008--
