@@ -1,98 +1,30 @@
-From: Raymond Burns <rayburns@comcast.net>
-Date: Tue, 11 Jul 2006 02:32:42 +0000
-Subject: sparc32 BUG_ON sparc_cpu_model
-Message-Id: <Pine.LNX.4.10.10607101933080.4657-200000@coalcreekmill.cm.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="279707904-1344953174-1152587038=:4657"
+From: Bob Breuer <breuerr@mc.net>
+Date: Tue, 11 Jul 2006 05:46:45 +0000
+Subject: Re: sparc32 BUG_ON sparc_cpu_model
+Message-Id: <44B33B45.1080305@mc.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <Pine.LNX.4.10.10607101933080.4657-200000@coalcreekmill.cm.com>
+In-Reply-To: <Pine.LNX.4.10.10607101933080.4657-200000@coalcreekmill.cm.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
+Raymond Burns wrote:
+> Hi
+> 
+> This should probably be done with variable functions, but, For devo /
+> debug the patch would work better then the single branch thats being
+> used.
+> 
+> I found 3, I'm not sure if there are more.
 
---279707904-1344953174-1152587038=:4657
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+You could just do an if/else between sun4m and sun4d.  For example:
+http://lxr.linux.no/source/arch/sparc/kernel/smp.c#L95
 
-Hi
+There are also changes needed in sun4d_smp.c, and possibly sun4d_irq.c
+may need changes to get synchronize_irq to work.
 
-This should probably be done with variable functions, but, For devo /
-debug the patch would work better then the single branch thats being
-used.
+If you need any help putting the pieces together, let me know.
 
-I found 3, I'm not sure if there are more.
-
-Thanx
-  Ray
-
-
---279707904-1344953174-1152587038=:4657
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name=patch_arch_switch
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.10.10607102003580.4657@coalcreekmill.cm.com>
-Content-Description: arch switch
-Content-Disposition: attachment; filename=patch_arch_switch
-
-ZGlmZiAtLWdpdCBhL2FyY2gvc3BhcmMva2VybmVsL3NtcC5jIGIvYXJjaC9z
-cGFyYy9rZXJuZWwvc21wLmMNCmluZGV4IDYxMzVkNGYuLmUzMTFhZGUgMTAw
-NjQ0DQotLS0gYS9hcmNoL3NwYXJjL2tlcm5lbC9zbXAuYw0KKysrIGIvYXJj
-aC9zcGFyYy9rZXJuZWwvc21wLmMNCkBAIC04Nyw2ICs4Nyw3IEBAIHZvaWQg
-X19jcHVpbml0IHNtcF9zdG9yZV9jcHVfaW5mbyhpbnQgaWQNCiB2b2lkIF9f
-aW5pdCBzbXBfY3B1c19kb25lKHVuc2lnbmVkIGludCBtYXhfY3B1cykNCiB7
-DQogCWV4dGVybiB2b2lkIHNtcDRtX3NtcF9kb25lKHZvaWQpOw0KKwlleHRl
-cm4gdm9pZCBzbXA0ZF9zbXBfZG9uZSh2b2lkKTsNCiAJdW5zaWduZWQgbG9u
-ZyBib2dvc3VtID0gMDsNCiAJaW50IGNwdSwgbnVtOw0KIA0KQEAgLTEwMCw4
-ICsxMDEsMzQgQEAgdm9pZCBfX2luaXQgc21wX2NwdXNfZG9uZSh1bnNpZ25l
-ZCBpbnQgbQ0KIAkJbnVtLCBib2dvc3VtLyg1MDAwMDAvSFopLA0KIAkJKGJv
-Z29zdW0vKDUwMDAvSFopKSUxMDApOw0KIA0KLQlCVUdfT04oc3BhcmNfY3B1
-X21vZGVsICE9IHN1bjRtKTsNCi0Jc21wNG1fc21wX2RvbmUoKTsNCisJc3dp
-dGNoKHNwYXJjX2NwdV9tb2RlbCkgew0KKwljYXNlIHN1bjQ6DQorCQlwcmlu
-dGsoIlNVTjRcbiIpOw0KKwkJQlVHKCk7DQorCQlicmVhazsNCisJY2FzZSBz
-dW40YzoNCisJCXByaW50aygiU1VONENcbiIpOw0KKwkJQlVHKCk7DQorCQli
-cmVhazsNCisJY2FzZSBzdW40bToNCisJCXNtcDRtX3NtcF9kb25lKCk7DQor
-CQlicmVhazsNCisJY2FzZSBzdW40ZDoNCisJCXNtcDRkX3NtcF9kb25lKCk7
-DQorCQlicmVhazsNCisJY2FzZSBzdW40ZToNCisJCXByaW50aygiU1VONEVc
-biIpOw0KKwkJQlVHKCk7DQorCQlicmVhazsNCisJY2FzZSBzdW40dToNCisJ
-CXByaW50aygiU1VONFVcbiIpOw0KKwkJQlVHKCk7DQorCQlicmVhazsNCisJ
-ZGVmYXVsdDoNCisJCXByaW50aygiVU5LTk9XTiFcbiIpOw0KKwkJQlVHKCk7
-DQorCQlicmVhazsNCisJfTsNCiB9DQogDQogdm9pZCBjcHVfcGFuaWModm9p
-ZCkNCkBAIC0yNjcsOSArMjk0LDkgQEAgaW50IHNldHVwX3Byb2ZpbGluZ190
-aW1lcih1bnNpZ25lZCBpbnQgbQ0KIHZvaWQgX19pbml0IHNtcF9wcmVwYXJl
-X2NwdXModW5zaWduZWQgaW50IG1heF9jcHVzKQ0KIHsNCiAJZXh0ZXJuIHZv
-aWQgc21wNG1fYm9vdF9jcHVzKHZvaWQpOw0KKwlleHRlcm4gdm9pZCBzbXA0
-ZF9ib290X2NwdXModm9pZCk7DQogCWludCBpLCBjcHVpZCwgZXh0cmE7DQog
-DQotCUJVR19PTihzcGFyY19jcHVfbW9kZWwgIT0gc3VuNG0pOw0KIAlwcmlu
-dGsoIkVudGVyaW5nIFNNUCBNb2RlLi4uXG4iKTsNCiANCiAJZXh0cmEgPSAw
-Ow0KQEAgLTI4Myw3ICszMTAsMzQgQEAgdm9pZCBfX2luaXQgc21wX3ByZXBh
-cmVfY3B1cyh1bnNpZ25lZCBpbg0KIA0KIAlzbXBfc3RvcmVfY3B1X2luZm8o
-Ym9vdF9jcHVfaWQpOw0KIA0KLQlzbXA0bV9ib290X2NwdXMoKTsNCisJc3dp
-dGNoKHNwYXJjX2NwdV9tb2RlbCkgew0KKwljYXNlIHN1bjQ6DQorCQlwcmlu
-dGsoIlNVTjRcbiIpOw0KKwkJQlVHKCk7DQorCQlicmVhazsNCisJY2FzZSBz
-dW40YzoNCisJCXByaW50aygiU1VONENcbiIpOw0KKwkJQlVHKCk7DQorCQli
-cmVhazsNCisJY2FzZSBzdW40bToNCisJCXNtcDRtX2Jvb3RfY3B1cygpOw0K
-KwkJYnJlYWs7DQorCWNhc2Ugc3VuNGQ6DQorCQlzbXA0ZF9ib290X2NwdXMo
-KTsNCisJCWJyZWFrOw0KKwljYXNlIHN1bjRlOg0KKwkJcHJpbnRrKCJTVU40
-RVxuIik7DQorCQlCVUcoKTsNCisJCWJyZWFrOw0KKwljYXNlIHN1bjR1Og0K
-KwkJcHJpbnRrKCJTVU40VVxuIik7DQorCQlCVUcoKTsNCisJCWJyZWFrOw0K
-KwlkZWZhdWx0Og0KKwkJcHJpbnRrKCJVTktOT1dOIVxuIik7DQorCQlCVUco
-KTsNCisJCWJyZWFrOw0KKwl9Ow0KIH0NCiANCiAvKiBTZXQgdGhpcyB1cCBl
-YXJseSBzbyB0aGF0IHRoaW5ncyBsaWtlIHRoZSBzY2hlZHVsZXIgY2FuIGlu
-aXQNCkBAIC0zMjMsOSArMzc3LDM3IEBAIHZvaWQgX19pbml0IHNtcF9wcmVw
-YXJlX2Jvb3RfY3B1KHZvaWQpDQogaW50IF9fY3B1aW5pdCBfX2NwdV91cCh1
-bnNpZ25lZCBpbnQgY3B1KQ0KIHsNCiAJZXh0ZXJuIGludCBzbXA0bV9ib290
-X29uZV9jcHUoaW50KTsNCi0JaW50IHJldDsNCi0NCi0JcmV0ID0gc21wNG1f
-Ym9vdF9vbmVfY3B1KGNwdSk7DQorCWV4dGVybiBpbnQgc21wNGRfYm9vdF9v
-bmVfY3B1KGludCk7DQorCWludCByZXQ9MDsNCisNCisJc3dpdGNoKHNwYXJj
-X2NwdV9tb2RlbCkgew0KKwljYXNlIHN1bjQ6DQorCQlwcmludGsoIlNVTjRc
-biIpOw0KKwkJQlVHKCk7DQorCQlicmVhazsNCisJY2FzZSBzdW40YzoNCisJ
-CXByaW50aygiU1VONENcbiIpOw0KKwkJQlVHKCk7DQorCQlicmVhazsNCisJ
-Y2FzZSBzdW40bToNCisJCXJldCA9IHNtcDRtX2Jvb3Rfb25lX2NwdShjcHUp
-Ow0KKwkJYnJlYWs7DQorCWNhc2Ugc3VuNGQ6DQorCQlyZXQgPSBzbXA0ZF9i
-b290X29uZV9jcHUoY3B1KTsNCisJCWJyZWFrOw0KKwljYXNlIHN1bjRlOg0K
-KwkJcHJpbnRrKCJTVU40RVxuIik7DQorCQlCVUcoKTsNCisJCWJyZWFrOw0K
-KwljYXNlIHN1bjR1Og0KKwkJcHJpbnRrKCJTVU40VVxuIik7DQorCQlCVUco
-KTsNCisJCWJyZWFrOw0KKwlkZWZhdWx0Og0KKwkJcHJpbnRrKCJVTktOT1dO
-IVxuIik7DQorCQlCVUcoKTsNCisJCWJyZWFrOw0KKwl9Ow0KIA0KIAlpZiAo
-IXJldCkgew0KIAkJY3B1X3NldChjcHUsIHNtcF9jb21tZW5jZWRfbWFzayk7
-DQo=
---279707904-1344953174-1152587038=:4657--
+Bob
