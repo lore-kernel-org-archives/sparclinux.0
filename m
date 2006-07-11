@@ -1,78 +1,98 @@
-From: Rene Rebe <rene@exactcode.de>
-Date: Mon, 31 Jul 2006 08:31:24 +0000
-Subject: Re: sparc64 fmulq emulation glitch?
-Message-Id: <200607311031.24714.rene@exactcode.de>
+From: Raymond Burns <rayburns@comcast.net>
+Date: Tue, 11 Jul 2006 02:32:42 +0000
+Subject: sparc32 BUG_ON sparc_cpu_model
+Message-Id: <Pine.LNX.4.10.10607101933080.4657-200000@coalcreekmill.cm.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="279707904-1344953174-1152587038=:4657"
 List-Id: <sparclinux.vger.kernel.org>
-References: <200606260902.12375.rene@exactcode.de>
-In-Reply-To: <200606260902.12375.rene@exactcode.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-On Friday 28 July 2006 01:51, David Miller wrote:
-> From: Rene Rebe <rene@exactcode.de>
-> Date: Mon, 26 Jun 2006 09:02:12 +0200
->=20
-> > int main ()
-> > {
-> >         long double a =3D 2;
-> >         long double b =3D 1.0;
-> >         a *=3D b;
-> >         printf ("%Lf\n", a);
-> > }
-> >=20
-> > built with: gcc -m64 -mhard-quad-float
-> >=20
-> > yields: 4
->=20
-> Something is wrong with _FP_MUL_MEAT_2_wide_3mul, which tries to
-> optimize the 2-limb multiply into 3 multiplies instead of 4.  None of
-> the other platforms utilizing the soft-fp layer in the kernel try to
-> use the _3mul version either.
->=20
-> Correctness trumps performance, so we can just use the full 4 multiply
-> version to fix this bug.
->=20
-> Thanks for the report.
->=20
-> diff-tree 92f282988b4ce3967ee8399f7d1184ebfa04e48b (from 64821324ca49f24b=
-e1a66f2f432108f96a24e596)
-> Author: David S. Miller <davem@sunset.davemloft.net>
-> Date:   Thu Jul 27 16:49:21 2006 -0700
->=20
->     [SPARC64]: Fix quad-float multiply emulation.
->    =20
->     Something is wrong with the 3-multiply (vs. 4-multiply) optimized
->     version of _FP_MUL_MEAT_2_*(), so just use the slower version
->     which actually computes correct values.
->    =20
->     Noticed by Rene Rebe
->    =20
->     Signed-off-by: David S. Miller <davem@davemloft.net>
->=20
-> diff --git a/include/asm-sparc64/sfp-machine.h b/include/asm-sparc64/sfp-=
-machine.h
-> index 5015bb8..89d4243 100644
-> --- a/include/asm-sparc64/sfp-machine.h
-> +++ b/include/asm-sparc64/sfp-machine.h
-> @@ -34,7 +34,7 @@
->  #define _FP_MUL_MEAT_D(R,X,Y)					\
->    _FP_MUL_MEAT_1_wide(_FP_WFRACBITS_D,R,X,Y,umul_ppmm)
->  #define _FP_MUL_MEAT_Q(R,X,Y)					\
-> -  _FP_MUL_MEAT_2_wide_3mul(_FP_WFRACBITS_Q,R,X,Y,umul_ppmm)
-> +  _FP_MUL_MEAT_2_wide(_FP_WFRACBITS_Q,R,X,Y,umul_ppmm)
-> =20
->  #define _FP_DIV_MEAT_S(R,X,Y)	_FP_DIV_MEAT_1_imm(S,R,X,Y,_FP_DIV_HELP_im=
-m)
->  #define _FP_DIV_MEAT_D(R,X,Y)	_FP_DIV_MEAT_1_udiv_norm(D,R,X,Y)
->=20
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime@docserver.cac.washington.edu for more info.
 
-I can confirm this patch corrects the emulation.
+--279707904-1344953174-1152587038=:4657
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
-Yours thankfully,
+Hi
 
---=20
-  Ren=E9 Rebe - ExactCODE - Berlin (Europe / Germany)
-  http://exactcode.de | http://t2-project.org | http://rene.rebe.name
-  +49 (0)30 / 255 897 45
+This should probably be done with variable functions, but, For devo /
+debug the patch would work better then the single branch thats being
+used.
+
+I found 3, I'm not sure if there are more.
+
+Thanx
+  Ray
+
+
+--279707904-1344953174-1152587038=:4657
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name=patch_arch_switch
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.10.10607102003580.4657@coalcreekmill.cm.com>
+Content-Description: arch switch
+Content-Disposition: attachment; filename=patch_arch_switch
+
+ZGlmZiAtLWdpdCBhL2FyY2gvc3BhcmMva2VybmVsL3NtcC5jIGIvYXJjaC9z
+cGFyYy9rZXJuZWwvc21wLmMNCmluZGV4IDYxMzVkNGYuLmUzMTFhZGUgMTAw
+NjQ0DQotLS0gYS9hcmNoL3NwYXJjL2tlcm5lbC9zbXAuYw0KKysrIGIvYXJj
+aC9zcGFyYy9rZXJuZWwvc21wLmMNCkBAIC04Nyw2ICs4Nyw3IEBAIHZvaWQg
+X19jcHVpbml0IHNtcF9zdG9yZV9jcHVfaW5mbyhpbnQgaWQNCiB2b2lkIF9f
+aW5pdCBzbXBfY3B1c19kb25lKHVuc2lnbmVkIGludCBtYXhfY3B1cykNCiB7
+DQogCWV4dGVybiB2b2lkIHNtcDRtX3NtcF9kb25lKHZvaWQpOw0KKwlleHRl
+cm4gdm9pZCBzbXA0ZF9zbXBfZG9uZSh2b2lkKTsNCiAJdW5zaWduZWQgbG9u
+ZyBib2dvc3VtID0gMDsNCiAJaW50IGNwdSwgbnVtOw0KIA0KQEAgLTEwMCw4
+ICsxMDEsMzQgQEAgdm9pZCBfX2luaXQgc21wX2NwdXNfZG9uZSh1bnNpZ25l
+ZCBpbnQgbQ0KIAkJbnVtLCBib2dvc3VtLyg1MDAwMDAvSFopLA0KIAkJKGJv
+Z29zdW0vKDUwMDAvSFopKSUxMDApOw0KIA0KLQlCVUdfT04oc3BhcmNfY3B1
+X21vZGVsICE9IHN1bjRtKTsNCi0Jc21wNG1fc21wX2RvbmUoKTsNCisJc3dp
+dGNoKHNwYXJjX2NwdV9tb2RlbCkgew0KKwljYXNlIHN1bjQ6DQorCQlwcmlu
+dGsoIlNVTjRcbiIpOw0KKwkJQlVHKCk7DQorCQlicmVhazsNCisJY2FzZSBz
+dW40YzoNCisJCXByaW50aygiU1VONENcbiIpOw0KKwkJQlVHKCk7DQorCQli
+cmVhazsNCisJY2FzZSBzdW40bToNCisJCXNtcDRtX3NtcF9kb25lKCk7DQor
+CQlicmVhazsNCisJY2FzZSBzdW40ZDoNCisJCXNtcDRkX3NtcF9kb25lKCk7
+DQorCQlicmVhazsNCisJY2FzZSBzdW40ZToNCisJCXByaW50aygiU1VONEVc
+biIpOw0KKwkJQlVHKCk7DQorCQlicmVhazsNCisJY2FzZSBzdW40dToNCisJ
+CXByaW50aygiU1VONFVcbiIpOw0KKwkJQlVHKCk7DQorCQlicmVhazsNCisJ
+ZGVmYXVsdDoNCisJCXByaW50aygiVU5LTk9XTiFcbiIpOw0KKwkJQlVHKCk7
+DQorCQlicmVhazsNCisJfTsNCiB9DQogDQogdm9pZCBjcHVfcGFuaWModm9p
+ZCkNCkBAIC0yNjcsOSArMjk0LDkgQEAgaW50IHNldHVwX3Byb2ZpbGluZ190
+aW1lcih1bnNpZ25lZCBpbnQgbQ0KIHZvaWQgX19pbml0IHNtcF9wcmVwYXJl
+X2NwdXModW5zaWduZWQgaW50IG1heF9jcHVzKQ0KIHsNCiAJZXh0ZXJuIHZv
+aWQgc21wNG1fYm9vdF9jcHVzKHZvaWQpOw0KKwlleHRlcm4gdm9pZCBzbXA0
+ZF9ib290X2NwdXModm9pZCk7DQogCWludCBpLCBjcHVpZCwgZXh0cmE7DQog
+DQotCUJVR19PTihzcGFyY19jcHVfbW9kZWwgIT0gc3VuNG0pOw0KIAlwcmlu
+dGsoIkVudGVyaW5nIFNNUCBNb2RlLi4uXG4iKTsNCiANCiAJZXh0cmEgPSAw
+Ow0KQEAgLTI4Myw3ICszMTAsMzQgQEAgdm9pZCBfX2luaXQgc21wX3ByZXBh
+cmVfY3B1cyh1bnNpZ25lZCBpbg0KIA0KIAlzbXBfc3RvcmVfY3B1X2luZm8o
+Ym9vdF9jcHVfaWQpOw0KIA0KLQlzbXA0bV9ib290X2NwdXMoKTsNCisJc3dp
+dGNoKHNwYXJjX2NwdV9tb2RlbCkgew0KKwljYXNlIHN1bjQ6DQorCQlwcmlu
+dGsoIlNVTjRcbiIpOw0KKwkJQlVHKCk7DQorCQlicmVhazsNCisJY2FzZSBz
+dW40YzoNCisJCXByaW50aygiU1VONENcbiIpOw0KKwkJQlVHKCk7DQorCQli
+cmVhazsNCisJY2FzZSBzdW40bToNCisJCXNtcDRtX2Jvb3RfY3B1cygpOw0K
+KwkJYnJlYWs7DQorCWNhc2Ugc3VuNGQ6DQorCQlzbXA0ZF9ib290X2NwdXMo
+KTsNCisJCWJyZWFrOw0KKwljYXNlIHN1bjRlOg0KKwkJcHJpbnRrKCJTVU40
+RVxuIik7DQorCQlCVUcoKTsNCisJCWJyZWFrOw0KKwljYXNlIHN1bjR1Og0K
+KwkJcHJpbnRrKCJTVU40VVxuIik7DQorCQlCVUcoKTsNCisJCWJyZWFrOw0K
+KwlkZWZhdWx0Og0KKwkJcHJpbnRrKCJVTktOT1dOIVxuIik7DQorCQlCVUco
+KTsNCisJCWJyZWFrOw0KKwl9Ow0KIH0NCiANCiAvKiBTZXQgdGhpcyB1cCBl
+YXJseSBzbyB0aGF0IHRoaW5ncyBsaWtlIHRoZSBzY2hlZHVsZXIgY2FuIGlu
+aXQNCkBAIC0zMjMsOSArMzc3LDM3IEBAIHZvaWQgX19pbml0IHNtcF9wcmVw
+YXJlX2Jvb3RfY3B1KHZvaWQpDQogaW50IF9fY3B1aW5pdCBfX2NwdV91cCh1
+bnNpZ25lZCBpbnQgY3B1KQ0KIHsNCiAJZXh0ZXJuIGludCBzbXA0bV9ib290
+X29uZV9jcHUoaW50KTsNCi0JaW50IHJldDsNCi0NCi0JcmV0ID0gc21wNG1f
+Ym9vdF9vbmVfY3B1KGNwdSk7DQorCWV4dGVybiBpbnQgc21wNGRfYm9vdF9v
+bmVfY3B1KGludCk7DQorCWludCByZXQ9MDsNCisNCisJc3dpdGNoKHNwYXJj
+X2NwdV9tb2RlbCkgew0KKwljYXNlIHN1bjQ6DQorCQlwcmludGsoIlNVTjRc
+biIpOw0KKwkJQlVHKCk7DQorCQlicmVhazsNCisJY2FzZSBzdW40YzoNCisJ
+CXByaW50aygiU1VONENcbiIpOw0KKwkJQlVHKCk7DQorCQlicmVhazsNCisJ
+Y2FzZSBzdW40bToNCisJCXJldCA9IHNtcDRtX2Jvb3Rfb25lX2NwdShjcHUp
+Ow0KKwkJYnJlYWs7DQorCWNhc2Ugc3VuNGQ6DQorCQlyZXQgPSBzbXA0ZF9i
+b290X29uZV9jcHUoY3B1KTsNCisJCWJyZWFrOw0KKwljYXNlIHN1bjRlOg0K
+KwkJcHJpbnRrKCJTVU40RVxuIik7DQorCQlCVUcoKTsNCisJCWJyZWFrOw0K
+KwljYXNlIHN1bjR1Og0KKwkJcHJpbnRrKCJTVU40VVxuIik7DQorCQlCVUco
+KTsNCisJCWJyZWFrOw0KKwlkZWZhdWx0Og0KKwkJcHJpbnRrKCJVTktOT1dO
+IVxuIik7DQorCQlCVUcoKTsNCisJCWJyZWFrOw0KKwl9Ow0KIA0KIAlpZiAo
+IXJldCkgew0KIAkJY3B1X3NldChjcHUsIHNtcF9jb21tZW5jZWRfbWFzayk7
+DQo=
+--279707904-1344953174-1152587038=:4657--
