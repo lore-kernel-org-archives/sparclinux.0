@@ -1,26 +1,12 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 08 Jul 2006 00:06:36 +0000
-Subject: Re: sparc32 sunzilog prom walk patch
-Message-Id: <20060707.170636.13747990.davem@davemloft.net>
+From: "Sutton" <Suttonadverse@deliveryman.com>
+Date: Wed, 12 Jul 2006 03:26:33 +0000
+Subject: =?ISO-8859-1?Q?=20It=92s?= a pity, because you could do it with her much longer!
+Message-Id: <39965586935864.E5DCE883C1@VNLZW7XX>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Raymond Burns <rayburns@comcast.net>
-Date: Thu, 22 Jun 2006 14:08:45 -0700 (PDT)
+Good day my friend! You have a unique chance to forget this distress forever. Stop being a two pump chump. Extra-Time gives you not only extra time, but extra pleasure and extra confidence as well. It is obvious that a man lasting longer is the man women prefer. Don't try once again - solve this problem! Come in: http://justcallterry.com/dll/get/ This is your chance to build relationship of your dreams with your partner.
 
-> The current sun4d prom walk for serial ports is missing it's last leg,
-> The "bare bone" attachment is a brute force fixit, the "alternate"
-> attachment recovers a chunk of code space
-> 
-> Either one would work
-
-The current 2.6.18-rc1 tree should attempt to address all of these
-sunzilog probing bugs in a cleaner way, with the of_device framework.
-
-I have that other email from you, Raymond, detailing how the sun4d
-crashes in the current 2.6.18 tree and I'll look into that soon.
-
-Thanks.
