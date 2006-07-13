@@ -1,23 +1,100 @@
-From: "Maryellen" <MaryellenJackson@madrid.com>
-Date: Fri, 16 Jun 2006 10:25:08 +0000
-Subject: Recent stuff I am sure it was Enjoy
-Message-Id: <76410675074907.D2899CD1C9@KLML21>
+From: Raymond Burns <rayburns@comcast.net>
+Date: Thu, 13 Jul 2006 10:41:25 +0000
+Subject: sparc32 smp
+Message-Id: <Pine.LNX.4.10.10607130208320.4657-300000@coalcreekmill.cm.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="279707904-1254259651-1152783526=:4657"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Good day,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime@docserver.cac.washington.edu for more info.
 
-Make other men envy you and girls worship you Most efficient products for m=
-en=20
-Our customers enjoy saving on most popular goods, and we deliver them fast =
-and inexpensive
- World=92s greatest brands produce these goods in top class labs with lates=
-t technologies.
- Come in here: http://www.extremeci.com
+--279707904-1254259651-1152783526=:4657
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
- We thank you for your interest!
+Hi
+
+The attached oops occurs during boot when the cache is converted from
+static to allocated cache ( kmem_cache_create() )
+
+The attached patch might be a work around until mainline kernel slab
+code does something
+
+The occurance in kmem_cache_destroy() is a best guess, my boot hasn't
+made it far enough to test it.
+
+static cache is initialized prior to smp_init, the boot cpu is the
+only one running. There is no mechanism to initialize numa style cache
+heads per smp cpu (that I found). after the memcpy, accessing the
+array list_lock for cpu 2 causes the oops.
+
+This got me past the slab stuff into the sunzilog oops ...
+
+Thanx
+  Ray
 
 
+--279707904-1254259651-1152783526=:4657
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name=oops_online_cpu
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.10.10607130238460.4657@coalcreekmill.cm.com>
+Content-Description: oops
+Content-Disposition: attachment; filename=oops_online_cpu
+
+VW5hYmxlIHRvIGhhbmRsZSBrZXJuZWwgTlVMTCBwb2ludGVyIGRlcmVmZXJl
+bmNlDQp0c2stPnttbSxhY3RpdmVfbW19LT5jb250ZXh0ID0gZmZmZmZmZmYN
+CnRzay0+e21tLGFjdGl2ZV9tbX0tPnBnZCA9IGZjMDAwMDAwDQpzd2FwcGVy
+KDEpOiBPb3BzIFsjMV0NClBTUjogNDA4MDBmYzUgUEM6IGYwMWUwMGE0IE5Q
+QzogZjAxZTAwYTggWTogMDAwMDAwMDAgICAgTm90IHRhaW50ZWQNClBDOiA8
+X3NwaW5fbG9ja19pcnErMHgxNC8weDI4Pg0KJUc6IDAwMDAwMDAzIGYwMDIx
+NTEwICA0MDgwMGZlNiAwMDAwMDAwMSAgMDAwMDAwMDcgMDA2NTZjMDAgIGYw
+ZDBlMDAwIDAwMDAwMGZmDQolTzogNDA4MDAwZTYgMDAwMDAwMDEgIDAwMDAw
+MDAxIDAwMDAwMDAwICBmMDIwOTRkNCAwMDAwMDAwMCAgZjBkMGZjNzAgZjAx
+ZTAwOWMNClJQQzogPF9zcGluX2xvY2tfaXJxKzB4Yy8weDI4Pg0KJUw6IDAw
+MDAwMDAyIGYwMTA2MDQ0ICBmMDEwNjI1NCAwMDAwMDAwMSAgMDAwMDAwMDIg
+MDAwMDAwMDAgIDAwMDA3ZmZmIDAwMDAwMDdmDQolSTogMDAwMDAwMjQgZjAy
+MDk0ZDQgIDAwMDAwMDAxIDAwMDAwMDAxICBmMDEwZjc0YyBmZmZmOGM0YiAg
+ZjBkMGZjZDggZjAwN2E3NWMNCkNhbGxlcltmMDA3YTc1Y106IGRvX3R1bmVf
+Y3B1Y2FjaGUrMHhlMC8weDFhYw0KQ2FsbGVyW2YwMDdhODkwXTogZW5hYmxl
+X2NwdWNhY2hlKzB4NjgvMHg5MA0KQ2FsbGVyW2YwMDc4Zjg0XToga21lbV9j
+YWNoZV9jcmVhdGUrMHgyYWMvMHgzYjANCkNhbGxlcltmMDI1NjIyY106IGZy
+ZWVfYXJlYV9pbml0KzB4MjAvMHgzMA0KQ2FsbGVyW2YwMjQ1MjI0XTogc3Vu
+NG1faW5pdCsweGIwLzB4MzI4DQpDYWxsZXJbZjAwMTQxMDRdOiBpbml0KzB4
+NjAvMHgxOWMNCkNhbGxlcltmMDAxOTViY106IGtlcm5lbF90aHJlYWQrMHgz
+Yy8weDUwDQpDYWxsZXJbZjAwMTQwMWNdOiByZXN0X2luaXQrMHgxOC8weDM0
+DQpDYWxsZXJbZjAyNDUxYjRdOiBzdW40bV9pbml0KzB4NDAvMHgzMjgNCkNh
+bGxlcltmMDI0NDdjOF06IF9ldGV4dCsweDY0MmM0LzB4NjRhZjQNCkNhbGxl
+clswMDAwMDAwMF06IDB4OA0KSW5zdHJ1Y3Rpb24gRFVNUDogOWRlM2JmOTgg
+IDdmZjhkYmU5ICAwMTAwMDAwMCA8YzQ2ZTAwMDA+IDgwOTBhMDAwICAzMjgw
+MDBjOSAgYzQNCjBlMDAwMCAgMDEwMDAwMDAgIDgxYzdlMDA4DQoNCg==
+--279707904-1254259651-1152783526=:4657
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name=patch_nodevscpu_slab
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.10.10607130238461.4657@coalcreekmill.cm.com>
+Content-Description: patch
+Content-Disposition: attachment; filename=patch_nodevscpu_slab
+
+ZGlmZiAtLWdpdCBhL21tL3NsYWIuYyBiL21tL3NsYWIuYw0KaW5kZXggODVj
+MmUwMy4uZjcwY2IxMSAxMDA2NDQNCi0tLSBhL21tL3NsYWIuYw0KKysrIGIv
+bW0vc2xhYi5jDQpAQCAtMjM5OCw3ICsyMzk4LDcgQEAgaW50IGttZW1fY2Fj
+aGVfZGVzdHJveShzdHJ1Y3Qga21lbV9jYWNoZQ0KIAlpZiAodW5saWtlbHko
+Y2FjaGVwLT5mbGFncyAmIFNMQUJfREVTVFJPWV9CWV9SQ1UpKQ0KIAkJc3lu
+Y2hyb25pemVfcmN1KCk7DQogDQotCWZvcl9lYWNoX29ubGluZV9jcHUoaSkN
+CisJZm9yX2VhY2hfb25saW5lX25vZGUoaSkNCiAJICAgIGtmcmVlKGNhY2hl
+cC0+YXJyYXlbaV0pOw0KIA0KIAkvKiBOVU1BOiBmcmVlIHRoZSBsaXN0MyBz
+dHJ1Y3R1cmVzICovDQpAQCAtMzU5Nyw3ICszNTk3LDcgQEAgc3RhdGljIGlu
+dCBkb190dW5lX2NwdWNhY2hlKHN0cnVjdCBrbWVtXw0KIAlpbnQgaSwgZXJy
+Ow0KIA0KIAltZW1zZXQoJm5ldy5uZXcsIDAsIHNpemVvZihuZXcubmV3KSk7
+DQotCWZvcl9lYWNoX29ubGluZV9jcHUoaSkgew0KKwlmb3JfZWFjaF9vbmxp
+bmVfbm9kZShpKSB7DQogCQluZXcubmV3W2ldID0gYWxsb2NfYXJyYXljYWNo
+ZShjcHVfdG9fbm9kZShpKSwgbGltaXQsDQogCQkJCQkJYmF0Y2hjb3VudCk7
+DQogCQlpZiAoIW5ldy5uZXdbaV0pIHsNCkBAIC0zNjE1LDcgKzM2MTUsNyBA
+QCBzdGF0aWMgaW50IGRvX3R1bmVfY3B1Y2FjaGUoc3RydWN0IGttZW1fDQog
+CWNhY2hlcC0+bGltaXQgPSBsaW1pdDsNCiAJY2FjaGVwLT5zaGFyZWQgPSBz
+aGFyZWQ7DQogDQotCWZvcl9lYWNoX29ubGluZV9jcHUoaSkgew0KKwlmb3Jf
+ZWFjaF9vbmxpbmVfbm9kZShpKSB7DQogCQlzdHJ1Y3QgYXJyYXlfY2FjaGUg
+KmNjb2xkID0gbmV3Lm5ld1tpXTsNCiAJCWlmICghY2NvbGQpDQogCQkJY29u
+dGludWU7DQo=
+--279707904-1254259651-1152783526=:4657--
