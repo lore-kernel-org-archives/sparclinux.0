@@ -1,57 +1,33 @@
-From: Chris Newport <crn@netunix.com>
-Date: Sun, 23 Jul 2006 13:24:20 +0000
-Subject: Re: sparc32: git SCSI and fs
-Message-Id: <44C37884.6010200@netunix.com>
+From: Daniel Kweh <dakweh29@yahoo.com>
+Date: Thu, 13 Jul 2006 14:39:52 +0000
+Subject: loading Debian Linux onto Sun Ultra2
+Message-Id: <20060713143952.68697.qmail@web52206.mail.yahoo.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20060719.134205.74563314.davem@davemloft.net>
-In-Reply-To: <20060719.134205.74563314.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-David Miller wrote:
+Hi,
+I tried to install debian Linux onto Ultra 2. I hit
+<Stop A> to stop the booting from default. I key in
+boot cdrom, it did tries to reboot from cdrom and
+started on reading the debian intstall cd, then it
+stops at and error and couldnt reproceed. I cant key
+anything on the system. It seems to be hang.
+this is the error
 
->From: Chris Newport <crn@netunix.com>
->Date: Fri, 21 Jul 2006 23:03:31 +0100
->
->  
->
->>A year or so ago I did a few patches for Sun4d and there was a note in 
->>the iommu code about sun4d not having a register that was used for 
->>scratch data in sun4m.
->>Could this bug be back ?
->>
->>Sorry to be vague, this is from memory.
->>    
->>
->
->It would be nice to have something specific, I see nothing
->explicit in the current tree:
->
->  
->
-I have not been able to find the file with the relevant comment, but 
-looking back in my mail archive, it seems to relate to this code in 
-2.4.26 include/asm-sparc/winmacro.h, looks like jj has created a workaround.
-Maybe need to look at earlier 2.4 versions before the comment got dropped.
+Allocated 8 Megs of memory at 0x40000000 for kernel
+Loaded Kernel version 2.4.27
+Loading initial ramdisk (3041649) bytes at 0x1FC02000
+phys, 0x40C00000 virt)...
 
-#ifdef CONFIG_SMP
-#define LOAD_CURRENT4M(dest_reg, idreg) \
-        rd       %tbr, %idreg; \
-        sethi    %hi(C_LABEL(current_set)), %dest_reg; \
-        srl      %idreg, 10, %idreg; \
-        or       %dest_reg, %lo(C_LABEL(current_set)), %dest_reg; \
-        and      %idreg, 0xc, %idreg; \
-        ld       [%idreg + %dest_reg], %dest_reg;
-
-/* Sliiick. We have a Linux current register :) -jj */
-#define LOAD_CURRENT4D(dest_reg) \
-        lda      [%g0] ASI_M_VIKING_TMP2, %dest_reg;
-
-/* Blackbox - take care with this... - check smp4m and smp4d before 
-changing thi
-s. */
+inconsistent console:  input 1, output 0
+program terminated
+ok..
 
 
-
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
