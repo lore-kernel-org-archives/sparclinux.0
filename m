@@ -1,19 +1,13 @@
-From: "Brenda" <BrendaHerrera@registerednurses.com>
-Date: Tue, 04 Jul 2006 01:54:56 +0000
-Subject: Hot and new It will be great Feel Pleasure from
-Message-Id: <20865518828413.128A39910A@WVDQ>
+From: "midary" <ryreh5@vm.vonage.com>
+Date: Fri, 14 Jul 2006 07:19:31 +0000
+Subject: rypek
+Message-Id: <001c01c71fd5$a49064d0$0be0a80a@cadoc>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Good Day!
-Do you wish to increase your volume by up to 500%?=20
-
-Now it=92s possible to do with magic tab
- Take this and your woman will be speechless
- See our shop: http://www.abirtes.com=20
-
- We thank you for being interested in our products
+need replica
+sajis http://www.worlfdwidepaandas.com
 
