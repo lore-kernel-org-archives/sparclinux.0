@@ -1,44 +1,30 @@
-From: "Eric Brower" <ebrower@gmail.com>
-Date: Thu, 13 Jul 2006 17:35:32 +0000
-Subject: Re: loading Debian Linux onto Sun Ultra2
-Message-Id: <ec7cefb0607131035lf2dcdc1k3ed6ae3807009f5a@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Fri, 14 Jul 2006 23:53:08 +0000
+Subject: Re: 2.6.18-rc1 fails to boot on E250
+Message-Id: <20060714.165308.83620688.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20060713143952.68697.qmail@web52206.mail.yahoo.com>
-In-Reply-To: <20060713143952.68697.qmail@web52206.mail.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 7/13/06, Daniel Kweh <dakweh29@yahoo.com> wrote:
-> Hi,
-> I tried to install debian Linux onto Ultra 2. I hit
-> <Stop A> to stop the booting from default. I key in
-> boot cdrom, it did tries to reboot from cdrom and
-> started on reading the debian intstall cd, then it
-> stops at and error and couldnt reproceed. I cant key
-> anything on the system. It seems to be hang.
-> this is the error
->
-> Allocated 8 Megs of memory at 0x40000000 for kernel
-> Loaded Kernel version 2.4.27
-> Loading initial ramdisk (3041649) bytes at 0x1FC02000
-> phys, 0x40C00000 virt)...
->
-> inconsistent console:  input 1, output 0
-> program terminated
-> ok..
+From: Marc Zyngier <maz@misterjones.org>
+Date: Fri, 14 Jul 2006 12:18:47 +0200
 
-Your OBP settings have incompatible values for input-device and
-output-device, it seems.  What does "getenv" show from the ok> OBP
-prompt?  Your "input-device" and "output-device" should be compatible
-(that means "input=keyboard, output=screen or both ttya or ttyb).
+> Quick investigation shows that pbm->name is used a tad too early in
+> pbm_register_toplevel_resources. The included patchlet fixes that,
+> allowing the boot to go a little further, but not much :
 
-In a pinch, you can hold-down Stop-N during the boot process to reset
-your OBP to default values (which may not be what you want depending
-upon your configuration, which we know nothing about).
+Also, pbm_register_toplevel_resources should not be overwriting
+that string as it does currently.  I've added your fix and a fix
+for that problem to my tree, thanks a lot.
 
-Thanks,
+> Looks like no IRQ can be requested, probably a problem with the new
+> IRQ framework.
 
--- 
-E
+Please reboot with of_debug=3 and send the logs here.  It's
+almost certainly a bug in the psycho bus IRQ translater in
+arch/sparc64/kernel/prom.c:psycho_irq_build()/psycho_irq_trans_init().
+A good debugging log will give some clues.
+
+Thanks!
