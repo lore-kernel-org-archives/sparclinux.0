@@ -1,24 +1,20 @@
-From: "Reynaldo Temple" <qkmtfrhlrqn@hoffmankelley.com>
-Date: Thu, 13 Jul 2006 19:43:43 +0000
-Subject: Lycos
-Message-Id: <E4A4nm6-8663Yt-00@mail.nitros6.org>
+From: "Patrick" <PatrickChristopher@playful.com>
+Date: Sat, 15 Jul 2006 18:34:15 +0000
+Subject: Just published Every man wishes it.  Delight
+Message-Id: <88672237525783.FC8A2063EB@09QMA0ZO>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Icrease Your S''exual Desire and S''perm volume by 500%
-L'onger o''rgasms - The longest most intense o''rgasms of your life
-Multiple o''rgasms - Cum again and again
-S'PUR-M is The Newest and The Safest Way
-100% N''atural and No Side Effects - in contrast to well-known brands.
-Experience three times longer o''rgasms
-World Wide shipping within 24 hours
- 
- Clisk here http://www.josephineinn.info
+Dear user.
+You crave to shoot like a film star=85=20
 
+Tonight you=92ll prove your volume
+ Don=92t be afraid
 
+ Take a look: http://slogent.com/gall/=20
 
-depreciable redshank gyro java recline awe guidepost wagner
-uniplex pauli tuscarora arcturus that tetragonal umbilicus pompeii
+ The quality is realt high and the prices are the cheapest on the market!
+
