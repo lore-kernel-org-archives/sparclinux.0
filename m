@@ -1,26 +1,16 @@
-From: Gregory <Henry@alh.com>
-Date: Sat, 22 Jul 2006 14:55:52 +0000
-Subject: Gelegenheiten, Geld zu verdienen.
-Message-Id: <A616796A.8820159@alh.com>
+From: "Mona" <Monacrock@mad.scientist.com>
+Date: Mon, 17 Jul 2006 01:15:11 +0000
+Subject: New and hot Onlinee Casino. Go annd Play It
+Message-Id: <40925776084192.03366C89AC@4BIHCB>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Brauchen Sie zusaetzliches Einkommen?
- 
-Schon heute haben Sie diese neue Moeglichkeit!
- 
- Company Get Assisted Co. bietet Ihnen die Zusammenarbeit an.
-Sie sind verantwortlich und punktlich.
- Sie sind zwischen 18 und 60 Jahre.
+Good day! 
 
-Sie haben Freizeit (2-4 Stunden taglich)
+  Online Casino with 85+ games. Play It Noow!  http://wegast.com/d1/check/ 
 
-Das ist Ihre Chance. 
-
- Kontaktieren Sie mit uns, bitte, Ihr Job wartet auf Sie!
-Schicken Sie bitte Ihre E-Mails an support@g-ted.biz
-
+ No man is wise at all times 
 
