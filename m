@@ -1,114 +1,129 @@
-From: Bob Breuer <breuerr@mc.net>
-Date: Mon, 17 Jul 2006 15:45:16 +0000
+From: Raymond Burns <rayburns@comcast.net>
+Date: Mon, 17 Jul 2006 17:57:57 +0000
 Subject: Re: sparc32 git tree
-Message-Id: <44BBB08C.3090004@mc.net>
+Message-Id: <Pine.LNX.4.10.10607171036400.10727-200000@coalcreekmill.cm.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------000107090909000706020704"
+Content-Type: multipart/mixed; boundary="279707904-307028858-1153160870=:10727"
 List-Id: <sparclinux.vger.kernel.org>
+References: <44BBB08C.3090004@mc.net>
+In-Reply-To: <44BBB08C.3090004@mc.net>
 To: sparclinux@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000107090909000706020704
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime@docserver.cac.washington.edu for more info.
 
-Ray,
+--279707904-307028858-1153160870=:10727
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
-I think I've found the core problem with the prom properties, and a
-potential problem with the zilog initialization.  Could you try the
-attached patch and let me know if it works for you?
+On Mon, 17 Jul 2006, Bob Breuer wrote:
 
-Thanks,
-Bob
+> Ray,
+> 
+> I think I've found the core problem with the prom properties, and a
+> potential problem with the zilog initialization.  Could you try the
+> attached patch and let me know if it works for you?
+> 
+> Thanks,
+> Bob
 
---------------000107090909000706020704
-Content-Type: text/plain;
- name="sparc32-fix_prom_probing.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="sparc32-fix_prom_probing.txt"
+Your patch caused kobject_add to succeed on all duplicate prom items
+during the initial tree traversal (55 duplicate or dependent items).
 
-diff --git a/arch/sparc/kernel/prom.c b/arch/sparc/kernel/prom.c
-index 4b06dcb..4ca9e5f 100644
---- a/arch/sparc/kernel/prom.c
-+++ b/arch/sparc/kernel/prom.c
-@@ -444,6 +444,7 @@ static struct property * __init build_on
- 	static struct property *tmp = NULL;
- 	struct property *p;
- 	int len;
-+	const char *name;
- 
- 	if (tmp) {
- 		p = tmp;
-@@ -456,19 +457,21 @@ static struct property * __init build_on
- 
- 	p->name = (char *) (p + 1);
- 	if (special_name) {
-+		strcpy(p->name, special_name);
- 		p->length = special_len;
- 		p->value = prom_early_alloc(special_len);
- 		memcpy(p->value, special_val, special_len);
- 	} else {
- 		if (prev == NULL) {
--			prom_firstprop(node, p->name);
-+			name = prom_firstprop(node, NULL);
- 		} else {
--			prom_nextprop(node, prev, p->name);
-+			name = prom_nextprop(node, prev, NULL);
- 		}
--		if (strlen(p->name) == 0) {
-+		if (strlen(name) == 0) {
- 			tmp = p;
- 			return NULL;
- 		}
-+		strcpy(p->name, name);
- 		p->length = prom_getproplen(node, p->name);
- 		if (p->length <= 0) {
- 			p->length = 0;
-diff --git a/drivers/serial/sunzilog.c b/drivers/serial/sunzilog.c
-index a1456d9..b88f7de 100644
---- a/drivers/serial/sunzilog.c
-+++ b/drivers/serial/sunzilog.c
-@@ -524,7 +524,6 @@ static irqreturn_t sunzilog_interrupt(in
- {
- 	struct uart_sunzilog_port *up = dev_id;
- 
--	while (up) {
- 		struct zilog_channel __iomem *channel
- 			= ZILOG_CHANNEL_FROM_PORT(&up->port);
- 		struct tty_struct *tty;
-@@ -575,9 +574,6 @@ static irqreturn_t sunzilog_interrupt(in
- 		if (tty)
- 			tty_flip_buffer_push(tty);
- 
--		up = up->next;
--	}
--
- 	return IRQ_HANDLED;
- }
- 
-@@ -1352,18 +1348,17 @@ static int __devinit zs_probe(struct of_
- 
- 	rp = sunzilog_chip_regs[inst];
- 
--	if (zilog_irq == -1) {
-+	up = &sunzilog_port_table[inst * 2];
-+	//if (zilog_irq == -1) {
- 		zilog_irq = op->irqs[0];
- 		err = request_irq(zilog_irq, sunzilog_interrupt, IRQF_SHARED,
--				  "zs", sunzilog_irq_chain);
-+				  "zs", up);
- 		if (err) {
- 			of_iounmap(rp, sizeof(struct zilog_layout));
- 
- 			return err;
- 		}
--	}
--
--	up = &sunzilog_port_table[inst * 2];
-+	//}
- 
- 	/* Channel A */
- 	up[0].port.mapbase = op->resource[0].start + 0x00;
+Thank You  :)
 
---------------000107090909000706020704--
+I am not able to check the serial port portion yet, mine blows up on
+the sbus initialization.
+
+Since it's probably related I have attached the ksymoops output
+
+sbus0 suceeds along with it's 3 dma channels.
+prom item:
+/io-unit@f,e0200000/sbi@0,0
+
+sbus1 dies
+prom item:
+/io-unit@f,e1200000/sbi@0,0
+
+(this is sun4d so "sbi" == sbus)
+kobject_add failed for sbi@0,0 with -EEXIST, don't try to register
+things with the same name in the same directory.
+
+This is followed by the oops which I believe provides more accurate
+address info then the trace following the message.
+
+It's probably a sun4d thing, I'll dig.
+
+Thanx
+  Ray
+
+
+--279707904-307028858-1153160870=:10727
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name=oops_sbus_dma2
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.10.10607171127500.10727@coalcreekmill.cm.com>
+Content-Description: sbus init oops
+Content-Disposition: attachment; filename=oops_sbus_dma2
+
+a3N5bW9vcHMgMi40LjEgb24gc3BhcmMgMi40LjMyLiAgT3B0aW9ucyB1c2Vk
+DQogICAgIC12IC9zcGFyYy5kMi9zcGFyYy0yLjYvYXJjaC9zcGFyYy9ib290
+L2ltYWdlIChzcGVjaWZpZWQpDQogICAgIC1LIChzcGVjaWZpZWQpDQogICAg
+IC1MIChzcGVjaWZpZWQpDQogICAgIC1PIChzcGVjaWZpZWQpDQogICAgIC1N
+IChzcGVjaWZpZWQpDQoNClJlYWRpbmcgT29wcyByZXBvcnQgZnJvbSB0aGUg
+dGVybWluYWwNClVuYWJsZSB0byBoYW5kbGUga2VybmVsIE5VTEwgcG9pbnRl
+ciBkZXJlZmVyZW5jZQ0KdHNrLT57bW0sYWN0aXZlX21tfS0+Y29udGV4dCA9
+IGZmZmZmZmZmDQp0c2stPnttbSxhY3RpdmVfbW19LT5wZ2QgPSBmYzAwMDAw
+MA0Kc3dhcHBlcigxKTogT29wcyBbIzFdDQpQU1I6IDQwODAwMGMxIFBDOiBm
+MDBiYzhlYyBOUEM6IGYwMGJjOGYwIFk6IDAzODAwMDAwICAgIE5vdCB0YWlu
+dGVkDQpVc2luZyBkZWZhdWx0cyBmcm9tIGtzeW1vb3BzIC10IGVsZjMyLXNw
+YXJjIC1hIHNwYXJjDQpQQzogPGNyZWF0ZV9kaXIrMHhjLzB4MjFjPg0KQ2Fs
+bGVyW2YwMGJjYjU4XTogc3lzZnNfY3JlYXRlX2RpcisweDM4LzB4YTANCkNh
+bGxlcltmMDEwNDFmMF06IGNyZWF0ZV9kaXIrMHgyNC8weDYwDQpDYWxsZXJb
+ZjAxMDQ0MzhdOiBrb2JqZWN0X2FkZCsweDVjLzB4MTRjDQpDYWxsZXJbZjAx
+MzU4OGNdOiBkZXZpY2VfYWRkKzB4ODQvMHgyZjgNCkNhbGxlcltmMDAyMDY4
+OF06IG9mX2RldmljZV9yZWdpc3RlcisweDI4LzB4ODANCkNhbGxlcltmMDI1
+OGI0OF06IHN1bnppbG9nX3JlZ2lzdGVyX3NlcmlvKzB4MzAvMHhjOA0KQ2Fs
+bGVyW2YwMjU5MDI4XTogdG9wb2xvZ3lfcmVtb3ZlX2RldisweDQvMHgxYw0K
+Q2FsbGVyW2YwMjU5MTEwXTogc3BhcmNfbGFuY2VfcHJvYmVfb25lKzB4MzQv
+MHg0ZTANCkNhbGxlcltmMDI0MjIyNF06IF9ldGV4dCsweDYzNDkwLzB4NjQy
+NjQNCkNhbGxlcltmMDAxNDEwNF06IGluaXQrMHg2MC8weDE5Yw0KQ2FsbGVy
+W2YwMDE5NWJjXToga2VybmVsX3RocmVhZCsweDNjLzB4NTANCkNhbGxlcltm
+MDAxNDAxY106IHJlc3RfaW5pdCsweDE4LzB4MzQNCkNhbGxlcltmMDI0MjFi
+NF06IF9ldGV4dCsweDYzNDIwLzB4NjQyNjQNCkNhbGxlcltmMDI0MTdjOF06
+IF9ldGV4dCsweDYyYTM0LzB4NjQyNjQNCkNhbGxlclswMDAwMDAwMF06IDB4
+OA0KSW5zdHJ1Y3Rpb24gRFVNUDogODFjM2UwMDggIDkwMTAyMDAwICA5ZGUz
+YmY5OCA8ZDAwNjYwMGM+IGEwMTAwMDE4ICA0MDA0ODY1OSAgOTAwMjIwNzQg
+IDQwMDE0NjI0ICA5MDEwMDAxYQ0KDQo+PlBDOyAgZjAwYmM4ZWMgPGNyZWF0
+ZV9kaXIrNC8yMWM+ICAgPD09PT09DQpUcmFjZTsgZjAwYmNiNTggPHN5c2Zz
+X2NyZWF0ZV9kaXIrMzAvYTA+DQpUcmFjZTsgZjAxMDQxZjAgPGNyZWF0ZV9k
+aXIrMWMvNjA+DQpUcmFjZTsgZjAxMDQ0MzggPGtvYmplY3RfYWRkKzU0LzE0
+Yz4NClRyYWNlOyBmMDEzNTg4YyA8ZGV2aWNlX2FkZCs3Yy8yZjg+DQpUcmFj
+ZTsgZjAwMjA2ODggPG9mX2RldmljZV9yZWdpc3RlcisyMC84MD4NClRyYWNl
+OyBmMDI1OGI0OCA8ZmlsbF9zYnVzX2RldmljZSsxMTQvMTQwPg0KVHJhY2U7
+IGYwMjU5MDI4IDxidWlsZF9vbmVfc2J1cysxYTgvMjA0Pg0KVHJhY2U7IGYw
+MjU5MTEwIDxzYnVzX2luaXQrOGMvZDA+DQpUcmFjZTsgZjAyNDIyMjQgPGRv
+X2luaXRjYWxscys0OC8xNjg+DQpUcmFjZTsgZjAwMTQxMDQgPGluaXQrNTgv
+MTljPg0KVHJhY2U7IGYwMDE5NWJjIDxrZXJuZWxfdGhyZWFkKzM0LzUwPg0K
+VHJhY2U7IGYwMDE0MDFjIDxyZXN0X2luaXQrMTAvMzQ+DQpUcmFjZTsgZjAy
+NDIxYjQgPHN0YXJ0X2tlcm5lbCsyMzAvMjQ0Pg0KVHJhY2U7IGYwMjQxN2M4
+IDxzdW40Y19jb250aW51ZV9ib290KzMyNC8zMzQ+DQpUcmFjZTsgMDAwMDAw
+MDAgQmVmb3JlIGZpcnN0IHN5bWJvbA0KQ29kZTsgIGYwMGJjOGUwIDxpbml0
+X3N5bWxpbmsrYy8xND4NCjAwMDAwMDAwIDxfUEM+Og0KQ29kZTsgIGYwMGJj
+OGUwIDxpbml0X3N5bWxpbmsrYy8xND4NCiAgIDA6ICAgODEgYzMgZTAgMDgg
+ICAgICAgcmV0bCANCkNvZGU7ICBmMDBiYzhlNCA8aW5pdF9zeW1saW5rKzEw
+LzE0Pg0KICAgNDogICA5MCAxMCAyMCAwMCAgICAgICBjbHIgICVvMA0KQ29k
+ZTsgIGYwMGJjOGU4IDxjcmVhdGVfZGlyKzAvMjFjPg0KICAgODogICA5ZCBl
+MyBiZiA5OCAgICAgICBzYXZlICAlc3AsIC0xMDQsICVzcA0KQ29kZTsgIGYw
+MGJjOGVjIDxjcmVhdGVfZGlyKzQvMjFjPiAgIDw9PT09PQ0KICAgYzogICBk
+MCAwNiA2MCAwYyAgICAgICBsZCAgWyAlaTEgKyAweGMgXSwgJW8wICAgPD09
+PT09DQpDb2RlOyAgZjAwYmM4ZjAgPGNyZWF0ZV9kaXIrOC8yMWM+DQogIDEw
+OiAgIGEwIDEwIDAwIDE4ICAgICAgIG1vdiAgJWkwLCAlbDANCkNvZGU7ICBm
+MDBiYzhmNCA8Y3JlYXRlX2RpcitjLzIxYz4NCiAgMTQ6ICAgNDAgMDQgODYg
+NTkgICAgICAgY2FsbCAgMTIxOTc4IDxfUEMrMHgxMjE5Nzg+DQpDb2RlOyAg
+ZjAwYmM4ZjggPGNyZWF0ZV9kaXIrMTAvMjFjPg0KICAxODogICA5MCAwMiAy
+MCA3NCAgICAgICBhZGQgICVvMCwgMHg3NCwgJW8wDQpDb2RlOyAgZjAwYmM4
+ZmMgPGNyZWF0ZV9kaXIrMTQvMjFjPg0KICAxYzogICA0MCAwMSA0NiAyNCAg
+ICAgICBjYWxsICA1MThhYyA8X1BDKzB4NTE4YWM+DQpDb2RlOyAgZjAwYmM5
+MDAgPGNyZWF0ZV9kaXIrMTgvMjFjPg0KICAyMDogICA5MCAxMCAwMCAxYSAg
+ICAgICBtb3YgICVpMiwgJW8wDQoNCg==
+--279707904-307028858-1153160870=:10727--
