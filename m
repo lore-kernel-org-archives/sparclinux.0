@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 18 Jul 2006 04:04:09 +0000
+From: Raymond Burns <rayburns@comcast.net>
+Date: Tue, 18 Jul 2006 04:33:24 +0000
 Subject: Re: sparc32 git tree
-Message-Id: <20060717.210409.26966602.davem@davemloft.net>
+Message-Id: <Pine.LNX.4.10.10607172146010.10727-100000@coalcreekmill.cm.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <44BBB08C.3090004@mc.net>
 In-Reply-To: <44BBB08C.3090004@mc.net>
@@ -10,35 +10,39 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Raymond Burns <rayburns@comcast.net>
-Date: Mon, 17 Jul 2006 11:27:50 -0700 (PDT)
+On Mon, 17 Jul 2006, David Miller wrote:
 
-> Since it's probably related I have attached the ksymoops output
+> It's trying to register a node named "sbi@0,0" at the top-level
+> of the SBUS hierarchy twice, which thus fails.
 > 
-> sbus0 suceeds along with it's 3 dma channels.
-> prom item:
-> /io-unit@f,e0200000/sbi@0,0
+> These things live in their own namespace, so let's just do the
+> following to get them named uniquely:
 > 
-> sbus1 dies
-> prom item:
-> /io-unit@f,e1200000/sbi@0,0
 
-It's trying to register a node named "sbi@0,0" at the top-level
-of the SBUS hierarchy twice, which thus fails.
+exactly what I was trying except wrapped in ifdef CONFIG_SPARC and
+if (sparc_cpu_model = sun4d)
 
-These things live in their own namespace, so let's just do the
-following to get them named uniquely:
+I was afraid it would be considered a hack.
 
-diff --git a/drivers/sbus/sbus.c b/drivers/sbus/sbus.c
-index 16b5977..935952e 100644
---- a/drivers/sbus/sbus.c
-+++ b/drivers/sbus/sbus.c
-@@ -233,7 +233,7 @@ static void __init build_one_sbus(struct
- 	sbus->ofdev.node = dp;
- 	sbus->ofdev.dev.parent = NULL;
- 	sbus->ofdev.dev.bus = &sbus_bus_type;
--	strcpy(sbus->ofdev.dev.bus_id, dp->path_component_name);
-+	sprintf(sbus->ofdev.dev.bus_id, "sbus%d", num_sbus);
- 
- 	if (of_device_register(&sbus->ofdev) != 0)
- 		printk(KERN_DEBUG "sbus: device registration error for %s!\n",
+Yours works fine by me.
+
+with the sbus happy I've been following the serial port saga, 
+(the <#4> looks scary)
+
+zs@1,200000: ttyS0 at MMIO 0x200000 (irq = 12) is a zs
+Console: ttyS0 (SunZilog zs0)
+zs@1,200000: ttyS1 at MMIO 0x200004 (irq = 12) is a zs
+Program terminated
+Type  help  for more information
+<#4> ok
+
+the result persists despite patches including the last delayed
+initialization you sent. sorry.
+
+I need to reinable the early printk to see if there is actually an
+oops in there.
+
+Thanx
+  Ray
+
+
