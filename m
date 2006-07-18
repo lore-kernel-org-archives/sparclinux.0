@@ -1,57 +1,90 @@
-From: Raymond Burns <rayburns@comcast.net>
-Date: Sun, 16 Jul 2006 03:31:25 +0000
-Subject: sparc32 git tree, preamble scan_one_device
-Message-Id: <Pine.LNX.4.10.10607152010260.10727-200000@coalcreekmill.cm.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="279707904-648472730-1153020685=:10727"
+From: David Miller <davem@davemloft.net>
+Date: Tue, 18 Jul 2006 04:32:15 +0000
+Subject: Re: sparc32 git tree, preamble scan_one_device
+Message-Id: <20060717.213215.13768169.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <Pine.LNX.4.10.10607152010260.10727-200000@coalcreekmill.cm.com>
+In-Reply-To: <Pine.LNX.4.10.10607152010260.10727-200000@coalcreekmill.cm.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
+From: Raymond Burns <rayburns@comcast.net>
+Date: Sat, 15 Jul 2006 20:31:25 -0700 (PDT)
 
---279707904-648472730-1153020685=:10727
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+> The attached patch avoids access past null for the sun4d. This does
+> not impact the kobject_add failed issue.
+> 
+> Minor restructure of the parent determination would simplify the code,
+> the sun4d should never have an sbi at the root node.
 
-Hi
+This code is still buggy.  I think I corrected everything
+necessary in the patch below, please try it out.
 
-The attached patch avoids access past null for the sun4d. This does
-not impact the kobject_add failed issue.
+It was looking for the board# property in the "sbi" node,
+and it assumed the "sbi" is the parent of the device node
+which is not true, for example, when dealing with an
+"le" device which sits underneath "lebuffer".
 
-Minor restructure of the parent determination would simplify the code,
-the sun4d should never have an sbi at the root node.
+We should therefore traverse up to the root looking for the
+"sbi" explicitly, then fetch the board# out of it's parent
+which should be an "io-unit" node.
 
-This gets me up to the kobject_add issue  ugh
-
-Thanx
-  Ray
-
-
---279707904-648472730-1153020685=:10727
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name=patch_scan_one_device_sun4d_prom
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.10.10607152031250.10727@coalcreekmill.cm.com>
-Content-Description: patch scan_one_device sun4d prom
-Content-Disposition: attachment; filename=patch_scan_one_device_sun4d_prom
-
-ZGlmZiAtLWdpdCBhL2FyY2gvc3BhcmMva2VybmVsL29mX2RldmljZS5jIGIv
-YXJjaC9zcGFyYy9rZXJuZWwvb2ZfZGV2aWNlLmMNCmluZGV4IGJiZDMyMDMu
-LjVkNDFhNTUgMTAwNjQ0DQotLS0gYS9hcmNoL3NwYXJjL2tlcm5lbC9vZl9k
-ZXZpY2UuYw0KKysrIGIvYXJjaC9zcGFyYy9rZXJuZWwvb2ZfZGV2aWNlLmMN
-CkBAIC01NTksMTcgKzU1OSwxNyBAQCBzdGF0aWMgc3RydWN0IG9mX2Rldmlj
-ZSAqIF9faW5pdCBzY2FuX29uDQogCQl9Ow0KIAkJc3RydWN0IGRldmljZV9u
-b2RlICpidXNwID0gZHAtPnBhcmVudDsNCiAJCXN0cnVjdCBsaW51eF9wcm9t
-X3JlZ2lzdGVycyAqcmVnczsNCi0JCWludCBib2FyZCA9IG9mX2dldGludHBy
-b3BfZGVmYXVsdChidXNwLCAiYm9hcmQjIiwgMCk7DQotCQlpbnQgc2xvdDsN
-CisJCWludCBib2FyZCwgc2xvdDsNCiANCisJCWlmIChidXNwKSBib2FyZCA9
-IG9mX2dldGludHByb3BfZGVmYXVsdChidXNwLCAiYm9hcmQjIiwgMCk7DQog
-CQlyZWdzID0gb2ZfZ2V0X3Byb3BlcnR5KGRwLCAicmVnIiwgTlVMTCk7DQot
-CQlzbG90ID0gcmVncy0+d2hpY2hfaW87DQorCQlpZiAocmVncykgc2xvdCA9
-IHJlZ3MtPndoaWNoX2lvOw0KIA0KIAkJZm9yIChpID0gMDsgaSA8IG9wLT5u
-dW1faXJxczsgaSsrKSB7DQogCQkJaW50IHRoaXNfaXJxID0gb3AtPmlycXNb
-aV07DQogCQkJaW50IHNidXNsID0gcGlsX3RvX3NidXNbdGhpc19pcnFdOw0K
-IA0KLQkJCWlmIChzYnVzbCkNCisJCQlpZiAoYnVzcCAmJiByZWdzICYmIHNi
-dXNsKQ0KIAkJCQl0aGlzX2lycSA9ICgoKGJvYXJkICsgMSkgPDwgNSkgKw0K
-IAkJCQkJICAgIChzYnVzbCA8PCAyKSArDQogCQkJCQkgICAgc2xvdCk7DQo=
---279707904-648472730-1153020685=:10727--
+diff --git a/arch/sparc/kernel/of_device.c b/arch/sparc/kernel/of_device.c
+index 5a2faad..97bf87e 100644
+--- a/arch/sparc/kernel/of_device.c
++++ b/arch/sparc/kernel/of_device.c
+@@ -596,14 +596,41 @@ static struct of_device * __init scan_on
+ 		static int pil_to_sbus[] = {
+ 			0, 0, 1, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 0,
+ 		};
+-		struct device_node *busp = dp->parent;
++		struct device_node *io_unit, *sbi = dp->parent;
+ 		struct linux_prom_registers *regs;
+-		int board = of_getintprop_default(busp, "board#", 0);
+-		int slot;
++		int board, slot;
++
++		while (sbi) {
++			if (!strcmp(sbi->name, "sbi"))
++				break;
++
++			sbi = sbi->parent;
++		}
++		if (!sbi)
++			goto build_resources;
+ 
+ 		regs = of_get_property(dp, "reg", NULL);
++		if (!regs)
++			goto build_resources;
++
+ 		slot = regs->which_io;
+ 
++		/* If SBI's parent is not io-unit or the io-unit lacks
++		 * a "board#" property, something is very wrong.
++		 */
++		if (!sbi->parent || strcmp(sbi->parent->name, "io-unit")) {
++			printk("%s: Error, parent is not io-unit.\n",
++			       sbi->full_name);
++			goto build_resources;
++		}
++		io_unit = sbi->parent;
++		board = of_getintprop_default(io_unit, "board#", -1);
++		if (board = -1) {
++			printk("%s: Error, lacks board# property.\n",
++			       io_unit->full_name);
++			goto build_resources;
++		}
++
+ 		for (i = 0; i < op->num_irqs; i++) {
+ 			int this_irq = op->irqs[i];
+ 			int sbusl = pil_to_sbus[this_irq];
+@@ -617,6 +644,7 @@ static struct of_device * __init scan_on
+ 		}
+ 	}
+ 
++build_resources:
+ 	build_device_resources(op, parent);
+ 
+ 	op->dev.parent = parent;
