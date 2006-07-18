@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 18 Jul 2006 04:53:04 +0000
+From: Raymond Burns <rayburns@comcast.net>
+Date: Tue, 18 Jul 2006 19:49:16 +0000
 Subject: Re: sparc32 git tree
-Message-Id: <20060717.215304.124870932.davem@davemloft.net>
+Message-Id: <Pine.LNX.4.10.10607180036011.10727-100000@coalcreekmill.cm.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <44BBB08C.3090004@mc.net>
 In-Reply-To: <44BBB08C.3090004@mc.net>
@@ -10,24 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Raymond Burns <rayburns@comcast.net>
-Date: Mon, 17 Jul 2006 22:03:17 -0700 (PDT)
+On Mon, 17 Jul 2006, David Miller wrote:
 
-> with the sbus happy I've been following the serial port saga, 
-> (the <#4> looks scary)
+> It's dumping into the firmware on cpu #4.
 > 
-> zs@1,200000: ttyS0 at MMIO 0x200000 (irq = 12) is a zs
-> Console: ttyS0 (SunZilog zs0)
-> zs@1,200000: ttyS1 at MMIO 0x200004 (irq = 12) is a zs
-> Program terminated
-> Type  help  for more information
-> <#4> ok
-> 
-> the result persists despite patches including the last delayed
-> initialization you sent. sorry.
+> Why don't you try a non-SMP kernel while we work out these
+> device level problems?  This crash here might be related
+> to the erroneous SLAB patch you put in there.
 
-It's dumping into the firmware on cpu #4.
+compiled as non-SMP, the recovering cpu is #0, the logged result
+persists.
 
-Why don't you try a non-SMP kernel while we work out these
-device level problems?  This crash here might be related
-to the erroneous SLAB patch you put in there.
+ctrace showed an interesting thought, I anotated with the System map
+values.
+
+udelay is the only place I see getting to .umul and not sure what it's
+choking on ( 5 isn't that exotic ).
+
+no I haven't been playing in lib/umul.S
+
+Thanx
+  Ray
+
+
