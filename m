@@ -1,129 +1,57 @@
-From: Raymond Burns <rayburns@comcast.net>
-Date: Mon, 17 Jul 2006 17:57:57 +0000
+From: David Miller <davem@davemloft.net>
+Date: Tue, 18 Jul 2006 00:42:47 +0000
 Subject: Re: sparc32 git tree
-Message-Id: <Pine.LNX.4.10.10607171036400.10727-200000@coalcreekmill.cm.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="279707904-307028858-1153160870=:10727"
+Message-Id: <20060717.174247.77055828.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <44BBB08C.3090004@mc.net>
 In-Reply-To: <44BBB08C.3090004@mc.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
+From: Bob Breuer <breuerr@mc.net>
+Date: Mon, 17 Jul 2006 10:45:16 -0500
 
---279707904-307028858-1153160870=:10727
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-
-On Mon, 17 Jul 2006, Bob Breuer wrote:
-
-> Ray,
-> 
 > I think I've found the core problem with the prom properties, and a
 > potential problem with the zilog initialization.  Could you try the
 > attached patch and let me know if it works for you?
-> 
-> Thanks,
-> Bob
 
-Your patch caused kobject_add to succeed on all duplicate prom items
-during the initial tree traversal (55 duplicate or dependent items).
+The property fix looks good, applied.  Thanks Bob.
 
-Thank You  :)
+The sunzilog change, hmmm... :)
 
-I am not able to check the serial port portion yet, mine blows up on
-the sbus initialization.
+This code works on my SBUS sparc64 machines using zilog serial,
+so I wonder what's going wrong.
 
-Since it's probably related I have attached the ksymoops output
+The sunzilog_alloc_tables() sets up the global list
+sunzilog_irq_chain.
 
-sbus0 suceeds along with it's 3 dma channels.
-prom item:
-/io-unit@f,e0200000/sbi@0,0
+All the zilogs hang off of a single interrupt, and therefore
+we need that interrupt to process all zilogs in the system.
+That's why we pass sunzilog_irq_chain to request_irq().
 
-sbus1 dies
-prom item:
-/io-unit@f,e1200000/sbi@0,0
+I double checked the prtconf for a typical SS20 machine,
+and both zilog devices have an identical IRQ specification.
 
-(this is sun4d so "sbi" == sbus)
-kobject_add failed for sbi@0,0 with -EEXIST, don't try to register
-things with the same name in the same directory.
+This is identical to the behavior of the driver before I made
+any changes, for example in 2.6.17.
 
-This is followed by the oops which I believe provides more accurate
-address info then the trace following the message.
+What could be happening is that the interrupt hits before the
+start of the UART struct and device are fully setup.  Perhaps
+more of the uart_sunzilog_port initialization should be moved
+into sunzilog_alloc_tables(), but there are critical things
+we cannot initialize there because we don't have the of_device
+object handy yet.
 
-It's probably a sun4d thing, I'll dig.
+Ok, I think I see what's happening.  We register sunzilog_interrupt
+before things like up->port.membase are fully setup.  We init
+the first port, by calling sunzilog_init_hw() and that makes
+the chip interrupt, I guess.  If that happens, the interrupt
+handler will try to read the channel registers of the other
+port as well, the pointer to which is still NULL.
 
-Thanx
-  Ray
+Bob, can you confirm this is what is happening by putting some
+NULL checks in sunzilog_interrupt or similar?
 
-
---279707904-307028858-1153160870=:10727
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name=oops_sbus_dma2
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.10.10607171127500.10727@coalcreekmill.cm.com>
-Content-Description: sbus init oops
-Content-Disposition: attachment; filename=oops_sbus_dma2
-
-a3N5bW9vcHMgMi40LjEgb24gc3BhcmMgMi40LjMyLiAgT3B0aW9ucyB1c2Vk
-DQogICAgIC12IC9zcGFyYy5kMi9zcGFyYy0yLjYvYXJjaC9zcGFyYy9ib290
-L2ltYWdlIChzcGVjaWZpZWQpDQogICAgIC1LIChzcGVjaWZpZWQpDQogICAg
-IC1MIChzcGVjaWZpZWQpDQogICAgIC1PIChzcGVjaWZpZWQpDQogICAgIC1N
-IChzcGVjaWZpZWQpDQoNClJlYWRpbmcgT29wcyByZXBvcnQgZnJvbSB0aGUg
-dGVybWluYWwNClVuYWJsZSB0byBoYW5kbGUga2VybmVsIE5VTEwgcG9pbnRl
-ciBkZXJlZmVyZW5jZQ0KdHNrLT57bW0sYWN0aXZlX21tfS0+Y29udGV4dCA9
-IGZmZmZmZmZmDQp0c2stPnttbSxhY3RpdmVfbW19LT5wZ2QgPSBmYzAwMDAw
-MA0Kc3dhcHBlcigxKTogT29wcyBbIzFdDQpQU1I6IDQwODAwMGMxIFBDOiBm
-MDBiYzhlYyBOUEM6IGYwMGJjOGYwIFk6IDAzODAwMDAwICAgIE5vdCB0YWlu
-dGVkDQpVc2luZyBkZWZhdWx0cyBmcm9tIGtzeW1vb3BzIC10IGVsZjMyLXNw
-YXJjIC1hIHNwYXJjDQpQQzogPGNyZWF0ZV9kaXIrMHhjLzB4MjFjPg0KQ2Fs
-bGVyW2YwMGJjYjU4XTogc3lzZnNfY3JlYXRlX2RpcisweDM4LzB4YTANCkNh
-bGxlcltmMDEwNDFmMF06IGNyZWF0ZV9kaXIrMHgyNC8weDYwDQpDYWxsZXJb
-ZjAxMDQ0MzhdOiBrb2JqZWN0X2FkZCsweDVjLzB4MTRjDQpDYWxsZXJbZjAx
-MzU4OGNdOiBkZXZpY2VfYWRkKzB4ODQvMHgyZjgNCkNhbGxlcltmMDAyMDY4
-OF06IG9mX2RldmljZV9yZWdpc3RlcisweDI4LzB4ODANCkNhbGxlcltmMDI1
-OGI0OF06IHN1bnppbG9nX3JlZ2lzdGVyX3NlcmlvKzB4MzAvMHhjOA0KQ2Fs
-bGVyW2YwMjU5MDI4XTogdG9wb2xvZ3lfcmVtb3ZlX2RldisweDQvMHgxYw0K
-Q2FsbGVyW2YwMjU5MTEwXTogc3BhcmNfbGFuY2VfcHJvYmVfb25lKzB4MzQv
-MHg0ZTANCkNhbGxlcltmMDI0MjIyNF06IF9ldGV4dCsweDYzNDkwLzB4NjQy
-NjQNCkNhbGxlcltmMDAxNDEwNF06IGluaXQrMHg2MC8weDE5Yw0KQ2FsbGVy
-W2YwMDE5NWJjXToga2VybmVsX3RocmVhZCsweDNjLzB4NTANCkNhbGxlcltm
-MDAxNDAxY106IHJlc3RfaW5pdCsweDE4LzB4MzQNCkNhbGxlcltmMDI0MjFi
-NF06IF9ldGV4dCsweDYzNDIwLzB4NjQyNjQNCkNhbGxlcltmMDI0MTdjOF06
-IF9ldGV4dCsweDYyYTM0LzB4NjQyNjQNCkNhbGxlclswMDAwMDAwMF06IDB4
-OA0KSW5zdHJ1Y3Rpb24gRFVNUDogODFjM2UwMDggIDkwMTAyMDAwICA5ZGUz
-YmY5OCA8ZDAwNjYwMGM+IGEwMTAwMDE4ICA0MDA0ODY1OSAgOTAwMjIwNzQg
-IDQwMDE0NjI0ICA5MDEwMDAxYQ0KDQo+PlBDOyAgZjAwYmM4ZWMgPGNyZWF0
-ZV9kaXIrNC8yMWM+ICAgPD09PT09DQpUcmFjZTsgZjAwYmNiNTggPHN5c2Zz
-X2NyZWF0ZV9kaXIrMzAvYTA+DQpUcmFjZTsgZjAxMDQxZjAgPGNyZWF0ZV9k
-aXIrMWMvNjA+DQpUcmFjZTsgZjAxMDQ0MzggPGtvYmplY3RfYWRkKzU0LzE0
-Yz4NClRyYWNlOyBmMDEzNTg4YyA8ZGV2aWNlX2FkZCs3Yy8yZjg+DQpUcmFj
-ZTsgZjAwMjA2ODggPG9mX2RldmljZV9yZWdpc3RlcisyMC84MD4NClRyYWNl
-OyBmMDI1OGI0OCA8ZmlsbF9zYnVzX2RldmljZSsxMTQvMTQwPg0KVHJhY2U7
-IGYwMjU5MDI4IDxidWlsZF9vbmVfc2J1cysxYTgvMjA0Pg0KVHJhY2U7IGYw
-MjU5MTEwIDxzYnVzX2luaXQrOGMvZDA+DQpUcmFjZTsgZjAyNDIyMjQgPGRv
-X2luaXRjYWxscys0OC8xNjg+DQpUcmFjZTsgZjAwMTQxMDQgPGluaXQrNTgv
-MTljPg0KVHJhY2U7IGYwMDE5NWJjIDxrZXJuZWxfdGhyZWFkKzM0LzUwPg0K
-VHJhY2U7IGYwMDE0MDFjIDxyZXN0X2luaXQrMTAvMzQ+DQpUcmFjZTsgZjAy
-NDIxYjQgPHN0YXJ0X2tlcm5lbCsyMzAvMjQ0Pg0KVHJhY2U7IGYwMjQxN2M4
-IDxzdW40Y19jb250aW51ZV9ib290KzMyNC8zMzQ+DQpUcmFjZTsgMDAwMDAw
-MDAgQmVmb3JlIGZpcnN0IHN5bWJvbA0KQ29kZTsgIGYwMGJjOGUwIDxpbml0
-X3N5bWxpbmsrYy8xND4NCjAwMDAwMDAwIDxfUEM+Og0KQ29kZTsgIGYwMGJj
-OGUwIDxpbml0X3N5bWxpbmsrYy8xND4NCiAgIDA6ICAgODEgYzMgZTAgMDgg
-ICAgICAgcmV0bCANCkNvZGU7ICBmMDBiYzhlNCA8aW5pdF9zeW1saW5rKzEw
-LzE0Pg0KICAgNDogICA5MCAxMCAyMCAwMCAgICAgICBjbHIgICVvMA0KQ29k
-ZTsgIGYwMGJjOGU4IDxjcmVhdGVfZGlyKzAvMjFjPg0KICAgODogICA5ZCBl
-MyBiZiA5OCAgICAgICBzYXZlICAlc3AsIC0xMDQsICVzcA0KQ29kZTsgIGYw
-MGJjOGVjIDxjcmVhdGVfZGlyKzQvMjFjPiAgIDw9PT09PQ0KICAgYzogICBk
-MCAwNiA2MCAwYyAgICAgICBsZCAgWyAlaTEgKyAweGMgXSwgJW8wICAgPD09
-PT09DQpDb2RlOyAgZjAwYmM4ZjAgPGNyZWF0ZV9kaXIrOC8yMWM+DQogIDEw
-OiAgIGEwIDEwIDAwIDE4ICAgICAgIG1vdiAgJWkwLCAlbDANCkNvZGU7ICBm
-MDBiYzhmNCA8Y3JlYXRlX2RpcitjLzIxYz4NCiAgMTQ6ICAgNDAgMDQgODYg
-NTkgICAgICAgY2FsbCAgMTIxOTc4IDxfUEMrMHgxMjE5Nzg+DQpDb2RlOyAg
-ZjAwYmM4ZjggPGNyZWF0ZV9kaXIrMTAvMjFjPg0KICAxODogICA5MCAwMiAy
-MCA3NCAgICAgICBhZGQgICVvMCwgMHg3NCwgJW8wDQpDb2RlOyAgZjAwYmM4
-ZmMgPGNyZWF0ZV9kaXIrMTQvMjFjPg0KICAxYzogICA0MCAwMSA0NiAyNCAg
-ICAgICBjYWxsICA1MThhYyA8X1BDKzB4NTE4YWM+DQpDb2RlOyAgZjAwYmM5
-MDAgPGNyZWF0ZV9kaXIrMTgvMjFjPg0KICAyMDogICA5MCAxMCAwMCAxYSAg
-ICAgICBtb3YgICVpMiwgJW8wDQoNCg==
---279707904-307028858-1153160870=:10727--
+Thanks.
