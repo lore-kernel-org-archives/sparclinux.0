@@ -1,17 +1,24 @@
-From: "Clifton" <Clifton.Biggs@earthlink.net>
-Date: Fri, 21 Jul 2006 14:54:17 +0000
-Subject: Brand new It is fully guaranteed  =?ISO-8859-1?Q?=20=96?= it will help you to shoot more and more
-Message-Id: <36685646336581.88F90AC644@I1KNOL>
+From: "Jess Hamilton" <mrdsiylukplt@strandfoam.co.za>
+Date: Tue, 18 Jul 2006 21:51:31 +0000
+Subject: Risk Communication
+Message-Id: <E1A572M-2218nV-00mrdsiylukplt@strandfoam.co.za>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Good day, 
+Icrease Your S''exual Desire and S''perm volume by 500%
+L'onger o''rgasms - The longest most intense o''rgasms of your life
+Multiple o''rgasms - Cum again and again
+S'PUR-M is The Newest and The Safest Way
+100% N''atural and No Side Effects - in contrast to well-known brands.
+Experience three times longer o''rgasms
+World Wide shipping within 24 hours
+ 
+ Clisk here http://www.bonniemonarchproperties.info
 
- Prrolong your ssex. You have small peniis? How would you like a much bigger peenis? Check up here: http://www.ollyert.com/gal/ms/ 
 
 
- Agree, For The Law is Costly The hand that rocks the cradle rules the world As safe as houses The spirit is willing but the flesh is weak No one grows old by living; only by losing interest in living
-
+livid acapulco pantheism rankle illuminate bedbug empathy absorption
+perseus torah bit grievous verisimilitude exudate anastomosis blank
