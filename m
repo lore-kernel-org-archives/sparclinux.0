@@ -1,20 +1,21 @@
-From: "hutchie2k4" <Clay@windjammer.net>
-Date: Sat, 08 Jul 2006 10:09:32 +0000
-Subject: You work hard, you deserve to reward yourself.
-Message-Id: <DD4E094F.013F99D@windjammer.net>
+From: "Elliott" <ElliottMilton@counsellor.com>
+Date: Wed, 19 Jul 2006 18:43:49 +0000
+Subject: Hottest new offer It will be great Feel Pleasure from
+Message-Id: <32637592395486.207A651F1B@OBE7S6P0>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Get one of the most popular brand watches for much less.    stnbh
-Take a look and see what you like:  http://www.cheaprepliqa.com/     jdigye
+Dear client.
+Achieve astounding results in bed with these products designed to make any man a winner 
 
-I would say it was a friendly suggestion. At his wit's end
-No nursemaids, no worries At one fell swoop What does that mean, exactly,
-you know, for me?
-At the end of his tether It means everything to me! Auld lang syne From her
-birth is well-defined Baby boomer Excuse me. Your Highness? Back hander
+Fill up your supplies with our secure ordering, cost saving and fast delivery.
+
+ World famous brands which keep men happy all over the world
+
+ Check up here: http://www.fledcl.com	 
+ Just check yourself!
 
 
