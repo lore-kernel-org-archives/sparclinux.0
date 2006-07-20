@@ -1,48 +1,23 @@
-From: Raymond Burns <rayburns@comcast.net>
-Date: Wed, 19 Jul 2006 20:47:09 +0000
-Subject: sparc32: git SCSI and fs
-Message-Id: <Pine.LNX.4.10.10607191248020.10727-100000@coalcreekmill.cm.com>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 20 Jul 2006 02:46:10 +0000
+Subject: Re: sparc32: git SCSI and fs
+Message-Id: <20060719.194610.119243235.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20060719.134205.74563314.davem@davemloft.net>
 In-Reply-To: <20060719.134205.74563314.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi
+From: Raymond Burns <rayburns@comcast.net>
+Date: Wed, 19 Jul 2006 19:50:18 -0700 (PDT)
 
-during scsi initialization the message=20
+> there is one improper call to request_irq() in sunzilog_init() where
+> it looks for zilog_irq != -1, it should be equal -1 to request
 
-Request for IRQ45 (ESP SCSI) SA_STATIC_ALLOC failed using kmalloc
+I think you have the understanding reversed.
 
-appears benign, guess I'm sensative to the word failed.
-
-
-VFS: Mounted root (ext2 filesystem) readonly.
-
-is fine but=20
-
-EXT2-fs error (device sdc3): ext2_check_page: bad entry in directory
-#2: unaligned directory entry - offset=3D0, inode =83918864,
-rec_lenB42, name_len=3D0
-
-the file system itself should be fine, 2.4.32 is running on it
-currently
-
-this is non-SMP and my erroneous slab path reversed.
-
-access to the disks fail so user land is unreachable
-
-
-I have the feeling ext2 is not a good choice for sparc, are there
-suggestions.
-
-the ext2 will probably still need to work, I'm digging.
-
-
-Thanx
-  Ray
-
-
-
+The zilog_irq starts out with the value -1.  If we probe any zilog
+devices it will be set to the IRQ of that device, and therefore it
+will be something other than -1 if we have an IRQ handler to register.
