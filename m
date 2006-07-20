@@ -1,12 +1,29 @@
-From: "Sutton" <Suttonadverse@deliveryman.com>
-Date: Wed, 12 Jul 2006 03:26:33 +0000
-Subject: =?ISO-8859-1?Q?=20It=92s?= a pity, because you could do it with her much longer!
-Message-Id: <39965586935864.E5DCE883C1@VNLZW7XX>
+From: "Margo" <Maestro@74.ru>
+Date: Thu, 20 Jul 2006 07:59:06 +0000
+Subject: Re[5]:How do you do
+Message-Id: <00bb01c6abd2$5d186700$4d15000a@hJUx>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Good day my friend! You have a unique chance to forget this distress forever. Stop being a two pump chump. Extra-Time gives you not only extra time, but extra pleasure and extra confidence as well. It is obvious that a man lasting longer is the man women prefer. Don't try once again - solve this problem! Come in: http://justcallterry.com/dll/get/ This is your chance to build relationship of your dreams with your partner.
+Hi my Dear Stranger!
+
+I'm a very young and energetic lady! I have very positive attitude to life and people. I do enjoy new experience life can offer me: to see new interesting places, to meet new people.
+I do try to enjoy every moment of life and accept everything the way it comes without complaining.
+Though my life seems to be quite enjoyable there's one important thing missing. It's LOVE!
+Without my beloved one, my soul mate, my King my life is not completed.
+I wish i coud find him very soon so that we could share together every momement of the life-time romance! 
+What about you? Could you be my King? If answer is "yes" - you can find more about me 
+http://iamsearching-forlove.com/
+
+good-bye
+
+Margo
+
+If you think that you were subscribed by mistake for this mail
+delivery or if your email has been added without your permission,
+please, visit http://iamsearching-forlove.com/ and unsubscribe from our mails.
+
 
