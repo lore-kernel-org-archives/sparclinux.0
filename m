@@ -1,43 +1,33 @@
 From: Raymond Burns <rayburns@comcast.net>
-Date: Thu, 20 Jul 2006 02:50:18 +0000
+Date: Thu, 20 Jul 2006 03:44:14 +0000
 Subject: Re: sparc32: git SCSI and fs
-Message-Id: <Pine.LNX.4.10.10607191940550.10727-100000@coalcreekmill.cm.com>
+Message-Id: <Pine.LNX.4.10.10607192023350.10727-100000@coalcreekmill.cm.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20060719.134205.74563314.davem@davemloft.net>
 In-Reply-To: <20060719.134205.74563314.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 On Wed, 19 Jul 2006, David Miller wrote:
 
-> > Request for IRQ45 (ESP SCSI) SA_STATIC_ALLOC failed using kmalloc
->=20
-> This needs investigation.
+> From: Raymond Burns <rayburns@comcast.net>
+> Date: Wed, 19 Jul 2006 19:50:18 -0700 (PDT)
+> 
+> The zilog_irq starts out with the value -1.  If we probe any zilog
+> devices it will be set to the IRQ of that device, and therefore it
+> will be something other than -1 if we have an IRQ handler to register.
 
-This is the fifth call to request_irq() so I guess it is correct
-(esp2-5 get kmalloc())
+Then should zs_probe not be calling request_irq() when it sets
+zilog_irq to op->irqs[0]
 
-there is one improper call to request_irq() in sunzilog_init() where
-it looks for zilog_irq !=3D -1, it should be equal -1 to request
+currently zsprobe calls request_irq() when static_irq is 1 allocating 
+static_irqaction[1] to the irq zilog_irq.
 
->=20
-> > VFS: Mounted root (ext2 filesystem) readonly.
-> >=20
-> > is fine but=20
-> >=20
-> > EXT2-fs error (device sdc3): ext2_check_page: bad entry in directory
-> > #2: unaligned directory entry - offset=3D0, inode =83918864,
-> > rec_lenB42, name_len=3D0
-> >=20
-> Looks like there is something wrong with ESP on your sun4d,
-> that error should never occur on a good filesystem.
-> I doubt anything is wrong with EXT2.
+sunzilog_init() then calls request_irq() a second time assigning the
+same irq with the next static_irq, static_irqaction[2]
 
-I concur.
-=20
-I'm digging.
 
 Thanx
   Ray
