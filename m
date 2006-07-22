@@ -1,7 +1,7 @@
-From: Raymond Burns <rayburns@comcast.net>
-Date: Fri, 21 Jul 2006 22:33:51 +0000
+From: David Miller <davem@davemloft.net>
+Date: Sat, 22 Jul 2006 08:35:41 +0000
 Subject: Re: sparc32: git SCSI and fs
-Message-Id: <Pine.LNX.4.10.10607211532470.10727-100000@coalcreekmill.cm.com>
+Message-Id: <20060722.013541.108738463.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20060719.134205.74563314.davem@davemloft.net>
 In-Reply-To: <20060719.134205.74563314.davem@davemloft.net>
@@ -10,17 +10,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Fri, 21 Jul 2006, David Miller wrote:
+From: Chris Newport <crn@netunix.com>
+Date: Fri, 21 Jul 2006 23:03:31 +0100
 
+> A year or so ago I did a few patches for Sun4d and there was a note in 
+> the iommu code about sun4d not having a register that was used for 
+> scratch data in sun4m.
+> Could this bug be back ?
 > 
-> I don't think you'll get very far debugging the ESP driver.
-> More likely DMA is being corrupted or similar, and this
-> means you should fiddle around in the sun4d IOMMU support
-> code for SBUS and make sure nothing fishy is going on there.
+> Sorry to be vague, this is from memory.
 
-Thats the hint I'm looking for, Thank You  :)
+It would be nice to have something specific, I see nothing
+explicit in the current tree:
 
-Thanx
-  Ray
-
-
+arch/sparc/kernel/entry.S:	 * %l5 -- scratch for ld/st address
+arch/sparc/kernel/entry.S:	 * %l7 -- scratch [floppy byte, ld/st address, aux. data]
+arch/sparc/kernel/wuf.S:/* Now macros for the available scratch registers in this routine. */
