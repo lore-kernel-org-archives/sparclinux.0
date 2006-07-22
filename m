@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Sat, 22 Jul 2006 08:35:41 +0000
+Date: Sat, 22 Jul 2006 09:04:40 +0000
 Subject: Re: sparc32: git SCSI and fs
-Message-Id: <20060722.013541.108738463.davem@davemloft.net>
+Message-Id: <20060722.020440.112264570.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20060719.134205.74563314.davem@davemloft.net>
 In-Reply-To: <20060719.134205.74563314.davem@davemloft.net>
@@ -10,19 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Chris Newport <crn@netunix.com>
-Date: Fri, 21 Jul 2006 23:03:31 +0100
+From: David Miller <davem@davemloft.net>
+Date: Wed, 19 Jul 2006 13:42:05 -0700 (PDT)
 
-> A year or so ago I did a few patches for Sun4d and there was a note in 
-> the iommu code about sun4d not having a register that was used for 
-> scratch data in sun4m.
-> Could this bug be back ?
+> From: Raymond Burns <rayburns@comcast.net>
+> Date: Wed, 19 Jul 2006 13:47:09 -0700 (PDT)
 > 
-> Sorry to be vague, this is from memory.
+> > Request for IRQ45 (ESP SCSI) SA_STATIC_ALLOC failed using kmalloc
+> > 
+> > appears benign, guess I'm sensative to the word failed.
+> 
+> This needs investigation.
 
-It would be nice to have something specific, I see nothing
-explicit in the current tree:
+The problem is that SA_STATIC_ALLOC aliases another irq flag
+value, IRQF_SHARED, which is commonly used.
 
-arch/sparc/kernel/entry.S:	 * %l5 -- scratch for ld/st address
-arch/sparc/kernel/entry.S:	 * %l7 -- scratch [floppy byte, ld/st address, aux. data]
-arch/sparc/kernel/wuf.S:/* Now macros for the available scratch registers in this routine. */
+Let's just use the following fix for now.  We should kill this
+thing off eventually.
+
+diff --git a/include/asm-sparc/signal.h b/include/asm-sparc/signal.h
+index 0ae5084..d03a21c 100644
+--- a/include/asm-sparc/signal.h
++++ b/include/asm-sparc/signal.h
+@@ -168,7 +168,7 @@ struct sigstack {
+  * statically allocated data.. which is NOT GOOD.
+  *
+  */
+-#define SA_STATIC_ALLOC		0x80
++#define SA_STATIC_ALLOC		0x8000
+ #endif
+ 
+ #include <asm-generic/signal.h>
