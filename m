@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 22 Jul 2006 09:04:40 +0000
+From: Chris Newport <crn@netunix.com>
+Date: Sun, 23 Jul 2006 13:24:20 +0000
 Subject: Re: sparc32: git SCSI and fs
-Message-Id: <20060722.020440.112264570.davem@davemloft.net>
+Message-Id: <44C37884.6010200@netunix.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20060719.134205.74563314.davem@davemloft.net>
 In-Reply-To: <20060719.134205.74563314.davem@davemloft.net>
@@ -10,34 +10,48 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: David Miller <davem@davemloft.net>
-Date: Wed, 19 Jul 2006 13:42:05 -0700 (PDT)
+David Miller wrote:
 
-> From: Raymond Burns <rayburns@comcast.net>
-> Date: Wed, 19 Jul 2006 13:47:09 -0700 (PDT)
-> 
-> > Request for IRQ45 (ESP SCSI) SA_STATIC_ALLOC failed using kmalloc
-> > 
-> > appears benign, guess I'm sensative to the word failed.
-> 
-> This needs investigation.
+>From: Chris Newport <crn@netunix.com>
+>Date: Fri, 21 Jul 2006 23:03:31 +0100
+>
+>  
+>
+>>A year or so ago I did a few patches for Sun4d and there was a note in 
+>>the iommu code about sun4d not having a register that was used for 
+>>scratch data in sun4m.
+>>Could this bug be back ?
+>>
+>>Sorry to be vague, this is from memory.
+>>    
+>>
+>
+>It would be nice to have something specific, I see nothing
+>explicit in the current tree:
+>
+>  
+>
+I have not been able to find the file with the relevant comment, but 
+looking back in my mail archive, it seems to relate to this code in 
+2.4.26 include/asm-sparc/winmacro.h, looks like jj has created a workaround.
+Maybe need to look at earlier 2.4 versions before the comment got dropped.
 
-The problem is that SA_STATIC_ALLOC aliases another irq flag
-value, IRQF_SHARED, which is commonly used.
+#ifdef CONFIG_SMP
+#define LOAD_CURRENT4M(dest_reg, idreg) \
+        rd       %tbr, %idreg; \
+        sethi    %hi(C_LABEL(current_set)), %dest_reg; \
+        srl      %idreg, 10, %idreg; \
+        or       %dest_reg, %lo(C_LABEL(current_set)), %dest_reg; \
+        and      %idreg, 0xc, %idreg; \
+        ld       [%idreg + %dest_reg], %dest_reg;
 
-Let's just use the following fix for now.  We should kill this
-thing off eventually.
+/* Sliiick. We have a Linux current register :) -jj */
+#define LOAD_CURRENT4D(dest_reg) \
+        lda      [%g0] ASI_M_VIKING_TMP2, %dest_reg;
 
-diff --git a/include/asm-sparc/signal.h b/include/asm-sparc/signal.h
-index 0ae5084..d03a21c 100644
---- a/include/asm-sparc/signal.h
-+++ b/include/asm-sparc/signal.h
-@@ -168,7 +168,7 @@ struct sigstack {
-  * statically allocated data.. which is NOT GOOD.
-  *
-  */
--#define SA_STATIC_ALLOC		0x80
-+#define SA_STATIC_ALLOC		0x8000
- #endif
- 
- #include <asm-generic/signal.h>
+/* Blackbox - take care with this... - check smp4m and smp4d before 
+changing thi
+s. */
+
+
+
