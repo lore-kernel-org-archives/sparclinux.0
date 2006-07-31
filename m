@@ -1,43 +1,26 @@
-From: Raymond Burns <rayburns@comcast.net>
-Date: Mon, 31 Jul 2006 04:33:28 +0000
-Subject: sparc32: git sun4d fs cache page and dma
-Message-Id: <Pine.LNX.4.10.10607301951200.10727-100000@coalcreekmill.cm.com>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 31 Jul 2006 04:57:41 +0000
+Subject: Re: sparc32: git sun4d fs cache page and dma
+Message-Id: <20060730.215741.25156755.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <Pine.LNX.4.10.10607301951200.10727-100000@coalcreekmill.cm.com>
+In-Reply-To: <Pine.LNX.4.10.10607301951200.10727-100000@coalcreekmill.cm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi
+From: Raymond Burns <rayburns@comcast.net>
+Date: Sun, 30 Jul 2006 22:05:39 -0700 (PDT)
 
-was Re: sparc32: git SCSI and fs
+> Barring other suggestions I'll debug my way to a patch using the
+> routines in iommu.c as models.
+> 
+> or are the needs of sun4m and sun4d enough alike at this point to
+> merge more of the common code ? 
 
-I did my homework, you were correct.
+Such cleanups are secondary to getting things working.
+Please just get sun4d working properly, then we can
+talk about code consolidation.
 
-EXT2-fs error (device sdc3): ext2_check_page: bad entry in directory
-#2: unaligned directory entry - offset=3D0, inode =83918864,
-rec_lenB42, name_len=3D0
-
-
-On Fri, 21 Jul 2006, David Miller wrote:
-
-> More likely DMA is being corrupted or similar, and this
-> means you should fiddle around in the sun4d IOMMU support
-> code for SBUS and make sure nothing fishy is going on there.
->=20
-
-sun4d is using the io-unit.c code for dma setup and teardown, that
-code is not yet updated to use sg->page as targets for dma transfers
-and returning the same for file system use.
-
-Barring other suggestions I'll debug my way to a patch using the
-routines in iommu.c as models.
-
-or are the needs of sun4m and sun4d enough alike at this point to
-merge more of the common code ?=20
-
-Thanx
-  Ray
-
-
-
+Thanks for tracking this down.
