@@ -1,22 +1,19 @@
-From: "Katherine Vann" <Doreenuf@yahoo.com>
-Date: Mon, 14 Aug 2006 08:29:22 +0000
-Subject: Biggest Pharmacy
-Message-Id: <CFE3.9A0.3010398B8C@mopalinux.com>
+From: "Rusty" <compensatorycalf@consultant.com>
+Date: Tue, 01 Aug 2006 13:41:00 +0000
+Subject: The newest I am sure it was Revel in
+Message-Id: <48230055645745.5C66D90621@ZTUU3>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
+Good day,
 
-The most complete Phar. macy Online
-We carry all major medds at bargain price
-Viggra, Ci ialis, VaIium, Xa naax
-Phantermiine, Ulltraam and etc...
-SatiisfactIon Gua ranteeed
+Do you wish to increase your volume by up to 500%?=20
 
-http://huwjsd.edgywound.com/?76139586
-
-
-Bx
+Now it=92s possible to do with magic tab
+ Take this and your woman will be speechless
+ Check up here: http://capbas.com/gall/gsm/=20
+ We thank you for your interest!
 
