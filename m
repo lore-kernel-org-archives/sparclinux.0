@@ -1,24 +1,18 @@
-From: zhiyi huang <hzy@cs.otago.ac.nz>
-Date: Thu, 31 Aug 2006 02:27:53 +0000
-Subject: siginfo of SIGSEGV on UltraSPARC T1
-Message-Id: <E871E344-53F7-466E-BBAB-4A809A5C93C0@cs.otago.ac.nz>
+From: "Michael" <auditorcollision@consultant.com>
+Date: Wed, 02 Aug 2006 05:14:20 +0000
+Subject: New Surely you only dream of it Take pleasure from
+Message-Id: <12502166633019.EE5AE7FD0F@77G0CN>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Hello,
-Could anyone give me some information on how SIGSEGV is handled when  
-a signal handler is installed. I need information about fault address  
-and access type (read/write). I used the siginfo_t defined in bits/ 
-siginfo.h, but the information I got from the handler arguments are  
-not correct. Can anyone point out the right structure for the  
-arguments of the signal handler.
-I am using a Ubuntu port on Ultra Sparc T1, by the way.
-Linux version 2.6.15-21-sparc64-smp (buildd@artigas) (gcc version  
-4.0.3 (Ubuntu 4.0.3-1ubuntu5)) #1 SMP Fri Apr 21 17:04:05 UTC 2006
+Good day my friend!
+Do you wish to become multi-orgasmic?=20
+Become stronger =96 show your volume
+ Worried it won't work?
+ Find what you need: http://dadixus.com/gall/gsm/=20
 
-Thanks for help:)
-Zhiyi
+ We thank you for being interested in our products
 
