@@ -1,31 +1,13 @@
-From: "Lucille T. Robinson" <lucille_robinson_am@mail.ru>
-Date: Thu, 10 Aug 2006 13:26:20 +0000
-Subject: RE: Yours ldoan applictation is approved.
-Message-Id: <1155216380.8696@mail.ru>
+From: "pigpen@microbiz.com" <pigpen@microbiz.com>
+Date: Fri, 04 Aug 2006 13:33:49 +0000
+Subject: Almost everything you need
+Message-Id: <55785270.0F971PV5@microbiz.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-newbie@vger.kernel.org
+Cc: linux-kernel-owner@vger.kernel.org, linux-net@vger.kernel.org, linux-raid@vger.kernel.org, linux-ia64@vger.kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-raid-owner@vger.kernel.org, linux-newbie-owner@vger.kernel.org, linux-net-owner@vger.kernel.org, linux-scsi@vger.kernel.org
 
-Dear sparclinux@vger.kernel.org
-
-
-http://www.ranwor.com
-
-You have been approved for a $ 854,674 house loan (2.9 fixed)
-This offer is being presented to you right now!. Your credit history is in no way a factor.
-To take advantage of this Limited Time Opportunity,
-please take a minute and confirm your curiosity or intention to accept this loan, at the following web-site:
-
-http://www.ranwor.com
-
-Best Regards
-Jennifer Moore
-
-
-http://www.ranwor.com/redirect
-
-sparclinux@vger.kernel.org wrote:
-> RE:Yours Loan is approved
-ekxqog2ikm-
+From us it much better
+http://www.google.com/url?q=%68%74%74%70%3A%2F%2F%30%31%34%2E%73%61%6D%69%73%68%6B%65%61%6C%74%68%79%2E%63%6F%6D
