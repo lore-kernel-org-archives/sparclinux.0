@@ -1,19 +1,15 @@
-From: "Rusty" <compensatorycalf@consultant.com>
-Date: Tue, 01 Aug 2006 13:41:00 +0000
-Subject: The newest I am sure it was Revel in
-Message-Id: <48230055645745.5C66D90621@ZTUU3>
+From: "Horner" <cataclysmbaldpate@nycmail.com>
+Date: Sat, 05 Aug 2006 21:05:47 +0000
+Subject: re:[4] New and hot  You gape for shooting like you had seen in those  =?ISO-8859-1?Q?=20f?=
+Message-Id: <57917670706327.AD30D9F8D1@GV4JBQJ>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Good day,
-
-Do you wish to increase your volume by up to 500%?=20
-
-Now it=92s possible to do with magic tab
- Take this and your woman will be speechless
- Check up here: http://capbas.com/gall/gsm/=20
- We thank you for your interest!
+Good afternoon Become stronger =96 show your volume Buy it now =96 and this=
+ night will be the best in your life Surely you only dream of it All you ne=
+ed is here: http://isjaser.com/gal/gsm/ Try this volume enhancing formula D=
+o you wish to increase your volume by up to 500%?
 
