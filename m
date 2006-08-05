@@ -1,38 +1,34 @@
-From: "Marcelino Cole" <blownderivate@soon.com>
-Date: Mon, 14 Aug 2006 17:04:05 +0000
-Subject: Tonight  =?ISO-8859-1?Q?=20you=92ll?= prove your volume
-Message-Id: <79248691662313.130061D062@DFF1>
+From: "Laurence Cuevas" <l.cuevaspe@online.no>
+Date: Sat, 05 Aug 2006 21:40:31 +0000
+Subject: RE:RE: We want approve yours loa*n
+Message-Id: <1154814031.8154@online.no>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-How are you bro ?
+You have been pre-approved for Home Loan at Fixed Rate.
+This offer is being extended to you unconditionally  and we will work
+with you regardless your credit
 
-Don=92t be afraid Have you ever wished to have more intense final? And the =
-results will impress your girl=20
-
-
-See our offer: http://nedsareas.com/gal/gsm/=20
+http://www.ranwor.com
 
 
-Every man wants it
+To take Advantage of this Limited Time opportunity all
+we ask is that you visit our Website and complete
+the 1 minute post Approval Form.
+
+http://www.ranwor.com
 
 
-
-Marcelino Cole
-
-
+Best Regards
+Ann Moore
 
 
-On the Turf all men are equal, and under it  Shame face ah feel like cent i=
-ce.All lay loads on a willing horse!
-  Water that has been begged for does not quench the thirstWhen Adam delved=
- and Eve span, who was then the gentleman
+Out List
+http://www.ranwor.com/redirect
 
- To the jaundiced eye all things look yellow An apple a day keeps the docto=
-r at bay
-
-
-
+sparclinux@vger.kernel.org wrote:
+> Re: Loan Application
+theux3f4el-
