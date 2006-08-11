@@ -1,107 +1,59 @@
-From: "Jurzitza, Dieter" <DJurzitza@harmanbecker.com>
-Date: Mon, 14 Aug 2006 12:31:15 +0000
-Subject: AW: AW: latest 2.4.33 kernel
-Message-Id: <DA6197CAE190A847B662079EF7631C0601569278@OEKAW2EXVS03.hbi.ad.harman.com>
+From: "Krzysztof Helt" <krzysztof.h1@wp.pl>
+Date: Fri, 11 Aug 2006 22:03:16 +0000
+Subject: [PATCH] sunlance probing problem
+Message-Id: <44dcfea4406f9@wp.pl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="part44dcfea442e0d"
 List-Id: <sparclinux.vger.kernel.org>
-References: <DA6197CAE190A847B662079EF7631C0601569276@OEKAW2EXVS03.hbi.ad.harman.com>
-In-Reply-To: <DA6197CAE190A847B662079EF7631C0601569276@OEKAW2EXVS03.hbi.ad.harman.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Dear listmembers,
-dear Mr. Miller,
-thanks a lot for the hints - your suggestion made everything work as (you w=
-ould have) expected.
+This is a multi-part message in MIME format.
 
-I wonder how this works on 2.6.X, I found a EXPORT_SYMBOL(memchr), but ther=
-e is also no ach-specific implementation of memchr() on sparc 2.6 (AFAIK).
+--part44dcfea442e0d
+Content-Type: text/plain; charset="iso-8859-2"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-So, please find a patch attached for both sparc and sparc64 against vanilla=
- 2.4.33; IMHO it would make sense to integrate this into the 2.4 kernel tre=
-e as it is very common for people to build smbfs as a module and not everyo=
-ne would ask on this list for help (hopefully :-) ).
+From: Krzysztof Helt (krzysztof.h1@wp.pl)
 
-Maybe this would fit into 2.4.34X.
+The patch removes the "le" device from matching list of probed
+devices.
 
-Thanks again for helping,
-take care
+Signed-off-by: Krzysztof Helt (krzysztof.h1@wp.pl)
+---
+The sunlance driver allows probing of three devices: le, ledma
+and lebuffer. The "le" device is a child entry for either ledma
+or lebuffer devices. Thus, each Ethernet adapter is probed twice
+and registered as two Ethernet adapters.
 
-
-
-
-Dieter Jurzitza
+I tested it on SS20 and 2.6.18-rc4 kernel.
 
 
-CUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUT=
-CUTCUTCUTCUTCUT
---- linux/arch/sparc64/kernel/sparc64_ksyms.c.original	2005-11-16 20:12:54.=
-000000000 +0100
-+++ linux/arch/sparc64/kernel/sparc64_ksyms.c	2006-08-14 12:55:48.000000000=
- +0200
-@@ -357,6 +357,7 @@
- EXPORT_SYMBOL_NOVERS(__ret_efault);
-=20
- /* No version information on these, as gcc produces such symbols. */
-+EXPORT_SYMBOL_NOVERS(memchr);
- EXPORT_SYMBOL_NOVERS(memcmp);
- EXPORT_SYMBOL_NOVERS(memcpy);
- EXPORT_SYMBOL_NOVERS(memset);
---- linux/arch/sparc/kernel/sparc_ksyms.c.original	2006-08-14 12:59:04.0000=
-00000 +0200
-+++ linux/arch/sparc/kernel/sparc_ksyms.c	2006-08-14 12:59:04.000000000 +02=
-00
-@@ -293,6 +293,7 @@
- EXPORT_SYMBOL_NOVERS(__ret_efault);
-=20
- /* No version information on these, as gcc produces such symbols. */
-+EXPORT_SYMBOL_NOVERS(memchr);
- EXPORT_SYMBOL_NOVERS(memcmp);
- EXPORT_SYMBOL_NOVERS(memcpy);
- EXPORT_SYMBOL_NOVERS(memset);
-CUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUTCUT=
-CUTCUTCUTCUTCUT
 
---=20
-________________________________________________
+----------------------------------------------------
+Czy 10 minut rozmowy =3D ponad 11 z=B3 oszcz=EAdno=B6ci ?
+Sprawd=BC: http://klik.wp.pl/?adr=3Dhttp%3A%2F%2Ftelefon.wp.pl%2Foszczednos=
+ci.html&sid=3D842
 
-HARMAN BECKER AUTOMOTIVE SYSTEMS
+--part44dcfea442e0d
+Content-Type: application/octet-stream; name="lance-id.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="lance-id.patch"
 
-Dr.-Ing. Dieter Jurzitza
-Manager Hardware Systems
-   System Development
+ZGlmZiAtdXIgbGludXgtMi42LjE3L2RyaXZlcnMvbmV0L3N1bmxhbmNlLmMgbGludXgtbmV3L2Ry
+aXZlcnMvbmV0L3N1bmxhbmNlLmMKLS0tIGxpbnV4LTIuNi4xNy9kcml2ZXJzL25ldC9zdW5sYW5j
+ZS5jCTIwMDYtMDgtMTAgMDg6NTg6MzQuMDAwMDAwMDAwICswMjAwCisrKyBsaW51eC1uZXcvZHJp
+dmVycy9uZXQvc3VubGFuY2UuYwkyMDA2LTA4LTExIDIzOjMzOjExLjAwMDAwMDAwMCArMDIwMApA
+QCAtMTU2OSw5ICsxNTY5LDcgQEAKIAlzdHJ1Y3QgZGV2aWNlX25vZGUgKmRwID0gZGV2LT5ub2Rl
+OwogCWludCBlcnI7CiAKLQlpZiAoIXN0cmNtcChkcC0+bmFtZSwgImxlIikpIHsKLQkJZXJyID0g
+c3BhcmNfbGFuY2VfcHJvYmVfb25lKHNkZXYsIE5VTEwsIE5VTEwpOwotCX0gZWxzZSBpZiAoIXN0
+cmNtcChkcC0+bmFtZSwgImxlZG1hIikpIHsKKwlpZiAoIXN0cmNtcChkcC0+bmFtZSwgImxlZG1h
+IikpIHsKIAkJc3RydWN0IHNidXNfZG1hICpsZWRtYSA9IGZpbmRfbGVkbWEoc2Rldik7CiAKIAkJ
+ZXJyID0gc3BhcmNfbGFuY2VfcHJvYmVfb25lKHNkZXYtPmNoaWxkLCBsZWRtYSwgTlVMTCk7CkBA
+IC0xNjAyLDkgKzE2MDAsNiBAQAogCiBzdGF0aWMgc3RydWN0IG9mX2RldmljZV9pZCBzdW5sYW5j
+ZV9zYnVzX21hdGNoW10gPSB7CiAJewotCQkubmFtZSA9ICJsZSIsCi0JfSwKLQl7CiAJCS5uYW1l
+ID0gImxlZG1hIiwKIAl9LAogCXsK
 
-Industriegebiet Ittersbach
-Becker-G=F6ring Str. 16
-D-76307 Karlsbad / Germany
+--part44dcfea442e0d--
 
-Phone: +49 (0)7248 71-1577
-Fax:   +49 (0)7248 71-1216
-eMail: DJurzitza@harmanbecker.com
-Internet: http://www.becker.de
-=20
-
-> -----Urspr=FCngliche Nachricht-----
-> Von: David Miller [mailto:davem@davemloft.net]=20
-******
-> In that case you need to add the line=20
-> "EXPORT_SYMBOL_NOVERS(memchr);" to the file(s)=20
-> arch/sparc{,64}/kernel/sparc{,64}_ksyms.c
-******
-
-
-*******************************************
-Diese E-Mail enthaelt vertrauliche und/oder rechtlich geschuetzte Informati=
-onen. Wenn Sie nicht der richtige Adressat sind oder diese E-Mail irrtuemli=
-ch erhalten haben, informieren Sie bitte sofort den Absender und loeschen S=
-ie diese Mail. Das unerlaubte Kopieren sowie die unbefugte Weitergabe diese=
-r Mail ist nicht gestattet.
-=20
-This e-mail may contain confidential and/or privileged information. If you =
-are not the intended recipient (or have received this e-mail in error) plea=
-se notify the sender immediately and delete this e-mail. Any unauthorized c=
-opying, disclosure or distribution of the contents in this e-mail is strict=
-ly forbidden.
-*******************************************
 
