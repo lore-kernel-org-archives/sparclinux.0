@@ -1,18 +1,22 @@
-From: "Michael" <auditorcollision@consultant.com>
-Date: Wed, 02 Aug 2006 05:14:20 +0000
-Subject: New Surely you only dream of it Take pleasure from
-Message-Id: <12502166633019.EE5AE7FD0F@77G0CN>
+From: "Marsha" <deathbedby@mindless.com>
+Date: Fri, 11 Aug 2006 17:28:53 +0000
+Subject: Make other men envy you and girls worship you Most efficient products for men
+Message-Id: <07105683843321.5B83899FC5@9ZS26I>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Good day my friend!
-Do you wish to become multi-orgasmic?=20
-Become stronger =96 show your volume
- Worried it won't work?
- Find what you need: http://dadixus.com/gall/gsm/=20
+Don't even give her a chance to complain you're small or last for too short
+We got loads of quality and safe products to make your life better
+Discreet shipping and tremendous discounts for best male health solutions
 
- We thank you for being interested in our products
+Here is the link with more information: http://www.cmnap.com
+
+
+Marsha Mcdonough
+
+
+Seasoned experts work hard to create a natural harmless solution for you
 
