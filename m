@@ -1,39 +1,56 @@
-From: Daniel Smolik <marvin@mydatex.cz>
-Date: Fri, 04 Aug 2006 22:22:20 +0000
-Subject: Re: serial console broken on Ultra 5
-Message-Id: <44D3C89C.4000206@mydatex.cz>
+From: "Krzysztof Helt" <krzysztof.h1@wp.pl>
+Date: Sat, 12 Aug 2006 19:14:44 +0000
+Subject: [PATCH] sparc32: max_cache_size fallback
+Message-Id: <44de28a4e7531@wp.pl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="part44de28a4e9c4d"
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.SOC.4.61.0607311538510.25364@math.ut.ee>
-In-Reply-To: <Pine.SOC.4.61.0607311538510.25364@math.ut.ee>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Marc Zyngier napsal(a):
->>>>>>"Daniel" = Daniel Smolik <marvin@mydatex.cz> writes:
-> 
-> 
-> Daniel> se@14,400000: ttyS0 at MMIO 0x1fff1400000 (irq = 7) is a SAB82532 V3.2
->                       ^^^^^
-> Daniel> Console: ttyS2 (SAB82532)
->                  ^^^^^
-> Daniel> SUNSAB baud:115200 quot:0
-> 
-> Ok, I managed to reproduce it on my own setup. Looks like the kernel
-> insists on having the first serial port as a console, even if it know
-> is has to be the third... Of course, as ttyS2 has not been probed yet,
-> it all goes to Nowhereland...
-> 
-> I'll try to cook up a patch during the week-end if the weather is bad
-> enough. In the meantime, you should be able to boot with
-> "console=ttyS0 -p". At least, you'll have your console messages on the
-> RSC console, and you'll probably be able to remote login.
-> 
-> 	M.
-Yes you are right. Now it boots.
+This is a multi-part message in MIME format.
 
+--part44de28a4e9c4d
+Content-Type: text/plain; charset="iso-8859-2"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-		Dan
-PS: in Prague is bad weather too :-)
+From: Krzysztof Helt (krzysztof.h1@wp.pl)
+
+It adds a fallback for CPU cache size detection. According to Sun
+documentation, it is possible to have SMP system with SM40 modules.
+
+Signed-off-by: Krzysztof Helt (krzysztof.h1@wp.pl)
+---
+
+It is added after sparc64 architecture.
+
+Regards,
+Krzysztof
+
+----------------------------------------------------
+Pensjonat Albatros? wypoczynek w pi=EAknym zak=B1tku W=B3adys=B3awowa.
+O krok od pla=BFy, atrakcyjne ceny, dobrze wyposa=BFone pokoje.
+Czeg=F3=BF chcie=E6 wi=EAcej? Zapami=EAtaj: albatros.gda.pl - Kliknij:
+http://klik.wp.pl/?adr=3Dwww.albatros.gda.pl&sid=3D841
+
+--part44de28a4e9c4d
+Content-Type: application/octet-stream; name="sparc32-max-cache-fix.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="sparc32-max-cache-fix.patch"
+
+ZGlmZiAtdXJwIGxpbnV4LTIuNi4xNy9hcmNoL3NwYXJjL2tlcm5lbC9zbXAuYyBsaW51eC1uZXcv
+YXJjaC9zcGFyYy9rZXJuZWwvc21wLmMKLS0tIGxpbnV4LTIuNi4xNy9hcmNoL3NwYXJjL2tlcm5l
+bC9zbXAuYwkyMDA2LTA4LTEwIDA4OjU4OjMxLjAwMDAwMDAwMCArMDIwMAorKysgbGludXgtbmV3
+L2FyY2gvc3BhcmMva2VybmVsL3NtcC5jCTIwMDYtMDgtMTIgMTk6MTE6MjAuMDAwMDAwMDAwICsw
+MjAwCkBAIC03OSw2ICs3OCw5IEBAIHZvaWQgX19jcHVpbml0IHNtcF9zdG9yZV9jcHVfaW5mbyhp
+bnQgaWQKIAkJY2FjaGVfbmxpbmVzID0gMHg4MDAwOwogCQljYWNoZV9ubGluZXMgPSBwcm9tX2dl
+dGludGRlZmF1bHQoY3B1X25vZGUsICJlY2FjaGUtbmxpbmVzIiwgY2FjaGVfbmxpbmVzKTsKIAkJ
+bWF4X2NhY2hlX3NpemUgPSBjYWNoZV9saW5lICogY2FjaGVfbmxpbmVzOworCQkvKiB0aGlzIGlz
+IGZvciBTTTQwIFN1cGVyU3BhcmMgbW9kdWxlcyAqLworCQlpZiAobWF4X2NhY2hlX3NpemUgPT0g
+MCkKKwkJCW1heF9jYWNoZV9zaXplID0gMzYgKiAxMDI0OwogCX0KIAlpZiAoY3B1X2RhdGEoaWQp
+Lm1pZCA8IDApCiAJCXBhbmljKCJObyBNSUQgZm91bmQgZm9yIENQVSVkIGF0IG5vZGUgMHglMDhk
+IiwgaWQsIGNwdV9ub2RlKTsKCg==
+
+--part44de28a4e9c4d--
+
 
