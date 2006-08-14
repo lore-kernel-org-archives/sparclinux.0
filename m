@@ -1,28 +1,26 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 25 Aug 2006 23:22:40 +0000
-Subject: Re: [PATCH] sparc32: small smp cleanup
-Message-Id: <20060825.162240.124268925.davem@davemloft.net>
+From: Rene Rebe <rene@exactcode.de>
+Date: Mon, 14 Aug 2006 13:34:16 +0000
+Subject: sunffb dri/drm
+Message-Id: <44E097B9.8080301@exactcode.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <44ddd664b387e@wp.pl>
-In-Reply-To: <44ddd664b387e@wp.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-From: "Krzysztof Helt" <krzysztof.h1@wp.pl>
-Date: Sat, 12 Aug 2006 15:23:48 +0200
+Hi all,
 
-> From: Krzysztof Helt (krzysztof.h1@wp.pl)
-> 
-> It moves the smp_procesors_ready variable to sun4d_smp.c only.
-> 
-> Signed-off-by: Krzysztof Helt (krzysztof.h1@wp.pl)
-> ---
-> smp_processors_ready is not really used in sun4m_smp.c. Let the
-> sun4d guys remove it.
-> 
-> I tested it on SS20 and 2.6.18-rc4 kernel.
+in former times {Creator,Elite} 3D used to have a hardware accelerated=20
+3D implementation (DRM,DRI) however the DRM part in the linux kernel=20
+suffered bitrot is not beeing built since ages.
 
-Applied, except I added "static" to the instance you left
-in sun4d_smp.c
+I wonder if it is worth fixing it, given that it only accelerates lines=20
+and the like and no texturing. It is likely of much use in modern 3D=20
+applications.
+
+Comments anyone?
+
+--=20
+   Ren=E9 Rebe - ExactCODE - Berlin (Europe / Germany)
+   http://exactcode.de | http://t2-project.org | http://rene.rebe.name
+   +49 (0)30 / 255 897 45
