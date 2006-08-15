@@ -1,32 +1,24 @@
-From: "Jorge" <biggsback@doctor.com>
-Date: Wed, 02 Aug 2006 10:35:01 +0000
-Subject: =?ISO-8859-1?Q?=20Don=92t?= hesitate and you will love the lowest possible pricing and the fastest p
-Message-Id: <94414019540768.94BBEE5B7A@BPYIAL6H>
+From: "Sal" <amplitudecadaverous@geologist.com>
+Date: Tue, 15 Aug 2006 06:53:16 +0000
+Subject: New and hot Achieve astounding results in bed with these products designed to make any man a winner
+Message-Id: <80596252838483.52A97DE085@3TY2A>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Good day my friend!=20
- Do you wish to become multi-orgaasmic? It=92s the best thing you had ever =
-seen!=20
+Good day my friend!
+ Masculine performance has never been so easy to increase with these productsMake other men envy you and girls worship you Most efficient products for men
 
- Get everything you need delivered to your door low-cost and fast. Rock har=
-d manhood, multiple explosions and several times more semen volume=20
 
- Enter here:  http://www.wangheeni.com
+Make your girlfriend or wife speechless with increased hardness, richer orgsms and more power in bed
 
- State-of-the-art goods from the highest class brands, recognized everywher=
-e=20
+ Check up: http://www.pianistme.com
 
-Jorge Pope
+Sal Hearn
 
-Never speak ill of the dead  After all is said and done, more is said than =
-done=20
-The more you get, the more you want Cold hands, warm heart  Love starts wit=
-h a smile, grows with a kiss, and ends with a tear Beautiful is not what is=
- beautiful, but what one likes  Opportunity seldom knocks twice God gives e=
-very bird its food, but does not always drop it into the nest=20
-One mans meat is another mans poison! Agree, For The Law is Costly
+
+When your fear cometh as desolation, and your destruction cometh as a whirlwind; when distress and anguish cometh upon you. Smile and the world smiles with you, snore and you sleep aloneIf cow-man pass wild meat whah mek me must pick up am.
+A good name is better than a good face. If you lie down with the dogs, you'll.. stink in the morning.
 
