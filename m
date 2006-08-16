@@ -1,27 +1,39 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 25 Aug 2006 07:03:51 +0000
-Subject: Re: AW: Two bugletts on Sparc 64 @ kernel 2.4
-Message-Id: <20060825.000351.11599236.davem@davemloft.net>
+From: "Dr.smith Troy" <troy_smith@virgilio.it>
+Date: Wed, 16 Aug 2006 14:42:38 +0000
+Subject: Strictly Personal
+Message-Id: <33570.80.78.18.26.1155739358.squirrel@www.husteli.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <DA6197CAE190A847B662079EF7631C0601569295@OEKAW2EXVS03.hbi.ad.harman.com>
-In-Reply-To: <DA6197CAE190A847B662079EF7631C0601569295@OEKAW2EXVS03.hbi.ad.harman.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: "Jurzitza, Dieter" <DJurzitza@harmanbecker.com>
-Date: Fri, 25 Aug 2006 07:44:45 +0200
 
-> So, there is a small deficiency in this regard within the sparc64
-> kernel, as the sparc64 kernel is capable of reading less many
-> symbols of type kernel_sym than 32 Bit kernels on i686 for
-> example. The very same function exists in linux/arch/x86_64/ia32; so
-> my guess would be that similar problems would show on x86 given a
-> 32Bit userland and a 64Bit kernel. I haven't recognized this on
-> x86_64 until now, I would be very happy if someone could kindly give
-> me an advice on how this is taken care of on such machines. klogd is
-> always 1.4.1, this cannot be the place where the problem is taken
-> care for.
+Dear Sir
+I came across your e-mail address in the chambers of commerce
+and industries and i felt that you can be of assistance to me.
+I want
+to transfer out 16,000,000.00 (Sixteen Million Pounds Sterling) from
+our bank here, I have
+the courage to contact you for this important
+transaction, believing that you will never let me down either now or in
+future.
+I am Dr. Troy smith, the auditor and head of computing
+department of our bank here in London,United Kingdom.
+There is an
+account opened in this bank in 1995 and since my inception into office
+in 2001,nobody has operated on this account again, after going
+through
+some old files, I discovered that if i do not remit this money out
+urgently, it will be forfeited for nothing.
+I am only contacting you as
+a foreigner because this money can not be approved to any local bank
+here in London, but can only be approved to any foreign account because
+the money is pounds sterlings and the former owner of the account was
+Eshed B Williams and he was a foreigner too.
+Once am sure you are
+capable of assisting me out, i will give you more details of this
+transaction.
+Sincerely,
+Dr. Troy smith
 
-Try changing the kmalloc/kfree to vmalloc/vfree.
