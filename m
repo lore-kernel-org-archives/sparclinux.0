@@ -1,8 +1,10 @@
 From: "Dr.smith Troy" <troy_smith@virgilio.it>
-Date: Wed, 16 Aug 2006 14:42:38 +0000
+Date: Wed, 16 Aug 2006 17:49:55 +0000
 Subject: Strictly Personal
-Message-Id: <33570.80.78.18.26.1155739358.squirrel@www.husteli.com>
+Message-Id: <51748.80.78.18.26.1155750595.squirrel@www.husteli.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <33570.80.78.18.26.1155739358.squirrel@www.husteli.com>
+In-Reply-To: <33570.80.78.18.26.1155739358.squirrel@www.husteli.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -36,4 +38,5 @@ capable of assisting me out, i will give you more details of this
 transaction.
 Sincerely,
 Dr. Troy smith
+
 
