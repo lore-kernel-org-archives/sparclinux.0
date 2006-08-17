@@ -1,40 +1,51 @@
-From: Kristoffer Carlsson <kristoffer@gaisler.com>
-Date: Sun, 27 Aug 2006 14:28:14 +0000
-Subject: pci layer
-Message-Id: <44F1ABFE.1080102@gaisler.com>
+From: "arbiter" <crydevious@rovidites.hu>
+Date: Thu, 17 Aug 2006 14:42:31 +0000
+Subject: enormous australis
+Message-Id: <47574242512245.4F0747D8DB@8Z274P>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi all,
+Top sttock tips from seasoned sttock analysts
 
-I'm adding PCI support to the LEON sparc linux port and I have
-some questions for you.
+Fellow Innvestor, big news are hitting on thursday for AG AO!!!
 
-The pci controller is set up to have one 256 MB big window to
-which accesses generates PCI memory cycles and a 64 KB big
-window for IO cycles.
+Somebody knows something...place AGA O on the radar!!!
 
-First I configured the PCIBIOS_MIN_MEM/IO macros to match
-these windows and called pci_scan_bus() followed by
-pci_assign_unassigned_resources(). I got this working quite
-nicely but I realised that the PCI IO resources should be
-remapped by the kernel and not by the drivers.
+Get ready for a volatile 2nd half of 2006 - one where the Bulls and 
+Bears will BOTH be proved wrong. But odds are, we'll see another 
+year where the makret indexes bounce around a lot without really going anywhere. And we'll also see certain sectors - favored at this point in the economic cycle - SOAR... 
 
-I'm not sure in which way to achieve this. I tried to replace the
-resource for pci devices with io from pcibios_fixup_bus somewhat
-like in the sparc32 port but that seemed to be ignored by the
-generic pci code.
+Own the right sstocks, in the right space, and you could reap a 
+handful of money-doublers. But if you own the wrong investment, you could easly lose 25%-35% or more! 
 
-I based my pci layer port on the sparc32 version but have taken
-bits and pieces from other archs. Many archs seem to set the
-PCIBIOS_MIN_MEM/IO to 0 and use request_resource to setup iomem_resource
-and ioport_resource but I don't get that to work properly.
+Here is my Favorite Pick for the second half of 2006: AG AO!!!
 
-Can someone provide any helpful pointers to how this should
-be done?
+Traade Aelrt: Thursday, August 17, 2006 
+---------------------------------------------
+Companyy: AGGA RESOURCEES NEEW
+Stcok: A GAO 
+Curreent Pricee: $1.69
+1 Week Target: $4.10
+Buy: "STRRONG" 
+Expectations: Max 
+---------------------------------------------
 
-Regards,
-Kristoffer Carlsson
+When this Stcok moves - watch out! This is your chance to get in 
+the low. Big watch in play this Thursday morning! Out AGA O on your 
+radar's now and reap the benefits early. 
+
+
+There is a massive promotion underway this Thursday, August 17 
+apprising potential eager innvestors of this emerging situation. 
+When this stcok moves - watch out! stooocks wwe proffile sshow aa significcant iincrease inn stoock pprice sometimes in days, not months or years, remember this is a strongg pllay. 
+
+Massive news for AGA O this thursday! AGA O is a big mover in the SOTCK MAKRET!!! 
+
+
+You win some, you lose some. Moon ah run till daylight ketch am. Everything must have a beginning.
+
+Rain before seven, fine before eleven .
+
