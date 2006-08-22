@@ -1,73 +1,55 @@
-From: "Krzysztof Helt" <krzysztof.h1@wp.pl>
-Date: Mon, 28 Aug 2006 18:33:10 +0000
-Subject: Re: [PATCH] sparc32: max_cache_size fallback
-Message-Id: <44f336e6110b7@wp.pl>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="part44f336e6137d9"
+From: David Johnson <dj@david-web.co.uk>
+Date: Tue, 22 Aug 2006 14:46:11 +0000
+Subject: sym53c8xx PCI card broken in 2.6.18
+Message-Id: <200608221546.11532.dj@david-web.co.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <44de28a4e7531@wp.pl>
-In-Reply-To: <44de28a4e7531@wp.pl>
-To: sparclinux@vger.kernel.org
-
-<20060825.162458.107683420.davem@davemloft.net>
-<44f00d6b8b482@wp.pl> <20060826.164852.26965744.davem@davemloft.net>
-In-reply-to: <44de28a4e7531@wp.pl>
-<20060825.162458.107683420.davem@davemloft.net>
-<44f00d6b8b482@wp.pl> <20060826.164852.26965744.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="part44f336e6137d9"
-X-Mailer: Interfejs WWW poczty Wirtualnej Polski
-Organization: Poczta Wirtualnej Polski S.A. http://www.wp.pl/
-X-User-Agent: Mozilla/5.0 (Windows; U; Win98; en-US; rv:1.4a) Gecko/20030401
-X-WP-IP: 213.76.92.156
-X-WP-AV: skaner antywirusowy poczty Wirtualnej Polski S. A.
-X-WP-SPAM: NO AS1=NO AS2=NO(0.500134) AS3=NO AS4=NO AS5=NO                                                             
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
 
-This is a multi-part message in MIME format.
+Hi all,
 
---part44f336e6137d9
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: 8bit
-Content-Disposition: inline
+I'm running a Sun Ultra Enterprise 450 (SPARC64) machine which has an on-board 
+SCSI controller and a PCI SCSI controller, both supported by the sym53c8xx 
+driver.
 
-From: Krzysztof Helt (krzysztof.h1@wp.pl)
+With 2.6.17.9 (and earlier) SCSI works perfectly, but with 2.6.18-rc4 and 
+2.6.18-rc4-git1 I'm getting errors on boot for all devices attached to the 
+PCI card, but all the devices attached to the on-board controller are 
+detected and configured OK.
 
-It adds a fallback for CPU cache size detection. According to Sun
-documentation, it is possible to have SMP system with SM40 modules.
-It counts only data cache after David Miller suggestion.
+lspci identifies the on-board controller as:
+SCSI storage controller: LSI Logic / Symbios Logic 53c875 (rev 03)
+and the PCI controller as:
+SCSI storage controller: LSI Logic / Symbios Logic 53c875 (rev 14)
 
-Signed-off-by: Krzysztof Helt (krzysztof.h1@wp.pl) 
----
+Here's the output from initialisation of the devices on the PCI card (repeated 
+for every device):
+scsi2: sym-2.2.3
+scsi 2:0:0:0 ABORT operation started
+scsi 2:0:0:0 ABORT operation timed out
+scsi 2:0:0:0 DEVICE RESET operation started
+scsi 2:0:0:0 DEVICE RESET operation timed out
+scsi 2:0:0:0 BUS RESET operation started
+scsi 2:0:0:0 BUS RESET operation timed out
+scsi 2:0:0:0 HOST RESET operation started
+sym2: SCSI bus has been reset
+scsi 2:0:0:0 HOST RESET operation timed out
+scsi: device offlined - not ready after error recovery
 
-I don't think that counting only data cache is right but it does
-not matter as scheduler do not use values lesser than 64KB (it
-uses 64KB instead).
+The devices on the PCI controller are a mixture of 'Fujitsu MAG3182L SUN18G' 
+and 'Seagate ST318203LSUN18G' drives.
+
+Looking through the changelogs between 2.6.17.9 and 2.6.18-rc4-git1, I can't 
+see any changes to sym53c8xx, so I'm guessing this has been caused by some 
+generic SCSI subsystem change. Let me know if I can do any more to debug.
 
 Regards,
-Krzysztof
+David.
 
-----------------------------------------------------
-Weekendowe trunkowanie czyli przepisy na drinki i nalewki - Kliknij:
-http://klik.wp.pl/?adr=http%3A%2F%2Fadv.reklama.wp.pl%2Fas%2Fk23.html&sid=859
-
---part44f336e6137d9
-Content-Type: application/octet-stream; name="sparc32-max-cache-fix.patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="sparc32-max-cache-fix.patch"
-
-ZGlmZiAtdXJwIGxpbnV4LTIuNi4xNy9hcmNoL3NwYXJjL2tlcm5lbC9zbXAuYyBsaW51eC1uZXcv
-YXJjaC9zcGFyYy9rZXJuZWwvc21wLmMKLS0tIGxpbnV4LTIuNi4xNy9hcmNoL3NwYXJjL2tlcm5l
-bC9zbXAuYwkyMDA2LTA4LTEwIDA4OjU4OjMxLjAwMDAwMDAwMCArMDIwMAorKysgbGludXgtbmV3
-L2FyY2gvc3BhcmMva2VybmVsL3NtcC5jCTIwMDYtMDgtMTIgMTk6MTE6MjAuMDAwMDAwMDAwICsw
-MjAwCkBAIC03OSw2ICs3OCw5IEBAIHZvaWQgX19jcHVpbml0IHNtcF9zdG9yZV9jcHVfaW5mbyhp
-bnQgaWQKIAkJY2FjaGVfbmxpbmVzID0gMHg4MDAwOwogCQljYWNoZV9ubGluZXMgPSBwcm9tX2dl
-dGludGRlZmF1bHQoY3B1X25vZGUsICJlY2FjaGUtbmxpbmVzIiwgY2FjaGVfbmxpbmVzKTsKIAkJ
-bWF4X2NhY2hlX3NpemUgPSBjYWNoZV9saW5lICogY2FjaGVfbmxpbmVzOworCQkvKiB0aGlzIGlz
-IGZvciBTTTQwIFN1cGVyU3BhcmMgbW9kdWxlcyAqLworCQlpZiAobWF4X2NhY2hlX3NpemUgPT0g
-MCkKKwkJCW1heF9jYWNoZV9zaXplID0gMTYgKiAxMDI0OwogCX0KIAlpZiAoY3B1X2RhdGEoaWQp
-Lm1pZCA8IDApCiAJCXBhbmljKCJObyBNSUQgZm91bmQgZm9yIENQVSVkIGF0IG5vZGUgMHglMDhk
-IiwgaWQsIGNwdV9ub2RlKTsKCg==
-
---part44f336e6137d9--
-
-
+-- 
+David Johnson
+www.david-web.co.uk - My Personal Website
+www.penguincomputing.co.uk - Need a Web Developer?
