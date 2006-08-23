@@ -1,7 +1,7 @@
-From: "Eric Brower" <ebrower@gmail.com>
-Date: Tue, 08 Aug 2006 20:57:54 +0000
+From: David Miller <davem@davemloft.net>
+Date: Wed, 23 Aug 2006 22:48:42 +0000
 Subject: Re: [PATCH] Fix E250 console with RSC
-Message-Id: <ec7cefb0608081357y1002d4f1h72c37a9e1e1d1360@mail.gmail.com>
+Message-Id: <20060823.154842.21595072.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <wrpwt9nk17j.fsf_-_@wild-wind.fr.eu.org>
 In-Reply-To: <wrpwt9nk17j.fsf_-_@wild-wind.fr.eu.org>
@@ -10,57 +10,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 8/8/06, Daniel Smolik <marvin@mydatex.cz> wrote:
-> Eric Brower napsal(a):
-> > On 8/6/06, Daniel Smolik <marvin@mydatex.cz> wrote:
-> >
-> >> Eric Brower napsal(a):
-> >> > On 8/5/06, Marc Zyngier <maz@misterjones.org> wrote:
-> >> >
-> >> >> Would be nice to understand the protocol between the E250 and the RSC
-> >> >> (so we could have proper Linux tools to manage it), but I'm not sure
-> >> >> Sun ever made it public...
-> >> >
-> >> >
-> >> > I don't believe it was ever made public.  Eddie Dost did a bit of
-> >> > poking at it a short while back, and I've considered taking a look as
-> >> > part of the "other end" of SUNW,envctrltwo but have not yet done so.
-> >> > The envctrltwo driver can dump the static configuration of the RSC,
-> >> > which is a bit of a help for "lockouts" but not sufficient for
-> >> > management.
-> >> >
-> >>
-> >> But you say me  that is possible craate or delete user account for RSC
-> >> via
-> >> envctrltwo and piece of software. Only one thing that I use Solaris
-> >> was creating
-> >> RSC user account because I get E250 without RSC user account. All
-> >> other thing I
-> >> can do under linux.
-> >
-> >
-> > With the envctrltwo driver and the rscinfo utility you can view the
-> > static configuration of the RSC, but you cannot modify it.  Currently,
-> > you can only modify the configuration via the RSC shell or Solaris
-> > rscadm so far as I am aware.
-> >
-> I uderstatd, I mean that is possible write software that can do this.
-> I mean that whith envctrl driver is possible write some data back to RSC memory
-> area. Am I right ?
+From: Marc Zyngier <maz@misterjones.org>
+Date: Sat, 05 Aug 2006 10:59:12 +0200
 
-I am not sure-- overwriting the static configuration data may not take
-effect until the RSC is reset (I cannot confirm this; I've not tried).
- It would be preferable to determine the interface used by rscadm and
-make use of it.
+> Dave, please consider applying.
+> 
+> 	M.
+> 
+> This patch fixes yet another sunsab problem, when console is set to
+> anything but the first port. The console framework calls
+> sunsab_console_setup for each port, and we end up setting up a console
+> on a not yet discovered port, which leads to an Oops. Instead, defer
+> console setup until the requested port is properly initialized. Tested
+> on an E250 through an RSC console.
+> 
+> Reported by Daniel Smolik <marvin@mydatex.cz>
+> 
+> Signed-off-by: Marc Zyngier <maz@misterjones.org>
 
-Thanks,
-E
+Thanks for figuring this out Marc.  I'll apply your patch,
+and write a similar one for sunzilog which has the same
+problem potentially.
 
->
->                         Dan
->
->
+This all comes from the fact that the UART layer assosciates
+consoles with the driver instead of the individual ports.
+In fact, the first thing serial_core.c does when you register
+a port is go:
 
+	port->cons = drv->cons;
 
--- 
-E
+which just makes this assosciation even more obviously illogical.
+
+If, instead, the driver could set port->cons itself before the
+uart_add_one_port() call, we could deal with this cleanly.
+
+You will note that the 8250.c driver and others do similar
+checks in their console setup method to work around this:
+
+	if (!port->iobase && !port->membase)
+		return -ENODEV;
+
+Anyways, thanks again Marc.
