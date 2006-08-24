@@ -1,93 +1,52 @@
-From: Mikael Pettersson <mikpe@it.uu.se>
-Date: Mon, 28 Aug 2006 21:18:16 +0000
-Subject: Re: [BUG sparc64] 2.6.16-git6 broke X11 on Ultra5 with ATI Mach64
-Message-Id: <200608282118.k7SLIGFh008696@harpo.it.uu.se>
+From: "Krzysztof Helt" <krzysztof.h1@wp.pl>
+Date: Thu, 24 Aug 2006 20:44:51 +0000
+Subject: [PATCH] sparc32: enabling of the 2nd CPU in 2.6.18-rc4
+Message-Id: <44ee0fc356c3e@wp.pl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="part44ee0fc35bab9"
 List-Id: <sparclinux.vger.kernel.org>
-References: <200607031117.k63BHiDa007719@harpo.it.uu.se>
-In-Reply-To: <200607031117.k63BHiDa007719@harpo.it.uu.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, mikpe@it.uu.se
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Mon, 28 Aug 2006 00:39:08 -0700 (PDT), David Miller wrote:
->Ok, I finally figured this one out and reproduced it on my
->ultra5.
->
->If, for example, we have a 4MB PTE and we do a write
->we'll only update one of the 8KB sub-PTEs of that
->mapping.
->
->This is fine until that new mapping gets displaced from
->the TLB and someone does a read that ends up hitting one
->of the sub-PTEs that didn't get it's write-enable bit
->set yet.
->
->At this point we have a problem, because if a write is
->made to the original address, the kernel says "the writable
->bit is set, nothing to do".  So it won't flush the TLB,
->and therefore it won't kick out the TLB mapping brought
->in by the read.
->
->So we just get wedged here until something displaces that
->TLB entry.  This is why X acts sluggish and since it can
->loop like this for quite a while the X server and the
->hardware can get plenty confused.
->
->The end result is that we have to make sure any PTE updates
->propagate to all sub-PTEs of a large mapping during any
->change.  That's really expensive and we'd have to add some
->complex code to the set_pte_at() code path just to handle
->this.
->
->So the easiest way to fix this, without having to disable
->largepage PTE mappings of I/O devices, is the patch below.
->I will push this to Linus for 2.6.18 and -stable so that
->2.6.17 gets it too.
->
->commit 6ad7d29d2edd8c3d632e71454f619f5c0c6c2703
->Author: David S. Miller <davem@sunset.davemloft.net>
->Date:   Mon Aug 28 00:33:03 2006 -0700
->
->    [SPARC64]: Fix X server hangs due to large pages.
->    
->    This problem was introduced by changeset
->    14778d9072e53d2171f66ffd9657daff41acfaed
->    
->    Unlike the hugetlb code paths, the normal fault code is not setup to
->    propagate PTE changes for large page sizes correctly like the ones we
->    make for I/O mappings in io_remap_pfn_range().
->    
->    It is absolutely necessary to update all sub-ptes of a largepage
->    mapping on a fault.  Adding special handling for this would add
->    considerably complexity to tlb_batch_add().  So let's just side-step
->    the issue and forcefully dirty any writable PTEs created by
->    io_remap_pfn_range().
->    
->    The only other real option would be to disable to large PTE code of
->    io_remap_pfn_range() and we really don't want to do that.
->    
->    Much thanks to Mikael Pettersson for tracking down this problem and
->    testing debug patches.
->    
->    Signed-off-by: David S. Miller <davem@davemloft.net>
->
->diff --git a/arch/sparc64/mm/generic.c b/arch/sparc64/mm/generic.c
->index 8cb0620..af9d81d 100644
->--- a/arch/sparc64/mm/generic.c
->+++ b/arch/sparc64/mm/generic.c
->@@ -69,6 +69,8 @@ static inline void io_remap_pte_range(st
-> 		} else
-> 			offset += PAGE_SIZE;
-> 
->+		if (pte_write(entry))
->+			entry = pte_mkdirty(entry);
-> 		do {
-> 			BUG_ON(!pte_none(*pte));
-> 			set_pte_at(mm, address, pte, entry);
-> 
+This is a multi-part message in MIME format.
 
-Thanks. X works fine on my U5 now with 2.6.18-rc5 + this patch.
+--part44ee0fc35bab9
+Content-Type: text/plain; charset="iso-8859-2"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-/Mikael
+From: Krzysztof Helt (krzysztof.h1@wp.pl)
+
+This is smp_setup_cpu_possible_map() move after the patch did by
+davem to sparc64.
+
+Signed-off-by: Krzysztof Helt (krzysztof.h1@wp.pl)
+---
+This boots up the second CPU on my SS20. It is diff-ed agains
+2.6.18-rc4 kernel, so maybe it was already posted by someone.
+
+Regards,
+Krzysztof
+
+
+----------------------------------------------------
+Games Convention Lipsk 23-27.08.2006 - Nie mo=BFesz tam by=E6?
+Zobacz relacje na =BFywo:
+http://klik.wp.pl/?adr=3Dwww.gc2006.gry.wp.pl&sid=3D852
+
+--part44ee0fc35bab9
+Content-Type: application/octet-stream; name="sparc32-smp-fix.diff"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="sparc32-smp-fix.diff"
+
+LS0tIGxpbnV4LTIuNi4xNy9hcmNoL3NwYXJjL2tlcm5lbC9zZXR1cC5jCTIwMDYtMDgtMDkgMjM6
+MTI6NTMuMDAwMDAwMDAwICswMjAwCisrKyBsaW51eC0yLjYuMTdzbXAvYXJjaC9zcGFyYy9rZXJu
+ZWwvc2V0dXAuYwkyMDA2LTA4LTI0IDIyOjEzOjU2LjAwMDAwMDAwMCArMDIwMApAQCAtMzQ4LDkg
+KzM0OCw5IEBAIHZvaWQgX19pbml0IHNldHVwX2FyY2goY2hhciAqKmNtZGxpbmVfcCkKIAlpbml0
+X21tLmNvbnRleHQgPSAodW5zaWduZWQgbG9uZykgTk9fQ09OVEVYVDsKIAlpbml0X3Rhc2sudGhy
+ZWFkLmtyZWdzID0gJmZha2Vfc3dhcHBlcl9yZWdzOwogCi0Jc21wX3NldHVwX2NwdV9wb3NzaWJs
+ZV9tYXAoKTsKLQogCXBhZ2luZ19pbml0KCk7CisKKwlzbXBfc2V0dXBfY3B1X3Bvc3NpYmxlX21h
+cCgpOwogfQogCiBzdGF0aWMgaW50IF9faW5pdCBzZXRfcHJlZmVycmVkX2NvbnNvbGUodm9pZCkK
+
+--part44ee0fc35bab9--
+
+
