@@ -1,15 +1,11 @@
-From: "Horner" <cataclysmbaldpate@nycmail.com>
-Date: Sat, 05 Aug 2006 21:05:47 +0000
-Subject: re:[4] New and hot  You gape for shooting like you had seen in those  =?ISO-8859-1?Q?=20f?=
-Message-Id: <57917670706327.AD30D9F8D1@GV4JBQJ>
+From: "Vera Abernathy" <besthomeinspects@0ol.com>
+Date: Thu, 24 Aug 2006 07:44:24 +0000
+Subject: re:Hi
+Message-Id: <662161c806049cfovk4nqohmzyq4vfuvv3birtyfhgou@mx.0ol.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Good afternoon Become stronger =96 show your volume Buy it now =96 and this=
- night will be the best in your life Surely you only dream of it All you ne=
-ed is here: http://isjaser.com/gal/gsm/ Try this volume enhancing formula D=
-o you wish to increase your volume by up to 500%?
-
+The young and perspective financial company employs young experts. It is your unique chance to start your career in the company with a world name. We have some kinds of vacancies. You can work freelance or work in office. With us you can achieve new horizons in your career. You can earn up to 3000-4000$ per month. The basic requirements to the candidates are: knowledge of PC and bases of accounts department, honesty, clearness and efficiency in work. If you are interested in the given offer, please send your CV to USA@direct-goldusa1.biz
