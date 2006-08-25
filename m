@@ -1,7 +1,7 @@
 From: "Jurzitza, Dieter" <DJurzitza@harmanbecker.com>
-Date: Wed, 23 Aug 2006 05:44:44 +0000
+Date: Fri, 25 Aug 2006 05:44:45 +0000
 Subject: AW: Two bugletts on Sparc 64 @ kernel 2.4
-Message-Id: <DA6197CAE190A847B662079EF7631C0601569296@OEKAW2EXVS03.hbi.ad.harman.com>
+Message-Id: <DA6197CAE190A847B662079EF7631C060156929B@OEKAW2EXVS03.hbi.ad.harman.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <DA6197CAE190A847B662079EF7631C0601569295@OEKAW2EXVS03.hbi.ad.harman.com>
 In-Reply-To: <DA6197CAE190A847B662079EF7631C0601569295@OEKAW2EXVS03.hbi.ad.harman.com>
@@ -12,17 +12,38 @@ To: sparclinux@vger.kernel.org
 
 Dear listmembers,
 dear Mr. Miller,
-so it is klogd to blame - I have been googling for a maintainer without big=
- success, does anybody know whether there is a maintainer for this program =
-right now? The person / the website that is mentioned in the docs seems to =
-be out of this business now. Most people seem to use version 1.4.1 since qu=
-ite a while, internally the docs refer to the year 2002.
-Thanks for helping,
+after the hint I parsed through klogd and through my old documentation and =
+found the following:
+the failing call is a kernel function, it is not klogd:
+
+linux/arch/sparc64/kernel/sys32_kernel_syms(struct kernel_sym32 *table)
+
+(line 3747 @ 2.4.33):
+tbl=3Dkmalloc (len*sizeof (struct kernel_sym), GFP_KERNEL);
+
+this function fails on sparc64 for module counts larger than 1820 given an =
+unsigned long is used for "value" within struct kernel_sym; the reason for =
+this has been explained. 72*1820 hits the border of 2^17 for kmalloc. I see=
+ no way how klogd should change this behaviour (besides not using this func=
+tion).
+
+So, there is a small deficiency in this regard within the sparc64 kernel, a=
+s the sparc64 kernel is capable of reading less many symbols of type kernel=
+_sym than 32 Bit kernels on i686 for example. The very same function exists=
+ in linux/arch/x86_64/ia32; so my guess would be that similar problems woul=
+d show on x86 given a 32Bit userland and a 64Bit kernel. I haven't recogniz=
+ed this on x86_64 until now, I would be very happy if someone could kindly =
+give me an advice on how this is taken care of on such machines. klogd is a=
+lways 1.4.1, this cannot be the place where the problem is taken care for.
+
+Thanks for your efforts,
 take care
 
 
 
 Dieter Jurzitza
+
+
 
 
 --=20
@@ -55,7 +76,18 @@ Internet: http://www.becker.de
 >=20
 > The klogd program needs to be adjusted to determine the data=20
 > type the kernel is using for module symbols, just like modutils does.
-******
+>=20
+> What modutils does is it asks the system what type it is,=20
+> 32-bit or 64-bit, by making a uname() call.
+>=20
+> Using this information, modutils will adjust the data types=20
+> it uses internally, as appropriate.
+>=20
+> This handled properly a 32-bit binary running on a 64-bit kernel.
+>=20
+> So the kernel change you are proposing is not the correct fix=20
+> for this problem.
+>=20
 
 
 *******************************************
