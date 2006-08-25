@@ -1,74 +1,28 @@
-From: "Krzysztof Helt" <krzysztof.h1@wp.pl>
-Date: Sat, 12 Aug 2006 13:23:48 +0000
-Subject: [PATCH] sparc32: small smp cleanup
-Message-Id: <44ddd664b387e@wp.pl>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="part44ddd664b5fa5"
+From: David Miller <davem@davemloft.net>
+Date: Fri, 25 Aug 2006 23:22:40 +0000
+Subject: Re: [PATCH] sparc32: small smp cleanup
+Message-Id: <20060825.162240.124268925.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <44ddd664b387e@wp.pl>
+In-Reply-To: <44ddd664b387e@wp.pl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-This is a multi-part message in MIME format.
+From: "Krzysztof Helt" <krzysztof.h1@wp.pl>
+Date: Sat, 12 Aug 2006 15:23:48 +0200
 
---part44ddd664b5fa5
-Content-Type: text/plain; charset="iso-8859-2"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+> From: Krzysztof Helt (krzysztof.h1@wp.pl)
+> 
+> It moves the smp_procesors_ready variable to sun4d_smp.c only.
+> 
+> Signed-off-by: Krzysztof Helt (krzysztof.h1@wp.pl)
+> ---
+> smp_processors_ready is not really used in sun4m_smp.c. Let the
+> sun4d guys remove it.
+> 
+> I tested it on SS20 and 2.6.18-rc4 kernel.
 
-From: Krzysztof Helt (krzysztof.h1@wp.pl)
-
-It moves the smp_procesors_ready variable to sun4d_smp.c only.
-
-Signed-off-by: Krzysztof Helt (krzysztof.h1@wp.pl)
----
-smp_processors_ready is not really used in sun4m_smp.c. Let the
-sun4d guys remove it.
-
-I tested it on SS20 and 2.6.18-rc4 kernel.
-
-
-
-----------------------------------------------------
-Czy 10 minut rozmowy =3D ponad 11 z=B3 oszcz=EAdno=B6ci ?
-Sprawd=BC: http://klik.wp.pl/?adr=3Dhttp%3A%2F%2Ftelefon.wp.pl%2Foszczednos=
-ci.html&sid=3D842
-
---part44ddd664b5fa5
-Content-Type: application/octet-stream; name="sparc32-cpus-ready-removal.patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="sparc32-cpus-ready-removal.patch"
-
-ZGlmZiAtdXJwIGxpbnV4LTIuNi4xNy9hcmNoL3NwYXJjL2tlcm5lbC9zbXAuYyBsaW51eC1uZXcv
-YXJjaC9zcGFyYy9rZXJuZWwvc21wLmMKLS0tIGxpbnV4LTIuNi4xNy9hcmNoL3NwYXJjL2tlcm5l
-bC9zbXAuYwkyMDA2LTA4LTEwIDA4OjU4OjMxLjAwMDAwMDAwMCArMDIwMAorKysgbGludXgtbmV3
-L2FyY2gvc3BhcmMva2VybmVsL3NtcC5jCTIwMDYtMDgtMTIgMDg6MDk6NDkuMDAwMDAwMDAwICsw
-MjAwCkBAIC0zNCw3ICszNCw2IEBACiAjaW5jbHVkZSA8YXNtL3RsYmZsdXNoLmg+CiAjaW5jbHVk
-ZSA8YXNtL2NwdWRhdGEuaD4KIAotdm9sYXRpbGUgaW50IHNtcF9wcm9jZXNzb3JzX3JlYWR5ID0g
-MDsKIGludCBzbXBfbnVtX2NwdXMgPSAxOwogdm9sYXRpbGUgdW5zaWduZWQgbG9uZyBjcHVfY2Fs
-bGluX21hcFtOUl9DUFVTXSBfX2luaXRkYXRhID0gezAsfTsKIHVuc2lnbmVkIGNoYXIgYm9vdF9j
-cHVfaWQgPSAwOwpkaWZmIC11cnAgbGludXgtMi42LjE3L2FyY2gvc3BhcmMva2VybmVsL3N1bjRk
-X3NtcC5jIGxpbnV4LW5ldy9hcmNoL3NwYXJjL2tlcm5lbC9zdW40ZF9zbXAuYwotLS0gbGludXgt
-Mi42LjE3L2FyY2gvc3BhcmMva2VybmVsL3N1bjRkX3NtcC5jCTIwMDYtMDgtMTAgMDg6NTg6MzEu
-MDAwMDAwMDAwICswMjAwCisrKyBsaW51eC1uZXcvYXJjaC9zcGFyYy9rZXJuZWwvc3VuNGRfc21w
-LmMJMjAwNi0wOC0xMiAwODoxMjo0OC4wMDAwMDAwMDAgKzAyMDAKQEAgLTQyLDcgKzQyLDcgQEAg
-ZXh0ZXJuIGN0eGRfdCAqc3JtbXVfY3R4X3RhYmxlX3BoeXM7CiAKIGV4dGVybiB2b2lkIGNhbGli
-cmF0ZV9kZWxheSh2b2lkKTsKIAotZXh0ZXJuIHZvbGF0aWxlIGludCBzbXBfcHJvY2Vzc29yc19y
-ZWFkeTsKK3ZvbGF0aWxlIGludCBzbXBfcHJvY2Vzc29yc19yZWFkeSA9IDA7CiBzdGF0aWMgaW50
-IHNtcF9oaWdoZXN0X2NwdTsKIGV4dGVybiB2b2xhdGlsZSB1bnNpZ25lZCBsb25nIGNwdV9jYWxs
-aW5fbWFwW05SX0NQVVNdOwogZXh0ZXJuIGNwdWluZm9fc3BhcmMgY3B1X2RhdGFbTlJfQ1BVU107
-CmRpZmYgLXVycCBsaW51eC0yLjYuMTcvYXJjaC9zcGFyYy9rZXJuZWwvc3VuNG1fc21wLmMgbGlu
-dXgtbmV3L2FyY2gvc3BhcmMva2VybmVsL3N1bjRtX3NtcC5jCi0tLSBsaW51eC0yLjYuMTcvYXJj
-aC9zcGFyYy9rZXJuZWwvc3VuNG1fc21wLmMJMjAwNi0wOC0wOSAyMjozNjoxMC4wMDAwMDAwMDAg
-KzAyMDAKKysrIGxpbnV4LW5ldy9hcmNoL3NwYXJjL2tlcm5lbC9zdW40bV9zbXAuYwkyMDA2LTA4
-LTEyIDA4OjEwOjE5LjAwMDAwMDAwMCArMDIwMApAQCAtMzksNyArMzksNiBAQCBleHRlcm4gY3R4
-ZF90ICpzcm1tdV9jdHhfdGFibGVfcGh5czsKIAogZXh0ZXJuIHZvaWQgY2FsaWJyYXRlX2RlbGF5
-KHZvaWQpOwogCi1leHRlcm4gdm9sYXRpbGUgaW50IHNtcF9wcm9jZXNzb3JzX3JlYWR5OwogZXh0
-ZXJuIHZvbGF0aWxlIHVuc2lnbmVkIGxvbmcgY3B1X2NhbGxpbl9tYXBbTlJfQ1BVU107CiBleHRl
-cm4gdW5zaWduZWQgY2hhciBib290X2NwdV9pZDsKIApAQCAtMjE3LDcgKzIxNiw2IEBAIHZvaWQg
-X19pbml0IHNtcDRtX3NtcF9kb25lKHZvaWQpCiAJfQogCiAJLyogT2ssIHRoZXkgYXJlIHNwaW5u
-aW5nIGFuZCByZWFkeSB0byBnby4gKi8KLQlzbXBfcHJvY2Vzc29yc19yZWFkeSA9IDE7CiB9CiAK
-IC8qIEF0IGVhY2ggaGFyZHdhcmUgSVJRLCB3ZSBnZXQgdGhpcyBjYWxsZWQgdG8gZm9yd2FyZCBJ
-UlEgcmVjZXB0aW9uCg==
-
---part44ddd664b5fa5--
-
-
+Applied, except I added "static" to the instance you left
+in sun4d_smp.c
