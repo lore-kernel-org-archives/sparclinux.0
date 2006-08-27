@@ -1,50 +1,42 @@
-From: "crosswalk" <componentacclamation@rpslash.com>
-Date: Thu, 17 Aug 2006 01:35:29 +0000
-Subject: huge aerate
-Message-Id: <74004346000534.16EFEDFA09@82KW3HE>
+From: "clarendon" <blueberryblank@earthlink.net>
+Date: Sun, 27 Aug 2006 21:19:18 +0000
+Subject: diverge
+Message-Id: <16817783215114.1AC3ADED9B@PCJ8>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Make all your stoocks perform top class
+W a t c h   o u t!
 
-Fellow Invvestor, big news are hitting on thursday for A GAO!!!
+ALLIACNE ENETRPRISE (AE TR)
+Curernt Pirce: 0.80
+Add this g e m to your wat ch list, and watc h it tard closely!
 
-Somebody knows something...place A GAO on the radar!!!
+Nwes Rleease!
 
-Get ready for a volatile 2nd half of 2006 - one where the Bulls and 
-Bears will BOTH be proved wrong. But odds are, we'll see another 
-year where the marekt indexes bounce around a lot without really going anywhere. And we'll also see certain sectors - favored at this point in the economic cycle - SOAR... 
+Taceorp announces breackrough in removing deadly l andmines.
 
-Own the right sstocks, in the right space, and you could reap a 
-handful of money-doublers. But if you own the wrong investment, you could easly lose 25%-35% or more! 
+Mill Valley, California August 25, 2006 - The Alliance Enteprrise Coproration announced today a breakthrough in developing an Aeiral Landimne Sysetm aimed at locating, detecting and mapping deadly landmine s.
 
-Here is my Favorite Pick for the second half of 2006: AG AO!!!
+TaeCrop's mission is to reclaim lands around the globe embedded with landmi nes that victimize countries and their stakeholders.
 
-Tradde Aelrt: Thursday, August 17, 2006 
----------------------------------------------
-Coompany: AGAA RESOUURCES NEWW
-Sotck: AGA O 
-Currentt Pricee: $1.69
-1 Week Target: $4.10
-Buy: "STRONGG" 
-Expectations: Max 
----------------------------------------------
+More than 100 m i l l i o n landmin es in 83 countries are holding international communities and industries hostage, preventing the inves tment in and development of producti ve lands and the re-building of infrastructure. A broad variety of land mines have been scattered over p roductive areas effectively crippling the econ omy and disabling thousands of children and adults.  There are no reliable records that accurately show where these d e v a s t a t i n g l andmines lie in wait for their vict ims.
+ 
+With the present day c osts to clear a single land mine ranging between $1,000 to $1,500, solving the problem of de-mining lands will reach billions of dol lars.  TaeCorp has developed a technology based, c ost effective solution to this problem using its three tiered approach to scanning, mapping and removing land mines. TaeCorp's System will provide many social and economi c benef its to countries and their industries including oil and gas, mining, agriculture, roads and infrastructure development.
 
-When this Stcok moves - watch out! This is your chance to get in 
-the low. Big watch in play this Thursday morning! Out AG AO on your 
-radar's now and reap the benefits early. 
+About TaeCorp.
 
+TaeCorp's vision is to be the recognized leader in providing Areial Detcetion Systmes including global de-mining, clearing a path to a safer planet for all humankind.
 
-There is a massive promotion underway this Thursday, August 17 
-apprising potential eager invesstors of this emerging situation. 
-When this sotck moves - watch out! stoockss wee prrofile sshow aa signifficant iincrease inn sttock pricee sometimes in days, not months or years, remember this is a strongg playy. 
+Here comes the big one! 
+All signs show that A ETR is going to Explode!
 
-Massive news for A GAO this thursday! AG AO is a big mover in the STCOK MAREKT!!! 
+Conc lusion:
+The examples above show the awesome, earning potential of little known companies that explode onto ivnestor's radar screens; Many of you are already familiar with this. Is AE TR poised and positioned to do that for you? Then you may feel the time has come to act... And please watch this one tarde tomorrow! Go AE TR.
+P enny stcoks are considered highly speculative and may be unsuitable for all but very aggressive inevstors.  This pr ofile is not in any way aff iliated with the featured company.  This report is for entertainment and advertising purposes only and should not be used as investemnt advice.  If you wish to stop future m a i lings, or if you feel you have been wrongfully placed in our membership, send a blank e m a i l with No Thanks in the subject to 
 
 
-Take heed of reconciled enemies and of meat twice boiled . Melt the icy fingers of fear with the sunshine of hope  Teachers open the door, but you must enter by yourself.
-What's good for the goose is good for the gander. A spy with flatulence will always blow his cover..
+
 
