@@ -1,24 +1,40 @@
-From: "Sal" <amplitudecadaverous@geologist.com>
-Date: Tue, 15 Aug 2006 06:53:16 +0000
-Subject: New and hot Achieve astounding results in bed with these products designed to make any man a winner
-Message-Id: <80596252838483.52A97DE085@3TY2A>
+From: Kristoffer Carlsson <kristoffer@gaisler.com>
+Date: Sun, 27 Aug 2006 14:28:14 +0000
+Subject: pci layer
+Message-Id: <44F1ABFE.1080102@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Good day my friend!
- Masculine performance has never been so easy to increase with these productsMake other men envy you and girls worship you Most efficient products for men
+Hi all,
 
+I'm adding PCI support to the LEON sparc linux port and I have
+some questions for you.
 
-Make your girlfriend or wife speechless with increased hardness, richer orgsms and more power in bed
+The pci controller is set up to have one 256 MB big window to
+which accesses generates PCI memory cycles and a 64 KB big
+window for IO cycles.
 
- Check up: http://www.pianistme.com
+First I configured the PCIBIOS_MIN_MEM/IO macros to match
+these windows and called pci_scan_bus() followed by
+pci_assign_unassigned_resources(). I got this working quite
+nicely but I realised that the PCI IO resources should be
+remapped by the kernel and not by the drivers.
 
-Sal Hearn
+I'm not sure in which way to achieve this. I tried to replace the
+resource for pci devices with io from pcibios_fixup_bus somewhat
+like in the sparc32 port but that seemed to be ignored by the
+generic pci code.
 
+I based my pci layer port on the sparc32 version but have taken
+bits and pieces from other archs. Many archs seem to set the
+PCIBIOS_MIN_MEM/IO to 0 and use request_resource to setup iomem_resource
+and ioport_resource but I don't get that to work properly.
 
-When your fear cometh as desolation, and your destruction cometh as a whirlwind; when distress and anguish cometh upon you. Smile and the world smiles with you, snore and you sleep aloneIf cow-man pass wild meat whah mek me must pick up am.
-A good name is better than a good face. If you lie down with the dogs, you'll.. stink in the morning.
+Can someone provide any helpful pointers to how this should
+be done?
 
+Regards,
+Kristoffer Carlsson
