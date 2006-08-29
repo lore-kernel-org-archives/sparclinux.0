@@ -1,52 +1,35 @@
-From: "apocryphal" <chidebeckman@rotex.nl>
-Date: Thu, 17 Aug 2006 01:23:04 +0000
-Subject: contagious
-Message-Id: <90590234802304.7BA99CB3DA@054E8>
+From: "chapman" <chapman.barbaric@royalresort.com>
+Date: Tue, 29 Aug 2006 20:42:41 +0000
+Subject: Credits situation
+Message-Id: <59692810024488.C0B0E177FD@KS1O580>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Premium stoock recommendation services that allow earning more
+Happy day to you! ;) 
 
-Fellow Innvestor, big news are hitting on thursday for AGA O!!!
+Your credit doesn't matter to us!
+If you OWN real estate and want IMMEDIATE cash to spend ANY way you 
+like, or simply wish to LOWER your monthly payments by a third or more, here are the deals we have TODAY:
 
-Somebody knows something...place AGA O on the radar!!!
+$488,000.00 at a 3.67% fixed-rate
+$372,000.00 at a 3.90% variable-rate
+$492,000.00 at a 3.21% interest-only
+$248,000.00 at a 3.36% fixed-rate
+$198,000.00 at a 3.55% variable-rate
 
-Get ready for a volatile 2nd half of 2006 - one where the Bulls and 
-Bears will BOTH be proved wrong. But odds are, we'll see another 
-year where the marekt indexes bounce around a lot without really going anywhere. And we'll also see certain sectors - favored at this point in the economic cycle - SOAR... 
+Hurry, we have requests limits, so when these deals are gone, they are 
+gone!
 
-Own the right stockks, in the right space, and you could reap a 
-handful of money-doublers. But if you own the wrong investment, you could easly lose 25%-35% or more! 
+We have one-mimute form to apply the request,
+please CLICK HERE
 
-Here is my Favorite Pick for the second half of 2006: AGA O!!!
+http://PFB2D.capitalpartnerusa.com/?ncache3325
 
-Trrade Alret: Thursday, August 17, 2006 
----------------------------------------------
-Comppany: AGAA RESSOURCES NEWW
-Sotck: AG AO 
-Curreent Pricce: $1.69
-1 Week Target: $4.10
-Buy: "STRONNG" 
-Expectations: Max 
----------------------------------------------
+Don't worry about approval, your credit will not disqualify you!
 
-When this Stcok moves - watch out! This is your chance to get in 
-the low. Big watch in play this Thursday morning! Out AGA O on your 
-radar's now and reap the benefits early. 
+Approval Manager.
 
-
-There is a massive promotion underway this Thursday, August 17 
-apprising potential eager investorss of this emerging situation. 
-When this stcok moves - watch out! sttoocks wee profille shoow aa signifiicant increasee iin stoock pricce sometimes in days, not months or years, remember this is a stronng playy. 
-
-Massive news for A GAO this thursday! A GAO is a big mover in the STCOK MRAKET!!! 
-
-
-
-Desperate Diseases Call for Desperate Remedies If in doubt, mumble. As safe as houses A person who can smile when things go wrong has found someone to blame it on.  Yuh can't fatten cow fuh another man butcher.	 Love conquers all.
-
-A handful of patience is worth more than a bushel of brains. Blessings Are Not Valued Until They Are Gone.
 
