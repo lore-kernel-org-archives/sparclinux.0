@@ -1,21 +1,18 @@
-From: Meelis Roos <mroos@linux.ee>
-Date: Tue, 22 Aug 2006 04:34:05 +0000
-Subject: Re: compile error in 2.6.18-rc4
-Message-Id: <Pine.SOC.4.61.0608220733300.4950@math.ut.ee>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Date: Tue, 29 Aug 2006 20:59:50 +0000
+Subject: Sparc termios.h
+Message-Id: <1156885191.6271.133.camel@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.SOC.4.61.0608130728160.4598@math.ut.ee>
-In-Reply-To: <Pine.SOC.4.61.0608130728160.4598@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
->> It's the "%uhi", it should be "%%uhi" since we want a real "%" there
->> and not an argument expansion.
->
-> Meelis, give this patch a spin.
+Can someone explain to me the somewhat strange termios structure stuff
+going on in both sparc32 and sparc64. I'm adding c_ispeed/c_ospeed to
+termios and updating ports/adding new ioctls when neccessary but I'm not
+clear what the sparc folks are trying to achieve.
 
-Acked-by: Meelis Roos <mroos@linux.ee>
-
--- 
-Meelis Roos (mroos@linux.ee)
+Alan
+                
+        
