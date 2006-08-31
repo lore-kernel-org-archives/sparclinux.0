@@ -1,51 +1,42 @@
-From: "arbiter" <crydevious@rovidites.hu>
-Date: Thu, 17 Aug 2006 14:42:31 +0000
-Subject: enormous australis
-Message-Id: <47574242512245.4F0747D8DB@8Z274P>
+From: zhiyi huang <hzy@cs.otago.ac.nz>
+Date: Thu, 31 Aug 2006 01:55:41 +0000
+Subject: problem of Ubuntu on UltraSPARC T1
+Message-Id: <77874758-B995-4BDE-8B5D-E6D15AD80FC2@cs.otago.ac.nz>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Top sttock tips from seasoned sttock analysts
+Hi there,
+I have made a shared memory module on UltraSPARC T1. It works well.  
+It allows multiple processes to share pages. However, I got the  
+following error message when starting parallel processes using rsh/ssh.
 
-Fellow Innvestor, big news are hitting on thursday for AG AO!!!
+./is_dsm: relocation error: ./is_dsm: symbol sigaction, version  
+GLIBC_2.0 not defined in file libc.so.6 with link time reference
 
-Somebody knows something...place AGA O on the radar!!!
+When the program 'is_dsm' is started as a single instance, there is  
+no problem. But when multiple processes are started within the  
+program using the following command, the above message popped up  
+sporadically.
 
-Get ready for a volatile 2nd half of 2006 - one where the Bulls and 
-Bears will BOTH be proved wrong. But odds are, we'll see another 
-year where the makret indexes bounce around a lot without really going anywhere. And we'll also see certain sectors - favored at this point in the economic cycle - SOAR... 
+rsh localhost -n "cd /home/zhiyi/mempage/dsmdrv/app ; ./is_dsm -- -n4  
+-i1 -m-270794752 -d2"
 
-Own the right sstocks, in the right space, and you could reap a 
-handful of money-doublers. But if you own the wrong investment, you could easly lose 25%-35% or more! 
+I think it may not be related with the kernel. It may be related with  
+gcc or glibc. Can anyone point out the possible reasons/solutions  
+regarding the gcc and libc.so.6?
 
-Here is my Favorite Pick for the second half of 2006: AG AO!!!
+By the way, I am using
+Linux version 2.6.15-21-sparc64-smp (buildd@artigas) (gcc  
+version4.0.3 (Ubuntu 4.0.3-1ubuntu5)) #1 SMP Fri Apr 21 17:04:05 UTC  
+2006
 
-Traade Aelrt: Thursday, August 17, 2006 
----------------------------------------------
-Companyy: AGGA RESOURCEES NEEW
-Stcok: A GAO 
-Curreent Pricee: $1.69
-1 Week Target: $4.10
-Buy: "STRRONG" 
-Expectations: Max 
----------------------------------------------
-
-When this Stcok moves - watch out! This is your chance to get in 
-the low. Big watch in play this Thursday morning! Out AGA O on your 
-radar's now and reap the benefits early. 
-
-
-There is a massive promotion underway this Thursday, August 17 
-apprising potential eager innvestors of this emerging situation. 
-When this stcok moves - watch out! stooocks wwe proffile sshow aa significcant iincrease inn stoock pprice sometimes in days, not months or years, remember this is a strongg pllay. 
-
-Massive news for AGA O this thursday! AGA O is a big mover in the SOTCK MAKRET!!! 
+Thanks for help:)
+Zhiyi
 
 
-You win some, you lose some. Moon ah run till daylight ketch am. Everything must have a beginning.
 
-Rain before seven, fine before eleven .
+
 
