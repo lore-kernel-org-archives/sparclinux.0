@@ -1,113 +1,24 @@
-From: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Date: Fri, 08 Sep 2006 00:10:42 +0000
-Subject: clean SA_NOMASK usage
-Message-Id: <20060908001042.GK8569@bouh.residence.ens-lyon.fr>
+From: "Francesca Ashby" <IEHPEKBB@hotmail.com>
+Date: Fri, 01 Sep 2006 15:50:01 +0000
+Subject: Get Bigger Pennis
+Message-Id: <CFE8.9A5.3038398B8C@mopalinux.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20060908000602.GJ8569@bouh.residence.ens-lyon.fr>
-In-Reply-To: <20060908000602.GJ8569@bouh.residence.ens-lyon.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org
 
-Given that my previous patch gets applied, here is a patch for removing
-uses of linuxish SA_NOMASK.
 
-Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Suffering from short penniss?
+Introduce revolution "Penis-Patch" formula which
+gauranteees sizes increase or moneey baack.
 
-diff --git a/arch/ia64/ia32/ia32_signal.c b/arch/ia64/ia32/ia32_signal.c
-index b3355a9..0753ab4 100644
---- a/arch/ia64/ia32/ia32_signal.c
-+++ b/arch/ia64/ia32/ia32_signal.c
-@@ -514,7 +514,7 @@ sys32_signal (int sig, unsigned int hand
- 	int ret;
- 
- 	sigact_set_handler(&new_sa, handler, 0);
--	new_sa.sa.sa_flags = SA_ONESHOT | SA_NOMASK;
-+	new_sa.sa.sa_flags = SA_ONESHOT | SA_NODEFER;
- 	sigemptyset(&new_sa.sa.sa_mask);
- 
- 	ret = do_sigaction(sig, &new_sa, &old_sa);
-diff --git a/arch/sparc/kernel/signal.c b/arch/sparc/kernel/signal.c
-index c9301b9..2aa8fe6 100644
---- a/arch/sparc/kernel/signal.c
-+++ b/arch/sparc/kernel/signal.c
-@@ -964,7 +964,7 @@ handle_signal(unsigned long signr, struc
- 	}
- 	spin_lock_irq(&current->sighand->siglock);
- 	sigorsets(&current->blocked,&current->blocked,&ka->sa.sa_mask);
--	if (!(ka->sa.sa_flags & SA_NOMASK))
-+	if (!(ka->sa.sa_flags & SA_NODEFER))
- 		sigaddset(&current->blocked, signr);
- 	recalc_sigpending();
- 	spin_unlock_irq(&current->sighand->siglock);
-diff --git a/arch/sparc64/kernel/signal.c b/arch/sparc64/kernel/signal.c
-index 96d56a8..63b579d 100644
---- a/arch/sparc64/kernel/signal.c
-+++ b/arch/sparc64/kernel/signal.c
-@@ -487,7 +487,7 @@ static inline void handle_signal(unsigne
- 		       (ka->sa.sa_flags & SA_SIGINFO) ? info : NULL);
- 	spin_lock_irq(&current->sighand->siglock);
- 	sigorsets(&current->blocked,&current->blocked,&ka->sa.sa_mask);
--	if (!(ka->sa.sa_flags & SA_NOMASK))
-+	if (!(ka->sa.sa_flags & SA_NODEFER))
- 		sigaddset(&current->blocked,signr);
- 	recalc_sigpending();
- 	spin_unlock_irq(&current->sighand->siglock);
-diff --git a/arch/sparc64/kernel/signal32.c b/arch/sparc64/kernel/signal32.c
-index 708ba9b..fb2d82c 100644
---- a/arch/sparc64/kernel/signal32.c
-+++ b/arch/sparc64/kernel/signal32.c
-@@ -1232,7 +1232,7 @@ static inline void handle_signal32(unsig
- 	}
- 	spin_lock_irq(&current->sighand->siglock);
- 	sigorsets(&current->blocked,&current->blocked,&ka->sa.sa_mask);
--	if (!(ka->sa.sa_flags & SA_NOMASK))
-+	if (!(ka->sa.sa_flags & SA_NODEFER))
- 		sigaddset(&current->blocked,signr);
- 	recalc_sigpending();
- 	spin_unlock_irq(&current->sighand->siglock);
-diff --git a/arch/sparc64/solaris/signal.c b/arch/sparc64/solaris/signal.c
-index 7fa2634..21edcf0 100644
---- a/arch/sparc64/solaris/signal.c
-+++ b/arch/sparc64/solaris/signal.c
-@@ -83,7 +83,7 @@ static long sig_handler(int sig, u32 arg
- 	sa.sa_restorer = NULL;
- 	sa.sa_handler = (__sighandler_t)A(arg);
- 	sa.sa_flags = 0;
--	if (one_shot) sa.sa_flags = SA_ONESHOT | SA_NOMASK;
-+	if (one_shot) sa.sa_flags = SA_ONESHOT | SA_NODEFER;
- 	set_fs (KERNEL_DS);
- 	ret = sys_sigaction(sig, (void __user *)&sa, (void __user *)&old);
- 	set_fs (old_fs);
-@@ -277,7 +277,7 @@ asmlinkage int solaris_sigaction(int sig
- 		s.sa_flags = 0;
- 		if (tmp & SOLARIS_SA_ONSTACK) s.sa_flags |= SA_STACK;
- 		if (tmp & SOLARIS_SA_RESTART) s.sa_flags |= SA_RESTART;
--		if (tmp & SOLARIS_SA_NODEFER) s.sa_flags |= SA_NOMASK;
-+		if (tmp & SOLARIS_SA_NODEFER) s.sa_flags |= SA_NODEFER;
- 		if (tmp & SOLARIS_SA_RESETHAND) s.sa_flags |= SA_ONESHOT;
- 		if (tmp & SOLARIS_SA_NOCLDSTOP) s.sa_flags |= SA_NOCLDSTOP;
- 		if (get_user (tmp, &p->sa_handler) ||
-@@ -297,7 +297,7 @@ asmlinkage int solaris_sigaction(int sig
- 		tmp = 0; tmp2[2] = 0; tmp2[3] = 0;
- 		if (s2.sa_flags & SA_STACK) tmp |= SOLARIS_SA_ONSTACK;
- 		if (s2.sa_flags & SA_RESTART) tmp |= SOLARIS_SA_RESTART;
--		if (s2.sa_flags & SA_NOMASK) tmp |= SOLARIS_SA_NODEFER;
-+		if (s2.sa_flags & SA_NODEFER) tmp |= SOLARIS_SA_NODEFER;
- 		if (s2.sa_flags & SA_ONESHOT) tmp |= SOLARIS_SA_RESETHAND;
- 		if (s2.sa_flags & SA_NOCLDSTOP) tmp |= SOLARIS_SA_NOCLDSTOP;
- 		if (put_user (tmp, &p->sa_flags) ||
-diff --git a/kernel/signal.c b/kernel/signal.c
-index bfdb568..8a3b3a5 100644
---- a/kernel/signal.c
-+++ b/kernel/signal.c
-@@ -2530,7 +2530,7 @@ sys_signal(int sig, __sighandler_t handl
- 	int ret;
- 
- 	new_sa.sa.sa_handler = handler;
--	new_sa.sa.sa_flags = SA_ONESHOT | SA_NOMASK;
-+	new_sa.sa.sa_flags = SA_ONESHOT | SA_NODEFER;
- 	sigemptyset(&new_sa.sa.sa_mask);
- 
- 	ret = do_sigaction(sig, &new_sa, &old_sa);
+Users reported:
+- increase in length, girth and vascularity
+- harder and long-lasting E rection
+- 3x increase in sex drive
+
+Why waiting?
+
+http://www.domtoms.com/a/?159
+
