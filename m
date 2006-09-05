@@ -1,40 +1,84 @@
-From: Mikael Pettersson <mikpe@it.uu.se>
-Date: Sun, 24 Sep 2006 13:58:46 +0000
-Subject: Re: [sparc64] 2.6.18 unaligned acccess in ehci_hub_control
-Message-Id: <200609241358.k8ODwkZJ016350@harpo.it.uu.se>
+From: Andy Walker <ajwalker@broadpark.no>
+Date: Tue, 05 Sep 2006 07:05:07 +0000
+Subject: Possible bug in sys_getdomainname() on sparc64
+Message-Id: <43513.192.168.1.10.1157439907.squirrel@otter.puszczka.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20060920172123.GA9334@ele.uri.edu>
-In-Reply-To: <20060920172123.GA9334@ele.uri.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, greg@kroah.com
-Cc: linux-kernel@vger.kernel.org, simoneau@ele.uri.edu, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Sat, 23 Sep 2006 17:05:31 -0700 (PDT), David Miller wrote:
->[USB]: Fix alignment of buffer passed down to ->hub_control()
->
->Implementations assume the buffer is at least 4 byte aligned.
->
->Signed-off-by: David S. Miller <davem@davemloft.net>
->
->diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
->index fb4d058..7766d7b 100644
->--- a/drivers/usb/core/hcd.c
->+++ b/drivers/usb/core/hcd.c
->@@ -344,7 +344,8 @@ static int rh_call_control (struct usb_h
-> 	struct usb_ctrlrequest *cmd;
->  	u16		typeReq, wValue, wIndex, wLength;
-> 	u8		*ubuf = urb->transfer_buffer;
->-	u8		tbuf [sizeof (struct usb_hub_descriptor)];
->+	u8		tbuf [sizeof (struct usb_hub_descriptor)]
->+		__attribute__((aligned(4)));
-> 	const u8	*bufp = tbuf;
-> 	int		len = 0;
-> 	int		patch_wakeup = 0;
->
+There was a change between 2.6.18-rc2 and -rc3 to the buffer
+length error checking in sys_getdomainname(). On my Gentoo
+sparc64 box this breaks hostname when called as hostname -y/
+nisdomainname. The call returns EINVAL cause by passing an
+oversize buffer to the sycall.
 
-Thanks, this eliminated the USB alignment traps in my
-gcc-4.1.1 compiled sparc64 kernel.
+The buffer is checked against __NEW_UTS_LEN, but I cannot
+see how it is a crime to pass an oversize buffer to a get_
+call. Instead we need to check that len is >= nlen. nlen
+cannot be longer than __NEW_UTS_LEN anyway as nlen is the
+length of the string stored in the uts structure.
 
-/Mikael
+asmlinkage long sys_getdomainname(char __user *name, int len)
+{
+         int nlen, err;
+
+         if (len < 0 || len > __NEW_UTS_LEN)
+                        ^^^^^^^^^^^^^^^^^^^
+                 return -EINVAL;
+
+         down_read(&uts_sem);
+
+         nlen = strlen(system_utsname.domainname) + 1;
+         if (nlen < len)
+                 len = nlen;
+
+         err = -EFAULT;
+         if (!copy_to_user(name, system_utsname.domainname, len))
+                 err = 0;
+
+         up_read(&uts_sem);
+         return err;
+}
+
+How about this patch or something similar.
+
+cheers,
+Andy
+
+--- linux-2.6.18-rc5/arch/sparc64/kernel/sys_sparc.c.old	2006-09-04
+23:25:59.000000000 +0200
++++ linux-2.6.18-rc5/arch/sparc64/kernel/sys_sparc.c	2006-09-04
+23:31:25.000000000 +0200
+@@ -703,19 +703,21 @@
+  {
+          int nlen, err;
+
+-	if (len < 0 || len > __NEW_UTS_LEN)
++	if (len < 0)
+  		return -EINVAL;
+
+   	down_read(&uts_sem);
+
+  	nlen = strlen(system_utsname.domainname) + 1;
+-        if (nlen < len)
+-                len = nlen;
++	err = -EINVAL;
++	if (nlen > len)
++		goto out;
+
+  	err = -EFAULT;
+-	if (!copy_to_user(name, system_utsname.domainname, len))
++	if (!copy_to_user(name, system_utsname.domainname, nlen))
+  		err = 0;
+
++out:
+  	up_read(&uts_sem);
+  	return err;
+  }
+
+
+
+
+
