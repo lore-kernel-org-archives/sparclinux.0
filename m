@@ -1,14 +1,18 @@
 From: Daniel Smolik <marvin@mydatex.cz>
-Date: Tue, 05 Sep 2006 14:26:48 +0000
+Date: Wed, 06 Sep 2006 14:11:44 +0000
 Subject: Re: TILO and others
-Message-Id: <44FD8928.4090808@mydatex.cz>
+Message-Id: <44FED720.6090005@mydatex.cz>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------090803020006010607040904"
 List-Id: <sparclinux.vger.kernel.org>
 References: <44FC960D.3040508@mydatex.cz>
 In-Reply-To: <44FC960D.3040508@mydatex.cz>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------090803020006010607040904
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
 Hamish Greig napsal(a):
 > On Tuesday 05 September 2006 17:45, Rene Rebe wrote:
@@ -18,72 +22,64 @@ Hamish Greig napsal(a):
 > 
 > I too have successfully used these two for netbooting.
 > hgg
-> -
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Oh great info, but I spend three nights to get it work and haven't success.
+Thanks, you kick me to rigt way. I use piggyback from sparc directory. I test 
+before piggiback64 but that says nothing and I think that doesn't work.
+But now I read source make simple patch  to display status of working piggyback 
+and woala all works piggyback64 doesn't write new file but modify kenel directly.
 
-TILO:
-I use silo 1.4.13 compile without problem. I take compiled kernel which boot OK 
-on my Ultra 5 and create small cramfs ramdisk with bash as init in /sbin + 
-library. root.img is ~1.2M.
-
-I run
+			Thanks
+					Dan
 
 
+--------------090803020006010607040904
+Content-Type: text/x-patch;
+ name="piggyback.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="piggyback.patch"
 
-./tilo/tilo.sh vmlinux ram_image.gz
-Converting vmlinux (sun4u) to a.out:
-PT 0 Entry: Loadable to 0x400000[0x3c2c30] from 0x0[0x354086] align 0x100000
-PT 1 Entry: unknown
-Compressing vmlinux.raw:
-vmlinux.raw:     54.6%
-Sizes (sun4u):
-   raw size     = 3473542
-   packed size  = 1575482
-   root address = 00000000007c2c30
-Root image packed size = 1085472
-WARNING: Kernel for Sun4c/m/d not specified
-Images are large. Will load on machines with at least 5M mapped by PROM only
-TILO size = 2678102
+--- linux-2.6.18-rc3/arch/sparc64/boot/piggyback.c	2006-03-20 06:53:29.000000000 +0100
++++ linux-2.6.17.2/arch/sparc64/boot/piggyback.c	2006-09-05 19:59:37.000000000 +0200
+@@ -45,6 +45,7 @@
+ 	FILE *map;
+ 	struct stat s;
+ 	int image, tail;
++
+ 	
+ 	if (stat (argv[3], &s) < 0) die (argv[3]);
+ 	map = fopen (argv[2], "r");
+@@ -55,6 +56,7 @@
+ 		else if (!strcmp (buffer + 19, "_end\n"))
+ 		end = strtoul (buffer + 8, NULL, 16);
+ 	}
++	printf("start: 0x%x end: 0x%x \n",start,end);
+ 	fclose (map);
+ 	if ((image = open(argv[1],O_RDWR)) < 0) die(argv[1]);
+ 	if (read(image,buffer,512) != 512) die(argv[1]);
+@@ -88,6 +90,7 @@
+ 		}
+ 		offset = i + (q - buffer) + 10;
+ 	}
++	
+ 	if (lseek(image, offset, 0) < 0) die ("lseek");
+ 	*(unsigned *)buffer = 0;
+ 	*(unsigned *)(buffer + 4) = 0x01000000;
+@@ -101,8 +104,15 @@
+ 	if (write(image,buffer,12) != 12) die (argv[1]);
+ 	if (lseek(image, k - start + ((end + 32 + 8191) & ~8191), 0) < 0) die ("lseek");
+ 	if ((tail = open(argv[3],O_RDONLY)) < 0) die(argv[3]);
++	printf("Writing ...");
+ 	while ((i = read (tail,buffer,1024)) > 0)
++	{
+ 		if (write(image,buffer,i) != i) die (argv[1]);
++		printf(".");
++		
++	}	
++	printf(".done\n");
++	printf("%s updated \n",argv[1]);
+ 	if (close(image) < 0) die("close");
+ 	if (close(tail) < 0) die("close");
+     	return 0;
 
-But when I boot after loading boot stops with Illegal instruction :-(
-If ram_image is smaller system boots but I need approx 2M is it possible ?
-
-
-PIGGYBACK:
-
-/usr/bin/piggyback vmliuz.aout sys_map.gz ram_image
-Could not determine start and end from System.map
-And nothing else. I look to piggyback.c and see then it search end statement not 
-_end. I modify this but get sigsegv.
-
-  /usr/local/bin/piggyback vmlinuz.aout System.map root.img
-Start : 0x404000 End: 0x722ca4
-i:137032
-lseek: Invalid argument
-lseek 2: Illegal seek
-
-I search over whole world and nothing. I have large experience with i86 netboot 
-but with Sun I start now :-).
-
-		Thanks
-			Dan
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+--------------090803020006010607040904--
