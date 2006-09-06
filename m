@@ -1,24 +1,20 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Date: Sun, 24 Sep 2006 07:59:44 +0000
-Subject: Re: [PATCH] no SA_NODEFER on sparc?
-Message-Id: <Pine.LNX.4.61.0609240958550.28459@yvahk01.tjqt.qr>
+From: Daniel Smolik <marvin@mydatex.cz>
+Date: Wed, 06 Sep 2006 20:32:04 +0000
+Subject: openpromfs 2.6.18-rc6
+Message-Id: <44FF3044.2020509@mydatex.cz>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20060908000602.GJ8569@bouh.residence.ens-lyon.fr>
- <20060923.173924.78710069.davem@davemloft.net>
-In-Reply-To: <20060923.173924.78710069.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: samuel.thibault@ens-lyon.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
+
+Hi,
+
+I want change my input-device from keyboard to rsc and I get invalid argument.
+
+echo 'rsc' > /proc/openprom/options/input-device. eeprom ends with SIGBUS.
+Under 2.6.17.2 openpromfs works well.
 
 
->> I noticed that the sparc arch misses a definition for SA_NODEFER. Is
->> that on purpose?  If not, here is a patch for fixing this.
-
-BTW, some SA_* constants have been superceded by IRQF_* in the kernel, 
-so you might want to check the new ones.
-
-
-Jan Engelhardt
--- 
+			Regards
+				Dan
