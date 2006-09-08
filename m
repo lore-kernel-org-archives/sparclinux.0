@@ -1,44 +1,68 @@
-From: Matthew Wilcox <matthew@wil.cx>
-Date: Wed, 20 Sep 2006 15:33:44 +0000
-Subject: Re: generic__raw_read_trylock Considered Harmful
-Message-Id: <20060920153344.GI2585@parisc-linux.org>
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date: Fri, 08 Sep 2006 00:06:02 +0000
+Subject: [PATCH] no SA_NODEFER on sparc?
+Message-Id: <20060908000602.GJ8569@bouh.residence.ens-lyon.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20060831134254.GE4919@parisc-linux.org> <20060919.155317.22126004.davem@davemloft.net>
-In-Reply-To: <20060919.155317.22126004.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: David Miller <davem@davemloft.net>
-Cc: linux-arch@vger.kernel.org, rmk@arm.linux.org.uk, takata@linux-m32r.org, lethal@linux-sh.org, kkojima@rr.iij4u.or.jp, linuxsh-dev@lists.sourceforge.net, wli@holomorphy.com, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Sep 19, 2006 at 03:53:17PM -0700, David Miller wrote:
-> From: Matthew Wilcox <matthew@wil.cx>
-> > NOTE to architecture maintainers: generic_raw_read_trylock() is
-> > completely unfit for use and will cause lockups if used in interrupt
-> > context.
->=20
-> I was about to go an fix SPARC but then looked in the tree
-> for actual users, and I see one, and only one, in the lockdep
-> code which tries to grab the tasklist_lock.
->=20
-> That's it (well.. there's one strange IA64 specific case in the MCA
-> code too).
->=20
-> You say you were fixing up PARISC and actually hit this problem, was
-> it exactly this lockdep case?  I really doubt it...
+Hi,
 
-That's not quite what I said; I was chasing some problems on parisc
-where we were getting read_lock deadlocks, and spotted this problem.
-It's not beyond the bounds of possibility that we'll have a real user
-for this function in the future.
+I noticed that the sparc arch misses a definition for SA_NODEFER. Is
+that on purpose?  If not, here is a patch for fixing this.
 
-The real bug was almost certainly elsewhere:
+Add SA_NODEFER, deprecating linuxish SA_NOMASK.
 
-http://git.parisc-linux.org/?p=3Dlinux-2.6.git;a=3Dcommit;hQ3b38677e9bb51d3=
-2f4cb401105bf828dfcd685
-http://git.parisc-linux.org/?p=3Dlinux-2.6.git;a=3Dcommit;h=93d8d8dff74923d=
-c9eb511c96ee3ccb918666049
+Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
 
-Essentially, a fix for one rather subtle bug introduced a somewhat less
-subtle one (which nevertheless went unfound for, er, 11 months ;-)
-
+diff --git a/include/asm-sparc/signal.h b/include/asm-sparc/signal.h
+index d03a21c..5484f65 100644
+--- a/include/asm-sparc/signal.h
++++ b/include/asm-sparc/signal.h
+@@ -133,16 +133,19 @@ #define _SV_IGNCHILD  8u    /* Do not se
+  * the sigaction structure as a stack pointer. This is now possible due to
+  * the changes in signal handling. LBT 010493.
+  * SA_RESTART flag to get restarting signals (which were the default long ago)
++ * SA_NOMASK is the historical Linux name for the Single Unix name NODEFER.
+  */
+ #define SA_NOCLDSTOP	_SV_IGNCHILD
+ #define SA_STACK	_SV_SSTACK
+ #define SA_ONSTACK	_SV_SSTACK
+ #define SA_RESTART	_SV_INTR
+ #define SA_ONESHOT	_SV_RESET
+-#define SA_NOMASK	0x20u
++#define SA_NODEFER	0x20u
+ #define SA_NOCLDWAIT	0x100u
+ #define SA_SIGINFO	0x200u
+ 
++#define SA_NOMASK	SA_NODEFER
++
+ #define SIG_BLOCK          0x01	/* for blocking signals */
+ #define SIG_UNBLOCK        0x02	/* for unblocking signals */
+ #define SIG_SETMASK        0x04	/* for setting the signal mask */
+diff --git a/include/asm-sparc64/signal.h b/include/asm-sparc64/signal.h
+index 9968871..f40f2bc 100644
+--- a/include/asm-sparc64/signal.h
++++ b/include/asm-sparc64/signal.h
+@@ -134,16 +134,18 @@ #define _SV_IGNCHILD  8u    /* Do not se
+  * the sigaction structure as a stack pointer. This is now possible due to
+  * the changes in signal handling. LBT 010493.
+  * SA_RESTART flag to get restarting signals (which were the default long ago)
++ * SA_NOMASK is the historical Linux name for the Single Unix name NODEFER.
+  */
+ #define SA_NOCLDSTOP	_SV_IGNCHILD
+ #define SA_STACK	_SV_SSTACK
+ #define SA_ONSTACK	_SV_SSTACK
+ #define SA_RESTART	_SV_INTR
+ #define SA_ONESHOT	_SV_RESET
+-#define SA_NOMASK	0x20u
++#define SA_NODEFER	0x20u
+ #define SA_NOCLDWAIT    0x100u
+ #define SA_SIGINFO      0x200u
+ 
++#define SA_NOMASK	SA_NODEFER
+ 
+ #define SIG_BLOCK          0x01	/* for blocking signals */
+ #define SIG_UNBLOCK        0x02	/* for unblocking signals */
