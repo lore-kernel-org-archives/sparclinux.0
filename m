@@ -1,70 +1,47 @@
-From: "Jurzitza, Dieter" <DJurzitza@harmanbecker.com>
-Date: Wed, 13 Sep 2006 05:40:26 +0000
-Subject: AW: fix 2.4.33.3 / sun partition size
-Message-Id: <DA6197CAE190A847B662079EF7631C06015692C6@OEKAW2EXVS03.hbi.ad.harman.com>
+From: Willy Tarreau <w@1wt.eu>
+Date: Sat, 16 Sep 2006 21:33:56 +0000
+Subject: Re: fix 2.4.33.3 / sun partition size
+Message-Id: <20060916213356.GA1420@1wt.eu>
 List-Id: <sparclinux.vger.kernel.org>
-References: <DA6197CAE190A847B662079EF7631C06015692C2@OEKAW2EXVS03.hbi.ad.harman.com>
-In-Reply-To: <DA6197CAE190A847B662079EF7631C06015692C2@OEKAW2EXVS03.hbi.ad.harman.com>
+References: <DA6197CAE190A847B662079EF7631C06015692C6@OEKAW2EXVS03.hbi.ad.harman.com>
+In-Reply-To: <DA6197CAE190A847B662079EF7631C06015692C6@OEKAW2EXVS03.hbi.ad.harman.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Willy Tarreau <w@1wt.eu>
-Cc: linux-kernel@vger.kernel.org, Jeff Mahoney <jeffm@suse.com>, sparclinux@vger.kernel.org, davem@davemloft.net
-
-Dear Willy,
-one final thougth here: ist there any real reason to *not* make
-add_gd_partition (struct gendisk, int minor, unsigned long start, unsigned =
-long size){...}
-(see fs/partitions/check.c)
-as:
-
-- within add_gd_partition the two values start and size are assigned to a f=
-ield of type unsigned long,
-- we both agree that there is no reason to use signed ints in this case,
-- any byte size conversion issue would be covered by the fact that it does =
-not hurt assigning too small numbers to oversized ones.
-
-Just my two cents here ...
-
-Take care
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: "Jurzitza, Dieter" <DJurzitza@harmanbecker.com>
+Cc: linux-kernel@vger.kernel.org, Jeff Mahoney <jeffm@suse.com>, sparclinux@vger.kernel.org, davem@davemloft.net, aeb@cwi.nl
 
 
+[Andries CCed since he's the partition maintainer]
 
+Hi Dieter,
 
-Dieter
+On Wed, Sep 13, 2006 at 07:40:26AM +0200, Jurzitza, Dieter wrote:
+> Dear Willy,
+> one final thougth here: ist there any real reason to *not* make
+> add_gd_partition (struct gendisk, int minor, unsigned long start, unsigned long size){...}
+> (see fs/partitions/check.c)
+> as:
+> 
+> - within add_gd_partition the two values start and size are assigned to a field of type unsigned long,
+> - we both agree that there is no reason to use signed ints in this case,
+> - any byte size conversion issue would be covered by the fact that it does not hurt assigning too small numbers to oversized ones.
+> 
+> Just my two cents here ...
 
+I agree with your analysis here. I've checked the code right now, and using signed
+ints in add_gd_partition() makes no sense to me as the hd_struct uses unsigned longs.
+So a cast is performed within add_gd_partition() anyway.
 
---=20
-________________________________________________
+We should make add_gd_partition() accept unsigned longs so that only its users will
+have to cast to unsigned long if needed, and this way it will be easier to track
+invalid signedness use.
 
-HARMAN BECKER AUTOMOTIVE SYSTEMS
+I've quickly checked if 2.6 needs a fix, but 2.6 declares add_partition() with
+sector_t values which are unsigned longs. So 2.6 is safe right now. I will add
+the fix and check at least on x86 and sparc64 that I do not see any regression
+nor warnings (I don't have 1TB to check larger partitions!).
 
-Dr.-Ing. Dieter Jurzitza
-Manager Hardware Systems
-   System Development
-
-Industriegebiet Ittersbach
-Becker-G=F6ring Str. 16
-D-76307 Karlsbad / Germany
-
-Phone: +49 (0)7248 71-1577
-Fax:   +49 (0)7248 71-1216
-eMail: DJurzitza@harmanbecker.com
-Internet: http://www.becker.de
-=20
-
-
-*******************************************
-Diese E-Mail enthaelt vertrauliche und/oder rechtlich geschuetzte Informati=
-onen. Wenn Sie nicht der richtige Adressat sind oder diese E-Mail irrtuemli=
-ch erhalten haben, informieren Sie bitte sofort den Absender und loeschen S=
-ie diese Mail. Das unerlaubte Kopieren sowie die unbefugte Weitergabe diese=
-r Mail ist nicht gestattet.
-=20
-This e-mail may contain confidential and/or privileged information. If you =
-are not the intended recipient (or have received this e-mail in error) plea=
-se notify the sender immediately and delete this e-mail. Any unauthorized c=
-opying, disclosure or distribution of the contents in this e-mail is strict=
-ly forbidden.
-*******************************************
+Thanks,
+Willy
 
