@@ -1,50 +1,96 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 21 Sep 2006 22:56:15 +0000
-Subject: Re: Patch 2.4 kernel / allow to read more than 2048 (1821) Symbols
-Message-Id: <20060921.155615.11378692.davem@davemloft.net>
+From: "Jurzitza, Dieter" <DJurzitza@harmanbecker.com>
+Date: Fri, 22 Sep 2006 05:26:41 +0000
+Subject: AW: Patch 2.4 kernel / allow to read more than 2048 (1821) Symbols
+Message-Id: <DA6197CAE190A847B662079EF7631C06015692D5@OEKAW2EXVS03.hbi.ad.harman.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <DA6197CAE190A847B662079EF7631C06015692C9@OEKAW2EXVS03.hbi.ad.harman.com>
-	<20060917.223512.25476592.davem@davemloft.net>
-	<20060919182638.GD3467@1wt.eu>
-In-Reply-To: <20060919182638.GD3467@1wt.eu>
+In-Reply-To: <DA6197CAE190A847B662079EF7631C06015692C9@OEKAW2EXVS03.hbi.ad.harman.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: w@1wt.eu
-Cc: DJurzitza@harmanbecker.com, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-From: Willy Tarreau <w@1wt.eu>
-Date: Tue, 19 Sep 2006 20:26:38 +0200
+Dear Mr. Miller,
+dear Willy,
+just for my understanding: apart from the fact that the maximum allocated s=
+izes differ for vmalloc() and kmalloc(), is it also true that a non privile=
+dged user couldn't call get_kernel_syms () with the current kmalloc() solut=
+ion?
 
-> On Sun, Sep 17, 2006 at 10:35:12PM -0700, David Miller wrote:
-> > From: "Jurzitza, Dieter" <DJurzitza@harmanbecker.com>
-> > Date: Mon, 18 Sep 2006 07:23:58 +0200
-> > 
-> > > The 2.4 kernel series uses sys32_get_kernel_syms(struct kernel_sym32
-> > > *table) for reading the kernel symbols (on sparc64). The size of
-> > > struct kernel_sym is 64 byte on "normal" arches, but 72 byte on
-> > > sparc64.
-> > 
-> > Jurzita, you do not need to post this patch multiple times.
-> > I was simply on vacation for 2 weeks right after your first
-> > posting so I had no chance to review the patch.
-> 
-> BTW, did you finally review it (no emergency at all on my side) ?
+Given this, wouldn't it be sufficient (for safety reasons) to include a dum=
+my call to kmalloc and return with an error if a non privileged user does t=
+he call?=20
 
-There are two problems:
+I mean, elegance is something different :-), but this could catch such a pr=
+oblem.
 
-1) If this goes in, similar fixes for sys_ia32.c, mips64, et al.
-   should go in at the same time.
+Just like:
 
-2) I dislike this fix because it means that users can lock down
-   a significant amount of non-swappable kernel memory.  There are
-   no privilege checks in the get_kernel_syms() system call, so
-   anyone can invoke it.  Imagine a fork bomb invoking this, and it
-   could also potentially eat up nearly all of the vmalloc() space.
+char *for_safety_reasons;
 
-It may be, in the end, simply better to have a
-"compat_sys_get_kernel_syms" written that can be called
-so a temporary kernel copy is not needed.
+for_safety_reasons=3Dkmalloc(1, GFP_KERNEL);
 
-I'm not offering to implement this :-)  But it does seem to be the
-only reasonable solution.
+if (!for_safety_reasons) return -ENOMEM; (or what soever)
+
+kfree (for_safety_reasons);
+
+Or is (in this regard) the only difference between vmalloc() and kmalloc() =
+the maximum size of allocable memory? Given this, the question reduces down=
+ to whether a fork bomb on vmalloc() or a fork bomb on kmalloc() is worse.
+
+My two cents here.
+
+Take care & many thanks for looking into it,
+
+
+
+Dieter Jurzitza
+
+
+--=20
+________________________________________________
+
+HARMAN BECKER AUTOMOTIVE SYSTEMS
+
+Dr.-Ing. Dieter Jurzitza
+Manager Hardware Systems
+   System Development
+
+Industriegebiet Ittersbach
+Becker-G=F6ring Str. 16
+D-76307 Karlsbad / Germany
+
+Phone: +49 (0)7248 71-1577
+Fax:   +49 (0)7248 71-1216
+eMail: DJurzitza@harmanbecker.com
+Internet: http://www.becker.de
+=20
+
+> -----Urspr=FCngliche Nachricht-----
+> Von: David Miller [mailto:davem@davemloft.net]=20
+> Gesendet: Freitag, 22. September 2006 00:56
+> 2) I dislike this fix because it means that users can lock down
+>    a significant amount of non-swappable kernel memory.  There are
+>    no privilege checks in the get_kernel_syms() system call, so
+>    anyone can invoke it.  Imagine a fork bomb invoking this, and it
+>    could also potentially eat up nearly all of the vmalloc() space.
+>=20
+> It may be, in the end, simply better to have a=20
+> "compat_sys_get_kernel_syms" written that can be called so a=20
+*****
+
+
+*******************************************
+Diese E-Mail enthaelt vertrauliche und/oder rechtlich geschuetzte Informati=
+onen. Wenn Sie nicht der richtige Adressat sind oder diese E-Mail irrtuemli=
+ch erhalten haben, informieren Sie bitte sofort den Absender und loeschen S=
+ie diese Mail. Das unerlaubte Kopieren sowie die unbefugte Weitergabe diese=
+r Mail ist nicht gestattet.
+=20
+This e-mail may contain confidential and/or privileged information. If you =
+are not the intended recipient (or have received this e-mail in error) plea=
+se notify the sender immediately and delete this e-mail. Any unauthorized c=
+opying, disclosure or distribution of the contents in this e-mail is strict=
+ly forbidden.
+*******************************************
+
