@@ -1,21 +1,62 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 18 Oct 2006 02:22:21 +0000
-Subject: Re: [PATCH] Add sparc profiling support
-Message-Id: <20061017.192221.85817922.davem@davemloft.net>
+From: Will Simoneau <simoneau@ele.uri.edu>
+Date: Thu, 05 Oct 2006 21:15:44 +0000
+Subject: [sparc64] 2.6.18 unaligned accesses in eth1394
+Message-Id: <20061005211543.GA18539@ele.uri.edu>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="OXfL5xGRrasGEqWY"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20061015212546.GA4960@palantir8>
-In-Reply-To: <20061015212546.GA4960@palantir8>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-From: Martin Habets <errandir_news@mph.eclipse.co.uk>
-Date: Sun, 15 Oct 2006 22:25:46 +0100
 
-> This patch adds profiling support to the sparc architecture. It is a copy of the
-> sparc64 implementation.
-> 
-> Signed-off-by: Martin Habets <errandir_news@mph.eclipse.co.uk>
+--OXfL5xGRrasGEqWY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks a lot Martin, patch applied.
+Here's a pair of unaligned accesses I found playing with the eth1394 driver:
+
+Kernel unaligned access at TPC[102c8190] ether1394_tx+0xf8/0x600 [eth1394]
+Kernel unaligned access at TPC[10162c8c] ether1394_data_handler+0x914/0x100=
+0 [eth1394]
+
+The first one I seem to be able to fix by adding a get_unaligned() at
+lines 1679-1680 of eth1394.c around eth->h_dest; the second one seems to
+be triggered by this code:
+
+(gdb) list *ether1394_data_handler+0x914
+0xc94 is in ether1394_data_handler (drivers/ieee1394/eth1394.c:1264).
+1259        priv->stats.rx_dropped++;
+1260        dev_kfree_skb_any(skb);
+1261        goto bad_proto;
+1262     }
+1263 =20
+1264     if (netif_rx(skb) =3D=3D NET_RX_DROP) {
+1265        priv->stats.rx_errors++;
+1266        priv->stats.rx_dropped++;
+1267        goto bad_proto;
+1268     }
+
+Unaligned accesses caused by netif_rx seem to have happened before on
+mips long ago (according to google). I suspect nobody has ever tried
+eth1394 on sparc64 ;-)
+
+eth1394 seems to work fine otherwise, I can plug a firewire hdd and a
+laptop with firewire into the sparc and everything works OK. I get
+~13MB/sec network throughput from laptop -> sparc (the sparc's CPU is
+hitting 100% system time), I suspect it would be a lot faster with the
+alignment problem fixed.
+
+--OXfL5xGRrasGEqWY
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (GNU/Linux)
+
+iD8DBQFFJXX/LYBaX8VDLLURAjRAAKDBM2GaPLb7SLcrDhuEnWsyns5BvQCgmTKF
+izn/QuiwNtm17P92bILrU0Y=
+=JB9E
+-----END PGP SIGNATURE-----
+
+--OXfL5xGRrasGEqWY--
