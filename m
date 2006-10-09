@@ -1,47 +1,46 @@
-From: vincent@cojot.name
-Date: Thu, 19 Oct 2006 08:50:04 +0000
-Subject: Re: disk diagnostics
-Message-Id: <Pine.LNX.4.64.0610191048010.9457@thorbardin.lasthome.solace.krynn>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="-1463779200-448013198-1161247804=:9457"
+From: Martin Habets <errandir_news@mph.eclipse.co.uk>
+Date: Mon, 09 Oct 2006 16:48:20 +0000
+Subject: [PATCH] sparc32: Fix prom.c build warning
+Message-Id: <20061009164820.GA26520@palantir8>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200401070724.20426.pkarlsen@mandriva.com>
-In-Reply-To: <200401070724.20426.pkarlsen@mandriva.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Fix these 2.6.19-rc1 build warnings:
 
----1463779200-448013198-1161247804=:9457
-Content-Type: TEXT/PLAIN; charset="iso-8859-1"; format="flowed"
-Content-Transfer-Encoding: quoted-printable
+  CC      arch/sparc/kernel/prom.o
+arch/sparc/kernel/prom.c: In function `of_set_property':
+arch/sparc/kernel/prom.c:246: warning: passing arg 2 of `prom_setprop' discards qualifiers from pointer target type
+arch/sparc/kernel/prom.c: In function `build_one_prop':
+arch/sparc/kernel/prom.c:446: warning: unused variable `len'
+arch/sparc/kernel/prom.c:480: warning: ignoring return value of `prom_getproperty', declared with attribute warn_unused_result
 
-On Wed, 18 Oct 2006, Per =D8yvind Karlsen wrote:
+Martin
 
->
-> Oh well, I guess that I could just put it in a x86 box and run diagnostics
-> there if nothing else, less hazzle than installing solaris at least..
+	Signed-off-by: Martin Habets <errandir_news@mph.eclipse.co.uk>
 
-Is smartctl available on Linux/Sparc? I know it is available in most=20
-distros and also works on Solaris/Sparc.. If your disks are recent=20
-enough and smartctl is available on Linux/Sparc, you could ask them to=20
-perform the smartctl selftests and report their S.M.A.R.T status...? Most=20
-modern/post-36Gb disks have S.M.A.R.T, i think...
-
-I hope this helps..
-
---=20
-,-*~'`^`'~*-,._.,-*~'`^`'~*-,._.,-*~'`^`'~*-,._.,-*~'`^`'~*-,._.,-*~'`^`'~*=
--,
-Vincent S. Cojot, Computer Engineering. STEP project. _.,-*~'`^`'~*-,._.,-*~
-Ecole Polytechnique de Montreal, Comite Micro-Informatique. _.,-*~'`^`'~*-,.
-Linux Xview/OpenLook resources page _.,-*~'`^`'~*-,._.,-*~'`^`'~*-,._.,-*~'
-http://step.polymtl.ca/~coyote  _.,-*~'`^`'~*-,._ coyote@NOSPAM4cojot.name
-
-They cannot scare me with their empty spaces
-Between stars - on stars where no human race is
-I have it in me so much nearer home
-To scare myself with my own desert places.       - Robert Frost
-
-
----1463779200-448013198-1161247804=:9457--
+Index: linux/arch/sparc/kernel/prom.c
+=================================--- linux.orig/arch/sparc/kernel/prom.c	2006-10-06 00:33:30.000000000 +0100
++++ linux/arch/sparc/kernel/prom.c	2006-10-07 01:01:22.000000000 +0100
+@@ -243,7 +243,7 @@
+ 			void *old_val = prop->value;
+ 			int ret;
+ 
+-			ret = prom_setprop(dp->node, name, val, len);
++			ret = prom_setprop(dp->node, (char *) name, val, len);
+ 			err = -EINVAL;
+ 			if (ret >= 0) {
+ 				prop->value = new_val;
+@@ -477,7 +477,9 @@
+ 			p->length = 0;
+ 		} else {
+ 			p->value = prom_early_alloc(p->length + 1);
+-			prom_getproperty(node, p->name, p->value, p->length);
++			len = prom_getproperty(node, p->name, p->value,
++					       p->length);
++			if (len <= 0) p->length = 0;
+ 			((unsigned char *)p->value)[p->length] = '\0';
+ 		}
+ 	}
