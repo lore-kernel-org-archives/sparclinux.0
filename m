@@ -1,32 +1,49 @@
-From: Jurij Smakov <jurij@wooyd.org>
-Date: Wed, 04 Oct 2006 03:21:49 +0000
-Subject: Re: Problems with qla2xxx drivers in recent kernels
-Message-Id: <20061004032149.GA4772@droopy.oc.cox.net>
+From: Martin Habets <errandir_news@mph.eclipse.co.uk>
+Date: Tue, 10 Oct 2006 15:44:16 +0000
+Subject: [PATCH 1/4] fix sparc32 modpost warnings
+Message-Id: <20061010154416.GB30909@palantir8>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20061003045359.GA4269@droopy.oc.cox.net>
-In-Reply-To: <20061003045359.GA4269@droopy.oc.cox.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, Oct 03, 2006 at 09:44:36AM -0300, Gustavo Zacarias wrote:
+Subject: [PATCH 1/4] fix sparc32 modpost warnings
 
-> Did you build said kernels with CONFIG_SCSI_QLA2XXX_EMBEDDED_FIRMWARE
-> enabled? From what we've seen it's required for them to work on those
-> machines.
+Fix these 2.6.19-rc1 build warnings from modpost:
 
-Hi Gustavo,
+WARNING: vmlinux - Section mismatch: reference to .init.text:_sinittext from .text between 'core_kernel_text' (at offset 0x3e060) and '__kernel_text_address'
+WARNING: vmlinux - Section mismatch: reference to .init.text:_sinittext from .text between 'core_kernel_text' (at offset 0x3e064) and '__kernel_text_address'
+WARNING: vmlinux - Section mismatch: reference to .init.text:_einittext from .text between 'core_kernel_text' (at offset 0x3e07c) and '__kernel_text_address'
+WARNING: vmlinux - Section mismatch: reference to .init.text:_einittext from .text between 'core_kernel_text' (at offset 0x3e080) and '__kernel_text_address'
+WARNING: vmlinux - Section mismatch: reference to .init.text:_sinittext from .text between 'is_ksym_addr' (at offset 0x4b3a4) and 'kallsyms_expand_symbol'
+WARNING: vmlinux - Section mismatch: reference to .init.text:_sinittext from .text between 'is_ksym_addr' (at offset 0x4b3a8) and 'kallsyms_expand_symbol'
+WARNING: vmlinux - Section mismatch: reference to .init.text:_einittext from .text between 'is_ksym_addr' (at offset 0x4b3b4) and 'kallsyms_expand_symbol'
+WARNING: vmlinux - Section mismatch: reference to .init.text:_einittext from .text between 'is_ksym_addr' (at offset 0x4b3e4) and 'kallsyms_expand_symbol'
+WARNING: vmlinux - Section mismatch: reference to .init.text:_sinittext from .text between 'get_symbol_pos' (at offset 0x4b640) and 'kallsyms_lookup_size_offset'
+WARNING: vmlinux - Section mismatch: reference to .init.text:_sinittext from .text between 'get_symbol_pos' (at offset 0x4b644) and 'kallsyms_lookup_size_offset'
+WARNING: vmlinux - Section mismatch: reference to .init.text:_einittext from .text between 'get_symbol_pos' (at offset 0x4b654) and 'kallsyms_lookup_size_offset'
+WARNING: vmlinux - Section mismatch: reference to .init.text:_einittext from .text between 'get_symbol_pos' (at offset 0x4b658) and 'kallsyms_lookup_size_offset'
+WARNING: vmlinux - Section mismatch: reference to .init.text:_sinittext from .text between 'get_symbol_pos' (at offset 0x4b68c) and 'kallsyms_lookup_size_offset'
 
-Thanks for the tip. It is most probably a firmware issue (I've asked to verify 
-that). However, I don't think that the config option you mentioned does anything 
-useful. I was able to find its only occurence in the 2.6.18 tree in
+Martin
 
-arch/ia64/configs/sn2_defconfig
-
-Am I missing something here?
-
-Best regards,
--- 
-Jurij Smakov                                        jurij@wooyd.org
-Key: http://www.wooyd.org/pgpkey/                   KeyID: C99E03CC
+	Signed-off-by: Martin Habets <errandir_news@mph.eclipse.co.uk>
+---
+Index: linux/arch/sparc/kernel/vmlinux.lds.S
+=================================--- linux.orig/arch/sparc/kernel/vmlinux.lds.S	2006-10-07 04:55:15.000000000 +0100
++++ linux/arch/sparc/kernel/vmlinux.lds.S	2006-10-07 05:00:40.000000000 +0100
+@@ -36,11 +36,11 @@
+ 
+   . = ALIGN(4096);
+   __init_begin = .;
++  _sinittext = .;
+   .init.text : { 
+-	_sinittext = .;
+ 	*(.init.text)
+-	_einittext = .;
+   }
++  _einittext = .;
+   __init_text_end = .;
+   .init.data : { *(.init.data) }
+   . = ALIGN(16);
