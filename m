@@ -1,20 +1,36 @@
-From: Martin Habets <errandir_news@mph.eclipse.co.uk>
-Date: Thu, 26 Oct 2006 15:03:36 +0000
-Subject: Re: bcm43xx build fix
-Message-Id: <20061026150335.GB10324@palantir8>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 10 Oct 2006 01:47:43 +0000
+Subject: Re: [BUG 2.6.18] unaligned access in ipvv6_rcv, nf_ip6_checksum,
+Message-Id: <20061009.184743.112621206.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200610261336.20338.pkarlsen@mandriva.com>
-In-Reply-To: <200610261336.20338.pkarlsen@mandriva.com>
+References: <20060930202040.GF1083@sunbeam.de.gnumonks.org>
+In-Reply-To: <20060930202040.GF1083@sunbeam.de.gnumonks.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: laforge@gnumonks.org
+Cc: sparclinux@vger.kernel.org, netdev@vger.kernel.org
 
-Per,
+From: Harald Welte <laforge@gnumonks.org>
+Date: Sat, 30 Sep 2006 22:20:40 +0200
 
-You should have a look at Documentation/SubmittingPatches,
-notably items 10 - 12.
+> Kernel unaligned access at TPC[10022cf0] ipv6_rcv+0xb8/0x320 [ipv6]
+> Kernel unaligned access at TPC[10023800] __ipv6_addr_type+0x8/0x140 [ipv6]
+> Kernel unaligned access at TPC[1002fd64] fib6_lookup_1+0x2c/0x120 [ipv6]
+> Kernel unaligned access at TPC[10093878] tcp_error+0x40/0x2c0 [nf_conntrack]
+> Kernel unaligned access at TPC[1004ce54] nf_ip6_checksum+0x13c/0x1c0 [ipv6]
+> Kernel unaligned access at TPC[1004ce58] nf_ip6_checksum+0x140/0x1c0 [ipv6]
+> Kernel unaligned access at TPC[1004ce60] nf_ip6_checksum+0x148/0x1c0 [ipv6]
 
-Cheers,
--- 
-Martin
+I think for all of these cases the IPv6 header is not 4-byte
+aligned in the SKB.  The first case is simply ipv6_hdr->version
+which GCC turns into a load of the first 4 byte word of the
+headers, then a mask+compare.  And this is fine becasue due
+to the "struct in6_addr", gcc may assume that the ipv6 header
+struct is at least 4 bytes aligned since in6_addr contains
+an array of u32[]'s.
+
+What kind of input path is this packet coming from?  Is it
+using some kind of encapsulation?  It's odd for it to not
+be 4 byte aligned, you would get the same kind of unaligned
+accesses for an ipv4 header if it were misaligned like this.
