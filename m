@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 10 Oct 2006 21:21:21 +0000
+From: Martin Habets <errandir_news@mph.eclipse.co.uk>
+Date: Wed, 11 Oct 2006 16:10:45 +0000
 Subject: Re: [PATCH 1/4] fix sparc32 modpost warnings
-Message-Id: <20061010.142121.34759537.davem@davemloft.net>
+Message-Id: <20061011161045.GA15959@palantir8>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20061010154416.GB30909@palantir8>
 In-Reply-To: <20061010154416.GB30909@palantir8>
@@ -10,38 +10,53 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Martin Habets <errandir_news@mph.eclipse.co.uk>
-Date: Tue, 10 Oct 2006 16:44:16 +0100
-
-> Subject: [PATCH 1/4] fix sparc32 modpost warnings
+On Tue, Oct 10, 2006 at 02:21:21PM -0700, David Miller wrote:
+> From: Martin Habets <errandir_news@mph.eclipse.co.uk>
+> Date: Tue, 10 Oct 2006 16:44:16 +0100
 > 
-> Fix these 2.6.19-rc1 build warnings from modpost:
+> > Subject: [PATCH 1/4] fix sparc32 modpost warnings
+> > 
+> > Fix these 2.6.19-rc1 build warnings from modpost:
+> > 
+> > WARNING: vmlinux - Section mismatch: reference to .init.text:_sinittext from .text between 'core_kernel_text' (at offset 0x3e060) and '__kernel_text_address'
+>  ...
+> > @@ -36,11 +36,11 @@
+> >  
+> >    . = ALIGN(4096);
+> >    __init_begin = .;
+> > +  _sinittext = .;
+> >    .init.text : { 
+> > -	_sinittext = .;
+> >  	*(.init.text)
+> > -	_einittext = .;
+> >    }
+> > +  _einittext = .;
+> >    __init_text_end = .;
+> >    .init.data : { *(.init.data) }
+> >    . = ALIGN(16);
 > 
-> WARNING: vmlinux - Section mismatch: reference to .init.text:_sinittext from .text between 'core_kernel_text' (at offset 0x3e060) and '__kernel_text_address'
- ...
-> @@ -36,11 +36,11 @@
->  
->    . = ALIGN(4096);
->    __init_begin = .;
-> +  _sinittext = .;
->    .init.text : { 
-> -	_sinittext = .;
->  	*(.init.text)
-> -	_einittext = .;
->    }
-> +  _einittext = .;
->    __init_text_end = .;
->    .init.data : { *(.init.data) }
->    . = ALIGN(16);
+> This doesn't make any sense.  No other architecture specifies
+> the init sections in this way in their vmlinux.lds.S file.
 
-This doesn't make any sense.  No other architecture specifies
-the init sections in this way in their vmlinux.lds.S file.
-Why is this change correct?
+The frv is the only architecture that has it this way.
+I just build 2.6.19-rc1 for i386, expecting to see the same build warning.
+It did not appear, which puzzles me at the moment. Do you get this
+warning for sparc64?
 
-Can you try to track down the real problem that causes this
-and then explain it clearly in the patch that you end up
-posting?
+> Why is this change correct?
 
-I have trouble applying patches that are of the form "get rid
-of this warning" with zero explanation for the reasoning
-behind the fix being proposed :-)
+The symbols are used from functions that realy should be .text (like
+core_kernel_text() in kernel/extable.c). They are not referenced from
+anything in an .init.text sections. So moving them seemed like the right
+solution.
+
+> Can you try to track down the real problem that causes this
+> and then explain it clearly in the patch that you end up
+> posting?
+
+My guess is all architectures except sparc and frv have some code to
+prevent the warning. I'll see what I can find.
+
+Thanks,
+-- 
+Martin
