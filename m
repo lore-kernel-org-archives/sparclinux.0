@@ -1,24 +1,52 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 23 Oct 2006 21:01:15 +0000
-Subject: Re: Unaligned accesses in compat_sys_msgrcv and sys_msgrcv
-Message-Id: <20061023.140115.45513727.davem@davemloft.net>
+From: Martin Habets <errandir_news@mph.eclipse.co.uk>
+Date: Sun, 15 Oct 2006 20:05:47 +0000
+Subject: sparc32 modpost warnings from init()
+Message-Id: <20061015200547.GA4729@palantir8>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20061021041107.GA4629@droopy.oc.cox.net>
-In-Reply-To: <20061021041107.GA4629@droopy.oc.cox.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Jurij Smakov <jurij@wooyd.org>
-Date: Mon, 23 Oct 2006 09:52:00 -0700
+I am left with the warnings below in the sparc build of 2.6.19-rc2. They
+all originate from init() (init/main.c). This function should definitely
+remain in .text and it is fine it calls to .init.text functions.
 
-> It turned out that the source of these messages was fakeroot - a 
-> Debian utility which wraps a few system calls to create an illusion 
-> that the process is running with root privileges. It is commonly used 
-> during package builds and uses IPC to communicate with the daemon 
-> which tracks the (fake) information about file ownership and 
-> permissions.
+The patch below against modpost makes it ignore this function, but I am
+not sure:
+- if this is the correct solution
+- if this code should be sparc-specific
+Any input on how to get rid of these warnings is welcome.
 
-Thanks Jurij, I knew about fakeroot but not that it used
-sysv IPC :-)
+WARNING: vmlinux - Section mismatch: reference to .init.text:spawn_ksoftirqd from .text between 'init' (at offset 0xc07c) and 'try_name'
+WARNING: vmlinux - Section mismatch: reference to .init.text:spawn_softlockup_task from .text between 'init' (at offset 0xc084) and 'try_name'
+WARNING: vmlinux - Section mismatch: reference to .init.text:sched_init_smp from .text between 'init' (at offset 0xc08c) and 'try_name'
+WARNING: vmlinux - Section mismatch: reference to .init.text:populate_rootfs from .text between 'init' (at offset 0xc094) and 'try_name'
+WARNING: vmlinux - Section mismatch: reference to .init.text:usermodehelper_init from .text between 'init' (at offset 0xc0a4) and 'try_name'
+WARNING: vmlinux - Section mismatch: reference to .init.text:driver_init from .text between 'init' (at offset 0xc0ac) and 'try_name'
+WARNING: vmlinux - Section mismatch: reference to .init.text:sysctl_init from .text between 'init' (at offset 0xc0b4) and 'try_name'
+WARNING: vmlinux - Section mismatch: reference to .init.data:initcall_debug from .text between 'init' (at offset 0xc0d4) and 'try_name'
+WARNING: vmlinux - Section mismatch: reference to .init.data:initcall_debug from .text between 'init' (at offset 0xc0d8) and 'try_name'
+WARNING: vmlinux - Section mismatch: reference to .init.data:initcall_debug from .text between 'init' (at offset 0xc114) and 'try_name'
+WARNING: vmlinux - Section mismatch: reference to .init.data:initcall_debug from .text between 'init' (at offset 0xc194) and 'try_name'
+WARNING: vmlinux - Section mismatch: reference to .init.text:prepare_namespace from .text between 'init' (at offset 0xc2e0) and 'try_name'
+
+Martin
+
+	Signed-off-by: Martin Habets <errandir_news@mph.eclipse.co.uk>
+---
+Index: 2.6.19-rc2/scripts/mod/modpost.c
+=================================--- 2.6.19-rc2.orig/scripts/mod/modpost.c	2006-10-14 01:15:27.000000000 +0100
++++ 2.6.19-rc2/scripts/mod/modpost.c	2006-10-15 20:43:55.000000000 +0100
+@@ -629,6 +629,11 @@
+ 		    (strcmp(tosec, ".init.text") = 0))
+ 		return 1;
+ 	}
++
++	/* Whitelist all references from init() */
++	if (strncmp(atsym, "init", strlen("init")) = 0)
++		return 1;
++
+ 	return 0;
+ }
+ 
