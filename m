@@ -1,24 +1,26 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 27 Oct 2006 05:37:09 +0000
-Subject: Re: 2.6.19-rc3 on sb100 - iihk!
-Message-Id: <20061026.223709.77057387.davem@davemloft.net>
+From: "Jean-Fabrice [gmail]" <jeanfabrice@gmail.com>
+Date: Tue, 17 Oct 2006 08:39:49 +0000
+Subject: qla2xxx issue on >2.6.17 kernel
+Message-Id: <da053ca90610170139l693952d4xf09ab500a5e66b12@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200610270726.53577.pkarlsen@mandriva.com>
-In-Reply-To: <200610270726.53577.pkarlsen@mandriva.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Per =D8yvind Karlsen <pkarlsen@mandriva.com>
-Date: Fri, 27 Oct 2006 07:26:53 +0200
+Hi,
 
-> Oh, btw. another issue, my SB100 reports 11.11 bogomips total, did the sa=
-me=20
-> with 2.6.17-rc3, don't know at what time it got broken, known issue?
+I have the same problem than Jurij Smakov in
+http://marc.theaimsgroup.com/?l=linux-sparc&m5985125624301&w=2
+My SunFire 280R does not boot 2.6.17 kernel since the qla2xxx driver
+doesn't recognize the attached disks. 2.6.16.29 with qlogicfc driver
+boots normally.
 
-It's not broken, that's the correct value.
+I read Gustavo answer about CONFIG_SCSI_QLA2XXX_EMBEDDED_FIRMWARE but,
+like Jurij, I did not find it the sparc32/64 arch
 
-The mechanism used to calucate the value and the meaning of it
-changed, comparing values created by the old and new method is not
-valid.
+I'm not using initramfs.
+
+Is there anything I can do to solve this issue ?
+
+Jean-Fabrice
