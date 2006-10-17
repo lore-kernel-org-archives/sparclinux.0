@@ -1,29 +1,43 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 10 Oct 2006 01:10:34 +0000
-Subject: Re: [PATCH] sparc32: Fix prom.c build warning
-Message-Id: <20061009.181034.07641360.davem@davemloft.net>
+From: "Krzysztof Helt" <krzysztof.h1@wp.pl>
+Date: Tue, 17 Oct 2006 09:36:25 +0000
+Subject: [PATCH] Sparc compilation fix with floppy enabled
+Message-Id: <4534a4192f1c2@wp.pl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="part4534a41931841"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20061009164820.GA26520@palantir8>
-In-Reply-To: <20061009164820.GA26520@palantir8>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Martin Habets <errandir_news@mph.eclipse.co.uk>
-Date: Mon, 9 Oct 2006 17:48:20 +0100
+This is a multi-part message in MIME format.
 
-> Fix these 2.6.19-rc1 build warnings:
-> 
->   CC      arch/sparc/kernel/prom.o
-> arch/sparc/kernel/prom.c: In function `of_set_property':
-> arch/sparc/kernel/prom.c:246: warning: passing arg 2 of `prom_setprop' discards qualifiers from pointer target type
-> arch/sparc/kernel/prom.c: In function `build_one_prop':
-> arch/sparc/kernel/prom.c:446: warning: unused variable `len'
-> arch/sparc/kernel/prom.c:480: warning: ignoring return value of `prom_getproperty', declared with attribute warn_unused_result
-> 
-> Martin
-> 
-> 	Signed-off-by: Martin Habets <errandir_news@mph.eclipse.co.uk>
+--part4534a41931841
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: 8bit
+Content-Disposition: inline
 
-Applied, thanks Martin.
+This patch fixes a typo to make kernel compilable when floppy driver for Sparc is build.
+
+Krzysztof Helt
+
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+---
+
+Found in linux-2.6.19-rc2.
+
+--part4534a41931841
+Content-Type: text/x-patch; name="fix-floppy-compilation.diff"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="fix-floppy-compilation.diff"
+
+ZGlmZiAtdXJwIGxpbnV4LTIuNi4xOC9hcmNoL3NwYXJjL2tlcm5lbC9pcnEuYyBsaW51eC1uZXcv
+YXJjaC9zcGFyYy9rZXJuZWwvaXJxLmMKLS0tIGxpbnV4LTIuNi4xOC9hcmNoL3NwYXJjL2tlcm5l
+bC9pcnEuYwkyMDA2LTEwLTE3IDExOjE5OjAzLjAwMDAwMDAwMCArMDIwMAorKysgbGludXgtbmV3
+L2FyY2gvc3BhcmMva2VybmVsL2lycS5jCTIwMDYtMTAtMTcgMTE6MjA6NTcuMDAwMDAwMDAwICsw
+MjAwCkBAIC0zNTEsNyArMzUxLDcgQEAgdm9pZCBoYW5kbGVyX2lycShpbnQgaXJxLCBzdHJ1Y3Qg
+cHRfcmVncwogfQogCiAjaWZkZWYgQ09ORklHX0JMS19ERVZfRkQKLWV4dGVybiB2b2lkIGZsb3Bw
+eV9pbnRlcnJ1cHQoaW50IGlycSwgdm9pZCAqZGV2X2lkKQorZXh0ZXJuIHZvaWQgZmxvcHB5X2lu
+dGVycnVwdChpbnQgaXJxLCB2b2lkICpkZXZfaWQpOwogCiB2b2lkIHNwYXJjX2Zsb3BweV9pcnEo
+aW50IGlycSwgdm9pZCAqZGV2X2lkLCBzdHJ1Y3QgcHRfcmVncyAqcmVncykKIHsK
+
+--part4534a41931841--
+
+
