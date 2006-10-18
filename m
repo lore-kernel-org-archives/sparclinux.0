@@ -1,25 +1,20 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 21 Oct 2006 06:37:45 +0000
-Subject: Re: Building silo against 2.6.18 kernel headers
-Message-Id: <20061020.233745.34759384.davem@davemloft.net>
+From: Per =?iso-8859-1?q?=D8yvind_Karlsen?= <pkarlsen@mandriva.com>
+Date: Wed, 18 Oct 2006 20:59:41 +0000
+Subject: disk diagnostics
+Message-Id: <200610182259.42579.pkarlsen@mandriva.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20061021041849.GA4720@droopy.oc.cox.net>
-In-Reply-To: <20061021041849.GA4720@droopy.oc.cox.net>
+References: <200401070724.20426.pkarlsen@mandriva.com>
+In-Reply-To: <200401070724.20426.pkarlsen@mandriva.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-From: Jurij Smakov <jurij@wooyd.org>
-Date: Fri, 20 Oct 2006 21:18:49 -0700
+This might be offtopic, but I'm not sure where else to ask..
 
-> Due to some changes in the kernel headers, introduced in 2.6.18 (the 
-> struct ufs_super_block was split into three different structs 
-> ufs_super_block_{first,second,third}), silo no longer builds against 
-> them. I came up with the patch for it (attached).
-
-SILO should ship it's own ufs.h header file so that this will
-never be an issue.  That's the real long-term solution for
-this.
-
-
+I'm in the need of some disk diagnostic software for sparc (like the ones=20
+vendors supply for x86), anyone with knowledge of availability of such?
+--=20
+Regards,
+Per =D8yvind Karlsen
+Mandriva
