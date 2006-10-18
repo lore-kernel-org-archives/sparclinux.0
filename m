@@ -1,154 +1,45 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 18 Oct 2006 20:37:42 +0000
+From: Per =?iso-8859-1?q?=D8yvind_Karlsen?= <pkarlsen@mandriva.com>
+Date: Wed, 18 Oct 2006 20:41:24 +0000
 Subject: Re: Problems booting 2.6.18 on SunBlade 100/150
-Message-Id: <20061018.133742.21927174.davem@davemloft.net>
+Message-Id: <200610182241.24976.pkarlsen@mandriva.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <200401070729.56891.pkarlsen@mandriva.com>
 In-Reply-To: <200401070729.56891.pkarlsen@mandriva.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-From: "Jurij Smakov" <jurij@wooyd.org>
-Date: Wed, 18 Oct 2006 12:38:38 -0700 (PDT)
+Onsdag 18 oktober 2006 22:36, skrev David Miller:
+> From: Per =D8yvind Karlsen <pkarlsen@mandriva.com>
+> Date: Wed, 18 Oct 2006 21:28:55 +0100
+>
+> > okay, tried booting with display, got these errors:
+> >
+> > SABRE0: Uncorrectable Error, primary error type[DMA Write:Translation
+> > Error] SABRE0: bytemask[00ff] dword_offset[0] was_block(0)
+> > SABRE0: UE AFAR [000000006fd7c000]
+> > SABRE0: UE Secondary errors [(none)]
+> > SABRE0: IOMMU Error, type[Invalid Error]
+> > SABRE0: IOMMU TAG(3)[RAW(0000000000c6f800)error(Invalid
+> > Error)wr(0)sz(8K)vpg(df000000)]
+> > SABRE0: IOMMU DATA(3)
+> > [RAW(000000006fe379ec)valid(1)used(1)cache(0)ppg(000000006f3d8000)
+> >
+> > makes any sense?
+>
+> That's coming from a DMA transaction which your ATY video
+> card isn't going to do :-)
+>
+> What kind of devices are in this computer?  Any add-in
+> network or storage PCI cards?
+Yes, I have a hpt366 ide controller for hard disks.
 
-> I've tried to build the patched Debian packages overnight, but the build
-> failed for unrelated reasons. I'll try again tonight.
+I failed to be able to have to openboot boot of the disks, so I have a DOM =
 
-Jurij, please use this updated version of the patch
-against 2.6.18, thanks.
+(disk on module) disk for boot partition on onboard controller..
 
-[SPARC64]: Fix PCI memory space root resource on Hummingbird.
-
-For Hummingbird PCI controllers, we should create the root
-PCI memory space resource as the full 4GB area, and then
-allocate the IOMMU DMA translation window out of there.
-
-The old code just assumed that the IOMMU DMA translation base
-to the top of the 4GB area was unusable.  This is not true on
-many systems such as SB100 and SB150, where the IOMMU DMA
-translation window sits at 0xc0000000->0xdfffffff.
-
-So what would happen is that any device mapped by the firmware
-at the top section 0xe0000000->0xffffffff would get remapped
-by Linux somewhere else leading to all kinds of problems and
-boot failures.
-
-While we're here, report more cases of OBP resource assignment
-conflicts.  The only truly valid ones are ROM resource conflicts.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
-
-diff --git a/arch/sparc64/kernel/pci_common.c b/arch/sparc64/kernel/pci_common.c
-index 7a59cc7..827ae30 100644
---- a/arch/sparc64/kernel/pci_common.c
-+++ b/arch/sparc64/kernel/pci_common.c
-@@ -330,19 +330,6 @@ #endif
- 	return res;
- }
- 
--static int __init pdev_resource_collisions_expected(struct pci_dev *pdev)
--{
--	if (pdev->vendor != PCI_VENDOR_ID_SUN)
--		return 0;
--
--	if (pdev->device = PCI_DEVICE_ID_SUN_RIO_EBUS ||
--	    pdev->device = PCI_DEVICE_ID_SUN_RIO_1394 ||
--	    pdev->device = PCI_DEVICE_ID_SUN_RIO_USB)
--		return 1;
--
--	return 0;
--}
--
- static void __init pdev_record_assignments(struct pci_pbm_info *pbm,
- 					   struct pci_dev *pdev)
- {
-@@ -400,19 +387,23 @@ static void __init pdev_record_assignmen
- 		pbm->parent->resource_adjust(pdev, res, root);
- 
- 		if (request_resource(root, res) < 0) {
-+			int rnum;
-+
- 			/* OK, there is some conflict.  But this is fine
- 			 * since we'll reassign it in the fixup pass.
- 			 *
--			 * We notify the user that OBP made an error if it
--			 * is a case we don't expect.
-+			 * Do not print the warning for ROM resources
-+			 * as such a conflict is quite common and
-+			 * harmless as the ROM bar is disabled.
- 			 */
--			if (!pdev_resource_collisions_expected(pdev)) {
--				printk(KERN_ERR "PCI: Address space collision on region %ld "
-+			rnum = (res - &pdev->resource[0]);
-+			if (rnum != PCI_ROM_RESOURCE)
-+				printk(KERN_ERR "PCI: Resource collision, "
-+				       "region %d "
- 				       "[%016lx:%016lx] of device %s\n",
--				       (res - &pdev->resource[0]),
-+				       rnum,
- 				       res->start, res->end,
- 				       pci_name(pdev));
--			}
- 		}
- 	}
- }
-diff --git a/arch/sparc64/kernel/pci_sabre.c b/arch/sparc64/kernel/pci_sabre.c
-index 4589185..f04c6d2 100644
---- a/arch/sparc64/kernel/pci_sabre.c
-+++ b/arch/sparc64/kernel/pci_sabre.c
-@@ -1196,7 +1196,7 @@ static void pbm_register_toplevel_resour
- 					    &pbm->mem_space);
- }
- 
--static void sabre_pbm_init(struct pci_controller_info *p, struct device_node *dp, u32 dma_begin)
-+static void sabre_pbm_init(struct pci_controller_info *p, struct device_node *dp, u32 dma_start, u32 dma_end)
- {
- 	struct pci_pbm_info *pbm;
- 	struct device_node *node;
-@@ -1261,6 +1261,8 @@ static void sabre_pbm_init(struct pci_co
- 		node = node->sibling;
- 	}
- 	if (simbas_found = 0) {
-+		struct resource *rp;
-+
- 		/* No APBs underneath, probably this is a hummingbird
- 		 * system.
- 		 */
-@@ -1302,8 +1304,10 @@ static void sabre_pbm_init(struct pci_co
- 		pbm->io_space.end   = pbm->io_space.start + (1UL << 24) - 1UL;
- 		pbm->io_space.flags = IORESOURCE_IO;
- 
--		pbm->mem_space.start = p->pbm_A.controller_regs + SABRE_MEMSPACE;
--		pbm->mem_space.end   = pbm->mem_space.start + (unsigned long)dma_begin - 1UL;
-+		pbm->mem_space.start +			(p->pbm_A.controller_regs + SABRE_MEMSPACE);
-+		pbm->mem_space.end +			(pbm->mem_space.start + ((1UL << 32UL) - 1UL));
- 		pbm->mem_space.flags = IORESOURCE_MEM;
- 
- 		if (request_resource(&ioport_resource, &pbm->io_space) < 0) {
-@@ -1315,6 +1319,17 @@ static void sabre_pbm_init(struct pci_co
- 			prom_halt();
- 		}
- 
-+		rp = kmalloc(sizeof(*rp), GFP_KERNEL);
-+		if (!rp) {
-+			prom_printf("Cannot allocate IOMMU resource.\n");
-+			prom_halt();
-+		}
-+		rp->name = "IOMMU";
-+		rp->start = pbm->mem_space.start + (unsigned long) dma_start;
-+		rp->end = pbm->mem_space.start + (unsigned long) dma_end - 1UL;
-+		rp->flags = IORESOURCE_BUSY;
-+		request_resource(&pbm->mem_space, rp);
-+
- 		pci_register_legacy_regions(&pbm->io_space,
- 					    &pbm->mem_space);
- 	}
-@@ -1450,5 +1465,5 @@ void sabre_init(struct device_node *dp, 
- 	/*
- 	 * Look for APB underneath.
- 	 */
--	sabre_pbm_init(p, dp, vdma[0]);
-+	sabre_pbm_init(p, dp, vdma[0], vdma[0] + vdma[1]);
- }
+--=20
+Regards,
+Per =D8yvind Karlsen
+Mandriva
