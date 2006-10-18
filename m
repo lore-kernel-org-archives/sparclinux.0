@@ -1,39 +1,21 @@
-From: "Jurij Smakov" <jurij@wooyd.org>
-Date: Wed, 18 Oct 2006 19:38:38 +0000
+From: David Miller <davem@davemloft.net>
+Date: Wed, 18 Oct 2006 19:45:00 +0000
 Subject: Re: Problems booting 2.6.18 on SunBlade 100/150
-Message-Id: <53701.128.200.30.71.1161200318.squirrel@webmail.wooyd.org>
+Message-Id: <20061018.124500.115911095.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <200401070729.56891.pkarlsen@mandriva.com>
 In-Reply-To: <200401070729.56891.pkarlsen@mandriva.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-> From: Jim Watson <jim@amarooas.com.au>
-> Date: Wed, 18 Oct 2006 21:50:24 +1000
->
->> David, thanks - I tried the patch on 2.6.18 but it still hangs up for
->> me. This is not conclusive however as I could not get my build of
->> 2.6.16 to run either. The output from the regs remains as before.
->
-> It should remain the same.
->
-> Are you sure you're enabling ATYFB video support in your kernel?
-> That's a common error when folks build their own kernels.
+From: Per =D8yvind Karlsen <pkarlsen@mandriva.com>
+Date: Wed, 18 Oct 2006 20:36:16 +0100
 
-Jim, if you have a recent Debian's linux-image package installed, you can
-just use the config Debian uses. It is installed in
-/boot/config-2.6.18-1-sparc64 or something like that. Just copy it into
-your build directory as .config and run 'make oldconfig'. That will
-probably take a bit longer to build, but will have all the required
-pieces.
+> I have to use a serial console now, haven't done extensive debugging on i=
+t,=20
+> but now I see the topic mentioned, what is the situation? :)
 
-I've tried to build the patched Debian packages overnight, but the build
-failed for unrelated reasons. I'll try again tonight.
-
-Jurij Smakov                                           jurij@wooyd.org
-Key: http://www.wooyd.org/pgpkey/                      KeyID: C99E03CC
-
-
-
+Unfortunately it's working fine here on my SB100 so I can't
+reproduce your problem at all.
