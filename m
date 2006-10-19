@@ -1,38 +1,47 @@
-From: Hamish Greig <hgreig@bigpond.net.au>
-Date: Wed, 18 Oct 2006 23:12:21 +0000
+From: vincent@cojot.name
+Date: Thu, 19 Oct 2006 08:50:04 +0000
 Subject: Re: disk diagnostics
-Message-Id: <200610190912.25149.hgreig@bigpond.net.au>
+Message-Id: <Pine.LNX.4.64.0610191048010.9457@thorbardin.lasthome.solace.krynn>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="-1463779200-448013198-1161247804=:9457"
 List-Id: <sparclinux.vger.kernel.org>
 References: <200401070724.20426.pkarlsen@mandriva.com>
 In-Reply-To: <200401070724.20426.pkarlsen@mandriva.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-On Thursday 19 October 2006 08:30, Per =D8yvind Karlsen wrote:
-> Onsdag 18 oktober 2006 23:59, skrev Chris Newport:
-> > Per =D8yvind Karlsen wrote:
-> > >This might be offtopic, but I'm not sure where else to ask..
-> > >
-> > >I'm in the need of some disk diagnostic software for sparc (like the
-> > > ones vendors supply for x86), anyone with knowledge of availability of
-> > > such?
-> >
-> > The solaris format command has plenty of diagnostic options, some are
-> > non-destructive.
-> >
-> > man format    is your friend.
->
-> okay, so that would require solaris then, no such thing available here( ;)
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+---1463779200-448013198-1161247804=:9457
+Content-Type: TEXT/PLAIN; charset="iso-8859-1"; format="flowed"
+Content-Transfer-Encoding: quoted-printable
+
+On Wed, 18 Oct 2006, Per =D8yvind Karlsen wrote:
+
 >
 > Oh well, I guess that I could just put it in a x86 box and run diagnostics
 > there if nothing else, less hazzle than installing solaris at least..
 
-Format is available on the solaris install discs, you can simply boot from =
+Is smartctl available on Linux/Sparc? I know it is available in most=20
+distros and also works on Solaris/Sparc.. If your disks are recent=20
+enough and smartctl is available on Linux/Sparc, you could ask them to=20
+perform the smartctl selftests and report their S.M.A.R.T status...? Most=20
+modern/post-36Gb disks have S.M.A.R.T, i think...
 
-cdrom, tell the installer to quit instead of partitioning, then run format =
+I hope this helps..
 
-from the terminal window  and when finished, reboot into your regular OS.
+--=20
+,-*~'`^`'~*-,._.,-*~'`^`'~*-,._.,-*~'`^`'~*-,._.,-*~'`^`'~*-,._.,-*~'`^`'~*=
+-,
+Vincent S. Cojot, Computer Engineering. STEP project. _.,-*~'`^`'~*-,._.,-*~
+Ecole Polytechnique de Montreal, Comite Micro-Informatique. _.,-*~'`^`'~*-,.
+Linux Xview/OpenLook resources page _.,-*~'`^`'~*-,._.,-*~'`^`'~*-,._.,-*~'
+http://step.polymtl.ca/~coyote  _.,-*~'`^`'~*-,._ coyote@NOSPAM4cojot.name
 
-hgg
+They cannot scare me with their empty spaces
+Between stars - on stars where no human race is
+I have it in me so much nearer home
+To scare myself with my own desert places.       - Robert Frost
+
+
+---1463779200-448013198-1161247804=:9457--
