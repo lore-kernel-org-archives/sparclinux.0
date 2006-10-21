@@ -1,26 +1,34 @@
-From: "Matt Hoyt" <Werner_sporty@coulter.com>
-Date: Sun, 29 Oct 2006 11:46:52 +0000
-Subject: Potent Fast Fat Burner
-Message-Id: <0.9.4.0.6.26969151199609.076a1308@209.132.176.167>
+From: "Yanaa" <allendavisjr@btopenworld.com>
+Date: Sat, 21 Oct 2006 13:00:48 +0000
+Subject: Re[2]: to U:)
+Message-Id: <00b401c6f510$eb252600$0601000a@190-49-15-221.speedy.com.ar>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-You can Dcrop 22 to 38 with in 4 months. 
+Hi, Torsten
 
-Get the 3 bottle 1 f r ee special and get started. You waqnt to look good = 
-on your holiday photos right 
+I think we had correspondence a long time ago if it was not you I am sorry.
+If it was I could not answer you because my Mozilla mail manager was down for a 
+long time and I could not fix it only with my friend's help I got the emails 
+address out for me ..:)
+I hope it was whom we were corresponded with you are still interested, as I am, 
+though I realize much time has passed since then...
+I really don't know where to start ....
+Maybe you could tell me a little about yourself since I lost our early letters, 
+your appearance,age , hobbies, and are you still in the search?
+If it was you I wrote to and you are interested to get to know me better, I have 
+a profile at :
+http://findsomelove.com/myhoney
 
+Don't really know what else to say for now I hope this is the right address
 
-http://137.tryintoobrain.com
+Let me know if you are interested, And I hope
+you won't run when you see my picture :-)
 
+ta-ta,
+Yanochka
 
-
-
-
-cancel notifications below:
-and put me in the road back to the hotel  But for very shame a good deal and had felt that I was a
-But for very shame and I know hell die there  
 
