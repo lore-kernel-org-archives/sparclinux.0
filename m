@@ -1,49 +1,27 @@
-From: Martin Habets <errandir_news@mph.eclipse.co.uk>
-Date: Wed, 11 Oct 2006 12:22:37 +0000
-Subject: Re: [PATCH 4/4] fix sparc32 modpost warnings
-Message-Id: <20061011122237.GA3038@palantir8>
+From: Jurij Smakov <jurij@wooyd.org>
+Date: Tue, 24 Oct 2006 03:16:43 +0000
+Subject: Another 2.6.18 regression? (SunBlade1000)
+Message-Id: <20061024031642.GA4403@droopy.oc.cox.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20061010154635.GE30909@palantir8>
-In-Reply-To: <20061010154635.GE30909@palantir8>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, Oct 10, 2006 at 02:44:48PM -0700, David Miller wrote:
-> From: Martin Habets <errandir_news@mph.eclipse.co.uk>
-> Date: Tue, 10 Oct 2006 16:46:35 +0100
-> 
-> > Fix this 2.6.19-rc1 build warnings from modpost:
-> > 
-> > WARNING: vmlinux - Section mismatch: reference to .init.text:sunzilog_console_setup from .data between 'sunzilog_console' (at offset 0x8394) and 'devices_subsys'
-> >
-> >Signed-off-by: Martin Habets <errandir_news@mph.eclipse.co.uk>
->  ...
-> > -static struct console sunzilog_console = {
-> > +static struct console sunzilog_console_ops = {
-> 
-> I'll apply this, but why does simply changing the symbol
-> name make the section conflict go away?
+This is a report by Roland Stigge (CC'd), who is trying to run 2.6.18 
+on his SunBlade1000:
 
-Ok, I'll be more verbose in future. This patch works because modpost
-has a couple of patterns built-in that it ignores. I could have picked
-any pattern listed below, but felt _ops was the most apropriate one
-here.
+  I also noticed a regression with 2.6.18-1-sparc64, but it looks
+  different from #392078. See screenshot at 
+  http://people.debian.org/~stigge/sun4u.jpg : To prevent this "Cheetah
+  error trap" ... "Irrecoverable deferred error trap", I'm using my old
+  2.6.14-2-sparc64 kernel (didn't try sth. inbetween - considered useful?).
 
-From the comments for secref_whitelist():
- * Pattern 2:
- *   Many drivers utilise a *driver container with references to
- *   add, remove, probe functions etc.
- *   These functions may often be marked __init and we do not want to
- *   warn here.
- *   the pattern is identified by:
- *   tosec   = .init.text | .exit.text | .init.data
- *   fromsec = .data
- *   atsym = *driver, *_template, *_sht, *_ops, *_probe, *probe_one
+Roland later reported that the last working kernel for his box is 
+2.6.16, and that the latest SunBlade 100/150 patch did not help with 
+his problem in any way.
 
-More on the other patches later.
-
-Thanks,
+Best regards,
 -- 
-Martin
+Jurij Smakov                                           jurij@wooyd.org
+Key: http://www.wooyd.org/pgpkey/                      KeyID: C99E03CC
