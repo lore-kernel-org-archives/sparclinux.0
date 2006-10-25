@@ -1,7 +1,7 @@
 From: Per =?iso-8859-1?q?=D8yvind_Karlsen?= <pkarlsen@mandriva.com>
-Date: Wed, 25 Oct 2006 00:11:08 +0000
+Date: Wed, 25 Oct 2006 15:23:34 +0000
 Subject: Re: Problems booting 2.6.18 on SunBlade 100/150
-Message-Id: <200610250211.08566.pkarlsen@mandriva.com>
+Message-Id: <200610251723.35495.pkarlsen@mandriva.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <200401070729.56891.pkarlsen@mandriva.com>
 In-Reply-To: <200401070729.56891.pkarlsen@mandriva.com>
@@ -68,7 +68,31 @@ Onsdag 25 oktober 2006 01:44, skrev David Miller:
 > Does the kernel in 2.6.17-rc4 say anything interesting if you
 > boot with the "-p" option on the kernel boot command line?
 > Do you get an OOPS or some other kind of crash message?
-I'll investigate these issues later, I'm on my way to bed :)
+Okay, I did some more testing, and just to be on the safe side to ensure=20
+kernel actually being the one to blame I recompiled -rc3 with the same conf=
+ig=20
+(from /proc/config.gz) and now I have the same problem with 2.4.17-rc3 too =
+
+(even the same messages related to PCI/DMA stuff)!
+
+So I'm really puzzled, could it be related to any possible changes in=20
+toolchain causing this or something similar?
+
+I did try booting with -p and I saw it booting up, no oopses when trying to=
+=20
+change to framebuffer as far as I could see, but then again, I only catched=
+ a=20
+glimpse ;) Is there any way to log these messages to somewhere? I'm unable =
+to=20
+get serial cnsole & framebuffer working at same time and heard rumours abou=
+t=20
+it not being doable..
+
+Btw. if you have a kernel with atyfb booting without any issues on your SB1=
+00,=20
+could you maybe put it up somewhere for me to test? If it boots without=20
+screwing things up, it must be the toolchain, I see my old kernel was=20
+compiled with another release of gcc..
 --=20
 Regards,
 Per =D8yvind Karlsen
