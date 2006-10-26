@@ -1,28 +1,20 @@
-From: Per =?iso-8859-1?q?=D8yvind_Karlsen?= <pkarlsen@mandriva.com>
-Date: Thu, 26 Oct 2006 11:36:20 +0000
-Subject: bcm43xx build fix
-Message-Id: <200610261336.20338.pkarlsen@mandriva.com>
+From: Martin Habets <errandir_news@mph.eclipse.co.uk>
+Date: Thu, 26 Oct 2006 15:03:36 +0000
+Subject: Re: bcm43xx build fix
+Message-Id: <20061026150335.GB10324@palantir8>
 List-Id: <sparclinux.vger.kernel.org>
+References: <200610261336.20338.pkarlsen@mandriva.com>
+In-Reply-To: <200610261336.20338.pkarlsen@mandriva.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-This one was broken in 2.6.19-rc3, fix:
---- drivers/net/wireless/bcm43xx/bcm43xx_dma.h~ 2006-10-25 22:06:51.0000000=
-00=20
-+0200
-+++ drivers/net/wireless/bcm43xx/bcm43xx_dma.h  2006-10-26 13:30:57.0000000=
-00=20
-+0200
-@@ -5,6 +5,7 @@
- #include <linux/spinlock.h>
- #include <linux/workqueue.h>
- #include <linux/linkage.h>
-+#include <linux/dma-mapping.h>
- #include <asm/atomic.h>
+Per,
 
---=20
-Regards,
-Per =D8yvind Karlsen
-Mandriva
+You should have a look at Documentation/SubmittingPatches,
+notably items 10 - 12.
+
+Cheers,
+-- 
+Martin
