@@ -1,27 +1,24 @@
-From: Per =?iso-8859-1?q?=D8yvind_Karlsen?= <pkarlsen@mandriva.com>
-Date: Fri, 27 Oct 2006 05:26:53 +0000
-Subject: 2.6.19-rc3 on sb100 - iihk!
-Message-Id: <200610270726.53577.pkarlsen@mandriva.com>
+From: David Miller <davem@davemloft.net>
+Date: Fri, 27 Oct 2006 05:37:09 +0000
+Subject: Re: 2.6.19-rc3 on sb100 - iihk!
+Message-Id: <20061026.223709.77057387.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <200610270726.53577.pkarlsen@mandriva.com>
+In-Reply-To: <200610270726.53577.pkarlsen@mandriva.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Didn't take long, died sometime tonight..
+From: Per =D8yvind Karlsen <pkarlsen@mandriva.com>
+Date: Fri, 27 Oct 2006 07:26:53 +0200
 
-Don't know what of debug info I can give, the machine is quasi frozen, I ca=
-n=20
-change VT on it locally, it reacts on keyboard, but in the shell that's ope=
-n=20
-I'm unable to type anything and when entering logging name, it just stalls..
+> Oh, btw. another issue, my SB100 reports 11.11 bogomips total, did the sa=
+me=20
+> with 2.6.17-rc3, don't know at what time it got broken, known issue?
 
-Unable to see any kernel errors or anything, where to start?
+It's not broken, that's the correct value.
 
-Oh, btw. another issue, my SB100 reports 11.11 bogomips total, did the same=
-=20
-with 2.6.17-rc3, don't know at what time it got broken, known issue?
---=20
-Regards,
-Per =D8yvind Karlsen
-Mandriva
+The mechanism used to calucate the value and the meaning of it
+changed, comparing values created by the old and new method is not
+valid.
