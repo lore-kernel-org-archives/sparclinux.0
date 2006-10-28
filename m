@@ -1,21 +1,24 @@
-From: "aqok" <dyoung6330utkic@ims.uwindsor.ca>
-Date: Sun, 29 Oct 2006 04:57:59 +0000
-Subject: Service Closure Resolved
-Message-Id: <AF7C2041.F5687AA@ims.uwindsor.ca>
+From: "Kenneth Mertens" <mathildahizabamf@gundamfan.com>
+Date: Sat, 28 Oct 2006 09:56:49 +0000
+Subject: Fw:
+Message-Id: <DA5C79F4.9199B57@gundamfan.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-How are you,
+Good Afternoon,
 
-Phone me at my number if you can return phone calls.
+After a complete review of your account, my office has found
+47 corporations willing to help you.  You've been approved
+at 245K at 6.21% to 505K at 5.10%
 
-888-705-I353
+www.batticu.com/16r
 
-Learn how to generate 1.5 - 3.5k a day from your house.
+My office will help anyone, regardless of your ratings have been.
 
-delete - zippedurl "dot" com / 1z4n5q
+Sincerely,
+Kenneth Mertens
 
 
