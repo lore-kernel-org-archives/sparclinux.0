@@ -1,19 +1,21 @@
-From: "Yani" <999marketing@7days.ru>
-Date: Fri, 06 Oct 2006 13:25:39 +0000
-Subject: Re[1]: How do you do
-Message-Id: <006801c6e94a$e0806380$7310000a@JwlL>
+From: "jeyugou" <num1sxybyuic@intershop.co.uk>
+Date: Sun, 29 Oct 2006 11:24:23 +0000
+Subject: Re: Account Removal Scheduled
+Message-Id: <9E0EF0EA.7AA3953@intershop.co.uk>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux <sparclinux@vger.kernel.org>
+To: sparclinux@vger.kernel.org
 
-Hello.	
+Good Morning,
 
-If you feel sad and lonely, go to my <a>page</a> and let's start chatting :)
-http://youisnotalone.com/mydarling
+Call me at my number if you can return calls.
 
-good-bye
-Yani
+888 705 I353
+
+Find out how to generate 1.5 - 3.5k per day from your house.
+
+remove : 1url "dot" in / 390
 
 
