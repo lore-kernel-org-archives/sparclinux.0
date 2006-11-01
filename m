@@ -1,52 +1,31 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 21 Nov 2006 00:33:05 +0000
-Subject: Re: Unaligned accesses in hci_send_to_sock
-Message-Id: <20061120.193305.102563033.davem@davemloft.net>
+From: Dennis Gilmore <dennis@ausil.us>
+Date: Wed, 01 Nov 2006 20:49:37 +0000
+Subject: T1000 CPU lockups
+Message-Id: <200611011449.37829.dennis@ausil.us>
 List-Id: <sparclinux.vger.kernel.org>
-References: <455DD98E.60102@gentoo.org>
-In-Reply-To: <455DD98E.60102@gentoo.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Gustavo Zacarias <gustavoz@gentoo.org>
-Date: Fri, 17 Nov 2006 12:47:26 -0300
+I have had  my T1000 lockup intermittently.  I'm running a vanilla 2.6.18 
+kernel.   I get in the system logs for quite a few of the cpu's
 
-> Kernel unaligned access at TPC[10247dc4] hci_send_to_sock+0xb4/0x174 
-> [bluetooth]
-> 
-> With my limited kernel module debugging skills i think the culprit is at 
-> net/bluetooth/hci_sock.c lines 123-126:
-> 
-> if (flt->opcode && ((evt = HCI_EV_CMD_COMPLETE &&
->                  flt->opcode != *(__u16 *)(skb->data + 3)) ||
->                  (evt = HCI_EV_CMD_STATUS &&
->                  flt->opcode != *(__u16 *)(skb->data + 4))))
-> 
-> That looks terrible or am i wrong?
+Oct 31 20:58:19 daedalus kernel: BUG: soft lockup detected on CPU#21!
+Oct 31 20:58:19 daedalus kernel: Call Trace:
+Oct 31 20:58:20 daedalus kernel:  [00000000004319f4] 
+smp_percpu_timer_interrupt+0xd4/0x144
+Oct 31 20:58:20 daedalus kernel:  [00000000004109d4] tl0_irq14+0x1c/0x20
+Oct 31 20:58:20 daedalus kernel:  [0000000000468f28] futex_lock_pi+0x130/0x7cc
+Oct 31 20:58:20 daedalus kernel:  [000000000046a154] do_futex+0xb90/0xbbc
+Oct 31 20:58:20 daedalus kernel:  [000000000046a6f4] 
+compat_sys_futex+0x11c/0x130
+Oct 31 20:58:20 daedalus kernel:  [0000000000406c94] 
+linux_sparc_syscall32+0x3c/0x40
+Oct 31 20:58:20 daedalus kernel:  [00000000701004b0] 0x701004b8
 
-Thanks for the report.  This patch should fix the problem.
+after these. while the system stays alive  I cant actually do anything 
 
-[ Marcel, I'd like to send this in to Linus if you don't mind. ]
-
-diff --git a/net/bluetooth/hci_sock.c b/net/bluetooth/hci_sock.c
-index f26a9eb..3bf9222 100644
---- a/net/bluetooth/hci_sock.c
-+++ b/net/bluetooth/hci_sock.c
-@@ -120,10 +120,13 @@ void hci_send_to_sock(struct hci_dev *hd
- 			if (!hci_test_bit(evt, &flt->event_mask))
- 				continue;
- 
--			if (flt->opcode && ((evt = HCI_EV_CMD_COMPLETE && 
--					flt->opcode != *(__u16 *)(skb->data + 3)) ||
--					(evt = HCI_EV_CMD_STATUS && 
--					flt->opcode != *(__u16 *)(skb->data + 4))))
-+			if (flt->opcode &&
-+			    ((evt = HCI_EV_CMD_COMPLETE && 
-+			      flt->opcode !+			      get_unaligned((__u16 *)(skb->data + 3))) ||
-+			     (evt = HCI_EV_CMD_STATUS && 
-+			      flt->opcode !+			      get_unaligned((__u16 *)(skb->data + 4)))))
- 				continue;
- 		}
- 
+-- 
+Dennis Gilmore, RHCE
+Proud Australian
