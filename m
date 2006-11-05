@@ -1,26 +1,47 @@
-From: Meelis Roos <mroos@linux.ee>
-Date: Wed, 01 Nov 2006 12:27:45 +0000
-Subject: Re: serial port registration messages
-Message-Id: <Pine.SOC.4.61.0611011425210.13157@math.ut.ee>
+From: andrew@walrond.org
+Date: Sun, 05 Nov 2006 12:05:47 +0000
+Subject: Strange kernel messages bootinh 2.6.18.2 on an E4000
+Message-Id: <20061105120547.GA3665@pelagius.h-e-r-e-s-y.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.SOC.4.61.0610311728060.27442@math.ut.ee>
-In-Reply-To: <Pine.SOC.4.61.0610311728060.27442@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> It's not just about buffer sizes, it's about uniqueness
-> and the only unique thing amongst all PROM devices is
-> the PROM node number, so that's what we must use as the
-> ID.
+Hello list,
 
-Hmm, I still do not undestand. The numbers dmesg shows are still equal 
-to each other so they are about the same prom node. Is somewhere another 
-prom node with the same name that is not printed and used for serial?
+I've been porting my little Heretix distro to pure 64bit sparc64, and
+have had a few issues along the way. 2.6.18.1 caused some head
+scratching by booting fine on a T1000, but not at all on either an
+E4000 or an E4500, but I assume that was fixed by the FHC patch in
+2.6.18.2, which boots up nicely on all all the machines.
 
-Or, do we check the prom names and it they match for several nodes then 
-use the node number instead of the name?
+However, on the E4000 (haven't checked E4500 but I guess that will be
+the same) I see lots of these:
 
--- 
-Meelis Roos (mroos@linux.ee)
+ kobject_add failed for fhc with -EEXIST, don't try to register things
+ with the same name in the same directory.
+ Call Trace:
+  [0000000000427ba8] of_device_register+0x2c/0x60
+  [000000000076cf80] scan_one_device+0x8b8/0x924
+  [000000000076d000] scan_tree+0x14/0x3c
+  [000000000076d0c4] of_bus_driver_init+0x9c/0xa4
+  [0000000000416b24] init+0x168/0x360
+  [0000000000417578] kernel_thread+0x38/0x48
+  [0000000000416d34] rest_init+0x18/0x34
+ /fhc: Could not register of device.
+
+
+Well, 8 to be precise. (= # slots in the e4000 ?)
+
+Any clues what this is about, and how to fix it?
+
+Also, hotplug/udev fails to load up much in the way of modules (eg
+sunhme for the net interfaces). Works fine if I do it manually. I
+haven't looking into this yet, but a cursory glance suggested the lack
+of any sbus related scripts might be to blame?
+
+Anyhow, hotplug/udev did a better job on the T1000, but probably
+because it is pci based?
+
+Andrew Walrond
