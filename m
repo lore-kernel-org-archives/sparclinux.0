@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 05 Nov 2006 22:21:15 +0000
+From: andrew@walrond.org
+Date: Sun, 05 Nov 2006 22:43:11 +0000
 Subject: Re: Strange kernel messages bootinh 2.6.18.2 on an E4000
-Message-Id: <20061105.142115.28789076.davem@davemloft.net>
+Message-Id: <20061105224311.GB11406@pelagius.h-e-r-e-s-y.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20061105120547.GA3665@pelagius.h-e-r-e-s-y.com>
 In-Reply-To: <20061105120547.GA3665@pelagius.h-e-r-e-s-y.com>
@@ -10,24 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: andrew@walrond.org
-Date: Sun, 5 Nov 2006 22:15:40 +0000
+On Sun, Nov 05, 2006 at 02:21:15PM -0800, David Miller wrote:
+> 
+> I've built a native gdb64 under Dapper and it works just fine.
 
-> Thanks for the info. I'll take a look at edgy and see what they have done.
+Ok; thats a useful datapoint. I'll see what patches they are using.
 
-The current Dapper has this stuff too.
+> 
+> A pure-64bit userland on sparc64 is an _incredibly_ _stupid_ idea.
 
-> Is anybody else running a pure 64bit distro? I am finding two of my
-> favourite tools, xemacs and gdb to be a tad flakey. Haven't done any
-> serious investigating yet, or reported any bugs. Just wondered if
-> anyone else has experienced this?
+Sniff ;)
 
-I've built a native gdb64 under Dapper and it works just fine.
-But the normal 32-bit gdb works just fine for 32-bit applications
-for me, except for threaded stuff which never worked %100 and
-won't even with a 64-bit gdb.
+> The only thing you'll get is larger binaries, worse performance, and
+> maybe 1 or 2 tools which work a slightly better but could be easily
+> fixed to work properly as a 32-bit app too.
 
-A pure-64bit userland on sparc64 is an _incredibly_ _stupid_ idea.
-The only thing you'll get is larger binaries, worse performance, and
-maybe 1 or 2 tools which work a slightly better but could be easily
-fixed to work properly as a 32-bit app too.
+I don't disagree, but my distro is all built from source, and is a
+quick port from the pure 64bit x86_64 version. One glibc and a
+non-multilib gcc makes everything _so_ much simpler to build :)
+
+But the "speed" of the distro apps is irrelevant; the peformance
+of my custom massively threaded 64bit apps are the only thing that
+matters. I've been benchmarking a T1000 to see how it peforms
+against the x86_64 kit I am more used to. And I bought a pallet load
+of E4500's to play with, since they were almost free :)
+
+Andrew
