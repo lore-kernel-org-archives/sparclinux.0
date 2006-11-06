@@ -1,160 +1,143 @@
-From: "Paul Williams" <Paul.Williams@eads.com>
-Date: Wed, 08 Nov 2006 12:16:11 +0000
-Subject: RAMDISK error at 0
-Message-Id: <A5E49A0595FB4A489ED566217349B14702DC9553@zaphod1.cogent-dsn.local>
+From: "Symantec Software" <infected@pushnik.com>
+Date: Mon, 06 Nov 2006 15:16:58 +0000
+Subject: New software uploaded by Brandon on Nov 06 18:00:01 MSK 2006
+Message-Id: <000001c701b5$c0e09300$0100007f@localhost>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-I've got a CD here which is SUPPOSED to work - trouble is it fails with=20
-the following error:-=20
 
-Linux version 2.4.26 (root@localhost) (gcc version 3.3.3 20040217 (Gentoo L=
-inux
-3.3.3)) #3 Mon Jun 6 08:00:21 GMT 2005
-ARCH: SUN4U
-Ethernet address: 00:03:ba:b0:9a:79
-On node 0 totalpages: 129820
-zone(0): 196444 pages.
-zone(1): 0 pages.
-zone(2): 0 pages.
-Found CPU 0 (node=F0072d50,mid=3D0)
-Found 1 CPU prom device tree node(s).
-Kernel command line: ro ramdisk2768 cdrom
-Calibrating delay loop... 1294.33 BogoMIPS
-Memory: 1020080k available (1880k kernel code, 320k data, 144k init) [fffff=
-80000
-000000,00000000dfeb8000]
-Dentry cache hash table entries: 131072 (order: 8, 2097152 bytes)
-Inode cache hash table entries: 65536 (order: 7, 1048576 bytes)
-Mount cache hash table entries: 512 (order: 0, 8192 bytes)
-Buffer cache hash table entries: 65536 (order: 6, 524288 bytes)
-Page-cache hash table entries: 131072 (order: 7, 1048576 bytes)
-POSIX conformance testing by UNIFIX
-PCI: Probing for controllers.
-PCI: Found SABRE, main regs at 000001fe00000000, wsync at 000001fe00001c20
-SABRE: Shared PCI config space at 000001fe01000000
-SABRE: DVMA at 60000000 [20000000]
-PCI: Address space collision on region 6 [000001ff00080000:000001ff000bffff=
-] of
-device PCI device 1282:9102
-PCI-IRQ: Routing bus[ 0] slot[ 5] map[0] to INO[1c]
-PCI-IRQ: Routing bus[ 0] slot[ a] map[0] to INO[24]
-PCI-IRQ: Routing bus[ 0] slot[ c] map[0] to INO[06]
-PCI-IRQ: Routing bus[ 0] slot[ d] map[0] to INO[0c]
-PCI0(PBMA): Bus running at 33MHz
-isa0: [dma] [rtc -> (todm5819)] [power] [SUNW,lomh] [serial] [serial] [flas=
-hprom]
-ebus: No EBus's found.
-PCIO serial driver version 1.54
-su(serial) at 0x1fe020003f8 (tty 0 irq 12,7eb) is a 16550A
-su(serial) at 0x1fe020002e8 (tty 1 irq 12,7eb) is a 16550A
-Linux NET4.0 for Linux 2.4
-Based upon Swansea University Computer Society NET3.039
-Initializing RT netlink socket
-Starting kswapd
-Journalled Block Device driver loaded
-udf: registering filesystem
-pty: 256 Unix98 ptys configured
-Real Time Clock Driver v1.10f
-RAMDISK driver initialized: 16 RAM disks of 32768K size 1024 blocksize
-Uniform Multi-Platform E-IDE driver Revision: 7.00beta4-2.4
-ide: Assuming 33MHz system bus speed for PIO modes; override with idebus=3D=
-xx
-ALI15X3: IDE controller at PCI slot 00:0d.0
-ALI15X3: chipset revision 195
-ALI15X3: 100% native mode on irq 4,7cc
-    ide0: BM-DMA at 0x1fe02010220-0x1fe02010227, BIOS settings: hda:pio, hd=
-b:pio
-    ide1: BM-DMA at 0x1fe02010228-0x1fe0201022f, BIOS settings: hdc:pio, hd=
-d:pio
-hda: ST380011A, ATA DISK drive
-ide: Assuming 33MHz system bus speed for PIO modes; override with idebus=3D=
-xx
-hdc: ST380011A, ATA DISK drive
-hdd: CD-224E, ATAPI CD/DVD-ROM drive
-ide0 at 0x1fe02010200-0x1fe02010207,0x1fe0201021a on irq 4,7cc
-ide1 at 0x1fe02010210-0x1fe02010217,0x1fe0201020a on irq 4,7cc
-hda: attached ide-disk driver.
-hda: host protected area =3D> 1
-hda: 156301488 sectors (80026 MB) w/2048KiB Cache, CHS=9729/255/63, UDMA(66)
-hdc: attached ide-disk driver.
-hdc: host protected area =3D> 1
-hdc: 156301488 sectors (80026 MB) w/2048KiB Cache, CHS=9729/255/63, UDMA(66)
-hdd: attached ide-cdrom driver.
-hdd: ATAPI 24X CD-ROM drive, 128kB Cache, DMA
-Uniform CD-ROM driver Revision: 3.12
-Partition check:
- hda: hda1 hda2 hda3 hda4 hda5 hda6 hda7 hda8
- hdc: hdc2 hdc3
-SCSI subsystem driver Revision: 1.00
-kmod: failed to exec /sbin/modprobe -s -k scsi_hostadapter, errno =3D 2
-kmod: failed to exec /sbin/modprobe -s -k scsi_hostadapter, errno =3D 2
-usb.c: registered new driver usbdevfs
-usb.c: registered new driver hub
-host/usb-uhci.c: $Revision: 1.275 $ time 08:04:17 Jun  6 2005
-host/usb-uhci.c: High bandwidth mode enabled
-host/usb-uhci.c: v1.275:USB Universal Host Controller Interface driver
-host/usb-ohci.c: USB OHCI at membase 0x1ff01000000, IRQ 14,7e4
-host/usb-ohci.c: usb-00:0a.0, PCI device 10b9:5237
-usb.c: new USB bus registered, assigned bus number 1
-hub.c: USB hub found
-hub.c: 2 ports detected
-usb.c: registered new driver hid
-hid-core.c: v1.8.1 Andreas Gal, Vojtech Pavlik <vojtech@suse.cz>
-hid-core.c: USB HID support drivers
-Initializing USB Mass Storage driver...
-usb.c: registered new driver usb-storage
-USB Mass Storage support registered.
-mice: PS/2 mouse device common for all mice
-Initializing Cryptographic API
-NET4: Unix domain sockets 1.0/SMP for Linux NET4.0.
-RAMDISK: Couldn't find valid RAM disk image starting at 0.
-Freeing initrd memory: 5023k freed
-VFS: Cannot open root device "" or 00:00
-Please append a correct "root=3D" boot option
-Kernel panic: VFS: Unable to mount root fs on 00:00
- Press L1-A to return to the boot prom
-
-Also, heres the relevant silo.conf
-
-partition=3D1
-timeout=10
-read-only
-message=3D/boot/cogent.txt
-default=3Dlinux
-append=3D"cdrom"
-initrd=3D/boot/root.bin.gz
-ramdisk2768
-
-# Standard boot images
-image[sun4c,sun4d,sun4m]=3D/boot/sparc32.gz
-   label=3Dlinux
-image[sun4u]=3D/boot/sparc64
-   label=3Dlinux
-
-Any ideas?=20
-BTW - where do u get the sparc images from in the first place to put on=20
-the CD? I'm assuming my predecessor got them from somewhere since they=20
-dont seem to be part of the Silo download.=20
-end
+Brandon has uploaded some new software for you!
 
 
+Click here to view available updated software:
+http://propoem.com/?Brandon
 
 
-The information contained within this e-mail and any files attached to this=
- e-mail is private and in addition may include commercially sensitive infor=
-mation. The contents of this e-mail are for the intended recipient only and=
- therefore if you wish to disclose the information contained within this e-=
-mail or attached files, please contact the sender prior to any such disclos=
-ure.=20
-
-If you are not the intended recipient, any disclosure, copying or distribut=
-ion is prohibited. Please also contact the sender and inform them of the er=
-ror and delete the e-mail, including any attached files from your system.
-
-www.eadsdsuk.com=20
+Enter Kerberos master key:
+With a bit of luck, the added -g option will not change anything for
+transfer.  The second DMA controller (4, 5, 6, and 7) moves 16-bits in
+______________________________________________________________________
+______________________________________________________________________
+This line sets the delay time to 15 seconds. On my own system I had to
+The SCSI host adapter or SCSI controller you have put in your
+time on the process of creating deltas, so talk to Poul-Henning Kamp
+filter option may run a filter on the wrong type of file and cause
+U.S.) exportable European distribution of DES for our non-U.S. users
+right after the other, just as close together as the standard allows.
+actual domain names and addresses depend on your environment.
+o   Request to Send (RTS)
+flow control.  The locking devices are used to lock flags on ports to
+``HP C1534A''
+	your testing and re-enable the queue with the enable command.
+is 6063.
+enabled.  One line for the block limits, and one line for inode lim-
+FreeBSD Project's development is done by a large and growing number of
+latest version of the port you want, you'll need to download the
+22:#12 0xf0191503 in cnopen (...)
+skeleton.mikom.csir.co.za, which is in South Africa.
+line 20:
+	disk slice to be booted from.
+filtering code, so that it can decide if the packet should be allowed
+If you service provider does not assign static IP numbers, ppp can be
+trip between the two machines plus the differing bits-per-seconds
+should use the user and host arguments to generate a suitable header
+		;;
+match counts, as the rules are searched in order. Hence, the list of
+:slcmd		   ; put the modem in command mode
+If 8-bit data words are used and Parity bits are also used, the data
+I/O in the device drivers queue is reported as complete by the device.
+these bad blocks, it writes a table with the offending block numbers
+	    }
+math.install program asks you to specify directories, it won't create
+use cables longer than necessary. I once spent 3 days hunting down a
+information on gated's command-line parameters.
+	device here, which must be a rather small integer number.)
+freebsd-install	   Installation development
+S	Static: This route was configured manually, not automatically
+one of the supported PCMCIA ethernet cards, also be sure that it is
+change much.
+support, transaction TCP support, dial-on-demand PPP, an improved SCSI
+#
+beware, Unix is a useful tool, you may find that within six months you
+			     \-> NS16550 -> NS16550A -> PC16550D
+directed to questionsfreebsd (see ``Mailing Lists'' for more
+"type 1 removable SCSI 2" "Sequential-Access density code 0x13"
+that, if given the choice between having us answer lots of
+	site for the software is at ftp.iona.ie/pub/plp.	There is
+/usr/share/examples/sup/ports-supfile.  If you are interested in
+This is a QIC tape drive.
+18.2.5.9.  Package Names
+gzip -c -best /sbin/init > /mnt/sbin/init
+printers in yet more ways.  With lpc, you can
+Look for a struct that is initialised like below:
+will cause your kernel to dump core and reboot, so you can later
+14.  * Mail Advanced topics
+10.4.9.4.5.
+	that they be distributed as source code, not binaries.
+computer and the LPD spooler is the hardest part.  The advanced
+(${PKGNAME} without the version part should work fine).  This will
+Enter sequence count from 1 to 9999: 100     ) I typed this
+Now you have now examined why your kernel failed, and you wish to
+50:406     #endif /* PCVT_NETBSD || (PCVT_FREEBSD >= 200) */
+default security model is more than a match for DES, and without any
+oooo     uuu u      tt      lll	iii    n    n	 eeee
+script that just executes /bin/cat to send the job to the printer.
+Kernel multithreading (requires kernel preemption).
+sectors/track jumpers or the physical orientation of the drive
+There are currently three kernel configuration options relevant to
+tape drives and C1533A DDS-2 DAT drive.
+#  /etc/printcap for host orchid
+Expiration date (enter yyyy-mm-dd) [ 2000-01-01 ] ?
+true?  How can I make sure that I compile ports with the right
+to handle these aspects.  And the bad news is that most of the time
+10.2.3.  * Memory
+configuration statements in the skey.access file.  In all cases, UNIX
+29:#10 0xf019cb2f in trap (frame={tf_es = -260440048, tf_ds = 16, tf_\
+device cd0 at scbus?		     [the first ever CDROM found, no wiring]
+The floppy disk controller is now responsible for placing the byte to
+	from then on.  Many people run sup from cron and keep their
+	includes warnings about new features coming out in -stable that
+and circuits are required to share a clock signal between the sender
+Going out-of-spec like in the example might or might not work. Give it
+gzip -9nf /usr/local/man/man1/bash.1 /usr/local/man/man1/bash_builtins.1
+for these differences.  This means that the number of differences can
+pathname of the ``ports'' directory on the CDROM as an argument (this
+memory address, IO address or a number of other device
+pseudo-device bpfilter number
+	exit 2
+Now, for the hard part: making the filter.  For that, we need a DVI-
+free X servers are more to your liking, you certainly can't go wrong
+chmod 770 /var/spool/lpd/bamboo
+10.4.1.2.  Using ESDI disks with FreeBSD
+FreeBSD core team in order to have your contributions accepted.  The
+the most misunderstood part of SCSI. And it is by far the simplest..
+	filter installation: disable the queue and submit jobs as root.
+serial, prefer the parallel interface.  It keeps a serial port free
+instance: your login name, the iteration count, and seed.  When
+/usr/src/share/doc/smm] and ``FreeBSD Configuration Options'' [in
+asserted.  If the modem seems to be configured correctly, verify that
+connectors. This makes reconfiguration much easier.
+menu will be displayed.
+Do install package information, i.e., the three files in pkg.  Note
+	mode PPP'' section of the handbook for more information.
+machine is in dock, and allowing dock-based cards to disappear
+Principal:    janeGRONDAR.ZA
+line does not include the ``-q'' option, otherwise sendmail will
+license scare you away!
+will be running both FreeBSD and NT or OS/2.	In such a scenario, I
+stage, go read the Q&A section of the Hardware Guide for possible
+terminator must now be on the last external device, and not on the
+mailed to the FreeBSD technical discussions mailing list <freebsd-
+www.freebsd.
+10.4.5.8.  * Problem drives
+Here is a sample entry for a printer connected via a serial line to
+drive /dev/sd0s6, and so on. This example assumes, of course, that
+customary to put these directories under /var/spool.	It is not
+immediately, this one-time password is the one you would use.
+pseudo-device snp number
+	(etc...)
 
 
