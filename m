@@ -1,25 +1,26 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 03 Nov 2006 00:03:39 +0000
-Subject: Re: T1000 CPU lockups
-Message-Id: <20061102.160339.47547037.davem@davemloft.net>
+From: "Priscilla Kemp" <ettaafnrqm@hotmail.com>
+Date: Fri, 10 Nov 2006 22:09:39 +0000
+Subject: Please Her Tonite
+Message-Id: <2A907EE3.7684.6715C2D5@localhost>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200611011449.37829.dennis@ausil.us>
-In-Reply-To: <200611011449.37829.dennis@ausil.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-serial@vger.kernel.org, linux-newbie@vger.kernel.org, linux-gcc@vger.kernel.org
 
-From: Fabio Massimo Di Nitto <fabbione@ubuntu.com>
-Date: Thu, 02 Nov 2006 18:05:54 +0100
 
-> the patch does indeed fix the problem. I was able to build glibc-2.5
-> all the way trough on Niagara. I am CC Ben and Martin because we
-> need this in .17 kernels too. A similar bug has been found on PPC
-> and it has been escalated to local DoS since any user can actually
-> kill a system just running the test suite.
 
-Thanks for the testing and confirmation.
 
-Indeed, 2.6.17 has the problem too.  I have already submitted this
-patch to the -stable folks for 2.6.17 and 2.6.18 -stable inclusion.
+Suffering from short penniss?
+Introduce revolution "ManXL" formula which
+gauranteees sizes increase or moneey baack.
+
+Users reported:
+- 2 inches extra in size
+- 3x pleasurable orgasms
+- 27% thicker
+
+Why waiting?
+
+http://kalfroutl.com/mxl/
