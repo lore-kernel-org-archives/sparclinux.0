@@ -1,14 +1,15 @@
 From: Joe Ordnung <joeordnung@yahoo.de>
-Date: Sat, 11 Nov 2006 13:03:34 +0000
+Date: Sat, 11 Nov 2006 14:59:44 +0000
 Subject: Re: Please Her Tonite
-Message-Id: <4555CA26.6010000@yahoo.de>
+Message-Id: <4555E560.6020106@yahoo.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <2A907EE3.7684.6715C2D5@localhost>
 In-Reply-To: <2A907EE3.7684.6715C2D5@localhost>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Priscilla Kemp <ettaafnrqm@hotmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-serial@vger.kernel.org, linux-newbie@vger.kernel.org, linux-gcc@vger.kernel.org
 
 Spam!
 
