@@ -1,41 +1,25 @@
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Date: Thu, 30 Nov 2006 09:32:03 +0000
-Subject: [PATCH] sparc64: dma remove extra brackets
-Message-Id: <200611301032.03913.m.kozlowski@tuxland.pl>
+From: "Valentina" <allenha@webtv.net>
+Date: Sun, 12 Nov 2006 09:36:52 +0000
+Subject: Re[1]:Best time to learn each other
+Message-Id: <002301c7063e$10074780$bf17000a@iYmV>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Hello,
+Hi there!
 
-	This patch removes some extra brackets to fix these macros.
+How are you today? Let me introduce myself. I am a nice lady with a big and tender heart. I am looking for my
+prince to give him joy and happiness and to share my life with.
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+I think you can be the one I am looking for. I am attractive and kind, joyful and open-minded. I want to find the one
+who can make me happy, I am looking for my second half and I want to learn you better...
 
- include/asm-sparc64/dma.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
---- linux-2.6.19-rc6-mm2-a/include/asm-sparc64/dma.h	2006-11-16 05:03:40.000000000 +0100
-+++ linux-2.6.19-rc6-mm2-b/include/asm-sparc64/dma.h	2006-11-30 01:03:23.000000000 +0100
-@@ -152,9 +152,9 @@ extern void dvma_init(struct sbus_bus *)
- #define DMA_MAXEND(addr) (0x01000000UL-(((unsigned long)(addr))&0x00ffffffUL))
- 
- /* Yes, I hack a lot of elisp in my spare time... */
--#define DMA_ERROR_P(regs)  (((sbus_readl((regs) + DMA_CSR) & DMA_HNDL_ERROR))
--#define DMA_IRQ_P(regs)    (((sbus_readl((regs) + DMA_CSR)) & (DMA_HNDL_INTR | DMA_HNDL_ERROR)))
--#define DMA_WRITE_P(regs)  (((sbus_readl((regs) + DMA_CSR) & DMA_ST_WRITE))
-+#define DMA_ERROR_P(regs)  ((sbus_readl((regs) + DMA_CSR) & DMA_HNDL_ERROR))
-+#define DMA_IRQ_P(regs)    ((sbus_readl((regs) + DMA_CSR)) & (DMA_HNDL_INTR | DMA_HNDL_ERROR))
-+#define DMA_WRITE_P(regs)  ((sbus_readl((regs) + DMA_CSR) & DMA_ST_WRITE))
- #define DMA_OFF(__regs)		\
- do {	u32 tmp = sbus_readl((__regs) + DMA_CSR); \
- 	tmp &= ~DMA_ENABLE; \
+If you also want to correspond, you can find me here http://sweethearths.com/lovecreates
+Have a nice day!
 
 
--- 
-Regards,
+Valentina
 
-	Mariusz Kozlowski
+
