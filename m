@@ -1,78 +1,103 @@
-From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
-Date: Sun, 26 Nov 2006 09:22:07 +0000
-Subject: Re: Sparc32 SMP
-Message-Id: <45695CBF.4060600@systella.fr>
+From: Adrian Bunk <bunk@stusta.de>
+Date: Fri, 17 Nov 2006 23:59:52 +0000
+Subject: [RFC: 2.6 patch] remove the broken HISAX_AMD7930 option
+Message-Id: <20061117235952.GS31879@stusta.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.10.10607130208320.4657-300000@coalcreekmill.cm.com>
-In-Reply-To: <Pine.LNX.4.10.10607130208320.4657-300000@coalcreekmill.cm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: kkeil@suse.de, kai.germaschewski@gmx.de
+Cc: isdn4linux@listserv.isdn4linux.de, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-BERTRAND Jo=EBl a =E9crit :
->     Hello,
->=20
->     This Oops is reproductible. I have decoded the Oops:
->=20
-> No modules in ksyms, skipping objects
-> No ksyms, skipping lsmod
-> Nov 23 14:26:47 hilbert kernel: Unable to handle kernel NULL pointer=20
-> dereference
-> Nov 23 14:26:48 hilbert kernel: tsk->{mm,active_mm}->context =3D 00005058
-> Nov 23 14:26:48 hilbert kernel: tsk->{mm,active_mm}->pgd =3D fc12d000
-> Nov 23 14:26:48 hilbert kernel:               \|/ ____ \|/
-> Nov 23 14:26:48 hilbert kernel:               "@'/ ,. \`@"
-> Nov 23 14:26:48 hilbert kernel:               /_| \__/ |_\
-> Nov 23 14:26:48 hilbert kernel:                  \__U_/
-> Nov 23 14:26:48 hilbert kernel: tar(13387): Oops [#1]
-> Nov 23 14:26:48 hilbert kernel: PSR: 400000c2 PC: f008bd8c NPC: f008bd90 =
+HISAX_AMD7930 was never anywhere near to being working, and this doesn't 
+seem to change in the forseeable future.
 
-> Y: 00000000    Not tainted
-> Using defaults from ksymoops -t elf32-sparc -a sparc
-> Nov 23 14:26:48 hilbert kernel: PC: <pipe_readv+0xac/0x440>
-> Nov 23 14:26:48 hilbert kernel: Caller[f008c140]: pipe_read+0x20/0x28
-> Nov 23 14:26:48 hilbert kernel: Caller[f007dee8]: vfs_read+0xa0/0x16c
-> Nov 23 14:26:48 hilbert kernel: Caller[f007eb38]: sys_read+0x38/0x64
-> Nov 23 14:26:48 hilbert kernel: Caller[f0015a3c]:=20
-> syscall_is_too_hard+0x3c/0x40
-> Nov 23 14:26:48 hilbert kernel: Caller[0003df90]: 0x3df98
-> Nov 23 14:26:49 hilbert kernel: Instruction DUMP: 1a800003  fa04a00c=20
-> a810001b <c207600c> 90100013  9fc04000  92100012  80a22000  128000b9
->=20
->=20
->  >>PC;  f008bd8c <pipe_readv+2f8/4d4>   <=3D=3D>=20
-> Trace; f008c140 <do_pipe+158/28c>
-> Trace; f007dee8 <vfs_readv+6c/70>
-> Trace; f007eb38 <__fput+8c/1b0>
-> Trace; f0015a3c <linux_sparc_syscall+0/18>
-> Trace; 0003df90 Before first symbol
->=20
-> Code;  f008bd80 <pipe_readv+2ec/4d4>
-> 00000000 <_PC>:
-> Code;  f008bd80 <pipe_readv+2ec/4d4>
->    0:   1a 80 00 03       bcc  c <_PC+0xc>
-> Code;  f008bd84 <pipe_readv+2f0/4d4>
->    4:   fa 04 a0 0c       ld  [ %l2 + 0xc ], %i5
-> Code;  f008bd88 <pipe_readv+2f4/4d4>
->    8:   a8 10 00 1b       mov  %i3, %l4
-> Code;  f008bd8c <pipe_readv+2f8/4d4>   <=3D=3D>    c:   c2 07 60 0c      =
- ld  [ %i5 + 0xc ], %g1   <=3D=3D> Code;  f008bd90 <pipe_readv+2fc/4d4>
->   10:   90 10 00 13       mov  %l3, %o0
-> Code;  f008bd94 <pipe_readv+300/4d4>
->   14:   9f c0 40 00       call  %g1
-> Code;  f008bd98 <pipe_readv+304/4d4>
->   18:   92 10 00 12       mov  %l2, %o1
-> Code;  f008bd9c <pipe_readv+308/4d4>
->   1c:   80 a2 20 00       cmp  %o0, 0
-> Code;  f008bda0 <pipe_readv+30c/4d4>
->   20:   12 80 00 b9       bne  304 <_PC+0x304>
-> Code;  f008bda4 <pipe_readv+310/4d4>
->   24:   00 00 00 00       unimp  0
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 
-	Some news : only occurs with SMP workstation with or without HIGHMEM=20
-support.
+---
 
-	Regards,
+ drivers/isdn/hisax/Kconfig  |    7 -------
+ drivers/isdn/hisax/config.c |   18 ------------------
+ drivers/isdn/hisax/hisax.h  |    6 ------
+ 3 files changed, 31 deletions(-)
 
-	JKB
+--- linux-2.6.19-rc5-mm2/drivers/isdn/hisax/Kconfig.old	2006-11-17 19:41:07.000000000 +0100
++++ linux-2.6.19-rc5-mm2/drivers/isdn/hisax/Kconfig	2006-11-17 19:41:15.000000000 +0100
+@@ -349,13 +349,6 @@ config HISAX_ENTERNOW_PCI
+ 	  This enables HiSax support for the Formula-n enter:now PCI
+ 	  ISDN card.
+ 
+-config HISAX_AMD7930
+-	bool "Am7930 (EXPERIMENTAL)"
+-	depends on EXPERIMENTAL && SPARC && BROKEN
+-	help
+-	  This enables HiSax support for the AMD7930 chips on some SPARCs.
+-	  This code is not finished yet.
+-
+ endif
+ 
+ if ISDN_DRV_HISAX
+--- linux-2.6.19-rc5-mm2/drivers/isdn/hisax/hisax.h.old	2006-11-17 19:41:33.000000000 +0100
++++ linux-2.6.19-rc5-mm2/drivers/isdn/hisax/hisax.h	2006-11-17 19:41:44.000000000 +0100
+@@ -1139,12 +1139,6 @@ struct IsdnCardState {
+ #define  CARD_HFC_SX 0
+ #endif
+ 
+-#ifdef  CONFIG_HISAX_AMD7930
+-#define CARD_AMD7930 1
+-#else
+-#define CARD_AMD7930 0
+-#endif
+-
+ #ifdef	CONFIG_HISAX_NICCY
+ #define	CARD_NICCY 1
+ #ifndef ISDN_CHIP_ISAC
+--- linux-2.6.19-rc5-mm2/drivers/isdn/hisax/config.c.old	2006-11-17 19:41:57.000000000 +0100
++++ linux-2.6.19-rc5-mm2/drivers/isdn/hisax/config.c	2006-11-17 19:43:03.000000000 +0100
+@@ -227,14 +227,6 @@ const char *CardType[] = {
+ #define DEFAULT_CFG {5,0x2E0,0,0}
+ #endif
+ 
+-
+-#ifdef CONFIG_HISAX_AMD7930
+-#undef DEFAULT_CARD
+-#undef DEFAULT_CFG
+-#define DEFAULT_CARD ISDN_CTYPE_AMD7930
+-#define DEFAULT_CFG {12,0x3e0,0,0}
+-#endif
+-
+ #ifdef CONFIG_HISAX_NICCY
+ #undef DEFAULT_CARD
+ #undef DEFAULT_CFG
+@@ -545,10 +537,6 @@ extern int setup_hfcpci(struct IsdnCard 
+ extern int setup_hfcsx(struct IsdnCard *card);
+ #endif
+ 
+-#if CARD_AMD7930
+-extern int setup_amd7930(struct IsdnCard *card);
+-#endif
+-
+ #if CARD_NICCY
+ extern int setup_niccy(struct IsdnCard *card);
+ #endif
+@@ -1064,11 +1052,6 @@ static int checkcard(int cardnr, char *i
+ 		ret = setup_niccy(card);
+ 		break;
+ #endif
+-#if CARD_AMD7930
+-	case ISDN_CTYPE_AMD7930:
+-		ret = setup_amd7930(card);
+-		break;
+-#endif
+ #if CARD_ISURF
+ 	case ISDN_CTYPE_ISURF:
+ 		ret = setup_isurf(card);
+@@ -1438,7 +1421,6 @@ static int __init HiSax_init(void)
+ 			break;
+ 		case ISDN_CTYPE_ELSA_PCI:
+ 		case ISDN_CTYPE_NETJET_S:
+-		case ISDN_CTYPE_AMD7930:
+ 		case ISDN_CTYPE_TELESPCI:
+ 		case ISDN_CTYPE_W6692:
+ 		case ISDN_CTYPE_NETJET_U:
+
