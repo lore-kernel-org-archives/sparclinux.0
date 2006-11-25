@@ -1,13 +1,15 @@
 From: Adrian Bunk <bunk@stusta.de>
-Date: Fri, 17 Nov 2006 23:59:52 +0000
+Date: Sat, 25 Nov 2006 19:15:04 +0000
 Subject: [RFC: 2.6 patch] remove the broken HISAX_AMD7930 option
-Message-Id: <20061117235952.GS31879@stusta.de>
+Message-Id: <20061125191504.GA3702@stusta.de>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20061117235952.GS31879@stusta.de>
+In-Reply-To: <20061117235952.GS31879@stusta.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: kkeil@suse.de, kai.germaschewski@gmx.de
-Cc: isdn4linux@listserv.isdn4linux.de, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: kkeil@suse.de, kai.germaschewski@gmx.de, isdn4linux@listserv.isdn4linux.de, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
 HISAX_AMD7930 was never anywhere near to being working, and this doesn't 
 seem to change in the forseeable future.
@@ -15,6 +17,9 @@ seem to change in the forseeable future.
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 
 ---
+
+Thgis patch was already sent on:
+- 18 Nov 2006
 
  drivers/isdn/hisax/Kconfig  |    7 -------
  drivers/isdn/hisax/config.c |   18 ------------------
