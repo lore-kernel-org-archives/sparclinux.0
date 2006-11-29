@@ -1,31 +1,52 @@
-From: "Luke Carey" <Ramey_lizzie@carlisle.com>
-Date: Mon, 06 Nov 2006 17:28:59 +0000
-Subject: FAST DELIVERY CIIALIIS SOFTTABS
-Message-Id: <513y423n.6955788@cml.hinet.net>
+From: Alexey Dobriyan <adobriyan@openvz.org>
+Date: Wed, 29 Nov 2006 08:42:09 +0000
+Subject: [PATCH] sparc{,64}: propagate ptrace_traceme() return value
+Message-Id: <20061129084209.GA10848@localhost.sw.ru>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: majordomo@vger.kernel.org
-Cc: sparclinux@vger.kernel.org, linux-raid@vger.kernel.org, netdev@vger.kernel.org, linux-smp@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
+ptrace_traceme() consolidation made
 
+	ret = ptrace_traceme();
 
+dead write.
 
+Signed-off-by: Alexey Dobriyan <adobriyan@openvz.org>
+---
 
-http://www.google.com/url?q=%68%74%74%70%3A//locke%2esubstancee%2ecom
+ arch/sparc/kernel/ptrace.c   |    5 ++++-
+ arch/sparc64/kernel/ptrace.c |    5 ++++-
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-
-
-
-
-
-
-
-
-
-look wild either on my way down into Suffolk   of course
-and could not let them go  Here she left off 
-
-
+--- a/arch/sparc/kernel/ptrace.c
++++ b/arch/sparc/kernel/ptrace.c
+@@ -289,7 +289,10 @@ #endif
+ 
+ 	if (request = PTRACE_TRACEME) {
+ 		ret = ptrace_traceme();
+-		pt_succ_return(regs, 0);
++		if (ret < 0)
++			pt_error_return(regs, -ret);
++		else
++			pt_succ_return(regs, 0);
+ 		goto out;
+ 	}
+ 
+--- a/arch/sparc64/kernel/ptrace.c
++++ b/arch/sparc64/kernel/ptrace.c
+@@ -202,7 +202,10 @@ #ifdef DEBUG_PTRACE
+ #endif
+ 	if (request = PTRACE_TRACEME) {
+ 		ret = ptrace_traceme();
+-		pt_succ_return(regs, 0);
++		if (ret < 0)
++			pt_error_return(regs, -ret);
++		else
++			pt_succ_return(regs, 0);
+ 		goto out;
+ 	}
+ 
 
