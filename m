@@ -1,82 +1,42 @@
-From: Andrew Walrond <andrew@walrond.org>
-Date: Thu, 21 Dec 2006 22:40:27 +0000
-Subject: Sparc64 kernel oops (caused by bad scsi disk?)
-Message-Id: <1166740827.5009.64.camel@localhost>
+From: "Shedar Shedar" <Cordero@world4fun.ch>
+Date: Wed, 06 Dec 2006 18:10:16 +0000
+Subject: Gain up some Inches for your darling
+Message-Id: <1c1101c71961$29bb8cec$f82bab50@pc1>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux <sparclinux@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>
+To: sparclinux@vger.kernel.org
 
-Installing a bad disk in a Sun D1000 (JBOD 12 disk scsi 2 array)
-attached to a Sun E4500 (8proc, 8Gb ram) running a 64bit sparc64
-2.6.18.3 SMP kernel causes this or similar oops when accessing the bad
-disk:
+Hei dude
 
-sda: Current: sense key: Recovered Error
-    Additional sense: Address mark not found for data field
-Info fld=0xa8d
-sda: Current: sense key: Recovered Error
-    Additional sense: Write error - recovered with auto reallocation
-Info fld=0xa98
-sda: Current: sense key: Recovered Error
-    Additional sense: Address mark not found for data field
-Info fld=0xad6
-sda: Current: sense key: Recovered Error
-    Additional sense: Recovered data with retries
-Info fld=0xaff
-sda: Current: sense key: Recovered Error
-    Additional sense: Recovered data with retries
-Info fld=0xb0f
-eth5: Auto-Negotiation unsuccessful, trying force link mode
-sda: Current: sense key: Recovered Error
-    Additional sense: Recovered data with negative head offset
-Info fld=0xb2b
-sda: Current: sense key: Recovered Error
-    Additional sense: Recovered data with retries
-Info fld=0xb52
-sda: Current: sense key: Recovered Error
-    Additional sense: Recovered data with retries
-Info fld=0xb68
-sda: Current: sense key: Recovered Error
-    Additional sense: Recovered data with retries
-Info fld=0xbba
-eth5: Link down, cable problem?
-Unable to handle kernel NULL pointer dereference
-tsk->{mm,active_mm}->context = 00000000000005a4
-tsk->{mm,active_mm}->pgd = fffff80113976000
-              \|/ ____ \|/
-              "@'/ .. \`@"
-              /_| \__/ |_\
-                 \__U_/
-swapper(0): Oops [#1]
-TSTATE: 0000000080f09607 TPC: 000000000052b51c TNPC: 000000000052b520 Y: 00000000    Not tainted
-TPC: <memcpy+0x1224/0x13c0>
-g0: fffff80003d03660 g1: 0000000011010080 g2: 0000000000000000 g3: fffff801feaf0000
-g4: 000000000072d280 g5: fffff8000350c000 g6: 0000000000729280 g7: 0000000000000050
-o0: 00000000000000c0 o1: fffff801feaf1d60 o2: 0000000000000000 o3: 000007fe0150e360
-o4: 00000000000000c0 o5: f0000300000bcf28 sp: 000000000072c3d1 ret_pc: 00000000005d7e24
-RPC: <qpti_intr+0x128/0x294>
-l0: fffff801feaf1d40 l1: 0000000000000076 l2: 0000000000000000 l3: 0000000000000076
-l4: 0000000000000000 l5: 0000000000000000 l6: fffff80004a74140 l7: 0000000000000001
-i0: 0000000000000000 i1: fffff80004faa4c0 i2: 000000000072cf90 i3: 0000000000000000
-i4: 0000000000000000 i5: fffff80003d6b660 i6: 000000000072c491 i7: 000000000046d20c
-I7: <handle_IRQ_event+0x38/0x78>
-Caller[000000000046d20c]: handle_IRQ_event+0x38/0x78
-Caller[000000000046d308]: __do_IRQ+0xbc/0x13c
-Caller[000000000041bec8]: handler_irq+0x7c/0x94
-Caller[00000000004108b4]: tl0_irq5+0x1c/0x20
-Caller[00000000004180e4]: cpu_idle+0x2c/0xa4
-Caller[00000000007ce6c0]: start_kernel+0x28c/0x294
-Caller[00000000004045d8]: setup_trap_table+0x0/0x100
-Caller[0000000000000000]: 0x8
-Instruction DUMP: da5a6000  c25a6008  8ea1e010 <da72400b> 92026008  c272400b  186ffffa  92026008  808aa008
-Kernel panic - not syncing: Aiee, killing interrupt handler!
- <0>Press Stop-A (L1-A) to return to the boot prom
+Don't tell me why your sausage is so small,
+I will better help you to make it really Bigger!
+
+Why bigger? Because over 72% of all women need a longer
+weenie to satisfy their desire!
+
+Go there and get your solution: http://meanly.net
+
+It'll really help you!
+
+We will ship it worldwide within 24 hours, and if
+you find our product useless - we'll refund all your money!
 
 
-Let me know if I can do anything to help chase this down.
 
-Andrew Walrond
+-- 
+llhhhhihhlilipitilhrhhgqhpipiqhsjtfpfmggfpfffpjofmgqfs
+riudweruweroiure
+last car, latched its  paw round a pipe  sticking  out of one of the windows
+and sailed away, having saved itself ten kopecks.
+     Fascinated  by the  odious  cat,  Ivan  almost  lost sight of  the most
+important of  the three--the  professor. Luckily he had not  managed to slip
+away. Ivan spotted his grey beret in the crowd at the top of Herzen  Street.
+In a flash Ivan was there too, but in vain. The poet speeded up to a run and
+began  shoving  people  aside,  but  it brought  him not  an inch nearer the
+professor.
+     Confused  though  Ivan  was,  he  was  nevertheless  astounded  by  the
+supernatural speed of the pursuit.  Less  than  twenty seconds after leaving
+
 
