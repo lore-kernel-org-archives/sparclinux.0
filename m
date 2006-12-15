@@ -1,28 +1,36 @@
-From: Ben Collins <ben.collins@ubuntu.com>
-Date: Tue, 19 Dec 2006 17:05:14 +0000
-Subject: Re: Problems booting on Sun e10k
-Message-Id: <1166547914.5210.80.camel@gullible>
+From: Dustin Lang <dstn@cs.toronto.edu>
+Date: Fri, 15 Dec 2006 01:24:20 +0000
+Subject: Free: SparcStation Voyager (parts)
+Message-Id: <Pine.LNX.4.58.0612142015010.29105@monte.ai>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200612172220.52954.tonu@jes.ee>
-In-Reply-To: <200612172220.52954.tonu@jes.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sun, 2006-12-17 at 22:20 +0200, Tonu Samuel wrote:
-> Hi!
-> 
-> I have Sun Enterprise 10000 and cannot make it to be friends with linux. I had 
-> nice success with E6500 but not with E10000. There are my attempts are 
-> logged:
-> 
-> http://no.spam.ee/~tonu/sparc/gentooe10k.txt
-> 
-> http://no.spam.ee/~tonu/sparc/aurorae10k.txt
 
-Not sure if you've tried, but you could give Ubuntu a try aswell.
+Hi,
 
-http://www.ubuntu.com/download
+I have a SparcStation Voyager whose LCD backlight has burned out.  I am
+finally admitting that I will never get around to trying to fix it, so I
+am trying to give it away.
 
-Find the 6.10 "Server CD" mirror closest to you.
+If you want the whole thing, please let me know.  It even comes in a cool
+carrying case.
+
+Otherwise, if there are any parts that people want from it, I will do that
+instead.
+
+Working from a several-year old memory, it has maybe 48MB ram and about an
+800MB drive.  Obviously I can look more closely if you are interested.
+
+I am in Vancouver, Canada.  If I end up tearing it apart, I imagine the
+individual parts will be light so I can probably send them to you for
+free.  If you want the whole thing, I may ask you to help me with the cost
+of shipping.
+
+Please contact me off-list if you're interested.
+
+Thanks,
+dustin.
+
