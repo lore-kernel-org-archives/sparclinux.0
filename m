@@ -1,28 +1,34 @@
-From: Ismail =?utf-8?q?D=C3=B6nmez?= <ismail@pardus.org.tr>
-Date: Sun, 31 Dec 2006 09:44:48 +0000
-Subject: Re: 2.6.20-rc2: known unfixed regressions (v2)
-Message-Id: <200612311144.51438.ismail@pardus.org.tr>
+From: Tonu Samuel <tonu@jes.ee>
+Date: Sun, 17 Dec 2006 20:20:52 +0000
+Subject: Problems booting on Sun e10k
+Message-Id: <200612172220.52954.tonu@jes.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.0612232043030.3671@woody.osdl.org> <20061231004719.GG20714@stusta.de>
-In-Reply-To: <20061231004719.GG20714@stusta.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Florin Iucha <florin@iucha.net>, gregkh@suse.de, linux-usb-devel@lists.sourceforge.net, dmitry.torokhov@gmail.com, linux-input@atrey.karlin.mff.cuni.cz, Jon Smirl <jonsmirl@gmail.com>, perex@suse.cz, alsa-devel@alsa-project.org, "Horst H. von Brand" <vonbrand@inf.utfsm.cl>, davem@davemloft.net, sparclinux@vger.kernel.org, Komuro <komurojun-mbn@nifty.com>, YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>, netdev@vger.kernel.org, Michael Reske <micha@gmx.com>, Ayaz Abdulla <aabdulla@nvidia.com>, Tobias Diedrich <ranma+kernel@tdiedrich.de>, Andi Kleen <ak@suse.de>, Yinghai Lu <yinghai.lu@amd.com>, "Eric W. Biederman" <ebiederm@xmission.com>, mingo@redhat.com, Alessandro Suardi <alessandro.suardi@gmail.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-ide
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-31 Ara 2006 Paz 02:47 tarihinde, Adrian Bunk şunları yazmıştı: 
-[...]
-> Subject    : ALSA: No sound in KDE with intel hda
-> References : http://lkml.org/lkml/2006/12/30/73
-> Submitter  : Ismail Dönmez <ismail@pardus.org.tr>
-> Status     : unknown
+Hi!
 
-Just tried with 2.6.18.6 and aRts still have no sound, there must be something 
-else broken on my side.
+I have Sun Enterprise 10000 and cannot make it to be friends with linux. I =
+had=20
+nice success with E6500 but not with E10000. There are my attempts are=20
+logged:
 
-Thanks,
-ismail
+http://no.spam.ee/~tonu/sparc/gentooe10k.txt
 
--- 
-2 + 2 = 5 for very large values of 2
+http://no.spam.ee/~tonu/sparc/aurorae10k.txt
+
+Notice, E10k usually needs to install software over lan. I have hacked cdro=
+m=20
+to it for making things more clear.
+
+I believe problem is in console. on e10k there is no serial port or=20
+framebuffer device. Console works over ethernet and this makes linux=20
+confused.
+
+I have not tried to compile sparc linux kernel on my own. Just had no time =
+and=20
+currently I have no installed Linux on sparc too.=20
+
+   T=F5nu
