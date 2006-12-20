@@ -1,32 +1,29 @@
-From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
-Date: Wed, 20 Dec 2006 07:15:10 +0000
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Date: Wed, 20 Dec 2006 16:06:49 +0000
 Subject: Re: nfs and sparc64
-Message-Id: <4588E2FE.90001@systella.fr>
+Message-Id: <Pine.LNX.4.61.0612201706310.15218@yvahk01.tjqt.qr>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="1283855629-284605695-1166630809=:15218"
 List-Id: <sparclinux.vger.kernel.org>
 References: <458878BC.3040106@systella.fr>
 In-Reply-To: <458878BC.3040106@systella.fr>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-David Miller a =E9crit :
-> From: BERTRAND_Jo=EBl <joel.bertrand@systella.fr>
-> Date: Wed, 20 Dec 2006 00:41:48 +0100
->=20
->> 	U60 runs debian/etch, nfs-kernel-server, and client I use for tests is =
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
->> a i386 (K6-3/400) that runs debian/etch too. I have tested different=20
->> memory configuration and the oops always occurs at the same instruction.
->>
->> 	Any idea ?
->=20
-> Any chance you can test a gcc-4.0.x compiled kernel?
-> This might be a miscompile.
+--1283855629-284605695-1166630809=:15218
+Content-Type: TEXT/PLAIN; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 
-	I can compile with a gcc-4.0, but not before the next week. I shall=20
-test and come back.
 
-	Thanks,
+On Dec 20 2006 00:41, BERTRAND Joël wrote:
+>
+> Root rayleigh:[~] > ksymoops -v /boot/vmlinux-2.6.19.1 oops
 
-	JKB
+BTW, don't run ksym* on 2.6 kernels, it is not needed.
+
+
+	-`J'
+-- 
+--1283855629-284605695-1166630809=:15218--
