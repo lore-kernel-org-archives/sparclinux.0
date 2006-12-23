@@ -1,26 +1,30 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 04 Dec 2006 18:24:15 +0000
-Subject: Re: [2.4 PATCH] sparc64 dma parenthesis fixes
-Message-Id: <20061204.102415.115910891.davem@davemloft.net>
+From: Jurij Smakov <jurij@wooyd.org>
+Date: Sat, 23 Dec 2006 19:19:32 +0000
+Subject: Oops during boot on Netra X1 with 2.6.18 in isa_dev_get_resource
+Message-Id: <20061223191932.GA4749@droopy.oc.cox.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200612041044.19475.m.kozlowski@tuxland.pl>
-In-Reply-To: <200612041044.19475.m.kozlowski@tuxland.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Date: Mon, 4 Dec 2006 19:21:51 +0100
+Hi,
 
-> > > =A0=A0=A0=A0=A0=A0=A0=A0This patch fixes some sparc64 dma macros.
-> > >=20
-> > > Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-> >=20
-> > I applied this patch already, and I sent you an email telling
-> > you this over the weekend.
->=20
-> Thanks. That was against 2.6. I thought 2.4 needs separate patch.
+Richard Mortimer (CC'd) reported an oops when booting 2.6.18 on 
+Netra X1. Richard writes:
 
-Aha, I didn't catch that, my mind thought this was
-another submission on the 2.6.x side, sorry :)
+> I believe that the problem is due to a null pointer being returned 
+> from of_get_property in isa_dev_get_resource() 
+> arch/sparc64/kernel/isa.c. Enclosed is a disassembly of the 
+> appropriate bit of code along with the prtconf -pv output for the 
+> isa device tree. I wonder if the problem might be the fact that the 
+> todm5819 node does not have "reg" properties.
+
+All the debugging information is included in Debian bug report at
+
+http://bugs.debian.org/cgi-bin/bugreport.cgi?bug@4216
+
+Best regards,
+-- 
+Jurij Smakov                                           jurij@wooyd.org
+Key: http://www.wooyd.org/pgpkey/                      KeyID: C99E03CC
