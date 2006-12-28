@@ -1,54 +1,54 @@
-From: "Horst H. von Brand" <vonbrand@inf.utfsm.cl>
-Date: Wed, 27 Dec 2006 20:38:50 +0000
-Subject: Re: 2.6.19 (current from git) on SPARC64: Can't mount /
-Message-Id: <200612272038.kBRKcosK021701@laptop13.inf.utfsm.cl>
+From: Georg Chini <georg.chini@triaton-webhosting.com>
+Date: Thu, 28 Dec 2006 12:43:44 +0000
+Subject: IRQ-problem with cs4231 alsa driver on SBUS
+Message-Id: <4593BC00.4010902@triaton-webhosting.com>
 List-Id: <sparclinux.vger.kernel.org>
-In-Reply-To: Message from Adrian Bunk <bunk@stusta.de> 
-   of "Mon, 18 Dec 2006 04:20:03 BST." <20061218032003.GU10316@stusta.de> 
-References: <20061218032003.GU10316@stusta.de>
-In-Reply-To: <20061218032003.GU10316@stusta.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Adrian Bunk <bunk@stusta.de>
-Cc: "Horst H. von Brand" <vonbrand@inf.utfsm.cl>, davem@davemloft.net, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Adrian Bunk <bunk@stusta.de> wrote:
-> On Wed, Dec 13, 2006 at 03:56:46PM -0300, Horst H. von Brand wrote:
-> > I've been running kernel du jour straight from git on my SPARC Ultra 1 for
-> > some time now on Aurora Corona (Fedora relative, development branch). For a
-> > few days now 2.6.19 panics on boot, it can't mount /. 2.6.19 worked fine,
-> > as does 2.6.19.1 (Aurora changed gcc, mkinitrd, ... in between, so I had to
-> > rebuild a kernel to check if the problem lay elsewhere). Unpacking the
-> > initrds for 2.6.19 and 2.6.19.1 shows the same (nash script) /init and the
-> > same modules in both (ext3 + jbd, scsi_mod, sd_mod, esp, others).
+Hello,
 
-> > I'm stumped. Any clue?
+I am using an ultra 2 with two 300 MHz CPU's, kernel 2.6.18.5.
+I tried to make a VOIP appliction (twinkle) work on my machine.
+I have to use the OSS emulation layer, if I configure ALSA in
+the application it will not work.
+With OSS it works fine for a while, but after exactly 99999 IRQ's
+from the cs4231 card I get the following kernel message:
 
-> Is this issue still present in the latest -git?
+irq 7: nobody cared (try booting with the "irqpoll" option)
+Call Trace:
+ [000000000046df14] __do_IRQ+0xec/0x140
+ [000000000041c400] handler_irq+0x7c/0x94
+ [00000000004108b4] tl0_irq5+0x1c/0x20
+ [0000000000418564] cpu_idle+0x34/0xb8
+ [00000000006e2660] start_kernel+0x234/0x23c
+ [00000000004045d8] setup_trap_table+0x0/0x100
+ [0000000000000000] 0x8
+handlers:
+[<0000000010079a64>] (snd_cs4231_sbus_interrupt+0x8/0x31c [snd_sun_cs4231])
+Disabling IRQ #7
 
-Sorry, got sidetracked by other stuff.
+After this, sound stops working.
+Booting with the irqpoll option as suggested gives an endless
+stream of errors as soon as I use sound. I get following repeated
+message:
 
-Still no boot with 2.9.20-rc1 and -rc2, and none of the kernels I tried in
-between.
+SYSIO[1f]: Uncorrectable ECC Error, primary error type[???]
+SYSIO[1f]: DOFF[7] SIZE[7] MID[1f]
+SYSIO[1f]: AFAR[000001ffffffffff]
+SYSIO[1f]: Secondary UE errors [(none)]
+SYSIO[1f]: Correctable ECC Error, primary error type[???]
+SYSIO[1f]: DOFF[7] ECC Syndrome[ff] Size[7] MID[1f]
+SYSIO[1f]: AFAR[000001ffffffffff]
+SYSIO[1f]: Secondary CE errors [(none)]
+SYSIO[1f]: SBUS Error, primary error type[???] read(0)
+SYSIO[1f]: size[2] MID[1]
+SYSIO[1f]: AFAR[000001ffdc000010]
+SYSIO[1f]: Secondary SBUS errors [(none)]
 
-initrd is sane (the only differences between the one built for working
-2.6.19.1 and broken 2.6.20-rc2 are among the modules themselves). What I
-did was:
+Any idea what the messages mean or what I can do to correct the problem?
 
-  cd /tmp
-  mkdir ird-$version
-  cd ird-$version
-  zcat /boot/initrd-$version.img | cpio -i
-
-and then "diff -Nur ird-$1 ird-$2". Now to teach diff(1) to compare devices
-reasonably...
-
-Tried latest from Fedora rawhide (mkinitrd-6.0.6-1), no boot. initrd is
-huge, so I went back to mkinitrd-5.1.19-1.
--- 
-Dr. Horst H. von Brand                   User #22616 counter.li.org
-Departamento de Informatica                    Fono: +56 32 2654431
-Universidad Tecnica Federico Santa Maria             +56 32 2654239
-Casilla 110-V, Valparaiso, Chile               Fax:  +56 32 2797513
-
+Regards
+              Georg Chini
