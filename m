@@ -1,7 +1,7 @@
-From: Georg Chini <georg.chini@triaton-webhosting.com>
-Date: Thu, 28 Dec 2006 21:27:12 +0000
+From: "Chini, Georg" <georg.chini@hp.com>
+Date: Thu, 28 Dec 2006 23:21:12 +0000
 Subject: Re: IRQ-problem with cs4231 alsa driver on SBUS
-Message-Id: <459436B0.2090103@triaton-webhosting.com>
+Message-Id: <45945168.6080909@hp.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4593BC00.4010902@triaton-webhosting.com>
 In-Reply-To: <4593BC00.4010902@triaton-webhosting.com>
@@ -14,17 +14,19 @@ Hello,
 
 Georg Chini wrote:
 
+> Hello,
+>
+> I am using an ultra 2 with two 300 MHz CPU's, kernel 2.6.18.5.
+> I tried to make a VOIP appliction (twinkle) work on my machine.
+> I have to use the OSS emulation layer, if I configure ALSA in
+> the application it will not work.
 > With OSS it works fine for a while, but after exactly 99999 IRQ's
 > from the cs4231 card I get the following kernel message:
 >
 >
-I was wrong, the message appears after 100000 IRQ's, even if I
-use different applications (mplayer, xmms, twinkle) and close
-them in between. Mplayer and xmms use ALSA.
-I changed the minimum period size in cs4231.c from 4096 to 256
-bytes, but I verified that the problem occurs also with other
-period sizes. I tested 256, 512 and 1024. With larger period sizes
-it takes too long to wait for the error.
+Problem solved,  the IRQ-handler returned 0, not IRQ_HANDLED.
+I'll post a patch later on, still fighting with some initialisation 
+problems.
 
 Regards
-             Georg Chini
+              Georg Chini
