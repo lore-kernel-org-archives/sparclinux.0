@@ -1,144 +1,107 @@
-From: "Cathleen Brown" <fantasticate@odysseyplanet.com>
-Date: Thu, 23 Nov 2006 17:03:12 +0000
-Subject: New software uploaded by Kevin on Nov 23 19:40:00 MSK 2006
-Message-Id: <000001c70f1f$b6e1c280$0100007f@localhost>
+From: "Chini, Georg" <georg.chini@hp.com>
+Date: Fri, 29 Dec 2006 22:16:02 +0000
+Subject: Third Try: [PATCH] cs4231 alsa driver: Fix IRQ and initialisation
+Message-Id: <459593A2.2000600@hp.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------020506020509090700000905"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------020506020509090700000905
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Kevin has uploaded some new software for you!
+Hi,
 
+I don't know what my mail program does to the patch. When I
+send it there is always a + sign too much in one line. So I attach
+it as a file now. I hope this works, and once again sorry for the
+confusion.
 
-Click here to view available updated software from Kevin:
-http://eki-oem.com/?Kevin
+Regards
+              Georg Chini
 
+--------------020506020509090700000905
+Content-Type: text/plain;
+ name="cs4231_061229.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="cs4231_061229.diff"
 
-Even though the kernel may support communication along a serial or
-	user smith on host alpha is the same user smith on host gamma.
-/usr/sbin/arp -s $5 00:11:22:33:44:55 pub
-printer, tell LPD how to communicate with it, and print plain text
-/compat/linux/lib/libc.so.4.6.29
-physically similar (sometimes identical) tapes. QIC drives are not
-increment \%x 	   ; Count the seconds
-gain access to your systems as the password instantly expires. As they
-allow for some voltage loss in long cables.  Some transmitters in low
-FreeBSD is a 4.4 BSD Lite based operating system for Intel
-upgrade as your enterprise grows.
-Netmasks:
-o  Merge EISA/PCI/ISA interrupt registration code.
-to the modem so that the modem will not echo any of the test
-	Drop the packet, and send an ICMP host or port unreachable (as
-in order for the emulator to find them.
-number(s) mm are less important, though it is advised to take the most
-once made a long distance telephone call on a bad line you probably
-	   le_intr
-for the vendor to use UARTs that are compatible with the 8250, 16450,
-silvia# netstat -r
-$%&'()*+,-./01234567
-to encode the cylinder number. For the number of sectors the limit is
-ifconfig ppp0 delete
-profound sense of frustration. A combination of factors works against
-	See ``Header   Pages'' for details.
-route will be the gateway machine at your Internet Service Provider's
-drive.  These floppies must contain: fdisk(8), disklabel(8), newfs(8),
-:lp=/dev/lpt0:sd=/var/spool/lpd/teak:mx#0:\
-In the body of your message.	Optionally, you can also say `help' and
-	design flaw.  Workarounds include do not run more than 2 bus
-o  ATA Extensions (ATA-2) [X3T10/948D Rev 2i]
-	 call func(arg1, arg2, ...)
-File .../Untitled-1.mb appears to be broken for OMPR.257.0
-o  3Com 3C503 Etherlink II
-To simulate PostScript, we have the text filter detect if it is
-output at\13
-access to your ppp system.
-o  Q. I did that, but when I tried to put it into /usr/ports/distfiles
-	INS8250B.
-13.1.1.  An example
-encryption, they are believed to be exportable from the US and
-7.6.1.6.  lpf: a Text Filter
-annoying.  What is worse, though, is that an incorrectly specified
-The tape does not contain an Identifier Block (block number 0). All
-sees a good prompt.  Obviously, this login sequence does not look as
-The 8237 DMA is known as a ``fly-by'' DMA controller.  This means that
-for the destination printer.	If the user wanted to print plain text,
-7.6.1.4.2.  Which Conversions Filters Should I Install?
-If you have a modem whose parameters may be permanently set in non-
-generally include changes to manual pages, which should be considered
-all cases than to not run at all.
-try again with the entire 8K unit, and the process will be repeated,
-signals, so if you have problems, such as a login session not going
-7.  Printing
-There are various ways of using an Internet (or email) connection to
-	to have up to 84 simultaneous processes, which should be enough
-printer can understand.
-3. An image format that allows tagging of such drivers data and text
-order to fix a number of problems with it that the patchkit mechanism
-interfaces, named after the connector type on the printer.
-For the easiest interface of all (from DOS), type ``view''.  This will
-ISBN 1-55558-051-3
-some kind of symbol table in the kernel.
-o	ftp5.FreeBSD/pub/FreeBSD
-where printer-name is a the name of a printer (or an alias) specified
-2.x . The ${..} variable names you will see in this document all refer
-archivers/unzip subdirectory of your ports tree to build and install
-capacity Ethernet adapter for the FreeBSD system, there is a simple
-from different continents.  This will safeguard against wide-area
-# Serial port initial configuration
-	It is quite similar to the BSD LPD spooler, but boasts a host of
-In the case of a significant contribution of a large body work, or the
-mistake. It's Unix-ese for ``the current directory'')
-See also:
-D2400|d2400|Fast-Dial-2400:\
-In the ``Simple Printer	  Setup'', we turned off header pages by
-Note: If you are trying to upgrade your kernel from an older
-0x0c write	 Channel 3 starting address
-When initially setting up your firewall, unless you have a test bench
-charging for printer usage.
-on the inner workings of the ports collection.
-The lpq command also support a -l option to generate a detailed long
-This line could be added to your /etc/rc.local file.
-6000, the upper limit being how many X displays you can run on the
-details.
-If you need more information about these terms and data communications
-	 usage
-the central processor (CPU).
-There are in addition two other sorts of data involved in the S/Key
-rattan|line|diablo|lp|Diablo 630 Line Printer:\
-1.4.	About the current release
-72:= -272638456, tf_ss = 39}) (../../i386/i386/trap.c line 673)
-The ``deltas'' you feed CTM can be had two ways, FTP or e-mail.  If
-	    # default router
-		      the UART.
-The format of the printcap file is straightforward.  Use your favorite
-capacity Ethernet adapter for the FreeBSD system, there is a simple
-device	      sio2 at isa? port "IO_COM3" tty irq 5 vector siointr
-common sorts of configuration statements:
-o  FWD: Fast Wide Differential
-an 8-port board):
-meant to do anything more than initialize a printer or do some
-o  Finally, use whatever works.
-pid=`ps ax |grep pppd |grep -v grep|awk '{print $1;}'`
-Then, you may use:
-	they are found, regardless of how many of them are hooked up to
-2.2-current before 2.1:	       199508
-src-libexec:	 /usr/src/libexec    system binaries
-	asserted, and that wire is actually connected to the HLDA signal
-7.6.2.3.  Accounting for Header Pages
-majordomo, send a message first containing the word ``help'' - it will
-	FreeBSD at this time.
-Synchronous operations.  This mode is described here for comparison
-10.4.9.5.2.  After the Disaster
-tarball, is going to be something like:
-As briefly mentioned before, ESDI comes in two speed flavors.  The
-display the next 0x10 items, simply use
-:sh:sd=/var/spool/lpd/bamboo:\
-configuration.  To add support for a parallel port, see that section
-so follow the descriptions in the ``Configuration File'' section
-These are the arguments pac expects:
-janeGRONDAR.ZA
+From: Georg Chini georg.chini@triaton-webhosting.com
 
+SBUS: Change IRQ-handler return value from 0 to IRQ_HANDLED and
+fix some initialisation problems.
+Change period_bytes_min from 4096 to 256 to allow driver to work with
+low latency (VOIP) applications. Hope this does not break EBUS.
 
+Signed-off-by: Georg Chini <georg.chini@triaton-webhosting.com>
 
+diff -uprN linux.orig/sound/sparc/cs4231.c linux/sound/sparc/cs4231.c
+--- linux.orig/sound/sparc/cs4231.c	2006-12-29 22:08:10.000000000 +0100
++++ linux/sound/sparc/cs4231.c	2006-12-29 21:45:42.000000000 +0100
+@@ -1268,7 +1268,7 @@ static struct snd_pcm_hardware snd_cs423
+ 	.channels_min		= 1,
+ 	.channels_max		= 2,
+ 	.buffer_bytes_max	= (32*1024),
+-	.period_bytes_min	= 4096,
++	.period_bytes_min	= 256,
+ 	.period_bytes_max	= (32*1024),
+ 	.periods_min		= 1,
+ 	.periods_max		= 1024,
+@@ -1288,7 +1288,7 @@ static struct snd_pcm_hardware snd_cs423
+ 	.channels_min		= 1,
+ 	.channels_max		= 2,
+ 	.buffer_bytes_max	= (32*1024),
+-	.period_bytes_min	= 4096,
++	.period_bytes_min	= 256,
+ 	.period_bytes_max	= (32*1024),
+ 	.periods_min		= 1,
+ 	.periods_max		= 1024,
+@@ -1796,7 +1796,7 @@ static irqreturn_t snd_cs4231_sbus_inter
+ 	snd_cs4231_outm(chip, CS4231_IRQ_STATUS, ~CS4231_ALL_IRQS | ~status, 0);
+ 	spin_unlock_irqrestore(&chip->lock, flags);
+ 
+-	return 0;
++	return IRQ_HANDLED;
+ }
+ 
+ /*
+@@ -1821,7 +1821,6 @@ static int sbus_dma_request(struct cs423
+ 	if (!(csr & test))
+ 		goto out;
+ 	err = -EBUSY;
+-	csr = sbus_readl(base->regs + APCCSR);
+ 	test = APC_XINT_CNVA;
+ 	if ( base->dir == APC_PLAY )
+ 		test = APC_XINT_PNVA;
+@@ -1862,17 +1861,16 @@ static void sbus_dma_enable(struct cs423
+ 
+ 	spin_lock_irqsave(&base->lock, flags);
+ 	if (!on) {
+-		if (base->dir == APC_PLAY) { 
+-			sbus_writel(0, base->regs + base->dir + APCNVA); 
+-			sbus_writel(1, base->regs + base->dir + APCC); 
+-		}
+-		else
+-		{
+-			sbus_writel(0, base->regs + base->dir + APCNC); 
+-			sbus_writel(0, base->regs + base->dir + APCVA); 
+-		} 
++		sbus_writel(0, base->regs + base->dir + APCNC); 
++		sbus_writel(0, base->regs + base->dir + APCNVA); 
++		sbus_writel(0, base->regs + base->dir + APCC); 
++		sbus_writel(0, base->regs + base->dir + APCVA); 
++		
++		/* ACK any APC interrupts. */
++		csr = sbus_readl(base->regs + APCCSR);
++		sbus_writel(csr, base->regs + APCCSR);
+ 	} 
+-	udelay(600); 
++	udelay(1000); 
+ 	csr = sbus_readl(base->regs + APCCSR);
+ 	shift = 0;
+ 	if ( base->dir == APC_PLAY )
+
+--------------020506020509090700000905--
