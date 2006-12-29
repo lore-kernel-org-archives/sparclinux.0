@@ -1,13 +1,22 @@
-From: Georg Chini <georg.chini@triaton-webhosting.com>
-Date: Fri, 29 Dec 2006 21:47:28 +0000
+From: "Chini, Georg" <georg.chini@hp.com>
+Date: Fri, 29 Dec 2006 22:02:40 +0000
 Subject: [PATCH] cs4231 alsa driver: Fix IRQ and initialisation problems,
-Message-Id: <45958CF0.3090106@triaton-webhosting.com>
+Message-Id: <45959080.8010601@hp.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <45958CF0.3090106@triaton-webhosting.com>
+In-Reply-To: <45958CF0.3090106@triaton-webhosting.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Hello,
+
+there was a typo in the last patch, so here it is again. Sorry for  the  
+confusion.
+
+-----
+ 
 From: Georg Chini georg.chini@triaton-webhosting.com
 
 SBUS: Change IRQ-handler return value from 0 to IRQ_HANDLED and
