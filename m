@@ -1,81 +1,78 @@
-From: Martin Habets <errandir_news@mph.eclipse.co.uk>
-Date: Sun, 17 Dec 2006 11:14:05 +0000
-Subject: Re: sparc32 modpost warnings
-Message-Id: <20061217111404.GA12314@palantir8>
+From: =?ISO-8859-2?Q?Tomasz_K=B3oczko?= <kloczek@rudy.mif.pg.gda.pl>
+Date: Fri, 29 Dec 2006 14:32:17 +0000
+Subject: 2.6.18-1.2798.al3.1smp: SKB BUG: Invalid truesize (368)
+Message-Id: <Pine.BSO.4.63.0612291523540.9165@rudy.mif.pg.gda.pl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="0-1505833140-1167402257=:9165"
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.SOC.4.61.0612131133540.10721@math.ut.ee>
-In-Reply-To: <Pine.SOC.4.61.0612131133540.10721@math.ut.ee>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi Meelis,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Some partial answers inline.
+--0-1505833140-1167402257=:9165
+Content-Type: TEXT/PLAIN; charset="iso-8859-2"; format="flowed"
+Content-Transfer-Encoding: quoted-printable
+Content-ID: <Pine.BSO.4.63.0612291524411.9165@rudy.mif.pg.gda.pl>
 
-On Wed, Dec 13, 2006 at 11:35:47AM +0200, Meelis Roos wrote:
-> Tried to compile todays git on sparc32 with custom config. It compiled 
-> fine (will test in the evening if I get some time) but emitted this 
-> bunch of warnings during modpost. Maybe somebody would like to have a 
-> look, I will be busy this week myself.
-> 
-> WARNING: vmlinux - Section mismatch: reference to .init.text:no_sun4u_here from .text between 'current_pc' (at offset 0x9040) and 'already_mapped'
-> WARNING: vmlinux - Section mismatch: reference to .init.text: from .text between 'go_to_highmem' (at offset 0x9280) and 'init_thread_union'
-> WARNING: vmlinux - Section mismatch: reference to .init.text: from .text between 'go_to_highmem' (at offset 0x9284) and 'init_thread_union'
 
-I do not plan to fix these, it would require too much shuffling around in
-head.S. The first could indicate a real problem AFAIK, but that would only
-show if one would boot a sparc32 kernel on a sparc64 machine.
+Hi,
 
-> WARNING: vmlinux - Section mismatch: reference to .init.text:spawn_ksoftirqd from .text between 'init' (at offset 0xc040) and 'rest_init'
-> WARNING: vmlinux - Section mismatch: reference to .init.text:spawn_softlockup_task from .text between 'init' (at offset 0xc048) and 'rest_init'
-> WARNING: vmlinux - Section mismatch: reference to .init.text:sched_init_smp from .text between 'init' (at offset 0xc050) and 'rest_init'
-> WARNING: vmlinux - Section mismatch: reference to .init.text:usermodehelper_init from .text between 'init' (at offset 0xc060) and 'rest_init'
-> WARNING: vmlinux - Section mismatch: reference to .init.text:driver_init from .text between 'init' (at offset 0xc068) and 'rest_init'
-> WARNING: vmlinux - Section mismatch: reference to .init.text:sysctl_init from .text between 'init' (at offset 0xc070) and 'rest_init'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:initcall_debug from .text between 'init' (at offset 0xc088) and 'rest_init'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:initcall_debug from .text between 'init' (at offset 0xc0e8) and 'rest_init'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:initcall_debug from .text between 'init' (at offset 0xc1a8) and 'rest_init'
-> WARNING: vmlinux - Section mismatch: reference to .init.text:prepare_namespace from .text between 'init' (at offset 0xc1e8) and 'rest_init'
+I'm just reboot my system on 2.6.18-1.2798.al3 kernel from Aurora rpm=20
+package and after this I observe many log messages (more than=20
+few per second) from kernel level like:
 
-See http://article.gmane.org/gmane.linux.ports.sparc/6844
-for these. Sadly I never heard back from Sam, and this fix has not been picked
-up.
+SKB BUG: Invalid truesize (368) len=3D1448, sizeof(sk_buff)=3D240
+SKB BUG: Invalid truesize (368) len=3D1448, sizeof(sk_buff)=3D240
+SKB BUG: Invalid truesize (368) len=3D1448, sizeof(sk_buff)=3D240
+SKB BUG: Invalid truesize (368) len=3D900, sizeof(sk_buff)=3D240
 
-> WARNING: vmlinux - Section mismatch: reference to .init.text:init_idle from .text between 'fork_idle' (at offset 0x2a7bc) and 'mm_alloc'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:initkmem_list3 from .text between 'set_up_list3s' (at offset 0x6594c) and 's_stop'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:initkmem_list3 from .text between 'set_up_list3s' (at offset 0x65950) and 's_stop'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:promfont_unitable from .text between 'promcon_init_unimap' (at offset 0xdebcc) and 'promcon_init'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:promfont_unitable from .text between 'promcon_init_unimap' (at offset 0xdebd4) and 'promcon_init'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:promfont_unicount from .text between 'promcon_init_unimap' (at offset 0xdebdc) and 'promcon_init'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:promfont_unicount from .text between 'promcon_init_unimap' (at offset 0xdebe4) and 'promcon_init'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:logo_sun_clut224 from .text between 'fb_find_logo' (at offset 0xe6790) and 'cfb_fillrect'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:logo_sun_clut224 from .text between 'fb_find_logo' (at offset 0xe6798) and 'cfb_fillrect'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:cg3_regvals from .text between 'cg3_probe' (at offset 0xe8d9c) and 'cg3_setcolreg'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:cg3_regvals from .text between 'cg3_probe' (at offset 0xe8da0) and 'cg3_setcolreg'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:cg3_dacvals from .text between 'cg3_probe' (at offset 0xe8dc8) and 'cg3_setcolreg'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:cg3_dacvals from .text between 'cg3_probe' (at offset 0xe8dd0) and 'cg3_setcolreg'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:bw2regs_analog from .text between 'bw2_probe' (at offset 0xe9170) and 'cg14_unmap_regs'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:bw2regs_analog from .text between 'bw2_probe' (at offset 0xe9190) and 'cg14_unmap_regs'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:bw2regs_ecl from .text between 'bw2_probe' (at offset 0xe9198) and 'cg14_unmap_regs'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:bw2regs_ecl from .text between 'bw2_probe' (at offset 0xe91a0) and 'cg14_unmap_regs'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:bw2regs_1600 from .text between 'bw2_probe' (at offset 0xe91c0) and 'cg14_unmap_regs'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:bw2regs_1600 from .text between 'bw2_probe' (at offset 0xe91c8) and 'cg14_unmap_regs'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:bw2regs_66hz from .text between 'bw2_probe' (at offset 0xe91dc) and 'cg14_unmap_regs'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:bw2regs_66hz from .text between 'bw2_probe' (at offset 0xe91e4) and 'cg14_unmap_regs'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:bw2regs_76hz from .text between 'bw2_probe' (at offset 0xe91e8) and 'cg14_unmap_regs'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:bw2regs_76hz from .text between 'bw2_probe' (at offset 0xe91f0) and 'cg14_unmap_regs'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:__cg14_mmap_map from .text between 'cg14_probe' (at offset 0xe9770) and 'cg14_pan_display'
-> WARNING: vmlinux - Section mismatch: reference to .init.data:__cg14_mmap_map from .text between 'cg14_probe' (at offset 0xe9778) and 'cg14_pan_display'
+This system uses NFS (as client).
 
-Looks like these come from individual drivers. Will have a look if and when
-I find time.
+Hardware: E250 SMP
 
-Cheers,
--- 
-Martin
----------------------------------------------------------------------------
-30 years from now GNU/Linux will be as redundant a term as MERT/UNIX is 
-today. - Martin Habets
----------------------------------------------------------------------------
+# lspci; lsmod
+80:00.0 Host bridge: Sun Microsystems Computer Corp. Psycho PCI Bus Module
+0001:00:00.0 Host bridge: Sun Microsystems Computer Corp. Psycho PCI Bus Mo=
+dule
+0001:00:01.0 Bridge: Sun Microsystems Computer Corp. EBUS (rev 01)
+0001:00:01.1 Ethernet controller: Sun Microsystems Computer Corp. Happy Mea=
+l (rev 01)
+0001:00:02.0 PCI bridge: Intel Corp. 21154 PCI-to-PCI Bridge
+0001:00:03.0 SCSI storage controller: LSI Logic / Symbios Logic 53c875 (rev=
+ 14)
+0001:00:03.1 SCSI storage controller: LSI Logic / Symbios Logic 53c875 (rev=
+ 14)
+0001:00:05.0 Display controller: 3DLabs Permedia II 2D+3D (rev 01)
+0001:01:00.0 Ethernet controller: Sun Microsystems Computer Corp.: Unknown =
+device abba (rev 01)
+Module                  Size  Used by
+nfsd                  252529  13
+exportfs                9153  1 nfsd
+nfs                   240913  5
+lockd                  62833  3 nfsd,nfs
+nfs_acl                 7553  2 nfsd,nfs
+sunrpc                158321  11 nfsd,nfs,lockd,nfs_acl
+ipv6                  283625  17
+cassini                60885  0
+openpromfs             10761  1
+ext3                  143313  3
+jbd                    61457  1 ext3
+dm_snapshot            19513  0
+dm_mod                 54625  1 dm_snapshot
+raid1                  24833  8
+sym53c8xx              80430  18
+scsi_transport_spi     28417  1 sym53c8xx
+sd_mod                 22697  84
+scsi_mod              140169  3 sym53c8xx,scsi_transport_spi,sd_mod
+
+From above NIC I',m using Sun Swift T1000 (cassini module).
+
+kloczek
+--=20
+-----------------------------------------------------------
+*Ludzie nie maj=B1 problem=F3w, tylko sobie sami je stwarzaj=B1*
+-----------------------------------------------------------
+Tomasz K=B3oczko, sys adm @zie.pg.gda.pl|*e-mail: kloczek@rudy.mif.pg.gda.p=
+l*
+--0-1505833140-1167402257=:9165--
