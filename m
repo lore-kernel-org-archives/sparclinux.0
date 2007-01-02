@@ -1,29 +1,81 @@
-From: Per =?iso-8859-1?q?=D8yvind_Karlsen?= <pkarlsen@mandriva.com>
-Date: Sun, 28 Jan 2007 04:02:46 +0000
-Subject: gcc 4.1* & atyfb/SB100
-Message-Id: <200701280502.46960.pkarlsen@mandriva.com>
+From: Adrian Bunk <bunk@stusta.de>
+Date: Tue, 02 Jan 2007 19:16:06 +0000
+Subject: 2.6.20-rc3: known unfixed regressions
+Message-Id: <20070102191606.GU20714@stusta.de>
 List-Id: <sparclinux.vger.kernel.org>
+References: <Pine.LNX.4.64.0612311710430.4473@woody.osdl.org>
+In-Reply-To: <Pine.LNX.4.64.0612311710430.4473@woody.osdl.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Steve Youngs <steve@youngs.au.com>, Berthold Cogel <cogel@rrz.uni-koeln.de>, len.brown@intel.com, linux-acpi@vger.kernel.org, Florin Iucha <florin@iucha.net>, greg@kroah.com, linux-usb-devel@lists.sourceforge.net, dmitry.torokhov@gmail.com, linux-input@atrey.karlin.mff.cuni.cz, Jon Smirl <jonsmirl@gmail.com>, "Horst H. von Brand" <vonbrand@inf.utfsm.cl>, davem@davemloft.net, sparclinux@vger.kernel.org, Komuro <komurojun-mbn@nifty.com>, YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>, netdev@vger.kernel.org, Michael Reske <micha@gmx.com>, Ayaz Abdulla <aabdulla@nvidia.com>, Jeff Garzik <jeff@garzik.org>, Tobias Diedrich <ranma+kernel@tdiedrich.de>, Andi Kleen <ak@suse.de>, Yinghai Lu <yinghai.lu@amd.com>, "Eric W. Biederman" <ebiederm@xmission.com>, discuss@x86-64.org
 
-Heyo!
+This email lists some known regressions in 2.6.20-rc3 compared to 2.6.19
+that are not yet fixed in Linus' tree.
 
-I hate to bring this one up again, but it seems that I'm not the only one=20
-suffering from this problem..
+If you find your name in the Cc header, you are either submitter of one
+of the bugs, maintainer of an affectected subsystem or driver, a patch
+of you caused a breakage or I'm considering you in any other way possibly
+involved with one or more of these issues.
 
-There still seems to be issues with gcc 4.1 & atyfb driver and this time I'=
-m=20
-sure it's not only related to my own gcc release as I've seen it being=20
-reproduced on both aurora and ubuntu..
+Due to the huge amount of recipients, please trim the Cc when answering.
 
-So is there any news about this topic?
 
-thx in advance for your patience
+Subject    : kernel immediately reboots
+References : http://lkml.org/lkml/2007/1/2/15
+Submitter  : Steve Youngs <steve@youngs.au.com>
+Status     : unknown
 
-g'nite! :)
---=20
-Regards,
-Per =D8yvind Karlsen
-Mandriva
+
+Subject    : Acer Extensa 3002 WLMi: 'shutdown -h now' reboots the system
+References : http://lkml.org/lkml/2006/12/25/40
+Submitter  : Berthold Cogel <cogel@rrz.uni-koeln.de>
+Status     : unknown
+
+
+Subject    : USB keyboard unresponsive after some time
+References : http://lkml.org/lkml/2006/12/25/35
+             http://lkml.org/lkml/2006/12/26/106
+Submitter  : Florin Iucha <florin@iucha.net>
+Status     : unknown
+
+
+Subject    : BUG: scheduling while atomic
+References : http://lkml.org/lkml/2006/12/26/105
+Submitter  : Jon Smirl <jonsmirl@gmail.com>
+Status     : unknown
+
+
+Subject    : SPARC64: Can't mount /
+References : http://lkml.org/lkml/2006/12/13/181
+Submitter  : Horst H. von Brand <vonbrand@inf.utfsm.cl>
+Status     : unknown
+
+
+Subject    : ftp: get or put stops during file-transfer
+References : http://lkml.org/lkml/2006/12/16/174
+Submitter  : Komuro <komurojun-mbn@nifty.com>
+Caused-By  : YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+             commit cfb6eeb4c860592edd123fdea908d23c6ad1c7dc
+Handled-By : YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Status     : problem is being debugged
+
+
+Subject    : forcedeth.c 0.59: problem with sideband managment
+References : http://bugzilla.kernel.org/show_bug.cgi?idv84
+Submitter  : Michael Reske <micha@gmx.com>
+Handled-By : Ayaz Abdulla <aabdulla@nvidia.com>
+Status     : problem is being debugged
+
+
+Subject    : x86_64 boot failure: "IO-APIC + timer doesn't work"
+References : http://lkml.org/lkml/2006/12/16/101
+Submitter  : Tobias Diedrich <ranma+kernel@tdiedrich.de>
+Caused-By  : Andi Kleen <ak@suse.de>
+             commit b026872601976f666bae77b609dc490d1834bf77
+Handled-By : Yinghai Lu <yinghai.lu@amd.com>
+             Eric W. Biederman <ebiederm@xmission.com>
+Status     : problem is being debugged
+
+
