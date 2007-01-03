@@ -1,42 +1,68 @@
-From: "Richard Mortimer" <richm@oldelvet.org.uk>
-Date: Tue, 23 Jan 2007 14:18:07 +0000
-Subject: RE: IRQ routing(?) problem on Enterprise 450 with Areca SATA RAID controller
-Message-Id: <004001c73ef9$548bb7d0$c505a8c0@Jive>
+From: Adrian Bunk <bunk@stusta.de>
+Date: Wed, 03 Jan 2007 20:59:45 +0000
+Subject: 2.6.20-rc3: known unfixed regressions (v2)
+Message-Id: <20070103205945.GK20714@stusta.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070102140325.GB11095@wopr.homeunix.org>
-In-Reply-To: <20070102140325.GB11095@wopr.homeunix.org>
+References: <Pine.LNX.4.64.0612311710430.4473@woody.osdl.org>
+In-Reply-To: <Pine.LNX.4.64.0612311710430.4473@woody.osdl.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Berthold Cogel <cogel@rrz.uni-koeln.de>, len.brown@intel.com, linux-acpi@vger.kernel.org, Florin Iucha <florin@iucha.net>, greg@kroah.com, linux-usb-devel@lists.sourceforge.net, dmitry.torokhov@gmail.com, linux-input@atrey.karlin.mff.cuni.cz, Jon Smirl <jonsmirl@gmail.com>, "Horst H. von Brand" <vonbrand@inf.utfsm.cl>, davem@davemloft.net, sparclinux@vger.kernel.org, Komuro <komurojun-mbn@nifty.com>, YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>, netdev@vger.kernel.org, Tobias Diedrich <ranma+kernel@tdiedrich.de>, Andi Kleen <ak@suse.de>, Yinghai Lu <yinghai.lu@amd.com>, "Eric W. Biederman" <ebiederm@xmission.com>, discuss@x86-64.org, mingo@redhat.com
 
-Hi, 
+This email lists some known regressions in 2.6.20-rc3 compared to 2.6.19
+that are not yet fixed in Linus' tree.
 
-> -----Original Message-----
-> From: sparclinux-owner@vger.kernel.org 
-> [mailto:sparclinux-owner@vger.kernel.org] On Behalf Of David Johnson
-> Sent: 23 January 2007 13:54
-> To: sparclinux@vger.kernel.org
-> Subject: Re: IRQ routing(?) problem on Enterprise 450 with 
-> Areca SATA RAID controller
-> 
-> On Thursday 18 January 2007 20:40, you wrote:
-> I suspect the breakage is in 2.6.18-rc1, but there seems to 
-> be a critical bug 
-> in this kernel which prevents it from even booting on E450 
-> (it gets as far 
-> as 'Booting the kernel' and just sits there, giving no errors 
-> or other 
-> output) so I can't test this. As a result, I am unable to 
-> bisect the tree to 
-> find the patch that introduced the bug...
-> 
-Is there any chance that you could boot with the -p flag. That
-directs early kernel startup output via Openboot and will likely
-give an indication as to what the problem is.
+If you find your name in the Cc header, you are either submitter of one
+of the bugs, maintainer of an affectected subsystem or driver, a patch
+of you caused a breakage or I'm considering you in any other way possibly
+involved with one or more of these issues.
 
-Note I did find some issues with 2.6.18 relating to the changes to
-reading information from OBP. You may be seeing something similar.
+Due to the huge amount of recipients, please trim the Cc when answering.
 
-Richard
+
+Subject    : Acer Extensa 3002 WLMi: 'shutdown -h now' reboots the system
+References : http://lkml.org/lkml/2006/12/25/40
+Submitter  : Berthold Cogel <cogel@rrz.uni-koeln.de>
+Status     : unknown
+
+
+Subject    : USB keyboard unresponsive after some time
+References : http://lkml.org/lkml/2006/12/25/35
+             http://lkml.org/lkml/2006/12/26/106
+Submitter  : Florin Iucha <florin@iucha.net>
+Status     : unknown
+
+
+Subject    : BUG: scheduling while atomic
+References : http://lkml.org/lkml/2006/12/26/105
+Submitter  : Jon Smirl <jonsmirl@gmail.com>
+Status     : unknown
+
+
+Subject    : SPARC64: Can't mount /
+References : http://lkml.org/lkml/2006/12/13/181
+Submitter  : Horst H. von Brand <vonbrand@inf.utfsm.cl>
+Status     : unknown
+
+
+Subject    : ftp: get or put stops during file-transfer
+References : http://lkml.org/lkml/2006/12/16/174
+Submitter  : Komuro <komurojun-mbn@nifty.com>
+Caused-By  : YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+             commit cfb6eeb4c860592edd123fdea908d23c6ad1c7dc
+Handled-By : YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Status     : problem is being debugged
+
+
+Subject    : x86_64 boot failure: "IO-APIC + timer doesn't work"
+References : http://lkml.org/lkml/2006/12/16/101
+             http://lkml.org/lkml/2007/1/3/9
+Submitter  : Tobias Diedrich <ranma+kernel@tdiedrich.de>
+Caused-By  : Andi Kleen <ak@suse.de>
+             commit b026872601976f666bae77b609dc490d1834bf77
+Handled-By : Yinghai Lu <yinghai.lu@amd.com>
+             Eric W. Biederman <ebiederm@xmission.com>
+Status     : patches are being discussed
 
