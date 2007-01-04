@@ -1,40 +1,56 @@
 From: "Horst H. von Brand" <vonbrand@inf.utfsm.cl>
-Date: Fri, 05 Jan 2007 00:25:25 +0000
-Subject: Re: 2.6.20-rc3: known unfixed regressions (v3)
-Message-Id: <200701050025.l050PPWt007260@laptop13.inf.utfsm.cl>
+Date: Thu, 04 Jan 2007 14:21:37 +0000
+Subject: [PATCH] Description fix in spec file
+Message-Id: <11679204972841-git-send-email-vonbrand@inf.utfsm.cl>
 List-Id: <sparclinux.vger.kernel.org>
-In-Reply-To: Message from Adrian Bunk <bunk@stusta.de> 
-   of "Thu, 04 Jan 2007 18:46:32 BST." <20070104174632.GC20714@stusta.de> 
-References: <20070103205945.GK20714@stusta.de>
-In-Reply-To: <20070103205945.GK20714@stusta.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Adrian Bunk <bunk@stusta.de> wrote:
-> This email lists some known regressions in 2.6.20-rc3 compared to 2.6.19
-> that are not yet fixed in Linus' tree.
-> 
-> If you find your name in the Cc header, you are either submitter of one
-> of the bugs, maintainer of an affectected subsystem or driver, a patch
-> of you caused a breakage or I'm considering you in any other way possibly
-> involved with one or more of these issues.
-> 
-> Due to the huge amount of recipients, please trim the Cc when answering.
+Signed-off-by: Horst H. von Brand <vonbrand@inf.utfsm.cl>
+---
+ silo.spec |   10 ++++++++--
+ 1 files changed, 8 insertions(+), 2 deletions(-)
 
-[...]
-
-> Subject    : SPARC64: Can't mount /  (CONFIG_SCSI_SCAN_ASYNC=y ?)
-> References : http://lkml.org/lkml/2006/12/13/181
->              http://lkml.org/lkml/2007/01/04/75
-> Submitter  : Horst H. von Brand <vonbrand@inf.utfsm.cl>
-> Status     : unknown
-
-Fixed in 2.6.20-rc3 (perhaps was due to SCSI_SCAN_ASYNC)
+diff --git a/silo.spec b/silo.spec
+index 2927ce8..2844110 100644
+--- a/silo.spec
++++ b/silo.spec
+@@ -1,7 +1,7 @@
+ Summary: The SILO boot loader for SPARCs.
+ Name: silo
+ Version: 1.4.13
+-Release: 1
++Release: 2
+ Copyright: GPL
+ ExclusiveArch: sparc
+ Group: System Environment/Base
+@@ -11,10 +11,13 @@ BuildRoot: /var/tmp/%{name}-root
+ 
+ %description
+ The silo package installs the SILO (Sparc Improved LOader) boot
+-loader, which you'll need to boot Red Hat Linux on a SPARC.  SILO
++loader, which you'll need to boot Linux on a SPARC.  SILO
+ installs onto your system's boot block and can be configured to boot
+ Linux, Solaris and SunOS.
+ 
++The package also includes TILO (Trivial Image LOader), a tool for creating
++TFTP images.
++
+ %prep 
+ %setup -q -n silo-%{version}
+ 
+@@ -48,6 +51,9 @@ rm -rf $RPM_BUILD_ROOT
+ /usr/share/man/man8/silo.8*
+  
+ %changelog
++* Thu Jan 04 2007 Horst H. von Brand <vonbrand@inf.utfsm.cl> 1.4.13-2
++- Fix RPM description
++
+ * Mon May 28 2001 Pieter Krul <pkrul@auxio.org>
+ - Updated manpath and added tilo
+ 
 -- 
-Dr. Horst H. von Brand                   User #22616 counter.li.org
-Departamento de Informatica                    Fono: +56 32 2654431
-Universidad Tecnica Federico Santa Maria             +56 32 2654239
-Casilla 110-V, Valparaiso, Chile               Fax:  +56 32 2797513
+1.5.0.rc0.gd222
+
