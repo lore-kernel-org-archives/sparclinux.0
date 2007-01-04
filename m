@@ -1,68 +1,56 @@
-From: Adrian Bunk <bunk@stusta.de>
-Date: Wed, 03 Jan 2007 20:59:45 +0000
-Subject: 2.6.20-rc3: known unfixed regressions (v2)
-Message-Id: <20070103205945.GK20714@stusta.de>
+From: "Horst H. von Brand" <vonbrand@inf.utfsm.cl>
+Date: Thu, 04 Jan 2007 13:23:13 +0000
+Subject: Re: 2.6.20-rc3: known unfixed regressions (v2)
+Message-Id: <200701041323.l04DNDgs007854@laptop13.inf.utfsm.cl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.0612311710430.4473@woody.osdl.org>
-In-Reply-To: <Pine.LNX.4.64.0612311710430.4473@woody.osdl.org>
+In-Reply-To: Message from Adrian Bunk <bunk@stusta.de> 
+   of "Wed, 03 Jan 2007 21:59:45 BST." <20070103205945.GK20714@stusta.de> 
+References: <20070103205945.GK20714@stusta.de>
+In-Reply-To: <20070103205945.GK20714@stusta.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Berthold Cogel <cogel@rrz.uni-koeln.de>, len.brown@intel.com, linux-acpi@vger.kernel.org, Florin Iucha <florin@iucha.net>, greg@kroah.com, linux-usb-devel@lists.sourceforge.net, dmitry.torokhov@gmail.com, linux-input@atrey.karlin.mff.cuni.cz, Jon Smirl <jonsmirl@gmail.com>, "Horst H. von Brand" <vonbrand@inf.utfsm.cl>, davem@davemloft.net, sparclinux@vger.kernel.org, Komuro <komurojun-mbn@nifty.com>, YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>, netdev@vger.kernel.org, Tobias Diedrich <ranma+kernel@tdiedrich.de>, Andi Kleen <ak@suse.de>, Yinghai Lu <yinghai.lu@amd.com>, "Eric W. Biederman" <ebiederm@xmission.com>, discuss@x86-64.org, mingo@redhat.com
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org, davem@davemloft.net
 
-This email lists some known regressions in 2.6.20-rc3 compared to 2.6.19
-that are not yet fixed in Linus' tree.
+Adrian Bunk <bunk@stusta.de> wrote:
+> This email lists some known regressions in 2.6.20-rc3 compared to 2.6.19
+> that are not yet fixed in Linus' tree.
+> 
+> If you find your name in the Cc header, you are either submitter of one
+> of the bugs, maintainer of an affectected subsystem or driver, a patch
+> of you caused a breakage or I'm considering you in any other way possibly
+> involved with one or more of these issues.
+> 
+> Due to the huge amount of recipients, please trim the Cc when answering.
 
-If you find your name in the Cc header, you are either submitter of one
-of the bugs, maintainer of an affectected subsystem or driver, a patch
-of you caused a breakage or I'm considering you in any other way possibly
-involved with one or more of these issues.
+I hope I cut it down sensibly...
 
-Due to the huge amount of recipients, please trim the Cc when answering.
+[...]
 
+> Subject    : SPARC64: Can't mount /
+> References : http://lkml.org/lkml/2006/12/13/181
+> Submitter  : Horst H. von Brand <vonbrand@inf.utfsm.cl>
+> Status     : unknown
 
-Subject    : Acer Extensa 3002 WLMi: 'shutdown -h now' reboots the system
-References : http://lkml.org/lkml/2006/12/25/40
-Submitter  : Berthold Cogel <cogel@rrz.uni-koeln.de>
-Status     : unknown
+Works for me now with 2.6.20-rc3. Might have been some form of pilot error
+(perhaps setting SCSI_TGT=m and/or SCSI_SCAN_ASYNC=y, I unset them for the
+current trial run).
 
+I see CONFIG_SCSI_SCAN_ASYNC introduced in
+21db1882f79a1ad5977cae6766376a63f60ec414 ([SCSI] Add Kconfig option for
+asynchronous SCSI scanning). If this is the cause, the override provided:
 
-Subject    : USB keyboard unresponsive after some time
-References : http://lkml.org/lkml/2006/12/25/35
-             http://lkml.org/lkml/2006/12/26/106
-Submitter  : Florin Iucha <florin@iucha.net>
-Status     : unknown
+  scsi_mod.scan="sync"
 
+seems not to work. Are the '"' necessary? How do you give them via silo,
+which in its configuration file for strings with spaces uses:
 
-Subject    : BUG: scheduling while atomic
-References : http://lkml.org/lkml/2006/12/26/105
-Submitter  : Jon Smirl <jonsmirl@gmail.com>
-Status     : unknown
+  append="some string here"
 
-
-Subject    : SPARC64: Can't mount /
-References : http://lkml.org/lkml/2006/12/13/181
-Submitter  : Horst H. von Brand <vonbrand@inf.utfsm.cl>
-Status     : unknown
-
-
-Subject    : ftp: get or put stops during file-transfer
-References : http://lkml.org/lkml/2006/12/16/174
-Submitter  : Komuro <komurojun-mbn@nifty.com>
-Caused-By  : YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-             commit cfb6eeb4c860592edd123fdea908d23c6ad1c7dc
-Handled-By : YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-Status     : problem is being debugged
-
-
-Subject    : x86_64 boot failure: "IO-APIC + timer doesn't work"
-References : http://lkml.org/lkml/2006/12/16/101
-             http://lkml.org/lkml/2007/1/3/9
-Submitter  : Tobias Diedrich <ranma+kernel@tdiedrich.de>
-Caused-By  : Andi Kleen <ak@suse.de>
-             commit b026872601976f666bae77b609dc490d1834bf77
-Handled-By : Yinghai Lu <yinghai.lu@amd.com>
-             Eric W. Biederman <ebiederm@xmission.com>
-Status     : patches are being discussed
-
+How do you say '"'? The silo documentation is silent on this.
+-- 
+Dr. Horst H. von Brand                   User #22616 counter.li.org
+Departamento de Informatica                    Fono: +56 32 2654431
+Universidad Tecnica Federico Santa Maria             +56 32 2654239
+Casilla 110-V, Valparaiso, Chile               Fax:  +56 32 2797513
