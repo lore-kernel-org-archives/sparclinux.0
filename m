@@ -1,30 +1,27 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 26 Jan 2007 21:05:28 +0000
-Subject: Re: kernel BUG at arch/sparc64/mm/fault.c:413!
-Message-Id: <20070126.130528.130236097.davem@davemloft.net>
+From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
+Date: Fri, 05 Jan 2007 09:47:51 +0000
+Subject: [2.6.19.1] ESP regression ?
+Message-Id: <459E1EC7.7050300@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.0701181328230.8124@pianoman.cluster.toy>
-In-Reply-To: <Pine.LNX.4.64.0701181328230.8124@pianoman.cluster.toy>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Vince Weaver <vince@deater.net>
-Date: Fri, 26 Jan 2007 14:44:44 -0500 (EST)
+	Hello,
 
-> 
-> > Vince, I think I figured out what the bug is, can you test the
-> > following patch?  If we set %g5 with the fault address here, we have
-> > to set %g4 too.  This allows to correctly handle a DTLB-PROT trap for
-> > a window spill during trap entry for another top-level fault.  The
-> > non-Niagara DTLB-PROT code does this properly, it's just the sun4v
-> > side that had the bug.
-> 
-> Great news!  This fixes things.  The gcc snapshot has been compiling now 
-> for over an hour without a problem, wheras before the bug would appear 
-> within seconds.
-> 
-> Thanks for fixing this,
+	Some trouble again with ESP DMA and the 2.6.19 kernel ? With very high 
+disk load (raid reconstruction or apt-get dist-upgrade), I can seen ESP 
+DMA error on a SS20 workstation. This trouble has been fixed in 2.6.18. 
+Is there any chance to fix this with the last 2.6.20-rc ?
 
-Awesome, thanks for testing.
+	Test config :
+- dual SS-II/75 MHz
+- 448 MB
+- 8MB VSIMM
+- 2 36 GB internal SCSI disks
+- 2.6.19.1 kernel
+
+	Thanks for your help,
+
+	JKB
