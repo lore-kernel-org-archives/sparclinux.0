@@ -1,17 +1,17 @@
 From: "Horst H. von Brand" <vonbrand@inf.utfsm.cl>
-Date: Thu, 04 Jan 2007 13:23:13 +0000
-Subject: Re: 2.6.20-rc3: known unfixed regressions (v2)
-Message-Id: <200701041323.l04DNDgs007854@laptop13.inf.utfsm.cl>
+Date: Fri, 05 Jan 2007 00:25:25 +0000
+Subject: Re: 2.6.20-rc3: known unfixed regressions (v3)
+Message-Id: <200701050025.l050PPWt007260@laptop13.inf.utfsm.cl>
 List-Id: <sparclinux.vger.kernel.org>
 In-Reply-To: Message from Adrian Bunk <bunk@stusta.de> 
-   of "Wed, 03 Jan 2007 21:59:45 BST." <20070103205945.GK20714@stusta.de> 
+   of "Thu, 04 Jan 2007 18:46:32 BST." <20070104174632.GC20714@stusta.de> 
 References: <20070103205945.GK20714@stusta.de>
 In-Reply-To: <20070103205945.GK20714@stusta.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Adrian Bunk <bunk@stusta.de>
-Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org, davem@davemloft.net
+Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org
 
 Adrian Bunk <bunk@stusta.de> wrote:
 > This email lists some known regressions in 2.6.20-rc3 compared to 2.6.19
@@ -24,31 +24,15 @@ Adrian Bunk <bunk@stusta.de> wrote:
 > 
 > Due to the huge amount of recipients, please trim the Cc when answering.
 
-I hope I cut it down sensibly...
-
 [...]
 
-> Subject    : SPARC64: Can't mount /
+> Subject    : SPARC64: Can't mount /  (CONFIG_SCSI_SCAN_ASYNC=y ?)
 > References : http://lkml.org/lkml/2006/12/13/181
+>              http://lkml.org/lkml/2007/01/04/75
 > Submitter  : Horst H. von Brand <vonbrand@inf.utfsm.cl>
 > Status     : unknown
 
-Works for me now with 2.6.20-rc3. Might have been some form of pilot error
-(perhaps setting SCSI_TGT=m and/or SCSI_SCAN_ASYNC=y, I unset them for the
-current trial run).
-
-I see CONFIG_SCSI_SCAN_ASYNC introduced in
-21db1882f79a1ad5977cae6766376a63f60ec414 ([SCSI] Add Kconfig option for
-asynchronous SCSI scanning). If this is the cause, the override provided:
-
-  scsi_mod.scan="sync"
-
-seems not to work. Are the '"' necessary? How do you give them via silo,
-which in its configuration file for strings with spaces uses:
-
-  append="some string here"
-
-How do you say '"'? The silo documentation is silent on this.
+Fixed in 2.6.20-rc3 (perhaps was due to SCSI_SCAN_ASYNC)
 -- 
 Dr. Horst H. von Brand                   User #22616 counter.li.org
 Departamento de Informatica                    Fono: +56 32 2654431
