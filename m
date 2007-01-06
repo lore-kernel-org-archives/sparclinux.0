@@ -1,63 +1,44 @@
-From: "Horst H. von Brand" <vonbrand@inf.utfsm.cl>
-Date: Fri, 05 Jan 2007 15:14:18 +0000
-Subject: [PATCH] Further specfile fixes
-Message-Id: <11680100582469-git-send-email-vonbrand@inf.utfsm.cl>
+From: Adrian Bunk <bunk@stusta.de>
+Date: Sat, 06 Jan 2007 20:48:52 +0000
+Subject: [2.6 patch] remove bogus con_is_present() prototypes
+Message-Id: <20070106204852.GY20714@stusta.de>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: adaplas@pol.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Signed-off-by: Horst H. von Brand <vonbrand@inf.utfsm.cl>
+Although gcc seems to accept "extern" prototypes after it has seen the
+"static inline" function, that's not really correct.
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+
 ---
- silo.spec |   16 +++++++++++-----
- 1 files changed, 11 insertions(+), 5 deletions(-)
 
-diff --git a/silo.spec b/silo.spec
-index 2844110..85f7e9f 100644
---- a/silo.spec
-+++ b/silo.spec
-@@ -1,13 +1,14 @@
--Summary: The SILO boot loader for SPARCs.
-+Summary: A boot loader for SPARCs
- Name: silo
- Version: 1.4.13
--Release: 2
-+Release: 3
- Copyright: GPL
- ExclusiveArch: sparc
- Group: System Environment/Base
- Source: http://www.sparc-boot.org/pub/silo/silo-%{version}.tar.gz
+ drivers/video/aty/atyfb_base.c |    2 --
+ drivers/video/igafb.c          |    1 -
+ 2 files changed, 3 deletions(-)
+
+--- linux-2.6.20-rc3-mm1/drivers/video/igafb.c.old	2007-01-06 19:45:32.000000000 +0100
++++ linux-2.6.20-rc3-mm1/drivers/video/igafb.c	2007-01-06 19:53:06.000000000 +0100
+@@ -370,7 +370,6 @@
  
--BuildRoot: /var/tmp/%{name}-root
-+BuildRoot: %{_tmppath}/%{name}-%{version}-root
-+BuildPrereq: elftoaout, sed
- 
- %description
- The silo package installs the SILO (Sparc Improved LOader) boot
-@@ -32,8 +33,8 @@ make install DESTDIR=$RPM_BUILD_ROOT
- rm -rf $RPM_BUILD_ROOT
- 
- %files
--%defattr(-,root,root)
--%doc docs COPYING ChangeLog
-+%defattr(-,root,root,-)
-+%doc docs COPYING
- /sbin/silo
- /usr/bin/tilo
- /usr/bin/maketilo
-@@ -51,6 +52,11 @@ rm -rf $RPM_BUILD_ROOT
- /usr/share/man/man8/silo.8*
-  
- %changelog
-+* Fri Jan 05 2007 Horst H. von Brand <vonbrand@inf.utfsm.cl> 1.4.13-3
-+- Bring spec into line with Fedora's "Developer's Guide"
-+- Add BuildPrereq (if nothing else, it is useful documentation)
-+- ChangeLog is no more
-+
- * Thu Jan 04 2007 Horst H. von Brand <vonbrand@inf.utfsm.cl> 1.4.13-2
- - Fix RPM description
- 
--- 
-1.5.0.rc0.g244a7
+ int __init igafb_init(void)
+ {
+-        extern int con_is_present(void);
+         struct fb_info *info;
+         struct pci_dev *pdev;
+         struct iga_par *par;
+--- linux-2.6.20-rc3-mm1/drivers/video/aty/atyfb_base.c.old	2007-01-06 20:14:25.000000000 +0100
++++ linux-2.6.20-rc3-mm1/drivers/video/aty/atyfb_base.c	2007-01-06 20:14:32.000000000 +0100
+@@ -2957,8 +2957,6 @@
+ static int __devinit atyfb_setup_sparc(struct pci_dev *pdev,
+ 			struct fb_info *info, unsigned long addr)
+ {
+-	extern int con_is_present(void);
+-
+ 	struct atyfb_par *par = info->par;
+ 	struct pcidev_cookie *pcp;
+ 	char prop[128];
 
