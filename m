@@ -1,36 +1,31 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 04 Jan 2007 02:50:05 +0000
-Subject: Re: Third Try: [PATCH] cs4231 alsa driver: Fix IRQ and
-Message-Id: <20070103.185005.32349028.davem@davemloft.net>
+From: "Horst H. von Brand" <vonbrand@inf.utfsm.cl>
+Date: Tue, 09 Jan 2007 13:15:47 +0000
+Subject: NFS Oopses on SPARC64?
+Message-Id: <200701091315.l09DFl1B006228@laptop13.inf.utfsm.cl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <459593A2.2000600@hp.com>
-In-Reply-To: <459593A2.2000600@hp.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: "Chini, Georg" <georg.chini@hp.com>
-Date: Wed, 03 Jan 2007 19:32:57 +0100
+I've got Oopses with high(ish?) NFS load (compiling stuff on my x86_64 on
+my automounted home from SPARC64) with vanilla 2.6.19.1 and 2.6.20-rc4
+(didn't do any such madness before, and not in between). Reported as 7795
+and 7796 in bugzilla.kernel.org. Aurora Corona on a SPARC Station Ultra 1,
+up to date.
 
-> Georg Chini wrote:
-> 
-> >
-> > David Miller wrote:
-> >
-> >> But it seems that nowadays the ISA CS4231 driver is using a value of
-> >> "64" for period_bytes_min.  Perhaps the Sparc driver should do that
-> >> too :-)
-> >>
-> >>
-> >>  
-> >>
-> > My machine seems too slow to handle this. With values less
-> > than 256 sound will not work properly. I think it starts missing
-> > interrupts.
-> >
-> >
-> Wrong again, I had some other problem when I tried 64. It works
-> fine, so please change the period_bytes_min to 64.
+Has anybody else seen something like this? This machine has had random NFS
+and hang problems, which I didn't have the time to investigate further then.
+I attributed them to the (all too common) brownouts here.
 
-Great, thanks for testing.  I'll make the change.
+I've set up things so I can disassemble/regenerate the .s for the stuff
+referenced in the Oops, but I'd rather not (my knowledge of SPARC assembly
+is almost non-existent). Any clues/pointers?
+
+Thanks!
+-- 
+Dr. Horst H. von Brand                   User #22616 counter.li.org
+Departamento de Informatica                    Fono: +56 32 2654431
+Universidad Tecnica Federico Santa Maria             +56 32 2654239
+Casilla 110-V, Valparaiso, Chile               Fax:  +56 32 2797513
+
