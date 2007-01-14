@@ -1,20 +1,37 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 11 Jan 2007 09:28:31 +0000
-Subject: Re: NFS Oopses on SPARC64?
-Message-Id: <20070111.012831.107941791.davem@davemloft.net>
+From: Bob Breuer <breuerr@mc.net>
+Date: Sun, 14 Jan 2007 20:32:57 +0000
+Subject: [PATCH] sparc32: fix gcc over-optimizatoin near ip_fast_csum
+Message-Id: <45AA9379.8060700@mc.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200701091315.l09DFl1B006228@laptop13.inf.utfsm.cl>
-In-Reply-To: <200701091315.l09DFl1B006228@laptop13.inf.utfsm.cl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: BERTRAND_Jo=EBl <joel.bertrand@systella.fr>
-Date: Thu, 11 Jan 2007 09:18:19 +0100
+Fix over-optimization by GCC near ip_fast_csum.
 
-> 	I have seen a patch against this bug (bugzilla.kernel.org, #7795). I=20
-> don't have any time to test it before the next week... Can someone test i=
-t ?
+In some cases such as:
+	iph->check = 0;
+	iph->check = ip_fast_csum((unsigned char *)iph, iph->ihl);
+GCC may optimize out the previous store.
 
-That's great news, I hope it fixes the problem :-)
+Observed as a failure of NFS over udp (bad checksums on ip fragments) when 
+compiled with GCC 3.4.2.
+
+Signed-off-by: Bob Breuer <breuerr@mc.net>
+---
+diff --git a/include/asm-sparc/checksum.h b/include/asm-sparc/checksum.h
+index 267e631..34518ea 100644
+--- a/include/asm-sparc/checksum.h
++++ b/include/asm-sparc/checksum.h
+@@ -151,7 +151,7 @@ static inline __sum16 ip_fast_csum(const
+ 			     "xnor\t%%g0, %0, %0"
+ 			     : "=r" (sum), "=&r" (iph)
+ 			     : "r" (ihl), "1" (iph)
+-			     : "g2", "g3", "g4", "cc");
++			     : "g2", "g3", "g4", "cc", "memory");
+ 	return sum;
+ }
+ 
+
+
