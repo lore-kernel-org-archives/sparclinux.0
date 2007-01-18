@@ -1,28 +1,53 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 29 Jan 2007 20:07:47 +0000
-Subject: Re: Linux on Sun e10k
-Message-Id: <20070129.120747.116356127.davem@davemloft.net>
+From: "Andrew Walrond (Heresy)" <andrew@h-e-r-e-s-y.com>
+Date: Thu, 18 Jan 2007 22:14:08 +0000
+Subject: Re:
+Message-Id: <45AFF130.1000404@h-e-r-e-s-y.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1169241607.30406.19.camel@duo.jes.ee>
-In-Reply-To: <1169241607.30406.19.camel@duo.jes.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
-Date: Mon, 29 Jan 2007 13:45:52 -0600
+vatch23@riseup.net wrote:
+> Hi,I`m quite new to this, so my appologies for a for what I suppose is a
+> too simple question to answer.
+> I have bought two Sun E450,both with 20 18gig disks ,and I have for about
+> 1 week tried to get Debian testing up and running.After going through all
+> kind of troubles converting them from servers run from other sun
+> terminals,Ive got so far that testing IS installed on sda: sda1 for /boot
+> sda2 for swap, and sda3 for /.Here it comes :I understand that I`m
+> supposed to boot from the `whole` partition, meaning sda3, but what is it
+> called in openboot?
+> Not: boot /pci@f1,4000/scsi@3/disk@0:0
+> Not boot disk0:c
+> Not boot disk0:3
+> And not hundred other sequences I`ve tried!
+>   
 
-> On Mon, 2007-01-29 at 09:34 -0800, David Miller wrote:
-> > Ignore values 3, 4, and 5 for now, there is a way to redirect console
-> > output over the network with the SSP but we'll not support that yet. 
-> 
-> Maybe I'm confused here, but the only way I've been able to get to the
-> OpenBoot console has been via netcon_server and netcon through the SSP.
-> 
-> Is there some other way I should be accessing the starfire domains?
+Try probe-scsi-all. sda will be the first disk on one of the scsi interfaces
 
-I'm talking about a network console that bypasses the normal
-SSP communications.
+For me:
 
-Just code up the SRAM bits, it should work.
+{0} ok probe-scsi-all
+/sbus@3,0/QLGC,isp@0,10000
+Target 0
+  Unit 0   Disk     COMPAQ  HD0093172C      3208LJ815478
+                    Copyright (c) 1998 Seagate
+                    All rights reserved
+
+[...snip...]
+
+Target d
+  Unit 0   Disk     COMPAQ  HD0093172C      3208LJ811269
+                    Copyright (c) 1998 Seagate
+                    All rights reserved
+Target e
+  Unit 0   Processor     SYMBIOS D1000           2   N.d     SAF-TE1.00
+Target f
+  Unit 0   Processor     SYMBIOS D1000           2   N.d     SAF-TE1.00
+
+{0} ok boot /sbus@3,0/QLGC,isp@0,10000/sd@0,0
+
+Hope that's useful
+
+Andrew Walrond
