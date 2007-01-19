@@ -1,51 +1,64 @@
-From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
-Date: Sun, 07 Jan 2007 14:23:15 +0000
-Subject: Re: [2.6.19.1] ESP regression ?
-Message-Id: <45A10253.4080005@systella.fr>
+From: =?ISO-8859-1?Q?T=F5nu?= Samuel <tonu@jes.ee>
+Date: Fri, 19 Jan 2007 21:20:07 +0000
+Subject: Linux on Sun e10k
+Message-Id: <1169241607.30406.19.camel@duo.jes.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <459E1EC7.7050300@systella.fr>
-In-Reply-To: <459E1EC7.7050300@systella.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Jurij Smakov a =E9crit :
-> On Fri, Jan 05, 2007 at 01:35:05PM -0600, Tom 'spot' Callaway wrote:
->> Building the SCSI and esp components into the kernel does not change the
->> results, it still doesn't work on 2.6.18.1+ on sparc32.
->>
->> If anyone has a working sparc32 kernel config that works on a sparc32
->> w/esp, please post it here.
->=20
-> Tom,
->=20
-> The 2.6.18 kernel (it is actually 2.6.18.5 plus some patches) we=20
-> currently have in Debian works fine on my SS20. You can find the=20
-> config, kernel, and matching initrd at
->=20
-> http://www.wooyd.org/sparc/
->=20
-> The only patch which touches anything in arch/sparc is also included=20
-> there (bus-id-size.patch), other patches may be viewed at
->=20
-> http://svn.debian.org/wsvn/kernel/dists/sid/linux-2.6/debian/patches/
->=20
-> One esp problem I'm aware of is broken CD-ROM support, the bug report=20
-> with some discussion is available at
->=20
-> http://bugs.debian.org/cgi-bin/bugreport.cgi?bug93894
->=20
-> I've got as far as figuring out that this problem seems to be due to a=20
-> miscompilation with gcc 4.1. If the kernel is built with gcc 4.0,=20
-> CD-ROM actually works again, so it might be some tool chain=20
-> regression. At this point, however, I don't really have time to track=20
-> it down.
+Hello all good people!
 
-	For information, the 2.6.19.1 runs better when it is built with=20
-gcc-4.1. I have tried to rebuild this kernel with gcc-4.0 and I can see=20
-several deadlocks.
+Just in short - cannot make Linux work on Sun StarFire. There are few
+different reports which claim they made it work and even some dedicated
+code for Starfire in kernel but I can't.
 
-	Regards,
+Current situation: we can boot till /bin/init. Then we loose console.
+----------
+Jan 19 17:44:29 unknown netcon_server: [ID 366040 local1.info] (linux) :
+Warning: unable to open an initial console.
+Jan 19 17:44:29 unknown netcon_server: [ID 366040 local1.info] (linux) : fo=
+obar1: '/sbin/init'
+----------
+No more output. But also does not come to network (there is a
+preinstalled HDD under it with Aurora 2 and ssh enabled)
 
-	JKB
+Adding init=3D/bin/bash will cause bash to fail and crash. Probably
+because stdout is missing or such fatal stuff.
+
+----------
+Jan 19 21:51:19 unknown netcon_server: [ID 366040 local1.info] (linux) :
+Warning: unable to open an initial console.
+Jan 19 21:51:19 unknown netcon_server: [ID 366040 local1.info] (linux) : fo=
+obar: '/bin/bash'
+Jan 19 21:51:19 unknown netcon_server: [ID 366040 local1.info] (linux) : fo=
+obar1: '/bin/bash'
+Jan 19 21:51:20 unknown netcon_server: [ID 366040 local1.info] (linux) : Ke=
+rnel panic - not syncing: Attempted to kill init!
+----------
+
+Those "foobars" are my own debugging.=20
+
+Our current output is posted in web http://no.spam.ee/~tonu/sparc/netcon (b=
+eware, 3,5M big file) and config http://no.spam.ee/~tonu/sparc/config
+We tried very different configs, many of them panic. This one makes it most=
+ly work. Kernel is vanilla 2.6.19.1.
+
+There is a "known working" configuration for 2.6.4 but this kernel does not=
+ compile for me. Some sources where people report e10k works:
+
+http://lists.debian.org/debian-sparc/2004/02/threads.html#00177
+
+http://people.debian.org/~fabbione/e10k/debian_on_e10k.txt
+
+http://samba.org/~anton/e10000/
+
+Noone provided copy of their working kernel.
+
+I think we need some help in moving forward. Can provide shell access and s=
+uch. After we get it working I can set up=20
+automatic validating of linux kernels there to make sure it works in future.
+
+  T=C3=B5nu
+
