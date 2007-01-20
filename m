@@ -1,13 +1,15 @@
 From: Adrian Bunk <bunk@stusta.de>
-Date: Thu, 04 Jan 2007 18:53:38 +0000
+Date: Sat, 20 Jan 2007 14:03:11 +0000
 Subject: [RFC: 2.6 patch] remove the broken SUN_AURORA driver
-Message-Id: <20070104185338.GH20714@stusta.de>
+Message-Id: <20070120140311.GU9093@stusta.de>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20070104185338.GH20714@stusta.de>
+In-Reply-To: <20070104185338.GH20714@stusta.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 The SUN_AURORA driver:
 - has been marked as BROKEN for more than two years and
@@ -22,6 +24,9 @@ present in the older kernel releases.
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 
 ---
+
+This patch was already sent on:
+- 4 Jan 2007
 
  Documentation/magic-number.txt |    1=20
  drivers/sbus/char/Kconfig      |    7=20
