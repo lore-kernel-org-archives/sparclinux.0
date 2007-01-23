@@ -1,7 +1,7 @@
 From: David Johnson <dj@david-web.co.uk>
-Date: Mon, 22 Jan 2007 10:09:53 +0000
+Date: Tue, 23 Jan 2007 13:54:16 +0000
 Subject: Re: IRQ routing(?) problem on Enterprise 450 with Areca SATA RAID controller
-Message-Id: <200701221009.54091.dj@david-web.co.uk>
+Message-Id: <200701231354.16461.dj@david-web.co.uk>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20070102140325.GB11095@wopr.homeunix.org>
 In-Reply-To: <20070102140325.GB11095@wopr.homeunix.org>
