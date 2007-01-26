@@ -1,38 +1,41 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 26 Jan 2007 08:39:53 +0000
+Date: Fri, 26 Jan 2007 11:01:51 +0000
 Subject: Re: kernel BUG at arch/sparc64/mm/fault.c:413!
-Message-Id: <20070126.003953.08324074.davem@davemloft.net>
+Message-Id: <20070126.030151.92583388.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.LNX.4.64.0701181328230.8124@pianoman.cluster.toy>
 In-Reply-To: <Pine.LNX.4.64.0701181328230.8124@pianoman.cluster.toy>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Vince Weaver <vince@deater.net>
-Date: Thu, 25 Jan 2007 22:21:00 -0500 (EST)
 
->=20
-> >> Note, this patch is pretty straight forward, but I've only compile
-> >> tested it.  I'm about to test boot it myself right now.
-> >
-> > FWIW, it works fine for me :)
->=20
-> Unfortunately it didn't seem to fix things.  It ran a lot longer this=20
-> time, but eventually stopped with
->=20
-> [  597.730241] VMW: fault_code=3D4 address=FF564000 regs->tpcp179660
-> [  597.730266] kernel BUG at arch/sparc64/mm/fault.c:417!
+Vince, I think I figured out what the bug is, can you test the
+following patch?  If we set %g5 with the fault address here, we have
+to set %g4 too.  This allows to correctly handle a DTLB-PROT trap for
+a window spill during trap entry for another top-level fault.  The
+non-Niagara DTLB-PROT code does this properly, it's just the sun4v
+side that had the bug.
 
-That eliminates one theory.
+This is why in your logs the address was in the stack, but the fault
+code was I-TLB :-)
 
-I'll think about this some more, but could you do me a favor
-and test something?  Revert my patch, and change your debugging
-printk to print out not just fault_code and address, but also
-get_thread_fault_code() and current_thread_info()->fault_address.
+Thanks a lot!
 
-I want to see if they are changing after being read for some
-reason.
-
-Thanks!
+diff --git a/arch/sparc64/kernel/sun4v_tlb_miss.S b/arch/sparc64/kernel/sun4v_tlb_miss.S
+index b731881..9871dbb 100644
+--- a/arch/sparc64/kernel/sun4v_tlb_miss.S
++++ b/arch/sparc64/kernel/sun4v_tlb_miss.S
+@@ -142,9 +142,9 @@ sun4v_dtlb_prot:
+ 	rdpr	%tl, %g1
+ 	cmp	%g1, 1
+ 	bgu,pn	%xcc, winfix_trampoline
+-	 nop
+-	ba,pt	%xcc, sparc64_realfault_common
+ 	 mov	FAULT_CODE_DTLB | FAULT_CODE_WRITE, %g4
++	ba,pt	%xcc, sparc64_realfault_common
++	 nop
+ 
+ 	/* Called from trap table:
+ 	 * %g4:	vaddr
