@@ -1,24 +1,38 @@
-From: =?ISO-8859-1?Q?T=F5nu?= Samuel <tonu@jes.ee>
-Date: Sat, 27 Jan 2007 10:19:47 +0000
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Date: Sat, 27 Jan 2007 11:17:53 +0000
 Subject: Re: Linux on Sun e10k
-Message-Id: <1169893187.17560.1.camel@duo.jes.ee>
+Message-Id: <Pine.LNX.4.61.0701271214510.22295@yvahk01.tjqt.qr>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1169241607.30406.19.camel@duo.jes.ee>
 In-Reply-To: <1169241607.30406.19.camel@duo.jes.ee>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Fri, 2007-01-26 at 18:10 -0800, David Miller wrote:
+
+>Looking at init/main.c:
+>
+>if (sys_open((const char __user *) "/dev/console", O_RDWR, 0) < 0)
+>   printk(KERN_WARNING "Warning: unable to open an initial console.\n");
+
+That looks almost like a bug :-/
+"/dev/console" will decay into a pointer to kernel space, but
+sys_open takes a userspace one. The __user annotation does not
+change that. Try adding this:
+
+>... so, if root is mounted (over nfs), and root is mounted rw,
+>and /dev/console exists on the nfsroot, and it has rw permissions (I
+>gave it chmod 777 to just be sure), why would that sys_open call fail
+>and trigger that printk?
+
+int ret = sys_open((const char __user *)"/dev/console", O_RDWR, 0);
+if(ret < 0)
+  printk(KERN_WARNING "Warning: unable to open an "
+         "initial console (%d)\n", ret);
+
+I wonder what return code it will give (-EFAULT is my guess).
 
 
-> Adding proper support for the e10K console would be a nice
-> easy sparc64 kernel project for someone who wants to get
-> involved and has access to such a machine.
-
-I am ready to provide access to any kernel developer or other who uses
-it for something useful.
-
-  T=C3=B5nu
-
+	-`J'
+-- 
