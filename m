@@ -1,7 +1,7 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Date: Sun, 28 Jan 2007 12:26:55 +0000
+From: Meelis Roos <mroos@ut.ee>
+Date: Mon, 29 Jan 2007 15:08:06 +0000
 Subject: Re: Linux on Sun e10k
-Message-Id: <Pine.LNX.4.61.0701281326060.22295@yvahk01.tjqt.qr>
+Message-Id: <Pine.SOC.4.61.0701291706130.5956@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1169241607.30406.19.camel@duo.jes.ee>
 In-Reply-To: <1169241607.30406.19.camel@duo.jes.ee>
@@ -10,28 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+> Adding proper support for the e10K console would be a nice
+> easy sparc64 kernel project for someone who wants to get
+> involved and has access to such a machine.
 
-On Jan 27 2007 18:38, David Miller wrote:
->> 
->> int ret = sys_open((const char __user *)"/dev/console", O_RDWR, 0);
->> if(ret < 0)
->>   printk(KERN_WARNING "Warning: unable to open an "
->>          "initial console (%d)\n", ret);
->> 
->> I wonder what return code it will give (-EFAULT is my guess).
->
->It's not getting -EFAULT, the init task runs with set_fs(KERNEL_DS).
+Are the any specs available, or is it just reverse engineering?
 
-Ok.
+> Don't bother with netconsole support.
 
->It's getting -ENOENT because no console device has registered
->itself, and therefore even if you have a /dev/console node in
->the filesystem the open will still fail.
+Orthogonally from real console, this would be a nice-to-have. I have't 
+looked what netpoll actually needs - some drivers get away with very 
+simple patches. Would it be easy for sunhme too?
 
-Hm that is a little bit misleading. I'd like to see the regular -ENXIO as
-happens with "all" the other block/character devices in /dev that don't have
-anything associated (well, at least bcak in the days where /dev was static)
-
-
-	-`J'
 -- 
+Meelis Roos (mroos@ut.ee)      http://www.cs.ut.ee/~mroos/
