@@ -1,26 +1,31 @@
-From: David Johnson <dj@david-web.co.uk>
-Date: Sat, 17 Feb 2007 19:39:06 +0000
-Subject: Re: installing on E450
-Message-Id: <200702171939.07081.dj@david-web.co.uk>
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Date: Sun, 04 Feb 2007 03:52:31 +0000
+Subject: [PATCH] Missing pagemap include for sparc64
+Message-Id: <20070204035231.GA8115@Krystal>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Saturday 17 February 2007 18:43, you wrote:
-> Hallo,
->  I have been trying for some months now to install Debian (any)
-> on a Sun Enterprise 450 with no success at all.
+Missing pagemap include for sparc64
 
-This list is for SPARC kernel development; you are more likely to get useful 
-responses if you direct your question to the Debian SPARC list:
+I tried to compile linux 2.6.20-rc7 using a cross compiler
+x86_64->sparc64 and found out an include was missing.
 
-http://lists.debian.org/debian-sparc/
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Regards,
-David.
 
+--- a/include/asm-sparc64/tlb.h
++++ b/include/asm-sparc64/tlb.h
+@@ -2,6 +2,7 @@
+ #define _SPARC64_TLB_H
+ 
+ #include <linux/swap.h>
++#include <linux/pagemap.h>
+ #include <asm/pgalloc.h>
+ #include <asm/tlbflush.h>
+ #include <asm/mmu_context.h>
 -- 
-David Johnson
-www.david-web.co.uk
+OpenPGP public key:              http://krystal.dyndns.org:8080/key/compudj.gpg
+Key fingerprint:     8CD5 52C3 8E3C 4140 715F  BA06 3F25 A8FE 3BAE 9A68 
