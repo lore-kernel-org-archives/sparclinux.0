@@ -1,38 +1,25 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Tue, 06 Feb 2007 21:29:17 +0000
+From: David Miller <davem@davemloft.net>
+Date: Tue, 06 Feb 2007 21:33:46 +0000
 Subject: Re: [Bugme-new] [Bug 7951] New: ESP DMA error
-Message-Id: <20070206132917.ccd7348b.akpm@linux-foundation.org>
+Message-Id: <20070206.133346.54189524.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <200702061754.l16HsxR6031831@fire-2.osdl.org>
-In-Reply-To: <200702061754.l16HsxR6031831@fire-2.osdl.org>
+	<20070206132917.ccd7348b.akpm@linux-foundation.org>
+In-Reply-To: <20070206132917.ccd7348b.akpm@linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-scsi@vger.kernel.org
-Cc: "bugme-daemon@kernel-bugs.osdl.org" <bugme-daemon@bugzilla.kernel.org>, mt1@systella.fr, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>
+To: akpm@linux-foundation.org
+Cc: linux-scsi@vger.kernel.org, bugme-daemon@bugzilla.kernel.org, mt1@systella.fr, sparclinux@vger.kernel.org
 
-On Tue, 6 Feb 2007 09:54:59 -0800
-bugme-daemon@bugzilla.kernel.org wrote:
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Tue, 6 Feb 2007 13:29:17 -0800
 
-> http://bugzilla.kernel.org/show_bug.cgi?idy51
-> 
->            Summary: ESP DMA error
->     Kernel Version: 2.6.20
->             Status: NEW
->           Severity: normal
->              Owner: io_scsi@kernel-bugs.osdl.org
->          Submitter: mt1@systella.fr
-> 
-> 
-> Most recent kernel where this bug did *NOT* occur: 2.6.19.1
-> Distribution: debian testing
-> Hardware Environment: SparcSTATION 20 smp
-> Software Environment:
-> Problem Description: ESP driver returns some DMA errors and hard drives are
-> disconected.
-> 
-> Steps to reproduce: build a 2.6.20 kernel with ESP driver and do for example an
-> apt-get dist-upgrade to obtain a heavy traffic on internal SCSI bus.
-> 
+> Apparently a recent regression.
 
-Apparently a recent regression.
+It's on sparc32 (and SMP on top of that, scary) which is only lightly
+maintained, so it could be anything.  It would be interesting if
+running a uniprocessor kernel made the problem go away.
+
+I would only be concerned at the scsi layer level if you see a sparc64
+report like this.
