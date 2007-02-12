@@ -1,28 +1,40 @@
-From: "Krzysztof Helt" <krzysztof.h1@wp.pl>
-Date: Mon, 12 Feb 2007 07:53:09 +0000
-Subject: Odp: compile kernel for SS5 on E450
-Message-Id: <45d01ce54a0c8@wp.pl>
+From: Daniel Smolik <marvin@mydatex.cz>
+Date: Mon, 12 Feb 2007 08:08:26 +0000
+Subject: Re: Odp: compile kernel for SS5 on E450
+Message-Id: <45D0207A.4050004@mydatex.cz>
 List-Id: <sparclinux.vger.kernel.org>
+References: <45d01ce54a0c8@wp.pl>
+In-Reply-To: <45d01ce54a0c8@wp.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-
-
-Dnia 10-02-2007 o godz. 22:40 Daniel Smolik napisa=B3(a):
-> WARNING: "floppy_hardint" [drivers/block/floppy.ko] undefined!
+Krzysztof Helt napsal(a):
 >=20
-> Is it my fault or do I some wrong ?
+> Dnia 10-02-2007 o godz. 22:40 Daniel Smolik napisa=B3(a):
 >=20
+>>WARNING: "floppy_hardint" [drivers/block/floppy.ko] undefined!
+>>
+>>Is it my fault or do I some wrong ?
+>>
+>=20
+>=20
+> AFAIK, you cannot compile the floppy as a module.
+>=20
+OK no problem :-) But what this ?
 
-AFAIK, you cannot compile the floppy as a module.
 
-Regards,
-Krzysztof
+WARNING: drivers/scsi/qlogicpti.o - Section mismatch: reference to=20
+.init.text:qp                                           ti_map_regs from=20
+.text between 'qpti_sbus_probe' (at offset 0x1b94) and 'qpti_sb
 
-----------------------------------------------------
-Ci=B1gnij 4 kana=B3y - zasmakuj w telewizji internetowej - Kliknij:
-http://klik.wp.pl/?adr=3Dwww.wptv.wp.pl&sid=1015
+Is ti only warning or problem ?
+
+
+		Regards
+				Dan
+
+
 
 
