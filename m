@@ -1,79 +1,100 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 28 Feb 2007 21:13:33 +0000
-Subject: Re: parport_pc broken on sparc64
-Message-Id: <20070228.131333.104034963.davem@davemloft.net>
+From: Joerg Friedrich <Joerg.Friedrich@friedrich-kn.de>
+Date: Thu, 15 Feb 2007 21:08:55 +0000
+Subject: [Patch] kenvctrld causes very high cpu load
+Message-Id: <20070215210855.GA22572@stardust.friedrich-kn.de>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="YiEDa0DAkWCtVeE4"
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.SOC.4.64.0702282131050.5156@math>
-In-Reply-To: <Pine.SOC.4.64.0702282131050.5156@math>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Meelis Roos <mroos@linux.ee>
-Date: Wed, 28 Feb 2007 21:38:23 +0200 (EET)
 
-> WARNING: "request_dma" [drivers/parport/parport_pc.ko] undefined!
-> WARNING: "free_dma" [drivers/parport/parport_pc.ko] undefined!
-> make[1]: *** [__modpost] Error 1
+--YiEDa0DAkWCtVeE4
+Content-Type: text/plain; charset="utf-8"
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-I just pushed the following fix to Linus:
+Hi!
 
-commit 74bd7d093b8e87f35eaf3b14459b96a0e20d1d10
-Author: David S. Miller <davem@sunset.davemloft.net>
-Date:   Wed Feb 28 13:09:34 2007 -0800
+I recently got a Sun Blade 1000.
+I encountered the same problem described at
+http://ubuntuforums.org/showthread.php?t=297474
 
-    [SPARC64]: Fix parport_pc build.
-    
-    Signed-off-by: David S. Miller <davem@davemloft.net>
+The mentioned solution (removing the msleep) and switch to polling mode
+is imho no good option.
 
-diff --git a/include/asm-sparc64/dma.h b/include/asm-sparc64/dma.h
-index 93e5a06..1bf4f7a 100644
---- a/include/asm-sparc64/dma.h
-+++ b/include/asm-sparc64/dma.h
-@@ -205,10 +205,6 @@ do {	u32 tmp = sbus_readl((__regs) + DMA_CSR); \
- #define for_each_dvma(dma) \
-         for((dma) = dma_chain; (dma); (dma) = (dma)->next)
+Problem:
+kthread kenvctrld calls wait_for_pin(), attaches itself to the
+wait_queue and sets itself INTERRUPTIBLE (unneccesary because
+msleep_interruptible does the same). Then it checks if the i2c-query is
+already done. Usually this is not the case at first check.
+
+Then kenvctrl calles msleep_interruptible(250). Usually 1 or 2 ms later
+the i2c-bus signals by interrupt that the desired operation is done.
+The interrupt-handler wakes up all tasks in the wq.
+Know kenvctrld is reset to TASK_RUNNING and does about 248 ms sleeping
+at kernel priority :-(
+
+
+the patch attached will switch this to wait_event_interruptible_timeout.
+It might be possible to change this line:
+
+	if ((val != -ERESTARTSYS) && (val > 0))  {
+
+to
+
+	if (val > 0)  {
+
+but I was not sure if I can rely on errror codes <0
+
+
+Please check this patch since I do not know exactly how to proceed.
+
+
+-- 
+Jörg Friedrich
+
+There are only 10 types of people:
+Those who understand binary and those who don't.
+
+--YiEDa0DAkWCtVeE4
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: attachment; filename="bbc_i2c.c.diff"
+
+--- linux-2.6.20/drivers/sbus/char/bbc_i2c.c.orig	2007-02-15 21:26:56.000000000 +0100
++++ linux-2.6.20/drivers/sbus/char/bbc_i2c.c	2007-02-15 21:28:36.000000000 +0100
+@@ -187,19 +187,18 @@
+ 	bp->waiting = 1;
+ 	add_wait_queue(&bp->wq, &wait);
+ 	while (limit-- > 0) {
+-		u8 val;
++		long val;
  
--extern int get_dma_list(char *);
--extern int request_dma(unsigned int, __const__ char *);
--extern void free_dma(unsigned int);
--
- /* From PCI */
+-		set_current_state(TASK_INTERRUPTIBLE);
+-		*status = val = readb(bp->i2c_control_regs + 0);
+-		if ((val & I2C_PCF_PIN) == 0) {
++		val = wait_event_interruptible_timeout(bp->wq,
++			(((*status = readb(bp->i2c_control_regs + 0)) & I2C_PCF_PIN) == 0),
++			msecs_to_jiffies(250));
++		if ((val != -ERESTARTSYS) && (val > 0))  {
+ 			ret = 0;
+ 			break;
+ 		}
+-		msleep_interruptible(250);
+ 	}
+ 	remove_wait_queue(&bp->wq, &wait);
+ 	bp->waiting = 0;
+-	current->state = TASK_RUNNING;
  
- #ifdef CONFIG_PCI
-diff --git a/include/asm-sparc64/parport.h b/include/asm-sparc64/parport.h
-index d389587..be9509c 100644
---- a/include/asm-sparc64/parport.h
-+++ b/include/asm-sparc64/parport.h
-@@ -23,8 +23,30 @@ static struct sparc_ebus_info {
- 	struct ebus_dma_info info;
- 	unsigned int addr;
- 	unsigned int count;
-+	int lock;
- } sparc_ebus_dmas[PARPORT_PC_MAX_PORTS];
+ 	return ret;
+ }
+@@ -340,7 +339,7 @@
+ 	 */
+ 	if (bp->waiting &&
+ 	    !(readb(bp->i2c_control_regs + 0x0) & I2C_PCF_PIN))
+-		wake_up(&bp->wq);
++		wake_up_interruptible(&bp->wq);
  
-+static __inline__ int request_dma(unsigned int dmanr, const char *device_id)
-+{
-+	if (dmanr >= PARPORT_PC_MAX_PORTS)
-+		return -EINVAL;
-+	if (xchg(&sparc_ebus_dmas[dmanr].lock, 1) != 0)
-+		return -EBUSY;
-+	return 0;
-+}
-+
-+static __inline__ void free_dma(unsigned int dmanr)
-+{
-+	if (dmanr >= PARPORT_PC_MAX_PORTS) {
-+		printk(KERN_WARNING "Trying to free DMA%d\n", dmanr);
-+		return;
-+	}
-+	if (xchg(&sparc_ebus_dmas[dmanr].lock, 0) = 0) {
-+		printk(KERN_WARNING "Trying to free free DMA%d\n", dmanr);
-+		return;
-+	}	
-+}
-+
- static __inline__ void enable_dma(unsigned int dmanr)
- {
- 	ebus_dma_enable(&sparc_ebus_dmas[dmanr].info, 1);
+ 	return IRQ_HANDLED;
+ }
+
+--YiEDa0DAkWCtVeE4--
