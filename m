@@ -1,34 +1,25 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 26 Feb 2007 17:44:50 +0000
-Subject: Re: [PATCH 3/3] SPARC: Handle request_irq() failure
-Message-Id: <20070226.094450.39157931.davem@davemloft.net>
+From: Daniel Smolik <marvin@mydatex.cz>
+Date: Thu, 15 Feb 2007 20:22:29 +0000
+Subject: E450 and kernel > 2.6.18
+Message-Id: <45D4C105.8020802@mydatex.cz>
 List-Id: <sparclinux.vger.kernel.org>
-References: <87y7mkq4so.fsf@sw.ru>
-In-Reply-To: <87y7mkq4so.fsf@sw.ru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: dmonakhov@openvz.org
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, devel@openvz.org
+To: sparclinux@vger.kernel.org
 
-From: Monakhov Dmitriy <dmonakhov@openvz.org>
-Date: Mon, 26 Feb 2007 19:09:27 +0300
+Hi,
+have anybody working kernel  > 2.6.18 on E450. With 2.6.16.40 all 
+working perfect. SCSI disk are recognized all work fine. I test 2.6.18 
+and 20 with same config as 16.40 and eth0 and eth1 stop working, disk on 
+external D1000 array is  not recognized and many SCSI ABORT and RESET 
+during boot.
 
-> Signed-off-by: Monakhov Dmitriy <dmonakhov@openvz.org>
- ...
-> @@ -389,7 +390,12 @@ static int __init ts102_uctrl_init(void)
->  	if(!driver->irq) 
->  		driver->irq = tmp_irq[0].pri;
->  
-> -	request_irq(driver->irq, uctrl_interrupt, 0, "uctrl", driver);
-> +	err = request_irq(driver->irq, uctrl_interrupt, 0, "uctrl", driver);
-> +	if (err) {
-> +		printk(KERN_ERR "%s: unable to request irq  %d\n",
-> +				__FUNCTION__, driver->irq);
-> +		return -EBUSY;
-> +	}
->  
 
-Why not return the error code that request_irq() gave us?
+		Thanks
+			Dan
 
-That's how I'll fix this bug.
+
+
+
+
