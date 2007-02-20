@@ -1,52 +1,40 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 22 Feb 2007 11:09:55 +0000
-Subject: Re: Linux on Sun e10k
-Message-Id: <20070222.030955.78715327.davem@davemloft.net>
+From: "Rev. G. Lim" <glim@sunsmoke.org>
+Date: Tue, 20 Feb 2007 23:37:04 +0000
+Subject: SILO limits and requirements
+Message-Id: <200702202337.l1KNb42F020734@sunsmoke.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1169241607.30406.19.camel@duo.jes.ee>
-In-Reply-To: <1169241607.30406.19.camel@duo.jes.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Peter Jones <pjones@redhat.com>
-Date: Wed, 21 Feb 2007 11:01:49 -0500
+Greetings.
 
-> (apologies if you get this more than once; apparently I've been having
-> some email trouble)
-> 
-> On Mon, 2007-01-29 at 09:34 -0800, David Miller wrote:
-> 
-> > Another oddity is that the buffers are filled at the tail.  So, for
-> > example if you have 16 characters to output, you copy them to the
-> > final 16-bytes of the buffer area (right before the 2-byte count)
-> > and then you write the count to be 16.
-> 
-> Is the buffer actually filled backwards, or merely aligned to the tail?
+I have some SILO questions and hope that this is the correct list in which
+to ask them. If not, I apologize; I got here from sparc-boot.org site.
 
-The first byte of your console output goes SIZE bytes before the
-tail, the last byte goes at the tail.
+Here goes:
+1. Is it correct to say that SILO can only read kernels from ext2/3,
+with UFS planned for the somewhat near future? IOW, it cannot boot a
+kernel located on ReiserFS or XFS or JFS.
 
-> > The control register contains either zero (means nothing to do)
-> > or another value which indicates certain events have occurred,
-> > you poll this when you poll for console input.  The possible
-> > values are:
-> > 
-> > 0	nothing
-> > 1	Stop-A break sequence
-> > 2	SSP hung up on us and disconnected
-> > 3	Console switch to network, stop posting output bytes to SRAM
-> > 4	Console switch to SRAM, resume posting output bytes to SRAM
-> > 5	Console via network closed
-> > 
-> > Ignore values 3, 4, and 5 for now, there is a way to redirect console
-> > output over the network with the SSP but we'll not support that yet.
-> 
-> Are 3, 4, and 5 messages from the kernel to the SSP?  If so, don't we
-> want to set 4 (and wait for it to clear?) on port->startup() ?
+2. I understand the 3M limit on kernel size, and I understand that there
+is a practical limit of 2.5M... I am using silo-1.4.13. Does that limit
+come from SMALL_RELOC in Rules.make? If so, what is LARGE_RELOC for?
 
-I have no idea, sorry.  Probably they are initiated by a daemon
-or similar in userspace under Solaris.  I never checked the details.
+3. On my systems, of the several versions of silo, second.b has always
+been just less than 64k in size. Would it be worth it to set SMALL_RELOC
+to 0x2E0000 to gain an extra 384k? That would leave 128k for second.b,
+instead of 512k. Would it be safe?
 
+4. What's the practical limit on the size of an initrd? Is there any way
+to increase it?
+
+Thanks for reading! Please answer if you know. The answers don't seem 
+to be directly available from the website.
+-Greg Lim
+
+PS. I am not subscribed to the list, but I will try to watch it. My email
+address is like: (galima@saunasmoake.org) but it doesn't have the letter
+'a' in it anywhere.
 
