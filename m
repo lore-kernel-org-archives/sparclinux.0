@@ -1,53 +1,45 @@
-From: Per =?iso-8859-1?q?=D8yvind_Karlsen?= <pkarlsen@mandriva.com>
-Date: Sun, 04 Feb 2007 17:07:56 +0000
-Subject: Re: GCC and SPARC Kernels
-Message-Id: <200702041807.57675.pkarlsen@mandriva.com>
+From: Peter Jones <pjones@redhat.com>
+Date: Wed, 21 Feb 2007 16:01:49 +0000
+Subject: Re: Linux on Sun e10k
+Message-Id: <1172073709.14882.1.camel@pjones2.install.boston.redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <FEC0BFE7-59AA-4DC3-97DF-3B703B26CD71@polyad.org>
-In-Reply-To: <FEC0BFE7-59AA-4DC3-97DF-3B703B26CD71@polyad.org>
+References: <1169241607.30406.19.camel@duo.jes.ee>
+In-Reply-To: <1169241607.30406.19.camel@duo.jes.ee>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-I am resending this one as my mail bounced sending to your address, also yo=
-u=20
-should not set reply-to, this will make one post to your mail by default in=
-=20
-stead of the list..
-S=F8ndag 04 februar 2007 16:23, skrev Luis F. Ortiz:
-> What's the scoop on building SPARC Kernels and which version(s) of
-> GCC to use?
->
-> I've got:
->
-> 	GCC 3.3.6
-> 	GCC 3.4.6
-> 	GCC 4.0.4
-> 	GCC 4.1.2
->
-> and intend to build:
->
-> 	2.6.17, 18, 19 and 20-rc7
->
-> for my little old SparcBlade 100.
->
-> Anyone out there have hints about which combinations are known to be
-> either bad or good?
->
->
-> Luis F. Ortiz
->
->
-> -
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-4.0.4 should be fine, usinig 4.1* series seems to break atyfb driver which =
-you=20
-probably want no your SB100 (I know I do:)
+(apologies if you get this more than once; apparently I've been having
+some email trouble)
 
---=20
-Regards,
-Per =D8yvind Karlsen
-Mandriva
+On Mon, 2007-01-29 at 09:34 -0800, David Miller wrote:
+
+> Another oddity is that the buffers are filled at the tail.  So, for
+> example if you have 16 characters to output, you copy them to the
+> final 16-bytes of the buffer area (right before the 2-byte count)
+> and then you write the count to be 16.
+
+Is the buffer actually filled backwards, or merely aligned to the tail?
+
+> The control register contains either zero (means nothing to do)
+> or another value which indicates certain events have occurred,
+> you poll this when you poll for console input.  The possible
+> values are:
+> 
+> 0	nothing
+> 1	Stop-A break sequence
+> 2	SSP hung up on us and disconnected
+> 3	Console switch to network, stop posting output bytes to SRAM
+> 4	Console switch to SRAM, resume posting output bytes to SRAM
+> 5	Console via network closed
+> 
+> Ignore values 3, 4, and 5 for now, there is a way to redirect console
+> output over the network with the SSP but we'll not support that yet.
+
+Are 3, 4, and 5 messages from the kernel to the SSP?  If so, don't we
+want to set 4 (and wait for it to clear?) on port->startup() ?
+
+-- 
+  Peter
+
