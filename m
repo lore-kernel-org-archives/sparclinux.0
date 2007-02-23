@@ -1,25 +1,62 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 06 Feb 2007 21:33:46 +0000
-Subject: Re: [Bugme-new] [Bug 7951] New: ESP DMA error
-Message-Id: <20070206.133346.54189524.davem@davemloft.net>
+From: Andrew Walrond <andrew@walrond.org>
+Date: Fri, 23 Feb 2007 11:08:10 +0000
+Subject: (Sparc64) 2.6.20 seems to ignore initramfs
+Message-Id: <200702231108.10185.andrew@walrond.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200702061754.l16HsxR6031831@fire-2.osdl.org>
-	<20070206132917.ccd7348b.akpm@linux-foundation.org>
-In-Reply-To: <20070206132917.ccd7348b.akpm@linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: akpm@linux-foundation.org
-Cc: linux-scsi@vger.kernel.org, bugme-daemon@bugzilla.kernel.org, mt1@systella.fr, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Tue, 6 Feb 2007 13:29:17 -0800
+On a Sun T1000 I am trying to boot 2.6.20 using initramfs. (I use the same 
+procedure successfully on x86_64 and itanium2 servers).
 
-> Apparently a recent regression.
+The relevent silo section looks like this:
 
-It's on sparc32 (and SMP on top of that, scary) which is only lightly
-maintained, so it could be anything.  It would be interesting if
-running a uniprocessor kernel made the problem go away.
+image=/boot/2.6.20.image
+        label=2.6.20
+        initrd=/boot/2.6.20.initramfs
+        partition=2
+        read-only
 
-I would only be concerned at the scsi layer level if you see a sparc64
-report like this.
+The kernel loads and boots and I see
+
+Allocated 8 Megs of memory at 0x40000000 for kernel
+Loaded kernel version 2.6.20
+Loading initial ramdisk (127932430 bytes at 0x1000000 phys, 0x40C00000 
+virt)...
+/
+Remapping the kernel... done.
+Booting Linux...
+PROMLIB: Sun IEEE Boot Prom 'OBP 4.23.0 2006/06/02 16:14'
+PROMLIB: Root node compatible: sun4v
+Linux version 2.6.20 (nobody@spawn1.secure) (gcc version 4.1.1) #1 SMP Thu Feb 
+22 16:25:18 GMT 2007
+ARCH: SUN4V
+Ethernet address: 00:14:4f:2a:90:92
+PROM: Built device tree with 65903 bytes of memory.
+Built 1 zonelists.  Total pages: 242541
+Kernel command line: ro
+
+[snip]
+
+checking if image is initramfs... it is
+Freeing initrd memory: 124934k freed
+
+[snip]
+
+VFS: Cannot open root device "<NULL>" or unknown-block(0,0)
+Please append a correct "root=" boot option
+Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block(0,0)
+ <0>Press Stop-A (L1-A) to return to the boot prom
+
+
+So it knows about the initramfs, but then tries to mount a root filesystem 
+instead...
+
+I haven't tried this (initramfs)  with earlier kernels, so I don't know 
+whether this is a regression. Any clues about how to solve this would be 
+greatly appreciated.
+
+Andrew Walrond
