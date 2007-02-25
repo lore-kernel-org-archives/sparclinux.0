@@ -1,51 +1,31 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Sun, 25 Feb 2007 12:47:54 +0000
-Subject: Re: sparc64 / bbc_i2c.c
-Message-Id: <20070225044754.1d849a8d.akpm@linux-foundation.org>
+From: Emanuele Rocca <ema@debian.org>
+Date: Sun, 25 Feb 2007 13:33:29 +0000
+Subject: Re:  sparc64 / bbc_i2c.c
+Message-Id: <20070225133329.GA22364@darkmoon.home>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1171978032.18442.11.camel@lax.shef.ac.uk>
-In-Reply-To: <1171978032.18442.11.camel@lax.shef.ac.uk>
+References: <1171978032.18442.11.camel@lax.shef.ac.uk> <20070225044754.1d849a8d.akpm@linux-foundation.org>
+In-Reply-To: <20070225044754.1d849a8d.akpm@linux-foundation.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: "J.J. Green" <j.j.green@sheffield.ac.uk>
 Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-> On Tue, 20 Feb 2007 13:27:12 +0000 "J.J. Green" <j.j.green@sheffield.ac.uk> wrote:
-> Hi all
-> 
-> I got bitten by this problem on sparc64 (a blade 1000)
-> 
->   http://ubuntuforums.org/showthread.php?t)7474
->
-> summary :
-> 
->   modprobe bbc
-> 
-> runs kenvctrld which uses 100% of a CPU for 5 seconds,
-> then 0% for 5 seconds, then 100% .. and so on. The author
-> cited above suggests removing the line 
-> 
->   remove_wait_queue(&bp->wq, &wait);
-> 
-> in the function 
-> 
->   static int wait_for_pin(struct bbc_i2c_bus *bp, u8 *status)
-> 
-> Is there a better way?
-> 
-> I can test patches if that would be helpful.
-> 
+* Andrew Morton <akpm@linux-foundation.org>, [2007-02-25  4:47 -0800]:
+>  > On Tue, 20 Feb 2007 13:27:12 +0000 "J.J. Green" <j.j.green@sheffield.a=
+c.uk> wrote:
+>  > I got bitten by this problem on sparc64 (a blade 1000)
+>  >=20
+>  >   http://ubuntuforums.org/showthread.php?t)7474
 
-The code around there looks relatively unbuggy to me.  Removing that
-remove_wait_queue() would be very bad - it would cause later stack
-corruption.
+>  The code around there looks relatively unbuggy to me.  Removing that
+>  remove_wait_queue() would be very bad - it would cause later stack
+>  corruption.
 
-msleep_interruptible() certainly shouldn't consume CPU like that.  Do we
-know where the CPU time is being spent?  The output of:
+The following patch by J=F6rg Friedrich fixes the issue without removing
+the call to remove_wait_queue():
 
-readprofile -r
-sleep 10
-readprofile -n -v -m /boot/System.map | sort -n -k 3 | tail -40
+http://lists.debian.org/debian-sparc/2007/02/msg00045.html
 
-would tell us.
+ciao,
+    ema
