@@ -1,29 +1,31 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 20 Feb 2007 09:04:27 +0000
-Subject: Re: [RFC: 2.6 patch] remove the broken SUN_AURORA driver
-Message-Id: <20070220.010427.07640976.davem@davemloft.net>
+From: Jurij Smakov <jurij@wooyd.org>
+Date: Sun, 25 Feb 2007 20:07:03 +0000
+Subject: Unaligned accesses in ip_rcv and ip_fast_csum
+Message-Id: <20070225200702.GA4451@droopy.oc.cox.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070220000703.GN13958@stusta.de>
-In-Reply-To: <20070220000703.GN13958@stusta.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: bunk@stusta.de
-Cc: akpm@osdl.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Adrian Bunk <bunk@stusta.de>
-Date: Tue, 20 Feb 2007 01:07:03 +0100
+Hi,
 
-> The SUN_AURORA driver:
-> - has been marked as BROKEN for more than two years and
-> - is still marked as BROKEN.
-> 
-> Drivers that had been marked as BROKEN for such a long time seem to be
-> unlikely to be revived in the forseeable future.
-> 
-> But if anyone wants to ever revive this driver, the code is still
-> present in the older kernel releases.
-> 
-> Signed-off-by: Adrian Bunk <bunk@stusta.de>
+We have a report (Debian bug #409313 [0]) of the following unaligned 
+accesses, occuring every 5-6 seconds on Netra X1 and SunFire v100 with 
+kernel 2.6.18 and newer:
 
-Applied, thanks Adrian.
+Kernel unaligned access at TPC[5e4420] ip_rcv+0xd0/0x58c
+Kernel unaligned access at TPC[517f84] ip_fast_csum+0xc/0x80
+Kernel unaligned access at TPC[517f88] ip_fast_csum+0x10/0x80
+Kernel unaligned access at TPC[517f8c] ip_fast_csum+0x14/0x80
+Kernel unaligned access at TPC[517f94] ip_fast_csum+0x1c/0x80
+
+I was hoping to debug it myself, but due to time constraints was not 
+able to get too far.
+
+[0] http://bugs.debian.org/409313
+
+Best regards,
+-- 
+Jurij Smakov                                           jurij@wooyd.org
+Key: http://www.wooyd.org/pgpkey/                      KeyID: C99E03CC
