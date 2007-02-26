@@ -1,32 +1,51 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 26 Feb 2007 23:16:36 +0000
-Subject: Re: 2.6.20 unaligned accesses
-Message-Id: <20070226.151636.74746822.davem@davemloft.net>
+From: Emanuele Rocca <ema@debian.org>
+Date: Mon, 26 Feb 2007 23:23:28 +0000
+Subject: Re:  2.6.20 unaligned accesses
+Message-Id: <20070226232328.GA6779@darkmoon.home>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="wac7ysb48OaltWcw"
 List-Id: <sparclinux.vger.kernel.org>
 References: <200702231155.25915.andrew@walrond.org>
 In-Reply-To: <200702231155.25915.andrew@walrond.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Emanuele Rocca <ema@debian.org>
-Date: Tue, 27 Feb 2007 00:14:49 +0100
 
-> Hello,
-> 
-> * Andrew Walrond <andrew@walrond.org>, [2007-02-23 11:55 +0000]:
-> >  On a Sun T1000 running 2.6.20 I'm seeing lots of these:
-> >  
-> >  Kernel unaligned access at TPC[63d47c] Kernel unaligned access at TPC[63d47c] 
-> >  Kernel unaligned access at TPC[63d47c] aoenet_rcv+0xa4/0x190
-> [...]
-> 
-> On a Sun Blade 2000 I got this one every time I load eth1394:
-> Kernel unaligned access at TPC[101880c8] ether1394_reset_priv+0x2c/0xb8 [eth1394]
-> 
-> I got rid of the message with the following patch:
+--wac7ysb48OaltWcw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-That is a different bug, and the current 2.6.x tree already has
-that fix applied so you shouldn't need to apply that patch to
-the vanilla tree.
+* David Miller <davem@davemloft.net>, [2007-02-26 15:16 -0800]:
+>  From: Emanuele Rocca <ema@debian.org>
+
+>  > On a Sun Blade 2000 I got this one every time I load eth1394:
+>  > Kernel unaligned access at TPC[101880c8] ether1394_reset_priv+0x2c/0xb=
+8 [eth1394]
+>  >=20
+>  > I got rid of the message with the following patch:
+> =20
+>  That is a different bug, and the current 2.6.x tree already has
+>  that fix applied so you shouldn't need to apply that patch to
+>  the vanilla tree.
+
+Ah, nice. linux-source 2.6.18.dfsg.1-11 (Debian unstable) is affected by
+the bug, so maybe we could add the patch?
+
+Thanks.
+ciao,
+    ema
+
+--wac7ysb48OaltWcw
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFF42vwC6DuA+rxm2ARApGdAJ4oijZK+ZlyuSFl7HrCOYbzydshsgCcDsy/
+sGjavSrFIJ7g3mX6/faxi14=
+=4b3n
+-----END PGP SIGNATURE-----
+
+--wac7ysb48OaltWcw--
