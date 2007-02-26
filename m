@@ -1,105 +1,69 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 26 Feb 2007 18:33:41 +0000
+From: Emanuele Rocca <ema@debian.org>
+Date: Mon, 26 Feb 2007 23:14:49 +0000
 Subject: Re: 2.6.20 unaligned accesses
-Message-Id: <20070226.103341.115641947.davem@davemloft.net>
+Message-Id: <20070226231449.GA6522@darkmoon.home>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="yrj/dFKFPuw6o+aM"
 List-Id: <sparclinux.vger.kernel.org>
 References: <200702231155.25915.andrew@walrond.org>
 In-Reply-To: <200702231155.25915.andrew@walrond.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Andrew Walrond <andrew@walrond.org>
-Date: Mon, 26 Feb 2007 10:12:32 +0000
 
-> I have discovered that these only appear when running a kernel with
-> 
-> 	CONFIG_CC_OPTIMIZE_FOR_SIZE=y
-> 
-> Nevertheless, I guess it needs fixing.
+--yrj/dFKFPuw6o+aM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Let me know if this fixes the bug for you:
+Hello,
 
-diff --git a/drivers/block/aoe/aoecmd.c b/drivers/block/aoe/aoecmd.c
-index bb022ed..8d17d8d 100644
---- a/drivers/block/aoe/aoecmd.c
-+++ b/drivers/block/aoe/aoecmd.c
-@@ -530,7 +530,7 @@ aoecmd_ata_rsp(struct sk_buff *skb)
- 	u16 aoemajor;
- 
- 	hin = (struct aoe_hdr *) skb->mac.raw;
--	aoemajor = be16_to_cpu(hin->major);
-+	aoemajor = be16_to_cpu(get_unaligned(&hin->major));
- 	d = aoedev_by_aoeaddr(aoemajor, hin->minor);
- 	if (d = NULL) {
- 		snprintf(ebuf, sizeof ebuf, "aoecmd_ata_rsp: ata response "
-@@ -542,7 +542,7 @@ aoecmd_ata_rsp(struct sk_buff *skb)
- 
- 	spin_lock_irqsave(&d->lock, flags);
- 
--	n = be32_to_cpu(hin->tag);
-+	n = be32_to_cpu(get_unaligned(&hin->tag));
- 	f = getframe(d, n);
- 	if (f = NULL) {
- 		calc_rttavg(d, -tsince(n));
-@@ -550,9 +550,9 @@ aoecmd_ata_rsp(struct sk_buff *skb)
- 		snprintf(ebuf, sizeof ebuf,
- 			"%15s e%d.%d    tag=%08x@%08lx\n",
- 			"unexpected rsp",
--			be16_to_cpu(hin->major),
-+			be16_to_cpu(get_unaligned(&hin->major)),
- 			hin->minor,
--			be32_to_cpu(hin->tag),
-+			be32_to_cpu(get_unaligned(&hin->tag)),
- 			jiffies);
- 		aoechr_error(ebuf);
- 		return;
-@@ -631,7 +631,7 @@ aoecmd_ata_rsp(struct sk_buff *skb)
- 			printk(KERN_INFO
- 				"aoe: unrecognized ata command %2.2Xh for %d.%d\n",
- 				ahout->cmdstat,
--				be16_to_cpu(hin->major),
-+				be16_to_cpu(get_unaligned(&hin->major)),
- 				hin->minor);
- 		}
- 	}
-@@ -733,7 +733,7 @@ aoecmd_cfg_rsp(struct sk_buff *skb)
- 	 * Enough people have their dip switches set backwards to
- 	 * warrant a loud message for this special case.
- 	 */
--	aoemajor = be16_to_cpu(h->major);
-+	aoemajor = be16_to_cpu(get_unaligned(&h->major));
- 	if (aoemajor = 0xfff) {
- 		printk(KERN_ERR "aoe: Warning: shelf address is all ones.  "
- 			"Check shelf dip switches.\n");
-diff --git a/drivers/block/aoe/aoenet.c b/drivers/block/aoe/aoenet.c
-index 9626e0f..5b85c0a 100644
---- a/drivers/block/aoe/aoenet.c
-+++ b/drivers/block/aoe/aoenet.c
-@@ -8,6 +8,7 @@
- #include <linux/blkdev.h>
- #include <linux/netdevice.h>
- #include <linux/moduleparam.h>
+* Andrew Walrond <andrew@walrond.org>, [2007-02-23 11:55 +0000]:
+>  On a Sun T1000 running 2.6.20 I'm seeing lots of these:
+> =20
+>  Kernel unaligned access at TPC[63d47c] Kernel unaligned access at TPC[63=
+d47c]=20
+>  Kernel unaligned access at TPC[63d47c] aoenet_rcv+0xa4/0x190
+[...]
+
+On a Sun Blade 2000 I got this one every time I load eth1394:
+Kernel unaligned access at TPC[101880c8] ether1394_reset_priv+0x2c/0xb8 [et=
+h1394]
+
+I got rid of the message with the following patch:
+
+--- drivers/ieee1394/eth1394.c.old      2007-02-26 23:07:21.000000000 +0100
++++ drivers/ieee1394/eth1394.c  2007-02-26 23:58:57.000000000 +0100
+@@ -65,6 +65,7 @@
+ #include <asm/uaccess.h>
+ #include <asm/delay.h>
+ #include <asm/semaphore.h>
 +#include <asm/unaligned.h>
- #include "aoe.h"
- 
- #define NECODES 5
-@@ -123,7 +124,7 @@ aoenet_rcv(struct sk_buff *skb, struct net_device *ifp, struct packet_type *pt,
- 	skb_push(skb, ETH_HLEN);	/* (1) */
- 
- 	h = (struct aoe_hdr *) skb->mac.raw;
--	n = be32_to_cpu(h->tag);
-+	n = be32_to_cpu(get_unaligned(&h->tag));
- 	if ((h->verfl & AOEFL_RSP) = 0 || (n & 1<<31))
- 		goto exit;
- 
-@@ -133,7 +134,7 @@ aoenet_rcv(struct sk_buff *skb, struct net_device *ifp, struct packet_type *pt,
- 			n = 0;
- 		if (net_ratelimit())
- 			printk(KERN_ERR "aoe: error packet from %d.%d; ecode=%d '%s'\n",
--			       be16_to_cpu(h->major), h->minor, 
-+			       be16_to_cpu(get_unaligned(&h->major)), h->minor, 
- 			       h->err, aoe_errlist[n]);
- 		goto exit;
- 	}
+ #include <net/arp.h>
+
+ #include "csr1212.h"
+@@ -491,7 +492,7 @@
+        int i;
+        struct eth1394_priv *priv =3D netdev_priv(dev);
+        struct hpsb_host *host =3D priv->host;
+-       u64 guid =3D *((u64*)&(host->csr.rom->bus_info_data[3]));
++       u64 guid =3D get_unaligned(&(host->csr.rom->bus_info_data[3]));
+        u16 maxpayload =3D 1 << (host->csr.max_rec + 1);
+        int max_speed =3D IEEE1394_SPEED_MAX;
+
+ciao,
+    ema
+
+--yrj/dFKFPuw6o+aM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFF42npC6DuA+rxm2ARAljLAJ9W4WgMlpCPDjQJKzNpJ3jYHlnxKwCcDz7l
+mo+cqqhs5gOnxtGsH1D9HAU=
+=6vsW
+-----END PGP SIGNATURE-----
+
+--yrj/dFKFPuw6o+aM--
