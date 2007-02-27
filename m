@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 27 Feb 2007 21:02:18 +0000
+From: "Daniel J. Priem" <daniel@flexserv.de>
+Date: Tue, 27 Feb 2007 21:07:41 +0000
 Subject: Re: Unaligned accesses in ip_rcv and ip_fast_csum
-Message-Id: <20070227.130218.82050975.davem@davemloft.net>
+Message-Id: <87tzx7ux5u.fsf@samuel.flexserv.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20070225200702.GA4451@droopy.oc.cox.net>
 In-Reply-To: <20070225200702.GA4451@droopy.oc.cox.net>
@@ -10,24 +10,43 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: "Daniel J. Priem" <daniel@flexserv.de>
-Date: Tue, 27 Feb 2007 21:22:00 +0100
+David Miller <davem@davemloft.net> writes:
 
-> David Miller <davem@davemloft.net> writes:
-> 
-> > From: "Doug Nazar" <nazard@dragoninc.ca>
-> > Date: Tue, 27 Feb 2007 14:43:23 -0500
-> >
-> >> > We have a report (Debian bug #409313 [0]) of the following unaligned
-> >> > accesses, occuring every 5-6 seconds on Netra X1 and SunFire v100 with
-> >> > kernel 2.6.18 and newer:
-> 
-> This also occurs on netra t1 105  TI UltraSparc IIe (Hummingbird)
-> 
-> [93548.504961] Kernel unaligned access at TPC[6aa660]
-> aoenet_rcv+0xa8/0x1a0
+> From: "Daniel J. Priem" <daniel@flexserv.de>
+> Date: Tue, 27 Feb 2007 21:22:00 +0100
+>
+>> David Miller <davem@davemloft.net> writes:
+>> 
+>> > From: "Doug Nazar" <nazard@dragoninc.ca>
+>> > Date: Tue, 27 Feb 2007 14:43:23 -0500
+>> >
+>> >> > We have a report (Debian bug #409313 [0]) of the following unaligned
+>> >> > accesses, occuring every 5-6 seconds on Netra X1 and SunFire v100 with
+>> >> > kernel 2.6.18 and newer:
+>> 
+>> This also occurs on netra t1 105  TI UltraSparc IIe (Hummingbird)
+>> 
+>> [93548.504961] Kernel unaligned access at TPC[6aa660]
+>> aoenet_rcv+0xa8/0x1a0
+>
+> This is a different problem, it's totally unrelated.
+>
+> I fixed that particular issue in a seperate patch to the AOE driver
+> which I posted yesterday, please test it out.
 
-This is a different problem, it's totally unrelated.
+Can you please send me both patches?
 
-I fixed that particular issue in a seperate patch to the AOE driver
-which I posted yesterday, please test it out.
+Thanks
+Daniel
+
+> -
+> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+ .''`.
+ : :' :      Daniel J. Priem
+ `. `'       http://flexserv.de
+   `-        
+
