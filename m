@@ -1,7 +1,7 @@
-From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
-Date: Mon, 05 Mar 2007 16:56:08 +0000
+From: Jason Wever <weeve@gentoo.org>
+Date: Mon, 05 Mar 2007 19:26:23 +0000
 Subject: Re: [PATCH]: Fix for SB100/SB150 bootup hangs
-Message-Id: <1173113768.1407.45.camel@localhost.localdomain>
+Message-Id: <Pine.LNX.4.64.0703051225530.17089@stargazer.weeve.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20070305.011139.78710584.davem@davemloft.net>
 In-Reply-To: <20070305.011139.78710584.davem@davemloft.net>
@@ -10,16 +10,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Mon, 2007-03-05 at 01:11 -0800, David Miller wrote:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+On Mon, 5 Mar 2007, David Miller wrote:
+
 > Anyone with a SunBlade100 or SunBlade150 trying to use
 > kernels built with gcc-4.1.x or later and seeing hangs
 > should try out this patch.
 
-Confirmed that it works on the Aurora side, atyfb is working again on
-the SB100.
+Patch works great on stock 2.6.20 and gcc-4.1.1 on Gentoo.
 
-Thanks a lot for this Dave, that was one of our two showstopper bugs, I
-can focus on the other one now (esp on sparc32 being hosed).
+Thanks,
+- -- 
+Jason Wever
+Gentoo/Sparc Team Co-Lead
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
 
-~spot
-
+iD8DBQFF7G7jdKvgdVioq28RAiPbAJwOhumB8Xt6o0RacMx4no09qwXSMQCfSdyy
+FoO7F75pdp5WiLnFOZC0Htw=dYef
+-----END PGP SIGNATURE-----
