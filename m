@@ -1,58 +1,34 @@
-From: Adrian Bunk <bunk@stusta.de>
-Date: Mon, 05 Mar 2007 01:50:45 +0000
-Subject: [6/6] 2.6.21-rc2: known regressions
-Message-Id: <20070305015045.GK3441@stusta.de>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 05 Mar 2007 02:07:25 +0000
+Subject: Re: [6/6] 2.6.21-rc2: known regressions
+Message-Id: <20070304.180725.126592830.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.LNX.4.64.0702272105220.12485@woody.linux-foundation.org>
-In-Reply-To: <Pine.LNX.4.64.0702272105220.12485@woody.linux-foundation.org>
+	<20070305015045.GK3441@stusta.de>
+In-Reply-To: <20070305015045.GK3441@stusta.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: quoted-printable
-To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Horst H. von Brand" <vonbrand@inf.utfsm.cl>, "David S. Miller" <davem@sunset.davemloft.net>, sparclinux@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Oliver Neukum <oneukum@suse.de>, gregkh@suse.de, linux-usb-devel@lists.sourceforge.net, Craig Schlenter <craig@codefountain.com>, Paul Rolland <rol@as2917.net>, "Rafael J. Wysocki" <rjw@sisk.pl>, David Brownell <david-b@pacbell.net>, a.zummo@towertech.it, rtc-linux@googlegroups.com
+To: bunk@stusta.de
+Cc: torvalds@linux-foundation.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, vonbrand@inf.utfsm.cl, davem@sunset.davemloft.net, sparclinux@vger.kernel.org, pavel@ucw.cz, oneukum@suse.de, gregkh@suse.de, linux-usb-devel@lists.sourceforge.net, craig@codefountain.com, rol@as2917.net, rjw@sisk.pl, david-b@pacbell.net, a.zummo@towertech.it, rtc-linux@googlegroups.com
 
-This email lists some known regressions in 2.6.21-rc2 compared to 2.6.20
-that are not yet fixed in Linus' tree.
+From: Adrian Bunk <bunk@stusta.de>
+Date: Mon, 5 Mar 2007 02:50:45 +0100
 
-If you find your name in the Cc header, you are either submitter of one
-of the bugs, maintainer of an affectected subsystem or driver, a patch
-of you caused a breakage or I'm considering you in any other way
-possibly involved with one or more of these issues.
+> Subject    : sparc64 compile error due to GENERIC_ISA_DMA removal
+> References : http://bugzilla.kernel.org/show_bug.cgi?id=8097
+> Submitter  : Horst H. von Brand <vonbrand@inf.utfsm.cl>
+> Caused-By  : David S. Miller <davem@sunset.davemloft.net>
+>              commit 1b51d3a08b6c80a1e47d4c579c41abbe56cd3c44
+> Status     : unknown
 
-Due to the huge amount of recipients, please trim the Cc when answering.
+Fixed in current GIT.
 
+commit 74bd7d093b8e87f35eaf3b14459b96a0e20d1d10
+Author: David S. Miller <davem@sunset.davemloft.net>
+Date:   Wed Feb 28 13:09:34 2007 -0800
 
-Subject    : sparc64 compile error due to GENERIC_ISA_DMA removal
-References : http://bugzilla.kernel.org/show_bug.cgi?id=8097
-Submitter  : Horst H. von Brand <vonbrand@inf.utfsm.cl>
-Caused-By  : David S. Miller <davem@sunset.davemloft.net>
-             commit 1b51d3a08b6c80a1e47d4c579c41abbe56cd3c44
-Status     : unknown
-
-
-Subject    : mmc reader no longer works
-References : http://lkml.org/lkml/2007/2/27/91
-Submitter  : Pavel Machek <pavel@ucw.cz>
-Caused-By  : Oliver Neukum <oneukum@suse.de>
-Status     : problem is being debugged
-
-
-Subject    : usb-serial broken
-             (ftdi serial device shows up as ttyUSB140 instead of ttyUSB0)
-Submitter  : Craig Schlenter <craig@codefountain.com>
-Caused-By  : Oliver Neukum <oneukum@suse.de>
-             commit 34ef50e5b1f96c2d8c0f3d28b7d407743806256c
-Handled-By : Oliver Neukum <oneukum@suse.de>
-Status     : patch available
-
-
-Subject    : Oops in rtc_cmos
-References : http://lkml.org/lkml/2007/3/4/112
-             http://lkml.org/lkml/2007/2/18/172
-Submitter  : Paul Rolland <rol@as2917.net>
-             Rafael J. Wysocki <rjw@sisk.pl>
-Caused-By  : David Brownell <david-b@pacbell.net>
-             commit 7be2c7c96aff2871240d61fef508c41176c688b5
-Patch      : http://lkml.org/lkml/2007/2/23/184
-Status     : patch available
+    [SPARC64]: Fix parport_pc build.
+   =20
+    Signed-off-by: David S. Miller <davem@davemloft.net>
 
