@@ -1,7 +1,7 @@
-From: "Michael Marineau" <mike@marineau.org>
-Date: Tue, 06 Mar 2007 06:41:31 +0000
+From: David Miller <davem@davemloft.net>
+Date: Tue, 06 Mar 2007 06:44:33 +0000
 Subject: Re: Oops in tcp_sendmsg on T[12]000
-Message-Id: <c0526ddf0703052241tf5fa8aale0efbf14539e7bb1@mail.gmail.com>
+Message-Id: <20070305.224433.88477418.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <c0526ddf0702282313i4c815b1ta31cdb159ae84ba4@mail.gmail.com>
 In-Reply-To: <c0526ddf0702282313i4c815b1ta31cdb159ae84ba4@mail.gmail.com>
@@ -10,32 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 3/5/07, David Miller <davem@davemloft.net> wrote:
-> From: "Michael Marineau" <mike@marineau.org>
-> Date: Mon, 5 Mar 2007 21:22:22 -0800
->
-> > I'm not sure where you saw Fedora,
->
-> Sorry, that wasn't you, that was from Dennis Gilmore in
-> the original T1000 crash thread. :-)
->
-> this is running Gentoo, but yes the
-> > compiler is 3.4.6. Newer versions haven't been marked stable in Gentoo
-> > on sparc yet for some reason. I'll give gcc 4.1.2 a try and see if I
-> > can still reproduce it.
+From: "Michael Marineau" <mike@marineau.org>
+Date: Mon, 5 Mar 2007 22:41:31 -0800
 
-Built the kernel with gcc 4.1.1 and I got the oops in just a few
-minutes, trying a second time now and it is lasting longer this time
-around.
+> On 3/5/07, David Miller <davem@davemloft.net> wrote:
+> > I'd be even more interested if you could reproduce it under
+> > Debian or Ubuntu, any release :-)
+> 
+> I'd rather not have to rebuild the box, but I suppose that can be done
+> if necessary.
 
->
-> I'd be even more interested if you could reproduce it under
-> Debian or Ubuntu, any release :-)
+Another way we could do this is someone builds you a test kernel using
+your kernel .config on a Debian/Ubuntu box, tar up the modules and
+kernel image for you, and you test that.
 
-I'd rather not have to rebuild the box, but I suppose that can be done
-if necessary.
-
--- 
-Michael Marineau
-Oregon State University
-mike@marineau.org
+I'm very suspicious of this bug because there are no reports of it
+on Debian or Ubuntu systems, and that's also the environment
+under which I've been beating the crap out of Niagara with 2.6.x
+kernels.
