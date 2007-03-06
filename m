@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 01 Mar 2007 18:08:37 +0000
+Date: Tue, 06 Mar 2007 05:04:26 +0000
 Subject: Re: Oops in tcp_sendmsg on T[12]000
-Message-Id: <20070301.100837.41635392.davem@davemloft.net>
+Message-Id: <20070305.210426.95058803.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <c0526ddf0702282313i4c815b1ta31cdb159ae84ba4@mail.gmail.com>
 In-Reply-To: <c0526ddf0702282313i4c815b1ta31cdb159ae84ba4@mail.gmail.com>
@@ -20,11 +20,14 @@ Date: Wed, 28 Feb 2007 23:13:20 -0800
 > a ton of traffic over lo with netcat:
 > nc -l -p 9000 >/dev/null
 > nc localhost </dev/zero
-> 
-> This works on 2.6.19, 2.6.20, and 2.6.21-rc2.  I have added the
-> debugging statement suggested in the original thread, and it's result
-> along with the Oops is posted below.  I've dug through the code a bit,
-> but so far the issue is far beyond me. Thanks for any help!
 
-Thanks for the debugging information, I'll certainly try to track
-this down.
+I've run the same and similar tests for quite some time and
+I can't get a trigger on both my T1000 and T2000.  I let them
+keep running for a while just in case.
+
+Your ability to trigger this in 5 minutes or so is too easy, and
+therefore I looked again at your original report and I see that you
+are using some fedora3 based distribution and the gcc-3.4.x that comes
+with it to build your kernel.
+
+I really suspect the compiler or build tools at this point.
