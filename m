@@ -1,25 +1,97 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 06 Mar 2007 20:02:20 +0000
-Subject: Re: Oops in tcp_sendmsg on T[12]000
-Message-Id: <20070306.120220.63126953.davem@davemloft.net>
+From: Michael Ellerman <michael@ellerman.id.au>
+Date: Tue, 06 Mar 2007 15:06:49 +0000
+Subject: [PATCH 2/2] Make pcibios_add_platform_entries() return errors
+Message-Id: <20070306150725.68D97DDF36@ozlabs.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <c0526ddf0702282313i4c815b1ta31cdb159ae84ba4@mail.gmail.com>
-In-Reply-To: <c0526ddf0702282313i4c815b1ta31cdb159ae84ba4@mail.gmail.com>
+In-Reply-To: <1173193568.89821.610708199943.qpush@concordia>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Greg Kroah-Hartman <greg@kroah.com>
+Cc: linux-pci@atrey.karlin.mff.cuni.cz, linuxppc-dev@ozlabs.org, dev-etrax@axis.com, ink@jurassic.park.msu.ru, rth@twiddle.net, kernel@wantstofly.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, gerg@uclinux.org, linux-mips@linux-mips.org, parisc-linux@parisc-linux.org, sparclinux@vger.kernel.org, uclinux-v850@lsi.nec.co.jp, discuss@x86-64.org, chris@zankel.net, dhowells@redhat.com
 
-From: "Michael Marineau" <mike@marineau.org>
-Date: Tue, 6 Mar 2007 11:48:50 -0800
+Currently pcibios_add_platform_entries() returns void, but could fail,
+so instead have it return an int and propagate errors up to
+pci_create_sysfs_dev_files().
 
-> I twiddled with my kernel configuration a bit to remove the need for
-> any modules to make building elsewhere and copying it over easier.
-> With this new config I am no longer able to trigger the bug (ran the
-> test over night).  I have no idea what change did this, I'll fiddle
-> more with it as soon as I have time in the next day or two.
+Signed-off-by: Michael Ellerman <michael@ellerman.id.au>
+---
+ arch/powerpc/kernel/pci_32.c |    4 ++--
+ arch/powerpc/kernel/pci_64.c |    4 ++--
+ drivers/pci/pci-sysfs.c      |    9 ++++++---
+ include/linux/pci.h          |    2 +-
+ 4 files changed, 11 insertions(+), 8 deletions(-)
 
-Thanks for continuing to help track this down.
-
-Probably it's some module that has some "use after free" memory
-allocation bug.
+Index: msi-new/arch/powerpc/kernel/pci_32.c
+=================================--- msi-new.orig/arch/powerpc/kernel/pci_32.c
++++ msi-new/arch/powerpc/kernel/pci_32.c
+@@ -1037,10 +1037,10 @@ void pcibios_make_OF_bus_map(void)
+ #endif /* CONFIG_PPC_OF */
+ 
+ /* Add sysfs properties */
+-void pcibios_add_platform_entries(struct pci_dev *pdev)
++int pcibios_add_platform_entries(struct pci_dev *pdev)
+ {
+ #ifdef CONFIG_PPC_OF
+-	device_create_file(&pdev->dev, &dev_attr_devspec);
++	return device_create_file(&pdev->dev, &dev_attr_devspec);
+ #endif /* CONFIG_PPC_OF */
+ }
+ 
+Index: msi-new/arch/powerpc/kernel/pci_64.c
+=================================--- msi-new.orig/arch/powerpc/kernel/pci_64.c
++++ msi-new/arch/powerpc/kernel/pci_64.c
+@@ -863,9 +863,9 @@ static ssize_t pci_show_devspec(struct d
+ }
+ static DEVICE_ATTR(devspec, S_IRUGO, pci_show_devspec, NULL);
+ 
+-void pcibios_add_platform_entries(struct pci_dev *pdev)
++int pcibios_add_platform_entries(struct pci_dev *pdev)
+ {
+-	device_create_file(&pdev->dev, &dev_attr_devspec);
++	return device_create_file(&pdev->dev, &dev_attr_devspec);
+ }
+ 
+ #define ISA_SPACE_MASK 0x1
+Index: msi-new/drivers/pci/pci-sysfs.c
+=================================--- msi-new.orig/drivers/pci/pci-sysfs.c
++++ msi-new/drivers/pci/pci-sysfs.c
+@@ -600,9 +600,9 @@ static struct bin_attribute pcie_config_
+ 	.write = pci_write_config,
+ };
+ 
+-void __attribute__ ((weak)) pcibios_add_platform_entries(struct pci_dev *dev)
++int __attribute__ ((weak)) pcibios_add_platform_entries(struct pci_dev *dev)
+ {
+-	return;
++	return 0;
+ }
+ 
+ int __must_check pci_create_sysfs_dev_files (struct pci_dev *pdev)
+@@ -644,10 +644,13 @@ int __must_check pci_create_sysfs_dev_fi
+ 		}
+ 	}
+ 	/* add platform-specific attributes */
+-	pcibios_add_platform_entries(pdev);
++	if (pcibios_add_platform_entries(pdev))
++		goto err_rom_attr;
+ 
+ 	return 0;
+ 
++err_rom_attr:
++	sysfs_remove_bin_file(&pdev->dev.kobj, rom_attr);
+ err_rom:
+ 	kfree(rom_attr);
+ err_bin_file:
+Index: msi-new/include/linux/pci.h
+=================================--- msi-new.orig/include/linux/pci.h
++++ msi-new/include/linux/pci.h
+@@ -857,7 +857,7 @@ extern int pci_pci_problems;
+ extern unsigned long pci_cardbus_io_size;
+ extern unsigned long pci_cardbus_mem_size;
+ 
+-extern void pcibios_add_platform_entries(struct pci_dev *dev);
++extern int pcibios_add_platform_entries(struct pci_dev *dev);
+ 
+ #endif /* __KERNEL__ */
+ #endif /* LINUX_PCI_H */
