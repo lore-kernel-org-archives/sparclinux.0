@@ -1,85 +1,118 @@
-From: "Tom \"spot\" Callaway" <tcallawa@redhat.com>
-Date: Mon, 26 Mar 2007 14:47:31 +0000
-Subject: More sparc32 esp failures
-Message-Id: <1174920451.6493.40.camel@localhost.localdomain>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 06 Mar 2007 05:37:52 +0000
+Subject: [PATCH 1/4]: [SPARC64]: Synchronize RTC clock via timer just like
+Message-Id: <20070305.213752.108983663.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: tglx@linutronix.de
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-This one doesn't even have a CDROM.
-SPARCstation 4, No Keyboard
-ROM Rev. 2.24, 160 MB memory installed
 
-sd 0:0:3:0: Attached scsi disk sda
-esp0: Aborting command
-esp0: dumping state
-esp0: dma -- cond_reg<a6400310> addr<f00106c1>
-esp0: SW [sreg<11> sstep<04> ireg<18>]
-esp0: HW reread [sreg<01> sstep<c4> ireg<00>]
-esp0: current command [tgt<03> lun<01> pphase<CLUELESS> cphase<DATAIN>]
-esp0: disconnected
-esp0: Aborting command
-esp0: dumping state
-esp0: dma -- cond_reg<a6400310> addr<f00106c1>
-esp0: SW [sreg<11> sstep<04> ireg<18>]
-esp0: HW reread [sreg<01> sstep<c4> ireg<00>]
-esp0: current command [tgt<03> lun<01> pphase<UNISSUED>
-cphase<UNISSUED>]
-esp0: disconnected
-esp0: Resetting scsi bus
-esp0: Gross error sreg@
-esp0: SCSI bus reset interrupt
-esp0: DMA error a440030e
-esp0: Resetting scsi bus
-esp0: SCSI bus reset interrupt
-kernel BUG at arch/sparc/mm/iommu.c:298!
-              \|/ ____ \|/
-              "@'/ ,. \`@"
-              /_| \__/ |_\
-                 \__U_/
-swapper(0): Kernel bad trap [#1]
-PSR: 04401fc3 PC: f001f2d0 NPC: f001f2d4 Y: 00000000    Not tainted
-PC: <iommu_release_one+0x30/0x74>
-%G: f00dbf5c 044010e2  00000001 04401fe1  f002fe54 f0239948  f000e000
-00000000
-%O: 0000002c f01d1b00  0000012a f000fbac  f00dbf5c 00000000  f000fa28
-f001f2c8
-RPC: <iommu_release_one+0x28/0x74>
-%L: 04401fc4 f00307b0  f00307dc 00000040  00000080 00000000  f000e000
-f00110ec
-%I: 21212000 00000001  00000001 f023d800  f0239800 f0239800  f000fa90
-f001f340
-Caller[f001f340]: iommu_release_scsi_sgl+0x2c/0x54
-Caller[fe683388]: esp_finish_reset+0x20/0xb4 [esp]
-Caller[fe68588c]: esp_intr+0x2dc/0x328 [esp]
-Caller[f0012d54]: handler_irq+0x90/0xdc
-Caller[f0010830]: patch_handler_irq+0x8/0x24
-Caller[f0035038]: __do_softirq+0x28/0xc0
-Caller[f0035110]: do_softirq+0x40/0x50
-Caller[f0012d90]: handler_irq+0xcc/0xdc
-Caller[f0010830]: patch_handler_irq+0x8/0x24
-Caller[f00146f8]: cpu_idle+0xc0/0xfc
-Caller[f02101e4]: _etext+0x6cda4/0x6dbb8
-Caller[f020f790]: _etext+0x6c350/0x6dbb8
-Caller[00000000]: 0x8
-Instruction DUMP: 9210212a  7fffcc20  90122300 <91d02005> 82260001
-8a102000  b330600c  10800009  872e6002
-Kernel panic - not syncing: Aiee, killing interrupt handler!
-Press Stop-A (L1-A) to return to the boot prom
-BUG: warning at kernel/panic.c:137/panic() (Not tainted)
-[f001250c : die_if_kernel+0x118/0x11c ] [f0012610 : do_hw_interrupt
-+0x50/0x8c ] [f00107ec : bad_trap_handler+0x28/0x30 ] [f001f2c8 :
-iommu_release_one+0x28/0x74 ] [f001f340 : iommu_release_scsi_sgl
-+0x2c/0x54 ] [fe683388 : esp_finish_reset+0x20/0xb4 [esp] ] [fe68588c :
-esp_intr+0x2dc/0x328 [esp] ] [f0012d54 : handler_irq+0x90/0xdc ]
-[f0010830 : patch_handler_irq+0x8/0x24 ] [f0035038 : __do_softirq
-+0x28/0xc0 ] [f0035110 : do_softirq+0x40/0x50 ] [f0012d90 : handler_irq
-+0xcc/0xdc ] [f0010830 : patch_handler_irq+0x8/0x24 ] [f00146f8 :
-cpu_idle+0xc0/0xfc ] [f02101e4 : _etext+0x6cda4/0x6dbb8 ] [f020f790 :
-_etext+0x6c350/0x6dbb8 ]
+From 8c59ccd3f9906c95a62b3157285093d203881ae4 Mon Sep 17 00:00:00 2001
+From: David S. Miller <davem@sunset.davemloft.net>
+Date: Thu, 22 Feb 2007 04:16:21 -0800
+Subject: [PATCH] [SPARC64]: Synchronize RTC clock via timer just like x86.
 
-This is only triggered when CONFIG_SCSI_MULTI_LUN=y.
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc64/kernel/time.c |   66 ++++++++++++++++++++++++++++++++------------
+ 1 files changed, 48 insertions(+), 18 deletions(-)
 
+diff --git a/arch/sparc64/kernel/time.c b/arch/sparc64/kernel/time.c
+index f84da4f..d457079 100644
+--- a/arch/sparc64/kernel/time.c
++++ b/arch/sparc64/kernel/time.c
+@@ -435,22 +435,56 @@ static unsigned long timer_ticks_per_nsec_quotient __read_mostly;
+ 
+ #define TICK_SIZE (tick_nsec / 1000)
+ 
+-static inline void timer_check_rtc(void)
++#define USEC_AFTER	500000
++#define USEC_BEFORE	500000
++
++static void sync_cmos_clock(unsigned long dummy);
++
++static DEFINE_TIMER(sync_cmos_timer, sync_cmos_clock, 0, 0);
++
++static void sync_cmos_clock(unsigned long dummy)
+ {
+-	/* last time the cmos clock got updated */
+-	static long last_rtc_update;
+-
+-	/* Determine when to update the Mostek clock. */
+-	if (ntp_synced() &&
+-	    xtime.tv_sec > last_rtc_update + 660 &&
+-	    (xtime.tv_nsec / 1000) >= 500000 - ((unsigned) TICK_SIZE) / 2 &&
+-	    (xtime.tv_nsec / 1000) <= 500000 + ((unsigned) TICK_SIZE) / 2) {
+-		if (set_rtc_mmss(xtime.tv_sec) = 0)
+-			last_rtc_update = xtime.tv_sec;
+-		else
+-			last_rtc_update = xtime.tv_sec - 600;
+-			/* do it again in 60 s */
++	struct timeval now, next;
++	int fail = 1;
++
++	/*
++	 * If we have an externally synchronized Linux clock, then update
++	 * CMOS clock accordingly every ~11 minutes. Set_rtc_mmss() has to be
++	 * called as close as possible to 500 ms before the new second starts.
++	 * This code is run on a timer.  If the clock is set, that timer
++	 * may not expire at the correct time.  Thus, we adjust...
++	 */
++	if (!ntp_synced())
++		/*
++		 * Not synced, exit, do not restart a timer (if one is
++		 * running, let it run out).
++		 */
++		return;
++
++	do_gettimeofday(&now);
++	if (now.tv_usec >= USEC_AFTER - ((unsigned) TICK_SIZE) / 2 &&
++	    now.tv_usec <= USEC_BEFORE + ((unsigned) TICK_SIZE) / 2)
++		fail = set_rtc_mmss(now.tv_sec);
++
++	next.tv_usec = USEC_AFTER - now.tv_usec;
++	if (next.tv_usec <= 0)
++		next.tv_usec += USEC_PER_SEC;
++
++	if (!fail)
++		next.tv_sec = 659;
++	else
++		next.tv_sec = 0;
++
++	if (next.tv_usec >= USEC_PER_SEC) {
++		next.tv_sec++;
++		next.tv_usec -= USEC_PER_SEC;
+ 	}
++	mod_timer(&sync_cmos_timer, jiffies + timeval_to_jiffies(&next));
++}
++
++void notify_arch_cmos_timer(void)
++{
++	mod_timer(&sync_cmos_timer, jiffies + 1);
+ }
+ 
+ irqreturn_t timer_interrupt(int irq, void *dev_id)
+@@ -483,8 +517,6 @@ irqreturn_t timer_interrupt(int irq, void *dev_id)
+ 				     : "r" (pstate));
+ 	} while (time_after_eq(ticks, compare));
+ 
+-	timer_check_rtc();
+-
+ 	write_sequnlock(&xtime_lock);
+ 
+ 	return IRQ_HANDLED;
+@@ -497,8 +529,6 @@ void timer_tick_interrupt(struct pt_regs *regs)
+ 
+ 	do_timer(1);
+ 
+-	timer_check_rtc();
+-
+ 	write_sequnlock(&xtime_lock);
+ }
+ #endif
+-- 
+1.5.0
 
