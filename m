@@ -1,7 +1,7 @@
-From: "Alex Deucher" <alexdeucher@gmail.com>
-Date: Wed, 07 Mar 2007 22:48:22 +0000
+From: David Miller <davem@davemloft.net>
+Date: Wed, 07 Mar 2007 22:51:32 +0000
 Subject: Re: Sunfire v880
-Message-Id: <a728f9f90703071448q78714760k5eeb79d4bc871a70@mail.gmail.com>
+Message-Id: <20070307.145132.21926882.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <a728f9f90703061649i63c845a3o593040df1cd0760f@mail.gmail.com>
 In-Reply-To: <a728f9f90703061649i63c845a3o593040df1cd0760f@mail.gmail.com>
@@ -10,52 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 3/7/07, David Miller <davem@davemloft.net> wrote:
-> From: "Alex Deucher" <alexdeucher@gmail.com>
-> Date: Wed, 7 Mar 2007 16:02:29 -0500
->
-> > On 3/7/07, David Miller <davem@davemloft.net> wrote:
-> > > From: "Alex Deucher" <alexdeucher@gmail.com>
-> > > Date: Wed, 7 Mar 2007 15:47:41 -0500
-> > >
-> > > > On 3/7/07, David Miller <davem@davemloft.net> wrote:
-> > > > > From: "Alex Deucher" <alexdeucher@gmail.com>
-> > > > > Date: Wed, 7 Mar 2007 11:55:53 -0500
-> > > > >
-> > > > > > Gentoo seems to be carrying this patch:
-> > > > > > http://marc.theaimsgroup.com/?l=linux-sparc&m0314220200915&w=2
-> > > > > >
-> > > > > > I'm going to try and see if that is indeed what fixes the issue.  If
-> > > > > > so perhaps it should go upstream?
-> > > > >
-> > > > > That code he is changing doesn't even exist in the tree any
-> > > > > longer.
-> > > > >
-> > > >
-> > > > d'oh!  well, It still seems to be in 2.6.17, FWIW.  Any ideas on the
-> > > > newer kernels?
-> > >
-> > > The newer kernels elimintated that code because the strings are computed
-> > > differently.
-> > >
-> > > Anyways, let's start backwards, have you tested 2.6.20 by chance?  It
-> > > should be easy for you to build test kernels out of the vanilla tree.
-> > > This could simply be a bug that has been fixed long since these older
-> > > distribution kernels.
-> > >
-> >
-> > No not yet.  what's the best way to do that?  Can I just point the
-> > netboot to a kernel image?
->
-> You untar the vanilla 2.6.20 kernel source tree, you configure the
-> kernel, you build it, then you install the modules and the kernel
-> image.
->
-> Someone I suppose can help you if you can't figure out how to do
-> this yourself.
->
+From: "Alex Deucher" <alexdeucher@gmail.com>
+Date: Wed, 7 Mar 2007 17:48:22 -0500
 
-I know how to build the kernel, I just wasn't sure if anything special
-was required to create an image that OBP could boot via the network.
+> I know how to build the kernel, I just wasn't sure if anything special
+> was required to create an image that OBP could boot via the network.
 
-Alex
+I thought you had a successful network install using gentoo and
+therefore could build a kernel on the machine itself?
+
+In any event, if you need to netboot, you can do
+"make vmlinux.aout" and the resulting arch/sparc64/boot/vmlinux.aout
+file can be netbooted.
