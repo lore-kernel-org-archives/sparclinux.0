@@ -1,7 +1,7 @@
 From: "Alex Deucher" <alexdeucher@gmail.com>
-Date: Wed, 07 Mar 2007 16:55:53 +0000
+Date: Wed, 07 Mar 2007 17:10:35 +0000
 Subject: Re: Sunfire v880
-Message-Id: <a728f9f90703070855v4f4c486dvcfd5adb571d4a41b@mail.gmail.com>
+Message-Id: <a728f9f90703070910u2ea6f86cp428daf124ded9fa4@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <a728f9f90703061649i63c845a3o593040df1cd0760f@mail.gmail.com>
 In-Reply-To: <a728f9f90703061649i63c845a3o593040df1cd0760f@mail.gmail.com>
@@ -10,15 +10,94 @@ Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Gentoo seems to be carrying this patch:
-http://marc.theaimsgroup.com/?l=3Dlinux-sparc&m=110314220200915&w=3D2
+Here's another log this time from 2.6.17.  seems to get a little further:
 
-I'm going to try and see if that is indeed what fixes the issue.  If
-so perhaps it should go upstream?
+Rebooting with command: boot net:dhcp -p
+Boot device: /pci@9,700000/network@1,1:dhcp  File and args: -p
+|^H/^H-^H\^H|^H/^H-^H\^H|^H/^H-^H\^H|^H/^H-^H\^H|^H/^H-^H\^H|^H/^H-^H\^H|^H=
+/^H-^H\^H|^H/^H-^H\^H|^H/^H-^H\^H|^H/^H-^H\^H|^H/^H-^H\^$
+PROMLIB: Sun IEEE Boot Prom 'OBP 4.18.2 2005/06/30 07:53'
+PROMLIB: Root node compatible:
+Linux version 2.6.17-2-sparc64 (Debian 2.6.17-9) (waldi@debian.org)
+(gcc version 4.1.2 20060901 (prerelease) (Debian 4.1.1-13)) #1 $
+ARCH: SUN4U
+Ethernet address: 00:03:ba:69:0e:32
+Remapping the kernel... done.
+Booting Linux...
+CPU[0]: Caches D[sz(65536):line_sz(32)] I[sz(32768):line_sz(32)]
+E[sz(8388608):line_sz(512)]
+Built 1 zonelists
+Kernel command line: -p
+PID hash table entries: 4096 (order: 12, 32768 bytes)
+Console: colour dummy device 80x25
+Dentry cache hash table entries: 1048576 (order: 10, 8388608 bytes)
+Inode-cache hash table entries: 524288 (order: 9, 4194304 bytes)
+Memory: 8306520k available (2152k kernel code, 720k data, 144k init)
+[fffff80000000000,000000b0ffb0e000]
+Calibrating delay using timer specific routine.. 20.00 BogoMIPS (lpj@005)
+Security Framework v1.0.0 initialized
+SELinux:  Disabled at boot.
+Capability LSM initialized
+Mount-cache hash table entries: 512
+checking if image is initramfs... it is
+Freeing initrd memory: 2796k freed
+NET: Registered protocol family 16
+PCI: Probing for controllers.
+SCHIZO0 PBMB: ver[7:0], portid 8, cregs[40004400000] pregs[40004700000]
+SCHIZO0 PBMB: PCI CFG[7ffee000000] IO[7ffef000000] MEM[7fe00000000]
+SCHIZO0 PBMA: ver[7:0], portid 8, cregs[40004400000] pregs[40004600000]
+SCHIZO0 PBMA: PCI CFG[7ffec000000] IO[7ffed000000] MEM[7fd00000000]
+SCHIZO1 PBMB: ver[7:0], portid 9, cregs[40004c00000] pregs[40004f00000]
+SCHIZO1 PBMB: PCI CFG[7ffea000000] IO[7ffeb000000] MEM[7fc00000000]
+SCHIZO1 PBMA: ver[7:0], portid 9, cregs[40004c00000] pregs[40004e00000]
+SCHIZO1 PBMA: PCI CFG[7ffe8000000] IO[7ffe9000000] MEM[7fb00000000]
+PCI-IRQ: Routing bus[ 0] slot[ 1] to INO[1d]
+PCI-IRQ: Routing bus[ 0] slot[ 1] to INO[1f]
+PCI1(PBMB): Bus running at 33MHz
+PCI1(PBMA): Bus running at 66MHz
+PCI-IRQ: Routing bus[ 0] slot[ 1] to INO[1c]
+PCI-IRQ: Routing bus[ 0] slot[ 5] to INO[18]
+PCI0(PBMB): Bus running at 33MHz
+PCI-IRQ: Routing bus[ 0] slot[ 1] to INO[00]
+PCI-IRQ: Routing bus[ 0] slot[ 2] to INO[04]
+PCI0(PBMA): Bus running at 66MHz
+ebus0: [flashprom] [bbc] [power] [i2c -> (fru) (fru) (fru) (fru) (fru)
+(fru) (fru) (fru) (fru) (fru) (fru) (fru) (fru) (fru) (fru) $
+power: Control reg at 000007fc7e30002e ... not using powerd.
+usbcore: registered new driver usbfs
+usbcore: registered new driver hub
+NET: Registered protocol family 2
+IP route cache hash table entries: 262144 (order: 8, 2097152 bytes)
+TCP established hash table entries: 1048576 (order: 10, 8388608 bytes)
+TCP bind hash table entries: 65536 (order: 6, 524288 bytes)
+TCP: Hash tables configured (established 1048576 bind 65536)
+TCP reno registered
+chmc0: US3 memory controller at 0000040000400000 [ACTIVE]
+chmc1: US3 memory controller at 0000040000c00000 [ACTIVE]
+chmc2: US3 memory controller at 0000040001400000 [ACTIVE]
+ERROR(0): Cheetah error trap taken afsr[0010100000000000]
+afar[0000040001c00000] TL1(0)
+ERROR(0): TPC[424d68] TNPC[424d6c] O7[6e2c30] TSTATE[80001606]
+ERROR(0): M_SYND(0),  E_SYND(0), Privileged
+ERROR(0): Highest priority error (0000100000000000) "Unmapped error
+from system bus"
+ERROR(0): D-cache idx[0] tag[0000000000000000] utag[0000000000000000]
+stag[0000000000000000]
+ERROR(0): D-cache data0[0000000000000000] data1[0000000000000000]
+data2[0000000000000000] data3[0000000000000000]
+ERROR(0): I-cache idx[0] tag[0000000000000000] utag[0000000000000000]
+stag[0000000000000000] u[0000000000000000] l[0000000000000000]
+ERROR(0): I-cache INSN0[0000000000000000] INSN1[0000000000000000]
+INSN2[0000000000000000] INSN3[0000000000000000]
+ERROR(0): I-cache INSN4[0000000000000000] INSN5[0000000000000000]
+INSN6[0000000000000000] INSN7[0000000000000000]
+ERROR(0): E-cache idx[0] tag[0000000000000000]
+ERROR(0): E-cache data0[0000000000000000] data1[0000000000000000]
+data2[0000000000000000] data3[0000000000000000]
+Kernel panic - not syncing: Irrecoverable deferred error trap.
 
-Thanks,
+ <0>Press Stop-A (L1-A) to return to the boot prom
 
-Alex
 
 On 3/7/07, Alex Deucher <alexdeucher@gmail.com> wrote:
 > On 3/7/07, Alex Deucher <alexdeucher@gmail.com> wrote:
@@ -60,334 +139,67 @@ RC).
 > > Alex
 > >
 >
-> here's the kernel output from the working gentoo kernel:
+> Here's a more complete log:
 >
-> boot cdrom
-> Boot device: /pci@8,700000/scsi@1/disk@6,0:f  File and args:
-> SILO Version 1.4.13
-> \^H
+> boot net:dhcp =96p with
+> http://people.debian.org/~stappers/d-i/images/daily/sparc64/netboot/2.6/
 >
-> ----------------------------------------------------
-> Welcome to the Gentoo/Linux SPARC64 InstallCD 2006.1
-> ----------------------------------------------------
->
-> boot:
-> You are running the second stage SILO loader.  From here you can boot a
-> ramdisk or an already-installed Linux partition.
->
-> Several defaults have been defined that will make things easier.
-> The target "2616" will start a 2.6.16-series kernel.
-> The target "2617" will start a 2.6.17-series kernel.
->
-> To boot an existing Linux installation from the CDROM, boot with the comm=
-and
-> "KERNEL root=3D/dev/sdaX" where sdaX is the partition where your root
-> filesystem is. Replace "KERNEL" with the kernel entry of your choice abov=
-e.
-> If in doubt you can consult our hardware compatibility list for stability
-> notes at http://www.gentoo.org/proj/en/base/sparc/sunhw.xml
->
-> For video mode help, type "video" at the boot: prompt.
-> For help on miscellaneous parameters type "parameters" at the boot: promp=
-t.
-> Type "config" at the boot: prompt to see the SILO config file used by thi=
-s CD.
-> boot: 2617
-> Allocated 8 Megs of memory at 0x40000000 for kernel
+> net boot^H ^H^H ^H^H ^H^H ^H^H ^H^H ^H^H ^H^H ^Hboot net:h^H ^Hdhcp -p
+> Boot device: /pci@9,700000/network@1,1:dhcp  File and args: -p
 > |^H/^H-^H\^H|^H/^H-^H\^H|^H/^H-^H\^H|^H/^H-^H\^H|^H/^H-^H\^H|^H/^H-^H\^H|=
 ^H/^H-^H\^H|^H/^H-^H\^H|^H/^H-^H\^H|^H/^H-^H\^H|^H/^H-^H\^$
-> Loading initial ramdisk (645016 bytes at 0xB0FF800000 phys, 0x40C00000 vi=
-rt)...
-> \^H|^H/^H-^H\^H|^H/^H-^H\^H|^H/^H-^H\^H|^H/^H-^H\^H|^H/^H-^H\^H|^H/^H-^H\=
-^H|^H/^H-^H\^H|^H/^H-^H\^H|^H/^H-^H\^H|^H/^H-^H\^H|^H/^H-^$
-> Remapping the kernel... done.
-> bootmem_init: Scan pavail, choose_bootmap_pfn:
-> kern[b0ff000000:b0ff4d6000] avoid[b0ff800000:b0ff89e000]
-> choose_bootmap_pfn: Using 5000000 [a000000000]
-> init_bootmem(min[5000000], bootmap[5000000], max[587fd54])
-> free_bootmem(pavail:0): base[a000000000] size[100000000]
-> free_bootmem(pavail:1): base[b000000000] size[feffe000]
-> free_bootmem(pavail:2): base[b0ff000000] size[a8a000]
-> free_bootmem(pavail:3): base[b0ffa8e000] size[1a000]
-> reserve_bootmem(initrd): base[b0ff800000] size[b0ff89d798]
-> reserve_bootmem(kernel): base[b0ff000000] size[4d5ee8]
-> reserve_bootmem(bootmap): base[a000000000] size[10ffb0]
-> memory_present(0, 5000000, 5080000)
-> memory_present(0, 5800000, 587f7ff)
-> memory_present(0, 587f800, 587fd45)
-> memory_present(0, 587fd47, 587fd54)
-> Booting Linux...
-> mem_init: Calling free_all_bootmem().
->  ^H
->            ^H ^H ^H ^H ^H                                   $
+> PROMLIB: Sun IEEE Boot Prom 'OBP 4.18.2 2005/06/30 07:53'
 > PROMLIB: Root node compatible:
-> Linux version 2.6.17-gentoo-r5 (root@bender) (gcc version 3.4.6
-> (Gentoo Linux 3.4.6)) #1 SMP Fri Aug 25 09:10:34 UTC 2006
+> Linux version 2.6.18-4-sparc64 (Debian 2.6.18.dfsg.1-11)
+> (waldi@debian.org) (gcc version 4.1.2 20061115 (prerelease) (Debian
+> 4.1.1-$
 > ARCH: SUN4U
 > Ethernet address: 00:03:ba:69:0e:32
-> Built 1 zonelists
-> Kernel command line: root=3D/dev/ram0 init=3D/linuxrc looptype=3Dsquashfs
-> loop=3D/image.squashfs cdroot
-> PID hash table entries: 4096 (order: 12, 32768 bytes)
-> Console: colour dummy device 80x25
-> Dentry cache hash table entries: 1048576 (order: 10, 8388608 bytes)
-> Inode-cache hash table entries: 524288 (order: 9, 4194304 bytes)
-> Memory: 8306040k available (2536k kernel code, 1584k data, 176k init)
-> [fffff80000000000,000000b0ffaa8000]
-> Calibrating delay using timer specific routine.. 20.00 BogoMIPS (lpj@008)
-> Mount-cache hash table entries: 512
-> CPU[3]: Caches D[sz(65536):line_sz(32)] I[sz(32768):line_sz(32)]
-> E[sz(8388608):line_sz(512)]
-> Using max_cache_size of 8MB
-> Calibrating delay using timer specific routine.. 20.00 BogoMIPS (lpj@001)
+> Remapping the kernel... done.
+> PROM: Built device tree with 123317 bytes of memory.
+> Booting Linux...
 > CPU[0]: Caches D[sz(65536):line_sz(32)] I[sz(32768):line_sz(32)]
 > E[sz(8388608):line_sz(512)]
-> CPU 0: synchronized TICK with master CPU (last diff -1 cycles,maxerr 11 c=
-ycles)
-> Calibrating delay using timer specific routine.. 20.00 BogoMIPS (lpj@001)
-> CPU[1]: Caches D[sz(65536):line_sz(32)] I[sz(32768):line_sz(32)]
-> E[sz(8388608):line_sz(512)]
-> CPU 1: synchronized TICK with master CPU (last diff 0 cycles,maxerr 10 cy=
-cles)
-> Calibrating delay using timer specific routine.. 20.00 BogoMIPS (lpj@001)
-> CPU[2]: Caches D[sz(65536):line_sz(32)] I[sz(32768):line_sz(32)]
-> E[sz(8388608):line_sz(512)]
-> CPU 2: synchronized TICK with master CPU (last diff -1 cycles,maxerr 10 c=
-ycles)
-> Brought up 4 CPUs
-> Total of 4 processors activated (80.00 BogoMIPS).
-> migration_costd942
-> checking if image is initramfs... it is
-> Freeing initrd memory: 629k freed
-> NET: Registered protocol family 16
-> PCI: Probing for controllers.
-> SCHIZO0 PBMB: ver[7:0], portid 8, cregs[40004400000] pregs[40004700000]
-> SCHIZO0 PBMB: PCI CFG[7ffee000000] IO[7ffef000000] MEM[7fe00000000]
-> SCHIZO0 PBMA: ver[7:0], portid 8, cregs[40004400000] pregs[40004600000]
-> SCHIZO0 PBMA: PCI CFG[7ffec000000] IO[7ffed000000] MEM[7fd00000000]
-> SCHIZO1 PBMB: ver[7:0], portid 9, cregs[40004c00000] pregs[40004f00000]
-> SCHIZO1 PBMB: PCI CFG[7ffea000000] IO[7ffeb000000] MEM[7fc00000000]
-> SCHIZO1 PBMA: ver[7:0], portid 9, cregs[40004c00000] pregs[40004e00000]
-> SCHIZO1 PBMA: PCI CFG[7ffe8000000] IO[7ffe9000000] MEM[7fb00000000]
-> PCI-IRQ: Routing bus[ 0] slot[ 1] to INO[1d]
-> PCI-IRQ: Routing bus[ 0] slot[ 1] to INO[1f]
-> PCI1(PBMB): Bus running at 33MHz
-> PCI1(PBMA): Bus running at 66MHz
-> PCI-IRQ: Routing bus[ 0] slot[ 1] to INO[1c]
-> PCI-IRQ: Routing bus[ 0] slot[ 5] to INO[18]
-> PCI0(PBMB): Bus running at 33MHz
-> PCI-IRQ: Routing bus[ 0] slot[ 1] to INO[00]
-> PCI-IRQ: Routing bus[ 0] slot[ 2] to INO[04]
-> PCI0(PBMA): Bus running at 66MHz
-> ebus0: [flashprom] [bbc] [power] [i2c -> (fru) (fru) (fru) (fru) (fru)
-> (fru) (fru) (fru) (fru) (fru) (fru) (fru) (fru) (fru) (fru) $
-> power: Control reg at 000007fc7e30002e ... not using powerd.
-> SCSI subsystem initialized
-> NET: Registered protocol family 2
-> IP route cache hash table entries: 262144 (order: 8, 2097152 bytes)
-> TCP established hash table entries: 524288 (order: 10, 8388608 bytes)
-> TCP bind hash table entries: 65536 (order: 7, 1048576 bytes)
-> TCP: Hash tables configured (established 524288 bind 65536)
-> TCP reno registered
-> chmc0: US3 memory controller at 0000040000400000 [ACTIVE]
-> chmc1: US3 memory controller at 0000040000c00000 [ACTIVE]
-> chmc2: US3 memory controller at 0000040001400000 [ACTIVE]
-> chmc3: US3 memory controller at 0000040001c00000 [ACTIVE]
-> Total HugeTLB memory allocated, 0
-> squashfs: version 3.0 (2006/03/15) Phillip Lougher
-> Initializing Cryptographic API
-> io scheduler noop registered
-> io scheduler anticipatory registered (default)
-> io scheduler deadline registered
-> io scheduler cfq registered
-> Console: switching to mono PROM 80x34
-> Real Time Clock Driver v1.12ac
-> ttyS0 at MMIO 0x7fc7e400000 (irq =3D 8675776) is a SAB82532 V3.2
-> Console: ttyS0 (SAB82532)
-> ttyS1 at MMIO 0x7fc7e400040 (irq =3D 8675776) is a SAB82532 V3.2
-> mice: PS/2 mouse device common for all mice
-> RAMDISK driver initialized: 16 RAM disks of 4096K size 1024 blocksize
-> loop: loaded (max 8 devices)
-> Uniform Multi-Platform E-IDE driver Revision: 7.00alpha2
-> ide: Assuming 33MHz system bus speed for PIO modes; override with idebus=
-=3Dxx
-> QLogic Fibre Channel HBA Driver
-> qla2200 0000:00:02.0: Found an ISP2200, irq 8672768, iobase 0x000007fd004=
-00000
-> qla2200 0000:00:02.0: Configuring PCI space...
-> qla2200 0000:00:02.0: Configure NVRAM parameters...
-> qla2200 0000:00:02.0: Inconsistent NVRAM detected: checksum=3D0x0 id=3D=FF
-> version=3D0xff.
-> qla2200 0000:00:02.0: Falling back to functioning (yet invalid --
-> WWPN) defaults.
-> qla2200 0000:00:02.0: Verifying loaded RISC code...
-> qla2200 0000:00:02.0: LIP reset occured (f7ef).
-> qla2200 0000:00:02.0: Waiting for LIP to complete...
-> qla2200 0000:00:02.0: LIP occured (f7ef).
-> qla2200 0000:00:02.0: LOOP UP detected (1 Gbps).
-> qla2200 0000:00:02.0: Topology - (Loop), Host Loop address 0x7
-> scsi0 : qla2xxx
-> qla2200 0000:00:02.0:
->  QLogic Fibre Channel HBA Driver: 8.01.04-k-fw
->   QLogic QLA22xx -
->   ISP2200: PCI (66 MHz) @ 0000:00:02.0 hdma-, host#=3D0, fw=3D2.02.08 TP
-> sym0: <875> rev 0x4 at pci 0001:00:01.0 irq 8,21c
->   Vendor: FUJITSU   Model: MAP3735F SUN72G   Rev: 1201
->   Type:   Direct-Access                      ANSI SCSI revision: 04
->   Vendor: FUJITSU   Model: MAP3735F SUN72G   Rev: 1201
->   Type:   Direct-Access     sym0: No NVRAM, ID 7, Fast-20, SE, parity
-> checking
-> sym0: SCSI BUS has been reset.
-> scsi1 : sym-2.2.3
->                  ANSI SCSI revision: 04
->   Vendor: FUJITSU   Model: MAP3735F SUN72G   Rev: 1201
->   Type:   Direct-Access                      ANSI SCSI revision: 04
->   Vendor: FUJITSU   Model: MAP3735F SUN72G   Rev: 1201
->   Type:   Direct-Access                      ANSI SCSI revision: 04
->   Vendor: FUJITSU   Model: MAP3735F SUN72G   Rev: 1201
->   Type:   Direct-Access                      ANSI SCSI revision: 04
->   Vendor: FUJITSU   Model: MAP3735F SUN72G   Rev: 1201
->   Type:   Direct-Access                      ANSI SCSI revision: 04
->   Vendor: SUNW      Model: SUNWGS INT FCBPL  Rev: 922A
->   Type:   Enclosure                          ANSI SCSI revision: 03
->   Vendor: SEAGATE   Model: ST314680FSUN146G  Rev: 0307
->   Type:   Direct-Access                      ANSI SCSI revision: 03
->   Vendor: SEAGATE   Model: ST314680FSUN146G  Rev: 0307
->   Type:   Direct-Access                      ANSI SCSI revision: 03
->   Vendor: SEAGATE   Model: ST314680FSUN146G  Rev: 0307
->   Type:   Direct-Access                      ANSI SCSI revision: 03
->   Vendor: SEAGATE   Model: ST314680FSUN146G  Rev: 0307
->   Type:   Direct-Access                      ANSI SCSI revision: 03
->   Vendor: SEAGATE   Model: ST314680FSUN146G  Rev: 0307
->   Type:   Direct-Access                      ANSI SCSI revision: 03
->   Vendor: SEAGATE   Model: ST314680FSUN146G  Rev: 0307
->   Type:   Direct-Access                      ANSI SCSI revision: 03
->   Vendor: TOSHIBA   Model: DVD-ROM SD-M1711  Rev: 1005
->   Type:   CD-ROM                             ANSI SCSI revision: 02
->  target1:0:6: Beginning Domain Validation
->  target1:0:6: asynchronous
->  target1:0:6: FAST-20 SCSI 20.0 MB/s ST (50 ns, offset 16)
->  target1:0:6: Domain Validation skipping write tests
->  target1:0:6: Ending Domain Validation
-> megasas: 00.00.02.04 Fri Feb 03 14:31:44 PST 2006
-> SCSI device sda: 143374738 512-byte hdwr sectors (73408 MB)
-> sda: Write Protect is off
-> SCSI device sda: drive cache: write through
-> SCSI device sda: 143374738 512-byte hdwr sectors (73408 MB)
-> sda: Write Protect is off
-> SCSI device sda: drive cache: write through
->  sda: sda1 sda2 sda3 sda8
-> sd 0:0:0:0: Attached scsi disk sda
-> SCSI device sdb: 143374738 512-byte hdwr sectors (73408 MB)
-> sdb: Write Protect is off
-> SCSI device sdb: drive cache: write through
-> SCSI device sdb: 143374738 512-byte hdwr sectors (73408 MB)
-> sdb: Write Protect is off
-> SCSI device sdb: drive cache: write through
->  sdb: sdb1 sdb2 sdb3 sdb7
-> sd 0:0:1:0: Attached scsi disk sdb
-> SCSI device sdc: 143374738 512-byte hdwr sectors (73408 MB)
-> sdc: Write Protect is off
-> SCSI device sdc: drive cache: write through
-> SCSI device sdc: 143374738 512-byte hdwr sectors (73408 MB)
-> sdc: Write Protect is off
-> SCSI device sdc: drive cache: write through
->  sdc: sdc1 sdc2 sdc3 sdc7
-> sd 0:0:2:0: Attached scsi disk sdc
-> SCSI device sdd: 143374738 512-byte hdwr sectors (73408 MB)
-> sdd: Write Protect is off
-> SCSI device sdd: drive cache: write through
-> SCSI device sdd: 143374738 512-byte hdwr sectors (73408 MB)
-> sdd: Write Protect is off
-> SCSI device sdd: drive cache: write through
->  sdd: sdd1 sdd2 sdd3 sdd7
-> sd 0:0:3:0: Attached scsi disk sdd
-> SCSI device sde: 143374738 512-byte hdwr sectors (73408 MB)
-> sde: Write Protect is off
-> SCSI device sde: drive cache: write through
-> SCSI device sde: 143374738 512-byte hdwr sectors (73408 MB)
-> sde: Write Protect is off
-> SCSI device sde: drive cache: write through
->  sde: sde1 sde2 sde3 sde7
-> sd 0:0:4:0: Attached scsi disk sde
-> SCSI device sdf: 143374738 512-byte hdwr sectors (73408 MB)
-> sdf: Write Protect is off
-> SCSI device sdf: drive cache: write through
-> SCSI device sdf: 143374738 512-byte hdwr sectors (73408 MB)
-> sdf: Write Protect is off
-> SCSI device sdf: drive cache: write through
->  sdf: sdf1 sdf2 sdf3 sdf7
-> sd 0:0:5:0: Attached scsi disk sdf
-> SCSI device sdg: 286739329 512-byte hdwr sectors (146811 MB)
-> sdg: Write Protect is off
-> SCSI device sdg: drive cache: write through w/ FUA
-> SCSI device sdg: 286739329 512-byte hdwr sectors (146811 MB)
-> sdg: Write Protect is off
-> SCSI device sdg: drive cache: write through w/ FUA
->  sdg: sdg1 sdg2 sdg3 sdg7
-> sd 0:0:7:0: Attached scsi disk sdg
-> SCSI device sdh: 286739329 512-byte hdwr sectors (146811 MB)
-> sdh: Write Protect is off
-> SCSI device sdh: drive cache: write through w/ FUA
-> SCSI device sdh: 286739329 512-byte hdwr sectors (146811 MB)
-> sdh: Write Protect is off
-> SCSI device sdh: drive cache: write through w/ FUA
->  sdh: sdh1 sdh2 sdh3 sdh7
-> sd 0:0:8:0: Attached scsi disk sdh
-> SCSI device sdi: 286739329 512-byte hdwr sectors (146811 MB)
-> sdi: Write Protect is off
-> SCSI device sdi: drive cache: write through w/ FUA
-> SCSI device sdi: 286739329 512-byte hdwr sectors (146811 MB)
-> sdi: Write Protect is off
-> SCSI device sdi: drive cache: write through w/ FUA
->  sdi: sdi1 sdi2 sdi3 sdi7
-> sd 0:0:9:0: Attached scsi disk sdi
-> SCSI device sdj: 286739329 512-byte hdwr sectors (146811 MB)
-> sdj: Write Protect is off
-> SCSI device sdj: drive cache: write through w/ FUA
-> SCSI device sdj: 286739329 512-byte hdwr sectors (146811 MB)
-> sdj: Write Protect is off
-> SCSI device sdj: drive cache: write through w/ FUA
->  sdj: sdj1 sdj2 sdj3 sdj7
-> sd 0:0:10:0: Attached scsi disk sdj
-> SCSI device sdk: 286739329 512-byte hdwr sectors (146811 MB)
-> sdk: Write Protect is off
-> SCSI device sdk: drive cache: write through w/ FUA
-> SCSI device sdk: 286739329 512-byte hdwr sectors (146811 MB)
-> sdk: Write Protect is off
-> SCSI device sdk: drive cache: write through w/ FUA
->  sdk: sdk1 sdk2 sdk3 sdk7
-> sd 0:0:11:0: Attached scsi disk sdk
-> SCSI device sdl: 286739329 512-byte hdwr sectors (146811 MB)
-> sdl: Write Protect is off
-> SCSI device sdl: drive cache: write through w/ FUA
-> SCSI device sdl: 286739329 512-byte hdwr sectors (146811 MB)
-> sdl: Write Protect is off
-> SCSI device sdl: drive cache: write through w/ FUA
->  sdl: sdl1 sdl2 sdl3 sdl7
-> sd 0:0:12:0: Attached scsi disk sdl
-> sr0: scsi3-mmc drive: 48x/48x cd/rw xa/form2 cdda tray
-> Uniform CD-ROM driver Revision: 3.20
-> Fusion MPT base driver 3.03.09
-> Copyright (c) 1999-2005 LSI Logic Corporation
-> Fusion MPT SPI Host driver 3.03.09
-> Fusion MPT FC Host driver 3.03.09
-> Fusion MPT SAS Host driver 3.03.09
-> Fusion MPT misc device (ioctl) driver 3.03.09
-> mptctl: Registered with Fusion MPT base driver
-> mptctl: /dev/mptctl @ (major,minor=10,220)
-> TCP bic registered
-> NET: Registered protocol family 1
-> NET: Registered protocol family 17=FE>> Loading modules
-> >> Activating mdev
-> >> Making tmpfs for /newroot
-> >> Attempting to mount CD:- /dev/sr0
-> >> CD medium found on /dev/sr0
-> >> Determining root device...
-> >> Determining looptype ...
-> >> Mounting squashfs filesystem
-> >> Copying read-write image contents to tmpfs
-> >> No cdupdate.sh script found, skipping...
-> >> Booting (initramfs)...
-> INIT=FAW^=D6=CD=A5=BD=B9^=C12.86 booting
+> Built 1 zonelists.  Total pages: 1046894
+> Kernel command line: -p
+> Kernel unaligned access at TPC[43abd8] do_sparc64_fault+0x18/0x5a8
+> Kernel unaligned access at TPC[43abd8] do_sparc64_fault+0x18/0x5a8
+> Kernel unaligned access at TPC[43abd8] do_sparc64_fault+0x18/0x5a8
+> Kernel unaligned access at TPC[43abd8] do_sparc64_fault+0x18/0x5a8
+> Kernel unaligned access at TPC[43abd8] do_sparc64_fault+0x18/0x5a8
+> Unable to handle kernel paging request at virtual address 66727540302c6000
+> spitfire_data_access_exception: SFSR[0000000000800809]
+> SFAR[8143e008835182b0], going.
+>               \|/ ____ \|/
+>               "@'/ .. \`@"
+>               /_| \__/ |_\
+>                  \__U_/
+> ^A(16777216): Dax [#1]
+> TSTATE: 0000004400f09603 TPC: 000000000043aad4 TNPC: 000000000043aad8
+> Y: 00000000    Not tainted
+> TPC: <unhandled_fault+0x4c/0xe0>
+> g0: 0000000000000000 g1: 8143e00883518000 g2: 00000000006899e0 g3:
+> 0000000000000419
+> g4: 0000000000404c6c g5: 0000000000000000 g6: 0000000000681e40 g7:
+> 0000000000000000
+> o0: 000000000000004e o1: 66727540302c6000 o2: 66727540302c6163 o3:
+> 0000000000400000
+> o4: 0000000000000002 o5: 0000000000000000 sp: 0000000000681321 ret_pc:
+> 000000000043aac0
+> RPC: <unhandled_fault+0x38/0xe0>
+> l0: 66727540302c6000 l1: 0000000000684350 l2: 0000000000404c6c l3:
+> 0000000000000010
+> l4: 0000000000000002 l5: 66727540302c6000 l6: 0000000000681e40 l7:
+> 0000000080009003
+> i0: 66727540302c6000 i1: 0000000000404c6c i2: 0000000000681cc0 i3:
+> 00000000c48aa000
+> i4: 0000000000000002 i5: 0000000000000080 i6: 0000000000681401 i7:
+> 0000000000404c74
+> I7: <sparc64_realfault_common+0x18/0x20>
+> Instruction DUMP: c25e60d0  22c04002  c25e60d8 <c45862b0> 03000fc7
+> 11001909  821063ff  90122240  400036d8
+> BUG: warning at kernel/exit.c:854/do_exit()
+> Call Trace:
+> Kernel panic - not syncing: Aiee, killing interrupt handler!
+>  <0>Press Stop-A (L1-A) to return to the boot prom
 >
