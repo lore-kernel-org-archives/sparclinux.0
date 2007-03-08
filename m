@@ -1,7 +1,7 @@
-From: "Alex Deucher" <alexdeucher@gmail.com>
-Date: Thu, 08 Mar 2007 21:58:12 +0000
+From: David Miller <davem@davemloft.net>
+Date: Thu, 08 Mar 2007 22:03:57 +0000
 Subject: Re: Sunfire v880
-Message-Id: <a728f9f90703081358k63ef26a8w99c01ac4ee49fe9b@mail.gmail.com>
+Message-Id: <20070308.140357.59657265.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <a728f9f90703061649i63c845a3o593040df1cd0760f@mail.gmail.com>
 In-Reply-To: <a728f9f90703061649i63c845a3o593040df1cd0760f@mail.gmail.com>
@@ -10,46 +10,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 3/8/07, David Miller <davem@davemloft.net> wrote:
-> From: "Alex Deucher" <alexdeucher@gmail.com>
-> Date: Thu, 8 Mar 2007 09:18:43 -0500
->
-> > On 3/7/07, Alex Deucher <alexdeucher@gmail.com> wrote:
-> > > Gentoo seems to be carrying this patch:
-> > > http://marc.theaimsgroup.com/?l=linux-sparc&m0314220200915&w=2
-> > >
-> > > I'm going to try and see if that is indeed what fixes the issue.  If
-> > > so perhaps it should go upstream?
-> > >
-> >
-> > FWIW, this patch got 2.6.17 vanilla booting for us.  I hope that
-> > helping in tracking things down in the newer kernels.
->
-> It doesn't at all.
->
-> That patch modifies prom_gettree() which won't be called until
-> long after the machine boots up and /proc/openprom is mounted.
->
-> We're getting nowhere, we have patches to code that doesn't run
-> during bootup fixing the bootup, printk() statements that don't
-> actually print out anything, etc.
->
-> This is turning in a waste of time and I'm only going to be able to
-> fix this with physical access to an v880 machine that exhibits the
-> problem instead of going back and forth like this every day.
->
+From: "Alex Deucher" <alexdeucher@gmail.com>
+Date: Thu, 8 Mar 2007 16:58:12 -0500
 
-Thanks for all your help with this.  I wish I could send you a v880.
-If there's anything else you or anyone else would like me to try let
-me know.  One last thing, I noticed this message when I create the
-aout version of the kernel:
+> Thanks for all your help with this.  I wish I could send you a v880.
+> If there's anything else you or anyone else would like me to try let
+> me know.  One last thing, I noticed this message when I create the
+> aout version of the kernel:
+> 
+> PT 0 Entry: Loadable to 0x400000[0x39e918] from 0x0[0x32b788] align 0x100000
+> PT 1 Entry: unknown
+> 
+> perhaps the additional size added by that patch changes something that
+> makes it happy when loading?
 
-PT 0 Entry: Loadable to 0x400000[0x39e918] from 0x0[0x32b788] align 0x100000
-PT 1 Entry: unknown
+The only working theory I can come up with is that yes, indeed,
+it makes the layout of the kernel different and for some reason
+that fixes the bootup failure.
 
-perhaps the additional size added by that patch changes something that
-makes it happy when loading?
+> If I figure out anything new I'll let you know.
 
-If I figure out anything new I'll let you know.
-
-Alex
+Thanks.
