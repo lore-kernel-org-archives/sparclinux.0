@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 08 Mar 2007 21:40:22 +0000
+Date: Thu, 08 Mar 2007 21:46:02 +0000
 Subject: Re: Sunfire v880
-Message-Id: <20070308.134022.30182293.davem@davemloft.net>
+Message-Id: <20070308.134602.55509213.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <a728f9f90703061649i63c845a3o593040df1cd0760f@mail.gmail.com>
 In-Reply-To: <a728f9f90703061649i63c845a3o593040df1cd0760f@mail.gmail.com>
@@ -11,32 +11,28 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 From: "Alex Deucher" <alexdeucher@gmail.com>
-Date: Thu, 8 Mar 2007 09:26:41 -0500
+Date: Thu, 8 Mar 2007 09:18:43 -0500
 
-> On 3/7/07, David Miller <davem@davemloft.net> wrote:
-> > From: "Alex Deucher" <alexdeucher@gmail.com>
-> > Date: Wed, 7 Mar 2007 17:55:31 -0500
+> On 3/7/07, Alex Deucher <alexdeucher@gmail.com> wrote:
+> > Gentoo seems to be carrying this patch:
+> > http://marc.theaimsgroup.com/?l=linux-sparc&m0314220200915&w=2
 > >
-> > >  I built 2.6.20.1 and tried to netboot it.  I got the same thing
-> > > "booting linux..." then nothing.  adding -p did not provide any
-> > > additional output.
-> >
-> > This sucks, I wish I had one of these machines so I could
-> > keep them from breaking as these kinds of bugs are nearly
-> > impossible to fix remotely in a sane manner.
-> >
-> > Hohum... let's try to see where it dies, add this patch and
-> > reboot with "-p" again, thanks.  BTW, you also could certainly
-> > add tracing printk() statements like this too in order to help
-> > narrow down where it dies.  This is just debugging monkey work.
+> > I'm going to try and see if that is indeed what fixes the issue.  If
+> > so perhaps it should go upstream?
 > >
 > 
-> Your patch doesn't produce any additional output (even with -p) on
-> 2.6.20.1.  All I get is "booting linux..." and that's it.
+> FWIW, this patch got 2.6.17 vanilla booting for us.  I hope that
+> helping in tracking things down in the newer kernels.
 
-Weird, that doesn't make any sense.  Please add a new printk() right
-before the "booting linux..." message and see if that gets
-printed out properly.
+It doesn't at all.
 
-If it doesn't, change all the added debugging printk()'s into
-prom_printf() calls.
+That patch modifies prom_gettree() which won't be called until
+long after the machine boots up and /proc/openprom is mounted.
+
+We're getting nowhere, we have patches to code that doesn't run
+during bootup fixing the bootup, printk() statements that don't
+actually print out anything, etc.
+
+This is turning in a waste of time and I'm only going to be able to
+fix this with physical access to an v880 machine that exhibits the
+problem instead of going back and forth like this every day.
