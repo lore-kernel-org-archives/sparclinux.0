@@ -1,33 +1,63 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 27 Mar 2007 08:14:49 +0000
-Subject: Re: [PATCH 2.6.21-rc5] sparc64: gcc-4.2.0 20070317 -Werror failure
-Message-Id: <20070327.011449.116354981.davem@davemloft.net>
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Date: Fri, 09 Mar 2007 02:38:14 +0000
+Subject: [PATCH] Fix atomicity of TIF update in flush_thread() for sparc64
+Message-Id: <20070309023814.GA9462@Krystal>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200703270742.l2R7gBGv016635@harpo.it.uu.se>
-In-Reply-To: <200703270742.l2R7gBGv016635@harpo.it.uu.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: akpm@linux-foundation.org, mbligh@google.com, linux-kernel@vger.kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org
 
-From: Mikael Pettersson <mikpe@it.uu.se>
-Date: Tue, 27 Mar 2007 09:42:11 +0200 (MEST)
+Fix atomicity of TIF update in flush_thread() for x86_64
 
-> Compiling 2.6.21-rc5 with gcc-4.2.0 20070317 (prerelease)
-> for sparc64 fails as follows:
-> 
->   gcc -Wp,-MD,arch/sparc64/kernel/.time.o.d  -nostdinc -isystem /home/mikpe/pkgs/linux-sparc64/gcc-4.2.0/lib/gcc/sparc64-unknown-linux-gnu/4.2.0/include -D__KERNEL__ -Iinclude  -include include/linux/autoconf.h -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Os -m64 -pipe -mno-fpu -mcpu=ultrasparc -mcmodel=medlow -ffixed-g4 -ffixed-g5 -fcall-used-g7 -Wno-sign-compare -Wa,--undeclared-regs -fomit-frame-pointer  -fno-stack-protector -Wdeclaration-after-statement -Wno-pointer-sign -Werror   -D"KBUILD_STR(s)=#s" -D"KBUILD_BASENAME=KBUILD_STR(time)"  -D"KBUILD_MODNAME=KBUILD_STR(time)" -c -o arch/sparc64/kernel/time.o arch/sparc64/kernel/time.c
-> cc1: warnings being treated as errors
-> arch/sparc64/kernel/time.c: In function 'kick_start_clock':
-> arch/sparc64/kernel/time.c:559: warning: overflow in implicit constant conversion
-> make[1]: *** [arch/sparc64/kernel/time.o] Error 1
-> make: *** [arch/sparc64/kernel] Error 2
-> 
-> gcc gets unhappy when the MSTK_SET macro's u8 __val variable
-> is updated with &= ~0xff (MSTK_YEAR_MASK). Making the constant
-> unsigned fixes the problem.
-> 
-> Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
+Race :
 
-Patch applied, thanks a lot.  I took care of the 32-bit sparc
-header file which had the same problem.
+parent process executing :
+sys_ptrace()
+ (lock_kernel())
+ (ptrace_get_task_struct(pid))
+ arch_ptrace()
+   ptrace_detach()
+     ptrace_disable(child);
+       clear_singlestep(child);
+         clear_tsk_thread_flag(child, TIF_SINGLESTEP);
+         (which clears the TIF_SINGLESTEP flag atomically from a different
+	  process)
+ (put_task_struct(child))
+ (unlock_kernel())
+
+And at the same time, in the child process :
+sys_execve()
+ do_execve()
+   search_binary_handler()
+     load_elf_binary()
+       flush_old_exec()
+         flush_thread()
+           doing a non-atomic thread flag update 
+
+It applies on 2.6.20.
+
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+
+--- a/arch/sparc64/kernel/process.c
++++ b/arch/sparc64/kernel/process.c
+@@ -413,8 +413,13 @@ void flush_thread(void)
+ 	struct thread_info *t = current_thread_info();
+ 	struct mm_struct *mm;
+ 
+-	if (t->flags & _TIF_ABI_PENDING)
+-		t->flags ^= (_TIF_ABI_PENDING | _TIF_32BIT);
++	if (test_tsk_thread_flag(tsk, TIF_ABI_PENDING)) {
++		clear_tsk_thread_flag(tsk, TIF_ABI_PENDING);
++		if (test_tsk_thread_flag(tsk, TIF_32BIT))
++			clear_tsk_thread_flag(tsk, TIF_32BIT);
++		else
++			set_tsk_thread_flag(tsk, TIF_32BIT);
++	}
+ 
+ 	mm = t->task->mm;
+ 	if (mm)
+-- 
+Mathieu Desnoyers
+Computer Engineering Ph.D. Student, Ecole Polytechnique de Montreal
+OpenPGP key fingerprint: 8CD5 52C3 8E3C 4140 715F  BA06 3F25 A8FE 3BAE 9A68
