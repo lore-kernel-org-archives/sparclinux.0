@@ -1,7 +1,7 @@
 From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
-Date: Fri, 09 Mar 2007 21:53:46 +0000
+Date: Fri, 09 Mar 2007 22:38:39 +0000
 Subject: Re: Dead lock with 2.6.20
-Message-Id: <45F1D76A.1070307@systella.fr>
+Message-Id: <45F1E1EF.2080009@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
 References: <45F1C172.60103@systella.fr>
 In-Reply-To: <45F1C172.60103@systella.fr>
@@ -11,6 +11,42 @@ Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
 Daniel Smolik a =E9crit :
+> BERTRAND Jo=EBl napsal(a):
+>> Daniel Smolik a =E9crit :
+>>
+>>> BERTRAND Jo=EBl napsal(a):
+>>>
+>>>>     Hello,
+>>>>
+>>>>     I have seen a very strange deadlock on a UltraSPARC 2=20
+>>>> workstation (2 UltraSPARC-II/296 MHz, 2048 MB, framebuffer Creator3D=20
+>>>> on UPA slot, 2 73 GB SCA disks that form a raid1 array).
+>>>>
+>>>>     Hardware sounds good and I have tested it with SUNvts during two=20
+>>>> days without any failure.
+>>>>
+>>>>     This workstation is a mail server and runs with Debian/testing,=20
+>>>> kernel 2.6.20. It's a NIS and NFSv3/TCP clients. Its uptime was more=20
+>>>> than 9 days and it hangs without any message in the log, without=20
+>>>> panic and without oops. When it hangs, the queue of sendmail was=20
+>>>> about 3 GB due to a failure of a internet peering. I have rebooted=20
+>>>> the workstation (power button :-( ). You can find my .config at
+>>>>
+>>>> http://rayleigh.systella.fr/~bertrand/config-sun4u-2.6.20.gz
+>>>>
+>>>>     I don't know how debug this bug...
+>>>
+>>> Hi,
+>>> do you have attached console ?
+>>
+>>
+>>     No... I don't have any console.
+>>
+>>> Do you try STOP-A ?
+>>
+>>
+>>     Stop+A doesn't help. I have tried, of course ;-)
+>>
 >>> I have similar problem on E450 tomorrow. After each second reboot=20
 >>> system hang and I can't STOP-A. Only power-off helps. System hang=20
 >>> after udev insert sg module. I disable udev  and this solve my problem.
@@ -19,9 +55,14 @@ Daniel Smolik a =E9crit :
 >>     Do you think that /etc/init.d/udev stop can solve this trouble ?
 > I turn off udev now and it helps.  Test if have or not inserted sg module.
 
-fermat:[~] > lsmod | grep sg
-sg                     42224  0
+	Somes news. I have tried a 2.6.18 (built by debian) kernel. Same bug.=20
+Thus, I have restart this U2 in runlevel 1 to purge mail spool by
 
-	I have turned off udev to test.
+	rm -rf /var/spool/mqueue
+
+and the system hangs. System hangs on heavy disk I/O load... I have=20
+removed sg module to test.
+
+	Regards,
 
 	JKB
