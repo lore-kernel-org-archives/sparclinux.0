@@ -1,49 +1,124 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 16 Mar 2007 21:42:21 +0000
-Subject: Re: sparc32 esp connected CDROM failures
-Message-Id: <20070316.144221.130235824.davem@davemloft.net>
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Date: Fri, 09 Mar 2007 03:12:27 +0000
+Subject: [PATCH] Fix sparc TIF_USEDFPU flag atomicity
+Message-Id: <20070309031227.GC9462@Krystal>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1173976389.16911.13.camel@dhcp-32-109.ord.redhat.com>
-In-Reply-To: <1173976389.16911.13.camel@dhcp-32-109.ord.redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: akpm@linux-foundation.org, mbligh@google.com, linux-kernel@vger.kernel.org, wli@holomorphy.com, sparclinux@vger.kernel.org
 
-From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
-Date: Fri, 16 Mar 2007 16:38:03 -0500
+Fix sparc TIF_USEDFPU flag atomicity
 
-> On Fri, 2007-03-16 at 16:32 -0500, Tom 'spot' Callaway wrote:
-> > On Fri, 2007-03-16 at 13:52 -0700, David Miller wrote:
-> > > From: "Tom 'spot' Callaway" <tcallawa@redhat.com>
-> > > Date: Fri, 16 Mar 2007 14:47:00 -0500
-> > > 
-> > > > The ioctl error repeats once more in the sequence...but the CDROM seems
-> > > > to work ok, as compared to sparc32, where it refuses to work.
-> > > 
-> > > Unfortunately that puts the ball in your or someone else's court,
-> > > since I don't have any sparc32 systems and therefore any way to work
-> > > on sparc32 bugs.
-> > 
-> > Well, it looks like I spoke too soon. CD1 worked, but CD2 gave me these
-> > errors when I tried to read it:
-> > 
-> > attempt to access beyond end of device
-> > sr0: rw=0, want05604, limit68440
-> > attempt to access beyond end of device
-> > sr0: rw=0, want05608, limit68440
-> > attempt to access beyond end of device
-> > sr0: rw=0, want05612, limit68440
-> > attempt to access beyond end of device
-> > sr0: rw=0, want05616, limit68440
-> > 
-> > Confirmed that the image and the CD is good (it reads fine in several
-> > other machines).
-> > 
-> > CD1 was slightly smaller, perhaps thats why it slipped by?
-> 
-> CD1 has 619M of data on it.
-> CD2 has 638M of data on it.
+Non atomic update of TIF can be very dangerous, except at thread structure
+creation time. Here I standardize the TIF_USEDFPU usage of the sparc arch.
 
-Nothing in my sparc changes should have any effect here.
-It's something else.
+Applies on 2.6.20.
+
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+
+--- a/arch/sparc/kernel/process.c
++++ b/arch/sparc/kernel/process.c
+@@ -348,7 +348,7 @@ void exit_thread(void)
+ #ifndef CONFIG_SMP
+ 	if(last_task_used_math = current) {
+ #else
+-	if(current_thread_info()->flags & _TIF_USEDFPU) {
++	if(test_tsk_thread_flag(current, TIF_USEDFPU)) {
+ #endif
+ 		/* Keep process from leaving FPU in a bogon state. */
+ 		put_psr(get_psr() | PSR_EF);
+@@ -357,7 +357,7 @@ void exit_thread(void)
+ #ifndef CONFIG_SMP
+ 		last_task_used_math = NULL;
+ #else
+-		current_thread_info()->flags &= ~_TIF_USEDFPU;
++		clear_tsk_thread_flag(current, TIF_USEDFPU);
+ #endif
+ 	}
+ }
+@@ -371,7 +371,7 @@ void flush_thread(void)
+ #ifndef CONFIG_SMP
+ 	if(last_task_used_math = current) {
+ #else
+-	if(current_thread_info()->flags & _TIF_USEDFPU) {
++	if(test_tsk_thread_flag(current, TIF_USEDFPU)) {
+ #endif
+ 		/* Clean the fpu. */
+ 		put_psr(get_psr() | PSR_EF);
+@@ -380,7 +380,7 @@ void flush_thread(void)
+ #ifndef CONFIG_SMP
+ 		last_task_used_math = NULL;
+ #else
+-		current_thread_info()->flags &= ~_TIF_USEDFPU;
++		clear_tsk_thread_flag(current, TIF_USEDFPU);
+ #endif
+ 	}
+ 
+@@ -466,13 +466,13 @@ int copy_thread(int nr, unsigned long clone_flags, unsigned long sp,
+ #ifndef CONFIG_SMP
+ 	if(last_task_used_math = current) {
+ #else
+-	if(current_thread_info()->flags & _TIF_USEDFPU) {
++	if(test_tsk_thread_flag(current, TIF_USEDFPU)) {
+ #endif
+ 		put_psr(get_psr() | PSR_EF);
+ 		fpsave(&p->thread.float_regs[0], &p->thread.fsr,
+ 		       &p->thread.fpqueue[0], &p->thread.fpqdepth);
+ #ifdef CONFIG_SMP
+-		current_thread_info()->flags &= ~_TIF_USEDFPU;
++		clear_tsk_thread_flag(current, TIF_USEDFPU);
+ #endif
+ 	}
+ 
+@@ -609,13 +609,13 @@ int dump_fpu (struct pt_regs * regs, elf_fpregset_t * fpregs)
+ 		return 1;
+ 	}
+ #ifdef CONFIG_SMP
+-	if (current_thread_info()->flags & _TIF_USEDFPU) {
++	if (test_tsk_thread_flag(current, TIF_USEDFPU)) {
+ 		put_psr(get_psr() | PSR_EF);
+ 		fpsave(&current->thread.float_regs[0], &current->thread.fsr,
+ 		       &current->thread.fpqueue[0], &current->thread.fpqdepth);
+ 		if (regs != NULL) {
+ 			regs->psr &= ~(PSR_EF);
+-			current_thread_info()->flags &= ~(_TIF_USEDFPU);
++			clear_tsk_thread_flag(current, TIF_USEDFPU);
+ 		}
+ 	}
+ #else
+diff --git a/arch/sparc/kernel/traps.c b/arch/sparc/kernel/traps.c
+index 6a70d21..7a7ad05 100644
+--- a/arch/sparc/kernel/traps.c
++++ b/arch/sparc/kernel/traps.c
+@@ -259,7 +259,7 @@ void do_fpd_trap(struct pt_regs *regs, unsigned long pc, unsigned long npc,
+ 	} else {
+ 		fpload(&current->thread.float_regs[0], &current->thread.fsr);
+ 	}
+-	current_thread_info()->flags |= _TIF_USEDFPU;
++	set_tsk_thread_flag(current, TIF_USEDFPU);
+ #endif
+ }
+ 
+@@ -290,7 +290,7 @@ void do_fpe_trap(struct pt_regs *regs, unsigned long pc, unsigned long npc,
+ #ifndef CONFIG_SMP
+ 	if(!fpt) {
+ #else
+-        if(!(task_thread_info(fpt)->flags & _TIF_USEDFPU)) {
++        if(!test_tsk_thread_flag(fpt, TIF_USEDFPU)) {
+ #endif
+ 		fpsave(&fake_regs[0], &fake_fsr, &fake_queue[0], &fake_depth);
+ 		regs->psr &= ~PSR_EF;
+@@ -333,7 +333,7 @@ void do_fpe_trap(struct pt_regs *regs, unsigned long pc, unsigned long npc,
+ 	/* nope, better SIGFPE the offending process... */
+ 	       
+ #ifdef CONFIG_SMP
+-	task_thread_info(fpt)->flags &= ~_TIF_USEDFPU;
++	clear_tsk_thread_flag(fpt, TIF_USEDFPU);
+ #endif
+ 	if(psr & PSR_PS) {
+ 		/* The first fsr store/load we tried trapped,
+-- 
+Mathieu Desnoyers
+Computer Engineering Ph.D. Student, Ecole Polytechnique de Montreal
+OpenPGP key fingerprint: 8CD5 52C3 8E3C 4140 715F  BA06 3F25 A8FE 3BAE 9A68
