@@ -1,23 +1,41 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 13 Mar 2007 08:49:30 +0000
-Subject: Re: sunrpc unaligned access
-Message-Id: <20070313.014930.97292519.davem@davemloft.net>
+From: Robert Reif <reif@earthlink.net>
+Date: Fri, 09 Mar 2007 05:16:13 +0000
+Subject: [PATCH]: fix section mismatch warning in cg14.c
+Message-Id: <1173417373.7384.2.camel@dell>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.SOC.4.64.0703131044400.29530@math>
-In-Reply-To: <Pine.SOC.4.64.0703131044400.29530@math>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Meelis Roos <mroos@linux.ee>
-Date: Tue, 13 Mar 2007 10:48:22 +0200 (EET)
+Fix section mismatch warning by moving data into __devinitdata section.
+Add __devinit to an initialization function.
 
-> Tried todays git (2.6.21-rc3-g8b9909de) on Ultra 5 and got this during 
-> NFS server startup:
-> 
-> Kernel unaligned access at TPC[100b8b98] svc_udp_recvfrom+0x180/0x420 [sunrpc]
-> 
-> Other than that it seems to work fine.
+Signed-off-by: Robert Reif <reif@earthlink.net>
 
-Thanks for the report, I'll have a look tomorrow.
+diff --git a/drivers/video/cg14.c b/drivers/video/cg14.c
+index ec6a51a..b071bb6 100644
+--- a/drivers/video/cg14.c
++++ b/drivers/video/cg14.c
+@@ -354,7 +354,8 @@ static int cg14_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg)
+  *  Initialisation
+  */
+ 
+-static void cg14_init_fix(struct fb_info *info, int linebytes, struct device_node *dp)
++static void __devinit cg14_init_fix(struct fb_info *info, int linebytes,
++				    struct device_node *dp)
+ {
+ 	const char *name = dp->name;
+ 
+@@ -368,7 +369,7 @@ static void cg14_init_fix(struct fb_info *info, int linebytes, struct device_nod
+ 	info->fix.accel = FB_ACCEL_SUN_CG14;
+ }
+ 
+-static struct sbus_mmap_map __cg14_mmap_map[CG14_MMAP_ENTRIES] __initdata = {
++static struct sbus_mmap_map __cg14_mmap_map[CG14_MMAP_ENTRIES] __devinitdata = {
+ 	{
+ 		.voff	= CG14_REGS,
+ 		.poff	= 0x80000000,
+
+
+
