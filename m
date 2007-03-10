@@ -1,7 +1,7 @@
 From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
-Date: Fri, 09 Mar 2007 22:38:39 +0000
+Date: Sat, 10 Mar 2007 08:38:20 +0000
 Subject: Re: Dead lock with 2.6.20
-Message-Id: <45F1E1EF.2080009@systella.fr>
+Message-Id: <45F26E7C.2040801@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
 References: <45F1C172.60103@systella.fr>
 In-Reply-To: <45F1C172.60103@systella.fr>
@@ -55,13 +55,12 @@ Daniel Smolik a =E9crit :
 >>     Do you think that /etc/init.d/udev stop can solve this trouble ?
 > I turn off udev now and it helps.  Test if have or not inserted sg module.
 
-	Somes news. I have tried a 2.6.18 (built by debian) kernel. Same bug.=20
-Thus, I have restart this U2 in runlevel 1 to purge mail spool by
+	Hello,
 
-	rm -rf /var/spool/mqueue
-
-and the system hangs. System hangs on heavy disk I/O load... I have=20
-removed sg module to test.
+	Without sg module and without udev, 2.6.20 hangs with a dead lock on=20
+heavy disk IO (maybe a bug in sbus or esp support because I have  a=20
+U60/SMP that run with the same configuration without any trouble). I=20
+have tried a 2.6.18, same bug.
 
 	Regards,
 
