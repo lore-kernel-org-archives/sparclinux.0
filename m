@@ -1,7 +1,7 @@
 From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
-Date: Sat, 10 Mar 2007 08:38:20 +0000
+Date: Mon, 12 Mar 2007 09:33:54 +0000
 Subject: Re: Dead lock with 2.6.20
-Message-Id: <45F26E7C.2040801@systella.fr>
+Message-Id: <45F51E82.2000403@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
 References: <45F1C172.60103@systella.fr>
 In-Reply-To: <45F1C172.60103@systella.fr>
@@ -55,12 +55,14 @@ Daniel Smolik a =E9crit :
 >>     Do you think that /etc/init.d/udev stop can solve this trouble ?
 > I turn off udev now and it helps.  Test if have or not inserted sg module.
 
-	Hello,
+	Some news.
 
-	Without sg module and without udev, 2.6.20 hangs with a dead lock on=20
-heavy disk IO (maybe a bug in sbus or esp support because I have  a=20
-U60/SMP that run with the same configuration without any trouble). I=20
-have tried a 2.6.18, same bug.
+1/ I have built a monolithic 2.4.34.1 kernel. With this kernel, I only=20
+see a "kernel unaligned trap" but not any dead lock. After this trap,=20
+kernel hangs but the U2 can be restarted with stop+A ;
+2/ I have tested hardware with SUNvts and it sounds good ;
+3/ I'm building a 2.6.20.2 with all debug options to debug ;
+4/ I have tried without udev, sg, and success.
 
 	Regards,
 
