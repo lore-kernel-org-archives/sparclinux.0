@@ -1,21 +1,19 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 09 Mar 2007 05:22:45 +0000
-Subject: Re: [PATCH]: fix section mismatch warnings in bw2.c
-Message-Id: <20070308.212245.97293403.davem@davemloft.net>
+From: Meelis Roos <mroos@linux.ee>
+Date: Tue, 13 Mar 2007 08:48:22 +0000
+Subject: sunrpc unaligned access
+Message-Id: <Pine.SOC.4.64.0703131044400.29530@math>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1173417034.7278.10.camel@dell>
-In-Reply-To: <1173417034.7278.10.camel@dell>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Robert Reif <reif@earthlink.net>
-Date: 09 Mar 2007 00:10:34 -0500
+Tried todays git (2.6.21-rc3-g8b9909de) on Ultra 5 and got this during 
+NFS server startup:
 
-> Fix section mismatch warnings by moving data into __devinitdata section.
-> Add __devinit to two initialization functions.
-> 
-> Signed-off-by: Robert Reif <reif@earthlink.net>
+Kernel unaligned access at TPC[100b8b98] svc_udp_recvfrom+0x180/0x420 [sunrpc]
 
-Also applied, thanks a lot.
+Other than that it seems to work fine.
+
+-- 
+Meelis Roos (mroos@linux.ee)
