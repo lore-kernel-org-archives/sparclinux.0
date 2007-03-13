@@ -1,50 +1,41 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Thu, 15 Feb 2007 22:54:37 +0000
-Subject: Re: [Bugme-new] [Bug 8018] New: Problem with interrupt handling on
-Message-Id: <20070215145437.f6a37584.akpm@linux-foundation.org>
+From: "Nish Aravamudan" <nish.aravamudan@gmail.com>
+Date: Tue, 13 Mar 2007 21:57:26 +0000
+Subject: Re: Linux 2.6.20.3
+Message-Id: <29495f1d0703131457i43883529p5da1502b68ff0948@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20070313183353.GA7434@kroah.com>
+In-Reply-To: <20070313183353.GA7434@kroah.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Greg KH <greg@kroah.com>
+Cc: linux-kernel@vger.kernel.org, Andrew Morton <akpm@osdl.org>, torvalds@osdl.org, stable@kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org
 
-On Thu, 15 Feb 2007 10:54:50 -0800
-bugme-daemon@bugzilla.kernel.org wrote:
+On 3/13/07, Greg KH <greg@kroah.com> wrote:
+> We (the -stable team) are announcing the release of the 2.6.20.3 kernel.
+> It contains a number of bugfixes and all 2.6.20 users are recommended to
+> upgrade.
+>
+> The diffstat and short summary of the fixes are below.
+>
+> I'll also be replying to this message with a copy of the patch between
+> 2.6.20.2 and 2.6.20.3.
 
-> http://bugzilla.kernel.org/show_bug.cgi?id=8018
->=20
->            Summary: Problem with interrupt handling on E450
->     Kernel Version: 2.6.20
->             Status: NEW
->           Severity: normal
->              Owner: platform_sparc64@kernel-bugs.osdl.org
->          Submitter: marvin@mydatex.cz
->=20
->=20
-> Most recent kernel where this bug did *NOT* occur: 2.6.16.40
-> Distribution: Debian SID
-> Hardware Environment: Sun E450 2xUltra Sparc 400Mhz 1GB Ram
-> Software Environment:
-> Problem Description: With 2.6.16.40 E450 works well booted OK. I compile =
-2.6.20
-> and kernel booted very slow. Ethernet (HappyMeal) are detected but doesn'=
-t work.
-> Sym875 SCSI controller after detecting devices start ABORT and RESET oper=
-ation
-> on each scsi ID. In dmesg I see that interrups assigned are differnt than=
- in
-> 2.6.16.40. On E250 with the same SCIS controller and one Ultra Sparc 400 =
-all
-> works normaly.
->=20
-> Steps to reproduce:
-> Compile kernel and boot.
->=20
-> ------- You are receiving this mail because: -------
-> You are on the CC list for the bug, or are watching someone who is.
->=20
-> ------- Additional Comment #1 From Daniel Smolik  2007-02-15 14:31 -------
->=20
-> I compile some kernel and last working is 2.6.17.14 and first that didn't=
- work
-> 2.6.18
+Compared to 2.6.20.1 (will try 2.6.20.2 as well), I now get:
+
+[  199.361347] BUG: soft lockup detected on CPU#2!
+
+smp_percpu_timer_interrupt+0xd4/0x180
+tl0_irq14+0x1c/0x20
+journal_add_journal_head+0x2c/0x1e0
+journal_write_metadata_buffer+0x480/0x500
+journal_commit_transaction+0xc38/0x1040
+kjournald+0xc0/0x1e0
+kthread+0xb0/0xc0
+kernel_thread+0x38/0x60
+keventd_create_kthread+0x20/0xa0
+
+shortly after the serial console prompts for login.
+
+Thanks,
+Nish
