@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 13 Mar 2007 02:50:58 +0000
+Date: Sat, 17 Mar 2007 20:23:16 +0000
 Subject: Re: [Systems] Re: Oops in tcp_sendmsg on T[12]000
-Message-Id: <20070312.195058.78711350.davem@davemloft.net>
+Message-Id: <20070317.132316.35665329.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1818c1980703052246p5af31178p70296e156b06511a@mail.gmail.com>
 In-Reply-To: <1818c1980703052246p5af31178p70296e156b06511a@mail.gmail.com>
@@ -23,8 +23,7 @@ Date: Mon, 12 Mar 2007 16:58:56 -0700
 > 
 > Let me know if I can send you anymore information.
 
-Thanks for the datapoint.
+I can finally reproduce this bug!  What a relief.
+Thanks for tracking it down to this config difference.
 
-I have a hugetlbfs lockup and a few networking things to attend
-to, but after that I'll try again to reproduce the problem
-locally.
+Hopefully I can figure out the cause and fix this soon.
