@@ -1,13 +1,13 @@
 From: David Miller <davem@davemloft.net>
-Date: Sat, 17 Mar 2007 20:23:16 +0000
+Date: Mon, 19 Mar 2007 07:41:47 +0000
 Subject: Re: [Systems] Re: Oops in tcp_sendmsg on T[12]000
-Message-Id: <20070317.132316.35665329.davem@davemloft.net>
+Message-Id: <20070319.004147.41629331.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1818c1980703052246p5af31178p70296e156b06511a@mail.gmail.com>
 In-Reply-To: <1818c1980703052246p5af31178p70296e156b06511a@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
 From: Narayan Newton <nnewton@osuosl.org>
@@ -17,13 +17,76 @@ Date: Mon, 12 Mar 2007 16:58:56 -0700
 > our kernel without Netfilter support does not have this issue, but the
 > moment you enable it in the kernel config this bug is triggered.
 > Attached are the two kernel configs. The only difference is
-> CONFIG_NETFILTER=y
-> 
+> CONFIG_NETFILTER=3Dy
+>=20
 > Kernel version: 2.6.21-rc2
-> 
-> Let me know if I can send you anymore information.
 
-I can finally reproduce this bug!  What a relief.
-Thanks for tracking it down to this config difference.
+Ok, I think the following patch is the bug fix.  I'm running a bunch
+of further stress testing to make sure this is indeed the cause of
+these crashes.
 
-Hopefully I can figure out the cause and fix this soon.
+Let me know if you can still trigger the bug with this patch
+applied, thanks!
+
+Assuming all goes well I'll push this upstream to Linus and
+also to the -stable 2.6.x branches.
+
+[SPARC64]: store-init needs trailing membar.
+
+The manual says that it is required and we actually have crash reports
+where loads see stale data due to not having membars here.
+
+In one case the networking does:
+
+	memset(skb, 0, offsetof(struct sk_buff, truesize));
+
+and then some code later checks skb->nohdr for zero, but it's still
+the value that was there before the memset().
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+
+diff --git a/arch/sparc64/lib/NGbzero.S b/arch/sparc64/lib/NGbzero.S
+index e86baec..f10e452 100644
+--- a/arch/sparc64/lib/NGbzero.S
++++ b/arch/sparc64/lib/NGbzero.S
+@@ -88,6 +88,7 @@ NGbzero_loop:
+ 	bne,pt		%xcc, NGbzero_loop
+ 	 add		%o0, 64, %o0
+=20
++	membar		#Sync
+ 	wr		%o4, 0x0, %asi
+ 	brz,pn		%o1, NGbzero_done
+ NGbzero_medium:
+diff --git a/arch/sparc64/lib/NGmemcpy.S b/arch/sparc64/lib/NGmemcpy.S
+index 8e522b3..66063a9 100644
+--- a/arch/sparc64/lib/NGmemcpy.S
++++ b/arch/sparc64/lib/NGmemcpy.S
+@@ -247,6 +247,8 @@ FUNC_NAME:	/* %o0=3Ddst, %o1=3Dsrc, %o2=3Dlen */
+ 	/* fall through */
+=20
+ 60:=09
++	membar		#Sync
++
+ 	/* %o2 contains any final bytes still needed to be copied
+ 	 * over. If anything is left, we copy it one byte at a time.
+ 	 */
+diff --git a/arch/sparc64/lib/NGpage.S b/arch/sparc64/lib/NGpage.S
+index 7d7c3bb..8ce3a0c 100644
+--- a/arch/sparc64/lib/NGpage.S
++++ b/arch/sparc64/lib/NGpage.S
+@@ -41,6 +41,7 @@ NGcopy_user_page:	/* %o0=DEst, %o1=3Dsrc, %o2=3Dvaddr */
+ 	subcc		%g7, 64, %g7
+ 	bne,pt		%xcc, 1b
+ 	 add		%o0, 32, %o0
++	membar		#Sync
+ 	retl
+ 	 nop
+=20
+@@ -63,6 +64,7 @@ NGclear_user_page:	/* %o0=DEst, %o1=3Dvaddr */
+ 	subcc		%g7, 64, %g7
+ 	bne,pt		%xcc, 1b
+ 	 add		%o0, 32, %o0
++	membar		#Sync
+ 	retl
+ 	 nop
+=20
