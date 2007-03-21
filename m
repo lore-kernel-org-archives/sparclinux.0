@@ -1,67 +1,113 @@
-From: Michael Ellerman <michael@ellerman.id.au>
-Date: Wed, 07 Mar 2007 08:55:18 +0000
-Subject: Re: [parisc-linux] [PATCH 2/2] Make pcibios_add_platform_entries()
-Message-Id: <1173257718.5101.16.camel@concordia.ozlabs.ibm.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-BgsAG7SQX+bolLlRm7kx"
+From: Robert Reif <reif@earthlink.net>
+Date: Wed, 21 Mar 2007 11:22:48 +0000
+Subject: [PATCH] fix section mismatch in cg3.c
+Message-Id: <1174476168.22880.7.camel@dell>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070306150725.68D97DDF36@ozlabs.org>
-	 <1173204301.3379.33.camel@mulgrave.il.steeleye.com>
-In-Reply-To: <1173204301.3379.33.camel@mulgrave.il.steeleye.com>
-To: James Bottomley <James.Bottomley@SteelEye.com>
-Cc: Greg Kroah-Hartman <greg@kroah.com>, linux-mips@linux-mips.org, dev-etrax@axis.com, linux-ia64@vger.kernel.org, discuss@x86-64.org, chris@zankel.net, dhowells@redhat.com, linuxppc-dev@ozlabs.org, linux-m68k@vger.kernel.org, ink@jurassic.park.msu.ru, gerg@uclinux.org, sparclinux@vger.kernel.org, uclinux-v850@lsi.nec.co.jp, linux-pci@atrey.karlin.mff.cuni.cz, parisc-linux@parisc-linux.org, kernel@wantstofly.org, rth@twiddle.net
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
+
+Fix section mismatch warning by moving data into __devinitdata section.
+Add __devinit to initialization functions.
+
+diff --git a/drivers/video/cg3.c b/drivers/video/cg3.c
+index ada6f7e..767c850 100644
+--- a/drivers/video/cg3.c
++++ b/drivers/video/cg3.c
+@@ -186,8 +186,7 @@ static int cg3_setcolreg(unsigned regno,
+  *      @blank_mode: the blank mode we want.
+  *      @info: frame buffer structure that represents a single frame
+buffer
+  */
+-static int
+-cg3_blank(int blank, struct fb_info *info)
++static int cg3_blank(int blank, struct fb_info *info)
+ {
+ 	struct cg3_par *par = (struct cg3_par *) info->par;
+ 	struct cg3_regs __iomem *regs = par->regs;
+@@ -251,8 +250,8 @@ static int cg3_ioctl(struct fb_info *info, unsigned
+int cmd, unsigned long arg)
+  *  Initialisation
+  */
+ 
+-static void
+-cg3_init_fix(struct fb_info *info, int linebytes, struct device_node
+*dp)
++static void __devinit cg3_init_fix(struct fb_info *info, int linebytes,
++				   struct device_node *dp)
+ {
+ 	strlcpy(info->fix.id, dp->name, sizeof(info->fix.id));
+ 
+@@ -264,8 +263,8 @@ cg3_init_fix(struct fb_info *info, int linebytes,
+struct device_node *dp)
+ 	info->fix.accel = FB_ACCEL_SUN_CGTHREE;
+ }
+ 
+-static void cg3_rdi_maybe_fixup_var(struct fb_var_screeninfo *var,
+-				    struct device_node *dp)
++static void __devinit cg3_rdi_maybe_fixup_var(struct fb_var_screeninfo
+*var,
++					      struct device_node *dp)
+ {
+ 	char *params;
+ 	char *p;
+@@ -287,36 +286,36 @@ static void cg3_rdi_maybe_fixup_var(struct
+fb_var_screeninfo *var,
+ 	}
+ }
+ 
+-static u8 cg3regvals_66hz[] __initdata = {	/* 1152 x 900, 66 Hz */
++static u8 cg3regvals_66hz[] __devinitdata = {	/* 1152 x 900, 66 Hz */
+ 	0x14, 0xbb,	0x15, 0x2b,	0x16, 0x04,	0x17, 0x14,
+ 	0x18, 0xae,	0x19, 0x03,	0x1a, 0xa8,	0x1b, 0x24,
+ 	0x1c, 0x01,	0x1d, 0x05,	0x1e, 0xff,	0x1f, 0x01,
+ 	0x10, 0x20,	0
+ };
+ 
+-static u8 cg3regvals_76hz[] __initdata = {	/* 1152 x 900, 76 Hz */
++static u8 cg3regvals_76hz[] __devinitdata = {	/* 1152 x 900, 76 Hz */
+ 	0x14, 0xb7,	0x15, 0x27,	0x16, 0x03,	0x17, 0x0f,
+ 	0x18, 0xae,	0x19, 0x03,	0x1a, 0xae,	0x1b, 0x2a,
+ 	0x1c, 0x01,	0x1d, 0x09,	0x1e, 0xff,	0x1f, 0x01,
+ 	0x10, 0x24,	0
+ };
+ 
+-static u8 cg3regvals_rdi[] __initdata = {	/* 640 x 480, cgRDI */
++static u8 cg3regvals_rdi[] __devinitdata = {	/* 640 x 480, cgRDI */
+ 	0x14, 0x70,	0x15, 0x20,	0x16, 0x08,	0x17, 0x10,
+ 	0x18, 0x06,	0x19, 0x02,	0x1a, 0x31,	0x1b, 0x51,
+ 	0x1c, 0x06,	0x1d, 0x0c,	0x1e, 0xff,	0x1f, 0x01,
+ 	0x10, 0x22,	0
+ };
+ 
+-static u8 *cg3_regvals[] __initdata = {
++static u8 *cg3_regvals[] __devinitdata = {
+ 	cg3regvals_66hz, cg3regvals_76hz, cg3regvals_rdi
+ };
+ 
+-static u_char cg3_dacvals[] __initdata = {
++static u_char cg3_dacvals[] __devinitdata = {
+ 	4, 0xff,	5, 0x00,	6, 0x70,	7, 0x00,	0
+ };
+ 
+-static void cg3_do_default_mode(struct cg3_par *par)
++static void __devinit cg3_do_default_mode(struct cg3_par *par)
+ {
+ 	enum cg3_type type;
+ 	u8 *p;
+@@ -433,7 +432,8 @@ static int __devinit cg3_init_one(struct of_device
+*op)
+ 	return 0;
+ }
+ 
+-static int __devinit cg3_probe(struct of_device *dev, const struct
+of_device_id *match)
++static int __devinit cg3_probe(struct of_device *dev,
++			       const struct of_device_id *match)
+ {
+ 	struct of_device *op = to_of_device(&dev->dev);
+ 
 
 
---=-BgsAG7SQX+bolLlRm7kx
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, 2007-03-06 at 12:05 -0600, James Bottomley wrote:
-> On Tue, 2007-03-06 at 16:06 +0100, Michael Ellerman wrote:
-> >  int __must_check pci_create_sysfs_dev_files (struct pci_dev *pdev)
-> > @@ -644,10 +644,13 @@ int __must_check pci_create_sysfs_dev_fi
-> >  		}
-> >  	}
-> >  	/* add platform-specific attributes */
-> > -	pcibios_add_platform_entries(pdev);
-> > +	if (pcibios_add_platform_entries(pdev))
-> > +		goto err_rom_attr;
-> > =20
-> >  	return 0;
-> > =20
-> > +err_rom_attr:
-> > +	sysfs_remove_bin_file(&pdev->dev.kobj, rom_attr);
->=20
-> This file is only created if the rom resource has a non-zero length.  If
-> you unconditionally call sysfs_remove_bin_file() it's going to spit
-> scary warnings and dump traces in this error leg if the rom resource
-> doesn't exist.
-
-Ah crud, don't write patches during meetings. I'll send a fixed version.
-
-cheers
-
---=20
-Michael Ellerman
-OzLabs, IBM Australia Development Lab
-
-wwweb: http://michael.ellerman.id.au
-phone: +61 2 6212 1183 (tie line 70 21183)
-
-We do not inherit the earth from our ancestors,
-we borrow it from our children. - S.M.A.R.T Person
-
---=-BgsAG7SQX+bolLlRm7kx
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3 (GNU/Linux)
-
-iD8DBQBF7n32dSjSd0sB4dIRAn5sAKDLKRSrFBG7U5Cd40rDmTlteEGzOgCgsZhx
-xnxBaUCAjUOpUDo/Iyyq50o=
-=Lg0a
------END PGP SIGNATURE-----
-
---=-BgsAG7SQX+bolLlRm7kx--
 
