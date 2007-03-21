@@ -1,37 +1,27 @@
-From: bertrand <joel.bertrand@systella.fr>
-Date: Tue, 20 Mar 2007 09:03:23 +0000
-Subject: Ultra2 SMP freezes with heavy disk I/O
-Message-Id: <45FFA35B.1040203@systella.fr>
+From: Robert Reif <reif@earthlink.net>
+Date: Wed, 21 Mar 2007 11:24:33 +0000
+Subject: [PATCH] remove unneeded extern from main.c
+Message-Id: <1174476273.22880.10.camel@dell>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-	Hello,
+Remove unneeded extern from main.c.
 
-	A U2 (2 GB, 2 UltraSPARC-II, 2 73 GB SCSI disks [raid1]) is running 
-Debian/testing with 2.6.20.3 kernel. This station is used as mail server 
-and I have seen some freezes. When it freezes, sysrq or stop+A do not 
-work (not panic nor Oops, only freeze).
+diff --git a/init/main.c b/init/main.c
+index a92989e..dd1566f 100644
+--- a/init/main.c
++++ b/init/main.c
+@@ -87,7 +87,6 @@ static int init(void *);
+ extern void init_IRQ(void);
+ extern void fork_init(unsigned long);
+ extern void mca_init(void);
+-extern void sbus_init(void);
+ extern void signals_init(void);
+ extern void pidhash_init(void);
+ extern void pidmap_init(void);
 
-	I have tested 2.6.18 (from debian), 2.6.20.x without any success. When 
-I boot with root=/dev/sda4 instead root=/dev/md1, system is more stable 
-(but not enough to be a mail server :-( ).
 
-	With 2.4 kernel and without raid1 (I don't understand  why I cannot use 
-my raid1 volumes with 2.4 kernel...), system is stable and does not 
-freeze. I have tested hardware with SUNvts (from Solaris 9) and it 
-sounds good.
 
-	With the _same_ kernel, an U60-SMP is stable. The difference between 
-both kernel are only Sbus versus PCI support _and_ ESP-SCSI version 
-Symbios support. I suspect a bug in the ESP-SCSI support but I don't 
-know how investigate. I cannot boot any 2.6.20 with debug option du to a 
-"address not aligned" message when it boots.
-
-	Any suggestion ?
-
-	Regards,
-
-	JKB
