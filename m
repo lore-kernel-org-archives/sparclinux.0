@@ -1,43 +1,29 @@
-From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
-Date: Wed, 21 Mar 2007 16:41:55 +0000
+From: David Miller <davem@davemloft.net>
+Date: Thu, 22 Mar 2007 00:53:06 +0000
 Subject: Re: [Repost] Ultra2 SMP freezes with heavy disk I/O
-Message-Id: <46016053.80708@systella.fr>
+Message-Id: <20070321.175306.74738012.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20070320180102.GA27466@rayleigh.systella.fr>
 In-Reply-To: <20070320180102.GA27466@rayleigh.systella.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Ferris McCormick a =E9crit :
-> On Wed, 2007-03-21 at 13:21 +0100, Chini, Georg wrote:
->> Ferris McCormick wrote:
->>
->=20
->>> =20
->>>
->> Hi,
->>
->> I'm running 2.6.20-rc5 on my ultra2 (2x300) for a few weeks now and have=
- not
->> observed any freezes at all. I attach my config, maybe you can find some=
-=20
->> hint
->> what causes the problem.
->>
->> Regards
->>               Georg
->>
->=20
->=20
-> Thanks.  I'll compare with mine and see if there is anything obvious.
+From: Ferris McCormick <fmccor@gentoo.org>
+Date: Wed, 21 Mar 2007 11:38:48 +0000
 
-	I have booted my U2 with 2.4.34.1 kernel. This kernel freezes too (but=20
-it is very difficult to obtain a freeze : when 2.6 freezes with a=20
-sendmail queue with only 5000 messages, 2.4 requires 50000 messages to=20
-freeze).
+> The kernel people have known about this for well over a year, but no
+> fix.
 
-	Regards,
+You use the word "people", the plural form, as if there is someone
+doing sparc64 kernel maintainence other than me.  That would certainly
+be news to me.
 
-	JKB
+This means you have to understand there is _ONE_ person doing all of
+sparc64 kernel maintainence, and therefore one person who has to look
+at and fix all the bugs, do all the new features, do ports and cleanups
+when generic kernel changes occur, etc.
+
+Therefore it should be no surprise that some things slip through the
+cracks and are beyond my capacity at times.
