@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 22 Mar 2007 00:53:06 +0000
+Date: Thu, 22 Mar 2007 00:55:44 +0000
 Subject: Re: [Repost] Ultra2 SMP freezes with heavy disk I/O
-Message-Id: <20070321.175306.74738012.davem@davemloft.net>
+Message-Id: <20070321.175544.41643641.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20070320180102.GA27466@rayleigh.systella.fr>
 In-Reply-To: <20070320180102.GA27466@rayleigh.systella.fr>
@@ -11,19 +11,11 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 From: Ferris McCormick <fmccor@gentoo.org>
-Date: Wed, 21 Mar 2007 11:38:48 +0000
+Date: Wed, 21 Mar 2007 14:26:29 +0000
 
-> The kernel people have known about this for well over a year, but no
-> fix.
+> Might be private between squash@gentoo.org and davem.  I don't really
+> remember.  I do know that at one point davem gave us some test kernels
+> to work with, but they did not fox U2 problem.
 
-You use the word "people", the plural form, as if there is someone
-doing sparc64 kernel maintainence other than me.  That would certainly
-be news to me.
-
-This means you have to understand there is _ONE_ person doing all of
-sparc64 kernel maintainence, and therefore one person who has to look
-at and fix all the bugs, do all the new features, do ports and cleanups
-when generic kernel changes occur, etc.
-
-Therefore it should be no surprise that some things slip through the
-cracks and are beyond my capacity at times.
+You remember incorrectly, that was a fix for Symbios scsi hangs on PCI
+based systems, and that bug is definitely fixed now.
