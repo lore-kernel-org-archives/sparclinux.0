@@ -1,21 +1,44 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 22 Mar 2007 00:55:44 +0000
-Subject: Re: [Repost] Ultra2 SMP freezes with heavy disk I/O
-Message-Id: <20070321.175544.41643641.davem@davemloft.net>
+From: Robert Reif <reif@earthlink.net>
+Date: Tue, 27 Mar 2007 02:03:10 +0000
+Subject: [PATCH] fix sparc32 SMP build regression
+Message-Id: <1174960990.13037.7.camel@dell>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070320180102.GA27466@rayleigh.systella.fr>
-In-Reply-To: <20070320180102.GA27466@rayleigh.systella.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Ferris McCormick <fmccor@gentoo.org>
-Date: Wed, 21 Mar 2007 14:26:29 +0000
+commit b19cbe2a1695c09c74f83646c4b82b51123b3690 [BRIDGE]: Fix fdb RCU
+race
 
-> Might be private between squash@gentoo.org and davem.  I don't really
-> remember.  I do know that at one point davem gave us some test kernels
-> to work with, but they did not fox U2 problem.
+breaks sparc SMP build because atomic_add_unless is not exported.
 
-You remember incorrectly, that was a fix for Symbios scsi hangs on PCI
-based systems, and that bug is definitely fixed now.
+This patch exports atomic_add_unless and atomic_cmpxchg.
+
+Compile tested only.
+
+Signed-off-by: Robert Reif <reif@earthlink.net>
+
+diff --git a/arch/sparc/lib/atomic32.c b/arch/sparc/lib/atomic32.c
+index 53ddcd9..559335f 100644
+--- a/arch/sparc/lib/atomic32.c
++++ b/arch/sparc/lib/atomic32.c
+@@ -52,6 +52,7 @@ int atomic_cmpxchg(atomic_t *v, int old,
+ 	spin_unlock_irqrestore(ATOMIC_HASH(v), flags);
+ 	return ret;
+ }
++EXPORT_SYMBOL(atomic_cmpxchg);
+ 
+ int atomic_add_unless(atomic_t *v, int a, int u)
+ {
+@@ -65,6 +66,7 @@ int atomic_add_unless(atomic_t *v, int a
+ 	spin_unlock_irqrestore(ATOMIC_HASH(v), flags);
+ 	return ret != u;
+ }
++EXPORT_SYMBOL(atomic_add_unless);
+ 
+ /* Atomic operations are already serializing */
+ void atomic_set(atomic_t *v, int i)
+
+
+
