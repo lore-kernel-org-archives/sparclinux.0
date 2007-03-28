@@ -1,47 +1,31 @@
-From: Robert Reif <reif@earthlink.net>
-Date: Wed, 28 Mar 2007 23:07:27 +0000
-Subject: [PATCH] fix sparse warning in of_device.c
-Message-Id: <460AF52F.1080204@earthlink.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------040805020405080406030905"
+From: David Miller <davem@davemloft.net>
+Date: Wed, 28 Mar 2007 23:20:16 +0000
+Subject: Re: [PATCH] fix sparse warning in of_device.c
+Message-Id: <20070328.162016.19785339.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <460AF52F.1080204@earthlink.net>
+In-Reply-To: <460AF52F.1080204@earthlink.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------040805020405080406030905
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Robert Reif <reif@earthlink.net>
+Date: Wed, 28 Mar 2007 19:07:27 -0400
 
-Fix sparse warning:
+> Fix sparse warning:
+> 
+> arch/sparc/kernel/of_device.c:439:46: warning: incorrect type in 
+> argument 3 (different signedness)
+> arch/sparc/kernel/of_device.c:439:46:    expected int *lenp
+> arch/sparc/kernel/of_device.c:439:46:    got unsigned int *<noident>
+> 
+> Signed-off-by: Robert Reif <reif@erathlink.net>
 
-arch/sparc/kernel/of_device.c:439:46: warning: incorrect type in 
-argument 3 (different signedness)
-arch/sparc/kernel/of_device.c:439:46:    expected int *lenp
-arch/sparc/kernel/of_device.c:439:46:    got unsigned int *<noident>
+Robert, each and every one of these sparc sparse warnings
+applies to 64-bit sparc as well, the code is nearly identical.
 
-Signed-off-by: Robert Reif <reif@erathlink.net>
+I'm been hitting the sparc64 side for each of your patches,
+but you can help me out a lot by doing this yourself :-)
 
-
---------------040805020405080406030905
-Content-Type: text/plain;
- name="of_device.c.diff.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="of_device.c.diff.txt"
-
-diff --git a/arch/sparc/kernel/of_device.c b/arch/sparc/kernel/of_device.c
-index 48c24f7..8c81689 100644
---- a/arch/sparc/kernel/of_device.c
-+++ b/arch/sparc/kernel/of_device.c
-@@ -433,7 +433,7 @@ static int __init build_one_resource(str
- 				     int na, int ns, int pna)
- {
- 	u32 *ranges;
--	unsigned int rlen;
-+	int rlen;
- 	int rone;
- 
- 	ranges = of_get_property(parent, "ranges", &rlen);
-
---------------040805020405080406030905--
-
+Thanks!
