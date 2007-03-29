@@ -1,76 +1,40 @@
-From: Robert Reif <reif@earthlink.net>
-Date: Fri, 30 Mar 2007 12:32:05 +0000
-Subject: [PATCH] fix section mismatch warnings in pci.c and pcic.c
-Message-Id: <460D0345.6030208@earthlink.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------050408050103040507080701"
+From: Antonio Prioglio <antonio.prioglio@britishlibrary.net>
+Date: Thu, 29 Mar 2007 16:40:48 +0000
+Subject: SparcEngine AXi keyboard problem
+Message-Id: <Pine.LNX.4.61.0703291729360.3706@badger.dogbert.loc>
 List-Id: <sparclinux.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------050408050103040507080701
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi, I was wondering if someone has some info on the following issue.
 
-Fix section mismatch in arch/sparc/kernel/pcic.c and 
-arch/sparc64/kernel/pci.c.
+Previously I was running debian sarge (plain vanilla) with a KVM attached 
+to the PS/2 port of the AXi. Switching between PS/2 and Sun keybords was 
+no problem.
 
-sparc64 part is untested.
+After installing ubuntu edgy with kernel 2.6.17.11 the PS/2 KVM connection 
+no longer works. (At PROM level all its fine, after linux boot keyboard is 
+dead)
 
-Signed-off-by: Robert Reif <reif@earthlink.net>
+Has PS/2 interface support been removed? Is it a bug?
+Is it necessary to setup some parametyers?
+
+Help would be appreciated.
+
+Cura ut valeas,
+Antonio Prioglio
+
+-- 
+We are what we repeatedly do. Excellence, then, is not an act, but a habit.
+ 							Aristoteles
 
 
---------------050408050103040507080701
-Content-Type: text/plain;
- name="pci.diff.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="pci.diff.txt"
+     /"\
+     \ /    ASCII RIBBON CAMPAIGN - AGAINST HTML MAIL
+      X                           - AGAINST MS ATTACHMENTS
+     / \
 
-diff --git a/arch/sparc/kernel/pcic.c b/arch/sparc/kernel/pcic.c
-index 3fa5f95..1c927c5 100644
---- a/arch/sparc/kernel/pcic.c
-+++ b/arch/sparc/kernel/pcic.c
-@@ -601,7 +601,7 @@ pcic_fill_irq(struct linux_pcic *pcic, s
- /*
-  * Normally called from {do_}pci_scan_bus...
-  */
--void __init pcibios_fixup_bus(struct pci_bus *bus)
-+void __devinit pcibios_fixup_bus(struct pci_bus *bus)
- {
- 	struct pci_dev *dev;
- 	int i, has_io, has_mem;
-@@ -842,7 +842,7 @@ #endif
- /*
-  * Other archs parse arguments here.
-  */
--char * __init pcibios_setup(char *str)
-+char * __devinit pcibios_setup(char *str)
- {
- 	return str;
- }
-diff --git a/arch/sparc64/kernel/pci.c b/arch/sparc64/kernel/pci.c
-index 196b4b7..1210988 100644
---- a/arch/sparc64/kernel/pci.c
-+++ b/arch/sparc64/kernel/pci.c
-@@ -327,7 +327,7 @@ static int __init pcibios_init(void)
- 
- subsys_initcall(pcibios_init);
- 
--void pcibios_fixup_bus(struct pci_bus *pbus)
-+void __devinit pcibios_fixup_bus(struct pci_bus *pbus)
- {
- 	struct pci_pbm_info *pbm = pbus->sysdata;
- 
-@@ -405,7 +405,7 @@ void pcibios_bus_to_resource(struct pci_
- }
- EXPORT_SYMBOL(pcibios_bus_to_resource);
- 
--char * __init pcibios_setup(char *str)
-+char * __devinit pcibios_setup(char *str)
- {
- 	return str;
- }
-
---------------050408050103040507080701--
+http://www.gnu.org/philosophy/no-word-attachments.html
 
