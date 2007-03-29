@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 28 Mar 2007 23:20:16 +0000
+Date: Thu, 29 Mar 2007 02:40:36 +0000
 Subject: Re: [PATCH] fix sparse warning in of_device.c
-Message-Id: <20070328.162016.19785339.davem@davemloft.net>
+Message-Id: <20070328.194036.41629823.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <460AF52F.1080204@earthlink.net>
 In-Reply-To: <460AF52F.1080204@earthlink.net>
@@ -22,10 +22,11 @@ Date: Wed, 28 Mar 2007 19:07:27 -0400
 > 
 > Signed-off-by: Robert Reif <reif@erathlink.net>
 
-Robert, each and every one of these sparc sparse warnings
-applies to 64-bit sparc as well, the code is nearly identical.
+This patch is not correct.
 
-I'm been hitting the sparc64 side for each of your patches,
-but you can help me out a lot by doing this yourself :-)
+The loop at the end of this function depends upon the signedness of
+'rlen' to handle underflow situations.
 
-Thanks!
+With your change to make it unsigned, the loop can possibly not
+terminate because if 'rlen' gets decremented below zero it will become
+a "very large positive number" instead of a negative one.
