@@ -1,167 +1,36 @@
-From: Joerg Friedrich <Joerg.Friedrich@friedrich-kn.de>
-Date: Fri, 30 Mar 2007 21:48:57 +0000
-Subject: unaligned access in ipt_ULOG
-Message-Id: <20070330214857.GB24923@stardust.friedrich-kn.de>
+From: David Miller <davem@davemloft.net>
+Date: Fri, 30 Mar 2007 22:05:01 +0000
+Subject: Re: unaligned access in ipt_ULOG
+Message-Id: <20070330.150501.57156021.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20070330214857.GB24923@stardust.friedrich-kn.de>
+In-Reply-To: <20070330214857.GB24923@stardust.friedrich-kn.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Joerg.Friedrich@friedrich-kn.de
+Cc: kaber@trash.net, netfilter-devel@lists.netfilter.org, sparclinux@vger.kernel.org
 
-Hi!
+From: Joerg Friedrich <Joerg.Friedrich@friedrich-kn.de>
+Date: Fri, 30 Mar 2007 23:48:57 +0200
 
-I wanted to use the iptables ULOG target, but I ran into these error
-messages. can anyone explain howto read this messge.
+> I wanted to use the iptables ULOG target, but I ran into these error
+> messages. can anyone explain howto read this messge.
+> 
+> Kernel unaligned access at TPC[1029e35c] ipt_ulog_packet+0x214/0x3fc [ipt_ULOG]
 
-Kernel unaligned access at TPC[1029e35c] ipt_ulog_packet+0x214/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e36c] ipt_ulog_packet+0x224/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e374] ipt_ulog_packet+0x22c/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e384] ipt_ulog_packet+0x23c/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e35c] ipt_ulog_packet+0x214/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e35c] ipt_ulog_packet+0x214/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e36c] ipt_ulog_packet+0x224/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e374] ipt_ulog_packet+0x22c/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e384] ipt_ulog_packet+0x23c/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e35c] ipt_ulog_packet+0x214/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e35c] ipt_ulog_packet+0x214/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e36c] ipt_ulog_packet+0x224/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e374] ipt_ulog_packet+0x22c/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e384] ipt_ulog_packet+0x23c/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e35c] ipt_ulog_packet+0x214/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e35c] ipt_ulog_packet+0x214/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e36c] ipt_ulog_packet+0x224/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e374] ipt_ulog_packet+0x22c/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e384] ipt_ulog_packet+0x23c/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e35c] ipt_ulog_packet+0x214/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e36c] ipt_ulog_packet+0x224/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e374] ipt_ulog_packet+0x22c/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e384] ipt_ulog_packet+0x23c/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e35c] ipt_ulog_packet+0x214/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e35c] ipt_ulog_packet+0x214/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e36c] ipt_ulog_packet+0x224/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e374] ipt_ulog_packet+0x22c/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[1029e384] ipt_ulog_packet+0x23c/0x3fc [ipt_U=
-LOG]
-Kernel unaligned access at TPC[102865b4] ipt_ulog_packet+0x41c/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286360] ipt_ulog_packet+0x1c8/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286368] ipt_ulog_packet+0x1d0/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286378] ipt_ulog_packet+0x1e0/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[102865b4] ipt_ulog_packet+0x41c/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[102865b4] ipt_ulog_packet+0x41c/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286360] ipt_ulog_packet+0x1c8/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286368] ipt_ulog_packet+0x1d0/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286378] ipt_ulog_packet+0x1e0/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[102865b4] ipt_ulog_packet+0x41c/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[102865b4] ipt_ulog_packet+0x41c/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286360] ipt_ulog_packet+0x1c8/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286368] ipt_ulog_packet+0x1d0/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286378] ipt_ulog_packet+0x1e0/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[102865b4] ipt_ulog_packet+0x41c/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[102865b4] ipt_ulog_packet+0x41c/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286360] ipt_ulog_packet+0x1c8/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286368] ipt_ulog_packet+0x1d0/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286378] ipt_ulog_packet+0x1e0/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[102865b4] ipt_ulog_packet+0x41c/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[102865b4] ipt_ulog_packet+0x41c/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286360] ipt_ulog_packet+0x1c8/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286368] ipt_ulog_packet+0x1d0/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286378] ipt_ulog_packet+0x1e0/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[102865b4] ipt_ulog_packet+0x41c/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[102865b4] ipt_ulog_packet+0x41c/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286360] ipt_ulog_packet+0x1c8/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286368] ipt_ulog_packet+0x1d0/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286378] ipt_ulog_packet+0x1e0/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[102865b4] ipt_ulog_packet+0x41c/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[102865b4] ipt_ulog_packet+0x41c/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286360] ipt_ulog_packet+0x1c8/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286368] ipt_ulog_packet+0x1d0/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286378] ipt_ulog_packet+0x1e0/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[102865b4] ipt_ulog_packet+0x41c/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[102865b4] ipt_ulog_packet+0x41c/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286360] ipt_ulog_packet+0x1c8/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286368] ipt_ulog_packet+0x1d0/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286378] ipt_ulog_packet+0x1e0/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[102865b4] ipt_ulog_packet+0x41c/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[102865b4] ipt_ulog_packet+0x41c/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286360] ipt_ulog_packet+0x1c8/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286368] ipt_ulog_packet+0x1d0/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[10286378] ipt_ulog_packet+0x1e0/0x4c0 [ipt_U=
-LOG]
-Kernel unaligned access at TPC[102865b4] ipt_ulog_packet+0x41c/0x4c0 [ipt_U=
-LOG]
+It just means that unaligned accesses are occuring in the ipt_ulog
+module.  Things usually work fine when this happens, just very slowly,
+which is why the warning is printed.
 
---=20
-J=C3=B6rg Friedrich
+Patrick, this is on sparc64, it appears to be this code:
 
-There are only 10 types of people:
-Those who understand binary and those who don't.
+	pm->timestamp_sec = skb->tstamp.off_sec;
+	pm->timestamp_usec = skb->tstamp.off_usec;
+
+and the NLMSG_DATA() (and thus 'pm') is not 8-byte aligned.
+
+I bet this is a 32-bit sparc binary, has the idea of a compat
+layer for the ULOG bits ever been discussed?
+
+Thanks.
