@@ -1,23 +1,21 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 18 Apr 2007 20:17:04 +0000
-Subject: Re: zs Interrupt during boot
-Message-Id: <20070418.131704.68569453.davem@davemloft.net>
+Date: Tue, 10 Apr 2007 21:04:58 +0000
+Subject: Re: [Repost] Ultra2 SMP freezes with heavy disk I/O
+Message-Id: <20070410.140458.26533670.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.61.0704181956120.12028@mtfhpc.demon.co.uk>
-In-Reply-To: <Pine.LNX.4.61.0704181956120.12028@mtfhpc.demon.co.uk>
+References: <20070320180102.GA27466@rayleigh.systella.fr>
+In-Reply-To: <20070320180102.GA27466@rayleigh.systella.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date: Wed, 18 Apr 2007 20:24:48 +0100 (BST)
+From: BERTRAND Jo=EBl <joel.bertrand@systella.fr>
+Date: Tue, 20 Mar 2007 21:53:26 +0100
 
-> Hi David,
+> 	I have tried the last 2.6.21-rc4. Same bug.
 
-Not me.  I don't maintain the 32-bit Sparc port any longer,
-and there really is no active maintainer at all for that
-platform, so you'll have to look for someone else to help
-you.
+The good news is that I can reproduce this problem now on my
+Ultra2, I'll try to figure out what's wrong.
 
-This is explicitly stated in the linux/MAINTAINERS file.
+Running "dbench 32" a few time is enough to trigger it.
