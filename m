@@ -1,70 +1,69 @@
-From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date: Wed, 18 Apr 2007 20:57:44 +0000
-Subject: Re: Prom Watchdog Reset
-Message-Id: <Pine.LNX.4.61.0704182152350.12193@mtfhpc.demon.co.uk>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 12 Apr 2007 20:35:13 +0000
+Subject: Re: sunrpc unaligned access
+Message-Id: <20070412.133513.23036266.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.61.0704181949500.12028@mtfhpc.demon.co.uk>
-In-Reply-To: <Pine.LNX.4.61.0704181949500.12028@mtfhpc.demon.co.uk>
+References: <Pine.SOC.4.64.0703131044400.29530@math>
+In-Reply-To: <Pine.SOC.4.64.0703131044400.29530@math>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi Daniel,
+From: Meelis Roos <mroos@linux.ee>
+Date: Tue, 13 Mar 2007 10:48:22 +0200 (EET)
 
-In this case, it is not a SIMM module issue (I have replaced them all 
-some tome ago in order to get more memory as 16M was a bit small).
+> Tried todays git (2.6.21-rc3-g8b9909de) on Ultra 5 and got this during 
+> NFS server startup:
+> 
+> Kernel unaligned access at TPC[100b8b98] svc_udp_recvfrom+0x180/0x420 [sunrpc]
+> 
+> Other than that it seems to work fine.
 
-The SunOS4.1.1 kernel does not have this problem. It must reset somthing 
-early on in boot that prevents the issue from occouring.
+Does this patch make the problem go away?  If not, please send
+me the new kernel log message and a copy of the
+net/sunrpc/svcsock.o object file from the build.
 
-Regards
- 	Mark Fortescue.
+Thanks!
 
-On Wed, 18 Apr 2007, Daniel Smolik wrote:
-
-> Mark Fortescue napsal(a):
->> Hi,
->> 
->> On my sun4c OPUSstation (Sparc 1 clone) I regularly get tripped back to the 
->> Prom during boot:
->> 
->> ...
->> ok boot vmlinuz -p
->> Booting from: sd(0,0,0)vmlinuz -p
->> root on sd0a fstype 4.2
->> Size: 2675008+0+142756 bytes
->> Booting Linux...
->> Watchdog reset
->> Window Underflow
->> ok
-> I have the similar problem on SS5 and remove a put back SIMM modules solve 
-> this problem.
->
-> 			Dan
->
->
->
->> 
->> The boot prom is Revision 1.0. Is there a way of doing a full Prom reset as 
->> part of the boot sequence to try and remove this issue.
->> 
->> If I redo the boot or do a powerup reset boot, there is no issue at this 
->> point.
->> 
->> Regards
->>     Mark Fortescue.
->> 
->> -
->> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
-> -- 
-> Mydatex s r.o.
-> http://www.mydatex.cz
-> email: smolik@mydatex.cz
-> mob: 604200362
-> tel: 226210085
->
+diff --git a/net/sunrpc/svcsock.c b/net/sunrpc/svcsock.c
+index 593f62f..2772fee 100644
+--- a/net/sunrpc/svcsock.c
++++ b/net/sunrpc/svcsock.c
+@@ -452,6 +452,8 @@ union svc_pktinfo_u {
+ 	struct in_pktinfo pkti;
+ 	struct in6_pktinfo pkti6;
+ };
++#define SVC_PKTINFO_SPACE \
++	CMSG_SPACE(sizeof(union svc_pktinfo_u))
+ 
+ static void svc_set_cmsg_data(struct svc_rqst *rqstp, struct cmsghdr *cmh)
+ {
+@@ -491,8 +493,11 @@ svc_sendto(struct svc_rqst *rqstp, struct xdr_buf *xdr)
+ 	struct svc_sock	*svsk = rqstp->rq_sock;
+ 	struct socket	*sock = svsk->sk_sock;
+ 	int		slen;
+-	char 		buffer[CMSG_SPACE(sizeof(union svc_pktinfo_u))];
+-	struct cmsghdr *cmh = (struct cmsghdr *)buffer;
++	union {
++		struct cmsghdr	hdr;
++		long		all[SVC_PKTINFO_SPACE / sizeof(long)];
++	} buffer;
++	struct cmsghdr *cmh = &buffer.hdr;
+ 	int		len = 0;
+ 	int		result;
+ 	int		size;
+@@ -745,8 +750,11 @@ svc_udp_recvfrom(struct svc_rqst *rqstp)
+ 	struct svc_sock	*svsk = rqstp->rq_sock;
+ 	struct svc_serv	*serv = svsk->sk_server;
+ 	struct sk_buff	*skb;
+-	char		buffer[CMSG_SPACE(sizeof(union svc_pktinfo_u))];
+-	struct cmsghdr *cmh = (struct cmsghdr *)buffer;
++	union {
++		struct cmsghdr	hdr;
++		long		all[SVC_PKTINFO_SPACE / sizeof(long)];
++	} buffer;
++	struct cmsghdr *cmh = &buffer.hdr;
+ 	int		err, len;
+ 	struct msghdr msg = {
+ 		.msg_name = svc_addr(rqstp),
