@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 13 Apr 2007 20:33:14 +0000
+Date: Fri, 13 Apr 2007 20:48:01 +0000
 Subject: Re: [TESTERS NEEDED]: Rewritten ESP driver
-Message-Id: <20070413.133314.38700705.davem@davemloft.net>
+Message-Id: <20070413.134801.99727441.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20070412.233350.41640545.davem@davemloft.net>
 In-Reply-To: <20070412.233350.41640545.davem@davemloft.net>
@@ -10,14 +10,13 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Pasi Pirhonen <upi@centos.fi>
-Date: Fri, 13 Apr 2007 18:59:23 +0300
+From: "Tom \"spot\" Callaway" <tcallawa@redhat.com>
+Date: Fri, 13 Apr 2007 15:18:59 -0500
 
-> Something else? Long term stability and some _real_ I/O load is still
-> something to be tested ......
+> Tried the new esp driver on an SparcStation 4, with not much luck.
+> 
+> If you are willing to tackle this, and want esp_debug, please let me
+> know.
 
-Thanks a lot for the testing and the info, I really appreciate
-it.
-
-If something goes wrong, do report it, and if not then simply
-enjoy :-)
+Thanks, this dump should be good enough for now, I think I'm
+not programming the DMA properly on older ESP/DMA chips.
