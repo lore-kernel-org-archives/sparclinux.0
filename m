@@ -1,27 +1,85 @@
-From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
-Date: Tue, 17 Apr 2007 14:59:58 +0000
-Subject: [patch] sparc32 makefile
-Message-Id: <4624E0EE.3010003@systella.fr>
+From: "Tom \"spot\" Callaway" <tcallawa@redhat.com>
+Date: Fri, 13 Apr 2007 17:26:09 +0000
+Subject: [PATCH] Another minor inline fix for sparc64
+Message-Id: <1176485169.3970.202.camel@localhost.localdomain>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=-kUM8hZ92uKdYr7IHJuKa"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-	Hello,
 
-	Trivial patch to reduce size of sparc32 kernel.
+--=-kUM8hZ92uKdYr7IHJuKa
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Jo=EBl Bertrand <jkb@systella.fr>
+Caught this one building the sparc64 SMP kernel. Makes me wonder whether
+my compiler (gcc version 4.1.1 20060629) is being oversensitive (or if
+DaveM uses an older compiler which is less picky about inline ordering).
 
---- a/arch/sparc/boot/Makefile  2007-03-16 01:20:01.000000000 +0100
-+++ b/arch/sparc/boot/Makefile  2007-04-17 16:48:55.000000000 +0200
-@@ -49,6 +49,7 @@
-  # these files being recompiled for each build.
-  $(obj)/image: $(obj)/btfix.o FORCE
-         $(call if_changed_rule,image)
-+       strip -R .indent -R .comment -R .note $(obj)/image -o=20
-vmlinux.stripped
+Signed-off-by: Tom "spot" Callaway <tcallawa@redhat.com>
 
-  $(obj)/tftpboot.img: $(obj)/piggyback $(obj)/System.map $(obj)/image FORCE
-         $(call if_changed,elftoaout)
+
+--=-kUM8hZ92uKdYr7IHJuKa
+Content-Disposition: attachment; filename=linux-2.6.20-sparc64-inlinefix2.patch
+Content-Type: text/x-patch; name=linux-2.6.20-sparc64-inlinefix2.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+--- linux-2.6.20.sparc64/include/asm-sparc64/spinlock.h.BAD	2007-04-13 12:56:03.000000000 -0400
++++ linux-2.6.20.sparc64/include/asm-sparc64/spinlock.h	2007-04-13 12:57:15.000000000 -0400
+@@ -105,7 +105,7 @@
+ 
+ /* Multi-reader locks, these are much saner than the 32-bit Sparc ones... */
+ 
+-static void inline __read_lock(raw_rwlock_t *lock)
++static inline void __read_lock(raw_rwlock_t *lock)
+ {
+ 	unsigned long tmp1, tmp2;
+ 
+@@ -130,7 +130,7 @@
+ 	: "memory");
+ }
+ 
+-static int inline __read_trylock(raw_rwlock_t *lock)
++static inline int __read_trylock(raw_rwlock_t *lock)
+ {
+ 	int tmp1, tmp2;
+ 
+@@ -152,7 +152,7 @@
+ 	return tmp1;
+ }
+ 
+-static void inline __read_unlock(raw_rwlock_t *lock)
++static inline void __read_unlock(raw_rwlock_t *lock)
+ {
+ 	unsigned long tmp1, tmp2;
+ 
+@@ -169,7 +169,7 @@
+ 	: "memory");
+ }
+ 
+-static void inline __write_lock(raw_rwlock_t *lock)
++static inline void __write_lock(raw_rwlock_t *lock)
+ {
+ 	unsigned long mask, tmp1, tmp2;
+ 
+@@ -196,7 +196,7 @@
+ 	: "memory");
+ }
+ 
+-static void inline __write_unlock(raw_rwlock_t *lock)
++static inline void __write_unlock(raw_rwlock_t *lock)
+ {
+ 	__asm__ __volatile__(
+ "	membar		#LoadStore | #StoreStore\n"
+@@ -206,7 +206,7 @@
+ 	: "memory");
+ }
+ 
+-static int inline __write_trylock(raw_rwlock_t *lock)
++static inline int __write_trylock(raw_rwlock_t *lock)
+ {
+ 	unsigned long mask, tmp1, tmp2, result;
+ 
+
+--=-kUM8hZ92uKdYr7IHJuKa--
+
