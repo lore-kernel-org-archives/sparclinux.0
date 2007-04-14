@@ -1,39 +1,33 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 27 Apr 2007 20:28:38 +0000
-Subject: Re: [RFC PATCH]: Rewritten ESP driver, porters needed!
-Message-Id: <20070427.132838.39157332.davem@davemloft.net>
+From: Meelis Roos <mroos@linux.ee>
+Date: Sat, 14 Apr 2007 10:20:54 +0000
+Subject: /proc/interrupts and timer
+Message-Id: <Pine.SOC.4.64.0704141317001.13883@math>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070424122235.GA26242@infradead.org>
-	<20070424.134440.45874613.davem@davemloft.net>
-	<20070427151658.GA21669@infradead.org>
-In-Reply-To: <20070427151658.GA21669@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: hch@infradead.org
-Cc: linux-scsi@vger.kernel.org, jskov@cygnus.co.uk, weisd3458@uni.edu, tymm@computer.org, tsbogend@alpha.franken.de, flo@rfc822.org, airlied@linux.ie, ralf@linux-mips.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Christoph Hellwig <hch@infradead.org>
-Date: Fri, 27 Apr 2007 16:16:58 +0100
+I tried todays 2.6.21-rc6+git on Ultra 5 to test out the latest merged 
+sparc64 changes. Works fine here.
 
-> aic7xxx might not be the best driver to look at either :)  In practice
-> a softirq has short enough latency so this doesn't matter, but you
-> should probably benchmark it on your hardware.  53x700.c which is
-> the most modern scsi driver and is in about the same hardware class
-> as the esp gets away without using internal queues, but it also
-> has a nice internal buffer where commands can just be put into slots
-> for later execution.
+I have not looked into /proc for some time but now I did. One slightly 
+strange this is in /proc/interrupts - timer has <NULL> interrupt type:
+           CPU0
+  0:       9404     <NULL>  timer
+  1:          0      sun4u  SABRE PCIERR
+  2:          0      sun4u  SABRE UE
+  3:          0      sun4u  SABRE CE
+  4:          0      sun4u  power
+  5:        339      sun4u  sab
+  6:          0      sun4u  su(kbd)
+  7:          0      sun4u  su(mouse)
+  8:          1      sun4u  parport0
+  9:          4      sun4u  floppy
+ 12:        402      sun4u  eth0
+ 14:       4768      sun4u  ide0
 
-This driver runs on machines with 10MHz cpus (sun4c), the delay to the
-softirq surely matters for those guys :-)
+Is this intentional or rather by accident?
 
-> Btw, using the block layer tcq code and the scsi wrappers for it
-> would be nice aswell.
-
-Hmm, I though I was doing so by using the interfaces found in
-include/scsi/scsi_tcq.h which I am doing.
-
-Oh, you're suggesting to use scsi_find_tag() for reconnect handling?
-
-Do I have to do anything special for that to work or can I just
-add calls to it right now?
+-- 
+Meelis Roos (mroos@linux.ee)
