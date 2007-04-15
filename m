@@ -1,283 +1,84 @@
-From: "Tom \"spot\" Callaway" <tcallawa@redhat.com>
-Date: Sun, 15 Apr 2007 09:16:25 +0000
+From: Pasi Pirhonen <upi@centos.fi>
+Date: Sun, 15 Apr 2007 09:45:27 +0000
 Subject: Re: [TESTERS NEEDED]: Rewritten ESP driver
-Message-Id: <1176628585.3970.268.camel@localhost.localdomain>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-Hp4zz3rO9uP1bL0ymQEd"
+Message-Id: <20070415094526.GC6300@centos.fi>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20070412.233350.41640545.davem@davemloft.net>
 In-Reply-To: <20070412.233350.41640545.davem@davemloft.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Hi,
 
---=-Hp4zz3rO9uP1bL0ymQEd
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
 
-On Sat, 2007-04-14 at 19:24 -0700, David Miller wrote:
+On Sat, Apr 14, 2007 at 05:12:11PM -0700, David Miller wrote:
 > From: "Tom \"spot\" Callaway" <tcallawa@redhat.com>
-> Date: Sat, 14 Apr 2007 19:54:10 -0500
+> Date: Sat, 14 Apr 2007 17:58:57 -0500
 > 
-> > This patch is already in my tree. The kernel base is
-> > patch-2.6.21-rc6-git5.
-> > 
-> > I'm not netbooting these kernels either. Straight boot from firmware,
-> > system is serial connected through a screen (which is where the logs are
-> > coming from).
-> > 
-> > Additional thoughts? :)
+> > ESP: tgt[3] lun[0] scsi_cmd [ 12 00 00 00 24 c2 ]
+> > ESP: intr sreg[93] seqreg[00] sreg2[00] ireg[18]
+> > ESP: intr sreg[97] seqreg[04] sreg2[00] ireg[08]
+> > ESP: intr sreg[90] seqreg[04] sreg2[00] ireg[20]
+> > ESP: Command done status[2] message[0]
 > 
-> It's never easy :)
+> Target 3 (presumably your disk) gave a CHECK_CONDITION
+> for the INQUIRY, that's fine, so that scsi layer gives
+> a REQUEST_SENSE.
 > 
-> Let's see what's in the sense buffer, boot with the following
-> patch and "esp.esp_bug=2047" on the boot command line.
 
-Booted with new patch applied, and esp.esp_debug=2047.
+This seems to be as good insertion point as any for this thread. When i
+see this problem with esp for another machines, i do remember that i
+did have weird beahaviour with first boot when i was rearranging my
+gear to be able to test the new ESP. I did have same kind of situation
+when and first disk (which i am using even now as root) was detected,
+but second disk got the esp in the loop where it just did walk thru
+scsiID by scsiID and claimed those be 'offlined due ....'.
 
-Only sense debug I see is:
-ESP: SENSE [ 70 00 06 00 00 00 00 0a 00 00 00 00 29 02 02 00 00 00 ]
+I thought it would be failing disk and swapped one from D1000 to
+replace it, booted and all was fine.
 
-Full log attached, from prom to break. :)
+Now that i do have glogicpti up and running again, i see that disk
+there and if i can provide some inquiry date with something from that
+disk and it would help, let me know. 
 
-Thanks,
+Host: scsi0 Channel: 00 Id: 02 Lun: 00
+  Vendor: SEAGATE  Model: ST336704LSUN36G  Rev: 032C
+  Type:   Direct-Access                    ANSI  SCSI revision: 03
 
-~spot
+This is the disk that has been /dev/sda all the time with new esp, but
 
---=-Hp4zz3rO9uP1bL0ymQEd
-Content-Disposition: attachment; filename=esp-sense-patch.log
-Content-Type: text/x-log; name=esp-sense-patch.log; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Host: scsi2 Channel: 00 Id: 03 Lun: 00
+  Vendor: SEAGATE  Model: ST336704LSUN36G  Rev: 032C
+  Type:   Direct-Access                    ANSI  SCSI revision: 03
 
-SPARCstation 4, No Keyboard
-ROM Rev. 2.24, 160 MB memory installed, Serial #7966051.
-Ethernet address 8:0:20:79:8d:63, Host ID: 80798d63.
+is the disk that was supposed to be /dev/sdb when it did NOT boot.
+
+From dmesg the difference seems to be that when i did fail, i did have
+two same type disk that both did claim to be
+
+sda: Mode Sense: cf 00 10 08
+SCSI device sda: write cache: disabled, read cache: enabled, supports DPO and FUA
+SCSI device sda: 71132959 512-byte hdwr sectors (36420 MB)
+sda: Write Protect is off
+sda: Mode Sense: cf 00 10 08
+SCSI device sda: write cache: disabled, read cache: enabled, supports DPO and FUA
+
+and now, when i do have different disk as /dev/sdb that gets detected as
+
+sdb: Mode Sense: fb 00 00 08
+SCSI device sdb: write cache: disabled, read cache: enabled, doesn't support DPO or FUA
+SCSI device sdb: 71132959 512-byte hdwr sectors (36420 MB)
+sdb: Write Protect is off
+sdb: Mode Sense: fb 00 00 08
+SCSI device sdb: write cache: disabled, read cache: enabled, doesn't support DPO or FUA
+
+
+... if that is clue for reason at all.
 
 
 
-Initializing Memory |=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=
-=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08=
-|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=
-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08=
-/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=
-=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08=
--=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=
-=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08=
-\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08
-                                                                     =20
-Rebooting with command:=20
-Boot device: /iommu/sbus/espdma/esp/sd@3,0:c  File and args:=20
-SILO Version 1.4.11
-\=08
-Welcome to Aurora SPARC Linux!
-Hit <TAB> for boot options
-
-boot:=20
-1.3062.5                 1.2986                   1.2906.4                =20
-1.2906                   spot1                    debian                  =20
-boot: 1.3062.5 esp.esp_debug=3D2047
-|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=
-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08=
-/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=
-=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08=
--=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=
-=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08=
-\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=
-=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08=
-|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=
-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08=
-/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=
-=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08=
--=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=
-=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08=
-\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=
-=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08=
-|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=
-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08=
-/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=
-=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08=
--=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=
-=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08=
-\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=
-=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08=
-|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=
-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08=
-/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=
-=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08=
--=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=
-=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08=
-\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=
-=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08=
-|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=
-=08\=08|=08/=08-=08\=08Loaded kernel version 2.6.20
-Loading initial ramdisk (3719186 bytes at 0x3000000 phys, 0x60000000 virt).=
-..
-|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=
-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08=
-/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=
-=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08=
--=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=
-=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08=
-\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=
-=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08=
-|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=
-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08=
-/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=
-=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08=
--=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=
-=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08=
-\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=
-=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08=
-|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=
-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08=
-/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=
-=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08=
--=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=
-=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08=
-\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=
-=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08=
-|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=
-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08=
-/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=
-=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08=
--=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=
-=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08=
-\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=
-=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08=
-|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=
-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08=
-/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=
-=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08=
--=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=
-=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08=
-\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=
-=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08=
-|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=
-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08=
-/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=
-=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08=
--=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=
-=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08=
-\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=
-=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08=
-|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=08\=08|=08/=08-=
-=08\=08|=08PROMLIB: obio_ranges 1
-Booting Linux...
-PROMLIB: Sun Boot Prom Version 3 Revision 2
-Linux version 2.6.20-1.3062.al3.5 (root@odyssey) (gcc version 4.1.1 2006062=
-9 (Red Hat 4.1.1-6)) #1 Sat Apr 14 23:43:59 EDT 2007
-ARCH: SUN4M
-TYPE: SPARCstation 4
-Ethernet address: 8:0:20:79:8d:63
-Boot time fixup v1.6. 4/Mar/98 Jakub Jelinek (jj@ultra.linux.cz). Patching =
-kernel for srmmu[Fujitsu Swift]/iommu
-PROM: Built device tree with 20056 bytes of memory.
-Power off control detected.
-Built 1 zonelists.  Total pages: 38998
-Kernel command line: ro root=3DLABEL=3D/ stop-a=3D1 esp.esp_debug=3D2047
-PID hash table entries: 1024 (order: 10, 4096 bytes)
-start_kernel(): bug: interrupts were enabled early
-Console: colour dummy device 80x25
-Dentry cache hash table entries: 32768 (order: 5, 131072 bytes)
-Inode-cache hash table entries: 16384 (order: 4, 65536 bytes)
-Memory: 153400k/163508k available (1796k kernel code, 9956k reserved, 496k =
-data, 148k init, 0k highmem)
-Mount-cache hash table entries: 512
-NET: Registered protocol family 16
-SCSI subsystem initialized
-IOMMU: impl 0 vers 4 table 0xf9f00000[262144 B] map [65536 b]
-sbus0: Clock 22.0 MHz
-dma0: Revision 2=20
-dma1: Revision 2=20
-NET: Registered protocol family 2
-IP route cache hash table entries: 2048 (order: 1, 8192 bytes)
-TCP established hash table entries: 8192 (order: 4, 65536 bytes)
-TCP bind hash table entries: 8192 (order: 3, 32768 bytes)
-TCP: Hash tables configured (established 8192 bind 8192)
-TCP reno registered
-checking if image is initramfs... it is
-Freeing initrd memory: 3632k freed
-ioremap: done with statics, switching to malloc
-apc: power management initialized
-io scheduler noop registered
-io scheduler anticipatory registered
-io scheduler deadline registered
-io scheduler cfq registered (default)
-Console: switching to colour frame buffer device 144x56
-/iommu@0,10000000/sbus@0,10001000/SUNW,tcx@2,800000: TCX at 0:50800000, 8-b=
-it only
-ffd35080: ttyS0 at MMIO 0x71100000 (irq =3D 44) is a zs
-Console: ttyS0 (SunZilog zs0)
-ffd35080: ttyS1 at MMIO 0x71100004 (irq =3D 44) is a zs
-ffd35134: Keyboard at MMIO 71000000 (irq =3D 44) is a zs
-ffd35134: Mouse at MMIO 71000004 (irq =3D 44) is a zs
-RAMDISK driver initialized: 16 RAM disks of 4096K size 1024 blocksize
-scsi0 : esp
-esp: esp0 found at /iommu@0,10000000/sbus@0,10001000/espdma@4,8400000/esp@4=
-,8800000, regs[fd117000:fd00f000] irq[36]
-esp: esp0 is a FAS100A, 40 MHz (ccf=3D0), SCSI ID 7
-ESP: tgt[0] lun[0] scsi_cmd [ 12 00 00 00 24 c2 ]
-ESP: intr sreg[80] seqreg[00] sreg2[00] ireg[20]
-ESP: tgt[1] lun[0] scsi_cmd [ 12 00 00 00 24 c2 ]
-ESP: intr sreg[80] seqreg[00] sreg2[00] ireg[20]
-ESP: tgt[2] lun[0] scsi_cmd [ 12 00 00 00 24 c2 ]
-ESP: intr sreg[80] seqreg[00] sreg2[00] ireg[20]
-ESP: tgt[3] lun[0] scsi_cmd [ 12 00 00 00 24 c2 ]
-ESP: intr sreg[93] seqreg[00] sreg2[00] ireg[18]
-ESP: intr sreg[97] seqreg[04] sreg2[00] ireg[08]
-ESP: intr sreg[90] seqreg[04] sreg2[00] ireg[20]
-ESP: Command done status[2] message[0]
-ESP: tgt[3] lun[0] scsi_cmd [ 03 00 00 00 fc 00 ]
-ESP: intr sreg[91] seqreg[04] sreg2[00] ireg[18]
-ESP: start data addr[f0005000] len[252] write(1)
-ESP: intr sreg[83] seqreg[04] sreg2[00] ireg[10]
-ESP: data done csr[a6400310] flgs[1] sent[18]
-ESP: intr sreg[87] seqreg[04] sreg2[00] ireg[08]
-ESP: intr sreg[80] seqreg[04] sreg2[00] ireg[20]
-ESP: Command done status[0] message[0]
-ESP: SENSE [ 70 00 06 00 00 00 00 0a 00 00 00 00 29 02 02 00 00 00 ]
-ESP: tgt[4] lun[0] scsi_cmd [ 12 00 00 00 24 c2 ]
-ESP: intr sreg[80] seqreg[04] sreg2[00] ireg[20]
-ESP: tgt[5] lun[0] scsi_cmd [ 12 00 00 00 24 c2 ]
-ESP: intr sreg[80] seqreg[00] sreg2[00] ireg[20]
-ESP: tgt[6] lun[0] scsi_cmd [ 12 00 00 00 24 c2 ]
-ESP: intr sreg[80] seqreg[00] sreg2[00] ireg[20]
-rtc_sun_init: Registered Mostek RTC driver.
-mice: PS/2 mouse device common for all mice
-TCP cubic registered
-NET: Registered protocol family 1
-NET: Registered protocol family 17
-Freeing unused kernel memory: 148k freed
-input: Sun Mouse as /class/input/input0
-Red Hat nash version 6.0.6 starting
-Mounting proc filesystem
-Mounting sysfs filesystem
-Creating /dev
-Creating initial device nodes
-Setting up hotplug.
-Creating block device nodes.
-Loading jbd.ko module
-Loading ext3.ko module
-Creating root device.
-Mounting root filesystem.
-mount: could not find filesystem '/dev/root'
-Setting up other filesystems.
-Setting up new roKernel panic - not syncing: Attempted to kill init!
-Press Stop-A (L1-A) to return to the boot prom
-ot fs
-setuproot: moving /dev failed: No such file or directory
-no fstab.sys, mounting internal defaults
-setuproot: error mounting /proc: No such file or directory
-setuproot: error mounting /sys: No such file or directory
-Switching to new root and running init.
-unmounting old /dev
-unmounting old /proc
-unmounting old /sys
-switchroot: mount failed: No such file or directory
-
-Type  'go' to resume
-Type  help  for more information
-ok boot
-Resetting ...=20
-
---=-Hp4zz3rO9uP1bL0ymQEd--
-
+-- 
+Pasi Pirhonen - upi@iki.fi - http://pasi.pirhonen.eu/
+Top-postings silently ignored
