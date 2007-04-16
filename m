@@ -1,7 +1,7 @@
-From: Emanuele Rocca <ema@debian.org>
-Date: Mon, 16 Apr 2007 21:16:51 +0000
-Subject: Re:  [PATCH]: Fix for SB100/SB150 bootup hangs
-Message-Id: <20070416211651.GA4884@darkmoon.home>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 16 Apr 2007 22:21:07 +0000
+Subject: Re: [PATCH]: Fix for SB100/SB150 bootup hangs
+Message-Id: <20070416.152107.115929351.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20070305.011139.78710584.davem@davemloft.net>
 In-Reply-To: <20070305.011139.78710584.davem@davemloft.net>
@@ -10,30 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-* David Miller <davem@davemloft.net>, [2007-04-16 13:19 -0700]:
->  From: Emanuele Rocca <ema@debian.org>
->  Date: Mon, 16 Apr 2007 22:08:40 +0200
->  > BTW, we had reports from Debian users that ran into this bug also on
->  > ultra10, and I guess every machine with a Creator 3D card is affected.
->  > 
->  > Nothing critical, though, given that with atyfb:off everything works
->  > properly.
->  
->  So the source of the problem is that there is a creatorFB
->  card and an atyfb in the same machine?
->  
->  Probably you have a screen showing on the creatorFB :-)
+From: "Tom \"spot\" Callaway" <tcallawa@redhat.com>
+Date: Mon, 16 Apr 2007 15:56:25 -0500
 
-LOL, I've tried to actually connect my monitor to the atyfb and that was
-really helpful. :-)
+> Yep. Absolutely. Aurora's got this patch in it, to have the old behavior
+> on FB ordering, since people expect it.
 
-So, using the creatorFB I see Openboot and the silo prompt; after that,
-the control goes to the atyfb card (which without a monitor can do
-little).
+Yes that would maintain the status-quo from ages ago, but
+it still doesn't actually fix the core problem :-)
 
-Conversely, using the atyfb card there's no openboot (and no X, given
-that I've configured it only for the creator) but the console shows up
-just fine. :-)
+What we should probably do is parse the output-device prom environment
+variable, and using that set the console framebuffer device.
 
-ciao,
-    ema
+One way to do that would be to cons up a dummy console= kernel
+command line entry if the user hasn't explicitly specified one.
+
+Otherwise it's going to be a bit messy.
+
+Actually, I'll take a look at the console<-->fb hookup internals
+a little bit more, perhaps there is an easier solution.
+
+But the bottom line is that we must use the output-device to
+determine the console output framebuffer device in the absense
+of a console= command line specification.
+
+Oh btw, Tom, does my scsi bus reset patch help your SS4 at all? :-)
