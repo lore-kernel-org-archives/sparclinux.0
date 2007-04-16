@@ -1,40 +1,59 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 14 Apr 2007 17:00:07 +0000
-Subject: Re: /proc/interrupts and timer
-Message-Id: <20070414.100007.89399340.davem@davemloft.net>
+From: "Jurzitza, Dieter" <DJurzitza@harmanbecker.com>
+Date: Mon, 16 Apr 2007 05:10:44 +0000
+Subject: AW: /proc/interrupts and timer
+Message-Id: <DA6197CAE190A847B662079EF7631C0604749E5D@OEKAW2EXVS03.hbi.ad.harman.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.SOC.4.64.0704141317001.13883@math>
 In-Reply-To: <Pine.SOC.4.64.0704141317001.13883@math>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-From: Meelis Roos <mroos@linux.ee>
-Date: Sat, 14 Apr 2007 13:20:54 +0300 (EEST)
+Dear Mr. Miller,
+dear listmembers,
+ok ok, 2.4 is not that interesting any more - but would you kindly consider=
+ something for 2.4 too in case you touch 2.6 in this regard?
 
-> I tried todays 2.6.21-rc6+git on Ultra 5 to test out the latest merged 
-> sparc64 changes. Works fine here.
-> 
-> I have not looked into /proc for some time but now I did. One slightly 
-> strange this is in /proc/interrupts - timer has <NULL> interrupt type:
->            CPU0
->   0:       9404     <NULL>  timer
->   1:          0      sun4u  SABRE PCIERR
->   2:          0      sun4u  SABRE UE
->   3:          0      sun4u  SABRE CE
->   4:          0      sun4u  power
->   5:        339      sun4u  sab
->   6:          0      sun4u  su(kbd)
->   7:          0      sun4u  su(mouse)
->   8:          1      sun4u  parport0
->   9:          4      sun4u  floppy
->  12:        402      sun4u  eth0
->  14:       4768      sun4u  ide0
-> 
-> Is this intentional or rather by accident?
+  0:  181134480          0  timer:dead
 
+on 2.4 doesn't look ok, either.
+
+But, nothing really serious, just in case you'd find the time.
+
+Thank you very much,
+take care
+
+
+
+Dieter Jurzitza
+
+
+-----Urspr=FCngliche Nachricht-----
+Von:	sparclinux-owner@vger.kernel.org im Auftrag von David Miller
+Gesendet:	Sa 14.04.2007 19:00
+*****
 Yeah, there is no interrupt controller driving the timer
 interrupt so there is no "struct irq_chip" hung off of
 it.  I could put some dummy entry there to make the
 "<NULL>" read something more pleasant :-)
+******=20
+=20
+*******************************************
+Harman Becker Automotive Systems GmbH
+Geschaeftsfuehrung:  Dr. Peter Geiselhart  -  Michael Mauser  -  William S.=
+ Palin -  Edwin Summers  -  Regis Baudot
+Sitz der Gesellschaft: Karlsbad - Registergericht: Mannheim HRB 361395
+=20
+*******************************************
+Diese E-Mail enthaelt vertrauliche und/oder rechtlich geschuetzte Informati=
+onen. Wenn Sie nicht der richtige Adressat sind oder diese E-Mail irrtuemli=
+ch erhalten haben, informieren Sie bitte sofort den Absender und loeschen S=
+ie diese Mail. Das unerlaubte Kopieren sowie die unbefugte Weitergabe diese=
+r Mail ist nicht gestattet.
+This e-mail may contain confidential and/or privileged information. If you =
+are not the intended recipient (or have received this e-mail in error) plea=
+se notify the sender immediately and delete this e-mail. Any unauthorized c=
+opying, disclosure or distribution of the contents in this e-mail is strict=
+ly forbidden.
+*******************************************
