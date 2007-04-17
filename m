@@ -1,37 +1,46 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 17 Apr 2007 19:37:40 +0000
+From: "Tom \"spot\" Callaway" <tcallawa@redhat.com>
+Date: Tue, 17 Apr 2007 20:46:55 +0000
 Subject: Re: [TESTERS NEEDED]: Rewritten ESP driver
-Message-Id: <20070417.123740.106773062.davem@davemloft.net>
+Message-Id: <1176842815.4182.26.camel@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20070412.233350.41640545.davem@davemloft.net>
 In-Reply-To: <20070412.233350.41640545.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: BERTRAND_Jo=EBl <joel.bertrand@systella.fr>
-Date: Tue, 17 Apr 2007 21:29:24 +0200
+On Mon, 2007-04-16 at 01:29 -0700, David Miller wrote:
 
-> David Miller a =E9crit :
-> > From: BERTRAND_Jo=EBl <joel.bertrand@systella.fr>
-> > Date: Tue, 17 Apr 2007 17:28:24 +0200
-> >=20
-> >> 	Some news about this new driver on sparc32.
-> >> Test configuration : SS20 with dual SM71, 448 MB, VSIMM, internal raid=
-1,=20
-> >>   ESP100A and HME-ESP (UW). All esp patches are applied against=20
-> >> 2.6.21-rc7 (thus with new IOMMU Sbus support).
-> >=20
-> > THe IOMMU sbus support patch only effects sparc32, so applying
-> > that patch for sparc32 testing will have no effect.
->=20
-> 	I suppose that I have to read 'only effect sparc64', isn't it ?
+> The sense looks good, the device is just saying that it has
+> been reset too recently.
+> 
+> The extended sense codes are 0x29 and 0x02, but the scsi scan only
+> retries the INQUIRY if the extended sense codes are 0x29 and 0x00 for
+> whatever reason.
+> 
+> Let's let the bus settle properly after a scsi reset in order to avoid
+> this altogether.
+> 
+> Please give this patch a spin.
 
-Right, that was a thinko :-)
+This does the trick. Only issue of concern: Mounting CDROMs seems to
+throw:
 
-> > Does the existing ESP driver work fine on this machine?
->=20
-> 	The old one works fine.
+Buffer I/O error on device sr0, logical block 2096896
+Buffer I/O error on device sr0, logical block 2096897
+Buffer I/O error on device sr0, logical block 2096898
+Buffer I/O error on device sr0, logical block 2096899
+Buffer I/O error on device sr0, logical block 2096900
+Buffer I/O error on device sr0, logical block 2096901
+Buffer I/O error on device sr0, logical block 2096902
+Buffer I/O error on device sr0, logical block 2096903
+Buffer I/O error on device sr0, logical block 2096896
+Buffer I/O error on device sr0, logical block 2096897
 
-Ok, thank you.
+None of these errors seems fatal, the CDROM mounts fine, and is usable.
+
+Thanks!
+
+~spot
+
