@@ -1,40 +1,27 @@
-From: "Marcel van Nies" <morcles@gmail.com>
-Date: Sat, 21 Apr 2007 18:46:31 +0000
-Subject: [PATCH] sunlance fix module unload
-Message-Id: <c75cfb180704211146n20daf830p18d451d6fc1a793b@mail.gmail.com>
+From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
+Date: Tue, 17 Apr 2007 14:59:58 +0000
+Subject: [patch] sparc32 makefile
+Message-Id: <4624E0EE.3010003@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Hi all,
+	Hello,
 
-This patch fixes the sunlance driver.
+	Trivial patch to reduce size of sparc32 kernel.
 
-I've tested this on my SS20.
-Thanks.
+Signed-off-by: Jo=EBl Bertrand <jkb@systella.fr>
 
-Signed-off-by: Marcel van Nies <morcles@gmail.com>
+--- a/arch/sparc/boot/Makefile  2007-03-16 01:20:01.000000000 +0100
++++ b/arch/sparc/boot/Makefile  2007-04-17 16:48:55.000000000 +0200
+@@ -49,6 +49,7 @@
+  # these files being recompiled for each build.
+  $(obj)/image: $(obj)/btfix.o FORCE
+         $(call if_changed_rule,image)
++       strip -R .indent -R .comment -R .note $(obj)/image -o=20
+vmlinux.stripped
 
---- linux-2.6.21-rc7-git5-up/drivers/net/sunlance.c.org	2007-02-04
-19:44:54.000000000 +0100
-+++ linux-2.6.21-rc7-git5-up/drivers/net/sunlance.c	2007-04-21
-19:36:52.000000000 +0200
-@@ -1550,7 +1550,7 @@
- 	struct lance_private *lp = dev_get_drvdata(&sun4_sdev.ofdev.dev);
- 	struct net_device *net_dev = lp->dev;
-
--	unregister_netdevice(net_dev);
-+	unregister_netdev(net_dev);
-
- 	lance_free_hwresources(lp);
-
-@@ -1590,7 +1590,7 @@
- 	struct lance_private *lp = dev_get_drvdata(&dev->dev);
- 	struct net_device *net_dev = lp->dev;
-
--	unregister_netdevice(net_dev);
-+	unregister_netdev(net_dev);
-
- 	lance_free_hwresources(lp);
+  $(obj)/tftpboot.img: $(obj)/piggyback $(obj)/System.map $(obj)/image FORCE
+         $(call if_changed,elftoaout)
