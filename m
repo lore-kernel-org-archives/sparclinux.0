@@ -1,113 +1,23 @@
-From: <vignesh.babu@wipro.com>
-Date: Tue, 17 Apr 2007 04:27:11 +0000
-Subject: [KJ][PATCH]vfc_dev.c-kzalloc
-Message-Id: <1176783312.13551.43.camel@wriver-t81fb058.linuxcoe>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-OCJXaln3pqZ15bl1LGU4"
+From: David Miller <davem@davemloft.net>
+Date: Tue, 17 Apr 2007 19:42:41 +0000
+Subject: Re: [KJ][PATCH]vfc_dev.c-kzalloc
+Message-Id: <20070417.124241.123165234.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1176703528.13066.9.camel@wriver-t81fb058.linuxcoe>
 In-Reply-To: <1176703528.13066.9.camel@wriver-t81fb058.linuxcoe>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: kernel-janitors@vger.kernel.org
 
+From: <vignesh.babu@wipro.com>
+Date: Tue, 17 Apr 2007 09:45:11 +0530
 
---=-OCJXaln3pqZ15bl1LGU4
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+> 
+> Resending...thanks to Antonino A. Daplas who pointed me to the correct maintainers.
+> 
+> Replacing kmalloc/memset combination with kzalloc.
+> 
+> Signed-off-by: vignesh babu <vignesh.babu@wipro.com>
 
-
-Resending...thanks to Antonino A. Daplas who pointed me to the correct main=
-tainers.
-
-Replacing kmalloc/memset combination with kzalloc.
-
-Signed-off-by: vignesh babu <vignesh.babu@wipro.com>
----
-diff --git a/drivers/sbus/char/vfc_dev.c b/drivers/sbus/char/vfc_dev.c
-index 8bfb67c..c3135e2 100644
---- a/drivers/sbus/char/vfc_dev.c
-+++ b/drivers/sbus/char/vfc_dev.c
-@@ -259,11 +259,10 @@ static int vfc_debug(struct vfc_dev *dev, int cmd, vo=
-id __user *argp)
- 		if (copy_from_user(&inout, argp, sizeof(inout)))
- 			return -EFAULT;
-=20
--		buffer =3D kmalloc(inout.len, GFP_KERNEL);
-+		buffer =3D kzalloc(inout.len, GFP_KERNEL);
- 		if (buffer =3D=3D NULL)
- 			return -ENOMEM;
-=20
--		memset(buffer,0,inout.len);
- 		vfc_lock_device(dev);
- 		inout.ret=3D
- 			vfc_i2c_recvbuf(dev,inout.addr & 0xff
-
---=20
-Regards, =20
-Vignesh Babu BM =20
-_____________________________________________________________ =20
-"Why is it that every time I'm with you, makes me believe in magic?"
-
---=-OCJXaln3pqZ15bl1LGU4
-Content-Type: application/x-pkcs7-signature; name=smime.p7s
-Content-Disposition: attachment; filename=smime.p7s
-Content-Transfer-Encoding: base64
-
-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
-CQYDVQQGEwJaQTElMCMGA1UEChMcVGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UE
-AxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVtYWlsIElzc3VpbmcgQ0EwgZ8wDQYJKoZIhvcNAQEBBQAD
-gY0AMIGJAoGBAMSmPFVzVftOucqZWh5owHUEcJ3f6f+jHuy9zfVb8hp2vX8MOmHyv1HOAdTlUAow
-1wJjWiyJFXCO3cnwK4Vaqj9xVsuvPAsH5/EfkTYkKhPPK9Xzgnc9A74r/rsYPge/QIACZNenpruf
-ZdHFKlSFD0gEf6e20TxhBEAeZBlyYLf7AgMBAAGjgZQwgZEwEgYDVR0TAQH/BAgwBgEB/wIBADBD
-BgNVHR8EPDA6MDigNqA0hjJodHRwOi8vY3JsLnRoYXd0ZS5jb20vVGhhd3RlUGVyc29uYWxGcmVl
-bWFpbENBLmNybDALBgNVHQ8EBAMCAQYwKQYDVR0RBCIwIKQeMBwxGjAYBgNVBAMTEVByaXZhdGVM
-YWJlbDItMTM4MA0GCSqGSIb3DQEBBQUAA4GBAEiM0VCD6gsuzA2jZqxnD3+vrL7CF6FDlpSdf0wh
-uPg2H6otnzYvwPQcUCCTcDz9reFhYsPZOhl+hLGZGwDFGguCdJ4lUJRix9sncVcljd2pnDmOjCBP
-ZV+V2vf3h9bGCE6u9uo05RAaWzVNd+NWIXiC3CEZNd4ksdMdRv9dX2VPMYIDEDCCAwwCAQEwdjBi
-MQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoG
-A1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVtYWlsIElzc3VpbmcgQ0ECEBRBWlnPDDQELOU4iM67
-/5AwCQYFKw4DAhoFAKCCAW8wGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUx
-DxcNMDcwNDE3MDQxNTExWjAjBgkqhkiG9w0BCQQxFgQUYfiHbk5HWfMSbWfNX5hhrqsy+RcwgYUG
-CSsGAQQBgjcQBDF4MHYwYjELMAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5n
-IChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENB
-AhAUQVpZzww0BCzlOIjOu/+QMIGHBgsqhkiG9w0BCRACCzF4oHYwYjELMAkGA1UEBhMCWkExJTAj
-BgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJz
-b25hbCBGcmVlbWFpbCBJc3N1aW5nIENBAhAUQVpZzww0BCzlOIjOu/+QMA0GCSqGSIb3DQEBAQUA
-BIIBABDnzbnYRfsN3yiVvEb/coGTmGKDk56szjTpzjVJlD687HJYu7vtid3QiSU8jH9E4z/OosU3
-4s1bqep6dVdqOoscBQ42iRGbGiPtGacOV91KlocKroSC0l/FmqmLzns6NlUwssDCmPa4rvUNclsb
-Aou2EoscJxMcnYbMbZfWsrrqNJ3EGu4gegjdI8TYxBOGMzMRxoV62bH5MxtqywCIb/b7kifaL09Q
-md6Tr/m/FtNCkzv+1Jfbq20IkfnNd0JwYtsvZ/oYYuL6ZgNP54cSvcbD1QH7cxCk+vDS531Vm3HL
-cmyT6BayBLVq3UUTqPAORfZJZlsuDN4PCnIjpTJ2X94AAAAAAAA=
-
-
---=-OCJXaln3pqZ15bl1LGU4--
+Patch applied, thank you.
