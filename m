@@ -1,47 +1,41 @@
-From: Pasi Pirhonen <upi@centos.fi>
-Date: Thu, 19 Apr 2007 09:04:09 +0000
+From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
+Date: Thu, 19 Apr 2007 12:19:48 +0000
 Subject: Re: [TESTERS NEEDED]: Rewritten ESP driver
-Message-Id: <20070419090409.GD6300@centos.fi>
+Message-Id: <46275E64.8080404@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20070412.233350.41640545.davem@davemloft.net>
 In-Reply-To: <20070412.233350.41640545.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Hi,
+David Miller a =E9crit :
+> From: BERTRAND_Jo=EBl <joel.bertrand@systella.fr>
+> Date: Tue, 17 Apr 2007 17:28:24 +0200
+>=20
+>> 	esp: esp0: reconnect, tag type changed 22 --> 00
+>=20
+> There is a bug in this error message, could you reproduce
+> this with the following fix applied so I can debug this
+> further?
+>=20
+> The patch might apply with some fuzz.  Even if it doesn't
+> apply, it is very easy for you to hand edit the file to
+> change that esp->command_block[1] into esp->command_block[0]
+> :-)
 
+	Thanks. Patch applied. Now, kernel says :
+...
+/dev/md1: clean, 220181/1251712 files...
+esp: esp0: Reconnect, tag type changed 22 --> 20
+esp: esp0: Aborting command [fbc5f3c0:2a]
+esp: esp0: Queued command [fbc5f3c0:2a]
+esp: esp0: Queued command [fbc5f4e0:2a]
+esp: esp0: Dumping command log
 
-On Thu, Apr 19, 2007 at 12:41:39AM -0700, David Miller wrote:
-> From: Pasi Pirhonen <upi@centos.fi>
-> > 
-> > ... if that is clue for reason at all.
-> 
-> The two disks are identical except for MODE_SENSE settings printed
-> here and those are just some timeout parameters and such.
+followd by a lot of insane messages ;-)
 
-That was the reason why i posted that info. Later i saw that you did
-figure it out to be timing issue.
+	Regards,
 
-> 
-> The current driver should not hit the problems you saw.  I plan
-> to post in-full the current driver as a patch in a few moments,
-> if you could retest this case with it, I'd really appreciate it.
-> 
-
-I'll test it when you post it. 
-
-Other info (my .02 currency units) so far is that i did run little less
-than 4 days this previously patches driver under various loads (several
-times dbench 32 over two separate drives while compiling with load 20+
-before this dbench load) and i didn't have any problems. It just did
-the work from day to day. This is relatively short time, but it's at
-my experiences so far. So at least the disk access seems to be fine a
-little longer period than just booting it up.
-
-
-
--- 
-Pasi Pirhonen - upi@iki.fi - http://pasi.pirhonen.eu/
-Top-postings silently ignored
+	JKB
