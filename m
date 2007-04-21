@@ -1,41 +1,50 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 17 Apr 2007 18:48:57 +0000
+From: "Marcel van Nies" <morcles@gmail.com>
+Date: Sat, 21 Apr 2007 18:43:14 +0000
 Subject: Re: QuadEthernet driver broken
-Message-Id: <20070417.114857.54189141.davem@davemloft.net>
+Message-Id: <c75cfb180704211143l2f61350s1368101886baf380@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <87lkgxgxvj.fsf@chbouib.org>
 In-Reply-To: <87lkgxgxvj.fsf@chbouib.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: ludo@chbouib.org (Ludovic Court=E8s)
-Date: Tue, 17 Apr 2007 20:45:26 +0200
+Hi,
 
-> Hi,
->=20
-> ludo@chbouib.org (Ludovic Court=E8s) writes:
->=20
-> > The `sunqe' driver appears to be currently broken:
-> >
-> >   http://lists.debian.org/debian-sparc/2007/04/msg00036.html
->=20
-> To sum up, `sunqe' displays erroneous addresses at initialization time:
->=20
->   sunqe.c:v4.0 June 23, 2006 David S. Miller (davem@davemloft.net)
->   eth0: qe channel[0] 00:00:00:00:00:00=20
->   eth1: qe channel[1] 00:00:00:00:00:00=20
->   eth2: qe channel[2] 00:00:00:00:00:00=20
->   eth3: qe channel[3] 00:00:00:00:00:00
->=20
-> Since these are displayed at module initialization time (in
-> `qec_ether_init ()'), couldn't it be due to incorrect accesses to the
-> PROM device tree, somehow related to the recent PROM API change [0]?
+The MAC address assignment at module loading is simply forgotten.
+The bug at module unloading is caused by an incorrect call.
 
-I'll look into this bug report, I'm just swamped with about
-10 or so other sparc platform bug reports at this time.
+The bug at module unloading does not only happen for sunqe,
+sunlance and sunhme (sbus) suffer from it too.
 
-Just be patient or figure out the bug yourself and post a patch
-for me to apply which fixes it :-)
+This patch fixes the sunqe driver.
+The sunlance and sunhme will follow.
 
+I've tested this on my SS20.
+Thanks.
+
+Signed-off-by: Marcel van Nies <morcles@gmail.com>
+
+--- linux-2.6.21-rc7-git5-up/drivers/net/sunqe.c.org	2007-02-04
+19:44:54.000000000 +0100
++++ linux-2.6.21-rc7-git5-up/drivers/net/sunqe.c	2007-04-21
+20:15:08.000000000 +0200
+@@ -845,6 +845,8 @@
+ 	if (!dev)
+ 		return -ENOMEM;
+
++	memcpy(dev->dev_addr, idprom->id_ethaddr, 6);
++
+ 	qe = netdev_priv(dev);
+
+ 	i = of_getintprop_default(sdev->ofdev.node, "channel#", -1);
+@@ -960,7 +962,7 @@
+ 	struct sunqe *qp = dev_get_drvdata(&dev->dev);
+ 	struct net_device *net_dev = qp->dev;
+
+-	unregister_netdevice(net_dev);
++	unregister_netdev(net_dev);
+
+ 	sbus_iounmap(qp->qcregs, CREG_REG_SIZE);
+ 	sbus_iounmap(qp->mregs, MREGS_REG_SIZE);
