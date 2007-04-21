@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 20 Apr 2007 23:19:01 +0000
+From: Georg Chini <georg.chini@triaton-webhosting.com>
+Date: Sat, 21 Apr 2007 22:38:58 +0000
 Subject: Re: [TESTERS NEEDED]: Rewritten ESP driver
-Message-Id: <20070420.161901.58439818.davem@davemloft.net>
+Message-Id: <462A9282.9060009@triaton-webhosting.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20070412.233350.41640545.davem@davemloft.net>
 In-Reply-To: <20070412.233350.41640545.davem@davemloft.net>
@@ -10,32 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: "Adam Kropelin" <akropel1@rochester.rr.com>
-Date: Fri, 20 Apr 2007 18:55:37 -0400
 
-> David Miller wrote:
-> >>> From: "Adam Kropelin" <akropel1@rochester.rr.com>
-> >>>> Starting smartd: esp: esp0: Aborting command [fffff80030b05280:2a]
-> >>>> esp: esp0: Active command [fffff80030b05280:2a]
-> >>>> esp: esp0: Aborting command [fffff80030b05280:00]
-> >>>> esp: esp0: Queued command [fffff80030b05280:00]
-> >>>> esp: esp0: Aborting command [fffff80030b05280:00]
-> >>>> esp: esp0: Queued command [fffff80030b05280:00]
-> > Ok I think I nailed this.
-> >
-> > I converted the ESP driver over to using auto-requestsense
-> > when CHECK_CONDITION occurs for a scsi command.
-> >
-> > The new ESP driver now passes my dbench+smartd-loop stress
-> > test.
-> 
-> Works here, too. I have run dry of issues to report: the new driver is 
-> working flawlessly.
 
-Thanks for testing.
+David Miller wrote:
 
-I only need to resolve the bug that Bertrand is still seeing
-where the reconnect tag gets corrupted somehow.
+>
+>I only need to resolve the bug that Bertrand is still seeing
+>where the reconnect tag gets corrupted somehow.
+>
+>I'll try to work on that over the weekend, but for everyone
+>else keep beating on it :-)
+>-
+>
+>  
+>
+Hi Dave,
 
-I'll try to work on that over the weekend, but for everyone
-else keep beating on it :-)
+I'm seeing the same problem on my ultra2 with 2.6.21-rc7 and
+your patch. Even the message is the same. Maybe it is connected
+to the use of md-devices, as far as I could see from the logs
+Bertrand is also using md-devices. If I can provide any debugging
+output, please advise.
+
+Regards
+             Georg 
