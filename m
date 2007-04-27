@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 25 Apr 2007 19:47:50 +0000
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Date: Fri, 27 Apr 2007 20:18:45 +0000
 Subject: Re: Dropping sparc32 for lenny
-Message-Id: <20070425.124750.21595609.davem@davemloft.net>
+Message-Id: <Pine.LNX.4.61.0704272211260.506@yvahk01.tjqt.qr>
 List-Id: <sparclinux.vger.kernel.org>
 References: <462E1F8E.3070406@systella.fr>
 In-Reply-To: <462E1F8E.3070406@systella.fr>
@@ -10,18 +10,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date: Wed, 25 Apr 2007 15:10:25 +0100 (BST)
 
-> I apear to have mis-understood somthing here.
-> In 2.6.20.7 MAINTAINERS file, the sparc32 maintainer is William L. Irwin.
-> Is this different from an active kernel maintainer?
+On Apr 27 2007 19:15, Michelle Konzack wrote:
+>
+>Tried to run OpenOffice on a sparc32 with maximum of 512 MByte of memory?
+>[...]
+>I was not saying to DROP sparc32, but exclude some heavy applications
+>which make definitivly no sens on such Computers...
+>[...]
+>So, I think, some $ARCH should loss weight.
 
-Except he hasn't had the time to actually do anything in at least the
-last half a year or so.  I've made more fixes to the sparc32 tree than
-he has.
+If you already ask that way, I suppose the answer would be "you
+should not". These applications should be fixed. Something _ought_ to
+be wrong (no advertising intended although I can't help it if it
+does) if Softmaker Office, directly after start with a blank new
+document, uses less than 10 MB of RSS (i386) when OpenOffice is
+already at no less than 80 (and if it's just a ton of shared
+libraries). I think some $PROGs should lose weight first, then
+perhaps they do not even need to be dropped.
 
-If you've been following this list and the sparc32 port at all you'd
-know this.  Just spitting out some reference to the MAINTAINERS file
-without any substance to back it up is just an uninformed straw-man on
-your part.
+And now note that I do not have a sparc32, so I can't quite compare,
+but I know what pain sparc32 owners are in, because they usually got
+less memory than most 'small' (understatement for 'a lot of weight')
+sparc64 servers (thinking of E250).
+
+I guess that was a bit offtopic now.
+
+
+Jan
+-- 
