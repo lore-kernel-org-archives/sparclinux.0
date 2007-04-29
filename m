@@ -1,23 +1,26 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 17 Apr 2007 19:42:41 +0000
-Subject: Re: [KJ][PATCH]vfc_dev.c-kzalloc
-Message-Id: <20070417.124241.123165234.davem@davemloft.net>
+From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
+Date: Sun, 29 Apr 2007 13:02:32 +0000
+Subject: vm changes from linux-2.6.14 to linux-2.6.15
+Message-Id: <Pine.LNX.4.61.0704291345480.690@mtfhpc.demon.co.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1176703528.13066.9.camel@wriver-t81fb058.linuxcoe>
-In-Reply-To: <1176703528.13066.9.camel@wriver-t81fb058.linuxcoe>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: kernel-janitors@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: <vignesh.babu@wipro.com>
-Date: Tue, 17 Apr 2007 09:45:11 +0530
+Hi,
 
-> 
-> Resending...thanks to Antonino A. Daplas who pointed me to the correct maintainers.
-> 
-> Replacing kmalloc/memset combination with kzalloc.
-> 
-> Signed-off-by: vignesh babu <vignesh.babu@wipro.com>
+Does any one have or know of a good reference that would help me in 
+identifing the cause of a CPU soft lockup that apears to be related to 
+changes in the vertual memory handling between these two versions of the 
+kernel?
 
-Patch applied, thank you.
+My SS1 clone and SS2 are both unable to run much more than sash due to 
+some change in all kernel I have tried post 2.6.14 (2.6.15, 2.6.15.7, 
+2.6.16.48, 2.6.20.7 and 2.6.20.9).
+
+I would like to get my SS1 onto the 2.6.20.x kernels so I can run a common 
+kernel across my development systems.
+
+Regards
+ 	Mark Fortescue.
