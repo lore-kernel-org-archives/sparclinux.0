@@ -1,27 +1,42 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 29 May 2007 08:08:15 +0000
-Subject: Re: [PATCH] sun_esp.c build for sparc32 UP
-Message-Id: <20070529.010815.21922742.davem@davemloft.net>
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Date: Tue, 01 May 2007 00:00:19 +0000
+Subject: Re: vm changes from linux-2.6.14 to linux-2.6.15
+Message-Id: <1177977619.24962.6.camel@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070528234304.GA24466@palantir8>
-In-Reply-To: <20070528234304.GA24466@palantir8>
+References: <1177852457.4390.26.camel@localhost.localdomain>
+	 <Pine.LNX.4.61.0704302159140.3178@mtfhpc.demon.co.uk>
+	 <20070430145414.88fda272.akpm@linux-foundation.org>
+	 <20070430.150407.07642146.davem@davemloft.net>
+In-Reply-To: <20070430.150407.07642146.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: akpm@linux-foundation.org, mark@mtfhpc.demon.co.uk, linuxppc-dev@ozlabs.org, wli@holomorphy.com, linux-mm@kvack.org, andrea@suse.de, sparclinux@vger.kernel.org
 
-From: Martin Habets <errandir_news@mph.eclipse.co.uk>
-Date: Tue, 29 May 2007 00:43:04 +0100
 
-> These are due to udelay(). The code includes asm/delay.h (indirectly), but
-> that is not enough to make it work.
+> > Interesting - thanks for working that out.  Let's keep linux-mm on cc please.
+> 
+> You can't elide the update_mmu_cache() call on sun4c because that will
+> miss some critical TLB setups which are performed there.
+> 
+> The sun4c TLB has two tiers of entries:
+> 
+> 1) segment maps, these hold ptes for a range of addresses
+> 2) ptes, mapped into segment maps
+> 
+> update_mmu_cache() on sun4c take care of allocating and setting
+> up the segment maps, so if you elide the call this never happens
+> and we fault forever.
 
-Indeed, my initial suspicion was right, I have fixed this already
-in my sparc-2.6 GIT tree since late last week.
+Maybe we can move that logic to ptep_set_access_flags()... in fact, the
+tlb flush logic should be done there too imho.
 
-I've been meaning to push this fix to Linus along with the rest of
-my sparc-2.6 GIT tree but it's been waiting on a sparc64 bug fix
-that haven't been able to complete due to a binutils bug which
-I only figured out late last night.
+There would still be the update_mmu_cache() that we don't want on
+powerpc in all cases I suppose. That can be done by having
+ptep_set_access_flags() return a boolean indicating wether
+update_mmu_cache() shall be called or not ...
 
-So please be patient or use my sparc-2.6 GIT tree :-)
+Ben.
+
+
