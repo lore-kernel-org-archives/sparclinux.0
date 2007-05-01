@@ -1,42 +1,74 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Date: Tue, 29 May 2007 20:11:35 +0000
-Subject: Re: raid10 kernel panic on sparc64
-Message-Id: <Pine.LNX.4.61.0705292211040.11140@yvahk01.tjqt.qr>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Tue, 01 May 2007 07:22:50 +0000
+Subject: [PATCH 0/11] Consolidation of Open Firmware routines
+Message-Id: <20070501172250.80707fb8.sfr@canb.auug.org.au>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Signature=_Tue__1_May_2007_17_22_50_+1000_2FNZMhIkHjgaNk_P"
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.61.0704020211380.1245@yvahk01.tjqt.qr>
- <20070412.142628.27805319.davem@davemloft.net> <Pine.LNX.4.61.0705261710130.7344@yvahk01.tjqt.qr>
- <20070526.155001.112603157.davem@davemloft.net>
-In-Reply-To: <20070526.155001.112603157.davem@davemloft.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: "David S. Miller" <davem@davemloft.net>, paulus@samba.org
+Cc: sparclinux@vger.kernel.org, ppc-dev <linuxppc-dev@ozlabs.org>
+
+--Signature=_Tue__1_May_2007_17_22_50_+1000_2FNZMhIkHjgaNk_P
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: linux-raid@vger.kernel.org, sparclinux@vger.kernel.org
 
+Hi all,
 
-On May 26 2007 15:50, David Miller wrote:
->> >
->> >> Kernel is kernel-smp-2.6.16-1.2128sp4.sparc64.rpm from Aurora Corona.
->> >> Perhaps it helps, otherwise hold your breath until I reproduce it.
->> >
->> >Jan, if you can reproduce this with the current 2.6.20 vanilla
->> >kernel I'd be very interested in a full trace so that I can
->> >try to fix this.
->> >
->> >With the combination of an old kernel and only part of the
->> >crash trace, there isn't much I can do with this report.
->> 
->> Does not seem to happen under 2.6.21-1.3149.al3.2smp anymore.
->
->Thanks for following up on this Jan.
->
->I'd personally really appreciate reports against upstream
->instead of dist kernels in the future, and I'm sure the
->linux-raid maintainers feel similarly :-)
+Just thought I would show you all where I am up to.  I have moved from
+openfw.h, drivers/openf and CONFIG_OPENFW to of.h, drivers/of and
+CONFIG_OF - if this offends anyone please scream soon so I can change
+that back.
 
-The days where compiling a full kernel on 400-800 Mhz boxes
-in less than 45 minutes are unfortunately over.
+The current diffstat looks like below, so some progress has been made:
 
+ arch/powerpc/Kconfig              |    3 +
+ arch/powerpc/kernel/of_device.c   |  122 +----------------
+ arch/powerpc/kernel/prom.c        |  249 +---------------------------------
+ arch/sparc/Kconfig                |    3 +
+ arch/sparc/kernel/of_device.c     |  151 +++-----------------
+ arch/sparc/kernel/prom.c          |  173 +-----------------------
+ arch/sparc/kernel/time.c          |    2 +-
+ arch/sparc64/Kconfig              |    3 +
+ arch/sparc64/kernel/auxio.c       |    2 +-
+ arch/sparc64/kernel/of_device.c   |  164 ++++------------------
+ arch/sparc64/kernel/power.c       |    2 +-
+ arch/sparc64/kernel/prom.c        |  173 +-----------------------
+ arch/sparc64/kernel/time.c        |    2 +-
+ drivers/Kconfig                   |    2 +
+ drivers/Makefile                  |    1 +
+ drivers/of/Kconfig                |    3 +
+ drivers/of/Makefile               |    2 +
+ drivers/of/base.c                 |  274 +++++++++++++++++++++++++++++++++++++
+ drivers/of/device.c               |  131 ++++++++++++++++++
+ include/asm-powerpc/of_device.h   |   22 +---
+ include/asm-powerpc/of_platform.h |   38 +-----
+ include/asm-powerpc/prom.h        |   47 ++-----
+ include/asm-sparc/of_device.h     |   49 +------
+ include/asm-sparc/of_platform.h   |   32 +++++
+ include/asm-sparc/prom.h          |   65 +++------
+ include/asm-sparc64/of_device.h   |   50 +------
+ include/asm-sparc64/of_platform.h |   33 +++++
+ include/asm-sparc64/prom.h        |   65 +++------
+ include/linux/of.h                |   60 ++++++++
+ include/linux/of_device.h         |   26 ++++
+ include/linux/of_platform.h       |   55 ++++++++
 
-	Jan
--- 
+The battle continues :-)
+--
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
+
+--Signature=_Tue__1_May_2007_17_22_50_+1000_2FNZMhIkHjgaNk_P
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFGNurPFdBgD/zoJvwRAlQHAJ4gsKsKO1dh+bmQt/9v6k5FKCk7pACgkuGw
+aL8CeDRcy04KoaP566XMMhE=
+=kdf/
+-----END PGP SIGNATURE-----
+
+--Signature=_Tue__1_May_2007_17_22_50_+1000_2FNZMhIkHjgaNk_P--
