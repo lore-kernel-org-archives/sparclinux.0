@@ -1,37 +1,90 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Date: Mon, 21 May 2007 22:09:39 +0000
-Subject: Re: vm changes from linux-2.6.14 to linux-2.6.15
-Message-Id: <1179785379.32247.745.camel@localhost.localdomain>
+From: Martin Habets <errandir_news@mph.eclipse.co.uk>
+Date: Mon, 07 May 2007 19:49:30 +0000
+Subject: Re: [PATCH]: Final ESP driver rewrite
+Message-Id: <20070507194930.GB27915@palantir8>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.61.0705012354290.12808@mtfhpc.demon.co.uk>
-	 <20070509231937.ea254c26.akpm@linux-foundation.org>
-	 <1178778583.14928.210.camel@localhost.localdomain>
-	 <20070510.001234.126579706.davem@davemloft.net>
-	 <Pine.LNX.4.64.0705142018090.18453@blonde.wat.veritas.com>
-	 <1179176845.32247.107.camel@localhost.localdomain>
-	 <1179212184.32247.163.camel@localhost.localdomain>
-	 <1179757647.6254.235.camel@localhost.localdomain>
-In-Reply-To: <1179757647.6254.235.camel@localhost.localdomain>
+References: <20070427.002829.43009224.davem@davemloft.net>
+In-Reply-To: <20070427.002829.43009224.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Tom \"spot\" Callaway" <tcallawa@redhat.com>
-Cc: Hugh Dickins <hugh@veritas.com>, David Miller <davem@davemloft.net>, akpm@linux-foundation.org, mark@mtfhpc.demon.co.uk, linuxppc-dev@ozlabs.org, wli@holomorphy.com, linux-mm@kvack.org, andrea@suse.de, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Mon, 2007-05-21 at 09:27 -0500, Tom "spot" Callaway wrote:
-> On Tue, 2007-05-15 at 16:56 +1000, Benjamin Herrenschmidt wrote:
-> > > Ok, I'll cook a patch today.
-> > 
-> > Let's make it tomorrow :-( Got delayed by other urgent things
-> 
-> Not to be annoying, but I'm patiently waiting on this patch. Would like
-> to test sun4c before shipping Aurora 3.0. Any status?
+Hello David,
 
-Damn, kick me harder ! I totally forgot... probably what happens when
-one is deep into bringing up some new HW toys !
+Building this I got the following warnings from modpost:
 
-Sorry about that, I'll do it asap.
+WARNING: vmlinux - Section mismatch: reference to .init.text:esp_bootup_reset from .text between 'esp_eh_host_reset_handler' (at offset 0x108814) and 'esp_info'
+WARNING: vmlinux - Section mismatch: reference to .init.text:scsi_esp_register from __ksymtab between '__ksymtab_scsi_esp_register' (at offset 0x2a20) and '__ksymtab_scsi_esp_intr'
 
-Cheers
-Ben.
+Regarding the first one: esp_bootup_reset gets called from
+esp_eh_host_reset_handler, so it cannot be __devinit. The patch
+attached fixes this.
 
+The second one is more tricky. From my understanding the ksymtab
+sections do not affect what modpost is checking here, so my guess
+is we should ignore that warning.
+
+I've also attached the boot output I get, no problems with the code.
+Nice job!
+
+Regards,
+Martin Habets
+
+        Signed-off-by: Martin Habets <errandir_news@mph.eclipse.co.uk>
+---
+esp: esp0, regs[fd016000:fd00f000] irq[36]
+esp: esp0 is a FAS100A, 40 MHz (ccf=0), SCSI ID 7
+scsi0 : esp
+scsi 0:0:0:0: Sequential-Access Quantum  DLT4000          DA97 PQ: 0 ANSI: 2
+ target0:0:0: Beginning Domain Validation
+ target0:0:0: FAST-10 SCSI 10.0 MB/s ST (100 ns, offset 15)
+ target0:0:0: Domain Validation skipping write tests
+ target0:0:0: Ending Domain Validation
+scsi 0:0:1:0: Direct-Access     SEAGATE  ST39173W SUN9.0G 7063 PQ: 0 ANSI: 2
+ target0:0:1: Beginning Domain Validation
+ target0:0:1: FAST-10 SCSI 10.0 MB/s ST (100 ns, offset 15)
+ target0:0:1: Domain Validation skipping write tests
+ target0:0:1: Ending Domain Validation
+scsi 0:0:3:0: Direct-Access     SEAGATE  ST32550W SUN2.1G 0416 PQ: 0 ANSI: 2
+ target0:0:3: Beginning Domain Validation
+ target0:0:3: FAST-10 SCSI 10.0 MB/s ST (100 ns, offset 15)
+ target0:0:3: Domain Validation skipping write tests
+ target0:0:3: Ending Domain Validation
+esp: esp0, regs[fd017000:fd011000] irq[53]
+esp: esp0 is a FAS236, 40 MHz (ccf=0), SCSI ID 7
+scsi1 : esp
+SCSI device sda: 17689267 512-byte hdwr sectors (9057 MB)
+sda: Write Protect is off
+sda: Mode Sense: cf 00 10 08
+SCSI device sda: write cache: disabled, read cache: enabled, supports DPO and FUA
+SCSI device sda: 17689267 512-byte hdwr sectors (9057 MB)
+sda: Write Protect is off
+sda: Mode Sense: cf 00 10 08
+SCSI device sda: write cache: disabled, read cache: enabled, supports DPO and FUA
+ sda: sda1 sda2 sda3 sda4 sda5 sda6 sda7 sda8
+sd 0:0:1:0: Attached scsi disk sda
+SCSI device sdb: 4194995 512-byte hdwr sectors (2148 MB)
+sdb: Write Protect is off
+sdb: Mode Sense: ab 00 10 08
+SCSI device sdb: write cache: disabled, read cache: enabled, supports DPO and FUA
+SCSI device sdb: 4194995 512-byte hdwr sectors (2148 MB)
+sdb: Write Protect is off
+sdb: Mode Sense: ab 00 10 08
+SCSI device sdb: write cache: disabled, read cache: enabled, supports DPO and FUA
+ sdb: sdb1 sdb2 sdb3 sdb4 sdb5
+sd 0:0:3:0: Attached scsi disk sdb
+
+---
+Index: linux/drivers/scsi/esp_scsi.c
+=================================--- linux.orig/drivers/scsi/esp_scsi.c	2007-05-07 14:33:05.000000000 +0100
++++ linux/drivers/scsi/esp_scsi.c	2007-05-07 20:37:29.000000000 +0100
+@@ -2211,7 +2211,7 @@
+ }
+ 
+ /* This places the ESP into a known state at boot time. */
+-static void __devinit esp_bootup_reset(struct esp *esp)
++static void esp_bootup_reset(struct esp *esp)
+ {
+ 	u8 val;
+ 
