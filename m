@@ -1,34 +1,235 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 07 May 2007 04:58:06 +0000
+From: Martin Habets <errandir_news@mph.eclipse.co.uk>
+Date: Mon, 07 May 2007 13:06:17 +0000
 Subject: Re: [PATCH] fix sun_esp.c compile
-Message-Id: <20070506.215806.41633901.davem@davemloft.net>
+Message-Id: <20070507130617.GA27058@palantir8>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Kj7319i9nmIyA2yE"
 List-Id: <sparclinux.vger.kernel.org>
 References: <463E8CFF.7040103@earthlink.net>
 In-Reply-To: <463E8CFF.7040103@earthlink.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Robert Reif <reif@earthlink.net>
-Date: Sun, 06 May 2007 22:20:47 -0400
 
-> Fix a sparc32 compile problem in latest git.
-> 
-> drivers/scsi/sun_esp.c: In function 'sbus_esp_reset_dma':
-> drivers/scsi/sun_esp.c:294: error: 'loops_per_jiffy' undeclared (first 
-> use in this function)
-> drivers/scsi/sun_esp.c:294: error: (Each undeclared identifier is 
-> reported only once
-> drivers/scsi/sun_esp.c:294: error: for each function it appears in.)
-> drivers/scsi/sun_esp.c: In function 'sbus_esp_dma_drain':
-> drivers/scsi/sun_esp.c:364: error: 'loops_per_jiffy' undeclared (first 
-> use in this function)
-> drivers/scsi/sun_esp.c: In function 'sbus_esp_dma_invalidate':
-> drivers/scsi/sun_esp.c:396: error: 'loops_per_jiffy' undeclared (first 
-> use in this function)
-> 
-> Signed-off-by: Robert Reif <reif@earthlink.net>
+--Kj7319i9nmIyA2yE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Thanks Robert, this is queued up in my sparc-2.6.git tree
-already.
+I applied the esp patch plus the one from robert against 2.6.21,
+but still get a build error. No clue what this error means :(.
+Any cure?
+
+  sparc-linux-ld -m elf32_sparc -r -o .tmp_vmlinux1 -T arch/sparc/kernel/vmlinux.lds arch/sparc/kernel/head.o arch/sparc/kernel/init_task.o  init/built-in.o --start-group  usr/built-in.o  arch/sparc/kernel/built-in.o  arch/sparc/mm/built-in.o  arch/sparc/math-emu/built-in.o  kernel/built-in.o  mm/built-in.o  fs/built-in.o  ipc/built-in.o  security/built-in.o  crypto/built-in.o  block/built-in.o  lib/lib.a  arch/sparc/prom/lib.a  arch/sparc/lib/lib.a  lib/built-in.o  arch/sparc/prom/built-in.o  arch/sparc/lib/built-in.o  drivers/built-in.o  sound/built-in.o  net/built-in.o --end-group 
+scsi_esp_unregister: discarded in section `.exit.text' from drivers/built-in.o
+make: *** [.tmp_vmlinux1] Error 1
+
+Am using gcc 3.4.3. Config attached.
+
+Thanks,
+Martin
+
+--Kj7319i9nmIyA2yE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=mph3
+
+CONFIG_MMU=y
+CONFIG_HIGHMEM=y
+CONFIG_ZONE_DMA=y
+CONFIG_GENERIC_ISA_DMA=y
+CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
+CONFIG_EXPERIMENTAL=y
+CONFIG_BROKEN_ON_SMP=y
+CONFIG_INIT_ENV_ARG_LIMIT=32
+CONFIG_LOCALVERSION="-mph3"
+CONFIG_SWAP=y
+CONFIG_SYSVIPC=y
+CONFIG_SYSVIPC_SYSCTL=y
+CONFIG_SYSCTL=y
+CONFIG_EMBEDDED=y
+CONFIG_UID16=y
+CONFIG_KALLSYMS=y
+CONFIG_PRINTK=y
+CONFIG_BUG=y
+CONFIG_ELF_CORE=y
+CONFIG_BASE_FULL=y
+CONFIG_FUTEX=y
+CONFIG_EPOLL=y
+CONFIG_SHMEM=y
+CONFIG_VM_EVENT_COUNTERS=y
+CONFIG_RT_MUTEXES=y
+CONFIG_BASE_SMALL=0
+CONFIG_SLOB=y
+CONFIG_MODULES=y
+CONFIG_MODULE_UNLOAD=y
+CONFIG_KMOD=y
+CONFIG_BLOCK=y
+CONFIG_IOSCHED_NOOP=y
+CONFIG_IOSCHED_DEADLINE=y
+CONFIG_DEFAULT_DEADLINE=y
+CONFIG_DEFAULT_IOSCHED="deadline"
+CONFIG_SPARC=y
+CONFIG_SPARC32=y
+CONFIG_SBUS=y
+CONFIG_SBUSCHAR=y
+CONFIG_SERIAL_CONSOLE=y
+CONFIG_SUN_AUXIO=y
+CONFIG_SUN_IO=y
+CONFIG_RWSEM_GENERIC_SPINLOCK=y
+CONFIG_GENERIC_FIND_NEXT_BIT=y
+CONFIG_GENERIC_HWEIGHT=y
+CONFIG_GENERIC_CALIBRATE_DELAY=y
+CONFIG_ARCH_MAY_HAVE_PC_FDC=y
+CONFIG_SUN_PM=y
+CONFIG_SUN_OPENPROMFS=m
+CONFIG_SPARC_LED=m
+CONFIG_BINFMT_ELF=y
+CONFIG_SELECT_MEMORY_MODEL=y
+CONFIG_FLATMEM_MANUAL=y
+CONFIG_FLATMEM=y
+CONFIG_FLAT_NODE_MEM_MAP=y
+CONFIG_SPLIT_PTLOCK_CPUS=4
+CONFIG_ZONE_DMA_FLAG=1
+CONFIG_NET=y
+CONFIG_PACKET=y
+CONFIG_UNIX=y
+CONFIG_XFRM=y
+CONFIG_XFRM_USER=m
+CONFIG_NET_KEY=m
+CONFIG_INET=y
+CONFIG_IP_FIB_HASH=y
+CONFIG_INET_AH=m
+CONFIG_INET_ESP=m
+CONFIG_INET_IPCOMP=m
+CONFIG_INET_XFRM_TUNNEL=m
+CONFIG_INET_TUNNEL=m
+CONFIG_INET_DIAG=m
+CONFIG_INET_TCP_DIAG=m
+CONFIG_TCP_CONG_CUBIC=y
+CONFIG_DEFAULT_TCP_CONG="cubic"
+CONFIG_PREVENT_FIRMWARE_BUILD=y
+CONFIG_BLK_DEV_LOOP=m
+CONFIG_BLK_DEV_CRYPTOLOOP=m
+CONFIG_BLK_DEV_RAM=m
+CONFIG_BLK_DEV_RAM_COUNT=16
+CONFIG_BLK_DEV_RAM_SIZE=4096
+CONFIG_BLK_DEV_RAM_BLOCKSIZE=1024
+CONFIG_SCSI=y
+CONFIG_SCSI_TGT=m
+CONFIG_SCSI_NETLINK=y
+CONFIG_SCSI_PROC_FS=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_CHR_DEV_ST=m
+CONFIG_BLK_DEV_SR=m
+CONFIG_BLK_DEV_SR_VENDOR=y
+CONFIG_CHR_DEV_SG=m
+CONFIG_CHR_DEV_SCH=m
+CONFIG_SCSI_CONSTANTS=y
+CONFIG_SCSI_SPI_ATTRS=y
+CONFIG_SCSI_FC_ATTRS=m
+CONFIG_SCSI_ISCSI_ATTRS=m
+CONFIG_SCSI_SAS_ATTRS=m
+CONFIG_ISCSI_TCP=m
+CONFIG_SCSI_ESP_CORE=y
+CONFIG_SCSI_SUNESP=y
+CONFIG_NETDEVICES=y
+CONFIG_NET_ETHERNET=y
+CONFIG_MII=m
+CONFIG_SUNLANCE=m
+CONFIG_SERIO=y
+CONFIG_SERIO_SERPORT=m
+CONFIG_SERIO_RAW=m
+CONFIG_SERIAL_SUNCORE=y
+CONFIG_SERIAL_SUNZILOG=y
+CONFIG_SERIAL_SUNZILOG_CONSOLE=y
+CONFIG_SERIAL_CORE=y
+CONFIG_SERIAL_CORE_CONSOLE=y
+CONFIG_UNIX98_PTYS=y
+CONFIG_HW_RANDOM=m
+CONFIG_SOUND=m
+CONFIG_SND=m
+CONFIG_SND_TIMER=m
+CONFIG_SND_PCM=m
+CONFIG_SND_SUN_DBRI=m
+CONFIG_RTC_LIB=m
+CONFIG_RTC_CLASS=m
+CONFIG_RTC_INTF_SYSFS=m
+CONFIG_RTC_INTF_PROC=m
+CONFIG_RTC_INTF_DEV=m
+CONFIG_DMA_ENGINE=y
+CONFIG_NET_DMA=y
+CONFIG_SUN_OPENPROMIO=m
+CONFIG_SUN_MOSTEK_RTC=m
+CONFIG_UNIX98_PTY_COUNT=64
+CONFIG_EXT3_FS=y
+CONFIG_JBD=y
+CONFIG_MINIX_FS=m
+CONFIG_ISO9660_FS=m
+CONFIG_JOLIET=y
+CONFIG_ZISOFS=y
+CONFIG_FAT_FS=m
+CONFIG_MSDOS_FS=m
+CONFIG_VFAT_FS=m
+CONFIG_FAT_DEFAULT_CODEPAGE=437
+CONFIG_FAT_DEFAULT_IOCHARSET="iso8859-1"
+CONFIG_PROC_FS=y
+CONFIG_PROC_KCORE=y
+CONFIG_PROC_SYSCTL=y
+CONFIG_SYSFS=y
+CONFIG_TMPFS=y
+CONFIG_RAMFS=y
+CONFIG_CRAMFS=m
+CONFIG_UFS_FS=m
+CONFIG_NFS_FS=m
+CONFIG_NFS_V3=y
+CONFIG_LOCKD=m
+CONFIG_LOCKD_V4=y
+CONFIG_NFS_COMMON=y
+CONFIG_SUNRPC=m
+CONFIG_PARTITION_ADVANCED=y
+CONFIG_MSDOS_PARTITION=y
+CONFIG_BSD_DISKLABEL=y
+CONFIG_MINIX_SUBPARTITION=y
+CONFIG_SUN_PARTITION=y
+CONFIG_NLS=m
+CONFIG_NLS_DEFAULT="iso8859-1"
+CONFIG_NLS_CODEPAGE_437=m
+CONFIG_NLS_CODEPAGE_850=m
+CONFIG_NLS_CODEPAGE_1250=m
+CONFIG_NLS_ASCII=m
+CONFIG_NLS_ISO8859_1=m
+CONFIG_NLS_ISO8859_2=m
+CONFIG_NLS_ISO8859_15=m
+CONFIG_NLS_UTF8=m
+CONFIG_PROFILING=y
+CONFIG_OPROFILE=m
+CONFIG_MAGIC_SYSRQ=y
+CONFIG_UNUSED_SYMBOLS=y
+CONFIG_DEBUG_KERNEL=y
+CONFIG_LOG_BUF_SHIFT=14
+CONFIG_DEBUG_BUGVERBOSE=y
+CONFIG_FORCED_INLINING=y
+CONFIG_CRYPTO=y
+CONFIG_CRYPTO_ALGAPI=y
+CONFIG_CRYPTO_BLKCIPHER=m
+CONFIG_CRYPTO_HASH=y
+CONFIG_CRYPTO_MANAGER=y
+CONFIG_CRYPTO_HMAC=y
+CONFIG_CRYPTO_NULL=m
+CONFIG_CRYPTO_MD4=m
+CONFIG_CRYPTO_MD5=m
+CONFIG_CRYPTO_SHA1=m
+CONFIG_CRYPTO_ECB=m
+CONFIG_CRYPTO_CBC=m
+CONFIG_CRYPTO_DES=m
+CONFIG_CRYPTO_DEFLATE=m
+CONFIG_CRYPTO_CRC32C=m
+CONFIG_BITREVERSE=m
+CONFIG_CRC_CCITT=m
+CONFIG_CRC32=m
+CONFIG_LIBCRC32C=m
+CONFIG_ZLIB_INFLATE=m
+CONFIG_ZLIB_DEFLATE=m
+CONFIG_PLIST=y
+CONFIG_HAS_IOMEM=y
+CONFIG_HAS_IOPORT=y
+
+--Kj7319i9nmIyA2yE--
