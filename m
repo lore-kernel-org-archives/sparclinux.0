@@ -1,35 +1,21 @@
-From: Martin Habets <errandir_news@mph.eclipse.co.uk>
-Date: Mon, 07 May 2007 19:27:11 +0000
-Subject: Re: [TESTING NEEDED] drivers/serial/sunzilog: Interrupt enable before ISR handler installed
-Message-Id: <20070507192711.GA27915@palantir8>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 07 May 2007 23:20:42 +0000
+Subject: Re: [TESTING NEEDED] drivers/serial/sunzilog: Interrupt enable
+Message-Id: <20070507.162042.38710851.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.61.0704281529090.8157@mtfhpc.demon.co.uk> <20070428.210147.111207684.davem@davemloft.net> <Pine.LNX.4.61.0704292250290.1747@mtfhpc.demon.co.uk>
+References: <Pine.LNX.4.61.0704281529090.8157@mtfhpc.demon.co.uk>
+	<20070428.210147.111207684.davem@davemloft.net>
+	<Pine.LNX.4.61.0704292250290.1747@mtfhpc.demon.co.uk>
 In-Reply-To: <Pine.LNX.4.61.0704292250290.1747@mtfhpc.demon.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mark Fortescue <mark@mtfhpc.demon.co.uk>
+To: mark@mtfhpc.demon.co.uk
 Cc: wli@holomorphy.com, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-serial@vger.kernel.org
 
-Mark,
+From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
+Date: Sun, 29 Apr 2007 23:00:29 +0100 (BST)
 
-Gave this a spin on my SS20 today, have the console on the
-serial port. No problems seen. You will need to provide a
-signed-off-by line to get it accepted upstream, see 
-Documentation/SubmittingPatches.
-
-ffd60050: ttyS0 at MMIO 0xf1100000 (irq = 44) is a zs (ESCC)
-Console: ttyS0 (SunZilog zs0)
-ffd60050: ttyS1 at MMIO 0xf1100004 (irq = 44) is a zs (ESCC)
-ffd60130: Keyboard at MMIO 0xf1000000 (irq = 44) is a zs
-ffd60130: Mouse at MMIO 0xf1000004 (irq = 44) is a zs
-
-Cheers,
-Martin Habets
-
-	Ack-by: Martin Habets <errandir_news@mph.eclipse.co.uk>
-
-On Sun, Apr 29, 2007 at 11:00:29PM +0100, Mark Fortescue wrote:
 > I have altered the patch as advised and I have attached it to prevent my 
 > email client from making a mess of it.
 > 
@@ -43,8 +29,27 @@ On Sun, Apr 29, 2007 at 11:00:29PM +0100, Mark Fortescue wrote:
 > detection works but the FIFO enable may cause issues with modem and 
 > receive character status. My interpretation of the SCC manual and the code 
 > is that it sould be OK.
-> 
-> ---
-> 
-> Regards
-> 	Mark Fortescue.
+
+Your patch looks good, thanks for working on this.  As other's
+have mentioned you should provide a proper "Signed-off-by: "
+line with your patch changelog as describe in
+linux/Documentation/SubmittingPatches.
+
+I wonder if there is a way to get rid of all of that MIE twiddling
+logic during the probe.
+
+The chicken-and-egg problem in this driver is that we need to get
+all the chips mostly functional before we let the IRQ handler get
+at the chips in the sunzilog_irq_chain.  That list is setup very
+early, so it isn't a datastructure problem.
+
+One thing we could do is check in the IRQ handler is skip chips
+which don't have their registers mapped yet.
+
+But that'd put silly logic in the fast path of this driver, whereas
+your solution does all of this out-of-line.  So your patch is
+probably the best.
+
+Please resubmit with the proper "Signed-off-by: " line and I will
+apply your patch, thanks!
+
