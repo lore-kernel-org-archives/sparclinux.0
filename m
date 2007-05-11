@@ -1,22 +1,68 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 12 May 2007 17:48:24 +0000
-Subject: Re: missing new syscalls
-Message-Id: <20070512.104824.25476182.davem@davemloft.net>
+From: Robert Reif <reif@earthlink.net>
+Date: Fri, 11 May 2007 10:51:11 +0000
+Subject: [PATCH] fix sparc32 kdebug changes
+Message-Id: <46444A9F.6040407@earthlink.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------090100040705030903070008"
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.SOC.4.64.0705121502010.4493@math>
-In-Reply-To: <Pine.SOC.4.64.0705121502010.4493@math>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Meelis Roos <mroos@linux.ee>
-Date: Sat, 12 May 2007 15:25:45 +0300 (EEST)
+This is a multi-part message in MIME format.
+--------------090100040705030903070008
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
->   CALL    scripts/checksyscalls.sh
-> <stdin>:1368:2: warning: #warning syscall signalfd not implemented
-> <stdin>:1372:2: warning: #warning syscall timerfd not implemented
-> <stdin>:1376:2: warning: #warning syscall eventfd not implemented
+Fix recent kdebug changes to compile on sparc32.
 
-Already fixed in my sparc-2.6 GIT tree. :-)
+Compile tested only because recent smp.h changes also break sparc32.
+
+Signed-off-by: Robert Reif <reif@earthlink.net>
+
+
+--------------090100040705030903070008
+Content-Type: text/x-diff;
+ name="kdebug.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="kdebug.diff"
+
+diff --git a/arch/sparc/kernel/head.S b/arch/sparc/kernel/head.S
+index 97da13c..9a219e8 100644
+--- a/arch/sparc/kernel/head.S
++++ b/arch/sparc/kernel/head.S
+@@ -19,7 +19,7 @@ #include <asm/contregs.h>
+ #include <asm/ptrace.h>
+ #include <asm/psr.h>
+ #include <asm/page.h>
+-#include <linux/kdebug.h>
++#include <asm/kdebug.h>
+ #include <asm/winmacro.h>
+ #include <asm/thread_info.h>	/* TI_UWINMASK */
+ #include <asm/errno.h>
+diff --git a/include/asm-sparc/kdebug.h b/include/asm-sparc/kdebug.h
+index 404d807..631f15f 100644
+--- a/include/asm-sparc/kdebug.h
++++ b/include/asm-sparc/kdebug.h
+@@ -58,6 +58,10 @@ #define SP_ENTER_DEBUGGER do { \
+ 	       sp_enter_debugger(); \
+ 		       } while(0)
+ 
++enum die_val {
++	DIE_UNUSED,
++};
++
+ #endif /* !(__ASSEMBLY__) */
+ 
+ /* Some nice offset defines for assembler code. */
+@@ -66,8 +70,4 @@ #define KDEBUG_DUNNO_OFF    0x4
+ #define KDEBUG_DUNNO2_OFF   0x8
+ #define KDEBUG_TEACH_OFF    0xc
+ 
+-enum die_val {
+-	DIE_UNUSED,
+-};
+-
+ #endif /* !(_SPARC_KDEBUG_H) */
+
+--------------090100040705030903070008--
 
