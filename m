@@ -1,37 +1,17 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 01 May 2007 19:36:01 +0000
-Subject: Re: [PATCH 0/11] Consolidation of Open Firmware routines
-Message-Id: <20070501.123601.115907128.davem@davemloft.net>
+From: Meelis Roos <mroos@linux.ee>
+Date: Sat, 12 May 2007 12:25:45 +0000
+Subject: missing new syscalls
+Message-Id: <Pine.SOC.4.64.0705121502010.4493@math>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.61.0705011028090.18504@yvahk01.tjqt.qr>
-	<20070501.015125.93211061.davem@davemloft.net>
-	<Pine.LNX.4.61.0705011311470.18504@yvahk01.tjqt.qr>
-In-Reply-To: <Pine.LNX.4.61.0705011311470.18504@yvahk01.tjqt.qr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: jengelh@linux01.gwdg.de
-Cc: sparclinux@vger.kernel.org, sfr@canb.auug.org.au, paulus@samba.org, linuxppc-dev@ozlabs.org
+To: sparclinux@vger.kernel.org
 
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Date: Tue, 1 May 2007 13:17:42 +0200 (MEST)
+  CALL    scripts/checksyscalls.sh
+<stdin>:1368:2: warning: #warning syscall signalfd not implemented
+<stdin>:1372:2: warning: #warning syscall timerfd not implemented
+<stdin>:1376:2: warning: #warning syscall eventfd not implemented
 
-> 
-> On May 1 2007 01:51, David Miller wrote:
-> >From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-> >Date: Tue, 1 May 2007 10:30:02 +0200 (MEST)
-> >
-> >> but i'd kinda want drivers/openfirmware, even if it's a bit longer.
-> >
-> >So much for the unix sense of elegance in short names.
-> >I think there is zero confusion about what "of" is.
-> 
-> A prepositional word in the English language, as
-> http://en.wiktionary.org/wiki/of tells me. And it's used quite often placed
-> 2nd.
-> Just see http://ask.slashdot.org/article.pl?sid/03/03/028258
-
-Stop this sillyness.
-
-If it feels out of context, which "of" will here, people know
-to consider it's probably an acronym of some kind.
+-- 
+Meelis Roos (mroos@linux.ee)
