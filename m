@@ -1,22 +1,76 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 16 May 2007 19:22:41 +0000
-Subject: Re: parport_pc BUG in dma-mapping.h
-Message-Id: <20070516.122241.27953056.davem@davemloft.net>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sun, 13 May 2007 15:49:02 +0000
+Subject: [PATCH] pluto: use wait_for_completion_timeout
+Message-Id: <20070513154901.GA9218@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.SOC.4.64.0705121525460.4493@math>
-In-Reply-To: <Pine.SOC.4.64.0705121525460.4493@math>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Meelis Roos <mroos@linux.ee>
-Date: Wed, 16 May 2007 20:32:38 +0300 (EEST)
 
-> Unfortunately it does not seems to fix it.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-Thanks I'll look more deeply into this.
-
-> BUG: at include/linux/slub_def.h:89 kmalloc_index()
-
-This problem is known and a fix is being worked on.
+Index: linux-2.6/drivers/scsi/pluto.c
+=================================--- linux-2.6.orig/drivers/scsi/pluto.c	2007-05-13 16:43:25.000000000 +0200
++++ linux-2.6/drivers/scsi/pluto.c	2007-05-13 16:46:31.000000000 +0200
+@@ -4,6 +4,7 @@
+  *
+  */
+ 
++#include <linux/completion.h>
+ #include <linux/kernel.h>
+ #include <linux/delay.h>
+ #include <linux/types.h>
+@@ -50,16 +51,10 @@ static struct ctrl_inquiry {
+ } *fcs __initdata;
+ static int fcscount __initdata = 0;
+ static atomic_t fcss __initdata = ATOMIC_INIT(0);
+-DECLARE_MUTEX_LOCKED(fc_sem);
++static DECLARE_COMPLETION(fc_detect_complete);
+ 
+ static int pluto_encode_addr(Scsi_Cmnd *SCpnt, u16 *addr, fc_channel *fc, fcp_cmnd *fcmd);
+ 
+-static void __init pluto_detect_timeout(unsigned long data)
+-{
+-	PLND(("Timeout\n"))
+-	up(&fc_sem);
+-}
+-
+ static void __init pluto_detect_done(Scsi_Cmnd *SCpnt)
+ {
+ 	/* Do nothing */
+@@ -69,7 +64,7 @@ static void __init pluto_detect_scsi_don
+ {
+ 	PLND(("Detect done %08lx\n", (long)SCpnt))
+ 	if (atomic_dec_and_test (&fcss))
+-		up(&fc_sem);
++		complete(&fc_detect_complete);
+ }
+ 
+ int pluto_slave_configure(struct scsi_device *device)
+@@ -96,7 +91,6 @@ int __init pluto_detect(struct scsi_host
+ 	int i, retry, nplutos;
+ 	fc_channel *fc;
+ 	struct scsi_device dev;
+-	DEFINE_TIMER(fc_timer, pluto_detect_timeout, 0, 0);
+ 
+ 	tpnt->proc_name = "pluto";
+ 	fcscount = 0;
+@@ -187,15 +181,11 @@ int __init pluto_detect(struct scsi_host
+ 			}
+ 		}
+ 	    
+-		fc_timer.expires = jiffies + 10 * HZ;
+-		add_timer(&fc_timer);
+-		
+-		down(&fc_sem);
++		wait_for_completion_timeout(&fc_detect_complete, 10 * HZ);
+ 		PLND(("Woken up\n"))
+ 		if (!atomic_read(&fcss))
+ 			break; /* All fc channels have answered us */
+ 	}
+-	del_timer_sync(&fc_timer);
+ 
+ 	PLND(("Finished search\n"))
+ 	for (i = 0, nplutos = 0; i < fcscount; i++) {
