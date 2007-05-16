@@ -1,26 +1,27 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 16 May 2007 00:38:20 +0000
+From: Christoph Lameter <clameter@sgi.com>
+Date: Wed, 16 May 2007 00:50:22 +0000
 Subject: Re: slab hang on boot
-Message-Id: <20070515.173820.101498227.davem@davemloft.net>
+Message-Id: <Pine.LNX.4.64.0705151748210.4272@schroedinger.engr.sgi.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070515165636.5057456e.akpm@linux-foundation.org>
-	<20070515.171447.83623268.davem@davemloft.net>
-	<20070515172957.02d80d51.akpm@linux-foundation.org>
-In-Reply-To: <20070515172957.02d80d51.akpm@linux-foundation.org>
+References: <Pine.SOC.4.64.0705142133190.17204@math>
+ <20070514.151148.45744375.davem@davemloft.net>
+ <Pine.LNX.4.64.0705141642350.13606@schroedinger.engr.sgi.com>
+ <20070515163321.744e2388.akpm@linux-foundation.org>
+ <Pine.LNX.4.64.0705151642530.3886@schroedinger.engr.sgi.com>
+ <20070515165636.5057456e.akpm@linux-foundation.org>
+In-Reply-To: <20070515165636.5057456e.akpm@linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: akpm@linux-foundation.org
-Cc: clameter@sgi.com, mroos@linux.ee, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mroos@linux.ee, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Tue, 15 May 2007 17:29:57 -0700
+On Tue, 15 May 2007, Andrew Morton wrote:
 
-> This:
-> 
-> struct kmem_cache kmalloc_caches[KMALLOC_SHIFT_HIGH + 1] __cacheline_aligned;
-> 
-> is still there.
+> Either that newly-added test isn't needed, or those ifdefs aren't needed?
 
-My bad, we tried using min_t() and that's what caused the problems,
-that's why we open-coded the macro like it is now :-)
+The #ifdefs dont do the proper job thus the hack for Dave. The following 
+RFC will clean things up.
+
+http://marc.info/?l=linux-kernel&m7919444827939&w=2
+
