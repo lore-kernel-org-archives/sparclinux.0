@@ -1,47 +1,27 @@
-From: Stephen Hemminger <shemminger@linux-foundation.org>
-Date: Tue, 29 May 2007 15:01:45 +0000
-Subject: Re: [2/4] 2.6.22-rc3: known regressions
-Message-Id: <20070529080145.60be9018@freepuppy>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 17 May 2007 08:25:27 +0000
+Subject: Re: [PATCH]: Fix for SB100/SB150 bootup hangs
+Message-Id: <20070517.012527.41193346.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <465C188F.9000900@googlemail.com>
-	<465C22F4.8080505@googlemail.com>
-In-Reply-To: <465C22F4.8080505@googlemail.com>
+References: <20070305.011139.78710584.davem@davemloft.net>
+In-Reply-To: <20070305.011139.78710584.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, netdev@vger.kernel.org, Ruben <nahoo82@terra.es>, linux-pci@atrey.karlin.mff.cuni.cz, Greg KH <greg@kroah.com>, "Mike Miller (OS Dev)" <mikem@beardog.cca.cpqcorp.net>, tom.l.nguyen@intel.com, linux-pcmcia@lists.infradead.org, Robert de Rooy <robert.de.rooy@gmail.com>, Alan Cox <alan@redhat.com>, Tejun Heo <htejun@gmail.com>, linux-ide@vger.kernel.org, Jeff Garzik <jeff@garzik.org>, Gregor Jasny <gjasny@googlemail.com>, sparclinux@vger.kernel.org, David Miller <davem@davemloft.net>, Mikael Pettersson <mikpe@it.uu.se>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
-On Tue, 29 May 2007 14:56:20 +0200
-Michal Piotrowski <michal.k.k.piotrowski@gmail.com> wrote:
+From: David Miller <davem@davemloft.net>
+Date: Mon, 16 Apr 2007 15:21:07 -0700 (PDT)
 
-> Hi all,
->=20
-> Here is a list of some known regressions in 2.6.22-rc3.
->=20
-> Feel free to add new regressions/remove fixed etc.
-> http://kernelnewbies.org/known_regressions
->=20
->=20
->=20
-> Networking
->=20
-> Subject    : Network card not usable - sky2
-> References : http://bugzilla.kernel.org/show_bug.cgi?id=8539
-> Submitter  : Ruben <nahoo82@terra.es>
-> Status     : Unknown
->=20
+> But the bottom line is that we must use the output-device to
+> determine the console output framebuffer device in the absense
+> of a console= command line specification.
 
+The status of this is that I just had an email exchange
+with one of the framebuffer layer developers and he's
+come up with a scheme by which we can set the framebuffer
+device correctly based upon the setting of 'output-device'
+and whatever that aliases too.
 
-Not a regression. Read the bug report:
-	Most recent kernel where this bug did *NOT* occur:
-
-	It's been happening for a long time (I'd say always).
-
-
-
-There is a regression since 2.6.22-rc1 where the b44 driver has
-receive performance/interrupt lockup issues.
-
---=20
-Stephen Hemminger <shemminger@linux-foundation.org>
+I'll forward some test stuff here, if I remember, once the
+infrastructure is done.
