@@ -1,40 +1,27 @@
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
-Date: Sat, 19 May 2007 17:37:22 +0000
-Subject: [PATCH] sunzilog: section mismatch fix
-Message-Id: <465089A2.4080401@wp.pl>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 19 May 2007 19:04:56 +0000
+Subject: Re: [PATCH] sunzilog: section mismatch fix
+Message-Id: <20070519.120456.85409628.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <465089A2.4080401@wp.pl>
+In-Reply-To: <465089A2.4080401@wp.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Date: Sun, 20 May 2007 19:47:14 +0200
 
-This patch fixes section mismatch warnings in the sunzilog driver.
+> From: Krzysztof Helt <krzysztof.h1@wp.pl>
+> 
+> This patch fixes section mismatch warnings in the sunzilog driver.
+> 
+> Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Your patch was space and tab corrupted so I had to apply
+this patch by hand.
 
----
-
-Diff-ed agains 2.6.22-rc2
-
---- linux-2.6.21/drivers/serial/sunzilog.c	2007-05-20 18:45:03.687231937 +0200
-+++ linux-2.6.21.new/drivers/serial/sunzilog.c	2007-05-20 19:43:00.297352656 +0200
-@@ -1239,7 +1239,7 @@ static inline struct console *SUNZILOG_C
-  #define SUNZILOG_CONSOLE()	(NULL)
-  #endif
-
--static void __init sunzilog_init_kbdms(struct uart_sunzilog_port *up, int channel)
-+static void __devinit sunzilog_init_kbdms(struct uart_sunzilog_port *up, int channel)
-  {
-  	int baud, brg;
-
-@@ -1259,7 +1259,7 @@ static void __init sunzilog_init_kbdms(s
-  }
-
-  #ifdef CONFIG_SERIO
--static void __init sunzilog_register_serio(struct uart_sunzilog_port *up)
-+static void __devinit sunzilog_register_serio(struct uart_sunzilog_port *up)
-  {
-  	struct serio *serio = &up->serio;
-
+Seeing how you used an attachment for the previous patch,
+it's clear why this one was corrupt because you inlined
+it instead of attaching.
