@@ -1,26 +1,61 @@
-From: Mikael Pettersson <mikpe@it.uu.se>
-Date: Tue, 22 May 2007 08:40:53 +0000
-Subject: [BUG sparc64] 2.6.22-rc broke X on Ultra5
-Message-Id: <18002.44181.639121.720839@alkaid.it.uu.se>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 22 May 2007 09:05:34 +0000
+Subject: Re: [BUG sparc64] 2.6.22-rc broke X on Ultra5
+Message-Id: <20070522.020534.07643900.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <18002.44181.639121.720839@alkaid.it.uu.se>
+In-Reply-To: <18002.44181.639121.720839@alkaid.it.uu.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net
+To: mikpe@it.uu.se
 Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Just a FYI:
+From: Mikael Pettersson <mikpe@it.uu.se>
+Date: Tue, 22 May 2007 10:40:53 +0200
 
-2.6.21 works fine on my Ultra5, but with 2.6.22-rc the X
-server (from Aurora 2) fails to mmap() the PCI frame buffer
-(atyfb).
+> 2.6.21 works fine on my Ultra5, but with 2.6.22-rc the X
+> server (from Aurora 2) fails to mmap() the PCI frame buffer
+> (atyfb).
+> 
+> I noticed a lot of PCI-related changes both in `dmesg' and
+> /var/log/Xorg.0.log between 2.6.21 and 2.6.22-rc, so my
+> guess is that PCI resources get broken somewhere.
+> 
+> I'll try a bisect between 2.6.21 and 2.6.22-rc1 next, but
+> I'm also willing to test patches in case anyone thinks they
+> know what the fix is.
 
-I noticed a lot of PCI-related changes both in `dmesg' and
-/var/log/Xorg.0.log between 2.6.21 and 2.6.22-rc, so my
-guess is that PCI resources get broken somewhere.
+Start your bisect with the change right before this one:
 
-I'll try a bisect between 2.6.21 and 2.6.22-rc1 next, but
-I'm also willing to test patches in case anyone thinks they
-know what the fix is.
+commit a2fb23af1c31ad6e0c281e56d385f803229d57fa
+Author: David S. Miller <davem@sunset.davemloft.net>
+Date:   Wed Feb 28 23:35:04 2007 -0800
 
-/Mikael
+    [SPARC64]: Probe PCI bus using OF device tree.
+    
+    Almost entirely taken from the 64-bit PowerPC PCI code.
+    
+    This allowed to eliminate a ton of cruft from the sparc64
+    PCI layer.
+    
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Unfortunately, if the tree works right before this change,
+you can't just add this one because a subsequent fix is
+needed before ultra5/ultra10 will work again, but it's
+this one:
+
+commit 01f94c4a6ced476ce69b895426fc29bfc48c69bd
+Author: David S. Miller <davem@ultra5.davemloft.net>
+Date:   Sun Mar 4 12:53:19 2007 -0800
+
+    [SPARC64]: Fix sabre pci controllers with new probing scheme.
+ ...
+
+So you could test these two commits:
+
+deb66c4521e119442aa266553e8cbfc86eb71232
+a2fb23af1c31ad6e0c281e56d385f803229d57fa
+
+Thanks.
