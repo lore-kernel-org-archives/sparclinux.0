@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 23 May 2007 21:15:47 +0000
+Date: Wed, 23 May 2007 21:27:09 +0000
 Subject: Re: [PATCH]: Better serial console identification
-Message-Id: <20070523.141547.78711089.davem@davemloft.net>
+Message-Id: <20070523.142709.21595897.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20070520.140354.92582888.davem@davemloft.net>
 In-Reply-To: <20070520.140354.92582888.davem@davemloft.net>
@@ -18,7 +18,26 @@ Date: Wed, 23 May 2007 14:04:02 -0500
 > 
 > I also grabbed a log with esp_debug 47, that log is attached.
 
-A serial driver change breaking SCSI is a new one on me :-)
+Does this fix the problem?
 
-I'll see what I can figure out about this but definiely
-no promises as this report is just too strange.
+diff --git a/arch/sparc/kernel/prom.c b/arch/sparc/kernel/prom.c
+index 227daca..17389f1 100644
+--- a/arch/sparc/kernel/prom.c
++++ b/arch/sparc/kernel/prom.c
+@@ -575,6 +575,8 @@ EXPORT_SYMBOL(of_console_path);
+ char *of_console_options;
+ EXPORT_SYMBOL(of_console_options);
+ 
++extern void restore_current(void);
++
+ static void __init of_console_init(void)
+ {
+ 	char *msg = "OF stdout device is: %s";
+@@ -633,6 +635,7 @@ static void __init of_console_init(void)
+ 
+ 		spin_lock_irqsave(&prom_lock, flags);
+ 		node = (*romvec->pv_v2devops.v2_inst2pkg)(fd);
++		restore_current();
+ 		spin_unlock_irqrestore(&prom_lock, flags);
+ 
+ 		if (!node) {
