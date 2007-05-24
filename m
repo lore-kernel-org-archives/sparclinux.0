@@ -1,37 +1,40 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Thu, 24 May 2007 18:49:02 +0000
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Thu, 24 May 2007 19:21:27 +0000
 Subject: Re: [2/3] 2.6.22-rc2: known regressions v2
-Message-Id: <20070524114902.e802f327.akpm@linux-foundation.org>
+Message-Id: <alpine.LFD.0.98.0705241220070.26602@woody.linux-foundation.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <46558708.2040803@googlemail.com> <46559B54.80106@googlemail.com>
-	<Pine.LNX.4.64.0705241001040.28086@schroedinger.engr.sgi.com>
-	<alpine.LFD.0.98.0705241007290.26602@woody.linux-foundation.org>
-In-Reply-To: <alpine.LFD.0.98.0705241007290.26602@woody.linux-foundation.org>
+ <Pine.LNX.4.64.0705241001040.28086@schroedinger.engr.sgi.com>
+ <alpine.LFD.0.98.0705241007290.26602@woody.linux-foundation.org>
+ <20070524114902.e802f327.akpm@linux-foundation.org>
+In-Reply-To: <20070524114902.e802f327.akpm@linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Cherwin R. Nooitmeer" <cherwin@gmail.com>, Kristian =?ISO-8859-1?Q?H=F8gsberg?= <krh@bitplanet.net>, Mikael Pettersson <mikpe@it.uu.se>, Pavel Machek <pavel@ucw.cz>, sparclinux@vger.kernel.org, linux1394-devel@lists.sourceforge.net, linux-usb-devel@lists.sourceforge.net, Alan Cox <alan@redhat.com>, Ingo Molnar <mingo@elte.hu>, Christoph Lameter <clameter@sgi.com>, Robert de Rooy <robert.de.rooy@gmail.com>, Tejun Heo <htejun@gmail.com>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, linux-pcmcia@lists.infradead.org, Marcus Better <marcus@better.se>, linux-pm@lists.linux-foundation.org, Greg Kroah-Hartman <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, Stefan Richter <stefanr@s5r6.in-berlin.de>, Andrey Borzenkov <arvidjaar@mail.ru>, David Miller <davem@d>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Christoph Lameter <clameter@sgi.com>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, LKML <linux-kernel@vger.kernel.org>, "Cherwin R. Nooitmeer" <cherwin@gmail.com>, linux-pcmcia@lists.infradead.org, Robert de Rooy <robert.de.rooy@gmail.com>, Alan Cox <alan@redhat.com>, Tejun Heo <htejun@gmail.com>, sparclinux@vger.kernel.org, David Miller <davem@davemloft.net>, Mikael Pettersson <mikpe@it.uu.se>, linux1394-devel@lists.sourceforge.net, Stefan Richter <stefanr@s5r6.in-berlin.de>, Kristian H?gsberg <krh@bitplanet.net>, linux-pm@lists.linux-foundation.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Pavel Machek <pavel@ucw.cz>, Marcus Better <marcus@better.se>, Andrey Borzenkov <arvidjaar@mail.ru>, linux-usb-devel@lists.sourceforge.net, Greg Kroah-Hartman <gregkh@suse.de>, Ingo Molnar <mingo@elte.hu>
 
-On Thu, 24 May 2007 10:12:14 -0700 (PDT)
-Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-> > BUG: at include/linux/slub_def.h:88 kmalloc_index()
+
+On Thu, 24 May 2007, Andrew Morton wrote:
+
+> On Thu, 24 May 2007 10:12:14 -0700 (PDT)
+> Linus Torvalds <torvalds@linux-foundation.org> wrote:
 > 
-> I'm going to change that "BUG:" to "WARNING:". 
+> > > BUG: at include/linux/slub_def.h:88 kmalloc_index()
+> > 
+> > I'm going to change that "BUG:" to "WARNING:". 
+> 
+> I think we should remove these kmalloc(0, ...) warnings prior to
+> the 2.6.22 release, put them back afterwards.
 
-I think we should remove these kmalloc(0, ...) warnings prior to
-the 2.6.22 release, put them back afterwards.
+Orthogonal issue, but yes, I agree. I'll do that too, but let's keep it 
+for now.
 
-Actually it would be useful to have some config variable which is "false"
-for production kernels (2.6.x, 2.6.x.y) and "true" for development kernels
-(2.6.x-rcN).  I suspect we'd end up using this in quite a lot of places for
-general developer-nags which shouldn't be exposed to users of production
-kernels.
+> I'm not sure how we could do this, apart from patching and unpatching a
+> config file each time.
 
-The problem with this is that on the day Linus goes from 2.6.x-rc7 to 2.6.x
-we suddenly get a compile-time kernel which nobody has tested, so we'd need
-to set CONFIG_DEVELOPMENT_KERNEL to false around the -rc4/5 timeframe.
+Doing it in the Makefile would make more sense, since I have to edit that 
+file anyway to change -rc5 to -rc6.
 
-I'm not sure how we could do this, apart from patching and unpatching a
-config file each time.
+		Linus
