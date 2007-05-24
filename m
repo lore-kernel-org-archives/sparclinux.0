@@ -1,40 +1,275 @@
-From: Robert Thomson <robert.p.thomson@googlemail.com>
-Date: Fri, 25 May 2007 21:53:24 +0000
-Subject: Proofreading your professional documents
-Message-Id: <29547073.1180130004374.JavaMail.Postman_Professional@post.strato.de>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Thu, 24 May 2007 20:10:38 +0000
+Subject: [PATCH 1/5] sparc64: ident vmlinux.lds.S
+Message-Id: <20070524201038.GC1109@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20070524200440.GA1109@uranus.ravnborg.org>
+In-Reply-To: <20070524200440.GA1109@uranus.ravnborg.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: David Miller <davem@davemloft.net>, linux-arch@vger.kernel.org, sparclinux@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
-Dear Professor/Lecturer
+This introduce a style similar to C code.
+No functional changes.
 
-Please excuse us for contacting you directly. We are offering an efficient =
-service to help you ensure your academic and professional work is written i=
-n perfect English. We will check the grammar and style of your work and ret=
-urn it to you to meet your requirements and deadlines.
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc64/kernel/vmlinux.lds.S |  239 ++++++++++++++++++++++---------------
+ 1 files changed, 142 insertions(+), 97 deletions(-)
 
-Proof-Reading-Service.com can provide you with a professional proofreading =
-service at a very reasonable rate. All our proofreaders are highly qualifie=
-d native English speakers. Many work as leading academics in their fields a=
-nd all have extensive experience of proofreading to the highest standards.
+diff --git a/arch/sparc64/kernel/vmlinux.lds.S b/arch/sparc64/kernel/vmlinux.lds.S
+index fb648de..6f924fd 100644
+--- a/arch/sparc64/kernel/vmlinux.lds.S
++++ b/arch/sparc64/kernel/vmlinux.lds.S
+@@ -9,105 +9,150 @@ ENTRY(_start)
+ jiffies = jiffies_64;
+ SECTIONS
+ {
+-  swapper_low_pmd_dir = 0x0000000000402000;
+-  . = 0x4000;
+-  .text 0x0000000000404000 :
+-  {
+-    _text = .;
+-    TEXT_TEXT
+-    SCHED_TEXT
+-    LOCK_TEXT
+-    KPROBES_TEXT
+-    *(.gnu.warning)
+-  } =0
+-  _etext = .;
+-  PROVIDE (etext = .);
+-
+-  RODATA
+-
+-  .data    :
+-  {
+-    DATA_DATA
+-    CONSTRUCTORS
+-  }
+-  .data1   : { *(.data1) }
+-  . = ALIGN(64);
+-  .data.cacheline_aligned : { *(.data.cacheline_aligned) }
+-  . = ALIGN(64);
+-  .data.read_mostly : { *(.data.read_mostly) }
+-  _edata  =  .;
+-  PROVIDE (edata = .);
+-  .fixup   : { *(.fixup) }
+-
+-  . = ALIGN(16);
+-  __start___ex_table = .;
+-  __ex_table : { *(__ex_table) }
+-  __stop___ex_table = .;
+-
+-  . = ALIGN(8192);
+-  __init_begin = .;
+-  .init.text : { 
+-	_sinittext = .;
+-	*(.init.text)
+-	_einittext = .;
+-  }
+-  .init.data : { *(.init.data) }
+-  . = ALIGN(16);
+-  __setup_start = .;
+-  .init.setup : { *(.init.setup) }
+-  __setup_end = .;
+-  __initcall_start = .;
+-  .initcall.init : {
+-	INITCALLS
+-  }
+-  __initcall_end = .;
+-  __con_initcall_start = .;
+-  .con_initcall.init : { *(.con_initcall.init) }
+-  __con_initcall_end = .;
+-  SECURITY_INIT
+-  . = ALIGN(4);
+-  __tsb_ldquad_phys_patch = .;
+-  .tsb_ldquad_phys_patch : { *(.tsb_ldquad_phys_patch) }
+-  __tsb_ldquad_phys_patch_end = .;
+-  __tsb_phys_patch = .;
+-  .tsb_phys_patch : { *(.tsb_phys_patch) }
+-  __tsb_phys_patch_end = .;
+-  __cpuid_patch = .;
+-  .cpuid_patch : { *(.cpuid_patch) }
+-  __cpuid_patch_end = .;
+-  __sun4v_1insn_patch = .;
+-  .sun4v_1insn_patch : { *(.sun4v_1insn_patch) }
+-  __sun4v_1insn_patch_end = .;
+-  __sun4v_2insn_patch = .;
+-  .sun4v_2insn_patch : { *(.sun4v_2insn_patch) }
+-  __sun4v_2insn_patch_end = .;
++	swapper_low_pmd_dir = 0x0000000000402000;
++	. = 0x4000;
++	.text 0x0000000000404000 : {
++		_text = .;
++		TEXT_TEXT
++		SCHED_TEXT
++		LOCK_TEXT
++		KPROBES_TEXT
++		*(.gnu.warning)
++	} =0
++	_etext = .;
++	PROVIDE (etext = .);
++
++	RODATA
++
++	.data : {
++		DATA_DATA
++		CONSTRUCTORS
++	}
++	.data1 : {
++		*(.data1)
++	}
++
++	. = ALIGN(64);
++	.data.cacheline_aligned : {
++		*(.data.cacheline_aligned)
++	}
++
++	. = ALIGN(64);
++	.data.read_mostly : {
++		*(.data.read_mostly)
++	}
++	_edata  =  .;
++	PROVIDE (edata = .);
++	.fixup : {
++		*(.fixup)
++	}
++
++	. = ALIGN(16);
++	__start___ex_table = .;
++	__ex_table : {
++		*(__ex_table)
++	}
++	__stop___ex_table = .;
++
++	. = ALIGN(8192);
++	__init_begin = .;
++	.init.text : {
++		_sinittext = .;
++		*(.init.text)
++		_einittext = .;
++	}
++
++	.init.data : {
++		*(.init.data)
++	}
++
++	. = ALIGN(16);
++	__setup_start = .;
++	.init.setup : {
++		*(.init.setup)
++	}
++	__setup_end = .;
++
++	__initcall_start = .;
++	.initcall.init : {
++		INITCALLS
++	}
++	__initcall_end = .;
++
++	__con_initcall_start = .;
++	.con_initcall.init : {
++		*(.con_initcall.init)
++	}
++	__con_initcall_end = .;
++	SECURITY_INIT
++
++	. = ALIGN(4);
++	__tsb_ldquad_phys_patch = .;
++	.tsb_ldquad_phys_patch : {
++		*(.tsb_ldquad_phys_patch)
++	}
++	__tsb_ldquad_phys_patch_end = .;
++
++	__tsb_phys_patch = .;
++	.tsb_phys_patch : {
++		*(.tsb_phys_patch)
++	}
++	__tsb_phys_patch_end = .;
++
++	__cpuid_patch = .;
++	.cpuid_patch : {
++		*(.cpuid_patch)
++	}
++	__cpuid_patch_end = .;
++
++	__sun4v_1insn_patch = .;
++	.sun4v_1insn_patch : {
++		*(.sun4v_1insn_patch)
++	}
++	__sun4v_1insn_patch_end = .;
++	__sun4v_2insn_patch = .;
++	.sun4v_2insn_patch : {
++		*(.sun4v_2insn_patch)
++	}
++	__sun4v_2insn_patch_end = .;
+ 
+ #ifdef CONFIG_BLK_DEV_INITRD
+-  . = ALIGN(8192); 
+-  __initramfs_start = .;
+-  .init.ramfs : { *(.init.ramfs) }
+-  __initramfs_end = .;
++	. = ALIGN(8192);
++	__initramfs_start = .;
++	.init.ramfs : {
++		*(.init.ramfs)
++	}
++	__initramfs_end = .;
+ #endif
+ 
+-  . = ALIGN(8192);
+-  __per_cpu_start = .;
+-  .data.percpu  : { *(.data.percpu) }
+-  __per_cpu_end = .;
+-  . = ALIGN(8192);
+-  __init_end = .;
+-  __bss_start = .;
+-  .sbss      : { *(.sbss) *(.scommon) }
+-  .bss       :
+-  {
+-   *(.dynbss)
+-   *(.bss)
+-   *(COMMON)
+-  }
+-  _end = . ;
+-  PROVIDE (end = .);
+-  /DISCARD/ : { *(.exit.text) *(.exit.data) *(.exitcall.exit) }
+-
+-  STABS_DEBUG
+-
+-  DWARF_DEBUG
++	. = ALIGN(8192);
++	__per_cpu_start = .;
++	.data.percpu  : {
++		*(.data.percpu)
++	}
++	__per_cpu_end = .;
++	. = ALIGN(8192);
++	__init_end = .;
++
++	__bss_start = .;
++	.sbss : {
++		*(.sbss)
++		*(.scommon)
++	}
++	.bss : {
++		*(.dynbss)
++		*(.bss)
++		*(COMMON)
++	}
++	_end = . ;
++	PROVIDE (end = .);
++
++	/DISCARD/ : {
++		*(.exit.text)
++		*(.exit.data)
++		*(.exitcall.exit)
++	}
++
++	STABS_DEBUG
++	DWARF_DEBUG
+ }
+-- 
+1.5.1.rc3.20.gaa453
 
-If you are interested in our service, please take a look at our website: ww=
-w.proof-reading-service.com All you have to do is send us your document as =
-a word attachment with the deadline and we will guarantee delivery of a per=
-fectly written document to give you complete confidence when you submit you=
-r work. The fee is worked out on a flat rate (=A36.95 per thousand words or=
- 0.695 pence per word), so you know exactly how much the proofreading will =
-cost in advance.
-
-Once we have received your document(s) we will confirm the word count, the =
-price and the deadline. If you have not heard from us within 2 hours during=
- normal business hours after you have sent your work please resend it from =
-a different email account or send the file to proofreadings@gmail.com.
-
-We look forward to hearing from you!
-
-Yours faithfully
-
-Proof-Reading-Service.com
