@@ -1,29 +1,41 @@
-From: Ben Collins <ben.collins@ubuntu.com>
-Date: Tue, 29 May 2007 13:05:59 +0000
-Subject: Re: [2/3] 2.6.22-rc3: known regressions with patches
-Message-Id: <1180443959.6666.192.camel@cunning>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Thu, 24 May 2007 20:09:34 +0000
+Subject: Linker script cleanup / consolidation
+Message-Id: <20070524200934.GB1109@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <465C203A.1020200@googlemail.com>
-	 <465C2253.4070307@googlemail.com>
-In-Reply-To: <465C2253.4070307@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, netdev@vger.kernel.org, Ben Collins <bcollins@ubuntu.com>, yoshfuji@linux-ipv6.org, Maximilian Engelhardt <maxi@daemonizer.de>, linux-wireless@vger.kernel.org, developers@islsm.org, =?ISO-8859-1?Q?Bj=F6rn?= Steinbrink <B.Steinbrink@gmx.de>, linux-ide@vger.kernel.org, Paul Mundt <lethal@linux-sh.org>, Tejun Heo <htejun@gmail.com>, Jeff Garzik <jeff@garzik.org>, Francis Russell <francisrussell@btopenworld.com>, Alan Cox <alan@redhat.com>, sparclinux@vger.kernel.org, David Miller <davem@davemloft.net>, "Horst H. von Brand" <vonbrand@inf.utfsm.cl>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
-On Tue, 2007-05-29 at 14:53 +0200, Michal Piotrowski wrote:
+Grumble.. why is this list not following usual naming scheme...
+Please include all recepients listed below in replies.
 
-> Subject    : OOPS triggered by ip(8) deconfiguring a network interface
-> References : http://bugzilla.kernel.org/show_bug.cgi?id=8491
-> Submitter  : Ben Collins <bcollins@ubuntu.com>
-> Patch      : http://marc.info/?l=3Dlinux-netdev&m=117915849224816&w=3D2
->              commit 5632c5152aa621885d87ea0b8fdd5a6bb9f69c6f
-> Status     : bug probably fixed
+	Sam
 
-Seems to be fixed, and just marked it resolved on bugzilla.
+To: David Miller <davem@davemloft.net>, linux-arch@vger.kernel.org,
+	linux-sparc@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
---=20
-Ubuntu   : http://www.ubuntu.com/
-Linux1394: http://wiki.linux1394.org/
+With basis in sparc64 I did a small cleanup / consolidation work.
+The sparc64 lds script is by no menas the worst to look at but
+a anyway a good place to start.
 
+In the following patch serie I did:
+-> Introduce a C-like indention style
+-> Introduce use of PAGE_SIZE as replacement for hardcoded constant
+-> Consoildate initramfs definition
+
+
+While browsing the other arch lds files I saw many other smaller
+items that could be consolidated but creating a define for
+something like 3-5 lines was to push it too much.
+
+If there are a number of sections that could be defined together
+I would like to combine then in a common section but I do 
+know too little about the linker scripts to determine this.
+
+The other archs shall have a similar clean-up over time.
+sparc64 was just a good place to start because David had
+expressed that he liked the consolidation.
+
+	Sam
