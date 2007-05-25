@@ -1,7 +1,7 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Date: Fri, 25 May 2007 17:03:04 +0000
+From: Chuck Ebbert <cebbert@redhat.com>
+Date: Fri, 25 May 2007 17:07:10 +0000
 Subject: Re: [2/3] 2.6.22-rc2: known regressions v2
-Message-Id: <20070525180304.2cc4dae0@the-village.bc.nu>
+Message-Id: <465717BE.6070102@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <46558708.2040803@googlemail.com> <46559B54.80106@googlemail.com>
 	<Pine.LNX.4.64.0705241001040.28086@schroedinger.engr.sgi.com>
@@ -15,23 +15,16 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Cherwin
-	R. Nooitmeer" <cherwin@gmail.com>, Kristian H?gsberg <krh@bitplanet.net>, Mikael Pettersson <mikpe@it.uu.se>, Robert@smtp2.linux-foundation.org, Pavel Machek <pavel@ucw.cz>, sparclinux@vger.kernel.org, linux1394-devel@lists.sourceforge.net, Andrey@smtp2.linux-foundation.org, linux-usb-devel@lists.sourceforge.net, Alan Cox <alan@redhat.com>, linux-pm@lists.linux-foundation.org, Lameter <clameter@sgi.com>, de Rooy <robert.de.rooy@gmail.com>, Tejun Heo <htejun@gmail.com>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, linux-pcmcia@lists.infradead.org, Marcus Better <marcus@better.se>, Greg@smtp2.linux-foundation.org, Ingo Molnar <mingo@elte.hu>, Christoph@smtp2.linux-foundation.org, Kroah-Hartman <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, Stefan
+Cc: "Cherwin R. Nooitmeer" <cherwin@gmail.com>, Kristian H?gsberg <krh@bitplanet.net>, Mikael Pettersson <mikpe@it.uu.se>, Pavel Machek <pavel@ucw.cz>, sparclinux@vger.kernel.org, linux1394-devel@lists.sourceforge.net, linux-usb-devel@lists.sourceforge.net, Alan Cox <alan@redhat.com>, linux-pm@lists.linux-foundation.org, Christoph Lameter <clameter@sgi.com>, Robert de Rooy <robert.de.rooy@gmail.com>, Tejun Heo <htejun@gmail.com>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, linux-pcmcia@lists.infradead.org, Marcus Better <marcus@better.se>, Ingo Molnar <mingo@elte.hu>, Greg Kroah-Hartman <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, Stefan Richter <stefanr@s5r6.in-berlin.de>, Chris Newport <crn@netunix.com>, Andrew Morton <akpm@linux-foundation.org>
 
-> Disk dumps etc are options at things like wall street. But look at the bug 
-> reports, and ask yourself how many of them happen at Wall Street, and how 
-> many of them would even be _relevant_ to somebody there? 
+On 05/25/2007 12:45 PM, Linus Torvalds wrote:
+> Yes, in a controlled environment, dumping the whole memory image to disk 
+> may be the right thing to do. BUT: in a controlled environment, you'll 
+> never get the kind of usage that Linux gets. Why do you think Linux (and 
+> Windows, for that matter) took away a lot of the market from traditional 
+> UNIX? 
+> 
 
-There is an additional factor - dumps contain data which variously is -
-copyright third parties, protected by privacy laws, just personally
-private, security sensitive (eg browser history) and so on.
+Windows can dump memory to the swap file on crash. Default is a "minidump"
+IIRC but you can set it to dump all memory (or none.)
 
-The only reasons you can get dumps back in the hands of vendors is
-because there are strong formal agreements controlling where they go and
-what is done with them.
-
-Diskdump (and even more so netdump) are useful in the hands of a
-developer crashing their own box just like kgdb, but not in the the
-normal and rational end user response of  "its broken, hit reset"
-
-Alan
