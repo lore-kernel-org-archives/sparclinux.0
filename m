@@ -1,342 +1,102 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Tue, 01 May 2007 07:24:35 +0000
-Subject: [PATCH 01/11] Split out common parts of prom.h
-Message-Id: <20070501172435.3360ea6b.sfr@canb.auug.org.au>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 25 May 2007 18:47:33 +0000
+Subject: [GIT PATCHES for -rc] fix alignment error in sparc64 linker script
+Message-Id: <20070525184733.GA9513@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070501172250.80707fb8.sfr@canb.auug.org.au>
-In-Reply-To: <20070501172250.80707fb8.sfr@canb.auug.org.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>, paulus@samba.org
-Cc: sparclinux@vger.kernel.org, ppc-dev <linuxppc-dev@ozlabs.org>
+To: sparclinux@vger.kernel.org
 
-This creates linux/of.h and includes asm/prom.h from it.
+Hi Linus.
 
-We also include linux/of.h from asm/prom.h while we transition.
+Davem asked me to look at the sparc64 linker script.
+It used a hardcoded alignment value of 8192 where the correct
+size is PAGE_SIZE (which may be 8192).
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
----
- include/asm-powerpc/prom.h |   40 +++-------------------------
- include/asm-sparc/prom.h   |   49 ++++-------------------------------
- include/asm-sparc64/prom.h |   49 ++++-------------------------------
- include/linux/of.h         |   60 ++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 77 insertions(+), 121 deletions(-)
- create mode 100644 include/linux/of.h
+I have made both a minimal fix (see below) and
+a version where the linker script becomes as readable as linker scripts can be.
 
--- 
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
+== Fix that includes cleanup of vmlinux.lds for sparc64
 
-diff --git a/include/asm-powerpc/prom.h b/include/asm-powerpc/prom.h
-index ec400f6..7c77ef1 100644
---- a/include/asm-powerpc/prom.h
-+++ b/include/asm-powerpc/prom.h
-@@ -98,12 +98,6 @@ struct device_node {
- 
- extern struct device_node *of_chosen;
- 
--/* flag descriptions */
--#define OF_DYNAMIC 1 /* node and properties were allocated via kmalloc */
--
--#define OF_IS_DYNAMIC(x) test_bit(OF_DYNAMIC, &x->_flags)
--#define OF_MARK_DYNAMIC(x) set_bit(OF_DYNAMIC, &x->_flags)
--
- #define HAVE_ARCH_DEVTREE_FIXUPS
- 
- static inline void set_node_proc_entry(struct device_node *dn, struct proc_dir_entry *de)
-@@ -113,27 +107,7 @@ static inline void set_node_proc_entry(struct device_node *dn, struct proc_dir_e
- 
- 
- /* New style node lookup */
--extern struct device_node *of_find_node_by_name(struct device_node *from,
--	const char *name);
--#define for_each_node_by_name(dn, name) \
--	for (dn = of_find_node_by_name(NULL, name); dn; \
--	     dn = of_find_node_by_name(dn, name))
--extern struct device_node *of_find_node_by_type(struct device_node *from,
--	const char *type);
--#define for_each_node_by_type(dn, type) \
--	for (dn = of_find_node_by_type(NULL, type); dn; \
--	     dn = of_find_node_by_type(dn, type))
--extern struct device_node *of_find_compatible_node(struct device_node *from,
--	const char *type, const char *compat);
--extern struct device_node *of_find_node_by_path(const char *path);
--extern struct device_node *of_find_node_by_phandle(phandle handle);
- extern struct device_node *of_find_all_nodes(struct device_node *prev);
--extern struct device_node *of_get_parent(const struct device_node *node);
--extern struct device_node *of_get_next_child(const struct device_node *node,
--					     struct device_node *prev);
--extern struct property *of_find_property(const struct device_node *np,
--					 const char *name,
--					 int *lenp);
- extern struct device_node *of_node_get(struct device_node *node);
- extern void of_node_put(struct device_node *node);
- 
-@@ -155,17 +129,9 @@ extern void of_detach_node(const struct device_node *);
- extern void finish_device_tree(void);
- extern void unflatten_device_tree(void);
- extern void early_init_devtree(void *);
--extern int of_device_is_compatible(const struct device_node *device,
--				const char *);
- #define device_is_compatible(d, c)	of_device_is_compatible((d), (c))
- extern int machine_is_compatible(const char *compat);
--extern const void *of_get_property(const struct device_node *node,
--				const char *name,
--				int *lenp);
--#define get_property(a, b, c)	of_get_property((a), (b), (c))
- extern void print_properties(struct device_node *node);
--extern int of_n_addr_cells(struct device_node* np);
--extern int of_n_size_cells(struct device_node* np);
- extern int prom_n_intr_cells(struct device_node* np);
- extern void prom_get_irq_senses(unsigned char *senses, int off, int max);
- extern int prom_add_property(struct device_node* np, struct property* prop);
-@@ -219,7 +185,6 @@ static inline unsigned long of_read_ulong(const u32 *cell, int size)
- 
- /* Translate an OF address block into a CPU physical address
-  */
--#define OF_BAD_ADDR	((u64)-1)
- extern u64 of_translate_address(struct device_node *np, const u32 *addr);
- 
- /* Extract an address from a device, returns the region size and
-@@ -358,6 +323,11 @@ static inline void __iomem *of_iomap(struct device_node *np, int index)
- 	return ioremap(res.start, 1 + res.end - res.start);
- }
- 
-+/*
-+ * NB:  This is here while we transition from using asm/prom.h
-+ * to linux/of.h
-+ */
-+#include <linux/of.h>
- 
- #endif /* __KERNEL__ */
- #endif /* _POWERPC_PROM_H */
-diff --git a/include/asm-sparc/prom.h b/include/asm-sparc/prom.h
-index 9ea105e..1e0e9da 100644
---- a/include/asm-sparc/prom.h
-+++ b/include/asm-sparc/prom.h
-@@ -2,7 +2,6 @@
- #define _SPARC_PROM_H
- #ifdef __KERNEL__
- 
--
- /*
-  * Definitions for talking to the Open Firmware PROM on
-  * Power Macintosh computers.
-@@ -17,7 +16,6 @@
-  * as published by the Free Software Foundation; either version
-  * 2 of the License, or (at your option) any later version.
-  */
--
- #include <linux/types.h>
- #include <linux/proc_fs.h>
- #include <asm/atomic.h>
-@@ -55,53 +53,18 @@ struct device_node {
- 	unsigned int unique_id;
- };
- 
--/* flag descriptions */
--#define OF_DYNAMIC 1 /* node and properties were allocated via kmalloc */
--
--#define OF_IS_DYNAMIC(x) test_bit(OF_DYNAMIC, &x->_flags)
--#define OF_MARK_DYNAMIC(x) set_bit(OF_DYNAMIC, &x->_flags)
--
--#define OF_BAD_ADDR	((u64)-1)
--
--static inline void set_node_proc_entry(struct device_node *dn, struct proc_dir_entry *de)
--{
--	dn->pde = de;
--}
--
--extern struct device_node *of_find_node_by_name(struct device_node *from,
--	const char *name);
--#define for_each_node_by_name(dn, name) \
--	for (dn = of_find_node_by_name(NULL, name); dn; \
--	     dn = of_find_node_by_name(dn, name))
--extern struct device_node *of_find_node_by_type(struct device_node *from,
--	const char *type);
--#define for_each_node_by_type(dn, type) \
--	for (dn = of_find_node_by_type(NULL, type); dn; \
--	     dn = of_find_node_by_type(dn, type))
--extern struct device_node *of_find_compatible_node(struct device_node *from,
--	const char *type, const char *compat);
--extern struct device_node *of_find_node_by_path(const char *path);
--extern struct device_node *of_find_node_by_phandle(phandle handle);
--extern struct device_node *of_get_parent(const struct device_node *node);
--extern struct device_node *of_get_next_child(const struct device_node *node,
--					     struct device_node *prev);
--extern struct property *of_find_property(const struct device_node *np,
--					 const char *name,
--					 int *lenp);
--extern int of_device_is_compatible(const struct device_node *device,
--				   const char *);
--extern const void *of_get_property(const struct device_node *node,
--				   const char *name,
--				   int *lenp);
--#define get_property(node,name,lenp) of_get_property(node,name,lenp)
- extern int of_set_property(struct device_node *node, const char *name, void *val, int len);
- extern int of_getintprop_default(struct device_node *np,
- 				 const char *name,
- 				 int def);
--extern int of_n_addr_cells(struct device_node *np);
--extern int of_n_size_cells(struct device_node *np);
- 
- extern void prom_build_devicetree(void);
- 
-+/*
-+ * NB:  This is here while we transition from using asm/prom.h
-+ * to linux/of.h
-+ */
-+#include <linux/of.h>
-+
- #endif /* __KERNEL__ */
- #endif /* _SPARC_PROM_H */
-diff --git a/include/asm-sparc64/prom.h b/include/asm-sparc64/prom.h
-index ddad5f9..288d78d 100644
---- a/include/asm-sparc64/prom.h
-+++ b/include/asm-sparc64/prom.h
-@@ -2,7 +2,6 @@
- #define _SPARC64_PROM_H
- #ifdef __KERNEL__
- 
--
- /*
-  * Definitions for talking to the Open Firmware PROM on
-  * Power Macintosh computers.
-@@ -17,7 +16,6 @@
-  * as published by the Free Software Foundation; either version
-  * 2 of the License, or (at your option) any later version.
-  */
--
- #include <linux/types.h>
- #include <linux/proc_fs.h>
- #include <asm/atomic.h>
-@@ -63,53 +61,18 @@ struct of_irq_controller {
- 	void		*data;
- };
- 
--/* flag descriptions */
--#define OF_DYNAMIC 1 /* node and properties were allocated via kmalloc */
--
--#define OF_IS_DYNAMIC(x) test_bit(OF_DYNAMIC, &x->_flags)
--#define OF_MARK_DYNAMIC(x) set_bit(OF_DYNAMIC, &x->_flags)
--
--#define OF_BAD_ADDR	((u64)-1)
--
--static inline void set_node_proc_entry(struct device_node *dn, struct proc_dir_entry *de)
--{
--	dn->pde = de;
--}
--
--extern struct device_node *of_find_node_by_name(struct device_node *from,
--	const char *name);
--#define for_each_node_by_name(dn, name) \
--	for (dn = of_find_node_by_name(NULL, name); dn; \
--	     dn = of_find_node_by_name(dn, name))
--extern struct device_node *of_find_node_by_type(struct device_node *from,
--	const char *type);
--#define for_each_node_by_type(dn, type) \
--	for (dn = of_find_node_by_type(NULL, type); dn; \
--	     dn = of_find_node_by_type(dn, type))
--extern struct device_node *of_find_compatible_node(struct device_node *from,
--	const char *type, const char *compat);
--extern struct device_node *of_find_node_by_path(const char *path);
--extern struct device_node *of_find_node_by_phandle(phandle handle);
--extern struct device_node *of_get_parent(const struct device_node *node);
--extern struct device_node *of_get_next_child(const struct device_node *node,
--					     struct device_node *prev);
--extern struct property *of_find_property(const struct device_node *np,
--					 const char *name,
--					 int *lenp);
--extern int of_device_is_compatible(const struct device_node *device,
--				   const char *);
--extern const void *of_get_property(const struct device_node *node,
--			     const char *name,
--			     int *lenp);
--#define get_property(node,name,lenp) of_get_property(node,name,lenp)
- extern int of_set_property(struct device_node *node, const char *name, void *val, int len);
- extern int of_getintprop_default(struct device_node *np,
- 				 const char *name,
- 				 int def);
--extern int of_n_addr_cells(struct device_node *np);
--extern int of_n_size_cells(struct device_node *np);
- 
- extern void prom_build_devicetree(void);
- 
-+/*
-+ * NB:  This is here while we transition from using asm/prom.h
-+ * to linux/of.h
-+ */
-+#include <linux/of.h>
-+
- #endif /* __KERNEL__ */
- #endif /* _SPARC64_PROM_H */
-diff --git a/include/linux/of.h b/include/linux/of.h
-new file mode 100644
-index 0000000..f32fbc7
---- /dev/null
-+++ b/include/linux/of.h
-@@ -0,0 +1,60 @@
-+#ifndef _LINUX_OPENFW_H
-+#define _LINUX_OPENFW_H
-+/*
-+ * Definitions for talking to the Open Firmware PROM on
-+ * Power Macintosh and other computers.
-+ *
-+ * Copyright (C) 1996-2005 Paul Mackerras.
-+ *
-+ * Updates for PPC64 by Peter Bergner & David Engebretsen, IBM Corp.
-+ * Updates for SPARC64 by David S. Miller
-+ * Derived from PowerPC and Sparc prom.h files by Stephen Rothwell, IBM Corp.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version
-+ * 2 of the License, or (at your option) any later version.
-+ */
-+#include <linux/types.h>
-+
-+#include <asm/bitops.h>
-+#include <asm/prom.h>
-+
-+/* flag descriptions */
-+#define OF_DYNAMIC 1 /* node and properties were allocated via kmalloc */
-+
-+#define OF_IS_DYNAMIC(x) test_bit(OF_DYNAMIC, &x->_flags)
-+#define OF_MARK_DYNAMIC(x) set_bit(OF_DYNAMIC, &x->_flags)
-+
-+#define OF_BAD_ADDR	((u64)-1)
-+
-+extern struct device_node *of_find_node_by_name(struct device_node *from,
-+	const char *name);
-+#define for_each_node_by_name(dn, name) \
-+	for (dn = of_find_node_by_name(NULL, name); dn; \
-+	     dn = of_find_node_by_name(dn, name))
-+extern struct device_node *of_find_node_by_type(struct device_node *from,
-+	const char *type);
-+#define for_each_node_by_type(dn, type) \
-+	for (dn = of_find_node_by_type(NULL, type); dn; \
-+	     dn = of_find_node_by_type(dn, type))
-+extern struct device_node *of_find_compatible_node(struct device_node *from,
-+	const char *type, const char *compat);
-+extern struct device_node *of_find_node_by_path(const char *path);
-+extern struct device_node *of_find_node_by_phandle(phandle handle);
-+extern struct device_node *of_get_parent(const struct device_node *node);
-+extern struct device_node *of_get_next_child(const struct device_node *node,
-+					     struct device_node *prev);
-+extern struct property *of_find_property(const struct device_node *np,
-+					 const char *name,
-+					 int *lenp);
-+extern int of_device_is_compatible(const struct device_node *device,
-+				   const char *);
-+extern const void *of_get_property(const struct device_node *node,
-+				const char *name,
-+				int *lenp);
-+#define get_property(a, b, c)	of_get_property((a), (b), (c))
-+extern int of_n_addr_cells(struct device_node *np);
-+extern int of_n_size_cells(struct device_node *np);
-+
-+#endif /* _LINUX_OPENFW_H */
--- 
-1.5.1.2
+The fix touches asm-generic/vmlinux.lds.h but will not
+impact other architectures.
 
+The patches can be pulled from:
+git pull git://git.kernel.org/pub/scm/linux/kernel/git/sam/kbuild-fix.git
+
+Patches has been sent to peer review at lkml + sparclinux.
+David asked me to mark them "Signed-off-by" but 
+my understanding are that Signed-off-by: document the path of a patch
+so they are marked "Acked-by:".
+
+Here is shortlog + diffstat.
+
+Sam Ravnborg (5):
+      sparc64: ident vmlinux.lds.S
+      asm-generic: add RO_DATA which take alignment parameter
+      sparc64: use PAGE_SIZE in vmlinux.lds
+      asm-generic: add INITRAMFS to vmlinux.lds.h
+      sparc64: use INITRAMFS in vmlinux.lds.h
+
+ arch/sparc64/kernel/vmlinux.lds.S |  241 +++++++++++++++++++++----------------
+ include/asm-generic/vmlinux.lds.h |   22 +++-
+ 2 files changed, 159 insertions(+), 104 deletions(-)
+
+== The minimal fix
+
+The minimal fix would be to just replace use of 8192 with PAGE_SIZE.
+This is indeed a much smaller patch.
+If you prefer the smaller patch considering the -rc progress I
+have pushed that out in the branch 'minimal'.
+In this case please pull from the branch minimal:
+git pull git://git.kernel.org/pub/scm/linux/kernel/git/sam/kbuild-fix.git minimal
+
+diffstat and diff for the minimal fix below.
+
+	Sam
+
+ arch/sparc64/kernel/vmlinux.lds.S |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/arch/sparc64/kernel/vmlinux.lds.S b/arch/sparc64/kernel/vmlinux.lds.S
+index fb648de..7fdabed 100644
+--- a/arch/sparc64/kernel/vmlinux.lds.S
++++ b/arch/sparc64/kernel/vmlinux.lds.S
+@@ -1,5 +1,6 @@
+ /* ld script to make UltraLinux kernel */
+ 
++#include <asm/page.h>
+ #include <asm-generic/vmlinux.lds.h>
+ 
+ OUTPUT_FORMAT("elf64-sparc", "elf64-sparc", "elf64-sparc")
+@@ -44,7 +45,7 @@ SECTIONS
+   __ex_table : { *(__ex_table) }
+   __stop___ex_table = .;
+ 
+-  . = ALIGN(8192);
++  . = ALIGN(PAGE_SIZE);
+   __init_begin = .;
+   .init.text : { 
+ 	_sinittext = .;
+@@ -83,17 +84,17 @@ SECTIONS
+   __sun4v_2insn_patch_end = .;
+ 
+ #ifdef CONFIG_BLK_DEV_INITRD
+-  . = ALIGN(8192); 
++  . = ALIGN(PAGE_SIZE);
+   __initramfs_start = .;
+   .init.ramfs : { *(.init.ramfs) }
+   __initramfs_end = .;
+ #endif
+ 
+-  . = ALIGN(8192);
++  . = ALIGN(PAGE_SIZE);
+   __per_cpu_start = .;
+   .data.percpu  : { *(.data.percpu) }
+   __per_cpu_end = .;
+-  . = ALIGN(8192);
++  . = ALIGN(PAGE_SIZE);
+   __init_end = .;
+   __bss_start = .;
+   .sbss      : { *(.sbss) *(.scommon) }
