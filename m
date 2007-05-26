@@ -1,40 +1,48 @@
-From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
-Date: Tue, 08 May 2007 10:07:58 +0000
-Subject: Re: [2.6.21.1] Nat trouble
-Message-Id: <46404BFE.3030109@systella.fr>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Date: Sat, 26 May 2007 14:57:53 +0000
+Subject: Linux always starts with 9600 8N1
+Message-Id: <Pine.LNX.4.61.0705261649590.7344@yvahk01.tjqt.qr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <463F1417.80409@systella.fr>
-In-Reply-To: <463F1417.80409@systella.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-David Miller a =E9crit :
-> From: BERTRAND_Jo=EBl <joel.bertrand@systella.fr>
-> Date: Mon, 07 May 2007 13:57:11 +0200
->=20
->> 	Hello,
->>
->> 	I have built a 2.6.21.1 kernel to replace a working 2.6.20 on an=20
->> U60/SMP. NAT (iptables) worked fine with 2.6.20 but not with 2.6.21.1.=20
->> That being said, all other iptables rules seem to works fine with 2.6.21=
-.1.
->>
->> My /var/lib/iptables/active script :
->=20
-> Please report this to the netfilter developer lists, this doesn't
-> look sparc specific.
->=20
-> Please also make sure you have all the proper netfilter modules
-> enabled in your kernel config, some things have changed in the
-> past few releases.  For example, the connection tracking modules
-> are called "NF_FOO" instead of "IP_FOO"
+Hi,
 
-	I have all conntrack modules (and modules are loaded). I have some=20
-trouble a long time ago with conntrack modules with iproute2. I don't=20
-have any i386 nor amd64 to test on these architectures.
 
-	Regards,
+I have set the OBP to run at 115200, also set agetty on ttyS0 to do the 
+same, and also added console=ttyS0,115200 to silo.conf (and also tried 
+console=ttyS0,115200n8). But! Linux still gives me 9600 8N1. The ominous 
+double screen blanking (why is that done anyway?) already takes place 
+with 9600. I smell a bug. What do you think?
 
-	JKB
+
+Sun (TM) Enterprise 250 (2 X UltraSPARC-II 400MHz), No Keyboard                 
+OpenBoot 3.30, 2048 MB memory installed, Serial #15119878.                      
+Ethernet address 8:0:20:e6:b6:6, Host ID: 80e6b606.                             
+
+Rebooting with command: boot                                          
+Boot device: disk0  File and args: 
+SWarning: Power Supply 0 Failure Indication
+ILO Version 1.4.13
+boot: 
+Allocated 8 Megs of memory at 0x40000000 for kernel
+Loaded kernel version 2.6.21
+Loading initial ramdisk (4027821 bytes at 0xC00000 phys, 0x40C00000 virt)...
+\
+Remapping the kernel... done.
+Booting Linux...
+
+<prints nothing because minicom is set to 115200, but receives 9600>
+
+Aurora SPARC Linux release 2.99 (Angel)
+Kernel 2.6.21-1.3149.al3.2smp on an sparc64
+
+sun login: 
+
+
+
+
+	Jan
+-- 
