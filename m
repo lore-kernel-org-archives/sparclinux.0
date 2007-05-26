@@ -1,39 +1,49 @@
-From: Kyle McMartin <kyle@parisc-linux.org>
-Date: Fri, 25 May 2007 20:11:43 +0000
-Subject: [RFT] [SPARC] Emulate cmpxchg like parisc
-Message-Id: <20070525201143.GB14171@fattire.cabal.ca>
+From: Martin Habets <errandir_news@mph.eclipse.co.uk>
+Date: Sat, 26 May 2007 00:24:40 +0000
+Subject: Re: [RFT] [SPARC] Emulate cmpxchg like parisc
+Message-Id: <20070526002440.GA15449@palantir8>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20070525201143.GB14171@fattire.cabal.ca>
+In-Reply-To: <20070525201143.GB14171@fattire.cabal.ca>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Signed-off-by: Kyle McMartin <kyle@parisc-linux.org>
+Hi Kyle,
 
----
+After some minor fixes this builds, and the DRM drivers also
+build again. I cannot test this since I do not have a machine with
+PCI or these cards.
+Removed your name in the comment, as that went out of fashion after
+we started using proper versioning systems.
 
-PS: Anyone have a nice prebuilt i386->sparc{32,64} xcompiler setup
-I could snag? Would be nice to testbuild these patches before I send
-them out next time.
+I've got a ppc->sparc32 compiler if that would help...
 
-diff --git a/arch/sparc/lib/atomic32.c b/arch/sparc/lib/atomic32.c
-index 559335f..a45caca 100644
---- a/arch/sparc/lib/atomic32.c
-+++ b/arch/sparc/lib/atomic32.c
-@@ -2,6 +2,7 @@
-  * atomic32.c: 32-bit atomic_t implementation
-  *
-  * Copyright (C) 2004 Keith M Wesolowski
-+ * Copyright (C) 2007 Kyle McMartin
-  * 
-  * Based on asm-parisc/atomic.h Copyright (C) 2000 Philipp Rumpf
-  */
-@@ -117,3 +118,17 @@ unsigned long ___change_bit(unsigned long *addr, unsigned long mask)
+Thanks,
+Martin
+
+	Acked-by: Martin Habets <errandir_news@mph.eclipse.co.uk>
+
+On Fri, May 25, 2007 at 04:11:43PM -0400, Kyle McMartin wrote:
+> Signed-off-by: Kyle McMartin <kyle@parisc-linux.org>
+> 
+> ---
+> 
+> PS: Anyone have a nice prebuilt i386->sparc{32,64} xcompiler setup
+> I could snag? Would be nice to testbuild these patches before I send
+> them out next time.
+
+
+Index: 2.6.21_drm/arch/sparc/lib/atomic32.c
+=================================--- 2.6.21_drm.orig/arch/sparc/lib/atomic32.c	2007-05-23 19:31:00.000000000 +0100
++++ 2.6.21_drm/arch/sparc/lib/atomic32.c	2007-05-26 01:07:09.000000000 +0100
+@@ -117,3 +117,17 @@
  	return old & mask;
  }
  EXPORT_SYMBOL(___change_bit);
 +
-+unsigned long __cmpxchg_u32(volatile u32 *ptr, u32 old, u32 new)
++unsigned long __cmpxchg_u32(volatile u32 *addr, u32 old, u32 new)
 +{
 +	unsigned long flags;
 +	u32 prev;
@@ -46,19 +56,16 @@ index 559335f..a45caca 100644
 +	return (unsigned long)prev;
 +}
 +EXPORT_SYMBOL(__cmpxchg_u32);
-diff --git a/include/asm-sparc/atomic.h b/include/asm-sparc/atomic.h
-index 731fa56..ac55f6f 100644
---- a/include/asm-sparc/atomic.h
-+++ b/include/asm-sparc/atomic.h
-@@ -2,6 +2,7 @@
-  *
-  * Copyright (C) 1996 David S. Miller (davem@caip.rutgers.edu)
-  * Copyright (C) 2000 Anton Blanchard (anton@linuxcare.com.au)
-+ * Copyright (C) 2007 Kyle McMartin (kyle@parisc-linux.org)
-  *
-  * Additions by Keith M Wesolowski (wesolows@foobazco.org) based
-  * on asm-parisc/atomic.h Copyright (C) 2000 Philipp Rumpf <prumpf@tux.org>.
-@@ -15,6 +16,42 @@ typedef struct { volatile int counter; } atomic_t;
+Index: 2.6.21_drm/include/asm-sparc/atomic.h
+=================================--- 2.6.21_drm.orig/include/asm-sparc/atomic.h	2007-05-23 19:31:39.000000000 +0100
++++ 2.6.21_drm/include/asm-sparc/atomic.h	2007-05-26 01:06:37.000000000 +0100
+@@ -10,11 +10,48 @@
+ #ifndef __ARCH_SPARC_ATOMIC__
+ #define __ARCH_SPARC_ATOMIC__
+ 
++#include <linux/types.h>
+ 
+ typedef struct { volatile int counter; } atomic_t;
  
  #ifdef __KERNEL__
  
@@ -75,7 +82,7 @@ index 731fa56..ac55f6f 100644
 +/* bug catcher for when unsupported size is used - won't link */
 +extern void __cmpxchg_called_with_bad_pointer(void);
 +/* we only need to support cmpxchg of a u32 on sparc */
-+extern unsigned long __cmpxchg_u32(u32 *m, u32 old, u32 new_);
++extern unsigned long __cmpxchg_u32(volatile u32 *m, u32 old, u32 new_);
 +
 +/* don't worry...optimizer will get rid of most of this */
 +static __inline__ unsigned long
