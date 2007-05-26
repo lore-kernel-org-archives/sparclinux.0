@@ -1,36 +1,63 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 25 May 2007 20:36:53 +0000
-Subject: Re: [2/3] 2.6.22-rc2: known regressions v2
-Message-Id: <20070525.133653.57156321.davem@davemloft.net>
+From: Matt Sealey <matt@genesi-usa.com>
+Date: Sat, 26 May 2007 13:16:19 +0000
+Subject: Re: [linux-pm] Re: [2/3] 2.6.22-rc2: known regressions v2
+Message-Id: <46583323.40100@genesi-usa.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4656CE39.8050800@netunix.com>
-	<alpine.LFD.0.98.0705250937550.26602@woody.linux-foundation.org>
-	<46572507.6010800@netunix.com>
+References: <46558708.2040803@googlemail.com> <46559B54.80106@googlemail.com>	<Pine.LNX.4.64.0705241001040.28086@schroedinger.engr.sgi.com>	<alpine.LFD.0.98.0705241007290.26602@woody.linux-foundation.org>	<20070524193740.GA6787@elte.hu>	<alpine.LFD.0.98.0705241247540.26602@woody.linux-foundation.org>	<20070525101105.GA9268@elte.hu> <4656CE39.8050800@netunix.com>	<alpine.LFD.0.98.0705250937550.26602@woody.linux-foundation.org> <46572507.6010800@netunix.com>
 In-Reply-To: <46572507.6010800@netunix.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: crn@netunix.com
-Cc: torvalds@linux-foundation.org, mingo@elte.hu, clameter@sgi.com, michal.k.k.piotrowski@gmail.com, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, cherwin@gmail.com, linux-pcmcia@lists.infradead.org, robert.de.rooy@gmail.com, alan@redhat.com, htejun@gmail.com, sparclinux@vger.kernel.org, mikpe@it.uu.se, linux1394-devel@lists.sourceforge.net, stefanr@s5r6.in-berlin.de, krh@bitplanet.net, linux-pm@lists.linux-foundation.org, rjw@sisk.pl, pavel@ucw.cz, marcus@better.se, arvidjaar@mail.ru, linux-usb-devel@lists.sourceforge.net, gregkh@suse.de
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Cherwin R. Nooitmeer" <cherwin@gmail.com>, Kristian H?gsberg <krh@bitplanet.net>, Mikael Pettersson <mikpe@it.uu.se>, Pavel Machek <pavel@ucw.cz>, sparclinux@vger.kernel.org, linux1394-devel@lists.sourceforge.net, linux-usb-devel@lists.sourceforge.net, Alan Cox <alan@redhat.com>, linux-pm@lists.linux-foundation.org, Christoph Lameter <clameter@sgi.com>, Robert de Rooy <robert.de.rooy@gmail.com>, Tejun Heo <htejun@gmail.com>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, linux-pcmcia@lists.infradead.org, Marcus Better <marcus@better.se>, Ingo Molnar <mingo@elte.hu>, Greg Kroah-Hartman <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, Stefan Richter <stefanr@s5r6.in-berlin.de>, Andrew Morton <akpm@linux-foundation.org>, Andrey Borzenkov <arvidjaar@mail.ru>, David Miller <davem@davemloft.net>
 
-From: Chris Newport <crn@netunix.com>
-Date: Fri, 25 May 2007 19:03:51 +0100
 
+Chris Newport wrote:
+> 
+> Sorry, I did not make myself clear.
+> 
+> Linus Torvalds wrote:
+> 
+>> On Fri, 25 May 2007, Chris Newport wrote:
+>>  
+>>
+>>> Maybe we should take a hint from Solaris.
+>>>   
+>>
+>> No. Solaris is shit. They make their decisions based on "we control
+>> the hardware" kind of setup.
+>>  
+>>
 > Not really a Solaris feature. This is a feature of the  Openboot  PROM
 > which is also used by several other vendors.
 > The Openboot PROM knows how to write to disk. The same should
 > apply on Apple hardware and others which use the openboot
 > convention.
 
-This is totally unusable even if it weren't stupid, and as
-someone who loves OpenBoot I think it's very stupid.
+It doesn't, though. It is not part of any specification of Open Firmware
+that you MUST be able to write to any exposed disk. In fact, I know of
+one firmware implementation (ours) where we don't allow it. Apart from
+being a bitch to implement safely (i.e. for people's data) it is also
+quite a security problem to allow the firmware interface to write to
+the disk. You can't make the differentiation between "at the firmware
+console" and "inside a booted OS" unfortunately.
 
-The reason it's unusable is that PowerPC already and sparc64 soon (in
-order to support LDOMs) totally drops the OBP firmware very soon after
-early kernel boot.  We pull in the device tree and then say "see ya"
-to openboot.
+The 'solution' in Solaris is actually that the filesystem and disk
+write handling is done by the OS bootloader and not the PROM. All
+the PROM knows how to do is read off the bootloader (in a special
+partition in a special filesystem format) and execute it after
+probing the hardware and providing the device tree. The first stage
+boot loader then knows how to read UFS filesystems so it can grab
+the kernel and load kernel modules, and write back a kernel dump
+if it needs to.
 
-PowerPC does it because sharing the address space with openboot is
-next to impossible on that cpu, sparc64 will need to do it because
-dynamic-reconfiguration of cpus in an LDOM is too hard to do with
-openboot there.
+That, and Linux drops OF support like a lead weight very early in boot.
+About all you can rely on is the device tree listing all your disks
+present, and even then, Linux will redetect all of these with native
+drivers and give them new names anyway. In fact, Solaris does the
+same (but it is better about associating the device tree entries
+than Linux)
+
+-- 
+Matt Sealey <matt@genesi-usa.com>
+Genesi, Manager, Developer Relations
