@@ -1,40 +1,29 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 24 May 2007 20:15:42 +0000
-Subject: [PATCH/RFC 5/5] sparc64: use INITRAMFS in vmlinux.lds.h
-Message-Id: <20070524201542.GG1109@uranus.ravnborg.org>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Date: Sun, 27 May 2007 07:17:17 +0000
+Subject: Re: BUG in kcryptd?
+Message-Id: <Pine.LNX.4.61.0705270916370.7344@yvahk01.tjqt.qr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070524200440.GA1109@uranus.ravnborg.org>
-In-Reply-To: <20070524200440.GA1109@uranus.ravnborg.org>
+References: <464B1F2B.3030009@xs4all.nl> <Pine.LNX.4.61.0705161751020.9570@yvahk01.tjqt.qr>
+In-Reply-To: <Pine.LNX.4.61.0705161751020.9570@yvahk01.tjqt.qr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>, linux-arch@vger.kernel.org, sparclinux@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: Udo van den Heuvel <udovdh@xs4all.nl>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
----
- arch/sparc64/kernel/vmlinux.lds.S |    9 +--------
- 1 files changed, 1 insertions(+), 8 deletions(-)
 
-diff --git a/arch/sparc64/kernel/vmlinux.lds.S b/arch/sparc64/kernel/vmlinux.lds.S
-index 8559d07..2d6fb93 100644
---- a/arch/sparc64/kernel/vmlinux.lds.S
-+++ b/arch/sparc64/kernel/vmlinux.lds.S
-@@ -117,14 +117,7 @@ SECTIONS
- 	}
- 	__sun4v_2insn_patch_end = .;
- 
--#ifdef CONFIG_BLK_DEV_INITRD
--	. = ALIGN(PAGE_SIZE);
--	__initramfs_start = .;
--	.init.ramfs : {
--		*(.init.ramfs)
--	}
--	__initramfs_end = .;
--#endif
-+	INITRAMFS(PAGE_SIZE)
- 
- 	. = ALIGN(PAGE_SIZE);
- 	__per_cpu_start = .;
+On May 16 2007 17:52, Jan Engelhardt wrote:
+>On May 16 2007 17:11, Udo van den Heuvel wrote:
+>>
+>>While opening an encrypted partition and trying to fsck it:
+>
+>Yeah, somewhere is a bug in it, I also get an oops with
+>kcryptd in 2.6.20 on sparc64 after a few minutes (though,
+>it's a NULL dereference there).
+
+...which also seems to be gone for me with some 2.6.21.
+
+
+
+	Jan
 -- 
-1.5.1.rc3.20.gaa453
-
