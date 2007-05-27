@@ -1,47 +1,65 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 08 May 2007 09:04:04 +0000
-Subject: Re: XVR-500 support in XVR-2500 driver?
-Message-Id: <20070508.020404.41635366.davem@davemloft.net>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Date: Sun, 27 May 2007 16:44:18 +0000
+Subject: [PATCH] Linux always started with 9600 8N1
+Message-Id: <Pine.LNX.4.61.0705271816310.7344@yvahk01.tjqt.qr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.SOC.4.64.0705072317540.4832@math>
-In-Reply-To: <Pine.SOC.4.64.0705072317540.4832@math>
+References: <Pine.LNX.4.61.0705261649590.7344@yvahk01.tjqt.qr>
+ <20070526.154745.30164056.davem@davemloft.net>
+In-Reply-To: <20070526.154745.30164056.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Date: Tue, 8 May 2007 10:50:56 +0200 (MEST)
 
-> 
-> On May 7 2007 14:03, David Miller wrote:
-> >
-> >diff --git a/drivers/video/sunxvr2500.c b/drivers/video/sunxvr2500.c
-> >index 4010492..4316c7f 100644
-> >--- a/drivers/video/sunxvr2500.c
-> >+++ b/drivers/video/sunxvr2500.c
-> >@@ -237,14 +237,14 @@ static void __devexit s3d_pci_unregister(struct pci_dev *pdev)
-> > }
-> > 
-> > static struct pci_device_id s3d_pci_table[] = {
-> >-	{	/* XVR-2500 */
-> >-		PCI_DEVICE(PCI_VENDOR_ID_3DLABS, 0x0032),
-> >-		.driver_data = 1,
-> >-	},
-> >-	{	/* XVR-500 */
-> >-		PCI_DEVICE(PCI_VENDOR_ID_3DLABS, 0x07a2),
-> >-		.driver_data = 0,
-> >-	},
-> >+	{	PCI_DEVICE(PCI_VENDOR_ID_3DLABS, 0x002c),	},
-> >+	{	PCI_DEVICE(PCI_VENDOR_ID_3DLABS, 0x002d),	},
-> >+	{	PCI_DEVICE(PCI_VENDOR_ID_3DLABS, 0x002e),	},
-> >+	{	PCI_DEVICE(PCI_VENDOR_ID_3DLABS, 0x002f),	},
-> >+	{	PCI_DEVICE(PCI_VENDOR_ID_3DLABS, 0x0030),	},
-> >+	{	PCI_DEVICE(PCI_VENDOR_ID_3DLABS, 0x0031),	},
-> >+	{	PCI_DEVICE(PCI_VENDOR_ID_3DLABS, 0x0032),	},
-> >+	{	PCI_DEVICE(PCI_VENDOR_ID_3DLABS, 0x0033),	},
-> 
-> The extra comma inside the { } is not needed, is it?
+On May 26 2007 15:47, David Miller wrote:
+>> I have set the OBP to run at 115200, also set agetty on ttyS0 to do the 
+>> same, and also added console=ttyS0,115200 to silo.conf (and also tried 
+>> console=ttyS0,115200n8). But! Linux still gives me 9600 8N1. The ominous 
+>> double screen blanking (why is that done anyway?) already takes place 
+>> with 9600. I smell a bug. What do you think?
+>
+>The code in drivers/serial/suncore.c:sunserial_console_termios()
+>should be parsing your OBP settings, add some tracing and see why it
+>isn't working.
+>
+>Please track the bug down for us, thanks :-)
 
-No, but if later I want to fill in more fields per entry I will indeed
-need that comma there.
+Just why did no one get a kernel oops? After all, the code tried to
+write to constant memory.
+
+This is the first patch of two. There is yet another section of Linux 
+code that runs in 9600-only, and I need to figure out which.
+
+---
+
+The Linux kernel ignored the PROM's serial settings (115200,n,8,1 in
+my case). This was because mode_prop remained "ttyX-mode" (expected:
+"ttya-mode") due to the constness of string literals when used with 
+"char *". Since there is no "ttyX-mode" property in the PROM, Linux
+always used the default 9600.
+
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+
+---
+ drivers/serial/suncore.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+Index: linux-2.6.21.sparc64/drivers/serial/suncore.c
+=================================--- linux-2.6.21.sparc64.orig/drivers/serial/suncore.c
++++ linux-2.6.21.sparc64/drivers/serial/suncore.c
+@@ -30,9 +30,9 @@ void
+ sunserial_console_termios(struct console *con)
+ {
+ 	char mode[16], buf[16], *s;
+-	char *mode_prop = "ttyX-mode";
+-	char *cd_prop = "ttyX-ignore-cd";
+-	char *dtr_prop = "ttyX-rts-dtr-off";
++	char mode_prop[] = "ttyX-mode";
++	char cd_prop[]   = "ttyX-ignore-cd";
++	char dtr_prop[]  = "ttyX-rts-dtr-off";
+ 	char *ssp_console_modes_prop = "ssp-console-modes";
+ 	int baud, bits, stop, cflag;
+ 	char parity;
+#<EOF>
