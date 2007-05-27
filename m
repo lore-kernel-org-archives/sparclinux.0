@@ -1,47 +1,32 @@
 From: David Miller <davem@davemloft.net>
-Date: Sun, 27 May 2007 21:16:22 +0000
+Date: Sun, 27 May 2007 21:47:02 +0000
 Subject: Re: [PATCH] Linux always started with 9600 8N1
-Message-Id: <20070527.141622.30184020.davem@davemloft.net>
+Message-Id: <20070527.144702.55507425.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.61.0705261649590.7344@yvahk01.tjqt.qr>
-	<20070526.154745.30164056.davem@davemloft.net>
+References: <20070526.154745.30164056.davem@davemloft.net>
 	<Pine.LNX.4.61.0705271816310.7344@yvahk01.tjqt.qr>
-In-Reply-To: <Pine.LNX.4.61.0705271816310.7344@yvahk01.tjqt.qr>
+	<20070527.141622.30184020.davem@davemloft.net>
+In-Reply-To: <20070527.141622.30184020.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: jengelh@linux01.gwdg.de
 Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Date: Sun, 27 May 2007 18:44:18 +0200 (MEST)
+From: David Miller <davem@davemloft.net>
+Date: Sun, 27 May 2007 14:16:22 -0700 (PDT)
 
-> 
-> On May 26 2007 15:47, David Miller wrote:
-> >> I have set the OBP to run at 115200, also set agetty on ttyS0 to do the 
-> >> same, and also added console=ttyS0,115200 to silo.conf (and also tried 
-> >> console=ttyS0,115200n8). But! Linux still gives me 9600 8N1. The ominous 
-> >> double screen blanking (why is that done anyway?) already takes place 
-> >> with 9600. I smell a bug. What do you think?
-> >
-> >The code in drivers/serial/suncore.c:sunserial_console_termios()
-> >should be parsing your OBP settings, add some tracing and see why it
-> >isn't working.
-> >
-> >Please track the bug down for us, thanks :-)
-> 
-> Just why did no one get a kernel oops? After all, the code tried to
-> write to constant memory.
-> 
-> This is the first patch of two. There is yet another section of Linux 
-> code that runs in 9600-only, and I need to figure out which.
+> So even writes to so-called 'read-only' sections of the kernel image
+> will work and therefore I don't understand what the bug could be other
+> than the compiler "optimizing" away the write to the constant string
+> in which case the compiler should have warned about it.
 
-There should not be an OOPS, we don't map any section of the
-kernel as read-only or execute-only or anything like that.
+I just stared at the drivers/serial/suncore.s assembler a little
+bit and this is indeed what appears to be happening, the compiler
+is optimizing the stores away completely yet not doing so much
+as emitting a warning, how rude :-)
 
-The kernel image is mapped with full read/write/execute permission.
+Perhaps there is some warning option that isn't enabled which
+would have caught this...
 
-So even writes to so-called 'read-only' sections of the kernel image
-will work and therefore I don't understand what the bug could be other
-than the compiler "optimizing" away the write to the constant string
-in which case the compiler should have warned about it.
+Thanks a lot for your patch, I'll apply it.
