@@ -1,80 +1,91 @@
 From: Vivek Goyal <vgoyal@in.ibm.com>
-Date: Mon, 28 May 2007 03:58:40 +0000
+Date: Mon, 28 May 2007 04:39:48 +0000
 Subject: Re: [2/3] 2.6.22-rc2: known regressions v2
-Message-Id: <20070528034640.GA6367@in.ibm.com>
+Message-Id: <20070528042747.GB6367@in.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <46558708.2040803@googlemail.com> <46559B54.80106@googlemail.com>
-	<Pine.LNX.4.64.0705241001040.28086@schroedinger.engr.sgi.com>
-	<alpine.LFD.0.98.0705241007290.26602@woody.linux-foundation.org>
-	<20070524193740.GA6787@elte.hu>
-	<alpine.LFD.0.98.0705241247540.26602@woody.linux-foundation.org>
-	<20070525101105.GA9268@elte.hu> <4656CE39.8050800@netunix.com>
-	<20070525123456.GA17238@elte.hu>
-	<20070525093354.5dbe5f43.akpm@linux-foundation.org>
-In-Reply-To: <20070525093354.5dbe5f43.akpm@linux-foundation.org>
+References: <alpine.LFD.0.98.0705241007290.26602@woody.linux-foundation.org> <20070524193740.GA6787@elte.hu> <alpine.LFD.0.98.0705241247540.26602@woody.linux-foundation.org> <20070525101105.GA9268@elte.hu> <4656CE39.8050800@netunix.com> <alpine.LFD.0.98.0705250937550.26602@woody.linux-foundation.org> <20070525180304.2cc4dae0@the-village.bc.nu> <alpine.LFD.0.98.0705251012200.26602@woody.linux-foundation.org> <20070525103714.092ad631.akpm@linux-foundation.org> <alpine.LFD.0.98.0705251039300.26602@woody.linux-foundation.org>
+In-Reply-To: <alpine.LFD.0.98.0705251039300.26602@woody.linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: "Cherwin R. Nooitmeer" <cherwin@gmail.com>, Kristian H?gsberg <krh@bitplanet.net>, Mikael Pettersson <mikpe@it.uu.se>, Pavel Machek <pavel@ucw.cz>, sparclinux@vger.kernel.org, linux1394-devel@lists.sourceforge.net, linux-usb-devel@lists.sourceforge.net, Alan Cox <alan@redhat.com>, linux-pm@lists.linux-foundation.org, Christoph Lameter <clameter@sgi.com>, Robert de Rooy <robert.de.rooy@gmail.com>, Tejun Heo <htejun@gmail.com>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, linux-pcmcia@lists.infradead.org, Marcus Better <marcus@better.se>, Ingo Molnar <mingo@elte.hu>, Ken'ichi Ohmichi <oomichi@mxs.nes.nec.co.jp>, Greg Kroah-Hartman <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, Stefan Richter <stefanr@s5r6.in-berlin.de>, Chris Newport <crn@net>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Chris Newport <crn@netunix.com>, Ingo Molnar <mingo@elte.hu>, Christoph Lameter <clameter@sgi.com>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, LKML <linux-kernel@vger.kernel.org>, "Cherwin R. Nooitmeer" <cherwin@gmail.com>, linux-pcmcia@lists.infradead.org, Robert de Rooy <robert.de.rooy@gmail.com>, Alan Cox <alan@redhat.com>, Tejun Heo <htejun@gmail.com>, sparclinux@vger.kernel.org, David Miller <davem@davemloft.net>, Mikael Pettersson <mikpe@it.uu.se>, linux1394-devel@lists.sourceforge.net, Stefan Richter <stefanr@s5r6.in-berlin.de>, Kristian H?gsberg <krh@bitplanet.net>, linux-pm@lists.linux-foundation.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Pavel Machek <pavel@ucw.cz>, Marcus Better <marcus@better.se>, Andrey Borzenkov <arvidjaar@mail.ru>, linux-usb-devel@lists.sourceforge.net, Greg Kroah-Hartman <gregkh@suse.de>
 
-On Fri, May 25, 2007 at 09:33:54AM -0700, Andrew Morton wrote:
-> On Fri, 25 May 2007 14:34:56 +0200 Ingo Molnar <mingo@elte.hu> wrote:
+On Fri, May 25, 2007 at 10:50:38AM -0700, Linus Torvalds wrote:
 > 
-> > * Chris Newport <crn@netunix.com> wrote:
+> 
+> On Fri, 25 May 2007, Andrew Morton wrote:
+> >
+> > > > There is an additional factor - dumps contain data which variously is -
+> > > > copyright third parties, protected by privacy laws, just personally
+> > > > private, security sensitive (eg browser history) and so on.
+> > > 
+> > > Yes. 
 > > 
-> > > There is a fundamental problem in getting a decent log to debug a 
-> > > crashed kernel.  Maybe we should take a hint from Solaris. If the 
-> > > kernel crashes Solaris dumps core to swap and sets a flag. At the next 
-> > > boot this image is copied to /var/adm/crashdump where it is preserved 
-> > > for future debugging. Obviously swap needs to be larger than core, but 
-> > > this is usually the case.
+> > We're uninterested in pagecache and user memory and they should be omitted
+> > from the image (making it enormously smaller too).
+> 
+> The people who would use crash-dumps (big sensitive firms) don't trust 
+> you.
+> 
+> And they'd be right not to trust you. You end up having a _lot_ of 
+> sensitive data even if you avoid user memory and page cache. The network 
+> buffers, the dentries, and just stale data that hasn't been overwritten.
+> 
+> So if you end up having secure data on that machine, you should *never* 
+> send a dump to somebody you don't trust. For the financial companies 
+> (which are practically the only ones that would use dumps) there can even 
+> be legal reasons why they cannot do that!
+> 
+> > That leaves security keys and perhaps filenames, and these could probably
+> > be addressed.
+> 
+> It leaves almost every single kernel allocation, and no, it cannot be 
+> addressed.
+> 
+> How are you going to clear out the network packets that you have in 
+> memory? They're just kmalloc'ed. 
+> 
+> > > I'm sure we've had one or two crashdumps over the years that have actually 
+> > > clarified a bug.
+> > > 
+> > > But I seriously doubt it is more than a handful. 
 > > 
-> > we've got kdump, but it's not usually enabled by default by distros.
+> > We've had a few more than that, but all the ones I recall actually came
+> > from the kdump developers who were hitting other bugs and who just happened
+> > to know how to drive the thing.
 > 
-> Isn't that awful?
+> Right, I don't dispute that some _developers_ might use dumping. I dispute 
+> that any user would practically ever use it.
 > 
-
-I think kdump should be enabled by default. Or at least user should be
-given an option to enable/configure this service at installation time.
-
-Things are still good atleast in RHEL5. It gives user a option to
-enable/disable kdump at firstboot after installation. A fall side of
-doing it at firstboot time is that a user has to go for an extra reboot
-if he chooses to enable kdump (Because of kernel command line crashkernel=).
-An improvemnt could be that these options should be given at installation
-time so that a user does not have to go through an extra reboot to enable
-kdump service. 
-
-It also has got graphical scripts to configure kdump serivce and enable it.
-Other distributions are catching up but there seems to be a reluctance
-to enable kdump by default primarily because of a chunk of memory being
-reserved for kdump kernel which can not be used by regular kernel.
-
-As of today RHEL reserves 128MB of memory for x86/x86_64 arch if kdump
-is enabled. Some people are also reluctant to change the installer to
-include a screen which can help user enable/disable/configure kdump. They
-think it increases installer complexity and user is likely to get confused.
-
-> By now we should be in the situation where if a tester is hitting a
-> kernel crash we can say to them "please turn on crashdumps and send me
-> the image".  But we're not - kernel developers don't know how to turn the
-> thing on in $RANDOM_DISTRO, testers have no experience with the feature
-> and kernel developers don't have experience handling the crash images.
+> And even for developers, I suspect it's _so_ far down the list of things 
+> you do, that it's practically zero.
 > 
-> And I'm not sure that the (required) "don't dump user memory and pagecache"
-> feature has been implemented yet?
+> > > But 99% of the time, the problem doesn't happen on a developer machine, 
+> > > and even if it does, 90% of the time you really just want the traceback 
+> > > and register info that you get out of an oops.
+> > 
+> > Often we don't even get that: "I was in X and it didn't hit the logs".
+> 
+> Yes. 
 > 
 
-Yes. It has been implemented and integrated with RHEL5. Not sure about others.
-NEC developers have developed a user space filtering utility which can filter
-out pagecache, user memory and zero pages.
+Isn't it reason enough for customers to use it? How will a customer 
+capture even an OOPS meesage? Lets say some web server crashed and OOPs 
+message did not make it to logs. I am not expecting a customer to setup
+a console for each and every machine in the network. In this scenario
+customer will have no choice but to reset the machine without any
+information about why did machine crash.
 
-http://sourceforge.net/projects/makedumpfile
+If one can keep kdump configured, upon a crash there are high chances
+that customer will have some debug information to look at. I agree that
+security of data can be a concern. In that case probably one can extract
+a small dump report, like OOPs message, messages in the kernel buffers
+just before crash etc. and report it to service folks. 
 
-In RHEL5, one can pre-configure filtering options and a filtered crash
-dump will automatically be saved to user configured destination.
- 
+Without kdump, customer will most likely have no debug data except a
+complain that system crashed and rebooted or it had to be reset by manual
+intervention.
+
 Thanks
 Vivek
-
