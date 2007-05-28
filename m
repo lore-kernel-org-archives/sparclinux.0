@@ -1,22 +1,32 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 23 May 2007 21:58:03 +0000
-Subject: Re: [PATCH] sparc64: kill unused DIE_PAGE_FAULT enum value
-Message-Id: <20070523.145803.131106247.davem@davemloft.net>
+From: gregsparc@sunsmoke.org
+Date: Mon, 28 May 2007 00:50:34 +0000
+Subject: SILO MMU Miss problem located
+Message-Id: <200705280133.l4S1XfE5028506@sunsmoke.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070515111325.GA5815@lst.de>
-In-Reply-To: <20070515111325.GA5815@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Christoph Hellwig <hch@lst.de>
-Date: Tue, 15 May 2007 13:13:25 +0200
+I may have located one of the sources of the "Fast Data Access MMU Miss"
+problem. Unfortunately, I don't know enough about the environment to fix it.
 
-> sparc64 got rid of the pagefault notifiers, so the enum value for them
-> can go away aswell.
-> 
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-Applied, thanks for catching this Christoph.
+I modified my copy of silo-1.4.13 to print out where in second.b it was
+executing. The point where my systems die is line 1485 in main.c
+
+.../silo-1.4.13/second/main.c:1485
+	int len = *(unsigned int *)kernel_params;
+
+This line never completes. 
+
+If anyone knows more about this or has a patch they'd like me to try,
+please let me know. It's probably not helpful, but my guess is that there's
+some kind of alignment problem.
+
+gregsparc@sunsmoke.org
+(also in #splack on freenode)
+
+-Greg
+
+
