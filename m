@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 24 May 2007 21:16:57 +0000
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Mon, 28 May 2007 18:53:36 +0000
 Subject: Re: Linker script cleanup / consolidation
-Message-Id: <20070524.141657.105413045.davem@davemloft.net>
+Message-Id: <20070528185336.GA31031@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20070524200934.GB1109@uranus.ravnborg.org>
 In-Reply-To: <20070524200934.GB1109@uranus.ravnborg.org>
@@ -10,32 +10,53 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 24 May 2007 23:15:11 +0200
+> 
+> On a related topic, I've been wondering how to make instruction
+> patching sections work with initdata without warning.  I have
+> a bunch of assembler patches in the main kernel image that go
+> something like this:
+> 
+> 661:	ldx		[%g7 + TRAP_PER_CPU_TSB_HUGE], %g5
+> 	nop
+> 	.section	.sun4v_2insn_patch, "ax"
+> 	.word		661b
+> 	mov		SCRATCHPAD_UTSBREG2, %g5
+> 	ldxa		[%g5] ASI_SCRATCHPAD, %g5
+> 	.previous
+> 
+> And then an __init function walks the tables in the
+> ".sun4v_2insn_patch" instruction to patch things as
+> needed.
+> 
+> I don't need to do this patching in modules or anything
+> complicated like that, just in the static kernel image.
+> 
+> The problem is if I put one of these patches into __init assembler
+> code, the modpost.c thing warns.  As you can see, these patch sections
+> in between __init_begin and __init_end.
+> 
+> I see that IA64 has something similar, and they prepend their
+> patch section names with ".data." would that help me with the
+> modpost.c warning issue?
+> 
+> The history behind this is that I want to make the assembler in
+> arch/sparc64/kernel/trampoline.S __init to fix one modpost.c
+> warning, but once I dod that I hit this patching section issue
+> which makes more warnings that the original problem :-)
 
-> On Thu, May 24, 2007 at 01:45:12PM -0700, David Miller wrote:
-> > From: Sam Ravnborg <sam@ravnborg.org>
-> > Date: Thu, 24 May 2007 22:09:34 +0200
-> > 
-> > > The other archs shall have a similar clean-up over time.
-> > > sparc64 was just a good place to start because David had
-> > > expressed that he liked the consolidation.
-> > 
-> > This looks great.  In fact I'd be happy with you pushing this
-> > now for 2.6.22 in order to fix that RODATA() section alignment
-> > bug.
-> I did not write so I realize but since this targets sparc64 I
-> expected you to apply this to your sparc-2.6.git tree.
-> But I can push too - just confirm what you expect.
+First off. I tried building a sparc64 kernel from -linus using
+defconfig and got no section mismatch warnings.
+Building a ia64 kernel now...
 
-Please merge this with my signoff added to each patch:
+What we can do in modpost is to define that references from a certain
+section or sections that start with for example ".patch_insn."
+to .init.text / .init.data will be ignored.
+Avoiding hardcoding ".sun4v_*" would be preferred and maybe
+we could move paravirt over to use a section with the same naming
+convention.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Trying to cheat modpost is only a source of confusion and thats
+not the way to do it.
 
-I have some bug fixes to move forward I appreciate your taking care of
-this.
+	Sam
 
-> > On a related topic, I've been wondering how to make instruction
-> Need sleep before composing an answer - bed-time here.
-
-Good night, and thanks for all this work.
