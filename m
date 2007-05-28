@@ -1,28 +1,41 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 17 May 2007 08:27:38 +0000
-Subject: Re: autoloading snd_sun_cs4231?
-Message-Id: <20070517.012738.41635708.davem@davemloft.net>
+From: Martin Habets <errandir_news@mph.eclipse.co.uk>
+Date: Mon, 28 May 2007 23:43:04 +0000
+Subject: [PATCH] sun_esp.c build for sparc32 UP
+Message-Id: <20070528234304.GA24466@palantir8>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.SOC.4.64.0705171123520.18408@math>
-In-Reply-To: <Pine.SOC.4.64.0705171123520.18408@math>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Meelis Roos <mroos@linux.ee>
-Date: Thu, 17 May 2007 11:25:34 +0300 (EEST)
+A sparc32 UP build of the new ESP driver gives these build errors:
 
-> What is needed to autoload snd_sun_cs4231 on Ultra 5? It's not pci but 
-> ebus - do we have ebus modalias support, or what would I need to know to 
-> write one?
+  CC      drivers/scsi/sun_esp.o
+drivers/scsi/sun_esp.c: In function `sbus_esp_reset_dma':
+drivers/scsi/sun_esp.c:294: error: `loops_per_jiffy' undeclared (first use in this function)
+drivers/scsi/sun_esp.c:294: error: (Each undeclared identifier is reported only once
+drivers/scsi/sun_esp.c:294: error: for each function it appears in.)
+drivers/scsi/sun_esp.c: In function `sbus_esp_dma_drain':
+drivers/scsi/sun_esp.c:364: error: `loops_per_jiffy' undeclared (first use in this function)
+drivers/scsi/sun_esp.c: In function `sbus_esp_dma_invalidate':
+drivers/scsi/sun_esp.c:396: error: `loops_per_jiffy' undeclared (first use in this function)
+make[2]: *** [drivers/scsi/sun_esp.o] Error 1
 
-of_device autoloading is what you need, powerpc probably has some
-infrastructure for this already.
+These are due to udelay(). The code includes asm/delay.h (indirectly), but
+that is not enough to make it work.
 
-Oh I see, I didn't convert cs4231 over to of_device yet.  I
-can't do that until I fix up the SBUS stuff so that everything
-can go through the generic dma_*() mapping interfaces.
+Martin
 
-Maybe in the 2.6.23 timeframe this will be doable, thanks for
-mentioning it I'll add it to my todo list.
+	Signed-off-by: Martin Habets <errandir_news@mph.eclipse.co.uk>
+---
+Index: linux/drivers/scsi/sun_esp.c
+=================================--- linux.orig/drivers/scsi/sun_esp.c	2007-05-26 22:16:06.000000000 +0100
++++ linux/drivers/scsi/sun_esp.c	2007-05-27 23:05:52.000000000 +0100
+@@ -7,6 +7,7 @@
+ #include <linux/types.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
++#include <linux/delay.h>
+ 
+ #include <asm/irq.h>
+ #include <asm/io.h>
