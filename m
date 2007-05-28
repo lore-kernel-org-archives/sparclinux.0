@@ -1,63 +1,80 @@
-From: Matt Sealey <matt@genesi-usa.com>
-Date: Sat, 26 May 2007 13:16:19 +0000
-Subject: Re: [linux-pm] Re: [2/3] 2.6.22-rc2: known regressions v2
-Message-Id: <46583323.40100@genesi-usa.com>
+From: Vivek Goyal <vgoyal@in.ibm.com>
+Date: Mon, 28 May 2007 03:58:40 +0000
+Subject: Re: [2/3] 2.6.22-rc2: known regressions v2
+Message-Id: <20070528034640.GA6367@in.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <46558708.2040803@googlemail.com> <46559B54.80106@googlemail.com>	<Pine.LNX.4.64.0705241001040.28086@schroedinger.engr.sgi.com>	<alpine.LFD.0.98.0705241007290.26602@woody.linux-foundation.org>	<20070524193740.GA6787@elte.hu>	<alpine.LFD.0.98.0705241247540.26602@woody.linux-foundation.org>	<20070525101105.GA9268@elte.hu> <4656CE39.8050800@netunix.com>	<alpine.LFD.0.98.0705250937550.26602@woody.linux-foundation.org> <46572507.6010800@netunix.com>
-In-Reply-To: <46572507.6010800@netunix.com>
+References: <46558708.2040803@googlemail.com> <46559B54.80106@googlemail.com>
+	<Pine.LNX.4.64.0705241001040.28086@schroedinger.engr.sgi.com>
+	<alpine.LFD.0.98.0705241007290.26602@woody.linux-foundation.org>
+	<20070524193740.GA6787@elte.hu>
+	<alpine.LFD.0.98.0705241247540.26602@woody.linux-foundation.org>
+	<20070525101105.GA9268@elte.hu> <4656CE39.8050800@netunix.com>
+	<20070525123456.GA17238@elte.hu>
+	<20070525093354.5dbe5f43.akpm@linux-foundation.org>
+In-Reply-To: <20070525093354.5dbe5f43.akpm@linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: crn@netunix.com
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Cherwin R. Nooitmeer" <cherwin@gmail.com>, Kristian H?gsberg <krh@bitplanet.net>, Mikael Pettersson <mikpe@it.uu.se>, Pavel Machek <pavel@ucw.cz>, sparclinux@vger.kernel.org, linux1394-devel@lists.sourceforge.net, linux-usb-devel@lists.sourceforge.net, Alan Cox <alan@redhat.com>, linux-pm@lists.linux-foundation.org, Christoph Lameter <clameter@sgi.com>, Robert de Rooy <robert.de.rooy@gmail.com>, Tejun Heo <htejun@gmail.com>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, linux-pcmcia@lists.infradead.org, Marcus Better <marcus@better.se>, Ingo Molnar <mingo@elte.hu>, Greg Kroah-Hartman <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, Stefan Richter <stefanr@s5r6.in-berlin.de>, Andrew Morton <akpm@linux-foundation.org>, Andrey Borzenkov <arvidjaar@mail.ru>, David Miller <davem@davemloft.net>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: "Cherwin R. Nooitmeer" <cherwin@gmail.com>, Kristian H?gsberg <krh@bitplanet.net>, Mikael Pettersson <mikpe@it.uu.se>, Pavel Machek <pavel@ucw.cz>, sparclinux@vger.kernel.org, linux1394-devel@lists.sourceforge.net, linux-usb-devel@lists.sourceforge.net, Alan Cox <alan@redhat.com>, linux-pm@lists.linux-foundation.org, Christoph Lameter <clameter@sgi.com>, Robert de Rooy <robert.de.rooy@gmail.com>, Tejun Heo <htejun@gmail.com>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, linux-pcmcia@lists.infradead.org, Marcus Better <marcus@better.se>, Ingo Molnar <mingo@elte.hu>, Ken'ichi Ohmichi <oomichi@mxs.nes.nec.co.jp>, Greg Kroah-Hartman <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, Stefan Richter <stefanr@s5r6.in-berlin.de>, Chris Newport <crn@net>
 
-
-Chris Newport wrote:
+On Fri, May 25, 2007 at 09:33:54AM -0700, Andrew Morton wrote:
+> On Fri, 25 May 2007 14:34:56 +0200 Ingo Molnar <mingo@elte.hu> wrote:
 > 
-> Sorry, I did not make myself clear.
+> > * Chris Newport <crn@netunix.com> wrote:
+> > 
+> > > There is a fundamental problem in getting a decent log to debug a 
+> > > crashed kernel.  Maybe we should take a hint from Solaris. If the 
+> > > kernel crashes Solaris dumps core to swap and sets a flag. At the next 
+> > > boot this image is copied to /var/adm/crashdump where it is preserved 
+> > > for future debugging. Obviously swap needs to be larger than core, but 
+> > > this is usually the case.
+> > 
+> > we've got kdump, but it's not usually enabled by default by distros.
 > 
-> Linus Torvalds wrote:
+> Isn't that awful?
 > 
->> On Fri, 25 May 2007, Chris Newport wrote:
->>  
->>
->>> Maybe we should take a hint from Solaris.
->>>   
->>
->> No. Solaris is shit. They make their decisions based on "we control
->> the hardware" kind of setup.
->>  
->>
-> Not really a Solaris feature. This is a feature of the  Openboot  PROM
-> which is also used by several other vendors.
-> The Openboot PROM knows how to write to disk. The same should
-> apply on Apple hardware and others which use the openboot
-> convention.
 
-It doesn't, though. It is not part of any specification of Open Firmware
-that you MUST be able to write to any exposed disk. In fact, I know of
-one firmware implementation (ours) where we don't allow it. Apart from
-being a bitch to implement safely (i.e. for people's data) it is also
-quite a security problem to allow the firmware interface to write to
-the disk. You can't make the differentiation between "at the firmware
-console" and "inside a booted OS" unfortunately.
+I think kdump should be enabled by default. Or at least user should be
+given an option to enable/configure this service at installation time.
 
-The 'solution' in Solaris is actually that the filesystem and disk
-write handling is done by the OS bootloader and not the PROM. All
-the PROM knows how to do is read off the bootloader (in a special
-partition in a special filesystem format) and execute it after
-probing the hardware and providing the device tree. The first stage
-boot loader then knows how to read UFS filesystems so it can grab
-the kernel and load kernel modules, and write back a kernel dump
-if it needs to.
+Things are still good atleast in RHEL5. It gives user a option to
+enable/disable kdump at firstboot after installation. A fall side of
+doing it at firstboot time is that a user has to go for an extra reboot
+if he chooses to enable kdump (Because of kernel command line crashkernel=).
+An improvemnt could be that these options should be given at installation
+time so that a user does not have to go through an extra reboot to enable
+kdump service. 
 
-That, and Linux drops OF support like a lead weight very early in boot.
-About all you can rely on is the device tree listing all your disks
-present, and even then, Linux will redetect all of these with native
-drivers and give them new names anyway. In fact, Solaris does the
-same (but it is better about associating the device tree entries
-than Linux)
+It also has got graphical scripts to configure kdump serivce and enable it.
+Other distributions are catching up but there seems to be a reluctance
+to enable kdump by default primarily because of a chunk of memory being
+reserved for kdump kernel which can not be used by regular kernel.
 
--- 
-Matt Sealey <matt@genesi-usa.com>
-Genesi, Manager, Developer Relations
+As of today RHEL reserves 128MB of memory for x86/x86_64 arch if kdump
+is enabled. Some people are also reluctant to change the installer to
+include a screen which can help user enable/disable/configure kdump. They
+think it increases installer complexity and user is likely to get confused.
+
+> By now we should be in the situation where if a tester is hitting a
+> kernel crash we can say to them "please turn on crashdumps and send me
+> the image".  But we're not - kernel developers don't know how to turn the
+> thing on in $RANDOM_DISTRO, testers have no experience with the feature
+> and kernel developers don't have experience handling the crash images.
+> 
+> And I'm not sure that the (required) "don't dump user memory and pagecache"
+> feature has been implemented yet?
+> 
+
+Yes. It has been implemented and integrated with RHEL5. Not sure about others.
+NEC developers have developed a user space filtering utility which can filter
+out pagecache, user memory and zero pages.
+
+http://sourceforge.net/projects/makedumpfile
+
+In RHEL5, one can pre-configure filtering options and a filtered crash
+dump will automatically be saved to user configured destination.
+ 
+Thanks
+Vivek
+
