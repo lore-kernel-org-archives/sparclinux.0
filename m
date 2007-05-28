@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 27 May 2007 00:04:14 +0000
+From: Martin Habets <errandir_news@mph.eclipse.co.uk>
+Date: Mon, 28 May 2007 00:07:46 +0000
 Subject: Re: [RFT] [SPARC] Emulate cmpxchg like parisc
-Message-Id: <20070526.170414.41896634.davem@davemloft.net>
+Message-Id: <20070528000746.GA21147@palantir8>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20070525201143.GB14171@fattire.cabal.ca>
 In-Reply-To: <20070525201143.GB14171@fattire.cabal.ca>
@@ -10,31 +10,14 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Kyle McMartin <kyle@parisc-linux.org>
-Date: Sat, 26 May 2007 19:41:34 -0400
+On Sat, May 26, 2007 at 03:59:21PM -0700, David Miller wrote:
+> Alternatively we can have a KCONFIG variable with reversed
+> logic, like "EMULATED_CMPXCHG" which only the atomically
+> challenged platforms need to set.
 
-> I don't see what the problem is? If we can't do it in userspace, we fall
-> back to a heavyweight ioctl lock. This sounds sensible to me.
-> 
-> On parisc we implement userspace CAS with a lightweight syscall on our
-> gateway page, likely something like this could be implemented if someone
-> cared on sparc32 as well using a VDSO.
+Like this idea, but if we're not going to build DRM I see no
+point adding the cmpxchg emulation to sparc32. Maybe "NOARCH_CMPXCHG"
+would be better?
 
-Indeed, a special syscall scheme would work on sparc32 too, but very
-inefficiently for the case that matters the most.
-
-I don't want to have to take the syscall if the 32-bit app is running
-on a sparc64 kernel which has the cmpxchg instructions.
-
-Sure I could do vsyscall pages and all that, but it won't happen any
-time soon and penalizing the existing 32-bit userspace by always
-taking the system call just for this DRM thing is a non-starter.
-
-What we have right now works for all the systems that actually have
-DRM capable cards, and ever will have such cards.
-
-Building DRM on sparc32 is really pointless, there is no graphics
-card that will ever be plugged into a sparc32 PCI system that can
-support DRM, ever.
-
-
+-- 
+Martin
