@@ -1,7 +1,7 @@
-From: Kyle McMartin <kyle@mcmartin.ca>
-Date: Tue, 29 May 2007 13:18:26 +0000
+From: Martin Habets <errandir_news@mph.eclipse.co.uk>
+Date: Tue, 29 May 2007 20:30:45 +0000
 Subject: Re: [RFT] [SPARC] Emulate cmpxchg like parisc
-Message-Id: <20070529131826.GA10560@fattire.cabal.ca>
+Message-Id: <20070529203044.GA27024@palantir8>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20070525201143.GB14171@fattire.cabal.ca>
 In-Reply-To: <20070525201143.GB14171@fattire.cabal.ca>
@@ -28,9 +28,10 @@ On Tue, May 29, 2007 at 01:12:33AM -0700, David Miller wrote:
 > 
 > This looks great, I've applied Kyle's original patch and this
 > one, thanks a lot!
-> 
 
-Thanks David. Yeah, I think adding a Kconfig is the right approach.
+Ehh, Kyle's original patch did not build. See my initial reply to that
+one, which has a version that does build cleanly.
 
-Cheers!
-	Kyle
+Thanks,
+-- 
+Martin
