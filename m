@@ -1,7 +1,7 @@
-From: Kyle McMartin <kyle@parisc-linux.org>
-Date: Tue, 29 May 2007 21:08:32 +0000
+From: Martin Habets <errandir_news@mph.eclipse.co.uk>
+Date: Wed, 30 May 2007 19:38:38 +0000
 Subject: Re: [RFT] [SPARC] Emulate cmpxchg like parisc
-Message-Id: <20070529210832.GA15221@fattire.cabal.ca>
+Message-Id: <20070530193838.GA29445@palantir8>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20070525201143.GB14171@fattire.cabal.ca>
 In-Reply-To: <20070525201143.GB14171@fattire.cabal.ca>
@@ -38,10 +38,11 @@ On Tue, May 29, 2007 at 01:59:31PM -0700, David Miller wrote:
 > 
 > I fixed his version to build and more match the types of the
 > parisc code when I chekced it in.
-> 
 
-Heh, I was about to do the same to the parisc code as I had cleaned up
-in the sparc code... Ah well. :)
+I also got a build error on 'addr' in __cmpxchg_u32(). Changed those
+to 'ptr'.
+Maybe I've just got an -Wextra-dumb switch on my cc, or you've got
+a -Wpsychic :).
 
-Cheers,
-	Kyle
+-- 
+Martin
