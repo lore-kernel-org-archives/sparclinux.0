@@ -1,275 +1,32 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 24 May 2007 20:10:38 +0000
-Subject: [PATCH 1/5] sparc64: ident vmlinux.lds.S
-Message-Id: <20070524201038.GC1109@uranus.ravnborg.org>
+From: =?ISO-8859-1?Q?S=E9bastien_Bernard?= <seb@frankengul.org>
+Date: Wed, 30 May 2007 20:04:38 +0000
+Subject: Stuck process on debian unstable bring the machine down
+Message-Id: <465DD8D6.4000204@frankengul.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070524200440.GA1109@uranus.ravnborg.org>
-In-Reply-To: <20070524200440.GA1109@uranus.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>, linux-arch@vger.kernel.org, sparclinux@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: sparclinux@vger.kernel.org
 
-This introduce a style similar to C code.
-No functional changes.
+Hi, I'm running a smp kernel on an U60.
+I was trying to compile the source package of mono 1.2.4-3 on my machine 
+when I got something really strange.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
----
- arch/sparc64/kernel/vmlinux.lds.S |  239 ++++++++++++++++++++++---------------
- 1 files changed, 142 insertions(+), 97 deletions(-)
+The compilation process got stuck in the dh_shlibdeps invokation.
 
-diff --git a/arch/sparc64/kernel/vmlinux.lds.S b/arch/sparc64/kernel/vmlinux.lds.S
-index fb648de..6f924fd 100644
---- a/arch/sparc64/kernel/vmlinux.lds.S
-+++ b/arch/sparc64/kernel/vmlinux.lds.S
-@@ -9,105 +9,150 @@ ENTRY(_start)
- jiffies = jiffies_64;
- SECTIONS
- {
--  swapper_low_pmd_dir = 0x0000000000402000;
--  . = 0x4000;
--  .text 0x0000000000404000 :
--  {
--    _text = .;
--    TEXT_TEXT
--    SCHED_TEXT
--    LOCK_TEXT
--    KPROBES_TEXT
--    *(.gnu.warning)
--  } =0
--  _etext = .;
--  PROVIDE (etext = .);
--
--  RODATA
--
--  .data    :
--  {
--    DATA_DATA
--    CONSTRUCTORS
--  }
--  .data1   : { *(.data1) }
--  . = ALIGN(64);
--  .data.cacheline_aligned : { *(.data.cacheline_aligned) }
--  . = ALIGN(64);
--  .data.read_mostly : { *(.data.read_mostly) }
--  _edata  =  .;
--  PROVIDE (edata = .);
--  .fixup   : { *(.fixup) }
--
--  . = ALIGN(16);
--  __start___ex_table = .;
--  __ex_table : { *(__ex_table) }
--  __stop___ex_table = .;
--
--  . = ALIGN(8192);
--  __init_begin = .;
--  .init.text : { 
--	_sinittext = .;
--	*(.init.text)
--	_einittext = .;
--  }
--  .init.data : { *(.init.data) }
--  . = ALIGN(16);
--  __setup_start = .;
--  .init.setup : { *(.init.setup) }
--  __setup_end = .;
--  __initcall_start = .;
--  .initcall.init : {
--	INITCALLS
--  }
--  __initcall_end = .;
--  __con_initcall_start = .;
--  .con_initcall.init : { *(.con_initcall.init) }
--  __con_initcall_end = .;
--  SECURITY_INIT
--  . = ALIGN(4);
--  __tsb_ldquad_phys_patch = .;
--  .tsb_ldquad_phys_patch : { *(.tsb_ldquad_phys_patch) }
--  __tsb_ldquad_phys_patch_end = .;
--  __tsb_phys_patch = .;
--  .tsb_phys_patch : { *(.tsb_phys_patch) }
--  __tsb_phys_patch_end = .;
--  __cpuid_patch = .;
--  .cpuid_patch : { *(.cpuid_patch) }
--  __cpuid_patch_end = .;
--  __sun4v_1insn_patch = .;
--  .sun4v_1insn_patch : { *(.sun4v_1insn_patch) }
--  __sun4v_1insn_patch_end = .;
--  __sun4v_2insn_patch = .;
--  .sun4v_2insn_patch : { *(.sun4v_2insn_patch) }
--  __sun4v_2insn_patch_end = .;
-+	swapper_low_pmd_dir = 0x0000000000402000;
-+	. = 0x4000;
-+	.text 0x0000000000404000 : {
-+		_text = .;
-+		TEXT_TEXT
-+		SCHED_TEXT
-+		LOCK_TEXT
-+		KPROBES_TEXT
-+		*(.gnu.warning)
-+	} =0
-+	_etext = .;
-+	PROVIDE (etext = .);
-+
-+	RODATA
-+
-+	.data : {
-+		DATA_DATA
-+		CONSTRUCTORS
-+	}
-+	.data1 : {
-+		*(.data1)
-+	}
-+
-+	. = ALIGN(64);
-+	.data.cacheline_aligned : {
-+		*(.data.cacheline_aligned)
-+	}
-+
-+	. = ALIGN(64);
-+	.data.read_mostly : {
-+		*(.data.read_mostly)
-+	}
-+	_edata  =  .;
-+	PROVIDE (edata = .);
-+	.fixup : {
-+		*(.fixup)
-+	}
-+
-+	. = ALIGN(16);
-+	__start___ex_table = .;
-+	__ex_table : {
-+		*(__ex_table)
-+	}
-+	__stop___ex_table = .;
-+
-+	. = ALIGN(8192);
-+	__init_begin = .;
-+	.init.text : {
-+		_sinittext = .;
-+		*(.init.text)
-+		_einittext = .;
-+	}
-+
-+	.init.data : {
-+		*(.init.data)
-+	}
-+
-+	. = ALIGN(16);
-+	__setup_start = .;
-+	.init.setup : {
-+		*(.init.setup)
-+	}
-+	__setup_end = .;
-+
-+	__initcall_start = .;
-+	.initcall.init : {
-+		INITCALLS
-+	}
-+	__initcall_end = .;
-+
-+	__con_initcall_start = .;
-+	.con_initcall.init : {
-+		*(.con_initcall.init)
-+	}
-+	__con_initcall_end = .;
-+	SECURITY_INIT
-+
-+	. = ALIGN(4);
-+	__tsb_ldquad_phys_patch = .;
-+	.tsb_ldquad_phys_patch : {
-+		*(.tsb_ldquad_phys_patch)
-+	}
-+	__tsb_ldquad_phys_patch_end = .;
-+
-+	__tsb_phys_patch = .;
-+	.tsb_phys_patch : {
-+		*(.tsb_phys_patch)
-+	}
-+	__tsb_phys_patch_end = .;
-+
-+	__cpuid_patch = .;
-+	.cpuid_patch : {
-+		*(.cpuid_patch)
-+	}
-+	__cpuid_patch_end = .;
-+
-+	__sun4v_1insn_patch = .;
-+	.sun4v_1insn_patch : {
-+		*(.sun4v_1insn_patch)
-+	}
-+	__sun4v_1insn_patch_end = .;
-+	__sun4v_2insn_patch = .;
-+	.sun4v_2insn_patch : {
-+		*(.sun4v_2insn_patch)
-+	}
-+	__sun4v_2insn_patch_end = .;
- 
- #ifdef CONFIG_BLK_DEV_INITRD
--  . = ALIGN(8192); 
--  __initramfs_start = .;
--  .init.ramfs : { *(.init.ramfs) }
--  __initramfs_end = .;
-+	. = ALIGN(8192);
-+	__initramfs_start = .;
-+	.init.ramfs : {
-+		*(.init.ramfs)
-+	}
-+	__initramfs_end = .;
- #endif
- 
--  . = ALIGN(8192);
--  __per_cpu_start = .;
--  .data.percpu  : { *(.data.percpu) }
--  __per_cpu_end = .;
--  . = ALIGN(8192);
--  __init_end = .;
--  __bss_start = .;
--  .sbss      : { *(.sbss) *(.scommon) }
--  .bss       :
--  {
--   *(.dynbss)
--   *(.bss)
--   *(COMMON)
--  }
--  _end = . ;
--  PROVIDE (end = .);
--  /DISCARD/ : { *(.exit.text) *(.exit.data) *(.exitcall.exit) }
--
--  STABS_DEBUG
--
--  DWARF_DEBUG
-+	. = ALIGN(8192);
-+	__per_cpu_start = .;
-+	.data.percpu  : {
-+		*(.data.percpu)
-+	}
-+	__per_cpu_end = .;
-+	. = ALIGN(8192);
-+	__init_end = .;
-+
-+	__bss_start = .;
-+	.sbss : {
-+		*(.sbss)
-+		*(.scommon)
-+	}
-+	.bss : {
-+		*(.dynbss)
-+		*(.bss)
-+		*(COMMON)
-+	}
-+	_end = . ;
-+	PROVIDE (end = .);
-+
-+	/DISCARD/ : {
-+		*(.exit.text)
-+		*(.exit.data)
-+		*(.exitcall.exit)
-+	}
-+
-+	STABS_DEBUG
-+	DWARF_DEBUG
- }
--- 
-1.5.1.rc3.20.gaa453
+When searching for the shlib, I got a process dpkg query which suddendly 
+went to 100% CPU usage.
+After further examination, the top indicates that the proces uses 1700m 
+of virtual mem, with 39m of rss.
+Strangely, the process eats all cpu cycles of the machine bringing the 
+load to a steady 70.
+The process is unkillable and an strace on it shows absolutely nothing 
+which is plain weird.
 
+This problem shows up either with 2.6.21.3-smp kernel and 2.6.20.12-smp.
+Those kernels are home compiled.
+
+	Can someone help me explain this oddity. I'm rebooting the machine for 
+the 3rd time in two whereas it was working flawlessly for days.
+
+	Seb
