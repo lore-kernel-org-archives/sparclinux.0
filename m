@@ -1,63 +1,134 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 14 Jun 2007 18:47:08 +0000
-Subject: Re: [BUG sparc64] 2.6.22-rc broke X on Ultra5
-Message-Id: <20070614.114708.95898361.davem@davemloft.net>
+From: Patrick McHardy <kaber@trash.net>
+Date: Sat, 02 Jun 2007 12:54:23 +0000
+Subject: Re: iptables throws unknown error - suspecting 32/64 compat issue
+Message-Id: <4661687F.6040302@trash.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------080605000103040809050200"
 List-Id: <sparclinux.vger.kernel.org>
-References: <18002.44181.639121.720839@alkaid.it.uu.se>
-In-Reply-To: <18002.44181.639121.720839@alkaid.it.uu.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+References: <Pine.LNX.4.61.0705100812440.32349@yvahk01.tjqt.qr>	<Pine.LNX.4.61.0705100832050.32349@yvahk01.tjqt.qr>	<46431C0D.5080507@trash.net>	<Pine.LNX.4.61.0705101521570.32349@yvahk01.tjqt.qr>	<464325EA.8040303@trash.net>	<Pine.LNX.4.61.0705101605020.32349@yvahk01.tjqt.qr>	<Pine.LNX.4.61.0705292336050.11140@yvahk01.tjqt.qr> <465CA950.403@trash.net>
+In-Reply-To: <465CA950.403@trash.net>
+To: Patrick McHardy <kaber@trash.net>
+Cc: Jan Engelhardt <jengelh@linux01.gwdg.de>, sparclinux@vger.kernel.org, Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>, Dmitry Mishin <dim@openvz.org>
+
+This is a multi-part message in MIME format.
+--------------080605000103040809050200
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
 
-From: "Tom \"spot\" Callaway" <tcallawa@redhat.com>
-Date: Thu, 14 Jun 2007 11:33:16 -0500
-
-> On Thu, 2007-06-14 at 10:13 +0200, Mikael Pettersson wrote:
-> > Dmitry Artamonow writes:
-> >  > On Tue, Jun 12, 2007 at 04:55:34PM -0700, David Miller wrote:
-> >  > > 
-> >  > > This should fix the problem, thanks for all of the debugging
-> >  > > information.
-> >  > > 
-> >  > > Let me know if the X regression is still not fixed.
-> >  > > 
-> >  > > commit cf58de958f939587637ea74cdc3382bc140a936b
-> >  > > Author: David S. Miller <davem@sunset.davemloft.net>
-> >  > > Date:   Tue Jun 12 16:54:08 2007 -0700
-> >  > > 
-> >  > >     [SPARC64]: Fix IO/MEM space sizing for PCI.
-> >  > >     
-> >  > >     In pci_determine_mem_io_space(), do not hard code the region sizes.
-> >  > >     Instead, use the values given to us in the ranges property.
-> >  > >     
-> >  > >     Thanks goes to Mikael Petterson for the original Xorg failure
-> >  > >     bug repoert, and strace dumps from Mikael and Dmitry Artamonow.
-> >  > >     
-> >  > >     Signed-off-by: David S. Miller <davem@davemloft.net>
-> >  > > 
-> >  > Hello, David.
-> >  > 
-> >  > Just compiled -rc4 with your patch and Xorg still doesn't work. Now it
-> >  > breaks in ati module with such errors:
-> >  > (EE) ATI(0): Unable to mmap() adapter registers.
-> >  > (EE) Screen(s) found, but none have a usable configuration.
-> >  > 
-> >  > Also there's a couple of strange warnings before it breaks:
-> >  > (WW) ****INVALID MEM ALLOCATION**** b: 0xe1000000 e: 0xe1ffffff correcting
-> >  > (WW) ****INVALID MEM ALLOCATION**** b: 0xe2000000 e: 0xe2000fff correcting
-> > 
-> > Same failure here with xorg-6.8.1 and 2.6.22-rc4 + this patch, unfortunately.
+Patrick McHardy wrote:
+> Jan Engelhardt wrote:
 > 
-> FWIW, we're _NOT_ seeing X failures on a U5 with xorg-7.1 and 2.6.21.1 +
-> this patch (well, this patch in the four relevant pci files, this kernel
-> predates the pci_common cleanups).
+>>This is fixed in 2.6.21, thanks.
 > 
-> Proof:
-> http://beer.tclug.org/jima/pix/aurora/u5-corona-20070614.png
+> 
+> 
+> Yes, the hashlimit compat issue is. But the underlying problem still
+> persists, I'll send you a patch for testing soon.
 
-2.6.21 wouldn't need this patch at all :-)  Are you saying X didn't
-work beforehand?
 
-2.6.21 hard-codes these MEM/IO area sizes in each PCI controller
-driver and it hard-codes them correctly.
+Here it is, could you please test whether it fixes the crash by
+backing out the hashlimit compat patch and triggering the size
+error again? Thanks.
+
+
+
+--------------080605000103040809050200
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+[NETFILTER]: ip_tables: fix compat related crash
+
+check_compat_entry_size_and_hooks iterates over the matches and calls
+compat_check_calc_match, which loads the match and calculates the
+compat offsets, but unlike the non-compat version, doesn't call
+->checkentry yet. On error however it calls cleanup_matches, which in
+turn calls ->destroy, which can result in crashes if the destroy
+function (validly) expects to only get called after the checkentry
+function.
+
+Add a compat_release_match function that only drops the module reference
+on error and rename compat_check_calc_match to compat_find_calc_match to
+reflect the fact that it doesn't call the checkentry function.
+
+Reported by Jan Engelhardt <jengelh@linux01.gwdg.de>
+
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+---
+commit aea9d0eb2c80de9d31a9ecbcaf5e529b7503ea13
+tree f014a00779dc3c3745e3294a393941ab91c3d37e
+parent e7d815ef75f70dcdf55001f1f88ae7ae8827a7ba
+author Patrick McHardy <kaber@trash.net> Sat, 02 Jun 2007 14:51:13 +0200
+committer Patrick McHardy <kaber@trash.net> Sat, 02 Jun 2007 14:51:13 +0200
+
+ net/ipv4/netfilter/ip_tables.c |   22 ++++++++++++++++------
+ 1 files changed, 16 insertions(+), 6 deletions(-)
+
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index e3f83bf..8fde1d1 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -1425,7 +1425,7 @@ out:
+ }
+ 
+ static inline int
+-compat_check_calc_match(struct ipt_entry_match *m,
++compat_find_calc_match(struct ipt_entry_match *m,
+ 	    const char *name,
+ 	    const struct ipt_ip *ip,
+ 	    unsigned int hookmask,
+@@ -1449,6 +1449,16 @@ compat_check_calc_match(struct ipt_entry_match *m,
+ }
+ 
+ static inline int
++compat_release_match(struct ipt_entry_match *m, unsigned int *i)
++{
++	if (i && (*i)-- == 0)
++		return 1;
++
++	module_put(m->u.kernel.match->me);
++	return 0;
++}
++
++static inline int
+ check_compat_entry_size_and_hooks(struct ipt_entry *e,
+ 			   struct xt_table_info *newinfo,
+ 			   unsigned int *size,
+@@ -1485,10 +1495,10 @@ check_compat_entry_size_and_hooks(struct ipt_entry *e,
+ 	off = 0;
+ 	entry_offset = (void *)e - (void *)base;
+ 	j = 0;
+-	ret = IPT_MATCH_ITERATE(e, compat_check_calc_match, name, &e->ip,
++	ret = IPT_MATCH_ITERATE(e, compat_find_calc_match, name, &e->ip,
+ 			e->comefrom, &off, &j);
+ 	if (ret != 0)
+-		goto cleanup_matches;
++		goto release_matches;
+ 
+ 	t = ipt_get_target(e);
+ 	target = try_then_request_module(xt_find_target(AF_INET,
+@@ -1499,7 +1509,7 @@ check_compat_entry_size_and_hooks(struct ipt_entry *e,
+ 		duprintf("check_compat_entry_size_and_hooks: `%s' not found\n",
+ 							t->u.user.name);
+ 		ret = target ? PTR_ERR(target) : -ENOENT;
+-		goto cleanup_matches;
++		goto release_matches;
+ 	}
+ 	t->u.kernel.target = target;
+ 
+@@ -1526,8 +1536,8 @@ check_compat_entry_size_and_hooks(struct ipt_entry *e,
+ 
+ out:
+ 	module_put(t->u.kernel.target->me);
+-cleanup_matches:
+-	IPT_MATCH_ITERATE(e, cleanup_match, &j);
++release_matches:
++	IPT_MATCH_ITERATE(e, compat_release_match, &j);
+ 	return ret;
+ }
+ 
+
+--------------080605000103040809050200--
