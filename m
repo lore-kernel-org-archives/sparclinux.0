@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 02 Jun 2007 20:09:44 +0000
+From: "Bernhard R. Link" <brlink@debian.org>
+Date: Sun, 03 Jun 2007 10:14:09 +0000
 Subject: Re: Alignment question, sparc-centric
-Message-Id: <20070602.130944.74730726.davem@davemloft.net>
+Message-Id: <20070603101409.GB8927@pcpool00.mathematik.uni-freiburg.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.LNX.4.61.0706022001330.5076@yvahk01.tjqt.qr>
 In-Reply-To: <Pine.LNX.4.61.0706022001330.5076@yvahk01.tjqt.qr>
@@ -10,18 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date: Sat, 2 Jun 2007 19:46:21 +0100 (BST)
+* David Miller <davem@davemloft.net> [070602 22:09]:
+> Types must be aligned on their natural size, and GCC can assume
+> this everywhere you reference such types unless you use the
+> "packed" GCC attribute.
 
-> Some versions of GCC may be capable of sorting out the correct code
-> but my experience is avoid the situation to start with by using code
-> similar to memcpy (&x, &un_aligned_x, sizeof x).
+And even with packed, the struct itself must be naturally aligned
+(unless itself is in a packed struct, if course).
+Funny example (I think from some dhcp-client):
+Make a packed struct with an 32 bit value on a 4*n+2 address,
+and (illegally[1] since it's the wrong alignment) cast a char pointer
+to an 4*m+2 address. Then the 32 bit value will be at an double even
+address. But as gcc may optimize for a 4*m address of the struct,
+it will even optimize a memcpy for that field away, replacing it with
+loads of the (only presumed) double-even addresses before and after
+and code to combine them. Thus you get a bus error for accessing a
+32 bit value at an double-even address, because the struct it was in
+was not.
 
-This unfortunately doesn't work, if GCC decides the object is
-small enough to copy inline, it will emit 32-bit and 64-bit
-load and store instructions and still therefore take the
-unaligned exceptions.
+Hochachtungsvoll,
+	Bernhard R. Link
 
-Types must be aligned on their natural size, and GCC can assume
-this everywhere you reference such types unless you use the
-"packed" GCC attribute.
+[1] for proper values of "illegal". I guess that will only be
+something triggering undefined behaviour, not any other meaning
+of illegal.
