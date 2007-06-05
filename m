@@ -1,27 +1,80 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 29 Jun 2007 04:25:42 +0000
-Subject: Re: [PATCH] sparc64: add linux/pagemap.h to asm/tlb.h
-Message-Id: <20070628.212542.36924510.davem@davemloft.net>
+From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Date: Tue, 05 Jun 2007 14:44:01 +0000
+Subject: Re: [4/5] 2.6.22-rc4: known regressions
+Message-Id: <466576B1.5020105@googlemail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070628131448.GA8888@localhost.sw.ru>
-In-Reply-To: <20070628131448.GA8888@localhost.sw.ru>
+References: <46657407.1000108@googlemail.com>
+In-Reply-To: <46657407.1000108@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-ide@vger.kernel.org, Tejun Heo <htejun@gmail.com>, Jeff Garzik <jeff@garzik.org>, Alan Cox <alan@redhat.com>, Gregor Jasny <gjasny@googlemail.com>, Stephen Smalley <sds@tycho.nsa.gov>, James Morris <jmorris@namei.org>, Eric Paris <eparis@parisplace.org>, Ingo Molnar <mingo@elte.hu>, sparclinux@vger.kernel.org, David Miller <davem@davemloft.net>, Mikael Pettersson <mikpe@it.uu.se>, linux-pm@lists.linux-foundation.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Pavel Machek <pavel@ucw.cz>, Simon <sg02r@ecs.soton.ac.uk>, linux-usb-devel@lists.sourceforge.net, Greg Kroah-Hartman <gregkh@suse.de>
 
-From: Alexey Dobriyan <adobriyan@sw.ru>
-Date: Thu, 28 Jun 2007 17:14:48 +0400
+Hi all,
 
-> As seen on sparc64-allnoconfig:
-> 
->   CC      arch/sparc64/mm/tlb.o
-> In file included from arch/sparc64/mm/tlb.c:19:
-> include/asm/tlb.h: In function 'tlb_flush_mmu':
-> include/asm/tlb.h:60: warning: implicit declaration of function 'release_pages'
-> include/asm/tlb.h: In function 'tlb_remove_page':
-> include/asm/tlb.h:92: warning: implicit declaration of function 'page_cache_release'
-> 
-> Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Here is a list of some known regressions in 2.6.22-rc4.
 
-Patch applied, thanks a lot Alexey.
+Feel free to add new regressions/remove fixed etc.
+http://kernelnewbies.org/known_regressions
+
+
+
+SATA/PATA
+
+Subject    : 22-rc3 broke the CDROM in Dell notebook
+References : http://lkml.org/lkml/2007/5/27/63
+Submitter  : Gregor Jasny <gjasny@googlemail.com>
+Handled-By : Tejun Heo <htejun@gmail.com>
+             Jeff Garzik <jeff@garzik.org>
+Caused-By  : Tejun Heo <htejun@gmail.com>
+             commit d4b2bab4f26345ea1803feb23ea92fbe3f6b77bc
+Status     : problem is being debugged
+
+
+
+SELinux
+
+Subject    : very high non-preempt latency in context_struct_compute_av()
+References : http://lkml.org/lkml/2007/6/4/78
+Submitter  : Ingo Molnar <mingo@elte.hu>
+Handled-By : Stephen Smalley <sds@tycho.nsa.gov>
+             James Morris <jmorris@namei.org>
+Status     : unknown
+
+
+
+Sparc64
+
+Subject    : 2.6.22-rc broke X on Ultra5
+References : http://lkml.org/lkml/2007/5/22/78
+Submitter  : Mikael Pettersson <mikpe@it.uu.se>
+Handled-By : David Miller <davem@davemloft.net>
+Status     : problem is being debugged
+
+
+
+Suspend
+
+Subject    : hibernate(?) fails totally - regression
+References : http://lkml.org/lkml/2007/6/1/401
+Submitter  : David Greaves <david@dgreaves.com>
+Handled-By : Rafael J. Wysocki <rjw@sisk.pl>
+Caused-By  : Tejun Heo <htejun@gmail.com>
+             commit 9666f4009c22f6520ac3fb8a19c9e32ab973e828
+Status     : problem is being debugged
+
+Subject    : panic on s3 resume with uhci_hcd module
+References : http://bugzilla.kernel.org/show_bug.cgi?id=8565
+Submitter  : Simon <sg02r@ecs.soton.ac.uk>
+Handled-By : Rafael J. Wysocki <rjw@sisk.pl>
+Status     : Unknown
+
+
+
+Regards,
+Michal
+
+--
+"Najbardziej brakowa=B3o mi twojego milczenia."
+-- Andrzej Sapkowski "Co=B6 wi=EAcej"
