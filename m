@@ -1,66 +1,29 @@
-From: Patrick McHardy <kaber@trash.net>
-Date: Tue, 05 Jun 2007 13:32:38 +0000
+From: Dmitry Mishin <dim@openvz.org>
+Date: Tue, 05 Jun 2007 13:50:02 +0000
 Subject: Re: iptables throws unknown error - suspecting 32/64 compat issue
-Message-Id: <466565F6.7070902@trash.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------070602000608030908010609"
+Message-Id: <200706051750.03185.dim@openvz.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.61.0705100812440.32349@yvahk01.tjqt.qr>	<200706031047.44848.dim@openvz.org> <4662F2E9.1090903@trash.net>	<200706041154.11187.dim@openvz.org> <4665542F.9020607@trash.net>
-In-Reply-To: <4665542F.9020607@trash.net>
-To: Dmitry Mishin <dim@openvz.org>
-Cc: sparclinux@vger.kernel.org, Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>, Jan Engelhardt <jengelh@linux01.gwdg.de>
-
-This is a multi-part message in MIME format.
---------------070602000608030908010609
-Content-Type: text/plain; charset=ISO-8859-15
+References: <Pine.LNX.4.61.0705100812440.32349@yvahk01.tjqt.qr>
+	<4665542F.9020607@trash.net> <466565F6.7070902@trash.net>
+In-Reply-To: <466565F6.7070902@trash.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org
+Cc: sparclinux@vger.kernel.org, Patrick McHardy <kaber@trash.net>, Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-Patrick McHardy wrote:
-> Dmitry Mishin wrote:
-> 
->>It's better, but I see the issue with iterate with compat_check_entry() calls.
->>If it fails, some of target/matches' check_* functions are called, some not.
->>Please, review my version of this patch.
-> 
-> 
-> 
-> You're right again, thanks. Patch applied.
-> 
+On Tuesday 05 June 2007 17:32, Patrick McHardy wrote:
+> Patrick McHardy wrote:
+> > Dmitry Mishin wrote:
+> >>It's better, but I see the issue with iterate with compat_check_entry()
+> >> calls. If it fails, some of target/matches' check_* functions are
+> >> called, some not. Please, review my version of this patch.
+> >
+> > You're right again, thanks. Patch applied.
+>
+> With one minor change:
+No probs, thanks Patrick, for your work!
 
-With one minor change:
-
-
---------------070602000608030908010609
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
-
-diff --git a/include/linux/netfilter_ipv4/ip_tables.h b/include/linux/netfilter_ipv4/ip_tables.h
-index 9c294a5..e992cd6 100644
---- a/include/linux/netfilter_ipv4/ip_tables.h
-+++ b/include/linux/netfilter_ipv4/ip_tables.h
-@@ -265,14 +265,17 @@ ipt_get_target(struct ipt_entry *e)
- })
- 
- /* fn returns 0 to continue iteration */
--#define IPT_ENTRY_ITERATE_CONTINUE(entries, size, i, fn, args...) \
-+#define IPT_ENTRY_ITERATE_CONTINUE(entries, size, n, fn, args...) \
- ({								\
--	unsigned int __i;					\
-+	unsigned int __i, __n;					\
- 	int __ret = 0;						\
- 	struct ipt_entry *__entry;				\
- 								\
--	for (__i = i; __i < (size); __i += __entry->next_offset) { \
-+	for (__i = 0, __n = 0; __i < (size);			\
-+	     __i += __entry->next_offset, __n++) { 		\
- 		__entry = (void *)(entries) + __i;		\
-+		if (__n < n)					\
-+			continue;				\
- 								\
- 		__ret = fn(__entry , ## args);			\
- 		if (__ret != 0)					\
-
---------------070602000608030908010609--
+-- 
+Thanks,
+Dmitry.
