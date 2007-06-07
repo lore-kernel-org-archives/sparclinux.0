@@ -1,61 +1,37 @@
-From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Date: Sun, 17 Jun 2007 14:23:43 +0000
-Subject: Re: [2/2] 2.6.22-rc5: known regressions
-Message-Id: <467543EF.6080605@googlemail.com>
+From: Frank Lichtenheld <frank@lichtenheld.de>
+Date: Thu, 07 Jun 2007 19:53:07 +0000
+Subject: Unkillable dpkg-query processes on Debian
+Message-Id: <20070607195306.GB31707@planck.djpig.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <46754153.6040404@googlemail.com>
-In-Reply-To: <46754153.6040404@googlemail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-ide@vger.kernel.org, Jeff Garzik <jeff@garzik.org>, Tejun Heo <htejun@gmail.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Rodney Gordon II <meff@spherevision.org>, sparclinux@vger.kernel.org, David Miller <davem@davemloft.net>, Mikael Pettersson <mikpe@it.uu.se>, Mark Fortescue <mark@mtfhpc.demon.co.uk>, William Lee Irwin III <wli@holomorphy.com>, Andi Kleen <ak@suse.de>, discuss@x86-64.org, Ioan Ionita <opslynx@gmail.com>
+To: sparclinux@vger.kernel.org
 
-Hi all,
+Hi.
 
-Here is a list of some known regressions in 2.6.22-rc5.
+I'm seeing the same problem (unkillable dpkg-query processes
+appearing during building Debian packages) here on two U10. Both
+run sparc64-smp kernels. The error occoured both with the 2.6.18
+kernel from Debian etch and 2.6.21 from Debian unstable. All
+builds happened in a Debian unstable chroot.
 
-Feel free to add new regressions/remove fixed etc.
-http://kernelnewbies.org/known_regressions
+As said, an strace attached to the process once it is out of control
+(indicated by the high VIRT size) shows nothing. I tried to use
+a wrapper script for dpkg-query which runs it under strace. The error
+still occoured but *after* the real dpkg-query already completed.
+The process getting out of control was the wrapper in this case.
 
+I've never seen the problem with anything else than dpkg-query.
 
+I've never seen the problem when running dpkg-query interactively,
+and it does happen very infrequently and with no ovious pattern.
+But I've never needed more than a few hours to hit it.
 
-SATA/PATA
+I would happily provide more information if someone has an idea
+what would be useful and how to retrieve it.
 
-Subject    : libata IT821X driver still fails! Hard-freezes system
-References : http://lkml.org/lkml/2007/6/14/82
-Submitter  : Rodney Gordon II <meff@spherevision.org>
-Status     : unknown
-
-
-
-Sparc64
-
-Subject    : random invalid instruction occourances on sparc32 (sun4c)
-References : http://lkml.org/lkml/2007/6/17/111
-Submitter  : Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Status     : problem is being debugged
-
-Subject    : 2.6.22-rc broke X on Ultra5
-References : http://lkml.org/lkml/2007/5/22/78
-Submitter  : Mikael Pettersson <mikpe@it.uu.se>
-Handled-By : David Miller <davem@davemloft.net>
-Status     : problem is being debugged
-
-
-
-x86-64
-
-Subject    : x86-64 2.6.22-rc2 random segfaults
-References : http://lkml.org/lkml/2007/5/24/275
-Submitter  : Ioan Ionita <opslynx@gmail.com>
-Status     : Unknown
-
-
-
-Regards,
-Michal
-
---
-LOG
-http://www.stardust.webpages.pl/log/
+Gruesse,
+-- 
+Frank Lichtenheld <frank@lichtenheld.de>
+www: http://www.djpig.de/
