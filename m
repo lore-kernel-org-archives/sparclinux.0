@@ -1,32 +1,71 @@
-From: =?ISO-8859-1?Q?S=E9bastien_Bernard?= <seb@frankengul.org>
-Date: Wed, 30 May 2007 20:04:38 +0000
-Subject: Stuck process on debian unstable bring the machine down
-Message-Id: <465DD8D6.4000204@frankengul.org>
+From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Date: Sat, 09 Jun 2007 17:40:25 +0000
+Subject: Re: [2/3] 2.6.22-rc4: known regressions v2
+Message-Id: <466AE609.1030605@googlemail.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <466ADBE4.5090707@googlemail.com>
+In-Reply-To: <466ADBE4.5090707@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.de>, Jaroslav Kysela <perex@suse.cz>, Ben Collins <bcollins@ubuntu.com>, Jeff Garzik <jeff@garzik.org>, linux-ide@vger.kernel.org, Robert de Rooy <robert.de.rooy@gmail.com>, Gregor Jasny <gjasny@googlemail.com>, sparclinux@vger.kernel.org, David Miller <davem@davemloft.net>, Mark Lord <mlord@pobox.com>, Tejun Heo <htejun@gmail.com>, Alan Cox <alan@redhat.com>, Mikael Pettersson <mikpe@it.uu.se>
 
-Hi, I'm running a smp kernel on an U60.
-I was trying to compile the source package of mono 1.2.4-3 on my machine 
-when I got something really strange.
+Hi all,
 
-The compilation process got stuck in the dh_shlibdeps invokation.
+Here is a list of some known regressions in 2.6.22-rc4.
 
-When searching for the shlib, I got a process dpkg query which suddendly 
-went to 100% CPU usage.
-After further examination, the top indicates that the proces uses 1700m 
-of virtual mem, with 39m of rss.
-Strangely, the process eats all cpu cycles of the machine bringing the 
-load to a steady 70.
-The process is unkillable and an strace on it shows absolutely nothing 
-which is plain weird.
+Feel free to add new regressions/remove fixed etc.
+http://kernelnewbies.org/known_regressions
 
-This problem shows up either with 2.6.21.3-smp kernel and 2.6.20.12-smp.
-Those kernels are home compiled.
 
-	Can someone help me explain this oddity. I'm rebooting the machine for 
-the 3rd time in two whereas it was working flawlessly for days.
 
-	Seb
+ALSA
+
+Subject    : snd-aoa causes badness in lib/kref.c:33
+References : http://bugzilla.kernel.org/show_bug.cgi?id=8513
+Submitter  : Ben Collins <bcollins@ubuntu.com>
+Handled-By : Takashi Iwai <tiwai@suse.de>
+Status     : Unknown
+
+
+
+IDE
+
+Subject    : libata and legacy ide pcmcia failure
+References : http://lkml.org/lkml/2007/5/17/305
+Submitter  : Robert de Rooy <robert.de.rooy@gmail.com>
+Handled-By : Mark Lord <mlord@pobox.com>
+Status     : problem is being debugged
+
+
+
+SATA/PATA
+
+Subject    : 22-rc3 broke the CDROM in Dell notebook
+References : http://lkml.org/lkml/2007/5/27/63
+Submitter  : Gregor Jasny <gjasny@googlemail.com>
+Handled-By : Tejun Heo <htejun@gmail.com>
+             Jeff Garzik <jeff@garzik.org>
+Caused-By  : Tejun Heo <htejun@gmail.com>
+             commit d4b2bab4f26345ea1803feb23ea92fbe3f6b77bc
+Status     : problem is being debugged
+
+
+
+Sparc64
+
+Subject    : 2.6.22-rc broke X on Ultra5
+References : http://lkml.org/lkml/2007/5/22/78
+Submitter  : Mikael Pettersson <mikpe@it.uu.se>
+Handled-By : David Miller <davem@davemloft.net>
+Status     : problem is being debugged
+
+
+
+Regards,
+Michal
+
+--
+"Najbardziej brakowa=B3o mi twojego milczenia."
+-- Andrzej Sapkowski "Co=B6 wi=EAcej"
