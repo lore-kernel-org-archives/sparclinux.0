@@ -1,73 +1,80 @@
-From: Dmitry Artamonow <mad_soft@inbox.ru>
-Date: Sat, 09 Jun 2007 09:18:04 +0000
+From: David Miller <davem@davemloft.net>
+Date: Tue, 12 Jun 2007 23:55:34 +0000
 Subject: Re: [BUG sparc64] 2.6.22-rc broke X on Ultra5
-Message-Id: <20070609091804.GA3793@sunflower.office.asoft.ru>
+Message-Id: <20070612.165534.108742469.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200705301933.l4UJXIE0023913@alkaid.it.uu.se> <20070530.130140.97293476.davem@davemloft.net> <20070606.162210.35662366.davem@davemloft.net>
-In-Reply-To: <20070606.162210.35662366.davem@davemloft.net>
+References: <18002.44181.639121.720839@alkaid.it.uu.se>
+In-Reply-To: <18002.44181.639121.720839@alkaid.it.uu.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: mikpe@it.uu.se, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Good day!
 
-Sorry for intruding, but I'm seeing the same problem on my U10 with 
-2.6.22-rc3 and Xorg-7.1+gentoo patches.
+This should fix the problem, thanks for all of the debugging
+information.
 
-On Wed, Jun 06, 2007 at 04:22:10PM -0700, David Miller wrote:
-> From: David Miller <davem@davemloft.net>
-> Date: Wed, 30 May 2007 13:01:40 -0700 (PDT)
-> 
-> > From: Mikael Pettersson <mikpe@it.uu.se>
-> > Date: Wed, 30 May 2007 21:33:18 +0200 (MEST)
-> > 
-> > > You were spot on. 2.6.21 + patches up to but not including
-> > > the first one above works. Adding that one gave me a kernel
-> > > that wouldn't boot (hung after "uncompressing kernel").
-> > > Adding the second one above gave me a kernel that booted, but
-> > > where X failed to mmap() the frame buffer as I described.
-> > 
-> > Thanks for all of your testing.
-> > 
-> > I'll try to figure this out on one of my Ultra5's here.
-> 
-> So I did some more digging, got my ultra5 running and I can't
-> get it to work with both 2.6.20 and 2.6.22-rc4 :-)  This is
-> with xorg-7.2, and they both fail with:
-> 
-> xf86MapPciMem: Could not mmap ...
-> 
-> which I assume is the error you're seeing.
-> 
-> Investigation reveals that X.org is erroneously trying to
-> do PCI mmap ioctl()'s on /sys/bus/pci/devices/*/config
-> files which is very very wrong.  Again this happens for me
-> with both 2.6.20 and 2.6.22
+Let me know if the X regression is still not fixed.
 
-Xorg-7.2 (to be more precise, xorg-server-1.2.0) never worked for me, you 
-can see my bug on gentoo bugzilla for more info:
-http://bugs.gentoo.org/show_bug.cgi?id7052
-But Xorg-7.1 worked fine on kernels up and including 2.6.21
+commit cf58de958f939587637ea74cdc3382bc140a936b
+Author: David S. Miller <davem@sunset.davemloft.net>
+Date:   Tue Jun 12 16:54:08 2007 -0700
 
-> 
-> Can you just quickly strace "Xorg" startup in the working
-> and non-working case?  Just a simple:
-> 
-> 	strace -o x.log Xorg
-> 
-> would for both cases be fine.
-> 
-> You can email it to me privately, and I'll post here my
-> analysis with the relevant portions quoted so we don't
-> flood the list with strace dumps :-)
-> 
-> Thanks a lot!
+    [SPARC64]: Fix IO/MEM space sizing for PCI.
+    
+    In pci_determine_mem_io_space(), do not hard code the region sizes.
+    Instead, use the values given to us in the ranges property.
+    
+    Thanks goes to Mikael Petterson for the original Xorg failure
+    bug repoert, and strace dumps from Mikael and Dmitry Artamonow.
+    
+    Signed-off-by: David S. Miller <davem@davemloft.net>
 
-I sent David privately my .configs , Xorg.0.logs and strace logs for 2.6.21 
-and 2.6.22-rc3. Hope it helps.
-
---
-Best regards,
-Dmitry 'MAD' Artamonow
+diff --git a/arch/sparc64/kernel/pci_common.c b/arch/sparc64/kernel/pci_common.c
+index f974fef..4249214 100644
+--- a/arch/sparc64/kernel/pci_common.c
++++ b/arch/sparc64/kernel/pci_common.c
+@@ -291,8 +291,9 @@ void pci_determine_mem_io_space(struct pci_pbm_info *pbm)
+ 
+ 	for (i = 0; i < num_pbm_ranges; i++) {
+ 		const struct linux_prom_pci_ranges *pr = &pbm_ranges[i];
+-		unsigned long a;
++		unsigned long a, size;
+ 		u32 parent_phys_hi, parent_phys_lo;
++		u32 size_hi, size_lo;
+ 		int type;
+ 
+ 		parent_phys_hi = pr->parent_phys_hi;
+@@ -300,9 +301,14 @@ void pci_determine_mem_io_space(struct pci_pbm_info *pbm)
+ 		if (tlb_type = hypervisor)
+ 			parent_phys_hi &= 0x0fffffff;
+ 
++		size_hi = pr->size_hi;
++		size_lo = pr->size_lo;
++
+ 		type = (pr->child_phys_hi >> 24) & 0x3;
+ 		a = (((unsigned long)parent_phys_hi << 32UL) |
+ 		     ((unsigned long)parent_phys_lo  <<  0UL));
++		size = (((unsigned long)size_hi << 32UL) |
++			((unsigned long)size_lo  <<  0UL));
+ 
+ 		switch (type) {
+ 		case 0:
+@@ -313,7 +319,7 @@ void pci_determine_mem_io_space(struct pci_pbm_info *pbm)
+ 		case 1:
+ 			/* 16-bit IO space, 16MB */
+ 			pbm->io_space.start = a;
+-			pbm->io_space.end = a + ((16UL*1024UL*1024UL) - 1UL);
++			pbm->io_space.end = a + size - 1UL;
+ 			pbm->io_space.flags = IORESOURCE_IO;
+ 			saw_io = 1;
+ 			break;
+@@ -321,7 +327,7 @@ void pci_determine_mem_io_space(struct pci_pbm_info *pbm)
+ 		case 2:
+ 			/* 32-bit MEM space, 2GB */
+ 			pbm->mem_space.start = a;
+-			pbm->mem_space.end = a + (0x80000000UL - 1UL);
++			pbm->mem_space.end = a + size - 1UL;
+ 			pbm->mem_space.flags = IORESOURCE_MEM;
+ 			saw_mem = 1;
+ 			break;
