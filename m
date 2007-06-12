@@ -1,29 +1,47 @@
-From: Dmitry Mishin <dim@openvz.org>
-Date: Tue, 05 Jun 2007 13:50:02 +0000
-Subject: Re: iptables throws unknown error - suspecting 32/64 compat issue
-Message-Id: <200706051750.03185.dim@openvz.org>
+From: "Tom \"spot\" Callaway" <tcallawa@redhat.com>
+Date: Tue, 12 Jun 2007 14:52:16 +0000
+Subject: Re: [PATCH]: Better serial console identification
+Message-Id: <1181659936.3561.10.camel@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.61.0705100812440.32349@yvahk01.tjqt.qr>
-	<4665542F.9020607@trash.net> <466565F6.7070902@trash.net>
-In-Reply-To: <466565F6.7070902@trash.net>
+References: <20070520.140354.92582888.davem@davemloft.net>
+In-Reply-To: <20070520.140354.92582888.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
-Cc: sparclinux@vger.kernel.org, Patrick McHardy <kaber@trash.net>, Jan Engelhardt <jengelh@linux01.gwdg.de>
+To: sparclinux@vger.kernel.org
 
-On Tuesday 05 June 2007 17:32, Patrick McHardy wrote:
-> Patrick McHardy wrote:
-> > Dmitry Mishin wrote:
-> >>It's better, but I see the issue with iterate with compat_check_entry()
-> >> calls. If it fails, some of target/matches' check_* functions are
-> >> called, some not. Please, review my version of this patch.
-> >
-> > You're right again, thanks. Patch applied.
->
-> With one minor change:
-No probs, thanks Patrick, for your work!
+On Thu, 2007-05-24 at 16:56 -0700, David Miller wrote:
+> From: "Tom \"spot\" Callaway" <tcallawa@redhat.com>
+> Date: Thu, 24 May 2007 08:12:58 -0500
+> 
+> > So, while I certainly don't disagree with your findings, this is not
+> > the resolution to the problem.
+> 
+> Thanks for double checking everything Tom.
+> 
+> I'm going to put this patch on the back burner for now
+> until I come up with some better ideas or some ways to
+> diagnose this further.
+> 
+> I'd suggest you don't put it into your tree until I find
+> a way to resolve this regression.
 
--- 
-Thanks,
-Dmitry.
+Well, I've spent a fair amount of time trying to figure this out, and
+I'm glad to say that while I'm not exactly sure why this patch was
+causing the failure, it was not this patch. I discovered that other
+patches would also cause the esp driver to stop working, which was
+baffling.
+
+Eventually, I discovered the failure was the kernel configuration
+options I'd chosen. When I altered the sparc32 kernel config options to
+closer match those of my working sparc64 kernel config, everything
+started working properly.
+
+I've tested this patch on the SS4 with my new configuration, and it
+works great. So, take this one off the back-burner and feel free to
+apply. :)
+
+Sorry for the confusion.
+
+~spot
+
