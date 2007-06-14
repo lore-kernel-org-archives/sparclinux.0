@@ -1,44 +1,47 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 03 Jun 2007 18:38:52 +0000
-Subject: Re: Alignment question, sparc-centric
-Message-Id: <20070603.113852.48823841.davem@davemloft.net>
+From: "Mrs Teressa Stevens." <sealed@kaixo.com>
+Date: Thu, 14 Jun 2007 10:23:56 +0000
+Subject: The transfer has been effected please  contact Rev. Duke Harrison.
+Message-Id: <1181820108.467124cc71a57@imp.free.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.61.0706022001330.5076@yvahk01.tjqt.qr>
-In-Reply-To: <Pine.LNX.4.61.0706022001330.5076@yvahk01.tjqt.qr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Date: Sun, 3 Jun 2007 12:26:45 +0200 (MEST)
+The transfer has been effected please  contact Rev. Duke Harrison.
 
-> 
-> On Jun 3 2007 12:14, Bernhard R. Link wrote:
-> >
-> >* David Miller <davem@davemloft.net> [070602 22:09]:
-> >> Types must be aligned on their natural size, and GCC can assume
-> >> this everywhere you reference such types unless you use the
-> >> "packed" GCC attribute.
-> >
-> >And even with packed, the struct itself must be naturally aligned
-> >(unless itself is in a packed struct, if course).
-> 
-> It is not a struct actually. It is a bytestream that is reinterpreted
-> as an integer, that is, for example (it does not really need to be
-> skb_network_header),
-> 
-> unsigned char *p = skb_network_header(skb);
-> uint32_t value   = *(uint32_t *)(p[9]);
-> 
-> I suppose this won't work, so one would have to...
-> 
-> uint32_t value = (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];
+Atten:My Dear,
 
-We have a way to handle this in the kernel, it's called
-get_unaligned() and it only emits special unaligned handling on the
-platforms that require it:
+I am happy to inform you about my success in getting those funds transferred
+under the cooperation of a new partner from Japan. Presently I'm in Japan going
+through more medical treatment while my new partner is investment the total
+amount the way I instructed him. Meanwhile, I didn't forget your past efforts
+and attempts to assist me in transferring those funds despite that it failed us
+some how.
 
-	value = get_unaligned((u32 *)(p + 9));
+Now contact the Man of God who assisted me and stand by his word, his name is
+Rev. Duke Harrison Email: rev_dukeharrison@yahoo.fr ask him to send you the
+total sum of US$800.000.00 which I kept for your compensation for all the past
+efforts and attempt to assist me in this matter. I appreciated your collective
+efforts at that time so feel free and get in touch with the man of God Rev. Duke
+Harrison. For the delivery of the draft to you.
 
-Use it :-)
+Please do let me know immediately you receive it so that we can share the joy
+after all the suffer ness at that time. at the moment, I am still going through
+medical treatment here in Japan while the investment projects is still going on
+with my new partner without confrontations, finally, remember that I had
+forwarded instruction to the Man of God on your behalf to receive the Draft, so
+feel free to get in touch with Rev. Duke Harrison he will send the amount to you
+without more delay.
+
+Even my current partner is not happy that i have to allocate such amount to you
+bearing in mind your nonchalant attitude to the transaction at its crucial
+stage.
+
+Thanks.
+
+Your regards.
+Mrs. Teressa Stevens.
+
+
+
