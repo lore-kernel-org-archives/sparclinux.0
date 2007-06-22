@@ -1,8 +1,10 @@
 From: "Mrs Teressa Stevens." <sealed@kaixo.com>
-Date: Thu, 14 Jun 2007 10:23:56 +0000
+Date: Fri, 22 Jun 2007 18:47:16 +0000
 Subject: The transfer has been effected please  contact Rev. Duke Harrison.
-Message-Id: <1181820108.467124cc71a57@imp.free.fr>
+Message-Id: <1182541613.467c272d85767@imp.free.fr>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1181820108.467124cc71a57@imp.free.fr>
+In-Reply-To: <1181820108.467124cc71a57@imp.free.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -42,6 +44,8 @@ Thanks.
 
 Your regards.
 Mrs. Teressa Stevens.
+
+
 
 
 
