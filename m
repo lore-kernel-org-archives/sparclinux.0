@@ -1,45 +1,39 @@
-From: vignesh babu <vignesh.babu@wipro.com>
-Date: Thu, 07 Jun 2007 10:09:43 +0000
-Subject: [KJ][PATCH]is_power_of_2-sparc/mm/srmmu.c
-Message-Id: <1181210263.11218.2.camel@merlin.linuxcoe.com>
+From: Bastian Blank <waldi@debian.org>
+Date: Sun, 24 Jun 2007 06:58:26 +0000
+Subject: sparc64 - empty call traces
+Message-Id: <20070624065826.GA23454@wavehammer.waldi.eu.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: wli@holomorphy.com, davem@caip.rutgers.edu, zaitcev@yahoo.com, ecd@skynet.be, jj@sunsite.mff.cuni.cz, anton@samba.org
-Cc: sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel <linux-kernel@vger.kernel.org>, Kernel Janitors List <kernel-janitors@lists.osdl.org>
+To: sparclinux@vger.kernel.org
 
+Hi
 
-Replacing (n & (n-1)) in the context of power of 2 checks
-with is_power_of_2
+I don't think it is expected that the call traces in a process dump
+(sysrq t) are empty? This happens on at least 2.6.21 and 2.6.22-rc5. The
+userland is 32bit. The machine is a T2000.
 
-Signed-off-by: vignesh babu <vignesh.babu@wipro.com>
---- 
-diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-index e5eaa80..741d303 100644
---- a/arch/sparc/mm/srmmu.c
-+++ b/arch/sparc/mm/srmmu.c
-@@ -19,6 +19,7 @@
-#include <linux/fs.h>
-#include <linux/seq_file.h>
-#include <linux/kdebug.h>
-+#include <linux/log2.h>
+| inetutils-ine S 00000000004060d4     0  2290      1 (NOTLB)
+| Call Trace:
+| master        S 00000000004ab0b8     0  2350      1 (NOTLB)
+| Call Trace:
+| pickup        S 00000000004ab0b8     0  2353   2350 (NOTLB)
+| Call Trace:
+| qmgr          S 00000000004ab0b8     0  2354   2350 (NOTLB)
+| Call Trace:
+| sshd          S 00000000004ab0b8     0  2363      1 (NOTLB)
+| Call Trace:
+| mdadm         S 00000000004ab0b8     0  2398      1 (NOTLB)
+| Call Trace:
+| cron          S 00000000004777b0     0  2408      1 (NOTLB)
+| Call Trace:
+| getty         S 0000000000573d90     0  2434      1 (NOTLB)
+| Call Trace:
+| sshd          S 00000000004ab0b8     0  2435   2363 (NOTLB)
+| Call Trace:
 
-#include <asm/bitext.h>
-#include <asm/page.h>
-@@ -354,7 +355,7 @@ void srmmu_free_nocache(unsigned long vaddr, int
-size)
-    vaddr, srmmu_nocache_end);
-BUG();
-}
-- if (size & (size-1)) {
-+ if (!is_power_of_2(size)) {
-printk("Size 0x%x is not a power of 2\n", size);
-BUG();
-}
+Bastian
 
 -- 
-Vignesh Babu BM 
-_____________________________________________________________ 
-"Why is it that every time I'm with you, makes me believe in magic?"
-
+Captain's Log, star date 21:34.5...
