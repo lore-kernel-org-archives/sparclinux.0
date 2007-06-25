@@ -1,38 +1,58 @@
-From: Meelis Roos <mroos@linux.ee>
-Date: Wed, 13 Jun 2007 08:59:23 +0000
-Subject: Re: parport_pc BUG in dma-mapping.h
-Message-Id: <Pine.SOC.4.64.0706131137370.12888@math>
+From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Date: Mon, 25 Jun 2007 09:48:40 +0000
+Subject: Re: [1/2] 2.6.22-rc6: known regressions
+Message-Id: <467F8F78.8090700@googlemail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.SOC.4.64.0705121525460.4493@math>
-In-Reply-To: <Pine.SOC.4.64.0705121525460.4493@math>
-To: sparclinux@vger.kernel.org
+References: <467F8B35.4010906@googlemail.com>
+In-Reply-To: <467F8B35.4010906@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org, David Miller <davem@davemloft.net>, Mikael Pettersson <mikpe@it.uu.se>, Mark Fortescue <mark@mtfhpc.demon.co.uk>, William Lee Irwin III <wli@holomorphy.com>, Andi Kleen <ak@suse.de>, discuss@x86-64.org, Ioan Ionita <opslynx@gmail.com>
 
-> All along the compiler was telling us the problem:
-> 
-> In file included from drivers/parport/parport_pc.c:67:
-> include/asm/parport.h: In function $,1rx(Bparport_isa_probe$,1ry(B:
-> include/asm/parport.h:148: error: request for member $,1rx(Bdev$,1ry(B in something not a structure or union
-> include/asm/parport.h: In function $,1rx(Bparport_pc_find_nonpci_ports$,1ry(B:
-> include/asm/parport.h:203: error: request for member $,1rx(Bdev$,1ry(B in something not a structure or union
-> 
-> The following patch should fix things for good:
-> 
-> commit f75823072cd2bfa6e7aacafa15c9e5af7ce8d879
-> Author: David S. Miller <davem@sunset.davemloft.net>
-> Date:   Tue Jun 12 23:53:03 2007 -0700
+Hi all,
 
-Yes, this works, thank you!
+Here is a list of some known regressions in 2.6.22-rc6.
 
-I tried a similar way - the compiler warnings. The following warnings 
-looked suspicious to me but I could not see into them in 10 minutes so I 
-did not investigate it further.
+Feel free to add new regressions/remove fixed etc.
+http://kernelnewbies.org/known_regressions
 
-  CC [M]  drivers/parport/parport_pc.o
-In file included from drivers/parport/parport_pc.c:67:
-include/asm/parport.h: In function 'parport_isa_probe':
-include/asm/parport.h:148: warning: passing argument 5 of 'parport_pc_probe_port' from incompatible pointer type
-include/asm/parport.h: In function 'parport_pc_find_nonpci_ports':
-include/asm/parport.h:202: warning: passing argument 5 of 'parport_pc_probe_port' from incompatible pointer type
+*STATISTICS* (a.k.a. list of aces)
 
--- 
-Meelis Roos (mroos@linux.ee)
+Name                    Regressions fixed since 21-Jun-2007
+Andi Kleen                             1
+Hugh Dickins                           1
+Jean Delvare                           1
+
+
+
+Sparc64
+
+Subject    : random invalid instruction occourances on sparc32 (sun4c)
+References : http://lkml.org/lkml/2007/6/17/111
+Submitter  : Mark Fortescue <mark@mtfhpc.demon.co.uk>
+Status     : problem is being debugged
+
+Subject    : 2.6.22-rc broke X on Ultra5
+References : http://lkml.org/lkml/2007/5/22/78
+Submitter  : Mikael Pettersson <mikpe@it.uu.se>
+Handled-By : David Miller <davem@davemloft.net>
+Status     : problem is being debugged
+
+
+
+x86-64
+
+Subject    : x86-64 2.6.22-rc2 random segfaults
+References : http://lkml.org/lkml/2007/5/24/275
+Submitter  : Ioan Ionita <opslynx@gmail.com>
+Status     : Unknown
+
+
+
+Regards,
+Michal
+
+--
+LOG
+http://www.stardust.webpages.pl/log/
