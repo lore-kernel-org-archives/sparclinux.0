@@ -1,69 +1,147 @@
-From: seb@frankengul.org
-Date: Mon, 18 Jun 2007 15:20:45 +0000
-Subject: Blade2K and qla2xxx
-Message-Id: <20070618152045.GA3451@frankengul.org>
+From: Georg Chini <georg.chini@triaton-webhosting.com>
+Date: Wed, 27 Jun 2007 21:08:40 +0000
+Subject: [Patch]: Minor fixes for CS4231 on SBus
+Message-Id: <4682D1D8.3070309@triaton-webhosting.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------050907050903020901030500"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi,
+This is a multi-part message in MIME format.
+--------------050907050903020901030500
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-I have a problem to report.
-Kernel 2.6.18 is the last kernel working with the Blade 2000 I was trying to run.
+Hello,
 
-Kernel 2.6.22-rc5 I just recompiled oops at disk detection :
+remove unnecessary sbus_dma_reset function and
+change sbus_dma_enable to avoid occasional system
+crashes when stopping recording. Patch is against
+2.6.22-rc5. Tested on my ultra2.
 
-I'm copying the oops by hand since I got no serial output:
-------------------------------------------------------
-QLogic Fibre Channel HBA Driver
-PCI: enabling device (0001:00:04.0), cmd 3
-qla2xxx 0001:00:04.0 : Found an ISP2200, irq 21, iobase 0x000007fd00100000
-qla2xxx 0001:00:04.0 : Configuring PCI space ...
-qla2xxx 0001:00:04.0 : Configure NVRAM parameters...
-qla2xxx 0001:00:04.0 : Inconsistent NVRAM detected: checksum=0x0 id=(4)qla2xxx 0001:00:04.0 : Falling back to functionning (yet invalid -- WWPN) defaults
-qla2xxx 0001:00:04.0 : Verifying Loaded RISC code...
-ohci_hcd: 2006 August 04 USB 1.1 'Open' Host Controle (OHCI) Driver
-eth0: Link is up at 100Mbps, full-duplex.
-qla2xxx 0001:00:04.0 : Allocated (252 KB) for firmware dump...
-qla2xxx 0001:00:04.0 : LIP reset occured (f8e8).
-scsi2 : qla2xxx
-qla2xxx 0001:00:04.0 : LIP occured (f8e8).
-qla2xxx 0001:00:04.0 : LOOP UP detected (1 Gbps).
- QLogic Fibre Channel HBA Driver : 8.01.07-k7
-  QLogic QLA22xx -
-   ISP2200: PCI (66 MHz) @ 0001:00:04.1 hdma-, host#3, fw2.02.08 TP
-ohci1394: fw-host0: OHCI-1394 1.0 (PCI): IRQ=[14]  MMIO=[7fe00120000-7fe001207ff]  Max Packet=[2048] IR/IT Contexts=[4/4]
-ohci_hcd 0000:00:05.3: OHCI Host Controller
-ohci_hcd 0000:00:05.3: new USB bus registered, assigned bus number 1
-ohci_hcd 0000:00:05.3: irq 15, io mem 0x7fe01000000
-usb usb1: configuration #1 chosen from 1 choice
-hub 1-0:1.0: USB bus found
-hub 1-0:1.0: 4 ports detected
-usb 1-3:: new low speed USB device using ohci_hcd and address 2
-scsi 2:0:0:0 Direct-Access	SEAGATE  ST373307FSUN72G  0307 PQ:8 ANSI: 3
-kobject_add failed for 2:0:0:0 with -EEXIST, don't try to register things with the same name in the same directory.
-Call trace:
-	[000000001001cc9c] scsi_sysfs_add_sdev+0x2c/0x228 [scsi_mod]
-	[000000001001a9ec] scsi_probe_and_add_lun+0x97c/0xab8 [scsi_mod]
-	[000000001001b084] __scsi_scan_target+0x90/0x660 [scsi_mod]
-	[000000001001bce8] scsi_scan_target+0x94/0xa4 [scsi_mod]
-	[000000001007ef70] fc_scsi_scan_rport+0x64/0x98 [scsi_tranport_fc]
-	[0000000000465a20] run_workqueue+0xa0/0x11c
-	[0000000000465ec0] worker_thread+0xc4/0xd4
-	[0000000000469524] kthread+0x4c/0x78
-	[00000000004277f8] kernel_thread+0x38/0x48
-	[00000000004693d8] kthreadd+0x98/0x100
-error 1
-sd 2:0:0:0: rejecting I/O from dead device
-sd 2:0:0:0: rejecting I/O from dead device
-sd 2:0:0:0: rejecting I/O from dead device
-sd 2:0:0:0: rejecting I/O from dead device
--------------------------------------------
-After this, I got no access from the scsi target.
+Regards
+              Georg
 
-What do you think the problem can be ?
-how to workaround ?
 
-	Seb
+--------------050907050903020901030500
+Content-Type: text/plain;
+ name="cs4231-2.6.22-rc5.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="cs4231-2.6.22-rc5.diff"
+
+CS4231 SBus: Remove unnecessary sbus_dma_reset function and change
+             sbus_dma_enable to avoid occasional system crashes when
+	     stopping recording.
+
+signed off: Georg Chini <georg.chini@triaton-webhosting.com>
+
+--- linux-2.6.22-rc5/sound/sparc/cs4231.c	2007-06-17 04:09:12.000000000 +0200
++++ linux-2.6.22-rc5.changed/sound/sparc/cs4231.c	2007-06-18 22:00:04.000000000 +0200
+@@ -74,7 +74,6 @@
+         void		(*enable)(struct cs4231_dma_control *dma_cont, int on);
+         int		(*request)(struct cs4231_dma_control *dma_cont, dma_addr_t bus_addr, size_t len);
+         unsigned int	(*address)(struct cs4231_dma_control *dma_cont);
+-        void		(*reset)(struct snd_cs4231 *chip); 
+         void		(*preallocate)(struct snd_cs4231 *chip, struct snd_pcm *pcm); 
+ #ifdef EBUS_SUPPORT
+ 	struct		ebus_dma_info	ebus_info;
+@@ -1214,10 +1213,6 @@
+ 
+ 	spin_lock_irqsave(&chip->lock, flags);
+ 
+-
+-	/* Reset DMA engine (sbus only).  */
+-	chip->p_dma.reset(chip);
+-
+ 	__cs4231_readb(chip, CS4231P(chip, STATUS));	/* clear any pendings IRQ */
+ 	__cs4231_writeb(chip, 0, CS4231P(chip, STATUS));
+ 	mb();
+@@ -1861,14 +1856,13 @@
+ 	if (!on) {
+ 		sbus_writel(0, base->regs + base->dir + APCNC);
+ 		sbus_writel(0, base->regs + base->dir + APCNVA);
+-		sbus_writel(0, base->regs + base->dir + APCC);
+-		sbus_writel(0, base->regs + base->dir + APCVA);
++		if ( base->dir == APC_PLAY ) {
++			sbus_writel(0, base->regs + base->dir + APCC);
++			sbus_writel(0, base->regs + base->dir + APCVA);
++		}
+ 
+-		/* ACK any APC interrupts. */
+-		csr = sbus_readl(base->regs + APCCSR);
+-		sbus_writel(csr, base->regs + APCCSR);
++		udelay(1200);
+ 	} 
+-	udelay(1000);
+ 	csr = sbus_readl(base->regs + APCCSR);
+ 	shift = 0;
+ 	if ( base->dir == APC_PLAY )
+@@ -1894,23 +1888,6 @@
+         return sbus_readl(base->regs + base->dir + APCVA);
+ }
+ 
+-static void sbus_dma_reset(struct snd_cs4231 *chip)
+-{
+-        sbus_writel(APC_CHIP_RESET, chip->port + APCCSR);
+-        sbus_writel(0x00, chip->port + APCCSR);
+-        sbus_writel(sbus_readl(chip->port + APCCSR) | APC_CDC_RESET,
+-		    chip->port + APCCSR);
+-  
+-        udelay(20);
+-  
+-        sbus_writel(sbus_readl(chip->port + APCCSR) & ~APC_CDC_RESET,
+-		    chip->port + APCCSR);
+-        sbus_writel(sbus_readl(chip->port + APCCSR) | (APC_XINT_ENA |
+-		       APC_XINT_PENA |
+-		       APC_XINT_CENA),
+-	               chip->port + APCCSR);
+-}
+-
+ static void sbus_dma_preallocate(struct snd_cs4231 *chip, struct snd_pcm *pcm)
+ {
+ 	snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_SBUS,
+@@ -1986,14 +1963,12 @@
+ 	chip->p_dma.enable = sbus_dma_enable;
+ 	chip->p_dma.request = sbus_dma_request;
+ 	chip->p_dma.address = sbus_dma_addr;
+-	chip->p_dma.reset = sbus_dma_reset;
+ 	chip->p_dma.preallocate = sbus_dma_preallocate;
+ 
+ 	chip->c_dma.prepare = sbus_dma_prepare;
+ 	chip->c_dma.enable = sbus_dma_enable;
+ 	chip->c_dma.request = sbus_dma_request;
+ 	chip->c_dma.address = sbus_dma_addr;
+-	chip->c_dma.reset = sbus_dma_reset;
+ 	chip->c_dma.preallocate = sbus_dma_preallocate;
+ 
+ 	if (request_irq(sdev->irqs[0], snd_cs4231_sbus_interrupt,
+@@ -2087,11 +2062,6 @@
+ 	return ebus_dma_addr(&dma_cont->ebus_info);
+ }
+ 
+-static void _ebus_dma_reset(struct snd_cs4231 *chip)
+-{
+-	return;
+-}
+-
+ static void _ebus_dma_preallocate(struct snd_cs4231 *chip, struct snd_pcm *pcm)
+ {
+ 	snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_DEV,
+@@ -2171,14 +2141,12 @@
+ 	chip->p_dma.enable = _ebus_dma_enable;
+ 	chip->p_dma.request = _ebus_dma_request;
+ 	chip->p_dma.address = _ebus_dma_addr;
+-	chip->p_dma.reset = _ebus_dma_reset;
+ 	chip->p_dma.preallocate = _ebus_dma_preallocate;
+ 
+ 	chip->c_dma.prepare = _ebus_dma_prepare;
+ 	chip->c_dma.enable = _ebus_dma_enable;
+ 	chip->c_dma.request = _ebus_dma_request;
+ 	chip->c_dma.address = _ebus_dma_addr;
+-	chip->c_dma.reset = _ebus_dma_reset;
+ 	chip->c_dma.preallocate = _ebus_dma_preallocate;
+ 
+ 	chip->port = ioremap(edev->resource[0].start, 0x10);
+
+--------------050907050903020901030500--
