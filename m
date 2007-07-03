@@ -1,58 +1,74 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Thu, 05 Jul 2007 12:49:52 +0000
-Subject: Re: dead(?) CONFIG vars
-Message-Id: <Pine.LNX.4.64.0707051449310.23477@anakin>
+From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Date: Tue, 03 Jul 2007 16:45:08 +0000
+Subject: [1/2] 2.6.22-rc7: known regressions
+Message-Id: <468A7D14.1050505@googlemail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.0707051418440.23477@anakin>
-In-Reply-To: <Pine.LNX.4.64.0707051418440.23477@anakin>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, reiserfs-devel@vger.kernel.org, "Vladimir V. Saveliev" <vs@namesys.com>, Randy Dunlap <randy.dunlap@oracle.com>, linux-ide@vger.kernel.org, David Chinner <dgc@sgi.com>, sparclinux@vger.kernel.org, David Miller <davem@davemloft.net>, Mikael Pettersson <mikpe@it.uu.se>, Mark Fortescue <mark@mtfhpc.demon.co.uk>, William Lee Irwin III <wli@holomorphy.com>
 
-	Hi Robert,
+Hi all,
 
-On Thu, 5 Jul 2007, Robert P. J. Day wrote:
-> On Thu, 5 Jul 2007, Geert Uytterhoeven wrote:
-> > On Thu, 5 Jul 2007, Robert P. J. Day wrote:
-> > > ===== AP1000 =====
-> > > arch/m68k/sun3/prom/printf.c:40:#ifdef CONFIG_AP1000
-> > > arch/m68k/sun3/prom/init.c:34:#ifdef CONFIG_AP1000
-> >
-> > The AP1000 was actually a SPARC system (cluster). The only reason these
-> > tests ended up in arch/m68k/ are because lots of Sun3 code got copied from
-> > SPARC.
-> >
-> > I guess these #ifdefs can be nuked.
-> >
-> > > include/linux/major.h:66:#define APBLOCK_MAJOR		38   /* AP1000 Block device */
-> > > include/linux/major.h:67:#define DDV_MAJOR		39   /* AP1000 DDV block device */
-> > > include/linux/if_arp.h:69:#define ARPHRD_BIF      775             /* AP1000 BIF                   */
-> > > net/ipv4/arp.c:60: *		Alan Cox 	:	Took the AP1000 nasty FDDI hack and
-> > > net/ieee80211/ieee80211_rx.c:1139:			 * Orinoco AP1000. */
-> > > usr/include/linux/major.h:66:#define APBLOCK_MAJOR		38   /* AP1000 Block device */
-> > > usr/include/linux/major.h:67:#define DDV_MAJOR		39   /* AP1000 DDV block device */
-> > > usr/include/linux/if_arp.h:69:#define ARPHRD_BIF      775             /* AP1000 BIF                   */
-> >
-> > For these you want to talk to Paul Mackerras and the sparclinux people (in CC).
-> 
-> oh, i realize that some of that content is not relevant for you.  all
-> i'm doing is printing out *everywhere* in the tree that symbol appears
-> so you can see if it affects you in any way, besides that part that
-> just affects your particular architecture.
-> 
-> do you want me to submit a patch removing that stuff related just to
-> m68k?  or do you want to handle it yourself?  i'm fine either way.
+Here is a list of some known regressions in 2.6.22-rc7.
 
-Feel free to remove it from m68k. Thx!
+Feel free to add new regressions/remove fixed etc.
+http://kernelnewbies.org/known_regressions
 
-Gr{oetje,eeting}s,
+List of Aces
 
-						Geert
+Name                    Regressions fixed since 21-Jun-2007
+Hugh Dickins                           2
+Andi Kleen                             1
+Andrew Morton                          1
+Benjamin Herrenschmidt                 1
+Bj=F6rn Steinbrink                       1
+Bjorn Helgaas                          1
+Jean Delvare                           1
+Olaf Hering                            1
+Siddha, Suresh B                       1
+Trent Piepho                           1
+Ville Syrj=E4l=E4                          1
+
+
+
+FS
+
+Subject    : 2.6.22-rc4-git5 reiserfs: null ptr deref.
+References : http://lkml.org/lkml/2007/6/13/322
+Submitter  : Randy Dunlap <randy.dunlap@oracle.com>
+Handled-By : Vladimir V. Saveliev <vs@namesys.com>
+Status     : problem is being debugged
+
+
+
+IDE
+
+Subject    : 2.6.22-rcX: hda: lost interrupt
+References : http://lkml.org/lkml/2007/6/29/121
+Submitter  : David Chinner <dgc@sgi.com>
+Status     : unknown
+
+
+
+Sparc64
+
+Subject    : random invalid instruction occourances on sparc32 (sun4c)
+References : http://lkml.org/lkml/2007/6/17/111
+Submitter  : Mark Fortescue <mark@mtfhpc.demon.co.uk>
+Status     : problem is being debugged
+
+Subject    : 2.6.22-rc broke X on Ultra5
+References : http://lkml.org/lkml/2007/5/22/78
+Submitter  : Mikael Pettersson <mikpe@it.uu.se>
+Handled-By : David Miller <davem@davemloft.net>
+Status     : problem is being debugged
+
+
+
+Regards,
+Michal
 
 --
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-							    -- Linus Torvalds
+LOG
+http://www.stardust.webpages.pl/log/
