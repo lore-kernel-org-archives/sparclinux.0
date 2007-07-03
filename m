@@ -1,99 +1,32 @@
-From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Date: Mon, 23 Jul 2007 09:47:34 +0000
-Subject: Re: [2/2] 2.6.23-rc1: known regressions
-Message-Id: <46A47936.1090606@googlemail.com>
+From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
+Date: Tue, 03 Jul 2007 09:40:09 +0000
+Subject: Portmap 6 (and some other daemons) and 2.6.22-rc7 kernel
+Message-Id: <468A1979.1060103@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <46A477AF.4000309@googlemail.com>
-In-Reply-To: <46A477AF.4000309@googlemail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-scsi@vger.kernel.org, James Bottomley <James.Bottomley@steeleye.com>, James Smart <James.Smart@emulex.com>, Adrian Bunk <bunk@stusta.de>, Jeremy Fitzhardinge <jeremy@goop.org>, Tilman Schmidt <tilman@imap.cc>, linux-ia64@vger.kernel.org, Tony Luck <tony.luck@intel.com>, Horms <horms@verge.net.au>, sparclinux@vger.kernel.org, David Miller <davem@davemloft.net>, Roland McGrath <roland@redhat.com>
+To: sparclinux@vger.kernel.org
 
-Hi all,
+	Hello,
 
-Here is a list of some known regressions in 2.6.23-rc1.
+	I have tried to install a 2.5-9 libc6 on U2, U60 and U80. All 
+workstations ran with 2.6.20.11 linux kernel (from kernel.org and 
+without any patch).
 
-Feel free to add new regressions/remove fixed etc.
-http://kernelnewbies.org/known_regressions
+	With 2.6.20.11 and libc6-2.3, all workstations ran without any trouble. 
+When I have changed libc, I have seen some troubles:
+several daemons that use threads randomly enter in sleep mode and don't 
+wake up anymore (bind, portmap, clamd, milter-greylist, mimdefang...). I 
+have tried to build a 2.6.21.5 and I see the same bug. This morning, I 
+have built a 2.6.22-rc7 but this kernel breaks my nis server and doesn't 
+fix initial bug.
 
-List of Aces
+	This bug with threads support affects all my U60 and U80, but I never 
+see the same thing on my U2. All workstations have more than 2 
+processors and run SMP-kernel. All i386 and amd64 that run same versions 
+of daemons/kernel are ot affected.
 
-Name                    Regressions fixed since 21-Jun-2007
-Andi Kleen                             4
-Linus Torvalds                         4
-Adrian Bunk                            3
-Andrew Morton                          3
-Jens Axboe                             3
-Al Viro                                2
-David Woodhouse                        2
-Hugh Dickins                           2
-Tejun Heo                              2
+	Regards,
 
-
-
-SCSI
-
-Subject         : lpfc_sli.c: off-by-10
-References      : http://lkml.org/lkml/2007/7/22/284
-Last known good : ?
-Submitter       : Adrian Bunk <bunk@stusta.de>
-Caused-By       : ?
-Handled-By      : ?
-Status          : unknown
-
-
-
-Virtualization
-
-Subject         : 2.6.22-git17 boot failure (XEN)
-References      : http://lkml.org/lkml/2007/7/22/266
-Last known good : ?
-Submitter       : Tilman Schmidt <tilman@imap.cc>
-Caused-By       : ?
-Handled-By      : ?
-Status          : unknown
-
-Subject         : drivers/net/xen-netfront.c: bogus code
-References      : http://lkml.org/lkml/2007/7/22/256
-Last known good : ?
-Submitter       : Adrian Bunk <bunk@stusta.de>
-Caused-By       : ?
-Handled-By      : Jeremy Fitzhardinge <jeremy@goop.org>
-Status          : unknown
-
-
-
-IA64
-
-Subject         : Regression in serial console on ia64 after 2.6.22
-References      : http://marc.info/?l=linux-ia64&m8483645914066&w=2
-Last known good : ?
-Submitter       : Horms <horms@verge.net.au>
-Caused-By       : Yinghai Lu <Yinghai.Lu@Sun.COM>
-                  commit 18a8bd949d6adb311ea816125ff65050df1f3f6e
-Handled-By      : ?
-Status          : unknown
-
-
-
-Sparc64
-
-Subject         : "build-id" changes break sparc64
-References      : http://lkml.org/lkml/2007/7/22/38
-Last known good : ?
-Submitter       : David Miller <davem@davemloft.net>
-Caused-By       : Roland McGrath <roland@redhat.com>
-                  commit 18991197b4b588255ccabf472ebc84db7b66a19c
-Handled-By      : ?
-Status          : unknown
-
-
-
-Regards,
-Michal
-
---
-LOG
-http://www.stardust.webpages.pl/log/
+	JKB
