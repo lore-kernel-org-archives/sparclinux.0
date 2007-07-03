@@ -1,147 +1,106 @@
-From: Georg Chini <georg.chini@triaton-webhosting.com>
-Date: Tue, 31 Jul 2007 20:18:43 +0000
-Subject: [Patch]: Minor fixes for CS4231 on SBus
-Message-Id: <46AF9923.9010905@triaton-webhosting.com>
+From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
+Date: Tue, 03 Jul 2007 17:29:58 +0000
+Subject: Sparc32: random invalid instruction occourances on sparc32 (sun4c)
+Message-Id: <Pine.LNX.4.61.0707031817050.29930@mtfhpc.demon.co.uk>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------090701060804030508030003"
+Content-Type: multipart/mixed; boundary="1750305931-300674694-1183483798=:29930"
 List-Id: <sparclinux.vger.kernel.org>
-To: sparclinux@vger.kernel.org
+References: <468A7D14.1050505@googlemail.com>
+In-Reply-To: <468A7D14.1050505@googlemail.com>
+To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, reiserfs-devel@vger.kernel.org, "Vladimir V. Saveliev" <vs@namesys.com>, Randy Dunlap <randy.dunlap@oracle.com>, linux-ide@vger.kernel.org, David Chinner <dgc@sgi.com>, linux-mm@kvack.org, sparclinux@vger.kernel.org, David Miller <davem@davemloft.net>, Mikael Pettersson <mikpe@it.uu.se>, William Lee Irwin III <wli@holomorphy.com>
 
-This is a multi-part message in MIME format.
---------------090701060804030508030003
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Hello,
+--1750305931-300674694-1183483798=:29930
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-remove unnecessary sbus_dma_reset function and
-change sbus_dma_enable to avoid occasional system
-crashes when stopping recording. Patch is against
-2.6.22-rc5 but applies cleanly to 2.6.23-rc1.
-Tested on my ultra2.
+Hi all,
+
+I think I have found the cause of the problem.
+
+Commit b46b8f19c9cd435ecac4d9d12b39d78c137ecd66 partially fixed alignment=
+=20
+issues but does not ensure that all 64bit alignment requirements of=20
+sparc32 are met. Tests have shown that the redzone2 word can become=20
+misallignd.
+
+I am currently working on a posible fix.
 
 Regards
-              Georg
+ =09Mark Fortescue.
 
---------------090701060804030508030003
-Content-Type: text/plain;
- name="cs4231-2.6.22-rc5.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="cs4231-2.6.22-rc5.diff"
+On Tue, 3 Jul 2007, Michal Piotrowski wrote:
 
-CS4231 SBus: Remove unnecessary sbus_dma_reset function and change
-             sbus_dma_enable to avoid occasional system crashes when
-	     stopping recording.
-
-signed off: Georg Chini <georg.chini@triaton-webhosting.com>
-
---- linux-2.6.22-rc5/sound/sparc/cs4231.c	2007-06-17 04:09:12.000000000 +0200
-+++ linux-2.6.22-rc5.changed/sound/sparc/cs4231.c	2007-06-18 22:00:04.000000000 +0200
-@@ -74,7 +74,6 @@
-         void		(*enable)(struct cs4231_dma_control *dma_cont, int on);
-         int		(*request)(struct cs4231_dma_control *dma_cont, dma_addr_t bus_addr, size_t len);
-         unsigned int	(*address)(struct cs4231_dma_control *dma_cont);
--        void		(*reset)(struct snd_cs4231 *chip); 
-         void		(*preallocate)(struct snd_cs4231 *chip, struct snd_pcm *pcm); 
- #ifdef EBUS_SUPPORT
- 	struct		ebus_dma_info	ebus_info;
-@@ -1214,10 +1213,6 @@
- 
- 	spin_lock_irqsave(&chip->lock, flags);
- 
--
--	/* Reset DMA engine (sbus only).  */
--	chip->p_dma.reset(chip);
--
- 	__cs4231_readb(chip, CS4231P(chip, STATUS));	/* clear any pendings IRQ */
- 	__cs4231_writeb(chip, 0, CS4231P(chip, STATUS));
- 	mb();
-@@ -1861,14 +1856,13 @@
- 	if (!on) {
- 		sbus_writel(0, base->regs + base->dir + APCNC);
- 		sbus_writel(0, base->regs + base->dir + APCNVA);
--		sbus_writel(0, base->regs + base->dir + APCC);
--		sbus_writel(0, base->regs + base->dir + APCVA);
-+		if ( base->dir == APC_PLAY ) {
-+			sbus_writel(0, base->regs + base->dir + APCC);
-+			sbus_writel(0, base->regs + base->dir + APCVA);
-+		}
- 
--		/* ACK any APC interrupts. */
--		csr = sbus_readl(base->regs + APCCSR);
--		sbus_writel(csr, base->regs + APCCSR);
-+		udelay(1200);
- 	} 
--	udelay(1000);
- 	csr = sbus_readl(base->regs + APCCSR);
- 	shift = 0;
- 	if ( base->dir == APC_PLAY )
-@@ -1894,23 +1888,6 @@
-         return sbus_readl(base->regs + base->dir + APCVA);
- }
- 
--static void sbus_dma_reset(struct snd_cs4231 *chip)
--{
--        sbus_writel(APC_CHIP_RESET, chip->port + APCCSR);
--        sbus_writel(0x00, chip->port + APCCSR);
--        sbus_writel(sbus_readl(chip->port + APCCSR) | APC_CDC_RESET,
--		    chip->port + APCCSR);
--  
--        udelay(20);
--  
--        sbus_writel(sbus_readl(chip->port + APCCSR) & ~APC_CDC_RESET,
--		    chip->port + APCCSR);
--        sbus_writel(sbus_readl(chip->port + APCCSR) | (APC_XINT_ENA |
--		       APC_XINT_PENA |
--		       APC_XINT_CENA),
--	               chip->port + APCCSR);
--}
--
- static void sbus_dma_preallocate(struct snd_cs4231 *chip, struct snd_pcm *pcm)
- {
- 	snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_SBUS,
-@@ -1986,14 +1963,12 @@
- 	chip->p_dma.enable = sbus_dma_enable;
- 	chip->p_dma.request = sbus_dma_request;
- 	chip->p_dma.address = sbus_dma_addr;
--	chip->p_dma.reset = sbus_dma_reset;
- 	chip->p_dma.preallocate = sbus_dma_preallocate;
- 
- 	chip->c_dma.prepare = sbus_dma_prepare;
- 	chip->c_dma.enable = sbus_dma_enable;
- 	chip->c_dma.request = sbus_dma_request;
- 	chip->c_dma.address = sbus_dma_addr;
--	chip->c_dma.reset = sbus_dma_reset;
- 	chip->c_dma.preallocate = sbus_dma_preallocate;
- 
- 	if (request_irq(sdev->irqs[0], snd_cs4231_sbus_interrupt,
-@@ -2087,11 +2062,6 @@
- 	return ebus_dma_addr(&dma_cont->ebus_info);
- }
- 
--static void _ebus_dma_reset(struct snd_cs4231 *chip)
--{
--	return;
--}
--
- static void _ebus_dma_preallocate(struct snd_cs4231 *chip, struct snd_pcm *pcm)
- {
- 	snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_DEV,
-@@ -2171,14 +2141,12 @@
- 	chip->p_dma.enable = _ebus_dma_enable;
- 	chip->p_dma.request = _ebus_dma_request;
- 	chip->p_dma.address = _ebus_dma_addr;
--	chip->p_dma.reset = _ebus_dma_reset;
- 	chip->p_dma.preallocate = _ebus_dma_preallocate;
- 
- 	chip->c_dma.prepare = _ebus_dma_prepare;
- 	chip->c_dma.enable = _ebus_dma_enable;
- 	chip->c_dma.request = _ebus_dma_request;
- 	chip->c_dma.address = _ebus_dma_addr;
--	chip->c_dma.reset = _ebus_dma_reset;
- 	chip->c_dma.preallocate = _ebus_dma_preallocate;
- 
- 	chip->port = ioremap(edev->resource[0].start, 0x10);
-
---------------090701060804030508030003--
+> Hi all,
+>
+> Here is a list of some known regressions in 2.6.22-rc7.
+>
+> Feel free to add new regressions/remove fixed etc.
+> http://kernelnewbies.org/known_regressions
+>
+> List of Aces
+>
+> Name                    Regressions fixed since 21-Jun-2007
+> Hugh Dickins                           2
+> Andi Kleen                             1
+> Andrew Morton                          1
+> Benjamin Herrenschmidt                 1
+> Bj=F6rn Steinbrink                       1
+> Bjorn Helgaas                          1
+> Jean Delvare                           1
+> Olaf Hering                            1
+> Siddha, Suresh B                       1
+> Trent Piepho                           1
+> Ville Syrj=E4l=E4                          1
+>
+>
+>
+> FS
+>
+> Subject    : 2.6.22-rc4-git5 reiserfs: null ptr deref.
+> References : http://lkml.org/lkml/2007/6/13/322
+> Submitter  : Randy Dunlap <randy.dunlap@oracle.com>
+> Handled-By : Vladimir V. Saveliev <vs@namesys.com>
+> Status     : problem is being debugged
+>
+>
+>
+> IDE
+>
+> Subject    : 2.6.22-rcX: hda: lost interrupt
+> References : http://lkml.org/lkml/2007/6/29/121
+> Submitter  : David Chinner <dgc@sgi.com>
+> Status     : unknown
+>
+>
+>
+> Sparc64
+>
+> Subject    : random invalid instruction occourances on sparc32 (sun4c)
+> References : http://lkml.org/lkml/2007/6/17/111
+> Submitter  : Mark Fortescue <mark@mtfhpc.demon.co.uk>
+> Status     : problem is being debugged
+>
+> Subject    : 2.6.22-rc broke X on Ultra5
+> References : http://lkml.org/lkml/2007/5/22/78
+> Submitter  : Mikael Pettersson <mikpe@it.uu.se>
+> Handled-By : David Miller <davem@davemloft.net>
+> Status     : problem is being debugged
+>
+>
+>
+> Regards,
+> Michal
+>
+> --
+> LOG
+> http://www.stardust.webpages.pl/log/
+> -
+> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+--1750305931-300674694-1183483798=:29930--
