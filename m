@@ -1,37 +1,44 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 26 Jul 2007 00:10:05 +0000
-Subject: Re: [Bugme-new] [Bug 8811] New: us3_cpufreq not working on blade
-Message-Id: <20070725.171005.21898354.davem@davemloft.net>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Thu, 05 Jul 2007 12:25:27 +0000
+Subject: Re: dead(?) CONFIG vars
+Message-Id: <Pine.LNX.4.64.0707051418440.23477@anakin>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070725161440.0b49cbd4.akpm@linux-foundation.org>
-In-Reply-To: <20070725161440.0b49cbd4.akpm@linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Wed, 25 Jul 2007 16:14:40 -0700
+	Hi Robert,
 
-> > Steps to reproduce:
-> > 1. Load the us3_cpufreq kernel module
-> > 2. Set the governor to powersave
+On Thu, 5 Jul 2007, Robert P. J. Day wrote:
+> ===== AP1000 =====
+> arch/m68k/sun3/prom/printf.c:40:#ifdef CONFIG_AP1000
+> arch/m68k/sun3/prom/init.c:34:#ifdef CONFIG_AP1000
 
-What does the kernel print in the logs during these attempted
-cpufreq changes with the following debugging patch applied?
+The AP1000 was actually a SPARC system (cluster). The only reason these
+tests ended up in arch/m68k/ are because lots of Sun3 code got copied from
+SPARC.
 
-diff --git a/arch/sparc64/kernel/us3_cpufreq.c b/arch/sparc64/kernel/us3_cpufreq.c
-index 47e3aca..521d865 100644
---- a/arch/sparc64/kernel/us3_cpufreq.c
-+++ b/arch/sparc64/kernel/us3_cpufreq.c
-@@ -141,6 +141,10 @@ static void us3_set_cpu_divider_index(unsigned int cpu, unsigned int index)
- 	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
- 
- 	set_cpus_allowed(current, cpus_allowed);
-+#if 1
-+	printk(KERN_ERR "US3: Wrote %lx (index %x) to SAFARI_CFG on cpu %u\n",
-+	       reg, index, cpu);
-+#endif
- }
- 
- static int us3_freq_target(struct cpufreq_policy *policy,
+I guess these #ifdefs can be nuked.
+
+> include/linux/major.h:66:#define APBLOCK_MAJOR		38   /* AP1000 Block device */
+> include/linux/major.h:67:#define DDV_MAJOR		39   /* AP1000 DDV block device */
+> include/linux/if_arp.h:69:#define ARPHRD_BIF      775             /* AP1000 BIF                   */
+> net/ipv4/arp.c:60: *		Alan Cox 	:	Took the AP1000 nasty FDDI hack and
+> net/ieee80211/ieee80211_rx.c:1139:			 * Orinoco AP1000. */
+> usr/include/linux/major.h:66:#define APBLOCK_MAJOR		38   /* AP1000 Block device */
+> usr/include/linux/major.h:67:#define DDV_MAJOR		39   /* AP1000 DDV block device */
+> usr/include/linux/if_arp.h:69:#define ARPHRD_BIF      775             /* AP1000 BIF                   */
+
+For these you want to talk to Paul Mackerras and the sparclinux people (in CC).
+
+Gr{oetje,eeting}s,
+
+						Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+							    -- Linus Torvalds
