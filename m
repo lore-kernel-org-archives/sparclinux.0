@@ -1,7 +1,7 @@
 From: David Woodhouse <dwmw2@infradead.org>
-Date: Thu, 05 Jul 2007 16:43:22 +0000
+Date: Thu, 05 Jul 2007 18:46:11 +0000
 Subject: Re: [1/2] 2.6.22-rc7: known regressions
-Message-Id: <1183653802.2797.63.camel@shinybook.infradead.org>
+Message-Id: <1183661171.2756.13.camel@shinybook.infradead.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <468A7D14.1050505@googlemail.com>
 	 <1183599771.2740.19.camel@shinybook.infradead.org>
@@ -21,29 +21,10 @@ On Thu, 2007-07-05 at 09:28 -0700, Linus Torvalds wrote:
 > > working and hidd is deadlocked...
 > 
 > Looks like it is stuck on hidp_session_sem.
-> 
-> Nothing after 2.6.21 seems to have even touched that semaphore usage, and 
-> in fact there's not a whole lot of changes to the hidp code at all (and 
-> none of them look even remotely interesting). 
-> 
-> So I suspect it's something lower down in the bluetooth stack, or it's a 
-> long-standing problem that you are somehow able to trigger more easily 
-> now. Is it consistent?
 
-It happened twice before I gave up on my 2.6.22-rc7 test kernel and went
-back to something earlier. I suppose I should double-check that it
-wasn't my slab changes, but I really don't think that's it.
-
-> Can you showo the traces for the _other_ processes that are in bluetooth 
-> functions? Because there should be other processes there, holding that 
-> hidp_session_sem rwsem.
-
-There was nothing, apart from a later 'hidd -l' which got stuck on the
-same semaphore. I have an hcidump of it happening, at
-http://david.woodhou.se/hidd-lockup-dump.txt -- it doesn't seem
-particularly enlightening though. There's just a disconnection and
-reconnect, as happens quite frequently with this mouse, and then we're
-deadlocked. I'll build with hidp debugging.
+Oh, I suck. I failed to noticed that it had oopsed earlier, in slab
+debugging. I shall look at my 'obviously correct' slab patch a little
+harder, now that I'm not distracted by the fireworks.
 
 -- 
 dwmw2
