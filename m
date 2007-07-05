@@ -1,89 +1,39 @@
 From: David Woodhouse <dwmw2@infradead.org>
-Date: Thu, 05 Jul 2007 00:20:13 +0000
+Date: Thu, 05 Jul 2007 01:42:51 +0000
 Subject: Re: [1/2] 2.6.22-rc7: known regressions
-Message-Id: <1183594813.3059.0.camel@shinybook.infradead.org>
+Message-Id: <1183599771.2740.19.camel@shinybook.infradead.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <468A7D14.1050505@googlemail.com>
 In-Reply-To: <468A7D14.1050505@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, marcel@holtmann.org
 Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, reiserfs-devel@vger.kernel.org, "Vladimir V. Saveliev" <vs@namesys.com>, Randy Dunlap <randy.dunlap@oracle.com>, linux-ide@vger.kernel.org, David Chinner <dgc@sgi.com>, sparclinux@vger.kernel.org, David Miller <davem@davemloft.net>, Mikael Pettersson <mikpe@it.uu.se>, Mark Fortescue <mark@mtfhpc.demon.co.uk>, William Lee Irwin III <wli@holomorphy.com>
 
 On Tue, 2007-07-03 at 18:45 +0200, Michal Piotrowski wrote:
-> Subject    : random invalid instruction occourances on sparc32 (sun4c)
-> References : http://lkml.org/lkml/2007/6/17/111
-> Submitter  : Mark Fortescue <mark@mtfhpc.demon.co.uk>
-> Status     : problem is being debugged=20
+> Hi all,
+> 
+> Here is a list of some known regressions in 2.6.22-rc7.
 
-Hm, when testing the fix for that on ppc32, I stupidly built with Slub
-instead, and got this...
+Oh, and here's another one for you. My Bluetooth mouse just stopped
+working and hidd is deadlocked...
 
-radeonfb: Monitor 1 type LCD found
-radeonfb: EDID probed
-radeonfb: Monitor 2 type no found
-radeonfb: Using Firmware dividers 0x00040080 from PPLL 0
-radeonfb: Dynamic Clock Power Management enabled
-*** SLUB kmalloc-32768: Poison check failed@0xc1e20000 slab 0xc04de400 [Not=
- tainted]
-    offset=3D0 flags=3D0x40c3 inuse=3D0 freelist=3D0xc1e20000
-    Object 0xc1e20000:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkk=
-kkkkkkkkkkkkk
-    Object 0xc1e20010:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkk=
-kkkkkkkkkkkkk
-    Object 0xc1e20020:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkk=
-kkkkkkkkkkkkk
-    Object 0xc1e20030:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkk=
-kkkkkkkkkkkkk
-    Object 0xc1e20040:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkk=
-kkkkkkkkkkkkk
-    Object 0xc1e20050:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkk=
-kkkkkkkkkkkkk
-    Object 0xc1e20060:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkk=
-kkkkkkkkkkkkk
-    Object 0xc1e20070:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkk=
-kkkkkkkkkkkkk
-   Redzone 0xc1e28000:  bb bb bb bb                                     <BB=
-><BB><BB><BB>           =20
-FreePointer 0xc1e28004 -> 0x00000000
-Last alloc: malloc+0x14/0x24 jiffies_ago=1382 cpu=3D0 pid=3D1
-Last free : free+0x10/0x20 jiffies_ago=837 cpu=3D0 pid=3D1
-    Filler 0xc1e28028:  5a 5a 5a 5a 5a 5a 5a 5a                         ZZZ=
-ZZZZZ       =20
+hidd          D 1FE27798  5940  1695      1 (NOTLB)
 Call Trace:
-[effc7b80] [c000893c] show_stack+0x50/0x184 (unreliable)
-[effc7ba0] [c009705c] object_err+0x178/0x18c
-[effc7bc0] [c0097380] check_object+0x180/0x2ec
-[effc7be0] [c0098320] __slab_alloc+0x5c8/0x5f4
-[effc7c10] [c0098aa4] __kmalloc+0x64/0x9c
-[effc7c30] [c015f5dc] fbcon_startup+0x154/0x2c0
-[effc7c60] [c01bb8ec] register_con_driver+0x94/0x164
-[effc7c90] [c01bedc8] take_over_console+0x24/0x58
-[effc7cb0] [c015b41c] fbcon_takeover+0x8c/0xec
-[effc7cc0] [c015d31c] fbcon_event_notify+0x1e0/0x6c8
-[effc7d90] [c02d9490] notifier_call_chain+0x3c/0x94
-[effc7db0] [c0045468] __blocking_notifier_call_chain+0x50/0x74
-[effc7dd0] [c014f514] fb_notifier_call_chain+0x24/0x34
-[effc7de0] [c0150590] register_framebuffer+0x190/0x1a8
-[effc7e40] [c0185450] radeonfb_pci_register+0xe54/0xf50
-[effc7e70] [c0145b04] pci_device_probe+0x6c/0xa0
-[effc7e90] [c01d4108] driver_probe_device+0xfc/0x1a0
-[effc7eb0] [c01d436c] __driver_attach+0xac/0x110
-[effc7ed0] [c01d32f0] bus_for_each_dev+0x50/0x94
-[effc7f00] [c01d3efc] driver_attach+0x24/0x34
-[effc7f10] [c01d3710] bus_add_driver+0x78/0x1a0
-[effc7f30] [c01d468c] driver_register+0x88/0x9c
-[effc7f40] [c0145900] __pci_register_driver+0x6c/0xb8
-[effc7f60] [c03e8e4c] radeonfb_init+0x20c/0x220
-[effc7f80] [c03c82e4] kernel_init+0xc8/0x284
-[effc7ff0] [c0013e28] kernel_thread+0x44/0x60
-@@@ SLUB kmalloc-32768: Restoring Poison (0x6b) from 0xc1e20000-0xc1e27ffe
-@@@ SLUB kmalloc-32768: Restoring Poison (0xa5) from 0xc1e27fff-0xc1e27fff
-@@@ SLUB: kmalloc-32768 slab 0xc04de400. Marking all objects used.
-Console: switching to colour frame buffer device 180x56
+[ef3ddb70] [00000004] 0x4 (unreliable)
+[ef3ddc30] [c0008e7c] __switch_to+0x50/0x68
+[ef3ddc50] [c02d5998] schedule+0x3cc/0x480
+[ef3ddc80] [c0137a20] rwsem_down_failed_common+0x1c4/0x1f4
+[ef3ddcb0] [c02d7454] rwsem_down_write_failed+0x28/0x40
+[ef3ddce0] [c004ff60] down_write+0x50/0x64
+[ef3ddd00] [f27f2068] hidp_add_connection+0x168/0x75c [hidp]
+[ef3ddd40] [f27f2e44] hidp_sock_ioctl+0x140/0x414 [hidp]
+[ef3ddeb0] [c024da6c] sock_ioctl+0x248/0x284
+[ef3dded0] [c00ab02c] do_ioctl+0x38/0x84
+[ef3ddee0] [c00ab448] vfs_ioctl+0x3d0/0x404
+[ef3ddf10] [c00ab4e4] sys_ioctl+0x68/0x98
 
-
---=20
+-- 
 dwmw2
 
