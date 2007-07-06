@@ -1,24 +1,20 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 21 Jul 2007 00:20:16 +0000
-Subject: Re: [PATCH 6/7] sparc64: fix section mismatch warning in pci_sunv4
-Message-Id: <20070720.172016.104030827.davem@davemloft.net>
+From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
+Date: Fri, 06 Jul 2007 09:39:26 +0000
+Subject: [BUG] 2.6.22-rc7 breaks nis server on sparc64
+Message-Id: <468E0DCE.7020207@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070720213440.GG25064@uranus.ravnborg.org>
-In-Reply-To: <20070720213440.GG25064@uranus.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 20 Jul 2007 23:34:40 +0200
+	Hello,
 
-> Fix following warning:
-> WARNING: vmlinux.o(.text+0x3cf50): Section mismatch: reference to .init.text:page_in_phys_avail (between 'pci_sun4v_pbm_init' and 'sun4v_pci_init')
-> 
-> pci_sun4v_pbm_init and sun4v_pci_init was only used under __init
-> context so declare them _init.
-> 
-> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+	I test a 2.6.22-rc7 kernel on a U60/SMP. This U60 is a NIS server for a 
+U2 (that runs 2.6.21.3). If U60 runs a 2.6.21.5, ypserv runs fine. With 
+2.6.22-rc7 (and of course the same system), ypbind on U2 cannot connect 
+to ypserv. Portmap runs in both kernels.
 
-Applied, thanks Sam.
+	Regards,
+
+	JKB
