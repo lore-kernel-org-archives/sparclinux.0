@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 10 Jul 2007 17:49:13 +0000
+From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
+Date: Tue, 10 Jul 2007 18:03:41 +0000
 Subject: Re: [sparc64] Strange interaction between 2.6 kernel and 2.5 (and
-Message-Id: <20070710.104913.41635731.davem@davemloft.net>
+Message-Id: <4693C9FD.3080909@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
 References: <46933AE8.1080509@systella.fr>
 In-Reply-To: <46933AE8.1080509@systella.fr>
@@ -10,13 +10,23 @@ Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-From: BERTRAND_Jo=EBl <joel.bertrand@systella.fr>
-Date: Tue, 10 Jul 2007 09:53:12 +0200
+David Miller wrote:
+> From: BERTRAND_Jo=EBl <joel.bertrand@systella.fr>
+> Date: Tue, 10 Jul 2007 09:53:12 +0200
+>=20
+>> 	When clamav-daemon (or all other daemons) remain in sleep mode, I=20
+>> cannot quickly restart this daemon by /etc/init.d/$(daemon) restart, I=20
+>> have to wait for a timeout.
+>=20
+> Use the kernel sysrq keystrokes to get a task dump to see where
+> clamav-daemon is sleeping,
 
-> 	When clamav-daemon (or all other daemons) remain in sleep mode, I=20
-> cannot quickly restart this daemon by /etc/init.d/$(daemon) restart, I=20
-> have to wait for a timeout.
+	I will try tomorrow. I have to build a 2.6.22 (to see if nis works=20
+because it doesn't with 2.6.22-rc7).
 
-Use the kernel sysrq keystrokes to get a task dump to see where
-clamav-daemon is sleeping, my suspicion is that it is stuck
-in the kernel futex code somewhere.
+> my suspicion is that it is stuck
+> in the kernel futex code somewhere.
+
+	I think too.
+
+	JKB
