@@ -1,116 +1,43 @@
-From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date: Wed, 04 Jul 2007 18:38:31 +0000
-Subject: Re: [PATCH] Re: Sparc32: random invalid instruction occourances on
-Message-Id: <Pine.LNX.4.61.0707041918160.32544@mtfhpc.demon.co.uk>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="1750305931-1144574762-1183574311=:32544"
+From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
+Date: Tue, 10 Jul 2007 07:53:12 +0000
+Subject: [sparc64] Strange interaction between 2.6 kernel and 2.5 (and 2.6)
+Message-Id: <46933AE8.1080509@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <468A7D14.1050505@googlemail.com>  <Pine.LNX.4.61.0707031817050.29930@mtfhpc.demon.co.uk>
-  <Pine.LNX.4.61.0707031910280.29930@mtfhpc.demon.co.uk>
- <1183490778.29081.35.camel@shinybook.infradead.org>
- <Pine.LNX.4.61.0707032209230.30376@mtfhpc.demon.co.uk>
- <1183499781.29081.46.camel@shinybook.infradead.org>
- <Pine.LNX.4.61.0707032317590.30376@mtfhpc.demon.co.uk>
- <1183505787.29081.62.camel@shinybook.infradead.org>
- <Pine.LNX.4.61.0707040335230.30946@mtfhpc.demon.co.uk>
- <1183520006.29081.79.camel@shinybook.infradead.org>
- <Pine.LNX.4.61.0707041121290.31752@mtfhpc.demon.co.uk>
- <1183560364.29081.106.camel@shinybook.infradead.org>
-In-Reply-To: <1183560364.29081.106.camel@shinybook.infradead.org>
-To: David Woodhouse <dwmw2@infradead.org>
-Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org, David Miller <davem@davemloft.net>, Christoph Lameter <clameter@engr.sgi.com>, William Lee Irwin III <wli@holomorphy.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+	Hello,
 
---1750305931-1144574762-1183574311=:32544
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+	For one month, I try to debug a very strange interaction between 2.6 
+kernel and glibc on sparc64 boxes. All boxes run debian/testing.
+I have tested all kernel betwenn 2.6.20.3 and 2.6.21.6 with glibc 2.3, 
+2.5 and 2.6 (2.6exp3 from debian/experimental).
 
-Hi David,
+Constatations:
+1/ with all kernels and glibc2.3, all boxes run fine;
+2/ with all kernels and glibc2.5 or 2.6, my U2/smp works fine too, but 
+on U60/smp and U80/smp several daemons randmoly remain in sleep state 
+and don't wake up anymore (named, clamd, milter-greylist, portmap...).
 
-I have sucessfully tested the attached patch on Sparc32:sun4c.
+	I have tried to isolate parameters and I have found that the trouble 
+comes from thread support introduced by new libc, and I though that I 
+have to find it in glibc. Now, I think that this bug vomes from kernel, 
+because I never seen this bug (with of course the same configuration) on 
+my U2.
 
-Is there any chance of this getting sufficiantly tested on other 
-architectures to get in into v2.6.22 ?
+Steps to reproduce:
+1/ install a sendmail server with mimedefang that calls clamav-daemon 
+(in mimedefang.pl.conf : $Features{'Virus:CLAMD'}      = 1; $ClamdSock = 
+"/var/run/clamav/clamd.ctl";)
+2/ send or receive (by script ;-) ) huge amount of mails
+3/ wait... nd see ;-)
 
-Regards
- 	Mark Fortescue.
---1750305931-1144574762-1183574311=:32544
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name="slab_fix2.patch"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.61.0707041938290.32544@mtfhpc.demon.co.uk>
-Content-Description: 
-Content-Disposition: attachment; filename="slab_fix2.patch"
+	When clamav-daemon (or all other daemons) remain in sleep mode, I 
+cannot quickly restart this daemon by /etc/init.d/$(daemon) restart, I 
+have to wait for a timeout.
 
-RnJvbTogTWFyayBGb3J0ZXNjdWUgPG1hcmtAbXRmaHBjLmRlbW9uLmNvLnVr
-PiwgRGF2aWQgV29vZGhvdXNlIDxkd213MkBpbmZyYWRlYWQub3JnPg0KDQpW
-ZXJpb3VzIGFsaWdubWVudCBmaXhlcyBpbiB0aGUgU0xBQiBhbG9jYXRvciB0
-aGF0IGluY3JlYXNlZCB0aGUgc2l6ZQ0Kb2YgdGhlIFJlZFpvbmUgd29yZHMg
-ZmFpbGVkIHRvIGVuc3VyZSB0aGF0IFJlZFpvbmUgd29yZCAyIGlzIGFsaWdu
-ZWQNCm9uIGEgNjRiaXQgYm91bmRhcnkuIFRoaXMgcmVzdWx0ZWQgaW4gcmFu
-ZG9tIGludmFsaWQgaW5zdHJ1Y3Rpb24NCm9jY291cmFuY2VzIG9uIFNwYXJj
-MzIgKHN1bjRjKS4NClRoZXNlIGFkZGl0aW9uYWwgY2hhbmdlcyBzaG91bGQg
-ZW5zdXJlIHRoYXQgdGhlIFJlZFpvbmUgd29yZHMgYXJlDQpjb3JyZWN0bHkg
-YWxpZ25lZCBvbiBhIDY0Yml0IGJvdW5kYXJ5IGZvciBhcmNoaXRlY3R1cmVz
-IHRoYXQgcmVxdWlyZSB0aGlzLg0KDQpTaWduZWQtb2ZmLWJ5OiBNYXJrIEZv
-cnRlc2N1ZSA8bWFya0BtdGZocGMuZGVtb24uY28udWs+DQotLS0NClRlc3Rl
-ZCBvbiBTcGFyYzMyOnN1bjRjDQpBZGRpdGlvbmFsIHRlc3RpbmcgZGVzaXJh
-YmxlIG9uIFBvd2VyUEMzMiwgU3BhcmM2NCwgUG93ZXJQQzY0IGFuZCBhbnkN
-Cm90aGVyIHBsYXRmb3JtcyB3aGVyZSBhbGlnbm1lbnQgY2hhbmdlcyBtYXkg
-YmUgb2YgY29uY2lybi4NCi0tLSBsaW51eC0yLjYvbW0vc2xhYi5jCTIwMDct
-MDctMDMgMTk6MDk6NDguMDAwMDAwMDAwICswMTAwDQorKysgbGludXgtdGVz
-dC9tbS9zbGFiLmMJMjAwNy0wNy0wNCAwNDoxNDoxNS4wMDAwMDAwMDAgKzAx
-MDANCkBAIC0xMzcsNiArMTM3LDcgQEANCiANCiAvKiBTaG91bGRuJ3QgdGhp
-cyBiZSBpbiBhIGhlYWRlciBmaWxlIHNvbWV3aGVyZT8gKi8NCiAjZGVmaW5l
-CUJZVEVTX1BFUl9XT1JECQlzaXplb2Yodm9pZCAqKQ0KKyNkZWZpbmUJUkVE
-X1pPTkVfQUxJR04JCShtYXgoX19hbGlnbm9mX18odm9pZCAqKSwgX19hbGln
-bm9mKHVuc2lnbmVkIGxvbmcgbG9uZykpIC0gMSkNCiANCiAjaWZuZGVmIGNh
-Y2hlX2xpbmVfc2l6ZQ0KICNkZWZpbmUgY2FjaGVfbGluZV9zaXplKCkJTDFf
-Q0FDSEVfQllURVMNCkBAIC01NDcsNyArNTQ4LDcgQEAgc3RhdGljIHVuc2ln
-bmVkIGxvbmcgbG9uZyAqZGJnX3JlZHpvbmUyKA0KIAlpZiAoY2FjaGVwLT5m
-bGFncyAmIFNMQUJfU1RPUkVfVVNFUikNCiAJCXJldHVybiAodW5zaWduZWQg
-bG9uZyBsb25nICopKG9ianAgKyBjYWNoZXAtPmJ1ZmZlcl9zaXplIC0NCiAJ
-CQkJCSAgICAgIHNpemVvZih1bnNpZ25lZCBsb25nIGxvbmcpIC0NCi0JCQkJ
-CSAgICAgIEJZVEVTX1BFUl9XT1JEKTsNCisJCQkJCSAgICAgIG1heChCWVRF
-U19QRVJfV09SRCwgX19hbGlnbm9mX18odW5zaWduZWQgbG9uZyBsb25nKSkp
-Ow0KIAlyZXR1cm4gKHVuc2lnbmVkIGxvbmcgbG9uZyAqKSAob2JqcCArIGNh
-Y2hlcC0+YnVmZmVyX3NpemUgLQ0KIAkJCQkgICAgICAgc2l6ZW9mKHVuc2ln
-bmVkIGxvbmcgbG9uZykpOw0KIH0NCkBAIC0yMTc4LDcgKzIxNzksOCBAQCBr
-bWVtX2NhY2hlX2NyZWF0ZSAoY29uc3QgY2hhciAqbmFtZSwgc2l6DQogCSAq
-IGFib3ZlIHRoZSBuZXh0IHBvd2VyIG9mIHR3bzogY2FjaGVzIHdpdGggb2Jq
-ZWN0IHNpemVzIGp1c3QgYWJvdmUgYQ0KIAkgKiBwb3dlciBvZiB0d28gaGF2
-ZSBhIHNpZ25pZmljYW50IGFtb3VudCBvZiBpbnRlcm5hbCBmcmFnbWVudGF0
-aW9uLg0KIAkgKi8NCi0JaWYgKHNpemUgPCA0MDk2IHx8IGZscyhzaXplIC0g
-MSkgPT0gZmxzKHNpemUtMSArIDMgKiBCWVRFU19QRVJfV09SRCkpDQorCWlm
-IChzaXplIDwgNDA5NiB8fCBmbHMoc2l6ZSAtIDEpID09IGZscyhzaXplLTEg
-KyAyICogc2l6ZW9mKHVuc2lnbmVkIGxvbmcgbG9uZykgKw0KKwkJCQkJCW1h
-eChCWVRFU19QRVJfV09SRCwgX19hbGlnbm9mX18odW5zaWduZWQgbG9uZyBs
-b25nKSkpKQ0KIAkJZmxhZ3MgfD0gU0xBQl9SRURfWk9ORSB8IFNMQUJfU1RP
-UkVfVVNFUjsNCiAJaWYgKCEoZmxhZ3MgJiBTTEFCX0RFU1RST1lfQllfUkNV
-KSkNCiAJCWZsYWdzIHw9IFNMQUJfUE9JU09OOw0KQEAgLTIxOTcsOSArMjE5
-OSw5IEBAIGttZW1fY2FjaGVfY3JlYXRlIChjb25zdCBjaGFyICpuYW1lLCBz
-aXoNCiAJICogdW5hbGlnbmVkIGFjY2Vzc2VzIGZvciBzb21lIGFyY2hzIHdo
-ZW4gcmVkem9uaW5nIGlzIHVzZWQsIGFuZCBtYWtlcw0KIAkgKiBzdXJlIGFu
-eSBvbi1zbGFiIGJ1ZmN0bCdzIGFyZSBhbHNvIGNvcnJlY3RseSBhbGlnbmVk
-Lg0KIAkgKi8NCi0JaWYgKHNpemUgJiAoQllURVNfUEVSX1dPUkQgLSAxKSkg
-ew0KLQkJc2l6ZSArPSAoQllURVNfUEVSX1dPUkQgLSAxKTsNCi0JCXNpemUg
-Jj0gfihCWVRFU19QRVJfV09SRCAtIDEpOw0KKwlpZiAoc2l6ZSAmIFJFRF9a
-T05FX0FMSUdOKSB7DQorCQlzaXplICs9IFJFRF9aT05FX0FMSUdOOw0KKwkJ
-c2l6ZSAmPSB+UkVEX1pPTkVfQUxJR047DQogCX0NCiANCiAJLyogY2FsY3Vs
-YXRlIHRoZSBmaW5hbCBidWZmZXIgYWxpZ25tZW50OiAqLw0KQEAgLTIyNjEs
-OSArMjI2MywxNCBAQCBrbWVtX2NhY2hlX2NyZWF0ZSAoY29uc3QgY2hhciAq
-bmFtZSwgc2l6DQogCX0NCiAJaWYgKGZsYWdzICYgU0xBQl9TVE9SRV9VU0VS
-KSB7DQogCQkvKiB1c2VyIHN0b3JlIHJlcXVpcmVzIG9uZSB3b3JkIHN0b3Jh
-Z2UgYmVoaW5kIHRoZSBlbmQgb2YNCi0JCSAqIHRoZSByZWFsIG9iamVjdC4N
-CisJCSAqIHRoZSByZWFsIG9iamVjdC4gQnV0IGlmIHRoZSBzZWNvbmQgcmVk
-IHpvbmUgbXVzdCBiZQ0KKwkJICogYWxpZ25lZCAnYmV0dGVyJyB0aGFuIHRo
-YXQsIGFsbG93IGZvciBpdC4NCiAJCSAqLw0KLQkJc2l6ZSArPSBCWVRFU19Q
-RVJfV09SRDsNCisJCWlmIChmbGFncyAmIFNMQUJfUkVEX1pPTkUNCisJCSAg
-ICAmJiBCWVRFU19QRVJfV09SRCA8IF9fYWxpZ25vZl9fKHVuc2lnbmVkIGxv
-bmcgbG9uZykpDQorCQkJc2l6ZSArPSBfX2FsaWdub2ZfXyh1bnNpZ25lZCBs
-b25nIGxvbmcpOw0KKwkJZWxzZQ0KKwkJCXNpemUgKz0gQllURVNfUEVSX1dP
-UkQ7DQogCX0NCiAjaWYgRk9SQ0VEX0RFQlVHICYmIGRlZmluZWQoQ09ORklH
-X0RFQlVHX1BBR0VBTExPQykNCiAJaWYgKHNpemUgPj0gbWFsbG9jX3NpemVz
-W0lOREVYX0wzICsgMV0uY3Nfc2l6ZQ0K
+	Regards,
 
---1750305931-1144574762-1183574311=:32544--
+	JKB
