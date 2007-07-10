@@ -1,7 +1,7 @@
 From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
-Date: Tue, 10 Jul 2007 18:03:41 +0000
+Date: Tue, 10 Jul 2007 18:05:11 +0000
 Subject: Re: [sparc64] Strange interaction between 2.6 kernel and 2.5 (and
-Message-Id: <4693C9FD.3080909@systella.fr>
+Message-Id: <4693CA57.2080104@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
 References: <46933AE8.1080509@systella.fr>
 In-Reply-To: <46933AE8.1080509@systella.fr>
