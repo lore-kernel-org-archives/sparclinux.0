@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 12 Jul 2007 09:38:28 +0000
+Date: Thu, 12 Jul 2007 09:46:22 +0000
 Subject: Re: [sparc64] Strange interaction between 2.6 kernel and 2.5 (and
-Message-Id: <20070712.023828.78711084.davem@davemloft.net>
+Message-Id: <20070712.024622.39158581.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <46933AE8.1080509@systella.fr>
 In-Reply-To: <46933AE8.1080509@systella.fr>
@@ -11,14 +11,12 @@ Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
 From: BERTRAND_Jo=EBl <joel.bertrand@systella.fr>
-Date: Thu, 12 Jul 2007 09:17:04 +0200
+Date: Thu, 12 Jul 2007 11:11:32 +0200
 
-> Are there significative differences between futex management on sbus
-> and pci sparc64 ?
+> 	I'm lucky ;-) First mail in clamd and clamd sleeps... You can find in=20
+> attachement complete strace log (strace -ff ...).
 
-Absolutely none.
+It is looping at the end servicing SIGINT over and over, are
+you pressing Ctrl-C at the terminal where clamav is running
+or sending it signals with "kill"?
 
-If it is some race, the timing differences of the two cpus
-can be enough to make it hard if not impossible to trigger
-on one machine vs. another.  I see bugs like this all the
-time.
