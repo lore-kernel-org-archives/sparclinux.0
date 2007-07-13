@@ -1,79 +1,28 @@
-From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Date: Mon, 30 Jul 2007 16:34:07 +0000
-Subject: Re: [3/3] 2.6.23-rc1: known regressions v3
-Message-Id: <46AE12FF.3030805@googlemail.com>
+From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
+Date: Fri, 13 Jul 2007 08:19:00 +0000
+Subject: Bug 8232, framebuffer and Creator3D on U1/U2
+Message-Id: <46973574.80500@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <46AE0F5D.3000500@googlemail.com>
-In-Reply-To: <46AE0F5D.3000500@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-usb-devel@lists.sourceforge.net, Greg KH <gregkh@suse.de>, Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oliver@neukum.org>, Mark Hindley <mark@hindley.org.uk>, Jeremy Fitzhardinge <jeremy@goop.org>, Adrian Bunk <bunk@stusta.de>, sparclinux@vger.kernel.org, "William L. Irwin" <wli@holomorphy.com>, Mark Fortescue <mark@mtfhpc.demon.co.uk>, Ollie Wild <aaw@google.com>, David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-Hi all,
+	Hello,
 
-Here is a list of some known regressions in 2.6.23-rc1.
+	Some weeks ago, I have seen a patch that fix this bug :
+<http://bugzilla.kernel.org/show_bug.cgi?id=8232>. This pach is now in=20
+main kernel tree.
 
-Feel free to add new regressions/remove fixed etc.
-http://kernelnewbies.org/known_regressions
+	Old Creator3D (R1) were affected by this bug and I though that it was=20
+fixed. But, for two weeks, I have some troubles with Xorg 7.2=20
+(sunffb/Xinerama is broken) and a lot of X programs are broken=20
+(specially xscreensaver).
 
-List of Aces
+	I suppose that xscreensaver refreshes FB device, because without=20
+xscreensaver, when DPMS turns FB off and when I turn it on with keyboard=20
+or mouse, I can see this mistake again.
 
-Name                    Regressions fixed since 21-Jun-2007
-Adrian Bunk                            6
-Andi Kleen                             4
-Andrew Morton                          4
-Linus Torvalds                         4
-Al Viro                                3
-Jens Axboe                             3
-Tejun Heo                              3
-David Woodhouse                        2
-Hugh Dickins                           2
+	Regards,
 
-
-
-USB
-
-Subject         : 2.6.23-rc1: uhci_hcd. irq 4: nobody cared
-References      : http://lkml.org/lkml/2007/7/29/75
-Last known good : ?
-Submitter       : Mark Hindley <mark@hindley.org.uk>
-Caused-By       : ?
-Handled-By      : Alan Stern <stern@rowland.harvard.edu>
-Status          : unknown
-
-
-
-Virtualization
-
-Subject         : drivers/net/xen-netfront.c: bogus code
-References      : http://lkml.org/lkml/2007/7/22/256
-Last known good : ?
-Submitter       : Adrian Bunk <bunk@stusta.de>
-Caused-By       : ?
-Handled-By      : Jeremy Fitzhardinge <jeremy@goop.org>
-Status          : unknown
-
-
-
-Sparc32
-
-Subject         : NULL pointer derefference
-References      : http://lkml.org/lkml/2007/7/29/224
-                  http://lkml.org/lkml/2007/7/29/349
-Last known good : ?
-Submitter       : Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Caused-By       : Ollie Wild <aaw@google.com>
-                  commit b6a2fea39318e43fee84fa7b0b90d68bed92d2ba
-Handled-By      : ?
-Status          : unknown
-
-
-
-Regards,
-Michal
-
---
-LOG
-http://www.stardust.webpages.pl/log/
+	JKB
