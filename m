@@ -1,48 +1,73 @@
-From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date: Fri, 20 Jul 2007 09:55:50 +0000
-Subject: Re: Asking for document about booting in sparc
-Message-Id: <Pine.LNX.4.61.0707201038400.7051@mtfhpc.demon.co.uk>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Wed, 18 Jul 2007 04:41:40 +0000
+Subject: [PATCH] Mark sparc and sparc64 as not having virt_to_bus
+Message-Id: <20070718144140.3b4fd82e.sfr@canb.auug.org.au>
 List-Id: <sparclinux.vger.kernel.org>
-References: <56047.125.212.140.38.1184874205.squirrel@www.cse.hcmut.edu.vn>
-In-Reply-To: <56047.125.212.140.38.1184874205.squirrel@www.cse.hcmut.edu.vn>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, wli@holomorphy.com
+Cc: LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, sparclinux@vger.kernel.org
 
-Hi,
 
-I currently use the SunOS boot loader because for me it is the least work.
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+---
+ arch/sparc/Kconfig       |    3 +++
+ arch/sparc64/Kconfig     |    3 +++
+ include/asm-sparc64/io.h |    5 -----
+ 3 files changed, 6 insertions(+), 5 deletions(-)
 
-For Linux, most people will probably use silo 
-(http://sourceforge.net/projects/silo). If you download the source, you 
-can read the documentation there.
+This is part of a rash attempt to make allmodconfig builds work for sparc
+and sparc64 :-)
 
-For additional sparc information, try www.sun.com (finding anything 
-usefull for you may take some time but there is a lot of information there 
-for thoes who persist.)
+-- 
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
 
-For rearly old sparc systems there may be a limit on the maximum size of 
-kernel that can be loaded. For my sun4c systems, the limit is 3MB with 
-the SunOS boot loader (4MB-1MB for boot loader). I have seen comments 
-about silo that sugest that it thay may have a smaller limit on these 
-systems (i.e. silo > 1MB).
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 73df711..603d83a 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -21,6 +21,9 @@ config GENERIC_ISA_DMA
+ 	bool
+ 	default y
+ 
++config ARCH_NO_VIRT_TO_BUS
++	def_bool y
++
+ source "init/Kconfig"
+ 
+ menu "General machine setup"
+diff --git a/arch/sparc64/Kconfig b/arch/sparc64/Kconfig
+index b84b6af..df6ee71 100644
+--- a/arch/sparc64/Kconfig
++++ b/arch/sparc64/Kconfig
+@@ -62,6 +62,9 @@ config AUDIT_ARCH
+ 	bool
+ 	default y
+ 
++config ARCH_NO_VIRT_TO_BUS
++	def_bool y
++
+ choice
+ 	prompt "Kernel page size"
+ 	default SPARC64_PAGE_SIZE_8KB
+diff --git a/include/asm-sparc64/io.h b/include/asm-sparc64/io.h
+index ad595b6..9565a89 100644
+--- a/include/asm-sparc64/io.h
++++ b/include/asm-sparc64/io.h
+@@ -14,11 +14,6 @@
+ #define __SLOW_DOWN_IO	do { } while (0)
+ #define SLOW_DOWN_IO	do { } while (0)
+ 
+-extern unsigned long virt_to_bus_not_defined_use_pci_map(volatile void *addr);
+-#define virt_to_bus virt_to_bus_not_defined_use_pci_map
+-extern unsigned long bus_to_virt_not_defined_use_pci_map(volatile void *addr);
+-#define bus_to_virt bus_to_virt_not_defined_use_pci_map
+-
+ /* BIO layer definitions. */
+ extern unsigned long kern_base, kern_size;
+ #define page_to_phys(page)	(page_to_pfn(page) << PAGE_SHIFT)
+-- 
+1.5.2.3
 
-Hope this helps.
-
-Regards
- 	Mark Fortescue.
-
-On Fri, 20 Jul 2007 dvhung@cse.hcmut.edu.vn wrote:
-
-> I am a newbie, and I am looking for a document about booting in sparc. Is
-> there anyone in this mailing list has document(s) related to booting in
-> sparc?
-> Thank you very much.
->
->
-> -
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
