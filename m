@@ -1,62 +1,148 @@
-From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date: Sat, 21 Jul 2007 01:10:18 +0000
-Subject: Re: ESP SCSI and QLGC,ISP SCSI drivers not finding attached devices
-Message-Id: <Pine.LNX.4.61.0707210151410.8787@mtfhpc.demon.co.uk>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Thu, 19 Jul 2007 15:13:48 +0000
+Subject: [PATCH 06/12] Consolidate of_get_next_child
+Message-Id: <20070720011348.3071f52a.sfr@canb.auug.org.au>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.61.0707201404250.7470@mtfhpc.demon.co.uk>
- <1184941136.3455.8.camel@localhost.localdomain>
- <Pine.LNX.4.61.0707201602080.7721@mtfhpc.demon.co.uk>
- <20070720.153518.59469498.davem@davemloft.net>
-In-Reply-To: <20070720.153518.59469498.davem@davemloft.net>
+References: <20070718173024.50204a1a.sfr@canb.auug.org.au>
+	<20070720010742.e60c67a7.sfr@canb.auug.org.au>
+In-Reply-To: <20070720010742.e60c67a7.sfr@canb.auug.org.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: James.Bottomley@SteelEye.com, sparclinux@vger.kernel.org, linux-scsi@vger.kernel.org
+To: ppc-dev <linuxppc-dev@ozlabs.org>, sparclinux@vger.kernel.org
+Cc: paulus@samba.org, "David S. Miller" <davem@davemloft.net>, wli@holomorphy.com
 
-Hi David,
+This adds a read_lock around the child/next accesses on Sparc.
 
-Thanks for the info.
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+---
+ arch/powerpc/kernel/prom.c |   24 ------------------------
+ arch/sparc/kernel/prom.c   |   14 --------------
+ arch/sparc64/kernel/prom.c |   14 --------------
+ drivers/of/base.c          |   24 ++++++++++++++++++++++++
+ 4 files changed, 24 insertions(+), 52 deletions(-)
 
-Having got the ESP driver going by increasing the Bus Timeout, I have a 
-route forward to booting linux from disk.
+-- 
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
 
-I will look into the msleep etc. functions and see if I can identify any 
-issues with them. As you say, if these are not working correctly ...
+diff --git a/arch/powerpc/kernel/prom.c b/arch/powerpc/kernel/prom.c
+index 1ad56d3..5fa221c 100644
+--- a/arch/powerpc/kernel/prom.c
++++ b/arch/powerpc/kernel/prom.c
+@@ -1241,30 +1241,6 @@ struct device_node *of_find_all_nodes(struct device_node *prev)
+ EXPORT_SYMBOL(of_find_all_nodes);
+ 
+ /**
+- *	of_get_next_child - Iterate a node childs
+- *	@node:	parent node
+- *	@prev:	previous child of the parent node, or NULL to get first
+- *
+- *	Returns a node pointer with refcount incremented, use
+- *	of_node_put() on it when done.
+- */
+-struct device_node *of_get_next_child(const struct device_node *node,
+-	struct device_node *prev)
+-{
+-	struct device_node *next;
+-
+-	read_lock(&devtree_lock);
+-	next = prev ? prev->sibling : node->child;
+-	for (; next != 0; next = next->sibling)
+-		if (of_node_get(next))
+-			break;
+-	of_node_put(prev);
+-	read_unlock(&devtree_lock);
+-	return next;
+-}
+-EXPORT_SYMBOL(of_get_next_child);
+-
+-/**
+  *	of_node_get - Increment refcount of a node
+  *	@node:	Node to inc refcount, NULL is supported to
+  *		simplify writing of callers
+diff --git a/arch/sparc/kernel/prom.c b/arch/sparc/kernel/prom.c
+index b378715..3f8ccfa 100644
+--- a/arch/sparc/kernel/prom.c
++++ b/arch/sparc/kernel/prom.c
+@@ -29,20 +29,6 @@ static struct device_node *allnodes;
+ 
+ extern rwlock_t devtree_lock;	/* temporary while merging */
+ 
+-struct device_node *of_get_next_child(const struct device_node *node,
+-	struct device_node *prev)
+-{
+-	struct device_node *next;
+-
+-	next = prev ? prev->sibling : node->child;
+-	for (; next != 0; next = next->sibling) {
+-		break;
+-	}
+-
+-	return next;
+-}
+-EXPORT_SYMBOL(of_get_next_child);
+-
+ struct device_node *of_find_node_by_path(const char *path)
+ {
+ 	struct device_node *np = allnodes;
+diff --git a/arch/sparc64/kernel/prom.c b/arch/sparc64/kernel/prom.c
+index 2462731..ee96ef6 100644
+--- a/arch/sparc64/kernel/prom.c
++++ b/arch/sparc64/kernel/prom.c
+@@ -34,20 +34,6 @@ static struct device_node *allnodes;
+ 
+ extern rwlock_t devtree_lock;	/* temporary while merging */
+ 
+-struct device_node *of_get_next_child(const struct device_node *node,
+-	struct device_node *prev)
+-{
+-	struct device_node *next;
+-
+-	next = prev ? prev->sibling : node->child;
+-	for (; next != 0; next = next->sibling) {
+-		break;
+-	}
+-
+-	return next;
+-}
+-EXPORT_SYMBOL(of_get_next_child);
+-
+ struct device_node *of_find_node_by_path(const char *path)
+ {
+ 	struct device_node *np = allnodes;
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index 82bb786..6b6dfcc 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -134,3 +134,27 @@ struct device_node *of_get_parent(const struct device_node *node)
+ 	return np;
+ }
+ EXPORT_SYMBOL(of_get_parent);
++
++/**
++ *	of_get_next_child - Iterate a node childs
++ *	@node:	parent node
++ *	@prev:	previous child of the parent node, or NULL to get first
++ *
++ *	Returns a node pointer with refcount incremented, use
++ *	of_node_put() on it when done.
++ */
++struct device_node *of_get_next_child(const struct device_node *node,
++	struct device_node *prev)
++{
++	struct device_node *next;
++
++	read_lock(&devtree_lock);
++	next = prev ? prev->sibling : node->child;
++	for (; next; next = next->sibling)
++		if (of_node_get(next))
++			break;
++	of_node_put(prev);
++	read_unlock(&devtree_lock);
++	return next;
++}
++EXPORT_SYMBOL(of_get_next_child);
+-- 
+1.5.2.3
 
-I have managed to hack a PTISP SunOS 4.x driver to work with my QLGC,isp 
-ISP1000 card. Now that I know the hardware is working, I can be confident 
-that the disk on the ISP1000 should be visible to Linux.
-If there are no identifiable issues with the sleep functions I will get 
-back to debugging the QLGC,isp linux driver and let you know if I find 
-anything amiss.
-
-Regards
- 	Mark Fortescue.
-
-On Fri, 20 Jul 2007, David Miller wrote:
-
->
-> I think these reports all point to a problem with the sparc32
-> kernel far outside of the drivers in question.
->
-> We have no reports like this on sparc64.
->
-> My running theory is that things like msleep() are returning
-> immediately on sparc32, or at least too fast, instead of delaying
-> the minimum necessary amount.
->
-> This will screw up the scsi reset settle delay, and the devices will
-> return scsi command status's that the SCSI bus probe will consider not
-> good enough to recognize the device.
->
-> This is exactly what tracing from Tom Callaway has shown in the past.
->
-> So this is a sparc32 kernel bug of some sort, most likely, not a
-> driver bug.
->
-> -
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
