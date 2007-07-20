@@ -1,23 +1,37 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 31 Jul 2007 20:12:39 +0000
-Subject: Re: [sparc64] Strange interaction between 2.6 kernel and 2.5 (and
-Message-Id: <20070731.131239.92586677.davem@davemloft.net>
+From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
+Date: Fri, 20 Jul 2007 13:26:24 +0000
+Subject: ESP SCSI and QLGC,ISP SCSI drivers not finding attached devices
+Message-Id: <Pine.LNX.4.61.0707201404250.7470@mtfhpc.demon.co.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <46933AE8.1080509@systella.fr>
-In-Reply-To: <46933AE8.1080509@systella.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: davem@davemloft.net, Janmes.Bottomley@SteelEye.com
+Cc: sparclinux@vger.kernel.org, linux-scsi@vger.kernel.org
 
-From: BERTRAND_Jo=EBl <joel.bertrand@systella.fr>
-Date: Tue, 31 Jul 2007 13:04:44 +0200
+Hi All,
 
-> 	I have rebooted my U60 without fail2ban and wihtout iptables. iceape=20
-> quickly hangs too. Last line in strace output is
->=20
-> 	futex(0xf3e00010, FUTEX_WAIT, 2, NULL
->=20
-> 	I use CONFIG_DEFAULT_CFQ=3Dy.
+I have been having intermittant issues with the QLGC,isp driver 
+(qlogicpti.c) not finding any attached devices on my sun4c. Having now 
+moved on to Linux-2.6.22 this problem is now also affecting the ESP SCSI 
+driver and is nolonger intermittant.
 
-Thanks for testing.
+My test setup uses an NFS root so it is currently independent of the SCSI 
+drivers/subsystem. I am hoping to change this in the near future so that 
+my sun4c boots into linux by default.
+
+What kernel options can I use to try to work out why the drivers are 
+ignoring disks (there are no other types of attached device at present). 
+Are any special options needed to force the scsi subsystem to spin the 
+disk up and wait untill they become ready (The disk [target 0:0:3] on the 
+ESP auto-spins down if it is idle for too long and now that booting takes 
+longer ...) ?
+
+Is there a way to get a NON-moduler scsi driver to re-scan its SCSI bus 
+from shell prompt (writing to a sysfs/procfs file)?
+
+From my point of view, it looks like the command timeout is very much too 
+short. Is there a simple way of testing this theory on the ESP driver?
+
+Regards
+ 	Mark Fortescue.
