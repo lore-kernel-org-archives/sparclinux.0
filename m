@@ -1,148 +1,25 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Thu, 19 Jul 2007 15:13:48 +0000
-Subject: [PATCH 06/12] Consolidate of_get_next_child
-Message-Id: <20070720011348.3071f52a.sfr@canb.auug.org.au>
+From: David Miller <davem@davemloft.net>
+Date: Fri, 20 Jul 2007 01:07:22 +0000
+Subject: Re: [PATCH 06/12] Consolidate of_get_next_child
+Message-Id: <20070719.180722.126576600.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20070718173024.50204a1a.sfr@canb.auug.org.au>
 	<20070720010742.e60c67a7.sfr@canb.auug.org.au>
-In-Reply-To: <20070720010742.e60c67a7.sfr@canb.auug.org.au>
+	<20070720011348.3071f52a.sfr@canb.auug.org.au>
+In-Reply-To: <20070720011348.3071f52a.sfr@canb.auug.org.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: ppc-dev <linuxppc-dev@ozlabs.org>, sparclinux@vger.kernel.org
-Cc: paulus@samba.org, "David S. Miller" <davem@davemloft.net>, wli@holomorphy.com
+To: sfr@canb.auug.org.au
+Cc: sparclinux@vger.kernel.org, linuxppc-dev@ozlabs.org, paulus@samba.org, wli@holomorphy.com
 
-This adds a read_lock around the child/next accesses on Sparc.
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Fri, 20 Jul 2007 01:13:48 +1000
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
----
- arch/powerpc/kernel/prom.c |   24 ------------------------
- arch/sparc/kernel/prom.c   |   14 --------------
- arch/sparc64/kernel/prom.c |   14 --------------
- drivers/of/base.c          |   24 ++++++++++++++++++++++++
- 4 files changed, 24 insertions(+), 52 deletions(-)
+> This adds a read_lock around the child/next accesses on Sparc.
+> 
+> Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
 
--- 
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
+Acked-by: David S. Miller <davem@davemloft.net>
 
-diff --git a/arch/powerpc/kernel/prom.c b/arch/powerpc/kernel/prom.c
-index 1ad56d3..5fa221c 100644
---- a/arch/powerpc/kernel/prom.c
-+++ b/arch/powerpc/kernel/prom.c
-@@ -1241,30 +1241,6 @@ struct device_node *of_find_all_nodes(struct device_node *prev)
- EXPORT_SYMBOL(of_find_all_nodes);
- 
- /**
-- *	of_get_next_child - Iterate a node childs
-- *	@node:	parent node
-- *	@prev:	previous child of the parent node, or NULL to get first
-- *
-- *	Returns a node pointer with refcount incremented, use
-- *	of_node_put() on it when done.
-- */
--struct device_node *of_get_next_child(const struct device_node *node,
--	struct device_node *prev)
--{
--	struct device_node *next;
--
--	read_lock(&devtree_lock);
--	next = prev ? prev->sibling : node->child;
--	for (; next != 0; next = next->sibling)
--		if (of_node_get(next))
--			break;
--	of_node_put(prev);
--	read_unlock(&devtree_lock);
--	return next;
--}
--EXPORT_SYMBOL(of_get_next_child);
--
--/**
-  *	of_node_get - Increment refcount of a node
-  *	@node:	Node to inc refcount, NULL is supported to
-  *		simplify writing of callers
-diff --git a/arch/sparc/kernel/prom.c b/arch/sparc/kernel/prom.c
-index b378715..3f8ccfa 100644
---- a/arch/sparc/kernel/prom.c
-+++ b/arch/sparc/kernel/prom.c
-@@ -29,20 +29,6 @@ static struct device_node *allnodes;
- 
- extern rwlock_t devtree_lock;	/* temporary while merging */
- 
--struct device_node *of_get_next_child(const struct device_node *node,
--	struct device_node *prev)
--{
--	struct device_node *next;
--
--	next = prev ? prev->sibling : node->child;
--	for (; next != 0; next = next->sibling) {
--		break;
--	}
--
--	return next;
--}
--EXPORT_SYMBOL(of_get_next_child);
--
- struct device_node *of_find_node_by_path(const char *path)
- {
- 	struct device_node *np = allnodes;
-diff --git a/arch/sparc64/kernel/prom.c b/arch/sparc64/kernel/prom.c
-index 2462731..ee96ef6 100644
---- a/arch/sparc64/kernel/prom.c
-+++ b/arch/sparc64/kernel/prom.c
-@@ -34,20 +34,6 @@ static struct device_node *allnodes;
- 
- extern rwlock_t devtree_lock;	/* temporary while merging */
- 
--struct device_node *of_get_next_child(const struct device_node *node,
--	struct device_node *prev)
--{
--	struct device_node *next;
--
--	next = prev ? prev->sibling : node->child;
--	for (; next != 0; next = next->sibling) {
--		break;
--	}
--
--	return next;
--}
--EXPORT_SYMBOL(of_get_next_child);
--
- struct device_node *of_find_node_by_path(const char *path)
- {
- 	struct device_node *np = allnodes;
-diff --git a/drivers/of/base.c b/drivers/of/base.c
-index 82bb786..6b6dfcc 100644
---- a/drivers/of/base.c
-+++ b/drivers/of/base.c
-@@ -134,3 +134,27 @@ struct device_node *of_get_parent(const struct device_node *node)
- 	return np;
- }
- EXPORT_SYMBOL(of_get_parent);
-+
-+/**
-+ *	of_get_next_child - Iterate a node childs
-+ *	@node:	parent node
-+ *	@prev:	previous child of the parent node, or NULL to get first
-+ *
-+ *	Returns a node pointer with refcount incremented, use
-+ *	of_node_put() on it when done.
-+ */
-+struct device_node *of_get_next_child(const struct device_node *node,
-+	struct device_node *prev)
-+{
-+	struct device_node *next;
-+
-+	read_lock(&devtree_lock);
-+	next = prev ? prev->sibling : node->child;
-+	for (; next; next = next->sibling)
-+		if (of_node_get(next))
-+			break;
-+	of_node_put(prev);
-+	read_unlock(&devtree_lock);
-+	return next;
-+}
-+EXPORT_SYMBOL(of_get_next_child);
--- 
-1.5.2.3
-
+Tested on SunBlade1500.
