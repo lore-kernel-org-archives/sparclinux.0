@@ -1,86 +1,114 @@
-From: "root" <root@task.sun.mcst.ru>
-Date: Thu, 19 Jul 2007 16:07:22 +0000
-Subject: [PATCH 2.4.25] sparc32: fix bug in sparc optimized memset
-Message-Id: <20070719160722.GA23687@liza>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Fri, 20 Jul 2007 06:00:48 +0000
+Subject: Please pull Open Firmware consolidation patches
+Message-Id: <20070720160048.0c92d64e.sfr@canb.auug.org.au>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Signature=_Fri__20_Jul_2007_16_00_48_+1000_UD+bH/ccXzJqShG_"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Linus <torvalds@linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, wli@holomorphy.com, ppc-dev <linuxppc-dev@ozlabs.org>, paulus@samba.org, sparclinux@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
 
-Sparc optimized memset (arch/sparc/lib/memset.S) does not fill last byte of the memory area,
-if area size is less than 8 bytes and start address is not word (4-bytes) aligned,
-Recent Linux kernels have same memset.S and affected by this bug too.
+--Signature=_Fri__20_Jul_2007_16_00_48_+1000_UD+bH/ccXzJqShG_
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Here is code chunk where bug located:
-/* %o0 - memory address, %o1 - size, %g3 - value */
-8:
-     add    %o0, 1, %o0
-    subcc    %o1, 1, %o1
-    bne,a    8b
-     stb %g3, [%o0 - 1]
+Hi Linus,
 
-This code should write byte every loop iteration, but last time delay instruction stb is not 
-executed because branch instruction sets "annul" bit.
+Please pull the Open Firmware device tree consolidation patches from the
+master branch of
 
-Patch replaces bne,a by bne instruction.
+  git://git.kernel.org/pub/scm/linux/kernel/git/sfr/ofcons.git master
 
+The intention here is that there should be no behavioural changes and
+minimal code changes (apart from movement of the code to common places).
+There are, however a couple of unavoidable changes:
+	- some of the accessor functions now take a read lock on Sparc[64]
+where they didn't before.
+	- the bus structures are initialised at runtime.
 
+These changes have been reviewed on the PowerPC and Sparc Linux mailing
+lists and acked by both maintainers (Dave Miller and Paul Mackerras).
+Kernels with tese changes have been built and booted on a SunBlade1500
+(thanks Dave), a Power5+ pSeries machine and a small iSeries machine.
 
+Dave is rather keen for these to go in ("Did you send him a pull request
+yet? Sorry, I'm quite anxious :)").
 
+Stephen Rothwell (12):
+      Split out common parts of prom.h
+      Start split out of common open firmware code
+      Consolidate of_device_is_compatible
+      Consolidate of_find_property
+      Consolidate of_get_parent
+      Consolidate of_get_next_child
+      Consolidate of_find_node_by routines
+      Begin to consolidate of_device.c
+      Begin consolidation of of_device.h
+      [SPARC/64] Rename some functions like PowerPC
+      Create linux/of_platorm.h
+      Create drivers/of/platform.c
 
-Error can be reproduced by simple kernel module:
+ arch/powerpc/Kconfig              |    3 +
+ arch/powerpc/kernel/of_device.c   |  122 +----------------
+ arch/powerpc/kernel/of_platform.c |   82 +-----------
+ arch/powerpc/kernel/prom.c        |  250 +---------------------------------
+ arch/sparc/Kconfig                |    3 +
+ arch/sparc/kernel/of_device.c     |  222 ++----------------------------
+ arch/sparc/kernel/prom.c          |  173 +-----------------------
+ arch/sparc/kernel/time.c          |    2 +-
+ arch/sparc64/Kconfig              |    3 +
+ arch/sparc64/kernel/auxio.c       |    2 +-
+ arch/sparc64/kernel/of_device.c   |  238 +++-----------------------------
+ arch/sparc64/kernel/power.c       |    2 +-
+ arch/sparc64/kernel/prom.c        |  173 +-----------------------
+ arch/sparc64/kernel/time.c        |    2 +-
+ drivers/Kconfig                   |    2 +
+ drivers/Makefile                  |    1 +
+ drivers/of/Kconfig                |    3 +
+ drivers/of/Makefile               |    2 +
+ drivers/of/base.c                 |  275 +++++++++++++++++++++++++++++++++=
+++++
+ drivers/of/device.c               |  131 ++++++++++++++++++
+ drivers/of/platform.c             |   96 +++++++++++++
+ include/asm-powerpc/of_device.h   |   22 +---
+ include/asm-powerpc/of_platform.h |   38 +-----
+ include/asm-powerpc/prom.h        |   50 ++-----
+ include/asm-sparc/of_device.h     |   49 +------
+ include/asm-sparc/of_platform.h   |   32 +++++
+ include/asm-sparc/prom.h          |   62 +++------
+ include/asm-sparc64/of_device.h   |   50 +------
+ include/asm-sparc64/of_platform.h |   33 +++++
+ include/asm-sparc64/prom.h        |   62 +++------
+ include/linux/of.h                |   61 ++++++++
+ include/linux/of_device.h         |   26 ++++
+ include/linux/of_platform.h       |   57 ++++++++
+ 33 files changed, 846 insertions(+), 1483 deletions(-)
+ create mode 100644 drivers/of/Kconfig
+ create mode 100644 drivers/of/Makefile
+ create mode 100644 drivers/of/base.c
+ create mode 100644 drivers/of/device.c
+ create mode 100644 drivers/of/platform.c
+ create mode 100644 include/asm-sparc/of_platform.h
+ create mode 100644 include/asm-sparc64/of_platform.h
+ create mode 100644 include/linux/of.h
+ create mode 100644 include/linux/of_device.h
+ create mode 100644 include/linux/of_platform.h
 
-#include <linux/module.h>
-#include <linux/config.h>
-#include <linux/kernel.h>
-#include <linux/errno.h>
-#include <string.h>
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
 
-static void do_memset(void **p, int size)
-{
-        memset(p, 0x00, size);
-}
+--Signature=_Fri__20_Jul_2007_16_00_48_+1000_UD+bH/ccXzJqShG_
+Content-Type: application/pgp-signature
 
-static int __init memset_test_init(void)
-{
-    char fooc[8];
-    int *fooi;
-    memset(fooc, 0xba, sizeof(fooc));
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
 
-    do_memset((void**)(fooc + 3), 1);
+iD8DBQFGoE+VTgG2atn1QN8RAon/AJ4+kzvehWpnrS0i9cCntVzN+QB/fACcC0uX
+cAWNmytqz1NEjrDJNTaTOtE=
+=gRNz
+-----END PGP SIGNATURE-----
 
-    fooi = (int*) fooc;
-    printk("%08X %08X\n", fooi[0], fooi[1]);
-
-    return -1;
-}
-
-static void __exit memset_test_cleanup(void)
-{
-    return;
-}
-
-module_init(memset_test_init);
-module_exit(memset_test_cleanup);
-
-MODULE_LICENSE("GPL");
-EXPORT_NO_SYMBOLS;
-
-
-	
-
-
-Signed-off-by: Alexander Shmelev <ashmelev@task.sun.mcst.ru>
----
---- linux-2.4.25-orig/arch/sparc/lib/memset.S	2003-11-28 21:26:19.000000000 +0300
-+++ linux-2.4.25/arch/sparc/lib/memset.S	2007-07-19 18:56:05.000000000 +0400
-@@ -163,7 +163,7 @@
- 8:
- 	 add	%o0, 1, %o0
- 	subcc	%o1, 1, %o1
--	bne,a	8b
-+	bne	8b
- 	 EX(stb	%g3, [%o0 - 1], add %o1, 1)
- 0:
- 	retl
+--Signature=_Fri__20_Jul_2007_16_00_48_+1000_UD+bH/ccXzJqShG_--
