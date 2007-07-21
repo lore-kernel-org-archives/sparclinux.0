@@ -1,106 +1,40 @@
-From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date: Tue, 03 Jul 2007 17:29:58 +0000
-Subject: Sparc32: random invalid instruction occourances on sparc32 (sun4c)
-Message-Id: <Pine.LNX.4.61.0707031817050.29930@mtfhpc.demon.co.uk>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="1750305931-300674694-1183483798=:29930"
+From: David Miller <davem@davemloft.net>
+Date: Sat, 21 Jul 2007 00:32:45 +0000
+Subject: [PATCH] (was Re: ESP SCSI and QLGC,ISP SCSI drivers not finding
+Message-Id: <20070720.173245.74748233.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <468A7D14.1050505@googlemail.com>
-In-Reply-To: <468A7D14.1050505@googlemail.com>
-To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, reiserfs-devel@vger.kernel.org, "Vladimir V. Saveliev" <vs@namesys.com>, Randy Dunlap <randy.dunlap@oracle.com>, linux-ide@vger.kernel.org, David Chinner <dgc@sgi.com>, linux-mm@kvack.org, sparclinux@vger.kernel.org, David Miller <davem@davemloft.net>, Mikael Pettersson <mikpe@it.uu.se>, William Lee Irwin III <wli@holomorphy.com>
+References: <Pine.LNX.4.61.0707201822250.8013@mtfhpc.demon.co.uk>
+	<Pine.LNX.4.61.0707202101270.8250@mtfhpc.demon.co.uk>
+	<20070720.153618.108742928.davem@davemloft.net>
+In-Reply-To: <20070720.153618.108742928.davem@davemloft.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: mark@mtfhpc.demon.co.uk
+Cc: James.Bottomley@SteelEye.com, sparclinux@vger.kernel.org, linux-scsi@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
---1750305931-300674694-1183483798=:29930
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+James, can you queue this up to Linus?  Thanks a lot!
 
-Hi all,
+[SCSI] ESP: Increase ESP_BUS_TIMEOUT to 275.
 
-I think I have found the cause of the problem.
+This matches the original driver's value and seems to be
+necessary for some disks on sun4c systems.
 
-Commit b46b8f19c9cd435ecac4d9d12b39d78c137ecd66 partially fixed alignment=
-=20
-issues but does not ensure that all 64bit alignment requirements of=20
-sparc32 are met. Tests have shown that the redzone2 word can become=20
-misallignd.
+Reported by Mark Fortescue <mark@mtfhpc.demon.co.uk>
 
-I am currently working on a posible fix.
+Signed-off-by: David S. Miller <davem@davemloft.net>
 
-Regards
- =09Mark Fortescue.
-
-On Tue, 3 Jul 2007, Michal Piotrowski wrote:
-
-> Hi all,
->
-> Here is a list of some known regressions in 2.6.22-rc7.
->
-> Feel free to add new regressions/remove fixed etc.
-> http://kernelnewbies.org/known_regressions
->
-> List of Aces
->
-> Name                    Regressions fixed since 21-Jun-2007
-> Hugh Dickins                           2
-> Andi Kleen                             1
-> Andrew Morton                          1
-> Benjamin Herrenschmidt                 1
-> Bj=F6rn Steinbrink                       1
-> Bjorn Helgaas                          1
-> Jean Delvare                           1
-> Olaf Hering                            1
-> Siddha, Suresh B                       1
-> Trent Piepho                           1
-> Ville Syrj=E4l=E4                          1
->
->
->
-> FS
->
-> Subject    : 2.6.22-rc4-git5 reiserfs: null ptr deref.
-> References : http://lkml.org/lkml/2007/6/13/322
-> Submitter  : Randy Dunlap <randy.dunlap@oracle.com>
-> Handled-By : Vladimir V. Saveliev <vs@namesys.com>
-> Status     : problem is being debugged
->
->
->
-> IDE
->
-> Subject    : 2.6.22-rcX: hda: lost interrupt
-> References : http://lkml.org/lkml/2007/6/29/121
-> Submitter  : David Chinner <dgc@sgi.com>
-> Status     : unknown
->
->
->
-> Sparc64
->
-> Subject    : random invalid instruction occourances on sparc32 (sun4c)
-> References : http://lkml.org/lkml/2007/6/17/111
-> Submitter  : Mark Fortescue <mark@mtfhpc.demon.co.uk>
-> Status     : problem is being debugged
->
-> Subject    : 2.6.22-rc broke X on Ultra5
-> References : http://lkml.org/lkml/2007/5/22/78
-> Submitter  : Mikael Pettersson <mikpe@it.uu.se>
-> Handled-By : David Miller <davem@davemloft.net>
-> Status     : problem is being debugged
->
->
->
-> Regards,
-> Michal
->
-> --
-> LOG
-> http://www.stardust.webpages.pl/log/
-> -
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
---1750305931-300674694-1183483798=:29930--
+diff --git a/drivers/scsi/esp_scsi.h b/drivers/scsi/esp_scsi.h
+index d5576d5..856e38b 100644
+--- a/drivers/scsi/esp_scsi.h
++++ b/drivers/scsi/esp_scsi.h
+@@ -220,7 +220,7 @@
+ #define ESP_BUSID_RESELID     0x10
+ #define ESP_BUSID_CTR32BIT    0x40
+ 
+-#define ESP_BUS_TIMEOUT        250     /* In milli-seconds */
++#define ESP_BUS_TIMEOUT        275     /* In milli-seconds */
+ #define ESP_TIMEO_CONST       8192
+ #define ESP_NEG_DEFP(mhz, cfact) \
+         ((ESP_BUS_TIMEOUT * ((mhz) / 1000)) / (8192 * (cfact)))
