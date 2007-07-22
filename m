@@ -1,27 +1,71 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 20 Jul 2007 01:01:52 +0000
-Subject: Re: [PATCH 05/12] Consolidate of_get_parent
-Message-Id: <20070719.180152.126575168.davem@davemloft.net>
+From: Al Viro <viro@ftp.linux.org.uk>
+Date: Sun, 22 Jul 2007 07:26:11 +0000
+Subject: [PATCH] sparc32 missing exports
+Message-Id: <20070722072611.GU21668@ftp.linux.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070718173024.50204a1a.sfr@canb.auug.org.au>
-	<20070720010742.e60c67a7.sfr@canb.auug.org.au>
-	<20070720011235.8199eca2.sfr@canb.auug.org.au>
-In-Reply-To: <20070720011235.8199eca2.sfr@canb.auug.org.au>
+References: <20070721.232207.26531557.davem@davemloft.net> <20070722063149.GQ21668@ftp.linux.org.uk> <20070722063511.GR21668@ftp.linux.org.uk> <20070721.233949.35357470.davem@davemloft.net> <20070722072206.GT21668@ftp.linux.org.uk>
+In-Reply-To: <20070722072206.GT21668@ftp.linux.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sfr@canb.auug.org.au
-Cc: sparclinux@vger.kernel.org, linuxppc-dev@ozlabs.org, paulus@samba.org, wli@holomorphy.com
+To: David Miller <davem@davemloft.net>
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, sam@ravnborg.org
 
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Fri, 20 Jul 2007 01:12:35 +1000
+... and with that on top of js-rtc patch we are down to floppy_hardirq
+as sparc32 allmodconfig-without-SUN4 list of missing symbols.  floppy_hardirq
+is a separate story...
 
-> This requires creating dummy of_node_{get,put} routines for sparc and
-> sparc64.  It also adds a read_lock around the parent accesses.
-> 
-> Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+From d278b08de78546f146c4cebe74b51ff74bbe8695 Mon Sep 17 00:00:00 2001
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Sat, 21 Jul 2007 23:08:39 -0400
+Subject: [PATCH] sparc32: missing exports
 
-Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ arch/sparc/kernel/sparc_ksyms.c |    3 +++
+ arch/sparc/prom/printf.c        |    2 ++
+ 2 files changed, 5 insertions(+), 0 deletions(-)
 
-Tested on SunBlade1500.
+diff --git a/arch/sparc/kernel/sparc_ksyms.c b/arch/sparc/kernel/sparc_ksyms.c
+index 55bac51..7b4abde 100644
+--- a/arch/sparc/kernel/sparc_ksyms.c
++++ b/arch/sparc/kernel/sparc_ksyms.c
+@@ -161,6 +161,8 @@ EXPORT_SYMBOL(BTFIXUP_CALL(mmu_get_scsi_one));
+ EXPORT_SYMBOL(BTFIXUP_CALL(mmu_release_scsi_sgl));
+ EXPORT_SYMBOL(BTFIXUP_CALL(mmu_release_scsi_one));
+ 
++EXPORT_SYMBOL(BTFIXUP_CALL(pgprot_noncached));
++
+ #ifdef CONFIG_SBUS
+ EXPORT_SYMBOL(sbus_root);
+ EXPORT_SYMBOL(dma_chain);
+@@ -260,6 +262,7 @@ EXPORT_SYMBOL(__memmove);
+ /* Moving data to/from userspace. */
+ EXPORT_SYMBOL(__copy_user);
+ EXPORT_SYMBOL(__strncpy_from_user);
++EXPORT_SYMBOL(__strnlen_user);
+ 
+ /* Networking helper routines. */
+ EXPORT_SYMBOL(__csum_partial_copy_sparc_generic);
+diff --git a/arch/sparc/prom/printf.c b/arch/sparc/prom/printf.c
+index 27fdac9..a36ab9c 100644
+--- a/arch/sparc/prom/printf.c
++++ b/arch/sparc/prom/printf.c
+@@ -13,6 +13,7 @@
+  */
+ 
+ #include <linux/kernel.h>
++#include <linux/module.h>
+ 
+ #include <asm/openprom.h>
+ #include <asm/oplib.h>
+@@ -44,3 +45,4 @@ prom_printf(char *fmt, ...)
+ 
+ 	prom_write(ppbuf, i);
+ }
++EXPORT_SYMBOL(prom_printf);
+-- 
+1.5.3.GIT
 
