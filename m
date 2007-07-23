@@ -1,34 +1,44 @@
-From: Takashi Iwai <tiwai@suse.de>
-Date: Fri, 27 Jul 2007 10:33:51 +0000
-Subject: Re: ALSA & missing dma_*_coherent on sparc32
-Message-Id: <s5h1weuw2y8.wl%tiwai@suse.de>
+From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
+Date: Mon, 23 Jul 2007 22:41:34 +0000
+Subject: QLGC,ISP SCSI driver not finding attached devices
+Message-Id: <Pine.LNX.4.61.0707232315510.16213@mtfhpc.demon.co.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.SOC.4.64.0707261317001.20971@math.ut.ee>
-	<s5h7ionv0xc.wl%tiwai@suse.de>
-	<Pine.SOC.4.64.0707261501130.24473@math.ut.ee>
-	<s5h6447uzrk.wl%tiwai@suse.de>
-	<20070726125834.GA4041@uranus.ravnborg.org>
-	<s5hzm1jtiy1.wl%tiwai@suse.de>
-	<Pine.SOC.4.64.0707271257570.20751@math.ut.ee>
-In-Reply-To: <Pine.SOC.4.64.0707271257570.20751@math.ut.ee>
+References: <Pine.LNX.4.61.0707201404250.7470@mtfhpc.demon.co.uk>
+ <1184941136.3455.8.camel@localhost.localdomain>
+ <Pine.LNX.4.61.0707201602080.7721@mtfhpc.demon.co.uk>
+ <1184950646.3455.45.camel@localhost.localdomain>
+ <Pine.LNX.4.61.0707201822250.8013@mtfhpc.demon.co.uk>
+In-Reply-To: <Pine.LNX.4.61.0707201822250.8013@mtfhpc.demon.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Meelis Roos <mroos@linux.ee>
-Cc: Sam Ravnborg <sam@ravnborg.org>, Linux Kernel list <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org
+To: James Bottomley <James.Bottomley@SteelEye.com>
+Cc: davem@davemloft.net, sparclinux@vger.kernel.org, linux-scsi@vger.kernel.org
 
-At Fri, 27 Jul 2007 12:58:57 +0300 (EEST),
-Meelis Roos wrote:
-> 
-> > [ALSA] Fix build error without CONFIG_HAS_DMA
-> > 
-> > The recent change of include/asm-generic/dma-mapping-broken.h breaks
-> > the build without CONFIG_HAS_DMA.  This patch is an ad hoc fix.
-> 
-> This seems to fix the issue, thnaks!
+Hi James,
 
-Thanks for confirmation.  The patch is queued in ALSA tree now for the
-next push.
+Can you point me in the direction of any documentation to aid me in 
+identifing what debugging I need to work out what is going on?
+
+For targets without any connected disk, I get scan responses of:
+     scsi scan: INQUIRY failed with code 0x40000
+after app 417ms.
+
+For targets with a disk connected, I get scan responses of:
+     scsi scan: INQUIRY failed with code 0x8000002
+after app 170ms.
+
+Can you tell me how to decode the error codes?
+(The times are from the sun4c 1us counter14)
+
+I did get the driver to work on one occasion but I have not been able to 
+repeat the achivement.
+
+I can also get the ESP driver to fail to find disks with the same error 
+codes if I build it as a module driver however if I build the ESP driver 
+into the kernel, it does not fail (ESP BUS_TIMEOUT'5).
+
+Regards
+ 	Mark Fortescue.
 
 
-Takashi
