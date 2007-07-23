@@ -1,68 +1,99 @@
-From: Yoann Padioleau <padator@wanadoo.fr>
-Date: Fri, 27 Jul 2007 09:45:50 +0000
-Subject: [PATCH 17/68] 0 -> NULL, for arch/sparc64
-Message-Id: <200707270945.LAA17362@ifs.emn.fr>
+From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Date: Mon, 23 Jul 2007 09:47:34 +0000
+Subject: Re: [2/2] 2.6.23-rc1: known regressions
+Message-Id: <46A47936.1090606@googlemail.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <46A477AF.4000309@googlemail.com>
+In-Reply-To: <46A477AF.4000309@googlemail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: kernel-janitors@vger.kernel.org
-Cc: davem@davemloft.net, sparclinux@vger.kernel.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-scsi@vger.kernel.org, James Bottomley <James.Bottomley@steeleye.com>, James Smart <James.Smart@emulex.com>, Adrian Bunk <bunk@stusta.de>, Jeremy Fitzhardinge <jeremy@goop.org>, Tilman Schmidt <tilman@imap.cc>, linux-ia64@vger.kernel.org, Tony Luck <tony.luck@intel.com>, Horms <horms@verge.net.au>, sparclinux@vger.kernel.org, David Miller <davem@davemloft.net>, Roland McGrath <roland@redhat.com>
+
+Hi all,
+
+Here is a list of some known regressions in 2.6.23-rc1.
+
+Feel free to add new regressions/remove fixed etc.
+http://kernelnewbies.org/known_regressions
+
+List of Aces
+
+Name                    Regressions fixed since 21-Jun-2007
+Andi Kleen                             4
+Linus Torvalds                         4
+Adrian Bunk                            3
+Andrew Morton                          3
+Jens Axboe                             3
+Al Viro                                2
+David Woodhouse                        2
+Hugh Dickins                           2
+Tejun Heo                              2
 
 
-When comparing a pointer, it's clearer to compare it to NULL than to 0.
 
-Here is an excerpt of the semantic patch: 
+SCSI
 
-@@
-expression *E;
-@@
+Subject         : lpfc_sli.c: off-by-10
+References      : http://lkml.org/lkml/2007/7/22/284
+Last known good : ?
+Submitter       : Adrian Bunk <bunk@stusta.de>
+Caused-By       : ?
+Handled-By      : ?
+Status          : unknown
 
-  E =
-- 0
-+ NULL
 
-@@
-expression *E;
-@@
 
-  E !- 0
-+ NULL
+Virtualization
 
-Signed-off-by: Yoann Padioleau <padator@wanadoo.fr>
-Cc: davem@davemloft.net
-Cc: sparclinux@vger.kernel.org
-Cc: akpm@linux-foundation.org
----
+Subject         : 2.6.22-git17 boot failure (XEN)
+References      : http://lkml.org/lkml/2007/7/22/266
+Last known good : ?
+Submitter       : Tilman Schmidt <tilman@imap.cc>
+Caused-By       : ?
+Handled-By      : ?
+Status          : unknown
 
- kernel/prom.c |    2 +-
- prom/tree.c   |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Subject         : drivers/net/xen-netfront.c: bogus code
+References      : http://lkml.org/lkml/2007/7/22/256
+Last known good : ?
+Submitter       : Adrian Bunk <bunk@stusta.de>
+Caused-By       : ?
+Handled-By      : Jeremy Fitzhardinge <jeremy@goop.org>
+Status          : unknown
 
-diff --git a/arch/sparc64/kernel/prom.c b/arch/sparc64/kernel/prom.c
-index f4e0a9a..35d4eb5 100644
---- a/arch/sparc64/kernel/prom.c
-+++ b/arch/sparc64/kernel/prom.c
-@@ -38,7 +38,7 @@ struct device_node *of_find_node_by_phan
- {
- 	struct device_node *np;
- 
--	for (np = allnodes; np != 0; np = np->allnext)
-+	for (np = allnodes; np != NULL; np = np->allnext)
- 		if (np->node = handle)
- 			break;
- 
-diff --git a/arch/sparc64/prom/tree.c b/arch/sparc64/prom/tree.c
-index b2c5b12..33eacd0 100644
---- a/arch/sparc64/prom/tree.c
-+++ b/arch/sparc64/prom/tree.c
-@@ -264,7 +264,7 @@ prom_setprop(int node, const char *pname
- {
- 	if (size = 0)
- 		return 0;
--	if ((pname = 0) || (value = 0))
-+	if ((pname = NULL) || (value = NULL))
- 		return 0;
- 	
- #ifdef CONFIG_SUN_LDOMS
 
+
+IA64
+
+Subject         : Regression in serial console on ia64 after 2.6.22
+References      : http://marc.info/?l=linux-ia64&m8483645914066&w=2
+Last known good : ?
+Submitter       : Horms <horms@verge.net.au>
+Caused-By       : Yinghai Lu <Yinghai.Lu@Sun.COM>
+                  commit 18a8bd949d6adb311ea816125ff65050df1f3f6e
+Handled-By      : ?
+Status          : unknown
+
+
+
+Sparc64
+
+Subject         : "build-id" changes break sparc64
+References      : http://lkml.org/lkml/2007/7/22/38
+Last known good : ?
+Submitter       : David Miller <davem@davemloft.net>
+Caused-By       : Roland McGrath <roland@redhat.com>
+                  commit 18991197b4b588255ccabf472ebc84db7b66a19c
+Handled-By      : ?
+Status          : unknown
+
+
+
+Regards,
+Michal
+
+--
+LOG
+http://www.stardust.webpages.pl/log/
