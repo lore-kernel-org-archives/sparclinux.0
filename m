@@ -1,58 +1,88 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 24 Jul 2007 02:49:27 +0000
+From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
+Date: Tue, 24 Jul 2007 17:46:06 +0000
 Subject: Re: QLGC,ISP SCSI driver not finding attached devices
-Message-Id: <20070723.194927.41635520.davem@davemloft.net>
+Message-Id: <Pine.LNX.4.61.0707241758020.17959@mtfhpc.demon.co.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.61.0707201822250.8013@mtfhpc.demon.co.uk>
-	<Pine.LNX.4.61.0707232315510.16213@mtfhpc.demon.co.uk>
-	<1185238223.3417.42.camel@localhost.localdomain>
+References: <Pine.LNX.4.61.0707201404250.7470@mtfhpc.demon.co.uk>
+ <1184941136.3455.8.camel@localhost.localdomain>
+ <Pine.LNX.4.61.0707201602080.7721@mtfhpc.demon.co.uk>
+ <1184950646.3455.45.camel@localhost.localdomain>
+ <Pine.LNX.4.61.0707201822250.8013@mtfhpc.demon.co.uk>
+ <Pine.LNX.4.61.0707232315510.16213@mtfhpc.demon.co.uk>
+ <1185238223.3417.42.camel@localhost.localdomain>
 In-Reply-To: <1185238223.3417.42.camel@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: James.Bottomley@SteelEye.com
-Cc: mark@mtfhpc.demon.co.uk, sparclinux@vger.kernel.org, linux-scsi@vger.kernel.org
+To: James Bottomley <James.Bottomley@SteelEye.com>
+Cc: davem@davemloft.net, sparclinux@vger.kernel.org, linux-scsi@vger.kernel.org
 
-From: James Bottomley <James.Bottomley@SteelEye.com>
-Date: Mon, 23 Jul 2007 19:50:23 -0500
+Hi all,
+
+Timing does not apear to be an issue. I have checked all the udelay/msleep 
+calls I could find and thoes that get called are delaying by the correct 
+delay (4 to 7us > specified value).
+
+I have added some more debugging info and it looks like somthing is 
+getting corrupted in the INQUIRY command as it is returning:
+
+   Sense Key : Illegal Request [current]
+   Add. Sense: Invalid field in cdb
+
+According a of the SCSI2 Std that I have, this equates to one of the 
+following:
+
+ 	EVPD set and Vital Product Data not supported
+ 	EVPD clear and Page Code non-zero
+ 	Control Field Flag set and Link not set
+
+Looking into the issue a bit further, it turns out the the Sparc32 memset 
+is broaken - it does not always set the last byte. As a result, the 
+Control Field is set to random value (0xE0 in this case). This explains 
+all sorts of odd issues. Next step is to fix memset. I will try again once 
+I am sure memset is working.
+
+Regards
+ 	Mark Fortescue.
+
+On Mon, 23 Jul 2007, James Bottomley wrote:
 
 > On Mon, 2007-07-23 at 23:41 +0100, Mark Fortescue wrote:
-> > For targets with a disk connected, I get scan responses of:
-> >      scsi scan: INQUIRY failed with code 0x8000002
-> > after app 170ms.
-> 
+>> Hi James,
+>>
+>> Can you point me in the direction of any documentation to aid me in
+>> identifing what debugging I need to work out what is going on?
+>
+> they're all in include/scsi/scsi.h
+>
+> The code is divided into four bytes (from LSB): status, message, host
+> and driver.  The status is what the SCSI command actually returned (if
+> anything) the message is what the transport said (least used of the
+> status codes).  The host byte signals an error condition with the card
+> and the driver byte with the driver (plus an optional suggestion of what
+> to do about it).
+>
+>> For targets without any connected disk, I get scan responses of:
+>>      scsi scan: INQUIRY failed with code 0x40000
+>> after app 417ms.
+>
+> That's host byte 0x04 which is DID_BAD_TARGET.
+>
+>> For targets with a disk connected, I get scan responses of:
+>>      scsi scan: INQUIRY failed with code 0x8000002
+>> after app 170ms.
+>
 > Thats SCSI status 0x02 (which is CHECK_CONDITION) and driver byte of
 > 0x08, which is DRIVER_SENSE (as in the device returned a sense code).
 > This is really strange, because the INQUIRY command isn't supposed to be
 > allowed to return a sense code for precisely this initial scan reason.
 > This tends to point to a device failure.
-
-Devices return CHECK_CONDITION and give SENSE (usually a
-UNIT_ATTENTION) when they are given an INQUIRY command too soon after
-a scsi bus reset, I saw it all the time when bringing up the new ESP
-driver.
-
-There is even special case code in the SCSI bus scan that accepts
-certain special cases of UNIT_ATTENTION check conditions as valid:
-
-		if (result) {
-			/*
-			 * not-ready to ready transition [asc/ascq=0x28/0x0]
-			 * or power-on, reset [asc/ascq=0x29/0x0], continue.
-			 * INQUIRY should not yield UNIT_ATTENTION
-			 * but many buggy devices do so anyway. 
-			 */
-			if ((driver_byte(result) & DRIVER_SENSE) &&
-			    scsi_sense_valid(&sshdr)) {
-				if ((sshdr.sense_key = UNIT_ATTENTION) &&
-				    ((sshdr.asc = 0x28) ||
-				     (sshdr.asc = 0x29)) &&
-				    (sshdr.ascq = 0))
-					continue;
-			}
-		}
-
-asc/ascq values that do not pass this test are what Mark is seeing.
-
-And again this is almost always because the device is being sent
-the INQUIRY too soon after a scsi bus reset.
+>
+> James
+>
+>
+> -
+> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
