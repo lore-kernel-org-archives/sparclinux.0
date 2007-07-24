@@ -1,23 +1,44 @@
-From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
-Date: Sat, 07 Jul 2007 19:21:47 +0000
-Subject: How to fix "BUG spinlock recursion on CPU #0"
-Message-Id: <468FE7CB.6010502@systella.fr>
+From: Gustavo Zacarias <gustavoz@gentoo.org>
+Date: Tue, 24 Jul 2007 17:24:25 +0000
+Subject: [PATCH] Make silo use glibc elf.h instead of kernel headers
+Message-Id: <46A635C9.1030303@gentoo.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------050706010104050609060801"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-	Hello,
+This is a multi-part message in MIME format.
+--------------050706010104050609060801
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-	I have built a 2.6.22-rc7 on sparc32/smp to debug kernel. The only 
-error I see is "BUG spinlock recursion" with call trace. How debug this 
-mistake ? How can I find information about spinlock debugging ?
 
-	I have tried to boot with the same kernel and maxcpu=1 option but this 
-box ever boots with two CPU's online. How can I force this kernel to 
-boot with only one CPU ? Does MAXCPU variable only work on i386 ?
+This patch builds silo against glibc elf.h since linux/elf.h is gone in 
+newer headers. Also removes the asm/page.h include which is also gone.
 
-	Regards,
+-- 
+Gustavo Zacarias
+Gentoo/SPARC monkey
 
-	JKB
+--------------050706010104050609060801
+Content-Type: text/plain;
+ name="silo-elf.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="silo-elf.patch"
+
+diff -Nura silo/second/main.c silo-1.4.13/second/main.c
+--- silo/second/main.c	2007-07-24 11:04:12.000000000 -0300
++++ silo-1.4.13/second/main.c	2007-07-24 11:09:04.000000000 -0300
+@@ -25,8 +25,7 @@
+ /* TODO: This file is a good candidate for rewrite from scratch.  */
+ 
+ #include <silo.h>
+-#include <asm/page.h>
+-#include <linux/elf.h>
++#include <elf.h>
+ #include <stringops.h>
+ 
+ #ifndef NULL
+
+--------------050706010104050609060801--
