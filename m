@@ -1,101 +1,44 @@
-From: Takashi Iwai <tiwai@suse.de>
-Date: Thu, 26 Jul 2007 12:15:43 +0000
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Thu, 26 Jul 2007 12:58:34 +0000
 Subject: Re: ALSA & missing dma_*_coherent on sparc32
-Message-Id: <s5h6447uzrk.wl%tiwai@suse.de>
+Message-Id: <20070726125834.GA4041@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.SOC.4.64.0707261317001.20971@math.ut.ee>
-	<s5h7ionv0xc.wl%tiwai@suse.de>
-	<Pine.SOC.4.64.0707261501130.24473@math.ut.ee>
-In-Reply-To: <Pine.SOC.4.64.0707261501130.24473@math.ut.ee>
+References: <Pine.SOC.4.64.0707261317001.20971@math.ut.ee> <s5h7ionv0xc.wl%tiwai@suse.de> <Pine.SOC.4.64.0707261501130.24473@math.ut.ee> <s5h6447uzrk.wl%tiwai@suse.de>
+In-Reply-To: <s5h6447uzrk.wl%tiwai@suse.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Meelis Roos <mroos@linux.ee>
-Cc: Linux Kernel list <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org
+To: Takashi Iwai <tiwai@suse.de>
+Cc: Meelis Roos <mroos@linux.ee>, Linux Kernel list <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org
 
-At Thu, 26 Jul 2007 15:02:51 +0300 (EEST),
-Meelis Roos wrote:
-> 
-> > > ERROR: "dma_free_coherent" [sound/core/snd-page-alloc.ko] undefined!
-> > > ERROR: "dma_alloc_coherent" [sound/core/snd-page-alloc.ko] undefined!
+On Thu, Jul 26, 2007 at 02:15:43PM +0200, Takashi Iwai wrote:
+> At Thu, 26 Jul 2007 15:02:51 +0300 (EEST),
+> Meelis Roos wrote:
 > > 
-> > Could you show .config?  Does it have CONFIG_HAS_DMA?
+> > > > ERROR: "dma_free_coherent" [sound/core/snd-page-alloc.ko] undefined!
+> > > > ERROR: "dma_alloc_coherent" [sound/core/snd-page-alloc.ko] undefined!
+> > > 
+> > > Could you show .config?  Does it have CONFIG_HAS_DMA?
+> > 
+> > No, CONFIG_NO_DMA=y - and this was recently changed on sparc32 IIRC.
 > 
-> No, CONFIG_NO_DMA=y - and this was recently changed on sparc32 IIRC.
+> OK, then could you try the patch below?
 
-OK, then could you try the patch below?
+Hi Takashi-san.
 
+Can I ask you to introdue use of the -y syntax for composite objects.
+This would simplify soucd/core/Makefile
 
-Takashi
+The below would then become:
+>  
+> -snd-page-alloc-objs := memalloc.o sgbuf.o
+> +snd-page-alloc-y := memalloc.o
+> +snd-page-alloc-$(CONFIG_HAS_DMA) += sgbuf.o
+>  
+>  snd-rawmidi-objs  := rawmidi.o
+>  snd-timer-objs    := timer.o
 
-=[ALSA] Fix build error without CONFIG_HAS_DMA
+Ask if you have questions.
 
-The recent change of include/asm-generic/dma-mapping-broken.h breaks
-the build without CONFIG_HAS_DMA.  This patch is an ad hoc fix.
-
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
----
-diff -r 4750a3aa4b2c sound/core/Makefile
---- a/sound/core/Makefile	Thu Jul 26 11:49:22 2007 +0200
-+++ b/sound/core/Makefile	Thu Jul 26 14:12:58 2007 +0200
-@@ -14,7 +14,10 @@ snd-pcm-objs := pcm.o pcm_native.o pcm_l
- snd-pcm-objs := pcm.o pcm_native.o pcm_lib.o pcm_timer.o pcm_misc.o \
- 		pcm_memory.o
- 
--snd-page-alloc-objs := memalloc.o sgbuf.o
-+snd-page-alloc-objs := memalloc.o
-+ifeq ($(CONFIG_HAS_DMA),y)
-+snd-page-alloc-objs += sgbuf.o
-+endif
- 
- snd-rawmidi-objs  := rawmidi.o
- snd-timer-objs    := timer.o
-diff -r 4750a3aa4b2c core/memalloc.c
---- a/sound/core/memalloc.c	Thu Jul 26 11:49:22 2007 +0200
-+++ b/sound/core/memalloc.c	Thu Jul 26 14:12:58 2007 +0200
-@@ -205,6 +205,7 @@ void snd_free_pages(void *ptr, size_t si
-  *
-  */
- 
-+#ifdef CONFIG_HAS_DMA
- /* allocate the coherent DMA pages */
- static void *snd_malloc_dev_pages(struct device *dev, size_t size, dma_addr_t *dma)
- {
-@@ -238,6 +239,7 @@ static void snd_free_dev_pages(struct de
- 	dec_snd_pages(pg);
- 	dma_free_coherent(dev, PAGE_SIZE << pg, ptr, dma);
- }
-+#endif /* CONFIG_HAS_DMA */
- 
- #ifdef CONFIG_SBUS
- 
-@@ -311,12 +313,14 @@ int snd_dma_alloc_pages(int type, struct
- 		dmab->area = snd_malloc_sbus_pages(device, size, &dmab->addr);
- 		break;
- #endif
-+#ifdef CONFIG_HAS_DMA
- 	case SNDRV_DMA_TYPE_DEV:
- 		dmab->area = snd_malloc_dev_pages(device, size, &dmab->addr);
- 		break;
- 	case SNDRV_DMA_TYPE_DEV_SG:
- 		snd_malloc_sgbuf_pages(device, size, dmab, NULL);
- 		break;
-+#endif
- 	default:
- 		printk(KERN_ERR "snd-malloc: invalid device type %d\n", type);
- 		dmab->area = NULL;
-@@ -382,12 +386,14 @@ void snd_dma_free_pages(struct snd_dma_b
- 		snd_free_sbus_pages(dmab->dev.dev, dmab->bytes, dmab->area, dmab->addr);
- 		break;
- #endif
-+#ifdef CONFIG_HAS_DMA
- 	case SNDRV_DMA_TYPE_DEV:
- 		snd_free_dev_pages(dmab->dev.dev, dmab->bytes, dmab->area, dmab->addr);
- 		break;
- 	case SNDRV_DMA_TYPE_DEV_SG:
- 		snd_free_sgbuf_pages(dmab);
- 		break;
-+#endif
- 	default:
- 		printk(KERN_ERR "snd-malloc: invalid device type %d\n", dmab->dev.type);
- 	}
+Thanks,
+	Sam
