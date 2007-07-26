@@ -1,9 +1,9 @@
 From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date: Thu, 26 Jul 2007 01:25:24 +0000
+Date: Thu, 26 Jul 2007 01:30:07 +0000
 Subject: Re: [PATCH] Sun/Solaris VTOC table corrections
-Message-Id: <Pine.LNX.4.61.0707260222260.21378@mtfhpc.demon.co.uk>
+Message-Id: <Pine.LNX.4.61.0707260227560.21616@mtfhpc.demon.co.uk>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="1750305931-648431206-1185413124=:21378"
+Content-Type: multipart/mixed; boundary="1750305931-1546318251-1185413407=:21616"
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.LNX.4.61.0707251742000.20510@mtfhpc.demon.co.uk>
 In-Reply-To: <Pine.LNX.4.61.0707251742000.20510@mtfhpc.demon.co.uk>
@@ -12,14 +12,11 @@ To: sparclinux@vger.kernel.org
   This message is in MIME format.  The first part should be readable text,
   while the remaining parts are likely unreadable without MIME-aware tools.
 
---1750305931-648431206-1185413124=:21378
+--1750305931-1546318251-1185413407=:21616
 Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 
 
-Sorry about that. The patch lost a space character. This one has been 
-checked on the latest git from 
-git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git so it 
-should work.
+And third time lucky - forgot to remove the white space.
 
 On Wed, 25 Jul 2007, David Miller wrote:
 
@@ -35,11 +32,15 @@ On Wed, 25 Jul 2007, David Miller wrote:
 > added?
 >
 > Thanks.
+> -
+> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
---1750305931-648431206-1185413124=:21378
+--1750305931-1546318251-1185413407=:21616
 Content-Type: TEXT/PLAIN; charset=US-ASCII; name="SolarisParition.patch"
 Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.61.0707260225230.21378@mtfhpc.demon.co.uk>
+Content-ID: <Pine.LNX.4.61.0707260230060.21616@mtfhpc.demon.co.uk>
 Content-Description: 
 Content-Disposition: attachment; filename="SolarisParition.patch"
 
@@ -67,23 +68,23 @@ cGFyc2VkX3BhcnRpdGlvDQogCQlwdXRfZGV2X3NlY3RvcihzZWN0KTsNCiAJ
 CXJldHVybjsNCiAJfQ0KLQlmb3IgKGk9MDsgaTxTT0xBUklTX1g4Nl9OVU1T
 TElDRSAmJiBzdGF0ZS0+bmV4dDxzdGF0ZS0+bGltaXQ7IGkrKykgew0KKwkv
 KiBFbnN1cmUgd2UgY2FuIGhhbmRsZSBwcmV2aW91cyBjYXNlIG9mIFZUT0Mg
-d2l0aCA4IGVudHJpZXMgZ3JhY2VmdWxseSAqLyAgDQorCW1heF9ucGFydHMg
-PSBsZTE2X3RvX2NwdSAodi0+dl9ucGFydHMpID4gOCA/IFNPTEFSSVNfWDg2
-X05VTVNMSUNFIDogODsNCisJZm9yIChpPTA7IGk8bWF4X25wYXJ0cyAmJiBz
-dGF0ZS0+bmV4dDxzdGF0ZS0+bGltaXQ7IGkrKykgew0KIAkJc3RydWN0IHNv
-bGFyaXNfeDg2X3NsaWNlICpzID0gJnYtPnZfc2xpY2VbaV07DQogCQlpZiAo
-cy0+c19zaXplID09IDApDQogCQkJY29udGludWU7DQpkaWZmIC1ydU5wZCAt
-eCAuZ2l0IC14IC5naXRpZ25vcmUgLXggLm1haWxtYXAgbGludXgtMi42L2lu
-Y2x1ZGUvbGludXgvZ2VuaGQuaCBsaW51eC10ZXN0L2luY2x1ZGUvbGludXgv
-Z2VuaGQuaA0KLS0tIGxpbnV4LTIuNi9pbmNsdWRlL2xpbnV4L2dlbmhkLmgJ
-MjAwNy0wNy0yNCAyMjo0NzoyNi4wMDAwMDAwMDAgKzAxMDANCisrKyBsaW51
-eC10ZXN0L2luY2x1ZGUvbGludXgvZ2VuaGQuaAkyMDA3LTA3LTI2IDAwOjM4
-OjMwLjAwMDAwMDAwMCArMDEwMA0KQEAgLTI2NCw3ICsyNjQsNyBAQCBzdGF0
-aWMgaW5saW5lIHZvaWQgc2V0X2NhcGFjaXR5KHN0cnVjdCBnDQogDQogI2lm
-ZGVmIENPTkZJR19TT0xBUklTX1g4Nl9QQVJUSVRJT04NCiANCi0jZGVmaW5l
-IFNPTEFSSVNfWDg2X05VTVNMSUNFCTgNCisjZGVmaW5lIFNPTEFSSVNfWDg2
-X05VTVNMSUNFCTE2DQogI2RlZmluZSBTT0xBUklTX1g4Nl9WVE9DX1NBTkUJ
-KDB4NjAwRERFRUVVTCkNCiANCiBzdHJ1Y3Qgc29sYXJpc194ODZfc2xpY2Ug
-ew0K
+d2l0aCA4IGVudHJpZXMgZ3JhY2VmdWxseSAqLw0KKwltYXhfbnBhcnRzID0g
+bGUxNl90b19jcHUgKHYtPnZfbnBhcnRzKSA+IDggPyBTT0xBUklTX1g4Nl9O
+VU1TTElDRSA6IDg7DQorCWZvciAoaT0wOyBpPG1heF9ucGFydHMgJiYgc3Rh
+dGUtPm5leHQ8c3RhdGUtPmxpbWl0OyBpKyspIHsNCiAJCXN0cnVjdCBzb2xh
+cmlzX3g4Nl9zbGljZSAqcyA9ICZ2LT52X3NsaWNlW2ldOw0KIAkJaWYgKHMt
+PnNfc2l6ZSA9PSAwKQ0KIAkJCWNvbnRpbnVlOw0KZGlmZiAtcnVOcGQgLXgg
+LmdpdCAteCAuZ2l0aWdub3JlIC14IC5tYWlsbWFwIGxpbnV4LTIuNi9pbmNs
+dWRlL2xpbnV4L2dlbmhkLmggbGludXgtdGVzdC9pbmNsdWRlL2xpbnV4L2dl
+bmhkLmgNCi0tLSBsaW51eC0yLjYvaW5jbHVkZS9saW51eC9nZW5oZC5oCTIw
+MDctMDctMjQgMjI6NDc6MjYuMDAwMDAwMDAwICswMTAwDQorKysgbGludXgt
+dGVzdC9pbmNsdWRlL2xpbnV4L2dlbmhkLmgJMjAwNy0wNy0yNiAwMDozODoz
+MC4wMDAwMDAwMDAgKzAxMDANCkBAIC0yNjQsNyArMjY0LDcgQEAgc3RhdGlj
+IGlubGluZSB2b2lkIHNldF9jYXBhY2l0eShzdHJ1Y3QgZw0KIA0KICNpZmRl
+ZiBDT05GSUdfU09MQVJJU19YODZfUEFSVElUSU9ODQogDQotI2RlZmluZSBT
+T0xBUklTX1g4Nl9OVU1TTElDRQk4DQorI2RlZmluZSBTT0xBUklTX1g4Nl9O
+VU1TTElDRQkxNg0KICNkZWZpbmUgU09MQVJJU19YODZfVlRPQ19TQU5FCSgw
+eDYwMERERUVFVUwpDQogDQogc3RydWN0IHNvbGFyaXNfeDg2X3NsaWNlIHsN
+Cg==
 
---1750305931-648431206-1185413124=:21378--
+--1750305931-1546318251-1185413407=:21616--
