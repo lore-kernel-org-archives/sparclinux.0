@@ -1,160 +1,170 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 25 Jul 2007 23:50:40 +0000
+From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
+Date: Thu, 26 Jul 2007 01:48:53 +0000
 Subject: Re: [PATCH] Add 82077 FDC to sun4c
-Message-Id: <20070725.165040.18280809.davem@davemloft.net>
+Message-Id: <Pine.LNX.4.61.0707260230390.21616@mtfhpc.demon.co.uk>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="1750305931-1330388316-1185414533=:21616"
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.LNX.4.61.0707251659420.20510@mtfhpc.demon.co.uk>
 In-Reply-To: <Pine.LNX.4.61.0707251659420.20510@mtfhpc.demon.co.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date: Wed, 25 Jul 2007 17:18:09 +0100 (BST)
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> The attached patch adds in code to support an 82077 FDC on sun4c
-> systems.  There is a problem with spurious interrupts but it does
-> apear to work (very slowly).  Testing on my SS2 (82072A FDC) shows
-> that the floppy driver is not 100% with sun4c any way (any spurious
-> interrupt kills it, requiring a reboot to recover). The disk drive
-> may have a somthing to do with the failure as it has not been
-> used/cleaned for some time.
+--1750305931-1330388316-1185414533=:21616
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 
-So basically it's a 82077 with the AUXIO based DOR register
-writes and DIR register reads.
+Hi David,
 
-I also looked at the openbsd sparc floppy driver and their
-basic scheme is to begin unconditionally assuming 82077,
-and they make this test:
+I have made some small alterations as the 82077 DOR register needs to be 
+written to or FDC resets do not get done.
 
-	type = 82077;
-	val = 82077_DOR;
-	if (val = 0x80) {
-		82077_DOR = 0x02;
-		val = 82077_DOR:
-		if (val = 0x80)
-			type = 82072;
-	}
+This version works better on the SS1 (80277) suggesting that I missed 
+somthing on my initial version.
 
-So that test plus making the DOR/DIR register access a sun4c vs.
-sun4m thing gives us the much simpler patch below, can you test this
-out on your SS2?
+The change to the detection system also works fine on the SS2 (82072A).
 
-Thanks!
+I have also added in the other 82077 registers so I can read/write to them 
+if needed, to deal with the spurious interrupt issue.
 
-diff --git a/include/asm-sparc/floppy.h b/include/asm-sparc/floppy.h
-index 9073c84..c556edf 100644
---- a/include/asm-sparc/floppy.h
-+++ b/include/asm-sparc/floppy.h
-@@ -101,6 +101,28 @@ static struct sun_floppy_ops sun_fdops;
- #define CROSS_64KB(a,s) (0)
- 
- /* Routines unique to each controller type on a Sun. */
-+static void sun_set_dor(unsigned char value)
-+{
-+	if (sparc_cpu_model = sun4c) {
-+		unsigned int bits = 0;
-+		if (value & 0x10)
-+			bits |= AUXIO_FLPY_DSEL;
-+		if ((value & 0x80) = 0)
-+			bits |= AUXIO_FLPY_EJCT;
-+		set_auxio(bits, (~bits) & (AUXIO_FLPY_DSEL|AUXIO_FLPY_EJCT));
-+	} else {
-+		sun_fdc->dor_82077 = value;
-+	}
-+}
-+
-+static unsigned char sun_read_dir(void)
-+{
-+	if (sparc_cpu_model = sun4c)
-+		return (get_auxio() & AUXIO_FLPY_DCHG) ? 0x80 : 0;
-+	else
-+		return sun_fdc->dir_82077;
-+}
-+
- static unsigned char sun_82072_fd_inb(int port)
- {
- 	udelay(5);
-@@ -113,7 +135,7 @@ static unsigned char sun_82072_fd_inb(int port)
- 	case 5: /* FD_DATA */
- 		return sun_fdc->data_82072;
- 	case 7: /* FD_DIR */
--		return (get_auxio() & AUXIO_FLPY_DCHG)? 0x80: 0;
-+		return sun_read_dir();
- 	};
- 	panic("sun_82072_fd_inb: How did I get here?");
- }
-@@ -126,20 +148,7 @@ static void sun_82072_fd_outb(unsigned char value, int port)
- 		printk("floppy: Asked to write to unknown port %d\n", port);
- 		panic("floppy: Port bolixed.");
- 	case 2: /* FD_DOR */
--		/* Oh geese, 82072 on the Sun has no DOR register,
--		 * the functionality is implemented via the AUXIO
--		 * I/O register.  So we must emulate the behavior.
--		 *
--		 * ASSUMPTIONS:  There will only ever be one floppy
--		 *               drive attached to a Sun controller
--		 *               and it will be at drive zero.
--		 */
--		{
--			unsigned bits = 0;
--			if (value & 0x10) bits |= AUXIO_FLPY_DSEL;
--			if ((value & 0x80) = 0) bits |= AUXIO_FLPY_EJCT;
--			set_auxio(bits, (~bits) & (AUXIO_FLPY_DSEL|AUXIO_FLPY_EJCT));
--		}
-+		sun_set_dor(value);
- 		break;
- 	case 5: /* FD_DATA */
- 		sun_fdc->data_82072 = value;
-@@ -166,10 +175,9 @@ static unsigned char sun_82077_fd_inb(int port)
- 	case 5: /* FD_DATA */
- 		return sun_fdc->data_82077;
- 	case 7: /* FD_DIR */
--		/* XXX: Is DCL on 0x80 in sun4m? */
--		return sun_fdc->dir_82077;
-+		return sun_read_dir();
- 	};
--	panic("sun_82072_fd_inb: How did I get here?");
-+	panic("sun_82077_fd_inb: How did I get here?");
- }
- 
- static void sun_82077_fd_outb(unsigned char value, int port)
-@@ -180,8 +188,7 @@ static void sun_82077_fd_outb(unsigned char value, int port)
- 		printk("floppy: Asked to write to unknown port %d\n", port);
- 		panic("floppy: Port bolixed.");
- 	case 2: /* FD_DOR */
--		/* Happily, the 82077 has a real DOR register. */
--		sun_fdc->dor_82077 = value;
-+		sun_set_dor(value);
- 		break;
- 	case 5: /* FD_DATA */
- 		sun_fdc->data_82077 = value;
-@@ -332,16 +339,17 @@ static int sun_floppy_init(void)
- 		goto no_sun_fdc;
- 	}
- 
--        if(sparc_cpu_model = sun4c) {
--                sun_fdops.fd_inb = sun_82072_fd_inb;
--                sun_fdops.fd_outb = sun_82072_fd_outb;
--                fdc_status = &sun_fdc->status_82072;
--                /* printk("AUXIO @0x%lx\n", auxio_register); */ /* P3 */
--        } else {
--                sun_fdops.fd_inb = sun_82077_fd_inb;
--                sun_fdops.fd_outb = sun_82077_fd_outb;
--                fdc_status = &sun_fdc->status_82077;
--                /* printk("DOR @0x%p\n", &sun_fdc->dor_82077); */ /* P3 */
-+	sun_fdops.fd_inb = sun_82077_fd_inb;
-+	sun_fdops.fd_outb = sun_82077_fd_outb;
-+	fdc_status = &sun_fdc->status_82077;
-+
-+	if (sun_fdc->dor_82077 = 0x80) {
-+		sun_fdc->dor_82077 = 0x02;
-+		if (sun_fdc->dor_82077 = 0x80) {
-+			sun_fdops.fd_inb = sun_82072_fd_inb;
-+			sun_fdops.fd_outb = sun_82072_fd_outb;
-+			fdc_status = &sun_fdc->status_82072;
-+		}
- 	}
- 
- 	/* Success... */
+I do not have data sheets for the 82072A and the 82077 (pre-1991), only a 
+data sheet for the 82077A, so if the spurious interrupts need to be fixed, 
+I will have to do it by trial and error using the data sheet as a guide as 
+to what I should be seeing.
+
+Regards
+ 	Mark Fortescue.
+--1750305931-1330388316-1185414533=:21616
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name="Sparc-sun4c-Floppy-v2.patch"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.61.0707260248510.21616@mtfhpc.demon.co.uk>
+Content-Description: 
+Content-Disposition: attachment; filename="Sparc-sun4c-Floppy-v2.patch"
+
+RnJvbTogTWFyayBGb3J0ZXNjdWUgPG1hcmtAbXRmaHBjLmRlbW9uLmNvLnVr
+Pg0KDQpBZGQgaW4gY29kZSB0byBzdXBwb3J0IGFuIDgyMDc3IEZEQyBvbiBz
+dW40YyBzeXN0ZW1zLiBUaGVyZSBpcyBhIHByb2JsZW0gd2l0aA0Kc3B1cmlv
+dXMgaW50ZXJydXB0cyBidXQgaXQgZG9lcyBhcGVhciB0byB3b3JrLg0KVGVz
+dGluZyBvbiBteSBTUzIgKDgyMDcyQSBGREMpIHNob3dzIHRoYXQgdGhlIGZs
+b3BweSBkcml2ZXIgaXMgbm90IDEwMCUgd2l0aA0Kc3VuNGMgYW55IHdheSAo
+YW55IHNwdXJpb3VzIGludGVycnVwdCBraWxscyBpdCwgcmVxdWlyaW5nIGEg
+cmVib290IHRvIHJlY292ZXIpLg0KDQpTaWduZWQtb2ZmLWJ5OiBNYXJrIEZv
+cnRlc2N1ZSA8bWFya0BtdGZocGMuZGVtb24uY28udWs+DQotLS0NClRlc3Rl
+ZCBvbiBTUzIgKDgyMDcyQSkgYW5kIFNTMSBDbG9uZSAoODIwNzcpLg0KDQpE
+YXZpZCwgSSBtYWRlIGEgc21hbGwgY2hhbmdlIHRvIHlvdXIgdmVyc2lvbiBh
+cyB0aGUgODIwNzcgbmVlZHMgdG8gd3JpdGUgdG8gdGhlDQo4MjA3NyBET1Ig
+cmVnaXN0ZXIgb3IgRkRDIHJlc2V0cyBkb24ndCBnZXQgZG9uZS4NCkFsc28g
+SSBoYXZlIG5vdCB0ZXN0ZWQgRGlza0NoYW5nZWQuIEkgYW0gbm90IHN1cmUg
+aWYgaXQgdXNlcyBhdXhpbywgdGhlIDgyMDc3DQpvciBib3RoLiBJIGhhdmUg
+Zm91bmQgc29tZSBTb2xhcmlzIDI2IGNvZGUgb24gdGhlIHdlYiB0aGF0IHN1
+Z2VzdHMgdGhhdCBpdA0KZGVwZW5kcyBvbiB0aGUgdmVyc2lvbiBvZiB0aGUg
+aGFyZHdhcmUgYW5kIHRoYXQgbXkgaGFyZHdhcmUgdXNlcyBhdXhpby4NCg0K
+VGhpcyBuZXcgcGF0Y2ggc3RpbGwgZ2V0cyBzcHVyaW91cyBpbnRlcnJ1cHRz
+IGJ1dCBhcGVhcnMgdG8gd29yayBiZXR0ZXIgdGhhbg0KbXkgb3JpZ2luYWwg
+dmVyc2lvbi4NCkVhcmx5IDgyMDc3IEZEQydzIGxpa2UgbWluZSBoYXZlIGJ1
+Z3MgaW4gdGhlbSBhbmQgSSBzdXNwZWN0IHRoYXQgdGhpcyBpcyBub3QNCmJl
+aW5nIGNhdGVyZWQgZm9yIGNvcnJlY3RseSBpbiBkcml2ZXJzL2Jsb2NrL2Zs
+b3BweS5jLg0KDQotLS0gbGludXgtMi42L2luY2x1ZGUvYXNtLXNwYXJjL2Zs
+b3BweS5oCTIwMDctMDctMjEgMDM6MjY6NTIuMDAwMDAwMDAwICswMTAwDQor
+KysgbGludXgtdGVzdC9pbmNsdWRlL2FzbS1zcGFyYy9mbG9wcHkuaAkyMDA3
+LTA3LTI2IDAxOjMxOjQ2LjAwMDAwMDAwMCArMDEwMA0KQEAgLTEwMSw2ICsx
+MDEsMjkgQEAgc3RhdGljIHN0cnVjdCBzdW5fZmxvcHB5X29wcyBzdW5fZmRv
+cHM7DQogI2RlZmluZSBDUk9TU182NEtCKGEscykgKDApDQogDQogLyogUm91
+dGluZXMgdW5pcXVlIHRvIGVhY2ggY29udHJvbGxlciB0eXBlIG9uIGEgU3Vu
+LiAqLw0KK3N0YXRpYyB2b2lkIHN1bl9zZXRfZG9yKHVuc2lnbmVkIGNoYXIg
+dmFsdWUsIGludCBmZGNfODIwNzcpDQorew0KKwlpZiAoc3BhcmNfY3B1X21v
+ZGVsID09IHN1bjRjKSB7DQorCQl1bnNpZ25lZCBpbnQgYml0cyA9IDA7DQor
+CQlpZiAodmFsdWUgJiAweDEwKQ0KKwkJCWJpdHMgfD0gQVVYSU9fRkxQWV9E
+U0VMOw0KKwkJaWYgKCh2YWx1ZSAmIDB4ODApID09IDApDQorCQkJYml0cyB8
+PSBBVVhJT19GTFBZX0VKQ1Q7DQorCQlzZXRfYXV4aW8oYml0cywgKH5iaXRz
+KSAmIChBVVhJT19GTFBZX0RTRUx8QVVYSU9fRkxQWV9FSkNUKSk7DQorCX0N
+CisJaWYgKGZkY184MjA3Nykgew0KKwkJc3VuX2ZkYy0+ZG9yXzgyMDc3ID0g
+dmFsdWU7DQorCX0NCit9DQorDQorc3RhdGljIHVuc2lnbmVkIGNoYXIgc3Vu
+X3JlYWRfZGlyKHZvaWQpDQorew0KKwlpZiAoc3BhcmNfY3B1X21vZGVsID09
+IHN1bjRjKQ0KKwkJcmV0dXJuIChnZXRfYXV4aW8oKSAmIEFVWElPX0ZMUFlf
+RENIRykgPyAweDgwIDogMDsNCisJZWxzZQ0KKwkJcmV0dXJuIHN1bl9mZGMt
+PmRpcl84MjA3NzsNCit9DQorDQogc3RhdGljIHVuc2lnbmVkIGNoYXIgc3Vu
+XzgyMDcyX2ZkX2luYihpbnQgcG9ydCkNCiB7DQogCXVkZWxheSg1KTsNCkBA
+IC0xMTMsNyArMTM2LDcgQEAgc3RhdGljIHVuc2lnbmVkIGNoYXIgc3VuXzgy
+MDcyX2ZkX2luYihpbg0KIAljYXNlIDU6IC8qIEZEX0RBVEEgKi8NCiAJCXJl
+dHVybiBzdW5fZmRjLT5kYXRhXzgyMDcyOw0KIAljYXNlIDc6IC8qIEZEX0RJ
+UiAqLw0KLQkJcmV0dXJuIChnZXRfYXV4aW8oKSAmIEFVWElPX0ZMUFlfRENI
+Ryk/IDB4ODA6IDA7DQorCQlyZXR1cm4gc3VuX3JlYWRfZGlyKCk7DQogCX07
+DQogCXBhbmljKCJzdW5fODIwNzJfZmRfaW5iOiBIb3cgZGlkIEkgZ2V0IGhl
+cmU/Iik7DQogfQ0KQEAgLTEyNiwyMCArMTQ5LDcgQEAgc3RhdGljIHZvaWQg
+c3VuXzgyMDcyX2ZkX291dGIodW5zaWduZWQgYw0KIAkJcHJpbnRrKCJmbG9w
+cHk6IEFza2VkIHRvIHdyaXRlIHRvIHVua25vd24gcG9ydCAlZFxuIiwgcG9y
+dCk7DQogCQlwYW5pYygiZmxvcHB5OiBQb3J0IGJvbGl4ZWQuIik7DQogCWNh
+c2UgMjogLyogRkRfRE9SICovDQotCQkvKiBPaCBnZWVzZSwgODIwNzIgb24g
+dGhlIFN1biBoYXMgbm8gRE9SIHJlZ2lzdGVyLA0KLQkJICogdGhlIGZ1bmN0
+aW9uYWxpdHkgaXMgaW1wbGVtZW50ZWQgdmlhIHRoZSBBVVhJTw0KLQkJICog
+SS9PIHJlZ2lzdGVyLiAgU28gd2UgbXVzdCBlbXVsYXRlIHRoZSBiZWhhdmlv
+ci4NCi0JCSAqDQotCQkgKiBBU1NVTVBUSU9OUzogIFRoZXJlIHdpbGwgb25s
+eSBldmVyIGJlIG9uZSBmbG9wcHkNCi0JCSAqICAgICAgICAgICAgICAgZHJp
+dmUgYXR0YWNoZWQgdG8gYSBTdW4gY29udHJvbGxlcg0KLQkJICogICAgICAg
+ICAgICAgICBhbmQgaXQgd2lsbCBiZSBhdCBkcml2ZSB6ZXJvLg0KLQkJICov
+DQotCQl7DQotCQkJdW5zaWduZWQgYml0cyA9IDA7DQotCQkJaWYgKHZhbHVl
+ICYgMHgxMCkgYml0cyB8PSBBVVhJT19GTFBZX0RTRUw7DQotCQkJaWYgKCh2
+YWx1ZSAmIDB4ODApID09IDApIGJpdHMgfD0gQVVYSU9fRkxQWV9FSkNUOw0K
+LQkJCXNldF9hdXhpbyhiaXRzLCAofmJpdHMpICYgKEFVWElPX0ZMUFlfRFNF
+THxBVVhJT19GTFBZX0VKQ1QpKTsNCi0JCX0NCisJCXN1bl9zZXRfZG9yKHZh
+bHVlLCAwKTsNCiAJCWJyZWFrOw0KIAljYXNlIDU6IC8qIEZEX0RBVEEgKi8N
+CiAJCXN1bl9mZGMtPmRhdGFfODIwNzIgPSB2YWx1ZTsNCkBAIC0xNjEsMTUg
+KzE3MSwyMiBAQCBzdGF0aWMgdW5zaWduZWQgY2hhciBzdW5fODIwNzdfZmRf
+aW5iKGluDQogCWRlZmF1bHQ6DQogCQlwcmludGsoImZsb3BweTogQXNrZWQg
+dG8gcmVhZCB1bmtub3duIHBvcnQgJWRcbiIsIHBvcnQpOw0KIAkJcGFuaWMo
+ImZsb3BweTogUG9ydCBib2xpeGVkLiIpOw0KKwljYXNlIDA6IC8qIEZEX1NU
+QVRVU18wICovDQorCQlyZXR1cm4gc3VuX2ZkYy0+c3RhdHVzMV84MjA3NzsN
+CisJY2FzZSAxOiAvKiBGRF9TVEFUVVNfMSAqLw0KKwkJcmV0dXJuIHN1bl9m
+ZGMtPnN0YXR1czJfODIwNzc7DQorCWNhc2UgMjogLyogRkRfRE9SICovDQor
+CQlyZXR1cm4gc3VuX2ZkYy0+ZG9yXzgyMDc3Ow0KKwljYXNlIDM6IC8qIEZE
+X1REUiAqLw0KKwkJcmV0dXJuIHN1bl9mZGMtPnRhcGVjdGxfODIwNzc7DQog
+CWNhc2UgNDogLyogRkRfU1RBVFVTICovDQogCQlyZXR1cm4gc3VuX2ZkYy0+
+c3RhdHVzXzgyMDc3ICYgflNUQVRVU19ETUE7DQogCWNhc2UgNTogLyogRkRf
+REFUQSAqLw0KIAkJcmV0dXJuIHN1bl9mZGMtPmRhdGFfODIwNzc7DQogCWNh
+c2UgNzogLyogRkRfRElSICovDQotCQkvKiBYWFg6IElzIERDTCBvbiAweDgw
+IGluIHN1bjRtPyAqLw0KLQkJcmV0dXJuIHN1bl9mZGMtPmRpcl84MjA3NzsN
+CisJCXJldHVybiBzdW5fcmVhZF9kaXIoKTsNCiAJfTsNCi0JcGFuaWMoInN1
+bl84MjA3Ml9mZF9pbmI6IEhvdyBkaWQgSSBnZXQgaGVyZT8iKTsNCisJcGFu
+aWMoInN1bl84MjA3N19mZF9pbmI6IEhvdyBkaWQgSSBnZXQgaGVyZT8iKTsN
+CiB9DQogDQogc3RhdGljIHZvaWQgc3VuXzgyMDc3X2ZkX291dGIodW5zaWdu
+ZWQgY2hhciB2YWx1ZSwgaW50IHBvcnQpDQpAQCAtMTgwLDggKzE5Nyw3IEBA
+IHN0YXRpYyB2b2lkIHN1bl84MjA3N19mZF9vdXRiKHVuc2lnbmVkIGMNCiAJ
+CXByaW50aygiZmxvcHB5OiBBc2tlZCB0byB3cml0ZSB0byB1bmtub3duIHBv
+cnQgJWRcbiIsIHBvcnQpOw0KIAkJcGFuaWMoImZsb3BweTogUG9ydCBib2xp
+eGVkLiIpOw0KIAljYXNlIDI6IC8qIEZEX0RPUiAqLw0KLQkJLyogSGFwcGls
+eSwgdGhlIDgyMDc3IGhhcyBhIHJlYWwgRE9SIHJlZ2lzdGVyLiAqLw0KLQkJ
+c3VuX2ZkYy0+ZG9yXzgyMDc3ID0gdmFsdWU7DQorCQlzdW5fc2V0X2Rvcih2
+YWx1ZSwgMSk7DQogCQlicmVhazsNCiAJY2FzZSA1OiAvKiBGRF9EQVRBICov
+DQogCQlzdW5fZmRjLT5kYXRhXzgyMDc3ID0gdmFsdWU7DQpAQCAtMTkyLDYg
+KzIwOCw5IEBAIHN0YXRpYyB2b2lkIHN1bl84MjA3N19mZF9vdXRiKHVuc2ln
+bmVkIGMNCiAJY2FzZSA0OiAvKiBGRF9TVEFUVVMgKi8NCiAJCXN1bl9mZGMt
+PnN0YXR1c184MjA3NyA9IHZhbHVlOw0KIAkJYnJlYWs7DQorCWNhc2UgMzog
+LyogRkRfVERSICovDQorCQlzdW5fZmRjLT50YXBlY3RsXzgyMDc3ID0gdmFs
+dWU7DQorCQlicmVhazsNCiAJfTsNCiAJcmV0dXJuOw0KIH0NCkBAIC0zMzIs
+MTYgKzM1MSwxNyBAQCBzdGF0aWMgaW50IHN1bl9mbG9wcHlfaW5pdCh2b2lk
+KQ0KIAkJZ290byBub19zdW5fZmRjOw0KIAl9DQogDQotICAgICAgICBpZihz
+cGFyY19jcHVfbW9kZWwgPT0gc3VuNGMpIHsNCi0gICAgICAgICAgICAgICAg
+c3VuX2Zkb3BzLmZkX2luYiA9IHN1bl84MjA3Ml9mZF9pbmI7DQotICAgICAg
+ICAgICAgICAgIHN1bl9mZG9wcy5mZF9vdXRiID0gc3VuXzgyMDcyX2ZkX291
+dGI7DQotICAgICAgICAgICAgICAgIGZkY19zdGF0dXMgPSAmc3VuX2ZkYy0+
+c3RhdHVzXzgyMDcyOw0KLSAgICAgICAgICAgICAgICAvKiBwcmludGsoIkFV
+WElPIEAweCVseFxuIiwgYXV4aW9fcmVnaXN0ZXIpOyAqLyAvKiBQMyAqLw0K
+LSAgICAgICAgfSBlbHNlIHsNCi0gICAgICAgICAgICAgICAgc3VuX2Zkb3Bz
+LmZkX2luYiA9IHN1bl84MjA3N19mZF9pbmI7DQotICAgICAgICAgICAgICAg
+IHN1bl9mZG9wcy5mZF9vdXRiID0gc3VuXzgyMDc3X2ZkX291dGI7DQotICAg
+ICAgICAgICAgICAgIGZkY19zdGF0dXMgPSAmc3VuX2ZkYy0+c3RhdHVzXzgy
+MDc3Ow0KLSAgICAgICAgICAgICAgICAvKiBwcmludGsoIkRPUiBAMHglcFxu
+IiwgJnN1bl9mZGMtPmRvcl84MjA3Nyk7ICovIC8qIFAzICovDQorCXN1bl9m
+ZG9wcy5mZF9pbmIgPSBzdW5fODIwNzdfZmRfaW5iOw0KKwlzdW5fZmRvcHMu
+ZmRfb3V0YiA9IHN1bl84MjA3N19mZF9vdXRiOw0KKwlmZGNfc3RhdHVzID0g
+JnN1bl9mZGMtPnN0YXR1c184MjA3NzsNCisNCisJaWYgKHN1bl9mZGMtPmRv
+cl84MjA3NyA9PSAweDgwKSB7DQorCQlzdW5fZmRjLT5kb3JfODIwNzcgPSAw
+eDAyOw0KKwkJaWYgKHN1bl9mZGMtPmRvcl84MjA3NyA9PSAweDgwKSB7DQor
+CQkJc3VuX2Zkb3BzLmZkX2luYiA9IHN1bl84MjA3Ml9mZF9pbmI7DQorCQkJ
+c3VuX2Zkb3BzLmZkX291dGIgPSBzdW5fODIwNzJfZmRfb3V0YjsNCisJCQlm
+ZGNfc3RhdHVzID0gJnN1bl9mZGMtPnN0YXR1c184MjA3MjsNCisJCX0NCiAJ
+fQ0KIA0KIAkvKiBTdWNjZXNzLi4uICovDQo=
+
+--1750305931-1330388316-1185414533=:21616--
