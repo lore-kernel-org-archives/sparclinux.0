@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 26 Jul 2007 06:35:50 +0000
+From: Mikael Pettersson <mikpe@it.uu.se>
+Date: Thu, 26 Jul 2007 10:21:29 +0000
 Subject: Re: [BUG sparc64] 2.6.22-rc broke X on Ultra5
-Message-Id: <20070725.233550.74749609.davem@davemloft.net>
+Message-Id: <200707261021.l6QALTpq026128@harpo.it.uu.se>
 List-Id: <sparclinux.vger.kernel.org>
 References: <18002.44181.639121.720839@alkaid.it.uu.se>
 In-Reply-To: <18002.44181.639121.720839@alkaid.it.uu.se>
@@ -10,229 +10,64 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+On Wed, 25 Jul 2007 23:35:50 -0700 (PDT), David Miller wrote:
+> Ok, I'm still hunting this down.
+> 
+> I would not have believed the behavior handled in the patch
+> below unless I saw it firsthand myself.  Aparently the
+> UltraSparc-IIi and UltraSparc-IIe host controllers will only
+> return correct values in the host controller PCI space if you
+> access them at their natural size.  So f.e. accessing two
+> sequential 16-bit objects as a 32-bit word doesn't work.
+> 
+> Anyways, my test program passes with the patch below, please
+> give it a spin with your X problems...  it's against 2.6.23-rc1
+> but should apply with only minor line offsets to 2.6.22
+> 
+> Thanks.
+> 
+> commit cff2c41772272f70524486f99991d0102dee0640
+> Author: David S. Miller <davem@sunset.davemloft.net>
+> Date:   Wed Jul 25 23:30:16 2007 -0700
+> 
+>     [SPARC64]: Fix sun4u PCI config space accesses on sun4u.
+>     
+>     Don't provide fake PCI config space for sun4u.
+>     
+>     Also, put back the funny host controller space handling that
+>     at least Sabre needs.  You have to read PCI host controller
+>     registers at their nature size otherwise you get zeros instead
+>     of correct values.
 
-Ok, I'm still hunting this down.
+With this patch X seems a bit happier: it finds the PCI stuff
+and doesn't complain about broken resources like before. But it
+fails to access the host bridge due to an "inappropriate ioctl":
 
-I would not have believed the behavior handled in the patch
-below unless I saw it firsthand myself.  Aparently the
-UltraSparc-IIi and UltraSparc-IIe host controllers will only
-return correct values in the host controller PCI space if you
-access them at their natural size.  So f.e. accessing two
-sequential 16-bit objects as a 32-bit word doesn't work.
+write(0, "(II) Primary Device is: PCI 01:0"..., 36) = 36
+write(0, "(II) ATI:  Candidate \"Device\" se"..., 52) = 52
+lseek(5, 64, SEEK_SET)                  = 64
+read(5, "\10\0\0\0", 4)                 = 4
+close(5)                                = 0
+stat64("/proc/bus/pci/00", 0xfffcb330)  = -1 ENOENT (No such file or directory)
+open("/proc/bus/pci/0000:00/00.0", O_RDWR) = 5
+ioctl(5, IIOCNETDIF, 0)                 = -1 ENOTTY (Inappropriate ioctl for device)
 
-Anyways, my test program passes with the patch below, please
-give it a spin with your X problems...  it's against 2.6.23-rc1
-but should apply with only minor line offsets to 2.6.22
+strace lists that ioctl as IIOCNETDIF [_IO('I',2)], but that's an isdn ioctl,
+so I assume it's some X- or sparc-specific thing with the same representation.
 
-Thanks.
+I rebooted into 2.6.21 and in that kernel X issues IIOCNETDIF, IIOCNETSCF,
+IIOCNETAIF, and a bunch of 0x50434900 ioctls on the host bridge, and they
+all succeed, whereas with 2.6.23-rc1 they all get ENOTTY.
 
-commit cff2c41772272f70524486f99991d0102dee0640
-Author: David S. Miller <davem@sunset.davemloft.net>
-Date:   Wed Jul 25 23:30:16 2007 -0700
+I've uploaded Xorg, kernel, and strace logs for 2.6.23-rc1 + your patch
+to <http://user.it.uu.se/~mikpe/linux/to-davem/>, in case you can find
+something interesting there.
 
-    [SPARC64]: Fix sun4u PCI config space accesses on sun4u.
-    
-    Don't provide fake PCI config space for sun4u.
-    
-    Also, put back the funny host controller space handling that
-    at least Sabre needs.  You have to read PCI host controller
-    registers at their nature size otherwise you get zeros instead
-    of correct values.
-    
-    Signed-off-by: David S. Miller <davem@davemloft.net>
+BTW, with this patch your test program now prints
 
-diff --git a/arch/sparc64/kernel/pci.c b/arch/sparc64/kernel/pci.c
-index 55ad1b8..77449a0 100644
---- a/arch/sparc64/kernel/pci.c
-+++ b/arch/sparc64/kernel/pci.c
-@@ -422,10 +422,15 @@ struct pci_dev *of_create_pci_dev(struct pci_pbm_info *pbm,
- 	dev->multifunction = 0;		/* maybe a lie? */
- 
- 	if (host_controller) {
--		dev->vendor = 0x108e;
--		dev->device = 0x8000;
--		dev->subsystem_vendor = 0x0000;
--		dev->subsystem_device = 0x0000;
-+		if (tlb_type != hypervisor) {
-+			pci_read_config_word(dev, PCI_VENDOR_ID,
-+					     &dev->vendor);
-+			pci_read_config_word(dev, PCI_DEVICE_ID,
-+					     &dev->device);
-+		} else {
-+			dev->vendor = PCI_VENDOR_ID_SUN;
-+			dev->device = 0x80f0;
-+		}
- 		dev->cfg_size = 256;
- 		dev->class = PCI_CLASS_BRIDGE_HOST << 8;
- 		sprintf(pci_name(dev), "%04x:%02x:%02x.%d", pci_domain_nr(bus),
-@@ -818,7 +823,7 @@ int pci_host_bridge_read_pci_cfg(struct pci_bus *bus_dev,
- {
- 	static u8 fake_pci_config[] = {
- 		0x8e, 0x10, /* Vendor: 0x108e (Sun) */
--		0x00, 0x80, /* Device: 0x8000 (PBM) */
-+		0xf0, 0x80, /* Device: 0x80f0 (Fire) */
- 		0x46, 0x01, /* Command: 0x0146 (SERR, PARITY, MASTER, MEM) */
- 		0xa0, 0x22, /* Status: 0x02a0 (DEVSEL_MED, FB2B, 66MHZ) */
- 		0x00, 0x00, 0x00, 0x06, /* Class: 0x06000000 host bridge */
-diff --git a/arch/sparc64/kernel/pci_common.c b/arch/sparc64/kernel/pci_common.c
-index 4249214..2f61c4b 100644
---- a/arch/sparc64/kernel/pci_common.c
-+++ b/arch/sparc64/kernel/pci_common.c
-@@ -44,6 +44,67 @@ static void *sun4u_config_mkaddr(struct pci_pbm_info *pbm,
- 	return (void *)	(pbm->config_space | bus | devfn | reg);
- }
- 
-+/* At least on Sabre, it is necessary to access all PCI host controller
-+ * registers at their natural size, otherwise zeros are returned.
-+ * Strange but true, and I see no language in the UltraSPARC-IIi
-+ * programmer's manual that mentions this even indirectly.
-+ */
-+static int sun4u_read_pci_cfg_host(struct pci_pbm_info *pbm,
-+				   unsigned char bus, unsigned int devfn,
-+				   int where, int size, u32 *value)
-+{
-+	u32 tmp32, *addr;
-+	u16 tmp16;
-+	u8 tmp8;
-+
-+	addr = sun4u_config_mkaddr(pbm, bus, devfn, where);
-+	if (!addr)
-+		return PCIBIOS_SUCCESSFUL;
-+
-+	switch (size) {
-+	case 1:
-+		if (where < 8) {
-+			unsigned long align = (unsigned long) addr;
-+
-+			align &= ~1;
-+			pci_config_read16((u16 *)align, &tmp16);
-+			if (where & 1)
-+				*value = tmp16 >> 8;
-+			else
-+				*value = tmp16 & 0xff;
-+		} else {
-+			pci_config_read8((u8 *)addr, &tmp8);
-+			*value = (u32) tmp8;
-+		}
-+		break;
-+
-+	case 2:
-+		if (where < 8) {
-+			pci_config_read16((u16 *)addr, &tmp16);
-+			*value = (u32) tmp16;
-+		} else {
-+			pci_config_read8((u8 *)addr, &tmp8);
-+			*value = (u32) tmp8;
-+			pci_config_read8(((u8 *)addr) + 1, &tmp8);
-+			*value |= ((u32) tmp8) << 8;
-+		}
-+		break;
-+
-+	case 4:
-+		tmp32 = 0xffffffff;
-+		sun4u_read_pci_cfg_host(pbm, bus, devfn,
-+					where, 2, &tmp32);
-+		*value = tmp32;
-+
-+		tmp32 = 0xffffffff;
-+		sun4u_read_pci_cfg_host(pbm, bus, devfn,
-+					where + 2, 2, &tmp32);
-+		*value |= tmp32 << 16;
-+		break;
-+	}
-+	return PCIBIOS_SUCCESSFUL;
-+}
-+
- static int sun4u_read_pci_cfg(struct pci_bus *bus_dev, unsigned int devfn,
- 			      int where, int size, u32 *value)
- {
-@@ -53,10 +114,6 @@ static int sun4u_read_pci_cfg(struct pci_bus *bus_dev, unsigned int devfn,
- 	u16 tmp16;
- 	u8 tmp8;
- 
--	if (bus_dev = pbm->pci_bus && devfn = 0x00)
--		return pci_host_bridge_read_pci_cfg(bus_dev, devfn, where,
--						    size, value);
--
- 	switch (size) {
- 	case 1:
- 		*value = 0xff;
-@@ -69,6 +126,10 @@ static int sun4u_read_pci_cfg(struct pci_bus *bus_dev, unsigned int devfn,
- 		break;
- 	}
- 
-+	if (!bus_dev->number && !PCI_SLOT(devfn))
-+		return sun4u_read_pci_cfg_host(pbm, bus, devfn, where,
-+					       size, value);
-+
- 	addr = sun4u_config_mkaddr(pbm, bus, devfn, where);
- 	if (!addr)
- 		return PCIBIOS_SUCCESSFUL;
-@@ -101,6 +162,53 @@ static int sun4u_read_pci_cfg(struct pci_bus *bus_dev, unsigned int devfn,
- 	return PCIBIOS_SUCCESSFUL;
- }
- 
-+static int sun4u_write_pci_cfg_host(struct pci_pbm_info *pbm,
-+				    unsigned char bus, unsigned int devfn,
-+				    int where, int size, u32 value)
-+{
-+	u32 *addr;
-+
-+	addr = sun4u_config_mkaddr(pbm, bus, devfn, where);
-+	if (!addr)
-+		return PCIBIOS_SUCCESSFUL;
-+
-+	switch (size) {
-+	case 1:
-+		if (where < 8) {
-+			unsigned long align = (unsigned long) addr;
-+			u16 tmp16;
-+
-+			align &= ~1;
-+			pci_config_read16((u16 *)align, &tmp16);
-+			if (where & 1) {
-+				tmp16 &= 0x00ff;
-+				tmp16 |= value << 8;
-+			} else {
-+				tmp16 &= 0xff00;
-+				tmp16 |= value;
-+			}
-+			pci_config_write16((u16 *)align, tmp16);
-+		} else
-+			pci_config_write8((u8 *)addr, value);
-+		break;
-+	case 2:
-+		if (where < 8) {
-+			pci_config_write16((u16 *)addr, value);
-+		} else {
-+			pci_config_write8((u8 *)addr, value & 0xff);
-+			pci_config_write8(((u8 *)addr) + 1, value >> 8);
-+		}
-+		break;
-+	case 4:
-+		sun4u_write_pci_cfg_host(pbm, bus, devfn,
-+					 where, 2, value & 0xffff);
-+		sun4u_write_pci_cfg_host(pbm, bus, devfn,
-+					 where + 2, 2, value >> 16);
-+		break;
-+	}
-+	return PCIBIOS_SUCCESSFUL;
-+}
-+
- static int sun4u_write_pci_cfg(struct pci_bus *bus_dev, unsigned int devfn,
- 			       int where, int size, u32 value)
- {
-@@ -108,9 +216,10 @@ static int sun4u_write_pci_cfg(struct pci_bus *bus_dev, unsigned int devfn,
- 	unsigned char bus = bus_dev->number;
- 	u32 *addr;
- 
--	if (bus_dev = pbm->pci_bus && devfn = 0x00)
--		return pci_host_bridge_write_pci_cfg(bus_dev, devfn, where,
--						     size, value);
-+	if (!bus_dev->number && !PCI_SLOT(devfn))
-+		return sun4u_write_pci_cfg_host(pbm, bus, devfn, where,
-+						size, value);
-+
- 	addr = sun4u_config_mkaddr(pbm, bus, devfn, where);
- 	if (!addr)
- 		return PCIBIOS_SUCCESSFUL;
+x0:0x8e1000a0
+x8:0x00000006
+
+i.e., bit 5 of x0 is now set for some reason.
+
+/Mikael
