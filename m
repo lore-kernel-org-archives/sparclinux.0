@@ -1,360 +1,100 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Thu, 19 Jul 2007 15:18:15 +0000
-Subject: [PATCH 10/12] [SPARC/64] Rename some functions like PowerPC
-Message-Id: <20070720011815.25969af4.sfr@canb.auug.org.au>
+From: David Miller <davem@davemloft.net>
+Date: Fri, 27 Jul 2007 02:09:22 +0000
+Subject: Fw: /proc/bus/pci IOCTL breakage
+Message-Id: <20070726.190922.122833826.davem@davemloft.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="--Next_Part(Thu_Jul_26_19_09_22_2007_013)--"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070718173024.50204a1a.sfr@canb.auug.org.au>
-	<20070720010742.e60c67a7.sfr@canb.auug.org.au>
-In-Reply-To: <20070720010742.e60c67a7.sfr@canb.auug.org.au>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: sparclinux@vger.kernel.org
+
+----Next_Part(Thu_Jul_26_19_09_22_2007_013)--
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-To: ppc-dev <linuxppc-dev@ozlabs.org>, sparclinux@vger.kernel.org
-Cc: paulus@samba.org, "David S. Miller" <davem@davemloft.net>, wli@holomorphy.com
 
-This is to make the of merge easier.  Also rename of_bus_type.
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
----
- arch/sparc/kernel/of_device.c   |   42 ++++++++++++++++----------------
- arch/sparc/kernel/time.c        |    2 +-
- arch/sparc64/kernel/auxio.c     |    2 +-
- arch/sparc64/kernel/of_device.c |   50 +++++++++++++++++++-------------------
- arch/sparc64/kernel/power.c     |    2 +-
- arch/sparc64/kernel/time.c      |    2 +-
- include/asm-sparc/of_device.h   |    3 +-
- include/asm-sparc64/of_device.h |    3 +-
- 8 files changed, 54 insertions(+), 52 deletions(-)
+This is the cause of the 2.6.23-rc1 ioctl problems...
 
--- 
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
+----Next_Part(Thu_Jul_26_19_09_22_2007_013)--
+Content-Type: Message/Rfc822
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-diff --git a/arch/sparc/kernel/of_device.c b/arch/sparc/kernel/of_device.c
-index 0760b81..cb21983 100644
---- a/arch/sparc/kernel/of_device.c
-+++ b/arch/sparc/kernel/of_device.c
-@@ -21,7 +21,7 @@ static int of_platform_bus_match(struct device *dev, struct device_driver *drv)
- 	return of_match_device(matches, of_dev) != NULL;
- }
- 
--static int of_device_probe(struct device *dev)
-+static int of_platform_device_probe(struct device *dev)
- {
- 	int error = -ENODEV;
- 	struct of_platform_driver *drv;
-@@ -45,7 +45,7 @@ static int of_device_probe(struct device *dev)
- 	return error;
- }
- 
--static int of_device_remove(struct device *dev)
-+static int of_platform_device_remove(struct device *dev)
- {
- 	struct of_device * of_dev = to_of_device(dev);
- 	struct of_platform_driver * drv = to_of_platform_driver(dev->driver);
-@@ -55,7 +55,7 @@ static int of_device_remove(struct device *dev)
- 	return 0;
- }
- 
--static int of_device_suspend(struct device *dev, pm_message_t state)
-+static int of_platform_device_suspend(struct device *dev, pm_message_t state)
- {
- 	struct of_device * of_dev = to_of_device(dev);
- 	struct of_platform_driver * drv = to_of_platform_driver(dev->driver);
-@@ -66,7 +66,7 @@ static int of_device_suspend(struct device *dev, pm_message_t state)
- 	return error;
- }
- 
--static int of_device_resume(struct device * dev)
-+static int of_platform_device_resume(struct device * dev)
- {
- 	struct of_device * of_dev = to_of_device(dev);
- 	struct of_platform_driver * drv = to_of_platform_driver(dev->driver);
-@@ -87,7 +87,7 @@ static int node_match(struct device *dev, void *data)
- 
- struct of_device *of_find_device_by_node(struct device_node *dp)
- {
--	struct device *dev = bus_find_device(&of_bus_type, NULL,
-+	struct device *dev = bus_find_device(&of_platform_bus_type, NULL,
- 					     dp, node_match);
- 
- 	if (dev)
-@@ -101,10 +101,10 @@ EXPORT_SYMBOL(of_find_device_by_node);
- struct bus_type ebus_bus_type = {
-        .name	= "ebus",
-        .match	= of_platform_bus_match,
--       .probe	= of_device_probe,
--       .remove	= of_device_remove,
--       .suspend	= of_device_suspend,
--       .resume	= of_device_resume,
-+       .probe	= of_platform_device_probe,
-+       .remove	= of_platform_device_remove,
-+       .suspend	= of_platform_device_suspend,
-+       .resume	= of_platform_device_resume,
- };
- EXPORT_SYMBOL(ebus_bus_type);
- #endif
-@@ -113,23 +113,23 @@ EXPORT_SYMBOL(ebus_bus_type);
- struct bus_type sbus_bus_type = {
-        .name	= "sbus",
-        .match	= of_platform_bus_match,
--       .probe	= of_device_probe,
--       .remove	= of_device_remove,
--       .suspend	= of_device_suspend,
--       .resume	= of_device_resume,
-+       .probe	= of_platform_device_probe,
-+       .remove	= of_platform_device_remove,
-+       .suspend	= of_platform_device_suspend,
-+       .resume	= of_platform_device_resume,
- };
- EXPORT_SYMBOL(sbus_bus_type);
- #endif
- 
--struct bus_type of_bus_type = {
-+struct bus_type of_platform_bus_type = {
-        .name	= "of",
-        .match	= of_platform_bus_match,
--       .probe	= of_device_probe,
--       .remove	= of_device_remove,
--       .suspend	= of_device_suspend,
--       .resume	= of_device_resume,
-+       .probe	= of_platform_device_probe,
-+       .remove	= of_platform_device_remove,
-+       .suspend	= of_platform_device_suspend,
-+       .resume	= of_platform_device_resume,
- };
--EXPORT_SYMBOL(of_bus_type);
-+EXPORT_SYMBOL(of_platform_bus_type);
- 
- static inline u64 of_read_addr(const u32 *cell, int size)
- {
-@@ -595,7 +595,7 @@ build_resources:
- 	build_device_resources(op, parent);
- 
- 	op->dev.parent = parent;
--	op->dev.bus = &of_bus_type;
-+	op->dev.bus = &of_platform_bus_type;
- 	if (!parent)
- 		strcpy(op->dev.bus_id, "root");
- 	else
-@@ -639,7 +639,7 @@ static int __init of_bus_driver_init(void)
- {
- 	int err;
- 
--	err = bus_register(&of_bus_type);
-+	err = bus_register(&of_platform_bus_type);
- #ifdef CONFIG_PCI
- 	if (!err)
- 		err = bus_register(&ebus_bus_type);
-diff --git a/arch/sparc/kernel/time.c b/arch/sparc/kernel/time.c
-index 7b4612d..f2fdbb3 100644
---- a/arch/sparc/kernel/time.c
-+++ b/arch/sparc/kernel/time.c
-@@ -354,7 +354,7 @@ static struct of_platform_driver clock_driver = {
- /* Probe for the mostek real time clock chip. */
- static int __init clock_init(void)
- {
--	return of_register_driver(&clock_driver, &of_bus_type);
-+	return of_register_driver(&clock_driver, &of_platform_bus_type);
- }
- 
- /* Must be after subsys_initcall() so that busses are probed.  Must
-diff --git a/arch/sparc64/kernel/auxio.c b/arch/sparc64/kernel/auxio.c
-index 826118e..7b37976 100644
---- a/arch/sparc64/kernel/auxio.c
-+++ b/arch/sparc64/kernel/auxio.c
-@@ -155,7 +155,7 @@ static struct of_platform_driver auxio_driver = {
- 
- static int __init auxio_init(void)
- {
--	return of_register_driver(&auxio_driver, &of_bus_type);
-+	return of_register_driver(&auxio_driver, &of_platform_bus_type);
- }
- 
- /* Must be after subsys_initcall() so that busses are probed.  Must
-diff --git a/arch/sparc64/kernel/of_device.c b/arch/sparc64/kernel/of_device.c
-index 68927bc..485f857 100644
---- a/arch/sparc64/kernel/of_device.c
-+++ b/arch/sparc64/kernel/of_device.c
-@@ -21,7 +21,7 @@ static int of_platform_bus_match(struct device *dev, struct device_driver *drv)
- 	return of_match_device(matches, of_dev) != NULL;
- }
- 
--static int of_device_probe(struct device *dev)
-+static int of_platform_device_probe(struct device *dev)
- {
- 	int error = -ENODEV;
- 	struct of_platform_driver *drv;
-@@ -45,7 +45,7 @@ static int of_device_probe(struct device *dev)
- 	return error;
- }
- 
--static int of_device_remove(struct device *dev)
-+static int of_platform_device_remove(struct device *dev)
- {
- 	struct of_device * of_dev = to_of_device(dev);
- 	struct of_platform_driver * drv = to_of_platform_driver(dev->driver);
-@@ -55,7 +55,7 @@ static int of_device_remove(struct device *dev)
- 	return 0;
- }
- 
--static int of_device_suspend(struct device *dev, pm_message_t state)
-+static int of_platform_device_suspend(struct device *dev, pm_message_t state)
- {
- 	struct of_device * of_dev = to_of_device(dev);
- 	struct of_platform_driver * drv = to_of_platform_driver(dev->driver);
-@@ -66,7 +66,7 @@ static int of_device_suspend(struct device *dev, pm_message_t state)
- 	return error;
- }
- 
--static int of_device_resume(struct device * dev)
-+static int of_platform_device_resume(struct device * dev)
- {
- 	struct of_device * of_dev = to_of_device(dev);
- 	struct of_platform_driver * drv = to_of_platform_driver(dev->driver);
-@@ -112,7 +112,7 @@ static int node_match(struct device *dev, void *data)
- 
- struct of_device *of_find_device_by_node(struct device_node *dp)
- {
--	struct device *dev = bus_find_device(&of_bus_type, NULL,
-+	struct device *dev = bus_find_device(&of_platform_bus_type, NULL,
- 					     dp, node_match);
- 
- 	if (dev)
-@@ -126,20 +126,20 @@ EXPORT_SYMBOL(of_find_device_by_node);
- struct bus_type isa_bus_type = {
-        .name	= "isa",
-        .match	= of_platform_bus_match,
--       .probe	= of_device_probe,
--       .remove	= of_device_remove,
--       .suspend	= of_device_suspend,
--       .resume	= of_device_resume,
-+       .probe	= of_platform_device_probe,
-+       .remove	= of_platform_device_remove,
-+       .suspend	= of_platform_device_suspend,
-+       .resume	= of_platform_device_resume,
- };
- EXPORT_SYMBOL(isa_bus_type);
- 
- struct bus_type ebus_bus_type = {
-        .name	= "ebus",
-        .match	= of_platform_bus_match,
--       .probe	= of_device_probe,
--       .remove	= of_device_remove,
--       .suspend	= of_device_suspend,
--       .resume	= of_device_resume,
-+       .probe	= of_platform_device_probe,
-+       .remove	= of_platform_device_remove,
-+       .suspend	= of_platform_device_suspend,
-+       .resume	= of_platform_device_resume,
- };
- EXPORT_SYMBOL(ebus_bus_type);
- #endif
-@@ -148,23 +148,23 @@ EXPORT_SYMBOL(ebus_bus_type);
- struct bus_type sbus_bus_type = {
-        .name	= "sbus",
-        .match	= of_platform_bus_match,
--       .probe	= of_device_probe,
--       .remove	= of_device_remove,
--       .suspend	= of_device_suspend,
--       .resume	= of_device_resume,
-+       .probe	= of_platform_device_probe,
-+       .remove	= of_platform_device_remove,
-+       .suspend	= of_platform_device_suspend,
-+       .resume	= of_platform_device_resume,
- };
- EXPORT_SYMBOL(sbus_bus_type);
- #endif
- 
--struct bus_type of_bus_type = {
-+struct bus_type of_platform_bus_type = {
-        .name	= "of",
-        .match	= of_platform_bus_match,
--       .probe	= of_device_probe,
--       .remove	= of_device_remove,
--       .suspend	= of_device_suspend,
--       .resume	= of_device_resume,
-+       .probe	= of_platform_device_probe,
-+       .remove	= of_platform_device_remove,
-+       .suspend	= of_platform_device_suspend,
-+       .resume	= of_platform_device_resume,
- };
--EXPORT_SYMBOL(of_bus_type);
-+EXPORT_SYMBOL(of_platform_bus_type);
- 
- static inline u64 of_read_addr(const u32 *cell, int size)
- {
-@@ -882,7 +882,7 @@ static struct of_device * __init scan_one_device(struct device_node *dp,
- 		op->irqs[i] = build_one_device_irq(op, parent, op->irqs[i]);
- 
- 	op->dev.parent = parent;
--	op->dev.bus = &of_bus_type;
-+	op->dev.bus = &of_platform_bus_type;
- 	if (!parent)
- 		strcpy(op->dev.bus_id, "root");
- 	else
-@@ -926,7 +926,7 @@ static int __init of_bus_driver_init(void)
- {
- 	int err;
- 
--	err = bus_register(&of_bus_type);
-+	err = bus_register(&of_platform_bus_type);
- #ifdef CONFIG_PCI
- 	if (!err)
- 		err = bus_register(&isa_bus_type);
-diff --git a/arch/sparc64/kernel/power.c b/arch/sparc64/kernel/power.c
-index 8dd4294..fdc0d0b 100644
---- a/arch/sparc64/kernel/power.c
-+++ b/arch/sparc64/kernel/power.c
-@@ -170,6 +170,6 @@ static struct of_platform_driver power_driver = {
- 
- void __init power_init(void)
- {
--	of_register_driver(&power_driver, &of_bus_type);
-+	of_register_driver(&power_driver, &of_platform_bus_type);
- 	return;
- }
-diff --git a/arch/sparc64/kernel/time.c b/arch/sparc64/kernel/time.c
-index 62e316a..592ffcd 100644
---- a/arch/sparc64/kernel/time.c
-+++ b/arch/sparc64/kernel/time.c
-@@ -835,7 +835,7 @@ static int __init clock_init(void)
- 		return 0;
- 	}
- 
--	return of_register_driver(&clock_driver, &of_bus_type);
-+	return of_register_driver(&clock_driver, &of_platform_bus_type);
- }
- 
- /* Must be after subsys_initcall() so that busses are probed.  Must
-diff --git a/include/asm-sparc/of_device.h b/include/asm-sparc/of_device.h
-index b625261..fd8e957 100644
---- a/include/asm-sparc/of_device.h
-+++ b/include/asm-sparc/of_device.h
-@@ -9,7 +9,8 @@
- 
- extern struct bus_type ebus_bus_type;
- extern struct bus_type sbus_bus_type;
--extern struct bus_type of_bus_type;
-+extern struct bus_type of_platform_bus_type;
-+#define of_bus_type	of_platform_bus_type	/* for compatibility */
- 
- /*
-  * The of_device is a kind of "base class" that is a superset of
-diff --git a/include/asm-sparc64/of_device.h b/include/asm-sparc64/of_device.h
-index 68048cb..daf36eb 100644
---- a/include/asm-sparc64/of_device.h
-+++ b/include/asm-sparc64/of_device.h
-@@ -10,7 +10,8 @@
- extern struct bus_type isa_bus_type;
- extern struct bus_type ebus_bus_type;
- extern struct bus_type sbus_bus_type;
--extern struct bus_type of_bus_type;
-+extern struct bus_type of_platform_bus_type;
-+#define of_bus_type	of_platform_bus_type	/* for compatibility */
- 
- /*
-  * The of_device is a kind of "base class" that is a superset of
--- 
-1.5.2.3
+Return-Path: <davem@vger.kernel.org>
+X-Original-To: davem@sunset.davemloft.net
+Delivered-To: davem@sunset.davemloft.net
+Received: from vger.kernel.org (vger.kernel.org [209.132.176.167])
+	by sunset.davemloft.net (Postfix) with ESMTP id 07EF129010C
+	for <davem@sunset.davemloft.net>; Thu, 26 Jul 2007 19:08:23 -0700 (PDT)
+Received: (from localhost user: 'davem' uid#2109 fake: STDIN
+	(davem@vger.kernel.org)) by vger.kernel.org id S934298AbXG0CIL
+	(ORCPT <rfc822;davem@sunset.davemloft.net>);
+	Thu, 26 Jul 2007 22:08:11 -0400
+Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
+	id S934000AbXG0CIK (ORCPT <rfc822;davem@davemloft.net>);
+	Thu, 26 Jul 2007 22:08:10 -0400
+Received: (majordomo@vger.kernel.org) by vger.kernel.org id S1759927AbXG0CHx
+	(ORCPT <rfc822;linux-kernel-outgoing>);
+	Thu, 26 Jul 2007 22:07:53 -0400
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:47482
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1759319AbXG0CHw (ORCPT
+	<rfc822;linux-kernel@vger.kernel.org>);
+	Thu, 26 Jul 2007 22:07:52 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by sunset.davemloft.net (Postfix) with ESMTP id 8109D29010A;
+	Thu, 26 Jul 2007 19:07:51 -0700 (PDT)
+Date: Thu, 26 Jul 2007 19:07:51 -0700 (PDT)
+Message-Id: <20070726.190751.66179795.davem@davemloft.net>
+To: linux-kernel@vger.kernel.org
+CC: adobriyan@sw.ru
+Subject: /proc/bus/pci IOCTL breakage
+From: David Miller <davem@davemloft.net>
+X-Mailer: Mew version 5.1.52 on Emacs 21.4 / Mule 5.0 (SAKAKI)
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Sender: "David S. Miller" <davem@vger.kernel.org>
+Fake-Sender: linux-kernel-owner@vger.kernel.org
+Precedence: bulk
+X-Mailing-List: linux-kernel@vger.kernel.org
 
+
+This change:
+
+commit 786d7e1612f0b0adb6046f19b906609e4fe8b1ba
+Author: Alexey Dobriyan <adobriyan@sw.ru>
+Date:   Sun Jul 15 23:39:00 2007 -0700
+
+    Fix rmmod/read/write races in /proc entries
+
+Broke ioctl() on /proc/bus/pci/* files for COMPAT platforms.
+
+proc_fops->ioctl() is defined for these PCI device files, and the
+COMPAT ioctl is handled via fs/compat_ioctl.c's entries, which makes
+it just call the ->ioctl() handler directly.
+
+proc_fops->compat_ioctl is NULL for these files, it isn't needed.
+
+This used to work because we used to jump right to the de->proc_fops,
+but now we have these wrappers and proc_reg_compat_ioctl is what
+gets called and since proc_fops->compat_ioctl is NULL we return
+ENOTTY instead of calling proc_fops->ioctl().
+
+Two ways to fix:
+
+1) Make the PROC wrapper call ->unlocked_ioctl() or ->ioctl()
+   as a fallback of ->compat_ioctl is NULL.
+
+2) Make proc_bus_pci_operations provide a .compat_ioctl method,
+   but then we'll need to audit the entire tree for cases like
+   this and make the same fix.
+
+Because it's easier to validate that all cases are covered,
+I think #1 is the preferred fix.
+-
+To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please read the FAQ at  http://www.tux.org/lkml/
+
+----Next_Part(Thu_Jul_26_19_09_22_2007_013)----
