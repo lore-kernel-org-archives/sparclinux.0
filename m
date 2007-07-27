@@ -1,27 +1,21 @@
 From: Meelis Roos <mroos@linux.ee>
-Date: Sat, 28 Jul 2007 07:58:53 +0000
-Subject: Re: autoloading snd_sun_cs4231?
-Message-Id: <Pine.SOC.4.64.0707281056380.11637@math.ut.ee>
+Date: Fri, 27 Jul 2007 19:23:53 +0000
+Subject: ioctl32 warning on framebuffer
+Message-Id: <Pine.SOC.4.64.0707272220560.1678@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.SOC.4.64.0705171123520.18408@math>
-In-Reply-To: <Pine.SOC.4.64.0705171123520.18408@math>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> The mechanism it uses is incredibly simple, it's nothing
-> more than a shell script that runs "/usr/sbin/prtconv -pv"
-> and greps for node names, and based upon those node names
-> it loads the appropriate module.
-> 
-> Perhaps you're not turning on the openprom driver that
-> prtconf needs to operate.
+Maybe related to the just solved X debugging problem, maybe not: 
 
-On the machine in question, prtconf -pv works and displays a long list.
-However, sbus modules sunlance, qlogicpti, parport_sunbpp were not 
-autoloaded and previously I have had problems with sunhme too (I have it 
-in /etc/modules now).
+I booted todays git (d941cf5e) on my U5 and XOrg is set to autostart 
+(the box is currently headless so I do not know whether it actually 
+works). Anyway, XOrg startup gives these 2 lines to dmesg:
+
+ioctl32(Xorg:1892): Unknown cmd fd(6) cmd(40584606){t:'F';sz:88} arg(ffdabb4c) on /dev/fb0 
+ioctl32(Xorg:1892): Unknown cmd fd(6) cmd(40184600){t:'F';sz:24} arg(ffdabb54) on /dev/fb0
 
 -- 
 Meelis Roos (mroos@linux.ee)
