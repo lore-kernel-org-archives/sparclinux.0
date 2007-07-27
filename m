@@ -1,7 +1,7 @@
-From: Mikael Pettersson <mikpe@it.uu.se>
-Date: Thu, 26 Jul 2007 10:21:29 +0000
+From: David Miller <davem@davemloft.net>
+Date: Fri, 27 Jul 2007 01:23:55 +0000
 Subject: Re: [BUG sparc64] 2.6.22-rc broke X on Ultra5
-Message-Id: <200707261021.l6QALTpq026128@harpo.it.uu.se>
+Message-Id: <20070726.182355.15268786.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <18002.44181.639121.720839@alkaid.it.uu.se>
 In-Reply-To: <18002.44181.639121.720839@alkaid.it.uu.se>
@@ -10,64 +10,74 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Wed, 25 Jul 2007 23:35:50 -0700 (PDT), David Miller wrote:
-> Ok, I'm still hunting this down.
-> 
-> I would not have believed the behavior handled in the patch
-> below unless I saw it firsthand myself.  Aparently the
-> UltraSparc-IIi and UltraSparc-IIe host controllers will only
-> return correct values in the host controller PCI space if you
-> access them at their natural size.  So f.e. accessing two
-> sequential 16-bit objects as a 32-bit word doesn't work.
-> 
-> Anyways, my test program passes with the patch below, please
-> give it a spin with your X problems...  it's against 2.6.23-rc1
-> but should apply with only minor line offsets to 2.6.22
-> 
-> Thanks.
-> 
-> commit cff2c41772272f70524486f99991d0102dee0640
-> Author: David S. Miller <davem@sunset.davemloft.net>
-> Date:   Wed Jul 25 23:30:16 2007 -0700
-> 
->     [SPARC64]: Fix sun4u PCI config space accesses on sun4u.
->     
->     Don't provide fake PCI config space for sun4u.
->     
->     Also, put back the funny host controller space handling that
->     at least Sabre needs.  You have to read PCI host controller
->     registers at their nature size otherwise you get zeros instead
->     of correct values.
+From: Mikael Pettersson <mikpe@it.uu.se>
+Date: Thu, 26 Jul 2007 12:21:29 +0200 (MEST)
 
-With this patch X seems a bit happier: it finds the PCI stuff
-and doesn't complain about broken resources like before. But it
-fails to access the host bridge due to an "inappropriate ioctl":
+> strace lists that ioctl as IIOCNETDIF [_IO('I',2)], but that's an isdn ioctl,
+> so I assume it's some X- or sparc-specific thing with the same representation.
+ ...
+> open("/proc/bus/pci/0000:00/00.0", O_RDWR) = 5
+> ioctl(5, IIOCNETDIF, 0)                 = -1 ENOTTY (Inappropriate ioctl for device)
 
-write(0, "(II) Primary Device is: PCI 01:0"..., 36) = 36
-write(0, "(II) ATI:  Candidate \"Device\" se"..., 52) = 52
-lseek(5, 64, SEEK_SET)                  = 64
-read(5, "\10\0\0\0", 4)                 = 4
-close(5)                                = 0
-stat64("/proc/bus/pci/00", 0xfffcb330)  = -1 ENOENT (No such file or directory)
-open("/proc/bus/pci/0000:00/00.0", O_RDWR) = 5
-ioctl(5, IIOCNETDIF, 0)                 = -1 ENOTTY (Inappropriate ioctl for device)
+I think strace is mis-decoding 0x50434902 and 0x50434903 into those
+ISDN ioctls for some reason, when in reality they are
+PCIIOC_MMAP_IS_MEM and PCIIOC_WRITE_COMBINE.
 
-strace lists that ioctl as IIOCNETDIF [_IO('I',2)], but that's an isdn ioctl,
-so I assume it's some X- or sparc-specific thing with the same representation.
+If it really is passing those ISDN ioctls you'd get messages in
+your kernel log from the compat ioctl() layer warning about that.
 
-I rebooted into 2.6.21 and in that kernel X issues IIOCNETDIF, IIOCNETSCF,
-IIOCNETAIF, and a bunch of 0x50434900 ioctls on the host bridge, and they
-all succeed, whereas with 2.6.23-rc1 they all get ENOTTY.
+I doubt that's happening because I see them in the strace of Xorg on
+my ultra5, although my X server doesn't attempt to use those ioctls
+on the PCI controller, it only does them on the ATI graphics card
+device.
 
-I've uploaded Xorg, kernel, and strace logs for 2.6.23-rc1 + your patch
-to <http://user.it.uu.se/~mikpe/linux/to-davem/>, in case you can find
-something interesting there.
+Let's see why that might fail.
 
-BTW, with this patch your test program now prints
+The open is successful, so the file is definitely registered and
+there for the PCI controller.
 
-x0:0x8e1000a0
-x8:0x00000006
+But we can get that -ENOTTY if the ioctl handler is NULL for the file.
 
-i.e., bit 5 of x0 is now set for some reason.
+I enhanced my test program to run the same sequence X is, and the
+ioctls do not fail on my ultra5, can you run the program below on
+your's?
 
-/Mikael
+Thanks.
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+#include <stdio.h>
+
+#include <errno.h>
+
+#include <linux/pci.h>
+
+int main(void)
+{
+	unsigned int x0, x8;
+	int fd, err;
+
+	fd = open("/proc/bus/pci/0000:00/00.0", O_RDWR);
+	lseek(fd, 0, SEEK_SET);
+	read(fd, &x0, 4);
+	lseek(fd, 8, SEEK_SET);
+	read(fd, &x8, 4);
+
+	printf("x0:0x%08x\n", x0);
+	printf("x8:0x%08x\n", x8);
+
+	err = ioctl(fd, PCIIOC_MMAP_IS_MEM, 0);
+	printf("PCIIOC_MMAP_IS_MEM: err=%d, errno=%d\n",
+	       err, errno);
+
+	err = ioctl(fd, PCIIOC_WRITE_COMBINE, 1);
+	printf("PCIIOC_MMAP_WRITE_COMBINE: err=%d, errno=%d\n",
+	       err, errno);
+
+	close(fd);
+
+	return 0;
+}
