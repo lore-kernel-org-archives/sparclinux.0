@@ -1,48 +1,53 @@
-From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date: Thu, 26 Jul 2007 21:11:09 +0000
-Subject: Re: [PATCH] Sun/Solaris VTOC table corrections
-Message-Id: <Pine.LNX.4.61.0707262137450.23486@mtfhpc.demon.co.uk>
+From: "Julian Calaby" <julian.calaby@gmail.com>
+Date: Sat, 28 Jul 2007 03:39:31 +0000
+Subject: Build failures on a sparcstation10 with 2.6.23-rc1
+Message-Id: <646765f40707272039u27113c20ie98cbd42b9742c0f@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.61.0707251742000.20510@mtfhpc.demon.co.uk>
-In-Reply-To: <Pine.LNX.4.61.0707251742000.20510@mtfhpc.demon.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Hi all,
 
+I'm not sure exactly who this should be addressed to but I assume that
+this list will get this to them.
 
-On Wed, 25 Jul 2007, David Miller wrote:
+Ok:
 
-> From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-> Date: Thu, 26 Jul 2007 05:31:16 +0100 (BST)
->
->> This version alows the condition you indicated (VTOC sanity=0,version=0
->> and no_partitions=0) to work as before as long as what were the spare1/spare2
->> fields in the VTOC partition entries are zero.
->>
->> Can you try it out and see if it behaves correctly for fully set up VTOC
->> and also the previous Linux-Sun partition situation.
->>
->> This should at least prevent some posible problems with posible future
->> versions of VTOC. It may be desirable to to reject partitions if the
->> VTOC is not compatible (different sanity or version > 1). What is your view?
->>
->> The code will now also scan up to VTOC partitions when a validated VTOC
->> has been detected.
->
-> It looks like it would work and I will give it some testing,
-> thanks Mark.
->
-> Why don't we want to try and use 16-partition x86 Solaris labels?
-> Are those only found as sub-labels of MSDOS partitions?
+I have a Sun SparcServer 10, running Debian Testing. Recently Debian
+has dropped kernel support for sparc32, (as in the kernels have
+disappeared off their archive) and I am attempting to compile my own.
 
-Looking at some 2005 OpenSolaris code I have, it looks like there is a 
-Solaris 16 partition disk label that uses an x86 Solaris style VTOC. If I 
-understood the code, it is located at an offset of 512 bytes.
+My first issue is the difficulty I am having in getting them small
+enough: I am using Debian's make-kpkg build system, and am compiling
+everything as modules in an attempt to get it to boot through SILO. I
+have selected optimization by size, however this has had no effect.
 
-> -
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+I believe that my current incarnation of my .config will produce a
+sufficiently small kernel, however I cannot get the modules to build
+due to various build errors during the MODPOST stage of compilation.
+
+These errors relate to iounmap and ioremap being unavailable. (and
+another symbol which I cannot remember)
+
+This makes no sense as these functions are definitely compiled into the kernel.
+
+I will provide more detailed error messages later as this system is
+currently attempting another kernel compilation.
+
+My questions are:
+
+Are there any pending patches I can try which might fix this? (I am
+using the sparc-2.6 git tree, updated as of half an hour ago)
+
+Are there any tricks, gotchas or general information I need to know
+for compiling to for this architecture / system?
+
+Thanks in advance,
+
+--
+
+Julian Calaby
+
+Email: julian.calaby@gmail.com
