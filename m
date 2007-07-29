@@ -1,48 +1,60 @@
 From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date: Sun, 29 Jul 2007 21:54:46 +0000
+Date: Sun, 29 Jul 2007 22:01:33 +0000
 Subject: Re: Sparc32 not working:2.6.23-rc1 (git commit
-Message-Id: <Pine.LNX.4.61.0707292251100.31340@mtfhpc.demon.co.uk>
+Message-Id: <Pine.LNX.4.61.0707292255540.31340@mtfhpc.demon.co.uk>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.LNX.4.61.0707281903350.27869@mtfhpc.demon.co.uk>
-In-Reply-To: <Pine.LNX.4.61.0707281903350.27869@mtfhpc.demon.co.uk>
+ <20070728234856.0fb78952.krzysztof.h1@wp.pl> <20070729003855.1c5422ed.krzysztof.h1@wp.pl>
+ <Pine.LNX.4.61.0707290011300.28457@mtfhpc.demon.co.uk>
+ <20070729174535.9eb6d0aa.krzysztof.h1@wp.pl> <Pine.LNX.4.61.0707291900010.31211@mtfhpc.demon.co.uk>
+ <20070729205625.GK16817@stusta.de>
+In-Reply-To: <20070729205625.GK16817@stusta.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Krzysztof Helt <krzysztof.h1@wp.pl>, sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
 
 
 
-On Sun, 29 Jul 2007, Krzysztof Helt wrote:
+On Sun, 29 Jul 2007, Adrian Bunk wrote:
 
-> On Sun, 29 Jul 2007 17:45:35 +0200
-> Krzysztof Helt <krzysztof.h1@wp.pl> wrote:
+> On Sun, Jul 29, 2007 at 07:26:29PM +0100, Mark Fortescue wrote:
+>> ...
+>> I am going to try to cherry pick a set of commits to see if I can't get a
+>> better idear of where the memory corruption on sun4c is coming from. Build
+>> problems sue to the DMA changes make git bisecting un-usable untill I have
+>> found out which patches fix the DMA build issues.
 >
->> It is not DMA I suppose. It does not happen in any specific place. It is easy to trigger by loading
->> and unloading the sunlance module, but it hangs linux in other places (init process, console login).
->>
->> It happens only in SMP. If it happens in the sunlance module it happens in sparc_lance_probe_one()
->> (in probing function). I thought it is due to openprom accesses so I commented them out (and put
->> hardcoded values there). No real change. It is always in the probe_one method before any DMA is
->> started.
->>
+> You have any known-good kernel?
 >
-> I was able to find out that it is definitely prom related. When I removed also prom_node_has_property() call,
-> there is no bug any more. It locks inside prom_XXX access functions (e.g. __prom_nextprop or prom_getproplen).
+> Boot back into this kernel for bisecting and compiling the kernels for
+> bisecting there.
 >
-> The old prom system was working so I think the new openprom patches created this bug.
->
-> How does the new system access the prom? Is the old prom lock is taken into consideration?
 
-The lock is taken into consideration however, looking at the code, there 
-seems to be an issue with the new code for Sparc32. It does not seem tie 
-up with the code used before!!!. If this is rearly the case then this 
-would explain the memory corruption I am seeing as the functions in tree.c 
-that call the openprom to not match the previous working versions.
+As I said, bisecting does not work if you can't build the kernel because 
+of un-defined symbols spanning most of the revisions you are interested 
+in.
 
-I will try to workout what has happened.
+I have isolated the revisions that do not build so I should be able to 
+cerry pick a commit/commits that fixes the build issues. Once done, I will 
+be able to investigate the original issue.
 
+If it were practical to do a build test on all supported platforms before 
+submitting patches then this would not be so much of an issue but ...
+
+> cu
+> Adrian
 >
-> Regards,
-> Krzysztof
+> -- 
 >
+>       "Is there not promise of rain?" Ling Tan asked suddenly out
+>        of the darkness. There had been need of rain for many days.
+>       "Only a promise," Lao Er said.
+>                                       Pearl S. Buck - Dragon Seed
+>
+> -
+> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
