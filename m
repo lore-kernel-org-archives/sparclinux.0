@@ -1,34 +1,35 @@
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
-Date: Sun, 29 Jul 2007 20:56:24 +0000
+From: Adrian Bunk <bunk@stusta.de>
+Date: Sun, 29 Jul 2007 20:56:25 +0000
 Subject: Re: Sparc32 not working:2.6.23-rc1 (git commit
-Message-Id: <20070729225624.5591c73a.krzysztof.h1@wp.pl>
+Message-Id: <20070729205625.GK16817@stusta.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.61.0707281903350.27869@mtfhpc.demon.co.uk>
-In-Reply-To: <Pine.LNX.4.61.0707281903350.27869@mtfhpc.demon.co.uk>
+References: <Pine.LNX.4.61.0707281903350.27869@mtfhpc.demon.co.uk> <20070728234856.0fb78952.krzysztof.h1@wp.pl> <20070729003855.1c5422ed.krzysztof.h1@wp.pl> <Pine.LNX.4.61.0707290011300.28457@mtfhpc.demon.co.uk> <20070729174535.9eb6d0aa.krzysztof.h1@wp.pl> <Pine.LNX.4.61.0707291900010.31211@mtfhpc.demon.co.uk>
+In-Reply-To: <Pine.LNX.4.61.0707291900010.31211@mtfhpc.demon.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Mark Fortescue <mark@mtfhpc.demon.co.uk>
+Cc: Krzysztof Helt <krzysztof.h1@wp.pl>, sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
 
-On Sun, 29 Jul 2007 17:45:35 +0200
-Krzysztof Helt <krzysztof.h1@wp.pl> wrote:
+On Sun, Jul 29, 2007 at 07:26:29PM +0100, Mark Fortescue wrote:
+>...
+> I am going to try to cherry pick a set of commits to see if I can't get a 
+> better idear of where the memory corruption on sun4c is coming from. Build 
+> problems sue to the DMA changes make git bisecting un-usable untill I have 
+> found out which patches fix the DMA build issues.
 
-> It is not DMA I suppose. It does not happen in any specific place. It is easy to trigger by loading 
-> and unloading the sunlance module, but it hangs linux in other places (init process, console login).
-> 
-> It happens only in SMP. If it happens in the sunlance module it happens in sparc_lance_probe_one()
-> (in probing function). I thought it is due to openprom accesses so I commented them out (and put 
-> hardcoded values there). No real change. It is always in the probe_one method before any DMA is
-> started.
-> 
+You have any known-good kernel?
 
-I was able to find out that it is definitely prom related. When I removed also prom_node_has_property() call,
-there is no bug any more. It locks inside prom_XXX access functions (e.g. __prom_nextprop or prom_getproplen).
+Boot back into this kernel for bisecting and compiling the kernels for 
+bisecting there.
 
-The old prom system was working so I think the new openprom patches created this bug.
+cu
+Adrian
 
-How does the new system access the prom? Is the old prom lock is taken into consideration?
+-- 
 
-Regards,
-Krzysztof
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
 
