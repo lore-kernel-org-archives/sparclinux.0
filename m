@@ -1,24 +1,42 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 18 Jul 2007 22:25:21 +0000
-Subject: Re: [PATCH] Mark sparc and sparc64 as not having virt_to_bus
-Message-Id: <20070718.152521.132927068.davem@davemloft.net>
+From: Meelis Roos <mroos@linux.ee>
+Date: Sun, 29 Jul 2007 19:50:41 +0000
+Subject: Cannot access the Hardware Clock
+Message-Id: <Pine.SOC.4.64.0707292236210.10801@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070718144140.3b4fd82e.sfr@canb.auug.org.au>
-	<Pine.LNX.4.61.0707181458390.2120@mtfhpc.demon.co.uk>
-In-Reply-To: <Pine.LNX.4.61.0707181458390.2120@mtfhpc.demon.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mark@mtfhpc.demon.co.uk
-Cc: sfr@canb.auug.org.au, wli@holomorphy.com, linux-kernel@vger.kernel.org, akpm@linux-foundation.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date: Wed, 18 Jul 2007 15:09:41 +0100 (BST)
+I noticed that the current kernels on Ultra5 show the warning
+Cannot access the Hardware Clock via any known method.
+during both startup when setting clock and during shutdown when saving 
+clock. After this line, a message tells that the clock was successfully 
+set/saved and the clock is right - so the hwclock program is probably 
+doing direct hardware access.
 
-> Currently, sun4c (and sun4m) do NOT support the FDC driver as a module.
-> I did look at it but decided there were better issues to resolve at the 
-> time.
+There's no mention of RTC in dmesg. There is also no /dev/rtc but I do 
+not know whether it has to exist (it does on my i386 PC).
 
-The easiest thing to do is to make it so that the floppy driver
-won't be set modular in drivers/block/Kconfig for SPARC.
+#
+# Real Time Clock
+#
+CONFIG_RTC_LIB=m
+CONFIG_RTC_CLASS=m
 
+#
+# RTC interfaces
+#
+CONFIG_RTC_INTF_SYSFS=y
+CONFIG_RTC_INTF_PROC=y
+CONFIG_RTC_INTF_DEV=y
+CONFIG_RTC_INTF_DEV_UIE_EMUL=y
+# CONFIG_RTC_DRV_TEST is not set
+
+And this is all that my .config has positive.
+
+It seems CONFIG_RTC is missing, but the option depends on !SPARC and so 
+is not present on SPARC64.
+
+-- 
+Meelis Roos (mroos@linux.ee)
