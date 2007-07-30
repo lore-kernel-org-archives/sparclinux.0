@@ -1,7 +1,7 @@
-From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
-Date: Mon, 30 Jul 2007 07:48:30 +0000
+From: David Miller <davem@davemloft.net>
+Date: Mon, 30 Jul 2007 08:17:01 +0000
 Subject: Re: [sparc64] Strange interaction between 2.6 kernel and 2.5 (and
-Message-Id: <46AD97CE.8060909@systella.fr>
+Message-Id: <20070730.011701.71091893.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <46933AE8.1080509@systella.fr>
 In-Reply-To: <46933AE8.1080509@systella.fr>
@@ -10,20 +10,14 @@ Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-David Miller wrote:
-> From: BERTRAND_Jo=EBl <joel.bertrand@systella.fr>
-> Date: Mon, 30 Jul 2007 09:04:27 +0200
->=20
->> If you want, I can open a ssh access on one of my U60 to do some
->> tests.
->=20
-> Thank you kindly for the offer, but this bug is stuck in the
-> mud until I can reproduce it here locally as that's the only
-> reasonable way I can work on a bug of this nature.
+From: BERTRAND_Jo=EBl <joel.bertrand@systella.fr>
+Date: Mon, 30 Jul 2007 09:48:30 +0200
 
-	I know. How can I help you ? This bug is very problematic. I can patch=20
-kernel of my U60 to debug futex if that can help you.
+> I know. How can I help you ? This bug is very problematic. I can
+> patch kernel of my U60 to debug futex if that can help you.
 
-	Regards,
+I really need to confirm that the 450Mhz cpus are the type
+that uniquely trigger this problem.
 
-	JKB
+We need to find someone who can test alternate cpu types to
+see if that makes the bug go away.
