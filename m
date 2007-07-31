@@ -1,25 +1,45 @@
-From: "Ollie Wild" <aaw@google.com>
-Date: Tue, 31 Jul 2007 05:10:43 +0000
+From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
+Date: Tue, 31 Jul 2007 05:35:29 +0000
 Subject: Re: [SPARC32] NULL pointer derefference
-Message-Id: <65dd6fd50707302210y5b79a70di58eb2d46f3958025@mail.gmail.com>
+Message-Id: <Pine.LNX.4.61.0707310557470.3926@mtfhpc.demon.co.uk>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.LNX.4.61.0707300301340.32210@mtfhpc.demon.co.uk>
-In-Reply-To: <Pine.LNX.4.61.0707300301340.32210@mtfhpc.demon.co.uk>
+ <20070729.211929.78713482.davem@davemloft.net>
+In-Reply-To: <20070729.211929.78713482.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-arch@vger.kernel.org, sparclinux@vger.kernel.org, wli@holomorphy.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org, davem@davemloft.net
+To: David Miller <davem@davemloft.net>
+Cc: aaw@google.com, akpm@linux-foundation.org, linux-arch@vger.kernel.org, sparclinux@vger.kernel.org, wli@holomorphy.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org
 
-On 7/29/07, Mark Fortescue <mark@mtfhpc.demon.co.uk> wrote:
-> Hi All,
+Hi David,
+
 >
-> Unfortunatly Sparc32 sun4c low level memory management apears to be
-> incompatible with commit b6a2fea39318e43fee84fa7b0b90d68bed92d2ba
-> mm: variable length argument support.
+> One possible issue is sequencing, perhaps the stack argument copy
+> is occuring before the new context is setup properly on sun4c.
+>
 
-I feel like I ought to help out with this since it's my change which
-broke things, but I don't have access to a Sparc32 box.  Does anyone
-have a remotely rebootable machine I can use?
+I think it is somthing related to this but too much has changed for me to 
+work out what is going on. At present, I don't have a good enough 
+understanding of the virtual memory system and how it interracts with the 
+sun4c mmu.
 
-Ollie
+The original code did a job lot of pte stuf in install_arg_page. The new 
+code seems to replace this using get_user_pages but I have not worked out 
+how get_user_pages gets to the point at which it allocated pte's i.e. 
+maps the stack memory it is about to put the arguments into.
+
+> Another issue might be the new flush_cache_page() call in this
+> new code in fs/exec.c, there are now cases where flush_cache_page()
+> will be called on kernel addresses, and sun4c's implementation might
+> not like that at all.
+
+I commented out the flush_cache_page callmade in the new code. This had no 
+effect on the problem. Other tests have shown it is breaking earlier than 
+this.
+
+I am going to try to narrow down exactly where the pointer gets messed up 
+as this should help.
+
+Regards
+ 	Mark Fortescue.
