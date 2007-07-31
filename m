@@ -1,7 +1,7 @@
-From: Mark Fortescue <sparc32@mtfhpc.demon.co.uk>
-Date: Tue, 31 Jul 2007 03:05:52 +0000
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Date: Tue, 31 Jul 2007 16:57:06 +0000
 Subject: Re: Sparc32 not working:2.6.23-rc1 (git commit
-Message-Id: <Pine.LNX.4.61.0707310358480.3585@mtfhpc.demon.co.uk>
+Message-Id: <20070731185706.1dca905b.krzysztof.h1@wp.pl>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.LNX.4.61.0707281903350.27869@mtfhpc.demon.co.uk>
 In-Reply-To: <Pine.LNX.4.61.0707281903350.27869@mtfhpc.demon.co.uk>
@@ -10,24 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi All,
+On Mon, 30 Jul 2007 18:22:13 -0700 (PDT)
+David Miller <davem@davemloft.net> wrote:
 
->
+> 
 > I would suggest that, for now, we address the bug itself by
 > merely converting sunlance over to the of_*() interfaces.
->
+> 
 > The patch below is what I'm going to check in upstream.
->
-> If you find anything interesting in arch/sparc/prom/tree.c et al.
-> please let me know.
->
+> 
 
-I has a look through it but since it works for both my SS1 and SS2, it 
-would seem that this is a problem that is specific to the SMP system. In 
-some Solaris source I found on the web, there are some odd comments about 
-the OBP locking to an specific processor, resulting in prom calls from 
-other processors entering a never ending spin-lock. Maybe it could be 
-related to this.
+The patch is working, the module no longer crashes
+or hangs.
 
-Regards
- 	Mark Fortescue.
+I'll try tracking this down further to find what is going on.
+
+As a side note. I would do the patch if you ask for checking
+this direction. You are too valuable resource too do all the
+work (especially with patches like this). Try offload the work.
+We need you to solve problems impossible to solve (as every wizard
+from the highest knowledge ring you can do impossible things,
+just they take you more time than making miracles ;-)
+
+Regards,
+Krzysztof
