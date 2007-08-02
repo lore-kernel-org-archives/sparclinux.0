@@ -1,7 +1,7 @@
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
-Date: Thu, 02 Aug 2007 09:42:52 +0000
+From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
+Date: Thu, 02 Aug 2007 12:26:59 +0000
 Subject: Re: Build failures on a sparcstation10 with 2.6.23-rc1
-Message-Id: <20070802114252.f65e2703.krzysztof.h1@wp.pl>
+Message-Id: <Pine.LNX.4.61.0708021323040.18689@mtfhpc.demon.co.uk>
 List-Id: <sparclinux.vger.kernel.org>
 References: <646765f40707272039u27113c20ie98cbd42b9742c0f@mail.gmail.com>
 In-Reply-To: <646765f40707272039u27113c20ie98cbd42b9742c0f@mail.gmail.com>
@@ -10,18 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, 02 Aug 2007 00:18:37 -0700 (PDT)
-David Miller <davem@davemloft.net> wrote:
+Hi David,
 
-> Since the issue is being forced, I made another attempt to make
-> modular floppy work on sparc32.  If people could test this patch I'd
-> apprecaite it.
-> 
+Build OK, Module Load OK first time around.
+Module unload silently fails to release the IRQ so a module reload 
+fails because the IRQ is not free.
+I can probably sort this out over the weekend if you don't already have 
+appropriate changes in hand.
 
-The patch works on SS20 with UP kernel. A floppy can be built-in
-or build as a module. The floppy works in both cases.
+Regards
+ 	Mark Fortescue.
 
-I haven't tested SMP kernel as the kernel is unstable in general (issues with prom).
 
-Regards,
-Krzysztof
