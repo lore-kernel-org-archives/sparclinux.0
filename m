@@ -1,27 +1,31 @@
-From: joe@perches.com
-Date: Mon, 13 Aug 2007 06:36:25 +0000
-Subject: [PATCH] [452/2many] MAINTAINERS - UltraSPARC (sparc64):
-Message-Id: <46bffbe9.HKclFFagHgDWmT4p%joe@perches.com>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 02 Aug 2007 04:56:37 +0000
+Subject: Re: [PATCH] Some cosmetic changes to QlogicPTI SCSI driver
+Message-Id: <20070801.215637.38712075.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <Pine.LNX.4.61.0707311948370.5707@mtfhpc.demon.co.uk>
+In-Reply-To: <Pine.LNX.4.61.0707311948370.5707@mtfhpc.demon.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, davem@davemloft.net, akpm@linux-foundation.org
+To: mark@mtfhpc.demon.co.uk
+Cc: James.Bottomley@SteelEye.com, linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org
 
-Add file pattern to MAINTAINER entry
+From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
+Date: Tue, 31 Jul 2007 20:10:45 +0100 (BST)
 
-Signed-off-by: Joe Perches <joe@perches.com>
+> From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
+> 
+> Change a printk sequencing issue where <6> ... was coming up in the middle
+> of a line when scsi_add_host was being called.
+> Reduce the length of some printk messages and make the messages
+> more consistant. All cosmetic but it makes it easier to read as it
+> scrolles off the screen during boot.
+> 
+> Signed-off-by: Mark Fortescue <mark@mtfhpc.demon.co.uk>
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index e6d5c86..52c9db7 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -4313,6 +4313,8 @@ M:	davem@davemloft.net
- L:	sparclinux@vger.kernel.org
- T:	git kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git
- S:	Maintained
-+F:	arch/sparc64/
-+F:	include/asm-sparc64/
- 
- SHARP LH SUPPORT (LH7952X & LH7A40X)
- P:	Marc Singer
+I'm fine with this:
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+
+I'll let James take care of merging this.
