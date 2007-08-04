@@ -1,41 +1,53 @@
-From: vignesh babu <vignesh.babu@wipro.com>
-Date: Mon, 13 Aug 2007 13:11:12 +0000
-Subject: [kj] is_power_of_2 in include/asm-sparc64/vio.h
-Message-Id: <1187009952.7273.14.camel@merlin.linuxcoe.com>
+From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
+Date: Sat, 04 Aug 2007 14:16:33 +0000
+Subject: Sparc32 Build Failure
+Message-Id: <Pine.LNX.4.61.0708041511300.24119@mtfhpc.demon.co.uk>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: kernel-janitors@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Replacing n & (n - 1) for power of 2 check by is_power_of_2(n)
+Hi David,
 
-Signed-off-by: vignesh babu <vignesh.babu@wipro.com>
----
-diff --git a/include/asm-sparc64/vio.h b/include/asm-sparc64/vio.h
-index f7417e9..2cc65a9 100644
---- a/include/asm-sparc64/vio.h
-+++ b/include/asm-sparc64/vio.h
-@@ -8,6 +8,7 @@
- #include <linux/spinlock.h>
- #include <linux/completion.h>
- #include <linux/list.h>
-+#include <linux/log2.h>
- 
- #include <asm/ldc.h>
- #include <asm/mdesc.h>
-@@ -258,7 +259,7 @@ static inline u32 vio_dring_avail(struct vio_dring_state *dr,
- 				  unsigned int ring_size)
- {
- 	/* Ensure build-time power-of-2.  */
--	BUILD_BUG_ON(ring_size & (ring_size - 1));
-+	BUILD_BUG_ON(!is_power_of_2(ring_size));
- 
- 	return (dr->pending -
- 		((dr->prod - dr->cons) & (ring_size - 1)));
+Commit 6ba60d2195cd65d72eaf7ce3903a707c5bf20c7b breaks sparc32 build 
+because asm-sparc/fcntl.h does not contain the required #defines.
 
--- 
-Vignesh Babu BM 
-_____________________________________________________________ 
-"Why is it that every time I'm with you, makes me believe in magic?"
+   CC      init/main.o
+In file included from 
+/L64/src/linux-2.6/linux-test/include/linux/proc_fs.h:5,
+                  from /L64/src/linux-2.6/linux-test/init/main.c:14:
+/L64/src/linux-2.6/linux-test/include/linux/fs.h:848: warning: 'struct 
+flock' de
+clared inside parameter list
+/L64/src/linux-2.6/linux-test/include/linux/fs.h:848: warning: its scope 
+is only
+  this definition or declaration, which is probably not what you want
+/L64/src/linux-2.6/linux-test/include/linux/fs.h:850: warning: 'struct 
+flock' de
+clared inside parameter list
+/L64/src/linux-2.6/linux-test/include/linux/fs.h:853: warning: 'struct 
+flock64'
+declared inside parameter list
+/L64/src/linux-2.6/linux-test/include/linux/fs.h:855: warning: 'struct 
+flock64'
+declared inside parameter list
+/L64/src/linux-2.6/linux-test/init/main.c: In function 'init_post':
+/L64/src/linux-2.6/linux-test/init/main.c:788: error: 'O_RDWR' undeclared 
+(first
+  use in this function)
+/L64/src/linux-2.6/linux-test/init/main.c:788: error: (Each undeclared 
+identifie
+r is reported only once
+/L64/src/linux-2.6/linux-test/init/main.c:788: error: for each function it 
+appea
+rs in.)
+make[2]: *** [init/main.o] Error 1
+make[1]: *** [init] Error 2
+make: *** [all] Error 2
 
+I will sort out the mess and send you a patch that corrects the loss of 
+asm-generic/fcntl.h
+
+Regards
+ 	Mark Fortescue.
