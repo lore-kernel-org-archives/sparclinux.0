@@ -1,24 +1,19 @@
-From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date: Sun, 05 Aug 2007 02:41:15 +0000
-Subject: procps needs PAGE_SIZE
-Message-Id: <Pine.LNX.4.61.0708050326390.25352@mtfhpc.demon.co.uk>
+From: David Miller <davem@davemloft.net>
+Date: Sun, 05 Aug 2007 03:16:10 +0000
+Subject: Re: procps needs PAGE_SIZE
+Message-Id: <20070804.201610.104033771.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <Pine.LNX.4.61.0708050326390.25352@mtfhpc.demon.co.uk>
+In-Reply-To: <Pine.LNX.4.61.0708050326390.25352@mtfhpc.demon.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi David,
+From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
+Date: Sun, 5 Aug 2007 03:41:15 +0100 (BST)
 
-There have been a number of changes at some point that have made 
-PAGE_SIZE a kernel only constant.
+> Is there a syscall, /proc file or some other system that that provides 
+> access to PAGE_SIZE for user space programs (like procps ps)?
 
-For Sparc32, PAGE_SIZE changes betwen 4K and 8K depending on the 
-configuration (sun4=8K, sun4c/d/m=4K)
-
-Is there a syscall, /proc file or some other system that that provides 
-access to PAGE_SIZE for user space programs (like procps ps)?
-
-Regards
- 	Mark Fortescue.
-
+sys_getpagesize()
