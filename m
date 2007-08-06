@@ -1,7 +1,7 @@
 From: Andrew Walrond <andrew@walrond.org>
-Date: Mon, 06 Aug 2007 10:26:14 +0000
+Date: Mon, 06 Aug 2007 15:46:04 +0000
 Subject: Re: Sparc-2.6.24 GIT tree
-Message-Id: <46B6F746.9000705@walrond.org>
+Message-Id: <46B7423C.20501@walrond.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20070805.180930.21926239.davem@davemloft.net>
 In-Reply-To: <20070805.180930.21926239.davem@davemloft.net>
@@ -14,22 +14,14 @@ David Miller wrote:
 > 
 > I use arch/sparc64/defconfig, enable CONFIG_FUSION* and CONFIG_SMP,
 > works fine on all my Niagara boxes.
+> -
 
-Do these warnings matter?
+What compiler version do you use?
 
- v2.6.22.1 $ make image
-  CHK     include/linux/version.h
-  CHK     include/linux/utsrelease.h
-  CALL    scripts/checksyscalls.sh
-  CHK     include/linux/compile.h
-  MODPOST vmlinux
-WARNING: arch/sparc64/kernel/built-in.o(.text+0x1bdf0): Section
-mismatch: reference to .init.text:sun4v_init_mondo_queues (between
-'after_lock_tlb' and 'sparc64_cpu_startup_end')
-WARNING: arch/sparc64/kernel/built-in.o(.text+0x1beac): Section
-mismatch: reference to .init.text:smp_callin (between 'after_lock_tlb'
-and 'sparc64_cpu_startup_end')
-  STRIP   arch/sparc64/boot/image
-  kernel: arch/sparc64/boot/image is ready
+I've got a horrible feeling I've just spent a day fighting against a
+miscompilation by gcc-4.2.
 
+Perhaps this is a known problem? I'm rebuilding with gcc-4.1.2 now and
+will report back shortly....
 
+Andrew Walrond
