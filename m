@@ -1,35 +1,26 @@
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
-Date: Mon, 20 Aug 2007 18:19:13 +0000
-Subject: Re: possible endless loop in PROM initialization
-Message-Id: <20070820201913.7a3e9009.krzysztof.h1@wp.pl>
+From: Andrew Walrond <andrew@walrond.org>
+Date: Mon, 06 Aug 2007 17:53:14 +0000
+Subject: GCC 4.2.1 produces broken 2.6.22.1 kernel.
+Message-Id: <46B7600A.3060700@walrond.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070820075949.GA5927@vimes.madsworld.lan>
-	<20070820.010622.41634915.davem@davemloft.net>
-	<20070820105320.GB4911@vimes.madsworld.lan>
-In-Reply-To: <20070820105320.GB4911@vimes.madsworld.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Markus Dahms <mad@automagically.de>
-Cc: David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Mon, 20 Aug 2007 12:53:20 +0200
-Markus Dahms <mad@automagically.de> wrote:
-
-> Hello again,
-
-> As I'm not sure anymore whether the device tree (show-devs) or the aliases
-> (devalias) are broken on the Classic X (I "upgraded" mine to a Classic by
-> changing some NVRAM bytes) this may be a non-issue. But it is still an
-> endless loop where it don't has to be.
+Andrew Walrond wrote:
+> 
+> I've got a horrible feeling I've just spent a day fighting against a
+> miscompilation by gcc-4.2.
+> 
+> Perhaps this is a known problem? I'm rebuilding with gcc-4.1.2 now and
+> will report back shortly....
 > 
 
-I understand your problem now. The only rational solution is
-to stop building the list in the build_one_prop() if the property 
-with already found name is defined.
+Confirmed; GCC 4.2.1 (vanilla) produces a broken 2.6.22.1 kernel. I
+don't know why, or whether GCC or the kernel is at fault, but the exact
+same kernel and config builds and boots fine with GCC 4.1.2.
 
-Changing way the *_nextprop() works seems not a good 
-idea to me.
+This is on a Sun T1000 niagra box. Anything I can do? let me know.
 
-My two cents,
-Krzysztof
+Andrew Walrond
