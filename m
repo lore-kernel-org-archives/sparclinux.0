@@ -1,34 +1,28 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 21 Aug 2007 06:47:23 +0000
-Subject: Re: Problems starting up ...
-Message-Id: <20070820.234723.112620912.davem@davemloft.net>
+From: "jiaqi zhang" <zation.busy@gmail.com>
+Date: Mon, 06 Aug 2007 22:41:18 +0000
+Subject: SIGSEGV information on SPARC64
+Message-Id: <a8e8903d0708061541r2b6f2dcxa1a2f143db3a026b@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200708202317.48014.Stefan.Sablatnoeg@gmx.de>
-In-Reply-To: <200708202317.48014.Stefan.Sablatnoeg@gmx.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: "Julian Calaby" <julian.calaby@gmail.com>
-Date: Tue, 21 Aug 2007 09:39:08 +1000
+Hello everyone,
 
-> On 8/21/07, Stefan Sablatn=F6g <Stefan.Sablatnoeg@gmx.de> wrote:
-> > My questions are:
-> > - Is there any further trick in using the serial console than to config=
-ure
-> >   CONFIG_SERIAL_SUNZILOG=3Dy and
-> >   CONFIG_SERIAL_SUNZILOG_CONSOLE=3Dy ?
-> >   what about CONFIG_SERIAL_CORE vs. CONFIG_SERIAL_SUNCORE have them both
-> >   or only the sun part?
->=20
-> If the serial console is like the serial console on i386, you have to
-> set it up (pass a commandline argument to the kernel) before it will
-> work.
->=20
-> Also, do you have another console type enabled? e.g. the PROM console
-> or a framebuffer console? - that may fix your problems.
+I'm working on a project that needs to deal with SIGSEGV on SPARC64.
+While I could find the faultive address in siginfo_t, it seems there
+is no way to find the access type(read or write) in it. I tracked the
+kernel source and found that ther kernel retrieves this information
+(fault_code) from "flags" field of thread_info, which is stored in
+register g6. However, I'm not sure if this information has been copied
+to user space, or sigcontext? I couldn't find any clue when tracking
+the delivery of signal and the setup of frames. If it is copied, how
+can I find it so I can use it in my signal handler?
 
-This is not how it works on sparc, the "output-device" firmware
-variable will be inspected, and if it is set to a serial device
-it will be used as the console.
+I'm new  to Linux kernel on SPARC and have spent a lot of time on this
+problem. I hope someone could help me here.
+
+Thanks a lot!
+
+Jiaqi
