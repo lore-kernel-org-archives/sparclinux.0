@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 10 Aug 2007 21:58:02 +0000
-Subject: Re: [SPARC]: Remove iommu from struct sbus_bus and use archdata
-Message-Id: <20070810.145802.45180757.davem@davemloft.net>
+From: Robert Reif <reif@earthlink.net>
+Date: Sat, 11 Aug 2007 20:00:06 +0000
+Subject: Re: [SPARC]: Remove iommu from struct sbus_bus and use archdata like
+Message-Id: <46BE1546.7020705@earthlink.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <46BCA2F1.6080707@earthlink.net>
 In-Reply-To: <46BCA2F1.6080707@earthlink.net>
@@ -10,12 +10,12 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Robert Reif <reif@earthlink.net>
-Date: Fri, 10 Aug 2007 13:40:01 -0400
+David Miller wrote:
 
-> Remove iommu from struct sbus_bus and use archdata like sparc64.
-> 
-> Signed-off-by: Robert Reif <reif@earthlink.net>
-
-Excellent.  Did you test this patch? :-)
+>
+>Excellent.  Did you test this patch? :-)
+>
+>  
+>
+I'm running it on as ss20.  I can't test the java station or sun4d parts.
 
