@@ -1,203 +1,33 @@
 From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date: Sun, 12 Aug 2007 14:15:42 +0000
+Date: Sun, 12 Aug 2007 14:33:45 +0000
 Subject: Re: Sun4c interrupt controller, MMU, IOMMU?
-Message-Id: <Pine.LNX.4.61.0708121419390.32464@mtfhpc.demon.co.uk>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="1750305931-296859814-1186926199=:32464"
+Message-Id: <Pine.LNX.4.61.0708121526490.32464@mtfhpc.demon.co.uk>
 List-Id: <sparclinux.vger.kernel.org>
 References: <f43fc5580708120042m5f2fe544k83aaf00810efc070@mail.gmail.com>
 In-Reply-To: <f43fc5580708120042m5f2fe544k83aaf00810efc070@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi David,
 
---1750305931-296859814-1186926199=:32464
-Content-Type: TEXT/PLAIN; CHARSET=US-ASCII; format=flowed
-Content-ID: <Pine.LNX.4.61.0708121502581.32464@mtfhpc.demon.co.uk>
-
-Hi All,
-
-I have been working on the SunMMU used by sun4c (SS1/SS2).
-
-The attached file is work in progress so it may not be 100% correct. You 
-will need a wide screen (150 columns) to view the file.
-
-I am using a SS1 Clone, a disassembler and verious bits of SunOS, Solaris 
-and Linux source code to validate it (and to work out why sun4c Linux is 
-so restrictive in what alterations can be made to the code without 
-breaking things completely).
-
-The linux code for handling the cache is very similar to that used by 
-SunOS/Solaris (different register choices apers to be the only 
-difference).
-
-The only low level code in this area that I might change in the future is 
-the sun4c_complete_all_stores() function in mm/sun4c.c. Reading the 
-context register and then executing 6 nop's should be sufficient, but 
-untill I have sorted out some more fundemental (and as yet un-explained) 
-stability issues I will will not be in a position to test this out 
-properly.
-
-There is source code for Solaris 2.6 on the web. This is the best source 
-code reference you will get for sun4c as the low level code has not been 
-changed significantly from that of the architecture reference kernel 
-(SunOS 4.1 - see Sparc SCD 1.1).
-
-The un-explained Linux features I am currently working on are:
-
-1) 3MB Max size. SunOS remaps first 4MB. If Linux is changed to also remap 
-the first 4MB instead of just 3M it breaks.
-
-2) Linux runs at VMA F0000000. SunOS runs at VMA F8000000. If Linux is 
-changed ro run at VMA F80000000 it breaks.
-
-David/Anton may be able to explain these to me quickly :) but working 
-through the code slowly will probably teach me more about what is going 
-on.
-
-If Anton and/or David have the time to brouse through my simple SunMMU 
-file and comment in it it might be helpfull.
-
-Regards
- 	Mark Fortescue.
-
-On Sun, 12 Aug 2007, Blue Swirl wrote:
-
-> On 8/12/07, David Miller <davem@davemloft.net> wrote:
->>> Specifically, how are the interrupts routed, which interrupts (ZS,
->>> ESP, Lance, timers, floppy, cgthree) go through the interrupt
->>> controller?
->>
->> There is no interrupt controller, the individual devices and
->> SBUS slot interrupt sources are wired up directly to the cpu.
 >
-> Then what device is poked by arch/sparc/kernel/sun4c_irq.c, I thought
-> this was the controller?
->
-> Thanks for the other information. Implementing the MMU is going to be difficult.
-> -
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
---1750305931-296859814-1186926199=:32464
-Content-Type: TEXT/PLAIN; CHARSET=US-ASCII; NAME="SunMMU.txt"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.61.0708121443180.32464@mtfhpc.demon.co.uk>
-Content-Description: 
-Content-Disposition: ATTACHMENT; FILENAME="SunMMU.txt"
+> All DMA is translated by the cpu's MMU as if it were a memory
+> reference made by the cpu itself.  Any missed DMA translation watchdog
+> resets the cpu.
 
-U3VuTU1VOg0KDQpUaGVyZSBhcmUgdHdvIHZlcnNpb25zLCBhIDItTGV2ZWwg
-VmVyc2lvbiBhbmQgYSAzIExldmVsIFZlcnNpb24uDQoNClRoZSAyLUxldmVs
-IHZlcnNpb24gaXMgd2hhdCBpcyBmb3VuZCBvbiB0aGUgc3VuNGMuDQoNCkxv
-b2tpbmcgYXQgTGludXggc3BhcmMzMiBoZWFkLlMsIHRoZSAzLUxldmVsIGlt
-cGxlbWVudGF0aW9uIGlzIGZvdW5kIG9uIFN1bjQvNHh4IGFuZCBpcyBkZXNj
-cmliZWQgYXMgU3VuNC1NdXRhbnQtTU1VLg0KDQotLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQoNCjItTGV2ZWwgU3Vu
-NGMgSW1wbGVtZW50YXRpb246IA0KDQpWaXJ0dWFsIEFkZHJlc3M6IDFHQiBv
-cmdhbmlzZWQgYXMgNTEyTUIgKExvdykgKyA1MTJNQiAoSGlnaCkNClBoeXNp
-Y2FsIEFkZHJlc3M6IDI1Nk1CIE9CTUVNICsgMjU2TUIgT0JJTw0KDQozMmJp
-dCBWaXJ0dWFsIEFkZHJlc3MgaXMgdGhlIDMwYml0IFZpcnR1YWwgQWRkcmVz
-cyBTaWduIEV4dGVuZGVkIHRvIDMyYml0cy4NClRoZSByZXN1bHQgaXMgdGhh
-dCB0aGVyZSBpcyBhIDNHQiBIb2xlIGluIHRoZSBtaWRkbGUgb2YgdGhlIDMy
-Yml0IFZpcnR1YWwgQWRkcmVzcyBzcGFjZS4NCg0KICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgfC0tLS0tLS0tLS0tLS0tLT4tLS0tLS0tLS0tLS0tLS0t
-LS18DQogICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgIHwNClZpcnR1YWwgQWRkcmVzcyAgICAg
-ICAgICAgIHwgICAgICAgIFBoeXNpY2FsIEFkZHJlc3MgICAgICAgICAgfA0K
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18gICAgX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fXw0KfCBTZWdtZW50TnVtIHwgUFRFTnVt
-IHwgT2Zmc2V0IHwgICAgfCBJL08gfCBQYWdlRnJhbWVOdW0gfCBPZmZzZXQg
-fA0KfC0tLS0tLS0tLS0tLXwtLS0tLS0tLXwtLS0tLS0tLXwgICAgfC0tLS0t
-fC0tLS0tLS0tLS0tLS0tfC0tLS0tLS0tfA0KIDI5ICAgICAgICAxOCAxNyAg
-ICAxMiAxMSAgICAgMCAgICAgIDMxIDI4IDI3ICAgICAgICAgIDEyIDExICAg
-ICAwDQogICAgICB8ICAgICAgICAgICB8ICAgICAgICAgICAgICAgICAgICB8
-ICAgICAgICAgfA0KICAgICAgfCAgICAgICAgICAgfCAgICAgICAgICAgICAg
-ICAgICAgfCAgICAgICAgIHwtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS08LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS18DQogICAgICB8ICAgICAgICAgICB8ICAgICAgICAgICAg
-ICAgICAgICB8ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgIHwNCiAgICAgIHwgICAgICAgICAgIHwgICAgICAgICAg
-ICAgICAgICAgIHwtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tPC0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tfCAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgfA0KICAgICAgfCAgICAgICAgICAgfCAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICB8DQogICAgICB8ICAgICAgICAgICB8LS0tLS0t
-LS0tLS0tLS0tLS0tLT4tLS0tLS0tLS0tLS0tLS0tLS0tLS18ICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIHwNCiAgICAgIHwgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfChJL08gU2ln
-biBFeHRlbmRlZCB0byA0Yml0cykgfA0KICAgICAgfC0tLS0tLS0tLS0+LS0t
-LS0tLS0tLS0tfCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICB8DQogICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICB8ICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIHwNCiAgICAgICAgICAgICAgU01F
-SW5kZXggICAgICAgIHwgICAgICAgICAgICBTTUUqICAgICAgICAgICAgIHwg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgfA0KICAgICAgICAgICAgICBf
-X19fX19fX19fX19fX19fX19fX19fX18gICAgIF9fX19fX19fX19fX18gICAg
-fCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8DQogICAgICAgIHwtLT4t
-LXwgQ29udGV4dCB8IFNlZ21lbnROdW0gfCAtPiAgfCBHUk9VUC1OVU0gfCAg
-ICB8ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IHwgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwNCiAgICAgICAgfCAg
-ICAgfC0tLS0tLS0tLXwtLS0tLS0tLS0tLS18ICAgICB8LS0tLS0tLS0tLS18
-ICAgIHwgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgfCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfA0KICAgICAgICB8
-ICAgICAgYysxMSAgIDEyIDExICAgICAgICAgMCAgICAgICA3ICAgICAgICAg
-MCAgICAgfCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICB8ICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8DQogICAgICAg
-IHwgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAg
-ICAgICAgICB8ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgIHwgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwNCiAgICAg
-ICAgfCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8
-ICAgICAgICAgIHwgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgfCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfA0KQ29u
-dGV4dCB8ICAgICAgICAgICAgICAgICAgICAgICAgIFBURUluZGV4ICAgICAg
-IHwgICAgICAgICAgfCAgICAgICAgIFBURSAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICB8ICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8DQpf
-X19fX19fX19fXyAgICAgICAgICAgICAgICAgICAgICAgX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXyAgICAgX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18NCnwgQ29udGV4dCB8IC0tLS0tLS0tLS0+LS0tLS0tLS0tLSB8IENv
-bnRleHQgfCBHcm91cE51bSB8IFBURU51bSB8IC0+ICB8IFZBTElEIHwgUFJP
-VCAgfCBOTy1DQUNIRSB8ICBUWVBFICAgfCBSRUYgfCBNT0QgfCByZXN2ZCB8
-IFBBR0UtRlJBTUUgfA0KfC0tLS0tLS0tLXwgICAgICAgICAgICAgICAgICAg
-ICAgIHwtLS0tLS0tLS18LS0tLS0tLS0tLXwtLS0tLS0tLXwgICAgIHwgICAg
-ICAgfCBXIHwgUyB8ICAgICAgICAgIHwgMCB8IEkvTyB8ICAgICB8ICAgICB8
-ICAgICAgIHwgICAgICAgICAgICB8DQogYyAgIHwgICAwICAgICAgICAgICAg
-ICAgICAgICAgICAgIGMrZys1IGcrNiBnKzUgICAgICA2IDUgICAgICAwICAg
-ICAgfC0tLS0tLS18LS0tfC0tLXwtLS0tLS0tLS0tfC0tLXwtLS0tLXwtLS0t
-LXwtLS0tLXwtLS0tLS0tfC0tLS0tLS0tLS0tLXwNCiAgICAgfCAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgMzEgICAgMzAgIDI5ICAgICAyOCAgICAgIDI3ICAg
-MjYgICAgMjUgICAgMjQgIDIzICAgMTYgMTUgICAgICAgICAwDQoNCmM9bG9n
-MihOb0NvbnRleHRzKSAgICAgICAgICAgICAgICAgZz1sb2cyKE5vR3JvdXBz
-KQ0KCQkJCQkJCVZBTElECSAgIFBhZ2UgVmFsaWQgQml0DQoJCQkJCQkJUFJP
-VAkgICBBY2Nlc3MgUHJvdGVjdGlvbg0KCQkJCQkJCSAgICAgIFcgICAgICBX
-cml0ZSBFbmFibGUgQml0DQoJCQkJCQkJICAgICAgUyAgICAgIFN5c3RlbSBQ
-YWdlIEJpdA0KCQkJCQkJCU5PLUNBQ0hFICAgTm8gQ2FjaGUgQml0DQoJCQkJ
-CQkJVFlQRSAgICAgICBQYWdlIFR5cGUNCgkJCQkJCQkgICAgICAwMCAgICAg
-T24gQm9hcmQgTWVtb3J5DQoJCQkJCQkJICAgICAgMDEgICAgIE9uIEJvYXJk
-IEkvTw0KCQkJCQkJCSAgICAgIDF4ICAgICBVbmRlZmluZWQNCgkJCQkJCQlS
-RUYgICAgICAgIFJlZmVyZW5jZWQgQml0IChIYXJkd2FyZSkNCgkJCQkJCQlN
-T0QgICAgICAgIE1vZGlmaWVkIEJpdCAgIChIYXJkd2FyZSkNCgkJCQkJCQly
-ZXN2ZCAgICAgIFJlc2VydmVkICAgICAgIChSZWFkcyBhcyBaZXJvIG9uIFNT
-MSkNCgkJCQkJCQlQQUdFLUZSQU1FIFBhZ2UgRnJhbWUgTnVtYmVyDQoNClBU
-RSdzIGFyZSBhY2Nlc3NlZCBhdCBBU0lfQ1RMW0NPTlRFWFRfUkVHXSArIEFT
-SV9QTVt2YWRkcl0NClNNRSdzIGFyZSBhY2Nlc3NlZCBhdCBBU0lfQ1RMW0NP
-TlRFWFRfUkVHXSArIEFTSV9TTVt2YWRkcl0JKnN1bjRjIFNNRSBtYXkgYmUg
-PiA4Yml0cyBidXQgUFJPTSBWMCBvbmx5IHVzZXMgR3JvdXBOdW0gMCB0byAx
-MjcuDQpOb0dyb3VwcyAgIDogUmVhZCBmcm9tIFByb20gb3IgdXNlIDEyOCAo
-PD0gNDA5NikNCk5vQ29udGV4dHMgOiBSZWFkIGZyb20gUHJvbSBvciB1c2Ug
-ICA4DQoNCg==
+I am getting a watchdog reset as soon as I enable interrupts after 
+rebooting the kernel from SunOS or a prom_halt. Could in-proper DMA 
+settings be the cause of this?
+After the watchdog reset or a powre-up reset, there is no problem booting 
+Linux !.
 
---1750305931-296859814-1186926199=:32464--
+Note: I am using SunOS4.1.1 boot so the kernel mappings for linux are
+not what the loader is expecting.
+
+SunOS does not have this problem but they hard code things so that they 
+can get interrupts etc. up and running very much earlier on than Linux so 
+it is very dificult to compare the sequence of events during boot for the 
+two kernels.
+
