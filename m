@@ -1,124 +1,87 @@
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Date: Thu, 09 Aug 2007 09:08:45 +0000
-Subject: 2.6.18 dual sparc64 oops
-Message-Id: <200708091108.45475.m.kozlowski@tuxland.pl>
+From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
+Date: Sun, 12 Aug 2007 14:02:52 +0000
+Subject: [PATCH] Removal of prom_printf/prom_halt
+Message-Id: <Pine.LNX.4.61.0708121443290.32464@mtfhpc.demon.co.uk>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="1750305931-2028087719-1186927372=:32464"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hello,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-	Not sure this is still important as the kernel is a bit old (2.6.18-4-sparc64-smp)
-but I run into an oops on dual sparc64. The box is SUN ULTRA 60 - USII 2 x 450MHZ.
+--1750305931-2028087719-1186927372=:32464
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 
-Unable to handle kernel paging request at virtual address 00000000703ce000
-tsk->{mm,active_mm}->context = 000000000000021c
-tsk->{mm,active_mm}->pgd = fffff8009ac02000
-              \|/ ____ \|/
-              "@'/ .. \`@"
-              /_| \__/ |_\
-                 \__U_/
-kswapd0(123): Oops [#1]
-TSTATE: 0000009980009606 TPC: 00000000004b3544 TNPC: 00000000004b355c Y: 00000000    Not tainted
-TPC: <iput+0x24/0xa0>
-g0: fffff8008b9ee8d0 g1: 00000000703cea28 g2: 0000000000000000 g3: fffff800b7845f70
-g4: fffff8008103a960 g5: fffff800803934c0 g6: fffff800bf318000 g7: fffff800b7845f08
-o0: fffff800b7845f00 o1: 0000000000000400 o2: 0000000000000000 o3: 0000000000000000
-o4: 0000000000000000 o5: 0000000000714000 sp: fffff800bf31b0e1 ret_pc: 00000000004b13fc
-RPC: <dentry_iput+0xb0/0xcc>
-l0: fffff800b7845f00 l1: fffff800bfbcec98 l2: 0000000000000001 l3: 800000008996cfb2
-l4: fffff800803a92b0 l5: 0000000000000001 l6: 00000000007490c8 l7: fffff800941fc388
-i0: fffff800bfbcec98 i1: 0000000000000000 i2: 00000000006abdb0 i3: 0000000000200200
-i4: 0000000000100100 i5: 00000000006b1800 i6: fffff800bf31b1a1 i7: 00000000004b22cc
-I7: <prune_one_dentry+0x7c/0xac>
-Caller[00000000004b22cc]: prune_one_dentry+0x7c/0xac
-Caller[00000000004b246c]: prune_dcache+0x170/0x1c0
-Caller[00000000004b24e4]: shrink_dcache_memory+0x28/0x5c
-Caller[0000000000481ef0]: shrink_slab+0xcc/0x164
-Caller[0000000000482290]: kswapd+0x308/0x458
-Caller[00000000004630b4]: kthread+0xbc/0xe8
-Caller[0000000000417a38]: kernel_thread+0x38/0x48
-Caller[0000000000462eb0]: keventd_create_kthread+0x18/0x84
-Instruction DUMP: c45e2220  80a0a020  12680007 <c2586038> 11001992  92102473  7ffd9c09  90122370  91d02005
+Hi David,
 
-The kernel is default from debian etch.
+This patch should remove the last of the prom_printf/prom_halt code from 
+the driver directories with two exceptions.
 
-Second issue is that kernel hangs from time to time but it looks like the i/o to the scsi disk is dead.
-I installed fresh etch, downloaded 2.6.23-rc1-mm2, started compiling allmodconfig and it hung after a while.
-After reboot the ext3 partition was messed up and reinstall was needed.
+If you do not have any issues with the changes, please can you apply 
+them.
 
-Is this a known issue? Should I just upgrade and forget?
+I looked at the remaining two files containing prom_printf 
+(drivers/serial/dz.c - only used for debugging, and 
+drivers/video/console/promcon.c - used to display info) and can see no 
+inapropriate uses of prom_printf.
 
-Regards,
+Is I understant it, prom_printf/prom_halt should only be used for 
+debugging code and only where printk/panic does not have the desired 
+effect when used on a kernel booted with -p.
 
-	Mariusz
+Regards
+ 	Mark Fortescue.
+--1750305931-2028087719-1186927372=:32464
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name="prom_printf.patch"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.61.0708121502510.32464@mtfhpc.demon.co.uk>
+Content-Description: 
+Content-Disposition: attachment; filename="prom_printf.patch"
 
-$ cat /proc/cpuinfo 
-cpu             : TI UltraSparc II  (BlackBird)
-fpu             : UltraSparc II integrated FPU
-prom            : OBP 3.17.0 1998/10/23 11:26
-type            : sun4u
-ncpus probed    : 2
-ncpus active    : 2
-D$ parity tl1   : 0
-I$ parity tl1   : 0
-Cpu0Bogo        : 900.41
-Cpu0ClkTck      : 000000001ad1d08f
-Cpu2Bogo        : 899.96
-Cpu2ClkTck      : 000000001ad1d08f
-MMU Type        : Spitfire
-State:
-CPU0:           online
-CPU2:           online
+RnJvbTogTWFyayBGb3J0ZXNjdWUgPG1hcmtAbXRmaHBjLmRlbW9uLmNvLnVr
+Pg0KDQpbU1BBUkMzMl0gUmVtb3ZlIHByb21fcHJpbnRmIGFuZCBwcm9tX2hh
+bHQNCg0KcHJvbV9wcmludGYgYW5kIHByb21faGFsdCBzaG91bGQgb25seSBi
+ZSB1c2VkIGFzIGEgbGFzdCByZXNvcnQuIElmIGEgc3lzdGVtIGlzDQpmYWls
+aW5nIHZlcnkgZWFybHkgb24gaW4gYm9vdCwgdGhlIC1wIHBhcmFtZXRlciBj
+YW4gKGFuZCBzaG91bGQpIGJlIHVzZWQgc28NCnRoYXQgZ2VuZXJpYyBkcml2
+ZXIgY29kZSBkb2VzIG5vdCBnZXQgcGxvdXRlZCB3aXRoIGFyY2hpdGVjdHVy
+ZSBzcGVjaWZpYyBjb2RlLg0KDQpTaWduZWQtb2ZmLWJ5OiBNYXJrIEZvcnRl
+c2N1ZSA8bWFya0BtdGZocGMuZGVtb24uY28udWs+DQotLS0NCkkgb25seSBo
+YXZlIGEgQ0czIGFuZCBoYXZlIGJlZW4gdXNpbmcgYSBzaW1pbGFyIHBhdGNo
+IGZvciBzb21lIHRpbWUuIEkgbWFkZQ0KdGhlIGNoYW5nZXMgYmFjayBpbiAy
+LjYuOC4xIHdoZW4gdHJ5aW5nIHRvIGZpbmQgb3V0IHdoeSB0aGUgQ0czIGNv
+bnNvbGUgd2FzDQpicm9ha2VuLiBCbGFjayBvbiBCbGFjayBpcyB2ZXJ5IGRp
+ZmljdWx0IHRvIHJlYWQgOikuDQoNCmRpZmYgLS1naXQgYS9kcml2ZXJzL3Zp
+ZGVvL2J3Mi5jIGIvZHJpdmVycy92aWRlby9idzIuYw0KaW5kZXggNzE4Yjlm
+OC4uOGZhMzhkZiAxMDA2NDQNCi0tLSBhL2RyaXZlcnMvdmlkZW8vYncyLmMN
+CisrKyBiL2RyaXZlcnMvdmlkZW8vYncyLmMNCkBAIC0yNjksOSArMjY5LDcg
+QEAgc3RhdGljIHZvaWQgX19kZXZpbml0IGJ3Ml9kb19kZWZhdWx0X21vZGUo
+c3RydWN0IGJ3Ml9wYXIgKnBhciwNCiAJCXJldHVybjsNCiANCiAJZGVmYXVs
+dDoNCi0JCXByb21fcHJpbnRmKCJidzI6IGNhbid0IGhhbmRsZSBTUiAlMDJ4
+XG4iLA0KLQkJCSAgICBzdGF0dXMpOw0KLQkJcHJvbV9oYWx0KCk7DQorCQlw
+YW5pYygiYncyOiBjYW4ndCBoYW5kbGUgU1IgJTAyeFxuIiwgc3RhdHVzKTsN
+CiAJfQ0KIAlmb3IgKCA7ICpwOyBwICs9IDIpIHsNCiAJCXU4IF9faW9tZW0g
+KnJlZ3AgPSAmKCh1OCBfX2lvbWVtICopcGFyLT5yZWdzKVtwWzBdXTsNCmRp
+ZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL2NnMy5jIGIvZHJpdmVycy92aWRl
+by9jZzMuYw0KaW5kZXggNTc0MWI0Ni4uMDMxODlkOCAxMDA2NDQNCi0tLSBh
+L2RyaXZlcnMvdmlkZW8vY2czLmMNCisrKyBiL2RyaXZlcnMvdmlkZW8vY2cz
+LmMNCkBAIC0zMzIsOSArMzMyLDcgQEAgc3RhdGljIHZvaWQgX19kZXZpbml0
+IGNnM19kb19kZWZhdWx0X21vZGUoc3RydWN0IGNnM19wYXIgKnBhcikNCiAJ
+CQllbHNlDQogCQkJCXR5cGUgPSBDRzNfQVRfNjZIWjsNCiAJCX0gZWxzZSB7
+DQotCQkJcHJvbV9wcmludGYoImNndGhyZWU6IGNhbid0IGhhbmRsZSBTUiAl
+MDJ4XG4iLA0KLQkJCQkgICAgc3RhdHVzKTsNCi0JCQlwcm9tX2hhbHQoKTsN
+CisJCQlwYW5pYygiY2d0aHJlZTogY2FuJ3QgaGFuZGxlIFNSICUwMnhcbiIs
+IHN0YXR1cyk7DQogCQkJcmV0dXJuOw0KIAkJfQ0KIAl9DQpkaWZmIC0tZ2l0
+IGEvZHJpdmVycy92aWRlby9jeWJlcjIwMDBmYi5jIGIvZHJpdmVycy92aWRl
+by9jeWJlcjIwMDBmYi5jDQppbmRleCAzMGVkZTZlLi44NWM3M2UxIDEwMDY0
+NA0KLS0tIGEvZHJpdmVycy92aWRlby9jeWJlcjIwMDBmYi5jDQorKysgYi9k
+cml2ZXJzL3ZpZGVvL2N5YmVyMjAwMGZiLmMNCkBAIC0xNTEyLDcgKzE1MTIs
+NyBAQCBzdGF0aWMgaW50IGN5YmVycHJvX3BjaV9lbmFibGVfbW1pbyhzdHJ1
+Y3QgY2ZiX2luZm8gKmNmYikNCiANCiAJaW9wID0gaW9yZW1hcCgweDMwMDAw
+MDAsIDB4NTAwMCk7DQogCWlmIChpb3AgPT0gTlVMTCkgew0KLQkJcHJvbV9w
+cmludGYoImlnYTUwMDA6IGNhbm5vdCBtYXAgSS9PXG4iKTsNCisJCXByaW50
+aygiaWdhNTAwMDogY2Fubm90IG1hcCBJL09cbiIpOw0KIAkJcmV0dXJuIC1F
+Tk9NRU07DQogCX0NCiANCg==
 
-$ lspci 
-0000:80:00.0 Host bridge: Sun Microsystems Computer Corp. Psycho PCI Bus Module
-0001:00:00.0 Host bridge: Sun Microsystems Computer Corp. Psycho PCI Bus Module
-0001:00:01.0 Bridge: Sun Microsystems Computer Corp. EBUS (rev 01)
-0001:00:01.1 Ethernet controller: Sun Microsystems Computer Corp. Happy Meal (rev 01)
-0001:00:03.0 SCSI storage controller: LSI Logic / Symbios Logic 53c875 (rev 14)
-0001:00:03.1 SCSI storage controller: LSI Logic / Symbios Logic 53c875 (rev 14)
-
-$ cat /proc/meminfo 
-MemTotal:      1034176 kB
-MemFree:         13384 kB
-Buffers:         47064 kB
-Cached:         860456 kB
-SwapCached:          0 kB
-Active:         429072 kB
-Inactive:       500544 kB
-HighTotal:           0 kB
-HighFree:            0 kB
-LowTotal:      1034176 kB
-LowFree:         13384 kB
-SwapTotal:      457832 kB
-SwapFree:       457728 kB
-Dirty:            6384 kB
-Writeback:           0 kB
-AnonPages:       21888 kB
-Mapped:           7280 kB
-Slab:            86264 kB
-PageTables:        944 kB
-NFS_Unstable:        0 kB
-Bounce:              0 kB
-CommitLimit:    974920 kB
-Committed_AS:    43776 kB
-VmallocTotal:  4194304 kB
-VmallocUsed:       176 kB
-VmallocChunk:  4194128 kB
-
-$ cat /proc/interrupts 
-           CPU0       CPU2       
-  0:   12355899          0     <NULL>  timer	<--------------- NULL?
-  2:          0          0      sun4u  PSYCHO UE
-  3:          0          0      sun4u  PSYCHO CE
-  6:          0          0      sun4u  PSYCHO PCIERR-A
-  7:          0          0      sun4u  sab
-  8:          5          0      sun4u  su(kbd)
-  9:          0          0      sun4u  su(mouse)
- 14:          0      34244      sun4u  eth0
- 15:          0     113689      sun4u  sym53c8xx
- 16:         30          0      sun4u  sym53c8xx
- 17:          0          0      sun4u  PSYCHO PCIERR-B
+--1750305931-2028087719-1186927372=:32464--
