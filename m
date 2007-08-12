@@ -1,38 +1,45 @@
-From: Markus Dahms <mad@automagically.de>
-Date: Mon, 20 Aug 2007 10:34:17 +0000
-Subject: Re: Odp: possible endless loop in PROM initialization
-Message-Id: <20070820103417.GA4911@vimes.madsworld.lan>
+From: Meelis Roos <mroos@linux.ee>
+Date: Sun, 12 Aug 2007 11:37:54 +0000
+Subject: Re: Ultra 1 hang on boot
+Message-Id: <Pine.SOC.4.64.0708121431110.24332@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070820075949.GA5927@vimes.madsworld.lan> <46c955d43d407@wp.pl>
-In-Reply-To: <46c955d43d407@wp.pl>
+References: <Pine.SOC.4.64.0706061524480.12237@math>
+In-Reply-To: <Pine.SOC.4.64.0706061524480.12237@math>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: sparclinux <sparclinux@vger.kernel.org>, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Krzysztof Helt wrote,
-> Could you give name of the function which contains this endless loop?
-> When I looked into the tree.c file for the first time I thought
-> it had a bug
-> in handling the prom_nextprop, but later I concluded that this is ok.
-> Maybe there is a bug there after all.
+> > Remapping the kernel... done.
+> > 
+> > Any other config option to try for debugging?
+> > The only section warnings are promcon section warnings - may these 
+> > result in this hang or do they kick in later?
+> 
+> I have a fix for those but they ought to be harmless.
+> 
+> Since it takes years for me to get my ultra1 up and build
+> a kernel, can you figure out the most recent kernel that
+> worked properly?
 
-if I understood it correctly the following functions are called in this
-order:
+I have taken on this problem after some vacation. Meanwhile I have 
+learned that Debian 2.6.22-1-sparc64 boots so it's probably a 
+configureation problem.
 
-* prom_init()                    # arch/sparc/kernel/head.S
-[...]
-* create_node()                  # arch/sparc/kernel/prom.c
-* build_prop_list()              # arch/sparc/kernel/prom.c
-* build_one_prop()               # arch/sparc/kernel/prom.c
-* prom_nextprop()                # arch/sparc/prom/tree.c
-* __prom_nextprop()              # arch/sparc/prom/tree.c
-* prom_nodeops->no_nextprop()    # PROM
+I succeeded in compiling 2.6.23-rc2 and yesterdays post-rc2 git snapshot 
+with Debian .config and it booted fine. Changing only some configuration 
+options breaks the boot. I am currently confused about what options 
+break it, the results do not seem to be consistent but I will retest. 
+The inconsistency between config options and bootability is similar to 
+my problem with Ultra 5 where different slight changes have broken the 
+boot, but I will first do some more tests to see whether it's really so 
+arcane. Toolchain is Debian unstable: binutils 2.17.50.20070804 
+(2.17cvs20070804-1), gcc version 4.1.3 20070718 (prerelease) (Debian 
+4.1.2-14).
 
-And this loops while getting the attributes/properties of the /aliases
-node.
+The good news is that 2.6.23-rc2 seems to boot and work fine on 
+SBus-only (no UPA) Ultra 1 so far. Only one cosmetic bug in ESP driver 
+that I will report in another mail.
 
-Greetings,
-
-	Markus
+-- 
+Meelis Roos (mroos@linux.ee)
