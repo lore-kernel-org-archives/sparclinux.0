@@ -1,39 +1,24 @@
-From: "Ulrich Teichert" <Ulrich.Teichert@gmx.net>
-Date: Sun, 12 Aug 2007 18:52:04 +0000
-Subject: Re: Ultra 2 with nvram problems
-Message-Id: <20070812185204.221180@gmx.net>
+From: "Blue Swirl" <blauwirbel@gmail.com>
+Date: Sun, 12 Aug 2007 07:42:33 +0000
+Subject: Sun4c interrupt controller, MMU, IOMMU?
+Message-Id: <f43fc5580708120042m5f2fe544k83aaf00810efc070@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070802220327.20940@gmx.net>
-In-Reply-To: <20070802220327.20940@gmx.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 Hi,
 
->Take a look at http://www.squirrel.com/sun-*nvram*-hostid.*faq*.html
->
->You need to buy a replacement chip and program it as per the FAQ.
+I'm trying to add Sun4c (SS-2) support to Qemu. I'm using Linux source
+as the reference, but some things are not very clear.
 
-Just for reference: it worked beautifully. If anyone ever will get into
-the same situation with an Ultra-2, the above FAQ works well, even though
-the machine isn't explicitly listed. You don't have to care about the
-machine type, that's set during set-defaults or hard-wired.
+Specifically, how are the interrupts routed, which interrupts (ZS,
+ESP, Lance, timers, floppy, cgthree) go through the interrupt
+controller? How do the controller bits map to each interrupt source
+and PIL? Any docs for the controller, what is the device chip ID?
 
-Oh, and on my old NVRAM chip, the last 3 bytes of the ethernet address
-were printed on top of it, just below the barcode. This happens to
-be the last three bytes of the hostid as well, I think.
+I guess the MMU is similar in operation to Sun4u/v I/D TLB, is that
+correct? Any CPU docs would be helpful.
 
-Thanks to all,
-Uli
-(Anyone need a spare NVRAM chip in Germany? I bought a pair of them, because
-this was the only available package size ;-)
---=20
-Ulrich Teichert
-Stormweg 24
-24539 Neum=FCnster, Germany
-
-
-Psssst! Schon vom neuen GMX MultiMessenger geh=F6rt?
-Der kanns mit allen: http://www.gmx.net/de/go/multimessenger
+There is no IOMMU, so the DMA is limited to lowest 16 megs, right?
