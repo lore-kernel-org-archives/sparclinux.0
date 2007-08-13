@@ -1,22 +1,27 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 02 Aug 2007 04:56:07 +0000
-Subject: Re: [Patch]: Minor fixes for CS4231 on SBus
-Message-Id: <20070801.215607.102772078.davem@davemloft.net>
+From: joe@perches.com
+Date: Mon, 13 Aug 2007 06:36:38 +0000
+Subject: [PATCH] [457/2many] MAINTAINERS - SPARC (sparc32):
+Message-Id: <46bffbf6.K2JGi26y4RBCa+g4%joe@perches.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: wli@holomorphy.com, torvalds@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org
 
-From: Georg Chini <georg.chini@triaton-webhosting.com>
-Date: Tue, 31 Jul 2007 22:18:43 +0200
+Add file pattern to MAINTAINER entry
 
-> Hello,
-> 
-> remove unnecessary sbus_dma_reset function and
-> change sbus_dma_enable to avoid occasional system
-> crashes when stopping recording. Patch is against
-> 2.6.22-rc5 but applies cleanly to 2.6.23-rc1.
-> Tested on my ultra2.
+Signed-off-by: Joe Perches <joe@perches.com>
 
-Patch applied, thanks.
+diff --git a/MAINTAINERS b/MAINTAINERS
+index aab0075..a91f3af 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -4362,6 +4362,8 @@ P:	William L. Irwin
+ M:	wli@holomorphy.com
+ L:	sparclinux@vger.kernel.org
+ S:	Maintained
++F:	arch/sparc/
++F:	include/asm-sparc/
+ 
+ SPECIALIX IO8+ MULTIPORT SERIAL CARD DRIVER
+ P:	Roger Wolff
