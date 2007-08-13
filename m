@@ -1,24 +1,24 @@
-From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date: Thu, 02 Aug 2007 12:26:59 +0000
-Subject: Re: Build failures on a sparcstation10 with 2.6.23-rc1
-Message-Id: <Pine.LNX.4.61.0708021323040.18689@mtfhpc.demon.co.uk>
+From: "jiaqi zhang" <zation.busy@gmail.com>
+Date: Mon, 13 Aug 2007 21:34:26 +0000
+Subject: Physical cpu number on UltrasparcT1
+Message-Id: <a8e8903d0708131434j1c1e2b81m5f3fb6e9c6d1a0ab@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <646765f40707272039u27113c20ie98cbd42b9742c0f@mail.gmail.com>
-In-Reply-To: <646765f40707272039u27113c20ie98cbd42b9742c0f@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi David,
+Hello, everyone.
 
-Build OK, Module Load OK first time around.
-Module unload silently fails to release the IRQ so a module reload 
-fails because the IRQ is not free.
-I can probably sort this out over the weekend if you don't already have 
-appropriate changes in hand.
+Thanks again for the previous help on the faultive instruction
+problem. That works perfect:)
 
-Regards
- 	Mark Fortescue.
+Since I have to do some more tests on the cache problem of UltraSPARC
+T1, I have to know the exact physical cpu id of each strand. Could
+anyone give me some clues on how the physical cpu number, or the
+physical core number maps the 32 cpu id?
 
+Thanks in advance!
 
+Best regards
+Jiaqi
