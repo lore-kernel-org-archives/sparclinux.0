@@ -1,87 +1,141 @@
-From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date: Sun, 12 Aug 2007 14:02:52 +0000
-Subject: [PATCH] Removal of prom_printf/prom_halt
-Message-Id: <Pine.LNX.4.61.0708121443290.32464@mtfhpc.demon.co.uk>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="1750305931-2028087719-1186927372=:32464"
+From: jim watson <jim@amarooas.com.au>
+Date: Sun, 19 Aug 2007 07:48:21 +0000
+Subject: firewire oops
+Message-Id: <46C7F5C5.9070500@amarooas.com.au>
 List-Id: <sparclinux.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+I got a Lacie 320g firewire drive for my Sun Blade 100. This got errors 
+after running for a while on debian/unstable so I ran it for a couple of 
+weeks on an IMac and saw no errors. Now I have built 2.6.23rc3 with the 
+new drivers/firewire modules firewire-core, firewire-ohci and firewire-sbp2.
 
---1750305931-2028087719-1186927372=:32464
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+firewire-core loads ok but firewire-ohci gets the oops below. I tried 
+some traces that suggest the oops actually happens at  
+dma_sync_single_for_device but don't know if that is reliable.
 
-Hi David,
+A kernel with these modules included will not boot, as it cannot find 
+/dev/hda2 after the oops.
 
-This patch should remove the last of the prom_printf/prom_halt code from 
-the driver directories with two exceptions.
+The modules code is in drivers/firewire and .config has:
+#
+# IEEE 1394 (FireWire) support
+#
+CONFIG_FIREWIRE=m
+CONFIG_FIREWIRE_OHCI=m
+CONFIG_FIREWIRE_SBP2=m
 
-If you do not have any issues with the changes, please can you apply 
-them.
+jim@sun:~$ uname -a
+Linux sun 2.6.23-rc3 #1 Sun Aug 19 11:40:55 EST 2007 sparc64 GNU/Linux
 
-I looked at the remaining two files containing prom_printf 
-(drivers/serial/dz.c - only used for debugging, and 
-drivers/video/console/promcon.c - used to display info) and can see no 
-inapropriate uses of prom_printf.
 
-Is I understant it, prom_printf/prom_halt should only be used for 
-debugging code and only where printk/panic does not have the desired 
-effect when used on a kernel booted with -p.
+OOPS: Bogus kernel PC [0000000000000000] in fault handler
+OOPS: RPC [00000000101c2b78]
+RPC: <ar_context_add_page+0xe4/0x148 [firewire_ohci]>
+OOPS: Fault was to vaddr[fffff8000b696000]
+Call Trace:
+ [00000000004076f4] sparc64_realfault_common+0x18/0x20
+ [00000000101c2b78] ar_context_add_page+0xe4/0x148 [firewire_ohci]
+ [00000000101c2c14] ar_context_init+0x38/0x58 [firewire_ohci]
+ [00000000101c4874] pci_probe+0x11c/0x330 [firewire_ohci]
+ [0000000000542140] pci_device_probe+0x5c/0x8c
+ [000000000059f638] driver_probe_device+0xf4/0x190
+ [000000000059f718] __driver_attach+0x44/0x68
+ [000000000059eb2c] bus_for_each_dev+0x38/0x6c
+ [000000000059ee9c] bus_add_driver+0x70/0x1ac
+ [00000000005422a8] __pci_register_driver+0x44/0x88
+ [0000000000475b1c] sys_init_module+0x1310/0x143c
+ [0000000000406094] linux_sparc_syscall32+0x3c/0x40
+ [0000000000011090] 0x11098
+Unable to handle kernel NULL pointer dereference
+tsk->{mm,active_mm}->context = 00000000000000ef
+tsk->{mm,active_mm}->pgd = fffff80004158000
+              \|/ ____ \|/
+              "@'/ .. \`@"
+              /_| \__/ |_\
+                 \__U_/
+insmod(5924): Oops [#1]
+TSTATE: 0000001911009605 TPC: 0000000000000000 TNPC: 0000000000000004 Y: 
+00000000    Not tainted
+TPC: <0x8>
+g0: 0000000000000000 g1: 0000000000000000 g2: 00000000ffffe81f g3: 
+0000000000400000
+g4: fffff80003a2f280 g5: 0000000000000038 g6: fffff8000cad0000 g7: 
+00cc0240184002cc
+o0: fffff8000ef97070 o1: 00000000cc024000 o2: 0000000000002000 o3: 
+0000000000000000
+o4: 0000000000000004 o5: 000001ff00420000 sp: fffff8000cad2e71 ret_pc: 
+00000000101c2b78
+RPC: <ar_context_add_page+0xe4/0x148 [firewire_ohci]>
+l0: fffff8000ba82000 l1: 00000000cc024000 l2: fffff80001c5cd90 l3: 
+fffff8000ef97070
+l4: 0000000000ff0000 l5: 0000000000704c00 l6: 0000000000782268 l7: 
+00000000f7f6e000
+i0: 000000000000ff00 i1: 00000000101c39d0 i2: fffff80001c5cd90 i3: 
+0000000000000000
+i4: 0000000000000040 i5: 0000000000000000 i6: fffff8000cad2f31 i7: 
+00000000101c2c14
+I7: <ar_context_init+0x38/0x58 [firewire_ohci]>
+Caller[00000000101c2c14]: ar_context_init+0x38/0x58 [firewire_ohci]
+Caller[00000000101c4874]: pci_probe+0x11c/0x330 [firewire_ohci]
+Caller[0000000000542140]: pci_device_probe+0x5c/0x8c
+Caller[000000000059f638]: driver_probe_device+0xf4/0x190
+Caller[000000000059f718]: __driver_attach+0x44/0x68
+Caller[000000000059eb2c]: bus_for_each_dev+0x38/0x6c
+Caller[000000000059ee9c]: bus_add_driver+0x70/0x1ac
+Caller[00000000005422a8]: __pci_register_driver+0x44/0x88
+Caller[0000000000475b1c]: sys_init_module+0x1310/0x143c
+Caller[0000000000406094]: linux_sparc_syscall32+0x3c/0x40
+Caller[0000000000011090]: 0x11098
+Instruction DUMP: 00000000  00000000  00000000 <1>Unable to handle 
+kernel NULL pointer dereference
+tsk->{mm,active_mm}->context = 00000000000000ef
+tsk->{mm,active_mm}->pgd = fffff80004158000
+              \|/ ____ \|/
+              "@'/ .. \`@"
+              /_| \__/ |_\
+                 \__U_/
+insmod(5924): Oops [#2]
+TSTATE: 0000004480009601 TPC: 0000000000428bb8 TNPC: 0000000000428bbc Y: 
+00000000    Tainted: G      D
+TPC: <instruction_dump+0x68/0x88>
+g0: 78745f6164645f70 g1: 0000000000000000 g2: 0000000000705c00 g3: 
+0000000000705fa0
+g4: fffff80003a2f280 g5: 0000000000000038 g6: fffff8000cad0000 g7: 
+0000000000000000
+o0: 00000000006b1400 o1: 0000000000000020 o2: 0000000000000000 o3: 
+0000000000000020
+o4: 00000000101c2c14 o5: 0000000000772220 sp: fffff8000cad2aa1 ret_pc: 
+0000000000428b98
+RPC: <instruction_dump+0x48/0x88>
+l0: 0000000000000000 l1: fffff8000cad3670 l2: 0000000000000000 l3: 
+0000001911009605
+l4: 0000000000000000 l5: 0000000000000000 l6: 0000000000000000 l7: 
+0000000000000001
+i0: 0000000000000000 i1: 0000000000011098 i2: fffff8000cad35d0 i3: 
+0000000000000000
+i4: 00000000000000ff i5: 000000000000000b i6: fffff8000cad2b61 i7: 
+0000000000429470
+I7: <die_if_kernel+0x110/0x26c>
+Caller[0000000000429470]: die_if_kernel+0x110/0x26c
+Caller[000000000044b068]: unhandled_fault+0x94/0x98
+Caller[00000000004076f4]: sparc64_realfault_common+0x18/0x20
+Caller[00000000101c2b78]: ar_context_add_page+0xe4/0x148 [firewire_ohci]
+Caller[00000000101c2c14]: ar_context_init+0x38/0x58 [firewire_ohci]
+Caller[00000000101c4874]: pci_probe+0x11c/0x330 [firewire_ohci]
+Caller[0000000000542140]: pci_device_probe+0x5c/0x8c
+Caller[000000000059f638]: driver_probe_device+0xf4/0x190
+Caller[000000000059f718]: __driver_attach+0x44/0x68
+Caller[000000000059eb2c]: bus_for_each_dev+0x38/0x6c
+Caller[000000000059ee9c]: bus_add_driver+0x70/0x1ac
+Caller[00000000005422a8]: __pci_register_driver+0x44/0x88
+Caller[0000000000475b1c]: sys_init_module+0x1310/0x143c
+Caller[0000000000406094]: linux_sparc_syscall32+0x3c/0x40
+Caller[0000000000011090]: 0x11098
+Instruction DUMP: 31001b23  4000c1ad  91ee2378 <d4060000> 9210203c  
+9610203e  901220b0  4000c1a7  a0102001
 
-Regards
- 	Mark Fortescue.
---1750305931-2028087719-1186927372=:32464
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name="prom_printf.patch"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.61.0708121502510.32464@mtfhpc.demon.co.uk>
-Content-Description: 
-Content-Disposition: attachment; filename="prom_printf.patch"
 
-RnJvbTogTWFyayBGb3J0ZXNjdWUgPG1hcmtAbXRmaHBjLmRlbW9uLmNvLnVr
-Pg0KDQpbU1BBUkMzMl0gUmVtb3ZlIHByb21fcHJpbnRmIGFuZCBwcm9tX2hh
-bHQNCg0KcHJvbV9wcmludGYgYW5kIHByb21faGFsdCBzaG91bGQgb25seSBi
-ZSB1c2VkIGFzIGEgbGFzdCByZXNvcnQuIElmIGEgc3lzdGVtIGlzDQpmYWls
-aW5nIHZlcnkgZWFybHkgb24gaW4gYm9vdCwgdGhlIC1wIHBhcmFtZXRlciBj
-YW4gKGFuZCBzaG91bGQpIGJlIHVzZWQgc28NCnRoYXQgZ2VuZXJpYyBkcml2
-ZXIgY29kZSBkb2VzIG5vdCBnZXQgcGxvdXRlZCB3aXRoIGFyY2hpdGVjdHVy
-ZSBzcGVjaWZpYyBjb2RlLg0KDQpTaWduZWQtb2ZmLWJ5OiBNYXJrIEZvcnRl
-c2N1ZSA8bWFya0BtdGZocGMuZGVtb24uY28udWs+DQotLS0NCkkgb25seSBo
-YXZlIGEgQ0czIGFuZCBoYXZlIGJlZW4gdXNpbmcgYSBzaW1pbGFyIHBhdGNo
-IGZvciBzb21lIHRpbWUuIEkgbWFkZQ0KdGhlIGNoYW5nZXMgYmFjayBpbiAy
-LjYuOC4xIHdoZW4gdHJ5aW5nIHRvIGZpbmQgb3V0IHdoeSB0aGUgQ0czIGNv
-bnNvbGUgd2FzDQpicm9ha2VuLiBCbGFjayBvbiBCbGFjayBpcyB2ZXJ5IGRp
-ZmljdWx0IHRvIHJlYWQgOikuDQoNCmRpZmYgLS1naXQgYS9kcml2ZXJzL3Zp
-ZGVvL2J3Mi5jIGIvZHJpdmVycy92aWRlby9idzIuYw0KaW5kZXggNzE4Yjlm
-OC4uOGZhMzhkZiAxMDA2NDQNCi0tLSBhL2RyaXZlcnMvdmlkZW8vYncyLmMN
-CisrKyBiL2RyaXZlcnMvdmlkZW8vYncyLmMNCkBAIC0yNjksOSArMjY5LDcg
-QEAgc3RhdGljIHZvaWQgX19kZXZpbml0IGJ3Ml9kb19kZWZhdWx0X21vZGUo
-c3RydWN0IGJ3Ml9wYXIgKnBhciwNCiAJCXJldHVybjsNCiANCiAJZGVmYXVs
-dDoNCi0JCXByb21fcHJpbnRmKCJidzI6IGNhbid0IGhhbmRsZSBTUiAlMDJ4
-XG4iLA0KLQkJCSAgICBzdGF0dXMpOw0KLQkJcHJvbV9oYWx0KCk7DQorCQlw
-YW5pYygiYncyOiBjYW4ndCBoYW5kbGUgU1IgJTAyeFxuIiwgc3RhdHVzKTsN
-CiAJfQ0KIAlmb3IgKCA7ICpwOyBwICs9IDIpIHsNCiAJCXU4IF9faW9tZW0g
-KnJlZ3AgPSAmKCh1OCBfX2lvbWVtICopcGFyLT5yZWdzKVtwWzBdXTsNCmRp
-ZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL2NnMy5jIGIvZHJpdmVycy92aWRl
-by9jZzMuYw0KaW5kZXggNTc0MWI0Ni4uMDMxODlkOCAxMDA2NDQNCi0tLSBh
-L2RyaXZlcnMvdmlkZW8vY2czLmMNCisrKyBiL2RyaXZlcnMvdmlkZW8vY2cz
-LmMNCkBAIC0zMzIsOSArMzMyLDcgQEAgc3RhdGljIHZvaWQgX19kZXZpbml0
-IGNnM19kb19kZWZhdWx0X21vZGUoc3RydWN0IGNnM19wYXIgKnBhcikNCiAJ
-CQllbHNlDQogCQkJCXR5cGUgPSBDRzNfQVRfNjZIWjsNCiAJCX0gZWxzZSB7
-DQotCQkJcHJvbV9wcmludGYoImNndGhyZWU6IGNhbid0IGhhbmRsZSBTUiAl
-MDJ4XG4iLA0KLQkJCQkgICAgc3RhdHVzKTsNCi0JCQlwcm9tX2hhbHQoKTsN
-CisJCQlwYW5pYygiY2d0aHJlZTogY2FuJ3QgaGFuZGxlIFNSICUwMnhcbiIs
-IHN0YXR1cyk7DQogCQkJcmV0dXJuOw0KIAkJfQ0KIAl9DQpkaWZmIC0tZ2l0
-IGEvZHJpdmVycy92aWRlby9jeWJlcjIwMDBmYi5jIGIvZHJpdmVycy92aWRl
-by9jeWJlcjIwMDBmYi5jDQppbmRleCAzMGVkZTZlLi44NWM3M2UxIDEwMDY0
-NA0KLS0tIGEvZHJpdmVycy92aWRlby9jeWJlcjIwMDBmYi5jDQorKysgYi9k
-cml2ZXJzL3ZpZGVvL2N5YmVyMjAwMGZiLmMNCkBAIC0xNTEyLDcgKzE1MTIs
-NyBAQCBzdGF0aWMgaW50IGN5YmVycHJvX3BjaV9lbmFibGVfbW1pbyhzdHJ1
-Y3QgY2ZiX2luZm8gKmNmYikNCiANCiAJaW9wID0gaW9yZW1hcCgweDMwMDAw
-MDAsIDB4NTAwMCk7DQogCWlmIChpb3AgPT0gTlVMTCkgew0KLQkJcHJvbV9w
-cmludGYoImlnYTUwMDA6IGNhbm5vdCBtYXAgSS9PXG4iKTsNCisJCXByaW50
-aygiaWdhNTAwMDogY2Fubm90IG1hcCBJL09cbiIpOw0KIAkJcmV0dXJuIC1F
-Tk9NRU07DQogCX0NCiANCg==
-
---1750305931-2028087719-1186927372=:32464--
