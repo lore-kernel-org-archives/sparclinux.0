@@ -1,31 +1,35 @@
-From: Markus Dahms <mad@automagically.de>
-Date: Mon, 20 Aug 2007 13:19:00 +0000
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Date: Mon, 20 Aug 2007 18:19:13 +0000
 Subject: Re: possible endless loop in PROM initialization
-Message-Id: <20070820131900.GA12305@vimes.madsworld.lan>
+Message-Id: <20070820201913.7a3e9009.krzysztof.h1@wp.pl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070820075949.GA5927@vimes.madsworld.lan> <20070820.010622.41634915.davem@davemloft.net> <20070820105320.GB4911@vimes.madsworld.lan> <46C97E7F.3010604@netunix.com>
-In-Reply-To: <46C97E7F.3010604@netunix.com>
+References: <20070820075949.GA5927@vimes.madsworld.lan>
+	<20070820.010622.41634915.davem@davemloft.net>
+	<20070820105320.GB4911@vimes.madsworld.lan>
+In-Reply-To: <20070820105320.GB4911@vimes.madsworld.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Chris Newport <crn@netunix.com>
+To: Markus Dahms <mad@automagically.de>
 Cc: David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi,
+On Mon, 20 Aug 2007 12:53:20 +0200
+Markus Dahms <mad@automagically.de> wrote:
 
->> | ok devalias scsi /iommu/sbus/espdma/esp
->> | scsi isn't unique
-> Non-unique devalias entries are NASTY. Get rid of them, for example
-> your second definition of scsi could be changed to scsidisk.
+> Hello again,
 
-Yes, it is nasty and I don't really want to use it. But it is possible
-and IMHO Linux should handle it one way or the other.
+> As I'm not sure anymore whether the device tree (show-devs) or the aliases
+> (devalias) are broken on the Classic X (I "upgraded" mine to a Classic by
+> changing some NVRAM bytes) this may be a non-issue. But it is still an
+> endless loop where it don't has to be.
+> 
 
-Originally I tried to workaround an Oops in esp on the Classic X which
-I connected to some broken PROM entries. The PROM booted from SCSI disk
-(using another device path as the scsi aliases are broken or so), but
-Linux crashes on loading the SCSI driver. As already said now I use the
-"recommended workaround": patching the Classic X to be a Classic.
+I understand your problem now. The only rational solution is
+to stop building the list in the build_one_prop() if the property 
+with already found name is defined.
 
-Markus
+Changing way the *_nextprop() works seems not a good 
+idea to me.
 
+My two cents,
+Krzysztof
