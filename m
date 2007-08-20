@@ -1,45 +1,38 @@
-From: "Krzysztof Helt" <krzysztof.h1@wp.pl>
-Date: Mon, 20 Aug 2007 08:50:28 +0000
-Subject: Odp: possible endless loop in PROM initialization
-Message-Id: <46c955d43d407@wp.pl>
+From: Markus Dahms <mad@automagically.de>
+Date: Mon, 20 Aug 2007 10:34:17 +0000
+Subject: Re: Odp: possible endless loop in PROM initialization
+Message-Id: <20070820103417.GA4911@vimes.madsworld.lan>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070820075949.GA5927@vimes.madsworld.lan>
-In-Reply-To: <20070820075949.GA5927@vimes.madsworld.lan>
+References: <20070820075949.GA5927@vimes.madsworld.lan> <46c955d43d407@wp.pl>
+In-Reply-To: <46c955d43d407@wp.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Markus Dahms <mad@automagically.de>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Krzysztof Helt <krzysztof.h1@wp.pl>
 Cc: sparclinux <sparclinux@vger.kernel.org>, linux-kernel@vger.kernel.org
 
-Dnia 20-08-2007 o godz. 9:59 Markus Dahms napisa=B3(a):
-> Hey,
->=20
-> while trying to define a non-unique devalias at the Sun PROM prompt
-> (the SPARCclassic X has wrong aliases for scsi, disk1, etc. in the
-> PROM, at least mine) I fell over a bug resulting in an endless loop
-> while booting the kernel.
->=20
-> The problem is the getting the properties list of the /aliases
+Krzysztof Helt wrote,
+> Could you give name of the function which contains this endless loop?
+> When I looked into the tree.c file for the first time I thought
+> it had a bug
+> in handling the prom_nextprop, but later I concluded that this is ok.
+> Maybe there is a bug there after all.
+
+if I understood it correctly the following functions are called in this
+order:
+
+* prom_init()                    # arch/sparc/kernel/head.S
+[...]
+* create_node()                  # arch/sparc/kernel/prom.c
+* build_prop_list()              # arch/sparc/kernel/prom.c
+* build_one_prop()               # arch/sparc/kernel/prom.c
+* prom_nextprop()                # arch/sparc/prom/tree.c
+* __prom_nextprop()              # arch/sparc/prom/tree.c
+* prom_nodeops->no_nextprop()    # PROM
+
+And this loops while getting the attributes/properties of the /aliases
 node.
-> As the next element in this list is identified by name and the
-> function which retrieves this property always returns the first
-> occurrence this goes forever....
->
 
-Could you give name of the function which contains this endless loop?
-When I looked into the tree.c file for the first time I thought
-it had a bug
-in handling the prom_nextprop, but later I concluded that this is ok.
-Maybe there is a bug there after all.
+Greetings,
 
-Regards,
-Krzysztof
-
-----------------------------------------------------
-Wielka siatk=F3wka we wrze=B6niu w Starych Jab=B3onkach
-zobacz gwiazdy siatk=F3wki pla=BFowej na =BFywo!=20
-Mistrzostwa =A6wiata w siatk=F3wce pla=BFowej 5-9.09.2007
-Kliknij: http://klik.wp.pl/?adr=3Dhttp%3A%2F%2Fadv.reklama.wp.pl%2Fas%2Fsta=
-rejablonki.html&sid=1262
-
-
+	Markus
