@@ -1,14 +1,14 @@
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Date: Sun, 12 Aug 2007 14:54:54 +0000
+Date: Mon, 20 Aug 2007 20:15:39 +0000
 Subject: [patch 20/23] Add cmpxchg_local to sparc, move __cmpxchg to system.h
-Message-Id: <20070812145842.976755081@polymtl.ca>
+Message-Id: <20070820201830.810030773@polymtl.ca>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070812145434.520271946@polymtl.ca>
+References: <20070820201519.512791382@polymtl.ca>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: akpm@linux-foundation.org, linux-kernel@vger.kernel.org
-Cc: Christoph Lameter <clameter@sgi.com>, Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>, wli@holomorphy.com, sparclinux@vger.kernel.org
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>, clameter@sgi.com, wli@holomorphy.com, sparclinux@vger.kernel.org
 
 Move cmpxchg and add cmpxchg_local to system.h.
 Use the new generic cmpxchg_local (disables interrupt).
