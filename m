@@ -1,14 +1,14 @@
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Date: Sun, 12 Aug 2007 14:54:55 +0000
+Date: Mon, 20 Aug 2007 20:15:40 +0000
 Subject: [patch 21/23] Add cmpxchg_local to sparc64
-Message-Id: <20070812145843.393209640@polymtl.ca>
+Message-Id: <20070820201831.178200926@polymtl.ca>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070812145434.520271946@polymtl.ca>
+References: <20070820201519.512791382@polymtl.ca>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: akpm@linux-foundation.org, linux-kernel@vger.kernel.org
-Cc: Christoph Lameter <clameter@sgi.com>, Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>, sparclinux@vger.kernel.org, wli@holomorphy.com
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>, clameter@sgi.com, sparclinux@vger.kernel.org, wli@holomorphy.com
 
 Use cmpxchg_u32 and cmpxchg_u64 for cmpxchg_local and cmpxchg64_local. For other
 type sizes, use the new generic cmpxchg_local (disables interrupt).
