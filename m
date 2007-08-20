@@ -1,99 +1,34 @@
-From: "jiaqi zhang" <zation.busy@gmail.com>
-Date: Thu, 16 Aug 2007 03:56:14 +0000
-Subject: Re: Physical cpu number on UltrasparcT1
-Message-Id: <a8e8903d0708152056yd2f13d1gf979c4acf17a63c6@mail.gmail.com>
+From: Markus Dahms <mad@automagically.de>
+Date: Mon, 20 Aug 2007 07:59:49 +0000
+Subject: possible endless loop in PROM initialization
+Message-Id: <20070820075949.GA5927@vimes.madsworld.lan>
 List-Id: <sparclinux.vger.kernel.org>
-References: <a8e8903d0708131434j1c1e2b81m5f3fb6e9c6d1a0ab@mail.gmail.com>
-In-Reply-To: <a8e8903d0708131434j1c1e2b81m5f3fb6e9c6d1a0ab@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-OK. I'll try that.
-Thanks a lot for your valuable help.
+Hey,
 
-On 8/16/07, jiaqi zhang <zation.busy@gmail.com> wrote:
-> On 8/15/07, David Miller <davem@davemloft.net> wrote:
->
-> >
-> > Check the component list from the ALOM prompt.
-> >
-> Do you mean the "showcomponent" command? I ran it and got the information:
-> sc> showcomponent
-> Keys:
->   MB/CMP0/P0
->   MB/CMP0/P1
->   MB/CMP0/P2
->   MB/CMP0/P3
->   MB/CMP0/P4
->   MB/CMP0/P5
->   MB/CMP0/P6
->   MB/CMP0/P7
->   MB/CMP0/P8
->   MB/CMP0/P9
->   MB/CMP0/P10
->   MB/CMP0/P11
->   MB/CMP0/P12
->   MB/CMP0/P13
->   MB/CMP0/P14
->   MB/CMP0/P15
->   MB/CMP0/P16
->   MB/CMP0/P17
->   MB/CMP0/P18
->   MB/CMP0/P19
->   MB/CMP0/P20
->   MB/CMP0/P21
->   MB/CMP0/P22
->   MB/CMP0/P23
->   MB/CMP0/P24
->   MB/CMP0/P25
->   MB/CMP0/P26
->   MB/CMP0/P27
->   MB/CMP0/P28
->   MB/CMP0/P29
->   MB/CMP0/P30
->   MB/CMP0/P31
->   MB/CMP0/CH0/R0/D0
->   MB/CMP0/CH0/R0/D1
->   MB/CMP0/CH0/R1/D0
->   MB/CMP0/CH0/R1/D1
->   MB/CMP0/CH1/R0/D0
->   MB/CMP0/CH1/R0/D1
->   MB/CMP0/CH1/R1/D0
->   MB/CMP0/CH1/R1/D1
->   MB/CMP0/CH2/R0/D0
->   MB/CMP0/CH2/R0/D1
->   MB/CMP0/CH2/R1/D0
->   MB/CMP0/CH2/R1/D1
->   MB/CMP0/CH3/R0/D0
->   MB/CMP0/CH3/R0/D1
->   MB/CMP0/CH3/R1/D0
->   MB/CMP0/CH3/R1/D1
->   IOBD/PCIEa
->   IOBD/PCIEb
->   PCIX1
->   PCIX0
->   PCIE2
->   PCIE1
->   PCIE0
->   IOBD/USB0
->   IOBD/USB1
->   IOBD/USB2
->   IOBD/USB3
->   DVD
->   TTYA
->   IOBD/GBE0
->   IOBD/GBE1
->
->
-> State: Clean
-> sc> showcomponent MB/CMP0/P0
-> MB/CMP0/P0 is enabled
->
-> Seems not of too much help?
->
-> What should I do then?
->
-> Thanks for your patience!
->
+while trying to define a non-unique devalias at the Sun PROM prompt
+(the SPARCclassic X has wrong aliases for scsi, disk1, etc. in the
+PROM, at least mine) I fell over a bug resulting in an endless loop
+while booting the kernel.
+
+The problem is the getting the properties list of the /aliases node.
+As the next element in this list is identified by name and the
+function which retrieves this property always returns the first
+occurrence this goes forever....
+
+I could track down the issue to the function __prom_nextprop() in
+arch/sparc/prom/tree.c, but I am now looking for the definition of
+prom_nodeops->no_nextprop() without success.
+
+My naive solution would be to return not the first but the last
+occurrence of a property.
+
+Greetings,
+
+	Markus
+
