@@ -1,34 +1,24 @@
-From: Markus Dahms <mad@automagically.de>
-Date: Mon, 20 Aug 2007 07:59:49 +0000
-Subject: possible endless loop in PROM initialization
-Message-Id: <20070820075949.GA5927@vimes.madsworld.lan>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 20 Aug 2007 08:06:22 +0000
+Subject: Re: possible endless loop in PROM initialization
+Message-Id: <20070820.010622.41634915.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20070820075949.GA5927@vimes.madsworld.lan>
+In-Reply-To: <20070820075949.GA5927@vimes.madsworld.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+To: mad@automagically.de
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hey,
+From: Markus Dahms <mad@automagically.de>
+Date: Mon, 20 Aug 2007 09:59:49 +0200
 
-while trying to define a non-unique devalias at the Sun PROM prompt
-(the SPARCclassic X has wrong aliases for scsi, disk1, etc. in the
-PROM, at least mine) I fell over a bug resulting in an endless loop
-while booting the kernel.
+> I could track down the issue to the function __prom_nextprop() in
+> arch/sparc/prom/tree.c, but I am now looking for the definition of
+> prom_nodeops->no_nextprop() without success.
 
-The problem is the getting the properties list of the /aliases node.
-As the next element in this list is identified by name and the
-function which retrieves this property always returns the first
-occurrence this goes forever....
-
-I could track down the issue to the function __prom_nextprop() in
-arch/sparc/prom/tree.c, but I am now looking for the definition of
-prom_nodeops->no_nextprop() without success.
-
-My naive solution would be to return not the first but the last
-occurrence of a property.
-
-Greetings,
-
-	Markus
+When we boot the firmware provides a vector of function
+pointers, and this is prom_nodeops.  So prom_nodeops->no_nextprop()
+is a routine inside the PROM.
 
