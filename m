@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 20 Aug 2007 22:51:09 +0000
+From: mark@mtfhpc.demon.co.uk
+Date: Tue, 21 Aug 2007 10:23:49 +0000
 Subject: Re: Re. [SPARC32]: Fix bogus ramdisk image location check.
-Message-Id: <20070820.155109.03371741.davem@davemloft.net>
+Message-Id: <E1INQtp-0005in-IC@pr-webmail-1.mail.demon.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <46CA19DE.3000108@earthlink.net>
 In-Reply-To: <46CA19DE.3000108@earthlink.net>
@@ -10,19 +10,14 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Robert Reif <reif@earthlink.net>
-Date: Mon, 20 Aug 2007 18:46:54 -0400
+Hi Robert,
 
-> commit    f642b263800e6e57c377d630be6d2a999683b579
-> 
-> This patch causes sparc32 SMP to watchdog fail on boot.
-> 
-> Reverting it lets the system boot.
+Can you put some prom_printf's or printk's in to find out where your initrd ramdisk is ending up. 
 
-Thanks I'll revert this.
+The code relies on ordering/alignment in the linker script which is not a good idear so the aim needs to be to create some code that correctly identifies the location of the ramdisk without using hard coded offsets based on '&end' and 2*4096 :). I will have another look at the code later on this week and see if I can work out somthing that does the same thing but with more flexibility in what can be done to the linker script (i.e. does not rely on specific alignments and ordering in the linker script).
 
-Mark, please work with Robert to figure out what we should
-do about this if you want to try and make this change again.
+The information about where the ramdisk is may present a simple solution.
 
-I think this shows that SILO can in fact provide ramdisk addresses
-which should not be normalized by KERNBASE in the kernel.
+Regards
+    Mark Fortescue.
+
