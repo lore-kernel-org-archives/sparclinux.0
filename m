@@ -1,150 +1,139 @@
-From: "jiaqi zhang" <zation.busy@gmail.com>
-Date: Thu, 23 Aug 2007 01:11:13 +0000
+From: David Miller <davem@davemloft.net>
+Date: Thu, 23 Aug 2007 03:00:50 +0000
 Subject: Re: Problems of PREFETCH instruction on UltraSparc T1
-Message-Id: <a8e8903d0708221811r41f9463bo96f45420971ae310@mail.gmail.com>
+Message-Id: <20070822.200050.56199395.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <a8e8903d0708211701j47e6246eu57147ab1ab55e397@mail.gmail.com>
 In-Reply-To: <a8e8903d0708211701j47e6246eu57147ab1ab55e397@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Thanks very much for this thorough explaination. It is really of great
-help. I changed the program as you have instructed, and it is
-obviously better than the former one. However, it still performs a
-little bit worse than the one without prefetchs (simply delete all the
-prefetch statements). So I again added the "foo bar" loop, and to
-prevent the optimization of compiler, I printed the result at the end
-of program( again, whole program below). And this makes the one with
-prefetch run faster than the one without. Also, a careful tunning
-indicates that a "foo bar" loop of 6 iterations will achieve the best
-performance.
+From: "jiaqi zhang" <zation.busy@gmail.com>
+Date: Thu, 23 Aug 2007 13:11:13 +1200
 
-However, the problem is the performance gain is so tiny even after
-great efforts of tunning: the whole program runs about 60 seconds and
-it runs only 3 seconds faster with prefetches, more excatly, 4.3%
-faster. I don't know if this is really the case. Because the cycles
-cost by a memory access is ten times more than a L2 cache access, I
-suppose the performance gain should be more significant.
+> However, the problem is the performance gain is so tiny even after
+> great efforts of tunning:
 
-Also, if I simply delete "*(buf+48)=3Di;" and change "buf+d" to
-"buf+H", the performance gain would drop markedly (about a half).
-Does it indicate that this prefetch work is so tricky that I shouldn't
-consider it when I don't know the workload of a real application?
+On stores, UltraSPARC-T1 isn't going to gain much from
+use of prefetches, it is better to use prefetches for
+data being read.
 
-Thanks!
+For stores, use the STORE-INIT alternate space store instructions.
+Which preclear the cache line and force it into owned state without
+any bus transactions.
 
---testprefetch.c--
+When using store-init instructions, you must be writing to the
+whole 64 bytes of the 64-byte aligned cache line.  The first
+store to the cache line should be the one at offset zero,
+and for best performance you should do consequetive increasing
+stores so that they all compress in the store buffer.
 
-#include <stdlib.h>
+For loads you should use the same alternate space ID, but with load
+instructions and prefetch.  These require evenly numbered register
+pairs, must be used with "ldxa" and loads two 8-byte registers at a
+time.
+
+You really should read the UltraSPARC-T1 supplement to the
+UltraSPARC-2005 architecture manual found at the opensparc.org
+web site, it explains all of this precisely.
+
+Another example of good usage for high performance memory operations
+is the arch/sparc64/lib/NGmemcpy.S memcpy() implementation in the
+kernel sources.
+
+Anyways, here is a test program I put together quickly so you
+can see how to use the store-init instructions.  With USE_STORE_INIT
+it should run about 4 times faster.
+
+Can you figure out the rest yourself now?  :-/ I've a lot of time
+teaching you the very basics how the chip works, when it's clearly
+documented in the UltraSPARC-T1 programmers manual.
+
 #include <stdio.h>
-#include <sys/time.h>
+#include <stdlib.h>
+#include <stddef.h>
 
-#define MEGA 1024*1024
-#define TIMES 100
-#define LASTITEM 100*MEGA-1
+#define BUF_SIZE (400 * 1024 * 1024)
 
-int main(){
-        struct timeval begin,end;
-        register int i,j;
-        int foo,bar;
+#define ASI_BLK_INIT_QUAD_LDD_P	0xe2 /* (NG) init-store, twin load,
+				      * primary, implicit
+				      */
 
-        int *data=3D(int *)malloc(100*sizeof(int)*MEGA);
-        register int *buf, *lastone;
-        lastone=3D&data[LASTITEM];
+#define USE_STORE_INIT
 
-        gettimeofday(&begin,NULL);
-        for(i=3D0;i<TIMES;i++){
-                buf=DAta;
-                __asm__ __volatile__("prefetch\t[%0], #n_writes\n\t"
-                                     "prefetch\t[%0+64], #n_writes\n\t"
-                                     "prefetch\t[%0+128], #n_writes"
-                                     ::"r"(buf));
-                while(buf<lastone){
-                        for(j=3D0;j<6;j++)foo+=3Dj;
-                        bar+=3Dfoo;
-                        *buf=3Di;
-                        *(buf+16)=3Di;
-                        *(buf+32)=3Di;
-                      *(buf+48)=3Di;
-                        buf+d;
-                        __asm__ __volatile__("prefetch\t[%0],
-#n_writes"::"r"(buf+128));
-                }
-        }
-        gettimeofday(&end,NULL);
-        printf("time in usec is
-%d\n",((end.tv_sec*1000000+end.tv_usec)-(begin.tv_sec*1000000+begin.tv_usec=
-)));
-        printf("bar is %d\n",bar);
+static unsigned long tick_read_cost(void)
+{
+	unsigned long tbest = ~0UL;
+	int i;
+
+	for (i = 0; i < 8; i++) {
+		unsigned long t2, t1;
+		__asm__ __volatile__("rd %%tick, %0"
+				     : "=r" (t1));
+		__asm__ __volatile__("rd %%tick, %0"
+				     : "=r" (t2));
+		t2 -= t1;
+		if (t2 < tbest)
+			tbest = t2;
+	}
+	return tbest;
 }
 
+int main(void)
+{
+	unsigned long overhead = tick_read_cost();
+	unsigned long tbest = ~0UL;
+	void *p = valloc(BUF_SIZE);
+	int iters;
 
+	__asm__ __volatile__("wr %%g0, %0, %%asi\n\t"
+			     : : "i" (ASI_BLK_INIT_QUAD_LDD_P));
 
-On 8/22/07, David Miller <davem@davemloft.net> wrote:
-> From: "jiaqi zhang" <zation.busy@gmail.com>
-> Date: Wed, 22 Aug 2007 12:01:19 +1200
->
-> > I don't really know if it is proper to post this topic here.
-> >
-> > In order to accelerate our applications, I adopted the PREFETCH
-> > instruction of UltraSparc. However, the results are not expected: the
-> > one with prefetch works even a little bit slower. The whole program is
-> > listed below.
->
-> Different processors can only have so many prefetches in flight at a
-> time.  If you perform too many, they will only consume cpu cycles.
->
-> UltraSPARC-I does not implement prefetch at all, and it just takes up
-> an instruction issue slot.
->
-> UltraSPARC-II, IIi and IIe implement prefetch, with up to 3 in flight,
-> but they has several limitations and the prefetches are not as
-> effective as they could be.
->
-> UltraSPARC-III and IIIi can have up to 5 prefetches in flight and
-> implements it very well.
->
-> Niagara 1 and 2 can have up to about 3 prefetches in flight and it
-> implements this reasonable well.
->
-> Also, prefetches only help if there is a large amount of
-> time between the prefetch and the actual access of the
-> data.
->
-> So what a loop will usually do is queue up a few prefetches
-> before the loop, perhaps forward about 2 or 3 cachelines,
-> and then the loop will end with a single prefetch that same
-> number of cachelines forward.  See my suggested loop below.
->
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->                         for(j=3D0;j<100;j++) foo+=3Dj; //do some trivial
-> things to pass time
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->
-> Since you don't really use foo or bar, the compiler can see that
-> this loop does nothing, so it will be eliminated, at least by
-> more recent versions of gcc.
->
-> Also you are doing worthless prefetches, as the cacheline size
-> is 64 bytes, so doing 16-byte offset prefetches accomplishes
-> nothing.
->
-> Reconstruct your loop as follows:
->
->         prefetch        buffer + (0 * 64)
->         prefetch        buffer + (1 * 64)
->         prefetch        buffer + (2 * 64)
->         while (buf < lastone) {
->                 *buf =3D i;
->                 *(buf+16)=3Di;
->                 *(buf+32)=3Di;
->                 *(buf+48)=3Di;
->                 buf +=3D 64;
->                 prefetch        buffer + (2 * 64);
->         }
->
-> This should work significantly better than what your code
-> is doing right now.
->
+	for (iters = 0; iters < 8; iters++) {
+		unsigned long off, t2, t1;
+		void *buf = p;
+
+		__asm__ __volatile__("rd %%tick, %0"
+				     : "=r" (t1));
+		for (off = 0; off < BUF_SIZE; off += 64) {
+			unsigned int *x = (unsigned int *) (buf + off);
+			unsigned long data = 0x12341234;
+
+#ifdef USE_STORE_INIT
+			__asm__ __volatile__(
+				"stxa %0, [%1 + 0x00] %%asi\n\t"
+				"stxa %0, [%1 + 0x08] %%asi\n\t"
+				"stxa %0, [%1 + 0x10] %%asi\n\t"
+				"stxa %0, [%1 + 0x18] %%asi\n\t"
+				"stxa %0, [%1 + 0x20] %%asi\n\t"
+				"stxa %0, [%1 + 0x28] %%asi\n\t"
+				"stxa %0, [%1 + 0x30] %%asi\n\t"
+				"stxa %0, [%1 + 0x38] %%asi\n\t"
+				: /* no outputs */
+				: "r" (data), "r" (x));
+#else
+			__asm__ __volatile__(
+				"stx %0, [%1 + 0x00]\n\t"
+				"stx %0, [%1 + 0x08]\n\t"
+				"stx %0, [%1 + 0x10]\n\t"
+				"stx %0, [%1 + 0x18]\n\t"
+				"stx %0, [%1 + 0x20]\n\t"
+				"stx %0, [%1 + 0x28]\n\t"
+				"stx %0, [%1 + 0x30]\n\t"
+				"stx %0, [%1 + 0x38]\n\t"
+				: /* no outputs */
+				: "r" (data), "r" (x));
+#endif
+		}
+		__asm__ __volatile__("rd %%tick, %0"
+				     : "=r" (t2));
+		t2 -= t1;
+		if (t2 < tbest)
+			tbest = t2;
+	}
+	printf("Best is %lu cycles\n", tbest - overhead);
+
+	return 0;
+}
