@@ -1,59 +1,43 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Date: Fri, 24 Aug 2007 16:24:48 +0000
-Subject: errno codes intertwined
-Message-Id: <Pine.LNX.4.64.0708241815540.28540@fbirervta.pbzchgretzou.qr>
+From: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
+Date: Fri, 24 Aug 2007 17:00:06 +0000
+Subject: Re: errno codes intertwined
+Message-Id: <20070824170006.GA3543@filer.fsl.cs.sunysb.edu>
 List-Id: <sparclinux.vger.kernel.org>
+References: <Pine.LNX.4.64.0708241815540.28540@fbirervta.pbzchgretzou.qr>
+In-Reply-To: <Pine.LNX.4.64.0708241815540.28540@fbirervta.pbzchgretzou.qr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, parisc-linux@parisc-linux.org
+To: Jan Engelhardt <jengelh@computergmbh.de>
+Cc: sparclinux@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, parisc-linux@parisc-linux.org
 
-Hello lists,
+On Fri, Aug 24, 2007 at 06:24:48PM +0200, Jan Engelhardt wrote:
+...
+> If a file does not have the requested attribute, the syscall will 
+> produce ENODATA. On x86_64, that is mapped to the value 61. Back on the 
+> sparc side, 61 is mapped to ECONNREFUSED, and that gives odd errors 
+> when ls tries to query xattrs:
+ 
+I'd think that passing the raw error code is a bad idea, and that you
+probably want to have your own set of codes that you use in the trasport and
+map value to/from the host's errno values.
 
+> the values are exactly swapped (mips is another oddball not portrayed 
+> here). Since these header files propagate into /usr/include, this 
+> affects userspace programs too.
 
-I am currently working on a FUSE-based filesystem much like nfs/sshfs. 
-I pass the syscall on to the storage server, where it is executed, and 
-get back the result, or errno code. Let's jump into the real world 
-example where the storage unit is x86_64 and the mount side is 
-sparc/sparc64, and the syscall is getxattr.
+Yep, and it kind of sucks.
 
-If a file does not have the requested attribute, the syscall will 
-produce ENODATA. On x86_64, that is mapped to the value 61. Back on the 
-sparc side, 61 is mapped to ECONNREFUSED, and that gives odd errors 
-when ls tries to query xattrs:
+> So I'm just asking: can I rely on the same errno across Linuxes?
 
-18:20 sun:../ccgfs/src # ls -dl /home/profile
-ls: /home/profile: Connection refused
-drwx------ 13 cf users 4096 Aug 24 16:05 /home/profile
+I wouldn't - Linux on different different architectures seems to have
+different errno codes.
 
-Just a grep away, this came up:
+> And should the errno values be fixed up?
 
-18:16 ichi:../linux-2.6.23/include > grep -r ENODATA .
-./asm-alpha/errno.h:#define     ENODATA         86      /* No data available */
-./asm-generic/errno.h:#define   ENODATA         61      /* No data available */
-./asm-mips/errno.h:#define      ENODATA         61      /* No data available */
-./asm-parisc/errno.h:#define    ENODATA         51      /* No data available */
-./asm-sparc/errno.h:#define     ENODATA         111     /* No data available */
-./asm-sparc/solerrno.h:#define  SOL_ENODATA        61    /* No data avail at this time       */
-./asm-sparc64/errno.h:#define   ENODATA         111     /* No data available */
-./asm-sparc64/solerrno.h:#define        SOL_ENODATA        61    /* No data avail at this time       */
+It would break userspace :-/
 
-Why do these architectures deviate from asm-generic? In fact,
+Josef 'Jeff' Sipek.
 
-./asm-alpha/errno.h:#define     ECONNREFUSED    61      /* Connection refused */
-./asm-generic/errno.h:#define   ECONNREFUSED    111     /* Connection refused */
-./asm-sparc/errno.h:#define     ECONNREFUSED    61      /* Connection refused */
-./asm-sparc64/errno.h:#define   ECONNREFUSED    61      /* Connection refused */
-
-the values are exactly swapped (mips is another oddball not portrayed 
-here). Since these header files propagate into /usr/include, this 
-affects userspace programs too.
-
-So I'm just asking: can I rely on the same errno across Linuxes?
-And should the errno values be fixed up?
-
-
-
-	Jan
 -- 
+*NOTE: This message is ROT-13 encrypted twice for extra protection*
