@@ -1,36 +1,22 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 13 Aug 2007 01:18:28 +0000
-Subject: Re: Ultra 1 hang on boot
-Message-Id: <20070812.181828.56053517.davem@davemloft.net>
+From: Sunil Amitkumar Janki <devel.sjanki@gmail.com>
+Date: Sat, 25 Aug 2007 09:57:02 +0000
+Subject: 2.6.23-rc3 SPARC32 __cmpdi2 undefined
+Message-Id: <46CFFCEE.1030105@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.SOC.4.64.0706061524480.12237@math>
-In-Reply-To: <Pine.SOC.4.64.0706061524480.12237@math>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1254"
+Content-Transfer-Encoding: base64
 To: sparclinux@vger.kernel.org
 
-From: Meelis Roos <mroos@linux.ee>
-Date: Sun, 12 Aug 2007 14:37:54 +0300 (EEST)
-
-> I succeeded in compiling 2.6.23-rc2 and yesterdays post-rc2 git snapshot 
-> with Debian .config and it booted fine. Changing only some configuration 
-> options breaks the boot. I am currently confused about what options 
-> break it, the results do not seem to be consistent but I will retest. 
-> The inconsistency between config options and bootability is similar to 
-> my problem with Ultra 5 where different slight changes have broken the 
-> boot, but I will first do some more tests to see whether it's really so 
-> arcane. Toolchain is Debian unstable: binutils 2.17.50.20070804 
-> (2.17cvs20070804-1), gcc version 4.1.3 20070718 (prerelease) (Debian 
-> 4.1.2-14).
-
-These are good clues.  These are the most ugly bugs to pin down
-because usually it is some subtlety of the layout of the .data or
-.bss section that is creating the bug condition.
-
-If you can get a simple config change that goes from "works" to
-"broken", the post the "works" and "broken" kernel images (prestripped)
-and System.map files, I can do some scanning of them to look for
-clues.
-
-Thanks.
+SSBoYXZlIGJ1aWx0IGJvdGggMi42LjIyLjQgYW5kIDIuNi4yMy1yYzMga2VybmVscy4gV2hlcmVh
+cwoyLjYuMjIuNCBoYXMgYSBsb3QgbW9yZSB1bnJlc29sdmVkIHN5bWJvbHMgMi42LjIzLXJjMyBo
+YXMKb25seSB0aGUgZm9sbG93aW5nIG9uZToKCj4gRVJST1I6ICJfX2NtcGRpMiIgW2RyaXZlcnMv
+bWQvZG0tc25hcHNob3Qua29dIHVuZGVmaW5lZCEKPiBtYWtlWzFdOiAqKiogW19fbW9kcG9zdF0g
+RXJyb3IgMQo+IG1ha2U6ICoqKiBbbW9kdWxlc10gRXJyb3IgMgoKSSBoYXZlIG9ic2VydmVkIHRo
+ZSBzYW1lIGJlaGF2aW91ciBvbiBNSVBTIHNvIHlvdSBjb3VsZApwcm9iYWJseSBsb29rIGhlcmUg
+Zm9yIHNvbWUgY2x1ZSBhcyB0byBob3cgdG8gc29sdmUgdGhpczoKCmh0dHA6Ly93d3cubGludXgt
+bWlwcy5vcmcvZ2l0P3A9bGludXguZ2l0O2E9Y29tbWl0O2iBYzQ2MzdjYmUzNmI5MjZkNTM3MzVi
+ZjYzOThiOWI2ZDk1NTQ0MjMKClN1bmlsCgoKLQpUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlz
+dDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgc3BhcmNsaW51eCIgaW4KdGhlIGJvZHkgb2Yg
+YSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcKTW9yZSBtYWpvcmRvbW8gaW5m
+byBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1s
