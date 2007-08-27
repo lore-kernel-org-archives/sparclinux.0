@@ -1,38 +1,80 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Date: Sun, 26 Aug 2007 18:43:06 +0000
-Subject: Re: [parisc-linux] errno codes intertwined
-Message-Id: <Pine.LNX.4.64.0708262038170.12920@fbirervta.pbzchgretzou.qr>
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Date: Mon, 27 Aug 2007 15:53:00 +0000
+Subject: [patch 26/28] Add cmpxchg_local to sparc64
+Message-Id: <20070827155532.230714989@polymtl.ca>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.0708241815540.28540@fbirervta.pbzchgretzou.qr>
- <200708261345.43165.vapier@gentoo.org>
-In-Reply-To: <200708261345.43165.vapier@gentoo.org>
+References: <20070827155234.062715780@polymtl.ca>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Frysinger <vapier@gentoo.org>
-Cc: parisc-linux@lists.parisc-linux.org, sparclinux@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, parisc-linux@parisc-linux.org
+To: akpm@linux-foundation.org, linux-kernel@vger.kernel.org
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>, clameter@sgi.com, sparclinux@vger.kernel.org, wli@holomorphy.com
 
+Use cmpxchg_u32 and cmpxchg_u64 for cmpxchg_local and cmpxchg64_local. For other
+type sizes, use the new generic cmpxchg_local (disables interrupt).
 
-On Aug 26 2007 13:45, Mike Frysinger wrote:
->> can I rely on the same errno across Linuxes?
->
->nope
->
->> And should the errno values be fixed up?
->
->i guess that depends on whether you think it's even broken :)
->
->no spec requires any errno symbol have an exact numeric value ... i'm guessing 
->your FUSE is only cross-Linux and you're not planning on dipping into any 
->other OS ?
+Change:
+Since the header depends on local_irqsave/local_irqrestore, it must be
+included after their declaration.
 
-If the errnos are not the same in the Linux world, it's not even
-cross-Linux ;-) - but it's always translated to fixed numbers now anyway.
+Actually, being below the
+#include <linux/irqflags.h> should be enough, and on sparc64 it is
+included at the beginning of system.h.
 
-I have not really thought about putting it in use on other systems yet. I
-don't have macosx to test, and Windows generally lacks some fuses. :^)
-You are free to spin it if you like, http://freshmeat.net/p/ccgfs/
+So it makes sense to move it up for sparc64.
 
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+CC: clameter@sgi.com
+CC: sparclinux@vger.kernel.org
+CC: wli@holomorphy.com
+---
+ include/asm-sparc64/system.h |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-	Jan
+Index: linux-2.6-lttng/include/asm-sparc64/system.h
+=================================--- linux-2.6-lttng.orig/include/asm-sparc64/system.h	2007-08-20 17:40:57.000000000 -0400
++++ linux-2.6-lttng/include/asm-sparc64/system.h	2007-08-20 19:42:32.000000000 -0400
+@@ -9,6 +9,7 @@
+ #ifndef __ASSEMBLY__
+ 
+ #include <linux/irqflags.h>
++#include <asm-generic/cmpxchg-local.h>
+ 
+ /*
+  * Sparc (general) CPU types
+@@ -314,6 +315,30 @@ __cmpxchg(volatile void *ptr, unsigned l
+ 				    (unsigned long)_n_, sizeof(*(ptr))); \
+   })
+ 
++/*
++ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
++ * them available.
++ */
++
++static inline unsigned long __cmpxchg_local(volatile void *ptr,
++				      unsigned long old,
++				      unsigned long new, int size)
++{
++	switch (size) {
++	case 4:
++	case 8:	return __cmpxchg(ptr, old, new, size);
++	default:
++		return __cmpxchg_local_generic(ptr, old, new, size);
++	}
++
++	return old;
++}
++
++#define cmpxchg_local(ptr,o,n)					  	\
++	(__typeof__(*(ptr)))__cmpxchg_local((ptr), (unsigned long)(o),	\
++			   	 (unsigned long)(n), sizeof(*(ptr)))
++#define cmpxchg64_local(ptr,o,n) cmpxchg_local((ptr), (o), (n))
++
+ #endif /* !(__ASSEMBLY__) */
+ 
+ #define arch_align_stack(x) (x)
+
 -- 
+Mathieu Desnoyers
+Computer Engineering Ph.D. Student, Ecole Polytechnique de Montreal
+OpenPGP key fingerprint: 8CD5 52C3 8E3C 4140 715F  BA06 3F25 A8FE 3BAE 9A68
