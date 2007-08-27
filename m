@@ -1,67 +1,74 @@
-From: Robert Reif <reif@earthlink.net>
-Date: Tue, 21 Aug 2007 23:32:05 +0000
+From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
+Date: Mon, 27 Aug 2007 14:26:15 +0000
 Subject: Re: Re. [SPARC32]: Fix bogus ramdisk image location check.
-Message-Id: <46CB75F5.5090401@earthlink.net>
+Message-Id: <Pine.LNX.4.61.0708271512190.2529@mtfhpc.demon.co.uk>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------040404090209010006060004"
+Content-Type: multipart/mixed; boundary="1750305931-1486508478-1188224775=:2529"
 List-Id: <sparclinux.vger.kernel.org>
 References: <46CA19DE.3000108@earthlink.net>
 In-Reply-To: <46CA19DE.3000108@earthlink.net>
 To: sparclinux@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------040404090209010006060004
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-mark@mtfhpc.demon.co.uk wrote:
+--1750305931-1486508478-1188224775=:2529
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 
->Hi Robert,
->
->Can you put some prom_printf's or printk's in to find out where your initrd ramdisk is ending up. 
->
->The code relies on ordering/alignment in the linker script which is not a good idear so the aim needs to be to create some code that correctly identifies the location of the ramdisk without using hard coded offsets based on '&end' and 2*4096 :). I will have another look at the code later on this week and see if I can work out somthing that does the same thing but with more flexibility in what can be done to the linker script (i.e. does not rely on specific alignments and ordering in the linker script).
->
->The information about where the ramdisk is may present a simple solution.
->
->Regards
->    Mark Fortescue.
->
->
->  
->
-The following patch gives these numbers:
+Hi Robert,
 
-sparc_ramdisk_image = 3000000, &_end = f028bde0, phys_base = 0, 
-sparc_ramdisk_size = 3064303
-initrd_start = 3000000, initrd_end = 32ec1ef
+I beleive that the attached+inserted patch should have the desired 
+characteristics. Can you check it out to ensure it does nothing silly.
+
+(This same check may also be valid for SPARC64)
+
+--- linux-2.6/arch/sparc/mm/init.c	2007-08-14 23:24:41.000000000 +0100
++++ linux-mark/arch/sparc/mm/init.c	2007-08-27 13:09:21.000000000 +0100
+@@ -206,7 +206,7 @@ unsigned long __init bootmem_init(unsign
+  #ifdef CONFIG_BLK_DEV_INITRD
+  	/* Now have to check initial ramdisk, so that bootmap does not overwrite it */
+  	if (sparc_ramdisk_image) {
+-		if (sparc_ramdisk_image >= (unsigned long)&_end - 2 * PAGE_SIZE)
++		if (sparc_ramdisk_image >= KERNBASE)
+  			sparc_ramdisk_image -= KERNBASE;
+  		initrd_start = sparc_ramdisk_image + phys_base;
+  		initrd_end = initrd_start + sparc_ramdisk_size;
 
 
+--1750305931-1486508478-1188224775=:2529
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name="ramdisk.patch"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.61.0708271526140.2529@mtfhpc.demon.co.uk>
+Content-Description: 
+Content-Disposition: attachment; filename="ramdisk.patch"
 
---------------040404090209010006060004
-Content-Type: text/plain;
- name="init.diff.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="init.diff.txt"
+RnJvbTogTWFyayBGb3J0ZXNjdWUgPG1hcmtAbXRmaHBjLmRlbW9uLmNvLnVr
+Pg0KDQpbU1BBUkMzMl06IEZpeCBib2d1cyByYW1kaXNrIGltYWdlIGxvY2F0
+aW9uIGNoZWNrLg0KDQpJdCB3YXMgb3JpZ2luYWxseSB0aG91Z2h0IHRoYXQg
+c3BhcmNfcmFtZGlza19pbWFnZSBzaG91bGQgYWx3YXlzIGJlIGRlY3JlbWVu
+dGVkDQpieSBLRVJOQkFTRSBzbyB0aGUgY2hlY2sgY291bGQganVzdCBiZSBk
+cm9wcGVkLCBidXQgaXQgdHVybnMgb3V0IHRoYXQgdGhpcyBpcw0Kbm90IHRo
+ZSBjYXNlLiBKdXN0IGNoZWNraW5nIGlmIHRoZSBpbWFnZSBpcyBncmVhdGVy
+IHRoYW4gS0VSTkJBU0Ugc2hvdWxkIGJlDQpzdWZmaWNpZW50IHRvIGNvcnJl
+Y3RseSBpZGVudGlmeSBpZiB0aGUgY29ycmVjdGlvbiBpcyBuZWVkZWQgYW5k
+IGF2b2lkcyBhbnkNCnBvc2libGUgaXNzdWVzIHdpdGggY2hhbmdlcyB0byB0
+aGUgbGlua2VyIHNjcmlwdCBvcmRlcmluZyB0aGF0IGFyZSBwcmVzZW50IGlm
+DQomZW5kIGlzIHVzZWQgd2l0aCBhIGZpeGVkIDIgcGFnZSBvZmZzZXQuDQoN
+ClNpZ25lZC1vZmYtYnk6IE1hcmsgRm9ydGVzY3VlIDxtYXJrQG10ZmhwYy5k
+ZW1vbi5jby51az4NCi0tLQ0KVGhpcyBzYW1lIGNoZWNrIG1heSBhbHNvIGJl
+IHZhbGlkIGZvciBTUEFSQzY0DQoNCi0tLSBsaW51eC0yLjYvYXJjaC9zcGFy
+Yy9tbS9pbml0LmMJMjAwNy0wOC0xNCAyMzoyNDo0MS4wMDAwMDAwMDAgKzAx
+MDANCisrKyBsaW51eC1tYXJrL2FyY2gvc3BhcmMvbW0vaW5pdC5jCTIwMDct
+MDgtMjcgMTM6MDk6MjEuMDAwMDAwMDAwICswMTAwDQpAQCAtMjA2LDcgKzIw
+Niw3IEBAIHVuc2lnbmVkIGxvbmcgX19pbml0IGJvb3RtZW1faW5pdCh1bnNp
+Z24NCiAjaWZkZWYgQ09ORklHX0JMS19ERVZfSU5JVFJEDQogCS8qIE5vdyBo
+YXZlIHRvIGNoZWNrIGluaXRpYWwgcmFtZGlzaywgc28gdGhhdCBib290bWFw
+IGRvZXMgbm90IG92ZXJ3cml0ZSBpdCAqLw0KIAlpZiAoc3BhcmNfcmFtZGlz
+a19pbWFnZSkgew0KLQkJaWYgKHNwYXJjX3JhbWRpc2tfaW1hZ2UgPj0gKHVu
+c2lnbmVkIGxvbmcpJl9lbmQgLSAyICogUEFHRV9TSVpFKQ0KKwkJaWYgKHNw
+YXJjX3JhbWRpc2tfaW1hZ2UgPj0gS0VSTkJBU0UpDQogCQkJc3BhcmNfcmFt
+ZGlza19pbWFnZSAtPSBLRVJOQkFTRTsNCiAJCWluaXRyZF9zdGFydCA9IHNw
+YXJjX3JhbWRpc2tfaW1hZ2UgKyBwaHlzX2Jhc2U7DQogCQlpbml0cmRfZW5k
+ID0gaW5pdHJkX3N0YXJ0ICsgc3BhcmNfcmFtZGlza19zaXplOw0K
 
---- a/arch/sparc/mm/init.c
-+++ b/arch/sparc/mm/init.c
-@@ -206,9 +206,13 @@ unsigned long __init bootmem_init(unsigned long *pages_avail)
- #ifdef CONFIG_BLK_DEV_INITRD
- 	/* Now have to check initial ramdisk, so that bootmap does not overwrite it */
- 	if (sparc_ramdisk_image) {
--		sparc_ramdisk_image -= KERNBASE;
-+printk("sparc_ramdisk_image = %x, &_end = %p, phys_base = %lx, sparc_ramdisk_size = %u\n", 
-+sparc_ramdisk_image, &_end, phys_base, sparc_ramdisk_size);
-+		if (sparc_ramdisk_image >= (unsigned long)&_end - 2 * PAGE_SIZE)
-+			sparc_ramdisk_image -= KERNBASE;
- 		initrd_start = sparc_ramdisk_image + phys_base;
- 		initrd_end = initrd_start + sparc_ramdisk_size;
-+printk("initrd_start = %lx, initrd_end = %lx\n", initrd_start, initrd_end);
- 		if (initrd_end > end_of_phys_memory) {
- 			printk(KERN_CRIT "initrd extends beyond end of memory "
- 		                 	 "(0x%016lx > 0x%016lx)\ndisabling initrd\n",
-
---------------040404090209010006060004--
-
+--1750305931-1486508478-1188224775=:2529--
