@@ -1,75 +1,132 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Date: Tue, 07 Aug 2007 07:30:48 +0000
-Subject: Re: Help understanding SPARC32 Sun4c PTE handling
-Message-Id: <1186471848.938.127.camel@localhost.localdomain>
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Date: Mon, 27 Aug 2007 15:52:59 +0000
+Subject: [patch 25/28] Add cmpxchg_local to sparc, move __cmpxchg to system.h
+Message-Id: <20070827155531.889738867@polymtl.ca>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.61.0708061749230.29956@mtfhpc.demon.co.uk>
-In-Reply-To: <Pine.LNX.4.61.0708061749230.29956@mtfhpc.demon.co.uk>
+References: <20070827155234.062715780@polymtl.ca>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Cc: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-mm@kvack.org, "Antonino A. Daplas" <adaplas@hotpop.com>
+To: akpm@linux-foundation.org, linux-kernel@vger.kernel.org
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>, clameter@sgi.com, wli@holomorphy.com, sparclinux@vger.kernel.org
 
-On Mon, 2007-08-06 at 18:38 +0100, Mark Fortescue wrote:
-> Hi David,
-> 
-> If you have the time ..., if not, hopfully, some one from linux-mm will 
-> explain.
-> 
-> I have been investigating the differences between SunOS PTE and Linux PTE 
-> bits. There are some differences that I would like to understand.
+Move cmpxchg and add cmpxchg_local to system.h.
+Use the new generic cmpxchg_local (disables interrupt).
 
-I'm no specific of sun4c but I can answer on generalities. Maybe Anton
-knows more, I've added him to the CC list :-)
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+CC: clameter@sgi.com
+CC: wli@holomorphy.com
+CC: sparclinux@vger.kernel.org
+---
+ include/asm-sparc/atomic.h |   36 ----------------------------------
+ include/asm-sparc/system.h |   47 +++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 47 insertions(+), 36 deletions(-)
 
-> What is the pte_file() function intended for. The bit in the PTE that
-> is used (0x02000000) is set by hardware (definatly on page write and in 
-> theory on page read if the SunOS PTE description is to be believed. It 
-> is described as the 'refferenced' bit).
+Index: linux-2.6-lttng/include/asm-sparc/atomic.h
+=================================--- linux-2.6-lttng.orig/include/asm-sparc/atomic.h	2007-08-10 19:36:01.000000000 -0400
++++ linux-2.6-lttng/include/asm-sparc/atomic.h	2007-08-10 19:42:47.000000000 -0400
+@@ -17,42 +17,6 @@ typedef struct { volatile int counter; }
+ 
+ #ifdef __KERNEL__
+ 
+-/* Emulate cmpxchg() the same way we emulate atomics,
+- * by hashing the object address and indexing into an array
+- * of spinlocks to get a bit of performance...
+- *
+- * See arch/sparc/lib/atomic32.c for implementation.
+- *
+- * Cribbed from <asm-parisc/atomic.h>
+- */
+-#define __HAVE_ARCH_CMPXCHG	1
+-
+-/* bug catcher for when unsupported size is used - won't link */
+-extern void __cmpxchg_called_with_bad_pointer(void);
+-/* we only need to support cmpxchg of a u32 on sparc */
+-extern unsigned long __cmpxchg_u32(volatile u32 *m, u32 old, u32 new_);
+-
+-/* don't worry...optimizer will get rid of most of this */
+-static __inline__ unsigned long
+-__cmpxchg(volatile void *ptr, unsigned long old, unsigned long new_, int size)
+-{
+-	switch(size) {
+-	case 4:
+-		return __cmpxchg_u32((u32 *)ptr, (u32)old, (u32)new_);
+-	default:
+-		__cmpxchg_called_with_bad_pointer();
+-		break;
+-	}
+-	return old;
+-}
+-
+-#define cmpxchg(ptr,o,n) ({						\
+-	__typeof__(*(ptr)) _o_ = (o);					\
+-	__typeof__(*(ptr)) _n_ = (n);					\
+-	(__typeof__(*(ptr))) __cmpxchg((ptr), (unsigned long)_o_,	\
+-			(unsigned long)_n_, sizeof(*(ptr)));		\
+-})
+-
+ #define ATOMIC_INIT(i)  { (i) }
+ 
+ extern int __atomic_add_return(int, atomic_t *);
+Index: linux-2.6-lttng/include/asm-sparc/system.h
+=================================--- linux-2.6-lttng.orig/include/asm-sparc/system.h	2007-08-10 19:43:08.000000000 -0400
++++ linux-2.6-lttng/include/asm-sparc/system.h	2007-08-10 19:43:42.000000000 -0400
+@@ -245,6 +245,53 @@ static __inline__ unsigned long __xchg(u
+ 	return x;
+ }
+ 
++/* Emulate cmpxchg() the same way we emulate atomics,
++ * by hashing the object address and indexing into an array
++ * of spinlocks to get a bit of performance...
++ *
++ * See arch/sparc/lib/atomic32.c for implementation.
++ *
++ * Cribbed from <asm-parisc/atomic.h>
++ */
++#define __HAVE_ARCH_CMPXCHG	1
++
++/* bug catcher for when unsupported size is used - won't link */
++extern void __cmpxchg_called_with_bad_pointer(void);
++/* we only need to support cmpxchg of a u32 on sparc */
++extern unsigned long __cmpxchg_u32(volatile u32 *m, u32 old, u32 new_);
++
++/* don't worry...optimizer will get rid of most of this */
++static __inline__ unsigned long
++__cmpxchg(volatile void *ptr, unsigned long old, unsigned long new_, int size)
++{
++	switch(size) {
++	case 4:
++		return __cmpxchg_u32((u32 *)ptr, (u32)old, (u32)new_);
++	default:
++		__cmpxchg_called_with_bad_pointer();
++		break;
++	}
++	return old;
++}
++
++#define cmpxchg(ptr,o,n) ({						\
++	__typeof__(*(ptr)) _o_ = (o);					\
++	__typeof__(*(ptr)) _n_ = (n);					\
++	(__typeof__(*(ptr))) __cmpxchg((ptr), (unsigned long)_o_,	\
++			(unsigned long)_n_, sizeof(*(ptr)));		\
++})
++
++#include <asm-generic/cmpxchg-local.h>
++
++/*
++ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
++ * them available.
++ */
++#define cmpxchg_local(ptr,o,n)					  	    \
++     (__typeof__(*(ptr)))__cmpxchg_local_generic((ptr), (unsigned long)(o), \
++			   	 (unsigned long)(n), sizeof(*(ptr)))
++#define cmpxchg64_local(ptr,o,n) __cmpxchg64_local_generic((ptr), (o), (n))
++
+ extern void die_if_kernel(char *str, struct pt_regs *regs) __attribute__ ((noreturn));
+ 
+ #endif /* __KERNEL__ */
 
-_PAGE_FILE in linux is a software-only bit that is set on PTEs that are
-not present (_PAGE_PRESENT not set) (and thus normally not used by HW,
-that is, not seen as valid). It's used to indicate that the page is part
-of a file mapping (rather than an anonymous page).
-
-The linux PTE contains other bits like that, used on non-present PTEs,
-mostly encoding where in the swap or where in the file the page for a
-non-present PTE is backed.
-
-> The linux-mm documentation only states that it is for swappable non-linear 
-> VMAs (exactly what we have in the sun4c unless you assume VMA is signed 
-> [like the INMOS Transputer], in which case it is linear from -512MB to 
-> +512MB :-). The down size of sigend address mappings is that NULL is 
-> nolonger zero and too many people have got lazy and assumed it is.).
-
-In general it's used for file mappings.
-
-> Re-arranging the bits so that _SUN4C_PAGE_ACCESSED and 
-> _SUN4C_PAGE_MODIFIED bits match the MMU hardware bits seems to make boots 
-> more stable (I have been gettimg non-repeatable boots where the init 
-> script goes through the motions but does not actually do what I am 
-> expecting or just gets skipped. SLAB is worse than SLUB.) but the changes 
-> I have tried sofar, break swapon.
-
-I don't think that _ACCESSED and _DIRTY are ever used on a non-present
-PTE so it wouldn't be a problem to have them overlap _PAGE_FILE but I
-may be wrong on this one (on ppc, we overlap _PAGE_FILE with some other
-bits only relevant to present PTEs). It would make sense, if the HW
-provides ACCESSED and DIRTY writeback, to have the PTE bits match what
-the HW does, though I've seen cases where we deliberately avoid using
-the HW writeback to avoid nasty race conditions. In that later case, we
-just make sure the HW "accessed" and "dirty" bits are always set, and
-maintain software ones separately. I don't know what the sun4c code
-does.
-
-> Linux uses four bits that do not get saved in the MMU PTE 
-> (_SUN4C_PAGE_READ, _SUN4C_PAGE_WRITE, _SUN4C_PAGE_MODIFIED and 
-> _SUN4C_PAGE_ACCESSED). I have assumed that these are preserved externally 
-> in a software copy of the PTE somewhere (I have not found anything that I 
-> recognise as specific storage for this in the sparc32 code) as reading the 
-> MMU PTE will return zero for these bits.
-
-Ben.
-
-
+-- 
+Mathieu Desnoyers
+Computer Engineering Ph.D. Student, Ecole Polytechnique de Montreal
+OpenPGP key fingerprint: 8CD5 52C3 8E3C 4140 715F  BA06 3F25 A8FE 3BAE 9A68
