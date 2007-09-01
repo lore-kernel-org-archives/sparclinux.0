@@ -1,71 +1,59 @@
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Date: Fri, 21 Sep 2007 13:51:12 +0000
-Subject: Re: 2.6.23-rc6-mm1 sparc build error
-Message-Id: <20070921135112.GI13129@Krystal>
+From: "jiaqi zhang" <zation.busy@gmail.com>
+Date: Sat, 01 Sep 2007 01:24:55 +0000
+Subject: perfctr on UltraSparcT1
+Message-Id: <a8e8903d0708311824s72f929d1rfcf3d2b953b21094@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070918011841.2381bd93.akpm@linux-foundation.org> <20070918205403.GA13650@Krystal> <20070918140508.e2c56212.akpm@linux-foundation.org> <Pine.LNX.4.60.0709201418000.5039@poirot.grange>
-In-Reply-To: <Pine.LNX.4.60.0709201418000.5039@poirot.grange>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, wli@holomorphy.com, sparclinux@vger.kernel.org, Dmitry Torokhov <dtor@mail.ru>
+To: sparclinux@vger.kernel.org
 
-* Guennadi Liakhovetski (g.liakhovetski@gmx.de) wrote:
-> Provide {enable,disable}_irq_wakeup dummies for undefined 
-> CONFIG_GENERIC_HARDIRQS case. Completely untested, as I don't even have 
-> cross-compilers for platforms without CONFIG_GENERIC_HARDIRQS.
-> 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> 
+Hello,
 
-It builds fine now.
+I'm doing performance experiments of my applications on UltraSparc T1.
+In order to test the data of cache miss or other things, I'm in need
+of some ways to access PIC and PCR. I wrote a simple module to read
+and set these registers using the macros found in
+asm-sparc64/system.h. However, no matter what I set to the pcr,
+read_pcr and read_pic (I understand this should be 0 when pcr is 0)
+always return 0.
 
-Tested-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+After that, I found a system call (sys_perfctr) that would do this. So
+in my program, I invoked this system call as below. (I also tried bind
+the thread to a specific processor using setaffinity) However, I've
+got the same problem. The output is below the program.
 
-> ---
-> 
-> On Tue, 18 Sep 2007, Andrew Morton wrote:
-> 
-> > On Tue, 18 Sep 2007 16:54:03 -0400
-> > Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca> wrote:
-> > 
-> > > I got the following error when building 2.6.23-rc6-mm1 on sparc:
-> > > 
-> > > 
-> > >   /opt/crosstool/gcc-4.1.1-glibc-2.3.6/sparc-unknown-linux-gnu/bin/sparc-unknown-linux-gnu-gcc -Wp,-MD,drivers/serial/.serial_core.o.d  -nostdinc -isystem /opt/crosstool/gcc-4.1.1-glibc-2.3.6/sparc-unknown-linux-gnu/lib/gcc/sparc-unknown-linux-gnu/4.1.1/include -D__KERNEL__ -Iinclude -Iinclude2 -I/home/compudj/git/linux-2.6-lttng/include -include include/linux/autoconf.h  -I/home/compudj/git/linux-2.6-lttng/drivers/serial -Idrivers/serial -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration -Os -m32 -pipe -mno-fpu -fcall-used-g5 -fcall-used-g7 -fomit-frame-pointer -fno-stack-protector -Wdeclaration-after-statement -Wno-pointer-sign  -D"KBUILD_STR(s)=#s" -D"KBUILD_BASENAME=KBUILD_STR(serial_core)"  -D"KBUILD_MODNAME=KBUILD_STR(serial_core)" -c -o drivers/serial/.tmp_serial_core.o /home/compudj/git/linux-2.6-lttng/drivers/serial/serial_core.c
-> > > /home/compudj/git/linux-2.6-lttng/drivers/serial/serial_core.c: In function 'uart_suspend_port':
-> > > /home/compudj/git/linux-2.6-lttng/drivers/serial/serial_core.c:1980: error: implicit declaration of function 'enable_irq_wake'
-> > > /home/compudj/git/linux-2.6-lttng/drivers/serial/serial_core.c: In function 'uart_resume_port':
-> > > /home/compudj/git/linux-2.6-lttng/drivers/serial/serial_core.c:2035: error: implicit declaration of function 'disable_irq_wake'
-> > 
-> > hm, I wonder why I didn't hit that.
-> > 
-> > enable_irq_wake() was added by wake-up-from-a-serial-port.patch
-> > 
-> > I note that git-input adds a call too, and might have a problem
-> > with !CONFIG_GENERIC_HARDIRQS.
-> > 
-> > Not sure what the best fix is here.  We could sprinkle ifdefs all
-> > over the code, or just add the suitable empty stubs for enable_irq_wake(),
-> > etc.
-> 
-> diff --git a/include/linux/interrupt.h b/include/linux/interrupt.h
-> index 5323f62..ecade41 100644
-> --- a/include/linux/interrupt.h
-> +++ b/include/linux/interrupt.h
-> @@ -205,6 +205,9 @@ static inline int disable_irq_wake(unsigned int irq)
->  						enable_irq(irq)
->  # endif
->  
-> +#define enable_irq_wake(irq) ({ (void)(irq); 0; })
-> +#define disable_irq_wake(irq) ({ (void)(irq); 0; })
-> +
->  #endif /* CONFIG_GENERIC_HARDIRQS */
->  
->  #ifndef __ARCH_SET_SOFTIRQ_PENDING
+Could anyone teach me this? Sorry for this naive question. Thanks a lot!
 
--- 
-Mathieu Desnoyers
-Computer Engineering Ph.D. Student, Ecole Polytechnique de Montreal
-OpenPGP key fingerprint: 8CD5 52C3 8E3C 4140 715F  BA06 3F25 A8FE 3BAE 9A68
+btw, Linux kernel 2.6.20, gcc 4.2.1
+
+
+
+#include <linux/unistd.h>
+#include <syscall.h>
+#include <errno.h>
+#include <stdio.h>
+#include <asm-sparc64/perfctr.h>
+
+       int main(void)
+       {
+            int opcode;
+                unsigned long arg0,arg1,arg2;
+            int error;
+                unsigned long pcr;
+                if(error=syscall(SYS_perfctr,PERFCTR_ON,0,0,0))
+                        printf("error is %d\n",error);
+                if(error=syscall(SYS_perfctr,PERFCTR_SETPCR,0x04,0,0))
+                        printf("error is %d\n",error);
+                if(error=syscall(SYS_perfctr,PERFCTR_GETPCR,&pcr,0,0))
+                        printf("error is %d and %s\n",error,strerror(error));
+                printf("pcr is %d\n",pcr);
+                return(0);
+       }
+
+output:
+$gcc tryperfctr.c
+$./a.out
+error is -1
+error is -1 and Unknown error 18446744073709551615
+pcr is 0
