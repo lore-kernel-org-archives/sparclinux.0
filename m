@@ -1,31 +1,43 @@
-From: "Blue Swirl" <blauwirbel@gmail.com>
-Date: Fri, 28 Sep 2007 14:53:48 +0000
-Subject: Re: More than 4G of memory on Sparc32?
-Message-Id: <f43fc5580709280753h5ece4c85mfbb1c5e93c0a07d2@mail.gmail.com>
+From: Krzysztof Helt <krzysztof.h1@gmail.com>
+Date: Mon, 10 Sep 2007 21:09:36 +0000
+Subject: Re: [PATCH] restore_current o0 register clobber
+Message-Id: <20070910230936.d8256d93.krzysztof.h1@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <f43fc5580709261221y47790f7en4726a74122d42191@mail.gmail.com>
-In-Reply-To: <f43fc5580709261221y47790f7en4726a74122d42191@mail.gmail.com>
+References: <20070826190858.bc86dea7.krzysztof.h1@wp.pl>
+In-Reply-To: <20070826190858.bc86dea7.krzysztof.h1@wp.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 9/26/07, David Miller <davem@davemloft.net> wrote:
-> From: "Blue Swirl" <blauwirbel@gmail.com>
-> Date: Wed, 26 Sep 2007 22:21:42 +0300
->
-> > Will this ever be fixed? Anybody out there with a real machine and
-> > lots of memory?
->
-> Since you have a qemu with >4GB support you are in the best
-> position the fix this :-)
+On Sun, 26 Aug 2007 19:08:58 +0200
+Krzysztof Helt <krzysztof.h1@wp.pl> wrote:
 
-Maybe. There are other similar limits that could be explored and
-fixed, for example Qemu  supports 16 CPUs on a plain Sun4m and there
-are patches allowing lots of disks. But I don't see what's the point
-fixing the issues if there are no real machines where removing these
-limits would matter.
+> From: Krzysztof Helt <krzysztof.h1@wp.pl>
+> 
+> This patch changes call definitions of the restore_current(void)
+> to restore_current(int) to force usage of the o0 register. The o0
+> register is used internally and compiler must not assume
+> it is preserved during the call.
+> 
+> Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+> 
+> ---
+[...] 
+> The added parameter forces the gcc to
+> load value into the o0 register before the
+> restore_current() call thus force reloading it
+> before the next call.
+> 
+> I don't know if it has something to do with the crash
+> in the atomic_add_unless() which I observe sometimes
+> on SMP kernel (SS20) around the floppy driver load
+> (just before or just after the text about FDC driver).
+> I can confirm it after few days of testing because it
+> happens randomly.
+> 
 
-If I implemented in Qemu a completely new system (Sun4q?) with a
-Sparc-like CPU of my own design, would you accept any patches to
-support that in Linux?
+It does not help with this as it happened once again (with the patch applied).
+
+Regards,
+Krzysztof
