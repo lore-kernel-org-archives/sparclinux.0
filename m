@@ -1,57 +1,81 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 30 Sep 2007 23:59:21 +0000
-Subject: Re: SPARC64 2.6.23-rc8 binfmt_aout32 error
-Message-Id: <20070930.165921.104060866.davem@davemloft.net>
+From: =?ISO-8859-1?Q?Iv=E1n_Chavero?= <ichavero@uach.mx>
+Date: Tue, 11 Sep 2007 20:23:58 +0000
+Subject: SILO problem on a T1000
+Message-Id: <46E6F95E.9080204@uach.mx>
 List-Id: <sparclinux.vger.kernel.org>
-References: <470034EA.4060906@gmail.com>
-In-Reply-To: <470034EA.4060906@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sunil Amitkumar Janki <devel.sjanki@gmail.com>
-Date: Mon, 01 Oct 2007 01:44:42 +0200
+Hello, I have a problem with SILO. I've successfully installed gentoo 
+2007.0 on my T1000, i run silo and it does not return any error.
 
-> When I'm building 2.6.23-rc8 on SPARC64 (using a 64-bit CLFS
-> SVN tool chain consisting of GCC 4.2.1, Binutils 2.18 and Glibc
-> 2.6.1) I get the following error:
-> 
-> >   CC      arch/sparc64/kernel/binfmt_aout32.o
-> > cc1: warnings being treated as errors
-> > arch/sparc64/kernel/binfmt_aout32.c: In function 'create_aout32_tables':
-> > arch/sparc64/kernel/binfmt_aout32.c:180: warning: cast from pointer to 
-> > integer of different size
 
-This patch below will likely fix the build failure.
+But when i try to boot i get this error:
 
-But note that gcc-4.2.x is very widely known to miscompile
-the sparc64 kernel, particularly on SMP, so even if you get
-a build the kernel you end up will be mostly unusable.
+boot disk
 
-I would really recommend you stay with gcc-4.1.x unless you are going
-to work on fixing those gcc-4.2.x miscompilations, and I'm already on
-the hook for that :-)
 
-diff --git a/arch/sparc64/kernel/binfmt_aout32.c b/arch/sparc64/kernel/binfmt_aout32.c
-index f205fc7..d208cc7 100644
---- a/arch/sparc64/kernel/binfmt_aout32.c
-+++ b/arch/sparc64/kernel/binfmt_aout32.c
-@@ -177,7 +177,7 @@ static u32 __user *create_aout32_tables(char __user *p, struct linux_binprm *bpr
- 			get_user(c,p++);
- 		} while (c);
- 	}
--	put_user(NULL,argv);
-+	put_user(0,argv);
- 	current->mm->arg_end = current->mm->env_start = (unsigned long) p;
- 	while (envc-->0) {
- 		char c;
-@@ -186,7 +186,7 @@ static u32 __user *create_aout32_tables(char __user *p, struct linux_binprm *bpr
- 			get_user(c,p++);
- 		} while (c);
- 	}
--	put_user(NULL,envp);
-+	put_user(0,envp);
- 	current->mm->env_end = (unsigned long) p;
- 	return sp;
- }
+  .... Big Fat Output ....
+
+
+Sun Fire(TM) T1000, No Keyboard
+Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
+OpenBoot 4.23.4, 8184 MB memory available, Serial #75689954.
+Ethernet address 0:14:4f:82:ef:e2, Host ID: 8482efe2.
+
+
+
+Rebooting with command: boot disk
+Boot device: /pci@7c0/pci@0/pci@8/scsi@2/disk@0,0  File and args:
+The file just loaded does not appear to be executable.
+
+the same is with boot disk:c, and boot disk:a
+
+I have run SILO with multiple switch combinations, this are the latest i ran
+
+netboot-20070724 / # silo -u -f
+/etc/silo.conf appears to be valid
+netboot-20070724 / # silo -u -f -t
+/etc/silo.conf appears to be valid
+
+
+my silo.conf:
+
+
+partition = 1
+timeout = 10
+image = /boot/kernel-2.6.22-gentoo-r5-vegito
+         label = gentoo-linux
+         root = /dev/sda1
+
+
+
+
+my partition table is like this:
+
+fdisk -l
+
+Disk /dev/sda (Sun disk label): 24 heads, 424 sectors, 14087 cylinders
+Units = cylinders of 10176 * 512 bytes
+
+    Device Flag    Start       End    Blocks   Id  System
+/dev/sda1             1      1919   9758784   83  Linux native
+/dev/sda2  u       1919      2617   3551424   82  Linux swap
+/dev/sda3             0     14087  71674656    5  Whole disk
+/dev/sda4          2617     14087  58359360   83  Linux native
+
+
+
+i had /dev/sda1 starting on cylinder 0 and got the same behaviour so i 
+think that i'm doing something wrong with SILO or the ultra.b file does 
+not work well with OpenBoot 4.23.4
+
+I'm lost here i've done all can think of doing and read and reread the 
+http://www.sparc-boot.org, http://www.ultralinux.org, gentoo docs and 
+older posts to this list and nothing. I could really use some help.
+
+Thanks in advance.
+
+
