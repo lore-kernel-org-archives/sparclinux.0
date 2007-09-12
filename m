@@ -1,180 +1,66 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 28 Sep 2007 21:30:18 +0000
-Subject: Re: PATCH: tcp rfc 2385 security/bugfix for sparc64
-Message-Id: <20070928.143018.40816172.davem@davemloft.net>
+From: travis@sgi.com
+Date: Wed, 12 Sep 2007 01:56:45 +0000
+Subject: [PATCH 01/10] x86: remove x86_cpu_to_log_apicid array (v3)
+Message-Id: <20070912015645.290833956@sgi.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <23966.84.62.25.8.1191012145.squirrel@cs1.dlh.net>
-	<20070928.142015.82358847.davem@davemloft.net>
-In-Reply-To: <20070928.142015.82358847.davem@davemloft.net>
+References: <20070912015644.927677070@sgi.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: pl@dlh.net
-Cc: sparclinux@vger.kernel.org, alan@lxorguk.ukuu.org.uk, torvalds@linux-foundation.org, linux-kernel@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andi Kleen <ak@suse.de>, Christoph Lameter <clameter@sgi.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org
 
-From: David Miller <davem@davemloft.net>
-Date: Fri, 28 Sep 2007 14:20:15 -0700 (PDT)
+This is a copy of an older patch that is in rc3-mm1.  It's needed
+to allow the remaining patches to integrate correctly.
 
-> Thanks for finding this bug.
-> 
-> > --- linux.old/include/net/tcp.h 2007-09-28 21:43:26.000000000 +0200 +++
-> > linux/include/net/tcp.h     2007-09-28 21:45:35.000000000 +0200 @@ -1055,6
-> > +1055,7 @@ static inline void clear_all_retrans_hin
-> 
-> I'll have to apply this patch by hand because your email client
-> completely corrupted the patch.
+Signed-off-by: Mike Travis <travis@sgi.com>
+---
+ arch/x86_64/kernel/genapic.c      |    2 --
+ arch/x86_64/kernel/genapic_flat.c |    1 -
+ arch/x86_64/kernel/smpboot.c      |    1 -
+ include/asm-x86_64/smp.h          |    1 -
+ 4 files changed, 5 deletions(-)
 
-Actually, I think I'm going to put in a slightly different
-fix.
+--- a/arch/x86_64/kernel/genapic.c
++++ b/arch/x86_64/kernel/genapic.c
+@@ -29,8 +29,6 @@
+ 					= { [0 ... NR_CPUS-1] = BAD_APICID };
+ EXPORT_SYMBOL(x86_cpu_to_apicid);
+ 
+-u8 x86_cpu_to_log_apicid[NR_CPUS]	= { [0 ... NR_CPUS-1] = BAD_APICID };
+-
+ struct genapic __read_mostly *genapic = &apic_flat;
+ 
+ /*
+--- a/arch/x86_64/kernel/genapic_flat.c
++++ b/arch/x86_64/kernel/genapic_flat.c
+@@ -52,7 +52,6 @@
+ 
+ 	num = smp_processor_id();
+ 	id = 1UL << num;
+-	x86_cpu_to_log_apicid[num] = id;
+ 	apic_write(APIC_DFR, APIC_DFR_FLAT);
+ 	val = apic_read(APIC_LDR) & ~APIC_LDR_MASK;
+ 	val |= SET_APIC_LOGICAL_ID(id);
+--- a/arch/x86_64/kernel/smpboot.c
++++ b/arch/x86_64/kernel/smpboot.c
+@@ -702,7 +702,6 @@
+ 		cpu_clear(cpu, cpu_present_map);
+ 		cpu_clear(cpu, cpu_possible_map);
+ 		x86_cpu_to_apicid[cpu] = BAD_APICID;
+-		x86_cpu_to_log_apicid[cpu] = BAD_APICID;
+ 		return -EIO;
+ 	}
+ 
+--- a/include/asm-x86_64/smp.h
++++ b/include/asm-x86_64/smp.h
+@@ -78,7 +78,6 @@
+  * the real APIC ID <-> CPU # mapping.
+  */
+ extern u8 x86_cpu_to_apicid[NR_CPUS];	/* physical ID */
+-extern u8 x86_cpu_to_log_apicid[NR_CPUS];
+ extern u8 bios_cpu_apicid[];
+ 
+ static inline int cpu_present_to_apicid(int mps_cpu)
 
-If tcp4_md5sig_key and tcp6_md5sig_key have to begin with exacytly
-tcp_md5sig_key's only two members, we should fully tell this
-explicitly to the compiler and remove those ugly casts.
-
-The casts are the real bug.
-
-Here is the patch I will use after some testing:
-
-diff --git a/include/net/tcp.h b/include/net/tcp.h
-index 185c7ec..54053de 100644
---- a/include/net/tcp.h
-+++ b/include/net/tcp.h
-@@ -1059,14 +1059,12 @@ struct tcp_md5sig_key {
- };
- 
- struct tcp4_md5sig_key {
--	u8			*key;
--	u16			keylen;
-+	struct tcp_md5sig_key	base;
- 	__be32			addr;
- };
- 
- struct tcp6_md5sig_key {
--	u8			*key;
--	u16			keylen;
-+	struct tcp_md5sig_key	base;
- #if 0
- 	u32			scope_id;	/* XXX */
- #endif
-diff --git a/net/ipv4/tcp_ipv4.c b/net/ipv4/tcp_ipv4.c
-index 9c94627..e089a97 100644
---- a/net/ipv4/tcp_ipv4.c
-+++ b/net/ipv4/tcp_ipv4.c
-@@ -833,8 +833,7 @@ static struct tcp_md5sig_key *
- 		return NULL;
- 	for (i = 0; i < tp->md5sig_info->entries4; i++) {
- 		if (tp->md5sig_info->keys4[i].addr = addr)
--			return (struct tcp_md5sig_key *)
--						&tp->md5sig_info->keys4[i];
-+			return &tp->md5sig_info->keys4[i].base;
- 	}
- 	return NULL;
- }
-@@ -865,9 +864,9 @@ int tcp_v4_md5_do_add(struct sock *sk, __be32 addr,
- 	key = (struct tcp4_md5sig_key *)tcp_v4_md5_do_lookup(sk, addr);
- 	if (key) {
- 		/* Pre-existing entry - just update that one. */
--		kfree(key->key);
--		key->key = newkey;
--		key->keylen = newkeylen;
-+		kfree(key->base.key);
-+		key->base.key = newkey;
-+		key->base.keylen = newkeylen;
- 	} else {
- 		struct tcp_md5sig_info *md5sig;
- 
-@@ -906,9 +905,9 @@ int tcp_v4_md5_do_add(struct sock *sk, __be32 addr,
- 			md5sig->alloced4++;
- 		}
- 		md5sig->entries4++;
--		md5sig->keys4[md5sig->entries4 - 1].addr   = addr;
--		md5sig->keys4[md5sig->entries4 - 1].key    = newkey;
--		md5sig->keys4[md5sig->entries4 - 1].keylen = newkeylen;
-+		md5sig->keys4[md5sig->entries4 - 1].addr        = addr;
-+		md5sig->keys4[md5sig->entries4 - 1].base.key    = newkey;
-+		md5sig->keys4[md5sig->entries4 - 1].base.keylen = newkeylen;
- 	}
- 	return 0;
- }
-@@ -930,7 +929,7 @@ int tcp_v4_md5_do_del(struct sock *sk, __be32 addr)
- 	for (i = 0; i < tp->md5sig_info->entries4; i++) {
- 		if (tp->md5sig_info->keys4[i].addr = addr) {
- 			/* Free the key */
--			kfree(tp->md5sig_info->keys4[i].key);
-+			kfree(tp->md5sig_info->keys4[i].base.key);
- 			tp->md5sig_info->entries4--;
- 
- 			if (tp->md5sig_info->entries4 = 0) {
-@@ -964,7 +963,7 @@ static void tcp_v4_clear_md5_list(struct sock *sk)
- 	if (tp->md5sig_info->entries4) {
- 		int i;
- 		for (i = 0; i < tp->md5sig_info->entries4; i++)
--			kfree(tp->md5sig_info->keys4[i].key);
-+			kfree(tp->md5sig_info->keys4[i].base.key);
- 		tp->md5sig_info->entries4 = 0;
- 		tcp_free_md5sig_pool();
- 	}
-diff --git a/net/ipv6/tcp_ipv6.c b/net/ipv6/tcp_ipv6.c
-index 0f7defb..3e06799 100644
---- a/net/ipv6/tcp_ipv6.c
-+++ b/net/ipv6/tcp_ipv6.c
-@@ -539,7 +539,7 @@ static struct tcp_md5sig_key *tcp_v6_md5_do_lookup(struct sock *sk,
- 
- 	for (i = 0; i < tp->md5sig_info->entries6; i++) {
- 		if (ipv6_addr_cmp(&tp->md5sig_info->keys6[i].addr, addr) = 0)
--			return (struct tcp_md5sig_key *)&tp->md5sig_info->keys6[i];
-+			return &tp->md5sig_info->keys6[i].base;
- 	}
- 	return NULL;
- }
-@@ -567,9 +567,9 @@ static int tcp_v6_md5_do_add(struct sock *sk, struct in6_addr *peer,
- 	key = (struct tcp6_md5sig_key*) tcp_v6_md5_do_lookup(sk, peer);
- 	if (key) {
- 		/* modify existing entry - just update that one */
--		kfree(key->key);
--		key->key = newkey;
--		key->keylen = newkeylen;
-+		kfree(key->base.key);
-+		key->base.key = newkey;
-+		key->base.keylen = newkeylen;
- 	} else {
- 		/* reallocate new list if current one is full. */
- 		if (!tp->md5sig_info) {
-@@ -603,8 +603,8 @@ static int tcp_v6_md5_do_add(struct sock *sk, struct in6_addr *peer,
- 
- 		ipv6_addr_copy(&tp->md5sig_info->keys6[tp->md5sig_info->entries6].addr,
- 			       peer);
--		tp->md5sig_info->keys6[tp->md5sig_info->entries6].key = newkey;
--		tp->md5sig_info->keys6[tp->md5sig_info->entries6].keylen = newkeylen;
-+		tp->md5sig_info->keys6[tp->md5sig_info->entries6].base.key = newkey;
-+		tp->md5sig_info->keys6[tp->md5sig_info->entries6].base.keylen = newkeylen;
- 
- 		tp->md5sig_info->entries6++;
- 	}
-@@ -626,7 +626,7 @@ static int tcp_v6_md5_do_del(struct sock *sk, struct in6_addr *peer)
- 	for (i = 0; i < tp->md5sig_info->entries6; i++) {
- 		if (ipv6_addr_cmp(&tp->md5sig_info->keys6[i].addr, peer) = 0) {
- 			/* Free the key */
--			kfree(tp->md5sig_info->keys6[i].key);
-+			kfree(tp->md5sig_info->keys6[i].base.key);
- 			tp->md5sig_info->entries6--;
- 
- 			if (tp->md5sig_info->entries6 = 0) {
-@@ -657,7 +657,7 @@ static void tcp_v6_clear_md5_list (struct sock *sk)
- 
- 	if (tp->md5sig_info->entries6) {
- 		for (i = 0; i < tp->md5sig_info->entries6; i++)
--			kfree(tp->md5sig_info->keys6[i].key);
-+			kfree(tp->md5sig_info->keys6[i].base.key);
- 		tp->md5sig_info->entries6 = 0;
- 		tcp_free_md5sig_pool();
- 	}
-@@ -668,7 +668,7 @@ static void tcp_v6_clear_md5_list (struct sock *sk)
- 
- 	if (tp->md5sig_info->entries4) {
- 		for (i = 0; i < tp->md5sig_info->entries4; i++)
--			kfree(tp->md5sig_info->keys4[i].key);
-+			kfree(tp->md5sig_info->keys4[i].base.key);
- 		tp->md5sig_info->entries4 = 0;
- 		tcp_free_md5sig_pool();
- 	}
+-- 
