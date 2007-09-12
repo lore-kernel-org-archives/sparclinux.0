@@ -1,59 +1,101 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Wed, 05 Sep 2007 23:39:43 +0000
-Subject: use of asm/prom.h
-Message-Id: <20070906093943.95037b79.sfr@canb.auug.org.au>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Signature=_Thu__6_Sep_2007_09_39_43_+1000_O6x2KOb=HuJVEOYG"
+From: travis@sgi.com
+Date: Wed, 12 Sep 2007 01:56:54 +0000
+Subject: [PATCH 10/10] sparc64: Convert cpu_sibling_map to a per_cpu data array (v3)
+Message-Id: <20070912015647.758716998@sgi.com>
 List-Id: <sparclinux.vger.kernel.org>
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: sparclinux@vger.kernel.org, ppc-dev <linuxppc-dev@ozlabs.org>, Helt <krzysztof.h1@wp.pl>, Krzysztof
+References: <20070912015644.927677070@sgi.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andi Kleen <ak@suse.de>, Christoph Lameter <clameter@sgi.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org
 
---Signature=_Thu__6_Sep_2007_09_39_43_+1000_O6x2KOb=HuJVEOYG
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Convert cpu_sibling_map to a per_cpu cpumask_t array for the sparc64
+architecture.  This fixes build errors in block/blktrace.c and
+kernel/sched.c when CONFIG_SCHED_SMT is defined.
 
-Hi all,
+Note: these changes have not been built nor tested.
 
-I noticed in the ALSA tree:
+Signed-off-by: Mike Travis <travis@sgi.com>
+---
+ arch/sparc64/kernel/smp.c      |   17 ++++++++---------
+ include/asm-sparc64/smp.h      |    3 ++-
+ include/asm-sparc64/topology.h |    2 +-
+ 3 files changed, 11 insertions(+), 11 deletions(-)
 
------------------------------- sound/sparc/dbri.c -------------------------=
------
-index 12d11fc..e96023f 100644
-@@ -66,6 +66,7 @@
- #include <sound/control.h>
- #include <sound/initval.h>
-=20
-+#include <asm/prom.h>
- #include <asm/sbus.h>
+--- a/arch/sparc64/kernel/smp.c
++++ b/arch/sparc64/kernel/smp.c
+@@ -52,14 +52,13 @@
+ 
+ cpumask_t cpu_possible_map __read_mostly = CPU_MASK_NONE;
+ cpumask_t cpu_online_map __read_mostly = CPU_MASK_NONE;
+-cpumask_t cpu_sibling_map[NR_CPUS] __read_mostly -	{ [0 ... NR_CPUS-1] = CPU_MASK_NONE };
++DEFINE_PER_CPU(cpumask_t, cpu_sibling_map) = CPU_MASK_NONE;
+ cpumask_t cpu_core_map[NR_CPUS] __read_mostly  	{ [0 ... NR_CPUS-1] = CPU_MASK_NONE };
+ 
+ EXPORT_SYMBOL(cpu_possible_map);
+ EXPORT_SYMBOL(cpu_online_map);
+-EXPORT_SYMBOL(cpu_sibling_map);
++EXPORT_PER_CPU_SYMBOL(cpu_sibling_map);
+ EXPORT_SYMBOL(cpu_core_map);
+ 
+ static cpumask_t smp_commenced_mask;
+@@ -1259,16 +1258,16 @@
+ 	for_each_present_cpu(i) {
+ 		unsigned int j;
+ 
+-		cpus_clear(cpu_sibling_map[i]);
++		cpus_clear(per_cpu(cpu_sibling_map, i));
+ 		if (cpu_data(i).proc_id = -1) {
+-			cpu_set(i, cpu_sibling_map[i]);
++			cpu_set(i, per_cpu(cpu_sibling_map, i));
+ 			continue;
+ 		}
+ 
+ 		for_each_present_cpu(j) {
+ 			if (cpu_data(i).proc_id =
+ 			    cpu_data(j).proc_id)
+-				cpu_set(j, cpu_sibling_map[i]);
++				cpu_set(j, per_cpu(cpu_sibling_map, i));
+ 		}
+ 	}
+ }
+@@ -1340,9 +1339,9 @@
+ 		cpu_clear(cpu, cpu_core_map[i]);
+ 	cpus_clear(cpu_core_map[cpu]);
+ 
+-	for_each_cpu_mask(i, cpu_sibling_map[cpu])
+-		cpu_clear(cpu, cpu_sibling_map[i]);
+-	cpus_clear(cpu_sibling_map[cpu]);
++	for_each_cpu_mask(i, per_cpu(cpu_sibling_map, cpu))
++		cpu_clear(cpu, per_cpu(cpu_sibling_map, i));
++	cpus_clear(per_cpu(cpu_sibling_map, cpu));
+ 
+ 	c = &cpu_data(cpu);
+ 
+--- a/include/asm-sparc64/smp.h
++++ b/include/asm-sparc64/smp.h
+@@ -28,8 +28,9 @@
+  
+ #include <asm/bitops.h>
  #include <asm/atomic.h>
++#include <asm/percpu.h>
+ 
+-extern cpumask_t cpu_sibling_map[NR_CPUS];
++DECLARE_PER_CPU(cpumask_t, cpu_sibling_map);
+ extern cpumask_t cpu_core_map[NR_CPUS];
+ extern int sparc64_multi_core;
+ 
+--- a/include/asm-sparc64/topology.h
++++ b/include/asm-sparc64/topology.h
+@@ -5,7 +5,7 @@
+ #define topology_physical_package_id(cpu)	(cpu_data(cpu).proc_id)
+ #define topology_core_id(cpu)			(cpu_data(cpu).core_id)
+ #define topology_core_siblings(cpu)		(cpu_core_map[cpu])
+-#define topology_thread_siblings(cpu)		(cpu_sibling_map[cpu])
++#define topology_thread_siblings(cpu)		(per_cpu(cpu_sibling_map, cpu))
+ #define mc_capable()				(sparc64_multi_core)
+ #define smt_capable()				(sparc64_multi_core)
+ #endif /* CONFIG_SMP */
 
-(I don't mean to pick on this particular example, it is just what was in
-front of me.)
-
-Could people please consider using linux/{of,of_device,of_platform}.h
-instead of asm/prom.h now that these exist.  Using asm/prom.h only works
-now because it includes the above files, but that may (will?) change
-eventually.
-
-Most includes of asm/prom.h are there to get access to the routines and
-data structures associated with the Open Firmware device tree, and these
-are now all available from the above files instead.
-
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
-
---Signature=_Thu__6_Sep_2007_09_39_43_+1000_O6x2KOb=HuJVEOYG
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFG3z5DTgG2atn1QN8RAoHGAJ9yjtabflhdM1Nv3px2GJgbZlmXwQCbBY5y
-gl3or8BlSbUkAu99u9qtXEY=
-=hUZa
------END PGP SIGNATURE-----
-
---Signature=_Thu__6_Sep_2007_09_39_43_+1000_O6x2KOb=HuJVEOYG--
+-- 
