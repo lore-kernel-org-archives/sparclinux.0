@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 12 Sep 2007 12:23:31 +0000
+From: Andrew Walrond <andrew@walrond.org>
+Date: Wed, 12 Sep 2007 13:22:47 +0000
 Subject: Re: Is Sun putting much effort into supporting the gcc/binutils
-Message-Id: <20070912.052331.48512526.davem@davemloft.net>
+Message-Id: <46E7E827.2030106@walrond.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <46E7CF5F.3090909@walrond.org>
 In-Reply-To: <46E7CF5F.3090909@walrond.org>
@@ -10,26 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Andrew Walrond <andrew@walrond.org>
-Date: Wed, 12 Sep 2007 12:37:03 +0100
-
-> I have to make buying decisions, and having tested a Sun T1000 for a
-> while I am impressed with Suns hardware. But, we are 100% gnu/linux and
-> it disturbs me that David Miller seems to be a (very impressive) team of
-> 1 on the sparclinux ML (My impression; perhaps I am wrong?)
+David Miller wrote:
 > 
-> So I wonder, is Sun putting any more effort into developing and
-> supporting the gcc/binutils toolchain?
+> So no, Sun really isn't helping with any actual development.
+> 
 
-They are sending me specs and systems very early these days,
-so in that perspective it's been great.
+I don't know what to say. Incredible work David, but quite frankly, I'm
+speechless.
 
-I do also have contacts which I use to report firmware and
-hypervisor issues I'd like fixed or clarified, so that's great
-too.
+I'm sure I can't be the only hardware purchaser asking these questions.
+I really like the Niagra and the successors sound even better, but I
+can't recommend buying into the platform without solid support for the
+OS and toolchain from Sun.
 
-I tend to do the processor specific gcc instruction scheduler
-and costs entries, and adding the new instruction support to
-binutils as well.
+I'm trying to conceive a valid business reason for Sun to be so
+dismissive of the (surely massive?) gnu/linux hardware market, (even if
+they would rather we used Solaris), but it eludes me completely.
 
-So no, Sun really isn't helping with any actual development.
+Andrew Walrond
