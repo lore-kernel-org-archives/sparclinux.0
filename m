@@ -1,51 +1,90 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Wed, 19 Sep 2007 06:56:23 +0000
-Subject: Re: [PATCH 1/1] ppc64: Convert cpu_sibling_map to a per_cpu data
-Message-Id: <20070919165623.8a59f4dd.sfr@canb.auug.org.au>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Signature=_Wed__19_Sep_2007_16_56_23_+1000_I.2xQApTY_b1iczd"
+From: travis@sgi.com
+Date: Wed, 12 Sep 2007 01:56:44 +0000
+Subject: [PATCH 00/10] x86: Reduce Memory Usage and Inter-Node message traffic (v3)
+Message-Id: <20070912015644.927677070@sgi.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070917183507.332345000@sgi.com>
-	<20070917183507.506104000@sgi.com>
-In-Reply-To: <20070917183507.506104000@sgi.com>
-To: travis@sgi.com
-Cc: Andrew Morton <akpm@linux-foundation.org>, Andi Kleen <ak@suse.de>, Christoph Lameter <clameter@sgi.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andi Kleen <ak@suse.de>, Christoph Lameter <clameter@sgi.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org
 
---Signature=_Wed__19_Sep_2007_16_56_23_+1000_I.2xQApTY_b1iczd
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi Mike,
+Note:
 
-On Mon, 17 Sep 2007 11:35:08 -0700 travis@sgi.com wrote:
->
-> v2:=20
->=20
-> This patch applies after:
->=20
-> 	convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64.patch
->=20
-> and should fix the "reference cpu_sibling_map before setup_per_cpu_areas()
-> has been called" problem.  In addtion, the cpu_sibiling_map macro has been
-> removed [this was missed in my original submission.]
+This patch consolidates all the previous patches regarding
+the conversion of static arrays sized by NR_CPUS into per_cpu
+data arrays and is referenced against 2.6.23-rc6 .
 
-This one make it work, thanks.
 
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
+v1 Intro:
 
---Signature=_Wed__19_Sep_2007_16_56_23_+1000_I.2xQApTY_b1iczd
-Content-Type: application/pgp-signature
+In x86_64 and i386 architectures most arrays that are sized
+using NR_CPUS lay in local memory on node 0.  Not only will most
+(99%?) of the systems not use all the slots in these arrays,
+particularly when NR_CPUS is increased to accommodate future
+very high cpu count systems, but a number of cache lines are
+passed unnecessarily on the system bus when these arrays are
+referenced by cpus on other nodes.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
+Typically, the values in these arrays are referenced by the cpu
+accessing it's own values, though when passing IPI interrupts,
+the cpu does access the data relevant to the targeted cpu/node.
+Of course, if the referencing cpu is not on node 0, then the
+reference will still require cross node exchanges of cache
+lines.  A common use of this is for an interrupt service
+routine to pass the interrupt to other cpus local to that node.
 
-iD8DBQFG8MggTgG2atn1QN8RAg/qAJ4+XjXxXxwprLwXZuKNOD0jdLARgACdG056
-Ai/YzTQTgEZk3/c/IlVva5w=
-=vBAz
------END PGP SIGNATURE-----
+Ideally, all the elements in these arrays should be moved to the
+per_cpu data area.  In some cases (such as x86_cpu_to_apicid)
+the array is referenced before the per_cpu data areas are setup.
+In this case, a static array is declared in the __initdata
+area and initialized by the booting cpu (BSP).  The values are
+then moved to the per_cpu area after it is initialized and the
+original static array is freed with the rest of the __initdata.
+This patch is referenced against 2.6.23-rc6.
+--
 
---Signature=_Wed__19_Sep_2007_16_56_23_+1000_I.2xQApTY_b1iczd--
+Changes for version v2:
+
+> > Note the addtional change of the cpu_llc_id type from u8
+> > to int for ARCH x86_64 to correspond with ARCH i386.
+
+> At least currently it cannot be more than 8 bit. So why
+> waste memory? It would be better to change i386
+
+Done.  (x86_64 type => u8).
+
+> > Fix four instances where cpu_to_node is referenced
+> > > by array instead of via the cpu_to_node macro.  This
+> > > is preparation to moving it to the per_cpu data area.
+
+> Shouldn't this patch be logically before the per cpu 
+> conversion (which is 3). This way the result would
+> be git bisectable.
+
+Done.  (Moved to PATCH 1).
+
+> >     processor_core.c currently tries to determine the apicid by special casing
+> > >     for IA64 and x86. The desired information is readily available via
+> > > 
+> > > 	    cpu_physical_id()
+> > > 
+> > >     on IA64, i386 and x86_64.
+> 
+> Have you tried this with a !CONFIG_SMP build? The drivers/dma code was doing
+> the same and running into problems because it wasn't defined there.
+
+Fixed. (New export in PATCH 1).
+--
+
+Changes for version v3:
+
+cpu_sibling_map has been converted to a per_cpu data array to fix
+build errors on ia64, ppc64 and sparc64 to accomodate references in
+block/blktrace.c and kernel/sched.c when CONFIG_SCHED_SMT is defined.
+
+Warning: ppc64 and sparc64 have not yet been built nor tested.
+--
+
+-- 
