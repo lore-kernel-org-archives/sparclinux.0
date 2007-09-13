@@ -1,7 +1,7 @@
 From: Andrew Walrond <andrew@walrond.org>
-Date: Thu, 13 Sep 2007 10:17:58 +0000
-Subject: Re: Is Sun putting much effort into supporting the gcc/binutils toolchain
-Message-Id: <46E90E56.6050806@walrond.org>
+Date: Thu, 13 Sep 2007 10:36:19 +0000
+Subject: Re: Is Sun putting much effort into supporting the gcc/binutils
+Message-Id: <46E912A3.9090900@walrond.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <46E7CF5F.3090909@walrond.org>
 In-Reply-To: <46E7CF5F.3090909@walrond.org>
@@ -12,10 +12,12 @@ To: sparclinux@vger.kernel.org
 
 David Miller wrote:
 > 
-> That's correct, it's essentially GCC's language front ends
-> plugged into Sun's compiler backend.
-> -
+> So no, Sun really isn't helping with any actual development.
+> 
 
-And presumably is solaris only doesn't work under gnu/linux?
+Sun have some sort of deal with Ubuntu to support the Niagara, don't
+they? Presumably the Canonical people have some developers working on
+(and contributing to) the (sparc64) gnu toolchain and linux kernel as
+part of that deal?
 
 Andrew Walrond
