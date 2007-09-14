@@ -1,66 +1,29 @@
 From: "Jurzitza, Dieter" <DJurzitza@harmanbecker.com>
-Date: Fri, 14 Sep 2007 06:25:45 +0000
-Subject: netconsole support for kernel 2.4 / sunhme patch
-Message-Id: <DA6197CAE190A847B662079EF7631C0602E1C431@OEKAW2EXVS03.hbi.ad.harman.com>
+Date: Fri, 14 Sep 2007 06:40:27 +0000
+Subject: AW: netconsole support for kernel 2.4 / sunhme patch
+Message-Id: <DA6197CAE190A847B662079EF7631C0602E1C433@OEKAW2EXVS03.hbi.ad.harman.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <DA6197CAE190A847B662079EF7631C0602E1C431@OEKAW2EXVS03.hbi.ad.harman.com>
+In-Reply-To: <DA6197CAE190A847B662079EF7631C0602E1C431@OEKAW2EXVS03.hbi.ad.harman.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
 Dear listmembers,
-could some kind soul tell me whether the following patch is too naive in or=
-der to try to add netconsole support to the sunhme - module?
-Many thanks in advance,
-take care
+and, naturally, it should to be
+> +       happy_meal_interrupt (dev->irq, dev, NULL);
+> +       enable_irq(dev->irq);
+> +}
+> +#endif
+instead of sis900_interrupt (dev->irq, dev NULL);
+
+Thanks & take care
+
 
 
 
 Dieter Jurzitza
-
---- linux/drivers/net/sunhme.c.original 2007-09-14 07:45:24.000000000 +0200
-+++ linux/drivers/net/sunhme.c  2007-09-14 08:14:39.000000000 +0200
-@@ -79,6 +79,7 @@
- MODULE_LICENSE("GPL");
-=20
- static struct happy_meal *root_happy_dev;
-+static void poll_happy_meal(struct net_device *dev);
-=20
- #ifdef CONFIG_SBUS
- static struct quattro *qfe_sbus_list;
-@@ -3140,6 +3141,9 @@
-        dev->set_multicast_list =3D &happy_meal_set_multicast;
-        dev->tx_timeout =3D &happy_meal_tx_timeout;
-        dev->watchdog_timeo =3D 5*HZ;
-+#ifdef HAVE_POLL_CONTROLLER
-+        dev->poll_controller =3D &poll_happy_meal;
-+#endif=20
-        dev->do_ioctl =3D &happy_meal_ioctl;
-        dev->irq =3D pdev->irq;
-        dev->dma =3D 0;
-@@ -3300,6 +3304,20 @@
-        return 0;
- }
- =20
-+#ifdef HAVE_POLL_CONTROLLER
-+/*
-+ * Polling 'interrupt' - used by things like netconsole to send skbs
-+ * without having to re-enable interrupts. It's not called while
-+ * the interrupt routine is executing.
-+ */
-+  =20
-+static void poll_happy_meal (struct net_device *dev)
-+{
-+       disable_irq(dev->irq);
-+       sis900_interrupt (dev->irq, dev, NULL);
-+       enable_irq(dev->irq);
-+}
-+#endif
-=20
- static void __exit happy_meal_cleanup_module(void)
- {
-
-
 --=20
 ________________________________________________
 
