@@ -1,7 +1,7 @@
-From: Andrew Walrond <andrew@walrond.org>
-Date: Fri, 14 Sep 2007 22:54:13 +0000
-Subject: Re: Is Sun putting much effort into supporting the gcc/binutils toolchain
-Message-Id: <46EB1115.6040904@walrond.org>
+From: David Miller <davem@davemloft.net>
+Date: Fri, 14 Sep 2007 22:57:59 +0000
+Subject: Re: Is Sun putting much effort into supporting the gcc/binutils
+Message-Id: <20070914.155759.92579338.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <46E7CF5F.3090909@walrond.org>
 In-Reply-To: <46E7CF5F.3090909@walrond.org>
@@ -10,40 +10,33 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-David Miller wrote:
+From: Andrew Walrond <andrew@walrond.org>
+Date: Fri, 14 Sep 2007 23:54:13 +0100
+
+> David Miller wrote:
+> > 
+> > And _NO_ this does mean continuing to say that Sun isn't doing enough
+> > to satisfy you, that discourages rather than encourages in case you
+> > haven't gotten that message LOUD and CLEAR by now.
+> > 
 > 
-> The big issue you keep missing in all of your rediculious complaints
-> is that it takes a lot of time for a company to invest in future
-> potential revenue.
+> On the contrary, as an existing and prospective customer, I shall KEEP
+> telling Sun, LOUDLY and PUBLICLY exactly what I want from them.
 > 
-> Most of Sun's resources are invested in things that make them money
-> right now and keep the lights on at their buildings and their employee
-> salaries paid.
-> 
+> Although not here; I have ruffled enough feathers already!
 
-Sorry David; got to disgree with you on this one. A few developers are
-irrelevant when considered against the potential reward. That was
-$13.873 _billion_, with a B. the A few good men like yourself wouldn't
-even effect the second decimal point...
+Research someone named Theo Deraadt and go see where his continual
+complaining about Sun has landed him.  He gets generally ignored, and
+Sun is extremely reluctant to deal with or help him.
 
-> 
-> And _NO_ this does mean continuing to say that Sun isn't doing enough
-> to satisfy you, that discourages rather than encourages in case you
-> haven't gotten that message LOUD and CLEAR by now.
-> 
+Alternatively I try to be pleasant and helping to Sun rather than
+berate them every time they don't do exactly what I want.  I think I
+achiever better results than Theo does.
 
-On the contrary, as an existing and prospective customer, I shall KEEP
-telling Sun, LOUDLY and PUBLICLY exactly what I want from them.
+This is an issue of how to deal socially with other people and
+entities in a cooperative rather than an anti-social and confronting
+manner.  Sun started to help me a lot because I engaged heavily
+in the former rather than the latter.
 
-Although not here; I have ruffled enough feathers already!
-
-BTW Isn't it somewhat ironic that the only person who seems to
-(somewhat) agree with me is the guy from Sun? :)
-
-Sheath your blade young sir; I shall trouble you no more...
-
-[Although, if you could just get the sparc64 kernel compiling properly
-with gcc4.2+ when you get a minute...] ;)
-
-Andrew Walrond
-
+Years ago I used to do the "LOUDLY and PUBLICLY" thing too, I
+generally got ignored and nobody wanted to help me, just like Theo.
