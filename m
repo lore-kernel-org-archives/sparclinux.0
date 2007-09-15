@@ -1,46 +1,27 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Fri, 14 Sep 2007 23:32:23 +0000
-Subject: Re: [PATCH 00/10] x86: Reduce Memory Usage and Inter-Node message
-Message-Id: <20070914163223.20759e54.akpm@linux-foundation.org>
+From: "Horst H. von Brand" <vonbrand@inf.utfsm.cl>
+Date: Sat, 15 Sep 2007 21:37:55 +0000
+Subject: SPARC{,64}: kernel_termios_to_user_termios_1 missing
+Message-Id: <200709152137.l8FLbtXP001446@laptop13.inf.utfsm.cl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070912015644.927677070@sgi.com>
-In-Reply-To: <20070912015644.927677070@sgi.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: travis@sgi.com
-Cc: Andi Kleen <ak@suse.de>, Christoph Lameter <clameter@sgi.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Tue, 11 Sep 2007 18:56:44 -0700
-travis@sgi.com wrote:
+git-describe says this is v2.6.23-rc6-168-g53a3f30
+I'm getting:
 
-> Changes for version v3:
-> 
-> cpu_sibling_map has been converted to a per_cpu data array to fix
-> build errors on ia64, ppc64 and sparc64 to accomodate references in
-> block/blktrace.c and kernel/sched.c when CONFIG_SCHED_SMT is defined.
-> 
-> Warning: ppc64 and sparc64 have not yet been built nor tested.
+  drivers/char/tty_ioctl.c: In function 'n_tty_ioctl':
+  drivers/char/tty_ioctl.c:799: error: implicit declaration of function 'kernel_termios_to_user_termios_1'
 
-These patches all seem to be unaltered from what I had.
+This is a macro at the very end of include/asm-<foo>/termios.h for i686, on
+SPARC and SPARC64 it is missing. Sorry, I've got no clue on how to define
+this correctly here.
 
-The first patch (x86: remove x86_cpu_to_log_apicid array) is in Andi's
-tree as x86_64-mm-remove-x86_cpu_to_log_apicid.patch so I don't apply that.
+It is also missing on alpha, blackfin, parisc, sh64, sh, xtensa
+-- 
+Dr. Horst H. von Brand                   User #22616 counter.li.org
+Departamento de Informatica                    Fono: +56 32 2654431
+Universidad Tecnica Federico Santa Maria             +56 32 2654239
+Casilla 110-V, Valparaiso, Chile               Fax:  +56 32 2797513
 
-The sparc64/ppc64/ia64 convert-cpu_sibling_map-to-a-per_cpu-data-array
-patches need to be folded into the base patch so that we don't break the build
-at any stage.
-
-So what I ended up with was
-
-x86-fix-cpu_to_node-references.patch
-x86-convert-cpu_core_map-to-be-a-per-cpu-variable.patch
-convert-cpu_sibling_map-to-be-a-per-cpu-variable.patch
-convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64.patch
-convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64.patch
-convert-cpu_sibling_map-to-a-per_cpu-data-array-sparc64.patch
-x86-convert-x86_cpu_to_apicid-to-be-a-per-cpu-variable.patch
-x86-convert-cpu_llc_id-to-be-a-per-cpu-variable.patch
-
-where the four convert-cpu_sibling_map-to-* will be clumped into a
-single diff.
