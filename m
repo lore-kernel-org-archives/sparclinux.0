@@ -1,70 +1,128 @@
-From: "jiaqi zhang" <zation.busy@gmail.com>
-Date: Sat, 01 Sep 2007 02:11:04 +0000
-Subject: Re: perfctr on UltraSparcT1
-Message-Id: <a8e8903d0708311911i187fec51m2e93cadbb0a21ba1@mail.gmail.com>
+From: travis@sgi.com
+Date: Mon, 17 Sep 2007 18:35:08 +0000
+Subject: [PATCH 1/1] ppc64: Convert cpu_sibling_map to a per_cpu data array ppc64 v2
+Message-Id: <20070917183507.506104000@sgi.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <a8e8903d0708311824s72f929d1rfcf3d2b953b21094@mail.gmail.com>
-In-Reply-To: <a8e8903d0708311824s72f929d1rfcf3d2b953b21094@mail.gmail.com>
+References: <20070917183507.332345000@sgi.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: sfr@canb.auug.org.au, Andrew Morton <akpm@linux-foundation.org>
+Cc: Andi Kleen <ak@suse.de>, Christoph Lameter <clameter@sgi.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org
 
-Oops. I'm so sorry. It is solved and this is totally my fault.
-However, there is still another question: Should I always bind the
-thread to a specific virtual cpu? Because if it was rescheduled to
-other cpu, the content in the registers would not be consistent. Or
-does the kernel forbid  this kind of rescheduling when TIF_PERFCTR
-flag is on?
+v2: 
 
-On 9/1/07, jiaqi zhang <zation.busy@gmail.com> wrote:
-> Hello,
->
-> I'm doing performance experiments of my applications on UltraSparc T1.
-> In order to test the data of cache miss or other things, I'm in need
-> of some ways to access PIC and PCR. I wrote a simple module to read
-> and set these registers using the macros found in
-> asm-sparc64/system.h. However, no matter what I set to the pcr,
-> read_pcr and read_pic (I understand this should be 0 when pcr is 0)
-> always return 0.
->
-> After that, I found a system call (sys_perfctr) that would do this. So
-> in my program, I invoked this system call as below. (I also tried bind
-> the thread to a specific processor using setaffinity) However, I've
-> got the same problem. The output is below the program.
->
-> Could anyone teach me this? Sorry for this naive question. Thanks a lot!
->
-> btw, Linux kernel 2.6.20, gcc 4.2.1
->
->
->
-> #include <linux/unistd.h>
-> #include <syscall.h>
-> #include <errno.h>
-> #include <stdio.h>
-> #include <asm-sparc64/perfctr.h>
->
->        int main(void)
->        {
->             int opcode;
->                 unsigned long arg0,arg1,arg2;
->             int error;
->                 unsigned long pcr;
->                 if(error=syscall(SYS_perfctr,PERFCTR_ON,0,0,0))
->                         printf("error is %d\n",error);
->                 if(error=syscall(SYS_perfctr,PERFCTR_SETPCR,0x04,0,0))
->                         printf("error is %d\n",error);
->                 if(error=syscall(SYS_perfctr,PERFCTR_GETPCR,&pcr,0,0))
->                         printf("error is %d and %s\n",error,strerror(error));
->                 printf("pcr is %d\n",pcr);
->                 return(0);
->        }
->
-> output:
-> $gcc tryperfctr.c
-> $./a.out
-> error is -1
-> error is -1 and Unknown error 18446744073709551615
-> pcr is 0
->
+This patch applies after:
+
+	convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64.patch
+
+and should fix the "reference cpu_sibling_map before setup_per_cpu_areas()
+has been called" problem.  In addtion, the cpu_sibiling_map macro has been
+removed [this was missed in my original submission.]
+
+Original Notes:
+
+Convert cpu_sibling_map to a per_cpu cpumask_t array for the ppc64
+architecture.  This fixes build errors in block/blktrace.c and
+kernel/sched.c when CONFIG_SCHED_SMT is defined.
+
+Note: these changes have not been built nor tested.
+
+Signed-off-by: Mike Travis <travis@sgi.com>
+---
+ arch/powerpc/kernel/setup-common.c        |   20 ++++++++++++++++----
+ arch/powerpc/kernel/setup_64.c            |    3 +++
+ arch/powerpc/platforms/cell/cbe_cpufreq.c |    2 +-
+ include/asm-powerpc/smp.h                 |    2 +-
+ include/asm-powerpc/topology.h            |    2 +-
+ 5 files changed, 22 insertions(+), 7 deletions(-)
+
+--- a/include/asm-powerpc/smp.h
++++ b/include/asm-powerpc/smp.h
+@@ -60,7 +60,6 @@
+ #endif
+ 
+ DECLARE_PER_CPU(cpumask_t, cpu_sibling_map);
+-#define cpu_sibling_map(cpu) per_cpu(cpu_sibling_map, cpu)
+ 
+ /* Since OpenPIC has only 4 IPIs, we use slightly different message numbers.
+  *
+@@ -79,6 +78,7 @@
+ void smp_init_cell(void);
+ void smp_init_celleb(void);
+ void smp_setup_cpu_maps(void);
++void smp_setup_cpu_sibling_map(void);
+ 
+ extern int __cpu_disable(void);
+ extern void __cpu_die(unsigned int cpu);
+--- a/arch/powerpc/kernel/setup_64.c
++++ b/arch/powerpc/kernel/setup_64.c
+@@ -596,6 +596,9 @@
+ 		paca[i].data_offset = ptr - __per_cpu_start;
+ 		memcpy(ptr, __per_cpu_start, __per_cpu_end - __per_cpu_start);
+ 	}
++
++	/* Now that per_cpu is setup, initialize cpu_sibling_map */
++	smp_setup_cpu_sibling_map();
+ }
+ #endif
+ 
+--- a/arch/powerpc/kernel/setup-common.c
++++ b/arch/powerpc/kernel/setup-common.c
+@@ -411,16 +411,28 @@
+ 		of_node_put(dn);
+ 	}
+ 
++	vdso_data->processorCount = num_present_cpus();
++#endif /* CONFIG_PPC64 */
++}
++
++/*
++ * Being that cpu_sibling_map is now a per_cpu array, then it cannot
++ * be initialized until the per_cpu areas have been created.  This
++ * function is now called from setup_per_cpu_areas().
++ */
++void __init smp_setup_cpu_sibling_map(void)
++{
++#if defined(CONFIG_PPC64)
++	int cpu;
++
+ 	/*
+ 	 * Do the sibling map; assume only two threads per processor.
+ 	 */
+ 	for_each_possible_cpu(cpu) {
+-		cpu_set(cpu, cpu_sibling_map(cpu));
++		cpu_set(cpu, per_cpu(cpu_sibling_map, cpu));
+ 		if (cpu_has_feature(CPU_FTR_SMT))
+-			cpu_set(cpu ^ 0x1, cpu_sibling_map(cpu));
++			cpu_set(cpu ^ 0x1, per_cpu(cpu_sibling_map, cpu));
+ 	}
+-
+-	vdso_data->processorCount = num_present_cpus();
+ #endif /* CONFIG_PPC64 */
+ }
+ #endif /* CONFIG_SMP */
+--- a/arch/powerpc/platforms/cell/cbe_cpufreq.c
++++ b/arch/powerpc/platforms/cell/cbe_cpufreq.c
+@@ -119,7 +119,7 @@
+ 	policy->cur = cbe_freqs[cur_pmode].frequency;
+ 
+ #ifdef CONFIG_SMP
+-	policy->cpus = cpu_sibling_map(policy->cpu);
++	policy->cpus = per_cpu(cpu_sibling_map, policy->cpu);
+ #endif
+ 
+ 	cpufreq_frequency_table_get_attr(cbe_freqs, policy->cpu);
+--- a/include/asm-powerpc/topology.h
++++ b/include/asm-powerpc/topology.h
+@@ -108,7 +108,7 @@
+ #ifdef CONFIG_PPC64
+ #include <asm/smp.h>
+ 
+-#define topology_thread_siblings(cpu)	(cpu_sibling_map(cpu))
++#define topology_thread_siblings(cpu)	(per_cpu(cpu_sibling_map, cpu))
+ #endif
+ #endif
+ 
+
+-- 
