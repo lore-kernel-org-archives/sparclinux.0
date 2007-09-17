@@ -1,101 +1,73 @@
-From: travis@sgi.com
-Date: Wed, 12 Sep 2007 01:56:53 +0000
-Subject: [PATCH 09/10] ppc64: Convert cpu_sibling_map to a per_cpu data array (v3)
-Message-Id: <20070912015647.486500682@sgi.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Mon, 17 Sep 2007 06:28:31 +0000
+Subject: Re: [PATCH 09/10] ppc64: Convert cpu_sibling_map to a per_cpu data
+Message-Id: <20070917162831.b2a9d675.sfr@canb.auug.org.au>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Signature=_Mon__17_Sep_2007_16_28_31_+1000_tjewKN/mkN4kGaNl"
 List-Id: <sparclinux.vger.kernel.org>
 References: <20070912015644.927677070@sgi.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andi Kleen <ak@suse.de>, Christoph Lameter <clameter@sgi.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org
+	<20070912015647.486500682@sgi.com>
+In-Reply-To: <20070912015647.486500682@sgi.com>
+To: travis@sgi.com
+Cc: Andrew Morton <akpm@linux-foundation.org>, Andi Kleen <ak@suse.de>, Christoph Lameter <clameter@sgi.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org
 
-Convert cpu_sibling_map to a per_cpu cpumask_t array for the ppc64
-architecture.  This fixes build errors in block/blktrace.c and
-kernel/sched.c when CONFIG_SCHED_SMT is defined.
+--Signature=_Mon__17_Sep_2007_16_28_31_+1000_tjewKN/mkN4kGaNl
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Note: these changes have not been built nor tested.
+On Tue, 11 Sep 2007 18:56:53 -0700 travis@sgi.com wrote:
+>
+> Convert cpu_sibling_map to a per_cpu cpumask_t array for the ppc64
+> architecture.  This fixes build errors in block/blktrace.c and
+> kernel/sched.c when CONFIG_SCHED_SMT is defined.
+>=20
+> Note: these changes have not been built nor tested.
 
-Signed-off-by: Mike Travis <travis@sgi.com>
----
- arch/powerpc/kernel/setup-common.c        |    4 ++--
- arch/powerpc/kernel/smp.c                 |    4 ++--
- arch/powerpc/platforms/cell/cbe_cpufreq.c |    2 +-
- include/asm-powerpc/smp.h                 |    4 +++-
- include/asm-powerpc/topology.h            |    2 +-
- 5 files changed, 9 insertions(+), 7 deletions(-)
+After applying all 10 patches, the ppc64_defconfig builds but:
 
---- a/arch/powerpc/kernel/setup-common.c
-+++ b/arch/powerpc/kernel/setup-common.c
-@@ -415,9 +415,9 @@
- 	 * Do the sibling map; assume only two threads per processor.
- 	 */
- 	for_each_possible_cpu(cpu) {
--		cpu_set(cpu, cpu_sibling_map[cpu]);
-+		cpu_set(cpu, cpu_sibling_map(cpu));
- 		if (cpu_has_feature(CPU_FTR_SMT))
--			cpu_set(cpu ^ 0x1, cpu_sibling_map[cpu]);
-+			cpu_set(cpu ^ 0x1, cpu_sibling_map(cpu));
- 	}
- 
- 	vdso_data->processorCount = num_present_cpus();
---- a/arch/powerpc/kernel/smp.c
-+++ b/arch/powerpc/kernel/smp.c
-@@ -61,11 +61,11 @@
- 
- cpumask_t cpu_possible_map = CPU_MASK_NONE;
- cpumask_t cpu_online_map = CPU_MASK_NONE;
--cpumask_t cpu_sibling_map[NR_CPUS] = { [0 ... NR_CPUS-1] = CPU_MASK_NONE };
-+DEFINE_PER_CPU(cpumask_t, cpu_sibling_map) = CPU_MASK_NONE;
- 
- EXPORT_SYMBOL(cpu_online_map);
- EXPORT_SYMBOL(cpu_possible_map);
--EXPORT_SYMBOL(cpu_sibling_map);
-+EXPORT_PER_CPU_SYMBOL(cpu_sibling_map);
- 
- /* SMP operations for this machine */
- struct smp_ops_t *smp_ops;
---- a/arch/powerpc/platforms/cell/cbe_cpufreq.c
-+++ b/arch/powerpc/platforms/cell/cbe_cpufreq.c
-@@ -119,7 +119,7 @@
- 	policy->cur = cbe_freqs[cur_pmode].frequency;
- 
- #ifdef CONFIG_SMP
--	policy->cpus = cpu_sibling_map[policy->cpu];
-+	policy->cpus = cpu_sibling_map(policy->cpu);
- #endif
- 
- 	cpufreq_frequency_table_get_attr(cbe_freqs, policy->cpu);
---- a/include/asm-powerpc/smp.h
-+++ b/include/asm-powerpc/smp.h
-@@ -25,6 +25,7 @@
- 
- #ifdef CONFIG_PPC64
- #include <asm/paca.h>
-+#include <asm/percpu.h>
- #endif
- 
- extern int boot_cpuid;
-@@ -58,7 +59,8 @@
- 					(smp_hw_index[(cpu)] = (phys))
- #endif
- 
--extern cpumask_t cpu_sibling_map[NR_CPUS];
-+DECLARE_PER_CPU(cpumask_t, cpu_sibling_map);
-+#define cpu_sibling_map(cpu) per_cpu(cpu_sibling_map, cpu)
- 
- /* Since OpenPIC has only 4 IPIs, we use slightly different message numbers.
-  *
---- a/include/asm-powerpc/topology.h
-+++ b/include/asm-powerpc/topology.h
-@@ -108,7 +108,7 @@
- #ifdef CONFIG_PPC64
- #include <asm/smp.h>
- 
--#define topology_thread_siblings(cpu)	(cpu_sibling_map[cpu])
-+#define topology_thread_siblings(cpu)	(cpu_sibling_map(cpu))
- #endif
- #endif
- 
+	vmlinux is larger:
 
--- 
+   text    data     bss     dec     hex filename
+7705776 1756984  504624 9967384  981718 ppc64/vmlinux
+7706228 1757120  504624 9967972  981964 trav.bld/vmlinux
+
+	the topology (on my POWERPC5+ box) is not correct:
+
+cpu0/topology/thread_siblings:0000000f
+cpu1/topology/thread_siblings:0000000f
+cpu2/topology/thread_siblings:0000000f
+cpu3/topology/thread_siblings:0000000f
+
+it used to be:
+
+cpu0/topology/thread_siblings:00000003
+cpu1/topology/thread_siblings:00000003
+cpu2/topology/thread_siblings:0000000c
+cpu3/topology/thread_siblings:0000000c
+
+Similarly on my iSeries box, the topology is displayed as above
+while it used to be:
+
+cpu0/topology/thread_siblings:00000001
+cpu1/topology/thread_siblings:00000002
+cpu2/topology/thread_siblings:00000004
+cpu3/topology/thread_siblings:00000008
+
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
+
+--Signature=_Mon__17_Sep_2007_16_28_31_+1000_tjewKN/mkN4kGaNl
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFG7h6VTgG2atn1QN8RAmB+AJ9HOw5MvcVaJSHu/pECUTF9I4l5VACgj//+
+2tXfkc5WNeX4tppxSpnOXis=
+=XiPX
+-----END PGP SIGNATURE-----
+
+--Signature=_Mon__17_Sep_2007_16_28_31_+1000_tjewKN/mkN4kGaNl--
