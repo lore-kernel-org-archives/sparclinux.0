@@ -1,69 +1,39 @@
 From: travis@sgi.com
-Date: Wed, 12 Sep 2007 01:56:51 +0000
-Subject: [PATCH 07/10] x86: acpi-use-cpu_physical_id (v3)
-Message-Id: <20070912015646.938985912@sgi.com>
+Date: Mon, 17 Sep 2007 18:35:07 +0000
+Subject: [PATCH 0/1] ppc64: Convert cpu_sibling_map to a per_cpu data array ppc64 v2
+Message-Id: <20070917183507.332345000@sgi.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070912015644.927677070@sgi.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
+To: sfr@canb.auug.org.au, Andrew Morton <akpm@linux-foundation.org>
 Cc: Andi Kleen <ak@suse.de>, Christoph Lameter <clameter@sgi.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org
 
-This is from an earlier message from Christoph Lameter:
 
-    processor_core.c currently tries to determine the apicid by special casing
-    for IA64 and x86. The desired information is readily available via
+Stephen Rothwell wrote:
+> On Mon, 17 Sep 2007 16:28:31 +1000 Stephen Rothwell <sfr@canb.auug.org.au> wrote:
+>> 	the topology (on my POWERPC5+ box) is not correct:
+>>
+>> cpu0/topology/thread_siblings:0000000f
+>> cpu1/topology/thread_siblings:0000000f
+>> cpu2/topology/thread_siblings:0000000f
+>> cpu3/topology/thread_siblings:0000000f
+>>
+>> it used to be:
+>>
+>> cpu0/topology/thread_siblings:00000003
+>> cpu1/topology/thread_siblings:00000003
+>> cpu2/topology/thread_siblings:0000000c
+>> cpu3/topology/thread_siblings:0000000c
+> 
+> This would be because we are setting up the cpu_sibling map before we
+> call setup_per_cpu_areas().
 
-	    cpu_physical_id()
+The following patch hopefully should fix this problem.  I'm
+not able to build or test it but the few references to 
+cpu_sibling_map seem to all occur well after setup_per_cpu_areas
+is called.
 
-    on IA64, i386 and x86_64.
-
-    Signed-off-by: Christoph Lameter <clameter@sgi.com>
-
-Additionally, boot_cpu_id needed to be exported to fix compile errors in
-dma code when !CONFIG_SMP.
-
-Signed-off-by: Mike Travis <travis@sgi.com>
----
- arch/x86_64/kernel/mpparse.c  |    2 ++
- drivers/acpi/processor_core.c |    8 +-------
- 2 files changed, 3 insertions(+), 7 deletions(-)
-
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -419,12 +419,6 @@
- 	return 0;
- }
- 
--#ifdef CONFIG_IA64
--#define arch_cpu_to_apicid 	ia64_cpu_to_sapicid
--#else
--#define arch_cpu_to_apicid 	x86_cpu_to_apicid
--#endif
--
- static int map_madt_entry(u32 acpi_id)
- {
- 	unsigned long madt_end, entry;
-@@ -498,7 +492,7 @@
- 		return apic_id;
- 
- 	for (i = 0; i < NR_CPUS; ++i) {
--		if (arch_cpu_to_apicid[i] = apic_id)
-+		if (cpu_physical_id(i) = apic_id)
- 			return i;
- 	}
- 	return -1;
---- a/arch/x86_64/kernel/mpparse.c
-+++ b/arch/x86_64/kernel/mpparse.c
-@@ -57,6 +57,8 @@
- 
- /* Processor that is doing the boot up */
- unsigned int boot_cpu_id = -1U;
-+EXPORT_SYMBOL(boot_cpu_id);
-+
- /* Internal processor count */
- unsigned int num_processors __cpuinitdata = 0;
- 
+Thanks Stephen for checking this out!
 
 -- 
