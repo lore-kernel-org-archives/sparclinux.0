@@ -1,58 +1,206 @@
-From: Mike Travis <travis@sgi.com>
-Date: Mon, 17 Sep 2007 15:22:55 +0000
-Subject: Re: [PATCH 09/10] ppc64: Convert cpu_sibling_map to a per_cpu data
-Message-Id: <46EE9BCF.3040303@sgi.com>
+From: Matthew Wilcox <matthew@wil.cx>
+Date: Wed, 19 Sep 2007 12:46:37 +0000
+Subject: slave_configure for qlogicpti
+Message-Id: <20070919124637.GE7624@parisc-linux.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070912015644.927677070@sgi.com>	<20070912015647.486500682@sgi.com> <20070917162831.b2a9d675.sfr@canb.auug.org.au>
-In-Reply-To: <20070917162831.b2a9d675.sfr@canb.auug.org.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Andi Kleen <ak@suse.de>, Christoph Lameter <clameter@sgi.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org, linux-scsi@vger.kernel.org, David Miller <davem@davemloft.net>
 
-Stephen Rothwell wrote:
-> On Tue, 11 Sep 2007 18:56:53 -0700 travis@sgi.com wrote:
->> Convert cpu_sibling_map to a per_cpu cpumask_t array for the ppc64
->> architecture.  This fixes build errors in block/blktrace.c and
->> kernel/sched.c when CONFIG_SCHED_SMT is defined.
->>
->> Note: these changes have not been built nor tested.
-> 
-> After applying all 10 patches, the ppc64_defconfig builds but:
-> 
-> 	vmlinux is larger:
-> 
->    text    data     bss     dec     hex filename
-> 7705776 1756984  504624 9967384  981718 ppc64/vmlinux
-> 7706228 1757120  504624 9967972  981964 trav.bld/vmlinux
-> 
-> 	the topology (on my POWERPC5+ box) is not correct:
-> 
-> cpu0/topology/thread_siblings:0000000f
-> cpu1/topology/thread_siblings:0000000f
-> cpu2/topology/thread_siblings:0000000f
-> cpu3/topology/thread_siblings:0000000f
-> 
-> it used to be:
-> 
-> cpu0/topology/thread_siblings:00000003
-> cpu1/topology/thread_siblings:00000003
-> cpu2/topology/thread_siblings:0000000c
-> cpu3/topology/thread_siblings:0000000c
-> 
-> Similarly on my iSeries box, the topology is displayed as above
-> while it used to be:
-> 
-> cpu0/topology/thread_siblings:00000001
-> cpu1/topology/thread_siblings:00000002
-> cpu2/topology/thread_siblings:00000004
-> cpu3/topology/thread_siblings:00000008
-> 
 
-Thanks Stephen for the feedback.  It may be the same situation
-that some of the other arch's encounter in that the per_cpu
-area is being accessed before it's setup.  I'll investigate
-that a bit more.
+I haven't even compile-tested this.  But look how much ugly code it
+deletes if it works!
 
-Mike
+diff --git a/drivers/scsi/qlogicpti.c b/drivers/scsi/qlogicpti.c
+index 5948872..346bed6 100644
+--- a/drivers/scsi/qlogicpti.c
++++ b/drivers/scsi/qlogicpti.c
+@@ -310,8 +310,6 @@ static inline void qlogicpti_set_hostdev_defaults(struct qlogicpti *qpti)
+ 		}
+ 		qpti->dev_param[i].device_enable = 1;
+ 	}
+-	/* this is very important to set! */
+-	qpti->sbits = 1 << qpti->scsi_id;
+ }
+ 
+ static int qlogicpti_reset_hardware(struct Scsi_Host *host)
+@@ -981,123 +979,35 @@ static void scsi_rbuf_put(struct scsi_cmnd *cmd, unsigned char *buf)
+ 	}
+ }
+ 
+-/*
+- * Until we scan the entire bus with inquiries, go throught this fella...
+- */
+-static void ourdone(struct scsi_cmnd *Cmnd)
++static int qlogicpti_slave_configure(struct scsi_device *sdev)
+ {
+-	struct qlogicpti *qpti = (struct qlogicpti *) Cmnd->device->host->hostdata;
+-	int tgt = Cmnd->device->id;
+-	void (*done) (struct scsi_cmnd *);
+-
+-	/* This grot added by DaveM, blame him for ugliness.
+-	 * The issue is that in the 2.3.x driver we use the
+-	 * host_scribble portion of the scsi command as a
+-	 * completion linked list at interrupt service time,
+-	 * so we have to store the done function pointer elsewhere.
+-	 */
+-	done = (void (*)(struct scsi_cmnd *))
+-		(((unsigned long) Cmnd->SCp.Message)
+-#ifdef __sparc_v9__
+-		 | ((unsigned long) Cmnd->SCp.Status << 32UL)
+-#endif
+-		 );
+-
+-	if ((qpti->sbits & (1 << tgt)) = 0) {
+-		int ok = host_byte(Cmnd->result) = DID_OK;
+-		if (Cmnd->cmnd[0] = 0x12 && ok) {
+-			unsigned char *iqd;
+-			unsigned int iqd_len;
+-
+-			iqd_len = scsi_rbuf_get(Cmnd, &iqd);
+-
+-			/* tags handled in midlayer */
+-			/* enable sync mode? */
+-			if (iqd[7] & 0x10) {
+-				qpti->dev_param[tgt].device_flags |= 0x10;
+-			} else {
+-				qpti->dev_param[tgt].synchronous_offset = 0;
+-				qpti->dev_param[tgt].synchronous_period = 0;
+-			}
+-			/* are we wide capable? */
+-			if (iqd[7] & 0x20) {
+-				qpti->dev_param[tgt].device_flags |= 0x20;
+-			}
+-
+-			scsi_rbuf_put(Cmnd, iqd);
+-
+-			qpti->sbits |= (1 << tgt);
+-		} else if (!ok) {
+-			qpti->sbits |= (1 << tgt);
+-		}
+-	}
+-	done(Cmnd);
+-}
+-
+-static int qlogicpti_queuecommand(struct scsi_cmnd *Cmnd, void (*done)(struct scsi_cmnd *));
+-
+-static int qlogicpti_queuecommand_slow(struct scsi_cmnd *Cmnd,
+-				       void (*done)(struct scsi_cmnd *))
+-{
+-	struct qlogicpti *qpti = (struct qlogicpti *) Cmnd->device->host->hostdata;
+-
+-	/*
+-	 * done checking this host adapter?
+-	 * If not, then rewrite the command
+-	 * to finish through ourdone so we
+-	 * can peek at Inquiry data results.
+-	 */
+-	if (qpti->sbits && qpti->sbits != 0xffff) {
+-		/* See above about in ourdone this ugliness... */
+-		Cmnd->SCp.Message = ((unsigned long)done) & 0xffffffff;
+-#ifdef CONFIG_SPARC64
+-		Cmnd->SCp.Status = ((unsigned long)done >> 32UL) & 0xffffffff;
+-#endif
+-		return qlogicpti_queuecommand(Cmnd, ourdone);
+-	}
++	struct qlogicpti *qpti = shost_priv(sdev->host);
++	int tgt = sdev->id;
++	u_short param[6];
+ 
+-	/*
+-	 * We've peeked at all targets for this bus- time
+-	 * to set parameters for devices for real now.
+-	 */
+-	if (qpti->sbits = 0xffff) {
+-		int i;
+-		for(i = 0; i < MAX_TARGETS; i++) {
+-			u_short param[6];
+-			param[0] = MBOX_SET_TARGET_PARAMS;
+-			param[1] = (i << 8);
+-			param[2] = (qpti->dev_param[i].device_flags << 8);
+-			if (qpti->dev_param[i].device_flags & 0x10) {
+-				param[3] = (qpti->dev_param[i].synchronous_offset << 8) |
+-					qpti->dev_param[i].synchronous_period;
+-			} else {
+-				param[3] = 0;
+-			}
+-			(void) qlogicpti_mbox_command(qpti, param, 0);
+-		}
+-		/*
+-		 * set to zero so any traverse through ourdone
+-		 * doesn't start the whole process again,
+-		 */
+-		qpti->sbits = 0;
++	/* tags handled in midlayer */
++	/* enable sync mode? */
++	if (sdev->sdtr) {
++		qpti->dev_param[tgt].device_flags |= 0x10;
++	} else {
++		qpti->dev_param[tgt].synchronous_offset = 0;
++		qpti->dev_param[tgt].synchronous_period = 0;
+ 	}
+-
+-	/* check to see if we're done with all adapters... */
+-	for (qpti = qptichain; qpti != NULL; qpti = qpti->next) {
+-		if (qpti->sbits) {
+-			break;
+-		}
++	/* are we wide capable? */
++	if (sdev->wdtr)
++		qpti->dev_param[tgt].device_flags |= 0x20;
++
++	param[0] = MBOX_SET_TARGET_PARAMS;
++	param[1] = (tgt << 8);
++	param[2] = (qpti->dev_param[tgt].device_flags << 8);
++	if (qpti->dev_param[tgt].device_flags & 0x10) {
++		param[3] = (qpti->dev_param[tgt].synchronous_offset << 8) |
++			qpti->dev_param[tgt].synchronous_period;
++	} else {
++		param[3] = 0;
+ 	}
+-
+-	/*
+-	 * if we hit the end of the chain w/o finding adapters still
+-	 * capability-configuring, then we're done with all adapters
+-	 * and can rock on..
+-	 */
+-	if (qpti = NULL)
+-		Cmnd->device->host->hostt->queuecommand = qlogicpti_queuecommand;
+-
+-	return qlogicpti_queuecommand(Cmnd, done);
++	qlogicpti_mbox_command(qpti, param, 0);
++	return 0;
+ }
+ 
+ /*
+@@ -1390,7 +1300,8 @@ static struct scsi_host_template qpti_template = {
+ 	.module			= THIS_MODULE,
+ 	.name			= "qlogicpti",
+ 	.info			= qlogicpti_info,
+-	.queuecommand		= qlogicpti_queuecommand_slow,
++	.queuecommand		= qlogicpti_queuecommand,
++	.slave_configure	= qlogicpti_slave_configure,
+ 	.eh_abort_handler	= qlogicpti_abort,
+ 	.eh_bus_reset_handler	= qlogicpti_reset,
+ 	.can_queue		= QLOGICPTI_REQ_QUEUE_LEN,
+diff --git a/drivers/scsi/qlogicpti.h b/drivers/scsi/qlogicpti.h
+index 6cd1c07..ef6da2d 100644
+--- a/drivers/scsi/qlogicpti.h
++++ b/drivers/scsi/qlogicpti.h
+@@ -380,8 +380,7 @@ struct qlogicpti {
+ 	unsigned char             swsreg;
+ 	unsigned int	
+ 		gotirq	:	1,	/* this instance got an irq */
+-		is_pti	: 	1,	/* Non-zero if this is a PTI board. */
+-		sbits	:	16;	/* syncmode known bits */
++		is_pti	: 	1;	/* Non-zero if this is a PTI board. */
+ };
+ 
+ /* How to twiddle them bits... */
+
+-- 
+Intel are signing my paycheques ... these opinions are still mine
+"Bill, look, we understand that you're interested in selling us this
+operating system, but compare it to ours.  We can't possibly take such
+a retrograde step."
