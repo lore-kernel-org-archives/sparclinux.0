@@ -1,94 +1,39 @@
-From: =?ISO-8859-1?Q?Iv=E1n_Chavero?= <ichavero@uach.mx>
-Date: Wed, 12 Sep 2007 20:31:29 +0000
-Subject: Re: AW: SILO problem on a T1000
-Message-Id: <46E84CA1.4030202@uach.mx>
+From: "Blue Swirl" <blauwirbel@gmail.com>
+Date: Wed, 26 Sep 2007 19:21:42 +0000
+Subject: More than 4G of memory on Sparc32?
+Message-Id: <f43fc5580709261221y47790f7en4726a74122d42191@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <46E6F95E.9080204@uach.mx>
-In-Reply-To: <46E6F95E.9080204@uach.mx>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-I've tried with all the partitions of that disk a thru h:
-/pci@7c0/pci@0/pci@8/scsi@2/disk@0,0
-/pci@7c0/pci@0/pci@8/scsi@2/disk@0,0:a
-/pci@7c0/pci@0/pci@8/scsi@2/disk@0,0:b
-/pci@7c0/pci@0/pci@8/scsi@2/disk@0,0:c
-...
+Hi,
 
-and get the same error:
+I've tried to add support to Qemu (and OpenBIOS) for more than 4G of
+memory for the Sparc32 target. But now it seems that Linux can't use
+this memory after all. The first show stopper is this code in
+arch/sparc/prom/memory.c:
 
+111                 /* Grrr, have to traverse the prom device tree ;( */
+112                 node = prom_getchild(prom_root_node);
+113                 node = prom_searchsiblings(node, "memory");
+114                 num_regs = prom_getproperty(node, "available",
+115                                             (char *) prom_reg_memlist,
+116                                             sizeof(prom_reg_memlist));
+117                 num_regs = (num_regs/sizeof(struct linux_prom_registers));
+118                 for(iter=0; iter<num_regs; iter++) {
+119                         prom_phys_avail[iter].start_adr 120                                 (char *) prom_reg_memlist[iter].phys_addr;
+121                         prom_phys_avail[iter].num_bytes 122                                 (unsigned long)
+prom_reg_memlist[iter].reg_size;
+123                         prom_phys_avail[iter].theres_more 124                                 &prom_phys_avail[iter+1];
+125                 }
 
+Here prom_reg_memlist[iter].which_io is not used at all. It would be
+needed to access the memory above the first 4G.
 
-Rebooting with command: boot disk:a
-Boot device: /pci@7c0/pci@0/pci@8/scsi@2/disk@0,0:a  File and args:
-The file just loaded does not appear to be executable.
+Some real Sparc32 machines could have >4G RAM (SC2000), maybe nobody
+tried to run Linux on those. The BSDs aren't any better.
 
-I don't really know what is wrong here.
-
-
-
-Jurzitza, Dieter wrote:
-> Hi Ivan,
-> from what I read from your mail and given that /dev/sda1 is your root partition (containing /boot as well) I'd guess that you ought to test (in openboot):
-> 
-> probe-scsi-all
-> 
-> You are trying to boot like:
-> 
-> Boot device: /pci@7c0/pci@0/pci@8/scsi@2/disk@0,0
-> 
-> this refers to the SCSI ID 0 on controller 2 but you do not specify the apropriate partition. So what you need to test is:
-> 
-> probe-scsi-all
-> 
-> what ought to give you something like
-> 
-> /pci@1f,4000,scsi@3,1
-> Target 1
-> Unit 0 Disk IBM DGVS09U 03B0
-> 
-> /pci@1f,4000,scsi@3
-> Target 6
-> Unit 0 Removable Read Only device
-> 
-> If you want to boot of one of those you hafe to specify:
-> boot /pci@1f,4000,scsi@3,1/disk@1,0:f (harddisk)
-> 
-> boot /pci@1f,4000,scsi@3,1/disk@6,0:f (cdrom)
-> 
-> This gives:
-> -> pci - device at 1f, 4000
-> 
-> scsi@3,1	*external* Controller channel
-> 
-> disk@1     harddisk with scsi-id 1
-> 
-> ,0         LUN 0
-> 
-> :f         Partition F
-> 
-> this can constantly be integrated by setting
-> nvalias /pci@1f,4000,scsi@3,1/disk@1,0:f extdisk
-> 
-> being "extdisk" an example. The variables can be printed via the command "devalias"
-> 
-> In general: Strg-P returns the last commandline in openboot (as "little" help).
-> 
-> Hope this helps,
-> take care
-> 
-> 
-> 
-> Dieter Jurzitza
-> 
-
-
--- 
-Ivan Chavero
-Administrador de Sistemas UNIX
-Universdad Autonoma de Chihuahua
-ichavero@uach.mx
-614 439 18 35 ext 1728
-http://www.uach.mx
+Will this ever be fixed? Anybody out there with a real machine and
+lots of memory?
