@@ -1,45 +1,180 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 28 Sep 2007 21:20:15 +0000
+Date: Fri, 28 Sep 2007 21:30:18 +0000
 Subject: Re: PATCH: tcp rfc 2385 security/bugfix for sparc64
-Message-Id: <20070928.142015.82358847.davem@davemloft.net>
+Message-Id: <20070928.143018.40816172.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <23966.84.62.25.8.1191012145.squirrel@cs1.dlh.net>
-In-Reply-To: <23966.84.62.25.8.1191012145.squirrel@cs1.dlh.net>
+	<20070928.142015.82358847.davem@davemloft.net>
+In-Reply-To: <20070928.142015.82358847.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: pl@dlh.net
 Cc: sparclinux@vger.kernel.org, alan@lxorguk.ukuu.org.uk, torvalds@linux-foundation.org, linux-kernel@vger.kernel.org
 
-From: "Peter Lieven" <pl@dlh.net>
-Date: Fri, 28 Sep 2007 22:42:25 +0200 (CEST)
+From: David Miller <davem@davemloft.net>
+Date: Fri, 28 Sep 2007 14:20:15 -0700 (PDT)
 
-> TCP MD5 signatures on sparc64 (big-endian) completely fail on current
-> kernel releases in interoperability with Cisco/Foundry or other
-> little-endian linux systems.
+> Thanks for finding this bug.
 > 
-> The root cause is a cast in the return statement of tcp_v4_md5_do_lookup,
-> where a tcp4_md5sig_key is casted onto tcp_md5sig_key without proper
-> conversion. On little-endian systems the upper 8 bits are cut of which
-> yields the expected behaviour. However, on big-endian systems (like
-> sparc64) only the most significant 8 bits are preserved. Since
-> TCP_MD5SIG_MAXKEYLEN is 80, this always yields 0.
+> > --- linux.old/include/net/tcp.h 2007-09-28 21:43:26.000000000 +0200 +++
+> > linux/include/net/tcp.h     2007-09-28 21:45:35.000000000 +0200 @@ -1055,6
+> > +1055,7 @@ static inline void clear_all_retrans_hin
 > 
-> In the calculation of the md5 signature afterwards the key is therefore
-> not appended to the tcp segment which could result in a security problem
-> since only the presence of a md5 signature is checked, and the key itself
-> doesn't matter.
+> I'll have to apply this patch by hand because your email client
+> completely corrupted the patch.
 
-Thanks for finding this bug.
+Actually, I think I'm going to put in a slightly different
+fix.
 
-> --- linux.old/include/net/tcp.h 2007-09-28 21:43:26.000000000 +0200 +++
-> linux/include/net/tcp.h     2007-09-28 21:45:35.000000000 +0200 @@ -1055,6
-> +1055,7 @@ static inline void clear_all_retrans_hin
+If tcp4_md5sig_key and tcp6_md5sig_key have to begin with exacytly
+tcp_md5sig_key's only two members, we should fully tell this
+explicitly to the compiler and remove those ugly casts.
 
-I'll have to apply this patch by hand because your email client
-completely corrupted the patch.
+The casts are the real bug.
 
-> Signed-off-by: Peter Lieven <pl@dlh.net>
-> Signed-off-by: Matthias M. Dellweg <2500@gmx.de>
+Here is the patch I will use after some testing:
 
-Thanks again.
+diff --git a/include/net/tcp.h b/include/net/tcp.h
+index 185c7ec..54053de 100644
+--- a/include/net/tcp.h
++++ b/include/net/tcp.h
+@@ -1059,14 +1059,12 @@ struct tcp_md5sig_key {
+ };
+ 
+ struct tcp4_md5sig_key {
+-	u8			*key;
+-	u16			keylen;
++	struct tcp_md5sig_key	base;
+ 	__be32			addr;
+ };
+ 
+ struct tcp6_md5sig_key {
+-	u8			*key;
+-	u16			keylen;
++	struct tcp_md5sig_key	base;
+ #if 0
+ 	u32			scope_id;	/* XXX */
+ #endif
+diff --git a/net/ipv4/tcp_ipv4.c b/net/ipv4/tcp_ipv4.c
+index 9c94627..e089a97 100644
+--- a/net/ipv4/tcp_ipv4.c
++++ b/net/ipv4/tcp_ipv4.c
+@@ -833,8 +833,7 @@ static struct tcp_md5sig_key *
+ 		return NULL;
+ 	for (i = 0; i < tp->md5sig_info->entries4; i++) {
+ 		if (tp->md5sig_info->keys4[i].addr = addr)
+-			return (struct tcp_md5sig_key *)
+-						&tp->md5sig_info->keys4[i];
++			return &tp->md5sig_info->keys4[i].base;
+ 	}
+ 	return NULL;
+ }
+@@ -865,9 +864,9 @@ int tcp_v4_md5_do_add(struct sock *sk, __be32 addr,
+ 	key = (struct tcp4_md5sig_key *)tcp_v4_md5_do_lookup(sk, addr);
+ 	if (key) {
+ 		/* Pre-existing entry - just update that one. */
+-		kfree(key->key);
+-		key->key = newkey;
+-		key->keylen = newkeylen;
++		kfree(key->base.key);
++		key->base.key = newkey;
++		key->base.keylen = newkeylen;
+ 	} else {
+ 		struct tcp_md5sig_info *md5sig;
+ 
+@@ -906,9 +905,9 @@ int tcp_v4_md5_do_add(struct sock *sk, __be32 addr,
+ 			md5sig->alloced4++;
+ 		}
+ 		md5sig->entries4++;
+-		md5sig->keys4[md5sig->entries4 - 1].addr   = addr;
+-		md5sig->keys4[md5sig->entries4 - 1].key    = newkey;
+-		md5sig->keys4[md5sig->entries4 - 1].keylen = newkeylen;
++		md5sig->keys4[md5sig->entries4 - 1].addr        = addr;
++		md5sig->keys4[md5sig->entries4 - 1].base.key    = newkey;
++		md5sig->keys4[md5sig->entries4 - 1].base.keylen = newkeylen;
+ 	}
+ 	return 0;
+ }
+@@ -930,7 +929,7 @@ int tcp_v4_md5_do_del(struct sock *sk, __be32 addr)
+ 	for (i = 0; i < tp->md5sig_info->entries4; i++) {
+ 		if (tp->md5sig_info->keys4[i].addr = addr) {
+ 			/* Free the key */
+-			kfree(tp->md5sig_info->keys4[i].key);
++			kfree(tp->md5sig_info->keys4[i].base.key);
+ 			tp->md5sig_info->entries4--;
+ 
+ 			if (tp->md5sig_info->entries4 = 0) {
+@@ -964,7 +963,7 @@ static void tcp_v4_clear_md5_list(struct sock *sk)
+ 	if (tp->md5sig_info->entries4) {
+ 		int i;
+ 		for (i = 0; i < tp->md5sig_info->entries4; i++)
+-			kfree(tp->md5sig_info->keys4[i].key);
++			kfree(tp->md5sig_info->keys4[i].base.key);
+ 		tp->md5sig_info->entries4 = 0;
+ 		tcp_free_md5sig_pool();
+ 	}
+diff --git a/net/ipv6/tcp_ipv6.c b/net/ipv6/tcp_ipv6.c
+index 0f7defb..3e06799 100644
+--- a/net/ipv6/tcp_ipv6.c
++++ b/net/ipv6/tcp_ipv6.c
+@@ -539,7 +539,7 @@ static struct tcp_md5sig_key *tcp_v6_md5_do_lookup(struct sock *sk,
+ 
+ 	for (i = 0; i < tp->md5sig_info->entries6; i++) {
+ 		if (ipv6_addr_cmp(&tp->md5sig_info->keys6[i].addr, addr) = 0)
+-			return (struct tcp_md5sig_key *)&tp->md5sig_info->keys6[i];
++			return &tp->md5sig_info->keys6[i].base;
+ 	}
+ 	return NULL;
+ }
+@@ -567,9 +567,9 @@ static int tcp_v6_md5_do_add(struct sock *sk, struct in6_addr *peer,
+ 	key = (struct tcp6_md5sig_key*) tcp_v6_md5_do_lookup(sk, peer);
+ 	if (key) {
+ 		/* modify existing entry - just update that one */
+-		kfree(key->key);
+-		key->key = newkey;
+-		key->keylen = newkeylen;
++		kfree(key->base.key);
++		key->base.key = newkey;
++		key->base.keylen = newkeylen;
+ 	} else {
+ 		/* reallocate new list if current one is full. */
+ 		if (!tp->md5sig_info) {
+@@ -603,8 +603,8 @@ static int tcp_v6_md5_do_add(struct sock *sk, struct in6_addr *peer,
+ 
+ 		ipv6_addr_copy(&tp->md5sig_info->keys6[tp->md5sig_info->entries6].addr,
+ 			       peer);
+-		tp->md5sig_info->keys6[tp->md5sig_info->entries6].key = newkey;
+-		tp->md5sig_info->keys6[tp->md5sig_info->entries6].keylen = newkeylen;
++		tp->md5sig_info->keys6[tp->md5sig_info->entries6].base.key = newkey;
++		tp->md5sig_info->keys6[tp->md5sig_info->entries6].base.keylen = newkeylen;
+ 
+ 		tp->md5sig_info->entries6++;
+ 	}
+@@ -626,7 +626,7 @@ static int tcp_v6_md5_do_del(struct sock *sk, struct in6_addr *peer)
+ 	for (i = 0; i < tp->md5sig_info->entries6; i++) {
+ 		if (ipv6_addr_cmp(&tp->md5sig_info->keys6[i].addr, peer) = 0) {
+ 			/* Free the key */
+-			kfree(tp->md5sig_info->keys6[i].key);
++			kfree(tp->md5sig_info->keys6[i].base.key);
+ 			tp->md5sig_info->entries6--;
+ 
+ 			if (tp->md5sig_info->entries6 = 0) {
+@@ -657,7 +657,7 @@ static void tcp_v6_clear_md5_list (struct sock *sk)
+ 
+ 	if (tp->md5sig_info->entries6) {
+ 		for (i = 0; i < tp->md5sig_info->entries6; i++)
+-			kfree(tp->md5sig_info->keys6[i].key);
++			kfree(tp->md5sig_info->keys6[i].base.key);
+ 		tp->md5sig_info->entries6 = 0;
+ 		tcp_free_md5sig_pool();
+ 	}
+@@ -668,7 +668,7 @@ static void tcp_v6_clear_md5_list (struct sock *sk)
+ 
+ 	if (tp->md5sig_info->entries4) {
+ 		for (i = 0; i < tp->md5sig_info->entries4; i++)
+-			kfree(tp->md5sig_info->keys4[i].key);
++			kfree(tp->md5sig_info->keys4[i].base.key);
+ 		tp->md5sig_info->entries4 = 0;
+ 		tcp_free_md5sig_pool();
+ 	}
