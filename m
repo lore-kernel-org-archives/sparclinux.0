@@ -1,31 +1,60 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 23 Sep 2007 06:00:51 +0000
-Subject: Re: e2fsprogs conflict with asm-sparc64/types.h
-Message-Id: <20070922.230051.41649573.davem@davemloft.net>
+From: "Peter Lieven" <pl@dlh.net>
+Date: Fri, 28 Sep 2007 20:42:25 +0000
+Subject: PATCH: tcp rfc 2385 security/bugfix for sparc64
+Message-Id: <23966.84.62.25.8.1191012145.squirrel@cs1.dlh.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1190496068.3966.10.camel@localhost.localdomain>
-In-Reply-To: <1190496068.3966.10.camel@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org, davem@davemloft.net
+Cc: alan@lxorguk.ukuu.org.uk, torvalds@linux-foundation.org, linux-kernel@vger.kernel.org
 
-From: "Tom \"spot\" Callaway" <tcallawa@redhat.com>
-Date: Sat, 22 Sep 2007 17:21:08 -0400
+TCP MD5 signatures on sparc64 (big-endian) completely fail on current
+kernel releases in interoperability with Cisco/Foundry or other
+little-endian linux systems.
 
-> When building e2fsprogs, it checks to see if long long is valid on the
-> platform, and detects that it is for sparc64. Thus, it defines:
-> 
-> #define __S64_TYPEDEF __signed__ long long
-> #define __U64_TYPEDEF unsigned long long
-> 
-> Unfortunately, that conflicts with asm-sparc64/types.h, which says only
-> "long", not "long long" for these typedefs.
-> 
-> Is the kernel wrong? Or is e2fsprogs?
+The root cause is a cast in the return statement of tcp_v4_md5_do_lookup,
+where a tcp4_md5sig_key is casted onto tcp_md5sig_key without proper
+conversion. On little-endian systems the upper 8 bits are cut of which
+yields the expected behaviour. However, on big-endian systems (like
+sparc64) only the most significant 8 bits are preserved. Since
+TCP_MD5SIG_MAXKEYLEN is 80, this always yields 0.
 
-The kernel is right.
+In the calculation of the md5 signature afterwards the key is therefore
+not appended to the tcp segment which could result in a security problem
+since only the presence of a md5 signature is checked, and the key itself
+doesn't matter.
 
-Several other 64-bit platforms happen to choose to use
-"long long" for the 64-bit types, but this is absolutely
-not universal and is a per-platform decision to make.
+--- linux.old/include/net/tcp.h 2007-09-28 21:43:26.000000000 +0200 +++
+linux/include/net/tcp.h     2007-09-28 21:45:35.000000000 +0200 @@ -1055,6
++1055,7 @@ static inline void clear_all_retrans_hin
+ struct crypto_hash;
+
+ /* - key database */
++/* this should be compatible with the head of the following two structs */
+ struct tcp_md5sig_key {
+        u8                      *key;
+        u8                      keylen;
+@@ -1062,13 +1063,13 @@ struct tcp_md5sig_key {
+
+ struct tcp4_md5sig_key {
+        u8                      *key;
+-       u16                     keylen;
++       u8                      keylen;
+        __be32                  addr;
+ };
+
+ struct tcp6_md5sig_key {
+        u8                      *key;
+-       u16                     keylen;
++       u8                      keylen;
+ #if 0
+        u32                     scope_id;       /* XXX */
+ #endif
+
+
+Signed-off-by: Peter Lieven <pl@dlh.net>
+Signed-off-by: Matthias M. Dellweg <2500@gmx.de>
+
+
+
