@@ -1,142 +1,52 @@
-From: travis@sgi.com
-Date: Wed, 12 Sep 2007 01:56:52 +0000
-Subject: [PATCH 08/10] ia64: Convert cpu_sibling_map to a per_cpu data array (v3)
-Message-Id: <20070912015647.214306428@sgi.com>
+From: Paul Jackson <pj@sgi.com>
+Date: Fri, 28 Sep 2007 09:49:01 +0000
+Subject: Re: [PATCH 08/10] ia64: Convert cpu_sibling_map to a per_cpu data
+Message-Id: <20070928024901.24ab6c99.pj@sgi.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20070912015644.927677070@sgi.com>
+	<20070912015647.214306428@sgi.com>
+In-Reply-To: <20070912015647.214306428@sgi.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andi Kleen <ak@suse.de>, Christoph Lameter <clameter@sgi.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org
+To: travis@sgi.com
+Cc: akpm@linux-foundation.org, ak@suse.de, clameter@sgi.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org
 
-Convert cpu_sibling_map to a per_cpu cpumask_t array for the ia64
-architecture.  This fixes build errors in block/blktrace.c and
-kernel/sched.c when CONFIG_SCHED_SMT is defined.
+Mike,
 
+I think there is a bug either in this ia64 patch, or in the related
+generic arch patch: Convert cpu_sibling_map to be a per cpu variable
+(v3).
 
-There was one access to cpu_sibling_map before the per_cpu data
-area was created, so that step was moved to after the per_cpu
-area is setup.
+It dies early in boot on me, on the SGI internal 8 processor IA64
+system that you and I know as 'margin'.  The death is a hard hang, due
+to a corrupt stack, due to a bogus cpu index.
 
-Tested and verified on an A4700.
+I haven't tracked it down all the way, but have gotten this far.  If I add
+the following patch, I get a panic on the BUG_ON if I have these two patches
+in 2.6.23-rc8-mm1, but it boots just fine if I don't have these two patches.
 
-Signed-off-by: Mike Travis <travis@sgi.com>
----
- arch/ia64/kernel/setup.c    |    4 ----
- arch/ia64/kernel/smpboot.c  |   18 ++++++++++--------
- arch/ia64/mm/contig.c       |    6 ++++++
- include/asm-ia64/smp.h      |    2 +-
- include/asm-ia64/topology.h |    2 +-
- 5 files changed, 18 insertions(+), 14 deletions(-)
+It seems that the "cpu_sibling_map[cpu]" cpumask_t is empty (all zero
+bits) with your two patches applied, but has some non-zero bits
+otherwise, which leads to 'group' being NR_CPUS instead of a useful CPU
+number.  Unfortunately, I have no idea why the "cpu_sibling_map[cpu]"
+cpumask_t is empty -- good luck on that part.
 
---- a/arch/ia64/kernel/setup.c
-+++ b/arch/ia64/kernel/setup.c
-@@ -528,10 +528,6 @@
- 
- #ifdef CONFIG_SMP
- 	cpu_physical_id(0) = hard_smp_processor_id();
--
--	cpu_set(0, cpu_sibling_map[0]);
--	cpu_set(0, cpu_core_map[0]);
--
- 	check_for_logical_procs();
- 	if (smp_num_cpucores > 1)
- 		printk(KERN_INFO
---- a/arch/ia64/kernel/smpboot.c
-+++ b/arch/ia64/kernel/smpboot.c
-@@ -138,7 +138,9 @@
- EXPORT_SYMBOL(cpu_possible_map);
- 
- cpumask_t cpu_core_map[NR_CPUS] __cacheline_aligned;
--cpumask_t cpu_sibling_map[NR_CPUS] __cacheline_aligned;
-+DEFINE_PER_CPU_SHARED_ALIGNED(cpumask_t, cpu_sibling_map);
-+EXPORT_PER_CPU_SYMBOL(cpu_sibling_map);
-+
- int smp_num_siblings = 1;
- int smp_num_cpucores = 1;
- 
-@@ -650,12 +652,12 @@
- {
- 	int i;
- 
--	for_each_cpu_mask(i, cpu_sibling_map[cpu])
--		cpu_clear(cpu, cpu_sibling_map[i]);
-+	for_each_cpu_mask(i, per_cpu(cpu_sibling_map, cpu))
-+		cpu_clear(cpu, per_cpu(cpu_sibling_map, i));
- 	for_each_cpu_mask(i, cpu_core_map[cpu])
- 		cpu_clear(cpu, cpu_core_map[i]);
- 
--	cpu_sibling_map[cpu] = cpu_core_map[cpu] = CPU_MASK_NONE;
-+	per_cpu(cpu_sibling_map, cpu) = cpu_core_map[cpu] = CPU_MASK_NONE;
- }
- 
- static void
-@@ -666,7 +668,7 @@
- 	if (cpu_data(cpu)->threads_per_core = 1 &&
- 	    cpu_data(cpu)->cores_per_socket = 1) {
- 		cpu_clear(cpu, cpu_core_map[cpu]);
--		cpu_clear(cpu, cpu_sibling_map[cpu]);
-+		cpu_clear(cpu, per_cpu(cpu_sibling_map, cpu));
- 		return;
- 	}
- 
-@@ -807,8 +809,8 @@
- 			cpu_set(i, cpu_core_map[cpu]);
- 			cpu_set(cpu, cpu_core_map[i]);
- 			if (cpu_data(cpu)->core_id = cpu_data(i)->core_id) {
--				cpu_set(i, cpu_sibling_map[cpu]);
--				cpu_set(cpu, cpu_sibling_map[i]);
-+				cpu_set(i, per_cpu(cpu_sibling_map, cpu));
-+				cpu_set(cpu, per_cpu(cpu_sibling_map, i));
- 			}
- 		}
- 	}
-@@ -839,7 +841,7 @@
- 
- 	if (cpu_data(cpu)->threads_per_core = 1 &&
- 	    cpu_data(cpu)->cores_per_socket = 1) {
--		cpu_set(cpu, cpu_sibling_map[cpu]);
-+		cpu_set(cpu, per_cpu(cpu_sibling_map, cpu));
- 		cpu_set(cpu, cpu_core_map[cpu]);
- 		return 0;
- 	}
---- a/include/asm-ia64/smp.h
-+++ b/include/asm-ia64/smp.h
-@@ -58,7 +58,7 @@
- 
- extern cpumask_t cpu_online_map;
- extern cpumask_t cpu_core_map[NR_CPUS];
--extern cpumask_t cpu_sibling_map[NR_CPUS];
-+DECLARE_PER_CPU(cpumask_t, cpu_sibling_map);
- extern int smp_num_siblings;
- extern int smp_num_cpucores;
- extern void __iomem *ipi_base_addr;
---- a/include/asm-ia64/topology.h
-+++ b/include/asm-ia64/topology.h
-@@ -112,7 +112,7 @@
- #define topology_physical_package_id(cpu)	(cpu_data(cpu)->socket_id)
- #define topology_core_id(cpu)			(cpu_data(cpu)->core_id)
- #define topology_core_siblings(cpu)		(cpu_core_map[cpu])
--#define topology_thread_siblings(cpu)		(cpu_sibling_map[cpu])
-+#define topology_thread_siblings(cpu)		(per_cpu(cpu_sibling_map, cpu))
- #define smt_capable() 				(smp_num_siblings > 1)
+The patch that catches this bug earlier is this:
+
+--- 2.6.23-rc8-mm1.orig/kernel/sched.c	2007-09-28 01:42:20.144561024 -0700
++++ 2.6.23-rc8-mm1/kernel/sched.c	2007-09-28 02:27:14.239075497 -0700
+@@ -5905,6 +5905,7 @@ static int cpu_to_phys_group(int cpu, co
+ #else
+ 	group = cpu;
  #endif
- 
---- a/arch/ia64/mm/contig.c
-+++ b/arch/ia64/mm/contig.c
-@@ -212,6 +212,12 @@
- 			cpu_data += PERCPU_PAGE_SIZE;
- 			per_cpu(local_per_cpu_offset, cpu) = __per_cpu_offset[cpu];
- 		}
-+		/*
-+		 * cpu_sibling_map is now a per_cpu variable - it needs to
-+		 * be accessed after per_cpu_init() sets up the per_cpu area.
-+		 */
-+		cpu_set(0, per_cpu(cpu_sibling_map, 0));
-+		cpu_set(0, cpu_core_map[0]);
- 	}
- 	return __per_cpu_start + __per_cpu_offset[smp_processor_id()];
- }
++	BUG_ON(group = NR_CPUS);
+ 	if (sg)
+ 		*sg = &per_cpu(sched_group_phys, group);
+ 	return group;
+
 
 -- 
+                  I won't rest till it's the best ...
+                  Programmer, Linux Scalability
+                  Paul Jackson <pj@sgi.com> 1.925.600.0401
