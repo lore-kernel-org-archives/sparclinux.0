@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Sun, 30 Sep 2007 23:50:07 +0000
+Date: Sun, 30 Sep 2007 23:59:21 +0000
 Subject: Re: SPARC64 2.6.23-rc8 binfmt_aout32 error
-Message-Id: <20070930.165007.63100942.davem@davemloft.net>
+Message-Id: <20070930.165921.104060866.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <470034EA.4060906@gmail.com>
 In-Reply-To: <470034EA.4060906@gmail.com>
@@ -13,35 +13,45 @@ To: sparclinux@vger.kernel.org
 From: Sunil Amitkumar Janki <devel.sjanki@gmail.com>
 Date: Mon, 01 Oct 2007 01:44:42 +0200
 
+> When I'm building 2.6.23-rc8 on SPARC64 (using a 64-bit CLFS
+> SVN tool chain consisting of GCC 4.2.1, Binutils 2.18 and Glibc
+> 2.6.1) I get the following error:
+> 
 > >   CC      arch/sparc64/kernel/binfmt_aout32.o
 > > cc1: warnings being treated as errors
 > > arch/sparc64/kernel/binfmt_aout32.c: In function 'create_aout32_tables':
 > > arch/sparc64/kernel/binfmt_aout32.c:180: warning: cast from pointer to 
 > > integer of different size
-> > arch/sparc64/kernel/binfmt_aout32.c:180: warning: cast from pointer to 
-> > integer of different size
-> > arch/sparc64/kernel/binfmt_aout32.c:180: warning: cast from pointer to 
-> > integer of different size
-> > arch/sparc64/kernel/binfmt_aout32.c:180: warning: cast from pointer to 
-> > integer of different size
-> > arch/sparc64/kernel/binfmt_aout32.c:189: warning: cast from pointer to 
-> > integer of different size
-> > arch/sparc64/kernel/binfmt_aout32.c:189: warning: cast from pointer to 
-> > integer of different size
-> > arch/sparc64/kernel/binfmt_aout32.c:189: warning: cast from pointer to 
-> > integer of different size
-> > arch/sparc64/kernel/binfmt_aout32.c:189: warning: cast from pointer to 
-> > integer of different size
-> > make[1]: *** [arch/sparc64/kernel/binfmt_aout32.o] Error 1
-> > make: *** [arch/sparc64/kernel] Error 2
-> 
-> I don't know what the solution is (I don't know much about
-> kernel internals yet) but I hope this is enough to solve this
-> particular error. Otherwise I could also send my kernel config.
 
-Turn off BINFMT_AOUT32 is a quick way to get a successful build,
-I wonder if considered that :-)
+This patch below will likely fix the build failure.
 
-I've never seen this build failure before, but will try to
-reproduce with some gcc-4.2 compiler setups I have here.
+But note that gcc-4.2.x is very widely known to miscompile
+the sparc64 kernel, particularly on SMP, so even if you get
+a build the kernel you end up will be mostly unusable.
 
+I would really recommend you stay with gcc-4.1.x unless you are going
+to work on fixing those gcc-4.2.x miscompilations, and I'm already on
+the hook for that :-)
+
+diff --git a/arch/sparc64/kernel/binfmt_aout32.c b/arch/sparc64/kernel/binfmt_aout32.c
+index f205fc7..d208cc7 100644
+--- a/arch/sparc64/kernel/binfmt_aout32.c
++++ b/arch/sparc64/kernel/binfmt_aout32.c
+@@ -177,7 +177,7 @@ static u32 __user *create_aout32_tables(char __user *p, struct linux_binprm *bpr
+ 			get_user(c,p++);
+ 		} while (c);
+ 	}
+-	put_user(NULL,argv);
++	put_user(0,argv);
+ 	current->mm->arg_end = current->mm->env_start = (unsigned long) p;
+ 	while (envc-->0) {
+ 		char c;
+@@ -186,7 +186,7 @@ static u32 __user *create_aout32_tables(char __user *p, struct linux_binprm *bpr
+ 			get_user(c,p++);
+ 		} while (c);
+ 	}
+-	put_user(NULL,envp);
++	put_user(0,envp);
+ 	current->mm->env_end = (unsigned long) p;
+ 	return sp;
+ }
