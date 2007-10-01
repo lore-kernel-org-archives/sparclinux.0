@@ -1,24 +1,31 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 30 Oct 2007 02:49:01 +0000
-Subject: Re: unkillable dpkg-query processes
-Message-Id: <20071029.194901.183763881.davem@davemloft.net>
+Date: Mon, 01 Oct 2007 00:29:52 +0000
+Subject: Re: slave_configure for qlogicpti
+Message-Id: <20070930.172952.85384131.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20071024223332.GA24557@keid.carnet.hr>
-In-Reply-To: <20071024223332.GA24557@keid.carnet.hr>
+References: <20070919124637.GE7624@parisc-linux.org>
+In-Reply-To: <20070919124637.GE7624@parisc-linux.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: matthew@wil.cx
+Cc: sparclinux@vger.kernel.org, linux-scsi@vger.kernel.org
 
-From: Bernd Zeimetz <bernd@bzed.de>
-Date: Tue, 30 Oct 2007 03:43:32 +0100
+From: Matthew Wilcox <matthew@wil.cx>
+Date: Wed, 19 Sep 2007 06:46:37 -0600
 
-> I just grepped trough the source of aptitude, there's only one fork, but
-> that one should not be executed if aptitude has been started as root.
-> If it is of any use for you I can figure out which piece of code
-> resulted in the call to clone, or figure out which piece of code results
->  results in the use of futexes there.
+> 
+> I haven't even compile-tested this.  But look how much ugly code it
+> deletes if it works!
 
-That's not necessary, thanks.
+It compiles :-)  You deleted the only uses of scsi_rbuf_{get,put}()
+so you can kill those off too.
 
-The futex() calls are definitely from libnss-db.
+I don't have the time to setup things for testing this patch on
+the qlogicpti hardware I have, but with the scsi_rbuf_{get,put}()
+deletion added to the patch I would really like to see this go
+into 2.6.24 anyways.
+
+If things explode I'll pick up the pieces.
+
+Acked-by: David S. Miller <davem@davemloft.net>
