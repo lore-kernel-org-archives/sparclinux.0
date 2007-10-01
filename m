@@ -1,57 +1,29 @@
-From: Mike Travis <travis@sgi.com>
-Date: Wed, 03 Oct 2007 19:22:08 +0000
-Subject: Re: [PATCH 08/10] ia64: Convert cpu_sibling_map to a per_cpu data
-Message-Id: <4703EBE0.7080106@sgi.com>
+From: Sunil Amitkumar Janki <devel.sjanki@gmail.com>
+Date: Mon, 01 Oct 2007 10:24:20 +0000
+Subject: Re: SPARC64 2.6.23-rc8 binfmt_aout32 error
+Message-Id: <4700CAD4.4010902@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20070912015644.927677070@sgi.com>	<20070912015647.214306428@sgi.com> <20070928024901.24ab6c99.pj@sgi.com>
-In-Reply-To: <20070928024901.24ab6c99.pj@sgi.com>
+References: <470034EA.4060906@gmail.com>
+In-Reply-To: <470034EA.4060906@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Paul Jackson <pj@sgi.com>
-Cc: akpm@linux-foundation.org, ak@suse.de, clameter@sgi.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Hi Paul,
+David Miller wrote:
+> Turn off BINFMT_AOUT32 is a quick way to get a successful build,
+> I wonder if considered that :-)
+>
+> I've never seen this build failure before, but will try to
+> reproduce with some gcc-4.2 compiler setups I have here.
+>   
+I haven't got much more than a tool chain yet so then
+I would have to build a GCC 4.1.2 compiler. Now with
+your information I should and probably will do so.
 
-I just now found this.  I'll take a look immediately.  I tried it
-on a couple of systems but not margin. 
+I already tried to disable all other executable formats
+but that didn't help much either. Thanks for the patch,
+I will try building with it and report my findings.
 
-Thanks,
-Mike
-
-Paul Jackson wrote:
-> Mike,
-> 
-> I think there is a bug either in this ia64 patch, or in the related
-> generic arch patch: Convert cpu_sibling_map to be a per cpu variable
-> (v3).
-> 
-> It dies early in boot on me, on the SGI internal 8 processor IA64
-> system that you and I know as 'margin'.  The death is a hard hang, due
-> to a corrupt stack, due to a bogus cpu index.
-> 
-> I haven't tracked it down all the way, but have gotten this far.  If I add
-> the following patch, I get a panic on the BUG_ON if I have these two patches
-> in 2.6.23-rc8-mm1, but it boots just fine if I don't have these two patches.
-> 
-> It seems that the "cpu_sibling_map[cpu]" cpumask_t is empty (all zero
-> bits) with your two patches applied, but has some non-zero bits
-> otherwise, which leads to 'group' being NR_CPUS instead of a useful CPU
-> number.  Unfortunately, I have no idea why the "cpu_sibling_map[cpu]"
-> cpumask_t is empty -- good luck on that part.
-> 
-> The patch that catches this bug earlier is this:
-> 
-> --- 2.6.23-rc8-mm1.orig/kernel/sched.c	2007-09-28 01:42:20.144561024 -0700
-> +++ 2.6.23-rc8-mm1/kernel/sched.c	2007-09-28 02:27:14.239075497 -0700
-> @@ -5905,6 +5905,7 @@ static int cpu_to_phys_group(int cpu, co
->  #else
->  	group = cpu;
->  #endif
-> +	BUG_ON(group = NR_CPUS);
->  	if (sg)
->  		*sg = &per_cpu(sched_group_phys, group);
->  	return group;
-> 
-> 
+Sunil
 
