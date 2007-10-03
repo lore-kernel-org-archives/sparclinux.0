@@ -1,133 +1,57 @@
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Date: Wed, 31 Oct 2007 22:37:35 +0000
-Subject: [patch 25/28] Add cmpxchg_local to sparc, move __cmpxchg to system.h
-Message-Id: <20071031224218.502085585@polymtl.ca>
+From: Mike Travis <travis@sgi.com>
+Date: Wed, 03 Oct 2007 19:22:08 +0000
+Subject: Re: [PATCH 08/10] ia64: Convert cpu_sibling_map to a per_cpu data
+Message-Id: <4703EBE0.7080106@sgi.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20071031223710.099558229@polymtl.ca>
+References: <20070912015644.927677070@sgi.com>	<20070912015647.214306428@sgi.com> <20070928024901.24ab6c99.pj@sgi.com>
+In-Reply-To: <20070928024901.24ab6c99.pj@sgi.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: akpm@linux-foundation.org, linux-kernel@vger.kernel.org
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>, clameter@sgi.com, wli@holomorphy.com, sparclinux@vger.kernel.org
+To: Paul Jackson <pj@sgi.com>
+Cc: akpm@linux-foundation.org, ak@suse.de, clameter@sgi.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org
 
-Move cmpxchg and add cmpxchg_local to system.h.
-Use the new generic cmpxchg_local (disables interrupt).
+Hi Paul,
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-CC: clameter@sgi.com
-CC: wli@holomorphy.com
-CC: sparclinux@vger.kernel.org
----
- include/asm-sparc/atomic.h |   36 ---------------------------------
- include/asm-sparc/system.h |   48 +++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 48 insertions(+), 36 deletions(-)
+I just now found this.  I'll take a look immediately.  I tried it
+on a couple of systems but not margin. 
 
-Index: linux-2.6-lttng/include/asm-sparc/atomic.h
-=================================--- linux-2.6-lttng.orig/include/asm-sparc/atomic.h	2007-10-31 17:32:43.000000000 -0400
-+++ linux-2.6-lttng/include/asm-sparc/atomic.h	2007-10-31 18:28:23.000000000 -0400
-@@ -17,42 +17,6 @@ typedef struct { volatile int counter; }
- 
- #ifdef __KERNEL__
- 
--/* Emulate cmpxchg() the same way we emulate atomics,
-- * by hashing the object address and indexing into an array
-- * of spinlocks to get a bit of performance...
-- *
-- * See arch/sparc/lib/atomic32.c for implementation.
-- *
-- * Cribbed from <asm-parisc/atomic.h>
-- */
--#define __HAVE_ARCH_CMPXCHG	1
--
--/* bug catcher for when unsupported size is used - won't link */
--extern void __cmpxchg_called_with_bad_pointer(void);
--/* we only need to support cmpxchg of a u32 on sparc */
--extern unsigned long __cmpxchg_u32(volatile u32 *m, u32 old, u32 new_);
--
--/* don't worry...optimizer will get rid of most of this */
--static __inline__ unsigned long
--__cmpxchg(volatile void *ptr, unsigned long old, unsigned long new_, int size)
--{
--	switch(size) {
--	case 4:
--		return __cmpxchg_u32((u32 *)ptr, (u32)old, (u32)new_);
--	default:
--		__cmpxchg_called_with_bad_pointer();
--		break;
--	}
--	return old;
--}
--
--#define cmpxchg(ptr,o,n) ({						\
--	__typeof__(*(ptr)) _o_ = (o);					\
--	__typeof__(*(ptr)) _n_ = (n);					\
--	(__typeof__(*(ptr))) __cmpxchg((ptr), (unsigned long)_o_,	\
--			(unsigned long)_n_, sizeof(*(ptr)));		\
--})
--
- #define ATOMIC_INIT(i)  { (i) }
- 
- extern int __atomic_add_return(int, atomic_t *);
-Index: linux-2.6-lttng/include/asm-sparc/system.h
-=================================--- linux-2.6-lttng.orig/include/asm-sparc/system.h	2007-10-31 17:32:43.000000000 -0400
-+++ linux-2.6-lttng/include/asm-sparc/system.h	2007-10-31 18:30:34.000000000 -0400
-@@ -245,6 +245,54 @@ static __inline__ unsigned long __xchg(u
- 	return x;
- }
- 
-+/* Emulate cmpxchg() the same way we emulate atomics,
-+ * by hashing the object address and indexing into an array
-+ * of spinlocks to get a bit of performance...
-+ *
-+ * See arch/sparc/lib/atomic32.c for implementation.
-+ *
-+ * Cribbed from <asm-parisc/atomic.h>
-+ */
-+#define __HAVE_ARCH_CMPXCHG	1
-+
-+/* bug catcher for when unsupported size is used - won't link */
-+extern void __cmpxchg_called_with_bad_pointer(void);
-+/* we only need to support cmpxchg of a u32 on sparc */
-+extern unsigned long __cmpxchg_u32(volatile u32 *m, u32 old, u32 new_);
-+
-+/* don't worry...optimizer will get rid of most of this */
-+static __inline__ unsigned long
-+__cmpxchg(volatile void *ptr, unsigned long old, unsigned long new_, int size)
-+{
-+	switch (size) {
-+	case 4:
-+		return __cmpxchg_u32((u32 *)ptr, (u32)old, (u32)new_);
-+	default:
-+		__cmpxchg_called_with_bad_pointer();
-+		break;
-+	}
-+	return old;
-+}
-+
-+#define cmpxchg(ptr, o, n)						\
-+({									\
-+	__typeof__(*(ptr)) _o_ = (o);					\
-+	__typeof__(*(ptr)) _n_ = (n);					\
-+	(__typeof__(*(ptr))) __cmpxchg((ptr), (unsigned long)_o_,	\
-+			(unsigned long)_n_, sizeof(*(ptr)));		\
-+})
-+
-+#include <asm-generic/cmpxchg-local.h>
-+
-+/*
-+ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
-+ * them available.
-+ */
-+#define cmpxchg_local(ptr, o, n)				  	       \
-+	((__typeof__(*(ptr)))__cmpxchg_local_generic((ptr), (unsigned long)(o),\
-+			(unsigned long)(n), sizeof(*(ptr))))
-+#define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
-+
- extern void die_if_kernel(char *str, struct pt_regs *regs) __attribute__ ((noreturn));
- 
- #endif /* __KERNEL__ */
+Thanks,
+Mike
 
--- 
-Mathieu Desnoyers
-Computer Engineering Ph.D. Student, Ecole Polytechnique de Montreal
-OpenPGP key fingerprint: 8CD5 52C3 8E3C 4140 715F  BA06 3F25 A8FE 3BAE 9A68
+Paul Jackson wrote:
+> Mike,
+> 
+> I think there is a bug either in this ia64 patch, or in the related
+> generic arch patch: Convert cpu_sibling_map to be a per cpu variable
+> (v3).
+> 
+> It dies early in boot on me, on the SGI internal 8 processor IA64
+> system that you and I know as 'margin'.  The death is a hard hang, due
+> to a corrupt stack, due to a bogus cpu index.
+> 
+> I haven't tracked it down all the way, but have gotten this far.  If I add
+> the following patch, I get a panic on the BUG_ON if I have these two patches
+> in 2.6.23-rc8-mm1, but it boots just fine if I don't have these two patches.
+> 
+> It seems that the "cpu_sibling_map[cpu]" cpumask_t is empty (all zero
+> bits) with your two patches applied, but has some non-zero bits
+> otherwise, which leads to 'group' being NR_CPUS instead of a useful CPU
+> number.  Unfortunately, I have no idea why the "cpu_sibling_map[cpu]"
+> cpumask_t is empty -- good luck on that part.
+> 
+> The patch that catches this bug earlier is this:
+> 
+> --- 2.6.23-rc8-mm1.orig/kernel/sched.c	2007-09-28 01:42:20.144561024 -0700
+> +++ 2.6.23-rc8-mm1/kernel/sched.c	2007-09-28 02:27:14.239075497 -0700
+> @@ -5905,6 +5905,7 @@ static int cpu_to_phys_group(int cpu, co
+>  #else
+>  	group = cpu;
+>  #endif
+> +	BUG_ON(group = NR_CPUS);
+>  	if (sg)
+>  		*sg = &per_cpu(sched_group_phys, group);
+>  	return group;
+> 
+> 
+
