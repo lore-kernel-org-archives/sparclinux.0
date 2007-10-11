@@ -1,261 +1,99 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 15 Sep 2007 20:04:08 +0000
-Subject: [PATCH] sparc64: beautify vmlinux.lds
-Message-Id: <20070915200408.GC14858@uranus.ravnborg.org>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Thu, 11 Oct 2007 05:24:48 +0000
+Subject: [PATCH] [SPARC/64] move of_platform_driver initialisations:
+Message-Id: <20071011152448.c762f034.sfr@canb.auug.org.au>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-[forwarded to list - used wrong address in frst post (as usual) ]
+We no longer initialise the name field of the of_platform_driver, but
+use the name field of the embedded device_driver's name field instead.
 
-Apply a consistent format to vmlinux.lds.
-The file is now to some degree readable.
-
-In addition move several labels inside the braces
-such that they reflect the actual start address of a section.
-
-Without this the label would not reflect if ld added alignment.
-
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
 ---
-buildtested only. But there should be no functional changes.
-Will do this for all archs (over time).
+ arch/sparc/kernel/time.c    |    4 +++-
+ arch/sparc64/kernel/auxio.c |    4 +++-
+ arch/sparc64/kernel/power.c |    4 +++-
+ arch/sparc64/kernel/time.c  |    4 +++-
+ 4 files changed, 12 insertions(+), 4 deletions(-)
 
-	Sam
+This depends on my previous patch "Prepare to remove of_platform_driver
+name" for Sparc.
 
-diff --git a/arch/sparc64/kernel/vmlinux.lds.S b/arch/sparc64/kernel/vmlinux.lds.S
-index b982fa3..9fcd503 100644
---- a/arch/sparc64/kernel/vmlinux.lds.S
-+++ b/arch/sparc64/kernel/vmlinux.lds.S
-@@ -10,105 +10,138 @@ ENTRY(_start)
- jiffies = jiffies_64;
- SECTIONS
- {
--  swapper_low_pmd_dir = 0x0000000000402000;
--  . = 0x4000;
--  .text 0x0000000000404000 :
--  {
--    _text = .;
--    TEXT_TEXT
--    SCHED_TEXT
--    LOCK_TEXT
--    KPROBES_TEXT
--    *(.gnu.warning)
--  } =0
--  _etext = .;
--  PROVIDE (etext = .);
-+	swapper_low_pmd_dir = 0x0000000000402000;
-+	. = 0x4000;
-+	.text 0x0000000000404000 : {
-+		_text = .;
-+		TEXT_TEXT
-+		SCHED_TEXT
-+		LOCK_TEXT
-+		KPROBES_TEXT
-+		*(.gnu.warning)
-+	} = 0
-+	_etext = .;
-+	PROVIDE (etext = .);
+-- 
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+
+diff --git a/arch/sparc/kernel/time.c b/arch/sparc/kernel/time.c
+index 6a25133..4bf78a5 100644
+--- a/arch/sparc/kernel/time.c
++++ b/arch/sparc/kernel/time.c
+@@ -347,9 +347,11 @@ static struct of_device_id clock_match[] = {
+ };
  
--  RO_DATA(PAGE_SIZE)
-+	RO_DATA(PAGE_SIZE)
-+	.data : {
-+		DATA_DATA
-+		CONSTRUCTORS
-+	}
-+	.data1 : {
-+		*(.data1)
-+	}
-+	. = ALIGN(64);
-+	.data.cacheline_aligned : {
-+		*(.data.cacheline_aligned)
-+	}
-+	. = ALIGN(64);
-+	.data.read_mostly : {
-+		*(.data.read_mostly)
-+	}
-+	_edata = .;
-+	PROVIDE (edata = .);
-+	.fixup : {
-+		*(.fixup)
-+	}
-+	. = ALIGN(16);
-+	__ex_table : {
-+		__start___ex_table = .;
-+		*(__ex_table)
-+		__stop___ex_table = .;
-+	}
-+	NOTES
+ static struct of_platform_driver clock_driver = {
+-	.name		= "clock",
+ 	.match_table	= clock_match,
+ 	.probe		= clock_probe,
++	.driver		= {
++		.name	= "clock",
++	},
+ };
  
--  .data    :
--  {
--    DATA_DATA
--    CONSTRUCTORS
--  }
--  .data1   : { *(.data1) }
--  . = ALIGN(64);
--  .data.cacheline_aligned : { *(.data.cacheline_aligned) }
--  . = ALIGN(64);
--  .data.read_mostly : { *(.data.read_mostly) }
--  _edata  =  .;
--  PROVIDE (edata = .);
--  .fixup   : { *(.fixup) }
-+	. = ALIGN(PAGE_SIZE);
-+	.init.text : {
-+		__init_begin = .;
-+		_sinittext = .;
-+		*(.init.text)
-+		_einittext = .;
-+	}
-+	.init.data : {
-+		*(.init.data)
-+	}
-+	. = ALIGN(16);
-+	.init.setup : {
-+		__setup_start = .;
-+		*(.init.setup)
-+		__setup_end = .;
-+	}
-+	.initcall.init : {
-+		__initcall_start = .;
-+		INITCALLS
-+		__initcall_end = .;
-+	}
-+	.con_initcall.init : {
-+		__con_initcall_start = .;
-+		*(.con_initcall.init)
-+		__con_initcall_end = .;
-+	}
-+	SECURITY_INIT
  
--  . = ALIGN(16);
--  __start___ex_table = .;
--  __ex_table : { *(__ex_table) }
--  __stop___ex_table = .;
-+	. = ALIGN(4);
-+	.tsb_ldquad_phys_patch : {
-+		__tsb_ldquad_phys_patch = .;
-+		*(.tsb_ldquad_phys_patch)
-+		__tsb_ldquad_phys_patch_end = .;
-+	}
- 
--  NOTES
-+	.tsb_phys_patch : {
-+		__tsb_phys_patch = .;
-+		*(.tsb_phys_patch)
-+		__tsb_phys_patch_end = .;
-+	}
- 
--  . = ALIGN(PAGE_SIZE);
--  __init_begin = .;
--  .init.text : { 
--	_sinittext = .;
--	*(.init.text)
--	_einittext = .;
--  }
--  .init.data : { *(.init.data) }
--  . = ALIGN(16);
--  __setup_start = .;
--  .init.setup : { *(.init.setup) }
--  __setup_end = .;
--  __initcall_start = .;
--  .initcall.init : {
--	INITCALLS
--  }
--  __initcall_end = .;
--  __con_initcall_start = .;
--  .con_initcall.init : { *(.con_initcall.init) }
--  __con_initcall_end = .;
--  SECURITY_INIT
--  . = ALIGN(4);
--  __tsb_ldquad_phys_patch = .;
--  .tsb_ldquad_phys_patch : { *(.tsb_ldquad_phys_patch) }
--  __tsb_ldquad_phys_patch_end = .;
--  __tsb_phys_patch = .;
--  .tsb_phys_patch : { *(.tsb_phys_patch) }
--  __tsb_phys_patch_end = .;
--  __cpuid_patch = .;
--  .cpuid_patch : { *(.cpuid_patch) }
--  __cpuid_patch_end = .;
--  __sun4v_1insn_patch = .;
--  .sun4v_1insn_patch : { *(.sun4v_1insn_patch) }
--  __sun4v_1insn_patch_end = .;
--  __sun4v_2insn_patch = .;
--  .sun4v_2insn_patch : { *(.sun4v_2insn_patch) }
--  __sun4v_2insn_patch_end = .;
-+	.cpuid_patch : {
-+		__cpuid_patch = .;
-+		*(.cpuid_patch)
-+		__cpuid_patch_end = .;
-+	}
-+
-+	.sun4v_1insn_patch : {
-+		__sun4v_1insn_patch = .;
-+		*(.sun4v_1insn_patch)
-+		__sun4v_1insn_patch_end = .;
-+	}
-+	.sun4v_2insn_patch : {
-+		__sun4v_2insn_patch = .;
-+		*(.sun4v_2insn_patch)
-+		__sun4v_2insn_patch_end = .;
-+	}
- 
- #ifdef CONFIG_BLK_DEV_INITRD
--  . = ALIGN(PAGE_SIZE);
--  __initramfs_start = .;
--  .init.ramfs : { *(.init.ramfs) }
--  __initramfs_end = .;
-+	. = ALIGN(PAGE_SIZE);
-+	.init.ramfs : {
-+		__initramfs_start = .;
-+		*(.init.ramfs)
-+		__initramfs_end = .;
-+	}
- #endif
- 
--  PERCPU(PAGE_SIZE)
-+	PERCPU(PAGE_SIZE)
- 
--  . = ALIGN(PAGE_SIZE);
--  __init_end = .;
--  __bss_start = .;
--  .sbss      : { *(.sbss) *(.scommon) }
--  .bss       :
--  {
--   *(.dynbss)
--   *(.bss)
--   *(COMMON)
--  }
--  _end = . ;
--  PROVIDE (end = .);
--  /DISCARD/ : { *(.exit.text) *(.exit.data) *(.exitcall.exit) }
-+	. = ALIGN(PAGE_SIZE);
-+	__init_end = .;
-+	__bss_start = .;
-+	.sbss : {
-+		*(.sbss)
-+		*(.scommon)
-+	}
-+	.bss : {
-+		*(.dynbss)
-+		*(.bss)
-+		*(COMMON)
-+	}
-+	_end = . ;
-+	PROVIDE (end = .);
- 
--  STABS_DEBUG
-+	/DISCARD/ : {
-+		*(.exit.text)
-+		*(.exit.data)
-+		*(.exitcall.exit)
-+	}
- 
--  DWARF_DEBUG
-+	STABS_DEBUG
-+	DWARF_DEBUG
+diff --git a/arch/sparc64/kernel/auxio.c b/arch/sparc64/kernel/auxio.c
+index 7b37976..c55f029 100644
+--- a/arch/sparc64/kernel/auxio.c
++++ b/arch/sparc64/kernel/auxio.c
+@@ -148,9 +148,11 @@ static int __devinit auxio_probe(struct of_device *dev, const struct of_device_i
  }
+ 
+ static struct of_platform_driver auxio_driver = {
+-	.name		= "auxio",
+ 	.match_table	= auxio_match,
+ 	.probe		= auxio_probe,
++	.driver		= {
++		.name	= "auxio",
++	},
+ };
+ 
+ static int __init auxio_init(void)
+diff --git a/arch/sparc64/kernel/power.c b/arch/sparc64/kernel/power.c
+index 881a09e..850cdff 100644
+--- a/arch/sparc64/kernel/power.c
++++ b/arch/sparc64/kernel/power.c
+@@ -105,9 +105,11 @@ static struct of_device_id power_match[] = {
+ };
+ 
+ static struct of_platform_driver power_driver = {
+-	.name		= "power",
+ 	.match_table	= power_match,
+ 	.probe		= power_probe,
++	.driver		= {
++		.name	= "power",
++	},
+ };
+ 
+ void __init power_init(void)
+diff --git a/arch/sparc64/kernel/time.c b/arch/sparc64/kernel/time.c
+index 69cad1b..cd8c740 100644
+--- a/arch/sparc64/kernel/time.c
++++ b/arch/sparc64/kernel/time.c
+@@ -764,9 +764,11 @@ static struct of_device_id clock_match[] = {
+ };
+ 
+ static struct of_platform_driver clock_driver = {
+-	.name		= "clock",
+ 	.match_table	= clock_match,
+ 	.probe		= clock_probe,
++	.driver		= {
++		.name	= "clock",
++	},
+ };
+ 
+ static int __init clock_init(void)
+-- 
+1.5.3.4
 
------ End forwarded message -----
