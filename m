@@ -1,32 +1,62 @@
 From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
-Date: Sat, 20 Oct 2007 07:45:14 +0000
-Subject: Re: [Iscsitarget-devel] [BUG] Raid1/5 over iSCSI trouble
-Message-Id: <4719B20A.9070903@systella.fr>
+Date: Thu, 11 Oct 2007 18:44:56 +0000
+Subject: sun4v_data_access_exception on new 2.6.23
+Message-Id: <470E6F28.2010709@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4714BB92.7040701@systella.fr>
-	<47161CE3.80909@systella.fr>	<e9c3a7c20710170758p4046ca44labe370e94bca6e93@mail.gmail.com>	<e9c3a7c20710170840u2ed8d6a9x26523eec6700ad11@mail.gmail.com>	<47181CB2.1060602@tmr.com>
-	<471864F8.9010209@systella.fr><1192809103.30976.11.camel@dwillia2-linux.ch.intel.com><4718DE66.8000905@tmr.com>
-	<471916B5.6080709@systella.fr> <47191855.4020402@systella.fr>
-	<E2BB8074E5500C42984D980D4BD78EF9017A296F@MFG-NYC-EXCH2.mfg.prv>
-	<47191C66.309@systella.fr>
-	<E2BB8074E5500C42984D980D4BD78EF9017A2971@MFG-NYC-EXCH2.mfg.prv>
-In-Reply-To: <E2BB8074E5500C42984D980D4BD78EF9017A2971@MFG-NYC-EXCH2.mfg.prv>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Ross S. W. Walker" <rwalker@medallion.com>
-Cc: linux-raid@vger.kernel.org, sparclinux@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, iscsitarget-devel@lists.sourceforge.net, Bill Davidsen <davidsen@tmr.com>
+To: sparclinux@vger.kernel.org
 
-Ross S. W. Walker wrote:
-> Oh, in that case you will be much better served with DRBD, which
-> would provide you with what you want without creating a Frankenstein
-> setup...
+	Hello,
 
-	OK. I didn't know DRDB project, but it cannot be used in my case. 
-Indeed, I'm trying in a first time to replicate two raid5 arrays. But 
-ultimate goal is to create a raid5 array over iSCSI. At this time, I 
-only test with raid1 because I have to begin with a simple configuration.
+	I have built a 2.6.23 kernel on a T1000 server. I have seen this
+message on system console :
+
+sun4v_data_access_exception: ADDR[000008000001e000] CTX[0000]
+TYPE[0004], going.
+               \|/ ____ \|/
+               "@'/ .. \`@"
+               /_| \__/ |_\
+                  \__U_/
+dpkg-split(7958): Dax [#1]
+TSTATE: 0000000011f01600 TPC: 0000000000407904 TNPC: 0000000000407908 Y:
+00000000    Not tainted
+TPC: <tsb_flush+0xc/0x40>
+g0: 0000000000000000 g1: 0000000000000026 g2: 0000000000008000 g3:
+0000000000002000
+g4: fffff800ffc8d680 g5: fffff800020ce000 g6: fffff800d9454000 g7:
+0000000000000027
+o0: 000008000001ea60 o1: 00000000000003df o2: 000007feffffe000 o3:
+fffff800ffecae00
+o4: 9800000000000610 o5: ffffffffffffffff sp: fffff800d9456f11 ret_pc:
+000000000044f3b0
+RPC: <flush_tsb_user+0x78/0xa0>
+l0: fffff80002870380 l1: 0000000000000001 l2: 0000080000000000 l3:
+0000000000001fff
+l4: fffff800ff7890b0 l5: 0000000000000001 l6: 0000000000002000 l7:
+000007feffffffff
+i0: fffff80002870378 i1: 0000000000000000 i2: fffff8008e95dff8 i3:
+bc000000d11766d0
+i4: fffff800d116afc0 i5: 00000000000474ae i6: fffff800d9456fd1 i7:
+000000000044ebc8
+I7: <flush_tlb_pending+0x30/0x80>
+Caller[000000000044ebc8]: flush_tlb_pending+0x30/0x80
+Caller[000000000044edf8]: tlb_batch_add+0x1e0/0x200
+Caller[00000000004a76dc]: mprotect_fixup+0x3a4/0x4a0
+Caller[00000000004bf4d4]: setup_arg_pages+0x9c/0x2e0
+Caller[000000000044cc74]: load_elf_binary+0x4dc/0x1740
+Caller[00000000004be6c0]: search_binary_handler+0xa8/0x2c0
+Caller[00000000004eeed0]: compat_do_execve+0x138/0x160
+Caller[00000000004481dc]: sparc32_execve+0x44/0xc0
+Caller[00000000004061d4]: linux_sparc_syscall32+0x3c/0x40
+Caller[00000000f7dfa724]: 0xf7dfa72c
+Instruction DUMP: 01000000  01000000  05000020 <c2da0280> 97307020
+808ac002  1247fffd  8143e001  80a04009
+
+	After this, I cannot halt system.
 
 	Regards,
 
 	JKB
+
