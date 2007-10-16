@@ -1,26 +1,25 @@
-From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
-Date: Tue, 16 Oct 2007 13:29:27 +0000
-Subject: [Q] iSCSI on sparc64
-Message-Id: <4714BCB7.5080607@systella.fr>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 16 Oct 2007 22:38:27 +0000
+Subject: Re: [Q] iSCSI on sparc64
+Message-Id: <20071016.153827.68571102.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <4714BCB7.5080607@systella.fr>
+In-Reply-To: <4714BCB7.5080607@systella.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-	Hello,
+From: BERTRAND_Jo=EBl <joel.bertrand@systella.fr>
+Date: Tue, 16 Oct 2007 15:29:27 +0200
 
-	I'm testing target-iscsi on a debian/sparc. On target side, I can see a 
-lot of messages like :
+> lot of messages like :
+>=20
+> Kernel unaligned access at TPC[1016b334]=20
+> set_offset_and_length+0xdc/0x1a0 [iscsi_trgt]
 
-Kernel unaligned access at TPC[1016b334] 
-set_offset_and_length+0xdc/0x1a0 [iscsi_trgt]
+The iSCSI code makes unaligned accesses for the data types
+being dereferenced, and needs to be fixed.
 
-	and a BUG! on initiator side. I'm not sure that BUG! comes from "Kernel 
-unaligned access". What is signification of these messages ? Can I use 
-target-iscsi daemon without more trouble ? I post here because these 
-messages are arch specific (no one on i386 nor ppc32).
-
-	Thanks in advance,
-
-	JKB
+I don't have the resources to do any of this work, please
+report the problem to the iSCSI people.
