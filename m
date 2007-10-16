@@ -1,44 +1,71 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 24 Oct 2007 22:28:45 +0000
-Subject: Re: arch/sparc64/kernel/iommu_common.c:237: error: implicit
-Message-Id: <20071024.152845.07025481.davem@davemloft.net>
+From: Matthias Dellweg <2500@gmx.de>
+Date: Tue, 16 Oct 2007 16:47:56 +0000
+Subject: Re: PATCH: tcp rfc 2385 security/bugfix for sparc64
+Message-Id: <200710161848.18443.2500@gmx.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20071024211102.GA5842@keid.carnet.hr>
-In-Reply-To: <20071024211102.GA5842@keid.carnet.hr>
+References: <23966.84.62.25.8.1191012145.squirrel@cs1.dlh.net>
+In-Reply-To: <23966.84.62.25.8.1191012145.squirrel@cs1.dlh.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: Peter Lieven <pl@dlh.net>, sparclinux@vger.kernel.org, alan@lxorguk.ukuu.org.uk, torvalds@linux-foundation.org, linux-kernel@vger.kernel.org
 
-From: Josip Rodin <joy@entuzijast.net>
-Date: Wed, 24 Oct 2007 23:11:02 +0200
+Hi David,
+while reviewing the tcp_md5-related code further i came across with another
+two of these casts which you probably have missed. I don't actually think
+that they impose a problem by now, but as you said we should remove them.
+Matthias
 
-> Hi,
-> 
-> Just tried 2.6.24-rc1... but:
-> 
-> arch/sparc64/kernel/iommu_common.c: In function 'prepare_sg':
-> arch/sparc64/kernel/iommu_common.c:237: error: implicit declaration of function 'next_sg'
-> cc1: warnings being treated as errors
-> arch/sparc64/kernel/iommu_common.c:237: warning: assignment makes pointer from integer without a cast
-> make[1]: *** [arch/sparc64/kernel/iommu_common.o] Error 1
-> 
-> The error looks like a simple typo - should this be sg_next(), like
-> elsewhere in the file? It compiles the file when I replace that.
 
-Yep, I tossed that fix to Jens last night, it should show up
-in Linus's tree soon:
+--- linux-2.6.23.1.orig/net/ipv4/tcp_ipv4.c     2007-10-16 17:25:05.000000000 +0200
++++ linux-2.6.23.1/net/ipv4/tcp_ipv4.c  2007-10-16 17:50:05.000000000 +0200
+@@ -857,16 +857,16 @@ int tcp_v4_md5_do_add(struct sock *sk, _
+                      u8 *newkey, u8 newkeylen)
+ {
+        /* Add Key to the list */
+-       struct tcp4_md5sig_key *key;
++       struct tcp_md5sig_key *key;
+        struct tcp_sock *tp = tcp_sk(sk);
+        struct tcp4_md5sig_key *keys;
 
-diff --git a/arch/sparc64/kernel/iommu_common.c b/arch/sparc64/kernel/iommu_common.c
-index b70324e..efd5dff 100644
---- a/arch/sparc64/kernel/iommu_common.c
-+++ b/arch/sparc64/kernel/iommu_common.c
-@@ -234,7 +234,7 @@ unsigned long prepare_sg(struct scatterlist *sg, int nents)
- 	dma_sg->dma_length = dent_len;
- 
- 	if (dma_sg != sg) {
--		dma_sg = next_sg(dma_sg);
-+		dma_sg = sg_next(dma_sg);
- 		dma_sg->dma_length = 0;
- 	}
- 
+-       key = (struct tcp4_md5sig_key *)tcp_v4_md5_do_lookup(sk, addr);
++       key = tcp_v4_md5_do_lookup(sk, addr);
+        if (key) {
+                /* Pre-existing entry - just update that one. */
+-               kfree(key->base.key);
+-               key->base.key = newkey;
+-               key->base.keylen = newkeylen;
++               kfree(key->key);
++               key->key = newkey;
++               key->keylen = newkeylen;
+        } else {
+                struct tcp_md5sig_info *md5sig;
+
+--- linux-2.6.23.1.orig/net/ipv6/tcp_ipv6.c     2007-10-16 17:47:57.000000000 +0200
++++ linux-2.6.23.1/net/ipv6/tcp_ipv6.c  2007-10-16 17:49:25.000000000 +0200
+@@ -560,16 +560,16 @@ static int tcp_v6_md5_do_add(struct sock
+                             char *newkey, u8 newkeylen)
+ {
+        /* Add key to the list */
+-       struct tcp6_md5sig_key *key;
++       struct tcp_md5sig_key *key;
+        struct tcp_sock *tp = tcp_sk(sk);
+        struct tcp6_md5sig_key *keys;
+
+-       key = (struct tcp6_md5sig_key*) tcp_v6_md5_do_lookup(sk, peer);
++       key = tcp_v6_md5_do_lookup(sk, peer);
+        if (key) {
+                /* modify existing entry - just update that one */
+-               kfree(key->base.key);
+-               key->base.key = newkey;
+-               key->base.keylen = newkeylen;
++               kfree(key->key);
++               key->key = newkey;
++               key->keylen = newkeylen;
+        } else {
+                /* reallocate new list if current one is full. */
+                if (!tp->md5sig_info) {
+
+
+Signed-off-by: Matthias M. Dellweg <2500@gmx.de>
