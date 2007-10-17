@@ -1,27 +1,79 @@
 From: David Miller <davem@davemloft.net>
-Date: Sun, 28 Oct 2007 05:30:14 +0000
-Subject: Re: possible typo in arch/sparc64/kernel/time.c
-Message-Id: <20071027.223014.62992249.davem@davemloft.net>
+Date: Wed, 17 Oct 2007 11:38:30 +0000
+Subject: Re: GCC 4.2.1 produces broken 2.6.22.1 kernel.
+Message-Id: <20071017.043830.45178594.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4723587F.1020301@tiscali.nl>
-In-Reply-To: <4723587F.1020301@tiscali.nl>
+References: <46B7600A.3060700@walrond.org>
+In-Reply-To: <46B7600A.3060700@walrond.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Roel Kluin <12o3l@tiscali.nl>
-Date: Sat, 27 Oct 2007 17:25:51 +0200
 
-> I already posted something on lkml, but it wasn't picked up
-> 
-> in arch/sparc64/kernel/time.c, line 1073 it reads:
-> 
->         if (!mregs && !dregs & !bregs)
-> 
-> shouldn this be
-> 
->         if (!mregs && !dregs && !bregs)
-> 
+Better late than never...
 
-Yep, thanks I'll fix it up.
+Ok, I think I nailed this, the simplest test case is:
+
+register unsigned long regval asm("g5");
+
+extern void cond_resched(void);
+
+unsigned int var;
+
+void *expression(unsigned long regval)
+{
+  void *ret;
+
+  __asm__("" : "=r" (ret) : "0" (&var));
+  return ret + regval;
+}
+
+void func(void **pp)
+{
+  int i;
+
+  for (i = 0; i < 56; i++) {
+    cond_resched();
+    *pp = expression(regval);
+  }
+}
+
+If you build that with "gcc-4.2 -m64 -Os -S -o test.s test.c"
+the compiler moves expression() outside of the loop because it
+things it is invariant.
+
+The dataflow pass doesn't mark global registers correctly, and
+the new thing in gcc-4.2.x vs. gcc-4.1.x is that it uses the
+dataflow pass for the loop optimizers.
+
+I've bootstrapped and regression tested the following gcc-4.2.x
+patch, I'll test some test kernel builds after I get some sleep.
+
+--- ./gcc/df-scan.c.ORIG	2007-10-16 02:07:46.000000000 -0700
++++ ./gcc/df-scan.c	2007-10-16 23:00:32.000000000 -0700
+@@ -1584,12 +1584,19 @@ df_insn_refs_record (struct dataflow *df
+ 		 so they are recorded as used.  */
+ 	      for (i = 0; i < FIRST_PSEUDO_REGISTER; i++)
+ 		if (global_regs[i])
+-		  df_uses_record (dflow, &regno_reg_rtx[i],
+-				  DF_REF_REG_USE, bb, insn, 
+-				  0);
++		  {
++		    df_uses_record (dflow, &regno_reg_rtx[i],
++				    DF_REF_REG_USE, bb, insn, 0);
++		    df_ref_record (dflow, regno_reg_rtx[i], &regno_reg_rtx[i],
++				   bb, insn, DF_REF_REG_DEF, 0, true);
++		  }
++
+ 	      EXECUTE_IF_SET_IN_BITMAP (df_invalidated_by_call, 0, ui, bi)
+-	        df_ref_record (dflow, regno_reg_rtx[ui], &regno_reg_rtx[ui], bb, 
+-			       insn, DF_REF_REG_DEF, DF_REF_MAY_CLOBBER, false);
++		{
++		  if (!global_regs[ui])
++		    df_ref_record (dflow, regno_reg_rtx[ui], &regno_reg_rtx[ui], bb, 
++				   insn, DF_REF_REG_DEF, DF_REF_MAY_CLOBBER, false);
++		}
+ 	    }
+ 	}
+ 
