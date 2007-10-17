@@ -1,39 +1,42 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Date: Wed, 17 Oct 2007 11:36:30 +0000
+From: linas@austin.ibm.com (Linas Vepstas)
+Date: Wed, 17 Oct 2007 23:04:49 +0000
 Subject: Re: [PATCH 2/2] Use of_get_pci_dev_node() in axon_msi.c
-Message-Id: <1192620990.11899.168.camel@pasglop>
+Message-Id: <20071017230449.GZ4891@austin.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <8f76815cbbaf5fbab82c843d87bc0dafab038c80.1192605144.git.michael@ellerman.id.au>
 	<dadd2b9540369b9e2c6773b2a60021dadafa58e2.1192605144.git.michael@ellerman.id.au>
-	<20071017.042229.95059231.davem@davemloft.net>
-In-Reply-To: <20071017.042229.95059231.davem@davemloft.net>
+In-Reply-To: <dadd2b9540369b9e2c6773b2a60021dadafa58e2.1192605144.git.michael@ellerman.id.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org, paulus@samba.org, linuxppc-dev@ozlabs.org, sfr@canb.auug.org.au
+To: Michael Ellerman <michael@ellerman.id.au>
+Cc: sparclinux@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, linuxppc-dev@ozlabs.org
 
+On Wed, Oct 17, 2007 at 05:12:27PM +1000, Michael Ellerman wrote:
 
-> I find it ironic that you add of_get_pci_dev_node() as a function
-> which gets the node and grabs a reference to it, and then the very
-> first usage you make of it doesn't drop the reference at all.
-> 
-> That reference grabbing aspect of the new interface is obviously very
-> useful! :-)
-> 
-> Kidding aside (I realize that in this case probably the driver never
-> unregisters and therefore the reference never needs to be released)
-> it's really much nicer to add facilities when you have patches in hand
-> that actually use them.
+> +struct device_node *of_get_pci_dev_node(struct pci_dev *pdev)
+> +{
+> +       return of_node_get(pci_device_to_OF_node(pdev));
+> +}
 
-I think in this case, it's mostly a matter of consistency... pretty much
-everything that returns a device_node grabs a reference... except
-pci_device_to_OF_node :-)
+[...]
 
-I think Michael is trying to address that, and axon-msi happens to be
-something he wrote so a good candidate for an initial conversion :-)
+> -	dn = of_node_get(pci_device_to_OF_node(dev));
+> +	dn = of_get_pci_dev_node(dev);
 
-Cheers,
-Ben.
+Is this really useful or wise?
 
+As a matter of personal taste, I find stuff like this clutters
+and confuses my mind. I go to read new code, and I run across some
+routine I haven't heard of before ... e.g. of_get_pci_dev_node(),
+so now I have to look it up to see what it does.  A few minutes later, 
+I realize that its just a pair of old freinds (of_node_get and 
+pci_device_to_OF_node) and so now I have to make mental room for it.  
 
+Tommorrow, or 3 days later, I'm again looking at of_get_pci_dev_node()
+and I'm thinking "gee what did that thing do again??"
+
+I don't much like this style, and I've been known to submit
+patches that remove stuff like this ... 
+
+--linas
