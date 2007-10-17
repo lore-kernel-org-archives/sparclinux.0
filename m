@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 17 Oct 2007 11:38:30 +0000
+From: Andrew Walrond <andrew@walrond.org>
+Date: Wed, 17 Oct 2007 12:14:32 +0000
 Subject: Re: GCC 4.2.1 produces broken 2.6.22.1 kernel.
-Message-Id: <20071017.043830.45178594.davem@davemloft.net>
+Message-Id: <4715FCA8.4090507@walrond.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <46B7600A.3060700@walrond.org>
 In-Reply-To: <46B7600A.3060700@walrond.org>
@@ -10,70 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+David Miller wrote:
+> 
+> The dataflow pass doesn't mark global registers correctly, and
+> the new thing in gcc-4.2.x vs. gcc-4.1.x is that it uses the
+> dataflow pass for the loop optimizers.
+> 
 
-Better late than never...
+I look forward to testing this when you think it's ready. As well as the
+kernel, I discovered several other packages which behave oddly and/or
+crash when compiled 64bit with 4.2, but seem just fine with 4.1. (My
+custom server distro is pure 64bit for simplicity sake (only 1 version
+of libs etc etc), so I'm probably the only one to have noticed).
 
-Ok, I think I nailed this, the simplest test case is:
+Andrew Walrond
 
-register unsigned long regval asm("g5");
-
-extern void cond_resched(void);
-
-unsigned int var;
-
-void *expression(unsigned long regval)
-{
-  void *ret;
-
-  __asm__("" : "=r" (ret) : "0" (&var));
-  return ret + regval;
-}
-
-void func(void **pp)
-{
-  int i;
-
-  for (i = 0; i < 56; i++) {
-    cond_resched();
-    *pp = expression(regval);
-  }
-}
-
-If you build that with "gcc-4.2 -m64 -Os -S -o test.s test.c"
-the compiler moves expression() outside of the loop because it
-things it is invariant.
-
-The dataflow pass doesn't mark global registers correctly, and
-the new thing in gcc-4.2.x vs. gcc-4.1.x is that it uses the
-dataflow pass for the loop optimizers.
-
-I've bootstrapped and regression tested the following gcc-4.2.x
-patch, I'll test some test kernel builds after I get some sleep.
-
---- ./gcc/df-scan.c.ORIG	2007-10-16 02:07:46.000000000 -0700
-+++ ./gcc/df-scan.c	2007-10-16 23:00:32.000000000 -0700
-@@ -1584,12 +1584,19 @@ df_insn_refs_record (struct dataflow *df
- 		 so they are recorded as used.  */
- 	      for (i = 0; i < FIRST_PSEUDO_REGISTER; i++)
- 		if (global_regs[i])
--		  df_uses_record (dflow, &regno_reg_rtx[i],
--				  DF_REF_REG_USE, bb, insn, 
--				  0);
-+		  {
-+		    df_uses_record (dflow, &regno_reg_rtx[i],
-+				    DF_REF_REG_USE, bb, insn, 0);
-+		    df_ref_record (dflow, regno_reg_rtx[i], &regno_reg_rtx[i],
-+				   bb, insn, DF_REF_REG_DEF, 0, true);
-+		  }
-+
- 	      EXECUTE_IF_SET_IN_BITMAP (df_invalidated_by_call, 0, ui, bi)
--	        df_ref_record (dflow, regno_reg_rtx[ui], &regno_reg_rtx[ui], bb, 
--			       insn, DF_REF_REG_DEF, DF_REF_MAY_CLOBBER, false);
-+		{
-+		  if (!global_regs[ui])
-+		    df_ref_record (dflow, regno_reg_rtx[ui], &regno_reg_rtx[ui], bb, 
-+				   insn, DF_REF_REG_DEF, DF_REF_MAY_CLOBBER, false);
-+		}
- 	    }
- 	}
- 
