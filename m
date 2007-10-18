@@ -1,103 +1,145 @@
-From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
-Date: Wed, 17 Oct 2007 16:44:41 +0000
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 18 Oct 2007 00:46:08 +0000
 Subject: Re: [BUG] Raid5 trouble
-Message-Id: <47163BF9.304@systella.fr>
+Message-Id: <1192668368.22506.6.camel@dwillia2-linux.ch.intel.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=-PXCDo0BiKUXRpJFblluC"
 List-Id: <sparclinux.vger.kernel.org>
-References: <4714BB92.7040701@systella.fr> <47161CE3.80909@systella.fr>	 <e9c3a7c20710170758p4046ca44labe370e94bca6e93@mail.gmail.com> <e9c3a7c20710170840u2ed8d6a9x26523eec6700ad11@mail.gmail.com>
-In-Reply-To: <e9c3a7c20710170840u2ed8d6a9x26523eec6700ad11@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Dan Williams <dan.j.williams@intel.com>
+References: <4714BB92.7040701@systella.fr> <47161CE3.80909@systella.fr>
+	 <e9c3a7c20710170758p4046ca44labe370e94bca6e93@mail.gmail.com>
+	 <e9c3a7c20710170840u2ed8d6a9x26523eec6700ad11@mail.gmail.com>
+	 <47163BF9.304@systella.fr>
+In-Reply-To: <47163BF9.304@systella.fr>
+To: BERTRAND =?ISO-8859-1?Q?Jo=EBl?= <joel.bertrand@systella.fr>
 Cc: linux-raid@vger.kernel.org, sparclinux@vger.kernel.org
 
-Dan Williams wrote:
-> On 10/17/07, Dan Williams <dan.j.williams@intel.com> wrote:
->> On 10/17/07, BERTRAND Jo=EBl <joel.bertrand@systella.fr> wrote:
->>> BERTRAND Jo=EBl wrote:
->>>>     Hello,
->>>>
->>>>     I run 2.6.23 linux kernel on two T1000 (sparc64) servers. Each
->>>> server has a partitionable raid5 array (/dev/md/d0) and I have to
->>>> synchronize both raid5 volumes by raid1. Thus, I have tried to build a
->>>> raid1 volume between /dev/md/d0p1 and /dev/sdi1 (exported by iscsi from
->>>> the second server) and I obtain a BUG :
->>>>
->>>> Root gershwin:[/usr/scripts] > mdadm -C /dev/md7 -l1 -n2 /dev/md/d0p1
->>>> /dev/sdi1
->>>> ...
->>>         Hello,
->>>
->>>         I have fixed iscsi-target, and I have tested it. It works now w=
-ithout
->>> any trouble. Patches were posted on iscsi-target mailing list. When I
->>> use iSCSI to access to foreign raid5 volume, it works fine. I can format
->>> foreign volume, copy large files on it... But when I tried to create a
->>> new raid1 volume with a local raid5 volume and a foreign raid5 volume, I
->>> receive my well known Oops. You can find my dmesg after Oops :
->>>
->> Can you send your .config and your bootup dmesg?
->>
->=20
-> I found a problem which may lead to the operations count dropping
-> below zero.  If ops_complete_biofill() gets preempted in between the
-> following calls:
->=20
-> raid5.c:554> clear_bit(STRIPE_OP_BIOFILL, &sh->ops.ack);
-> raid5.c:555> clear_bit(STRIPE_OP_BIOFILL, &sh->ops.pending);
->=20
-> ...then get_stripe_work() can recount/re-acknowledge STRIPE_OP_BIOFILL
-> causing the assertion.  In fact, the 'pending' bit should always be
-> cleared first, but the other cases are protected by
-> spin_lock(&sh->lock).  Patch attached.
 
-	Dan,
+--=-PXCDo0BiKUXRpJFblluC
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 
-	I have modified get_stripe_work like this :
+On Wed, 2007-10-17 at 09:44 -0700, BERTRAND Joël wrote:
+>         Dan,
+> 
+>         I have modified get_stripe_work like this :
+> 
+> static unsigned long get_stripe_work(struct stripe_head *sh)
+> {
+>          unsigned long pending;
+>          int ack = 0;
+>          int a,b,c,d,e,f,g;
+> 
+>          pending = sh->ops.pending;
+> 
+>          test_and_ack_op(STRIPE_OP_BIOFILL, pending);
+>          a=ack;
+>          test_and_ack_op(STRIPE_OP_COMPUTE_BLK, pending);
+>          b=ack;
+>          test_and_ack_op(STRIPE_OP_PREXOR, pending);
+>          c=ack;
+>          test_and_ack_op(STRIPE_OP_BIODRAIN, pending);
+>          d=ack;
+>          test_and_ack_op(STRIPE_OP_POSTXOR, pending);
+>          e=ack;
+>          test_and_ack_op(STRIPE_OP_CHECK, pending);
+>          f=ack;
+>          if (test_and_clear_bit(STRIPE_OP_IO, &sh->ops.pending))
+>                  ack++;
+>          g=ack;
+> 
+>          sh->ops.count -= ack;
+> 
+>          if (sh->ops.count<0) printk("%d %d %d %d %d %d %d\n",
+> a,b,c,d,e,f,g);
+>          BUG_ON(sh->ops.count < 0);
+> 
+>          return pending;
+> }
+> 
+> and I obtain on console :
+> 
+>   1 1 1 1 1 2
+> kernel BUG at drivers/md/raid5.c:390!
+>                \|/ ____ \|/
+>                "@'/ .. \`@"
+>                /_| \__/ |_\
+>                   \__U_/
+> md7_resync(5409): Kernel bad sw trap 5 [#1]
+> 
+>         If that can help you...
+> 
+>         JKB
 
-static unsigned long get_stripe_work(struct stripe_head *sh)
-{
-         unsigned long pending;
-         int ack =3D 0;
-         int a,b,c,d,e,f,g;
+This gives more evidence that it is probably mishandling of
+STRIPE_OP_BIOFILL.  The attached patch (replacing the previous) moves
+the clearing of these bits into handle_stripe5 and adds some debug
+information.
 
-         pending =3D sh->ops.pending;
+--
+Dan
 
-         test_and_ack_op(STRIPE_OP_BIOFILL, pending);
-         a=ACk;
-         test_and_ack_op(STRIPE_OP_COMPUTE_BLK, pending);
-         b=ACk;
-         test_and_ack_op(STRIPE_OP_PREXOR, pending);
-         c=ACk;
-         test_and_ack_op(STRIPE_OP_BIODRAIN, pending);
-         d=ACk;
-         test_and_ack_op(STRIPE_OP_POSTXOR, pending);
-         e=ACk;
-         test_and_ack_op(STRIPE_OP_CHECK, pending);
-         f=ACk;
-         if (test_and_clear_bit(STRIPE_OP_IO, &sh->ops.pending))
-                 ack++;
-         g=ACk;
+--=-PXCDo0BiKUXRpJFblluC
+Content-Disposition: attachment; filename=fix-biofill-clear2.patch
+Content-Type: text/x-patch; name=fix-biofill-clear2.patch; charset=utf-8
+Content-Transfer-Encoding: 7bit
 
-         sh->ops.count -=3D ack;
+raid5: fix clearing of biofill operations (try2)
 
-         if (sh->ops.count<0) printk("%d %d %d %d %d %d %d\n",=20
-a,b,c,d,e,f,g);
-         BUG_ON(sh->ops.count < 0);
+From: Dan Williams <dan.j.williams@intel.com>
 
-         return pending;
-}
+ops_complete_biofill() runs outside of spin_lock(&sh->lock) and clears the
+'pending' and 'ack' bits.  Since the test_and_ack_op() macro only checks
+against 'complete' it can get an inconsistent snapshot of pending work.
 
-and I obtain on console :
+Move the clearing of these bits to handle_stripe5(), under the lock.
 
-  1 1 1 1 1 2
-kernel BUG at drivers/md/raid5.c:390!
-               \|/ ____ \|/
-               "@'/ .. \`@"
-               /_| \__/ |_\
-                  \__U_/
-md7_resync(5409): Kernel bad sw trap 5 [#1]
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
 
-	If that can help you...
+ drivers/md/raid5.c |   17 ++++++++++++++---
+ 1 files changed, 14 insertions(+), 3 deletions(-)
 
-	JKB
+diff --git a/drivers/md/raid5.c b/drivers/md/raid5.c
+index f96dea9..3808f52 100644
+--- a/drivers/md/raid5.c
++++ b/drivers/md/raid5.c
+@@ -377,7 +377,12 @@ static unsigned long get_stripe_work(struct stripe_head *sh)
+ 		ack++;
+ 
+ 	sh->ops.count -= ack;
+-	BUG_ON(sh->ops.count < 0);
++	if (unlikely(sh->ops.count < 0)) {
++		printk(KERN_ERR "pending: %#lx ops.pending: %#lx ops.ack: %#lx "
++			"ops.complete: %#lx\n", pending, sh->ops.pending,
++			sh->ops.ack, sh->ops.complete);
++		BUG();
++	}
+ 
+ 	return pending;
+ }
+@@ -551,8 +556,7 @@ static void ops_complete_biofill(void *stripe_head_ref)
+ 			}
+ 		}
+ 	}
+-	clear_bit(STRIPE_OP_BIOFILL, &sh->ops.ack);
+-	clear_bit(STRIPE_OP_BIOFILL, &sh->ops.pending);
++	set_bit(STRIPE_OP_BIOFILL, &sh->ops.complete);
+ 
+ 	return_io(return_bi);
+ 
+@@ -2630,6 +2634,13 @@ static void handle_stripe5(struct stripe_head *sh)
+ 	s.expanded = test_bit(STRIPE_EXPAND_READY, &sh->state);
+ 	/* Now to look around and see what can be done */
+ 
++	/* clean-up completed biofill operations */
++	if (test_bit(STRIPE_OP_BIOFILL, &sh->ops.complete)) {
++		clear_bit(STRIPE_OP_BIOFILL, &sh->ops.pending);
++		clear_bit(STRIPE_OP_BIOFILL, &sh->ops.ack);
++		clear_bit(STRIPE_OP_BIOFILL, &sh->ops.complete);
++	}
++
+ 	rcu_read_lock();
+ 	for (i=disks; i--; ) {
+ 		mdk_rdev_t *rdev;
+
+--=-PXCDo0BiKUXRpJFblluC--
