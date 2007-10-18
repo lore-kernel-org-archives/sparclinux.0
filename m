@@ -1,43 +1,54 @@
 From: Michael Ellerman <michael@ellerman.id.au>
-Date: Thu, 18 Oct 2007 01:23:02 +0000
+Date: Thu, 18 Oct 2007 01:27:23 +0000
 Subject: Re: [PATCH 2/2] Use of_get_pci_dev_node() in axon_msi.c
-Message-Id: <1192670582.6681.4.camel@concordia>
+Message-Id: <1192670843.6681.10.camel@concordia>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-leJjvchPFQ20mvu3NS+T"
+Content-Type: multipart/mixed; boundary="=-6AftRWopW2GkOeR1ArBI"
 List-Id: <sparclinux.vger.kernel.org>
 References: <8f76815cbbaf5fbab82c843d87bc0dafab038c80.1192605144.git.michael@ellerman.id.au>
 	<dadd2b9540369b9e2c6773b2a60021dadafa58e2.1192605144.git.michael@ellerman.id.au>
-	<20071017.042229.95059231.davem@davemloft.net>
-	<20071017.042345.108116673.davem@davemloft.net>
-In-Reply-To: <20071017.042345.108116673.davem@davemloft.net>
-To: David Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org, sfr@canb.auug.org.au, paulus@samba.org, linuxppc-dev@ozlabs.org
+	<20071017230449.GZ4891@austin.ibm.com>
+In-Reply-To: <20071017230449.GZ4891@austin.ibm.com>
+To: Linas Vepstas <linas@austin.ibm.com>
+Cc: sparclinux@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, linuxppc-dev@ozlabs.org
 
 
---=-leJjvchPFQ20mvu3NS+T
+--=-6AftRWopW2GkOeR1ArBI
 Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2007-10-17 at 04:23 -0700, David Miller wrote:
-> From: David Miller <davem@davemloft.net>
-> Date: Wed, 17 Oct 2007 04:22:29 -0700 (PDT)
+On Wed, 2007-10-17 at 18:04 -0500, Linas Vepstas wrote:
+> On Wed, Oct 17, 2007 at 05:12:27PM +1000, Michael Ellerman wrote:
 >=20
-> > From: Michael Ellerman <michael@ellerman.id.au>
-> > Date: Wed, 17 Oct 2007 17:12:27 +1000 (EST)
-> >=20
-> > > Use of_get_pci_dev_node() in axon_msi.c. Switch to including <linux/o=
-f.h>
-> > > so we get the prototype.
-> > >=20
-> > > Signed-off-by: Michael Ellerman <michael@ellerman.id.au>
-> >=20
-> > I find it ironic that you add of_get_pci_dev_node() as a function
-> > which gets the node and grabs a reference to it, and then the very
-> > first usage you make of it doesn't drop the reference at all.
+> > +struct device_node *of_get_pci_dev_node(struct pci_dev *pdev)
+> > +{
+> > +       return of_node_get(pci_device_to_OF_node(pdev));
+> > +}
 >=20
-> Ignore this poor attempt at humor, I misread your patch :)
+> [...]
+>=20
+> > -	dn =3D of_node_get(pci_device_to_OF_node(dev));
+> > +	dn =3D of_get_pci_dev_node(dev);
+>=20
+> Is this really useful or wise?
 
-Well it _would_ have been funny :)
+Yes, and yes.
+
+> As a matter of personal taste, I find stuff like this clutters
+> and confuses my mind. I go to read new code, and I run across some
+> routine I haven't heard of before ... e.g. of_get_pci_dev_node(),
+> so now I have to look it up to see what it does.  A few minutes later,=20
+> I realize that its just a pair of old freinds (of_node_get and=20
+> pci_device_to_OF_node) and so now I have to make mental room for it. =20
+>=20
+> Tommorrow, or 3 days later, I'm again looking at of_get_pci_dev_node()
+> and I'm thinking "gee what did that thing do again??"
+
+It does what pci_device_to_OF_node() does, but in the right way.=20
+
+The plan is to remove pci_device_to_OF_node() once all the callers have
+been converted to properly handle the refcounting. When that happens you
+can use the mental room it consumed for something else :)
 
 cheers
 
@@ -51,17 +62,17 @@ phone: +61 2 6212 1183 (tie line 70 21183)
 We do not inherit the earth from our ancestors,
 we borrow it from our children. - S.M.A.R.T Person
 
---=-leJjvchPFQ20mvu3NS+T
+--=-6AftRWopW2GkOeR1ArBI
 Content-Type: application/pgp-signature; name=signature.asc
 Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.6 (GNU/Linux)
 
-iD8DBQBHFrV2dSjSd0sB4dIRAgArAJ9dxVCUS29HMFxHOcNB1kvpL2BODwCfftBA
-4fYb6jPYvw+LdFg8j7n9XK0=
-=uHPQ
+iD8DBQBHFrZ7dSjSd0sB4dIRApXVAKCtejhHEA4X51bMr+PVDDGA3mz1iACeIM7M
+MAhMDy8V7ykCqMEhvlfA9SU=
+=bTbR
 -----END PGP SIGNATURE-----
 
---=-leJjvchPFQ20mvu3NS+T--
+--=-6AftRWopW2GkOeR1ArBI--
 
