@@ -1,42 +1,67 @@
-From: linas@austin.ibm.com (Linas Vepstas)
-Date: Wed, 17 Oct 2007 23:04:49 +0000
+From: Michael Ellerman <michael@ellerman.id.au>
+Date: Thu, 18 Oct 2007 01:23:02 +0000
 Subject: Re: [PATCH 2/2] Use of_get_pci_dev_node() in axon_msi.c
-Message-Id: <20071017230449.GZ4891@austin.ibm.com>
+Message-Id: <1192670582.6681.4.camel@concordia>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=-leJjvchPFQ20mvu3NS+T"
 List-Id: <sparclinux.vger.kernel.org>
 References: <8f76815cbbaf5fbab82c843d87bc0dafab038c80.1192605144.git.michael@ellerman.id.au>
 	<dadd2b9540369b9e2c6773b2a60021dadafa58e2.1192605144.git.michael@ellerman.id.au>
-In-Reply-To: <dadd2b9540369b9e2c6773b2a60021dadafa58e2.1192605144.git.michael@ellerman.id.au>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Michael Ellerman <michael@ellerman.id.au>
-Cc: sparclinux@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, linuxppc-dev@ozlabs.org
+	<20071017.042229.95059231.davem@davemloft.net>
+	<20071017.042345.108116673.davem@davemloft.net>
+In-Reply-To: <20071017.042345.108116673.davem@davemloft.net>
+To: David Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, sfr@canb.auug.org.au, paulus@samba.org, linuxppc-dev@ozlabs.org
 
-On Wed, Oct 17, 2007 at 05:12:27PM +1000, Michael Ellerman wrote:
 
-> +struct device_node *of_get_pci_dev_node(struct pci_dev *pdev)
-> +{
-> +       return of_node_get(pci_device_to_OF_node(pdev));
-> +}
+--=-leJjvchPFQ20mvu3NS+T
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-[...]
+On Wed, 2007-10-17 at 04:23 -0700, David Miller wrote:
+> From: David Miller <davem@davemloft.net>
+> Date: Wed, 17 Oct 2007 04:22:29 -0700 (PDT)
+>=20
+> > From: Michael Ellerman <michael@ellerman.id.au>
+> > Date: Wed, 17 Oct 2007 17:12:27 +1000 (EST)
+> >=20
+> > > Use of_get_pci_dev_node() in axon_msi.c. Switch to including <linux/o=
+f.h>
+> > > so we get the prototype.
+> > >=20
+> > > Signed-off-by: Michael Ellerman <michael@ellerman.id.au>
+> >=20
+> > I find it ironic that you add of_get_pci_dev_node() as a function
+> > which gets the node and grabs a reference to it, and then the very
+> > first usage you make of it doesn't drop the reference at all.
+>=20
+> Ignore this poor attempt at humor, I misread your patch :)
 
-> -	dn = of_node_get(pci_device_to_OF_node(dev));
-> +	dn = of_get_pci_dev_node(dev);
+Well it _would_ have been funny :)
 
-Is this really useful or wise?
+cheers
 
-As a matter of personal taste, I find stuff like this clutters
-and confuses my mind. I go to read new code, and I run across some
-routine I haven't heard of before ... e.g. of_get_pci_dev_node(),
-so now I have to look it up to see what it does.  A few minutes later, 
-I realize that its just a pair of old freinds (of_node_get and 
-pci_device_to_OF_node) and so now I have to make mental room for it.  
+--=20
+Michael Ellerman
+OzLabs, IBM Australia Development Lab
 
-Tommorrow, or 3 days later, I'm again looking at of_get_pci_dev_node()
-and I'm thinking "gee what did that thing do again??"
+wwweb: http://michael.ellerman.id.au
+phone: +61 2 6212 1183 (tie line 70 21183)
 
-I don't much like this style, and I've been known to submit
-patches that remove stuff like this ... 
+We do not inherit the earth from our ancestors,
+we borrow it from our children. - S.M.A.R.T Person
 
---linas
+--=-leJjvchPFQ20mvu3NS+T
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQBHFrV2dSjSd0sB4dIRAgArAJ9dxVCUS29HMFxHOcNB1kvpL2BODwCfftBA
+4fYb6jPYvw+LdFg8j7n9XK0=
+=uHPQ
+-----END PGP SIGNATURE-----
+
+--=-leJjvchPFQ20mvu3NS+T--
+
