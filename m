@@ -1,48 +1,31 @@
-From: "Julian Calaby" <julian.calaby@gmail.com>
-Date: Tue, 23 Oct 2007 13:54:30 +0000
-Subject: Hardware query: Analyx ADDA-1418
-Message-Id: <646765f40710230654k4924b974rc3250058bb9ddf2e@mail.gmail.com>
+From: "Tom \"spot\" Callaway" <tcallawa@redhat.com>
+Date: Tue, 23 Oct 2007 14:00:33 +0000
+Subject: Re: Hardware query: Analyx ADDA-1418
+Message-Id: <1193148034.22958.34.camel@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
+References: <646765f40710230654k4924b974rc3250058bb9ddf2e@mail.gmail.com>
+In-Reply-To: <646765f40710230654k4924b974rc3250058bb9ddf2e@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi all,
 
-(this is a hardware question, if there's a better forum for this,
-please inform me, or if I'm incredibly, moronically, off topic, please
-flame me into non-existence)
+On Tue, 2007-10-23 at 23:54 +1000, Julian Calaby wrote:
 
-I just obtained a SparcStation LX, (which will become a sparc32
-testbed soon) and it contained an sBus card with:
-- a huge (covering 2/5 of it's top surface) black heatshield
-- what appears to be a SCSI connector on the face plate
-- a large socketed Xilinx chip
-- two large socketed chips under the heat shield.
+> So, my queries:
+> 1. Has anyone seen this card (or any similar to it) before?
+> 2. Is there any remote possibility that you could tell me what it
+> does? / what it's useful for?
 
-It has only one marking that looks like a model number and no Sun
-stickers or any other such stuff.
+It's a multifunction data acquisition card. A fair amount of scientific
+research in the mid 1990s was done using this device.
 
-It is labelled as an "Analyx ADDA-1418 Rev B".
+Googling the model type brings up some relevant hits.
 
-There are other marking indicating that it's copyright 1993, and the
-manufacturer details "Analyx systems inc. Freemont CA"
+> 3. Is there any chance of the possibility of a Linux driver?
 
-It also has an eprom on it labelled:
-ANALYX SOL
-ADDA 12/9/92
+I'm not aware of any existent driver.
 
-So, my queries:
-1. Has anyone seen this card (or any similar to it) before?
-2. Is there any remote possibility that you could tell me what it
-does? / what it's useful for?
-3. Is there any chance of the possibility of a Linux driver?
+~spot
 
-Thanks,
-
--- 
-
-Julian Calaby
-
-Email: julian.calaby@gmail.com
