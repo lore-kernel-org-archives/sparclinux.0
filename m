@@ -1,37 +1,40 @@
-From: Rob Landley <rob@landley.net>
-Date: Thu, 18 Oct 2007 08:18:01 +0000
-Subject: Re: [2.6 patch] esp_scsi.c: remove __dev{init,exit}
-Message-Id: <200710180318.01463.rob@landley.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Wed, 24 Oct 2007 16:14:48 +0000
+Subject: Re: [uml-devel] User Mode Linux still doesn't build in 2.6.23-final.
+Message-Id: <20071024161448.GA3166@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1192109439.3352.11.camel@localhost.localdomain> <200710111747.03119.rob@landley.net> <20071011.144928.45188136.davem@davemloft.net>
-In-Reply-To: <20071011.144928.45188136.davem@davemloft.net>
+References: <200710111754.46854.rob@landley.net> <20071024152240.GA7733@c2.user-mode-linux.org>
+In-Reply-To: <20071024152240.GA7733@c2.user-mode-linux.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: bunk@kernel.org, James.Bottomley@steeleye.com, linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jeff Dike <jdike@addtoit.com>, sparclinux@vger.kernel.org
+Cc: Rob Landley <rob@landley.net>, linux-kernel@vger.kernel.org, uml-devel <user-mode-linux-devel@lists.sourceforge.net>
 
-On Thursday 11 October 2007 4:49:28 pm David Miller wrote:
-> From: Rob Landley <rob@landley.net>
-> Date: Thu, 11 Oct 2007 17:47:02 -0500
->
-> > On Thursday 11 October 2007 10:35:20 am Adrian Bunk wrote:
-> > > Since scsi_esp_{,un}register() are EXPORT_SYMBOL'ed, these functions
-> > > (and the functions they use) can't be __dev{init,exit}.
-> > >
-> > > Based on a bug report by Rob Landley.
-> > >
-> > > Signed-off-by: Adrian Bunk <bunk@kernel.org>
-> >
-> > Acked-by: Rob Landley <rob@landley.net>
->
-> I'm fine with this fix too.
->
-> Acked-by: David S. Miller <davem@davemloft.net>
+Hi Jeff.
 
-Did this already go to the -stable guys for 2.6.23.2?
+On Wed, Oct 24, 2007 at 11:22:40AM -0400, Jeff Dike wrote:
+> On Thu, Oct 11, 2007 at 05:54:46PM -0500, Rob Landley wrote:
+> > Guess what?  I still need this patch to build the final 2.6.23, months later.
+> > 
+> > I know it may not be the right fix, but the build breaks for me without this 
+> > patch. The .config that breaks is attached.  ARCH=um.
+> 
+> Can I get a Signed-off-by: on that?
+> 
+> It's not the right fix - the base of the problem is in swap.h, which
+> has this comment: 
+> 	/* only sparc can not include linux/pagemap.h in this file
+> 	 * so leave page_cache_release and release_pages undeclared... */
+> 
+> I poked around a bit for a sparc cross-toolchain, didn't find one, so
+> I couldn't see what exactly the problem was.
+> 
+> So, I'll take this fix.
 
-Rob
--- 
-"One of my most productive days was throwing away 1000 lines of code."
-  - Ken Thompson.
+Dan Kegel's crosstool builds sparc just fine.
+And for sparc issues I recommend cc:ing the sparc ML.
+
+[Original mail (with patch) is here: http://lkml.org/lkml/2007/10/11/288]
+
+	Sam
