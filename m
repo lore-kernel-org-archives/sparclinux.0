@@ -1,21 +1,30 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 11 Oct 2007 06:27:43 +0000
-Subject: Re: [PATCH] [SPARC/64] move of_platform_driver initialisations:
-Message-Id: <20071010.232743.58782077.davem@davemloft.net>
+From: Josip Rodin <joy@entuzijast.net>
+Date: Wed, 24 Oct 2007 22:33:32 +0000
+Subject: unkillable dpkg-query processes
+Message-Id: <20071024223332.GA24557@keid.carnet.hr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20071011152448.c762f034.sfr@canb.auug.org.au>
-In-Reply-To: <20071011152448.c762f034.sfr@canb.auug.org.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Thu, 11 Oct 2007 15:24:48 +1000
+Hi,
 
-> We no longer initialise the name field of the of_platform_driver, but
-> use the name field of the embedded device_driver's name field instead.
-> 
-> Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+(I forgot to send this before...)
 
-Applied, thanks Stephen.
+We've been having grave issues with a few of our sparc build daemon machines
+in Debian. Something causes dpkg-query(8) processes, otherwise harmless, to
+run amok and allocate too much memory, but keep running and become resilient
+to killing. They eventually push the machine to the point where you can only
+ping it, but all the userland and the console is dead.
+
+I'm the admin of one of those machines, lebrun.debian.org, and all the
+details I noticed so far are at http://bugs.debian.org/433187
+
+I'm certainly no expert on the kernel, but I'd be happy to help by providing
+debug information about the issue. Any suggestions will be most welcome,
+because at this point that machine lives a sorry life of
+reboot->buildd runs for a few hours->machine goes dead->reboot...
+
+-- 
+     2. That which causes joy or happiness.
