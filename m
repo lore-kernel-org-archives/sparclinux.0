@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 24 Oct 2007 23:36:03 +0000
+Date: Thu, 25 Oct 2007 06:41:13 +0000
 Subject: Re: unkillable dpkg-query processes
-Message-Id: <20071024.163603.04015483.davem@davemloft.net>
+Message-Id: <20071024.234113.141236196.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20071024223332.GA24557@keid.carnet.hr>
 In-Reply-To: <20071024223332.GA24557@keid.carnet.hr>
@@ -10,62 +10,67 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Josip Rodin <joy@entuzijast.net>
-Date: Thu, 25 Oct 2007 01:28:12 +0200
 
-> On Wed, Oct 24, 2007 at 03:58:29PM -0700, David Miller wrote:
-> > Let's see if there is some aspect of the environment that
-> > contributed to the problem occurring.  Please reproduce
-> > with 2.6.23-final and then list (I know this is redundant,
-> > just humor me :-):
-> 
-> Confirming that the machine could reproduce the problem with 2.6.23.1.
-> (I can send over the .config if it matters.)
+Josip, give this debugging patch a try.  It is against 2.6.23.1
+but it should apply to most recent kernels.
 
-Ok, good.
+It should give you debugging messages in the kernel log that
+start with "FUTEX_BUG" if the debugging code triggers.
 
-> > 1) system type
-> 
-> A Sun Fire 280R, with two CPU boards, each carrying a TI UltraSparc III
-> (Cheetah), and 2 GB of RAM. If you need more info, just say.
-> 
-> (Bernd Zeimetz has previously suggested that the problem is linked to
-> the processor type, the USIII.)
+Please post just a few samples of whatever it spits out.
 
-I think it might be too.
+Thanks!
 
-> > 2) compiler used to build kernel and is it SMP?
-> 
-> gcc (GCC) 4.1.2 20061115 (prerelease) (Debian 4.1.1-21)
-> 
-> I've no idea if that compiler is SMP, if you want I'll ask someone else.
-
-I was asking if the running kernel were SMP or not, I'll assume it is
-:-)
-
-> > 3) glibc in use
-> > 4) compiler used to build running glibc
-> 
-> In that particular chroot, it's:
-
-Thanks for the info.
-
-> > If you have a reproducable test case, that's even better.
-> 
-> There doesn't appear to be a pattern, on this machine at least - I just let
-> the buildd run, building whatever comes up, and after a few hours it
-> inevitably runs into a wall.
-
-If you try, within that troublesome build-root, a few times to try to
-fork off a couple hundred:
-
-	dpkg-query --something python-2.5
-
-or whatever, can you get some of processes to wedge under that
-build root?
-
-If it only happens with UltraSPARC-III and IIIi chips, that is a
-huge clue.
-
-It turns out I have a 280R here as well, so if necessary I can
-fire it up and work on reproducing your environment.
+diff --git a/kernel/futex.c b/kernel/futex.c
+index fcc94e7..6da8b3c 100644
+--- a/kernel/futex.c
++++ b/kernel/futex.c
+@@ -1874,6 +1874,25 @@ err_unlock:
+ 	return ret;
+ }
+ 
++static void log_futex_bug(u32 __user *uaddr, struct task_struct *curr, int pi)
++{
++	struct mm_struct *mm = curr->mm;
++	struct vm_area_struct *vma;
++	unsigned long addr;
++
++	printk(KERN_ERR "FUTEX_BUG: Looping too much in futex death\n");
++	printk(KERN_ERR "FUTEX_BUG: uaddr[%p] task[%s:%d] pi(%d)\n",
++	       uaddr, curr->comm, curr->pid, pi);
++
++	addr = (unsigned long) uaddr;
++	vma = find_vma(mm, addr);
++	if (vma)
++		printk(KERN_ERR "FUTEX_BUG: VMA start[%lx] end[%lx] flags[%lx]\n",
++		       vma->vm_start,
++		       vma->vm_end,
++		       vma->vm_flags);
++}
++
+ /*
+  * Process a futex-list entry, check whether it's owned by the
+  * dying task, and do notification if so:
+@@ -1881,6 +1900,7 @@ err_unlock:
+ int handle_futex_death(u32 __user *uaddr, struct task_struct *curr, int pi)
+ {
+ 	u32 uval, nval, mval;
++	int limit = 0;
+ 
+ retry:
+ 	if (get_user(uval, uaddr))
+@@ -1903,8 +1923,12 @@ retry:
+ 		if (nval = -EFAULT)
+ 			return -1;
+ 
+-		if (nval != uval)
+-			goto retry;
++		if (nval != uval) {
++			if (++limit < 100)
++				goto retry;
++			log_futex_bug(uaddr, curr, pi);
++			put_user(mval, uaddr);
++		}
+ 
+ 		/*
+ 		 * Wake robust non-PI futexes here. The wakeup of
