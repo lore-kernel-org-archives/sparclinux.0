@@ -1,40 +1,42 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Wed, 24 Oct 2007 16:14:48 +0000
+From: Jeff Dike <jdike@addtoit.com>
+Date: Thu, 25 Oct 2007 00:43:29 +0000
 Subject: Re: [uml-devel] User Mode Linux still doesn't build in 2.6.23-final.
-Message-Id: <20071024161448.GA3166@uranus.ravnborg.org>
+Message-Id: <20071025004329.GA12372@c2.user-mode-linux.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200710111754.46854.rob@landley.net> <20071024152240.GA7733@c2.user-mode-linux.org>
-In-Reply-To: <20071024152240.GA7733@c2.user-mode-linux.org>
+References: <200710111754.46854.rob@landley.net> <20071024152240.GA7733@c2.user-mode-linux.org> <200710241646.54942.rob@landley.net>
+In-Reply-To: <200710241646.54942.rob@landley.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jeff Dike <jdike@addtoit.com>, sparclinux@vger.kernel.org
-Cc: Rob Landley <rob@landley.net>, linux-kernel@vger.kernel.org, uml-devel <user-mode-linux-devel@lists.sourceforge.net>
+To: Rob Landley <rob@landley.net>
+Cc: linux-kernel@vger.kernel.org, uml-devel <user-mode-linux-devel@lists.sourceforge.net>, sparclinux@vger.kernel.org
 
-Hi Jeff.
-
-On Wed, Oct 24, 2007 at 11:22:40AM -0400, Jeff Dike wrote:
-> On Thu, Oct 11, 2007 at 05:54:46PM -0500, Rob Landley wrote:
-> > Guess what?  I still need this patch to build the final 2.6.23, months later.
-> > 
-> > I know it may not be the right fix, but the build breaks for me without this 
-> > patch. The .config that breaks is attached.  ARCH=um.
+On Wed, Oct 24, 2007 at 04:46:54PM -0500, Rob Landley wrote:
+> Prebuilt for Ubuntu 7.04:
+> http://landley.net/code/firmware/downloads/cross-compiler/host-i686/cross-compiler-sparc.tar.bz2
 > 
-> Can I get a Signed-off-by: on that?
-> 
-> It's not the right fix - the base of the problem is in swap.h, which
-> has this comment: 
-> 	/* only sparc can not include linux/pagemap.h in this file
-> 	 * so leave page_cache_release and release_pages undeclared... */
-> 
-> I poked around a bit for a sparc cross-toolchain, didn't find one, so
-> I couldn't see what exactly the problem was.
-> 
-> So, I'll take this fix.
+> Source code:
+> Or http://landley.net/code/firmware/downloads/firmware-0.2.2.tar.bz2
 
-Dan Kegel's crosstool builds sparc just fine.
-And for sparc issues I recommend cc:ing the sparc ML.
+Thanks - I already got Dan Kegel's crosstools, and they did the trick.
 
-[Original mail (with patch) is here: http://lkml.org/lkml/2007/10/11/288]
+What I'd like to do is have linux/swap.h include linux/pagemap.h, but
+there's this scary comment about that not working on sparc.
 
-	Sam
+When I fix this bug "correctly", sparc expodes into a mess of
+interconnected headers which seem to boil down to sparc including
+swap.h in pgtable.h when no one else does.
+
+The thing is, sparc looks like it's doing things more correctly than
+anyone else.  asm/pgtable.h (i386 and UML, and probably everyone
+else except sparc) refers to swp_entry_t, which is defined in
+linux/swap.h, without including swap.h and that's somehow OK.
+
+So, from a quick look, it seems like this is a case of our headers
+being too interconnected and sparc had to opt out in order to do
+things more correctly.
+
+				Jeff
+
+-- 
+Work email - jdike at linux dot intel dot com
