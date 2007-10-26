@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 26 Oct 2007 11:30:38 +0000
+From: Bernd Zeimetz <bernd@bzed.de>
+Date: Fri, 26 Oct 2007 12:23:29 +0000
 Subject: Re: unkillable dpkg-query processes
-Message-Id: <20071026.043038.68704959.davem@davemloft.net>
+Message-Id: <4721DC41.50302@bzed.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20071024223332.GA24557@keid.carnet.hr>
 In-Reply-To: <20071024223332.GA24557@keid.carnet.hr>
@@ -10,25 +10,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Josip Rodin <joy@entuzijast.net>
-Date: Thu, 25 Oct 2007 17:07:36 +0200
+Hi,
 
-> I did this in a chrooted bash:
+just got linked to this thread, so here's a bit input form me :)
+
+
+>> 1) system type
 > 
-> for i in $(seq 0 100); do (dpkg-query -s python2.5-minimal > /dev/null &); done
+> A Sun Fire 280R, with two CPU boards, each carrying a TI UltraSparc III
+> (Cheetah), and 2 GB of RAM. If you need more info, just say.
 > 
-> And now the machine went catatonic. :(
+> (Bernd Zeimetz has previously suggested that the problem is linked to
+> the processor type, the USIII.)
+
+It seems to hit USIII machines with 2 CPUs in one tray much more hard
+than US II, but once a month our Ultra60 (running two US II) has the
+same issues - it got much better with since
+179c85ea53bef807621f335767e41e23f86f01df, though. before the mentioned
+patch it died a few times per day. Seems it got better on the USIII
+here, too (we have a v880 here, the large version of Josip's machine,
+with 2x 2 CPUs), but it still dies way too often, just not useable in
+the current state.
+
+
 > 
-> Thankfully the console is still vaguely operational - I can enter my
-> username to log in, but I can't get the Password prompt to appear.
-> Magic SysRq still works - if you need any output from it, tell me.
+>> 2) compiler used to build kernel and is it SMP?
+> 
+> gcc (GCC) 4.1.2 20061115 (prerelease) (Debian 4.1.1-21)
 
-Thanks for testing.
+same compiler here.
+Please note that non-SMP kernels do not boot on those US-III machines at
+all (at least I didn't find a single one which does).
 
-It seems that instead of getting stuck in the kernel where I
-thought it would, the process gets stuck elsewhere and
-also tends to loop allocating memory until all memory in the
-machine is exhausted and the OOM killer starts to try and
-kill processes left and right.
 
-I'll think about this some more.
+
+Cheers,
+
+Bernd
