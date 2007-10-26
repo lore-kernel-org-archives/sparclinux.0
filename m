@@ -1,7 +1,7 @@
 From: Bernd Zeimetz <bernd@bzed.de>
-Date: Fri, 26 Oct 2007 22:37:32 +0000
+Date: Fri, 26 Oct 2007 22:40:20 +0000
 Subject: Re: unkillable dpkg-query processes
-Message-Id: <47226C2C.9060007@bzed.de>
+Message-Id: <47226CD4.8080401@bzed.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20071024223332.GA24557@keid.carnet.hr>
 In-Reply-To: <20071024223332.GA24557@keid.carnet.hr>
@@ -10,17 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Josip Rodin wrote:
-> On Sat, Oct 27, 2007 at 12:30:56AM +0200, Bernd Zeimetz wrote:
->>> Josip, do you guys have libnss-db or similar in use on the buildd
->>> machine?
->> They have, that's what Debian's userdir-ldap uses.
-> 
-> No, I have to correct you, this machine isn't part of that setup
-> (at least not yet).
-> 
 
-Oh ok, I stand corrected - thought it would have it.
+>> For those who can reproduce it an have something like libnss-db
+>> enabled, try disabling it.
+
+- disabled it
+- running vgdisplay killed the machine (wanted to create a new LV for a
+chroot....)... it's not accessible at all anymore, I think the kernel is
+a 2.6.23-something here, I'll build a recent one and give it a try
+again.... Will take some time as I need to build on USII...
+
 
 -- 
 Bernd Zeimetz
