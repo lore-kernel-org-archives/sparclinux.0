@@ -1,7 +1,7 @@
 From: Bernd Zeimetz <bernd@bzed.de>
-Date: Sun, 28 Oct 2007 12:20:50 +0000
+Date: Sun, 28 Oct 2007 12:58:11 +0000
 Subject: Re: unkillable dpkg-query processes
-Message-Id: <47247EA2.3060809@bzed.de>
+Message-Id: <47248763.70003@bzed.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20071024223332.GA24557@keid.carnet.hr>
 In-Reply-To: <20071024223332.GA24557@keid.carnet.hr>
@@ -11,23 +11,20 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
->> I think things got worse with 2.6.24...
->> The machine shoots itself now, I guess by running cron jobs or so.
->>
 >> [29074.766486] TSTATE: 0000000011009600 TPC: 000000000042f984 TNPC: 000000000042f928 Y: 00000000    Not tainted
 >> [29074.884191] TPC: <sched_clock+0x0/0x30>
 > 
 > What kind of OOPS is this?  Please provide the kernel log messages
 > that appeared right before these register dumps.
 
-I'll boot the machine and check the logs, was not in the mood to do
-this tonight. The pasted messages were dumped on the serial console -
-as the machine didn't show any reaction I only powered it down...
 
+Oct 28 03:25:12 titan kernel: [29074.698695] BUG: soft lockup - CPU#0
+stuck for 11s! [sh:4252]
 
-Cheers,
+This happened while a cronjob was running which updates the libnss-db
+database... With an older kernel (2.6.23-rcsomething) this didn't crash
+the machine.
 
-Bernd
 
 -- 
 Bernd Zeimetz
