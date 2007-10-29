@@ -1,7 +1,7 @@
-From: Josip Rodin <joy@entuzijast.net>
-Date: Mon, 29 Oct 2007 23:37:13 +0000
+From: David Miller <davem@davemloft.net>
+Date: Mon, 29 Oct 2007 23:45:39 +0000
 Subject: Re: unkillable dpkg-query processes
-Message-Id: <20071029233713.GA3177@keid.carnet.hr>
+Message-Id: <20071029.164539.38797667.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20071024223332.GA24557@keid.carnet.hr>
 In-Reply-To: <20071024223332.GA24557@keid.carnet.hr>
@@ -10,48 +10,47 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi,
+From: Josip Rodin <joy@entuzijast.net>
+Date: Tue, 30 Oct 2007 00:37:13 +0100
 
-(Sorry for breaking the threading - I didn't subscribe to the list,
-I just found this in the web archive. I should probably subscribe... :)
+> I'd try doing a debootstrap of lenny (that's Debian "testing"),
+> and then inside it, run one or more of those 'dpkg-query -S libc.so.6'.
 
-David Miller wrote:
-> Ok, since I have a 280R just like Josip, I think a good plan
-> is for him to show me the commands he used to create the
-> build root where he can trigger bad things.
+Thanks for the info.
 
-I can't be 100% sure, because it was James Troup who initially set it up,
-but I believe that the chroot on lebrun.d.o was set up by just doing
-something mundane like running debootstrap, more specifically something
-like this:
+While waiting for you to reply I created a lenny buildd
+build root on my SunFire 280R using:
 
-sudo debootstrap lenny /mnt http://ftp.us.debian.org/debian
+	debootstrap --variant=buildd lenny /org/buildd/chroots/lenny \
+		http://mirrors.kernel.org/debian
 
-I conclude this because it has a var/log/bootstrap.log in it,
-dated 2007-06-19 12:15, which has:
+basically following roughly the instructions at:
 
-Selecting previously deselected package base-files.
-(Reading database ... 0 files and directories currently installed.)
-Unpacking base-files (from .../base-files_4.0.0_sparc.deb) ...
-[...]
-Setting up build-essential (11.3) ...
+	http://www.debian.org/devel/buildd/setting-up
 
-And it also has a var/log/dpkg.log which has:
+And then once chroot'ed into the lenny build root you have
+to setup a few manual things like /proc, /sys/, and /dev/pts
+mounts for anything to work:
 
-2007-06-19 12:13:10 install base-files <none> 4.0.0
-[...]
-2007-06-19 12:15:23 status installed build-essential 11.3
+	chroot /org/buildd/chroots/lenny
+	mount -t proc none /proc
+	mount -t sysfs none /sys
+	mount -t devpts none /dev/pts
 
-Again I can't be 100% sure of the exact command line used, but that
-really should be it :)
+So, it's a lot more than just running the appropriate debootstrap
+command.
 
-After that, dpkg.log in the chroot also has a purge of the 'procps' package,
-and an installation of the 'sparc-utils' package. A few hours after those
-two, a random selection of package installations starts - the buildd went
-online.
+I have done a GCC package build and am now running a libc6 build under
+this lenny chroot and haven't hit any problems yet.
 
-I'd try doing a debootstrap of lenny (that's Debian "testing"),
-and then inside it, run one or more of those 'dpkg-query -S libc.so.6'.
+This is with a stock 2.6.23.1 kernel.
 
--- 
-     2. That which causes joy or happiness.
+BTW, in your buildroot, can you do something like:
+
+	strace -o x.log dpkg-query -S libc.so.6
+
+and send me that "x.log" file?
+
+That might give some important clues.
+
+Thanks.
