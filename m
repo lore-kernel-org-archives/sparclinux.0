@@ -1,14 +1,14 @@
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Date: Tue, 30 Oct 2007 19:16:23 +0000
+Date: Wed, 31 Oct 2007 22:37:36 +0000
 Subject: [patch 26/28] Add cmpxchg_local to sparc64
-Message-Id: <20071030192110.098891816@polymtl.ca>
+Message-Id: <20071031224218.856492079@polymtl.ca>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20071030191557.947156623@polymtl.ca>
+References: <20071031223710.099558229@polymtl.ca>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: akpm@linux-foundation.org, linux-kernel@vger.kernel.org, matthew@wil.cx, linux-arch@vger.kernel.org, penberg@cs.helsinki.fi, linux-mm@kvack.org, Christoph Lameter <clameter@sgi.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>, sparclinux@vger.kernel.org, wli@holomorphy.com
+To: akpm@linux-foundation.org, linux-kernel@vger.kernel.org
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>, clameter@sgi.com, sparclinux@vger.kernel.org, wli@holomorphy.com
 
 Use cmpxchg_u32 and cmpxchg_u64 for cmpxchg_local and cmpxchg64_local. For other
 type sizes, use the new generic cmpxchg_local (disables interrupt).
@@ -28,12 +28,12 @@ CC: clameter@sgi.com
 CC: sparclinux@vger.kernel.org
 CC: wli@holomorphy.com
 ---
- include/asm-sparc64/system.h |   25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+ include/asm-sparc64/system.h |   29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
 Index: linux-2.6-lttng/include/asm-sparc64/system.h
-=================================--- linux-2.6-lttng.orig/include/asm-sparc64/system.h	2007-08-20 17:40:57.000000000 -0400
-+++ linux-2.6-lttng/include/asm-sparc64/system.h	2007-08-20 19:42:32.000000000 -0400
+=================================--- linux-2.6-lttng.orig/include/asm-sparc64/system.h	2007-10-31 17:32:43.000000000 -0400
++++ linux-2.6-lttng/include/asm-sparc64/system.h	2007-10-31 18:31:51.000000000 -0400
 @@ -9,6 +9,7 @@
  #ifndef __ASSEMBLY__
  
@@ -42,7 +42,7 @@ Index: linux-2.6-lttng/include/asm-sparc64/system.h
  
  /*
   * Sparc (general) CPU types
-@@ -314,6 +315,30 @@ __cmpxchg(volatile void *ptr, unsigned l
+@@ -314,6 +315,34 @@ __cmpxchg(volatile void *ptr, unsigned l
  				    (unsigned long)_n_, sizeof(*(ptr))); \
    })
  
@@ -65,10 +65,14 @@ Index: linux-2.6-lttng/include/asm-sparc64/system.h
 +	return old;
 +}
 +
-+#define cmpxchg_local(ptr,o,n)					  	\
-+	(__typeof__(*(ptr)))__cmpxchg_local((ptr), (unsigned long)(o),	\
-+			   	 (unsigned long)(n), sizeof(*(ptr)))
-+#define cmpxchg64_local(ptr,o,n) cmpxchg_local((ptr), (o), (n))
++#define cmpxchg_local(ptr, o, n)				  	\
++	((__typeof__(*(ptr)))__cmpxchg_local((ptr), (unsigned long)(o),	\
++			(unsigned long)(n), sizeof(*(ptr))))
++#define cmpxchg64_local(ptr, o, n)					\
++  ({									\
++	BUILD_BUG_ON(sizeof(*(ptr)) != 8);				\
++	cmpxchg_local((ptr), (o), (n));					\
++  })
 +
  #endif /* !(__ASSEMBLY__) */
  
