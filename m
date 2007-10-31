@@ -1,81 +1,90 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Wed, 17 Oct 2007 03:43:34 +0000
-Subject: [PATCH 2/2] [POWERPC] Use of_register_driver to implement
-Message-Id: <20071017134334.cad2363e.sfr@canb.auug.org.au>
+From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
+Date: Wed, 31 Oct 2007 12:38:20 +0000
+Subject: Strange CPU occupation...
+Message-Id: <4728773C.7010802@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20071017134123.cfe10b79.sfr@canb.auug.org.au>
-In-Reply-To: <20071017134123.cfe10b79.sfr@canb.auug.org.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: paulus@samba.org
-Cc: sparclinux@vger.kernel.org, ppc-dev <linuxppc-dev@ozlabs.org>, "David S. Miller" <davem@davemloft.net>, wli@holomorphy.com
+To: sparclinux@vger.kernel.org, linux-raid@vger.kernel.org, iscsitarget-devel@lists.sourceforge.net
 
-Also of_unregister{,_platform}_driver.
+	Hello,
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
----
- arch/powerpc/kernel/of_platform.c |   20 --------------------
- include/asm-powerpc/of_platform.h |   10 ++++++++--
- 2 files changed, 8 insertions(+), 22 deletions(-)
+	I'm looking for a bug in iSCSI target code, but I have found this 
+morning a new bug that is certainly related to mine...
 
-This depends on the Sparc part (patch 1/2) being in the tree first.
--- 
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
+Please consider these raid volumes:
+Root gershwin:[/etc] > cat /proc/mdstat
+Personalities : [raid1] [raid6] [raid5] [raid4]
+md7 : active raid1 sdi1[2](F) md_d0p1[0]
+       1464725632 blocks [2/1] [U_]
 
-diff --git a/arch/powerpc/kernel/of_platform.c b/arch/powerpc/kernel/of_platform.c
-index eca8ccc..9b01602 100644
---- a/arch/powerpc/kernel/of_platform.c
-+++ b/arch/powerpc/kernel/of_platform.c
-@@ -67,26 +67,6 @@ static int __init of_bus_driver_init(void)
- 
- postcore_initcall(of_bus_driver_init);
- 
--int of_register_platform_driver(struct of_platform_driver *drv)
--{
--	/* initialize common driver fields */
--	if (!drv->driver.name)
--		drv->driver.name = drv->name;
--	if (!drv->driver.owner)
--		drv->driver.owner = drv->owner;
--	drv->driver.bus = &of_platform_bus_type;
--
--	/* register with core */
--	return driver_register(&drv->driver);
--}
--EXPORT_SYMBOL(of_register_platform_driver);
--
--void of_unregister_platform_driver(struct of_platform_driver *drv)
--{
--	driver_unregister(&drv->driver);
--}
--EXPORT_SYMBOL(of_unregister_platform_driver);
--
- static void of_platform_make_bus_id(struct of_device *dev)
- {
- 	struct device_node *node = dev->node;
-diff --git a/include/asm-powerpc/of_platform.h b/include/asm-powerpc/of_platform.h
-index 80e6fad..d20a4cd 100644
---- a/include/asm-powerpc/of_platform.h
-+++ b/include/asm-powerpc/of_platform.h
-@@ -15,8 +15,14 @@
- #include <linux/of_platform.h>
- 
- /* Platform drivers register/unregister */
--extern int of_register_platform_driver(struct of_platform_driver *drv);
--extern void of_unregister_platform_driver(struct of_platform_driver *drv);
-+static inline int of_register_platform_driver(struct of_platform_driver *drv)
-+{
-+	return of_register_driver(drv, &of_platform_bus_type);
-+}
-+static inline void of_unregister_platform_driver(struct of_platform_driver *drv)
-+{
-+	of_unregister_driver(drv);
-+}
- 
- /* Platform devices and busses creation */
- extern struct of_device *of_platform_device_create(struct device_node *np,
--- 
-1.5.3.4
+md_d0 : active raid5 sdc1[0] sdh1[5] sdg1[4] sdf1[3] sde1[2] sdd1[1]
+       1464725760 blocks level 5, 64k chunk, algorithm 2 [6/6] [UUUUUU]
 
+md6 : active raid1 sda1[0] sdb1[1]
+       7815552 blocks [2/2] [UU]
+
+md5 : active raid1 sda8[0] sdb8[1]
+       14538752 blocks [2/2] [UU]
+
+md4 : active raid1 sda7[0] sdb7[1]
+       4883648 blocks [2/2] [UU]
+
+md3 : active raid1 sda6[0] sdb6[1]
+       9767424 blocks [2/2] [UU]
+
+md2 : active raid1 sda5[0] sdb5[1]
+       29294400 blocks [2/2] [UU]
+
+md1 : active raid1 sda2[0] sdb2[1]
+       489856 blocks [2/2] [UU]
+
+md0 : active raid1 sdb4[1] sda4[0]
+       4883648 blocks [2/2] [UU]
+
+unused devices: <none>
+Root gershwin:[/etc] >
+
+md7 only has one disk because I cannot synchronize it over iSCSI. But 
+without any message, load average of this server (24 threads T1000) 
+increases until more than 9. top returns :
+top - 13:36:08 up 4 days,  1:00,  3 users,  load average: 9.23, 8.46, 6.26
+Tasks: 252 total,   5 running, 246 sleeping,   0 stopped,   1 zombie
+Cpu(s):  0.0%us,  4.2%sy,  0.0%ni, 87.4%id,  8.4%wa,  0.0%hi,  0.0%si, 
+0.0%st
+Mem:   4139024k total,  4115920k used,    23104k free,   743976k buffers
+Swap:  7815536k total,      304k used,  7815232k free,  2188048k cached
+
+   PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND 
+
+  5426 root      15  -5     0    0    0 R  100  0.0  46:32.54 
+md_d0_raid5
+17215 root      20   0  3120 1552 1112 R    1  0.0   0:01.38 top 
+
+     1 root      20   0  2576  960  816 S    0  0.0   0:09.74 init 
+
+     2 root      15  -5     0    0    0 S    0  0.0   0:00.00 kthreadd 
+
+     3 root      RT  -5     0    0    0 S    0  0.0   0:00.18 
+migration/0
+     4 root      15  -5     0    0    0 S    0  0.0   0:00.18 
+ksoftirqd/0
+
+and some process are in D state :
+Root gershwin:[/etc] > ps auwx | grep D
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root       270  0.0  0.0      0     0 ?        D    Oct27   1:17 [pdflush]
+root      3676  0.9  0.0      0     0 ?        D    Oct27  56:03 [nfsd]
+root      5435  0.0  0.0      0     0 ?        D<   Oct27   3:16 [md7_raid1]
+root      5438  0.0  0.0      0     0 ?        D<   Oct27   1:01 [kjournald]
+root      5440  0.0  0.0      0     0 ?        D<   Oct27   0:33 [loop0]
+root      5441  0.0  0.0      0     0 ?        D<   Oct27   0:05 [kjournald]
+root     16442  0.0  0.0  20032  1208 pts/2    D+   13:23   0:00 iftop 
+-i eth2
+
+	Why md7_raid is in D state ? Same question about iftop ?
+
+	Regards,
+
+	JKB
