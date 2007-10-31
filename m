@@ -1,14 +1,14 @@
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Date: Tue, 30 Oct 2007 19:16:22 +0000
+Date: Wed, 31 Oct 2007 22:37:35 +0000
 Subject: [patch 25/28] Add cmpxchg_local to sparc, move __cmpxchg to system.h
-Message-Id: <20071030192109.669372596@polymtl.ca>
+Message-Id: <20071031224218.502085585@polymtl.ca>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20071030191557.947156623@polymtl.ca>
+References: <20071031223710.099558229@polymtl.ca>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: akpm@linux-foundation.org, linux-kernel@vger.kernel.org, matthew@wil.cx, linux-arch@vger.kernel.org, penberg@cs.helsinki.fi, linux-mm@kvack.org, Christoph Lameter <clameter@sgi.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>, wli@holomorphy.com, sparclinux@vger.kernel.org
+To: akpm@linux-foundation.org, linux-kernel@vger.kernel.org
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>, clameter@sgi.com, wli@holomorphy.com, sparclinux@vger.kernel.org
 
 Move cmpxchg and add cmpxchg_local to system.h.
 Use the new generic cmpxchg_local (disables interrupt).
@@ -18,13 +18,13 @@ CC: clameter@sgi.com
 CC: wli@holomorphy.com
 CC: sparclinux@vger.kernel.org
 ---
- include/asm-sparc/atomic.h |   36 ----------------------------------
- include/asm-sparc/system.h |   47 +++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 47 insertions(+), 36 deletions(-)
+ include/asm-sparc/atomic.h |   36 ---------------------------------
+ include/asm-sparc/system.h |   48 +++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 48 insertions(+), 36 deletions(-)
 
 Index: linux-2.6-lttng/include/asm-sparc/atomic.h
-=================================--- linux-2.6-lttng.orig/include/asm-sparc/atomic.h	2007-08-10 19:36:01.000000000 -0400
-+++ linux-2.6-lttng/include/asm-sparc/atomic.h	2007-08-10 19:42:47.000000000 -0400
+=================================--- linux-2.6-lttng.orig/include/asm-sparc/atomic.h	2007-10-31 17:32:43.000000000 -0400
++++ linux-2.6-lttng/include/asm-sparc/atomic.h	2007-10-31 18:28:23.000000000 -0400
 @@ -17,42 +17,6 @@ typedef struct { volatile int counter; }
  
  #ifdef __KERNEL__
@@ -69,9 +69,9 @@ Index: linux-2.6-lttng/include/asm-sparc/atomic.h
  
  extern int __atomic_add_return(int, atomic_t *);
 Index: linux-2.6-lttng/include/asm-sparc/system.h
-=================================--- linux-2.6-lttng.orig/include/asm-sparc/system.h	2007-08-10 19:43:08.000000000 -0400
-+++ linux-2.6-lttng/include/asm-sparc/system.h	2007-08-10 19:43:42.000000000 -0400
-@@ -245,6 +245,53 @@ static __inline__ unsigned long __xchg(u
+=================================--- linux-2.6-lttng.orig/include/asm-sparc/system.h	2007-10-31 17:32:43.000000000 -0400
++++ linux-2.6-lttng/include/asm-sparc/system.h	2007-10-31 18:30:34.000000000 -0400
+@@ -245,6 +245,54 @@ static __inline__ unsigned long __xchg(u
  	return x;
  }
  
@@ -94,7 +94,7 @@ Index: linux-2.6-lttng/include/asm-sparc/system.h
 +static __inline__ unsigned long
 +__cmpxchg(volatile void *ptr, unsigned long old, unsigned long new_, int size)
 +{
-+	switch(size) {
++	switch (size) {
 +	case 4:
 +		return __cmpxchg_u32((u32 *)ptr, (u32)old, (u32)new_);
 +	default:
@@ -104,7 +104,8 @@ Index: linux-2.6-lttng/include/asm-sparc/system.h
 +	return old;
 +}
 +
-+#define cmpxchg(ptr,o,n) ({						\
++#define cmpxchg(ptr, o, n)						\
++({									\
 +	__typeof__(*(ptr)) _o_ = (o);					\
 +	__typeof__(*(ptr)) _n_ = (n);					\
 +	(__typeof__(*(ptr))) __cmpxchg((ptr), (unsigned long)_o_,	\
@@ -117,10 +118,10 @@ Index: linux-2.6-lttng/include/asm-sparc/system.h
 + * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
 + * them available.
 + */
-+#define cmpxchg_local(ptr,o,n)					  	    \
-+     (__typeof__(*(ptr)))__cmpxchg_local_generic((ptr), (unsigned long)(o), \
-+			   	 (unsigned long)(n), sizeof(*(ptr)))
-+#define cmpxchg64_local(ptr,o,n) __cmpxchg64_local_generic((ptr), (o), (n))
++#define cmpxchg_local(ptr, o, n)				  	       \
++	((__typeof__(*(ptr)))__cmpxchg_local_generic((ptr), (unsigned long)(o),\
++			(unsigned long)(n), sizeof(*(ptr))))
++#define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
 +
  extern void die_if_kernel(char *str, struct pt_regs *regs) __attribute__ ((noreturn));
  
