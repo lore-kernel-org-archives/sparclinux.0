@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 01 Nov 2007 22:01:13 +0000
+From: Bernd Zeimetz <bernd@bzed.de>
+Date: Thu, 01 Nov 2007 22:47:54 +0000
 Subject: Re: unkillable dpkg-query processes
-Message-Id: <20071101.150113.16833160.davem@davemloft.net>
+Message-Id: <472A579A.5030107@bzed.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20071024223332.GA24557@keid.carnet.hr>
 In-Reply-To: <20071024223332.GA24557@keid.carnet.hr>
@@ -10,14 +10,14 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Josip Rodin <joy@entuzijast.net>
-Date: Thu, 1 Nov 2007 22:40:37 +0100
 
-> Given that it's still not catatonic, can I do something to provide some
-> debugging information?
 
-Not really, I'm working on a kernel patch for 2.6.23 that will
-allow you to get some useful debugging information in situations
-like this.
+> The futex() calls are definitely from libnss-db.
 
-I'll try to get you that patch by the end of tonight.
+And on Lenny/testing we have futex calls from libc6.
+Didn't have the time to come up with any instructions yet as we have
+public holidays today, I'll try to finish them tomorrow.
+
+-- 
+Bernd Zeimetz
+<bernd@bzed.de>                         <http://bzed.de/>
