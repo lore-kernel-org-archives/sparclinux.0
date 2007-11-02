@@ -1,393 +1,328 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 02 Nov 2007 04:55:44 +0000
+From: Bernd Zeimetz <bernd@bzed.de>
+Date: Fri, 02 Nov 2007 15:37:25 +0000
 Subject: Re: unkillable dpkg-query processes
-Message-Id: <20071101.215544.225680847.davem@davemloft.net>
+Message-Id: <472B4435.4050304@bzed.de>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------060605080409080808090400"
 List-Id: <sparclinux.vger.kernel.org>
 References: <20071024223332.GA24557@keid.carnet.hr>
 In-Reply-To: <20071024223332.GA24557@keid.carnet.hr>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: David Miller <davem@davemloft.net>
-Date: Thu, 01 Nov 2007 15:01:13 -0700 (PDT)
+This is a multi-part message in MIME format.
+--------------060605080409080808090400
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-> I'm working on a kernel patch for 2.6.23 that will allow you to get
-> some useful debugging information in situations like this.
->
-> I'll try to get you that patch by the end of tonight.
+David Miller wrote:
+> From: David Miller <davem@davemloft.net>
+> Date: Thu, 01 Nov 2007 15:01:13 -0700 (PDT)
+> 
+>> I'm working on a kernel patch for 2.6.23 that will allow you to get
+>> some useful debugging information in situations like this.
+>>
+>> I'll try to get you that patch by the end of tonight.
+> 
+> As promised, here is the patch below.
 
-As promised, here is the patch below.
+Thanks for the patch. Applied and used libnss-db + aptitude -u to hang
+the machine.
 
-To trigger the debugging log, simple give the console
-a "Alt-SysRQ" then a "g".
+I've sent g several times to sysrq, output is attached.
+According to top the two hanging aptitude processes were running on CPU
+1 + 3.
 
-On a serial console you can do this by giving a single
-BREAK then a "g".
+ 3204 root      20   0 19552 5088 4072 R  100  0.1   6:54.49 1 aptitude
+ 3203 root      20   0 19552 5088 4072 R  100  0.1   6:56.39 3 aptitude
 
-If you're having trouble triggering the sysrq on the
-console, try instead:
 
-bash# echo "g" >/proc/sysrq-trigger
+Cheers,
 
-Here is some sample output from my Niagara-2 system while
-running a benchmark.  The current CPU is denoted by the
-leading "*" character.
+Bernd
 
-[81940.250994] SysRq : Show Global CPU Regs
-[81940.251800] * CPU[  0]: TSTATE[00000000e2001602] TPC[000000000055813c] TNPC[0000000000558140] TASK[dd:2940]
-[81940.252206]              TPC[NGbzero_loop+0x1c/0x38]
-[81940.252422]   CPU[  1]: TSTATE[0000004411001607] TPC[000000000055c9bc] TNPC[000000000055c9c0] TASK[dd:2926]
-[81940.252739]              TPC[atomic_sub_ret+0x4/0x30]
-[81940.252936]   CPU[  2]: TSTATE[0000000011001607] TPC[000000000055feec] TNPC[000000000055fef0] TASK[dd:2899]
-[81940.253238]              TPC[NG2copy_to_user+0x46c/0x680]
-[81940.253451]   CPU[  3]: TSTATE[00000000e2001602] TPC[0000000000558130] TNPC[0000000000558134] TASK[dd:2929]
-[81940.253776]              TPC[NGbzero_loop+0x10/0x38]
-[81940.253993]   CPU[  4]: TSTATE[00000000e2001602] TPC[0000000000558124] TNPC[0000000000558128] TASK[dd:2947]
-[81940.254325]              TPC[NGbzero_loop+0x4/0x38]
-[81940.254497]   CPU[  5]: TSTATE[0000004411001606] TPC[0000000000495f94] TNPC[0000000000495f98] TASK[dd:2908]
-[81940.254893]              TPC[do_generic_mapping_read+0xbc/0x428]
-[81940.255203]   CPU[  6]: TSTATE[0000000011001607] TPC[000000000055fee8] TNPC[000000000055feec] TASK[dd:2920]
-[81940.255699]              TPC[NG2copy_to_user+0x468/0x680]
-[81940.256104]   CPU[  7]: TSTATE[0000000011001607] TPC[000000000055feec] TNPC[000000000055fef0] TASK[dd:2935]
-[81940.256574]              TPC[NG2copy_to_user+0x46c/0x680]
-[81940.256972]   CPU[  8]: TSTATE[00000000e2001602] TPC[0000000000558124] TNPC[0000000000558128] TASK[dd:2903]
-[81940.257399]              TPC[NGbzero_loop+0x4/0x38]
-[81940.257899]   CPU[  9]: TSTATE[0000000011001607] TPC[000000000055feec] TNPC[000000000055fef0] TASK[dd:2904]
-[81940.258240]              TPC[NG2copy_to_user+0x46c/0x680]
-[81940.258482]   CPU[ 10]: TSTATE[00000000e2001602] TPC[0000000000558138] TNPC[000000000055813c] TASK[dd:2902]
-[81940.258808]              TPC[NGbzero_loop+0x18/0x38]
-[81940.258999]   CPU[ 11]: TSTATE[00000000e2001602] TPC[0000000000558120] TNPC[0000000000558124] TASK[dd:2941]
-[81940.259319]              TPC[NGbzero_loop+0x0/0x38]
-[81940.259487]   CPU[ 12]: TSTATE[00000000e2001602] TPC[0000000000558130] TNPC[0000000000558134] TASK[dd:2919]
-[81940.259801]              TPC[NGbzero_loop+0x10/0x38]
-[81940.260012]   CPU[ 13]: TSTATE[0000000011001607] TPC[000000000055feec] TNPC[000000000055fef0] TASK[dd:2950]
-[81940.260350]              TPC[NG2copy_to_user+0x46c/0x680]
-[81940.260564]   CPU[ 14]: TSTATE[00000000e2001602] TPC[0000000000558134] TNPC[0000000000558138] TASK[dd:2936]
-[81940.260937]              TPC[NGbzero_loop+0x14/0x38]
-[81940.261150]   CPU[ 15]: TSTATE[0000000011001607] TPC[000000000055fee8] TNPC[000000000055feec] TASK[dd:2905]
-[81940.261457]              TPC[NG2copy_to_user+0x468/0x680]
-[81940.261677]   CPU[ 16]: TSTATE[0000000011001607] TPC[000000000055feec] TNPC[000000000055fef0] TASK[dd:2923]
-[81940.261973]              TPC[NG2copy_to_user+0x46c/0x680]
-[81940.262167]   CPU[ 17]: TSTATE[0000000011001607] TPC[000000000055feec] TNPC[000000000055fef0] TASK[dd:2897]
-[81940.262462]              TPC[NG2copy_to_user+0x46c/0x680]
-[81940.262643]   CPU[ 18]: TSTATE[00000000e2001602] TPC[0000000000558128] TNPC[000000000055812c] TASK[dd:2909]
-[81940.262987]              TPC[NGbzero_loop+0x8/0x38]
-[81940.263180]   CPU[ 19]: TSTATE[0000000011001607] TPC[000000000055fee8] TNPC[000000000055feec] TASK[dd:2913]
-[81940.263500]              TPC[NG2copy_to_user+0x468/0x680]
-[81940.263901]   CPU[ 20]: TSTATE[00000000e2001602] TPC[0000000000558128] TNPC[000000000055812c] TASK[dd:2890]
-[81940.264403]              TPC[NGbzero_loop+0x8/0x38]
-[81940.264679]   CPU[ 21]: TSTATE[0000000011001607] TPC[000000000055fee8] TNPC[000000000055feec] TASK[dd:2906]
-[81940.265152]              TPC[NG2copy_to_user+0x468/0x680]
-[81940.265535]   CPU[ 22]: TSTATE[0000000011001607] TPC[000000000055feec] TNPC[000000000055fef0] TASK[dd:2918]
-[81940.266075]              TPC[NG2copy_to_user+0x46c/0x680]
-[81940.266448]   CPU[ 23]: TSTATE[0000000011001607] TPC[000000000055fee8] TNPC[000000000055feec] TASK[dd:2900]
-[81940.266942]              TPC[NG2copy_to_user+0x468/0x680]
-[81940.267328]   CPU[ 24]: TSTATE[0000000011001602] TPC[000000000049a618] TNPC[000000000049a61c] TASK[dd:2938]
-[81940.267710]              TPC[get_page_from_freelist+0x260/0x478]
-[81940.268029]   CPU[ 25]: TSTATE[0000004411001607] TPC[00000000005533cc] TNPC[00000000005533d0] TASK[dd:2922]
-[81940.268248]              TPC[radix_tree_lookup+0x24/0x98]
-[81940.268404]   CPU[ 26]: TSTATE[0000000011001607] TPC[000000000055fee8] TNPC[000000000055feec] TASK[dd:2915]
-[81940.268494]              TPC[NG2copy_to_user+0x468/0x680]
-[81940.268636]   CPU[ 27]: TSTATE[0000000011001607] TPC[000000000055feec] TNPC[000000000055fef0] TASK[dd:2921]
-[81940.268715]              TPC[NG2copy_to_user+0x46c/0x680]
-[81940.268869]   CPU[ 28]: TSTATE[00000000e2001602] TPC[0000000000558130] TNPC[0000000000558134] TASK[dd:2945]
-[81940.268984]              TPC[NGbzero_loop+0x10/0x38]
-[81940.269131]   CPU[ 29]: TSTATE[00000000e2001602] TPC[0000000000558130] TNPC[0000000000558134] TASK[dd:2887]
-[81940.269216]              TPC[NGbzero_loop+0x10/0x38]
-[81940.269362]   CPU[ 30]: TSTATE[0000004411001602] TPC[000000000055cbd0] TNPC[000000000055cbd4] TASK[dd:2910]
-[81940.269464]              TPC[clear_bit+0x24/0x38]
-[81940.269598]   CPU[ 31]: TSTATE[00000044f0000a00] TPC[00000000f7effb48] TNPC[00000000f7effb4c] TASK[dd:2933]
-[81940.269684]   CPU[ 32]: TSTATE[0000004411001602] TPC[000000000055cb98] TNPC[000000000055cb9c] TASK[dd:2927]
-[81940.269849]              TPC[set_bit+0x24/0x38]
-[81940.269902]   CPU[ 33]: TSTATE[00000000e2001602] TPC[0000000000558128] TNPC[000000000055812c] TASK[dd:2939]
-[81940.270077]              TPC[NGbzero_loop+0x8/0x38]
-[81940.270123]   CPU[ 34]: TSTATE[0000000011001607] TPC[000000000055fee8] TNPC[000000000055feec] TASK[dd:2911]
-[81940.270283]              TPC[NG2copy_to_user+0x468/0x680]
-[81940.270350]   CPU[ 35]: TSTATE[0000000011001607] TPC[000000000055fee8] TNPC[000000000055feec] TASK[dd:2888]
-[81940.270525]              TPC[NG2copy_to_user+0x468/0x680]
-[81940.270592]   CPU[ 36]: TSTATE[0000000011001607] TPC[000000000055fee8] TNPC[000000000055feec] TASK[dd:2928]
-[81940.270761]              TPC[NG2copy_to_user+0x468/0x680]
-[81940.270821]   CPU[ 37]: TSTATE[0000000011001607] TPC[000000000055fedc] TNPC[000000000055fee0] TASK[dd:2907]
-[81940.270995]              TPC[NG2copy_to_user+0x45c/0x680]
-[81940.271053]   CPU[ 38]: TSTATE[0000000011001607] TPC[000000000055feec] TNPC[000000000055fef0] TASK[dd:2946]
-[81940.271221]              TPC[NG2copy_to_user+0x46c/0x680]
-[81940.271294]   CPU[ 39]: TSTATE[0000000011001607] TPC[000000000055fee8] TNPC[000000000055feec] TASK[dd:2934]
-[81940.271467]              TPC[NG2copy_to_user+0x468/0x680]
-[81940.271532]   CPU[ 40]: TSTATE[0000004411001607] TPC[000000000055ff00] TNPC[000000000055ff04] TASK[dd:2937]
-[81940.271705]              TPC[NG2copy_to_user+0x480/0x680]
-[81940.271761]   CPU[ 41]: TSTATE[00000000e2001602] TPC[0000000000558130] TNPC[0000000000558134] TASK[dd:2891]
-[81940.271934]              TPC[NGbzero_loop+0x10/0x38]
-[81940.271994]   CPU[ 42]: TSTATE[00000000e2001602] TPC[0000000000558138] TNPC[000000000055813c] TASK[dd:2930]
-[81940.272173]              TPC[NGbzero_loop+0x18/0x38]
-[81940.272355]   CPU[ 43]: TSTATE[0000004411001604] TPC[0000000000504850] TNPC[0000000000504854] TASK[dd:2942]
-[81940.272481]              TPC[ext3_get_blocks_handle+0x68/0xc14]
-[81940.272632]   CPU[ 44]: TSTATE[00000000e2001602] TPC[000000000055813c] TNPC[0000000000558140] TASK[dd:2894]
-[81940.272726]              TPC[NGbzero_loop+0x1c/0x38]
-[81940.272788]   CPU[ 45]: TSTATE[0000000011001607] TPC[000000000055feec] TNPC[000000000055fef0] TASK[dd:2898]
-[81940.272872]              TPC[NG2copy_to_user+0x46c/0x680]
-[81940.272943]   CPU[ 46]: TSTATE[0000000011001607] TPC[000000000055feec] TNPC[000000000055fef0] TASK[dd:2892]
-[81940.273035]              TPC[NG2copy_to_user+0x46c/0x680]
-[81940.273103]   CPU[ 47]: TSTATE[00000000e2001602] TPC[0000000000558138] TNPC[000000000055813c] TASK[dd:2893]
-[81940.273172]              TPC[NGbzero_loop+0x18/0x38]
-[81940.273228]   CPU[ 48]: TSTATE[0000000011001607] TPC[000000000055feec] TNPC[000000000055fef0] TASK[dd:2895]
-[81940.280846]              TPC[NG2copy_to_user+0x46c/0x680]
-[81940.285194]   CPU[ 49]: TSTATE[0000009911001602] TPC[000000000055cbd0] TNPC[000000000055cbd4] TASK[dd:2896]
-[81940.285412]              TPC[clear_bit+0x24/0x38]
-[81940.295064]   CPU[ 50]: TSTATE[00000000e2001602] TPC[0000000000558130] TNPC[0000000000558134] TASK[dd:2943]
-[81940.295436]              TPC[NGbzero_loop+0x10/0x38]
-[81940.302407]   CPU[ 51]: TSTATE[0000000011001607] TPC[000000000055feec] TNPC[000000000055fef0] TASK[dd:2924]
-[81940.305050]              TPC[NG2copy_to_user+0x46c/0x680]
-[81940.305272]   CPU[ 52]: TSTATE[0000000011001607] TPC[000000000055feec] TNPC[000000000055fef0] TASK[dd:2949]
-[81940.308306]              TPC[NG2copy_to_user+0x46c/0x680]
-[81940.309938]   CPU[ 53]: TSTATE[0000000011001607] TPC[000000000055fee8] TNPC[000000000055feec] TASK[dd:2889]
-[81940.310249]              TPC[NG2copy_to_user+0x468/0x680]
-[81940.311719]   CPU[ 54]: TSTATE[0000000011001607] TPC[000000000055fee8] TNPC[000000000055feec] TASK[dd:2916]
-[81940.321627]              TPC[NG2copy_to_user+0x468/0x680]
-[81940.321844]   CPU[ 55]: TSTATE[0000004411001602] TPC[000000000055cbd0] TNPC[000000000055cbd4] TASK[dd:2932]
-[81940.326879]              TPC[clear_bit+0x24/0x38]
-[81940.326951]   CPU[ 56]: TSTATE[0000000011001607] TPC[000000000055feec] TNPC[000000000055fef0] TASK[dd:2901]
-[81940.330430]              TPC[NG2copy_to_user+0x46c/0x680]
-[81940.341949]   CPU[ 57]: TSTATE[00000000e2001602] TPC[0000000000558134] TNPC[0000000000558138] TASK[dd:2944]
-[81940.342119]              TPC[NGbzero_loop+0x14/0x38]
-[81940.379431]   CPU[ 58]: TSTATE[00000000e2001602] TPC[0000000000558128] TNPC[000000000055812c] TASK[dd:2912]
-[81940.392125]              TPC[NGbzero_loop+0x8/0x38]
-[81940.392186]   CPU[ 59]: TSTATE[0000000011001607] TPC[000000000055fee0] TNPC[000000000055fee4] TASK[dd:2925]
-[81940.420952]              TPC[NG2copy_to_user+0x460/0x680]
-[81940.421186]   CPU[ 60]: TSTATE[0000004411001602] TPC[00000000006a2f58] TNPC[00000000006a2f5c] TASK[dd:2948]
-[81940.478590]              TPC[_write_lock_irq+0x18/0x30]
-[81940.480714]   CPU[ 61]: TSTATE[0000000011001602] TPC[000000000049a618] TNPC[000000000049a61c] TASK[dd:2914]
-[81940.481059]              TPC[get_page_from_freelist+0x260/0x478]
-[81940.482588]   CPU[ 62]: TSTATE[00000000e2001602] TPC[0000000000558134] TNPC[0000000000558138] TASK[dd:2917]
-[81940.489263]              TPC[NGbzero_loop+0x14/0x38]
-[81940.489480]   CPU[ 63]: TSTATE[0000000011001607] TPC[000000000055fedc] TNPC[000000000055fee0] TASK[dd:2931]
-[81940.506233]              TPC[NG2copy_to_user+0x45c/0x680]
+-- 
+Bernd Zeimetz
+<bernd@bzed.de>                         <http://bzed.de/>
 
-So when you get a stuck process or whatever, trigger this and
-send the output :-)
+--------------060605080409080808090400
+Content-Type: application/pgp-keys;
+ name="sysrq-g.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="sysrq-g.txt"
 
-Enjoy.
+Nov  2 16:25:30 titan kernel: [  977.969456] SysRq : Show Global CPU Regs
+Nov  2 16:25:30 titan kernel: [  978.016149] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:25:30 titan kernel: [  978.134874]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2e0] TNPC[000000000067d2d4] TASK[aptitude:3204]
+Nov  2 16:25:30 titan kernel: [  978.257809]              TPC[_write_unlock_irq+0x20/0x110]
+Nov  2 16:25:30 titan kernel: [  978.323404]   CPU[  2]: TSTATE[0000000811009606] TPC[000000000067d028] TNPC[000000000067d02c] TASK[klogd:2754]
+Nov  2 16:25:30 titan kernel: [  978.443206]              TPC[_spin_lock_irqsave+0xc/0x24]
+Nov  2 16:25:30 titan kernel: [  978.507778]   CPU[  3]: TSTATE[0000000011009605] TPC[00000000004419f8] TNPC[00000000004419fc] TASK[aptitude:3203]
+Nov  2 16:25:30 titan kernel: [  978.630707]              TPC[cheetah_xcall_deliver+0x174/0x23c]
+Nov  2 16:25:44 titan kernel: [  992.287714] SysRq : Show Global CPU Regs
+Nov  2 16:25:44 titan kernel: [  992.334419] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:25:44 titan kernel: [  992.453169]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2dc] TNPC[000000000067d2e0] TASK[aptitude:3204]
+Nov  2 16:25:44 titan kernel: [  992.576089]              TPC[_write_unlock_irq+0x1c/0x110]
+Nov  2 16:25:44 titan kernel: [  992.641700]   CPU[  2]: TSTATE[0000004411009606] TPC[000000000067b52c] TNPC[000000000067b530] TASK[klogd:2754]
+Nov  2 16:25:45 titan kernel: [  992.761499]              TPC[schedule+0x648/0x7a4]
+Nov  2 16:25:45 titan kernel: [  992.818782]   CPU[  3]: TSTATE[0000000011009606] TPC[000000000042fb8c] TNPC[000000000042fb90] TASK[aptitude:3203]
+Nov  2 16:25:45 titan kernel: [  992.941718]              TPC[__delay+0x24/0x48]
+Nov  2 16:25:53 titan kernel: [ 1001.515758] SysRq : Show Global CPU Regs
+Nov  2 16:25:53 titan kernel: [ 1001.562557] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:25:53 titan kernel: [ 1001.681306]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2dc] TNPC[000000000067d2e0] TASK[aptitude:3204]
+Nov  2 16:25:54 titan kernel: [ 1001.804225]              TPC[_write_unlock_irq+0x1c/0x110]
+Nov  2 16:25:54 titan kernel: [ 1001.869838]   CPU[  2]: TSTATE[0000004411009602] TPC[000000000067b528] TNPC[000000000067b52c] TASK[klogd:2754]
+Nov  2 16:25:54 titan kernel: [ 1001.989634]              TPC[schedule+0x644/0x7a4]
+Nov  2 16:25:54 titan kernel: [ 1002.046918]   CPU[  3]: TSTATE[0000000011009605] TPC[00000000004419f8] TNPC[00000000004419fc] TASK[aptitude:3203]
+Nov  2 16:25:54 titan kernel: [ 1002.169846]              TPC[cheetah_xcall_deliver+0x174/0x23c]
+Nov  2 16:25:56 titan kernel: [ 1004.637099] SysRq : Show Global CPU Regs
+Nov  2 16:25:57 titan kernel: [ 1004.683879] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:25:57 titan kernel: [ 1004.802630]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2d8] TNPC[000000000067d2dc] TASK[aptitude:3204]
+Nov  2 16:25:57 titan kernel: [ 1004.925549]              TPC[_write_unlock_irq+0x18/0x110]
+Nov  2 16:25:57 titan kernel: [ 1004.991161]   CPU[  2]: TSTATE[0000004411009602] TPC[000000000067b4dc] TNPC[000000000067b4e0] TASK[swapper:0]
+Nov  2 16:25:57 titan kernel: [ 1005.109918]              TPC[schedule+0x5f8/0x7a4]
+Nov  2 16:25:57 titan kernel: [ 1005.167201]   CPU[  3]: TSTATE[0000000011009605] TPC[00000000004419f8] TNPC[00000000004419fc] TASK[aptitude:3203]
+Nov  2 16:25:57 titan kernel: [ 1005.290127]              TPC[cheetah_xcall_deliver+0x174/0x23c]
+Nov  2 16:25:58 titan kernel: [ 1006.437886] SysRq : Show Global CPU Regs
+Nov  2 16:25:58 titan kernel: [ 1006.484692] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:25:58 titan kernel: [ 1006.603445]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2e0] TNPC[000000000067d2d4] TASK[aptitude:3204]
+Nov  2 16:25:59 titan kernel: [ 1006.726363]              TPC[_write_unlock_irq+0x20/0x110]
+Nov  2 16:25:59 titan kernel: [ 1006.791977]   CPU[  2]: TSTATE[0000004411009602] TPC[000000000067b4dc] TNPC[000000000067b4e0] TASK[swapper:0]
+Nov  2 16:25:59 titan kernel: [ 1006.910734]              TPC[schedule+0x5f8/0x7a4]
+Nov  2 16:25:59 titan kernel: [ 1006.968016]   CPU[  3]: TSTATE[0000000011009605] TPC[00000000004419f8] TNPC[00000000004419fc] TASK[aptitude:3203]
+Nov  2 16:25:59 titan kernel: [ 1007.090941]              TPC[cheetah_xcall_deliver+0x174/0x23c]
+Nov  2 16:26:00 titan kernel: [ 1008.130639] SysRq : Show Global CPU Regs
+Nov  2 16:26:00 titan kernel: [ 1008.177384] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:00 titan kernel: [ 1008.296136]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2e0] TNPC[000000000067d2d4] TASK[aptitude:3204]
+Nov  2 16:26:00 titan kernel: [ 1008.419054]              TPC[_write_unlock_irq+0x20/0x110]
+Nov  2 16:26:00 titan kernel: [ 1008.484668]   CPU[  2]: TSTATE[0000004411009602] TPC[000000000067b4e0] TNPC[000000000067b4e4] TASK[swapper:0]
+Nov  2 16:26:00 titan kernel: [ 1008.603424]              TPC[schedule+0x5fc/0x7a4]
+Nov  2 16:26:00 titan kernel: [ 1008.660708]   CPU[  3]: TSTATE[0000000011009605] TPC[00000000004419f8] TNPC[00000000004419fc] TASK[aptitude:3203]
+Nov  2 16:26:01 titan kernel: [ 1008.783633]              TPC[cheetah_xcall_deliver+0x174/0x23c]
+Nov  2 16:26:01 titan ntpd[2782]: adjusting local clock by -0.184097s
+Nov  2 16:26:01 titan kernel: [ 1009.663330] SysRq : Show Global CPU Regs
+Nov  2 16:26:02 titan kernel: [ 1009.710081] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:02 titan kernel: [ 1009.828829]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2e0] TNPC[000000000067d2d4] TASK[aptitude:3204]
+Nov  2 16:26:02 titan kernel: [ 1009.951749]              TPC[_write_unlock_irq+0x20/0x110]
+Nov  2 16:26:02 titan kernel: [ 1010.017361]   CPU[  2]: TSTATE[0000009911009606] TPC[00000000005465f8] TNPC[00000000005465fc] TASK[klogd:2754]
+Nov  2 16:26:02 titan kernel: [ 1010.137171]              TPC[atomic_sub_ret+0x0/0x30]
+Nov  2 16:26:02 titan kernel: [ 1010.197567]   CPU[  3]: TSTATE[0000000011009605] TPC[00000000004419f8] TNPC[00000000004419fc] TASK[aptitude:3203]
+Nov  2 16:26:02 titan kernel: [ 1010.320492]              TPC[cheetah_xcall_deliver+0x174/0x23c]
+Nov  2 16:26:03 titan kernel: [ 1011.075939] SysRq : Show Global CPU Regs
+Nov  2 16:26:03 titan kernel: [ 1011.122773] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:03 titan kernel: [ 1011.241523]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2dc] TNPC[000000000067d2e0] TASK[aptitude:3204]
+Nov  2 16:26:03 titan kernel: [ 1011.364441]              TPC[_write_unlock_irq+0x1c/0x110]
+Nov  2 16:26:03 titan kernel: [ 1011.430054]   CPU[  2]: TSTATE[0000004411009604] TPC[00000000004572b8] TNPC[00000000004572bc] TASK[swapper:0]
+Nov  2 16:26:03 titan kernel: [ 1011.548823]              TPC[update_stats_wait_end+0x60/0x88]
+Nov  2 16:26:03 titan kernel: [ 1011.617554]   CPU[  3]: TSTATE[0000000011009605] TPC[00000000004419f8] TNPC[00000000004419fc] TASK[aptitude:3203]
+Nov  2 16:26:04 titan kernel: [ 1011.740477]              TPC[cheetah_xcall_deliver+0x174/0x23c]
+Nov  2 16:26:04 titan kernel: [ 1012.720665] SysRq : Show Global CPU Regs
+Nov  2 16:26:05 titan kernel: [ 1012.767444] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:05 titan kernel: [ 1012.886194]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2e0] TNPC[000000000067d2d4] TASK[aptitude:3204]
+Nov  2 16:26:05 titan kernel: [ 1013.009113]              TPC[_write_unlock_irq+0x20/0x110]
+Nov  2 16:26:05 titan kernel: [ 1013.074726]   CPU[  2]: TSTATE[0000004411009602] TPC[000000000067b4f4] TNPC[000000000067b4f8] TASK[swapper:0]
+Nov  2 16:26:05 titan kernel: [ 1013.193482]              TPC[schedule+0x610/0x7a4]
+Nov  2 16:26:05 titan kernel: [ 1013.250767]   CPU[  3]: TSTATE[0000000011009605] TPC[000000000042fbb0] TNPC[000000000042fbb4] TASK[aptitude:3203]
+Nov  2 16:26:05 titan kernel: [ 1013.373693]              TPC[udelay+0x0/0x1c]
+Nov  2 16:26:06 titan kernel: [ 1014.109287] SysRq : Show Global CPU Regs
+Nov  2 16:26:06 titan kernel: [ 1014.156075] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:06 titan kernel: [ 1014.274826]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2dc] TNPC[000000000067d2e0] TASK[aptitude:3204]
+Nov  2 16:26:06 titan kernel: [ 1014.397745]              TPC[_write_unlock_irq+0x1c/0x110]
+Nov  2 16:26:06 titan kernel: [ 1014.463358]   CPU[  2]: TSTATE[0000004411009602] TPC[000000000067b50c] TNPC[000000000067b510] TASK[klogd:2754]
+Nov  2 16:26:06 titan kernel: [ 1014.583156]              TPC[schedule+0x628/0x7a4]
+Nov  2 16:26:06 titan kernel: [ 1014.640439]   CPU[  3]: TSTATE[0000000011009605] TPC[0000000000441a00] TNPC[0000000000441a04] TASK[aptitude:3203]
+Nov  2 16:26:07 titan kernel: [ 1014.763366]              TPC[cheetah_xcall_deliver+0x17c/0x23c]
+Nov  2 16:26:11 titan kernel: [ 1019.023453] SysRq : Show Global CPU Regs
+Nov  2 16:26:11 titan kernel: [ 1019.070193] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:11 titan kernel: [ 1019.188944]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2d8] TNPC[000000000067d2dc] TASK[aptitude:3204]
+Nov  2 16:26:11 titan kernel: [ 1019.311862]              TPC[_write_unlock_irq+0x18/0x110]
+Nov  2 16:26:11 titan kernel: [ 1019.377477]   CPU[  2]: TSTATE[0000009911009602] TPC[0000000000407af0] TNPC[0000000000407af4] TASK[swapper:0]
+Nov  2 16:26:11 titan kernel: [ 1019.496236]              TPC[__tsb_context_switch+0xf0/0x100]
+Nov  2 16:26:11 titan kernel: [ 1019.564974]   CPU[  3]: TSTATE[0000000011009605] TPC[00000000004419f8] TNPC[00000000004419fc] TASK[aptitude:3203]
+Nov  2 16:26:11 titan kernel: [ 1019.687898]              TPC[cheetah_xcall_deliver+0x174/0x23c]
+Nov  2 16:26:12 titan kernel: [ 1020.280001] SysRq : Show Global CPU Regs
+Nov  2 16:26:12 titan kernel: [ 1020.326848] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:12 titan kernel: [ 1020.445599]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2dc] TNPC[000000000067d2e0] TASK[aptitude:3204]
+Nov  2 16:26:12 titan kernel: [ 1020.568516]              TPC[_write_unlock_irq+0x1c/0x110]
+Nov  2 16:26:12 titan kernel: [ 1020.634131]   CPU[  2]: TSTATE[0000004411009602] TPC[000000000067b4e0] TNPC[000000000067b4e4] TASK[swapper:0]
+Nov  2 16:26:13 titan kernel: [ 1020.752886]              TPC[schedule+0x5fc/0x7a4]
+Nov  2 16:26:13 titan kernel: [ 1020.810170]   CPU[  3]: TSTATE[0000004411009606] TPC[000000000053a024] TNPC[000000000053a028] TASK[aptitude:3203]
+Nov  2 16:26:13 titan kernel: [ 1020.933105]              TPC[__first_cpu+0x4/0x28]
+Nov  2 16:26:17 titan kernel: [ 1025.630375] SysRq : Show Global CPU Regs
+Nov  2 16:26:17 titan kernel: [ 1025.677109] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:17 titan kernel: [ 1025.795860]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2dc] TNPC[000000000067d2e0] TASK[aptitude:3204]
+Nov  2 16:26:18 titan kernel: [ 1025.918776]              TPC[_write_unlock_irq+0x1c/0x110]
+Nov  2 16:26:18 titan kernel: [ 1025.984391]   CPU[  2]: TSTATE[0000009911009602] TPC[0000000000407af0] TNPC[0000000000407af4] TASK[swapper:0]
+Nov  2 16:26:18 titan kernel: [ 1026.103148]              TPC[__tsb_context_switch+0xf0/0x100]
+Nov  2 16:26:18 titan kernel: [ 1026.171888]   CPU[  3]: TSTATE[0000004411009606] TPC[000000000053a03c] TNPC[000000000053a040] TASK[aptitude:3203]
+Nov  2 16:26:18 titan kernel: [ 1026.294813]              TPC[__first_cpu+0x1c/0x28]
+Nov  2 16:26:19 titan kernel: [ 1027.271082] SysRq : Show Global CPU Regs
+Nov  2 16:26:19 titan kernel: [ 1027.317924] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:19 titan kernel: [ 1027.436675]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2e0] TNPC[000000000067d2d4] TASK[aptitude:3204]
+Nov  2 16:26:19 titan kernel: [ 1027.559592]              TPC[_write_unlock_irq+0x20/0x110]
+Nov  2 16:26:19 titan kernel: [ 1027.625206]   CPU[  2]: TSTATE[0000004411009602] TPC[000000000067b4dc] TNPC[000000000067b4e0] TASK[swapper:0]
+Nov  2 16:26:20 titan kernel: [ 1027.743964]              TPC[schedule+0x5f8/0x7a4]
+Nov  2 16:26:20 titan kernel: [ 1027.801247]   CPU[  3]: TSTATE[0000000011009605] TPC[000000000042fbbc] TNPC[000000000042fbc0] TASK[aptitude:3203]
+Nov  2 16:26:20 titan kernel: [ 1027.924173]              TPC[udelay+0xc/0x1c]
+Nov  2 16:26:20 titan kernel: [ 1028.551652] SysRq : Show Global CPU Regs
+Nov  2 16:26:20 titan kernel: [ 1028.598432] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:20 titan kernel: [ 1028.717185]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2dc] TNPC[000000000067d2e0] TASK[aptitude:3204]
+Nov  2 16:26:21 titan kernel: [ 1028.840100]              TPC[_write_unlock_irq+0x1c/0x110]
+Nov  2 16:26:21 titan kernel: [ 1028.905716]   CPU[  2]: TSTATE[0000004411009602] TPC[000000000067b4f4] TNPC[000000000067b4f8] TASK[swapper:0]
+Nov  2 16:26:21 titan kernel: [ 1029.024471]              TPC[schedule+0x610/0x7a4]
+Nov  2 16:26:21 titan kernel: [ 1029.081754]   CPU[  3]: TSTATE[0000000011009605] TPC[00000000004419f8] TNPC[00000000004419fc] TASK[aptitude:3203]
+Nov  2 16:26:21 titan kernel: [ 1029.204680]              TPC[cheetah_xcall_deliver+0x174/0x23c]
+Nov  2 16:26:22 titan kernel: [ 1029.892247] SysRq : Show Global CPU Regs
+Nov  2 16:26:22 titan kernel: [ 1029.939044] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:22 titan kernel: [ 1030.057796]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2e0] TNPC[000000000067d2d4] TASK[aptitude:3204]
+Nov  2 16:26:22 titan kernel: [ 1030.180714]              TPC[_write_unlock_irq+0x20/0x110]
+Nov  2 16:26:22 titan kernel: [ 1030.246327]   CPU[  2]: TSTATE[0000009911009602] TPC[000000000067b348] TNPC[000000000067b34c] TASK[swapper:0]
+Nov  2 16:26:22 titan kernel: [ 1030.365083]              TPC[schedule+0x464/0x7a4]
+Nov  2 16:26:22 titan kernel: [ 1030.422365]   CPU[  3]: TSTATE[0000000011009605] TPC[00000000004419f8] TNPC[00000000004419fc] TASK[aptitude:3203]
+Nov  2 16:26:22 titan kernel: [ 1030.545292]              TPC[cheetah_xcall_deliver+0x174/0x23c]
+Nov  2 16:26:23 titan kernel: [ 1031.344895] SysRq : Show Global CPU Regs
+Nov  2 16:26:23 titan kernel: [ 1031.391737] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:23 titan kernel: [ 1031.510489]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2dc] TNPC[000000000067d2e0] TASK[aptitude:3204]
+Nov  2 16:26:23 titan kernel: [ 1031.633406]              TPC[_write_unlock_irq+0x1c/0x110]
+Nov  2 16:26:23 titan kernel: [ 1031.699020]   CPU[  2]: TSTATE[0000004411009602] TPC[000000000067b4e4] TNPC[000000000067b4e8] TASK[swapper:0]
+Nov  2 16:26:24 titan kernel: [ 1031.817778]              TPC[schedule+0x600/0x7a4]
+Nov  2 16:26:24 titan kernel: [ 1031.875061]   CPU[  3]: TSTATE[0000000011009605] TPC[00000000004419f8] TNPC[00000000004419fc] TASK[aptitude:3203]
+Nov  2 16:26:24 titan kernel: [ 1031.997983]              TPC[cheetah_xcall_deliver+0x174/0x23c]
+Nov  2 16:26:24 titan kernel: [ 1032.621456] SysRq : Show Global CPU Regs
+Nov  2 16:26:24 titan kernel: [ 1032.668289] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:24 titan kernel: [ 1032.787038]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2e0] TNPC[000000000067d2d4] TASK[aptitude:3204]
+Nov  2 16:26:25 titan kernel: [ 1032.909958]              TPC[_write_unlock_irq+0x20/0x110]
+Nov  2 16:26:25 titan kernel: [ 1032.975572]   CPU[  2]: TSTATE[0000004411009602] TPC[000000000067b4e4] TNPC[000000000067b4e8] TASK[swapper:0]
+Nov  2 16:26:25 titan kernel: [ 1033.094327]              TPC[schedule+0x600/0x7a4]
+Nov  2 16:26:25 titan kernel: [ 1033.151610]   CPU[  3]: TSTATE[0000000011009605] TPC[00000000004419f8] TNPC[00000000004419fc] TASK[aptitude:3203]
+Nov  2 16:26:25 titan kernel: [ 1033.274534]              TPC[cheetah_xcall_deliver+0x174/0x23c]
+Nov  2 16:26:26 titan kernel: [ 1034.030048] SysRq : Show Global CPU Regs
+Nov  2 16:26:26 titan kernel: [ 1034.076812] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:26 titan kernel: [ 1034.195568]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2dc] TNPC[000000000067d2e0] TASK[aptitude:3204]
+Nov  2 16:26:26 titan kernel: [ 1034.318485]              TPC[_write_unlock_irq+0x1c/0x110]
+Nov  2 16:26:26 titan kernel: [ 1034.384097]   CPU[  2]: TSTATE[0000004411009604] TPC[00000000004572b8] TNPC[00000000004572bc] TASK[swapper:0]
+Nov  2 16:26:26 titan kernel: [ 1034.502856]              TPC[update_stats_wait_end+0x60/0x88]
+Nov  2 16:26:26 titan kernel: [ 1034.571597]   CPU[  3]: TSTATE[0000000011009605] TPC[00000000004419f8] TNPC[00000000004419fc] TASK[aptitude:3203]
+Nov  2 16:26:26 titan kernel: [ 1034.694518]              TPC[cheetah_xcall_deliver+0x174/0x23c]
+Nov  2 16:26:27 titan kernel: [ 1035.434682] SysRq : Show Global CPU Regs
+Nov  2 16:26:27 titan kernel: [ 1035.481488] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:27 titan kernel: [ 1035.600240]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2dc] TNPC[000000000067d2e0] TASK[aptitude:3204]
+Nov  2 16:26:27 titan kernel: [ 1035.723159]              TPC[_write_unlock_irq+0x1c/0x110]
+Nov  2 16:26:27 titan kernel: [ 1035.788772]   CPU[  2]: TSTATE[0000004411009602] TPC[000000000067b4e4] TNPC[000000000067b4e8] TASK[swapper:0]
+Nov  2 16:26:28 titan kernel: [ 1035.907527]              TPC[schedule+0x600/0x7a4]
+Nov  2 16:26:28 titan kernel: [ 1035.964812]   CPU[  3]: TSTATE[0000000011009605] TPC[00000000004419f8] TNPC[00000000004419fc] TASK[aptitude:3203]
+Nov  2 16:26:28 titan kernel: [ 1036.087735]              TPC[cheetah_xcall_deliver+0x174/0x23c]
+Nov  2 16:26:28 titan kernel: [ 1036.763398] SysRq : Show Global CPU Regs
+Nov  2 16:26:29 titan kernel: [ 1036.810225] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:29 titan kernel: [ 1036.928976]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2e0] TNPC[000000000067d2d4] TASK[aptitude:3204]
+Nov  2 16:26:29 titan kernel: [ 1037.051894]              TPC[_write_unlock_irq+0x20/0x110]
+Nov  2 16:26:29 titan kernel: [ 1037.117508]   CPU[  2]: TSTATE[0000000011009603] TPC[000000000044d604] TNPC[000000000044d608] TASK[swapper:0]
+Nov  2 16:26:29 titan kernel: [ 1037.236267]              TPC[flush_tlb_pending+0x4/0x68]
+Nov  2 16:26:29 titan kernel: [ 1037.299798]   CPU[  3]: TSTATE[0000000011009605] TPC[00000000004419f8] TNPC[00000000004419fc] TASK[aptitude:3203]
+Nov  2 16:26:29 titan kernel: [ 1037.422722]              TPC[cheetah_xcall_deliver+0x174/0x23c]
+Nov  2 16:26:30 titan kernel: [ 1038.215901] SysRq : Show Global CPU Regs
+Nov  2 16:26:30 titan kernel: [ 1038.262707] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:30 titan kernel: [ 1038.381462]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2dc] TNPC[000000000067d2e0] TASK[aptitude:3204]
+Nov  2 16:26:30 titan kernel: [ 1038.504381]              TPC[_write_unlock_irq+0x1c/0x110]
+Nov  2 16:26:30 titan kernel: [ 1038.569995]   CPU[  2]: TSTATE[0000004411009604] TPC[00000000004572b8] TNPC[00000000004572bc] TASK[swapper:0]
+Nov  2 16:26:30 titan kernel: [ 1038.688753]              TPC[update_stats_wait_end+0x60/0x88]
+Nov  2 16:26:30 titan kernel: [ 1038.757491]   CPU[  3]: TSTATE[0000000011009606] TPC[000000000042fb8c] TNPC[000000000042fb90] TASK[aptitude:3203]
+Nov  2 16:26:31 titan kernel: [ 1038.880417]              TPC[__delay+0x24/0x48]
+Nov  2 16:26:31 titan kernel: [ 1039.576520] SysRq : Show Global CPU Regs
+Nov  2 16:26:31 titan kernel: [ 1039.623322] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:31 titan kernel: [ 1039.742075]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2d8] TNPC[000000000067d2dc] TASK[aptitude:3204]
+Nov  2 16:26:32 titan kernel: [ 1039.864993]              TPC[_write_unlock_irq+0x18/0x110]
+Nov  2 16:26:32 titan kernel: [ 1039.930605]   CPU[  2]: TSTATE[0000004411009602] TPC[000000000067b4e4] TNPC[000000000067b4e8] TASK[swapper:0]
+Nov  2 16:26:32 titan kernel: [ 1040.049361]              TPC[schedule+0x600/0x7a4]
+Nov  2 16:26:32 titan kernel: [ 1040.106645]   CPU[  3]: TSTATE[0000000011009605] TPC[000000000042fbc4] TNPC[000000000042fb68] TASK[aptitude:3203]
+Nov  2 16:26:32 titan kernel: [ 1040.229570]              TPC[udelay+0x14/0x1c]
+Nov  2 16:26:33 titan kernel: [ 1040.957133] SysRq : Show Global CPU Regs
+Nov  2 16:26:33 titan kernel: [ 1041.003934] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:33 titan kernel: [ 1041.122676]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2d8] TNPC[000000000067d2dc] TASK[aptitude:3204]
+Nov  2 16:26:33 titan kernel: [ 1041.245604]              TPC[_write_unlock_irq+0x18/0x110]
+Nov  2 16:26:33 titan kernel: [ 1041.311216]   CPU[  2]: TSTATE[0000004411009606] TPC[000000000067b52c] TNPC[000000000067b530] TASK[klogd:2754]
+Nov  2 16:26:33 titan kernel: [ 1041.431014]              TPC[schedule+0x648/0x7a4]
+Nov  2 16:26:33 titan kernel: [ 1041.488298]   CPU[  3]: TSTATE[0000000011009605] TPC[000000000042fbac] TNPC[0000000000441a44] TASK[aptitude:3203]
+Nov  2 16:26:33 titan kernel: [ 1041.611223]              TPC[__delay+0x44/0x48]
+Nov  2 16:26:34 titan kernel: [ 1042.481780] SysRq : Show Global CPU Regs
+Nov  2 16:26:34 titan kernel: [ 1042.528603] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:34 titan kernel: [ 1042.647357]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2e0] TNPC[000000000067d2d4] TASK[aptitude:3204]
+Nov  2 16:26:35 titan kernel: [ 1042.770274]              TPC[_write_unlock_irq+0x20/0x110]
+Nov  2 16:26:35 titan kernel: [ 1042.835889]   CPU[  2]: TSTATE[0000009911009602] TPC[000000000067b348] TNPC[000000000067b34c] TASK[swapper:0]
+Nov  2 16:26:35 titan kernel: [ 1042.954644]              TPC[schedule+0x464/0x7a4]
+Nov  2 16:26:35 titan kernel: [ 1043.011928]   CPU[  3]: TSTATE[0000000011009605] TPC[00000000004419f8] TNPC[00000000004419fc] TASK[aptitude:3203]
+Nov  2 16:26:35 titan kernel: [ 1043.134851]              TPC[cheetah_xcall_deliver+0x174/0x23c]
+Nov  2 16:26:35 titan kernel: [ 1043.770375] SysRq : Show Global CPU Regs
+Nov  2 16:26:36 titan kernel: [ 1043.817135] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:36 titan kernel: [ 1043.935886]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2dc] TNPC[000000000067d2e0] TASK[aptitude:3204]
+Nov  2 16:26:36 titan kernel: [ 1044.058806]              TPC[_write_unlock_irq+0x1c/0x110]
+Nov  2 16:26:36 titan kernel: [ 1044.124419]   CPU[  2]: TSTATE[0000004411009602] TPC[000000000067b4e8] TNPC[000000000067b4ec] TASK[swapper:0]
+Nov  2 16:26:36 titan kernel: [ 1044.243174]              TPC[schedule+0x604/0x7a4]
+Nov  2 16:26:36 titan kernel: [ 1044.300458]   CPU[  3]: TSTATE[0000000011009605] TPC[00000000004419f8] TNPC[00000000004419fc] TASK[aptitude:3203]
+Nov  2 16:26:36 titan kernel: [ 1044.423380]              TPC[cheetah_xcall_deliver+0x174/0x23c]
+Nov  2 16:26:37 titan kernel: [ 1045.070943] SysRq : Show Global CPU Regs
+Nov  2 16:26:37 titan kernel: [ 1045.117745] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:37 titan kernel: [ 1045.236498]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2e0] TNPC[000000000067d2d4] TASK[aptitude:3204]
+Nov  2 16:26:37 titan kernel: [ 1045.359418]              TPC[_write_unlock_irq+0x20/0x110]
+Nov  2 16:26:37 titan kernel: [ 1045.425029]   CPU[  2]: TSTATE[0000004411009604] TPC[000000000045727c] TNPC[0000000000457280] TASK[swapper:0]
+Nov  2 16:26:37 titan kernel: [ 1045.543790]              TPC[update_stats_wait_end+0x24/0x88]
+Nov  2 16:26:38 titan kernel: [ 1045.612529]   CPU[  3]: TSTATE[0000000011009605] TPC[00000000004419f8] TNPC[00000000004419fc] TASK[aptitude:3203]
+Nov  2 16:26:38 titan kernel: [ 1045.735452]              TPC[cheetah_xcall_deliver+0x174/0x23c]
+Nov  2 16:26:39 titan kernel: [ 1046.359508] SysRq : Show Global CPU Regs
+Nov  2 16:26:39 titan kernel: [ 1046.406277] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:39 titan kernel: [ 1046.525027]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2dc] TNPC[000000000067d2e0] TASK[aptitude:3204]
+Nov  2 16:26:39 titan kernel: [ 1046.647946]              TPC[_write_unlock_irq+0x1c/0x110]
+Nov  2 16:26:39 titan kernel: [ 1046.713558]   CPU[  2]: TSTATE[0000009911009606] TPC[00000000005465f8] TNPC[00000000005465fc] TASK[klogd:2754]
+Nov  2 16:26:39 titan kernel: [ 1046.833360]              TPC[atomic_sub_ret+0x0/0x30]
+Nov  2 16:26:39 titan kernel: [ 1046.893765]   CPU[  3]: TSTATE[0000004411009605] TPC[0000000000441a50] TNPC[0000000000441a9c] TASK[aptitude:3203]
+Nov  2 16:26:39 titan kernel: [ 1047.016689]              TPC[cheetah_xcall_deliver+0x1cc/0x23c]
+Nov  2 16:26:40 titan kernel: [ 1047.584036] SysRq : Show Global CPU Regs
+Nov  2 16:26:40 titan kernel: [ 1047.630844] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:40 titan kernel: [ 1047.749598]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2dc] TNPC[000000000067d2e0] TASK[aptitude:3204]
+Nov  2 16:26:40 titan kernel: [ 1047.872516]              TPC[_write_unlock_irq+0x1c/0x110]
+Nov  2 16:26:40 titan kernel: [ 1047.938129]   CPU[  2]: TSTATE[0000004411009604] TPC[000000000045727c] TNPC[0000000000457280] TASK[swapper:0]
+Nov  2 16:26:40 titan kernel: [ 1048.056888]              TPC[update_stats_wait_end+0x24/0x88]
+Nov  2 16:26:40 titan kernel: [ 1048.125629]   CPU[  3]: TSTATE[0000000011009605] TPC[00000000004419f8] TNPC[00000000004419fc] TASK[aptitude:3203]
+Nov  2 16:26:40 titan kernel: [ 1048.248553]              TPC[cheetah_xcall_deliver+0x174/0x23c]
+Nov  2 16:26:41 titan kernel: [ 1048.800594] SysRq : Show Global CPU Regs
+Nov  2 16:26:41 titan kernel: [ 1048.847399] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:41 titan kernel: [ 1048.966150]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2e0] TNPC[000000000067d2d4] TASK[aptitude:3204]
+Nov  2 16:26:41 titan kernel: [ 1049.089067]              TPC[_write_unlock_irq+0x20/0x110]
+Nov  2 16:26:41 titan kernel: [ 1049.154679]   CPU[  2]: TSTATE[0000004411009602] TPC[000000000067b4dc] TNPC[000000000067b4e0] TASK[swapper:0]
+Nov  2 16:26:41 titan kernel: [ 1049.273436]              TPC[schedule+0x5f8/0x7a4]
+Nov  2 16:26:41 titan kernel: [ 1049.330723]   CPU[  3]: TSTATE[0000000011009606] TPC[000000000042fb94] TNPC[000000000042fa10] TASK[aptitude:3203]
+Nov  2 16:26:41 titan kernel: [ 1049.453648]              TPC[__delay+0x2c/0x48]
+Nov  2 16:26:42 titan kernel: [ 1049.969110] SysRq : Show Global CPU Regs
+Nov  2 16:26:42 titan kernel: [ 1050.015927] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:42 titan kernel: [ 1050.134678]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2dc] TNPC[000000000067d2e0] TASK[aptitude:3204]
+Nov  2 16:26:42 titan kernel: [ 1050.257597]              TPC[_write_unlock_irq+0x1c/0x110]
+Nov  2 16:26:42 titan kernel: [ 1050.323212]   CPU[  2]: TSTATE[0000004411009604] TPC[00000000004572b8] TNPC[00000000004572bc] TASK[swapper:0]
+Nov  2 16:26:42 titan kernel: [ 1050.441968]              TPC[update_stats_wait_end+0x60/0x88]
+Nov  2 16:26:42 titan kernel: [ 1050.510708]   CPU[  3]: TSTATE[0000004411009605] TPC[0000000000441a50] TNPC[0000000000441a9c] TASK[aptitude:3203]
+Nov  2 16:26:42 titan kernel: [ 1050.633633]              TPC[cheetah_xcall_deliver+0x1cc/0x23c]
+Nov  2 16:26:43 titan kernel: [ 1051.025572] SysRq : Show Global CPU Regs
+Nov  2 16:26:43 titan kernel: [ 1051.072377] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:43 titan kernel: [ 1051.191126]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2e0] TNPC[000000000067d2d4] TASK[aptitude:3204]
+Nov  2 16:26:43 titan kernel: [ 1051.314046]              TPC[_write_unlock_irq+0x20/0x110]
+Nov  2 16:26:43 titan kernel: [ 1051.379658]   CPU[  2]: TSTATE[0000004411009602] TPC[000000000067b4dc] TNPC[000000000067b4e0] TASK[swapper:0]
+Nov  2 16:26:43 titan kernel: [ 1051.498414]              TPC[schedule+0x5f8/0x7a4]
+Nov  2 16:26:43 titan kernel: [ 1051.555699]   CPU[  3]: TSTATE[0000000011009605] TPC[00000000004419f8] TNPC[00000000004419fc] TASK[aptitude:3203]
+Nov  2 16:26:43 titan kernel: [ 1051.678621]              TPC[cheetah_xcall_deliver+0x174/0x23c]
+Nov  2 16:26:45 titan kernel: [ 1052.102029] SysRq : Show Global CPU Regs
+Nov  2 16:26:45 titan kernel: [ 1052.148821] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:45 titan kernel: [ 1052.267574]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2d8] TNPC[000000000067d2dc] TASK[aptitude:3204]
+Nov  2 16:26:45 titan kernel: [ 1052.390492]              TPC[_write_unlock_irq+0x18/0x110]
+Nov  2 16:26:45 titan kernel: [ 1052.456107]   CPU[  2]: TSTATE[0000004411009604] TPC[00000000004572b8] TNPC[00000000004572bc] TASK[swapper:0]
+Nov  2 16:26:45 titan kernel: [ 1052.574865]              TPC[update_stats_wait_end+0x60/0x88]
+Nov  2 16:26:45 titan kernel: [ 1052.643604]   CPU[  3]: TSTATE[0000000011009605] TPC[00000000004419f8] TNPC[00000000004419fc] TASK[aptitude:3203]
+Nov  2 16:26:45 titan kernel: [ 1052.766529]              TPC[cheetah_xcall_deliver+0x174/0x23c]
+Nov  2 16:26:46 titan kernel: [ 1053.154503] SysRq : Show Global CPU Regs
+Nov  2 16:26:46 titan kernel: [ 1053.201315] * CPU[  0]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[bash:3117]
+Nov  2 16:26:46 titan kernel: [ 1053.320065]   CPU[  1]: TSTATE[0000000080009603] TPC[000000000067d2e0] TNPC[000000000067d2d4] TASK[aptitude:3204]
+Nov  2 16:26:46 titan kernel: [ 1053.442982]              TPC[_write_unlock_irq+0x20/0x110]
+Nov  2 16:26:46 titan kernel: [ 1053.508596]   CPU[  2]: TSTATE[0000009911009606] TPC[00000000005465f8] TNPC[00000000005465fc] TASK[klogd:2754]
+Nov  2 16:26:46 titan kernel: [ 1053.628396]              TPC[atomic_sub_ret+0x0/0x30]
+Nov  2 16:26:46 titan kernel: [ 1053.688801]   CPU[  3]: TSTATE[0000000011009605] TPC[00000000004419f8] TNPC[00000000004419fc] TASK[aptitude:3203]
+Nov  2 16:26:46 titan kernel: [ 1053.811727]              TPC[cheetah_xcall_deliver+0x174/0x23c]
 
-diff --git a/arch/sparc64/kernel/process.c b/arch/sparc64/kernel/process.c
-index ca7cdfd..67bf91d 100644
---- a/arch/sparc64/kernel/process.c
-+++ b/arch/sparc64/kernel/process.c
-@@ -1,7 +1,6 @@
--/*  $Id: process.c,v 1.131 2002/02/09 19:49:30 davem Exp $
-- *  arch/sparc64/kernel/process.c
-+/*  arch/sparc64/kernel/process.c
-  *
-- *  Copyright (C) 1995, 1996 David S. Miller (davem@caip.rutgers.edu)
-+ *  Copyright (C) 1995, 1996, 2007 David S. Miller (davem@davemloft.net)
-  *  Copyright (C) 1996       Eddie C. Dost   (ecd@skynet.be)
-  *  Copyright (C) 1997, 1998 Jakub Jelinek   (jj@sunsite.mff.cuni.cz)
-  */
-@@ -31,6 +30,7 @@
- #include <linux/tick.h>
- #include <linux/init.h>
- #include <linux/cpu.h>
-+#include <linux/sysrq.h>
- 
- #include <asm/oplib.h>
- #include <asm/uaccess.h>
-@@ -48,6 +48,7 @@
- #include <asm/unistd.h>
- #include <asm/hypervisor.h>
- #include <asm/sstate.h>
-+#include <asm/irq_regs.h>
- 
- /* #define VERBOSE_SHOWREGS */
- 
-@@ -388,6 +389,76 @@ void show_regs32(struct pt_regs32 *regs)
- 	       regs->u_regs[15]);
- }
- 
-+#ifdef CONFIG_MAGIC_SYSRQ
-+struct global_reg_snapshot {
-+	unsigned long		tstate;
-+	unsigned long		tpc;
-+	unsigned long		tnpc;
-+	struct thread_info	*thread;
-+} global_reg_snapshot[NR_CPUS];
-+static DEFINE_SPINLOCK(global_reg_snapshot_lock);
-+
-+static void sysrq_handle_globreg(int key, struct tty_struct *tty)
-+{
-+	struct pt_regs *regs = get_irq_regs();
-+#ifdef CONFIG_KALLSYMS
-+	char buffer[KSYM_SYMBOL_LEN];
-+#endif
-+	unsigned long flags;
-+	int cpu;
-+
-+	spin_lock_irqsave(&global_reg_snapshot_lock, flags);
-+	cpu = raw_smp_processor_id();
-+	if (regs) {
-+		global_reg_snapshot[cpu].tstate = regs->tstate;
-+		global_reg_snapshot[cpu].tpc = regs->tpc;
-+		global_reg_snapshot[cpu].tnpc = regs->tnpc;
-+	} else {
-+		global_reg_snapshot[cpu].tstate = 0;
-+		global_reg_snapshot[cpu].tpc = 0;
-+		global_reg_snapshot[cpu].tnpc = 0;
-+	}
-+	global_reg_snapshot[cpu].thread = current_thread_info();
-+
-+	smp_fetch_global_regs();
-+
-+	for_each_online_cpu(cpu) {
-+		struct global_reg_snapshot *gp = &global_reg_snapshot[cpu];
-+		struct thread_info *tp = gp->thread;
-+
-+		printk("%c CPU[%3d]: TSTATE[%016lx] TPC[%016lx] TNPC[%016lx] TASK[%s:%d]\n",
-+		       (cpu = raw_smp_processor_id() ? '*' : ' '), cpu,
-+		       gp->tstate, gp->tpc, gp->tnpc,
-+		       ((tp  && tp->task) ? tp->task->comm : "NULL"),
-+		       ((tp  && tp->task) ? tp->task->pid : -1));
-+#ifdef CONFIG_KALLSYMS
-+		if ((gp->tstate & TSTATE_PRIV) && (gp->tpc != 0UL)) {
-+			sprint_symbol(buffer, gp->tpc);
-+			printk("             TPC[%s]\n", buffer);
-+		}
-+#endif
-+	}
-+
-+	memset(global_reg_snapshot, 0, sizeof(global_reg_snapshot));
-+
-+	spin_unlock_irqrestore(&global_reg_snapshot_lock, flags);
-+}
-+
-+static struct sysrq_key_op sparc_globalreg_op = {
-+	.handler	= sysrq_handle_globreg,
-+	.help_msg	= "Globalregs",
-+	.action_msg	= "Show Global CPU Regs",
-+};
-+
-+static int __init sparc_globreg_init(void)
-+{
-+	return register_sysrq_key('g', &sparc_globalreg_op);
-+}
-+
-+core_initcall(sparc_globreg_init);
-+
-+#endif
-+
- unsigned long thread_saved_pc(struct task_struct *tsk)
- {
- 	struct thread_info *ti = task_thread_info(tsk);
-diff --git a/arch/sparc64/kernel/smp.c b/arch/sparc64/kernel/smp.c
-index c73b7a4..cbedf27 100644
---- a/arch/sparc64/kernel/smp.c
-+++ b/arch/sparc64/kernel/smp.c
-@@ -894,6 +894,7 @@ extern unsigned long xcall_flush_tlb_mm;
- extern unsigned long xcall_flush_tlb_pending;
- extern unsigned long xcall_flush_tlb_kernel_range;
- extern unsigned long xcall_report_regs;
-+extern unsigned long xcall_fetch_glob_regs;
- extern unsigned long xcall_receive_signal;
- extern unsigned long xcall_new_mmu_context_version;
- 
-@@ -1064,6 +1065,11 @@ void smp_report_regs(void)
- 	smp_cross_call(&xcall_report_regs, 0, 0, 0);
- }
- 
-+void smp_fetch_global_regs(void)
-+{
-+	smp_cross_call(&xcall_fetch_glob_regs, 0, 0, 0);
-+}
-+
- /* We know that the window frames of the user have been flushed
-  * to the stack before we get here because all callers of us
-  * are flush_tlb_*() routines, and these run after flush_cache_*()
-diff --git a/arch/sparc64/mm/ultra.S b/arch/sparc64/mm/ultra.S
-index 737c269..7a079ed 100644
---- a/arch/sparc64/mm/ultra.S
-+++ b/arch/sparc64/mm/ultra.S
-@@ -1,7 +1,6 @@
--/* $Id: ultra.S,v 1.72 2002/02/09 19:49:31 davem Exp $
-- * ultra.S: Don't expand these all over the place...
-+/* ultra.S: Don't expand these all over the place...
-  *
-- * Copyright (C) 1997, 2000 David S. Miller (davem@redhat.com)
-+ * Copyright (C) 1997, 2000, 2007 David S. Miller (davem@davemloft.net)
-  */
- 
- #include <asm/asi.h>
-@@ -15,6 +14,7 @@
- #include <asm/thread_info.h>
- #include <asm/cacheflush.h>
- #include <asm/hypervisor.h>
-+#include <asm/cpudata.h>
- 
- 	/* Basically, most of the Spitfire vs. Cheetah madness
- 	 * has to do with the fact that Cheetah does not support
-@@ -523,6 +523,27 @@ xcall_report_regs:
- 	b		rtrap_xcall
- 	 ldx		[%sp + PTREGS_OFF + PT_V9_TSTATE], %l1
- 
-+	.globl		xcall_fetch_glob_regs
-+xcall_fetch_glob_regs:
-+	sethi		%hi(global_reg_snapshot), %g1
-+	or		%g1, %lo(global_reg_snapshot), %g1
-+	__GET_CPUID(%g2)
-+	sllx		%g2, 5, %g3
-+	add		%g1, %g3, %g1
-+	rdpr		%tstate, %g7
-+	stx		%g7, [%g1 + 0x00]
-+	rdpr		%tpc, %g7
-+	stx		%g7, [%g1 + 0x08]
-+	rdpr		%tnpc, %g7
-+	stx		%g7, [%g1 + 0x10]
-+	sethi		%hi(trap_block), %g7
-+	or		%g7, %lo(trap_block), %g7
-+	sllx		%g2, TRAP_BLOCK_SZ_SHIFT, %g2
-+	add		%g7, %g2, %g7
-+	ldx		[%g7 + TRAP_PER_CPU_THREAD], %g3
-+	stx		%g3, [%g1 + 0x18]
-+	retry
-+
- #ifdef DCACHE_ALIASING_POSSIBLE
- 	.align		32
- 	.globl		xcall_flush_dcache_page_cheetah
-diff --git a/drivers/char/sysrq.c b/drivers/char/sysrq.c
-index 39cc318..7f871a5 100644
---- a/drivers/char/sysrq.c
-+++ b/drivers/char/sysrq.c
-@@ -335,6 +335,7 @@ static struct sysrq_key_op *sysrq_key_table[36] = {
- 	&sysrq_term_op,			/* e */
- 	&sysrq_moom_op,			/* f */
- 	/* g: May be registered by ppc for kgdb */
-+	/*    May be registered by sparc for global register dump */
- 	NULL,				/* g */
- 	NULL,				/* h */
- 	&sysrq_kill_op,			/* i */
-diff --git a/include/asm-sparc64/smp.h b/include/asm-sparc64/smp.h
-index e8a96a3..29393e3 100644
---- a/include/asm-sparc64/smp.h
-+++ b/include/asm-sparc64/smp.h
-@@ -1,6 +1,6 @@
- /* smp.h: Sparc64 specific SMP stuff.
-  *
-- * Copyright (C) 1996 David S. Miller (davem@caip.rutgers.edu)
-+ * Copyright (C) 1996, 2007 David S. Miller (davem@davemloft.net)
-  */
- 
- #ifndef _SPARC64_SMP_H
-@@ -43,6 +43,8 @@ extern int hard_smp_processor_id(void);
- extern void smp_fill_in_sib_core_maps(void);
- extern void cpu_play_dead(void);
- 
-+extern void smp_fetch_global_regs(void);
-+
- #ifdef CONFIG_HOTPLUG_CPU
- extern int __cpu_disable(void);
- extern void __cpu_die(unsigned int cpu);
-@@ -54,6 +56,7 @@ extern void __cpu_die(unsigned int cpu);
- 
- #define hard_smp_processor_id()		0
- #define smp_fill_in_sib_core_maps() do { } while (0)
-+#define smp_fetch_global_regs() do { } while (0)
- 
- #endif /* !(CONFIG_SMP) */
- 
+--------------060605080409080808090400--
