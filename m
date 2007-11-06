@@ -1,38 +1,45 @@
-From: Bernd Zeimetz <bernd@bzed.de>
-Date: Tue, 06 Nov 2007 13:30:40 +0000
-Subject: Re: unkillable dpkg-query processes
-Message-Id: <47306C80.2060502@bzed.de>
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Date: Tue, 06 Nov 2007 17:06:46 +0000
+Subject: [PATCH] SPARC64: Use "is_power_of_2" macro for simplicity.
+Message-Id: <Pine.LNX.4.64.0711061205440.25032@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20071024223332.GA24557@keid.carnet.hr>
-In-Reply-To: <20071024223332.GA24557@keid.carnet.hr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-David Miller wrote:
-> From: Bernd Zeimetz <bernd@bzed.de>
-> Date: Tue, 06 Nov 2007 04:51:07 +0100
-> 
->> Here's also some output from apt-get which got stuck in my unstable
->> chroot while I wanted to retrieve the klibc source to try to debug it...
-> 
-> So the good news is that I started getting the hang seen
-> on the Debain buildd on my workstation.
-> 
-> The bad news is that it's very sporadic, for a while I
-> could trigger it during bootup, on every boot, and now
-> I can't get it to wedge at all.
-> 
-> Anyways, we're getting closer.
 
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
 
-Running stress -c 2 on a 4 CPU machine made things really worse here,
-probably it helps to trigger the bug for you, too.
-Our US II machine is also just running fine at the moment.
+---
 
+diff --git a/include/asm-sparc64/vio.h b/include/asm-sparc64/vio.h
+index f7417e9..d4de32f 100644
+--- a/include/asm-sparc64/vio.h
++++ b/include/asm-sparc64/vio.h
+@@ -8,6 +8,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/completion.h>
+ #include <linux/list.h>
++#include <linux/log2.h>
 
+ #include <asm/ldc.h>
+ #include <asm/mdesc.h>
+@@ -257,8 +258,7 @@ static inline void *vio_dring_entry(struct vio_dring_state *dr,
+ static inline u32 vio_dring_avail(struct vio_dring_state *dr,
+ 				  unsigned int ring_size)
+ {
+-	/* Ensure build-time power-of-2.  */
+-	BUILD_BUG_ON(ring_size & (ring_size - 1));
++	BUILD_BUG_ON(!is_power_of_2(ring_size));
 
+ 	return (dr->pending -
+ 		((dr->prod - dr->cons) & (ring_size - 1)));
 -- 
-Bernd Zeimetz
-<bernd@bzed.de>                         <http://bzed.de/>
+====================================
+Robert P. J. Day
+Linux Consulting, Training and Annoying Kernel Pedantry
+Waterloo, Ontario, CANADA
+
+http://crashcourse.ca
+====================================
