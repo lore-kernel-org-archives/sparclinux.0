@@ -1,7 +1,7 @@
-From: Josip Rodin <joy@entuzijast.net>
-Date: Wed, 07 Nov 2007 14:25:46 +0000
+From: Bernd Zeimetz <bernd@bzed.de>
+Date: Wed, 07 Nov 2007 14:35:42 +0000
 Subject: Re: Fix for sparc64 cpu hangs.
-Message-Id: <20071107142546.GA7603@keid.carnet.hr>
+Message-Id: <4731CD3E.3070201@bzed.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20071106.203433.144763156.davem@davemloft.net>
 In-Reply-To: <20071106.203433.144763156.davem@davemloft.net>
@@ -10,17 +10,14 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, Nov 06, 2007 at 09:13:56PM -0800, David Miller wrote:
-> > [FUTEX]: Fix address computation in compat code.
-> Here is an updated patch:
 
-I applied the patch, rebooted into the new kernel, and let lebrun run its
-buildd, but the apt package fetching method constantly times out trying to
-reach incoming.debian.org - that (unrelated) server is having a downtime.
-So unfortunately I can't properly test this long-awaited fix :)
+> But I did the artificial tests, like running dpkg-query --search libc.so.6
+> in loops, and this seems to work well. Thanks a lot!
+> 
 
-But I did the artificial tests, like running dpkg-query --search libc.so.6
-in loops, and this seems to work well. Thanks a lot!
+I was running aptitude -u in a loop for half an hour now, and it didn't
+crash, so I assume that fixed the bug. Many thanks for the patch David!
 
 -- 
-     2. That which causes joy or happiness.
+Bernd Zeimetz
+<bernd@bzed.de>                         <http://bzed.de/>
