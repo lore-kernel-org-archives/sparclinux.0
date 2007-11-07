@@ -1,95 +1,57 @@
-From: lizf <lizf@cn.fujitsu.com>
-Date: Fri, 02 Nov 2007 01:51:11 +0000
-Subject: [PATCH] sparck64: remove duplicate includes
-Message-Id: <472A828F.9070003@cn.fujitsu.com>
+From: Goswin von Brederlow <brederlo@informatik.uni-tuebingen.de>
+Date: Wed, 07 Nov 2007 08:55:36 +0000
+Subject: Re: Strange CPU occupation...
+Message-Id: <87wssujuyf.fsf@informatik.uni-tuebingen.de>
 List-Id: <sparclinux.vger.kernel.org>
+References: <4728773C.7010802@systella.fr>
+In-Reply-To: <4728773C.7010802@systella.fr> (BERTRAND Joel's message of "Wed,
+	31 Oct 2007 13:38:20 +0100")
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: BERTRAND Joel <joel.bertrand@systella.fr>
+Cc: sparclinux@vger.kernel.org, linux-raid@vger.kernel.org, iscsitarget-devel@lists.sourceforge.net
 
+BERTRAND Jo=EBl <joel.bertrand@systella.fr> writes:
 
-This patch removes duplicate includes in arch/sparc64
+>   PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND
+>
+>  5426 root      15  -5     0    0    0 R  100  0.0  46:32.54
+> md_d0_raid5
 
-Signed-off-by Li Zefan <lizf@cn.fujitsu.com>
+First: You can tune the stripe cache.
 
----
- arch/sparc64/kernel/ds.c          |    1 -
- arch/sparc64/kernel/module.c      |    1 -
- arch/sparc64/kernel/sys_sparc32.c |    1 -
- arch/sparc64/kernel/sys_sunos32.c |    1 -
- arch/sparc64/kernel/time.c        |    2 --
- 5 files changed, 0 insertions(+), 6 deletions(-)
+Secondly: You might want the raid speedup patches that implement
+prioritized queueing. That reduces the number of incomplete stripes
+written to disk and thus speeds up things a lot.
 
-diff --git a/arch/sparc64/kernel/ds.c b/arch/sparc64/kernel/ds.c
-index 9f472a7..eeb5a2f 100644
---- a/arch/sparc64/kernel/ds.c
-+++ b/arch/sparc64/kernel/ds.c
-@@ -6,7 +6,6 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/types.h>
--#include <linux/module.h>
- #include <linux/string.h>
- #include <linux/slab.h>
- #include <linux/sched.h>
-diff --git a/arch/sparc64/kernel/module.c b/arch/sparc64/kernel/module.c
-index 5798715..158484b 100644
---- a/arch/sparc64/kernel/module.c
-+++ b/arch/sparc64/kernel/module.c
-@@ -11,7 +11,6 @@
- #include <linux/fs.h>
- #include <linux/string.h>
- #include <linux/slab.h>
--#include <linux/vmalloc.h>
- #include <linux/mm.h>
- 
- #include <asm/processor.h>
-diff --git a/arch/sparc64/kernel/sys_sparc32.c b/arch/sparc64/kernel/sys_sparc32.c
-index 78caff9..98c4688 100644
---- a/arch/sparc64/kernel/sys_sparc32.c
-+++ b/arch/sparc64/kernel/sys_sparc32.c
-@@ -51,7 +51,6 @@
- #include <linux/vfs.h>
- #include <linux/netfilter_ipv4/ip_tables.h>
- #include <linux/ptrace.h>
--#include <linux/highuid.h>
- 
- #include <asm/types.h>
- #include <asm/uaccess.h>
-diff --git a/arch/sparc64/kernel/sys_sunos32.c b/arch/sparc64/kernel/sys_sunos32.c
-index 170d6ca..cfc22d3 100644
---- a/arch/sparc64/kernel/sys_sunos32.c
-+++ b/arch/sparc64/kernel/sys_sunos32.c
-@@ -57,7 +57,6 @@
- #include <linux/personality.h>
- 
- /* For SOCKET_I */
--#include <linux/socket.h>
- #include <net/sock.h>
- #include <net/compat.h>
- 
-diff --git a/arch/sparc64/kernel/time.c b/arch/sparc64/kernel/time.c
-index cd8c740..54bdb88 100644
---- a/arch/sparc64/kernel/time.c
-+++ b/arch/sparc64/kernel/time.c
-@@ -28,7 +28,6 @@
- #include <linux/jiffies.h>
- #include <linux/cpufreq.h>
- #include <linux/percpu.h>
--#include <linux/profile.h>
- #include <linux/miscdevice.h>
- #include <linux/rtc.h>
- #include <linux/kernel_stat.h>
-@@ -47,7 +46,6 @@
- #include <asm/sections.h>
- #include <asm/cpudata.h>
- #include <asm/uaccess.h>
--#include <asm/prom.h>
- #include <asm/irq_regs.h>
- 
- DEFINE_SPINLOCK(mostek_lock);
--- 
-1.5.3.rc7
+Thirdly: If you have multiple cores then you probably want patches to
+multithread the raid5 code. With just one thread it is ultimately cpu
+bound and just won't get faster. XORing and maintainance overhead
+seems to be awfully cpu intensive.
 
+Fourth: Learn to live with it. Software Raid5/6 is expensive.
+
+> and some process are in D state :
+> Root gershwin:[/etc] > ps auwx | grep D
+> USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+> root       270  0.0  0.0      0     0 ?        D    Oct27   1:17 [pdflush]
+> root      3676  0.9  0.0      0     0 ?        D    Oct27  56:03 [nfsd]
+> root      5435  0.0  0.0      0     0 ?        D<   Oct27   3:16 [md7_rai=
+d1]
+> root      5438  0.0  0.0      0     0 ?        D<   Oct27   1:01 [kjourna=
+ld]
+> root      5440  0.0  0.0      0     0 ?        D<   Oct27   0:33 [loop0]
+> root      5441  0.0  0.0      0     0 ?        D<   Oct27   0:05 [kjourna=
+ld]
+> root     16442  0.0  0.0  20032  1208 pts/2    D+   13:23   0:00 iftop
+> -i eth2
+>
+> 	Why md7_raid is in D state ? Same question about iftop ?
+
+I would say it is just waiting for the underlying devices to finish
+some I/O request. And iftop will be in some kernel call waiting for
+something or other.
+
+MfG
+        Goswin
