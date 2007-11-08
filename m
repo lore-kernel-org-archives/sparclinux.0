@@ -1,7 +1,7 @@
-From: Bernd Zeimetz <bernd@bzed.de>
-Date: Wed, 07 Nov 2007 14:35:42 +0000
+From: David Miller <davem@davemloft.net>
+Date: Thu, 08 Nov 2007 00:01:11 +0000
 Subject: Re: Fix for sparc64 cpu hangs.
-Message-Id: <4731CD3E.3070201@bzed.de>
+Message-Id: <20071107.160111.76336699.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20071106.203433.144763156.davem@davemloft.net>
 In-Reply-To: <20071106.203433.144763156.davem@davemloft.net>
@@ -10,14 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+From: Bernd Zeimetz <bernd@bzed.de>
+Date: Wed, 07 Nov 2007 15:35:42 +0100
 
-> But I did the artificial tests, like running dpkg-query --search libc.so.6
-> in loops, and this seems to work well. Thanks a lot!
 > 
+> > But I did the artificial tests, like running dpkg-query --search libc.so.6
+> > in loops, and this seems to work well. Thanks a lot!
+> > 
+> 
+> I was running aptitude -u in a loop for half an hour now, and it didn't
+> crash, so I assume that fixed the bug. Many thanks for the patch David!
 
-I was running aptitude -u in a loop for half an hour now, and it didn't
-crash, so I assume that fixed the bug. Many thanks for the patch David!
-
--- 
-Bernd Zeimetz
-<bernd@bzed.de>                         <http://bzed.de/>
+Many thanks for testing :-)
