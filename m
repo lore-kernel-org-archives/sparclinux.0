@@ -1,24 +1,71 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 08 Nov 2007 00:01:11 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Fri, 09 Nov 2007 20:22:08 +0000
 Subject: Re: Fix for sparc64 cpu hangs.
-Message-Id: <20071107.160111.76336699.davem@davemloft.net>
+Message-Id: <20071109122208.5b6794ea.akpm@linux-foundation.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20071106.203433.144763156.davem@davemloft.net>
-In-Reply-To: <20071106.203433.144763156.davem@davemloft.net>
+	<20071106.211356.60087540.davem@davemloft.net>
+In-Reply-To: <20071106.211356.60087540.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: torvalds@linux-foundation.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, bernd@bzed.de, joy@entuzijast.net, fabbione@ubuntu.com, arnd@arndb.de, stable@kernel.org
 
-From: Bernd Zeimetz <bernd@bzed.de>
-Date: Wed, 07 Nov 2007 15:35:42 +0100
+On Tue, 06 Nov 2007 21:13:56 -0800 (PST)
+David Miller <davem@davemloft.net> wrote:
 
+> From: David Miller <davem@davemloft.net>
+> Date: Tue, 06 Nov 2007 20:34:33 -0800 (PST)
 > 
-> > But I did the artificial tests, like running dpkg-query --search libc.so.6
-> > in loops, and this seems to work well. Thanks a lot!
-> > 
+> > [FUTEX]: Fix address computation in compat code.
 > 
-> I was running aptitude -u in a loop for half an hour now, and it didn't
-> crash, so I assume that fixed the bug. Many thanks for the patch David!
+> Sorry, I just noticed there is a second handle_futex_death()
+> call in compat_exit_robust_list() which has the same
+> address computation bug.
+> 
+> Here is an updated patch:
+> 
+> [FUTEX]: Fix address computation in compat code.
+> 
+> compat_exit_robust_list() computes a pointer to the
+> futex entry in userspace as follows:
+> 
+> 	(void __user *)entry + futex_offset
+> 
+> 'entry' is a 'struct robust_list __user *', and
+> 'futex_offset' is a 'compat_long_t' (typically a 's32').
+> 
+> Things explode if the 32-bit sign bit is set in futex_offset.
+> 
+> Type promotion sign extends futex_offset to a 64-bit value before
+> adding it to 'entry'.
+> 
+> This triggered a problem on sparc64 running 32-bit applications which
+> would lock up a cpu looping forever in the fault handling for the
+> userspace load in handle_futex_death().
+> 
+> Compat userspace runs with address masking (wherein the cpu zeros out
+> the top 32-bits of every effective address given to a memory operation
+> instruction) so the sparc64 fault handler accounts for this by
+> zero'ing out the top 32-bits of the fault address too.
+> 
+> Since the kernel properly uses the compat_uptr interfaces, kernel side
+> accesses to compat userspace work too since they will only use
+> addresses with the top 32-bit clear.
+> 
+> Because of this compat futex layer bug we get into the following loop
+> when executing the get_user() load near the top of handle_futex_death():
+> 
+> 1) load from address '0xfffffffff7f16bd8', FAULT
+> 2) fault handler clears upper 32-bits, processes fault
+>    for address '0xf7f16bd8' which succeeds
+> 3) goto #1
+> 
+> I want to thank Bernd Zeimetz, Josip Rodin, and Fabio Massimo Di Nitto
+> for their tireless efforts helping me track down this bug.
+> 
 
-Many thanks for testing :-)
+I tagged this as needed-in-2.6.23.x.  Please let me know if that is not
+appropriate.
+
