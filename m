@@ -1,56 +1,51 @@
-From: Mikael Pettersson <mikpe@it.uu.se>
-Date: Thu, 08 Nov 2007 10:00:51 +0000
-Subject: [BUG 2.6.24-rc2] sparc64 sysctl table check failed
-Message-Id: <200711081000.lA8A0pex016234@alkaid.it.uu.se>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 20 Nov 2007 05:36:14 +0000
+Subject: Re: [BUG 2.6.24-rc2] sparc64 sysctl table check failed
+Message-Id: <20071119.213614.140630040.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <200711081000.lA8A0pex016234@alkaid.it.uu.se>
+In-Reply-To: <200711081000.lA8A0pex016234@alkaid.it.uu.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Booting 2.6.24-rc2 on my Ultra5 results in:
+From: Mikael Pettersson <mikpe@it.uu.se>
+Date: Thu, 8 Nov 2007 11:00:51 +0100 (MET)
 
-PROMLIB: Sun IEEE Boot Prom 'OBP 3.25.3 2000/06/29 14:12'
-PROMLIB: Root node compatible: 
-Linux version 2.6.24-rc2 (mikpe@sparge) (gcc version 4.2.2) #1 Thu Nov 8 01:14:09 CET 2007
-ARCH: SUN4U
-Ethernet address: 08:00:20:fd:ec:1f
-[0000000200000000-fffff80000400000] page_structs&2144 node=0 entry=0/0
-[0000000200000000-fffff80000800000] page_structs&2144 node=0 entry=1/0
-[0000000200000000-fffff80000c00000] page_structs&2144 node=0 entry=2/0
-[0000000200000000-fffff80001000000] page_structs&2144 node=0 entry=3/0
-OF stdout device is: /pci@1f,0/pci@1,1/SUNW,m64B@2
-PROM: Built device tree with 46617 bytes of memory.
-On node 0 totalpages: 32300
-  Normal zone: 335 pages used for memmap
-  Normal zone: 0 pages reserved
-  Normal zone: 31965 pages, LIFO batch:7
-  Movable zone: 0 pages used for memmap
-Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 31965
-Kernel command line: ro root=/dev/sda5
-PID hash table entries: 1024 (order: 10, 8192 bytes)
-clocksource: mult[28000] shift[16]
-clockevent: mult[66666666] shift[32]
-Console: colour dummy device 80x25
-console [tty0] enabled
-Dentry cache hash table entries: 32768 (order: 5, 262144 bytes)
-Inode-cache hash table entries: 16384 (order: 4, 131072 bytes)
-Memory: 241016k available (1928k kernel code, 744k data, 104k init) [fffff80000000000,0000000017f46000]
-SLUB: Genslabs, HWalign2, Order=0-2, MinObjects=8, CPUs=1, Nodes=1
-Calibrating delay using timer specific routine.. 800.67 BogoMIPS (lpj@03390)
-Mount-cache hash table entries: 512
-net_namespace: 120 bytes
-sysctl table check failed: /kernel/scons-poweroff .1.64 procname does not match binary path procname
-Call Trace:
- [000000000046bb88] sysctl_check_table+0x650/0x690
- [000000000046bb9c] sysctl_check_table+0x664/0x690
- [00000000006afe80] sysctl_init+0x20/0x28
- [00000000006a8200] kernel_init+0xf0/0x270
- [0000000000427344] kernel_thread+0x38/0x48
- [00000000005e2954] rest_init+0x18/0x58
-NET: Registered protocol family 16
-...
+> Booting 2.6.24-rc2 on my Ultra5 results in:
+ ...
+> sysctl table check failed: /kernel/scons-poweroff .1.64 procname does not match binary path procname
+> Call Trace:
+>  [000000000046bb88] sysctl_check_table+0x650/0x690
+>  [000000000046bb9c] sysctl_check_table+0x664/0x690
+>  [00000000006afe80] sysctl_init+0x20/0x28
+>  [00000000006a8200] kernel_init+0xf0/0x270
+>  [0000000000427344] kernel_thread+0x38/0x48
+>  [00000000005e2954] rest_init+0x18/0x58
 
-Apart from this, the kernel seems to be working fine.
+Thanks for the report, I'll fix it like this:
 
-/Mikael
+commit 6afd943d0374b77af902578cd501d0ba02162e18
+Author: David S. Miller <davem@sunset.davemloft.net>
+Date:   Mon Nov 19 21:35:42 2007 -0800
+
+    [SYSCTL_CHECK]: Fix typo in KERN_SPARC_SCONS_PWROFF entry string.
+    
+    Based upon a report by Mikael Pettersson.
+    
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+diff --git a/kernel/sysctl_check.c b/kernel/sysctl_check.c
+index 4abc6d2..603e727 100644
+--- a/kernel/sysctl_check.c
++++ b/kernel/sysctl_check.c
+@@ -96,7 +96,7 @@ static struct trans_ctl_table trans_kern_table[] = {
+ 
+ 	{ KERN_PTY,			"pty",		trans_pty_table },
+ 	{ KERN_NGROUPS_MAX,		"ngroups_max" },
+-	{ KERN_SPARC_SCONS_PWROFF,	"scons_poweroff" },
++	{ KERN_SPARC_SCONS_PWROFF,	"scons-poweroff" },
+ 	{ KERN_HZ_TIMER,		"hz_timer" },
+ 	{ KERN_UNKNOWN_NMI_PANIC,	"unknown_nmi_panic" },
+ 	{ KERN_BOOTLOADER_TYPE,		"bootloader_type" },
