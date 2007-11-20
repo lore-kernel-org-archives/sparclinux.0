@@ -1,45 +1,22 @@
-From: Joe Perches <joe@perches.com>
-Date: Tue, 20 Nov 2007 01:47:59 +0000
-Subject: [PATCH 07/59] arch/sparc64: Add missing "space"
-Message-Id: <2cb1c8daa0f34a5506b88cf5b350660896c8a45b.1195454434.git.joe@perches.com>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 20 Nov 2007 07:43:30 +0000
+Subject: Re: [PATCH 07/59] arch/sparc64: Add missing "space"
+Message-Id: <20071119.234330.153388047.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: 1234567
- <1195523331-15303-1-git-send-email-joe@perches.com>
- <1195523331-15303-2-git-send-email-joe@perches.com>
- <1195523331-15303-3-git-send-email-joe@perches.com>
- <1195523331-15303-4-git-send-email-joe@perches.com>
- <1195523331-15303-5-git-send-email-joe@perches.com>
- <1195523331-15303-6-git-send-email-joe@perches.com>
- <1195523331-15303-7-git-send-email-joe@perches.com>
-In-Reply-To: <1195523331-15303-7-git-send-email-joe@perches.com>
+References: <1195523331-15303-7-git-send-email-joe@perches.com>
+	<ee1678e1bc8b80b7ae420059fffc7241486ea91a.1195454434.git.joe@perches.com>
+	<1195523331-15303-8-git-send-email-joe@perches.com>
+In-Reply-To: <1195523331-15303-8-git-send-email-joe@perches.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: joe@perches.com
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
+From: Joe Perches <joe@perches.com>
+Date: Mon, 19 Nov 2007 17:47:59 -0800
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- arch/sparc64/kernel/smp.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
 
-diff --git a/arch/sparc64/kernel/smp.c b/arch/sparc64/kernel/smp.c
-index 7cd8d94..894b506 100644
---- a/arch/sparc64/kernel/smp.c
-+++ b/arch/sparc64/kernel/smp.c
-@@ -236,8 +236,9 @@ void smp_synchronize_tick_client(void)
- 		       t[i].rt, t[i].master, t[i].diff, t[i].lat);
- #endif
- 
--	printk(KERN_INFO "CPU %d: synchronized TICK with master CPU (last diff %ld cycles,"
--	       "maxerr %lu cycles)\n", smp_processor_id(), delta, rt);
-+	printk(KERN_INFO "CPU %d: synchronized TICK with master CPU "
-+	       "(last diff %ld cycles, maxerr %lu cycles)\n",
-+	       smp_processor_id(), delta, rt);
- }
- 
- static void smp_start_sync_tick_client(int cpu);
--- 
-1.5.3.5.652.gf192c
-
+Applied.
