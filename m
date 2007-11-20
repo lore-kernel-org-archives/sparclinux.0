@@ -1,31 +1,39 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 20 Nov 2007 02:15:47 +0000
-Subject: Re: [RFC] Minor cleanups of the sparc serial drivers
-Message-Id: <20071119.181547.45982194.davem@davemloft.net>
+From: Cyrill Gorcunov <gorcunov@gmail.com>
+Date: Tue, 20 Nov 2007 17:28:33 +0000
+Subject: [PATCH] SPARC64: check for possible NULL pointer dereference
+Message-Id: <20071120172833.GB7275@cvg>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20071120021014.GA15879@palantir8>
-In-Reply-To: <20071120021014.GA15879@palantir8>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: LKML <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org
 
-From: Martin Habets <errandir_news@mph.eclipse.co.uk>
-Date: Tue, 20 Nov 2007 02:10:15 +0000
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-> This patch against 2.6.23 sparc-2.6.git contains a number of minor cleanups
-> of the sparc serial drivers.
-> Initially I fixed this build warning:
-> 
-> WARNING: vmlinux.o(.text+0x107a2c): Section mismatch: reference to .init.text:add_preferred_console (between 'sunserial_console_match' and 'sunserial_console_termios')
-> 
-> which is done by declaring sunserial_console_match() as __init.
+This patch adds checking for possible NULL pointer dereference
+if of_find_property() failed.
 
-I haven't touched this known problem because I think it's legitimate
-to register serial consoles from a module, yet the current console
-layer doesn't allow it.
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+---
+I'm not sure about the message being printed in worst case.
+Check please.
 
-I can't think of a clean way to make add_preferred_console() non-init
-so I'll likely apply your patch.
+ arch/sparc64/kernel/pci_sun4v.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-Thanks!
+diff --git a/arch/sparc64/kernel/pci_sun4v.c b/arch/sparc64/kernel/pci_sun4v.c
+index 8c4875b..e587a37 100644
+--- a/arch/sparc64/kernel/pci_sun4v.c
++++ b/arch/sparc64/kernel/pci_sun4v.c
+@@ -1022,6 +1022,10 @@ void __init sun4v_pci_init(struct device_node *dp, char *model_name)
+ 	}
+ 
+ 	prop = of_find_property(dp, "reg", NULL);
++	if (!prop) {
++		prom_printf("SUN4V_PCI: Could not find config registers\n");
++		prom_halt();
++	}
+ 	regs = prop->value;
+ 
+ 	devhandle = (regs->phys_addr >> 32UL) & 0x0fffffff;
