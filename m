@@ -1,80 +1,104 @@
-From: Martin Habets <errandir_news@mph.eclipse.co.uk>
-Date: Thu, 22 Nov 2007 21:03:39 +0000
-Subject: Re: IRQ handler type mismatch for IRQ3
-Message-Id: <20071122210339.GA21938@palantir8>
+From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
+Date: Fri, 23 Nov 2007 12:15:07 +0000
+Subject: NETDEV WATCHDOG (3Com 3c905 adapter)
+Message-Id: <4746C44B.8040008@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.0711212349510.15559@fbirervta.pbzchgretzou.qr>
-In-Reply-To: <Pine.LNX.4.64.0711212349510.15559@fbirervta.pbzchgretzou.qr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Seems this IRQ mismatch is intentional. You can avoid the messages by
-turning off CONFIG_DEBUG_SHIRQ.
-From psycho_register_error_handlers():
+	Hello,
 
-        /* We really mean to ignore the return result here.  Two
-         * PCI controller share the same interrupt numbers and
-         * drive the same front-end hardware.  Whichever of the
-         * two get in here first will register the IRQ handler
-         * the second will just error out since we do not pass in
-         * IRQF_SHARED.
-         */
-        err = request_irq(op->irqs[1], psycho_ue_intr, 0,
-                          "PSYCHO_UE", pbm);
-        err = request_irq(op->irqs[2], psycho_ce_intr, 0,
-                          "PSYCHO_CE", pbm);
+	Since I have installed a 2.6.23.1 linux kernel on my U60, I can see 
+several NETDEV WATCHDOG. This trouble never occurs with 2.6.23-rc4.
+This bug occurs after a random uptime.
 
-Cheers,
-Martin
+End of dmesg :
 
-On Wed, Nov 21, 2007 at 11:54:11PM +0100, Jan Engelhardt wrote:
-> Hi,
-> 
-> 
-> booting the current aurora CD1 
-> (/aurora/corona/sparc/iso/AL-2.99-sparc-disc1.iso) with the 
-> 2.6.23.1-26.5.al3 kernel prints out some call traces during boot:
-> 
-> IRQ handler type mismatch for IRQ 2
-> current handler: PSYCHO_UE
-> Call Trace:
->  [0000000000489914] request_irq+0xd8/0x104
->  [000000000043d700] psycho_scan_bus+0x8c/0x140
->  [00000000007aa948] pcibios_init+0x38/0x64
->  [00000000007a2268] kernel_init+0xd4/0x274
->  [0000000000427838] kernel_thread+0x38/0x48
->  [000000000067cfc8] rest_init+0x18/0x5c
-> IRQ handler type mismatch for IRQ 3
-> current handler: PSYCHO_CE
-> Call Trace:
->  [0000000000489914] request_irq+0xd8/0x104
->  [000000000043d720] psycho_scan_bus+0xac/0x140
->  [00000000007aa948] pcibios_init+0x38/0x64
->  [00000000007a2268] kernel_init+0xd4/0x274
->  [0000000000427838] kernel_thread+0x38/0x48
->  [000000000067cfc8] rest_init+0x18/0x5c
-> 
-> sh-3.1# cat /proc/interrupts 
->            CPU0       
->   0:      47352     <NULL>  timer
->   1:          0      sun4u  PSYCHO_PCIERR
->   2:          0      sun4u  PSYCHO_UE
->   3:          0      sun4u  PSYCHO_CE
-> 
-> This trace was not present during 2.6.21. The boot proceeds 
-> fine though, but since call traces are always reminiscient of WARN_ON, 
-> BUG_ON and dump_stack, I though I'd ask.
-> 
-> 
-> 
-> sh-3.1# lspci
-> 0000:00:00.0 Host bridge: Sun Microsystems Computer Corp. Psycho PCI Bus Module
-> 0000:00:01.0 Bridge: Sun Microsystems Computer Corp. EBUS (rev 01)
-> 0000:00:01.1 Ethernet controller: Sun Microsystems Computer Corp. Happy Meal (rev 01)
-> 0000:00:02.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL-8139/8139C/8139C+ (rev 10)
-> 0000:00:03.0 SCSI storage controller: LSI Logic / Symbios Logic 53c875 (rev 14)
-> 0000:00:03.1 SCSI storage controller: LSI Logic / Symbios Logic 53c875 (rev 14)
-> 0000:00:05.0 VGA compatible controller: ATI Technologies Inc Rage XL (rev 27)
-> 0001:00:00.0 Host bridge: Sun Microsystems Computer Corp. Psycho PCI Bus Module
+NETDEV WATCHDOG: eth2: transmit timed out
+eth2: transmit timed out, tx_status 00 status 8601.
+   diagnostics: net 0ccc media 8880 dma 0000003a fifo 0000
+eth2: Interrupt posted but not delivered -- IRQ blocked by another device?
+   Flags; bus-master 1, dirty 144(0) current 144(0)
+   Transmit list 00000000 vs. fffff800a06b0200.
+   0: @fffff800a06b0200  length 8000004a status 0001004a
+   1: @fffff800a06b0260  length 80000062 status 00010062
+   2: @fffff800a06b02c0  length 80000062 status 00010062
+   3: @fffff800a06b0320  length 80000062 status 00010062
+   4: @fffff800a06b0380  length 80000062 status 00010062
+   5: @fffff800a06b03e0  length 80000062 status 00010062
+   6: @fffff800a06b0440  length 80000062 status 00010062
+   7: @fffff800a06b04a0  length 80000062 status 00010062
+   8: @fffff800a06b0500  length 80000062 status 00010062
+   9: @fffff800a06b0560  length 80000062 status 00010062
+   10: @fffff800a06b05c0  length 80000062 status 00010062
+   11: @fffff800a06b0620  length 80000062 status 00010062
+   12: @fffff800a06b0680  length 80000062 status 00010062
+   13: @fffff800a06b06e0  length 8000004a status 0001004a
+   14: @fffff800a06b0740  length 80000062 status 80010062
+   15: @fffff800a06b07a0  length 80000062 status 80010062
+eth2: Resetting the Tx ring pointer.
+eth2:  setting full-duplex.
+
+Root rayleigh:[/proc] > cat interrupts
+            CPU0       CPU2
+   0:  318071624  318071584     <NULL>  timer
+   1:          0          0      sun4u  PSYCHO_PCIERR
+   2:          0          0      sun4u  PSYCHO_UE
+   3:          0          0      sun4u  PSYCHO_CE
+   8:     559916          0      sun4u  su(kbd)
+   9:          0    4170845      sun4u  su(mouse)
+  10:          0          0      sun4u  parport0
+  11:          2          0      sun4u  floppy
+  12:          0          0      sun4u  cs4231(capture)
+  13:     789858          0      sun4u  cs4231(play)
+  14:       1329   17123911      sun4u  eth0
+  15:          0   15905664      sun4u  sym53c8xx
+  16:         30          0      sun4u  sym53c8xx
+  17:     364465     223693      sun4u  eth2
+  18:   11043701          0      sun4u  aic7xxx
+  19:          1      50585      sun4u  ohci_hcd:usb2
+  20:          0          0      sun4u  ohci_hcd:usb3
+  21:          1          1      sun4u  ehci_hcd:usb1
+  22:          0          0      sun4u  PSYCHO_PCIERR
+  24:   17346674        332      sun4u  eth1
+Root rayleigh:[/proc] > lspci
+0000:00:00.0 Host bridge: Sun Microsystems Computer Corp. Psycho PCI Bus 
+Module
+0000:00:01.0 Bridge: Sun Microsystems Computer Corp. EBUS (rev 01)
+0000:00:01.1 Ethernet controller: Sun Microsystems Computer Corp. Happy 
+Meal (rev 01)
+0000:00:02.0 Ethernet controller: 3Com Corporation 3c905C-TX/TX-M 
+[Tornado] (rev 78)
+0000:00:03.0 SCSI storage controller: LSI Logic / Symbios Logic 53c875 
+(rev 14)
+0000:00:03.1 SCSI storage controller: LSI Logic / Symbios Logic 53c875 
+(rev 14)
+0000:00:04.0 SCSI storage controller: Adaptec AIC-7892A U160/m (rev 02)
+0000:00:05.0 USB Controller: NEC Corporation USB (rev 43)
+0000:00:05.1 USB Controller: NEC Corporation USB (rev 43)
+0000:00:05.2 USB Controller: NEC Corporation USB 2.0 (rev 04)
+0001:00:00.0 Host bridge: Sun Microsystems Computer Corp. Psycho PCI Bus 
+Module
+0001:80:01.0 Bridge: Sun Microsystems Computer Corp. EBUS (rev 01)
+0001:80:01.1 Ethernet controller: Sun Microsystems Computer Corp. Happy 
+Meal (rev 01)
+Root rayleigh:[/proc] > cat irq/17/smp_affinity
+f
+Root rayleigh:[/proc/net] > cat dev
+Inter-|   Receive                                                |  Transmit
+  face |bytes    packets errs drop fifo frame compressed multicast|bytes 
+    packets errs drop fifo colls carrier compressed
+   eth1:9421385785 9787261    0    0    0     0          0         0 
+2418854910 7465439    0    0    0     0       0          0
+   eth0:3977175515 8320824    0    0    0     0          0         0 
+8252404266 9204851    0    0    0     0       0          0
+   eth2:47410723  344515    0    0   51     0          0         0 
+31875309  278022  872    0    0     0       0          0
+     lo:240810303 1749211    0    0    0     0          0         0 
+240810303 1749211    0    0    0     0       0          0
+
+	Regards,
+
+	JKB
