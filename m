@@ -1,55 +1,35 @@
-From: Adrian Bunk <bunk@kernel.org>
-Date: Sat, 29 Dec 2007 09:53:26 +0000
-Subject: Re: 2.6.24-rc6-mm1: some section mismatches on sparc64
-Message-Id: <20071229095326.GD27360@does.not.exist>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 01 Dec 2007 12:12:10 +0000
+Subject: Re: [ANNOUNCE] Aurora SPARC Linux Build 2.99 (Beta 2 for 3.0)
+Message-Id: <20071201.041210.193707521.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20071229084846.GA27360@does.not.exist> <20071229.005408.76652528.davem@davemloft.net> <20071229090619.GB27360@does.not.exist> <20071229.011802.76136568.davem@davemloft.net>
-In-Reply-To: <20071229.011802.76136568.davem@davemloft.net>
+References: <1196454535.3432.18.camel@localhost.localdomain>
+In-Reply-To: <1196454535.3432.18.camel@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: errandir_news@mph.eclipse.co.uk, m.kozlowski@tuxland.pl, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Sat, Dec 29, 2007 at 01:18:02AM -0800, David Miller wrote:
-> From: Adrian Bunk <bunk@kernel.org>
-> Date: Sat, 29 Dec 2007 11:06:19 +0200
-> 
-> > On Sat, Dec 29, 2007 at 12:54:08AM -0800, David Miller wrote:
-> > > From: Adrian Bunk <bunk@kernel.org>
-> > > Date: Sat, 29 Dec 2007 10:48:46 +0200
-> > > 
-> > > > On Sat, Dec 29, 2007 at 12:14:11AM -0800, David Miller wrote:
-> > > > > That's why I'm not worried about this issue and it's not critical at
-> > > > > all.
-> > > > 
-> > > > If a module calls sunserial_console_match() that's an Oops.
-> > > 
-> > > That's true.
-> > > 
-> > > I'm trying to figure out a way to fix this.
-> > 
-> > #ifdef FOO_CONSOLE around the sunserial_console_match() calls in the  
-> > drivers should work.
-> 
-> It absolutely doesn't work, I tried this, see my other reply.
-> 
-> The issue is add_preferred_console() is __init, driver probe calls are
-> __devinit which are either __init or not __init.
-> 
-> So even with the FOO_CONSOLE ifdef (or something similar like the
-> patch I posted) we'll still get section mismatch warnings.
->...
+From: "Tom \"spot\" Callaway" <tcallawa@redhat.com>
+Date: Fri, 30 Nov 2007 15:28:55 -0500
 
-Sorry, I shouldn't suggest stuff I haven't tried myself... :-(
+> - Smartd seems to make systems using the esp.ko SCSI driver very very
+> unhappy. If your system is esp based, we highly recommend that you
+> disable the smartd service in single-user before fully booting after
+> install.
 
-cu
-Adrian
+Didn't we spend half of last year fixing this via my
+completely rewritten new driver? :-)
 
--- 
+> - Most IDE based SPARC systems need to boot with ide=nodma.
+> Specifically, Ultra 5/10 and Sun Blade 100s need this for sure.
 
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
+I'll try to hit this and fix it when I get back from Korea.
+
+> - Systems that boot off qlogic attached disks are not supported, because 
+> there is no working firmware loader in anaconda, and the qlogic driver 
+> needs firmware.
+
+That's very unfortunate, how are qlogic device handled on other
+platforms?
 
