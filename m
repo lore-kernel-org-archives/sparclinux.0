@@ -1,24 +1,30 @@
-From: Javier Barrio <coder@fluzo.org>
-Date: Tue, 11 Dec 2007 15:47:32 +0000
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Date: Wed, 12 Dec 2007 23:30:45 +0000
 Subject: Re: Why/when use 0x10 and 0x90 for system calls?
-Message-Id: <20071211164732.2f6f868d@jbarrio.inet.s2k>
+Message-Id: <Pine.LNX.4.64.0712130030100.32346@fbirervta.pbzchgretzou.qr>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1d1b2964cccd05bccee60c12f0abf191@localhost>
 In-Reply-To: <1d1b2964cccd05bccee60c12f0abf191@localhost>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="tis-620"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Ck9oLCBJIHRoaW5rIEkgZ290IGl0OgoKdGEgMHgxMCBzZWVtcyB0byBhY3R1YWxseSBiZWNvbWUg
-aW4gCgp0cmFwIGFsd2F5cyBIVl9GQVNUX1RSQVAgKyAweDEwID0gdGEgMHg4MCsweDEwID0gdGEg
-MHg5MAoKVGhlIHNhbWUgYXBwbGllcyBmb3IgJ3RhIDB4OCcgZm9yIFNvbGFyaXMgYmluYXJ5IGVt
-dWxhdGlvbjoKCjB4OCArIDB4ODAgPSAweDg4CgpJdCBzZWVtcyB0aGUgT1MvY29tcGlsZXIgaXMg
-c21hcnQgZW5vdWdoIHRvIHVuZGVyc3RhbmQgYm90aCAweDkwIGFuZAoweDEwIHdoaWxlIHN0cmFj
-ZSBpcyBub3QuCgpDaGVlcnMuCi0tIAplY2hvICJkcGVmc0FnbXZ7cC9wc2giIHwgcGVybCAtcGUg
-J3MvKC4pL2NocihvcmQoJDEpLTEpL2dlJwpHbnVQRyBrZXkgSUQgMHg2RDJGRjhCNSBAIHBncC5y
-ZWRpcmlzLmVzCmh0dHA6Ly93d3cuZmx1em8ub3JnLwo8wrogKSkpKT48Ci0KVG8gdW5zdWJzY3Jp
-YmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIHNwYXJjbGludXgi
-IGluCnRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnCk1v
-cmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWlu
-Zm8uaHRtbA==
+
+On Dec 11 2007 16:47, Javier Barrio wrote:
+>
+>Oh, I think I got it:
+>
+>ta 0x10 seems to actually become in 
+>
+>trap always HV_FAST_TRAP + 0x10 = ta 0x80+0x10 = ta 0x90
+>
+>The same applies for 'ta 0x8' for Solaris binary emulation:
+>
+>0x8 + 0x80 = 0x88
+>
+>It seems the OS/compiler is smart enough to understand both 0x90 and
+>0x10 while strace is not.
+
+If so, you should find '... & 0x80' or similar in the kernel source
+and a lack there of in strace :)
