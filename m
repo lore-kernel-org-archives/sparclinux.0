@@ -1,26 +1,37 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Sat, 22 Dec 2007 05:00:58 +0000
-Subject: Re: 2.6.24-rc5-mm1: problems with cat /proc/kpageflags
-Message-Id: <20071221210058.b30fef27.akpm@linux-foundation.org>
+From: Martin Habets <errandir_news@mph.eclipse.co.uk>
+Date: Fri, 14 Dec 2007 14:37:15 +0000
+Subject: [PATCH] Silence sparc32 warnings on missing syscalls
+Message-Id: <20071214143715.GA1434@palantir8>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20071220.045359.107684960.davem@davemloft.net>
-	<20071220.161726.68534356.davem@davemloft.net>
-	<20071221010653.GA19691@waste.org>
-	<200712212251.46397.m.kozlowski@tuxland.pl>
-In-Reply-To: <200712212251.46397.m.kozlowski@tuxland.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Matt Mackall <mpm@selenic.com>, David Miller <davem@davemloft.net>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Fri, 21 Dec 2007 22:51:45 +0100 Mariusz Kozlowski <m.kozlowski@tuxland.pl> wrote:
+Silence sparc32 warnings on missing syscalls, these won't be added.
+This patch is based on this mail:
+http://www.mail-archive.com/linux-arch@vger.kernel.org/msg02571.html
 
-> > Here's a test patch:
-> 
-> Tested on 2.6.23 and 2.6.24-rc5-mm1. The patch fixes the bug.
-> 
-> Thanks a lot to both of you.
+Martin
 
-Thank you for testing -mm (especially on sparc64) and for reporting
-the bug and for testing the fix.
+	Signed-off-by: Martin Habets <errandir_news@mph.eclipse.co.uk>
+---
+Index: 2.6/include/asm-sparc/unistd.h
+=================================--- 2.6.orig/include/asm-sparc/unistd.h	2007-12-13 18:09:39.000000000 +0000
++++ 2.6/include/asm-sparc/unistd.h	2007-12-13 18:12:09.000000000 +0000
+@@ -333,6 +333,15 @@
+ 
+ #define NR_SYSCALLS		315
+ 
++/* Sparc 32-bit only has the "setresuid32", "getresuid32" variants,
++ * it never had the plain ones and there is no value to adding those
++ * old versions into the syscall table.
++ */
++#define __IGNORE_setresuid
++#define __IGNORE_getresuid
++#define __IGNORE_setresgid
++#define __IGNORE_getresgid
++
+ #ifdef __KERNEL__
+ #define __ARCH_WANT_IPC_PARSE_VERSION
+ #define __ARCH_WANT_OLD_READDIR
