@@ -1,13 +1,16 @@
 From: "H. Peter Anvin" <hpa@zytor.com>
 Date: Mon, 17 Dec 2007 21:53:23 +0000
-Subject: [PATCH] Avoid overflows in kernel/time.c (version 3)
-Message-Id: <200712172228.lBHMSW3i019555@tazenda.hos.anvin.org>
+Subject: [PATCH] Avoid overflows in kernel/time.c (version 5)
+Message-Id: <200712180541.lBI5fnqB028037@tazenda.hos.anvin.org>
 List-Id: <sparclinux.vger.kernel.org>
+In-Reply-To: <20071218053729.GA13238@uranus.ravnborg.org>
+References: <200712172228.lBHMSW3i019555@tazenda.hos.anvin.org>
+In-Reply-To: <200712172228.lBHMSW3i019555@tazenda.hos.anvin.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Arch Mailing List <linux-arch@vger.kernel.org>, Ralf Baechle <ralf@linux-mips.org>, Sam Ravnborg <sam@ravnborg.org>, Paul Mundt <lethal@linux-sh.org>, Richard Henderson <rth@twiddle.net>, Michael Starvik <starvik@axis.com>, David Howells <dhowells@redhat.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Hirokazu Takata <takata@linux-m32r.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Roman Zippel <zippel@linux-m68k.org>, "William L. Irwin" <sparclinux@vger.kernel.org>, Chris Zankel <chris@zankel.net>, "H. Peter Anvin" <hpa@zytor.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Arch Mailing List <linux-arch@vger.kernel.org>, Ralf Baechle <ralf@linux-mips.org>, Sam Ravnborg <sam@ravnborg.org>, Paul Mundt <lethal@linux-sh.org>, Richard Henderson <rth@twiddle.net>, Michael Starvik <starvik@axis.com>, David Howells <dhowells@redhat.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Hirokazu Takata <takata@linux-m32r.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Roman Zippel <zippel@linux-m68k.org>, "William L. Irwin" <sparclinux@vger.kernel.org>, Chris Zankel <chris@zankel.net>, "H. Peter Anvin" <hpa@zytor.com>, Jan Engelhardt <jengelh@computergmbh.de>
 
 When the conversion factor between jiffies and milli- or microseconds
 is not a single multiply or divide, as for the case of HZ = 300, we
@@ -47,10 +50,14 @@ values from said table.
 Running the script requires that the HZ value is available from the
 Makefile.  Thus, this patch also adds the Kconfig variable CONFIG_HZ
 to the architectures which didn't already have it (alpha, cris, frv,
-h8300, m32r, m68k, m68knommu, sh64, sparc, v850, and xtensa.)
+h8300, m32r, m68k, m68knommu, sh64, sparc, v850, and xtensa.)  It does
+*not* resolve a weird case in the sh architecture, where HZ !CONFIG_HZ if CONFIG_SH_WDT is set.  Paul Mundt has been contacted
+about that, and has agreed to fix it up.
 
 Signed-off-by: H. Peter Anvin <hpa@zytor.com>
 ---
+Delta from previous version: remove redundant dependency in kernel/Makefile.
+
  arch/alpha/Kconfig            |    5 +
  arch/cris/Kconfig             |    4 +
  arch/frv/Kconfig              |    4 +
@@ -81,8 +88,8 @@ Signed-off-by: H. Peter Anvin <hpa@zytor.com>
  include/asm-xtensa/param.h    |    2 +-
  kernel/Makefile               |    8 +
  kernel/time.c                 |   29 +++-
- kernel/timeconst.pl           |  337 +++++++++++++++++++++++++++++++++++++++++
- 31 files changed, 428 insertions(+), 73 deletions(-)
+ kernel/timeconst.pl           |  340 +++++++++++++++++++++++++++++++++++++++++
+ 31 files changed, 431 insertions(+), 73 deletions(-)
  create mode 100644 kernel/timeconst.pl
 
 diff --git a/arch/alpha/Kconfig b/arch/alpha/Kconfig
@@ -510,7 +517,7 @@ index ce3a336..82ad34d 100644
  # define CLOCKS_PER_SEC (USER_HZ)	/* frequnzy at which times() counts */
  #endif
 diff --git a/kernel/Makefile b/kernel/Makefile
-index dfa9695..749825a 100644
+index dfa9695..3998ff7 100644
 --- a/kernel/Makefile
 +++ b/kernel/Makefile
 @@ -80,3 +80,11 @@ quiet_cmd_ikconfiggz = IKCFG   $@
@@ -523,7 +530,7 @@ index dfa9695..749825a 100644
 +quiet_cmd_timeconst  = TIMEC   $@
 +      cmd_timeconst  = $(PERL) $< $(CONFIG_HZ) > $@
 +targets += timeconst.h
-+$(obj)/timeconst.h: $(src)/timeconst.pl $(wildcard include/config/hz.h) FORCE
++$(obj)/timeconst.h: $(src)/timeconst.pl FORCE
 +	$(call if_changed,timeconst)
 diff --git a/kernel/time.c b/kernel/time.c
 index 09d3c45..8e790b5 100644
@@ -620,13 +627,13 @@ index 09d3c45..8e790b5 100644
  EXPORT_SYMBOL(usecs_to_jiffies);
 diff --git a/kernel/timeconst.pl b/kernel/timeconst.pl
 new file mode 100644
-index 0000000..fd46b3d
+index 0000000..42572e3
 --- /dev/null
 +++ b/kernel/timeconst.pl
-@@ -0,0 +1,337 @@
+@@ -0,0 +1,340 @@
 +#!/usr/bin/perl
 +# -----------------------------------------------------------------------
-+#   
++#
 +#   Copyright 2007 rPath, Inc. - All Rights Reserved
 +#
 +#   This file is part of the Linux kernel, and is made available under
@@ -783,12 +790,12 @@ index 0000000..fd46b3d
 +	]
 +);
 +
-+$has_bigint = eval 'use Math::BigInt qw(bgcd); 1;'; 
++$has_bigint = eval 'use Math::BigInt qw(bgcd); 1;';
 +
 +sub bint($)
 +{
-+    my($x) = @_;
-+    return Math::BigInt->new($x);
++	my($x) = @_;
++	return Math::BigInt->new($x);
 +}
 +
 +#
@@ -797,168 +804,171 @@ index 0000000..fd46b3d
 +#
 +sub fmul($$$)
 +{
-+    my ($b,$n,$d) = @_;
++	my ($b,$n,$d) = @_;
 +
-+    $n = bint($n);
-+    $d = bint($d);
++	$n = bint($n);
++	$d = bint($d);
 +
-+    return scalar (($n << $b)+$d-bint(1))/$d;
++	return scalar (($n << $b)+$d-bint(1))/$d;
 +}
 +
 +sub fadj($$$)
 +{
-+    my($b,$n,$d) = @_;
++	my($b,$n,$d) = @_;
 +
-+    $n = bint($n);
-+    $d = bint($d);
++	$n = bint($n);
++	$d = bint($d);
 +
-+    $d = $d/bgcd($n, $d);
-+    return scalar (($d-bint(1)) << $b)/$d;
++	$d = $d/bgcd($n, $d);
++	return scalar (($d-bint(1)) << $b)/$d;
 +}
 +
 +sub fmuls($$$) {
-+    my($b,$n,$d) = @_;
-+    my($s,$m);
-+    my($thres) = bint(1) << ($b-1);
++	my($b,$n,$d) = @_;
++	my($s,$m);
++	my($thres) = bint(1) << ($b-1);
 +
-+    $n = bint($n);
-+    $d = bint($d);
++	$n = bint($n);
++	$d = bint($d);
 +
-+    for ($s = 0; 1; $s++) {
-+	$m = fmul($s,$n,$d);
-+	return $s if ($m >= $thres);
-+    }
-+    return 0;
++	for ($s = 0; 1; $s++) {
++		$m = fmul($s,$n,$d);
++		return $s if ($m >= $thres);
++	}
++	return 0;
 +}
 +
 +sub compute_values($) {
-+    my($hz) = @_;
-+    my @val = ();
-+    my $s, $m, $a;
++	my($hz) = @_;
++	my @val = ();
++	my $s, $m, $a;
 +
-+    if (!$has_bigint) {
-+	die "$0: HZ = $hz not canned and Math::BigInt not available\n"
-+    }
++	if (!$has_bigint) {
++		die "$0: HZ = $hz not canned and ".
++		    "Math::BigInt not available\n";
++	}
 +
-+    # HZ_TO_MSEC_*32
-+    $s = fmuls(32, 1000, $hz);
-+    $m = fmul($s, 1000, $hz);
-+    $a = fadj($s, 1000, $hz);
-+    push(@val, $m->as_hex(), $a->as_hex(), $s);
++	# HZ_TO_MSEC_*32
++	$s = fmuls(32, 1000, $hz);
++	$m = fmul($s, 1000, $hz);
++	$a = fadj($s, 1000, $hz);
++	push(@val, $m->as_hex(), $a->as_hex(), $s);
 +
-+    # HZ_TO_MSEC_*64
-+    $s = fmuls(64, 1000, $hz);
-+    $m = fmul($s, 1000, $hz);
-+    $a = fadj($s, 1000, $hz);
-+    push(@val, $m->as_hex(), $a->as_hex(), $s);
-+    
-+    # MSEC_TO_HZ_*32
-+    $s = fmuls(32, $hz, 1000);
-+    $m = fmul($s, $hz, 1000);
-+    $a = fadj($s, $hz, 1000);
-+    push(@val, $m->as_hex(), $a->as_hex(), $s);
-+    
-+    # MSEC_TO_HZ_*64
-+    $s = fmuls(64, $hz, 1000);
-+    $m = fmul($s, $hz, 1000);
-+    $a = fadj($s, $hz, 1000);
-+    push(@val, $m->as_hex(), $a->as_hex(), $s);
++	# HZ_TO_MSEC_*64
++	$s = fmuls(64, 1000, $hz);
++	$m = fmul($s, 1000, $hz);
++	$a = fadj($s, 1000, $hz);
++	push(@val, $m->as_hex(), $a->as_hex(), $s);
 +
-+    # HZ_TO_USEC_*32
-+    $s = fmuls(32, 1000000, $hz);
-+    $m = fmul($s, 1000000, $hz);
-+    $a = fadj($s, 1000000, $hz);
-+    push(@val, $m->as_hex(), $a->as_hex(), $s);
++	# MSEC_TO_HZ_*32
++	$s = fmuls(32, $hz, 1000);
++	$m = fmul($s, $hz, 1000);
++	$a = fadj($s, $hz, 1000);
++	push(@val, $m->as_hex(), $a->as_hex(), $s);
 +
-+    # HZ_TO_USEC_*64
-+    $s = fmuls(64, 1000000, $hz);
-+    $m = fmul($s, 1000000, $hz);
-+    $a = fadj($s, 1000000, $hz);
-+    push(@val, $m->as_hex(), $a->as_hex(), $s);
-+    
-+    # USEC_TO_HZ_*32
-+    $s = fmuls(32, $hz, 1000000);
-+    $m = fmul($s, $hz, 1000000);
-+    $a = fadj($s, $hz, 1000000);
-+    push(@val, $m->as_hex(), $a->as_hex(), $s);
-+    
-+    # USEC_TO_HZ_*64
-+    $s = fmuls(64, $hz, 1000000);
-+    $m = fmul($s, $hz, 1000000);
-+    $a = fadj($s, $hz, 1000000);
-+    push(@val, $m->as_hex(), $a->as_hex(), $s);
++	# MSEC_TO_HZ_*64
++	$s = fmuls(64, $hz, 1000);
++	$m = fmul($s, $hz, 1000);
++	$a = fadj($s, $hz, 1000);
++	push(@val, $m->as_hex(), $a->as_hex(), $s);
 +
-+    return @val;
++	# HZ_TO_USEC_*32
++	$s = fmuls(32, 1000000, $hz);
++	$m = fmul($s, 1000000, $hz);
++	$a = fadj($s, 1000000, $hz);
++	push(@val, $m->as_hex(), $a->as_hex(), $s);
++
++	# HZ_TO_USEC_*64
++	$s = fmuls(64, 1000000, $hz);
++	$m = fmul($s, 1000000, $hz);
++	$a = fadj($s, 1000000, $hz);
++	push(@val, $m->as_hex(), $a->as_hex(), $s);
++
++	# USEC_TO_HZ_*32
++	$s = fmuls(32, $hz, 1000000);
++	$m = fmul($s, $hz, 1000000);
++	$a = fadj($s, $hz, 1000000);
++	push(@val, $m->as_hex(), $a->as_hex(), $s);
++
++	# USEC_TO_HZ_*64
++	$s = fmuls(64, $hz, 1000000);
++	$m = fmul($s, $hz, 1000000);
++	$a = fadj($s, $hz, 1000000);
++	push(@val, $m->as_hex(), $a->as_hex(), $s);
++
++	return @val;
 +}
 +
 +sub output($@)
 +{
-+    my($hz, @val) = @_;
-+    my $pfx, $bit, $suf, $s, $m, $a;
++	my($hz, @val) = @_;
++	my $pfx, $bit, $suf, $s, $m, $a;
 +
-+    print "/* Automatically generated by kernel/timeconst.pl */\n";
-+    print "/* Conversion constants for HZ = $hz */\n";
-+    print "\n";
-+    print "#ifndef KERNEL_TIMECONST_H\n";
-+    print "#define KERNEL_TIMECONST_H\n";
-+    print "\n";
++	print "/* Automatically generated by kernel/timeconst.pl */\n";
++	print "/* Conversion constants for HZ = $hz */\n";
++	print "\n";
++	print "#ifndef KERNEL_TIMECONST_H\n";
++	print "#define KERNEL_TIMECONST_H\n";
++	print "\n";
 +
-+    print "#include <linux/param.h>\n";
++	print "#include <linux/param.h>\n";
 +
-+    print "\n";
-+    print "#if HZ != $hz\n";
-+    print "#error \"kernel/timeconst.h has the wrong HZ value!\"\n";
-+    print "#endif\n";
-+    print "\n";
++	print "\n";
++	print "#if HZ != $hz\n";
++	print "#error \"kernel/timeconst.h has the wrong HZ value!\"\n";
++	print "#endif\n";
++	print "\n";
 +
-+    foreach $pfx ('HZ_TO_MSEC','MSEC_TO_HZ','USEC_TO_HZ','HZ_TO_USEC') {
-+	foreach $bit (32, 64) {
-+	    foreach $suf ('MUL', 'ADJ', 'SHR') {
-+		printf "#define %-23s %s\n", "${pfx}_$suf$bit", shift(@val);
-+	    }
++	foreach $pfx ('HZ_TO_MSEC','MSEC_TO_HZ',
++		      'USEC_TO_HZ','HZ_TO_USEC') {
++		foreach $bit (32, 64) {
++			foreach $suf ('MUL', 'ADJ', 'SHR') {
++				printf "#define %-23s %s\n",
++				"${pfx}_$suf$bit", shift(@val);
++			}
++		}
 +	}
-+    }
 +
-+    print "\n";
-+    print "#endif /* KERNEL_TIMECONST_H */\n";
++	print "\n";
++	print "#endif /* KERNEL_TIMECONST_H */\n";
 +}
 +
 +($hz) = @ARGV;
 +
 +# Use this to generate the %canned_values structure
 +if ($hz eq '--can') {
-+    shift(@ARGV);
-+    @hzlist = sort {$a <=> $b} (@ARGV);
-+    
-+    print "# Precomputed values for systems without Math::BigInt\n";
-+    print "# Generated by:\n";
-+    print "# timeconst.pl --can ", join(' ', @hzlist), "\n";
-+    print "\%canned_values = (\n";
-+    my $pf = "\t";
-+    foreach $hz (@hzlist) {
-+	my @values = compute_values($hz);
-+	print "$pf$hz => [\n";
-+	while (scalar(@values)) {
-+	    my $m = shift(@values);
-+	    my $a = shift(@values);
-+	    my $s = shift(@values);
-+	    print "\t\t\'",$m,"\',\'",$a,"\',",$s,",\n";
-+	}
-+	print "\t]";
-+	$pf = ', ';
-+    }
-+    print "\n);\n";
-+} else {
-+    $hz += 0;			# Force to number
-+    if ($hz < 1) {
-+	die "Usage: $0 HZ\n";
-+    }
++	shift(@ARGV);
++	@hzlist = sort {$a <=> $b} (@ARGV);
 +
-+    @val = @{$canned_values{$hz}};
-+    if (!defined(@val)) {
-+	@val = compute_values($hz);
-+    }
-+    output($hz, @val);
++	print "# Precomputed values for systems without Math::BigInt\n";
++	print "# Generated by:\n";
++	print "# timeconst.pl --can ", join(' ', @hzlist), "\n";
++	print "\%canned_values = (\n";
++	my $pf = "\t";
++	foreach $hz (@hzlist) {
++		my @values = compute_values($hz);
++		print "$pf$hz => [\n";
++		while (scalar(@values)) {
++			my $m = shift(@values);
++			my $a = shift(@values);
++			my $s = shift(@values);
++			print "\t\t\'",$m,"\',\'",$a,"\',",$s,",\n";
++		}
++		print "\t]";
++		$pf = ', ';
++	}
++	print "\n);\n";
++} else {
++	$hz += 0;			# Force to number
++	if ($hz < 1) {
++		die "Usage: $0 HZ\n";
++	}
++
++	@val = @{$canned_values{$hz}};
++	if (!defined(@val)) {
++		@val = compute_values($hz);
++	}
++	output($hz, @val);
 +}
 +exit 0;
 -- 
