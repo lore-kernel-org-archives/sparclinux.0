@@ -1,7 +1,7 @@
-From: Josip Rodin <joy@entuzijast.net>
-Date: Mon, 17 Dec 2007 10:10:59 +0000
+From: David Miller <davem@davemloft.net>
+Date: Mon, 17 Dec 2007 10:21:00 +0000
 Subject: Re: Fix for sparc64 cpu hangs.
-Message-Id: <20071217101059.GA5561@keid.carnet.hr>
+Message-Id: <20071217.022100.146647816.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20071106.203433.144763156.davem@davemloft.net>
 In-Reply-To: <20071106.203433.144763156.davem@davemloft.net>
@@ -10,25 +10,11 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Mon, Dec 17, 2007 at 01:57:55AM -0800, David Miller wrote:
-> From: Josip Rodin <joy@entuzijast.net>
-> Date: Mon, 17 Dec 2007 10:40:05 +0100
-> 
-> > The machine was stuck with a white blank screen on the monitor, and a
-> > dysfunctional keyboard (USB). It's a standard keyboard that came with the
-> > same machine, and otherwise works fine. It's completely dead - not only
-> > normal key combinations (including Alt+SysRq), but pressing Caps Lock
-> > doesn't turn on its LED, and Stop+A doesn't work either.
-> > 
-> > The machine doesn't have any ports for the old-style Sun keyboards, so I'm
-> > out of options...
-> 
-> You're more likely to get a good crash dump on the serial
-> console, if that is something you can use.
+From: Josip Rodin <joy@entuzijast.net>
+Date: Mon, 17 Dec 2007 11:10:59 +0100
 
-I tried setting the console devices to rsc-console in PROM, but the RSC
-never sees anything other than the initial kernel output, and doesn't
-relay any input to the machine. Have you tried that on your 280R?
+> I tried setting the console devices to rsc-console in PROM, but the RSC
+> never sees anything other than the initial kernel output, and doesn't
+> relay any input to the machine. Have you tried that on your 280R?
 
--- 
-     2. That which causes joy or happiness.
+I simply use the main serial lines, not the RSC.
