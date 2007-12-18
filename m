@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 18 Dec 2007 22:29:56 +0000
+Date: Tue, 18 Dec 2007 22:30:26 +0000
 Subject: Re: No dma_sync_* during pci_probe? (Sparc, post 2.6.22 regression)
-Message-Id: <20071218.142956.26529678.davem@davemloft.net>
+Message-Id: <20071218.143026.78772130.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <47670BDF.80409@s5r6.in-berlin.de>
 	<20071217.165032.41424988.davem@davemloft.net>
@@ -16,9 +16,9 @@ Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@suse.de, kr
 From: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Date: Tue, 18 Dec 2007 11:38:27 +0100
 
-> Also note:
->   - The very same code did not oops at this point in 2.6.22.  It only
->     started doing so in 2.6.23.
+>   - There has been no other report of this kind for any other
+>     architecture yet.  I would expect e.g. the PPC64 folks to report
+>     bugs in our dma mappings eventually.
 
-2.6.23 is when the sparc64 IOMMU code started relying upon
-the dev_archdata bits being correct.
+Irrelevant fact, powerpc handles it's dev_archdata differently
+from sparc64.
