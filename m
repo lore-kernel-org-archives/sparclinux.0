@@ -1,31 +1,26 @@
-From: Mikael Pettersson <mikpe@it.uu.se>
-Date: Tue, 18 Dec 2007 12:06:55 +0000
-Subject: sparc64 with 32-bit user-space context switching question
-Message-Id: <18279.47071.463773.734087@harpo.it.uu.se>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 18 Dec 2007 22:33:18 +0000
+Subject: Re: sparc64 with 32-bit user-space context switching question
+Message-Id: <20071218.143318.97341449.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <18279.47071.463773.734087@harpo.it.uu.se>
+In-Reply-To: <18279.47071.463773.734087@harpo.it.uu.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-I'd like to use the BR (branch on integer register)
-instruction in 32-bit user-space code on sparc64.
-The problem is that BR interprets the entire 64-bit
-contents of the register, which depending on how
-the value was produced may or may not do the right
-thing in 32-bit code.
+From: Mikael Pettersson <mikpe@it.uu.se>
+Date: Tue, 18 Dec 2007 13:06:55 +0100
 
-My main question is: what does the kernel do to the
-high 32 bits of the 64-bit integer registers during
-context switches? Does it
-a) preserve all 64 bits,
-b) clear the high halves (truncate to 32 bits), or
-c) insert unpredictable junk?
+> My main question is: what does the kernel do to the
+> high 32 bits of the 64-bit integer registers during
+> context switches?
 
-I can handle a) and b), but c) means that I cannot
-ever safely use BR in 32-bit userspace.
+Only %oX and %gX registers have the full 64-bit preserved across
+context switches for 32-bit processes.
 
-Also, does anyone know what Solaris does to the
-high 32 bits during context switches?
-
-/Mikael
+The %lX and %iX registers cannot have their full 64-bits preserved
+because the amount of save space is fixed by the register window save
+area layout on the stack, which only saves 32-bit values for each
+register.
