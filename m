@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 18 Dec 2007 22:33:18 +0000
+Date: Tue, 18 Dec 2007 22:34:09 +0000
 Subject: Re: sparc64 with 32-bit user-space context switching question
-Message-Id: <20071218.143318.97341449.davem@davemloft.net>
+Message-Id: <20071218.143409.05828942.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <18279.47071.463773.734087@harpo.it.uu.se>
 In-Reply-To: <18279.47071.463773.734087@harpo.it.uu.se>
@@ -13,14 +13,11 @@ To: sparclinux@vger.kernel.org
 From: Mikael Pettersson <mikpe@it.uu.se>
 Date: Tue, 18 Dec 2007 13:06:55 +0100
 
-> My main question is: what does the kernel do to the
-> high 32 bits of the 64-bit integer registers during
-> context switches?
+> Also, does anyone know what Solaris does to the
+> high 32 bits during context switches?
 
-Only %oX and %gX registers have the full 64-bit preserved across
-context switches for 32-bit processes.
+Solaris handles things identically to Linux.
 
-The %lX and %iX registers cannot have their full 64-bits preserved
-because the amount of save space is fixed by the register window save
-area layout on the stack, which only saves 32-bit values for each
-register.
+These rules are even encoded into places like the
+GCC backend for sparc, when generating v9 code
+for 32-bit.
