@@ -1,29 +1,20 @@
-From: "Adam Kropelin" <akropel1@rochester.rr.com>
-Date: Sun, 02 Dec 2007 15:50:41 +0000
-Subject: Re: [ANNOUNCE] Aurora SPARC Linux Build 2.99 (Beta 2 for 3.0)
-Message-Id: <026701c834fb$17539b50$03c8a8c0@kroptech.com>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 20 Dec 2007 21:55:57 +0000
+Subject: Re: [PATCH] arch/sparc/: Spelling fixes
+Message-Id: <20071220.135557.27619426.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1196454535.3432.18.camel@localhost.localdomain>
-In-Reply-To: <1196454535.3432.18.camel@localhost.localdomain>
+References: <1197919875-5288-22-git-send-email-joe@perches.com>
+In-Reply-To: <1197919875-5288-22-git-send-email-joe@perches.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: joe@perches.com
+Cc: linux-kernel@vger.kernel.org, akpm@linux-foundation.org, wli@holomorphy.com, sparclinux@vger.kernel.org
 
-David Miller wrote:
-> From: "Tom \"spot\" Callaway" <tcallawa@redhat.com>
-> Date: Fri, 30 Nov 2007 15:28:55 -0500
->
->> - Smartd seems to make systems using the esp.ko SCSI driver very very
->> unhappy. If your system is esp based, we highly recommend that you
->> disable the smartd service in single-user before fully booting after
->> install.
->
-> Didn't we spend half of last year fixing this via my
-> completely rewritten new driver? :-)
+From: Joe Perches <joe@perches.com>
+Date: Mon, 17 Dec 2007 11:30:21 -0800
 
-Agreed. I was one of the testers on this esp/smartd problem, and I can 
-confirm that (for me, anyway) it's still fixed.
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
 
---Adam
-
+Applied.
