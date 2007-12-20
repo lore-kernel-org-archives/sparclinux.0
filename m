@@ -1,140 +1,32 @@
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Date: Mon, 17 Dec 2007 19:05:37 +0000
+From: David Miller <davem@davemloft.net>
+Date: Thu, 20 Dec 2007 12:53:59 +0000
 Subject: Re: 2.6.24-rc5-mm1: problems with cat /proc/kpageflags
-Message-Id: <200712172005.38483.m.kozlowski@tuxland.pl>
+Message-Id: <20071220.045359.107684960.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20071213024050.7d6e5f3e.akpm@linux-foundation.org> <200712162010.11028.m.kozlowski@tuxland.pl> <20071217021149.GC19691@waste.org>
-In-Reply-To: <20071217021149.GC19691@waste.org>
+References: <20071216.202611.226170474.davem@davemloft.net>
+	<20071216223917.873e34bf.akpm@linux-foundation.org>
+	<20071217145554.GD19691@waste.org>
+In-Reply-To: <20071217145554.GD19691@waste.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Matt Mackall <mpm@selenic.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, davem@davemloft.net
+To: mpm@selenic.com
+Cc: akpm@linux-foundation.org, m.kozlowski@tuxland.pl, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-Hello,
+From: Matt Mackall <mpm@selenic.com>
+Date: Mon, 17 Dec 2007 08:55:54 -0600
 
-> > cat /proc/kpagecount on the other hand - with the change in line 710
-> > - locks the box. Sysrq works, changing consoles works, but there is
-> > no "BUG: soft lockup ..." message. After a while the box becomes
-> > totaly unresponsive - even caps lock doesn't work, no responses to
-> > ping.
+> On Sun, Dec 16, 2007 at 10:39:17PM -0800, Andrew Morton wrote:
+> Actually, you may only need these two:
 > 
-> Well I'm baffled. There's basically two things in that function that
-> do anything interesting: pfn_to_page and put_user. access_ok is
-> "return 1" on Sparc64. atomic_read is a simple read.
->
-> My usual approach at this point would be to litter it with printks and
-> see where its hanging.
+> > maps4-add-proc-kpagecount-interface.patch
+> > maps4-add-proc-kpageflags-interface.patch
 
-Ok. Maybe this will help. Don't know how to compare that to the results from yesterday
-(test with ppage = NULL) - maybe I f.... something up. This time I added a bunch
-of printks and got these results:
+Yes these two were enough, and exporting fs/proc/base.c's
+mem_lseek().
 
-This is from 'cat /proc/kpageflags' (after this the box is locked):
+As hard as I try, I can't reproduce this at all.  I tried
+both on my workstation and my niagara boxes.
 
-    01
-    pfn:0, src:0, KPMSIZE:8
-    23458
-    ppage:0000000200000000, pfn:1
+It must be other needle in the 30MB+ -mm haystack. :-(
 
-and the relevant code:
-
-static ssize_t kpageflags_read(struct file *file, char __user *buf,
-			     size_t count, loff_t *ppos)
-{
-
-	u64 __user *out = (u64 __user *)buf;
-	struct page *ppage;
-	unsigned long src = *ppos;
-	unsigned long pfn;
-	ssize_t ret = 0;
-	u64 kflags, uflags;
-
-printk("0");
-
-	if (!access_ok(VERIFY_WRITE, buf, count))
-		return -EFAULT;
-
-printk("1");
-	pfn = src / KPMSIZE;
-printk("\npfn:%u, src:%u, KPMSIZE:%d\n", pfn, src, KPMSIZE);
-	count = min_t(unsigned long, count, (max_pfn * KPMSIZE) - src);
-
-printk("2");
-	if (src & KPMMASK || count & KPMMASK)
-		return -EIO;
-
-printk("3");
-	while (count > 0) {
-printk("4");
-	ppage = pfn_to_page(pfn++);
-printk("5");
-		if (!ppage) {
-printk("6");
-			kflags = 0;
-printk("7");
-		} else {
-printk("8");
-printk("\nppage:%p, pfn:%u\n", ppage, pfn);
-			kflags = ppage->flags; // <---------------- something bad happens
-printk("9");
-		}
-
-printk("a");
-
-
-
-This is from 'cat /proc/kpagecount' (after this the box is locked)
-
-    01
-    pfn:0, src:0, KPMSIZE:8
-    23567a
-    ppage:0000000200000000, pfn:1
-
-and this is the relevant code:
-
-static ssize_t kpagecount_read(struct file *file, char __user *buf,
-			     size_t count, loff_t *ppos)
-{
-
-	u64 __user *out = (u64 __user *)buf;
-	struct page *ppage;
-	unsigned long src = *ppos;
-	unsigned long pfn;
-	ssize_t ret = 0;
-	u64 pcount;
-printk("0");
-	if (!access_ok(VERIFY_WRITE, buf, count))
-		return -EFAULT;
-
-printk("1");
-	pfn = src / KPMSIZE;
-printk("\npfn:%u, src:%u, KPMSIZE:%d\n", pfn, src, KPMSIZE);
-
-printk("2");
-	count = min_t(size_t, count, (max_pfn * KPMSIZE) - src);
-printk("3");
-	if (src & KPMMASK || count & KPMMASK) {
-
-printk("4");
-		return -EIO;
-	}
-printk("5");
-	while (count > 0) {
-printk("6");
-		ppage = pfn_to_page(pfn++);
-printk("7");
-		if (!ppage) {
-printk("8");
-			pcount = 0;
-		} else {
-printk("a");
-printk("\nppage:%p, pfn:%u\n", ppage, pfn);
-			pcount = atomic_read(&ppage->_count); // <---------------- something bad happens
-printk("b");
-		}
-
-
-Regards,
-
-	Mariusz
