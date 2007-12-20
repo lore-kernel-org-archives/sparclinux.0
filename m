@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 19 Dec 2007 23:06:22 +0000
+Date: Thu, 20 Dec 2007 08:40:33 +0000
 Subject: Re: No dma_sync_* during pci_probe? (Sparc, post 2.6.22 regression)
-Message-Id: <20071219.150622.158580703.davem@davemloft.net>
+Message-Id: <20071220.004033.75315225.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4767A323.7090205@s5r6.in-berlin.de>
 	<20071218.142956.26529678.davem@davemloft.net>
@@ -16,11 +16,58 @@ Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@suse.de, kr
 From: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Date: Wed, 19 Dec 2007 17:33:05 +0100
 
-> drivers/firewire/fw_ohci.c needs them for dma_map_single() +
-> dma_sync_single_for_device() in the pci_driver.probe(), sometime after
-> it called pci_enable_device(), before finishing the probe.
+> Does arch/sparc64/kernel/pci.c fill them in incorrectly or too late?
 
-I'll take a look at this and try to figure out exactly
-what might be going wrong.
+The problem is that I created indirection that was totally unused, the
+operation vectors members for these cases thus didn't get filled in,
+and we OOPS trying to call NULL pointers as functions :-)
 
-The dev_archdata should be fully setup at this time.
+This should fix the crash:
+
+diff --git a/include/asm-sparc64/dma-mapping.h b/include/asm-sparc64/dma-mapping.h
+index 1fc6554..38cbec7 100644
+--- a/include/asm-sparc64/dma-mapping.h
++++ b/include/asm-sparc64/dma-mapping.h
+@@ -25,15 +25,9 @@ struct dma_ops {
+ 	void (*sync_single_for_cpu)(struct device *dev,
+ 				    dma_addr_t dma_handle, size_t size,
+ 				    enum dma_data_direction direction);
+-	void (*sync_single_for_device)(struct device *dev,
+-				       dma_addr_t dma_handle, size_t size,
+-				       enum dma_data_direction direction);
+ 	void (*sync_sg_for_cpu)(struct device *dev, struct scatterlist *sg,
+ 				int nelems,
+ 				enum dma_data_direction direction);
+-	void (*sync_sg_for_device)(struct device *dev, struct scatterlist *sg,
+-				   int nelems,
+-				   enum dma_data_direction direction);
+ };
+ extern const struct dma_ops *dma_ops;
+ 
+@@ -105,7 +99,7 @@ static inline void dma_sync_single_for_device(struct device *dev,
+ 					      size_t size,
+ 					      enum dma_data_direction direction)
+ {
+-	dma_ops->sync_single_for_device(dev, dma_handle, size, direction);
++	/* No flushing needed to sync cpu writes to the device.  */
+ }
+ 
+ static inline void dma_sync_single_range_for_cpu(struct device *dev,
+@@ -123,7 +117,7 @@ static inline void dma_sync_single_range_for_device(struct device *dev,
+ 						    size_t size,
+ 						    enum dma_data_direction direction)
+ {
+-	dma_sync_single_for_device(dev, dma_handle+offset, size, direction);
++	/* No flushing needed to sync cpu writes to the device.  */
+ }
+ 
+ 
+@@ -138,7 +132,7 @@ static inline void dma_sync_sg_for_device(struct device *dev,
+ 					  struct scatterlist *sg, int nelems,
+ 					  enum dma_data_direction direction)
+ {
+-	dma_ops->sync_sg_for_device(dev, sg, nelems, direction);
++	/* No flushing needed to sync cpu writes to the device.  */
+ }
+ 
+ static inline int dma_mapping_error(dma_addr_t dma_addr)
