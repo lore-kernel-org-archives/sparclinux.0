@@ -1,36 +1,28 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Sun, 09 Dec 2007 09:03:11 +0000
-Subject: Re: 2.6.24-rc4-mm1: some issues on sparc64
-Message-Id: <20071209010311.5bc7318d.akpm@linux-foundation.org>
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Date: Wed, 26 Dec 2007 12:29:07 +0000
+Subject: Re: 2.6.24-rc6-mm1: some section mismatches on sparc64
+Message-Id: <200712261329.08313.m.kozlowski@tuxland.pl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20071204211701.994dfce6.akpm@linux-foundation.org>
-	<200712081920.28748.m.kozlowski@tuxland.pl>
-	<20071208102239.2457eeaa.akpm@linux-foundation.org>
-	<20071209.004517.201813773.davem@davemloft.net>
-In-Reply-To: <20071209.004517.201813773.davem@davemloft.net>
+References: <20071222233056.d652743e.akpm@linux-foundation.org>
+In-Reply-To: <20071222233056.d652743e.akpm@linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: m.kozlowski@tuxland.pl, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-ext4@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-On Sun, 09 Dec 2007 00:45:17 -0800 (PST) David Miller <davem@davemloft.net> wrote:
+Hello,
 
-> From: Andrew Morton <akpm@linux-foundation.org>
-> Date: Sat, 8 Dec 2007 10:22:39 -0800
-> 
-> > That's
-> > 
-> >         J_ASSERT_BH(bh, !buffer_jbddirty(bh));
-> > 
-> > at the end of journal_unmap_buffer().
-> > 
-> > I don't recall seeing that before and I can't think of anything we've
-> > done recently which could cause it, sorry.
-> 
-> If the per-cpu data patches are in the -mm tree that is the first
-> place I would start looking at for possible cause.
+WARNING: vmlinux.o(.text+0x46b04): Section mismatch: reference to .init.text:sun4v_ktsb_register (between 'smp_callin' and 'smp_fill_in_sib_core_maps')
+WARNING: vmlinux.o(.text+0x4756c): Section mismatch: reference to .init.text:sun4v_register_mondo_queues (between 'after_lock_tlb' and 'hv_cpu_startup')
+WARNING: vmlinux.o(.text+0x477ac): Section mismatch: reference to .init.text:sun4v_register_mondo_queues (between 'hv_cpu_startup' and 'sys32_exit')
+WARNING: vmlinux.o(.text+0x55258): Section mismatch: reference to .init.text:__alloc_bootmem (between 'kernel_map_range' and 'kernel_map_pages')
+WARNING: vmlinux.o(.text+0x55278): Section mismatch: reference to .init.text:__alloc_bootmem (between 'kernel_map_range' and 'kernel_map_pages')
+WARNING: vmlinux.o(.text+0x1fdfe4): Section mismatch: reference to .init.text:sunserial_console_match (between 'hv_probe' and 'serial_in')
+WARNING: vmlinux.o(.text+0x20011c): Section mismatch: reference to .init.text:sunserial_console_match (between 'su_probe' and 'sunsu_console_putchar')
+WARNING: vmlinux.o(.sun4v_2insn_patch+0x3d8): Section mismatch: reference to .init.text:
+WARNING: vmlinux.o(__ksymtab+0x62c0): Section mismatch: reference to .init.text:sunserial_console_match (between '__ksymtab_sunserial_console_match' and '__ksymtab_sunserial_unregister_minors')
 
-They aren't.  The dust hadn't settled enough on those when Christoph shot
-through on vacation.
+Regards,
 
+	Mariusz
