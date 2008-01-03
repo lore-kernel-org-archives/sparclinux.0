@@ -1,7 +1,7 @@
 From: Steven Rostedt <rostedt@goodmis.org>
-Date: Thu, 03 Jan 2008 07:16:15 +0000
-Subject: [RFC PATCH 06/11] add notrace annotations to vsyscall.
-Message-Id: <20080103072227.568329878@goodmis.org>
+Date: Thu, 03 Jan 2008 07:16:14 +0000
+Subject: [RFC PATCH 05/11] x86_64: notrace annotations
+Message-Id: <20080103072227.408558115@goodmis.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080103071609.478486470@goodmis.org>
 MIME-Version: 1.0
@@ -10,111 +10,107 @@ Content-Transfer-Encoding: 7bit
 To: LKML <linux-kernel@vger.kernel.org>
 Cc: Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Christoph Hellwig <hch@infradead.org>, Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>, Gregory Haskins <ghaskins@novell.com>, Arnaldo Carvalho de Melo <acme@ghostprotocols.net>, "William L. Irwin" <sparclinux@vger.kernel.org>, Steven Rostedt <srostedt@redhat.com>
 
-Add the notrace annotations to some of the vsyscall functions.
+Add "notrace" annotation to x86_64 specific files.
 
-Note: checkpatch errors on the define of vsyscall_fn because it thinks
-   that it is a complex macro that needs paranthesis. Unfortunately
-   we can't put paranthesis on this macro.
-
+Signed-off-by: Arnaldo Carvalho de Melo <acme@ghostprotocols.net>
 Signed-off-by: Steven Rostedt <srostedt@redhat.com>
 ---
- arch/x86/vdso/vclock_gettime.c |   15 ++++++++-------
- arch/x86/vdso/vgetcpu.c        |    3 ++-
- include/asm-x86/vsyscall.h     |    3 ++-
- 3 files changed, 12 insertions(+), 9 deletions(-)
+ arch/x86/kernel/head64.c      |    2 +-
+ arch/x86/kernel/nmi_64.c      |    2 +-
+ arch/x86/kernel/setup64.c     |    4 ++--
+ arch/x86/kernel/smpboot_64.c  |    2 +-
+ arch/x86/kernel/tsc_64.c      |    4 ++--
+ arch/x86/kernel/vsyscall_64.c |    3 ++-
+ 6 files changed, 9 insertions(+), 8 deletions(-)
 
-Index: linux-compile.git/arch/x86/vdso/vclock_gettime.c
-=================================--- linux-compile.git.orig/arch/x86/vdso/vclock_gettime.c	2008-01-02 22:53:52.000000000 -0500
-+++ linux-compile.git/arch/x86/vdso/vclock_gettime.c	2008-01-02 22:59:09.000000000 -0500
-@@ -24,7 +24,7 @@
+Index: linux-compile.git/arch/x86/kernel/head64.c
+=================================--- linux-compile.git.orig/arch/x86/kernel/head64.c	2007-12-19 21:44:52.000000000 -0500
++++ linux-compile.git/arch/x86/kernel/head64.c	2007-12-20 00:52:47.000000000 -0500
+@@ -46,7 +46,7 @@ static void __init copy_bootdata(char *r
+ 	}
+ }
  
- #define gtod vdso_vsyscall_gtod_data
- 
--static long vdso_fallback_gettime(long clock, struct timespec *ts)
-+static long notrace vdso_fallback_gettime(long clock, struct timespec *ts)
+-void __init x86_64_start_kernel(char * real_mode_data)
++notrace void __init x86_64_start_kernel(char *real_mode_data)
  {
- 	long ret;
- 	asm("syscall" : "=a" (ret) :
-@@ -32,7 +32,7 @@ static long vdso_fallback_gettime(long c
+ 	int i;
+ 
+Index: linux-compile.git/arch/x86/kernel/nmi_64.c
+=================================--- linux-compile.git.orig/arch/x86/kernel/nmi_64.c	2007-12-19 21:44:52.000000000 -0500
++++ linux-compile.git/arch/x86/kernel/nmi_64.c	2007-12-20 00:51:50.000000000 -0500
+@@ -314,7 +314,7 @@ void touch_nmi_watchdog(void)
+  	touch_softlockup_watchdog();
+ }
+ 
+-int __kprobes nmi_watchdog_tick(struct pt_regs * regs, unsigned reason)
++notrace __kprobes int nmi_watchdog_tick(struct pt_regs *regs, unsigned reason)
+ {
+ 	int sum;
+ 	int touched = 0;
+Index: linux-compile.git/arch/x86/kernel/setup64.c
+=================================--- linux-compile.git.orig/arch/x86/kernel/setup64.c	2007-12-19 21:44:52.000000000 -0500
++++ linux-compile.git/arch/x86/kernel/setup64.c	2007-12-20 00:52:32.000000000 -0500
+@@ -114,7 +114,7 @@ void __init setup_per_cpu_areas(void)
+ 	}
+ } 
+ 
+-void pda_init(int cpu)
++notrace void pda_init(int cpu)
+ { 
+ 	struct x8664_pda *pda = cpu_pda(cpu);
+ 
+@@ -197,7 +197,7 @@ DEFINE_PER_CPU(struct orig_ist, orig_ist
+  * 'CPU state barrier', nothing should get across.
+  * A lot of state is already set up in PDA init.
+  */
+-void __cpuinit cpu_init (void)
++notrace void __cpuinit cpu_init(void)
+ {
+ 	int cpu = stack_smp_processor_id();
+ 	struct tss_struct *t = &per_cpu(init_tss, cpu);
+Index: linux-compile.git/arch/x86/kernel/smpboot_64.c
+=================================--- linux-compile.git.orig/arch/x86/kernel/smpboot_64.c	2007-12-19 21:44:52.000000000 -0500
++++ linux-compile.git/arch/x86/kernel/smpboot_64.c	2007-12-20 00:49:57.000000000 -0500
+@@ -317,7 +317,7 @@ static inline void set_cpu_sibling_map(i
+ /*
+  * Setup code on secondary processor (after comming out of the trampoline)
+  */
+-void __cpuinit start_secondary(void)
++notrace __cpuinit void start_secondary(void)
+ {
+ 	/*
+ 	 * Dont put anything before smp_callin(), SMP
+Index: linux-compile.git/arch/x86/kernel/tsc_64.c
+=================================--- linux-compile.git.orig/arch/x86/kernel/tsc_64.c	2007-12-19 21:44:52.000000000 -0500
++++ linux-compile.git/arch/x86/kernel/tsc_64.c	2007-12-20 00:49:57.000000000 -0500
+@@ -248,13 +248,13 @@ __setup("notsc", notsc_setup);
+ 
+ 
+ /* clock source code: */
+-static cycle_t read_tsc(void)
++static notrace cycle_t read_tsc(void)
+ {
+ 	cycle_t ret = (cycle_t)get_cycles_sync();
  	return ret;
  }
  
--static inline long vgetns(void)
-+static inline long notrace vgetns(void)
+-static cycle_t __vsyscall_fn vread_tsc(void)
++static notrace cycle_t __vsyscall_fn vread_tsc(void)
  {
- 	long v;
- 	cycles_t (*vread)(void);
-@@ -41,7 +41,7 @@ static inline long vgetns(void)
- 	return (v * gtod->clock.mult) >> gtod->clock.shift;
- }
- 
--static noinline int do_realtime(struct timespec *ts)
-+static noinline int notrace do_realtime(struct timespec *ts)
- {
- 	unsigned long seq, ns;
- 	do {
-@@ -55,7 +55,8 @@ static noinline int do_realtime(struct t
- }
- 
- /* Copy of the version in kernel/time.c which we cannot directly access */
--static void vset_normalized_timespec(struct timespec *ts, long sec, long nsec)
-+static void notrace
-+vset_normalized_timespec(struct timespec *ts, long sec, long nsec)
- {
- 	while (nsec >= NSEC_PER_SEC) {
- 		nsec -= NSEC_PER_SEC;
-@@ -69,7 +70,7 @@ static void vset_normalized_timespec(str
- 	ts->tv_nsec = nsec;
- }
- 
--static noinline int do_monotonic(struct timespec *ts)
-+static noinline int notrace do_monotonic(struct timespec *ts)
- {
- 	unsigned long seq, ns, secs;
- 	do {
-@@ -83,7 +84,7 @@ static noinline int do_monotonic(struct 
- 	return 0;
- }
- 
--int __vdso_clock_gettime(clockid_t clock, struct timespec *ts)
-+int notrace __vdso_clock_gettime(clockid_t clock, struct timespec *ts)
- {
- 	if (likely(gtod->sysctl_enabled && gtod->clock.vread))
- 		switch (clock) {
-@@ -97,7 +98,7 @@ int __vdso_clock_gettime(clockid_t clock
- int clock_gettime(clockid_t, struct timespec *)
- 	__attribute__((weak, alias("__vdso_clock_gettime")));
- 
--int __vdso_gettimeofday(struct timeval *tv, struct timezone *tz)
-+int notrace __vdso_gettimeofday(struct timeval *tv, struct timezone *tz)
- {
- 	long ret;
- 	if (likely(gtod->sysctl_enabled && gtod->clock.vread)) {
-Index: linux-compile.git/arch/x86/vdso/vgetcpu.c
-=================================--- linux-compile.git.orig/arch/x86/vdso/vgetcpu.c	2008-01-02 22:53:52.000000000 -0500
-+++ linux-compile.git/arch/x86/vdso/vgetcpu.c	2008-01-02 22:59:35.000000000 -0500
-@@ -13,7 +13,8 @@
+ 	cycle_t ret = (cycle_t)get_cycles_sync();
+ 	return ret;
+Index: linux-compile.git/arch/x86/kernel/vsyscall_64.c
+=================================--- linux-compile.git.orig/arch/x86/kernel/vsyscall_64.c	2007-12-19 21:44:52.000000000 -0500
++++ linux-compile.git/arch/x86/kernel/vsyscall_64.c	2007-12-20 00:54:53.000000000 -0500
+@@ -42,7 +42,8 @@
+ #include <asm/topology.h>
  #include <asm/vgtod.h>
- #include "vextern.h"
  
--long __vdso_getcpu(unsigned *cpu, unsigned *node, struct getcpu_cache *unused)
-+long notrace
-+__vdso_getcpu(unsigned *cpu, unsigned *node, struct getcpu_cache *unused)
- {
- 	unsigned int dummy, p;
- 
-Index: linux-compile.git/include/asm-x86/vsyscall.h
-=================================--- linux-compile.git.orig/include/asm-x86/vsyscall.h	2008-01-02 22:53:52.000000000 -0500
-+++ linux-compile.git/include/asm-x86/vsyscall.h	2008-01-02 23:00:34.000000000 -0500
-@@ -24,7 +24,8 @@ enum vsyscall_num {
- 	((unused, __section__ (".vsyscall_gtod_data"),aligned(16)))
- #define __section_vsyscall_clock __attribute__ \
- 	((unused, __section__ (".vsyscall_clock"),aligned(16)))
--#define __vsyscall_fn __attribute__ ((unused,__section__(".vsyscall_fn")))
-+#define __vsyscall_fn __attribute__ \
-+	((unused, __section__(".vsyscall_fn"))) notrace
- 
- #define VGETCPU_RDTSCP	1
- #define VGETCPU_LSL	2
+-#define __vsyscall(nr) __attribute__ ((unused,__section__(".vsyscall_" #nr)))
++#define __vsyscall(nr) \
++		__attribute__ ((unused, __section__(".vsyscall_" #nr))) notrace
+ #define __syscall_clobber "r11","rcx","memory"
+ #define __pa_vsymbol(x)			\
+ 	({unsigned long v;  		\
 
 -- 
