@@ -1,58 +1,149 @@
-From: Michael Ellerman <michael@ellerman.id.au>
-Date: Fri, 25 Jan 2008 05:59:13 +0000
-Subject: [PATCH 2/4] Create and hook up of_platform_device_shutdown
-Message-Id: <bf48a30aa9f58fa6e153f679eb0eb6a4864ebdc3.1201240265.git.michael@ellerman.id.au>
+From: Steven Rostedt <rostedt@goodmis.org>
+Date: Thu, 03 Jan 2008 07:16:17 +0000
+Subject: [RFC PATCH 08/11] tracer add debugfs interface
+Message-Id: <20080103072227.894547203@goodmis.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <3ce7be4c77581ce103a8da9f33a734270c9dc6e8.1201240265.git.michael@ellerman.id.au>
-In-Reply-To: <3ce7be4c77581ce103a8da9f33a734270c9dc6e8.1201240265.git.michael@ellerman.id.au>
+References: <20080103071609.478486470@goodmis.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linuxppc-dev@ozlabs.org
-Cc: sparclinux@vger.kernel.org, tnt@246tNt.com, cbe-oss-dev@ozlabs.org, m8@semihalf.com, davem@davemloft.net
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Christoph Hellwig <hch@infradead.org>, Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>, Gregory Haskins <ghaskins@novell.com>, Arnaldo Carvalho de Melo <acme@ghostprotocols.net>, "William L. Irwin" <sparclinux@vger.kernel.org>, Steven Rostedt <srostedt@redhat.com>
 
-Although of_platform_device's can have a shutdown routine, at the moment
-the bus code doesn't actually call it. So add the required glue to
-hook the shutdown routine.
+This patch adds an interface into debugfs.
 
-Signed-off-by: Michael Ellerman <michael@ellerman.id.au>
+  /debugfs/mctracer/ctrl
+
+echoing 1 into the ctrl file turns on the tracer,
+and echoing 0 turns it off.
+
+Signed-off-by: Steven Rostedt <srostedt@redhat.com>
 ---
- drivers/of/platform.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+ lib/mcount/tracer.c |   87 +++++++++++++++++++++++++++++++++++++++++++++++++++-
+ lib/mcount/tracer.h |    1 
+ 2 files changed, 87 insertions(+), 1 deletion(-)
 
-
-CC various folks who've written/touched of_platform_drivers which already
-have shutdown routines. These routines have never been called so they're
-about to get their first testing.
-
-diff --git a/drivers/of/platform.c b/drivers/of/platform.c
-index b47bb2d..ca09a63 100644
---- a/drivers/of/platform.c
-+++ b/drivers/of/platform.c
-@@ -85,6 +85,15 @@ static int of_platform_device_resume(struct device * dev)
- 	return error;
+Index: linux-compile.git/lib/mcount/tracer.c
+=================================--- linux-compile.git.orig/lib/mcount/tracer.c	2008-01-02 23:07:23.000000000 -0500
++++ linux-compile.git/lib/mcount/tracer.c	2008-01-02 23:12:50.000000000 -0500
+@@ -15,6 +15,8 @@
+ #include <linux/init.h>
+ #include <linux/linkage.h>
+ #include <linux/seq_file.h>
++#include <linux/debugfs.h>
++#include <linux/uaccess.h>
+ #include <linux/mcount.h>
+ 
+ #include "tracer.h"
+@@ -71,6 +73,89 @@ static inline notrace void trace_functio
+ 	raw_local_irq_restore(flags);
  }
  
-+static void of_platform_device_shutdown(struct device *dev)
++#ifdef CONFIG_DEBUG_FS
++static int mctracer_open_generic(struct inode *inode, struct file *filp)
 +{
-+	struct of_device *of_dev = to_of_device(dev);
-+	struct of_platform_driver *drv = to_of_platform_driver(dev->driver);
-+
-+	if (dev->driver && drv->shutdown)
-+		drv->shutdown(of_dev);
++	filp->private_data = inode->i_private;
++	return 0;
 +}
 +
- int of_bus_type_init(struct bus_type *bus, const char *name)
- {
- 	bus->name = name;
-@@ -93,6 +102,7 @@ int of_bus_type_init(struct bus_type *bus, const char *name)
- 	bus->remove = of_platform_device_remove;
- 	bus->suspend = of_platform_device_suspend;
- 	bus->resume = of_platform_device_resume;
-+	bus->shutdown = of_platform_device_shutdown;
- 	return bus_register(bus);
- }
++
++static ssize_t mctracer_ctrl_read(struct file *filp, char __user *ubuf,
++				  size_t cnt, loff_t *ppos)
++{
++	struct mctracer_trace *tr = filp->private_data;
++	char buf[16];
++	int r;
++
++	r = sprintf(buf, "%ld\n", tr->ctrl);
++	return simple_read_from_buffer(ubuf, cnt, ppos,
++				       buf, r);
++}
++
++static ssize_t mctracer_ctrl_write(struct file *filp,
++				   const char __user *ubuf,
++				   size_t cnt, loff_t *ppos)
++{
++	struct mctracer_trace *tr = filp->private_data;
++	int val;
++	char buf[16];
++
++	if (cnt > 15)
++		cnt = 15;
++
++	if (copy_from_user(&buf, ubuf, cnt))
++		return -EFAULT;
++
++	buf[cnt] = 0;
++
++	val = !!simple_strtoul(buf, NULL, 10);
++
++	if (tr->ctrl ^ val) {
++		if (val)
++			register_mcount_function(trace_function);
++		else
++			clear_mcount_function();
++		tr->ctrl = val;
++	}
++
++	filp->f_pos += cnt;
++
++	return cnt;
++}
++
++static struct file_operations mctracer_ctrl_fops = {
++	.open = mctracer_open_generic,
++	.read = mctracer_ctrl_read,
++	.write = mctracer_ctrl_write,
++};
++
++static void mctrace_init_debugfs(void)
++{
++	struct dentry *d_mctracer;
++	struct dentry *entry;
++
++	d_mctracer = debugfs_create_dir("mctracer", NULL);
++	if (!d_mctracer) {
++		pr_warning("Could not create debugfs directory mctracer\n");
++		return;
++	}
++
++	entry = debugfs_create_file("ctrl", 0644, d_mctracer,
++				    &mctracer_trace, &mctracer_ctrl_fops);
++	if (!entry)
++		pr_warning("Could not create debugfs 'ctrl' entry\n");
++}
++#else /* CONFIG_DEBUG_FS */
++static void mctrace_init_debugfs(void)
++{
++	/*
++	 * No way to turn on or off the trace function
++	 * without debugfs, so we just turn it on.
++	 */
++	register_mcount_function(trace_function);
++}
++#endif /* CONFIG_DEBUG_FS */
  
--- 
-1.5.2.rc1.1884.g59b20
+ static inline notrace int page_order(const unsigned long size)
+ {
+@@ -107,7 +192,7 @@ static inline notrace int mctracer_alloc
+ 		size, MCTRACER_NR_ENTRIES, MCTRACER_ENTRY_SIZE);
+ 	pr_info("   actual entries %ld\n", mctracer_trace.entries);
+ 
+-	register_mcount_function(trace_function);
++	mctrace_init_debugfs();
+ 
+ 	return 0;
+ 
+Index: linux-compile.git/lib/mcount/tracer.h
+=================================--- linux-compile.git.orig/lib/mcount/tracer.h	2008-01-02 23:04:34.000000000 -0500
++++ linux-compile.git/lib/mcount/tracer.h	2008-01-02 23:11:39.000000000 -0500
+@@ -13,6 +13,7 @@ struct mctracer_trace {
+ 	void	      *trace[NR_CPUS];
+ 	unsigned long trace_idx[NR_CPUS];
+ 	unsigned long entries;
++	long	      ctrl;
+ 	atomic_t      cnt;
+ 	atomic_t      disabled[NR_CPUS];
+ 	atomic_t      underrun[NR_CPUS];
 
+-- 
