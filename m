@@ -1,102 +1,235 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Tue, 22 Jan 2008 14:58:21 +0000
-Subject: Re: [PATCH v2] create modalias file in sysfs for bus of_platform
-Message-Id: <20080123015821.f416bf29.sfr@canb.auug.org.au>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Signature=_Wed__23_Jan_2008_01_58_21_+1100_BfTte/nrslbIWIR."
+From: Steven Rostedt <rostedt@goodmis.org>
+Date: Thu, 03 Jan 2008 07:16:16 +0000
+Subject: [RFC PATCH 07/11] mcount based trace in the form of a header file library
+Message-Id: <20080103072227.737052372@goodmis.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080122142109.GA12967@aepfle.de>
-	<20080122144053.GA13019@aepfle.de>
-In-Reply-To: <20080122144053.GA13019@aepfle.de>
-To: Olaf Hering <olaf@aepfle.de>
-Cc: sparclinux@vger.kernel.org, linuxppc-dev@ozlabs.org
+References: <20080103071609.478486470@goodmis.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Christoph Hellwig <hch@infradead.org>, Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>, Gregory Haskins <ghaskins@novell.com>, Arnaldo Carvalho de Melo <acme@ghostprotocols.net>, "William L. Irwin" <sparclinux@vger.kernel.org>, Steven Rostedt <srostedt@redhat.com>
 
---Signature=_Wed__23_Jan_2008_01_58_21_+1100_BfTte/nrslbIWIR.
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The design is for mcount based tracers to be added thru the
+lib/mcount/tracer_interface.h file, just like mcount users should add
+themselves to lib/mcount/mcount.h. A Kconfig rule chooses the right MCOUNT and
+MCOUNT_TRACER user.
 
-Hi Olaf,
+This is to avoid function call costs for something that is supposed to be used
+only in a debug kernel and that has to reduce to the bare minimum the per
+function call overhead of mcount based tracing.
 
-Thanks for doing this.  Patches to drivers/of should also be cc'd to the
-Sparc guys as they share this stuff with is, now.
+Signed-off-by: Arnaldo Carvalho de Melo <acme@ghostprotocols.net>
+Signed-off-by: Steven Rostedt <srostedt@redhat.com>
+---
+ lib/mcount/Kconfig            |   11 +++
+ lib/mcount/Makefile           |    2 
+ lib/mcount/tracer.c           |  125 ++++++++++++++++++++++++++++++++++++++++++
+ lib/mcount/tracer.h           |   21 +++++++
+ lib/mcount/tracer_interface.h |   14 ++++
+ 5 files changed, 173 insertions(+)
+ create mode 100644 lib/mcount/tracer.c
+ create mode 100644 lib/mcount/tracer.h
+ create mode 100644 lib/mcount/tracer_interface.h
 
-Also, drivers/macintosh/macio_sysfs.c does this for itself, so that
-should probably be removed.
+Index: linux-compile.git/lib/mcount/Kconfig
+=================================--- linux-compile.git.orig/lib/mcount/Kconfig	2008-01-02 23:24:53.000000000 -0500
++++ linux-compile.git/lib/mcount/Kconfig	2008-01-02 23:28:06.000000000 -0500
+@@ -4,3 +4,14 @@
+ config MCOUNT
+ 	bool
+ 	depends on DEBUG_KERNEL
++
++config MCOUNT_TRACER
++	bool "Profiler instrumentation based tracer"
++	depends on DEBUG_KERNEL
++	default n
++	select MCOUNT
++	help
++	  Use profiler instrumentation, adding -pg to CFLAGS. This will
++	  insert a call to an architecture specific __mcount routine,
++	  that the debugging mechanism using this facility will hook by
++	  providing a set of inline routines.
+Index: linux-compile.git/lib/mcount/tracer.c
+=================================--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-compile.git/lib/mcount/tracer.c	2008-01-02 23:28:06.000000000 -0500
+@@ -0,0 +1,125 @@
++/*
++ * ring buffer based mcount tracer
++ *
++ * Copyright (C) 2007 Arnaldo Carvalho de Melo <acme@redhat.com>
++ * 		      Steven Rostedt <srostedt@redhat.com>
++ *
++ * From code in the latency_tracer, that is:
++ *
++ *  Copyright (C) 2004-2006 Ingo Molnar
++ *  Copyright (C) 2004 William Lee Irwin III
++ */
++
++#include <linux/fs.h>
++#include <linux/gfp.h>
++#include <linux/init.h>
++#include <linux/linkage.h>
++#include <linux/seq_file.h>
++#include <linux/mcount.h>
++
++#include "tracer.h"
++#include "tracer_interface.h"
++
++static struct mctracer_trace mctracer_trace;
++
++static inline notrace void
++mctracer_add_trace_entry(struct mctracer_trace *tr,
++			 int cpu,
++			 const unsigned long ip,
++			 const unsigned long parent_ip)
++{
++	unsigned long idx, idx_next;
++	struct mctracer_entry *entry;
++
++	idx = tr->trace_idx[cpu];
++	idx_next = idx + 1;
++
++	if (unlikely(idx_next >= tr->entries)) {
++		atomic_inc(&tr->underrun[cpu]);
++		idx_next = 0;
++	}
++
++	tr->trace_idx[cpu] = idx_next;
++
++	if (unlikely(idx_next != 0 && atomic_read(&tr->underrun[cpu])))
++		atomic_inc(&tr->underrun[cpu]);
++
++	entry = tr->trace[cpu] + idx * MCTRACER_ENTRY_SIZE;
++	entry->idx	 = atomic_inc_return(&tr->cnt);
++	entry->ip	 = ip;
++	entry->parent_ip = parent_ip;
++}
++
++static inline notrace void trace_function(const unsigned long ip,
++					  const unsigned long parent_ip)
++{
++	unsigned long flags;
++	struct mctracer_trace *tr;
++	int cpu;
++
++	raw_local_irq_save(flags);
++	cpu = raw_smp_processor_id();
++
++	tr = &mctracer_trace;
++
++	atomic_inc(&tr->disabled[cpu]);
++	if (likely(atomic_read(&tr->disabled[cpu]) = 1))
++		mctracer_add_trace_entry(tr, cpu, ip, parent_ip);
++
++	atomic_dec(&tr->disabled[cpu]);
++
++	raw_local_irq_restore(flags);
++}
++
++
++static inline notrace int page_order(const unsigned long size)
++{
++	const unsigned long nr_pages = DIV_ROUND_UP(size, PAGE_SIZE);
++	return ilog2(roundup_pow_of_two(nr_pages));
++}
++
++static inline notrace int mctracer_alloc_buffers(void)
++{
++	const int order = page_order(MCTRACER_NR_ENTRIES * MCTRACER_ENTRY_SIZE);
++	const unsigned long size = (1UL << order) << PAGE_SHIFT;
++	struct mctracer_entry *array;
++	int i;
++
++	for_each_possible_cpu(i) {
++		array = (struct mctracer_entry *)
++			  __get_free_pages(GFP_KERNEL, order);
++		if (array = NULL) {
++			printk(KERN_ERR "mctracer: failed to allocate"
++			       " %ld bytes for trace buffer!\n", size);
++			goto free_buffers;
++		}
++		mctracer_trace.trace[i] = array;
++	}
++
++	/*
++	 * Since we allocate by orders of pages, we may be able to
++	 * round up a bit.
++	 */
++	mctracer_trace.entries = size / MCTRACER_ENTRY_SIZE;
++
++
++	pr_info("mctracer: %ld bytes allocated for %ld entries of %ld bytes\n",
++		size, MCTRACER_NR_ENTRIES, MCTRACER_ENTRY_SIZE);
++	pr_info("   actual entries %ld\n", mctracer_trace.entries);
++
++	register_mcount_function(trace_function);
++
++	return 0;
++
++ free_buffers:
++	for (i-- ; i >= 0; i--) {
++		if (mctracer_trace.trace[i]) {
++			free_pages((unsigned long)mctracer_trace.trace[i],
++				   order);
++			mctracer_trace.trace[i] = NULL;
++		}
++	}
++	return -ENOMEM;
++}
++
++device_initcall(mctracer_alloc_buffers);
+Index: linux-compile.git/lib/mcount/tracer.h
+=================================--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-compile.git/lib/mcount/tracer.h	2008-01-02 23:28:06.000000000 -0500
+@@ -0,0 +1,21 @@
++#ifndef _LINUX_MCOUNT_TRACER_H
++#define _LINUX_MCOUNT_TRACER_H
++
++#include <asm/atomic.h>
++
++struct mctracer_entry {
++	unsigned long idx;
++	unsigned long ip;
++	unsigned long parent_ip;
++};
++
++struct mctracer_trace {
++	void	      *trace[NR_CPUS];
++	unsigned long trace_idx[NR_CPUS];
++	unsigned long entries;
++	atomic_t      cnt;
++	atomic_t      disabled[NR_CPUS];
++	atomic_t      underrun[NR_CPUS];
++};
++
++#endif /* _LINUX_MCOUNT_TRACER_H */
+Index: linux-compile.git/lib/mcount/tracer_interface.h
+=================================--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-compile.git/lib/mcount/tracer_interface.h	2008-01-02 23:28:06.000000000 -0500
+@@ -0,0 +1,14 @@
++#ifndef _LINUX_MCTRACER_INTERFACE_H
++#define _LINUX_MCTRACER_INTERFACE_H
++
++#include "tracer.h"
++
++/*
++ * Will be at least sizeof(struct mctracer_entry), but callers can request more
++ * space for private stuff, such as a timestamp, preempt_count, etc.
++ */
++#define MCTRACER_ENTRY_SIZE sizeof(struct mctracer_entry)
++
++#define MCTRACER_NR_ENTRIES (65536UL)
++
++#endif /* _LINUX_MCTRACER_INTERFACE_H */
+Index: linux-compile.git/lib/mcount/Makefile
+=================================--- linux-compile.git.orig/lib/mcount/Makefile	2008-01-02 23:24:53.000000000 -0500
++++ linux-compile.git/lib/mcount/Makefile	2008-01-02 23:28:06.000000000 -0500
+@@ -1,3 +1,5 @@
+ obj-$(CONFIG_MCOUNT) += libmcount.o
+ 
++obj-$(CONFIG_MCOUNT_TRACER) += tracer.o
++
+ libmcount-objs := mcount.o
 
-On Tue, 22 Jan 2008 15:40:53 +0100 Olaf Hering <olaf@aepfle.de> wrote:
->
-> Create /sys/bus/of_platform/devices/*/modalias file to allow autoloading
-> of modules. modalias files are already present for many other bus types.
->=20
-> Signed-off-by: Olaf Hering <olaf@aepfle.de>
->=20
-> ---
->  drivers/of/device.c |   19 +++++++++++++++++++
->  1 file changed, 19 insertions(+)
->=20
-> --- a/drivers/of/device.c
-> +++ b/drivers/of/device.c
-> @@ -86,7 +86,20 @@ static ssize_t dev_show_devspec(struct d
->  	return sprintf(buf, "%s", ofdev->node->full_name);
->  }
-> =20
-> +static ssize_t dev_show_modalias(struct device *dev,
-> +				struct device_attribute *attr, char *buf)
-> +{
-> +	struct of_device *ofdev =3D to_of_device(dev);
-> +	ssize_t len =3D 0;
-> +
-> +	len =3D of_device_get_modalias(ofdev, buf, PAGE_SIZE);
-
-Should you pass (PAGE_SIZE - 1 (or 2)) here?
-
-> +	buf[len] =3D '\n';
-> +	buf[len+1] =3D 0;
-> +	return len+1;
-> +}
-> +
->  static DEVICE_ATTR(devspec, S_IRUGO, dev_show_devspec, NULL);
-> +static DEVICE_ATTR(modalias, S_IRUGO, dev_show_modalias, NULL);
-> =20
->  /**
->   * of_release_dev - free an of device structure when all users of it are=
- finished.
-> @@ -116,6 +129,11 @@ int of_device_register(struct of_device=20
->  		return rc;
-> =20
->  	rc =3D device_create_file(&ofdev->dev, &dev_attr_devspec);
-> +	if (rc) {
-> +		device_unregister(&ofdev->dev);
-> +		return rc;
-> +	}
-> +	rc =3D device_create_file(&ofdev->dev, &dev_attr_modalias);
->  	if (rc)
->  		device_unregister(&ofdev->dev);
-> =20
-> @@ -126,6 +144,7 @@ EXPORT_SYMBOL(of_device_register);
->  void of_device_unregister(struct of_device *ofdev)
->  {
->  	device_remove_file(&ofdev->dev, &dev_attr_devspec);
-> +	device_remove_file(&ofdev->dev, &dev_attr_modalias);
->  	device_unregister(&ofdev->dev);
->  }
->  EXPORT_SYMBOL(of_device_unregister);
-
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
-
---Signature=_Wed__23_Jan_2008_01_58_21_+1100_BfTte/nrslbIWIR.
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFHlgSTTgG2atn1QN8RAipgAKCT28Cz0alYneY3sqKQtXUDy6VbuQCfcC56
-2bWB17hcPVbrWsouj80uTJk=
-=VNaj
------END PGP SIGNATURE-----
-
---Signature=_Wed__23_Jan_2008_01_58_21_+1100_BfTte/nrslbIWIR.--
+-- 
