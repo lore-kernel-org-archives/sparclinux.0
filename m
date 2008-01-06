@@ -1,52 +1,32 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Date: Sun, 06 Jan 2008 00:22:04 +0000
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Date: Sun, 06 Jan 2008 00:57:13 +0000
 Subject: Re: sparc oops in ip_fast_csum
-Message-Id: <E1JBJHA-0000hy-00@gondolin.me.apana.org.au>
+Message-Id: <Pine.LNX.4.64.0801060156410.14194@fbirervta.pbzchgretzou.qr>
 List-Id: <sparclinux.vger.kernel.org>
-In-Reply-To: <20080105094400.GH27894@ZenIV.linux.org.uk>
-References: <200801041837.37650.m.kozlowski@tuxland.pl>
-In-Reply-To: <200801041837.37650.m.kozlowski@tuxland.pl>
+References: <E1JBJHA-0000hy-00@gondolin.me.apana.org.au>
+In-Reply-To: <E1JBJHA-0000hy-00@gondolin.me.apana.org.au>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="hz-gb-2312"
-Content-Transfer-Encoding: base64
-To: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: m.kozlowski@tuxland.pl, davem@davemloft.net, sparclinux@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>, m.kozlowski@tuxland.pl, davem@davemloft.net, sparclinux@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 
-QWwgVmlybyA8dmlyb0B6ZW5pdi5saW51eC5vcmcudWs+IHdyb3RlOgo+IAo+IGlwX2Zhc3RfY3N1
-bSgpIGNhbGxlZCBmcm9tIHJhd19zZW5kX2hkcmluYygpIGZyb20gcmF3X3NlbmRtc2coKSByYW4g
-dGhyb3VnaAo+IHRoZSBwYWdlIGJvdW5kYXJ5IGludG8gdW5tYXBwZWQgcGFnZS4uLiAgQmxvb2R5
-IG9kZCwgdGhhdCwgc2VlaW5nIHRoYXQKPiB3ZSBoYXZlIGNoZWNrZWQgaXBoLT5paGwgKiA0VSA8
-PSBsZW5ndGggYW5kIGhhZCBkb25lCj4gICAgICAgIGVyciA9IG1lbWNweV9mcm9taW92ZWNlbmQo
-KHZvaWQgKilpcGgsIGZyb20sIDAsIGxlbmd0aCk7Cj4gYmVmb3JlIHRoZQo+ICAgICAgICAgICAg
-ICAgIGlwaC0+Y2hlY2sgPSBpcF9mYXN0X2NzdW0oKHVuc2lnbmVkIGNoYXIgKilpcGgsIGlwaC0+
-aWhsKTsKPiB0aGF0IGhhZCB0cmlnZ2VyZWQgdGhhdCBjcmFwLi4KCkFjdHVhbGx5IGlmIHlvdSBy
-ZWFkIHRoZSBjb2RlIGZvciBpcF9mYXN0X2NzdW0gaXQncyBvYnZpb3VzIHdoYXQgaGFzCmhhcHBl
-bmVkLiAgJW8xID0gaXBoLT5paGwgY29udGFpbnMgdGhlIHZhbHVlIDIgd2hpY2ggaXMgYm9ndXMu
-CgpbSVBWNF0gcmF3OiBTdHJlbmd0aGVuIGNoZWNrIG9uIHZhbGlkaXR5IG9mIGlwaC0+aWhsIAoK
-V2UgY3VycmVudGx5IGNoZWNrIHRoYXQgaXBoLT5paGwgaXMgYm91bmRlZCBieSB0aGUgcmVhbCBs
-ZW5ndGggYW5kIHRoYXQKdGhlIHJlYWwgbGVuZ3RoIGlzIGdyZWF0ZXIgdGhhbiB0aGUgbWluaW11
-bSBJUCBoZWFkZXIgbGVuZ3RoLiAgSG93ZXZlciwKd2UgZGlkIG5vdCBjaGVjayB0aGUgY2FlcyB3
-aGVyZSBpcGgtPmlobCBpcyBsZXNzIHRoYW4gdGhlIG1pbmltdW0gSVAKaGVhZGVyIGxlbmd0aC4K
-ClRoaXMgYnJlYWtzIGJlY2F1c2Ugc29tZSBpcF9mYXN0X2NzdW0gaW1wbGVtZW50YXRpb25zIGFz
-c3VtZSB0aGF0IHdoaWNoCmlzIHF1aXRlIHJlYXNvbmFibGUuCgpTaWduZWQtb2ZmLWJ5OiBIZXJi
-ZXJ0IFh1IDxoZXJiZXJ0QGdvbmRvci5hcGFuYS5vcmcuYXU+CgpDaGVlcnMsCi0tIApWaXNpdCBP
-cGVuc3dhbiBhdCBodHRwOi8vd3d3Lm9wZW5zd2FuLm9yZy8KRW1haWw6IEhlcmJlcnQgWHUgfntQ
-bVY+SEl+fSA8aGVyYmVydEBnb25kb3IuYXBhbmEub3JnLmF1PgpIb21lIFBhZ2U6IGh0dHA6Ly9n
-b25kb3IuYXBhbmEub3JnLmF1L35oZXJiZXJ0LwpQR1AgS2V5OiBodHRwOi8vZ29uZG9yLmFwYW5h
-Lm9yZy5hdS9+aGVyYmVydC9wdWJrZXkudHh0Ci0tCmRpZmYgLS1naXQgYS9uZXQvaXB2NC9yYXcu
-YyBiL25ldC9pcHY0L3Jhdy5jCmluZGV4IDY2YjQyZjUuLmU3MDUwZjggMTAwNjQ0Ci0tLSBhL25l
-dC9pcHY0L3Jhdy5jCisrKyBiL25ldC9pcHY0L3Jhdy5jCkBAIC0yNzEsNiArMjcxLDcgQEAgc3Rh
-dGljIGludCByYXdfc2VuZF9oZHJpbmMoc3RydWN0IHNvY2sgKnNrLCB2b2lkICpmcm9tLCBzaXpl
-X3QgbGVuZ3RoLAogCWludCBoaF9sZW47CiAJc3RydWN0IGlwaGRyICppcGg7CiAJc3RydWN0IHNr
-X2J1ZmYgKnNrYjsKKwl1bnNpZ25lZCBpbnQgaXBobGVuOwogCWludCBlcnI7CiAKIAlpZiAobGVu
-Z3RoID4gcnQtPnUuZHN0LmRldi0+bXR1KSB7CkBAIC0zMDQsNyArMzA1LDggQEAgc3RhdGljIGlu
-dCByYXdfc2VuZF9oZHJpbmMoc3RydWN0IHNvY2sgKnNrLCB2b2lkICpmcm9tLCBzaXplX3QgbGVu
-Z3RoLAogCQlnb3RvIGVycm9yX2ZhdWx0OwogCiAJLyogV2UgZG9uJ3QgbW9kaWZ5IGludmFsaWQg
-aGVhZGVyICovCi0JaWYgKGxlbmd0aCA+PSBzaXplb2YoKmlwaCkgJiYgaXBoLT5paGwgKiA0VSA8
-PSBsZW5ndGgpIHsKKwlpcGhsZW4gPSBpcGgtPmlobCAqIDQ7CisJaWYgKGlwaGxlbiA+PSBzaXpl
-b2YoKmlwaCkgJiYgaXBobGVuIDw9IGxlbmd0aCkgewogCQlpZiAoIWlwaC0+c2FkZHIpCiAJCQlp
-cGgtPnNhZGRyID0gcnQtPnJ0X3NyYzsKIAkJaXBoLT5jaGVjayAgID0gMDsKLQpUbyB1bnN1YnNj
-cmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgc3BhcmNsaW51
-eCIgaW4KdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcK
-TW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8t
-aW5mby5odG1s
+
+On Jan 6 2008 11:22, Herbert Xu wrote:
+>@@ -271,6 +271,7 @@ static int raw_send_hdrinc(struct sock *sk, void *from, size_t length,
+> 	int hh_len;
+> 	struct iphdr *iph;
+> 	struct sk_buff *skb;
+>+	unsigned int iphlen;
+> 	int err;
+> 
+> 	if (length > rt->u.dst.dev->mtu) {
+>@@ -304,7 +305,8 @@ static int raw_send_hdrinc(struct sock *sk, void *from, size_t length,
+> 		goto error_fault;
+> 
+> 	/* We don't modify invalid header */
+>-	if (length >= sizeof(*iph) && iph->ihl * 4U <= length) {
+>+	iphlen = iph->ihl * 4;
+>+	if (iphlen >= sizeof(*iph) && iphlen <= length) {
+
+Humm, this could use ip_hdrlen(skb) :-)
