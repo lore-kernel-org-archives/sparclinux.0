@@ -1,30 +1,30 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Date: Sun, 06 Jan 2008 01:03:59 +0000
+From: Al Viro <viro@ZenIV.linux.org.uk>
+Date: Sun, 06 Jan 2008 02:02:14 +0000
 Subject: Re: sparc oops in ip_fast_csum
-Message-Id: <20080106010358.GA2991@gondor.apana.org.au>
+Message-Id: <20080106020214.GQ27894@ZenIV.linux.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <E1JBJHA-0000hy-00@gondolin.me.apana.org.au> <Pine.LNX.4.64.0801060156410.14194@fbirervta.pbzchgretzou.qr>
-In-Reply-To: <Pine.LNX.4.64.0801060156410.14194@fbirervta.pbzchgretzou.qr>
+References: <20080105094400.GH27894@ZenIV.linux.org.uk> <E1JBJHA-0000hy-00@gondolin.me.apana.org.au>
+In-Reply-To: <E1JBJHA-0000hy-00@gondolin.me.apana.org.au>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="hz-gb-2312"
-Content-Transfer-Encoding: base64
-To: Jan Engelhardt <jengelh@computergmbh.de>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>, m.kozlowski@tuxland.pl, davem@davemloft.net, sparclinux@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: m.kozlowski@tuxland.pl, davem@davemloft.net, sparclinux@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 
-T24gU3VuLCBKYW4gMDYsIDIwMDggYXQgMDE6NTc6MTNBTSArMDEwMCwgSmFuIEVuZ2VsaGFyZHQg
-d3JvdGU6Cj4KPiA+QEAgLTMwNCw3ICszMDUsOCBAQCBzdGF0aWMgaW50IHJhd19zZW5kX2hkcmlu
-YyhzdHJ1Y3Qgc29jayAqc2ssIHZvaWQgKmZyb20sIHNpemVfdCBsZW5ndGgsCj4gPiAJCWdvdG8g
-ZXJyb3JfZmF1bHQ7Cj4gPiAKPiA+IAkvKiBXZSBkb24ndCBtb2RpZnkgaW52YWxpZCBoZWFkZXIg
-Ki8KPiA+LQlpZiAobGVuZ3RoID49IHNpemVvZigqaXBoKSAmJiBpcGgtPmlobCAqIDRVIDw9IGxl
-bmd0aCkgewo+ID4rCWlwaGxlbiA9IGlwaC0+aWhsICogNDsKPiA+KwlpZiAoaXBobGVuID49IHNp
-emVvZigqaXBoKSAmJiBpcGhsZW4gPD0gbGVuZ3RoKSB7Cj4gCj4gSHVtbSwgdGhpcyBjb3VsZCB1
-c2UgaXBfaGRybGVuKHNrYikgOi0pCgpUaGF0IHdvdWxkIG5vdCBuZWNlc3NhcmlseSBiZSBhbiBp
-bXByb3ZlbWVudCBzaW5jZSB3ZSdkIGhhdmUgdG8gcmVsb2FkCnRoZSB2YWx1ZXMgZnJvbSBza2Iu
-CgpDaGVlcnMsCi0tIApWaXNpdCBPcGVuc3dhbiBhdCBodHRwOi8vd3d3Lm9wZW5zd2FuLm9yZy8K
-RW1haWw6IEhlcmJlcnQgWHUgfntQbVY+SEl+fSA8aGVyYmVydEBnb25kb3IuYXBhbmEub3JnLmF1
-PgpIb21lIFBhZ2U6IGh0dHA6Ly9nb25kb3IuYXBhbmEub3JnLmF1L35oZXJiZXJ0LwpQR1AgS2V5
-OiBodHRwOi8vZ29uZG9yLmFwYW5hLm9yZy5hdS9+aGVyYmVydC9wdWJrZXkudHh0Ci0KVG8gdW5z
-dWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIHNwYXJj
-bGludXgiIGluCnRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwu
-b3JnCk1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jk
-b21vLWluZm8uaHRtbA==
+On Sun, Jan 06, 2008 at 11:22:04AM +1100, Herbert Xu wrote:
+> Actually if you read the code for ip_fast_csum it's obvious what has
+> happened.  %o1 = iph->ihl contains the value 2 which is bogus.
+> 
+> [IPV4] raw: Strengthen check on validity of iph->ihl 
+> 
+> We currently check that iph->ihl is bounded by the real length and that
+> the real length is greater than the minimum IP header length.  However,
+> we did not check the caes where iph->ihl is less than the minimum IP
+> header length.
+> 
+> This breaks because some ip_fast_csum implementations assume that which
+> is quite reasonable.
+
+Humm...  Point, but that makes me wonder what other callers do...
+
+E.g. what about ipt_REJECT.c::send_reset()?  Or myri10ge_get_frag_header()?
