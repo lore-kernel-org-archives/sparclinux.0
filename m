@@ -1,32 +1,30 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Date: Sun, 06 Jan 2008 00:57:13 +0000
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Date: Sun, 06 Jan 2008 01:03:59 +0000
 Subject: Re: sparc oops in ip_fast_csum
-Message-Id: <Pine.LNX.4.64.0801060156410.14194@fbirervta.pbzchgretzou.qr>
+Message-Id: <20080106010358.GA2991@gondor.apana.org.au>
 List-Id: <sparclinux.vger.kernel.org>
-References: <E1JBJHA-0000hy-00@gondolin.me.apana.org.au>
-In-Reply-To: <E1JBJHA-0000hy-00@gondolin.me.apana.org.au>
+References: <E1JBJHA-0000hy-00@gondolin.me.apana.org.au> <Pine.LNX.4.64.0801060156410.14194@fbirervta.pbzchgretzou.qr>
+In-Reply-To: <Pine.LNX.4.64.0801060156410.14194@fbirervta.pbzchgretzou.qr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Herbert Xu <herbert@gondor.apana.org.au>
+Content-Type: text/plain; charset="hz-gb-2312"
+Content-Transfer-Encoding: base64
+To: Jan Engelhardt <jengelh@computergmbh.de>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>, m.kozlowski@tuxland.pl, davem@davemloft.net, sparclinux@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 
-
-On Jan 6 2008 11:22, Herbert Xu wrote:
->@@ -271,6 +271,7 @@ static int raw_send_hdrinc(struct sock *sk, void *from, size_t length,
-> 	int hh_len;
-> 	struct iphdr *iph;
-> 	struct sk_buff *skb;
->+	unsigned int iphlen;
-> 	int err;
-> 
-> 	if (length > rt->u.dst.dev->mtu) {
->@@ -304,7 +305,8 @@ static int raw_send_hdrinc(struct sock *sk, void *from, size_t length,
-> 		goto error_fault;
-> 
-> 	/* We don't modify invalid header */
->-	if (length >= sizeof(*iph) && iph->ihl * 4U <= length) {
->+	iphlen = iph->ihl * 4;
->+	if (iphlen >= sizeof(*iph) && iphlen <= length) {
-
-Humm, this could use ip_hdrlen(skb) :-)
+T24gU3VuLCBKYW4gMDYsIDIwMDggYXQgMDE6NTc6MTNBTSArMDEwMCwgSmFuIEVuZ2VsaGFyZHQg
+d3JvdGU6Cj4KPiA+QEAgLTMwNCw3ICszMDUsOCBAQCBzdGF0aWMgaW50IHJhd19zZW5kX2hkcmlu
+YyhzdHJ1Y3Qgc29jayAqc2ssIHZvaWQgKmZyb20sIHNpemVfdCBsZW5ndGgsCj4gPiAJCWdvdG8g
+ZXJyb3JfZmF1bHQ7Cj4gPiAKPiA+IAkvKiBXZSBkb24ndCBtb2RpZnkgaW52YWxpZCBoZWFkZXIg
+Ki8KPiA+LQlpZiAobGVuZ3RoID49IHNpemVvZigqaXBoKSAmJiBpcGgtPmlobCAqIDRVIDw9IGxl
+bmd0aCkgewo+ID4rCWlwaGxlbiA9IGlwaC0+aWhsICogNDsKPiA+KwlpZiAoaXBobGVuID49IHNp
+emVvZigqaXBoKSAmJiBpcGhsZW4gPD0gbGVuZ3RoKSB7Cj4gCj4gSHVtbSwgdGhpcyBjb3VsZCB1
+c2UgaXBfaGRybGVuKHNrYikgOi0pCgpUaGF0IHdvdWxkIG5vdCBuZWNlc3NhcmlseSBiZSBhbiBp
+bXByb3ZlbWVudCBzaW5jZSB3ZSdkIGhhdmUgdG8gcmVsb2FkCnRoZSB2YWx1ZXMgZnJvbSBza2Iu
+CgpDaGVlcnMsCi0tIApWaXNpdCBPcGVuc3dhbiBhdCBodHRwOi8vd3d3Lm9wZW5zd2FuLm9yZy8K
+RW1haWw6IEhlcmJlcnQgWHUgfntQbVY+SEl+fSA8aGVyYmVydEBnb25kb3IuYXBhbmEub3JnLmF1
+PgpIb21lIFBhZ2U6IGh0dHA6Ly9nb25kb3IuYXBhbmEub3JnLmF1L35oZXJiZXJ0LwpQR1AgS2V5
+OiBodHRwOi8vZ29uZG9yLmFwYW5hLm9yZy5hdS9+aGVyYmVydC9wdWJrZXkudHh0Ci0KVG8gdW5z
+dWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIHNwYXJj
+bGludXgiIGluCnRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwu
+b3JnCk1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jk
+b21vLWluZm8uaHRtbA==
