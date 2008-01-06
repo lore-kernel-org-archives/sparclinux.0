@@ -1,35 +1,30 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Date: Sun, 06 Jan 2008 04:14:30 +0000
+From: David Miller <davem@davemloft.net>
+Date: Sun, 06 Jan 2008 07:15:24 +0000
 Subject: Re: sparc oops in ip_fast_csum
-Message-Id: <20080106041430.GA3784@gondor.apana.org.au>
+Message-Id: <20080105.231524.204142940.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080105094400.GH27894@ZenIV.linux.org.uk> <E1JBJHA-0000hy-00@gondolin.me.apana.org.au> <20080106020214.GQ27894@ZenIV.linux.org.uk>
-In-Reply-To: <20080106020214.GQ27894@ZenIV.linux.org.uk>
+References: <20080105094400.GH27894@ZenIV.linux.org.uk>
+	<E1JBJHA-0000hy-00@gondolin.me.apana.org.au>
+In-Reply-To: <E1JBJHA-0000hy-00@gondolin.me.apana.org.au>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="hz-gb-2312"
-Content-Transfer-Encoding: base64
-To: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: m.kozlowski@tuxland.pl, davem@davemloft.net, sparclinux@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: herbert@gondor.apana.org.au
+Cc: viro@ZenIV.linux.org.uk, m.kozlowski@tuxland.pl, sparclinux@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 
-T24gU3VuLCBKYW4gMDYsIDIwMDggYXQgMDI6MDI6MTRBTSArMDAwMCwgQWwgVmlybyB3cm90ZToK
-PiAKPiBFLmcuIHdoYXQgYWJvdXQgaXB0X1JFSkVDVC5jOjpzZW5kX3Jlc2V0KCk/ICBPciBteXJp
-MTBnZV9nZXRfZnJhZ19oZWFkZXIoKT8KClllcyBib3RoIGxvb2sgd3JvbmcuCgpQYXRyaWNrLCBw
-bGVhc2UgaGF2ZSBhIGxvb2sgYXQgdGhlIGZvcm1lci4gIEluIGZhY3QgaXQncyBub3QganVzdAp0
-aGF0IGlobCBtYXkgYmUgYm9ndXMgKHdoaWNoIG1pZ2h0IGJlIGhhcm1sZXNzIGFzIGxvbmcgYXMg
-dGhlIFJFSkVDVApob29rIG9ubHkgZ2V0cyBjYWxsZWQgZnJvbSB3aXRoaW4gdGhlIElQIHN0YWNr
-KSwgSSB0aGluayBSRUpFQ1Qgd291bGQKYWxzbyBkbyB0aGUgd3JvbmcgdGhpbmcgaWYgdGhlIHBh
-Y2tldCBoYWQgSVAgb3B0aW9ucy4gIFNvIHBlcmhhcHMgd2UKc2hvdWxkIGp1c3QgbWFrZSBpdCBj
-cmVhdGUgYSBwYWNrZXQgZnJvbSBzY3JhdGNoIHJhdGhlciB0aGFuIGJlaW5nCnRvbyBjbGV2ZXIg
-aW4gcmV1c2luZyB0aGUgb2xkIG9uZS4KCkFzIHRvIExSTywgSSBtdXN0IHNheSBpdCB3YXMgYSBw
-cmV0dHkgc2hvZGR5IGpvYi4gIE5vdyBJIGNhbid0IGNvbXBsYWluCnRvbyBtdWNoIGJlY2F1c2Ug
-SSB3YXNuJ3QgYWJsZSB0byBzcGVuZCBhbnkgdGltZSBpbiAyMDA3IHdvcmtpbmcgb24gaXQuCkJ1
-dCBpdCdzIGRlZmluaXRlbHkgaGlnaCBvbiBteSB0b2RvIGxpc3QgZm9yIDIwMDguCgpPaCBhbmQg
-QWwsIHlvdXIgZWZmb3J0IGluIGdvaW5nIHRocm91Z2ggYWxsIHRoZSBpcF9mYXN0X2NzdW0gY2Fs
-bGVycwppcyBtdWNoIGFwcHJlY2lhdGVkIQoKVGhhbmtzLAotLSAKVmlzaXQgT3BlbnN3YW4gYXQg
-aHR0cDovL3d3dy5vcGVuc3dhbi5vcmcvCkVtYWlsOiBIZXJiZXJ0IFh1IH57UG1WPkhJfn0gPGhl
-cmJlcnRAZ29uZG9yLmFwYW5hLm9yZy5hdT4KSG9tZSBQYWdlOiBodHRwOi8vZ29uZG9yLmFwYW5h
-Lm9yZy5hdS9+aGVyYmVydC8KUEdQIEtleTogaHR0cDovL2dvbmRvci5hcGFuYS5vcmcuYXUvfmhl
-cmJlcnQvcHVia2V5LnR4dAotClRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRo
-ZSBsaW5lICJ1bnN1YnNjcmliZSBzcGFyY2xpbnV4IiBpbgp0aGUgYm9keSBvZiBhIG1lc3NhZ2Ug
-dG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZwpNb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRw
-Oi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWw=
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Date: Sun, 06 Jan 2008 11:22:04 +1100
+
+> [IPV4] raw: Strengthen check on validity of iph->ihl 
+> 
+> We currently check that iph->ihl is bounded by the real length and that
+> the real length is greater than the minimum IP header length.  However,
+> we did not check the caes where iph->ihl is less than the minimum IP
+> header length.
+> 
+> This breaks because some ip_fast_csum implementations assume that which
+> is quite reasonable.
+> 
+> Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+
+Applied, I'll push this to -stable too, thanks Herbert.
