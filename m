@@ -1,48 +1,126 @@
-From: Tim Bird <tim.bird@am.sony.com>
-Date: Tue, 08 Jan 2008 20:35:02 +0000
-Subject: Re: [RFC PATCH 00/11] mcount tracing utility
-Message-Id: <4783DE76.7060401@am.sony.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Wed, 16 Jan 2008 05:54:19 +0000
+Subject: [PATCH] [SPARC/64] remove of_platform_device_create
+Message-Id: <20080116165419.57e49246.sfr@canb.auug.org.au>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080103071609.478486470@goodmis.org>
-In-Reply-To: <20080103071609.478486470@goodmis.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Christoph Hellwig <hch@infradead.org>, Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>, Gregory Haskins <ghaskins@novell.com>, Arnaldo Carvalho de Melo <acme@ghostprotocols.net>, "William L. Irwin" <sparclinux@vger.kernel.org>, Nicholas Mc Guire <mcguire@lzu.edu.cn>
+To: sparclinux@vger.kernel.org
 
-Steven Rostedt wrote:
-> The following patch series brings to vanilla Linux a bit of the RT kernel
-> trace facility. This incorporates the "-pg" profiling option of gcc
-> that will call the "mcount" function for all functions called in
-> the kernel.
-> 
-> This patch series implements the code for x86 (32 and 64 bit), but
-> other archs can easily be implemented as well.
+There are no callers of this on the Sparc platforms.
 
-Steven,
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+---
+ arch/sparc/kernel/of_device.c     |   27 ---------------------------
+ arch/sparc64/kernel/of_device.c   |   26 --------------------------
+ include/asm-sparc/of_platform.h   |    5 -----
+ include/asm-sparc64/of_platform.h |    5 -----
+ 4 files changed, 0 insertions(+), 63 deletions(-)
 
-This is really exciting!
+Resent because the sparc-linux list did not like the addressing on the
+previous email.
 
-As a former maintainer of the (out-of-tree) Kernel Function Trace
-system, I really welcome this.  I'm just getting out from under
-a backlog of work due to the holiday break, but I'm very interested.
-I will take a detailed look at this this week.
+diff --git a/arch/sparc/kernel/of_device.c b/arch/sparc/kernel/of_device.c
+index 3ea000d..cc4c235 100644
+--- a/arch/sparc/kernel/of_device.c
++++ b/arch/sparc/kernel/of_device.c
+@@ -584,30 +584,3 @@ static int __init of_debug(char *str)
+ }
+ 
+ __setup("of_debug=", of_debug);
+-
+-struct of_device* of_platform_device_create(struct device_node *np,
+-					    const char *bus_id,
+-					    struct device *parent,
+-					    struct bus_type *bus)
+-{
+-	struct of_device *dev;
+-
+-	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev)
+-		return NULL;
+-
+-	dev->dev.parent = parent;
+-	dev->dev.bus = bus;
+-	dev->dev.release = of_release_dev;
+-
+-	strlcpy(dev->dev.bus_id, bus_id, BUS_ID_SIZE);
+-
+-	if (of_device_register(dev) != 0) {
+-		kfree(dev);
+-		return NULL;
+-	}
+-
+-	return dev;
+-}
+-
+-EXPORT_SYMBOL(of_platform_device_create);
+diff --git a/arch/sparc64/kernel/of_device.c b/arch/sparc64/kernel/of_device.c
+index fc5c0cc..0fd9db9 100644
+--- a/arch/sparc64/kernel/of_device.c
++++ b/arch/sparc64/kernel/of_device.c
+@@ -868,29 +868,3 @@ static int __init of_debug(char *str)
+ }
+ 
+ __setup("of_debug=", of_debug);
+-
+-struct of_device* of_platform_device_create(struct device_node *np,
+-					    const char *bus_id,
+-					    struct device *parent,
+-					    struct bus_type *bus)
+-{
+-	struct of_device *dev;
+-
+-	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev)
+-		return NULL;
+-
+-	dev->dev.parent = parent;
+-	dev->dev.bus = bus;
+-	dev->dev.release = of_release_dev;
+-
+-	strlcpy(dev->dev.bus_id, bus_id, BUS_ID_SIZE);
+-
+-	if (of_device_register(dev) != 0) {
+-		kfree(dev);
+-		return NULL;
+-	}
+-
+-	return dev;
+-}
+-EXPORT_SYMBOL(of_platform_device_create);
+diff --git a/include/asm-sparc/of_platform.h b/include/asm-sparc/of_platform.h
+index d638737..3833435 100644
+--- a/include/asm-sparc/of_platform.h
++++ b/include/asm-sparc/of_platform.h
+@@ -21,9 +21,4 @@ extern struct bus_type sbus_bus_type;
+ 
+ #define of_bus_type	of_platform_bus_type	/* for compatibility */
+ 
+-extern struct of_device *of_platform_device_create(struct device_node *np,
+-						   const char *bus_id,
+-						   struct device *parent,
+-						   struct bus_type *bus);
+-
+ #endif	/* _ASM_SPARC_OF_PLATFORM_H */
+diff --git a/include/asm-sparc64/of_platform.h b/include/asm-sparc64/of_platform.h
+index f15cfa7..78aa032 100644
+--- a/include/asm-sparc64/of_platform.h
++++ b/include/asm-sparc64/of_platform.h
+@@ -22,9 +22,4 @@ extern struct bus_type sbus_bus_type;
+ 
+ #define of_bus_type	of_platform_bus_type	/* for compatibility */
+ 
+-extern struct of_device *of_platform_device_create(struct device_node *np,
+-						   const char *bus_id,
+-						   struct device *parent,
+-						   struct bus_type *bus);
+-
+ #endif	/* _ASM_SPARC64_OF_PLATFORM_H */
+-- 
+1.5.3.8
 
-I have been working with -finstrument-functions for a few years
-now, so I know of a few gotchas with that (e.g. It's currently broken
-on ARM EABI with GCC 4.x)  This bug is one of the issues that has
-prevented me from attempting to mainline the KFT work this last
-year.
-
-Please keep me CC'ed on developments in this area, and let me
-know if there are any specific things I can do to help.  I'd be
-very interested in helping out with non-x86 arch support.
-
-Regards,
- -- Tim
-
-==============Tim Bird
-Architecture Group Chair, CE Linux Forum
-Senior Staff Engineer, Sony Corporation of America
-==============
+-- 
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
