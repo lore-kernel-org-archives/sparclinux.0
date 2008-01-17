@@ -1,52 +1,35 @@
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Date: Thu, 06 Dec 2007 17:29:57 +0000
-Subject: OBP versions [was: Re: SunOS/Solaris Binary Emulation]
-Message-Id: <Pine.LNX.4.64.0712061828410.27032@fbirervta.pbzchgretzou.qr>
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Date: Thu, 17 Jan 2008 18:11:13 +0000
+Subject: Re: [-mm Patch] uml: fix a building error
+Message-Id: <200801171911.16230.m.kozlowski@tuxland.pl>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20080117023514.9df393cf.akpm@linux-foundation.org> <20080117135641.GD2693@hacking>
+In-Reply-To: <20080117135641.GD2693@hacking>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Jeff Dike <jdike@addtoit.com>, user-mode-linux-devel@lists.sourceforge.net, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org
 
+Hello,
 
-On Dec 6 2007 10:39, Wes Hardin wrote:
->
-> manhack:/usr/gnemul/solaris/bin# cat /proc/cpuinfo
-> cpu             : TI UltraSparc II  (BlackBird)
-> fpu             : UltraSparc II integrated FPU
-> prom            : OBP 3.31.0 2001/07/25 20:31
-> type            : sun4u
-> ncpus probed    : 2
-> ncpus active    : 2
-> D$ parity tl1   : 0
-> I$ parity tl1   : 0
-> Cpu0Bogo        : 900.58
-> Cpu0ClkTck      : 000000001ad33148
-> Cpu2Bogo        : 900.14
-> Cpu2ClkTck      : 000000001ad33148
-> MMU Type        : Spitfire
-> State:
-> CPU0:           online
-> CPU2:           online
+> This patch fixes this building error:
+> ...
+> drivers/char/mem.c: In function ‘read_mem’:
+> drivers/char/mem.c:136: error: implicit declaration of function ‘unxlate_dev_mem_ptr’
+> ...
 
-Interesting. Look at mine:
+I see this on sparc64 as well:
 
-cpu             : TI UltraSparc II  (BlackBird)
-fpu             : UltraSparc II integrated FPU
-prom            : OBP 3.30.0 2003/11/11 10:37
-type            : sun4u
-ncpus probed    : 2
-ncpus active    : 2
-D$ parity tl1   : 0
-I$ parity tl1   : 0
-Cpu0ClkTck      : 0000000017d78400
-Cpu1ClkTck      : 0000000017d78400
-MMU Type        : Spitfire
-State:
-CPU0:           online
-CPU1:           online
+  CC      drivers/char/mem.o
+drivers/char/mem.c: In function 'read_mem':
+drivers/char/mem.c:136: error: implicit declaration of function 'unxlate_dev_mem_ptr'
+make[2]: *** [drivers/char/mem.o] Error 1
+make[1]: *** [drivers/char] Error 2
+make: *** [drivers] Error 2
 
+Does sparc64 need similar fix?
 
-My OBP's version number is lower, yet more current. (I already updated 
-it with what is on the sun website)
-Where did SUN sleep at this time?
+Regards,
+
+	Mariusz
