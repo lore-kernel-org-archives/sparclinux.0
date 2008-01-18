@@ -1,102 +1,57 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Tue, 22 Jan 2008 23:03:41 +0000
-Subject: Re: [PATCH v3] create modalias file in sysfs for bus of_platform
-Message-Id: <20080123100341.1494e9e7.sfr@canb.auug.org.au>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Signature=_Wed__23_Jan_2008_10_03_41_+1100_kqj9WHqoUTdeuOqs"
+From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
+Date: Fri, 18 Jan 2008 10:40:18 +0000
+Subject: [2.6.23.12] BUG! in file locking routine
+Message-Id: <47908212.9070501@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080122142109.GA12967@aepfle.de>
-	<20080122144053.GA13019@aepfle.de>
-	<20080122190939.GA14124@aepfle.de>
-In-Reply-To: <20080122190939.GA14124@aepfle.de>
-To: Olaf Hering <olaf@aepfle.de>
-Cc: sparclinux@vger.kernel.org, linuxppc-dev@ozlabs.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
---Signature=_Wed__23_Jan_2008_10_03_41_+1100_kqj9WHqoUTdeuOqs
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+	Hello,
 
-[Adding sparclinux cc]
+	In dmesg, I can see this morning :
 
-I withdraw the comment about drivers/macintosh/macio_sysfs.c, I didn't
-realise that it was a whole other bus.
+kernel BUG at fs/locks.c:173!
+               \|/ ____ \|/
+               "@'/ .. \`@"
+               /_| \__/ |_\
+                  \__U_/
+sendmail-mta(31737): Kernel bad sw trap 5 [#1]
+TSTATE: 0000009980009600 TPC: 00000000004c71c8 TNPC: 00000000004c71cc Y: 
+00000000    Not tainted
+TPC: <locks_free_lock+0x90/0xa0>
+g0: fffff80035a67221 g1: 0000000000000000 g2: 0000000000000001 g3: 
+fffff80035a64000
+g4: fffff8007bb65720 g5: fffff7ffff87e000 g6: fffff80035a64000 g7: 
+000000000072ea68
+o0: 0000000000000021 o1: 00000000006e7840 o2: 00000000000000ad o3: 
+00000000004c758c
+o4: 7fffffffffffffff o5: 0000000000000000 sp: fffff80035a67271 ret_pc: 
+00000000004c71c0
+RPC: <locks_free_lock+0x88/0xa0>
+l0: 0000000100000000 l1: fffff8007bb65720 l2: 00000000ffd50210 l3: 
+00000001ffd4f070
+l4: 00000001ffd4f104 l5: 00000001f7daa898 l6: 0000000001000000 l7: 
+00000000700fa738
+i0: fffff8007d34f9c8 i1: fffff8007d34fb58 i2: fffff8007d34e3e8 i3: 
+fffffffffffffe60
+i4: fffff80035a67cd0 i5: 0000000000000000 i6: fffff80035a67331 i7: 
+00000000004c75e0
+I7: <__posix_lock_file+0x88/0x4a0>
+Caller[00000000004c75e0]: __posix_lock_file+0x88/0x4a0
+Caller[00000000004c7c14]: fcntl_setlk+0xfc/0x2a0
+Caller[00000000004c3fa0]: sys_fcntl+0x228/0x360
+Caller[00000000004eb448]: compat_sys_fcntl64+0xd0/0x340
+Caller[00000000004062d4]: linux_sparc_syscall32+0x3c/0x40
+Caller[00000000f79df5cc]: 0xf79df5d4
+Instruction DUMP: 921020ad  7ffd8ed8  90122040 <91d02005> 30680005 
+01000000  01000000  01000000  01000000
+Root fermat:[/etc] >
 
-On Tue, 22 Jan 2008 20:09:39 +0100 Olaf Hering <olaf@aepfle.de> wrote:
->
-> Create /sys/bus/of_platform/devices/*/modalias file to allow autoloading
-> of modules. modalias files are already present for many other bus types.
->=20
-> Signed-off-by: Olaf Hering <olaf@aepfle.de>
->=20
-> ---
->  drivers/of/device.c |   19 +++++++++++++++++++
->  1 file changed, 19 insertions(+)
->=20
-> --- a/drivers/of/device.c
-> +++ b/drivers/of/device.c
-> @@ -86,7 +86,20 @@ static ssize_t dev_show_devspec(struct d
->  	return sprintf(buf, "%s", ofdev->node->full_name);
->  }
-> =20
-> +static ssize_t dev_show_modalias(struct device *dev,
-> +				struct device_attribute *attr, char *buf)
-> +{
-> +	struct of_device *ofdev =3D to_of_device(dev);
-> +	ssize_t len =3D 0;
-> +
-> +	len =3D of_device_get_modalias(ofdev, buf, PAGE_SIZE - 2);
-> +	buf[len] =3D '\n';
-> +	buf[len+1] =3D 0;
-> +	return len+1;
-> +}
-> +
->  static DEVICE_ATTR(devspec, S_IRUGO, dev_show_devspec, NULL);
-> +static DEVICE_ATTR(modalias, S_IRUGO, dev_show_modalias, NULL);
-> =20
->  /**
->   * of_release_dev - free an of device structure when all users of it are=
- finished.
-> @@ -116,6 +129,11 @@ int of_device_register(struct of_device=20
->  		return rc;
-> =20
->  	rc =3D device_create_file(&ofdev->dev, &dev_attr_devspec);
-> +	if (rc) {
-> +		device_unregister(&ofdev->dev);
-> +		return rc;
-> +	}
-> +	rc =3D device_create_file(&ofdev->dev, &dev_attr_modalias);
->  	if (rc)
->  		device_unregister(&ofdev->dev);
-> =20
-> @@ -126,6 +144,7 @@ EXPORT_SYMBOL(of_device_register);
->  void of_device_unregister(struct of_device *ofdev)
->  {
->  	device_remove_file(&ofdev->dev, &dev_attr_devspec);
-> +	device_remove_file(&ofdev->dev, &dev_attr_modalias);
->  	device_unregister(&ofdev->dev);
->  }
->  EXPORT_SYMBOL(of_device_unregister);
-> _______________________________________________
-> Linuxppc-dev mailing list
-> Linuxppc-dev@ozlabs.org
-> https://ozlabs.org/mailman/listinfo/linuxppc-dev
+	Host system is a U2/SMP (2*300 MHz/2 GB RAM) running a 2.6.23.12 
+official linux kernel.
 
+	Regards,
 
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
-
---Signature=_Wed__23_Jan_2008_10_03_41_+1100_kqj9WHqoUTdeuOqs
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFHlnZTTgG2atn1QN8RAlWjAJ4mTiPpembguHobChG4tsP6hVsWdACeL9r2
-RYasIbd6DFEKUioppah05Q4=
-=cUTz
------END PGP SIGNATURE-----
-
---Signature=_Wed__23_Jan_2008_10_03_41_+1100_kqj9WHqoUTdeuOqs--
+	JKB
