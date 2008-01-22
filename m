@@ -1,18 +1,61 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 23 Jan 2008 02:29:35 +0000
-Subject: Re: [PATCH] sparc64, openpromfs: constify function pointer tables
-Message-Id: <20080122.182935.02808859.davem@davemloft.net>
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Date: Tue, 22 Jan 2008 20:30:23 +0000
+Subject: Re: 2.6.24-rc8-mm1: sparc64 warning at fs/file_table.c:49 __fput+0x1a8/0x1e0()
+Message-Id: <200801222130.24136.m.kozlowski@tuxland.pl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.0801222043300.5722@fbirervta.pbzchgretzou.qr>
-In-Reply-To: <Pine.LNX.4.64.0801222043300.5722@fbirervta.pbzchgretzou.qr>
+References: <20080117023514.9df393cf.akpm@linux-foundation.org>
+In-Reply-To: <20080117023514.9df393cf.akpm@linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-From: Jan Engelhardt <jengelh@computergmbh.de>
-Date: Tue, 22 Jan 2008 20:43:45 +0100 (CET)
+Hello,
 
-> Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+Issuing "sysrq-s sysrq-u" sequence causes these warnings on sparc64:
 
-Applied, thanks.
+------------[ cut here ]------------
+WARNING: at fs/file_table.c:49 __fput+0x1a8/0x1e0()
+Modules linked in: sg sr_mod cdrom
+Call Trace:
+ [00000000004c9ac8] __fput+0x1b0/0x1e0
+ [00000000004c6978] filp_close+0x60/0x80
+ [00000000004c6a18] sys_close+0x80/0xe0
+ [00000000004062d4] linux_sparc_syscall32+0x3c/0x40
+ [0000000000012f1c] 0x12f24
+---[ end trace 6dbe14ff8ec57744 ]---
+------------[ cut here ]------------
+WARNING: at fs/file_table.c:49 __fput+0x1a8/0x1e0()
+Modules linked in: sg sr_mod cdrom
+Call Trace:
+ [00000000004c9ac8] __fput+0x1b0/0x1e0
+ [00000000004c6978] filp_close+0x60/0x80
+ [00000000004c6a18] sys_close+0x80/0xe0
+ [00000000004062d4] linux_sparc_syscall32+0x3c/0x40
+ [0000000000012f1c] 0x12f24
+---[ end trace 6dbe14ff8ec57744 ]---
+------------[ cut here ]------------
+WARNING: at fs/file_table.c:49 __fput+0x1a8/0x1e0()
+Modules linked in: sg sr_mod cdrom
+Call Trace:
+ [00000000004c9ac8] __fput+0x1b0/0x1e0
+ [00000000004c6978] filp_close+0x60/0x80
+ [00000000004c6a18] sys_close+0x80/0xe0
+ [00000000004062d4] linux_sparc_syscall32+0x3c/0x40
+ [0000000000012f1c] 0x12f24
+---[ end trace 6dbe14ff8ec57744 ]---
+------------[ cut here ]------------
+WARNING: at fs/file_table.c:49 __fput+0x1a8/0x1e0()
+Modules linked in: sg sr_mod cdrom
+Call Trace:
+ [00000000004c9ac8] __fput+0x1b0/0x1e0
+ [00000000004c6978] filp_close+0x60/0x80
+ [00000000004c6a18] sys_close+0x80/0xe0
+ [00000000004062d4] linux_sparc_syscall32+0x3c/0x40
+ [0000000000012f1c] 0x12f24
+---[ end trace 6dbe14ff8ec57744 ]---
+
+Regards,
+
+	Mariusz
