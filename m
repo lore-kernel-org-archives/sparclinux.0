@@ -1,52 +1,73 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Date: Thu, 31 Jan 2008 23:28:13 +0000
-Subject: RE: x86/non-x86: percpu, node ids, apic ids x86.git fixup
-Message-Id: <1FE6DD409037234FAB833C420AA843EC78CC73@orsmsx424.amr.corp.intel.com>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Date: Tue, 22 Jan 2008 19:43:45 +0000
+Subject: [PATCH] sparc64, openpromfs: constify function pointer tables
+Message-Id: <Pine.LNX.4.64.0801222043300.5722@fbirervta.pbzchgretzou.qr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080130180623.GA24881@elte.hu>
-	<1FE6DD409037234FAB833C420AA843EC757DEA@orsmsx424.amr.corp.intel.com>
-	<47A0CD4B.5040706@sgi.com>
-	<1FE6DD409037234FAB833C420AA843EC757F12@orsmsx424.amr.corp.intel.com>
-	<20080130194616.GA19426@elte.hu>
-	<1FE6DD409037234FAB833C420AA843EC757F7C@orsmsx424.amr.corp.intel.com>
-	<20080130200221.GA28073@elte.hu>
-	<1FE6DD409037234FAB833C420AA843EC757FC2@orsmsx424.amr.corp.intel.com>
-	<20080130205915.GA4562@elte.hu>
-	<1FE6DD409037234FAB833C420AA843EC78C219@orsmsx424.amr.corp.intel.com>
-	<20080131090642.GA5688@elte.hu>
-	<1FE6DD409037234FAB833C420AA843EC78C75A@orsmsx424.amr.corp.intel.com>
-In-Reply-To: <1FE6DD409037234FAB833C420AA843EC78C75A@orsmsx424.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Luck, Tony" <tony.luck@intel.com>, Ingo Molnar <mingo@elte.hu>
-Cc: sparclinux@vger.kernel.org, linux-ia64@vger.kernel.org, Linux Kernel Development <linux-kernel@vger.kernel.org>, Mike Travis <travis@sgi.com>, Linux/PPC Development <linuxppc-dev@ozlabs.org>, Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>
+To: sparclinux@vger.kernel.org
 
-> So the percpu changes are innocent ... something else since 2.6.24 is
-> to blame.  Only 5749 commits :-)  I'll start bisecting.
+Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+---
+ arch/sparc/kernel/setup.c      |    2 +-
+ arch/sparc64/kernel/setup.c    |    2 +-
+ arch/sparc64/solaris/socksys.c |    2 +-
+ fs/openpromfs/inode.c          |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-12 bisections later ... nothing!  I think I got lost in the
-maze.  Bisection #5 had a crash, but it looked to be a very
-differnt crash (and looked to happen later than the bug I was
-hunting).  So I marked that as "good" on the theory that it
-looked like this bug wasn't in the kernel. Same thing happened
-at bisection #9.  But I ended up with:
+diff --git a/arch/sparc/kernel/setup.c b/arch/sparc/kernel/setup.c
+index f822838..d07bc74 100644
+--- a/arch/sparc/kernel/setup.c
++++ b/arch/sparc/kernel/setup.c
+@@ -379,7 +379,7 @@ static void c_stop(struct seq_file *m, void *v)
+ {
+ }
+ 
+-struct seq_operations cpuinfo_op = {
++const struct seq_operations cpuinfo_op = {
+ 	.start =c_start,
+ 	.next =	c_next,
+ 	.stop =	c_stop,
+diff --git a/arch/sparc64/kernel/setup.c b/arch/sparc64/kernel/setup.c
+index 0f5be82..a813441 100644
+--- a/arch/sparc64/kernel/setup.c
++++ b/arch/sparc64/kernel/setup.c
+@@ -421,7 +421,7 @@ static void c_stop(struct seq_file *m, void *v)
+ {
+ }
+ 
+-struct seq_operations cpuinfo_op = {
++const struct seq_operations cpuinfo_op = {
+ 	.start =c_start,
+ 	.next =	c_next,
+ 	.stop =	c_stop,
+diff --git a/arch/sparc64/solaris/socksys.c b/arch/sparc64/solaris/socksys.c
+index 7736411..5f06418 100644
+--- a/arch/sparc64/solaris/socksys.c
++++ b/arch/sparc64/solaris/socksys.c
+@@ -54,7 +54,7 @@ extern void mykfree(void *);
+ 
+ static unsigned int (*sock_poll)(struct file *, poll_table *);
+ 
+-static struct file_operations socksys_file_ops = {
++static const struct file_operations socksys_file_ops = {
+ 	/* Currently empty */
+ };
+ 
+diff --git a/fs/openpromfs/inode.c b/fs/openpromfs/inode.c
+index d881738..6b7ff16 100644
+--- a/fs/openpromfs/inode.c
++++ b/fs/openpromfs/inode.c
+@@ -131,7 +131,7 @@ static void property_stop(struct seq_file *f, void *v)
+ 	/* Nothing to do */
+ }
+ 
+-static struct seq_operations property_op = {
++static const struct seq_operations property_op = {
+ 	.start		= property_start,
+ 	.next		= property_next,
+ 	.stop		= property_stop,
+-- 
+1.5.3.4
 
-commit bfada697bd534d2c16fd07fbef3a4924c4d4e014
-Author: Pavel Emelyanov <xemul@openvz.org>
-Date:   Sun Dec 2 00:57:08 2007 +1100
-
-    [IPV4]: Use ctl paths to register devinet sysctls
-
-
-Which just looks too improbable to be the cause of the UP
-crash.  Git won't revert it out from top of tree automatically
-so I can't easily test whether some weird magic means that
-this is the buggy commit.
-
-Perhaps the issue is another offset of object X in kernel w.r.t.
-object Y ... and so the good/bad choices in the bisection are
-actually pretty random depending on how much code is stuffed
-between X & Y at each bisection point.
-
--Tony
