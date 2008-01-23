@@ -1,165 +1,130 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 22 Jan 2008 07:27:56 +0000
+From: Grant Grundler <grundler@parisc-linux.org>
+Date: Wed, 23 Jan 2008 06:19:50 +0000
 Subject: Re: [Bug 9106] Sun Fire v100 dmfe driver bug
-Message-Id: <20080121.232756.107909847.davem@davemloft.net>
+Message-Id: <20080123061950.GA20348@colo.lackof.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20080121.232756.107909847.davem@davemloft.net>
+In-Reply-To: <20080121.232756.107909847.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Grant Grundler <grundler@parisc-linux.org>
-Date: Sun, 6 Jan 2008 01:35:32 -0700
+On Mon, Jan 21, 2008 at 11:27:56PM -0800, David Miller wrote:
+> This driver did work on sparc64 to some extent at some point in the
+> past.  So something did change over time to subtly break this thing.
 
-[ Andrew, one of your warning fixes from yesteryear broke
-  SROM parsing in the DMFE tulip driver, see below.  ]
+Good - that gives me some hope it can be made to work again.
 
-> Thanks! This was the case with the dmfe driver on SPARC.
-> I've attached a patch as comment #6 on:
-> 	http://bugzilla.kernel.org/show_bug.cgi?id=9106
+> The users log with the TX timeouts probably indicates that the chip
+> cannot DMA properly or send to the network for whatever reason.
 
-If there is no MAC address in the SROM you'll also have to handle the
-fact that there's almost guarenteed to not be any media mode data
-there either.  Actually, there might be such information there and
-this could be a clue.  See below.
+Yes - or the interrupts aren't getting generated/delivered.
 
-This driver did work on sparc64 to some extent at some point in the
-past.  So something did change over time to subtly break this thing.
+> Maybe the media type is wrong.
+> 
+> BTW, I noticed this while reading the DMFE code:
+> 
+> 	db->buf_pool_ptr = pci_alloc_consistent(pdev, TX_BUF_ALLOC *
+> 			TX_DESC_CNT + 4, &db->buf_pool_dma_ptr);
+> 
+> That size looks strange, is this supposed to be:
+> 
+> 	(TX_BUF_ALLOC * TX_DESC_CNT) + 4
+> 
+> or:
+> 
+> 	TX_BUF_ALLOC * (TX_DESC_CNT + 4)
+> 
+> I think the latter is the intention, but the former is what
+> is actually happening.
 
-The users log with the TX timeouts probably indicates that the chip
-cannot DMA properly or send to the network for whatever reason.  Maybe
-the media type is wrong.
+Note the same thing is happening in the pci_free_consistent call.
 
-BTW, I noticed this while reading the DMFE code:
+After looking the code a bit, my guess would be the former was intended.
+I suspect this driver once suffered from alignment issues:
+        /* pointer for memory physical address */
+        dma_addr_t buf_pool_dma_ptr;    /* Tx buffer pool memory */
+        dma_addr_t buf_pool_dma_start;  /* Tx buffer pool align dword */
+...
 
-	db->buf_pool_ptr =3D pci_alloc_consistent(pdev, TX_BUF_ALLOC *
-			TX_DESC_CNT + 4, &db->buf_pool_dma_ptr);
+and I'm going a bit out on a limb here by guessing this line:
+	db->buf_pool_dma_start = db->buf_pool_dma_ptr;
 
-That size looks strange, is this supposed to be:
+might used to read something like:
+	db->buf_pool_dma_start = db->buf_pool_dma_ptr & ~3ULL;
 
-	(TX_BUF_ALLOC * TX_DESC_CNT) + 4
+or two lines:
+        db->buf_pool_dma_start = db->buf_pool_dma_ptr;
+        db->buf_pool_dma_ptr &= ~3ULL;
 
-or:
+to guarantee the DMA pool had a 4-byte alignment. So I think the +4 can
+just be dropped.
 
-	TX_BUF_ALLOC * (TX_DESC_CNT + 4)
 
-I think the latter is the intention, but the former is what
-is actually happening.
+> Looking through the driver history I definitely see some bugs
+> introduced into the SROM code, for example:
+...
+> But it is totally wrong in the cases where the offsets were not
+> a multiple or 2 or 4, respectively.  (hint: (34 % 4) = 2)
 
-Looking through the driver history I definitely see some bugs
-introduced into the SROM code, for example:
+Ouch. Good catch.
 
-	commit 16b110c3fd760620b4a787db6ed512fe531ab1b5
-	Author: Andrew Morton <akpm@osdl.org>
-	Date:   Mon Jun 20 15:32:59 2005 -0700
+> It would have been better to use expressions like:
+> 
+> 	(__le16 *) (srom + 34)
+> 	(__le32 *) (srom + 34)
+> 	(__le32 *) (srom + 36)
 
-	[PATCH] dmfe warning fix
- ...
-	This is basically a guess:
-   =20
-	Cc: Jeff Garzik <jgarzik@pobox.com>
-	Signed-off-by: Andrew Morton <akpm@osdl.org>
+Yes. This is in fact what the dmfe.c v1.43 driver from Davicom does:
+#define DRV_NAME        "dmfe"
+#define DRV_VERSION     "1.43"
+#define DRV_RELDATE     "2005-07-14"
+...
+                /* Get NIC support media mode */
+                db->NIC_capability = le16_to_cpup((u16 *)(srom + 34));
+...
+                /* Media Mode Force or not check */
+                dmfe_mode = le32_to_cpup((u32 *)(srom + 34)) & le32_to_cpup((u32 *)(srom + 36));
 
---- a/drivers/net/tulip/dmfe.c
-+++ b/drivers/net/tulip/dmfe.c
-@@ -1802,7 +1802,7 @@ static void dmfe_parse_srom(struct dmfe_board_info * =
-db)
- 	if ( ( (int) srom[18] & 0xff) =3D SROM_V41_CODE) {
- 		/* SROM V4.01 */
- 		/* Get NIC support media mode */
--		db->NIC_capability =3D le16_to_cpup(srom + 34);
-+		db->NIC_capability =3D le16_to_cpup((__le16 *)srom + 34/2);
- 		db->PHY_reg4 =3D 0;
- 		for (tmp_reg =3D 1; tmp_reg < 0x10; tmp_reg <<=3D 1) {
- 			switch( db->NIC_capability & tmp_reg ) {
-@@ -1814,7 +1814,8 @@ static void dmfe_parse_srom(struct dmfe_board_info * =
-db)
- 		}
-=20
- 		/* Media Mode Force or not check */
--		dmfe_mode =3D le32_to_cpup(srom + 34) & le32_to_cpup(srom + 36);
-+		dmfe_mode =3D le32_to_cpup((__le32 *)srom + 34/4) &
-+				le32_to_cpup((__le32 *)srom + 36/4);
- 		switch(dmfe_mode) {
- 		case 0x4: dmfe_media_mode =3D DMFE_100MHF; break;	/* 100MHF */
- 		case 0x2: dmfe_media_mode =3D DMFE_10MFD; break;	/* 10MFD */
+Driver is available from:
+http://www.davicom.com.tw/eng/download/Driver/driver_9102a.htm
+http://www.davicom.com.tw/big5/download/Driver/dm9102a/dmfe_1.43.tar.gz
 
-Basically he is trying to deal with the fact that "srom" is
-a "char *" but the typing requires converting to 16-bit
-and 32-bit pointers so the offsets have to be adjusted.
+> Thinking about this some more, these accesses are extremely queer.
+> Why would it use 32-bit accesses here to two 32-bit datums which
+> overlap, and "and" them together to figure out the 'dmfe_mode'?
 
-But it is totally wrong in the cases where the offsets were not
-a multiple or 2 or 4, respectively.  (hint: (34 % 4) =3D 2)
+Yeah, this looks wierd. But probably happens to work IFF only one bit
+is set of the 16 bits at offset 0x36 and NONE of the same bits are
+set at the 16 bits starting at offset 0x38. Given we only care about
+bits 1-3 (see "switch(dmfe_mode)"), this should be safe to convert
+to 16 bit accesses.
 
-It would have been better to use expressions like:
+> This driver is in a bit of a state of disrepair.  Who is Tobias
+> Ringstrom (from MAINTAINERS) and when was the last time he did any
+> maintainence on dmfe?  He definitely hasn't done anything in
+> the GIT era as I look through the changelog.
 
-	(__le16 *) (srom + 34)
-	(__le32 *) (srom + 34)
-	(__le32 *) (srom + 36)
+http://ringstrom.mine.nu/
 
-So that change definitely subtly changed how the SROM is accessed
-and likely is a good explanation for certain bugs, maybe even this
-one we are discussing.
+and seems to have started a family since 2003 or so :)
+	http://ringstrom.mine.nu/photo/ 
 
-Thinking about this some more, these accesses are extremely queer.
-Why would it use 32-bit accesses here to two 32-bit datums which
-overlap, and "and" them together to figure out the 'dmfe_mode'?
+Google hasn't seen any contributions since about 2003.
+Mostly active in 2001 on the kernel.
+Maybe time to orphan the driver or find a new maintainer?
 
-This driver is in a bit of a state of disrepair.  Who is Tobias
-Ringstrom (from MAINTAINERS) and when was the last time he did any
-maintainence on dmfe?  He definitely hasn't done anything in
-the GIT era as I look through the changelog.
+> Anyways, here is a fix for the above regression, if that DMA
+> sizing error above is a real one that will need a fix too:
+> 
+> [TULIP] DMFE: Fix SROM parsing regression.
+> 
+> Changeset 16b110c3fd760620b4a787db6ed512fe531ab1b5 (dmfe warning fix)
+> bothed up the offsets read from the SROM so that it doesn't read the
+> same datums it used to.
 
-Anyways, here is a fix for the above regression, if that DMA
-sizing error above is a real one that will need a fix too:
+In case it matters, looks good to me.
 
-[TULIP] DMFE: Fix SROM parsing regression.
-
-Changeset 16b110c3fd760620b4a787db6ed512fe531ab1b5 (dmfe warning fix)
-bothed up the offsets read from the SROM so that it doesn't read the
-same datums it used to.
-
-The change made transformations like turning:
-
-	"srom + 34"
-
-into
-
-	"(__le32 *)srom + 34/4"
-
-which doesn't work because 4 does not divide evenly
-into 34 so we're using a different pointer offset
-than in the original code.
-
-I've changed theses cases in dmfe_parse_srom() to
-consistently use "(type *)(srom + offset)" preserving
-the offsets from the original code.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
-
-diff --git a/drivers/net/tulip/dmfe.c b/drivers/net/tulip/dmfe.c
-index b4891ca..6562004 100644
---- a/drivers/net/tulip/dmfe.c
-+++ b/drivers/net/tulip/dmfe.c
-@@ -1909,7 +1909,7 @@ static void dmfe_parse_srom(struct dmfe_board_info * =
-db)
- 	if ( ( (int) srom[18] & 0xff) =3D SROM_V41_CODE) {
- 		/* SROM V4.01 */
- 		/* Get NIC support media mode */
--		db->NIC_capability =3D le16_to_cpup((__le16 *)srom + 34/2);
-+		db->NIC_capability =3D le16_to_cpup((__le16 *) (srom + 34));
- 		db->PHY_reg4 =3D 0;
- 		for (tmp_reg =3D 1; tmp_reg < 0x10; tmp_reg <<=3D 1) {
- 			switch( db->NIC_capability & tmp_reg ) {
-@@ -1921,8 +1921,8 @@ static void dmfe_parse_srom(struct dmfe_board_info * =
-db)
- 		}
-=20
- 		/* Media Mode Force or not check */
--		dmfe_mode =3D le32_to_cpup((__le32 *)srom + 34/4) &
--				le32_to_cpup((__le32 *)srom + 36/4);
-+		dmfe_mode =3D (le32_to_cpup((__le32 *) (srom + 34)) &
-+			     le32_to_cpup((__le32 *) (srom + 36)));
- 		switch(dmfe_mode) {
- 		case 0x4: dmfe_media_mode =3D DMFE_100MHF; break;	/* 100MHF */
- 		case 0x2: dmfe_media_mode =3D DMFE_10MFD; break;	/* 10MFD */
+thanks,
+grant
