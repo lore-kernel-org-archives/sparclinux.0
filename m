@@ -1,149 +1,109 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Date: Thu, 03 Jan 2008 07:16:17 +0000
-Subject: [RFC PATCH 08/11] tracer add debugfs interface
-Message-Id: <20080103072227.894547203@goodmis.org>
+From: Olaf Hering <olaf@aepfle.de>
+Date: Sat, 26 Jan 2008 10:04:27 +0000
+Subject: [PATCH v4] create modalias file in sysfs for bus of_platform
+Message-Id: <20080126100427.GA1162@aepfle.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080103071609.478486470@goodmis.org>
+References: <20080122142109.GA12967@aepfle.de>
+	<20080122144053.GA13019@aepfle.de>
+	<20080122190939.GA14124@aepfle.de>
+	<18330.32110.449914.354218@cargo.ozlabs.ibm.com>
+In-Reply-To: <18330.32110.449914.354218@cargo.ozlabs.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Christoph Hellwig <hch@infradead.org>, Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>, Gregory Haskins <ghaskins@novell.com>, Arnaldo Carvalho de Melo <acme@ghostprotocols.net>, "William L. Irwin" <sparclinux@vger.kernel.org>, Steven Rostedt <srostedt@redhat.com>
+To: Paul Mackerras <paulus@samba.org>
+Cc: sparclinux@vger.kernel.org, linuxppc-dev@ozlabs.org
 
-This patch adds an interface into debugfs.
+Create /sys/bus/of_platform/devices/*/modalias file to allow autoloading
+of modules. modalias files are already present for many other bus types.
 
-  /debugfs/mctracer/ctrl
+Signed-off-by: Olaf Hering <olaf@aepfle.de>
 
-echoing 1 into the ctrl file turns on the tracer,
-and echoing 0 turns it off.
-
-Signed-off-by: Steven Rostedt <srostedt@redhat.com>
 ---
- lib/mcount/tracer.c |   87 +++++++++++++++++++++++++++++++++++++++++++++++++++-
- lib/mcount/tracer.h |    1 
- 2 files changed, 87 insertions(+), 1 deletion(-)
+ drivers/of/device.c   |   33 ++++++++++++++++++---------------
+ drivers/of/platform.c |    3 +++
+ 2 files changed, 21 insertions(+), 15 deletions(-)
 
-Index: linux-compile.git/lib/mcount/tracer.c
-=================================--- linux-compile.git.orig/lib/mcount/tracer.c	2008-01-02 23:07:23.000000000 -0500
-+++ linux-compile.git/lib/mcount/tracer.c	2008-01-02 23:12:50.000000000 -0500
-@@ -15,6 +15,8 @@
- #include <linux/init.h>
- #include <linux/linkage.h>
- #include <linux/seq_file.h>
-+#include <linux/debugfs.h>
-+#include <linux/uaccess.h>
- #include <linux/mcount.h>
+Index: linux-2.6/drivers/of/device.c
+=================================--- linux-2.6.orig/drivers/of/device.c
++++ linux-2.6/drivers/of/device.c
+@@ -77,7 +77,7 @@ void of_dev_put(struct of_device *dev)
+ }
+ EXPORT_SYMBOL(of_dev_put);
  
- #include "tracer.h"
-@@ -71,6 +73,89 @@ static inline notrace void trace_functio
- 	raw_local_irq_restore(flags);
+-static ssize_t dev_show_devspec(struct device *dev,
++static ssize_t devspec_show(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
+ {
+ 	struct of_device *ofdev;
+@@ -86,7 +86,22 @@ static ssize_t dev_show_devspec(struct d
+ 	return sprintf(buf, "%s", ofdev->node->full_name);
  }
  
-+#ifdef CONFIG_DEBUG_FS
-+static int mctracer_open_generic(struct inode *inode, struct file *filp)
+-static DEVICE_ATTR(devspec, S_IRUGO, dev_show_devspec, NULL);
++static ssize_t modalias_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
 +{
-+	filp->private_data = inode->i_private;
-+	return 0;
++	ssize_t len;
++
++	len = of_device_get_modalias(to_of_device(dev), buf, PAGE_SIZE - 2);
++	buf[len] = '\n';
++	buf[len+1] = 0;
++	return len+1;
 +}
 +
-+
-+static ssize_t mctracer_ctrl_read(struct file *filp, char __user *ubuf,
-+				  size_t cnt, loff_t *ppos)
-+{
-+	struct mctracer_trace *tr = filp->private_data;
-+	char buf[16];
-+	int r;
-+
-+	r = sprintf(buf, "%ld\n", tr->ctrl);
-+	return simple_read_from_buffer(ubuf, cnt, ppos,
-+				       buf, r);
-+}
-+
-+static ssize_t mctracer_ctrl_write(struct file *filp,
-+				   const char __user *ubuf,
-+				   size_t cnt, loff_t *ppos)
-+{
-+	struct mctracer_trace *tr = filp->private_data;
-+	int val;
-+	char buf[16];
-+
-+	if (cnt > 15)
-+		cnt = 15;
-+
-+	if (copy_from_user(&buf, ubuf, cnt))
-+		return -EFAULT;
-+
-+	buf[cnt] = 0;
-+
-+	val = !!simple_strtoul(buf, NULL, 10);
-+
-+	if (tr->ctrl ^ val) {
-+		if (val)
-+			register_mcount_function(trace_function);
-+		else
-+			clear_mcount_function();
-+		tr->ctrl = val;
-+	}
-+
-+	filp->f_pos += cnt;
-+
-+	return cnt;
-+}
-+
-+static struct file_operations mctracer_ctrl_fops = {
-+	.open = mctracer_open_generic,
-+	.read = mctracer_ctrl_read,
-+	.write = mctracer_ctrl_write,
++struct device_attribute of_platform_device_attrs[] = {
++	__ATTR_RO(devspec),
++	__ATTR_RO(modalias),
++	__ATTR_NULL
 +};
-+
-+static void mctrace_init_debugfs(void)
-+{
-+	struct dentry *d_mctracer;
-+	struct dentry *entry;
-+
-+	d_mctracer = debugfs_create_dir("mctracer", NULL);
-+	if (!d_mctracer) {
-+		pr_warning("Could not create debugfs directory mctracer\n");
-+		return;
-+	}
-+
-+	entry = debugfs_create_file("ctrl", 0644, d_mctracer,
-+				    &mctracer_trace, &mctracer_ctrl_fops);
-+	if (!entry)
-+		pr_warning("Could not create debugfs 'ctrl' entry\n");
-+}
-+#else /* CONFIG_DEBUG_FS */
-+static void mctrace_init_debugfs(void)
-+{
-+	/*
-+	 * No way to turn on or off the trace function
-+	 * without debugfs, so we just turn it on.
-+	 */
-+	register_mcount_function(trace_function);
-+}
-+#endif /* CONFIG_DEBUG_FS */
  
- static inline notrace int page_order(const unsigned long size)
+ /**
+  * of_release_dev - free an of device structure when all users of it are finished.
+@@ -107,25 +122,13 @@ EXPORT_SYMBOL(of_release_dev);
+ 
+ int of_device_register(struct of_device *ofdev)
  {
-@@ -107,7 +192,7 @@ static inline notrace int mctracer_alloc
- 		size, MCTRACER_NR_ENTRIES, MCTRACER_ENTRY_SIZE);
- 	pr_info("   actual entries %ld\n", mctracer_trace.entries);
+-	int rc;
+-
+ 	BUG_ON(ofdev->node = NULL);
+-
+-	rc = device_register(&ofdev->dev);
+-	if (rc)
+-		return rc;
+-
+-	rc = device_create_file(&ofdev->dev, &dev_attr_devspec);
+-	if (rc)
+-		device_unregister(&ofdev->dev);
+-
+-	return rc;
++	return device_register(&ofdev->dev);
+ }
+ EXPORT_SYMBOL(of_device_register);
  
--	register_mcount_function(trace_function);
-+	mctrace_init_debugfs();
+ void of_device_unregister(struct of_device *ofdev)
+ {
+-	device_remove_file(&ofdev->dev, &dev_attr_devspec);
+ 	device_unregister(&ofdev->dev);
+ }
+ EXPORT_SYMBOL(of_device_unregister);
+Index: linux-2.6/drivers/of/platform.c
+=================================--- linux-2.6.orig/drivers/of/platform.c
++++ linux-2.6/drivers/of/platform.c
+@@ -17,6 +17,8 @@
+ #include <linux/of_device.h>
+ #include <linux/of_platform.h>
  
- 	return 0;
++extern struct device_attribute of_platform_device_attrs[];
++
+ static int of_platform_bus_match(struct device *dev, struct device_driver *drv)
+ {
+ 	struct of_device *of_dev = to_of_device(dev);
+@@ -93,6 +95,7 @@ int of_bus_type_init(struct bus_type *bu
+ 	bus->remove = of_platform_device_remove;
+ 	bus->suspend = of_platform_device_suspend;
+ 	bus->resume = of_platform_device_resume;
++	bus->dev_attrs = of_platform_device_attrs;
+ 	return bus_register(bus);
+ }
  
-Index: linux-compile.git/lib/mcount/tracer.h
-=================================--- linux-compile.git.orig/lib/mcount/tracer.h	2008-01-02 23:04:34.000000000 -0500
-+++ linux-compile.git/lib/mcount/tracer.h	2008-01-02 23:11:39.000000000 -0500
-@@ -13,6 +13,7 @@ struct mctracer_trace {
- 	void	      *trace[NR_CPUS];
- 	unsigned long trace_idx[NR_CPUS];
- 	unsigned long entries;
-+	long	      ctrl;
- 	atomic_t      cnt;
- 	atomic_t      disabled[NR_CPUS];
- 	atomic_t      underrun[NR_CPUS];
-
--- 
