@@ -1,57 +1,32 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 27 Jan 2008 12:56:23 +0000
-Subject: [PATCH][SPARC64] fix inconsistent .section usage in lib/
-Message-Id: <20080127125623.GA19268@uranus.ravnborg.org>
+From: Mike Dalton <mwdalton@CS.Stanford.EDU>
+Date: Tue, 29 Jan 2008 10:37:16 +0000
+Subject: [PATCH] sparc32 __bzero() store missing __ex_table entry
+Message-Id: <Pine.LNX.4.64.0801290222530.26076@xenon.Stanford.EDU>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-A few places missed the "a" specifier for
-the __ex_table section. Add these
-so we avoid generation an additional
-section at link time.
+Hi, I wanted to report a minor bug in Linux 2.6 sparc32. The __bzero 
+function has entries in __ex_table for every store instruction except for one 
+group at the end. As user pointers can be passed to this function, it 
+looks like this last group of stores should also have an entry 
+in __ex_table. I've included a patch adding the __ex_table entry. Please 
+let me know if you can confirm that this a bug, or need more information.
 
-Latest modpost would otherwise complain
-like this:
+Best regards,
 
-WARNING: vmlinux.o (__ex_table.2): section name inconsistency.
-(.[number]+) following section name.
-Did you forget to use "ax"/"aw" in a .S file?
-Note that for example <linux/init.h> contains
-section definitions for use in .S files.
-WARNING: vmlinux.o (__ex_table.4): section name inconsistency.
-(.[number]+) following section name.
-Did you forget to use "ax"/"aw" in a .S file?
-Note that for example <linux/init.h> contains
-section definitions for use in .S files.
+Mike
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
----
-diff --git a/arch/sparc64/lib/GENbzero.S b/arch/sparc64/lib/GENbzero.S
-index f9c71d6..6a4f956 100644
---- a/arch/sparc64/lib/GENbzero.S
-+++ b/arch/sparc64/lib/GENbzero.S
-@@ -10,7 +10,7 @@
- 	.align 4;		\
- 99:	retl;			\
- 	 mov	%o1, %o0;	\
--	.section __ex_table;	\
-+	.section __ex_table,"a";\
- 	.align 4;		\
- 	.word 98b, 99b;		\
- 	.text;			\
-diff --git a/arch/sparc64/lib/NGbzero.S b/arch/sparc64/lib/NGbzero.S
-index f10e452..814d5f7 100644
---- a/arch/sparc64/lib/NGbzero.S
-+++ b/arch/sparc64/lib/NGbzero.S
-@@ -10,7 +10,7 @@
- 	.align 4;		\
- 99:	retl;			\
- 	 mov	%o1, %o0;	\
--	.section __ex_table;	\
-+	.section __ex_table,"a";\
- 	.align 4;		\
- 	.word 98b, 99b;		\
- 	.text;			\
+diff -BbruN linux-2.6.24.orig/arch/sparc/lib/memset.S linux-2.6.24/arch/sparc/lib/memset.S
+--- linux-2.6.24.orig/arch/sparc/lib/memset.S	2008-01-29 02:24:57.852038000 -0800
++++ linux-2.6.24/arch/sparc/lib/memset.S	2008-01-29 02:34:11.919050000 -0800
+@@ -134,6 +134,7 @@
+  	ZERO_LAST_BLOCKS(%o0, 0x48, %g2)
+  	ZERO_LAST_BLOCKS(%o0, 0x08, %g2)
+  13:
++	EXT(12b, 13b, 20f)
+  	be	8f
+  	 andcc	%o1, 4, %g0
+
