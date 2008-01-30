@@ -1,7 +1,7 @@
-From: Ingo Molnar <mingo@elte.hu>
-Date: Wed, 30 Jan 2008 19:49:21 +0000
-Subject: Re: x86/non-x86: percpu, node ids, apic ids x86.git fixup
-Message-Id: <20080130194921.GA19916@elte.hu>
+From: "Luck, Tony" <tony.luck@intel.com>
+Date: Wed, 30 Jan 2008 20:00:31 +0000
+Subject: RE: x86/non-x86: percpu, node ids, apic ids x86.git fixup
+Message-Id: <1FE6DD409037234FAB833C420AA843EC757F7C@orsmsx424.amr.corp.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <200801301414.m0UEEgCC006371@hera.kernel.org>
 	<Pine.LNX.4.64.0801301622460.11859@vixen.sonytel.be>
@@ -16,25 +16,16 @@ In-Reply-To: <20080130194616.GA19426@elte.hu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Luck, Tony" <tony.luck@intel.com>
+To: Ingo Molnar <mingo@elte.hu>
 Cc: sparclinux@vger.kernel.org, linux-ia64@vger.kernel.org, Linux Kernel Development <linux-kernel@vger.kernel.org>, Mike Travis <travis@sgi.com>, Linux/PPC Development <linuxppc-dev@ozlabs.org>, Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>
 
-
-* Ingo Molnar <mingo@elte.hu> wrote:
-
-> > Some place in there.  The CONFIG_SMP=n path in ia64 makes quite 
-> > radical changes ... rather than putting all the per-cpu stuff into 
-> > the top 64K of address space and providing a per-cpu TLB mapping for 
-> > that range to a different physical address ... it just makes all the 
-> > per-cpu stuff link as ordinary variables in .data.  The error 
-> > messages indicate that some of the new code is unaware of this.
-> 
 > ah, that was the vital clue. The patch below makes the small memory 
 > model only defined on SMP, and makes the config build/link fine here. 
 > Does this build and boot on your box?
 
-if this works for you then could you please send me your Acked-by as 
-well, for this and the other ia64 changes, so that we can send these to 
-Linus ASAP?
+I applied this on top of the git pull from
+ git://git.kernel.org/pub/scm/linux/kernel/git/x86/linux-2.6-x86.git
 
-	Ingo
+and I see see a build problem for SMP=n :-(
+
+-Tony
