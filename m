@@ -1,34 +1,91 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 07 Jan 2008 01:18:28 +0000
-Subject: Re: 2.6.24-rc6-mm1: sparc64: undefined reference to `vmemmap_table'
-Message-Id: <20080106.171828.70744419.davem@davemloft.net>
+From: Ingo Molnar <mingo@elte.hu>
+Date: Wed, 30 Jan 2008 21:25:58 +0000
+Subject: [powerpc changes] Re: x86/non-x86: percpu, node ids, apic ids
+Message-Id: <20080130212558.GA12409@elte.hu>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20071222233056.d652743e.akpm@linux-foundation.org>
-	<200801061103.04999.m.kozlowski@tuxland.pl>
-	<20080106021554.752dc4b8.akpm@linux-foundation.org>
-In-Reply-To: <20080106021554.752dc4b8.akpm@linux-foundation.org>
+References: <200801301414.m0UEEgCC006371@hera.kernel.org>
+	<Pine.LNX.4.64.0801301622460.11859@vixen.sonytel.be>
+	<47A09F8A.3000309@sgi.com> <20080130161036.GA12293@elte.hu>
+	<1FE6DD409037234FAB833C420AA843EC757C72@orsmsx424.amr.corp.intel.com>
+	<20080130180623.GA24881@elte.hu>
+	<1FE6DD409037234FAB833C420AA843EC757DEA@orsmsx424.amr.corp.intel.com>
+	<20080130184920.GA32212@elte.hu> <20080130191302.GA20008@lixom.net>
+In-Reply-To: <20080130191302.GA20008@lixom.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: akpm@linux-foundation.org
-Cc: m.kozlowski@tuxland.pl, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: Olof Johansson <olof@lixom.net>, Paul Mackerras <paulus@samba.org>, anton@samba.org, Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>, linux-ia64@vger.kernel.org, Linux Kernel Development <linux-kernel@vger.kernel.org>, Mike Travis <travis@sgi.com>, Linux/PPC Development <linuxppc-dev@ozlabs.org>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>
 
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Sun, 6 Jan 2008 02:15:54 -0800
 
-> On Sun, 6 Jan 2008 11:03:02 +0100 Mariusz Kozlowski <m.kozlowski@tuxland.pl> wrote:
+* Olof Johansson <olof@lixom.net> wrote:
+
+> > could you try the full patchset that Travis has just sent and which 
+> > i've put into x86.git, you can pull it from:
 > 
-> > 	This is from allnoconfig on sparc64:
-> > 
-> >   LD      .tmp_vmlinux1
-> > arch/sparc64/kernel/head.o: In function `kvmap_vmemmap':
-> > (.text+0x34ec): undefined reference to `vmemmap_table'
-> > arch/sparc64/kernel/head.o: In function `kvmap_vmemmap':
-> > (.text+0x34f4): undefined reference to `vmemmap_table'
-> 
-> Happens in mainline too.  Maybe arch/sparc64/kernel/ktlb.S needs to be
-> taught about CONFIG_SPARSEMEM_VMEMMAP=n.  
+> Looks ok for powerpc so far, I haven't gotten through all defconfigs 
+> yet but the first ones that failed before build now. pasemi_defconfig 
+> boots as well.
 
-It's pointless to support this thing being off.  If possible
-I'd like a method to force it always to be enabled and I'll
-look into doing that.
+could the PowerPC maintainers please Ack the following patch (attached 
+below):
+
+  Subject: POWERPC: use generic per cpu
+  From: travis@sgi.com
+
+so that we can push this fix upstream ASAP?
+
+	Ingo
+
+--------------->
+Subject: POWERPC: use generic per cpu
+From: travis@sgi.com
+
+Powerpc has a way to determine the address of the per cpu area of the
+currently executing processor via the paca and the array of per cpu
+offsets is avoided by looking up the per cpu area from the remote
+paca's (copying x86_64).
+
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Signed-off-by: Mike Travis <travis@sgi.com>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+---
+ include/asm-powerpc/percpu.h |   22 +++-------------------
+ 1 file changed, 3 insertions(+), 19 deletions(-)
+
+Index: linux-x86.q/include/asm-powerpc/percpu.h
+=================================--- linux-x86.q.orig/include/asm-powerpc/percpu.h
++++ linux-x86.q/include/asm-powerpc/percpu.h
+@@ -13,28 +13,12 @@
+ #include <asm/paca.h>
+ 
+ #define __per_cpu_offset(cpu) (paca[cpu].data_offset)
+-#define __my_cpu_offset() get_paca()->data_offset
++#define __my_cpu_offset get_paca()->data_offset
+ #define per_cpu_offset(x) (__per_cpu_offset(x))
+ 
+-/* var is in discarded region: offset to particular copy we want */
+-#define per_cpu(var, cpu) (*RELOC_HIDE(&per_cpu__##var, __per_cpu_offset(cpu)))
+-#define __get_cpu_var(var) (*RELOC_HIDE(&per_cpu__##var, __my_cpu_offset()))
+-#define __raw_get_cpu_var(var) (*RELOC_HIDE(&per_cpu__##var, local_paca->data_offset))
++#endif /* CONFIG_SMP */
++#endif /* __powerpc64__ */
+ 
+-extern void setup_per_cpu_areas(void);
+-
+-#else /* ! SMP */
+-
+-#define per_cpu(var, cpu)			(*((void)(cpu), &per_cpu__##var))
+-#define __get_cpu_var(var)			per_cpu__##var
+-#define __raw_get_cpu_var(var)			per_cpu__##var
+-
+-#endif	/* SMP */
+-
+-#define DECLARE_PER_CPU(type, name) extern __typeof__(type) per_cpu__##name
+-
+-#else
+ #include <asm-generic/percpu.h>
+-#endif
+ 
+ #endif /* _ASM_POWERPC_PERCPU_H_ */
