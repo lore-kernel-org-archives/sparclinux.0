@@ -1,32 +1,54 @@
-From: Mike Dalton <mwdalton@CS.Stanford.EDU>
-Date: Tue, 29 Jan 2008 10:37:16 +0000
-Subject: [PATCH] sparc32 __bzero() store missing __ex_table entry
-Message-Id: <Pine.LNX.4.64.0801290222530.26076@xenon.Stanford.EDU>
+From: Adrian Bunk <bunk@kernel.org>
+Date: Wed, 30 Jan 2008 20:03:24 +0000
+Subject: [2.6 patch] sparc64/kernel/pci_sun4v.c section fixes
+Message-Id: <20080130200324.GJ29368@does.not.exist>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi, I wanted to report a minor bug in Linux 2.6 sparc32. The __bzero 
-function has entries in __ex_table for every store instruction except for one 
-group at the end. As user pointers can be passed to this function, it 
-looks like this last group of stores should also have an entry 
-in __ex_table. I've included a patch adding the __ex_table entry. Please 
-let me know if you can confirm that this a bug, or need more information.
+This patch fixes the following section mismatch:
 
-Best regards,
+<--  snip  -->
 
-Mike
+...
+WARNING: vmlinux.o(.text+0x39be4): Section mismatch in reference from the function probe_existing_entries() to the function .init.text:page_in_phys_avail()
+...
 
-diff -BbruN linux-2.6.24.orig/arch/sparc/lib/memset.S linux-2.6.24/arch/sparc/lib/memset.S
---- linux-2.6.24.orig/arch/sparc/lib/memset.S	2008-01-29 02:24:57.852038000 -0800
-+++ linux-2.6.24/arch/sparc/lib/memset.S	2008-01-29 02:34:11.919050000 -0800
-@@ -134,6 +134,7 @@
-  	ZERO_LAST_BLOCKS(%o0, 0x48, %g2)
-  	ZERO_LAST_BLOCKS(%o0, 0x08, %g2)
-  13:
-+	EXT(12b, 13b, 20f)
-  	be	8f
-  	 andcc	%o1, 4, %g0
+<--  snip  -->
+
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+
+---
+
+ arch/sparc64/kernel/pci_sun4v.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+5a836480057dcc064ae02a69ae4bb2b7698e333f 
+diff --git a/arch/sparc64/kernel/pci_sun4v.c b/arch/sparc64/kernel/pci_sun4v.c
+index 1aa8e04..87c5cf5 100644
+--- a/arch/sparc64/kernel/pci_sun4v.c
++++ b/arch/sparc64/kernel/pci_sun4v.c
+@@ -625,8 +625,8 @@ static void __init pci_sun4v_scan_bus(struct pci_pbm_info *pbm)
+ 	/* XXX register error interrupt handlers XXX */
+ }
+ 
+-static unsigned long probe_existing_entries(struct pci_pbm_info *pbm,
+-					    struct iommu *iommu)
++static unsigned long __init probe_existing_entries(struct pci_pbm_info *pbm,
++						   struct iommu *iommu)
+ {
+ 	struct iommu_arena *arena = &iommu->arena;
+ 	unsigned long i, cnt = 0;
+@@ -653,7 +653,7 @@ static unsigned long probe_existing_entries(struct pci_pbm_info *pbm,
+ 	return cnt;
+ }
+ 
+-static void pci_sun4v_iommu_init(struct pci_pbm_info *pbm)
++static void __init pci_sun4v_iommu_init(struct pci_pbm_info *pbm)
+ {
+ 	struct iommu *iommu = pbm->iommu;
+ 	struct property *prop;
 
