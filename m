@@ -1,39 +1,41 @@
-From: "Horst H. von Brand" <vonbrand@inf.utfsm.cl>
-Date: Tue, 26 Feb 2008 16:32:57 +0000
-Subject: [PATCH 1/3] Fix for ext3 from Aurora SRPM
-Message-Id: <1204043579-5056-2-git-send-email-vonbrand@inf.utfsm.cl>
+From: Tom De Rybel <tomr@ece.ubc.ca>
+Date: Fri, 01 Feb 2008 21:03:56 +0000
+Subject: TILO segfaults
+Message-Id: <47A3893C.8010608@ece.ubc.ca>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Signed-off-by: Horst H. von Brand <vonbrand@inf.utfsm.cl>
----
- second/fs/ext2.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Hello,
 
-diff --git a/second/fs/ext2.c b/second/fs/ext2.c
-index 028f77e..57f5e9a 100644
---- a/second/fs/ext2.c
-+++ b/second/fs/ext2.c
-@@ -42,14 +42,14 @@ static void ext2fs_error (int errcode)
-     	    return;
-     	}
- #endif
--    printf ("Unknown ext2 error");
-+    printf ("Unknown ext2 error: %d", errcode);
- }
- 
- static int open_ext2 (char *device)
- {
-     int retval;
- 
--    retval = ext2fs_open (device, EXT2_FLAG_RW, 0, 0, silo_io_manager, &fs);
-+    retval = ext2fs_open (device, EXT2_FLAG_DIRTY, 0, 0, silo_io_manager, &fs);
-     if (retval = EXT2_ET_BAD_MAGIC)
-         return 0;
-     if (retval) {
--- 
-1.5.4.3.220.g99d8e
+I've been trying to use TILO to generate a new boot file.
+The issue is that it keeps segfautling as follows:
 
+tilo vmlinux_test initrd_test.gz
+Converting vmlinux_test (sun4u) to a.out:
+PT 0 Entry: Loadable to 0x400000[0x459b58] from 0x0[0x3e6085] align 0x100000
+PT 1 Entry: unknown
+Compressing vmlinux_test.raw:
+vmlinux_test.raw:        55.7%
+Sizes (sun4u):
+  raw size    = 4071557
+  packed size  = 1804675
+  root address = 0000000000859b58
+Root image packed size = 5259697
+WARNING: Kernel for Sun4c/m/d not specified
+Images are large. Will load on machines with at least 5M mapped by PROM only
+Segmentation fault
+
+I tried the version that came with Ubuntu 7.10 and many different
+versions of the silo package, with similar results. Also, I tried
+varying compressed and uncompressed versions of the input files. The
+system is an Ultra5. The used input files are those found in the Ubuntu
+6.10LTS release. I tried to re-generate their supplied file first before
+making my changes. No luck.
+
+Any help and suggestions would be much appreciated.
+
+Sincerely yours,
+Tom De Rybel
