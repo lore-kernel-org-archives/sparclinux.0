@@ -1,36 +1,38 @@
-From: Ben Collins <ben.collins@ubuntu.com>
-Date: Tue, 26 Feb 2008 17:03:14 +0000
-Subject: Re: Patches to update silo
-Message-Id: <1204045394.7510.77.camel@cunning>
+From: "Luck, Tony" <tony.luck@intel.com>
+Date: Tue, 05 Feb 2008 19:05:03 +0000
+Subject: RE: x86/non-x86: percpu, node ids, apic ids x86.git fixup
+Message-Id: <1FE6DD409037234FAB833C420AA843EC8130DD@orsmsx424.amr.corp.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1204043579-5056-1-git-send-email-vonbrand@inf.utfsm.cl>
-In-Reply-To: <1204043579-5056-1-git-send-email-vonbrand@inf.utfsm.cl>
+References: <20080130180623.GA24881@elte.hu>
+	<1FE6DD409037234FAB833C420AA843EC757DEA@orsmsx424.amr.corp.intel.com>
+	<47A0CD4B.5040706@sgi.com>
+	<1FE6DD409037234FAB833C420AA843EC757F12@orsmsx424.amr.corp.intel.com>
+	<20080130194616.GA19426@elte.hu>
+	<1FE6DD409037234FAB833C420AA843EC757F7C@orsmsx424.amr.corp.intel.com>
+	<20080130200221.GA28073@elte.hu>
+	<1FE6DD409037234FAB833C420AA843EC757FC2@orsmsx424.amr.corp.intel.com>
+	<20080130205915.GA4562@elte.hu>
+	<1FE6DD409037234FAB833C420AA843EC78C219@orsmsx424.amr.corp.intel.com>
+	<20080131090642.GA5688@elte.hu>
+	<1FE6DD409037234FAB833C420AA843EC78C75A@orsmsx424.amr.corp.intel.com>
+In-Reply-To: <1FE6DD409037234FAB833C420AA843EC78C75A@orsmsx424.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: sparclinux@vger.kernel.org, linux-ia64@vger.kernel.org, Linux Kernel Development <linux-kernel@vger.kernel.org>, Mike Travis <travis@sgi.com>, Linux/PPC Development <linuxppc-dev@ozlabs.org>, Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>
 
+> Applied that patch and UP kernel built ok, and then crashed in the
+> same place with the memset() to a user-looking address from kmem_cache_alloc()
+>
+> So the percpu changes are innocent ... something else since 2.6.24 is
+> to blame.  Only 5749 commits :-)  I'll start bisecting.
 
-On Tue, 2008-02-26 at 13:32 -0300, Horst H. von Brand wrote:
-> The following series of 3 patches folds most changes in Aurora into the
-> current silo git repository.
-> 
-> The one change I did not take over is to echo a suggestion to run silo in
-> the %post section of the specfile, AFAIU Fedora guidelines explicitly forbid
-> any output. The installation should be automatic (yes, I was bitten by not
-> seeing the message amongs the copious yum output on updating), but from the
-> %changelog I see that running it automatically had been removed. This still
-> needs fixing.
+The bisection narrowed in on an innocent patch in ipv4 space.  Meanwhile
+the rush of patches continues.  When I retested yesterday when Linus
+HEAD was 8af03e782... the CONFIG_SMP=n kernel worked perfectly.  So
+maybe it was fixed?  Or maybe the bug depends on the relative
+location of various bits of code/data and as the kernel grows and
+shrinks with incoming changes the problem comes and goes :-(
 
-Thanks Horst! I'll merge these when I get back home.
-
->  second/fs/ext2.c |    5 ++---
->  second/main.c    |    2 --
->  silo.spec        |   37 ++++++++++++++++++++++++-------------
->  3 files changed, 26 insertions(+), 18 deletions(-)
--- 
-Ubuntu   : http://www.ubuntu.com/
-Linux1394: http://wiki.linux1394.org/
-SwissDisk: http://www.swissdisk.com/
-> 
-
+-Tony
