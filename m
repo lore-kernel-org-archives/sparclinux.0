@@ -1,45 +1,62 @@
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Date: Sat, 23 Feb 2008 11:23:30 +0000
-Subject: [PATCH 0/2] firewire: endinaness warnings (was Re: sparse - make
-Message-Id: <tkrat.e2bfb30f2c0ae70a@s5r6.in-berlin.de>
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Date: Tue, 05 Feb 2008 00:19:49 +0000
+Subject: Re: [PATCH 2/4] Create and hook up of_platform_device_shutdown
+Message-Id: <1202170789.7079.26.camel@pasglop>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080220220326.GA22328@uranus.ravnborg.org>
-	<1203545913.25307.47.camel@brick>
-In-Reply-To: <1203545913.25307.47.camel@brick>
+References: <3ce7be4c77581ce103a8da9f33a734270c9dc6e8.1201240265.git.michael@ellerman.id.au>
+	<bf48a30aa9f58fa6e153f679eb0eb6a4864ebdc3.1201240265.git.michael@ellerman.id.au>
+In-Reply-To: <bf48a30aa9f58fa6e153f679eb0eb6a4864ebdc3.1201240265.git.michael@ellerman.id.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux1394-devel@lists.sourceforge.net
-Cc: Kristian Hoegsberg <krh@bitplanet.net>, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, Jarod Wilson <jwilson@redhat.com>, Sam Ravnborg <sam@ravnborg.org>, Harvey Harrison <harvey.harrison@gmail.com>
+To: Michael Ellerman <michael@ellerman.id.au>
+Cc: tnt@246tNt.com, davem@davemloft.net, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, cbe-oss-dev@ozlabs.org, m8@semihalf.com
 
-On 20 Feb, Harvey Harrison wrote on LKML:
-> On Wed, 2008-02-20 at 23:03 +0100, Sam Ravnborg wrote:
->> Hi Harvey.
->> 
->> Can I ask you to look into the worst offenders so we
->> can make -D__CHECK_ENDIAN__ enabled per default
->> in the kernel.
->> Or maybe we should do it anyway?
+
+On Fri, 2008-01-25 at 16:59 +1100, Michael Ellerman wrote:
+> Although of_platform_device's can have a shutdown routine, at the moment
+> the bus code doesn't actually call it. So add the required glue to
+> hook the shutdown routine.
 > 
-> Well, I've got the worst of fs and drivers/ata done so far, still
-> weeping over the 5500 warnings in drivers. (X86_32 allyesconfig).
-> People ignore the existing warnings anyway, why not toss a few more
-> on the pile?
+> Signed-off-by: Michael Ellerman <michael@ellerman.id.au>
+
+Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+
+> ---
+>  drivers/of/platform.c |   10 ++++++++++
+>  1 files changed, 10 insertions(+), 0 deletions(-)
 > 
-> I'll look them over tonight and see how bad it would be.
-
-I looked into drivers/firewire and drivers/ieee1394.  As expected, there
-are quite a lot endianess related warnings in the latter because this is
-code from way before sparse was regularly used.
-
-There are also a few warnings in the former, even though sparse checks
-were run before submission of the whole drivers/firewire stack.  I will
-follow up with two patches:
-	1/2 firewire: endianess fix
-	2/2 firewire: endianess annotations
-Whether the "fix" is really a fix remains to be seen; I don't have a big
-endian Linux box myself.
--- 
-Stefan Richter
--===-=--- --=- =-=http://arcgraph.de/sr/
+> 
+> CC various folks who've written/touched of_platform_drivers which already
+> have shutdown routines. These routines have never been called so they're
+> about to get their first testing.
+> 
+> diff --git a/drivers/of/platform.c b/drivers/of/platform.c
+> index b47bb2d..ca09a63 100644
+> --- a/drivers/of/platform.c
+> +++ b/drivers/of/platform.c
+> @@ -85,6 +85,15 @@ static int of_platform_device_resume(struct device * dev)
+>  	return error;
+>  }
+>  
+> +static void of_platform_device_shutdown(struct device *dev)
+> +{
+> +	struct of_device *of_dev = to_of_device(dev);
+> +	struct of_platform_driver *drv = to_of_platform_driver(dev->driver);
+> +
+> +	if (dev->driver && drv->shutdown)
+> +		drv->shutdown(of_dev);
+> +}
+> +
+>  int of_bus_type_init(struct bus_type *bus, const char *name)
+>  {
+>  	bus->name = name;
+> @@ -93,6 +102,7 @@ int of_bus_type_init(struct bus_type *bus, const char *name)
+>  	bus->remove = of_platform_device_remove;
+>  	bus->suspend = of_platform_device_suspend;
+>  	bus->resume = of_platform_device_resume;
+> +	bus->shutdown = of_platform_device_shutdown;
+>  	return bus_register(bus);
+>  }
+>  
 
