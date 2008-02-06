@@ -1,44 +1,29 @@
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Date: Sun, 06 Jan 2008 10:03:02 +0000
-Subject: Re: 2.6.24-rc6-mm1: sparc64: undefined reference to `vmemmap_table'
-Message-Id: <200801061103.04999.m.kozlowski@tuxland.pl>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Date: Wed, 06 Feb 2008 23:42:52 +0000
+Subject: Oops figures
+Message-Id: <Pine.LNX.4.64.0802070041300.23855@fbirervta.pbzchgretzou.qr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20071222233056.d652743e.akpm@linux-foundation.org>
-In-Reply-To: <20071222233056.d652743e.akpm@linux-foundation.org>
+References: <20080206.152639.35541094.davem@davemloft.net>
+In-Reply-To: <20080206.152639.35541094.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org
 
-Hello,
 
-	This is from allnoconfig on sparc64:
+On Feb 6 2008 15:26, David Miller wrote:
+>Subject: partition sysfs OOPS in current GIT
+>
+>
+>I get the following OOPS from udevd during bootup on
+>sparc64:
+>
+>[    0.982046]               \|/ ____ \|/
+>[    0.982054]               "@'/ .. \`@"
+>[    0.982058]               /_| \__/ |_\
+>[    0.982063]                  \__U_/
 
-  LD      .tmp_vmlinux1
-arch/sparc64/kernel/head.o: In function `kvmap_vmemmap':
-(.text+0x34ec): undefined reference to `vmemmap_table'
-arch/sparc64/kernel/head.o: In function `kvmap_vmemmap':
-(.text+0x34f4): undefined reference to `vmemmap_table'
-make: *** [.tmp_vmlinux1] Error 1
-
-Regards,
-
-	Mariusz
-
-Linux sparc64 2.6.23 #2 SMP PREEMPT Fri Dec 21 21:20:01 CET 2007 sparc64 sun4u TI UltraSparc II (BlackBird) GNU/Linux
- 
-Gnu C                  4.1.2
-Gnu make               3.81
-binutils               2.18
-util-linux             2.12r
-mount                  2.12r
-module-init-tools      3.4
-e2fsprogs              1.40.3
-Linux C Library        2.6.1
-Dynamic linker (ldd)   2.6.1
-Procps                 3.2.7
-Net-tools              1.60
-Kbd                    1.13
-Sh-utils               6.9
-udev                   115
+Just what is this creature that one sees on sparc dumps?
+Looks like a smiley ball with two blinkenlights (symbolizing the sun?)
+on each side...
