@@ -1,65 +1,39 @@
-From: Daniel Smolik <marvin@mydatex.cz>
-Date: Tue, 12 Feb 2008 22:19:00 +0000
-Subject: Re: [Bugme-new] [Bug 9943] New: on E450 after shutdown doesn't go
-Message-Id: <47B21B54.5090005@mydatex.cz>
+From: Adrian Bunk <bunk@kernel.org>
+Date: Thu, 07 Feb 2008 23:12:30 +0000
+Subject: sparc compile error
+Message-Id: <20080207231230.GE7198@cs181133002.pp.htv.fi>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080212141009.ba27e1b0.akpm@linux-foundation.org>
-In-Reply-To: <20080212141009.ba27e1b0.akpm@linux-foundation.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: David Rientjes <rientjes@google.com>, wli@holomorphy.com
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-Andrew Morton napsal(a):
-> (please respond via emailed reply-to-all, not via the bugzilla web
-> interface)
->=20
-> On Tue, 12 Feb 2008 13:54:55 -0800 (PST)
-> bugme-daemon@bugzilla.kernel.org wrote:
->=20
->> http://bugzilla.kernel.org/show_bug.cgi?id=9943
->>
->>            Summary: on E450 after shutdown doesn't go to OK or power off
->>            Product: Platform Specific/Hardware
->>            Version: 2.5
->>      KernelVersion: 2.6.24.2
->>           Platform: All
->>         OS/Version: Linux
->>               Tree: Mainline
->>             Status: NEW
->>           Severity: normal
->>           Priority: P1
->>          Component: SPARC64
->>         AssignedTo: platform_sparc64@kernel-bugs.osdl.org
->>         ReportedBy: marvin@mydatex.cz
->>
->>
->> Latest working kernel version: 2.6.20
->> Earliest failing kernel version: 2.6.24.2
->> Distribution: Debian Etch
->> Hardware Environment: Sun E450 2xCPU400MHz/1GB Ram
->> Software Environment: kernel
->> Problem Description: after shutdown kernel doesn't power off machine or =
-jump to
->> OK prompt
->>
->> Steps to reproduce:
->> as root type poweroff
->>
->=20
-> A regression..
->=20
-> I'm seeing the same problem in 2.6.25-rc1 on x86_64, due to something whi=
-ch
-> changed in the softlockup detector (it's a mystery and debugging is in
-> progress).  Setting CONFIG_DETECT_SOFTLOCKUP=3Dn "fixes" it.
->=20
-> But 2.6.24 is OK.
->=20
-May be on X86 but on Sparc64 this doesn't solve problem.
-I have CONFIG_DETECT_SOFTLOCKUP=3Dn  in my config.
+Commit 3062fc67dad01b1d2a15d58c709eff946389eca4 broke sparc:
 
-				Dan
+<--  snip  -->
 
+...
+  CC      init/do_mounts.o
+In file included from include/linux/mm.h:39,
+                 from include/linux/memcontrol.h:24,
+                 from include/linux/swap.h:8,
+                 from include/linux/suspend.h:7,
+                 from init/do_mounts.c:6:
+include/asm/pgtable.h:344: warning: parameter names (without types) in function declaration
+include/asm/pgtable.h:345: warning: parameter names (without types) in function declaration
+include/asm/pgtable.h:346: error: expected '=', ',', ';', 'asm' or '__attribute__' before '___f___swp_entry'
+make[1]: *** [init/do_mounts.o] Error 1
 
+<--  snip  -->
+
+cu
+Adrian
+
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
 
