@@ -1,7 +1,7 @@
 From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
-Date: Fri, 08 Feb 2008 12:41:26 +0000
+Date: Sat, 09 Feb 2008 11:49:15 +0000
 Subject: Re: gcc 4.2 or kernel bug ?
-Message-Id: <47AC4DF6.3000606@systella.fr>
+Message-Id: <47AD933B.8060909@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
 References: <47AC34B6.4000302@systella.fr>
 In-Reply-To: <47AC34B6.4000302@systella.fr>
@@ -12,14 +12,21 @@ To: sparclinux@vger.kernel.org
 
 David Miller wrote:
 > From: BERTRAND_Jo=EBl <joel.bertrand@systella.fr>
-> Date: Fri, 08 Feb 2008 11:53:42 +0100
+> Date: Fri, 08 Feb 2008 12:05:43 +0100
 >=20
->> swapper: page allocation failure. order:1, mode:0x4020
+>> 	Same constatation on U2/SMP. On a 32-threads T1000, I obtain :
+>> BUG: soft lockup - CPU#1 stuck for 11s! [md2_raid1:2736]
 >=20
-> This is harmless and will happen from time to time
-> under certain kinds of loads.
+> Unlike the other message, this might be a real problem.
+>=20
+>> 	I'm not sure that both constatations come from the same bug.
+>=20
+> They are not.
 
-	Very strange. I've never seen this trouble with 2.6.23.x built by gcc-4.1.
+	David,
+
+	I have rebuild the _same_ kernel (2.6.24) with gcc 4.1 and I don't see=20
+any soft lockups for 24 hours.
 
 	Regards,
 
