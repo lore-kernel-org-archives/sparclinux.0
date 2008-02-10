@@ -1,7 +1,7 @@
 From: "Robert P. J. Day" <rpjday@crashcourse.ca>
-Date: Sun, 10 Feb 2008 20:16:57 +0000
-Subject: [PATCH] SPARC64:  Use shorter "get_zeroed_page" call.
-Message-Id: <alpine.LFD.1.00.0802101516030.15057@localhost.localdomain>
+Date: Sun, 10 Feb 2008 20:05:34 +0000
+Subject: [PATCH] SPARC:  Use shorter form of "get_zeroed_page".
+Message-Id: <alpine.LFD.1.00.0802101504130.14909@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -13,25 +13,22 @@ Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
 
 ---
 
-diff --git a/arch/sparc64/kernel/iommu.c b/arch/sparc64/kernel/iommu.c
-index d3276eb..0e347ff 100644
---- a/arch/sparc64/kernel/iommu.c
-+++ b/arch/sparc64/kernel/iommu.c
-@@ -200,12 +200,11 @@ int iommu_table_init(struct iommu *iommu, int tsbsize,
- 	/* Allocate and initialize the dummy page which we
- 	 * set inactive IO PTEs to point to.
- 	 */
--	iommu->dummy_page = __get_free_pages(GFP_KERNEL, 0);
-+	iommu->dummy_page = get_zeroed_page(GFP_KERNEL);
- 	if (!iommu->dummy_page) {
- 		printk(KERN_ERR "IOMMU: Error, gfp(dummy_page) failed.\n");
- 		goto out_free_map;
- 	}
--	memset((void *)iommu->dummy_page, 0, PAGE_SIZE);
- 	iommu->dummy_page_pa = (unsigned long) __pa(iommu->dummy_page);
+  AFIACT, this should be equivalent, no?  and shorter.
 
- 	/* Now allocate and setup the IOMMU page table itself.  */
+diff --git a/arch/sparc/mm/sun4c.c b/arch/sparc/mm/sun4c.c
+index c0442e8..2375fe9 100644
+--- a/arch/sparc/mm/sun4c.c
++++ b/arch/sparc/mm/sun4c.c
+@@ -1941,9 +1941,7 @@ static pte_t *sun4c_pte_alloc_one_kernel(struct mm_struct *mm, unsigned long add
+ 	if ((pte = sun4c_pte_alloc_one_fast(mm, address)) != NULL)
+ 		return pte;
 
+-	pte = (pte_t *)__get_free_page(GFP_KERNEL|__GFP_REPEAT);
+-	if (pte)
+-		memset(pte, 0, PAGE_SIZE);
++	pte = (pte_t *)get_zeroed_page(GFP_KERNEL|__GFP_REPEAT);
+ 	return pte;
+ }
 
 ====================================
 Robert P. J. Day
