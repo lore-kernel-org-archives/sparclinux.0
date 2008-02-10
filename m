@@ -1,57 +1,98 @@
-From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
-Date: Mon, 18 Feb 2008 13:56:09 +0000
-Subject: Re: [Ann] SparcV8 depot
-Message-Id: <47B98E79.4080007@systella.fr>
+From: David Rientjes <rientjes@google.com>
+Date: Sun, 10 Feb 2008 23:30:51 +0000
+Subject: [patch] sparc: fix build
+Message-Id: <alpine.DEB.1.00.0802101529310.17892@chino.kir.corp.google.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <47B6AE0B.1090906@systella.fr>
-In-Reply-To: <47B6AE0B.1090906@systella.fr>
+References: <20080207231230.GE7198@cs181133002.pp.htv.fi> <alpine.DEB.1.00.0802071538440.15050@chino.kir.corp.google.com> <20080210153355.GA6737@palantir8> <alpine.DEB.1.00.0802101117510.5043@chino.kir.corp.google.com> <47AF7048.3060200@earthlink.net>
+In-Reply-To: <47AF7048.3060200@earthlink.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Adrian Bunk <bunk@kernel.org>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Robert Reif <reif@earthlink.net>
 
-	Good news,
+Fix build failures on sparc:
 
-	With kernel (2.6.24.2) and libc6 I have uploaded, SS20 boots fine with 
-dual RT626 (double CPU module). At this time, I don't see any strange 
-memory error I have seen with older kernel. I shall try with four RT626 
-this evening, but it sounds good :
+	In file included from include/linux/mm.h:39,
+	                from include/linux/memcontrol.h:24,
+	                from include/linux/swap.h:8,
+	                from include/linux/suspend.h:7,
+	                from init/do_mounts.c:6:
+	include/asm/pgtable.h:344: warning: parameter names (without
+		types) in function declaration
+	include/asm/pgtable.h:345: warning: parameter names (without
+		types) in function declaration
+	include/asm/pgtable.h:346: error: expected '=', ',', ';', 'asm' or
+		'__attribute__' before '___f___swp_entry'
 
-hilbert:[~] > cat /proc/cpuinfo
-cpu             : ROSS HyperSparc RT625 or RT626
-fpu             : ROSS HyperSparc combined IU/FPU
-promlib         : Version 3 Revision 2
-prom            : 2.25
-type            : sun4m
-ncpus probed    : 2
-ncpus active    : 2
-Cpu0Bogo        : 199.88
-Cpu1Bogo        : 199.88
-MMU type        : ROSS HyperSparc
-contexts        : 4096
-nocache total   : 5242880
-nocache used    : 904704
-State:
-CPU0            : online
-CPU1            : online
+and
 
-	I only receive in dmesg :
+	arch/sparc/kernel/led.c: In function 'led_blink':
+	arch/sparc/kernel/led.c:35: error: invalid use of undefined type
+		'struct timer_list'
+	arch/sparc/kernel/led.c:35: error: 'jiffies' undeclared (first use
+		in this function)
+	arch/sparc/kernel/led.c:35: error: (Each undeclared identifier is
+		reported only once
+	arch/sparc/kernel/led.c:35: error: for each function it appears
+		in.)
+	arch/sparc/kernel/led.c:36: error: 'avenrun' undeclared (first use
+		in this function)
+	arch/sparc/kernel/led.c:36: error: 'FSHIFT' undeclared (first use
+		in this function)
+	arch/sparc/kernel/led.c:36: error: 'HZ' undeclared (first use in
+		this function)
+	arch/sparc/kernel/led.c:37: error: invalid use of undefined type
+		'struct timer_list'
+	arch/sparc/kernel/led.c:39: error: invalid use of undefined type
+		'struct timer_list'
+	arch/sparc/kernel/led.c:40: error: invalid use of undefined type
+		'struct timer_list'
+	arch/sparc/kernel/led.c:42: error: implicit declaration of
+		function 'add_timer'
+	arch/sparc/kernel/led.c: In function 'led_write_proc':
+	arch/sparc/kernel/led.c:70: error: implicit declaration of
+		function 'copy_from_user'
+	arch/sparc/kernel/led.c:84: error: implicit declaration of
+		function 'del_timer_sync'
+	arch/sparc/kernel/led.c: In function 'led_init':
+	arch/sparc/kernel/led.c:109: error: implicit declaration of
+		function 'init_timer'
+	arch/sparc/kernel/led.c:110: error: invalid use of undefined type
+		'struct timer_list'
 
-WARNING: at mm/vmalloc.c:105 vmap_pte_range()
-[f005a93c : sys_init_module+0x70/0x1b64 ] [f00155c8 : 
-syscall_is_too_hard+0x3c/0x40 ] [000133b8 : 0x133c0 ]
-WARNING: at mm/vmalloc.c:105 vmap_pte_range()
-[f005a93c : sys_init_module+0x70/0x1b64 ] [f00155c8 : 
-syscall_is_too_hard+0x3c/0x40 ] [000133b8 : 0x133c0 ]
-WARNING: at mm/vmalloc.c:105 vmap_pte_range()
-[f005a93c : sys_init_module+0x70/0x1b64 ] [f00155c8 : 
-syscall_is_too_hard+0x3c/0x40 ] [000133b8 : 0x133c0 ]
-WARNING: at mm/vmalloc.c:105 vmap_pte_range()
-[f005a93c : sys_init_module+0x70/0x1b64 ] [f00155c8 : 
-syscall_is_too_hard+0x3c/0x40 ] [000133b8 : 0x133c0 ]
+Cc: Adrian Bunk <bunk@kernel.org>
+Cc: Robert Reif <reif@earthlink.net>
+Signed-off-by: David Rientjes <rientjes@google.com>
+---
+ arch/sparc/kernel/led.c    |    3 ++-
+ include/linux/memcontrol.h |    3 ---
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-but I can obtain the same message with SuperSPARC-II.
-
-	Regards,
-
-	JKB
+diff --git a/arch/sparc/kernel/led.c b/arch/sparc/kernel/led.c
+--- a/arch/sparc/kernel/led.c
++++ b/arch/sparc/kernel/led.c
+@@ -1,8 +1,9 @@
+-#include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/proc_fs.h>
+ #include <linux/string.h>
++#include <linux/sched.h>
++#include <linux/uaccess.h>
+ 
+ #include <asm/auxio.h>
+ 
+diff --git a/include/linux/memcontrol.h b/include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h
++++ b/include/linux/memcontrol.h
+@@ -20,9 +20,6 @@
+ #ifndef _LINUX_MEMCONTROL_H
+ #define _LINUX_MEMCONTROL_H
+ 
+-#include <linux/rcupdate.h>
+-#include <linux/mm.h>
+-
+ struct mem_cgroup;
+ struct page_cgroup;
+ struct page;
