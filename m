@@ -1,79 +1,67 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 13 Feb 2008 08:41:20 +0000
-Subject: [GIT]: Make LMB code sharable with sparc64.
-Message-Id: <20080213.004120.22092044.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Wed, 13 Feb 2008 08:57:35 +0000
+Subject: Re: [GIT]: Make LMB code sharable with sparc64.
+Message-Id: <20080213085735.GB8091@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20080213.004120.22092044.davem@davemloft.net>
+In-Reply-To: <20080213.004120.22092044.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linuxppc-dev@ozlabs.org
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, linuxppc-dev@ozlabs.org, linux-kernel@vger.kernel.org
 
+On Wed, Feb 13, 2008 at 12:41:20AM -0800, David Miller wrote:
+> 
+> As I mentioned to a few ppc folks at LCA08 I plan to use
+> the LMB code from powerpc as a basis for NUMA support on
+> sparc64.
+> 
+> There are two changes.
+> 
+> 1) Move arch/powerpc/mm/lmb.c to lib/lmb.c, put the main
+>    interface bits in include/linux/lmb.h, put arch-specific
+>    bits in asm/lmb.h and add Kconfig machinery to build this
+>    stuff on sparc64.
+> 
+> 2) Fix a bug in lmb_alloc() wherein the size was not aligned
+>    so we could easily run out of reserve blocks because
+>    every aligned allocation would create a tiny hole, and
+>    secondly the lmb_reserve() call there did not have it's
+>    return value checked.
+> 
+> Powerpc folks, if there are no objections please pull, thanks!
+> 
+> The following changes since commit 96b5a46e2a72dc1829370c87053e0cd558d58bc0:
+>   Linus Torvalds (1):
+>         WMI: initialize wmi_blocks.list even if ACPI is disabled
+> 
+> are available in the git repository at:
+> 
+>   master.kernel.org:/pub/scm/linux/kernel/git/davem/lmb-2.6.git master
 
-As I mentioned to a few ppc folks at LCA08 I plan to use
-the LMB code from powerpc as a basis for NUMA support on
-sparc64.
+Review had been easier if the patch was inlined.
+Took a quick look at the small Kconfig bits.
 
-There are two changes.
+From arch/sparc64/Kconfig:
++config LMB
++       def_bool y
++
 
-1) Move arch/powerpc/mm/lmb.c to lib/lmb.c, put the main
-   interface bits in include/linux/lmb.h, put arch-specific
-   bits in asm/lmb.h and add Kconfig machinery to build this
-   stuff on sparc64.
+Can we plase have this changed to use:
 
-2) Fix a bug in lmb_alloc() wherein the size was not aligned
-   so we could easily run out of reserve blocks because
-   every aligned allocation would create a tiny hole, and
-   secondly the lmb_reserve() call there did not have it's
-   return value checked.
+ config SPARC64
++	select HAVE_LMB
 
-Powerpc folks, if there are no objections please pull, thanks!
+And then in lib/Kconfig have
++config HAVE_LMB
++	bool
 
-The following changes since commit 96b5a46e2a72dc1829370c87053e0cd558d58bc0:
-  Linus Torvalds (1):
-        WMI: initialize wmi_blocks.list even if ACPI is disabled
+So we avoid creating a new variable each time we introdce LMB support.
+You would need to update powerpc Kconfig too of course.
 
-are available in the git repository at:
+This way of doing it is documented in:
+Documenation/kbuild/kconfig.language.txt
 
-  master.kernel.org:/pub/scm/linux/kernel/git/davem/lmb-2.6.git master
-
-David S. Miller (2):
-      [LIB]: Make PowerPC LMB code generic so sparc64 can use it too.
-      [LMB]: Fix bug in __lmb_alloc_base().
-
- arch/powerpc/Kconfig                    |    3 +
- arch/powerpc/kernel/btext.c             |    2 +-
- arch/powerpc/kernel/crash.c             |    2 +-
- arch/powerpc/kernel/crash_dump.c        |    2 +-
- arch/powerpc/kernel/machine_kexec.c     |    2 +-
- arch/powerpc/kernel/prom.c              |    2 +-
- arch/powerpc/kernel/rtas.c              |    2 +-
- arch/powerpc/kernel/setup-common.c      |    2 +-
- arch/powerpc/kernel/setup_64.c          |    2 +-
- arch/powerpc/kernel/vdso.c              |    2 +-
- arch/powerpc/mm/Makefile                |    2 +-
- arch/powerpc/mm/hash_utils_64.c         |    2 +-
- arch/powerpc/mm/init_32.c               |    2 +-
- arch/powerpc/mm/init_64.c               |    2 +-
- arch/powerpc/mm/mem.c                   |    2 +-
- arch/powerpc/mm/numa.c                  |    2 +-
- arch/powerpc/mm/ppc_mmu_32.c            |    2 +-
- arch/powerpc/mm/stab.c                  |    2 +-
- arch/powerpc/platforms/cell/iommu.c     |    2 +-
- arch/powerpc/platforms/maple/setup.c    |    2 +-
- arch/powerpc/platforms/powermac/setup.c |    2 +-
- arch/powerpc/platforms/ps3/htab.c       |    2 +-
- arch/powerpc/platforms/ps3/mm.c         |    2 +-
- arch/powerpc/platforms/ps3/os-area.c    |    2 +-
- arch/powerpc/sysdev/dart_iommu.c        |    2 +-
- arch/sparc64/Kconfig                    |    3 +
- include/asm-powerpc/abs_addr.h          |    2 +-
- include/asm-powerpc/lmb.h               |   82 +++---------------------------
- include/asm-sparc64/lmb.h               |   10 ++++
- include/linux/lmb.h                     |   83 +++++++++++++++++++++++++++++++
- lib/Makefile                            |    2 +
- {arch/powerpc/mm => lib}/lmb.c          |   39 ++++++++-------
- 32 files changed, 155 insertions(+), 117 deletions(-)
- create mode 100644 include/asm-sparc64/lmb.h
- create mode 100644 include/linux/lmb.h
- rename {arch/powerpc/mm => lib}/lmb.c (92%)
+Thanks,
+	Sam
