@@ -1,17 +1,23 @@
-From: Balbir Singh <balbir@linux.vnet.ibm.com>
-Date: Mon, 11 Feb 2008 09:49:05 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Wed, 13 Feb 2008 02:46:54 +0000
 Subject: Re: [patch] sparc: fix build
-Message-Id: <47B01741.2060006@linux.vnet.ibm.com>
+Message-Id: <20080212184654.85d5ae20.akpm@linux-foundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080207231230.GE7198@cs181133002.pp.htv.fi> <alpine.DEB.1.00.0802071538440.15050@chino.kir.corp.google.com> <20080210153355.GA6737@palantir8> <alpine.DEB.1.00.0802101117510.5043@chino.kir.corp.google.com> <47AF7048.3060200@earthlink.net> <alpine.DEB.1.00.0802101529310.17892@chino.kir.corp.google.com>
+References: <20080207231230.GE7198@cs181133002.pp.htv.fi>
+	<alpine.DEB.1.00.0802071538440.15050@chino.kir.corp.google.com>
+	<20080210153355.GA6737@palantir8>
+	<alpine.DEB.1.00.0802101117510.5043@chino.kir.corp.google.com>
+	<47AF7048.3060200@earthlink.net>
+	<alpine.DEB.1.00.0802101529310.17892@chino.kir.corp.google.com>
 In-Reply-To: <alpine.DEB.1.00.0802101529310.17892@chino.kir.corp.google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: David Rientjes <rientjes@google.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Adrian Bunk <bunk@kernel.org>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Robert Reif <reif@earthlink.net>
+Cc: Adrian Bunk <bunk@kernel.org>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Robert Reif <reif@earthlink.net>
 
-David Rientjes wrote:
+On Sun, 10 Feb 2008 15:30:51 -0800 (PST) David Rientjes <rientjes@google.com> wrote:
+
 > Fix build failures on sparc:
 > 
 > 	In file included from include/linux/mm.h:39,
@@ -62,14 +68,8 @@ David Rientjes wrote:
 > 	arch/sparc/kernel/led.c:110: error: invalid use of undefined type
 > 		'struct timer_list'
 > 
-> Cc: Adrian Bunk <bunk@kernel.org>
-> Cc: Robert Reif <reif@earthlink.net>
-> Signed-off-by: David Rientjes <rientjes@google.com>
-> ---
->  arch/sparc/kernel/led.c    |    3 ++-
->  include/linux/memcontrol.h |    3 ---
->  2 files changed, 2 insertions(+), 4 deletions(-)
-> 
+> ...
+>
 > diff --git a/arch/sparc/kernel/led.c b/arch/sparc/kernel/led.c
 > --- a/arch/sparc/kernel/led.c
 > +++ b/arch/sparc/kernel/led.c
@@ -81,16 +81,18 @@ David Rientjes wrote:
 >  #include <linux/string.h>
 > +#include <linux/sched.h>
 > +#include <linux/uaccess.h>
-> 
+>  
 >  #include <asm/auxio.h>
-> 
+
+OK, that'll fix one error.
+  
 > diff --git a/include/linux/memcontrol.h b/include/linux/memcontrol.h
 > --- a/include/linux/memcontrol.h
 > +++ b/include/linux/memcontrol.h
 > @@ -20,9 +20,6 @@
 >  #ifndef _LINUX_MEMCONTROL_H
 >  #define _LINUX_MEMCONTROL_H
-> 
+>  
 > -#include <linux/rcupdate.h>
 > -#include <linux/mm.h>
 > -
@@ -98,32 +100,20 @@ David Rientjes wrote:
 >  struct page_cgroup;
 >  struct page;
 
-This patch allowed my sparc cross compiler to build beyond mm/memcontrol.o, but
-I faced a build issue at
+This really should have been in a separate patch and extensively tested.
 
-drivers/net/e1000e/netdev.c: In function 'e1000e_update_stats':
-drivers/net/e1000e/netdev.c:2583: error: unable to find a register to spill in
-class 'FP_REGS'
-drivers/net/e1000e/netdev.c:2583: error: this is the insn:
-(insn 66 2379 2236 2 drivers/net/e1000e/netdev.c:2459 (set (reg:DI 487 [ D.34076 ])
-        (mem/s/j:DI (plus:SI (reg/v/f:SI 11 %o3 [orig:492 adapter ] [492])
-                (reg:SI 7 %g7 [514])) [0 <variable>.stats.gprc+0 S8 A128])) 45
-{*movdi_insn_sp32} (insn_list:REG_DEP_TRUE 65 (insn_list:REG_DEP_ANTI 32 (nil)))
-    (expr_list:REG_EQUIV (mem/s/j:DI (plus:SI (reg/v/f:SI 11 %o3 [orig:492
-adapter ] [492])
-                (reg:SI 7 %g7 [514])) [0 <variable>.stats.gprc+0 S8 A128])
-        (nil)))
-drivers/net/e1000e/netdev.c:2583: confused by earlier errors, bailing out
-make[3]: *** [drivers/net/e1000e/netdev.o] Error 1
-make[2]: *** [drivers/net/e1000e] Error 2
-make[1]: *** [drivers/net] Error 2
+Have we checked that every file which directly or indirectly includes
+memcontrol.h does not have an requirement for rcupdate.h and mm.h, where
+that requirement was satisfied only via this nested inclusion?  For all
+architectures and for all config selections?  Think not.
 
-So for the problem reported
+Sadly, removal of nested includes is a *big* deal, and it takes quite a lot
+of time to get it all shaken down.
 
-Tested-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+If we can confirm that all files (.c and .h) which include memcontrol.h
+also directly include rcupdate.h and mm.h then we're _probably_ ok (modulo
+ordering issues).
 
--- 
-	Warm Regards,
-	Balbir Singh
-	Linux Technology Center
-	IBM, ISTL
+Otherwise we should perhaps be taking a second look at how to fix the sparc
+problem.
+
