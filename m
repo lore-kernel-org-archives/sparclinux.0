@@ -1,47 +1,47 @@
-From: =?utf-8?q?S=2E=C3=87a=C4=9Flar=20Onur?= <caglar@pardus.org.tr>
-Date: Thu, 14 Feb 2008 15:36:43 +0000
-Subject: [PATCH 05/14] arch/sparc64/kernel/unaligned.c: Use time_* macros
-Message-Id: <1203003412-11594-6-git-send-email-caglar@pardus.org.tr>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 14 Feb 2008 01:10:50 +0000
+Subject: [PATCH 3/4]: [LMB]: Fix initial lmb add region with a non-zero base
+Message-Id: <20080213.171050.183740061.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: y
-In-Reply-To: y
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: linux-kernel@vger.kernel.org
-Cc: sparclinux@vger.kernel.org, =?utf-8?q?S=2E=C3=87a=C4=9Flar=20Onur?= <caglar@pardus.org.tr>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linuxppc-dev@ozlabs.org
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-The functions time_before, time_before_eq, time_after, and time_after_eq are more robust for comparing jiffies against other values.
 
-So following patch implements usage of the time_after() macro, defined at linux/jiffies.h, which deals with wrapping correctly
+[LMB]: Fix initial lmb add region with a non-zero base
 
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: S.Çağlar Onur <caglar@pardus.org.tr>
+If we add to an empty lmb region with a non-zero base we will not
+coalesce the number of regions down to one.  This causes problems on
+ppc32 for the memory region as its assumed to only have one region.
+
+We can fix this be easily specially casing the initial add to just
+replace the dummy region.
+
+Signed-off-by: Kumar Gala <galak@kernel.crashing.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc64/kernel/unaligned.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ lib/lmb.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-diff --git a/arch/sparc64/kernel/unaligned.c b/arch/sparc64/kernel/unaligned.c
-index dc7bf1b..1a511e9 100644
---- a/arch/sparc64/kernel/unaligned.c
-+++ b/arch/sparc64/kernel/unaligned.c
-@@ -7,6 +7,7 @@
-  */
+diff --git a/lib/lmb.c b/lib/lmb.c
+index 6390d63..e34a9e5 100644
+--- a/lib/lmb.c
++++ b/lib/lmb.c
+@@ -134,6 +134,12 @@ static long __init lmb_add_region(struct lmb_region *rgn, unsigned long base,
+ 	unsigned long coalesced = 0;
+ 	long adjacent, i;
  
- 
-+#include <linux/jiffies.h>
- #include <linux/kernel.h>
- #include <linux/sched.h>
- #include <linux/mm.h>
-@@ -283,7 +284,7 @@ static void log_unaligned(struct pt_regs *regs)
- {
- 	static unsigned long count, last_time;
- 
--	if (jiffies - last_time > 5 * HZ)
-+	if (time_after(jiffies, last_time + 5 * HZ))
- 		count = 0;
- 	if (count < 5) {
- 		last_time = jiffies;
++	if ((rgn->cnt = 1) && (rgn->region[0].size = 0)) {
++		rgn->region[0].base = base;
++		rgn->region[0].size = size;
++		return 0;
++	}
++
+ 	/* First try and coalesce this LMB with another. */
+ 	for (i=0; i < rgn->cnt; i++) {
+ 		unsigned long rgnbase = rgn->region[i].base;
 -- 
-1.5.3.7
+1.5.4.29.gb828fe
 
