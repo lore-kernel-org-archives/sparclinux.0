@@ -1,54 +1,63 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Fri, 15 Feb 2008 00:58:06 +0000
+From: Michael Ellerman <michael@ellerman.id.au>
+Date: Fri, 15 Feb 2008 19:05:37 +0000
 Subject: Re: [PATCH 0/4]: Respun LMB patches.
-Message-Id: <20080215115806.bc939114.sfr@canb.auug.org.au>
+Message-Id: <1203102337.6699.0.camel@concordia>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Signature=_Fri__15_Feb_2008_11_58_06_+1100_yZ0DtZqfjWfL+0JM"
+Content-Type: multipart/mixed; boundary="=-svYch7FbcXZI/kREFLwb"
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080213.170938.34536425.davem@davemloft.net>
-	<38133B3C-75A2-4465-9484-7BF8E7E85D1D@freescale.com>
-	<20080214232152.GB15724@lixom.net>
-In-Reply-To: <20080214232152.GB15724@lixom.net>
+In-Reply-To: <20080213.170938.34536425.davem@davemloft.net>
 To: David Miller <davem@davemloft.net>
-Cc: Olof Johansson <olof@lixom.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org
+Cc: sparclinux@vger.kernel.org, linuxppc-dev@ozlabs.org, linux-kernel@vger.kernel.org
 
---Signature=_Fri__15_Feb_2008_11_58_06_+1100_yZ0DtZqfjWfL+0JM
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
+
+--=-svYch7FbcXZI/kREFLwb
+Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, 14 Feb 2008 17:21:52 -0600 Olof Johansson <olof@lixom.net> wrote:
->
-> On Thu, Feb 14, 2008 at 02:58:22PM -0600, Becky Bruce wrote:
+On Wed, 2008-02-13 at 17:09 -0800, David Miller wrote:
+> I've taken into consideration the various feedback, and
+> ported the bug fix and other LMB patches posted recently
+> in an effort to keep the patch churn by others down wrt.
+> my moving of these files.
 >=20
-> > Thanks for picking up the patches from Kumar and myself and fitting =20
-> > them into your series - this is much appreciated.  FYI, I applied the =
-=20
-> > entire patch series to my local tree and test-booted both mpc8641 and =
-=20
-> > mpc8568mds and both build and boot cleanly. I also built pasemi and =20
-> > ebony, those build cleanly as well.
+> 1) Use HAVE_LMB as suggested by Sam.
 >=20
-> pasemi_defconfig boots happily on my boards here. I've kicked off my
-> "build all powerpc defconfigs" script while I leave the house for a
-> couple of hours, but as others have said, no problems are expected...
+> 2) Fix potential build errors wrt. asm/prom.h dependencies.
+>=20
+>    My algorithm was:
+>=20
+>    a) If the file only included asm/lmb.h I added an include
+>       of both linux/lmb.c and asm/prom.h
+>=20
+>    b) If the file already includes asm/prom.h, I merely
+>       changed the asm/lmb.h to linux/lmb.h
 
-It builds and boots on legacy iSeries (and seems to be working ok) as well.
+That fixes the build failures I was seeing, ack.
+
+cheers
 
 --=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
+Michael Ellerman
+OzLabs, IBM Australia Development Lab
 
---Signature=_Fri__15_Feb_2008_11_58_06_+1100_yZ0DtZqfjWfL+0JM
-Content-Type: application/pgp-signature
+wwweb: http://michael.ellerman.id.au
+phone: +61 2 6212 1183 (tie line 70 21183)
+
+We do not inherit the earth from our ancestors,
+we borrow it from our children. - S.M.A.R.T Person
+
+--=-svYch7FbcXZI/kREFLwb
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.6 (GNU/Linux)
 
-iD8DBQFHtOOiTgG2atn1QN8RAuQpAJ9zgf45DLdeF0/578j/kQ+sChxJywCfRm/+
-ydPF4M9DeFIqzx70j6++WN8=
-=BEsK
+iD8DBQBHteKBdSjSd0sB4dIRAuWnAJ9WCbI5nCAAUYdH3c7oythnwNsy7QCgs/av
+PPUO2nf3MQ1dZIa8o1XpTsI=
+=E4p/
 -----END PGP SIGNATURE-----
 
---Signature=_Fri__15_Feb_2008_11_58_06_+1100_yZ0DtZqfjWfL+0JM--
+--=-svYch7FbcXZI/kREFLwb--
+
