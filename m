@@ -1,52 +1,36 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Fri, 01 Feb 2008 23:34:11 +0000
-Subject: Re: 2.6.24-rc8-mm1: sparc64 warning at fs/file_table.c:49
-Message-Id: <20080201153411.ec20cdc6.akpm@linux-foundation.org>
+From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
+Date: Mon, 18 Feb 2008 21:34:25 +0000
+Subject: [PATCH] ESP driver
+Message-Id: <47B9F9E1.8020007@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080117023514.9df393cf.akpm@linux-foundation.org>
-	<200801222130.24136.m.kozlowski@tuxland.pl>
-	<20080122130228.e7596163.akpm@linux-foundation.org>
-	<1201043638.7585.47.camel@nimitz.home.sr71.net>
-In-Reply-To: <1201043638.7585.47.camel@nimitz.home.sr71.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dave Hansen <haveblue@us.ibm.com>
-Cc: m.kozlowski@tuxland.pl, linux-kernel@vger.kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org, hch@lst.de
+To: sparclinux@vger.kernel.org
 
-On Tue, 22 Jan 2008 15:13:58 -0800
-Dave Hansen <haveblue@us.ibm.com> wrote:
+	Hello,
 
-> @@ -566,10 +567,26 @@ static void mark_files_ro(struct super_b
->  {
->  	struct file *f;
->  
-> +retry:
->  	file_list_lock();
->  	list_for_each_entry(f, &sb->s_files, f_u.fu_list) {
-> -		if (S_ISREG(f->f_path.dentry->d_inode->i_mode) && file_count(f))
-> -			f->f_mode &= ~FMODE_WRITE;
-> +		struct vfsmount mnt;
-> +		if (!S_ISREG(f->f_path.dentry->d_inode->i_mode))
-> +		       continue;
-> +		if (!file_count(f))
-> +			continue;
-> +		if (!(f->f_mode & FMODE_WRITE))
-> +			continue;
-> +		f->f_mode &= ~FMODE_WRITE;
-> +		f->f_mnt_write_state |= FILE_MNT_WRITE_RELEASED;
-> +		mnt = f->f_path.mnt;
-> +		file_list_unlock();
-> +		/*
-> +		 * This can sleep, so we can't hold
-> +		 * the file_list_lock() spinlock.
-> +		 */
-> +		mnt_drop_write(mnt);
-> +		goto retry;
->  	}
->  	file_list_unlock();
->  }
-> _
+	I think I have found a bug in esp_scsi.c. Without this patch, my 
+SS20/SMP was not able to rebuild its internal raid1 volume due to esp0 
+DMA errors. With the following patch, same workstation is building a 
+kernel, doing a rsync (between two local directories) and rebuilding a 
+26 GB raid1 volume without any trouble.
 
-this doesn't even compile.  How much confidence am I supposed
-to have that once I've fixed it, it will actually work?
+Signed-off-by: BERTRAND Joel <joel.bertrand@systella.fr>
+
+Index: linux/drivers/scsi/esp_scsi.c
+=================================--- linux/drivers/scsi/esp_scsi.c.orig 2008-02-18 16:50:14.000000000 +0100
++++ linux/drivers/scsi/esp_scsi.c      2008-02-18 16:52:17.000000000 +0100
+@@ -961,6 +961,7 @@
+         switch (esp->rev) {
+         case ESP100:
+         case ESP100A:
++       case FAS100A:
+               /* The interrupt pending bit of the status register cannot
+                * be trusted on these revisions.
+                */
+
+
+	Regards,
+
+	JKB
