@@ -1,57 +1,56 @@
 From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
-Date: Mon, 18 Feb 2008 09:25:34 +0000
+Date: Mon, 18 Feb 2008 13:56:09 +0000
 Subject: Re: [Ann] SparcV8 depot
-Message-Id: <47B94F0E.6080902@systella.fr>
+Message-Id: <47B98E79.4080007@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
 References: <47B6AE0B.1090906@systella.fr>
 In-Reply-To: <47B6AE0B.1090906@systella.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Chris Andrew wrote:
-> CC'd this to a list that is trying to keep sparc-32 alive
-> (http://wiki.debian.org/Sparc32).
-> Thanks,
->=20
-> Chris.
->=20
-> On 18/02/2008, Martin Habets <errandir_news@mph.eclipse.co.uk> wrote:
->> Hi Jo=EBl,
->>
->> I've got an SS20 with dual hypersparc. Kernels post 2.6.21 boot okay,
->> run in general, but a 'make -j 3' build of the kernel aborts a couple of
->> times with a bus error or similar vague errors.
->>
->> I'd be interested in a V8 repository.
->>
->> Martin
->>
->> On Sat, Feb 16, 2008 at 10:34:03AM +0100, BERTRAND Jo=EBl wrote:
->>>       Hi folks,
->>>
->>>       I have built a 2.6.24.2 linux kernel on my SS20 (dual SM71) and it
->>>       is stable in SMP configuration with HIGHMEM. I haven't tested with
->>> HyperSPARC. Has anyone any information about HyperSPARC support ? I
->>> shall test, but if someone has tried before me... ;-)
->>>
->>>       I'm building deb packages to upgrade this workstation to
->>>       debian/testing (with of course only V8 support not V8+). I don't =
-know if
->>> someone can be interested, but I think we can open a depot for sparc-V8
->>> package. I think I shall open an anonymous ftp server next week, but I
->>> won't do anything if I'm alone.
->>>
->>>       Regards,
->>>
->>>       JKB
+	Good news,
 
-	Hello,
+	With kernel (2.6.24.2) and libc6 I have uploaded, SS20 boots fine with 
+dual RT626 (double CPU module). At this time, I don't see any strange 
+memory error I have seen with older kernel. I shall try with four RT626 
+this evening, but it sounds good :
 
-	You can download first debian packages (strict V8) on=20
-http://newton.systella.fr/~bertrand/sparc32. I have uploaded a kernel=20
-(with built-in SX framebuffer support). URL can changes soon...
+hilbert:[~] > cat /proc/cpuinfo
+cpu             : ROSS HyperSparc RT625 or RT626
+fpu             : ROSS HyperSparc combined IU/FPU
+promlib         : Version 3 Revision 2
+prom            : 2.25
+type            : sun4m
+ncpus probed    : 2
+ncpus active    : 2
+Cpu0Bogo        : 199.88
+Cpu1Bogo        : 199.88
+MMU type        : ROSS HyperSparc
+contexts        : 4096
+nocache total   : 5242880
+nocache used    : 904704
+State:
+CPU0            : online
+CPU1            : online
+
+	I only receive in dmesg :
+
+WARNING: at mm/vmalloc.c:105 vmap_pte_range()
+[f005a93c : sys_init_module+0x70/0x1b64 ] [f00155c8 : 
+syscall_is_too_hard+0x3c/0x40 ] [000133b8 : 0x133c0 ]
+WARNING: at mm/vmalloc.c:105 vmap_pte_range()
+[f005a93c : sys_init_module+0x70/0x1b64 ] [f00155c8 : 
+syscall_is_too_hard+0x3c/0x40 ] [000133b8 : 0x133c0 ]
+WARNING: at mm/vmalloc.c:105 vmap_pte_range()
+[f005a93c : sys_init_module+0x70/0x1b64 ] [f00155c8 : 
+syscall_is_too_hard+0x3c/0x40 ] [000133b8 : 0x133c0 ]
+WARNING: at mm/vmalloc.c:105 vmap_pte_range()
+[f005a93c : sys_init_module+0x70/0x1b64 ] [f00155c8 : 
+syscall_is_too_hard+0x3c/0x40 ] [000133b8 : 0x133c0 ]
+
+but I can obtain the same message with SuperSPARC-II.
 
 	Regards,
 
