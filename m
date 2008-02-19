@@ -1,33 +1,62 @@
 From: Kumar Gala <galak@kernel.crashing.org>
-Date: Wed, 20 Feb 2008 05:29:55 +0000
-Subject: Re: [PATCH] [LMB]: Fix lmb_add_region if region should be added at the head
-Message-Id: <1E43CE53-98E0-4D98-9629-9E3336A25BAE@kernel.crashing.org>
+Date: Tue, 19 Feb 2008 19:51:37 +0000
+Subject: [PATCH v2][POWERPC] Fix initial lmb add region with a non-zero base
+Message-Id: <Pine.LNX.4.64.0802191350590.10089@blarg.am.freescale.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.0802192227170.2215@blarg.am.freescale.net>
-	<20080219.204525.193731674.davem@davemloft.net>
-	<7A7ECF09-E547-4C04-A388-C3E8755478DD@kernel.crashing.org>
-	<20080219.212655.173468988.davem@davemloft.net>
-In-Reply-To: <20080219.212655.173468988.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
+To: davem@davemloft.net
 Cc: sparclinux@vger.kernel.org, linuxppc-dev@ozlabs.org, linux-kernel@vger.kernel.org
 
+If we add to an empty lmb region with a non-zero base we will not coalesce
+the number of regions down to one.  This causes problems on ppc32 for the
+memory region as its assumed to only have one region.
 
-On Feb 19, 2008, at 11:26 PM, David Miller wrote:
+We can fix this easily by causing the initial add to replace the dummy
+region.
 
-> From: Kumar Gala <galak@kernel.crashing.org>
-> Date: Tue, 19 Feb 2008 23:16:18 -0600
->
->> The for loop above the code I added will move all the existing slots
->> up one.  Its just the tail cleanup we are missing.
->
-> Aha, I see how this works now, thanks!
->
-> I'll add this to my LMB tree.
+Signed-off-by: Kumar Gala <galak@kernel.crashing.org>
+---
 
-Sounds good.  Now just convince Paul or Linus to pull this in for  
-2.6.25 :)
+Fix a bug the initial patch introduced if we have a region that gets added
+at the beginning of the list we wouldn't actually add it.
 
-- k
+Dave can you replace the patch in you tree with this one.
+
+ arch/powerpc/mm/lmb.c |   12 ++++++++++++
+ 1 files changed, 12 insertions(+), 0 deletions(-)
+
+diff --git a/arch/powerpc/mm/lmb.c b/arch/powerpc/mm/lmb.c
+index 4ce23bc..4bf8f19 100644
+--- a/arch/powerpc/mm/lmb.c
++++ b/arch/powerpc/mm/lmb.c
+@@ -141,6 +141,12 @@ static long __init lmb_add_region(struct lmb_region *rgn, unsigned long base,
+ 	unsigned long coalesced = 0;
+ 	long adjacent, i;
+
++	if ((rgn->cnt = 1) && (rgn->region[0].size = 0)) {
++		rgn->region[0].base = base;
++		rgn->region[0].size = size;
++		return 0;
++	}
++
+ 	/* First try and coalesce this LMB with another. */
+ 	for (i=0; i < rgn->cnt; i++) {
+ 		unsigned long rgnbase = rgn->region[i].base;
+@@ -185,6 +191,12 @@ static long __init lmb_add_region(struct lmb_region *rgn, unsigned long base,
+ 			break;
+ 		}
+ 	}
++
++	if (base < rgn->region[0].base) {
++		rgn->region[0].base = base;
++		rgn->region[0].size = size;
++	}
++
+ 	rgn->cnt++;
+
+ 	return 0;
+-- 
+1.5.3.8
+
