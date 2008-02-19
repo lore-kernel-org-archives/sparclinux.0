@@ -1,36 +1,36 @@
-From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
-Date: Mon, 18 Feb 2008 21:34:25 +0000
-Subject: [PATCH] ESP driver
-Message-Id: <47B9F9E1.8020007@systella.fr>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 19 Feb 2008 04:25:23 +0000
+Subject: Re: [PATCH] ESP driver
+Message-Id: <20080218.202523.113868965.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <47B9F9E1.8020007@systella.fr>
+In-Reply-To: <47B9F9E1.8020007@systella.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-	Hello,
+From: BERTRAND_Jo=EBl <joel.bertrand@systella.fr>
+Date: Mon, 18 Feb 2008 22:34:25 +0100
 
-	I think I have found a bug in esp_scsi.c. Without this patch, my 
-SS20/SMP was not able to rebuild its internal raid1 volume due to esp0 
-DMA errors. With the following patch, same workstation is building a 
-kernel, doing a rsync (between two local directories) and rebuilding a 
-26 GB raid1 volume without any trouble.
+> 	I think I have found a bug in esp_scsi.c. Without this patch, my=20
+> SS20/SMP was not able to rebuild its internal raid1 volume due to esp0=20
+> DMA errors. With the following patch, same workstation is building a=20
+> kernel, doing a rsync (between two local directories) and rebuilding a=20
+> 26 GB raid1 volume without any trouble.
+>=20
+> Signed-off-by: BERTRAND Joel <joel.bertrand@systella.fr>
 
-Signed-off-by: BERTRAND Joel <joel.bertrand@systella.fr>
+It may correct your problem for some reason, but this change
+is not correct (and your email client or your editor used
+spaces instead of tab characters in your change).  The FAS100A
+implements the ESP_STAT_INTR bit correctly.
 
-Index: linux/drivers/scsi/esp_scsi.c
-=================================--- linux/drivers/scsi/esp_scsi.c.orig 2008-02-18 16:50:14.000000000 +0100
-+++ linux/drivers/scsi/esp_scsi.c      2008-02-18 16:52:17.000000000 +0100
-@@ -961,6 +961,7 @@
-         switch (esp->rev) {
-         case ESP100:
-         case ESP100A:
-+       case FAS100A:
-               /* The interrupt pending bit of the status register cannot
-                * be trusted on these revisions.
-                */
+If the FAS100A needed this change, you would get spurious IRQs or
+other state machine errors, not DMA errors.
 
+I think your change merely changes timings, making the DMA problem
+harder to trigger.
 
-	Regards,
-
-	JKB
+I'm sorry I don't have more desirable feedback for your patch, but
+it's the best I can do :-)
