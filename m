@@ -1,26 +1,29 @@
-From: Paul Mackerras <paulus@samba.org>
-Date: Thu, 21 Feb 2008 02:16:58 +0000
+From: Josh Boyer <jwboyer@gmail.com>
+Date: Thu, 21 Feb 2008 04:01:27 +0000
 Subject: Re: [PATCH v2][POWERPC] Fix initial lmb add region with a non-zero
-Message-Id: <18364.57114.563431.730805@cargo.ozlabs.ibm.com>
+Message-Id: <20080220220127.08555476@vader.jdub.homelinux.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.LNX.4.64.0802191350590.10089@blarg.am.freescale.net>
 	<20080219.163003.152862383.davem@davemloft.net>
 	<4130F47E-4F4A-4911-B63B-403A8C423565@kernel.crashing.org>
-	<20080219.193125.04536962.davem@davemloft.net>
-In-Reply-To: <20080219.193125.04536962.davem@davemloft.net>
+	<18364.57054.427433.405627@cargo.ozlabs.ibm.com>
+In-Reply-To: <18364.57054.427433.405627@cargo.ozlabs.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org, linuxppc-dev@ozlabs.org, linux-kernel@vger.kernel.org
+To: Paul Mackerras <paulus@samba.org>
+Cc: sparclinux@vger.kernel.org, linuxppc-dev@ozlabs.org, linux-kernel@vger.kernel.org, David Miller <davem@davemloft.net>
 
-David Miller writes:
+On Thu, 21 Feb 2008 13:15:58 +1100
+Paul Mackerras <paulus@samba.org> wrote:
 
-> I'm ambivalent but I would obviously prefer 2.6.25 because
-> it would allow me to proceed more easily with my sparc64
-> NUMA work as well as get your bug fixes in more smoothly.
+> Kumar Gala writes:
+> 
+> > np.  Are we trying to get this into 2.6.25 or .26?
+> 
+> I was going to put it into my powerpc-next branch and put it in
+> 2.6.26.  I don't see any need for it to go in 2.6.25.
 
-Sounds like we should get Stephen to put it in linux-next-stable once
-we're convinced it's all OK.
+Is that a new branch you're going to create, or the normal "for-2.6.xx"?
 
-Paul.
+josh
