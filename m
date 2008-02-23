@@ -1,92 +1,133 @@
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Date: Sat, 23 Feb 2008 11:24:57 +0000
-Subject: [PATCH 2/2] firewire: endianess annotations
-Message-Id: <tkrat.99ed7585f5c25d58@s5r6.in-berlin.de>
+From: WANG Cong <xiyou.wangcong@gmail.com>
+Date: Sat, 23 Feb 2008 08:14:09 +0000
+Subject: [PATCH 06/16] sparc(64): use get_personality()
+Message-Id: <1203754519825-git-send-email-xiyou.wangcong@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080220220326.GA22328@uranus.ravnborg.org>
-	<1203545913.25307.47.camel@brick>
-	<tkrat.e2bfb30f2c0ae70a@s5r6.in-berlin.de>
-In-Reply-To: <tkrat.e2bfb30f2c0ae70a@s5r6.in-berlin.de>
+References: <12037544592096-git-send-email-xiyou.wangcong@gmail.com>
+ <12037544671847-git-send-email-xiyou.wangcong@gmail.com>
+ <1203754478165-git-send-email-xiyou.wangcong@gmail.com>
+ <1203754488669-git-send-email-xiyou.wangcong@gmail.com>
+ <12037544991876-git-send-email-xiyou.wangcong@gmail.com>
+ <1203754509934-git-send-email-xiyou.wangcong@gmail.com>
+In-Reply-To: <1203754509934-git-send-email-xiyou.wangcong@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux1394-devel@lists.sourceforge.net
-Cc: Kristian Hoegsberg <krh@bitplanet.net>, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, Jarod Wilson <jwilson@redhat.com>, Sam Ravnborg <sam@ravnborg.org>, Harvey Harrison <harvey.harrison@gmail.com>
+To: Andrew Morton <akpm@osdl.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, WANG Cong <xiyou.wangcong@gmail.com>, David Miller <davem@davemloft.net>, "William L. Irwin" <wli@holomorphy.com>, sparclinux@vger.kernel.org
 
-Kills warnings from 'make C=1 CHECKFLAGS="-D__CHECK_ENDIAN__" modules':
+Use get_personality() macro and other two tiny improvements.
 
-drivers/firewire/fw-transaction.c:771:10: warning: incorrect type in assignment (different base types)
-drivers/firewire/fw-transaction.c:771:10:    expected unsigned int [unsigned] [usertype] <noident>
-drivers/firewire/fw-transaction.c:771:10:    got restricted unsigned int [usertype] <noident>
-drivers/firewire/fw-transaction.h:93:10: warning: incorrect type in assignment (different base types)
-drivers/firewire/fw-transaction.h:93:10:    expected unsigned int [unsigned] [usertype] <noident>
-drivers/firewire/fw-transaction.h:93:10:    got restricted unsigned int [usertype] <noident>
-drivers/firewire/fw-ohci.c:1490:8: warning: restricted degrades to integer
-drivers/firewire/fw-ohci.c:1490:35: warning: restricted degrades to integer
-drivers/firewire/fw-ohci.c:1516:5: warning: cast to restricted type
-
-Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: William L. Irwin <wli@holomorphy.com>
 Cc: sparclinux@vger.kernel.org
-Cc: linuxppc-dev@ozlabs.org
+
 ---
- drivers/firewire/fw-ohci.c        |    4 ++--
- drivers/firewire/fw-transaction.c |    2 +-
- drivers/firewire/fw-transaction.h |    6 +++---
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ arch/sparc/kernel/signal.c      |    2 +-
+ arch/sparc64/kernel/signal32.c  |    2 +-
+ arch/sparc64/kernel/sys_sparc.c |    6 +++---
+ include/asm-sparc/namei.h       |    2 +-
+ include/asm-sparc64/elf.h       |    2 +-
+ include/asm-sparc64/namei.h     |    2 +-
+ 6 files changed, 8 insertions(+), 8 deletions(-)
 
-Index: linux/drivers/firewire/fw-ohci.c
-=================================--- linux.orig/drivers/firewire/fw-ohci.c
-+++ linux/drivers/firewire/fw-ohci.c
-@@ -1487,7 +1487,7 @@ static int handle_ir_dualbuffer_packet(s
- 	void *p, *end;
- 	int i;
+diff --git a/arch/sparc/kernel/signal.c b/arch/sparc/kernel/signal.c
+index 9994cac..0464874 100644
+--- a/arch/sparc/kernel/signal.c
++++ b/arch/sparc/kernel/signal.c
+@@ -1010,7 +1010,7 @@ asmlinkage void do_signal(struct pt_regs * regs, unsigned long orig_i0, int rest
+ #ifdef SVR4_SIGNAL_BROKEN
+ 	int svr4_signal = 0;
+ #else
+-	int svr4_signal = current->personality = PER_SVR4;
++	int svr4_signal = (get_personality() = PER_SVR4);
+ #endif
  
--	if (db->first_res_count > 0 && db->second_res_count > 0) {
-+	if (db->first_res_count != 0 && db->second_res_count != 0) {
- 		if (ctx->excess_bytes <= le16_to_cpu(db->second_req_count)) {
- 			/* This descriptor isn't done yet, stop iteration. */
- 			return 0;
-@@ -1513,7 +1513,7 @@ static int handle_ir_dualbuffer_packet(s
- 		memcpy(ctx->header + i + 4, p + 8, ctx->base.header_size - 4);
- 		i += ctx->base.header_size;
- 		ctx->excess_bytes +-			(le32_to_cpu(*(u32 *)(p + 4)) >> 16) & 0xffff;
-+			(le32_to_cpu(*(__le32 *)(p + 4)) >> 16) & 0xffff;
- 		p += ctx->base.header_size + 4;
+ 	cookie.restart_syscall = restart_syscall;
+diff --git a/arch/sparc64/kernel/signal32.c b/arch/sparc64/kernel/signal32.c
+index 8c1c121..e3bc993 100644
+--- a/arch/sparc64/kernel/signal32.c
++++ b/arch/sparc64/kernel/signal32.c
+@@ -1270,7 +1270,7 @@ void do_signal32(sigset_t *oldset, struct pt_regs * regs,
+ 	struct signal_deliver_cookie cookie;
+ 	struct k_sigaction ka;
+ 	int signr;
+-	int svr4_signal = current->personality = PER_SVR4;
++	int svr4_signal = (get_personality() = PER_SVR4);
+ 	
+ 	cookie.restart_syscall = restart_syscall;
+ 	cookie.orig_i0 = orig_i0;
+diff --git a/arch/sparc64/kernel/sys_sparc.c b/arch/sparc64/kernel/sys_sparc.c
+index 134d801..3813ec7 100644
+--- a/arch/sparc64/kernel/sys_sparc.c
++++ b/arch/sparc64/kernel/sys_sparc.c
+@@ -372,7 +372,7 @@ void arch_pick_mmap_layout(struct mm_struct *mm)
+ 	 * bit is set, or if the expected stack growth is unlimited:
+ 	 */
+ 	if (!test_thread_flag(TIF_32BIT) ||
+-	    (current->personality & ADDR_COMPAT_LAYOUT) ||
++	    (get_personality() & ADDR_COMPAT_LAYOUT) ||
+ 	    current->signal->rlim[RLIMIT_STACK].rlim_cur = RLIM_INFINITY ||
+ 	    sysctl_legacy_va_layout) {
+ 		mm->mmap_base = TASK_UNMAPPED_BASE + random_factor;
+@@ -518,7 +518,7 @@ asmlinkage long sparc64_newuname(struct new_utsname __user *name)
+ {
+ 	int ret = sys_newuname(name);
+ 	
+-	if (current->personality = PER_LINUX32 && !ret) {
++	if (get_personality() = PER_LINUX32 && !ret) {
+ 		ret = (copy_to_user(name->machine, "sparc\0\0", 8)
+ 		       ? -EFAULT : 0);
  	}
- 	ctx->header_length = i;
-Index: linux/drivers/firewire/fw-transaction.c
-=================================--- linux.orig/drivers/firewire/fw-transaction.c
-+++ linux/drivers/firewire/fw-transaction.c
-@@ -751,7 +751,7 @@ handle_topology_map(struct fw_card *card
- 		    void *payload, size_t length, void *callback_data)
+@@ -529,7 +529,7 @@ asmlinkage long sparc64_personality(unsigned long personality)
  {
- 	int i, start, end;
--	u32 *map;
-+	__be32 *map;
+ 	int ret;
  
- 	if (!TCODE_IS_READ_REQUEST(tcode)) {
- 		fw_send_response(card, request, RCODE_TYPE_ERROR);
-Index: linux/drivers/firewire/fw-transaction.h
-=================================--- linux.orig/drivers/firewire/fw-transaction.h
-+++ linux/drivers/firewire/fw-transaction.h
-@@ -85,12 +85,12 @@
- static inline void
- fw_memcpy_from_be32(void *_dst, void *_src, size_t size)
+-	if (current->personality = PER_LINUX32 &&
++	if (get_personality() = PER_LINUX32 &&
+ 	    personality = PER_LINUX)
+ 		personality = PER_LINUX32;
+ 	ret = sys_personality(personality);
+diff --git a/include/asm-sparc/namei.h b/include/asm-sparc/namei.h
+index f2461e8..b87f621 100644
+--- a/include/asm-sparc/namei.h
++++ b/include/asm-sparc/namei.h
+@@ -13,7 +13,7 @@
+ 
+ static inline char * __emul_prefix(void)
  {
--	u32 *dst = _dst;
--	u32 *src = _src;
-+	u32    *dst = _dst;
-+	__be32 *src = _src;
- 	int i;
+-	switch (current->personality) {
++	switch (get_personality()) {
+ 	case PER_SUNOS:
+ 		return SPARC_BSD_EMUL;
+ 	case PER_SVR4:
+diff --git a/include/asm-sparc64/elf.h b/include/asm-sparc64/elf.h
+index 11c8e68..2140dbe 100644
+--- a/include/asm-sparc64/elf.h
++++ b/include/asm-sparc64/elf.h
+@@ -211,7 +211,7 @@ do {	unsigned long new_flags = current_thread_info()->flags; \
+ 	/* flush_thread will update pgd cache */	\
+ 	if (ibcs2)					\
+ 		set_personality(PER_SVR4);		\
+-	else if (current->personality != PER_LINUX32)	\
++	else if (get_personality() != PER_LINUX32)	\
+ 		set_personality(PER_LINUX);		\
+ } while (0)
  
- 	for (i = 0; i < size / 4; i++)
--		dst[i] = cpu_to_be32(src[i]);
-+		dst[i] = be32_to_cpu(src[i]);
- }
+diff --git a/include/asm-sparc64/namei.h b/include/asm-sparc64/namei.h
+index ccda19e..e6a1dd9 100644
+--- a/include/asm-sparc64/namei.h
++++ b/include/asm-sparc64/namei.h
+@@ -13,7 +13,7 @@
  
- static inline void
-
+ static inline char * __emul_prefix(void)
+ {
+-	switch (current->personality) {
++	switch (get_personality()) {
+ 	case PER_SUNOS:
+ 		return SPARC_BSD_EMUL;
+ 	case PER_SVR4:
 -- 
-Stefan Richter
--===-=--- --=- =-=http://arcgraph.de/sr/
+1.5.3.8
 
