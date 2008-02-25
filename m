@@ -1,22 +1,58 @@
-From: Tonu Samuel <tonu@jes.ee>
-Date: Wed, 20 Feb 2008 15:14:18 +0000
-Subject: Re: E10k porting efforts
-Message-Id: <1203520458.8191.1.camel@duo.jes.ee>
+From: Mikael Pettersson <mikpe@it.uu.se>
+Date: Mon, 25 Feb 2008 20:41:03 +0000
+Subject: [BUG] 2.6.25-rc3 hangs in early boot on Sun Ultra5
+Message-Id: <18371.10207.58819.188510@alkaid.it.uu.se>
 List-Id: <sparclinux.vger.kernel.org>
-References: <47BC3305.2090309@telecomint.eu>
-In-Reply-To: <47BC3305.2090309@telecomint.eu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
+Booting 2.6.25-rc3 on my Ultra5 causes a hang before or as
+the console is switched over to the framebuffer. The console
+output is (extrapolated from dmesg in -rc2 and handwritten
+notes, as I don't have a serial cable to my U5):
 
-> The E10k that we have is currently powered off. We were not able to
-> finish our efforts to get a serial console driver before we lost our
-> hosting space.
+PROMLIB: Sun IEEE Boot Prom 'OBP 3.25.3 2000/06/29 14:12'
+PROMLIB: Root node compatible: 
+*** the following line can't be seen in dmesg after rc2 has booted
+console [earlyprom0] enabled
+Linux version 2.6.25-rc3 (mikpe@sparge) (gcc version 4.2.3) #1 Mon Feb 25 18:49:41 CET 2008
+ARCH: SUN4U
+Ethernet address: 08:00:20:fd:ec:1f
+[0000000200000000-fffff80000400000] page_structs&2144 node=0 entry=0/0
+[0000000200000000-fffff80000800000] page_structs&2144 node=0 entry=1/0
+[0000000200000000-fffff80000c00000] page_structs&2144 node=0 entry=2/0
+[0000000200000000-fffff80001000000] page_structs&2144 node=0 entry=3/0
+OF stdout device is: /pci@1f,0/pci@1,1/SUNW,m64B@2
+PROM: Built device tree with 46617 bytes of memory.
+On node 0 totalpages: 32299
+  Normal zone: 335 pages used for memmap
+  Normal zone: 0 pages reserved
+  Normal zone: 31964 pages, LIFO batch:7
+  Movable zone: 0 pages used for memmap
+Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 31964
+Kernel command line: ro root=/dev/sda5
+PID hash table entries: 1024 (order: 10, 8192 bytes)
+clocksource: mult[28000] shift[16]
+clockevent: mult[66666666] shift[32]
+Console: colour dummy device 80x25
+*** the following line can't be seen in dmesg after rc2 has booted
+console handover: boot [earlyprom0] -> real [tty0]
 
-WTF?! I have three (!) e10k-s here from which one runs 24x7. Tell me
-what you need and I make it possible from hardware and access to it.
+At this point rc3 hangs hard and won't even respond to sysrq.
 
-   T=C3=B5nu
+Another difference is that with rc2 the first few lines of kernel
+output while the console is still in OF mode either aren't shown
+or disappear quickly since the switch to the framebuffer occurs
+within a fraction of a second after the kernel has been loaded.
+With rc3 the kernel output (the text shown above) in the OF-mode
+console is very very slow.
 
+(I should have quoted my .config here but I forgot to bring it.
+It's exactly the same in rc2 and rc3, however.)
+
+I'll try some rc2->rc3 bisecting later.
+
+/Mikael
