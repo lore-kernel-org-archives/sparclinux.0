@@ -1,52 +1,29 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Date: Fri, 29 Feb 2008 21:49:53 +0000
-Subject: Re: [PATCH 1/2] firewire: endianess fix
-Message-Id: <1204321793.15052.446.camel@pasglop>
+From: "Horst H. von Brand" <vonbrand@inf.utfsm.cl>
+Date: Tue, 26 Feb 2008 16:32:56 +0000
+Subject: Patches to update silo
+Message-Id: <1204043579-5056-1-git-send-email-vonbrand@inf.utfsm.cl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080220220326.GA22328@uranus.ravnborg.org>
-	<200802272221.38985.jwilson@redhat.com>
-	<1204179959.15052.372.camel@pasglop>
-	<200802281342.06493.jwilson@redhat.com>
-	<1204241162.15052.393.camel@pasglop>	<47C79CB1.6050104@redhat.com>
-	<18375.60394.166769.540668@cargo.ozlabs.ibm.com>
-	<47C7F209.9030907@s5r6.in-berlin.de>
-In-Reply-To: <47C7F209.9030907@s5r6.in-berlin.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: Kristian Hoegsberg <krh@bitplanet.net>, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, Jarod Wilson <jwilson@redhat.com>, linux1394-devel@lists.sourceforge.net, Sam Ravnborg <sam@ravnborg.org>, Harvey Harrison <harvey.harrison@gmail.com>
+To: sparclinux@vger.kernel.org
 
+The following series of 3 patches folds most changes in Aurora into the
+current silo git repository.
 
-> The second line looks like this is indeed one of those which needs the 
-> header byte-swap workaround which ohci1394 has but firewire-ohci hasn't yet.
-> 
-> On the weekend I'm going to attempt to put Linux on this PowerBook, at last.
+The one change I did not take over is to echo a suggestion to run silo in
+the %post section of the specfile, AFAIU Fedora guidelines explicitly forbid
+any output. The installation should be automatic (yes, I was bitten by not
+seeing the message amongs the copious yum output on updating), but from the
+%changelog I see that running it automatically had been removed. This still
+needs fixing.
 
-Those machines can netboot, or boot from USB. Might be easier for you.
-
-For that sort of test, usually, I just netboot a zImage with built-in
-initrd, using an initrd with all the tools I need on it.
-
-(A way to build that sort of initrd or initramfs is OpenWRT though I use
-a home made one).
-
-You can netboot any newworld mac with that OF command:
-
-boot enet:tftp_server_ip,filename
-
-(you need to make sure you have a DHCP around to give it an address).
-
-However, make _SURE_ you use the file arch/powerpc/boot/zImage.pmac (and
-not any other zImage).
-
-To build one with an initrd included, put the initrd in
-arch/powerpc/boot as "ramdisk.image.gz" and do make zImage.initrd.
-
-That should result in a file name zImage.initrd.pmac that you can
-netboot.
-
-Cheers,
-Ben.
-
-
+ second/fs/ext2.c |    5 ++---
+ second/main.c    |    2 --
+ silo.spec        |   37 ++++++++++++++++++++++++-------------
+ 3 files changed, 26 insertions(+), 18 deletions(-)
+-- 
+Dr. Horst H. von Brand                   User #22616 counter.li.org
+Departamento de Informatica                    Fono: +56 32 2654431
+Universidad Tecnica Federico Santa Maria             +56 32 2654239
+Casilla 110-V, Valparaiso, Chile               Fax:  +56 32 2797513
