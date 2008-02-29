@@ -1,37 +1,52 @@
-From: Jarod Wilson <jwilson@redhat.com>
-Date: Fri, 29 Feb 2008 15:34:35 +0000
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Date: Fri, 29 Feb 2008 21:49:53 +0000
 Subject: Re: [PATCH 1/2] firewire: endianess fix
-Message-Id: <200802291034.35910.jwilson@redhat.com>
+Message-Id: <1204321793.15052.446.camel@pasglop>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080220220326.GA22328@uranus.ravnborg.org>
-	<47C79CB1.6050104@redhat.com>
+	<200802272221.38985.jwilson@redhat.com>
+	<1204179959.15052.372.camel@pasglop>
+	<200802281342.06493.jwilson@redhat.com>
+	<1204241162.15052.393.camel@pasglop>	<47C79CB1.6050104@redhat.com>
 	<18375.60394.166769.540668@cargo.ozlabs.ibm.com>
-In-Reply-To: <18375.60394.166769.540668@cargo.ozlabs.ibm.com>
+	<47C7F209.9030907@s5r6.in-berlin.de>
+In-Reply-To: <47C7F209.9030907@s5r6.in-berlin.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Paul Mackerras <paulus@samba.org>
-Cc: Kristian Hoegsberg <krh@bitplanet.net>, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, Stefan Richter <stefanr@s5r6.in-berlin.de>, sparclinux@vger.kernel.org, linux1394-devel@lists.sourceforge.net, Sam Ravnborg <sam@ravnborg.org>, Harvey Harrison <harvey.harrison@gmail.com>
-
-On Friday 29 February 2008 06:26:34 am Paul Mackerras wrote:
-> Jarod Wilson writes:
-> > Still no luck finding one here. The person I was thinking of has a
-> > Lombard, which has no firewire. I did get ahold of a 667MHz Titanium,
-> > but its got an Agere FW323. Pretty sure my old man actually has a Pismo,
-> > but its about a 3000 mile drive over to my folks house. The search
-> > continues... I wonder how many people still actually 1) have a machine
-> > with this controller, 2) are running Linux on it and 3) use firewire
-> > devices with it. Both of you, please speak up, we're trying to help you!
-> > (if only out of morbid curiosity to see this mythical goofy controller).
->
-> I have a first-generation titanium powerbook that has this controller
-> (assuming we're talking about vendor/device id = 0x106b / 0x18), and
-> yes I run Linux (only) on it and use firewire disks. :)
-
-Yup, seems that's the one. Sounds like we had another one hiding in plain site 
-in Stefan's hands too, the thing just was meeting criterion #2. ;)
+To: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: Kristian Hoegsberg <krh@bitplanet.net>, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, Jarod Wilson <jwilson@redhat.com>, linux1394-devel@lists.sourceforge.net, Sam Ravnborg <sam@ravnborg.org>, Harvey Harrison <harvey.harrison@gmail.com>
 
 
--- 
-Jarod Wilson
-jwilson@redhat.com
+> The second line looks like this is indeed one of those which needs the 
+> header byte-swap workaround which ohci1394 has but firewire-ohci hasn't yet.
+> 
+> On the weekend I'm going to attempt to put Linux on this PowerBook, at last.
+
+Those machines can netboot, or boot from USB. Might be easier for you.
+
+For that sort of test, usually, I just netboot a zImage with built-in
+initrd, using an initrd with all the tools I need on it.
+
+(A way to build that sort of initrd or initramfs is OpenWRT though I use
+a home made one).
+
+You can netboot any newworld mac with that OF command:
+
+boot enet:tftp_server_ip,filename
+
+(you need to make sure you have a DHCP around to give it an address).
+
+However, make _SURE_ you use the file arch/powerpc/boot/zImage.pmac (and
+not any other zImage).
+
+To build one with an initrd included, put the initrd in
+arch/powerpc/boot as "ramdisk.image.gz" and do make zImage.initrd.
+
+That should result in a file name zImage.initrd.pmac that you can
+netboot.
+
+Cheers,
+Ben.
+
+
