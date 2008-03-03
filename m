@@ -1,24 +1,46 @@
-From: Paul Mackerras <paulus@samba.org>
-Date: Mon, 24 Mar 2008 07:55:41 +0000
-Subject: Re: [PATCH 4/8] powerpc ptrace: forced_successful_syscall_return()
-Message-Id: <18407.24189.707297.767237@cargo.ozlabs.ibm.com>
+From: Adrian Bunk <bunk@kernel.org>
+Date: Mon, 03 Mar 2008 19:26:51 +0000
+Subject: sparc vs. gcc 4.3
+Message-Id: <20080303192651.GL26072@cs181133002.pp.htv.fi>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080319211714.8B14226F995@magilla.localdomain>
-	<20080319211936.28E8B26F9A7@magilla.localdomain>
-In-Reply-To: <20080319211936.28E8B26F9A7-nL1rrgvulkcB9AHHLWeGtNQXobZC6xk2@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Roland McGrath <roland-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-mnsaURCQ41sdnm+yROfE0A@public.gmane.org, Richard Henderson <rth-hL46jP5Bxq7R7s880joybQ@public.gmane.org>, tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: wli@holomorphy.com
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Roland McGrath writes:
+Trying to build a sparc kernel with a gcc 4.3 release candidate fails 
+with the following error:
 
-> Define the forced_successful_syscall_return() macro to
-> pair with our force_successful_syscall_return() definition.
-> 
-> Signed-off-by: Roland McGrath <roland@redhat.com>
+<--  snip  -->
 
-Looks OK to me, but what's it useful for?
+...
+  LD      arch/sparc/boot/image
+arch/sparc/kernel/built-in.o:(__ex_table+0x394): undefined reference to `kernel_unaligned_trap_fault'
+arch/sparc/kernel/built-in.o:(__ex_table+0x39c): undefined reference to `kernel_unaligned_trap_fault'
+arch/sparc/kernel/built-in.o:(__ex_table+0x3a4): undefined reference to `kernel_unaligned_trap_fault'
+arch/sparc/kernel/built-in.o:(__ex_table+0x3ac): undefined reference to `kernel_unaligned_trap_fault'
+arch/sparc/kernel/built-in.o:(__ex_table+0x3b4): undefined reference to `kernel_unaligned_trap_fault'
+arch/sparc/kernel/built-in.o:(__ex_table+0x3bc): more undefined references to `kernel_unaligned_trap_fault' follow
+arch/sparc/kernel/built-in.o:(__ex_table+0x46c): undefined reference to `user_unaligned_trap_fault'
+arch/sparc/kernel/built-in.o:(__ex_table+0x474): undefined reference to `user_unaligned_trap_fault'
+arch/sparc/kernel/built-in.o:(__ex_table+0x47c): undefined reference to `user_unaligned_trap_fault'
+arch/sparc/kernel/built-in.o:(__ex_table+0x484): undefined reference to `user_unaligned_trap_fault'
+arch/sparc/kernel/built-in.o:(__ex_table+0x48c): undefined reference to `user_unaligned_trap_fault'
+arch/sparc/kernel/built-in.o:(__ex_table+0x494): more undefined references to `user_unaligned_trap_fault' follow
+make[2]: *** [arch/sparc/boot/image] Error 1
 
-Paul.
+<--  snip  -->
+
+Does anyone have a clue what's going wrong here?
+
+cu
+Adrian
+
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
+
