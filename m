@@ -1,41 +1,63 @@
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Date: Sat, 01 Mar 2008 12:36:05 +0000
+From: Gabriel Paubert <paubert@iram.es>
+Date: Mon, 03 Mar 2008 09:19:27 +0000
 Subject: Re: [PATCH 1/2] firewire: endianess fix
-Message-Id: <tkrat.8be5d3017a57e1f0@s5r6.in-berlin.de>
+Message-Id: <20080303091927.GA27105@iram.es>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080220220326.GA22328@uranus.ravnborg.org>
-	<1203545913.25307.47.camel@brick>
-	<tkrat.e2bfb30f2c0ae70a@s5r6.in-berlin.de>
-	<tkrat.9e19fa31951506af@s5r6.in-berlin.de>
-	<47C00DB0.20605@s5r6.in-berlin.de>
-In-Reply-To: <47C00DB0.20605@s5r6.in-berlin.de>
+	<200802272221.38985.jwilson@redhat.com>
+	<1204179959.15052.372.camel@pasglop>
+	<200802281342.06493.jwilson@redhat.com>
+	<1204241162.15052.393.camel@pasglop> <47C79CB1.6050104@redhat.com>
+In-Reply-To: <47C79CB1.6050104@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux1394-devel@lists.sourceforge.net
-Cc: Kristian Hoegsberg <krh@bitplanet.net>, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, Jarod Wilson <jwilson@redhat.com>, Sam Ravnborg <sam@ravnborg.org>, Harvey Harrison <harvey.harrison@gmail.com>
+To: Jarod Wilson <jwilson@redhat.com>
+Cc: Kristian Hoegsberg <krh@bitplanet.net>, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, Stefan Richter <stefanr@s5r6.in-berlin.de>, sparclinux@vger.kernel.org, linux1394-devel@lists.sourceforge.net, Sam Ravnborg <sam@ravnborg.org>, Harvey Harrison <harvey.harrison@gmail.com>
 
-On 23 Feb, I wrote:
->> This needs to be tested on different big endian PCs, if possible with
->> the Apple Uninorth FireWire controller and other types of controllers.
+On Fri, Feb 29, 2008 at 12:48:33AM -0500, Jarod Wilson wrote:
+> Benjamin Herrenschmidt wrote:
+> > On Thu, 2008-02-28 at 13:42 -0500, Jarod Wilson wrote:
+> >> On Thursday 28 February 2008 01:25:59 am Benjamin Herrenschmidt wrote:
+> >>>> Under Mac OS X, system.log says "FireWire (OHCI) Apple ID 31 built-in now
+> >>>> active". Could still be lucent though, judging by the subsys device ID of
+> >>>> 5811, which matches up w/the Lucent/Agere FW323. But no, apparently I
+> >>>> don't have the interesting one.
+> >>> Well, it's interesting in the sense that it's a "normal" OHCI then on a
+> >>> BE machine :-) My Pismo, which had the weirdo one, unfortunately died a
+> >>> while ago. I'll see if I can find another machine with that one in.
+> >> Ah, the pismo has it, eh? I think I may actually know of someone in the office 
+> >> that still has one of those that I might be able to borrow and poke at...
+> > 
+> > I -think- it has it... Pismo definitely has one of the first variant of
+> > UniNorth with "working" FW afaik.
+> > 
+> > The first UniNorth was used in the first "toilet-seat" ibook, but I
+> > think this one didn't have firewire, or a non-working one... and in the
+> > first Sawtooth G4 for which FW and Ethernet even were separate PCI chips
+> > because the ones in UniNorth were too broken.
+> > 
+> > It's possible that early G4 titanium powerbooks or other model of FW
+> > iBooks have that UniNorth FW variant too.
+> 
+> Still no luck finding one here. The person I was thinking of has a 
+> Lombard, which has no firewire. I did get ahold of a 667MHz Titanium, 
+> but its got an Agere FW323. Pretty sure my old man actually has a Pismo, 
+> but its about a 3000 mile drive over to my folks house. The search 
+> continues... I wonder how many people still actually 1) have a machine 
+> with this controller, 2) are running Linux on it and 3) use firewire 
+> devices with it. Both of you, please speak up, we're trying to help you! 
+> (if only out of morbid curiosity to see this mythical goofy controller).
 
-I tested it myself now with VT6306 on PPC32.
+Definitely yes to 1) and 2), I have a Pismo which I use on a virtually
+daily basis (and about to remove the last remnants of MacOS on it). 
+However I have disabled Firewire because it would not sleep and wake 
+up properly. 
 
-> it should be triggered by replacing
-> 	&fw_high_memory_region
-> by
-> 	&fw_private_region
-> in drivers/firewire/fw-sbp2.c and testing with any SBP-2 device
+I can test it on Wednesday with a 5GB fireflly disk from 2001.
 
-This indeed demonstrates the fix.  Any IO to SBP-2 devices fails with
-timeouts.  Just removing the posted write enable bit in fw-ohci wasn't
-sufficient to catch it though.  Maybe the controller has write posting
-enabled by default.
+Please tell me which configuration options I need to set for
+Firewire (which stack, etc...).
 
-However, this endianess bug was low-profile because there are currently
-no kernelspace or userspace drivers for the firewire stack which need to
-respond in split transactions.
--- 
-Stefan Richter
--===-=--- --= ----http://arcgraph.de/sr/
-
+	Regards,
+	Gabriel
