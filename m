@@ -1,7 +1,7 @@
-From: Gabriel Paubert <paubert@iram.es>
-Date: Wed, 05 Mar 2008 22:59:02 +0000
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Date: Wed, 05 Mar 2008 23:26:00 +0000
 Subject: Re: [PATCH 1/2] firewire: endianess fix
-Message-Id: <20080305225902.GA27985@iram.es>
+Message-Id: <47CF2C08.5000609@s5r6.in-berlin.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080220220326.GA22328@uranus.ravnborg.org>
 	<200802272221.38985.jwilson@redhat.com>
@@ -10,87 +10,26 @@ References: <20080220220326.GA22328@uranus.ravnborg.org>
 	<1204241162.15052.393.camel@pasglop>
 	<47C79CB1.6050104@redhat.com> <20080303091927.GA27105@iram.es>
 	<47CC0C95.1030709@s5r6.in-berlin.de>
-In-Reply-To: <47CC0C95.1030709@s5r6.in-berlin.de>
+	<20080305225902.GA27985@iram.es>
+In-Reply-To: <20080305225902.GA27985@iram.es>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
+To: Gabriel Paubert <paubert@iram.es>
 Cc: Kristian Hoegsberg <krh@bitplanet.net>, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, Jarod Wilson <jwilson@redhat.com>, linux1394-devel@lists.sourceforge.net, Sam Ravnborg <sam@ravnborg.org>, Harvey Harrison <harvey.harrison@gmail.com>
 
-On Mon, Mar 03, 2008 at 03:35:01PM +0100, Stefan Richter wrote:
-> Gabriel Paubert wrote:
-> > I have a Pismo which I use on a virtually
-> > daily basis (and about to remove the last remnants of MacOS on it). 
-> > However I have disabled Firewire because it would not sleep and wake 
-> > up properly. 
-> > 
-> > I can test it on Wednesday with a 5GB fireflly disk from 2001.
-> > 
-> > Please tell me which configuration options I need to set for
-> > Firewire (which stack, etc...).
-> 
-> Config options of the new stack:
-> FIREWIRE=m
-> FIREWIRE_OHCI=m
-> FIREWIRE_SBP2=m
-> 
-> Config options of the old stack:
-> IEEE1394=m
-> IEEE1394_OHCI1394=m
-> IEEE1394_SBP2=m
-> and if desired also the other drivers for raw userspace access,
-> isochronous I/O (alias video1394 even though it can also be used for
-> other purposes), DV I/O, and IPv4 over 1394.
-> 
-> The two SBP2 drivers also need SCSI and BLK_DEV_SD a.k.a. SCSI disk
-> support or/and BLK_DEV_SR a.k.a. SCSI CDROM support.
-> 
-> You can also set the options to Y but I find loadable and hence
-> unloadable modules more practical... 'cause I unload and reload them all
-> the time.  :-)
+Gabriel Paubert wrote:
+>>> I have a Pismo which I use on a virtually
+>>> daily basis (and about to remove the last remnants of MacOS on it). 
+>>> However I have disabled Firewire because it would not sleep and wake 
+>>> up properly. 
+...
+> For now I have only tested the new stack with a 6 year old 1.8" disk
+> and everything works, including suspend to RAM. The kernel is 2.6.25-rc4
+> plus additional pull from linux1394-2.6.git: 2.6.25-rc4-00032-g8d36ba4.
 
-Indeed, although this machine typically had non-modular kernels, I
-compiled one for these tests.
-
-For now I have only tested the new stack with a 6 year old 1.8" disk
-and everything works, including suspend to RAM. The kernel is 2.6.25-rc4
-plus additional pull from linux1394-2.6.git: 2.6.25-rc4-00032-g8d36ba4.
-
-Thanks a lot.
-
-	Regards,
-	Gabriel
-
-P.S: it seems that something broke in the APM emulation around rc2
-on this machine, battery level reads at -1% from /proc/apm.
-> Caveats:
->   - You could build and install both stacks but should then blacklist
->     at least one of ohci1394 or firewire-ohci.  Better keep it simple
->     and install only one of the stacks at a time.
->   - We still have a serious use-after-free bug in the new stack.  This
->     may lead to kernel panic if the kernel was build with (slab? or
->     page allocation?) debugging enabled.
-> Users of IP over 1394 and pro/semipro audio still need the old stack.
-> Users of video should stick with the stack which their distribution has
-> enabled because our support in the lowlevel libraries libraw1394 and
-> libdc1394 to switch between the stacks is not quite comfortable yet.
-> 
-> Suspend (to RAM) and resume worked for me [TM] when I last tested them
-> with each stack.  I tested i586/APM, x86-64/ACPI, and last weekend ppc32
-> on 1st generation PowerBook G4.  I haven't tested hibernate (to disk)
-> and restore yet.
-
-I have never used suspend to disk on this machine. Suspend to RAM
-failed when ieee1394 was loaded (or built-in) since 2.6.22 or so. 
-
-For now I have only tested the new stack with a 6 year old 1.8" disk
-and everything works, including suspend to RAM. The kernel is 2.6.25-rc4
-plus additional pull from linux1394-2.6.git: 2.6.25-rc4-00032-g8d36ba4.
-
-Thanks a lot.
-
-	Regards,
-	Gabriel
-
-P.S: it seems that something broke in the APM emulation around rc2
-on this machine, battery level reads at -1% from /proc/apm.
+That's great.  Thanks for testing.
+-- 
+Stefan Richter
+-===-=--- --= --=-
+http://arcgraph.de/sr/
