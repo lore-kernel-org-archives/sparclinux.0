@@ -1,23 +1,36 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 25 Mar 2008 09:42:43 +0000
-Subject: Re: build breakage on sparc64 due to commit 54cd6dde
-Message-Id: <20080325.024243.226580899.davem@davemloft.net>
+From: Roland McGrath <roland@redhat.com>
+Date: Wed, 19 Mar 2008 21:20:01 +0000
+Subject: [PATCH 5/8] sparc64 ptrace: forced_successful_syscall_return()
+Message-Id: <20080319212001.2DB8526F995@magilla.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200803242053.22709.m.kozlowski@tuxland.pl>
-In-Reply-To: <200803242053.22709.m.kozlowski@tuxland.pl>
+References: <20080319211714.8B14226F995@magilla.localdomain>
+In-Reply-To: Roland McGrath's message of  Wednesday,
+	19 March 2008 14:17:14 -0700
+	<20080319211714.8B14226F995@magilla.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-arch@vger.kernel.org, tony.luck@intel.com, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, David Miller <davem@davemloft.net>, linuxppc-dev@ozlabs.org, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Richard Henderson <rth@twiddle.net>
 
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Date: Tue, 25 Mar 2008 09:53:11 +0100
+Define the forced_successful_syscall_return() macro to
+pair with our force_successful_syscall_return() definition.
 
-> > You can build kernels by setting CROSS_COMPILE=sparc64-linux-
-> > for the build.
-> 
-> Your recipe works but actually requires
-> CROSS_COMPILE=sparc64-unknown-linux-gnu- for the build.
+Signed-off-by: Roland McGrath <roland@redhat.com>
+---
+ include/asm-sparc64/ptrace.h |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Right, it depends upon however the dist happened to name
-the cross tools.
+diff --git a/include/asm-sparc64/ptrace.h b/include/asm-sparc64/ptrace.h
+index 6da1978..3f8826e 100644
+--- a/include/asm-sparc64/ptrace.h
++++ b/include/asm-sparc64/ptrace.h
+@@ -100,6 +100,8 @@ struct sparc_trapf {
+ #define force_successful_syscall_return()	    \
+ do {	current_thread_info()->syscall_noerror = 1; \
+ } while (0)
++#define forced_successful_syscall_return()	\
++	(current_thread_info()->syscall_noerror != 0)
+ #define user_mode(regs) (!((regs)->tstate & TSTATE_PRIV))
+ #define instruction_pointer(regs) ((regs)->tpc)
+ #define regs_return_value(regs) ((regs)->u_regs[UREG_I0])
