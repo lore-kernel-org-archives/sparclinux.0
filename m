@@ -1,44 +1,92 @@
-From: Gabriel Paubert <paubert@iram.es>
-Date: Thu, 06 Mar 2008 20:23:11 +0000
-Subject: Re: [PATCH 1/2] firewire: endianess fix
-Message-Id: <20080306202311.GA18925@iram.es>
+From: Roland McGrath <roland@redhat.com>
+Date: Wed, 19 Mar 2008 21:20:24 +0000
+Subject: [PATCH 6/8] ptrace: arch_ptrace -ENOSYS return
+Message-Id: <20080319212024.EA03126F995@magilla.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080220220326.GA22328@uranus.ravnborg.org>
-	<200802272221.38985.jwilson@redhat.com>
-	<1204179959.15052.372.camel@pasglop>
-	<200802281342.06493.jwilson@redhat.com>
-	<1204241162.15052.393.camel@pasglop>
-	<47C79CB1.6050104@redhat.com> <20080303091927.GA27105@iram.es>
-	<47CC0C95.1030709@s5r6.in-berlin.de>
-	<20080305225902.GA27985@iram.es>
-	<47CF2C08.5000609@s5r6.in-berlin.de>
-In-Reply-To: <47CF2C08.5000609@s5r6.in-berlin.de>
+References: <20080319211714.8B14226F995@magilla.localdomain>
+In-Reply-To: Roland McGrath's message of  Wednesday, 19 March 2008 14:17:14 -0700 <20080319211714.8B14226F995@magilla.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: Kristian Hoegsberg <krh@bitplanet.net>, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, Jarod Wilson <jwilson@redhat.com>, linux1394-devel@lists.sourceforge.net, Sam Ravnborg <sam@ravnborg.org>, Harvey Harrison <harvey.harrison@gmail.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, Paul Mackerras <paulus@samba.org>, linuxppc-dev@ozlabs.org, Richard Henderson <rth@twiddle.net>, tony.luck@intel.com, linux-ia64@vger.kernel.org
 
-On Thu, Mar 06, 2008 at 12:26:00AM +0100, Stefan Richter wrote:
-> Gabriel Paubert wrote:
-> >>>I have a Pismo which I use on a virtually
-> >>>daily basis (and about to remove the last remnants of MacOS on it). 
-> >>>However I have disabled Firewire because it would not sleep and wake 
-> >>>up properly. 
-> ...
-> >For now I have only tested the new stack with a 6 year old 1.8" disk
-> >and everything works, including suspend to RAM. The kernel is 2.6.25-rc4
-> >plus additional pull from linux1394-2.6.git: 2.6.25-rc4-00032-g8d36ba4.
-> 
-> That's great.  Thanks for testing.
+The arch_ptrace and compat_arch_ptrace functions can now return
+-ENOSYS for requests they do not actually implement in arch
+code.  Returning -ENOSYS replaces the calls to ptrace_request
+and compat_ptrace_request.  This leaves more latitude for the
+machine-independent ptrace implementation code to change without
+requiring any more updates in the arch code.
 
-The old stack also works. I forgot to mention that with the new
-stack (not with the old) there is a message when going to sleep:
+This change has no effect on the old arch code that still calls
+ptrace_request or compat_ptrace_request.
 
-firewire_ohci: pci_set_power_state failed with -5
+Signed-off-by: Roland McGrath <roland@redhat.com>
+---
+ kernel/ptrace.c |   42 ++++++++++++++++++++++++++----------------
+ 1 files changed, 26 insertions(+), 16 deletions(-)
 
-but it is harmless, and if I understand correctly due to the 
-fact that the power management on this chip is not implemented 
-through capability fields in the PCI configuration space.
-
-	Gabriel
+diff --git a/kernel/ptrace.c b/kernel/ptrace.c
+index 67e392e..60b2b57 100644
+--- a/kernel/ptrace.c
++++ b/kernel/ptrace.c
+@@ -574,18 +574,21 @@ asmlinkage long sys_ptrace(long request, long pid, long addr, long data)
+ 		 */
+ 		if (!ret)
+ 			arch_ptrace_attach(child);
+-		goto out_put_task_struct;
++	} else {
++		ret = ptrace_check_attach(child, request = PTRACE_KILL);
++		/*
++		 * Let the arch handler inspect it first.  It returns
++		 * -ENOSYS if this is not an arch-specific request.
++		 */
++		if (!ret) {
++			ret = arch_ptrace(child, request, addr, data);
++			if (ret = -ENOSYS &&
++			    !forced_successful_syscall_return())
++				ret = ptrace_request(child, request,
++						     addr, data);
++		}
+ 	}
+ 
+-	ret = ptrace_check_attach(child, request = PTRACE_KILL);
+-	if (ret < 0)
+-		goto out_put_task_struct;
+-
+-	ret = arch_ptrace(child, request, addr, data);
+-	if (ret < 0)
+-		goto out_put_task_struct;
+-
+- out_put_task_struct:
+ 	put_task_struct(child);
+  out:
+ 	unlock_kernel();
+@@ -697,14 +700,21 @@ asmlinkage long compat_sys_ptrace(compat_long_t request, compat_long_t pid,
+ 		 */
+ 		if (!ret)
+ 			arch_ptrace_attach(child);
+-		goto out_put_task_struct;
++	} else {
++		ret = ptrace_check_attach(child, request = PTRACE_KILL);
++		/*
++		 * Let the arch handler inspect it first.  It returns
++		 * -ENOSYS if this is not an arch-specific request.
++		 */
++		if (!ret) {
++			ret = compat_arch_ptrace(child, request, addr, data);
++			if (ret = -ENOSYS &&
++			    !forced_successful_syscall_return())
++				ret = compat_ptrace_request(child, request,
++							    addr, data);
++		}
+ 	}
+ 
+-	ret = ptrace_check_attach(child, request = PTRACE_KILL);
+-	if (!ret)
+-		ret = compat_arch_ptrace(child, request, addr, data);
+-
+- out_put_task_struct:
+ 	put_task_struct(child);
+  out:
+ 	unlock_kernel();
