@@ -1,55 +1,44 @@
-From: Jarod Wilson <jwilson@redhat.com>
-Date: Sat, 01 Mar 2008 05:23:24 +0000
-Subject: Re: [PATCH 0/2] firewire: endinaness warnings (was Re: sparse - make __CHECK_ENDIAN__ default enable
-Message-Id: <200803010023.25086.jwilson@redhat.com>
+From: Roland McGrath <roland@redhat.com>
+Date: Wed, 19 Mar 2008 21:20:50 +0000
+Subject: [PATCH 7/8] x86 ptrace: arch_ptrace -ENOSYS return
+Message-Id: <20080319212050.32AA126F995@magilla.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080220220326.GA22328@uranus.ravnborg.org>
-	<1203545913.25307.47.camel@brick>
-	<tkrat.e2bfb30f2c0ae70a@s5r6.in-berlin.de>
-In-Reply-To: <tkrat.e2bfb30f2c0ae70a@s5r6.in-berlin.de>
+References: <20080319211714.8B14226F995@magilla.localdomain>
+In-Reply-To: Roland McGrath's message of  Wednesday, 19 March 2008 14:17:14 -0700 <20080319211714.8B14226F995@magilla.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: Kristian Hoegsberg <krh@bitplanet.net>, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, linux1394-devel@lists.sourceforge.net, Sam Ravnborg <sam@ravnborg.org>, Harvey Harrison <harvey.harrison@gmail.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, Paul Mackerras <paulus@samba.org>, linuxppc-dev@ozlabs.org, Richard Henderson <rth@twiddle.net>, tony.luck@intel.com, linux-ia64@vger.kernel.org
 
-On Saturday 23 February 2008 06:23:30 am Stefan Richter wrote:
-> On 20 Feb, Harvey Harrison wrote on LKML:
-> > On Wed, 2008-02-20 at 23:03 +0100, Sam Ravnborg wrote:
-> >> Hi Harvey.
-> >>
-> >> Can I ask you to look into the worst offenders so we
-> >> can make -D__CHECK_ENDIAN__ enabled per default
-> >> in the kernel.
-> >> Or maybe we should do it anyway?
-> >
-> > Well, I've got the worst of fs and drivers/ata done so far, still
-> > weeping over the 5500 warnings in drivers. (X86_32 allyesconfig).
-> > People ignore the existing warnings anyway, why not toss a few more
-> > on the pile?
-> >
-> > I'll look them over tonight and see how bad it would be.
->
-> I looked into drivers/firewire and drivers/ieee1394.  As expected, there
-> are quite a lot endianess related warnings in the latter because this is
-> code from way before sparse was regularly used.
->
-> There are also a few warnings in the former, even though sparse checks
-> were run before submission of the whole drivers/firewire stack.  I will
-> follow up with two patches:
-> 	1/2 firewire: endianess fix
-> 	2/2 firewire: endianess annotations
-> Whether the "fix" is really a fix remains to be seen; I don't have a big
-> endian Linux box myself.
+Return -ENOSYS from arch_ptrace and compat_arch_ptrace
+rather than calling ptrace_request or compat_ptrace_request.
 
-Doesn't hurt anything on my end, spb2 devices work, they survive bus resets 
-and so on. The funky uninorth controller definitely doesn't work, but it 
-didn't before the patch either, and the fix is being chased in another patch 
-series.
+Signed-off-by: Roland McGrath <roland@redhat.com>
+---
+ arch/x86/kernel/ptrace.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-Signed-off-by: Jarod Wilson <jwilson@redhat.com>
-
-
--- 
-Jarod Wilson
-jwilson@redhat.com
+diff --git a/arch/x86/kernel/ptrace.c b/arch/x86/kernel/ptrace.c
+index 777d8f9..4d5561c 100644
+--- a/arch/x86/kernel/ptrace.c
++++ b/arch/x86/kernel/ptrace.c
+@@ -1010,7 +1010,7 @@ long arch_ptrace(struct task_struct *child, long request, long addr, long data)
+ #endif
+ 
+ 	default:
+-		ret = ptrace_request(child, request, addr, data);
++		ret = -ENOSYS;
+ 		break;
+ 	}
+ 
+@@ -1266,7 +1266,8 @@ long compat_arch_ptrace(struct task_struct *child, compat_long_t request,
+ 		return arch_ptrace(child, request, addr, data);
+ 
+ 	default:
+-		return compat_ptrace_request(child, request, addr, data);
++		ret = -ENOSYS;
++		break;
+ 	}
+ 
+ 	return ret;
