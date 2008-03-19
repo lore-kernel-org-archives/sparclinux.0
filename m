@@ -1,81 +1,35 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Sat, 22 Mar 2008 16:37:33 +0000
-Subject: Re: [Bugme-new] [Bug 10309] New: BUG: soft lockup - CPU#0 stuck
-Message-Id: <20080322093733.f19781d3.akpm@linux-foundation.org>
+From: Roland McGrath <roland@redhat.com>
+Date: Wed, 19 Mar 2008 21:19:14 +0000
+Subject: [PATCH 3/8] ia64 ptrace: forced_successful_syscall_return()
+Message-Id: <20080319211914.AFE0E26F995@magilla.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
-References: <bug-10309-10286@http.bugzilla.kernel.org/>
-In-Reply-To: <bug-10309-10286@http.bugzilla.kernel.org/>
+References: <20080319211714.8B14226F995@magilla.localdomain>
+In-Reply-To: Roland McGrath's message of  Wednesday,
+	19 March 2008 14:17:14 -0700
+	<20080319211714.8B14226F995@magilla.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org, netdev@vger.kernel.org
-Cc: bugme-daemon@bugzilla.kernel.org, arnova@eld.physics.leidenuniv.nl
+To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-arch@vger.kernel.org, tony.luck@intel.com, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, David Miller <davem@davemloft.net>, linuxppc-dev@ozlabs.org, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Richard Henderson <rth@twiddle.net>
 
-(switched to email.  Please respond via emailed reply-to-all, not via the
-bugzilla web interface).
+Define the forced_successful_syscall_return() macro to
+pair with our force_successful_syscall_return() definition.
 
-On Sat, 22 Mar 2008 06:53:40 -0700 (PDT) bugme-daemon@bugzilla.kernel.org wrote:
+Signed-off-by: Roland McGrath <roland@redhat.com>
+---
+ include/asm-ia64/ptrace.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-> http://bugzilla.kernel.org/show_bug.cgi?id309
-> 
->            Summary: BUG: soft lockup - CPU#0 stuck
->            Product: Platform Specific/Hardware
->            Version: 2.5
->      KernelVersion: 2.6.24.3
->           Platform: All
->         OS/Version: Linux
->               Tree: Mainline
->             Status: NEW
->           Severity: normal
->           Priority: P1
->          Component: SPARC64
->         AssignedTo: platform_sparc64@kernel-bugs.osdl.org
->         ReportedBy: arnova@eld.physics.leidenuniv.nl
-> 
-> 
-> Earliest failing kernel version: 2.6.24.3
-> Distribution: Debian 4.0/Etch Sparc64
-> Hardware Environment: Sparc64
-> Problem Description:
-> During boot of my Sparc64 with a vanille 2.6.24.3 kernel the kernel gets stuck.
-> After while it continues allowing normal use of the machine. The message shown
-> in the kernel logs looks like this:
-> 
-> BUG: soft lockup - CPU#0 stuck for 11s! [ifconfig:2408]
-> TSTATE: 0000004480009603 TPC: 0000000010013390 TNPC: 0000000010013394 Y:
-> 00000000    Not tainted
-> TPC: <gem_interrupt+0x14/0xec [sungem]>
-> g0: 0000000000009000 g1: 0800000000000001 g2: 0000000000000100 g3:
-> 0000000000000400
-> g4: fffff8003e61c060 g5: 0000000000000020 g6: fffff8003e7e8000 g7:
-> 0000000000000000
-> o0: 0000000000000001 o1: fffff8003d090670 o2: 0000000000000001 o3:
-> 000001fe0000f078
-> o4: 7fffffffffffffff o5: 0000000080000000 sp: fffff8003e7ea341 ret_pc:
-> 00000000100133bc
-> RPC: <gem_interrupt+0x40/0xec [sungem]>
-> l0: fffff8003d090670 l1: 0000000000821400 l2: fffff8003e7eaca0 l3:
-> 0000000000000400
-> l4: 0000000000000000 l5: 0000000000000005 l6: 0000000000000000 l7:
-> 0000000000000008
-> i0: 0000000000000009 i1: fffff8003d090620 i2: 000000001c2245fa i3:
-> 000000000000000c
-> i4: 7fffffffffffffff i5: 0000000000000000 i6: fffff8003e7ea401 i7:
-> 000000000047e974
-> I7: <handle_IRQ_event+0x34/0x74>
-> 
-> It appartently has to do with the network (ifconfig) although I'm not 100%. I
-> tried changing several settings in the kernel (to many to write down here) but
-> all give the same result.
-> 
-> Steps to reproduce:
-> - Build a 2.6.24.3 for Sparc64
-> - Boot a SUN Sparc64 machine with this kernel
-> - System gets stuck during boot but after a while it continues its boot.
-> 
-
-I expect it would be useful if you tell us the latest version of the kernel
-on which this didn't happen.  ie: what kernel version were you running before
-you "up"graded to 2.6.24?
-
-Thanks.
+diff --git a/include/asm-ia64/ptrace.h b/include/asm-ia64/ptrace.h
+index 4b2a8d4..5e82915 100644
+--- a/include/asm-ia64/ptrace.h
++++ b/include/asm-ia64/ptrace.h
+@@ -276,6 +276,7 @@ struct switch_stack {
+    * On ia64, we can clear the user's pt_regs->r8 to force a successful syscall.
+    */
+ # define force_successful_syscall_return()	(task_pt_regs(current)->r8 = 0)
++# define forced_successful_syscall_return()	(task_pt_regs(current)->r8 = 0)
+ 
+   struct task_struct;			/* forward decl */
+   struct unw_frame_info;		/* forward decl */
