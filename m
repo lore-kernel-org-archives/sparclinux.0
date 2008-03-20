@@ -1,44 +1,17 @@
-From: Roland McGrath <roland@redhat.com>
-Date: Wed, 19 Mar 2008 21:20:50 +0000
-Subject: [PATCH 7/8] x86 ptrace: arch_ptrace -ENOSYS return
-Message-Id: <20080319212050.32AA126F995@magilla.localdomain>
+From: "=?BIG5?B?p/W5xbVe?=" <qq69pc8754b@gmail.com>
+Date: Thu, 20 Mar 2008 21:50:41 +0000
+Subject: =?BIG5?B?sXrB2ahTprOkQK3TsU3E3aq6pfi3frr0r7i23KFIob4=?=
+Message-Id: <52b87e5f0803201450w1f63f335h3b704c7c7bf2ebb0@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080319211714.8B14226F995@magilla.localdomain>
-In-Reply-To: Roland McGrath's message of  Wednesday, 19 March 2008 14:17:14 -0700 <20080319211714.8B14226F995@magilla.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, Paul Mackerras <paulus@samba.org>, linuxppc-dev@ozlabs.org, Richard Henderson <rth@twiddle.net>, tony.luck@intel.com, linux-ia64@vger.kernel.org
+Content-Type: text/plain; charset="ibm866"
+Content-Transfer-Encoding: base64
+To: sparclinux@vger.kernel.org
 
-Return -ENOSYS from arch_ptrace and compat_arch_ptrace
-rather than calling ptrace_request or compat_ptrace_request.
-
-Signed-off-by: Roland McGrath <roland@redhat.com>
----
- arch/x86/kernel/ptrace.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/arch/x86/kernel/ptrace.c b/arch/x86/kernel/ptrace.c
-index 777d8f9..4d5561c 100644
---- a/arch/x86/kernel/ptrace.c
-+++ b/arch/x86/kernel/ptrace.c
-@@ -1010,7 +1010,7 @@ long arch_ptrace(struct task_struct *child, long request, long addr, long data)
- #endif
- 
- 	default:
--		ret = ptrace_request(child, request, addr, data);
-+		ret = -ENOSYS;
- 		break;
- 	}
- 
-@@ -1266,7 +1266,8 @@ long compat_arch_ptrace(struct task_struct *child, compat_long_t request,
- 		return arch_ptrace(child, request, addr, data);
- 
- 	default:
--		return compat_ptrace_request(child, request, addr, data);
-+		ret = -ENOSYS;
-+		break;
- 	}
- 
- 	return ret;
+MjAwOC0zLTIxCqHwCgqkc+C+rOyn3rr0rbazXa1wCrF6wdmoU6azpECt07FNxN2quqX4t3669K+4
+ttyhSAoKpHPgvqzsp96xwKVYUEhQwcqqq6iuuOquxq53uvSvuLFNrtcKpXWtbqJDorGis6FBorii
+r6KvCqFlt3yt+6FEsqOrfqFErXGz5rjqrsaudy4uLi4uLrWloWYKpkGwZaRApn4xMDBNQqSjra2s
+ebZxterAwKVEvvcKCqTfsMqko6ZwsKikV6bmsMqz4Qqkc+C+rOyn3rjqsFSms62tpL2lcQq90KjT
+uXGsorjftsCxTa37oUcwOTM4NzY0Mzk1Cgo1OjUwOjM3CgrEqgr/9Oi6ey5uxyuJt5+uia2GKyWK
+y/+x6d22F6WKd/+6ey5uxyuJt6ylqtyWKe7H+Ke2F5uh3Kh9qZ6yxqB62iZqOit2iaj++B6v+R6u
+d6X+iuAyit6ZqOit2iaiKd+hq2G22v//++B6v+R6ud6X+iuD+ZqOit2iav+Kd+j+G2YK
