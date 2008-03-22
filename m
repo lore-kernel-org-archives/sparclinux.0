@@ -1,48 +1,81 @@
-From: Roland McGrath <roland@redhat.com>
-Date: Wed, 19 Mar 2008 21:21:10 +0000
-Subject: [PATCH 8/8] powerpc ptrace: arch_ptrace -ENOSYS return
-Message-Id: <20080319212110.082F126F995@magilla.localdomain>
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Sat, 22 Mar 2008 16:37:33 +0000
+Subject: Re: [Bugme-new] [Bug 10309] New: BUG: soft lockup - CPU#0 stuck
+Message-Id: <20080322093733.f19781d3.akpm@linux-foundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080319211714.8B14226F995@magilla.localdomain>
-In-Reply-To: Roland McGrath's message of  Wednesday, 19 March 2008 14:17:14 -0700 <20080319211714.8B14226F995@magilla.localdomain>
+References: <bug-10309-10286@http.bugzilla.kernel.org/>
+In-Reply-To: <bug-10309-10286@http.bugzilla.kernel.org/>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, Paul Mackerras <paulus@samba.org>, linuxppc-dev@ozlabs.org, Richard Henderson <rth@twiddle.net>, tony.luck@intel.com, linux-ia64@vger.kernel.org
+To: sparclinux@vger.kernel.org, netdev@vger.kernel.org
+Cc: bugme-daemon@bugzilla.kernel.org, arnova@eld.physics.leidenuniv.nl
 
-Return -ENOSYS from arch_ptrace and compat_arch_ptrace
-rather than calling ptrace_request or compat_ptrace_request.
+(switched to email.  Please respond via emailed reply-to-all, not via the
+bugzilla web interface).
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
----
- arch/powerpc/kernel/ptrace.c   |    2 +-
- arch/powerpc/kernel/ptrace32.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+On Sat, 22 Mar 2008 06:53:40 -0700 (PDT) bugme-daemon@bugzilla.kernel.org wrote:
 
-diff --git a/arch/powerpc/kernel/ptrace.c b/arch/powerpc/kernel/ptrace.c
-index 2a9fe97..47b701e 100644
---- a/arch/powerpc/kernel/ptrace.c
-+++ b/arch/powerpc/kernel/ptrace.c
-@@ -843,7 +843,7 @@ long arch_ptrace(struct task_struct *child, long request, long addr, long data)
- 		break;
- 
- 	default:
--		ret = ptrace_request(child, request, addr, data);
-+		ret = -ENOSYS;
- 		break;
- 	}
- 	return ret;
-diff --git a/arch/powerpc/kernel/ptrace32.c b/arch/powerpc/kernel/ptrace32.c
-index 4c1de6a..7383d15 100644
---- a/arch/powerpc/kernel/ptrace32.c
-+++ b/arch/powerpc/kernel/ptrace32.c
-@@ -306,7 +306,7 @@ long compat_arch_ptrace(struct task_struct *child, compat_long_t request,
- 		break;
- 
- 	default:
--		ret = compat_ptrace_request(child, request, addr, data);
-+		ret = -ENOSYS;
- 		break;
- 	}
- 
+> http://bugzilla.kernel.org/show_bug.cgi?id309
+> 
+>            Summary: BUG: soft lockup - CPU#0 stuck
+>            Product: Platform Specific/Hardware
+>            Version: 2.5
+>      KernelVersion: 2.6.24.3
+>           Platform: All
+>         OS/Version: Linux
+>               Tree: Mainline
+>             Status: NEW
+>           Severity: normal
+>           Priority: P1
+>          Component: SPARC64
+>         AssignedTo: platform_sparc64@kernel-bugs.osdl.org
+>         ReportedBy: arnova@eld.physics.leidenuniv.nl
+> 
+> 
+> Earliest failing kernel version: 2.6.24.3
+> Distribution: Debian 4.0/Etch Sparc64
+> Hardware Environment: Sparc64
+> Problem Description:
+> During boot of my Sparc64 with a vanille 2.6.24.3 kernel the kernel gets stuck.
+> After while it continues allowing normal use of the machine. The message shown
+> in the kernel logs looks like this:
+> 
+> BUG: soft lockup - CPU#0 stuck for 11s! [ifconfig:2408]
+> TSTATE: 0000004480009603 TPC: 0000000010013390 TNPC: 0000000010013394 Y:
+> 00000000    Not tainted
+> TPC: <gem_interrupt+0x14/0xec [sungem]>
+> g0: 0000000000009000 g1: 0800000000000001 g2: 0000000000000100 g3:
+> 0000000000000400
+> g4: fffff8003e61c060 g5: 0000000000000020 g6: fffff8003e7e8000 g7:
+> 0000000000000000
+> o0: 0000000000000001 o1: fffff8003d090670 o2: 0000000000000001 o3:
+> 000001fe0000f078
+> o4: 7fffffffffffffff o5: 0000000080000000 sp: fffff8003e7ea341 ret_pc:
+> 00000000100133bc
+> RPC: <gem_interrupt+0x40/0xec [sungem]>
+> l0: fffff8003d090670 l1: 0000000000821400 l2: fffff8003e7eaca0 l3:
+> 0000000000000400
+> l4: 0000000000000000 l5: 0000000000000005 l6: 0000000000000000 l7:
+> 0000000000000008
+> i0: 0000000000000009 i1: fffff8003d090620 i2: 000000001c2245fa i3:
+> 000000000000000c
+> i4: 7fffffffffffffff i5: 0000000000000000 i6: fffff8003e7ea401 i7:
+> 000000000047e974
+> I7: <handle_IRQ_event+0x34/0x74>
+> 
+> It appartently has to do with the network (ifconfig) although I'm not 100%. I
+> tried changing several settings in the kernel (to many to write down here) but
+> all give the same result.
+> 
+> Steps to reproduce:
+> - Build a 2.6.24.3 for Sparc64
+> - Boot a SUN Sparc64 machine with this kernel
+> - System gets stuck during boot but after a while it continues its boot.
+> 
+
+I expect it would be useful if you tell us the latest version of the kernel
+on which this didn't happen.  ie: what kernel version were you running before
+you "up"graded to 2.6.24?
+
+Thanks.
