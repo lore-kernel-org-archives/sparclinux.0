@@ -1,108 +1,58 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Date: Sat, 29 Mar 2008 00:44:53 +0000
-Subject: Re: 2.6.25-rc5-mm1 sparc64 boot problems due to generic
-Message-Id: <1206751493.10388.84.camel@pasglop>
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Date: Mon, 24 Mar 2008 19:53:22 +0000
+Subject: build breakage on sparc64 due to commit 54cd6dde
+Message-Id: <200803242053.22709.m.kozlowski@tuxland.pl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080311011434.ad8c8d7d.akpm@linux-foundation.org>
-	 <200803282352.10780.m.kozlowski@tuxland.pl>
-	 <20080328.161011.08762096.davem@davemloft.net>
-In-Reply-To: <20080328.161011.08762096.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: m.kozlowski@tuxland.pl, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, greg@kroah.com, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
+Hello,
 
-On Fri, 2008-03-28 at 16:10 -0700, David Miller wrote:
-> From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-> Date: Fri, 28 Mar 2008 23:52:10 +0100
-> 
-> > 	The gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch which
-> > replaces arch-specific code with generic pci_enable_resources() makes my sparc64
-> > box unable to boot (that's what quilt bisection says). At first I see these messages:
-> 
-> Yes, that generic code won't work because of the NULL
-> r->parent check.
-> 
-> Alpha, ARM, V32, FRV, IA64, MIPS, MN10300, PARISC, PPC,
-> SH, V850, X86, and Xtensa are all likely to run into
-> problems because of this change.
+	I get this error when building latest Linus git (and 2.6.25-rc5-mm1) tree:
 
-ppc and x86 won't have problem, I haven't checked the others, sparc64
-will as I see things.
+arch/sparc64/kernel/asm-offsets.c:1: error: -m64 is not supported by this configuration
+arch/sparc64/kernel/asm-offsets.c:1: error: -mlong-double-64 not allowed with -m64
+arch/sparc64/kernel/asm-offsets.c:1: error: -mcmodel= is not supported on 32 bit systems
+make[1]: *** [arch/sparc64/kernel/asm-offsets.s] Error 1
 
-> The only platform that did the check as a test of r->parent
-> being NULL is Powerpc.
+and I bisected it to:
 
-Yup, though that makes sense to do it that way on platforms that
-actually build a resource tree like x86 or powerpc.
+54cd6ddec77b75e6926d73d263aec72255b24030 is first bad commit
+commit 54cd6ddec77b75e6926d73d263aec72255b24030
+Author: David S. Miller <davem@davemloft.net>
+Date:   Thu Feb 14 00:37:21 2008 -0800
 
-> The rest either didn't check (like sparc64), or tested it by going:
-> 
-> 	if (!r->start && r->end)
-> 
-> So the amount of potential breakage from this change is enormous.
+    [SPARC64]: Remove Makefile code for ancient gcc and binutils.
+    
+    The kernel hasn't supported the compilers which need these tests
+    for years.
+    
+    Signed-off-by: David S. Miller <davem@davemloft.net>
 
-Not that big, but yeah, it should be limited to platforms that actually
-build a resource-tree and keep track of assigned & allocated resources,
-which sparc64 doesn't (which is fair enough, if your firmware is 100%
-right and your kernel never has to assigns things itself). The NULL
-parent is a 100% indication that the resource was properly claimed and
-put in the resource-tree (and thus is non conflicting) on those
-platforms, but it's unused on sparc64.
+Here are some details you may need:
 
-Basically, on platforms like x86 or powerpc, the PCI subsystem at boot
-builds a resource tree by collecting resources for all enabled devices
-and bridges in a first pass, then all others in a second pass, checking
-for conflicts or unassigned ones, and potentially re-assigning and
-re-allocating bridges if necessary.
+Linux sparc64 2.6.24 #9 SMP PREEMPT Mon Jan 28 22:37:42 CET 2008 sparc64 sun4u TI UltraSparc II (BlackBird) GNU/Linux
+ 
+Gnu C                  4.1.2
+Gnu make               3.81
+binutils               2.18
+util-linux             2.13
+mount                  2.13
+module-init-tools      3.4
+e2fsprogs              1.40.6
+Linux C Library        2.6.1
+Dynamic linker (ldd)   2.6.1
+Procps                 3.2.7
+Net-tools              1.60
+Kbd                    1.13
+Sh-utils               6.9
+udev                   115
+Modules Loaded         sg sr_mod cdrom
 
-Sparc64 takes a different approach, it basically doesn't bother with a
-full resource tree, and just claims what driver claim, which is fine as
-long as you are certain that you always get a perfectly well assigned &
-non conflicting setup done by your firmware.
+If you want any additional info about gcc, binutils, etc let me know. This build error
+comes from allnoconfig configuration but I also see it on my regular sparc64 config.
 
-The "full featured" approach is necessary for platforms where this isn't
-the case, such as powerpc, even with a pretty good OF like Apple ones,
-since they love to not assign resources that they know their MacOS
-driver will not need (such as not assigning IO space and closing it on
-the P2P bridge) which doesn't necessarily quite work with the
-requirements of the linux  drivers, in addition to also gross bugs they
-have on some versions when using cards with P2P bridges on them.
-
-In addition, we also need that resource management to be able to
-dynamically assign resource after boot as our OF doesn't stay alive to
-do it, such as when using cardbus cards, or other type of hotplug things
-for which the firmware doesn't do dynamic resource allocation.
-
-So, the meat of the original patch isn't bad per-se. There is definitely
-a lot of interest in making a lot of this resource survey and management
-code common for platforms who want it (for example, powerpc and x86 are
-very close already), and in that regard, this NULL check is definitely
-what we want in the "merged" version. But I can understand David
-unwillingness in bringing that whole infrastructure on platforms that
-don't need it.
-
-A quick survey shows that:
-
-- Use what looks like a full featured resource allocation scheme similar
-to x86: alpha, powerpc, ppc, 
-
-- Use what looks like a slightly different scheme that still results in
-resources being claimed in the resource tree when valid: ia64, mips (not
-100% sure there, but it does call pci_assign_unassigned_resources), 
-
-- Don't build a resource-tree per-se and don't claim device resources
-(and thus NULL parent check is unreliable): sparc, sparc64, parisc ?
-(unsure but I didn't see code to claim resources in the pci layer), arm
-(unsure but PCI here seems to be spread in sub platform code and doesn't
-appear to do resource management)
-
-And I stopped there. So we have people on all sides of the fence but it
-would still be worth consolidating at least x86, alpha & powerpc, and
-possibly bring in others like ia64 and mips.
-
-Cheers,
-Ben.
+	Mariusz
 
