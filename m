@@ -1,35 +1,24 @@
-From: Roland McGrath <roland@redhat.com>
-Date: Wed, 19 Mar 2008 21:19:36 +0000
-Subject: [PATCH 4/8] powerpc ptrace: forced_successful_syscall_return()
-Message-Id: <20080319211936.28E8B26F9A7@magilla.localdomain>
+From: Paul Mackerras <paulus@samba.org>
+Date: Mon, 24 Mar 2008 07:55:41 +0000
+Subject: Re: [PATCH 4/8] powerpc ptrace: forced_successful_syscall_return()
+Message-Id: <18407.24189.707297.767237@cargo.ozlabs.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080319211714.8B14226F995@magilla.localdomain>
-In-Reply-To: Roland McGrath's message of  Wednesday,
-	19 March 2008 14:17:14 -0700
-	<20080319211714.8B14226F995@magilla.localdomain>
+	<20080319211936.28E8B26F9A7@magilla.localdomain>
+In-Reply-To: <20080319211936.28E8B26F9A7-nL1rrgvulkcB9AHHLWeGtNQXobZC6xk2@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-arch@vger.kernel.org, tony.luck@intel.com, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, David Miller <davem@davemloft.net>, linuxppc-dev@ozlabs.org, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Richard Henderson <rth@twiddle.net>
+To: Roland McGrath <roland-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-mnsaURCQ41sdnm+yROfE0A@public.gmane.org, Richard Henderson <rth-hL46jP5Bxq7R7s880joybQ@public.gmane.org>, tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-Define the forced_successful_syscall_return() macro to
-pair with our force_successful_syscall_return() definition.
+Roland McGrath writes:
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
----
- include/asm-powerpc/ptrace.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+> Define the forced_successful_syscall_return() macro to
+> pair with our force_successful_syscall_return() definition.
+> 
+> Signed-off-by: Roland McGrath <roland@redhat.com>
 
-diff --git a/include/asm-powerpc/ptrace.h b/include/asm-powerpc/ptrace.h
-index 891d689..07dd6fe 100644
---- a/include/asm-powerpc/ptrace.h
-+++ b/include/asm-powerpc/ptrace.h
-@@ -93,6 +93,7 @@ extern unsigned long profile_pc(struct pt_regs *regs);
- 	do { \
- 		set_thread_flag(TIF_NOERROR); \
- 	} while(0)
-+#define forced_successful_syscall_return()   (test_thread_flag(TIF_NOERROR))
- 
- struct task_struct;
- extern unsigned long ptrace_get_reg(struct task_struct *task, int regno);
+Looks OK to me, but what's it useful for?
+
+Paul.
