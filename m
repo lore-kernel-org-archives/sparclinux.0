@@ -1,17 +1,47 @@
-From: "=?BIG5?B?p/W5xbVe?=" <qq69pc8754b@gmail.com>
-Date: Thu, 20 Mar 2008 21:50:41 +0000
-Subject: =?BIG5?B?sXrB2ahTprOkQK3TsU3E3aq6pfi3frr0r7i23KFIob4=?=
-Message-Id: <52b87e5f0803201450w1f63f335h3b704c7c7bf2ebb0@mail.gmail.com>
+From: "Horst H. von Brand" <vonbrand@inf.utfsm.cl>
+Date: Tue, 25 Mar 2008 21:24:30 +0000
+Subject: [PATCH 4/6] Handle big kernels
+Message-Id: <1206480273-29043-5-git-send-email-vonbrand@inf.utfsm.cl>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="ibm866"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-MjAwOC0zLTIxCqHwCgqkc+C+rOyn3rr0rbazXa1wCrF6wdmoU6azpECt07FNxN2quqX4t3669K+4
-ttyhSAoKpHPgvqzsp96xwKVYUEhQwcqqq6iuuOquxq53uvSvuLFNrtcKpXWtbqJDorGis6FBorii
-r6KvCqFlt3yt+6FEsqOrfqFErXGz5rjqrsaudy4uLi4uLrWloWYKpkGwZaRApn4xMDBNQqSjra2s
-ebZxterAwKVEvvcKCqTfsMqko6ZwsKikV6bmsMqz4Qqkc+C+rOyn3rjqsFSms62tpL2lcQq90KjT
-uXGsorjftsCxTa37oUcwOTM4NzY0Mzk1Cgo1OjUwOjM3CgrEqgr/9Oi6ey5uxyuJt5+uia2GKyWK
-y/+x6d22F6WKd/+6ey5uxyuJt6ylqtyWKe7H+Ke2F5uh3Kh9qZ6yxqB62iZqOit2iaj++B6v+R6u
-d6X+iuAyit6ZqOit2iaiKd+hq2G22v//++B6v+R6ud6X+iuD+ZqOit2iav+Kd+j+G2YK
+Apply silo-big-kernel.patch from Aurora's 1.4.13-8 (from davem)
+
+Signed-off-by: Horst H. von Brand <vonbrand@inf.utfsm.cl>
+---
+ second/main.c |   16 ++++++++++------
+ 1 files changed, 10 insertions(+), 6 deletions(-)
+
+diff --git a/second/main.c b/second/main.c
+index 9644e44..2042f9d 100644
+--- a/second/main.c
++++ b/second/main.c
+@@ -1204,12 +1204,16 @@ try_again:
+ 		unsigned int size;
+ 		unsigned char *mem;
+ 
+-		size = 0x800000;
+-		mem = (unsigned char *)image_memory_find(size);
+-
+-		if (!mem) {
+-		    size = 0x400000;
+-		    mem = (unsigned char *)image_memory_find(size);
++ 		/* As of 2.6.25-rc6, an "allyesconfig" kernel is around
++ 		 * ~42MB in size.  So we try to carve out up to 64MB of
++ 		 * memory for the kernel.
++ 		 */
++ 		for (size = 64 * 1024 * 1024;
++ 		     size >= 4 * 1024 * 1024;
++ 		     size -= 4 * 1024 * 1024) {
++ 			mem = (unsigned char *)image_memory_find(size);
++ 			if (mem)
++ 				break;
+ 		}
+ 
+ 		if (mem) {
+-- 
+1.5.5.rc0.16.g02b00
+
