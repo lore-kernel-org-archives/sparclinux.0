@@ -1,35 +1,41 @@
-From: Roland McGrath <roland@redhat.com>
-Date: Wed, 19 Mar 2008 21:18:41 +0000
-Subject: [PATCH 2/8] alpha ptrace: forced_successful_syscall_return()
-Message-Id: <20080319211841.253E126F995@magilla.localdomain>
+From: "Horst H. von Brand" <vonbrand@inf.utfsm.cl>
+Date: Tue, 25 Mar 2008 21:24:32 +0000
+Subject: [PATCH 6/6] Fix specfile to match latest changes
+Message-Id: <1206480273-29043-7-git-send-email-vonbrand@inf.utfsm.cl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080319211714.8B14226F995@magilla.localdomain>
-In-Reply-To: Roland McGrath's message of  Wednesday,
-	19 March 2008 14:17:14 -0700
-	<20080319211714.8B14226F995@magilla.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-arch@vger.kernel.org, tony.luck@intel.com, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, David Miller <davem@davemloft.net>, linuxppc-dev@ozlabs.org, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Richard Henderson <rth@twiddle.net>
+To: sparclinux@vger.kernel.org
 
-Define the forced_successful_syscall_return() macro to
-pair with our force_successful_syscall_return() definition.
-
-Signed-off-by: Roland McGrath <roland@redhat.com>
+Signed-off-by: Horst H. von Brand <vonbrand@inf.utfsm.cl>
 ---
- include/asm-alpha/ptrace.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ silo.spec |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-diff --git a/include/asm-alpha/ptrace.h b/include/asm-alpha/ptrace.h
-index 32c7a5c..1cc330b 100644
---- a/include/asm-alpha/ptrace.h
-+++ b/include/asm-alpha/ptrace.h
-@@ -77,6 +77,7 @@ extern void show_regs(struct pt_regs *);
-   ((struct pt_regs *) (task_stack_page(task) + 2*PAGE_SIZE) - 1)
+diff --git a/silo.spec b/silo.spec
+index 0cd1116..1ba968e 100644
+--- a/silo.spec
++++ b/silo.spec
+@@ -1,7 +1,7 @@
+ Summary: A boot loader for SPARCs
+ Name: silo
+ Version: 1.4.13
+-Release: 7%{?dist}
++Release: 9%{?dist}
+ License: GPLv2+
+ ExclusiveArch: sparc
+ Group: System Environment/Base
+@@ -55,6 +55,9 @@ rm -rf $RPM_BUILD_ROOT
+ %{_mandir}/man8/silo.8*
+  
+ %changelog
++* Mon Mar 24 2008 Horst H. von Brand <vonbrand@inf.utfsm.cl> 1.4.13-9
++- Incorporate changes from Aurora (1.4.13-7 to 1.4.13-8)
++
+ * Mon Feb 25 2008 Horst H. von Brand <vonbrand@inf.utfsm.cl> 1.4.13-7
+ - Incorporate changes from Aurora (1.4.13-3 to 1.4.13-6)
  
- #define force_successful_syscall_return() (task_pt_regs(current)->r0 = 0)
-+#define forced_successful_syscall_return() (task_pt_regs(current)->r0 = 0)
- 
- #endif
- 
+-- 
+1.5.5.rc0.16.g02b00
+
