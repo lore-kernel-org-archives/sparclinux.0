@@ -1,65 +1,48 @@
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Date: Fri, 28 Mar 2008 11:33:32 +0000
-Subject: Re: Linux 2.6.25-rc7 sparc64 loops forever on cat /proc/<pid>/pagemap
-Message-Id: <200803281233.32917.m.kozlowski@tuxland.pl>
+From: Nasser Shayesteh <Nasser.Shayesteh@Sun.COM>
+Date: Sat, 29 Mar 2008 00:26:36 +0000
+Subject: PCIe Graphic card for SPARC T1000/2000 Platform
+Message-Id: <47ED8CBC.8050900@Sun.COM>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LFD.1.00.0803251856450.2775@woody.linux-foundation.org> <200803261302.46313.m.kozlowski@tuxland.pl> <20080326.173527.193701097.davem@davemloft.net>
-In-Reply-To: <20080326.173527.193701097.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: torvalds@linux-foundation.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Hello David,
 
-> > cat /proc/<pid>/pagemap 
-> > 
-> > and 
-> > 
-> > cat /proc/<pid>/task/<pid>/pagemap
-> > 
-> > eats up to 100% of CPU while looping forever somewhere. On the other
-> > hand on my old x86 the same commands take well below 1s so I
-> > guess that is the expected behaviour.
-> 
-> The patch below will speed this up for 32-bit processes but for 64-bit
-> ones it's still going to take a long time.
-> 
-> Cat'ing this file writes a 64-bit value for every possible page in the
-> task's address space, which for 64-bit is an enormous number of
-> entries.
-> 
-> This is not how this file is supposed to be used.  Programs are
-> supposed to inspect /proc/${PID}/maps, and use those ranges to lseek()
-> around the pagemap file and fish out the values they need.
+Hello
 
-I see. Sorry for the noise then 8-) I've got a couple of scripts for testing
-/proc and /sys and I just noticed that some of processes started by them
-would run for a couple hours eating 100% CPU which doesn't happen on other
-arch'es I have around - hence my report. Thanks for clarification.
+I have a SPARC T2000 system installed with Ubuntu 7.10  Server Edition 
+running "2.6.22-14-sparc64-smp"  kernel.
 
-> This expensive operation is quite harmless, the process can still be
-> killed, it is not unstoppable.
+I am interested to know whether anyone knows of  any low power PCIe 
+graphics card and corresponding driver that works on T1000T2000 SPARC 
+based platforms.
 
-That's true.
- 
-> commit c101b088ba0ed16d7109b2f3c2d16798d162a535
-> Author: David S. Miller <davem@davemloft.net>
-> Date:   Wed Mar 26 17:32:33 2008 -0700
-> 
->     [SPARC64]: Define TASK_SIZE_OF()
->     
->     This make "cat /proc/${PID}/pagemap" more efficient for
->     32-bit tasks.
+I also tried  Nvidia (NVS440)  graphic card without the FCODE to see if 
+I can start X using the nvidiafb.ko driver that comes with stock Ubuntu 
+kernel distribution for servers. The device was recognized OK. However, 
+there is a fatal mmap() failure.
 
-This patch certainly helps in my case. Tested here:
 
-sparc64 # time cat /proc/1/pagemap > /dev/null
-real    0m0.046s
-user    0m0.000s
-sys     0m0.047s
+# startx
+
+......
+
+
+(WW) NV: No matching Device section for instance (BusID PCI:16:0:0) found
+mmap failure: Invalid argument
+
+Fatal server error:
+xf86MapDomainMem():  mmap() failure
+
+XIO:  fatal IO error 54 (Connection reset by peer) on X server ":0.0"
+      after 0 requests (0 known processed) with 0 events remaining.
+
+
+Is there any patch available that I can try?
 
 Thanks,
 
-	Mariusz
+--Nasser
+
+
