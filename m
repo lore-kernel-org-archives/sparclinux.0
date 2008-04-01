@@ -1,31 +1,77 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Date: Wed, 02 Apr 2008 16:30:36 +0000
-Subject: Re: 2.6.25-rc8-mm1 sparc64 build problem: size of array 'type name'
-Message-Id: <20080402093036.5dfdf56f.akpm@linux-foundation.org>
+Date: Tue, 01 Apr 2008 08:15:18 +0000
+Subject: Re: [Bugme-new] [Bug 10374] New: sym53c8xx: weird behavior with
+Message-Id: <20080401011518.eb683cff.akpm@linux-foundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080401213214.8fbb6d6b.akpm@linux-foundation.org>
-	<200804021820.13260.m.kozlowski@tuxland.pl>
-In-Reply-To: <200804021820.13260.m.kozlowski@tuxland.pl>
+References: <bug-10374-10286@http.bugzilla.kernel.org/>
+In-Reply-To: <bug-10374-10286@http.bugzilla.kernel.org/>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: linux-kernel@vger.kernel.org, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org
+Cc: bugme-daemon@bugzilla.kernel.org, seraph@xs4all.nl
 
-On Wed, 2 Apr 2008 18:20:13 +0200 Mariusz Kozlowski <m.kozlowski@tuxland.pl> wrote:
 
-> Hello,
-> 
-> 	sparc64 box, gcc 4.1.2
-> 
->   CC      arch/sparc64/mm/init.o
-> arch/sparc64/mm/init.c: In function 'paging_init':
-> arch/sparc64/mm/init.c:1303: error: size of array 'type name' is negative
-> 
-> and this is 
-> 
-> BUILD_BUG_ON(BITS_PER_LONG - NR_PAGEFLAGS != 32);
+(switched to email.  Please respond via emailed reply-to-all, not via the
+bugzilla web interface).
 
-yup, thanks.  That's due to some page-flag rework in the memory management
-queue.  The patches which broke mips as well.  I'm pushing cross-compilers
-in Christoph's direction and hoping stuff gets fixed...
+On Tue,  1 Apr 2008 01:01:22 -0700 (PDT) bugme-daemon@bugzilla.kernel.org wrote:
+
+> http://bugzilla.kernel.org/show_bug.cgi?id374
+> 
+>            Summary: sym53c8xx: weird behavior with udev
+>            Product: Drivers
+>            Version: 2.5
+>      KernelVersion: 2.6.24.4
+>           Platform: All
+>         OS/Version: Linux
+>               Tree: Mainline
+>             Status: NEW
+>           Severity: normal
+>           Priority: P1
+>          Component: Other
+>         AssignedTo: drivers_other@kernel-bugs.osdl.org
+>         ReportedBy: seraph@xs4all.nl
+> 
+> 
+> Latest working kernel version: 2.6.22.9
+> Earliest failing kernel version: 2.6.23
+> Distribution: Gentoo
+> Hardware Environment: sparc64 (Sun Blade 100)
+> Software Environment:
+> Problem Description:
+> 
+> Since kernel 2.6.23, I have been having problems getting the sungem network
+> device working on one of my two Blade 100s, see bug #10273.
+> 
+> After debugging this, I found that this seems to be somehow related to
+> sym53c8xx and udev.
+> 
+> If I allow udev to load sym53c8xx during boot, the attached disks work fine but
+> the network does not work at all. While the device is up and mii-diag says
+> there is link beat, no packets can be sent or received, and attempts to use the
+> network result in "network unreachable" errors.
+> 
+> If I blacklist sym53c8xx in /etc/modprobe.d/blacklist, let the machine boot
+> normally and then manually load sym53c8xx after everything is settled, both the
+> scsi disks and the network appear to work fine.
+> 
+> None of this happened in kernel versions 2.6.22.9 and earlier, 2.6.23 was the
+> first to start showing this behavior, and it still persists in 2.6.24.
+> 
+> I've tried playing with the option CONFIG_SCSI_SYM53C8XX_DMA_ADDRESSING_MODE as
+> that is what seems to have changed between kernel versions 2.6.22 and 2.6.23.
+> The recommended value for my machine is 0, but I have tried the other possible
+> values without result. I have also tried toggling CONFIG_SCSI_SYM53C8XX_MMIO,
+> also without result.
+> 
+> Steps to reproduce:
+> 
+> Let udev load sym53c8xx in kernel 2.6.23 or newer.
+
+urgh.  Perhaps it's related to platform IRQ routing or something.
+
+I'd suggest that the next step would be to send us the `dmesg -s 1000000'
+output for both good and bad kernels.  A comparison might show where things
+went bad.
+
