@@ -1,28 +1,53 @@
-From: Matthew Wilcox <matthew@wil.cx>
-Date: Wed, 02 Apr 2008 12:06:51 +0000
-Subject: Re: [Bugme-new] [Bug 10374] New: sym53c8xx: weird behavior with udev
-Message-Id: <20080402120651.GS16451@parisc-linux.org>
+From: Jos van der Ende <seraph@xs4all.nl>
+Date: Wed, 02 Apr 2008 14:09:20 +0000
+Subject: Re: [Bugme-new] [Bug 10374] New: sym53c8xx: weird behavior with
+Message-Id: <20080402160920.dc219007.seraph@xs4all.nl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <bug-10374-10286@http.bugzilla.kernel.org/> <20080401011518.eb683cff.akpm@linux-foundation.org> <1207059115.3100.9.camel@localhost.localdomain> <20080401210521.abbb443c.seraph@xs4all.nl> <1207081169.3100.20.camel@localhost.localdomain> <20080401225717.7d936f91.seraph@xs4all.nl> <1207084454.3100.31.camel@localhost.localdomain> <20080402122944.7fe8e924.seraph@xs4all.nl>
-In-Reply-To: <20080402122944.7fe8e924.seraph@xs4all.nl>
+References: <bug-10374-10286@http.bugzilla.kernel.org/>
+	<20080401011518.eb683cff.akpm@linux-foundation.org>
+	<1207059115.3100.9.camel@localhost.localdomain>
+	<20080401210521.abbb443c.seraph@xs4all.nl>
+	<1207081169.3100.20.camel@localhost.localdomain>
+	<20080401225717.7d936f91.seraph@xs4all.nl>
+	<1207084454.3100.31.camel@localhost.localdomain>
+	<20080402122944.7fe8e924.seraph@xs4all.nl>
+	<20080402120651.GS16451@parisc-linux.org>
+In-Reply-To: <20080402120651.GS16451@parisc-linux.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jos van der Ende <seraph@xs4all.nl>
+To: Matthew Wilcox <matthew@wil.cx>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>, Andrew Morton <akpm@linux-foundation.org>, linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org, bugme-daemon@bugzilla.kernel.org
 
-On Wed, Apr 02, 2008 at 12:29:44PM +0200, Jos van der Ende wrote:
-> Maybe it's nothing, but I did notice that sym53c8xx compiles with a warning of a possibly uninitialized variable:
-> 
->   CC [M]  drivers/scsi/sym53c8xx_2/sym_glue.o
-> drivers/scsi/sym53c8xx_2/sym_glue.c: In function 'sym_eh_handler':
-> drivers/scsi/sym53c8xx_2/sym_glue.c:612: warning: 'io_reset' may be used uninitialized in this function
+Finally, bisecting is done. :-)
 
-Yeah, that's nothing.  It's actually a bug in GCC that produces that
-warning (and it's code that'll never be executed on your platform anyway).
+Well, it took more reboots than a typical Windows XP installation (and thank the heavens for my Sparc64 cross compiler on my Core 2 Duo), but this seems to be the culprit:
+
+5a606b72a4309a656cd1a19ad137dc5557c4b8ea is first bad commit
+commit 5a606b72a4309a656cd1a19ad137dc5557c4b8ea
+Author: David S. Miller <davem@sunset.davemloft.net>
+Date:   Mon Jul 9 22:40:36 2007 -0700
+
+    [SPARC64]: Do not ACK an INO if it is disabled or inprogress.
+    
+    This is also a partial workaround for a bug in the LDOM firmware which
+    double-transmits RX inos during high load.  Without this, such an
+    event causes the kernel to loop forever in the interrupt call chain
+    ACK'ing but never actually running the IRQ handler (and thus clearing
+    the interrupt condition in the device).
+    
+    There is still a bad potential effect when double INOs occur,
+    not covered by this changeset.  Namely, if the INO is already on
+    the per-cpu INO vector list, we still blindly re-insert it and
+    thus we can end up losing interrupts already linked in after
+    it.
+    
+    We could deal with that by traversing the list before insertion,
+    but that's too expensive for this edge case.
+    
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+:040000 040000 7e65c9b16e6c37f2c3f83195c5a57b4d2b8f0a7c e7a7bedcc88d33793a6525e9337a1a51982bc513 M      arch
 
 -- 
-Intel are signing my paycheques ... these opinions are still mine
-"Bill, look, we understand that you're interested in selling us this
-operating system, but compare it to ours.  We can't possibly take such
-a retrograde step."
+Jos van der Ende <seraph@xs4all.nl>
