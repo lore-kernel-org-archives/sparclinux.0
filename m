@@ -1,545 +1,1106 @@
-From: Nick Schmalenberger <nick@schmalenberger.us>
-Date: Sat, 12 Apr 2008 09:32:42 +0000
-Subject: disks on Ultra/1 not detected with esp_scsi on 2.6.24
-Message-Id: <20080412093242.GP3535@bayworld.net>
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Date: Wed, 02 Apr 2008 16:20:13 +0000
+Subject: Re: 2.6.25-rc8-mm1 sparc64 build problem: size of array 'type name' is negative
+Message-Id: <200804021820.13260.m.kozlowski@tuxland.pl>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="VV4b6MQE+OnNyhkM"
+Content-Type: multipart/mixed; boundary="Boundary-00=_9I78Hv4XSDVRGwG"
 List-Id: <sparclinux.vger.kernel.org>
-To: sparclinux@vger.kernel.org
+References: <20080401213214.8fbb6d6b.akpm@linux-foundation.org>
+In-Reply-To: <20080401213214.8fbb6d6b.akpm@linux-foundation.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-
---VV4b6MQE+OnNyhkM
-Content-Type: text/plain; charset=us-ascii
+--Boundary-00=_9I78Hv4XSDVRGwG
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-Hi,
-I just tried to install debian using the netboot installer with the
-2.6.24 kernel and it doesn't detect my disks, which were detected with
-the esp driver in 2.6.18. The system is an Ultra/1 with 1 18GB disk.
-lsmod shows this:
- # lsmod
- Module                  Size  Used by
- sd_mod                 30104  0 
- esp_scsi               26384  0 
- scsi_transport_spi     28416  1 esp_scsi
- scsi_mod              173824  3 sd_mod,esp_scsi,scsi_transport_spi
- ide_generic             1536  0 [permanent]
- sunlance               17232  0 
-and dmesg has this:
-usbcore: registered new interface driver usbhid
-drivers/hid/usbhid/hid-core.c: v2.6:USB HID core driver
-TCP bic registered
-NET: Registered protocol family 1
-NET: Registered protocol family 17
-registered taskstats version 1
-sunlance.c:v2.02 8/24/03 Miguel de Icaza (miguel@nuclecu.unam.mx)
-eth0: LANCE 08:00:20:8c:ca:c1
-SCSI subsystem initialized
-Driver 'sd' needs updating - please use bus_type methods
+Hello,
 
-Full dmesg, hardware summary, and syslog are attached, thanks for all help!
+	sparc64 box, gcc 4.1.2
 
+  CC      arch/sparc64/mm/init.o
+arch/sparc64/mm/init.c: In function 'paging_init':
+arch/sparc64/mm/init.c:1303: error: size of array 'type name' is negative
 
---VV4b6MQE+OnNyhkM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=dmesg
+and this is 
 
-PROMLIB: Sun IEEE Boot Prom 'OBP 3.35.0 2004/04/19 12:16'
-PROMLIB: Root node compatible: 
-Linux version 2.6.24-1-sparc64 (Debian 2.6.24-5) (waldi@debian.org) (gcc version 4.1.3 20080308 (prerelease) (Debian 4.1.2-21)) #1 Thu Mar 27 16:28:01 UTC 2008
-ARCH: SUN4U
-Ethernet address: 08:00:20:8c:ca:c1
-[0000000200000000-fffff80000800000] page_structs=262144 node=0 entry=0/0
-[0000000200000000-fffff80000c00000] page_structs=262144 node=0 entry=1/0
-[0000000200000000-fffff80001000000] page_structs=262144 node=0 entry=2/0
-[0000000200000000-fffff80001400000] page_structs=262144 node=0 entry=3/0
-OF stdout device is: /sbus@1f,0/zs@f,1100000:a
-PROM: Built device tree with 34477 bytes of memory.
-On node 0 totalpages: 32217
-  Normal zone: 335 pages used for memmap
-  Normal zone: 0 pages reserved
-  Normal zone: 31882 pages, LIFO batch:7
-  Movable zone: 0 pages used for memmap
-Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 31882
-Kernel command line: 
-PID hash table entries: 1024 (order: 10, 8192 bytes)
-clocksource: mult[5fcfc] shift[16]
-clockevent: mult[2ac025bd] shift[32]
-Console: colour dummy device 80x25
-console [tty0] enabled
-Dentry cache hash table entries: 32768 (order: 5, 262144 bytes)
-Inode-cache hash table entries: 16384 (order: 4, 131072 bytes)
-Memory: 237104k available (2496k kernel code, 904k data, 160k init) [fffff80000000000,0000000017f4c000]
-Calibrating delay using timer specific routine.. 334.77 BogoMIPS (lpj=669543)
-Security Framework initialized
-SELinux:  Disabled at boot.
-Capability LSM initialized
-Mount-cache hash table entries: 512
-Initializing cgroup subsys ns
-Initializing cgroup subsys cpuacct
-net_namespace: 120 bytes
-NET: Registered protocol family 16
-PCI: Probing for controllers.
-SYSIO: UPA portID 1f, at 000001fe00000000
-sbus0: Clock 25.0 MHz
-dma0: Revision 2 
-dma1: Revision 2 
-usbcore: registered new interface driver usbfs
-usbcore: registered new interface driver hub
-usbcore: registered new device driver usb
-AUXIO: Found device at /sbus@1f,0/auxio@f,1900000
-/sbus@1f,0/eeprom@f,1200000: Clock regs at 000001fff1200000
-Time: tick clocksource has been installed.
-NET: Registered protocol family 2
-IP route cache hash table entries: 2048 (order: 1, 16384 bytes)
-TCP established hash table entries: 8192 (order: 4, 131072 bytes)
-TCP bind hash table entries: 8192 (order: 3, 65536 bytes)
-TCP: Hash tables configured (established 8192 bind 8192)
-TCP reno registered
-checking if image is initramfs... it is
-Freeing initrd memory: 3225k freed
-Mini RTC Driver
-audit: initializing netlink socket (disabled)
-audit(1207984106.040:1): initialized
-Total HugeTLB memory allocated, 0
-VFS: Disk quotas dquot_6.5.1
-Dquot-cache hash table entries: 1024 (order 0, 8192 bytes)
-io scheduler noop registered
-io scheduler anticipatory registered
-io scheduler deadline registered
-io scheduler cfq registered (default)
-Console: switching to colour frame buffer device 144x56
-/sbus@1f,0/cgsix@0,0: CGsix [GX 68020] at 0:1ff00000000
-[drm] Initialized drm 1.1.0 20060810
-f005a290: ttyS0 at MMIO 0x1fff1100000 (irq = 9) is a zs
-Console: ttyS0 (SunZilog zs0)
-console [ttyS0] enabled
-f005a290: ttyS1 at MMIO 0x1fff1100004 (irq = 9) is a zs
-f005b730: Keyboard at MMIO 0x1fff1000000 (irq = 9) is a zs
-f005b730: Mouse at MMIO 0x1fff1000004 (irq = 9) is a zs
-Floppy drive(s): fd0 is 1.44M
-FDC 0 is a post-1991 82077
-RAMDISK driver initialized: 16 RAM disks of 16384K size 1024 blocksize
-loop: module loaded
-Uniform Multi-Platform E-IDE driver Revision: 7.00alpha2
-ide: Assuming 50MHz system bus speed for PIO modes; override with idebus=xx
-mice: PS/2 mouse device common for all mice
-input: Sun Mouse as /class/input/input0
-usbcore: registered new interface driver usbhid
-drivers/hid/usbhid/hid-core.c: v2.6:USB HID core driver
-TCP bic registered
-NET: Registered protocol family 1
-NET: Registered protocol family 17
-registered taskstats version 1
-sunlance.c:v2.02 8/24/03 Miguel de Icaza (miguel@nuclecu.unam.mx)
-eth0: LANCE 08:00:20:8c:ca:c1
-SCSI subsystem initialized
-Driver 'sd' needs updating - please use bus_type methods
+BUILD_BUG_ON(BITS_PER_LONG - NR_PAGEFLAGS != 32);
 
---VV4b6MQE+OnNyhkM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=hardware-summary
+	Mariusz
 
-umame -a: Linux dors 2.6.24-1-sparc64 #1 Thu Mar 27 16:28:01 UTC 2008 sparc64 unknown
-lsmod: Module                  Size  Used by
-lsmod: sd_mod                 30104  0 
-lsmod: esp_scsi               26384  0 
-lsmod: scsi_transport_spi     28416  1 esp_scsi
-lsmod: scsi_mod              173824  3 sd_mod,esp_scsi,scsi_transport_spi
-lsmod: ide_generic             1536  0 [permanent]
-lsmod: sunlance               17232  0 
-df: Filesystem           1k-blocks      Used Available Use% Mounted on
-df: tmpfs                   120416         8    120408   0% /dev
-df: tmpfs                   120416         8    120408   0% /dev
-free:               total         used         free       shared      buffers
-free:   Mem:       240832        35800       205032            0            0
-free:  Swap:            0            0            0
-free: Total:       240832        35800       205032
-cardctl status: /usr/bin/report-hw: line 48: pccardctl: not found
-cardctl ident: /usr/bin/report-hw: line 49: pccardctl: not found
-cardctl status: /usr/bin/report-hw: line 50: cardctl: not found
-cardctl ident: /usr/bin/report-hw: line 51: cardctl: not found
-/proc/cpuinfo: cpu		: TI UltraSparc I   (SpitFire)
-/proc/cpuinfo: fpu		: UltraSparc I integrated FPU
-/proc/cpuinfo: prom		: OBP 3.35.0 2004/04/19 12:16
-/proc/cpuinfo: type		: sun4u
-/proc/cpuinfo: ncpus probed	: 1
-/proc/cpuinfo: ncpus active	: 1
-/proc/cpuinfo: D$ parity tl1	: 0
-/proc/cpuinfo: I$ parity tl1	: 0
-/proc/cpuinfo: Cpu0ClkTck	: 0000000009f42205
-/proc/cpuinfo: MMU Type	: Spitfire
-/proc/ioports: 1ffe8400000-1ffe840000f : dma
-/proc/ioports: 1ffe8400010-1ffe840002f : dma
-/proc/ioports: 1ffe8c00000-1ffe8c00003 : LANCE
-/proc/ioports: 1fff1400002-1fff1400005 : floppy
-/proc/ioports: 1fff1400007-1fff1400007 : floppy DIR
-/proc/iomem: 1ff00200000-1ff0020000f : cgsix dac
-/proc/iomem: 1ff00300000-1ff00300003 : cgsix fhc
-/proc/iomem: 1ff00301000-1ff003019ff : cgsix thc
-/proc/iomem: 1ff00700000-1ff00700fff : cgsix fbc
-/proc/iomem: 1ff00701000-1ff0070100b : cgsix tec
-/proc/iomem: 1ff00800000-1ff008fdfff : cgsix ram
-/proc/iomem: 1fff1000000-1fff1000007 : zs
-/proc/iomem: 1fff1100000-1fff1100007 : zs
-/proc/iomem: 1fff1200000-1fff1201fff : clock
-/proc/iomem: 1fff1900000-1fff1900000 : auxio
-/proc/interrupts:            CPU0       
-/proc/interrupts:   0:    2117326     <NULL>  timer
-/proc/interrupts:   1:          0      sun4u  SYSIO_UE
-/proc/interrupts:   2:          0      sun4u  SYSIO_CE
-/proc/interrupts:   3:          0      sun4u  SYSIO_SBERR
-/proc/interrupts:   8:          2      sun4u  floppy
-/proc/interrupts:   9:     305551      sun4u  zs
-/proc/interrupts:  11:       9667      sun4u  LANCE
-/proc/meminfo: MemTotal:       240832 kB
-/proc/meminfo: MemFree:        205032 kB
-/proc/meminfo: Buffers:             0 kB
-/proc/meminfo: Cached:          25816 kB
-/proc/meminfo: SwapCached:          0 kB
-/proc/meminfo: Active:           8576 kB
-/proc/meminfo: Inactive:        19696 kB
-/proc/meminfo: SwapTotal:           0 kB
-/proc/meminfo: SwapFree:            0 kB
-/proc/meminfo: Dirty:               0 kB
-/proc/meminfo: Writeback:           0 kB
-/proc/meminfo: AnonPages:        2496 kB
-/proc/meminfo: Mapped:           2216 kB
-/proc/meminfo: Slab:             4200 kB
-/proc/meminfo: SReclaimable:     1744 kB
-/proc/meminfo: SUnreclaim:       2456 kB
-/proc/meminfo: PageTables:        400 kB
-/proc/meminfo: NFS_Unstable:        0 kB
-/proc/meminfo: Bounce:              0 kB
-/proc/meminfo: CommitLimit:    120416 kB
-/proc/meminfo: Committed_AS:     6720 kB
-/proc/meminfo: VmallocTotal:  4194304 kB
-/proc/meminfo: VmallocUsed:         0 kB
-/proc/meminfo: VmallocChunk:  4194304 kB
-/proc/meminfo: HugePages_Total:     0
-/proc/meminfo: HugePages_Free:      0
-/proc/meminfo: HugePages_Rsvd:      0
-/proc/meminfo: HugePages_Surp:      0
-/proc/meminfo: Hugepagesize:     4096 kB
-/proc/bus/input/devices: I: Bus=0013 Vendor=0002 Product=0001 Version=0100
-/proc/bus/input/devices: N: Name="Sun Mouse"
-/proc/bus/input/devices: P: Phys=zs/serio1/input0
-/proc/bus/input/devices: S: Sysfs=/class/input/input0
-/proc/bus/input/devices: U: Uniq=
-/proc/bus/input/devices: H: Handlers=mouse0 
-/proc/bus/input/devices: B: EV=7
-/proc/bus/input/devices: B: KEY=70000 0 0 0 0
-/proc/bus/input/devices: B: REL=3
-/proc/bus/input/devices: 
-dmidecode: /usr/bin/report-hw: line 65: dmidecode: not found
+--Boundary-00=_9I78Hv4XSDVRGwG
+Content-Type: text/plain;
+  charset="iso-8859-1";
+  name="config-sparc64-2.6.25-rc8-mm1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="config-sparc64-2.6.25-rc8-mm1"
 
---VV4b6MQE+OnNyhkM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=syslog
+#
+# Automatically generated make config: don't edit
+# Linux kernel version: 2.6.25-rc8-mm1
+# Wed Apr  2 18:10:57 2008
+#
+CONFIG_SPARC=y
+CONFIG_SPARC64=y
+CONFIG_GENERIC_TIME=y
+CONFIG_GENERIC_CMOS_UPDATE=y
+CONFIG_GENERIC_CLOCKEVENTS=y
+CONFIG_64BIT=y
+CONFIG_MMU=y
+CONFIG_IOMMU_HELPER=y
+CONFIG_QUICKLIST=y
+CONFIG_STACKTRACE_SUPPORT=y
+CONFIG_LOCKDEP_SUPPORT=y
+CONFIG_ARCH_MAY_HAVE_PC_FDC=y
+# CONFIG_ARCH_HAS_ILOG2_U32 is not set
+# CONFIG_ARCH_HAS_ILOG2_U64 is not set
+CONFIG_AUDIT_ARCH=y
+CONFIG_HAVE_SETUP_PER_CPU_AREA=y
+CONFIG_ARCH_NO_VIRT_TO_BUS=y
+CONFIG_OF=y
+CONFIG_GENERIC_HARDIRQS_NO__DO_IRQ=y
+CONFIG_ARCH_SUPPORTS_AOUT=y
+CONFIG_SPARC64_PAGE_SIZE_8KB=y
+# CONFIG_SPARC64_PAGE_SIZE_64KB is not set
+# CONFIG_SPARC64_PAGE_SIZE_512KB is not set
+# CONFIG_SPARC64_PAGE_SIZE_4MB is not set
+CONFIG_SECCOMP=y
+# CONFIG_HZ_100 is not set
+# CONFIG_HZ_250 is not set
+# CONFIG_HZ_300 is not set
+CONFIG_HZ_1000=y
+CONFIG_HZ=1000
+# CONFIG_SCHED_HRTICK is not set
+# CONFIG_HOTPLUG_CPU is not set
+CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
 
-Apr 12 07:08:33 syslogd started: BusyBox v1.9.2
-Apr 12 07:08:33 kernel: klogd started: BusyBox v1.9.2 (2008-03-26 12:11:19 UTC)
-Apr 12 07:08:33 kernel: PROMLIB: Sun IEEE Boot Prom 'OBP 3.35.0 2004/04/19 12:16'
-Apr 12 07:08:33 kernel: PROMLIB: Root node compatible: 
-Apr 12 07:08:33 kernel: Linux version 2.6.24-1-sparc64 (Debian 2.6.24-5) (waldi@debian.org) (gcc version 4.1.3 20080308 (prerelease) (Debian 4.1.2-21)) #1 Thu Mar 27 16:28:01 UTC 2008
-Apr 12 07:08:33 kernel: ARCH: SUN4U
-Apr 12 07:08:33 kernel: Ethernet address: 08:00:20:8c:ca:c1
-Apr 12 07:08:33 kernel: [0000000200000000-fffff80000800000] page_structs=262144 node=0 entry=0/0
-Apr 12 07:08:33 kernel: [0000000200000000-fffff80000c00000] page_structs=262144 node=0 entry=1/0
-Apr 12 07:08:33 kernel: [0000000200000000-fffff80001000000] page_structs=262144 node=0 entry=2/0
-Apr 12 07:08:33 kernel: [0000000200000000-fffff80001400000] page_structs=262144 node=0 entry=3/0
-Apr 12 07:08:33 kernel: OF stdout device is: /sbus@1f,0/zs@f,1100000:a
-Apr 12 07:08:33 kernel: PROM: Built device tree with 34477 bytes of memory.
-Apr 12 07:08:33 kernel: On node 0 totalpages: 32217
-Apr 12 07:08:33 kernel:   Normal zone: 335 pages used for memmap
-Apr 12 07:08:33 kernel:   Normal zone: 0 pages reserved
-Apr 12 07:08:33 kernel:   Normal zone: 31882 pages, LIFO batch:7
-Apr 12 07:08:33 kernel:   Movable zone: 0 pages used for memmap
-Apr 12 07:08:33 kernel: Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 31882
-Apr 12 07:08:33 kernel: Kernel command line: 
-Apr 12 07:08:33 kernel: PID hash table entries: 1024 (order: 10, 8192 bytes)
-Apr 12 07:08:33 kernel: clocksource: mult[5fcfc] shift[16]
-Apr 12 07:08:33 kernel: clockevent: mult[2ac025bd] shift[32]
-Apr 12 07:08:33 kernel: Console: colour dummy device 80x25
-Apr 12 07:08:33 kernel: console [tty0] enabled
-Apr 12 07:08:33 kernel: Dentry cache hash table entries: 32768 (order: 5, 262144 bytes)
-Apr 12 07:08:33 kernel: Inode-cache hash table entries: 16384 (order: 4, 131072 bytes)
-Apr 12 07:08:33 kernel: Memory: 237104k available (2496k kernel code, 904k data, 160k init) [fffff80000000000,0000000017f4c000]
-Apr 12 07:08:33 kernel: Calibrating delay using timer specific routine.. 334.77 BogoMIPS (lpj=669543)
-Apr 12 07:08:33 kernel: Security Framework initialized
-Apr 12 07:08:33 kernel: SELinux:  Disabled at boot.
-Apr 12 07:08:33 kernel: Capability LSM initialized
-Apr 12 07:08:33 kernel: Mount-cache hash table entries: 512
-Apr 12 07:08:33 kernel: Initializing cgroup subsys ns
-Apr 12 07:08:33 kernel: Initializing cgroup subsys cpuacct
-Apr 12 07:08:33 kernel: net_namespace: 120 bytes
-Apr 12 07:08:33 kernel: NET: Registered protocol family 16
-Apr 12 07:08:33 kernel: PCI: Probing for controllers.
-Apr 12 07:08:33 kernel: SYSIO: UPA portID 1f, at 000001fe00000000
-Apr 12 07:08:33 kernel: sbus0: Clock 25.0 MHz
-Apr 12 07:08:33 kernel: dma0: Revision 2 
-Apr 12 07:08:33 kernel: dma1: Revision 2 
-Apr 12 07:08:33 kernel: usbcore: registered new interface driver usbfs
-Apr 12 07:08:33 kernel: usbcore: registered new interface driver hub
-Apr 12 07:08:33 kernel: usbcore: registered new device driver usb
-Apr 12 07:08:33 kernel: AUXIO: Found device at /sbus@1f,0/auxio@f,1900000
-Apr 12 07:08:33 kernel: /sbus@1f,0/eeprom@f,1200000: Clock regs at 000001fff1200000
-Apr 12 07:08:33 kernel: Time: tick clocksource has been installed.
-Apr 12 07:08:33 kernel: NET: Registered protocol family 2
-Apr 12 07:08:33 kernel: IP route cache hash table entries: 2048 (order: 1, 16384 bytes)
-Apr 12 07:08:33 kernel: TCP established hash table entries: 8192 (order: 4, 131072 bytes)
-Apr 12 07:08:33 kernel: TCP bind hash table entries: 8192 (order: 3, 65536 bytes)
-Apr 12 07:08:33 kernel: TCP: Hash tables configured (established 8192 bind 8192)
-Apr 12 07:08:33 kernel: TCP reno registered
-Apr 12 07:08:33 kernel: checking if image is initramfs... it is
-Apr 12 07:08:33 kernel: Freeing initrd memory: 3225k freed
-Apr 12 07:08:33 kernel: Mini RTC Driver
-Apr 12 07:08:33 kernel: audit: initializing netlink socket (disabled)
-Apr 12 07:08:33 kernel: audit(1207984106.040:1): initialized
-Apr 12 07:08:33 kernel: Total HugeTLB memory allocated, 0
-Apr 12 07:08:33 kernel: VFS: Disk quotas dquot_6.5.1
-Apr 12 07:08:33 kernel: Dquot-cache hash table entries: 1024 (order 0, 8192 bytes)
-Apr 12 07:08:33 kernel: io scheduler noop registered
-Apr 12 07:08:33 kernel: io scheduler anticipatory registered
-Apr 12 07:08:33 kernel: io scheduler deadline registered
-Apr 12 07:08:33 kernel: io scheduler cfq registered (default)
-Apr 12 07:08:33 kernel: Console: switching to colour frame buffer device 144x56
-Apr 12 07:08:33 kernel: /sbus@1f,0/cgsix@0,0: CGsix [GX 68020] at 0:1ff00000000
-Apr 12 07:08:33 kernel: [drm] Initialized drm 1.1.0 20060810
-Apr 12 07:08:33 kernel: f005a290: ttyS0 at MMIO 0x1fff1100000 (irq = 9) is a zs
-Apr 12 07:08:33 kernel: Console: ttyS0 (SunZilog zs0)
-Apr 12 07:08:33 kernel: console [ttyS0] enabled
-Apr 12 07:08:33 kernel: f005a290: ttyS1 at MMIO 0x1fff1100004 (irq = 9) is a zs
-Apr 12 07:08:33 kernel: f005b730: Keyboard at MMIO 0x1fff1000000 (irq = 9) is a zs
-Apr 12 07:08:33 kernel: f005b730: Mouse at MMIO 0x1fff1000004 (irq = 9) is a zs
-Apr 12 07:08:33 kernel: Floppy drive(s): fd0 is 1.44M
-Apr 12 07:08:33 kernel: FDC 0 is a post-1991 82077
-Apr 12 07:08:33 kernel: RAMDISK driver initialized: 16 RAM disks of 16384K size 1024 blocksize
-Apr 12 07:08:33 kernel: loop: module loaded
-Apr 12 07:08:33 kernel: Uniform Multi-Platform E-IDE driver Revision: 7.00alpha2
-Apr 12 07:08:33 kernel: ide: Assuming 50MHz system bus speed for PIO modes; override with idebus=xx
-Apr 12 07:08:33 kernel: mice: PS/2 mouse device common for all mice
-Apr 12 07:08:33 kernel: input: Sun Mouse as /class/input/input0
-Apr 12 07:08:33 kernel: usbcore: registered new interface driver usbhid
-Apr 12 07:08:33 kernel: drivers/hid/usbhid/hid-core.c: v2.6:USB HID core driver
-Apr 12 07:08:33 kernel: TCP bic registered
-Apr 12 07:08:33 kernel: NET: Registered protocol family 1
-Apr 12 07:08:33 kernel: NET: Registered protocol family 17
-Apr 12 07:08:33 kernel: registered taskstats version 1
-Apr 12 07:08:41 init: init: starting pid 575, tty '': '/bin/cttyhack'
-Apr 12 07:08:41 init: init: starting pid 577, tty '/dev/tty4': '/usr/bin/tail'
-Apr 12 07:08:45 debconf: Setting debconf/language to en
-Apr 12 07:08:45 main-menu[598]: DEBUG: resolver (libc6): package doesn't exist (ignored)
-Apr 12 07:08:45 main-menu[598]: INFO: Menu item 'localechooser' selected
-Apr 12 07:08:45 debconf: Setting debconf/language to C
-Apr 12 07:10:08 main-menu[598]: INFO: Menu item 'localechooser' succeeded but requested to be left unconfigured.
-Apr 12 07:10:08 main-menu[598]: INFO: Modifying debconf priority limit from 'high' to 'medium'
-Apr 12 07:10:08 debconf: Setting debconf/priority to medium
-Apr 12 07:10:08 main-menu[598]: DEBUG: resolver (libc6): package doesn't exist (ignored)
-Apr 12 07:10:17 main-menu[598]: INFO: Falling back to the package description for auto-install
-Apr 12 07:10:17 main-menu[598]: INFO: Falling back to the package description for ai-choosers
-Apr 12 07:10:17 main-menu[598]: INFO: Menu item 'cdebconf-priority' selected
-Apr 12 07:10:29 debconf: Setting debconf/priority to low
-Apr 12 07:10:29 main-menu[598]: INFO: Priority changed externally, setting main-menu default to 'low' (low)
-Apr 12 07:10:29 main-menu[598]: DEBUG: resolver (libc6): package doesn't exist (ignored)
-Apr 12 07:10:38 main-menu[598]: INFO: Menu item 'localechooser' selected
-Apr 12 07:10:38 debconf: Setting debconf/language to C
-Apr 12 07:10:44 localechooser: info: Language = 'en'
-Apr 12 07:10:44 localechooser: info: line=en;0;US;en_US.UTF-8;;kbd=lat0-sun16(utf8)
-Apr 12 07:10:44 localechooser: info: Set debian-installer/language = 'en'
-Apr 12 07:10:44 localechooser: info: Set debian-installer/locale = 'en_US.UTF-8'
-Apr 12 07:10:44 localechooser: info: Set debian-installer/fallbacklocale = 'en_US.UTF-8'
-Apr 12 07:10:44 localechooser: info: Set debian-installer/country = 'US'
-Apr 12 07:10:44 localechooser: info: Set debian-installer/consoledisplay = 'kbd=lat0-sun16(utf8)'
-Apr 12 07:10:44 debconf: Setting debconf/language to en
-Apr 12 07:10:44 localechooser: info: Set debconf/language = 'en'
-Apr 12 07:10:44 debconf: Setting debconf/language to en
-Apr 12 07:11:11 localechooser: info: Set debian-installer/country = 'US'
-Apr 12 07:11:11 localechooser: info: Set debian-installer/locale = 'en_US.UTF-8'
-Apr 12 07:11:28 main-menu[598]: DEBUG: resolver (libc6): package doesn't exist (ignored)
-Apr 12 07:11:35 main-menu[598]: INFO: Menu item 'kbd-chooser' selected
-Apr 12 07:11:35 main-menu[598]: INFO: Falling back to the package description for console-keymaps-at
-Apr 12 07:11:35 main-menu[598]: INFO: Falling back to the package description for console-keymaps-at
-Apr 12 07:11:35 kbd-chooser[804]: DEBUG: Mounting usbdevfs to look for kbd
-Apr 12 07:11:35 kbd-chooser[804]: DEBUG: Failed to open /proc/bus/usb/devices: 2
-Apr 12 07:11:35 kbd-chooser[804]: DEBUG: Adding generic entry for AT keymaps
-Apr 12 07:11:35 kbd-chooser[804]: INFO: keyboard type at: present: false 
-Apr 12 07:11:35 kbd-chooser[804]: INFO: keyboard type at: present: false 
-Apr 12 07:11:35 kbd-chooser[804]: INFO: keyboard type at: present: unknown  
-Apr 12 07:11:35 kbd-chooser[804]: INFO: Setting debian-installer/serial-console to true
-Apr 12 07:11:35 kbd-chooser[804]: INFO: Setting debian-installer/uml-console to false
-Apr 12 07:11:41 kbd-chooser[804]: INFO: kbd-chooser: arch no-keyboard selected
-Apr 12 07:11:41 kbd-chooser[804]: INFO: kbd-chooser: not setting keymap
-Apr 12 07:11:41 main-menu[598]: DEBUG: resolver (libc6): package doesn't exist (ignored)
-Apr 12 07:11:47 main-menu[598]: INFO: Menu item 'ethdetect' selected
-Apr 12 07:11:48 net/hw-detect.hotplug: Detected hotpluggable network interface lo
-Apr 12 07:11:55 hw-detect: Detected module 'sunlance' for '"LANCE" 10Mbit Ethernet'
-Apr 12 07:11:55 kernel: sunlance.c:v2.02 8/24/03 Miguel de Icaza (miguel@nuclecu.unam.mx)
-Apr 12 07:11:55 kernel: eth0: LANCE 08:00:20:8c:ca:c1
-Apr 12 07:11:55 hw-detect: insmod /lib/modules/2.6.24-1-sparc64/kernel/drivers/net/sunlance.ko 
-Apr 12 07:11:55 net/hw-detect.hotplug: Detected hotpluggable network interface eth0
-Apr 12 07:11:55 apt-install: Queueing package udev for later installation
-Apr 12 07:11:55 apt-install: Queueing package usbutils for later installation
-Apr 12 07:11:57 apt-install: Queueing package libc6-sparcv9 for later installation
-Apr 12 07:11:58 hw-detect: Missing modules 'esp (ESP SCSI), usb-storage (USB storage)
-Apr 12 07:11:58 net/hw-detect.hotplug: Detected hotpluggable network interface eth0
-Apr 12 07:11:58 net/hw-detect.hotplug: Detected hotpluggable network interface lo
-Apr 12 07:11:59 main-menu[598]: DEBUG: resolver (libc6): package doesn't exist (ignored)
-Apr 12 07:12:06 main-menu[598]: INFO: Menu item 'netcfg' selected
-Apr 12 07:12:13 dhclient: Internet Systems Consortium DHCP Client V3.1.0
-Apr 12 07:12:13 dhclient: Copyright 2004-2007 Internet Systems Consortium.
-Apr 12 07:12:13 dhclient: All rights reserved.
-Apr 12 07:12:13 dhclient: For info, please visit http://www.isc.org/sw/dhcp/
-Apr 12 07:12:13 dhclient: 
-Apr 12 07:12:14 dhclient: Listening on LPF/eth0/08:00:20:8c:ca:c1
-Apr 12 07:12:14 dhclient: Sending on   LPF/eth0/08:00:20:8c:ca:c1
-Apr 12 07:12:14 dhclient: Sending on   Socket/fallback
-Apr 12 07:12:18 dhclient: DHCPDISCOVER on eth0 to 255.255.255.255 port 67 interval 3
-Apr 12 07:12:18 dhclient: DHCPOFFER from 192.168.3.1
-Apr 12 07:12:18 dhclient: DHCPREQUEST on eth0 to 255.255.255.255 port 67
-Apr 12 07:12:18 dhclient: DHCPACK from 192.168.3.1
-Apr 12 07:12:18 dhclient: bound to 192.168.3.18 -- renewal in 21461 seconds.
-Apr 12 07:12:20 netcfg[2072]: INFO: DHCP hostname: "dors"
-Apr 12 07:15:56 netcfg[2072]: INFO: Detected eth0 as a hotpluggable device
-Apr 12 07:15:56 main-menu[598]: (process:2071): Internet Systems Consortium DHCP Client V3.1.0
-Apr 12 07:15:56 main-menu[598]: (process:2071): 
-Apr 12 07:15:56 main-menu[598]: (process:2071): Copyright 2004-2007 Internet Systems Consortium.
-Apr 12 07:15:56 main-menu[598]: (process:2071): 
-Apr 12 07:15:56 main-menu[598]: (process:2071): All rights reserved.
-Apr 12 07:15:56 main-menu[598]: (process:2071): 
-Apr 12 07:15:56 main-menu[598]: (process:2071): For info, please visit http://www.isc.org/sw/dhcp/
-Apr 12 07:15:56 main-menu[598]: (process:2071): 
-Apr 12 07:15:56 main-menu[598]: (process:2071): 
-Apr 12 07:15:56 main-menu[598]: (process:2071): Listening on LPF/eth0/08:00:20:8c:ca:c1
-Apr 12 07:15:56 main-menu[598]: (process:2071): Sending on   LPF/eth0/08:00:20:8c:ca:c1
-Apr 12 07:15:56 main-menu[598]: (process:2071): Sending on   Socket/fallback
-Apr 12 07:15:56 main-menu[598]: (process:2071): DHCPDISCOVER on eth0 to 255.255.255.255 port 67 interval 3
-Apr 12 07:15:56 main-menu[598]: (process:2071): DHCPOFFER from 192.168.3.1
-Apr 12 07:15:56 main-menu[598]: (process:2071): DHCPREQUEST on eth0 to 255.255.255.255 port 67
-Apr 12 07:15:56 main-menu[598]: (process:2071): DHCPACK from 192.168.3.1
-Apr 12 07:15:56 main-menu[598]: (process:2071): bound to 192.168.3.18 -- renewal in 21461 seconds.
-Apr 12 07:15:56 main-menu[598]: DEBUG: resolver (libc6): package doesn't exist (ignored)
-Apr 12 07:16:03 main-menu[598]: INFO: Falling back to the package description for auto-install
-Apr 12 07:16:03 main-menu[598]: INFO: Falling back to the package description for ai-choosers
-Apr 12 07:16:03 main-menu[598]: INFO: Menu item 'choose-mirror' selected
-Apr 12 07:16:03 anna-install: Queueing udeb apt-mirror-setup for later installation
-Apr 12 07:29:15 choose-mirror[2131]: DEBUG: command: wget -q http://mirrors.kernel.org/debian//dists/lenny/Release -O - | grep ^Suite: | cut -d' ' -f 2
-Apr 12 07:53:30 choose-mirror[2131]: DEBUG: command: wget -q http://mirrors.kernel.org/debian//dists/testing/Release -O - | grep ^Codename: | cut -d' ' -f 2
-Apr 12 07:53:47 choose-mirror[2131]: INFO: codename set to: lenny
-Apr 12 07:53:47 choose-mirror[2131]: DEBUG: command: wget -q http://mirrors.kernel.org/debian//dists/testing/main/binary-sparc/Release -O - | grep Architecture
-Apr 12 07:54:10 anna-install: Queueing udeb lenny-support for later installation
-Apr 12 07:54:10 main-menu[598]: DEBUG: resolver (libc6): package doesn't exist (ignored)
-Apr 12 07:57:52 main-menu[598]: INFO: Falling back to the package description for auto-install
-Apr 12 07:57:52 main-menu[598]: INFO: Falling back to the package description for ai-choosers
-Apr 12 07:57:52 main-menu[598]: INFO: Menu item 'download-installer' selected
-Apr 12 07:58:30 net-retriever: gpgv: 
-Apr 12 07:58:30 net-retriever: Signature made Fri Apr 11 21:00:57 2008 UTC using DSA key ID 6070D3A1
-Apr 12 07:58:30 net-retriever: gpgv: 
-Apr 12 07:58:30 net-retriever: Good signature from "Debian Archive Automatic Signing Key (4.0/etch) <ftpmaster@debian.org>"
-Apr 12 07:58:30 net-retriever: 
-Apr 12 07:59:15 anna[2178]: DEBUG: install hw-detect, enhances installed packages hw-detect
-Apr 12 07:59:15 anna[2178]: DEBUG: install apt-mirror-setup, queued by anna-install
-Apr 12 07:59:15 anna[2178]: DEBUG: install apt-setup-udeb, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for ata-modules-2.6.24-1-sparc64-di, matches kernel
-Apr 12 07:59:15 anna[2178]: DEBUG: install base-installer, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: install bootstrap-base, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: install cdebconf-udeb, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for cdrom-checker, is menu item
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for cdrom-core-modules-2.6.24-1-sparc64-di, matches kernel
-Apr 12 07:59:15 anna[2178]: DEBUG: install cdrom-core-modules-2.6.24-1-sparc64-di, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for cdrom-detect, is menu item
-Apr 12 07:59:15 anna[2178]: DEBUG: install clock-setup, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for console-setup-udeb, is menu item
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for crypto-modules-2.6.24-1-sparc64-di, matches kernel
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for debian-edu-install-udeb, is menu item
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for debian-edu-profile-udeb, is menu item
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for di-utils-exit-installer, is menu item
-Apr 12 07:59:15 anna[2178]: DEBUG: install di-utils-mapdevfs, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for disk-detect, is menu item
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for eject-udeb, is menu item
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for ext3-modules-2.6.24-1-sparc64-di, matches kernel
-Apr 12 07:59:15 anna[2178]: DEBUG: install ext3-modules-2.6.24-1-sparc64-di, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for fat-modules-2.6.24-1-sparc64-di, matches kernel
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for fdisk-udeb, is menu item
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for file-preseed, is menu item
-Apr 12 07:59:15 anna[2178]: DEBUG: install finish-install, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for ide-modules-2.6.24-1-sparc64-di, matches kernel
-Apr 12 07:59:15 anna[2178]: DEBUG: install ide-modules-2.6.24-1-sparc64-di, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for ipv6-modules-2.6.24-1-sparc64-di, matches kernel
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for iso-scan, is menu item
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for jfs-modules-2.6.24-1-sparc64-di, matches kernel
-Apr 12 07:59:15 anna[2178]: DEBUG: install jfs-modules-2.6.24-1-sparc64-di, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: install kickseed-common, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: install libpcre3-udeb, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for live-installer, is menu item
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for load-cdrom, is menu item
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for load-floppy, is menu item
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for load-iso, is menu item
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for loop-aes-modules-2.6.24-1-sparc64-di, matches kernel
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for lowmem, is menu item
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for ltsp-client-builder, is menu item
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for lvmcfg, is menu item
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for md-modules-2.6.24-1-sparc64-di, matches kernel
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for mdcfg, is menu item
-Apr 12 07:59:15 anna[2178]: DEBUG: install mkreiserfs-udeb, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for multipath-modules-2.6.24-1-sparc64-di, matches kernel
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for netcfg-static, is menu item
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for network-console, is menu item
-Apr 12 07:59:15 anna[2178]: DEBUG: install nobootloader, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for openssh-client-udeb, is menu item
-Apr 12 07:59:15 anna[2178]: DEBUG: install partman-auto, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: install partman-auto-raid, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: install partman-base, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: install partman-basicfilesystems, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: install partman-ext3, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: install partman-jfs, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: install partman-md, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: install partman-reiserfs, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: install partman-target, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: install partman-xfs, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for pata-modules-2.6.24-1-sparc64-di, matches kernel
-Apr 12 07:59:15 anna[2178]: DEBUG: install pata-modules-2.6.24-1-sparc64-di, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: install pkgsel, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for plip-modules-2.6.24-1-sparc64-di, matches kernel
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for ppp-modules-2.6.24-1-sparc64-di, matches kernel
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for ppp-udeb, is menu item
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for reiserfs-modules-2.6.24-1-sparc64-di, matches kernel
-Apr 12 07:59:15 anna[2178]: DEBUG: install reiserfs-modules-2.6.24-1-sparc64-di, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for rescue-mode, is menu item
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for sata-modules-2.6.24-1-sparc64-di, matches kernel
-Apr 12 07:59:15 anna[2178]: DEBUG: install sata-modules-2.6.24-1-sparc64-di, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for scsi-common-modules-2.6.24-1-sparc64-di, matches kernel
-Apr 12 07:59:15 anna[2178]: DEBUG: install scsi-common-modules-2.6.24-1-sparc64-di, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for scsi-core-modules-2.6.24-1-sparc64-di, matches kernel
-Apr 12 07:59:15 anna[2178]: DEBUG: install scsi-core-modules-2.6.24-1-sparc64-di, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for scsi-modules-2.6.24-1-sparc64-di, matches kernel
-Apr 12 07:59:15 anna[2178]: DEBUG: install scsi-modules-2.6.24-1-sparc64-di, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: install silo-installer, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for squashfs-modules-2.6.24-1-sparc64-di, matches kernel
-Apr 12 07:59:15 anna[2178]: DEBUG: install tzsetup-udeb, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: install user-setup-udeb, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for xfs-modules-2.6.24-1-sparc64-di, matches kernel
-Apr 12 07:59:15 anna[2178]: DEBUG: install xfs-modules-2.6.24-1-sparc64-di, priority >= standard
-Apr 12 07:59:15 anna[2178]: DEBUG: ask for zlib-modules-2.6.24-1-sparc64-di, matches kernel
-Apr 12 08:24:08 anna[2178]: wget: cannot connect to remote host (204.152.191.39): Connection timed out
-Apr 12 08:24:08 anna[2178]: WARNING **: package retrieval failed
-Apr 12 08:50:57 main-menu[598]: INFO: Falling back to the package description for auto-install
-Apr 12 08:50:57 main-menu[598]: INFO: Falling back to the package description for ai-choosers
-Apr 12 08:50:57 main-menu[598]: INFO: Menu item 'clock-setup' selected
-Apr 12 08:51:22 clock-setup: Sat Apr 12 08:51:22 UTC 2008 rdate: adjust local clock by -11.601451 seconds
-Apr 12 08:52:04 main-menu[598]: INFO: Falling back to the package description for auto-install
-Apr 12 08:52:04 main-menu[598]: INFO: Falling back to the package description for ai-choosers
-Apr 12 08:52:04 main-menu[598]: INFO: Menu item 'di-utils-shell' selected
-Apr 12 08:58:41 kernel: SCSI subsystem initialized
-Apr 12 09:00:58 main-menu[598]: INFO: Falling back to the package description for auto-install
-Apr 12 09:00:58 main-menu[598]: INFO: Falling back to the package description for ai-choosers
-Apr 12 09:00:58 main-menu[598]: INFO: Menu item 'save-logs' selected
-Apr 12 09:11:26 main-menu[598]: INFO: Falling back to the package description for auto-install
-Apr 12 09:11:26 main-menu[598]: INFO: Falling back to the package description for ai-choosers
-Apr 12 09:11:26 main-menu[598]: INFO: Menu item 'di-utils-shell' selected
-Apr 12 09:12:04 kernel: Driver 'sd' needs updating - please use bus_type methods
-Apr 12 09:29:17 main-menu[598]: INFO: Falling back to the package description for auto-install
-Apr 12 09:29:17 main-menu[598]: INFO: Falling back to the package description for ai-choosers
-Apr 12 09:29:17 main-menu[598]: INFO: Menu item 'save-logs' selected
+#
+# General setup
+#
+CONFIG_EXPERIMENTAL=y
+CONFIG_LOCK_KERNEL=y
+CONFIG_INIT_ENV_ARG_LIMIT=32
+CONFIG_LOCALVERSION=""
+# CONFIG_LOCALVERSION_AUTO is not set
+CONFIG_SWAP=y
+CONFIG_SYSVIPC=y
+CONFIG_SYSVIPC_SYSCTL=y
+CONFIG_POSIX_MQUEUE=y
+# CONFIG_BSD_PROCESS_ACCT is not set
+# CONFIG_TASKSTATS is not set
+# CONFIG_AUDIT is not set
+CONFIG_IKCONFIG=y
+CONFIG_IKCONFIG_PROC=y
+CONFIG_LOG_BUF_SHIFT=18
+# CONFIG_CGROUPS is not set
+CONFIG_GROUP_SCHED=y
+CONFIG_FAIR_GROUP_SCHED=y
+# CONFIG_RT_GROUP_SCHED is not set
+CONFIG_USER_SCHED=y
+# CONFIG_CGROUP_SCHED is not set
+CONFIG_SYSFS_DEPRECATED=y
+CONFIG_SYSFS_DEPRECATED_V2=y
+# CONFIG_RELAY is not set
+CONFIG_NAMESPACES=y
+# CONFIG_UTS_NS is not set
+# CONFIG_IPC_NS is not set
+# CONFIG_USER_NS is not set
+# CONFIG_PID_NS is not set
+# CONFIG_BLK_DEV_INITRD is not set
+# CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
+CONFIG_SYSCTL=y
+# CONFIG_EMBEDDED is not set
+CONFIG_UID16=y
+CONFIG_SYSCTL_SYSCALL=y
+CONFIG_SYSCTL_SYSCALL_CHECK=y
+CONFIG_KALLSYMS=y
+CONFIG_KALLSYMS_ALL=y
+# CONFIG_KALLSYMS_EXTRA_PASS is not set
+CONFIG_HOTPLUG=y
+CONFIG_PRINTK=y
+CONFIG_BUG=y
+CONFIG_ELF_CORE=y
+# CONFIG_COMPAT_BRK is not set
+CONFIG_BASE_FULL=y
+CONFIG_FUTEX=y
+CONFIG_ANON_INODES=y
+CONFIG_EPOLL=y
+CONFIG_SIGNALFD=y
+CONFIG_TIMERFD=y
+CONFIG_EVENTFD=y
+CONFIG_SHMEM=y
+CONFIG_VM_EVENT_COUNTERS=y
+CONFIG_SLUB_DEBUG=y
+# CONFIG_SLAB is not set
+CONFIG_SLUB=y
+# CONFIG_SLOB is not set
+# CONFIG_PROFILING is not set
+# CONFIG_MARKERS is not set
+CONFIG_HAVE_OPROFILE=y
+# CONFIG_KPROBES is not set
+CONFIG_HAVE_KPROBES=y
+CONFIG_HAVE_KRETPROBES=y
+# CONFIG_HAVE_DMA_ATTRS is not set
+CONFIG_PROC_PAGE_MONITOR=y
+CONFIG_SLABINFO=y
+CONFIG_RT_MUTEXES=y
+# CONFIG_TINY_SHMEM is not set
+CONFIG_BASE_SMALL=0
+CONFIG_MODULES=y
+CONFIG_MODULE_UNLOAD=y
+# CONFIG_MODULE_FORCE_UNLOAD is not set
+# CONFIG_MODVERSIONS is not set
+# CONFIG_MODULE_SRCVERSION_ALL is not set
+CONFIG_KMOD=y
+CONFIG_STOP_MACHINE=y
+CONFIG_BLOCK=y
+# CONFIG_BLK_DEV_IO_TRACE is not set
+# CONFIG_BLK_DEV_BSG is not set
+CONFIG_BLOCK_COMPAT=y
 
---VV4b6MQE+OnNyhkM--
+#
+# IO Schedulers
+#
+# CONFIG_IOSCHED_CFQ is not set
+CONFIG_IOSCHED_AS=y
+# CONFIG_IOSCHED_DEADLINE is not set
+CONFIG_IOSCHED_NOOP=y
+# CONFIG_DEFAULT_CFQ is not set
+CONFIG_DEFAULT_AS=y
+# CONFIG_DEFAULT_DEADLINE is not set
+# CONFIG_DEFAULT_NOOP is not set
+CONFIG_DEFAULT_IOSCHED="anticipatory"
+# CONFIG_CLASSIC_RCU is not set
+CONFIG_SYSVIPC_COMPAT=y
+CONFIG_GENERIC_HARDIRQS=y
+
+#
+# General machine setup
+#
+CONFIG_TICK_ONESHOT=y
+CONFIG_NO_HZ=y
+CONFIG_HIGH_RES_TIMERS=y
+CONFIG_GENERIC_CLOCKEVENTS_BUILD=y
+CONFIG_SMP=y
+CONFIG_NR_CPUS=4
+# CONFIG_CPU_FREQ is not set
+CONFIG_GENERIC_LOCKBREAK=y
+CONFIG_RWSEM_XCHGADD_ALGORITHM=y
+CONFIG_GENERIC_FIND_NEXT_BIT=y
+CONFIG_GENERIC_HWEIGHT=y
+CONFIG_GENERIC_CALIBRATE_DELAY=y
+CONFIG_ARCH_SELECT_MEMORY_MODEL=y
+CONFIG_ARCH_SPARSEMEM_ENABLE=y
+CONFIG_ARCH_SPARSEMEM_DEFAULT=y
+CONFIG_SELECT_MEMORY_MODEL=y
+# CONFIG_FLATMEM_MANUAL is not set
+# CONFIG_DISCONTIGMEM_MANUAL is not set
+CONFIG_SPARSEMEM_MANUAL=y
+CONFIG_SPARSEMEM=y
+CONFIG_HAVE_MEMORY_PRESENT=y
+# CONFIG_SPARSEMEM_STATIC is not set
+CONFIG_SPARSEMEM_EXTREME=y
+CONFIG_SPARSEMEM_VMEMMAP_ENABLE=y
+CONFIG_SPARSEMEM_VMEMMAP=y
+CONFIG_SPLIT_PTLOCK_CPUS=4
+CONFIG_RESOURCES_64BIT=y
+CONFIG_ZONE_DMA_FLAG=0
+CONFIG_NR_QUICK=1
+CONFIG_SBUS=y
+CONFIG_SBUSCHAR=y
+CONFIG_SUN_AUXIO=y
+CONFIG_SUN_IO=y
+# CONFIG_SUN_LDOMS is not set
+CONFIG_PCI=y
+CONFIG_PCI_DOMAINS=y
+CONFIG_PCI_SYSCALL=y
+CONFIG_ARCH_SUPPORTS_MSI=y
+# CONFIG_PCI_MSI is not set
+CONFIG_PCI_LEGACY=y
+# CONFIG_PCI_DEBUG is not set
+CONFIG_SUN_OPENPROMFS=m
+CONFIG_SPARC32_COMPAT=y
+CONFIG_COMPAT=y
+# CONFIG_BINFMT_AOUT32 is not set
+
+#
+# Executable file formats
+#
+CONFIG_BINFMT_ELF=y
+CONFIG_COMPAT_BINFMT_ELF=y
+CONFIG_BINFMT_MISC=m
+CONFIG_SOLARIS_EMUL=y
+CONFIG_SCHED_SMT=y
+CONFIG_SCHED_MC=y
+# CONFIG_PREEMPT_NONE is not set
+# CONFIG_PREEMPT_VOLUNTARY is not set
+CONFIG_PREEMPT=y
+CONFIG_PREEMPT_RCU=y
+# CONFIG_RCU_TRACE is not set
+# CONFIG_CMDLINE_BOOL is not set
+
+#
+# Networking
+#
+CONFIG_NET=y
+
+#
+# Networking options
+#
+CONFIG_PACKET=y
+CONFIG_PACKET_MMAP=y
+CONFIG_UNIX=y
+CONFIG_XFRM=y
+CONFIG_XFRM_USER=m
+# CONFIG_XFRM_SUB_POLICY is not set
+# CONFIG_XFRM_MIGRATE is not set
+# CONFIG_XFRM_STATISTICS is not set
+CONFIG_NET_KEY=m
+# CONFIG_NET_KEY_MIGRATE is not set
+CONFIG_INET=y
+# CONFIG_IP_MULTICAST is not set
+# CONFIG_IP_ADVANCED_ROUTER is not set
+CONFIG_IP_FIB_HASH=y
+# CONFIG_IP_PNP is not set
+# CONFIG_NET_IPIP is not set
+# CONFIG_NET_IPGRE is not set
+# CONFIG_ARPD is not set
+# CONFIG_SYN_COOKIES is not set
+# CONFIG_INET_AH is not set
+# CONFIG_INET_ESP is not set
+# CONFIG_INET_IPCOMP is not set
+# CONFIG_INET_XFRM_TUNNEL is not set
+# CONFIG_INET_TUNNEL is not set
+# CONFIG_INET_XFRM_MODE_TRANSPORT is not set
+# CONFIG_INET_XFRM_MODE_TUNNEL is not set
+# CONFIG_INET_XFRM_MODE_BEET is not set
+# CONFIG_INET_LRO is not set
+CONFIG_INET_DIAG=y
+CONFIG_INET_TCP_DIAG=y
+# CONFIG_TCP_CONG_ADVANCED is not set
+CONFIG_TCP_CONG_CUBIC=y
+CONFIG_DEFAULT_TCP_CONG="cubic"
+# CONFIG_TCP_MD5SIG is not set
+# CONFIG_IPV6 is not set
+# CONFIG_INET6_XFRM_TUNNEL is not set
+# CONFIG_INET6_TUNNEL is not set
+# CONFIG_NETWORK_SECMARK is not set
+# CONFIG_NETFILTER is not set
+# CONFIG_IP_DCCP is not set
+# CONFIG_IP_SCTP is not set
+# CONFIG_TIPC is not set
+# CONFIG_ATM is not set
+# CONFIG_BRIDGE is not set
+# CONFIG_VLAN_8021Q is not set
+# CONFIG_DECNET is not set
+# CONFIG_LLC2 is not set
+# CONFIG_IPX is not set
+# CONFIG_ATALK is not set
+# CONFIG_X25 is not set
+# CONFIG_LAPB is not set
+# CONFIG_ECONET is not set
+# CONFIG_WAN_ROUTER is not set
+# CONFIG_NET_SCHED is not set
+
+#
+# Network testing
+#
+# CONFIG_NET_PKTGEN is not set
+# CONFIG_HAMRADIO is not set
+# CONFIG_CAN is not set
+# CONFIG_IRDA is not set
+# CONFIG_BT is not set
+# CONFIG_AF_RXRPC is not set
+
+#
+# Wireless
+#
+# CONFIG_CFG80211 is not set
+# CONFIG_WIRELESS_EXT is not set
+# CONFIG_MAC80211 is not set
+# CONFIG_IEEE80211 is not set
+# CONFIG_RFKILL is not set
+# CONFIG_NET_9P is not set
+
+#
+# Device Drivers
+#
+
+#
+# Generic Driver Options
+#
+CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
+CONFIG_STANDALONE=y
+# CONFIG_PREVENT_FIRMWARE_BUILD is not set
+CONFIG_FW_LOADER=y
+# CONFIG_DEBUG_DRIVER is not set
+# CONFIG_DEBUG_DEVRES is not set
+# CONFIG_SYS_HYPERVISOR is not set
+CONFIG_CONNECTOR=m
+# CONFIG_MTD is not set
+CONFIG_OF_DEVICE=y
+# CONFIG_PARPORT is not set
+# CONFIG_BLK_DEV is not set
+# CONFIG_MISC_DEVICES is not set
+CONFIG_HAVE_IDE=y
+# CONFIG_IDE is not set
+
+#
+# SCSI device support
+#
+# CONFIG_RAID_ATTRS is not set
+CONFIG_SCSI=y
+CONFIG_SCSI_DMA=y
+# CONFIG_SCSI_TGT is not set
+# CONFIG_SCSI_NETLINK is not set
+CONFIG_SCSI_PROC_FS=y
+
+#
+# SCSI support type (disk, tape, CD-ROM)
+#
+CONFIG_BLK_DEV_SD=y
+# CONFIG_CHR_DEV_ST is not set
+# CONFIG_CHR_DEV_OSST is not set
+CONFIG_BLK_DEV_SR=m
+CONFIG_BLK_DEV_SR_VENDOR=y
+CONFIG_CHR_DEV_SG=m
+# CONFIG_CHR_DEV_SCH is not set
+
+#
+# Some SCSI devices (e.g. CD jukebox) support multiple LUNs
+#
+CONFIG_SCSI_MULTI_LUN=y
+# CONFIG_SCSI_CONSTANTS is not set
+# CONFIG_SCSI_LOGGING is not set
+# CONFIG_SCSI_SCAN_ASYNC is not set
+CONFIG_SCSI_WAIT_SCAN=m
+
+#
+# SCSI Transports
+#
+CONFIG_SCSI_SPI_ATTRS=y
+# CONFIG_SCSI_FC_ATTRS is not set
+CONFIG_SCSI_ISCSI_ATTRS=y
+# CONFIG_SCSI_SAS_LIBSAS is not set
+# CONFIG_SCSI_SRP_ATTRS is not set
+CONFIG_SCSI_LOWLEVEL=y
+# CONFIG_ISCSI_TCP is not set
+# CONFIG_BLK_DEV_3W_XXXX_RAID is not set
+# CONFIG_SCSI_3W_9XXX is not set
+# CONFIG_SCSI_ACARD is not set
+# CONFIG_SCSI_AACRAID is not set
+# CONFIG_SCSI_AIC7XXX is not set
+# CONFIG_SCSI_AIC7XXX_OLD is not set
+# CONFIG_SCSI_AIC79XX is not set
+# CONFIG_SCSI_AIC94XX is not set
+# CONFIG_SCSI_ARCMSR is not set
+# CONFIG_MEGARAID_NEWGEN is not set
+# CONFIG_MEGARAID_LEGACY is not set
+# CONFIG_MEGARAID_SAS is not set
+# CONFIG_SCSI_HPTIOP is not set
+# CONFIG_SCSI_DMX3191D is not set
+# CONFIG_SCSI_FUTURE_DOMAIN is not set
+# CONFIG_SCSI_IPS is not set
+# CONFIG_SCSI_INITIO is not set
+# CONFIG_SCSI_INIA100 is not set
+# CONFIG_SCSI_MVSAS is not set
+# CONFIG_SCSI_STEX is not set
+CONFIG_SCSI_SYM53C8XX_2=y
+CONFIG_SCSI_SYM53C8XX_DMA_ADDRESSING_MODE=1
+CONFIG_SCSI_SYM53C8XX_DEFAULT_TAGS=16
+CONFIG_SCSI_SYM53C8XX_MAX_TAGS=64
+CONFIG_SCSI_SYM53C8XX_MMIO=y
+# CONFIG_SCSI_QLOGIC_1280 is not set
+# CONFIG_SCSI_QLOGICPTI is not set
+# CONFIG_SCSI_QLA_FC is not set
+# CONFIG_SCSI_QLA_ISCSI is not set
+# CONFIG_SCSI_LPFC is not set
+# CONFIG_SCSI_DC395x is not set
+# CONFIG_SCSI_DC390T is not set
+# CONFIG_SCSI_DEBUG is not set
+# CONFIG_SCSI_SUNESP is not set
+# CONFIG_SCSI_SRP is not set
+# CONFIG_ATA is not set
+# CONFIG_MD is not set
+# CONFIG_FUSION is not set
+
+#
+# IEEE 1394 (FireWire) support
+#
+# CONFIG_FIREWIRE is not set
+# CONFIG_IEEE1394 is not set
+# CONFIG_I2O is not set
+CONFIG_NETDEVICES=y
+# CONFIG_NETDEVICES_MULTIQUEUE is not set
+# CONFIG_DUMMY is not set
+# CONFIG_BONDING is not set
+# CONFIG_MACVLAN is not set
+# CONFIG_EQUALIZER is not set
+# CONFIG_TUN is not set
+# CONFIG_VETH is not set
+# CONFIG_ARCNET is not set
+# CONFIG_PHYLIB is not set
+CONFIG_NET_ETHERNET=y
+CONFIG_MII=y
+# CONFIG_SUNLANCE is not set
+CONFIG_HAPPYMEAL=y
+# CONFIG_SUNBMAC is not set
+# CONFIG_SUNQE is not set
+# CONFIG_SUNGEM is not set
+# CONFIG_CASSINI is not set
+# CONFIG_NET_VENDOR_3COM is not set
+# CONFIG_NET_TULIP is not set
+# CONFIG_HP100 is not set
+# CONFIG_IBM_NEW_EMAC_ZMII is not set
+# CONFIG_IBM_NEW_EMAC_RGMII is not set
+# CONFIG_IBM_NEW_EMAC_TAH is not set
+# CONFIG_IBM_NEW_EMAC_EMAC4 is not set
+# CONFIG_NET_PCI is not set
+# CONFIG_B44 is not set
+# CONFIG_NETDEV_1000 is not set
+# CONFIG_NETDEV_10000 is not set
+# CONFIG_TR is not set
+
+#
+# Wireless LAN
+#
+# CONFIG_WLAN_PRE80211 is not set
+# CONFIG_WLAN_80211 is not set
+# CONFIG_WAN is not set
+# CONFIG_FDDI is not set
+# CONFIG_HIPPI is not set
+# CONFIG_PPP is not set
+# CONFIG_SLIP is not set
+# CONFIG_NET_FC is not set
+CONFIG_NETCONSOLE=m
+# CONFIG_NETCONSOLE_DYNAMIC is not set
+CONFIG_NETPOLL=y
+CONFIG_NETPOLL_TRAP=y
+CONFIG_NET_POLL_CONTROLLER=y
+# CONFIG_ISDN is not set
+# CONFIG_PHONE is not set
+
+#
+# Input device support
+#
+CONFIG_INPUT=y
+# CONFIG_INPUT_FF_MEMLESS is not set
+# CONFIG_INPUT_POLLDEV is not set
+
+#
+# Userland interfaces
+#
+CONFIG_INPUT_MOUSEDEV=y
+# CONFIG_INPUT_MOUSEDEV_PSAUX is not set
+CONFIG_INPUT_MOUSEDEV_SCREEN_X=1024
+CONFIG_INPUT_MOUSEDEV_SCREEN_Y=768
+# CONFIG_INPUT_JOYDEV is not set
+# CONFIG_INPUT_EVDEV is not set
+# CONFIG_INPUT_EVBUG is not set
+
+#
+# Input Device Drivers
+#
+CONFIG_INPUT_KEYBOARD=y
+CONFIG_KEYBOARD_ATKBD=y
+CONFIG_KEYBOARD_SUNKBD=y
+# CONFIG_KEYBOARD_LKKBD is not set
+# CONFIG_KEYBOARD_XTKBD is not set
+# CONFIG_KEYBOARD_NEWTON is not set
+# CONFIG_KEYBOARD_STOWAWAY is not set
+# CONFIG_INPUT_MOUSE is not set
+# CONFIG_INPUT_JOYSTICK is not set
+# CONFIG_INPUT_TABLET is not set
+# CONFIG_INPUT_TOUCHSCREEN is not set
+# CONFIG_INPUT_MISC is not set
+
+#
+# Hardware I/O ports
+#
+CONFIG_SERIO=y
+CONFIG_SERIO_I8042=y
+# CONFIG_SERIO_SERPORT is not set
+CONFIG_SERIO_PCIPS2=m
+CONFIG_SERIO_LIBPS2=y
+CONFIG_SERIO_RAW=m
+# CONFIG_GAMEPORT is not set
+
+#
+# Character devices
+#
+CONFIG_VT=y
+CONFIG_VT_CONSOLE=y
+CONFIG_HW_CONSOLE=y
+# CONFIG_VT_HW_CONSOLE_BINDING is not set
+CONFIG_DEVKMEM=y
+# CONFIG_SERIAL_NONSTANDARD is not set
+# CONFIG_NOZOMI is not set
+
+#
+# Serial drivers
+#
+
+#
+# Non-8250 serial port support
+#
+CONFIG_SERIAL_SUNCORE=y
+# CONFIG_SERIAL_SUNZILOG is not set
+CONFIG_SERIAL_SUNSU=y
+CONFIG_SERIAL_SUNSU_CONSOLE=y
+CONFIG_SERIAL_SUNSAB=m
+CONFIG_SERIAL_SUNHV=y
+CONFIG_SERIAL_CORE=y
+CONFIG_SERIAL_CORE_CONSOLE=y
+# CONFIG_SERIAL_JSM is not set
+CONFIG_UNIX98_PTYS=y
+# CONFIG_LEGACY_PTYS is not set
+# CONFIG_IPMI_HANDLER is not set
+# CONFIG_HW_RANDOM is not set
+# CONFIG_R3964 is not set
+# CONFIG_APPLICOM is not set
+# CONFIG_RAW_DRIVER is not set
+# CONFIG_TCG_TPM is not set
+CONFIG_DEVPORT=y
+# CONFIG_I2C is not set
+# CONFIG_SPI is not set
+
+#
+# PPS support
+#
+# CONFIG_PPS is not set
+# CONFIG_W1 is not set
+# CONFIG_POWER_SUPPLY is not set
+# CONFIG_HWMON is not set
+# CONFIG_THERMAL is not set
+# CONFIG_WATCHDOG is not set
+
+#
+# Sonics Silicon Backplane
+#
+CONFIG_SSB_POSSIBLE=y
+# CONFIG_SSB is not set
+
+#
+# Multifunction device drivers
+#
+# CONFIG_MFD_SM501 is not set
+
+#
+# Multimedia devices
+#
+# CONFIG_VIDEO_DEV is not set
+# CONFIG_DVB_CORE is not set
+# CONFIG_DAB is not set
+
+#
+# Graphics support
+#
+# CONFIG_DRM is not set
+# CONFIG_VGASTATE is not set
+CONFIG_VIDEO_OUTPUT_CONTROL=m
+CONFIG_FB=y
+# CONFIG_FIRMWARE_EDID is not set
+# CONFIG_FB_DDC is not set
+# CONFIG_FB_CFB_FILLRECT is not set
+CONFIG_FB_CFB_COPYAREA=y
+CONFIG_FB_CFB_IMAGEBLIT=y
+# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
+# CONFIG_FB_SYS_FILLRECT is not set
+# CONFIG_FB_SYS_COPYAREA is not set
+# CONFIG_FB_SYS_IMAGEBLIT is not set
+CONFIG_FB_FOREIGN_ENDIAN=y
+CONFIG_FB_BOTH_ENDIAN=y
+# CONFIG_FB_BIG_ENDIAN is not set
+# CONFIG_FB_LITTLE_ENDIAN is not set
+# CONFIG_FB_SYS_FOPS is not set
+CONFIG_FB_DEFERRED_IO=y
+# CONFIG_FB_SVGALIB is not set
+# CONFIG_FB_MACMODES is not set
+# CONFIG_FB_BACKLIGHT is not set
+CONFIG_FB_MODE_HELPERS=y
+CONFIG_FB_TILEBLITTING=y
+
+#
+# Frame buffer hardware drivers
+#
+# CONFIG_FB_CIRRUS is not set
+# CONFIG_FB_PM2 is not set
+# CONFIG_FB_ASILIANT is not set
+# CONFIG_FB_IMSTT is not set
+# CONFIG_FB_UVESA is not set
+CONFIG_FB_SBUS=y
+# CONFIG_FB_BW2 is not set
+# CONFIG_FB_CG3 is not set
+# CONFIG_FB_CG6 is not set
+CONFIG_FB_FFB=y
+# CONFIG_FB_TCX is not set
+# CONFIG_FB_CG14 is not set
+# CONFIG_FB_P9100 is not set
+# CONFIG_FB_LEO is not set
+# CONFIG_FB_XVR500 is not set
+# CONFIG_FB_XVR2500 is not set
+# CONFIG_FB_S1D13XXX is not set
+# CONFIG_FB_NVIDIA is not set
+# CONFIG_FB_RIVA is not set
+# CONFIG_FB_MATROX is not set
+# CONFIG_FB_RADEON is not set
+# CONFIG_FB_ATY128 is not set
+# CONFIG_FB_ATY is not set
+# CONFIG_FB_S3 is not set
+# CONFIG_FB_SAVAGE is not set
+# CONFIG_FB_SIS is not set
+# CONFIG_FB_NEOMAGIC is not set
+# CONFIG_FB_KYRO is not set
+# CONFIG_FB_3DFX is not set
+# CONFIG_FB_VOODOO1 is not set
+# CONFIG_FB_VT8623 is not set
+# CONFIG_FB_TRIDENT is not set
+# CONFIG_FB_ARK is not set
+# CONFIG_FB_PM3 is not set
+# CONFIG_FB_VIRTUAL is not set
+# CONFIG_BACKLIGHT_LCD_SUPPORT is not set
+
+#
+# Display device support
+#
+# CONFIG_DISPLAY_SUPPORT is not set
+
+#
+# Console display driver support
+#
+# CONFIG_PROM_CONSOLE is not set
+CONFIG_DUMMY_CONSOLE=y
+CONFIG_FRAMEBUFFER_CONSOLE=y
+# CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY is not set
+# CONFIG_FRAMEBUFFER_CONSOLE_ROTATION is not set
+CONFIG_FONTS=y
+CONFIG_FONT_8x8=y
+CONFIG_FONT_8x16=y
+# CONFIG_FONT_6x11 is not set
+# CONFIG_FONT_7x14 is not set
+# CONFIG_FONT_PEARL_8x8 is not set
+# CONFIG_FONT_ACORN_8x8 is not set
+CONFIG_FONT_SUN8x16=y
+CONFIG_FONT_SUN12x22=y
+# CONFIG_FONT_10x18 is not set
+CONFIG_LOGO=y
+# CONFIG_LOGO_LINUX_MONO is not set
+# CONFIG_LOGO_LINUX_VGA16 is not set
+# CONFIG_LOGO_LINUX_CLUT224 is not set
+CONFIG_LOGO_SUN_CLUT224=y
+
+#
+# Sound
+#
+CONFIG_SOUND=y
+
+#
+# Advanced Linux Sound Architecture
+#
+CONFIG_SND=y
+CONFIG_SND_TIMER=y
+CONFIG_SND_PCM=y
+# CONFIG_SND_SEQUENCER is not set
+CONFIG_SND_OSSEMUL=y
+CONFIG_SND_MIXER_OSS=y
+CONFIG_SND_PCM_OSS=y
+CONFIG_SND_PCM_OSS_PLUGINS=y
+# CONFIG_SND_DYNAMIC_MINORS is not set
+CONFIG_SND_SUPPORT_OLD_API=y
+# CONFIG_SND_VERBOSE_PROCFS is not set
+# CONFIG_SND_VERBOSE_PRINTK is not set
+# CONFIG_SND_DEBUG is not set
+
+#
+# Generic devices
+#
+# CONFIG_SND_DUMMY is not set
+# CONFIG_SND_MTPAV is not set
+# CONFIG_SND_SERIAL_U16550 is not set
+# CONFIG_SND_MPU401 is not set
+
+#
+# PCI devices
+#
+# CONFIG_SND_AD1889 is not set
+# CONFIG_SND_ALS300 is not set
+# CONFIG_SND_ALI5451 is not set
+# CONFIG_SND_ATIIXP is not set
+# CONFIG_SND_ATIIXP_MODEM is not set
+# CONFIG_SND_AU8810 is not set
+# CONFIG_SND_AU8820 is not set
+# CONFIG_SND_AU8830 is not set
+# CONFIG_SND_AW2 is not set
+# CONFIG_SND_AZT3328 is not set
+# CONFIG_SND_BT87X is not set
+# CONFIG_SND_CA0106 is not set
+# CONFIG_SND_CMIPCI is not set
+# CONFIG_SND_OXYGEN is not set
+# CONFIG_SND_CS4281 is not set
+# CONFIG_SND_CS46XX is not set
+# CONFIG_SND_DARLA20 is not set
+# CONFIG_SND_GINA20 is not set
+# CONFIG_SND_LAYLA20 is not set
+# CONFIG_SND_DARLA24 is not set
+# CONFIG_SND_GINA24 is not set
+# CONFIG_SND_LAYLA24 is not set
+# CONFIG_SND_MONA is not set
+# CONFIG_SND_MIA is not set
+# CONFIG_SND_ECHO3G is not set
+# CONFIG_SND_INDIGO is not set
+# CONFIG_SND_INDIGOIO is not set
+# CONFIG_SND_INDIGODJ is not set
+# CONFIG_SND_EMU10K1 is not set
+# CONFIG_SND_EMU10K1X is not set
+# CONFIG_SND_ENS1370 is not set
+# CONFIG_SND_ENS1371 is not set
+# CONFIG_SND_ES1938 is not set
+# CONFIG_SND_ES1968 is not set
+# CONFIG_SND_FM801 is not set
+# CONFIG_SND_HDA_INTEL is not set
+# CONFIG_SND_HDSP is not set
+# CONFIG_SND_HDSPM is not set
+# CONFIG_SND_HIFIER is not set
+# CONFIG_SND_ICE1712 is not set
+# CONFIG_SND_ICE1724 is not set
+# CONFIG_SND_INTEL8X0 is not set
+# CONFIG_SND_INTEL8X0M is not set
+# CONFIG_SND_KORG1212 is not set
+# CONFIG_SND_MAESTRO3 is not set
+# CONFIG_SND_MIXART is not set
+# CONFIG_SND_NM256 is not set
+# CONFIG_SND_PCXHR is not set
+# CONFIG_SND_RIPTIDE is not set
+# CONFIG_SND_RME32 is not set
+# CONFIG_SND_RME96 is not set
+# CONFIG_SND_RME9652 is not set
+# CONFIG_SND_SONICVIBES is not set
+# CONFIG_SND_TRIDENT is not set
+# CONFIG_SND_VIA82XX is not set
+# CONFIG_SND_VIA82XX_MODEM is not set
+# CONFIG_SND_VIRTUOSO is not set
+# CONFIG_SND_VX222 is not set
+# CONFIG_SND_YMFPCI is not set
+
+#
+# ALSA Sparc devices
+#
+# CONFIG_SND_SUN_AMD7930 is not set
+CONFIG_SND_SUN_CS4231=y
+# CONFIG_SND_SUN_DBRI is not set
+
+#
+# System on Chip audio support
+#
+# CONFIG_SND_SOC is not set
+
+#
+# ALSA SoC audio for Freescale SOCs
+#
+
+#
+# Open Sound System
+#
+# CONFIG_SOUND_PRIME is not set
+# CONFIG_HID_SUPPORT is not set
+# CONFIG_USB_SUPPORT is not set
+# CONFIG_MMC is not set
+# CONFIG_MEMSTICK is not set
+# CONFIG_NEW_LEDS is not set
+# CONFIG_ACCESSIBILITY is not set
+# CONFIG_INFINIBAND is not set
+# CONFIG_RTC_CLASS is not set
+# CONFIG_UIO is not set
+
+#
+# Misc Linux/SPARC drivers
+#
+CONFIG_SUN_OPENPROMIO=y
+# CONFIG_OBP_FLASH is not set
+# CONFIG_SUN_BPP is not set
+# CONFIG_BBC_I2C is not set
+# CONFIG_ENVCTRL is not set
+# CONFIG_DISPLAY7SEG is not set
+
+#
+# File systems
+#
+CONFIG_EXT2_FS=y
+# CONFIG_EXT2_FS_XATTR is not set
+# CONFIG_EXT2_FS_XIP is not set
+CONFIG_EXT3_FS=y
+# CONFIG_EXT3_FS_XATTR is not set
+CONFIG_JBD=y
+# CONFIG_JBD_DEBUG is not set
+# CONFIG_REISER4_FS is not set
+# CONFIG_REISERFS_FS is not set
+# CONFIG_JFS_FS is not set
+CONFIG_FS_POSIX_ACL=y
+# CONFIG_XFS_FS is not set
+# CONFIG_GFS2_FS is not set
+# CONFIG_OCFS2_FS is not set
+CONFIG_DNOTIFY=y
+CONFIG_INOTIFY=y
+CONFIG_INOTIFY_USER=y
+# CONFIG_QUOTA is not set
+# CONFIG_AUTOFS_FS is not set
+# CONFIG_AUTOFS4_FS is not set
+# CONFIG_FUSE_FS is not set
+
+#
+# CD-ROM/DVD Filesystems
+#
+CONFIG_ISO9660_FS=m
+# CONFIG_JOLIET is not set
+# CONFIG_ZISOFS is not set
+CONFIG_UDF_FS=m
+CONFIG_UDF_NLS=y
+
+#
+# DOS/FAT/NT Filesystems
+#
+CONFIG_FAT_FS=m
+CONFIG_MSDOS_FS=m
+CONFIG_VFAT_FS=m
+CONFIG_FAT_DEFAULT_CODEPAGE=437
+CONFIG_FAT_DEFAULT_IOCHARSET="iso8859-1"
+# CONFIG_NTFS_FS is not set
+
+#
+# Pseudo filesystems
+#
+CONFIG_PROC_FS=y
+CONFIG_PROC_KCORE=y
+CONFIG_PROC_SYSCTL=y
+CONFIG_SYSFS=y
+CONFIG_TMPFS=y
+# CONFIG_TMPFS_POSIX_ACL is not set
+# CONFIG_HUGETLBFS is not set
+# CONFIG_HUGETLB_PAGE is not set
+# CONFIG_CONFIGFS_FS is not set
+
+#
+# Layered filesystems
+#
+# CONFIG_UNION_FS is not set
+
+#
+# Miscellaneous filesystems
+#
+# CONFIG_ADFS_FS is not set
+# CONFIG_AFFS_FS is not set
+# CONFIG_HFS_FS is not set
+# CONFIG_HFSPLUS_FS is not set
+# CONFIG_BEFS_FS is not set
+# CONFIG_BFS_FS is not set
+# CONFIG_EFS_FS is not set
+# CONFIG_CRAMFS is not set
+# CONFIG_VXFS_FS is not set
+# CONFIG_MINIX_FS is not set
+# CONFIG_HPFS_FS is not set
+# CONFIG_QNX4FS_FS is not set
+# CONFIG_ROMFS_FS is not set
+# CONFIG_SYSV_FS is not set
+# CONFIG_UFS_FS is not set
+CONFIG_NETWORK_FILESYSTEMS=y
+CONFIG_NFS_FS=m
+CONFIG_NFS_V3=y
+CONFIG_NFS_V3_ACL=y
+CONFIG_NFS_V4=y
+CONFIG_NFSD=m
+CONFIG_NFSD_V3=y
+# CONFIG_NFSD_V3_ACL is not set
+CONFIG_NFSD_V4=y
+CONFIG_LOCKD=m
+CONFIG_LOCKD_V4=y
+CONFIG_EXPORTFS=m
+CONFIG_NFS_ACL_SUPPORT=m
+CONFIG_NFS_COMMON=y
+CONFIG_SUNRPC=m
+CONFIG_SUNRPC_GSS=m
+# CONFIG_SUNRPC_BIND34 is not set
+CONFIG_RPCSEC_GSS_KRB5=m
+# CONFIG_RPCSEC_GSS_SPKM3 is not set
+# CONFIG_SMB_FS is not set
+# CONFIG_CIFS is not set
+# CONFIG_NCP_FS is not set
+# CONFIG_CODA_FS is not set
+# CONFIG_AFS_FS is not set
+
+#
+# Partition Types
+#
+# CONFIG_PARTITION_ADVANCED is not set
+CONFIG_MSDOS_PARTITION=y
+CONFIG_SUN_PARTITION=y
+CONFIG_NLS=m
+CONFIG_NLS_DEFAULT="iso8859-1"
+# CONFIG_NLS_CODEPAGE_437 is not set
+# CONFIG_NLS_CODEPAGE_737 is not set
+# CONFIG_NLS_CODEPAGE_775 is not set
+# CONFIG_NLS_CODEPAGE_850 is not set
+# CONFIG_NLS_CODEPAGE_852 is not set
+# CONFIG_NLS_CODEPAGE_855 is not set
+# CONFIG_NLS_CODEPAGE_857 is not set
+# CONFIG_NLS_CODEPAGE_860 is not set
+# CONFIG_NLS_CODEPAGE_861 is not set
+# CONFIG_NLS_CODEPAGE_862 is not set
+# CONFIG_NLS_CODEPAGE_863 is not set
+# CONFIG_NLS_CODEPAGE_864 is not set
+# CONFIG_NLS_CODEPAGE_865 is not set
+# CONFIG_NLS_CODEPAGE_866 is not set
+# CONFIG_NLS_CODEPAGE_869 is not set
+# CONFIG_NLS_CODEPAGE_936 is not set
+# CONFIG_NLS_CODEPAGE_950 is not set
+# CONFIG_NLS_CODEPAGE_932 is not set
+# CONFIG_NLS_CODEPAGE_949 is not set
+# CONFIG_NLS_CODEPAGE_874 is not set
+# CONFIG_NLS_ISO8859_8 is not set
+# CONFIG_NLS_CODEPAGE_1250 is not set
+# CONFIG_NLS_CODEPAGE_1251 is not set
+# CONFIG_NLS_ASCII is not set
+# CONFIG_NLS_ISO8859_1 is not set
+# CONFIG_NLS_ISO8859_2 is not set
+# CONFIG_NLS_ISO8859_3 is not set
+# CONFIG_NLS_ISO8859_4 is not set
+# CONFIG_NLS_ISO8859_5 is not set
+# CONFIG_NLS_ISO8859_6 is not set
+# CONFIG_NLS_ISO8859_7 is not set
+# CONFIG_NLS_ISO8859_9 is not set
+# CONFIG_NLS_ISO8859_13 is not set
+# CONFIG_NLS_ISO8859_14 is not set
+# CONFIG_NLS_ISO8859_15 is not set
+# CONFIG_NLS_KOI8_R is not set
+# CONFIG_NLS_KOI8_U is not set
+# CONFIG_NLS_UTF8 is not set
+# CONFIG_DLM is not set
+
+#
+# Kernel hacking
+#
+CONFIG_TRACE_IRQFLAGS_SUPPORT=y
+# CONFIG_PRINTK_TIME is not set
+# CONFIG_ENABLE_WARN_DEPRECATED is not set
+# CONFIG_ENABLE_MUST_CHECK is not set
+CONFIG_MAGIC_SYSRQ=y
+# CONFIG_UNUSED_SYMBOLS is not set
+# CONFIG_PAGE_OWNER is not set
+CONFIG_DEBUG_FS=y
+# CONFIG_HEADERS_CHECK is not set
+CONFIG_DEBUG_KERNEL=y
+CONFIG_DEBUG_SHIRQ=y
+CONFIG_DETECT_SOFTLOCKUP=y
+CONFIG_SCHED_DEBUG=y
+# CONFIG_SCHEDSTATS is not set
+# CONFIG_TIMER_STATS is not set
+CONFIG_DEBUG_OBJECTS=y
+CONFIG_DEBUG_OBJECTS_SELFTEST=y
+CONFIG_DEBUG_OBJECTS_FREE=y
+CONFIG_DEBUG_OBJECTS_TIMERS=y
+CONFIG_SLUB_DEBUG_ON=y
+# CONFIG_SLUB_STATS is not set
+CONFIG_DEBUG_PREEMPT=y
+CONFIG_DEBUG_RT_MUTEXES=y
+CONFIG_DEBUG_PI_LIST=y
+# CONFIG_RT_MUTEX_TESTER is not set
+# CONFIG_DEBUG_SPINLOCK is not set
+# CONFIG_DEBUG_MUTEXES is not set
+# CONFIG_DEBUG_LOCK_ALLOC is not set
+# CONFIG_PROVE_LOCKING is not set
+# CONFIG_LOCK_STAT is not set
+# CONFIG_DEBUG_SPINLOCK_SLEEP is not set
+# CONFIG_DEBUG_LOCKING_API_SELFTESTS is not set
+# CONFIG_DEBUG_KOBJECT is not set
+CONFIG_DEBUG_BUGVERBOSE=y
+CONFIG_DEBUG_INFO=y
+CONFIG_DEBUG_VM=y
+# CONFIG_DEBUG_WRITECOUNT is not set
+# CONFIG_DEBUG_LIST is not set
+# CONFIG_DEBUG_SG is not set
+CONFIG_PROFILE_LIKELY=y
+# CONFIG_BOOT_PRINTK_DELAY is not set
+# CONFIG_DEBUG_SYNCHRO_TEST is not set
+# CONFIG_RCU_TORTURE_TEST is not set
+# CONFIG_BACKTRACE_SELF_TEST is not set
+# CONFIG_FAULT_INJECTION is not set
+# CONFIG_SAMPLES is not set
+# CONFIG_DEBUG_STACK_USAGE is not set
+# CONFIG_DEBUG_DCFLUSH is not set
+# CONFIG_STACK_DEBUG is not set
+CONFIG_DEBUG_PAGEALLOC=y
+
+#
+# Security options
+#
+# CONFIG_KEYS is not set
+# CONFIG_SECURITY is not set
+# CONFIG_SECURITY_FILE_CAPABILITIES is not set
+CONFIG_CRYPTO=y
+CONFIG_CRYPTO_ALGAPI=m
+CONFIG_CRYPTO_BLKCIPHER=m
+# CONFIG_CRYPTO_SEQIV is not set
+CONFIG_CRYPTO_MANAGER=m
+# CONFIG_CRYPTO_HMAC is not set
+# CONFIG_CRYPTO_XCBC is not set
+# CONFIG_CRYPTO_NULL is not set
+# CONFIG_CRYPTO_MD4 is not set
+CONFIG_CRYPTO_MD5=m
+# CONFIG_CRYPTO_SHA1 is not set
+# CONFIG_CRYPTO_SHA256 is not set
+# CONFIG_CRYPTO_SHA512 is not set
+# CONFIG_CRYPTO_WP512 is not set
+# CONFIG_CRYPTO_TGR192 is not set
+# CONFIG_CRYPTO_GF128MUL is not set
+# CONFIG_CRYPTO_ECB is not set
+CONFIG_CRYPTO_CBC=m
+# CONFIG_CRYPTO_PCBC is not set
+# CONFIG_CRYPTO_LRW is not set
+# CONFIG_CRYPTO_XTS is not set
+# CONFIG_CRYPTO_CTR is not set
+# CONFIG_CRYPTO_CTS is not set
+# CONFIG_CRYPTO_GCM is not set
+# CONFIG_CRYPTO_CCM is not set
+# CONFIG_CRYPTO_CRYPTD is not set
+CONFIG_CRYPTO_DES=m
+# CONFIG_CRYPTO_FCRYPT is not set
+# CONFIG_CRYPTO_BLOWFISH is not set
+# CONFIG_CRYPTO_TWOFISH is not set
+# CONFIG_CRYPTO_SERPENT is not set
+# CONFIG_CRYPTO_AES is not set
+# CONFIG_CRYPTO_CAST5 is not set
+# CONFIG_CRYPTO_CAST6 is not set
+# CONFIG_CRYPTO_TEA is not set
+# CONFIG_CRYPTO_ARC4 is not set
+# CONFIG_CRYPTO_KHAZAD is not set
+# CONFIG_CRYPTO_ANUBIS is not set
+# CONFIG_CRYPTO_SEED is not set
+# CONFIG_CRYPTO_SALSA20 is not set
+# CONFIG_CRYPTO_DEFLATE is not set
+# CONFIG_CRYPTO_MICHAEL_MIC is not set
+# CONFIG_CRYPTO_CRC32C is not set
+# CONFIG_CRYPTO_CAMELLIA is not set
+# CONFIG_CRYPTO_TEST is not set
+# CONFIG_CRYPTO_AUTHENC is not set
+# CONFIG_CRYPTO_LZO is not set
+# CONFIG_CRYPTO_HW is not set
+
+#
+# Library routines
+#
+CONFIG_BITREVERSE=y
+# CONFIG_CRC_CCITT is not set
+# CONFIG_CRC16 is not set
+# CONFIG_CRC_ITU_T is not set
+CONFIG_CRC32=y
+# CONFIG_CRC7 is not set
+# CONFIG_LIBCRC32C is not set
+CONFIG_PLIST=y
+CONFIG_HAS_IOMEM=y
+CONFIG_HAS_IOPORT=y
+CONFIG_HAS_DMA=y
+CONFIG_HAVE_LMB=y
+
+--Boundary-00=_9I78Hv4XSDVRGwG--
