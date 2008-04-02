@@ -1,45 +1,41 @@
-From: James Bottomley <James.Bottomley@HansenPartnership.com>
-Date: Wed, 02 Apr 2008 15:49:19 +0000
+From: Jos van der Ende <seraph@xs4all.nl>
+Date: Wed, 02 Apr 2008 16:06:51 +0000
 Subject: Re: [Bugme-new] [Bug 10374] New: sym53c8xx: weird behavior with
-Message-Id: <1207151359.3082.36.camel@localhost.localdomain>
+Message-Id: <20080402180651.6b3e0247.seraph@xs4all.nl>
 List-Id: <sparclinux.vger.kernel.org>
 References: <bug-10374-10286@http.bugzilla.kernel.org/>
-	 <20080401011518.eb683cff.akpm@linux-foundation.org>
-	 <1207059115.3100.9.camel@localhost.localdomain>
-	 <20080401210521.abbb443c.seraph@xs4all.nl>
-	 <1207081169.3100.20.camel@localhost.localdomain>
-	 <20080401225717.7d936f91.seraph@xs4all.nl>
-	 <1207084454.3100.31.camel@localhost.localdomain>
-	 <20080402122944.7fe8e924.seraph@xs4all.nl>
-	 <20080402120651.GS16451@parisc-linux.org>
-	 <20080402160920.dc219007.seraph@xs4all.nl>
-In-Reply-To: <20080402160920.dc219007.seraph@xs4all.nl>
+	<20080401011518.eb683cff.akpm@linux-foundation.org>
+	<1207059115.3100.9.camel@localhost.localdomain>
+	<20080401210521.abbb443c.seraph@xs4all.nl>
+	<1207081169.3100.20.camel@localhost.localdomain>
+	<20080401225717.7d936f91.seraph@xs4all.nl>
+	<1207084454.3100.31.camel@localhost.localdomain>
+	<20080402122944.7fe8e924.seraph@xs4all.nl>
+	<20080402120651.GS16451@parisc-linux.org>
+	<20080402160920.dc219007.seraph@xs4all.nl>
+	<1207151359.3082.36.camel@localhost.localdomain>
+In-Reply-To: <1207151359.3082.36.camel@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jos van der Ende <seraph@xs4all.nl>
+To: James Bottomley <James.Bottomley@HansenPartnership.com>
 Cc: Matthew Wilcox <matthew@wil.cx>, Andrew Morton <akpm@linux-foundation.org>, linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org, bugme-daemon@bugzilla.kernel.org
 
-On Wed, 2008-04-02 at 16:09 +0200, Jos van der Ende wrote:
-> Finally, bisecting is done. :-)
+On Wed, 02 Apr 2008 10:49:19 -0500
+James Bottomley <James.Bottomley@HansenPartnership.com> wrote:
 
-Thanks for doing this ... we'd never have found it by looking at the
-driver code ...
+> Reading the code for this, it seems that something fiddled with the
+> IRQ_DISABLED or IRQ_PENDING flags when it came time for the ->eoi() so
+> the gem interrupt is always held pending (because it's never ended).
 
-> Well, it took more reboots than a typical Windows XP installation (and
-> thank the heavens for my Sparc64 cross compiler on my Core 2 Duo), but
-> this seems to be the culprit:
-> 
-> 5a606b72a4309a656cd1a19ad137dc5557c4b8ea is first bad commit
+So Andrew's first hunch that interrupts were somehow involved is right.
 
-Reading the code for this, it seems that something fiddled with the
-IRQ_DISABLED or IRQ_PENDING flags when it came time for the ->eoi() so
-the gem interrupt is always held pending (because it's never ended).
+> Since the sym2 is on interrupts 16 and 17 and gem on 11 (and the
+> descriptors are separate entities in the irq_desc array) I can't really
+> see how sym2 would be doing this.
 
-Since the sym2 is on interrupts 16 and 17 and gem on 11 (and the
-descriptors are separate entities in the irq_desc array) I can't really
-see how sym2 would be doing this.
-
-James
+Yeah, that has me baffled too. Still, the fact is that I can only trigger the bug by loading sym53c8xx before sungem. I have yet to find any other conditions that trigger it. Loading sungem before sym53c8xx on an affected kernel gives no trouble at all.
 
 
+-- 
+Jos van der Ende <seraph@xs4all.nl>
