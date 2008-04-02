@@ -1,7 +1,7 @@
 From: Jos van der Ende <seraph@xs4all.nl>
-Date: Tue, 01 Apr 2008 22:30:01 +0000
+Date: Wed, 02 Apr 2008 10:29:44 +0000
 Subject: Re: [Bugme-new] [Bug 10374] New: sym53c8xx: weird behavior with
-Message-Id: <20080402003001.ebfbe93f.seraph@xs4all.nl>
+Message-Id: <20080402122944.7fe8e924.seraph@xs4all.nl>
 List-Id: <sparclinux.vger.kernel.org>
 References: <bug-10374-10286@http.bugzilla.kernel.org/>
 	<20080401011518.eb683cff.akpm@linux-foundation.org>
@@ -17,19 +17,11 @@ Content-Transfer-Encoding: 7bit
 To: James Bottomley <James.Bottomley@HansenPartnership.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>, linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org, bugme-daemon@bugzilla.kernel.org
 
-On Tue, 01 Apr 2008 16:14:14 -0500
-James Bottomley <James.Bottomley@HansenPartnership.com> wrote:
+Maybe it's nothing, but I did notice that sym53c8xx compiles with a warning of a possibly uninitialized variable:
 
-> Yes ... that's what I guess.  Just as one last grasp at a straw, is
-> there any difference in /proc/iomem or /proc/ioports for the working
-> case (sungem loaded first followed by sym2)?
-
-Nope, exactly the same.
-
-> > > I'm afraid I can't see anything relevant looking over the sym2 changes,
-> > > so you might need to bisect this to identify the culprit.
-
-First results are in: 2.6.23-rc1 could not boot, 2.6.23-rc2 already had the problem.
+  CC [M]  drivers/scsi/sym53c8xx_2/sym_glue.o
+drivers/scsi/sym53c8xx_2/sym_glue.c: In function 'sym_eh_handler':
+drivers/scsi/sym53c8xx_2/sym_glue.c:612: warning: 'io_reset' may be used uninitialized in this function
 
 
 -- 
