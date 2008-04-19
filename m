@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Sat, 19 Apr 2008 00:45:45 +0000
+Date: Sat, 19 Apr 2008 00:48:08 +0000
 Subject: Re: PCIe Graphic card for SPARC T1000/2000 Platform
-Message-Id: <20080418.174545.268082102.davem@davemloft.net>
+Message-Id: <20080418.174808.160025537.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <47ED8CBC.8050900@Sun.COM>
 In-Reply-To: <47ED8CBC.8050900@Sun.COM>
@@ -13,16 +13,13 @@ To: sparclinux@vger.kernel.org
 From: Nasser Shayesteh <Nasser.Shayesteh@Sun.COM>
 Date: Fri, 18 Apr 2008 17:32:38 -0700
 
-> The platform that I am currently testing is 
-> T5120/5220. It does not have any PCI slots. It has three PCI-Express 
-> slots. The Radeon(XVR-100) supported by Sun is a PCI card. I have not 
-> been able to locate a PCI-Express version of the card.
+> Booting Linux...
+> Debug=Geting out of paging_init routine ...
+> 
+> System hangs here. Never gets to [ 59.563844] rtc_init: no PC rtc found]
 
-Plain PCI cards don't work in PCI-E slots?
+You'll get more debugging information if you boot with
+"ignore_loglevel" on the kernel boot command line.
 
-That's news to me.
-
-> Any inputs appreciated.
-
-Send me one of these PCI-E Radeon cards and I'll try to get
-it working.
+Adding "-p" can help too, which forces printing every kernel message
+via the openfirmware console output routines.
