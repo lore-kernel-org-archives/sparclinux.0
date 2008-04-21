@@ -1,29 +1,27 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Mon, 21 Apr 2008 23:32:32 +0000
+From: David Miller <davem@davemloft.net>
+Date: Mon, 21 Apr 2008 23:54:49 +0000
 Subject: Re: [GIT]: Sparc
-Message-Id: <alpine.LFD.1.10.0804211630220.2779@woody.linux-foundation.org>
+Message-Id: <20080421.165449.237670695.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080421.153231.108090227.davem@davemloft.net> <alpine.LFD.1.10.0804211608570.2779@woody.linux-foundation.org> <20080421231815.GS27459@ZenIV.linux.org.uk>
-In-Reply-To: <20080421231815.GS27459@ZenIV.linux.org.uk>
+References: <20080421.153231.108090227.davem@davemloft.net>
+	<adak5iqakle.fsf@cisco.com>
+In-Reply-To: <adak5iqakle.fsf@cisco.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: David Miller <davem@davemloft.net>, akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: rdreier@cisco.com
+Cc: torvalds@linux-foundation.org, akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, viro@zeniv.linux.org.uk
 
+From: Roland Dreier <rdreier@cisco.com>
+Date: Mon, 21 Apr 2008 15:50:37 -0700
 
-
-On Tue, 22 Apr 2008, Al Viro wrote:
+>  > This performs the scheduled removal of Solaris and SunOS
+>  > system call for sparc, much to the chagrin of Al Viro
+>  > and others :-) (in particular, that asm/namei.h crud can
+>  > now die)
 > 
-> FWIW, two things I _really_ want dead and gone are
-> 	* timod (or full rewrite of that animal; current one is badly racy
-> and plays fast and loose with way too many place in VFS guts)
-> 	* altroot (use chroot, damnit, and bind whatever you need in there)
+> Maybe this is an inside joke I don't get, but why are we merging
+> something that causes Al Viro and others to feel chagrin?
 
-I heartily concur about the "altroot" thing. It should die. Removing that 
-part from the Solaris/SunOS emulation is probably worthwhile, and then 
-eventually when/if we end up having a working unionfs, that (along with 
-solaros/sunos-emulation specific mounts) should be able to replace the 
-need for altroot.
-
-		Linus
+Sorry, I definitely used to wrong word.  I mean it would make
+people like Al pleased.
