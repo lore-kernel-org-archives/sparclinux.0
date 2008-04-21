@@ -1,23 +1,29 @@
-From: Roland Dreier <rdreier@cisco.com>
-Date: Mon, 21 Apr 2008 22:50:37 +0000
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Mon, 21 Apr 2008 23:10:00 +0000
 Subject: Re: [GIT]: Sparc
-Message-Id: <adak5iqakle.fsf@cisco.com>
+Message-Id: <alpine.LFD.1.10.0804211608570.2779@woody.linux-foundation.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080421.153231.108090227.davem@davemloft.net>
-In-Reply-To: <20080421.153231.108090227.davem@davemloft.net> (David Miller's
-	message of "Mon, 21 Apr 2008 15:32:31 -0700 (PDT)")
+In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: David Miller <davem@davemloft.net>
-Cc: torvalds@linux-foundation.org, akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, viro@zeniv.linux.org.uk
 
- > This performs the scheduled removal of Solaris and SunOS
- > system call for sparc, much to the chagrin of Al Viro
- > and others :-) (in particular, that asm/namei.h crud can
- > now die)
 
-Maybe this is an inside joke I don't get, but why are we merging
-something that causes Al Viro and others to feel chagrin?
 
- - R.
+On Mon, 21 Apr 2008, David Miller wrote:
+> 
+> This performs the scheduled removal of Solaris and SunOS
+> system call for sparc, much to the chagrin of Al Viro
+> and others :-) (in particular, that asm/namei.h crud can
+> now die)
+
+Hmm. I think this is sad. The fact is, Solaris/SunOS is the de-facto 
+standard for Sparc. Which makes me think that not emulating them is a real 
+capability loss. 
+
+I realize that the code may be painful, but still...
+
+		Linus
