@@ -1,53 +1,42 @@
-From: Adrian Bunk <bunk@kernel.org>
-Date: Sun, 20 Apr 2008 23:55:43 +0000
-Subject: Re: [2.6 patch] sparc: export kmap_atomic_to_page
-Message-Id: <20080420235543.GB26897@cs181133002.pp.htv.fi>
+From: "=?BIG5?B?sWnAUqnJ?=" <rfc7w5i0qd@gmail.com>
+Date: Wed, 23 Apr 2008 15:55:01 +0000
+Subject: =?BIG5?B?MjAwOC80LzIzIKHXodehwD9QSFDByg==?= =?BIG5?B?qquorrjqrsaud7r0r7ixTa7XofihrqHwIDIzOjU0?=
+Message-Id: <8a981a310804230855n3c78b3d9q95ff55c2069d2722@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080414141956.GN6695@cs181133002.pp.htv.fi> <20080415.003910.50277238.davem@davemloft.net> <20080420201443.GB14788@cs181133002.pp.htv.fi> <20080420.132829.220464348.davem@davemloft.net> <20080420234011.GT20637@parisc-linux.org>
-In-Reply-To: <20080420234011.GT20637@parisc-linux.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Matthew Wilcox <matthew@wil.cx>
-Cc: David Miller <davem@davemloft.net>, aacraid@adaptec.com, James.Bottomley@HansenPartnership.com, wli@holomorphy.com, sparclinux@vger.kernel.org, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-On Sun, Apr 20, 2008 at 05:40:11PM -0600, Matthew Wilcox wrote:
-> On Sun, Apr 20, 2008 at 01:28:29PM -0700, David Miller wrote:
-> > From: Adrian Bunk <bunk@kernel.org>
-> > Date: Sun, 20 Apr 2008 23:14:43 +0300
-> > 
-> > > On Tue, Apr 15, 2008 at 12:39:10AM -0700, David Miller wrote:
-> > > > From: Adrian Bunk <bunk@kernel.org>
-> > > >...
-> > > > > <--  snip  -->
-> > > > > 
-> > > > >   MODPOST 1741 modules
-> > > > > ERROR: "kmap_atomic_to_page" [drivers/scsi/aacraid/aacraid.ko] undefined!
-> > > > > ...
-> > > > > make[2]: *** [__modpost] Error 1
-> > > > > 
-> > > > > <--  snip  -->
-> > > > > 
-> > > > > Signed-off-by: Adrian Bunk <bunk@kernel.org>
-> > > > 
-> > > > Applied, thanks Adrian.
-> > > 
-> > > Please drop - aacraid no longer uses it in 2.6.26.
-> > 
-> > Ok, will do.
-> 
-> Looks like the only remaining user is in mm/shmem.c.  I guess it can be
-> unexported now?
+2008-4-23  -  23:54
 
-I'm already doing this (but the test compiles are still running).
+=A4s=E0=BE=AC=EC=A7=DE=BA=F4=AD=B6=B3]=ADp
 
-cu
-Adrian
+=A7=DA=AD=CC=AA=BA=A9v=A6=AE=A1G=AB=C8=A4=E1=AA=BA=A8C=A3=B8=A5=F3=A4p=A8=
+=C6=B1=A1=A1A=B3=A3=ACO=A4s=E0=BE=AA=BA=A4j=A8=C6=B1=A1
 
--- 
+=A7=DA=AD=CC=B2{=A6b=B1=C0=A5X=A5=F8=B7~=A7=CE=B6H=BA=F4=AF=B8=A5]=A7t=ABe=
+=A5x=BA=F4=AD=B6=AC=FC=A4u+=AB=E1=A5x=BA=DE=B2z=B5{=A6=A1
 
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
+=AD=AD=AE=C9=AD=AD=B6q=B1M=AE=D7=BB=F9=A5u=ADn$24,900  (=A6b=B0e=A3=B8=A6~1=
+00MB=A4=A3=AD=AD=ACy=B6q=BA=F4=AF=B8=AA=C5=B6=A1)
 
+=A7=DA=AD=CC=B0=B5=AA=BA=A4=A3=A5u=ACO=BA=F4=AF=B8=A1A=A6=D3=ACO=B1z=A5=F8=
+=B7~=AA=BA=A4J=A4f
+
+=A3=B8=AD=D3=A6n=AA=BA=A5=F8=B7~=BA=F4=AF=B8=B8=EA=AE=C6=A7Y=AE=C9=A7=F3=B7=
+s=AA=BA=B3t=AB=D7=ACO=AB=DC=AD=AB=ADn=AA=BA
+
+=A5=F8=B7~=A2=ED=A4=C6=B0=AA=AB~=BD=E8=B9=CE=B6=A4=A1A=A5=B4=B3y=B1z=AA=BA=
+=BA=F4=B8=F4=AA=F9=AD=B1
+
+=BF=EF=BE=DC=A4s=E0=BE=A6=A8=B4N=B1z=AA=BA=B9=DA=B7Q
+
+=C5w=AA=EF=A8=D3=B9q=AC=A2=B8=DF=B6=C0=B1M=AD=FB=A1G0980_119_812
+
+DChPbxGSjhQo
+=FF=F4=E8=BA{.n=C7+=89=B7=9F=AE=89=AD=86+%=8A=CB=FF=B1=E9=DD=B6=17=A5=8Aw=
+=FF=BA{.n=C7+=89=B7=AC=A5=AA=DC=96)=EE=C7=F8=A7=B6=17=9B=A1=DC=A8}=A9=9E=B2=
+=C6=A0z=DA&j:+v=89=A8=FE=F8=1E=AF=F9=1E=AEw=A5=FE=8A=E02=8A=DE=99=A8=E8=AD=
+=DA&=A2)=DF=A1=ABa=B6=DA=FF=FF=FB=E0z=BF=E4z=B9=DE=97=FA+=83=F9=9A=8E=8A=DD=
+=A2j=FF=8Aw=E8=FE=1Bf
