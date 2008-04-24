@@ -1,33 +1,152 @@
-From: "=?BIG5?B?pP2r2KfK?=" <j91t4cq319p@gmail.com>
-Date: Thu, 17 Apr 2008 02:20:32 +0000
-Subject: =?BIG5?B?MjM1qr7D0aZBp1GlzqFBqr7D0ahTprOouu+7tlE1NjQ=?=
-Message-Id: <bbef78960804161920j2e77dff3r2e1d122dd728ee77@mail.gmail.com>
+From: Olaf Hering <olaf@aepfle.de>
+Date: Thu, 24 Apr 2008 13:16:00 +0000
+Subject: [PATCH v5] create modalias file in sysfs for bus of_platform
+Message-Id: <20080424131600.GA15226@aepfle.de>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20080122142109.GA12967@aepfle.de>
+	<20080122144053.GA13019@aepfle.de>
+	<20080122190939.GA14124@aepfle.de>
+	<18330.32110.449914.354218@cargo.ozlabs.ibm.com>
+	<20080126100427.GA1162@aepfle.de>
+In-Reply-To: <20080126100427.GA1162@aepfle.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Paul Mackerras <paulus@samba.org>
+Cc: sparclinux@vger.kernel.org, linuxppc-dev@ozlabs.org
 
-=A1=BB=A1=F6?=A1=EE=A1=F8=A1=EF=A1=F3=A1=F6
+Create /sys/bus/of_platform/devices/*/modalias file to allow autoloading
+of modules. modalias files are already present for many other bus types.
+This adds also a newline to the devspec files.
 
-=A1=F5=AE=D5=B6=E9=BA=F4=B8=F4=A4G=A4=E2=AE=D1=A9=B1-=C5w=AA=EF=A7A=A8=D3=
-=B4M=C4_?
+Also create a devspec file for mac-io devices. They were created as a side
+effect. Use correct buffer size for mac-io modalias buffer.
 
-http://groups.google.com.tw/group/CG-Taiwaner/browse_thread/thread/19775f63=
-894541d
+Tested on iBook1 and Efika.
 
-=B3o=ACO=A4@=AD=D3=A7=B9=A5=FE=A7K=B6O=B6}=A9=F1=AA=BA=A4G=A4=E2=AE=D1=B6R=
-=BD=E6=A5=AD=A5x
-=B2{=A6b=B5=F9=A5U=C1=D9=B0e1,000=C2I=B5=F9=A5U=AA=F7(=AC=DB=B7=ED=A9=F3=A5=
-x=B9=F4$1,000=B3=E1)
+Signed-off-by: Olaf Hering <olaf@aepfle.de>
 
-=A6=B3=AE=D1=ADn=A5X=B2M=AA=BA=C5w=AA=EFPO=A4W=A8=D3=BD=E6=A7a^.^
+---
+ drivers/macintosh/macio_sysfs.c |   12 +++++++++++-
+ drivers/of/device.c             |   36 ++++++++++++++++++++----------------
+ drivers/of/platform.c           |    3 +++
+ 3 files changed, 34 insertions(+), 17 deletions(-)
 
-=B7=ED=B5M=B7Q=B6R=AE=D1=AA=BA=A4H=A4]=C5w=AA=EF=A4W=A8=D3=B4M=C4_=AA=FC^^
-
-=A1=BE=A1=F8=A1=F8=A1=BF=A1=F7=A1=EE=A1=D1=A1=BD
-=FF=F4=E8=BA{.n=C7+=89=B7=9F=AE=89=AD=86+%=8A=CB=FF=B1=E9=DD=B6=17=A5=8Aw=
-=FF=BA{.n=C7+=89=B7=AC=A5=AA=DC=96)=EE=C7=F8=A7=B6=17=9B=A1=DC=A8}=A9=9E=B2=
-=C6=A0z=DA&j:+v=89=A8=FE=F8=1E=AF=F9=1E=AEw=A5=FE=8A=E02=8A=DE=99=A8=E8=AD=
-=DA&=A2)=DF=A1=ABa=B6=DA=FF=FF=FB=E0z=BF=E4z=B9=DE=97=FA+=83=F9=9A=8E=8A=DD=
-=A2j=FF=8Aw=E8=FE=1Bf
+--- a/drivers/macintosh/macio_sysfs.c
++++ b/drivers/macintosh/macio_sysfs.c
+@@ -44,7 +44,7 @@ static ssize_t modalias_show (struct dev
+ 	struct of_device *ofdev = to_of_device(dev);
+ 	int len;
+ 
+-	len = of_device_get_modalias(ofdev, buf, PAGE_SIZE);
++	len = of_device_get_modalias(ofdev, buf, PAGE_SIZE - 2);
+ 
+ 	buf[len] = '\n';
+ 	buf[len+1] = 0;
+@@ -52,6 +52,15 @@ static ssize_t modalias_show (struct dev
+ 	return len+1;
+ }
+ 
++static ssize_t devspec_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct of_device *ofdev;
++
++	ofdev = to_of_device(dev);
++	return sprintf(buf, "%s\n", ofdev->node->full_name);
++}
++
+ macio_config_of_attr (name, "%s\n");
+ macio_config_of_attr (type, "%s\n");
+ 
+@@ -60,5 +69,6 @@ struct device_attribute macio_dev_attrs[
+ 	__ATTR_RO(type),
+ 	__ATTR_RO(compatible),
+ 	__ATTR_RO(modalias),
++	__ATTR_RO(devspec),
+ 	__ATTR_NULL
+ };
+--- a/drivers/of/device.c
++++ b/drivers/of/device.c
+@@ -48,16 +48,32 @@ void of_dev_put(struct of_device *dev)
+ }
+ EXPORT_SYMBOL(of_dev_put);
+ 
+-static ssize_t dev_show_devspec(struct device *dev,
++static ssize_t devspec_show(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
+ {
+ 	struct of_device *ofdev;
+ 
+ 	ofdev = to_of_device(dev);
+-	return sprintf(buf, "%s", ofdev->node->full_name);
++	return sprintf(buf, "%s\n", ofdev->node->full_name);
+ }
+ 
+-static DEVICE_ATTR(devspec, S_IRUGO, dev_show_devspec, NULL);
++static ssize_t modalias_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct of_device *ofdev = to_of_device(dev);
++	ssize_t len = 0;
++
++	len = of_device_get_modalias(ofdev, buf, PAGE_SIZE - 2);
++	buf[len] = '\n';
++	buf[len+1] = 0;
++	return len+1;
++}
++
++struct device_attribute of_platform_device_attrs[] = {
++	__ATTR_RO(devspec),
++	__ATTR_RO(modalias),
++	__ATTR_NULL
++};
+ 
+ /**
+  * of_release_dev - free an of device structure when all users of it are finished.
+@@ -78,25 +94,13 @@ EXPORT_SYMBOL(of_release_dev);
+ 
+ int of_device_register(struct of_device *ofdev)
+ {
+-	int rc;
+-
+ 	BUG_ON(ofdev->node = NULL);
+-
+-	rc = device_register(&ofdev->dev);
+-	if (rc)
+-		return rc;
+-
+-	rc = device_create_file(&ofdev->dev, &dev_attr_devspec);
+-	if (rc)
+-		device_unregister(&ofdev->dev);
+-
+-	return rc;
++	return device_register(&ofdev->dev);
+ }
+ EXPORT_SYMBOL(of_device_register);
+ 
+ void of_device_unregister(struct of_device *ofdev)
+ {
+-	device_remove_file(&ofdev->dev, &dev_attr_devspec);
+ 	device_unregister(&ofdev->dev);
+ }
+ EXPORT_SYMBOL(of_device_unregister);
+--- a/drivers/of/platform.c
++++ b/drivers/of/platform.c
+@@ -17,6 +17,8 @@
+ #include <linux/of_device.h>
+ #include <linux/of_platform.h>
+ 
++extern struct device_attribute of_platform_device_attrs[];
++
+ static int of_platform_bus_match(struct device *dev, struct device_driver *drv)
+ {
+ 	struct of_device *of_dev = to_of_device(dev);
+@@ -103,6 +105,7 @@ int of_bus_type_init(struct bus_type *bu
+ 	bus->suspend = of_platform_device_suspend;
+ 	bus->resume = of_platform_device_resume;
+ 	bus->shutdown = of_platform_device_shutdown;
++	bus->dev_attrs = of_platform_device_attrs;
+ 	return bus_register(bus);
+ }
+ 
