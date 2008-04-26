@@ -1,25 +1,59 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 19 Apr 2008 00:48:08 +0000
-Subject: Re: PCIe Graphic card for SPARC T1000/2000 Platform
-Message-Id: <20080418.174808.160025537.davem@davemloft.net>
+From: Robert Reif <reif@earthlink.net>
+Date: Sat, 26 Apr 2008 03:22:28 +0000
+Subject: [PATCH] sparc: fix drivers/video/tcx.c warning
+Message-Id: <48129FF4.7040701@earthlink.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------080500070801080403010000"
 List-Id: <sparclinux.vger.kernel.org>
-References: <47ED8CBC.8050900@Sun.COM>
-In-Reply-To: <47ED8CBC.8050900@Sun.COM>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Nasser Shayesteh <Nasser.Shayesteh@Sun.COM>
-Date: Fri, 18 Apr 2008 17:32:38 -0700
+This is a multi-part message in MIME format.
+--------------080500070801080403010000
+Content-Type: text/plain; charset="windows-1252"; format="flowed"
+Content-Transfer-Encoding: quoted-printable
 
-> Booting Linux...
-> Debug=Geting out of paging_init routine ...
-> 
-> System hangs here. Never gets to [ 59.563844] rtc_init: no PC rtc found]
+Fix compile warning:
 
-You'll get more debugging information if you boot with
-"ignore_loglevel" on the kernel boot command line.
+CC drivers/video/tcx.o
+drivers/video/tcx.c: In function =91tcx_init_one=92:
+drivers/video/tcx.c:477: warning: format =91%lx=92 expects type =91long=20
+unsigned int=92, but argument 4 has type =91resource_size_t=92
 
-Adding "-p" can help too, which forces printing every kernel message
-via the openfirmware console output routines.
+This was the only sparc driver to use the resource directly in the
+printk so I changed it to physbase like the other drivers.
+Boot tested on SS4.
+
+Signed-off-by: Robert Reif <reif@earthlink.net>
+
+
+--------------080500070801080403010000
+Content-Type: text/plain;
+ name="tcx.diff.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="tcx.diff.txt"
+
+diff --git a/drivers/video/tcx.c b/drivers/video/tcx.c
+index e5a9ddb..fd94dfb 100644
+--- a/drivers/video/tcx.c
++++ b/drivers/video/tcx.c
+@@ -419,7 +419,7 @@ static int __devinit tcx_init_one(struct of_device *op)
+ 		par->mmap_map[6].size = SBUS_MMAP_EMPTY;
+ 	}
+ 
+-	par->physbase = 0;
++	par->physbase = op->resource[0].start;
+ 	par->which_io = op->resource[0].flags & IORESOURCE_BITS;
+ 
+ 	for (i = 0; i < TCX_MMAP_ENTRIES; i++) {
+@@ -473,7 +473,7 @@ static int __devinit tcx_init_one(struct of_device *op)
+ 	printk("%s: TCX at %lx:%lx, %s\n",
+ 	       dp->full_name,
+ 	       par->which_io,
+-	       op->resource[0].start,
++	       par->physbase,
+ 	       par->lowdepth ? "8-bit only" : "24-bit depth");
+ 
+ 	return 0;
+
+--------------080500070801080403010000--
