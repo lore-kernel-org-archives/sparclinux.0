@@ -1,41 +1,58 @@
-From: Jos van der Ende <seraph@xs4all.nl>
-Date: Wed, 02 Apr 2008 16:06:51 +0000
-Subject: Re: [Bugme-new] [Bug 10374] New: sym53c8xx: weird behavior with
-Message-Id: <20080402180651.6b3e0247.seraph@xs4all.nl>
+From: Robert Reif <reif@earthlink.net>
+Date: Sun, 27 Apr 2008 14:38:10 +0000
+Subject: [PATCH] sparc: ffb.c make ffb_init and ffb_exit static
+Message-Id: <48148FD2.8030500@earthlink.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------020209010409080201030009"
 List-Id: <sparclinux.vger.kernel.org>
-References: <bug-10374-10286@http.bugzilla.kernel.org/>
-	<20080401011518.eb683cff.akpm@linux-foundation.org>
-	<1207059115.3100.9.camel@localhost.localdomain>
-	<20080401210521.abbb443c.seraph@xs4all.nl>
-	<1207081169.3100.20.camel@localhost.localdomain>
-	<20080401225717.7d936f91.seraph@xs4all.nl>
-	<1207084454.3100.31.camel@localhost.localdomain>
-	<20080402122944.7fe8e924.seraph@xs4all.nl>
-	<20080402120651.GS16451@parisc-linux.org>
-	<20080402160920.dc219007.seraph@xs4all.nl>
-	<1207151359.3082.36.camel@localhost.localdomain>
-In-Reply-To: <1207151359.3082.36.camel@localhost.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: sparclinux@vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------020209010409080201030009
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Matthew Wilcox <matthew@wil.cx>, Andrew Morton <akpm@linux-foundation.org>, linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org, bugme-daemon@bugzilla.kernel.org
 
-On Wed, 02 Apr 2008 10:49:19 -0500
-James Bottomley <James.Bottomley@HansenPartnership.com> wrote:
+Make ffb_init and ffb_exit static.
+Remove unnecessary function prototype.
 
-> Reading the code for this, it seems that something fiddled with the
-> IRQ_DISABLED or IRQ_PENDING flags when it came time for the ->eoi() so
-> the gem interrupt is always held pending (because it's never ended).
+Signed-off-by: Robert Reif <reif@earthlink.net>
 
-So Andrew's first hunch that interrupts were somehow involved is right.
+--------------020209010409080201030009
+Content-Type: text/plain;
+ name="ffb.diff.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ffb.diff.txt"
 
-> Since the sym2 is on interrupts 16 and 17 and gem on 11 (and the
-> descriptors are separate entities in the irq_desc array) I can't really
-> see how sym2 would be doing this.
+diff --git a/drivers/video/ffb.c b/drivers/video/ffb.c
+index d7e2488..02a6114 100644
+--- a/drivers/video/ffb.c
++++ b/drivers/video/ffb.c
+@@ -32,7 +32,6 @@
+ static int ffb_setcolreg(unsigned, unsigned, unsigned, unsigned,
+ 			 unsigned, struct fb_info *);
+ static int ffb_blank(int, struct fb_info *);
+-static void ffb_init_fix(struct fb_info *);
+ 
+ static void ffb_imageblit(struct fb_info *, const struct fb_image *);
+ static void ffb_fillrect(struct fb_info *, const struct fb_fillrect *);
+@@ -1062,7 +1061,7 @@ static struct of_platform_driver ffb_driver = {
+ 	.remove		= __devexit_p(ffb_remove),
+ };
+ 
+-int __init ffb_init(void)
++static int __init ffb_init(void)
+ {
+ 	if (fb_get_options("ffb", NULL))
+ 		return -ENODEV;
+@@ -1070,7 +1069,7 @@ int __init ffb_init(void)
+ 	return of_register_driver(&ffb_driver, &of_bus_type);
+ }
+ 
+-void __exit ffb_exit(void)
++static void __exit ffb_exit(void)
+ {
+ 	of_unregister_driver(&ffb_driver);
+ }
 
-Yeah, that has me baffled too. Still, the fact is that I can only trigger the bug by loading sym53c8xx before sungem. I have yet to find any other conditions that trigger it. Loading sungem before sym53c8xx on an affected kernel gives no trouble at all.
-
-
--- 
-Jos van der Ende <seraph@xs4all.nl>
+--------------020209010409080201030009--
