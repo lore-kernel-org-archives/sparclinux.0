@@ -1,105 +1,61 @@
-From: Mikael Pettersson <mikpe@it.uu.se>
-Date: Tue, 06 May 2008 19:38:24 +0000
+From: David Miller <davem@davemloft.net>
+Date: Tue, 06 May 2008 22:20:42 +0000
 Subject: Re: [BUG] 2.6.26-rc1 hangs during boot on UltraSPARC 5
-Message-Id: <18464.46000.226753.230481@alkaid.it.uu.se>
+Message-Id: <20080506.152042.91330094.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <18464.3741.133714.308327@harpo.it.uu.se>
 	<20080506.010523.113767579.davem@davemloft.net>
-In-Reply-To: <20080506.010523.113767579.davem@davemloft.net>
+	<18464.46000.226753.230481@alkaid.it.uu.se>
+In-Reply-To: <18464.46000.226753.230481@alkaid.it.uu.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-To: David Miller <davem@davemloft.net>
-Cc: mikpe@it.uu.se, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: mikpe@it.uu.se
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, armin76@gentoo.org
 
-David Miller writes:
- > From: Mikael Pettersson <mikpe@it.uu.se>
- > Date: Tue, 6 May 2008 09:54:05 +0200
- >=20
- > > OF stdout device is: /pci@1f,0/pci@1,1/SUNW,m64B@2
- > > PROM: Built device tree with 46848 bytes of memory.
- > > On node 0 totalpages: 32298
- > >   Normal zone: 335 pages used for memmap
- > >   Normal zone: 0 pages reserved
- > >   Normal zone: 31963 pages, LIFO batch:7
- > >   Movable zone: 0 pages used for memmap
- > > Booting Linux...
- > > Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 3=
-1963
- > > Kernel command line: ro root=3D/dev/sda5
- > > PID hash table entries: 1024 (order: 10, 8192 bytes)
- > > clocksource: mult[28000] shift[16]
- > > clockevent: mult[66666666] shift[32]
- > > Console: colour dummy device 80x25
- > > console handover: boot [earlyprom0] -> real [tty0]
- > >=20
- > > *** 2.6.26-rc1 gets as far as the line above, then hangs
- >=20
- > It's possible your machine does boot up all the way.
- > The video driver simply isn't registerring for whatever
- > reason.
- >=20
- > Can you ping the box if you wait a minute or two after the
- > messages stop?
+From: Mikael Pettersson <mikpe@it.uu.se>
+Date: Tue, 6 May 2008 21:38:24 +0200
 
-No joy, it's dead.
+> I removed "| CON_BOOT" and got what looks like the same oops
+> Ra=FAl Porcel reported earlier today (which he for some reason
+> sent only to the lists, not to you or me); his oops was:
 
- > The only patch to the aty driver since 2.6.25 is the
- > following, below, which you can try reverting.
- >=20
- > Another thing you can do is edit arch/sparc64/kernel/setup.c
- > and in the prom_early_console struct initializer, remove the
- > "CON_BOOT" bit from the .flags setting.  That will keep the
- > PROM console enabled even when another console wants to
- > register.  We'll get more messages that way.
+I can reproduce this problem here in my t1000.
 
-I removed "| CON_BOOT" and got what looks like the same oops
-Ra=FAl Porcel reported earlier today (which he for some reason
-sent only to the lists, not to you or me); his oops was:
+It looks like some kind of initrd regression.
 
-[    0.760209] NET: Registered protocol family 1
-[    0.808403] Unpacking initramfs...<1>Unable to handle kernel paging=20
-request at virtual address 00
-[    0.928065] tsk->{mm,active_mm}->context =3D 0000000000000000
-[    0.996069] tsk->{mm,active_mm}->pgd =3D fffff8003f4217d4
-[    1.060074]               \|/ ____ \|/
-[    1.060079]               "@'/ .. \`@"
-[    1.060082]               /_| \__/ |_\
-[    1.060086]                  \__U_/
-[    1.236087] swapper(1): Oops [#1]
-[    1.276091] TSTATE: 0000000080001606 TPC: 00000000007fad00 TNPC:=20
-00000000007fad04 Y: 00000041   W
-[    1.400109] TPC: <unpack_to_rootfs+0xac/0xa28>
-[    1.452097] g0: 0000000000000001 g1: 0000000000000001 g2:=20
-0000000000000001 g3: 0000000000000000
-[    1.556104] g4: fffff8003e02d860 g5: 0000000000000000 g6:=20
-fffff8003e03c000 g7: 0000000000000000
-[    1.660111] o0: fffff8003e160000 o1: 00000000000000d0 o2:=20
-0000000000000001 o3: 0000000000000001
-[    1.764117] o4: 0000000000000000 o5: 00000000bde9fd0b sp:=20
-fffff8003e03f431 ret_pc: 00000000007fac
-[    1.876125] RPC: <unpack_to_rootfs+0x58/0xa28>
-[    1.928127] l0: 00000000007c2800 l1: 0000000000814400 l2:=20
-0000000000814400 l3: 0000000000000000
-[    2.032134] l4: 0000000000000001 l5: 00000000007e4350 l6:=20
-fffff8003e11a420 l7: 000000000076b360
-[    2.136141] i0: 000000003f800000 i1: 00000000000b864f i2:=20
-0000000000814400 i3: fffff8003e1becc0
-[    2.240147] i4: 00000000000003f7 i5: 00000000007ed400 i6:=20
-fffff8003e03f4f1 i7: 00000000007fb6e0
-[    2.344155] I7: <populate_rootfs+0x64/0xac>
-[    2.396155] Caller[00000000007fb6e0]: populate_rootfs+0x64/0xac
-[    2.466224] Caller[00000000007f819c]: kernel_init+0xac/0x208
-[    2.534229] Caller[0000000000426cf8]: kernel_thread+0x38/0x48
-[    2.602233] Caller[00000000006d1d34]: rest_init+0x18/0x60
-[    2.666238] Instruction DUMP: 03002050  10680243  c07063a0 <c24e0000>=20
-05002051  80a06030  124800
-[    2.796183] Kernel panic - not syncing: Attempted to kill init!
-[    2.864187] Press Stop-A (L1-A) to return to the boot prom
+Looking at the crashes, the kernel seems to be trying
+to dereference a physical address when peeking at the
+initrd instead of using a virtual one.  That's a big
+clue.
 
-I got the oops in the same location (unpack_to_rootfs) with the
-same call stack, only the code addresses differ.
-Also, the data address my kernel oopsed on was 0000000010800000,
-which was the physical address of the initrd.
+This patch should fix it:
 
-/Mikael
+commit d45100f7b69e3d9cd0cd5e956b6ac2c78d460d07
+Author: David S. Miller <davem@davemloft.net>
+Date:   Tue May 6 15:19:54 2008 -0700
+
+    sparc64: Fix initrd regression.
+   =20
+    We die because we forget to convert initrd_start and
+    initrd_end to virtual addresses.
+   =20
+    Reported by Mikael Pettersson
+   =20
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+diff --git a/arch/sparc64/mm/init.c b/arch/sparc64/mm/init.c
+index db8e7fb..ec3e2c7 100644
+--- a/arch/sparc64/mm/init.c
++++ b/arch/sparc64/mm/init.c
+@@ -771,6 +771,9 @@ static void __init find_ramdisk(unsigned long phys_base)
+ 		initrd_end =3D ramdisk_image + sparc_ramdisk_size;
+=20
+ 		lmb_reserve(initrd_start, initrd_end);
++
++		initrd_start +=3D PAGE_OFFSET;
++		initrd_end +=3D PAGE_OFFSET;
+ 	}
+ #endif
+ }
+
