@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Sat, 03 May 2008 03:02:19 +0000
+Date: Wed, 07 May 2008 01:14:06 +0000
 Subject: [GIT]: Sparc
-Message-Id: <20080502.200219.71669676.davem@davemloft.net>
+Message-Id: <20080506.181406.60757850.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080421.153231.108090227.davem@davemloft.net>
 In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
@@ -12,53 +12,59 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-Some sparc32 cleanups triggered by some gcc-4.3 warnings
-I saw there.
+Sparc updates and fixes:
 
-More fixes to syscall restart handling, I think I have it
-right now and I haven't seen any weird behavior for a few
-days.
+1) initrd hosed unintentionally by my NUMA support changes
+   on sparc64
 
-All the sparc serial drivers were using the same driver
-name string, resulting in all kinds of problems which
-the kernel now duly warns about.
+2) SMP IPIs don't need to actually be surrounded by
+   irq_{enter,exit}(), revert
 
-Similarly wrt. sparc64 PCI host controller registry.
-Just don't try to make the dummy root host controller
-and all the problems go away.
+3) online_page() is superfluous, delete, from Adrian Bunk
+
+4) Christoph Hellwig noticed that we had a local copy of
+   compat_sys_times(), just use it directly.
+
+5) USB_ISP1760_OF should not be built on sparc, ACK'd by
+   Ben H.
+
+6) Sparc video driver tidies by Robert Reif.
 
 Please pull, thanks a lot!
 
-The following changes since commit 886c35fbcf6fb2eee15687efc2d64d99b6ad9a4a:
+The following changes since commit afa26be86b65a7183ceac29bdf1f51d6fc6932f0:
   Linus Torvalds (1):
-        Merge branch 'for-linus' of git://git.kernel.org/.../ieee1394/linux1394-2.6
+        Merge git://git.kernel.org/.../tglx/linux-2.6-hrt
 
 are available in the git repository at:
 
   master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
 
-David S. Miller (6):
-      sparc64: Stop creating dummy root PCI host controller devices.
-      serial: Fix sparc driver name strings.
-      sparc64: Fix syscall restart, for real...
-      sparc32: Kill totally unused memory information tables.
-      sparc32: More memory probing consolidation.
-      sparc32: Delete prom_stdin and prom_stdout.
+Adrian Bunk (1):
+      sparc64: remove online_page()
 
- arch/sparc/kernel/setup.c        |    5 +-
- arch/sparc/mm/fault.c            |   61 +---------
- arch/sparc/prom/init.c           |    7 -
- arch/sparc/prom/memory.c         |  235 ++++++++++----------------------------
- arch/sparc64/kernel/pci.c        |  130 ++++++----------------
- arch/sparc64/kernel/pci_common.c |    6 -
- arch/sparc64/kernel/pci_impl.h   |    9 --
- arch/sparc64/kernel/process.c    |    6 -
- arch/sparc64/kernel/signal.c     |    6 +-
- arch/sparc64/kernel/signal32.c   |    6 +
- drivers/serial/sunhv.c           |    2 +-
- drivers/serial/sunsab.c          |    2 +-
- drivers/serial/sunsu.c           |    2 +-
- drivers/serial/sunzilog.c        |    2 +-
- include/asm-sparc/oplib.h        |   17 ---
- include/asm-sparc/page.h         |    5 +-
- 16 files changed, 117 insertions(+), 384 deletions(-)
+David S. Miller (5):
+      Revert "[SPARC64]: Wrap SMP IPIs with irq_enter()/irq_exit()."
+      sbus: Fix bpp driver build.
+      sparc64: use compat_sys_utimes instead of home-grown local copy.
+      usb: Sparc build fix, make USB_ISP1760_OF depend on PPC_OF
+      sparc64: Fix initrd regression.
+
+Robert Reif (2):
+      sparc: tcx.c remove unnecessary function
+      sparc video: make blank use proper constant
+
+ arch/sparc64/kernel/smp.c         |   27 +++++----------------------
+ arch/sparc64/kernel/sys_sparc32.c |   31 -------------------------------
+ arch/sparc64/kernel/systbls.S     |    2 +-
+ arch/sparc64/mm/init.c            |   16 +++-------------
+ drivers/sbus/char/bpp.c           |    2 +-
+ drivers/usb/host/Kconfig          |    2 +-
+ drivers/video/bw2.c               |    2 +-
+ drivers/video/cg3.c               |    2 +-
+ drivers/video/cg6.c               |    2 +-
+ drivers/video/ffb.c               |    2 +-
+ drivers/video/leo.c               |    2 +-
+ drivers/video/p9100.c             |    2 +-
+ drivers/video/tcx.c               |   20 +++++++-------------
+ 13 files changed, 24 insertions(+), 88 deletions(-)
