@@ -1,7 +1,7 @@
-From: "Bjoern B. Brandenburg" <bbb@email.unc.edu>
-Date: Fri, 09 May 2008 01:50:06 +0000
+From: David Miller <davem@davemloft.net>
+Date: Fri, 09 May 2008 04:21:30 +0000
 Subject: Re: enabling lockdep causes boot failure on a SUN T2000
-Message-Id: <4823ADCE.4050009@email.unc.edu>
+Message-Id: <20080508.212130.57169228.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <48238125.7040900@email.unc.edu>
 In-Reply-To: <48238125.7040900@email.unc.edu>
@@ -10,43 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-David Miller wrote:
-> From: "Bjoern B. Brandenburg" <bbb@email.unc.edu>
->> I've been having a hard time getting Linux (vanilla 2.6.24 and 2.6.25) 
->> to boot on our Niagara box.
-> 
-> We know about this problem already.  Thanks for reporting.
-> 
-> This changeset below was meant to improve things, but t1000/t2000
-> systems still get wedged.
+From: "Bjoern B. Brandenburg" <bbb@email.unc.edu>
+Date: Thu, 08 May 2008 21:50:06 -0400
 
-Thanks for the pointer.
+> I figured that if the flushes are the root cause, then this should take 
+> care of the problem. However, the kernel still doesn't boot.
 
-Based on your commit, I tried to disable stack trace support (with the 
-intent to get at least some output in the event of deadlock) with the 
-following patch:
+That patch you posted is dangerous.  If the stack isn't flushed,
+there will be garabage in the frame pointer slots of the stack
+frame, and likely that will cause an OOPS.
 
-diff --git a/kernel/lockdep.c b/kernel/lockdep.c
-index e2c07ec..b468790 100644
---- a/kernel/lockdep.c
-+++ b/kernel/lockdep.c
-@@ -342,7 +342,9 @@ static int save_trace(struct stack_trace *trace)
-
-         trace->skip = 3;
-
--       save_stack_trace(trace);
-+       /* Work around: this doesn't work on the T2000.
-+        * save_stack_trace(trace);
-+        */
-
-         trace->max_entries = trace->nr_entries;
-
-
-I figured that if the flushes are the root cause, then this should take 
-care of the problem. However, the kernel still doesn't boot.
-
-Is there anything else that I can disable to get a partially working 
-lockdep?
-
-Thanks,
-Bjoern
+Please, let me try to resolve this as I find time to do so.  I am the
+only person who knows enough about all of these internals so solve the
+problem at this time.
