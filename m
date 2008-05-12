@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Mon, 12 May 2008 21:03:17 +0000
+Date: Mon, 12 May 2008 22:31:43 +0000
 Subject: Re: [BUG] 2.6.26-rc1 lost half the RAM on UltraSPARC 5
-Message-Id: <20080512.140317.133389925.davem@davemloft.net>
+Message-Id: <20080512.153143.48741227.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <18465.63175.561233.228014@alkaid.it.uu.se>
 	<20080512.005036.19633770.davem@davemloft.net>
@@ -17,27 +17,79 @@ From: Mikael Pettersson <mikpe@it.uu.se>
 Date: Mon, 12 May 2008 21:06:41 +0200
 
 > David Miller writes:
->  > We have some existing debugging, which I'd like you to enable on the
->  > boot command line.  Simply add "numa=DEbug" and that'll get some more
->  > vebose information.
->  >=20
 >  > Please also add the debugging patch below.
 >=20
 > Right, 2.6.26-rc2 plus your debugging patch and booted with numa=DEbug
 > prints the following:
 
-Thanks, I'll look over this!
+Hmmm... my debugging patch had this:
 
-> One thing that bothers me is the "Memory hole size: 128MB" message.
-> It wasn't present in 2.6.25, and the amount reported is the exact
-> same amount of RAM I've lost. Or maybe I'm paranoid :-)
+diff --git a/lib/lmb.c b/lib/lmb.c
+index 83287d3..3f55973 100644
+--- a/lib/lmb.c
++++ b/lib/lmb.c
+ ...
++#define DEBUG
++
 
-It's completely new and harmless.  You have memory at 0->128MB and
-at 256MB->384MB.  That gap from 128MB->256MB is the hole is it talking
-about.
+which should have resulted in lmb_dump_all() printing some userful
+debugging messages.  I validated that it did so on my machine with the
+patch applied, but they appear nowhere in your logs :(
 
-It's computed very simply, it is the difference between the highest
-value physical address of available memory and the total amount of
-available memory.
+paginig_init() in arch/sparc64/mm/init.c calls lmb_analyze() them lmb_dump_=
+all().
 
-Don't let it scare you, it's 2GB on one of my machines :-)
+Those messages go out with KERN_DEBUG log level, maybe messages at
+that level were trimmed by your log capture for some reason?
+
+In any event I think I know the area that's cause some kind of problem.
+It looks like lmb_alloc() has a case where it will reserve the wrong
+amount of memory, or something like that.
+
+You can remove the debugging patch I sent you, and try this one instead.
+Please make sure KERN_DEBUG messages make it into the log :-)
+
+diff --git a/arch/sparc64/mm/init.c b/arch/sparc64/mm/init.c
+index a9828d7..a628a99 100644
+--- a/arch/sparc64/mm/init.c
++++ b/arch/sparc64/mm/init.c
+@@ -1353,6 +1353,8 @@ static void __init bootmem_init_one_node(int nid)
+=20
+ 	numadbg("bootmem_init_one_node(%d)\n", nid);
+=20
++	lmb_dump_all();
++
+ 	p =3D NODE_DATA(nid);
+=20
+ 	if (p->node_spanned_pages) {
+diff --git a/lib/lmb.c b/lib/lmb.c
+index 83287d3..d8c84f3 100644
+--- a/lib/lmb.c
++++ b/lib/lmb.c
+@@ -17,6 +17,8 @@
+=20
+ #define LMB_ALLOC_ANYWHERE	0
+=20
++#define DEBUG
++
+ struct lmb lmb;
+=20
+ void lmb_dump_all(void)
+@@ -29,7 +31,7 @@ void lmb_dump_all(void)
+ 	pr_debug("    memory.size		  =3D 0x%llx\n",
+ 	    (unsigned long long)lmb.memory.size);
+ 	for (i=3D0; i < lmb.memory.cnt ;i++) {
+-		pr_debug("    memory.region[0x%x].base       =3D 0x%llx\n",
++		pr_debug("    memory.region[0x%lx].base       =3D 0x%llx\n",
+ 		    i, (unsigned long long)lmb.memory.region[i].base);
+ 		pr_debug("		      .size     =3D 0x%llx\n",
+ 		    (unsigned long long)lmb.memory.region[i].size);
+@@ -38,7 +40,7 @@ void lmb_dump_all(void)
+ 	pr_debug("    reserved.cnt	  =3D 0x%lx\n", lmb.reserved.cnt);
+ 	pr_debug("    reserved.size	  =3D 0x%lx\n", lmb.reserved.size);
+ 	for (i=3D0; i < lmb.reserved.cnt ;i++) {
+-		pr_debug("    reserved.region[0x%x].base       =3D 0x%llx\n",
++		pr_debug("    reserved.region[0x%lx].base       =3D 0x%llx\n",
+ 		    i, (unsigned long long)lmb.reserved.region[i].base);
+ 		pr_debug("		      .size     =3D 0x%llx\n",
+ 		    (unsigned long long)lmb.reserved.region[i].size);
