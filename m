@@ -1,37 +1,259 @@
-From: Martin Habets <errandir_news@mph.eclipse.co.uk>
-Date: Mon, 12 May 2008 23:12:32 +0000
+From: David Miller <davem@davemloft.net>
+Date: Mon, 12 May 2008 23:24:55 +0000
 Subject: Re: sparc: Fix mremap VA span checking.
-Message-Id: <20080512231231.GA8373@palantir8>
+Message-Id: <20080512.162455.156545302.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1210590913.10883.9.camel@dhcp-lab-164.englab.brq.redhat.com> <20080512.042453.238263459.davem@davemloft.net>
-In-Reply-To: <20080512.042453.238263459.davem@davemloft.net>
+References: <1210590913.10883.9.camel@dhcp-lab-164.englab.brq.redhat.com>
+	<20080512.042453.238263459.davem@davemloft.net>
+	<20080512231231.GA8373@palantir8>
+In-Reply-To: <20080512231231.GA8373@palantir8>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
+To: errandir_news@mph.eclipse.co.uk
 Cc: jlieskov@redhat.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, May 12, 2008 at 04:24:53AM -0700, David Miller wrote:
-> From: Jan Lieskovsky <jlieskov@redhat.com>
-> Date: Mon, 12 May 2008 13:15:12 +0200
-> 
-> >  I have investigated the code for MREMAP_FIXED in
-> > sparc_mremap in arch/sparc/kernel/sys_sparc.c, for sys64_mremap
-> > in arch/sparc64/kernel/sys_sparc.c and 
-> > for sys32_mremap in arch/sparc64/kernel/sys_sparc32.c
-> > and there are similar conditional range checks ->
-> > attaching the patches against 2.6.25.3.
-> 
-> Thanks for the report, I'll take a look at this after getting
-> some sleep as it's late hear.
-> 
-> My first impression is that it might make sense to put an
-> arch_mmap_check() call at the appropriate spots instead of duplicating
-> this check so many times.
+From: Martin Habets <errandir_news@mph.eclipse.co.uk>
+Date: Tue, 13 May 2008 00:12:32 +0100
 
-sparc32 already has an sparc_mmap_check() in sys_sparc that does this,
-and sparc64 has sparc64_mmap_check().
-Calling that should do the trick.
+> On Mon, May 12, 2008 at 04:24:53AM -0700, David Miller wrote:
+> > From: Jan Lieskovsky <jlieskov@redhat.com>
+> > Date: Mon, 12 May 2008 13:15:12 +0200
+> > 
+> > >  I have investigated the code for MREMAP_FIXED in
+> > > sparc_mremap in arch/sparc/kernel/sys_sparc.c, for sys64_mremap
+> > > in arch/sparc64/kernel/sys_sparc.c and 
+> > > for sys32_mremap in arch/sparc64/kernel/sys_sparc32.c
+> > > and there are similar conditional range checks ->
+> > > attaching the patches against 2.6.25.3.
+> > 
+> > Thanks for the report, I'll take a look at this after getting
+> > some sleep as it's late hear.
+> > 
+> > My first impression is that it might make sense to put an
+> > arch_mmap_check() call at the appropriate spots instead of duplicating
+> > this check so many times.
+> 
+> sparc32 already has an sparc_mmap_check() in sys_sparc that does this,
+> and sparc64 has sparc64_mmap_check().
+> Calling that should do the trick.
 
--- 
-Martin
+Right, I was just about to test the following patch:
+
+diff --git a/arch/sparc/kernel/sys_sparc.c b/arch/sparc/kernel/sys_sparc.c
+index e995491..3c6b49a 100644
+--- a/arch/sparc/kernel/sys_sparc.c
++++ b/arch/sparc/kernel/sys_sparc.c
+@@ -219,7 +219,7 @@ out:
+ 	return err;
+ }
+ 
+-int sparc_mmap_check(unsigned long addr, unsigned long len, unsigned long flags)
++int sparc_mmap_check(unsigned long addr, unsigned long len)
+ {
+ 	if (ARCH_SUN4C_SUN4 &&
+ 	    (len > 0x20000000 ||
+@@ -295,52 +295,14 @@ asmlinkage unsigned long sparc_mremap(unsigned long addr,
+ 	unsigned long old_len, unsigned long new_len,
+ 	unsigned long flags, unsigned long new_addr)
+ {
+-	struct vm_area_struct *vma;
+ 	unsigned long ret = -EINVAL;
+-	if (ARCH_SUN4C_SUN4) {
+-		if (old_len > 0x20000000 || new_len > 0x20000000)
+-			goto out;
+-		if (addr < 0xe0000000 && addr + old_len > 0x20000000)
+-			goto out;
+-	}
+-	if (old_len > TASK_SIZE - PAGE_SIZE ||
+-	    new_len > TASK_SIZE - PAGE_SIZE)
++
++	if (unlikely(sparc_mmap_check(addr, old_len)))
++		goto out;
++	if (unlikely(sparc_mmap_check(new_addr, new_len)))
+ 		goto out;
+ 	down_write(&current->mm->mmap_sem);
+-	if (flags & MREMAP_FIXED) {
+-		if (ARCH_SUN4C_SUN4 &&
+-		    new_addr < 0xe0000000 &&
+-		    new_addr + new_len > 0x20000000)
+-			goto out_sem;
+-		if (new_addr + new_len > TASK_SIZE - PAGE_SIZE)
+-			goto out_sem;
+-	} else if ((ARCH_SUN4C_SUN4 && addr < 0xe0000000 &&
+-		    addr + new_len > 0x20000000) ||
+-		   addr + new_len > TASK_SIZE - PAGE_SIZE) {
+-		unsigned long map_flags = 0;
+-		struct file *file = NULL;
+-
+-		ret = -ENOMEM;
+-		if (!(flags & MREMAP_MAYMOVE))
+-			goto out_sem;
+-
+-		vma = find_vma(current->mm, addr);
+-		if (vma) {
+-			if (vma->vm_flags & VM_SHARED)
+-				map_flags |= MAP_SHARED;
+-			file = vma->vm_file;
+-		}
+-
+-		new_addr = get_unmapped_area(file, addr, new_len,
+-				     vma ? vma->vm_pgoff : 0,
+-				     map_flags);
+-		ret = new_addr;
+-		if (new_addr & ~PAGE_MASK)
+-			goto out_sem;
+-		flags |= MREMAP_FIXED;
+-	}
+ 	ret = do_mremap(addr, old_len, new_len, flags, new_addr);
+-out_sem:
+ 	up_write(&current->mm->mmap_sem);
+ out:
+ 	return ret;       
+diff --git a/arch/sparc64/kernel/sys_sparc.c b/arch/sparc64/kernel/sys_sparc.c
+index 0dbc941..ac1bff5 100644
+--- a/arch/sparc64/kernel/sys_sparc.c
++++ b/arch/sparc64/kernel/sys_sparc.c
+@@ -542,8 +542,7 @@ asmlinkage long sparc64_personality(unsigned long personality)
+ 	return ret;
+ }
+ 
+-int sparc64_mmap_check(unsigned long addr, unsigned long len,
+-		unsigned long flags)
++int sparc64_mmap_check(unsigned long addr, unsigned long len)
+ {
+ 	if (test_thread_flag(TIF_32BIT)) {
+ 		if (len >= STACK_TOP32)
+@@ -609,46 +608,19 @@ asmlinkage unsigned long sys64_mremap(unsigned long addr,
+ 	unsigned long old_len, unsigned long new_len,
+ 	unsigned long flags, unsigned long new_addr)
+ {
+-	struct vm_area_struct *vma;
+ 	unsigned long ret = -EINVAL;
+ 
+ 	if (test_thread_flag(TIF_32BIT))
+ 		goto out;
+ 	if (unlikely(new_len >= VA_EXCLUDE_START))
+ 		goto out;
+-	if (unlikely(invalid_64bit_range(addr, old_len)))
++	if (unlikely(sparc64_mmap_check(addr, old_len)))
++		goto out;
++	if (unlikely(sparc64_mmap_check(new_addr, new_len)))
+ 		goto out;
+ 
+ 	down_write(&current->mm->mmap_sem);
+-	if (flags & MREMAP_FIXED) {
+-		if (invalid_64bit_range(new_addr, new_len))
+-			goto out_sem;
+-	} else if (invalid_64bit_range(addr, new_len)) {
+-		unsigned long map_flags = 0;
+-		struct file *file = NULL;
+-
+-		ret = -ENOMEM;
+-		if (!(flags & MREMAP_MAYMOVE))
+-			goto out_sem;
+-
+-		vma = find_vma(current->mm, addr);
+-		if (vma) {
+-			if (vma->vm_flags & VM_SHARED)
+-				map_flags |= MAP_SHARED;
+-			file = vma->vm_file;
+-		}
+-
+-		/* MREMAP_FIXED checked above. */
+-		new_addr = get_unmapped_area(file, addr, new_len,
+-				    vma ? vma->vm_pgoff : 0,
+-				    map_flags);
+-		ret = new_addr;
+-		if (new_addr & ~PAGE_MASK)
+-			goto out_sem;
+-		flags |= MREMAP_FIXED;
+-	}
+ 	ret = do_mremap(addr, old_len, new_len, flags, new_addr);
+-out_sem:
+ 	up_write(&current->mm->mmap_sem);
+ out:
+ 	return ret;       
+diff --git a/arch/sparc64/kernel/sys_sparc32.c b/arch/sparc64/kernel/sys_sparc32.c
+index 1aa4288..ba5bd62 100644
+--- a/arch/sparc64/kernel/sys_sparc32.c
++++ b/arch/sparc64/kernel/sys_sparc32.c
+@@ -867,44 +867,15 @@ asmlinkage unsigned long sys32_mremap(unsigned long addr,
+ 	unsigned long old_len, unsigned long new_len,
+ 	unsigned long flags, u32 __new_addr)
+ {
+-	struct vm_area_struct *vma;
+ 	unsigned long ret = -EINVAL;
+ 	unsigned long new_addr = __new_addr;
+ 
+-	if (old_len > STACK_TOP32 || new_len > STACK_TOP32)
++	if (unlikely(sparc64_mmap_check(addr, old_len)))
+ 		goto out;
+-	if (addr > STACK_TOP32 - old_len)
++	if (unlikely(sparc64_mmap_check(new_addr, new_len)))
+ 		goto out;
+ 	down_write(&current->mm->mmap_sem);
+-	if (flags & MREMAP_FIXED) {
+-		if (new_addr > STACK_TOP32 - new_len)
+-			goto out_sem;
+-	} else if (addr > STACK_TOP32 - new_len) {
+-		unsigned long map_flags = 0;
+-		struct file *file = NULL;
+-
+-		ret = -ENOMEM;
+-		if (!(flags & MREMAP_MAYMOVE))
+-			goto out_sem;
+-
+-		vma = find_vma(current->mm, addr);
+-		if (vma) {
+-			if (vma->vm_flags & VM_SHARED)
+-				map_flags |= MAP_SHARED;
+-			file = vma->vm_file;
+-		}
+-
+-		/* MREMAP_FIXED checked above. */
+-		new_addr = get_unmapped_area(file, addr, new_len,
+-				    vma ? vma->vm_pgoff : 0,
+-				    map_flags);
+-		ret = new_addr;
+-		if (new_addr & ~PAGE_MASK)
+-			goto out_sem;
+-		flags |= MREMAP_FIXED;
+-	}
+ 	ret = do_mremap(addr, old_len, new_len, flags, new_addr);
+-out_sem:
+ 	up_write(&current->mm->mmap_sem);
+ out:
+ 	return ret;       
+diff --git a/include/asm-sparc/mman.h b/include/asm-sparc/mman.h
+index e18be98..3d16b40 100644
+--- a/include/asm-sparc/mman.h
++++ b/include/asm-sparc/mman.h
+@@ -24,9 +24,8 @@
+ 
+ #ifdef __KERNEL__
+ #ifndef __ASSEMBLY__
+-#define arch_mmap_check	sparc_mmap_check
+-int sparc_mmap_check(unsigned long addr, unsigned long len,
+-		unsigned long flags);
++#define arch_mmap_check(addr,len,flags)	sparc_mmap_check(addr,len)
++int sparc_mmap_check(unsigned long addr, unsigned long len);
+ #endif
+ #endif
+ 
+diff --git a/include/asm-sparc64/mman.h b/include/asm-sparc64/mman.h
+index e584563..625be4d 100644
+--- a/include/asm-sparc64/mman.h
++++ b/include/asm-sparc64/mman.h
+@@ -24,9 +24,8 @@
+ 
+ #ifdef __KERNEL__
+ #ifndef __ASSEMBLY__
+-#define arch_mmap_check	sparc64_mmap_check
+-int sparc64_mmap_check(unsigned long addr, unsigned long len,
+-		unsigned long flags);
++#define arch_mmap_check(addr,len,flags)	sparc64_mmap_check(addr,len)
++int sparc64_mmap_check(unsigned long addr, unsigned long len);
+ #endif
+ #endif
+ 
