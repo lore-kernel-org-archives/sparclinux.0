@@ -1,44 +1,48 @@
 From: David Miller <davem@davemloft.net>
-Date: Mon, 12 May 2008 23:24:55 +0000
+Date: Mon, 12 May 2008 23:48:54 +0000
 Subject: Re: sparc: Fix mremap VA span checking.
-Message-Id: <20080512.162455.156545302.davem@davemloft.net>
+Message-Id: <20080512.164854.193697193.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1210590913.10883.9.camel@dhcp-lab-164.englab.brq.redhat.com>
 	<20080512.042453.238263459.davem@davemloft.net>
-	<20080512231231.GA8373@palantir8>
-In-Reply-To: <20080512231231.GA8373@palantir8>
+In-Reply-To: <20080512.042453.238263459.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: errandir_news@mph.eclipse.co.uk
-Cc: jlieskov@redhat.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: jlieskov@redhat.com
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Martin Habets <errandir_news@mph.eclipse.co.uk>
-Date: Tue, 13 May 2008 00:12:32 +0100
+From: David Miller <davem@davemloft.net>
+Date: Mon, 12 May 2008 04:24:53 -0700 (PDT)
 
-> On Mon, May 12, 2008 at 04:24:53AM -0700, David Miller wrote:
-> > From: Jan Lieskovsky <jlieskov@redhat.com>
-> > Date: Mon, 12 May 2008 13:15:12 +0200
-> > 
-> > >  I have investigated the code for MREMAP_FIXED in
-> > > sparc_mremap in arch/sparc/kernel/sys_sparc.c, for sys64_mremap
-> > > in arch/sparc64/kernel/sys_sparc.c and 
-> > > for sys32_mremap in arch/sparc64/kernel/sys_sparc32.c
-> > > and there are similar conditional range checks ->
-> > > attaching the patches against 2.6.25.3.
-> > 
-> > Thanks for the report, I'll take a look at this after getting
-> > some sleep as it's late hear.
-> > 
-> > My first impression is that it might make sense to put an
-> > arch_mmap_check() call at the appropriate spots instead of duplicating
-> > this check so many times.
-> 
-> sparc32 already has an sparc_mmap_check() in sys_sparc that does this,
-> and sparc64 has sparc64_mmap_check().
-> Calling that should do the trick.
+> My first impression is that it might make sense to put an
+> arch_mmap_check() call at the appropriate spots instead of duplicating
+> this check so many times.
 
-Right, I was just about to test the following patch:
+Thanks again for your report, the following is the final patch
+I'll be using:
+
+From 94d149c34cda933ff5096aca94bb23bf68602f4e Mon Sep 17 00:00:00 2001
+From: David S. Miller <davem@davemloft.net>
+Date: Mon, 12 May 2008 16:33:33 -0700
+Subject: [PATCH] sparc: Fix mremap address range validation.
+
+Just like mmap, we need to validate address ranges regardless
+of MAP_FIXED.
+
+sparc{,64}_mmap_check()'s flag argument is unused, remove.
+
+Based upon a report and preliminary patch by
+Jan Lieskovsky <jlieskov@redhat.com>
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/kernel/sys_sparc.c     |   48 ++++---------------------------------
+ arch/sparc64/kernel/sys_sparc.c   |   36 +++------------------------
+ arch/sparc64/kernel/sys_sparc32.c |   33 +-----------------------
+ include/asm-sparc/mman.h          |    5 +--
+ include/asm-sparc64/mman.h        |    5 +--
+ 5 files changed, 15 insertions(+), 112 deletions(-)
 
 diff --git a/arch/sparc/kernel/sys_sparc.c b/arch/sparc/kernel/sys_sparc.c
 index e995491..3c6b49a 100644
@@ -257,3 +261,6 @@ index e584563..625be4d 100644
  #endif
  #endif
  
+-- 
+1.5.5.1.57.g5909c
+
