@@ -1,7 +1,7 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Date: Thu, 08 May 2008 18:18:07 +0000
+From: Meelis Roos <mroos@linux.ee>
+Date: Thu, 15 May 2008 12:52:42 +0000
 Subject: Re: soft lockup in 2.6.26-rc1+git, on Fire V100
-Message-Id: <Pine.LNX.4.44L0.0805081410290.2127-100000@iolanthe.rowland.org>
+Message-Id: <Pine.SOC.4.64.0805151547440.1891@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.SOC.4.64.0805051908190.17592@math.ut.ee>
 In-Reply-To: <Pine.SOC.4.64.0805051908190.17592@math.ut.ee>
@@ -10,25 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, 8 May 2008, Greg KH wrote:
-
-> On Thu, May 08, 2008 at 12:35:10PM -0400, Alan Stern wrote:
-> > On Wed, 7 May 2008, David Brownell wrote:
-
-> > > Possibly related:  On an x86 box that's currently running
-> > > 2.6.25 (and unrelated patches), the OHCI controllers are
-> > > dead in the water since they never seem to have left the
-> > > RESET state after a resume from hibernation.
-> > 
-> > Looks like the "USB: OHCI: host-controller resumes leave root hub 
-> > suspended" commit (43bbb7e015c4380064796c5868b536437b165615) may need 
-> > to go into 2.6.25-stable.
+> I looked through the changesets since v2.6.25 in drivers/usb/host/
+> and there are a couple refactorings of how OHCI and EHCI are
+> programmed in various situations which would be useful to audit.
 > 
-> I have no objection to doing that, just let me know if you really want
-> that to happen.
+> In fact a quick way to bisect this bug might be:
+> 
+> 	git bisect drivers/usb/host
+> 	git bisect bad
+> 	git bisect good v2.6.25
+> 
+> or something like that.
 
-That patch won't apply to 2.6.25 as is.  I'll post a rebased version to 
-stable@kernel.org.
+Yes, something like that - the first was called git start ... ;)
 
-Alan Stern
+Anyway, finally got to bisecting using drivers/usb/host and found the 
+following conmmit through bisecting (for some reason it recompiled most 
+of the kernel each time):
 
+[705a752162768fed3e2c26fba5bffdd3a3bd04f2] plat-orion: make ehci-orion available for all Orion families
+
+This is strange - some ARM platform patch that should not matter.
+
+Should I redo the bisect without restricting to drivers/usb/host?
+
+-- 
+Meelis Roos (mroos@linux.ee)
