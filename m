@@ -1,98 +1,204 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 01 Jun 2008 07:22:10 +0000
-Subject: [PATCH] [SPARC] Merge include/asm-sparc{,64}/openpromio.h
-Message-Id: <20080601072210.GA17134@uranus.ravnborg.org>
+Date: Sun, 01 Jun 2008 07:23:01 +0000
+Subject: [PATCH] [SPARC] Merge include/asm-sparc{,64}/perfctr.h
+Message-Id: <20080601072301.GB17134@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20080601072210.GA17134@uranus.ravnborg.org>
+In-Reply-To: <20080601072210.GA17134@uranus.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From 32ca8676ae33adf0633a0917dc3334b95b802b73 Mon Sep 17 00:00:00 2001
+From 5dfefab1c484f3fc35c62ed31c3d6a6785b6e6e2 Mon Sep 17 00:00:00 2001
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 1 Jun 2008 08:29:17 +0200
-Subject: [PATCH] [SPARC] Merge include/asm-sparc{,64}/openpromio.h
+Date: Sun, 1 Jun 2008 08:34:54 +0200
+Subject: [PATCH] [SPARC] Merge include/asm-sparc{,64}/perfctr.h
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- include/asm-sparc64/openpromio.h |   70 +-------------------------------------
- 1 files changed, 1 insertions(+), 69 deletions(-)
+ include/asm-sparc64/perfctr.h |  174 +----------------------------------------
+ 1 files changed, 1 insertions(+), 173 deletions(-)
 
-diff --git a/include/asm-sparc64/openpromio.h b/include/asm-sparc64/openpromio.h
-index 847ce23..122fabd 100644
---- a/include/asm-sparc64/openpromio.h
-+++ b/include/asm-sparc64/openpromio.h
-@@ -1,69 +1 @@
--#ifndef	_SPARC64_OPENPROMIO_H
--#define	_SPARC64_OPENPROMIO_H
+diff --git a/include/asm-sparc64/perfctr.h b/include/asm-sparc64/perfctr.h
+index 8368730..52073a9 100644
+--- a/include/asm-sparc64/perfctr.h
++++ b/include/asm-sparc64/perfctr.h
+@@ -1,173 +1 @@
+-/*----------------------------------------
+-  PERFORMANCE INSTRUMENTATION  
+-  Guillaume Thouvenin           08/10/98
+-  David S. Miller               10/06/98
+-  ---------------------------------------*/
+-#ifndef PERF_COUNTER_API
+-#define PERF_COUNTER_API
 -
--#include <linux/compiler.h>
--#include <linux/ioctl.h>
--#include <linux/types.h>
--
--/*
-- * SunOS and Solaris /dev/openprom definitions. The ioctl values
-- * were chosen to be exactly equal to the SunOS equivalents.
+-/* sys_perfctr() interface.  First arg is operation code
+- * from enumeration below.  The meaning of further arguments
+- * are determined by the operation code.
+- *
+- * int sys_perfctr(int opcode, unsigned long arg0,
+- *                 unsigned long arg1, unsigned long arg2)
+- *
+- * Pointers which are passed by the user are pointers to 64-bit
+- * integers.
+- *
+- * Once enabled, performance counter state is retained until the
+- * process either exits or performs an exec.  That is, performance
+- * counters remain enabled for fork/clone children.
 - */
+-enum perfctr_opcode {
+-	/* Enable UltraSparc performance counters, ARG0 is pointer
+-	 * to 64-bit accumulator for D0 counter in PIC, ARG1 is pointer
+-	 * to 64-bit accumulator for D1 counter.  ARG2 is a pointer to
+-	 * the initial PCR register value to use.
+-	 */
+-	PERFCTR_ON,
 -
--struct openpromio
--{
--	u_int	oprom_size;		/* Actual size of the oprom_array. */
--	char	oprom_array[1];		/* Holds property names and values. */
+-	/* Disable UltraSparc performance counters.  The PCR is written
+-	 * with zero and the user counter accumulator pointers and
+-	 * working PCR register value are forgotten.
+-	 */
+-	PERFCTR_OFF,
+-
+-	/* Add current D0 and D1 PIC values into user pointers given
+-	 * in PERFCTR_ON operation.  The PIC is cleared before returning.
+-	 */
+-	PERFCTR_READ,
+-
+-	/* Clear the PIC register. */
+-	PERFCTR_CLRPIC,
+-
+-	/* Begin using a new PCR value, the pointer to which is passed
+-	 * in ARG0.  The PIC is also cleared after the new PCR value is
+-	 * written.
+-	 */
+-	PERFCTR_SETPCR,
+-
+-	/* Store in pointer given in ARG0 the current PCR register value
+-	 * being used.
+-	 */
+-	PERFCTR_GETPCR
 -};
 -
--#define	OPROMMAXPARAM	4096		/* Maximum size of oprom_array. */
--
--#define	OPROMGETOPT		0x20004F01
--#define	OPROMSETOPT		0x20004F02
--#define	OPROMNXTOPT		0x20004F03
--#define	OPROMSETOPT2		0x20004F04
--#define	OPROMNEXT		0x20004F05
--#define	OPROMCHILD		0x20004F06
--#define	OPROMGETPROP		0x20004F07
--#define	OPROMNXTPROP		0x20004F08
--#define	OPROMU2P		0x20004F09
--#define	OPROMGETCONS		0x20004F0A
--#define	OPROMGETFBNAME		0x20004F0B
--#define	OPROMGETBOOTARGS	0x20004F0C
--/* Linux extensions */				/* Arguments in oprom_array: */
--#define OPROMSETCUR		0x20004FF0	/* int node - Sets current node */
--#define OPROMPCI2NODE		0x20004FF1	/* int pci_bus, pci_devfn - Sets current node to PCI device's node */
--#define OPROMPATH2NODE		0x20004FF2	/* char path[] - Set current node from fully qualified PROM path */
--
--/*
-- * Return values from OPROMGETCONS:
+-/* I don't want the kernel's namespace to be polluted with this
+- * stuff when this file is included.  --DaveM
 - */
+-#ifndef __KERNEL__
 -
--#define OPROMCONS_NOT_WSCONS    0
--#define OPROMCONS_STDIN_IS_KBD  0x1     /* stdin device is kbd */
--#define OPROMCONS_STDOUT_IS_FB  0x2     /* stdout is a framebuffer */
--#define OPROMCONS_OPENPROM      0x4     /* supports openboot */
+-#define  PRIV 0x00000001
+-#define  SYS  0x00000002
+-#define  USR  0x00000004
 -
+-/* Pic.S0 Selection Bit Field Encoding, Ultra-I/II  */
+-#define  CYCLE_CNT            0x00000000
+-#define  INSTR_CNT            0x00000010
+-#define  DISPATCH0_IC_MISS    0x00000020
+-#define  DISPATCH0_STOREBUF   0x00000030
+-#define  IC_REF               0x00000080
+-#define  DC_RD                0x00000090
+-#define  DC_WR                0x000000A0
+-#define  LOAD_USE             0x000000B0
+-#define  EC_REF               0x000000C0
+-#define  EC_WRITE_HIT_RDO     0x000000D0
+-#define  EC_SNOOP_INV         0x000000E0
+-#define  EC_RD_HIT            0x000000F0
 -
--/*
-- *  NetBSD/OpenBSD /dev/openprom definitions.
-- */
+-/* Pic.S0 Selection Bit Field Encoding, Ultra-III  */
+-#define  US3_CYCLE_CNT	      	0x00000000
+-#define  US3_INSTR_CNT	      	0x00000010
+-#define  US3_DISPATCH0_IC_MISS	0x00000020
+-#define  US3_DISPATCH0_BR_TGT	0x00000030
+-#define  US3_DISPATCH0_2ND_BR	0x00000040
+-#define  US3_RSTALL_STOREQ	0x00000050
+-#define  US3_RSTALL_IU_USE	0x00000060
+-#define  US3_IC_REF		0x00000080
+-#define  US3_DC_RD		0x00000090
+-#define  US3_DC_WR		0x000000a0
+-#define  US3_EC_REF		0x000000c0
+-#define  US3_EC_WR_HIT_RTO	0x000000d0
+-#define  US3_EC_SNOOP_INV	0x000000e0
+-#define  US3_EC_RD_MISS		0x000000f0
+-#define  US3_PC_PORT0_RD	0x00000100
+-#define  US3_SI_SNOOP		0x00000110
+-#define  US3_SI_CIQ_FLOW	0x00000120
+-#define  US3_SI_OWNED		0x00000130
+-#define  US3_SW_COUNT_0		0x00000140
+-#define  US3_IU_BR_MISS_TAKEN	0x00000150
+-#define  US3_IU_BR_COUNT_TAKEN	0x00000160
+-#define  US3_DISP_RS_MISPRED	0x00000170
+-#define  US3_FA_PIPE_COMPL	0x00000180
+-#define  US3_MC_READS_0		0x00000200
+-#define  US3_MC_READS_1		0x00000210
+-#define  US3_MC_READS_2		0x00000220
+-#define  US3_MC_READS_3		0x00000230
+-#define  US3_MC_STALLS_0	0x00000240
+-#define  US3_MC_STALLS_2	0x00000250
 -
--struct opiocdesc
--{
--	int	op_nodeid;		/* PROM Node ID (value-result) */
--	int	op_namelen;		/* Length of op_name. */
--	char	__user *op_name;	/* Pointer to the property name. */
--	int	op_buflen;		/* Length of op_buf (value-result) */
--	char	__user *op_buf;		/* Pointer to buffer. */
+-/* Pic.S1 Selection Bit Field Encoding, Ultra-I/II  */
+-#define  CYCLE_CNT_D1         0x00000000
+-#define  INSTR_CNT_D1         0x00000800
+-#define  DISPATCH0_IC_MISPRED 0x00001000
+-#define  DISPATCH0_FP_USE     0x00001800
+-#define  IC_HIT               0x00004000
+-#define  DC_RD_HIT            0x00004800
+-#define  DC_WR_HIT            0x00005000
+-#define  LOAD_USE_RAW         0x00005800
+-#define  EC_HIT               0x00006000
+-#define  EC_WB                0x00006800
+-#define  EC_SNOOP_CB          0x00007000
+-#define  EC_IT_HIT            0x00007800
+-
+-/* Pic.S1 Selection Bit Field Encoding, Ultra-III  */
+-#define  US3_CYCLE_CNT_D1	0x00000000
+-#define  US3_INSTR_CNT_D1	0x00000800
+-#define  US3_DISPATCH0_MISPRED	0x00001000
+-#define  US3_IC_MISS_CANCELLED	0x00001800
+-#define  US3_RE_ENDIAN_MISS	0x00002000
+-#define  US3_RE_FPU_BYPASS	0x00002800
+-#define  US3_RE_DC_MISS		0x00003000
+-#define  US3_RE_EC_MISS		0x00003800
+-#define  US3_IC_MISS		0x00004000
+-#define  US3_DC_RD_MISS		0x00004800
+-#define  US3_DC_WR_MISS		0x00005000
+-#define  US3_RSTALL_FP_USE	0x00005800
+-#define  US3_EC_MISSES		0x00006000
+-#define  US3_EC_WB		0x00006800
+-#define  US3_EC_SNOOP_CB	0x00007000
+-#define  US3_EC_IC_MISS		0x00007800
+-#define  US3_RE_PC_MISS		0x00008000
+-#define  US3_ITLB_MISS		0x00008800
+-#define  US3_DTLB_MISS		0x00009000
+-#define  US3_WC_MISS		0x00009800
+-#define  US3_WC_SNOOP_CB	0x0000a000
+-#define  US3_WC_SCRUBBED	0x0000a800
+-#define  US3_WC_WB_WO_READ	0x0000b000
+-#define  US3_PC_SOFT_HIT	0x0000c000
+-#define  US3_PC_SNOOP_INV	0x0000c800
+-#define  US3_PC_HARD_HIT	0x0000d000
+-#define  US3_PC_PORT1_RD	0x0000d800
+-#define  US3_SW_COUNT_1		0x0000e000
+-#define  US3_IU_STAT_BR_MIS_UNTAKEN	0x0000e800
+-#define  US3_IU_STAT_BR_COUNT_UNTAKEN	0x0000f000
+-#define  US3_PC_MS_MISSES	0x0000f800
+-#define  US3_MC_WRITES_0	0x00010800
+-#define  US3_MC_WRITES_1	0x00011000
+-#define  US3_MC_WRITES_2	0x00011800
+-#define  US3_MC_WRITES_3	0x00012000
+-#define  US3_MC_STALLS_1	0x00012800
+-#define  US3_MC_STALLS_3	0x00013000
+-#define  US3_RE_RAW_MISS	0x00013800
+-#define  US3_FM_PIPE_COMPLETION	0x00014000
+-
+-struct vcounter_struct {
+-  unsigned long long vcnt0;
+-  unsigned long long vcnt1;
 -};
 -
--#define	OPIOCGET	_IOWR('O', 1, struct opiocdesc)
--#define	OPIOCSET	_IOW('O', 2, struct opiocdesc)
--#define	OPIOCNEXTPROP	_IOWR('O', 3, struct opiocdesc)
--#define	OPIOCGETOPTNODE	_IOR('O', 4, int)
--#define	OPIOCGETNEXT	_IOWR('O', 5, int)
--#define	OPIOCGETCHILD	_IOWR('O', 6, int)
+-#endif /* !(__KERNEL__) */
 -
--#endif /* _SPARC64_OPENPROMIO_H */
--
-+#include <asm-sparc/openpromio.h>
+-#endif /* !(PERF_COUNTER_API) */
++#include <asm-sparc/perfctr.h>
 -- 
 1.5.4.1.143.ge7e51
 
