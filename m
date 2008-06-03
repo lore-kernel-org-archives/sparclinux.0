@@ -1,27 +1,26 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 10 Jun 2008 21:26:35 +0000
-Subject: Re: [PATCH 01/21] sparc: copy exported sparc64 specific header
-Message-Id: <20080610.142635.254806386.davem@davemloft.net>
+From: Mikael Pettersson <mikpe@it.uu.se>
+Date: Tue, 03 Jun 2008 07:35:52 +0000
+Subject: [BUG] 2.6.26-rc1 broke X on SPARC Ultra5
+Message-Id: <18500.62552.958244.633204@harpo.it.uu.se>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1212786033-4227-1-git-send-email-sam@ravnborg.org>
-In-Reply-To: <1212786033-4227-1-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Tue, 10 Jun 2008 23:00:03 +0200
+While investigating a report in linux.debian.ports.sparc
+saying that X doesn't work with the 2.6.24 kernel, I noticed
+that while X works for me with 2.6.25, 2.6.24, and Aurora's
+2.6.23 kernels, it doesn't work with any 2.6.26-rcN (1<=N<=4)
+kernel; with those it always fails with a
 
-> On Tue, Jun 10, 2008 at 01:48:39PM -0700, David Miller wrote:
-> > Is there any way to avoid this so that the tree is bisectable
-> > during your changes?
-> Yes - I will then have to add all the moved headers to
-> include/asm-sparc/Kbuild.
-> 
-> I will do so and post an updated patch serie.
+Fatal server error:
+xf86MapPciMem: Could not mmap PCI memory [base=0xe2000000,hostbase=0xe2000000,size 00] (No such file or directory)
 
-Thanks a lot Sam.
+I'll start digging through 2.6.25->2.6.26-rc1 later today,
+meanwhile I've put Xorg.0.log, Xorg strace, dmesg, and .config
+files for 2.6.25 (working) and 2.6.26-rc4 (failing) in
+<http://user.it.uu.se/~mikpe/linux/sparc64-2.6.26-rcN-xorg-bug/>.
 
-Meanwhile, I'll push to sparc-next-2.6 just my changeset to eliminate
-apb.h and bbc.h from include/asm-sparc64/Kbuild
+/Mikael
