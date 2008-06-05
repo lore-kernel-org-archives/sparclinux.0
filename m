@@ -1,31 +1,28 @@
-From: "Tom \"spot\" Callaway" <tcallawa@redhat.com>
-Date: Thu, 05 Jun 2008 18:51:59 +0000
-Subject: Re: RFC: remove CONFIG_SUN4 support?
-Message-Id: <1212691919.6772.56.camel@localhost.localdomain>
+From: Adrian Bunk <bunk@kernel.org>
+Date: Thu, 05 Jun 2008 18:26:42 +0000
+Subject: [2.6 patch] sparc: remove PROM_AP1000
+Message-Id: <20080605182641.GJ1469@cs181133002.pp.htv.fi>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080605182755.GM1469@cs181133002.pp.htv.fi>
-In-Reply-To: <20080605182755.GM1469@cs181133002.pp.htv.fi>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, 2008-06-05 at 11:34 -0700, David Miller wrote:
-> From: Adrian Bunk <bunk@kernel.org>
-> Date: Thu, 5 Jun 2008 21:28:25 +0300
-> 
-> > Are there reports of the code code being anywhere near at being working 
-> > or could I remove it?
-> 
-> At one point it worked to some extent, but it's rotted
-> quite extensively as you have noticed.
-> 
-> I'd be happy to remove the CONFIG_SUN4 stuff for 2.6.27,
-> anyone interested can resurrect the code.
+This seems to be left from the long gone AP1000 support.
 
-As far as I know, I may be the only person who has seriously tried to
-boot Linux on a Sun4 in the last few years. Feel free to take this out
-back and shoot it. ;)
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 
-~spot
+---
+9f3bccd9b0249260320b2c567d421d36023df077 diff --git a/include/asm-sparc/oplib.h b/include/asm-sparc/oplib.h
+index 61c3ca6..00f487e 100644
+--- a/include/asm-sparc/oplib.h
++++ b/include/asm-sparc/oplib.h
+@@ -21,7 +21,6 @@ enum prom_major_version {
+ 	PROM_V2,      /* sun4c and early sun4m V2 prom */
+ 	PROM_V3,      /* sun4m and later, up to sun4d/sun4e machines V3 */
+ 	PROM_P1275,   /* IEEE compliant ISA based Sun PROM, only sun4u */
+-        PROM_AP1000,  /* actually no prom at all */
+ 	PROM_SUN4,    /* Old sun4 proms are totally different, but we'll shoehorn it to make it fit */
+ };
+ 
 
