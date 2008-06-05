@@ -1,150 +1,344 @@
-From: "Alexander Beregalov" <a.beregalov@gmail.com>
-Date: Fri, 20 Jun 2008 23:36:02 +0000
-Subject: Re: 2.6.26-rc: SPARC: Sun Ultra 10 can not boot
-Message-Id: <a4423d670806201636n4f3d107bk290ed831eb5eefb4@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_Part_8056_13774286.1214004963173"
+From: Adrian Bunk <bunk@kernel.org>
+Date: Thu, 05 Jun 2008 18:26:58 +0000
+Subject: [2.6 patch] drivers/sbus/: cleanups
+Message-Id: <20080605182649.GL1469@cs181133002.pp.htv.fi>
 List-Id: <sparclinux.vger.kernel.org>
-References: <a4423d670806201542o5415cad7p6b9a38b67252cee1@mail.gmail.com>
-	 <20080620.155139.224032701.davem@davemloft.net>
-	 <a4423d670806201612g3487325cj175f077fbe71de2a@mail.gmail.com>
-	 <20080620.162135.203810660.davem@davemloft.net>
-In-Reply-To: <20080620.162135.203810660.davem@davemloft.net>
-To: David Miller <davem@davemloft.net>
-Cc: kernel-testers@vger.kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-
-------=_Part_8056_13774286.1214004963173
-Content-Type: text/plain; charset=UTF-8
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: sparclinux@vger.kernel.org
 
-2008/6/21 David Miller <davem@davemloft.net>:
-> Ok I have to find some way to reproduce this.  Please post the
-> kernel .config you are using during these tests.  Also please
-> let me know what distribution and compiler version you are using.
->
-> Thanks.
->
-It is Gentoo; gcc version 4.1.2 (Gentoo 4.1.2 p1.0.1); sys-devel/kgcc64-4.1.2.
-I cross-compiled it as you advised me:
-make -j2 CROSS_COMPILE=sparc64-unknown-linux-gnu- image modules &&
-sudo make modules_install
+This patch contains the following cleanups:
+- make the following needlessly global code static:
+  - char/uctrl.c: uctrl_get_event_status()
+  - char/uctrl.c: uctrl_get_external_status()
+  - char/vfc_dev.c: struct vfc_dev_lst
+  - char/vfc_dev.c: vfc_lock_device()
+  - char/vfc_dev.c: vfc_unlock_device()
+  - char/vfc_dev.c: vfc_captstat_reset()
+  - char/vfc_dev.c: vfc_memptr_reset()
+  - char/vfc_dev.c: vfc_csr_init()
+  - char/vfc_dev.c: vfc_saa9051_init()
+  - char/vfc_dev.c: init_vfc_hw()
+  - char/vfc_dev.c: init_vfc_devstruct()
+  - char/vfc_dev.c: init_vfc_device()
+  - char/vfc_dev.c: vfc_get_dev_ptr()
+  - char/vfc_dev.c: vfc_capture_start()
+  - char/vfc_dev.c: vfc_capture_poll()
+  - char/vfc_dev.c: vfc_port_change_ioctl()
+  - char/vfc_dev.c: vfc_set_video_ioctl()
+  - char/vfc_dev.c: vfc_get_video_ioctl()
+  - char/vfc_i2c.c: vfc_i2c_wait_for_bus()
+  - char/vfc_i2c.c: vfc_i2c_wait_for_pin()
+  - char/vfc_i2c.c: vfc_i2c_xmit_addr()
+  - char/vfc_i2c.c: vfc_i2c_xmit_byte()
+  - char/vfc_i2c.c: vfc_i2c_recv_byte()
+  - dvma.c: init_one_dvma()
+- remove an unused variable from a function:
+  - char/uctrl.c: ts102_uctrl_init()
+- remove the following unused and empty function:
+  - char/uctrl.c: uctrl_set_video()
 
-Config is in attachment.
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 
-------=_Part_8056_13774286.1214004963173
-Content-Type: application/x-gzip; name=sparky-config.gz
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fhpf342p0
-Content-Disposition: attachment; filename=sparky-config.gz
+---
 
-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
-------=_Part_8056_13774286.1214004963173--
+ drivers/sbus/char/uctrl.c   |   16 ++++----------
+ drivers/sbus/char/vfc.h     |    4 ---
+ drivers/sbus/char/vfc_dev.c |   39 ++++++++++++++++++------------------
+ drivers/sbus/char/vfc_i2c.c |   12 ++++++-----
+ drivers/sbus/dvma.c         |    2 -
+ 5 files changed, 33 insertions(+), 40 deletions(-)
+
+26ea969416ee8957dc9c4e8a7c464911493635ee diff --git a/drivers/sbus/char/uctrl.c b/drivers/sbus/char/uctrl.c
+index 383f32c..2f6df34 100644
+--- a/drivers/sbus/char/uctrl.c
++++ b/drivers/sbus/char/uctrl.c
+@@ -194,8 +194,8 @@ struct uctrl_driver {
+ 
+ static struct uctrl_driver drv;
+ 
+-void uctrl_get_event_status(void);
+-void uctrl_get_external_status(void);
++static void uctrl_get_event_status(void);
++static void uctrl_get_external_status(void);
+ 
+ static int
+ uctrl_ioctl(struct inode *inode, struct file *file,
+@@ -263,12 +263,6 @@ static struct miscdevice uctrl_dev = {
+   driver->regs->uctrl_stat = UCTRL_STAT_RXNE_STA; \
+ }
+ 
+-void uctrl_set_video(int status)
+-{
+-	struct uctrl_driver *driver = &drv;
+-	
+-}
+-
+ static void uctrl_do_txn(struct uctrl_txn *txn)
+ {
+ 	struct uctrl_driver *driver = &drv;
+@@ -308,7 +302,7 @@ static void uctrl_do_txn(struct uctrl_txn *txn)
+ 	}
+ }
+ 
+-void uctrl_get_event_status(void)
++static void uctrl_get_event_status(void)
+ {
+ 	struct uctrl_driver *driver = &drv;
+ 	struct uctrl_txn txn;
+@@ -328,7 +322,7 @@ void uctrl_get_event_status(void)
+ 	dprintk(("ev is %x\n", driver->status.event_status));
+ }
+ 
+-void uctrl_get_external_status(void)
++static void uctrl_get_external_status(void)
+ {
+ 	struct uctrl_driver *driver = &drv;
+ 	struct uctrl_txn txn;
+@@ -360,7 +354,7 @@ void uctrl_get_external_status(void)
+ static int __init ts102_uctrl_init(void)
+ {
+ 	struct uctrl_driver *driver = &drv;
+-	int len, i;
++	int len;
+ 	struct linux_prom_irqs tmp_irq[2];
+         unsigned int vaddr[2] = { 0, 0 };
+ 	int tmpnode, uctrlnode = prom_getchild(prom_root_node);
+diff --git a/drivers/sbus/char/vfc.h b/drivers/sbus/char/vfc.h
+index f1aa138..a5240c5 100644
+--- a/drivers/sbus/char/vfc.h
++++ b/drivers/sbus/char/vfc.h
+@@ -133,8 +133,6 @@ struct vfc_dev {
+ 	unsigned char saa9051_state_array[VFC_SAA9051_NR];
+ };
+ 
+-extern struct vfc_dev **vfc_dev_lst;
+-
+ void captstat_reset(struct vfc_dev *);
+ void memptr_reset(struct vfc_dev *);
+ 
+@@ -145,8 +143,6 @@ int vfc_i2c_sendbuf(struct vfc_dev *, unsigned char, char *, int) ;
+ int vfc_i2c_recvbuf(struct vfc_dev *, unsigned char, char *, int) ;
+ int vfc_i2c_reset_bus(struct vfc_dev *);
+ int vfc_init_i2c_bus(struct vfc_dev *);
+-void vfc_lock_device(struct vfc_dev *);
+-void vfc_unlock_device(struct vfc_dev *);
+ 
+ #define VFC_CONTROL_DIAGMODE  0x10000000
+ #define VFC_CONTROL_MEMPTR    0x20000000
+diff --git a/drivers/sbus/char/vfc_dev.c b/drivers/sbus/char/vfc_dev.c
+index d4f8fcd..c06b2a1 100644
+--- a/drivers/sbus/char/vfc_dev.c
++++ b/drivers/sbus/char/vfc_dev.c
+@@ -44,7 +44,7 @@
+ #include <asm/vfc_ioctls.h>
+ 
+ static const struct file_operations vfc_fops;
+-struct vfc_dev **vfc_dev_lst;
++static struct vfc_dev **vfc_dev_lst;
+ static char vfcstr[]="vfc";
+ static unsigned char saa9051_init_array[VFC_SAA9051_NR] = {
+ 	0x00, 0x64, 0x72, 0x52,
+@@ -53,18 +53,18 @@ static unsigned char saa9051_init_array[VFC_SAA9051_NR] = {
+ 	0x3e
+ };
+ 
+-void vfc_lock_device(struct vfc_dev *dev)
++static void vfc_lock_device(struct vfc_dev *dev)
+ {
+ 	mutex_lock(&dev->device_lock_mtx);
+ }
+ 
+-void vfc_unlock_device(struct vfc_dev *dev)
++static void vfc_unlock_device(struct vfc_dev *dev)
+ {
+ 	mutex_unlock(&dev->device_lock_mtx);
+ }
+ 
+ 
+-void vfc_captstat_reset(struct vfc_dev *dev) 
++static void vfc_captstat_reset(struct vfc_dev *dev) 
+ {
+ 	dev->control_reg |= VFC_CONTROL_CAPTRESET;
+ 	sbus_writel(dev->control_reg, &dev->regs->control);
+@@ -74,7 +74,7 @@ void vfc_captstat_reset(struct vfc_dev *dev)
+ 	sbus_writel(dev->control_reg, &dev->regs->control);
+ }
+ 
+-void vfc_memptr_reset(struct vfc_dev *dev) 
++static void vfc_memptr_reset(struct vfc_dev *dev) 
+ {
+ 	dev->control_reg |= VFC_CONTROL_MEMPTR;
+ 	sbus_writel(dev->control_reg, &dev->regs->control);
+@@ -84,7 +84,7 @@ void vfc_memptr_reset(struct vfc_dev *dev)
+ 	sbus_writel(dev->control_reg, &dev->regs->control);
+ }
+ 
+-int vfc_csr_init(struct vfc_dev *dev)
++static int vfc_csr_init(struct vfc_dev *dev)
+ {
+ 	dev->control_reg = 0x80000000;
+ 	sbus_writel(dev->control_reg, &dev->regs->control);
+@@ -106,7 +106,7 @@ int vfc_csr_init(struct vfc_dev *dev)
+ 	return 0;
+ }
+ 
+-int vfc_saa9051_init(struct vfc_dev *dev)
++static int vfc_saa9051_init(struct vfc_dev *dev)
+ {
+ 	int i;
+ 
+@@ -118,7 +118,7 @@ int vfc_saa9051_init(struct vfc_dev *dev)
+ 	return 0;
+ }
+ 
+-int init_vfc_hw(struct vfc_dev *dev) 
++static int init_vfc_hw(struct vfc_dev *dev) 
+ {
+ 	vfc_lock_device(dev);
+ 	vfc_csr_init(dev);
+@@ -131,7 +131,7 @@ int init_vfc_hw(struct vfc_dev *dev)
+ 	return 0; 
+ }
+ 
+-int init_vfc_devstruct(struct vfc_dev *dev, int instance) 
++static int init_vfc_devstruct(struct vfc_dev *dev, int instance) 
+ {
+ 	dev->instance=instance;
+ 	mutex_init(&dev->device_lock_mtx);
+@@ -140,7 +140,8 @@ int init_vfc_devstruct(struct vfc_dev *dev, int instance)
+ 	return 0;
+ }
+ 
+-int init_vfc_device(struct sbus_dev *sdev,struct vfc_dev *dev, int instance)
++static int init_vfc_device(struct sbus_dev *sdev,struct vfc_dev *dev,
++			   int instance)
+ {
+ 	if(dev = NULL) {
+ 		printk(KERN_ERR "VFC: Bogus pointer passed\n");
+@@ -167,7 +168,7 @@ int init_vfc_device(struct sbus_dev *sdev,struct vfc_dev *dev, int instance)
+ }
+ 
+ 
+-struct vfc_dev *vfc_get_dev_ptr(int instance) 
++static struct vfc_dev *vfc_get_dev_ptr(int instance) 
+ {
+ 	return vfc_dev_lst[instance];
+ }
+@@ -287,7 +288,7 @@ static int vfc_debug(struct vfc_dev *dev, int cmd, void __user *argp)
+ 	return 0;
+ }
+ 
+-int vfc_capture_start(struct vfc_dev *dev) 
++static int vfc_capture_start(struct vfc_dev *dev) 
+ {
+ 	vfc_captstat_reset(dev);
+ 	dev->control_reg = sbus_readl(&dev->regs->control);
+@@ -309,7 +310,7 @@ int vfc_capture_start(struct vfc_dev *dev)
+ 	return 0;
+ }
+ 
+-int vfc_capture_poll(struct vfc_dev *dev) 
++static int vfc_capture_poll(struct vfc_dev *dev) 
+ {
+ 	int timeout = 1000;
+ 
+@@ -385,8 +386,8 @@ static int vfc_set_control_ioctl(struct inode *inode, struct file *file,
+ }
+ 
+ 
+-int vfc_port_change_ioctl(struct inode *inode, struct file *file, 
+-			  struct vfc_dev *dev, unsigned long arg) 
++static int vfc_port_change_ioctl(struct inode *inode, struct file *file, 
++				 struct vfc_dev *dev, unsigned long arg) 
+ {
+ 	int ret = 0;
+ 	int cmd;
+@@ -455,8 +456,8 @@ int vfc_port_change_ioctl(struct inode *inode, struct file *file,
+ 	return ret;
+ }
+ 
+-int vfc_set_video_ioctl(struct inode *inode, struct file *file, 
+-			struct vfc_dev *dev, unsigned long arg) 
++static int vfc_set_video_ioctl(struct inode *inode, struct file *file, 
++			       struct vfc_dev *dev, unsigned long arg) 
+ {
+ 	int ret = 0;
+ 	int cmd;
+@@ -506,8 +507,8 @@ int vfc_set_video_ioctl(struct inode *inode, struct file *file,
+ 	return ret;
+ }
+ 
+-int vfc_get_video_ioctl(struct inode *inode, struct file *file, 
+-			struct vfc_dev *dev, unsigned long arg) 
++static int vfc_get_video_ioctl(struct inode *inode, struct file *file, 
++			       struct vfc_dev *dev, unsigned long arg) 
+ {
+ 	int ret = 0;
+ 	unsigned int status = NO_LOCK;
+diff --git a/drivers/sbus/char/vfc_i2c.c b/drivers/sbus/char/vfc_i2c.c
+index 9efed77..4930a9c 100644
+--- a/drivers/sbus/char/vfc_i2c.c
++++ b/drivers/sbus/char/vfc_i2c.c
+@@ -114,7 +114,7 @@ int vfc_i2c_reset_bus(struct vfc_dev *dev)
+ 	return 0;
+ }
+ 
+-int vfc_i2c_wait_for_bus(struct vfc_dev *dev) 
++static int vfc_i2c_wait_for_bus(struct vfc_dev *dev) 
+ {
+ 	int timeout = 1000; 
+ 
+@@ -126,7 +126,7 @@ int vfc_i2c_wait_for_bus(struct vfc_dev *dev)
+ 	return 0;
+ }
+ 
+-int vfc_i2c_wait_for_pin(struct vfc_dev *dev, int ack)
++static int vfc_i2c_wait_for_pin(struct vfc_dev *dev, int ack)
+ {
+ 	int timeout = 1000; 
+ 	int s1;
+@@ -144,7 +144,8 @@ int vfc_i2c_wait_for_pin(struct vfc_dev *dev, int ack)
+ }
+ 
+ #define SHIFT(a) ((a) << 24)
+-int vfc_i2c_xmit_addr(struct vfc_dev *dev, unsigned char addr, char mode) 
++static int vfc_i2c_xmit_addr(struct vfc_dev *dev, unsigned char addr,
++			     char mode) 
+ { 
+ 	int ret, raddr;
+ #if 1
+@@ -195,7 +196,7 @@ int vfc_i2c_xmit_addr(struct vfc_dev *dev, unsigned char addr, char mode)
+ 	return 0;
+ }
+ 
+-int vfc_i2c_xmit_byte(struct vfc_dev *dev,unsigned char *byte) 
++static int vfc_i2c_xmit_byte(struct vfc_dev *dev,unsigned char *byte) 
+ {
+ 	int ret;
+ 	u32 val = SHIFT((unsigned int)*byte);
+@@ -218,7 +219,8 @@ int vfc_i2c_xmit_byte(struct vfc_dev *dev,unsigned char *byte)
+ 	return ret;
+ }
+ 
+-int vfc_i2c_recv_byte(struct vfc_dev *dev, unsigned char *byte, int last) 
++static int vfc_i2c_recv_byte(struct vfc_dev *dev, unsigned char *byte,
++			     int last) 
+ {
+ 	int ret;
+ 
+diff --git a/drivers/sbus/dvma.c b/drivers/sbus/dvma.c
+index 57e1526..ab0d2de 100644
+--- a/drivers/sbus/dvma.c
++++ b/drivers/sbus/dvma.c
+@@ -16,7 +16,7 @@
+ 
+ struct sbus_dma *dma_chain;
+ 
+-void __init init_one_dvma(struct sbus_dma *dma, int num_dma)
++static void __init init_one_dvma(struct sbus_dma *dma, int num_dma)
+ {
+ 	printk("dma%d: ", num_dma);
+ 	
+
