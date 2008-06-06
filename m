@@ -1,94 +1,89 @@
-From: Mikulas Patocka <mpatocka@redhat.com>
-Date: Tue, 24 Jun 2008 05:59:46 +0000
-Subject: [6/10 PATCH] inline autoremove_wake_function
-Message-Id: <Pine.LNX.4.64.0806240159190.27784@engineering.redhat.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 06 Jun 2008 21:00:25 +0000
+Subject: [PATCH 13/21] sparc: copy asm-sparc64/fbio.h to asm-sparc
+Message-Id: <1212786033-4227-13-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.0806240136200.27784@engineering.redhat.com>
- <Pine.LNX.4.64.0806240154140.27784@engineering.redhat.com>
-In-Reply-To: <Pine.LNX.4.64.0806240154140.27784@engineering.redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
-Cc: davem@davemloft.net
+To: sparclinux@vger.kernel.org
 
-Make wake_bit_function -> autoremove_wake_function call inlined.
+There were only a few trivial changes and a few additions
+in the sparc64 variant of this file.
+This patch shows the differences before the merge.
 
-autoremove_wake_function cannot be put as static inline into headers, because
-reference to it is taken at some places. So use "inline" keyword that will make
-it both exported and inlinable in current file.
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ include/asm-sparc/fbio.h |   37 +++++++++++++++++++++++++++++++++++--
+ 1 files changed, 35 insertions(+), 2 deletions(-)
 
-Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
-
-Index: linux-2.6.26-rc7-devel/kernel/sched.c
-=================================--- linux-2.6.26-rc7-devel.orig/kernel/sched.c	2008-06-24 07:37:36.000000000 +0200
-+++ linux-2.6.26-rc7-devel/kernel/sched.c	2008-06-24 07:37:42.000000000 +0200
-@@ -4275,7 +4275,7 @@
-  }
-  EXPORT_SYMBOL(default_wake_function);
-
--int autoremove_wake_function(wait_queue_t *wait, unsigned mode, int sync, void *key)
-+__always_inline int autoremove_wake_function(wait_queue_t *wait, unsigned mode, int sync, void *key)
-  {
-  	int ret = default_wake_function(wait, mode, sync, key);
-
-@@ -4285,6 +4285,21 @@
-  }
-  EXPORT_SYMBOL(autoremove_wake_function);
-
-+int wake_bit_function(wait_queue_t *wait, unsigned mode, int sync, void *arg)
-+{
-+	struct wait_bit_key *key = arg;
-+	struct wait_bit_queue *wait_bit
-+		= container_of(wait, struct wait_bit_queue, wait);
+diff --git a/include/asm-sparc/fbio.h b/include/asm-sparc/fbio.h
+index c2b27e7..b9215a0 100644
+--- a/include/asm-sparc/fbio.h
++++ b/include/asm-sparc/fbio.h
+@@ -1,6 +1,9 @@
+ #ifndef __LINUX_FBIO_H
+ #define __LINUX_FBIO_H
+ 
++#include <linux/compiler.h>
++#include <linux/types.h>
 +
-+	if (wait_bit->key.flags != key->flags ||
-+			wait_bit->key.bit_nr != key->bit_nr ||
-+			test_bit(key->bit_nr, key->flags))
-+		return 0;
-+	else
-+		return autoremove_wake_function(wait, mode, sync, key);
-+}
-+EXPORT_SYMBOL(wake_bit_function);
+ /* Constants used for fbio SunOS compatibility */
+ /* (C) 1996 Miguel de Icaza */
+ 
+@@ -38,6 +41,9 @@
+ #define FBTYPE_PCI_IGA1682	23
+ #define FBTYPE_P9100COLOR	24
+ 
++#define FBTYPE_PCI_GENERIC	1000
++#define FBTYPE_PCI_MACH64	1001
 +
-  /*
-   * The core wakeup function. Non-exclusive wakeups (nr_exclusive = 0) just
-   * wake everything up. If it's an exclusive wakeup (nr_exclusive = small +ve
-Index: linux-2.6.26-rc7-devel/kernel/wait.c
-=================================--- linux-2.6.26-rc7-devel.orig/kernel/wait.c	2008-06-24 07:37:36.000000000 +0200
-+++ linux-2.6.26-rc7-devel/kernel/wait.c	2008-06-24 07:37:42.000000000 +0200
-@@ -127,21 +127,6 @@
-  }
-  EXPORT_SYMBOL(finish_wait);
-
--int wake_bit_function(wait_queue_t *wait, unsigned mode, int sync, void *arg)
--{
--	struct wait_bit_key *key = arg;
--	struct wait_bit_queue *wait_bit
--		= container_of(wait, struct wait_bit_queue, wait);
--
--	if (wait_bit->key.flags != key->flags ||
--			wait_bit->key.bit_nr != key->bit_nr ||
--			test_bit(key->bit_nr, key->flags))
--		return 0;
--	else
--		return autoremove_wake_function(wait, mode, sync, key);
--}
--EXPORT_SYMBOL(wake_bit_function);
--
-  /*
-   * To allow interruptible waiting and asynchronous (i.e. nonblocking)
-   * waiting, the actions of __wait_on_bit() and __wait_on_bit_lock() are
-Index: linux-2.6.26-rc7-devel/include/linux/wait.h
-=================================--- linux-2.6.26-rc7-devel.orig/include/linux/wait.h	2008-06-24 07:37:36.000000000 +0200
-+++ linux-2.6.26-rc7-devel/include/linux/wait.h	2008-06-24 07:37:42.000000000 +0200
-@@ -527,7 +527,7 @@
-  void prepare_to_wait(wait_queue_head_t *q, wait_queue_t *wait, int state);
-  void prepare_to_wait_exclusive(wait_queue_head_t *q, wait_queue_t *wait, int state);
-  void finish_wait(wait_queue_head_t *q, wait_queue_t *wait);
--int autoremove_wake_function(wait_queue_t *wait, unsigned mode, int sync, void *key);
-+__always_inline int autoremove_wake_function(wait_queue_t *wait, unsigned mode, int sync, void *key);
-  int wake_bit_function(wait_queue_t *wait, unsigned mode, int sync, void *key);
-
-  #define DEFINE_WAIT(name)						\
+ /* fbio ioctls */
+ /* Returned by FBIOGTYPE */
+ struct  fbtype {
+@@ -97,8 +103,8 @@ struct fbcursor {
+         struct fbcurpos hot;    /* cursor hot spot */
+         struct fbcmap cmap;     /* color map info */
+         struct fbcurpos size;   /* cursor bit map size */
+-        char *image;            /* cursor image bits */
+-        char *mask;             /* cursor mask bits */
++        char __user *image;     /* cursor image bits */
++        char __user *mask;      /* cursor mask bits */
+ };
+ 
+ /* set/get cursor attributes/shape */
+@@ -294,4 +300,31 @@ struct fb_clut32 {
+ #define LEO_LD_GBL_MAP         0x01009000
+ #define LEO_UNK2_MAP           0x0100a000
+ 
++#ifdef __KERNEL__
++struct  fbcmap32 {
++	int             index;          /* first element (0 origin) */
++	int             count;
++	u32		red;
++	u32		green;
++	u32		blue;
++};
++
++#define FBIOPUTCMAP32	_IOW('F', 3, struct fbcmap32)
++#define FBIOGETCMAP32	_IOW('F', 4, struct fbcmap32)
++
++struct fbcursor32 {
++	short set;		/* what to set, choose from the list above */
++	short enable;		/* cursor on/off */
++	struct fbcurpos pos;	/* cursor position */
++	struct fbcurpos hot;	/* cursor hot spot */
++	struct fbcmap32 cmap;	/* color map info */
++	struct fbcurpos size;	/* cursor bit map size */
++	u32	image;		/* cursor image bits */
++	u32	mask;		/* cursor mask bits */
++};
++
++#define FBIOSCURSOR32	_IOW('F', 24, struct fbcursor32)
++#define FBIOGCURSOR32	_IOW('F', 25, struct fbcursor32)
++#endif
++
+ #endif /* __LINUX_FBIO_H */
+-- 
+1.5.4.1.143.ge7e51
 
