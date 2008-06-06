@@ -1,33 +1,100 @@
-From: Mikulas Patocka <mpatocka@redhat.com>
-Date: Tue, 24 Jun 2008 05:56:07 +0000
-Subject: [2/10 PATCH] inline inline-generic_writepages.patch
-Message-Id: <Pine.LNX.4.64.0806240155200.27784@engineering.redhat.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 06 Jun 2008 21:00:23 +0000
+Subject: [PATCH 11/21] sparc: Merge asm-sparc{,64}/shmbuf.h
+Message-Id: <1212786033-4227-11-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.0806240136200.27784@engineering.redhat.com>
- <Pine.LNX.4.64.0806240154140.27784@engineering.redhat.com>
-In-Reply-To: <Pine.LNX.4.64.0806240154140.27784@engineering.redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
-Cc: davem@davemloft.net
+To: sparclinux@vger.kernel.org
 
-Make generic_writepages inlinable in current file.
+Padding in the shmbuf structure made conditional
+as only 32 bit sparc did so.
 
-Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ include/asm-sparc/shmbuf.h   |   14 +++++++++++---
+ include/asm-sparc64/shmbuf.h |   39 +--------------------------------------
+ 2 files changed, 12 insertions(+), 41 deletions(-)
 
-Index: linux-2.6.26-rc7-devel/mm/page-writeback.c
-=================================--- linux-2.6.26-rc7-devel.orig/mm/page-writeback.c	2008-06-24 07:28:14.000000000 +0200
-+++ linux-2.6.26-rc7-devel/mm/page-writeback.c	2008-06-24 07:37:15.000000000 +0200
-@@ -981,8 +981,8 @@
-   * This is a library function, which implements the writepages()
-   * address_space_operation.
-   */
--int generic_writepages(struct address_space *mapping,
--		       struct writeback_control *wbc)
-+__always_inline int generic_writepages(struct address_space *mapping,
-+				       struct writeback_control *wbc)
-  {
-  	/* deal with chardevs and other special file */
-  	if (!mapping->a_ops->writepage)
+diff --git a/include/asm-sparc/shmbuf.h b/include/asm-sparc/shmbuf.h
+index 1ff9da8..83a1605 100644
+--- a/include/asm-sparc/shmbuf.h
++++ b/include/asm-sparc/shmbuf.h
+@@ -11,13 +11,19 @@
+  * - 2 miscellaneous 32-bit values
+  */
+ 
++#if defined(__sparc__) && defined(__arch64__)
++# define PADDING(x)
++#else
++# define PADDING(x) unsigned int x;
++#endif
++
+ struct shmid64_ds {
+ 	struct ipc64_perm	shm_perm;	/* operation perms */
+-	unsigned int		__pad1;
++	PADDING(__pad1)
+ 	__kernel_time_t		shm_atime;	/* last attach time */
+-	unsigned int		__pad2;
++	PADDING(__pad2)
+ 	__kernel_time_t		shm_dtime;	/* last detach time */
+-	unsigned int		__pad3;
++	PADDING(__pad3)
+ 	__kernel_time_t		shm_ctime;	/* last change time */
+ 	size_t			shm_segsz;	/* size of segment (bytes) */
+ 	__kernel_pid_t		shm_cpid;	/* pid of creator */
+@@ -39,4 +45,6 @@ struct shminfo64 {
+ 	unsigned long	__unused4;
+ };
+ 
++#undef PADDING
++
+ #endif /* _SPARC_SHMBUF_H */
+diff --git a/include/asm-sparc64/shmbuf.h b/include/asm-sparc64/shmbuf.h
+index 61c2ef4..0c54a2d 100644
+--- a/include/asm-sparc64/shmbuf.h
++++ b/include/asm-sparc64/shmbuf.h
+@@ -1,38 +1 @@
+-#ifndef _SPARC64_SHMBUF_H
+-#define _SPARC64_SHMBUF_H
+-
+-/* 
+- * The shmid64_ds structure for sparc64 architecture.
+- * Note extra padding because this structure is passed back and forth
+- * between kernel and user space.
+- *
+- * Pad space is left for:
+- * - 2 miscellaneous 64-bit values
+- */
+-
+-struct shmid64_ds {
+-	struct ipc64_perm	shm_perm;	/* operation perms */
+-	__kernel_time_t		shm_atime;	/* last attach time */
+-	__kernel_time_t		shm_dtime;	/* last detach time */
+-	__kernel_time_t		shm_ctime;	/* last change time */
+-	size_t			shm_segsz;	/* size of segment (bytes) */
+-	__kernel_pid_t		shm_cpid;	/* pid of creator */
+-	__kernel_pid_t		shm_lpid;	/* pid of last operator */
+-	unsigned long		shm_nattch;	/* no. of current attaches */
+-	unsigned long		__unused1;
+-	unsigned long		__unused2;
+-};
+-
+-struct shminfo64 {
+-	unsigned long	shmmax;
+-	unsigned long	shmmin;
+-	unsigned long	shmmni;
+-	unsigned long	shmseg;
+-	unsigned long	shmall;
+-	unsigned long	__unused1;
+-	unsigned long	__unused2;
+-	unsigned long	__unused3;
+-	unsigned long	__unused4;
+-};
+-
+-#endif /* _SPARC64_SHMBUF_H */
++#include <asm-sparc/shmbuf.h>
+-- 
+1.5.4.1.143.ge7e51
 
