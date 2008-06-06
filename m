@@ -1,112 +1,38 @@
-From: Mikulas Patocka <mpatocka@redhat.com>
-Date: Tue, 24 Jun 2008 05:58:34 +0000
-Subject: [5/10 PATCH] inline __wake_up
-Message-Id: <Pine.LNX.4.64.0806240158090.27784@engineering.redhat.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 06 Jun 2008 21:00:19 +0000
+Subject: [PATCH 07/21] sparc: Merge asm-sparc{,64}/sockios.h
+Message-Id: <1212786033-4227-7-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.0806240136200.27784@engineering.redhat.com>
- <Pine.LNX.4.64.0806240154140.27784@engineering.redhat.com>
-In-Reply-To: <Pine.LNX.4.64.0806240154140.27784@engineering.redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
-Cc: davem@davemloft.net
+To: sparclinux@vger.kernel.org
 
-Inline __wake_up and __wake_up_locked.
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ include/asm-sparc64/sockios.h |   15 +--------------
+ 1 files changed, 1 insertions(+), 14 deletions(-)
 
-Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
-
-Index: linux-2.6.26-rc7-devel/include/linux/wait.h
-=================================--- linux-2.6.26-rc7-devel.orig/include/linux/wait.h	2008-06-24 07:37:25.000000000 +0200
-+++ linux-2.6.26-rc7-devel/include/linux/wait.h	2008-06-24 07:37:31.000000000 +0200
-@@ -177,8 +177,7 @@
-  	list_del(&old->task_list);
-  }
-
--void __wake_up(wait_queue_head_t *q, unsigned int mode, int nr, void *key);
--extern void __wake_up_locked(wait_queue_head_t *q, unsigned int mode);
-+void __wake_up_common(wait_queue_head_t *q, unsigned int mode, int nr_exclusive, int sync, void *key);
-  extern void __wake_up_sync(wait_queue_head_t *q, unsigned int mode, int nr);
-  int __wait_on_bit(wait_queue_head_t *, struct wait_bit_queue *, int (*)(void *), unsigned);
-  int __wait_on_bit_lock(wait_queue_head_t *, struct wait_bit_queue *, int (*)(void *), unsigned);
-@@ -186,6 +185,31 @@
-  int out_of_line_wait_on_bit_lock(void *, int, int (*)(void *), unsigned);
-  wait_queue_head_t *bit_waitqueue(void *, int);
-
-+/**
-+ * __wake_up - wake up threads blocked on a waitqueue.
-+ * @q: the waitqueue
-+ * @mode: which threads
-+ * @nr_exclusive: how many wake-one or wake-many threads to wake up
-+ * @key: is directly passed to the wakeup function
-+ */
-+static __always_inline void __wake_up(wait_queue_head_t *q, unsigned int mode,
-+			     int nr_exclusive, void *key)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&q->lock, flags);
-+	__wake_up_common(q, mode, nr_exclusive, 0, key);
-+	spin_unlock_irqrestore(&q->lock, flags);
-+}
-+
-+/*
-+ * Same as __wake_up but called with the spinlock in wait_queue_head_t held.
-+ */
-+static __always_inline void __wake_up_locked(wait_queue_head_t *q, unsigned int mode)
-+{
-+	__wake_up_common(q, mode, 1, 0, NULL);
-+}
-+
-  static __always_inline void __wake_up_bit(wait_queue_head_t *wq, void *word, int bit)
-  {
-  	struct wait_bit_key key = __WAIT_BIT_KEY_INITIALIZER(word, bit);
-Index: linux-2.6.26-rc7-devel/kernel/sched.c
-=================================--- linux-2.6.26-rc7-devel.orig/kernel/sched.c	2008-06-24 07:28:11.000000000 +0200
-+++ linux-2.6.26-rc7-devel/kernel/sched.c	2008-06-24 07:37:31.000000000 +0200
-@@ -4284,8 +4284,8 @@
-   * started to run but is not in state TASK_RUNNING. try_to_wake_up() returns
-   * zero in this (rare) case, and we handle it by continuing to scan the queue.
-   */
--static void __wake_up_common(wait_queue_head_t *q, unsigned int mode,
--			     int nr_exclusive, int sync, void *key)
-+void __wake_up_common(wait_queue_head_t *q, unsigned int mode,
-+		      int nr_exclusive, int sync, void *key)
-  {
-  	wait_queue_t *curr, *next;
-
-@@ -4297,32 +4297,7 @@
-  			break;
-  	}
-  }
+diff --git a/include/asm-sparc64/sockios.h b/include/asm-sparc64/sockios.h
+index c7d9900..2cb4b64 100644
+--- a/include/asm-sparc64/sockios.h
++++ b/include/asm-sparc64/sockios.h
+@@ -1,14 +1 @@
+-#ifndef _ASM_SPARC64_SOCKIOS_H
+-#define _ASM_SPARC64_SOCKIOS_H
 -
--/**
-- * __wake_up - wake up threads blocked on a waitqueue.
-- * @q: the waitqueue
-- * @mode: which threads
-- * @nr_exclusive: how many wake-one or wake-many threads to wake up
-- * @key: is directly passed to the wakeup function
-- */
--void __wake_up(wait_queue_head_t *q, unsigned int mode,
--			int nr_exclusive, void *key)
--{
--	unsigned long flags;
+-/* Socket-level I/O control calls. */
+-#define FIOSETOWN 	0x8901
+-#define SIOCSPGRP	0x8902
+-#define FIOGETOWN	0x8903
+-#define SIOCGPGRP	0x8904
+-#define SIOCATMARK	0x8905
+-#define SIOCGSTAMP	0x8906		/* Get stamp (timeval) */
+-#define SIOCGSTAMPNS	0x8907		/* Get stamp (timespec) */
 -
--	spin_lock_irqsave(&q->lock, flags);
--	__wake_up_common(q, mode, nr_exclusive, 0, key);
--	spin_unlock_irqrestore(&q->lock, flags);
--}
--EXPORT_SYMBOL(__wake_up);
+-#endif /* !(_ASM_SPARC64_SOCKIOS_H) */
 -
--/*
-- * Same as __wake_up but called with the spinlock in wait_queue_head_t held.
-- */
--void __wake_up_locked(wait_queue_head_t *q, unsigned int mode)
--{
--	__wake_up_common(q, mode, 1, 0, NULL);
--}
-+EXPORT_SYMBOL(__wake_up_common);
-
-  /**
-   * __wake_up_sync - wake up threads blocked on a waitqueue.
++#include <asm-sparc/sockios.h>
+-- 
+1.5.4.1.143.ge7e51
 
