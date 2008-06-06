@@ -1,348 +1,178 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 06 Jun 2008 21:00:30 +0000
-Subject: [PATCH 18/21] sparc: Merge asm-sparc{,64}/termios.h
-Message-Id: <1212786033-4227-18-git-send-email-sam@ravnborg.org>
+Date: Fri, 06 Jun 2008 20:58:11 +0000
+Subject: Unify all exported SPARC headers
+Message-Id: <20080606205811.GA4172@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Bring the commit e55c57e0b51c68d78845549505057169c6c3cba6
-("[SPARC64]: Report any user access faults in termios accessors")
-over to sparc when unifying the two files.
-The diff was manually inspected to contain no
-other relevant changes.
+Hi David.
 
-This unification therefore changes functionality of sparc.
+Following patches unify all exported sparc and sparc64 headers.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
----
- include/asm-sparc/termios.h   |   79 +++++++++--------
- include/asm-sparc64/termios.h |  187 +------------------------------------=
-----
- 2 files changed, 42 insertions(+), 224 deletions(-)
+I have grouped the changes a bit.
 
-diff --git a/include/asm-sparc/termios.h b/include/asm-sparc/termios.h
-index f7b4409..e8ba953 100644
---- a/include/asm-sparc/termios.h
-+++ b/include/asm-sparc/termios.h
-@@ -53,7 +53,6 @@ struct winsize {
- #define _VMIN	4
- #define _VTIME	5
-=20
--
- /*	intr=3D^C		quit=3D^\		erase=DEl	kill=3D^U
- 	eof=3D^D		eol=3D\0		eol2=3D\0		sxtc=3D\0
- 	start=3D^Q	stop=3D^S		susp=3D^Z		dsusp=3D^Y
-@@ -68,16 +67,17 @@ struct winsize {
- #define user_termio_to_kernel_termios(termios, termio) \
- ({ \
- 	unsigned short tmp; \
--	get_user(tmp, &(termio)->c_iflag); \
-+	int err; \
-+	err =3D get_user(tmp, &(termio)->c_iflag); \
- 	(termios)->c_iflag =3D (0xffff0000 & ((termios)->c_iflag)) | tmp; \
--	get_user(tmp, &(termio)->c_oflag); \
-+	err |=3D get_user(tmp, &(termio)->c_oflag); \
- 	(termios)->c_oflag =3D (0xffff0000 & ((termios)->c_oflag)) | tmp; \
--	get_user(tmp, &(termio)->c_cflag); \
-+	err |=3D get_user(tmp, &(termio)->c_cflag); \
- 	(termios)->c_cflag =3D (0xffff0000 & ((termios)->c_cflag)) | tmp; \
--	get_user(tmp, &(termio)->c_lflag); \
-+	err |=3D get_user(tmp, &(termio)->c_lflag); \
- 	(termios)->c_lflag =3D (0xffff0000 & ((termios)->c_lflag)) | tmp; \
--	copy_from_user((termios)->c_cc, (termio)->c_cc, NCC); \
--	0; \
-+	err |=3D copy_from_user((termios)->c_cc, (termio)->c_cc, NCC); \
-+	err; \
- })
-=20
- /*
-@@ -87,17 +87,18 @@ struct winsize {
-  */
- #define kernel_termios_to_user_termio(termio, termios) \
- ({ \
--	put_user((termios)->c_iflag, &(termio)->c_iflag); \
--	put_user((termios)->c_oflag, &(termio)->c_oflag); \
--	put_user((termios)->c_cflag, &(termio)->c_cflag); \
--	put_user((termios)->c_lflag, &(termio)->c_lflag); \
--	put_user((termios)->c_line,  &(termio)->c_line); \
--	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
-+	int err; \
-+	err  =3D put_user((termios)->c_iflag, &(termio)->c_iflag); \
-+	err |=3D put_user((termios)->c_oflag, &(termio)->c_oflag); \
-+	err |=3D put_user((termios)->c_cflag, &(termio)->c_cflag); \
-+	err |=3D put_user((termios)->c_lflag, &(termio)->c_lflag); \
-+	err |=3D put_user((termios)->c_line,  &(termio)->c_line); \
-+	err |=3D copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
- 	if (!((termios)->c_lflag & ICANON)) { \
--		put_user((termios)->c_cc[VMIN], &(termio)->c_cc[_VMIN]); \
--		put_user((termios)->c_cc[VTIME], &(termio)->c_cc[_VTIME]); \
-+		err |=3D put_user((termios)->c_cc[VMIN], &(termio)->c_cc[_VMIN]); \
-+		err |=3D put_user((termios)->c_cc[VTIME], &(termio)->c_cc[_VTIME]); \
- 	} \
--	0; \
-+	err; \
- })
-=20
- #define user_termios_to_kernel_termios(k, u) \
-@@ -144,38 +145,40 @@ struct winsize {
-=20
- #define user_termios_to_kernel_termios_1(k, u) \
- ({ \
--	get_user((k)->c_iflag, &(u)->c_iflag); \
--	get_user((k)->c_oflag, &(u)->c_oflag); \
--	get_user((k)->c_cflag, &(u)->c_cflag); \
--	get_user((k)->c_lflag, &(u)->c_lflag); \
--	get_user((k)->c_line,  &(u)->c_line); \
--	copy_from_user((k)->c_cc, (u)->c_cc, NCCS); \
-+	int err; \
-+	err  =3D get_user((k)->c_iflag, &(u)->c_iflag); \
-+	err |=3D get_user((k)->c_oflag, &(u)->c_oflag); \
-+	err |=3D get_user((k)->c_cflag, &(u)->c_cflag); \
-+	err |=3D get_user((k)->c_lflag, &(u)->c_lflag); \
-+	err |=3D get_user((k)->c_line,  &(u)->c_line); \
-+	err |=3D copy_from_user((k)->c_cc, (u)->c_cc, NCCS); \
- 	if ((k)->c_lflag & ICANON) { \
--		get_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
--		get_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
-+		err |=3D get_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
-+		err |=3D get_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
- 	} else { \
--		get_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
--		get_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
-+		err |=3D get_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
-+		err |=3D get_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
- 	} \
--	0; \
-+	err; \
- })
-=20
- #define kernel_termios_to_user_termios_1(u, k) \
- ({ \
--	put_user((k)->c_iflag, &(u)->c_iflag); \
--	put_user((k)->c_oflag, &(u)->c_oflag); \
--	put_user((k)->c_cflag, &(u)->c_cflag); \
--	put_user((k)->c_lflag, &(u)->c_lflag); \
--	put_user((k)->c_line, &(u)->c_line); \
--	copy_to_user((u)->c_cc, (k)->c_cc, NCCS); \
-+	int err; \
-+	err  =3D put_user((k)->c_iflag, &(u)->c_iflag); \
-+	err |=3D put_user((k)->c_oflag, &(u)->c_oflag); \
-+	err |=3D put_user((k)->c_cflag, &(u)->c_cflag); \
-+	err |=3D put_user((k)->c_lflag, &(u)->c_lflag); \
-+	err |=3D put_user((k)->c_line, &(u)->c_line); \
-+	err |=3D copy_to_user((u)->c_cc, (k)->c_cc, NCCS); \
- 	if (!((k)->c_lflag & ICANON)) { \
--		put_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
--		put_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
-+		err |=3D put_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
-+		err |=3D put_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
- 	} else { \
--		put_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
--		put_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
-+		err |=3D put_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
-+		err |=3D put_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
- 	} \
--	0; \
-+	err; \
- })
-=20
- #endif	/* __KERNEL__ */
-diff --git a/include/asm-sparc64/termios.h b/include/asm-sparc64/termios.h
-index 1f5dab2..940495e 100644
---- a/include/asm-sparc64/termios.h
-+++ b/include/asm-sparc64/termios.h
-@@ -1,186 +1 @@
--#ifndef _SPARC64_TERMIOS_H
--#define _SPARC64_TERMIOS_H
--
--#include <asm/ioctls.h>
--#include <asm/termbits.h>
--
--#if defined(__KERNEL__) || defined(__DEFINE_BSD_TERMIOS)
--struct sgttyb {
--	char	sg_ispeed;
--	char	sg_ospeed;
--	char	sg_erase;
--	char	sg_kill;
--	short	sg_flags;
--};
--
--struct tchars {
--	char	t_intrc;
--	char	t_quitc;
--	char	t_startc;
--	char	t_stopc;
--	char	t_eofc;
--	char	t_brkc;
--};
--
--struct ltchars {
--	char	t_suspc;
--	char	t_dsuspc;
--	char	t_rprntc;
--	char	t_flushc;
--	char	t_werasc;
--	char	t_lnextc;
--};
--#endif /* __KERNEL__ */
--
--struct winsize {
--	unsigned short ws_row;
--	unsigned short ws_col;
--	unsigned short ws_xpixel;
--	unsigned short ws_ypixel;
--};
--
--#ifdef __KERNEL__
--#include <linux/module.h>
--
--/*
-- * c_cc characters in the termio structure.  Oh, how I love being
-- * backwardly compatible.  Notice that character 4 and 5 are
-- * interpreted differently depending on whether ICANON is set in
-- * c_lflag.  If it's set, they are used as _VEOF and _VEOL, otherwise
-- * as _VMIN and V_TIME.  This is for compatibility with OSF/1 (which
-- * is compatible with sysV)...
-- */
--#define _VMIN	4
--#define _VTIME	5
--
--/*	intr=3D^C		quit=3D^\		erase=DEl	kill=3D^U
--	eof=3D^D		eol=3D\0		eol2=3D\0		sxtc=3D\0
--	start=3D^Q	stop=3D^S		susp=3D^Z		dsusp=3D^Y
--	reprint=3D^R	discard=3D^U	werase=3D^W	lnext=3D^V
--	vmin=3D\1         vtime=3D\0
--*/
--#define INIT_C_CC "\003\034\177\025\004\000\000\000\021\023\032\031\022\02=
-5\027\026\001"
--
--/*
-- * Translate a "termio" structure into a "termios". Ugh.
-- */
--#define user_termio_to_kernel_termios(termios, termio) \
--({ \
--	unsigned short tmp; \
--	int err; \
--	err =3D get_user(tmp, &(termio)->c_iflag); \
--	(termios)->c_iflag =3D (0xffff0000 & ((termios)->c_iflag)) | tmp; \
--	err |=3D get_user(tmp, &(termio)->c_oflag); \
--	(termios)->c_oflag =3D (0xffff0000 & ((termios)->c_oflag)) | tmp; \
--	err |=3D get_user(tmp, &(termio)->c_cflag); \
--	(termios)->c_cflag =3D (0xffff0000 & ((termios)->c_cflag)) | tmp; \
--	err |=3D get_user(tmp, &(termio)->c_lflag); \
--	(termios)->c_lflag =3D (0xffff0000 & ((termios)->c_lflag)) | tmp; \
--	err |=3D copy_from_user((termios)->c_cc, (termio)->c_cc, NCC); \
--	err; \
--})
--
--/*
-- * Translate a "termios" structure into a "termio". Ugh.
-- *
-- * Note the "fun" _VMIN overloading.
-- */
--#define kernel_termios_to_user_termio(termio, termios) \
--({ \
--	int err; \
--	err  =3D put_user((termios)->c_iflag, &(termio)->c_iflag); \
--	err |=3D put_user((termios)->c_oflag, &(termio)->c_oflag); \
--	err |=3D put_user((termios)->c_cflag, &(termio)->c_cflag); \
--	err |=3D put_user((termios)->c_lflag, &(termio)->c_lflag); \
--	err |=3D put_user((termios)->c_line,  &(termio)->c_line); \
--	err |=3D copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
--	if (!((termios)->c_lflag & ICANON)) { \
--		err |=3D put_user((termios)->c_cc[VMIN], &(termio)->c_cc[_VMIN]); \
--		err |=3D put_user((termios)->c_cc[VTIME], &(termio)->c_cc[_VTIME]); \
--	} \
--	err; \
--})
--
--#define user_termios_to_kernel_termios(k, u) \
--({ \
--	int err; \
--	err  =3D get_user((k)->c_iflag, &(u)->c_iflag); \
--	err |=3D get_user((k)->c_oflag, &(u)->c_oflag); \
--	err |=3D get_user((k)->c_cflag, &(u)->c_cflag); \
--	err |=3D get_user((k)->c_lflag, &(u)->c_lflag); \
--	err |=3D get_user((k)->c_line,  &(u)->c_line); \
--	err |=3D copy_from_user((k)->c_cc, (u)->c_cc, NCCS); \
--	if((k)->c_lflag & ICANON) { \
--		err |=3D get_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
--		err |=3D get_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
--	} else { \
--		err |=3D get_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
--		err |=3D get_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
--	} \
--	err |=3D get_user((k)->c_ispeed,  &(u)->c_ispeed); \
--	err |=3D get_user((k)->c_ospeed,  &(u)->c_ospeed); \
--	err; \
--})
--
--#define kernel_termios_to_user_termios(u, k) \
--({ \
--	int err; \
--	err  =3D put_user((k)->c_iflag, &(u)->c_iflag); \
--	err |=3D put_user((k)->c_oflag, &(u)->c_oflag); \
--	err |=3D put_user((k)->c_cflag, &(u)->c_cflag); \
--	err |=3D put_user((k)->c_lflag, &(u)->c_lflag); \
--	err |=3D put_user((k)->c_line, &(u)->c_line); \
--	err |=3D copy_to_user((u)->c_cc, (k)->c_cc, NCCS); \
--	if(!((k)->c_lflag & ICANON)) { \
--		err |=3D put_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
--		err |=3D put_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
--	} else { \
--		err |=3D put_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
--		err |=3D put_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
--	} \
--	err |=3D put_user((k)->c_ispeed, &(u)->c_ispeed); \
--	err |=3D put_user((k)->c_ospeed, &(u)->c_ospeed); \
--	err; \
--})
--
--#define user_termios_to_kernel_termios_1(k, u) \
--({ \
--	int err; \
--	err  =3D get_user((k)->c_iflag, &(u)->c_iflag); \
--	err |=3D get_user((k)->c_oflag, &(u)->c_oflag); \
--	err |=3D get_user((k)->c_cflag, &(u)->c_cflag); \
--	err |=3D get_user((k)->c_lflag, &(u)->c_lflag); \
--	err |=3D get_user((k)->c_line,  &(u)->c_line); \
--	err |=3D copy_from_user((k)->c_cc, (u)->c_cc, NCCS); \
--	if((k)->c_lflag & ICANON) { \
--		err |=3D get_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
--		err |=3D get_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
--	} else { \
--		err |=3D get_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
--		err |=3D get_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
--	} \
--	err; \
--})
--
--#define kernel_termios_to_user_termios_1(u, k) \
--({ \
--	int err; \
--	err  =3D put_user((k)->c_iflag, &(u)->c_iflag); \
--	err |=3D put_user((k)->c_oflag, &(u)->c_oflag); \
--	err |=3D put_user((k)->c_cflag, &(u)->c_cflag); \
--	err |=3D put_user((k)->c_lflag, &(u)->c_lflag); \
--	err |=3D put_user((k)->c_line, &(u)->c_line); \
--	err |=3D copy_to_user((u)->c_cc, (k)->c_cc, NCCS); \
--	if(!((k)->c_lflag & ICANON)) { \
--		err |=3D put_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
--		err |=3D put_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
--	} else { \
--		err |=3D put_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
--		err |=3D put_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
--	} \
--	err; \
--})
--
--#endif	/* __KERNEL__ */
--
--#endif /* _SPARC64_TERMIOS_H */
-+#include <asm-sparc/termios.h>
---=20
-1.5.4.1.143.ge7e51
+Patch 1 to 7 are all trivial.
+This is either sparc64 specific files that was verbatim
+copied to asm-sparc (patch 1) or identical files.
 
+	sparc: copy exported sparc64 specific header files to asm-sparc
+	sparc: Merge asm-sparc{,64}/ioctl.h
+	sparc: Merge asm-sparc{,64}/ioctls.h
+	sparc: Merge asm-sparc{,64}/param.h
+	sparc: Merge asm-sparc{,64}/poll.h
+	sparc: Merge asm-sparc{,64}/socket.h
+	sparc: Merge asm-sparc{,64}/sockios.h
+
+The next batch had some editing so they could be unified
+    O_NDELAY differs
+	sparc: Merge asm-sparc{,64}/fcntl.h
+
+    32 bit sparc had some padding that was made conditional
+	sparc: Merge asm-sparc{,64}/msgbuf.h
+	sparc: Merge asm-sparc{,64}/sembuf.h
+	sparc: Merge asm-sparc{,64}/shmbuf.h
+
+   Changed a name of a function to let them match
+      sparc: Merge asm-sparc{,64}/mman.h
+
+   Brought over a few sparc64 definitions
+      sparc: copy asm-sparc64/fbio.h to asm-sparc
+      sparc: Merge asm-sparc{,64}/fbio.h
+
+   RLIM_INFINITY differs
+      sparc: Merge asm-sparc{,64}/resource.h
+
+   COMMAND_LINE_SIZE differs
+      sparc: Merge asm-sparc{,64}/setup.h
+
+   Type of tcflag_t differs
+      sparc: Merge asm-sparc{,64}/termbits.h
+
+   Functional change! Included sparc64 support for check of user access
+      sparc: Merge asm-sparc{,64}/termios.h
+
+   Merge of two small files
+      sparc: Merge asm-sparc{,64}/types.h
+
+The last batch were the files that differed too much
+so I decided to create _32.h and _64.h variants to make
+it easier to diff the two variants.
+A simple script is included in the changelog.
+# Whole file
+      sparc: copy sparc64 header files to asm-sparc
+
+And finally we could kill ALTARCH
+      sparc: add sparc64 files to Kbuild
+
+Build tested with a defconfig on sparc and sparc64
+
+Patches follows and if you push your latest sparc patches
+I can put them up in a git tree.
+But I prefer that you reciew the lot before you apply the.
+
+	Sam
+
+Git diff:
+
+ arch/sparc64/kernel/sys_sparc.c                    |    6 +-
+ arch/sparc64/kernel/sys_sparc32.c                  |    4 +-
+ include/asm-sparc/Kbuild                           |   10 +
+ include/{asm-sparc64 => asm-sparc}/apb.h           |    0 
+ include/asm-sparc/asi.h                            |  119 +------
+ include/asm-sparc/{asi.h => asi_32.h}              |    0 
+ include/{asm-sparc64/asi.h => asm-sparc/asi_64.h}  |    0 
+ include/{asm-sparc64 => asm-sparc}/bbc.h           |    0 
+ include/{asm-sparc64 => asm-sparc}/display7seg.h   |    0 
+ include/{asm-sparc64 => asm-sparc}/envctrl.h       |    0 
+ include/asm-sparc/fbio.h                           |   37 ++-
+ include/asm-sparc/fcntl.h                          |    4 +
+ include/asm-sparc/ioctls.h                         |    4 +-
+ include/asm-sparc/ipcbuf.h                         |   39 +--
+ include/asm-sparc/{ipcbuf.h => ipcbuf_32.h}        |    0 
+ .../ipcbuf.h => asm-sparc/ipcbuf_64.h}             |    0 
+ include/asm-sparc/msgbuf.h                         |   23 +-
+ include/asm-sparc/openprom.h                       |  265 +-------------
+ include/asm-sparc/{openprom.h => openprom_32.h}    |    0 
+ .../openprom.h => asm-sparc/openprom_64.h}         |    0 
+ include/asm-sparc/posix_types.h                    |  126 +------
+ .../asm-sparc/{posix_types.h => posix_types_32.h}  |    0 
+ .../posix_types.h => asm-sparc/posix_types_64.h}   |    0 
+ include/{asm-sparc64 => asm-sparc}/psrcompat.h     |    0 
+ include/{asm-sparc64 => asm-sparc}/pstate.h        |    0 
+ include/asm-sparc/ptrace.h                         |  183 +---------
+ include/asm-sparc/{ptrace.h => ptrace_32.h}        |    0 
+ .../ptrace.h => asm-sparc/ptrace_64.h}             |    0 
+ include/asm-sparc/reg.h                            |   87 +----
+ include/asm-sparc/{reg.h => reg_32.h}              |    0 
+ include/{asm-sparc64/reg.h => asm-sparc/reg_64.h}  |    0 
+ include/asm-sparc/resource.h                       |    4 +
+ include/asm-sparc/sembuf.h                         |   12 +-
+ include/asm-sparc/setup.h                          |    6 +-
+ include/asm-sparc/shmbuf.h                         |   14 +-
+ include/asm-sparc/sigcontext.h                     |   70 +----
+ .../asm-sparc/{sigcontext.h => sigcontext_32.h}    |    0 
+ .../sigcontext.h => asm-sparc/sigcontext_64.h}     |    0 
+ include/asm-sparc/siginfo.h                        |   25 +-
+ include/asm-sparc/{siginfo.h => siginfo_32.h}      |    0 
+ .../siginfo.h => asm-sparc/siginfo_64.h}           |    0 
+ include/asm-sparc/signal.h                         |  215 +-----------
+ include/asm-sparc/{signal.h => signal_32.h}        |    0 
+ .../signal.h => asm-sparc/signal_64.h}             |    0 
+ include/asm-sparc/stat.h                           |   84 +----
+ include/asm-sparc/{stat.h => stat_32.h}            |    0 
+ .../{asm-sparc64/stat.h => asm-sparc/stat_64.h}    |    0 
+ include/asm-sparc/statfs.h                         |   12 +-
+ include/asm-sparc/{statfs.h => statfs_32.h}        |    0 
+ .../statfs.h => asm-sparc/statfs_64.h}             |    0 
+ include/asm-sparc/termbits.h                       |    5 +
+ include/asm-sparc/termios.h                        |   79 ++--
+ include/asm-sparc/types.h                          |   32 ++-
+ include/{asm-sparc64 => asm-sparc}/uctx.h          |    0 
+ include/asm-sparc/unistd.h                         |  386 +-------------------
+ include/asm-sparc/{unistd.h => unistd_32.h}        |    0 
+ .../unistd.h => asm-sparc/unistd_64.h}             |    0 
+ include/{asm-sparc64 => asm-sparc}/utrap.h         |    0 
+ include/{asm-sparc64 => asm-sparc}/watchdog.h      |    0 
+ include/asm-sparc64/Kbuild                         |   23 --
+ include/asm-sparc64/apb.h                          |   37 +--
+ include/asm-sparc64/asi.h                          |  161 +--------
+ include/asm-sparc64/bbc.h                          |  226 +------------
+ include/asm-sparc64/display7seg.h                  |   80 +----
+ include/asm-sparc64/envctrl.h                      |  104 +------
+ include/asm-sparc64/fbio.h                         |  331 +-----------------
+ include/asm-sparc64/fcntl.h                        |   36 +--
+ include/asm-sparc64/ioctl.h                        |   68 +----
+ include/asm-sparc64/ioctls.h                       |  137 +-------
+ include/asm-sparc64/ipcbuf.h                       |   29 +--
+ include/asm-sparc64/mman.h                         |   32 +--
+ include/asm-sparc64/msgbuf.h                       |   28 +--
+ include/asm-sparc64/openprom.h                     |  281 +--------------
+ include/asm-sparc64/param.h                        |   24 +--
+ include/asm-sparc64/poll.h                         |   13 +-
+ include/asm-sparc64/posix_types.h                  |  123 +------
+ include/asm-sparc64/psrcompat.h                    |   46 +---
+ include/asm-sparc64/pstate.h                       |   92 +-----
+ include/asm-sparc64/ptrace.h                       |  347 +------------------
+ include/asm-sparc64/reg.h                          |   57 +---
+ include/asm-sparc64/resource.h                     |   20 +-
+ include/asm-sparc64/sembuf.h                       |   23 +--
+ include/asm-sparc64/setup.h                        |   11 +-
+ include/asm-sparc64/shmbuf.h                       |   39 +--
+ include/asm-sparc64/sigcontext.h                   |   88 +-----
+ include/asm-sparc64/siginfo.h                      |   33 +--
+ include/asm-sparc64/signal.h                       |  195 +----------
+ include/asm-sparc64/socket.h                       |   58 +---
+ include/asm-sparc64/sockios.h                      |   15 +-
+ include/asm-sparc64/stat.h                         |   48 +---
+ include/asm-sparc64/statfs.h                       |   55 +---
+ include/asm-sparc64/termbits.h                     |  261 +-------------
+ include/asm-sparc64/termios.h                      |  187 +----------
+ include/asm-sparc64/types.h                        |   35 +--
+ include/asm-sparc64/uctx.h                         |   72 +----
+ include/asm-sparc64/unistd.h                       |  374 +-------------------
+ include/asm-sparc64/utrap.h                        |   52 +---
+ include/asm-sparc64/watchdog.h                     |   32 +--
+ 98 files changed, 310 insertions(+), 5414 deletions(-)
