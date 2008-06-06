@@ -1,88 +1,83 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 06 Jun 2008 21:00:22 +0000
-Subject: [PATCH 10/21] sparc: Merge asm-sparc{,64}/sembuf.h
-Message-Id: <1212786033-4227-10-git-send-email-sam@ravnborg.org>
+Date: Fri, 06 Jun 2008 21:00:33 +0000
+Subject: [PATCH 21/21] sparc: add sparc64 files to Kbuild
+Message-Id: <1212786033-4227-21-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Padding in the sembuf structure made conditional
-as only 32 bit sparc did so.
+To export sparc 32 and 64 bit files use:
+make headers_install ARCH=sparc
+
+There is no longer a separate sparc64 export target
+and use of ALTARCH are then dropped.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- include/asm-sparc/sembuf.h   |   12 +++++++++---
- include/asm-sparc64/sembuf.h |   23 +----------------------
- 2 files changed, 10 insertions(+), 25 deletions(-)
+ include/asm-sparc/Kbuild   |   10 ++++++++++
+ include/asm-sparc64/Kbuild |   23 -----------------------
+ 2 files changed, 10 insertions(+), 23 deletions(-)
+ delete mode 100644 include/asm-sparc64/Kbuild
 
-diff --git a/include/asm-sparc/sembuf.h b/include/asm-sparc/sembuf.h
-index a79c4bb..faee1be 100644
---- a/include/asm-sparc/sembuf.h
-+++ b/include/asm-sparc/sembuf.h
-@@ -1,7 +1,7 @@
- #ifndef _SPARC_SEMBUF_H
- #define _SPARC_SEMBUF_H
+diff --git a/include/asm-sparc/Kbuild b/include/asm-sparc/Kbuild
+index 6712237..33eb52f 100644
+--- a/include/asm-sparc/Kbuild
++++ b/include/asm-sparc/Kbuild
+@@ -1,13 +1,23 @@
+ include include/asm-generic/Kbuild.asm
  
--/* 
-+/*
-  * The semid64_ds structure for sparc architecture.
-  * Note extra padding because this structure is passed back and forth
-  * between kernel and user space.
-@@ -10,16 +10,22 @@
-  * - 64-bit time_t to solve y2038 problem
-  * - 2 miscellaneous 32-bit values
-  */
-+#if defined(__sparc__) && defined(__arch64__)
-+# define PADDING(x)
-+#else
-+# define PADDING(x) unsigned int x;
-+#endif
++header-y += apb.h
+ header-y += apc.h
+ header-y += asi.h
++header-y += bbc.h
+ header-y += bpp.h
++header-y += display7seg.h
++header-y += envctrl.h
+ header-y += jsflash.h
++header-y += openprom.h
+ header-y += openpromio.h
++header-y += psrcompat.h
++header-y += pstate.h
+ header-y += reg.h
+ header-y += traps.h
++header-y += uctx.h
++header-y += utrap.h
+ header-y += vfc_ioctls.h
++header-y += watchdog.h
  
- struct semid64_ds {
- 	struct ipc64_perm sem_perm;		/* permissions .. see ipc.h */
--	unsigned int	__pad1;
-+	PADDING(__pad1)
- 	__kernel_time_t	sem_otime;		/* last semop time */
--	unsigned int	__pad2;
-+	PADDING(__pad2)
- 	__kernel_time_t	sem_ctime;		/* last change time */
- 	unsigned long	sem_nsems;		/* no. of semaphores in array */
- 	unsigned long	__unused1;
- 	unsigned long	__unused2;
- };
-+#undef PADDING
- 
- #endif /* _SPARC64_SEMBUF_H */
-diff --git a/include/asm-sparc64/sembuf.h b/include/asm-sparc64/sembuf.h
-index 99f04e4..c55b952 100644
---- a/include/asm-sparc64/sembuf.h
-+++ b/include/asm-sparc64/sembuf.h
-@@ -1,22 +1 @@
--#ifndef _SPARC64_SEMBUF_H
--#define _SPARC64_SEMBUF_H
+ unifdef-y += fbio.h
+ unifdef-y += perfctr.h
+diff --git a/include/asm-sparc64/Kbuild b/include/asm-sparc64/Kbuild
+deleted file mode 100644
+index dce1cf9..0000000
+--- a/include/asm-sparc64/Kbuild
++++ /dev/null
+@@ -1,23 +0,0 @@
+-include include/asm-generic/Kbuild.asm
 -
--/* 
-- * The semid64_ds structure for sparc64 architecture.
-- * Note extra padding because this structure is passed back and forth
-- * between kernel and user space.
-- *
-- * Pad space is left for:
-- * - 2 miscellaneous 64-bit values
-- */
+-ALTARCH := sparc
+-ARCHDEF := defined __sparc__ && defined __arch64__
+-ALTARCHDEF := defined __sparc__ && !defined __arch64__
 -
--struct semid64_ds {
--	struct ipc64_perm sem_perm;		/* permissions .. see ipc.h */
--	__kernel_time_t	sem_otime;		/* last semop time */
--	__kernel_time_t	sem_ctime;		/* last change time */
--	unsigned long	sem_nsems;		/* no. of semaphores in array */
--	unsigned long	__unused1;
--	unsigned long	__unused2;
--};
+-header-y += apb.h
+-header-y += asi.h
+-header-y += bbc.h
+-header-y += bpp.h
+-header-y += display7seg.h
+-header-y += envctrl.h
+-header-y += openprom.h
+-header-y += openpromio.h
+-header-y += psrcompat.h
+-header-y += pstate.h
+-header-y += reg.h
+-header-y += uctx.h
+-header-y += utrap.h
+-header-y += watchdog.h
 -
--#endif /* _SPARC64_SEMBUF_H */
-+#include <asm-sparc/sembuf.h>
+-unifdef-y += fbio.h
+-unifdef-y += perfctr.h
 -- 
 1.5.4.1.143.ge7e51
 
