@@ -1,178 +1,91 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 06 Jun 2008 20:58:11 +0000
-Subject: Unify all exported SPARC headers
-Message-Id: <20080606205811.GA4172@uranus.ravnborg.org>
+Date: Fri, 06 Jun 2008 21:00:14 +0000
+Subject: [PATCH 02/21] sparc: Merge asm-sparc{,64}/ioctl.h
+Message-Id: <1212786033-4227-2-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi David.
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ include/asm-sparc64/ioctl.h |   68 +------------------------------------------
+ 1 files changed, 1 insertions(+), 67 deletions(-)
 
-Following patches unify all exported sparc and sparc64 headers.
+diff --git a/include/asm-sparc64/ioctl.h b/include/asm-sparc64/ioctl.h
+index d634c21..18fc562 100644
+--- a/include/asm-sparc64/ioctl.h
++++ b/include/asm-sparc64/ioctl.h
+@@ -1,67 +1 @@
+-#ifndef _SPARC64_IOCTL_H
+-#define _SPARC64_IOCTL_H
+-
+-/*
+- * Our DIR and SIZE overlap in order to simulteneously provide
+- * a non-zero _IOC_NONE (for binary compatibility) and
+- * 14 bits of size as on i386. Here's the layout:
+- *
+- *   0xE0000000   DIR
+- *   0x80000000     DIR = WRITE
+- *   0x40000000     DIR = READ
+- *   0x20000000     DIR = NONE
+- *   0x3FFF0000   SIZE (overlaps NONE bit)
+- *   0x0000FF00   TYPE
+- *   0x000000FF   NR (CMD)
+- */
+-
+-#define _IOC_NRBITS      8
+-#define _IOC_TYPEBITS    8
+-#define _IOC_SIZEBITS   13	/* Actually 14, see below. */
+-#define _IOC_DIRBITS     3
+-
+-#define _IOC_NRMASK      ((1 << _IOC_NRBITS)-1)
+-#define _IOC_TYPEMASK    ((1 << _IOC_TYPEBITS)-1)
+-#define _IOC_SIZEMASK    ((1 << _IOC_SIZEBITS)-1)
+-#define _IOC_XSIZEMASK   ((1 << (_IOC_SIZEBITS+1))-1)
+-#define _IOC_DIRMASK     ((1 << _IOC_DIRBITS)-1)
+-
+-#define _IOC_NRSHIFT     0
+-#define _IOC_TYPESHIFT   (_IOC_NRSHIFT + _IOC_NRBITS)
+-#define _IOC_SIZESHIFT   (_IOC_TYPESHIFT + _IOC_TYPEBITS)
+-#define _IOC_DIRSHIFT    (_IOC_SIZESHIFT + _IOC_SIZEBITS)
+-
+-#define _IOC_NONE        1U
+-#define _IOC_READ        2U
+-#define _IOC_WRITE       4U
+-
+-#define _IOC(dir,type,nr,size) \
+-        (((dir)  << _IOC_DIRSHIFT) | \
+-         ((type) << _IOC_TYPESHIFT) | \
+-         ((nr)   << _IOC_NRSHIFT) | \
+-         ((size) << _IOC_SIZESHIFT))
+-
+-#define _IO(type,nr)        _IOC(_IOC_NONE,(type),(nr),0)
+-#define _IOR(type,nr,size)  _IOC(_IOC_READ,(type),(nr),sizeof(size))
+-#define _IOW(type,nr,size)  _IOC(_IOC_WRITE,(type),(nr),sizeof(size))
+-#define _IOWR(type,nr,size) _IOC(_IOC_READ|_IOC_WRITE,(type),(nr),sizeof(size))
+-
+-/* Used to decode ioctl numbers in drivers despite the leading underscore... */
+-#define _IOC_DIR(nr)    \
+- ( (((((nr) >> _IOC_DIRSHIFT) & _IOC_DIRMASK) & (_IOC_WRITE|_IOC_READ)) != 0)?   \
+-                            (((nr) >> _IOC_DIRSHIFT) & (_IOC_WRITE|_IOC_READ)):  \
+-                            (((nr) >> _IOC_DIRSHIFT) & _IOC_DIRMASK) )
+-#define _IOC_TYPE(nr)       (((nr) >> _IOC_TYPESHIFT) & _IOC_TYPEMASK)
+-#define _IOC_NR(nr)         (((nr) >> _IOC_NRSHIFT) & _IOC_NRMASK)
+-#define _IOC_SIZE(nr)   \
+- ((((((nr) >> _IOC_DIRSHIFT) & _IOC_DIRMASK) & (_IOC_WRITE|_IOC_READ)) = 0)?    \
+-                         0: (((nr) >> _IOC_SIZESHIFT) & _IOC_XSIZEMASK))
+-
+-/* ...and for the PCMCIA and sound. */
+-#define IOC_IN          (_IOC_WRITE << _IOC_DIRSHIFT)
+-#define IOC_OUT         (_IOC_READ << _IOC_DIRSHIFT)
+-#define IOC_INOUT       ((_IOC_WRITE|_IOC_READ) << _IOC_DIRSHIFT)
+-#define IOCSIZE_MASK    (_IOC_XSIZEMASK << _IOC_SIZESHIFT)
+-#define IOCSIZE_SHIFT   (_IOC_SIZESHIFT)
+-
+-#endif /* !(_SPARC64_IOCTL_H) */
++#include <asm-sparc/ioctl.h>
+-- 
+1.5.4.1.143.ge7e51
 
-I have grouped the changes a bit.
-
-Patch 1 to 7 are all trivial.
-This is either sparc64 specific files that was verbatim
-copied to asm-sparc (patch 1) or identical files.
-
-	sparc: copy exported sparc64 specific header files to asm-sparc
-	sparc: Merge asm-sparc{,64}/ioctl.h
-	sparc: Merge asm-sparc{,64}/ioctls.h
-	sparc: Merge asm-sparc{,64}/param.h
-	sparc: Merge asm-sparc{,64}/poll.h
-	sparc: Merge asm-sparc{,64}/socket.h
-	sparc: Merge asm-sparc{,64}/sockios.h
-
-The next batch had some editing so they could be unified
-    O_NDELAY differs
-	sparc: Merge asm-sparc{,64}/fcntl.h
-
-    32 bit sparc had some padding that was made conditional
-	sparc: Merge asm-sparc{,64}/msgbuf.h
-	sparc: Merge asm-sparc{,64}/sembuf.h
-	sparc: Merge asm-sparc{,64}/shmbuf.h
-
-   Changed a name of a function to let them match
-      sparc: Merge asm-sparc{,64}/mman.h
-
-   Brought over a few sparc64 definitions
-      sparc: copy asm-sparc64/fbio.h to asm-sparc
-      sparc: Merge asm-sparc{,64}/fbio.h
-
-   RLIM_INFINITY differs
-      sparc: Merge asm-sparc{,64}/resource.h
-
-   COMMAND_LINE_SIZE differs
-      sparc: Merge asm-sparc{,64}/setup.h
-
-   Type of tcflag_t differs
-      sparc: Merge asm-sparc{,64}/termbits.h
-
-   Functional change! Included sparc64 support for check of user access
-      sparc: Merge asm-sparc{,64}/termios.h
-
-   Merge of two small files
-      sparc: Merge asm-sparc{,64}/types.h
-
-The last batch were the files that differed too much
-so I decided to create _32.h and _64.h variants to make
-it easier to diff the two variants.
-A simple script is included in the changelog.
-# Whole file
-      sparc: copy sparc64 header files to asm-sparc
-
-And finally we could kill ALTARCH
-      sparc: add sparc64 files to Kbuild
-
-Build tested with a defconfig on sparc and sparc64
-
-Patches follows and if you push your latest sparc patches
-I can put them up in a git tree.
-But I prefer that you reciew the lot before you apply the.
-
-	Sam
-
-Git diff:
-
- arch/sparc64/kernel/sys_sparc.c                    |    6 +-
- arch/sparc64/kernel/sys_sparc32.c                  |    4 +-
- include/asm-sparc/Kbuild                           |   10 +
- include/{asm-sparc64 => asm-sparc}/apb.h           |    0 
- include/asm-sparc/asi.h                            |  119 +------
- include/asm-sparc/{asi.h => asi_32.h}              |    0 
- include/{asm-sparc64/asi.h => asm-sparc/asi_64.h}  |    0 
- include/{asm-sparc64 => asm-sparc}/bbc.h           |    0 
- include/{asm-sparc64 => asm-sparc}/display7seg.h   |    0 
- include/{asm-sparc64 => asm-sparc}/envctrl.h       |    0 
- include/asm-sparc/fbio.h                           |   37 ++-
- include/asm-sparc/fcntl.h                          |    4 +
- include/asm-sparc/ioctls.h                         |    4 +-
- include/asm-sparc/ipcbuf.h                         |   39 +--
- include/asm-sparc/{ipcbuf.h => ipcbuf_32.h}        |    0 
- .../ipcbuf.h => asm-sparc/ipcbuf_64.h}             |    0 
- include/asm-sparc/msgbuf.h                         |   23 +-
- include/asm-sparc/openprom.h                       |  265 +-------------
- include/asm-sparc/{openprom.h => openprom_32.h}    |    0 
- .../openprom.h => asm-sparc/openprom_64.h}         |    0 
- include/asm-sparc/posix_types.h                    |  126 +------
- .../asm-sparc/{posix_types.h => posix_types_32.h}  |    0 
- .../posix_types.h => asm-sparc/posix_types_64.h}   |    0 
- include/{asm-sparc64 => asm-sparc}/psrcompat.h     |    0 
- include/{asm-sparc64 => asm-sparc}/pstate.h        |    0 
- include/asm-sparc/ptrace.h                         |  183 +---------
- include/asm-sparc/{ptrace.h => ptrace_32.h}        |    0 
- .../ptrace.h => asm-sparc/ptrace_64.h}             |    0 
- include/asm-sparc/reg.h                            |   87 +----
- include/asm-sparc/{reg.h => reg_32.h}              |    0 
- include/{asm-sparc64/reg.h => asm-sparc/reg_64.h}  |    0 
- include/asm-sparc/resource.h                       |    4 +
- include/asm-sparc/sembuf.h                         |   12 +-
- include/asm-sparc/setup.h                          |    6 +-
- include/asm-sparc/shmbuf.h                         |   14 +-
- include/asm-sparc/sigcontext.h                     |   70 +----
- .../asm-sparc/{sigcontext.h => sigcontext_32.h}    |    0 
- .../sigcontext.h => asm-sparc/sigcontext_64.h}     |    0 
- include/asm-sparc/siginfo.h                        |   25 +-
- include/asm-sparc/{siginfo.h => siginfo_32.h}      |    0 
- .../siginfo.h => asm-sparc/siginfo_64.h}           |    0 
- include/asm-sparc/signal.h                         |  215 +-----------
- include/asm-sparc/{signal.h => signal_32.h}        |    0 
- .../signal.h => asm-sparc/signal_64.h}             |    0 
- include/asm-sparc/stat.h                           |   84 +----
- include/asm-sparc/{stat.h => stat_32.h}            |    0 
- .../{asm-sparc64/stat.h => asm-sparc/stat_64.h}    |    0 
- include/asm-sparc/statfs.h                         |   12 +-
- include/asm-sparc/{statfs.h => statfs_32.h}        |    0 
- .../statfs.h => asm-sparc/statfs_64.h}             |    0 
- include/asm-sparc/termbits.h                       |    5 +
- include/asm-sparc/termios.h                        |   79 ++--
- include/asm-sparc/types.h                          |   32 ++-
- include/{asm-sparc64 => asm-sparc}/uctx.h          |    0 
- include/asm-sparc/unistd.h                         |  386 +-------------------
- include/asm-sparc/{unistd.h => unistd_32.h}        |    0 
- .../unistd.h => asm-sparc/unistd_64.h}             |    0 
- include/{asm-sparc64 => asm-sparc}/utrap.h         |    0 
- include/{asm-sparc64 => asm-sparc}/watchdog.h      |    0 
- include/asm-sparc64/Kbuild                         |   23 --
- include/asm-sparc64/apb.h                          |   37 +--
- include/asm-sparc64/asi.h                          |  161 +--------
- include/asm-sparc64/bbc.h                          |  226 +------------
- include/asm-sparc64/display7seg.h                  |   80 +----
- include/asm-sparc64/envctrl.h                      |  104 +------
- include/asm-sparc64/fbio.h                         |  331 +-----------------
- include/asm-sparc64/fcntl.h                        |   36 +--
- include/asm-sparc64/ioctl.h                        |   68 +----
- include/asm-sparc64/ioctls.h                       |  137 +-------
- include/asm-sparc64/ipcbuf.h                       |   29 +--
- include/asm-sparc64/mman.h                         |   32 +--
- include/asm-sparc64/msgbuf.h                       |   28 +--
- include/asm-sparc64/openprom.h                     |  281 +--------------
- include/asm-sparc64/param.h                        |   24 +--
- include/asm-sparc64/poll.h                         |   13 +-
- include/asm-sparc64/posix_types.h                  |  123 +------
- include/asm-sparc64/psrcompat.h                    |   46 +---
- include/asm-sparc64/pstate.h                       |   92 +-----
- include/asm-sparc64/ptrace.h                       |  347 +------------------
- include/asm-sparc64/reg.h                          |   57 +---
- include/asm-sparc64/resource.h                     |   20 +-
- include/asm-sparc64/sembuf.h                       |   23 +--
- include/asm-sparc64/setup.h                        |   11 +-
- include/asm-sparc64/shmbuf.h                       |   39 +--
- include/asm-sparc64/sigcontext.h                   |   88 +-----
- include/asm-sparc64/siginfo.h                      |   33 +--
- include/asm-sparc64/signal.h                       |  195 +----------
- include/asm-sparc64/socket.h                       |   58 +---
- include/asm-sparc64/sockios.h                      |   15 +-
- include/asm-sparc64/stat.h                         |   48 +---
- include/asm-sparc64/statfs.h                       |   55 +---
- include/asm-sparc64/termbits.h                     |  261 +-------------
- include/asm-sparc64/termios.h                      |  187 +----------
- include/asm-sparc64/types.h                        |   35 +--
- include/asm-sparc64/uctx.h                         |   72 +----
- include/asm-sparc64/unistd.h                       |  374 +-------------------
- include/asm-sparc64/utrap.h                        |   52 +---
- include/asm-sparc64/watchdog.h                     |   32 +--
- 98 files changed, 310 insertions(+), 5414 deletions(-)
