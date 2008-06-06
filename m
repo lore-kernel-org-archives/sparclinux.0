@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 06 Jun 2008 10:18:45 +0000
+From: Adrian Bunk <bunk@kernel.org>
+Date: Fri, 06 Jun 2008 11:05:23 +0000
 Subject: Re: [RFC] unify exported sparc header files?
-Message-Id: <20080606.031845.193710152.davem@davemloft.net>
+Message-Id: <20080606110523.GA472@cs181133002.pp.htv.fi>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080601072044.GA16220@uranus.ravnborg.org>
 In-Reply-To: <20080601072044.GA16220@uranus.ravnborg.org>
@@ -10,18 +10,46 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 5 Jun 2008 22:25:18 +0200
+On Thu, Jun 05, 2008 at 11:48:59AM -0700, David Miller wrote:
+> From: Sam Ravnborg <sam@ravnborg.org>
+> Date: Sun, 1 Jun 2008 09:20:45 +0200
+> 
+> > For all sparc32 specific files:
+> >  - nothing
+> > 
+> > For all the sparc64 specific files:
+> >  - copy file to asm-sparc
+> >  - wrap the copied file in
+> >    #if defined(__sparc_v9__) || defined(CONFIG_SPARC64)
+> >       ... file content ...
+> >    #endif
+> >  - straight include from asm-sparc64 of the asm-sparc file
+> > - Or I could just drop the wrapping?
+> > 
+> > For the non-unified files:
+> > - Add content to asm-sparc file and wrap it into:
+> >    #if defined(__sparc_v9__) || defined(CONFIG_SPARC64)
+> > 	... sparc64 file content
+> >    #else
+> > 	... sparc32 file content
+> >    #endif
+> 
+> This sounds fine to me.
 
-> Half of this is trivial differences but anyway more work than
-> I initially anticipated :-(
+Sorry that I missed this in the original email.
 
-Things are never as simple as they initially seem. :)
+Can we use the same #if test we use for userspace also in kernelspace?
 
-BTW, the correct test for 64-bit sparc in userspace
-is something like:
+I'm asking since Sam's proposal would result in more CONFIG_ leakage to 
+userspace headers.
 
-#if defined(__sparc__) && defined(__arch64__)
+cu
+Adrian
 
-That "__sparc_v9__" is a deprecated old cpp define which
-shouldn't be used in new files.
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
+
