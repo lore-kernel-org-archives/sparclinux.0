@@ -1,91 +1,143 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 06 Jun 2008 21:00:14 +0000
-Subject: [PATCH 02/21] sparc: Merge asm-sparc{,64}/ioctl.h
-Message-Id: <1212786033-4227-2-git-send-email-sam@ravnborg.org>
+From: Adrian Bunk <bunk@kernel.org>
+Date: Thu, 12 Jun 2008 22:10:56 +0000
+Subject: [patch] sparc: merge openprom_32.h into openprom.h
+Message-Id: <20080612221056.GJ17231@cs181133002.pp.htv.fi>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
----
- include/asm-sparc64/ioctl.h |   68 +------------------------------------------
- 1 files changed, 1 insertions(+), 67 deletions(-)
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 
-diff --git a/include/asm-sparc64/ioctl.h b/include/asm-sparc64/ioctl.h
-index d634c21..18fc562 100644
---- a/include/asm-sparc64/ioctl.h
-+++ b/include/asm-sparc64/ioctl.h
-@@ -1,67 +1 @@
--#ifndef _SPARC64_IOCTL_H
--#define _SPARC64_IOCTL_H
+---
+
+ include/asm-sparc/openprom.h    |   52 +++++++++++++++++++++++++++++-
+ include/asm-sparc/openprom_32.h |   55 --------------------------------
+ 2 files changed, 51 insertions(+), 56 deletions(-)
+
+e180663a8300879d1aeb2b6ed448b9b608148476 diff --git a/include/asm-sparc/openprom.h b/include/asm-sparc/openprom.h
+index de837f1..1575116 100644
+--- a/include/asm-sparc/openprom.h
++++ b/include/asm-sparc/openprom.h
+@@ -12,7 +12,57 @@
+ #if defined(__sparc__) && defined(__arch64__)
+ #include <asm-sparc/openprom_64.h>
+ #else
+-#include <asm-sparc/openprom_32.h>
++
++#include <asm/vaddrs.h>
++
++/* Empirical constants... */
++#define	LINUX_OPPROM_MAGIC      0x10010407
++
++#ifndef __ASSEMBLY__
++struct linux_mlist_v0 {
++	struct linux_mlist_v0 *theres_more;
++	char *start_adr;
++	unsigned num_bytes;
++};
++
++/* More fun PROM structures for device probing. */
++#define PROMREG_MAX     16
++#define PROMVADDR_MAX   16
++#define PROMINTR_MAX    15
++
++struct linux_prom_registers {
++	unsigned int which_io;         /* is this in OBIO space? */
++	unsigned int phys_addr;        /* The physical address of this register */
++	unsigned int reg_size;         /* How many bytes does this register take up? */
++};
++
++/* Ranges and reg properties are a bit different for PCI. */
++struct linux_prom_pci_registers {
++	/* 
++	 * We don't know what information this field contain.
++	 * We guess, PCI device function is in bits 15:8
++	 * So, ...
++	 */
++	unsigned int which_io;  /* Let it be which_io */
++
++	unsigned int phys_hi;
++	unsigned int phys_lo;
++
++	unsigned int size_hi;
++	unsigned int size_lo;
++};
++
++struct linux_prom_pci_assigned_addresses {
++	unsigned int which_io;
++
++	unsigned int phys_hi;
++	unsigned int phys_lo;
++
++	unsigned int size_hi;
++	unsigned int size_lo;
++};
++#endif /* !(__ASSEMBLY__) */
++
+ #endif
+ 
+ #ifndef __ASSEMBLY__
+diff --git a/include/asm-sparc/openprom_32.h b/include/asm-sparc/openprom_32.h
+deleted file mode 100644
+index 0955de4..0000000
+--- a/include/asm-sparc/openprom_32.h
++++ /dev/null
+@@ -1,55 +0,0 @@
+-#ifndef __SPARC_OPENPROM_H
+-#define __SPARC_OPENPROM_H
 -
--/*
-- * Our DIR and SIZE overlap in order to simulteneously provide
-- * a non-zero _IOC_NONE (for binary compatibility) and
-- * 14 bits of size as on i386. Here's the layout:
-- *
-- *   0xE0000000   DIR
-- *   0x80000000     DIR = WRITE
-- *   0x40000000     DIR = READ
-- *   0x20000000     DIR = NONE
-- *   0x3FFF0000   SIZE (overlaps NONE bit)
-- *   0x0000FF00   TYPE
-- *   0x000000FF   NR (CMD)
-- */
+-#include <asm/vaddrs.h>
 -
--#define _IOC_NRBITS      8
--#define _IOC_TYPEBITS    8
--#define _IOC_SIZEBITS   13	/* Actually 14, see below. */
--#define _IOC_DIRBITS     3
+-/* Empirical constants... */
+-#define	LINUX_OPPROM_MAGIC      0x10010407
 -
--#define _IOC_NRMASK      ((1 << _IOC_NRBITS)-1)
--#define _IOC_TYPEMASK    ((1 << _IOC_TYPEBITS)-1)
--#define _IOC_SIZEMASK    ((1 << _IOC_SIZEBITS)-1)
--#define _IOC_XSIZEMASK   ((1 << (_IOC_SIZEBITS+1))-1)
--#define _IOC_DIRMASK     ((1 << _IOC_DIRBITS)-1)
+-#ifndef __ASSEMBLY__
+-struct linux_mlist_v0 {
+-	struct linux_mlist_v0 *theres_more;
+-	char *start_adr;
+-	unsigned num_bytes;
+-};
 -
--#define _IOC_NRSHIFT     0
--#define _IOC_TYPESHIFT   (_IOC_NRSHIFT + _IOC_NRBITS)
--#define _IOC_SIZESHIFT   (_IOC_TYPESHIFT + _IOC_TYPEBITS)
--#define _IOC_DIRSHIFT    (_IOC_SIZESHIFT + _IOC_SIZEBITS)
+-/* More fun PROM structures for device probing. */
+-#define PROMREG_MAX     16
+-#define PROMVADDR_MAX   16
+-#define PROMINTR_MAX    15
 -
--#define _IOC_NONE        1U
--#define _IOC_READ        2U
--#define _IOC_WRITE       4U
+-struct linux_prom_registers {
+-	unsigned int which_io;         /* is this in OBIO space? */
+-	unsigned int phys_addr;        /* The physical address of this register */
+-	unsigned int reg_size;         /* How many bytes does this register take up? */
+-};
 -
--#define _IOC(dir,type,nr,size) \
--        (((dir)  << _IOC_DIRSHIFT) | \
--         ((type) << _IOC_TYPESHIFT) | \
--         ((nr)   << _IOC_NRSHIFT) | \
--         ((size) << _IOC_SIZESHIFT))
+-/* Ranges and reg properties are a bit different for PCI. */
+-struct linux_prom_pci_registers {
+-	/* 
+-	 * We don't know what information this field contain.
+-	 * We guess, PCI device function is in bits 15:8
+-	 * So, ...
+-	 */
+-	unsigned int which_io;  /* Let it be which_io */
 -
--#define _IO(type,nr)        _IOC(_IOC_NONE,(type),(nr),0)
--#define _IOR(type,nr,size)  _IOC(_IOC_READ,(type),(nr),sizeof(size))
--#define _IOW(type,nr,size)  _IOC(_IOC_WRITE,(type),(nr),sizeof(size))
--#define _IOWR(type,nr,size) _IOC(_IOC_READ|_IOC_WRITE,(type),(nr),sizeof(size))
+-	unsigned int phys_hi;
+-	unsigned int phys_lo;
 -
--/* Used to decode ioctl numbers in drivers despite the leading underscore... */
--#define _IOC_DIR(nr)    \
-- ( (((((nr) >> _IOC_DIRSHIFT) & _IOC_DIRMASK) & (_IOC_WRITE|_IOC_READ)) != 0)?   \
--                            (((nr) >> _IOC_DIRSHIFT) & (_IOC_WRITE|_IOC_READ)):  \
--                            (((nr) >> _IOC_DIRSHIFT) & _IOC_DIRMASK) )
--#define _IOC_TYPE(nr)       (((nr) >> _IOC_TYPESHIFT) & _IOC_TYPEMASK)
--#define _IOC_NR(nr)         (((nr) >> _IOC_NRSHIFT) & _IOC_NRMASK)
--#define _IOC_SIZE(nr)   \
-- ((((((nr) >> _IOC_DIRSHIFT) & _IOC_DIRMASK) & (_IOC_WRITE|_IOC_READ)) = 0)?    \
--                         0: (((nr) >> _IOC_SIZESHIFT) & _IOC_XSIZEMASK))
+-	unsigned int size_hi;
+-	unsigned int size_lo;
+-};
 -
--/* ...and for the PCMCIA and sound. */
--#define IOC_IN          (_IOC_WRITE << _IOC_DIRSHIFT)
--#define IOC_OUT         (_IOC_READ << _IOC_DIRSHIFT)
--#define IOC_INOUT       ((_IOC_WRITE|_IOC_READ) << _IOC_DIRSHIFT)
--#define IOCSIZE_MASK    (_IOC_XSIZEMASK << _IOC_SIZESHIFT)
--#define IOCSIZE_SHIFT   (_IOC_SIZESHIFT)
+-struct linux_prom_pci_assigned_addresses {
+-	unsigned int which_io;
 -
--#endif /* !(_SPARC64_IOCTL_H) */
-+#include <asm-sparc/ioctl.h>
--- 
-1.5.4.1.143.ge7e51
+-	unsigned int phys_hi;
+-	unsigned int phys_lo;
+-
+-	unsigned int size_hi;
+-	unsigned int size_lo;
+-};
+-
+-#endif /* !(__ASSEMBLY__) */
+-
+-#endif /* !(__SPARC_OPENPROM_H) */
 
