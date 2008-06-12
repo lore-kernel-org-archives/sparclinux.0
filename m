@@ -1,116 +1,90 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 13 Jun 2008 19:57:20 +0000
-Subject: [PATCH] sparc: Merge asm-sparc{,64}/types.h
-Message-Id: <1213387042-9711-19-git-send-email-sam@ravnborg.org>
+From: Adrian Bunk <bunk@kernel.org>
+Date: Thu, 12 Jun 2008 22:10:46 +0000
+Subject: [patch] sparc: merge ipcbuf_64.h into ipcbuf.h
+Message-Id: <20080612221046.GH17231@cs181133002.pp.htv.fi>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Copy content of sparc64 file to sparc file.
-There is only minimal possibilities for further unification.
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- include/asm-sparc/types.h   |   32 +++++++++++++++++++++++++++++++-
- include/asm-sparc64/types.h |   35 +----------------------------------
- 2 files changed, 32 insertions(+), 35 deletions(-)
 
-diff --git a/include/asm-sparc/types.h b/include/asm-sparc/types.h
-index 07734f9..8c28fde 100644
---- a/include/asm-sparc/types.h
-+++ b/include/asm-sparc/types.h
-@@ -1,6 +1,5 @@
- #ifndef _SPARC_TYPES_H
- #define _SPARC_TYPES_H
+ include/asm-sparc/ipcbuf.h    |   26 +++++++++++++++++++++++++-
+ include/asm-sparc/ipcbuf_64.h |   28 ----------------------------
+ 2 files changed, 25 insertions(+), 29 deletions(-)
+
+c228758f9050f4622520872565175825f3f783bc diff --git a/include/asm-sparc/ipcbuf.h b/include/asm-sparc/ipcbuf.h
+index 52cf883..492bae2 100644
+--- a/include/asm-sparc/ipcbuf.h
++++ b/include/asm-sparc/ipcbuf.h
+@@ -2,7 +2,31 @@
+ #define _ASM_SPARC_IPCBUF_H
+ 
+ #if defined(__sparc__) && defined(__arch64__)
+-#include <asm-sparc/ipcbuf_64.h>
++
++/* 
++ * The ipc64_perm structure for sparc64 architecture.
++ * Note extra padding because this structure is passed back and forth
++ * between kernel and user space.
++ *
++ * Pad space is left for:
++ * - 32-bit seq
++ * - 2 miscellaneous 64-bit values
++ */
++
++struct ipc64_perm
++{
++	__kernel_key_t	key;
++	__kernel_uid_t	uid;
++	__kernel_gid_t	gid;
++	__kernel_uid_t	cuid;
++	__kernel_gid_t	cgid;
++	__kernel_mode_t	mode; 
++	unsigned short	__pad1;
++	unsigned short	seq;
++	unsigned long	__unused1;
++	unsigned long	__unused2;
++};
++
+ #else
+ 
+ /* 
+diff --git a/include/asm-sparc/ipcbuf_64.h b/include/asm-sparc/ipcbuf_64.h
+deleted file mode 100644
+index 9c5bf1b..0000000
+--- a/include/asm-sparc/ipcbuf_64.h
++++ /dev/null
+@@ -1,28 +0,0 @@
+-#ifndef _SPARC64_IPCBUF_H
+-#define _SPARC64_IPCBUF_H
 -
- /*
-  * This file is never included by application software unless
-  * explicitly requested (e.g., via linux/types.h) in which case the
-@@ -8,6 +7,35 @@
-  * not a major issue.  However, for interoperability, libraries still
-  * need to be careful to avoid a name clashes.
-  */
-+
-+#if defined(__sparc__) && defined(__arch64__)
-+
-+/*** SPARC 64 bit ***/
-+#include <asm-generic/int-l64.h>
-+
-+#ifndef __ASSEMBLY__
-+
-+typedef unsigned short umode_t;
-+
-+#endif /* __ASSEMBLY__ */
-+
-+#ifdef __KERNEL__
-+
-+#define BITS_PER_LONG 64
-+
-+#ifndef __ASSEMBLY__
-+
-+/* Dma addresses come in generic and 64-bit flavours.  */
-+
-+typedef u32 dma_addr_t;
-+typedef u64 dma64_addr_t;
-+
-+#endif /* __ASSEMBLY__ */
-+
-+#endif /* __KERNEL__ */
-+#else
-+
-+/*** SPARC 32 bit ***/
- #include <asm-generic/int-ll64.h>
- 
- #ifndef __ASSEMBLY__
-@@ -29,4 +57,6 @@ typedef u32 dma64_addr_t;
- 
- #endif /* __KERNEL__ */
- 
-+#endif /* defined(__sparc__) && defined(__arch64__) */
-+
- #endif /* defined(_SPARC_TYPES_H) */
-diff --git a/include/asm-sparc64/types.h b/include/asm-sparc64/types.h
-index b27ccc8..cfbfad5 100644
---- a/include/asm-sparc64/types.h
-+++ b/include/asm-sparc64/types.h
-@@ -1,34 +1 @@
--#ifndef _SPARC64_TYPES_H
--#define _SPARC64_TYPES_H
--
--/*
-- * This file is never included by application software unless
-- * explicitly requested (e.g., via linux/types.h) in which case the
-- * application is Linux specific so (user-) name space pollution is
-- * not a major issue.  However, for interoperability, libraries still
-- * need to be careful to avoid a name clashes.
+-/* 
+- * The ipc64_perm structure for sparc64 architecture.
+- * Note extra padding because this structure is passed back and forth
+- * between kernel and user space.
+- *
+- * Pad space is left for:
+- * - 32-bit seq
+- * - 2 miscellaneous 64-bit values
 - */
--#include <asm-generic/int-l64.h>
 -
--#ifndef __ASSEMBLY__
+-struct ipc64_perm
+-{
+-	__kernel_key_t	key;
+-	__kernel_uid_t	uid;
+-	__kernel_gid_t	gid;
+-	__kernel_uid_t	cuid;
+-	__kernel_gid_t	cgid;
+-	__kernel_mode_t	mode; 
+-	unsigned short	__pad1;
+-	unsigned short	seq;
+-	unsigned long	__unused1;
+-	unsigned long	__unused2;
+-};
 -
--typedef unsigned short umode_t;
--
--#endif /* __ASSEMBLY__ */
--
--#ifdef __KERNEL__
--
--#define BITS_PER_LONG 64
--
--#ifndef __ASSEMBLY__
--
--/* Dma addresses come in generic and 64-bit flavours.  */
--
--typedef u32 dma_addr_t;
--typedef u64 dma64_addr_t;
--
--#endif /* __ASSEMBLY__ */
--
--#endif /* __KERNEL__ */
--
--#endif /* defined(_SPARC64_TYPES_H) */
-+#include <asm-sparc/types.h>
--- 
-1.5.4.1.143.ge7e51
+-#endif /* _SPARC64_IPCBUF_H */
 
