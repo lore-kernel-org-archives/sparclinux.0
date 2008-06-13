@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 04 Jun 2008 23:56:21 +0000
+Date: Fri, 13 Jun 2008 04:15:50 +0000
 Subject: [GIT]: Sparc
-Message-Id: <20080604.165621.84201273.davem@davemloft.net>
+Message-Id: <20080612.211550.160748198.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080421.153231.108090227.davem@davemloft.net>
 In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
@@ -12,24 +12,18 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-Please pull to get these sparc updates.
+Please pull to get this Sparc bug fix, thanks!
 
-Thanks!
-
-The following changes since commit 551dec47bb5964478db594385a896eb0d4ab2b0a:
-  Adrian Bunk (1):
-        sparc64: global_reg_snapshot is not for userspace
+The following changes since commit 399dc43bc29fe1ac19340c56c0df84aa0ea53c85:
+  Alexey Dobriyan (1):
+        sparc: switch /proc/led to seq_file
 
 are available in the git repository at:
 
   master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
 
-Alexey Dobriyan (1):
-      sparc: switch /proc/led to seq_file
+Robert Reif (1):
+      sparc: get leo framebuffer working
 
-Benjamin Herrenschmidt (1):
-      sparc64: IO accessors fix
-
- arch/sparc/kernel/led.c  |   34 ++++++++++++++---------
- include/asm-sparc64/io.h |   66 ++++++++++++++++++++++++++++++---------------
- 2 files changed, 65 insertions(+), 35 deletions(-)
+ drivers/video/leo.c |   58 ++++++++++++++++++++++----------------------------
+ 1 files changed, 26 insertions(+), 32 deletions(-)
