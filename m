@@ -1,79 +1,111 @@
-From: Adrian Bunk <bunk@kernel.org>
-Date: Thu, 12 Jun 2008 22:11:38 +0000
-Subject: [patch] sparc: merge posix_types_64.h into posix_types.h
-Message-Id: <20080612221138.GQ17231@cs181133002.pp.htv.fi>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 13 Jun 2008 19:57:09 +0000
+Subject: [PATCH] sparc: Merge asm-sparc{,64}/fcntl.h
+Message-Id: <1213387042-9711-8-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+The definition of O_NDELAY differed - the rest was equal
+$ diff -u include/asm-sparc/fcntl.h include/asm-sparc64/fcntl.h
+-- include/asm-sparc/fcntl.h	2008-06-13 06:46:39.000000000 +0200
+++ include/asm-sparc64/fcntl.h	2008-06-13 06:46:39.000000000 +0200
+@@ -1,8 +1,9 @@
+-#ifndef _SPARC_FCNTL_H
+-#define _SPARC_FCNTL_H
++#ifndef _SPARC64_FCNTL_H
++#define _SPARC64_FCNTL_H
 
+ /* open/fcntl - O_SYNC is only implemented on blocks devices and on files
+    located on an ext2 file system */
++#define O_NDELAY	0x0004
+ #define O_APPEND	0x0008
+ #define FASYNC		0x0040	/* fcntl, for BSD compatibility */
+ #define O_CREAT		0x0200	/* not fcntl */
+@@ -10,7 +11,6 @@
+ #define O_EXCL		0x0800	/* not fcntl */
+ #define O_SYNC		0x2000
+ #define O_NONBLOCK	0x4000
+-#define O_NDELAY	(0x0004 | O_NONBLOCK)
+ #define O_NOCTTY	0x8000	/* not fcntl */
+ #define O_LARGEFILE	0x40000
+ #define O_DIRECT        0x100000 /* direct disk access hint */
+@@ -29,8 +29,7 @@
+ #define F_UNLCK		3
+
+ #define __ARCH_FLOCK_PAD	short __unused;
+-#define __ARCH_FLOCK64_PAD	short __unused;
+
+ #include <asm-generic/fcntl.h>
+
+-#endif
++#endif /* !(_SPARC64_FCNTL_H) */
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
+ include/asm-sparc/fcntl.h   |    4 ++++
+ include/asm-sparc64/fcntl.h |   36 +-----------------------------------
+ 2 files changed, 5 insertions(+), 35 deletions(-)
 
- include/asm-sparc/posix_types.h    |   20 +++++++++++++++++++-
- include/asm-sparc/posix_types_64.h |   22 ----------------------
- 2 files changed, 19 insertions(+), 23 deletions(-)
-
-
-0d1bc28badda9504a3e07481bc1f7cfe847d0734 diff --git a/include/asm-sparc/posix_types.h b/include/asm-sparc/posix_types.h
-index 4636c5d..2aca832 100644
---- a/include/asm-sparc/posix_types.h
-+++ b/include/asm-sparc/posix_types.h
-@@ -104,7 +104,25 @@ static inline void __FD_ZERO(__kernel_fd_set *p)
- 
- 
- #if defined(__sparc__) && defined(__arch64__)
--#include <asm-sparc/posix_types_64.h>
-+
-+typedef unsigned long          __kernel_size_t;
-+typedef long                   __kernel_ssize_t;
-+typedef int                    __kernel_ipc_pid_t;
-+typedef unsigned int           __kernel_uid_t;
-+typedef unsigned int           __kernel_gid_t;
-+typedef unsigned int           __kernel_mode_t;
-+typedef unsigned short         __kernel_umode_t;
-+typedef unsigned int           __kernel_nlink_t;
-+typedef int                    __kernel_daddr_t;
-+
-+typedef __kernel_uid_t	       __kernel_uid32_t;
-+typedef __kernel_gid_t	       __kernel_gid32_t;
-+
-+typedef unsigned int	       __kernel_old_dev_t;
-+
-+/* Note this piece of asymmetry from the v9 ABI.  */
-+typedef int		       __kernel_suseconds_t;
-+
- #else
- 
- typedef unsigned int           __kernel_size_t;
-diff --git a/include/asm-sparc/posix_types_64.h b/include/asm-sparc/posix_types_64.h
-deleted file mode 100644
-index 5b51039..0000000
---- a/include/asm-sparc/posix_types_64.h
-+++ /dev/null
-@@ -1,22 +0,0 @@
--#ifndef __ARCH_SPARC64_POSIX_TYPES_H
--#define __ARCH_SPARC64_POSIX_TYPES_H
+diff --git a/include/asm-sparc/fcntl.h b/include/asm-sparc/fcntl.h
+index 07bd2d8..d4d9c9d 100644
+--- a/include/asm-sparc/fcntl.h
++++ b/include/asm-sparc/fcntl.h
+@@ -10,7 +10,11 @@
+ #define O_EXCL		0x0800	/* not fcntl */
+ #define O_SYNC		0x2000
+ #define O_NONBLOCK	0x4000
++#if defined(__sparc__) && defined(__arch64__)
++#define O_NDELAY	0x0004
++#else
+ #define O_NDELAY	(0x0004 | O_NONBLOCK)
++#endif
+ #define O_NOCTTY	0x8000	/* not fcntl */
+ #define O_LARGEFILE	0x40000
+ #define O_DIRECT        0x100000 /* direct disk access hint */
+diff --git a/include/asm-sparc64/fcntl.h b/include/asm-sparc64/fcntl.h
+index 8a09ca7..8b1beae 100644
+--- a/include/asm-sparc64/fcntl.h
++++ b/include/asm-sparc64/fcntl.h
+@@ -1,35 +1 @@
+-#ifndef _SPARC64_FCNTL_H
+-#define _SPARC64_FCNTL_H
 -
--typedef unsigned long          __kernel_size_t;
--typedef long                   __kernel_ssize_t;
--typedef int                    __kernel_ipc_pid_t;
--typedef unsigned int           __kernel_uid_t;
--typedef unsigned int           __kernel_gid_t;
--typedef unsigned int           __kernel_mode_t;
--typedef unsigned short         __kernel_umode_t;
--typedef unsigned int           __kernel_nlink_t;
--typedef int                    __kernel_daddr_t;
+-/* open/fcntl - O_SYNC is only implemented on blocks devices and on files
+-   located on an ext2 file system */
+-#define O_NDELAY	0x0004
+-#define O_APPEND	0x0008
+-#define FASYNC		0x0040	/* fcntl, for BSD compatibility */
+-#define O_CREAT		0x0200	/* not fcntl */
+-#define O_TRUNC		0x0400	/* not fcntl */
+-#define O_EXCL		0x0800	/* not fcntl */
+-#define O_SYNC		0x2000
+-#define O_NONBLOCK	0x4000
+-#define O_NOCTTY	0x8000	/* not fcntl */
+-#define O_LARGEFILE	0x40000
+-#define O_DIRECT        0x100000 /* direct disk access hint */
+-#define O_NOATIME	0x200000
+-#define O_CLOEXEC	0x400000
 -
--typedef __kernel_uid_t	       __kernel_uid32_t;
--typedef __kernel_gid_t	       __kernel_gid32_t;
+-#define F_GETOWN	5	/*  for sockets. */
+-#define F_SETOWN	6	/*  for sockets. */
+-#define F_GETLK		7
+-#define F_SETLK		8
+-#define F_SETLKW	9
 -
--typedef unsigned int	       __kernel_old_dev_t;
+-/* for posix fcntl() and lockf() */
+-#define F_RDLCK		1
+-#define F_WRLCK		2
+-#define F_UNLCK		3
 -
--/* Note this piece of asymmetry from the v9 ABI.  */
--typedef int		       __kernel_suseconds_t;
+-#define __ARCH_FLOCK_PAD	short __unused;
 -
--#endif /* !(__ARCH_SPARC64_POSIX_TYPES_H) */
+-#include <asm-generic/fcntl.h>
+-
+-#endif /* !(_SPARC64_FCNTL_H) */
++#include <asm-sparc/fcntl.h>
+-- 
+1.5.4.1.143.ge7e51
 
