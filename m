@@ -1,55 +1,90 @@
-From: Mikulas Patocka <mpatocka@redhat.com>
-Date: Tue, 24 Jun 2008 06:06:47 +0000
-Subject: [PATCH] limit irq nesting
-Message-Id: <Pine.LNX.4.64.0806240203550.27784@engineering.redhat.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 13 Jun 2008 19:57:14 +0000
+Subject: [PATCH] sparc: copy asm-sparc64/fbio.h to asm-sparc
+Message-Id: <1213387042-9711-13-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.0806240136200.27784@engineering.redhat.com>
-In-Reply-To: <Pine.LNX.4.64.0806240136200.27784@engineering.redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
-Cc: davem@davemloft.net
+To: sparclinux@vger.kernel.org
 
-Another potential problem (found during code review) that could cause 
-stack overflow is indefinite irq nesting. Linux doesn't have any limit on 
-number of nested irq handlers, so there may be as many handlers on a stack 
-as there are registered hardware interrupts --- enough to cause a crash.
+There were only a few trivial changes and a few additions
+in the sparc64 variant of this file.
+This patch copies the sparc64 specific bits to the sparc version
+of fbio.h so they are equal. A later patch will merge the two.
 
-This patch limits interrupt nesting to at most 2 levels.
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ include/asm-sparc/fbio.h |   37 +++++++++++++++++++++++++++++++++++--
+ 1 files changed, 35 insertions(+), 2 deletions(-)
 
---
-
-IRQs without IRQF_DISABLED could nest to arbitrary level.
-
-At worst this would mean having as many IRQ handlers stack frames, as there
-are interrupts registered --- enough to cause a stack overflow.
-
-This patch makes a limit to have at most two handlers on the stack.
-
-Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
-
-Index: linux-2.6.26-rc7-devel/include/linux/interrupt.h
-=================================--- linux-2.6.26-rc7-devel.orig/include/linux/interrupt.h	2008-06-23 17:47:16.000000000 +0200
-+++ linux-2.6.26-rc7-devel/include/linux/interrupt.h	2008-06-23 18:02:40.000000000 +0200
-@@ -16,6 +16,11 @@
-  #include <asm/system.h>
-
-  /*
-+ * Max number of interrupt handlers on a stack. To prevent stack overflow.
-+ */
-+#define MAX_NESTED_INTERRUPTS	2
+diff --git a/include/asm-sparc/fbio.h b/include/asm-sparc/fbio.h
+index c2b27e7..b9215a0 100644
+--- a/include/asm-sparc/fbio.h
++++ b/include/asm-sparc/fbio.h
+@@ -1,6 +1,9 @@
+ #ifndef __LINUX_FBIO_H
+ #define __LINUX_FBIO_H
+ 
++#include <linux/compiler.h>
++#include <linux/types.h>
 +
-+/*
-   * These correspond to the IORESOURCE_IRQ_* defines in
-   * linux/ioport.h to select the interrupt line behaviour.  When
-   * requesting an interrupt without specifying a IRQF_TRIGGER, the
-@@ -95,7 +100,7 @@
-  #ifdef CONFIG_LOCKDEP
-  # define local_irq_enable_in_hardirq()	do { } while (0)
-  #else
--# define local_irq_enable_in_hardirq()	local_irq_enable()
-+# define local_irq_enable_in_hardirq()	do { if (hardirq_count() < (MAX_NESTED_INTERRUPTS << HARDIRQ_SHIFT)) local_irq_enable(); } while (0)
-  #endif
+ /* Constants used for fbio SunOS compatibility */
+ /* (C) 1996 Miguel de Icaza */
+ 
+@@ -38,6 +41,9 @@
+ #define FBTYPE_PCI_IGA1682	23
+ #define FBTYPE_P9100COLOR	24
+ 
++#define FBTYPE_PCI_GENERIC	1000
++#define FBTYPE_PCI_MACH64	1001
++
+ /* fbio ioctls */
+ /* Returned by FBIOGTYPE */
+ struct  fbtype {
+@@ -97,8 +103,8 @@ struct fbcursor {
+         struct fbcurpos hot;    /* cursor hot spot */
+         struct fbcmap cmap;     /* color map info */
+         struct fbcurpos size;   /* cursor bit map size */
+-        char *image;            /* cursor image bits */
+-        char *mask;             /* cursor mask bits */
++        char __user *image;     /* cursor image bits */
++        char __user *mask;      /* cursor mask bits */
+ };
+ 
+ /* set/get cursor attributes/shape */
+@@ -294,4 +300,31 @@ struct fb_clut32 {
+ #define LEO_LD_GBL_MAP         0x01009000
+ #define LEO_UNK2_MAP           0x0100a000
+ 
++#ifdef __KERNEL__
++struct  fbcmap32 {
++	int             index;          /* first element (0 origin) */
++	int             count;
++	u32		red;
++	u32		green;
++	u32		blue;
++};
++
++#define FBIOPUTCMAP32	_IOW('F', 3, struct fbcmap32)
++#define FBIOGETCMAP32	_IOW('F', 4, struct fbcmap32)
++
++struct fbcursor32 {
++	short set;		/* what to set, choose from the list above */
++	short enable;		/* cursor on/off */
++	struct fbcurpos pos;	/* cursor position */
++	struct fbcurpos hot;	/* cursor hot spot */
++	struct fbcmap32 cmap;	/* color map info */
++	struct fbcurpos size;	/* cursor bit map size */
++	u32	image;		/* cursor image bits */
++	u32	mask;		/* cursor mask bits */
++};
++
++#define FBIOSCURSOR32	_IOW('F', 24, struct fbcursor32)
++#define FBIOGCURSOR32	_IOW('F', 25, struct fbcursor32)
++#endif
++
+ #endif /* __LINUX_FBIO_H */
+-- 
+1.5.4.1.143.ge7e51
 
-  extern void disable_irq_nosync(unsigned int irq);
