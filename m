@@ -1,116 +1,72 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 06 Jun 2008 21:00:31 +0000
-Subject: [PATCH 19/21] sparc: Merge asm-sparc{,64}/types.h
-Message-Id: <1212786033-4227-19-git-send-email-sam@ravnborg.org>
+Date: Fri, 13 Jun 2008 19:57:17 +0000
+Subject: [PATCH] sparc: Merge asm-sparc{,64}/setup.h
+Message-Id: <1213387042-9711-16-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Copy content of sparc64 file to sparc file.
-There is only minimal possibilities for further unification.
+COMMAND_LINE_SIZE differ for 32 and 64 bit.
+256 versus 2048
+
+$ diff -u include/asm-sparc/setup.h include/asm-sparc64/setup.h
+-- include/asm-sparc/setup.h	2008-06-13 06:42:07.000000000 +0200
+++ include/asm-sparc64/setup.h	2008-06-13 06:42:07.000000000 +0200
+@@ -2,9 +2,9 @@
+  *	Just a place holder.
+  */
+
+-#ifndef _SPARC_SETUP_H
+-#define _SPARC_SETUP_H
++#ifndef _SPARC64_SETUP_H
++#define _SPARC64_SETUP_H
+
+-#define COMMAND_LINE_SIZE	256
++#define COMMAND_LINE_SIZE	2048
+
+-#endif /* _SPARC_SETUP_H */
++#endif /* _SPARC64_SETUP_H */
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- include/asm-sparc/types.h   |   32 +++++++++++++++++++++++++++++++-
- include/asm-sparc64/types.h |   35 +----------------------------------
- 2 files changed, 32 insertions(+), 35 deletions(-)
+ include/asm-sparc/setup.h   |    6 +++++-
+ include/asm-sparc64/setup.h |   11 +----------
+ 2 files changed, 6 insertions(+), 11 deletions(-)
 
-diff --git a/include/asm-sparc/types.h b/include/asm-sparc/types.h
-index 07734f9..8c28fde 100644
---- a/include/asm-sparc/types.h
-+++ b/include/asm-sparc/types.h
-@@ -1,6 +1,5 @@
- #ifndef _SPARC_TYPES_H
- #define _SPARC_TYPES_H
--
- /*
-  * This file is never included by application software unless
-  * explicitly requested (e.g., via linux/types.h) in which case the
-@@ -8,6 +7,35 @@
-  * not a major issue.  However, for interoperability, libraries still
-  * need to be careful to avoid a name clashes.
-  */
-+
+diff --git a/include/asm-sparc/setup.h b/include/asm-sparc/setup.h
+index b3af958..2643c62 100644
+--- a/include/asm-sparc/setup.h
++++ b/include/asm-sparc/setup.h
+@@ -5,6 +5,10 @@
+ #ifndef _SPARC_SETUP_H
+ #define _SPARC_SETUP_H
+ 
+-#define COMMAND_LINE_SIZE	256
 +#if defined(__sparc__) && defined(__arch64__)
-+
-+/*** SPARC 64 bit ***/
-+#include <asm-generic/int-l64.h>
-+
-+#ifndef __ASSEMBLY__
-+
-+typedef unsigned short umode_t;
-+
-+#endif /* __ASSEMBLY__ */
-+
-+#ifdef __KERNEL__
-+
-+#define BITS_PER_LONG 64
-+
-+#ifndef __ASSEMBLY__
-+
-+/* Dma addresses come in generic and 64-bit flavours.  */
-+
-+typedef u32 dma_addr_t;
-+typedef u64 dma64_addr_t;
-+
-+#endif /* __ASSEMBLY__ */
-+
-+#endif /* __KERNEL__ */
++# define COMMAND_LINE_SIZE 2048
 +#else
-+
-+/*** SPARC 32 bit ***/
- #include <asm-generic/int-ll64.h>
++# define COMMAND_LINE_SIZE 256
++#endif
  
- #ifndef __ASSEMBLY__
-@@ -29,4 +57,6 @@ typedef u32 dma64_addr_t;
- 
- #endif /* __KERNEL__ */
- 
-+#endif /* defined(__sparc__) && defined(__arch64__) */
-+
- #endif /* defined(_SPARC_TYPES_H) */
-diff --git a/include/asm-sparc64/types.h b/include/asm-sparc64/types.h
-index b27ccc8..cfbfad5 100644
---- a/include/asm-sparc64/types.h
-+++ b/include/asm-sparc64/types.h
-@@ -1,34 +1 @@
--#ifndef _SPARC64_TYPES_H
--#define _SPARC64_TYPES_H
--
+ #endif /* _SPARC_SETUP_H */
+diff --git a/include/asm-sparc64/setup.h b/include/asm-sparc64/setup.h
+index 5053df3..7143d06 100644
+--- a/include/asm-sparc64/setup.h
++++ b/include/asm-sparc64/setup.h
+@@ -1,10 +1 @@
 -/*
-- * This file is never included by application software unless
-- * explicitly requested (e.g., via linux/types.h) in which case the
-- * application is Linux specific so (user-) name space pollution is
-- * not a major issue.  However, for interoperability, libraries still
-- * need to be careful to avoid a name clashes.
+- *	Just a place holder. 
 - */
--#include <asm-generic/int-l64.h>
 -
--#ifndef __ASSEMBLY__
+-#ifndef _SPARC64_SETUP_H
+-#define _SPARC64_SETUP_H
 -
--typedef unsigned short umode_t;
+-#define COMMAND_LINE_SIZE	2048
 -
--#endif /* __ASSEMBLY__ */
--
--#ifdef __KERNEL__
--
--#define BITS_PER_LONG 64
--
--#ifndef __ASSEMBLY__
--
--/* Dma addresses come in generic and 64-bit flavours.  */
--
--typedef u32 dma_addr_t;
--typedef u64 dma64_addr_t;
--
--#endif /* __ASSEMBLY__ */
--
--#endif /* __KERNEL__ */
--
--#endif /* defined(_SPARC64_TYPES_H) */
-+#include <asm-sparc/types.h>
+-#endif /* _SPARC64_SETUP_H */
++#include <asm-sparc/setup.h>
 -- 
 1.5.4.1.143.ge7e51
 
