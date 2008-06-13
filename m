@@ -1,361 +1,350 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 13 Jun 2008 19:57:18 +0000
-Subject: [PATCH] sparc: Merge asm-sparc{,64}/termbits.h
-Message-Id: <1213387042-9711-17-git-send-email-sam@ravnborg.org>
+Date: Fri, 13 Jun 2008 19:57:19 +0000
+Subject: [PATCH] sparc: Merge asm-sparc{,64}/termios.h
+Message-Id: <1213387042-9711-18-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1213387042-9711-17-git-send-email-sam@ravnborg.org>
+In-Reply-To: <1213387042-9711-17-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-The type of tcflag_t differs from 32 and 64 bit.
-For 32 bit it is long
-For 64 bit it is int
+Bring the commit e55c57e0b51c68d78845549505057169c6c3cba6
+("[SPARC64]: Report any user access faults in termios accessors")
+over to sparc when unifying the two files.
+The diff was manually inspected to contain no
+other relevant changes.
 
-Although these have same size then I was not sure that
-it was OK to change the 64 bit version to long as this
-is part of the ABI so it was made conditional.
-
-$ diff -u include/asm-sparc/termbits.h include/asm-sparc64/termbits.h
--- include/asm-sparc/termbits.h	2008-06-13 06:42:07.000000000 +0200
-++ include/asm-sparc64/termbits.h	2008-06-13 06:42:07.000000000 +0200
-@@ -1,11 +1,11 @@
--#ifndef _SPARC_TERMBITS_H
--#define _SPARC_TERMBITS_H
-+#ifndef _SPARC64_TERMBITS_H
-+#define _SPARC64_TERMBITS_H
-
- #include <linux/posix_types.h>
-
- typedef unsigned char   cc_t;
- typedef unsigned int    speed_t;
--typedef unsigned long   tcflag_t;
-+typedef unsigned int    tcflag_t;
-
- #define NCC 8
- struct termio {
-@@ -102,7 +102,7 @@
- #define IXANY	0x00000800
- #define IXOFF	0x00001000
- #define IMAXBEL	0x00002000
--#define IUTF8   0x00004000
-+#define IUTF8	0x00004000
-
- /* c_oflag bits */
- #define OPOST	0x00000001
-@@ -171,7 +171,6 @@
- #define HUPCL	  0x00000400
- #define CLOCAL	  0x00000800
- #define CBAUDEX   0x00001000
--/* We'll never see these speeds with the Zilogs, but for completeness... */
- #define  BOTHER   0x00001000
- #define  B57600   0x00001001
- #define  B115200  0x00001002
-@@ -199,7 +198,7 @@
- #define B3500000  0x00001012
- #define B4000000  0x00001013  */
- #define CIBAUD	  0x100f0000  /* input baud rate (not used) */
--#define CMSPAR	  0x40000000  /* mark or space (stick) parity */
-+#define CMSPAR    0x40000000  /* mark or space (stick) parity */
- #define CRTSCTS	  0x80000000  /* flow control */
-
- #define IBSHIFT	  16		/* Shift from CBAUD to CIBAUD */
-@@ -258,4 +257,4 @@
- #define	TCSADRAIN	1
- #define	TCSAFLUSH	2
-
--#endif /* !(_SPARC_TERMBITS_H) */
-+#endif /* !(_SPARC64_TERMBITS_H) */
+This unification therefore changes functionality of sparc.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- include/asm-sparc/termbits.h   |    5 +
- include/asm-sparc64/termbits.h |  261 +---------------------------------------
- 2 files changed, 6 insertions(+), 260 deletions(-)
+ include/asm-sparc/termios.h   |   79 +++++++++--------
+ include/asm-sparc64/termios.h |  187 +------------------------------------=
+----
+ 2 files changed, 42 insertions(+), 224 deletions(-)
 
-diff --git a/include/asm-sparc/termbits.h b/include/asm-sparc/termbits.h
-index 90cf221..d6ca3e2 100644
---- a/include/asm-sparc/termbits.h
-+++ b/include/asm-sparc/termbits.h
-@@ -5,7 +5,12 @@
- 
- typedef unsigned char   cc_t;
- typedef unsigned int    speed_t;
-+
-+#if defined(__sparc__) && defined(__arch64__)
-+typedef unsigned int    tcflag_t;
-+#else
- typedef unsigned long   tcflag_t;
-+#endif
- 
- #define NCC 8
- struct termio {
-diff --git a/include/asm-sparc64/termbits.h b/include/asm-sparc64/termbits.h
-index ebe31c1..e03f975 100644
---- a/include/asm-sparc64/termbits.h
-+++ b/include/asm-sparc64/termbits.h
-@@ -1,260 +1 @@
--#ifndef _SPARC64_TERMBITS_H
--#define _SPARC64_TERMBITS_H
+diff --git a/include/asm-sparc/termios.h b/include/asm-sparc/termios.h
+index f7b4409..e8ba953 100644
+--- a/include/asm-sparc/termios.h
++++ b/include/asm-sparc/termios.h
+@@ -53,7 +53,6 @@ struct winsize {
+ #define _VMIN	4
+ #define _VTIME	5
+=20
 -
--#include <linux/posix_types.h>
+ /*	intr=3D^C		quit=3D^\		erase=DEl	kill=3D^U
+ 	eof=3D^D		eol=3D\0		eol2=3D\0		sxtc=3D\0
+ 	start=3D^Q	stop=3D^S		susp=3D^Z		dsusp=3D^Y
+@@ -68,16 +67,17 @@ struct winsize {
+ #define user_termio_to_kernel_termios(termios, termio) \
+ ({ \
+ 	unsigned short tmp; \
+-	get_user(tmp, &(termio)->c_iflag); \
++	int err; \
++	err =3D get_user(tmp, &(termio)->c_iflag); \
+ 	(termios)->c_iflag =3D (0xffff0000 & ((termios)->c_iflag)) | tmp; \
+-	get_user(tmp, &(termio)->c_oflag); \
++	err |=3D get_user(tmp, &(termio)->c_oflag); \
+ 	(termios)->c_oflag =3D (0xffff0000 & ((termios)->c_oflag)) | tmp; \
+-	get_user(tmp, &(termio)->c_cflag); \
++	err |=3D get_user(tmp, &(termio)->c_cflag); \
+ 	(termios)->c_cflag =3D (0xffff0000 & ((termios)->c_cflag)) | tmp; \
+-	get_user(tmp, &(termio)->c_lflag); \
++	err |=3D get_user(tmp, &(termio)->c_lflag); \
+ 	(termios)->c_lflag =3D (0xffff0000 & ((termios)->c_lflag)) | tmp; \
+-	copy_from_user((termios)->c_cc, (termio)->c_cc, NCC); \
+-	0; \
++	err |=3D copy_from_user((termios)->c_cc, (termio)->c_cc, NCC); \
++	err; \
+ })
+=20
+ /*
+@@ -87,17 +87,18 @@ struct winsize {
+  */
+ #define kernel_termios_to_user_termio(termio, termios) \
+ ({ \
+-	put_user((termios)->c_iflag, &(termio)->c_iflag); \
+-	put_user((termios)->c_oflag, &(termio)->c_oflag); \
+-	put_user((termios)->c_cflag, &(termio)->c_cflag); \
+-	put_user((termios)->c_lflag, &(termio)->c_lflag); \
+-	put_user((termios)->c_line,  &(termio)->c_line); \
+-	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
++	int err; \
++	err  =3D put_user((termios)->c_iflag, &(termio)->c_iflag); \
++	err |=3D put_user((termios)->c_oflag, &(termio)->c_oflag); \
++	err |=3D put_user((termios)->c_cflag, &(termio)->c_cflag); \
++	err |=3D put_user((termios)->c_lflag, &(termio)->c_lflag); \
++	err |=3D put_user((termios)->c_line,  &(termio)->c_line); \
++	err |=3D copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
+ 	if (!((termios)->c_lflag & ICANON)) { \
+-		put_user((termios)->c_cc[VMIN], &(termio)->c_cc[_VMIN]); \
+-		put_user((termios)->c_cc[VTIME], &(termio)->c_cc[_VTIME]); \
++		err |=3D put_user((termios)->c_cc[VMIN], &(termio)->c_cc[_VMIN]); \
++		err |=3D put_user((termios)->c_cc[VTIME], &(termio)->c_cc[_VTIME]); \
+ 	} \
+-	0; \
++	err; \
+ })
+=20
+ #define user_termios_to_kernel_termios(k, u) \
+@@ -144,38 +145,40 @@ struct winsize {
+=20
+ #define user_termios_to_kernel_termios_1(k, u) \
+ ({ \
+-	get_user((k)->c_iflag, &(u)->c_iflag); \
+-	get_user((k)->c_oflag, &(u)->c_oflag); \
+-	get_user((k)->c_cflag, &(u)->c_cflag); \
+-	get_user((k)->c_lflag, &(u)->c_lflag); \
+-	get_user((k)->c_line,  &(u)->c_line); \
+-	copy_from_user((k)->c_cc, (u)->c_cc, NCCS); \
++	int err; \
++	err  =3D get_user((k)->c_iflag, &(u)->c_iflag); \
++	err |=3D get_user((k)->c_oflag, &(u)->c_oflag); \
++	err |=3D get_user((k)->c_cflag, &(u)->c_cflag); \
++	err |=3D get_user((k)->c_lflag, &(u)->c_lflag); \
++	err |=3D get_user((k)->c_line,  &(u)->c_line); \
++	err |=3D copy_from_user((k)->c_cc, (u)->c_cc, NCCS); \
+ 	if ((k)->c_lflag & ICANON) { \
+-		get_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
+-		get_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
++		err |=3D get_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
++		err |=3D get_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
+ 	} else { \
+-		get_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
+-		get_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
++		err |=3D get_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
++		err |=3D get_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
+ 	} \
+-	0; \
++	err; \
+ })
+=20
+ #define kernel_termios_to_user_termios_1(u, k) \
+ ({ \
+-	put_user((k)->c_iflag, &(u)->c_iflag); \
+-	put_user((k)->c_oflag, &(u)->c_oflag); \
+-	put_user((k)->c_cflag, &(u)->c_cflag); \
+-	put_user((k)->c_lflag, &(u)->c_lflag); \
+-	put_user((k)->c_line, &(u)->c_line); \
+-	copy_to_user((u)->c_cc, (k)->c_cc, NCCS); \
++	int err; \
++	err  =3D put_user((k)->c_iflag, &(u)->c_iflag); \
++	err |=3D put_user((k)->c_oflag, &(u)->c_oflag); \
++	err |=3D put_user((k)->c_cflag, &(u)->c_cflag); \
++	err |=3D put_user((k)->c_lflag, &(u)->c_lflag); \
++	err |=3D put_user((k)->c_line, &(u)->c_line); \
++	err |=3D copy_to_user((u)->c_cc, (k)->c_cc, NCCS); \
+ 	if (!((k)->c_lflag & ICANON)) { \
+-		put_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
+-		put_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
++		err |=3D put_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
++		err |=3D put_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
+ 	} else { \
+-		put_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
+-		put_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
++		err |=3D put_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
++		err |=3D put_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
+ 	} \
+-	0; \
++	err; \
+ })
+=20
+ #endif	/* __KERNEL__ */
+diff --git a/include/asm-sparc64/termios.h b/include/asm-sparc64/termios.h
+index 1f5dab2..940495e 100644
+--- a/include/asm-sparc64/termios.h
++++ b/include/asm-sparc64/termios.h
+@@ -1,186 +1 @@
+-#ifndef _SPARC64_TERMIOS_H
+-#define _SPARC64_TERMIOS_H
 -
--typedef unsigned char   cc_t;
--typedef unsigned int    speed_t;
--typedef unsigned int    tcflag_t;
+-#include <asm/ioctls.h>
+-#include <asm/termbits.h>
 -
--#define NCC 8
--struct termio {
--	unsigned short c_iflag;		/* input mode flags */
--	unsigned short c_oflag;		/* output mode flags */
--	unsigned short c_cflag;		/* control mode flags */
--	unsigned short c_lflag;		/* local mode flags */
--	unsigned char c_line;		/* line discipline */
--	unsigned char c_cc[NCC];	/* control characters */
+-#if defined(__KERNEL__) || defined(__DEFINE_BSD_TERMIOS)
+-struct sgttyb {
+-	char	sg_ispeed;
+-	char	sg_ospeed;
+-	char	sg_erase;
+-	char	sg_kill;
+-	short	sg_flags;
 -};
 -
--#define NCCS 17
--struct termios {
--	tcflag_t c_iflag;		/* input mode flags */
--	tcflag_t c_oflag;		/* output mode flags */
--	tcflag_t c_cflag;		/* control mode flags */
--	tcflag_t c_lflag;		/* local mode flags */
--	cc_t c_line;			/* line discipline */
--	cc_t c_cc[NCCS];		/* control characters */
+-struct tchars {
+-	char	t_intrc;
+-	char	t_quitc;
+-	char	t_startc;
+-	char	t_stopc;
+-	char	t_eofc;
+-	char	t_brkc;
+-};
+-
+-struct ltchars {
+-	char	t_suspc;
+-	char	t_dsuspc;
+-	char	t_rprntc;
+-	char	t_flushc;
+-	char	t_werasc;
+-	char	t_lnextc;
+-};
+-#endif /* __KERNEL__ */
+-
+-struct winsize {
+-	unsigned short ws_row;
+-	unsigned short ws_col;
+-	unsigned short ws_xpixel;
+-	unsigned short ws_ypixel;
+-};
+-
 -#ifdef __KERNEL__
--#define SIZEOF_USER_TERMIOS sizeof (struct termios) - (2*sizeof (cc_t))
--	cc_t _x_cc[2];                  /* We need them to hold vmin/vtime */
--#endif
--};
+-#include <linux/module.h>
 -
--struct termios2 {
--	tcflag_t c_iflag;		/* input mode flags */
--	tcflag_t c_oflag;		/* output mode flags */
--	tcflag_t c_cflag;		/* control mode flags */
--	tcflag_t c_lflag;		/* local mode flags */
--	cc_t c_line;			/* line discipline */
--	cc_t c_cc[NCCS];		/* control characters */
--	cc_t _x_cc[2];                  /* padding to match ktermios */
--	speed_t c_ispeed;		/* input speed */
--	speed_t c_ospeed;		/* output speed */
--};
--
--struct ktermios {
--	tcflag_t c_iflag;		/* input mode flags */
--	tcflag_t c_oflag;		/* output mode flags */
--	tcflag_t c_cflag;		/* control mode flags */
--	tcflag_t c_lflag;		/* local mode flags */
--	cc_t c_line;			/* line discipline */
--	cc_t c_cc[NCCS];		/* control characters */
--	cc_t _x_cc[2];                  /* We need them to hold vmin/vtime */
--	speed_t c_ispeed;		/* input speed */
--	speed_t c_ospeed;		/* output speed */
--};
--
--/* c_cc characters */
--#define VINTR    0
--#define VQUIT    1
--#define VERASE   2
--#define VKILL    3
--#define VEOF     4
--#define VEOL     5
--#define VEOL2    6
--#define VSWTC    7
--#define VSTART   8
--#define VSTOP    9
--
--
--
--#define VSUSP    10
--#define VDSUSP   11  /* SunOS POSIX nicety I do believe... */
--#define VREPRINT 12
--#define VDISCARD 13
--#define VWERASE  14
--#define VLNEXT   15
--
--/* Kernel keeps vmin/vtime separated, user apps assume vmin/vtime is
-- * shared with eof/eol
+-/*
+- * c_cc characters in the termio structure.  Oh, how I love being
+- * backwardly compatible.  Notice that character 4 and 5 are
+- * interpreted differently depending on whether ICANON is set in
+- * c_lflag.  If it's set, they are used as _VEOF and _VEOL, otherwise
+- * as _VMIN and V_TIME.  This is for compatibility with OSF/1 (which
+- * is compatible with sysV)...
 - */
--#ifdef __KERNEL__
--#define VMIN     16
--#define VTIME    17
--#else
--#define VMIN     VEOF
--#define VTIME    VEOL
--#endif
+-#define _VMIN	4
+-#define _VTIME	5
 -
--/* c_iflag bits */
--#define IGNBRK	0x00000001
--#define BRKINT	0x00000002
--#define IGNPAR	0x00000004
--#define PARMRK	0x00000008
--#define INPCK	0x00000010
--#define ISTRIP	0x00000020
--#define INLCR	0x00000040
--#define IGNCR	0x00000080
--#define ICRNL	0x00000100
--#define IUCLC	0x00000200
--#define IXON	0x00000400
--#define IXANY	0x00000800
--#define IXOFF	0x00001000
--#define IMAXBEL	0x00002000
--#define IUTF8	0x00004000
+-/*	intr=3D^C		quit=3D^\		erase=DEl	kill=3D^U
+-	eof=3D^D		eol=3D\0		eol2=3D\0		sxtc=3D\0
+-	start=3D^Q	stop=3D^S		susp=3D^Z		dsusp=3D^Y
+-	reprint=3D^R	discard=3D^U	werase=3D^W	lnext=3D^V
+-	vmin=3D\1         vtime=3D\0
+-*/
+-#define INIT_C_CC "\003\034\177\025\004\000\000\000\021\023\032\031\022\02=
+5\027\026\001"
 -
--/* c_oflag bits */
--#define OPOST	0x00000001
--#define OLCUC	0x00000002
--#define ONLCR	0x00000004
--#define OCRNL	0x00000008
--#define ONOCR	0x00000010
--#define ONLRET	0x00000020
--#define OFILL	0x00000040
--#define OFDEL	0x00000080
--#define NLDLY	0x00000100
--#define   NL0	0x00000000
--#define   NL1	0x00000100
--#define CRDLY	0x00000600
--#define   CR0	0x00000000
--#define   CR1	0x00000200
--#define   CR2	0x00000400
--#define   CR3	0x00000600
--#define TABDLY	0x00001800
--#define   TAB0	0x00000000
--#define   TAB1	0x00000800
--#define   TAB2	0x00001000
--#define   TAB3	0x00001800
--#define   XTABS	0x00001800
--#define BSDLY	0x00002000
--#define   BS0	0x00000000
--#define   BS1	0x00002000
--#define VTDLY	0x00004000
--#define   VT0	0x00000000
--#define   VT1	0x00004000
--#define FFDLY	0x00008000
--#define   FF0	0x00000000
--#define   FF1	0x00008000
--#define PAGEOUT 0x00010000  /* SUNOS specific */
--#define WRAP    0x00020000  /* SUNOS specific */
+-/*
+- * Translate a "termio" structure into a "termios". Ugh.
+- */
+-#define user_termio_to_kernel_termios(termios, termio) \
+-({ \
+-	unsigned short tmp; \
+-	int err; \
+-	err =3D get_user(tmp, &(termio)->c_iflag); \
+-	(termios)->c_iflag =3D (0xffff0000 & ((termios)->c_iflag)) | tmp; \
+-	err |=3D get_user(tmp, &(termio)->c_oflag); \
+-	(termios)->c_oflag =3D (0xffff0000 & ((termios)->c_oflag)) | tmp; \
+-	err |=3D get_user(tmp, &(termio)->c_cflag); \
+-	(termios)->c_cflag =3D (0xffff0000 & ((termios)->c_cflag)) | tmp; \
+-	err |=3D get_user(tmp, &(termio)->c_lflag); \
+-	(termios)->c_lflag =3D (0xffff0000 & ((termios)->c_lflag)) | tmp; \
+-	err |=3D copy_from_user((termios)->c_cc, (termio)->c_cc, NCC); \
+-	err; \
+-})
 -
--/* c_cflag bit meaning */
--#define CBAUD	  0x0000100f
--#define  B0	  0x00000000   /* hang up */
--#define  B50	  0x00000001
--#define  B75	  0x00000002
--#define  B110	  0x00000003
--#define  B134	  0x00000004
--#define  B150	  0x00000005
--#define  B200	  0x00000006
--#define  B300	  0x00000007
--#define  B600	  0x00000008
--#define  B1200	  0x00000009
--#define  B1800	  0x0000000a
--#define  B2400	  0x0000000b
--#define  B4800	  0x0000000c
--#define  B9600	  0x0000000d
--#define  B19200	  0x0000000e
--#define  B38400	  0x0000000f
--#define EXTA      B19200
--#define EXTB      B38400
--#define  CSIZE    0x00000030
--#define   CS5	  0x00000000
--#define   CS6	  0x00000010
--#define   CS7	  0x00000020
--#define   CS8	  0x00000030
--#define CSTOPB	  0x00000040
--#define CREAD	  0x00000080
--#define PARENB	  0x00000100
--#define PARODD	  0x00000200
--#define HUPCL	  0x00000400
--#define CLOCAL	  0x00000800
--#define CBAUDEX   0x00001000
--#define  BOTHER   0x00001000
--#define  B57600   0x00001001
--#define  B115200  0x00001002
--#define  B230400  0x00001003
--#define  B460800  0x00001004
--/* This is what we can do with the Zilogs. */
--#define  B76800   0x00001005
--/* This is what we can do with the SAB82532. */
--#define  B153600  0x00001006
--#define  B307200  0x00001007
--#define  B614400  0x00001008
--#define  B921600  0x00001009
--/* And these are the rest... */
--#define  B500000  0x0000100a
--#define  B576000  0x0000100b
--#define B1000000  0x0000100c
--#define B1152000  0x0000100d
--#define B1500000  0x0000100e
--#define B2000000  0x0000100f
--/* These have totally bogus values and nobody uses them
--   so far. Later on we'd have to use say 0x10000x and
--   adjust CBAUD constant and drivers accordingly.
--#define B2500000  0x00001010
--#define B3000000  0x00001011
--#define B3500000  0x00001012
--#define B4000000  0x00001013  */
--#define CIBAUD	  0x100f0000  /* input baud rate (not used) */
--#define CMSPAR    0x40000000  /* mark or space (stick) parity */
--#define CRTSCTS	  0x80000000  /* flow control */
+-/*
+- * Translate a "termios" structure into a "termio". Ugh.
+- *
+- * Note the "fun" _VMIN overloading.
+- */
+-#define kernel_termios_to_user_termio(termio, termios) \
+-({ \
+-	int err; \
+-	err  =3D put_user((termios)->c_iflag, &(termio)->c_iflag); \
+-	err |=3D put_user((termios)->c_oflag, &(termio)->c_oflag); \
+-	err |=3D put_user((termios)->c_cflag, &(termio)->c_cflag); \
+-	err |=3D put_user((termios)->c_lflag, &(termio)->c_lflag); \
+-	err |=3D put_user((termios)->c_line,  &(termio)->c_line); \
+-	err |=3D copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
+-	if (!((termios)->c_lflag & ICANON)) { \
+-		err |=3D put_user((termios)->c_cc[VMIN], &(termio)->c_cc[_VMIN]); \
+-		err |=3D put_user((termios)->c_cc[VTIME], &(termio)->c_cc[_VTIME]); \
+-	} \
+-	err; \
+-})
 -
--#define IBSHIFT	  16		/* Shift from CBAUD to CIBAUD */
+-#define user_termios_to_kernel_termios(k, u) \
+-({ \
+-	int err; \
+-	err  =3D get_user((k)->c_iflag, &(u)->c_iflag); \
+-	err |=3D get_user((k)->c_oflag, &(u)->c_oflag); \
+-	err |=3D get_user((k)->c_cflag, &(u)->c_cflag); \
+-	err |=3D get_user((k)->c_lflag, &(u)->c_lflag); \
+-	err |=3D get_user((k)->c_line,  &(u)->c_line); \
+-	err |=3D copy_from_user((k)->c_cc, (u)->c_cc, NCCS); \
+-	if((k)->c_lflag & ICANON) { \
+-		err |=3D get_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
+-		err |=3D get_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
+-	} else { \
+-		err |=3D get_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
+-		err |=3D get_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
+-	} \
+-	err |=3D get_user((k)->c_ispeed,  &(u)->c_ispeed); \
+-	err |=3D get_user((k)->c_ospeed,  &(u)->c_ospeed); \
+-	err; \
+-})
 -
--/* c_lflag bits */
--#define ISIG	0x00000001
--#define ICANON	0x00000002
--#define XCASE	0x00000004
--#define ECHO	0x00000008
--#define ECHOE	0x00000010
--#define ECHOK	0x00000020
--#define ECHONL	0x00000040
--#define NOFLSH	0x00000080
--#define TOSTOP	0x00000100
--#define ECHOCTL	0x00000200
--#define ECHOPRT	0x00000400
--#define ECHOKE	0x00000800
--#define DEFECHO 0x00001000  /* SUNOS thing, what is it? */
--#define FLUSHO	0x00002000
--#define PENDIN	0x00004000
--#define IEXTEN	0x00008000
+-#define kernel_termios_to_user_termios(u, k) \
+-({ \
+-	int err; \
+-	err  =3D put_user((k)->c_iflag, &(u)->c_iflag); \
+-	err |=3D put_user((k)->c_oflag, &(u)->c_oflag); \
+-	err |=3D put_user((k)->c_cflag, &(u)->c_cflag); \
+-	err |=3D put_user((k)->c_lflag, &(u)->c_lflag); \
+-	err |=3D put_user((k)->c_line, &(u)->c_line); \
+-	err |=3D copy_to_user((u)->c_cc, (k)->c_cc, NCCS); \
+-	if(!((k)->c_lflag & ICANON)) { \
+-		err |=3D put_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
+-		err |=3D put_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
+-	} else { \
+-		err |=3D put_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
+-		err |=3D put_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
+-	} \
+-	err |=3D put_user((k)->c_ispeed, &(u)->c_ispeed); \
+-	err |=3D put_user((k)->c_ospeed, &(u)->c_ospeed); \
+-	err; \
+-})
 -
--/* modem lines */
--#define TIOCM_LE	0x001
--#define TIOCM_DTR	0x002
--#define TIOCM_RTS	0x004
--#define TIOCM_ST	0x008
--#define TIOCM_SR	0x010
--#define TIOCM_CTS	0x020
--#define TIOCM_CAR	0x040
--#define TIOCM_RNG	0x080
--#define TIOCM_DSR	0x100
--#define TIOCM_CD	TIOCM_CAR
--#define TIOCM_RI	TIOCM_RNG
--#define TIOCM_OUT1	0x2000
--#define TIOCM_OUT2	0x4000
--#define TIOCM_LOOP	0x8000
+-#define user_termios_to_kernel_termios_1(k, u) \
+-({ \
+-	int err; \
+-	err  =3D get_user((k)->c_iflag, &(u)->c_iflag); \
+-	err |=3D get_user((k)->c_oflag, &(u)->c_oflag); \
+-	err |=3D get_user((k)->c_cflag, &(u)->c_cflag); \
+-	err |=3D get_user((k)->c_lflag, &(u)->c_lflag); \
+-	err |=3D get_user((k)->c_line,  &(u)->c_line); \
+-	err |=3D copy_from_user((k)->c_cc, (u)->c_cc, NCCS); \
+-	if((k)->c_lflag & ICANON) { \
+-		err |=3D get_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
+-		err |=3D get_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
+-	} else { \
+-		err |=3D get_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
+-		err |=3D get_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
+-	} \
+-	err; \
+-})
 -
--/* ioctl (fd, TIOCSERGETLSR, &result) where result may be as below */
--#define TIOCSER_TEMT    0x01	/* Transmitter physically empty */
+-#define kernel_termios_to_user_termios_1(u, k) \
+-({ \
+-	int err; \
+-	err  =3D put_user((k)->c_iflag, &(u)->c_iflag); \
+-	err |=3D put_user((k)->c_oflag, &(u)->c_oflag); \
+-	err |=3D put_user((k)->c_cflag, &(u)->c_cflag); \
+-	err |=3D put_user((k)->c_lflag, &(u)->c_lflag); \
+-	err |=3D put_user((k)->c_line, &(u)->c_line); \
+-	err |=3D copy_to_user((u)->c_cc, (k)->c_cc, NCCS); \
+-	if(!((k)->c_lflag & ICANON)) { \
+-		err |=3D put_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
+-		err |=3D put_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
+-	} else { \
+-		err |=3D put_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
+-		err |=3D put_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
+-	} \
+-	err; \
+-})
 -
+-#endif	/* __KERNEL__ */
 -
--/* tcflow() and TCXONC use these */
--#define	TCOOFF		0
--#define	TCOON		1
--#define	TCIOFF		2
--#define	TCION		3
--
--/* tcflush() and TCFLSH use these */
--#define	TCIFLUSH	0
--#define	TCOFLUSH	1
--#define	TCIOFLUSH	2
--
--/* tcsetattr uses these */
--#define	TCSANOW		0
--#define	TCSADRAIN	1
--#define	TCSAFLUSH	2
--
--#endif /* !(_SPARC64_TERMBITS_H) */
-+#include <asm-sparc/termbits.h>
--- 
+-#endif /* _SPARC64_TERMIOS_H */
++#include <asm-sparc/termios.h>
+--=20
 1.5.4.1.143.ge7e51
 
