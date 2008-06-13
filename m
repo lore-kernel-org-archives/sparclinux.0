@@ -1,102 +1,137 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 06 Jun 2008 21:00:24 +0000
-Subject: [PATCH 12/21] sparc: Merge asm-sparc{,64}/mman.h
-Message-Id: <1212786033-4227-12-git-send-email-sam@ravnborg.org>
+Date: Fri, 13 Jun 2008 19:57:12 +0000
+Subject: [PATCH] sparc: Merge asm-sparc{,64}/shmbuf.h
+Message-Id: <1213387042-9711-11-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Renaming the function sparc64_mmap_check() to
-sparc_mmap_check() was enough to make the two
-header files identical.
+Padding in the shmbuf structure made conditional
+as only 32 bit sparc did so.
+$ diff -u include/asm-sparc/shmbuf.h include/asm-sparc64/shmbuf.h
+-- include/asm-sparc/shmbuf.h	2008-06-13 06:42:07.000000000 +0200
+++ include/asm-sparc64/shmbuf.h	2008-06-13 06:42:07.000000000 +0200
+@@ -1,23 +1,19 @@
+-#ifndef _SPARC_SHMBUF_H
+-#define _SPARC_SHMBUF_H
++#ifndef _SPARC64_SHMBUF_H
++#define _SPARC64_SHMBUF_H
+
+ /*
+- * The shmid64_ds structure for sparc architecture.
++ * The shmid64_ds structure for sparc64 architecture.
+  * Note extra padding because this structure is passed back and forth
+  * between kernel and user space.
+  *
+  * Pad space is left for:
+- * - 64-bit time_t to solve y2038 problem
+- * - 2 miscellaneous 32-bit values
++ * - 2 miscellaneous 64-bit values
+  */
+
+ struct shmid64_ds {
+ 	struct ipc64_perm	shm_perm;	/* operation perms */
+-	unsigned int		__pad1;
+ 	__kernel_time_t		shm_atime;	/* last attach time */
+-	unsigned int		__pad2;
+ 	__kernel_time_t		shm_dtime;	/* last detach time */
+-	unsigned int		__pad3;
+ 	__kernel_time_t		shm_ctime;	/* last change time */
+ 	size_t			shm_segsz;	/* size of segment (bytes) */
+ 	__kernel_pid_t		shm_cpid;	/* pid of creator */
+@@ -39,4 +35,4 @@
+ 	unsigned long	__unused4;
+ };
+
+-#endif /* _SPARC_SHMBUF_H */
++#endif /* _SPARC64_SHMBUF_H */
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc64/kernel/sys_sparc.c   |    6 +++---
- arch/sparc64/kernel/sys_sparc32.c |    4 ++--
- include/asm-sparc64/mman.h        |   32 +-------------------------------
- 3 files changed, 6 insertions(+), 36 deletions(-)
+ include/asm-sparc/shmbuf.h   |   14 +++++++++++---
+ include/asm-sparc64/shmbuf.h |   39 +--------------------------------------
+ 2 files changed, 12 insertions(+), 41 deletions(-)
 
-diff --git a/arch/sparc64/kernel/sys_sparc.c b/arch/sparc64/kernel/sys_sparc.c
-index ac1bff5..e1f4eba 100644
---- a/arch/sparc64/kernel/sys_sparc.c
-+++ b/arch/sparc64/kernel/sys_sparc.c
-@@ -542,7 +542,7 @@ asmlinkage long sparc64_personality(unsigned long personality)
- 	return ret;
- }
+diff --git a/include/asm-sparc/shmbuf.h b/include/asm-sparc/shmbuf.h
+index 1ff9da8..83a1605 100644
+--- a/include/asm-sparc/shmbuf.h
++++ b/include/asm-sparc/shmbuf.h
+@@ -11,13 +11,19 @@
+  * - 2 miscellaneous 32-bit values
+  */
  
--int sparc64_mmap_check(unsigned long addr, unsigned long len)
-+int sparc_mmap_check(unsigned long addr, unsigned long len)
- {
- 	if (test_thread_flag(TIF_32BIT)) {
- 		if (len >= STACK_TOP32)
-@@ -614,9 +614,9 @@ asmlinkage unsigned long sys64_mremap(unsigned long addr,
- 		goto out;
- 	if (unlikely(new_len >= VA_EXCLUDE_START))
- 		goto out;
--	if (unlikely(sparc64_mmap_check(addr, old_len)))
-+	if (unlikely(sparc_mmap_check(addr, old_len)))
- 		goto out;
--	if (unlikely(sparc64_mmap_check(new_addr, new_len)))
-+	if (unlikely(sparc_mmap_check(new_addr, new_len)))
- 		goto out;
++#if defined(__sparc__) && defined(__arch64__)
++# define PADDING(x)
++#else
++# define PADDING(x) unsigned int x;
++#endif
++
+ struct shmid64_ds {
+ 	struct ipc64_perm	shm_perm;	/* operation perms */
+-	unsigned int		__pad1;
++	PADDING(__pad1)
+ 	__kernel_time_t		shm_atime;	/* last attach time */
+-	unsigned int		__pad2;
++	PADDING(__pad2)
+ 	__kernel_time_t		shm_dtime;	/* last detach time */
+-	unsigned int		__pad3;
++	PADDING(__pad3)
+ 	__kernel_time_t		shm_ctime;	/* last change time */
+ 	size_t			shm_segsz;	/* size of segment (bytes) */
+ 	__kernel_pid_t		shm_cpid;	/* pid of creator */
+@@ -39,4 +45,6 @@ struct shminfo64 {
+ 	unsigned long	__unused4;
+ };
  
- 	down_write(&current->mm->mmap_sem);
-diff --git a/arch/sparc64/kernel/sys_sparc32.c b/arch/sparc64/kernel/sys_sparc32.c
-index ba5bd62..d4fd58c 100644
---- a/arch/sparc64/kernel/sys_sparc32.c
-+++ b/arch/sparc64/kernel/sys_sparc32.c
-@@ -870,9 +870,9 @@ asmlinkage unsigned long sys32_mremap(unsigned long addr,
- 	unsigned long ret = -EINVAL;
- 	unsigned long new_addr = __new_addr;
- 
--	if (unlikely(sparc64_mmap_check(addr, old_len)))
-+	if (unlikely(sparc_mmap_check(addr, old_len)))
- 		goto out;
--	if (unlikely(sparc64_mmap_check(new_addr, new_len)))
-+	if (unlikely(sparc_mmap_check(new_addr, new_len)))
- 		goto out;
- 	down_write(&current->mm->mmap_sem);
- 	ret = do_mremap(addr, old_len, new_len, flags, new_addr);
-diff --git a/include/asm-sparc64/mman.h b/include/asm-sparc64/mman.h
-index d2ae67c..17ddb17 100644
---- a/include/asm-sparc64/mman.h
-+++ b/include/asm-sparc64/mman.h
-@@ -1,31 +1 @@
--#ifndef __SPARC64_MMAN_H__
--#define __SPARC64_MMAN_H__
++#undef PADDING
++
+ #endif /* _SPARC_SHMBUF_H */
+diff --git a/include/asm-sparc64/shmbuf.h b/include/asm-sparc64/shmbuf.h
+index 61c2ef4..0c54a2d 100644
+--- a/include/asm-sparc64/shmbuf.h
++++ b/include/asm-sparc64/shmbuf.h
+@@ -1,38 +1 @@
+-#ifndef _SPARC64_SHMBUF_H
+-#define _SPARC64_SHMBUF_H
 -
--#include <asm-generic/mman.h>
+-/* 
+- * The shmid64_ds structure for sparc64 architecture.
+- * Note extra padding because this structure is passed back and forth
+- * between kernel and user space.
+- *
+- * Pad space is left for:
+- * - 2 miscellaneous 64-bit values
+- */
 -
--/* SunOS'ified... */
+-struct shmid64_ds {
+-	struct ipc64_perm	shm_perm;	/* operation perms */
+-	__kernel_time_t		shm_atime;	/* last attach time */
+-	__kernel_time_t		shm_dtime;	/* last detach time */
+-	__kernel_time_t		shm_ctime;	/* last change time */
+-	size_t			shm_segsz;	/* size of segment (bytes) */
+-	__kernel_pid_t		shm_cpid;	/* pid of creator */
+-	__kernel_pid_t		shm_lpid;	/* pid of last operator */
+-	unsigned long		shm_nattch;	/* no. of current attaches */
+-	unsigned long		__unused1;
+-	unsigned long		__unused2;
+-};
 -
--#define MAP_RENAME      MAP_ANONYMOUS   /* In SunOS terminology */
--#define MAP_NORESERVE   0x40            /* don't reserve swap pages */
--#define MAP_INHERIT     0x80            /* SunOS doesn't do this, but... */
--#define MAP_LOCKED      0x100           /* lock the mapping */
--#define _MAP_NEW        0x80000000      /* Binary compatibility is fun... */
+-struct shminfo64 {
+-	unsigned long	shmmax;
+-	unsigned long	shmmin;
+-	unsigned long	shmmni;
+-	unsigned long	shmseg;
+-	unsigned long	shmall;
+-	unsigned long	__unused1;
+-	unsigned long	__unused2;
+-	unsigned long	__unused3;
+-	unsigned long	__unused4;
+-};
 -
--#define MAP_GROWSDOWN	0x0200		/* stack-like segment */
--#define MAP_DENYWRITE	0x0800		/* ETXTBSY */
--#define MAP_EXECUTABLE	0x1000		/* mark it as an executable */
--
--#define MCL_CURRENT     0x2000          /* lock all currently mapped pages */
--#define MCL_FUTURE      0x4000          /* lock all additions to address space */
--
--#define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
--#define MAP_NONBLOCK	0x10000		/* do not block on IO */
--
--#ifdef __KERNEL__
--#ifndef __ASSEMBLY__
--#define arch_mmap_check(addr,len,flags)	sparc64_mmap_check(addr,len)
--int sparc64_mmap_check(unsigned long addr, unsigned long len);
--#endif
--#endif
--
--#endif /* __SPARC64_MMAN_H__ */
-+#include <asm-sparc/mman.h>
+-#endif /* _SPARC64_SHMBUF_H */
++#include <asm-sparc/shmbuf.h>
 -- 
 1.5.4.1.143.ge7e51
 
