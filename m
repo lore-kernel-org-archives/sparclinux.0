@@ -1,98 +1,58 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 13 Jun 2008 19:57:07 +0000
-Subject: [PATCH] sparc: Merge asm-sparc{,64}/socket.h
-Message-Id: <1213387042-9711-6-git-send-email-sam@ravnborg.org>
+Date: Fri, 13 Jun 2008 19:57:08 +0000
+Subject: [PATCH] sparc: Merge asm-sparc{,64}/sockios.h
+Message-Id: <1213387042-9711-7-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1213387042-9711-6-git-send-email-sam@ravnborg.org>
+In-Reply-To: <1213387042-9711-6-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-$ diff -u include/asm-sparc/socket.h include/asm-sparc64/socket.h
--- include/asm-sparc/socket.h	2008-06-13 06:46:39.000000000 +0200
-++ include/asm-sparc64/socket.h	2008-06-13 06:46:39.000000000 +0200
-@@ -48,11 +48,10 @@
- #define SO_TIMESTAMPNS		0x0021
- #define SCM_TIMESTAMPNS		SO_TIMESTAMPNS
+$ diff -u include/asm-sparc/sockios.h include/asm-sparc64/sockios.h
+-- include/asm-sparc/sockios.h	2008-06-13 06:42:07.000000000 +0200
+++ include/asm-sparc64/sockios.h	2008-06-13 06:42:07.000000000 +0200
+@@ -1,5 +1,5 @@
+-#ifndef _ASM_SPARC_SOCKIOS_H
+-#define _ASM_SPARC_SOCKIOS_H
++#ifndef _ASM_SPARC64_SOCKIOS_H
++#define _ASM_SPARC64_SOCKIOS_H
 
--#define SO_MARK			0x0022
--
- /* Security levels - as per NRL IPv6 - don't actually do anything */
- #define SO_SECURITY_AUTHENTICATION		0x5001
- #define SO_SECURITY_ENCRYPTION_TRANSPORT	0x5002
- #define SO_SECURITY_ENCRYPTION_NETWORK		0x5004
+ /* Socket-level I/O control calls. */
+ #define FIOSETOWN 	0x8901
+@@ -10,5 +10,5 @@
+ #define SIOCGSTAMP	0x8906		/* Get stamp (timeval) */
+ #define SIOCGSTAMPNS	0x8907		/* Get stamp (timespec) */
 
-+#define SO_MARK			0x0022
- #endif /* _ASM_SOCKET_H */
+-#endif /* !(_ASM_SPARC_SOCKIOS_H) */
++#endif /* !(_ASM_SPARC64_SOCKIOS_H) */
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- include/asm-sparc64/socket.h |   58 +-----------------------------------------
- 1 files changed, 1 insertions(+), 57 deletions(-)
+ include/asm-sparc64/sockios.h |   15 +--------------
+ 1 files changed, 1 insertions(+), 14 deletions(-)
 
-diff --git a/include/asm-sparc64/socket.h b/include/asm-sparc64/socket.h
-index 5af688f..13e0d5d 100644
---- a/include/asm-sparc64/socket.h
-+++ b/include/asm-sparc64/socket.h
-@@ -1,57 +1 @@
--#ifndef _ASM_SOCKET_H
--#define _ASM_SOCKET_H
+diff --git a/include/asm-sparc64/sockios.h b/include/asm-sparc64/sockios.h
+index c7d9900..2cb4b64 100644
+--- a/include/asm-sparc64/sockios.h
++++ b/include/asm-sparc64/sockios.h
+@@ -1,14 +1 @@
+-#ifndef _ASM_SPARC64_SOCKIOS_H
+-#define _ASM_SPARC64_SOCKIOS_H
 -
--#include <asm/sockios.h>
+-/* Socket-level I/O control calls. */
+-#define FIOSETOWN 	0x8901
+-#define SIOCSPGRP	0x8902
+-#define FIOGETOWN	0x8903
+-#define SIOCGPGRP	0x8904
+-#define SIOCATMARK	0x8905
+-#define SIOCGSTAMP	0x8906		/* Get stamp (timeval) */
+-#define SIOCGSTAMPNS	0x8907		/* Get stamp (timespec) */
 -
--/* For setsockopt(2) */
--#define SOL_SOCKET	0xffff
+-#endif /* !(_ASM_SPARC64_SOCKIOS_H) */
 -
--#define SO_DEBUG	0x0001
--#define SO_PASSCRED	0x0002
--#define SO_REUSEADDR	0x0004
--#define SO_KEEPALIVE	0x0008
--#define SO_DONTROUTE	0x0010
--#define SO_BROADCAST	0x0020
--#define SO_PEERCRED	0x0040
--#define SO_LINGER	0x0080
--#define SO_OOBINLINE	0x0100
--/* To add :#define SO_REUSEPORT 0x0200 */
--#define SO_BSDCOMPAT    0x0400
--#define SO_RCVLOWAT     0x0800
--#define SO_SNDLOWAT     0x1000
--#define SO_RCVTIMEO     0x2000
--#define SO_SNDTIMEO     0x4000
--#define SO_ACCEPTCONN	0x8000
--
--#define SO_SNDBUF	0x1001
--#define SO_RCVBUF	0x1002
--#define SO_SNDBUFFORCE	0x100a
--#define SO_RCVBUFFORCE	0x100b
--#define SO_ERROR	0x1007
--#define SO_TYPE		0x1008
--
--/* Linux specific, keep the same. */
--#define SO_NO_CHECK	0x000b
--#define SO_PRIORITY	0x000c
--
--#define SO_BINDTODEVICE 0x000d
--
--#define SO_ATTACH_FILTER	0x001a
--#define SO_DETACH_FILTER        0x001b
--
--#define SO_PEERNAME		0x001c
--#define SO_TIMESTAMP		0x001d
--#define SCM_TIMESTAMP		SO_TIMESTAMP
--
--#define SO_PEERSEC		0x001e
--#define SO_PASSSEC		0x001f
--#define SO_TIMESTAMPNS		0x0021
--#define SCM_TIMESTAMPNS		SO_TIMESTAMPNS
--
--/* Security levels - as per NRL IPv6 - don't actually do anything */
--#define SO_SECURITY_AUTHENTICATION		0x5001
--#define SO_SECURITY_ENCRYPTION_TRANSPORT	0x5002
--#define SO_SECURITY_ENCRYPTION_NETWORK		0x5004
--
--#define SO_MARK			0x0022
--#endif /* _ASM_SOCKET_H */
-+#include <asm-sparc/socket.h>
++#include <asm-sparc/sockios.h>
 -- 
 1.5.4.1.143.ge7e51
 
