@@ -1,27 +1,98 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 16 Jun 2008 23:45:24 +0000
-Subject: Re: [2.6 patch] sparc: remove CONFIG_SUN4
-Message-Id: <20080616.164524.13136142.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 13 Jun 2008 19:57:07 +0000
+Subject: [PATCH] sparc: Merge asm-sparc{,64}/socket.h
+Message-Id: <1213387042-9711-6-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080610222838.GL11685@cs181133002.pp.htv.fi>
-In-Reply-To: <20080610222838.GL11685@cs181133002.pp.htv.fi>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Adrian Bunk <bunk@kernel.org>
-Date: Wed, 11 Jun 2008 01:28:38 +0300
+$ diff -u include/asm-sparc/socket.h include/asm-sparc64/socket.h
+-- include/asm-sparc/socket.h	2008-06-13 06:46:39.000000000 +0200
+++ include/asm-sparc64/socket.h	2008-06-13 06:46:39.000000000 +0200
+@@ -48,11 +48,10 @@
+ #define SO_TIMESTAMPNS		0x0021
+ #define SCM_TIMESTAMPNS		SO_TIMESTAMPNS
 
-> While doing some easy cleanups on the sparc code I noticed that the
-> CONFIG_SUN4 code seems to be worse than the rest - there were some
-> "I don't know how it should work, but the current code definitely cannot
-> work." places.
-> 
-> And while I have seen people running Linux on machines like a
-> SPARCstation 5 a few years ago I don't recall having seen sun4
-> machines, even less ones running Linux.
-> 
-> Signed-off-by: Adrian Bunk <bunk@kernel.org>
+-#define SO_MARK			0x0022
+-
+ /* Security levels - as per NRL IPv6 - don't actually do anything */
+ #define SO_SECURITY_AUTHENTICATION		0x5001
+ #define SO_SECURITY_ENCRYPTION_TRANSPORT	0x5002
+ #define SO_SECURITY_ENCRYPTION_NETWORK		0x5004
 
-Applied to sparc-next-2.6, thanks Adrian!
++#define SO_MARK			0x0022
+ #endif /* _ASM_SOCKET_H */
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ include/asm-sparc64/socket.h |   58 +-----------------------------------------
+ 1 files changed, 1 insertions(+), 57 deletions(-)
+
+diff --git a/include/asm-sparc64/socket.h b/include/asm-sparc64/socket.h
+index 5af688f..13e0d5d 100644
+--- a/include/asm-sparc64/socket.h
++++ b/include/asm-sparc64/socket.h
+@@ -1,57 +1 @@
+-#ifndef _ASM_SOCKET_H
+-#define _ASM_SOCKET_H
+-
+-#include <asm/sockios.h>
+-
+-/* For setsockopt(2) */
+-#define SOL_SOCKET	0xffff
+-
+-#define SO_DEBUG	0x0001
+-#define SO_PASSCRED	0x0002
+-#define SO_REUSEADDR	0x0004
+-#define SO_KEEPALIVE	0x0008
+-#define SO_DONTROUTE	0x0010
+-#define SO_BROADCAST	0x0020
+-#define SO_PEERCRED	0x0040
+-#define SO_LINGER	0x0080
+-#define SO_OOBINLINE	0x0100
+-/* To add :#define SO_REUSEPORT 0x0200 */
+-#define SO_BSDCOMPAT    0x0400
+-#define SO_RCVLOWAT     0x0800
+-#define SO_SNDLOWAT     0x1000
+-#define SO_RCVTIMEO     0x2000
+-#define SO_SNDTIMEO     0x4000
+-#define SO_ACCEPTCONN	0x8000
+-
+-#define SO_SNDBUF	0x1001
+-#define SO_RCVBUF	0x1002
+-#define SO_SNDBUFFORCE	0x100a
+-#define SO_RCVBUFFORCE	0x100b
+-#define SO_ERROR	0x1007
+-#define SO_TYPE		0x1008
+-
+-/* Linux specific, keep the same. */
+-#define SO_NO_CHECK	0x000b
+-#define SO_PRIORITY	0x000c
+-
+-#define SO_BINDTODEVICE 0x000d
+-
+-#define SO_ATTACH_FILTER	0x001a
+-#define SO_DETACH_FILTER        0x001b
+-
+-#define SO_PEERNAME		0x001c
+-#define SO_TIMESTAMP		0x001d
+-#define SCM_TIMESTAMP		SO_TIMESTAMP
+-
+-#define SO_PEERSEC		0x001e
+-#define SO_PASSSEC		0x001f
+-#define SO_TIMESTAMPNS		0x0021
+-#define SCM_TIMESTAMPNS		SO_TIMESTAMPNS
+-
+-/* Security levels - as per NRL IPv6 - don't actually do anything */
+-#define SO_SECURITY_AUTHENTICATION		0x5001
+-#define SO_SECURITY_ENCRYPTION_TRANSPORT	0x5002
+-#define SO_SECURITY_ENCRYPTION_NETWORK		0x5004
+-
+-#define SO_MARK			0x0022
+-#endif /* _ASM_SOCKET_H */
++#include <asm-sparc/socket.h>
+-- 
+1.5.4.1.143.ge7e51
+
