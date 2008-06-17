@@ -1,37 +1,35 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 26 Jun 2008 09:06:21 +0000
-Subject: Re: [10 PATCHES] inline functions to avoid stack overflow
-Message-Id: <20080626.020621.45250426.davem@davemloft.net>
+From: Frans Pop <elendil@planet.nl>
+Date: Tue, 17 Jun 2008 11:53:48 +0000
+Subject: [PATCH] sparc: correct module name in Kconfig help for SCSI_SUNESP
+Message-Id: <200806171353.49127.elendil@planet.nl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.0806250843460.20379@engineering.redhat.com>
-	<20080625.150931.182895076.davem@davemloft.net>
-	<e2e108260806252332k3ffe3c63o29556f5b9d89c4a3@mail.gmail.com>
-In-Reply-To: <e2e108260806252332k3ffe3c63o29556f5b9d89c4a3@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: bart.vanassche@gmail.com
-Cc: mpatocka@redhat.com, helge.hafting@aitel.hist.no, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, gcc@gcc.gnu.org
+To: sparclinux@vger.kernel.org
 
-From: "Bart Van Assche" <bart.vanassche@gmail.com>
-Date: Thu, 26 Jun 2008 08:32:35 +0200
+From: Frans Pop <elendil@planet.nl>
 
-> On Thu, Jun 26, 2008 at 12:09 AM, David Miller <davem@davemloft.net> wrote:
-> > The extra 16 bytes of space allocated is so that GCC can perform a
-> > secondary reload of a quad floating point value.  It always has to be
-> > present, because we can't satisfy a secondary reload by emitting yet
-> > another reload, it's the end of the possible level of recursions
-> > allowed by the reload pass.
-> 
-> Is there any floating-point code present in the Linux kernel ?
+The module name was changed from esp to sun_esp some time ago.
+    
+Signed-off-by: Frans Pop <elendil@planet.nl>
+---
 
-Yes, but not coming from C compiled code.  Floating point is
-used in most of the memcpy/memset implementations of the
-sparc64 kernel.
+Should the help text maybe also mention that it supports SUNW,fas devices?
+It's still SBUS of course, but it may not be immediately obvious that esp 
+also covers fas.
 
-> Would it be a good idea to add an option to gcc that tells gcc that
-> the compiled code does not contain floating-point instructions, such
-> that gcc knows that no space has to be provided for a quad floating
-> point value ?
 
-I think it exists already, it's called -mno-fpu :-)
+diff --git a/drivers/scsi/Kconfig b/drivers/scsi/Kconfig
+index 81ccbd7..0632552 100644
+--- a/drivers/scsi/Kconfig
++++ b/drivers/scsi/Kconfig
+@@ -1741,7 +1741,7 @@ config SCSI_SUNESP
+ 	  chipset is present in most SPARC SBUS-based computers.
+ 
+ 	  To compile this driver as a module, choose M here: the
+-	  module will be called esp.
++	  module will be called sun_esp.
+ 
+ config ZFCP
+ 	tristate "FCP host bus adapter driver for IBM eServer zSeries"
