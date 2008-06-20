@@ -1,46 +1,53 @@
 From: Mikulas Patocka <mpatocka@redhat.com>
-Date: Thu, 19 Jun 2008 13:01:58 +0000
+Date: Fri, 20 Jun 2008 15:47:12 +0000
 Subject: Re: stack overflow on Sparc64
-Message-Id: <Pine.LNX.4.64.0806190845300.6330@engineering.redhat.com>
+Message-Id: <Pine.LNX.4.64.0806201143110.8789@engineering.redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.0806182318170.27388@engineering.redhat.com>
- <20080618.205948.107681537.davem@davemloft.net>
- <Pine.LNX.4.64.0806190041080.31418@engineering.redhat.com>
- <20080618.233713.87158879.davem@davemloft.net>
-In-Reply-To: <20080618.233713.87158879.davem@davemloft.net>
+References: <Pine.LNX.4.64.0806171954060.2560@engineering.redhat.com>
+ <20080617.210159.141238856.davem@davemloft.net>
+In-Reply-To: <20080617.210159.141238856.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: David Miller <davem@davemloft.net>
 Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, agk@redhat.com
 
-On Wed, 18 Jun 2008, David Miller wrote:
+> It could still be improved a lot, however.
+>
+>> Long-term consideration: Is it possible to implement interrupt stacks on
+>> sparc64? Functions on sparc eat stack much more aggressively than on other
+>> architectures (minimum stack size for a function is 192 bytes).
+>
+> I had a patch but at the time I wrote it (several years ago) I
+> couldn't make it stable enough to put mainline, I may resurrect it.
+>
+> I just did a quick scan and I can't find the last copy I had, and
+> things have changed enough that I'd probably work from scratch
+> anyways.
+>
+> But the level of recursion possible by the current device layer is
+> excessive and needs to be curtained irrespective of these generic
+> wakeup and sparc64 interrupt stack issues.
 
-> From: Mikulas Patocka <mpatocka@redhat.com>
-> Date: Thu, 19 Jun 2008 01:17:39 -0400 (EDT)
->
->> I see ... the callee writes arguments into caller's stack frame, if it has
->> variable number of arguments. That it misdesign, the callee should write
->> registers arguments into it's own frame like on AMD64 (then this space
->> would be allocated only if needed).
->
-> The callee can do this even for non-variable argument lists.
->
-> It's like a set of pre-allocated stack slots for those incoming
-> argument registers when reloading under register pressure.
->
-> In my opinion it is better to put this onus on the callee because only
-> the callee knows if it needs to pop these values onto the stack to
-> alleviate register pressure.
->
-> I think it might be possible for the compiler to only use 176 bytes.
-> I'll take a look at the gcc sparc backend and the ABI specification
-> to see if this is the case.
+I took another few traces (to track the whole stack content) and there is 
+another problem: nested interrupts. Does Sparc64 limit them somehow?
 
-Yes, it could be shrunk to 176 bytes. Maybe there could be some 
-performance problems if the spills are cacheline-unaligned. Or better --- 
-make special -mkernel-abi function to gcc that will drop this area at all 
-and make 128-byte frames. In kernel it wouldn't matter that ABI is 
-incompatible.
+sys_call_table
+timer_interrupt
+irq_exit
+do_softirq
+__do_softirq
+run_timer_softirq
+_spin_unlock
+sys_call_table
+handler_irq
+handler_fasteoi_irq
+handle_irq_event
+ide_intr
+ide_dma_intr
+task_end_request
+ide_end_request
+__ide_end_request
+...
 
 Mikulas
