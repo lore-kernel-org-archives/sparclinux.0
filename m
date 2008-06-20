@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 19 Jun 2008 23:10:05 +0000
+Date: Fri, 20 Jun 2008 02:00:48 +0000
 Subject: Re: 2.6.26-rc: SPARC: Sun Ultra 10 can not boot
-Message-Id: <20080619.161005.235931417.davem@davemloft.net>
+Message-Id: <20080619.190048.193701955.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <a4423d670806190707k7ae6da8cud80a826a1603d941@mail.gmail.com>
 	<a4423d670806190902l48c542e0i6a7380a2d3e7f520@mail.gmail.com>
@@ -18,7 +18,26 @@ Date: Thu, 19 Jun 2008 20:02:44 +0400
 > I have reverted this commit and
 > 2.6.26-rc6-00233-g99d3b2d works fine. It can boot.
 
-Thanks for your report, I'll look into this.
+I know what the problem is.
 
-The irony is that this changeset was added to fix a
-hang with lockdep enabled :-)
+It's hanging because lockdep is starting to actually be used. :-)
+Beforehand various bugs caused lockdep to disable itself almost
+immediately.  So it was never actually enabled on sparc64.
+
+When you revert that changeset, there is a loop in the backtrace of
+all kernel threads, and therefore lockdep turns itself off when all of
+the stack backtrace slots get consumed by that loop in the backtraces.
+
+After the revert you should see a set of kernel messages like:
+
+BUG: MAX_STACK_TRACE_ENTRIES too low!
+turning off the locking correctness validator.
+
+and that would confirm my theory.
+
+Lockdep really isn't usable on sparc64 at this time and it's one of
+the ongoing things I'm trying to get fully fixed.  The changeset in
+question fixes a real bug in stack backtrace output, so it should
+stay in the tree.
+
+FWIW, I just verified the above on my ultra5 box.
