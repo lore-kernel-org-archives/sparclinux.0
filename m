@@ -1,45 +1,184 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 05 Jun 2008 18:42:00 +0000
-Subject: Re: [RFC: 2.6 patch] sparc/mm/: possible cleanups
-Message-Id: <20080605.114200.264713107.davem@davemloft.net>
+Date: Fri, 20 Jun 2008 03:33:32 +0000
+Subject: Re: CONFIG_SPARC64_PAGE_SIZE_4MB build error
+Message-Id: <20080619.203332.129759828.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080605182625.GH1469@cs181133002.pp.htv.fi>
-In-Reply-To: <20080605182625.GH1469@cs181133002.pp.htv.fi>
+References: <20080525185821.GJ1791@cs181133002.pp.htv.fi>
+In-Reply-To: <20080525185821.GJ1791@cs181133002.pp.htv.fi>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: bunk@kernel.org
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 From: Adrian Bunk <bunk@kernel.org>
-Date: Thu, 5 Jun 2008 21:26:27 +0300
+Date: Sun, 25 May 2008 21:58:21 +0300
 
-> This patch contains the following possible cleanups:
-> - make the following needlessly global code static:
->   - fault.c: force_user_fault()
->   - init.c: calc_max_low_pfn()
->   - init.c: pgt_cache_water[]
->   - init.c: map_high_region()
->   - srmmu.c: hwbug_bitmask
->   - srmmu.c: srmmu_swapper_pg_dir
->   - srmmu.c: srmmu_context_table
->   - srmmu.c: is_hypersparc
->   - srmmu.c: srmmu_cache_pagetables
->   - srmmu.c: srmmu_nocache_size
->   - srmmu.c: srmmu_nocache_end
->   - srmmu.c: srmmu_get_nocache()
->   - srmmu.c: srmmu_free_nocache()
->   - srmmu.c: srmmu_early_allocate_ptable_skeleton()
->   - srmmu.c: srmmu_nocache_calcsize()
->   - srmmu.c: srmmu_nocache_init()
->   - srmmu.c: srmmu_alloc_thread_info()
->   - srmmu.c: early_pgtable_allocfail()
->   - srmmu.c: srmmu_early_allocate_ptable_skeleton()
->   - srmmu.c: srmmu_allocate_ptable_skeleton()
->   - srmmu.c: srmmu_inherit_prom_mappings()
->   - sunami.S: tsunami_copy_1page
-> - remove the following unused code:
->   - init.c: struct sparc_aliases
-> 
-> Signed-off-by: Adrian Bunk <bunk@kernel.org>
+> During a compile test I ran into the following build error caused with 
+> CONFIG_SPARC64_PAGE_SIZE_4MB:
 
-Applied.
+Adrian, thanks again for this report.
+
+Since I know this stuff doesn't work anyways, and has several other
+problems (see commit message for details) I think I'll solve this like
+so:
+
+sparc64: Remove 4MB and 512K base page size options.
+
+Adrian Bunk reported that enabling 4MB page size breaks the build.
+The problem is that MAX_ORDER combined with the page shift exceeds the
+SECTION_SIZE_BITS we use in asm-sparc64/sparsemem.h
+
+There are several ways I suppose we could work around this.  For one
+we could define a CONFIG_FORCE_MAX_ZONEORDER to decrease MAX_ORDER in
+these higher page size cases.
+
+But I also know that these page size cases are broken wrt. TLB miss
+handling especially on pre-hypervisor systems, and there isn't an easy
+way to fix that.
+
+These options were meant to be fun experimental hacks anyways, and
+only 8K and 64K make any sense to support.
+
+So remove 512K and 4M base page size support.  Of course, we still
+support these page sizes for huge pages.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc64/Kconfig          |   11 +----------
+ arch/sparc64/lib/copy_page.S  |    6 +++---
+ arch/sparc64/mm/tsb.c         |    6 ------
+ include/asm-sparc64/mmu.h     |    4 ----
+ include/asm-sparc64/page.h    |    4 ----
+ include/asm-sparc64/pgtable.h |    6 ------
+ 6 files changed, 4 insertions(+), 33 deletions(-)
+
+diff --git a/arch/sparc64/Kconfig b/arch/sparc64/Kconfig
+index eb36f3b..066fb07 100644
+--- a/arch/sparc64/Kconfig
++++ b/arch/sparc64/Kconfig
+@@ -91,19 +91,11 @@ config SPARC64_PAGE_SIZE_8KB
+ 	  8KB and 64KB work quite well, since SPARC ELF sections
+ 	  provide for up to 64KB alignment.
+ 
+-	  Therefore, 512KB and 4MB are for expert hackers only.
+-
+ 	  If you don't know what to do, choose 8KB.
+ 
+ config SPARC64_PAGE_SIZE_64KB
+ 	bool "64KB"
+ 
+-config SPARC64_PAGE_SIZE_512KB
+-	bool "512KB"
+-
+-config SPARC64_PAGE_SIZE_4MB
+-	bool "4MB"
+-
+ endchoice
+ 
+ config SECCOMP
+@@ -223,11 +215,10 @@ config HUGETLB_PAGE_SIZE_4MB
+ 	bool "4MB"
+ 
+ config HUGETLB_PAGE_SIZE_512K
+-	depends on !SPARC64_PAGE_SIZE_4MB && !SPARC64_PAGE_SIZE_512KB
+ 	bool "512K"
+ 
+ config HUGETLB_PAGE_SIZE_64K
+-	depends on !SPARC64_PAGE_SIZE_4MB && !SPARC64_PAGE_SIZE_512KB && !SPARC64_PAGE_SIZE_64KB
++	depends on !SPARC64_PAGE_SIZE_64KB
+ 	bool "64K"
+ 
+ endchoice
+diff --git a/arch/sparc64/lib/copy_page.S b/arch/sparc64/lib/copy_page.S
+index 3746066..b243d3b 100644
+--- a/arch/sparc64/lib/copy_page.S
++++ b/arch/sparc64/lib/copy_page.S
+@@ -25,9 +25,9 @@
+ 
+ #define	DCACHE_SIZE	(PAGE_SIZE * 2)
+ 
+-#if (PAGE_SHIFT = 13) || (PAGE_SHIFT = 19)
++#if (PAGE_SHIFT = 13)
+ #define PAGE_SIZE_REM	0x80
+-#elif (PAGE_SHIFT = 16) || (PAGE_SHIFT = 22)
++#elif (PAGE_SHIFT = 16)
+ #define PAGE_SIZE_REM	0x100
+ #else
+ #error Wrong PAGE_SHIFT specified
+@@ -198,7 +198,7 @@ cheetah_copy_page_insn:
+ 	cmp		%o2, PAGE_SIZE_REM
+ 	bne,pt		%xcc, 1b
+ 	 add		%o0, 0x40, %o0
+-#if (PAGE_SHIFT = 16) || (PAGE_SHIFT = 22)
++#if (PAGE_SHIFT = 16)
+ 	TOUCH(f0, f2, f4, f6, f8, f10, f12, f14)
+ 	ldda		[%o1] ASI_BLK_P, %f32
+ 	stda		%f48, [%o0] %asi
+diff --git a/arch/sparc64/mm/tsb.c b/arch/sparc64/mm/tsb.c
+index fe70c8a..3547937 100644
+--- a/arch/sparc64/mm/tsb.c
++++ b/arch/sparc64/mm/tsb.c
+@@ -96,12 +96,6 @@ void flush_tsb_user(struct mmu_gather *mp)
+ #elif defined(CONFIG_SPARC64_PAGE_SIZE_64KB)
+ #define HV_PGSZ_IDX_BASE	HV_PGSZ_IDX_64K
+ #define HV_PGSZ_MASK_BASE	HV_PGSZ_MASK_64K
+-#elif defined(CONFIG_SPARC64_PAGE_SIZE_512KB)
+-#define HV_PGSZ_IDX_BASE	HV_PGSZ_IDX_512K
+-#define HV_PGSZ_MASK_BASE	HV_PGSZ_MASK_512K
+-#elif defined(CONFIG_SPARC64_PAGE_SIZE_4MB)
+-#define HV_PGSZ_IDX_BASE	HV_PGSZ_IDX_4MB
+-#define HV_PGSZ_MASK_BASE	HV_PGSZ_MASK_4MB
+ #else
+ #error Broken base page size setting...
+ #endif
+diff --git a/include/asm-sparc64/mmu.h b/include/asm-sparc64/mmu.h
+index 8abc58f..9067dc5 100644
+--- a/include/asm-sparc64/mmu.h
++++ b/include/asm-sparc64/mmu.h
+@@ -34,10 +34,6 @@
+ #define CTX_PGSZ_BASE	CTX_PGSZ_8KB
+ #elif defined(CONFIG_SPARC64_PAGE_SIZE_64KB)
+ #define CTX_PGSZ_BASE	CTX_PGSZ_64KB
+-#elif defined(CONFIG_SPARC64_PAGE_SIZE_512KB)
+-#define CTX_PGSZ_BASE	CTX_PGSZ_512KB
+-#elif defined(CONFIG_SPARC64_PAGE_SIZE_4MB)
+-#define CTX_PGSZ_BASE	CTX_PGSZ_4MB
+ #else
+ #error No page size specified in kernel configuration
+ #endif
+diff --git a/include/asm-sparc64/page.h b/include/asm-sparc64/page.h
+index 93f0881..a8a2bba 100644
+--- a/include/asm-sparc64/page.h
++++ b/include/asm-sparc64/page.h
+@@ -7,10 +7,6 @@
+ #define PAGE_SHIFT   13
+ #elif defined(CONFIG_SPARC64_PAGE_SIZE_64KB)
+ #define PAGE_SHIFT   16
+-#elif defined(CONFIG_SPARC64_PAGE_SIZE_512KB)
+-#define PAGE_SHIFT   19
+-#elif defined(CONFIG_SPARC64_PAGE_SIZE_4MB)
+-#define PAGE_SHIFT   22
+ #else
+ #error No page size specified in kernel configuration
+ #endif
+diff --git a/include/asm-sparc64/pgtable.h b/include/asm-sparc64/pgtable.h
+index b870177..51f640f 100644
+--- a/include/asm-sparc64/pgtable.h
++++ b/include/asm-sparc64/pgtable.h
+@@ -161,12 +161,6 @@
+ #elif PAGE_SHIFT = 16
+ #define _PAGE_SZBITS_4U	_PAGE_SZ64K_4U
+ #define _PAGE_SZBITS_4V	_PAGE_SZ64K_4V
+-#elif PAGE_SHIFT = 19
+-#define _PAGE_SZBITS_4U	_PAGE_SZ512K_4U
+-#define _PAGE_SZBITS_4V	_PAGE_SZ512K_4V
+-#elif PAGE_SHIFT = 22
+-#define _PAGE_SZBITS_4U	_PAGE_SZ4MB_4U
+-#define _PAGE_SZBITS_4V	_PAGE_SZ4MB_4V
+ #else
+ #error Wrong PAGE_SHIFT specified
+ #endif
+-- 
+1.5.6
+
