@@ -1,87 +1,33 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 03 Jun 2008 22:52:14 +0000
-Subject: Re: [PATCH 2/2]: sparc64: Add Niagara2 RNG driver.
-Message-Id: <20080603.155214.34351559.davem@davemloft.net>
+Date: Fri, 20 Jun 2008 03:35:12 +0000
+Subject: Re: Userspace process crashes with PREEMPT
+Message-Id: <20080619.203512.123527176.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080516.165354.213801515.davem@davemloft.net>
-	<20080517065437.GA8092@uranus.ravnborg.org>
-In-Reply-To: <20080517065437.GA8092@uranus.ravnborg.org>
+References: <Pine.LNX.4.64.0805311050430.24707@artax.karlin.mff.cuni.cz>
+In-Reply-To: <Pine.LNX.4.64.0805311050430.24707@artax.karlin.mff.cuni.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sam@ravnborg.org
-Cc: sparclinux@vger.kernel.org, jgarzik@pobox.com, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 17 May 2008 08:54:37 +0200
+From: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
+Date: Sat, 31 May 2008 11:02:38 +0200 (CEST)
 
-> > diff --git a/drivers/char/hw_random/Makefile b/drivers/char/hw_random/Makefile
-> > index c8b7300..32b327b 100644
-> > --- a/drivers/char/hw_random/Makefile
-> > +++ b/drivers/char/hw_random/Makefile
-> > @@ -7,6 +7,8 @@ rng-core-y := core.o
-> >  obj-$(CONFIG_HW_RANDOM_INTEL) += intel-rng.o
-> >  obj-$(CONFIG_HW_RANDOM_AMD) += amd-rng.o
-> >  obj-$(CONFIG_HW_RANDOM_GEODE) += geode-rng.o
-> > +obj-$(CONFIG_HW_RANDOM_N2RNG) += n2-rng.o
-> > +n2-rng-objs := n2-drv.o n2-asm.o
-> 
-> These days the preferred syntax is:
-> 
-> n2-rng-y := n2-drv.o n2-asm.o
-> 
-> Following this scheme in general allows us to easily
-> introduce:
-> n2-rng-$(CONFIG_FOO) += foo.o
+> - I didn't saw any crash with no preemption or voluntary preemption (run 
+> it full loaded for a week, it is stable)
+> - The kernel doesn't crash, just userspace processes crash.
+> - Preemptible RCU has no effect on the crashes (they happen with or 
+> without it)
+> - The debug options in "kernel hacking" report nothing when enabled, but 
+> with the options enabled, the crashes happen more often
 
-Thanks I've fixed this.
+I'm going to start looking into this now, thanks for report.
 
-> > +#include <asm/hypervisor.h>
-> > +#include "n2rng.h"
-> > +
-> > +	.text
-> 
-> I had expected:
-> 
-> 	.section .text, "aw"
-> 
-> here??
+> Presumably, there is some point where preemption corrupts userspace 
+> process state, do you have any idea where it could be? You can send me any 
+> patches to test. Send them directly to my email, I'm not on the list.
 
-".text" is used consistently for this in the first 5 assembler files
-I tossed into my editor (arch/x86/kernel/head_{32,64},
-arch/x86/kernel/entry_{32,64}.S, arch/powerpc/kernel/head_64.S)
-I don't see any value in using the expanded version, especially is
-"aw" is not the default on some platform for some reason, that
-detail is hidden in the assembler's implementation of ".text"
-
-> > +	.globl	sun4v_rng_get_diag_ctl
-> > +	.type	sun4v_rng_get_diag_ctl,#function
-> > +sun4v_rng_get_diag_ctl:
-> > +	mov	HV_FAST_RNG_GET_DIAG_CTL, %o5
-> > +	ta	HV_FAST_TRAP
-> > +	retl
-> > +	 nop
-> > +	.size	sun4v_rng_get_diag_ctl,.-sun4v_rng_get_diag_ctl
-> 
-> Any specific reason why you do not use:
-> 
-> ENTRY(sun4v_rng_get_diag_ctl)
->      mov     HV_FAST_RNG_GET_DIAG_CTL, %o5
->      ta      HV_FAST_TRAP
->      retl
->       nop
-> ENDPROC(sun4v_rng_get_diag_ctl)
-
-I simply didn't know they existed and were usable. :-)
-I've changed the assembler code to use them, thanks.
-
-Longer term I'll need to define __ALIGN et al. on sparc
-so that a more appropriate fill constant is used.  It
-should be a NOP in sections that should contain instructions
-and 0x90 is not a NOP on sparc :-)
-
-But it's harmless to use what's there now, so there is no
-need for me to define a specific __ALIGN before using
-ENTRY and ENDPROC.
-
-Thanks for your feedback.
+I think the FPU state is being corrupted by the kernel.
+The FPU is used heavily by memcpy and memset in userspace
+and therefore FPU corruption shows up as either strange
+behavior or outright crashes in userspace.
