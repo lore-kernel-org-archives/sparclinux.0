@@ -1,116 +1,35 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 28 Jun 2008 22:04:51 +0000
-Subject: [PATCH 19/25] sparc: Merge asm-sparc{,64}/types.h
-Message-Id: <1214690697-4631-19-git-send-email-sam@ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Fri, 20 Jun 2008 03:26:35 +0000
+Subject: [GIT]: ESP scsi driver.
+Message-Id: <20080619.202635.89650161.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: James.Bottomley@HansenPartnership.com
+Cc: linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Copy content of sparc64 file to sparc file.
-There is only minimal possibilities for further unification.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
----
- include/asm-sparc/types.h   |   32 +++++++++++++++++++++++++++++++-
- include/asm-sparc64/types.h |   35 +----------------------------------
- 2 files changed, 32 insertions(+), 35 deletions(-)
+James, please pull to get these ESP scsi driver fixes.
 
-diff --git a/include/asm-sparc/types.h b/include/asm-sparc/types.h
-index 07734f9..8c28fde 100644
---- a/include/asm-sparc/types.h
-+++ b/include/asm-sparc/types.h
-@@ -1,6 +1,5 @@
- #ifndef _SPARC_TYPES_H
- #define _SPARC_TYPES_H
--
- /*
-  * This file is never included by application software unless
-  * explicitly requested (e.g., via linux/types.h) in which case the
-@@ -8,6 +7,35 @@
-  * not a major issue.  However, for interoperability, libraries still
-  * need to be careful to avoid a name clashes.
-  */
-+
-+#if defined(__sparc__) && defined(__arch64__)
-+
-+/*** SPARC 64 bit ***/
-+#include <asm-generic/int-l64.h>
-+
-+#ifndef __ASSEMBLY__
-+
-+typedef unsigned short umode_t;
-+
-+#endif /* __ASSEMBLY__ */
-+
-+#ifdef __KERNEL__
-+
-+#define BITS_PER_LONG 64
-+
-+#ifndef __ASSEMBLY__
-+
-+/* Dma addresses come in generic and 64-bit flavours.  */
-+
-+typedef u32 dma_addr_t;
-+typedef u64 dma64_addr_t;
-+
-+#endif /* __ASSEMBLY__ */
-+
-+#endif /* __KERNEL__ */
-+#else
-+
-+/*** SPARC 32 bit ***/
- #include <asm-generic/int-ll64.h>
- 
- #ifndef __ASSEMBLY__
-@@ -29,4 +57,6 @@ typedef u32 dma64_addr_t;
- 
- #endif /* __KERNEL__ */
- 
-+#endif /* defined(__sparc__) && defined(__arch64__) */
-+
- #endif /* defined(_SPARC_TYPES_H) */
-diff --git a/include/asm-sparc64/types.h b/include/asm-sparc64/types.h
-index b27ccc8..cfbfad5 100644
---- a/include/asm-sparc64/types.h
-+++ b/include/asm-sparc64/types.h
-@@ -1,34 +1 @@
--#ifndef _SPARC64_TYPES_H
--#define _SPARC64_TYPES_H
--
--/*
-- * This file is never included by application software unless
-- * explicitly requested (e.g., via linux/types.h) in which case the
-- * application is Linux specific so (user-) name space pollution is
-- * not a major issue.  However, for interoperability, libraries still
-- * need to be careful to avoid a name clashes.
-- */
--#include <asm-generic/int-l64.h>
--
--#ifndef __ASSEMBLY__
--
--typedef unsigned short umode_t;
--
--#endif /* __ASSEMBLY__ */
--
--#ifdef __KERNEL__
--
--#define BITS_PER_LONG 64
--
--#ifndef __ASSEMBLY__
--
--/* Dma addresses come in generic and 64-bit flavours.  */
--
--typedef u32 dma_addr_t;
--typedef u64 dma64_addr_t;
--
--#endif /* __ASSEMBLY__ */
--
--#endif /* __KERNEL__ */
--
--#endif /* defined(_SPARC64_TYPES_H) */
-+#include <asm-sparc/types.h>
--- 
-1.5.4.1.143.ge7e51
+Thanks a lot!
 
+The following changes since commit 9bedbcb207ed9a571b239231d99c8fd4a34ae24d:
+  Dave Airlie (1):
+        agp: brown paper bag patch - put back two lines that got lost
+
+are available in the git repository at:
+
+  master.kernel.org:/pub/scm/linux/kernel/git/davem/esp-2.6.git master
+
+David S. Miller (2):
+      esp: Fix OOPS in esp_reset_cleanup().
+      esp: Correct chip ID probing sequence.
+
+Frans Pop (1):
+      esp: correct module name in Kconfig help for SCSI_SUNESP
+
+ drivers/scsi/Kconfig    |    6 ++++--
+ drivers/scsi/esp_scsi.c |   32 +++++++++++++++++++++-----------
+ drivers/scsi/esp_scsi.h |    1 +
+ 3 files changed, 26 insertions(+), 13 deletions(-)
