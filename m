@@ -1,118 +1,30 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 28 Jun 2008 22:04:42 +0000
-Subject: [PATCH 10/25] sparc: Merge asm-sparc{,64}/sembuf.h
-Message-Id: <1214690697-4631-10-git-send-email-sam@ravnborg.org>
+From: Mikulas Patocka <mpatocka@redhat.com>
+Date: Tue, 24 Jun 2008 06:03:14 +0000
+Subject: [10/10 PATCH] inline dispatch_job
+Message-Id: <Pine.LNX.4.64.0806240201530.27784@engineering.redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <Pine.LNX.4.64.0806240136200.27784@engineering.redhat.com>
+ <Pine.LNX.4.64.0806240154140.27784@engineering.redhat.com>
+In-Reply-To: <Pine.LNX.4.64.0806240154140.27784@engineering.redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+Cc: davem@davemloft.net, Alasdair G Kergon <agk@redhat.com>
 
-Padding in the sembuf structure made conditional
-as only 32 bit sparc did so.
+Inline dispatch_job. It is called at two places, but it is quite small.
 
-:$ diff -u include/asm-sparc/sembuf.h include/asm-sparc64/sembuf.h
-:-- include/asm-sparc/sembuf.h	2008-06-13 06:42:07.000000000 +0200
-:++ include/asm-sparc64/sembuf.h	2008-06-13 06:42:07.000000000 +0200
-:@@ -1,21 +1,18 @@
-:-#ifndef _SPARC_SEMBUF_H
-:-#define _SPARC_SEMBUF_H
-:+#ifndef _SPARC64_SEMBUF_H
-:+#define _SPARC64_SEMBUF_H
-:
-: /*
-:- * The semid64_ds structure for sparc architecture.
-:+ * The semid64_ds structure for sparc64 architecture.
-:  * Note extra padding because this structure is passed back and forth
-:  * between kernel and user space.
-:  *
-:  * Pad space is left for:
-:- * - 64-bit time_t to solve y2038 problem
-:- * - 2 miscellaneous 32-bit values
-:+ * - 2 miscellaneous 64-bit values
-:  */
-:
-: struct semid64_ds {
-: 	struct ipc64_perm sem_perm;		/* permissions .. see ipc.h */
-:-	unsigned int	__pad1;
-: 	__kernel_time_t	sem_otime;		/* last semop time */
-:-	unsigned int	__pad2;
-: 	__kernel_time_t	sem_ctime;		/* last change time */
-: 	unsigned long	sem_nsems;		/* no. of semaphores in array */
-: 	unsigned long	__unused1;
+Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
----
- include/asm-sparc/sembuf.h   |   12 +++++++++---
- include/asm-sparc64/sembuf.h |   23 +----------------------
- 2 files changed, 10 insertions(+), 25 deletions(-)
-
-diff --git a/include/asm-sparc/sembuf.h b/include/asm-sparc/sembuf.h
-index a79c4bb..faee1be 100644
---- a/include/asm-sparc/sembuf.h
-+++ b/include/asm-sparc/sembuf.h
-@@ -1,7 +1,7 @@
- #ifndef _SPARC_SEMBUF_H
- #define _SPARC_SEMBUF_H
- 
--/* 
-+/*
-  * The semid64_ds structure for sparc architecture.
-  * Note extra padding because this structure is passed back and forth
-  * between kernel and user space.
-@@ -10,16 +10,22 @@
-  * - 64-bit time_t to solve y2038 problem
-  * - 2 miscellaneous 32-bit values
-  */
-+#if defined(__sparc__) && defined(__arch64__)
-+# define PADDING(x)
-+#else
-+# define PADDING(x) unsigned int x;
-+#endif
- 
- struct semid64_ds {
- 	struct ipc64_perm sem_perm;		/* permissions .. see ipc.h */
--	unsigned int	__pad1;
-+	PADDING(__pad1)
- 	__kernel_time_t	sem_otime;		/* last semop time */
--	unsigned int	__pad2;
-+	PADDING(__pad2)
- 	__kernel_time_t	sem_ctime;		/* last change time */
- 	unsigned long	sem_nsems;		/* no. of semaphores in array */
- 	unsigned long	__unused1;
- 	unsigned long	__unused2;
- };
-+#undef PADDING
- 
- #endif /* _SPARC64_SEMBUF_H */
-diff --git a/include/asm-sparc64/sembuf.h b/include/asm-sparc64/sembuf.h
-index 99f04e4..c55b952 100644
---- a/include/asm-sparc64/sembuf.h
-+++ b/include/asm-sparc64/sembuf.h
-@@ -1,22 +1 @@
--#ifndef _SPARC64_SEMBUF_H
--#define _SPARC64_SEMBUF_H
--
--/* 
-- * The semid64_ds structure for sparc64 architecture.
-- * Note extra padding because this structure is passed back and forth
-- * between kernel and user space.
-- *
-- * Pad space is left for:
-- * - 2 miscellaneous 64-bit values
-- */
--
--struct semid64_ds {
--	struct ipc64_perm sem_perm;		/* permissions .. see ipc.h */
--	__kernel_time_t	sem_otime;		/* last semop time */
--	__kernel_time_t	sem_ctime;		/* last change time */
--	unsigned long	sem_nsems;		/* no. of semaphores in array */
--	unsigned long	__unused1;
--	unsigned long	__unused2;
--};
--
--#endif /* _SPARC64_SEMBUF_H */
-+#include <asm-sparc/sembuf.h>
--- 
-1.5.4.1.143.ge7e51
-
+Index: linux-2.6.26-rc7-devel/drivers/md/dm-kcopyd.c
+=================================--- linux-2.6.26-rc7-devel.orig/drivers/md/dm-kcopyd.c	2008-06-24 07:37:54.000000000 +0200
++++ linux-2.6.26-rc7-devel/drivers/md/dm-kcopyd.c	2008-06-24 07:37:59.000000000 +0200
+@@ -433,7 +433,7 @@
+   * to do the copy, otherwise the io has to be split up into many
+   * jobs.
+   */
+-static void dispatch_job(struct kcopyd_job *job)
++static __always_inline void dispatch_job(struct kcopyd_job *job)
+  {
+  	struct dm_kcopyd_client *kc = job->kc;
+  	atomic_inc(&kc->nr_jobs);
