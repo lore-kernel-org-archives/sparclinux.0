@@ -1,83 +1,55 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 06 Jun 2008 21:00:33 +0000
-Subject: [PATCH 21/21] sparc: add sparc64 files to Kbuild
-Message-Id: <1212786033-4227-21-git-send-email-sam@ravnborg.org>
+From: Mikulas Patocka <mpatocka@redhat.com>
+Date: Tue, 24 Jun 2008 06:06:47 +0000
+Subject: [PATCH] limit irq nesting
+Message-Id: <Pine.LNX.4.64.0806240203550.27784@engineering.redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <Pine.LNX.4.64.0806240136200.27784@engineering.redhat.com>
+In-Reply-To: <Pine.LNX.4.64.0806240136200.27784@engineering.redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+Cc: davem@davemloft.net
 
-To export sparc 32 and 64 bit files use:
-make headers_install ARCH=sparc
+Another potential problem (found during code review) that could cause 
+stack overflow is indefinite irq nesting. Linux doesn't have any limit on 
+number of nested irq handlers, so there may be as many handlers on a stack 
+as there are registered hardware interrupts --- enough to cause a crash.
 
-There is no longer a separate sparc64 export target
-and use of ALTARCH are then dropped.
+This patch limits interrupt nesting to at most 2 levels.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
----
- include/asm-sparc/Kbuild   |   10 ++++++++++
- include/asm-sparc64/Kbuild |   23 -----------------------
- 2 files changed, 10 insertions(+), 23 deletions(-)
- delete mode 100644 include/asm-sparc64/Kbuild
+--
 
-diff --git a/include/asm-sparc/Kbuild b/include/asm-sparc/Kbuild
-index 6712237..33eb52f 100644
---- a/include/asm-sparc/Kbuild
-+++ b/include/asm-sparc/Kbuild
-@@ -1,13 +1,23 @@
- include include/asm-generic/Kbuild.asm
- 
-+header-y += apb.h
- header-y += apc.h
- header-y += asi.h
-+header-y += bbc.h
- header-y += bpp.h
-+header-y += display7seg.h
-+header-y += envctrl.h
- header-y += jsflash.h
-+header-y += openprom.h
- header-y += openpromio.h
-+header-y += psrcompat.h
-+header-y += pstate.h
- header-y += reg.h
- header-y += traps.h
-+header-y += uctx.h
-+header-y += utrap.h
- header-y += vfc_ioctls.h
-+header-y += watchdog.h
- 
- unifdef-y += fbio.h
- unifdef-y += perfctr.h
-diff --git a/include/asm-sparc64/Kbuild b/include/asm-sparc64/Kbuild
-deleted file mode 100644
-index dce1cf9..0000000
---- a/include/asm-sparc64/Kbuild
-+++ /dev/null
-@@ -1,23 +0,0 @@
--include include/asm-generic/Kbuild.asm
--
--ALTARCH := sparc
--ARCHDEF := defined __sparc__ && defined __arch64__
--ALTARCHDEF := defined __sparc__ && !defined __arch64__
--
--header-y += apb.h
--header-y += asi.h
--header-y += bbc.h
--header-y += bpp.h
--header-y += display7seg.h
--header-y += envctrl.h
--header-y += openprom.h
--header-y += openpromio.h
--header-y += psrcompat.h
--header-y += pstate.h
--header-y += reg.h
--header-y += uctx.h
--header-y += utrap.h
--header-y += watchdog.h
--
--unifdef-y += fbio.h
--unifdef-y += perfctr.h
--- 
-1.5.4.1.143.ge7e51
+IRQs without IRQF_DISABLED could nest to arbitrary level.
 
+At worst this would mean having as many IRQ handlers stack frames, as there
+are interrupts registered --- enough to cause a stack overflow.
+
+This patch makes a limit to have at most two handlers on the stack.
+
+Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
+
+Index: linux-2.6.26-rc7-devel/include/linux/interrupt.h
+=================================--- linux-2.6.26-rc7-devel.orig/include/linux/interrupt.h	2008-06-23 17:47:16.000000000 +0200
++++ linux-2.6.26-rc7-devel/include/linux/interrupt.h	2008-06-23 18:02:40.000000000 +0200
+@@ -16,6 +16,11 @@
+  #include <asm/system.h>
+
+  /*
++ * Max number of interrupt handlers on a stack. To prevent stack overflow.
++ */
++#define MAX_NESTED_INTERRUPTS	2
++
++/*
+   * These correspond to the IORESOURCE_IRQ_* defines in
+   * linux/ioport.h to select the interrupt line behaviour.  When
+   * requesting an interrupt without specifying a IRQF_TRIGGER, the
+@@ -95,7 +100,7 @@
+  #ifdef CONFIG_LOCKDEP
+  # define local_irq_enable_in_hardirq()	do { } while (0)
+  #else
+-# define local_irq_enable_in_hardirq()	local_irq_enable()
++# define local_irq_enable_in_hardirq()	do { if (hardirq_count() < (MAX_NESTED_INTERRUPTS << HARDIRQ_SHIFT)) local_irq_enable(); } while (0)
+  #endif
+
+  extern void disable_irq_nosync(unsigned int irq);
