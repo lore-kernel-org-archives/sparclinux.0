@@ -1,148 +1,174 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 28 Jun 2008 22:04:55 +0000
-Subject: [PATCH 23/25] sparc: when header files are equal use asm-sparc version
-Message-Id: <1214690697-4631-23-git-send-email-sam@ravnborg.org>
+From: Mikulas Patocka <mpatocka@redhat.com>
+Date: Tue, 24 Jun 2008 05:57:52 +0000
+Subject: [4/10 PATCH] inline __wake_up_bit
+Message-Id: <Pine.LNX.4.64.0806240157060.27784@engineering.redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <Pine.LNX.4.64.0806240136200.27784@engineering.redhat.com>
+ <Pine.LNX.4.64.0806240154140.27784@engineering.redhat.com>
+In-Reply-To: <Pine.LNX.4.64.0806240154140.27784@engineering.redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+Cc: davem@davemloft.net
 
-Used the following script to find equal header files:
-SPARC64=`ls asm-sparc64`
-for FILE in ${SPARC64}; do
-	cmp -s asm-sparc/$FILE asm-sparc64/$FILE;
-	if [ $? = 0 ]; then
-		printf "#include <asm-sparc/%s>\n" $FILE > asm-sparc64/$FILE
-	fi
-done
+Make __wake_up_bit inlines. This requires to move task state definitions from
+sched.h to wait.h
 
-A few of the equal files are a simple include from
-asm-generic, but by including the file from asm-sparc
-we know they are equal for sparc and sparc64.
+This patch has the worst size-increase impact, increasing total kernel size
+by 0.2%.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
----
- include/asm-sparc64/irq_regs.h  |    2 +-
- include/asm-sparc64/linkage.h   |    7 +------
- include/asm-sparc64/mutex.h     |   10 +---------
- include/asm-sparc64/rtc.h       |   27 +--------------------------
- include/asm-sparc64/semaphore.h |    2 +-
- include/asm-sparc64/vga.h       |   34 +---------------------------------
- 6 files changed, 6 insertions(+), 76 deletions(-)
+Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
 
-diff --git a/include/asm-sparc64/irq_regs.h b/include/asm-sparc64/irq_regs.h
-index 3dd9c0b..1e2b8a1 100644
---- a/include/asm-sparc64/irq_regs.h
-+++ b/include/asm-sparc64/irq_regs.h
-@@ -1 +1 @@
--#include <asm-generic/irq_regs.h>
-+#include <asm-sparc/irq_regs.h>
-diff --git a/include/asm-sparc64/linkage.h b/include/asm-sparc64/linkage.h
-index 291c2d0..3ea4fd1 100644
---- a/include/asm-sparc64/linkage.h
-+++ b/include/asm-sparc64/linkage.h
-@@ -1,6 +1 @@
--#ifndef __ASM_LINKAGE_H
--#define __ASM_LINKAGE_H
--
--/* Nothing to see here... */
--
--#endif
-+#include <asm-sparc/linkage.h>
-diff --git a/include/asm-sparc64/mutex.h b/include/asm-sparc64/mutex.h
-index 458c1f7..c0c0f8f 100644
---- a/include/asm-sparc64/mutex.h
-+++ b/include/asm-sparc64/mutex.h
-@@ -1,9 +1 @@
--/*
-- * Pull in the generic implementation for the mutex fastpath.
-- *
-- * TODO: implement optimized primitives instead, or leave the generic
-- * implementation in place, or pick the atomic_xchg() based generic
-- * implementation. (see asm-generic/mutex-xchg.h for details)
-- */
--
--#include <asm-generic/mutex-dec.h>
-+#include <asm-sparc/mutex.h>
-diff --git a/include/asm-sparc64/rtc.h b/include/asm-sparc64/rtc.h
-index f9ecb1f..e49a968 100644
---- a/include/asm-sparc64/rtc.h
-+++ b/include/asm-sparc64/rtc.h
-@@ -1,26 +1 @@
--/*
-- * rtc.h: Definitions for access to the Mostek real time clock
-- *
-- * Copyright (C) 1996 Thomas K. Dyas (tdyas@eden.rutgers.edu)
-- */
--
--#ifndef _RTC_H
--#define _RTC_H
--
--#include <linux/ioctl.h>
--
--struct rtc_time
+Index: linux-2.6.26-rc7-devel/include/linux/wait.h
+=================================--- linux-2.6.26-rc7-devel.orig/include/linux/wait.h	2008-06-24 07:37:20.000000000 +0200
++++ linux-2.6.26-rc7-devel/include/linux/wait.h	2008-06-24 07:37:25.000000000 +0200
+@@ -25,6 +25,42 @@
+  #include <asm/system.h>
+  #include <asm/current.h>
+
++/*
++ * Task state bitmask. NOTE! These bits are also
++ * encoded in fs/proc/array.c: get_task_state().
++ *
++ * We have two separate sets of flags: task->state
++ * is about runnability, while task->exit_state are
++ * about the task exiting. Confusing, but this way
++ * modifying one set can't modify the other one by
++ * mistake.
++ */
++#define TASK_RUNNING		0
++#define TASK_INTERRUPTIBLE	1
++#define TASK_UNINTERRUPTIBLE	2
++#define __TASK_STOPPED		4
++#define __TASK_TRACED		8
++/* in tsk->exit_state */
++#define EXIT_ZOMBIE		16
++#define EXIT_DEAD		32
++/* in tsk->state again */
++#define TASK_DEAD		64
++#define TASK_WAKEKILL		128
++
++/* Convenience macros for the sake of set_task_state */
++#define TASK_KILLABLE		(TASK_WAKEKILL | TASK_UNINTERRUPTIBLE)
++#define TASK_STOPPED		(TASK_WAKEKILL | __TASK_STOPPED)
++#define TASK_TRACED		(TASK_WAKEKILL | __TASK_TRACED)
++
++/* Convenience macros for the sake of wake_up */
++#define TASK_NORMAL		(TASK_INTERRUPTIBLE | TASK_UNINTERRUPTIBLE)
++#define TASK_ALL		(TASK_NORMAL | __TASK_STOPPED | __TASK_TRACED)
++
++/* get_task_state() */
++#define TASK_REPORT		(TASK_RUNNING | TASK_INTERRUPTIBLE | \
++				 TASK_UNINTERRUPTIBLE | __TASK_STOPPED | \
++				 __TASK_TRACED)
++
+  typedef struct __wait_queue wait_queue_t;
+  typedef int (*wait_queue_func_t)(wait_queue_t *wait, unsigned mode, int sync, void *key);
+  int default_wake_function(wait_queue_t *wait, unsigned mode, int sync, void *key);
+@@ -144,13 +180,19 @@
+  void __wake_up(wait_queue_head_t *q, unsigned int mode, int nr, void *key);
+  extern void __wake_up_locked(wait_queue_head_t *q, unsigned int mode);
+  extern void __wake_up_sync(wait_queue_head_t *q, unsigned int mode, int nr);
+-void __wake_up_bit(wait_queue_head_t *, void *, int);
+  int __wait_on_bit(wait_queue_head_t *, struct wait_bit_queue *, int (*)(void *), unsigned);
+  int __wait_on_bit_lock(wait_queue_head_t *, struct wait_bit_queue *, int (*)(void *), unsigned);
+  int out_of_line_wait_on_bit(void *, int, int (*)(void *), unsigned);
+  int out_of_line_wait_on_bit_lock(void *, int, int (*)(void *), unsigned);
+  wait_queue_head_t *bit_waitqueue(void *, int);
+
++static __always_inline void __wake_up_bit(wait_queue_head_t *wq, void *word, int bit)
++{
++	struct wait_bit_key key = __WAIT_BIT_KEY_INITIALIZER(word, bit);
++	if (waitqueue_active(wq))
++		__wake_up(wq, TASK_NORMAL, 1, &key);
++}
++
+  /**
+   * wake_up_bit - wake up a waiter on a bit
+   * @word: the word being waited on, a kernel virtual address
+Index: linux-2.6.26-rc7-devel/kernel/wait.c
+=================================--- linux-2.6.26-rc7-devel.orig/kernel/wait.c	2008-06-24 07:37:20.000000000 +0200
++++ linux-2.6.26-rc7-devel/kernel/wait.c	2008-06-24 07:37:25.000000000 +0200
+@@ -211,14 +211,6 @@
+  }
+  EXPORT_SYMBOL(out_of_line_wait_on_bit_lock);
+
+-void __wake_up_bit(wait_queue_head_t *wq, void *word, int bit)
 -{
--	int	sec;	/* Seconds (0-59) */
--	int	min;	/* Minutes (0-59) */
--	int	hour;	/* Hour (0-23) */
--	int	dow;	/* Day of the week (1-7) */
--	int	dom;	/* Day of the month (1-31) */
--	int	month;	/* Month of year (1-12) */
--	int	year;	/* Year (0-99) */
--};
--
--#define RTCGET _IOR('p', 20, struct rtc_time)
--#define RTCSET _IOW('p', 21, struct rtc_time)
--
--#endif
-+#include <asm-sparc/rtc.h>
-diff --git a/include/asm-sparc64/semaphore.h b/include/asm-sparc64/semaphore.h
-index d9b2034..39362af 100644
---- a/include/asm-sparc64/semaphore.h
-+++ b/include/asm-sparc64/semaphore.h
-@@ -1 +1 @@
--#include <linux/semaphore.h>
-+#include <asm-sparc/semaphore.h>
-diff --git a/include/asm-sparc64/vga.h b/include/asm-sparc64/vga.h
-index c69d5b2..fbf4d58 100644
---- a/include/asm-sparc64/vga.h
-+++ b/include/asm-sparc64/vga.h
-@@ -1,33 +1 @@
--/*
-- *	Access to VGA videoram
-- *
-- *	(c) 1998 Martin Mares <mj@ucw.cz>
-- */
--
--#ifndef _LINUX_ASM_VGA_H_
--#define _LINUX_ASM_VGA_H_
--
--#include <asm/types.h>
--
--#define VT_BUF_HAVE_RW
--
--#undef scr_writew
--#undef scr_readw
--
--static inline void scr_writew(u16 val, u16 *addr)
--{
--	BUG_ON((long) addr >= 0);
--
--	*addr = val;
+-	struct wait_bit_key key = __WAIT_BIT_KEY_INITIALIZER(word, bit);
+-	if (waitqueue_active(wq))
+-		__wake_up(wq, TASK_NORMAL, 1, &key);
 -}
+-EXPORT_SYMBOL(__wake_up_bit);
 -
--static inline u16 scr_readw(const u16 *addr)
--{
--	BUG_ON((long) addr >= 0);
+  wait_queue_head_t *bit_waitqueue(void *word, int bit)
+  {
+  	const int shift = BITS_PER_LONG = 32 ? 5 : 6;
+Index: linux-2.6.26-rc7-devel/include/linux/sched.h
+=================================--- linux-2.6.26-rc7-devel.orig/include/linux/sched.h	2008-06-24 07:28:12.000000000 +0200
++++ linux-2.6.26-rc7-devel/include/linux/sched.h	2008-06-24 07:37:26.000000000 +0200
+@@ -160,42 +160,6 @@
+
+  extern unsigned long long time_sync_thresh;
+
+-/*
+- * Task state bitmask. NOTE! These bits are also
+- * encoded in fs/proc/array.c: get_task_state().
+- *
+- * We have two separate sets of flags: task->state
+- * is about runnability, while task->exit_state are
+- * about the task exiting. Confusing, but this way
+- * modifying one set can't modify the other one by
+- * mistake.
+- */
+-#define TASK_RUNNING		0
+-#define TASK_INTERRUPTIBLE	1
+-#define TASK_UNINTERRUPTIBLE	2
+-#define __TASK_STOPPED		4
+-#define __TASK_TRACED		8
+-/* in tsk->exit_state */
+-#define EXIT_ZOMBIE		16
+-#define EXIT_DEAD		32
+-/* in tsk->state again */
+-#define TASK_DEAD		64
+-#define TASK_WAKEKILL		128
 -
--	return *addr;
--}
+-/* Convenience macros for the sake of set_task_state */
+-#define TASK_KILLABLE		(TASK_WAKEKILL | TASK_UNINTERRUPTIBLE)
+-#define TASK_STOPPED		(TASK_WAKEKILL | __TASK_STOPPED)
+-#define TASK_TRACED		(TASK_WAKEKILL | __TASK_TRACED)
 -
--#define VGA_MAP_MEM(x,s) (x)
+-/* Convenience macros for the sake of wake_up */
+-#define TASK_NORMAL		(TASK_INTERRUPTIBLE | TASK_UNINTERRUPTIBLE)
+-#define TASK_ALL		(TASK_NORMAL | __TASK_STOPPED | __TASK_TRACED)
 -
--#endif
-+#include <asm-sparc/vga.h>
--- 
-1.5.4.1.143.ge7e51
+-/* get_task_state() */
+-#define TASK_REPORT		(TASK_RUNNING | TASK_INTERRUPTIBLE | \
+-				 TASK_UNINTERRUPTIBLE | __TASK_STOPPED | \
+-				 __TASK_TRACED)
+-
+  #define task_is_traced(task)	((task->state & __TASK_TRACED) != 0)
+  #define task_is_stopped(task)	((task->state & __TASK_STOPPED) != 0)
+  #define task_is_stopped_or_traced(task)	\
+@@ -2026,6 +1990,19 @@
+  	return signal_pending(p) && __fatal_signal_pending(p);
+  }
+
++static __always_inline int signal_pending_state(long state, struct task_struct *p)
++{
++	if (!(state & (TASK_INTERRUPTIBLE | TASK_WAKEKILL)))
++		return 0;
++	if (!signal_pending(p))
++		return 0;
++
++	if (state & (__TASK_STOPPED | __TASK_TRACED))
++		return 0;
++
++	return (state & TASK_INTERRUPTIBLE) || __fatal_signal_pending(p);
++}
++
+  static inline int need_resched(void)
+  {
+  	return unlikely(test_thread_flag(TIF_NEED_RESCHED));
 
