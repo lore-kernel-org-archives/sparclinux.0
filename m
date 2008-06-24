@@ -1,184 +1,120 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 20 Jun 2008 03:33:32 +0000
-Subject: Re: CONFIG_SPARC64_PAGE_SIZE_4MB build error
-Message-Id: <20080619.203332.129759828.davem@davemloft.net>
+From: Mikulas Patocka <mpatocka@redhat.com>
+Date: Tue, 24 Jun 2008 05:54:05 +0000
+Subject: [10 PATCHES] inline functions to avoid stack overflow
+Message-Id: <Pine.LNX.4.64.0806240136200.27784@engineering.redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080525185821.GJ1791@cs181133002.pp.htv.fi>
-In-Reply-To: <20080525185821.GJ1791@cs181133002.pp.htv.fi>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: bunk@kernel.org
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+Cc: davem@davemloft.net
 
-From: Adrian Bunk <bunk@kernel.org>
-Date: Sun, 25 May 2008 21:58:21 +0300
+Hi
 
-> During a compile test I ran into the following build error caused with 
-> CONFIG_SPARC64_PAGE_SIZE_4MB:
+Here I'm sending 10 patches to inline various functions.
 
-Adrian, thanks again for this report.
+To give you some understanding of sparc64, every function there uses big 
+stack frame (at least 192 bytes). 128 bytes are required by architecture 
+(16 64-bit registers), 48 bytes are there due to mistake of Sparc64 ABI 
+designers (calling function has to allocate 48 bytes for called function) 
+and 16 bytes are some dubious padding.
 
-Since I know this stuff doesn't work anyways, and has several other
-problems (see commit message for details) I think I'll solve this like
-so:
+So, on sparc64, if you have a simple function that passes arguments to 
+other function it still takes 192 byte --- regardless of how simple the 
+function is. Tail-call may be used, but it is disabled in kernel if 
+debugging is enabled (Makefile: ifdef CONFIG_FRAME_POINTER
+KBUILD_CFLAGS += -fno-omit-frame-pointer -fno-optimize-sibling-calls).
 
-sparc64: Remove 4MB and 512K base page size options.
+The stack trace has 75 nested functions, that totals to at least 14400 
+bytes --- and it kills the 16k stack space on sparc. In the stack trace, 
+there are many function which do nothing but pass parameters to other 
+function. In this series of patches, I found 10 such functions and turned 
+them to inlines, saving 1920 bytes. Especially waking wait queue is bad, 
+it calls 8 nested functions, 7 of which do nothing. I turned 5 of them to 
+inline.
 
-Adrian Bunk reported that enabling 4MB page size breaks the build.
-The problem is that MAX_ORDER combined with the page shift exceeds the
-SECTION_SIZE_BITS we use in asm-sparc64/sparsemem.h
+I'll post those 10 patches in next emails.
 
-There are several ways I suppose we could work around this.  For one
-we could define a CONFIG_FORCE_MAX_ZONEORDER to decrease MAX_ORDER in
-these higher page size cases.
+Some of the patches fix cases that could be optimized with tail-calling. 
+If you want to drop the patches, you should enable tail-calling by 
+removing -fno-optimize-sibling-calls from Makefile (it makes debugging a 
+bit harder).
 
-But I also know that these page size cases are broken wrt. TLB miss
-handling especially on pre-hypervisor systems, and there isn't an easy
-way to fix that.
+This was the trace:
 
-These options were meant to be fun experimental hacks anyways, and
-only 8K and 64K make any sense to support.
-
-So remove 512K and 4M base page size support.  Of course, we still
-support these page sizes for huge pages.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc64/Kconfig          |   11 +----------
- arch/sparc64/lib/copy_page.S  |    6 +++---
- arch/sparc64/mm/tsb.c         |    6 ------
- include/asm-sparc64/mmu.h     |    4 ----
- include/asm-sparc64/page.h    |    4 ----
- include/asm-sparc64/pgtable.h |    6 ------
- 6 files changed, 4 insertions(+), 33 deletions(-)
-
-diff --git a/arch/sparc64/Kconfig b/arch/sparc64/Kconfig
-index eb36f3b..066fb07 100644
---- a/arch/sparc64/Kconfig
-+++ b/arch/sparc64/Kconfig
-@@ -91,19 +91,11 @@ config SPARC64_PAGE_SIZE_8KB
- 	  8KB and 64KB work quite well, since SPARC ELF sections
- 	  provide for up to 64KB alignment.
- 
--	  Therefore, 512KB and 4MB are for expert hackers only.
--
- 	  If you don't know what to do, choose 8KB.
- 
- config SPARC64_PAGE_SIZE_64KB
- 	bool "64KB"
- 
--config SPARC64_PAGE_SIZE_512KB
--	bool "512KB"
--
--config SPARC64_PAGE_SIZE_4MB
--	bool "4MB"
--
- endchoice
- 
- config SECCOMP
-@@ -223,11 +215,10 @@ config HUGETLB_PAGE_SIZE_4MB
- 	bool "4MB"
- 
- config HUGETLB_PAGE_SIZE_512K
--	depends on !SPARC64_PAGE_SIZE_4MB && !SPARC64_PAGE_SIZE_512KB
- 	bool "512K"
- 
- config HUGETLB_PAGE_SIZE_64K
--	depends on !SPARC64_PAGE_SIZE_4MB && !SPARC64_PAGE_SIZE_512KB && !SPARC64_PAGE_SIZE_64KB
-+	depends on !SPARC64_PAGE_SIZE_64KB
- 	bool "64K"
- 
- endchoice
-diff --git a/arch/sparc64/lib/copy_page.S b/arch/sparc64/lib/copy_page.S
-index 3746066..b243d3b 100644
---- a/arch/sparc64/lib/copy_page.S
-+++ b/arch/sparc64/lib/copy_page.S
-@@ -25,9 +25,9 @@
- 
- #define	DCACHE_SIZE	(PAGE_SIZE * 2)
- 
--#if (PAGE_SHIFT = 13) || (PAGE_SHIFT = 19)
-+#if (PAGE_SHIFT = 13)
- #define PAGE_SIZE_REM	0x80
--#elif (PAGE_SHIFT = 16) || (PAGE_SHIFT = 22)
-+#elif (PAGE_SHIFT = 16)
- #define PAGE_SIZE_REM	0x100
- #else
- #error Wrong PAGE_SHIFT specified
-@@ -198,7 +198,7 @@ cheetah_copy_page_insn:
- 	cmp		%o2, PAGE_SIZE_REM
- 	bne,pt		%xcc, 1b
- 	 add		%o0, 0x40, %o0
--#if (PAGE_SHIFT = 16) || (PAGE_SHIFT = 22)
-+#if (PAGE_SHIFT = 16)
- 	TOUCH(f0, f2, f4, f6, f8, f10, f12, f14)
- 	ldda		[%o1] ASI_BLK_P, %f32
- 	stda		%f48, [%o0] %asi
-diff --git a/arch/sparc64/mm/tsb.c b/arch/sparc64/mm/tsb.c
-index fe70c8a..3547937 100644
---- a/arch/sparc64/mm/tsb.c
-+++ b/arch/sparc64/mm/tsb.c
-@@ -96,12 +96,6 @@ void flush_tsb_user(struct mmu_gather *mp)
- #elif defined(CONFIG_SPARC64_PAGE_SIZE_64KB)
- #define HV_PGSZ_IDX_BASE	HV_PGSZ_IDX_64K
- #define HV_PGSZ_MASK_BASE	HV_PGSZ_MASK_64K
--#elif defined(CONFIG_SPARC64_PAGE_SIZE_512KB)
--#define HV_PGSZ_IDX_BASE	HV_PGSZ_IDX_512K
--#define HV_PGSZ_MASK_BASE	HV_PGSZ_MASK_512K
--#elif defined(CONFIG_SPARC64_PAGE_SIZE_4MB)
--#define HV_PGSZ_IDX_BASE	HV_PGSZ_IDX_4MB
--#define HV_PGSZ_MASK_BASE	HV_PGSZ_MASK_4MB
- #else
- #error Broken base page size setting...
- #endif
-diff --git a/include/asm-sparc64/mmu.h b/include/asm-sparc64/mmu.h
-index 8abc58f..9067dc5 100644
---- a/include/asm-sparc64/mmu.h
-+++ b/include/asm-sparc64/mmu.h
-@@ -34,10 +34,6 @@
- #define CTX_PGSZ_BASE	CTX_PGSZ_8KB
- #elif defined(CONFIG_SPARC64_PAGE_SIZE_64KB)
- #define CTX_PGSZ_BASE	CTX_PGSZ_64KB
--#elif defined(CONFIG_SPARC64_PAGE_SIZE_512KB)
--#define CTX_PGSZ_BASE	CTX_PGSZ_512KB
--#elif defined(CONFIG_SPARC64_PAGE_SIZE_4MB)
--#define CTX_PGSZ_BASE	CTX_PGSZ_4MB
- #else
- #error No page size specified in kernel configuration
- #endif
-diff --git a/include/asm-sparc64/page.h b/include/asm-sparc64/page.h
-index 93f0881..a8a2bba 100644
---- a/include/asm-sparc64/page.h
-+++ b/include/asm-sparc64/page.h
-@@ -7,10 +7,6 @@
- #define PAGE_SHIFT   13
- #elif defined(CONFIG_SPARC64_PAGE_SIZE_64KB)
- #define PAGE_SHIFT   16
--#elif defined(CONFIG_SPARC64_PAGE_SIZE_512KB)
--#define PAGE_SHIFT   19
--#elif defined(CONFIG_SPARC64_PAGE_SIZE_4MB)
--#define PAGE_SHIFT   22
- #else
- #error No page size specified in kernel configuration
- #endif
-diff --git a/include/asm-sparc64/pgtable.h b/include/asm-sparc64/pgtable.h
-index b870177..51f640f 100644
---- a/include/asm-sparc64/pgtable.h
-+++ b/include/asm-sparc64/pgtable.h
-@@ -161,12 +161,6 @@
- #elif PAGE_SHIFT = 16
- #define _PAGE_SZBITS_4U	_PAGE_SZ64K_4U
- #define _PAGE_SZBITS_4V	_PAGE_SZ64K_4V
--#elif PAGE_SHIFT = 19
--#define _PAGE_SZBITS_4U	_PAGE_SZ512K_4U
--#define _PAGE_SZBITS_4V	_PAGE_SZ512K_4V
--#elif PAGE_SHIFT = 22
--#define _PAGE_SZBITS_4U	_PAGE_SZ4MB_4U
--#define _PAGE_SZBITS_4V	_PAGE_SZ4MB_4V
- #else
- #error Wrong PAGE_SHIFT specified
- #endif
--- 
-1.5.6
-
+linux_sparc_syscall32
+sys_read
+vfs_read
+do_sync_read
+generic_file_aio_read
+generic_file_direct_io
+filemap_write_and_wait
+filemap_fdatawrite
+__filemap_fdatawrite_range
+do_writepages
+generic_writepages
+write_cache_pages
+__writepage
+blkdev_writepage
+block_write_full_page
+__block_write_fiull_page
+submit_bh
+submit_bio
+generic_make_request
+dm_request
+__split_bio
+__map_bio
+origin_map
+start_copy
+dm_kcopyd_copy
+dispatch_job
+wake
+queue_work
+__queue_work
+__spin_unlock_irqrestore
+sys_call_table
+timer_interrupt
+irq_exit
+do_softirq
+__do_softirq
+run_timer_softirq
+__spin_unlock_irq
+sys_call_table
+handler_irq
+handler_fasteoi_irq
+handle_irq_event
+ide_intr
+ide_dma_intr
+task_end_request
+ide_end_request
+__ide_end_request
+__blk_end_request
+__end_that_request_first
+req_bio_endio
+bio_endio
+clone_endio
+dec_pending
+bio_endio
+clone_endio
+dec_pending
+bio_endio
+clone_endio
+dec_pending
+bio_endio
+end_bio_bh_io_sync
+end_buffer_read_sync
+__end_buffer_read_notouch
+unlock_buffer
+wake_up_bit
+__wake_up_bit
+__wake_up
+__wake_up_common
+wake_bio_function
+autoremove_wake_function
+default_wake_function
+try_to_wake_up
+task_rq_lock
+__spin_lock
+lock_acquire
+__lock_acquire
+*** crash ***
