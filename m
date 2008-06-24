@@ -1,123 +1,74 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 28 Jun 2008 22:04:41 +0000
-Subject: [PATCH 09/25] sparc: Merge asm-sparc{,64}/msgbuf.h
-Message-Id: <1214690697-4631-9-git-send-email-sam@ravnborg.org>
+From: Julia Lawall <julia@diku.dk>
+Date: Tue, 24 Jun 2008 08:24:57 +0000
+Subject: [PATCH 9/14] arch/sparc64: Eliminate NULL test and memset after
+Message-Id: <Pine.LNX.4.64.0806241024340.26777@ask.diku.dk>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: akinobu.mita@gmail.com, davem@davemloft.net, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-Padding from 32 bit sparc kept using preprocessor magic
+From: Julia Lawall <julia@diku.dk>
 
-:$ diff -u include/asm-sparc/msgbuf.h include/asm-sparc64/msgbuf.h
-:-- include/asm-sparc/msgbuf.h	2008-06-13 06:42:07.000000000 +0200
-:++ include/asm-sparc64/msgbuf.h	2008-06-13 06:42:07.000000000 +0200
-:@@ -7,17 +7,13 @@
-:  * between kernel and user space.
-:  *
-:  * Pad space is left for:
-:- * - 64-bit time_t to solve y2038 problem
-:- * - 2 miscellaneous 32-bit values
-:+ * - 2 miscellaneous 64-bit values
-:  */
-:
-: struct msqid64_ds {
-: 	struct ipc64_perm msg_perm;
-:-	unsigned int   __pad1;
-: 	__kernel_time_t msg_stime;	/* last msgsnd time */
-:-	unsigned int   __pad2;
-: 	__kernel_time_t msg_rtime;	/* last msgrcv time */
-:-	unsigned int   __pad3;
-: 	__kernel_time_t msg_ctime;	/* last change time */
-: 	unsigned long  msg_cbytes;	/* current number of bytes on queue */
+As noted by Akinobu Mita in patch b1fceac2b9e04d278316b2faddf276015fc06e3b,
+alloc_bootmem and related functions never return NULL and always return a
+zeroed region of memory.  Thus a NULL test or memset after calls to these
+functions is unnecessary.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+ arch/sparc64/kernel/irq.c |    8 --------
+ 1 file changed, 8 deletions(-)
+
+This was fixed using the following semantic patch.
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@@
+expression E;
+statement S;
+@@
+
+E = \(alloc_bootmem\|alloc_bootmem_low\|alloc_bootmem_pages\|alloc_bootmem_low_pages\)(...)
+... when != E
+(
+- BUG_ON (E = NULL);
+|
+- if (E = NULL) S
+)
+
+@@
+expression E,E1;
+@@
+
+E = \(alloc_bootmem\|alloc_bootmem_low\|alloc_bootmem_pages\|alloc_bootmem_low_pages\)(...)
+... when != E
+- memset(E,0,E1);
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
 ---
- include/asm-sparc/msgbuf.h   |   23 +++++++++++++++--------
- include/asm-sparc64/msgbuf.h |   28 +---------------------------
- 2 files changed, 16 insertions(+), 35 deletions(-)
 
-diff --git a/include/asm-sparc/msgbuf.h b/include/asm-sparc/msgbuf.h
-index 8cec9ad..efc7cbe 100644
---- a/include/asm-sparc/msgbuf.h
-+++ b/include/asm-sparc/msgbuf.h
-@@ -1,7 +1,7 @@
--#ifndef _SPARC64_MSGBUF_H
--#define _SPARC64_MSGBUF_H
-+#ifndef _SPARC_MSGBUF_H
-+#define _SPARC_MSGBUF_H
+diff -u -p a/arch/sparc64/kernel/irq.c b/arch/sparc64/kernel/irq.c
+--- a/arch/sparc64/kernel/irq.c
++++ b/arch/sparc64/kernel/irq.c
+@@ -882,10 +882,6 @@ static void __init init_cpu_send_mondo_i
+ 	BUILD_BUG_ON((NR_CPUS * sizeof(u16)) > (PAGE_SIZE - 64));
  
--/* 
-+/*
-  * The msqid64_ds structure for sparc64 architecture.
-  * Note extra padding because this structure is passed back and forth
-  * between kernel and user space.
-@@ -11,13 +11,20 @@
-  * - 2 miscellaneous 32-bit values
-  */
+ 	page = alloc_bootmem_pages(PAGE_SIZE);
+-	if (!page) {
+-		prom_printf("SUN4V: Error, cannot allocate cpu mondo page.\n");
+-		prom_halt();
+-	}
  
-+#if defined(__sparc__) && defined(__arch64__)
-+# define PADDING(x)
-+#else
-+# define PADDING(x) unsigned int x;
-+#endif
-+
-+
- struct msqid64_ds {
- 	struct ipc64_perm msg_perm;
--	unsigned int   __pad1;
-+	PADDING(__pad1)
- 	__kernel_time_t msg_stime;	/* last msgsnd time */
--	unsigned int   __pad2;
-+	PADDING(__pad2)
- 	__kernel_time_t msg_rtime;	/* last msgrcv time */
--	unsigned int   __pad3;
-+	PADDING(__pad3)
- 	__kernel_time_t msg_ctime;	/* last change time */
- 	unsigned long  msg_cbytes;	/* current number of bytes on queue */
- 	unsigned long  msg_qnum;	/* number of messages in queue */
-@@ -27,5 +34,5 @@ struct msqid64_ds {
- 	unsigned long  __unused1;
- 	unsigned long  __unused2;
- };
--
--#endif /* _SPARC64_MSGBUF_H */
-+#undef PADDING
-+#endif /* _SPARC_MSGBUF_H */
-diff --git a/include/asm-sparc64/msgbuf.h b/include/asm-sparc64/msgbuf.h
-index 55c101b..5b33cc9 100644
---- a/include/asm-sparc64/msgbuf.h
-+++ b/include/asm-sparc64/msgbuf.h
-@@ -1,27 +1 @@
--#ifndef _SPARC64_MSGBUF_H
--#define _SPARC64_MSGBUF_H
--
--/* 
-- * The msqid64_ds structure for sparc64 architecture.
-- * Note extra padding because this structure is passed back and forth
-- * between kernel and user space.
-- *
-- * Pad space is left for:
-- * - 2 miscellaneous 64-bit values
-- */
--
--struct msqid64_ds {
--	struct ipc64_perm msg_perm;
--	__kernel_time_t msg_stime;	/* last msgsnd time */
--	__kernel_time_t msg_rtime;	/* last msgrcv time */
--	__kernel_time_t msg_ctime;	/* last change time */
--	unsigned long  msg_cbytes;	/* current number of bytes on queue */
--	unsigned long  msg_qnum;	/* number of messages in queue */
--	unsigned long  msg_qbytes;	/* max number of bytes on queue */
--	__kernel_pid_t msg_lspid;	/* pid of last msgsnd */
--	__kernel_pid_t msg_lrpid;	/* last receive pid */
--	unsigned long  __unused1;
--	unsigned long  __unused2;
--};
--
--#endif /* _SPARC64_MSGBUF_H */
-+#include <asm-sparc/msgbuf.h>
--- 
-1.5.4.1.143.ge7e51
-
+ 	tb->cpu_mondo_block_pa = __pa(page);
+ 	tb->cpu_list_pa = __pa(page + 64);
+@@ -929,10 +925,6 @@ void __init init_IRQ(void)
+ 
+ 	size = sizeof(struct ino_bucket) * NUM_IVECS;
+ 	ivector_table = alloc_bootmem(size);
+-	if (!ivector_table) {
+-		prom_printf("Fatal error, cannot allocate ivector_table\n");
+-		prom_halt();
+-	}
+ 	__flush_dcache_range((unsigned long) ivector_table,
+ 			     ((unsigned long) ivector_table) + size);
+ 
