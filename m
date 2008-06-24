@@ -1,66 +1,31 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 13 Jun 2008 19:57:05 +0000
-Subject: [PATCH] sparc: Merge asm-sparc{,64}/param.h
-Message-Id: <1213387042-9711-4-git-send-email-sam@ravnborg.org>
+From: Mikulas Patocka <mpatocka@redhat.com>
+Date: Tue, 24 Jun 2008 06:01:47 +0000
+Subject: [9/10 PATCH] inline dm-kcopyd-inline-wake.patch
+Message-Id: <Pine.LNX.4.64.0806240201110.27784@engineering.redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <Pine.LNX.4.64.0806240136200.27784@engineering.redhat.com>
+ <Pine.LNX.4.64.0806240154140.27784@engineering.redhat.com>
+In-Reply-To: <Pine.LNX.4.64.0806240154140.27784@engineering.redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+Cc: davem@davemloft.net, Alasdair G Kergon <agk@redhat.com>
 
-$ diff -u include/asm-sparc/param.h include/asm-sparc64/param.h
--- include/asm-sparc/param.h	2008-06-13 06:46:39.000000000 +0200
-++ include/asm-sparc64/param.h	2008-06-13 06:42:07.000000000 +0200
-@@ -1,5 +1,6 @@
--#ifndef _ASMSPARC_PARAM_H
--#define _ASMSPARC_PARAM_H
-+#ifndef _ASMSPARC64_PARAM_H
-+#define _ASMSPARC64_PARAM_H
-+
 
- #ifdef __KERNEL__
- # define HZ		CONFIG_HZ	/* Internal kernel timer frequency */
-@@ -19,4 +20,4 @@
+Inline wake. Just passes arguments around.
 
- #define MAXHOSTNAMELEN	64	/* max length of hostname */
+Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
 
--#endif
-+#endif /* _ASMSPARC64_PARAM_H */
+Index: linux-2.6.26-rc7-devel/drivers/md/dm-kcopyd.c
+=================================--- linux-2.6.26-rc7-devel.orig/drivers/md/dm-kcopyd.c	2008-06-24 07:28:06.000000000 +0200
++++ linux-2.6.26-rc7-devel/drivers/md/dm-kcopyd.c	2008-06-24 07:37:54.000000000 +0200
+@@ -61,7 +61,7 @@
+  	struct list_head pages_jobs;
+  };
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
----
- include/asm-sparc64/param.h |   24 +-----------------------
- 1 files changed, 1 insertions(+), 23 deletions(-)
-
-diff --git a/include/asm-sparc64/param.h b/include/asm-sparc64/param.h
-index f0125cf..40c6dc1 100644
---- a/include/asm-sparc64/param.h
-+++ b/include/asm-sparc64/param.h
-@@ -1,23 +1 @@
--#ifndef _ASMSPARC64_PARAM_H
--#define _ASMSPARC64_PARAM_H
--
--
--#ifdef __KERNEL__
--# define HZ		CONFIG_HZ	/* Internal kernel timer frequency */
--# define USER_HZ	100	/* .. some user interfaces are in "ticks" */
--# define CLOCKS_PER_SEC (USER_HZ)
--#endif
--
--#ifndef HZ
--#define HZ 100
--#endif
--
--#define EXEC_PAGESIZE	8192    /* Thanks for sun4's we carry baggage... */
--
--#ifndef NOGROUP
--#define NOGROUP		(-1)
--#endif
--
--#define MAXHOSTNAMELEN	64	/* max length of hostname */
--
--#endif /* _ASMSPARC64_PARAM_H */
-+#include <asm-sparc/param.h>
--- 
-1.5.4.1.143.ge7e51
-
+-static void wake(struct dm_kcopyd_client *kc)
++static __always_inline void wake(struct dm_kcopyd_client *kc)
+  {
+  	queue_work(kc->kcopyd_wq, &kc->kcopyd_work);
+  }
