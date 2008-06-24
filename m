@@ -1,361 +1,149 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 28 Jun 2008 22:04:49 +0000
-Subject: [PATCH 17/25] sparc: Merge asm-sparc{,64}/termbits.h
-Message-Id: <1214690697-4631-17-git-send-email-sam@ravnborg.org>
+From: Mikulas Patocka <mpatocka@redhat.com>
+Date: Tue, 24 Jun 2008 06:01:04 +0000
+Subject: [8/10 PATCH] inline filemap_fdatawrite
+Message-Id: <Pine.LNX.4.64.0806240159520.27784@engineering.redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <Pine.LNX.4.64.0806240136200.27784@engineering.redhat.com>
+ <Pine.LNX.4.64.0806240154140.27784@engineering.redhat.com>
+In-Reply-To: <Pine.LNX.4.64.0806240154140.27784@engineering.redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+Cc: davem@davemloft.net
 
-The type of tcflag_t differs from 32 and 64 bit.
-For 32 bit it is long
-For 64 bit it is int
+Make filemap_fdatawrite and filemap_flush calls inlined.
 
-Altough these have same size then I was not sure that
-it was OK to change the 64 bit version to long as this
-is part of the ABI so it was made conditional.
+This needs to move WB_SYNC_* definitions from writeback.h to fs.h.
+writeback.h requires fs.h, so it creates no problem.
 
-:$ diff -u include/asm-sparc/termbits.h include/asm-sparc64/termbits.h
-:-- include/asm-sparc/termbits.h	2008-06-13 06:42:07.000000000 +0200
-:++ include/asm-sparc64/termbits.h	2008-06-13 06:42:07.000000000 +0200
-:@@ -1,11 +1,11 @@
-:-#ifndef _SPARC_TERMBITS_H
-:-#define _SPARC_TERMBITS_H
-:+#ifndef _SPARC64_TERMBITS_H
-:+#define _SPARC64_TERMBITS_H
-:
-: #include <linux/posix_types.h>
-:
-: typedef unsigned char   cc_t;
-: typedef unsigned int    speed_t;
-:-typedef unsigned long   tcflag_t;
-:+typedef unsigned int    tcflag_t;
-:
-: #define NCC 8
-: struct termio {
-:@@ -102,7 +102,7 @@
-: #define IXANY	0x00000800
-: #define IXOFF	0x00001000
-: #define IMAXBEL	0x00002000
-:-#define IUTF8   0x00004000
-:+#define IUTF8	0x00004000
-:
-: /* c_oflag bits */
-: #define OPOST	0x00000001
-:@@ -171,7 +171,6 @@
-: #define HUPCL	  0x00000400
-: #define CLOCAL	  0x00000800
-: #define CBAUDEX   0x00001000
-:-/* We'll never see these speeds with the Zilogs, but for completeness... */
-: #define  BOTHER   0x00001000
-: #define  B57600   0x00001001
-: #define  B115200  0x00001002
-:@@ -199,7 +198,7 @@
-: #define B3500000  0x00001012
-: #define B4000000  0x00001013  */
-: #define CIBAUD	  0x100f0000  /* input baud rate (not used) */
-:-#define CMSPAR	  0x40000000  /* mark or space (stick) parity */
-:+#define CMSPAR    0x40000000  /* mark or space (stick) parity */
-: #define CRTSCTS	  0x80000000  /* flow control */
-:
-: #define IBSHIFT	  16		/* Shift from CBAUD to CIBAUD */
-:@@ -258,4 +257,4 @@
-: #define	TCSADRAIN	1
-: #define	TCSAFLUSH	2
-:
-:-#endif /* !(_SPARC_TERMBITS_H) */
-:+#endif /* !(_SPARC64_TERMBITS_H) */
+Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
----
- include/asm-sparc/termbits.h   |    5 +
- include/asm-sparc64/termbits.h |  261 +---------------------------------------
- 2 files changed, 6 insertions(+), 260 deletions(-)
+Index: linux-2.6.26-rc7-devel/include/linux/fs.h
+=================================--- linux-2.6.26-rc7-devel.orig/include/linux/fs.h	2008-06-24 07:28:06.000000000 +0200
++++ linux-2.6.26-rc7-devel/include/linux/fs.h	2008-06-24 07:37:48.000000000 +0200
+@@ -1731,8 +1731,6 @@
+  extern int invalidate_inode_pages2_range(struct address_space *mapping,
+  					 pgoff_t start, pgoff_t end);
+  extern int write_inode_now(struct inode *, int);
+-extern int filemap_fdatawrite(struct address_space *);
+-extern int filemap_flush(struct address_space *);
+  extern int filemap_fdatawait(struct address_space *);
+  extern int filemap_write_and_wait(struct address_space *mapping);
+  extern int filemap_write_and_wait_range(struct address_space *mapping,
+@@ -1742,6 +1740,38 @@
+  extern int __filemap_fdatawrite_range(struct address_space *mapping,
+  				loff_t start, loff_t end, int sync_mode);
 
-diff --git a/include/asm-sparc/termbits.h b/include/asm-sparc/termbits.h
-index 90cf221..d6ca3e2 100644
---- a/include/asm-sparc/termbits.h
-+++ b/include/asm-sparc/termbits.h
-@@ -5,7 +5,12 @@
- 
- typedef unsigned char   cc_t;
- typedef unsigned int    speed_t;
++/*
++ * fs/fs-writeback.c
++ */
++enum writeback_sync_modes {
++	WB_SYNC_NONE,	/* Don't wait on anything */
++	WB_SYNC_ALL,	/* Wait on every mapping */
++	WB_SYNC_HOLD,	/* Hold the inode on sb_dirty for sys_sync() */
++};
 +
-+#if defined(__sparc__) && defined(__arch64__)
-+typedef unsigned int    tcflag_t;
-+#else
- typedef unsigned long   tcflag_t;
-+#endif
- 
- #define NCC 8
- struct termio {
-diff --git a/include/asm-sparc64/termbits.h b/include/asm-sparc64/termbits.h
-index ebe31c1..e03f975 100644
---- a/include/asm-sparc64/termbits.h
-+++ b/include/asm-sparc64/termbits.h
-@@ -1,260 +1 @@
--#ifndef _SPARC64_TERMBITS_H
--#define _SPARC64_TERMBITS_H
--
--#include <linux/posix_types.h>
--
--typedef unsigned char   cc_t;
--typedef unsigned int    speed_t;
--typedef unsigned int    tcflag_t;
--
--#define NCC 8
--struct termio {
--	unsigned short c_iflag;		/* input mode flags */
--	unsigned short c_oflag;		/* output mode flags */
--	unsigned short c_cflag;		/* control mode flags */
--	unsigned short c_lflag;		/* local mode flags */
--	unsigned char c_line;		/* line discipline */
--	unsigned char c_cc[NCC];	/* control characters */
--};
--
--#define NCCS 17
--struct termios {
--	tcflag_t c_iflag;		/* input mode flags */
--	tcflag_t c_oflag;		/* output mode flags */
--	tcflag_t c_cflag;		/* control mode flags */
--	tcflag_t c_lflag;		/* local mode flags */
--	cc_t c_line;			/* line discipline */
--	cc_t c_cc[NCCS];		/* control characters */
--#ifdef __KERNEL__
--#define SIZEOF_USER_TERMIOS sizeof (struct termios) - (2*sizeof (cc_t))
--	cc_t _x_cc[2];                  /* We need them to hold vmin/vtime */
--#endif
--};
--
--struct termios2 {
--	tcflag_t c_iflag;		/* input mode flags */
--	tcflag_t c_oflag;		/* output mode flags */
--	tcflag_t c_cflag;		/* control mode flags */
--	tcflag_t c_lflag;		/* local mode flags */
--	cc_t c_line;			/* line discipline */
--	cc_t c_cc[NCCS];		/* control characters */
--	cc_t _x_cc[2];                  /* padding to match ktermios */
--	speed_t c_ispeed;		/* input speed */
--	speed_t c_ospeed;		/* output speed */
--};
--
--struct ktermios {
--	tcflag_t c_iflag;		/* input mode flags */
--	tcflag_t c_oflag;		/* output mode flags */
--	tcflag_t c_cflag;		/* control mode flags */
--	tcflag_t c_lflag;		/* local mode flags */
--	cc_t c_line;			/* line discipline */
--	cc_t c_cc[NCCS];		/* control characters */
--	cc_t _x_cc[2];                  /* We need them to hold vmin/vtime */
--	speed_t c_ispeed;		/* input speed */
--	speed_t c_ospeed;		/* output speed */
--};
--
--/* c_cc characters */
--#define VINTR    0
--#define VQUIT    1
--#define VERASE   2
--#define VKILL    3
--#define VEOF     4
--#define VEOL     5
--#define VEOL2    6
--#define VSWTC    7
--#define VSTART   8
--#define VSTOP    9
--
--
--
--#define VSUSP    10
--#define VDSUSP   11  /* SunOS POSIX nicety I do believe... */
--#define VREPRINT 12
--#define VDISCARD 13
--#define VWERASE  14
--#define VLNEXT   15
--
--/* Kernel keeps vmin/vtime separated, user apps assume vmin/vtime is
-- * shared with eof/eol
++static __always_inline int __filemap_fdatawrite(struct address_space *mapping,
++	int sync_mode)
++{
++	return __filemap_fdatawrite_range(mapping, 0, LLONG_MAX, sync_mode);
++}
++
++static __always_inline int filemap_fdatawrite(struct address_space *mapping)
++{
++	return __filemap_fdatawrite(mapping, WB_SYNC_ALL);
++}
++
++/**
++ * filemap_flush - mostly a non-blocking flush
++ * @mapping:	target address_space
++ *
++ * This is a mostly non-blocking flush.  Not suitable for data-integrity
++ * purposes - I/O may not be started against all dirty pages.
++ */
++static __always_inline int filemap_flush(struct address_space *mapping)
++{
++	return __filemap_fdatawrite(mapping, WB_SYNC_NONE);
++}
++
+  extern long do_fsync(struct file *file, int datasync);
+  extern void sync_supers(void);
+  extern void sync_filesystems(int wait);
+@@ -2000,7 +2030,10 @@
+  extern int simple_pin_fs(struct file_system_type *, struct vfsmount **mount, int *count);
+  extern void simple_release_fs(struct vfsmount **mount, int *count);
+
+-extern ssize_t simple_read_from_buffer(void __user *, size_t, loff_t *, const void *, size_t);
++extern ssize_t simple_read_from_buffer(void __user *to, size_t count,
++			loff_t *ppos, const void *from, size_t available);
++extern ssize_t memory_read_from_buffer(void *to, size_t count, loff_t *ppos,
++			const void *from, size_t available);
+
+  #ifdef CONFIG_MIGRATION
+  extern int buffer_migrate_page(struct address_space *,
+Index: linux-2.6.26-rc7-devel/include/linux/writeback.h
+=================================--- linux-2.6.26-rc7-devel.orig/include/linux/writeback.h	2008-06-24 07:28:07.000000000 +0200
++++ linux-2.6.26-rc7-devel/include/linux/writeback.h	2008-06-24 07:37:49.000000000 +0200
+@@ -25,15 +25,6 @@
+  #define current_is_pdflush()	task_is_pdflush(current)
+
+  /*
+- * fs/fs-writeback.c
 - */
--#ifdef __KERNEL__
--#define VMIN     16
--#define VTIME    17
--#else
--#define VMIN     VEOF
--#define VTIME    VEOL
--#endif
+-enum writeback_sync_modes {
+-	WB_SYNC_NONE,	/* Don't wait on anything */
+-	WB_SYNC_ALL,	/* Wait on every mapping */
+-	WB_SYNC_HOLD,	/* Hold the inode on sb_dirty for sys_sync() */
+-};
 -
--/* c_iflag bits */
--#define IGNBRK	0x00000001
--#define BRKINT	0x00000002
--#define IGNPAR	0x00000004
--#define PARMRK	0x00000008
--#define INPCK	0x00000010
--#define ISTRIP	0x00000020
--#define INLCR	0x00000040
--#define IGNCR	0x00000080
--#define ICRNL	0x00000100
--#define IUCLC	0x00000200
--#define IXON	0x00000400
--#define IXANY	0x00000800
--#define IXOFF	0x00001000
--#define IMAXBEL	0x00002000
--#define IUTF8	0x00004000
+-/*
+   * A control structure which tells the writeback code what to do.  These are
+   * always on the stack, and hence need no locking.  They are always initialised
+   * in a manner such that unspecified fields are set to zero.
+Index: linux-2.6.26-rc7-devel/mm/filemap.c
+=================================--- linux-2.6.26-rc7-devel.orig/mm/filemap.c	2008-06-24 07:28:07.000000000 +0200
++++ linux-2.6.26-rc7-devel/mm/filemap.c	2008-06-24 07:37:49.000000000 +0200
+@@ -223,39 +223,15 @@
+  	ret = do_writepages(mapping, &wbc);
+  	return ret;
+  }
++EXPORT_SYMBOL(__filemap_fdatawrite_range);
+
+-static inline int __filemap_fdatawrite(struct address_space *mapping,
+-	int sync_mode)
+-{
+-	return __filemap_fdatawrite_range(mapping, 0, LLONG_MAX, sync_mode);
+-}
 -
--/* c_oflag bits */
--#define OPOST	0x00000001
--#define OLCUC	0x00000002
--#define ONLCR	0x00000004
--#define OCRNL	0x00000008
--#define ONOCR	0x00000010
--#define ONLRET	0x00000020
--#define OFILL	0x00000040
--#define OFDEL	0x00000080
--#define NLDLY	0x00000100
--#define   NL0	0x00000000
--#define   NL1	0x00000100
--#define CRDLY	0x00000600
--#define   CR0	0x00000000
--#define   CR1	0x00000200
--#define   CR2	0x00000400
--#define   CR3	0x00000600
--#define TABDLY	0x00001800
--#define   TAB0	0x00000000
--#define   TAB1	0x00000800
--#define   TAB2	0x00001000
--#define   TAB3	0x00001800
--#define   XTABS	0x00001800
--#define BSDLY	0x00002000
--#define   BS0	0x00000000
--#define   BS1	0x00002000
--#define VTDLY	0x00004000
--#define   VT0	0x00000000
--#define   VT1	0x00004000
--#define FFDLY	0x00008000
--#define   FF0	0x00000000
--#define   FF1	0x00008000
--#define PAGEOUT 0x00010000  /* SUNOS specific */
--#define WRAP    0x00020000  /* SUNOS specific */
+-int filemap_fdatawrite(struct address_space *mapping)
+-{
+-	return __filemap_fdatawrite(mapping, WB_SYNC_ALL);
+-}
+-EXPORT_SYMBOL(filemap_fdatawrite);
 -
--/* c_cflag bit meaning */
--#define CBAUD	  0x0000100f
--#define  B0	  0x00000000   /* hang up */
--#define  B50	  0x00000001
--#define  B75	  0x00000002
--#define  B110	  0x00000003
--#define  B134	  0x00000004
--#define  B150	  0x00000005
--#define  B200	  0x00000006
--#define  B300	  0x00000007
--#define  B600	  0x00000008
--#define  B1200	  0x00000009
--#define  B1800	  0x0000000a
--#define  B2400	  0x0000000b
--#define  B4800	  0x0000000c
--#define  B9600	  0x0000000d
--#define  B19200	  0x0000000e
--#define  B38400	  0x0000000f
--#define EXTA      B19200
--#define EXTB      B38400
--#define  CSIZE    0x00000030
--#define   CS5	  0x00000000
--#define   CS6	  0x00000010
--#define   CS7	  0x00000020
--#define   CS8	  0x00000030
--#define CSTOPB	  0x00000040
--#define CREAD	  0x00000080
--#define PARENB	  0x00000100
--#define PARODD	  0x00000200
--#define HUPCL	  0x00000400
--#define CLOCAL	  0x00000800
--#define CBAUDEX   0x00001000
--#define  BOTHER   0x00001000
--#define  B57600   0x00001001
--#define  B115200  0x00001002
--#define  B230400  0x00001003
--#define  B460800  0x00001004
--/* This is what we can do with the Zilogs. */
--#define  B76800   0x00001005
--/* This is what we can do with the SAB82532. */
--#define  B153600  0x00001006
--#define  B307200  0x00001007
--#define  B614400  0x00001008
--#define  B921600  0x00001009
--/* And these are the rest... */
--#define  B500000  0x0000100a
--#define  B576000  0x0000100b
--#define B1000000  0x0000100c
--#define B1152000  0x0000100d
--#define B1500000  0x0000100e
--#define B2000000  0x0000100f
--/* These have totally bogus values and nobody uses them
--   so far. Later on we'd have to use say 0x10000x and
--   adjust CBAUD constant and drivers accordingly.
--#define B2500000  0x00001010
--#define B3000000  0x00001011
--#define B3500000  0x00001012
--#define B4000000  0x00001013  */
--#define CIBAUD	  0x100f0000  /* input baud rate (not used) */
--#define CMSPAR    0x40000000  /* mark or space (stick) parity */
--#define CRTSCTS	  0x80000000  /* flow control */
+-static int filemap_fdatawrite_range(struct address_space *mapping, loff_t start,
++static __always_inline int filemap_fdatawrite_range(struct address_space *mapping, loff_t start,
+  				loff_t end)
+  {
+  	return __filemap_fdatawrite_range(mapping, start, end, WB_SYNC_ALL);
+  }
+
+  /**
+- * filemap_flush - mostly a non-blocking flush
+- * @mapping:	target address_space
+- *
+- * This is a mostly non-blocking flush.  Not suitable for data-integrity
+- * purposes - I/O may not be started against all dirty pages.
+- */
+-int filemap_flush(struct address_space *mapping)
+-{
+-	return __filemap_fdatawrite(mapping, WB_SYNC_NONE);
+-}
+-EXPORT_SYMBOL(filemap_flush);
 -
--#define IBSHIFT	  16		/* Shift from CBAUD to CIBAUD */
--
--/* c_lflag bits */
--#define ISIG	0x00000001
--#define ICANON	0x00000002
--#define XCASE	0x00000004
--#define ECHO	0x00000008
--#define ECHOE	0x00000010
--#define ECHOK	0x00000020
--#define ECHONL	0x00000040
--#define NOFLSH	0x00000080
--#define TOSTOP	0x00000100
--#define ECHOCTL	0x00000200
--#define ECHOPRT	0x00000400
--#define ECHOKE	0x00000800
--#define DEFECHO 0x00001000  /* SUNOS thing, what is it? */
--#define FLUSHO	0x00002000
--#define PENDIN	0x00004000
--#define IEXTEN	0x00008000
--
--/* modem lines */
--#define TIOCM_LE	0x001
--#define TIOCM_DTR	0x002
--#define TIOCM_RTS	0x004
--#define TIOCM_ST	0x008
--#define TIOCM_SR	0x010
--#define TIOCM_CTS	0x020
--#define TIOCM_CAR	0x040
--#define TIOCM_RNG	0x080
--#define TIOCM_DSR	0x100
--#define TIOCM_CD	TIOCM_CAR
--#define TIOCM_RI	TIOCM_RNG
--#define TIOCM_OUT1	0x2000
--#define TIOCM_OUT2	0x4000
--#define TIOCM_LOOP	0x8000
--
--/* ioctl (fd, TIOCSERGETLSR, &result) where result may be as below */
--#define TIOCSER_TEMT    0x01	/* Transmitter physically empty */
--
--
--/* tcflow() and TCXONC use these */
--#define	TCOOFF		0
--#define	TCOON		1
--#define	TCIOFF		2
--#define	TCION		3
--
--/* tcflush() and TCFLSH use these */
--#define	TCIFLUSH	0
--#define	TCOFLUSH	1
--#define	TCIOFLUSH	2
--
--/* tcsetattr uses these */
--#define	TCSANOW		0
--#define	TCSADRAIN	1
--#define	TCSAFLUSH	2
--
--#endif /* !(_SPARC64_TERMBITS_H) */
-+#include <asm-sparc/termbits.h>
--- 
-1.5.4.1.143.ge7e51
+-/**
+   * wait_on_page_writeback_range - wait for writeback to complete
+   * @mapping:	target address_space
+   * @start:	beginning page index
 
