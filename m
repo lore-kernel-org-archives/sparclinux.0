@@ -1,59 +1,49 @@
-From: Mikulas Patocka <mpatocka@redhat.com>
-Date: Wed, 25 Jun 2008 12:53:10 +0000
+From: David Miller <davem@davemloft.net>
+Date: Wed, 25 Jun 2008 22:09:31 +0000
 Subject: Re: [10 PATCHES] inline functions to avoid stack overflow
-Message-Id: <Pine.LNX.4.64.0806250843460.20379@engineering.redhat.com>
+Message-Id: <20080625.150931.182895076.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.LNX.4.64.0806240136200.27784@engineering.redhat.com>
- <486216E7.8000002@aitel.hist.no>
-In-Reply-To: <486216E7.8000002@aitel.hist.no>
+	<486216E7.8000002@aitel.hist.no>
+	<Pine.LNX.4.64.0806250843460.20379@engineering.redhat.com>
+In-Reply-To: <Pine.LNX.4.64.0806250843460.20379@engineering.redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Helge Hafting <helge.hafting@aitel.hist.no>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, gcc@gcc.gnu.org
+To: mpatocka@redhat.com
+Cc: helge.hafting@aitel.hist.no, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, gcc@gcc.gnu.org
 
-On Wed, 25 Jun 2008, Helge Hafting wrote:
+From: Mikulas Patocka <mpatocka@redhat.com>
+Date: Wed, 25 Jun 2008 08:53:10 -0400 (EDT)
 
-> Mikulas Patocka wrote:
->> Hi
->> 
->> Here I'm sending 10 patches to inline various functions.
->> 
->> To give you some understanding of sparc64, every function there uses big 
->> stack frame (at least 192 bytes). 128 bytes are required by architecture 
->> (16 64-bit registers), 48 bytes are there due to mistake of Sparc64 ABI 
->> designers (calling function has to allocate 48 bytes for called function) 
->> and 16 bytes are some dubious padding.
-> I guess there is no way around those 128 bytes required by hardware - but
-> is it necessary to allocate the 48 bytes of "mistake" and the dubious 
-> padding?
->
-> Linux kernel functions don't call any outside functions, and are not called 
-> from
-> outside either. So violating the ABI should be ok - there is nothing else to
-> be compatible to. Similiar to how x86 experimented with --mregparm to get
-> a little more performance from changing the kernel calling convention. 
-> Helge Hafting
+> Even worse, gcc doesn't use these additional bytes. If you try this:
+> 
+> extern void f(int *i);
+> void g()
+> {
+>          int a;
+>          f(&a);
+> }
+> 
+> , it allocates additional 16 bytes for the variable "a" (so there's total 
+> 208 bytes), even though it could place the variable into 48-byte 
+> ABI-mandated area that it inherited from the caller or into it's own 
+> 16-byte padding that it made when calling "f".
 
-So, ask gcc developers to do kernel-specific ABI with only 128-byte stack 
-frame.
+The extra 16 bytes of space allocated is so that GCC can perform a
+secondary reload of a quad floating point value.  It always has to be
+present, because we can't satisfy a secondary reload by emitting yet
+another reload, it's the end of the possible level of recursions
+allowed by the reload pass.
 
-BTW. could some gcc developer explain the reason for additional 16-bytes 
-on stack on sparc64? 64-bit ABI mandates 176 bytes, but gcc allocates 192 
-bytes.
+GCC could be smart and eliminate that slot when it's not used, but
+such a thing is not implemented yet.
 
-Even worse, gcc doesn't use these additional bytes. If you try this:
+It would also require quite a bit of new code to determine cases
+like you mention above, where the incoming arg slots from the
+caller are unused, assuming this would be legal.
 
-extern void f(int *i);
-void g()
-{
-         int a;
-         f(&a);
-}
-
-, it allocates additional 16 bytes for the variable "a" (so there's total 
-208 bytes), even though it could place the variable into 48-byte 
-ABI-mandated area that it inherited from the caller or into it's own 
-16-byte padding that it made when calling "f".
-
-Mikulas
+And that legality is doubtful.  We'd need to be careful because I
+think the caller is allowed to assume that those slots are untouched
+by the callee, and thus can be assumed to have whatever values the
+caller put there even after the callee returns.
