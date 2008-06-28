@@ -1,55 +1,66 @@
-From: Friedrich Oslage <bluebird@porno-bullen.de>
-Date: Thu, 19 Jun 2008 07:58:45 +0000
-Subject: Re: [BUG] Kernel panic on heavy disk activity with esp_scsi
-Message-Id: <20080619075845.GA29906@v32062.1blu.de>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 28 Jun 2008 22:04:36 +0000
+Subject: [PATCH 04/25] sparc: Merge asm-sparc{,64}/param.h
+Message-Id: <1214690697-4631-4-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1210367903.21472.14.camel@lya.porno-bullen.de>
-In-Reply-To: <1210367903.21472.14.camel@lya.porno-bullen.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+:$ diff -u include/asm-sparc/param.h include/asm-sparc64/param.h
+:-- include/asm-sparc/param.h	2008-06-13 06:46:39.000000000 +0200
+:++ include/asm-sparc64/param.h	2008-06-13 06:42:07.000000000 +0200
+:@@ -1,5 +1,6 @@
+:-#ifndef _ASMSPARC_PARAM_H
+:-#define _ASMSPARC_PARAM_H
+:+#ifndef _ASMSPARC64_PARAM_H
+:+#define _ASMSPARC64_PARAM_H
+:+
+:
+: #ifdef __KERNEL__
+: # define HZ		CONFIG_HZ	/* Internal kernel timer frequency */
+:@@ -19,4 +20,4 @@
+:
+: #define MAXHOSTNAMELEN	64	/* max length of hostname */
+:
+:-#endif
+:+#endif /* _ASMSPARC64_PARAM_H */
 
-> What's your approximate test case, is it some script that
-> performs the big directory operations you described in your
-> original report?
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ include/asm-sparc64/param.h |   24 +-----------------------
+ 1 files changed, 1 insertions(+), 23 deletions(-)
 
-I run "emerge --sync && emerge --metadata", but these commands are
-Gentoo-specific. Both of them read/modify/parse the portage tree(a
-directory containing 26264 sub-directories and 113530 files).
+diff --git a/include/asm-sparc64/param.h b/include/asm-sparc64/param.h
+index f0125cf..40c6dc1 100644
+--- a/include/asm-sparc64/param.h
++++ b/include/asm-sparc64/param.h
+@@ -1,23 +1 @@
+-#ifndef _ASMSPARC64_PARAM_H
+-#define _ASMSPARC64_PARAM_H
+-
+-
+-#ifdef __KERNEL__
+-# define HZ		CONFIG_HZ	/* Internal kernel timer frequency */
+-# define USER_HZ	100	/* .. some user interfaces are in "ticks" */
+-# define CLOCKS_PER_SEC (USER_HZ)
+-#endif
+-
+-#ifndef HZ
+-#define HZ 100
+-#endif
+-
+-#define EXEC_PAGESIZE	8192    /* Thanks for sun4's we carry baggage... */
+-
+-#ifndef NOGROUP
+-#define NOGROUP		(-1)
+-#endif
+-
+-#define MAXHOSTNAMELEN	64	/* max length of hostname */
+-
+-#endif /* _ASMSPARC64_PARAM_H */
++#include <asm-sparc/param.h>
+-- 
+1.5.4.1.143.ge7e51
 
-> Can I have a copy?  I'd like to trigger this here and debug
-> it locally if possible.
-
-One of these should help you to trigger the bug:
-
-Option 1 (works sometimes)
-$ wget ftp://distro.ibiblio.org/pub/linux/distributions/gentoo/snapshots/portage-latest.tar.lzma
-$ unlzma portage-latest.tar.lzma
-$ while [ true ]
-$ do
-$	tar -xf portage-latest.tar
-$	rm -r portage
-$ done
-
-Option 2 (works always)
-$ wget ftp://ftp.ucsb.edu/pub/mirrors/linux/gentoo/releases/sparc/2008.0_beta2/stages/stage3-sparc64-2008.0_beta2.tar.bz2
-$ mkdir gentoo-chroot
-$ cd gentoo-chroot
-$ tar -xjpf ../stage3-sparc64-2008.0_beta2.tar.bz2
-$ cp /etc/resolv.conf etc/
-$ mount -t proc proc proc/
-$ chroot . /bin/bash
-$ env-update
-$ source /etc/profile
-$ emerge --sync
-$ # if your system is still alive, one of these commands will kill it for sure
-$ while [ true ]
-$ do
-$	rm -r /var/cache/edb/dep
-$	emerge --metadata
-$ done
-
-Regards,
-Friedrich
