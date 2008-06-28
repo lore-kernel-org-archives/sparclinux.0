@@ -1,354 +1,361 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 13 Jun 2008 19:57:15 +0000
-Subject: [PATCH] sparc: Merge asm-sparc{,64}/fbio.h
-Message-Id: <1213387042-9711-14-git-send-email-sam@ravnborg.org>
+Date: Sat, 28 Jun 2008 22:04:49 +0000
+Subject: [PATCH 17/25] sparc: Merge asm-sparc{,64}/termbits.h
+Message-Id: <1214690697-4631-17-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+The type of tcflag_t differs from 32 and 64 bit.
+For 32 bit it is long
+For 64 bit it is int
+
+Altough these have same size then I was not sure that
+it was OK to change the 64 bit version to long as this
+is part of the ABI so it was made conditional.
+
+:$ diff -u include/asm-sparc/termbits.h include/asm-sparc64/termbits.h
+:-- include/asm-sparc/termbits.h	2008-06-13 06:42:07.000000000 +0200
+:++ include/asm-sparc64/termbits.h	2008-06-13 06:42:07.000000000 +0200
+:@@ -1,11 +1,11 @@
+:-#ifndef _SPARC_TERMBITS_H
+:-#define _SPARC_TERMBITS_H
+:+#ifndef _SPARC64_TERMBITS_H
+:+#define _SPARC64_TERMBITS_H
+:
+: #include <linux/posix_types.h>
+:
+: typedef unsigned char   cc_t;
+: typedef unsigned int    speed_t;
+:-typedef unsigned long   tcflag_t;
+:+typedef unsigned int    tcflag_t;
+:
+: #define NCC 8
+: struct termio {
+:@@ -102,7 +102,7 @@
+: #define IXANY	0x00000800
+: #define IXOFF	0x00001000
+: #define IMAXBEL	0x00002000
+:-#define IUTF8   0x00004000
+:+#define IUTF8	0x00004000
+:
+: /* c_oflag bits */
+: #define OPOST	0x00000001
+:@@ -171,7 +171,6 @@
+: #define HUPCL	  0x00000400
+: #define CLOCAL	  0x00000800
+: #define CBAUDEX   0x00001000
+:-/* We'll never see these speeds with the Zilogs, but for completeness... */
+: #define  BOTHER   0x00001000
+: #define  B57600   0x00001001
+: #define  B115200  0x00001002
+:@@ -199,7 +198,7 @@
+: #define B3500000  0x00001012
+: #define B4000000  0x00001013  */
+: #define CIBAUD	  0x100f0000  /* input baud rate (not used) */
+:-#define CMSPAR	  0x40000000  /* mark or space (stick) parity */
+:+#define CMSPAR    0x40000000  /* mark or space (stick) parity */
+: #define CRTSCTS	  0x80000000  /* flow control */
+:
+: #define IBSHIFT	  16		/* Shift from CBAUD to CIBAUD */
+:@@ -258,4 +257,4 @@
+: #define	TCSADRAIN	1
+: #define	TCSAFLUSH	2
+:
+:-#endif /* !(_SPARC_TERMBITS_H) */
+:+#endif /* !(_SPARC64_TERMBITS_H) */
+
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- include/asm-sparc64/fbio.h |  331 +-------------------------------------------
- 1 files changed, 1 insertions(+), 330 deletions(-)
+ include/asm-sparc/termbits.h   |    5 +
+ include/asm-sparc64/termbits.h |  261 +---------------------------------------
+ 2 files changed, 6 insertions(+), 260 deletions(-)
 
-diff --git a/include/asm-sparc64/fbio.h b/include/asm-sparc64/fbio.h
-index b9215a0..c17edf8 100644
---- a/include/asm-sparc64/fbio.h
-+++ b/include/asm-sparc64/fbio.h
-@@ -1,330 +1 @@
--#ifndef __LINUX_FBIO_H
--#define __LINUX_FBIO_H
+diff --git a/include/asm-sparc/termbits.h b/include/asm-sparc/termbits.h
+index 90cf221..d6ca3e2 100644
+--- a/include/asm-sparc/termbits.h
++++ b/include/asm-sparc/termbits.h
+@@ -5,7 +5,12 @@
+ 
+ typedef unsigned char   cc_t;
+ typedef unsigned int    speed_t;
++
++#if defined(__sparc__) && defined(__arch64__)
++typedef unsigned int    tcflag_t;
++#else
+ typedef unsigned long   tcflag_t;
++#endif
+ 
+ #define NCC 8
+ struct termio {
+diff --git a/include/asm-sparc64/termbits.h b/include/asm-sparc64/termbits.h
+index ebe31c1..e03f975 100644
+--- a/include/asm-sparc64/termbits.h
++++ b/include/asm-sparc64/termbits.h
+@@ -1,260 +1 @@
+-#ifndef _SPARC64_TERMBITS_H
+-#define _SPARC64_TERMBITS_H
 -
--#include <linux/compiler.h>
--#include <linux/types.h>
+-#include <linux/posix_types.h>
 -
--/* Constants used for fbio SunOS compatibility */
--/* (C) 1996 Miguel de Icaza */
+-typedef unsigned char   cc_t;
+-typedef unsigned int    speed_t;
+-typedef unsigned int    tcflag_t;
 -
--/* Frame buffer types */
--#define FBTYPE_NOTYPE           -1
--#define FBTYPE_SUN1BW           0   /* mono */
--#define FBTYPE_SUN1COLOR        1 
--#define FBTYPE_SUN2BW           2 
--#define FBTYPE_SUN2COLOR        3 
--#define FBTYPE_SUN2GP           4 
--#define FBTYPE_SUN5COLOR        5 
--#define FBTYPE_SUN3COLOR        6 
--#define FBTYPE_MEMCOLOR         7 
--#define FBTYPE_SUN4COLOR        8 
-- 
--#define FBTYPE_NOTSUN1          9 
--#define FBTYPE_NOTSUN2          10
--#define FBTYPE_NOTSUN3          11
-- 
--#define FBTYPE_SUNFAST_COLOR    12  /* cg6 */
--#define FBTYPE_SUNROP_COLOR     13
--#define FBTYPE_SUNFB_VIDEO      14
--#define FBTYPE_SUNGIFB          15
--#define FBTYPE_SUNGPLAS         16
--#define FBTYPE_SUNGP3           17
--#define FBTYPE_SUNGT            18
--#define FBTYPE_SUNLEO           19      /* zx Leo card */
--#define FBTYPE_MDICOLOR         20      /* cg14 */
--#define FBTYPE_TCXCOLOR		21	/* SUNW,tcx card */
--
--#define FBTYPE_LASTPLUSONE      21	/* This is not last + 1 in fact... */
--
--/* Does not seem to be listed in the Sun file either */
--#define FBTYPE_CREATOR          22
--#define FBTYPE_PCI_IGA1682	23
--#define FBTYPE_P9100COLOR	24
--
--#define FBTYPE_PCI_GENERIC	1000
--#define FBTYPE_PCI_MACH64	1001
--
--/* fbio ioctls */
--/* Returned by FBIOGTYPE */
--struct  fbtype {
--        int     fb_type;        /* fb type, see above */
--        int     fb_height;      /* pixels */
--        int     fb_width;       /* pixels */
--        int     fb_depth;
--        int     fb_cmsize;      /* color map entries */
--        int     fb_size;        /* fb size in bytes */
--};
--#define FBIOGTYPE _IOR('F', 0, struct fbtype)
--
--struct  fbcmap {
--        int             index;          /* first element (0 origin) */
--        int             count;
--        unsigned char   __user *red;
--        unsigned char   __user *green;
--        unsigned char   __user *blue;
+-#define NCC 8
+-struct termio {
+-	unsigned short c_iflag;		/* input mode flags */
+-	unsigned short c_oflag;		/* output mode flags */
+-	unsigned short c_cflag;		/* control mode flags */
+-	unsigned short c_lflag;		/* local mode flags */
+-	unsigned char c_line;		/* line discipline */
+-	unsigned char c_cc[NCC];	/* control characters */
 -};
 -
+-#define NCCS 17
+-struct termios {
+-	tcflag_t c_iflag;		/* input mode flags */
+-	tcflag_t c_oflag;		/* output mode flags */
+-	tcflag_t c_cflag;		/* control mode flags */
+-	tcflag_t c_lflag;		/* local mode flags */
+-	cc_t c_line;			/* line discipline */
+-	cc_t c_cc[NCCS];		/* control characters */
 -#ifdef __KERNEL__
--#define FBIOPUTCMAP_SPARC _IOW('F', 3, struct fbcmap)
--#define FBIOGETCMAP_SPARC _IOW('F', 4, struct fbcmap)
--#else
--#define FBIOPUTCMAP _IOW('F', 3, struct fbcmap)
--#define FBIOGETCMAP _IOW('F', 4, struct fbcmap)
+-#define SIZEOF_USER_TERMIOS sizeof (struct termios) - (2*sizeof (cc_t))
+-	cc_t _x_cc[2];                  /* We need them to hold vmin/vtime */
 -#endif
--
--/* # of device specific values */
--#define FB_ATTR_NDEVSPECIFIC    8
--/* # of possible emulations */
--#define FB_ATTR_NEMUTYPES       4
-- 
--struct fbsattr {
--        int     flags;
--        int     emu_type;	/* -1 if none */
--        int     dev_specific[FB_ATTR_NDEVSPECIFIC];
--};
-- 
--struct fbgattr {
--        int     real_type;	/* real frame buffer type */
--        int     owner;		/* unknown */
--        struct fbtype fbtype;	/* real frame buffer fbtype */
--        struct fbsattr sattr;   
--        int     emu_types[FB_ATTR_NEMUTYPES]; /* supported emulations */
--};
--#define FBIOSATTR  _IOW('F', 5, struct fbgattr) /* Unsupported: */
--#define FBIOGATTR  _IOR('F', 6, struct fbgattr)	/* supported */
--
--#define FBIOSVIDEO _IOW('F', 7, int)
--#define FBIOGVIDEO _IOR('F', 8, int)
--
--struct fbcursor {
--        short set;              /* what to set, choose from the list above */
--        short enable;           /* cursor on/off */
--        struct fbcurpos pos;    /* cursor position */
--        struct fbcurpos hot;    /* cursor hot spot */
--        struct fbcmap cmap;     /* color map info */
--        struct fbcurpos size;   /* cursor bit map size */
--        char __user *image;     /* cursor image bits */
--        char __user *mask;      /* cursor mask bits */
 -};
 -
--/* set/get cursor attributes/shape */
--#define FBIOSCURSOR     _IOW('F', 24, struct fbcursor)
--#define FBIOGCURSOR     _IOWR('F', 25, struct fbcursor)
-- 
--/* set/get cursor position */
--#define FBIOSCURPOS     _IOW('F', 26, struct fbcurpos)
--#define FBIOGCURPOS     _IOW('F', 27, struct fbcurpos)
-- 
--/* get max cursor size */
--#define FBIOGCURMAX     _IOR('F', 28, struct fbcurpos)
--
--/* wid manipulation */
--struct fb_wid_alloc {
--#define FB_WID_SHARED_8		0
--#define FB_WID_SHARED_24	1
--#define FB_WID_DBL_8		2
--#define FB_WID_DBL_24		3
--	__u32	wa_type;
--	__s32	wa_index;	/* Set on return */
--	__u32	wa_count;	
--};
--struct fb_wid_item {
--	__u32	wi_type;
--	__s32	wi_index;
--	__u32	wi_attrs;
--	__u32	wi_values[32];
--};
--struct fb_wid_list {
--	__u32	wl_flags;
--	__u32	wl_count;
--	struct fb_wid_item	*wl_list;
+-struct termios2 {
+-	tcflag_t c_iflag;		/* input mode flags */
+-	tcflag_t c_oflag;		/* output mode flags */
+-	tcflag_t c_cflag;		/* control mode flags */
+-	tcflag_t c_lflag;		/* local mode flags */
+-	cc_t c_line;			/* line discipline */
+-	cc_t c_cc[NCCS];		/* control characters */
+-	cc_t _x_cc[2];                  /* padding to match ktermios */
+-	speed_t c_ispeed;		/* input speed */
+-	speed_t c_ospeed;		/* output speed */
 -};
 -
--#define FBIO_WID_ALLOC	_IOWR('F', 30, struct fb_wid_alloc)
--#define FBIO_WID_FREE	_IOW('F', 31, struct fb_wid_alloc)
--#define FBIO_WID_PUT	_IOW('F', 32, struct fb_wid_list)
--#define FBIO_WID_GET	_IOWR('F', 33, struct fb_wid_list)
--
--/* Creator ioctls */
--#define FFB_IOCTL	('F'<<8)
--#define FFB_SYS_INFO		(FFB_IOCTL|80)
--#define FFB_CLUTREAD		(FFB_IOCTL|81)
--#define FFB_CLUTPOST		(FFB_IOCTL|82)
--#define FFB_SETDIAGMODE		(FFB_IOCTL|83)
--#define FFB_GETMONITORID	(FFB_IOCTL|84)
--#define FFB_GETVIDEOMODE	(FFB_IOCTL|85)
--#define FFB_SETVIDEOMODE	(FFB_IOCTL|86)
--#define FFB_SETSERVER		(FFB_IOCTL|87)
--#define FFB_SETOVCTL		(FFB_IOCTL|88)
--#define FFB_GETOVCTL		(FFB_IOCTL|89)
--#define FFB_GETSAXNUM		(FFB_IOCTL|90)
--#define FFB_FBDEBUG		(FFB_IOCTL|91)
--
--/* Cg14 ioctls */
--#define MDI_IOCTL          ('M'<<8)
--#define MDI_RESET          (MDI_IOCTL|1)
--#define MDI_GET_CFGINFO    (MDI_IOCTL|2)
--#define MDI_SET_PIXELMODE  (MDI_IOCTL|3)
--#    define MDI_32_PIX     32
--#    define MDI_16_PIX     16
--#    define MDI_8_PIX      8
--
--struct mdi_cfginfo {
--	int     mdi_ncluts;     /* Number of implemented CLUTs in this MDI */
--        int     mdi_type;       /* FBTYPE name */
--        int     mdi_height;     /* height */
--        int     mdi_width;      /* widht */
--        int     mdi_size;       /* available ram */
--        int     mdi_mode;       /* 8bpp, 16bpp or 32bpp */
--        int     mdi_pixfreq;    /* pixel clock (from PROM) */
+-struct ktermios {
+-	tcflag_t c_iflag;		/* input mode flags */
+-	tcflag_t c_oflag;		/* output mode flags */
+-	tcflag_t c_cflag;		/* control mode flags */
+-	tcflag_t c_lflag;		/* local mode flags */
+-	cc_t c_line;			/* line discipline */
+-	cc_t c_cc[NCCS];		/* control characters */
+-	cc_t _x_cc[2];                  /* We need them to hold vmin/vtime */
+-	speed_t c_ispeed;		/* input speed */
+-	speed_t c_ospeed;		/* output speed */
 -};
 -
--/* SparcLinux specific ioctl for the MDI, should be replaced for
-- * the SET_XLUT/SET_CLUTn ioctls instead
+-/* c_cc characters */
+-#define VINTR    0
+-#define VQUIT    1
+-#define VERASE   2
+-#define VKILL    3
+-#define VEOF     4
+-#define VEOL     5
+-#define VEOL2    6
+-#define VSWTC    7
+-#define VSTART   8
+-#define VSTOP    9
+-
+-
+-
+-#define VSUSP    10
+-#define VDSUSP   11  /* SunOS POSIX nicety I do believe... */
+-#define VREPRINT 12
+-#define VDISCARD 13
+-#define VWERASE  14
+-#define VLNEXT   15
+-
+-/* Kernel keeps vmin/vtime separated, user apps assume vmin/vtime is
+- * shared with eof/eol
 - */
--#define MDI_CLEAR_XLUT       (MDI_IOCTL|9)
--
--/* leo & ffb ioctls */
--struct fb_clut_alloc {
--	__u32	clutid;	/* Set on return */
-- 	__u32	flag;
-- 	__u32	index;
--};
--
--struct fb_clut {
--#define FB_CLUT_WAIT	0x00000001	/* Not yet implemented */
-- 	__u32	flag;
-- 	__u32	clutid;
-- 	__u32	offset;
-- 	__u32	count;
-- 	char *	red;
-- 	char *	green;
-- 	char *	blue;
--};
--
--struct fb_clut32 {
-- 	__u32	flag;
-- 	__u32	clutid;
-- 	__u32	offset;
-- 	__u32	count;
-- 	__u32	red;
-- 	__u32	green;
-- 	__u32	blue;
--};
--
--#define LEO_CLUTALLOC	_IOWR('L', 53, struct fb_clut_alloc)
--#define LEO_CLUTFREE	_IOW('L', 54, struct fb_clut_alloc)
--#define LEO_CLUTREAD	_IOW('L', 55, struct fb_clut)
--#define LEO_CLUTPOST	_IOW('L', 56, struct fb_clut)
--#define LEO_SETGAMMA	_IOW('L', 68, int) /* Not yet implemented */
--#define LEO_GETGAMMA	_IOR('L', 69, int) /* Not yet implemented */
--
 -#ifdef __KERNEL__
--/* Addresses on the fd of a cgsix that are mappable */
--#define CG6_FBC    0x70000000
--#define CG6_TEC    0x70001000
--#define CG6_BTREGS 0x70002000
--#define CG6_FHC    0x70004000
--#define CG6_THC    0x70005000
--#define CG6_ROM    0x70006000
--#define CG6_RAM    0x70016000
--#define CG6_DHC    0x80000000
--
--#define CG3_MMAP_OFFSET 0x4000000
--
--/* Addresses on the fd of a tcx that are mappable */
--#define TCX_RAM8BIT   		0x00000000
--#define TCX_RAM24BIT   		0x01000000
--#define TCX_UNK3   		0x10000000
--#define TCX_UNK4   		0x20000000
--#define TCX_CONTROLPLANE   	0x28000000
--#define TCX_UNK6   		0x30000000
--#define TCX_UNK7   		0x38000000
--#define TCX_TEC    		0x70000000
--#define TCX_BTREGS 		0x70002000
--#define TCX_THC    		0x70004000
--#define TCX_DHC    		0x70008000
--#define TCX_ALT	   		0x7000a000
--#define TCX_SYNC   		0x7000e000
--#define TCX_UNK2    		0x70010000
--
--/* CG14 definitions */
--
--/* Offsets into the OBIO space: */
--#define CG14_REGS        0       /* registers */
--#define CG14_CURSORREGS  0x1000  /* cursor registers */
--#define CG14_DACREGS     0x2000  /* DAC registers */
--#define CG14_XLUT        0x3000  /* X Look Up Table -- ??? */
--#define CG14_CLUT1       0x4000  /* Color Look Up Table */
--#define CG14_CLUT2       0x5000  /* Color Look Up Table */
--#define CG14_CLUT3       0x6000  /* Color Look Up Table */
--#define CG14_AUTO	 0xf000
--
--#endif /* KERNEL */
--
--/* These are exported to userland for applications to use */
--/* Mappable offsets for the cg14: control registers */
--#define MDI_DIRECT_MAP 0x10000000
--#define MDI_CTLREG_MAP 0x20000000
--#define MDI_CURSOR_MAP 0x30000000
--#define MDI_SHDW_VRT_MAP 0x40000000
--
--/* Mappable offsets for the cg14: frame buffer resolutions */
--/* 32 bits */
--#define MDI_CHUNKY_XBGR_MAP 0x50000000
--#define MDI_CHUNKY_BGR_MAP 0x60000000
--
--/* 16 bits */
--#define MDI_PLANAR_X16_MAP 0x70000000
--#define MDI_PLANAR_C16_MAP 0x80000000
--
--/* 8 bit is done as CG3 MMAP offset */
--/* 32 bits, planar */
--#define MDI_PLANAR_X32_MAP 0x90000000
--#define MDI_PLANAR_B32_MAP 0xa0000000
--#define MDI_PLANAR_G32_MAP 0xb0000000
--#define MDI_PLANAR_R32_MAP 0xc0000000
--
--/* Mappable offsets on leo */
--#define LEO_SS0_MAP            0x00000000
--#define LEO_LC_SS0_USR_MAP     0x00800000
--#define LEO_LD_SS0_MAP         0x00801000
--#define LEO_LX_CURSOR_MAP      0x00802000
--#define LEO_SS1_MAP            0x00803000
--#define LEO_LC_SS1_USR_MAP     0x01003000
--#define LEO_LD_SS1_MAP         0x01004000
--#define LEO_UNK_MAP            0x01005000
--#define LEO_LX_KRN_MAP         0x01006000
--#define LEO_LC_SS0_KRN_MAP     0x01007000
--#define LEO_LC_SS1_KRN_MAP     0x01008000
--#define LEO_LD_GBL_MAP         0x01009000
--#define LEO_UNK2_MAP           0x0100a000
--
--#ifdef __KERNEL__
--struct  fbcmap32 {
--	int             index;          /* first element (0 origin) */
--	int             count;
--	u32		red;
--	u32		green;
--	u32		blue;
--};
--
--#define FBIOPUTCMAP32	_IOW('F', 3, struct fbcmap32)
--#define FBIOGETCMAP32	_IOW('F', 4, struct fbcmap32)
--
--struct fbcursor32 {
--	short set;		/* what to set, choose from the list above */
--	short enable;		/* cursor on/off */
--	struct fbcurpos pos;	/* cursor position */
--	struct fbcurpos hot;	/* cursor hot spot */
--	struct fbcmap32 cmap;	/* color map info */
--	struct fbcurpos size;	/* cursor bit map size */
--	u32	image;		/* cursor image bits */
--	u32	mask;		/* cursor mask bits */
--};
--
--#define FBIOSCURSOR32	_IOW('F', 24, struct fbcursor32)
--#define FBIOGCURSOR32	_IOW('F', 25, struct fbcursor32)
+-#define VMIN     16
+-#define VTIME    17
+-#else
+-#define VMIN     VEOF
+-#define VTIME    VEOL
 -#endif
 -
--#endif /* __LINUX_FBIO_H */
-+#include <asm-sparc/fbio.h>
+-/* c_iflag bits */
+-#define IGNBRK	0x00000001
+-#define BRKINT	0x00000002
+-#define IGNPAR	0x00000004
+-#define PARMRK	0x00000008
+-#define INPCK	0x00000010
+-#define ISTRIP	0x00000020
+-#define INLCR	0x00000040
+-#define IGNCR	0x00000080
+-#define ICRNL	0x00000100
+-#define IUCLC	0x00000200
+-#define IXON	0x00000400
+-#define IXANY	0x00000800
+-#define IXOFF	0x00001000
+-#define IMAXBEL	0x00002000
+-#define IUTF8	0x00004000
+-
+-/* c_oflag bits */
+-#define OPOST	0x00000001
+-#define OLCUC	0x00000002
+-#define ONLCR	0x00000004
+-#define OCRNL	0x00000008
+-#define ONOCR	0x00000010
+-#define ONLRET	0x00000020
+-#define OFILL	0x00000040
+-#define OFDEL	0x00000080
+-#define NLDLY	0x00000100
+-#define   NL0	0x00000000
+-#define   NL1	0x00000100
+-#define CRDLY	0x00000600
+-#define   CR0	0x00000000
+-#define   CR1	0x00000200
+-#define   CR2	0x00000400
+-#define   CR3	0x00000600
+-#define TABDLY	0x00001800
+-#define   TAB0	0x00000000
+-#define   TAB1	0x00000800
+-#define   TAB2	0x00001000
+-#define   TAB3	0x00001800
+-#define   XTABS	0x00001800
+-#define BSDLY	0x00002000
+-#define   BS0	0x00000000
+-#define   BS1	0x00002000
+-#define VTDLY	0x00004000
+-#define   VT0	0x00000000
+-#define   VT1	0x00004000
+-#define FFDLY	0x00008000
+-#define   FF0	0x00000000
+-#define   FF1	0x00008000
+-#define PAGEOUT 0x00010000  /* SUNOS specific */
+-#define WRAP    0x00020000  /* SUNOS specific */
+-
+-/* c_cflag bit meaning */
+-#define CBAUD	  0x0000100f
+-#define  B0	  0x00000000   /* hang up */
+-#define  B50	  0x00000001
+-#define  B75	  0x00000002
+-#define  B110	  0x00000003
+-#define  B134	  0x00000004
+-#define  B150	  0x00000005
+-#define  B200	  0x00000006
+-#define  B300	  0x00000007
+-#define  B600	  0x00000008
+-#define  B1200	  0x00000009
+-#define  B1800	  0x0000000a
+-#define  B2400	  0x0000000b
+-#define  B4800	  0x0000000c
+-#define  B9600	  0x0000000d
+-#define  B19200	  0x0000000e
+-#define  B38400	  0x0000000f
+-#define EXTA      B19200
+-#define EXTB      B38400
+-#define  CSIZE    0x00000030
+-#define   CS5	  0x00000000
+-#define   CS6	  0x00000010
+-#define   CS7	  0x00000020
+-#define   CS8	  0x00000030
+-#define CSTOPB	  0x00000040
+-#define CREAD	  0x00000080
+-#define PARENB	  0x00000100
+-#define PARODD	  0x00000200
+-#define HUPCL	  0x00000400
+-#define CLOCAL	  0x00000800
+-#define CBAUDEX   0x00001000
+-#define  BOTHER   0x00001000
+-#define  B57600   0x00001001
+-#define  B115200  0x00001002
+-#define  B230400  0x00001003
+-#define  B460800  0x00001004
+-/* This is what we can do with the Zilogs. */
+-#define  B76800   0x00001005
+-/* This is what we can do with the SAB82532. */
+-#define  B153600  0x00001006
+-#define  B307200  0x00001007
+-#define  B614400  0x00001008
+-#define  B921600  0x00001009
+-/* And these are the rest... */
+-#define  B500000  0x0000100a
+-#define  B576000  0x0000100b
+-#define B1000000  0x0000100c
+-#define B1152000  0x0000100d
+-#define B1500000  0x0000100e
+-#define B2000000  0x0000100f
+-/* These have totally bogus values and nobody uses them
+-   so far. Later on we'd have to use say 0x10000x and
+-   adjust CBAUD constant and drivers accordingly.
+-#define B2500000  0x00001010
+-#define B3000000  0x00001011
+-#define B3500000  0x00001012
+-#define B4000000  0x00001013  */
+-#define CIBAUD	  0x100f0000  /* input baud rate (not used) */
+-#define CMSPAR    0x40000000  /* mark or space (stick) parity */
+-#define CRTSCTS	  0x80000000  /* flow control */
+-
+-#define IBSHIFT	  16		/* Shift from CBAUD to CIBAUD */
+-
+-/* c_lflag bits */
+-#define ISIG	0x00000001
+-#define ICANON	0x00000002
+-#define XCASE	0x00000004
+-#define ECHO	0x00000008
+-#define ECHOE	0x00000010
+-#define ECHOK	0x00000020
+-#define ECHONL	0x00000040
+-#define NOFLSH	0x00000080
+-#define TOSTOP	0x00000100
+-#define ECHOCTL	0x00000200
+-#define ECHOPRT	0x00000400
+-#define ECHOKE	0x00000800
+-#define DEFECHO 0x00001000  /* SUNOS thing, what is it? */
+-#define FLUSHO	0x00002000
+-#define PENDIN	0x00004000
+-#define IEXTEN	0x00008000
+-
+-/* modem lines */
+-#define TIOCM_LE	0x001
+-#define TIOCM_DTR	0x002
+-#define TIOCM_RTS	0x004
+-#define TIOCM_ST	0x008
+-#define TIOCM_SR	0x010
+-#define TIOCM_CTS	0x020
+-#define TIOCM_CAR	0x040
+-#define TIOCM_RNG	0x080
+-#define TIOCM_DSR	0x100
+-#define TIOCM_CD	TIOCM_CAR
+-#define TIOCM_RI	TIOCM_RNG
+-#define TIOCM_OUT1	0x2000
+-#define TIOCM_OUT2	0x4000
+-#define TIOCM_LOOP	0x8000
+-
+-/* ioctl (fd, TIOCSERGETLSR, &result) where result may be as below */
+-#define TIOCSER_TEMT    0x01	/* Transmitter physically empty */
+-
+-
+-/* tcflow() and TCXONC use these */
+-#define	TCOOFF		0
+-#define	TCOON		1
+-#define	TCIOFF		2
+-#define	TCION		3
+-
+-/* tcflush() and TCFLSH use these */
+-#define	TCIFLUSH	0
+-#define	TCOFLUSH	1
+-#define	TCIOFLUSH	2
+-
+-/* tcsetattr uses these */
+-#define	TCSANOW		0
+-#define	TCSADRAIN	1
+-#define	TCSAFLUSH	2
+-
+-#endif /* !(_SPARC64_TERMBITS_H) */
++#include <asm-sparc/termbits.h>
 -- 
 1.5.4.1.143.ge7e51
 
