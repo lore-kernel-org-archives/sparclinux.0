@@ -1,127 +1,48 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 13 Jun 2008 19:57:13 +0000
-Subject: [PATCH] sparc: Merge asm-sparc{,64}/mman.h
-Message-Id: <1213387042-9711-12-git-send-email-sam@ravnborg.org>
+Date: Sat, 28 Jun 2008 22:04:37 +0000
+Subject: [PATCH 05/25] sparc: Merge asm-sparc{,64}/poll.h
+Message-Id: <1214690697-4631-5-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Renaming the function sparc64_mmap_check() to
-sparc_mmap_check() was enough to make the two
-header files identical.
-
-$ diff -u include/asm-sparc/mman.h include/asm-sparc64/mman.h
--- include/asm-sparc/mman.h	2008-06-13 06:46:39.000000000 +0200
-++ include/asm-sparc64/mman.h	2008-06-13 06:46:39.000000000 +0200
-@@ -1,5 +1,5 @@
--#ifndef __SPARC_MMAN_H__
--#define __SPARC_MMAN_H__
-+#ifndef __SPARC64_MMAN_H__
-+#define __SPARC64_MMAN_H__
-
- #include <asm-generic/mman.h>
-
-@@ -23,9 +23,9 @@
-
- #ifdef __KERNEL__
- #ifndef __ASSEMBLY__
--#define arch_mmap_check(addr,len,flags)	sparc_mmap_check(addr,len)
--int sparc_mmap_check(unsigned long addr, unsigned long len);
-+#define arch_mmap_check(addr,len,flags)	sparc64_mmap_check(addr,len)
-+int sparc64_mmap_check(unsigned long addr, unsigned long len);
- #endif
- #endif
-
--#endif /* __SPARC_MMAN_H__ */
-+#endif /* __SPARC64_MMAN_H__ */
+:$ diff -u include/asm-sparc/poll.h include/asm-sparc64/poll.h
+:-- include/asm-sparc/poll.h	2008-06-13 06:42:07.000000000 +0200
+:++ include/asm-sparc64/poll.h	2008-06-13 06:42:07.000000000 +0200
+:@@ -1,5 +1,5 @@
+:-#ifndef __SPARC_POLL_H
+:-#define __SPARC_POLL_H
+:+#ifndef __SPARC64_POLL_H
+:+#define __SPARC64_POLL_H
+:
+: #define POLLWRNORM	POLLOUT
+: #define POLLWRBAND	256
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc64/kernel/sys_sparc.c   |    6 +++---
- arch/sparc64/kernel/sys_sparc32.c |    4 ++--
- include/asm-sparc64/mman.h        |   32 +-------------------------------
- 3 files changed, 6 insertions(+), 36 deletions(-)
+ include/asm-sparc64/poll.h |   13 +------------
+ 1 files changed, 1 insertions(+), 12 deletions(-)
 
-diff --git a/arch/sparc64/kernel/sys_sparc.c b/arch/sparc64/kernel/sys_sparc.c
-index ac1bff5..e1f4eba 100644
---- a/arch/sparc64/kernel/sys_sparc.c
-+++ b/arch/sparc64/kernel/sys_sparc.c
-@@ -542,7 +542,7 @@ asmlinkage long sparc64_personality(unsigned long personality)
- 	return ret;
- }
- 
--int sparc64_mmap_check(unsigned long addr, unsigned long len)
-+int sparc_mmap_check(unsigned long addr, unsigned long len)
- {
- 	if (test_thread_flag(TIF_32BIT)) {
- 		if (len >= STACK_TOP32)
-@@ -614,9 +614,9 @@ asmlinkage unsigned long sys64_mremap(unsigned long addr,
- 		goto out;
- 	if (unlikely(new_len >= VA_EXCLUDE_START))
- 		goto out;
--	if (unlikely(sparc64_mmap_check(addr, old_len)))
-+	if (unlikely(sparc_mmap_check(addr, old_len)))
- 		goto out;
--	if (unlikely(sparc64_mmap_check(new_addr, new_len)))
-+	if (unlikely(sparc_mmap_check(new_addr, new_len)))
- 		goto out;
- 
- 	down_write(&current->mm->mmap_sem);
-diff --git a/arch/sparc64/kernel/sys_sparc32.c b/arch/sparc64/kernel/sys_sparc32.c
-index 5906797..97b77fb 100644
---- a/arch/sparc64/kernel/sys_sparc32.c
-+++ b/arch/sparc64/kernel/sys_sparc32.c
-@@ -871,9 +871,9 @@ asmlinkage unsigned long sys32_mremap(unsigned long addr,
- 	unsigned long ret = -EINVAL;
- 	unsigned long new_addr = __new_addr;
- 
--	if (unlikely(sparc64_mmap_check(addr, old_len)))
-+	if (unlikely(sparc_mmap_check(addr, old_len)))
- 		goto out;
--	if (unlikely(sparc64_mmap_check(new_addr, new_len)))
-+	if (unlikely(sparc_mmap_check(new_addr, new_len)))
- 		goto out;
- 	down_write(&current->mm->mmap_sem);
- 	ret = do_mremap(addr, old_len, new_len, flags, new_addr);
-diff --git a/include/asm-sparc64/mman.h b/include/asm-sparc64/mman.h
-index d2ae67c..17ddb17 100644
---- a/include/asm-sparc64/mman.h
-+++ b/include/asm-sparc64/mman.h
-@@ -1,31 +1 @@
--#ifndef __SPARC64_MMAN_H__
--#define __SPARC64_MMAN_H__
+diff --git a/include/asm-sparc64/poll.h b/include/asm-sparc64/poll.h
+index ebeeb38..8e2f31b 100644
+--- a/include/asm-sparc64/poll.h
++++ b/include/asm-sparc64/poll.h
+@@ -1,12 +1 @@
+-#ifndef __SPARC64_POLL_H
+-#define __SPARC64_POLL_H
 -
--#include <asm-generic/mman.h>
+-#define POLLWRNORM	POLLOUT
+-#define POLLWRBAND	256
+-#define POLLMSG		512
+-#define POLLREMOVE	1024
+-#define POLLRDHUP       2048
 -
--/* SunOS'ified... */
+-#include <asm-generic/poll.h>
 -
--#define MAP_RENAME      MAP_ANONYMOUS   /* In SunOS terminology */
--#define MAP_NORESERVE   0x40            /* don't reserve swap pages */
--#define MAP_INHERIT     0x80            /* SunOS doesn't do this, but... */
--#define MAP_LOCKED      0x100           /* lock the mapping */
--#define _MAP_NEW        0x80000000      /* Binary compatibility is fun... */
--
--#define MAP_GROWSDOWN	0x0200		/* stack-like segment */
--#define MAP_DENYWRITE	0x0800		/* ETXTBSY */
--#define MAP_EXECUTABLE	0x1000		/* mark it as an executable */
--
--#define MCL_CURRENT     0x2000          /* lock all currently mapped pages */
--#define MCL_FUTURE      0x4000          /* lock all additions to address space */
--
--#define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
--#define MAP_NONBLOCK	0x10000		/* do not block on IO */
--
--#ifdef __KERNEL__
--#ifndef __ASSEMBLY__
--#define arch_mmap_check(addr,len,flags)	sparc64_mmap_check(addr,len)
--int sparc64_mmap_check(unsigned long addr, unsigned long len);
 -#endif
--#endif
--
--#endif /* __SPARC64_MMAN_H__ */
-+#include <asm-sparc/mman.h>
++#include <asm-sparc/poll.h>
 -- 
 1.5.4.1.143.ge7e51
 
