@@ -1,48 +1,56 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 28 Jun 2008 22:04:37 +0000
-Subject: [PATCH 05/25] sparc: Merge asm-sparc{,64}/poll.h
-Message-Id: <1214690697-4631-5-git-send-email-sam@ravnborg.org>
+Date: Sat, 28 Jun 2008 22:04:39 +0000
+Subject: [PATCH 07/25] sparc: Merge asm-sparc{,64}/sockios.h
+Message-Id: <1214690697-4631-7-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-:$ diff -u include/asm-sparc/poll.h include/asm-sparc64/poll.h
-:-- include/asm-sparc/poll.h	2008-06-13 06:42:07.000000000 +0200
-:++ include/asm-sparc64/poll.h	2008-06-13 06:42:07.000000000 +0200
+:$ diff -u include/asm-sparc/sockios.h include/asm-sparc64/sockios.h
+:-- include/asm-sparc/sockios.h	2008-06-13 06:42:07.000000000 +0200
+:++ include/asm-sparc64/sockios.h	2008-06-13 06:42:07.000000000 +0200
 :@@ -1,5 +1,5 @@
-:-#ifndef __SPARC_POLL_H
-:-#define __SPARC_POLL_H
-:+#ifndef __SPARC64_POLL_H
-:+#define __SPARC64_POLL_H
+:-#ifndef _ASM_SPARC_SOCKIOS_H
+:-#define _ASM_SPARC_SOCKIOS_H
+:+#ifndef _ASM_SPARC64_SOCKIOS_H
+:+#define _ASM_SPARC64_SOCKIOS_H
 :
-: #define POLLWRNORM	POLLOUT
-: #define POLLWRBAND	256
+: /* Socket-level I/O control calls. */
+: #define FIOSETOWN 	0x8901
+:@@ -10,5 +10,5 @@
+: #define SIOCGSTAMP	0x8906		/* Get stamp (timeval) */
+: #define SIOCGSTAMPNS	0x8907		/* Get stamp (timespec) */
+:
+:-#endif /* !(_ASM_SPARC_SOCKIOS_H) */
+:+#endif /* !(_ASM_SPARC64_SOCKIOS_H) */
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- include/asm-sparc64/poll.h |   13 +------------
- 1 files changed, 1 insertions(+), 12 deletions(-)
+ include/asm-sparc64/sockios.h |   15 +--------------
+ 1 files changed, 1 insertions(+), 14 deletions(-)
 
-diff --git a/include/asm-sparc64/poll.h b/include/asm-sparc64/poll.h
-index ebeeb38..8e2f31b 100644
---- a/include/asm-sparc64/poll.h
-+++ b/include/asm-sparc64/poll.h
-@@ -1,12 +1 @@
--#ifndef __SPARC64_POLL_H
--#define __SPARC64_POLL_H
+diff --git a/include/asm-sparc64/sockios.h b/include/asm-sparc64/sockios.h
+index c7d9900..2cb4b64 100644
+--- a/include/asm-sparc64/sockios.h
++++ b/include/asm-sparc64/sockios.h
+@@ -1,14 +1 @@
+-#ifndef _ASM_SPARC64_SOCKIOS_H
+-#define _ASM_SPARC64_SOCKIOS_H
 -
--#define POLLWRNORM	POLLOUT
--#define POLLWRBAND	256
--#define POLLMSG		512
--#define POLLREMOVE	1024
--#define POLLRDHUP       2048
+-/* Socket-level I/O control calls. */
+-#define FIOSETOWN 	0x8901
+-#define SIOCSPGRP	0x8902
+-#define FIOGETOWN	0x8903
+-#define SIOCGPGRP	0x8904
+-#define SIOCATMARK	0x8905
+-#define SIOCGSTAMP	0x8906		/* Get stamp (timeval) */
+-#define SIOCGSTAMPNS	0x8907		/* Get stamp (timespec) */
 -
--#include <asm-generic/poll.h>
+-#endif /* !(_ASM_SPARC64_SOCKIOS_H) */
 -
--#endif
-+#include <asm-sparc/poll.h>
++#include <asm-sparc/sockios.h>
 -- 
 1.5.4.1.143.ge7e51
 
