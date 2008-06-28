@@ -1,127 +1,148 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 28 Jun 2008 22:04:44 +0000
-Subject: [PATCH 12/25] sparc: Merge asm-sparc{,64}/mman.h
-Message-Id: <1214690697-4631-12-git-send-email-sam@ravnborg.org>
+Date: Sat, 28 Jun 2008 22:04:55 +0000
+Subject: [PATCH 23/25] sparc: when header files are equal use asm-sparc version
+Message-Id: <1214690697-4631-23-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Renaming the function sparc64_mmap_check() to
-sparc_mmap_check() was enough to make the two
-header files identical.
+Used the following script to find equal header files:
+SPARC64=`ls asm-sparc64`
+for FILE in ${SPARC64}; do
+	cmp -s asm-sparc/$FILE asm-sparc64/$FILE;
+	if [ $? = 0 ]; then
+		printf "#include <asm-sparc/%s>\n" $FILE > asm-sparc64/$FILE
+	fi
+done
 
-:$ diff -u include/asm-sparc/mman.h include/asm-sparc64/mman.h
-:-- include/asm-sparc/mman.h	2008-06-13 06:46:39.000000000 +0200
-:++ include/asm-sparc64/mman.h	2008-06-13 06:46:39.000000000 +0200
-:@@ -1,5 +1,5 @@
-:-#ifndef __SPARC_MMAN_H__
-:-#define __SPARC_MMAN_H__
-:+#ifndef __SPARC64_MMAN_H__
-:+#define __SPARC64_MMAN_H__
-:
-: #include <asm-generic/mman.h>
-:
-:@@ -23,9 +23,9 @@
-:
-: #ifdef __KERNEL__
-: #ifndef __ASSEMBLY__
-:-#define arch_mmap_check(addr,len,flags)	sparc_mmap_check(addr,len)
-:-int sparc_mmap_check(unsigned long addr, unsigned long len);
-:+#define arch_mmap_check(addr,len,flags)	sparc64_mmap_check(addr,len)
-:+int sparc64_mmap_check(unsigned long addr, unsigned long len);
-: #endif
-: #endif
-:
-:-#endif /* __SPARC_MMAN_H__ */
-:+#endif /* __SPARC64_MMAN_H__ */
+A few of the equal files are a simple include from
+asm-generic, but by including the file from asm-sparc
+we know they are equal for sparc and sparc64.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc64/kernel/sys_sparc.c   |    6 +++---
- arch/sparc64/kernel/sys_sparc32.c |    4 ++--
- include/asm-sparc64/mman.h        |   32 +-------------------------------
- 3 files changed, 6 insertions(+), 36 deletions(-)
+ include/asm-sparc64/irq_regs.h  |    2 +-
+ include/asm-sparc64/linkage.h   |    7 +------
+ include/asm-sparc64/mutex.h     |   10 +---------
+ include/asm-sparc64/rtc.h       |   27 +--------------------------
+ include/asm-sparc64/semaphore.h |    2 +-
+ include/asm-sparc64/vga.h       |   34 +---------------------------------
+ 6 files changed, 6 insertions(+), 76 deletions(-)
 
-diff --git a/arch/sparc64/kernel/sys_sparc.c b/arch/sparc64/kernel/sys_sparc.c
-index ac1bff5..e1f4eba 100644
---- a/arch/sparc64/kernel/sys_sparc.c
-+++ b/arch/sparc64/kernel/sys_sparc.c
-@@ -542,7 +542,7 @@ asmlinkage long sparc64_personality(unsigned long personality)
- 	return ret;
- }
- 
--int sparc64_mmap_check(unsigned long addr, unsigned long len)
-+int sparc_mmap_check(unsigned long addr, unsigned long len)
- {
- 	if (test_thread_flag(TIF_32BIT)) {
- 		if (len >= STACK_TOP32)
-@@ -614,9 +614,9 @@ asmlinkage unsigned long sys64_mremap(unsigned long addr,
- 		goto out;
- 	if (unlikely(new_len >= VA_EXCLUDE_START))
- 		goto out;
--	if (unlikely(sparc64_mmap_check(addr, old_len)))
-+	if (unlikely(sparc_mmap_check(addr, old_len)))
- 		goto out;
--	if (unlikely(sparc64_mmap_check(new_addr, new_len)))
-+	if (unlikely(sparc_mmap_check(new_addr, new_len)))
- 		goto out;
- 
- 	down_write(&current->mm->mmap_sem);
-diff --git a/arch/sparc64/kernel/sys_sparc32.c b/arch/sparc64/kernel/sys_sparc32.c
-index 5906797..97b77fb 100644
---- a/arch/sparc64/kernel/sys_sparc32.c
-+++ b/arch/sparc64/kernel/sys_sparc32.c
-@@ -871,9 +871,9 @@ asmlinkage unsigned long sys32_mremap(unsigned long addr,
- 	unsigned long ret = -EINVAL;
- 	unsigned long new_addr = __new_addr;
- 
--	if (unlikely(sparc64_mmap_check(addr, old_len)))
-+	if (unlikely(sparc_mmap_check(addr, old_len)))
- 		goto out;
--	if (unlikely(sparc64_mmap_check(new_addr, new_len)))
-+	if (unlikely(sparc_mmap_check(new_addr, new_len)))
- 		goto out;
- 	down_write(&current->mm->mmap_sem);
- 	ret = do_mremap(addr, old_len, new_len, flags, new_addr);
-diff --git a/include/asm-sparc64/mman.h b/include/asm-sparc64/mman.h
-index d2ae67c..17ddb17 100644
---- a/include/asm-sparc64/mman.h
-+++ b/include/asm-sparc64/mman.h
-@@ -1,31 +1 @@
--#ifndef __SPARC64_MMAN_H__
--#define __SPARC64_MMAN_H__
+diff --git a/include/asm-sparc64/irq_regs.h b/include/asm-sparc64/irq_regs.h
+index 3dd9c0b..1e2b8a1 100644
+--- a/include/asm-sparc64/irq_regs.h
++++ b/include/asm-sparc64/irq_regs.h
+@@ -1 +1 @@
+-#include <asm-generic/irq_regs.h>
++#include <asm-sparc/irq_regs.h>
+diff --git a/include/asm-sparc64/linkage.h b/include/asm-sparc64/linkage.h
+index 291c2d0..3ea4fd1 100644
+--- a/include/asm-sparc64/linkage.h
++++ b/include/asm-sparc64/linkage.h
+@@ -1,6 +1 @@
+-#ifndef __ASM_LINKAGE_H
+-#define __ASM_LINKAGE_H
 -
--#include <asm-generic/mman.h>
+-/* Nothing to see here... */
 -
--/* SunOS'ified... */
--
--#define MAP_RENAME      MAP_ANONYMOUS   /* In SunOS terminology */
--#define MAP_NORESERVE   0x40            /* don't reserve swap pages */
--#define MAP_INHERIT     0x80            /* SunOS doesn't do this, but... */
--#define MAP_LOCKED      0x100           /* lock the mapping */
--#define _MAP_NEW        0x80000000      /* Binary compatibility is fun... */
--
--#define MAP_GROWSDOWN	0x0200		/* stack-like segment */
--#define MAP_DENYWRITE	0x0800		/* ETXTBSY */
--#define MAP_EXECUTABLE	0x1000		/* mark it as an executable */
--
--#define MCL_CURRENT     0x2000          /* lock all currently mapped pages */
--#define MCL_FUTURE      0x4000          /* lock all additions to address space */
--
--#define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
--#define MAP_NONBLOCK	0x10000		/* do not block on IO */
--
--#ifdef __KERNEL__
--#ifndef __ASSEMBLY__
--#define arch_mmap_check(addr,len,flags)	sparc64_mmap_check(addr,len)
--int sparc64_mmap_check(unsigned long addr, unsigned long len);
 -#endif
--#endif
++#include <asm-sparc/linkage.h>
+diff --git a/include/asm-sparc64/mutex.h b/include/asm-sparc64/mutex.h
+index 458c1f7..c0c0f8f 100644
+--- a/include/asm-sparc64/mutex.h
++++ b/include/asm-sparc64/mutex.h
+@@ -1,9 +1 @@
+-/*
+- * Pull in the generic implementation for the mutex fastpath.
+- *
+- * TODO: implement optimized primitives instead, or leave the generic
+- * implementation in place, or pick the atomic_xchg() based generic
+- * implementation. (see asm-generic/mutex-xchg.h for details)
+- */
 -
--#endif /* __SPARC64_MMAN_H__ */
-+#include <asm-sparc/mman.h>
+-#include <asm-generic/mutex-dec.h>
++#include <asm-sparc/mutex.h>
+diff --git a/include/asm-sparc64/rtc.h b/include/asm-sparc64/rtc.h
+index f9ecb1f..e49a968 100644
+--- a/include/asm-sparc64/rtc.h
++++ b/include/asm-sparc64/rtc.h
+@@ -1,26 +1 @@
+-/*
+- * rtc.h: Definitions for access to the Mostek real time clock
+- *
+- * Copyright (C) 1996 Thomas K. Dyas (tdyas@eden.rutgers.edu)
+- */
+-
+-#ifndef _RTC_H
+-#define _RTC_H
+-
+-#include <linux/ioctl.h>
+-
+-struct rtc_time
+-{
+-	int	sec;	/* Seconds (0-59) */
+-	int	min;	/* Minutes (0-59) */
+-	int	hour;	/* Hour (0-23) */
+-	int	dow;	/* Day of the week (1-7) */
+-	int	dom;	/* Day of the month (1-31) */
+-	int	month;	/* Month of year (1-12) */
+-	int	year;	/* Year (0-99) */
+-};
+-
+-#define RTCGET _IOR('p', 20, struct rtc_time)
+-#define RTCSET _IOW('p', 21, struct rtc_time)
+-
+-#endif
++#include <asm-sparc/rtc.h>
+diff --git a/include/asm-sparc64/semaphore.h b/include/asm-sparc64/semaphore.h
+index d9b2034..39362af 100644
+--- a/include/asm-sparc64/semaphore.h
++++ b/include/asm-sparc64/semaphore.h
+@@ -1 +1 @@
+-#include <linux/semaphore.h>
++#include <asm-sparc/semaphore.h>
+diff --git a/include/asm-sparc64/vga.h b/include/asm-sparc64/vga.h
+index c69d5b2..fbf4d58 100644
+--- a/include/asm-sparc64/vga.h
++++ b/include/asm-sparc64/vga.h
+@@ -1,33 +1 @@
+-/*
+- *	Access to VGA videoram
+- *
+- *	(c) 1998 Martin Mares <mj@ucw.cz>
+- */
+-
+-#ifndef _LINUX_ASM_VGA_H_
+-#define _LINUX_ASM_VGA_H_
+-
+-#include <asm/types.h>
+-
+-#define VT_BUF_HAVE_RW
+-
+-#undef scr_writew
+-#undef scr_readw
+-
+-static inline void scr_writew(u16 val, u16 *addr)
+-{
+-	BUG_ON((long) addr >= 0);
+-
+-	*addr = val;
+-}
+-
+-static inline u16 scr_readw(const u16 *addr)
+-{
+-	BUG_ON((long) addr >= 0);
+-
+-	return *addr;
+-}
+-
+-#define VGA_MAP_MEM(x,s) (x)
+-
+-#endif
++#include <asm-sparc/vga.h>
 -- 
 1.5.4.1.143.ge7e51
 
