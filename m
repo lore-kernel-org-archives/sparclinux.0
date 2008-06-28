@@ -1,112 +1,116 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 28 Jun 2008 22:04:40 +0000
-Subject: [PATCH 08/25] sparc: Merge asm-sparc{,64}/fcntl.h
-Message-Id: <1214690697-4631-8-git-send-email-sam@ravnborg.org>
+Date: Sat, 28 Jun 2008 22:04:51 +0000
+Subject: [PATCH 19/25] sparc: Merge asm-sparc{,64}/types.h
+Message-Id: <1214690697-4631-19-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-The definition of O_NDELAY differed - the rest was equal
-
-:$ diff -u include/asm-sparc/fcntl.h include/asm-sparc64/fcntl.h
-:-- include/asm-sparc/fcntl.h	2008-06-13 06:46:39.000000000 +0200
-:++ include/asm-sparc64/fcntl.h	2008-06-13 06:46:39.000000000 +0200
-:@@ -1,8 +1,9 @@
-:-#ifndef _SPARC_FCNTL_H
-:-#define _SPARC_FCNTL_H
-:+#ifndef _SPARC64_FCNTL_H
-:+#define _SPARC64_FCNTL_H
-:
-: /* open/fcntl - O_SYNC is only implemented on blocks devices and on files
-:    located on an ext2 file system */
-:+#define O_NDELAY	0x0004
-: #define O_APPEND	0x0008
-: #define FASYNC		0x0040	/* fcntl, for BSD compatibility */
-: #define O_CREAT		0x0200	/* not fcntl */
-:@@ -10,7 +11,6 @@
-: #define O_EXCL		0x0800	/* not fcntl */
-: #define O_SYNC		0x2000
-: #define O_NONBLOCK	0x4000
-:-#define O_NDELAY	(0x0004 | O_NONBLOCK)
-: #define O_NOCTTY	0x8000	/* not fcntl */
-: #define O_LARGEFILE	0x40000
-: #define O_DIRECT        0x100000 /* direct disk access hint */
-:@@ -29,8 +29,7 @@
-: #define F_UNLCK		3
-:
-: #define __ARCH_FLOCK_PAD	short __unused;
-:-#define __ARCH_FLOCK64_PAD	short __unused;
-:
-: #include <asm-generic/fcntl.h>
-:
-:-#endif
-:+#endif /* !(_SPARC64_FCNTL_H) */
+Copy content of sparc64 file to sparc file.
+There is only minimal possibilities for further unification.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- include/asm-sparc/fcntl.h   |    4 ++++
- include/asm-sparc64/fcntl.h |   36 +-----------------------------------
- 2 files changed, 5 insertions(+), 35 deletions(-)
+ include/asm-sparc/types.h   |   32 +++++++++++++++++++++++++++++++-
+ include/asm-sparc64/types.h |   35 +----------------------------------
+ 2 files changed, 32 insertions(+), 35 deletions(-)
 
-diff --git a/include/asm-sparc/fcntl.h b/include/asm-sparc/fcntl.h
-index 07bd2d8..d4d9c9d 100644
---- a/include/asm-sparc/fcntl.h
-+++ b/include/asm-sparc/fcntl.h
-@@ -10,7 +10,11 @@
- #define O_EXCL		0x0800	/* not fcntl */
- #define O_SYNC		0x2000
- #define O_NONBLOCK	0x4000
+diff --git a/include/asm-sparc/types.h b/include/asm-sparc/types.h
+index 07734f9..8c28fde 100644
+--- a/include/asm-sparc/types.h
++++ b/include/asm-sparc/types.h
+@@ -1,6 +1,5 @@
+ #ifndef _SPARC_TYPES_H
+ #define _SPARC_TYPES_H
+-
+ /*
+  * This file is never included by application software unless
+  * explicitly requested (e.g., via linux/types.h) in which case the
+@@ -8,6 +7,35 @@
+  * not a major issue.  However, for interoperability, libraries still
+  * need to be careful to avoid a name clashes.
+  */
++
 +#if defined(__sparc__) && defined(__arch64__)
-+#define O_NDELAY	0x0004
++
++/*** SPARC 64 bit ***/
++#include <asm-generic/int-l64.h>
++
++#ifndef __ASSEMBLY__
++
++typedef unsigned short umode_t;
++
++#endif /* __ASSEMBLY__ */
++
++#ifdef __KERNEL__
++
++#define BITS_PER_LONG 64
++
++#ifndef __ASSEMBLY__
++
++/* Dma addresses come in generic and 64-bit flavours.  */
++
++typedef u32 dma_addr_t;
++typedef u64 dma64_addr_t;
++
++#endif /* __ASSEMBLY__ */
++
++#endif /* __KERNEL__ */
 +#else
- #define O_NDELAY	(0x0004 | O_NONBLOCK)
-+#endif
- #define O_NOCTTY	0x8000	/* not fcntl */
- #define O_LARGEFILE	0x40000
- #define O_DIRECT        0x100000 /* direct disk access hint */
-diff --git a/include/asm-sparc64/fcntl.h b/include/asm-sparc64/fcntl.h
-index 8a09ca7..8b1beae 100644
---- a/include/asm-sparc64/fcntl.h
-+++ b/include/asm-sparc64/fcntl.h
-@@ -1,35 +1 @@
--#ifndef _SPARC64_FCNTL_H
--#define _SPARC64_FCNTL_H
++
++/*** SPARC 32 bit ***/
+ #include <asm-generic/int-ll64.h>
+ 
+ #ifndef __ASSEMBLY__
+@@ -29,4 +57,6 @@ typedef u32 dma64_addr_t;
+ 
+ #endif /* __KERNEL__ */
+ 
++#endif /* defined(__sparc__) && defined(__arch64__) */
++
+ #endif /* defined(_SPARC_TYPES_H) */
+diff --git a/include/asm-sparc64/types.h b/include/asm-sparc64/types.h
+index b27ccc8..cfbfad5 100644
+--- a/include/asm-sparc64/types.h
++++ b/include/asm-sparc64/types.h
+@@ -1,34 +1 @@
+-#ifndef _SPARC64_TYPES_H
+-#define _SPARC64_TYPES_H
 -
--/* open/fcntl - O_SYNC is only implemented on blocks devices and on files
--   located on an ext2 file system */
--#define O_NDELAY	0x0004
--#define O_APPEND	0x0008
--#define FASYNC		0x0040	/* fcntl, for BSD compatibility */
--#define O_CREAT		0x0200	/* not fcntl */
--#define O_TRUNC		0x0400	/* not fcntl */
--#define O_EXCL		0x0800	/* not fcntl */
--#define O_SYNC		0x2000
--#define O_NONBLOCK	0x4000
--#define O_NOCTTY	0x8000	/* not fcntl */
--#define O_LARGEFILE	0x40000
--#define O_DIRECT        0x100000 /* direct disk access hint */
--#define O_NOATIME	0x200000
--#define O_CLOEXEC	0x400000
+-/*
+- * This file is never included by application software unless
+- * explicitly requested (e.g., via linux/types.h) in which case the
+- * application is Linux specific so (user-) name space pollution is
+- * not a major issue.  However, for interoperability, libraries still
+- * need to be careful to avoid a name clashes.
+- */
+-#include <asm-generic/int-l64.h>
 -
--#define F_GETOWN	5	/*  for sockets. */
--#define F_SETOWN	6	/*  for sockets. */
--#define F_GETLK		7
--#define F_SETLK		8
--#define F_SETLKW	9
+-#ifndef __ASSEMBLY__
 -
--/* for posix fcntl() and lockf() */
--#define F_RDLCK		1
--#define F_WRLCK		2
--#define F_UNLCK		3
+-typedef unsigned short umode_t;
 -
--#define __ARCH_FLOCK_PAD	short __unused;
+-#endif /* __ASSEMBLY__ */
 -
--#include <asm-generic/fcntl.h>
+-#ifdef __KERNEL__
 -
--#endif /* !(_SPARC64_FCNTL_H) */
-+#include <asm-sparc/fcntl.h>
+-#define BITS_PER_LONG 64
+-
+-#ifndef __ASSEMBLY__
+-
+-/* Dma addresses come in generic and 64-bit flavours.  */
+-
+-typedef u32 dma_addr_t;
+-typedef u64 dma64_addr_t;
+-
+-#endif /* __ASSEMBLY__ */
+-
+-#endif /* __KERNEL__ */
+-
+-#endif /* defined(_SPARC64_TYPES_H) */
++#include <asm-sparc/types.h>
 -- 
 1.5.4.1.143.ge7e51
 
