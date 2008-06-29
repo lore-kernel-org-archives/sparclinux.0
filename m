@@ -1,25 +1,25 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 28 Jun 2008 22:29:02 +0000
+Date: Sun, 29 Jun 2008 06:27:22 +0000
 Subject: Re: [GIT PULL] unify sparc header files
-Message-Id: <20080628222902.GA7461@uranus.ravnborg.org>
+Message-Id: <20080629062722.GA29518@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080628220235.GA3169@uranus.ravnborg.org>
 In-Reply-To: <20080628220235.GA3169@uranus.ravnborg.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-> 
-> Note:
-> 406 files changed, 1986 insertions(+), 26505 deletions(-)
-> This is wrong - we do not end up with 26505 less lines.
-> Seems that git diff forget to add lines for copied files.
+Two patches did not get through due to size limts.
 
-Tried to upgrade git and now I got:
-406 files changed, 977 insertions(+), 26508 deletions(-)
+Patch 22/25 can be found here:
+("sparc: copy sparc64 specific files to asm-sparc")
+http://git.kernel.org/?p=3Dlinux/kernel/git/sam/sparc.git;a=3Dcommit;h=C9a5=
+81d35f7136924ed6b8fb626f2b880de534af
 
-So slightly different numbers - I did not dig into why.
-But the "insertions" count seem still too low.
+Patch 25/25 can be found here:
+("sparc: join the remaining header files")
+http://git.kernel.org/?p=3Dlinux/kernel/git/sam/sparc.git;a=3Dcommit;h=F34e=
+2592c6e66295320083a1bb860e99acb2a769
 
 	Sam
