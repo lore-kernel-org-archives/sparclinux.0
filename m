@@ -1,25 +1,34 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 29 Jun 2008 06:27:22 +0000
+From: Adrian Bunk <bunk@kernel.org>
+Date: Mon, 30 Jun 2008 19:49:47 +0000
 Subject: Re: [GIT PULL] unify sparc header files
-Message-Id: <20080629062722.GA29518@uranus.ravnborg.org>
+Message-Id: <20080630194947.GD1536@cs181140183.pp.htv.fi>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080628220235.GA3169@uranus.ravnborg.org>
 In-Reply-To: <20080628220235.GA3169@uranus.ravnborg.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Two patches did not get through due to size limts.
+On Sun, Jun 29, 2008 at 12:02:35AM +0200, Sam Ravnborg wrote:
+>...
+> When we are this far we should aim at unifying the obvious header file
+> candidates and Adrian's old patches is a first step here (but they
+> need to be adjusted a little).
+>...
 
-Patch 22/25 can be found here:
-("sparc: copy sparc64 specific files to asm-sparc")
-http://git.kernel.org/?p=3Dlinux/kernel/git/sam/sparc.git;a=3Dcommit;h=C9a5=
-81d35f7136924ed6b8fb626f2b880de534af
+As soon as David applies them I'll work on this.
 
-Patch 25/25 can be found here:
-("sparc: join the remaining header files")
-http://git.kernel.org/?p=3Dlinux/kernel/git/sam/sparc.git;a=3Dcommit;h=F34e=
-2592c6e66295320083a1bb860e99acb2a769
+> 	Sam
+>...
 
-	Sam
+cu
+Adrian
+
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
+
