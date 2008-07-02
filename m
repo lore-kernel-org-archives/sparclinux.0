@@ -1,24 +1,64 @@
-From: Alexander Beregalov <a.beregalov@gmail.com>
-Date: Tue, 29 Jul 2008 18:03:21 +0000
-Subject: Re: sparc64 build failure at iommu.c
-Message-Id: <20080729180321.GB32295@orion>
+From: Mikulas Patocka <mpatocka@redhat.com>
+Date: Wed, 02 Jul 2008 04:39:35 +0000
+Subject: Re: [10 PATCHES] inline functions to avoid stack overflow
+Message-Id: <Pine.LNX.4.64.0807020032510.19403@engineering.redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080729175418.GA32295@orion>
-In-Reply-To: <20080729175418.GA32295@orion>
+References: <Pine.LNX.4.64.0806240136200.27784@engineering.redhat.com>
+ <486216E7.8000002@aitel.hist.no> <Pine.LNX.4.64.0806250843460.20379@engineering.redhat.com>
+ <20080625.150931.182895076.davem@davemloft.net>
+In-Reply-To: <20080625.150931.182895076.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: helge.hafting@aitel.hist.no, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, gcc@gcc.gnu.org
 
-On Tue, Jul 29, 2008 at 09:54:18PM +0400, Alexander Beregalov wrote:
-> Hi
-> 
-> It is double declaration.
-> Kernel version is 2.6.27-rc1
-> 
-> In file included from arch/sparc64/kernel/iommu.c:21:
-> arch/sparc64/kernel/iommu_common.h:40: error: static declaration of
-> 'iommu_num_pages' follows non-static declaration
-> include/linux/iommu-helper.h:11: error: previous declaration of
-> 'iommu_num_pages' was here
-It is duplicated bug report, sorry.
+
+
+On Wed, 25 Jun 2008, David Miller wrote:
+
+> From: Mikulas Patocka <mpatocka@redhat.com>
+> Date: Wed, 25 Jun 2008 08:53:10 -0400 (EDT)
+>
+>> Even worse, gcc doesn't use these additional bytes. If you try this:
+>>
+>> extern void f(int *i);
+>> void g()
+>> {
+>>          int a;
+>>          f(&a);
+>> }
+>>
+>> , it allocates additional 16 bytes for the variable "a" (so there's total
+>> 208 bytes), even though it could place the variable into 48-byte
+>> ABI-mandated area that it inherited from the caller or into it's own
+>> 16-byte padding that it made when calling "f".
+>
+> The extra 16 bytes of space allocated is so that GCC can perform a
+> secondary reload of a quad floating point value.  It always has to be
+> present, because we can't satisfy a secondary reload by emitting yet
+> another reload, it's the end of the possible level of recursions
+> allowed by the reload pass.
+>
+> GCC could be smart and eliminate that slot when it's not used, but
+> such a thing is not implemented yet.
+>
+> It would also require quite a bit of new code to determine cases
+> like you mention above, where the incoming arg slots from the
+> caller are unused, assuming this would be legal.
+>
+> And that legality is doubtful.  We'd need to be careful because I
+> think the caller is allowed to assume that those slots are untouched
+> by the callee, and thus can be assumed to have whatever values the
+> caller put there even after the callee returns.
+
+The ABI is very vague about it. The V9 ABI just displays that 6-word space 
+in a figure bug doesn't say anything about it's usage. The V8 ABI just 
+says that "the function may write incoming arguments there". If it may 
+write anything other, it is unknown --- probably yes, but it is not said 
+in the document.
+
+The document nicely specifies who owns which registers, but doesn't say 
+that about the stack space :-(
+
+Mikulas
