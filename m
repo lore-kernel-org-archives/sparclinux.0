@@ -1,7 +1,7 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 03 Jul 2008 13:45:10 +0000
+From: Adrian Bunk <bunk@kernel.org>
+Date: Thu, 03 Jul 2008 20:02:07 +0000
 Subject: Re: [GIT PULL] unify sparc header files
-Message-Id: <20080703134510.GA29090@uranus.ravnborg.org>
+Message-Id: <20080703200207.GA12632@cs181140183.pp.htv.fi>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080628220235.GA3169@uranus.ravnborg.org>
 In-Reply-To: <20080628220235.GA3169@uranus.ravnborg.org>
@@ -32,12 +32,6 @@ On Thu, Jul 03, 2008 at 01:12:53AM -0700, David Miller wrote:
 > Unfortunately, this explodes.  I wonder what your build
 > environment was when testing this with on sparc64, because
 > I can't see how this could possibly work.
-
-Hmmm, I have a crosstool build sparc64 toolchain.
-And I did do a defconfig build for each patch applied for both
-sparc and spac64. But despite this something is obviously bad.
-I will look at it later this week as time permits.
-
 > 
 > In file included from include/asm-sparc/page.h:6,
 >                  from include/asm/page.h:1,
@@ -47,9 +41,20 @@ I will look at it later this week as time permits.
 > When we run vmlinux.lds.S through CPP, it undefines things like
 > "sparc" with the '-Usparc -Usparc64' options that get passed in.
 > So the ifdef tests in asm-sparc/page.h do not work.
-> 
-> Is it expected that this will only build with your kbuild bits
-> pulled in too?
-Nope - it is independent of that.
+>...
 
-	Sam
+It also builds for me (gcc 4.3.1) since -Usparc is not -U__sparc__
+(if I add the latter I get your build error).
+
+Did gcc's behavior change in this area?
+
+cu
+Adrian
+
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
+
