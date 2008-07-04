@@ -1,28 +1,74 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 30 Jul 2008 06:42:17 +0000
-Subject: Re: [PATCH] sparc: merge of_platform_{32,64}.h
-Message-Id: <20080729.234217.93335312.davem@davemloft.net>
+From: "Alexander Beregalov" <a.beregalov@gmail.com>
+Date: Fri, 04 Jul 2008 12:20:32 +0000
+Subject: next-0704: sparc64: build failure at arch/sparc64/kernel/sysfs.c
+Message-Id: <a4423d670807040520v7604782crd209d64aad9343ff@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080730145913.10c124a9.sfr@au.ibm.com>
-In-Reply-To: <20080730145913.10c124a9.sfr@au.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sfr@au1.ibm.com
-Cc: wli@holomorphy.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, Andi Kleen <andi@firstfloor.org>, Greg Kroah-Hartman <gregkh@suse.de>, sparclinux@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-next@vger.kernel.org
 
-From: Stephen Rothwell <sfr@au1.ibm.com>
-Date: Wed, 30 Jul 2008 14:59:13 +1000
+Hi
 
-> The only difference between these files is that the 64 bit version has an
-> extra declaration.
-> 
-> Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+cc1: warnings being treated as errors
+arch/sparc64/kernel/sysfs.c:160: error: initialization from
+incompatible pointer type
+arch/sparc64/kernel/sysfs.c:160: error: initialization from
+incompatible pointer type
+arch/sparc64/kernel/sysfs.c:205: error: initialization from
+incompatible pointer type
+arch/sparc64/kernel/sysfs.c:206: error: initialization from
+incompatible pointer type
+arch/sparc64/kernel/sysfs.c:207: error: initialization from
+incompatible pointer type
+arch/sparc64/kernel/sysfs.c:208: error: initialization from
+incompatible pointer type
+arch/sparc64/kernel/sysfs.c:209: error: initialization from
+incompatible pointer type
+arch/sparc64/kernel/sysfs.c:210: error: initialization from
+incompatible pointer type
+arch/sparc64/kernel/sysfs.c:211: error: initialization from
+incompatible pointer type
 
-The isa_bus_type is a vestige which I forgot to delete when I
-removed the ISA bus layer from sparc and sparc64.  It can be
-safely deleted.
+I think it is connected to
 
-I'm going to kill it, then rework your patch to go on top of that.
+commit 5b01a6a61c48d8e6ab4679d6e6208f5962d07b85
+Author: Andi Kleen <andi@firstfloor.org>
+Date:   Tue Jul 1 18:48:41 2008 +0200
 
-Thanks!
+    sysdev: Pass the attribute to the low level sysdev show/store function
+
+    This allow to dynamically generate attributes and share show/store
+    functions between attributes. Right now most attributes are generated
+    by special macros and lots of duplicated code. With the attribute
+    passed it's instead possible to attach some data to the attribute
+    and then use that in shared low level functions to do different things.
+
+    I need this for the dynamically generated bank attributes in the x86
+    machine check code, but it'll allow some further cleanups.
+
+    I converted all users in tree to the new show/store prototype. It's a single
+    huge patch to avoid unbisectable sections.
+
+    Runtime tested: x86-32, x86-64
+    Compiled only: ia64, powerpc
+    Not compile tested/only grep converted: sh, arm, avr32
+
+    Signed-off-by: Andi Kleen <ak@linux.intel.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
+diff --git a/arch/sparc64/kernel/sysfs.c b/arch/sparc64/kernel/sysfs.c
+index e885034..b057bc1 100644
+--- a/arch/sparc64/kernel/sysfs.c
++++ b/arch/sparc64/kernel/sysfs.c
+@@ -14,7 +14,8 @@
+ static DEFINE_PER_CPU(struct hv_mmu_statistics, mmu_stats)
+__attribute__((aligned(64)));
+
+ #define SHOW_MMUSTAT_ULONG(NAME) \
+-static ssize_t show_##NAME(struct sys_device *dev, char *buf) \
++static ssize_t show_##NAME(struct sys_device *dev, \
++                       struct sysdev_attribute *attr, char *buf) \
+ { \
+        struct hv_mmu_statistics *p = &per_cpu(mmu_stats, dev->id); \
+        return sprintf(buf, "%lu\n", p->NAME); \
