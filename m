@@ -1,39 +1,56 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Mon, 14 Jul 2008 04:33:22 +0000
-Subject: Re: Remove init_mm export as planned for 2.6.26
-Message-Id: <20080713213322.f9f5550e.akpm@linux-foundation.org>
+From: Randy Dunlap <rdunlap@xenotime.net>
+Date: Wed, 09 Jul 2008 20:48:44 +0000
+Subject: [PATCH] sparc64: Config category "Processor type and features"
+Message-Id: <20080709134844.ab7c559f.rdunlap@xenotime.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080711201959.GA1007@redhat.com>
-	<20080711193046.89b4b68a.akpm@linux-foundation.org>
-	<20080714023709.GA12795@infradead.org>
-In-Reply-To: <20080714023709.GA12795@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Dave Jones <davej@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Linux Kernel <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Sun, 13 Jul 2008 22:37:09 -0400 Christoph Hellwig <hch@infradead.org> wrote:
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-> On Fri, Jul 11, 2008 at 07:30:46PM -0700, Andrew Morton wrote:
-> > > -EXPORT_UNUSED_SYMBOL(init_mm); /* will be removed in 2.6.26 */
-> > >  
-> > >  /*
-> > >   * Initial thread structure.
-> > > 
-> > 
-> > grep -r init_mm include/asm-sparc64
-> > 
-> > This patch used to break stuff.  I'm not aware that anything was done
-> > to prevent this.
-> 
-> Dave's patch only unexprts it on x86, which per defintion can't break
-> sparc64 which is known to need this export.
+kernel bugzilla #11059:
 
-What, you want beauty _and_ reading comprehension?
+sparc64 config menu is missing "Processor type and features",
+so add that and move General Setup before Processor menu.
 
->  It would be nice if someone
-> could do a little audit which architectures require it in addition to
-> sparc64 and remove it fromm all others.
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+---
+ arch/sparc64/Kconfig |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-Yup.  afaik sparc64 is the only one.
+--- linux-next-20080709.orig/arch/sparc64/Kconfig
++++ linux-next-20080709/arch/sparc64/Kconfig
+@@ -81,6 +81,10 @@ config GENERIC_HARDIRQS_NO__DO_IRQ
+ 	bool
+ 	def_bool y
+ 
++source "init/Kconfig"
++
++menu "Processor type and features"
++
+ choice
+ 	prompt "Kernel page size"
+ 	default SPARC64_PAGE_SIZE_8KB
+@@ -128,14 +132,10 @@ config HOTPLUG_CPU
+ 	  can be controlled through /sys/devices/system/cpu/cpu#.
+ 	  Say N if you want to disable CPU hotplug.
+ 
+-source "init/Kconfig"
+-
+ config GENERIC_HARDIRQS
+ 	bool
+ 	default y
+ 
+-menu "General machine setup"
+-
+ source "kernel/time/Kconfig"
+ 
+ config SMP
+
+
+---
+~Randy
+Linux Plumbers Conference, 17-19 September 2008, Portland, Oregon USA
+http://linuxplumbersconf.org/
