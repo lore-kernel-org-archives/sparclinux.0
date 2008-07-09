@@ -1,21 +1,65 @@
-From: "Alexander Beregalov" <a.beregalov@gmail.com>
-Date: Mon, 07 Jul 2008 15:59:04 +0000
-Subject: Re: 2.6.26-rc: SPARC: Sun Ultra 10 can not boot
-Message-Id: <a4423d670807070859y74f529b5i60f04e0a37a01cd3@mail.gmail.com>
+From: Randy Dunlap <rdunlap@xenotime.net>
+Date: Wed, 09 Jul 2008 17:55:04 +0000
+Subject: Re: [Bugme-new] [Bug 11059] New: Config category
+Message-Id: <20080709105504.9be98ee7.rdunlap@xenotime.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080620.162135.203810660.davem@davemloft.net>
-	 <a4423d670806201636n4f3d107bk290ed831eb5eefb4@mail.gmail.com>
-	 <a4423d670807070219s2dd43aaia29713f5076ecd0d@mail.gmail.com>
-	 <20080707.040126.178187777.davem@davemloft.net>
-	 <18546.5247.797478.66373@harpo.it.uu.se>
-In-Reply-To: <18546.5247.797478.66373@harpo.it.uu.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mikael Pettersson <mikpe@it.uu.se>
-Cc: David Miller <davem@davemloft.net>, kernel-testers@vger.kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-I have turned off LOCKDEP and it boots properly.
-2.6.26-rc9-00005-g1b40a89
+On Wed,  9 Jul 2008 01:23:04 -0700 (PDT) bugme-daemon@bugzilla.kernel.org wrote:
 
-Mikael's config also does not contain LOCKDEP.
+> http://bugzilla.kernel.org/show_bug.cgi?id059
+> 
+>            Summary: Config category "Processor type and features" absent
+>            Product: Platform Specific/Hardware
+>            Version: 2.5
+>      KernelVersion: 2.6.25.10
+>           Platform: All
+>         OS/Version: Linux
+>               Tree: Mainline
+>             Status: NEW
+>           Severity: normal
+>           Priority: P1
+>          Component: SPARC64
+>         AssignedTo: platform_sparc64@kernel-bugs.osdl.org
+>         ReportedBy: linux0@ivs.selfip.org
+> 
+> 
+> On x86, this problem can be reproduced by giving
+> ARCH=sparc64
+> as a parameter to 'make'. as in:
+> make ARCH=sparc64 xconfig
+> 
+> Distribution: Debian Etch (4)
+> Hardware Environment:
+> Ultra 80
+> TI UltraSparc II  (BlackBird)
+> 
+> Software Environment:
+> gcc (GCC) 4.1.2 20061115 (prerelease) (Debian 4.1.1-21)
+> libc6 2.3.6.dsl-13
+> 
+> Problem Description:
+> when doing
+> make ARCH=sparc64 xconfig
+> Configuration category "Processor type and features" is absent and all items
+> which would be it's contents appear at the top level.
+> 
+> Steps to reproduce:
+> make ARCH=sparc64 xconfig
+> or 
+> make ARCH=sparc64 menuconfig
+> specifying ARCH is not necessary when actually on a SPARC.
+
+
+
+I have posted one possible patch for this at
+http://bugzilla.kernel.org/attachment.cgi?id771&action=view
+
+
+---
+~Randy
+Linux Plumbers Conference, 17-19 September 2008, Portland, Oregon USA
+http://linuxplumbersconf.org/
