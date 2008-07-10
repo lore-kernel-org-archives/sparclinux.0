@@ -1,26 +1,99 @@
-From: "Alexander Beregalov" <a.beregalov@gmail.com>
-Date: Wed, 02 Jul 2008 09:10:02 +0000
-Subject: Re: next-0630: sparc64: build failed
-Message-Id: <a4423d670807020210i706dcf7du5cfb1e35fadb7cd7@mail.gmail.com>
+From: Mikulas Patocka <mpatocka@redhat.com>
+Date: Thu, 10 Jul 2008 21:56:08 +0000
+Subject: [SUGGESTION]: drop virtual merge accounting in I/O requests
+Message-Id: <Pine.LNX.4.64.0807101702090.19775@engineering.redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <a4423d670807010825t7ea2eb44oda3f08dc007c40a2@mail.gmail.com>
-	 <20080701154648.GA31057@elte.hu>
-In-Reply-To: <20080701154648.GA31057@elte.hu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-next@vger.kernel.org, sparclinux@vger.kernel.org, David Miller <davem@davemloft.net>, sagar.abhishek@gmail.com, rostedt@goodmis.org
+To: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Jens Axboe <jens.axboe@oracle.com>
 
-2008/7/1 Ingo Molnar <mingo@elte.hu>:
-> thanks Alexander - does the patch below fix it for you?
-> commit 760378e1497841246ea7e42abad617d8a8ac0bcc
-> Author: Ingo Molnar <mingo@elte.hu>
-> Date:   Tue Jul 1 17:35:06 2008 +0200
->
->    fix "ftrace: store mcount address in rec->ip"
->
+Hi
 
-Yes, it fixes the issue. I have tried next-0702 which already includes
-your patch.
-But it has a name a1d5d08eb4f5c76acd5bb115e13791ce87ec356b.
+I'm getting crashes with InitIO A100u2w controller on Sparc64 (I had to 
+fix the endianity issues in the driver, but that's unrelated).
+
+When I examined the crashes, it turned out that SCSI layer passed requests 
+with too many segments. The controller has at most 32 SG entries per 
+request. It sets shost->sg_tablesize to 32, but despite this, larger 
+requests were submitted to it --- this resulted in overwriting random 
+memory and crashes.
+
+A typical scenario, in the beginning of inia100_queue, looked like this:
+A number of segments returned by scsi_sg_count(cmd) = 33
+cmd->request->nr_hw_segments = 32
+cmd->request->nr_phys_segments = 37
+cmd->sdb.table.nents = 33
+cmd->sdb.table.orig_nents = 37
+
+The SCSI layer submitted a request with 33 scatter-gather segments.
+
+When I was searching for a reson for this, I found that virtual merging 
+thing. The idea behind virtual merging is this: on architectures with 
+IOMMU, the kernel can program IOMMU in such a way that several 
+discontinuous pages in memory appear as continuous space for the PCI 
+device. Thus, entries in device's SG table are saved. The virtual merging 
+alone is good and harmless idea --- it just improves performance a bit by 
+reducing the number of regions visible to the device.
+
+But now, look at the block layer:
+
+The block layer, when merging requests, must make sure that it won't 
+overflow the device's SG table. So it accounts the number of physical 
+segments and it tries to account the number of segments after virtual 
+merging by the IOMMU is performed (see function blk_recalc_rq_segments and 
+similar). The block layer calls BIOVEC_VIRT_MERGEABLE and 
+BIOVEC_VIRT_OVERSIZE (these macros use architecture-specific constants 
+BIO_VMERGE_BOUNDARY and BIO_VMERGE_MAX_SIZE) to check if two segments can 
+be merged by the IOMMU and sets rq->nr_hw_segments appropriatelly.
+
+What was causing the bug in my case - IO layer expected that two segments 
+could be virtually merged and so merged the I/O requests. However, the 
+IOMMU function dma_4u_map_sg didn't merge these segments (the specific 
+check that was failing was "outs->dma_length + s->length > max_seg_size" 
+--- but any of the three checks in that function could trigger that bug). 
+So it produced one more SG entry than the IO layer accounted and crashed 
+the SCSI host driver.
+
+--
+
+When I thought about it more, I realized that this accounting of virtual 
+segments in I/O layer can't work correctly at all. If an architecture 
+defines symbols BIOVEC_VIRT_MERGEABLE and BIOVEC_VIRT_OVERSIZE, it 
+declares that it's IOMMU must merge any two regions satisfying these 
+conditions. But in an IOMMU, it is impossible to guarantee, because:
+
+* the bus address is allocated basiclly randomly, so we can hit 
+dev->dma_parms->segment_boundary_mask any time. This will prevent virtual 
+merging from happenning. I/O layer doesn't know the bus address at the 
+time it merges requests, so it can't predict when this happens.
+
+* the IOMMU isn't guaranteed to find a continuous space in it's bus 
+address space. If it skips over already mapped regions, it can't perform 
+virtual merging.
+
+* when creating the mapping, we can hit per-device limit 
+"dev->dma_parms->max_segment_size" --- but the I/O layer checks only 
+against global limit BIOVEC_VIRT_OVERSIZE. (this last issue is fixable, 
+the previous two are not).
+
+Basically, the IOMMU treats virtual merging as an option that it can do to 
+increase performance, but doesn't have to do it in some boundary 
+conditions. And the I/O layer treats virtual merging as a mandatory 
+feature and expects that any two regions satisfying the alignment and size 
+can be virtually merged.
+
+
+I would suggest to drop the virtual segment accounting from the I/O layer 
+at all. (I am not suggesting to drop the virtual merging itself). For SCSI 
+drivers with large SGLIST, dropping the virtual segment accounting will 
+make no difference (the merge will happen anyway, just the I/O layer won't 
+know about it in advance). For SCSI drivers with small SGLIST, like 
+A100u2w, dropping virtual merge accounting may slightly decrease 
+performance (the I/O layer won't use maximum request size considering 
+virtual merging) --- but it will make these drivers work. They don't work 
+now, because these off-by-one overshoots in number of segments are 
+inevitable.
+
+Mikulas
