@@ -1,47 +1,47 @@
-From: Mikulas Patocka <mpatocka@redhat.com>
-Date: Thu, 10 Jul 2008 23:57:41 +0000
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Date: Fri, 11 Jul 2008 06:20:56 +0000
 Subject: Re: [SUGGESTION]: drop virtual merge accounting in I/O requests
-Message-Id: <Pine.LNX.4.64.0807101953270.26084@engineering.redhat.com>
+Message-Id: <20080711152054C.fujita.tomonori@lab.ntt.co.jp>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.LNX.4.64.0807101702090.19775@engineering.redhat.com>
- <646765f40807101559q51fbfc50x8e3466e5f202e0c8@mail.gmail.com>
-In-Reply-To: <646765f40807101559q51fbfc50x8e3466e5f202e0c8@mail.gmail.com>
+In-Reply-To: <Pine.LNX.4.64.0807101702090.19775@engineering.redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Julian Calaby <julian.calaby@gmail.com>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-scsi@vger.kernel.org, Jens Axboe <jens.axboe@oracle.com>
+To: mpatocka@redhat.com
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, jens.axboe@oracle.com
+
+On Thu, 10 Jul 2008 17:56:08 -0400 (EDT)
+Mikulas Patocka <mpatocka@redhat.com> wrote:
+
+> When I thought about it more, I realized that this accounting of virtual 
+> segments in I/O layer can't work correctly at all. If an architecture 
+> defines symbols BIOVEC_VIRT_MERGEABLE and BIOVEC_VIRT_OVERSIZE, it 
+> declares that it's IOMMU must merge any two regions satisfying these 
+> conditions. But in an IOMMU, it is impossible to guarantee, because:
+
+Yeah, IOMMUs can't guarantee that. The majority of architectures set
+BIO_VMERGE_BOUNDARY to 0 so they don't hit this, I think.
 
 
+> * the bus address is allocated basiclly randomly, so we can hit 
+> dev->dma_parms->segment_boundary_mask any time. This will prevent virtual 
+> merging from happenning. I/O layer doesn't know the bus address at the 
+> time it merges requests, so it can't predict when this happens.
+> 
+> * the IOMMU isn't guaranteed to find a continuous space in it's bus 
+> address space. If it skips over already mapped regions, it can't perform 
+> virtual merging.
+> 
+> * when creating the mapping, we can hit per-device limit 
+> "dev->dma_parms->max_segment_size" --- but the I/O layer checks only 
+> against global limit BIOVEC_VIRT_OVERSIZE. (this last issue is fixable, 
+> the previous two are not).
 
-On Fri, 11 Jul 2008, Julian Calaby wrote:
+I think that the block layer can handle this properly via
+q->max_segment_size. We have the same value at two different
+places. Yeah, it's not good...
 
-> On Fri, Jul 11, 2008 at 07:56, Mikulas Patocka <mpatocka@redhat.com> wrote:
->> Hi
->>
->> I'm getting crashes with InitIO A100u2w controller on Sparc64 (I had to fix
->> the endianity issues in the driver, but that's unrelated).
->>
->> When I examined the crashes, it turned out that SCSI layer passed requests
->> with too many segments. The controller has at most 32 SG entries per
->> request. It sets shost->sg_tablesize to 32, but despite this, larger
->> requests were submitted to it --- this resulted in overwriting random memory
->> and crashes.
->
-> [snip]
->
-> Should this have been CC'd to linux-scsi too? This sounds like it
-> could be a bug at their end.
->
-> Thanks,
->
-> -- 
-> Julian Calaby
 
-This is not a bug in scsi layer, those "nr_hw_segments" miscalculations 
-are hapenning in block/blk-merge.c and they can show up with any block 
-device driver that has small number of SG entries.
-
-But I can CC it there, just for their information.
-
-Mikulas
+BTW, inia100_template sets sg_tablesize to SG_ALL. If the controller
+has at most 32 SG entries per request, we need to fix that.
