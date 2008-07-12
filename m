@@ -1,62 +1,25 @@
-From: Mikulas Patocka <mpatocka@redhat.com>
-Date: Fri, 11 Jul 2008 20:22:16 +0000
+From: Andi Kleen <andi@firstfloor.org>
+Date: Sat, 12 Jul 2008 12:30:04 +0000
 Subject: Re: [SUGGESTION]: drop virtual merge accounting in I/O requests
-Message-Id: <Pine.LNX.4.64.0807111612270.8297@devserv.devel.redhat.com>
+Message-Id: <87iqvb2skz.fsf@basil.nowhere.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080711152054C.fujita.tomonori@lab.ntt.co.jp>
- <Pine.LNX.4.64.0807110649510.16550@engineering.redhat.com>
- <20080711201558J.fujita.tomonori@lab.ntt.co.jp> <20080711.124152.247767508.davem@davemloft.net>
-In-Reply-To: <20080711.124152.247767508.davem@davemloft.net>
+References: <Pine.LNX.4.64.0807101702090.19775@engineering.redhat.com>
+In-Reply-To: <Pine.LNX.4.64.0807101702090.19775@engineering.redhat.com> (Mikulas Patocka's message of "Thu, 10 Jul 2008 17:56:08 -0400 (EDT)")
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: fujita.tomonori@lab.ntt.co.jp, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, jens.axboe@oracle.com
+To: Mikulas Patocka <mpatocka@redhat.com>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Jens Axboe <jens.axboe@oracle.com>
 
-On Fri, 11 Jul 2008, David Miller wrote:
+Mikulas Patocka <mpatocka@redhat.com> writes:
 
-> From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-> Date: Fri, 11 Jul 2008 20:15:52 +0900
->
->> On Fri, 11 Jul 2008 06:52:09 -0400 (EDT)
->> Mikulas Patocka <mpatocka@redhat.com> wrote:
->>
->>> On Fri, 11 Jul 2008, FUJITA Tomonori wrote:
->>>
->>>> Yeah, IOMMUs can't guarantee that. The majority of architectures set
->>>> BIO_VMERGE_BOUNDARY to 0 so they don't hit this, I think.
->>>
->>> Yes, the architectures without IOMMU don't hit this problem.
->>
->> I meant that even if some architectures support IOMMUs, they set
->> BIO_VMERGE_BOUNDARY to 0.
->
-> Keep in mind that these settings were added long before
-> we supported segment boundary restrictions.
->
-> Someone added code to handle segment boundaries, but didn't
-> fix any of the block I/O layer infrastructure :-)
->
-> Several platforms that have IOMMU but set these values to zero
-> actually did so for another reason.  They considered being
-> required to always merge page-adjacent mappings virtually too
-> strong a requirement to meet %100 of the time.
+> I'm getting crashes with InitIO A100u2w controller on Sparc64 (I had
+> to fix the endianity issues in the driver, but that's unrelated).
 
-It is broken on Sparc64 even without boundary restrictions --- if you skip 
-over already allocated entry in IOMMU table, you don't merge too.
+x86-64 (and powerpc) solved this a long time ago by only doing
+opportunistic merging: as in don't announce to the block layer
+that you can merge, but try to merge anyways. This way SG lists
+are not necessarily filled completely, but it's still better
+than overflowing them in some rare cases.
 
-I'd just drop it, because these requirements seem to me too brittle to 
-maintain. It is too easy to make bug here and too hard to check for it. 
-Basically there are few independent code parts (I/O layer and 
-arch-specific IOMMUs) that are attempting to do the same calculation and 
-if they differ, the driver will crash. Even if we managed to fix it, 
-someone will likely break it again after year or two :-(
-
-Would it mean that nr_hw_segments entry in bio and request could be 
-dropped too? Or is it used for some other purpose?
-
-
-BTW.: what's the reason that by default (without any driver intervention) 
-device DMA is restricted to cross 64k boundary?
-
-Mikulas
+-Andi
