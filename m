@@ -1,49 +1,28 @@
-From: Andi Kleen <andi@firstfloor.org>
-Date: Sun, 13 Jul 2008 13:50:55 +0000
+From: David Miller <davem@davemloft.net>
+Date: Sun, 13 Jul 2008 19:46:10 +0000
 Subject: Re: [SUGGESTION]: drop virtual merge accounting in I/O requests
-Message-Id: <487A083F.9010301@firstfloor.org>
+Message-Id: <20080713.124610.193703496.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.0807101702090.19775@engineering.redhat.com> <87iqvb2skz.fsf@basil.nowhere.org> <Pine.LNX.4.64.0807130933120.24489@devserv.devel.redhat.com>
-In-Reply-To: <Pine.LNX.4.64.0807130933120.24489@devserv.devel.redhat.com>
+References: <87iqvb2skz.fsf@basil.nowhere.org>
+	<Pine.LNX.4.64.0807130933120.24489@devserv.devel.redhat.com>
+	<487A083F.9010301@firstfloor.org>
+In-Reply-To: <487A083F.9010301@firstfloor.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mikulas Patocka <mpatocka@redhat.com>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Jens Axboe <jens.axboe@oracle.com>
+To: andi@firstfloor.org
+Cc: mpatocka@redhat.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, jens.axboe@oracle.com
 
-Mikulas Patocka wrote:
->> Mikulas Patocka <mpatocka@redhat.com> writes:
->>
->>> I'm getting crashes with InitIO A100u2w controller on Sparc64 (I had
->>> to fix the endianity issues in the driver, but that's unrelated).
->>
->> x86-64 (and powerpc) solved this a long time ago by only doing
->> opportunistic merging: as in don't announce to the block layer
->> that you can merge, but try to merge anyways. This way SG lists
->> are not necessarily filled completely, but it's still better
->> than overflowing them in some rare cases.
->>
->> -Andi
-> 
-> There's option "biomerge" that enables that feature. I'm wondering, if
-> there's some situation when it should be used.
+From: Andi Kleen <andi@firstfloor.org>
+Date: Sun, 13 Jul 2008 15:50:55 +0200
 
-It would only help if your SG hardware is slower at processing merges
-than the IOMMU.
+> Still I would expect that modern IO controllers are typically fast
+> enough at processing SG lists that it shouldn't matter much.
 
-We found some long ago that was (old MPT Fusion) that gained
-a few percent on some benchmarks, but that might be quite different
-depending on the particular IO controller and chipset.
+I know it matters a lot on sparc64 ESP scsi controllers.
 
-Also biomerge was used for the AMD K8 GART "IOMMU" which is
-relatively slow, the situation on more modern x86 IOMMUs might be
-different. Also the GART IOMMU is small and fragmentation is more
-likely.
+You can only have one address/len pair DMA'ing at a time and you have
+to service an interrupt to load in the the next DMA sg elements into
+the chips registers.
 
-The situation on the more modern real x86 IOMMU (like in newer Intel or IBM
-chipsets) might be also different.
-
-Still I would expect that modern IO controllers are typically fast
-enough at processing SG lists that it shouldn't matter much.
-
--Andi
+Merging is essentially a must for performance on those cards.
