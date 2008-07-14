@@ -1,33 +1,86 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 14 Jul 2008 00:48:55 +0000
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Date: Mon, 14 Jul 2008 02:19:02 +0000
 Subject: Re: [SUGGESTION]: drop virtual merge accounting in I/O requests
-Message-Id: <20080713.174855.234796356.davem@davemloft.net>
+Message-Id: <20080714111917S.fujita.tomonori@lab.ntt.co.jp>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080713.124610.193703496.davem@davemloft.net>
 	<487A61DD.6090304@firstfloor.org>
-	<Pine.LNX.4.64.0807131947090.7803@devserv.devel.redhat.com>
-In-Reply-To: <Pine.LNX.4.64.0807131947090.7803@devserv.devel.redhat.com>
+	<20080713.174119.71992292.davem@davemloft.net>
+In-Reply-To: <20080713.174119.71992292.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mpatocka@redhat.com
-Cc: andi@firstfloor.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, jens.axboe@oracle.com
+To: davem@davemloft.net
+Cc: andi@firstfloor.org, mpatocka@redhat.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, jens.axboe@oracle.com
 
-From: Mikulas Patocka <mpatocka@redhat.com>
-Date: Sun, 13 Jul 2008 19:53:01 -0400 (EDT)
+On Sun, 13 Jul 2008 17:41:19 -0700 (PDT)
+David Miller <davem@davemloft.net> wrote:
 
-> There is no need to turn BIO merge off --- the problem is caused by 
-> accounting of BIO merging in block layer, not by BIO merging itself.
+> From: Andi Kleen <andi@firstfloor.org>
+> Date: Sun, 13 Jul 2008 22:13:17 +0200
 > 
-> Just do #define BIO_VMERGE_BOUNDARY 0, and that disables the accounting, 
-> but leaves merging as it is.
+> > David Miller wrote:
+> > > From: Andi Kleen <andi@firstfloor.org>
+> > > Date: Sun, 13 Jul 2008 15:50:55 +0200
+> > > 
+> > >> Still I would expect that modern IO controllers are typically fast
+> > >> enough at processing SG lists that it shouldn't matter much.
+> > > 
+> > > I know it matters a lot on sparc64 ESP scsi controllers.
+> > > 
+> > > You can only have one address/len pair DMA'ing at a time and you have
+> > > to service an interrupt to load in the the next DMA sg elements into
+> > > the chips registers.
+> > > 
+> > > Merging is essentially a must for performance on those cards.
+> > 
+> > Well right now your setup breaks all controllers with "weird requirements"
+> > like 64k DMA or similar. You'll need to find some way to turn off BIO
+> > merge for those at least.
+> > 
+> > Perhaps this needs to be really a block queue attribute instead of a global?
+> 
+> Like I said, that code was written at a time when none of the block
+> segment check stuff existed, and therefore worked perfectly fine in
+> the environment in which it was created.
+> 
+> Someone added the segmenting code, but didn't bother to add proper
+> checking to the merging bits.
+> 
+> Usually we revert code that breaks things like that, right?
+> 
+> So I find it unusual for people to talk about turning off the
+> code that was working perfectly fine previously in situations
+> like this.
 
-For the thousanth time, the BIO_VMERGE_BOUNDARY code is useful
-and worked perfectly fine before segment boundary handling was
-added to the block layer.
+Seems that there are some confusion.
 
-It's a regression, and as such should be fixed or the guilty
-code reverted.
+It's not likely that the DMA boundary restriction causes this issue
+because we set it to 4G by default.
 
-Since when do we say "sorry that got broken, turn it off, thanks"
-?
+As Mikulas pointed out, before my IOMMU work, this problem existed in
+SPARC64 (and other architectures that set BIO_VMERGE_BOUNDARY to non
+zero) because IOMMUs can't guarantee that they merge sg segments.
+
+I think that now we hit this problems due to the max_segment_size.
+
+In the past, IOMMUs aggressively merged sg entries. IOMMUs ignored the
+block layer's max_segment_size (64K by default), merge sg segments,
+and create a large segment. But most of LLDs can handle a segment size
+larger than 64K. So everything was fine.
+
+Now IOMMUs don't ignore the max_segment_size. We hit this problem.
+
+It's the right thing that IOMMUs don't ignore the max_segment_size. I
+guess that if the A100u2w driver sets a max_segment_size to a larger
+value, the problem will be fixed. However, as we discussed, IOMMUs
+can't guarantee that they merge sg segments. It's possible that we
+still hit this problem.
+
+We tell SCSI driver developers that the drivers don't get the larger
+number of segments than they tell the SCSI subsystem. If we keep the
+virtual merge concept, we need to fix this first.
+
+
+Sorry about this problem. As I said, this problem existed before my
+IOMMU work, but I should have taken care about this.
