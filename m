@@ -1,50 +1,36 @@
-From: Mikulas Patocka <mpatocka@redhat.com>
-Date: Mon, 14 Jul 2008 21:26:38 +0000
+From: David Miller <davem@davemloft.net>
+Date: Mon, 14 Jul 2008 21:37:51 +0000
 Subject: Re: [SUGGESTION]: drop virtual merge accounting in I/O requests
-Message-Id: <Pine.LNX.4.64.0807141720350.30981@devserv.devel.redhat.com>
+Message-Id: <20080714.143751.266098047.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080713.174119.71992292.davem@davemloft.net>
- <20080714111917S.fujita.tomonori@lab.ntt.co.jp> <20080713.202035.172246136.davem@davemloft.net>
- <20080715024424R.fujita.tomonori@lab.ntt.co.jp>
-In-Reply-To: <20080715024424R.fujita.tomonori@lab.ntt.co.jp>
+References: <Pine.LNX.4.64.0807140805380.10106@devserv.devel.redhat.com>
+	<20080714.052859.88212003.davem@davemloft.net>
+	<Pine.LNX.4.64.0807141000340.24718@devserv.devel.redhat.com>
+In-Reply-To: <Pine.LNX.4.64.0807141000340.24718@devserv.devel.redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: davem@davemloft.net, andi@firstfloor.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, jens.axboe@oracle.com
+To: mpatocka@redhat.com
+Cc: andi@firstfloor.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, jens.axboe@oracle.com
 
-On Tue, 15 Jul 2008, FUJITA Tomonori wrote:
+From: Mikulas Patocka <mpatocka@redhat.com>
+Date: Mon, 14 Jul 2008 10:03:29 -0400 (EDT)
 
-> On Sun, 13 Jul 2008 20:20:35 -0700 (PDT)
-> David Miller <davem@davemloft.net> wrote:
->
->> From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
->> Date: Mon, 14 Jul 2008 11:19:02 +0900
->>
->>> Now IOMMUs don't ignore the max_segment_size. We hit this problem.
->>
->> It seems simply that max_segment_size needs to propagate
->> down into the block layer VMERGE code so that it can
->> act accordingly.
->
-> Yeah, I think so. I'll take care of that.
->
-> But I think that even with the fix, SPARC64 IOMMU still hits the
-> problem.
->
-> With the VMERGE accounting enabled,
->
-> - an IOMMU must merge segments that the block layer expects the IOMMU
-> to merge.
->
-> - an IOMMU must return an error if it can't merge such segments.
->
-> But the current SPARC64 IOMMU code doesn't return an error if it can't
-> merge such segments (as POWER's IOMMU does, as you know).
+> On Mon, 14 Jul 2008, David Miller wrote:
+> 
+> > From: Mikulas Patocka <mpatocka@redhat.com>
+> > Date: Mon, 14 Jul 2008 08:16:13 -0400 (EDT)
+> >
+> >> As you mentioned ESP driver, it declares .sg_tablesize = SG_ALL, so
+> >> BIO_VMERGE_BOUNDARY has no effect on the operation of this driver. Any
+> >> other driver where BIO_VMERGE_BOUNDARY does matter?
+> >
+> > When BIO_VMERGE_BOUNDARY is turned on, requests that would not
+> > otherwise fit into the device's limits, can.
+> 
+> Why would someone want to overshoot SG_ALL? ... and, shouldn't the 
+> constant be increased then --- instead of making buggy BIO_VMERGE_BOUNDARY 
+> expectations?
 
-BTW. what should the block device driver do when it receives a mapping 
-error? (if it aborts the request and it was write request, there will be 
-data corruption). Is it even legal to return IOMMU error in case where no 
-real hardware error or overflow happened?
+I'm talking about other devices, not about the ESP, here.
 
-Mikulas
