@@ -1,39 +1,20 @@
-From: Robert Reif <reif@earthlink.net>
-Date: Wed, 09 Jul 2008 10:52:50 +0000
-Subject: [PATCH] sparc32: fix init.c allnoconfig build error
-Message-Id: <48749882.2040700@earthlink.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------070206080105070303060300"
+From: David Miller <davem@davemloft.net>
+Date: Tue, 15 Jul 2008 05:57:36 +0000
+Subject: Re: [PATCH] sparc32: fix init.c allnoconfig build error
+Message-Id: <20080714.225736.213286961.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <48749882.2040700@earthlink.net>
+In-Reply-To: <48749882.2040700@earthlink.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070206080105070303060300
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Robert Reif <reif@earthlink.net>
+Date: Wed, 09 Jul 2008 06:52:50 -0400
 
-Fix allnoconfig build error.
+> Fix allnoconfig build error.
+> 
+> Signed-off-by: Robert Reif <reif@earthlink.net>
 
-Signed-off-by: Robert Reif <reif@earthlink.net>
-
---------------070206080105070303060300
-Content-Type: text/plain;
- name="init.diff.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="init.diff.txt"
-
-diff --git a/arch/sparc/mm/init.c b/arch/sparc/mm/init.c
-index 7794ecb..a938467 100644
---- a/arch/sparc/mm/init.c
-+++ b/arch/sparc/mm/init.c
-@@ -22,6 +22,7 @@ #include <linux/initrd.h>
- #include <linux/init.h>
- #include <linux/highmem.h>
- #include <linux/bootmem.h>
-+#include <linux/pagemap.h>
- 
- #include <asm/system.h>
- #include <asm/vac-ops.h>
-
---------------070206080105070303060300--
+Applied, thanks Robert.
