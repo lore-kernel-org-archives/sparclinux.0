@@ -1,24 +1,20 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 15 Jul 2008 05:58:06 +0000
-Subject: Re: [GIT PULL] unify sparc header files
-Message-Id: <20080714.225806.43081185.davem@davemloft.net>
+Date: Mon, 21 Jul 2008 23:55:52 +0000
+Subject: Re: [PATCH 4/4] ide: merge <asm-sparc64/ide.h> with
+Message-Id: <20080721.165552.243296132.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080628220235.GA3169@uranus.ravnborg.org>
-In-Reply-To: <20080628220235.GA3169@uranus.ravnborg.org>
+References: <20080714153825.9085.98433.sendpatchset@localhost.localdomain>
+	<20080714153846.9085.28662.sendpatchset@localhost.localdomain>
+In-Reply-To: <20080714153846.9085.28662.sendpatchset@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: bzolnier@gmail.com
+Cc: linux-ide@vger.kernel.org, sparclinux@vger.kernel.org, wli@holomorphy.com
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Wed, 9 Jul 2008 06:27:59 +0200
+From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Date: Mon, 14 Jul 2008 17:38:46 +0200
 
-> Dropping the top-most commit fixes it: ("sparc: join the remaining
-> header files") The commit is almost 100% scripted so I can just
-> re-ran it when we have the kbuild stuff merged and I combine the two
-> header file sets under arch/sparc/include/..
+> Signed-off-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 
-I think I'll just leave it in there since your kbuild bits will
-fix it up.
-
-Thanks Sam.
+Also applied, thanks Bart.
