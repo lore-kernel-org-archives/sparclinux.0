@@ -1,80 +1,89 @@
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Date: Sun, 20 Jul 2008 10:57:30 +0000
-Subject: [bug] sparc64: kmalloc-64 padding and redzone overwritten
-Message-Id: <200807201257.30954.m.kozlowski@tuxland.pl>
+From: Jaswinder Singh <jaswinder@infradead.org>
+Date: Mon, 21 Jul 2008 00:05:13 +0000
+Subject: [PATCH 18/22] sparc: Introducing asm/syscalls.h
+Message-Id: <1216597993.3679.144.camel@jaswinder.satnam>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1216592500.3679.14.camel@jaswinder.satnam>
+	 <1216592798.3679.22.camel@jaswinder.satnam>
+	 <1216592879.3679.24.camel@jaswinder.satnam>
+	 <1216593035.3679.27.camel@jaswinder.satnam>
+	 <1216596035.3679.95.camel@jaswinder.satnam>
+	 <1216596106.3679.98.camel@jaswinder.satnam>
+	 <1216596325.3679.104.camel@jaswinder.satnam>
+	 <1216596669.3679.112.camel@jaswinder.satnam>
+	 <1216596749.3679.115.camel@jaswinder.satnam>
+	 <1216596835.3679.117.camel@jaswinder.satnam>
+	 <1216596932.3679.120.camel@jaswinder.satnam>
+	 <1216597066.3679.123.camel@jaswinder.satnam>
+	 <1216597151.3679.125.camel@jaswinder.satnam>
+	 <1216597237.3679.128.camel@jaswinder.satnam>
+	 <1216597352.3679.131.camel@jaswinder.satnam>
+	 <1216597566.3679.135.camel@jaswinder.satnam>
+	 <1216597856.3679.139.camel@jaswinder.satnam>
+	 <1216597923.3679.141.camel@jaswinder.satnam>
+In-Reply-To: <1216597923.3679.141.camel@jaswinder.satnam>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>, davem@davemloft.net
-Cc: kernel-testers@vger.kernel.org, sparclinux@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>, kernelnewbies <kernelnewbies@nl.linux.org>, David Woodhouse <dwmw2@infradead.org>, davem@davemloft.net, sparclinux@vger.kernel.org
 
-Hello,
+Declaring arch-dependent syscalls for sparc architecture
 
-	I'm getting these on sparc64 while running LTP on latest
-Linus 2.6.26-03465-g5b664cb-dirty. It's dirty because of one-line pagemap
-fix but that should't matter. The box is ultra 60 (sparc64).
+Signed-off-by: Jaswinder Singh <jaswinder@infradead.org>
+---
+ arch/sparc/kernel/signal.c   |    1 +
+ include/asm-sparc/syscalls.h |   30 ++++++++++++++++++++++++++++++
+ 2 files changed, 31 insertions(+), 0 deletions(-)
 
-======================================BUG kmalloc-64: Padding overwritten. 0xfffff800b601dfe0-0xfffff800b601dfff
------------------------------------------------------------------------------
+diff --git a/arch/sparc/kernel/signal.c b/arch/sparc/kernel/signal.c
+index 3fd1df9..6fe2da5 100644
+--- a/arch/sparc/kernel/signal.c
++++ b/arch/sparc/kernel/signal.c
+@@ -18,6 +18,7 @@
+ #include <linux/smp.h>
+ #include <linux/binfmts.h>	/* do_coredum */
+ #include <linux/bitops.h>
++#include <linux/syscalls.h>
+ 
+ #include <asm/uaccess.h>
+ #include <asm/ptrace.h>
+diff --git a/include/asm-sparc/syscalls.h b/include/asm-sparc/syscalls.h
+index e69de29..65c25cd 100644
+--- a/include/asm-sparc/syscalls.h
++++ b/include/asm-sparc/syscalls.h
+@@ -0,0 +1,30 @@
++/*
++ * syscalls.h - Linux syscall interfaces (arch-specific)
++ *
++ * Copyright (c) 2008 Jaswinder Singh
++ *
++ * This file is released under the GPLv2.
++ * See the file COPYING for more details.
++ *
++ * Please do not call me directly, include linux/syscalls.h
++ */
++
++#ifndef _ASM_SPARC_SYSCALLS_H
++#define _ASM_SPARC_SYSCALLS_H
++
++/* kernel/signal.c */
++asmlinkage int sys_sigsuspend(old_sigset_t);
++
++/* kernel/sys_sparc.c */
++asmlinkage unsigned long sys_getpagesize(void);
++asmlinkage int sys_ipc(uint, int, int, int, void __user *, long);
++asmlinkage long sys_mmap2(unsigned long, unsigned long, unsigned long,
++			  unsigned long, unsigned long, unsigned long);
++asmlinkage long sys_mmap(unsigned long, unsigned long, unsigned long,
++			 unsigned long, unsigned long, unsigned long);
++asmlinkage long sys_rt_sigaction(int, const struct sigaction __user *,
++				 struct sigaction __user *,
++				 void __user *, size_t);
++asmlinkage int sys_getdomainname(char __user *, int);
++
++#endif /* _ASM_SPARC_SYSCALLS_H */
+-- 
+1.5.5.1
 
-INFO: Slab 0x0000000201f484d0 objects` used=0 fp=0xfffff800b601d3a8 flags=0x00c3
-Call Trace:
- [00000000004bd6ac] slab_err+0x54/0x60
- [00000000004bdc94] slab_pad_check+0x11c/0x160
- [00000000004bdd98] check_slab+0xc0/0xe0
- [00000000004bf080] __slab_alloc+0xc8/0x7a0
- [00000000004bfb38] kmem_cache_alloc+0xc0/0xe0
- [0000000000518210] ext3_init_block_alloc_info+0x18/0x60
- [000000000051c2e8] ext3_get_blocks_handle+0xa30/0xd20
- [000000000051c878] ext3_get_block+0x80/0xe0
- [00000000004ed384] __block_prepare_write+0x26c/0x520
- [00000000004ed6c0] block_write_begin+0x48/0xe0
- [000000000051e22c] ext3_write_begin+0xb4/0x1e0
- [00000000004988a8] generic_file_buffered_write+0xf0/0x6c0
- [0000000000499088] __generic_file_aio_write_nolock+0x210/0x3a0
- [0000000000499258] generic_file_aio_write+0x40/0xe0
- [0000000000518efc] ext3_file_write+0x24/0xe0
- [00000000004c40f0] do_sync_write+0x98/0xe0
- Padding 0xfffff800b601dfe0:  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
- Padding 0xfffff800b601dff0:  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
-FIX kmalloc-64: Restoring 0xfffff800b601c000-0xfffff800b601dfff=0x5a
 
-======================================BUG kmalloc-64: Redzone overwritten
------------------------------------------------------------------------------
 
-INFO: 0xfffff800b601d3e8-0xfffff800b601d3ef. First byte 0x5a instead of 0xbb
-INFO: Allocated in 0x5a5a5a5a5a5a5a5a age936128522578455317 cpu15870810 pid15870810
-INFO: Freed in 0x5a5a5a5a5a5a5a5a age936128522578455317 cpu15870810 pid15870810
-INFO: Slab 0x0000000201f484d0 objects` used=0 fp=0xfffff800b601d3a8 flags=0x00c3
-INFO: Object 0xfffff800b601d3a8 @offsetP32 fp=0x5a5a5a5a5a5a5a5a
-
-Bytes b4 0xfffff800b601d398:  5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a ZZZZZZZZZZZZZZZZ
-  Object 0xfffff800b601d3a8:  5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a ZZZZZZZZZZZZZZZZ
-  Object 0xfffff800b601d3b8:  5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a ZZZZZZZZZZZZZZZZ
-  Object 0xfffff800b601d3c8:  5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a ZZZZZZZZZZZZZZZZ
-  Object 0xfffff800b601d3d8:  5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a ZZZZZZZZZZZZZZZZ
- Redzone 0xfffff800b601d3e8:  5a 5a 5a 5a 5a 5a 5a 5a                         ZZZZZZZZ        
- Padding 0xfffff800b601d428:  5a 5a 5a 5a 5a 5a 5a 5a                         ZZZZZZZZ        
-Call Trace:
- [00000000004bd7b4] print_trailer+0xfc/0x180
- [00000000004bde68] check_bytes_and_report+0xb0/0xe0
- [00000000004bdee8] check_object+0x50/0x2a0
- [00000000004bf5d0] __slab_alloc+0x618/0x7a0
- [00000000004bfb38] kmem_cache_alloc+0xc0/0xe0
- [0000000000518210] ext3_init_block_alloc_info+0x18/0x60
- [000000000051c2e8] ext3_get_blocks_handle+0xa30/0xd20
- [000000000051c878] ext3_get_block+0x80/0xe0
- [00000000004ed384] __block_prepare_write+0x26c/0x520
- [00000000004ed6c0] block_write_begin+0x48/0xe0
- [000000000051e22c] ext3_write_begin+0xb4/0x1e0
- [00000000004988a8] generic_file_buffered_write+0xf0/0x6c0
- [0000000000499088] __generic_file_aio_write_nolock+0x210/0x3a0
- [0000000000499258] generic_file_aio_write+0x40/0xe0
- [0000000000518efc] ext3_file_write+0x24/0xe0
- [00000000004c40f0] do_sync_write+0x98/0xe0
-FIX kmalloc-64: Restoring 0xfffff800b601d3e8-0xfffff800b601d3ef=0xbb
-
-FIX kmalloc-64: Marking all objects used
-
-	Mariusz
