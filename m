@@ -1,57 +1,43 @@
-From: Friedrich Oslage <bluebird@gentoo.org>
-Date: Mon, 28 Jul 2008 19:57:39 +0000
-Subject: Re: [BUG] 2.6.26-rc1 broke X on SPARC Ultra5
-Message-Id: <1217275060.8894.7.camel@lya.porno-bullen.de>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-nNnmTwvInLQBDYGVN8fm"
+From: Adrian Bunk <bunk@kernel.org>
+Date: Wed, 23 Jul 2008 09:41:54 +0000
+Subject: sparc64 show_stack() prints garbage
+Message-Id: <20080723094154.GD14846@cs181140183.pp.htv.fi>
 List-Id: <sparclinux.vger.kernel.org>
-References: <18500.62552.958244.633204@harpo.it.uu.se>
-In-Reply-To: <18500.62552.958244.633204@harpo.it.uu.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Hi David,
 
---=-nNnmTwvInLQBDYGVN8fm
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+http://bugzilla.kernel.org/show_bug.cgi?id139 contains a bug report 
+with the following trace:
 
-Debian SID uses xorg-server 1.4.2 but to get a working you need 1.5(aka
-1.4.99.*).
+------------[ cut here ]------------                                            
+WARNING: at drivers/cpufreq/cpufreq.c:1391
+cpufreq_register_notifier+0x50/0x60()
+Modules linked in:                                                              
+Call Trace:                                                                     
+ [0000000000605270] cpufreq_register_notifier+0x58/0x60                         
+ [00000000007708e0] start_kernel+0x1f0/0x324                                    
+ [0000000000680e08] auxio_probe+0x0/0xe8                                        
+ [0000000000000000] 0x8                                                         
+---[ end trace 139ce121c98e96c9 ]---
 
-Cheers,
-Friedrich
+The first two lines of the trace are correct (and comment #3 contains a 
+description what the bug is), but the latter two lines are obviously 
+garbage.
 
-Am Montag, den 28.07.2008, 18:15 +0200 schrieb Daniel Smolik:
-> Have anybody now working X on some multidomain PCI machine like E250 or=20
-> E450 ? I have upgraded to 2.6.26 and latest SID and now is my Permedia2=20
-> card detected but X crashes with :
->=20
->=20
-> (++) Using config file: "/root/xorg.conf.new"
-> (WW) ****INVALID MEM ALLOCATION**** b: 0x20000 e: 0x3ffff correcting
-> (WW) ****INVALID MEM ALLOCATION**** b: 0x800000 e: 0xffffff correcting
-> (WW) ****INVALID MEM ALLOCATION**** b: 0x1000000 e: 0x17fffff correcting
-> mmap failure: Invalid argument
->=20
-> Fatal server error:
-> xf86MapDomainMem():  mmap() failure
->=20
-> This is much better then before but still not perfect :-(
->=20
-> 	Dan
->=20
+The problem might be related to the fact that a WARN_ON was triggered 
+during time_init(), which runs quite early after bootup.
 
+cu
+Adrian
 
---=-nNnmTwvInLQBDYGVN8fm
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Dies ist ein digital signierter Nachrichtenteil
+-- 
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.9 (GNU/Linux)
-
-iEYEABECAAYFAkiOJLMACgkQknxn9PmJ76Ux5ACfbldUtlWaRS2lGyAMyg8/IyFF
-YSEAn2/lrn8TgskuXCXPqg7+2xMaphQJ
-=pN/l
------END PGP SIGNATURE-----
-
---=-nNnmTwvInLQBDYGVN8fm--
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
 
