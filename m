@@ -1,67 +1,67 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Thu, 24 Jul 2008 18:37:48 +0000
+From: Johannes Weiner <hannes@saeurebad.de>
+Date: Thu, 24 Jul 2008 21:32:06 +0000
 Subject: Re: [Bug 11046] New: Kernel bug in mm/bootmem.c on Sparc machines
-Message-Id: <20080724113748.160faff2.akpm@linux-foundation.org>
+Message-Id: <873alz55pl.fsf@saeurebad.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <bug-11046-27@http.bugzilla.kernel.org/>
-	<20080706132049.4019e09f.akpm@linux-foundation.org>
+References: <20080706132049.4019e09f.akpm@linux-foundation.org>
 	<20080723.202533.114601491.davem@davemloft.net>
 	<20080723203836.e0c14568.akpm@linux-foundation.org>
-	<877ibb7abh.fsf@saeurebad.de>
-In-Reply-To: <877ibb7abh.fsf@saeurebad.de>
+	<20080723.204247.114065226.davem@davemloft.net>
+In-Reply-To: <20080723.204247.114065226.davem@davemloft.net> (David Miller's
+	message of "Wed, 23 Jul 2008 20:42:47 -0700 (PDT)")
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Johannes Weiner <hannes@saeurebad.de>
-Cc: David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, bugme-daemon@bugzilla.kernel.org, lomp0101@gmx.net, linux-kernel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, bugme-daemon@bugzilla.kernel.org, lomp0101@gmx.net, linux-kernel@vger.kernel.org
 
-On Thu, 24 Jul 2008 14:09:38 +0200 Johannes Weiner <hannes@saeurebad.de> wrote:
+Hi,
 
-> Hi,
-> 
-> Andrew Morton <akpm@linux-foundation.org> writes:
-> 
-> > On Wed, 23 Jul 2008 20:25:33 -0700 (PDT) David Miller <davem@davemloft.net> wrote:
-> >
-> >> From: Andrew Morton <akpm@linux-foundation.org>
-> >> Date: Sun, 6 Jul 2008 13:20:49 -0700
-> >> 
-> >> > On Sun,  6 Jul 2008 13:02:28 -0700 (PDT) bugme-daemon@bugzilla.kernel.org wrote:
-> >> > 
-> >> > > http://bugzilla.kernel.org/show_bug.cgi?id046
-> >>  ...
-> >> > > Here is the BUG:
-> >> > > 
-> >> > > [    0.000000] PROMLIB: Sun IEEE Boot Prom 'OBP 4.11.5 2003/11/12 10:40'
-> >> > > [    0.000000] PROMLIB: Root node compatible: 
-> >> > > [    0.000000] Linux version 2.6.25.10 (root@sparc1) (gcc version 4.1.2
-> >> > > 20061115 (prerelease) (Debian 4.1.1-21)) #5 SMP Sun Jul 6 21:05:42 CEST 2008
-> >> > > [    0.000000] console [earlyprom0] enabled
-> >> > > [    0.000000] ARCH: SUN4U
-> >> > > [    0.000000] Ethernet address: 00:03:ba:7a:f3:d6
-> >> > > [    0.000000] Kernel: Using 2 locked TLB entries for main kernel image.
-> >> > > [    0.000000] Remapping the kernel... done.
-> >> > > [    0.000000] kernel BUG at mm/bootmem.c:125!
-> >> 
-> >> This can only happen if you attach a zero-sized initrd to the kernel.
-> >> 
-> >> I see platforms like x86 sometimes have explicit checks for a zero
-> >> size to guard reserve_bootmem() and similar calls, but if that's what
-> >> callers are all going to do doesn't it make better sense for
-> >> reserve_bootmem_core() to just return instead of BUG on a zero size
-> >> argument?
-> >
-> > Sounds logical.
-> >
-> > Johannes just rewrote the bootmem code, but from a quick read it
-> > appears that this behaviour has been retained.
-> 
-> In the new version, zero sized ranges are okay for reservation and
-> freeing.  It still bugs on allocation, though.
-> 
+David Miller <davem@davemloft.net> writes:
 
-Interesting.  So from Dave's patch (which changes only
-reserve_bootmem_core() and free_bootmem_core()), it sounds like we
-have already fixed 2.6.27?
+> From: Andrew Morton <akpm@linux-foundation.org>
+> Date: Wed, 23 Jul 2008 20:38:36 -0700
+>
+>> So if we're going to change it in 2.6.26, we'll need a separate patch.
+>
+> Here is the 2.6.26 version:
+>
+> bootmem: Allow zero length reserve and free.
+>
+> It's either this or all the call sites explicitly check
+> when such a case is possible and sometimes expected.
+>
+> Signed-off-by: David S. Miller <davem@davemloft.net>
+>
+> diff --git a/mm/bootmem.c b/mm/bootmem.c
+> index 8d9f60e..e540f7a 100644
+> --- a/mm/bootmem.c
+> +++ b/mm/bootmem.c
+> @@ -153,7 +153,8 @@ static void __init reserve_bootmem_core(bootmem_data_t *bdata,
+>  	unsigned long sidx, eidx;
+>  	unsigned long i;
+>  
+> -	BUG_ON(!size);
+> +	if (!size)
+> +		return;
+>  
+>  	/* out of range */
+>  	if (addr + size < bdata->node_boot_start ||
+> @@ -187,7 +188,8 @@ static void __init free_bootmem_core(bootmem_data_t *bdata, unsigned long addr,
+>  	unsigned long sidx, eidx;
+>  	unsigned long i;
+>  
+> -	BUG_ON(!size);
+> +	if (!size)
+> +		return;
+>  
+>  	/* out range */
+>  	if (addr + size < bdata->node_boot_start ||
 
-In which case David's 2.6.26 patch is a "minimal backport".
+Sorry, Dave, I missed that before: there is still the BUG_ON() in
+can_reserve_bootmem_core(), which should just return 0 instead.
+
+Other than that, yes, Andrew, this introduces the same behaviour the
+bootmem rewrite.
+
+	Hannes
