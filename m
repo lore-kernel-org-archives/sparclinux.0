@@ -1,77 +1,57 @@
-From: Daniel Smolik <marvin@mydatex.cz>
-Date: Mon, 28 Jul 2008 16:15:28 +0000
+From: Friedrich Oslage <bluebird@gentoo.org>
+Date: Mon, 28 Jul 2008 19:57:39 +0000
 Subject: Re: [BUG] 2.6.26-rc1 broke X on SPARC Ultra5
-Message-Id: <488DF0A0.1060909@mydatex.cz>
+Message-Id: <1217275060.8894.7.camel@lya.porno-bullen.de>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=-nNnmTwvInLQBDYGVN8fm"
 List-Id: <sparclinux.vger.kernel.org>
 References: <18500.62552.958244.633204@harpo.it.uu.se>
 In-Reply-To: <18500.62552.958244.633204@harpo.it.uu.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Mikael Pettersson napsal(a):
-> David Miller writes:
->  > From: "Dave Airlie" <airlied@gmail.com>
->  > Date: Wed, 4 Jun 2008 06:45:57 +1000
->  > 
->  > > Wow thats a major userspace regression to ship, we'd never get away
->  > > with doing that on x86 platforms.
->  > 
->  > x86 has how many maintainers and contributors last time you checked?
->  > 
->  > Meanwhile X itself shipped mostly-non-working for PCI devices on sparc
->  > for years.  And would you also not argue that it's broken to begin
->  > with that the older X servers cannot work properly without a root PCI
->  > controller being there?
->  > 
->  > The only way I can work around this issue is to provide a virtual host
->  > bridge driver in the kernel, and I tried to do that, but it doesn't
->  > work which is why the change got installed that did.
->  > 
->  > We'd need this because on many sparc64 machines the PCI host bridge
->  > (and some sub-bridges) aren't even accessible via PCI config space.
->  > 
->  > If you provide a virtual host bridge, you have to emulate all of
->  > the PCI config space accesses, you have to provide the expected
->  > linkage and hierarchy with the rest of the PCI devices, and you
->  > also have to do all of the I/O and MEM space range bits correctly
->  > too.
->  > 
->  > For PCI-E and sub-bridges this becomes even more complicated, and
->  > frankly a waste of time.
->  > 
->  > In short you have to implement an entire non-trivial emulation layer
->  > for this stuff.
->  > 
->  > I'm the only sparc64 platform developer, so my time is better spent
->  > moving forward and making sure that libpciaccess based X servers
->  > aren't so broken and do the right thing in a way which works in a
->  > maintainable long term manner.
-> 
-> Indeed. You need to prioritize, and FWIW I support your decision.
-> 
-Have anybody now working X on some multidomain PCI machine like E250 or 
-E450 ? I have upgraded to 2.6.26 and latest SID and now is my Permedia2 
-card detected but X crashes with :
+
+--=-nNnmTwvInLQBDYGVN8fm
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+
+Debian SID uses xorg-server 1.4.2 but to get a working you need 1.5(aka
+1.4.99.*).
+
+Cheers,
+Friedrich
+
+Am Montag, den 28.07.2008, 18:15 +0200 schrieb Daniel Smolik:
+> Have anybody now working X on some multidomain PCI machine like E250 or=20
+> E450 ? I have upgraded to 2.6.26 and latest SID and now is my Permedia2=20
+> card detected but X crashes with :
+>=20
+>=20
+> (++) Using config file: "/root/xorg.conf.new"
+> (WW) ****INVALID MEM ALLOCATION**** b: 0x20000 e: 0x3ffff correcting
+> (WW) ****INVALID MEM ALLOCATION**** b: 0x800000 e: 0xffffff correcting
+> (WW) ****INVALID MEM ALLOCATION**** b: 0x1000000 e: 0x17fffff correcting
+> mmap failure: Invalid argument
+>=20
+> Fatal server error:
+> xf86MapDomainMem():  mmap() failure
+>=20
+> This is much better then before but still not perfect :-(
+>=20
+> 	Dan
+>=20
 
 
-(++) Using config file: "/root/xorg.conf.new"
-(WW) ****INVALID MEM ALLOCATION**** b: 0x20000 e: 0x3ffff correcting
-(WW) ****INVALID MEM ALLOCATION**** b: 0x800000 e: 0xffffff correcting
-(WW) ****INVALID MEM ALLOCATION**** b: 0x1000000 e: 0x17fffff correcting
-mmap failure: Invalid argument
+--=-nNnmTwvInLQBDYGVN8fm
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Dies ist ein digital signierter Nachrichtenteil
 
-Fatal server error:
-xf86MapDomainMem():  mmap() failure
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.9 (GNU/Linux)
 
-This is much better then before but still not perfect :-(
+iEYEABECAAYFAkiOJLMACgkQknxn9PmJ76Ux5ACfbldUtlWaRS2lGyAMyg8/IyFF
+YSEAn2/lrn8TgskuXCXPqg7+2xMaphQJ
+=pN/l
+-----END PGP SIGNATURE-----
 
-	Dan
-
-
-
-
-
-
+--=-nNnmTwvInLQBDYGVN8fm--
 
