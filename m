@@ -1,96 +1,63 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 22 Aug 2008 04:21:42 +0000
-Subject: [PATCH 1/3]: sparc: Implement irq_of_parse_and_map() and
-Message-Id: <20080821.212142.31324813.davem@davemloft.net>
+From: Joerg Roedel <joerg.roedel@amd.com>
+Date: Fri, 01 Aug 2008 07:03:28 +0000
+Subject: Re: [PATCH] Revert "Merge branch 'x86/iommu' of git://git.kernel.org/pub/scm/linux/kernel/git/tip/li
+Message-Id: <20080801070328.GA26894@amd.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080821.001017.261408123.davem@davemloft.net>
-In-Reply-To: <20080821.001017.261408123.davem@davemloft.net>
+References: <20080801094323.9601d87b.sfr@canb.auug.org.au>
+	<20080801085106E.fujita.tomonori@lab.ntt.co.jp>
+In-Reply-To: <20080801085106E.fujita.tomonori@lab.ntt.co.jp>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linuxppc-dev@ozlabs.org
-Cc: scottwood@freescale.com, paulus@samba.org, sparclinux@vger.kernel.org
+To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: sfr@canb.auug.org.au, linux-kernel@vger.kernel.org, jbarnes@virtuousgeek.org, davem@davemloft.net, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, akpm@linux-foundation.org, torvalds@linux-foundation.org, mingo@elte.hu
 
+On Fri, Aug 01, 2008 at 08:51:23AM +0900, FUJITA Tomonori wrote:
+> On Fri, 1 Aug 2008 09:43:23 +1000
+> Stephen Rothwell <sfr@canb.auug.org.au> wrote:
+> 
+> > This reverts commit 29111f579f4f3f2a07385f931854ab0527ae7ea5.
+> > 
+> > This undoes the hasty addition of a global version of iommu_num_pages()
+> > that broke both the powerpc and sparc builds.  This function can be
+> > revisited later.
+> > 
+> > Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+> > ---
+> >  arch/x86/kernel/amd_iommu.c   |   13 ++++++++-----
+> >  arch/x86/kernel/pci-gart_64.c |   11 +++++++----
+> >  include/linux/iommu-helper.h  |    1 -
+> >  lib/iommu-helper.c            |    8 --------
+> >  4 files changed, 15 insertions(+), 18 deletions(-)
+> > 
+> > This patch comes from
+> > git revert -m 1 29111f579f4f3f2a07385f931854ab0527ae7ea5
+> > 
+> > I have test built powerpc ppc64_defconfig and sparc64 defconfig.  The only
+> > references to iommu_num_pages() after this is applied are in the powerpc
+> > and sparc code.
+> > 
+> > Linus, please apply.  This is impacting on both powerpc and sparc
+> > development and even the author of the patches said that those patches
+> > were not urgent.
+> 
+> Ingo has a patch to fix this problem in the x86 tree:
+> 
+> http://marc.info/?l=linux-kernel&m1754062325903&w=2
 
-sparc: Implement irq_of_parse_and_map() and irq_dispose_mapping().
+FUJITA,
 
-This allows more OF layer code to be shared between powerpc and
-sparc.
+can you send your fix directly to Linus again please? Andrew mentioned
+that the x86 maintainers are on vacation. That may be the reason that
+your fix is not yet upstream.
 
-With feedback and suggestions from Anton Vorontsov.
+Joerg
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/include/asm/prom.h   |   10 ++++++++++
- arch/sparc/kernel/of_device.c   |   11 +++++++++++
- arch/sparc64/kernel/of_device.c |   11 +++++++++++
- 3 files changed, 32 insertions(+), 0 deletions(-)
-
-diff --git a/arch/sparc/include/asm/prom.h b/arch/sparc/include/asm/prom.h
-index fd55522..b44e0c7 100644
---- a/arch/sparc/include/asm/prom.h
-+++ b/arch/sparc/include/asm/prom.h
-@@ -94,6 +94,16 @@ static inline void of_node_put(struct device_node *node)
- {
- }
- 
-+/* These routines are here to provide compatibility with how powerpc
-+ * handles IRQ mapping for OF device nodes.  We precompute and permanently
-+ * register them in the of_device objects, whereas powerpc computes them
-+ * on request.
-+ */
-+extern unsigned int irq_of_parse_and_map(struct device_node *node, int index);
-+static inline void irq_dispose_mapping(unsigned int virq)
-+{
-+}
-+
- /*
-  * NB:  This is here while we transition from using asm/prom.h
-  * to linux/of.h
-diff --git a/arch/sparc/kernel/of_device.c b/arch/sparc/kernel/of_device.c
-index cc4c235..aace71f 100644
---- a/arch/sparc/kernel/of_device.c
-+++ b/arch/sparc/kernel/of_device.c
-@@ -29,6 +29,17 @@ struct of_device *of_find_device_by_node(struct device_node *dp)
- }
- EXPORT_SYMBOL(of_find_device_by_node);
- 
-+unsigned int irq_of_parse_and_map(struct device_node *node, int index)
-+{
-+	struct of_device *op = of_find_device_by_node(node);
-+
-+	if (!op || index >= op->num_irqs)
-+		return 0;
-+
-+	return op->irqs[index];
-+}
-+EXPORT_SYMBOL(irq_of_parse_and_map);
-+
- #ifdef CONFIG_PCI
- struct bus_type ebus_bus_type;
- EXPORT_SYMBOL(ebus_bus_type);
-diff --git a/arch/sparc64/kernel/of_device.c b/arch/sparc64/kernel/of_device.c
-index f8b50cb..a30f2af 100644
---- a/arch/sparc64/kernel/of_device.c
-+++ b/arch/sparc64/kernel/of_device.c
-@@ -55,6 +55,17 @@ struct of_device *of_find_device_by_node(struct device_node *dp)
- }
- EXPORT_SYMBOL(of_find_device_by_node);
- 
-+unsigned int irq_of_parse_and_map(struct device_node *node, int index)
-+{
-+	struct of_device *op = of_find_device_by_node(node);
-+
-+	if (!op || index >= op->num_irqs)
-+		return 0;
-+
-+	return op->irqs[index];
-+}
-+EXPORT_SYMBOL(irq_of_parse_and_map);
-+
- #ifdef CONFIG_PCI
- struct bus_type ebus_bus_type;
- EXPORT_SYMBOL(ebus_bus_type);
 -- 
-1.5.6.5.GIT
+           |           AMD Saxony Limited Liability Company & Co. KG
+ Operating |         Wilschdorfer Landstr. 101, 01109 Dresden, Germany
+ System    |                  Register Court Dresden: HRA 4896
+ Research  |              General Partner authorized to represent:
+ Center    |             AMD Saxony LLC (Wilmington, Delaware, US)
+           | General Manager of AMD Saxony LLC: Dr. Hans-R. Deppe, Thomas McCoy
 
