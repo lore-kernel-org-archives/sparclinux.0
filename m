@@ -1,19 +1,28 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 01 Aug 2008 03:27:51 +0000
-Subject: Re: sparc asm/ptrace.h use of bool
-Message-Id: <20080731.202751.193688925.davem@davemloft.net>
+From: Huang Weiyi <weiyi.huang@gmail.com>
+Date: Sat, 02 Aug 2008 13:02:48 +0000
+Subject: arch/sparc64/kernel/signal.c: removed duplicated #include
+Message-Id: <20080802205932.D632.WEIYI.HUANG@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080801012135.5B76515427E@magilla.localdomain>
-In-Reply-To: <20080801012135.5B76515427E@magilla.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Roland McGrath <roland@redhat.com>
-Date: Thu, 31 Jul 2008 18:21:35 -0700 (PDT)
+Removed duplicated #include <linux/tracehook.h> in 
+arch/sparc64/kernel/signal.c.
 
-> You could either move those new functions inside #ifdef __KERNEL__, or if
-> you want them exported for userland, just make them use int instead of bool.
+Signed-off-by: Huang Weiyi <weiyi.huang@gmail.com>
 
-I think I'll add __KERNEL__ ifdef protection, thanks for the report!
+diff --git a/arch/sparc64/kernel/signal.c b/arch/sparc64/kernel/signal.c
+index d1b8445..e12bece 100644
+--- a/arch/sparc64/kernel/signal.c
++++ b/arch/sparc64/kernel/signal.c
+@@ -23,7 +23,6 @@
+ #include <linux/tty.h>
+ #include <linux/binfmts.h>
+ #include <linux/bitops.h>
+-#include <linux/tracehook.h>
+
+ #include <asm/uaccess.h>
+ #include <asm/ptrace.h>
+
