@@ -1,85 +1,75 @@
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Date: Sat, 02 Aug 2008 15:17:47 +0000
-Subject: Re: 2.6.27-rc1-mm1: sparc64 BUG: using smp_processor_id() in preemptible code
-Message-Id: <200808021717.47971.m.kozlowski@tuxland.pl>
+From: David Miller <davem@davemloft.net>
+Date: Sun, 03 Aug 2008 07:02:32 +0000
+Subject: Re: 2.6.27-rc1-mm1: sparc64 BUG: using smp_processor_id() in
+Message-Id: <20080803.000232.215078646.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080731000354.24b55d5b.akpm@linux-foundation.org>
-In-Reply-To: <20080731000354.24b55d5b.akpm@linux-foundation.org>
+	<200808021717.47971.m.kozlowski@tuxland.pl>
+In-Reply-To: <200808021717.47971.m.kozlowski@tuxland.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>, davem@davemloft.net
-Cc: linux-kernel@vger.kernel.org, kernel-testers@vger.kernel.org, sparclinux@vger.kernel.org
+To: m.kozlowski@tuxland.pl
+Cc: akpm@linux-foundation.org, linux-kernel@vger.kernel.org, kernel-testers@vger.kernel.org, sparclinux@vger.kernel.org
 
-Hello,
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Date: Sat, 2 Aug 2008 17:17:47 +0200
 
-$ uname -a
-Linux sparc64 2.6.27-rc1-mm1 #1 SMP PREEMPT Sat Aug 2 15:51:55 CEST 2008 sparc64 sun4u TI UltraSparc II (BlackBird) GNU/Linux
+> I'm running preemtible kernel and have seen similar things before:
+> http://marc.info/?l=linux-kernel&m0652827627051&w=2 and it was fixed by disabling
+> preemtpion in relevant sparc64 code paths. smp_call_function_mask() documentation
+> says it must be called with preemption disabled.
+> 
+> Here is a similar fix. Compile and run tested.
+> 
+> Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-Logs get a little flooded with:
+Thenk for the report and sample patch.
 
-BUG: using smp_processor_id() in preemptible [00000000] code: emerge/3217
-caller is smp_call_function_mask+0x1c/0x180
-Call Trace:
- [0000000000486374] smp_call_function_mask+0x14/0x180
- [0000000000447f94] tsb_grow+0x2d4/0x420
- [000000000040796c] sparc64_realfault_common+0x10/0x20
- [000000000045b604] schedule_tail+0x64/0xa0
- [0000000000406150] ret_from_syscall+0x8/0x48
-BUG: using smp_processor_id() in preemptible [00000000] code: emerge/3220
-caller is smp_call_function_mask+0x1c/0x180
-Call Trace:
- [0000000000486374] smp_call_function_mask+0x14/0x180
- [0000000000447f94] tsb_grow+0x2d4/0x420
- [000000000040796c] sparc64_realfault_common+0x10/0x20
- [000000000045b604] schedule_tail+0x64/0xa0
- [0000000000406150] ret_from_syscall+0x8/0x48
-BUG: using smp_processor_id() in preemptible [00000000] code: rsync/3220
-caller is smp_call_function_mask+0x1c/0x180
-Call Trace:
- [0000000000486374] smp_call_function_mask+0x14/0x180
- [0000000000447f94] tsb_grow+0x2d4/0x420
- [000000000040796c] sparc64_realfault_common+0x10/0x20
-BUG: using smp_processor_id() in preemptible [00000000] code: rsync/3220
-caller is smp_call_function_mask+0x1c/0x180
-Call Trace:
- [0000000000486374] smp_call_function_mask+0x14/0x180
- [0000000000447f94] tsb_grow+0x2d4/0x420
- [000000000040796c] sparc64_realfault_common+0x10/0x20
-BUG: using smp_processor_id() in preemptible [00000000] code: rsync/3224
-caller is smp_call_function_mask+0x1c/0x180
-Call Trace:
- [0000000000486374] smp_call_function_mask+0x14/0x180
- [0000000000447f94] tsb_grow+0x2d4/0x420
- [000000000040796c] sparc64_realfault_common+0x10/0x20
- [000000000045b604] schedule_tail+0x64/0xa0
- [0000000000406150] ret_from_syscall+0x8/0x48
-BUG: using smp_processor_id() in preemptible [00000000] code: file/3246
-caller is smp_call_function_mask+0x1c/0x180
-Call Trace:
- [0000000000486374] smp_call_function_mask+0x14/0x180
- [0000000000447f94] tsb_grow+0x2d4/0x420
- [000000000040796c] sparc64_realfault_common+0x10/0x20
+I've decided to put the preemption disabled call at the smp_tsb_sync() call
+site so that smp_tsb_sync() can still invoke smp_call_function_mask() as
+a tail-call.
 
-I'm running preemtible kernel and have seen similar things before:
-http://marc.info/?l=linux-kernel&m0652827627051&w=2 and it was fixed by disabling
-preemtpion in relevant sparc64 code paths. smp_call_function_mask() documentation
-says it must be called with preemption disabled.
+Thanks again!
 
-Here is a similar fix. Compile and run tested.
+sparc64: Need to disable preemption around smp_tsb_sync().
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Based upon a bug report by Mariusz Kozlowski
 
---- linux-2.6.27-rc1-mm1/arch/sparc64/kernel/smp.c	2008-07-29 04:40:31.000000000 +0200
-+++ linux-2.6.27-rc1-mm1-dirty/arch/sparc64/kernel/smp.c	2008-08-02 16:40:23.000000000 +0200
-@@ -837,7 +837,9 @@ static void tsb_sync(void *info)
+It uses smp_call_function_masked() now, which has a preemption-disabled
+requirement.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc64/mm/tsb.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/arch/sparc64/mm/tsb.c b/arch/sparc64/mm/tsb.c
+index 3547937..587f8ef 100644
+--- a/arch/sparc64/mm/tsb.c
++++ b/arch/sparc64/mm/tsb.c
+@@ -1,9 +1,10 @@
+ /* arch/sparc64/mm/tsb.c
+  *
+- * Copyright (C) 2006 David S. Miller <davem@davemloft.net>
++ * Copyright (C) 2006, 2008 David S. Miller <davem@davemloft.net>
+  */
  
- void smp_tsb_sync(struct mm_struct *mm)
- {
-+	preempt_disable();
- 	smp_call_function_mask(mm->cpu_vm_mask, tsb_sync, mm, 1);
-+	preempt_enable();
- }
+ #include <linux/kernel.h>
++#include <linux/preempt.h>
+ #include <asm/system.h>
+ #include <asm/page.h>
+ #include <asm/tlbflush.h>
+@@ -415,7 +416,9 @@ retry_tsb_alloc:
+ 		tsb_context_switch(mm);
+ 
+ 		/* Now force other processors to do the same.  */
++		preempt_disable();
+ 		smp_tsb_sync(mm);
++		preempt_enable();
+ 
+ 		/* Now it is safe to free the old tsb.  */
+ 		kmem_cache_free(tsb_caches[old_cache_index], old_tsb);
+-- 
+1.5.6.GIT
 
-
-	Mariusz
