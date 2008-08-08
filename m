@@ -1,78 +1,59 @@
 From: David Miller <davem@davemloft.net>
-Date: Sat, 09 Aug 2008 23:23:59 +0000
-Subject: Re: [PATCH] Only call smp_fetch_global_regs if CONFIG_MAGIC_SYSRQ
-Message-Id: <20080809.162359.127196490.davem@davemloft.net>
+Date: Fri, 08 Aug 2008 06:01:39 +0000
+Subject: Re: 2.6.26-rc: SPARC: Sun Ultra 10 can not boot
+Message-Id: <20080807.230139.220174417.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080809123144.GA2024@v32062.1blu.de>
-In-Reply-To: <20080809123144.GA2024@v32062.1blu.de>
+References: <20080707.040126.178187777.davem@davemloft.net>
+	<18546.5247.797478.66373@harpo.it.uu.se>
+	<a4423d670807070859y74f529b5i60f04e0a37a01cd3@mail.gmail.com>
+In-Reply-To: <a4423d670807070859y74f529b5i60f04e0a37a01cd3@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: a.beregalov@gmail.com
+Cc: mikpe@it.uu.se, kernel-testers@vger.kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Friedrich Oslage <bluebird@gentoo.org>
-Date: Sat, 9 Aug 2008 14:31:44 +0200
+From: "Alexander Beregalov" <a.beregalov@gmail.com>
+Date: Mon, 7 Jul 2008 19:59:04 +0400
 
-> sparc64: Only call smp_fetch_global_regs if CONFIG_MAGIC_SYSRQ is set
+> I have turned off LOCKDEP and it boots properly.
+> 2.6.26-rc9-00005-g1b40a89
 > 
-> Fixes this build error:
->   arch/sparc64/kernel/built-in.o: In function `__trigger_all_cpu_backtrace':
->   (.text+0xa88): undefined reference to `smp_fetch_global_regs'
-> 
-> Signed-off-by: Friedrich Oslage <bluebird@gentoo.org>
+> Mikael's config also does not contain LOCKDEP.
 
-No, the intention is to provide this facility for
-__trigger_all_cpu_backtrace even if MAGIC_SYSRQ is not set.
+I have finally reproduced the problem locally and figured out the
+bug.
 
-The only part that should have MAGIC_SYSRQ ifdef protection
-is the sparc_globalreg_op sysrq regitration and immediate code.
+Please try this patch:
 
-Therefore I'll commit something like the following:
+sparc64: Fix end-of-stack checking in save_stack_trace().
 
-diff --git a/arch/sparc64/kernel/smp.c b/arch/sparc64/kernel/smp.c
-index 27b8177..743ccad 100644
---- a/arch/sparc64/kernel/smp.c
-+++ b/arch/sparc64/kernel/smp.c
-@@ -858,9 +858,7 @@ void smp_tsb_sync(struct mm_struct *mm)
- extern unsigned long xcall_flush_tlb_mm;
- extern unsigned long xcall_flush_tlb_pending;
- extern unsigned long xcall_flush_tlb_kernel_range;
--#ifdef CONFIG_MAGIC_SYSRQ
- extern unsigned long xcall_fetch_glob_regs;
--#endif
- extern unsigned long xcall_receive_signal;
- extern unsigned long xcall_new_mmu_context_version;
- #ifdef CONFIG_KGDB
-@@ -1005,12 +1003,10 @@ void kgdb_roundup_cpus(unsigned long flags)
- }
- #endif
+Bug reported by Alexander Beregalov.
+
+Before we dereference the stack frame or try to peek at the
+pt_regs magic value, make sure the entire object is within
+the kernel stack bounds.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+
+diff --git a/arch/sparc64/kernel/stacktrace.c b/arch/sparc64/kernel/stacktrace.c
+index c73ce3f..c5576e8 100644
+--- a/arch/sparc64/kernel/stacktrace.c
++++ b/arch/sparc64/kernel/stacktrace.c
+@@ -25,13 +25,15 @@ void save_stack_trace(struct stack_trace *trace)
  
--#ifdef CONFIG_MAGIC_SYSRQ
- void smp_fetch_global_regs(void)
- {
- 	smp_cross_call(&xcall_fetch_glob_regs, 0, 0, 0);
- }
--#endif
+ 		/* Bogus frame pointer? */
+ 		if (fp < (thread_base + sizeof(struct thread_info)) ||
+-		    fp >= (thread_base + THREAD_SIZE))
++		    fp > (thread_base + THREAD_SIZE - sizeof(struct sparc_stackf)))
+ 			break;
  
- /* We know that the window frames of the user have been flushed
-  * to the stack before we get here because all callers of us
-diff --git a/arch/sparc64/mm/ultra.S b/arch/sparc64/mm/ultra.S
-index ff1dc44..86773e8 100644
---- a/arch/sparc64/mm/ultra.S
-+++ b/arch/sparc64/mm/ultra.S
-@@ -480,7 +480,6 @@ xcall_sync_tick:
- 	b		rtrap_xcall
- 	 ldx		[%sp + PTREGS_OFF + PT_V9_TSTATE], %l1
+ 		sf = (struct sparc_stackf *) fp;
+ 		regs = (struct pt_regs *) (sf + 1);
  
--#ifdef CONFIG_MAGIC_SYSRQ
- 	.globl		xcall_fetch_glob_regs
- xcall_fetch_glob_regs:
- 	sethi		%hi(global_reg_snapshot), %g1
-@@ -511,7 +510,6 @@ xcall_fetch_glob_regs:
- 	membar		#StoreStore
- 	stx		%g3, [%g1 + GR_SNAP_THREAD]
- 	retry
--#endif /* CONFIG_MAGIC_SYSRQ */
- 
- #ifdef DCACHE_ALIASING_POSSIBLE
- 	.align		32
+-		if ((regs->magic & ~0x1ff) = PT_REGS_MAGIC) {
++		if (((unsigned long)regs <+		     (thread_base + THREAD_SIZE - sizeof(*regs))) &&
++		    (regs->magic & ~0x1ff) = PT_REGS_MAGIC) {
+ 			if (!(regs->tstate & TSTATE_PRIV))
+ 				break;
+ 			pc = regs->tpc;
