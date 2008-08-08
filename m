@@ -1,80 +1,59 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 05 Aug 2008 01:43:16 +0000
+Date: Fri, 08 Aug 2008 06:20:08 +0000
 Subject: [GIT]: Sparc
-Message-Id: <20080804.184316.193691329.davem@davemloft.net>
+Message-Id: <20080807.232008.234054866.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080421.153231.108090227.davem@davemloft.net>
 In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-Besides a few bug fixes, the main bit in here is changing
-sparc64's SMP code to take advantage of the &cpumask_of_cpu()
-stuff we have now.
+Please pull to get these sparc updates and bug fixes.
 
-With one exception, the sparc64 cross-call code will now only work
-with constant cpumask_t pointers, rather than using cpumask_t local
-variables.
+Thanks a lot!
 
-That exception is arch_send_call_function_ipi()' "mask" argument.  I
-would really like to see that interface pass in a constant cpumask_t
-pointer too.
-
-As I found when transforming the sparc64 code, the only way to get rid
-of these function local cpumask_t variables is to put the "is it
-online?" and "is it current cpu?" handling down in the cross-call
-dispatch code itself.  I think the generic SMP helper code should do
-the same as well.
-
-In fact the current:
-
-	cpu = smp_processor_id();
-	allbutself = cpu_online_map;
-	cpu_clear(cpu, allbutself);
-	cpus_and(mask, mask, allbutself);
-
-construct in smp_call_function_mask() is very inefficient.  Better
-would be something like:
-
-	cpu = smp_processor_id();
-	cpu_clear(cpu, mask);
-	cpus_and(mask, mask, cpu_online_map);
-
-which allows to eliminate the allbutself local variable entirely.
-
-Please pull, thanks a lot!
-
-The following changes since commit 8f616cd5249e03c9e1b371623d85e76d4b86bbc1:
+The following changes since commit 0967d61ea0d8e8a7826bd8949cd93dd1e829ac55:
   Linus Torvalds (1):
-        Merge branch 'for_linus' of git://git.kernel.org/.../tytso/ext4
+        Linux 2.6.27-rc2
 
 are available in the git repository at:
 
   master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
 
-David S. Miller (13):
-      sparc64: Need to disable preemption around smp_tsb_sync().
-      sparc64: Use function pointer for cross-call sending.
-      sparc64: Use xcall_deliver() consistently.
-      sparc64: Use cpumask_t pointers and for_each_cpu_mask_nr() in xcall_deliver.
-      sparc64: Call xcall_deliver() directly in some cases.
-      sparc64: Directly call xcall_deliver() in smp_start_sync_tick_client.
-      sparc64: Make smp_cross_call_masked() take a cpumask_t pointer.
-      sparc64: Always allocate the send mondo blocks, even on non-sun4v.
-      sparc64: Make all xcall_deliver's go through common helper function.
-      sparc64: Disable local interrupts around xcall_deliver_impl() invocation.
-      sparc64: Build cpu list and mondo block at top-level xcall_deliver().
-      sparc64: Kill error_mask from hypervisor_xcall_deliver().
-      sparc64: Remove all cpumask_t local variables in xcall dispatch.
+Alexander Beregalov (1):
+      sparc: i8042-sparcio.h: fix warning
 
-Huang Weiyi (1):
-      arch/sparc64/kernel/signal.c: removed duplicated #include
+David S. Miller (2):
+      sparc64: Use kernel/uid16.c helpers instead of own copy.
+      sparc64: Fix end-of-stack checking in save_stack_trace().
 
- arch/sparc64/kernel/irq.c    |   19 +++-
- arch/sparc64/kernel/signal.c |    1 -
- arch/sparc64/kernel/smp.c    |  292 +++++++++++++++++++++---------------------
- arch/sparc64/mm/tsb.c        |    5 +-
- 4 files changed, 166 insertions(+), 151 deletions(-)
+Stephen Rothwell (2):
+      of/sparc: remove include of linux/of_platform.h from asm/of_platform.h
+      sparc: don't use asm/of_device.h
+
+ arch/sparc/include/asm/ebus_32.h     |    2 +-
+ arch/sparc/include/asm/ebus_64.h     |    3 +-
+ arch/sparc/include/asm/of_platform.h |    3 -
+ arch/sparc/include/asm/parport.h     |    3 +-
+ arch/sparc/include/asm/sbus_32.h     |    2 +-
+ arch/sparc/include/asm/sbus_64.h     |    2 +-
+ arch/sparc/kernel/ioport.c           |    2 +-
+ arch/sparc/kernel/time.c             |    2 +-
+ arch/sparc64/kernel/auxio.c          |    2 +-
+ arch/sparc64/kernel/ebus.c           |    2 +-
+ arch/sparc64/kernel/pci_common.c     |    2 +-
+ arch/sparc64/kernel/pci_psycho.c     |    2 +-
+ arch/sparc64/kernel/pci_sabre.c      |    2 +-
+ arch/sparc64/kernel/pci_schizo.c     |    2 +-
+ arch/sparc64/kernel/power.c          |    2 +-
+ arch/sparc64/kernel/prom.c           |    2 +-
+ arch/sparc64/kernel/stacktrace.c     |    6 +-
+ arch/sparc64/kernel/sys_sparc32.c    |  176 ----------------------------------
+ arch/sparc64/kernel/systbls.S        |   20 ++--
+ arch/sparc64/kernel/time.c           |    2 +-
+ drivers/input/serio/i8042-sparcio.h  |   19 +++-
+ 21 files changed, 45 insertions(+), 213 deletions(-)
