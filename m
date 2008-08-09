@@ -1,55 +1,35 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 13 Aug 2008 01:26:28 +0000
-Subject: Re: [PATCH] fix crash with CONFIG_LOCKDEP and
-Message-Id: <20080812.182628.142579150.davem@davemloft.net>
+From: Friedrich Oslage <bluebird@gentoo.org>
+Date: Sat, 09 Aug 2008 12:31:44 +0000
+Subject: [PATCH] Only call smp_fetch_global_regs if CONFIG_MAGIC_SYSRQ is
+Message-Id: <20080809123144.GA2024@v32062.1blu.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.0808122112380.31704@hs20-bc2-1.build.redhat.com>
-In-Reply-To: <Pine.LNX.4.64.0808122112380.31704@hs20-bc2-1.build.redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Mikulas Patocka <mpatocka@redhat.com>
-Date: Tue, 12 Aug 2008 21:21:31 -0400 (EDT)
+sparc64: Only call smp_fetch_global_regs if CONFIG_MAGIC_SYSRQ is set
 
-> This patch fixes crash on boot when both CONFIG_LOCKDEP and 
-> CONFIG_DEBUG_PAGEALLOC are enabled.
+Fixes this build error:
+  arch/sparc64/kernel/built-in.o: In function `__trigger_all_cpu_backtrace':
+  (.text+0xa88): undefined reference to `smp_fetch_global_regs'
 
-Linus's tree already has this fixed, see:
+Signed-off-by: Friedrich Oslage <bluebird@gentoo.org>
+---
+ arch/sparc64/kernel/process.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-commit 433c5f706856689be25928a99636e724fb3ea7cf
-Author: David S. Miller <davem@davemloft.net>
-Date:   Thu Aug 7 23:04:37 2008 -0700
+diff --git a/arch/sparc64/kernel/process.c b/arch/sparc64/kernel/process.c
+index 7f5debd..71d5ea7 100644
+--- a/arch/sparc64/kernel/process.c
++++ b/arch/sparc64/kernel/process.c
+@@ -311,7 +311,9 @@ void __trigger_all_cpu_backtrace(void)
 
-    sparc64: Fix end-of-stack checking in save_stack_trace().
-    
-    Bug reported by Alexander Beregalov.
-    
-    Before we dereference the stack frame or try to peek at the
-    pt_regs magic value, make sure the entire object is within
-    the kernel stack bounds.
-    
-    Signed-off-by: David S. Miller <davem@davemloft.net>
+ 	__global_reg_self(tp, regs, this_cpu);
 
-diff --git a/arch/sparc64/kernel/stacktrace.c b/arch/sparc64/kernel/stacktrace.c
-index b3e3737..e9d7f06 100644
---- a/arch/sparc64/kernel/stacktrace.c
-+++ b/arch/sparc64/kernel/stacktrace.c
-@@ -26,13 +26,15 @@ void save_stack_trace(struct stack_trace *trace)
- 
- 		/* Bogus frame pointer? */
- 		if (fp < (thread_base + sizeof(struct thread_info)) ||
--		    fp >= (thread_base + THREAD_SIZE))
-+		    fp > (thread_base + THREAD_SIZE - sizeof(struct sparc_stackf)))
- 			break;
- 
- 		sf = (struct sparc_stackf *) fp;
- 		regs = (struct pt_regs *) (sf + 1);
- 
--		if ((regs->magic & ~0x1ff) = PT_REGS_MAGIC) {
-+		if (((unsigned long)regs <+		     (thread_base + THREAD_SIZE - sizeof(*regs))) &&
-+		    (regs->magic & ~0x1ff) = PT_REGS_MAGIC) {
- 			if (!(regs->tstate & TSTATE_PRIV))
- 				break;
- 			pc = regs->tpc;
++#ifdef CONFIG_MAGIC_SYSRQ
+ 	smp_fetch_global_regs();
++#endif
+
+ 	for_each_online_cpu(cpu) {
+ 		struct global_reg_snapshot *gp = &global_reg_snapshot[cpu];
