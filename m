@@ -1,49 +1,37 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Thu, 28 Aug 2008 07:58:36 +0000
-Subject: Re: sparc build failure
-Message-Id: <20080828175836.400efd25.sfr@canb.auug.org.au>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Signature=_Thu__28_Aug_2008_17_58_36_+1000_nREVDnmBN8i.YwO2"
+From: David Miller <davem@davemloft.net>
+Date: Tue, 12 Aug 2008 06:30:13 +0000
+Subject: Re: stack overflow on Sparc64
+Message-Id: <20080811.233013.49328708.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080828114602.6c6df4a2.sfr@canb.auug.org.au>
-	<20080827.190409.80969099.davem@davemloft.net>
-	<20080827.200350.79735512.davem@davemloft.net>
-In-Reply-To: <20080827.200350.79735512.davem@davemloft.net>
-To: David Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, wli@holomorphy.com
+References: <20080620.144128.32005196.davem@davemloft.net>
+	<20080620.215139.218732028.davem@davemloft.net>
+	<Pine.LNX.4.64.0806211542050.21474@engineering.redhat.com>
+In-Reply-To: <Pine.LNX.4.64.0806211542050.21474@engineering.redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: mpatocka@redhat.com
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
---Signature=_Thu__28_Aug_2008_17_58_36_+1000_nREVDnmBN8i.YwO2
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+From: Mikulas Patocka <mpatocka@redhat.com>
+Date: Sat, 21 Jun 2008 15:42:56 -0400 (EDT)
 
-Hi Dave,
+> On Fri, 20 Jun 2008, David Miller wrote:
+> 
+> > giving a try.
+> >
+> > sparc64: Implement support for IRQ stacks.
+> 
+> For me it doesn't work. Locked up after "console: colour dummy device 
+> 80x25".
 
-On Wed, 27 Aug 2008 20:03:50 -0700 (PDT) David Miller <davem@davemloft.net>=
- wrote:
->
-> Here's what I'll likely push to linus to fix this.
->=20
-> Thanks for the report Stephen.
->=20
-> sparc32: Implement smp_call_function_single().
+Are you sure you didn't see a "Stack overflow" message on the
+screen? :-)
 
-I have applied this to linux-next today as well.
+That's what I get when I try to boot with your provided
+kernel config.
 
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
+The problem is that CONFIG_STACK_DEBUG doesn't understand
+the IRQ stacks at all.
 
---Signature=_Thu__28_Aug_2008_17_58_36_+1000_nREVDnmBN8i.YwO2
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAki2WqwACgkQjjKRsyhoI8x4SwCeNG6b91aR7EzRpf+guUJ6Bmr0
-/H8An0ldlCAnNhSKRsrJIVkjWi88Q8q7
-=XcsN
------END PGP SIGNATURE-----
-
---Signature=_Thu__28_Aug_2008_17_58_36_+1000_nREVDnmBN8i.YwO2--
+I'll see if I can tweak it to handle this.
