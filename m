@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 08 Aug 2008 06:20:08 +0000
+Date: Wed, 13 Aug 2008 23:45:20 +0000
 Subject: [GIT]: Sparc
-Message-Id: <20080807.232008.234054866.davem@davemloft.net>
+Message-Id: <20080813.164520.86944543.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080421.153231.108090227.davem@davemloft.net>
 In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
@@ -12,48 +12,51 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-Please pull to get these sparc updates and bug fixes.
+Bug fixes:
 
-Thanks a lot!
+1) Fix build when MAGIC_SYSRQ is turned off.
 
-The following changes since commit 0967d61ea0d8e8a7826bd8949cd93dd1e829ac55:
-  Linus Torvalds (1):
-        Linux 2.6.27-rc2
+2) of_device.h header usage cleanups from Stephen Rothwell.
+
+3) Implement IRQ stacks to deal with very real deep stack code path
+   situations, as reported by Mikulas Patocka.  Also, fix a recursion
+   bug in stack overflow detection.
+
+Please pull, thanks a lot!
+
+The following changes since commit 433c5f706856689be25928a99636e724fb3ea7cf:
+  David S. Miller (1):
+        sparc64: Fix end-of-stack checking in save_stack_trace().
 
 are available in the git repository at:
 
   master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
 
-Alexander Beregalov (1):
-      sparc: i8042-sparcio.h: fix warning
-
-David S. Miller (2):
-      sparc64: Use kernel/uid16.c helpers instead of own copy.
-      sparc64: Fix end-of-stack checking in save_stack_trace().
+David S. Miller (3):
+      sparc64: Don't MAGIC_SYSRQ ifdef smp_fetch_global_regs and support code.
+      sparc64: Fix recursion in stack overflow detection handling.
+      sparc64: Implement IRQ stacks.
 
 Stephen Rothwell (2):
-      of/sparc: remove include of linux/of_platform.h from asm/of_platform.h
-      sparc: don't use asm/of_device.h
+      sparc/drivers: use linux/of_device.h instead of asm/of_device.h
+      sparc: remove include of linux/of_device.h from asm/of_device.h
 
- arch/sparc/include/asm/ebus_32.h     |    2 +-
- arch/sparc/include/asm/ebus_64.h     |    3 +-
- arch/sparc/include/asm/of_platform.h |    3 -
- arch/sparc/include/asm/parport.h     |    3 +-
- arch/sparc/include/asm/sbus_32.h     |    2 +-
- arch/sparc/include/asm/sbus_64.h     |    2 +-
- arch/sparc/kernel/ioport.c           |    2 +-
- arch/sparc/kernel/time.c             |    2 +-
- arch/sparc64/kernel/auxio.c          |    2 +-
- arch/sparc64/kernel/ebus.c           |    2 +-
- arch/sparc64/kernel/pci_common.c     |    2 +-
- arch/sparc64/kernel/pci_psycho.c     |    2 +-
- arch/sparc64/kernel/pci_sabre.c      |    2 +-
- arch/sparc64/kernel/pci_schizo.c     |    2 +-
- arch/sparc64/kernel/power.c          |    2 +-
- arch/sparc64/kernel/prom.c           |    2 +-
- arch/sparc64/kernel/stacktrace.c     |    6 +-
- arch/sparc64/kernel/sys_sparc32.c    |  176 ----------------------------------
- arch/sparc64/kernel/systbls.S        |   20 ++--
- arch/sparc64/kernel/time.c           |    2 +-
- drivers/input/serio/i8042-sparcio.h  |   19 +++-
- 21 files changed, 45 insertions(+), 213 deletions(-)
+ arch/sparc/include/asm/irq_64.h     |    4 ++
+ arch/sparc/include/asm/of_device.h  |    3 +-
+ arch/sparc64/kernel/irq.c           |   52 +++++++++++++++++++++++++++++++
+ arch/sparc64/kernel/kstack.h        |   58 +++++++++++++++++++++++++++++++++++
+ arch/sparc64/kernel/process.c       |   27 ++++------------
+ arch/sparc64/kernel/smp.c           |    4 --
+ arch/sparc64/kernel/stacktrace.c    |   10 ++---
+ arch/sparc64/kernel/traps.c         |    7 ++--
+ arch/sparc64/lib/mcount.S           |   39 +++++++++++++++++++++--
+ arch/sparc64/mm/init.c              |   11 ++++++
+ arch/sparc64/mm/ultra.S             |    2 -
+ drivers/input/serio/i8042-sparcio.h |    3 +-
+ drivers/sbus/sbus.c                 |    2 +-
+ drivers/serial/sunhv.c              |    2 +-
+ drivers/serial/sunsab.c             |    2 +-
+ drivers/serial/sunsu.c              |    2 +-
+ drivers/serial/sunzilog.c           |    2 +-
+ 17 files changed, 183 insertions(+), 47 deletions(-)
+ create mode 100644 arch/sparc64/kernel/kstack.h
