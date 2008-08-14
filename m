@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 13 Aug 2008 09:06:14 +0000
+Date: Thu, 14 Aug 2008 03:52:08 +0000
 Subject: Re: [BUG] Kernel panic on heavy disk activity with esp_scsi
-Message-Id: <20080813.020614.160990178.davem@davemloft.net>
+Message-Id: <20080813.205208.127042891.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1210367903.21472.14.camel@lya.porno-bullen.de>
 In-Reply-To: <1210367903.21472.14.camel@lya.porno-bullen.de>
@@ -11,31 +11,35 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 From: Friedrich Oslage <bluebird@porno-bullen.de>
-Date: Thu, 19 Jun 2008 09:58:45 +0200
+Date: Wed, 18 Jun 2008 22:06:24 +0200
 
-> > Can I have a copy?  I'd like to trigger this here and debug
-> > it locally if possible.
-> 
-> One of these should help you to trigger the bug:
-> 
-> Option 1 (works sometimes)
-> $ wget ftp://distro.ibiblio.org/pub/linux/distributions/gentoo/snapshots/portage-latest.tar.lzma
-> $ unlzma portage-latest.tar.lzma
-> $ while [ true ]
-> $ do
-> $	tar -xf portage-latest.tar
-> $	rm -r portage
-> $ done
+> Well, it does fix the OOPS, but now the system is stuck in an infinite
+> reset-loop. Dmesg shows the "DMA length is zero" message once per
+> second.
 
-I haven't forgotten about this bug.
+Can you run and trigger this problem with the following debugging
+patch applied?  Just give me the first one tha triggers.
 
-Over the past weekend I ran this loop for days on my dual-cpu Ultra2
-box.  I then even ran a full XORG GIT build at the same time, and
-I could not trigger this bug.
+Thanks!
 
-I'll have to come up with some kind of debugging patch so when it
-triggers for you the kernel log will print some useful tracing
-information we can use to try and disect this further.
-
-I have no timeframe for when I'll be able to code that up as I have
-a lot of other things to sort out first.
+diff --git a/drivers/scsi/esp_scsi.c b/drivers/scsi/esp_scsi.c
+index 62a4618..41ec3e4 100644
+--- a/drivers/scsi/esp_scsi.c
++++ b/drivers/scsi/esp_scsi.c
+@@ -1717,6 +1717,16 @@ again:
+ 			       esp->host->unique_id,
+ 			       (unsigned long long)esp_cur_dma_addr(ent, cmd),
+ 			       esp_cur_dma_len(ent, cmd));
++			{
++				int i;
++				printk("esp%d: tgt[%d] lun[%d] scsi_cmd [ ",
++				       esp->host->unique_id, cmd->device->id,
++				       cmd->device->lun);
++				for (i = 0; i < cmd->cmd_len; i++)
++					printk("%02x ", cmd->cmnd[i]);
++				printk("]\n");
++				esp_dump_cmd_log(esp);
++			}
+ 			esp_schedule_reset(esp);
+ 			return 0;
+ 		}
