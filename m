@@ -1,37 +1,35 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 14 Aug 2008 00:21:13 +0000
-Subject: Re: [GIT]: Sparc
-Message-Id: <20080813.172113.161885391.davem@davemloft.net>
+Date: Mon, 18 Aug 2008 05:39:04 +0000
+Subject: [GIT]: Sparc
+Message-Id: <20080817.223904.186713151.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080813.164520.86944543.davem@davemloft.net>
-In-Reply-To: <20080813.164520.86944543.davem@davemloft.net>
+References: <20080421.153231.108090227.davem@davemloft.net>
+In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: David Miller <davem@davemloft.net>
-Date: Wed, 13 Aug 2008 16:45:20 -0700 (PDT)
 
-> 3) Implement IRQ stacks to deal with very real deep stack code path
->    situations, as reported by Mikulas Patocka.  Also, fix a recursion
->    bug in stack overflow detection.
+The LMB bug fix was OK'd by the powerpc folks and they are the
+only other port which uses that code, so... :-)
 
-While further testing I noticed a bug which I've pushed into the
-tree, please repull to fetch it if you haven't already, thanks!
+Please pull, thanks a lot!
 
-The following changes since commit 4f70f7a91bffdcc39f088748dc678953eb9a3fbd:
+The following changes since commit 6f63e781eaf6a741fc65f773017154b20ed4ce3b:
   David S. Miller (1):
-        sparc64: Implement IRQ stacks.
+        sparc64: Handle stack trace attempts before irqstacks are setup.
 
 are available in the git repository at:
 
   master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
 
-David S. Miller (1):
-      sparc64: Handle stack trace attempts before irqstacks are setup.
+David S. Miller (3):
+      sparc64: Fix overshoot in nid_range().
+      sparc64: Fix cmdline_memory_size handling bugs.
+      lmb: Fix reserved region handling in lmb_enforce_memory_limit().
 
- arch/sparc64/kernel/kstack.h     |   38 ++++++++++++++++++++------------------
- arch/sparc64/kernel/stacktrace.c |    3 +--
- 2 files changed, 21 insertions(+), 20 deletions(-)
+ arch/sparc64/mm/init.c |   30 ++++++++++++++++++++++--------
+ lib/lmb.c              |    2 ++
+ 2 files changed, 24 insertions(+), 8 deletions(-)
