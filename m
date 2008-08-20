@@ -1,50 +1,64 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Thu, 07 Aug 2008 06:28:02 +0000
-Subject: Re: [PATCH] sparc: don't use asm/of_device.h
-Message-Id: <20080807162802.e95f2669.sfr@canb.auug.org.au>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Signature=_Thu__7_Aug_2008_16_28_02_+1000_TSFNi/hIPfqUod2Y"
+From: Meelis Roos <mroos@linux.ee>
+Date: Wed, 20 Aug 2008 10:45:13 +0000
+Subject: Re: soft lockup in 2.6.26-rc1+git, on Fire V100
+Message-Id: <Pine.SOC.4.64.0808201334400.2111@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080807134417.6a1bc76d.sfr@canb.auug.org.au>
-In-Reply-To: <20080807134417.6a1bc76d.sfr@canb.auug.org.au>
+References: <Pine.SOC.4.64.0805051908190.17592@math.ut.ee>
+In-Reply-To: <Pine.SOC.4.64.0805051908190.17592@math.ut.ee>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
---Signature=_Thu__7_Aug_2008_16_28_02_+1000_TSFNi/hIPfqUod2Y
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I got back to this bug now that I had some time.
 
-Hi Dave,
+> > > Should I redo the bisect without restricting to drivers/usb/host?
+> > 
+> > That would be a good idea.  After all, we have no proof that the lockup 
+> > was caused by a change to the USB code.
+> 
+> Hmph. Complete now but I may have bisected for another bug since most 
+> "bad" bisects hung before even showing any USB-related messages - during 
+> udev startup with no messages or just after libata startup with no 
+> further messages.
+> 
+> The new results are not promising either - this time it finished with
+> [62be1f71677c53d5e51223807a06ac9052f49b0f] [GFS2] fix assertion in log_refund()
+> 
+> So maybe a timing or layout triggered bug somewhere instead? :(
 
-On Wed, 06 Aug 2008 22:43:01 -0700 (PDT) David Miller <davem@davemloft.net>=
- wrote:
->
-> From: Stephen Rothwell <sfr@canb.auug.org.au>
-> Date: Thu, 7 Aug 2008 13:44:17 +1000
->=20
-> > Use linux/of_device.h instead.
-> >=20
-> > Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
->=20
-> Did I miss a previous patch?  This one doesn't apply cleanly:
+I reran the full git bisect using gcc-4.2 instead of 4.3 that had became 
+default in Debian. This time the bisect gave the following commit as 
+culprit:
 
-Sorry about that, I have a previous (so far unpublished) patch in my
-tree.  I will rearrange them and post a new patch.
+6e9fc6bd5db34a6580e1917bd0fea4b0754c7de8 is first bad commit
+commit 6e9fc6bd5db34a6580e1917bd0fea4b0754c7de8
+Author: Daniel Mack <daniel@caiaq.de>
+Date:   Mon Apr 14 15:40:31 2008 +0200
 
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
+    [ALSA] snd_usb_caiaq: make high sample rates work with A8DJ
 
---Signature=_Thu__7_Aug_2008_16_28_02_+1000_TSFNi/hIPfqUod2Y
-Content-Type: application/pgp-signature
+Seems to be another irrelevant one, so not gcc-4.2 <-> gcc-4.3 
+difference (and most of the hangs were again before usb messaged and 
+after libata messages).
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
+Tried 2.6.27-rc3 + yesterdays git that works on my Ultra5, still hangs 
+in USB startup on V100.
 
-iEYEARECAAYFAkialfIACgkQjjKRsyhoI8zVPQCdF1PzCTNPUAsJaMI623JPR3Ul
-e6oAoJn+cTuczhx0XB0/4yImSCeVLYNZ
-=1uUf
------END PGP SIGNATURE-----
+Then I tried the suggestion to instrument ohci_hub_status_data() with 
+printks around spin_lock_irqsave() and return. Tried this with git HEAD 
+and this time ohci_hub_status_data seemed to be not reached at all, so 
+it hangs in USB code in slightly different place than in the original 
+trace.
 
---Signature=_Thu__7_Aug_2008_16_28_02_+1000_TSFNi/hIPfqUod2Y--
+By the way, David - Sysrq-T and Sysrq-P do not seem to work in latest 
+git form me for some reason, from serial console. So no new trace.
+
+Will check the kernel debugging options with working U5 config to look 
+for any suspicios diffences there.
+
+What should I do next - probably go back to the original revision and 
+instrument ohci_hub_status_data() there?
+
+-- 
+Meelis Roos (mroos@linux.ee)
