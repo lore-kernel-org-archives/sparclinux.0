@@ -1,7 +1,7 @@
 From: Ben Collins <ben.collins@canonical.com>
-Date: Wed, 20 Aug 2008 00:42:25 +0000
+Date: Thu, 21 Aug 2008 14:29:54 +0000
 Subject: Re: [PATCH] Make silo work with recent kernel headers and gcc 4.3
-Message-Id: <1219192945.17001.186.camel@cunning>
+Message-Id: <48AD7BE2.8080802@canonical.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1219187229.7722.15.camel@lya.porno-bullen.de>
 In-Reply-To: <1219187229.7722.15.camel@lya.porno-bullen.de>
@@ -10,25 +10,14 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, 2008-08-19 at 16:37 -0700, David Miller wrote:
-> From: Ben Collins <ben.collins@canonical.com>
-> Date: Tue, 19 Aug 2008 19:28:37 -0400
+Friedrich Oslage wrote:
+> These are the patches we(Gentoo) are using to compile silo with recent
+> linux kernel headers(>=2.6.25) and gcc 4.3.
 > 
-> > On Wed, 2008-08-20 at 01:07 +0200, Friedrich Oslage wrote:
-> > > These are the patches we(Gentoo) are using to compile silo with recent
-> > > linux kernel headers(>=2.6.25) and gcc 4.3.
-> > > 
-> > > I only checked Debian SID, but probably all other distributions out
-> > > there would benefit from this.
-> > > 
-> > > Please apply them :)
-> > 
-> > I'll check the rest of it, but on initial glance, wouldn't it be better
-> > to just do -lgcc instead of the `gcc -print...` mess?
+> I only checked Debian SID, but probably all other distributions out
+> there would benefit from this.
 > 
-> We do the link by hand using $(LD), so that might be part of
-> the issue.
+> Please apply them :)
+> 
 
-Right, libgcc.a isn't in a standard libdir. Ok, looks good, so I'll
-check it in later this week and do a new release.
-
+Applied, thanks.
