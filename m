@@ -1,46 +1,38 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Date: Thu, 21 Aug 2008 22:39:53 +0000
+From: "Grant Likely" <grant.likely@secretlab.ca>
+Date: Thu, 21 Aug 2008 23:14:57 +0000
 Subject: Re: [PATCH 0/3]: Sparc OF I2C support.
-Message-Id: <1219358393.21386.158.camel@pasglop>
+Message-Id: <fa686aa40808211614q72f6719btd391830abded58f6@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080821.142134.127315039.davem@davemloft.net>
-	<48ADDF86.2040200@freescale.com> <1219356302.21386.147.camel@pasglop>
-	<20080821.152857.84114588.davem@davemloft.net>
-In-Reply-To: <20080821.152857.84114588.davem@davemloft.net>
+References: <20080821.001012.265401427.davem@davemloft.net>
+	 <20080821163256.GC15669@ld0162-tx32.am.freescale.net>
+	 <20080821.142134.127315039.davem@davemloft.net>
+	 <48ADDF86.2040200@freescale.com>
+In-Reply-To: <48ADDF86.2040200@freescale.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: scottwood@freescale.com, sparclinux@vger.kernel.org, paulus@samba.org, linuxppc-dev@ozlabs.org
+To: Scott Wood <scottwood@freescale.com>
+Cc: David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, linuxppc-dev@ozlabs.org, paulus@samba.org, devicetree-discuss@ozlabs.org
 
-On Thu, 2008-08-21 at 15:28 -0700, David Miller wrote:
-> From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> Date: Fri, 22 Aug 2008 08:05:02 +1000
-> 
-> > Apple additionally have different ways of representing multiple busses
-> > on one controller though. On some machines, they just use bits 0xF00 of
-> > the address as the bus number, which is a bit gross, and on some, they
-> > have sub-nodes i2c-bus@NN under the controller.
-> 
-> Ok, Sun uses a 2-cell scheme.  We can handle both cases of reg
-> encoding quite easily:
-> 
-> 1) If there is a single cell, tread bits 8 and above as bus number.
->    They will be zero on Sparc.
+On Thu, Aug 21, 2008 at 3:35 PM, Scott Wood <scottwood@freescale.com> wrote:
+> David Miller wrote:
+>>>
+>>> On Thu, Aug 21, 2008 at 12:10:12AM -0700, David Miller wrote:
+>> If you guys created this format in your compressed openfirmware
+>> trees, is it possible for you to "fix" it to match what Sparc
+>> systems following the proper bindings do?
+>
+> Possibly, though it'll cause some pain when old trees are used with a kernel
+> that expects the new binding.
 
-Depends if you want also to handle 10-bit addresses... though the
-support for that could be enabled by an explicit property
-10-bit-addresses in the controller node...  But as I said before, I
-wouldn't worry too much about powermac for now, it's not using this code
-and may never do.
+Ugh, more like loads of pain.  There are deployed platforms using the
+embedded 'invented' bindings.  I don't think it is an option to break
+compatibility with older trees.  If there is some backwards
+compatibility code then I'm all for migrating to the same binding as
+Sparc and PowerMac
 
-> 2) If there are two cells, first cell is bus number.
-> 
-> For the hierarchical case, I'm not so sure how to handle it.
-> 
-> Also, last night, I posted patches to the I2C list to add bus
-> addressing support to the I2C code and the PCF algo implementation.
+g.
 
-Ben.
-
-
+-- 
+Grant Likely, B.Sc., P.Eng.
+Secret Lab Technologies Ltd.
