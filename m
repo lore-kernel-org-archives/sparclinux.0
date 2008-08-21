@@ -1,37 +1,34 @@
-From: Scott Wood <scottwood@freescale.com>
-Date: Thu, 21 Aug 2008 16:32:56 +0000
+From: David Miller <davem@davemloft.net>
+Date: Thu, 21 Aug 2008 21:21:34 +0000
 Subject: Re: [PATCH 0/3]: Sparc OF I2C support.
-Message-Id: <20080821163256.GC15669@ld0162-tx32.am.freescale.net>
+Message-Id: <20080821.142134.127315039.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080821.001012.265401427.davem@davemloft.net>
-In-Reply-To: <20080821.001012.265401427.davem@davemloft.net>
+	<20080821163256.GC15669@ld0162-tx32.am.freescale.net>
+In-Reply-To: <20080821163256.GC15669@ld0162-tx32.am.freescale.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
+To: scottwood@freescale.com
 Cc: sparclinux@vger.kernel.org, linuxppc-dev@ozlabs.org, paulus@samba.org
 
-On Thu, Aug 21, 2008 at 12:10:12AM -0700, David Miller wrote:
-> Mostly straightforward stuff _except_ for the I2C address encoding.
+From: Scott Wood <scottwood@freescale.com>
+Date: Thu, 21 Aug 2008 11:32:56 -0500
+
+> On Thu, Aug 21, 2008 at 12:10:12AM -0700, David Miller wrote:
+> > 2) When CONFIG_SPARC, shift the device address down by one bit before
+> >    giving it to the Linux I2C layer.
 > 
-> What I2C IEEE1275 device binding was used to write that code in
-> of_i2c.c?  Is it some PowerPC specific thing?  Was it "invented"
-> by the embedded folks (I hope not)?
+> Maybe we should distinguish by the type of I2C bus node instead.
 
-Yes, it was "invented".  There was no documented i2c OF binding that I
-could find, and AFAIR nobody came forward with examples of existing
-practice at the time.
+How so?  If a Sparc and a PowerPC system use similar I2C
+controllers, we risk double matches.
 
-> And, furthermore, the device address is shifted up 1 bit higher
-> than the Linux I2C layer expects.  It includes the low direction
-> bit, bit 0, so we have to shift it down by 1 bit before we give
-> it to the Linux I2C layer.
+If you guys created this format in your compressed openfirmware
+trees, is it possible for you to "fix" it to match what Sparc
+systems following the proper bindings do?
 
-Yuck.
+This way we won't need any of these ifdefs at all.
 
-> 2) When CONFIG_SPARC, shift the device address down by one bit before
->    giving it to the Linux I2C layer.
-
-Maybe we should distinguish by the type of I2C bus node instead.
-
--Scott
+Don't PowerMACs and such have I2C controllers and devices?
+How do they encode these I2C client device reg properties?
