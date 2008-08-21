@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 21 Aug 2008 08:43:49 +0000
+From: Meelis Roos <mroos@linux.ee>
+Date: Thu, 21 Aug 2008 08:50:32 +0000
 Subject: Re: soft lockup in 2.6.26-rc1+git, on Fire V100
-Message-Id: <20080821.014349.143098373.davem@davemloft.net>
+Message-Id: <Pine.SOC.4.64.0808211149500.17855@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.SOC.4.64.0805051908190.17592@math.ut.ee>
 In-Reply-To: <Pine.SOC.4.64.0805051908190.17592@math.ut.ee>
@@ -10,11 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: David Miller <davem@davemloft.net>
-Date: Thu, 21 Aug 2008 01:40:02 -0700 (PDT)
+> Did you already test soemthing, such as get rid of USB support in your
+> configuration, and after a successful boot try and use sysrq over your
+> serial console?
 
-> Do you have CONFIG_DEBUG_STACK_USAGE enabled too?
+Not yet, have tried with instrumenting the usb code as the first 
+priority.
 
-Typo, I meant CONFIG_STACK_DEBUG here.
+> Is this serial console over a sunsu device?
 
-Sorry :-)
+Yes.
+
+-- 
+Meelis Roos (mroos@linux.ee)
