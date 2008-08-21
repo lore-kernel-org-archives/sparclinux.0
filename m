@@ -1,41 +1,90 @@
-From: "Grant Likely" <grant.likely@secretlab.ca>
-Date: Fri, 22 Aug 2008 16:44:33 +0000
-Subject: Re: [PATCH 0/3]: Sparc OF I2C support.
-Message-Id: <fa686aa40808220944h6c52c68fi97f9d3174ccc5c4a@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 21 Aug 2008 07:10:17 +0000
+Subject: [PATCH 1/3]: sparc: Implement irq_of_parse_and_map() and
+Message-Id: <20080821.001017.261408123.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080821.001012.265401427.davem@davemloft.net>
-	 <20080821163256.GC15669@ld0162-tx32.am.freescale.net>
-	 <20080821.142134.127315039.davem@davemloft.net>
-	 <48ADDF86.2040200@freescale.com>
-	 <fa686aa40808211614q72f6719btd391830abded58f6@mail.gmail.com>
-	 <9e4733910808211645p27ff2c6ci6dba6f363e9ece15@mail.gmail.com>
-	 <fa686aa40808211933o72c2da60v557d5a58f2c9d1a7@mail.gmail.com>
-	 <9e4733910808211939s24f1b2f0tc470aaf3831ebcca@mail.gmail.com>
-In-Reply-To: <9e4733910808211939s24f1b2f0tc470aaf3831ebcca@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jon Smirl <jonsmirl@gmail.com>
-Cc: Scott Wood <scottwood@freescale.com>, sparclinux@vger.kernel.org, linuxppc-dev@ozlabs.org, devicetree-discuss@ozlabs.org, paulus@samba.org, David Miller <davem@davemloft.net>
+To: linuxppc-dev@ozlabs.org
+Cc: sparclinux@vger.kernel.org, paulus@samba.org
 
-On Thu, Aug 21, 2008 at 8:39 PM, Jon Smirl <jonsmirl@gmail.com> wrote:
-> On 8/21/08, Grant Likely <grant.likely@secretlab.ca> wrote:
->> It was over a year ago when support for i2c devices in the device tree
->>  was merged.
->
-> I see, the old support needed the drivers to be built-in. The newer
-> code dynamically loads the correct i2c driver and set its parameters.
->
-> Did the old code use anything besides compatible? It would have been
-> using the older i2c system that probed for the address.
 
-I think you're confusing binding with implementation.  The binding is
-the layout of data in the device tree.  The implementation uses that
-data.  Your right that the current implementation is new, but it
-replaces older implementation that uses the same binding.
+sparc: Implement irq_of_parse_and_map() and irq_dispose_mapping().
 
-g.
+This allows more OF layer code to be shared between powerpc and
+sparc.
 
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/include/asm/prom.h   |    8 ++++++++
+ arch/sparc/kernel/of_device.c   |   11 +++++++++++
+ arch/sparc64/kernel/of_device.c |   11 +++++++++++
+ 3 files changed, 30 insertions(+), 0 deletions(-)
+
+diff --git a/arch/sparc/include/asm/prom.h b/arch/sparc/include/asm/prom.h
+index b5efc4d..58b85fa 100644
+--- a/arch/sparc/include/asm/prom.h
++++ b/arch/sparc/include/asm/prom.h
+@@ -96,6 +96,14 @@ static inline void of_node_put(struct device_node *node)
+ {
+ }
+ 
++/* These routines are here to provide compatibility with how powerpc
++ * handles IRQ mapping for OF device nodes.  We precompute and permanently
++ * register them in the of_device objects, whereas powerpc computes them
++ * on request.
++ */
++extern int irq_of_parse_and_map(struct device_node *node, int index);
++#define irq_dispose_mapping(irq) do { } while (0)
++
+ /*
+  * NB:  This is here while we transition from using asm/prom.h
+  * to linux/of.h
+diff --git a/arch/sparc/kernel/of_device.c b/arch/sparc/kernel/of_device.c
+index cc4c235..56e9a71 100644
+--- a/arch/sparc/kernel/of_device.c
++++ b/arch/sparc/kernel/of_device.c
+@@ -29,6 +29,17 @@ struct of_device *of_find_device_by_node(struct device_node *dp)
+ }
+ EXPORT_SYMBOL(of_find_device_by_node);
+ 
++int irq_of_parse_and_map(struct device_node *node, int index)
++{
++	struct of_device *op = of_find_device_by_node(node);
++
++	if (!op || index >= op->num_irqs)
++		return 0xffffffff;
++
++	return op->irqs[index];
++}
++EXPORT_SYMBOL(irq_of_parse_and_map);
++
+ #ifdef CONFIG_PCI
+ struct bus_type ebus_bus_type;
+ EXPORT_SYMBOL(ebus_bus_type);
+diff --git a/arch/sparc64/kernel/of_device.c b/arch/sparc64/kernel/of_device.c
+index f8b50cb..8a0d823 100644
+--- a/arch/sparc64/kernel/of_device.c
++++ b/arch/sparc64/kernel/of_device.c
+@@ -55,6 +55,17 @@ struct of_device *of_find_device_by_node(struct device_node *dp)
+ }
+ EXPORT_SYMBOL(of_find_device_by_node);
+ 
++int irq_of_parse_and_map(struct device_node *node, int index)
++{
++	struct of_device *op = of_find_device_by_node(node);
++
++	if (!op || index >= op->num_irqs)
++		return 0xffffffff;
++
++	return op->irqs[index];
++}
++EXPORT_SYMBOL(irq_of_parse_and_map);
++
+ #ifdef CONFIG_PCI
+ struct bus_type ebus_bus_type;
+ EXPORT_SYMBOL(ebus_bus_type);
 -- 
-Grant Likely, B.Sc., P.Eng.
-Secret Lab Technologies Ltd.
+1.5.6.5.GIT
+
