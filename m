@@ -1,29 +1,37 @@
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Date: Fri, 01 Aug 2008 07:21:21 +0000
-Subject: Re: [PATCH] Revert "Merge branch 'x86/iommu' of
-Message-Id: <20080801162109Q.fujita.tomonori@lab.ntt.co.jp>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 21 Aug 2008 07:10:25 +0000
+Subject: [PATCH 3/3]: of: Add some I2C mod aliases table entries for
+Message-Id: <20080821.001025.76289480.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080801085106E.fujita.tomonori@lab.ntt.co.jp>
-	<20080801070328.GA26894@amd.com>
-	<20080801.000417.85699799.davem@davemloft.net>
-In-Reply-To: <20080801.000417.85699799.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net
-Cc: sfr@canb.auug.org.au, joerg.roedel@amd.com, linux-kernel@vger.kernel.org, jbarnes@virtuousgeek.org, fujita.tomonori@lab.ntt.co.jp, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, akpm@linux-foundation.org, torvalds@linux-foundation.org, mingo@elte.hu
+To: linuxppc-dev@ozlabs.org
+Cc: sparclinux@vger.kernel.org, paulus@samba.org
 
-On Fri, 01 Aug 2008 00:04:17 -0700 (PDT)
-David Miller <davem@davemloft.net> wrote:
 
-> From: Joerg Roedel <joerg.roedel@amd.com>
-> Date: Fri, 1 Aug 2008 09:03:28 +0200
-> 
-> > That may be the reason that your fix is not yet upstream.
-> 
-> The reason is more-so because Linus simply hasn't merged more
-> than a couple of patches since 2.6.27-rc1 was released.
+of: Add some I2C mod aliases table entries for sparc64 systems.
 
-Yeah, I think so.
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ drivers/of/base.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-I'll send the patch to Linus if necessary.
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index ad8ac1a..e849f69 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -410,7 +410,9 @@ struct of_modalias_table {
+ 	char *modalias;
+ };
+ static struct of_modalias_table of_modalias_table[] = {
+-	/* Empty for now; add entries as needed */
++	{ "i2c-adm1031", "adm1031" },
++	{ "i2c-at24c64", "24c64" },
++	{ "i2c-at34c02", "spd" },
+ };
+ 
+ /**
+-- 
+1.5.6.5.GIT
+
