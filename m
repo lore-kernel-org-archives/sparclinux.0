@@ -1,7 +1,7 @@
-From: "Grant Likely" <grant.likely@secretlab.ca>
-Date: Fri, 22 Aug 2008 02:33:20 +0000
+From: "Jon Smirl" <jonsmirl@gmail.com>
+Date: Fri, 22 Aug 2008 02:39:40 +0000
 Subject: Re: [PATCH 0/3]: Sparc OF I2C support.
-Message-Id: <fa686aa40808211933o72c2da60v557d5a58f2c9d1a7@mail.gmail.com>
+Message-Id: <9e4733910808211939s24f1b2f0tc470aaf3831ebcca@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080821.001012.265401427.davem@davemloft.net>
 	 <20080821163256.GC15669@ld0162-tx32.am.freescale.net>
@@ -9,30 +9,48 @@ References: <20080821.001012.265401427.davem@davemloft.net>
 	 <48ADDF86.2040200@freescale.com>
 	 <fa686aa40808211614q72f6719btd391830abded58f6@mail.gmail.com>
 	 <9e4733910808211645p27ff2c6ci6dba6f363e9ece15@mail.gmail.com>
-In-Reply-To: <9e4733910808211645p27ff2c6ci6dba6f363e9ece15@mail.gmail.com>
+	 <fa686aa40808211933o72c2da60v557d5a58f2c9d1a7@mail.gmail.com>
+In-Reply-To: <fa686aa40808211933o72c2da60v557d5a58f2c9d1a7@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jon Smirl <jonsmirl@gmail.com>
+To: Grant Likely <grant.likely@secretlab.ca>
 Cc: Scott Wood <scottwood@freescale.com>, sparclinux@vger.kernel.org, linuxppc-dev@ozlabs.org, devicetree-discuss@ozlabs.org, paulus@samba.org, David Miller <davem@davemloft.net>
 
-On Thu, Aug 21, 2008 at 5:45 PM, Jon Smirl <jonsmirl@gmail.com> wrote:
-> On 8/21/08, Grant Likely <grant.likely@secretlab.ca> wrote:
->> Ugh, more like loads of pain.  There are deployed platforms using the
->>  embedded 'invented' bindings.  I don't think it is an option to break
->>  compatibility with older trees.  If there is some backwards
->>  compatibility code then I'm all for migrating to the same binding as
->>  Sparc and PowerMac
+On 8/21/08, Grant Likely <grant.likely@secretlab.ca> wrote:
+> On Thu, Aug 21, 2008 at 5:45 PM, Jon Smirl <jonsmirl@gmail.com> wrote:
+>  > On 8/21/08, Grant Likely <grant.likely@secretlab.ca> wrote:
 >
-> Has anything really been deployed? These bindings are only a few months old.
+> >> Ugh, more like loads of pain.  There are deployed platforms using the
+>  >>  embedded 'invented' bindings.  I don't think it is an option to break
+>  >>  compatibility with older trees.  If there is some backwards
+>  >>  compatibility code then I'm all for migrating to the same binding as
+>  >>  Sparc and PowerMac
+>  >
+>  > Has anything really been deployed? These bindings are only a few months old.
+>
+>
+> It was over a year ago when support for i2c devices in the device tree
+>  was merged.
 
-It was over a year ago when support for i2c devices in the device tree
-was merged.
+I see, the old support needed the drivers to be built-in. The newer
+code dynamically loads the correct i2c driver and set its parameters.
 
-See commit id d13ae8620dfdedfa7e9ab6d1eec294adc0516065.
+Did the old code use anything besides compatible? It would have been
+using the older i2c system that probed for the address.
 
-g.
+>
+>  See commit id d13ae8620dfdedfa7e9ab6d1eec294adc0516065.
+>
+>
+>  g.
+>
+>  --
+>  Grant Likely, B.Sc., P.Eng.
+>  Secret Lab Technologies Ltd.
+>
+
 
 -- 
-Grant Likely, B.Sc., P.Eng.
-Secret Lab Technologies Ltd.
+Jon Smirl
+jonsmirl@gmail.com
