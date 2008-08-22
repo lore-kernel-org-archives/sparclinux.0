@@ -1,50 +1,32 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 22 Aug 2008 11:06:12 +0000
+From: Scott Wood <scottwood@freescale.com>
+Date: Fri, 22 Aug 2008 15:58:07 +0000
 Subject: Re: [PATCH 0/3]: Sparc OF I2C support.
-Message-Id: <20080822.040612.116644986.davem@davemloft.net>
+Message-Id: <20080822155807.GD13422@ld0162-tx32.am.freescale.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1219367743.26429.66.camel@jdub.homelinux.org>
-	<20080821.205305.74123372.davem@davemloft.net>
-	<20080822065048.662e3f8e@zod.rchland.ibm.com>
-In-Reply-To: <20080822065048.662e3f8e@zod.rchland.ibm.com>
+References: <20080821.001012.265401427.davem@davemloft.net> <20080821163256.GC15669@ld0162-tx32.am.freescale.net> <20080821.142134.127315039.davem@davemloft.net> <48ADDF86.2040200@freescale.com> <fa686aa40808211614q72f6719btd391830abded58f6@mail.gmail.com> <9e4733910808211645p27ff2c6ci6dba6f363e9ece15@mail.gmail.com> <fa686aa40808211933o72c2da60v557d5a58f2c9d1a7@mail.gmail.com> <9e4733910808211939s24f1b2f0tc470aaf3831ebcca@mail.gmail.com>
+In-Reply-To: <9e4733910808211939s24f1b2f0tc470aaf3831ebcca@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: jwboyer@linux.vnet.ibm.com
-Cc: devicetree-discuss@ozlabs.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, paulus@samba.org, scottwood@freescale.com
+To: Jon Smirl <jonsmirl@gmail.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, sparclinux@vger.kernel.org, linuxppc-dev@ozlabs.org, devicetree-discuss@ozlabs.org, paulus@samba.org, David Miller <davem@davemloft.net>
 
-From: Josh Boyer <jwboyer@linux.vnet.ibm.com>
-Date: Fri, 22 Aug 2008 06:50:48 -0400
-
-> On Thu, 21 Aug 2008 20:53:05 -0700 (PDT)
-> David Miller <davem@davemloft.net> wrote:
+On Thu, Aug 21, 2008 at 10:39:40PM -0400, Jon Smirl wrote:
+> I see, the old support needed the drivers to be built-in. The newer
+> code dynamically loads the correct i2c driver and set its parameters.
 > 
-> > From: Josh Boyer <jwboyer@linux.vnet.ibm.com>
-> > Date: Thu, 21 Aug 2008 21:15:37 -0400
-> > 
-> > > Huge?  I'd say mistake, but not necessarily huge.  I mean nobody other
-> > > than you (at least in the context of this conversation) had access to
-> > > the IEEE1275 proposed binding so it wasn't like there was tons to go on.
-> > 
-> > I guess all the PowerMAC G5 systems out there and their device trees
-> > were locked up in a highly secure vault somewhere :-)
-> 
-> Apple has done silly things in their device trees before.  I wouldn't
-> hold them up as an excellent example.
+> Did the old code use anything besides compatible?
 
-Sure, I agree, and Sun has too.
+Yes.
 
-But it's always a good idea to go look thoroughly at what existing
-systems are doing before pulling the switch and inventing one's own
-OF binding from scratch.
+> It would have been using the older i2c system that probed for the
+> address.
 
-Right?
+No, it wouldn't have.  It used glue code to generate i2c_board_info
+structs.
 
-> I have no idea who to contact.
+> >  See commit id d13ae8620dfdedfa7e9ab6d1eec294adc0516065.
 
-Simply ask :-)
+As shown in the above commit id. :-)
 
-I listen on here too and if I had seen such a query I would have
-tossed some feelers around tothe people I know.  I know various OF
-ninjas at Sun :)
-
+-Scott
