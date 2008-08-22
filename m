@@ -1,7 +1,7 @@
 From: Alan Stern <stern@rowland.harvard.edu>
-Date: Fri, 22 Aug 2008 15:56:18 +0000
+Date: Fri, 22 Aug 2008 16:09:26 +0000
 Subject: Re: soft lockup in 2.6.26-rc1+git, on Fire V100 - USB again
-Message-Id: <Pine.LNX.4.44L0.0808221138550.2230-100000@iolanthe.rowland.org>
+Message-Id: <Pine.LNX.4.44L0.0808221205040.2230-100000@iolanthe.rowland.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.SOC.4.64.0805051908190.17592@math.ut.ee>
 In-Reply-To: <Pine.SOC.4.64.0805051908190.17592@math.ut.ee>
@@ -10,50 +10,39 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Fri, 22 Aug 2008, Meelis Roos wrote:
+On Fri, 22 Aug 2008, David Miller wrote:
 
-> I removed my debugging printks, leaving just the patch applied, and 
-> retried.
+> Before the OHCI_INTR_RHSC disabling code was moved to the main OHCI
+> interrupt handler, it was happening after the root hub status was
+> read.
 > 
-> First time it hung in pata_ali startup again.
-> 
-> Second time it got to the ohci code and hung there:
+> Perhaps that was important to clear the interrupt reliably?
 
-Okay, then let's get a little more information.  Leave out your 
-debugging printks and add the ones below instead (and keep my earlier 
-patch).
+I don't see why reading the root-hub status should affect whether the 
+interrupt gets cleared, but then who knows what bizarre thoughts lurk 
+in the minds of chip designers...
 
-Also, if you can, increase the serial console baud rate.  (On the boot
-command line, put something like "console=ttyS0,115200", or whatever is
-appropriate for Sparcs.)  That should help reduce the console
-transmission delays.
+Meelis, in keeping with David's suggestion about posting the PCI 
+writes, you ought to apply this patch along with the previous one.
+I doubt it will make any difference, but it's worth doing anyway.
 
 Alan Stern
-
 
 
 Index: usb-2.6/drivers/usb/host/ohci-hcd.c
 =================================--- usb-2.6.orig/drivers/usb/host/ohci-hcd.c
 +++ usb-2.6/drivers/usb/host/ohci-hcd.c
-@@ -757,6 +757,8 @@ static irqreturn_t ohci_irq (struct usb_
- 	 * work on all systems (edge triggering for OHCI can be a factor).
- 	 */
- 	ints = ohci_readl(ohci, &regs->intrstatus);
-+	ohci_info(ohci, "irq status %x enable %x\n", ints,
-+			ohci_readl(ohci, &regs->intrenable));
+@@ -879,10 +879,10 @@ static irqreturn_t ohci_irq (struct usb_
+ 	if (HC_IS_RUNNING(hcd->state)) {
+ 		ohci_writel (ohci, ints, &regs->intrstatus);
+ 		ohci_writel (ohci, OHCI_INTR_MIE, &regs->intrenable);
+-		// flush those writes
+-		(void) ohci_readl (ohci, &ohci->regs->control);
+ 	}
  
- 	/* Check for an all 1's result which is a typical consequence
- 	 * of dead, unclocked, or unplugged (CardBus...) devices
-Index: usb-2.6/drivers/usb/host/ohci-hub.c
-=================================--- usb-2.6.orig/drivers/usb/host/ohci-hub.c
-+++ usb-2.6/drivers/usb/host/ohci-hub.c
-@@ -365,6 +365,8 @@ static int ohci_root_hub_state_changes(s
- 	int	rhsc;
++	/* flush all writes */
++	ohci_readl(ohci, &ohci->regs->control);
+ 	return IRQ_HANDLED;
+ }
  
- 	rhsc = ohci_readl(ohci, &ohci->regs->intrenable) & OHCI_INTR_RHSC;
-+	ohci_info(ohci, "state changed %d rhsc %x\n", changed, rhsc);
-+
- 	switch (ohci->hc_control & OHCI_CTRL_HCFS) {
- 
- 	case OHCI_USB_OPER:
 
