@@ -1,60 +1,46 @@
-From: Mitch Bradley <wmb@firmworks.com>
-Date: Fri, 22 Aug 2008 05:19:06 +0000
+From: Josh Boyer <jwboyer@linux.vnet.ibm.com>
+Date: Fri, 22 Aug 2008 10:50:48 +0000
 Subject: Re: [PATCH 0/3]: Sparc OF I2C support.
-Message-Id: <48AE4C4A.8040804@firmworks.com>
+Message-Id: <20080822065048.662e3f8e@zod.rchland.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <48AE4093.8050504@firmworks.com>	<fa686aa40808212130l365c6f5eu767b9969c8171e2@mail.gmail.com>	<fa686aa40808212134l1e226845q41831ee567bb1a2@mail.gmail.com> <20080821.213747.159824681.davem@davemloft.net>
-In-Reply-To: <20080821.213747.159824681.davem@davemloft.net>
+References: <fa686aa40808211614q72f6719btd391830abded58f6@mail.gmail.com>
+	<20080821.163216.239892875.davem@davemloft.net>
+	<1219367743.26429.66.camel@jdub.homelinux.org>
+	<20080821.205305.74123372.davem@davemloft.net>
+In-Reply-To: <20080821.205305.74123372.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: David Miller <davem@davemloft.net>
-Cc: grant.likely@secretlab.ca, devicetree-discuss@ozlabs.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, scottwood@freescale.com
+Cc: grant.likely@secretlab.ca, scottwood@freescale.com, sparclinux@vger.kernel.org, devicetree-discuss@ozlabs.org, paulus@samba.org, linuxppc-dev@ozlabs.org
 
+On Thu, 21 Aug 2008 20:53:05 -0700 (PDT)
+David Miller <davem@davemloft.net> wrote:
 
+> From: Josh Boyer <jwboyer@linux.vnet.ibm.com>
+> Date: Thu, 21 Aug 2008 21:15:37 -0400
+> 
+> > Huge?  I'd say mistake, but not necessarily huge.  I mean nobody other
+> > than you (at least in the context of this conversation) had access to
+> > the IEEE1275 proposed binding so it wasn't like there was tons to go on.
+> 
+> I guess all the PowerMAC G5 systems out there and their device trees
+> were locked up in a highly secure vault somewhere :-)
 
-David Miller wrote:
-> From: "Grant Likely" <grant.likely@secretlab.ca>
-> Date: Thu, 21 Aug 2008 22:34:31 -0600
->
->   
->> On Thu, Aug 21, 2008 at 10:30 PM, Grant Likely
->> <grant.likely@secretlab.ca> wrote:
->>     
->>> On Thu, Aug 21, 2008 at 10:29 PM, Mitch Bradley <wmb@firmworks.com> wrote:
->>>       
->>>> Hi, I wrote most of 1275.
->>>>
->>>> Mitch Bradley  (wmb@firmworks.com)
->>>>         
->>> Hi Mitch,
->>>
->>> What is your suggestion.  Where should we be discussing new device
->>> tree bindings?  Whether it be real Open Firmware, or flattened device
->>> tree, or something in between
->>>       
->> ...and along those lines: is there a place for documenting new
->> bindings?  Lacking anything better, those of us in PowerPC-Linux-land
->> have been adding documentation to Documentation/powerpc/dts-bindings/*
->> in the Linux kernel tree.
->>     
->
-> In a discussion I am having with Greg Onufer, David K. and Tayfun
-> at Sun, Greg said the some of the newer binding documents are
-> being published on the opensolaris site, and he is trying to
-> get some of the older cases (like this I2C one) published there
-> too.
->
->   
+Apple has done silly things in their device trees before.  I wouldn't
+hold them up as an excellent example.
 
-This collection of mailing lists is as good a place as any to discuss 
-new bindings.  I don't know how many Sun people are on the lists, but we 
-might be able to persuade various Sun people to lurk on one or more of 
-them;  I lurk on devicetree-discuss.
+> > Have patience with the embedded people that are both new to
+> > OpenFirmware and trying to make stuff work at the same time.  I
+> > think the devicetree-discuss list will help here as new bindings are
+> > proposed.  I hope you're subscribed.
+> 
+> Why not ask the people who actually work on the standards?  That's who
+> I go to when I want to know something about openfirmware issues.
 
-The opensolaris site seems as good as anywhere for publishing the 
-bindings, especially if they can pull over the old ones from e.g. 
-playground.sun.com .
+Honestly, I don't know.  And from what I can tell, there _aren't_
+people who actively work on the standards anymore.  Mitch is active
+elsewhere and could be a great resource but aside from him I have no
+idea who to contact.
 
-Another possible site might be openbios.org .
-
+josh
