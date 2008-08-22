@@ -1,45 +1,41 @@
-From: Josh Boyer <jwboyer@linux.vnet.ibm.com>
-Date: Fri, 22 Aug 2008 16:13:16 +0000
+From: "Grant Likely" <grant.likely@secretlab.ca>
+Date: Fri, 22 Aug 2008 16:44:33 +0000
 Subject: Re: [PATCH 0/3]: Sparc OF I2C support.
-Message-Id: <20080822161316.GB22903@yoda.jdub.homelinux.org>
+Message-Id: <fa686aa40808220944h6c52c68fi97f9d3174ccc5c4a@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <48AE4093.8050504@firmworks.com> <fa686aa40808212130l365c6f5eu767b9969c8171e2@mail.gmail.com> <48AE4C4A.8040804@firmworks.com> <9696D7A991D0824DBA8DFAC74A9C5FA304461060@az33exm25.fsl.freescale.net>
-In-Reply-To: <9696D7A991D0824DBA8DFAC74A9C5FA304461060@az33exm25.fsl.freescale.net>
+References: <20080821.001012.265401427.davem@davemloft.net>
+	 <20080821163256.GC15669@ld0162-tx32.am.freescale.net>
+	 <20080821.142134.127315039.davem@davemloft.net>
+	 <48ADDF86.2040200@freescale.com>
+	 <fa686aa40808211614q72f6719btd391830abded58f6@mail.gmail.com>
+	 <9e4733910808211645p27ff2c6ci6dba6f363e9ece15@mail.gmail.com>
+	 <fa686aa40808211933o72c2da60v557d5a58f2c9d1a7@mail.gmail.com>
+	 <9e4733910808211939s24f1b2f0tc470aaf3831ebcca@mail.gmail.com>
+In-Reply-To: <9e4733910808211939s24f1b2f0tc470aaf3831ebcca@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Yoder Stuart <stuart.yoder@freescale.com>
-Cc: Mitch Bradley <wmb@firmworks.com>, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, linuxppc-dev@ozlabs.org, devicetree-discuss@ozlabs.org, WOOD SCOTT <scottwood@freescale.com>
+To: Jon Smirl <jonsmirl@gmail.com>
+Cc: Scott Wood <scottwood@freescale.com>, sparclinux@vger.kernel.org, linuxppc-dev@ozlabs.org, devicetree-discuss@ozlabs.org, paulus@samba.org, David Miller <davem@davemloft.net>
 
-On Fri, Aug 22, 2008 at 09:00:09AM -0700, Yoder Stuart wrote:
->There are a few bindings specified in the ePAPR, based on the old
->Open Firmware working group stuff:
->   -cpu
->   -interrupt controllers
->   -PCI
->   -network devices
->   -DCR devices
+On Thu, Aug 21, 2008 at 8:39 PM, Jon Smirl <jonsmirl@gmail.com> wrote:
+> On 8/21/08, Grant Likely <grant.likely@secretlab.ca> wrote:
+>> It was over a year ago when support for i2c devices in the device tree
+>>  was merged.
+>
+> I see, the old support needed the drivers to be built-in. The newer
+> code dynamically loads the correct i2c driver and set its parameters.
+>
+> Did the old code use anything besides compatible? It would have been
+> using the older i2c system that probed for the address.
 
-Er, I don't think that one is based on the old workgroup.  DCR is only
-applicable to PowerPC 4xx devices, and those have never had open firmware.
+I think you're confusing binding with implementation.  The binding is
+the layout of data in the device tree.  The implementation uses that
+data.  Your right that the current implementation is new, but it
+replaces older implementation that uses the same binding.
 
->The best way to publish bindings will be on the web.  I've been
->looking into getting power.org to host a wiki-based site
->that could be used as a repository for bindings.  We could have
->both an area for general bindings and company specific ones.
->I've made some progress here and actually have a sandbox wiki
->that I'm playing with.
+g.
 
-That sounds good, but I have one suggestion.  Use the wiki for
-submission and discussion of new binding proposals, but once they
-are agreed upon put them in a static webpage somewhere until they
-are incorporated into the next ePAPR revision.  Wikis are awesome
-for changing stuff, but you don't want people to go back and change
-a binding that has already been approved (for whatever definition
-of approved we come up with.)
-
-Also, you might want to have some kind of Licensing or copyright
-assignment for all wiki contributions.  Talk to your legal team or
-the power.org legal team about that if you haven't already.
-
-josh
+-- 
+Grant Likely, B.Sc., P.Eng.
+Secret Lab Technologies Ltd.
