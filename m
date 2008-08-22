@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 22 Aug 2008 09:13:19 +0000
+From: Meelis Roos <mroos@ut.ee>
+Date: Fri, 22 Aug 2008 09:43:08 +0000
 Subject: Re: soft lockup in 2.6.26-rc1+git, on Fire V100 - USB again
-Message-Id: <20080822.021319.67884347.davem@davemloft.net>
+Message-Id: <Pine.SOC.4.64.0808221236360.15748@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.SOC.4.64.0805051908190.17592@math.ut.ee>
 In-Reply-To: <Pine.SOC.4.64.0805051908190.17592@math.ut.ee>
@@ -10,14 +10,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Meelis Roos <mroos@ut.ee>
-Date: Fri, 22 Aug 2008 12:08:34 +0300 (EEST)
+> I wonder if OHCI's IRQ is shared with another device.
+> 
+> What does /proc/interrupts say after a successful boot on
+> an older kernel?
 
-> [  196.489734] ohci_hcd 0000:00:0a.0: created debug files
-> [  196.557562] ohci_hcd 0000:00:0a.0: irq 11, io mem 0x1ff01000000
-> [  196.683692] Driver 'sr' needs updating - please use bus_type methods
+           CPU0
+  0:       2711     <NULL>  timer
+  6:          0      sun4u  power
+  7:        153      sun4u  su(serial)
+  9:        388      sun4u  eth0
+ 11:          2      sun4u  ohci_hcd:usb1
+ 12:       1733      sun4u  pata_ali
 
-I wonder if OHCI's IRQ is shared with another device.
+eth1 is irq 10, currently down, but strange that there is no irq.
+ifconfig eth1 up:
 
-What does /proc/interrupts say after a successful boot on
-an older kernel?
+           CPU0
+  0:       3794     <NULL>  timer
+  6:          0      sun4u  power
+  7:        153      sun4u  su(serial)
+  9:        776      sun4u  eth0
+ 10:          5      sun4u  eth1
+ 11:          2      sun4u  ohci_hcd:usb1
+ 12:       1830      sun4u  pata_ali
+
+wonder if there are some things more like that...
+
+-- 
+Meelis Roos (mroos@ut.ee)      http://www.cs.ut.ee/~mroos/
