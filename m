@@ -1,27 +1,35 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 22 Aug 2008 04:21:45 +0000
-Subject: [PATCH 3/3]: of_i2c: Add Sparc support.
-Message-Id: <20080821.212145.141028767.davem@davemloft.net>
+Date: Fri, 22 Aug 2008 10:10:29 +0000
+Subject: Re: [PATCH 3/3]: of_i2c: Add Sparc support.
+Message-Id: <20080822.031029.239625899.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20080821.212145.141028767.davem@davemloft.net>
+In-Reply-To: <20080821.212145.141028767.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linuxppc-dev@ozlabs.org
 Cc: scottwood@freescale.com, paulus@samba.org, sparclinux@vger.kernel.org
 
+From: David Miller <davem@davemloft.net>
+Date: Thu, 21 Aug 2008 21:21:45 -0700 (PDT)
+
+> of_i2c: Add Sparc support.
+> 
+> Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Of course, after testing, I noticed that I forgot the all
+important shifts here. :-)
+
+Here is a fixed patch:
 
 of_i2c: Add Sparc support.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/include/asm/of_i2c.h |   67 +++++++++++++++++++++++++++++++++++++++
- drivers/of/Kconfig              |    2 +-
- 2 files changed, 68 insertions(+), 1 deletions(-)
- create mode 100644 arch/sparc/include/asm/of_i2c.h
 
 diff --git a/arch/sparc/include/asm/of_i2c.h b/arch/sparc/include/asm/of_i2c.h
 new file mode 100644
-index 0000000..93c7c05
+index 0000000..0fdab1e
 --- /dev/null
 +++ b/arch/sparc/include/asm/of_i2c.h
 @@ -0,0 +1,67 @@
@@ -72,12 +80,12 @@ index 0000000..93c7c05
 +
 +	switch (num_addr_cells) {
 +	case 1:
-+		bp->addr = addr[0];
++		bp->addr = addr[0] >> 1;
 +		break;
 +
 +	case 2:
 +		/* XXX cell 0 contains bus number XXX */
-+		bp->addr = addr[1];
++		bp->addr = addr[1] >> 1;
 +		break;
 +
 +	default:
