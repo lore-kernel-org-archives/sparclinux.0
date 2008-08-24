@@ -1,7 +1,7 @@
-From: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Date: Sun, 24 Aug 2008 06:44:34 +0000
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Date: Sun, 24 Aug 2008 06:44:41 +0000
 Subject: [RFC, SPARC64] use rtc mostek drivers instead of minirtc
-Message-Id: <20080824084434.583f3c8d.krzysztof.h1@poczta.fm>
+Message-Id: <20080824084441.5ba2af93.krzysztof.h1@wp.pl>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080823.234039.29618768.davem@davemloft.net>
 In-Reply-To: <20080823.234039.29618768.davem@davemloft.net>
@@ -298,9 +298,3 @@ diff -urp linux-2.6/arch/sparc64/kernel/time.c linux-new/arch/sparc64/kernel/tim
  	else
  		return -ENODEV;
  
-
-
-----------------------------------------------------------------------
->> Sprawdz, czy do siebie pasujecie!
->> http://link.interia.pl/f1eea
-
