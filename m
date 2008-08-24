@@ -1,48 +1,23 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Date: Sun, 31 Aug 2008 17:33:49 +0000
-Subject: [PATCH] prevent sparc64 from invoking irq handlers on offline CPUs
-Message-Id: <20080831173349.GA15393@linux.vnet.ibm.com>
+From: David Miller <davem@davemloft.net>
+Date: Sun, 24 Aug 2008 06:40:39 +0000
+Subject: Re: [RFC, SPARC64] use rtc mostek drivers instead of minirtc
+Message-Id: <20080823.234039.29618768.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: davem@davemloft.net, wli@holomorphy.com, sparclinux@vger.kernel.org, manfred@colorfullife.com, akpm@linux-foundation.org
+To: sparclinux@vger.kernel.org
 
-Make sparc64 refrain from clearing a given to-be-offlined CPU's bit in the
-cpu_online_mask until it has processed pending irqs.  This change
-prevents other CPUs from being blindsided by an apparently offline CPU
-nevertheless changing globally visible state.
+From: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Date: Sun, 24 Aug 2008 08:44:34 +0200
 
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
----
+> I tried to use a rtc layer for sparc arch. 
+ ...
+> I would like to convert whole rtc handling to the rtc layer. However,
+> I have no hardware to test (only U60) so I need some help from sparc
+> people.
 
- smp.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Thank you for doing this work, I appreciate it.
 
-diff --git a/arch/sparc64/kernel/smp.c b/arch/sparc64/kernel/smp.c
-index 743ccad..b83a683 100644
---- a/arch/sparc64/kernel/smp.c
-+++ b/arch/sparc64/kernel/smp.c
-@@ -1305,10 +1305,6 @@ int __cpu_disable(void)
- 	c->core_id = 0;
- 	c->proc_id = -1;
- 
--	spin_lock(&call_lock);
--	cpu_clear(cpu, cpu_online_map);
--	spin_unlock(&call_lock);
--
- 	smp_wmb();
- 
- 	/* Make sure no interrupts point to this cpu.  */
-@@ -1318,6 +1314,10 @@ int __cpu_disable(void)
- 	mdelay(1);
- 	local_irq_disable();
- 
-+	spin_lock(&call_lock);
-+	cpu_clear(cpu, cpu_online_map);
-+	spin_unlock(&call_lock);
-+
- 	return 0;
- }
- 
+I'm happy to merge this and test other system types
+once the changes from -mm make it upstream.
