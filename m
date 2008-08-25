@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Mon, 18 Aug 2008 05:39:04 +0000
+Date: Mon, 25 Aug 2008 03:40:30 +0000
 Subject: [GIT]: Sparc
-Message-Id: <20080817.223904.186713151.davem@davemloft.net>
+Message-Id: <20080824.204030.193703137.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080421.153231.108090227.davem@davemloft.net>
 In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
@@ -12,24 +12,30 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-The LMB bug fix was OK'd by the powerpc folks and they are the
-only other port which uses that code, so... :-)
+Please pull to get these two sparc changes:
 
-Please pull, thanks a lot!
+1) NUMA needs to depend upon SMP
 
-The following changes since commit 6f63e781eaf6a741fc65f773017154b20ed4ce3b:
-  David S. Miller (1):
-        sparc64: Handle stack trace attempts before irqstacks are setup.
+2) 32-bit sparc needs a stripped kernel target so that
+   the pkg-* targets work, from Martin Habets.
+
+Thanks a lot!
+
+The following changes since commit 83097aca8567a0bd593534853b71fe0fa9a75d69:
+  Arjan van de Ven (1):
+        Fix oops in acer_wmi driver (acer_wmi_init)
 
 are available in the git repository at:
 
   master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
 
-David S. Miller (3):
-      sparc64: Fix overshoot in nid_range().
-      sparc64: Fix cmdline_memory_size handling bugs.
-      lmb: Fix reserved region handling in lmb_enforce_memory_limit().
+David S. Miller (1):
+      sparc64: Make NUMA depend upon SMP.
 
- arch/sparc64/mm/init.c |   30 ++++++++++++++++++++++--------
- lib/lmb.c              |    2 ++
- 2 files changed, 24 insertions(+), 8 deletions(-)
+Martin Habets (1):
+      sparc: Add target for a stripped kernel
+
+ arch/sparc/Makefile      |    8 ++++++--
+ arch/sparc/boot/Makefile |    6 ++++++
+ arch/sparc64/Kconfig     |    1 +
+ 3 files changed, 13 insertions(+), 2 deletions(-)
