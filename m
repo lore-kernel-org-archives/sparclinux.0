@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 29 Aug 2008 06:09:46 +0000
-Subject: [PATCH 10/12]: sparc64: Use generic sun4v RTC driver.
-Message-Id: <20080828.230946.133295698.davem@davemloft.net>
+Date: Thu, 28 Aug 2008 04:25:04 +0000
+Subject: [PATCH 42/49]: sparc: Kill sbus_arch_preinit().
+Message-Id: <20080827.212504.151768491.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,142 +9,77 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-sparc64: Use generic sun4v RTC driver.
+sparc: Kill sbus_arch_preinit().
+
+32-bit sparc just needed it to register the ioport procfs bits, do this
+via an arch_initcall() instead.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc64/Kconfig       |    1 +
- arch/sparc64/kernel/time.c |   76 +------------------------------------------
- 2 files changed, 3 insertions(+), 74 deletions(-)
+ arch/sparc/kernel/ioport.c |   12 +++---------
+ arch/sparc64/kernel/sbus.c |    5 -----
+ drivers/sbus/sbus.c        |    3 ---
+ 3 files changed, 3 insertions(+), 17 deletions(-)
 
-diff --git a/arch/sparc64/Kconfig b/arch/sparc64/Kconfig
-index a4ec899..16149ce 100644
---- a/arch/sparc64/Kconfig
-+++ b/arch/sparc64/Kconfig
-@@ -23,6 +23,7 @@ config SPARC64
- 	select RTC_DRV_M48T59
- 	select RTC_DRV_CMOS
- 	select RTC_DRV_BQ4802
-+	select RTC_DRV_SUN4V
- 
- config GENERIC_TIME
- 	bool
-diff --git a/arch/sparc64/kernel/time.c b/arch/sparc64/kernel/time.c
-index 5e199a0..1b7a52a 100644
---- a/arch/sparc64/kernel/time.c
-+++ b/arch/sparc64/kernel/time.c
-@@ -424,48 +424,6 @@ static int starfire_set_time(u32 val)
- 	return 0;
+diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
+index e6177dd..24645f9 100644
+--- a/arch/sparc/kernel/ioport.c
++++ b/arch/sparc/kernel/ioport.c
+@@ -393,21 +393,15 @@ void __init sbus_setup_iommu(struct sbus_bus *sbus, struct device_node *dp)
+ #endif
  }
  
--static u32 hypervisor_get_time(void)
--{
--	unsigned long ret, time;
--	int retries = 10000;
--
--retry:
--	ret = sun4v_tod_get(&time);
--	if (ret = HV_EOK)
--		return time;
--	if (ret = HV_EWOULDBLOCK) {
--		if (--retries > 0) {
--			udelay(100);
--			goto retry;
--		}
--		printk(KERN_WARNING "SUN4V: tod_get() timed out.\n");
--		return 0;
+-int __init sbus_arch_preinit(void)
++static int __init sparc_register_ioport(void)
+ {
+ 	register_proc_sparc_ioport();
+ 
+-#ifdef CONFIG_SUN4
+-	{
+-		extern void sun4_dvma_init(void);
+-		sun4_dvma_init();
 -	}
--	printk(KERN_WARNING "SUN4V: tod_get() not supported.\n");
+-	return 1;
+-#else
+ 	return 0;
+-#endif
+ }
+ 
++arch_initcall(sparc_register_ioport);
++
+ void __init sbus_arch_postinit(void)
+ {
+ 	if (sparc_cpu_model = sun4d) {
+diff --git a/arch/sparc64/kernel/sbus.c b/arch/sparc64/kernel/sbus.c
+index 0193e38..0b3e7bc 100644
+--- a/arch/sparc64/kernel/sbus.c
++++ b/arch/sparc64/kernel/sbus.c
+@@ -655,11 +655,6 @@ void __init sbus_setup_iommu(struct sbus_bus *sbus, struct device_node *dp)
+ 	sbus_iommu_init(dp->node, sbus);
+ }
+ 
+-int __init sbus_arch_preinit(void)
+-{
 -	return 0;
 -}
 -
--static int hypervisor_set_time(u32 secs)
--{
--	unsigned long ret;
--	int retries = 10000;
--
--retry:
--	ret = sun4v_tod_set(secs);
--	if (ret = HV_EOK)
--		return 0;
--	if (ret = HV_EWOULDBLOCK) {
--		if (--retries > 0) {
--			udelay(100);
--			goto retry;
--		}
--		printk(KERN_WARNING "SUN4V: tod_set() timed out.\n");
--		return -EAGAIN;
--	}
--	printk(KERN_WARNING "SUN4V: tod_set() not supported.\n");
--	return -EOPNOTSUPP;
--}
--
- unsigned long cmos_regs;
- EXPORT_SYMBOL(cmos_regs);
- 
-@@ -653,13 +611,8 @@ static int __init clock_init(void)
- 		                        -xtime.tv_sec, -xtime.tv_nsec);
- 		return 0;
- 	}
--	if (tlb_type = hypervisor) {
--		xtime.tv_sec = hypervisor_get_time();
--		xtime.tv_nsec = (INITIAL_JIFFIES % HZ) * (NSEC_PER_SEC / HZ);
--		set_normalized_timespec(&wall_to_monotonic,
--		                        -xtime.tv_sec, -xtime.tv_nsec);
-+	if (tlb_type = hypervisor)
- 		return 0;
--	}
- 
- 	(void) of_register_driver(&rtc_driver, &of_platform_bus_type);
- 	(void) of_register_driver(&mostek_driver, &of_platform_bus_type);
-@@ -1037,24 +990,6 @@ static int starfire_set_rtc_time(struct rtc_time *time)
- 	return starfire_set_time(seconds);
- }
- 
--static void hypervisor_get_rtc_time(struct rtc_time *time)
--{
--	u32 seconds = hypervisor_get_time();
--
--	to_tm(seconds, time);
--	time->tm_year -= 1900;
--	time->tm_mon -= 1;
--}
--
--static int hypervisor_set_rtc_time(struct rtc_time *time)
--{
--	u32 seconds = mktime(time->tm_year + 1900, time->tm_mon + 1,
--			     time->tm_mday, time->tm_hour,
--			     time->tm_min, time->tm_sec);
--
--	return hypervisor_set_time(seconds);
--}
--
- struct mini_rtc_ops {
- 	void (*get_rtc_time)(struct rtc_time *);
- 	int (*set_rtc_time)(struct rtc_time *);
-@@ -1065,11 +1000,6 @@ static struct mini_rtc_ops starfire_rtc_ops = {
- 	.set_rtc_time = starfire_set_rtc_time,
- };
- 
--static struct mini_rtc_ops hypervisor_rtc_ops = {
--	.get_rtc_time = hypervisor_get_rtc_time,
--	.set_rtc_time = hypervisor_set_rtc_time,
--};
--
- static struct mini_rtc_ops *mini_rtc_ops;
- 
- static inline void mini_get_rtc_time(struct rtc_time *time)
-@@ -1192,9 +1122,7 @@ static int __init rtc_mini_init(void)
+ void __init sbus_arch_postinit(void)
  {
- 	int retval;
+ 	extern void firetruck_init(void);
+diff --git a/drivers/sbus/sbus.c b/drivers/sbus/sbus.c
+index 64c3e45..399567b 100644
+--- a/drivers/sbus/sbus.c
++++ b/drivers/sbus/sbus.c
+@@ -153,9 +153,6 @@ static int __init sbus_init(void)
+ 	const char *sbus_name = "sbus";
+ 	int num_sbus = 0;
  
--	if (tlb_type = hypervisor)
--		mini_rtc_ops = &hypervisor_rtc_ops;
--	else if (this_is_starfire)
-+	if (this_is_starfire)
- 		mini_rtc_ops = &starfire_rtc_ops;
- 	else
- 		return -ENODEV;
+-	if (sbus_arch_preinit())
+-		return 0;
+-
+ 	if (sparc_cpu_model = sun4d)
+ 		sbus_name = "sbi";
+ 
 -- 
 1.5.6.5.GIT
 
