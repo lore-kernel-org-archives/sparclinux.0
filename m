@@ -1,117 +1,148 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 21 Aug 2008 07:10:22 +0000
-Subject: [PATCH 2/3]: of_i2c: Add sparc support.
-Message-Id: <20080821.001022.25151381.davem@davemloft.net>
+Date: Thu, 28 Aug 2008 04:24:39 +0000
+Subject: [PATCH 31/49]: sparc32: Convert apc to OF driver.
+Message-Id: <20080827.212439.263980869.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linuxppc-dev@ozlabs.org
-Cc: sparclinux@vger.kernel.org, paulus@samba.org
+To: sparclinux@vger.kernel.org
 
 
-of_i2c: Add sparc support.
+sparc32: Convert apc to OF driver.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- drivers/of/Kconfig  |    2 +-
- drivers/of/of_i2c.c |   58 ++++++++++++++++++++++++++++++++++++++++++++------
- 2 files changed, 52 insertions(+), 8 deletions(-)
+ arch/sparc/kernel/apc.c |   72 ++++++++++++++++++++++++----------------------
+ 1 files changed, 38 insertions(+), 34 deletions(-)
 
-diff --git a/drivers/of/Kconfig b/drivers/of/Kconfig
-index f821dbc..67dea24 100644
---- a/drivers/of/Kconfig
-+++ b/drivers/of/Kconfig
-@@ -10,7 +10,7 @@ config OF_GPIO
+diff --git a/arch/sparc/kernel/apc.c b/arch/sparc/kernel/apc.c
+index 5267d48..0a20cd8 100644
+--- a/arch/sparc/kernel/apc.c
++++ b/arch/sparc/kernel/apc.c
+@@ -12,9 +12,10 @@
+ #include <linux/miscdevice.h>
+ #include <linux/smp_lock.h>
+ #include <linux/pm.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
  
- config OF_I2C
- 	def_tristate I2C
--	depends on PPC_OF && I2C
-+	depends on OF && I2C
- 	help
- 	  OpenFirmware I2C accessors
+ #include <asm/io.h>
+-#include <asm/sbus.h>
+ #include <asm/oplib.h>
+ #include <asm/uaccess.h>
+ #include <asm/auxio.h>
+@@ -29,11 +30,10 @@
+ #define APC_OBPNAME	"power-management"
+ #define APC_DEVNAME "apc"
  
-diff --git a/drivers/of/of_i2c.c b/drivers/of/of_i2c.c
-index 6a98dc8..beb4102 100644
---- a/drivers/of/of_i2c.c
-+++ b/drivers/of/of_i2c.c
-@@ -19,8 +19,20 @@
- void of_register_i2c_devices(struct i2c_adapter *adap,
- 			     struct device_node *adap_node)
+-volatile static u8 __iomem *regs; 
+-static int apc_regsize;
++static u8 __iomem *regs;
+ static int apc_no_idle __initdata = 0;
+ 
+-#define apc_readb(offs)			(sbus_readb(regs+offs))
++#define apc_readb(offs)		(sbus_readb(regs+offs))
+ #define apc_writeb(val, offs) 	(sbus_writeb(val, regs+offs))
+ 
+ /* Specify "apc=noidle" on the kernel command line to 
+@@ -69,9 +69,9 @@ static void apc_swift_idle(void)
+ #endif
+ } 
+ 
+-static inline void apc_free(void)
++static inline void apc_free(struct of_device *op)
  {
--	void *result;
- 	struct device_node *node;
-+	int num_addr_cells = 1;
-+	const int *prop;
-+	void *result;
-+
-+	prop = of_get_property(adap_node, "#address-cells", NULL);
-+	if (prop)
-+		num_addr_cells = *prop;
-+
-+	if (num_addr_cells != 1 && num_addr_cells != 2) {
-+		printk(KERN_ERR "of-i2c: invalid address cells %d\n",
-+		       num_addr_cells);
-+		return;
-+	}
+-	sbus_iounmap(regs, apc_regsize);
++	of_iounmap(&op->resource[0], regs, resource_size(&op->resource[0]));
+ }
  
- 	for_each_child_of_node(adap_node, node) {
- 		struct i2c_board_info info = {};
-@@ -31,16 +43,48 @@ void of_register_i2c_devices(struct i2c_adapter *adap,
- 			continue;
+ static int apc_open(struct inode *inode, struct file *f)
+@@ -153,52 +153,56 @@ static const struct file_operations apc_fops = {
  
- 		addr = of_get_property(node, "reg", &len);
--		if (!addr || len < sizeof(int) || *addr > (1 << 10) - 1) {
--			printk(KERN_ERR
--			       "of-i2c: invalid i2c device entry\n");
-+		if (!addr || len < (num_addr_cells * sizeof(int))) {
-+			printk(KERN_ERR "of-i2c: invalid i2c device entry\n");
- 			continue;
- 		}
-+		switch (num_addr_cells) {
-+		case 1:
-+			info.addr = addr[0];
-+			break;
-+		case 2:
-+			/* XXX addr[0], the first cell, is bus number XXX */
-+			info.addr = addr[1];
-+			break;
-+		}
+ static struct miscdevice apc_miscdev = { APC_MINOR, APC_DEVNAME, &apc_fops };
  
-+#ifdef CONFIG_SPARC
-+		/* In my copy of the I2C bindings for IEEE1275 the
-+		 * register value is encoded as a 2-cell value:
-+		 *
-+		 * Bit #    33222222 22221111 11111100 00000000
-+		 *          10987654 32109876 54321098 76543210
-+		 *
-+		 * bus:     00000000 00000000 00000000 bbbbbbbb
-+		 * address: 00000000 00000000 00000sss sssssss0
-+		 *
-+		 * where:
-+		 * bbbbbbbb        8-bit unsigned number representing
-+		 *                 the I2C bus address within this I2C bus
-+		 *                 controller node
-+		 * ssssssssss      10-bit unsigned number representing the
-+		 *                 slave address
-+		 *
-+		 * When doing I2C transfers to a device the low bit of
-+		 * the address indicates whether the transfer is a read or
-+		 * a write, and the upper bits indicate the device address.
-+		 *
-+		 * The Linux I2C layer wants device addresses which elide this
-+		 * direction bit.  Thus we should shift the OF provided reg
-+		 * property address down by one bit.
-+		 */
-+		info.addr >>= 1;
-+#endif
- 		info.irq = irq_of_parse_and_map(node, 0);
+-static int __init apc_probe(void)
++static int __devinit apc_probe(struct of_device *op,
++			       const struct of_device_id *match)
+ {
+-	struct sbus_bus *sbus = NULL;
+-	struct sbus_dev *sdev = NULL;
+-	int iTmp = 0;
 -
--		info.addr = *addr;
--
- 		request_module(info.type);
+-	for_each_sbus(sbus) {
+-		for_each_sbusdev(sdev, sbus) {
+-			if (!strcmp(sdev->prom_name, APC_OBPNAME)) {
+-				goto sbus_done;
+-			}
+-		}
+-	}
++	int err;
  
- 		result = i2c_new_device(adap, &info);
+-sbus_done:
+-	if (!sdev) {
+-		return -ENODEV;
+-	}
+-
+-	apc_regsize = sdev->reg_addrs[0].reg_size;
+-	regs = sbus_ioremap(&sdev->resource[0], 0, 
+-				   apc_regsize, APC_OBPNAME);
+-	if(!regs) {
++	regs = of_ioremap(&op->resource[0], 0,
++			  resource_size(&op->resource[0]), APC_OBPNAME);
++	if (!regs) {
+ 		printk(KERN_ERR "%s: unable to map registers\n", APC_DEVNAME);
+ 		return -ENODEV;
+ 	}
+ 
+-	iTmp = misc_register(&apc_miscdev);
+-	if (iTmp != 0) {
++	err = misc_register(&apc_miscdev);
++	if (err) {
+ 		printk(KERN_ERR "%s: unable to register device\n", APC_DEVNAME);
+-		apc_free();
++		apc_free(op);
+ 		return -ENODEV;
+ 	}
+ 
+ 	/* Assign power management IDLE handler */
+-	if(!apc_no_idle)
++	if (!apc_no_idle)
+ 		pm_idle = apc_swift_idle;	
+ 
+ 	printk(KERN_INFO "%s: power management initialized%s\n", 
+-		APC_DEVNAME, apc_no_idle ? " (CPU idle disabled)" : "");
++	       APC_DEVNAME, apc_no_idle ? " (CPU idle disabled)" : "");
++
+ 	return 0;
+ }
+ 
++static struct of_device_id apc_match[] = {
++	{
++		.name = APC_OBPNAME,
++	},
++	{},
++};
++MODULE_DEVICE_TABLE(of, apc_match);
++
++static struct of_platform_driver apc_driver = {
++	.name		= "apc",
++	.match_table	= apc_match,
++	.probe		= apc_probe,
++};
++
++static int __init apc_init(void)
++{
++	return of_register_driver(&apc_driver, &of_bus_type);
++}
++
+ /* This driver is not critical to the boot process
+  * and is easiest to ioremap when SBus is already
+  * initialized, so we install ourselves thusly:
+  */
+-__initcall(apc_probe);
+-
++__initcall(apc_init);
 -- 
 1.5.6.5.GIT
 
