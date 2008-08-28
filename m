@@ -1,198 +1,1451 @@
-From: Mikulas Patocka <mpatocka@redhat.com>
-Date: Wed, 13 Aug 2008 01:11:53 +0000
-Subject: console handover badness [was: stack overflow on Sparc64]
-Message-Id: <Pine.LNX.4.64.0808122053280.31704@hs20-bc2-1.build.redhat.com>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 28 Aug 2008 04:23:21 +0000
+Subject: [PATCH 2/49]: sparc: Kill videopix SBUS driver.
+Message-Id: <20080827.212321.152489257.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080620.144128.32005196.davem@davemloft.net>
- <20080620.215139.218732028.davem@davemloft.net>
- <Pine.LNX.4.64.0806211542050.21474@engineering.redhat.com>
- <20080811.233013.49328708.davem@davemloft.net>
-In-Reply-To: <20080811.233013.49328708.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
 
+sparc: Kill videopix SBUS driver.
 
-On Mon, 11 Aug 2008, David Miller wrote:
+This has been marked BROKEN for a long time and it's more likely
+to get rewritten from scratch than to be fixed up and made usable.
 
-> From: Mikulas Patocka <mpatocka@redhat.com>
-> Date: Sat, 21 Jun 2008 15:42:56 -0400 (EDT)
-> 
-> > On Fri, 20 Jun 2008, David Miller wrote:
-> > 
-> > > giving a try.
-> > >
-> > > sparc64: Implement support for IRQ stacks.
-> > 
-> > For me it doesn't work. Locked up after "console: colour dummy device 
-> > 80x25".
-> 
-> Are you sure you didn't see a "Stack overflow" message on the
-> screen? :-)
-> 
-> That's what I get when I try to boot with your provided
-> kernel config.
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/include/asm/Kbuild       |    1 -
+ arch/sparc/include/asm/vfc_ioctls.h |   58 ---
+ drivers/sbus/char/Kconfig           |    9 -
+ drivers/sbus/char/Makefile          |    2 -
+ drivers/sbus/char/vfc.h             |  171 --------
+ drivers/sbus/char/vfc_dev.c         |  736 -----------------------------------
+ drivers/sbus/char/vfc_i2c.c         |  335 ----------------
+ drivers/sbus/char/vfc_i2c.h         |   44 --
+ 8 files changed, 0 insertions(+), 1356 deletions(-)
+ delete mode 100644 arch/sparc/include/asm/vfc_ioctls.h
+ delete mode 100644 drivers/sbus/char/vfc.h
+ delete mode 100644 drivers/sbus/char/vfc_dev.c
+ delete mode 100644 drivers/sbus/char/vfc_i2c.c
+ delete mode 100644 drivers/sbus/char/vfc_i2c.h
 
-I think no, it just locked-up solid. There is a problem with console 
-handover. See this dmesg that I get on boot.
+diff --git a/arch/sparc/include/asm/Kbuild b/arch/sparc/include/asm/Kbuild
+index c314fce..2ba7183 100644
+--- a/arch/sparc/include/asm/Kbuild
++++ b/arch/sparc/include/asm/Kbuild
+@@ -40,5 +40,4 @@ header-y += reg_64.h
+ header-y += traps.h
+ header-y += uctx.h
+ header-y += utrap.h
+-header-y += vfc_ioctls.h
+ header-y += watchdog.h
+diff --git a/arch/sparc/include/asm/vfc_ioctls.h b/arch/sparc/include/asm/vfc_ioctls.h
+deleted file mode 100644
+index af8b690..0000000
+--- a/arch/sparc/include/asm/vfc_ioctls.h
++++ /dev/null
+@@ -1,58 +0,0 @@
+-/* Copyright (c) 1996 by Manish Vachharajani */
+-
+-#ifndef _LINUX_VFC_IOCTLS_H_
+-#define	_LINUX_VFC_IOCTLS_H_
+-
+-	/* IOCTLs */
+-#define VFC_IOCTL(a)          (('j' << 8) | a)
+-#define VFCGCTRL	(VFC_IOCTL (0))	        /* get vfc attributes */
+-#define VFCSCTRL	(VFC_IOCTL (1))  	/* set vfc attributes */
+-#define VFCGVID		(VFC_IOCTL (2)) 	/* get video decoder attributes */
+-#define VFCSVID		(VFC_IOCTL (3))	        /* set video decoder attributes */
+-#define VFCHUE		(VFC_IOCTL (4))   	/* set hue */
+-#define VFCPORTCHG	(VFC_IOCTL (5))  	/* change port */
+-#define VFCRDINFO	(VFC_IOCTL (6))  	/* read info */
+-
+-	/* Options for setting the vfc attributes and status */
+-#define MEMPRST		0x1	/* reset FIFO ptr. */
+-#define CAPTRCMD	0x2	/* start capture and wait */
+-#define DIAGMODE	0x3	/* diag mode */
+-#define NORMMODE	0x4	/* normal mode */
+-#define CAPTRSTR	0x5	/* start capture */
+-#define CAPTRWAIT	0x6	/* wait for capture to finish */
+-
+-
+-	/* Options for the decoder */
+-#define STD_NTSC	0x1	/* NTSC mode */
+-#define STD_PAL		0x2	/* PAL mode */
+-#define COLOR_ON	0x3	/* force color ON */
+-#define MONO		0x4	/* force color OFF */
+-
+-	/* Values returned by ioctl 2 */
+-
+-#define NO_LOCK	        1
+-#define NTSC_COLOR	2
+-#define NTSC_NOCOLOR    3
+-#define PAL_COLOR	4
+-#define PAL_NOCOLOR	5
+-
+-/* Not too sure what this does yet */
+-	/* Options for setting Field number */
+-#define ODD_FIELD	0x1
+-#define EVEN_FIELD	0x0
+-#define ACTIVE_ONLY     0x2
+-#define NON_ACTIVE	0x0
+-
+-/* Debug options */
+-#define VFC_I2C_SEND 0
+-#define VFC_I2C_RECV 1
+-
+-struct vfc_debug_inout
+-{
+-	unsigned long addr;
+-	unsigned long ret;
+-	unsigned long len;
+-	unsigned char __user *buffer;
+-};
+-
+-#endif /* _LINUX_VFC_IOCTLS_H_ */
+diff --git a/drivers/sbus/char/Kconfig b/drivers/sbus/char/Kconfig
+index 9cd54ec..3fd2bc9 100644
+--- a/drivers/sbus/char/Kconfig
++++ b/drivers/sbus/char/Kconfig
+@@ -30,15 +30,6 @@ config OBP_FLASH
+ 	  The OpenBoot PROM on Ultra systems is flashable. If you want to be
+ 	  able to upgrade the OBP firmware, say Y here.
+ 
+-config SUN_VIDEOPIX
+-	tristate "Videopix Frame Grabber (EXPERIMENTAL)"
+-	depends on EXPERIMENTAL && (BROKEN || !64BIT)
+-	help
+-	  Say Y here to support the Videopix Frame Grabber from Sun
+-	  Microsystems, commonly found on SPARCstations.  This card, which is
+-	  based on the Phillips SAA9051, can handle NTSC and PAL/SECAM and
+-	  SVIDEO signals.
+-
+ config TADPOLE_TS102_UCTRL
+ 	tristate "Tadpole TS102 Microcontroller support (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL && SPARC32
+diff --git a/drivers/sbus/char/Makefile b/drivers/sbus/char/Makefile
+index d8b2d0c..e15bd5e 100644
+--- a/drivers/sbus/char/Makefile
++++ b/drivers/sbus/char/Makefile
+@@ -7,7 +7,6 @@
+ # Rewritten to use lists instead of if-statements.
+ #
+ 
+-vfc-objs := vfc_dev.o vfc_i2c.o
+ bbc-objs := bbc_i2c.o bbc_envctrl.o
+ 
+ obj-$(CONFIG_ENVCTRL)			+= envctrl.o
+@@ -17,7 +16,6 @@ obj-$(CONFIG_WATCHDOG_RIO)		+= riowatchdog.o
+ obj-$(CONFIG_OBP_FLASH)			+= flash.o
+ obj-$(CONFIG_SUN_OPENPROMIO)		+= openprom.o
+ obj-$(CONFIG_SUN_MOSTEK_RTC)		+= rtc.o
+-obj-$(CONFIG_SUN_VIDEOPIX)		+= vfc.o
+ obj-$(CONFIG_TADPOLE_TS102_UCTRL)	+= uctrl.o
+ obj-$(CONFIG_SUN_JSFLASH)		+= jsflash.o
+ obj-$(CONFIG_BBC_I2C)			+= bbc.o
+diff --git a/drivers/sbus/char/vfc.h b/drivers/sbus/char/vfc.h
+deleted file mode 100644
+index a5240c5..0000000
+--- a/drivers/sbus/char/vfc.h
++++ /dev/null
+@@ -1,171 +0,0 @@
+-#ifndef _LINUX_VFC_H_
+-#define _LINUX_VFC_H_
+-
+-/*
+- * The control register for the vfc is at offset 0x4000
+- * The first field ram bank is located at offset 0x5000
+- * The second field ram bank is at offset 0x7000
+- * i2c_reg address the Phillips PCF8584(see notes in vfc_i2c.c) 
+- *    data and transmit register.
+- * i2c_s1 controls register s1 of the PCF8584
+- * i2c_write seems to be similar to i2c_write but I am not 
+- *    quite sure why sun uses it
+- * 
+- * I am also not sure whether or not you can read the fram bank as a
+- * whole or whether you must read each word individually from offset
+- * 0x5000 as soon as I figure it out I will update this file */
+-
+-struct vfc_regs {
+-	char pad1[0x4000];
+-	unsigned int control;  /* Offset 0x4000 */
+-	char pad2[0xffb];      /* from offset 0x4004 to 0x5000 */
+-	unsigned int fram_bank1; /* Offset 0x5000 */
+-	char pad3[0xffb];        /* from offset 0x5004 to 0x6000 */
+-	unsigned int i2c_reg; /* Offset 0x6000 */
+-	unsigned int i2c_magic2; /* Offset 0x6004 */
+-	unsigned int i2c_s1;  /* Offset 0x6008 */
+-	unsigned int i2c_write; /* Offset 0x600c */
+-	char pad4[0xff0];     /* from offset 0x6010 to 0x7000 */
+-	unsigned int fram_bank2; /* Offset 0x7000 */
+-	char pad5[0x1000];
+-};
+-
+-#define VFC_SAA9051_NR (13)
+-#define VFC_SAA9051_ADDR (0x8a)
+-	/* The saa9051 returns the following for its status 
+-	 * bit 0 - 0
+-	 * bit 1 - SECAM color detected (1=found,0=not found)
+-	 * bit 2 - COLOR detected (1=found,0=not found)
+-	 * bit 3 - 0
+-	 * bit 4 - Field frequency bit (1`Hz (NTSC), 0PHz (PAL))
+-	 * bit 5 - 1
+-	 * bit 6 - horizontal frequency lock (1=transmitter found,
+-	 *                                    0=no transmitter)
+-	 * bit 7 - Power on reset bit (1=reset,0=at least one successful 
+-	 *                                       read of the status byte)
+-	 */
+-
+-#define VFC_SAA9051_PONRES (0x80)
+-#define VFC_SAA9051_HLOCK (0x40)
+-#define VFC_SAA9051_FD (0x10)
+-#define VFC_SAA9051_CD (0x04)
+-#define VFC_SAA9051_CS (0x02)
+-
+-
+-/* The various saa9051 sub addresses */
+-
+-#define VFC_SAA9051_IDEL (0) 
+-#define VFC_SAA9051_HSY_START (1)
+-#define VFC_SAA9051_HSY_STOP (2)
+-#define VFC_SAA9051_HC_START (3)
+-#define VFC_SAA9051_HC_STOP (4)
+-#define VFC_SAA9051_HS_START (5)
+-#define VFC_SAA9051_HORIZ_PEAK (6)
+-#define VFC_SAA9051_HUE (7)
+-#define VFC_SAA9051_C1 (8)
+-#define VFC_SAA9051_C2 (9)
+-#define VFC_SAA9051_C3 (0xa)
+-#define VFC_SAA9051_SECAM_DELAY (0xb)
+-
+-
+-/* Bit settings for saa9051 sub address 0x06 */
+-
+-#define VFC_SAA9051_AP1 (0x01)
+-#define VFC_SAA9051_AP2 (0x02)
+-#define VFC_SAA9051_COR1 (0x04)
+-#define VFC_SAA9051_COR2 (0x08)
+-#define VFC_SAA9051_BP1 (0x10)
+-#define VFC_SAA9051_BP2 (0x20)
+-#define VFC_SAA9051_PF (0x40)
+-#define VFC_SAA9051_BY (0x80)
+-
+-
+-/* Bit settings for saa9051 sub address 0x08 */
+-
+-#define VFC_SAA9051_CCFR0 (0x01)
+-#define VFC_SAA9051_CCFR1 (0x02)
+-#define VFC_SAA9051_YPN (0x04)
+-#define VFC_SAA9051_ALT (0x08)
+-#define VFC_SAA9051_CO (0x10)
+-#define VFC_SAA9051_VTR (0x20)
+-#define VFC_SAA9051_FS (0x40)
+-#define VFC_SAA9051_HPLL (0x80)
+-
+-
+-/* Bit settings for saa9051 sub address 9 */
+-
+-#define VFC_SAA9051_SS0 (0x01)
+-#define VFC_SAA9051_SS1 (0x02)
+-#define VFC_SAA9051_AFCC (0x04)
+-#define VFC_SAA9051_CI (0x08)
+-#define VFC_SAA9051_SA9D4 (0x10) /* Don't care bit */
+-#define VFC_SAA9051_OEC (0x20)
+-#define VFC_SAA9051_OEY (0x40)
+-#define VFC_SAA9051_VNL (0x80)
+-
+-
+-/* Bit settings for saa9051 sub address 0x0A */
+-
+-#define VFC_SAA9051_YDL0 (0x01)
+-#define VFC_SAA9051_YDL1 (0x02)
+-#define VFC_SAA9051_YDL2 (0x04)
+-#define VFC_SAA9051_SS2 (0x08)
+-#define VFC_SAA9051_SS3 (0x10)
+-#define VFC_SAA9051_YC (0x20)
+-#define VFC_SAA9051_CT (0x40)
+-#define VFC_SAA9051_SYC (0x80)
+-
+-
+-#define VFC_SAA9051_SA(a,b) ((a)->saa9051_state_array[(b)+1])
+-#define vfc_update_saa9051(a) (vfc_i2c_sendbuf((a),VFC_SAA9051_ADDR,\
+-					    (a)->saa9051_state_array,\
+-					    VFC_SAA9051_NR))
+-
+-
+-struct vfc_dev {
+-	volatile struct vfc_regs __iomem *regs;
+-	struct vfc_regs *phys_regs;
+-	unsigned int control_reg;
+-	struct mutex device_lock_mtx;
+-	int instance;
+-	int busy;
+-	unsigned long which_io;
+-	unsigned char saa9051_state_array[VFC_SAA9051_NR];
+-};
+-
+-void captstat_reset(struct vfc_dev *);
+-void memptr_reset(struct vfc_dev *);
+-
+-int vfc_pcf8584_init(struct vfc_dev *);
+-void vfc_i2c_delay_no_busy(struct vfc_dev *, unsigned long);
+-void vfc_i2c_delay(struct vfc_dev *);
+-int vfc_i2c_sendbuf(struct vfc_dev *, unsigned char, char *, int) ;
+-int vfc_i2c_recvbuf(struct vfc_dev *, unsigned char, char *, int) ;
+-int vfc_i2c_reset_bus(struct vfc_dev *);
+-int vfc_init_i2c_bus(struct vfc_dev *);
+-
+-#define VFC_CONTROL_DIAGMODE  0x10000000
+-#define VFC_CONTROL_MEMPTR    0x20000000
+-#define VFC_CONTROL_CAPTURE   0x02000000
+-#define VFC_CONTROL_CAPTRESET 0x04000000
+-
+-#define VFC_STATUS_CAPTURE    0x08000000
+-
+-#ifdef VFC_IOCTL_DEBUG
+-#define VFC_IOCTL_DEBUG_PRINTK(a) printk a
+-#else
+-#define VFC_IOCTL_DEBUG_PRINTK(a)
+-#endif
+-
+-#ifdef VFC_I2C_DEBUG
+-#define VFC_I2C_DEBUG_PRINTK(a) printk a
+-#else
+-#define VFC_I2C_DEBUG_PRINTK(a)
+-#endif
+-
+-#endif /* _LINUX_VFC_H_ */
+-
+-
+-
+-
+-
+diff --git a/drivers/sbus/char/vfc_dev.c b/drivers/sbus/char/vfc_dev.c
+deleted file mode 100644
+index 25181bb..0000000
+--- a/drivers/sbus/char/vfc_dev.c
++++ /dev/null
+@@ -1,736 +0,0 @@
+-/*
+- * drivers/sbus/char/vfc_dev.c
+- *
+- * Driver for the Videopix Frame Grabber.
+- * 
+- * In order to use the VFC you need to program the video controller
+- * chip. This chip is the Phillips SAA9051.  You need to call their
+- * documentation ordering line to get the docs.
+- *
+- * There is very little documentation on the VFC itself.  There is
+- * some useful info that can be found in the manuals that come with
+- * the card.  I will hopefully write some better docs at a later date.
+- *
+- * Copyright (C) 1996 Manish Vachharajani (mvachhar@noc.rutgers.edu)
+- * */
+-
+-#include <linux/module.h>
+-#include <linux/kernel.h>
+-#include <linux/string.h>
+-#include <linux/slab.h>
+-#include <linux/errno.h>
+-#include <linux/fs.h>
+-#include <linux/delay.h>
+-#include <linux/spinlock.h>
+-#include <linux/mutex.h>
+-#include <linux/mm.h>
+-#include <linux/smp_lock.h>
+-
+-#include <asm/openprom.h>
+-#include <asm/oplib.h>
+-#include <asm/io.h>
+-#include <asm/system.h>
+-#include <asm/sbus.h>
+-#include <asm/page.h>
+-#include <asm/pgtable.h>
+-#include <asm/uaccess.h>
+-
+-#define VFC_MAJOR (60)
+-
+-#if 0
+-#define VFC_IOCTL_DEBUG
+-#endif
+-
+-#include "vfc.h"
+-#include <asm/vfc_ioctls.h>
+-
+-static const struct file_operations vfc_fops;
+-static struct vfc_dev **vfc_dev_lst;
+-static char vfcstr[]="vfc";
+-static unsigned char saa9051_init_array[VFC_SAA9051_NR] = {
+-	0x00, 0x64, 0x72, 0x52,
+-	0x36, 0x18, 0xff, 0x20,
+-	0xfc, 0x77, 0xe3, 0x50,
+-	0x3e
+-};
+-
+-static void vfc_lock_device(struct vfc_dev *dev)
+-{
+-	mutex_lock(&dev->device_lock_mtx);
+-}
+-
+-static void vfc_unlock_device(struct vfc_dev *dev)
+-{
+-	mutex_unlock(&dev->device_lock_mtx);
+-}
+-
+-
+-static void vfc_captstat_reset(struct vfc_dev *dev)
+-{
+-	dev->control_reg |= VFC_CONTROL_CAPTRESET;
+-	sbus_writel(dev->control_reg, &dev->regs->control);
+-	dev->control_reg &= ~VFC_CONTROL_CAPTRESET;
+-	sbus_writel(dev->control_reg, &dev->regs->control);
+-	dev->control_reg |= VFC_CONTROL_CAPTRESET;
+-	sbus_writel(dev->control_reg, &dev->regs->control);
+-}
+-
+-static void vfc_memptr_reset(struct vfc_dev *dev)
+-{
+-	dev->control_reg |= VFC_CONTROL_MEMPTR;
+-	sbus_writel(dev->control_reg, &dev->regs->control);
+-	dev->control_reg &= ~VFC_CONTROL_MEMPTR;
+-	sbus_writel(dev->control_reg, &dev->regs->control);
+-	dev->control_reg |= VFC_CONTROL_MEMPTR; 
+-	sbus_writel(dev->control_reg, &dev->regs->control);
+-}
+-
+-static int vfc_csr_init(struct vfc_dev *dev)
+-{
+-	dev->control_reg = 0x80000000;
+-	sbus_writel(dev->control_reg, &dev->regs->control);
+-	udelay(200); 
+-	dev->control_reg &= ~0x80000000;
+-	sbus_writel(dev->control_reg, &dev->regs->control);
+-	udelay(100); 
+-	sbus_writel(0x0f000000, &dev->regs->i2c_magic2);
+-
+-	vfc_memptr_reset(dev);
+-
+-	dev->control_reg &= ~VFC_CONTROL_DIAGMODE;
+-	dev->control_reg &= ~VFC_CONTROL_CAPTURE;
+-	dev->control_reg |= 0x40000000;
+-	sbus_writel(dev->control_reg, &dev->regs->control);
+-
+-	vfc_captstat_reset(dev);
+-
+-	return 0;
+-}
+-
+-static int vfc_saa9051_init(struct vfc_dev *dev)
+-{
+-	int i;
+-
+-	for (i = 0; i < VFC_SAA9051_NR; i++)
+-		dev->saa9051_state_array[i] = saa9051_init_array[i];
+-
+-	vfc_i2c_sendbuf(dev,VFC_SAA9051_ADDR,
+-			dev->saa9051_state_array, VFC_SAA9051_NR);
+-	return 0;
+-}
+-
+-static int init_vfc_hw(struct vfc_dev *dev)
+-{
+-	vfc_lock_device(dev);
+-	vfc_csr_init(dev);
+-
+-	vfc_pcf8584_init(dev);
+-	vfc_init_i2c_bus(dev); /* hopefully this doesn't undo the magic
+-				  sun code above*/
+-	vfc_saa9051_init(dev);
+-	vfc_unlock_device(dev);
+-	return 0; 
+-}
+-
+-static int init_vfc_devstruct(struct vfc_dev *dev, int instance)
+-{
+-	dev->instance=instance;
+-	mutex_init(&dev->device_lock_mtx);
+-	dev->control_reg=0;
+-	dev->busy=0;
+-	return 0;
+-}
+-
+-static int init_vfc_device(struct sbus_dev *sdev,struct vfc_dev *dev,
+-			   int instance)
+-{
+-	if(dev = NULL) {
+-		printk(KERN_ERR "VFC: Bogus pointer passed\n");
+-		return -ENOMEM;
+-	}
+-	printk("Initializing vfc%d\n",instance);
+-	dev->regs = NULL;
+-	dev->regs = (volatile struct vfc_regs __iomem *)
+-		sbus_ioremap(&sdev->resource[0], 0,
+-			     sizeof(struct vfc_regs), vfcstr);
+-	dev->which_io = sdev->reg_addrs[0].which_io;
+-	dev->phys_regs = (struct vfc_regs *) sdev->reg_addrs[0].phys_addr;
+-	if (dev->regs = NULL)
+-		return -EIO;
+-
+-	printk("vfc%d: registers mapped at phys_addr: 0x%lx\n    virt_addr: 0x%lx\n",
+-	       instance,(unsigned long)sdev->reg_addrs[0].phys_addr,(unsigned long)dev->regs);
+-
+-	if (init_vfc_devstruct(dev, instance))
+-		return -EINVAL;
+-	if (init_vfc_hw(dev))
+-		return -EIO;
+-	return 0;
+-}
+-
+-
+-static struct vfc_dev *vfc_get_dev_ptr(int instance)
+-{
+-	return vfc_dev_lst[instance];
+-}
+-
+-static DEFINE_SPINLOCK(vfc_dev_lock);
+-
+-static int vfc_open(struct inode *inode, struct file *file) 
+-{
+-	struct vfc_dev *dev;
+-
+-	lock_kernel();
+-	spin_lock(&vfc_dev_lock);
+-	dev = vfc_get_dev_ptr(iminor(inode));
+-	if (dev = NULL) {
+-		spin_unlock(&vfc_dev_lock);
+-		unlock_kernel();
+-		return -ENODEV;
+-	}
+-	if (dev->busy) {
+-		spin_unlock(&vfc_dev_lock);
+-		unlock_kernel();
+-		return -EBUSY;
+-	}
+-
+-	dev->busy = 1;
+-	spin_unlock(&vfc_dev_lock);
+-
+-	vfc_lock_device(dev);
+-	
+-	vfc_csr_init(dev);
+-	vfc_pcf8584_init(dev);
+-	vfc_init_i2c_bus(dev);
+-	vfc_saa9051_init(dev);
+-	vfc_memptr_reset(dev);
+-	vfc_captstat_reset(dev);
+-	
+-	vfc_unlock_device(dev);
+-	unlock_kernel();
+-	return 0;
+-}
+-
+-static int vfc_release(struct inode *inode,struct file *file) 
+-{
+-	struct vfc_dev *dev;
+-
+-	spin_lock(&vfc_dev_lock);
+-	dev = vfc_get_dev_ptr(iminor(inode));
+-	if (!dev || !dev->busy) {
+-		spin_unlock(&vfc_dev_lock);
+-		return -EINVAL;
+-	}
+-	dev->busy = 0;
+-	spin_unlock(&vfc_dev_lock);
+-	return 0;
+-}
+-
+-static int vfc_debug(struct vfc_dev *dev, int cmd, void __user *argp)
+-{
+-	struct vfc_debug_inout inout;
+-	unsigned char *buffer;
+-
+-	if (!capable(CAP_SYS_ADMIN))
+-		return -EPERM;
+-
+-	switch(cmd) {
+-	case VFC_I2C_SEND:
+-		if(copy_from_user(&inout, argp, sizeof(inout)))
+-			return -EFAULT;
+-
+-		buffer = kmalloc(inout.len, GFP_KERNEL);
+-		if (buffer = NULL)
+-			return -ENOMEM;
+-
+-		if(copy_from_user(buffer, inout.buffer, inout.len)) {
+-			kfree(buffer);
+-			return -EFAULT;
+-		}
+-		
+-
+-		vfc_lock_device(dev);
+-		inout.ret-			vfc_i2c_sendbuf(dev,inout.addr & 0xff,
+-					buffer,inout.len);
+-
+-		if (copy_to_user(argp,&inout,sizeof(inout))) {
+-			vfc_unlock_device(dev);
+-			kfree(buffer);
+-			return -EFAULT;
+-		}
+-		vfc_unlock_device(dev);
+-
+-		break;
+-	case VFC_I2C_RECV:
+-		if (copy_from_user(&inout, argp, sizeof(inout)))
+-			return -EFAULT;
+-
+-		buffer = kzalloc(inout.len, GFP_KERNEL);
+-		if (buffer = NULL)
+-			return -ENOMEM;
+-
+-		vfc_lock_device(dev);
+-		inout.ret-			vfc_i2c_recvbuf(dev,inout.addr & 0xff
+-					,buffer,inout.len);
+-		vfc_unlock_device(dev);
+-		
+-		if (copy_to_user(inout.buffer, buffer, inout.len)) {
+-			kfree(buffer);
+-			return -EFAULT;
+-		}
+-		if (copy_to_user(argp,&inout,sizeof(inout))) {
+-			kfree(buffer);
+-			return -EFAULT;
+-		}
+-		kfree(buffer);
+-		break;
+-	default:
+-		return -EINVAL;
+-	};
+-
+-	return 0;
+-}
+-
+-static int vfc_capture_start(struct vfc_dev *dev)
+-{
+-	vfc_captstat_reset(dev);
+-	dev->control_reg = sbus_readl(&dev->regs->control);
+-	if((dev->control_reg & VFC_STATUS_CAPTURE)) {
+-		printk(KERN_ERR "vfc%d: vfc capture status not reset\n",
+-		       dev->instance);
+-		return -EIO;
+-	}
+-
+-	vfc_lock_device(dev);
+-	dev->control_reg &= ~VFC_CONTROL_CAPTURE;
+-	sbus_writel(dev->control_reg, &dev->regs->control);
+-	dev->control_reg |= VFC_CONTROL_CAPTURE;
+-	sbus_writel(dev->control_reg, &dev->regs->control);
+-	dev->control_reg &= ~VFC_CONTROL_CAPTURE;
+-	sbus_writel(dev->control_reg, &dev->regs->control);
+-	vfc_unlock_device(dev);
+-
+-	return 0;
+-}
+-
+-static int vfc_capture_poll(struct vfc_dev *dev)
+-{
+-	int timeout = 1000;
+-
+-	while (!timeout--) {
+-		if (sbus_readl(&dev->regs->control) & VFC_STATUS_CAPTURE)
+-			break;
+-		vfc_i2c_delay_no_busy(dev, 100);
+-	}
+-	if(!timeout) {
+-		printk(KERN_WARNING "vfc%d: capture timed out\n",
+-		       dev->instance);
+-		return -ETIMEDOUT;
+-	}
+-	return 0;
+-}
+-
+-
+-
+-static int vfc_set_control_ioctl(struct inode *inode, struct file *file, 
+-			  struct vfc_dev *dev, unsigned long arg) 
+-{
+-	int setcmd, ret = 0;
+-
+-	if (copy_from_user(&setcmd,(void __user *)arg,sizeof(unsigned int)))
+-		return -EFAULT;
+-
+-	VFC_IOCTL_DEBUG_PRINTK(("vfc%d: IOCTL(VFCSCTRL) arg=0x%x\n",
+-				dev->instance,setcmd));
+-
+-	switch(setcmd) {
+-	case MEMPRST:
+-		vfc_lock_device(dev);
+-		vfc_memptr_reset(dev);
+-		vfc_unlock_device(dev);
+-		ret=0;
+-		break;
+-	case CAPTRCMD:
+-		vfc_capture_start(dev);
+-		vfc_capture_poll(dev);
+-		break;
+-	case DIAGMODE:
+-		if(capable(CAP_SYS_ADMIN)) {
+-			vfc_lock_device(dev);
+-			dev->control_reg |= VFC_CONTROL_DIAGMODE;
+-			sbus_writel(dev->control_reg, &dev->regs->control);
+-			vfc_unlock_device(dev);
+-			ret = 0;
+-		} else {
+-			ret = -EPERM; 
+-		}
+-		break;
+-	case NORMMODE:
+-		vfc_lock_device(dev);
+-		dev->control_reg &= ~VFC_CONTROL_DIAGMODE;
+-		sbus_writel(dev->control_reg, &dev->regs->control);
+-		vfc_unlock_device(dev);
+-		ret = 0;
+-		break;
+-	case CAPTRSTR:
+-		vfc_capture_start(dev);
+-		ret = 0;
+-		break;
+-	case CAPTRWAIT:
+-		vfc_capture_poll(dev);
+-		ret = 0;
+-		break;
+-	default:
+-		ret = -EINVAL;
+-		break;
+-	};
+-
+-	return ret;
+-}
+-
+-
+-static int vfc_port_change_ioctl(struct inode *inode, struct file *file,
+-				 struct vfc_dev *dev, unsigned long arg)
+-{
+-	int ret = 0;
+-	int cmd;
+-
+-	if(copy_from_user(&cmd, (void __user *)arg, sizeof(unsigned int))) {
+-		VFC_IOCTL_DEBUG_PRINTK(("vfc%d: User passed bogus pointer to "
+-					"vfc_port_change_ioctl\n",
+-					dev->instance));
+-		return -EFAULT;
+-	}
+-	
+-	VFC_IOCTL_DEBUG_PRINTK(("vfc%d: IOCTL(VFCPORTCHG) arg=0x%x\n",
+-				dev->instance, cmd));
+-
+-	switch(cmd) {
+-	case 1:
+-	case 2:
+-		VFC_SAA9051_SA(dev,VFC_SAA9051_HSY_START) = 0x72; 
+-		VFC_SAA9051_SA(dev,VFC_SAA9051_HSY_STOP) = 0x52;
+-		VFC_SAA9051_SA(dev,VFC_SAA9051_HC_START) = 0x36;
+-		VFC_SAA9051_SA(dev,VFC_SAA9051_HC_STOP) = 0x18;
+-		VFC_SAA9051_SA(dev,VFC_SAA9051_HORIZ_PEAK) = VFC_SAA9051_BP2;
+-		VFC_SAA9051_SA(dev,VFC_SAA9051_C3) = VFC_SAA9051_CT | VFC_SAA9051_SS3;
+-		VFC_SAA9051_SA(dev,VFC_SAA9051_SECAM_DELAY) = 0x3e;
+-		break;
+-	case 3:
+-		VFC_SAA9051_SA(dev,VFC_SAA9051_HSY_START) = 0x3a;
+-		VFC_SAA9051_SA(dev,VFC_SAA9051_HSY_STOP) = 0x17;
+-		VFC_SAA9051_SA(dev,VFC_SAA9051_HC_START) = 0xfa;
+-		VFC_SAA9051_SA(dev,VFC_SAA9051_HC_STOP) = 0xde;
+-		VFC_SAA9051_SA(dev,VFC_SAA9051_HORIZ_PEAK) -			VFC_SAA9051_BY | VFC_SAA9051_PF | VFC_SAA9051_BP2;
+-		VFC_SAA9051_SA(dev,VFC_SAA9051_C3) = VFC_SAA9051_YC;
+-		VFC_SAA9051_SA(dev,VFC_SAA9051_SECAM_DELAY) = 0;
+-		VFC_SAA9051_SA(dev,VFC_SAA9051_C2) &-			~(VFC_SAA9051_SS0 | VFC_SAA9051_SS1);
+-		break;
+-	default:
+-		ret = -EINVAL;
+-		return ret;
+-		break;
+-	}
+-
+-	switch(cmd) {
+-	case 1:
+-		VFC_SAA9051_SA(dev,VFC_SAA9051_C2) |-			(VFC_SAA9051_SS0 | VFC_SAA9051_SS1);
+-		break;
+-	case 2:
+-		VFC_SAA9051_SA(dev,VFC_SAA9051_C2) &-			~(VFC_SAA9051_SS0 | VFC_SAA9051_SS1);
+-		VFC_SAA9051_SA(dev,VFC_SAA9051_C2) |= VFC_SAA9051_SS0; 
+-		break;
+-	case 3:
+-		break;
+-	default:
+-		ret = -EINVAL;
+-		return ret;
+-		break;
+-	}
+-	VFC_SAA9051_SA(dev,VFC_SAA9051_C3) &= ~(VFC_SAA9051_SS2);
+-	ret=vfc_update_saa9051(dev);
+-	udelay(500);
+-	VFC_SAA9051_SA(dev,VFC_SAA9051_C3) |= (VFC_SAA9051_SS2);
+-	ret=vfc_update_saa9051(dev);
+-	return ret;
+-}
+-
+-static int vfc_set_video_ioctl(struct inode *inode, struct file *file,
+-			       struct vfc_dev *dev, unsigned long arg)
+-{
+-	int ret = 0;
+-	int cmd;
+-
+-	if(copy_from_user(&cmd, (void __user *)arg, sizeof(unsigned int))) {
+-		VFC_IOCTL_DEBUG_PRINTK(("vfc%d: User passed bogus pointer to "
+-					"vfc_set_video_ioctl\n",
+-					dev->instance));
+-		return ret;
+-	}
+-	
+-	VFC_IOCTL_DEBUG_PRINTK(("vfc%d: IOCTL(VFCSVID) arg=0x%x\n",
+-				dev->instance, cmd));
+-	switch(cmd) {
+-	case STD_NTSC:
+-		VFC_SAA9051_SA(dev,VFC_SAA9051_C1) &= ~VFC_SAA9051_ALT;
+-		VFC_SAA9051_SA(dev,VFC_SAA9051_C1) |= VFC_SAA9051_YPN | 
+-			VFC_SAA9051_CCFR0 | VFC_SAA9051_CCFR1 | VFC_SAA9051_FS;
+-		ret = vfc_update_saa9051(dev);
+-		break;
+-	case STD_PAL:
+-		VFC_SAA9051_SA(dev,VFC_SAA9051_C1) &= ~(VFC_SAA9051_YPN | 
+-							VFC_SAA9051_CCFR1 | 
+-							VFC_SAA9051_CCFR0 |
+-							VFC_SAA9051_FS);
+-		VFC_SAA9051_SA(dev,VFC_SAA9051_C1) |= VFC_SAA9051_ALT;
+-		ret = vfc_update_saa9051(dev);
+-		break;
+-
+-	case COLOR_ON:
+-		VFC_SAA9051_SA(dev,VFC_SAA9051_C1) |= VFC_SAA9051_CO;
+-		VFC_SAA9051_SA(dev,VFC_SAA9051_HORIZ_PEAK) &-			~(VFC_SAA9051_BY | VFC_SAA9051_PF);
+-		ret = vfc_update_saa9051(dev);
+-		break;
+-	case MONO:
+-		VFC_SAA9051_SA(dev,VFC_SAA9051_C1) &= ~(VFC_SAA9051_CO);
+-		VFC_SAA9051_SA(dev,VFC_SAA9051_HORIZ_PEAK) |-			(VFC_SAA9051_BY | VFC_SAA9051_PF);
+-		ret = vfc_update_saa9051(dev);
+-		break;
+-	default:
+-		ret = -EINVAL;
+-		break;
+-	};
+-
+-	return ret;
+-}
+-
+-static int vfc_get_video_ioctl(struct inode *inode, struct file *file,
+-			       struct vfc_dev *dev, unsigned long arg)
+-{
+-	int ret = 0;
+-	unsigned int status = NO_LOCK;
+-	unsigned char buf[1];
+-
+-	if(vfc_i2c_recvbuf(dev, VFC_SAA9051_ADDR, buf, 1)) {
+-		printk(KERN_ERR "vfc%d: Unable to get status\n",
+-		       dev->instance);
+-		return -EIO;
+-	}
+-
+-	if(buf[0] & VFC_SAA9051_HLOCK) {
+-		status = NO_LOCK;
+-	} else if(buf[0] & VFC_SAA9051_FD) {
+-		if(buf[0] & VFC_SAA9051_CD)
+-			status = NTSC_COLOR;
+-		else
+-			status = NTSC_NOCOLOR;
+-	} else {
+-		if(buf[0] & VFC_SAA9051_CD)
+-			status = PAL_COLOR;
+-		else
+-			status = PAL_NOCOLOR;
+-	}
+-	VFC_IOCTL_DEBUG_PRINTK(("vfc%d: IOCTL(VFCGVID) returning status 0x%x; "
+-				"buf[0]=%x\n", dev->instance, status, buf[0]));
+-
+-	if (copy_to_user((void __user *)arg,&status,sizeof(unsigned int))) {
+-		VFC_IOCTL_DEBUG_PRINTK(("vfc%d: User passed bogus pointer to "
+-					"vfc_get_video_ioctl\n",
+-					dev->instance));
+-		return ret;
+-	}
+-	return ret;
+-}
+-
+-static int vfc_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
+-	      unsigned long arg) 
+-{
+-	int ret = 0;
+-	unsigned int tmp;
+-	struct vfc_dev *dev;
+-	void __user *argp = (void __user *)arg;
+-
+-	dev = vfc_get_dev_ptr(iminor(inode));
+-	if(dev = NULL)
+-		return -ENODEV;
+-	
+-	switch(cmd & 0x0000ffff) {
+-	case VFCGCTRL:
+-#if 0
+-		VFC_IOCTL_DEBUG_PRINTK(("vfc%d: IOCTL(VFCGCTRL)\n", dev->instance));
+-#endif
+-		tmp = sbus_readl(&dev->regs->control);
+-		if(copy_to_user(argp, &tmp, sizeof(unsigned int))) {
+-			ret = -EFAULT;
+-			break;
+-		}
+-		ret = 0;
+-		break;
+-	case VFCSCTRL:
+-		ret = vfc_set_control_ioctl(inode, file, dev, arg);
+-		break;
+-	case VFCGVID:
+-		ret = vfc_get_video_ioctl(inode, file, dev, arg);
+-		break;
+-	case VFCSVID:
+-		ret = vfc_set_video_ioctl(inode, file, dev, arg);
+-		break;
+-	case VFCHUE:
+-		VFC_IOCTL_DEBUG_PRINTK(("vfc%d: IOCTL(VFCHUE)\n", dev->instance));
+-		if(copy_from_user(&tmp,argp,sizeof(unsigned int))) {
+-			VFC_IOCTL_DEBUG_PRINTK(("vfc%d: User passed bogus pointer "
+-						"to IOCTL(VFCHUE)", dev->instance));
+-			ret = -EFAULT;
+-		} else {
+-			VFC_SAA9051_SA(dev,VFC_SAA9051_HUE) = tmp;
+-			vfc_update_saa9051(dev);
+-			ret = 0;
+-		}
+-		break;
+-	case VFCPORTCHG:
+-		ret = vfc_port_change_ioctl(inode, file, dev, arg);
+-		break;
+-	case VFCRDINFO:
+-		ret = -EINVAL;
+-		VFC_IOCTL_DEBUG_PRINTK(("vfc%d: IOCTL(VFCRDINFO)\n", dev->instance));
+-		break;
+-	default:
+-		ret = vfc_debug(vfc_get_dev_ptr(iminor(inode)), cmd, argp);
+-		break;
+-	};
+-
+-	return ret;
+-}
+-
+-static int vfc_mmap(struct file *file, struct vm_area_struct *vma) 
+-{
+-	unsigned int map_size, ret, map_offset;
+-	struct vfc_dev *dev;
+-	
+-	dev = vfc_get_dev_ptr(iminor(file->f_path.dentry->d_inode));
+-	if(dev = NULL)
+-		return -ENODEV;
+-
+-	map_size = vma->vm_end - vma->vm_start;
+-	if(map_size > sizeof(struct vfc_regs)) 
+-		map_size = sizeof(struct vfc_regs);
+-
+-	vma->vm_flags |-		(VM_MAYREAD | VM_MAYWRITE | VM_MAYSHARE);
+-	map_offset = (unsigned int) (long)dev->phys_regs;
+-	ret = io_remap_pfn_range(vma, vma->vm_start,
+-				  MK_IOSPACE_PFN(dev->which_io,
+-					map_offset >> PAGE_SHIFT),
+-				  map_size, vma->vm_page_prot);
+-
+-	if(ret)
+-		return -EAGAIN;
+-
+-	return 0;
+-}
+-
+-
+-static const struct file_operations vfc_fops = {
+-	.owner =	THIS_MODULE,
+-	.llseek =	no_llseek,
+-	.ioctl =	vfc_ioctl,
+-	.mmap =		vfc_mmap,
+-	.open =		vfc_open,
+-	.release =	vfc_release,
+-};
+-
+-static int vfc_probe(void)
+-{
+-	struct sbus_bus *sbus;
+-	struct sbus_dev *sdev = NULL;
+-	int ret;
+-	int instance = 0, cards = 0;
+-
+-	for_all_sbusdev(sdev, sbus) {
+-		if (strcmp(sdev->prom_name, "vfc") = 0) {
+-			cards++;
+-			continue;
+-		}
+-	}
+-
+-	if (!cards)
+-		return -ENODEV;
+-
+-	vfc_dev_lst = kcalloc(cards + 1, sizeof(struct vfc_dev*), GFP_KERNEL);
+-	if (vfc_dev_lst = NULL)
+-		return -ENOMEM;
+-	vfc_dev_lst[cards] = NULL;
+-
+-	ret = register_chrdev(VFC_MAJOR, vfcstr, &vfc_fops);
+-	if(ret) {
+-		printk(KERN_ERR "Unable to get major number %d\n", VFC_MAJOR);
+-		kfree(vfc_dev_lst);
+-		return -EIO;
+-	}
+-	instance = 0;
+-	for_all_sbusdev(sdev, sbus) {
+-		if (strcmp(sdev->prom_name, "vfc") = 0) {
+-			vfc_dev_lst[instance]=(struct vfc_dev *)
+-				kmalloc(sizeof(struct vfc_dev), GFP_KERNEL);
+-			if (vfc_dev_lst[instance] = NULL)
+-				return -ENOMEM;
+-			ret = init_vfc_device(sdev,
+-					      vfc_dev_lst[instance],
+-					      instance);
+-			if(ret) {
+-				printk(KERN_ERR "Unable to initialize"
+-				       " vfc%d device\n",
+-				       instance);
+-			} else {
+-			}
+-		
+-			instance++;
+-			continue;
+-		}
+-	}
+-
+-	return 0;
+-}
+-
+-#ifdef MODULE
+-int init_module(void)
+-#else 
+-int vfc_init(void)
+-#endif
+-{
+-	return vfc_probe();
+-}
+-
+-#ifdef MODULE
+-static void deinit_vfc_device(struct vfc_dev *dev)
+-{
+-	if(dev = NULL)
+-		return;
+-	sbus_iounmap(dev->regs, sizeof(struct vfc_regs));
+-	kfree(dev);
+-}
+-
+-void cleanup_module(void)
+-{
+-	struct vfc_dev **devp;
+-
+-	unregister_chrdev(VFC_MAJOR,vfcstr);
+-
+-	for (devp = vfc_dev_lst; *devp; devp++)
+-		deinit_vfc_device(*devp);
+-
+-	kfree(vfc_dev_lst);
+-	return;
+-}
+-#endif
+-
+-MODULE_LICENSE("GPL");
+-
+diff --git a/drivers/sbus/char/vfc_i2c.c b/drivers/sbus/char/vfc_i2c.c
+deleted file mode 100644
+index 32b986e..0000000
+--- a/drivers/sbus/char/vfc_i2c.c
++++ /dev/null
+@@ -1,335 +0,0 @@
+-/*
+- * drivers/sbus/char/vfc_i2c.c
+- *
+- * Driver for the Videopix Frame Grabber.
+- * 
+- * Functions that support the Phillips i2c(I squared C) bus on the vfc
+- *  Documentation for the Phillips I2C bus can be found on the 
+- *  phillips home page
+- *
+- * Copyright (C) 1996 Manish Vachharajani (mvachhar@noc.rutgers.edu)
+- *
+- */
+-
+-/* NOTE: It seems to me that the documentation regarding the
+-pcd8584t/pcf8584 does not show the correct way to address the i2c bus.
+-Based on the information on the I2C bus itself and the remainder of
+-the Phillips docs the following algorithms appear to be correct.  I am
+-fairly certain that the flowcharts in the phillips docs are wrong. */
+-
+-
+-#include <linux/kernel.h>
+-#include <linux/string.h>
+-#include <linux/slab.h>
+-#include <linux/errno.h>
+-#include <linux/sched.h>
+-#include <linux/wait.h>
+-#include <linux/delay.h>
+-#include <asm/openprom.h>
+-#include <asm/oplib.h>
+-#include <asm/io.h>
+-#include <asm/system.h>
+-#include <asm/sbus.h>
+-
+-#if 0 
+-#define VFC_I2C_DEBUG
+-#endif
+-
+-#include "vfc.h"
+-#include "vfc_i2c.h"
+-
+-#define WRITE_S1(__val) \
+-	sbus_writel(__val, &dev->regs->i2c_s1)
+-#define WRITE_REG(__val) \
+-	sbus_writel(__val, &dev->regs->i2c_reg)
+-
+-#define VFC_I2C_READ (0x1)
+-#define VFC_I2C_WRITE (0x0)
+-     
+-/****** 
+-  The i2c bus controller chip on the VFC is a pcd8584t, but
+-  phillips claims it doesn't exist.  As far as I can tell it is
+-  identical to the PCF8584 so I treat it like it is the pcf8584.
+-  
+-  NOTE: The pcf8584 only cares
+-  about the msb of the word you feed it 
+-*****/
+-
+-int vfc_pcf8584_init(struct vfc_dev *dev) 
+-{
+-	/* This will also choose register S0_OWN so we can set it. */
+-	WRITE_S1(RESET);
+-
+-	/* The pcf8584 shifts this value left one bit and uses
+-	 * it as its i2c bus address.
+-	 */
+-	WRITE_REG(0x55000000);
+-
+-	/* This will set the i2c bus at the same speed sun uses,
+-	 * and set another magic bit.
+-	 */
+-	WRITE_S1(SELECT(S2));
+-	WRITE_REG(0x14000000);
+-	
+-	/* Enable the serial port, idle the i2c bus and set
+-	 * the data reg to s0.
+-	 */
+-	WRITE_S1(CLEAR_I2C_BUS);
+-	udelay(100);
+-	return 0;
+-}
+-
+-void vfc_i2c_delay_no_busy(struct vfc_dev *dev, unsigned long usecs) 
+-{
+-	schedule_timeout_uninterruptible(usecs_to_jiffies(usecs));
+-}
+-
+-void inline vfc_i2c_delay(struct vfc_dev *dev) 
+-{ 
+-	vfc_i2c_delay_no_busy(dev, 100);
+-}
+-
+-int vfc_init_i2c_bus(struct vfc_dev *dev)
+-{
+-	WRITE_S1(ENABLE_SERIAL | SELECT(S0) | ACK);
+-	vfc_i2c_reset_bus(dev);
+-	return 0;
+-}
+-
+-int vfc_i2c_reset_bus(struct vfc_dev *dev) 
+-{
+-	VFC_I2C_DEBUG_PRINTK((KERN_DEBUG "vfc%d: Resetting the i2c bus\n",
+-			      dev->instance));
+-	if(dev = NULL)
+-		return -EINVAL;
+-	if(dev->regs = NULL)
+-		return -EINVAL;
+-	WRITE_S1(SEND_I2C_STOP);
+-	WRITE_S1(SEND_I2C_STOP | ACK);
+-	vfc_i2c_delay(dev);
+-	WRITE_S1(CLEAR_I2C_BUS);
+-	VFC_I2C_DEBUG_PRINTK((KERN_DEBUG "vfc%d: I2C status %x\n",
+-			      dev->instance,
+-			      sbus_readl(&dev->regs->i2c_s1)));
+-	return 0;
+-}
+-
+-static int vfc_i2c_wait_for_bus(struct vfc_dev *dev)
+-{
+-	int timeout = 1000; 
+-
+-	while(!(sbus_readl(&dev->regs->i2c_s1) & BB)) {
+-		if(!(timeout--))
+-			return -ETIMEDOUT;
+-		vfc_i2c_delay(dev);
+-	}
+-	return 0;
+-}
+-
+-static int vfc_i2c_wait_for_pin(struct vfc_dev *dev, int ack)
+-{
+-	int timeout = 1000; 
+-	int s1;
+-
+-	while ((s1 = sbus_readl(&dev->regs->i2c_s1)) & PIN) {
+-		if (!(timeout--))
+-			return -ETIMEDOUT;
+-		vfc_i2c_delay(dev);
+-	}
+-	if (ack = VFC_I2C_ACK_CHECK) {
+-		if(s1 & LRB)
+-			return -EIO; 
+-	}
+-	return 0;
+-}
+-
+-#define SHIFT(a) ((a) << 24)
+-static int vfc_i2c_xmit_addr(struct vfc_dev *dev, unsigned char addr,
+-			     char mode)
+-{ 
+-	int ret, raddr;
+-#if 1
+-	WRITE_S1(SEND_I2C_STOP | ACK);
+-	WRITE_S1(SELECT(S0) | ENABLE_SERIAL);
+-	vfc_i2c_delay(dev);
+-#endif
+-
+-	switch(mode) {
+-	case VFC_I2C_READ:
+-		raddr = SHIFT(((unsigned int)addr | 0x1));
+-		WRITE_REG(raddr);
+-		VFC_I2C_DEBUG_PRINTK(("vfc%d: receiving from i2c addr 0x%x\n",
+-				      dev->instance, addr | 0x1));
+-		break;
+-	case VFC_I2C_WRITE:
+-		raddr = SHIFT((unsigned int)addr & ~0x1);
+-		WRITE_REG(raddr);
+-		VFC_I2C_DEBUG_PRINTK(("vfc%d: sending to i2c addr 0x%x\n",
+-				      dev->instance, addr & ~0x1));
+-		break;
+-	default:
+-		return -EINVAL;
+-	};
+-
+-	WRITE_S1(SEND_I2C_START);
+-	vfc_i2c_delay(dev);
+-	ret = vfc_i2c_wait_for_pin(dev,VFC_I2C_ACK_CHECK); /* We wait
+-							      for the
+-							      i2c send
+-							      to finish
+-							      here but
+-							      Sun
+-							      doesn't,
+-							      hmm */
+-	if (ret) {
+-		printk(KERN_ERR "vfc%d: VFC xmit addr timed out or no ack\n",
+-		       dev->instance);
+-		return ret;
+-	} else if (mode = VFC_I2C_READ) {
+-		if ((ret = sbus_readl(&dev->regs->i2c_reg) & 0xff000000) != raddr) {
+-			printk(KERN_WARNING 
+-			       "vfc%d: returned slave address "
+-			       "mismatch(%x,%x)\n",
+-			       dev->instance, raddr, ret);
+-		}
+-	}	
+-	return 0;
+-}
+-
+-static int vfc_i2c_xmit_byte(struct vfc_dev *dev,unsigned char *byte)
+-{
+-	int ret;
+-	u32 val = SHIFT((unsigned int)*byte);
+-
+-	WRITE_REG(val);
+-
+-	ret = vfc_i2c_wait_for_pin(dev, VFC_I2C_ACK_CHECK); 
+-	switch(ret) {
+-	case -ETIMEDOUT: 
+-		printk(KERN_ERR "vfc%d: VFC xmit byte timed out or no ack\n",
+-		       dev->instance);
+-		break;
+-	case -EIO:
+-		ret = XMIT_LAST_BYTE;
+-		break;
+-	default:
+-		break;
+-	};
+-
+-	return ret;
+-}
+-
+-static int vfc_i2c_recv_byte(struct vfc_dev *dev, unsigned char *byte,
+-			     int last)
+-{
+-	int ret;
+-
+-	if (last) {
+-		WRITE_REG(NEGATIVE_ACK);
+-		VFC_I2C_DEBUG_PRINTK(("vfc%d: sending negative ack\n",
+-				      dev->instance));
+-	} else {
+-		WRITE_S1(ACK);
+-	}
+-
+-	ret = vfc_i2c_wait_for_pin(dev, VFC_I2C_NO_ACK_CHECK);
+-	if(ret) {
+-		printk(KERN_ERR "vfc%d: "
+-		       "VFC recv byte timed out\n",
+-		       dev->instance);
+-	}
+-	*byte = (sbus_readl(&dev->regs->i2c_reg)) >> 24;
+-	return ret;
+-}
+-
+-int vfc_i2c_recvbuf(struct vfc_dev *dev, unsigned char addr,
+-		    char *buf, int count)
+-{
+-	int ret, last;
+-
+-	if(!(count && buf && dev && dev->regs) )
+-		return -EINVAL;
+-
+-	if ((ret = vfc_i2c_wait_for_bus(dev))) {
+-		printk(KERN_ERR "vfc%d: VFC I2C bus busy\n", dev->instance);
+-		return ret;
+-	}
+-
+-	if ((ret = vfc_i2c_xmit_addr(dev, addr, VFC_I2C_READ))) {
+-		WRITE_S1(SEND_I2C_STOP);
+-		vfc_i2c_delay(dev);
+-		return ret;
+-	}
+-	
+-	last = 0;
+-	while (count--) {
+-		if (!count)
+-			last = 1;
+-		if ((ret = vfc_i2c_recv_byte(dev, buf, last))) {
+-			printk(KERN_ERR "vfc%d: "
+-			       "VFC error while receiving byte\n",
+-			       dev->instance);
+-			WRITE_S1(SEND_I2C_STOP);
+-			ret = -EINVAL;
+-		}
+-		buf++;
+-	}
+-	WRITE_S1(SEND_I2C_STOP | ACK);
+-	vfc_i2c_delay(dev);
+-	return ret;
+-}
+-
+-int vfc_i2c_sendbuf(struct vfc_dev *dev, unsigned char addr, 
+-		    char *buf, int count) 
+-{
+-	int ret;
+-	
+-	if (!(buf && dev && dev->regs))
+-		return -EINVAL;
+-	
+-	if ((ret = vfc_i2c_wait_for_bus(dev))) {
+-		printk(KERN_ERR "vfc%d: VFC I2C bus busy\n", dev->instance);
+-		return ret;
+-	}
+-	
+-	if ((ret = vfc_i2c_xmit_addr(dev, addr, VFC_I2C_WRITE))) {
+-		WRITE_S1(SEND_I2C_STOP);
+-		vfc_i2c_delay(dev);
+-		return ret;
+-	}
+-	
+-	while(count--) {
+-		ret = vfc_i2c_xmit_byte(dev, buf);
+-		switch(ret) {
+-		case XMIT_LAST_BYTE:
+-			VFC_I2C_DEBUG_PRINTK(("vfc%d: "
+-					      "Receiver ended transmission with "
+-					      " %d bytes remaining\n",
+-					      dev->instance, count));
+-			ret = 0;
+-			goto done;
+-			break;
+-		case 0:
+-			break;
+-		default:
+-			printk(KERN_ERR "vfc%d: "
+-			       "VFC error while sending byte\n", dev->instance);
+-			break;
+-		};
+-
+-		buf++;
+-	}
+-done:
+-	WRITE_S1(SEND_I2C_STOP | ACK);
+-	vfc_i2c_delay(dev);
+-	return ret;
+-}
+-
+-
+-
+-
+-
+-
+-
+-
+-
+diff --git a/drivers/sbus/char/vfc_i2c.h b/drivers/sbus/char/vfc_i2c.h
+deleted file mode 100644
+index a2e6973..0000000
+--- a/drivers/sbus/char/vfc_i2c.h
++++ /dev/null
+@@ -1,44 +0,0 @@
+-#ifndef _LINUX_VFC_I2C_H_
+-#define _LINUX_VFC_I2C_H_
+-
+-/* control bits */
+-#define PIN  (0x80000000)
+-#define ESO  (0x40000000)
+-#define ES1  (0x20000000)
+-#define ES2  (0x10000000)
+-#define ENI  (0x08000000)
+-#define STA  (0x04000000)
+-#define STO  (0x02000000)
+-#define ACK  (0x01000000)
+-
+-/* status bits */
+-#define STS  (0x20000000)
+-#define BER  (0x10000000)
+-#define LRB  (0x08000000)
+-#define AAS  (0x04000000)
+-#define LAB  (0x02000000)
+-#define BB   (0x01000000)
+-
+-#define SEND_I2C_START (PIN | ESO | STA)
+-#define SEND_I2C_STOP (PIN | ESO | STO)
+-#define CLEAR_I2C_BUS (PIN | ESO | ACK)
+-#define NEGATIVE_ACK ((ESO) & ~ACK)
+-
+-#define SELECT(a) (a)
+-#define S0 (PIN | ESO | ES1)
+-#define S0_OWN (PIN)
+-#define S2 (PIN | ES1)
+-#define S3 (PIN | ES2)
+-
+-#define ENABLE_SERIAL (PIN | ESO)
+-#define DISABLE_SERIAL (PIN)
+-#define RESET (PIN)
+-
+-#define XMIT_LAST_BYTE (1)
+-#define VFC_I2C_ACK_CHECK (1)
+-#define VFC_I2C_NO_ACK_CHECK (0)
+-
+-#endif /* _LINUX_VFC_I2C_H_ */
+-
+-
+-
+-- 
+1.5.6.5.GIT
 
-Notice the lines:
-(1) console handover: boot [earlyprom0] -> real [tty0]
-and
-(2) Console: switching to colour frame buffer device 128x48
-
-At line (1), the kernel disables the PROM console. At line (2) it enables 
-framebuffer. Between these lines, the kernel runs with no console at all. 
-Everything that is printk'ed between these lines doesn't go to the screen.
-
-If the kernel hits oops at some point between (1) and (2), you don't see 
-anything, it just appears as a lockup.
-
-I hit already three crashes that happened between these lines and didn't 
-generate any output: this one with interrupt stacks that you have just 
-fixed, CONFIG_LOCKDEP+CONFIG_DEBUG_PAGEALLOC crash that I will send you 
-patch for, and then boot failure of 2.6.27-rc[12] because of bad memory 
-migratetype. Is this migratetype crash a known problem? --- the problem is 
-that starting with 2.6.27rc1, I'm getting crash with this backtrace:
-__list_add
-__free_pages_ok
-__free_pages
-__free_pages_bootmem
-__free_all_bootmem
-mem_init
-start_kernel_tlb_fixup_code
---- the crash is due to migratetype = 5 in __free_one_page (inlined into 
-__free_pages_ok) and because there are only 5 migratettypes, it attempts 
-to add to a non-existent list.
-
-The trace can be obtained if I disable console handover in kernel/printk. 
-But it should really be somehow rewritten so that the kernel can write 
-crashes during boot on console without extra patching --- the PROM console 
-is disabled just before the framebuffer is registered and not too early.
-
-Mikulas
-
-
-PROMLIB: Sun IEEE Boot Prom 'OBP 3.31.0 2001/07/25 20:36'
-PROMLIB: Root node compatible: 
-Linux version 2.6.26-devel (root@slunicko) (gcc version 4.1.2 20061115 (prerelease) (Debian 4.1.1-21)) #24 Wed Aug 13 01:25:13 CEST 2008
-console [earlyprom0] enabled
-ARCH: SUN4U
-Ethernet address: 08:00:20:f5:03:81
-Kernel: Using 3 locked TLB entries for main kernel image.
-Remapping the kernel... done.
-OF stdout device is: /pci@1f,0/pci@1,1/SUNW,m64B@2:r1024x768x75
-PROM: Built device tree with 44212 bytes of memory.
-Top of RAM: 0x27f42000, Total RAM: 0x1ff40000
-Memory hole size: 128MB
-Entering add_active_range(0, 0, 16384) 0 entries of 256 used
-Entering add_active_range(0, 32768, 81791) 1 entries of 256 used
-Entering add_active_range(0, 81792, 81825) 2 entries of 256 used
-[0000000200000000-fffff80000400000] page_structs1072 node=0 entry=0/0
-[0000000200000000-fffff80000800000] page_structs1072 node=0 entry=1/0
-Allocated 532480 bytes for kernel page tables.
-Zone PFN ranges:
-  Normal          0 ->    81825
-Movable zone start PFN for each node
-early_node_map[3] active PFN ranges
-    0:        0 ->    16384
-    0:    32768 ->    81791
-    0:    81792 ->    81825
-On node 0 totalpages: 65440
-  Normal zone: 560 pages used for memmap
-  Normal zone: 0 pages reserved
-  Normal zone: 64880 pages, LIFO batch:15
-  Movable zone: 0 pages used for memmap
-Booting Linux...
-Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 64880
-Kernel command line: root=/dev/hda1 ro
-PID hash table entries: 2048 (order: 11, 16384 bytes)
-clocksource: mult[2c71c] shift[16]
-clockevent: mult[5c28f5c2] shift[32]
-Console: colour dummy device 80x25
-console handover: boot [earlyprom0] -> real [tty0]
-Lock dependency validator: Copyright (c) 2006 Red Hat, Inc., Ingo Molnar
-... MAX_LOCKDEP_SUBCLASSES:    8
-... MAX_LOCK_DEPTH:          48
-... MAX_LOCKDEP_KEYS:        2048
-... CLASSHASH_SIZE:           1024
-... MAX_LOCKDEP_ENTRIES:     8192
-... MAX_LOCKDEP_CHAINS:      16384
-... CHAINHASH_SIZE:          8192
- memory used by lock dependency info: 1648 kB
- per task-struct memory footprint: 2688 bytes
-Dentry cache hash table entries: 65536 (order: 6, 524288 bytes)
-Inode-cache hash table entries: 32768 (order: 5, 262144 bytes)
-Memory: 504888k available (1960k kernel code, 1032k data, 120k init) [fffff80000000000,0000000027f42000]
-SLUB: Genslabs, HWalign2, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
-Calibrating delay using timer specific routine.. 728.70 BogoMIPS (lpj13930)
-Mount-cache hash table entries: 512
-khelper used greatest stack depth: 11152 bytes left
-net_namespace: 456 bytes
-NET: Registered protocol family 16
-khelper used greatest stack depth: 10544 bytes left
-PCI: Probing for controllers.
-/pci@1f,0: SABRE PCI Bus Module
-/pci@1f,0: PCI IO[1fe02000000] MEM[1ff00000000]
-PCI: Scanning PBM /pci@1f,0
-khelper used greatest stack depth: 9712 bytes left
-ebus0: [auxio] [power] [SUNW,pll] [se] [su] [su] [ecpp] [fdthree] [eeprom] [flashprom] [SUNW,CS4231]
-power: Control reg at 1fff1724000
-AUXIO: Found device at /pci@1f,0/pci@1,1/ebus@1/auxio@14,726000
-/pci@1f,0/pci@1,1/ebus@1/eeprom@14,0: Clock regs at 000001fff1000000
-Switched to NOHz mode on CPU #0
-NET: Registered protocol family 2
-IP route cache hash table entries: 4096 (order: 2, 32768 bytes)
-TCP established hash table entries: 16384 (order: 5, 262144 bytes)
-TCP bind hash table entries: 16384 (order: 6, 917504 bytes)
-TCP: Hash tables configured (established 16384 bind 16384)
-TCP reno registered
-Mini RTC Driver
-khelper used greatest stack depth: 9696 bytes left
-msgmni has been set to 987
-io scheduler noop registered
-io scheduler cfq registered (default)
-atyfb: 3D RAGE PRO (Mach64 GP, PQFP, PCI) [0x4750 rev 0x7c]
-atyfb: 4M SGRAM (1:1), 14.31818 MHz XTAL, 230 MHz PLL, 100 Mhz MCLK, 100 MHz XCLK
-Console: switching to colour frame buffer device 128x48
-atyfb: fb0: ATY Mach64 frame buffer device on PCI
-khelper used greatest stack depth: 9520 bytes left
-khelper used greatest stack depth: 9504 bytes left
-/pci@1f,0/pci@1,1/ebus@1/su@14,3083f8: Keyboard port at 1fff13083f8, irq 6
-/pci@1f,0/pci@1,1/ebus@1/su@14,3062f8: Mouse port at 1fff13062f8, irq 7
-Uniform Multi-Platform E-IDE driver
-ide: Assuming 33MHz system bus speed for PIO modes; override with idebus=xx
-CMD646: IDE controller (0x1095:0x0646 rev 0x03) at  PCI slot 0000:01:03.0
-CMD646: MultiWord DMA force limited
-CMD646: 100% native mode on irq 14
-    ide0: BM-DMA at 0x1fe02c00020-0x1fe02c00027
-    ide1: BM-DMA at 0x1fe02c00028-0x1fe02c0002f
-Probing IDE interface ide0...
-hda: ST38410A, ATA DISK drive
-hda: host max PIO5 wanted PIO255(auto-tune) selected PIO4
-hda: MWDMA2 mode selected
-Probing IDE interface ide1...
-ide0 at 0x1fe02c00000-0x1fe02c00007,0x1fe02c0000a on irq 14
-ide1 at 0x1fe02c00010-0x1fe02c00017,0x1fe02c0001a on irq 14 (shared with ide0)
-hda: max request size: 128KiB
-hda: 16841664 sectors (8622 MB) w/512KiB Cache, CHS708/16/63
-hda: cache flushes not supported
- hda: hda1 hda3
-mice: PS/2 mouse device common for all mice
-TCP cubic registered
-input: Sun Type 5 keyboard as /devices/root/f005f9c0/f00601b4/f0061504/f0063594/serio0/input/input0
-VFS: Mounted root (ext2 filesystem) readonly.
-khelper used greatest stack depth: 6592 bytes left
-NET: Registered protocol family 1
-modprobe used greatest stack depth: 256 bytes left
-tail used greatest stack depth: 32 bytes left
-gunzip used greatest stack depth: 0 bytes left
-input: Sun Mouse as /devices/root/f005f9c0/f00601b4/f0061504/f0064df4/serio1/input/input1
-Adding 524272k swap on /swap.  Priority:-1 extents:36 across:529920k
-PCI: Enabling device: (0000:01:01.1), cmd 2
-sunhme.c:v3.00 June 23, 2006 David S. Miller (davem@davemloft.net)
-eth0: HAPPY MEAL (PCI/CheerIO) 10/100BaseT Ethernet 08:00:20:f5:03:81
-eth0: Link is up using internal transceiver at 100Mb/s, Full Duplex.
