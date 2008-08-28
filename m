@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 28 Aug 2008 04:24:02 +0000
-Subject: [PATCH 17/49]: sun_esp: Convert to pure OF driver.
-Message-Id: <20080827.212402.35311707.davem@davemloft.net>
+Date: Thu, 28 Aug 2008 04:23:18 +0000
+Subject: [PATCH 1/49]: sparc: Delete bare sbus char bpp driver, obsoleted
+Message-Id: <20080827.212318.255357115.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,383 +9,1241 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-sun_esp: Convert to pure OF driver.
+sparc: Delete bare sbus char bpp driver, obsoleted by parport_sunbpp
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- drivers/scsi/sun_esp.c |  136 ++++++++++++++++++++++-------------------------
- 1 files changed, 64 insertions(+), 72 deletions(-)
+ arch/sparc/include/asm/Kbuild |    1 -
+ arch/sparc/include/asm/bpp.h  |   73 ---
+ arch/sparc/kernel/ebus.c      |    1 -
+ arch/sparc64/kernel/ebus.c    |    1 -
+ drivers/sbus/char/Kconfig     |    8 -
+ drivers/sbus/char/Makefile    |    1 -
+ drivers/sbus/char/bpp.c       | 1055 -----------------------------------------
+ drivers/sbus/sbus.c           |    1 -
+ 8 files changed, 0 insertions(+), 1141 deletions(-)
+ delete mode 100644 arch/sparc/include/asm/bpp.h
+ delete mode 100644 drivers/sbus/char/bpp.c
 
-diff --git a/drivers/scsi/sun_esp.c b/drivers/scsi/sun_esp.c
-index ea0c572..97316ca 100644
---- a/drivers/scsi/sun_esp.c
-+++ b/drivers/scsi/sun_esp.c
-@@ -10,21 +10,21 @@
- #include <linux/mm.h>
- #include <linux/init.h>
- #include <linux/dma-mapping.h>
-+#include <linux/of.h>
-+#include <linux/of_device.h>
+diff --git a/arch/sparc/include/asm/Kbuild b/arch/sparc/include/asm/Kbuild
+index a5f0ce7..c314fce 100644
+--- a/arch/sparc/include/asm/Kbuild
++++ b/arch/sparc/include/asm/Kbuild
+@@ -22,7 +22,6 @@ header-y += unistd_64.h
  
+ header-y += apc.h
+ header-y += asi.h
+-header-y += bpp.h
+ header-y += display7seg.h
+ header-y += envctrl.h
+ header-y += fbio.h
+diff --git a/arch/sparc/include/asm/bpp.h b/arch/sparc/include/asm/bpp.h
+deleted file mode 100644
+index 31f515e..0000000
+--- a/arch/sparc/include/asm/bpp.h
++++ /dev/null
+@@ -1,73 +0,0 @@
+-#ifndef _SPARC_BPP_H
+-#define _SPARC_BPP_H
+-
+-/*
+- * Copyright (c) 1995 Picture Elements
+- *	Stephen Williams
+- *	Gus Baldauf
+- *
+- * Linux/SPARC port by Peter Zaitcev.
+- * Integration into SPARC tree by Tom Dyas.
+- */
+-
+-#include  <linux/ioctl.h>
+-
+-/*
+- * This is a driver that supports IEEE Std 1284-1994 communications
+- * with compliant or compatible devices. It will use whatever features
+- * the device supports, prefering those that are typically faster.
+- *
+- * When the device is opened, it is left in COMPATIBILITY mode, and
+- * writes work like any printer device. The driver only attempt to
+- * negotiate 1284 modes when needed so that plugs can be pulled,
+- * switch boxes switched, etc., without disrupting things. It will
+- * also leave the device in compatibility mode when closed.
+- */
+-
+-
+-
+-/*
+- * This driver also supplies ioctls to manually manipulate the
+- * pins. This is great for testing devices, or writing code to deal
+- * with bizzarro-mode of the ACME Special TurboThingy Plus.
+- *
+- * NOTE: These ioctl currently do not interact well with
+- * read/write. Caveat emptor.
+- *
+- * PUT_PINS allows us to assign the sense of all the pins, including
+- * the data pins if being driven by the host. The GET_PINS returns the
+- * pins that the peripheral drives, including data if appropriate.
+- */
+-
+-# define BPP_PUT_PINS _IOW('B', 1, int)
+-# define BPP_GET_PINS _IOR('B', 2, char) /* that's bogus - should've been _IO */
+-# define BPP_PUT_DATA _IOW('B', 3, int)
+-# define BPP_GET_DATA _IOR('B', 4, char) /* ditto */
+-
+-/*
+- * Set the data bus to input mode. Disengage the data bin driver and
+- * be prepared to read values from the peripheral. If the arg is 0,
+- * then revert the bus to output mode.
+- */
+-# define BPP_SET_INPUT _IOW('B', 5, int)
+-
+-/*
+- * These bits apply to the PUT operation...
+- */
+-# define BPP_PP_nStrobe   0x0001
+-# define BPP_PP_nAutoFd   0x0002
+-# define BPP_PP_nInit     0x0004
+-# define BPP_PP_nSelectIn 0x0008
+-
+-/*
+- * These apply to the GET operation, which also reads the current value
+- * of the previously put values. A bit mask of these will be returned
+- * as a bit mask in the return code of the ioctl().
+- */
+-# define BPP_GP_nAck   0x0100
+-# define BPP_GP_Busy   0x0200
+-# define BPP_GP_PError 0x0400
+-# define BPP_GP_Select 0x0800
+-# define BPP_GP_nFault 0x1000
+-
+-#endif
+diff --git a/arch/sparc/kernel/ebus.c b/arch/sparc/kernel/ebus.c
+index 9729423..7e9397f 100644
+--- a/arch/sparc/kernel/ebus.c
++++ b/arch/sparc/kernel/ebus.c
+@@ -20,7 +20,6 @@
+ #include <asm/io.h>
+ #include <asm/oplib.h>
+ #include <asm/prom.h>
+-#include <asm/bpp.h>
+ 
+ struct linux_ebus *ebus_chain = NULL;
+ 
+diff --git a/arch/sparc64/kernel/ebus.c b/arch/sparc64/kernel/ebus.c
+index 60d36d1..214da1b 100644
+--- a/arch/sparc64/kernel/ebus.c
++++ b/arch/sparc64/kernel/ebus.c
+@@ -21,7 +21,6 @@
+ #include <asm/ebus.h>
+ #include <asm/oplib.h>
+ #include <asm/prom.h>
+-#include <asm/bpp.h>
  #include <asm/irq.h>
  #include <asm/io.h>
+ 
+diff --git a/drivers/sbus/char/Kconfig b/drivers/sbus/char/Kconfig
+index 400c65b..9cd54ec 100644
+--- a/drivers/sbus/char/Kconfig
++++ b/drivers/sbus/char/Kconfig
+@@ -30,14 +30,6 @@ config OBP_FLASH
+ 	  The OpenBoot PROM on Ultra systems is flashable. If you want to be
+ 	  able to upgrade the OBP firmware, say Y here.
+ 
+-config SUN_BPP
+-	tristate "Bidirectional parallel port support (OBSOLETE)"
+-	depends on EXPERIMENTAL
+-	help
+-	  Say Y here to support Sun's obsolete variant of IEEE1284
+-	  bidirectional parallel port protocol as /dev/bppX.  Can be built on
+-	  x86 machines.
+-
+ config SUN_VIDEOPIX
+ 	tristate "Videopix Frame Grabber (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL && (BROKEN || !64BIT)
+diff --git a/drivers/sbus/char/Makefile b/drivers/sbus/char/Makefile
+index 7ab060e..d8b2d0c 100644
+--- a/drivers/sbus/char/Makefile
++++ b/drivers/sbus/char/Makefile
+@@ -17,7 +17,6 @@ obj-$(CONFIG_WATCHDOG_RIO)		+= riowatchdog.o
+ obj-$(CONFIG_OBP_FLASH)			+= flash.o
+ obj-$(CONFIG_SUN_OPENPROMIO)		+= openprom.o
+ obj-$(CONFIG_SUN_MOSTEK_RTC)		+= rtc.o
+-obj-$(CONFIG_SUN_BPP)			+= bpp.o
+ obj-$(CONFIG_SUN_VIDEOPIX)		+= vfc.o
+ obj-$(CONFIG_TADPOLE_TS102_UCTRL)	+= uctrl.o
+ obj-$(CONFIG_SUN_JSFLASH)		+= jsflash.o
+diff --git a/drivers/sbus/char/bpp.c b/drivers/sbus/char/bpp.c
+deleted file mode 100644
+index bba21e0..0000000
+--- a/drivers/sbus/char/bpp.c
++++ /dev/null
+@@ -1,1055 +0,0 @@
+-/*
+- * drivers/sbus/char/bpp.c
+- *
+- * Copyright (c) 1995 Picture Elements
+- *      Stephen Williams (steve@icarus.com)
+- *      Gus Baldauf (gbaldauf@ix.netcom.com)
+- *
+- * Linux/SPARC port by Peter Zaitcev.
+- * Integration into SPARC tree by Tom Dyas.
+- */
+-
+-
+-#include <linux/kernel.h>
+-#include <linux/module.h>
+-#include <linux/fs.h>
+-#include <linux/errno.h>
+-#include <linux/sched.h>
+-#include <linux/spinlock.h>
+-#include <linux/timer.h>
+-#include <linux/ioport.h>
+-#include <linux/major.h>
+-#include <linux/smp_lock.h>
+-
+-#include <asm/uaccess.h>
+-#include <asm/io.h>
+-
+-#if defined(__i386__)
+-# include <asm/system.h>
+-#endif
+-
+-#if defined(__sparc__)
+-# include <linux/init.h>
+-# include <linux/delay.h>         /* udelay() */
+-
+-# include <asm/oplib.h>           /* OpenProm Library */
+-# include <asm/sbus.h>
+-#endif
+-
+-#include <asm/bpp.h>
+-
+-#define BPP_PROBE_CODE 0x55
+-#define BPP_DELAY 100
+-
+-static const unsigned  BPP_MAJOR = LP_MAJOR;
+-static const char *bpp_dev_name = "bpp";
+-
+-/* When switching from compatibility to a mode where I can read, try
+-   the following mode first. */
+-
+-/* const unsigned char DEFAULT_ECP = 0x10; */
+-static const unsigned char DEFAULT_ECP = 0x30;
+-static const unsigned char DEFAULT_NIBBLE = 0x00;
+-
+-/*
+- * These are 1284 time constraints, in units of jiffies.
+- */
+-
+-static const unsigned long TIME_PSetup = 1;
+-static const unsigned long TIME_PResponse = 6;
+-static const unsigned long TIME_IDLE_LIMIT = 2000;
+-
+-/*
+- * One instance per supported subdevice...
+- */
+-# define BPP_NO 3
+-
+-enum IEEE_Mode { COMPATIBILITY, NIBBLE, ECP, ECP_RLE, EPP };
+-
+-struct inst {
+-      unsigned present  : 1; /* True if the hardware exists */
+-      unsigned enhanced : 1; /* True if the hardware in "enhanced" */
+-      unsigned opened   : 1; /* True if the device is opened already */
+-      unsigned run_flag : 1; /* True if waiting for a repeate byte */
+-
+-      unsigned char direction; /* 0 --> out, 0x20 --> IN */
+-      unsigned char pp_state; /* State of host controlled pins. */
+-      enum IEEE_Mode mode;
+-
+-      unsigned char run_length;
+-      unsigned char repeat_byte;
+-};
+-
+-static struct inst instances[BPP_NO];
+-
+-#if defined(__i386__)
+-
+-static const unsigned short base_addrs[BPP_NO] = { 0x278, 0x378, 0x3bc };
+-
+-/*
+- * These are for data access.
+- * Control lines accesses are hidden in set_bits() and get_bits().
+- * The exception is the probe procedure, which is system-dependent.
+- */
+-#define bpp_outb_p(data, base)  outb_p((data), (base))
+-#define bpp_inb(base)  inb(base)
+-#define bpp_inb_p(base)  inb_p(base)
+-
+-/*
+- * This method takes the pin values mask and sets the hardware pins to
+- * the requested value: 1 = high voltage, 0 = low voltage. This
+- * burries the annoying PC bit inversion and preserves the direction
+- * flag.
+- */
+-static void set_pins(unsigned short pins, unsigned minor)
+-{
+-      unsigned char bits = instances[minor].direction;  /* = 0x20 */
+-
+-      if (! (pins & BPP_PP_nStrobe))   bits |= 1;
+-      if (! (pins & BPP_PP_nAutoFd))   bits |= 2;
+-      if (   pins & BPP_PP_nInit)      bits |= 4;
+-      if (! (pins & BPP_PP_nSelectIn)) bits |= 8;
+-
+-      instances[minor].pp_state = bits;
+-
+-      outb_p(bits, base_addrs[minor]+2);
+-}
+-
+-static unsigned short get_pins(unsigned minor)
+-{
+-      unsigned short bits = 0;
+-
+-      unsigned value = instances[minor].pp_state;
+-      if (! (value & 0x01)) bits |= BPP_PP_nStrobe;
+-      if (! (value & 0x02)) bits |= BPP_PP_nAutoFd;
+-      if (value & 0x04)     bits |= BPP_PP_nInit;
+-      if (! (value & 0x08)) bits |= BPP_PP_nSelectIn;
+-
+-      value = inb_p(base_addrs[minor]+1);
+-      if (value & 0x08)     bits |= BPP_GP_nFault;
+-      if (value & 0x10)     bits |= BPP_GP_Select;
+-      if (value & 0x20)     bits |= BPP_GP_PError;
+-      if (value & 0x40)     bits |= BPP_GP_nAck;
+-      if (! (value & 0x80)) bits |= BPP_GP_Busy;
+-
+-      return bits;
+-}
+-
+-#endif /* __i386__ */
+-
+-#if defined(__sparc__)
+-
+-/*
+- * Register block
+- */
+-      /* DMA registers */
+-#define BPP_CSR      0x00
+-#define BPP_ADDR     0x04
+-#define BPP_BCNT     0x08
+-#define BPP_TST_CSR  0x0C
+-      /* Parallel Port registers */
+-#define BPP_HCR      0x10
+-#define BPP_OCR      0x12
+-#define BPP_DR       0x14
+-#define BPP_TCR      0x15
+-#define BPP_OR       0x16
+-#define BPP_IR       0x17
+-#define BPP_ICR      0x18
+-#define BPP_SIZE     0x1A
+-
+-/* BPP_CSR.  Bits of type RW1 are cleared with writing '1'. */
+-#define P_DEV_ID_MASK   0xf0000000      /* R   */
+-#define P_DEV_ID_ZEBRA  0x40000000
+-#define P_DEV_ID_L64854 0xa0000000      /*      = NCR 89C100+89C105. Pity. */
+-#define P_NA_LOADED     0x08000000      /* R    NA wirtten but was not used */
+-#define P_A_LOADED      0x04000000      /* R    */
+-#define P_DMA_ON        0x02000000      /* R    DMA is not disabled */
+-#define P_EN_NEXT       0x01000000      /* RW   */
+-#define P_TCI_DIS       0x00800000      /* RW   TCI forbidden from interrupts */
+-#define P_DIAG          0x00100000      /* RW   Disables draining and resetting
+-                                                of P-FIFO on loading of P_ADDR*/
+-#define P_BURST_SIZE    0x000c0000      /* RW   SBus burst size */
+-#define P_BURST_8       0x00000000
+-#define P_BURST_4       0x00040000
+-#define P_BURST_1       0x00080000      /*      "No burst" write */
+-#define P_TC            0x00004000      /* RW1  Term Count, can be cleared when
+-                                           P_EN_NEXT=1 */
+-#define P_EN_CNT        0x00002000      /* RW   */
+-#define P_EN_DMA        0x00000200      /* RW   */
+-#define P_WRITE         0x00000100      /* R    DMA dir, 1=to ram, 0=to port */
+-#define P_RESET         0x00000080      /* RW   */
+-#define P_SLAVE_ERR     0x00000040      /* RW1  Access size error */
+-#define P_INVALIDATE    0x00000020      /* W    Drop P-FIFO */
+-#define P_INT_EN        0x00000010      /* RW   OK to P_INT_PEND||P_ERR_PEND */
+-#define P_DRAINING      0x0000000c      /* R    P-FIFO is draining to memory */
+-#define P_ERR_PEND      0x00000002      /* R    */
+-#define P_INT_PEND      0x00000001      /* R    */
+-
+-/* BPP_HCR. Time is in increments of SBus clock. */
+-#define P_HCR_TEST      0x8000      /* Allows buried counters to be read */
+-#define P_HCR_DSW       0x7f00      /* Data strobe width (in ticks) */
+-#define P_HCR_DDS       0x007f      /* Data setup before strobe (in ticks) */
+-
+-/* BPP_OCR. */
+-#define P_OCR_MEM_CLR   0x8000
+-#define P_OCR_DATA_SRC  0x4000      /* )                  */
+-#define P_OCR_DS_DSEL   0x2000      /* )  Bidirectional      */
+-#define P_OCR_BUSY_DSEL 0x1000      /* )    selects            */
+-#define P_OCR_ACK_DSEL  0x0800      /* )                  */
+-#define P_OCR_EN_DIAG   0x0400
+-#define P_OCR_BUSY_OP   0x0200      /* Busy operation */
+-#define P_OCR_ACK_OP    0x0100      /* Ack operation */
+-#define P_OCR_SRST      0x0080      /* Reset state machines. Not selfcleaning. */
+-#define P_OCR_IDLE      0x0008      /* PP data transfer state machine is idle */
+-#define P_OCR_V_ILCK    0x0002      /* Versatec faded. Zebra only. */
+-#define P_OCR_EN_VER    0x0001      /* Enable Versatec (0 - enable). Zebra only. */
+-
+-/* BPP_TCR */
+-#define P_TCR_DIR       0x08
+-#define P_TCR_BUSY      0x04
+-#define P_TCR_ACK       0x02
+-#define P_TCR_DS        0x01        /* Strobe */
+-
+-/* BPP_OR */
+-#define P_OR_V3         0x20        /* )                 */
+-#define P_OR_V2         0x10        /* ) on Zebra only   */
+-#define P_OR_V1         0x08        /* )                 */
+-#define P_OR_INIT       0x04
+-#define P_OR_AFXN       0x02        /* Auto Feed */
+-#define P_OR_SLCT_IN    0x01
+-
+-/* BPP_IR */
+-#define P_IR_PE         0x04
+-#define P_IR_SLCT       0x02
+-#define P_IR_ERR        0x01
+-
+-/* BPP_ICR */
+-#define P_DS_IRQ        0x8000      /* RW1  */
+-#define P_ACK_IRQ       0x4000      /* RW1  */
+-#define P_BUSY_IRQ      0x2000      /* RW1  */
+-#define P_PE_IRQ        0x1000      /* RW1  */
+-#define P_SLCT_IRQ      0x0800      /* RW1  */
+-#define P_ERR_IRQ       0x0400      /* RW1  */
+-#define P_DS_IRQ_EN     0x0200      /* RW   Always on rising edge */
+-#define P_ACK_IRQ_EN    0x0100      /* RW   Always on rising edge */
+-#define P_BUSY_IRP      0x0080      /* RW   1= rising edge */
+-#define P_BUSY_IRQ_EN   0x0040      /* RW   */
+-#define P_PE_IRP        0x0020      /* RW   1= rising edge */
+-#define P_PE_IRQ_EN     0x0010      /* RW   */
+-#define P_SLCT_IRP      0x0008      /* RW   1= rising edge */
+-#define P_SLCT_IRQ_EN   0x0004      /* RW   */
+-#define P_ERR_IRP       0x0002      /* RW1  1= rising edge */
+-#define P_ERR_IRQ_EN    0x0001      /* RW   */
+-
+-static void __iomem *base_addrs[BPP_NO];
+-
+-#define bpp_outb_p(data, base)	sbus_writeb(data, (base) + BPP_DR)
+-#define bpp_inb_p(base)		sbus_readb((base) + BPP_DR)
+-#define bpp_inb(base)		sbus_readb((base) + BPP_DR)
+-
+-static void set_pins(unsigned short pins, unsigned minor)
+-{
+-      void __iomem *base = base_addrs[minor];
+-      unsigned char bits_tcr = 0, bits_or = 0;
+-
+-      if (instances[minor].direction & 0x20) bits_tcr |= P_TCR_DIR;
+-      if (   pins & BPP_PP_nStrobe)          bits_tcr |= P_TCR_DS;
+-
+-      if (   pins & BPP_PP_nAutoFd)          bits_or |= P_OR_AFXN;
+-      if (! (pins & BPP_PP_nInit))           bits_or |= P_OR_INIT;
+-      if (! (pins & BPP_PP_nSelectIn))       bits_or |= P_OR_SLCT_IN;
+-
+-      sbus_writeb(bits_or, base + BPP_OR);
+-      sbus_writeb(bits_tcr, base + BPP_TCR);
+-}
+-
+-/*
+- * i386 people read output pins from a software image.
+- * We may get them back from hardware.
+- * Again, inversion of pins must he buried here.
+- */
+-static unsigned short get_pins(unsigned minor)
+-{
+-      void __iomem *base = base_addrs[minor];
+-      unsigned short bits = 0;
+-      unsigned value_tcr = sbus_readb(base + BPP_TCR);
+-      unsigned value_ir = sbus_readb(base + BPP_IR);
+-      unsigned value_or = sbus_readb(base + BPP_OR);
+-
+-      if (value_tcr & P_TCR_DS)         bits |= BPP_PP_nStrobe;
+-      if (value_or & P_OR_AFXN)         bits |= BPP_PP_nAutoFd;
+-      if (! (value_or & P_OR_INIT))     bits |= BPP_PP_nInit;
+-      if (! (value_or & P_OR_SLCT_IN))  bits |= BPP_PP_nSelectIn;
+-
+-      if (value_ir & P_IR_ERR)          bits |= BPP_GP_nFault;
+-      if (! (value_ir & P_IR_SLCT))     bits |= BPP_GP_Select;
+-      if (! (value_ir & P_IR_PE))       bits |= BPP_GP_PError;
+-      if (! (value_tcr & P_TCR_ACK))    bits |= BPP_GP_nAck;
+-      if (value_tcr & P_TCR_BUSY)       bits |= BPP_GP_Busy;
+-
+-      return bits;
+-}
+-
+-#endif /* __sparc__ */
+-
+-static void snooze(unsigned long snooze_time, unsigned minor)
+-{
+-	schedule_timeout_uninterruptible(snooze_time + 1);
+-}
+-
+-static int wait_for(unsigned short set, unsigned short clr,
+-               unsigned long delay, unsigned minor)
+-{
+-      unsigned short pins = get_pins(minor);
+-
+-      unsigned long extime = 0;
+-
+-      /*
+-       * Try a real fast scan for the first jiffy, in case the device
+-       * responds real good. The first while loop guesses an expire
+-       * time accounting for possible wraparound of jiffies.
+-       */
+-      while (time_after_eq(jiffies, extime)) extime = jiffies + 1;
+-      while ( (time_before(jiffies, extime))
+-              && (((pins & set) != set) || ((pins & clr) != 0)) ) {
+-            pins = get_pins(minor);
+-      }
+-
+-      delay -= 1;
+-
+-      /*
+-       * If my delay expired or the pins are still not where I want
+-       * them, then resort to using the timer and greatly reduce my
+-       * sample rate. If the peripheral is going to be slow, this will
+-       * give the CPU up to some more worthy process.
+-       */
+-      while ( delay && (((pins & set) != set) || ((pins & clr) != 0)) ) {
+-
+-            snooze(1, minor);
+-            pins = get_pins(minor);
+-            delay -= 1;
+-      }
+-
+-      if (delay = 0) return -1;
+-      else return pins;
+-}
+-
+-/*
+- * Return ZERO(0) If the negotiation succeeds, an errno otherwise. An
+- * errno means something broke, and I do not yet know how to fix it.
+- */
+-static int negotiate(unsigned char mode, unsigned minor)
+-{
+-      int rc;
+-      unsigned short pins = get_pins(minor);
+-      if (pins & BPP_PP_nSelectIn) return -EIO;
+-
+-
+-        /* Event 0: Write the mode to the data lines */
+-      bpp_outb_p(mode, base_addrs[minor]);
+-
+-      snooze(TIME_PSetup, minor);
+-
+-        /* Event 1: Strobe the mode code into the peripheral */
+-      set_pins(BPP_PP_nSelectIn|BPP_PP_nStrobe|BPP_PP_nInit, minor);
+-
+-        /* Wait for Event 2: Peripheral responds as a 1284 device. */
+-      rc = wait_for(BPP_GP_PError|BPP_GP_Select|BPP_GP_nFault,
+-                BPP_GP_nAck,
+-                TIME_PResponse,
+-                minor);
+-
+-      if (rc = -1) return -ETIMEDOUT;
+-
+-        /* Event 3: latch extensibility request */
+-      set_pins(BPP_PP_nSelectIn|BPP_PP_nInit, minor);
+-
+-        /* ... quick nap while peripheral ponders the byte i'm sending...*/
+-      snooze(1, minor);
+-
+-        /* Event 4: restore strobe, to ACK peripheral's response. */
+-      set_pins(BPP_PP_nSelectIn|BPP_PP_nAutoFd|BPP_PP_nStrobe|BPP_PP_nInit, minor);
+-
+-        /* Wait for Event 6: Peripheral latches response bits */
+-      rc = wait_for(BPP_GP_nAck, 0, TIME_PSetup+TIME_PResponse, minor);
+-      if (rc = -1) return -EIO;
+-
+-        /* A 1284 device cannot refuse nibble mode */
+-      if (mode = DEFAULT_NIBBLE) return 0;
+-
+-      if (pins & BPP_GP_Select) return 0;
+-
+-      return -EPROTONOSUPPORT;
+-}
+-
+-static int terminate(unsigned minor)
+-{
+-      int rc;
+-
+-        /* Event 22: Request termination of 1284 mode */
+-      set_pins(BPP_PP_nAutoFd|BPP_PP_nStrobe|BPP_PP_nInit, minor);
+-
+-        /* Wait for Events 23 and 24: ACK termination request. */
+-      rc = wait_for(BPP_GP_Busy|BPP_GP_nFault,
+-                BPP_GP_nAck,
+-                TIME_PSetup+TIME_PResponse,
+-                minor);
+-
+-      instances[minor].direction = 0;
+-      instances[minor].mode = COMPATIBILITY;
+-
+-      if (rc = -1) {
+-          return -EIO;
+-      }
+-
+-        /* Event 25: Handshake by lowering nAutoFd */
+-      set_pins(BPP_PP_nStrobe|BPP_PP_nInit, minor);
+-
+-        /* Event 26: Peripheral wiggles lines... */
+-
+-        /* Event 27: Peripheral sets nAck HIGH to ack handshake */
+-      rc = wait_for(BPP_GP_nAck, 0, TIME_PResponse, minor);
+-      if (rc = -1) {
+-          set_pins(BPP_PP_nAutoFd|BPP_PP_nStrobe|BPP_PP_nInit, minor);
+-          return -EIO;
+-      }
+-
+-        /* Event 28: Finish phase by raising nAutoFd */
+-      set_pins(BPP_PP_nAutoFd|BPP_PP_nStrobe|BPP_PP_nInit, minor);
+-
+-      return 0;
+-}
+-
+-static DEFINE_SPINLOCK(bpp_open_lock);
+-
+-/*
+- * Allow only one process to open the device at a time.
+- */
+-static int bpp_open(struct inode *inode, struct file *f)
+-{
+-      unsigned minor = iminor(inode);
+-      int ret;
+-
+-      lock_kernel();
+-      spin_lock(&bpp_open_lock);
+-      ret = 0;
+-      if (minor >= BPP_NO) {
+-	      ret = -ENODEV;
+-      } else {
+-	      if (! instances[minor].present) {
+-		      ret = -ENODEV;
+-	      } else {
+-		      if (instances[minor].opened) 
+-			      ret = -EBUSY;
+-		      else
+-			      instances[minor].opened = 1;
+-	      }
+-      }
+-      spin_unlock(&bpp_open_lock);
+-      unlock_kernel();
+-
+-      return ret;
+-}
+-
+-/*
+- * When the process closes the device, this method is called to clean
+- * up and reset the hardware. Always leave the device in compatibility
+- * mode as this is a reasonable place to clean up from messes made by
+- * ioctls, or other mayhem.
+- */
+-static int bpp_release(struct inode *inode, struct file *f)
+-{
+-      unsigned minor = iminor(inode);
+-
+-      spin_lock(&bpp_open_lock);
+-      instances[minor].opened = 0;
+-
+-      if (instances[minor].mode != COMPATIBILITY)
+-	      terminate(minor);
+-
+-      spin_unlock(&bpp_open_lock);
+-
+-      return 0;
+-}
+-
+-static long read_nibble(unsigned minor, char __user *c, unsigned long cnt)
+-{
+-      unsigned long remaining = cnt;
+-      long rc;
+-
+-      while (remaining > 0) {
+-          unsigned char byte = 0;
+-          int pins;
+-
+-          /* Event 7: request nibble */
+-          set_pins(BPP_PP_nSelectIn|BPP_PP_nStrobe, minor);
+-
+-          /* Wait for event 9: Peripher strobes first nibble */
+-          pins = wait_for(0, BPP_GP_nAck, TIME_IDLE_LIMIT, minor);
+-          if (pins = -1) return -ETIMEDOUT;
+-
+-          /* Event 10: I handshake nibble */
+-          set_pins(BPP_PP_nSelectIn|BPP_PP_nStrobe|BPP_PP_nAutoFd, minor);
+-          if (pins & BPP_GP_nFault) byte |= 0x01;
+-          if (pins & BPP_GP_Select) byte |= 0x02;
+-          if (pins & BPP_GP_PError) byte |= 0x04;
+-          if (pins & BPP_GP_Busy)   byte |= 0x08;
+-
+-          /* Wait for event 11: Peripheral handshakes nibble */
+-          rc = wait_for(BPP_GP_nAck, 0, TIME_PResponse, minor);
+-
+-          /* Event 7: request nibble */
+-          set_pins(BPP_PP_nSelectIn|BPP_PP_nStrobe, minor);
+-
+-          /* Wait for event 9: Peripher strobes first nibble */
+-          pins = wait_for(0, BPP_GP_nAck, TIME_PResponse, minor);
+-          if (rc = -1) return -ETIMEDOUT;
+-
+-          /* Event 10: I handshake nibble */
+-          set_pins(BPP_PP_nSelectIn|BPP_PP_nStrobe|BPP_PP_nAutoFd, minor);
+-          if (pins & BPP_GP_nFault) byte |= 0x10;
+-          if (pins & BPP_GP_Select) byte |= 0x20;
+-          if (pins & BPP_GP_PError) byte |= 0x40;
+-          if (pins & BPP_GP_Busy)   byte |= 0x80;
+-
+-          if (put_user(byte, c))
+-		  return -EFAULT;
+-          c += 1;
+-          remaining -= 1;
+-
+-          /* Wait for event 11: Peripheral handshakes nibble */
+-          rc = wait_for(BPP_GP_nAck, 0, TIME_PResponse, minor);
+-          if (rc = -1) return -EIO;
+-      }
+-
+-      return cnt - remaining;
+-}
+-
+-static long read_ecp(unsigned minor, char __user *c, unsigned long cnt)
+-{
+-      unsigned long remaining;
+-      long rc;
+-
+-        /* Turn ECP mode from forward to reverse if needed. */
+-      if (! instances[minor].direction) {
+-          unsigned short pins = get_pins(minor);
+-
+-            /* Event 38: Turn the bus around */
+-          instances[minor].direction = 0x20;
+-          pins &= ~BPP_PP_nAutoFd;
+-          set_pins(pins, minor);
+-
+-            /* Event 39: Set pins for reverse mode. */
+-          snooze(TIME_PSetup, minor);
+-          set_pins(BPP_PP_nStrobe|BPP_PP_nSelectIn, minor);
+-
+-            /* Wait for event 40: Peripheral ready to be strobed */
+-          rc = wait_for(0, BPP_GP_PError, TIME_PResponse, minor);
+-          if (rc = -1) return -ETIMEDOUT;
+-      }
+-
+-      remaining = cnt;
+-
+-      while (remaining > 0) {
+-
+-            /* If there is a run length for a repeated byte, repeat */
+-            /* that byte a few times. */
+-          if (instances[minor].run_length && !instances[minor].run_flag) {
+-
+-              char buffer[128];
+-              unsigned idx;
+-              unsigned repeat = remaining < instances[minor].run_length
+-                                     ? remaining
+-                               : instances[minor].run_length;
+-
+-              for (idx = 0 ;  idx < repeat ;  idx += 1)
+-                buffer[idx] = instances[minor].repeat_byte;
+-
+-              if (copy_to_user(c, buffer, repeat))
+-		      return -EFAULT;
+-              remaining -= repeat;
+-              c += repeat;
+-              instances[minor].run_length -= repeat;
+-          }
+-
+-          if (remaining = 0) break;
+-
+-
+-            /* Wait for Event 43: Data active on the bus. */
+-          rc = wait_for(0, BPP_GP_nAck, TIME_IDLE_LIMIT, minor);
+-          if (rc = -1) break;
+-
+-          if (rc & BPP_GP_Busy) {
+-                /* OK, this is data. read it in. */
+-              unsigned char byte = bpp_inb(base_addrs[minor]);
+-              if (put_user(byte, c))
+-		      return -EFAULT;
+-              c += 1;
+-              remaining -= 1;
+-
+-              if (instances[minor].run_flag) {
+-                  instances[minor].repeat_byte = byte;
+-                  instances[minor].run_flag = 0;
+-              }
+-
+-          } else {
+-              unsigned char byte = bpp_inb(base_addrs[minor]);
+-              if (byte & 0x80) {
+-                  printk("bpp%d: "
+-                         "Ignoring ECP channel %u from device.\n",
+-                         minor, byte & 0x7f);
+-              } else {
+-                  instances[minor].run_length = byte;
+-                  instances[minor].run_flag = 1;
+-              }
+-          }
+-
+-            /* Event 44: I got it. */
+-          set_pins(BPP_PP_nStrobe|BPP_PP_nAutoFd|BPP_PP_nSelectIn, minor);
+-
+-            /* Wait for event 45: peripheral handshake */
+-          rc = wait_for(BPP_GP_nAck, 0, TIME_PResponse, minor);
+-          if (rc = -1) return -ETIMEDOUT;
+-
+-             /* Event 46: Finish handshake */
+-          set_pins(BPP_PP_nStrobe|BPP_PP_nSelectIn, minor);
+-
+-      }
+-
+-
+-      return cnt - remaining;
+-}
+-
+-static ssize_t bpp_read(struct file *f, char __user *c, size_t cnt, loff_t * ppos)
+-{
+-      long rc;
+-      unsigned minor = iminor(f->f_path.dentry->d_inode);
+-      if (minor >= BPP_NO) return -ENODEV;
+-      if (!instances[minor].present) return -ENODEV;
+-
+-      switch (instances[minor].mode) {
+-
+-        default:
+-          if (instances[minor].mode != COMPATIBILITY)
+-            terminate(minor);
+-
+-          if (instances[minor].enhanced) {
+-              /* For now, do all reads with ECP-RLE mode */
+-              unsigned short pins;
+-
+-              rc = negotiate(DEFAULT_ECP, minor);
+-              if (rc < 0) break;
+-
+-              instances[minor].mode = ECP_RLE;
+-
+-              /* Event 30: set nAutoFd low to setup for ECP mode */
+-              pins = get_pins(minor);
+-              pins &= ~BPP_PP_nAutoFd;
+-              set_pins(pins, minor);
+-
+-              /* Wait for Event 31: peripheral ready */
+-              rc = wait_for(BPP_GP_PError, 0, TIME_PResponse, minor);
+-              if (rc = -1) return -ETIMEDOUT;
+-
+-              rc = read_ecp(minor, c, cnt);
+-
+-          } else {
+-              rc = negotiate(DEFAULT_NIBBLE, minor);
+-              if (rc < 0) break;
+-
+-              instances[minor].mode = NIBBLE;
+-
+-              rc = read_nibble(minor, c, cnt);
+-          }
+-          break;
+-
+-        case NIBBLE:
+-          rc = read_nibble(minor, c, cnt);
+-          break;
+-
+-        case ECP:
+-        case ECP_RLE:
+-          rc = read_ecp(minor, c, cnt);
+-          break;
+-
+-      }
+-
+-
+-      return rc;
+-}
+-
+-/*
+- * Compatibility mode handshaking is a matter of writing data,
+- * strobing it, and waiting for the printer to stop being busy.
+- */
+-static long write_compat(unsigned minor, const char __user *c, unsigned long cnt)
+-{
+-      long rc;
+-      unsigned short pins = get_pins(minor);
+-
+-      unsigned long remaining = cnt;
+-
+-
+-      while (remaining > 0) {
+-            unsigned char byte;
+-
+-            if (get_user(byte, c))
+-		    return -EFAULT;
+-            c += 1;
+-
+-            rc = wait_for(BPP_GP_nAck, BPP_GP_Busy, TIME_IDLE_LIMIT, minor);
+-            if (rc = -1) return -ETIMEDOUT;
+-
+-            bpp_outb_p(byte, base_addrs[minor]);
+-            remaining -= 1;
+-          /* snooze(1, minor); */
+-
+-          pins &= ~BPP_PP_nStrobe;
+-          set_pins(pins, minor);
+-
+-          rc = wait_for(BPP_GP_Busy, 0, TIME_PResponse, minor);
+-
+-          pins |= BPP_PP_nStrobe;
+-          set_pins(pins, minor);
+-      }
+-
+-      return cnt - remaining;
+-}
+-
+-/*
+- * Write data using ECP mode. Watch out that the port may be set up
+- * for reading. If so, turn the port around.
+- */
+-static long write_ecp(unsigned minor, const char __user *c, unsigned long cnt)
+-{
+-      unsigned short pins = get_pins(minor);
+-      unsigned long remaining = cnt;
+-
+-      if (instances[minor].direction) {
+-          int rc;
+-
+-            /* Event 47 Request bus be turned around */
+-          pins |= BPP_PP_nInit;
+-          set_pins(pins, minor);
+-
+-            /* Wait for Event 49: Peripheral relinquished bus */
+-          rc = wait_for(BPP_GP_PError, 0, TIME_PResponse, minor);
+-
+-          pins |= BPP_PP_nAutoFd;
+-          instances[minor].direction = 0;
+-          set_pins(pins, minor);
+-      }
+-
+-      while (remaining > 0) {
+-          unsigned char byte;
+-          int rc;
+-
+-          if (get_user(byte, c))
+-		  return -EFAULT;
+-
+-          rc = wait_for(0, BPP_GP_Busy, TIME_PResponse, minor);
+-          if (rc = -1) return -ETIMEDOUT;
+-
+-          c += 1;
+-
+-          bpp_outb_p(byte, base_addrs[minor]);
+-
+-          pins &= ~BPP_PP_nStrobe;
+-          set_pins(pins, minor);
+-
+-          pins |= BPP_PP_nStrobe;
+-          rc = wait_for(BPP_GP_Busy, 0, TIME_PResponse, minor);
+-          if (rc = -1) return -EIO;
+-
+-          set_pins(pins, minor);
+-      }
+-
+-      return cnt - remaining;
+-}
+-
+-/*
+- * Write to the peripheral. Be sensitive of the current mode. If I'm
+- * in a mode that can be turned around (ECP) then just do
+- * that. Otherwise, terminate and do my writing in compat mode. This
+- * is the safest course as any device can handle it.
+- */
+-static ssize_t bpp_write(struct file *f, const char __user *c, size_t cnt, loff_t * ppos)
+-{
+-      long errno = 0;
+-      unsigned minor = iminor(f->f_path.dentry->d_inode);
+-      if (minor >= BPP_NO) return -ENODEV;
+-      if (!instances[minor].present) return -ENODEV;
+-
+-      switch (instances[minor].mode) {
+-
+-        case ECP:
+-        case ECP_RLE:
+-          errno = write_ecp(minor, c, cnt);
+-          break;
+-        case COMPATIBILITY:
+-          errno = write_compat(minor, c, cnt);
+-          break;
+-        default:
+-          terminate(minor);
+-          errno = write_compat(minor, c, cnt);
+-      }
+-
+-      return errno;
+-}
+-
+-static int bpp_ioctl(struct inode *inode, struct file *f, unsigned int cmd,
+-		 unsigned long arg)
+-{
+-      int errno = 0;
+-
+-      unsigned minor = iminor(inode);
+-      if (minor >= BPP_NO) return -ENODEV;
+-      if (!instances[minor].present) return -ENODEV;
+-
+-
+-      switch (cmd) {
+-
+-        case BPP_PUT_PINS:
+-          set_pins(arg, minor);
+-          break;
+-
+-        case BPP_GET_PINS:
+-          errno = get_pins(minor);
+-          break;
+-
+-        case BPP_PUT_DATA:
+-          bpp_outb_p(arg, base_addrs[minor]);
+-          break;
+-
+-        case BPP_GET_DATA:
+-          errno = bpp_inb_p(base_addrs[minor]);
+-          break;
+-
+-        case BPP_SET_INPUT:
+-          if (arg)
+-            if (instances[minor].enhanced) {
+-                unsigned short bits = get_pins(minor);
+-                instances[minor].direction = 0x20;
+-                set_pins(bits, minor);
+-            } else {
+-                errno = -ENOTTY;
+-            }
+-          else {
+-              unsigned short bits = get_pins(minor);
+-              instances[minor].direction = 0x00;
+-              set_pins(bits, minor);
+-          }
+-          break;
+-
+-        default:
+-            errno = -EINVAL;
+-      }
+-
+-      return errno;
+-}
+-
+-static const struct file_operations bpp_fops = {
+-	.owner =	THIS_MODULE,
+-	.read =		bpp_read,
+-	.write =	bpp_write,
+-	.ioctl =	bpp_ioctl,
+-	.open =		bpp_open,
+-	.release =	bpp_release,
+-};
+-
+-#if defined(__i386__)
+-
+-#define collectLptPorts()  {}
+-
+-static void probeLptPort(unsigned idx)
+-{
+-      unsigned int testvalue;
+-      const unsigned short lpAddr = base_addrs[idx];
+-
+-      instances[idx].present = 0;
+-      instances[idx].enhanced = 0;
+-      instances[idx].direction = 0;
+-      instances[idx].mode = COMPATIBILITY;
+-      instances[idx].run_length = 0;
+-      instances[idx].run_flag = 0;
+-      if (!request_region(lpAddr,3, bpp_dev_name)) return;
+-
+-      /*
+-       * First, make sure the instance exists. Do this by writing to
+-       * the data latch and reading the value back. If the port *is*
+-       * present, test to see if it supports extended-mode
+-       * operation. This will be required for IEEE1284 reverse
+-       * transfers.
+-       */
+-
+-      outb_p(BPP_PROBE_CODE, lpAddr);
+-      for (testvalue=0; testvalue<BPP_DELAY; testvalue++)
+-            ;
+-      testvalue = inb_p(lpAddr);
+-      if (testvalue = BPP_PROBE_CODE) {
+-            unsigned save;
+-            instances[idx].present = 1;
+-
+-            save = inb_p(lpAddr+2);
+-            for (testvalue=0; testvalue<BPP_DELAY; testvalue++)
+-                  ;
+-            outb_p(save|0x20, lpAddr+2);
+-            for (testvalue=0; testvalue<BPP_DELAY; testvalue++)
+-                  ;
+-            outb_p(~BPP_PROBE_CODE, lpAddr);
+-            for (testvalue=0; testvalue<BPP_DELAY; testvalue++)
+-                  ;
+-            testvalue = inb_p(lpAddr);
+-            if ((testvalue&0xff) = (0xff&~BPP_PROBE_CODE))
+-                  instances[idx].enhanced = 0;
+-            else
+-                  instances[idx].enhanced = 1;
+-            outb_p(save, lpAddr+2);
+-      }
+-      else {
+-            release_region(lpAddr,3);
+-      }
+-      /*
+-       * Leave the port in compat idle mode.
+-       */
+-      set_pins(BPP_PP_nAutoFd|BPP_PP_nStrobe|BPP_PP_nInit, idx);
+-
+-      printk("bpp%d: Port at 0x%03x: Enhanced mode %s\n", idx, base_addrs[idx],
+-            instances[idx].enhanced? "SUPPORTED" : "UNAVAILABLE");
+-}
+-
+-static inline void freeLptPort(int idx)
+-{
+-      release_region(base_addrs[idx], 3);
+-}
+-
+-#endif
+-
+-#if defined(__sparc__)
+-
+-static void __iomem *map_bpp(struct sbus_dev *dev, int idx)
+-{
+-      return sbus_ioremap(&dev->resource[0], 0, BPP_SIZE, "bpp");
+-}
+-
+-static int collectLptPorts(void)
+-{
+-	struct sbus_bus *bus;
+-	struct sbus_dev *dev;
+-	int count;
+-
+-	count = 0;
+-	for_all_sbusdev(dev, bus) {
+-		if (strcmp(dev->prom_name, "SUNW,bpp") = 0) {
+-			if (count >= BPP_NO) {
+-				printk(KERN_NOTICE
+-				       "bpp: More than %d bpp ports,"
+-				       " rest is ignored\n", BPP_NO);
+-				return count;
+-			}
+-			base_addrs[count] = map_bpp(dev, count);
+-			count++;
+-		}
+-	}
+-	return count;
+-}
+-
+-static void probeLptPort(unsigned idx)
+-{
+-      void __iomem *rp = base_addrs[idx];
+-      __u32 csr;
+-      char *brand;
+-
+-      instances[idx].present = 0;
+-      instances[idx].enhanced = 0;
+-      instances[idx].direction = 0;
+-      instances[idx].mode = COMPATIBILITY;
+-      instances[idx].run_length = 0;
+-      instances[idx].run_flag = 0;
+-
+-      if (!rp) return;
+-
+-      instances[idx].present = 1;
+-      instances[idx].enhanced = 1;   /* Sure */
+-
+-      csr = sbus_readl(rp + BPP_CSR);
+-      if ((csr & P_DRAINING) != 0 && (csr & P_ERR_PEND) = 0) {
+-            udelay(20);
+-            csr = sbus_readl(rp + BPP_CSR);
+-            if ((csr & P_DRAINING) != 0 && (csr & P_ERR_PEND) = 0) {
+-                  printk("bpp%d: DRAINING still active (0x%08x)\n", idx, csr);
+-            }
+-      }
+-      printk("bpp%d: reset with 0x%08x ..", idx, csr);
+-      sbus_writel((csr | P_RESET) & ~P_INT_EN, rp + BPP_CSR);
+-      udelay(500);
+-      sbus_writel(sbus_readl(rp + BPP_CSR) & ~P_RESET, rp + BPP_CSR);
+-      csr = sbus_readl(rp + BPP_CSR);
+-      printk(" done with csr=0x%08x ocr=0x%04x\n",
+-         csr, sbus_readw(rp + BPP_OCR));
+-
+-      switch (csr & P_DEV_ID_MASK) {
+-      case P_DEV_ID_ZEBRA:
+-            brand = "Zebra";
+-            break;
+-      case P_DEV_ID_L64854:
+-            brand = "DMA2";
+-            break;
+-      default:
+-            brand = "Unknown";
+-      }
+-      printk("bpp%d: %s at %p\n", idx, brand, rp);
+-
+-      /*
+-       * Leave the port in compat idle mode.
+-       */
+-      set_pins(BPP_PP_nAutoFd|BPP_PP_nStrobe|BPP_PP_nInit, idx);
+-
+-      return;
+-}
+-
+-static inline void freeLptPort(int idx)
+-{
+-      sbus_iounmap(base_addrs[idx], BPP_SIZE);
+-}
+-
+-#endif
+-
+-static int __init bpp_init(void)
+-{
+-	int rc;
+-	unsigned idx;
+-
+-	rc = collectLptPorts();
+-	if (rc = 0)
+-		return -ENODEV;
+-
+-	rc = register_chrdev(BPP_MAJOR, bpp_dev_name, &bpp_fops);
+-	if (rc < 0)
+-		return rc;
+-
+-	for (idx = 0; idx < BPP_NO; idx++) {
+-		instances[idx].opened = 0;
+-		probeLptPort(idx);
+-	}
+-
+-	return 0;
+-}
+-
+-static void __exit bpp_cleanup(void)
+-{
+-	unsigned idx;
+-
+-	unregister_chrdev(BPP_MAJOR, bpp_dev_name);
+-
+-	for (idx = 0;  idx < BPP_NO; idx++) {
+-		if (instances[idx].present)
+-			freeLptPort(idx);
+-	}
+-}
+-
+-module_init(bpp_init);
+-module_exit(bpp_cleanup);
+-
+-MODULE_LICENSE("GPL");
+-
+diff --git a/drivers/sbus/sbus.c b/drivers/sbus/sbus.c
+index 9c12924..53e5e7b 100644
+--- a/drivers/sbus/sbus.c
++++ b/drivers/sbus/sbus.c
+@@ -14,7 +14,6 @@
  #include <asm/dma.h>
+ #include <asm/oplib.h>
+ #include <asm/prom.h>
+-#include <asm/bpp.h>
+ #include <asm/irq.h>
  
--#include <asm/sbus.h>
--
- #include <scsi/scsi_host.h>
- 
- #include "esp_scsi.h"
- 
- #define DRV_MODULE_NAME		"sun_esp"
- #define PFX DRV_MODULE_NAME	": "
--#define DRV_VERSION		"1.000"
--#define DRV_MODULE_RELDATE	"April 19, 2007"
-+#define DRV_VERSION		"1.100"
-+#define DRV_MODULE_RELDATE	"August 27, 2008"
- 
- #define dma_read32(REG) \
- 	sbus_readl(esp->dma_regs + (REG))
-@@ -80,18 +80,18 @@ static int __devinit esp_sbus_setup_dma(struct esp *esp,
- 
- static int __devinit esp_sbus_map_regs(struct esp *esp, int hme)
- {
--	struct sbus_dev *sdev = esp->dev;
-+	struct of_device *op = esp->dev;
- 	struct resource *res;
- 
- 	/* On HME, two reg sets exist, first is DVMA,
- 	 * second is ESP registers.
- 	 */
- 	if (hme)
--		res = &sdev->resource[1];
-+		res = &op->resource[1];
- 	else
--		res = &sdev->resource[0];
-+		res = &op->resource[0];
- 
--	esp->regs = sbus_ioremap(res, 0, SBUS_ESP_REG_SIZE, "ESP");
-+	esp->regs = of_ioremap(res, 0, SBUS_ESP_REG_SIZE, "ESP");
- 	if (!esp->regs)
- 		return -ENOMEM;
- 
-@@ -100,9 +100,9 @@ static int __devinit esp_sbus_map_regs(struct esp *esp, int hme)
- 
- static int __devinit esp_sbus_map_command_block(struct esp *esp)
- {
--	struct sbus_dev *sdev = esp->dev;
-+	struct of_device *op = esp->dev;
- 
--	esp->command_block = dma_alloc_coherent(&sdev->ofdev.dev, 16,
-+	esp->command_block = dma_alloc_coherent(&op->dev, 16,
- 						&esp->command_block_dma,
- 						GFP_ATOMIC);
- 	if (!esp->command_block)
-@@ -113,17 +113,18 @@ static int __devinit esp_sbus_map_command_block(struct esp *esp)
- static int __devinit esp_sbus_register_irq(struct esp *esp)
- {
- 	struct Scsi_Host *host = esp->host;
--	struct sbus_dev *sdev = esp->dev;
-+	struct of_device *op = esp->dev;
- 
--	host->irq = sdev->irqs[0];
-+	host->irq = op->irqs[0];
- 	return request_irq(host->irq, scsi_esp_intr, IRQF_SHARED, "ESP", esp);
- }
- 
--static void __devinit esp_get_scsi_id(struct esp *esp)
-+static void __devinit esp_get_scsi_id(struct esp *esp, struct of_device *espdma)
- {
--	struct sbus_dev *sdev = esp->dev;
--	struct device_node *dp = sdev->ofdev.node;
-+	struct of_device *op = esp->dev;
-+	struct device_node *dp;
- 
-+	dp = op->node;
- 	esp->scsi_id = of_getintprop_default(dp, "initiator-id", 0xff);
- 	if (esp->scsi_id != 0xff)
- 		goto done;
-@@ -132,13 +133,7 @@ static void __devinit esp_get_scsi_id(struct esp *esp)
- 	if (esp->scsi_id != 0xff)
- 		goto done;
- 
--	if (!sdev->bus) {
--		/* SUN4 */
--		esp->scsi_id = 7;
--		goto done;
--	}
--
--	esp->scsi_id = of_getintprop_default(sdev->bus->ofdev.node,
-+	esp->scsi_id = of_getintprop_default(espdma->node,
- 					     "scsi-initiator-id", 7);
- 
- done:
-@@ -148,9 +143,10 @@ done:
- 
- static void __devinit esp_get_differential(struct esp *esp)
- {
--	struct sbus_dev *sdev = esp->dev;
--	struct device_node *dp = sdev->ofdev.node;
-+	struct of_device *op = esp->dev;
-+	struct device_node *dp;
- 
-+	dp = op->node;
- 	if (of_find_property(dp, "differential", NULL))
- 		esp->flags |= ESP_FLAG_DIFFERENTIAL;
- 	else
-@@ -159,19 +155,16 @@ static void __devinit esp_get_differential(struct esp *esp)
- 
- static void __devinit esp_get_clock_params(struct esp *esp)
- {
--	struct sbus_dev *sdev = esp->dev;
--	struct device_node *dp = sdev->ofdev.node;
--	struct device_node *bus_dp;
-+	struct of_device *op = esp->dev;
-+	struct device_node *bus_dp, *dp;
- 	int fmhz;
- 
--	bus_dp = NULL;
--	if (sdev != NULL && sdev->bus != NULL)
--		bus_dp = sdev->bus->ofdev.node;
-+	dp = op->node;
-+	bus_dp = dp->parent;
- 
- 	fmhz = of_getintprop_default(dp, "clock-frequency", 0);
- 	if (fmhz = 0)
--		fmhz = (!bus_dp) ? 0 :
--			of_getintprop_default(bus_dp, "clock-frequency", 0);
-+		fmhz = of_getintprop_default(bus_dp, "clock-frequency", 0);
- 
- 	esp->cfreq = fmhz;
- }
-@@ -179,22 +172,19 @@ static void __devinit esp_get_clock_params(struct esp *esp)
- static void __devinit esp_get_bursts(struct esp *esp, struct of_device *dma_of)
- {
- 	struct device_node *dma_dp = dma_of->node;
--	struct sbus_dev *sdev = esp->dev;
-+	struct of_device *op = esp->dev;
- 	struct device_node *dp;
- 	u8 bursts, val;
- 
--	dp = sdev->ofdev.node;
-+	dp = op->node;
- 	bursts = of_getintprop_default(dp, "burst-sizes", 0xff);
- 	val = of_getintprop_default(dma_dp, "burst-sizes", 0xff);
- 	if (val != 0xff)
- 		bursts &= val;
- 
--	if (sdev->bus) {
--		u8 val = of_getintprop_default(sdev->bus->ofdev.node,
--					       "burst-sizes", 0xff);
--		if (val != 0xff)
--			bursts &= val;
--	}
-+	val = of_getintprop_default(dma_dp->parent, "burst-sizes", 0xff);
-+	if (val != 0xff)
-+		bursts &= val;
- 
- 	if (bursts = 0xff ||
- 	    (bursts & DMA_BURST16) = 0 ||
-@@ -206,7 +196,7 @@ static void __devinit esp_get_bursts(struct esp *esp, struct of_device *dma_of)
- 
- static void __devinit esp_sbus_get_props(struct esp *esp, struct of_device *espdma)
- {
--	esp_get_scsi_id(esp);
-+	esp_get_scsi_id(esp, espdma);
- 	esp_get_differential(esp);
- 	esp_get_clock_params(esp);
- 	esp_get_bursts(esp, espdma);
-@@ -225,33 +215,33 @@ static u8 sbus_esp_read8(struct esp *esp, unsigned long reg)
- static dma_addr_t sbus_esp_map_single(struct esp *esp, void *buf,
- 				      size_t sz, int dir)
- {
--	struct sbus_dev *sdev = esp->dev;
-+	struct of_device *op = esp->dev;
- 
--	return dma_map_single(&sdev->ofdev.dev, buf, sz, dir);
-+	return dma_map_single(&op->dev, buf, sz, dir);
- }
- 
- static int sbus_esp_map_sg(struct esp *esp, struct scatterlist *sg,
- 				  int num_sg, int dir)
- {
--	struct sbus_dev *sdev = esp->dev;
-+	struct of_device *op = esp->dev;
- 
--	return dma_map_sg(&sdev->ofdev.dev, sg, num_sg, dir);
-+	return dma_map_sg(&op->dev, sg, num_sg, dir);
- }
- 
- static void sbus_esp_unmap_single(struct esp *esp, dma_addr_t addr,
- 				  size_t sz, int dir)
- {
--	struct sbus_dev *sdev = esp->dev;
-+	struct of_device *op = esp->dev;
- 
--	dma_unmap_single(&sdev->ofdev.dev, addr, sz, dir);
-+	dma_unmap_single(&op->dev, addr, sz, dir);
- }
- 
- static void sbus_esp_unmap_sg(struct esp *esp, struct scatterlist *sg,
- 			      int num_sg, int dir)
- {
--	struct sbus_dev *sdev = esp->dev;
-+	struct of_device *op = esp->dev;
- 
--	dma_unmap_sg(&sdev->ofdev.dev, sg, num_sg, dir);
-+	dma_unmap_sg(&op->dev, sg, num_sg, dir);
- }
- 
- static int sbus_esp_irq_pending(struct esp *esp)
-@@ -265,14 +255,14 @@ static void sbus_esp_reset_dma(struct esp *esp)
- {
- 	int can_do_burst16, can_do_burst32, can_do_burst64;
- 	int can_do_sbus64, lim;
--	struct sbus_dev *sdev;
-+	struct of_device *op;
- 	u32 val;
- 
- 	can_do_burst16 = (esp->bursts & DMA_BURST16) != 0;
- 	can_do_burst32 = (esp->bursts & DMA_BURST32) != 0;
- 	can_do_burst64 = 0;
- 	can_do_sbus64 = 0;
--	sdev = esp->dev;
-+	op = esp->dev;
- 	if (sbus_can_dma_64bit())
- 		can_do_sbus64 = 1;
- 	if (sbus_can_burst64())
-@@ -302,7 +292,7 @@ static void sbus_esp_reset_dma(struct esp *esp)
- 
- 		if (can_do_sbus64) {
- 			esp->prev_hme_dmacsr |= DMA_SCSI_SBUS64;
--			sbus_set_sbus64(&sdev->ofdev.dev, esp->bursts);
-+			sbus_set_sbus64(&op->dev, esp->bursts);
- 		}
- 
- 		lim = 1000;
-@@ -496,10 +486,8 @@ static const struct esp_driver_ops sbus_esp_ops = {
- 	.dma_error	=	sbus_esp_dma_error,
- };
- 
--static int __devinit esp_sbus_probe_one(struct device *dev,
--					struct sbus_dev *esp_dev,
-+static int __devinit esp_sbus_probe_one(struct of_device *op,
- 					struct of_device *espdma,
--					struct sbus_bus *sbus,
- 					int hme)
- {
- 	struct scsi_host_template *tpnt = &scsi_esp_template;
-@@ -517,7 +505,7 @@ static int __devinit esp_sbus_probe_one(struct device *dev,
- 	esp = shost_priv(host);
- 
- 	esp->host = host;
--	esp->dev = esp_dev;
-+	esp->dev = op;
- 	esp->ops = &sbus_esp_ops;
- 
- 	if (hme)
-@@ -551,9 +539,9 @@ static int __devinit esp_sbus_probe_one(struct device *dev,
- 		dma_write32(val & ~DMA_RST_SCSI, DMA_CSR);
- 	}
- 
--	dev_set_drvdata(&esp_dev->ofdev.dev, esp);
-+	dev_set_drvdata(&op->dev, esp);
- 
--	err = scsi_esp_register(esp, dev);
-+	err = scsi_esp_register(esp, &op->dev);
- 	if (err)
- 		goto fail_free_irq;
- 
-@@ -562,22 +550,21 @@ static int __devinit esp_sbus_probe_one(struct device *dev,
- fail_free_irq:
- 	free_irq(host->irq, esp);
- fail_unmap_command_block:
--	dma_free_coherent(&esp_dev->ofdev.dev, 16,
-+	dma_free_coherent(&op->dev, 16,
- 			  esp->command_block,
- 			  esp->command_block_dma);
- fail_unmap_regs:
--	sbus_iounmap(esp->regs, SBUS_ESP_REG_SIZE);
-+	of_iounmap(&op->resource[(hme ? 1 : 0)], esp->regs, SBUS_ESP_REG_SIZE);
- fail_unlink:
- 	scsi_host_put(host);
- fail:
- 	return err;
- }
- 
--static int __devinit esp_sbus_probe(struct of_device *dev, const struct of_device_id *match)
-+static int __devinit esp_sbus_probe(struct of_device *op, const struct of_device_id *match)
- {
--	struct sbus_dev *sdev = to_sbus_device(&dev->dev);
- 	struct device_node *dma_node = NULL;
--	struct device_node *dp = dev->node;
-+	struct device_node *dp = op->node;
- 	struct of_device *dma_of = NULL;
- 	int hme = 0;
- 
-@@ -586,7 +573,7 @@ static int __devinit esp_sbus_probe(struct of_device *dev, const struct of_devic
- 	     !strcmp(dp->parent->name, "dma")))
- 		dma_node = dp->parent;
- 	else if (!strcmp(dp->name, "SUNW,fas")) {
--		dma_node = sdev->ofdev.node;
-+		dma_node = op->node;
- 		hme = 1;
- 	}
- 	if (dma_node)
-@@ -594,16 +581,15 @@ static int __devinit esp_sbus_probe(struct of_device *dev, const struct of_devic
- 	if (!dma_of)
- 		return -ENODEV;
- 
--	return esp_sbus_probe_one(&dev->dev, sdev, dma_of,
--				  sdev->bus, hme);
-+	return esp_sbus_probe_one(op, dma_of, hme);
- }
- 
--static int __devexit esp_sbus_remove(struct of_device *dev)
-+static int __devexit esp_sbus_remove(struct of_device *op)
- {
--	struct esp *esp = dev_get_drvdata(&dev->dev);
--	struct sbus_dev *sdev = esp->dev;
-+	struct esp *esp = dev_get_drvdata(&op->dev);
- 	struct of_device *dma_of = esp->dma;
- 	unsigned int irq = esp->host->irq;
-+	bool is_hme;
- 	u32 val;
- 
- 	scsi_esp_unregister(esp);
-@@ -613,15 +599,21 @@ static int __devexit esp_sbus_remove(struct of_device *dev)
- 	dma_write32(val & ~DMA_INT_ENAB, DMA_CSR);
- 
- 	free_irq(irq, esp);
--	dma_free_coherent(&sdev->ofdev.dev, 16,
-+
-+	is_hme = (esp->dmarev = dvmahme);
-+
-+	dma_free_coherent(&op->dev, 16,
- 			  esp->command_block,
- 			  esp->command_block_dma);
--	sbus_iounmap(esp->regs, SBUS_ESP_REG_SIZE);
-+	of_iounmap(&op->resource[(is_hme ? 1 : 0)], esp->regs,
-+		   SBUS_ESP_REG_SIZE);
- 	of_iounmap(&dma_of->resource[0], esp->dma_regs,
- 		   resource_size(&dma_of->resource[0]));
- 
- 	scsi_host_put(esp->host);
- 
-+	dev_set_drvdata(&op->dev, NULL);
-+
- 	return 0;
- }
- 
-@@ -648,7 +640,7 @@ static struct of_platform_driver esp_sbus_driver = {
- 
- static int __init sunesp_init(void)
- {
--	return of_register_driver(&esp_sbus_driver, &sbus_bus_type);
-+	return of_register_driver(&esp_sbus_driver, &of_bus_type);
- }
- 
- static void __exit sunesp_exit(void)
+ static ssize_t
 -- 
 1.5.6.5.GIT
 
