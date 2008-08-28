@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 28 Aug 2008 04:24:06 +0000
-Subject: [PATCH 19/49]: amd7930: Convert to pure OF driver.
-Message-Id: <20080827.212406.44135609.davem@davemloft.net>
+Date: Thu, 28 Aug 2008 04:24:19 +0000
+Subject: [PATCH 23/49]: cs4231: Convert SBUS side to OF driver.
+Message-Id: <20080827.212419.40806753.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,192 +9,217 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-amd7930: Convert to pure OF driver.
+cs4231: Convert SBUS side to OF driver.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- sound/sparc/amd7930.c |   83 ++++++++++++-------------------------------------
- 1 files changed, 20 insertions(+), 63 deletions(-)
+ sound/sparc/cs4231.c |   78 ++++++++++++++++++++++++++++++++------------------
+ 1 files changed, 50 insertions(+), 28 deletions(-)
 
-diff --git a/sound/sparc/amd7930.c b/sound/sparc/amd7930.c
-index 0c63e05..0f82c3f 100644
---- a/sound/sparc/amd7930.c
-+++ b/sound/sparc/amd7930.c
+diff --git a/sound/sparc/cs4231.c b/sound/sparc/cs4231.c
+index e2be131..271b042 100644
+--- a/sound/sparc/cs4231.c
++++ b/sound/sparc/cs4231.c
 @@ -1,6 +1,6 @@
  /*
-  * Driver for AMD7930 sound chips found on Sparcs.
+  * Driver for CS4231 sound chips found on Sparcs.
 - * Copyright (C) 2002 David S. Miller <davem@redhat.com>
 + * Copyright (C) 2002, 2008 David S. Miller <davem@davemloft.net>
   *
-  * Based entirely upon drivers/sbus/audio/amd7930.c which is:
-  * Copyright (C) 1996,1997 Thomas K. Dyas (tdyas@eden.rutgers.edu)
-@@ -35,6 +35,8 @@
- #include <linux/init.h>
- #include <linux/interrupt.h>
+  * Based entirely upon drivers/sbus/audio/cs4231.c which is:
+  * Copyright (C) 1996, 1997, 1998 Derrick J Brashear (shadow@andrew.cmu.edu)
+@@ -17,7 +17,8 @@
  #include <linux/moduleparam.h>
+ #include <linux/irq.h>
+ #include <linux/io.h>
+-
 +#include <linux/of.h>
 +#include <linux/of_device.h>
  
  #include <sound/core.h>
  #include <sound/pcm.h>
-@@ -44,7 +46,6 @@
+@@ -29,7 +30,6 @@
  
- #include <asm/io.h>
- #include <asm/irq.h>
+ #ifdef CONFIG_SBUS
+ #define SBUS_SUPPORT
 -#include <asm/sbus.h>
- #include <asm/prom.h>
+ #endif
  
- static int index[SNDRV_CARDS] = SNDRV_DEFAULT_IDX;	/* Index 0-MAX */
-@@ -335,8 +336,8 @@ struct snd_amd7930 {
- 	int			pgain;
- 	int			mgain;
+ #if defined(CONFIG_PCI) && defined(CONFIG_SPARC64)
+@@ -116,7 +116,7 @@ struct snd_cs4231 {
  
-+	struct of_device	*op;
- 	unsigned int		irq;
--	unsigned int		regs_size;
- 	struct snd_amd7930	*next;
- };
- 
-@@ -920,13 +921,16 @@ static int __devinit snd_amd7930_mixer(struct snd_amd7930 *amd)
- 
- static int snd_amd7930_free(struct snd_amd7930 *amd)
+ 	union {
+ #ifdef SBUS_SUPPORT
+-		struct sbus_dev		*sdev;
++		struct of_device	*op;
+ #endif
+ #ifdef EBUS_SUPPORT
+ 		struct pci_dev		*pdev;
+@@ -1785,7 +1785,7 @@ static unsigned int sbus_dma_addr(struct cs4231_dma_control *dma_cont)
+ static void sbus_dma_preallocate(struct snd_cs4231 *chip, struct snd_pcm *pcm)
  {
-+	struct of_device *op = amd->op;
+ 	snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_DEV,
+-					      &chip->dev_u.sdev->ofdev.dev,
++					      &chip->dev_u.op->dev,
+ 					      64 * 1024, 128 * 1024);
+ }
+ 
+@@ -1795,11 +1795,13 @@ static void sbus_dma_preallocate(struct snd_cs4231 *chip, struct snd_pcm *pcm)
+ 
+ static int snd_cs4231_sbus_free(struct snd_cs4231 *chip)
+ {
++	struct of_device *op = chip->dev_u.op;
 +
- 	amd7930_idle(amd);
+ 	if (chip->irq[0])
+ 		free_irq(chip->irq[0], chip);
  
- 	if (amd->irq)
- 		free_irq(amd->irq, amd);
+ 	if (chip->port)
+-		sbus_iounmap(chip->port, chip->regs_size);
++		of_iounmap(&op->resource[0], chip->port, chip->regs_size);
  
- 	if (amd->regs)
--		sbus_iounmap(amd->regs, amd->regs_size);
-+		of_iounmap(&op->resource[0], amd->regs,
-+			   resource_size(&op->resource[0]));
- 
- 	kfree(amd);
- 
-@@ -945,13 +949,12 @@ static struct snd_device_ops snd_amd7930_dev_ops = {
+ 	return 0;
+ }
+@@ -1816,7 +1818,7 @@ static struct snd_device_ops snd_cs4231_sbus_dev_ops = {
  };
  
- static int __devinit snd_amd7930_create(struct snd_card *card,
--					struct resource *rp,
--					unsigned int reg_size,
-+					struct of_device *op,
- 					int irq, int dev,
- 					struct snd_amd7930 **ramd)
+ static int __init snd_cs4231_sbus_create(struct snd_card *card,
+-					 struct sbus_dev *sdev,
++					 struct of_device *op,
+ 					 int dev)
  {
--	unsigned long flags;
- 	struct snd_amd7930 *amd;
-+	unsigned long flags;
- 	int err;
+ 	struct snd_cs4231 *chip = card->private_data;
+@@ -1827,13 +1829,13 @@ static int __init snd_cs4231_sbus_create(struct snd_card *card,
+ 	spin_lock_init(&chip->p_dma.sbus_info.lock);
+ 	mutex_init(&chip->mce_mutex);
+ 	mutex_init(&chip->open_mutex);
+-	chip->dev_u.sdev = sdev;
+-	chip->regs_size = sdev->reg_addrs[0].reg_size;
++	chip->dev_u.op = op;
++	chip->regs_size = resource_size(&op->resource[0]);
+ 	memcpy(&chip->image, &snd_cs4231_original_image,
+ 	       sizeof(snd_cs4231_original_image));
  
- 	*ramd = NULL;
-@@ -961,9 +964,10 @@ static int __devinit snd_amd7930_create(struct snd_card *card,
- 
- 	spin_lock_init(&amd->lock);
- 	amd->card = card;
--	amd->regs_size = reg_size;
-+	amd->op = op;
- 
--	amd->regs = sbus_ioremap(rp, 0, amd->regs_size, "amd7930");
-+	amd->regs = of_ioremap(&op->resource[0], 0,
-+			       resource_size(&op->resource[0]), "amd7930");
- 	if (!amd->regs) {
- 		snd_printk("amd7930-%d: Unable to map chip registers.\n", dev);
+-	chip->port = sbus_ioremap(&sdev->resource[0], 0,
+-				  chip->regs_size, "cs4231");
++	chip->port = of_ioremap(&op->resource[0], 0,
++				chip->regs_size, "cs4231");
+ 	if (!chip->port) {
+ 		snd_printdd("cs4231-%d: Unable to map chip registers.\n", dev);
  		return -EIO;
-@@ -1012,12 +1016,15 @@ static int __devinit snd_amd7930_create(struct snd_card *card,
+@@ -1856,14 +1858,14 @@ static int __init snd_cs4231_sbus_create(struct snd_card *card,
+ 	chip->c_dma.address = sbus_dma_addr;
+ 	chip->c_dma.preallocate = sbus_dma_preallocate;
+ 
+-	if (request_irq(sdev->irqs[0], snd_cs4231_sbus_interrupt,
++	if (request_irq(op->irqs[0], snd_cs4231_sbus_interrupt,
+ 			IRQF_SHARED, "cs4231", chip)) {
+ 		snd_printdd("cs4231-%d: Unable to grab SBUS IRQ %d\n",
+-			    dev, sdev->irqs[0]);
++			    dev, op->irqs[0]);
+ 		snd_cs4231_sbus_free(chip);
+ 		return -EBUSY;
+ 	}
+-	chip->irq[0] = sdev->irqs[0];
++	chip->irq[0] = op->irqs[0];
+ 
+ 	if (snd_cs4231_probe(chip) < 0) {
+ 		snd_cs4231_sbus_free(chip);
+@@ -1880,12 +1882,16 @@ static int __init snd_cs4231_sbus_create(struct snd_card *card,
  	return 0;
  }
  
--static int __devinit amd7930_attach_common(struct resource *rp, int irq)
-+static int __devinit amd7930_sbus_probe(struct of_device *op, const struct of_device_id *match)
+-static int __init cs4231_sbus_attach(struct sbus_dev *sdev)
++static int __devinit cs4231_probe(struct of_device *op, const struct of_device_id *match)
  {
+-	struct resource *rp = &sdev->resource[0];
 +	struct resource *rp = &op->resource[0];
- 	static int dev_num;
  	struct snd_card *card;
- 	struct snd_amd7930 *amd;
--	int err;
-+	int err, irq;
+ 	int err;
+ 
++	if (strcmp(op->node->parent->name, "sbus") &&
++	    strcmp(op->node->parent->name, "sbi"))
++		return -ENODEV;
 +
-+	irq = op->irqs[0];
- 
- 	if (dev_num >= SNDRV_CARDS)
- 		return -ENODEV;
-@@ -1038,8 +1045,7 @@ static int __devinit amd7930_attach_common(struct resource *rp, int irq)
+ 	err = cs4231_attach_begin(&card);
+ 	if (err)
+ 		return err;
+@@ -1894,9 +1900,9 @@ static int __init cs4231_sbus_attach(struct sbus_dev *sdev)
+ 		card->shortname,
+ 		rp->flags & 0xffL,
  		(unsigned long long)rp->start,
- 		irq);
+-		sdev->irqs[0]);
++		op->irqs[0]);
  
--	if ((err = snd_amd7930_create(card, rp,
--				      (rp->end - rp->start) + 1,
-+	if ((err = snd_amd7930_create(card, op,
- 				      irq, dev_num, &amd)) < 0)
- 		goto out_err;
+-	err = snd_cs4231_sbus_create(card, sdev, dev);
++	err = snd_cs4231_sbus_create(card, op, dev);
+ 	if (err < 0) {
+ 		snd_card_free(card);
+ 		return err;
+@@ -2101,12 +2107,25 @@ static int __init cs4231_ebus_attach(struct linux_ebus_device *edev)
+ }
+ #endif
  
-@@ -1064,42 +1070,6 @@ out_err:
- 	return err;
+-static int __init cs4231_init(void)
+-{
+ #ifdef SBUS_SUPPORT
+-	struct sbus_bus *sbus;
+-	struct sbus_dev *sdev;
++static struct of_device_id cs4231_match[] = {
++	{
++		.name = "SUNW,CS4231",
++	},
++	{},
++};
++
++MODULE_DEVICE_TABLE(of, cs4231_match);
++
++static struct of_platform_driver cs4231_driver = {
++	.name		= "audio",
++	.match_table	= cs4231_match,
++	.probe		= cs4231_probe,
++};
+ #endif
++
++static int __init cs4231_init(void)
++{
+ #ifdef EBUS_SUPPORT
+ 	struct linux_ebus *ebus;
+ 	struct linux_ebus_device *edev;
+@@ -2116,11 +2135,10 @@ static int __init cs4231_init(void)
+ 	found = 0;
+ 
+ #ifdef SBUS_SUPPORT
+-	for_all_sbusdev(sdev, sbus) {
+-		if (!strcmp(sdev->prom_name, "SUNW,CS4231")) {
+-			if (cs4231_sbus_attach(sdev) = 0)
+-				found++;
+-		}
++	{
++		int err = of_register_driver(&cs4231_driver, &of_bus_type);
++		if (err)
++			return err;
+ 	}
+ #endif
+ #ifdef EBUS_SUPPORT
+@@ -2147,13 +2165,17 @@ static int __init cs4231_init(void)
+ #endif
+ 
+ 
+-	return (found > 0) ? 0 : -EIO;
++	return 0;
  }
  
--static int __devinit amd7930_obio_attach(struct device_node *dp)
--{
--	const struct linux_prom_registers *regs;
--	const struct linux_prom_irqs *irqp;
--	struct resource res, *rp;
--	int len;
--
--	irqp = of_get_property(dp, "intr", &len);
--	if (!irqp) {
--		snd_printk("%s: Firmware node lacks IRQ property.\n",
--			   dp->full_name);
--		return -ENODEV;
--	}
--
--	regs = of_get_property(dp, "reg", &len);
--	if (!regs) {
--		snd_printk("%s: Firmware node lacks register property.\n",
--			   dp->full_name);
--		return -ENODEV;
--	}
--
--	rp = &res;
--	rp->start = regs->phys_addr;
--	rp->end = rp->start + regs->reg_size - 1;
--	rp->flags = IORESOURCE_IO | (regs->which_io & 0xff);
--
--	return amd7930_attach_common(rp, irqp->pri);
--}
--
--static int __devinit amd7930_sbus_probe(struct of_device *dev, const struct of_device_id *match)
--{
--	struct sbus_dev *sdev = to_sbus_device(&dev->dev);
--
--	return amd7930_attach_common(&sdev->resource[0], sdev->irqs[0]);
--}
--
- static struct of_device_id amd7930_match[] = {
- 	{
- 		.name = "audio",
-@@ -1115,20 +1085,7 @@ static struct of_platform_driver amd7930_sbus_driver = {
- 
- static int __init amd7930_init(void)
+ static void __exit cs4231_exit(void)
  {
--	struct device_node *dp;
--
--	/* Try to find the sun4c "audio" node first. */
--	dp = of_find_node_by_path("/");
--	dp = dp->child;
--	while (dp) {
--		if (!strcmp(dp->name, "audio"))
--			amd7930_obio_attach(dp);
--
--		dp = dp->sibling;
--	}
--
--	/* Probe each SBUS for amd7930 chips. */
--	return of_register_driver(&amd7930_sbus_driver, &sbus_bus_type);
-+	return of_register_driver(&amd7930_sbus_driver, &of_bus_type);
- }
+ 	struct snd_cs4231 *p = cs4231_list;
  
- static void __exit amd7930_exit(void)
++#ifdef SBUS_SUPPORT
++	of_unregister_driver(&cs4231_driver);
++#endif
++
+ 	while (p != NULL) {
+ 		struct snd_cs4231 *next = p->next;
+ 
 -- 
 1.5.6.5.GIT
 
