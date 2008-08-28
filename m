@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Sat, 30 Aug 2008 10:19:10 +0000
-Subject: [PATCH 1/6]: sparc64: Don't invoke power_init() from
-Message-Id: <20080830.031910.216653021.davem@davemloft.net>
+Date: Thu, 28 Aug 2008 04:24:00 +0000
+Subject: [PATCH 16/49]: parport_sunbpp: Convert to pure OF driver.
+Message-Id: <20080827.212400.235227151.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,86 +9,140 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-sparc64: Don't invoke power_init() from pcibios_init().
-
-That's just silly, use device_initcall() instead.
+parport_sunbpp: Convert to pure OF driver.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc64/kernel/pci.c   |    4 ----
- arch/sparc64/kernel/power.c |   16 +++++-----------
- 2 files changed, 5 insertions(+), 15 deletions(-)
+ drivers/parport/parport_sunbpp.c |   47 ++++++++++++++++---------------------
+ 1 files changed, 20 insertions(+), 27 deletions(-)
 
-diff --git a/arch/sparc64/kernel/pci.c b/arch/sparc64/kernel/pci.c
-index 2187786..83c50a6 100644
---- a/arch/sparc64/kernel/pci.c
-+++ b/arch/sparc64/kernel/pci.c
-@@ -799,8 +799,6 @@ static void __init pci_scan_each_controller_bus(void)
- 		pbm->scan_bus(pbm);
- }
- 
--extern void power_init(void);
--
- static int __init pcibios_init(void)
- {
- 	pci_controller_probe();
-@@ -809,8 +807,6 @@ static int __init pcibios_init(void)
- 
- 	pci_scan_each_controller_bus();
- 
--	power_init();
--
- 	return 0;
- }
- 
-diff --git a/arch/sparc64/kernel/power.c b/arch/sparc64/kernel/power.c
-index 3bb987a..7536255 100644
---- a/arch/sparc64/kernel/power.c
-+++ b/arch/sparc64/kernel/power.c
-@@ -1,29 +1,22 @@
- /* power.c: Power management driver.
-  *
-- * Copyright (C) 1999, 2007 David S. Miller (davem@davemloft.net)
-+ * Copyright (C) 1999, 2007, 2008 David S. Miller (davem@davemloft.net)
-  */
- 
+diff --git a/drivers/parport/parport_sunbpp.c b/drivers/parport/parport_sunbpp.c
+index 9d595aa..e4f00c6 100644
+--- a/drivers/parport/parport_sunbpp.c
++++ b/drivers/parport/parport_sunbpp.c
+@@ -26,6 +26,8 @@
  #include <linux/kernel.h>
- #include <linux/module.h>
+ #include <linux/slab.h>
  #include <linux/init.h>
--#include <linux/sched.h>
--#include <linux/signal.h>
--#include <linux/delay.h>
- #include <linux/interrupt.h>
- #include <linux/pm.h>
--#include <linux/syscalls.h>
- #include <linux/reboot.h>
- #include <linux/of_device.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
  
--#include <asm/system.h>
- #include <asm/auxio.h>
- #include <asm/prom.h>
+ #include <linux/parport.h>
+ 
+@@ -34,7 +36,6 @@
+ 
  #include <asm/io.h>
- #include <asm/sstate.h>
- #include <asm/reboot.h>
- 
--#include <linux/unistd.h>
--
- /*
-  * sysctl - toggle power-off restriction for serial console 
-  * systems in machine_power_off()
-@@ -111,8 +104,9 @@ static struct of_platform_driver power_driver = {
- 	},
+ #include <asm/oplib.h>           /* OpenProm Library */
+-#include <asm/sbus.h>
+ #include <asm/dma.h>             /* BPP uses LSI 64854 for DMA */
+ #include <asm/irq.h>
+ #include <asm/sunbpp.h>
+@@ -285,38 +286,37 @@ static struct parport_operations parport_sunbpp_ops  	.owner		= THIS_MODULE,
  };
  
--void __init power_init(void)
-+static int __init power_init(void)
+-static int __devinit init_one_port(struct sbus_dev *sdev)
++static int __devinit bpp_probe(struct of_device *op, const struct of_device_id *match)
  {
--	of_register_driver(&power_driver, &of_platform_bus_type);
--	return;
-+	return of_register_driver(&power_driver, &of_platform_bus_type);
+-	struct parport *p;
+-	/* at least in theory there may be a "we don't dma" case */
+ 	struct parport_operations *ops;
+-	void __iomem *base;
+-	int irq, dma, err = 0, size;
+ 	struct bpp_regs __iomem *regs;
++	int irq, dma, err = 0, size;
+ 	unsigned char value_tcr;
++	void __iomem *base;
++	struct parport *p;
+ 
+-	irq = sdev->irqs[0];
+-	base = sbus_ioremap(&sdev->resource[0], 0,
+-			    sdev->reg_addrs[0].reg_size, 
+-			    "sunbpp");
++	irq = op->irqs[0];
++	base = of_ioremap(&op->resource[0], 0,
++			  resource_size(&op->resource[0]),
++			  "sunbpp");
+ 	if (!base)
+ 		return -ENODEV;
+ 
+-	size = sdev->reg_addrs[0].reg_size;
++	size = resource_size(&op->resource[0]);
+ 	dma = PARPORT_DMA_NONE;
+ 
+ 	ops = kmalloc(sizeof(struct parport_operations), GFP_KERNEL);
+         if (!ops)
+ 		goto out_unmap;
+ 
+-        memcpy (ops, &parport_sunbpp_ops, sizeof (struct parport_operations));
++        memcpy (ops, &parport_sunbpp_ops, sizeof(struct parport_operations));
+ 
+ 	dprintk(("register_port\n"));
+ 	if (!(p = parport_register_port((unsigned long)base, irq, dma, ops)))
+ 		goto out_free_ops;
+ 
+ 	p->size = size;
+-	p->dev = &sdev->ofdev.dev;
++	p->dev = &op->dev;
+ 
+ 	if ((err = request_irq(p->irq, parport_irq_handler,
+ 			       IRQF_SHARED, p->name, p)) != 0) {
+@@ -333,7 +333,7 @@ static int __devinit init_one_port(struct sbus_dev *sdev)
+ 
+ 	printk(KERN_INFO "%s: sunbpp at 0x%lx\n", p->name, p->base);
+ 
+-	dev_set_drvdata(&sdev->ofdev.dev, p);
++	dev_set_drvdata(&op->dev, p);
+ 
+ 	parport_announce_port(p);
+ 
+@@ -346,21 +346,14 @@ out_free_ops:
+ 	kfree(ops);
+ 
+ out_unmap:
+-	sbus_iounmap(base, size);
++	of_iounmap(&op->resource[0], base, size);
+ 
+ 	return err;
  }
-+
-+device_initcall(power_init);
+ 
+-static int __devinit bpp_probe(struct of_device *dev, const struct of_device_id *match)
+-{
+-	struct sbus_dev *sdev = to_sbus_device(&dev->dev);
+-
+-	return init_one_port(sdev);
+-}
+-
+-static int __devexit bpp_remove(struct of_device *dev)
++static int __devexit bpp_remove(struct of_device *op)
+ {
+-	struct parport *p = dev_get_drvdata(&dev->dev);
++	struct parport *p = dev_get_drvdata(&op->dev);
+ 	struct parport_operations *ops = p->ops;
+ 
+ 	parport_remove_port(p);
+@@ -370,11 +363,11 @@ static int __devexit bpp_remove(struct of_device *dev)
+ 		free_irq(p->irq, p);
+ 	}
+ 
+-	sbus_iounmap((void __iomem *) p->base, p->size);
++	of_iounmap(&op->resource[0], (void __iomem *) p->base, p->size);
+ 	parport_put_port(p);
+ 	kfree(ops);
+ 
+-	dev_set_drvdata(&dev->dev, NULL);
++	dev_set_drvdata(&op->dev, NULL);
+ 
+ 	return 0;
+ }
+@@ -397,7 +390,7 @@ static struct of_platform_driver bpp_sbus_driver = {
+ 
+ static int __init parport_sunbpp_init(void)
+ {
+-	return of_register_driver(&bpp_sbus_driver, &sbus_bus_type);
++	return of_register_driver(&bpp_sbus_driver, &of_bus_type);
+ }
+ 
+ static void __exit parport_sunbpp_exit(void)
 -- 
 1.5.6.5.GIT
 
