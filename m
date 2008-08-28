@@ -1,21 +1,41 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 07 Aug 2008 01:14:37 +0000
-Subject: Re: [PATCH] of/sparc: remove include of linux/of_platform.h from
-Message-Id: <20080806.181437.111840792.davem@davemloft.net>
-List-Id: <sparclinux.vger.kernel.org>
-References: <20080807102908.bd3a6697.sfr@canb.auug.org.au>
-In-Reply-To: <20080807102908.bd3a6697.sfr@canb.auug.org.au>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
-
 From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Thu, 7 Aug 2008 10:29:08 +1000
+Date: Thu, 28 Aug 2008 01:46:02 +0000
+Subject: sparc build failure
+Message-Id: <20080828114602.6c6df4a2.sfr@canb.auug.org.au>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Signature=_Thu__28_Aug_2008_11_46_02_+1000_08DEFSLk7n2IRWKB"
+List-Id: <sparclinux.vger.kernel.org>
+To: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, "William L. Irwin" <wli@holomorphy.com>
 
-> Now that we have removed all inclusions of asm/of_platform.h, this
-> compatability include can be removed.
-> 
-> Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+--Signature=_Thu__28_Aug_2008_11_46_02_+1000_08DEFSLk7n2IRWKB
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Applied, thanks Stephen.
+Hi Dave,
+
+Linus' tree fails to build for sparc32 allmodconfig:
+
+kernel/relay.c:701: undefined reference to `smp_call_function_single'
+
+This is because it has CONFIG_SMP but not CONFIG_USE_GENERIC_SMP_HELPERS.
+
+I am not sure what to do about this.
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
+
+--Signature=_Thu__28_Aug_2008_11_46_02_+1000_08DEFSLk7n2IRWKB
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAki2A1oACgkQjjKRsyhoI8yBQQCdFvwQA1Rl6dfDQrO01c7zhH0e
+7ysAoL9mlQ3tiqZiggMBiV+qXojFvKZ9
+=dAEX
+-----END PGP SIGNATURE-----
+
+--Signature=_Thu__28_Aug_2008_11_46_02_+1000_08DEFSLk7n2IRWKB--
