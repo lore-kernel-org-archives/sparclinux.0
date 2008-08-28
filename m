@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 28 Aug 2008 04:24:00 +0000
-Subject: [PATCH 16/49]: parport_sunbpp: Convert to pure OF driver.
-Message-Id: <20080827.212400.235227151.davem@davemloft.net>
+Date: Thu, 28 Aug 2008 04:24:31 +0000
+Subject: [PATCH 29/49]: sparc32: Kill mmu_translate_dvma and
+Message-Id: <20080827.212431.203633347.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,140 +9,121 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-parport_sunbpp: Convert to pure OF driver.
+sparc32: Kill mmu_translate_dvma and implementations.
+
+No longer used.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- drivers/parport/parport_sunbpp.c |   47 ++++++++++++++++---------------------
- 1 files changed, 20 insertions(+), 27 deletions(-)
+ arch/sparc/include/asm/dma.h |    2 --
+ arch/sparc/mm/io-unit.c      |   14 --------------
+ arch/sparc/mm/iommu.c        |   10 ----------
+ arch/sparc/mm/sun4c.c        |    8 --------
+ 4 files changed, 0 insertions(+), 34 deletions(-)
 
-diff --git a/drivers/parport/parport_sunbpp.c b/drivers/parport/parport_sunbpp.c
-index 9d595aa..e4f00c6 100644
---- a/drivers/parport/parport_sunbpp.c
-+++ b/drivers/parport/parport_sunbpp.c
-@@ -26,6 +26,8 @@
- #include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/init.h>
-+#include <linux/of.h>
-+#include <linux/of_device.h>
+diff --git a/arch/sparc/include/asm/dma.h b/arch/sparc/include/asm/dma.h
+index 5955177..ee4ac18 100644
+--- a/arch/sparc/include/asm/dma.h
++++ b/arch/sparc/include/asm/dma.h
+@@ -132,12 +132,10 @@ BTFIXUPDEF_CALL(void,  mmu_release_scsi_sgl, struct device *, struct scatterlist
+  * to a separate mapping function for CPU visible mappings.
+  */
+ BTFIXUPDEF_CALL(int,  mmu_map_dma_area, dma_addr_t *, unsigned long, unsigned long, int len)
+-BTFIXUPDEF_CALL(struct page *, mmu_translate_dvma, unsigned long busa)
+ BTFIXUPDEF_CALL(void,  mmu_unmap_dma_area, unsigned long busa, int len)
  
- #include <linux/parport.h>
+ #define mmu_map_dma_area(pba,va,a,len) BTFIXUP_CALL(mmu_map_dma_area)(pba,va,a,len)
+ #define mmu_unmap_dma_area(ba,len) BTFIXUP_CALL(mmu_unmap_dma_area)(ba,len)
+-#define mmu_translate_dvma(ba)     BTFIXUP_CALL(mmu_translate_dvma)(ba)
+ #endif
  
-@@ -34,7 +36,6 @@
- 
- #include <asm/io.h>
- #include <asm/oplib.h>           /* OpenProm Library */
--#include <asm/sbus.h>
- #include <asm/dma.h>             /* BPP uses LSI 64854 for DMA */
- #include <asm/irq.h>
- #include <asm/sunbpp.h>
-@@ -285,38 +286,37 @@ static struct parport_operations parport_sunbpp_ops  	.owner		= THIS_MODULE,
- };
- 
--static int __devinit init_one_port(struct sbus_dev *sdev)
-+static int __devinit bpp_probe(struct of_device *op, const struct of_device_id *match)
+ #endif /* !(_ASM_SPARC_DMA_H) */
+diff --git a/arch/sparc/mm/io-unit.c b/arch/sparc/mm/io-unit.c
+index 4239655..6b46982 100644
+--- a/arch/sparc/mm/io-unit.c
++++ b/arch/sparc/mm/io-unit.c
+@@ -233,19 +233,6 @@ static void iounit_unmap_dma_area(unsigned long addr, int len)
  {
--	struct parport *p;
--	/* at least in theory there may be a "we don't dma" case */
- 	struct parport_operations *ops;
--	void __iomem *base;
--	int irq, dma, err = 0, size;
- 	struct bpp_regs __iomem *regs;
-+	int irq, dma, err = 0, size;
- 	unsigned char value_tcr;
-+	void __iomem *base;
-+	struct parport *p;
+ 	/* XXX Somebody please fill this in */
+ }
+-
+-/* XXX We do not pass sbus device here, bad. */
+-static struct page *iounit_translate_dvma(unsigned long addr)
+-{
+-	struct sbus_bus *sbus = sbus_root;	/* They are all the same */
+-	struct iounit_struct *iounit = sbus->ofdev.dev.archdata.iommu;
+-	int i;
+-	iopte_t *iopte;
+-
+-	i = ((addr - IOUNIT_DMA_BASE) >> PAGE_SHIFT);
+-	iopte = (iopte_t *)(iounit->page_table + i);
+-	return pfn_to_page(iopte_val(*iopte) >> (PAGE_SHIFT-4)); /* XXX sun4d guru, help */
+-}
+ #endif
  
--	irq = sdev->irqs[0];
--	base = sbus_ioremap(&sdev->resource[0], 0,
--			    sdev->reg_addrs[0].reg_size, 
--			    "sunbpp");
-+	irq = op->irqs[0];
-+	base = of_ioremap(&op->resource[0], 0,
-+			  resource_size(&op->resource[0]),
-+			  "sunbpp");
- 	if (!base)
- 		return -ENODEV;
- 
--	size = sdev->reg_addrs[0].reg_size;
-+	size = resource_size(&op->resource[0]);
- 	dma = PARPORT_DMA_NONE;
- 
- 	ops = kmalloc(sizeof(struct parport_operations), GFP_KERNEL);
-         if (!ops)
- 		goto out_unmap;
- 
--        memcpy (ops, &parport_sunbpp_ops, sizeof (struct parport_operations));
-+        memcpy (ops, &parport_sunbpp_ops, sizeof(struct parport_operations));
- 
- 	dprintk(("register_port\n"));
- 	if (!(p = parport_register_port((unsigned long)base, irq, dma, ops)))
- 		goto out_free_ops;
- 
- 	p->size = size;
--	p->dev = &sdev->ofdev.dev;
-+	p->dev = &op->dev;
- 
- 	if ((err = request_irq(p->irq, parport_irq_handler,
- 			       IRQF_SHARED, p->name, p)) != 0) {
-@@ -333,7 +333,7 @@ static int __devinit init_one_port(struct sbus_dev *sdev)
- 
- 	printk(KERN_INFO "%s: sunbpp at 0x%lx\n", p->name, p->base);
- 
--	dev_set_drvdata(&sdev->ofdev.dev, p);
-+	dev_set_drvdata(&op->dev, p);
- 
- 	parport_announce_port(p);
- 
-@@ -346,21 +346,14 @@ out_free_ops:
- 	kfree(ops);
- 
- out_unmap:
--	sbus_iounmap(base, size);
-+	of_iounmap(&op->resource[0], base, size);
- 
- 	return err;
+ static char *iounit_lockarea(char *vaddr, unsigned long len)
+@@ -272,7 +259,6 @@ void __init ld_mmu_iounit(void)
+ #ifdef CONFIG_SBUS
+ 	BTFIXUPSET_CALL(mmu_map_dma_area, iounit_map_dma_area, BTFIXUPCALL_NORM);
+ 	BTFIXUPSET_CALL(mmu_unmap_dma_area, iounit_unmap_dma_area, BTFIXUPCALL_NORM);
+-	BTFIXUPSET_CALL(mmu_translate_dvma, iounit_translate_dvma, BTFIXUPCALL_NORM);
+ #endif
  }
  
--static int __devinit bpp_probe(struct of_device *dev, const struct of_device_id *match)
+diff --git a/arch/sparc/mm/iommu.c b/arch/sparc/mm/iommu.c
+index 8e9ab93..832d99f 100644
+--- a/arch/sparc/mm/iommu.c
++++ b/arch/sparc/mm/iommu.c
+@@ -421,15 +421,6 @@ static void iommu_unmap_dma_area(unsigned long busa, int len)
+ 	iommu_invalidate(iommu->regs);
+ 	bit_map_clear(&iommu->usemap, ioptex, len >> PAGE_SHIFT);
+ }
+-
+-static struct page *iommu_translate_dvma(unsigned long busa)
 -{
--	struct sbus_dev *sdev = to_sbus_device(&dev->dev);
+-	struct iommu_struct *iommu = sbus_root->ofdev.dev.archdata.iommu;
+-	iopte_t *iopte = iommu->page_table;
 -
--	return init_one_port(sdev);
+-	iopte += ((busa - iommu->start) >> PAGE_SHIFT);
+-	return pfn_to_page((iopte_val(*iopte) & IOPTE_PAGE) >> (PAGE_SHIFT-4));
 -}
--
--static int __devexit bpp_remove(struct of_device *dev)
-+static int __devexit bpp_remove(struct of_device *op)
- {
--	struct parport *p = dev_get_drvdata(&dev->dev);
-+	struct parport *p = dev_get_drvdata(&op->dev);
- 	struct parport_operations *ops = p->ops;
+ #endif
  
- 	parport_remove_port(p);
-@@ -370,11 +363,11 @@ static int __devexit bpp_remove(struct of_device *dev)
- 		free_irq(p->irq, p);
- 	}
+ static char *iommu_lockarea(char *vaddr, unsigned long len)
+@@ -465,7 +456,6 @@ void __init ld_mmu_iommu(void)
+ #ifdef CONFIG_SBUS
+ 	BTFIXUPSET_CALL(mmu_map_dma_area, iommu_map_dma_area, BTFIXUPCALL_NORM);
+ 	BTFIXUPSET_CALL(mmu_unmap_dma_area, iommu_unmap_dma_area, BTFIXUPCALL_NORM);
+-	BTFIXUPSET_CALL(mmu_translate_dvma, iommu_translate_dvma, BTFIXUPCALL_NORM);
+ #endif
  
--	sbus_iounmap((void __iomem *) p->base, p->size);
-+	of_iounmap(&op->resource[0], (void __iomem *) p->base, p->size);
- 	parport_put_port(p);
- 	kfree(ops);
- 
--	dev_set_drvdata(&dev->dev, NULL);
-+	dev_set_drvdata(&op->dev, NULL);
- 
+ 	if (viking_mxcc_present || srmmu_modtype = HyperSparc) {
+diff --git a/arch/sparc/mm/sun4c.c b/arch/sparc/mm/sun4c.c
+index d1782f6..65af311 100644
+--- a/arch/sparc/mm/sun4c.c
++++ b/arch/sparc/mm/sun4c.c
+@@ -555,13 +555,6 @@ static int sun4c_map_dma_area(dma_addr_t *pba, unsigned long va,
  	return 0;
  }
-@@ -397,7 +390,7 @@ static struct of_platform_driver bpp_sbus_driver = {
  
- static int __init parport_sunbpp_init(void)
+-static struct page *sun4c_translate_dvma(unsigned long busa)
+-{
+-	/* Fortunately for us, bus_addr = uncached_virt in sun4c. */
+-	unsigned long pte = sun4c_get_pte(busa);
+-	return pfn_to_page(pte & SUN4C_PFN_MASK);
+-}
+-
+ static void sun4c_unmap_dma_area(unsigned long busa, int len)
  {
--	return of_register_driver(&bpp_sbus_driver, &sbus_bus_type);
-+	return of_register_driver(&bpp_sbus_driver, &of_bus_type);
- }
+ 	/* Fortunately for us, bus_addr = uncached_virt in sun4c. */
+@@ -2263,7 +2256,6 @@ void __init ld_mmu_sun4c(void)
  
- static void __exit parport_sunbpp_exit(void)
+ 	BTFIXUPSET_CALL(mmu_map_dma_area, sun4c_map_dma_area, BTFIXUPCALL_NORM);
+ 	BTFIXUPSET_CALL(mmu_unmap_dma_area, sun4c_unmap_dma_area, BTFIXUPCALL_NORM);
+-	BTFIXUPSET_CALL(mmu_translate_dvma, sun4c_translate_dvma, BTFIXUPCALL_NORM);
+ 
+ 	BTFIXUPSET_CALL(sparc_mapiorange, sun4c_mapiorange, BTFIXUPCALL_NORM);
+ 	BTFIXUPSET_CALL(sparc_unmapiorange, sun4c_unmapiorange, BTFIXUPCALL_NORM);
 -- 
 1.5.6.5.GIT
 
