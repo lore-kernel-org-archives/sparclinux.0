@@ -1,49 +1,43 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 30 Aug 2008 20:01:01 +0000
-Subject: [GIT]: Sparc
-Message-Id: <20080830.130101.155904510.davem@davemloft.net>
+From: Adrian Bunk <bunk@kernel.org>
+Date: Fri, 29 Aug 2008 12:36:32 +0000
+Subject: Re: [2.6 patch] sparc: remove CONFIG_SUN4
+Message-Id: <20080829123632.GA5976@cs181140183.pp.htv.fi>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080421.153231.108090227.davem@davemloft.net>
-In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
+References: <20080610222838.GL11685@cs181133002.pp.htv.fi>
+In-Reply-To: <20080610222838.GL11685@cs181133002.pp.htv.fi>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
+On Mon, Jun 16, 2008 at 04:45:24PM -0700, David Miller wrote:
+> From: Adrian Bunk <bunk@kernel.org>
+> Date: Wed, 11 Jun 2008 01:28:38 +0300
+> 
+> > While doing some easy cleanups on the sparc code I noticed that the
+> > CONFIG_SUN4 code seems to be worse than the rest - there were some
+> > "I don't know how it should work, but the current code definitely cannot
+> > work." places.
+> > 
+> > And while I have seen people running Linux on machines like a
+> > SPARCstation 5 a few years ago I don't recall having seen sun4
+> > machines, even less ones running Linux.
+> > 
+> > Signed-off-by: Adrian Bunk <bunk@kernel.org>
+> 
+> Applied to sparc-next-2.6, thanks Adrian!
 
-Three Sparc bug fixes:
+It seems it got lost somewhere?
 
-1) CONFIG_RELAY recently started using smp_call_function_single()
-   even though that was not previously referenced from generic
-   code.
+Should I rediff it against the latest sparc-next and resend?
 
-   Anyways, add an implementation to 32-bit sparc to fix the
-   build with RELAY enabled.
+cu
+Adrian
 
-2) Resource flag setting fix for PCI sub-devices.
+-- 
 
-3) Section mismatch fix in sparc64 MM initialization code.
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
 
-Please pull, thanks a lot!
-
-The following changes since commit 349101da8e1f8e5eb1476b02823da80495224485:
-  Martin Habets (1):
-        sparc: Add target for a stripped kernel
-
-are available in the git repository at:
-
-  master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
-
-David S. Miller (3):
-      sparc32: Implement smp_call_function_single().
-      sparc: Fix resource flags for PCI children in OF device tree.
-      sparc64: setup_valid_addr_bitmap_from_pavail() should be __init
-
- arch/sparc/include/asm/smp_32.h |   25 +++++++++++++++----------
- arch/sparc/kernel/of_device.c   |   19 ++++++++++++++-----
- arch/sparc/kernel/sun4d_smp.c   |   16 ++++++++++------
- arch/sparc/kernel/sun4m_smp.c   |   12 ++++++++----
- arch/sparc64/kernel/of_device.c |   20 ++++++++++++++------
- arch/sparc64/mm/init.c          |    2 +-
- 6 files changed, 62 insertions(+), 32 deletions(-)
