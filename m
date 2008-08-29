@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 29 Aug 2008 22:45:13 +0000
-Subject: [PATCH 2/3]: riowatchdog: Move under drivers/watchdog
-Message-Id: <20080829.154513.224655335.davem@davemloft.net>
+Date: Fri, 29 Aug 2008 06:09:46 +0000
+Subject: [PATCH 10/12]: sparc64: Use generic sun4v RTC driver.
+Message-Id: <20080828.230946.133295698.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,575 +9,142 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-riowatchdog: Move under drivers/watchdog
-
-The config stuff was already in drivers/watchdog/Kconfig
+sparc64: Use generic sun4v RTC driver.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- drivers/sbus/char/Makefile      |    1 -
- drivers/sbus/char/riowatchdog.c |  259 ---------------------------------------
- drivers/watchdog/Makefile       |    2 +
- drivers/watchdog/riowd.c        |  259 +++++++++++++++++++++++++++++++++++++++
- 4 files changed, 261 insertions(+), 260 deletions(-)
- delete mode 100644 drivers/sbus/char/riowatchdog.c
- create mode 100644 drivers/watchdog/riowd.c
+ arch/sparc64/Kconfig       |    1 +
+ arch/sparc64/kernel/time.c |   76 +------------------------------------------
+ 2 files changed, 3 insertions(+), 74 deletions(-)
 
-diff --git a/drivers/sbus/char/Makefile b/drivers/sbus/char/Makefile
-index e15bd5e..b29c186 100644
---- a/drivers/sbus/char/Makefile
-+++ b/drivers/sbus/char/Makefile
-@@ -12,7 +12,6 @@ bbc-objs := bbc_i2c.o bbc_envctrl.o
- obj-$(CONFIG_ENVCTRL)			+= envctrl.o
- obj-$(CONFIG_DISPLAY7SEG)		+= display7seg.o
- obj-$(CONFIG_WATCHDOG_CP1XXX)		+= cpwatchdog.o
--obj-$(CONFIG_WATCHDOG_RIO)		+= riowatchdog.o
- obj-$(CONFIG_OBP_FLASH)			+= flash.o
- obj-$(CONFIG_SUN_OPENPROMIO)		+= openprom.o
- obj-$(CONFIG_SUN_MOSTEK_RTC)		+= rtc.o
-diff --git a/drivers/sbus/char/riowatchdog.c b/drivers/sbus/char/riowatchdog.c
-deleted file mode 100644
-index b53af83..0000000
---- a/drivers/sbus/char/riowatchdog.c
-+++ /dev/null
-@@ -1,259 +0,0 @@
--/* riowatchdog.c - driver for hw watchdog inside Super I/O of RIO
-- *
-- * Copyright (C) 2001, 2008 David S. Miller (davem@davemloft.net)
-- */
--
--#include <linux/kernel.h>
--#include <linux/module.h>
--#include <linux/types.h>
--#include <linux/fs.h>
--#include <linux/errno.h>
--#include <linux/init.h>
--#include <linux/miscdevice.h>
--#include <linux/smp_lock.h>
--#include <linux/watchdog.h>
--#include <linux/of.h>
--#include <linux/of_device.h>
--
--#include <asm/io.h>
--#include <asm/uaccess.h>
--
--
--/* RIO uses the NatSemi Super I/O power management logical device
-- * as its' watchdog.
-- *
-- * When the watchdog triggers, it asserts a line to the BBC (Boot Bus
-- * Controller) of the machine.  The BBC can only be configured to
-- * trigger a power-on reset when the signal is asserted.  The BBC
-- * can be configured to ignore the signal entirely as well.
-- *
-- * The only Super I/O device register we care about is at index
-- * 0x05 (WDTO_INDEX) which is the watchdog time-out in minutes (1-255).
-- * If set to zero, this disables the watchdog.  When set, the system
-- * must periodically (before watchdog expires) clear (set to zero) and
-- * re-set the watchdog else it will trigger.
-- *
-- * There are two other indexed watchdog registers inside this Super I/O
-- * logical device, but they are unused.  The first, at index 0x06 is
-- * the watchdog control and can be used to make the watchdog timer re-set
-- * when the PS/2 mouse or serial lines show activity.  The second, at
-- * index 0x07 is merely a sampling of the line from the watchdog to the
-- * BBC.
-- *
-- * The watchdog device generates no interrupts.
-- */
--
--MODULE_AUTHOR("David S. Miller <davem@davemloft.net>");
--MODULE_DESCRIPTION("Hardware watchdog driver for Sun RIO");
--MODULE_SUPPORTED_DEVICE("watchdog");
--MODULE_LICENSE("GPL");
--
--#define RIOWD_NAME	"pmc"
--#define PFX		RIOWD_NAME ": "
--
--struct riowd {
--	void __iomem		*regs;
--	spinlock_t		lock;
--};
--
--static struct riowd *riowd_device;
--
--#define WDTO_INDEX	0x05
--
--static int riowd_timeout = 1;		/* in minutes */
--module_param(riowd_timeout, int, 0);
--MODULE_PARM_DESC(riowd_timeout, "Watchdog timeout in minutes");
--
--static void riowd_writereg(struct riowd *p, u8 val, int index)
--{
--	unsigned long flags;
--
--	spin_lock_irqsave(&p->lock, flags);
--	writeb(index, p->regs + 0);
--	writeb(val, p->regs + 1);
--	spin_unlock_irqrestore(&p->lock, flags);
--}
--
--static int riowd_open(struct inode *inode, struct file *filp)
--{
--	cycle_kernel_lock();
--	nonseekable_open(inode, filp);
--	return 0;
--}
--
--static int riowd_release(struct inode *inode, struct file *filp)
--{
--	return 0;
--}
--
--static int riowd_ioctl(struct inode *inode, struct file *filp,
--		       unsigned int cmd, unsigned long arg)
--{
--	static struct watchdog_info info = {
--		.options		= WDIOF_SETTIMEOUT,
--		.firmware_version	= 1,
--		.identity		= "riowd",
--	};
--	void __user *argp = (void __user *)arg;
--	struct riowd *p = riowd_device;
--	unsigned int options;
--	int new_margin;
--
--	switch (cmd) {
--	case WDIOC_GETSUPPORT:
--		if (copy_to_user(argp, &info, sizeof(info)))
--			return -EFAULT;
--		break;
--
--	case WDIOC_GETSTATUS:
--	case WDIOC_GETBOOTSTATUS:
--		if (put_user(0, (int __user *)argp))
--			return -EFAULT;
--		break;
--
--	case WDIOC_KEEPALIVE:
--		riowd_writereg(p, riowd_timeout, WDTO_INDEX);
--		break;
--
--	case WDIOC_SETOPTIONS:
--		if (copy_from_user(&options, argp, sizeof(options)))
--			return -EFAULT;
--
--		if (options & WDIOS_DISABLECARD)
--			riowd_writereg(p, 0, WDTO_INDEX);
--		else if (options & WDIOS_ENABLECARD)
--			riowd_writereg(p, riowd_timeout, WDTO_INDEX);
--		else
--			return -EINVAL;
--
--		break;
--
--	case WDIOC_SETTIMEOUT:
--		if (get_user(new_margin, (int __user *)argp))
--			return -EFAULT;
--		if ((new_margin < 60) || (new_margin > (255 * 60)))
--			return -EINVAL;
--		riowd_timeout = (new_margin + 59) / 60;
--		riowd_writereg(p, riowd_timeout, WDTO_INDEX);
--		/* Fall */
--
--	case WDIOC_GETTIMEOUT:
--		return put_user(riowd_timeout * 60, (int __user *)argp);
--
--	default:
--		return -EINVAL;
--	};
--
--	return 0;
--}
--
--static ssize_t riowd_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
--{
--	struct riowd *p = riowd_device;
--
--	if (count) {
--		riowd_writereg(p, riowd_timeout, WDTO_INDEX);
--		return 1;
--	}
--
--	return 0;
--}
--
--static const struct file_operations riowd_fops = {
--	.owner =	THIS_MODULE,
--	.llseek =	no_llseek,
--	.ioctl =	riowd_ioctl,
--	.open =		riowd_open,
--	.write =	riowd_write,
--	.release =	riowd_release,
--};
--
--static struct miscdevice riowd_miscdev = {
--	.minor	= WATCHDOG_MINOR,
--	.name	= "watchdog",
--	.fops	= &riowd_fops
--};
--
--static int __devinit riowd_probe(struct of_device *op,
--				 const struct of_device_id *match)
--{
--	struct riowd *p;
--	int err = -EINVAL;
--
--	if (riowd_device)
--		goto out;
--
--	err = -ENOMEM;
--	p = kzalloc(sizeof(*p), GFP_KERNEL);
--	if (!p)
--		goto out;
--
--	spin_lock_init(&p->lock);
--
--	p->regs = of_ioremap(&op->resource[0], 0, 2, "riowd");
--	if (!p->regs) {
--		printk(KERN_ERR PFX "Cannot map registers.\n");
--		goto out_free;
--	}
--
--	err = misc_register(&riowd_miscdev);
--	if (err) {
--		printk(KERN_ERR PFX "Cannot register watchdog misc device.\n");
--		goto out_iounmap;
--	}
--
--	printk(KERN_INFO PFX "Hardware watchdog [%i minutes], "
--	       "regs at %p\n", riowd_timeout, p->regs);
--
--	dev_set_drvdata(&op->dev, p);
--	riowd_device = p;
--	err = 0;
--
--out_iounmap:
--	of_iounmap(&op->resource[0], p->regs, 2);
--
--out_free:
--	kfree(p);
--
--out:
--	return err;
--}
--
--static int __devexit riowd_remove(struct of_device *op)
--{
--	struct riowd *p = dev_get_drvdata(&op->dev);
--
--	misc_deregister(&riowd_miscdev);
--	of_iounmap(&op->resource[0], p->regs, 2);
--	kfree(p);
--
--	return 0;
--}
--
--static struct of_device_id riowd_match[] = {
--	{
--		.name = "pmc",
--	},
--	{},
--};
--MODULE_DEVICE_TABLE(of, riowd_match);
--
--static struct of_platform_driver riowd_driver = {
--	.name		= "riowd",
--	.match_table	= riowd_match,
--	.probe		= riowd_probe,
--	.remove		= __devexit_p(riowd_remove),
--};
--
--static int __init riowd_init(void)
--{
--	return of_register_driver(&riowd_driver, &of_bus_type);
--}
--
--static void __exit riowd_exit(void)
--{
--	of_unregister_driver(&riowd_driver);
--}
--
--module_init(riowd_init);
--module_exit(riowd_exit);
-diff --git a/drivers/watchdog/Makefile b/drivers/watchdog/Makefile
-index ca3dc04..57c7e8b 100644
---- a/drivers/watchdog/Makefile
-+++ b/drivers/watchdog/Makefile
-@@ -122,6 +122,8 @@ obj-$(CONFIG_SH_WDT) += shwdt.o
+diff --git a/arch/sparc64/Kconfig b/arch/sparc64/Kconfig
+index a4ec899..16149ce 100644
+--- a/arch/sparc64/Kconfig
++++ b/arch/sparc64/Kconfig
+@@ -23,6 +23,7 @@ config SPARC64
+ 	select RTC_DRV_M48T59
+ 	select RTC_DRV_CMOS
+ 	select RTC_DRV_BQ4802
++	select RTC_DRV_SUN4V
  
- # SPARC64 Architecture
+ config GENERIC_TIME
+ 	bool
+diff --git a/arch/sparc64/kernel/time.c b/arch/sparc64/kernel/time.c
+index 5e199a0..1b7a52a 100644
+--- a/arch/sparc64/kernel/time.c
++++ b/arch/sparc64/kernel/time.c
+@@ -424,48 +424,6 @@ static int starfire_set_time(u32 val)
+ 	return 0;
+ }
  
-+obj-$(CONFIG_WATCHDOG_RIO)		+= riowd.o
-+
- # XTENSA Architecture
+-static u32 hypervisor_get_time(void)
+-{
+-	unsigned long ret, time;
+-	int retries = 10000;
+-
+-retry:
+-	ret = sun4v_tod_get(&time);
+-	if (ret = HV_EOK)
+-		return time;
+-	if (ret = HV_EWOULDBLOCK) {
+-		if (--retries > 0) {
+-			udelay(100);
+-			goto retry;
+-		}
+-		printk(KERN_WARNING "SUN4V: tod_get() timed out.\n");
+-		return 0;
+-	}
+-	printk(KERN_WARNING "SUN4V: tod_get() not supported.\n");
+-	return 0;
+-}
+-
+-static int hypervisor_set_time(u32 secs)
+-{
+-	unsigned long ret;
+-	int retries = 10000;
+-
+-retry:
+-	ret = sun4v_tod_set(secs);
+-	if (ret = HV_EOK)
+-		return 0;
+-	if (ret = HV_EWOULDBLOCK) {
+-		if (--retries > 0) {
+-			udelay(100);
+-			goto retry;
+-		}
+-		printk(KERN_WARNING "SUN4V: tod_set() timed out.\n");
+-		return -EAGAIN;
+-	}
+-	printk(KERN_WARNING "SUN4V: tod_set() not supported.\n");
+-	return -EOPNOTSUPP;
+-}
+-
+ unsigned long cmos_regs;
+ EXPORT_SYMBOL(cmos_regs);
  
- # Architecture Independant
-diff --git a/drivers/watchdog/riowd.c b/drivers/watchdog/riowd.c
-new file mode 100644
-index 0000000..98bb60f
---- /dev/null
-+++ b/drivers/watchdog/riowd.c
-@@ -0,0 +1,259 @@
-+/* riowd.c - driver for hw watchdog inside Super I/O of RIO
-+ *
-+ * Copyright (C) 2001, 2008 David S. Miller (davem@davemloft.net)
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/types.h>
-+#include <linux/fs.h>
-+#include <linux/errno.h>
-+#include <linux/init.h>
-+#include <linux/miscdevice.h>
-+#include <linux/smp_lock.h>
-+#include <linux/watchdog.h>
-+#include <linux/of.h>
-+#include <linux/of_device.h>
-+
-+#include <asm/io.h>
-+#include <asm/uaccess.h>
-+
-+
-+/* RIO uses the NatSemi Super I/O power management logical device
-+ * as its' watchdog.
-+ *
-+ * When the watchdog triggers, it asserts a line to the BBC (Boot Bus
-+ * Controller) of the machine.  The BBC can only be configured to
-+ * trigger a power-on reset when the signal is asserted.  The BBC
-+ * can be configured to ignore the signal entirely as well.
-+ *
-+ * The only Super I/O device register we care about is at index
-+ * 0x05 (WDTO_INDEX) which is the watchdog time-out in minutes (1-255).
-+ * If set to zero, this disables the watchdog.  When set, the system
-+ * must periodically (before watchdog expires) clear (set to zero) and
-+ * re-set the watchdog else it will trigger.
-+ *
-+ * There are two other indexed watchdog registers inside this Super I/O
-+ * logical device, but they are unused.  The first, at index 0x06 is
-+ * the watchdog control and can be used to make the watchdog timer re-set
-+ * when the PS/2 mouse or serial lines show activity.  The second, at
-+ * index 0x07 is merely a sampling of the line from the watchdog to the
-+ * BBC.
-+ *
-+ * The watchdog device generates no interrupts.
-+ */
-+
-+MODULE_AUTHOR("David S. Miller <davem@davemloft.net>");
-+MODULE_DESCRIPTION("Hardware watchdog driver for Sun RIO");
-+MODULE_SUPPORTED_DEVICE("watchdog");
-+MODULE_LICENSE("GPL");
-+
-+#define RIOWD_NAME	"pmc"
-+#define PFX		RIOWD_NAME ": "
-+
-+struct riowd {
-+	void __iomem		*regs;
-+	spinlock_t		lock;
-+};
-+
-+static struct riowd *riowd_device;
-+
-+#define WDTO_INDEX	0x05
-+
-+static int riowd_timeout = 1;		/* in minutes */
-+module_param(riowd_timeout, int, 0);
-+MODULE_PARM_DESC(riowd_timeout, "Watchdog timeout in minutes");
-+
-+static void riowd_writereg(struct riowd *p, u8 val, int index)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&p->lock, flags);
-+	writeb(index, p->regs + 0);
-+	writeb(val, p->regs + 1);
-+	spin_unlock_irqrestore(&p->lock, flags);
-+}
-+
-+static int riowd_open(struct inode *inode, struct file *filp)
-+{
-+	cycle_kernel_lock();
-+	nonseekable_open(inode, filp);
-+	return 0;
-+}
-+
-+static int riowd_release(struct inode *inode, struct file *filp)
-+{
-+	return 0;
-+}
-+
-+static int riowd_ioctl(struct inode *inode, struct file *filp,
-+		       unsigned int cmd, unsigned long arg)
-+{
-+	static struct watchdog_info info = {
-+		.options		= WDIOF_SETTIMEOUT,
-+		.firmware_version	= 1,
-+		.identity		= "riowd",
-+	};
-+	void __user *argp = (void __user *)arg;
-+	struct riowd *p = riowd_device;
-+	unsigned int options;
-+	int new_margin;
-+
-+	switch (cmd) {
-+	case WDIOC_GETSUPPORT:
-+		if (copy_to_user(argp, &info, sizeof(info)))
-+			return -EFAULT;
-+		break;
-+
-+	case WDIOC_GETSTATUS:
-+	case WDIOC_GETBOOTSTATUS:
-+		if (put_user(0, (int __user *)argp))
-+			return -EFAULT;
-+		break;
-+
-+	case WDIOC_KEEPALIVE:
-+		riowd_writereg(p, riowd_timeout, WDTO_INDEX);
-+		break;
-+
-+	case WDIOC_SETOPTIONS:
-+		if (copy_from_user(&options, argp, sizeof(options)))
-+			return -EFAULT;
-+
-+		if (options & WDIOS_DISABLECARD)
-+			riowd_writereg(p, 0, WDTO_INDEX);
-+		else if (options & WDIOS_ENABLECARD)
-+			riowd_writereg(p, riowd_timeout, WDTO_INDEX);
-+		else
-+			return -EINVAL;
-+
-+		break;
-+
-+	case WDIOC_SETTIMEOUT:
-+		if (get_user(new_margin, (int __user *)argp))
-+			return -EFAULT;
-+		if ((new_margin < 60) || (new_margin > (255 * 60)))
-+			return -EINVAL;
-+		riowd_timeout = (new_margin + 59) / 60;
-+		riowd_writereg(p, riowd_timeout, WDTO_INDEX);
-+		/* Fall */
-+
-+	case WDIOC_GETTIMEOUT:
-+		return put_user(riowd_timeout * 60, (int __user *)argp);
-+
-+	default:
-+		return -EINVAL;
-+	};
-+
-+	return 0;
-+}
-+
-+static ssize_t riowd_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
-+{
-+	struct riowd *p = riowd_device;
-+
-+	if (count) {
-+		riowd_writereg(p, riowd_timeout, WDTO_INDEX);
-+		return 1;
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct file_operations riowd_fops = {
-+	.owner =	THIS_MODULE,
-+	.llseek =	no_llseek,
-+	.ioctl =	riowd_ioctl,
-+	.open =		riowd_open,
-+	.write =	riowd_write,
-+	.release =	riowd_release,
-+};
-+
-+static struct miscdevice riowd_miscdev = {
-+	.minor	= WATCHDOG_MINOR,
-+	.name	= "watchdog",
-+	.fops	= &riowd_fops
-+};
-+
-+static int __devinit riowd_probe(struct of_device *op,
-+				 const struct of_device_id *match)
-+{
-+	struct riowd *p;
-+	int err = -EINVAL;
-+
-+	if (riowd_device)
-+		goto out;
-+
-+	err = -ENOMEM;
-+	p = kzalloc(sizeof(*p), GFP_KERNEL);
-+	if (!p)
-+		goto out;
-+
-+	spin_lock_init(&p->lock);
-+
-+	p->regs = of_ioremap(&op->resource[0], 0, 2, "riowd");
-+	if (!p->regs) {
-+		printk(KERN_ERR PFX "Cannot map registers.\n");
-+		goto out_free;
-+	}
-+
-+	err = misc_register(&riowd_miscdev);
-+	if (err) {
-+		printk(KERN_ERR PFX "Cannot register watchdog misc device.\n");
-+		goto out_iounmap;
-+	}
-+
-+	printk(KERN_INFO PFX "Hardware watchdog [%i minutes], "
-+	       "regs at %p\n", riowd_timeout, p->regs);
-+
-+	dev_set_drvdata(&op->dev, p);
-+	riowd_device = p;
-+	err = 0;
-+
-+out_iounmap:
-+	of_iounmap(&op->resource[0], p->regs, 2);
-+
-+out_free:
-+	kfree(p);
-+
-+out:
-+	return err;
-+}
-+
-+static int __devexit riowd_remove(struct of_device *op)
-+{
-+	struct riowd *p = dev_get_drvdata(&op->dev);
-+
-+	misc_deregister(&riowd_miscdev);
-+	of_iounmap(&op->resource[0], p->regs, 2);
-+	kfree(p);
-+
-+	return 0;
-+}
-+
-+static struct of_device_id riowd_match[] = {
-+	{
-+		.name = "pmc",
-+	},
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, riowd_match);
-+
-+static struct of_platform_driver riowd_driver = {
-+	.name		= "riowd",
-+	.match_table	= riowd_match,
-+	.probe		= riowd_probe,
-+	.remove		= __devexit_p(riowd_remove),
-+};
-+
-+static int __init riowd_init(void)
-+{
-+	return of_register_driver(&riowd_driver, &of_bus_type);
-+}
-+
-+static void __exit riowd_exit(void)
-+{
-+	of_unregister_driver(&riowd_driver);
-+}
-+
-+module_init(riowd_init);
-+module_exit(riowd_exit);
+@@ -653,13 +611,8 @@ static int __init clock_init(void)
+ 		                        -xtime.tv_sec, -xtime.tv_nsec);
+ 		return 0;
+ 	}
+-	if (tlb_type = hypervisor) {
+-		xtime.tv_sec = hypervisor_get_time();
+-		xtime.tv_nsec = (INITIAL_JIFFIES % HZ) * (NSEC_PER_SEC / HZ);
+-		set_normalized_timespec(&wall_to_monotonic,
+-		                        -xtime.tv_sec, -xtime.tv_nsec);
++	if (tlb_type = hypervisor)
+ 		return 0;
+-	}
+ 
+ 	(void) of_register_driver(&rtc_driver, &of_platform_bus_type);
+ 	(void) of_register_driver(&mostek_driver, &of_platform_bus_type);
+@@ -1037,24 +990,6 @@ static int starfire_set_rtc_time(struct rtc_time *time)
+ 	return starfire_set_time(seconds);
+ }
+ 
+-static void hypervisor_get_rtc_time(struct rtc_time *time)
+-{
+-	u32 seconds = hypervisor_get_time();
+-
+-	to_tm(seconds, time);
+-	time->tm_year -= 1900;
+-	time->tm_mon -= 1;
+-}
+-
+-static int hypervisor_set_rtc_time(struct rtc_time *time)
+-{
+-	u32 seconds = mktime(time->tm_year + 1900, time->tm_mon + 1,
+-			     time->tm_mday, time->tm_hour,
+-			     time->tm_min, time->tm_sec);
+-
+-	return hypervisor_set_time(seconds);
+-}
+-
+ struct mini_rtc_ops {
+ 	void (*get_rtc_time)(struct rtc_time *);
+ 	int (*set_rtc_time)(struct rtc_time *);
+@@ -1065,11 +1000,6 @@ static struct mini_rtc_ops starfire_rtc_ops = {
+ 	.set_rtc_time = starfire_set_rtc_time,
+ };
+ 
+-static struct mini_rtc_ops hypervisor_rtc_ops = {
+-	.get_rtc_time = hypervisor_get_rtc_time,
+-	.set_rtc_time = hypervisor_set_rtc_time,
+-};
+-
+ static struct mini_rtc_ops *mini_rtc_ops;
+ 
+ static inline void mini_get_rtc_time(struct rtc_time *time)
+@@ -1192,9 +1122,7 @@ static int __init rtc_mini_init(void)
+ {
+ 	int retval;
+ 
+-	if (tlb_type = hypervisor)
+-		mini_rtc_ops = &hypervisor_rtc_ops;
+-	else if (this_is_starfire)
++	if (this_is_starfire)
+ 		mini_rtc_ops = &starfire_rtc_ops;
+ 	else
+ 		return -ENODEV;
 -- 
 1.5.6.5.GIT
 
