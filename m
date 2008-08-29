@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 28 Aug 2008 04:24:16 +0000
-Subject: [PATCH 22/49]: alsa: Remove special SBUS dma support code.
-Message-Id: <20080827.212416.108470742.davem@davemloft.net>
+Date: Fri, 29 Aug 2008 22:45:13 +0000
+Subject: [PATCH 2/3]: riowatchdog: Move under drivers/watchdog
+Message-Id: <20080829.154513.224655335.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,155 +9,575 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-alsa: Remove special SBUS dma support code.
+riowatchdog: Move under drivers/watchdog
 
-No longer used.
+The config stuff was already in drivers/watchdog/Kconfig
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- .../sound/alsa/DocBook/writing-an-alsa-driver.tmpl |    3 +-
- include/sound/core.h                               |    3 -
- include/sound/memalloc.h                           |    2 -
- sound/core/memalloc.c                              |   50 +-------------------
- 4 files changed, 2 insertions(+), 56 deletions(-)
+ drivers/sbus/char/Makefile      |    1 -
+ drivers/sbus/char/riowatchdog.c |  259 ---------------------------------------
+ drivers/watchdog/Makefile       |    2 +
+ drivers/watchdog/riowd.c        |  259 +++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 261 insertions(+), 260 deletions(-)
+ delete mode 100644 drivers/sbus/char/riowatchdog.c
+ create mode 100644 drivers/watchdog/riowd.c
 
-diff --git a/Documentation/sound/alsa/DocBook/writing-an-alsa-driver.tmpl b/Documentation/sound/alsa/DocBook/writing-an-alsa-driver.tmpl
-index e13c4e6..56723b4 100644
---- a/Documentation/sound/alsa/DocBook/writing-an-alsa-driver.tmpl
-+++ b/Documentation/sound/alsa/DocBook/writing-an-alsa-driver.tmpl
-@@ -5073,8 +5073,7 @@ struct _snd_pcm_runtime {
-       with <constant>SNDRV_DMA_TYPE_CONTINUOUS</constant> type and the
-       <function>snd_dma_continuous_data(GFP_KERNEL)</function> device pointer,
-       where <constant>GFP_KERNEL</constant> is the kernel allocation flag to
--      use.  For the SBUS, <constant>SNDRV_DMA_TYPE_SBUS</constant> and
--      <function>snd_dma_sbus_data(sbus_dev)</function> are used instead.
-+      use.
-       For the PCI scatter-gather buffers, use
-       <constant>SNDRV_DMA_TYPE_DEV_SG</constant> with
-       <function>snd_dma_pci_data(pci)</function>
-diff --git a/include/sound/core.h b/include/sound/core.h
-index 558b962..821d5a5 100644
---- a/include/sound/core.h
-+++ b/include/sound/core.h
-@@ -42,9 +42,6 @@
- #ifdef CONFIG_PCI
- struct pci_dev;
- #endif
--#ifdef CONFIG_SBUS
--struct sbus_dev;
--#endif
- 
- /* device allocation stuff */
- 
-diff --git a/include/sound/memalloc.h b/include/sound/memalloc.h
-index ae2921d..6a3e755 100644
---- a/include/sound/memalloc.h
-+++ b/include/sound/memalloc.h
-@@ -37,7 +37,6 @@ struct snd_dma_device {
- #ifndef snd_dma_pci_data
- #define snd_dma_pci_data(pci)	(&(pci)->dev)
- #define snd_dma_isa_data()	NULL
--#define snd_dma_sbus_data(sbus)	((struct device *)(sbus))
- #define snd_dma_continuous_data(x)	((struct device *)(unsigned long)(x))
- #endif
- 
-@@ -49,7 +48,6 @@ struct snd_dma_device {
- #define SNDRV_DMA_TYPE_CONTINUOUS	1	/* continuous no-DMA memory */
- #define SNDRV_DMA_TYPE_DEV		2	/* generic device continuous */
- #define SNDRV_DMA_TYPE_DEV_SG		3	/* generic device SG-buffer */
--#define SNDRV_DMA_TYPE_SBUS		4	/* SBUS continuous */
- 
- /*
-  * info for buffer allocation
-diff --git a/sound/core/memalloc.c b/sound/core/memalloc.c
-index ccaaac4..3733351 100644
---- a/sound/core/memalloc.c
-+++ b/sound/core/memalloc.c
-@@ -33,9 +33,6 @@
- #include <linux/moduleparam.h>
- #include <linux/mutex.h>
- #include <sound/memalloc.h>
--#ifdef CONFIG_SBUS
--#include <asm/sbus.h>
--#endif
- 
- 
- MODULE_AUTHOR("Takashi Iwai <tiwai@suse.de>, Jaroslav Kysela <perex@perex.cz>");
-@@ -180,41 +177,6 @@ static void snd_free_dev_pages(struct device *dev, size_t size, void *ptr,
- }
- #endif /* CONFIG_HAS_DMA */
- 
--#ifdef CONFIG_SBUS
+diff --git a/drivers/sbus/char/Makefile b/drivers/sbus/char/Makefile
+index e15bd5e..b29c186 100644
+--- a/drivers/sbus/char/Makefile
++++ b/drivers/sbus/char/Makefile
+@@ -12,7 +12,6 @@ bbc-objs := bbc_i2c.o bbc_envctrl.o
+ obj-$(CONFIG_ENVCTRL)			+= envctrl.o
+ obj-$(CONFIG_DISPLAY7SEG)		+= display7seg.o
+ obj-$(CONFIG_WATCHDOG_CP1XXX)		+= cpwatchdog.o
+-obj-$(CONFIG_WATCHDOG_RIO)		+= riowatchdog.o
+ obj-$(CONFIG_OBP_FLASH)			+= flash.o
+ obj-$(CONFIG_SUN_OPENPROMIO)		+= openprom.o
+ obj-$(CONFIG_SUN_MOSTEK_RTC)		+= rtc.o
+diff --git a/drivers/sbus/char/riowatchdog.c b/drivers/sbus/char/riowatchdog.c
+deleted file mode 100644
+index b53af83..0000000
+--- a/drivers/sbus/char/riowatchdog.c
++++ /dev/null
+@@ -1,259 +0,0 @@
+-/* riowatchdog.c - driver for hw watchdog inside Super I/O of RIO
+- *
+- * Copyright (C) 2001, 2008 David S. Miller (davem@davemloft.net)
+- */
 -
--static void *snd_malloc_sbus_pages(struct device *dev, size_t size,
--				   dma_addr_t *dma_addr)
+-#include <linux/kernel.h>
+-#include <linux/module.h>
+-#include <linux/types.h>
+-#include <linux/fs.h>
+-#include <linux/errno.h>
+-#include <linux/init.h>
+-#include <linux/miscdevice.h>
+-#include <linux/smp_lock.h>
+-#include <linux/watchdog.h>
+-#include <linux/of.h>
+-#include <linux/of_device.h>
+-
+-#include <asm/io.h>
+-#include <asm/uaccess.h>
+-
+-
+-/* RIO uses the NatSemi Super I/O power management logical device
+- * as its' watchdog.
+- *
+- * When the watchdog triggers, it asserts a line to the BBC (Boot Bus
+- * Controller) of the machine.  The BBC can only be configured to
+- * trigger a power-on reset when the signal is asserted.  The BBC
+- * can be configured to ignore the signal entirely as well.
+- *
+- * The only Super I/O device register we care about is at index
+- * 0x05 (WDTO_INDEX) which is the watchdog time-out in minutes (1-255).
+- * If set to zero, this disables the watchdog.  When set, the system
+- * must periodically (before watchdog expires) clear (set to zero) and
+- * re-set the watchdog else it will trigger.
+- *
+- * There are two other indexed watchdog registers inside this Super I/O
+- * logical device, but they are unused.  The first, at index 0x06 is
+- * the watchdog control and can be used to make the watchdog timer re-set
+- * when the PS/2 mouse or serial lines show activity.  The second, at
+- * index 0x07 is merely a sampling of the line from the watchdog to the
+- * BBC.
+- *
+- * The watchdog device generates no interrupts.
+- */
+-
+-MODULE_AUTHOR("David S. Miller <davem@davemloft.net>");
+-MODULE_DESCRIPTION("Hardware watchdog driver for Sun RIO");
+-MODULE_SUPPORTED_DEVICE("watchdog");
+-MODULE_LICENSE("GPL");
+-
+-#define RIOWD_NAME	"pmc"
+-#define PFX		RIOWD_NAME ": "
+-
+-struct riowd {
+-	void __iomem		*regs;
+-	spinlock_t		lock;
+-};
+-
+-static struct riowd *riowd_device;
+-
+-#define WDTO_INDEX	0x05
+-
+-static int riowd_timeout = 1;		/* in minutes */
+-module_param(riowd_timeout, int, 0);
+-MODULE_PARM_DESC(riowd_timeout, "Watchdog timeout in minutes");
+-
+-static void riowd_writereg(struct riowd *p, u8 val, int index)
 -{
--	struct sbus_dev *sdev = (struct sbus_dev *)dev;
--	int pg;
--	void *res;
+-	unsigned long flags;
 -
--	snd_assert(size > 0, return NULL);
--	snd_assert(dma_addr != NULL, return NULL);
--	pg = get_order(size);
--	res = dma_alloc_coherent(&sdev->ofdev.dev, PAGE_SIZE * (1 << pg),
--				 dma_addr, GFP_ATOMIC);
--	if (res != NULL)
--		inc_snd_pages(pg);
--	return res;
+-	spin_lock_irqsave(&p->lock, flags);
+-	writeb(index, p->regs + 0);
+-	writeb(val, p->regs + 1);
+-	spin_unlock_irqrestore(&p->lock, flags);
 -}
 -
--static void snd_free_sbus_pages(struct device *dev, size_t size,
--				void *ptr, dma_addr_t dma_addr)
+-static int riowd_open(struct inode *inode, struct file *filp)
 -{
--	struct sbus_dev *sdev = (struct sbus_dev *)dev;
--	int pg;
--
--	if (ptr = NULL)
--		return;
--	pg = get_order(size);
--	dec_snd_pages(pg);
--	dma_free_coherent(&sdev->ofdev.dev, PAGE_SIZE * (1 << pg),
--			  ptr, dma_addr);
+-	cycle_kernel_lock();
+-	nonseekable_open(inode, filp);
+-	return 0;
 -}
 -
--#endif /* CONFIG_SBUS */
+-static int riowd_release(struct inode *inode, struct file *filp)
+-{
+-	return 0;
+-}
 -
- /*
-  *
-  *  ALSA generic memory management
-@@ -249,11 +211,6 @@ int snd_dma_alloc_pages(int type, struct device *device, size_t size,
- 		dmab->area = snd_malloc_pages(size, (unsigned long)device);
- 		dmab->addr = 0;
- 		break;
--#ifdef CONFIG_SBUS
--	case SNDRV_DMA_TYPE_SBUS:
--		dmab->area = snd_malloc_sbus_pages(device, size, &dmab->addr);
+-static int riowd_ioctl(struct inode *inode, struct file *filp,
+-		       unsigned int cmd, unsigned long arg)
+-{
+-	static struct watchdog_info info = {
+-		.options		= WDIOF_SETTIMEOUT,
+-		.firmware_version	= 1,
+-		.identity		= "riowd",
+-	};
+-	void __user *argp = (void __user *)arg;
+-	struct riowd *p = riowd_device;
+-	unsigned int options;
+-	int new_margin;
+-
+-	switch (cmd) {
+-	case WDIOC_GETSUPPORT:
+-		if (copy_to_user(argp, &info, sizeof(info)))
+-			return -EFAULT;
 -		break;
--#endif
- #ifdef CONFIG_HAS_DMA
- 	case SNDRV_DMA_TYPE_DEV:
- 		dmab->area = snd_malloc_dev_pages(device, size, &dmab->addr);
-@@ -322,11 +279,6 @@ void snd_dma_free_pages(struct snd_dma_buffer *dmab)
- 	case SNDRV_DMA_TYPE_CONTINUOUS:
- 		snd_free_pages(dmab->area, dmab->bytes);
- 		break;
--#ifdef CONFIG_SBUS
--	case SNDRV_DMA_TYPE_SBUS:
--		snd_free_sbus_pages(dmab->dev.dev, dmab->bytes, dmab->area, dmab->addr);
+-
+-	case WDIOC_GETSTATUS:
+-	case WDIOC_GETBOOTSTATUS:
+-		if (put_user(0, (int __user *)argp))
+-			return -EFAULT;
 -		break;
--#endif
- #ifdef CONFIG_HAS_DMA
- 	case SNDRV_DMA_TYPE_DEV:
- 		snd_free_dev_pages(dmab->dev.dev, dmab->bytes, dmab->area, dmab->addr);
-@@ -433,7 +385,7 @@ static int snd_mem_proc_read(struct seq_file *seq, void *offset)
- 	long pages = snd_allocated_pages >> (PAGE_SHIFT-12);
- 	struct snd_mem_list *mem;
- 	int devno;
--	static char *types[] = { "UNKNOWN", "CONT", "DEV", "DEV-SG", "SBUS" };
-+	static char *types[] = { "UNKNOWN", "CONT", "DEV", "DEV-SG" };
+-
+-	case WDIOC_KEEPALIVE:
+-		riowd_writereg(p, riowd_timeout, WDTO_INDEX);
+-		break;
+-
+-	case WDIOC_SETOPTIONS:
+-		if (copy_from_user(&options, argp, sizeof(options)))
+-			return -EFAULT;
+-
+-		if (options & WDIOS_DISABLECARD)
+-			riowd_writereg(p, 0, WDTO_INDEX);
+-		else if (options & WDIOS_ENABLECARD)
+-			riowd_writereg(p, riowd_timeout, WDTO_INDEX);
+-		else
+-			return -EINVAL;
+-
+-		break;
+-
+-	case WDIOC_SETTIMEOUT:
+-		if (get_user(new_margin, (int __user *)argp))
+-			return -EFAULT;
+-		if ((new_margin < 60) || (new_margin > (255 * 60)))
+-			return -EINVAL;
+-		riowd_timeout = (new_margin + 59) / 60;
+-		riowd_writereg(p, riowd_timeout, WDTO_INDEX);
+-		/* Fall */
+-
+-	case WDIOC_GETTIMEOUT:
+-		return put_user(riowd_timeout * 60, (int __user *)argp);
+-
+-	default:
+-		return -EINVAL;
+-	};
+-
+-	return 0;
+-}
+-
+-static ssize_t riowd_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
+-{
+-	struct riowd *p = riowd_device;
+-
+-	if (count) {
+-		riowd_writereg(p, riowd_timeout, WDTO_INDEX);
+-		return 1;
+-	}
+-
+-	return 0;
+-}
+-
+-static const struct file_operations riowd_fops = {
+-	.owner =	THIS_MODULE,
+-	.llseek =	no_llseek,
+-	.ioctl =	riowd_ioctl,
+-	.open =		riowd_open,
+-	.write =	riowd_write,
+-	.release =	riowd_release,
+-};
+-
+-static struct miscdevice riowd_miscdev = {
+-	.minor	= WATCHDOG_MINOR,
+-	.name	= "watchdog",
+-	.fops	= &riowd_fops
+-};
+-
+-static int __devinit riowd_probe(struct of_device *op,
+-				 const struct of_device_id *match)
+-{
+-	struct riowd *p;
+-	int err = -EINVAL;
+-
+-	if (riowd_device)
+-		goto out;
+-
+-	err = -ENOMEM;
+-	p = kzalloc(sizeof(*p), GFP_KERNEL);
+-	if (!p)
+-		goto out;
+-
+-	spin_lock_init(&p->lock);
+-
+-	p->regs = of_ioremap(&op->resource[0], 0, 2, "riowd");
+-	if (!p->regs) {
+-		printk(KERN_ERR PFX "Cannot map registers.\n");
+-		goto out_free;
+-	}
+-
+-	err = misc_register(&riowd_miscdev);
+-	if (err) {
+-		printk(KERN_ERR PFX "Cannot register watchdog misc device.\n");
+-		goto out_iounmap;
+-	}
+-
+-	printk(KERN_INFO PFX "Hardware watchdog [%i minutes], "
+-	       "regs at %p\n", riowd_timeout, p->regs);
+-
+-	dev_set_drvdata(&op->dev, p);
+-	riowd_device = p;
+-	err = 0;
+-
+-out_iounmap:
+-	of_iounmap(&op->resource[0], p->regs, 2);
+-
+-out_free:
+-	kfree(p);
+-
+-out:
+-	return err;
+-}
+-
+-static int __devexit riowd_remove(struct of_device *op)
+-{
+-	struct riowd *p = dev_get_drvdata(&op->dev);
+-
+-	misc_deregister(&riowd_miscdev);
+-	of_iounmap(&op->resource[0], p->regs, 2);
+-	kfree(p);
+-
+-	return 0;
+-}
+-
+-static struct of_device_id riowd_match[] = {
+-	{
+-		.name = "pmc",
+-	},
+-	{},
+-};
+-MODULE_DEVICE_TABLE(of, riowd_match);
+-
+-static struct of_platform_driver riowd_driver = {
+-	.name		= "riowd",
+-	.match_table	= riowd_match,
+-	.probe		= riowd_probe,
+-	.remove		= __devexit_p(riowd_remove),
+-};
+-
+-static int __init riowd_init(void)
+-{
+-	return of_register_driver(&riowd_driver, &of_bus_type);
+-}
+-
+-static void __exit riowd_exit(void)
+-{
+-	of_unregister_driver(&riowd_driver);
+-}
+-
+-module_init(riowd_init);
+-module_exit(riowd_exit);
+diff --git a/drivers/watchdog/Makefile b/drivers/watchdog/Makefile
+index ca3dc04..57c7e8b 100644
+--- a/drivers/watchdog/Makefile
++++ b/drivers/watchdog/Makefile
+@@ -122,6 +122,8 @@ obj-$(CONFIG_SH_WDT) += shwdt.o
  
- 	mutex_lock(&list_mutex);
- 	seq_printf(seq, "pages  : %li bytes (%li pages per %likB)\n",
+ # SPARC64 Architecture
+ 
++obj-$(CONFIG_WATCHDOG_RIO)		+= riowd.o
++
+ # XTENSA Architecture
+ 
+ # Architecture Independant
+diff --git a/drivers/watchdog/riowd.c b/drivers/watchdog/riowd.c
+new file mode 100644
+index 0000000..98bb60f
+--- /dev/null
++++ b/drivers/watchdog/riowd.c
+@@ -0,0 +1,259 @@
++/* riowd.c - driver for hw watchdog inside Super I/O of RIO
++ *
++ * Copyright (C) 2001, 2008 David S. Miller (davem@davemloft.net)
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/types.h>
++#include <linux/fs.h>
++#include <linux/errno.h>
++#include <linux/init.h>
++#include <linux/miscdevice.h>
++#include <linux/smp_lock.h>
++#include <linux/watchdog.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
++
++#include <asm/io.h>
++#include <asm/uaccess.h>
++
++
++/* RIO uses the NatSemi Super I/O power management logical device
++ * as its' watchdog.
++ *
++ * When the watchdog triggers, it asserts a line to the BBC (Boot Bus
++ * Controller) of the machine.  The BBC can only be configured to
++ * trigger a power-on reset when the signal is asserted.  The BBC
++ * can be configured to ignore the signal entirely as well.
++ *
++ * The only Super I/O device register we care about is at index
++ * 0x05 (WDTO_INDEX) which is the watchdog time-out in minutes (1-255).
++ * If set to zero, this disables the watchdog.  When set, the system
++ * must periodically (before watchdog expires) clear (set to zero) and
++ * re-set the watchdog else it will trigger.
++ *
++ * There are two other indexed watchdog registers inside this Super I/O
++ * logical device, but they are unused.  The first, at index 0x06 is
++ * the watchdog control and can be used to make the watchdog timer re-set
++ * when the PS/2 mouse or serial lines show activity.  The second, at
++ * index 0x07 is merely a sampling of the line from the watchdog to the
++ * BBC.
++ *
++ * The watchdog device generates no interrupts.
++ */
++
++MODULE_AUTHOR("David S. Miller <davem@davemloft.net>");
++MODULE_DESCRIPTION("Hardware watchdog driver for Sun RIO");
++MODULE_SUPPORTED_DEVICE("watchdog");
++MODULE_LICENSE("GPL");
++
++#define RIOWD_NAME	"pmc"
++#define PFX		RIOWD_NAME ": "
++
++struct riowd {
++	void __iomem		*regs;
++	spinlock_t		lock;
++};
++
++static struct riowd *riowd_device;
++
++#define WDTO_INDEX	0x05
++
++static int riowd_timeout = 1;		/* in minutes */
++module_param(riowd_timeout, int, 0);
++MODULE_PARM_DESC(riowd_timeout, "Watchdog timeout in minutes");
++
++static void riowd_writereg(struct riowd *p, u8 val, int index)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&p->lock, flags);
++	writeb(index, p->regs + 0);
++	writeb(val, p->regs + 1);
++	spin_unlock_irqrestore(&p->lock, flags);
++}
++
++static int riowd_open(struct inode *inode, struct file *filp)
++{
++	cycle_kernel_lock();
++	nonseekable_open(inode, filp);
++	return 0;
++}
++
++static int riowd_release(struct inode *inode, struct file *filp)
++{
++	return 0;
++}
++
++static int riowd_ioctl(struct inode *inode, struct file *filp,
++		       unsigned int cmd, unsigned long arg)
++{
++	static struct watchdog_info info = {
++		.options		= WDIOF_SETTIMEOUT,
++		.firmware_version	= 1,
++		.identity		= "riowd",
++	};
++	void __user *argp = (void __user *)arg;
++	struct riowd *p = riowd_device;
++	unsigned int options;
++	int new_margin;
++
++	switch (cmd) {
++	case WDIOC_GETSUPPORT:
++		if (copy_to_user(argp, &info, sizeof(info)))
++			return -EFAULT;
++		break;
++
++	case WDIOC_GETSTATUS:
++	case WDIOC_GETBOOTSTATUS:
++		if (put_user(0, (int __user *)argp))
++			return -EFAULT;
++		break;
++
++	case WDIOC_KEEPALIVE:
++		riowd_writereg(p, riowd_timeout, WDTO_INDEX);
++		break;
++
++	case WDIOC_SETOPTIONS:
++		if (copy_from_user(&options, argp, sizeof(options)))
++			return -EFAULT;
++
++		if (options & WDIOS_DISABLECARD)
++			riowd_writereg(p, 0, WDTO_INDEX);
++		else if (options & WDIOS_ENABLECARD)
++			riowd_writereg(p, riowd_timeout, WDTO_INDEX);
++		else
++			return -EINVAL;
++
++		break;
++
++	case WDIOC_SETTIMEOUT:
++		if (get_user(new_margin, (int __user *)argp))
++			return -EFAULT;
++		if ((new_margin < 60) || (new_margin > (255 * 60)))
++			return -EINVAL;
++		riowd_timeout = (new_margin + 59) / 60;
++		riowd_writereg(p, riowd_timeout, WDTO_INDEX);
++		/* Fall */
++
++	case WDIOC_GETTIMEOUT:
++		return put_user(riowd_timeout * 60, (int __user *)argp);
++
++	default:
++		return -EINVAL;
++	};
++
++	return 0;
++}
++
++static ssize_t riowd_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
++{
++	struct riowd *p = riowd_device;
++
++	if (count) {
++		riowd_writereg(p, riowd_timeout, WDTO_INDEX);
++		return 1;
++	}
++
++	return 0;
++}
++
++static const struct file_operations riowd_fops = {
++	.owner =	THIS_MODULE,
++	.llseek =	no_llseek,
++	.ioctl =	riowd_ioctl,
++	.open =		riowd_open,
++	.write =	riowd_write,
++	.release =	riowd_release,
++};
++
++static struct miscdevice riowd_miscdev = {
++	.minor	= WATCHDOG_MINOR,
++	.name	= "watchdog",
++	.fops	= &riowd_fops
++};
++
++static int __devinit riowd_probe(struct of_device *op,
++				 const struct of_device_id *match)
++{
++	struct riowd *p;
++	int err = -EINVAL;
++
++	if (riowd_device)
++		goto out;
++
++	err = -ENOMEM;
++	p = kzalloc(sizeof(*p), GFP_KERNEL);
++	if (!p)
++		goto out;
++
++	spin_lock_init(&p->lock);
++
++	p->regs = of_ioremap(&op->resource[0], 0, 2, "riowd");
++	if (!p->regs) {
++		printk(KERN_ERR PFX "Cannot map registers.\n");
++		goto out_free;
++	}
++
++	err = misc_register(&riowd_miscdev);
++	if (err) {
++		printk(KERN_ERR PFX "Cannot register watchdog misc device.\n");
++		goto out_iounmap;
++	}
++
++	printk(KERN_INFO PFX "Hardware watchdog [%i minutes], "
++	       "regs at %p\n", riowd_timeout, p->regs);
++
++	dev_set_drvdata(&op->dev, p);
++	riowd_device = p;
++	err = 0;
++
++out_iounmap:
++	of_iounmap(&op->resource[0], p->regs, 2);
++
++out_free:
++	kfree(p);
++
++out:
++	return err;
++}
++
++static int __devexit riowd_remove(struct of_device *op)
++{
++	struct riowd *p = dev_get_drvdata(&op->dev);
++
++	misc_deregister(&riowd_miscdev);
++	of_iounmap(&op->resource[0], p->regs, 2);
++	kfree(p);
++
++	return 0;
++}
++
++static struct of_device_id riowd_match[] = {
++	{
++		.name = "pmc",
++	},
++	{},
++};
++MODULE_DEVICE_TABLE(of, riowd_match);
++
++static struct of_platform_driver riowd_driver = {
++	.name		= "riowd",
++	.match_table	= riowd_match,
++	.probe		= riowd_probe,
++	.remove		= __devexit_p(riowd_remove),
++};
++
++static int __init riowd_init(void)
++{
++	return of_register_driver(&riowd_driver, &of_bus_type);
++}
++
++static void __exit riowd_exit(void)
++{
++	of_unregister_driver(&riowd_driver);
++}
++
++module_init(riowd_init);
++module_exit(riowd_exit);
 -- 
 1.5.6.5.GIT
 
