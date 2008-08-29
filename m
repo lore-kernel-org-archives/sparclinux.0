@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Sat, 30 Aug 2008 10:19:06 +0000
-Subject: [PATCH 0/6]: Make sparc64 PCI controller drivers true drivers.
-Message-Id: <20080830.031906.193690423.davem@davemloft.net>
+Date: Fri, 29 Aug 2008 06:09:50 +0000
+Subject: [PATCH 11/12]: rtc: Add Starfire platform RTC driver.
+Message-Id: <20080828.230950.57835814.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,10 +9,170 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-The sparc64 PCI controllers are probed using this contrived scheme
-where we have this fixed table and this wonky probing loop that checks
-the model string, compatible property, etc.
+rtc: Add Starfire platform RTC driver.
 
-There is no reason for this, we have nice openfirmware device driver
-probing infrastructure so we should use it and remove this ugly
-by-hand probing code.
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ drivers/rtc/Kconfig        |    7 +++
+ drivers/rtc/Makefile       |    1 +
+ drivers/rtc/rtc-starfire.c |  120 ++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 128 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/rtc/rtc-starfire.c
+
+diff --git a/drivers/rtc/Kconfig b/drivers/rtc/Kconfig
+index 23403fa..ecdff20 100644
+--- a/drivers/rtc/Kconfig
++++ b/drivers/rtc/Kconfig
+@@ -599,4 +599,11 @@ config RTC_DRV_SUN4V
+ 	  If you say Y here you will get support for the Hypervisor
+ 	  based RTC on SUN4V systems.
+ 
++config RTC_DRV_STARFIRE
++	bool "Starfire RTC"
++	depends on SPARC64
++	help
++	  If you say Y here you will get support for the RTC found on
++	  Starfire systems.
++
+ endif # RTC_CLASS
+diff --git a/drivers/rtc/Makefile b/drivers/rtc/Makefile
+index 6850b04..10f41f8 100644
+--- a/drivers/rtc/Makefile
++++ b/drivers/rtc/Makefile
+@@ -40,6 +40,7 @@ obj-$(CONFIG_RTC_DRV_M48T59)	+= rtc-m48t59.o
+ obj-$(CONFIG_RTC_DRV_M48T86)	+= rtc-m48t86.o
+ obj-$(CONFIG_RTC_DRV_BQ4802)	+= rtc-bq4802.o
+ obj-$(CONFIG_RTC_DRV_SUN4V)	+= rtc-sun4v.o
++obj-$(CONFIG_RTC_DRV_STARFIRE)	+= rtc-starfire.o
+ obj-$(CONFIG_RTC_DRV_MAX6900)	+= rtc-max6900.o
+ obj-$(CONFIG_RTC_DRV_MAX6902)	+= rtc-max6902.o
+ obj-$(CONFIG_RTC_DRV_OMAP)	+= rtc-omap.o
+diff --git a/drivers/rtc/rtc-starfire.c b/drivers/rtc/rtc-starfire.c
+new file mode 100644
+index 0000000..7ccb0dd
+--- /dev/null
++++ b/drivers/rtc/rtc-starfire.c
+@@ -0,0 +1,120 @@
++/* rtc-starfire.c: Starfire platform RTC driver.
++ *
++ * Copyright (C) 2008 David S. Miller <davem@davemloft.net>
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/time.h>
++#include <linux/rtc.h>
++#include <linux/platform_device.h>
++
++#include <asm/oplib.h>
++
++MODULE_AUTHOR("David S. Miller <davem@davemloft.net>");
++MODULE_DESCRIPTION("Starfire RTC driver");
++MODULE_LICENSE("GPL");
++
++struct starfire_rtc {
++	struct rtc_device	*rtc;
++	spinlock_t		lock;
++};
++
++static u32 starfire_get_time(void)
++{
++	static char obp_gettod[32];
++	static u32 unix_tod;
++
++	sprintf(obp_gettod, "h# %08x unix-gettod",
++		(unsigned int) (long) &unix_tod);
++	prom_feval(obp_gettod);
++
++	return unix_tod;
++}
++
++static int starfire_read_time(struct device *dev, struct rtc_time *tm)
++{
++	struct starfire_rtc *p = dev_get_drvdata(dev);
++	unsigned long flags, secs;
++
++	spin_lock_irqsave(&p->lock, flags);
++	secs = starfire_get_time();
++	spin_unlock_irqrestore(&p->lock, flags);
++
++	rtc_time_to_tm(secs, tm);
++
++	return 0;
++}
++
++static int starfire_set_time(struct device *dev, struct rtc_time *tm)
++{
++	unsigned long secs;
++	int err;
++
++	err = rtc_tm_to_time(tm, &secs);
++	if (err)
++		return err;
++
++	/* Do nothing, time is set using the service processor
++	 * console on this platform.
++	 */
++	return 0;
++}
++
++static const struct rtc_class_ops starfire_rtc_ops = {
++	.read_time	= starfire_read_time,
++	.set_time	= starfire_set_time,
++};
++
++static int __devinit starfire_rtc_probe(struct platform_device *pdev)
++{
++	struct starfire_rtc *p = kzalloc(sizeof(*p), GFP_KERNEL);
++
++	if (!p)
++		return -ENOMEM;
++
++	spin_lock_init(&p->lock);
++
++	p->rtc = rtc_device_register("starfire", &pdev->dev,
++				     &starfire_rtc_ops, THIS_MODULE);
++	if (IS_ERR(p->rtc)) {
++		int err = PTR_ERR(p->rtc);
++		kfree(p);
++		return err;
++	}
++	platform_set_drvdata(pdev, p);
++	return 0;
++}
++
++static int __devexit starfire_rtc_remove(struct platform_device *pdev)
++{
++	struct starfire_rtc *p = platform_get_drvdata(pdev);
++
++	rtc_device_unregister(p->rtc);
++	kfree(p);
++
++	return 0;
++}
++
++static struct platform_driver starfire_rtc_driver = {
++	.driver		= {
++		.name	= "rtc-starfire",
++		.owner	= THIS_MODULE,
++	},
++	.probe		= starfire_rtc_probe,
++	.remove		= __devexit_p(starfire_rtc_remove),
++};
++
++static int __init starfire_rtc_init(void)
++{
++	return platform_driver_register(&starfire_rtc_driver);
++}
++
++static void __exit starfire_rtc_exit(void)
++{
++	platform_driver_unregister(&starfire_rtc_driver);
++}
++
++module_init(starfire_rtc_init);
++module_exit(starfire_rtc_exit);
+-- 
+1.5.6.5.GIT
+
