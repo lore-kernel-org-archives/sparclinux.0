@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 28 Aug 2008 04:24:57 +0000
-Subject: [PATCH 39/49]: sparc: Kill sbus_devaddr() and sbus_dev_slot().
-Message-Id: <20080827.212457.169426987.davem@davemloft.net>
+Date: Fri, 29 Aug 2008 06:09:21 +0000
+Subject: [PATCH 1/12]: rtc: Allow RTC_DRV_CMOS to be used on SPARC.
+Message-Id: <20080828.230921.126967947.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,74 +9,58 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-sparc: Kill sbus_devaddr() and sbus_dev_slot().
+rtc: Allow RTC_DRV_CMOS to be used on SPARC.
 
-Unused.
+Add Sparc to the Kconfig depends list.
+
+Add __sparc___ to address_sparc = 128 ifdef.
+
+Finally, don't be concerned about 24-hour BCD mode support if the RTC
+doesn't have a valid IRQ.  We won't even use the alarm code in this
+case and the Sparc RTCs have this limitation.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/include/asm/sbus_32.h |   18 ------------------
- arch/sparc/include/asm/sbus_64.h |   18 ------------------
- 2 files changed, 0 insertions(+), 36 deletions(-)
+ drivers/rtc/Kconfig    |    2 +-
+ drivers/rtc/rtc-cmos.c |    5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/arch/sparc/include/asm/sbus_32.h b/arch/sparc/include/asm/sbus_32.h
-index 9f35ae8..fdaf1a7 100644
---- a/arch/sparc/include/asm/sbus_32.h
-+++ b/arch/sparc/include/asm/sbus_32.h
-@@ -21,24 +21,6 @@
-  * you can get a SBus 'slot' number and an offset within that slot.
-  */
+diff --git a/drivers/rtc/Kconfig b/drivers/rtc/Kconfig
+index 9a9755c..8cb158d 100644
+--- a/drivers/rtc/Kconfig
++++ b/drivers/rtc/Kconfig
+@@ -329,7 +329,7 @@ comment "Platform RTC drivers"
  
--/* The base address at which to calculate device OBIO addresses. */
--#define SUN_SBUS_BVADDR        0xf8000000
--#define SBUS_OFF_MASK          0x01ffffff
--
--/* These routines are used to calculate device address from slot
-- * numbers + offsets, and vice versa.
-- */
--
--static inline unsigned long sbus_devaddr(int slotnum, unsigned long offset)
--{
--  return (unsigned long) (SUN_SBUS_BVADDR+((slotnum)<<25)+(offset));
--}
--
--static inline int sbus_dev_slot(unsigned long dev_addr)
--{
--  return (int) (((dev_addr)-SUN_SBUS_BVADDR)>>25);
--}
--
- struct sbus_bus;
- 
- /* Linux SBUS device tables */
-diff --git a/arch/sparc/include/asm/sbus_64.h b/arch/sparc/include/asm/sbus_64.h
-index ec3509a..6b3b055 100644
---- a/arch/sparc/include/asm/sbus_64.h
-+++ b/arch/sparc/include/asm/sbus_64.h
-@@ -21,24 +21,6 @@
-  * you can get a SBus 'slot' number and an offset within that slot.
-  */
- 
--/* The base address at which to calculate device OBIO addresses. */
--#define SUN_SBUS_BVADDR        0x00000000
--#define SBUS_OFF_MASK          0x0fffffff
--
--/* These routines are used to calculate device address from slot
-- * numbers + offsets, and vice versa.
-- */
--
--static inline unsigned long sbus_devaddr(int slotnum, unsigned long offset)
--{
--  return (unsigned long) (SUN_SBUS_BVADDR+((slotnum)<<28)+(offset));
--}
--
--static inline int sbus_dev_slot(unsigned long dev_addr)
--{
--  return (int) (((dev_addr)-SUN_SBUS_BVADDR)>>28);
--}
--
- struct sbus_bus;
- 
- /* Linux SBUS device tables */
+ config RTC_DRV_CMOS
+ 	tristate "PC-style 'CMOS'"
+-	depends on X86 || ALPHA || ARM || M32R || ATARI || PPC || MIPS
++	depends on X86 || ALPHA || ARM || M32R || ATARI || PPC || MIPS || SPARC
+ 	default y if X86
+ 	help
+ 	  Say "yes" here to get direct support for the real time clock
+diff --git a/drivers/rtc/rtc-cmos.c b/drivers/rtc/rtc-cmos.c
+index 6ea349a..04ecfd2 100644
+--- a/drivers/rtc/rtc-cmos.c
++++ b/drivers/rtc/rtc-cmos.c
+@@ -636,7 +636,7 @@ cmos_do_probe(struct device *dev, struct resource *ports, int rtc_irq)
+ 	 */
+ #if	defined(CONFIG_ATARI)
+ 	address_space = 64;
+-#elif defined(__i386__) || defined(__x86_64__) || defined(__arm__)
++#elif defined(__i386__) || defined(__x86_64__) || defined(__arm__) || defined(__sparc__)
+ 	address_space = 128;
+ #else
+ #warning Assuming 128 bytes of RTC+NVRAM address space, not 64 bytes.
+@@ -699,7 +699,8 @@ cmos_do_probe(struct device *dev, struct resource *ports, int rtc_irq)
+ 	/* FIXME teach the alarm code how to handle binary mode;
+ 	 * <asm-generic/rtc.h> doesn't know 12-hour mode either.
+ 	 */
+-	if (!(rtc_control & RTC_24H) || (rtc_control & (RTC_DM_BINARY))) {
++	if (is_valid_irq(rtc_irq) &&
++	    (!(rtc_control & RTC_24H) || (rtc_control & (RTC_DM_BINARY)))) {
+ 		dev_dbg(dev, "only 24-hr BCD mode supported\n");
+ 		retval = -ENXIO;
+ 		goto cleanup1;
 -- 
 1.5.6.5.GIT
 
