@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Mon, 25 Aug 2008 03:40:30 +0000
+Date: Sat, 30 Aug 2008 20:01:01 +0000
 Subject: [GIT]: Sparc
-Message-Id: <20080824.204030.193703137.davem@davemloft.net>
+Message-Id: <20080830.130101.155904510.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080421.153231.108090227.davem@davemloft.net>
 In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
@@ -12,30 +12,38 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-Please pull to get these two sparc changes:
+Three Sparc bug fixes:
 
-1) NUMA needs to depend upon SMP
+1) CONFIG_RELAY recently started using smp_call_function_single()
+   even though that was not previously referenced from generic
+   code.
 
-2) 32-bit sparc needs a stripped kernel target so that
-   the pkg-* targets work, from Martin Habets.
+   Anyways, add an implementation to 32-bit sparc to fix the
+   build with RELAY enabled.
 
-Thanks a lot!
+2) Resource flag setting fix for PCI sub-devices.
 
-The following changes since commit 83097aca8567a0bd593534853b71fe0fa9a75d69:
-  Arjan van de Ven (1):
-        Fix oops in acer_wmi driver (acer_wmi_init)
+3) Section mismatch fix in sparc64 MM initialization code.
+
+Please pull, thanks a lot!
+
+The following changes since commit 349101da8e1f8e5eb1476b02823da80495224485:
+  Martin Habets (1):
+        sparc: Add target for a stripped kernel
 
 are available in the git repository at:
 
   master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
 
-David S. Miller (1):
-      sparc64: Make NUMA depend upon SMP.
+David S. Miller (3):
+      sparc32: Implement smp_call_function_single().
+      sparc: Fix resource flags for PCI children in OF device tree.
+      sparc64: setup_valid_addr_bitmap_from_pavail() should be __init
 
-Martin Habets (1):
-      sparc: Add target for a stripped kernel
-
- arch/sparc/Makefile      |    8 ++++++--
- arch/sparc/boot/Makefile |    6 ++++++
- arch/sparc64/Kconfig     |    1 +
- 3 files changed, 13 insertions(+), 2 deletions(-)
+ arch/sparc/include/asm/smp_32.h |   25 +++++++++++++++----------
+ arch/sparc/kernel/of_device.c   |   19 ++++++++++++++-----
+ arch/sparc/kernel/sun4d_smp.c   |   16 ++++++++++------
+ arch/sparc/kernel/sun4m_smp.c   |   12 ++++++++----
+ arch/sparc64/kernel/of_device.c |   20 ++++++++++++++------
+ arch/sparc64/mm/init.c          |    2 +-
+ 6 files changed, 62 insertions(+), 32 deletions(-)
