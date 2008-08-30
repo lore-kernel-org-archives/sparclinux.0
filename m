@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 28 Aug 2008 04:24:23 +0000
-Subject: [PATCH 25/49]: sparc: Convert flash driver to OF device probing.
-Message-Id: <20080827.212423.256572211.davem@davemloft.net>
+Date: Sat, 30 Aug 2008 10:19:18 +0000
+Subject: [PATCH 4/6]: sparc64: Convert PSYCHO PCI controller driver into a
+Message-Id: <20080830.031918.155540584.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,185 +9,219 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-sparc: Convert flash driver to OF device probing.
+sparc64: Convert PSYCHO PCI controller driver into a real driver.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- drivers/sbus/char/flash.c |  130 +++++++++++++++++---------------------------
- 1 files changed, 50 insertions(+), 80 deletions(-)
+ arch/sparc64/kernel/pci.c        |    3 -
+ arch/sparc64/kernel/pci_psycho.c |   95 ++++++++++++++++++++++++++++----------
+ 2 files changed, 70 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/sbus/char/flash.c b/drivers/sbus/char/flash.c
-index 7d95e15..715996f 100644
---- a/drivers/sbus/char/flash.c
-+++ b/drivers/sbus/char/flash.c
-@@ -1,5 +1,4 @@
--/* $Id: flash.c,v 1.25 2001/12/21 04:56:16 davem Exp $
-- * flash.c: Allow mmap access to the OBP Flash, for OBP updates.
-+/* flash.c: Allow mmap access to the OBP Flash, for OBP updates.
-  *
-  * Copyright (C) 1997  Eddie C. Dost  (ecd@skynet.be)
-  */
-@@ -15,13 +14,13 @@
- #include <linux/smp_lock.h>
- #include <linux/spinlock.h>
- #include <linux/mm.h>
-+#include <linux/of.h>
-+#include <linux/of_device.h>
+diff --git a/arch/sparc64/kernel/pci.c b/arch/sparc64/kernel/pci.c
+index 445f588..c66c9bb 100644
+--- a/arch/sparc64/kernel/pci.c
++++ b/arch/sparc64/kernel/pci.c
+@@ -166,7 +166,6 @@ void pci_config_write32(u32 *addr, u32 val)
  
- #include <asm/system.h>
- #include <asm/uaccess.h>
- #include <asm/pgtable.h>
- #include <asm/io.h>
--#include <asm/sbus.h>
--#include <asm/ebus.h>
- #include <asm/upa.h>
+ /* Probe for all PCI controllers in the system. */
+ extern void sabre_init(struct device_node *, const char *);
+-extern void psycho_init(struct device_node *, const char *);
+ extern void fire_pci_init(struct device_node *, const char *);
  
- static DEFINE_SPINLOCK(flash_lock);
-@@ -161,97 +160,68 @@ static const struct file_operations flash_fops = {
+ static struct {
+@@ -176,8 +175,6 @@ static struct {
+ 	{ "SUNW,sabre", sabre_init },
+ 	{ "pci108e,a000", sabre_init },
+ 	{ "pci108e,a001", sabre_init },
+-	{ "SUNW,psycho", psycho_init },
+-	{ "pci108e,8000", psycho_init },
+ 	{ "pciex108e,80f0", fire_pci_init },
+ };
+ #define PCI_NUM_CONTROLLER_TYPES	ARRAY_SIZE(pci_controller_table)
+diff --git a/arch/sparc64/kernel/pci_psycho.c b/arch/sparc64/kernel/pci_psycho.c
+index ef5fe29..4e8f87a 100644
+--- a/arch/sparc64/kernel/pci_psycho.c
++++ b/arch/sparc64/kernel/pci_psycho.c
+@@ -17,11 +17,13 @@
+ #include <asm/irq.h>
+ #include <asm/starfire.h>
+ #include <asm/prom.h>
+-#include <asm/oplib.h>
  
- static struct miscdevice flash_dev = { FLASH_MINOR, "flash", &flash_fops };
+ #include "pci_impl.h"
+ #include "iommu_common.h"
  
--static int __init flash_init(void)
-+static int __devinit flash_probe(struct of_device *op,
-+				 const struct of_device_id *match)
- {
--	struct sbus_bus *sbus;
--	struct sbus_dev *sdev = NULL;
--#ifdef CONFIG_PCI
--	struct linux_ebus *ebus;
--	struct linux_ebus_device *edev = NULL;
--	struct linux_prom_registers regs[2];
--	int len, nregs;
--#endif
--	int err;
--
--	for_all_sbusdev(sdev, sbus) {
--		if (!strcmp(sdev->prom_name, "flashprom")) {
--			if (sdev->reg_addrs[0].phys_addr = sdev->reg_addrs[1].phys_addr) {
--				flash.read_base = ((unsigned long)sdev->reg_addrs[0].phys_addr) |
--					(((unsigned long)sdev->reg_addrs[0].which_io)<<32UL);
--				flash.read_size = sdev->reg_addrs[0].reg_size;
--				flash.write_base = flash.read_base;
--				flash.write_size = flash.read_size;
--			} else {
--				flash.read_base = ((unsigned long)sdev->reg_addrs[0].phys_addr) |
--					(((unsigned long)sdev->reg_addrs[0].which_io)<<32UL);
--				flash.read_size = sdev->reg_addrs[0].reg_size;
--				flash.write_base = ((unsigned long)sdev->reg_addrs[1].phys_addr) |
--					(((unsigned long)sdev->reg_addrs[1].which_io)<<32UL);
--				flash.write_size = sdev->reg_addrs[1].reg_size;
--			}
--			flash.busy = 0;
--			break;
--		}
--	}
--	if (!sdev) {
--#ifdef CONFIG_PCI
--		const struct linux_prom_registers *ebus_regs;
--
--		for_each_ebus(ebus) {
--			for_each_ebusdev(edev, ebus) {
--				if (!strcmp(edev->prom_node->name, "flashprom"))
--					goto ebus_done;
--			}
--		}
--	ebus_done:
--		if (!edev)
--			return -ENODEV;
--
--		ebus_regs = of_get_property(edev->prom_node, "reg", &len);
--		if (!ebus_regs || (len % sizeof(regs[0])) != 0) {
--			printk("flash: Strange reg property size %d\n", len);
--			return -ENODEV;
--		}
--
--		nregs = len / sizeof(ebus_regs[0]);
-+	struct device_node *dp = op->node;
-+	struct device_node *parent;
- 
--		flash.read_base = edev->resource[0].start;
--		flash.read_size = ebus_regs[0].reg_size;
-+	parent = dp->parent;
- 
--		if (nregs = 1) {
--			flash.write_base = edev->resource[0].start;
--			flash.write_size = ebus_regs[0].reg_size;
--		} else if (nregs = 2) {
--			flash.write_base = edev->resource[1].start;
--			flash.write_size = ebus_regs[1].reg_size;
--		} else {
--			printk("flash: Strange number of regs %d\n", nregs);
--			return -ENODEV;
--		}
--
--		flash.busy = 0;
--
--#else
-+	if (strcmp(parent->name, "sbus") &&
-+	    strcmp(parent->name, "sbi") &&
-+	    strcmp(parent->name, "ebus"))
- 		return -ENODEV;
--#endif
++#define DRIVER_NAME	"psycho"
++#define PFX		DRIVER_NAME ": "
 +
-+	flash.read_base = op->resource[0].start;
-+	flash.read_size = resource_size(&op->resource[0]);
-+	if (op->resource[1].flags) {
-+		flash.write_base = op->resource[1].start;
-+		flash.write_size = resource_size(&op->resource[1]);
-+	} else {
-+		flash.write_base = op->resource[0].start;
-+		flash.write_size = resource_size(&op->resource[0]);
+ /* All PSYCHO registers are 64-bits.  The following accessor
+  * routines are how they are accessed.  The REG parameter
+  * is a physical address.
+@@ -840,7 +842,7 @@ static int psycho_iommu_init(struct pci_pbm_info *pbm)
+ 	control = psycho_read(pbm->controller_regs + PSYCHO_IOMMU_CONTROL);
+ 	control |= PSYCHO_IOMMU_CTRL_DENAB;
+ 	psycho_write(pbm->controller_regs + PSYCHO_IOMMU_CONTROL, control);
+-	for(i = 0; i < 16; i++) {
++	for (i = 0; i < 16; i++) {
+ 		psycho_write(pbm->controller_regs + PSYCHO_IOMMU_TAG + (i * 8UL), 0);
+ 		psycho_write(pbm->controller_regs + PSYCHO_IOMMU_DATA + (i * 8UL), 0);
  	}
-+	flash.busy = 0;
+@@ -850,8 +852,10 @@ static int psycho_iommu_init(struct pci_pbm_info *pbm)
+ 	 */
+ 	err = iommu_table_init(iommu, IO_TSB_SIZE, 0xc0000000, 0xffffffff,
+ 			       pbm->numa_node);
+-	if (err)
++	if (err) {
++		printk(KERN_ERR PFX "iommu_table_init() fails\n");
+ 		return err;
++	}
  
--	printk("OBP Flash: RD %lx[%lx] WR %lx[%lx]\n",
-+	printk(KERN_INFO "%s: OBP Flash, RD %lx[%lx] WR %lx[%lx]\n",
-+	       op->node->full_name,
- 	       flash.read_base, flash.read_size,
- 	       flash.write_base, flash.write_size);
+ 	psycho_write(pbm->controller_regs + PSYCHO_IOMMU_TSBBASE,
+ 		     __pa(iommu->page_table));
+@@ -982,7 +986,6 @@ static void __init psycho_pbm_init(struct pci_controller_info *p,
  
--	err = misc_register(&flash_dev);
--	if (err) {
--		printk(KERN_ERR "flash: unable to get misc minor\n");
--		return err;
--	}
-+	return misc_register(&flash_dev);
-+}
+ 	pbm->numa_node = -1;
+ 
+-	pbm->scan_bus = psycho_scan_bus;
+ 	pbm->pci_ops = &sun4u_pci_ops;
+ 	pbm->config_space_reg_bits = 8;
+ 
+@@ -1002,7 +1005,7 @@ static void __init psycho_pbm_init(struct pci_controller_info *p,
+ 	pbm->prom_node = dp;
+ 	pbm->name = dp->full_name;
+ 
+-	printk("%s: PSYCHO PCI Bus Module ver[%x:%x]\n",
++	printk(KERN_INFO "%s: PSYCHO PCI Bus Module ver[%x:%x]\n",
+ 	       pbm->name,
+ 	       pbm->chip_version, pbm->chip_revision);
+ 
+@@ -1011,24 +1014,28 @@ static void __init psycho_pbm_init(struct pci_controller_info *p,
+ 	pci_get_pbm_props(pbm);
+ 
+ 	psycho_pbm_strbuf_init(pbm, is_pbm_a);
 +
-+static int __devexit flash_remove(struct of_device *op)
-+{
-+	misc_deregister(&flash_dev);
- 
- 	return 0;
++	psycho_scan_bus(pbm);
  }
  
-+static struct of_device_id flash_match[] = {
+ #define PSYCHO_CONFIGSPACE	0x001000000UL
+ 
+-void __init psycho_init(struct device_node *dp, char *model_name)
++static int __devinit psycho_probe(struct of_device *op,
++				  const struct of_device_id *match)
+ {
+-	struct linux_prom64_registers *pr_regs;
++	const struct linux_prom64_registers *pr_regs;
++	struct device_node *dp = op->node;
+ 	struct pci_controller_info *p;
+ 	struct pci_pbm_info *pbm;
+ 	struct iommu *iommu;
+-	struct property *prop;
++	int is_pbm_a, err;
++	const u32 *p32;
+ 	u32 upa_portid;
+-	int is_pbm_a;
+ 
+ 	upa_portid = 0xff;
+-	prop = of_find_property(dp, "upa-portid", NULL);
+-	if (prop)
+-		upa_portid = *(u32 *) prop->value;
++	p32 = of_get_property(dp, "upa-portid", NULL);
++	if (p32)
++		upa_portid = *p32;
+ 
+ 	for (pbm = pci_pbm_root; pbm; pbm = pbm->next) {
+ 		struct pci_controller_info *p = pbm->parent;
+@@ -1036,24 +1043,34 @@ void __init psycho_init(struct device_node *dp, char *model_name)
+ 		if (p->pbm_A.portid = upa_portid) {
+ 			is_pbm_a = (p->pbm_A.prom_node = NULL);
+ 			psycho_pbm_init(p, dp, is_pbm_a);
+-			return;
++			return 0;
+ 		}
+ 	}
+ 
++	err = -ENOMEM;
+ 	p = kzalloc(sizeof(struct pci_controller_info), GFP_ATOMIC);
+-	if (!p)
+-		goto fatal_memory_error;
++	if (!p) {
++		printk(KERN_ERR PFX "Cannot allocate controller info.\n");
++		goto out_free;
++	}
++
+ 	iommu = kzalloc(sizeof(struct iommu), GFP_ATOMIC);
+-	if (!iommu)
+-		goto fatal_memory_error;
++	if (!iommu) {
++		printk(KERN_ERR PFX "Cannot allocate PBM iommu.\n");
++		goto out_free;
++	}
+ 
+ 	p->pbm_A.iommu = p->pbm_B.iommu = iommu;
+ 
+ 	p->pbm_A.portid = upa_portid;
+ 	p->pbm_B.portid = upa_portid;
+ 
+-	prop = of_find_property(dp, "reg", NULL);
+-	pr_regs = prop->value;
++	pr_regs = of_get_property(dp, "reg", NULL);
++	err = -ENODEV;
++	if (!pr_regs) {
++		printk(KERN_ERR PFX "No reg property.\n");
++		goto out_free;
++	}
+ 
+ 	p->pbm_A.controller_regs = pr_regs[2].phys_addr;
+ 	p->pbm_B.controller_regs = pr_regs[2].phys_addr;
+@@ -1063,14 +1080,42 @@ void __init psycho_init(struct device_node *dp, char *model_name)
+ 
+ 	psycho_controller_hwinit(&p->pbm_A);
+ 
+-	if (psycho_iommu_init(&p->pbm_A))
+-		goto fatal_memory_error;
++	err = psycho_iommu_init(&p->pbm_A);
++	if (err)
++		goto out_free;
+ 
+ 	is_pbm_a = ((pr_regs[0].phys_addr & 0x6000) = 0x2000);
++
+ 	psycho_pbm_init(p, dp, is_pbm_a);
+-	return;
+ 
+-fatal_memory_error:
+-	prom_printf("PSYCHO: Fatal memory allocation error.\n");
+-	prom_halt();
++	return 0;
++
++out_free:
++	if (p) {
++		if (p->pbm_A.iommu)
++			kfree(p->pbm_A.iommu);
++		kfree(p);
++	}
++	return err;
++}
++
++static struct of_device_id psycho_match[] = {
 +	{
-+		.name = "flashprom",
++		.name = "pci",
++		.compatible = "pci108e,8000",
 +	},
 +	{},
 +};
-+MODULE_DEVICE_TABLE(of, flash_match);
 +
-+static struct of_platform_driver flash_driver = {
-+	.name		= "flash",
-+	.match_table	= flash_match,
-+	.probe		= flash_probe,
-+	.remove		= __devexit_p(flash_remove),
++static struct of_platform_driver psycho_driver = {
++	.name		= DRIVER_NAME,
++	.match_table	= psycho_match,
++	.probe		= psycho_probe,
 +};
 +
-+static int __init flash_init(void)
++static int __init psycho_init(void)
 +{
-+	return of_register_driver(&flash_driver, &of_bus_type);
-+}
-+
- static void __exit flash_cleanup(void)
- {
--	misc_deregister(&flash_dev);
-+	of_unregister_driver(&flash_driver);
++	return of_register_driver(&psycho_driver, &of_bus_type);
  }
- 
- module_init(flash_init);
++
++subsys_initcall(psycho_init);
 -- 
 1.5.6.5.GIT
 
