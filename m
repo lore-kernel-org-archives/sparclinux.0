@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 11 Sep 2008 06:55:49 +0000
-Subject: [PATCH 1/3]: sparc32: Call parse_early_param() in setup_arch().
-Message-Id: <20080910.235549.136744151.davem@davemloft.net>
+Date: Mon, 01 Sep 2008 04:16:55 +0000
+Subject: [PATCH 0/2]: Rewrite central driver
+Message-Id: <20080831.211655.250744471.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,28 +9,24 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-sparc32: Call parse_early_param() in setup_arch().
+The sparc64 central driver for SUNW,Ultra-Enterprise starfire
+servers was doing several things, some of which are now
+unnecessary:
 
-Mirror sparc64.  This will allow us to use early_param() on
-sparc32 too.
+1) IRQ register initialization, which is now handled entirely
+   in the IRQ controller mini-driver in
+   arch/sparc64/kernel/of_device.c
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/kernel/setup.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+2) Basic programming of per-board registers, such as setting
+   the "I exist" bit in non-central FHC controllers, clearing
+   the firmware semaphore, and clearing the power state bits.
 
-diff --git a/arch/sparc/kernel/setup.c b/arch/sparc/kernel/setup.c
-index f8391c0..24fe307 100644
---- a/arch/sparc/kernel/setup.c
-+++ b/arch/sparc/kernel/setup.c
-@@ -213,6 +213,7 @@ void __init setup_arch(char **cmdline_p)
- 	/* Initialize PROM console and command line. */
- 	*cmdline_p = prom_getbootargs();
- 	strcpy(boot_command_line, *cmdline_p);
-+	parse_early_param();
- 
- 	/* Set sparc_cpu_model */
- 	sparc_cpu_model = sun_unknown;
--- 
-1.5.6.5.GIT
+3) LED blink
 
+#1 can be deleted, and #2 and #3 can be simplified and cleaned
+up massively.
+
+What happens now is that there is a new LED layer driver for
+the sunfire LEDs.  Then a top-level FHC/clock-board driver
+programs the chips and creates the platform_device objects
+which will get used by the LED driver.
