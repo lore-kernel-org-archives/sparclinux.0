@@ -1,30 +1,44 @@
-From: Robert Reif <reif@earthlink.net>
-Date: Mon, 01 Sep 2008 13:27:14 +0000
-Subject: tty compile warnings
-Message-Id: <48BBEDB2.3080207@earthlink.net>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Date: Mon, 01 Sep 2008 13:57:29 +0000
+Subject: Re: tty compile warnings
+Message-Id: <20080901145729.6915f322@lxorguk.ukuu.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
+References: <48BBEDB2.3080207@earthlink.net>
+In-Reply-To: <48BBEDB2.3080207@earthlink.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-I have been getting these compile warnings on sparc32 for a few weeks now:
+On Mon, 01 Sep 2008 09:27:14 -0400
+Robert Reif <reif@earthlink.net> wrote:
 
-CC drivers/char/n_tty.o
-drivers/char/n_tty.c: In function =91normal_poll=92:
-drivers/char/n_tty.c:1555: warning: array subscript is above array bounds
-drivers/char/n_tty.c:1564: warning: array subscript is above array bounds
-drivers/char/n_tty.c: In function =91read_chan=92:
-drivers/char/n_tty.c:1269: warning: array subscript is above array bounds
-CC drivers/char/tty_ioctl.o
-drivers/char/tty_ioctl.c: In function =91set_termios=92:
-drivers/char/tty_ioctl.c:533: warning: array subscript is above array bounds
-drivers/char/tty_ioctl.c:537: warning: array subscript is above array bounds
-drivers/char/tty_ioctl.c: In function =91tty_mode_ioctl=92:
-drivers/char/tty_ioctl.c:662: warning: array subscript is above array bounds
-drivers/char/tty_ioctl.c:892: warning: array subscript is above array bounds
-drivers/char/tty_ioctl.c:896: warning: array subscript is above array bounds
-drivers/char/tty_ioctl.c:577: warning: array subscript is above array bounds
-drivers/char/tty_ioctl.c:928: warning: array subscript is above array bounds
-drivers/char/tty_ioctl.c:934: warning: array subscript is above array bounds
+> I have been getting these compile warnings on sparc32 for a few weeks now:
+
+gcc is complaining about some nasty hacks the sparc32 tree does with
+termios.
+
+        cc_t c_cc[NCCS];                /* control characters */
+#ifdef __KERNEL__
+#define SIZEOF_USER_TERMIOS sizeof (struct termios) - (2*sizeof (cc_t))
+        cc_t _x_cc[2];                  /* We need them to hold
+vmin/vtime */ #endif
+
+
+struct ktermios {
+        tcflag_t c_iflag;               /* input mode flags */
+        tcflag_t c_oflag;               /* output mode flags */
+        tcflag_t c_cflag;               /* control mode flags */
+        tcflag_t c_lflag;               /* local mode flags */
+        cc_t c_line;                    /* line discipline */  
+        cc_t c_cc[NCCS];                /* control characters */
+        cc_t _x_cc[2];                  /* We need them to hold
+vmin/vtime */ speed_t c_ispeed;               /* input speed */
+        speed_t c_ospeed;               /* output speed */
+};
+
+
+
+You could try removing _x_cc[2] and changing [NCCS] to [NCCS+2] which
+might work depending upon the alignment you get.
 
