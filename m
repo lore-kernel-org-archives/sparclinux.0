@@ -1,25 +1,17 @@
 From: David Miller <davem@davemloft.net>
-Date: Mon, 01 Sep 2008 03:59:53 +0000
-Subject: Re: [-next patch] sparc: remove CONFIG_SUN4
-Message-Id: <20080831.205953.174775304.davem@davemloft.net>
+Date: Tue, 02 Sep 2008 08:05:31 +0000
+Subject: [PATCH 0/3]: Small PCI OF property cleanups.
+Message-Id: <20080902.010531.193694046.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Adrian Bunk <bunk@kernel.org>
-Date: Sun, 31 Aug 2008 19:54:01 +0300
 
-> While doing some easy cleanups on the sparc code I noticed that the
-> CONFIG_SUN4 code seems to be worse than the rest - there were some
-> "I don't know how it should work, but the current code definitely cannot
-> work." places.
-> 
-> And while I have seen people running Linux on machines like a
-> SPARCstation 5 a few years ago I don't recall having seen sun4
-> machines, even less ones running Linux.
-> 
-> Signed-off-by: Adrian Bunk <bunk@kernel.org>
+The sparc64 PCI controler drivers have cases of using
+of_find_property() then derefernecing the property
+container to get at the data.
 
-Applied, thanks a lot Adrian.
+It's more concise and efficient to use of_get_property()
+and the of_getintprop_default() helpers.
