@@ -1,81 +1,45 @@
-From: Andrew Vasquez <andrew.vasquez@qlogic.com>
-Date: Fri, 12 Sep 2008 05:19:45 +0000
-Subject: [PATCH scsi-rc-fixes] qla2xxx: Defer enablement of RISC interrupts
-Message-Id: <20080912051945.GB76313@plap4-2.local>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 02 Sep 2008 02:07:09 +0000
+Subject: [PATCH 1/2]: sparc64: Kill the scan_bus function pointer in struct
+Message-Id: <20080901.190709.31328398.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080909143932.GA27117@orion.carnet.hr> <20080911113727.GA24487@orion.carnet.hr> <20080911215727.GA12885@orion.carnet.hr> <20080911.150150.256816031.davem@davemloft.net> <20080911221543.GQ66567@plap4-2.local>
-In-Reply-To: <20080911221543.GQ66567@plap4-2.local>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: joy@entuzijast.net, sparclinux@vger.kernel.org, linux-scsi@vger.kernel.org, David Miller <davem@davemloft.net>
+To: sparclinux@vger.kernel.org
 
-Josip Rodin noted
-(http://article.gmane.org/gmane.linux.ports.sparc/10152) the
-driver oopsing during registration of an rport to the
-FC-transport layer with a backtrace indicating a dereferencing of
-an shost->shost_data equal to NULL.  David Miller identified a
-small window in driver logic where this could happen:
 
-    > Look at how the driver registers the IRQ handler before the host has
-    > been registered with the SCSI layer.
-    >
-    > That leads to a window of time where the shost hasn't been setup
-    > fully, yet ISRs can come in and trigger DPC thread events, such as
-    > loop resyncs, which expect the transport area to be setup.
-    >
-    > But it won't be setup, because scsi_add_host() hasn't finished yet.
-    >
-    > Note that in Josip's crash log, we don't even see the
-    >
-    >         qla_printk(KERN_INFO, ha, "\n"
-    >             " QLogic Fibre Channel HBA Driver: %s\n"
-    >             "  QLogic %s - %s\n"
-    >             "  ISP%04X: %s @ %s hdma%c, host#=%ld, fw=%s\n",
-    >  ...
-    >
-    > message yet.
-    >
-    > Which means that the crash occurs between qla2x00_request_irqs()
-    > and printing that message.
+sparc64: Kill the scan_bus function pointer in struct pci_pbm_info.
 
-Close this window by enabling RISC interrupts after the host has
-been registered with the SCSI midlayer.
+No longer used.
 
-Reported-by: Josip Rodin <joy@entuzijast.net>
-Cc: Stable Tree <stable@kernel.org>
-Signed-off-by: Andrew Vasquez <andrew.vasquez@qlogic.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- drivers/scsi/qla2xxx/qla_isr.c |    1 -
- drivers/scsi/qla2xxx/qla_os.c  |    2 ++
- 2 files changed, 2 insertions(+), 1 deletions(-)
+ arch/sparc64/kernel/pci_impl.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/scsi/qla2xxx/qla_isr.c b/drivers/scsi/qla2xxx/qla_isr.c
-index e50752e..fc4bfa7 100644
---- a/drivers/scsi/qla2xxx/qla_isr.c
-+++ b/drivers/scsi/qla2xxx/qla_isr.c
-@@ -1837,7 +1837,6 @@ clear_risc_ints:
- 		WRT_REG_WORD(&reg->isp.hccr, HCCR_CLR_HOST_INT);
- 	}
- 	spin_unlock_irq(&ha->hardware_lock);
--	ha->isp_ops->enable_intrs(ha);
+diff --git a/arch/sparc64/kernel/pci_impl.h b/arch/sparc64/kernel/pci_impl.h
+index c385d12..4125f75 100644
+--- a/arch/sparc64/kernel/pci_impl.h
++++ b/arch/sparc64/kernel/pci_impl.h
+@@ -146,7 +146,6 @@ struct pci_pbm_info {
+ 	unsigned int			pci_first_busno;
+ 	unsigned int			pci_last_busno;
+ 	struct pci_bus			*pci_bus;
+-	void (*scan_bus)(struct pci_pbm_info *);
+ 	struct pci_ops			*pci_ops;
  
- fail:
- 	return ret;
-diff --git a/drivers/scsi/qla2xxx/qla_os.c b/drivers/scsi/qla2xxx/qla_os.c
-index fcbcd44..3433441 100644
---- a/drivers/scsi/qla2xxx/qla_os.c
-+++ b/drivers/scsi/qla2xxx/qla_os.c
-@@ -1739,6 +1739,8 @@ qla2x00_probe_one(struct pci_dev *pdev, const struct pci_device_id *id)
- 	if (ret)
- 		goto probe_failed;
+ 	int				numa_node;
+@@ -164,7 +163,8 @@ extern int pci_num_pbms;
  
-+	ha->isp_ops->enable_intrs(ha);
-+
- 	scsi_scan_host(host);
+ /* PCI bus scanning and fixup support. */
+ extern void pci_get_pbm_props(struct pci_pbm_info *pbm);
+-extern struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm);
++extern struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
++					struct device *parent);
+ extern void pci_determine_mem_io_space(struct pci_pbm_info *pbm);
  
- 	qla2x00_alloc_sysfs_attr(ha);
+ /* Error reporting support. */
 -- 
-1.6.0.1.267.gec3a
+1.5.6.5.GIT
 
