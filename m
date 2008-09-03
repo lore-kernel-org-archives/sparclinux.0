@@ -1,50 +1,91 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 19 Sep 2008 22:39:24 +0000
-Subject: [PATCH 12/13]: sparc32: Kill irq_rcvreg from sun4m_irq.c
-Message-Id: <20080919.153924.108589184.davem@davemloft.net>
+From: Robert Reif <reif@earthlink.net>
+Date: Wed, 03 Sep 2008 23:11:23 +0000
+Subject: [PATCH] tty compile warnings
+Message-Id: <48BF199B.1080006@earthlink.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------020608030700020205080006"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------020608030700020205080006
+Content-Type: text/plain; charset="windows-1252"; format="flowed"
+Content-Transfer-Encoding: quoted-printable
 
-sparc32: Kill irq_rcvreg from sun4m_irq.c
+This patch fixes tty compile warnings as sugested by Alan Cox:
 
-Unused.
+CC drivers/char/n_tty.o
+drivers/char/n_tty.c: In function =91normal_poll=92:
+drivers/char/n_tty.c:1555: warning: array subscript is above array bounds
+drivers/char/n_tty.c:1564: warning: array subscript is above array bounds
+drivers/char/n_tty.c: In function =91read_chan=92:
+drivers/char/n_tty.c:1269: warning: array subscript is above array bounds
+CC drivers/char/tty_ioctl.o
+drivers/char/tty_ioctl.c: In function =91set_termios=92:
+drivers/char/tty_ioctl.c:533: warning: array subscript is above array=20
+bounds
+drivers/char/tty_ioctl.c:537: warning: array subscript is above array=20
+bounds
+drivers/char/tty_ioctl.c: In function =91tty_mode_ioctl=92:
+drivers/char/tty_ioctl.c:662: warning: array subscript is above array=20
+bounds
+drivers/char/tty_ioctl.c:892: warning: array subscript is above array=20
+bounds
+drivers/char/tty_ioctl.c:896: warning: array subscript is above array=20
+bounds
+drivers/char/tty_ioctl.c:577: warning: array subscript is above array=20
+bounds
+drivers/char/tty_ioctl.c:928: warning: array subscript is above array=20
+bounds
+drivers/char/tty_ioctl.c:934: warning: array subscript is above array=20
+bounds
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/kernel/sun4m_irq.c |    8 ++------
- 1 files changed, 2 insertions(+), 6 deletions(-)
+Signed-off-by: Robert Reif <reif@earthlink.net>
 
-diff --git a/arch/sparc/kernel/sun4m_irq.c b/arch/sparc/kernel/sun4m_irq.c
-index c09ec39..c6096fc 100644
---- a/arch/sparc/kernel/sun4m_irq.c
-+++ b/arch/sparc/kernel/sun4m_irq.c
-@@ -59,9 +59,6 @@ struct sun4m_irq_global {
- struct sun4m_irq_percpu __iomem *sun4m_irq_percpu[SUN4M_NCPUS];
- struct sun4m_irq_global __iomem *sun4m_irq_global;
+--------------020608030700020205080006
+Content-Type: text/plain;
+ name="tty.diff.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="tty.diff.txt"
+
+diff --git a/arch/sparc/include/asm/termbits.h b/arch/sparc/include/asm/termbits.h
+index d6ca3e2..c154288 100644
+--- a/arch/sparc/include/asm/termbits.h
++++ b/arch/sparc/include/asm/termbits.h
+@@ -29,10 +29,11 @@ struct termios {
+ 	tcflag_t c_cflag;		/* control mode flags */
+ 	tcflag_t c_lflag;		/* local mode flags */
+ 	cc_t c_line;			/* line discipline */
++#ifndef __KERNEL__
+ 	cc_t c_cc[NCCS];		/* control characters */
+-#ifdef __KERNEL__
++#else
++	cc_t c_cc[NCCS+2];	/* kernel needs 2 more to hold vmin/vtime */
+ #define SIZEOF_USER_TERMIOS sizeof (struct termios) - (2*sizeof (cc_t))
+-	cc_t _x_cc[2];                  /* We need them to hold vmin/vtime */
+ #endif
+ };
  
--static unsigned long dummy;
--unsigned long *irq_rcvreg = &dummy;
--
- /* Dave Redman (djhr@tadpole.co.uk)
-  * The sun4m interrupt registers.
-  */
-@@ -369,10 +366,9 @@ void __init sun4m_init_IRQ(void)
- 	for (i = 0; !cpu_find_by_instance(i, NULL, &mid); i++)
- 		sbus_writel(~0x17fff, &sun4m_irq_percpu[mid]->clear);
- 
--	if (num_cpu_iregs = 4) {
--		irq_rcvreg = (unsigned long *) &sun4m_irq_global->interrupt_target;
-+	if (num_cpu_iregs = 4)
- 		sbus_writel(0, &sun4m_irq_global->interrupt_target);
--	}
-+
- 	BTFIXUPSET_CALL(enable_irq, sun4m_enable_irq, BTFIXUPCALL_NORM);
- 	BTFIXUPSET_CALL(disable_irq, sun4m_disable_irq, BTFIXUPCALL_NORM);
- 	BTFIXUPSET_CALL(enable_pil_irq, sun4m_enable_pil_irq, BTFIXUPCALL_NORM);
--- 
-1.5.6.5
+@@ -42,8 +43,7 @@ struct termios2 {
+ 	tcflag_t c_cflag;		/* control mode flags */
+ 	tcflag_t c_lflag;		/* local mode flags */
+ 	cc_t c_line;			/* line discipline */
+-	cc_t c_cc[NCCS];		/* control characters */
+-	cc_t _x_cc[2];                  /* padding to match ktermios */
++	cc_t c_cc[NCCS+2];		/* control characters */
+ 	speed_t c_ispeed;		/* input speed */
+ 	speed_t c_ospeed;		/* output speed */
+ };
+@@ -54,8 +54,7 @@ struct ktermios {
+ 	tcflag_t c_cflag;		/* control mode flags */
+ 	tcflag_t c_lflag;		/* local mode flags */
+ 	cc_t c_line;			/* line discipline */
+-	cc_t c_cc[NCCS];		/* control characters */
+-	cc_t _x_cc[2];                  /* We need them to hold vmin/vtime */
++	cc_t c_cc[NCCS+2];		/* control characters */
+ 	speed_t c_ispeed;		/* input speed */
+ 	speed_t c_ospeed;		/* output speed */
+ };
 
+--------------020608030700020205080006--
