@@ -1,63 +1,59 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Date: Wed, 03 Sep 2008 00:42:11 +0000
+From: David Miller <davem@davemloft.net>
+Date: Wed, 03 Sep 2008 09:21:38 +0000
 Subject: Re: [PATCH] prevent sparc64 from invoking irq handlers on offline
-Message-Id: <20080903004211.GD6748@linux.vnet.ibm.com>
+Message-Id: <20080903.022138.31681256.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080831173349.GA15393@linux.vnet.ibm.com> <20080902.171630.193505044.davem@davemloft.net>
-In-Reply-To: <20080902.171630.193505044.davem@davemloft.net>
+References: <20080831173349.GA15393@linux.vnet.ibm.com>
+	<20080902.171630.193505044.davem@davemloft.net>
+	<20080903004211.GD6748@linux.vnet.ibm.com>
+In-Reply-To: <20080903004211.GD6748@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
+To: paulmck@linux.vnet.ibm.com
 Cc: linux-kernel@vger.kernel.org, wli@holomorphy.com, sparclinux@vger.kernel.org, manfred@colorfullife.com, akpm@linux-foundation.org
 
-On Tue, Sep 02, 2008 at 05:16:30PM -0700, David Miller wrote:
-> From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-> Date: Sun, 31 Aug 2008 10:33:49 -0700
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Date: Tue, 2 Sep 2008 17:42:11 -0700
+
+> On Tue, Sep 02, 2008 at 05:16:30PM -0700, David Miller wrote:
+> > So I'd like to hold off on this patch until this locking issue is
+> > resolved.
 > 
-> > Make sparc64 refrain from clearing a given to-be-offlined CPU's bit in the
-> > cpu_online_mask until it has processed pending irqs.  This change
-> > prevents other CPUs from being blindsided by an apparently offline CPU
-> > nevertheless changing globally visible state.
-> > 
-> > Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-> 
-> I wonder what the 'call_lock' thing protects :-)
+> OK, it is your architecture.  But in the meantime, sparc64 can take
+> interrupts on CPUs whose cpu_online_map bits have been cleared.
 
-I didn't look till now.  ;-)
+Paul, here is how I resolved this in my tree.
 
-> That lock is a cobweb from the sparc64 code before I switched it over
-> to use the generic smp_call_function() code in kernel/smp.c
-> 
-> So this lock doesn't protect anything any more.
+First, I applied a patch that killed that 'call_lock' and replaced
+the accesses with ipi_call_lock() and ipi_call_unlock().
 
-It is a static defined in arch/sparc64/kernel/smp.c, and is used only
-when setting and clearing bits in cpu_online_mask.
+Then I sed'd up your patch so that it applies properly after that
+change.
 
-> kernel/smp.c has a call_function_lock, which isn't marked static
-> but isn't declared in any header file.
+I still think there will be a problem here on sparc64.  I had the
+online map clearing there happening first because the fixup_irqs()
+thing doesn't drain interrupts.  It just makes sure that "device"
+interrupts no longer point at the cpu.  So all new device interrupts
+after fixup_irqs() will not go to the cpu.
 
-It is exported via ipi_call_lock(), ipi_call_unlock(), and friends.
-A few architectures use it to exclude some of the IPI code while
-setting (but not clearing) bits in cpu_online_map.  These particular
-architectures have a phase during CPU offlining where they drain
-pending interrupts, so perhaps that is why they only worry about
-onlining?
+Then we do the:
 
-> My instinct is that the intention is that I could use this lock
-> for the synchronization previously provided by sparc64's local
-> "call_lock", and it even seems the author of kernel/smp.c intended
-> this kind of usage.
-> 
-> Anyways, if this code is still using the worthless call_lock, it
-> isn't protecting against anything.
+	local_irq_enable();
+	mdelay(1);
+	local_irq_disable();
 
-Agreed.
+thing to process any interrupts which were sent while we were
+retargetting the device IRQs.
 
-> So I'd like to hold off on this patch until this locking issue is
-> resolved.
+I also intended this to drain the cross-call interrupts too, that's
+why I cleared the cpu_online_map() bit before fixup_irqs() and
+the above "enable/disable" sequence runs.
 
-OK, it is your architecture.  But in the meantime, sparc64 can take
-interrupts on CPUs whose cpu_online_map bits have been cleared.
+With your change in there now, IPIs won't get drained and the system
+might get stuck as a result.
 
-							Thanx, Paul
+I wonder if it would work if we cleared the cpu_online_map right
+before the "enable/disable" sequence, but after fixup_irqs()?
+
+Paul, what do you think?
