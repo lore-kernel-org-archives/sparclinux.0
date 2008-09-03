@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 03 Sep 2008 00:03:58 +0000
+From: Robert Reif <reif@earthlink.net>
+Date: Wed, 03 Sep 2008 03:48:39 +0000
 Subject: Re: generic IRQs for sparc32
-Message-Id: <20080902.170358.263807614.davem@davemloft.net>
+Message-Id: <48BE0917.3060805@earthlink.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080902.010944.25269623.davem@davemloft.net>
 In-Reply-To: <20080902.010944.25269623.davem@davemloft.net>
@@ -10,69 +10,51 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Robert Reif <reif@earthlink.net>
-Date: Tue, 02 Sep 2008 17:24:51 -0400
+David Miller wrote:
+> Here is a debugging patch against sparc-next-2.6 that might help debug
+> this:
+>
+>   
+I recompiled a new kernel from scratch starting out with a default config.
+I had to compile for size so it fit in memory.  I'm booting off a SunSwift
+sbus card if that helps.
 
-> SCSI subsystem initialized
-> Unable to handle kernel paging request at virtual address fd412000
-> tsk->{mm,active_mm}->context = 000000a7
-> tsk->{mm,active_mm}->pgd = fc016000
->               \|/ ____ \|/
->               "@'/ ,. \`@"
->               /_| \__/ |_\
->                  \__U_/
-> modprobe(313): Oops [#1]
-> PSR: 404000c0 PC: fe61001c NPC: fe610020 Y: 00000000    Not tainted
-> PC: <sbus_esp_read8+0x8/0x14 [sun_esp]>
-> %G: fb8f19cc fd412000  000061a8 00177190  00009c40 fe610a48  fb8f0000 00000000
-> %O: fb8e6e54 0000002c  0000002c fff01000  fff01000 f0267970  fb8f1a10 fe61eb7c
-> RPC: <scsi_esp_register+0x1b0/0x3ec [esp_scsi]>
-> %L: f0d084e0 00000024  fe62075c fe610e58  fb8e6e54 00000000  fb8f1a58 fb8f1a44
-> %I: fb8e6e54 fb8630e8  000000ff 408000e0  f02670e8 ffffffff  fb8f1a80 fe610934
-> Caller[fe610934]: esp_sbus_probe+0x378/0x468 [sun_esp]
+ESP: Mapped regs at fd016000
+ESP: In esp_get_revision(), regs at fd016000
+ESP: In esp_get_revision(), about to read ESP_CFG2, regs now at fd016000
+Unable to handle kernel paging request at virtual address fd016000
+tsk->{mm,active_mm}->context = ffffffff
+tsk->{mm,active_mm}->pgd = fc000000
+              \|/ ____ \|/
+              "@'/ ,. \`@"
+              /_| \__/ |_\
+                 \__U_/
+swapper(1): Oops [#1]
+PSR: 404010c2 PC: f014768c NPC: f0147690 Y: 00000000    Not tainted
+PC: <sbus_esp_read8+0x8/0x14>
+%G: fb821ae0 fd016000  f023a96c 07200720  00000002 07200720  fb820000 
+f0cce4c0
+%O: fb82e33c 0000002c  0000002c fff0e000  fff0e000 f0271bec  fb821ae0 
+f01450a4
+RPC: <scsi_esp_register+0x1d0/0x40c>
+%L: 00000080 00000024  f0146cc0 f021cf20  fb82e33c fb821b24  80000000 
+fb821b18
+%I: fb82e33c fb843c08  000000ff f027142c  00000000 00200200  fb821b50 
+f01d5d38
+Caller[f01d5d38]: esp_sbus_probe+0x3b0/0x478
+Caller[f0156e64]: of_platform_device_probe+0x4c/0xb8
+Caller[f012e360]: driver_probe_device+0xd4/0x190
+Caller[f012e454]: __driver_attach+0x38/0x68
+Caller[f012dc14]: bus_for_each_dev+0x3c/0x7c
+Caller[f012d498]: bus_add_driver+0xa4/0x230
+Caller[f012e674]: driver_register+0xc8/0x170
+Caller[f0010044]: do_one_initcall+0x44/0x188
+Caller[f024f9e4]: _etext+0x77dec/0x78408
+Caller[f0013960]: kernel_thread+0x34/0x50
+Caller[f01d4194]: rest_init+0x10/0x5c
+Caller[f0250034]: _sinittext+0x34/0x48
+Caller[f024f790]: _etext+0x77b98/0x78408
+Caller[00000000]: 0x0
+Instruction DUMP: 01000000  932a6002  c2020000 <d0084009> 81c3e008  
+01000000  c2022004  c2004000  82086003
 
-Ok, so we're faulting on the I/O read of location "esp->regs + 0x2c"
-in sbus_esp_read8().
-
-But what's amusing is that we just did a sbus_esp_write8() using the
-same exact esp->regs, and that worked!
-
-Here is a debugging patch against sparc-next-2.6 that might help debug
-this:
-
-diff --git a/drivers/scsi/esp_scsi.c b/drivers/scsi/esp_scsi.c
-index 62a4618..48fc49f 100644
---- a/drivers/scsi/esp_scsi.c
-+++ b/drivers/scsi/esp_scsi.c
-@@ -2151,10 +2151,17 @@ static void esp_get_revision(struct esp *esp)
- {
- 	u8 val;
- 
-+#if 1
-+	printk(KERN_ERR "ESP: In esp_get_revision(), regs at %p\n", esp->regs);
-+#endif
- 	esp->config1 = (ESP_CONFIG1_PENABLE | (esp->scsi_id & 7));
- 	esp->config2 = (ESP_CONFIG2_SCSI2ENAB | ESP_CONFIG2_REGPARITY);
- 	esp_write8(esp->config2, ESP_CFG2);
- 
-+#if 1
-+	printk(KERN_ERR "ESP: In esp_get_revision(), about to read ESP_CFG2, "
-+	       "regs now at %p\n", esp->regs);
-+#endif
- 	val = esp_read8(ESP_CFG2);
- 	val &= ~ESP_CONFIG2_MAGIC;
- 	if (val != (ESP_CONFIG2_SCSI2ENAB | ESP_CONFIG2_REGPARITY)) {
-diff --git a/drivers/scsi/sun_esp.c b/drivers/scsi/sun_esp.c
-index 3d73aad..5018210 100644
---- a/drivers/scsi/sun_esp.c
-+++ b/drivers/scsi/sun_esp.c
-@@ -94,6 +94,9 @@ static int __devinit esp_sbus_map_regs(struct esp *esp, int hme)
- 	esp->regs = of_ioremap(res, 0, SBUS_ESP_REG_SIZE, "ESP");
- 	if (!esp->regs)
- 		return -ENOMEM;
-+#if 1
-+	printk(KERN_ERR "ESP: Mapped regs at %p\n", esp->regs);
-+#endif
- 
- 	return 0;
- }
