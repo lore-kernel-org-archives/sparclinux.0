@@ -1,23 +1,25 @@
-From: Meelis Roos <mroos@ut.ee>
-Date: Wed, 17 Sep 2008 09:25:02 +0000
-Subject: Re: psycho_irq_build: Wacky INO [3c]
-Message-Id: <Pine.SOC.4.64.0809171222400.22333@math.ut.ee>
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Date: Wed, 03 Sep 2008 16:32:32 +0000
+Subject: [PATHC 0/2] sparc32: convert to RTC subsystem
+Message-Id: <20080903183232.b57f5a05.krzysztof.h1@wp.pl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.SOC.4.64.0809101731591.28457@math.ut.ee>
-In-Reply-To: <Pine.SOC.4.64.0809101731591.28457@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> Thank you! It cures the known-bad config with stack overflow detection 
-> turned on. Instead of the hang, it now displays
-[...] 
-> Will try it against todays git next - expecting no surprises :)
+Hi,
 
-And it works. Running todays 2.6.27-rc6+git + notrace patch + pci-psycho 
-oops patch + hme debug patch from previous tries, with 
-CONFIG-STACK_DEBUG=y and SMP.
+This is my clumsy attempt to convert the sparc32
+to the RTC subsystem.
+These patches require two patches from the -mm tree:
 
--- 
-Meelis Roos (mroos@ut.ee)      http://www.cs.ut.ee/~mroos/
+rtc-m48t59-reduce-structure-m48t59_private.patch
+rtc-m48t59-add-support-for-m48t02-and-m48t59-chips-2nd-rev.patch
+
+The driver was tested on SS20.
+
+Robert, please test it on as many machine as you can.
+
+Kind regards,
+Krzysztof
