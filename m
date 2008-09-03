@@ -1,39 +1,66 @@
-From: "Blue Swirl" <blauwirbel@gmail.com>
-Date: Thu, 25 Sep 2008 16:58:21 +0000
-Subject: Re: KVM for Sparc?
-Message-Id: <f43fc5580809250958r16f6b0c6u655ad3d2e954a0d6@mail.gmail.com>
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Date: Wed, 03 Sep 2008 16:32:45 +0000
+Subject: [PATCH 1/2] rtc-m48t59: allow externally mapped ioaddr
+Message-Id: <20080903183245.fe3a08eb.krzysztof.h1@wp.pl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080923.133856.141663278.davem@davemloft.net>
-	 <f43fc5580809241020j2b1d885ci8552b5c5302a89d5@mail.gmail.com>
-	 <f43fc5580809241106j7780be0et384ee4b98082765b@mail.gmail.com>
-	 <20080924.122952.186900852.davem@davemloft.net>
-In-Reply-To: <20080924.122952.186900852.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: anthony@codemonkey.ws, kvm@vger.kernel.org, sparclinux@vger.kernel.org, levon@movementarian.org, hollisb@us.ibm.com
+To: sparclinux@vger.kernel.org
 
-On 9/24/08, David Miller <davem@davemloft.net> wrote:
-> From: "Blue Swirl" <blauwirbel@gmail.com>
->
-> Date: Wed, 24 Sep 2008 21:06:21 +0300
->
->
->  > Now I found the relevant part in the manuals. The extra sun4v bit is
->  > not taken into account from user mode, so we can't catch privileged to
->  > hyperprivileged mode traps easily.
->
->
-> That's right, the top bit is ignored in user mode.
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-The hypervisor uses traps 0x80, 0x83, 0x84, 0x85, and 0xff. Looking at
-how these alias to low number traps: first four are unused or used for
-resets (SIR, RED, XIR), so they are not in the fast path. 0xff aliases
-to 0x7f, which is part of Fill 7 otherwin trap. Maybe that is not
-performance critical? The Fill 7 trap entry could be shortened with
-off-table jumps.
+Add support for externally mapped ioaddr.
+This is required on sparc32 as the ioaddr
+must be mapped with of_ioremap().
 
-I'm thinking that we could disassemble the calling instruction on
-entry to the lower traps and detect what was the true cause of the
-trap.
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+---
+
+diff -urp linux-old/drivers/rtc/rtc-m48t59.c linux-sparc/drivers/rtc/rtc-m48t59.c
+--- linux-old/drivers/rtc/rtc-m48t59.c	2008-09-03 17:58:23.379026420 +0200
++++ linux-sparc/drivers/rtc/rtc-m48t59.c	2008-09-03 18:14:22.391028044 +0200
+@@ -411,9 +411,14 @@ static int __devinit m48t59_rtc_probe(st
+ 	if (!m48t59)
+ 		return -ENOMEM;
+ 
+-	m48t59->ioaddr = ioremap(res->start, res->end - res->start + 1);
+-	if (!m48t59->ioaddr)
+-		goto out;
++	m48t59->ioaddr = pdata->ioaddr;
++
++	if (!m48t59->ioaddr) {
++		/* ioaddr not mapped externally */
++		m48t59->ioaddr = ioremap(res->start, res->end - res->start + 1);
++		if (!m48t59->ioaddr)
++			goto out;
++	}
+ 
+ 	/* Try to get irq number. We also can work in
+ 	 * the mode without IRQ.
+@@ -481,11 +486,12 @@ out:
+ static int __devexit m48t59_rtc_remove(struct platform_device *pdev)
+ {
+ 	struct m48t59_private *m48t59 = platform_get_drvdata(pdev);
++	struct m48t59_plat_data *pdata = pdev->dev.platform_data;
+ 
+ 	sysfs_remove_bin_file(&pdev->dev.kobj, &m48t59_nvram_attr);
+ 	if (!IS_ERR(m48t59->rtc))
+ 		rtc_device_unregister(m48t59->rtc);
+-	if (m48t59->ioaddr)
++	if (m48t59->ioaddr &&  !pdata->ioaddr)
+ 		iounmap(m48t59->ioaddr);
+ 	if (m48t59->irq != NO_IRQ)
+ 		free_irq(m48t59->irq, &pdev->dev);
+diff -urp linux-old/include/linux/rtc/m48t59.h linux-sparc/include/linux/rtc/m48t59.h
+--- linux-old/include/linux/rtc/m48t59.h	2008-09-03 17:58:23.379026420 +0200
++++ linux-sparc/include/linux/rtc/m48t59.h	2008-09-03 18:13:30.039022100 +0200
+@@ -55,6 +55,8 @@ struct m48t59_plat_data {
+ 
+ 	int type; /* RTC model */
+ 
++	/* ioaddr mapped externally */
++	void __iomem *ioaddr;
+ 	/* offset to RTC registers, automatically set according to the type */
+ 	unsigned int offset;
+ };
