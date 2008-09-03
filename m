@@ -1,35 +1,46 @@
-From: Josip Rodin <joy@entuzijast.net>
-Date: Tue, 09 Sep 2008 18:34:05 +0000
-Subject: Re: [BUG] 2.6.26-rc1 lost half the RAM on UltraSPARC 5
-Message-Id: <20080909183405.GA5072@orion.carnet.hr>
+From: akpm@linux-foundation.org
+Date: Wed, 03 Sep 2008 21:54:42 +0000
+Subject: [patch 1/2] rtc-m48t59: reduce structure m48t59_private
+Message-Id: <200809032154.m83Lsgj3005964@imap1.linux-foundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <18465.63175.561233.228014@alkaid.it.uu.se>
-In-Reply-To: <18465.63175.561233.228014@alkaid.it.uu.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Fri, Sep 05, 2008 at 07:43:12PM +0200, Josip Rodin wrote:
-> On Thu, May 15, 2008 at 08:43:10PM +0200, Mikael Pettersson wrote:
-> > Thanks Dave. As the dmesg diff below shows, this patch fixed
-> > my lost RAM issue. I actually have about 8KB more available
-> > now than I had with 2.6.25.
-> [...]
-> > +Memory: 245448k available (1920k kernel code, 744k data, 152k init) [fffff80000000000,0000000017f46000]
-> 
-> FWIW I just happened to notice the same improvement, but the difference here
-> is actually considerably larger (upgrade was .22 -> .26):
-> 
-> -Memory: 243016k available (2096k kernel code, 760k data, 96k init) [fffff80000000000,0000000017f40000]
-> +Memory: 248928k available (2128k kernel code, 800k data, 120k init) [fffff80000000000,0000000017f40000]
-> 
-> Dave could really start charging for these hardware upgrades :)
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Oh, this is starting to be really fun to upgrade... a v240 said:
+Remove element size from the structure m48t59_private as it is used as
+local variable for storing temporary value.
 
--Memory: 2058624k available (2288k kernel code, 840k data, 176k init) [fffff80000000000,000000103fedc000]
-+Memory: 2070608k available (2344k kernel code, 880k data, 192k init) [fffff80000000000,000000103fedc000]
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
--- 
-     2. That which causes joy or happiness.
+ drivers/rtc/rtc-m48t59.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff -puN drivers/rtc/rtc-m48t59.c~rtc-m48t59-reduce-structure-m48t59_private drivers/rtc/rtc-m48t59.c
+--- a/drivers/rtc/rtc-m48t59.c~rtc-m48t59-reduce-structure-m48t59_private
++++ a/drivers/rtc/rtc-m48t59.c
+@@ -34,7 +34,6 @@
+ 
+ struct m48t59_private {
+ 	void __iomem *ioaddr;
+-	unsigned int size; /* iomem size */
+ 	int irq;
+ 	struct rtc_device *rtc;
+ 	spinlock_t lock; /* serialize the NVRAM and RTC access */
+@@ -403,8 +402,7 @@ static int __devinit m48t59_rtc_probe(st
+ 	if (!m48t59)
+ 		return -ENOMEM;
+ 
+-	m48t59->size = res->end - res->start + 1;
+-	m48t59->ioaddr = ioremap(res->start, m48t59->size);
++	m48t59->ioaddr = ioremap(res->start, res->end - res->start + 1);
+ 	if (!m48t59->ioaddr)
+ 		goto out;
+ 
+_
