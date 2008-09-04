@@ -1,29 +1,49 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 03 Sep 2008 22:12:48 +0000
-Subject: Re: [patch 2/2] rtc-m48t59: add support for M48T02 and M48T59 chips
-Message-Id: <20080903.151248.246660587.davem@davemloft.net>
+From: "Bjoern B. Brandenburg" <bbb@cs.unc.edu>
+Date: Thu, 04 Sep 2008 03:11:37 +0000
+Subject: [PATCH] sparc: remove unused includes
+Message-Id: <20080904031137.GA24664@swan5.cs.unc.edu>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200809032154.m83Lsivb005968@imap1.linux-foundation.org>
-In-Reply-To: <200809032154.m83Lsivb005968@imap1.linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: akpm@linux-foundation.org
-Date: Wed, 03 Sep 2008 14:54:44 -0700
+The spinlock code does not use NR_CPUS.
+Compile tested using allyesconfig and allnoconfig.
 
-> Add support for two compatible RTC:
-> - M48T08 which does not have alarm part,
-> - M48T08 which does not have alarm part and has
->   only 2KB of NVRAM
-> 
-> These types covers all Mostek's RTC used in Sun UltraSparc workstations.
-> 
-> Tested on Sun Ultra60 with M48T59 RTC.
-> 
-> Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-> Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Bjoern B. Brandenburg <bbb@cs.unc.edu>
+---
+ arch/sparc/include/asm/spinlock_32.h |    2 --
+ arch/sparc/include/asm/spinlock_64.h |    2 --
+ 2 files changed, 0 insertions(+), 4 deletions(-)
 
-Also applied to sparc-next-2.6
+diff --git a/arch/sparc/include/asm/spinlock_32.h b/arch/sparc/include/asm/spinlock_32.h
+index de2249b..bf2d532 100644
+--- a/arch/sparc/include/asm/spinlock_32.h
++++ b/arch/sparc/include/asm/spinlock_32.h
+@@ -6,8 +6,6 @@
+ #ifndef __SPARC_SPINLOCK_H
+ #define __SPARC_SPINLOCK_H
+ 
+-#include <linux/threads.h>	/* For NR_CPUS */
+-
+ #ifndef __ASSEMBLY__
+ 
+ #include <asm/psr.h>
+diff --git a/arch/sparc/include/asm/spinlock_64.h b/arch/sparc/include/asm/spinlock_64.h
+index 0006fe9..120cfe4 100644
+--- a/arch/sparc/include/asm/spinlock_64.h
++++ b/arch/sparc/include/asm/spinlock_64.h
+@@ -6,8 +6,6 @@
+ #ifndef __SPARC64_SPINLOCK_H
+ #define __SPARC64_SPINLOCK_H
+ 
+-#include <linux/threads.h>	/* For NR_CPUS */
+-
+ #ifndef __ASSEMBLY__
+ 
+ /* To get debugging spinlocks which detect and catch
+-- 
+1.6.0.1
+
+- Bjoern
