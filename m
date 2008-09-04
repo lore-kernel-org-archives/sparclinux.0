@@ -1,46 +1,43 @@
-From: James Bottomley <James.Bottomley@HansenPartnership.com>
-Date: Mon, 29 Sep 2008 14:04:31 +0000
-Subject: Re: qlogicpti driver hangs the machine
-Message-Id: <1222697071.3150.0.camel@localhost.localdomain>
+From: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Date: Thu, 04 Sep 2008 16:57:04 +0000
+Subject: [PATCH] rtc-m48t59: fix setting of a year on m48t08 and m48t02 rtcs
+Message-Id: <20080904185704.e5c9d1fc.krzysztof.h1@poczta.fm>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080924.014553.221132445.davem@davemloft.net>
-	 <48DA01A6.1010807@panasas.com>
-	 <Pine.SOC.4.64.0809241240440.5968@math.ut.ee>
-	 <20080928.134336.26891578.davem@davemloft.net>
-	 <20080929063355.GK2677@kernel.dk>
-In-Reply-To: <20080929063355.GK2677@kernel.dk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jens Axboe <jens.axboe@oracle.com>
-Cc: David Miller <davem@davemloft.net>, mroos@ut.ee, bharrosh@panasas.com, matthew@wil.cx, linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Mon, 2008-09-29 at 08:33 +0200, Jens Axboe wrote:
-> On Sun, Sep 28 2008, David Miller wrote:
-> > From: Meelis Roos <mroos@ut.ee>
-> > Date: Wed, 24 Sep 2008 12:51:09 +0300 (EEST)
-> > 
-> > > > Subject: [PATCH] fix fall out of sg-chaining patch
-> > > > 
-> > > > I've reviewed all patches since Matthew's, and I find one small
-> > > > problem.
-> > > > 
-> > > > In the load_cmd() there is a compound loop where the first 4 sg's are
-> > > > set then the rest are set into a memory structure in group of 7 sg's.
-> > > > 
-> > > > Well the second 7-group and on is a bug because sg pointer does not advance.
-> > > > This is a fall out from Jens's patch.
-> > > > 
-> > > > I'm not sure if this is it but it should be fixed
-> > > 
-> > > This definitely helps,
-> > 
-> > Can we get this bug fix merged if it isn't already?
-> 
-> I'll take care of it.
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Actually, I already have it in rc fixes which are due out this morning.
+Fix setting of a year in m48t08 and m48t02 clocks.
+They do not have century bits and setting them
+causes the year to overflow (bit 0x80 set).
 
-James
+Problem found by Robert Reif on Sun Sparcstation 20.
 
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+
+---
+
+I am sorry. I was sure I had tested setting of time
+and date on SS20 but I did not obviously.
+
+diff -urp linux-old/drivers/rtc/rtc-m48t59.c linux-sparc/drivers/rtc/rtc-m48t59.c
+--- linux-old/drivers/rtc/rtc-m48t59.c	2008-09-03 18:14:22.000000000 +0200
++++ linux-sparc/drivers/rtc/rtc-m48t59.c	2008-09-04 18:47:40.636685547 +0200
+@@ -126,7 +126,7 @@ static int m48t59_rtc_set_time(struct de
+ 	M48T59_WRITE((BIN2BCD(tm->tm_mon + 1) & 0x1F), M48T59_MONTH);
+ 	M48T59_WRITE(BIN2BCD(tm->tm_year % 100), M48T59_YEAR);
+ 
+-	if (tm->tm_year/100)
++	if (pdata->type = M48T59RTC_TYPE_M48T59 && (tm->tm_year / 100))
+ 		val = (M48T59_WDAY_CEB | M48T59_WDAY_CB);
+ 	val |= (BIN2BCD(tm->tm_wday) & 0x07);
+ 	M48T59_WRITE(val, M48T59_WDAY);
+
+
+----------------------------------------------------------------------
+Nie szukam kochanka!
+>> http://link.interia.pl/f1eeb
 
