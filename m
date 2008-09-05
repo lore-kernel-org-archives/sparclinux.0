@@ -1,68 +1,29 @@
-From: "Eric Brower" <ebrower@gmail.com>
-Date: Mon, 22 Sep 2008 04:16:43 +0000
-Subject: Re: [PATCH 1/1]: sparc: arch/sparc/kernel/pmc.c -- extra #include?
-Message-Id: <ec7cefb0809212116l43d2f457sd162a2b32b343cc0@mail.gmail.com>
+From: Josip Rodin <joy@entuzijast.net>
+Date: Fri, 05 Sep 2008 17:43:12 +0000
+Subject: Re: [BUG] 2.6.26-rc1 lost half the RAM on UltraSPARC 5
+Message-Id: <20080905174312.GA30239@orion.carnet.hr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080921.002946.171050386.davem@davemloft.net>
-In-Reply-To: <20080921.002946.171050386.davem@davemloft.net>
+References: <18465.63175.561233.228014@alkaid.it.uu.se>
+In-Reply-To: <18465.63175.561233.228014@alkaid.it.uu.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-PMC contains a backlight control for the Voyager display; ioctl
-support for controlling it was prototyped but never integrated into
-the driver, so removal of the miscdevice support is fair.
+On Thu, May 15, 2008 at 08:43:10PM +0200, Mikael Pettersson wrote:
+> Thanks Dave. As the dmesg diff below shows, this patch fixed
+> my lost RAM issue. I actually have about 8KB more available
+> now than I had with 2.6.25.
+[...]
+> +Memory: 245448k available (1920k kernel code, 744k data, 152k init) [fffff80000000000,0000000017f46000]
 
-E
+FWIW I just happened to notice the same improvement, but the difference here
+is actually considerably larger (upgrade was .22 -> .26):
 
-On Sun, Sep 21, 2008 at 12:29 AM, David Miller <davem@davemloft.net> wrote:
->
-> I just applied the following patch sent to me privately from David
-> Brownell to sparc-next-2.6
->
-> From: David Brownell <david-b@pacbell.net>
->
-> sparc: arch/sparc/kernel/pmc.c -- extra #include?
->
-> I have no SPARC compiler handy to verify, but it looks like this
-> is another file that doesn't need <linux/miscdevices.h> ...
->
-> Signed-off-by: David S. Miller <davem@davemloft.net>
-> ---
->  arch/sparc/kernel/pmc.c |    2 --
->  1 files changed, 0 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/sparc/kernel/pmc.c b/arch/sparc/kernel/pmc.c
-> index 814eb3c..2afcfab 100644
-> --- a/arch/sparc/kernel/pmc.c
-> +++ b/arch/sparc/kernel/pmc.c
-> @@ -8,7 +8,6 @@
->  #include <linux/fs.h>
->  #include <linux/errno.h>
->  #include <linux/init.h>
-> -#include <linux/miscdevice.h>
->  #include <linux/pm.h>
->  #include <linux/of.h>
->  #include <linux/of_device.h>
-> @@ -24,7 +23,6 @@
->  * #define PMC_NO_IDLE
->  */
->
-> -#define PMC_MINOR      MISC_DYNAMIC_MINOR
->  #define PMC_OBPNAME    "SUNW,pmc"
->  #define PMC_DEVNAME "pmc"
->
-> --
-> 1.5.6.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+-Memory: 243016k available (2096k kernel code, 760k data, 96k init) [fffff80000000000,0000000017f40000]
++Memory: 248928k available (2128k kernel code, 800k data, 120k init) [fffff80000000000,0000000017f40000]
 
-
+Dave could really start charging for these hardware upgrades :)
 
 -- 
-E
+     2. That which causes joy or happiness.
