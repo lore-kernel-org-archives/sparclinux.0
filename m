@@ -1,30 +1,55 @@
-From: Marcel Holtmann <holtmann@linux.intel.com>
-Date: Sat, 13 Sep 2008 17:13:01 +0000
-Subject: Re: [NONSERIOUS PATCH]: Change Sun serial major/minor numbers...
-Message-Id: <1221325981.6695.49.camel@californication>
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Date: Sat, 06 Sep 2008 17:09:14 +0000
+Subject: [PATCH] sparc64: fix wrong m48t59 RTC year
+Message-Id: <20080906190914.53c9128d.krzysztof.h1@wp.pl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080912.212013.205659677.davem@davemloft.net>
-In-Reply-To: <20080912.212013.205659677.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, joy@entuzijast.net
+To: sparclinux@vger.kernel.org
 
-Hi Dave,
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-> This is the non-serious patch I mentioned in my first posting
-> which changes all of the major/minor numbers used by the Sun
-> serial drivers in order to get out of the way of 8250's
-> major/minor namespace.
-> 
-> Again, this patch isn't meant to be taken seriously at all.
-> I'm not even willing to sign off on it :-)
+Correctly calculate offset to the year register for
+Mostek RTC.
 
-as long as you are using udev, it wouldn't that big of a problem :)
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+---
 
-Regards
+This happened because the rtc-m48t59 patches
+changed offset constants to new one calculated
+as difference from the nvram size.
 
-Marcel
-
-
+diff -urp linux-ref/arch/sparc64/kernel/time.c linux-mm/arch/sparc64/kernel/time.c
+--- linux-ref/arch/sparc64/kernel/time.c	2008-09-05 23:38:20.000000000 +0200
++++ linux-mm/arch/sparc64/kernel/time.c	2008-09-06 19:02:28.459001489 +0200
+@@ -500,6 +500,7 @@ static struct of_platform_driver bq4802_
+ static unsigned char mostek_read_byte(struct device *dev, u32 ofs)
+ {
+ 	struct platform_device *pdev = to_platform_device(dev);
++	struct m48t59_plat_data *pdata = pdev->dev.platform_data;
+ 	void __iomem *regs;
+ 	unsigned char val;
+ 
+@@ -507,7 +508,7 @@ static unsigned char mostek_read_byte(st
+ 	val = readb(regs + ofs);
+ 
+ 	/* the year 0 is 1968 */
+-	if (ofs = M48T59_YEAR) {
++	if (ofs = pdata->offset + M48T59_YEAR) {
+ 		val += 0x68;
+ 		if ((val & 0xf) > 9)
+ 			val += 6;
+@@ -518,10 +519,11 @@ static unsigned char mostek_read_byte(st
+ static void mostek_write_byte(struct device *dev, u32 ofs, u8 val)
+ {
+ 	struct platform_device *pdev = to_platform_device(dev);
++	struct m48t59_plat_data *pdata = pdev->dev.platform_data;
+ 	void __iomem *regs;
+ 
+ 	regs = (void __iomem *) pdev->resource[0].start;
+-	if (ofs = M48T59_YEAR) {
++	if (ofs = pdata->offset + M48T59_YEAR) {
+ 		if (val < 0x68)
+ 			val += 0x32;
+ 		else
