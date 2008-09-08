@@ -1,45 +1,44 @@
-From: Andrew Vasquez <andrew.vasquez@qlogic.com>
-Date: Thu, 11 Sep 2008 22:15:43 +0000
-Subject: Re: kernel 2.6.26.3 qla2xxx oopsing on Fire 280R
-Message-Id: <20080911221543.GQ66567@plap4-2.local>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 08 Sep 2008 20:59:01 +0000
+Subject: [GIT]: Sparc
+Message-Id: <20080908.135901.206413625.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080909143932.GA27117@orion.carnet.hr> <20080911113727.GA24487@orion.carnet.hr> <20080911215727.GA12885@orion.carnet.hr> <20080911.150150.256816031.davem@davemloft.net>
-In-Reply-To: <20080911.150150.256816031.davem@davemloft.net>
+References: <20080421.153231.108090227.davem@davemloft.net>
+In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: joy@entuzijast.net, sparclinux@vger.kernel.org, linux-scsi@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, 11 Sep 2008, David Miller wrote:
 
-> From: Josip Rodin <joy@entuzijast.net>
-> Date: Thu, 11 Sep 2008 23:57:27 +0200
-> 
-> > On Thu, Sep 11, 2008 at 01:37:27PM +0200, Josip Rodin wrote:
-> > > So I reviewed my steps and concluded that the only other thing different was
-> > > adding ql2xextended_error_logging=1. I undid that change, rebuilt the
-> > > initramfs image, and then the machine booted fine!
-> > > 
-> > > So, um, please fix the debugging code so that it doesn't cause more bugs... :/
-> > > 
-> > > In the meantime, I'll go back up to bed475c4cde5d12f537f445bdd0a5a3bb5684481
-> > > and see how it does with the debugging patch.
-> > 
-> > The patch made it work, it seems.
-> > 
-> > I can also try it with the fully up to date git tree, or try new patches...?
-> 
-> Thanks for testing Josip.
+Two SMP fixes for sparc64:
 
-Yes, thanks much, Josip!
+1) Conversion to generic SMP call function helpers didn't update the
+   locking.  The sparc64 code was still using it's local "call lock"
+   in it's cpu hotplug code, yet that isn't used for smp_call_function()
+   et al. any longer.  Fix to use the locking interface exposed by
+   the generic code.
 
-> Andrew, please try to resolve the ql2xextended_error_logging problem Josip
-> ran into,
+2) Bug fix from Paul McKenney so that the online cpu map is cleared
+   at the correct moment during cpu hotplug.  Otherwise an offline
+   CPU can receive an interrupt and lots of code does not like that.
 
-I'll continue to look into this...
+Please pull, thanks a lot.
 
-> as well as merge this IRQ enabling bug fix.
+The following changes since commit dbb8c35d9063fe233626865cc836fbc102fa083b:
+  David S. Miller (1):
+        sparc64: setup_valid_addr_bitmap_from_pavail() should be __init
 
-A candidate for rc-fixes, yes, as well as stable.  I'll post this fix
-shortly...
+are available in the git repository at:
+
+  master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
+
+David S. Miller (1):
+      sparc64: Fix IPI call locking.
+
+Paul E. McKenney (1):
+      sparc64: Prevent sparc64 from invoking irq handlers on offline CPUs
+
+ arch/sparc64/kernel/smp.c |   14 ++++++--------
+ 1 files changed, 6 insertions(+), 8 deletions(-)
