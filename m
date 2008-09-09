@@ -1,65 +1,30 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 02 Sep 2008 08:05:34 +0000
-Subject: [PATCH 1/3]: pci_psycho: Use of_getintprop_default().
-Message-Id: <20080902.010534.51787757.davem@davemloft.net>
+Date: Tue, 09 Sep 2008 05:12:03 +0000
+Subject: Re: HyperSPARC RT625 Cache Controler, Ross CY7C605 Cache
+Message-Id: <20080908.221203.158686193.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <48B67008.3010007@tensilica.com>
+	<20080828.024118.166054084.davem@davemloft.net>
+	<48C6048E.2080609@tensilica.com>
+In-Reply-To: <48C6048E.2080609@tensilica.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: piet.delaney@tensilica.com
+Cc: sparclinux@vger.kernel.org, linux-omap@vger.kernel.org, piet.delaney@gmail.com
 
+From: Piet Delaney <piet.delaney@tensilica.com>
+Date: Mon, 08 Sep 2008 22:07:26 -0700
 
-pci_psycho: Use of_getintprop_default().
+> Wonder why the update_mmu_cache() for sun4c has to do so much more
+> work that sun4m.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc64/kernel/pci_psycho.c |   17 +++--------------
- 1 files changed, 3 insertions(+), 14 deletions(-)
+Caches are virtually indexed and virtually tagged on sun4c, that's why.
 
-diff --git a/arch/sparc64/kernel/pci_psycho.c b/arch/sparc64/kernel/pci_psycho.c
-index 47db875..0be850e 100644
---- a/arch/sparc64/kernel/pci_psycho.c
-+++ b/arch/sparc64/kernel/pci_psycho.c
-@@ -975,7 +975,6 @@ static void __init psycho_pbm_init(struct pci_controller_info *p,
- 				   struct of_device *op, int is_pbm_a)
- {
- 	struct device_node *dp = op->node;
--	struct property *prop;
- 	struct pci_pbm_info *pbm;
- 
- 	if (is_pbm_a)
-@@ -994,14 +993,8 @@ static void __init psycho_pbm_init(struct pci_controller_info *p,
- 	pbm->index = pci_num_pbms++;
- 
- 	pbm->chip_type = PBM_CHIP_TYPE_PSYCHO;
--	pbm->chip_version = 0;
--	prop = of_find_property(dp, "version#", NULL);
--	if (prop)
--		pbm->chip_version = *(int *) prop->value;
--	pbm->chip_revision = 0;
--	prop = of_find_property(dp, "module-revision#", NULL);
--	if (prop)
--		pbm->chip_revision = *(int *) prop->value;
-+	pbm->chip_version = of_getintprop_default(dp, "version#", 0);
-+	pbm->chip_revision = of_getintprop_default(dp, "module-revision#", 0);
- 
- 	pbm->parent = p;
- 	pbm->prom_node = dp;
-@@ -1031,13 +1024,9 @@ static int __devinit psycho_probe(struct of_device *op,
- 	struct pci_pbm_info *pbm;
- 	struct iommu *iommu;
- 	int is_pbm_a, err;
--	const u32 *p32;
- 	u32 upa_portid;
- 
--	upa_portid = 0xff;
--	p32 = of_get_property(dp, "upa-portid", NULL);
--	if (p32)
--		upa_portid = *p32;
-+	upa_portid = of_getintprop_default(dp, "upa-portid", 0xff);
- 
- 	for (pbm = pci_pbm_root; pbm; pbm = pbm->next) {
- 		struct pci_controller_info *p = pbm->parent;
--- 
-1.5.6.5.GIT
+Keep on wonderin'
 
+> Wonder why SPARC has to do more work that ARM.
+
+ARMs that have the cache issues aren't SMP, that's why.
+
+Keep on wonderin'
