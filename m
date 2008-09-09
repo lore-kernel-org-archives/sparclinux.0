@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 12 Sep 2008 21:50:02 +0000
-Subject: [PATCH 15/16]: sparc64: Kill sparse warnings in mm/init.h
-Message-Id: <20080912.145002.83600366.davem@davemloft.net>
+Date: Tue, 09 Sep 2008 05:20:25 +0000
+Subject: [PATCH 1/2]: sparc32: Use OF device probing for sun4m timer
+Message-Id: <20080908.222025.60064365.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,188 +9,257 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-sparc64: Kill sparse warnings in mm/init.h
-
-1) Several exported symbols need extern decls, they are exported
-   not for C code but for assembler routines.
-
-2) PAGE_EXEC isn't used, delete
-
-3) Several larger than 32-bit constants need "UL" markers
+sparc32: Use OF device probing for sun4m timer registers.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc64/mm/init.c |   36 ++++++----------------------------
- arch/sparc64/mm/init.h |   49 ++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 56 insertions(+), 29 deletions(-)
- create mode 100644 arch/sparc64/mm/init.h
+ arch/sparc/include/asm/timer_32.h |   43 ----------
+ arch/sparc/kernel/sun4m_irq.c     |  153 ++++++++++++++++++++-----------------
+ 2 files changed, 84 insertions(+), 112 deletions(-)
 
-diff --git a/arch/sparc64/mm/init.c b/arch/sparc64/mm/init.c
-index 4fb9de0..3c10daf 100644
---- a/arch/sparc64/mm/init.c
-+++ b/arch/sparc64/mm/init.c
-@@ -50,10 +50,7 @@
- #include <asm/cpudata.h>
- #include <asm/irq.h>
+diff --git a/arch/sparc/include/asm/timer_32.h b/arch/sparc/include/asm/timer_32.h
+index adab3de..8906e98 100644
+--- a/arch/sparc/include/asm/timer_32.h
++++ b/arch/sparc/include/asm/timer_32.h
+@@ -35,49 +35,6 @@ struct sun4c_timer_info {
  
--#define MAX_PHYS_ADDRESS	(1UL << 42UL)
--#define KPTE_BITMAP_CHUNK_SZ	(256UL * 1024UL * 1024UL)
--#define KPTE_BITMAP_BYTES	\
--	((MAX_PHYS_ADDRESS / KPTE_BITMAP_CHUNK_SZ) / 8)
-+#include "init.h"
+ #define SUN_TIMER_PHYSADDR   0xf3000000
  
- unsigned long kern_linear_pte_xor[2] __read_mostly;
- 
-@@ -415,17 +412,9 @@ void mmu_info(struct seq_file *m)
- #endif /* CONFIG_DEBUG_DCFLUSH */
- }
- 
--struct linux_prom_translation {
--	unsigned long virt;
--	unsigned long size;
--	unsigned long data;
+-/* A sun4m has two blocks of registers which are probably of the same
+- * structure. LSI Logic's L64851 is told to _decrement_ from the limit
+- * value. Aurora behaves similarly but its limit value is compacted in
+- * other fashion (it's wider). Documented fields are defined here.
+- */
+-
+-/* As with the interrupt register, we have two classes of timer registers
+- * which are per-cpu and master.  Per-cpu timers only hit that cpu and are
+- * only level 14 ticks, master timer hits all cpus and is level 10.
+- */
+-
+-#define SUN4M_PRM_CNT_L       0x80000000
+-#define SUN4M_PRM_CNT_LVALUE  0x7FFFFC00
+-
+-struct sun4m_timer_percpu_info {
+-  __volatile__ unsigned int l14_timer_limit;    /* Initial value is 0x009c4000 */
+-  __volatile__ unsigned int l14_cur_count;
+-
+-  /* This register appears to be write only and/or inaccessible
+-   * on Uni-Processor sun4m machines.
+-   */
+-  __volatile__ unsigned int l14_limit_noclear;  /* Data access error is here */
+-
+-  __volatile__ unsigned int cntrl;            /* =1 after POST on Aurora */
+-  __volatile__ unsigned char space[PAGE_SIZE - 16];
 -};
 -
--/* Exported for kernel TLB miss handling in ktlb.S */
- struct linux_prom_translation prom_trans[512] __read_mostly;
- unsigned int prom_trans_ents __read_mostly;
- 
--/* Exported for SMP bootup purposes. */
- unsigned long kern_locked_tte_data;
- 
- /* The obp translations are saved based on 8k pagesize, since obp can
-@@ -2064,7 +2053,6 @@ pgprot_t PAGE_COPY __read_mostly;
- pgprot_t PAGE_SHARED __read_mostly;
- EXPORT_SYMBOL(PAGE_SHARED);
- 
--pgprot_t PAGE_EXEC __read_mostly;
- unsigned long pg_iobits __read_mostly;
- 
- unsigned long _PAGE_IE __read_mostly;
-@@ -2077,14 +2065,6 @@ unsigned long _PAGE_CACHE __read_mostly;
- EXPORT_SYMBOL(_PAGE_CACHE);
- 
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
+-struct sun4m_timer_regs {
+-	struct sun4m_timer_percpu_info cpu_timers[SUN4M_NCPUS];
+-	volatile unsigned int l10_timer_limit;
+-	volatile unsigned int l10_cur_count;
 -
--#define VMEMMAP_CHUNK_SHIFT	22
--#define VMEMMAP_CHUNK		(1UL << VMEMMAP_CHUNK_SHIFT)
--#define VMEMMAP_CHUNK_MASK	~(VMEMMAP_CHUNK - 1UL)
--#define VMEMMAP_ALIGN(x)	(((x)+VMEMMAP_CHUNK-1UL)&VMEMMAP_CHUNK_MASK)
+-	/* Again, this appears to be write only and/or inaccessible
+-	 * on uni-processor sun4m machines.
+-	 */
+-	volatile unsigned int l10_limit_noclear;
 -
--#define VMEMMAP_SIZE	((((1UL << MAX_PHYSADDR_BITS) >> PAGE_SHIFT) * \
--			  sizeof(struct page *)) >> VMEMMAP_CHUNK_SHIFT)
- unsigned long vmemmap_table[VMEMMAP_SIZE];
+-	/* This register too, it must be magic. */
+-	volatile unsigned int foobar;
+-
+-	volatile unsigned int cfg;     /* equals zero at boot time... */
+-};
+-
+ #define SUN4D_PRM_CNT_L       0x80000000
+ #define SUN4D_PRM_CNT_LVALUE  0x7FFFFC00
  
- int __meminit vmemmap_populate(struct page *start, unsigned long nr, int node)
-@@ -2168,7 +2148,6 @@ static void __init sun4u_pgprot_init(void)
- 				       _PAGE_CACHE_4U | _PAGE_P_4U |
- 				       __ACCESS_BITS_4U | __DIRTY_BITS_4U |
- 				       _PAGE_EXEC_4U | _PAGE_L_4U);
--	PAGE_EXEC = __pgprot(_PAGE_EXEC_4U);
- 
- 	_PAGE_IE = _PAGE_IE_4U;
- 	_PAGE_E = _PAGE_E_4U;
-@@ -2179,10 +2158,10 @@ static void __init sun4u_pgprot_init(void)
- 
- #ifdef CONFIG_DEBUG_PAGEALLOC
- 	kern_linear_pte_xor[0] = (_PAGE_VALID | _PAGE_SZBITS_4U) ^
--		0xfffff80000000000;
-+		0xfffff80000000000UL;
- #else
- 	kern_linear_pte_xor[0] = (_PAGE_VALID | _PAGE_SZ4MB_4U) ^
--		0xfffff80000000000;
-+		0xfffff80000000000UL;
+diff --git a/arch/sparc/kernel/sun4m_irq.c b/arch/sparc/kernel/sun4m_irq.c
+index 3481fec..1b72c95 100644
+--- a/arch/sparc/kernel/sun4m_irq.c
++++ b/arch/sparc/kernel/sun4m_irq.c
+@@ -267,95 +267,80 @@ static void sun4m_set_udt(int cpu)
+ }
  #endif
- 	kern_linear_pte_xor[0] |= (_PAGE_CP_4U | _PAGE_CV_4U |
- 				   _PAGE_P_4U | _PAGE_W_4U);
-@@ -2220,7 +2199,6 @@ static void __init sun4v_pgprot_init(void)
- 				__ACCESS_BITS_4V | __DIRTY_BITS_4V |
- 				_PAGE_EXEC_4V);
- 	PAGE_KERNEL_LOCKED = PAGE_KERNEL;
--	PAGE_EXEC = __pgprot(_PAGE_EXEC_4V);
  
- 	_PAGE_IE = _PAGE_IE_4V;
- 	_PAGE_E = _PAGE_E_4V;
-@@ -2228,20 +2206,20 @@ static void __init sun4v_pgprot_init(void)
- 
- #ifdef CONFIG_DEBUG_PAGEALLOC
- 	kern_linear_pte_xor[0] = (_PAGE_VALID | _PAGE_SZBITS_4V) ^
--		0xfffff80000000000;
-+		0xfffff80000000000UL;
- #else
- 	kern_linear_pte_xor[0] = (_PAGE_VALID | _PAGE_SZ4MB_4V) ^
--		0xfffff80000000000;
-+		0xfffff80000000000UL;
- #endif
- 	kern_linear_pte_xor[0] |= (_PAGE_CP_4V | _PAGE_CV_4V |
- 				   _PAGE_P_4V | _PAGE_W_4V);
- 
- #ifdef CONFIG_DEBUG_PAGEALLOC
- 	kern_linear_pte_xor[1] = (_PAGE_VALID | _PAGE_SZBITS_4V) ^
--		0xfffff80000000000;
-+		0xfffff80000000000UL;
- #else
- 	kern_linear_pte_xor[1] = (_PAGE_VALID | _PAGE_SZ256MB_4V) ^
--		0xfffff80000000000;
-+		0xfffff80000000000UL;
- #endif
- 	kern_linear_pte_xor[1] |= (_PAGE_CP_4V | _PAGE_CV_4V |
- 				   _PAGE_P_4V | _PAGE_W_4V);
-diff --git a/arch/sparc64/mm/init.h b/arch/sparc64/mm/init.h
-new file mode 100644
-index 0000000..1606387
---- /dev/null
-+++ b/arch/sparc64/mm/init.h
-@@ -0,0 +1,49 @@
-+#ifndef _SPARC64_MM_INIT_H
-+#define _SPARC64_MM_INIT_H
-+
-+/* Most of the symbols in this file are defined in init.c and
-+ * marked non-static so that assembler code can get at them.
-+ */
-+
-+#define MAX_PHYS_ADDRESS	(1UL << 42UL)
-+#define KPTE_BITMAP_CHUNK_SZ	(256UL * 1024UL * 1024UL)
-+#define KPTE_BITMAP_BYTES	\
-+	((MAX_PHYS_ADDRESS / KPTE_BITMAP_CHUNK_SZ) / 8)
-+
-+extern unsigned long kern_linear_pte_xor[2];
-+extern unsigned long kpte_linear_bitmap[KPTE_BITMAP_BYTES / sizeof(unsigned long)];
-+extern unsigned int sparc64_highest_unlocked_tlb_ent;
-+extern unsigned long sparc64_kern_pri_context;
-+extern unsigned long sparc64_kern_pri_nuc_bits;
-+extern unsigned long sparc64_kern_sec_context;
-+extern void mmu_info(struct seq_file *m);
-+
-+struct linux_prom_translation {
-+	unsigned long virt;
-+	unsigned long size;
-+	unsigned long data;
++struct sun4m_timer_percpu {
++	u32		l14_limit;
++	u32		l14_count;
++	u32		l14_limit_noclear;
++	u32		user_timer_start_stop;
 +};
 +
-+/* Exported for kernel TLB miss handling in ktlb.S */
-+extern struct linux_prom_translation prom_trans[512];
-+extern unsigned int prom_trans_ents;
++static struct sun4m_timer_percpu __iomem *timers_percpu[SUN4M_NCPUS];
 +
-+/* Exported for SMP bootup purposes. */
-+extern unsigned long kern_locked_tte_data;
++struct sun4m_timer_global {
++	u32		l10_limit;
++	u32		l10_count;
++	u32		l10_limit_noclear;
++	u32		reserved;
++	u32		timer_config;
++};
 +
-+extern void prom_world(int enter);
++static struct sun4m_timer_global __iomem *timers_global;
 +
-+extern void free_initmem(void);
+ #define OBIO_INTR	0x20
+ #define TIMER_IRQ  	(OBIO_INTR | 10)
+-#define PROFILE_IRQ	(OBIO_INTR | 14)
+ 
+-static struct sun4m_timer_regs *sun4m_timers;
+ unsigned int lvl14_resolution = (((1000000/HZ) + 1) << 10);
+ 
+ static void sun4m_clear_clock_irq(void)
+ {
+-	volatile unsigned int clear_intr;
+-	clear_intr = sun4m_timers->l10_timer_limit;
++	sbus_readl(&timers_global->l10_limit);
+ }
+ 
+ static void sun4m_clear_profile_irq(int cpu)
+ {
+-	volatile unsigned int clear;
+-    
+-	clear = sun4m_timers->cpu_timers[cpu].l14_timer_limit;
++	sbus_readl(&timers_percpu[cpu]->l14_limit);
+ }
+ 
+ static void sun4m_load_profile_irq(int cpu, unsigned int limit)
+ {
+-	sun4m_timers->cpu_timers[cpu].l14_timer_limit = limit;
++	sbus_writel(limit, &timers_percpu[cpu]->l14_limit);
+ }
+ 
+-static void __init sun4m_init_timers(irq_handler_t counter_fn)
++static int __init counter_probe(struct of_device *op,
++				const struct of_device_id *match)
+ {
+-	int reg_count, irq, cpu;
+-	struct linux_prom_registers cnt_regs[PROMREG_MAX];
+-	int obio_node, cnt_node;
+-	struct resource r;
+-
+-	cnt_node = 0;
+-	if((obio_node -	    prom_searchsiblings (prom_getchild(prom_root_node), "obio")) = 0 ||
+-	   (obio_node = prom_getchild (obio_node)) = 0 ||
+-	   (cnt_node = prom_searchsiblings (obio_node, "counter")) = 0) {
+-		prom_printf("Cannot find /obio/counter node\n");
+-		prom_halt();
+-	}
+-	reg_count = prom_getproperty(cnt_node, "reg",
+-				     (void *) cnt_regs, sizeof(cnt_regs));
+-	reg_count = (reg_count/sizeof(struct linux_prom_registers));
+-    
+-	/* Apply the obio ranges to the timer registers. */
+-	prom_apply_obio_ranges(cnt_regs, reg_count);
+-    
+-	cnt_regs[4].phys_addr = cnt_regs[reg_count-1].phys_addr;
+-	cnt_regs[4].reg_size = cnt_regs[reg_count-1].reg_size;
+-	cnt_regs[4].which_io = cnt_regs[reg_count-1].which_io;
+-	for(obio_node = 1; obio_node < 4; obio_node++) {
+-		cnt_regs[obio_node].phys_addr -			cnt_regs[obio_node-1].phys_addr + PAGE_SIZE;
+-		cnt_regs[obio_node].reg_size = cnt_regs[obio_node-1].reg_size;
+-		cnt_regs[obio_node].which_io = cnt_regs[obio_node-1].which_io;
++	int i, err, num_cpu_timers = op->resource[2].flags ? 4 : 1;
 +
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP
-+#define VMEMMAP_CHUNK_SHIFT	22
-+#define VMEMMAP_CHUNK		(1UL << VMEMMAP_CHUNK_SHIFT)
-+#define VMEMMAP_CHUNK_MASK	~(VMEMMAP_CHUNK - 1UL)
-+#define VMEMMAP_ALIGN(x)	(((x)+VMEMMAP_CHUNK-1UL)&VMEMMAP_CHUNK_MASK)
++	err = -ENOMEM;
++	for (i = 0; i < num_cpu_timers; i++) {
++		timers_percpu[i] = of_ioremap(&op->resource[i], 0,
++					      resource_size(&op->resource[i]),
++					      "sun4m_timer_percpu");
++		if (!timers_percpu[i])
++			goto out_iounmap_percpu;
+ 	}
+ 
+-	memset((char*)&r, 0, sizeof(struct resource));
+-	/* Map the per-cpu Counter registers. */
+-	r.flags = cnt_regs[0].which_io;
+-	r.start = cnt_regs[0].phys_addr;
+-	sun4m_timers = (struct sun4m_timer_regs *) of_ioremap(&r, 0,
+-	    PAGE_SIZE*SUN4M_NCPUS, "sun4m_cpu_cnt");
+-	/* Map the system Counter register. */
+-	/* XXX Here we expect consequent calls to yeld adjusent maps. */
+-	r.flags = cnt_regs[4].which_io;
+-	r.start = cnt_regs[4].phys_addr;
+-	of_ioremap(&r, 0, cnt_regs[4].reg_size, "sun4m_sys_cnt");
+-
+-	sun4m_timers->l10_timer_limit =  (((1000000/HZ) + 1) << 10);
+-	master_l10_counter = &sun4m_timers->l10_cur_count;
+-	master_l10_limit = &sun4m_timers->l10_timer_limit;
+-
+-	irq = request_irq(TIMER_IRQ,
+-			  counter_fn,
+-			  (IRQF_DISABLED | SA_STATIC_ALLOC),
+-			  "timer", NULL);
+-	if (irq) {
+-		prom_printf("time_init: unable to attach IRQ%d\n",TIMER_IRQ);
+-		prom_halt();
+-	}
+-   
+-	if (!cpu_find_by_instance(1, NULL, NULL)) {
+-		for(cpu = 0; cpu < 4; cpu++)
+-			sun4m_timers->cpu_timers[cpu].l14_timer_limit = 0;
+-		sun4m_interrupts->set = SUN4M_INT_E14;
+-	} else {
+-		sun4m_timers->cpu_timers[0].l14_timer_limit = 0;
+-	}
++	/* XXX 'reg' property only claims a size of 16 */
++	timers_global = of_ioremap(&op->resource[num_cpu_timers], 0, 20,
++				   "sun4m_timer_global");
++	if (!timers_global)
++		goto out_iounmap_percpu;
 +
-+#define VMEMMAP_SIZE	((((1UL << MAX_PHYSADDR_BITS) >> PAGE_SHIFT) * \
-+			  sizeof(struct page *)) >> VMEMMAP_CHUNK_SHIFT)
-+extern unsigned long vmemmap_table[VMEMMAP_SIZE];
-+#endif
++	sbus_writel((((1000000/HZ) + 1) << 10), &timers_global->l10_limit);
 +
-+#endif /* _SPARC64_MM_INIT_H */
++	master_l10_counter = &timers_global->l10_count;
++	master_l10_limit = &timers_global->l10_limit;
++
++	err = request_irq(TIMER_IRQ, match->data,
++			  (IRQF_DISABLED | SA_STATIC_ALLOC), "timer", NULL);
++	if (err)
++		goto out_iounmap_global;
++
++	for (i = 0; i < num_cpu_timers; i++)
++		sbus_writel(0, &timers_percpu[i]->l14_limit);
++	if (num_cpu_timers = 4)
++		sbus_writel(SUN4M_INT_E14, &sun4m_interrupts->set);
++
+ #ifdef CONFIG_SMP
+ 	{
+ 		unsigned long flags;
+@@ -375,6 +360,36 @@ static void __init sun4m_init_timers(irq_handler_t counter_fn)
+ 		local_irq_restore(flags);
+ 	}
+ #endif
++
++out:
++	return err;
++
++out_iounmap_global:
++	of_iounmap(&op->resource[num_cpu_timers], timers_global, 20);
++
++out_iounmap_percpu:
++	for (i = 0; i < num_cpu_timers; i++) {
++		if (timers_percpu[i])
++			of_iounmap(&op->resource[i], timers_percpu[i],
++				   resource_size(&op->resource[i]));
++	}
++	goto out;
++}
++
++static struct of_device_id __initdata counter_match[] = {
++	{ .name = "counter", }, {},
++};
++
++static struct of_platform_driver counter_driver = {
++	.name		= "counter",
++	.match_table	= counter_match,
++	.probe		= counter_probe,
++};
++
++static void __init sun4m_init_timers(irq_handler_t counter_fn)
++{
++	counter_match[0].data = counter_fn;
++	(void) of_register_driver(&counter_driver, &of_bus_type);
+ }
+ 
+ void __init sun4m_init_IRQ(void)
 -- 
 1.5.6.5.GIT
 
