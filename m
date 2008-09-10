@@ -1,22 +1,26 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 03 Sep 2008 23:29:55 +0000
-Subject: Re: [PATCH] sparc32: add init memory poisoning
-Message-Id: <20080903.162955.133251929.davem@davemloft.net>
+From: Josip Rodin <joy@entuzijast.net>
+Date: Wed, 10 Sep 2008 21:58:18 +0000
+Subject: machine_power_off unaligned access
+Message-Id: <20080910215818.GA1696@orion.carnet.hr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <48BF1A9F.6080100@earthlink.net>
-In-Reply-To: <48BF1A9F.6080100@earthlink.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Robert Reif <reif@earthlink.net>
-Date: Wed, 03 Sep 2008 19:15:43 -0400
+Hi,
 
-> This patch adds init memory poisoning.  It looks like
-> totalram_pages was not updated properly in free_initrd_mem
-> so I fixed that as well.
-> 
-> Signed-off-by: Robert Reif <reif@earthlink.net>
+I just happened to notice this with 2.6.25.5 on the Fire 280R:
 
-Applied, thanks a lot Robert.
+Mounting root filesystem read-only...done.
+Will now halt.
+sd 0:0:1:0: [sdb] Synchronizing SCSI cache
+Power down.
+Kernel unaligned access at TPC[436980] machine_power_off+0x54/0xbc
+Program terminated
+{1} ok 
+
+FWIW...
+
+-- 
+     2. That which causes joy or happiness.
