@@ -1,29 +1,31 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 20 Sep 2008 03:42:22 +0000
-Subject: Re: [PATCH]: Updated PROM sun4m IRQ register patch.
-Message-Id: <20080919.204222.128625344.davem@davemloft.net>
+From: Josip Rodin <joy@entuzijast.net>
+Date: Thu, 11 Sep 2008 14:31:46 +0000
+Subject: 16550 serial support
+Message-Id: <20080911143146.GA24923@orion.carnet.hr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080913.214526.47086017.davem@davemloft.net>
-In-Reply-To: <20080913.214526.47086017.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Robert Reif <reif@earthlink.net>
-Date: Fri, 19 Sep 2008 22:27:13 -0400
+Hi,
 
-> > @@ -272,17 +272,18 @@ smp4m_ticker:
-> >  	 */
-> >  maybe_smp4m_msg:
-> >  	GET_PROCESSOR4M_ID(o3)
-> > -	set	sun4m_interrupts, %l5
-> > -	ld	[%l5], %o5
-> > +	sethi	%hi(sun4m_irq_percpu), %l5
-> > +	sll	%o3, 2, %o3
-> > +	or	%l5, %lo(sun4m_irq_percpu), %l5
-> >   
-> This patch works SMP when this line is changed to:
->        or      %l5, %lo(sun4m_irq_percpu), %o5
+Here's me with my dunce hat yet again...
 
-Thanks a lot Robert, I'll fix that up and check this in.
+I wanted to add serial ports to a Fire v240 (so that I can connect the
+Fire 280R's serial console cable to it). So I went to the nearest shop
+and bought a PCI card with a couple of RS-232 ports. It is identified by
+lspci as:
+
+0001:00:02.0 Serial controller: Timedia Technology Co Ltd PCI2S550 (Dual 16550 UART) (rev 01)
+
+But then I noticed that no kernel module detected this, and that
+SERIAL_8250 depends on (BROKEN || !SPARC). Googling didn't help much,
+most users installed this in PCs and it seems everything worked for them
+(apart from an occasional setserial(8)-related complaint).
+
+Is this then completely unsupported, supported by a different part of
+the kernel (sunsu, sunsab?), or?
+
+-- 
+     2. That which causes joy or happiness.
