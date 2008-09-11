@@ -1,21 +1,22 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 10 Sep 2008 02:43:48 +0000
-Subject: Re: [PATCH] sparc: remove unused includes
-Message-Id: <20080909.194348.86305262.davem@davemloft.net>
+Date: Thu, 11 Sep 2008 06:55:47 +0000
+Subject: [PATCH 0/3]: sun4m timer rework, try 2
+Message-Id: <20080910.235547.243605729.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080904031137.GA24664@swan5.cs.unc.edu>
-In-Reply-To: <20080904031137.GA24664@swan5.cs.unc.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: "Bjoern B. Brandenburg" <bbb@cs.unc.edu>
-Date: Wed, 3 Sep 2008 23:11:37 -0400
 
-> The spinlock code does not use NR_CPUS.
-> Compile tested using allyesconfig and allnoconfig.
-> 
-> Signed-off-by: Bjoern B. Brandenburg <bbb@cs.unc.edu>
+Ok, let's try this again.
 
-Applied to sparc-next-2.6, thanks Bjoern.
+The first two patches work to let us use the OF device driver
+layer facilities much earlier in the boot process.
+
+And then the third is the sun4m timers patch, with no changes
+from last time.
+
+Robert, let me know how it works out.
+
+Thanks!
