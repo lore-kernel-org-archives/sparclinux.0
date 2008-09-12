@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 02 Sep 2008 02:07:08 +0000
-Subject: [PATCH 2/2]: sparc64: Pass proper parent device down into root
-Message-Id: <20080901.190708.246126240.davem@davemloft.net>
+Date: Fri, 12 Sep 2008 21:50:02 +0000
+Subject: [PATCH 15/16]: sparc64: Kill sparse warnings in mm/init.h
+Message-Id: <20080912.145002.83600366.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,352 +9,188 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-sparc64: Pass proper parent device down into root pci_create_bus() call.
+sparc64: Kill sparse warnings in mm/init.h
+
+1) Several exported symbols need extern decls, they are exported
+   not for C code but for assembler routines.
+
+2) PAGE_EXEC isn't used, delete
+
+3) Several larger than 32-bit constants need "UL" markers
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc64/kernel/pci.c        |    6 +++---
- arch/sparc64/kernel/pci_fire.c   |   18 +++++++-----------
- arch/sparc64/kernel/pci_psycho.c |   14 ++++++++------
- arch/sparc64/kernel/pci_sabre.c  |   13 ++++++++-----
- arch/sparc64/kernel/pci_schizo.c |   19 +++++++++++--------
- arch/sparc64/kernel/pci_sun4v.c  |   14 ++++++++------
- 6 files changed, 45 insertions(+), 39 deletions(-)
+ arch/sparc64/mm/init.c |   36 ++++++----------------------------
+ arch/sparc64/mm/init.h |   49 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 56 insertions(+), 29 deletions(-)
+ create mode 100644 arch/sparc64/mm/init.h
 
-diff --git a/arch/sparc64/kernel/pci.c b/arch/sparc64/kernel/pci.c
-index 2da32e4..8e18fdf 100644
---- a/arch/sparc64/kernel/pci.c
-+++ b/arch/sparc64/kernel/pci.c
-@@ -673,15 +673,15 @@ static void __devinit pci_bus_register_of_sysfs(struct pci_bus *bus)
- 		pci_bus_register_of_sysfs(child_bus);
+diff --git a/arch/sparc64/mm/init.c b/arch/sparc64/mm/init.c
+index 4fb9de0..3c10daf 100644
+--- a/arch/sparc64/mm/init.c
++++ b/arch/sparc64/mm/init.c
+@@ -50,10 +50,7 @@
+ #include <asm/cpudata.h>
+ #include <asm/irq.h>
+ 
+-#define MAX_PHYS_ADDRESS	(1UL << 42UL)
+-#define KPTE_BITMAP_CHUNK_SZ	(256UL * 1024UL * 1024UL)
+-#define KPTE_BITMAP_BYTES	\
+-	((MAX_PHYS_ADDRESS / KPTE_BITMAP_CHUNK_SZ) / 8)
++#include "init.h"
+ 
+ unsigned long kern_linear_pte_xor[2] __read_mostly;
+ 
+@@ -415,17 +412,9 @@ void mmu_info(struct seq_file *m)
+ #endif /* CONFIG_DEBUG_DCFLUSH */
  }
  
--struct pci_bus * __devinit pci_scan_one_pbm(struct pci_pbm_info *pbm)
-+struct pci_bus * __devinit pci_scan_one_pbm(struct pci_pbm_info *pbm,
-+					    struct device *parent)
- {
- 	struct device_node *node = pbm->prom_node;
- 	struct pci_bus *bus;
- 
- 	printk("PCI: Scanning PBM %s\n", node->full_name);
- 
--	/* XXX parent device? XXX */
--	bus = pci_create_bus(NULL, pbm->pci_first_busno, pbm->pci_ops, pbm);
-+	bus = pci_create_bus(parent, pbm->pci_first_busno, pbm->pci_ops, pbm);
- 	if (!bus) {
- 		printk(KERN_ERR "Failed to create bus for %s\n",
- 		       node->full_name);
-diff --git a/arch/sparc64/kernel/pci_fire.c b/arch/sparc64/kernel/pci_fire.c
-index 4fb1ef9..1b44153 100644
---- a/arch/sparc64/kernel/pci_fire.c
-+++ b/arch/sparc64/kernel/pci_fire.c
-@@ -33,13 +33,6 @@
- 			       "i" (ASI_PHYS_BYPASS_EC_E) \
- 			     : "memory")
- 
--static void __init pci_fire_scan_bus(struct pci_pbm_info *pbm)
--{
--	pbm->pci_bus = pci_scan_one_pbm(pbm);
+-struct linux_prom_translation {
+-	unsigned long virt;
+-	unsigned long size;
+-	unsigned long data;
+-};
 -
--	/* XXX register error interrupt handlers XXX */
--}
+-/* Exported for kernel TLB miss handling in ktlb.S */
+ struct linux_prom_translation prom_trans[512] __read_mostly;
+ unsigned int prom_trans_ents __read_mostly;
+ 
+-/* Exported for SMP bootup purposes. */
+ unsigned long kern_locked_tte_data;
+ 
+ /* The obp translations are saved based on 8k pagesize, since obp can
+@@ -2064,7 +2053,6 @@ pgprot_t PAGE_COPY __read_mostly;
+ pgprot_t PAGE_SHARED __read_mostly;
+ EXPORT_SYMBOL(PAGE_SHARED);
+ 
+-pgprot_t PAGE_EXEC __read_mostly;
+ unsigned long pg_iobits __read_mostly;
+ 
+ unsigned long _PAGE_IE __read_mostly;
+@@ -2077,14 +2065,6 @@ unsigned long _PAGE_CACHE __read_mostly;
+ EXPORT_SYMBOL(_PAGE_CACHE);
+ 
+ #ifdef CONFIG_SPARSEMEM_VMEMMAP
 -
- #define FIRE_IOMMU_CONTROL	0x40000UL
- #define FIRE_IOMMU_TSBBASE	0x40008UL
- #define FIRE_IOMMU_FLUSH	0x40100UL
-@@ -439,9 +432,10 @@ static void pci_fire_hw_init(struct pci_pbm_info *pbm)
- }
+-#define VMEMMAP_CHUNK_SHIFT	22
+-#define VMEMMAP_CHUNK		(1UL << VMEMMAP_CHUNK_SHIFT)
+-#define VMEMMAP_CHUNK_MASK	~(VMEMMAP_CHUNK - 1UL)
+-#define VMEMMAP_ALIGN(x)	(((x)+VMEMMAP_CHUNK-1UL)&VMEMMAP_CHUNK_MASK)
+-
+-#define VMEMMAP_SIZE	((((1UL << MAX_PHYSADDR_BITS) >> PAGE_SHIFT) * \
+-			  sizeof(struct page *)) >> VMEMMAP_CHUNK_SHIFT)
+ unsigned long vmemmap_table[VMEMMAP_SIZE];
  
- static int __init pci_fire_pbm_init(struct pci_controller_info *p,
--				    struct device_node *dp, u32 portid)
-+				    struct of_device *op, u32 portid)
- {
- 	const struct linux_prom64_registers *regs;
-+	struct device_node *dp = op->node;
- 	struct pci_pbm_info *pbm;
- 	int err;
+ int __meminit vmemmap_populate(struct page *start, unsigned long nr, int node)
+@@ -2168,7 +2148,6 @@ static void __init sun4u_pgprot_init(void)
+ 				       _PAGE_CACHE_4U | _PAGE_P_4U |
+ 				       __ACCESS_BITS_4U | __DIRTY_BITS_4U |
+ 				       _PAGE_EXEC_4U | _PAGE_L_4U);
+-	PAGE_EXEC = __pgprot(_PAGE_EXEC_4U);
  
-@@ -483,7 +477,9 @@ static int __init pci_fire_pbm_init(struct pci_controller_info *p,
+ 	_PAGE_IE = _PAGE_IE_4U;
+ 	_PAGE_E = _PAGE_E_4U;
+@@ -2179,10 +2158,10 @@ static void __init sun4u_pgprot_init(void)
  
- 	pci_fire_msi_init(pbm);
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+ 	kern_linear_pte_xor[0] = (_PAGE_VALID | _PAGE_SZBITS_4U) ^
+-		0xfffff80000000000;
++		0xfffff80000000000UL;
+ #else
+ 	kern_linear_pte_xor[0] = (_PAGE_VALID | _PAGE_SZ4MB_4U) ^
+-		0xfffff80000000000;
++		0xfffff80000000000UL;
+ #endif
+ 	kern_linear_pte_xor[0] |= (_PAGE_CP_4U | _PAGE_CV_4U |
+ 				   _PAGE_P_4U | _PAGE_W_4U);
+@@ -2220,7 +2199,6 @@ static void __init sun4v_pgprot_init(void)
+ 				__ACCESS_BITS_4V | __DIRTY_BITS_4V |
+ 				_PAGE_EXEC_4V);
+ 	PAGE_KERNEL_LOCKED = PAGE_KERNEL;
+-	PAGE_EXEC = __pgprot(_PAGE_EXEC_4V);
  
--	pci_fire_scan_bus(pbm);
-+	pbm->pci_bus = pci_scan_one_pbm(pbm, &op->dev);
+ 	_PAGE_IE = _PAGE_IE_4V;
+ 	_PAGE_E = _PAGE_E_4V;
+@@ -2228,20 +2206,20 @@ static void __init sun4v_pgprot_init(void)
+ 
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+ 	kern_linear_pte_xor[0] = (_PAGE_VALID | _PAGE_SZBITS_4V) ^
+-		0xfffff80000000000;
++		0xfffff80000000000UL;
+ #else
+ 	kern_linear_pte_xor[0] = (_PAGE_VALID | _PAGE_SZ4MB_4V) ^
+-		0xfffff80000000000;
++		0xfffff80000000000UL;
+ #endif
+ 	kern_linear_pte_xor[0] |= (_PAGE_CP_4V | _PAGE_CV_4V |
+ 				   _PAGE_P_4V | _PAGE_W_4V);
+ 
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+ 	kern_linear_pte_xor[1] = (_PAGE_VALID | _PAGE_SZBITS_4V) ^
+-		0xfffff80000000000;
++		0xfffff80000000000UL;
+ #else
+ 	kern_linear_pte_xor[1] = (_PAGE_VALID | _PAGE_SZ256MB_4V) ^
+-		0xfffff80000000000;
++		0xfffff80000000000UL;
+ #endif
+ 	kern_linear_pte_xor[1] |= (_PAGE_CP_4V | _PAGE_CV_4V |
+ 				   _PAGE_P_4V | _PAGE_W_4V);
+diff --git a/arch/sparc64/mm/init.h b/arch/sparc64/mm/init.h
+new file mode 100644
+index 0000000..1606387
+--- /dev/null
++++ b/arch/sparc64/mm/init.h
+@@ -0,0 +1,49 @@
++#ifndef _SPARC64_MM_INIT_H
++#define _SPARC64_MM_INIT_H
 +
-+	/* XXX register error interrupt handlers XXX */
- 
- 	return 0;
- }
-@@ -508,7 +504,7 @@ static int __devinit fire_probe(struct of_device *op,
- 	portid = of_getintprop_default(dp, "portid", 0xff);
- 	for (pbm = pci_pbm_root; pbm; pbm = pbm->next) {
- 		if (portid_compare(pbm->portid, portid))
--			return pci_fire_pbm_init(pbm->parent, dp, portid);
-+			return pci_fire_pbm_init(pbm->parent, op, portid);
- 	}
- 
- 	err = -ENOMEM;
-@@ -534,7 +530,7 @@ static int __devinit fire_probe(struct of_device *op,
- 
- 	p->pbm_B.iommu = iommu;
- 
--	return pci_fire_pbm_init(p, dp, portid);
-+	return pci_fire_pbm_init(p, op, portid);
- 
- out_free_iommu_A:
- 	kfree(p->pbm_A.iommu);
-diff --git a/arch/sparc64/kernel/pci_psycho.c b/arch/sparc64/kernel/pci_psycho.c
-index 5ee84c5..47db875 100644
---- a/arch/sparc64/kernel/pci_psycho.c
-+++ b/arch/sparc64/kernel/pci_psycho.c
-@@ -803,11 +803,12 @@ static void pbm_config_busmastering(struct pci_pbm_info *pbm)
- 	pci_config_write8(addr, 64);
- }
- 
--static void __init psycho_scan_bus(struct pci_pbm_info *pbm)
-+static void __init psycho_scan_bus(struct pci_pbm_info *pbm,
-+				   struct device *parent)
- {
- 	pbm_config_busmastering(pbm);
- 	pbm->is_66mhz_capable = 0;
--	pbm->pci_bus = pci_scan_one_pbm(pbm);
-+	pbm->pci_bus = pci_scan_one_pbm(pbm, parent);
- 
- 	/* After the PCI bus scan is complete, we can register
- 	 * the error interrupt handlers.
-@@ -971,8 +972,9 @@ static void psycho_pbm_strbuf_init(struct pci_pbm_info *pbm,
- #define PSYCHO_MEMSPACE_SIZE	0x07fffffffUL
- 
- static void __init psycho_pbm_init(struct pci_controller_info *p,
--			    struct device_node *dp, int is_pbm_a)
-+				   struct of_device *op, int is_pbm_a)
- {
-+	struct device_node *dp = op->node;
- 	struct property *prop;
- 	struct pci_pbm_info *pbm;
- 
-@@ -1015,7 +1017,7 @@ static void __init psycho_pbm_init(struct pci_controller_info *p,
- 
- 	psycho_pbm_strbuf_init(pbm, is_pbm_a);
- 
--	psycho_scan_bus(pbm);
-+	psycho_scan_bus(pbm, &op->dev);
- }
- 
- #define PSYCHO_CONFIGSPACE	0x001000000UL
-@@ -1042,7 +1044,7 @@ static int __devinit psycho_probe(struct of_device *op,
- 
- 		if (p->pbm_A.portid = upa_portid) {
- 			is_pbm_a = (p->pbm_A.prom_node = NULL);
--			psycho_pbm_init(p, dp, is_pbm_a);
-+			psycho_pbm_init(p, op, is_pbm_a);
- 			return 0;
- 		}
- 	}
-@@ -1086,7 +1088,7 @@ static int __devinit psycho_probe(struct of_device *op,
- 
- 	is_pbm_a = ((pr_regs[0].phys_addr & 0x6000) = 0x2000);
- 
--	psycho_pbm_init(p, dp, is_pbm_a);
-+	psycho_pbm_init(p, op, is_pbm_a);
- 
- 	return 0;
- 
-diff --git a/arch/sparc64/kernel/pci_sabre.c b/arch/sparc64/kernel/pci_sabre.c
-index eee8fdc..707d6d6 100644
---- a/arch/sparc64/kernel/pci_sabre.c
-+++ b/arch/sparc64/kernel/pci_sabre.c
-@@ -634,7 +634,8 @@ static void apb_init(struct pci_bus *sabre_bus)
- 	}
- }
- 
--static void __init sabre_scan_bus(struct pci_pbm_info *pbm)
-+static void __init sabre_scan_bus(struct pci_pbm_info *pbm,
-+				  struct device *parent)
- {
- 	static int once;
- 
-@@ -662,7 +663,7 @@ static void __init sabre_scan_bus(struct pci_pbm_info *pbm)
- 	}
- 	once++;
- 
--	pbm->pci_bus = pci_scan_one_pbm(pbm);
-+	pbm->pci_bus = pci_scan_one_pbm(pbm, parent);
- 	if (!pbm->pci_bus)
- 		return;
- 
-@@ -734,8 +735,10 @@ static int sabre_iommu_init(struct pci_pbm_info *pbm,
- }
- 
- static void __init sabre_pbm_init(struct pci_controller_info *p,
--				  struct pci_pbm_info *pbm, struct device_node *dp)
-+				  struct pci_pbm_info *pbm, struct of_device *op)
- {
-+	struct device_node *dp = op->node;
++/* Most of the symbols in this file are defined in init.c and
++ * marked non-static so that assembler code can get at them.
++ */
 +
- 	pbm->name = dp->full_name;
- 	printk("%s: SABRE PCI Bus Module\n", pbm->name);
- 
-@@ -753,7 +756,7 @@ static void __init sabre_pbm_init(struct pci_controller_info *p,
- 
- 	pci_determine_mem_io_space(pbm);
- 
--	sabre_scan_bus(pbm);
-+	sabre_scan_bus(pbm, &op->dev);
- }
- 
- static int __devinit sabre_probe(struct of_device *op,
-@@ -873,7 +876,7 @@ static int __devinit sabre_probe(struct of_device *op,
- 	/*
- 	 * Look for APB underneath.
- 	 */
--	sabre_pbm_init(p, pbm, dp);
-+	sabre_pbm_init(p, pbm, op);
- 	return 0;
- 
- out_free_iommu:
-diff --git a/arch/sparc64/kernel/pci_schizo.c b/arch/sparc64/kernel/pci_schizo.c
-index bd7612a..64904b1 100644
---- a/arch/sparc64/kernel/pci_schizo.c
-+++ b/arch/sparc64/kernel/pci_schizo.c
-@@ -1085,14 +1085,15 @@ static void pbm_config_busmastering(struct pci_pbm_info *pbm)
- 	pci_config_write8(addr, 64);
- }
- 
--static void __devinit schizo_scan_bus(struct pci_pbm_info *pbm)
-+static void __devinit schizo_scan_bus(struct pci_pbm_info *pbm,
-+				      struct device *parent)
- {
- 	pbm_config_busmastering(pbm);
- 	pbm->is_66mhz_capable  		(of_find_property(pbm->prom_node, "66mhz-capable", NULL)
- 		 != NULL);
- 
--	pbm->pci_bus = pci_scan_one_pbm(pbm);
-+	pbm->pci_bus = pci_scan_one_pbm(pbm, parent);
- 
- 	if (pbm->chip_type = PBM_CHIP_TYPE_TOMATILLO)
- 		tomatillo_register_error_handlers(pbm);
-@@ -1338,10 +1339,11 @@ static void schizo_pbm_hw_init(struct pci_pbm_info *pbm)
- }
- 
- static int __devinit schizo_pbm_init(struct pci_controller_info *p,
--				     struct device_node *dp, u32 portid,
-+				     struct of_device *op, u32 portid,
- 				     int chip_type)
- {
- 	const struct linux_prom64_registers *regs;
-+	struct device_node *dp = op->node;
- 	struct pci_pbm_info *pbm;
- 	const char *chipset_name;
- 	int is_pbm_a, err;
-@@ -1422,7 +1424,7 @@ static int __devinit schizo_pbm_init(struct pci_controller_info *p,
- 
- 	schizo_pbm_strbuf_init(pbm);
- 
--	schizo_scan_bus(pbm);
-+	schizo_scan_bus(pbm, &op->dev);
- 
- 	return 0;
- }
-@@ -1437,8 +1439,9 @@ static inline int portid_compare(u32 x, u32 y, int chip_type)
- 	return (x = y);
- }
- 
--static int __devinit __schizo_init(struct device_node *dp, unsigned long chip_type)
-+static int __devinit __schizo_init(struct of_device *op, unsigned long chip_type)
- {
-+	struct device_node *dp = op->node;
- 	struct pci_controller_info *p;
- 	struct pci_pbm_info *pbm;
- 	struct iommu *iommu;
-@@ -1450,7 +1453,7 @@ static int __devinit __schizo_init(struct device_node *dp, unsigned long chip_ty
- 	err = -ENOMEM;
- 	for (pbm = pci_pbm_root; pbm; pbm = pbm->next) {
- 		if (portid_compare(pbm->portid, portid, chip_type)) {
--			if (schizo_pbm_init(pbm->parent, dp,
-+			if (schizo_pbm_init(pbm->parent, op,
- 					    portid, chip_type))
- 				goto out_err;
- 			return 0;
-@@ -1479,7 +1482,7 @@ static int __devinit __schizo_init(struct device_node *dp, unsigned long chip_ty
- 
- 	p->pbm_B.iommu = iommu;
- 
--	if (schizo_pbm_init(p, dp, portid, chip_type))
-+	if (schizo_pbm_init(p, op, portid, chip_type))
- 		goto out_free_iommu_B;
- 
- 	return 0;
-@@ -1500,7 +1503,7 @@ out_err:
- static int __devinit schizo_probe(struct of_device *op,
- 				  const struct of_device_id *match)
- {
--	return __schizo_init(op->node, (unsigned long) match->data);
-+	return __schizo_init(op, (unsigned long) match->data);
- }
- 
- /* The ordering of this table is very important.  Some Tomatillo
-diff --git a/arch/sparc64/kernel/pci_sun4v.c b/arch/sparc64/kernel/pci_sun4v.c
-index 21864f0..4839c50 100644
---- a/arch/sparc64/kernel/pci_sun4v.c
-+++ b/arch/sparc64/kernel/pci_sun4v.c
-@@ -543,7 +543,8 @@ static const struct dma_ops sun4v_dma_ops = {
- 	.sync_sg_for_cpu		= dma_4v_sync_sg_for_cpu,
- };
- 
--static void __init pci_sun4v_scan_bus(struct pci_pbm_info *pbm)
-+static void __init pci_sun4v_scan_bus(struct pci_pbm_info *pbm,
-+				      struct device *parent)
- {
- 	struct property *prop;
- 	struct device_node *dp;
-@@ -551,7 +552,7 @@ static void __init pci_sun4v_scan_bus(struct pci_pbm_info *pbm)
- 	dp = pbm->prom_node;
- 	prop = of_find_property(dp, "66mhz-capable", NULL);
- 	pbm->is_66mhz_capable = (prop != NULL);
--	pbm->pci_bus = pci_scan_one_pbm(pbm);
-+	pbm->pci_bus = pci_scan_one_pbm(pbm, parent);
- 
- 	/* XXX register error interrupt handlers XXX */
- }
-@@ -894,8 +895,9 @@ static void pci_sun4v_msi_init(struct pci_pbm_info *pbm)
- #endif /* !(CONFIG_PCI_MSI) */
- 
- static int __init pci_sun4v_pbm_init(struct pci_controller_info *p,
--				     struct device_node *dp, u32 devhandle)
-+				     struct of_device *op, u32 devhandle)
- {
-+	struct device_node *dp = op->node;
- 	struct pci_pbm_info *pbm;
- 	int err;
- 
-@@ -934,7 +936,7 @@ static int __init pci_sun4v_pbm_init(struct pci_controller_info *p,
- 
- 	pci_sun4v_msi_init(pbm);
- 
--	pci_sun4v_scan_bus(pbm);
-+	pci_sun4v_scan_bus(pbm, &op->dev);
- 
- 	return 0;
- }
-@@ -979,7 +981,7 @@ static int __devinit pci_sun4v_probe(struct of_device *op,
- 
- 	for (pbm = pci_pbm_root; pbm; pbm = pbm->next) {
- 		if (pbm->devhandle = (devhandle ^ 0x40)) {
--			return pci_sun4v_pbm_init(pbm->parent, dp, devhandle);
-+			return pci_sun4v_pbm_init(pbm->parent, op, devhandle);
- 		}
- 	}
- 
-@@ -1015,7 +1017,7 @@ static int __devinit pci_sun4v_probe(struct of_device *op,
- 
- 	p->pbm_B.iommu = iommu;
- 
--	return pci_sun4v_pbm_init(p, dp, devhandle);
-+	return pci_sun4v_pbm_init(p, op, devhandle);
- 
- out_free_iommu_A:
- 	kfree(p->pbm_A.iommu);
++#define MAX_PHYS_ADDRESS	(1UL << 42UL)
++#define KPTE_BITMAP_CHUNK_SZ	(256UL * 1024UL * 1024UL)
++#define KPTE_BITMAP_BYTES	\
++	((MAX_PHYS_ADDRESS / KPTE_BITMAP_CHUNK_SZ) / 8)
++
++extern unsigned long kern_linear_pte_xor[2];
++extern unsigned long kpte_linear_bitmap[KPTE_BITMAP_BYTES / sizeof(unsigned long)];
++extern unsigned int sparc64_highest_unlocked_tlb_ent;
++extern unsigned long sparc64_kern_pri_context;
++extern unsigned long sparc64_kern_pri_nuc_bits;
++extern unsigned long sparc64_kern_sec_context;
++extern void mmu_info(struct seq_file *m);
++
++struct linux_prom_translation {
++	unsigned long virt;
++	unsigned long size;
++	unsigned long data;
++};
++
++/* Exported for kernel TLB miss handling in ktlb.S */
++extern struct linux_prom_translation prom_trans[512];
++extern unsigned int prom_trans_ents;
++
++/* Exported for SMP bootup purposes. */
++extern unsigned long kern_locked_tte_data;
++
++extern void prom_world(int enter);
++
++extern void free_initmem(void);
++
++#ifdef CONFIG_SPARSEMEM_VMEMMAP
++#define VMEMMAP_CHUNK_SHIFT	22
++#define VMEMMAP_CHUNK		(1UL << VMEMMAP_CHUNK_SHIFT)
++#define VMEMMAP_CHUNK_MASK	~(VMEMMAP_CHUNK - 1UL)
++#define VMEMMAP_ALIGN(x)	(((x)+VMEMMAP_CHUNK-1UL)&VMEMMAP_CHUNK_MASK)
++
++#define VMEMMAP_SIZE	((((1UL << MAX_PHYSADDR_BITS) >> PAGE_SHIFT) * \
++			  sizeof(struct page *)) >> VMEMMAP_CHUNK_SHIFT)
++extern unsigned long vmemmap_table[VMEMMAP_SIZE];
++#endif
++
++#endif /* _SPARC64_MM_INIT_H */
 -- 
 1.5.6.5.GIT
 
