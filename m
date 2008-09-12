@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 09 Sep 2008 23:13:05 +0000
+Date: Fri, 12 Sep 2008 22:59:41 +0000
 Subject: [GIT]: Sparc
-Message-Id: <20080909.161305.140912606.davem@davemloft.net>
+Message-Id: <20080912.155941.143908227.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080421.153231.108090227.davem@davemloft.net>
 In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
@@ -12,22 +12,43 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-I had always gotten strange wedges when hot plugging cpus on
-Niagara boxes via the hypervisor, and I think the following
-bug spotted by Paul McKenney finally nails it.
+1) On sparc32, of_bus_sbus_get_flags() has wrong types for the
+   function pointer it gets assigned to.
+
+2) Meelis Roos reported e3500 bootup failures:
+   a) PCI controller interrupt register code was using a fixed
+      table (which was missing some entries), when in fact the
+      values can be computed using a simple formula from the
+      programmers manual.
+   b) IRQs for PCI controller error interrupts can be shared,
+      so we have to pass IRQF_SHARED to request_irq()
+
+   There are still some problems with this system, some devices
+   aren't showing up, but for the most part the machine is working
+   now.
+
+3) user_regset->n values were wrong on sparc, resuling in improperly
+   sized core file sections.
 
 Please pull, thanks a lot.
 
-The following changes since commit 4d084617fb0d025c42c242362d1f27d337e2d407:
-  Paul E. McKenney (1):
-        sparc64: Prevent sparc64 from invoking irq handlers on offline CPUs
+The following changes since commit 2eb2f77900d62796934bcd43c4089e444cf1179e:
+  David S. Miller (1):
+        sparc64: Disable timer interrupts in fixup_irqs().
 
 are available in the git repository at:
 
   master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
 
-David S. Miller (1):
-      sparc64: Disable timer interrupts in fixup_irqs().
+David S. Miller (4):
+      sparc64: Fix interrupt register calculations on Psycho and Sabre.
+      sparc32: Fix function signature of of_bus_sbus_get_flags().
+      sparc64: Fix PCI error interrupt registry on PSYCHO.
+      sparc: Fix user_regset 'n' field values.
 
- arch/sparc64/kernel/irq.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ arch/sparc/kernel/of_device.c    |    2 +-
+ arch/sparc/kernel/ptrace.c       |    4 +-
+ arch/sparc64/kernel/pci_psycho.c |    6 +-
+ arch/sparc64/kernel/prom.c       |  104 ++-----------------------------------
+ arch/sparc64/kernel/ptrace.c     |    8 ++--
+ 5 files changed, 16 insertions(+), 108 deletions(-)
