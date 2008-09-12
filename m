@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 12 Sep 2008 21:47:55 +0000
-Subject: [PATCH 2/16]: sparc64: Fix sparse warnings in global reg
-Message-Id: <20080912.144755.91176831.davem@davemloft.net>
+Date: Fri, 12 Sep 2008 21:47:52 +0000
+Subject: [PATCH 1/16]: sparc64: Add __arch64__ to CHECKFLAGS
+Message-Id: <20080912.144752.266830543.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,58 +9,33 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-sparc64: Fix sparse warnings in global reg snapshotting.
+sparc64: Add __arch64__ to CHECKFLAGS
 
-Lots of shadowed local variables and global_reg_snapshot[] needs
-an extern declaration in asm/ptrace_64.h.
+Otherwise sparse doesn't work.  The 32 vs. 64 header ifdef
+used under arch/sparc/include/asm/ is:
+
+#if defined(__sparc__) && defined(__arch64__)
+
+And that doesn't work for sparse unless we give it __arch64__
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/include/asm/ptrace_64.h |    3 +++
- arch/sparc64/kernel/process.c      |    2 --
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ arch/sparc64/Makefile |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/sparc/include/asm/ptrace_64.h b/arch/sparc/include/asm/ptrace_64.h
-index 06e4914..3d3e9c1 100644
---- a/arch/sparc/include/asm/ptrace_64.h
-+++ b/arch/sparc/include/asm/ptrace_64.h
-@@ -113,6 +113,8 @@ struct sparc_trapf {
+diff --git a/arch/sparc64/Makefile b/arch/sparc64/Makefile
+index b785a39..c7214ab 100644
+--- a/arch/sparc64/Makefile
++++ b/arch/sparc64/Makefile
+@@ -7,7 +7,7 @@
+ # Copyright (C) 1998 Jakub Jelinek (jj@ultra.linux.cz)
+ #
  
- #ifdef __KERNEL__
+-CHECKFLAGS	+= -D__sparc__ -D__sparc_v9__ -m64
++CHECKFLAGS	+= -D__sparc__ -D__sparc_v9__ -D__arch64__ -m64
  
-+#include <linux/threads.h>
-+
- static inline int pt_regs_trap_type(struct pt_regs *regs)
- {
- 	return regs->magic & 0x1ff;
-@@ -138,6 +140,7 @@ struct global_reg_snapshot {
- 	struct thread_info	*thread;
- 	unsigned long		pad1;
- };
-+extern struct global_reg_snapshot global_reg_snapshot[NR_CPUS];
- 
- #define __ARCH_WANT_COMPAT_SYS_PTRACE
- 
-diff --git a/arch/sparc64/kernel/process.c b/arch/sparc64/kernel/process.c
-index 11bb6c4..d5e2ace 100644
---- a/arch/sparc64/kernel/process.c
-+++ b/arch/sparc64/kernel/process.c
-@@ -215,7 +215,6 @@ static void __global_reg_self(struct thread_info *tp, struct pt_regs *regs,
- 	global_reg_snapshot[this_cpu].o7 = regs->u_regs[UREG_I7];
- 
- 	if (regs->tstate & TSTATE_PRIV) {
--		struct thread_info *tp = current_thread_info();
- 		struct reg_window *rw;
- 
- 		rw = (struct reg_window *)
-@@ -271,7 +270,6 @@ void __trigger_all_cpu_backtrace(void)
- 
- 	for_each_online_cpu(cpu) {
- 		struct global_reg_snapshot *gp = &global_reg_snapshot[cpu];
--		struct thread_info *tp;
- 
- 		__global_reg_poll(gp);
- 
+ # Undefine sparc when processing vmlinux.lds - it is used
+ # And teach CPP we are doing 64 bit builds (for this case)
 -- 
 1.5.6.5.GIT
 
