@@ -1,58 +1,41 @@
 From: David Miller <davem@davemloft.net>
-Date: Sat, 13 Sep 2008 04:18:54 +0000
-Subject: [PATCH 0/2]: Allow 8250 to work on sparc.
-Message-Id: <20080912.211854.102505246.davem@davemloft.net>
+Date: Fri, 12 Sep 2008 21:49:36 +0000
+Subject: [PATCH 13/16]: sparc64: Remove explicit initialization of
+Message-Id: <20080912.144936.192761075.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-serial@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, joy@entuzijast.net
+To: sparclinux@vger.kernel.org
 
 
-Currently there is a "BROKEN || SPARC" dependency for CONFIG_SERIAL_8250
-in drivers/serial/Kconfig.  These changes try to eliminate that restriction
-so that Sparc users can use add-on PCI cards with 8250 serial controllers.
+sparc64: Remove explicit initialization of mmu_gathers
 
-The core issue that prevents this from working is that all of the onboard
-Sun specific serial drivers use the major=TTY_MAJOR, minord,65,66,...
-driver major/minor namespace, just like 8250.
+This was just needed to work around an ancient gcc bug that
+we don't care about any more.
 
-They coordinate amongst themselves using an internal allocator for the
-minor number space.  This is contained in drivers/serial/suncore.c
+It was also causing a sparse warnings:
 
-This presents two problems:
+arch/sparc64/mm/tlb.c:22:52: warning: Using plain integer as NULL pointer
 
-1) We have to make sure the Sun drivers register first, so that their
-   device indexes don't change and thus people get broken serial consoles
-   and stuff like that.
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc64/mm/tlb.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-2) Also, it is necessary for 8250 to partake in this minor number
-   allocation scheme, otherwise it cannot register because it'll try
-   to use '64' as it's base minor number and one of the Sun serial drivers
-   will have taken over that minor already.
+diff --git a/arch/sparc64/mm/tlb.c b/arch/sparc64/mm/tlb.c
+index ae24919..d8f21e2 100644
+--- a/arch/sparc64/mm/tlb.c
++++ b/arch/sparc64/mm/tlb.c
+@@ -19,7 +19,7 @@
+ 
+ /* Heavily inspired by the ppc64 code.  */
+ 
+-DEFINE_PER_CPU(struct mmu_gather, mmu_gathers) = { 0, };
++DEFINE_PER_CPU(struct mmu_gather, mmu_gathers);
+ 
+ void flush_tlb_pending(void)
+ {
+-- 
+1.5.6.5.GIT
 
-Working on this and testing it also uncovered another portability bug.
-The uart_port structure uses an "unsigned int" for the "ioport" member,
-but even I/O ports in PCI devices are 64-bit on sparc64, so the high
-bits were being chopped off when 8250 PCI cards were tested.  The fix
-is to use "unsigned long" for this type and that's what the first patch
-does.
-
-The second patch removes the !SPARC dependency for 8250 and adds the hooks
-to use the Sun serial minor number allocator when registering serial8250_reg
-with the UART layer.
-
-Yes, I know, this part is a bit ugly but I can't think of any workable
-alternative.  I could change all the major/minor numbers all the Sun
-serial drivers use, to get out of the way of 8250's space.  But that
-will break every single Sparc system out there, all the serial device
-names will change as will the serial console device.  I did write a patch
-which does such a set of changes, but I can't see any way in which we can
-consider it seriously.
-
-If there are no objections I'd like to toss this into my sparc-next-2.6
-tree for 2.6.28 inclusion.  Is that OK with everyone?
-
-I'd like to thank Josip Rodin for bringing this to my attention, and
-testing various revisions of these patches.
