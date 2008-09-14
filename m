@@ -1,7 +1,7 @@
 From: Josip Rodin <joy@entuzijast.net>
-Date: Sun, 14 Sep 2008 11:01:16 +0000
+Date: Sun, 14 Sep 2008 11:12:40 +0000
 Subject: Re: 16550 serial support
-Message-Id: <20080914110116.GB7810@orion.carnet.hr>
+Message-Id: <20080914111240.GA10499@orion.carnet.hr>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080911143146.GA24923@orion.carnet.hr>
 In-Reply-To: <20080911143146.GA24923@orion.carnet.hr>
@@ -11,30 +11,45 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 On Sat, Sep 13, 2008 at 09:31:52PM -0700, David Miller wrote:
-> > PCI: Enabling device: (0001:00:03.0), cmd 81
-> > 0001:00:03.0: ttyS2 at I/O 0x10009a0 (irq = 20) is a 16550A
-> > 0001:00:03.0: ttyS3 at I/O 0x10009a8 (irq = 20) is a 16550A
-> > PCI: Enabling device: (0001:00:02.0), cmd 3
-> > 0001:00:02.0: ttyS0 at I/O 0x1000930 (irq = 19) is a 16C950/954
-> > 0001:00:02.0: ttyS1 at I/O 0x1000938 (irq = 19) is a 16C950/954
-> 
-> I see what's happening, uart_report_port() assumes a direct
-> relationship between port->line and the ttyXXX device indexes.
-> But that isn't true in situations where the device major's
-> minor number space is shared between differnt drivers.
-> 
-> The reporting is just wrong, these devices are using ttyS2,
-> ttyS3, ttyS4, and ttyS5.
-> 
-> This patch should fix most cases.
+> @@ -2177,7 +2178,9 @@ uart_report_port(struct uart_driver *drv, struct uart_port *port)
+>  	printk(KERN_INFO "%s%s%s%d at %s (irq = %d) is a %s\n",
+>  	       port->dev ? port->dev->bus_id : "",
+>  	       port->dev ? ": " : "",
+> -	       drv->dev_name, port->line, address, port->irq, uart_type(port));
+> +	       drv->dev_name,
+> +	       drv->tty_driver->name_base + port->line,
+> +	       address, port->irq, uart_type(port));
+>  }
+>  
+>  static void
 
-Phew :) I'll rebuild the kernel with the patch shortly. Thanks!
+BTW, while we're at it - since the data type of uart_port->iobase is larger
+now, the two snprintf()'s which print it out started complaining:
 
-I do wonder, however, why did sunsu register two ports, when there is no
-matching hardware... or maybe there is a chip that provides it, but there
-are no physical ports.
+drivers/serial/serial_core.c: In function 'uart_report_port':
+drivers/serial/serial_core.c:2159: warning: format '%x' expects type 'unsigned int', but argument 4 has type 'long unsigned int'
+drivers/serial/serial_core.c:2159: warning: format '%x' expects type 'unsigned int', but argument 4 has type 'long unsigned int'
+drivers/serial/serial_core.c:2163: warning: format '%x' expects type 'unsigned int', but argument 4 has type 'long unsigned int'
+drivers/serial/serial_core.c:2163: warning: format '%x' expects type 'unsigned int', but argument 4 has type 'long unsigned int'
 
-(I'll go set CONFIG_SERIAL_SUNSU=m rather than =y.)
+After the following trivial patch it goes quiet:
+
+--- drivers/serial/serial_core.c~	2008-09-14 13:08:33.000000000 +0200
++++ drivers/serial/serial_core.c	2008-09-14 13:08:33.000000000 +0200
+@@ -2156,11 +2156,11 @@
+ 	switch (port->iotype) {
+ 	case UPIO_PORT:
+ 		snprintf(address, sizeof(address),
+-			 "I/O 0x%x", port->iobase);
++			 "I/O 0x%lx", port->iobase);
+ 		break;
+ 	case UPIO_HUB6:
+ 		snprintf(address, sizeof(address),
+-			 "I/O 0x%x offset 0x%x", port->iobase, port->hub6);
++			 "I/O 0x%lx offset 0x%x", port->iobase, port->hub6);
+ 		break;
+ 	case UPIO_MEM:
+ 	case UPIO_MEM32:
 
 -- 
      2. That which causes joy or happiness.
