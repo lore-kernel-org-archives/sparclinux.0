@@ -1,7 +1,7 @@
-From: Meelis Roos <mroos@ut.ee>
-Date: Sun, 14 Sep 2008 07:27:21 +0000
+From: David Miller <davem@davemloft.net>
+Date: Sun, 14 Sep 2008 07:41:49 +0000
 Subject: Re: psycho_irq_build: Wacky INO [3c]
-Message-Id: <Pine.SOC.4.64.0809141026240.3619@math.ut.ee>
+Message-Id: <20080914.004149.14266467.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.SOC.4.64.0809101731591.28457@math.ut.ee>
 In-Reply-To: <Pine.SOC.4.64.0809101731591.28457@math.ut.ee>
@@ -10,96 +10,78 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> Remove the CON_BOOT flag from the PROM early console struct in
-> arch/sparc64/kernel/setup.c
+From: Meelis Roos <mroos@ut.ee>
+Date: Sun, 14 Sep 2008 10:27:21 +0300 (EEST)
 
-Still the same, only double. But I might not have reproduced the same 
-config as before, will see that next.
+> Calibrating delay using timer specific routine.. 801.65 BogoMIPS (lpj@08283)
+> Mount-cache hash table entries: 512
+> Fast Data Access MMU Miss
+> {7} ok 
 
-PROMLIB: Sun IEEE Boot Prom 'OBP 3.2.30 2002/10/25 14:03'
-PROMLIB: Root node compatible: 
-Linux version 2.6.27-rc6 (mroos@korvits) (gcc version 4.3.2 (Debian 4.3.2-1) ) #295 SMP Sun Sep 14 07:13:13 EEST 2008
-console [earlyprom0] enabled
-ARCH: SUN4U
-Ethernet address: 08:00:20:b6:ee:e2
-Kernel: Using 2 locked TLB entries for main kernel image.
-Remapping the kernel... done.
-OF stdout device is: /central@1f,0/fhc@0,f8800000/zs@0,902000:a
-PROM: Built device tree with 97708 bytes of memory.
-Top of RAM: 0x4fcfa000, Total RAM: 0x4f8d6000
-Memory hole size: 4MB
-[0000000200000000-fffff80000c00000] page_structs1072 node=0 entry=0/0
-[0000000200000000-fffff80001000000] page_structs1072 node=0 entry=1/0
-[0000000200800000-fffff80001400000] page_structs1072 node=0 entry=2/0
-[0000000200800000-fffff80001800000] page_structs1072 node=0 entry=3/0
-Zone PFN ranges:
-  Normal   0x00000000 -> 0x00027e7d
-Movable zone start PFN for each node
-early_node_map[3] active PFN ranges
-    0: 0x00000000 -> 0x00027bef
-    0: 0x00027e00 -> 0x00027e72
-    0: 0x00027e73 -> 0x00027e7d
-On node 0 totalpages: 162923
-  Normal zone: 161646 pages, LIFO batch:15
-Booting Linux...
-CENTRAL: Detected 5 slot Enterprise system. cfreg[68] cver[78]
-FHC(board 1): Version[1] PartID[fa0] Manuf[3e] (CENTRAL)
-FHC(board 3): Version[1] PartID[fa0] Manuf[3e] (JTAG Master)
-FHC(board 1): Version[1] PartID[fa0] Manuf[3e] 
-FHC(board 5): Version[1] PartID[fa0] Manuf[3e] 
-Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 161646
-Kernel command line: root=/dev/sda2 ro debug
-PID hash table entries: 4096 (order: 12, 32768 bytes)
-clocksource: mult[28000] shift[16]
-clockevent: mult[66666666] shift[32]
-Console: colour dummy device 80x25
-console [tty0] enabled
-PROMLIB: Sun IEEE Boot Prom 'OBP 3.2.30 2002/10/25 14:03'
-PROMLIB: Root node compatible: 
-Linux version 2.6.27-rc6 (mroos@korvits) (gcc version 4.3.2 (Debian 4.3.2-1) ) #295 SMP Sun Sep 14 07:13:13 EEST 2008
-console [earlyprom0] enabled
-ARCH: SUN4U
-Ethernet address: 08:00:20:b6:ee:e2
-Kernel: Using 2 locked TLB entries for main kernel image.
-Remapping the kernel... done.
-OF stdout device is: /central@1f,0/fhc@0,f8800000/zs@0,902000:a
-PROM: Built device tree with 97708 bytes of memory.
-Top of RAM: 0x4fcfa000, Total RAM: 0x4f8d6000
-Memory hole size: 4MB
-[0000000200000000-fffff80000c00000] page_structs1072 node=0 entry=0/0
-[0000000200000000-fffff80001000000] page_structs1072 node=0 entry=1/0
-[0000000200800000-fffff80001400000] page_structs1072 node=0 entry=2/0
-[0000000200800000-fffff80001800000] page_structs1072 node=0 entry=3/0
-Zone PFN ranges:
-  Normal   0x00000000 -> 0x00027e7d
-Movable zone start PFN for each node
-early_node_map[3] active PFN ranges
-    0: 0x00000000 -> 0x00027bef
-    0: 0x00027e00 -> 0x00027e72
-    0: 0x00027e73 -> 0x00027e7d
-On node 0 totalpages: 162923
-  Normal zone: 161646 pages, LIFO batch:15
-Booting Linux...
-CENTRAL: Detected 5 slot Enterprise system. cfreg[68] cver[78]
-FHC(board 1): Version[1] PartID[fa0] Manuf[3e] (CENTRAL)
-FHC(board 3): Version[1] PartID[fa0] Manuf[3e] (JTAG Master)
-FHC(board 1): Version[1] PartID[fa0] Manuf[3e] 
-FHC(board 5): Version[1] PartID[fa0] Manuf[3e] 
-Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 161646
-Kernel command line: root=/dev/sda2 ro debug
-PID hash table entries: 4096 (order: 12, 32768 bytes)
-clocksource: mult[28000] shift[16]
-clockevent: mult[66666666] shift[32]
-Console: colour dummy device 80x25
-console [tty0] enabled
-Dentry cache hash table entries: 262144 (order: 8, 2097152 bytes)
-Inode-cache hash table entries: 131072 (order: 7, 1048576 bytes)
-Memory: 1276264k available (2856k kernel code, 1136k data, 168k init) [fffff80000000000,000000004fcfa000]
-SLUB: Genslabs, HWalign2, Order=0-3, MinObjects=0, CPUs=8, Nodes=1
-Calibrating delay using timer specific routine.. 801.65 BogoMIPS (lpj@08283)
-Mount-cache hash table entries: 512
-Fast Data Access MMU Miss
-{7} ok 
+That's very very strange.  What's the most odd is that the firmware message
+and error is from cpu #7, which from your e3500 prtconf we shouldn't even
+be running on yet.  The system should boot on cpu #6.  So I suspect that
+perhaps we are somehow corrupting some piece of firmware state on cpu #6
+and this is why cpu #7 crashes us out to the firmware prompt.
 
--- 
-Meelis Roos (mroos@ut.ee)      http://www.cs.ut.ee/~mroos/
+The next non-trivial thing done in the boot sequence is mem_init() and that
+prints a log message, which we aren't seeing here.
+
+So here is a debugging patch that will trace the execution of mem_init() so
+that we can perhaps figure out which part causes this crash.
+
+Another thing you can do is type ".registers" when you get that firmware
+prompt after the crash.  It will spit out some cpu state.
+
+diff --git a/arch/sparc64/mm/init.c b/arch/sparc64/mm/init.c
+index a41df7b..cb45e12 100644
+--- a/arch/sparc64/mm/init.c
++++ b/arch/sparc64/mm/init.c
+@@ -1894,6 +1894,9 @@ void __init mem_init(void)
+ 	unsigned long addr, last;
+ 	int i;
+ 
++#if 1
++	prom_printf("mem_init(): ENTER\n");
++#endif
+ 	i = last_valid_pfn >> ((22 - PAGE_SHIFT) + 6);
+ 	i += 1;
+ 	sparc64_valid_addr_bitmap = (unsigned long *) alloc_bootmem(i << 3);
+@@ -1901,6 +1904,10 @@ void __init mem_init(void)
+ 		prom_printf("mem_init: Cannot alloc valid_addr_bitmap.\n");
+ 		prom_halt();
+ 	}
++#if 1
++	prom_printf("mem_init(): memset() on sparc64_valid_addr_bitmap(%p)\n",
++		sparc64_valid_addr_bitmap);
++#endif
+ 	memset(sparc64_valid_addr_bitmap, 0, i << 3);
+ 
+ 	addr = PAGE_OFFSET + kern_base;
+@@ -1910,10 +1917,16 @@ void __init mem_init(void)
+ 		addr += PAGE_SIZE;
+ 	}
+ 
++#if 1
++	prom_printf("mem_init(): setup_valid_addr_bitmap_from_pavail()\n");
++#endif
+ 	setup_valid_addr_bitmap_from_pavail();
+ 
+ 	high_memory = __va(last_valid_pfn << PAGE_SHIFT);
+ 
++#if 1
++	prom_printf("mem_init(): free_bootmem()\n");
++#endif
+ #ifdef CONFIG_NEED_MULTIPLE_NODES
+ 	for_each_online_node(i) {
+ 		if (NODE_DATA(i)->node_spanned_pages != 0) {
+@@ -1935,6 +1948,9 @@ void __init mem_init(void)
+ 	 * Set up the zero page, mark it reserved, so that page count
+ 	 * is not manipulated when freeing the page from user ptes.
+ 	 */
++#if 1
++	prom_printf("mem_init(): Allocate mem_map_zero()\n");
++#endif
+ 	mem_map_zero = alloc_pages(GFP_KERNEL|__GFP_ZERO, 0);
+ 	if (mem_map_zero = NULL) {
+ 		prom_printf("paging_init: Cannot alloc zero page.\n");
