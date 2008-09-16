@@ -1,30 +1,47 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Date: Tue, 16 Sep 2008 10:54:00 +0000
+From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
+Date: Tue, 16 Sep 2008 13:15:43 +0000
 Subject: Re: Allow 8250 to work on sparc.
-Message-Id: <20080916115400.31522d77@lxorguk.ukuu.org.uk>
+Message-Id: <Pine.LNX.4.61.0809161343450.25955@mtfhpc.demon.co.uk>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080912.211854.102505246.davem@davemloft.net>
-	<Pine.LNX.4.61.0809151507250.23201@mtfhpc.demon.co.uk>
-	<20080915172211.6751bb17@the-village.bc.nu>
-	<Pine.LNX.4.61.0809151934040.23817@mtfhpc.demon.co.uk>
-In-Reply-To: <Pine.LNX.4.61.0809151934040.23817@mtfhpc.demon.co.uk>
+ <Pine.LNX.4.61.0809151507250.23201@mtfhpc.demon.co.uk>
+ <20080915172211.6751bb17@the-village.bc.nu> <Pine.LNX.4.61.0809151934040.23817@mtfhpc.demon.co.uk>
+ <20080916115400.31522d77@lxorguk.ukuu.org.uk>
+In-Reply-To: <20080916115400.31522d77@lxorguk.ukuu.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mark Fortescue <mark@mtfhpc.demon.co.uk>
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Cc: David Miller <davem@davemloft.net>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, joy@entuzijast.net
 
-> I am intrigued. Other than the valid baud rates what differences are 
-> visible at the user level?
+Hi Alan,
 
-There are lots of variations between hardware of all kinds but the big
-one with USB devices is generally latency.
+On Tue, 16 Sep 2008, Alan Cox wrote:
 
-> Yes, but I have not found a simple way to configure it to add serial port 
-> devices to the next available /dev/ttyS<xx>. If this was the default, it 
-> would be much easier for me :). (I am assuming that all the different 
+>> I am intrigued. Other than the valid baud rates what differences are
+>> visible at the user level?
+>
+> There are lots of variations between hardware of all kinds but the big
+> one with USB devices is generally latency.
+>
 
-That still isn't a kernel problem but a udev one and one for the udev
-lists ?
+At the driver level there are lots of varients but I was under the 
+impression that at the user level, the interface is common for async 
+serial ports.
 
-Alan
+Latency can be an issue, but can it be read/changed via the user <-> 
+kernel interface in a way that is not common to all async serial ports?
+
+If not, it is transparent at the programming interface for user level code 
+so the USB serial ports are no different at this level to classic PC AT 
+serial ports and as such I see no reason why, in the long run, they should 
+not share minor number space.
+
+Taking the argument to its logical conclusion, all devices that have a 
+common user <-> kernel interface should have device drivers that are 
+capable of sharing minor device number space.
+
+I am sure this discusion will crop up again in the future :).
+
+Regards
+ 	Mark.
