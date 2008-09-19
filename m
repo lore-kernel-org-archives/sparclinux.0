@@ -1,262 +1,222 @@
-From: Robert Reif <reif@earthlink.net>
-Date: Fri, 26 Sep 2008 11:47:57 +0000
-Subject: PATCH sun4m interrupt mask cleanup
-Message-Id: <48DCCBED.3080408@earthlink.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------050405000909000502080705"
+From: David Miller <davem@davemloft.net>
+Date: Fri, 19 Sep 2008 22:38:51 +0000
+Subject: [PATCH 2/13]: sparc32: Use PROM infrastructure for probing and
+Message-Id: <20080919.153851.245155034.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------050405000909000502080705
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 
-Here is an updated version of a patch I wrote 6 years ago
-http://marc.info/?l=linux-sparc&m=103939103607617&w=2
-that simplifies interrupt mask lookup.  It's main purpose
-is to add VME bus support but it's really a cleanup of the mask code.
+sparc32: Use PROM infrastructure for probing and mapping sun4d timers.
 
-Signed-off-by: Robert Reif <reif@earthlink.net>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/include/asm/timer_32.h |   13 ----
+ arch/sparc/kernel/sun4d_irq.c     |  139 ++++++++++++++++++++++---------------
+ 2 files changed, 83 insertions(+), 69 deletions(-)
 
-
-
---------------050405000909000502080705
-Content-Type: text/plain;
- name="vmeirq.diff.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="vmeirq.diff.txt"
-
-diff --git a/arch/sparc/kernel/sun4m_irq.c b/arch/sparc/kernel/sun4m_irq.c
-index ec66d4a..f103171 100644
---- a/arch/sparc/kernel/sun4m_irq.c
-+++ b/arch/sparc/kernel/sun4m_irq.c
-@@ -71,8 +71,9 @@ struct sun4m_irq_global __iomem *sun4m_irq_global;
+diff --git a/arch/sparc/include/asm/timer_32.h b/arch/sparc/include/asm/timer_32.h
+index 8906e98..860a05e 100644
+--- a/arch/sparc/include/asm/timer_32.h
++++ b/arch/sparc/include/asm/timer_32.h
+@@ -35,19 +35,6 @@ struct sun4c_timer_info {
  
- #define	SUN4M_INT_MASKALL	0x80000000	  /* mask all interrupts */
- #define	SUN4M_INT_MODULE_ERR	0x40000000	  /* module error */
--#define	SUN4M_INT_M2S_WRITE	0x20000000	  /* write buffer error */
--#define	SUN4M_INT_ECC		0x10000000	  /* ecc memory error */
-+#define	SUN4M_INT_M2S_WRITE_ERR	0x20000000	  /* write buffer error */
-+#define	SUN4M_INT_ECC_ERR	0x10000000	  /* ecc memory error */
-+#define	SUN4M_INT_VME_ERR	0x08000000	  /* vme async error */
- #define	SUN4M_INT_FLOPPY	0x00400000	  /* floppy disk */
- #define	SUN4M_INT_MODULE	0x00200000	  /* module interrupt */
- #define	SUN4M_INT_VIDEO		0x00100000	  /* onboard video */
-@@ -83,10 +84,22 @@ struct sun4m_irq_global __iomem *sun4m_irq_global;
- #define	SUN4M_INT_SERIAL	0x00008000	  /* serial ports */
- #define	SUN4M_INT_KBDMS		0x00004000	  /* keyboard/mouse */
- #define	SUN4M_INT_SBUSBITS	0x00003F80	  /* sbus int bits */
-+#define	SUN4M_INT_VMEBITS	0x0000007F	  /* vme int bits */
-+
-+#define	SUN4M_INT_ERROR		(SUN4M_INT_MODULE_ERR |    \
-+				 SUN4M_INT_M2S_WRITE_ERR | \
-+				 SUN4M_INT_ECC_ERR |       \
-+				 SUN4M_INT_VME_ERR)
+ #define SUN_TIMER_PHYSADDR   0xf3000000
  
- #define SUN4M_INT_SBUS(x)	(1 << (x+7))
- #define SUN4M_INT_VME(x)	(1 << (x))
- 
-+/* Interrupt levels used by OBP */
-+#define	OBP_INT_LEVEL_SOFT	0x10
-+#define	OBP_INT_LEVEL_ONBOARD	0x20
-+#define	OBP_INT_LEVEL_SBUS	0x30
-+#define	OBP_INT_LEVEL_VME	0x40
-+
- /* Interrupt level assignment on sun4m:
-  *
-  *	level		source
-@@ -140,59 +153,57 @@ struct sun4m_irq_global __iomem *sun4m_irq_global;
-  * power:	0x22	onboard power device (XXX unknown mask bit XXX)
-  */
- 
--/* These tables only apply for interrupts greater than 15..
-- * 
-- * any intr value below 0x10 is considered to be a soft-int
-- * this may be useful or it may not.. but that's how I've done it.
-- * and it won't clash with what OBP is telling us about devices.
-- *
-- * take an encoded intr value and lookup if it's valid
-- * then get the mask bits that match from irq_mask
-- *
-- * P3: Translation from irq 0x0d to mask 0x2000 is for MrCoffee.
-- */
--static unsigned char irq_xlate[32] = {
--    /*  0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  a,  b,  c,  d,  e,  f */
--	0,  0,  0,  0,  1,  0,  2,  0,  3,  0,  4,  5,  6, 14,  0,  7,
--	0,  0,  8,  9,  0, 10,  0, 11,  0, 12,  0, 13,  0, 14,  0,  0
+-#define SUN4D_PRM_CNT_L       0x80000000
+-#define SUN4D_PRM_CNT_LVALUE  0x7FFFFC00
+-
+-struct sun4d_timer_regs {
+-	volatile unsigned int l10_timer_limit;
+-	volatile unsigned int l10_cur_countx;
+-	volatile unsigned int l10_limit_noclear;
+-	volatile unsigned int ctrl;
+-	volatile unsigned int l10_cur_count;
 -};
 -
--static unsigned long irq_mask[] = {
--	0,						  /* illegal index */
--	SUN4M_INT_SCSI,				  	  /*  1 irq 4 */
--	SUN4M_INT_ETHERNET,				  /*  2 irq 6 */
--	SUN4M_INT_VIDEO,				  /*  3 irq 8 */
--	SUN4M_INT_REALTIME,				  /*  4 irq 10 */
--	SUN4M_INT_FLOPPY,				  /*  5 irq 11 */
--	(SUN4M_INT_SERIAL | SUN4M_INT_KBDMS),	  	  /*  6 irq 12 */
--	SUN4M_INT_MODULE_ERR,			  	  /*  7 irq 15 */
--	SUN4M_INT_SBUS(0),				  /*  8 irq 2 */
--	SUN4M_INT_SBUS(1),				  /*  9 irq 3 */
--	SUN4M_INT_SBUS(2),				  /* 10 irq 5 */
--	SUN4M_INT_SBUS(3),				  /* 11 irq 7 */
--	SUN4M_INT_SBUS(4),				  /* 12 irq 9 */
--	SUN4M_INT_SBUS(5),				  /* 13 irq 11 */
--	SUN4M_INT_SBUS(6)				  /* 14 irq 13 */
-+static unsigned long irq_mask[0x50] = {
-+	/* SMP */
-+	0,  SUN4M_SOFT_INT(1),
-+	SUN4M_SOFT_INT(2),  SUN4M_SOFT_INT(3),
-+	SUN4M_SOFT_INT(4),  SUN4M_SOFT_INT(5),
-+	SUN4M_SOFT_INT(6),  SUN4M_SOFT_INT(7),
-+	SUN4M_SOFT_INT(8),  SUN4M_SOFT_INT(9),
-+	SUN4M_SOFT_INT(10), SUN4M_SOFT_INT(11),
-+	SUN4M_SOFT_INT(12), SUN4M_SOFT_INT(13),
-+	SUN4M_SOFT_INT(14), SUN4M_SOFT_INT(15),
-+	/* soft */
-+	0,  SUN4M_SOFT_INT(1),
-+	SUN4M_SOFT_INT(2),  SUN4M_SOFT_INT(3),
-+	SUN4M_SOFT_INT(4),  SUN4M_SOFT_INT(5),
-+	SUN4M_SOFT_INT(6),  SUN4M_SOFT_INT(7),
-+	SUN4M_SOFT_INT(8),  SUN4M_SOFT_INT(9),
-+	SUN4M_SOFT_INT(10), SUN4M_SOFT_INT(11),
-+	SUN4M_SOFT_INT(12), SUN4M_SOFT_INT(13),
-+	SUN4M_SOFT_INT(14), SUN4M_SOFT_INT(15),
-+	/* onboard */
-+	0, 0, 0, 0,
-+	SUN4M_INT_SCSI,  0, SUN4M_INT_ETHERNET, 0,
-+	SUN4M_INT_VIDEO, SUN4M_INT_MODULE,
-+	SUN4M_INT_REALTIME, SUN4M_INT_FLOPPY,
-+	(SUN4M_INT_SERIAL | SUN4M_INT_KBDMS),
-+	SUN4M_INT_AUDIO, 0, SUN4M_INT_MODULE_ERR,
-+	/* sbus */
-+	0, 0, SUN4M_INT_SBUS(0), SUN4M_INT_SBUS(1),
-+	0, SUN4M_INT_SBUS(2), 0, SUN4M_INT_SBUS(3),
-+	0, SUN4M_INT_SBUS(4), 0, SUN4M_INT_SBUS(5),
-+	0, SUN4M_INT_SBUS(6), 0, 0,
-+	/* vme */
-+	0, 0, SUN4M_INT_VME(0), SUN4M_INT_VME(1),
-+	0, SUN4M_INT_VME(2), 0, SUN4M_INT_VME(3),
-+	0, SUN4M_INT_VME(4), 0, SUN4M_INT_VME(5),
-+	0, SUN4M_INT_VME(6), 0, 0
- };
+-extern struct sun4d_timer_regs *sun4d_timers;
+-
+ extern __volatile__ unsigned int *master_l10_counter;
+ extern __volatile__ unsigned int *master_l10_limit;
  
- static unsigned long sun4m_get_irqmask(unsigned int irq)
+diff --git a/arch/sparc/kernel/sun4d_irq.c b/arch/sparc/kernel/sun4d_irq.c
+index 12541f5..4156bf6 100644
+--- a/arch/sparc/kernel/sun4d_irq.c
++++ b/arch/sparc/kernel/sun4d_irq.c
+@@ -45,7 +45,16 @@
+ /* If you trust current SCSI layer to handle different SCSI IRQs, enable this. I don't trust it... -jj */
+ /* #define DISTRIBUTE_IRQS */
+ 
+-struct sun4d_timer_regs *sun4d_timers;
++struct sun4d_timer_regs {
++	u32	l10_timer_limit;
++	u32	l10_cur_countx;
++	u32	l10_limit_noclear;
++	u32	ctrl;
++	u32	l10_cur_count;
++};
++
++static struct sun4d_timer_regs __iomem *sun4d_timers;
++
+ #define TIMER_IRQ	10
+ 
+ #define MAX_STATIC_ALLOC	4
+@@ -446,8 +455,7 @@ void __init sun4d_distribute_irqs(void)
+  
+ static void sun4d_clear_clock_irq(void)
  {
- 	unsigned long mask;
-     
--	if (irq > 0x20) {
--		/* OBIO/SBUS interrupts */
--		irq &= 0x1f;
--		mask = irq_mask[irq_xlate[irq]];
--		if (!mask)
--			printk("sun4m_get_irqmask: IRQ%d has no valid mask!\n",irq);
--	} else {
--		/* Soft Interrupts will come here.
--		 * Currently there is no way to trigger them but I'm sure
--		 * something could be cooked up.
--		 */
--		irq &= 0xf;
--		mask = SUN4M_SOFT_INT(irq);
--	}
-+	if (irq < 0x50)
-+		mask = irq_mask[irq];
-+	else
-+		mask = 0;
-+
-+	if (!mask)
-+		printk(KERN_ERR "sun4m_get_irqmask: IRQ%d has no valid mask!\n",
-+		       irq);
-+
- 	return mask;
+-	volatile unsigned int clear_intr;
+-	clear_intr = sun4d_timers->l10_timer_limit;
++	sbus_readl(&sun4d_timers->l10_timer_limit);
  }
  
-@@ -247,10 +258,10 @@ static unsigned long cpu_pil_to_imask[16] = {
- /*9*/	SUN4M_INT_SBUS(4) | SUN4M_INT_VME(4) | SUN4M_INT_MODULE_ERR,
- /*10*/	SUN4M_INT_REALTIME,
- /*11*/	SUN4M_INT_SBUS(5) | SUN4M_INT_VME(5) | SUN4M_INT_FLOPPY,
--/*12*/	SUN4M_INT_SERIAL | SUN4M_INT_KBDMS,
--/*13*/	SUN4M_INT_AUDIO,
-+/*12*/	SUN4M_INT_SERIAL  | SUN4M_INT_KBDMS,
-+/*13*/	SUN4M_INT_SBUS(6) | SUN4M_INT_VME(6) | SUN4M_INT_AUDIO,
- /*14*/	SUN4M_INT_E14,
--/*15*/	0x00000000
-+/*15*/	SUN4M_INT_ERROR
- };
- 
- /* We assume the caller has disabled local interrupts when these are called,
-@@ -304,8 +315,7 @@ struct sun4m_timer_global {
- 
- static struct sun4m_timer_global __iomem *timers_global;
- 
--#define OBIO_INTR	0x20
--#define TIMER_IRQ  	(OBIO_INTR | 10)
-+#define TIMER_IRQ  	(OBP_INT_LEVEL_ONBOARD | 10)
- 
- unsigned int lvl14_resolution = (((1000000/HZ) + 1) << 10);
- 
-@@ -314,6 +324,33 @@ static void sun4m_clear_clock_irq(void)
- 	sbus_readl(&timers_global->l10_limit);
+ static void sun4d_clear_profile_irq(int cpu)
+@@ -460,71 +468,90 @@ static void sun4d_load_profile_irq(int cpu, unsigned int limit)
+ 	bw_set_prof_limit(cpu, limit);
  }
  
-+void sun4m_nmi(struct pt_regs *regs)
-+{
-+	unsigned long afsr, afar, si;
-+
-+	printk(KERN_ERR "Aieee: sun4m NMI received!\n");
-+	/* XXX HyperSparc hack XXX */
-+	__asm__ __volatile__("mov 0x500, %%g1\n\t"
-+			     "lda [%%g1] 0x4, %0\n\t"
-+			     "mov 0x600, %%g1\n\t"
-+			     "lda [%%g1] 0x4, %1\n\t" :
-+			     "=r" (afsr), "=r" (afar));
-+	printk(KERN_ERR "afsr=%08lx afar=%08lx\n", afsr, afar);
-+	si = sbus_readl(&sun4m_irq_global->pending);
-+	printk(KERN_ERR "si=%08lx\n", si);
-+	if (si & SUN4M_INT_MODULE_ERR)
-+		printk(KERN_ERR "Module async error\n");
-+	if (si & SUN4M_INT_M2S_WRITE_ERR)
-+		printk(KERN_ERR "MBus/SBus async error\n");
-+	if (si & SUN4M_INT_ECC_ERR)
-+		printk(KERN_ERR "ECC memory error\n");
-+	if (si & SUN4M_INT_VME_ERR)
-+		printk(KERN_ERR "VME async error\n");
-+	printk(KERN_ERR "you lose buddy boy...\n");
-+	show_regs(regs);
-+	prom_halt();
+-static void __init sun4d_init_timers(irq_handler_t counter_fn)
++static void __init sun4d_load_profile_irqs(void)
+ {
+-	int irq;
+-	int cpu;
+-	struct resource r;
+-	int mid;
++	int cpu = 0, mid;
+ 
+-	/* Map the User Timer registers. */
+-	memset(&r, 0, sizeof(r));
++	while (!cpu_find_by_instance(cpu, NULL, &mid)) {
++		sun4d_load_profile_irq(mid >> 3, 0);
++		cpu++;
++	}
 +}
 +
- /* Exported for sun4m_smp.c */
- void sun4m_clear_profile_irq(int cpu)
- {
-diff --git a/arch/sparc/kernel/traps.c b/arch/sparc/kernel/traps.c
-index 5d45d5f..2b7d506 100644
---- a/arch/sparc/kernel/traps.c
-+++ b/arch/sparc/kernel/traps.c
-@@ -43,23 +43,6 @@ void syscall_trace_exit(struct pt_regs *regs)
- {
++static void __init sun4d_fixup_trap_table(void)
++{
+ #ifdef CONFIG_SMP
+-	r.start = CSR_BASE(boot_cpu_id)+BW_TIMER_LIMIT;
+-#else
+-	r.start = CSR_BASE(0)+BW_TIMER_LIMIT;
++	unsigned long flags;
++	extern unsigned long lvl14_save[4];
++	struct tt_entry *trap_table = &sparc_ttable[SP_TRAP_IRQ1 + (14 - 1)];
++	extern unsigned int real_irq_entry[], smp4d_ticker[];
++	extern unsigned int patchme_maybe_smp_msg[];
++
++	/* Adjust so that we jump directly to smp4d_ticker */
++	lvl14_save[2] += smp4d_ticker - real_irq_entry;
++
++	/* For SMP we use the level 14 ticker, however the bootup code
++	 * has copied the firmware's level 14 vector into the boot cpu's
++	 * trap table, we must fix this now or we get squashed.
++	 */
++	local_irq_save(flags);
++	patchme_maybe_smp_msg[0] = 0x01000000; /* NOP out the branch */
++	trap_table->inst_one = lvl14_save[0];
++	trap_table->inst_two = lvl14_save[1];
++	trap_table->inst_three = lvl14_save[2];
++	trap_table->inst_four = lvl14_save[3];
++	local_flush_cache_all();
++	local_irq_restore(flags);
+ #endif
+-	r.flags = 0xf;
+-	sun4d_timers = (struct sun4d_timer_regs *) of_ioremap(&r, 0,
+-	    PAGE_SIZE, "user timer");
++}
++
++static void __init sun4d_init_timers(irq_handler_t counter_fn)
++{
++	struct device_node *dp;
++	struct resource res;
++	const u32 *reg;
++	int err;
++
++	dp = of_find_node_by_name(NULL, "cpu-unit");
++	if (!dp) {
++		prom_printf("sun4d_init_timers: Unable to find cpu-unit\n");
++		prom_halt();
++	}
++
++	/* Which cpu-unit we use is arbitrary, we can view the bootbus timer
++	 * registers via any cpu's mapping.  The first 'reg' property is the
++	 * bootbus.
++	 */
++	reg = of_get_property(dp, "reg", NULL);
++	if (!reg) {
++		prom_printf("sun4d_init_timers: No reg property\n");
++		prom_halt();
++	}
++
++	res.start = reg[1];
++	res.end = reg[2] - 1;
++	res.flags = reg[0] & 0xff;
++	sun4d_timers = of_ioremap(&res, BW_TIMER_LIMIT,
++				  sizeof(struct sun4d_timer_regs), "user timer");
++	if (!sun4d_timers) {
++		prom_printf("sun4d_init_timers: Can't map timer regs\n");
++		prom_halt();
++	}
++
++	sbus_writel((((1000000/HZ) + 1) << 10), &sun4d_timers->l10_timer_limit);
+ 
+-	sun4d_timers->l10_timer_limit =  (((1000000/HZ) + 1) << 10);
+ 	master_l10_counter = &sun4d_timers->l10_cur_count;
+ 	master_l10_limit = &sun4d_timers->l10_timer_limit;
+ 
+-	irq = request_irq(TIMER_IRQ,
+-			  counter_fn,
++	err = request_irq(TIMER_IRQ, counter_fn,
+ 			  (IRQF_DISABLED | SA_STATIC_ALLOC),
+ 			  "timer", NULL);
+-	if (irq) {
+-		prom_printf("time_init: unable to attach IRQ%d\n",TIMER_IRQ);
++	if (err) {
++		prom_printf("sun4d_init_timers: request_irq() failed with %d\n", err);
+ 		prom_halt();
+ 	}
+-	
+-	/* Enable user timer free run for CPU 0 in BW */
+-	/* bw_set_ctrl(0, bw_get_ctrl(0) | BW_CTRL_USER_TIMER); */
+-
+-	cpu = 0;
+-	while (!cpu_find_by_instance(cpu, NULL, &mid)) {
+-		sun4d_load_profile_irq(mid >> 3, 0);
+-		cpu++;
+-	}
+-		
+-#ifdef CONFIG_SMP
+-	{
+-		unsigned long flags;
+-		extern unsigned long lvl14_save[4];
+-		struct tt_entry *trap_table = &sparc_ttable[SP_TRAP_IRQ1 + (14 - 1)];
+-		extern unsigned int real_irq_entry[], smp4d_ticker[];
+-		extern unsigned int patchme_maybe_smp_msg[];
+-
+-		/* Adjust so that we jump directly to smp4d_ticker */
+-		lvl14_save[2] += smp4d_ticker - real_irq_entry;
+-
+-		/* For SMP we use the level 14 ticker, however the bootup code
+-		 * has copied the firmware's level 14 vector into the boot cpu's
+-		 * trap table, we must fix this now or we get squashed.
+-		 */
+-		local_irq_save(flags);
+-		patchme_maybe_smp_msg[0] = 0x01000000; /* NOP out the branch */
+-		trap_table->inst_one = lvl14_save[0];
+-		trap_table->inst_two = lvl14_save[1];
+-		trap_table->inst_three = lvl14_save[2];
+-		trap_table->inst_four = lvl14_save[3];
+-		local_flush_cache_all();
+-		local_irq_restore(flags);
+-	}
+-#endif
++	sun4d_load_profile_irqs();
++	sun4d_fixup_trap_table();
  }
  
--void sun4m_nmi(struct pt_regs *regs)
--{
--	unsigned long afsr, afar;
--
--	printk("Aieee: sun4m NMI received!\n");
--	/* XXX HyperSparc hack XXX */
--	__asm__ __volatile__("mov 0x500, %%g1\n\t"
--			     "lda [%%g1] 0x4, %0\n\t"
--			     "mov 0x600, %%g1\n\t"
--			     "lda [%%g1] 0x4, %1\n\t" :
--			     "=r" (afsr), "=r" (afar));
--	printk("afsr=%08lx afar=%08lx\n", afsr, afar);
--	printk("you lose buddy boy...\n");
--	show_regs(regs);
--	prom_halt();
--}
--
- void sun4d_nmi(struct pt_regs *regs)
- {
- 	printk("Aieee: sun4d NMI received!\n");
+ void __init sun4d_init_sbi_irq(void)
+-- 
+1.5.6.5
 
---------------050405000909000502080705--
