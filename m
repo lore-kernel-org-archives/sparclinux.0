@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 12 Sep 2008 22:59:41 +0000
+Date: Fri, 19 Sep 2008 02:28:27 +0000
 Subject: [GIT]: Sparc
-Message-Id: <20080912.155941.143908227.davem@davemloft.net>
+Message-Id: <20080918.192827.202370570.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080421.153231.108090227.davem@davemloft.net>
 In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
@@ -12,43 +12,42 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-1) On sparc32, of_bus_sbus_get_flags() has wrong types for the
-   function pointer it gets assigned to.
+Two bug fixes:
 
-2) Meelis Roos reported e3500 bootup failures:
-   a) PCI controller interrupt register code was using a fixed
-      table (which was missing some entries), when in fact the
-      values can be computed using a simple formula from the
-      programmers manual.
-   b) IRQs for PCI controller error interrupts can be shared,
-      so we have to pass IRQF_SHARED to request_irq()
+1) psycho_pcierr_intr_other() dereferences a NULL pointer.  Root
+   PCI controller config space accesses need to be done by hand.
+   Reported and tested by Meelis Roos on Sun Enterprise 3500.
 
-   There are still some problems with this system, some devices
-   aren't showing up, but for the most part the machine is working
-   now.
+2) We have several methods of booting up cpus, depending upon what
+   features the firmware and/or hypervisor support.  On some of
+   those paths we have to call C code before the current_thread_info()
+   register can be setup properly.
 
-3) user_regset->n values were wrong on sparc, resuling in improperly
-   sized core file sections.
+   By calling C code invokes _mcount when the kernel is built with
+   "-pg" (due to CONFIG_STACK_DEBUG or ftrace being enabled), and
+   _mcount does stack depth checking using the current thread register
+   because that defines the base of the current non-interrupt kernel
+   stack.
 
-Please pull, thanks a lot.
+   Fix this by marking these super-early-init routines as "notrace".
 
-The following changes since commit 2eb2f77900d62796934bcd43c4089e444cf1179e:
-  David S. Miller (1):
-        sparc64: Disable timer interrupts in fixup_irqs().
+   Also reported and tested by Meelis Roos.
+
+Please pull, thanks a lot!
+
+The following changes since commit 6bfb09a1005193be5c81ebac9f3ef85210142650:
+  Linus Torvalds (1):
+        Merge master.kernel.org:/home/rmk/linux-2.6-arm
 
 are available in the git repository at:
 
   master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
 
-David S. Miller (4):
-      sparc64: Fix interrupt register calculations on Psycho and Sabre.
-      sparc32: Fix function signature of of_bus_sbus_get_flags().
-      sparc64: Fix PCI error interrupt registry on PSYCHO.
-      sparc: Fix user_regset 'n' field values.
+David S. Miller (2):
+      sparc64: Fix OOPS in psycho_pcierr_intr_other().
+      sparc64: Fix SMP bootup with CONFIG_STACK_DEBUG or ftrace.
 
- arch/sparc/kernel/of_device.c    |    2 +-
- arch/sparc/kernel/ptrace.c       |    4 +-
- arch/sparc64/kernel/pci_psycho.c |    6 +-
- arch/sparc64/kernel/prom.c       |  104 ++-----------------------------------
- arch/sparc64/kernel/ptrace.c     |    8 ++--
- 5 files changed, 16 insertions(+), 108 deletions(-)
+ arch/sparc64/kernel/irq.c        |    5 +++--
+ arch/sparc64/kernel/pci_psycho.c |    8 +++++---
+ arch/sparc64/kernel/traps.c      |    3 ++-
+ 3 files changed, 10 insertions(+), 6 deletions(-)
