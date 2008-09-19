@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 02 Sep 2008 02:07:09 +0000
-Subject: [PATCH 1/2]: sparc64: Kill the scan_bus function pointer in struct
-Message-Id: <20080901.190709.31328398.davem@davemloft.net>
+Date: Fri, 19 Sep 2008 22:39:24 +0000
+Subject: [PATCH 12/13]: sparc32: Kill irq_rcvreg from sun4m_irq.c
+Message-Id: <20080919.153924.108589184.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,37 +9,42 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-sparc64: Kill the scan_bus function pointer in struct pci_pbm_info.
+sparc32: Kill irq_rcvreg from sun4m_irq.c
 
-No longer used.
+Unused.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc64/kernel/pci_impl.h |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/sparc/kernel/sun4m_irq.c |    8 ++------
+ 1 files changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/arch/sparc64/kernel/pci_impl.h b/arch/sparc64/kernel/pci_impl.h
-index c385d12..4125f75 100644
---- a/arch/sparc64/kernel/pci_impl.h
-+++ b/arch/sparc64/kernel/pci_impl.h
-@@ -146,7 +146,6 @@ struct pci_pbm_info {
- 	unsigned int			pci_first_busno;
- 	unsigned int			pci_last_busno;
- 	struct pci_bus			*pci_bus;
--	void (*scan_bus)(struct pci_pbm_info *);
- 	struct pci_ops			*pci_ops;
+diff --git a/arch/sparc/kernel/sun4m_irq.c b/arch/sparc/kernel/sun4m_irq.c
+index c09ec39..c6096fc 100644
+--- a/arch/sparc/kernel/sun4m_irq.c
++++ b/arch/sparc/kernel/sun4m_irq.c
+@@ -59,9 +59,6 @@ struct sun4m_irq_global {
+ struct sun4m_irq_percpu __iomem *sun4m_irq_percpu[SUN4M_NCPUS];
+ struct sun4m_irq_global __iomem *sun4m_irq_global;
  
- 	int				numa_node;
-@@ -164,7 +163,8 @@ extern int pci_num_pbms;
+-static unsigned long dummy;
+-unsigned long *irq_rcvreg = &dummy;
+-
+ /* Dave Redman (djhr@tadpole.co.uk)
+  * The sun4m interrupt registers.
+  */
+@@ -369,10 +366,9 @@ void __init sun4m_init_IRQ(void)
+ 	for (i = 0; !cpu_find_by_instance(i, NULL, &mid); i++)
+ 		sbus_writel(~0x17fff, &sun4m_irq_percpu[mid]->clear);
  
- /* PCI bus scanning and fixup support. */
- extern void pci_get_pbm_props(struct pci_pbm_info *pbm);
--extern struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm);
-+extern struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
-+					struct device *parent);
- extern void pci_determine_mem_io_space(struct pci_pbm_info *pbm);
- 
- /* Error reporting support. */
+-	if (num_cpu_iregs = 4) {
+-		irq_rcvreg = (unsigned long *) &sun4m_irq_global->interrupt_target;
++	if (num_cpu_iregs = 4)
+ 		sbus_writel(0, &sun4m_irq_global->interrupt_target);
+-	}
++
+ 	BTFIXUPSET_CALL(enable_irq, sun4m_enable_irq, BTFIXUPCALL_NORM);
+ 	BTFIXUPSET_CALL(disable_irq, sun4m_disable_irq, BTFIXUPCALL_NORM);
+ 	BTFIXUPSET_CALL(enable_pil_irq, sun4m_enable_pil_irq, BTFIXUPCALL_NORM);
 -- 
-1.5.6.5.GIT
+1.5.6.5
 
