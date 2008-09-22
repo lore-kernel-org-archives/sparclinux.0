@@ -1,35 +1,40 @@
-From: Hollis Blanchard <hollisb@us.ibm.com>
-Date: Mon, 22 Sep 2008 21:27:40 +0000
+From: David Miller <davem@davemloft.net>
+Date: Mon, 22 Sep 2008 22:14:19 +0000
 Subject: Re: KVM for Sparc?
-Message-Id: <1222118860.3967.61.camel@localhost.localdomain>
+Message-Id: <20080922.151419.180750057.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <f43fc5580809210538r38a29d8dpc74342a2bceea109@mail.gmail.com>
-	 <f43fc5580809210552sdf3ee24w8922ac25f93fb75@mail.gmail.com>
-	 <48D7F33D.90007@codemonkey.ws>
-	 <1222114719.3967.43.camel@localhost.localdomain>
-	 <90eb1dc70809221331r5350d058k3767a0afc3acd45@mail.gmail.com>
-In-Reply-To: <90eb1dc70809221331r5350d058k3767a0afc3acd45@mail.gmail.com>
+References: <1222114719.3967.43.camel@localhost.localdomain>
+	<20080922.132623.23838166.davem@davemloft.net>
+	<1222118751.3967.59.camel@localhost.localdomain>
+In-Reply-To: <1222118751.3967.59.camel@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Javier Guerra <javier@guerrag.com>
-Cc: Anthony Liguori <anthony@codemonkey.ws>, Blue Swirl <blauwirbel@gmail.com>, kvm@vger.kernel.org, sparclinux@vger.kernel.org, John Levon <levon@movementarian.org>
+To: hollisb@us.ibm.com
+Cc: anthony@codemonkey.ws, blauwirbel@gmail.com, kvm@vger.kernel.org, sparclinux@vger.kernel.org, levon@movementarian.org
 
-On Mon, 2008-09-22 at 15:31 -0500, Javier Guerra wrote:
-> On Mon, Sep 22, 2008 at 3:18 PM, Hollis Blanchard <hollisb@us.ibm.com> wrote:
-> > It would be even more interesting to implement host support on the Sparc
-> > processors with hardware virtualization support.
+From: Hollis Blanchard <hollisb@us.ibm.com>
+Date: Mon, 22 Sep 2008 16:25:51 -0500
+
+> On Mon, 2008-09-22 at 13:26 -0700, David Miller wrote:
+> > From: Hollis Blanchard <hollisb@us.ibm.com>
+> > Date: Mon, 22 Sep 2008 15:18:39 -0500
+> > 
+> > > It would be even more interesting to implement host support on the Sparc
+> > > processors with hardware virtualization support.
+> > 
+> > That's just a lot of protocol and userland work, rather than much
+> > kernel stuff.
+> > 
+> > To me it's less interesting, to be honest.
 > 
-> Does Sparc processors also have 'virtualization support' as an extra
-> feature? i thought that 'non virtualizationability' was an
-> intel-specific limitation.  (come on... creating a privileged mode and
-> not trapping violations? who else would design like that?)
+> Not sure what you mean. On IBM POWER servers, the hardware's
+> virtualization support is only accessible to an IBM-developed hypervisor
+> that is packaged with the system. If you're saying Sparc is in the same
+> position, I agree that's not very interesting.
 
-Trapping on privileged instructions is enough to get you virtualization
-functionality, but for good performance you really want additional
-hardware support to avoid those traps in the first place.
+Sun4v systems come with Sun's hypervisor.  Linux simply runs on top
+of that, whether as a host or a guest.
 
--- 
-Hollis Blanchard
-IBM Linux Technology Center
-
+The hypervisor source is opensource and we could technically make
+changes to it, but it isn't very practical.
