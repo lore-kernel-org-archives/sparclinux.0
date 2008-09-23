@@ -1,32 +1,31 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 09 Sep 2008 19:57:14 +0000
-Subject: Re: [PATCH] prevent sparc64 from invoking irq handlers on offline
-Message-Id: <20080909.125714.35737132.davem@davemloft.net>
+From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
+Date: Tue, 23 Sep 2008 13:31:52 +0000
+Subject: kernel crashes on Sun Fire 480R with cassini network driver
+Message-Id: <20080923133152.GC17211@lemon.iwr.uni-heidelberg.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080903154217.GA6807@linux.vnet.ibm.com>
-	<20080908.171708.43575256.davem@davemloft.net>
-	<48C6C520.5070103@colorfullife.com>
-In-Reply-To: <48C6C520.5070103@colorfullife.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: manfred@colorfullife.com
-Cc: paulmck@linux.vnet.ibm.com, linux-kernel@vger.kernel.org, wli@holomorphy.com, sparclinux@vger.kernel.org, akpm@linux-foundation.org
+To: sparclinux@vger.kernel.org
 
-From: Manfred Spraul <manfred@colorfullife.com>
-Date: Tue, 09 Sep 2008 20:49:04 +0200
+Dear list members,
 
-> David Miller wrote:
-> > And IPI handler runs in HW irq context, therefore such an IPI-creates-an-IPI
-> > should not be allowed, at least not directly.
-> >
-> > Actually the restriction seems to be that an IPI cannot be sent when
-> > "irqs_disabled()", hmmm...
-> >
-> >   
-> Does this apply to smp_send_reschedule() as well?
-> A [rare] codepath in the current rcu code does to trigger quiescent states on remote cpus.
+while trying to run vanilla linux-2.6.26.5 or the debian etchnhalf kernel
+(2.6.24.x) I noticed the cassini network driver for the builtin gigabit
+network is unstable and brings the kernel down on a dualprocessor sparc
+SunFire 480R with a Hardware FATAL RESET.
 
-It does work on sparc64.  Such an IPI doesn't do a wait so there would
-be no deadlock issues either.
+Serial output (until the System JTAG SCAN Dump from OBP starts) and 
+the output of dmesg is attached. 
+Please tell me what else would be useful for
+debugging.
 
+Thanks for any help,
+ greetings
+  Hermann
+
+-- 
+Netzwerkadministration/Zentrale Dienste, Interdiziplinaeres 
+Zentrum fuer wissenschaftliches Rechnen der Universitaet Heidelberg
+IWR; INF 368; 69120 Heidelberg; Tel: (06221)54-8236 Fax: -5224
+Email: Hermann.Lauer@iwr.uni-heidelberg.de
