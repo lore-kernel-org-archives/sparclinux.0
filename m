@@ -1,31 +1,26 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 24 Sep 2008 19:28:01 +0000
+Date: Wed, 24 Sep 2008 19:29:02 +0000
 Subject: Re: KVM for Sparc?
-Message-Id: <20080924.122801.151194241.davem@davemloft.net>
+Message-Id: <20080924.122902.64458856.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <f43fc5580809230828i48be0e20m915814138b6a0e84@mail.gmail.com>
-	<20080923.133856.141663278.davem@davemloft.net>
-	<f43fc5580809241020j2b1d885ci8552b5c5302a89d5@mail.gmail.com>
-In-Reply-To: <f43fc5580809241020j2b1d885ci8552b5c5302a89d5@mail.gmail.com>
+References: <f43fc5580809230834k428ab783j7c0778e9eedaa30f@mail.gmail.com>
+	<20080923.134149.136667430.davem@davemloft.net>
+	<f43fc5580809241022l58c5e44cje0574c766f705b49@mail.gmail.com>
+In-Reply-To: <f43fc5580809241022l58c5e44cje0574c766f705b49@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: blauwirbel@gmail.com
-Cc: anthony@codemonkey.ws, kvm@vger.kernel.org, sparclinux@vger.kernel.org, levon@movementarian.org, hollisb@us.ibm.com
+Cc: hollisb@us.ibm.com, anthony@codemonkey.ws, kvm@vger.kernel.org, sparclinux@vger.kernel.org, levon@movementarian.org
 
 From: "Blue Swirl" <blauwirbel@gmail.com>
-Date: Wed, 24 Sep 2008 20:20:33 +0300
+Date: Wed, 24 Sep 2008 20:22:45 +0300
 
-> I see, also Qemu needs to use one more bit then. Does this mean that
-> even V8 code written specially may use these traps to call hypervisor?
+> I'm not sure, but I think that hypervisor is not a real hypervisor
+> like the PROM version but one specially designed for Legion emulator.
 
-No, V8 code should not set the extra bit.  Only V9 code on a processor
-which is hypervisor capable should do this.
+No, it's the real deal.
 
-And the hypervisor calls can only be invoked from privileged mode.
+All the real hardware device support is there.
 
-This is all described in the UltraSPARC Architecture 2005 Specification
-(Hyperprivileged Edition) at:
-
-	http://www.opensparc.net/opensparc-t1/index.html
-
+And Legion simulates a real, full Niagara system.
