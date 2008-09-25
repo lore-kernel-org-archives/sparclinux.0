@@ -1,32 +1,29 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 01 Sep 2008 04:16:55 +0000
-Subject: [PATCH 0/2]: Rewrite central driver
-Message-Id: <20080831.211655.250744471.davem@davemloft.net>
+From: Meelis Roos <mroos@linux.ee>
+Date: Thu, 25 Sep 2008 13:30:05 +0000
+Subject: What is needed for reviving socal?
+Message-Id: <Pine.SOC.4.64.0809251625071.24923@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Hello,
 
-The sparc64 central driver for SUNW,Ultra-Enterprise starfire
-servers was doing several things, some of which are now
-unnecessary:
+what is needed to revive the socal driver in Linux?
 
-1) IRQ register initialization, which is now handled entirely
-   in the IRQ controller mini-driver in
-   arch/sparc64/kernel/of_device.c
+As I understand, it worked some time ago with some version of firmware 
+that had to be cut from a Solaris patch. Then after some other changes 
+in Linux it stopped working and nobody investigated until it was thrown 
+out. Was there something more? I seem to remember that not all firmware 
+versions worked (and the latest didn't work either), but that might have 
+been soc, not socal.
 
-2) Basic programming of per-board registers, such as setting
-   the "I exist" bit in non-central FHC controllers, clearing
-   the firmware semaphore, and clearing the power state bits.
+What would the soft FC stack need - rewrite to use the scsi transport 
+layer? What would such arewrite mean?
 
-3) LED blink
+What experience is needed to do that? We are considering doing it here 
+with a interested stundent, Kait Elbe (CC-d).
 
-#1 can be deleted, and #2 and #3 can be simplified and cleaned
-up massively.
-
-What happens now is that there is a new LED layer driver for
-the sunfire LEDs.  Then a top-level FHC/clock-board driver
-programs the chips and creates the platform_device objects
-which will get used by the LED driver.
+-- 
+Meelis Roos (mroos@linux.ee)
