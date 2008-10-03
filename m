@@ -1,23 +1,56 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 10 Oct 2008 19:12:51 +0000
-Subject: Re: [PATCH] cg6.c disable cursor when leaving graphics mode
-Message-Id: <20081010.121251.113589666.davem@davemloft.net>
+From: "Alexander Beregalov" <a.beregalov@gmail.com>
+Date: Fri, 03 Oct 2008 20:38:32 +0000
+Subject: Re: [PATCH] rtc-m48t59: fix setting of a year on m48t08 and m48t02 rtcs
+Message-Id: <a4423d670810031338u50634dbdk93cf70745c3c9ec7@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <48EF3D2A.9040505@earthlink.net>
-In-Reply-To: <48EF3D2A.9040505@earthlink.net>
+References: <20080904185704.e5c9d1fc.krzysztof.h1@poczta.fm>
+In-Reply-To: <20080904185704.e5c9d1fc.krzysztof.h1@poczta.fm>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Robert Reif <reif@earthlink.net>
-Date: Fri, 10 Oct 2008 07:31:54 -0400
+2008/9/13 Krzysztof Helt <krzysztof.h1@poczta.fm>:
+> On Thu, 11 Sep 2008 14:04:12 +0400
+> "Alexander Beregalov" <a.beregalov@gmail.com> wrote:
+>
+>> Hi
+>>
+>> Is that a different problem?
+>>
+>> 2.6.27-rc6
+>>
+>
+> What kernel version have you used?
+> If it was plain 2.6.27-rc6 there was no rtc layer support yet. Please try the linux-next.
+Yes, it was mainline kernel.
 
-> On sparc32 debian etch, the cursor is not disabled
-> when leaving X windows.  This patch disables the
-> cursor when leaving graphics mode just like the
-> ffb driver.
-> 
-> Signed-off-by: Robert Reif <reif@earthlink.net>
+I have the same issue from time to time on mainline kernel and on
+`davem/sparc-next-2.6.git master`.
+Clock appears to be in the future or in the past (I suppose it is
+actually far in the future)
+after boot from time to time.
+I set it properly by NTP, save hw clock, but after several reboots
+story happens again.
 
-Applied to sparc-next-2.6.
+bus: 'platform': add driver rtc-m48t59
+bus: 'platform': driver_probe_device: matched device rtc-m48t59.0 with
+driver rtc-m48t59
+bus: 'platform': really_probe: probing driver rtc-m48t59 with device
+rtc-m48t59.0
+device: 'rtc0': device_add
+rtc-m48t59 rtc-m48t59.0: rtc core: registered m48t59 as rtc0
+driver: 'rtc-m48t59.0': driver_bound: bound to device 'rtc-m48t59'
+bus: 'platform': really_probe: bound device rtc-m48t59.0 to driver rtc-m48t59
+bus: 'platform': add driver rtc-bq4802
+bus: 'platform': add driver rtc-sun4v
+bus: 'platform': add driver rtc-starfire
+...
+rtc-m48t59 rtc-m48t59.0: setting system clock to 2108-10-03 23:46:02
+UTC (83783866)
+
+At the moment I write it system time is Sun Aug 27 18:04:42 UTC 1972 (83786677).
+
+The hardware is Ultra 10.
+
+How can I help?
