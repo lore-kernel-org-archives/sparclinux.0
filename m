@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 05 Oct 2008 20:57:13 +0000
+From: Elad Lahav <elahav@uwaterloo.ca>
+Date: Mon, 06 Oct 2008 13:15:34 +0000
 Subject: Re: Processor IDs on the Niagara
-Message-Id: <20081005.135713.173042834.davem@davemloft.net>
+Message-Id: <48EA0F76.300@uwaterloo.ca>
 List-Id: <sparclinux.vger.kernel.org>
 References: <48CADADA.7050604@uwaterloo.ca>
 In-Reply-To: <48CADADA.7050604@uwaterloo.ca>
@@ -10,14 +10,11 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: David Miller <davem@davemloft.net>
-Date: Sun, 05 Oct 2008 13:47:11 -0700 (PDT)
+> You didn't even test boot this
+Of course I did. I've been running with a patched kernel for the past couple of weeks, 
+without any problems.
 
-> You didn't even test boot this, you can't change the size of cpuinfo_sparc
-> without fixing all the hardcoded assembler indexing of that structure.
-> 
-> First, you're need to pad it out to the next power of two, then you'd
-> need to update the shift constant macro that all the assembler uses.
+> But I'm really not interested in changing this anyways.
+Up to you.
 
-Sorry, my bad, I was thinking of the trap_info.  That structure
-needs such careful handling, this one doesn't.
+--Elad
