@@ -1,58 +1,24 @@
-From: Robert Reif <reif@earthlink.net>
-Date: Sun, 12 Oct 2008 03:59:06 +0000
-Subject: [PATCH] fix sparc32 build errors
-Message-Id: <48F1760A.9030309@earthlink.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------000900070405040200000606"
+From: David Miller <davem@davemloft.net>
+Date: Mon, 13 Oct 2008 03:52:34 +0000
+Subject: Re: [PATCH] fix sparc32 build errors
+Message-Id: <20081012.205234.193697827.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <48F1760A.9030309@earthlink.net>
+In-Reply-To: <48F1760A.9030309@earthlink.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="windows-1254"
+Content-Transfer-Encoding: base64
 To: sparclinux@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000900070405040200000606
-Content-Type: text/plain; charset="windows-1252"; format="flowed"
-Content-Transfer-Encoding: quoted-printable
-
-arch/sparc/kernel/sun4d_smp.c: In function =91smp4d_callin=92:
-arch/sparc/kernel/sun4d_smp.c:101: error: implicit declaration of=20
-function =91notify_cpu_starting=92
-arch/sparc/kernel/sun4m_smp.c: In function =91smp4m_callin=92:
-arch/sparc/kernel/sun4m_smp.c:74: error: implicit declaration of=20
-function =91notify_cpu_starting=92
-
-Signed-off-by: Robert Reif <reif@earthlink.net>
-
-
-
---------------000900070405040200000606
-Content-Type: text/plain;
- name="cpu.diff.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="cpu.diff.txt"
-
-diff --git a/arch/sparc/kernel/sun4d_smp.c b/arch/sparc/kernel/sun4d_smp.c
-index ce3d45d..7a6a5e7 100644
---- a/arch/sparc/kernel/sun4d_smp.c
-+++ b/arch/sparc/kernel/sun4d_smp.c
-@@ -20,6 +20,7 @@
- #include <linux/swap.h>
- #include <linux/profile.h>
- #include <linux/delay.h>
-+#include <linux/cpu.h>
- 
- #include <asm/ptrace.h>
- #include <asm/atomic.h>
-diff --git a/arch/sparc/kernel/sun4m_smp.c b/arch/sparc/kernel/sun4m_smp.c
-index 0c564ba..5fc386d 100644
---- a/arch/sparc/kernel/sun4m_smp.c
-+++ b/arch/sparc/kernel/sun4m_smp.c
-@@ -17,6 +17,7 @@
- #include <linux/swap.h>
- #include <linux/profile.h>
- #include <linux/delay.h>
-+#include <linux/cpu.h>
- 
- #include <asm/cacheflush.h>
- #include <asm/tlbflush.h>
-
---------------000900070405040200000606--
+RnJvbTogUm9iZXJ0IFJlaWYgPHJlaWZAZWFydGhsaW5rLm5ldD4KRGF0ZTogU2F0LCAxMSBPY3Qg
+MjAwOCAyMzo1OTowNiAtMDQwMAoKPiBhcmNoL3NwYXJjL2tlcm5lbC9zdW40ZF9zbXAuYzogSW4g
+ZnVuY3Rpb24g4oCYc21wNGRfY2FsbGlu4oCZOgo+IGFyY2gvc3BhcmMva2VybmVsL3N1bjRkX3Nt
+cC5jOjEwMTogZXJyb3I6IGltcGxpY2l0IGRlY2xhcmF0aW9uIG9mIGZ1bmN0aW9uIOKAmG5vdGlm
+eV9jcHVfc3RhcnRpbmfigJkKPiBhcmNoL3NwYXJjL2tlcm5lbC9zdW40bV9zbXAuYzogSW4gZnVu
+Y3Rpb24g4oCYc21wNG1fY2FsbGlu4oCZOgo+IGFyY2gvc3BhcmMva2VybmVsL3N1bjRtX3NtcC5j
+Ojc0OiBlcnJvcjogaW1wbGljaXQgZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24g4oCYbm90aWZ5X2Nw
+dV9zdGFydGluZ+KAmQo+IAo+IFNpZ25lZC1vZmYtYnk6IFJvYmVydCBSZWlmIDxyZWlmQGVhcnRo
+bGluay5uZXQ+CgpBcHBsaWVkIHRvIHNwYXJjLTIuNiwgdGhhbmtzIFJvYmVydC4K//Tounsubscr
+ibefromthislisv/sendthelinf/unsubscribesparclinux/inthebodyofamessagetomajor
+domo/vger/kernel/orgMoremajordomoinfoathttr///vger/kernel/org/majordomr/info
+/htmCg==
