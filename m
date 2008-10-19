@@ -1,7 +1,7 @@
 From: "Alexander Beregalov" <a.beregalov@gmail.com>
-Date: Sun, 19 Oct 2008 22:17:09 +0000
+Date: Sun, 19 Oct 2008 23:31:52 +0000
 Subject: Re: [PATCH] rtc-m48t59: fix setting of a year on m48t08 and m48t02 rtcs
-Message-Id: <a4423d670810191517n6d2dba61gc6f7e42c60fdfc76@mail.gmail.com>
+Message-Id: <a4423d670810191631n35b08539jc57e7e19db4ac76e@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080904185704.e5c9d1fc.krzysztof.h1@poczta.fm>
 In-Reply-To: <20080904185704.e5c9d1fc.krzysztof.h1@poczta.fm>
@@ -10,39 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-2008/10/19 Krzysztof Helt <krzysztof.h1@poczta.fm>:
-> On Tue, 14 Oct 2008 02:12:54 +0400
-> "Alexander Beregalov" <a.beregalov@gmail.com> wrote:
+> It seems to me the problem is here:
 >
->> 2008/10/14 Krzysztof Helt <krzysztof.h1@poczta.fm>:
->> > Hi Alexander,
->> Hi
->> >
->> > Please try the patch below if it fixes your problem. You need to set
->> > correct date (year) after the patched kernel is run.
->> Unfortunatelly, it does not work for me.
->>
->> I patch kernel and reboot.
->> I set correct date and save it (hwclock --systohc (from
->> util-linux-2.14)) and reboot.
->> Kernel sets date to
->> rtc-m48t59 rtc-m48t59.0: setting system clock to 2108-10-14 01:32:24
+> drivers/rtc/rtc-m48t59.c
+> static int m48t59_rtc_read_time(struct device *dev, struct rtc_time *tm)
+>
+> /*  tm->tm_year is 108 here */
+>        val = M48T59_READ(M48T59_WDAY);
 
-It seems to me the problem is here:
+M48T59_READ(M48T59_WDAY) is 0x31 on my host
+M48T59_WDAY_CEB | M48T59_WDAY_CB | M48T59_UNUSED ??
 
-drivers/rtc/rtc-m48t59.c
-static int m48t59_rtc_read_time(struct device *dev, struct rtc_time *tm)
+What is wrong?
 
-/*  tm->tm_year is 108 here */
-        val = M48T59_READ(M48T59_WDAY);
-        if ((pdata->type = M48T59RTC_TYPE_M48T59) &&
-            (val & M48T59_WDAY_CEB) && (val & M48T59_WDAY_CB)) {
-                dev_dbg(dev, "Century bit is enabled\n");
-                tm->tm_year += 100;     /* one century */
-        }
-/* tm->tm_year  is 208 here */
+Should BCD2BIN(M48T59_READ(M48T59_YEAR)) return "8" ?
 
-Finally year becomes 2108.
-
-It should not enter this condition.
-Is it obvously how to rewrite the condition or is the problem in another place?
+>        if ((pdata->type = M48T59RTC_TYPE_M48T59) &&
+>            (val & M48T59_WDAY_CEB) && (val & M48T59_WDAY_CB)) {
+>                dev_dbg(dev, "Century bit is enabled\n");
+>                tm->tm_year += 100;     /* one century */
+>        }
+> /* tm->tm_year  is 208 here */
+>
+> Finally year becomes 2108.
+>
+> It should not enter this condition.
+> Is it obvously how to rewrite the condition or is the problem in another place?
+>
