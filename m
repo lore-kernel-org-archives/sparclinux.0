@@ -1,60 +1,83 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 13 Oct 2008 03:57:06 +0000
-Subject: [PATCH]: sparc64: Add missing notify_cpu_starting() call.
-Message-Id: <20081012.205706.66825182.davem@davemloft.net>
+From: Mike Travis <travis@sgi.com>
+Date: Mon, 20 Oct 2008 17:03:33 +0000
+Subject: [PATCH 14/35] cpumask: make nr_cpu_ids valid in all configurations.
+Message-Id: <20081020170321.535939000@polaris-admin.engr.sgi.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20081020170319.539427000@polaris-admin.engr.sgi.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: manfred@colorfullife.com
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>, Rusty Russell <rusty@rustcorp.com.au>
+Cc: davej@codemonkey.org.uk, Jeremy Fitzhardinge <jeremy@goop.org>, Jes Sorensen <jes@sgi.com>, IA64 <linux-ia64@vger.kernel.org>, S390 <linux-s390@vger.kernel.org>, peterz@infradead.org, Jack Steiner <steiner@sgi.com>, linux-kernel@vger.kernel.org, Eric Dumazet <dada1@cosmosbay.com>, PowerPC <linuxppc-dev@ozlabs.org>, Andi Kleen <andi@firstfloor.org>, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yhlu.kernel@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, SPARC <sparclinux@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>
 
+nr_cpu_ids is the (badly named) runtime limit on possible CPU numbers;
+ie. the variable version of NR_CPUS.
 
-Manfred please be much more careful next time.
+This makes is valid in all configs, including UP.
 
-You broke the sparc32 build (missing linux/cpu.h includes), and
-you skipped over sparc64 entirely.
-
-I checked in a fix for the sparc32 build failure and the following
-sparc64 patch to my sparc-2.6 tree to fix this stuff.
-
-And I'll push this off to Linus shortly.
-
-sparc64: Add missing notify_cpu_starting() call.
-
-Commit e545a6140b698b2494daf0b32107bdcc5e901390 ("kernel/cpu.c: create
-a CPU_STARTING cpu_chain notifier") added a notify_cpu_starting()
-notifier event, and hit every arch except sparc64.
-
-Fix that missed case.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Mike Travis <travis@sgi.com>
 ---
- arch/sparc64/kernel/smp.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+ include/linux/cpumask.h |   10 ++++++++--
+ init/main.c             |    7 +++++++
+ 2 files changed, 15 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc64/kernel/smp.c b/arch/sparc64/kernel/smp.c
-index 2be166c..e562711 100644
---- a/arch/sparc64/kernel/smp.c
-+++ b/arch/sparc64/kernel/smp.c
-@@ -21,6 +21,7 @@
- #include <linux/jiffies.h>
- #include <linux/profile.h>
- #include <linux/lmb.h>
-+#include <linux/cpu.h>
+--- test-compile.orig/include/linux/cpumask.h
++++ test-compile/include/linux/cpumask.h
+@@ -195,6 +195,14 @@ extern cpumask_t _unused_cpumask_arg_;
+ #define cpus_addr(src) ((src).bits)
+ /* End deprecated region. */
  
- #include <asm/head.h>
- #include <asm/ptrace.h>
-@@ -115,6 +116,9 @@ void __cpuinit smp_callin(void)
- 	atomic_inc(&init_mm.mm_count);
- 	current->active_mm = &init_mm;
- 
-+	/* inform the notifiers about the new cpu */
-+	notify_cpu_starting(cpuid);
++#if NR_CPUS <= BITS_PER_LONG
++/* Constant is usually more efficient than a variable for small NR_CPUS */
++#define nr_cpu_ids NR_CPUS
++#else
++/* Starts at NR_CPUS until we know better. */
++extern int nr_cpu_ids;
++#endif /* NR_CPUS > BITS_PER_LONG */
 +
- 	while (!cpu_isset(cpuid, smp_commenced_mask))
- 		rmb();
+ static inline void cpumask_set_cpu(int cpu, volatile struct cpumask *dstp)
+ {
+ 	set_bit(cpu, dstp->bits);
+@@ -434,7 +442,6 @@ extern cpumask_t cpu_mask_all;
  
--- 
-1.5.6.5
+ #if NR_CPUS = 1
+ 
+-#define nr_cpu_ids			1
+ #define first_cpu(src)			({ (void)(src); 0; })
+ #define next_cpu(n, src)		({ (void)(src); 1; })
+ #define cpumask_next_and(n, srcp, andp)	({ (void)(srcp), (void)(andp); 1; })
+@@ -447,7 +454,6 @@ extern cpumask_t cpu_mask_all;
+ 
+ #else /* NR_CPUS > 1 */
+ 
+-extern int nr_cpu_ids;
+ int __first_cpu(const cpumask_t *srcp);
+ int __next_cpu(int n, const cpumask_t *srcp);
+ int cpumask_next_and(int n, const cpumask_t *srcp, const cpumask_t *andp);
+--- test-compile.orig/init/main.c
++++ test-compile/init/main.c
+@@ -373,6 +373,8 @@ EXPORT_SYMBOL(cpu_mask_all);
+ #endif
+ 
+ /* Setup number of possible processor ids */
++/* nr_cpu_ids is a real variable for large NR_CPUS. */
++#ifndef nr_cpu_ids
+ int nr_cpu_ids __read_mostly = NR_CPUS;
+ EXPORT_SYMBOL(nr_cpu_ids);
+ 
+@@ -386,6 +388,11 @@ void __init setup_nr_cpu_ids(void)
+ 
+ 	nr_cpu_ids = highest_cpu + 1;
+ }
++#else
++void __init setup_nr_cpu_ids(void)
++{
++}
++#endif /* ... nr_cpu_ids is a constant. */
+ 
+ #ifndef CONFIG_HAVE_SETUP_PER_CPU_AREA
+ unsigned long __per_cpu_offset[NR_CPUS] __read_mostly;
 
+-- 
