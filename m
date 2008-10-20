@@ -1,206 +1,519 @@
-From: Jim Gifford <maillist@jg555.com>
-Date: Mon, 27 Oct 2008 18:03:23 +0000
-Subject: Re: Tulip Driver Issues
-Message-Id: <4906026B.1020202@jg555.com>
+From: Mike Travis <travis@sgi.com>
+Date: Mon, 20 Oct 2008 17:03:25 +0000
+Subject: [PATCH 06/35] cpumask: introduce struct cpumask.
+Message-Id: <20081020170320.427003000@polaris-admin.engr.sgi.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20081020170319.539427000@polaris-admin.engr.sgi.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>, Rusty Russell <rusty@rustcorp.com.au>
+Cc: davej@codemonkey.org.uk, Jeremy Fitzhardinge <jeremy@goop.org>, Jes Sorensen <jes@sgi.com>, IA64 <linux-ia64@vger.kernel.org>, S390 <linux-s390@vger.kernel.org>, peterz@infradead.org, Jack Steiner <steiner@sgi.com>, linux-kernel@vger.kernel.org, Eric Dumazet <dada1@cosmosbay.com>, PowerPC <linuxppc-dev@ozlabs.org>, Andi Kleen <andi@firstfloor.org>, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yhlu.kernel@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, SPARC <sparclinux@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>
 
-Jim Gifford wrote:
-> I originally posted this on the Sparc list, with no solutions yet. I 
-> have included the detail from that email as well, but the newer 
-> kernels are still having the same issue.
->
-> Now I'm running 2.6.27-gentoo and have tried 2.6.26-gentoo.
->
-> The errors are still showing up and still locking up the system randomly.
->
-> mail ~ # mii-tool -v eth0
-> eth0: no autonegotiation, 100baseTx-HD, link ok
->  product info: vendor 00:60:6e, model 4 rev 0
->  basic mode:   autonegotiation enabled
->  basic status: autonegotiation complete, link ok
->  capabilities: 100baseTx-FD 100baseTx-HD 10baseT-FD 10baseT-HD
->  advertising:  100baseTx-FD 100baseTx-HD 10baseT-FD 10baseT-HD
->  link partner: 100baseTx-HD
-> mail ~ # mii-tool -v eth1
-> eth1: no autonegotiation, 100baseTx-HD, link ok
->  product info: vendor 00:60:6e, model 4 rev 0
->  basic mode:   autonegotiation enabled
->  basic status: autonegotiation complete, link ok
->  capabilities: 100baseTx-FD 100baseTx-HD 10baseT-FD 10baseT-HD
->  advertising:  100baseTx-FD 100baseTx-HD 10baseT-FD 10baseT-HD
->  link partner: 100baseTx-HD
-> mail ~ #
-> Oct 26 08:35:03 mail kernel: [488077.248697] 0000:00:0c.0: 
-> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
-> Oct 26 08:35:11 mail kernel: [488085.244689] 0000:00:0c.0: 
-> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
-> Oct 26 08:35:19 mail kernel: [488093.240680] 0000:00:0c.0: 
-> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
-> Oct 26 08:35:27 mail kernel: [488101.236601] 0000:00:0c.0: 
-> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
-> Oct 26 08:35:35 mail kernel: [488109.232606] 0000:00:0c.0: 
-> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
-> Oct 26 08:35:43 mail kernel: [488117.228723] 0000:00:0c.0: 
-> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
-> Oct 26 08:35:51 mail kernel: [488125.224724] 0000:00:0c.0: 
-> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
-> Oct 26 08:35:59 mail kernel: [488133.220705] 0000:00:0c.0: 
-> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
-> Oct 26 08:36:07 mail kernel: [488141.216733] 0000:00:0c.0: 
-> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
-> Oct 26 08:36:15 mail kernel: [488149.212736] 0000:00:0c.0: 
-> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
-> Oct 26 08:36:23 mail kernel: [488157.208619] 0000:00:0c.0: 
-> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
-> Oct 26 08:36:31 mail kernel: [488165.204740] 0000:00:0c.0: 
-> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
-> Oct 26 08:36:39 mail kernel: [488173.200705] 0000:00:0c.0: 
-> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
-> Oct 26 08:36:47 mail kernel: [488181.196633] 0000:00:0c.0: 
-> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
-> Oct 26 08:36:52 mail kernel: [488185.874327] 0000:00:0c.0: 
-> tulip_stop_rxtx() failed (CSR5 0xfc500100 CSR6 0x22ec000)
->
->
->
-> Original Email to Sparc Linux Below
-> -----
->
-> Currently running 2.6.24-gentoo-r8 and 2.6.25-gentoo-r7. Also have 
-> tried the vanilla kernel as well.
->
-> It appears the issues seems to be isolated tot he Sparc X1's my x86's 
-> using the tulip driver are not having the issue.
->
-> Not sure if it's a reporting issue or just a problem with the driver. 
-> Every packet seems to be an error. I've ran out of resources trying to 
-> figure this out on my own, but no luck. Seems to be TX issue only.
->
-> Here's what I'm seeing
->
-> mail ~ # mii-diag eth0
-> Basic registers of MII PHY #1:  2100 780d 0181 b840 01e1 0000 0000 0000.
-> Basic mode control register 0x2100: Auto-negotiation disabled, with
-> Speed fixed at 100 mbps, full-duplex.
-> You have link beat, and everything is working OK.
-> Link partner information is not exchanged when in fixed speed mode.
->  End of basic transceiver information.
->
-> mail ~ # mii-diag eth1
-> Basic registers of MII PHY #1:  2100 780d 0181 b840 01e1 0000 0000 0000.
-> Basic mode control register 0x2100: Auto-negotiation disabled, with
-> Speed fixed at 100 mbps, full-duplex.
-> You have link beat, and everything is working OK.
-> Link partner information is not exchanged when in fixed speed mode.
->  End of basic transceiver information.
->
-> mail ~ # ifconfig
-> eth0      Link encap:Ethernet  HWaddr 00:03:BA:0F:37:73
->         inet addr:172.16.0.50  Bcast:172.16.0.255  Mask:255.255.255.0
->         UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
->         RX packets:147120 errors:0 dropped:0 overruns:0 frame:0
->         TX packets:33290 errors:556 dropped:0 overruns:2 carrier:554
->         collisions:12 txqueuelen:1000
->         RX bytes:11800444 (11.2 Mb)  TX bytes:5032585 (4.7 Mb)
->         Interrupt:9
->
-> eth1      Link encap:Ethernet  HWaddr 00:03:BA:0F:37:74
->         inet addr:10.0.0.50  Bcast:10.0.0.255  Mask:255.255.255.0
->         UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
->         RX packets:3941 errors:0 dropped:0 overruns:0 frame:0
->         TX packets:1 errors:4835 dropped:0 overruns:0 carrier:4835
->         collisions:0 txqueuelen:1000
->         RX bytes:1089347 (1.0 Mb)  TX bytes:54 (54.0 b)
->         Interrupt:10 Base address:0x100
->
-> lo        Link encap:Local Loopback
->         inet addr:127.0.0.1  Mask:255.0.0.0
->         UP LOOPBACK RUNNING  MTU:16436  Metric:1
->         RX packets:51 errors:0 dropped:0 overruns:0 frame:0
->         TX packets:51 errors:0 dropped:0 overruns:0 carrier:0
->         collisions:0 txqueuelen:0
->         RX bytes:3906 (3.8 Kb)  TX bytes:3906 (3.8 Kb)
->
-> Oct  2 23:26:59 mail kernel: [ 9822.736777] NETDEV WATCHDOG: eth0: 
-> transmit timed out
-> Oct  2 23:27:07 mail kernel: [ 9830.732649] NETDEV WATCHDOG: eth0: 
-> transmit timed out
-> Oct  2 23:27:15 mail kernel: [ 9838.728518] NETDEV WATCHDOG: eth0: 
-> transmit timed out
-> Oct  2 23:27:23 mail kernel: [ 9846.724386] NETDEV WATCHDOG: eth0: 
-> transmit timed out
-> Oct  2 23:27:31 mail kernel: [ 9854.720177] NETDEV WATCHDOG: eth0: 
-> transmit timed out
-> Oct  2 23:27:39 mail kernel: [ 9862.716124] NETDEV WATCHDOG: eth0: 
-> transmit timed out
-> Oct  2 23:27:47 mail kernel: [ 9870.711943] NETDEV WATCHDOG: eth0: 
-> transmit timed out
-> Oct  2 23:27:55 mail kernel: [ 9878.707824] NETDEV WATCHDOG: eth0: 
-> transmit timed out
-> Oct  2 23:28:03 mail kernel: [ 9886.703675] NETDEV WATCHDOG: eth0: 
-> transmit timed out
-> Oct  2 23:28:11 mail kernel: [ 9894.699598] NETDEV WATCHDOG: eth0: 
-> transmit timed out
-> Oct  2 23:28:19 mail kernel: [ 9902.695467] NETDEV WATCHDOG: eth0: 
-> transmit timed out
-> Oct  2 23:28:27 mail kernel: [ 9910.691336] NETDEV WATCHDOG: eth0: 
-> transmit timed out
-> Oct  2 23:28:35 mail kernel: [ 9918.687122] NETDEV WATCHDOG: eth0: 
-> transmit timed out
->
->
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-net" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-Was able to get more watching it boot up a bit. Finally got someone to 
-attach a console cable so I can watch it.
+We want to move cpumasks off the stack: no local decls, no passing by
+copy.  We also don't want to allow assignment of them, so we can later
+partially allocate them (ie. not all NR_CPUS bits).
 
-[   77.677266] tulip0: Old style EEPROM with no media selection information.
-[   77.677530] tulip0:  MII transceiver #1 config 1000 status 782d 
-advertising 01e1.
-[   77.680490] eth0: Davicom DM9102/DM9102A rev 49 at Port 
-0x1fe02010000, EEPROM not present, 00:03:ba:0f:37:73, IRQ 9.
-[   77.683206] tulip1: Old style EEPROM with no media selection information.
-[   77.683469] tulip1:  MII transceiver #1 config 1000 status 782d 
-advertising 01e1.
-[   77.686416] eth1: Davicom DM9102/DM9102A rev 49 at Port 
-0x1fe02010100, EEPROM not present, 00:03:ba:0f:37:74, IRQ 10.
-[   78.964507] ioctl32(blogd:622): Unknown cmd fd(0) 
-cmd(40045432){t:'T';sz:4} arg(ffa5db4c) on /dev/console
-[   79.650247] EXT3 FS on hda2, internal journal
-[   80.578195] Adding 1510088k swap on /dev/hda4.  Priority:-1 extents:1 
-across:1510088k
-[ 1120.671137] ------------[ cut here ]------------
-[ 1120.671164] WARNING: at net/sched/sch_generic.c:219 
-dev_watchdog+0x250/0x280()
-[ 1120.671178] NETDEV WATCHDOG: eth0 (tulip): transmit timed out
-[ 1120.671187] Modules linked in: openpromfs tulip
-[ 1120.671203] Call Trace:
-[ 1120.671219]  [00000000005ece50] dev_watchdog+0x250/0x280
-[ 1120.671242]  [000000000045f64c] run_timer_softirq+0x16c/0x1e0
-[ 1120.671260]  [000000000045ab7c] __do_softirq+0x5c/0xe0
-[ 1120.671286]  [000000000042e3f0] do_softirq+0x70/0xa0
-[ 1120.671300]  [000000000045a764] irq_exit+0x84/0xc0
-[ 1120.671316]  [000000000043327c] timer_interrupt+0x5c/0xc0
-[ 1120.671335]  [00000000004209d4] tl0_irq14+0x14/0x20
-[ 1120.671350]  [000000000042803c] cpu_idle+0x1c/0xc0
-[ 1120.671374]  [000000000070c8bc] start_kernel+0x27c/0x2c0
-[ 1120.671389]  [0000000000643684] tlb_fixup_done+0x80/0x9c
-[ 1120.671402]  [0000000000000000] 0x0
-[ 1120.671411] ---[ end trace b22e2d0475606961 ]---
-[ 1120.672767] 0000:00:0c.0: tulip_stop_rxtx() failed (CSR5 0xfc508100 
-CSR6 0x20e8000)
-[ 1128.667904] 0000:00:0c.0: tulip_stop_rxtx() failed (CSR5 0xfc508100 
-CSR6 0x20e8000)
-[ 1136.663348] 0000:00:0c.0: tulip_stop_rxtx() failed (CSR5 0xfc508100 
-CSR6 0x20e8000)
-[ 1144.658798] 0000:00:0c.0: tulip_stop_rxtx() failed (CSR5 0xfc508100 
-CSR6 0x20e8000)
-[ 1152.654254] 0000:00:0c.0: tulip_stop_rxtx() failed (CSR5 0xfc508100 
-CSR6 0x20e8000)
+Unfortunately, all the cpus_* functions are written perversely to take
+cpumask_t not cpumask_t *; although they are in fact wrapper macros.
+This sets a bad example.  Also, we want to eventually make cpumasks an
+undefined struct, so we can catch on-stack usage with a compile error.
 
+So we create a 'struct cpumask', typedef cpumask_t to it during the
+transition, and cleanup all the cpumask operators to be normal
+functions (cpus_ -> cpumask_).  Note that two functions already use
+variants of the new names: they are fixed in the next patch.
+
+From: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Mike Travis <travis@sgi.com>
+---
+ include/linux/cpumask.h |  357 +++++++++++++++++++++++++-----------------------
+ lib/cpumask.c           |    2 
+ 2 files changed, 192 insertions(+), 167 deletions(-)
+
+--- linux-2.6.28.orig/include/linux/cpumask.h
++++ linux-2.6.28/include/linux/cpumask.h
+@@ -5,17 +5,20 @@
+  * Cpumasks provide a bitmap suitable for representing the
+  * set of CPU's in a system, one bit position per CPU number.
+  *
++ * Old-style uses "cpumask_t", but new ops are "struct cpumask *";
++ * don't put "struct cpumask"s on the stack.
++ *
+  * See detailed comments in the file linux/bitmap.h describing the
+  * data type on which these cpumasks are based.
+  *
+  * For details of cpumask_scnprintf() and cpumask_parse_user(),
+- * see bitmap_scnprintf() and bitmap_parse_user() in lib/bitmap.c.
+- * For details of cpulist_scnprintf() and cpulist_parse(), see
+- * bitmap_scnlistprintf() and bitmap_parselist(), also in bitmap.c.
+- * For details of cpu_remap(), see bitmap_bitremap in lib/bitmap.c
+- * For details of cpus_remap(), see bitmap_remap in lib/bitmap.c.
+- * For details of cpus_onto(), see bitmap_onto in lib/bitmap.c.
+- * For details of cpus_fold(), see bitmap_fold in lib/bitmap.c.
++ *     see bitmap_scnprintf() and bitmap_parse_user() in lib/bitmap.c.
++ * For details of cpulist_scnprintf() and cpulist_parse(),
++ *     see bitmap_scnlistprintf() and bitmap_parselist(), in lib/bitmap.c.
++ * For details of cpumask_cpuremap(), see bitmap_bitremap in lib/bitmap.c
++ * For details of cpumask_remap(), see bitmap_remap in lib/bitmap.c.
++ * For details of cpumask_onto(), see bitmap_onto in lib/bitmap.c.
++ * For details of cpumask_fold(), see bitmap_fold in lib/bitmap.c.
+  *
+  * . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+  * Note: The alternate operations with the suffix "_nr" are used
+@@ -33,29 +36,29 @@
+  *
+  * The available cpumask operations are:
+  *
+- * void cpu_set(cpu, mask)		turn on bit 'cpu' in mask
+- * void cpu_clear(cpu, mask)		turn off bit 'cpu' in mask
+- * void cpus_setall(mask)		set all bits
+- * void cpus_clear(mask)		clear all bits
+- * int cpu_isset(cpu, mask)		true iff bit 'cpu' set in mask
+- * int cpu_test_and_set(cpu, mask)	test and set bit 'cpu' in mask
+- *
+- * void cpus_and(dst, src1, src2)	dst = src1 & src2  [intersection]
+- * void cpus_or(dst, src1, src2)	dst = src1 | src2  [union]
+- * void cpus_xor(dst, src1, src2)	dst = src1 ^ src2
+- * void cpus_andnot(dst, src1, src2)	dst = src1 & ~src2
+- * void cpus_complement(dst, src)	dst = ~src
+- *
+- * int cpus_equal(mask1, mask2)		Does mask1 = mask2?
+- * int cpus_intersects(mask1, mask2)	Do mask1 and mask2 intersect?
+- * int cpus_subset(mask1, mask2)	Is mask1 a subset of mask2?
+- * int cpus_empty(mask)			Is mask empty (no bits sets)?
+- * int cpus_full(mask)			Is mask full (all bits sets)?
+- * int cpus_weight(mask)		Hamming weigh - number of set bits
+- * int cpus_weight_nr(mask)		Same using nr_cpu_ids instead of NR_CPUS
++ * void cpumask_set_cpu(cpu, mask)	turn on bit 'cpu' in mask
++ * void cpumask_clear_cpu(cpu, mask)	turn off bit 'cpu' in mask
++ * int cpumask_test_and_set_cpu(cpu, mask) test and set bit 'cpu' in mask
++ * int cpumask_test_cpu(cpu, mask)	true iff bit 'cpu' set in mask
++ * void cpumask_setall(mask)		set all bits
++ * void cpumask_clear(mask)		clear all bits
++ *
++ * void cpumask_and(dst, src1, src2)	dst = src1 & src2  [intersection]
++ * void cpumask_or(dst, src1, src2)	dst = src1 | src2  [union]
++ * void cpumask_xor(dst, src1, src2)	dst = src1 ^ src2
++ * void cpumask_andnot(dst, src1, src2)	dst = src1 & ~src2
++ * void cpumask_complement(dst, src)	dst = ~src
++ *
++ * int cpumask_equal(mask1, mask2)	Does mask1 = mask2?
++ * int cpumask_intersects(mask1, mask2)	Do mask1 and mask2 intersect?
++ * int cpumask_subset(mask1, mask2)	Is mask1 a subset of mask2?
++ * int cpumask_empty(mask)		Is mask empty (no bits sets)?
++ * int cpumask_full(mask)		Is mask full (all bits sets)?
++ * int cpumask_weight(mask)		Hamming weigh - number of set bits
++ * int cpumask_weight_nr(mask)		Same using nr_cpu_ids instead of NR_CPUS
+  *
+- * void cpus_shift_right(dst, src, n)	Shift right
+- * void cpus_shift_left(dst, src, n)	Shift left
++ * void cpumask_shift_right(dst, src, n) Shift right
++ * void cpumask_shift_left(dst, src, n)	Shift left
+  *
+  * int first_cpu(mask)			Number lowest set bit, or NR_CPUS
+  * int next_cpu(cpu, mask)		Next cpu past 'cpu', or NR_CPUS
+@@ -65,7 +68,7 @@
+  *					(can be used as an lvalue)
+  * CPU_MASK_ALL				Initializer - all bits set
+  * CPU_MASK_NONE			Initializer - no bits set
+- * unsigned long *cpus_addr(mask)	Array of unsigned long's in mask
++ * unsigned long *cpumask_bits(mask)	Array of unsigned long's in mask
+  *
+  * CPUMASK_ALLOC kmalloc's a structure that is a composite of many cpumask_t
+  * variables, and CPUMASK_PTR provides pointers to each field.
+@@ -100,12 +103,12 @@
+  *
+  * int cpumask_scnprintf(buf, len, mask) Format cpumask for printing
+  * int cpumask_parse_user(ubuf, ulen, mask)	Parse ascii string as cpumask
+- * int cpulist_scnprintf(buf, len, mask) Format cpumask as list for printing
+- * int cpulist_parse(buf, map)		Parse ascii string as cpulist
++ * int cpumask_scnprintf(buf, len, mask) Format cpumask as list for printing
++ * int cpumask_parse(buf, map)		Parse ascii string as cpumask
+  * int cpu_remap(oldbit, old, new)	newbit = map(old, new)(oldbit)
+- * void cpus_remap(dst, src, old, new)	*dst = map(old, new)(src)
+- * void cpus_onto(dst, orig, relmap)	*dst = orig relative to relmap
+- * void cpus_fold(dst, orig, sz)	dst bits = orig bits mod sz
++ * void cpumask_remap(dst, src, old, new)	*dst = map(old, new)(src)
++ * void cpumask_onto(dst, orig, relmap)	*dst = orig relative to relmap
++ * void cpumask_fold(dst, orig, sz)	dst bits = orig bits mod sz
+  *
+  * for_each_cpu_mask(cpu, mask)		for-loop cpu over mask using NR_CPUS
+  * for_each_cpu_mask_nr(cpu, mask)	for-loop cpu over mask using nr_cpu_ids
+@@ -139,131 +142,217 @@
+ #include <linux/threads.h>
+ #include <linux/bitmap.h>
+ 
+-typedef struct { DECLARE_BITMAP(bits, NR_CPUS); } cpumask_t;
++struct cpumask
++{
++	DECLARE_BITMAP(bits, NR_CPUS);
++};
++#define cpumask_bits(maskp) ((maskp)->bits)
++
++/* Deprecated. */
++typedef struct cpumask cpumask_t;
+ extern cpumask_t _unused_cpumask_arg_;
+ 
+-#define cpu_set(cpu, dst) __cpu_set((cpu), &(dst))
+-static inline void __cpu_set(int cpu, volatile cpumask_t *dstp)
++#define cpu_set(cpu, dst) cpumask_set_cpu((cpu), &(dst))
++#define cpu_clear(cpu, dst) cpumask_clear_cpu((cpu), &(dst))
++#define cpu_test_and_set(cpu, mask) cpumask_test_and_set_cpu((cpu), &(mask))
++/* No static inline type checking - see Subtlety (1) above. */
++#define cpu_isset(cpu, cpumask) test_bit((cpu), (cpumask).bits)
++#define cpus_setall(dst) cpumask_setall(&(dst))
++#define cpus_clear(dst) cpumask_clear(&(dst))
++#define cpus_and(dst, src1, src2) cpumask_and(&(dst), &(src1), &(src2))
++#define cpus_or(dst, src1, src2) cpumask_or(&(dst), &(src1), &(src2))
++#define cpus_xor(dst, src1, src2) cpumask_xor(&(dst), &(src1), &(src2))
++#define cpus_andnot(dst, src1, src2) \
++				cpumask_andnot(&(dst), &(src1), &(src2))
++#define cpus_complement(dst, src) cpumask_complement(&(dst), &(src))
++#define cpus_equal(src1, src2) cpumask_equal(&(src1), &(src2))
++#define cpus_intersects(src1, src2) cpumask_intersects(&(src1), &(src2))
++#define cpus_subset(src1, src2) cpumask_subset(&(src1), &(src2))
++#define cpus_empty(src) cpumask_empty(&(src))
++#define cpus_full(cpumask) cpumask_full(&(cpumask))
++#define cpus_weight(cpumask) cpumask_weight(&(cpumask))
++#define cpus_shift_right(dst, src, n) \
++			cpumask_shift_right(&(dst), &(src), (n))
++#define cpus_shift_left(dst, src, n) \
++			cpumask_shift_left(&(dst), &(src), (n))
++#define cpumask_scnprintf(buf, len, src) \
++			__cpumask_scnprintf((buf), (len), &(src))
++#define cpumask_parse_user(ubuf, ulen, dst) \
++			__cpumask_parse_user((ubuf), (ulen), &(dst))
++#define cpulist_scnprintf(buf, len, src) \
++			__cpulist_scnprintf((buf), (len), &(src))
++#define cpulist_parse(buf, dst) __cpulist_parse((buf), &(dst))
++#define cpu_remap(oldbit, old, new) \
++		cpumask_cpuremap((oldbit), &(old), &(new))
++#define cpus_remap(dst, src, old, new) \
++		cpumask_remap(&(dst), &(src), &(old), &(new))
++#define cpus_onto(dst, orig, relmap) \
++		cpumask_onto(&(dst), &(orig), &(relmap))
++#define cpus_fold(dst, orig, sz) \
++		cpumask_fold(&(dst), &(orig), sz)
++#define cpus_addr(src) ((src).bits)
++/* End deprecated region. */
++
++static inline void cpumask_set_cpu(int cpu, volatile struct cpumask *dstp)
+ {
+ 	set_bit(cpu, dstp->bits);
+ }
+ 
+-#define cpu_clear(cpu, dst) __cpu_clear((cpu), &(dst))
+-static inline void __cpu_clear(int cpu, volatile cpumask_t *dstp)
++static inline void cpumask_clear_cpu(int cpu, volatile struct cpumask *dstp)
+ {
+ 	clear_bit(cpu, dstp->bits);
+ }
+ 
+-#define cpus_setall(dst) __cpus_setall(&(dst), NR_CPUS)
+-static inline void __cpus_setall(cpumask_t *dstp, int nbits)
++/* No static inline type checking - see Subtlety (1) above. */
++#define cpumask_test_cpu(cpu, cpumask) test_bit((cpu), (cpumask)->bits)
++
++static inline int cpumask_test_and_set_cpu(int cpu, struct cpumask *addr)
+ {
+-	bitmap_fill(dstp->bits, nbits);
++	return test_and_set_bit(cpu, addr->bits);
+ }
+ 
+-#define cpus_clear(dst) __cpus_clear(&(dst), NR_CPUS)
+-static inline void __cpus_clear(cpumask_t *dstp, int nbits)
++static inline void cpumask_setall(struct cpumask *dstp)
+ {
+-	bitmap_zero(dstp->bits, nbits);
++	bitmap_fill(dstp->bits, NR_CPUS);
+ }
+ 
+-/* No static inline type checking - see Subtlety (1) above. */
+-#define cpu_isset(cpu, cpumask) test_bit((cpu), (cpumask).bits)
+-
+-#define cpu_test_and_set(cpu, cpumask) __cpu_test_and_set((cpu), &(cpumask))
+-static inline int __cpu_test_and_set(int cpu, cpumask_t *addr)
++static inline void cpumask_clear(struct cpumask *dstp)
+ {
+-	return test_and_set_bit(cpu, addr->bits);
++	bitmap_zero(dstp->bits, NR_CPUS);
+ }
+ 
+-#define cpus_and(dst, src1, src2) __cpus_and(&(dst), &(src1), &(src2), NR_CPUS)
+-static inline void __cpus_and(cpumask_t *dstp, const cpumask_t *src1p,
+-					const cpumask_t *src2p, int nbits)
++static inline void cpumask_and(struct cpumask *dstp,
++			       const struct cpumask *src1p,
++			       const struct cpumask *src2p)
+ {
+-	bitmap_and(dstp->bits, src1p->bits, src2p->bits, nbits);
++	bitmap_and(dstp->bits, src1p->bits, src2p->bits, NR_CPUS);
+ }
+ 
+-#define cpus_or(dst, src1, src2) __cpus_or(&(dst), &(src1), &(src2), NR_CPUS)
+-static inline void __cpus_or(cpumask_t *dstp, const cpumask_t *src1p,
+-					const cpumask_t *src2p, int nbits)
++static inline void cpumask_or(struct cpumask *dstp, const struct cpumask *src1p,
++			      const struct cpumask *src2p)
+ {
+-	bitmap_or(dstp->bits, src1p->bits, src2p->bits, nbits);
++	bitmap_or(dstp->bits, src1p->bits, src2p->bits, NR_CPUS);
+ }
+ 
+-#define cpus_xor(dst, src1, src2) __cpus_xor(&(dst), &(src1), &(src2), NR_CPUS)
+-static inline void __cpus_xor(cpumask_t *dstp, const cpumask_t *src1p,
+-					const cpumask_t *src2p, int nbits)
++static inline void cpumask_xor(struct cpumask *dstp,
++			       const struct cpumask *src1p,
++			       const struct cpumask *src2p)
+ {
+-	bitmap_xor(dstp->bits, src1p->bits, src2p->bits, nbits);
++	bitmap_xor(dstp->bits, src1p->bits, src2p->bits, NR_CPUS);
+ }
+ 
+-#define cpus_andnot(dst, src1, src2) \
+-				__cpus_andnot(&(dst), &(src1), &(src2), NR_CPUS)
+-static inline void __cpus_andnot(cpumask_t *dstp, const cpumask_t *src1p,
+-					const cpumask_t *src2p, int nbits)
++static inline void cpumask_andnot(struct cpumask *dstp,
++				  const struct cpumask *src1p,
++				  const struct cpumask *src2p)
+ {
+-	bitmap_andnot(dstp->bits, src1p->bits, src2p->bits, nbits);
++	bitmap_andnot(dstp->bits, src1p->bits, src2p->bits, NR_CPUS);
+ }
+ 
+-#define cpus_complement(dst, src) __cpus_complement(&(dst), &(src), NR_CPUS)
+-static inline void __cpus_complement(cpumask_t *dstp,
+-					const cpumask_t *srcp, int nbits)
++static inline void cpumask_complement(struct cpumask *dstp,
++				      const struct cpumask *srcp)
+ {
+-	bitmap_complement(dstp->bits, srcp->bits, nbits);
++	bitmap_complement(dstp->bits, srcp->bits, NR_CPUS);
+ }
+ 
+-#define cpus_equal(src1, src2) __cpus_equal(&(src1), &(src2), NR_CPUS)
+-static inline int __cpus_equal(const cpumask_t *src1p,
+-					const cpumask_t *src2p, int nbits)
++static inline int cpumask_equal(const struct cpumask *src1p,
++				const struct cpumask *src2p)
+ {
+-	return bitmap_equal(src1p->bits, src2p->bits, nbits);
++	return bitmap_equal(src1p->bits, src2p->bits, NR_CPUS);
+ }
+ 
+-#define cpus_intersects(src1, src2) __cpus_intersects(&(src1), &(src2), NR_CPUS)
+-static inline int __cpus_intersects(const cpumask_t *src1p,
+-					const cpumask_t *src2p, int nbits)
++static inline int cpumask_intersects(const struct cpumask *src1p,
++				     const struct cpumask *src2p)
+ {
+-	return bitmap_intersects(src1p->bits, src2p->bits, nbits);
++	return bitmap_intersects(src1p->bits, src2p->bits, NR_CPUS);
+ }
+ 
+-#define cpus_subset(src1, src2) __cpus_subset(&(src1), &(src2), NR_CPUS)
+-static inline int __cpus_subset(const cpumask_t *src1p,
+-					const cpumask_t *src2p, int nbits)
++static inline int cpumask_subset(const struct cpumask *src1p,
++				 const struct cpumask *src2p)
+ {
+-	return bitmap_subset(src1p->bits, src2p->bits, nbits);
++	return bitmap_subset(src1p->bits, src2p->bits, NR_CPUS);
+ }
+ 
+-#define cpus_empty(src) __cpus_empty(&(src), NR_CPUS)
+-static inline int __cpus_empty(const cpumask_t *srcp, int nbits)
++static inline int cpumask_empty(const struct cpumask *srcp)
+ {
+-	return bitmap_empty(srcp->bits, nbits);
++	return bitmap_empty(srcp->bits, NR_CPUS);
+ }
+ 
+-#define cpus_full(cpumask) __cpus_full(&(cpumask), NR_CPUS)
+-static inline int __cpus_full(const cpumask_t *srcp, int nbits)
++static inline int cpumask_full(const struct cpumask *srcp)
+ {
+-	return bitmap_full(srcp->bits, nbits);
++	return bitmap_full(srcp->bits, NR_CPUS);
+ }
+ 
+-#define cpus_weight(cpumask) __cpus_weight(&(cpumask), NR_CPUS)
+ static inline int __cpus_weight(const cpumask_t *srcp, int nbits)
+ {
+ 	return bitmap_weight(srcp->bits, nbits);
+ }
+ 
+-#define cpus_shift_right(dst, src, n) \
+-			__cpus_shift_right(&(dst), &(src), (n), NR_CPUS)
+-static inline void __cpus_shift_right(cpumask_t *dstp,
+-					const cpumask_t *srcp, int n, int nbits)
++static inline int cpumask_weight(const struct cpumask *srcp)
+ {
+-	bitmap_shift_right(dstp->bits, srcp->bits, n, nbits);
++	return bitmap_weight(srcp->bits, NR_CPUS);
+ }
+ 
+-#define cpus_shift_left(dst, src, n) \
+-			__cpus_shift_left(&(dst), &(src), (n), NR_CPUS)
+-static inline void __cpus_shift_left(cpumask_t *dstp,
+-					const cpumask_t *srcp, int n, int nbits)
++static inline void cpumask_shift_right(struct cpumask *dstp,
++				       const struct cpumask *srcp, int n)
++{
++	bitmap_shift_right(dstp->bits, srcp->bits, n, NR_CPUS);
++}
++
++static inline void cpumask_shift_left(struct cpumask *dstp,
++				      const struct cpumask *srcp, int n)
+ {
+-	bitmap_shift_left(dstp->bits, srcp->bits, n, nbits);
++	bitmap_shift_left(dstp->bits, srcp->bits, n, NR_CPUS);
++}
++
++static inline int __cpumask_scnprintf(char *buf, int len,
++				      const struct cpumask *srcp)
++{
++	return bitmap_scnprintf(buf, len, srcp->bits, NR_CPUS);
++}
++
++static inline int __cpumask_parse_user(const char __user *buf, int len,
++				       struct cpumask *dstp)
++{
++	return bitmap_parse_user(buf, len, dstp->bits, NR_CPUS);
++}
++
++static inline int __cpulist_scnprintf(char *buf, int len,
++				      const struct cpumask *srcp)
++{
++	return bitmap_scnlistprintf(buf, len, srcp->bits, NR_CPUS);
++}
++
++static inline int __cpulist_parse(const char *buf, struct cpumask *dstp)
++{
++	return bitmap_parselist(buf, dstp->bits, NR_CPUS);
++}
++
++static inline int cpumask_cpuremap(int oldbit,
++				   const struct cpumask *oldp,
++				   const struct cpumask *newp)
++{
++	return bitmap_bitremap(oldbit, oldp->bits, newp->bits, NR_CPUS);
++}
++
++static inline void cpumask_remap(struct cpumask *dstp,
++				 const struct cpumask *srcp,
++				 const struct cpumask *oldp,
++				 const struct cpumask *newp)
++{
++	bitmap_remap(dstp->bits, srcp->bits, oldp->bits, newp->bits, NR_CPUS);
++}
++
++static inline void cpumask_onto(struct cpumask *dstp,
++				const struct cpumask *origp,
++				const struct cpumask *relmapp)
++{
++	bitmap_onto(dstp->bits, origp->bits, relmapp->bits, NR_CPUS);
++}
++
++static inline void cpumask_fold(struct cpumask *dstp,
++				const struct cpumask *origp, int sz)
++{
++	bitmap_fold(dstp->bits, origp->bits, sz, NR_CPUS);
+ }
+ 
+ /*
+@@ -326,8 +415,6 @@ extern cpumask_t cpu_mask_all;
+ 	[0] =  1UL							\
+ } }
+ 
+-#define cpus_addr(src) ((src).bits)
+-
+ #if NR_CPUS > BITS_PER_LONG
+ #define	CPUMASK_ALLOC(m)	struct m *m = kmalloc(sizeof(*m), GFP_KERNEL)
+ #define	CPUMASK_FREE(m)		kfree(m)
+@@ -337,68 +424,6 @@ extern cpumask_t cpu_mask_all;
+ #endif
+ #define	CPUMASK_PTR(v, m) 	cpumask_t *v = &(m->v)
+ 
+-#define cpumask_scnprintf(buf, len, src) \
+-			__cpumask_scnprintf((buf), (len), &(src), NR_CPUS)
+-static inline int __cpumask_scnprintf(char *buf, int len,
+-					const cpumask_t *srcp, int nbits)
+-{
+-	return bitmap_scnprintf(buf, len, srcp->bits, nbits);
+-}
+-
+-#define cpumask_parse_user(ubuf, ulen, dst) \
+-			__cpumask_parse_user((ubuf), (ulen), &(dst), NR_CPUS)
+-static inline int __cpumask_parse_user(const char __user *buf, int len,
+-					cpumask_t *dstp, int nbits)
+-{
+-	return bitmap_parse_user(buf, len, dstp->bits, nbits);
+-}
+-
+-#define cpulist_scnprintf(buf, len, src) \
+-			__cpulist_scnprintf((buf), (len), &(src), NR_CPUS)
+-static inline int __cpulist_scnprintf(char *buf, int len,
+-					const cpumask_t *srcp, int nbits)
+-{
+-	return bitmap_scnlistprintf(buf, len, srcp->bits, nbits);
+-}
+-
+-#define cpulist_parse(buf, dst) __cpulist_parse((buf), &(dst), NR_CPUS)
+-static inline int __cpulist_parse(const char *buf, cpumask_t *dstp, int nbits)
+-{
+-	return bitmap_parselist(buf, dstp->bits, nbits);
+-}
+-
+-#define cpu_remap(oldbit, old, new) \
+-		__cpu_remap((oldbit), &(old), &(new), NR_CPUS)
+-static inline int __cpu_remap(int oldbit,
+-		const cpumask_t *oldp, const cpumask_t *newp, int nbits)
+-{
+-	return bitmap_bitremap(oldbit, oldp->bits, newp->bits, nbits);
+-}
+-
+-#define cpus_remap(dst, src, old, new) \
+-		__cpus_remap(&(dst), &(src), &(old), &(new), NR_CPUS)
+-static inline void __cpus_remap(cpumask_t *dstp, const cpumask_t *srcp,
+-		const cpumask_t *oldp, const cpumask_t *newp, int nbits)
+-{
+-	bitmap_remap(dstp->bits, srcp->bits, oldp->bits, newp->bits, nbits);
+-}
+-
+-#define cpus_onto(dst, orig, relmap) \
+-		__cpus_onto(&(dst), &(orig), &(relmap), NR_CPUS)
+-static inline void __cpus_onto(cpumask_t *dstp, const cpumask_t *origp,
+-		const cpumask_t *relmapp, int nbits)
+-{
+-	bitmap_onto(dstp->bits, origp->bits, relmapp->bits, nbits);
+-}
+-
+-#define cpus_fold(dst, orig, sz) \
+-		__cpus_fold(&(dst), &(orig), sz, NR_CPUS)
+-static inline void __cpus_fold(cpumask_t *dstp, const cpumask_t *origp,
+-		int sz, int nbits)
+-{
+-	bitmap_fold(dstp->bits, origp->bits, sz, nbits);
+-}
+-
+ #if NR_CPUS = 1
+ 
+ #define nr_cpu_ids		1
+--- linux-2.6.28.orig/lib/cpumask.c
++++ linux-2.6.28/lib/cpumask.c
+@@ -18,7 +18,7 @@ EXPORT_SYMBOL(__next_cpu);
+ int cpumask_next_and(int n, const cpumask_t *srcp, const cpumask_t *andp)
+ {
+ 	while ((n = next_cpu_nr(n, *srcp)) < nr_cpu_ids)
+-		if (cpu_isset(n, *andp))
++		if (cpumask_test_cpu(n, andp))
+ 			break;
+ 	return n;
+ }
+
+-- 
