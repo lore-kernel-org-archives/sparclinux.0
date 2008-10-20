@@ -1,7 +1,7 @@
 From: Mike Travis <travis@sgi.com>
-Date: Mon, 20 Oct 2008 17:03:22 +0000
-Subject: [PATCH 03/35] cpumask: add for_each_cpu_mask_and function
-Message-Id: <20081020170320.007751000@polaris-admin.engr.sgi.com>
+Date: Mon, 20 Oct 2008 17:03:46 +0000
+Subject: [PATCH 27/35] cpumask: to_cpumask()
+Message-Id: <20081020170323.335697000@polaris-admin.engr.sgi.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20081020170319.539427000@polaris-admin.engr.sgi.com>
 MIME-Version: 1.0
@@ -10,129 +10,51 @@ Content-Transfer-Encoding: 7bit
 To: Ingo Molnar <mingo@elte.hu>, Rusty Russell <rusty@rustcorp.com.au>
 Cc: davej@codemonkey.org.uk, Jeremy Fitzhardinge <jeremy@goop.org>, Jes Sorensen <jes@sgi.com>, IA64 <linux-ia64@vger.kernel.org>, S390 <linux-s390@vger.kernel.org>, peterz@infradead.org, Jack Steiner <steiner@sgi.com>, linux-kernel@vger.kernel.org, Eric Dumazet <dada1@cosmosbay.com>, PowerPC <linuxppc-dev@ozlabs.org>, Andi Kleen <andi@firstfloor.org>, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yhlu.kernel@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, SPARC <sparclinux@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>
 
-Add for_each_cpu_mask_and() function to eliminate need for a common use
-of a temporary cpumask_t variable.  When the following procedure is being
-used:
+There are times when we really want a static cpumask.  Yet we don't
+want to expose the struct cpumask definition, to avoid casual on-stack
+usage and assignment.
 
-    funcproto(const cpumask_t *mask, ...)
-    {
-	cpumask_t temp;
+So this macro allows you to do DECLARE_BITMAP(map, CONFIG_NR_CPUS); then use
+to_cpumask() to turn it into a cpumask as needed.
 
-	cpus_and(temp, mask, cpu_online_map);
-	for_each_cpu_mask(cpu, temp)
-		...
-It then becomes:
+Ugly?  Yes, but as we move to fewer static cpumasks these calls vanish.
 
-    funcproto(cpumask_t *mask, ...)
-    {
-	for_each_cpu_mask_and(cpu, *mask, cpu_online_map)
-		...
-
-... eliminating the need for the temp cpumask.
-
-
-Applies to linux-2.6.tip/master.
-
+From: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Mike Travis <travis@sgi.com>
-Acked-by: Rusty Russell <rusty@rustcorp.com.au>
 ---
- include/linux/cpumask.h |   33 ++++++++++++++++++++++++---------
- lib/cpumask.c           |    9 +++++++++
- 2 files changed, 33 insertions(+), 9 deletions(-)
+ include/linux/cpumask.h |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
---- test-compile.orig/include/linux/cpumask.h
-+++ test-compile/include/linux/cpumask.h
-@@ -109,6 +109,7 @@
+--- linux-2.6.28.orig/include/linux/cpumask.h
++++ linux-2.6.28/include/linux/cpumask.h
+@@ -57,6 +57,9 @@
+  * CPU_MASK_NONE			Initializer - no bits set
+  * unsigned long *cpumask_bits(mask)	Array of unsigned long's in mask
   *
-  * for_each_cpu_mask(cpu, mask)		for-loop cpu over mask using NR_CPUS
-  * for_each_cpu_mask_nr(cpu, mask)	for-loop cpu over mask using nr_cpu_ids
-+ * for_each_cpu_mask_and(cpu, mask, and) for-loop cpu over (mask & and).
++ * struct cpumask *to_cpumask(const unsigned long[])
++ *					Convert a bitmap to a cpumask.
++ *
+  * ------------------------------------------------------------------------
   *
-  * int num_online_cpus()		Number of online CPUs
-  * int num_possible_cpus()		Number of all possible CPUs
-@@ -400,29 +401,41 @@ static inline void __cpus_fold(cpumask_t
+  * int cpumask_scnprintf(buf, len, mask) Format cpumask for printing
+@@ -362,6 +365,17 @@ static inline void cpumask_copy(struct c
+ #define cpumask_any(srcp) cpumask_first(srcp)
+ #define cpumask_any_and(mask1, mask2) cpumask_first_and((mask1), (mask2))
  
- #if NR_CPUS = 1
- 
--#define nr_cpu_ids		1
--#define first_cpu(src)		({ (void)(src); 0; })
--#define next_cpu(n, src)	({ (void)(src); 1; })
--#define any_online_cpu(mask)	0
--#define for_each_cpu_mask(cpu, mask)	\
-+#define nr_cpu_ids			1
-+#define first_cpu(src)			({ (void)(src); 0; })
-+#define next_cpu(n, src)		({ (void)(src); 1; })
-+#define cpumask_next_and(n, srcp, andp)	({ (void)(srcp), (void)(andp); 1; })
-+#define any_online_cpu(mask)		0
++/* Used for static bitmaps of CONFIG_NR_CPUS bits.  Must be a constant to use
++ * as an initializer. */
++#define to_cpumask(bitmap)						\
++	((struct cpumask *)(1 ? (bitmap)				\
++			    : (void *)sizeof(__check_is_bitmap(bitmap))))
 +
-+#define for_each_cpu_mask(cpu, mask)		\
- 	for ((cpu) = 0; (cpu) < 1; (cpu)++, (void)mask)
-+#define for_each_cpu_mask_and(cpu, mask, and)	\
-+	for ((cpu) = 0; (cpu) < 1; (cpu)++, (void)mask, (void)and)
- 
- #else /* NR_CPUS > 1 */
- 
- extern int nr_cpu_ids;
- int __first_cpu(const cpumask_t *srcp);
- int __next_cpu(int n, const cpumask_t *srcp);
-+int cpumask_next_and(int n, const cpumask_t *srcp, const cpumask_t *andp);
- int __any_online_cpu(const cpumask_t *mask);
- 
- #define first_cpu(src)		__first_cpu(&(src))
- #define next_cpu(n, src)	__next_cpu((n), &(src))
- #define any_online_cpu(mask) __any_online_cpu(&(mask))
-+
- #define for_each_cpu_mask(cpu, mask)			\
- 	for ((cpu) = -1;				\
- 		(cpu) = next_cpu((cpu), (mask)),	\
--		(cpu) < NR_CPUS; )
-+		(cpu) < NR_CPUS;)
-+#define for_each_cpu_mask_and(cpu, mask, and)				\
-+	for ((cpu) = -1;						\
-+		(cpu) = cpumask_next_and((cpu), &(mask), &(and)),	\
-+		(cpu) < nr_cpu_ids;)
- #endif
- 
-+#define cpumask_first_and(mask, and) cpumask_next_and(-1, (mask), (and))
-+
- #if NR_CPUS <= 64
- 
- #define next_cpu_nr(n, src)		next_cpu(n, src)
-@@ -432,12 +445,14 @@ int __any_online_cpu(const cpumask_t *ma
- #else /* NR_CPUS > 64 */
- 
- int __next_cpu_nr(int n, const cpumask_t *srcp);
--#define next_cpu_nr(n, src)	__next_cpu_nr((n), &(src))
--#define cpus_weight_nr(cpumask)	__cpus_weight(&(cpumask), nr_cpu_ids)
-+
-+#define next_cpu_nr(n, src)		__next_cpu_nr((n), &(src))
-+#define cpus_weight_nr(cpumask)		__cpus_weight(&(cpumask), nr_cpu_ids)
-+
- #define for_each_cpu_mask_nr(cpu, mask)			\
- 	for ((cpu) = -1;				\
- 		(cpu) = next_cpu_nr((cpu), (mask)),	\
--		(cpu) < nr_cpu_ids; )
-+		(cpu) < nr_cpu_ids;)
- 
- #endif /* NR_CPUS > 64 */
- 
---- test-compile.orig/lib/cpumask.c
-+++ test-compile/lib/cpumask.c
-@@ -15,6 +15,15 @@ int __next_cpu(int n, const cpumask_t *s
- }
- EXPORT_SYMBOL(__next_cpu);
- 
-+int cpumask_next_and(int n, const cpumask_t *srcp, const cpumask_t *andp)
++static inline int __check_is_bitmap(const unsigned long *bitmap)
 +{
-+	while ((n = next_cpu_nr(n, *srcp)) < nr_cpu_ids)
-+		if (cpu_isset(n, *andp))
-+			break;
-+	return n;
++	return 1;
 +}
-+EXPORT_SYMBOL(cpumask_next_and);
 +
- #if NR_CPUS > 64
- int __next_cpu_nr(int n, const cpumask_t *srcp)
- {
+ /*
+  * Special-case data structure for "single bit set only" constant CPU masks.
+  *
 
 -- 
