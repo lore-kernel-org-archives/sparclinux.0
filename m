@@ -1,21 +1,63 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 07 Oct 2008 22:24:11 +0000
-Subject: Re: PATCH sun4m interrupt mask cleanup
-Message-Id: <20081007.152411.265243562.davem@davemloft.net>
+From: Mike Travis <travis@sgi.com>
+Date: Mon, 20 Oct 2008 17:03:24 +0000
+Subject: [PATCH 05/35] sched: Reduce stack size requirements in kernel/sched.c
+Message-Id: <20081020170320.288298000@polaris-admin.engr.sgi.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20081020170319.539427000@polaris-admin.engr.sgi.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>, Rusty Russell <rusty@rustcorp.com.au>
+Cc: davej@codemonkey.org.uk, Jeremy Fitzhardinge <jeremy@goop.org>, Jes Sorensen <jes@sgi.com>, IA64 <linux-ia64@vger.kernel.org>, S390 <linux-s390@vger.kernel.org>, peterz@infradead.org, Jack Steiner <steiner@sgi.com>, linux-kernel@vger.kernel.org, Eric Dumazet <dada1@cosmosbay.com>, PowerPC <linuxppc-dev@ozlabs.org>, Andi Kleen <andi@firstfloor.org>, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yhlu.kernel@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, SPARC <sparclinux@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>
 
-From: Robert Reif <reif@earthlink.net>
-Date: Fri, 26 Sep 2008 07:47:57 -0400
+  * use node_to_cpumask_ptr in place of node_to_cpumask to reduce stack
+    requirements in sched.c
 
-> Here is an updated version of a patch I wrote 6 years ago
-> http://marc.info/?l=linux-sparc&m3939103607617&w=2
-> that simplifies interrupt mask lookup.  It's main purpose
-> is to add VME bus support but it's really a cleanup of the mask code.
-> 
-> Signed-off-by: Robert Reif <reif@earthlink.net>
+Applies to linux-2.6.tip/master.
 
-Applied, thanks Robert.
+Signed-off-by: Mike Travis <travis@sgi.com>
+Acked-by: Rusty Russell <rusty@rustcorp.com.au>
+---
+ kernel/sched.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+--- linux-2.6.28.orig/kernel/sched.c
++++ linux-2.6.28/kernel/sched.c
+@@ -6117,8 +6117,9 @@ static void move_task_off_dead_cpu(int d
+ 
+ 	do {
+ 		/* On same node? */
+-		mask = node_to_cpumask(cpu_to_node(dead_cpu));
+-		cpus_and(mask, mask, p->cpus_allowed);
++		node_to_cpumask_ptr(pnodemask, cpu_to_node(dead_cpu));
++
++		cpus_and(mask, *pnodemask, p->cpus_allowed);
+ 		dest_cpu = any_online_cpu(mask);
+ 
+ 		/* On any allowed CPU? */
+@@ -7126,9 +7127,9 @@ static int cpu_to_allnodes_group(int cpu
+ 				 struct sched_group **sg, cpumask_t *nodemask)
+ {
+ 	int group;
++	node_to_cpumask_ptr(pnodemask, cpu_to_node(cpu));
+ 
+-	*nodemask = node_to_cpumask(cpu_to_node(cpu));
+-	cpus_and(*nodemask, *nodemask, *cpu_map);
++	cpus_and(*nodemask, *pnodemask, *cpu_map);
+ 	group = first_cpu(*nodemask);
+ 
+ 	if (sg)
+@@ -7178,9 +7179,9 @@ static void free_sched_groups(const cpum
+ 
+ 		for (i = 0; i < nr_node_ids; i++) {
+ 			struct sched_group *oldsg, *sg = sched_group_nodes[i];
++			node_to_cpumask_ptr(pnodemask, i);
+ 
+-			*nodemask = node_to_cpumask(i);
+-			cpus_and(*nodemask, *nodemask, *cpu_map);
++			cpus_and(*nodemask, *pnodemask, *cpu_map);
+ 			if (cpus_empty(*nodemask))
+ 				continue;
+ 
+
+-- 
