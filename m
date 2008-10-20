@@ -1,7 +1,7 @@
 From: Mike Travis <travis@sgi.com>
-Date: Mon, 20 Oct 2008 17:03:43 +0000
-Subject: [PATCH 24/35] cpumask: cpumask_any_but()
-Message-Id: <20081020170322.922269000@polaris-admin.engr.sgi.com>
+Date: Mon, 20 Oct 2008 17:03:47 +0000
+Subject: [PATCH 28/35] cpumask: accessors to manipulate possible/present/online/active maps
+Message-Id: <20081020170323.466127000@polaris-admin.engr.sgi.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20081020170319.539427000@polaris-admin.engr.sgi.com>
 MIME-Version: 1.0
@@ -10,62 +10,89 @@ Content-Transfer-Encoding: 7bit
 To: Ingo Molnar <mingo@elte.hu>, Rusty Russell <rusty@rustcorp.com.au>
 Cc: davej@codemonkey.org.uk, Jeremy Fitzhardinge <jeremy@goop.org>, Jes Sorensen <jes@sgi.com>, IA64 <linux-ia64@vger.kernel.org>, S390 <linux-s390@vger.kernel.org>, peterz@infradead.org, Jack Steiner <steiner@sgi.com>, linux-kernel@vger.kernel.org, Eric Dumazet <dada1@cosmosbay.com>, PowerPC <linuxppc-dev@ozlabs.org>, Andi Kleen <andi@firstfloor.org>, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yhlu.kernel@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, SPARC <sparclinux@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>
 
-There's a common case where we want any online cpu except a particular
-one.  This creates a helper to do that, otherwise we need a temp var
-and cpumask_andnot().
+Since we are moving to const cpumask pointers for the maps, we need a
+way to legitimately access them.  Simple accessors work well.
 
 From: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Mike Travis <travis@sgi.com>
 ---
- include/linux/cpumask.h |    3 +++
- lib/cpumask.c           |   10 ++++++++++
- 2 files changed, 13 insertions(+)
+ include/linux/cpumask.h |    9 +++++++++
+ kernel/cpu.c            |   42 +++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 50 insertions(+), 1 deletion(-)
 
---- test-compile.orig/include/linux/cpumask.h
-+++ test-compile/include/linux/cpumask.h
-@@ -111,6 +111,7 @@
-  *
-  * int cpumask_any(mask)		Any cpu in mask
-  * int cpumask_any_and(mask1,mask2)	Any cpu in both masks
-+ * int cpumask_any_but(mask,cpu)	Any cpu in mask except cpu
-  *
-  * for_each_possible_cpu(cpu)		for-loop cpu over cpu_possible_map
-  * for_each_online_cpu(cpu)		for-loop cpu over cpu_online_map
-@@ -458,6 +459,7 @@ extern cpumask_t cpu_mask_all;
- #define cpumask_first(src)		({ (void)(src); 0; })
- #define cpumask_next(n, src)		({ (void)(src); 1; })
- #define cpumask_next_and(n, srcp, andp)	({ (void)(srcp), (void)(andp); 1; })
-+#define cpumask_any_but(mask, cpu)	({ (void)(mask); (void)(cpu); 0; })
+--- linux-2.6.28.orig/include/linux/cpumask.h
++++ linux-2.6.28/include/linux/cpumask.h
+@@ -604,6 +604,15 @@ extern cpumask_t cpu_active_map;
+ #define cpu_active(cpu)		((cpu) = 0)
+ #endif
  
- #define for_each_cpu(cpu, mask)			\
- 	for ((cpu) = 0; (cpu) < 1; (cpu)++, (void)mask)
-@@ -469,6 +471,7 @@ extern cpumask_t cpu_mask_all;
- int cpumask_first(const cpumask_t *srcp);
- int cpumask_next(int n, const cpumask_t *srcp);
- int cpumask_next_and(int n, const cpumask_t *srcp, const cpumask_t *andp);
-+int cpumask_any_but(const struct cpumask *mask, unsigned int cpu);
++/* Wrappers to manipulate otherwise-constant masks. */
++void set_cpu_possible(unsigned int cpu, bool possible);
++void set_cpu_present(unsigned int cpu, bool present);
++void set_cpu_online(unsigned int cpu, bool online);
++void set_cpu_active(unsigned int cpu, bool active);
++void init_cpu_present(const struct cpumask *src);
++void init_cpu_possible(const struct cpumask *src);
++void init_cpu_online(const struct cpumask *src);
++
+ #define cpu_is_offline(cpu)	unlikely(!cpu_online(cpu))
  
- #define for_each_cpu(cpu, mask)				\
- 	for ((cpu) = -1;				\
---- test-compile.orig/lib/cpumask.c
-+++ test-compile/lib/cpumask.c
-@@ -24,6 +24,16 @@ int cpumask_next_and(int n, const cpumas
- }
- EXPORT_SYMBOL(cpumask_next_and);
+ #define for_each_possible_cpu(cpu) for_each_cpu((cpu), &cpu_possible_map)
+--- linux-2.6.28.orig/kernel/cpu.c
++++ linux-2.6.28/kernel/cpu.c
+@@ -490,7 +490,6 @@ void notify_cpu_starting(unsigned int cp
+ #define MASK_DECLARE_8(x)	MASK_DECLARE_4(x), MASK_DECLARE_4(x+4)
  
-+int cpumask_any_but(const struct cpumask *mask, unsigned int cpu)
+ const unsigned long cpu_bit_bitmap[BITS_PER_LONG+1][BITS_TO_LONGS(NR_CPUS)] = {
+-
+ 	MASK_DECLARE_8(0),	MASK_DECLARE_8(8),
+ 	MASK_DECLARE_8(16),	MASK_DECLARE_8(24),
+ #if BITS_PER_LONG > 32
+@@ -499,3 +498,44 @@ const unsigned long cpu_bit_bitmap[BITS_
+ #endif
+ };
+ EXPORT_SYMBOL_GPL(cpu_bit_bitmap);
++
++void set_cpu_possible(unsigned int cpu, bool possible)
 +{
-+	unsigned int i;
-+
-+	for_each_cpu(i, mask)
-+		if (i != cpu)
-+			break;
-+	return i;
++	if (possible)
++		cpumask_set_cpu(cpu, &cpu_possible_map);
++	else
++		cpumask_clear_cpu(cpu, &cpu_possible_map);
 +}
-+
- /* These are not inline because of header tangles. */
- #ifdef CONFIG_CPUMASK_OFFSTACK
- bool alloc_cpumask_var(cpumask_var_t *mask, gfp_t flags)
++void set_cpu_present(unsigned int cpu, bool present)
++{
++	if (present)
++		cpumask_set_cpu(cpu, &cpu_present_map);
++	else
++		cpumask_clear_cpu(cpu, &cpu_present_map);
++}
++void set_cpu_online(unsigned int cpu, bool online)
++{
++	if (online)
++		cpumask_set_cpu(cpu, &cpu_online_map);
++	else
++		cpumask_clear_cpu(cpu, &cpu_online_map);
++}
++void set_cpu_active(unsigned int cpu, bool active)
++{
++	if (active)
++		cpumask_set_cpu(cpu, &cpu_active_map);
++	else
++		cpumask_clear_cpu(cpu, &cpu_active_map);
++}
++void init_cpu_present(const struct cpumask *src)
++{
++	cpumask_copy(&cpu_present_map, src);
++}
++void init_cpu_possible(const struct cpumask *src)
++{
++	cpumask_copy(&cpu_possible_map, src);
++}
++void init_cpu_online(const struct cpumask *src)
++{
++	cpumask_copy(&cpu_online_map, src);
++}
 
 -- 
