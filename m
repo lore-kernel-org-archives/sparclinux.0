@@ -1,7 +1,7 @@
 From: Mike Travis <travis@sgi.com>
-Date: Mon, 20 Oct 2008 17:03:36 +0000
-Subject: [PATCH 17/35] cpumask: make nr_cpu_ids the actual limit on bitmap size
-Message-Id: <20081020170321.952382000@polaris-admin.engr.sgi.com>
+Date: Mon, 20 Oct 2008 17:03:45 +0000
+Subject: [PATCH 26/35] cpumask: get rid of boutique sched.c allocations, use cpumask_var_t.
+Message-Id: <20081020170323.199606000@polaris-admin.engr.sgi.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20081020170319.539427000@polaris-admin.engr.sgi.com>
 MIME-Version: 1.0
@@ -10,389 +10,244 @@ Content-Transfer-Encoding: 7bit
 To: Ingo Molnar <mingo@elte.hu>, Rusty Russell <rusty@rustcorp.com.au>
 Cc: davej@codemonkey.org.uk, Jeremy Fitzhardinge <jeremy@goop.org>, Jes Sorensen <jes@sgi.com>, IA64 <linux-ia64@vger.kernel.org>, S390 <linux-s390@vger.kernel.org>, peterz@infradead.org, Jack Steiner <steiner@sgi.com>, linux-kernel@vger.kernel.org, Eric Dumazet <dada1@cosmosbay.com>, PowerPC <linuxppc-dev@ozlabs.org>, Andi Kleen <andi@firstfloor.org>, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yhlu.kernel@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, SPARC <sparclinux@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>
 
-nr_cpu_ids is the (badly named) runtime limit on possible CPU numbers;
-ie. the variable version of NR_CPUS.
-
-If we use this in *all* the cpu ops it simplifies the API, and will
-be possible to allocate cpumasks of the minimal length at runtime.
+Using lots of allocs rather than one big alloc is less efficient, but
+who cares for this setup function?
 
 From: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Mike Travis <travis@sgi.com>
 ---
- include/linux/cpumask.h  |  110 +++++++++++++++++------------------------------
- include/linux/seq_file.h |    2
- include/linux/cpumask.h  |  114 ++++++++++++++++-------------------------------
- include/linux/seq_file.h |    2 
- lib/cpumask.c            |   14 +----
- 3 files changed, 45 insertions(+), 85 deletions(-)
+ kernel/sched.c |  133 ++++++++++++++++++++++++---------------------------------
+ 1 file changed, 56 insertions(+), 77 deletions(-)
 
---- test-compile.orig/include/linux/cpumask.h
-+++ test-compile/include/linux/cpumask.h
-@@ -3,7 +3,8 @@
+--- linux-2.6.28.orig/kernel/sched.c
++++ linux-2.6.28/kernel/sched.c
+@@ -7291,40 +7291,6 @@ SD_INIT_FUNC(CPU)
+  SD_INIT_FUNC(MC)
+ #endif
  
- /*
-  * Cpumasks provide a bitmap suitable for representing the
-- * set of CPU's in a system, one bit position per CPU number.
-+ * set of CPU's in a system, one bit position per CPU number up to
-+ * nr_cpu_ids (<= NR_CPUS).
-  *
-  * Old-style uses "cpumask_t", but new ops are "struct cpumask *";
-  * don't put "struct cpumask"s on the stack.
-@@ -20,20 +21,6 @@
-  * For details of cpumask_onto(), see bitmap_onto in lib/bitmap.c.
-  * For details of cpumask_fold(), see bitmap_fold in lib/bitmap.c.
-  *
-- * . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-- * Note: The alternate operations with the suffix "_nr" are used
-- *       to limit the range of the loop to nr_cpu_ids instead of
-- *       NR_CPUS when NR_CPUS > 64 for performance reasons.
-- *       If NR_CPUS is <= 64 then most assembler bitmask
-- *       operators execute faster with a constant range, so
-- *       the operator will continue to use NR_CPUS.
-- *
-- *       Another consideration is that nr_cpu_ids is initialized
-- *       to NR_CPUS and isn't lowered until the possible cpus are
-- *       discovered (including any disabled cpus).  So early uses
-- *       will span the entire range of NR_CPUS.
-- * . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-- *
-  * The available cpumask operations are:
-  *
-  * void cpumask_set_cpu(cpu, mask)	turn on bit 'cpu' in mask
-@@ -55,14 +42,12 @@
-  * int cpumask_empty(mask)		Is mask empty (no bits sets)?
-  * int cpumask_full(mask)		Is mask full (all bits sets)?
-  * int cpumask_weight(mask)		Hamming weigh - number of set bits
-- * int cpumask_weight_nr(mask)		Same using nr_cpu_ids instead of NR_CPUS
-  *
-  * void cpumask_shift_right(dst, src, n) Shift right
-  * void cpumask_shift_left(dst, src, n)	Shift left
-  *
-- * int first_cpu(mask)			Number lowest set bit, or NR_CPUS
-- * int next_cpu(cpu, mask)		Next cpu past 'cpu', or NR_CPUS
-- * int next_cpu_nr(cpu, mask)		Next cpu past 'cpu', or nr_cpu_ids
-+ * int first_cpu(mask)			Number lowest set bit, or nr_cpu_ids
-+ * int next_cpu(cpu, mask)		Next cpu past 'cpu', or nr_cpu_ids
-  *
-  * void cpumask_copy(dmask, smask)	dmask = smask
-  *
-@@ -113,8 +98,7 @@
-  * void cpumask_onto(dst, orig, relmap)	*dst = orig relative to relmap
-  * void cpumask_fold(dst, orig, sz)	dst bits = orig bits mod sz
-  *
-- * for_each_cpu_mask(cpu, mask)		for-loop cpu over mask using NR_CPUS
-- * for_each_cpu_mask_nr(cpu, mask)	for-loop cpu over mask using nr_cpu_ids
-+ * for_each_cpu_mask(cpu, mask)		for-loop cpu over mask using nr_cpu_ids
-  * for_each_cpu_mask_and(cpu, mask, and) for-loop cpu over (mask & and).
-  *
-  * int num_online_cpus()		Number of online CPUs
-@@ -154,7 +138,7 @@ struct cpumask
- 
- static inline ssize_t cpumask_size(void)
- {
--	return BITS_TO_LONGS(NR_CPUS) * sizeof(long);
-+	return BITS_TO_LONGS(nr_cpu_ids) * sizeof(long);
- }
- 
- /* Deprecated. */
-@@ -193,6 +177,9 @@ extern cpumask_t _unused_cpumask_arg_;
- #define cpus_fold(dst, orig, sz) \
- 		cpumask_fold(&(dst), &(orig), sz)
- #define cpus_addr(src) ((src).bits)
-+#define next_cpu_nr(n, src)		next_cpu(n, src)
-+#define cpus_weight_nr(cpumask)		cpus_weight(cpumask)
-+#define for_each_cpu_mask_nr(cpu, mask)	for_each_cpu_mask(cpu, mask)
- /* End deprecated region. */
- 
- #if NR_CPUS <= BITS_PER_LONG
-@@ -223,73 +210,73 @@ static inline int cpumask_test_and_set_c
- 
- static inline void cpumask_setall(struct cpumask *dstp)
- {
--	bitmap_fill(dstp->bits, NR_CPUS);
-+	bitmap_fill(dstp->bits, nr_cpu_ids);
- }
- 
- static inline void cpumask_clear(struct cpumask *dstp)
- {
--	bitmap_zero(dstp->bits, NR_CPUS);
-+	bitmap_zero(dstp->bits, nr_cpu_ids);
- }
- 
- static inline void cpumask_and(struct cpumask *dstp,
- 			       const struct cpumask *src1p,
- 			       const struct cpumask *src2p)
- {
--	bitmap_and(dstp->bits, src1p->bits, src2p->bits, NR_CPUS);
-+	bitmap_and(dstp->bits, src1p->bits, src2p->bits, nr_cpu_ids);
- }
- 
- static inline void cpumask_or(struct cpumask *dstp, const struct cpumask *src1p,
- 			      const struct cpumask *src2p)
- {
--	bitmap_or(dstp->bits, src1p->bits, src2p->bits, NR_CPUS);
-+	bitmap_or(dstp->bits, src1p->bits, src2p->bits, nr_cpu_ids);
- }
- 
- static inline void cpumask_xor(struct cpumask *dstp,
- 			       const struct cpumask *src1p,
- 			       const struct cpumask *src2p)
- {
--	bitmap_xor(dstp->bits, src1p->bits, src2p->bits, NR_CPUS);
-+	bitmap_xor(dstp->bits, src1p->bits, src2p->bits, nr_cpu_ids);
- }
- 
- static inline void cpumask_andnot(struct cpumask *dstp,
- 				  const struct cpumask *src1p,
- 				  const struct cpumask *src2p)
- {
--	bitmap_andnot(dstp->bits, src1p->bits, src2p->bits, NR_CPUS);
-+	bitmap_andnot(dstp->bits, src1p->bits, src2p->bits, nr_cpu_ids);
- }
- 
- static inline void cpumask_complement(struct cpumask *dstp,
- 				      const struct cpumask *srcp)
- {
--	bitmap_complement(dstp->bits, srcp->bits, NR_CPUS);
-+	bitmap_complement(dstp->bits, srcp->bits, nr_cpu_ids);
- }
- 
- static inline int cpumask_equal(const struct cpumask *src1p,
- 				const struct cpumask *src2p)
- {
--	return bitmap_equal(src1p->bits, src2p->bits, NR_CPUS);
-+	return bitmap_equal(src1p->bits, src2p->bits, nr_cpu_ids);
- }
- 
- static inline int cpumask_intersects(const struct cpumask *src1p,
- 				     const struct cpumask *src2p)
- {
--	return bitmap_intersects(src1p->bits, src2p->bits, NR_CPUS);
-+	return bitmap_intersects(src1p->bits, src2p->bits, nr_cpu_ids);
- }
- 
- static inline int cpumask_subset(const struct cpumask *src1p,
- 				 const struct cpumask *src2p)
- {
--	return bitmap_subset(src1p->bits, src2p->bits, NR_CPUS);
-+	return bitmap_subset(src1p->bits, src2p->bits, nr_cpu_ids);
- }
- 
- static inline int cpumask_empty(const struct cpumask *srcp)
- {
--	return bitmap_empty(srcp->bits, NR_CPUS);
-+	return bitmap_empty(srcp->bits, nr_cpu_ids);
- }
- 
- static inline int cpumask_full(const struct cpumask *srcp)
- {
--	return bitmap_full(srcp->bits, NR_CPUS);
-+	return bitmap_full(srcp->bits, nr_cpu_ids);
- }
- 
- static inline int __cpus_weight(const cpumask_t *srcp, int nbits)
-@@ -299,49 +286,49 @@ static inline int __cpus_weight(const cp
- 
- static inline int cpumask_weight(const struct cpumask *srcp)
- {
--	return bitmap_weight(srcp->bits, NR_CPUS);
-+	return bitmap_weight(srcp->bits, nr_cpu_ids);
- }
- 
- static inline void cpumask_shift_right(struct cpumask *dstp,
- 				       const struct cpumask *srcp, int n)
- {
--	bitmap_shift_right(dstp->bits, srcp->bits, n, NR_CPUS);
-+	bitmap_shift_right(dstp->bits, srcp->bits, n, nr_cpu_ids);
- }
- 
- static inline void cpumask_shift_left(struct cpumask *dstp,
- 				      const struct cpumask *srcp, int n)
- {
--	bitmap_shift_left(dstp->bits, srcp->bits, n, NR_CPUS);
-+	bitmap_shift_left(dstp->bits, srcp->bits, n, nr_cpu_ids);
- }
- 
- static inline int cpumask_scnprintf(char *buf, int len,
- 				    const struct cpumask *srcp)
- {
--	return bitmap_scnprintf(buf, len, srcp->bits, NR_CPUS);
-+	return bitmap_scnprintf(buf, len, srcp->bits, nr_cpu_ids);
- }
- 
- static inline int cpumask_parse_user(const char __user *buf, int len,
- 				     struct cpumask *dstp)
- {
--	return bitmap_parse_user(buf, len, dstp->bits, NR_CPUS);
-+	return bitmap_parse_user(buf, len, dstp->bits, nr_cpu_ids);
- }
- 
- static inline int cpulist_scnprintf(char *buf, int len,
- 				    const struct cpumask *srcp)
- {
--	return bitmap_scnlistprintf(buf, len, srcp->bits, NR_CPUS);
-+	return bitmap_scnlistprintf(buf, len, srcp->bits, nr_cpu_ids);
- }
- 
- static inline int cpulist_parse(const char *buf, struct cpumask *dstp)
- {
--	return bitmap_parselist(buf, dstp->bits, NR_CPUS);
-+	return bitmap_parselist(buf, dstp->bits, nr_cpu_ids);
- }
- 
- static inline int cpumask_cpuremap(int oldbit,
- 				   const struct cpumask *oldp,
- 				   const struct cpumask *newp)
- {
--	return bitmap_bitremap(oldbit, oldp->bits, newp->bits, NR_CPUS);
-+	return bitmap_bitremap(oldbit, oldp->bits, newp->bits, nr_cpu_ids);
- }
- 
- static inline void cpumask_remap(struct cpumask *dstp,
-@@ -349,26 +336,27 @@ static inline void cpumask_remap(struct 
- 				 const struct cpumask *oldp,
- 				 const struct cpumask *newp)
- {
--	bitmap_remap(dstp->bits, srcp->bits, oldp->bits, newp->bits, NR_CPUS);
-+	bitmap_remap(dstp->bits, srcp->bits, oldp->bits, newp->bits,
-+		     nr_cpu_ids);
- }
- 
- static inline void cpumask_onto(struct cpumask *dstp,
- 				const struct cpumask *origp,
- 				const struct cpumask *relmapp)
- {
--	bitmap_onto(dstp->bits, origp->bits, relmapp->bits, NR_CPUS);
-+	bitmap_onto(dstp->bits, origp->bits, relmapp->bits, nr_cpu_ids);
- }
- 
- static inline void cpumask_fold(struct cpumask *dstp,
- 				const struct cpumask *origp, int sz)
- {
--	bitmap_fold(dstp->bits, origp->bits, sz, NR_CPUS);
-+	bitmap_fold(dstp->bits, origp->bits, sz, nr_cpu_ids);
- }
- 
- static inline void cpumask_copy(struct cpumask *dstp,
- 				const struct cpumask *srcp)
- {
--	bitmap_copy(cpumask_bits(dstp), cpumask_bits(srcp), NR_CPUS);
-+	bitmap_copy(cpumask_bits(dstp), cpumask_bits(srcp), nr_cpu_ids);
- }
- 
- /*
-@@ -465,7 +453,7 @@ int __any_online_cpu(const cpumask_t *ma
- #define for_each_cpu_mask(cpu, mask)			\
- 	for ((cpu) = -1;				\
- 		(cpu) = next_cpu((cpu), (mask)),	\
--		(cpu) < NR_CPUS;)
-+		(cpu) < nr_cpu_ids;)
- #define for_each_cpu_mask_and(cpu, mask, and)				\
- 	for ((cpu) = -1;						\
- 		(cpu) = cpumask_next_and((cpu), &(mask), &(and)),	\
-@@ -474,26 +462,6 @@ int __any_online_cpu(const cpumask_t *ma
- 
- #define cpumask_first_and(mask, and) cpumask_next_and(-1, (mask), (and))
- 
--#if NR_CPUS <= 64
+-/*
+- * To minimize stack usage kmalloc room for cpumasks and share the
+- * space as the usage in build_sched_domains() dictates.  Used only
+- * if the amount of space is significant.
+- */
+-struct allmasks {
+-	cpumask_t tmpmask;			/* make this one first */
+-	union {
+-		cpumask_t nodemask;
+-		cpumask_t this_sibling_map;
+-		cpumask_t this_core_map;
+-	};
+-	cpumask_t send_covered;
 -
--#define next_cpu_nr(n, src)		next_cpu(n, src)
--#define cpus_weight_nr(cpumask)		cpus_weight(cpumask)
--#define for_each_cpu_mask_nr(cpu, mask)	for_each_cpu_mask(cpu, mask)
+-#ifdef CONFIG_NUMA
+-	cpumask_t domainspan;
+-	cpumask_t covered;
+-	cpumask_t notcovered;
+-#endif
+-};
 -
--#else /* NR_CPUS > 64 */
--
--int __next_cpu_nr(int n, const cpumask_t *srcp);
--
--#define next_cpu_nr(n, src)		__next_cpu_nr((n), &(src))
--#define cpus_weight_nr(cpumask)		__cpus_weight(&(cpumask), nr_cpu_ids)
--
--#define for_each_cpu_mask_nr(cpu, mask)			\
--	for ((cpu) = -1;				\
--		(cpu) = next_cpu_nr((cpu), (mask)),	\
--		(cpu) < nr_cpu_ids;)
--
--#endif /* NR_CPUS > 64 */
--
- /*
-  * cpumask_var_t: struct cpumask for stack usage.
-  *
-@@ -593,9 +561,9 @@ extern cpumask_t cpu_present_map;
- extern cpumask_t cpu_active_map;
- 
- #if NR_CPUS > 1
--#define num_online_cpus()	cpus_weight_nr(cpu_online_map)
--#define num_possible_cpus()	cpus_weight_nr(cpu_possible_map)
--#define num_present_cpus()	cpus_weight_nr(cpu_present_map)
-+#define num_online_cpus()	cpus_weight(cpu_online_map)
-+#define num_possible_cpus()	cpus_weight(cpu_possible_map)
-+#define num_present_cpus()	cpus_weight(cpu_present_map)
- #define cpu_online(cpu)		cpu_isset((cpu), cpu_online_map)
- #define cpu_possible(cpu)	cpu_isset((cpu), cpu_possible_map)
- #define cpu_present(cpu)	cpu_isset((cpu), cpu_present_map)
-@@ -612,9 +580,9 @@ extern cpumask_t cpu_active_map;
- 
- #define cpu_is_offline(cpu)	unlikely(!cpu_online(cpu))
- 
--#define for_each_possible_cpu(cpu) for_each_cpu_mask_nr((cpu), cpu_possible_map)
--#define for_each_online_cpu(cpu)   for_each_cpu_mask_nr((cpu), cpu_online_map)
--#define for_each_present_cpu(cpu)  for_each_cpu_mask_nr((cpu), cpu_present_map)
-+#define for_each_possible_cpu(cpu) for_each_cpu_mask((cpu), cpu_possible_map)
-+#define for_each_online_cpu(cpu)   for_each_cpu_mask((cpu), cpu_online_map)
-+#define for_each_present_cpu(cpu)  for_each_cpu_mask((cpu), cpu_present_map)
- 
- /* Arch-specific code may call this to initialize nr_cpu_ids based on
-  * the cpu_possible_map. */
---- test-compile.orig/include/linux/seq_file.h
-+++ test-compile/include/linux/seq_file.h
-@@ -52,7 +52,7 @@ int seq_path_root(struct seq_file *m, st
- int seq_bitmap(struct seq_file *m, unsigned long *bits, unsigned int nr_bits);
- static inline int seq_cpumask(struct seq_file *m, cpumask_t *mask)
- {
--	return seq_bitmap(m, mask->bits, NR_CPUS);
-+	return seq_bitmap(m, mask->bits, nr_cpu_ids);
- }
- 
- static inline int seq_nodemask(struct seq_file *m, nodemask_t *mask)
---- test-compile.orig/lib/cpumask.c
-+++ test-compile/lib/cpumask.c
-@@ -5,33 +5,25 @@
- 
- int __first_cpu(const cpumask_t *srcp)
- {
--	return find_first_bit(srcp->bits, NR_CPUS);
-+	return find_first_bit(srcp->bits, nr_cpu_ids);
- }
- EXPORT_SYMBOL(__first_cpu);
- 
- int __next_cpu(int n, const cpumask_t *srcp)
- {
--	return find_next_bit(srcp->bits, NR_CPUS, n+1);
-+	return find_next_bit(srcp->bits, nr_cpu_ids, n+1);
- }
- EXPORT_SYMBOL(__next_cpu);
- 
- int cpumask_next_and(int n, const cpumask_t *srcp, const cpumask_t *andp)
- {
--	while ((n = next_cpu_nr(n, *srcp)) < nr_cpu_ids)
-+	while ((n = next_cpu(n, *srcp)) < nr_cpu_ids)
- 		if (cpumask_test_cpu(n, andp))
- 			break;
- 	return n;
- }
- EXPORT_SYMBOL(cpumask_next_and);
- 
--#if NR_CPUS > 64
--int __next_cpu_nr(int n, const cpumask_t *srcp)
--{
--	return find_next_bit(srcp->bits, nr_cpu_ids, n+1);
--}
--EXPORT_SYMBOL(__next_cpu_nr);
+-#if	NR_CPUS > 128
+-#define	SCHED_CPUMASK_ALLOC		1
+-#define	SCHED_CPUMASK_FREE(v)		kfree(v)
+-#define	SCHED_CPUMASK_DECLARE(v)	struct allmasks *v
+-#else
+-#define	SCHED_CPUMASK_ALLOC		0
+-#define	SCHED_CPUMASK_FREE(v)
+-#define	SCHED_CPUMASK_DECLARE(v)	struct allmasks _v, *v = &_v
 -#endif
 -
- int __any_online_cpu(const cpumask_t *mask)
+-#define	SCHED_CPUMASK_VAR(v, a) 	cpumask_t *v = (cpumask_t *) \
+-			((unsigned long)(a) + offsetof(struct allmasks, v))
+-
+ static int default_relax_domain_level = -1;
+ 
+ static int __init setup_relax_domain_level(char *str)
+@@ -7367,14 +7333,35 @@ static void set_domain_attribute(struct 
+ static int __build_sched_domains(const cpumask_t *cpu_map,
+ 				 struct sched_domain_attr *attr)
  {
- 	int cpu;
+-	int i;
++	int i, err = -ENOMEM;
+ 	struct root_domain *rd;
+-	SCHED_CPUMASK_DECLARE(allmasks);
+-	cpumask_t *tmpmask;
++	cpumask_var_t nodemask, this_sibling_map, this_core_map, send_covered,
++		tmpmask;
+ #ifdef CONFIG_NUMA
++	cpumask_var_t domainspan, covered, notcovered;
+ 	struct sched_group **sched_group_nodes = NULL;
+ 	int sd_allnodes = 0;
+ 
++	if (!alloc_cpumask_var(&domainspan, GFP_KERNEL))
++		goto out;
++	if (!alloc_cpumask_var(&covered, GFP_KERNEL))
++		goto free_domainspan;
++	if (!alloc_cpumask_var(&notcovered, GFP_KERNEL))
++		goto free_covered;
++#endif
++
++	if (!alloc_cpumask_var(&nodemask, GFP_KERNEL))
++		goto free_notcovered;
++	if (!alloc_cpumask_var(&this_sibling_map, GFP_KERNEL))
++		goto free_nodemask;
++	if (!alloc_cpumask_var(&this_core_map, GFP_KERNEL))
++		goto free_this_sibling_map;
++	if (!alloc_cpumask_var(&send_covered, GFP_KERNEL))
++		goto free_this_core_map;
++	if (!alloc_cpumask_var(&tmpmask, GFP_KERNEL))
++		goto free_send_covered;
++
++#ifdef CONFIG_NUMA
+ 	/*
+ 	 * Allocate the per-node list of sched groups
+ 	 */
+@@ -7382,34 +7369,16 @@ static int __build_sched_domains(const c
+ 				    GFP_KERNEL);
+ 	if (!sched_group_nodes) {
+ 		printk(KERN_WARNING "Can not alloc sched group node list\n");
+-		return -ENOMEM;
++		goto free_tmpmask;
+ 	}
+ #endif
+ 
+ 	rd = alloc_rootdomain();
+ 	if (!rd) {
+ 		printk(KERN_WARNING "Cannot alloc root domain\n");
+-#ifdef CONFIG_NUMA
+-		kfree(sched_group_nodes);
+-#endif
+-		return -ENOMEM;
++		goto free_sched_groups;
+ 	}
+ 
+-#if SCHED_CPUMASK_ALLOC
+-	/* get space for all scratch cpumask variables */
+-	allmasks = kmalloc(sizeof(*allmasks), GFP_KERNEL);
+-	if (!allmasks) {
+-		printk(KERN_WARNING "Cannot alloc cpumask array\n");
+-		kfree(rd);
+-#ifdef CONFIG_NUMA
+-		kfree(sched_group_nodes);
+-#endif
+-		return -ENOMEM;
+-	}
+-#endif
+-	tmpmask = (cpumask_t *)allmasks;
+-
+-
+ #ifdef CONFIG_NUMA
+ 	sched_group_nodes_bycpu[first_cpu(*cpu_map)] = sched_group_nodes;
+ #endif
+@@ -7419,7 +7388,6 @@ static int __build_sched_domains(const c
+ 	 */
+ 	for_each_cpu(i, cpu_map) {
+ 		struct sched_domain *sd = NULL, *p;
+-		SCHED_CPUMASK_VAR(nodemask, allmasks);
+ 
+ 		*nodemask = node_to_cpumask(cpu_to_node(i));
+ 		cpus_and(*nodemask, *nodemask, *cpu_map);
+@@ -7485,9 +7453,6 @@ static int __build_sched_domains(const c
+ #ifdef CONFIG_SCHED_SMT
+ 	/* Set up CPU (sibling) groups */
+ 	for_each_cpu(i, cpu_map) {
+-		SCHED_CPUMASK_VAR(this_sibling_map, allmasks);
+-		SCHED_CPUMASK_VAR(send_covered, allmasks);
+-
+ 		*this_sibling_map = per_cpu(cpu_sibling_map, i);
+ 		cpus_and(*this_sibling_map, *this_sibling_map, *cpu_map);
+ 		if (i != first_cpu(*this_sibling_map))
+@@ -7502,9 +7467,6 @@ static int __build_sched_domains(const c
+ #ifdef CONFIG_SCHED_MC
+ 	/* Set up multi-core groups */
+ 	for_each_cpu(i, cpu_map) {
+-		SCHED_CPUMASK_VAR(this_core_map, allmasks);
+-		SCHED_CPUMASK_VAR(send_covered, allmasks);
+-
+ 		*this_core_map = cpu_coregroup_map(i);
+ 		cpus_and(*this_core_map, *this_core_map, *cpu_map);
+ 		if (i != first_cpu(*this_core_map))
+@@ -7518,9 +7480,6 @@ static int __build_sched_domains(const c
+ 
+ 	/* Set up physical groups */
+ 	for (i = 0; i < nr_node_ids; i++) {
+-		SCHED_CPUMASK_VAR(nodemask, allmasks);
+-		SCHED_CPUMASK_VAR(send_covered, allmasks);
+-
+ 		*nodemask = node_to_cpumask(i);
+ 		cpus_and(*nodemask, *nodemask, *cpu_map);
+ 		if (cpus_empty(*nodemask))
+@@ -7534,8 +7493,6 @@ static int __build_sched_domains(const c
+ #ifdef CONFIG_NUMA
+ 	/* Set up node groups */
+ 	if (sd_allnodes) {
+-		SCHED_CPUMASK_VAR(send_covered, allmasks);
+-
+ 		init_sched_build_groups(cpu_map, cpu_map,
+ 					&cpu_to_allnodes_group,
+ 					send_covered, tmpmask);
+@@ -7544,9 +7501,6 @@ static int __build_sched_domains(const c
+ 	for (i = 0; i < nr_node_ids; i++) {
+ 		/* Set up node groups */
+ 		struct sched_group *sg, *prev;
+-		SCHED_CPUMASK_VAR(nodemask, allmasks);
+-		SCHED_CPUMASK_VAR(domainspan, allmasks);
+-		SCHED_CPUMASK_VAR(covered, allmasks);
+ 		int j;
+ 
+ 		*nodemask = node_to_cpumask(i);
+@@ -7581,7 +7535,6 @@ static int __build_sched_domains(const c
+ 		prev = sg;
+ 
+ 		for (j = 0; j < nr_node_ids; j++) {
+-			SCHED_CPUMASK_VAR(notcovered, allmasks);
+ 			int n = (i + j) % nr_node_ids;
+ 			node_to_cpumask_ptr(pnodemask, n);
+ 
+@@ -7660,14 +7613,40 @@ static int __build_sched_domains(const c
+ 		cpu_attach_domain(sd, rd, i);
+ 	}
+ 
+-	SCHED_CPUMASK_FREE((void *)allmasks);
+-	return 0;
++	err = 0;
++
++free_tmpmask:
++	free_cpumask_var(tmpmask);
++free_send_covered:
++	free_cpumask_var(send_covered);
++free_this_core_map:
++	free_cpumask_var(this_core_map);
++free_this_sibling_map:
++	free_cpumask_var(this_sibling_map);
++free_nodemask:
++	free_cpumask_var(nodemask);
++free_notcovered:
++#ifdef CONFIG_NUMA
++	free_cpumask_var(notcovered);
++free_covered:
++	free_cpumask_var(covered);
++free_domainspan:
++	free_cpumask_var(domainspan);
++out:
++#endif
++	return err;
++
++free_sched_groups:
++#ifdef CONFIG_NUMA
++	kfree(sched_group_nodes);
++#endif
++	goto free_tmpmask;
+ 
+ #ifdef CONFIG_NUMA
+ error:
+ 	free_sched_groups(cpu_map, tmpmask);
+-	SCHED_CPUMASK_FREE((void *)allmasks);
+-	return -ENOMEM;
++	kfree(rd);
++	goto free_tmpmask;
+ #endif
+ }
+ 
 
 -- 
