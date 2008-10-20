@@ -1,7 +1,7 @@
 From: Mike Travis <travis@sgi.com>
-Date: Mon, 20 Oct 2008 17:03:42 +0000
-Subject: [PATCH 23/35] cpumask: deprecate any_online_cpu() in favour of cpumask_any/cpumask_any_and
-Message-Id: <20081020170322.785672000@polaris-admin.engr.sgi.com>
+Date: Mon, 20 Oct 2008 17:03:32 +0000
+Subject: [PATCH 13/35] cpumask: use setup_nr_cpu_ids() instead of direct assignment.
+Message-Id: <20081020170321.397462000@polaris-admin.engr.sgi.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20081020170319.539427000@polaris-admin.engr.sgi.com>
 MIME-Version: 1.0
@@ -10,85 +10,75 @@ Content-Transfer-Encoding: 7bit
 To: Ingo Molnar <mingo@elte.hu>, Rusty Russell <rusty@rustcorp.com.au>
 Cc: davej@codemonkey.org.uk, Jeremy Fitzhardinge <jeremy@goop.org>, Jes Sorensen <jes@sgi.com>, IA64 <linux-ia64@vger.kernel.org>, S390 <linux-s390@vger.kernel.org>, peterz@infradead.org, Jack Steiner <steiner@sgi.com>, linux-kernel@vger.kernel.org, Eric Dumazet <dada1@cosmosbay.com>, PowerPC <linuxppc-dev@ozlabs.org>, Andi Kleen <andi@firstfloor.org>, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yhlu.kernel@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, SPARC <sparclinux@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>
 
-any_online_cpu() is a good name, but it takes a cpumask_t, not a
-pointer.
+nr_cpu_ids is going to become a constant under some configs, so don't
+assign it.  Currently only x86 seems to anyway.
 
 From: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Mike Travis <travis@sgi.com>
 ---
- include/linux/cpumask.h |   11 ++++++-----
- lib/cpumask.c           |   12 ------------
- 2 files changed, 6 insertions(+), 17 deletions(-)
+ arch/x86/kernel/smpboot.c |    4 ++--
+ include/linux/cpumask.h   |    4 ++++
+ init/main.c               |    4 ++--
+ 3 files changed, 8 insertions(+), 4 deletions(-)
 
---- test-compile.orig/include/linux/cpumask.h
-+++ test-compile/include/linux/cpumask.h
-@@ -109,7 +109,8 @@
-  * int cpu_possible(cpu)		Is some cpu possible?
-  * int cpu_present(cpu)			Is some cpu present (can schedule)?
-  *
-- * int any_online_cpu(mask)		First online cpu in mask
-+ * int cpumask_any(mask)		Any cpu in mask
-+ * int cpumask_any_and(mask1,mask2)	Any cpu in both masks
-  *
-  * for_each_possible_cpu(cpu)		for-loop cpu over cpu_possible_map
-  * for_each_online_cpu(cpu)		for-loop cpu over cpu_online_map
-@@ -202,6 +203,7 @@ extern cpumask_t _unused_cpumask_arg_;
- 		for_each_cpu_and(cpu, &(mask), &(and))
- #define first_cpu(src)		cpumask_first(&(src))
- #define next_cpu(n, src)	cpumask_next((n), &(src))
-+#define any_online_cpu(mask)	cpumask_any_and(&(mask), &cpu_online_map)
- /* End deprecated region. */
+--- linux-2.6.28.orig/arch/x86/kernel/smpboot.c
++++ linux-2.6.28/arch/x86/kernel/smpboot.c
+@@ -1079,7 +1079,7 @@ static int __init smp_sanity_check(unsig
+ 			nr++;
+ 		}
  
- static inline void cpumask_set_cpu(int cpu, volatile struct cpumask *dstp)
-@@ -387,6 +389,9 @@ static inline void cpumask_copy(struct c
- 	bitmap_copy(cpumask_bits(dstp), cpumask_bits(srcp), nr_cpumask_bits);
+-		nr_cpu_ids = 8;
++		setup_nr_cpu_ids();
+ 	}
+ #endif
+ 
+@@ -1296,7 +1296,7 @@ __init void prefill_possible_map(void)
+ 	for (i = 0; i < possible; i++)
+ 		cpu_set(i, cpu_possible_map);
+ 
+-	nr_cpu_ids = possible;
++	setup_nr_cpu_ids();
  }
  
-+#define cpumask_any(srcp) cpumask_first(srcp)
-+#define cpumask_any_and(mask1, mask2) cpumask_first_and((mask1), (mask2))
-+
- /*
-  * Special-case data structure for "single bit set only" constant CPU masks.
-  *
-@@ -453,7 +458,6 @@ extern cpumask_t cpu_mask_all;
- #define cpumask_first(src)		({ (void)(src); 0; })
- #define cpumask_next(n, src)		({ (void)(src); 1; })
- #define cpumask_next_and(n, srcp, andp)	({ (void)(srcp), (void)(andp); 1; })
--#define any_online_cpu(mask)		0
+ #ifdef CONFIG_HOTPLUG_CPU
+--- linux-2.6.28.orig/include/linux/cpumask.h
++++ linux-2.6.28/include/linux/cpumask.h
+@@ -144,6 +144,7 @@
+ #include <linux/kernel.h>
+ #include <linux/threads.h>
+ #include <linux/bitmap.h>
++#include <linux/init.h>
  
- #define for_each_cpu(cpu, mask)			\
- 	for ((cpu) = 0; (cpu) < 1; (cpu)++, (void)mask)
-@@ -465,9 +469,6 @@ extern cpumask_t cpu_mask_all;
- int cpumask_first(const cpumask_t *srcp);
- int cpumask_next(int n, const cpumask_t *srcp);
- int cpumask_next_and(int n, const cpumask_t *srcp, const cpumask_t *andp);
--int __any_online_cpu(const cpumask_t *mask);
--
--#define any_online_cpu(mask) __any_online_cpu(&(mask))
+ struct cpumask
+ {
+@@ -636,4 +637,7 @@ extern cpumask_t cpu_active_map;
+ #define for_each_online_cpu(cpu)   for_each_cpu_mask_nr((cpu), cpu_online_map)
+ #define for_each_present_cpu(cpu)  for_each_cpu_mask_nr((cpu), cpu_present_map)
  
- #define for_each_cpu(cpu, mask)				\
- 	for ((cpu) = -1;				\
---- test-compile.orig/lib/cpumask.c
-+++ test-compile/lib/cpumask.c
-@@ -24,18 +24,6 @@ int cpumask_next_and(int n, const cpumas
- }
- EXPORT_SYMBOL(cpumask_next_and);
++/* Arch-specific code may call this to initialize nr_cpu_ids based on
++ * the cpu_possible_map. */
++void __init setup_nr_cpu_ids(void);
+ #endif /* __LINUX_CPUMASK_H */
+--- linux-2.6.28.orig/init/main.c
++++ linux-2.6.28/init/main.c
+@@ -362,7 +362,7 @@ static void __init smp_init(void)
+ #endif
  
--int __any_online_cpu(const cpumask_t *mask)
--{
--	int cpu;
--
--	for_each_cpu(cpu, mask) {
--		if (cpu_online(cpu))
--			break;
--	}
--	return cpu;
--}
--EXPORT_SYMBOL(__any_online_cpu);
--
- /* These are not inline because of header tangles. */
- #ifdef CONFIG_CPUMASK_OFFSTACK
- bool alloc_cpumask_var(cpumask_var_t *mask, gfp_t flags)
+ static inline void setup_per_cpu_areas(void) { }
+-static inline void setup_nr_cpu_ids(void) { }
++void __init setup_nr_cpu_ids(void) { }
+ static inline void smp_prepare_cpus(unsigned int maxcpus) { }
+ 
+ #else
+@@ -377,7 +377,7 @@ int nr_cpu_ids __read_mostly = NR_CPUS;
+ EXPORT_SYMBOL(nr_cpu_ids);
+ 
+ /* An arch may set nr_cpu_ids earlier if needed, so this would be redundant */
+-static void __init setup_nr_cpu_ids(void)
++void __init setup_nr_cpu_ids(void)
+ {
+ 	int cpu, highest_cpu = 0;
+ 
 
 -- 
