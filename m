@@ -1,7 +1,7 @@
 From: Mike Travis <travis@sgi.com>
-Date: Mon, 20 Oct 2008 17:03:53 +0000
-Subject: [PATCH 34/35] cpumask: debug options for cpumasks
-Message-Id: <20081020170324.280990000@polaris-admin.engr.sgi.com>
+Date: Mon, 20 Oct 2008 17:03:39 +0000
+Subject: [PATCH 20/35] cpumask: cpumask_of(): cpumask_of_cpu() which returns a pointer.
+Message-Id: <20081020170322.363319000@polaris-admin.engr.sgi.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20081020170319.539427000@polaris-admin.engr.sgi.com>
 MIME-Version: 1.0
@@ -10,97 +10,59 @@ Content-Transfer-Encoding: 7bit
 To: Ingo Molnar <mingo@elte.hu>, Rusty Russell <rusty@rustcorp.com.au>
 Cc: davej@codemonkey.org.uk, Jeremy Fitzhardinge <jeremy@goop.org>, Jes Sorensen <jes@sgi.com>, IA64 <linux-ia64@vger.kernel.org>, S390 <linux-s390@vger.kernel.org>, peterz@infradead.org, Jack Steiner <steiner@sgi.com>, linux-kernel@vger.kernel.org, Eric Dumazet <dada1@cosmosbay.com>, PowerPC <linuxppc-dev@ozlabs.org>, Andi Kleen <andi@firstfloor.org>, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yhlu.kernel@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, SPARC <sparclinux@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>
 
-It's useful to check that no one is accessing > nr_cpumask_bits for
-cpumasks.  This also allows you to turn on CONFIG_CPUMASKS_OFFSTACK
-even for smaller CONFIG_NR_CPUS.
+This deprecates cpumask_of_cpu(), which returns a cpumask_t
+(cpumask_of() returns a const pointer, instead).
 
 From: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Mike Travis <travis@sgi.com>
 ---
- include/linux/cpumask.h |   23 +++++++++++++++++------
- lib/Kconfig.debug       |    6 ++++++
- lib/cpumask.c           |    3 +++
- 3 files changed, 26 insertions(+), 6 deletions(-)
+ include/linux/cpumask.h |   16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
 
---- test-compile.orig/include/linux/cpumask.h
-+++ test-compile/include/linux/cpumask.h
-@@ -217,23 +217,34 @@ extern cpumask_t _unused_cpumask_arg_;
- }
- #endif /* CONFIG_NR_CPUS > BITS_PER_LONG */
+--- linux-2.6.28.orig/include/linux/cpumask.h
++++ linux-2.6.28/include/linux/cpumask.h
+@@ -52,8 +52,7 @@
+  * void cpumask_copy(dmask, smask)	dmask = smask
+  *
+  * size_t cpumask_size()		Length of cpumask in bytes.
+- * cpumask_t cpumask_of_cpu(cpu)	Return cpumask with bit 'cpu' set
+- *					(can be used as an lvalue)
++ * const struct cpumask *cpumask_of(cpu) Return cpumask with bit 'cpu' set
+  * CPU_MASK_ALL				Initializer - all bits set
+  * CPU_MASK_NONE			Initializer - no bits set
+  * unsigned long *cpumask_bits(mask)	Array of unsigned long's in mask
+@@ -176,6 +175,7 @@ extern cpumask_t _unused_cpumask_arg_;
+ #define next_cpu_nr(n, src)		next_cpu(n, src)
+ #define cpus_weight_nr(cpumask)		cpus_weight(cpumask)
+ #define for_each_cpu_mask_nr(cpu, mask)	for_each_cpu_mask(cpu, mask)
++#define cpumask_of_cpu(cpu) (*cpumask_of(cpu))
+ /* End deprecated region. */
  
-+/* verify cpu argument to cpumask_* operators */
-+static inline unsigned int cpumask_check(unsigned int cpu)
-+{
-+#ifdef CONFIG_DEBUG_PER_CPU_MAPS
-+	/* This breaks at runtime. */
-+	BUG_ON(cpu >= nr_cpumask_bits);
-+#endif /* CONFIG_DEBUG_PER_CPU_MAPS */
-+	return cpu;
-+}
-+
- /* cpumask_* operators */
- static inline void cpumask_set_cpu(int cpu, volatile struct cpumask *dstp)
+ #if NR_CPUS <= BITS_PER_LONG
+@@ -382,21 +382,13 @@ static inline void cpumask_copy(struct c
+ extern const unsigned long
+ 	cpu_bit_bitmap[BITS_PER_LONG+1][BITS_TO_LONGS(NR_CPUS)];
+ 
+-static inline const cpumask_t *get_cpu_mask(unsigned int cpu)
++static inline const struct cpumask *cpumask_of(unsigned int cpu)
  {
--	set_bit(cpu, cpumask_bits(dstp));
-+	set_bit(cpumask_check(cpu), cpumask_bits(dstp));
+ 	const unsigned long *p = cpu_bit_bitmap[1 + cpu % BITS_PER_LONG];
+ 	p -= cpu / BITS_PER_LONG;
+-	return (const cpumask_t *)p;
++	return (const struct cpumask *)p;
  }
  
- static inline void cpumask_clear_cpu(int cpu, volatile struct cpumask *dstp)
- {
--	clear_bit(cpu, cpumask_bits(dstp));
-+	clear_bit(cpumask_check(cpu), cpumask_bits(dstp));
- }
+-/*
+- * In cases where we take the address of the cpumask immediately,
+- * gcc optimizes it out (it's a constant) and there's no huge stack
+- * variable created:
+- */
+-#define cpumask_of_cpu(cpu) (*get_cpu_mask(cpu))
+-
+-
+ #define CPU_MASK_LAST_WORD BITMAP_LAST_WORD_MASK(NR_CPUS)
  
- /* No static inline type checking - see Subtlety (1) above. */
--#define cpumask_test_cpu(cpu, cpumask) test_bit((cpu), (cpumask)->bits)
-+#define cpumask_test_cpu(cpu, cpumask) \
-+	test_bit(cpumask_check(cpu), (cpumask)->bits)
- 
- static inline int cpumask_test_and_set_cpu(int cpu, struct cpumask *addr)
- {
--	return test_and_set_bit(cpu, cpumask_bits(addr));
-+	return test_and_set_bit(cpumask_check(cpu), cpumask_bits(addr));
- }
- 
- static inline void cpumask_setall(struct cpumask *dstp)
-@@ -367,8 +378,8 @@ static inline int cpumask_cpuremap(int o
- 				   const struct cpumask *oldp,
- 				   const struct cpumask *newp)
- {
--	return bitmap_bitremap(oldbit, cpumask_bits(oldp), cpumask_bits(newp),
--							   nr_cpumask_bits);
-+	return bitmap_bitremap(cpumask_check(oldbit), cpumask_bits(oldp),
-+				cpumask_bits(newp), nr_cpumask_bits);
- }
- 
- static inline void cpumask_remap(struct cpumask *dstp,
---- test-compile.orig/lib/Kconfig.debug
-+++ test-compile/lib/Kconfig.debug
-@@ -766,6 +766,12 @@ config SYSCTL_SYSCALL_CHECK
- 	  to properly maintain and use. This enables checks that help
- 	  you to keep things correct.
- 
-+config DEBUG_PER_CPU_MAPS
-+	bool "Cpumask debug checks"
-+	---help---
-+	  Extra debugging for cpumasks.
-+	  eg. to make sure accesses to cpumasks are < nr_cpu_ids.
-+
- source kernel/trace/Kconfig
- 
- config PROVIDE_OHCI1394_DMA_INIT
---- test-compile.orig/lib/cpumask.c
-+++ test-compile/lib/cpumask.c
-@@ -11,6 +11,9 @@ EXPORT_SYMBOL(cpumask_first);
- 
- int cpumask_next(int n, const cpumask_t *srcp)
- {
-+	/* -1 is a legal arg here. */
-+	if (n != -1)
-+		cpumask_check(n);
- 	return find_next_bit(cpumask_bits(srcp), nr_cpumask_bits, n+1);
- }
- EXPORT_SYMBOL(cpumask_next);
+ #if NR_CPUS <= BITS_PER_LONG
 
 -- 
