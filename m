@@ -1,7 +1,7 @@
 From: Mike Travis <travis@sgi.com>
-Date: Mon, 20 Oct 2008 17:03:32 +0000
-Subject: [PATCH 13/35] cpumask: use setup_nr_cpu_ids() instead of direct assignment.
-Message-Id: <20081020170321.397462000@polaris-admin.engr.sgi.com>
+Date: Mon, 20 Oct 2008 17:03:27 +0000
+Subject: [PATCH 08/35] cpumask: cpumask_size()
+Message-Id: <20081020170320.713010000@polaris-admin.engr.sgi.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20081020170319.539427000@polaris-admin.engr.sgi.com>
 MIME-Version: 1.0
@@ -10,75 +10,34 @@ Content-Transfer-Encoding: 7bit
 To: Ingo Molnar <mingo@elte.hu>, Rusty Russell <rusty@rustcorp.com.au>
 Cc: davej@codemonkey.org.uk, Jeremy Fitzhardinge <jeremy@goop.org>, Jes Sorensen <jes@sgi.com>, IA64 <linux-ia64@vger.kernel.org>, S390 <linux-s390@vger.kernel.org>, peterz@infradead.org, Jack Steiner <steiner@sgi.com>, linux-kernel@vger.kernel.org, Eric Dumazet <dada1@cosmosbay.com>, PowerPC <linuxppc-dev@ozlabs.org>, Andi Kleen <andi@firstfloor.org>, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yhlu.kernel@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, SPARC <sparclinux@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>
 
-nr_cpu_ids is going to become a constant under some configs, so don't
-assign it.  Currently only x86 seems to anyway.
+Dynamic allocation of cpumasks requires the size.
 
-From: Rusty Russell <rusty@rustcorp.com.au>
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Mike Travis <travis@sgi.com>
 ---
- arch/x86/kernel/smpboot.c |    4 ++--
- include/linux/cpumask.h   |    4 ++++
- init/main.c               |    4 ++--
- 3 files changed, 8 insertions(+), 4 deletions(-)
+ include/linux/cpumask.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- linux-2.6.28.orig/arch/x86/kernel/smpboot.c
-+++ linux-2.6.28/arch/x86/kernel/smpboot.c
-@@ -1079,7 +1079,7 @@ static int __init smp_sanity_check(unsig
- 			nr++;
- 		}
+--- test-compile.orig/include/linux/cpumask.h
++++ test-compile/include/linux/cpumask.h
+@@ -64,6 +64,7 @@
+  * int next_cpu(cpu, mask)		Next cpu past 'cpu', or NR_CPUS
+  * int next_cpu_nr(cpu, mask)		Next cpu past 'cpu', or nr_cpu_ids
+  *
++ * size_t cpumask_size()		Length of cpumask in bytes.
+  * cpumask_t cpumask_of_cpu(cpu)	Return cpumask with bit 'cpu' set
+  *					(can be used as an lvalue)
+  * CPU_MASK_ALL				Initializer - all bits set
+@@ -148,6 +149,11 @@ struct cpumask
+ };
+ #define cpumask_bits(maskp) ((maskp)->bits)
  
--		nr_cpu_ids = 8;
-+		setup_nr_cpu_ids();
- 	}
- #endif
- 
-@@ -1296,7 +1296,7 @@ __init void prefill_possible_map(void)
- 	for (i = 0; i < possible; i++)
- 		cpu_set(i, cpu_possible_map);
- 
--	nr_cpu_ids = possible;
-+	setup_nr_cpu_ids();
- }
- 
- #ifdef CONFIG_HOTPLUG_CPU
---- linux-2.6.28.orig/include/linux/cpumask.h
-+++ linux-2.6.28/include/linux/cpumask.h
-@@ -144,6 +144,7 @@
- #include <linux/kernel.h>
- #include <linux/threads.h>
- #include <linux/bitmap.h>
-+#include <linux/init.h>
- 
- struct cpumask
- {
-@@ -636,4 +637,7 @@ extern cpumask_t cpu_active_map;
- #define for_each_online_cpu(cpu)   for_each_cpu_mask_nr((cpu), cpu_online_map)
- #define for_each_present_cpu(cpu)  for_each_cpu_mask_nr((cpu), cpu_present_map)
- 
-+/* Arch-specific code may call this to initialize nr_cpu_ids based on
-+ * the cpu_possible_map. */
-+void __init setup_nr_cpu_ids(void);
- #endif /* __LINUX_CPUMASK_H */
---- linux-2.6.28.orig/init/main.c
-+++ linux-2.6.28/init/main.c
-@@ -362,7 +362,7 @@ static void __init smp_init(void)
- #endif
- 
- static inline void setup_per_cpu_areas(void) { }
--static inline void setup_nr_cpu_ids(void) { }
-+void __init setup_nr_cpu_ids(void) { }
- static inline void smp_prepare_cpus(unsigned int maxcpus) { }
- 
- #else
-@@ -377,7 +377,7 @@ int nr_cpu_ids __read_mostly = NR_CPUS;
- EXPORT_SYMBOL(nr_cpu_ids);
- 
- /* An arch may set nr_cpu_ids earlier if needed, so this would be redundant */
--static void __init setup_nr_cpu_ids(void)
-+void __init setup_nr_cpu_ids(void)
- {
- 	int cpu, highest_cpu = 0;
- 
++static inline ssize_t cpumask_size(void)
++{
++	return BITS_TO_LONGS(NR_CPUS) * sizeof(long);
++}
++
+ /* Deprecated. */
+ typedef struct cpumask cpumask_t;
+ extern cpumask_t _unused_cpumask_arg_;
 
 -- 
