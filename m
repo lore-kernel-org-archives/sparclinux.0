@@ -1,64 +1,42 @@
-From: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Date: Thu, 23 Oct 2008 17:32:28 +0000
-Subject: Re: [PATCH] rtc-m48t59: fix setting of a year on m48t08 and m48t02
-Message-Id: <20081023193228.3e9633bd.krzysztof.h1@poczta.fm>
+From: "=?ISO-8859-1?Q?Fr=E9d=E9ric_Weisbecker?=" <fweisbec@gmail.com>
+Date: Tue, 21 Oct 2008 00:26:04 +0000
+Subject: Re: [PATCH] sparc: correct section of current_pc()
+Message-Id: <c62985530810201726w17ac4249h71c8feeb00fcd0e9@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080904185704.e5c9d1fc.krzysztof.h1@poczta.fm>
-In-Reply-To: <20080904185704.e5c9d1fc.krzysztof.h1@poczta.fm>
+References: <48FA0F7C.9040507@gmail.com>
+In-Reply-To: <48FA0F7C.9040507@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, Linux Kernel <linux-kernel@vger.kernel.org>
+Cc: "William L. Irwin" <wli@holomorphy.com>, Sparc <sparclinux@vger.kernel.org>
 
-On Mon, 20 Oct 2008 03:31:52 +0400
-"Alexander Beregalov" <a.beregalov@gmail.com> wrote:
+2008/10/18 Frederic Weisbecker <fweisbec@gmail.com>:
+> Latest mainline gives this section mismatch on sparc:
+>
+> The function current_pc() references
+> the variable __init no_sun4u_here.
+> This is often because current_pc lacks a __init
+> annotation or the annotation of no_sun4u_here is wrong.
+>
+> Since current_pc() is used only in early time, it is correct to
+> put it in .init section.
+>
+> Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
+> ---
+> diff --git a/arch/sparc/kernel/head.S b/arch/sparc/kernel/head.S
+> index 2d325fd..2fe2c11 100644
+> --- a/arch/sparc/kernel/head.S
+> +++ b/arch/sparc/kernel/head.S
+> @@ -465,6 +465,7 @@ gokernel:
+>                mov     %o7, %g4                ! Save %o7
+>
+>                /* Jump to it, and pray... */
+> +               __INIT
+>  current_pc:
+>                call    1f
+>                 nop
+>
+>
 
-> > It seems to me the problem is here:
-> >
-> > drivers/rtc/rtc-m48t59.c
-> > static int m48t59_rtc_read_time(struct device *dev, struct rtc_time *tm)
-> >
-> > /*  tm->tm_year is 108 here */
-> >        val = M48T59_READ(M48T59_WDAY);
-> 
-> M48T59_READ(M48T59_WDAY) is 0x31 on my host
-> M48T59_WDAY_CEB | M48T59_WDAY_CB | M48T59_UNUSED ??
-> 
-> What is wrong?
-> 
-
-It is ok. It is M48T59_WDAY_CEB | M48T59_WDAY_CB and 0x1 means Monday (week day number).
-
-> Should BCD2BIN(M48T59_READ(M48T59_YEAR)) return "8" ?
-> 
-
-Yes. It should be 8 if you have not applied the last patch I sent ("Shift the first year to 1968 for Sun SPARC machines").
-If the patch has been applied it would be 40 (decimal) means 1968+40  = 2008.
-
-> >        if ((pdata->type = M48T59RTC_TYPE_M48T59) &&
-> >            (val & M48T59_WDAY_CEB) && (val & M48T59_WDAY_CB)) {
-> >                dev_dbg(dev, "Century bit is enabled\n");
-> >                tm->tm_year += 100;     /* one century */
-> >        }
-> > /* tm->tm_year  is 208 here */
-> >
-> > Finally year becomes 2108.
-> >
-> > It should not enter this condition.
-> > Is it obvously how to rewrite the condition or is the problem in another place?
-
-It should enter the condition if the century bit is set. The error is that the century bit is set somehow. 
-It is possible in one of the previous versions of the rtc layer conversion code. The mentioned patch should fix it.
-
-If the patch is applied could you reproduce the bug by rebooting the machine with the patched version of the kernel? (Set the correct date once then reboot).
-
-Regards,
-Krzysztof
-PS. The easy way to reset the century bit should be to set the year before 2000 for a moment.
-
-
-
-----------------------------------------------------------------------
-Dzwon taniej na zagraniczne komorki!
-Sprawdz >> http://link.interia.pl/f1f4e 
-
+(Adding William and sparclinux in cc)
