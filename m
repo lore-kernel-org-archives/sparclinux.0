@@ -1,29 +1,33 @@
-From: Shaddy Baddah <shaddy_baddah@hotmail.com>
-Date: Fri, 31 Oct 2008 21:28:27 +0000
-Subject: Re: Suspend-Resume support in sparc64 kernel?
-Message-Id: <490B787B.7000102@hotmail.com>
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Date: Fri, 24 Oct 2008 07:06:24 +0000
+Subject: [PATCH] dbri: check dma_alloc_coherent errors
+Message-Id: <20081024160644C.fujita.tomonori@lab.ntt.co.jp>
 List-Id: <sparclinux.vger.kernel.org>
-References: <490AF15F.2080902@hotmail.com>
-In-Reply-To: <490AF15F.2080902@hotmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-David Miller wrote:
->> If not, is there some historic reason for this?
-> 
-> I'm the only person working on the port and there are only
-> 24 hours per day.
+Needs to check for dma_alloc_coherent() allocation failure.
 
-That's fair enough. Totally understand where you are coming from. It's 
-an almighty effort that you've made too, because the sparc port is very 
-good.
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+---
+ sound/sparc/dbri.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-I aspire to be able to contribute, but will need to self learn kernel 
-development before I am in a position to do that.
-
-Thanks,
-Shaddy
-
+diff --git a/sound/sparc/dbri.c b/sound/sparc/dbri.c
+index c257ad8..23ed6f0 100644
+--- a/sound/sparc/dbri.c
++++ b/sound/sparc/dbri.c
+@@ -2534,6 +2534,8 @@ static int __devinit snd_dbri_create(struct snd_card *card,
+ 	dbri->dma = dma_alloc_coherent(&op->dev,
+ 				       sizeof(struct dbri_dma),
+ 				       &dbri->dma_dvma, GFP_ATOMIC);
++	if (!dbri->dma)
++		return -ENOMEM;
+ 	memset((void *)dbri->dma, 0, sizeof(struct dbri_dma));
+ 
+ 	dprintk(D_GEN, "DMA Cmd Block 0x%p (0x%08x)\n",
+-- 
+1.5.5.GIT
 
