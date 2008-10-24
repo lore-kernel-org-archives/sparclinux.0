@@ -1,117 +1,91 @@
-From: Jim Gifford <maillist@jg555.com>
-Date: Mon, 06 Oct 2008 02:40:22 +0000
-Subject: Re: Netra X1 - Tulip Issues - Since 2.6.24
-Message-Id: <48E97A96.6040403@jg555.com>
+From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
+Date: Fri, 24 Oct 2008 15:24:33 +0000
+Subject: Re: kernel crashes on Sun Fire 480R with cassini network driver
+Message-Id: <20081024152433.GA1803@lemon.iwr.uni-heidelberg.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <48E652A7.3010202@jg555.com>
-In-Reply-To: <48E652A7.3010202@jg555.com>
+References: <20080923133152.GC17211@lemon.iwr.uni-heidelberg.de>
+In-Reply-To: <20080923133152.GC17211@lemon.iwr.uni-heidelberg.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-BERTRAND Joel wrote:
-> Jim Gifford a =E9crit :
->> Currently running 2.6.24-gentoo-r8 and 2.6.25-gentoo-r7. Also have=20
->> tried the vanilla kernel as well.
->>
->> It appears the issues seems to be isolated tot he Sparc X1's my x86's=20
->> using the tulip driver are not having the issue.
->>
->> Not sure if it's a reporting issue or just a problem with the driver.=20
->> Every packet seems to be an error. I've ran out of resources trying=20
->> to figure this out on my own, but no luck. Seems to be TX issue only.
->
->     This is a known trouble that seems to be fixed in 2.6.26. If I=20
-> remember, this trouble is older than 2.6.24. I have seen the same with=20
-> 3Com adapter since 2.6.19 and it affected all archs.
->
->     Regards,
->
->     JKB
-> --=20
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-Just put on 2.6.26 on there, still happening, not as much. It dies with=20
-these errors under 2.6.26. Here are the 2 last ones. It takes a few=20
-hours to bomb, but it does.
+Hello all,
 
-Oct  5 04:33:09 mail kernel: [13368.070731] NETDEV WATCHDOG: eth0:=20
-transmit timed out
-Oct  5 04:33:09 mail kernel: [13368.072165] ------------[ cut here=20
-]------------
-Oct  5 04:33:09 mail kernel: [13368.072177] WARNING: at=20
-net/sched/sch_generic.c:222 dev_watchdog+0x10c/0x140()
-Oct  5 04:33:09 mail kernel: [13368.072189] Modules linked in:=20
-openpromfs tulip
-Oct  5 04:33:09 mail kernel: [13368.072204] Call Trace:
-Oct  5 04:33:09 mail kernel: [13368.072212]  [00000000005e68cc]=20
-dev_watchdog+0x114/0x140
-Oct  5 04:33:09 mail kernel: [13368.072227]  [000000000045fc8c]=20
-run_timer_softirq+0x174/0x1e0
-Oct  5 04:33:09 mail kernel: [13368.072249]  [000000000045b0bc]=20
-__do_softirq+0x64/0xe0
-Oct  5 04:33:09 mail kernel: [13368.072264]  [000000000045b198]=20
-do_softirq+0x60/0x80
-Oct  5 04:33:09 mail kernel: [13368.072277]  [000000000045b344]=20
-irq_exit+0x8c/0xc0
-Oct  5 04:33:09 mail kernel: [13368.072290]  [000000000043307c]=20
-timer_interrupt+0x64/0xc0
-Oct  5 04:33:09 mail kernel: [13368.072306]  [00000000004209d4]=20
-tl0_irq14+0x1c/0x20
-Oct  5 04:33:09 mail kernel: [13368.072323]  [0000000000427d00]=20
-cpu_idle+0x28/0xc0
-Oct  5 04:33:09 mail kernel: [13368.072338]  [000000000070ca1c]=20
-start_kernel+0x284/0x2c0
-Oct  5 04:33:09 mail kernel: [13368.072365]  [000000000063c964]=20
-tlb_fixup_done+0x88/0x9c
-Oct  5 04:33:09 mail kernel: [13368.072380]  [0000000000000000] 0x8
-Oct  5 04:33:09 mail kernel: [13368.072392] ---[ end trace=20
-bad8983fa8581c2e ]---
+On Mon, Sep 29, 2008 at 10:19:54AM +0200, Hermann Lauer wrote:
+> > while trying to run vanilla linux-2.6.26.5 or the debian etchnhalf kernel
+> > (2.6.24.x) I noticed the cassini network driver for the builtin gigabit
+> > network is unstable and brings the kernel down on a dualprocessor sparc
+> > SunFire 480R with a Hardware FATAL RESET.
+> 
+> I now noticed that even a few pings are possible with the cassini
+> network driver if you configure it statically, but then the machine again 
+> crashes with the known: 
+> ERROR: System Hardware FATAL RESET from  CPU0 CPU2
 
-Oct  5 13:47:51 mail kernel: [11186.068395] NETDEV WATCHDOG: eth0:=20
-transmit timed out
-Oct  5 13:47:51 mail kernel: [11186.069824] ------------[ cut here=20
-]------------
-Oct  5 13:47:51 mail kernel: [11186.069836] WARNING: at=20
-net/sched/sch_generic.c:222 dev_watchdog+0x10c/0x140()
-Oct  5 13:47:51 mail kernel: [11186.069847] Modules linked in:=20
-openpromfs tulip
-Oct  5 13:47:51 mail kernel: [11186.069863] Call Trace:
-Oct  5 13:47:51 mail kernel: [11186.069870]  [00000000005e68cc]=20
-dev_watchdog+0x114/0x140
-Oct  5 13:47:51 mail kernel: [11186.069885]  [000000000045fc8c]=20
-run_timer_softirq+0x174/0x1e0
-Oct  5 13:47:51 mail kernel: [11186.069906]  [000000000045b0bc]=20
-__do_softirq+0x64/0xe0
-Oct  5 13:47:51 mail kernel: [11186.069921]  [000000000045b198]=20
-do_softirq+0x60/0x80
-Oct  5 13:47:51 mail kernel: [11186.069934]  [000000000045b344]=20
-irq_exit+0x8c/0xc0
-Oct  5 13:47:51 mail kernel: [11186.069946]  [000000000043307c]=20
-timer_interrupt+0x64/0xc0
-Oct  5 13:47:51 mail kernel: [11186.069963]  [00000000004209d4]=20
-tl0_irq14+0x1c/0x20
-Oct  5 13:47:51 mail kernel: [11186.069979]  [0000000000427d0c]=20
-cpu_idle+0x34/0xc0
-Oct  5 13:47:51 mail kernel: [11186.069994]  [000000000070ca1c]=20
-start_kernel+0x284/0x2c0
-Oct  5 13:47:51 mail kernel: [11186.070020]  [000000000063c964]=20
-tlb_fixup_done+0x88/0x9c
-Oct  5 13:47:51 mail kernel: [11186.070035]  [0000000000000000] 0x8
-Oct  5 13:47:51 mail kernel: [11186.070047] ---[ end trace=20
-57f9d9a3f577b443 ]---
-Oct  5 13:47:59 mail kernel: [11194.064398] NETDEV WATCHDOG: eth0:=20
-transmit timed out
-Oct  5 13:48:07 mail kernel: [11202.060400] NETDEV WATCHDOG: eth0:=20
-transmit timed out
-Oct  5 13:48:15 mail kernel: [11210.056403] NETDEV WATCHDOG: eth0:=20
-transmit timed out
-Oct  5 13:48:23 mail kernel: [11218.052407] NETDEV WATCHDOG: eth0:=20
-transmit timed out
-Oct  5 13:48:31 mail kernel: [11226.048412] NETDEV WATCHDOG: eth0:=20
-transmit timed out
-Oct  5 13:48:39 mail kernel: [11234.044411] NETDEV WATCHDOG: eth0:=20
-transmit timed out
+tried 2.6.27.2 today, but this hangs already at loading the kernel.
+Output is attached. Please tell me what else I can provide.
 
+Thanks,
+  Hermann
+
+Rebooting with command: boot net:dhcp -p suite=etch BOOT_DEBUG=2 console=/dev/ttyS0,9600
+Boot device: /pci@9,700000/network@2:dhcp  File and args: -p suite=etch BOOT_DEBUG=2 console=/dev/ttyS0,9600
+/pci@9,700000/network@2: 1000 Mbps full duplex link up
+-
+[    0.000000] PROMLIB: Sun IEEE Boot Prom 'OBP 4.22.34 2007/07/23 13:01'
+[    0.000000] PROMLIB: Root node compatible:
+[    0.000000] Initializing cgroup subsys cpuset
+[    0.000000] Initializing cgroup subsys cpu
+[    0.000000] Linux version 2.6.27.2 (hlauer@install1) (gcc version 4.1.2 20061115 (prerelease) (Debian 4.1.1-21)) #1 SMP Wed Oct 22 11:33:48 CEST 2008
+[    0.000000] console [earlyprom0] enabled
+[    0.000000] ARCH: SUN4U
+[    0.000000] Ethernet address: 00:03:ba:29:7c:9f
+[    0.000000] Kernel: Using 2 locked TLB entries for main kernel image.
+[    0.000000] Remapping the kernel... done.
+[    0.000000] OF stdout device is: /pci@9,700000/ebus@1/serial@1,400000:a
+[    0.000000] PROM: Built device tree with 101718 bytes of memory.
+[    0.000000] Top of RAM: 0xa0ffb22000, Total RAM: 0xffad6000
+[    0.000000] Memory hole size: 655360MB
+[    0.000000] [0000000318000000-fffff8a000800000] page_structs1072 node=0 entry20/0
+[    0.000000] [0000000318000000-fffff8a000c00000] page_structs1072 node=0 entry21/0
+[    0.000000] [0000000318700000-fffff8a001000000] page_structs1072 node=0 entry22/0
+[    0.000000] [0000000318700000-fffff8a001400000] page_structs1072 node=0 entry23/0
+[    0.000000] [0000000318e00000-fffff8a001800000] page_structs1072 node=0 entry24/0
+[    0.000000] [0000000318e00000-fffff8a001c00000] page_structs1072 node=0 entry25/0
+[    0.000000] [0000000319500000-fffff8a002000000] page_structs1072 node=0 entry26/0
+[    0.000000] Zone PFN ranges:
+[    0.000000]   Normal   0x05000000 -> 0x0507fd91
+[    0.000000] Movable zone start PFN for each node
+[    0.000000] early_node_map[4] active PFN ranges
+[    0.000000]     0: 0x05000000 -> 0x0507f7ff
+[    0.000000]     0: 0x0507f800 -> 0x0507fd2c
+[    0.000000]     0: 0x0507fd50 -> 0x0507fd8f
+[    0.000000]     0: 0x0507fd90 -> 0x0507fd91
+[    0.000000] Booting Linux...
+[    0.000000] Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 520047
+[    0.000000] Kernel command line: -p suite=etch BOOT_DEBUG=2 console=/dev/ttyS0,9600
+[    0.000000] PID hash table entries: 4096 (order: 12, 32768 bytes)
+[    0.000000] clocksource: mult[640000] shift[16]
+[    0.000000] clockevent: mult[28f5c28] shift[32]
+[   44.605863] Console: colour dummy device 80x25
+[   44.675397] Dentry cache hash table entries: 524288 (order: 9, 4194304 bytes)
+[   44.770529] Inode-cache hash table entries: 262144 (order: 8, 2097152 bytes)
+[   45.037252] Memory: 4143944k available (2928k kernel code, 1104k data, 208k init) [fffff80000000000,000000a0ffb22000]
+[   45.242394] Calibrating delay using timer specific routine.. 19.94 BogoMIPS (lpj9882)
+[   45.336754] Security Framework initialized
+[   45.385494] SELinux:  Disabled at boot.
+[   45.431376] Mount-cache hash table entries: 512
+[   45.486255] Initializing cgroup subsys ns
+[   45.533413] Initializing cgroup subsys cpuacct
+[   45.586524] Initializing cgroup subsys devices
+[   45.641866] CPU 0: synchronized TICK with master CPU (last diff 0 cycles, maxerr 11 cycles)
+[   45.641885] Brought up 2 CPUs
+[   45.642975] net_namespace: 1552 bytes
+[   45.819677] NET: Registered protocol family 16
+
+-- 
+Netzwerkadministration/Zentrale Dienste, Interdiziplinaeres 
+Zentrum fuer wissenschaftliches Rechnen der Universitaet Heidelberg
+IWR; INF 368; 69120 Heidelberg; Tel: (06221)54-8236 Fax: -5224
+Email: Hermann.Lauer@iwr.uni-heidelberg.de
