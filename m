@@ -1,285 +1,206 @@
-From: Mike Travis <travis@sgi.com>
-Date: Mon, 20 Oct 2008 17:03:48 +0000
-Subject: [PATCH 29/35] cpumask: Use accessors code.
-Message-Id: <20081020170323.602974000@polaris-admin.engr.sgi.com>
+From: Jim Gifford <maillist@jg555.com>
+Date: Mon, 27 Oct 2008 18:03:23 +0000
+Subject: Re: Tulip Driver Issues
+Message-Id: <4906026B.1020202@jg555.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20081020170319.539427000@polaris-admin.engr.sgi.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ingo Molnar <mingo@elte.hu>, Rusty Russell <rusty@rustcorp.com.au>
-Cc: davej@codemonkey.org.uk, Jeremy Fitzhardinge <jeremy@goop.org>, Jes Sorensen <jes@sgi.com>, IA64 <linux-ia64@vger.kernel.org>, S390 <linux-s390@vger.kernel.org>, peterz@infradead.org, Jack Steiner <steiner@sgi.com>, linux-kernel@vger.kernel.org, Eric Dumazet <dada1@cosmosbay.com>, PowerPC <linuxppc-dev@ozlabs.org>, Andi Kleen <andi@firstfloor.org>, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yhlu.kernel@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, SPARC <sparclinux@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>
+To: sparclinux@vger.kernel.org
 
-Use the accessors rather than frobbing bits directly.  Most of this is
-in arch code I haven't even compiled, but is straightforward.
+Jim Gifford wrote:
+> I originally posted this on the Sparc list, with no solutions yet. I 
+> have included the detail from that email as well, but the newer 
+> kernels are still having the same issue.
+>
+> Now I'm running 2.6.27-gentoo and have tried 2.6.26-gentoo.
+>
+> The errors are still showing up and still locking up the system randomly.
+>
+> mail ~ # mii-tool -v eth0
+> eth0: no autonegotiation, 100baseTx-HD, link ok
+>  product info: vendor 00:60:6e, model 4 rev 0
+>  basic mode:   autonegotiation enabled
+>  basic status: autonegotiation complete, link ok
+>  capabilities: 100baseTx-FD 100baseTx-HD 10baseT-FD 10baseT-HD
+>  advertising:  100baseTx-FD 100baseTx-HD 10baseT-FD 10baseT-HD
+>  link partner: 100baseTx-HD
+> mail ~ # mii-tool -v eth1
+> eth1: no autonegotiation, 100baseTx-HD, link ok
+>  product info: vendor 00:60:6e, model 4 rev 0
+>  basic mode:   autonegotiation enabled
+>  basic status: autonegotiation complete, link ok
+>  capabilities: 100baseTx-FD 100baseTx-HD 10baseT-FD 10baseT-HD
+>  advertising:  100baseTx-FD 100baseTx-HD 10baseT-FD 10baseT-HD
+>  link partner: 100baseTx-HD
+> mail ~ #
+> Oct 26 08:35:03 mail kernel: [488077.248697] 0000:00:0c.0: 
+> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+> Oct 26 08:35:11 mail kernel: [488085.244689] 0000:00:0c.0: 
+> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+> Oct 26 08:35:19 mail kernel: [488093.240680] 0000:00:0c.0: 
+> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+> Oct 26 08:35:27 mail kernel: [488101.236601] 0000:00:0c.0: 
+> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+> Oct 26 08:35:35 mail kernel: [488109.232606] 0000:00:0c.0: 
+> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+> Oct 26 08:35:43 mail kernel: [488117.228723] 0000:00:0c.0: 
+> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+> Oct 26 08:35:51 mail kernel: [488125.224724] 0000:00:0c.0: 
+> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+> Oct 26 08:35:59 mail kernel: [488133.220705] 0000:00:0c.0: 
+> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+> Oct 26 08:36:07 mail kernel: [488141.216733] 0000:00:0c.0: 
+> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+> Oct 26 08:36:15 mail kernel: [488149.212736] 0000:00:0c.0: 
+> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+> Oct 26 08:36:23 mail kernel: [488157.208619] 0000:00:0c.0: 
+> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+> Oct 26 08:36:31 mail kernel: [488165.204740] 0000:00:0c.0: 
+> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+> Oct 26 08:36:39 mail kernel: [488173.200705] 0000:00:0c.0: 
+> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+> Oct 26 08:36:47 mail kernel: [488181.196633] 0000:00:0c.0: 
+> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+> Oct 26 08:36:52 mail kernel: [488185.874327] 0000:00:0c.0: 
+> tulip_stop_rxtx() failed (CSR5 0xfc500100 CSR6 0x22ec000)
+>
+>
+>
+> Original Email to Sparc Linux Below
+> -----
+>
+> Currently running 2.6.24-gentoo-r8 and 2.6.25-gentoo-r7. Also have 
+> tried the vanilla kernel as well.
+>
+> It appears the issues seems to be isolated tot he Sparc X1's my x86's 
+> using the tulip driver are not having the issue.
+>
+> Not sure if it's a reporting issue or just a problem with the driver. 
+> Every packet seems to be an error. I've ran out of resources trying to 
+> figure this out on my own, but no luck. Seems to be TX issue only.
+>
+> Here's what I'm seeing
+>
+> mail ~ # mii-diag eth0
+> Basic registers of MII PHY #1:  2100 780d 0181 b840 01e1 0000 0000 0000.
+> Basic mode control register 0x2100: Auto-negotiation disabled, with
+> Speed fixed at 100 mbps, full-duplex.
+> You have link beat, and everything is working OK.
+> Link partner information is not exchanged when in fixed speed mode.
+>  End of basic transceiver information.
+>
+> mail ~ # mii-diag eth1
+> Basic registers of MII PHY #1:  2100 780d 0181 b840 01e1 0000 0000 0000.
+> Basic mode control register 0x2100: Auto-negotiation disabled, with
+> Speed fixed at 100 mbps, full-duplex.
+> You have link beat, and everything is working OK.
+> Link partner information is not exchanged when in fixed speed mode.
+>  End of basic transceiver information.
+>
+> mail ~ # ifconfig
+> eth0      Link encap:Ethernet  HWaddr 00:03:BA:0F:37:73
+>         inet addr:172.16.0.50  Bcast:172.16.0.255  Mask:255.255.255.0
+>         UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+>         RX packets:147120 errors:0 dropped:0 overruns:0 frame:0
+>         TX packets:33290 errors:556 dropped:0 overruns:2 carrier:554
+>         collisions:12 txqueuelen:1000
+>         RX bytes:11800444 (11.2 Mb)  TX bytes:5032585 (4.7 Mb)
+>         Interrupt:9
+>
+> eth1      Link encap:Ethernet  HWaddr 00:03:BA:0F:37:74
+>         inet addr:10.0.0.50  Bcast:10.0.0.255  Mask:255.255.255.0
+>         UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+>         RX packets:3941 errors:0 dropped:0 overruns:0 frame:0
+>         TX packets:1 errors:4835 dropped:0 overruns:0 carrier:4835
+>         collisions:0 txqueuelen:1000
+>         RX bytes:1089347 (1.0 Mb)  TX bytes:54 (54.0 b)
+>         Interrupt:10 Base address:0x100
+>
+> lo        Link encap:Local Loopback
+>         inet addr:127.0.0.1  Mask:255.0.0.0
+>         UP LOOPBACK RUNNING  MTU:16436  Metric:1
+>         RX packets:51 errors:0 dropped:0 overruns:0 frame:0
+>         TX packets:51 errors:0 dropped:0 overruns:0 carrier:0
+>         collisions:0 txqueuelen:0
+>         RX bytes:3906 (3.8 Kb)  TX bytes:3906 (3.8 Kb)
+>
+> Oct  2 23:26:59 mail kernel: [ 9822.736777] NETDEV WATCHDOG: eth0: 
+> transmit timed out
+> Oct  2 23:27:07 mail kernel: [ 9830.732649] NETDEV WATCHDOG: eth0: 
+> transmit timed out
+> Oct  2 23:27:15 mail kernel: [ 9838.728518] NETDEV WATCHDOG: eth0: 
+> transmit timed out
+> Oct  2 23:27:23 mail kernel: [ 9846.724386] NETDEV WATCHDOG: eth0: 
+> transmit timed out
+> Oct  2 23:27:31 mail kernel: [ 9854.720177] NETDEV WATCHDOG: eth0: 
+> transmit timed out
+> Oct  2 23:27:39 mail kernel: [ 9862.716124] NETDEV WATCHDOG: eth0: 
+> transmit timed out
+> Oct  2 23:27:47 mail kernel: [ 9870.711943] NETDEV WATCHDOG: eth0: 
+> transmit timed out
+> Oct  2 23:27:55 mail kernel: [ 9878.707824] NETDEV WATCHDOG: eth0: 
+> transmit timed out
+> Oct  2 23:28:03 mail kernel: [ 9886.703675] NETDEV WATCHDOG: eth0: 
+> transmit timed out
+> Oct  2 23:28:11 mail kernel: [ 9894.699598] NETDEV WATCHDOG: eth0: 
+> transmit timed out
+> Oct  2 23:28:19 mail kernel: [ 9902.695467] NETDEV WATCHDOG: eth0: 
+> transmit timed out
+> Oct  2 23:28:27 mail kernel: [ 9910.691336] NETDEV WATCHDOG: eth0: 
+> transmit timed out
+> Oct  2 23:28:35 mail kernel: [ 9918.687122] NETDEV WATCHDOG: eth0: 
+> transmit timed out
+>
+>
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-net" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Was able to get more watching it boot up a bit. Finally got someone to 
+attach a console cable so I can watch it.
 
-From: Rusty Russell <rusty@rustcorp.com.au>
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Signed-off-by: Mike Travis <travis@sgi.com>
----
- arch/arm/mach-realview/platsmp.c        |    2 +-
- arch/cris/arch-v32/kernel/smp.c         |    4 ++--
- arch/ia64/kernel/acpi.c                 |    2 +-
- arch/ia64/kernel/smpboot.c              |   17 +++++++----------
- arch/m32r/kernel/smpboot.c              |    2 +-
- arch/mips/kernel/smp-cmp.c              |    6 ++++--
- arch/mips/kernel/smp.c                  |    2 +-
- arch/powerpc/kernel/setup-common.c      |    4 ++--
- arch/powerpc/platforms/powermac/setup.c |    2 +-
- arch/s390/kernel/smp.c                  |    5 ++---
- arch/sh/kernel/cpu/sh4a/smp-shx3.c      |    5 ++---
- arch/sh/kernel/smp.c                    |    6 +++---
- arch/sparc64/kernel/mdesc.c             |    2 +-
- arch/sparc64/kernel/prom.c              |    4 ++--
- arch/um/kernel/smp.c                    |    2 +-
- arch/x86/kernel/apic.c                  |    4 ++--
- 16 files changed, 33 insertions(+), 36 deletions(-)
+[   77.677266] tulip0: Old style EEPROM with no media selection information.
+[   77.677530] tulip0:  MII transceiver #1 config 1000 status 782d 
+advertising 01e1.
+[   77.680490] eth0: Davicom DM9102/DM9102A rev 49 at Port 
+0x1fe02010000, EEPROM not present, 00:03:ba:0f:37:73, IRQ 9.
+[   77.683206] tulip1: Old style EEPROM with no media selection information.
+[   77.683469] tulip1:  MII transceiver #1 config 1000 status 782d 
+advertising 01e1.
+[   77.686416] eth1: Davicom DM9102/DM9102A rev 49 at Port 
+0x1fe02010100, EEPROM not present, 00:03:ba:0f:37:74, IRQ 10.
+[   78.964507] ioctl32(blogd:622): Unknown cmd fd(0) 
+cmd(40045432){t:'T';sz:4} arg(ffa5db4c) on /dev/console
+[   79.650247] EXT3 FS on hda2, internal journal
+[   80.578195] Adding 1510088k swap on /dev/hda4.  Priority:-1 extents:1 
+across:1510088k
+[ 1120.671137] ------------[ cut here ]------------
+[ 1120.671164] WARNING: at net/sched/sch_generic.c:219 
+dev_watchdog+0x250/0x280()
+[ 1120.671178] NETDEV WATCHDOG: eth0 (tulip): transmit timed out
+[ 1120.671187] Modules linked in: openpromfs tulip
+[ 1120.671203] Call Trace:
+[ 1120.671219]  [00000000005ece50] dev_watchdog+0x250/0x280
+[ 1120.671242]  [000000000045f64c] run_timer_softirq+0x16c/0x1e0
+[ 1120.671260]  [000000000045ab7c] __do_softirq+0x5c/0xe0
+[ 1120.671286]  [000000000042e3f0] do_softirq+0x70/0xa0
+[ 1120.671300]  [000000000045a764] irq_exit+0x84/0xc0
+[ 1120.671316]  [000000000043327c] timer_interrupt+0x5c/0xc0
+[ 1120.671335]  [00000000004209d4] tl0_irq14+0x14/0x20
+[ 1120.671350]  [000000000042803c] cpu_idle+0x1c/0xc0
+[ 1120.671374]  [000000000070c8bc] start_kernel+0x27c/0x2c0
+[ 1120.671389]  [0000000000643684] tlb_fixup_done+0x80/0x9c
+[ 1120.671402]  [0000000000000000] 0x0
+[ 1120.671411] ---[ end trace b22e2d0475606961 ]---
+[ 1120.672767] 0000:00:0c.0: tulip_stop_rxtx() failed (CSR5 0xfc508100 
+CSR6 0x20e8000)
+[ 1128.667904] 0000:00:0c.0: tulip_stop_rxtx() failed (CSR5 0xfc508100 
+CSR6 0x20e8000)
+[ 1136.663348] 0000:00:0c.0: tulip_stop_rxtx() failed (CSR5 0xfc508100 
+CSR6 0x20e8000)
+[ 1144.658798] 0000:00:0c.0: tulip_stop_rxtx() failed (CSR5 0xfc508100 
+CSR6 0x20e8000)
+[ 1152.654254] 0000:00:0c.0: tulip_stop_rxtx() failed (CSR5 0xfc508100 
+CSR6 0x20e8000)
 
---- linux-2.6.28.orig/arch/arm/mach-realview/platsmp.c
-+++ linux-2.6.28/arch/arm/mach-realview/platsmp.c
-@@ -193,7 +193,7 @@ void __init smp_init_cpus(void)
- 	unsigned int i, ncores = get_core_count();
- 
- 	for (i = 0; i < ncores; i++)
--		cpu_set(i, cpu_possible_map);
-+		set_cpu_possible(i, true);
- }
- 
- void __init smp_prepare_cpus(unsigned int max_cpus)
---- linux-2.6.28.orig/arch/cris/arch-v32/kernel/smp.c
-+++ linux-2.6.28/arch/cris/arch-v32/kernel/smp.c
-@@ -102,9 +102,9 @@ void __devinit smp_prepare_boot_cpu(void
- 	SUPP_BANK_SEL(2);
- 	SUPP_REG_WR(RW_MM_TLB_PGD, pgd);
- 
--	cpu_set(0, cpu_online_map);
-+	set_cpu_online(0, true);
- 	cpu_set(0, phys_cpu_present_map);
--	cpu_set(0, cpu_possible_map);
-+	set_cpu_possible(0, true);
- }
- 
- void __init smp_cpus_done(unsigned int max_cpus)
---- linux-2.6.28.orig/arch/ia64/kernel/acpi.c
-+++ linux-2.6.28/arch/ia64/kernel/acpi.c
-@@ -845,7 +845,7 @@ __init void prefill_possible_map(void)
- 		possible, max((possible - available_cpus), 0));
- 
- 	for (i = 0; i < possible; i++)
--		cpu_set(i, cpu_possible_map);
-+		set_cpu_possible(i, true);
- }
- 
- int acpi_map_lsapic(acpi_handle handle, int *pcpu)
---- linux-2.6.28.orig/arch/ia64/kernel/smpboot.c
-+++ linux-2.6.28/arch/ia64/kernel/smpboot.c
-@@ -587,14 +587,14 @@ smp_build_cpu_map (void)
- 
- 	ia64_cpu_to_sapicid[0] = boot_cpu_id;
- 	cpus_clear(cpu_present_map);
--	cpu_set(0, cpu_present_map);
--	cpu_set(0, cpu_possible_map);
-+	set_cpu_present(0, true);
-+	set_cpu_possible(0, true);
- 	for (cpu = 1, i = 0; i < smp_boot_data.cpu_count; i++) {
- 		sapicid = smp_boot_data.cpu_phys_id[i];
- 		if (sapicid = boot_cpu_id)
- 			continue;
--		cpu_set(cpu, cpu_present_map);
--		cpu_set(cpu, cpu_possible_map);
-+		set_cpu_present(cpu, true);
-+		set_cpu_possible(cpu, true);
- 		ia64_cpu_to_sapicid[cpu] = sapicid;
- 		cpu++;
- 	}
-@@ -632,12 +632,9 @@ smp_prepare_cpus (unsigned int max_cpus)
- 	 */
- 	if (!max_cpus) {
- 		printk(KERN_INFO "SMP mode deactivated.\n");
--		cpus_clear(cpu_online_map);
--		cpus_clear(cpu_present_map);
--		cpus_clear(cpu_possible_map);
--		cpu_set(0, cpu_online_map);
--		cpu_set(0, cpu_present_map);
--		cpu_set(0, cpu_possible_map);
-+		init_cpu_online(cpumask_of(0));
-+		init_cpu_present(cpumask_of(0));
-+		init_cpu_possible(cpumask_of(0));
- 		return;
- 	}
- }
---- linux-2.6.28.orig/arch/m32r/kernel/smpboot.c
-+++ linux-2.6.28/arch/m32r/kernel/smpboot.c
-@@ -183,7 +183,7 @@ void __init smp_prepare_cpus(unsigned in
- 	for (phys_id = 0 ; phys_id < nr_cpu ; phys_id++)
- 		physid_set(phys_id, phys_cpu_present_map);
- #ifndef CONFIG_HOTPLUG_CPU
--	cpu_present_map = cpu_possible_map;
-+	init_cpu_present(&cpu_possible_map);
- #endif
- 
- 	show_mp_info(nr_cpu);
---- linux-2.6.28.orig/arch/mips/kernel/smp-cmp.c
-+++ linux-2.6.28/arch/mips/kernel/smp-cmp.c
-@@ -52,8 +52,10 @@ static int __init allowcpus(char *str)
- 
- 	cpus_clear(cpu_allow_map);
- 	if (cpulist_parse(str, &cpu_allow_map) = 0) {
--		cpu_set(0, cpu_allow_map);
--		cpus_and(cpu_possible_map, cpu_possible_map, cpu_allow_map);
-+		unsigned int i;
-+		for (i = 1; i < nr_cpu_ids; i++)
-+			if (!cpumask_test_cpu(i, cpu_allow_map))
-+				set_cpu_possible(i, false);
- 		len = cpulist_scnprintf(buf, sizeof(buf)-1, &cpu_possible_map);
- 		buf[len] = '\0';
- 		pr_debug("Allowable CPUs: %s\n", buf);
---- linux-2.6.28.orig/arch/mips/kernel/smp.c
-+++ linux-2.6.28/arch/mips/kernel/smp.c
-@@ -186,7 +186,7 @@ void __init smp_prepare_cpus(unsigned in
- 	mp_ops->prepare_cpus(max_cpus);
- 	set_cpu_sibling_map(0);
- #ifndef CONFIG_HOTPLUG_CPU
--	cpu_present_map = cpu_possible_map;
-+	init_cpu_present(&cpu_possible_map);
- #endif
- }
- 
---- linux-2.6.28.orig/arch/powerpc/kernel/setup-common.c
-+++ linux-2.6.28/arch/powerpc/kernel/setup-common.c
-@@ -413,7 +413,7 @@ void __init smp_setup_cpu_maps(void)
- 			    j, cpu, intserv[j]);
- 			cpu_set(cpu, cpu_present_map);
- 			set_hard_smp_processor_id(cpu, intserv[j]);
--			cpu_set(cpu, cpu_possible_map);
-+			set_cpu_possible(cpu, true);
- 			cpu++;
- 		}
- 	}
-@@ -459,7 +459,7 @@ void __init smp_setup_cpu_maps(void)
- 			       maxcpus);
- 
- 		for (cpu = 0; cpu < maxcpus; cpu++)
--			cpu_set(cpu, cpu_possible_map);
-+			set_cpu_possible(cpu, true);
- 	out:
- 		of_node_put(dn);
- 	}
---- linux-2.6.28.orig/arch/powerpc/platforms/powermac/setup.c
-+++ linux-2.6.28/arch/powerpc/platforms/powermac/setup.c
-@@ -366,7 +366,7 @@ static void __init pmac_setup_arch(void)
- 		int cpu;
- 
- 		for (cpu = 1; cpu < 4 && cpu < nr_cpu_ids; ++cpu)
--			cpu_set(cpu, cpu_possible_map);
-+			set_cpu_possible(cpu, true);
- 		smp_ops = &psurge_smp_ops;
- 	}
- #endif
---- linux-2.6.28.orig/arch/s390/kernel/smp.c
-+++ linux-2.6.28/arch/s390/kernel/smp.c
-@@ -732,9 +732,8 @@ static int __init setup_possible_cpus(ch
- 	int pcpus, cpu;
- 
- 	pcpus = simple_strtoul(s, NULL, 0);
--	cpu_possible_map = cpumask_of_cpu(0);
--	for (cpu = 1; cpu < pcpus && cpu < nr_cpu_ids; cpu++)
--		cpu_set(cpu, cpu_possible_map);
-+	for (cpu = 0; cpu < pcpus && cpu < nr_cpu_ids; cpu++)
-+		set_cpu_possible(cpu, true);
- 	return 0;
- }
- early_param("possible_cpus", setup_possible_cpus);
---- linux-2.6.28.orig/arch/sh/kernel/cpu/sh4a/smp-shx3.c
-+++ linux-2.6.28/arch/sh/kernel/cpu/sh4a/smp-shx3.c
-@@ -19,8 +19,7 @@ void __init plat_smp_setup(void)
- 	unsigned int cpu = 0;
- 	int i, num;
- 
--	cpus_clear(cpu_possible_map);
--	cpu_set(cpu, cpu_possible_map);
-+	init_cpu_possible(cpumask_of(cpu));
- 
- 	__cpu_number_map[0] = 0;
- 	__cpu_logical_map[0] = 0;
-@@ -30,7 +29,7 @@ void __init plat_smp_setup(void)
- 	 * for the total number of cores.
- 	 */
- 	for (i = 1, num = 0; i < NR_CPUS; i++) {
--		cpu_set(i, cpu_possible_map);
-+		set_cpu_possible(i, true);
- 		__cpu_number_map[i] = ++num;
- 		__cpu_logical_map[num] = i;
- 	}
---- linux-2.6.28.orig/arch/sh/kernel/smp.c
-+++ linux-2.6.28/arch/sh/kernel/smp.c
-@@ -52,7 +52,7 @@ void __init smp_prepare_cpus(unsigned in
- 	plat_prepare_cpus(max_cpus);
- 
- #ifndef CONFIG_HOTPLUG_CPU
--	cpu_present_map = cpu_possible_map;
-+	init_cpu_present(&cpu_possible_map);
- #endif
- }
- 
-@@ -63,8 +63,8 @@ void __devinit smp_prepare_boot_cpu(void
- 	__cpu_number_map[0] = cpu;
- 	__cpu_logical_map[0] = cpu;
- 
--	cpu_set(cpu, cpu_online_map);
--	cpu_set(cpu, cpu_possible_map);
-+	set_cpu_online(cpu, true);
-+	set_cpu_possible(cpu, true);
- }
- 
- asmlinkage void __cpuinit start_secondary(void)
---- linux-2.6.28.orig/arch/sparc64/kernel/mdesc.c
-+++ linux-2.6.28/arch/sparc64/kernel/mdesc.c
-@@ -566,7 +566,7 @@ static void __init report_platform_prope
- 			max_cpu = NR_CPUS;
- 		}
- 		for (i = 0; i < max_cpu; i++)
--			cpu_set(i, cpu_possible_map);
-+			set_cpu_possible(i, true);
- 	}
- #endif
- 
---- linux-2.6.28.orig/arch/sparc64/kernel/prom.c
-+++ linux-2.6.28/arch/sparc64/kernel/prom.c
-@@ -1601,8 +1601,8 @@ static void __init of_fill_in_cpu_data(v
- 		}
- 
- #ifdef CONFIG_SMP
--		cpu_set(cpuid, cpu_present_map);
--		cpu_set(cpuid, cpu_possible_map);
-+		set_cpu_present(cpuid, true);
-+		set_cpu_possible(cpuid, true);
- #endif
- 	}
- 
---- linux-2.6.28.orig/arch/um/kernel/smp.c
-+++ linux-2.6.28/arch/um/kernel/smp.c
-@@ -118,7 +118,7 @@ void smp_prepare_cpus(unsigned int maxcp
- 	int i;
- 
- 	for (i = 0; i < ncpus; ++i)
--		cpu_set(i, cpu_possible_map);
-+		set_cpu_possible(i, true);
- 
- 	cpu_clear(me, cpu_online_map);
- 	cpu_set(me, cpu_online_map);
---- linux-2.6.28.orig/arch/x86/kernel/apic.c
-+++ linux-2.6.28/arch/x86/kernel/apic.c
-@@ -1903,8 +1903,8 @@ void __cpuinit generic_processor_info(in
- 	}
- #endif
- 
--	cpu_set(cpu, cpu_possible_map);
--	cpu_set(cpu, cpu_present_map);
-+	set_cpu_possible(cpu, true);
-+	set_cpu_present(cpu, true);
- }
- 
- #ifdef CONFIG_X86_64
-
--- 
