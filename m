@@ -1,36 +1,42 @@
 From: David Miller <davem@davemloft.net>
-Date: Sat, 25 Oct 2008 05:18:13 +0000
-Subject: Re: kernel crashes on Sun Fire 480R with cassini network driver
-Message-Id: <20081024.221813.238062145.davem@davemloft.net>
+Date: Fri, 31 Oct 2008 19:02:38 +0000
+Subject: Re: [PATCH] Fix PCI resource mmaping on sparc64
+Message-Id: <20081031.120238.156698095.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080923133152.GC17211@lemon.iwr.uni-heidelberg.de>
-In-Reply-To: <20080923133152.GC17211@lemon.iwr.uni-heidelberg.de>
+References: <eed7af970810310513h6c466ce5h7ada2013ab4053b1@mail.gmail.com>
+	<eed7af970810310609o632034dia6140f7bec6fee66@mail.gmail.com>
+In-Reply-To: <eed7af970810310609o632034dia6140f7bec6fee66@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: dmitrmax@gmail.com
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
-Date: Fri, 24 Oct 2008 17:24:33 +0200
+From: "Max Dmitrichenko" <dmitrmax@gmail.com>
+Date: Fri, 31 Oct 2008 16:09:48 +0300
 
-> Hello all,
+Please post sparc patches to the sparclinux mailing list,
+CC:'d
+
+> There is a problem discovered in recent versions of ATI Mach64 driver
+> in X.org on sparc64 architecture. In short, the driver fails to mmap
+> MMIO aperture (PCI resource #2).
 > 
-> On Mon, Sep 29, 2008 at 10:19:54AM +0200, Hermann Lauer wrote:
-> > > while trying to run vanilla linux-2.6.26.5 or the debian etchnhalf kernel
-> > > (2.6.24.x) I noticed the cassini network driver for the builtin gigabit
-> > > network is unstable and brings the kernel down on a dualprocessor sparc
-> > > SunFire 480R with a Hardware FATAL RESET.
-> > 
-> > I now noticed that even a few pings are possible with the cassini
-> > network driver if you configure it statically, but then the machine again 
-> > crashes with the known: 
-> > ERROR: System Hardware FATAL RESET from  CPU0 CPU2
+> I've found that kernel's __pci_mmap_make_offset() returns EINVAL. It
+> checks whether user attempts to mmap more than the resource length,
+> which is 0x1000 bytes in our case. But PAGE_SIZE on SPARC64 is 0x2000
+> and this is what actually is being mmaped. So __pci_mmap_make_offset()
+> failed for this PCI resource.
 > 
-> tried 2.6.27.2 today, but this hangs already at loading the kernel.
-> Output is attached. Please tell me what else I can provide.
+> Signed-off-by: Max Dmitrichenko <dmitrmax@gmail.com>
+> 
+> Code seems to be rather old. At least it was the same in 2.6.24. I
+> have no explanation why this bug exposed only now. May be before X.org
+> used to use some other method to mmap PCI resource into userspace (now
+> it uses libpciaccess).
+> 
+> The patch is against 2.6.26. Greg, please consider to include it into
+> the stable trees.
 
-Thanks, but for the time being all you can really do to help is be
-patient until I can look into this again.
-
-More and more dumps only backlogs me further, and will make it take
-longer for me to analyze your initial report.
+No, the sparc maintainer (that's me) will submit this patch to -stable
+if it is correct and appropriate.
