@@ -1,24 +1,31 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 05 Oct 2008 02:25:37 +0000
-Subject: Re: clock_tick printing in cpuinfo
-Message-Id: <20081004.192537.193699081.davem@davemloft.net>
+From: Shaddy Baddah <shaddy_baddah@hotmail.com>
+Date: Fri, 31 Oct 2008 11:51:59 +0000
+Subject: Suspend-Resume support in sparc64 kernel?
+Message-Id: <490AF15F.2080902@hotmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20081002212059.GA13635@orion.carnet.hr>
-In-Reply-To: <20081002212059.GA13635@orion.carnet.hr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Josip Rodin <joy@entuzijast.net>
-Date: Sat, 4 Oct 2008 00:06:13 +0200
+Hi,
 
-> It's not really obvious to me why glibc cares about this only on some
-> architectures, though - sparc, i386, powerpc, ia64, x86_64 have
-> __get_clockfreq(), but others don't. If I'm not missing something,
-> the others are defaulting to a stub which does nothing...?
+I've asked this question at the Linux power management mailing list, and 
+it was recommended I ask it here 
+[https://lists.linux-foundation.org/pipermail/linux-pm/2008-October/018793.html].
 
-Only some architectures have GLIBC support implemented for highly
-accurate timestamping.
+Basically, I've long been aware that my Ultra 10 was capable of 
+supporting suspend to RAM under Solaris, and confirmed this feature 
+under the name Suspend-Resume from here 
+[http://docs.sun.com/app/docs/doc/805-4433/6j46udqi7?l=en&a=view&q=power+management]. 
 
-And in fact, only some architectures can support this at all.
+
+I could find no evidence that the Linux sparc64 kernel supports this 
+power management feature, nor the Auto Waking feature. Does the Linux 
+sparc64 kernel support the Suspend-Resume pm function?
+
+If not, is there some historic reason for this?
+
+Thanks in advance,
+Shaddy
+
