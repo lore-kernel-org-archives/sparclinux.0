@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 24 Oct 2008 00:33:49 +0000
+Date: Fri, 31 Oct 2008 06:02:56 +0000
 Subject: [GIT]: Sparc
-Message-Id: <20081023.173349.193701851.davem@davemloft.net>
+Message-Id: <20081030.230256.167447008.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080421.153231.108090227.davem@davemloft.net>
 In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
@@ -12,43 +12,47 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-Several bug fixes and sparc support for checkstack:
+Some fixes and tidies:
 
-1) Two math-emu fixes, one courtesy of Kumar Gala.
+1) RTC m48t59 century bit handling fix from Krzysztof Helt
 
-2) Section mismatch fixes for sparc32 from Frederic Weisbecker.
+2) Byte ordering tidies from Harvey Harrison
+   a) PIO string ops don't need to use explicit byte shifting
+   b) sparc can easily use the new byteorder headers
 
-3) CPU startup locking fix from Andrea Shepard.
+3) dbri sound driver doesn't check for dma_alloc_coherent() error
+   returns, from FUJITA Tomonori
+
+4) Device ID table for bq4802 RTC chip lacks a terminating NULL entry.
 
 Please pull, thanks a lot!
 
-The following changes since commit 2515ddc6db8eb49a79f0fe5e67ff09ac7c81eab4:
-  Paul Mundt (1):
-        binfmt_elf_fdpic: Update for cputime changes.
+The following changes since commit 60b8267338aafde5315fc65ff385f3d4d75eccfe:
+  David S. Miller (1):
+        math-emu: Fix thinko in _FP_DIV
 
 are available in the git repository at:
 
   master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
 
-Andrea Shepard (1):
-      sparc64: Fix race in arch/sparc64/kernel/trampoline.S
-
 David S. Miller (1):
-      math-emu: Fix thinko in _FP_DIV
+      sparc64: Add missing null terminating entry to bq4802_match[].
 
-Frederic Weisbecker (2):
-      sparc: correct section of apc_no_idle
-      sparc: correct section of current_pc()
+FUJITA Tomonori (1):
+      dbri: check dma_alloc_coherent errors
 
-Kumar Gala (1):
-      math-emu: Fix signalling of underflow and inexact while packing result.
+Harvey Harrison (2):
+      sparc64: remove byteshifting from out* helpers
+      sparc: use the new byteorder headers
 
-Martin Habets (1):
-      sparc: Add checkstack support
+Krzysztof Helt (1):
+      rtc-m48t59: shift zero year to 1968 on sparc (rev 2)
 
- arch/sparc/kernel/apc.c          |    2 +-
- arch/sparc/kernel/head.S         |    1 +
- arch/sparc64/kernel/trampoline.S |   18 ++++++++++++++----
- include/math-emu/op-common.h     |   19 +++++++++++++++----
- scripts/checkstack.pl            |    4 ++++
- 5 files changed, 35 insertions(+), 9 deletions(-)
+ arch/sparc/include/asm/byteorder.h |   22 ++----
+ arch/sparc/kernel/time.c           |   27 +------
+ arch/sparc64/kernel/time.c         |   34 ++-------
+ arch/sparc64/lib/PeeCeeI.c         |  139 ++++++++++++------------------------
+ drivers/rtc/rtc-m48t59.c           |   34 ++++++++-
+ sound/sparc/dbri.c                 |    2 +
+ 6 files changed, 97 insertions(+), 161 deletions(-)
+
