@@ -1,22 +1,29 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 02 Nov 2008 04:42:54 +0000
-Subject: Re: 2.6.28-rc2: Unable to handle kernel paging request at
-Message-Id: <20081101.214254.178222451.davem@davemloft.net>
+From: "Max Dmitrichenko" <dmitrmax@gmail.com>
+Date: Sat, 01 Nov 2008 12:31:53 +0000
+Subject: Re: [PATCH] Fix PCI resource mmaping on sparc64
+Message-Id: <eed7af970811010531k369f52d6iaadd9b611097469a@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <a4423d670811010723u3b271fcaxa7d3bdb251a8b246@mail.gmail.com>
-	<Pine.LNX.4.64.0811011837110.20211@blonde.site>
-	<a4423d670811012102m3fdd245apbe0a310b4890f958@mail.gmail.com>
-In-Reply-To: <a4423d670811012102m3fdd245apbe0a310b4890f958@mail.gmail.com>
+References: <20081031.120238.156698095.davem@davemloft.net>
+In-Reply-To: <20081031.120238.156698095.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: a.beregalov@gmail.com
-Cc: hugh@veritas.com, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org
+To: sparclinux@vger.kernel.org
 
-From: "Alexander Beregalov" <a.beregalov@gmail.com>
-Date: Sun, 2 Nov 2008 07:02:40 +0300
+2008/10/31, David Miller <davem@davemloft.net>:
+> Please post sparc patches to the sparclinux mailing list,
 
-> Should we fix also sparc32?
+Oops, sorry. I had such an idea and I've posted it to the linux-sparc
+and received a notification that such address doesn't exists. Just
+forgot that it is not linux-sparc but sparclinux.
 
-Sparc32 uses a different scheme for all of this stuff.
-I don't think your patch will even compile.
+>> The patch is against 2.6.26. Greg, please consider to include it into
+>> the stable trees.
+>
+> No, the sparc maintainer (that's me) will submit this patch to -stable
+> if it is correct and appropriate.
+
+Ok. I just thought that Greg maintains -stable trees.
+
+--
+ Max
