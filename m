@@ -1,65 +1,52 @@
-From: Frans Pop <elendil@planet.nl>
-Date: Mon, 17 Nov 2008 21:14:21 +0000
-Subject: Re: [2.6.26.4] Oops: Unable to handle kernel paging request at virtual address 00000000491f2000
-Message-Id: <200811172214.22063.elendil@planet.nl>
+From: David Miller <davem@davemloft.net>
+Date: Sun, 02 Nov 2008 07:45:43 +0000
+Subject: [GIT]: Sparc
+Message-Id: <20081102.004543.74128246.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200811152343.58603.elendil@planet.nl>
-In-Reply-To: <200811152343.58603.elendil@planet.nl>
+References: <20080421.153231.108090227.davem@davemloft.net>
+In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Monday 17 November 2008, David Miller wrote:
-> > We also collect info for a hardware summary at that point. It could
-> > well be that one of the commands there caused it. ... And that does
-> > indeed include a cat of /proc/iomem and /proc/ioports.
-> >
-> > Now for the difficult part: how do we find out which driver this was?
->
-> Good question.  Perhaps you can find a way to make modprobe,
-> insmod, and rmmod log something into the installation log?
 
-I ran a small shell script with a loop that saved relevant data to files 
-and included a 'cat /proc/io*' every 2 secs.
+Couple of fixes:
 
-> > I'll see if I can reproduce while keeping a watch on loaded mods.
->
-> Good luck, either way.
+1) Sparc32 build fix from Al Viro.
 
-Unfortunately not. I was unable to reproduce the oops. I compared the 
-sys/kernlog for both installs and they were mostly identical.
-Only real difference was that the starting position of the target hard 
-disk was different: the install that oopsed started with a partitioning 
-using LVM (which was removed during the install), while the new install 
-started out with the regular partitioning left over from that.
+2) dbench over tmpfs OOPS fix on sparc64 from Hugh Dickins
 
-From the data of the old install I can tell that the culprit was
-/proc/iomem (and not /proc/ioports). Contents of /proc/ioports and list of 
-loaded modules at the end of the install are identical for both.
+3) PCI aperture MMAP fix on sparc64 from Max Dmitrichenko
 
-Module                  Size  Used by
-dm_mod                 56776  0
-md_mod                 84576  0
-xfs                   483448  0
-reiserfs              290816  0
-jfs                   186992  0
-ext3                  137872  2
-jbd                    44200  1 ext3
-vfat                   11520  0
-fat                    51056  1 vfat
-nls_base                9152  3 jfs,vfat,fat
-ide_cd_mod             35528  0
-cdrom                  38752  1 ide_cd_mod
-ide_disk               13184  5
-cmd64x                  6592  0 [permanent]
-sunhme                 29744  0
+4) Annoying build warning fix for sparc64 due to TASK_SIZE usage in
+   compat ELF code
 
-So I guess I'll have one more go at it with the hard disk pre-partitioned 
-with LVM. If that does not reproduce it, I guess we'll just have to leave 
-this one to someone else to rediscover.
+Please pull, thanks a lot!
 
-BTW, the system is a simple, old Ultra 10.
+The following changes since commit 770a424112cb2c3a3e39221299eaf5244b76479a:
+  David S. Miller (1):
+        sparc64: Add missing null terminating entry to bq4802_match[].
 
-Cheers,
-FJP
+are available in the git repository at:
+
+  master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
+
+Al Viro (1):
+      sparc32: kernel/trace/trace.c wants DIE_OOPS
+
+David S. Miller (1):
+      sparc64: Kill annoying warning when building compat_binfmt_elf.o
+
+Hugh Dickins (1):
+      sparc64: Fix __copy_{to,from}_user_inatomic defines.
+
+Max Dmitrichenko (1):
+      sparc64: Fix PCI resource mapping on sparc64
+
+ arch/sparc/include/asm/kdebug_32.h    |    1 +
+ arch/sparc/include/asm/processor_64.h |    4 ++--
+ arch/sparc/include/asm/uaccess_64.h   |    4 ++--
+ arch/sparc64/kernel/pci.c             |   10 +++++++++-
+ 4 files changed, 14 insertions(+), 5 deletions(-)
