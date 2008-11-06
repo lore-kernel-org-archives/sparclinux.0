@@ -1,41 +1,39 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Tue, 25 Nov 2008 09:03:46 +0000
-Subject: Re: sparc unification step 3
-Message-Id: <20081125090346.GB31581@uranus.ravnborg.org>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Thu, 06 Nov 2008 05:36:26 +0000
+Subject: sparc/staging compile error
+Message-Id: <20081106163626.2306ad75.sfr@canb.auug.org.au>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Signature=_Thu__6_Nov_2008_16_36_26_+1100_2zsy5uoX1u7LpmYt"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20081117220200.GA14667@uranus.ravnborg.org>
-In-Reply-To: <20081117220200.GA14667@uranus.ravnborg.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, "William L. Irwin" <wli@holomorphy.com>, sparclinux@vger.kernel.org
 
-On Tue, Nov 25, 2008 at 12:53:40AM -0800, David Miller wrote:
-> From: Sam Ravnborg <sam@ravnborg.org>
-> Date: Tue, 25 Nov 2008 09:36:36 +0100
-> 
-> > I'm planning to redo this patchset the coming weekend so catch
-> > up with sparc-next.
-> > I may put a bit more effort into the sparc32 Makefile to clean it
-> > up a bit before the unification if time permits.
-> > Until then I would like to know if there is any strong desire
-> > to keep one kernel/ or should we go for kernel32, kernel64 (+ kernel/) two?
-> > 
-> > I like to see the unifications and I see benefits in having
-> > all related files in the same dir - but I'm suprised that sparc32
-> > and sparc64 differ that much (textual at least). There seems to
-> > be much more shared code in the x86 case for example.
-> 
-> Sorry I haven't gotten to that stuff yet.
-> 
-> I'd like to unify as much code as possible.  I think there is
-> more commonality than is obvious currently, and the stuff that
-> is different is often because sparc32 has rotted and hasn't
-> been updated to the ongoing changes in the tree as aggressively
-> as sparc64 has.
-> 
-> So just put it under a single kernel/
+--Signature=_Thu__6_Nov_2008_16_36_26_+1100_2zsy5uoX1u7LpmYt
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks - will do.
+Hi Greg,
 
-	Sam
+Today's tree from Linus gets the following error from a sparc
+allmodconfig build:
+
+ERROR: "___f_flush_cache_range" [drivers/staging/poch/poch.ko] undefined!
+
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
+
+--Signature=_Thu__6_Nov_2008_16_36_26_+1100_2zsy5uoX1u7LpmYt
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAkkSgloACgkQjjKRsyhoI8zIfwCgmJGxkMljrEV+GcCuSvYw1g42
+6PYAn02mQtb8kVGDbDs3NqP8El/bpIsK
+=xeay
+-----END PGP SIGNATURE-----
+
+--Signature=_Thu__6_Nov_2008_16_36_26_+1100_2zsy5uoX1u7LpmYt--
