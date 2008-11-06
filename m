@@ -1,20 +1,35 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 13 Nov 2008 07:52:10 +0000
-Subject: Re: tty warning
-Message-Id: <20081112.235210.250832509.davem@davemloft.net>
+From: Robert Reif <reif@earthlink.net>
+Date: Thu, 06 Nov 2008 03:03:52 +0000
+Subject: sparc boot failure
+Message-Id: <49125E98.8070905@earthlink.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20081106152421.a9cf964f.sfr@canb.auug.org.au>
-	<4912DA63.6050909@earthlink.net>
-In-Reply-To: <4912DA63.6050909@earthlink.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: reif@earthlink.net
-Cc: sfr@canb.auug.org.au, alan@lxorguk.ukuu.org.uk, linux-kernel@vger.kernel.org, wli@holomorphy.com, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Robert Reif <reif@earthlink.net>
-Date: Thu, 06 Nov 2008 06:52:03 -0500
+sparc has failed to boot recently and I bisected it down to this patch:
 
-> There is a patch here that fixes it:  http://marc.info/?l=linux-sparc&m2048348932653&w=2
+8dd9453737822469837d48d5da3785ce70fb2118 is first bad commit
+commit 8dd9453737822469837d48d5da3785ce70fb2118
+Author: Frederic Weisbecker <fweisbec@gmail.com>
+Date:   Tue Oct 21 21:56:42 2008 -0700
+ 
+    sparc: correct section of current_pc()
+     
+    Latest mainline gives this section mismatch on sparc:
+     
+    The function current_pc() references
+    the variable __init no_sun4u_here.
+    This is often because current_pc lacks a __init
+    annotation or the annotation of no_sun4u_here is wrong.
+     
+    Since current_pc() is used only in early time, it is correct to
+    put it in .init section.
+     
+    Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
 
-Ok, I've applied this, let's see how it goes ;-)
+Reverting this patch gets current git booting again.
+ 
+
