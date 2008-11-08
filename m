@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 08 Nov 2008 06:34:43 +0000
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 08 Nov 2008 08:41:28 +0000
 Subject: Re: sparc boot failure
-Message-Id: <20081107.223443.84353230.davem@davemloft.net>
+Message-Id: <20081108084128.GA24322@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <49125E98.8070905@earthlink.net>
 In-Reply-To: <49125E98.8070905@earthlink.net>
@@ -10,9 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Robert Reif <reif@earthlink.net>
-Date: Fri, 07 Nov 2008 21:41:12 -0500
+Hi Robert.
 
-> Can we at least revert the original patch so sparc boots and add a better patch later?
+> The second patch doesn't compile.  The attached patch does but it 
+> doesn't boot because the kernel is now too big to load.
+> 
+> The size of vmlinux went from 4632210 to 4946070.
 
-Sure, I'll do that later tonight.
+Can you send me your config so I can see why this size increase happens.
+defconfig did not build with my sparc toolchain.
+
+Did you have any mods in head.S too?
+
+[I know davem are planning to revert the offending patch, but I would like
+to understand this size increase anyway]
+
+
+	Sam
