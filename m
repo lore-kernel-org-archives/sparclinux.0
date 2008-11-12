@@ -1,32 +1,56 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 17 Nov 2008 04:02:24 +0000
-Subject: Re: [PATCH 1/8] sparc,sparc64: unify Kconfig files
-Message-Id: <20081116.200224.134330245.davem@davemloft.net>
+From: Alexander Beregalov <a.beregalov@gmail.com>
+Date: Wed, 12 Nov 2008 13:47:49 +0000
+Subject: [PATCH] sparc64: add function save_stack_trace_tsk()
+Message-Id: <20081112134749.GD12456@orion>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1226866704-6485-1-git-send-email-sam@ravnborg.org>
-In-Reply-To: <1226866704-6485-1-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: davem@davemloft.net, sparclinux@vger.kernel.org, linux-next@vger.kernel.org, kenchen@google.com, mingo@elte.hu, adobriyan@gmail.com
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 16 Nov 2008 21:18:17 +0100
+Hi
 
-> Merge all of sparc64 Kconfig to sparc Kconfig.
-> The merge was checked by:
-> - visual inspection in menuconfig
-> - result of allnoconfig, allmodconfig, allyesconfig was checked before and after
-> - result of a number of randconfig was checked before and after
-> 
-> scripts/diffconfig was used to check if the config differed before and after
-> 
-> The validity of the test was checked by on purpose introducing
-> a few bugs - and they were all caught by first run.
-> 
-> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Current -next does not build on sparc64:
+  LD      .tmp_vmlinux1
+  fs/built-in.o: In function `proc_pid_stack':
+  /home/alexb/linux-2.6/fs/proc/base.c:360: undefined reference to
+  `save_stack_trace_tsk'
 
-I applied this, but again I had to fix an intended change.
+---
 
-I preserved the 32-bit default of NR_CPUS to "32".  You had
-changed it to "2" for some reason.
+  Add function save_stack_trace_tsk() on sparc64.
+
+
+Signed-off-by: Alexander Beregalov <a.beregalov@gmail.com>
+---
+
+ arch/sparc64/kernel/stacktrace.c |   10 ++++++++--
+ 1 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/arch/sparc64/kernel/stacktrace.c b/arch/sparc64/kernel/stacktrace.c
+index 4e21d4a..a22eb8e 100644
+--- a/arch/sparc64/kernel/stacktrace.c
++++ b/arch/sparc64/kernel/stacktrace.c
+@@ -7,9 +7,9 @@
+ 
+ #include "kstack.h"
+ 
+-void save_stack_trace(struct stack_trace *trace)
++void save_stack_trace_tsk(struct task_struct *tsk, struct stack_trace *trace)
+ {
+-	struct thread_info *tp = task_thread_info(current);
++	struct thread_info *tp = task_thread_info(tsk);
+ 	unsigned long ksp, fp;
+ 
+ 	stack_trace_flush();
+@@ -47,4 +47,10 @@ void save_stack_trace(struct stack_trace *trace)
+ 			trace->entries[trace->nr_entries++] = pc;
+ 	} while (trace->nr_entries < trace->max_entries);
+ }
++EXPORT_SYMBOL_GPL(save_stack_trace_tsk);
++
++inline void save_stack_trace(struct stack_trace *trace)
++{
++	save_stack_trace_tsk(current, trace);
++}
+ EXPORT_SYMBOL_GPL(save_stack_trace);
