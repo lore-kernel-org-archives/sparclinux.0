@@ -1,34 +1,44 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 17 Nov 2008 04:02:46 +0000
-Subject: Re: [PATCH] sparc,sparc64: unify Kconfig
-Message-Id: <20081116.200246.158974855.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 15 Nov 2008 21:34:32 +0000
+Subject: [PATCH 5/8] sparc: use Kconfig.hz
+Message-Id: <1226784875-8829-5-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1226825821-10125-1-git-send-email-sam@ravnborg.org>
-In-Reply-To: <1226825821-10125-1-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Josip Rodin <joy@entuzijast.net>
-Date: Sun, 16 Nov 2008 23:25:57 +0100
+We already has the proper definition in place in param.h.
+So use the common Kconfig.hz file
 
-> On Sun, Nov 16, 2008 at 09:56:57AM +0100, Sam Ravnborg wrote:
-> > --- a/arch/sparc/Kconfig
-> > +++ b/arch/sparc/Kconfig
-> >  
-> >  config NR_CPUS
-> > -	int "Maximum number of CPUs (2-32)"
-> > -	range 2 32
-> > +	int "Maximum number of CPUs"
-> > +	range 2 32 if SPARC32
-> > +	range 2 1024 if SPARC64
-> >  	depends on SMP
-> > -	default "32"
-> > +	default "2" if SPARC32
-> > +	default "64" if SPARC64
-> 
-> Did you really intend to decrease the sparc32 default to 2 during the merge?
-> Just wondering...
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/Kconfig |    5 +----
+ 1 files changed, 1 insertions(+), 4 deletions(-)
 
-I undid this change when applying Sam's patch.
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index d460fc5..3ff77f8 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -55,10 +55,6 @@ config ARCH_NO_VIRT_TO_BUS
+ config OF
+ 	def_bool y
+ 
+-config HZ
+-	int
+-	default 100
+-
+ source "init/Kconfig"
+ 
+ source "kernel/Kconfig.freezer"
+@@ -93,6 +89,7 @@ config NR_CPUS
+ 	depends on SMP
+ 	default "32"
+ 
++source "kernel/Kconfig.hz"
+ 
+ # Global things across all Sun machines.
+ config ISA
+-- 
+1.5.6.GIT
+
