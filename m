@@ -1,1314 +1,884 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 16 Nov 2008 08:57:00 +0000
-Subject: [PATCH] sparc: prepare math-emu for unification
-Message-Id: <1226825821-10125-4-git-send-email-sam@ravnborg.org>
+Date: Mon, 17 Nov 2008 22:06:04 +0000
+Subject: [PATCH 5/6] sparc,sparc64: unify kernel/
+Message-Id: <1226959565-14796-5-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Add _32 to filenames to make them 32 bit unique
+Move all files from sparc64/kernel to sparc/kernel
+- The equal named was renamed to *_64.c/S
+
+Adapt vmlinux.lds.S so it includes the correct .lds.S file
+Adjust path in sparc/Makfile to point to the new directory for sparc64
+Deleted now unused Makefile in saprc64/kernel/
+
+The linking order in kernel/ has NOT been preserved for sparc64.
+Preserving linking order would have resulted in a less
+readable Makefile.
+For sparc32 the linking order has been kept.
+
+Some .S files are build as separate files for sparc32
+but for sparc64 they are included in head_64.S.
+Drop using $(BITS) in Makefile to say that this is
+sparc32 specific files.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/math-emu/Makefile      |    2 +-
- arch/sparc/math-emu/math.c        |  511 -------------------------------------
- arch/sparc/math-emu/math_32.c     |  511 +++++++++++++++++++++++++++++++++++++
- arch/sparc/math-emu/sfp-util.h    |  115 ---------
- arch/sparc/math-emu/sfp-util_32.h |  115 +++++++++
- 5 files changed, 627 insertions(+), 627 deletions(-)
- delete mode 100644 arch/sparc/math-emu/math.c
- create mode 100644 arch/sparc/math-emu/math_32.c
- delete mode 100644 arch/sparc/math-emu/sfp-util.h
- create mode 100644 arch/sparc/math-emu/sfp-util_32.h
+ arch/sparc/Makefile                                |    6 +-
+ arch/sparc/kernel/Makefile                         |   45 +++++++-
+ arch/{sparc64 => sparc}/kernel/audit.c             |    0
+ .../kernel/auxio.c => sparc/kernel/auxio_64.c}     |    0
+ arch/{sparc64 => sparc}/kernel/central.c           |    0
+ arch/{sparc64 => sparc}/kernel/cherrs.S            |    0
+ arch/{sparc64 => sparc}/kernel/chmc.c              |    0
+ arch/{sparc64 => sparc}/kernel/compat_audit.c      |    0
+ .../kernel/cpu.c => sparc/kernel/cpu_64.c}         |    0
+ arch/{sparc64 => sparc}/kernel/ds.c                |    0
+ arch/{sparc64 => sparc}/kernel/dtlb_miss.S         |    0
+ arch/{sparc64 => sparc}/kernel/dtlb_prot.S         |    0
+ arch/{sparc64 => sparc}/kernel/ebus.c              |    0
+ arch/{sparc64 => sparc}/kernel/entry.h             |    0
+ .../kernel/etrap.S => sparc/kernel/etrap_64.S}     |    0
+ arch/{sparc64 => sparc}/kernel/fpu_traps.S         |    0
+ arch/{sparc64 => sparc}/kernel/ftrace.c            |    0
+ arch/{sparc64 => sparc}/kernel/getsetcc.S          |    0
+ .../kernel/head.S => sparc/kernel/head_64.S}       |    6 +-
+ arch/{sparc64 => sparc}/kernel/helpers.S           |    0
+ arch/{sparc64 => sparc}/kernel/hvapi.c             |    0
+ arch/{sparc64 => sparc}/kernel/hvcalls.S           |    0
+ arch/{sparc64 => sparc}/kernel/hvtramp.S           |    0
+ .../kernel/idprom.c => sparc/kernel/idprom_64.c}   |    0
+ .../init_task.c => sparc/kernel/init_task_64.c}    |    0
+ arch/{sparc64 => sparc}/kernel/iommu.c             |    0
+ arch/{sparc64 => sparc}/kernel/iommu_common.h      |    0
+ .../kernel/irq.c => sparc/kernel/irq_64.c}         |    0
+ arch/{sparc64 => sparc}/kernel/itlb_miss.S         |    0
+ arch/{sparc64 => sparc}/kernel/ivec.S              |    0
+ .../kernel/kgdb.c => sparc/kernel/kgdb_64.c}       |    0
+ arch/{sparc64 => sparc}/kernel/kprobes.c           |    0
+ arch/{sparc64 => sparc}/kernel/kstack.h            |    0
+ arch/{sparc64 => sparc}/kernel/ktlb.S              |    0
+ arch/{sparc64 => sparc}/kernel/ldc.c               |    0
+ arch/{sparc64 => sparc}/kernel/mdesc.c             |    0
+ arch/{sparc64 => sparc}/kernel/misctrap.S          |    0
+ .../kernel/module.c => sparc/kernel/module_64.c}   |    0
+ .../of_device.c => sparc/kernel/of_device_64.c}    |    0
+ arch/{sparc64 => sparc}/kernel/pci.c               |    0
+ arch/{sparc64 => sparc}/kernel/pci_common.c        |    0
+ arch/{sparc64 => sparc}/kernel/pci_fire.c          |    0
+ arch/{sparc64 => sparc}/kernel/pci_impl.h          |    0
+ arch/{sparc64 => sparc}/kernel/pci_msi.c           |    0
+ arch/{sparc64 => sparc}/kernel/pci_psycho.c        |    0
+ arch/{sparc64 => sparc}/kernel/pci_sabre.c         |    0
+ arch/{sparc64 => sparc}/kernel/pci_schizo.c        |    0
+ arch/{sparc64 => sparc}/kernel/pci_sun4v.c         |    0
+ arch/{sparc64 => sparc}/kernel/pci_sun4v.h         |    0
+ arch/{sparc64 => sparc}/kernel/pci_sun4v_asm.S     |    0
+ arch/{sparc64 => sparc}/kernel/power.c             |    0
+ .../kernel/process.c => sparc/kernel/process_64.c} |    0
+ .../kernel/prom.c => sparc/kernel/prom_64.c}       |    0
+ arch/{sparc64 => sparc}/kernel/psycho_common.c     |    0
+ arch/{sparc64 => sparc}/kernel/psycho_common.h     |    0
+ .../kernel/ptrace.c => sparc/kernel/ptrace_64.c}   |    0
+ arch/{sparc64 => sparc}/kernel/reboot.c            |    0
+ .../kernel/rtrap.S => sparc/kernel/rtrap_64.S}     |    0
+ arch/{sparc64 => sparc}/kernel/sbus.c              |    0
+ .../kernel/setup.c => sparc/kernel/setup_64.c}     |    0
+ arch/{sparc64 => sparc}/kernel/signal32.c          |    0
+ .../kernel/signal.c => sparc/kernel/signal_64.c}   |    0
+ .../kernel/smp.c => sparc/kernel/smp_64.c}         |    0
+ .../kernel/sparc_ksyms_64.c}                       |    0
+ arch/{sparc64 => sparc}/kernel/spiterrs.S          |    0
+ arch/{sparc64 => sparc}/kernel/sstate.c            |    0
+ arch/{sparc64 => sparc}/kernel/stacktrace.c        |    0
+ arch/{sparc64 => sparc}/kernel/starfire.c          |    0
+ arch/{sparc64 => sparc}/kernel/sun4v_ivec.S        |    0
+ arch/{sparc64 => sparc}/kernel/sun4v_tlb_miss.S    |    0
+ arch/{sparc64 => sparc}/kernel/sys32.S             |    0
+ arch/{sparc64 => sparc}/kernel/sys_sparc32.c       |    0
+ .../sys_sparc.c => sparc/kernel/sys_sparc_64.c}    |    0
+ arch/{sparc64 => sparc}/kernel/syscalls.S          |    0
+ arch/{sparc64 => sparc}/kernel/sysfs.c             |    0
+ arch/{sparc64 => sparc}/kernel/systbls.h           |    0
+ .../kernel/systbls.S => sparc/kernel/systbls_64.S} |    0
+ .../kernel/time.c => sparc/kernel/time_64.c}       |    0
+ .../trampoline.S => sparc/kernel/trampoline_64.S}  |    0
+ .../kernel/traps.c => sparc/kernel/traps_64.c}     |    0
+ arch/{sparc64 => sparc}/kernel/tsb.S               |    0
+ arch/{sparc64 => sparc}/kernel/ttable.S            |    0
+ .../kernel/una_asm.S => sparc/kernel/una_asm_64.S} |    0
+ .../unaligned.c => sparc/kernel/unaligned_64.c}    |    0
+ arch/{sparc64 => sparc}/kernel/us2e_cpufreq.c      |    0
+ arch/{sparc64 => sparc}/kernel/us3_cpufreq.c       |    0
+ arch/{sparc64 => sparc}/kernel/utrap.S             |    0
+ arch/{sparc64 => sparc}/kernel/vio.c               |    0
+ arch/{sparc64 => sparc}/kernel/viohs.c             |    0
+ arch/{sparc64 => sparc}/kernel/visemul.c           |    0
+ arch/sparc/kernel/vmlinux.lds.S                    |  121 +-------------------
+ .../kernel/{vmlinux.lds.S => vmlinux_32.lds.S}     |    0
+ .../kernel/vmlinux_64.lds.S}                       |    0
+ arch/{sparc64 => sparc}/kernel/winfixup.S          |    0
+ arch/sparc64/kernel/Makefile                       |   36 ------
+ 95 files changed, 53 insertions(+), 161 deletions(-)
+ rename arch/{sparc64 => sparc}/kernel/audit.c (100%)
+ rename arch/{sparc64/kernel/auxio.c => sparc/kernel/auxio_64.c} (100%)
+ rename arch/{sparc64 => sparc}/kernel/central.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/cherrs.S (100%)
+ rename arch/{sparc64 => sparc}/kernel/chmc.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/compat_audit.c (100%)
+ rename arch/{sparc64/kernel/cpu.c => sparc/kernel/cpu_64.c} (100%)
+ rename arch/{sparc64 => sparc}/kernel/ds.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/dtlb_miss.S (100%)
+ rename arch/{sparc64 => sparc}/kernel/dtlb_prot.S (100%)
+ rename arch/{sparc64 => sparc}/kernel/ebus.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/entry.h (100%)
+ rename arch/{sparc64/kernel/etrap.S => sparc/kernel/etrap_64.S} (100%)
+ rename arch/{sparc64 => sparc}/kernel/fpu_traps.S (100%)
+ rename arch/{sparc64 => sparc}/kernel/ftrace.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/getsetcc.S (100%)
+ rename arch/{sparc64/kernel/head.S => sparc/kernel/head_64.S} (99%)
+ rename arch/{sparc64 => sparc}/kernel/helpers.S (100%)
+ rename arch/{sparc64 => sparc}/kernel/hvapi.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/hvcalls.S (100%)
+ rename arch/{sparc64 => sparc}/kernel/hvtramp.S (100%)
+ rename arch/{sparc64/kernel/idprom.c => sparc/kernel/idprom_64.c} (100%)
+ rename arch/{sparc64/kernel/init_task.c => sparc/kernel/init_task_64.c} (100%)
+ rename arch/{sparc64 => sparc}/kernel/iommu.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/iommu_common.h (100%)
+ rename arch/{sparc64/kernel/irq.c => sparc/kernel/irq_64.c} (100%)
+ rename arch/{sparc64 => sparc}/kernel/itlb_miss.S (100%)
+ rename arch/{sparc64 => sparc}/kernel/ivec.S (100%)
+ rename arch/{sparc64/kernel/kgdb.c => sparc/kernel/kgdb_64.c} (100%)
+ rename arch/{sparc64 => sparc}/kernel/kprobes.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/kstack.h (100%)
+ rename arch/{sparc64 => sparc}/kernel/ktlb.S (100%)
+ rename arch/{sparc64 => sparc}/kernel/ldc.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/mdesc.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/misctrap.S (100%)
+ rename arch/{sparc64/kernel/module.c => sparc/kernel/module_64.c} (100%)
+ rename arch/{sparc64/kernel/of_device.c => sparc/kernel/of_device_64.c} (100%)
+ rename arch/{sparc64 => sparc}/kernel/pci.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/pci_common.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/pci_fire.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/pci_impl.h (100%)
+ rename arch/{sparc64 => sparc}/kernel/pci_msi.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/pci_psycho.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/pci_sabre.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/pci_schizo.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/pci_sun4v.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/pci_sun4v.h (100%)
+ rename arch/{sparc64 => sparc}/kernel/pci_sun4v_asm.S (100%)
+ rename arch/{sparc64 => sparc}/kernel/power.c (100%)
+ rename arch/{sparc64/kernel/process.c => sparc/kernel/process_64.c} (100%)
+ rename arch/{sparc64/kernel/prom.c => sparc/kernel/prom_64.c} (100%)
+ rename arch/{sparc64 => sparc}/kernel/psycho_common.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/psycho_common.h (100%)
+ rename arch/{sparc64/kernel/ptrace.c => sparc/kernel/ptrace_64.c} (100%)
+ rename arch/{sparc64 => sparc}/kernel/reboot.c (100%)
+ rename arch/{sparc64/kernel/rtrap.S => sparc/kernel/rtrap_64.S} (100%)
+ rename arch/{sparc64 => sparc}/kernel/sbus.c (100%)
+ rename arch/{sparc64/kernel/setup.c => sparc/kernel/setup_64.c} (100%)
+ rename arch/{sparc64 => sparc}/kernel/signal32.c (100%)
+ rename arch/{sparc64/kernel/signal.c => sparc/kernel/signal_64.c} (100%)
+ rename arch/{sparc64/kernel/smp.c => sparc/kernel/smp_64.c} (100%)
+ rename arch/{sparc64/kernel/sparc64_ksyms.c => sparc/kernel/sparc_ksyms_64.c} (100%)
+ rename arch/{sparc64 => sparc}/kernel/spiterrs.S (100%)
+ rename arch/{sparc64 => sparc}/kernel/sstate.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/stacktrace.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/starfire.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/sun4v_ivec.S (100%)
+ rename arch/{sparc64 => sparc}/kernel/sun4v_tlb_miss.S (100%)
+ rename arch/{sparc64 => sparc}/kernel/sys32.S (100%)
+ rename arch/{sparc64 => sparc}/kernel/sys_sparc32.c (100%)
+ rename arch/{sparc64/kernel/sys_sparc.c => sparc/kernel/sys_sparc_64.c} (100%)
+ rename arch/{sparc64 => sparc}/kernel/syscalls.S (100%)
+ rename arch/{sparc64 => sparc}/kernel/sysfs.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/systbls.h (100%)
+ rename arch/{sparc64/kernel/systbls.S => sparc/kernel/systbls_64.S} (100%)
+ rename arch/{sparc64/kernel/time.c => sparc/kernel/time_64.c} (100%)
+ rename arch/{sparc64/kernel/trampoline.S => sparc/kernel/trampoline_64.S} (100%)
+ rename arch/{sparc64/kernel/traps.c => sparc/kernel/traps_64.c} (100%)
+ rename arch/{sparc64 => sparc}/kernel/tsb.S (100%)
+ rename arch/{sparc64 => sparc}/kernel/ttable.S (100%)
+ rename arch/{sparc64/kernel/una_asm.S => sparc/kernel/una_asm_64.S} (100%)
+ rename arch/{sparc64/kernel/unaligned.c => sparc/kernel/unaligned_64.c} (100%)
+ rename arch/{sparc64 => sparc}/kernel/us2e_cpufreq.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/us3_cpufreq.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/utrap.S (100%)
+ rename arch/{sparc64 => sparc}/kernel/vio.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/viohs.c (100%)
+ rename arch/{sparc64 => sparc}/kernel/visemul.c (100%)
+ rewrite arch/sparc/kernel/vmlinux.lds.S (99%)
+ rename arch/sparc/kernel/{vmlinux.lds.S => vmlinux_32.lds.S} (100%)
+ rename arch/{sparc64/kernel/vmlinux.lds.S => sparc/kernel/vmlinux_64.lds.S} (100%)
+ rename arch/{sparc64 => sparc}/kernel/winfixup.S (100%)
+ delete mode 100644 arch/sparc64/kernel/Makefile
 
-diff --git a/arch/sparc/math-emu/Makefile b/arch/sparc/math-emu/Makefile
-index 86995d6..b9085ec 100644
---- a/arch/sparc/math-emu/Makefile
-+++ b/arch/sparc/math-emu/Makefile
-@@ -5,4 +5,4 @@
- # supress all warnings - as math.c produces a lot!
- ccflags-y := -w
+diff --git a/arch/sparc/Makefile b/arch/sparc/Makefile
+index c47f274..283f339 100644
+--- a/arch/sparc/Makefile
++++ b/arch/sparc/Makefile
+@@ -38,7 +38,7 @@ CPPFLAGS_vmlinux.lds += -m32
+ #  Actual linking is done with "make image".
+ LDFLAGS_vmlinux = -r
  
--obj-y    := math.o
-+obj-y    := math_$(BITS).o
-diff --git a/arch/sparc/math-emu/math.c b/arch/sparc/math-emu/math.c
-deleted file mode 100644
-index 8613b3e..0000000
---- a/arch/sparc/math-emu/math.c
-+++ /dev/null
-@@ -1,511 +0,0 @@
--/*
-- * arch/sparc/math-emu/math.c
-- *
-- * Copyright (C) 1998 Peter Maydell (pmaydell@chiark.greenend.org.uk)
-- * Copyright (C) 1997, 1999 Jakub Jelinek (jj@ultra.linux.cz)
-- * Copyright (C) 1999 David S. Miller (davem@redhat.com)
-- *
-- * This is a good place to start if you're trying to understand the
-- * emulation code, because it's pretty simple. What we do is
-- * essentially analyse the instruction to work out what the operation
-- * is and which registers are involved. We then execute the appropriate
-- * FXXXX function. [The floating point queue introduces a minor wrinkle;
-- * see below...]
-- * The fxxxxx.c files each emulate a single insn. They look relatively
-- * simple because the complexity is hidden away in an unholy tangle
-- * of preprocessor macros.
-- *
-- * The first layer of macros is single.h, double.h, quad.h. Generally
-- * these files define macros for working with floating point numbers
-- * of the three IEEE formats. FP_ADD_D(R,A,B) is for adding doubles,
-- * for instance. These macros are usually defined as calls to more
-- * generic macros (in this case _FP_ADD(D,2,R,X,Y) where the number
-- * of machine words required to store the given IEEE format is passed
-- * as a parameter. [double.h and co check the number of bits in a word
-- * and define FP_ADD_D & co appropriately].
-- * The generic macros are defined in op-common.h. This is where all
-- * the grotty stuff like handling NaNs is coded. To handle the possible
-- * word sizes macros in op-common.h use macros like _FP_FRAC_SLL_##wc()
-- * where wc is the 'number of machine words' parameter (here 2).
-- * These are defined in the third layer of macros: op-1.h, op-2.h
-- * and op-4.h. These handle operations on floating point numbers composed
-- * of 1,2 and 4 machine words respectively. [For example, on sparc64
-- * doubles are one machine word so macros in double.h eventually use
-- * constructs in op-1.h, but on sparc32 they use op-2.h definitions.]
-- * soft-fp.h is on the same level as op-common.h, and defines some
-- * macros which are independent of both word size and FP format.
-- * Finally, sfp-machine.h is the machine dependent part of the
-- * code: it defines the word size and what type a word is. It also
-- * defines how _FP_MUL_MEAT_t() maps to _FP_MUL_MEAT_n_* : op-n.h
-- * provide several possible flavours of multiply algorithm, most
-- * of which require that you supply some form of asm or C primitive to
-- * do the actual multiply. (such asm primitives should be defined
-- * in sfp-machine.h too). udivmodti4.c is the same sort of thing.
-- *
-- * There may be some errors here because I'm working from a
-- * SPARC architecture manual V9, and what I really want is V8...
-- * Also, the insns which can generate exceptions seem to be a
-- * greater subset of the FPops than for V9 (for example, FCMPED
-- * has to be emulated on V8). So I think I'm going to have
-- * to emulate them all just to be on the safe side...
-- *
-- * Emulation routines originate from soft-fp package, which is
-- * part of glibc and has appropriate copyrights in it (allegedly).
-- *
-- * NB: on sparc int = long = 4 bytes, long long = 8 bytes.
-- * Most bits of the kernel seem to go for long rather than int,
-- * so we follow that practice...
-- */
+-head-y := arch/sparc/kernel/head.o arch/sparc/kernel/init_task.o
++head-y := arch/sparc/kernel/head_32.o arch/sparc/kernel/init_task_32.o
+ HEAD_Y := $(head-y)
+ 
+ core-y += arch/sparc/kernel/ arch/sparc/mm/ arch/sparc/math-emu/
+@@ -92,9 +92,9 @@ ifeq ($(CONFIG_MCOUNT),y)
+   KBUILD_CFLAGS += -pg
+ endif
+ 
+-head-y := arch/sparc64/kernel/head.o arch/sparc64/kernel/init_task.o
++head-y := arch/sparc/kernel/head_64.o arch/sparc/kernel/init_task_64.o
+ 
+-core-y                          += arch/sparc64/kernel/ arch/sparc/mm/
++core-y                          += arch/sparc/kernel/ arch/sparc/mm/
+ core-y                          += arch/sparc/math-emu/
+ libs-y                          += arch/sparc/prom/ arch/sparc64/lib/
+ drivers-$(CONFIG_OPROFILE)      += arch/sparc/oprofile/
+diff --git a/arch/sparc/kernel/Makefile b/arch/sparc/kernel/Makefile
+index df6cc9a..a04fca5 100644
+--- a/arch/sparc/kernel/Makefile
++++ b/arch/sparc/kernel/Makefile
+@@ -10,8 +10,8 @@ extra-y     += init_task_$(BITS).o
+ extra-y     += vmlinux.lds
+ 
+ obj-$(CONFIG_SPARC32)   += entry.o wof.o wuf.o
+-obj-y                   += etrap_$(BITS).o
+-obj-y                   += rtrap_$(BITS).o
++obj-$(CONFIG_SPARC32)   += etrap_32.o
++obj-$(CONFIG_SPARC32)   += rtrap_32.o
+ obj-y                   += traps_$(BITS).o
+ 
+ # IRQ
+@@ -24,7 +24,7 @@ obj-$(CONFIG_SPARC32)   += ioport.o
+ obj-y                   += setup_$(BITS).o
+ obj-y                   += idprom_$(BITS).o
+ obj-y                   += sys_sparc_$(BITS).o
+-obj-y                   += systbls_$(BITS).o
++obj-$(CONFIG_SPARC32)   += systbls_32.o
+ obj-y                   += time_$(BITS).o
+ obj-$(CONFIG_SPARC32)   += windows.o
+ obj-y                   += cpu_$(BITS).o
+@@ -38,6 +38,19 @@ obj-$(CONFIG_SPARC32)   += muldiv.o
+ obj-y                   += prom_$(BITS).o
+ obj-y                   += of_device_$(BITS).o
+ 
++obj-$(CONFIG_SPARC64)  += reboot.o
++obj-$(CONFIG_SPARC64)  += sysfs.o
++obj-$(CONFIG_SPARC64)  += iommu.o
++obj-$(CONFIG_SPARC64)  += central.o
++obj-$(CONFIG_SPARC64)  += starfire.o
++obj-$(CONFIG_SPARC64)  += power.o
++obj-$(CONFIG_SPARC64)  += sbus.o
++obj-$(CONFIG_SPARC64)  += ebus.o
++obj-$(CONFIG_SPARC64)  += visemul.o
++obj-$(CONFIG_SPARC64)  += hvapi.o
++obj-$(CONFIG_SPARC64)  += sstate.o
++obj-$(CONFIG_SPARC64)  += mdesc.o
++
+ # sparc32 do not use GENERIC_HARDIRQS but uses the generic devres implmentation
+ obj-$(CONFIG_SPARC32)     += devres.o
+ devres-y                  := ../../../kernel/irq/devres.o
+@@ -48,6 +61,7 @@ obj-$(CONFIG_SPARC32_PCI) += pcic.o
+ 
+ obj-$(CONFIG_SMP)         += trampoline_$(BITS).o smp_$(BITS).o
+ obj-$(CONFIG_SPARC32_SMP) += sun4m_smp.o sun4d_smp.o
++obj-$(CONFIG_SPARC64_SMP) += hvtramp.o
+ 
+ obj-y                     += auxio_$(BITS).o
+ obj-$(CONFIG_SUN_PM)      += apc.o pmc.o
+@@ -56,3 +70,28 @@ obj-$(CONFIG_MODULES)     += module_$(BITS).o
+ obj-$(CONFIG_MODULES)     += sparc_ksyms_$(BITS).o
+ obj-$(CONFIG_SPARC_LED)   += led.o
+ obj-$(CONFIG_KGDB)        += kgdb_$(BITS).o
++
++
++obj-$(CONFIG_DYNAMIC_FTRACE) += ftrace.o
++CFLAGS_REMOVE_ftrace.o := -pg
++
++obj-$(CONFIG_STACKTRACE)     += stacktrace.o
++# sparc64 PCI
++obj-$(CONFIG_SPARC64_PCI)    += pci.o pci_common.o psycho_common.o
++obj-$(CONFIG_SPARC64_PCI)    += pci_psycho.o pci_sabre.o pci_schizo.o
++obj-$(CONFIG_SPARC64_PCI)    += pci_sun4v.o pci_sun4v_asm.o pci_fire.o
++obj-$(CONFIG_PCI_MSI)        += pci_msi.o
++
++obj-$(CONFIG_COMPAT)         += sys32.o sys_sparc32.o signal32.o
++
++# sparc64 cpufreq
++obj-$(CONFIG_US3_FREQ)  += us3_cpufreq.o
++obj-$(CONFIG_US2E_FREQ) += us2e_cpufreq.o
++obj-$(CONFIG_US3_MC)    += chmc.o
++
++obj-$(CONFIG_KPROBES)   += kprobes.o
++obj-$(CONFIG_SUN_LDOMS) += ldc.o vio.o viohs.o ds.o
++
++obj-$(CONFIG_AUDIT)     += audit.o
++audit--$(CONFIG_AUDIT)  := compat_audit.o
++obj-$(CONFIG_COMPAT)    += $(audit--y)
+diff --git a/arch/sparc64/kernel/audit.c b/arch/sparc/kernel/audit.c
+similarity index 100%
+rename from arch/sparc64/kernel/audit.c
+rename to arch/sparc/kernel/audit.c
+diff --git a/arch/sparc64/kernel/auxio.c b/arch/sparc/kernel/auxio_64.c
+similarity index 100%
+rename from arch/sparc64/kernel/auxio.c
+rename to arch/sparc/kernel/auxio_64.c
+diff --git a/arch/sparc64/kernel/central.c b/arch/sparc/kernel/central.c
+similarity index 100%
+rename from arch/sparc64/kernel/central.c
+rename to arch/sparc/kernel/central.c
+diff --git a/arch/sparc64/kernel/cherrs.S b/arch/sparc/kernel/cherrs.S
+similarity index 100%
+rename from arch/sparc64/kernel/cherrs.S
+rename to arch/sparc/kernel/cherrs.S
+diff --git a/arch/sparc64/kernel/chmc.c b/arch/sparc/kernel/chmc.c
+similarity index 100%
+rename from arch/sparc64/kernel/chmc.c
+rename to arch/sparc/kernel/chmc.c
+diff --git a/arch/sparc64/kernel/compat_audit.c b/arch/sparc/kernel/compat_audit.c
+similarity index 100%
+rename from arch/sparc64/kernel/compat_audit.c
+rename to arch/sparc/kernel/compat_audit.c
+diff --git a/arch/sparc64/kernel/cpu.c b/arch/sparc/kernel/cpu_64.c
+similarity index 100%
+rename from arch/sparc64/kernel/cpu.c
+rename to arch/sparc/kernel/cpu_64.c
+diff --git a/arch/sparc64/kernel/ds.c b/arch/sparc/kernel/ds.c
+similarity index 100%
+rename from arch/sparc64/kernel/ds.c
+rename to arch/sparc/kernel/ds.c
+diff --git a/arch/sparc64/kernel/dtlb_miss.S b/arch/sparc/kernel/dtlb_miss.S
+similarity index 100%
+rename from arch/sparc64/kernel/dtlb_miss.S
+rename to arch/sparc/kernel/dtlb_miss.S
+diff --git a/arch/sparc64/kernel/dtlb_prot.S b/arch/sparc/kernel/dtlb_prot.S
+similarity index 100%
+rename from arch/sparc64/kernel/dtlb_prot.S
+rename to arch/sparc/kernel/dtlb_prot.S
+diff --git a/arch/sparc64/kernel/ebus.c b/arch/sparc/kernel/ebus.c
+similarity index 100%
+rename from arch/sparc64/kernel/ebus.c
+rename to arch/sparc/kernel/ebus.c
+diff --git a/arch/sparc64/kernel/entry.h b/arch/sparc/kernel/entry.h
+similarity index 100%
+rename from arch/sparc64/kernel/entry.h
+rename to arch/sparc/kernel/entry.h
+diff --git a/arch/sparc64/kernel/etrap.S b/arch/sparc/kernel/etrap_64.S
+similarity index 100%
+rename from arch/sparc64/kernel/etrap.S
+rename to arch/sparc/kernel/etrap_64.S
+diff --git a/arch/sparc64/kernel/fpu_traps.S b/arch/sparc/kernel/fpu_traps.S
+similarity index 100%
+rename from arch/sparc64/kernel/fpu_traps.S
+rename to arch/sparc/kernel/fpu_traps.S
+diff --git a/arch/sparc64/kernel/ftrace.c b/arch/sparc/kernel/ftrace.c
+similarity index 100%
+rename from arch/sparc64/kernel/ftrace.c
+rename to arch/sparc/kernel/ftrace.c
+diff --git a/arch/sparc64/kernel/getsetcc.S b/arch/sparc/kernel/getsetcc.S
+similarity index 100%
+rename from arch/sparc64/kernel/getsetcc.S
+rename to arch/sparc/kernel/getsetcc.S
+diff --git a/arch/sparc64/kernel/head.S b/arch/sparc/kernel/head_64.S
+similarity index 99%
+rename from arch/sparc64/kernel/head.S
+rename to arch/sparc/kernel/head_64.S
+index 353226f..313e4a4 100644
+--- a/arch/sparc64/kernel/head.S
++++ b/arch/sparc/kernel/head_64.S
+@@ -825,8 +825,8 @@ setup_tba:
+ 	 restore
+ sparc64_boot_end:
+ 
+-#include "etrap.S"
+-#include "rtrap.S"
++#include "etrap_64.S"
++#include "rtrap_64.S"
+ #include "winfixup.S"
+ #include "fpu_traps.S"
+ #include "ivec.S"
+@@ -882,7 +882,7 @@ swapper_4m_tsb:
+ 
+ ! 0x0000000000428000
+ 
+-#include "systbls.S"
++#include "systbls_64.S"
+ 
+ 	.data
+ 	.align	8
+diff --git a/arch/sparc64/kernel/helpers.S b/arch/sparc/kernel/helpers.S
+similarity index 100%
+rename from arch/sparc64/kernel/helpers.S
+rename to arch/sparc/kernel/helpers.S
+diff --git a/arch/sparc64/kernel/hvapi.c b/arch/sparc/kernel/hvapi.c
+similarity index 100%
+rename from arch/sparc64/kernel/hvapi.c
+rename to arch/sparc/kernel/hvapi.c
+diff --git a/arch/sparc64/kernel/hvcalls.S b/arch/sparc/kernel/hvcalls.S
+similarity index 100%
+rename from arch/sparc64/kernel/hvcalls.S
+rename to arch/sparc/kernel/hvcalls.S
+diff --git a/arch/sparc64/kernel/hvtramp.S b/arch/sparc/kernel/hvtramp.S
+similarity index 100%
+rename from arch/sparc64/kernel/hvtramp.S
+rename to arch/sparc/kernel/hvtramp.S
+diff --git a/arch/sparc64/kernel/idprom.c b/arch/sparc/kernel/idprom_64.c
+similarity index 100%
+rename from arch/sparc64/kernel/idprom.c
+rename to arch/sparc/kernel/idprom_64.c
+diff --git a/arch/sparc64/kernel/init_task.c b/arch/sparc/kernel/init_task_64.c
+similarity index 100%
+rename from arch/sparc64/kernel/init_task.c
+rename to arch/sparc/kernel/init_task_64.c
+diff --git a/arch/sparc64/kernel/iommu.c b/arch/sparc/kernel/iommu.c
+similarity index 100%
+rename from arch/sparc64/kernel/iommu.c
+rename to arch/sparc/kernel/iommu.c
+diff --git a/arch/sparc64/kernel/iommu_common.h b/arch/sparc/kernel/iommu_common.h
+similarity index 100%
+rename from arch/sparc64/kernel/iommu_common.h
+rename to arch/sparc/kernel/iommu_common.h
+diff --git a/arch/sparc64/kernel/irq.c b/arch/sparc/kernel/irq_64.c
+similarity index 100%
+rename from arch/sparc64/kernel/irq.c
+rename to arch/sparc/kernel/irq_64.c
+diff --git a/arch/sparc64/kernel/itlb_miss.S b/arch/sparc/kernel/itlb_miss.S
+similarity index 100%
+rename from arch/sparc64/kernel/itlb_miss.S
+rename to arch/sparc/kernel/itlb_miss.S
+diff --git a/arch/sparc64/kernel/ivec.S b/arch/sparc/kernel/ivec.S
+similarity index 100%
+rename from arch/sparc64/kernel/ivec.S
+rename to arch/sparc/kernel/ivec.S
+diff --git a/arch/sparc64/kernel/kgdb.c b/arch/sparc/kernel/kgdb_64.c
+similarity index 100%
+rename from arch/sparc64/kernel/kgdb.c
+rename to arch/sparc/kernel/kgdb_64.c
+diff --git a/arch/sparc64/kernel/kprobes.c b/arch/sparc/kernel/kprobes.c
+similarity index 100%
+rename from arch/sparc64/kernel/kprobes.c
+rename to arch/sparc/kernel/kprobes.c
+diff --git a/arch/sparc64/kernel/kstack.h b/arch/sparc/kernel/kstack.h
+similarity index 100%
+rename from arch/sparc64/kernel/kstack.h
+rename to arch/sparc/kernel/kstack.h
+diff --git a/arch/sparc64/kernel/ktlb.S b/arch/sparc/kernel/ktlb.S
+similarity index 100%
+rename from arch/sparc64/kernel/ktlb.S
+rename to arch/sparc/kernel/ktlb.S
+diff --git a/arch/sparc64/kernel/ldc.c b/arch/sparc/kernel/ldc.c
+similarity index 100%
+rename from arch/sparc64/kernel/ldc.c
+rename to arch/sparc/kernel/ldc.c
+diff --git a/arch/sparc64/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
+similarity index 100%
+rename from arch/sparc64/kernel/mdesc.c
+rename to arch/sparc/kernel/mdesc.c
+diff --git a/arch/sparc64/kernel/misctrap.S b/arch/sparc/kernel/misctrap.S
+similarity index 100%
+rename from arch/sparc64/kernel/misctrap.S
+rename to arch/sparc/kernel/misctrap.S
+diff --git a/arch/sparc64/kernel/module.c b/arch/sparc/kernel/module_64.c
+similarity index 100%
+rename from arch/sparc64/kernel/module.c
+rename to arch/sparc/kernel/module_64.c
+diff --git a/arch/sparc64/kernel/of_device.c b/arch/sparc/kernel/of_device_64.c
+similarity index 100%
+rename from arch/sparc64/kernel/of_device.c
+rename to arch/sparc/kernel/of_device_64.c
+diff --git a/arch/sparc64/kernel/pci.c b/arch/sparc/kernel/pci.c
+similarity index 100%
+rename from arch/sparc64/kernel/pci.c
+rename to arch/sparc/kernel/pci.c
+diff --git a/arch/sparc64/kernel/pci_common.c b/arch/sparc/kernel/pci_common.c
+similarity index 100%
+rename from arch/sparc64/kernel/pci_common.c
+rename to arch/sparc/kernel/pci_common.c
+diff --git a/arch/sparc64/kernel/pci_fire.c b/arch/sparc/kernel/pci_fire.c
+similarity index 100%
+rename from arch/sparc64/kernel/pci_fire.c
+rename to arch/sparc/kernel/pci_fire.c
+diff --git a/arch/sparc64/kernel/pci_impl.h b/arch/sparc/kernel/pci_impl.h
+similarity index 100%
+rename from arch/sparc64/kernel/pci_impl.h
+rename to arch/sparc/kernel/pci_impl.h
+diff --git a/arch/sparc64/kernel/pci_msi.c b/arch/sparc/kernel/pci_msi.c
+similarity index 100%
+rename from arch/sparc64/kernel/pci_msi.c
+rename to arch/sparc/kernel/pci_msi.c
+diff --git a/arch/sparc64/kernel/pci_psycho.c b/arch/sparc/kernel/pci_psycho.c
+similarity index 100%
+rename from arch/sparc64/kernel/pci_psycho.c
+rename to arch/sparc/kernel/pci_psycho.c
+diff --git a/arch/sparc64/kernel/pci_sabre.c b/arch/sparc/kernel/pci_sabre.c
+similarity index 100%
+rename from arch/sparc64/kernel/pci_sabre.c
+rename to arch/sparc/kernel/pci_sabre.c
+diff --git a/arch/sparc64/kernel/pci_schizo.c b/arch/sparc/kernel/pci_schizo.c
+similarity index 100%
+rename from arch/sparc64/kernel/pci_schizo.c
+rename to arch/sparc/kernel/pci_schizo.c
+diff --git a/arch/sparc64/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
+similarity index 100%
+rename from arch/sparc64/kernel/pci_sun4v.c
+rename to arch/sparc/kernel/pci_sun4v.c
+diff --git a/arch/sparc64/kernel/pci_sun4v.h b/arch/sparc/kernel/pci_sun4v.h
+similarity index 100%
+rename from arch/sparc64/kernel/pci_sun4v.h
+rename to arch/sparc/kernel/pci_sun4v.h
+diff --git a/arch/sparc64/kernel/pci_sun4v_asm.S b/arch/sparc/kernel/pci_sun4v_asm.S
+similarity index 100%
+rename from arch/sparc64/kernel/pci_sun4v_asm.S
+rename to arch/sparc/kernel/pci_sun4v_asm.S
+diff --git a/arch/sparc64/kernel/power.c b/arch/sparc/kernel/power.c
+similarity index 100%
+rename from arch/sparc64/kernel/power.c
+rename to arch/sparc/kernel/power.c
+diff --git a/arch/sparc64/kernel/process.c b/arch/sparc/kernel/process_64.c
+similarity index 100%
+rename from arch/sparc64/kernel/process.c
+rename to arch/sparc/kernel/process_64.c
+diff --git a/arch/sparc64/kernel/prom.c b/arch/sparc/kernel/prom_64.c
+similarity index 100%
+rename from arch/sparc64/kernel/prom.c
+rename to arch/sparc/kernel/prom_64.c
+diff --git a/arch/sparc64/kernel/psycho_common.c b/arch/sparc/kernel/psycho_common.c
+similarity index 100%
+rename from arch/sparc64/kernel/psycho_common.c
+rename to arch/sparc/kernel/psycho_common.c
+diff --git a/arch/sparc64/kernel/psycho_common.h b/arch/sparc/kernel/psycho_common.h
+similarity index 100%
+rename from arch/sparc64/kernel/psycho_common.h
+rename to arch/sparc/kernel/psycho_common.h
+diff --git a/arch/sparc64/kernel/ptrace.c b/arch/sparc/kernel/ptrace_64.c
+similarity index 100%
+rename from arch/sparc64/kernel/ptrace.c
+rename to arch/sparc/kernel/ptrace_64.c
+diff --git a/arch/sparc64/kernel/reboot.c b/arch/sparc/kernel/reboot.c
+similarity index 100%
+rename from arch/sparc64/kernel/reboot.c
+rename to arch/sparc/kernel/reboot.c
+diff --git a/arch/sparc64/kernel/rtrap.S b/arch/sparc/kernel/rtrap_64.S
+similarity index 100%
+rename from arch/sparc64/kernel/rtrap.S
+rename to arch/sparc/kernel/rtrap_64.S
+diff --git a/arch/sparc64/kernel/sbus.c b/arch/sparc/kernel/sbus.c
+similarity index 100%
+rename from arch/sparc64/kernel/sbus.c
+rename to arch/sparc/kernel/sbus.c
+diff --git a/arch/sparc64/kernel/setup.c b/arch/sparc/kernel/setup_64.c
+similarity index 100%
+rename from arch/sparc64/kernel/setup.c
+rename to arch/sparc/kernel/setup_64.c
+diff --git a/arch/sparc64/kernel/signal32.c b/arch/sparc/kernel/signal32.c
+similarity index 100%
+rename from arch/sparc64/kernel/signal32.c
+rename to arch/sparc/kernel/signal32.c
+diff --git a/arch/sparc64/kernel/signal.c b/arch/sparc/kernel/signal_64.c
+similarity index 100%
+rename from arch/sparc64/kernel/signal.c
+rename to arch/sparc/kernel/signal_64.c
+diff --git a/arch/sparc64/kernel/smp.c b/arch/sparc/kernel/smp_64.c
+similarity index 100%
+rename from arch/sparc64/kernel/smp.c
+rename to arch/sparc/kernel/smp_64.c
+diff --git a/arch/sparc64/kernel/sparc64_ksyms.c b/arch/sparc/kernel/sparc_ksyms_64.c
+similarity index 100%
+rename from arch/sparc64/kernel/sparc64_ksyms.c
+rename to arch/sparc/kernel/sparc_ksyms_64.c
+diff --git a/arch/sparc64/kernel/spiterrs.S b/arch/sparc/kernel/spiterrs.S
+similarity index 100%
+rename from arch/sparc64/kernel/spiterrs.S
+rename to arch/sparc/kernel/spiterrs.S
+diff --git a/arch/sparc64/kernel/sstate.c b/arch/sparc/kernel/sstate.c
+similarity index 100%
+rename from arch/sparc64/kernel/sstate.c
+rename to arch/sparc/kernel/sstate.c
+diff --git a/arch/sparc64/kernel/stacktrace.c b/arch/sparc/kernel/stacktrace.c
+similarity index 100%
+rename from arch/sparc64/kernel/stacktrace.c
+rename to arch/sparc/kernel/stacktrace.c
+diff --git a/arch/sparc64/kernel/starfire.c b/arch/sparc/kernel/starfire.c
+similarity index 100%
+rename from arch/sparc64/kernel/starfire.c
+rename to arch/sparc/kernel/starfire.c
+diff --git a/arch/sparc64/kernel/sun4v_ivec.S b/arch/sparc/kernel/sun4v_ivec.S
+similarity index 100%
+rename from arch/sparc64/kernel/sun4v_ivec.S
+rename to arch/sparc/kernel/sun4v_ivec.S
+diff --git a/arch/sparc64/kernel/sun4v_tlb_miss.S b/arch/sparc/kernel/sun4v_tlb_miss.S
+similarity index 100%
+rename from arch/sparc64/kernel/sun4v_tlb_miss.S
+rename to arch/sparc/kernel/sun4v_tlb_miss.S
+diff --git a/arch/sparc64/kernel/sys32.S b/arch/sparc/kernel/sys32.S
+similarity index 100%
+rename from arch/sparc64/kernel/sys32.S
+rename to arch/sparc/kernel/sys32.S
+diff --git a/arch/sparc64/kernel/sys_sparc32.c b/arch/sparc/kernel/sys_sparc32.c
+similarity index 100%
+rename from arch/sparc64/kernel/sys_sparc32.c
+rename to arch/sparc/kernel/sys_sparc32.c
+diff --git a/arch/sparc64/kernel/sys_sparc.c b/arch/sparc/kernel/sys_sparc_64.c
+similarity index 100%
+rename from arch/sparc64/kernel/sys_sparc.c
+rename to arch/sparc/kernel/sys_sparc_64.c
+diff --git a/arch/sparc64/kernel/syscalls.S b/arch/sparc/kernel/syscalls.S
+similarity index 100%
+rename from arch/sparc64/kernel/syscalls.S
+rename to arch/sparc/kernel/syscalls.S
+diff --git a/arch/sparc64/kernel/sysfs.c b/arch/sparc/kernel/sysfs.c
+similarity index 100%
+rename from arch/sparc64/kernel/sysfs.c
+rename to arch/sparc/kernel/sysfs.c
+diff --git a/arch/sparc64/kernel/systbls.h b/arch/sparc/kernel/systbls.h
+similarity index 100%
+rename from arch/sparc64/kernel/systbls.h
+rename to arch/sparc/kernel/systbls.h
+diff --git a/arch/sparc64/kernel/systbls.S b/arch/sparc/kernel/systbls_64.S
+similarity index 100%
+rename from arch/sparc64/kernel/systbls.S
+rename to arch/sparc/kernel/systbls_64.S
+diff --git a/arch/sparc64/kernel/time.c b/arch/sparc/kernel/time_64.c
+similarity index 100%
+rename from arch/sparc64/kernel/time.c
+rename to arch/sparc/kernel/time_64.c
+diff --git a/arch/sparc64/kernel/trampoline.S b/arch/sparc/kernel/trampoline_64.S
+similarity index 100%
+rename from arch/sparc64/kernel/trampoline.S
+rename to arch/sparc/kernel/trampoline_64.S
+diff --git a/arch/sparc64/kernel/traps.c b/arch/sparc/kernel/traps_64.c
+similarity index 100%
+rename from arch/sparc64/kernel/traps.c
+rename to arch/sparc/kernel/traps_64.c
+diff --git a/arch/sparc64/kernel/tsb.S b/arch/sparc/kernel/tsb.S
+similarity index 100%
+rename from arch/sparc64/kernel/tsb.S
+rename to arch/sparc/kernel/tsb.S
+diff --git a/arch/sparc64/kernel/ttable.S b/arch/sparc/kernel/ttable.S
+similarity index 100%
+rename from arch/sparc64/kernel/ttable.S
+rename to arch/sparc/kernel/ttable.S
+diff --git a/arch/sparc64/kernel/una_asm.S b/arch/sparc/kernel/una_asm_64.S
+similarity index 100%
+rename from arch/sparc64/kernel/una_asm.S
+rename to arch/sparc/kernel/una_asm_64.S
+diff --git a/arch/sparc64/kernel/unaligned.c b/arch/sparc/kernel/unaligned_64.c
+similarity index 100%
+rename from arch/sparc64/kernel/unaligned.c
+rename to arch/sparc/kernel/unaligned_64.c
+diff --git a/arch/sparc64/kernel/us2e_cpufreq.c b/arch/sparc/kernel/us2e_cpufreq.c
+similarity index 100%
+rename from arch/sparc64/kernel/us2e_cpufreq.c
+rename to arch/sparc/kernel/us2e_cpufreq.c
+diff --git a/arch/sparc64/kernel/us3_cpufreq.c b/arch/sparc/kernel/us3_cpufreq.c
+similarity index 100%
+rename from arch/sparc64/kernel/us3_cpufreq.c
+rename to arch/sparc/kernel/us3_cpufreq.c
+diff --git a/arch/sparc64/kernel/utrap.S b/arch/sparc/kernel/utrap.S
+similarity index 100%
+rename from arch/sparc64/kernel/utrap.S
+rename to arch/sparc/kernel/utrap.S
+diff --git a/arch/sparc64/kernel/vio.c b/arch/sparc/kernel/vio.c
+similarity index 100%
+rename from arch/sparc64/kernel/vio.c
+rename to arch/sparc/kernel/vio.c
+diff --git a/arch/sparc64/kernel/viohs.c b/arch/sparc/kernel/viohs.c
+similarity index 100%
+rename from arch/sparc64/kernel/viohs.c
+rename to arch/sparc/kernel/viohs.c
+diff --git a/arch/sparc64/kernel/visemul.c b/arch/sparc/kernel/visemul.c
+similarity index 100%
+rename from arch/sparc64/kernel/visemul.c
+rename to arch/sparc/kernel/visemul.c
+diff --git a/arch/sparc/kernel/vmlinux.lds.S b/arch/sparc/kernel/vmlinux.lds.S
+dissimilarity index 99%
+index b1002c6..ef6cfe8 100644
+--- a/arch/sparc/kernel/vmlinux.lds.S
++++ b/arch/sparc/kernel/vmlinux.lds.S
+@@ -1,116 +1,5 @@
+-/* ld script to make SparcLinux kernel */
 -
--/* TODO:
-- * fpsave() saves the FP queue but fpload() doesn't reload it.
-- * Therefore when we context switch or change FPU ownership
-- * we have to check to see if the queue had anything in it and
-- * emulate it if it did. This is going to be a pain.
-- */
+-#include <asm-generic/vmlinux.lds.h>
+-#include <asm/page.h>
 -
--#include <linux/types.h>
--#include <linux/sched.h>
--#include <linux/mm.h>
--#include <asm/uaccess.h>
--
--#include "sfp-util.h"
--#include <math-emu/soft-fp.h>
--#include <math-emu/single.h>
--#include <math-emu/double.h>
--#include <math-emu/quad.h>
--
--#define FLOATFUNC(x) extern int x(void *,void *,void *)
--
--/* The Vn labels indicate what version of the SPARC architecture gas thinks
-- * each insn is. This is from the binutils source :->
-- */
--/* quadword instructions */
--#define FSQRTQ	0x02b		/* v8 */
--#define FADDQ	0x043		/* v8 */
--#define FSUBQ	0x047		/* v8 */
--#define FMULQ	0x04b		/* v8 */
--#define FDIVQ	0x04f		/* v8 */
--#define FDMULQ	0x06e		/* v8 */
--#define FQTOS	0x0c7		/* v8 */
--#define FQTOD	0x0cb		/* v8 */
--#define FITOQ	0x0cc		/* v8 */
--#define FSTOQ	0x0cd		/* v8 */
--#define FDTOQ	0x0ce		/* v8 */
--#define FQTOI	0x0d3		/* v8 */
--#define FCMPQ	0x053		/* v8 */
--#define FCMPEQ	0x057		/* v8 */
--/* single/double instructions (subnormal): should all work */
--#define FSQRTS	0x029		/* v7 */
--#define FSQRTD	0x02a		/* v7 */
--#define FADDS	0x041		/* v6 */
--#define FADDD	0x042		/* v6 */
--#define FSUBS	0x045		/* v6 */
--#define FSUBD	0x046		/* v6 */
--#define FMULS	0x049		/* v6 */
--#define FMULD	0x04a		/* v6 */
--#define FDIVS	0x04d		/* v6 */
--#define FDIVD	0x04e		/* v6 */
--#define FSMULD	0x069		/* v6 */
--#define FDTOS	0x0c6		/* v6 */
--#define FSTOD	0x0c9		/* v6 */
--#define FSTOI	0x0d1		/* v6 */
--#define FDTOI	0x0d2		/* v6 */
--#define FABSS	0x009		/* v6 */
--#define FCMPS	0x051		/* v6 */
--#define FCMPES	0x055		/* v6 */
--#define FCMPD	0x052		/* v6 */
--#define FCMPED	0x056		/* v6 */
--#define FMOVS	0x001		/* v6 */
--#define FNEGS	0x005		/* v6 */
--#define FITOS	0x0c4		/* v6 */
--#define FITOD	0x0c8		/* v6 */
--
--#define FSR_TEM_SHIFT	23UL
--#define FSR_TEM_MASK	(0x1fUL << FSR_TEM_SHIFT)
--#define FSR_AEXC_SHIFT	5UL
--#define FSR_AEXC_MASK	(0x1fUL << FSR_AEXC_SHIFT)
--#define FSR_CEXC_SHIFT	0UL
--#define FSR_CEXC_MASK	(0x1fUL << FSR_CEXC_SHIFT)
--
--static int do_one_mathemu(u32 insn, unsigned long *fsr, unsigned long *fregs);
--
--/* Unlike the Sparc64 version (which has a struct fpustate), we
-- * pass the taskstruct corresponding to the task which currently owns the
-- * FPU. This is partly because we don't have the fpustate struct and
-- * partly because the task owning the FPU isn't always current (as is
-- * the case for the Sparc64 port). This is probably SMP-related...
-- * This function returns 1 if all queued insns were emulated successfully.
-- * The test for unimplemented FPop in kernel mode has been moved into
-- * kernel/traps.c for simplicity.
-- */
--int do_mathemu(struct pt_regs *regs, struct task_struct *fpt)
+-OUTPUT_FORMAT("elf32-sparc", "elf32-sparc", "elf32-sparc")
+-OUTPUT_ARCH(sparc)
+-ENTRY(_start)
+-jiffies = jiffies_64 + 4;
+-SECTIONS
 -{
--	/* regs->pc isn't necessarily the PC at which the offending insn is sitting.
--	 * The FPU maintains a queue of FPops which cause traps.
--	 * When it hits an instruction that requires that the trapped op succeeded
--	 * (usually because it reads a reg. that the trapped op wrote) then it
--	 * causes this exception. We need to emulate all the insns on the queue
--	 * and then allow the op to proceed.
--	 * This code should also handle the case where the trap was precise,
--	 * in which case the queue length is zero and regs->pc points at the
--	 * single FPop to be emulated. (this case is untested, though :->)
--	 * You'll need this case if you want to be able to emulate all FPops
--	 * because the FPU either doesn't exist or has been software-disabled.
--	 * [The UltraSPARC makes FP a precise trap; this isn't as stupid as it
--	 * might sound because the Ultra does funky things with a superscalar
--	 * architecture.]
--	 */
+-	. = 0x10000 + SIZEOF_HEADERS;
+-	.text 0xf0004000 :
+-	{
+-		_text = .;
+-		TEXT_TEXT
+-		SCHED_TEXT
+-		LOCK_TEXT
+-		*(.gnu.warning)
+-	} = 0
+-	_etext = .;
+-	PROVIDE (etext = .);
+-	RODATA
+-	.data :	{
+-		DATA_DATA
+-		CONSTRUCTORS
+-	}
+-	.data1 : {
+-		*(.data1)
+-	}
+-	_edata = .;
+-	PROVIDE (edata = .);
 -
--	/* You wouldn't believe how often I typed 'ftp' when I meant 'fpt' :-> */
--
--	int i;
--	int retcode = 0;                               /* assume all succeed */
--	unsigned long insn;
--
--#ifdef DEBUG_MATHEMU
--	printk("In do_mathemu()... pc is %08lx\n", regs->pc);
--	printk("fpqdepth is %ld\n", fpt->thread.fpqdepth);
--	for (i = 0; i < fpt->thread.fpqdepth; i++)
--		printk("%d: %08lx at %08lx\n", i, fpt->thread.fpqueue[i].insn,
--		       (unsigned long)fpt->thread.fpqueue[i].insn_addr);
--#endif
--
--	if (fpt->thread.fpqdepth = 0) {                   /* no queue, guilty insn is at regs->pc */
--#ifdef DEBUG_MATHEMU
--		printk("precise trap at %08lx\n", regs->pc);
--#endif
--		if (!get_user(insn, (u32 __user *) regs->pc)) {
--			retcode = do_one_mathemu(insn, &fpt->thread.fsr, fpt->thread.float_regs);
--			if (retcode) {
--				/* in this case we need to fix up PC & nPC */
--				regs->pc = regs->npc;
--				regs->npc += 4;
--			}
--		}
--		return retcode;
+-	.fixup : {
+-		__start___fixup = .;
+-		*(.fixup)
+-		__stop___fixup = .;
+-	}
+-	__ex_table : {
+-		__start___ex_table = .;
+-		*(__ex_table)
+-		__stop___ex_table = .;
 -	}
 -
--	/* Normal case: need to empty the queue... */
--	for (i = 0; i < fpt->thread.fpqdepth; i++) {
--		retcode = do_one_mathemu(fpt->thread.fpqueue[i].insn, &(fpt->thread.fsr), fpt->thread.float_regs);
--		if (!retcode)                               /* insn failed, no point doing any more */
--			break;
--	}
--	/* Now empty the queue and clear the queue_not_empty flag */
--	if (retcode)
--		fpt->thread.fsr &= ~(0x3000 | FSR_CEXC_MASK);
--	else
--		fpt->thread.fsr &= ~0x3000;
--	fpt->thread.fpqdepth = 0;
+-	NOTES
 -
--	return retcode;
+-	. = ALIGN(PAGE_SIZE);
+-	__init_begin = .;
+-	.init.text : {
+-		_sinittext = .;
+-		INIT_TEXT
+-		_einittext = .;
+-	}
+-	__init_text_end = .;
+-	.init.data : {
+-		INIT_DATA
+-	}
+-	. = ALIGN(16);
+-	.init.setup : {
+-		__setup_start = .;
+-		*(.init.setup)
+-		__setup_end = .;
+-	}
+-	.initcall.init : {
+-		__initcall_start = .;
+-		INITCALLS
+-	__initcall_end = .;
+-	}
+-	.con_initcall.init : {
+-		__con_initcall_start = .;
+-		*(.con_initcall.init)
+-		__con_initcall_end = .;
+-	}
+-	SECURITY_INIT
+-
+-#ifdef CONFIG_BLK_DEV_INITRD
+-	. = ALIGN(PAGE_SIZE);
+-	.init.ramfs : {
+-	__initramfs_start = .;
+-		*(.init.ramfs)
+-	__initramfs_end = .;
+-	}
+-#endif
+-
+-	PERCPU(PAGE_SIZE)
+-	. = ALIGN(PAGE_SIZE);
+-	__init_end = .;
+-	. = ALIGN(32);
+-	.data.cacheline_aligned : {
+-		*(.data.cacheline_aligned)
+-	}
+-	. = ALIGN(32);
+-	.data.read_mostly : {
+-		*(.data.read_mostly)
+-	}
+-
+-	__bss_start = .;
+-	.sbss : {
+-		*(.sbss)
+-		*(.scommon) }
+-	.bss : {
+-		*(.dynbss)
+-		*(.bss)
+-		*(COMMON)
+-	}
+-	_end = . ;
+-	PROVIDE (end = .);
+-	/DISCARD/ : {
+-		EXIT_TEXT
+-		EXIT_DATA
+-		*(.exitcall.exit)
+-	}
+-
+-	STABS_DEBUG
+-	DWARF_DEBUG
 -}
--
--/* All routines returning an exception to raise should detect
-- * such exceptions _before_ rounding to be consistent with
-- * the behavior of the hardware in the implemented cases
-- * (and thus with the recommendations in the V9 architecture
-- * manual).
-- *
-- * We return 0 if a SIGFPE should be sent, 1 otherwise.
-- */
--static inline int record_exception(unsigned long *pfsr, int eflag)
--{
--	unsigned long fsr = *pfsr;
--	int would_trap;
--
--	/* Determine if this exception would have generated a trap. */
--	would_trap = (fsr & ((long)eflag << FSR_TEM_SHIFT)) != 0UL;
--
--	/* If trapping, we only want to signal one bit. */
--	if (would_trap != 0) {
--		eflag &= ((fsr & FSR_TEM_MASK) >> FSR_TEM_SHIFT);
--		if ((eflag & (eflag - 1)) != 0) {
--			if (eflag & FP_EX_INVALID)
--				eflag = FP_EX_INVALID;
--			else if (eflag & FP_EX_OVERFLOW)
--				eflag = FP_EX_OVERFLOW;
--			else if (eflag & FP_EX_UNDERFLOW)
--				eflag = FP_EX_UNDERFLOW;
--			else if (eflag & FP_EX_DIVZERO)
--				eflag = FP_EX_DIVZERO;
--			else if (eflag & FP_EX_INEXACT)
--				eflag = FP_EX_INEXACT;
--		}
--	}
--
--	/* Set CEXC, here is the rule:
--	 *
--	 *    In general all FPU ops will set one and only one
--	 *    bit in the CEXC field, this is always the case
--	 *    when the IEEE exception trap is enabled in TEM.
--	 */
--	fsr &= ~(FSR_CEXC_MASK);
--	fsr |= ((long)eflag << FSR_CEXC_SHIFT);
--
--	/* Set the AEXC field, rule is:
--	 *
--	 *    If a trap would not be generated, the
--	 *    CEXC just generated is OR'd into the
--	 *    existing value of AEXC.
--	 */
--	if (would_trap = 0)
--		fsr |= ((long)eflag << FSR_AEXC_SHIFT);
--
--	/* If trapping, indicate fault trap type IEEE. */
--	if (would_trap != 0)
--		fsr |= (1UL << 14);
--
--	*pfsr = fsr;
--
--	return (would_trap ? 0 : 1);
--}
--
--typedef union {
--	u32 s;
--	u64 d;
--	u64 q[2];
--} *argp;
--
--static int do_one_mathemu(u32 insn, unsigned long *pfsr, unsigned long *fregs)
--{
--	/* Emulate the given insn, updating fsr and fregs appropriately. */
--	int type = 0;
--	/* r is rd, b is rs2 and a is rs1. The *u arg tells
--	   whether the argument should be packed/unpacked (0 - do not unpack/pack, 1 - unpack/pack)
--	   non-u args tells the size of the argument (0 - no argument, 1 - single, 2 - double, 3 - quad */
--#define TYPE(dummy, r, ru, b, bu, a, au) type = (au << 2) | (a << 0) | (bu << 5) | (b << 3) | (ru << 8) | (r << 6)
--	int freg;
--	argp rs1 = NULL, rs2 = NULL, rd = NULL;
--	FP_DECL_EX;
--	FP_DECL_S(SA); FP_DECL_S(SB); FP_DECL_S(SR);
--	FP_DECL_D(DA); FP_DECL_D(DB); FP_DECL_D(DR);
--	FP_DECL_Q(QA); FP_DECL_Q(QB); FP_DECL_Q(QR);
--	int IR;
--	long fsr;
--
--#ifdef DEBUG_MATHEMU
--	printk("In do_mathemu(), emulating %08lx\n", insn);
--#endif
--
--	if ((insn & 0xc1f80000) = 0x81a00000)	/* FPOP1 */ {
--		switch ((insn >> 5) & 0x1ff) {
--		case FSQRTQ: TYPE(3,3,1,3,1,0,0); break;
--		case FADDQ:
--		case FSUBQ:
--		case FMULQ:
--		case FDIVQ: TYPE(3,3,1,3,1,3,1); break;
--		case FDMULQ: TYPE(3,3,1,2,1,2,1); break;
--		case FQTOS: TYPE(3,1,1,3,1,0,0); break;
--		case FQTOD: TYPE(3,2,1,3,1,0,0); break;
--		case FITOQ: TYPE(3,3,1,1,0,0,0); break;
--		case FSTOQ: TYPE(3,3,1,1,1,0,0); break;
--		case FDTOQ: TYPE(3,3,1,2,1,0,0); break;
--		case FQTOI: TYPE(3,1,0,3,1,0,0); break;
--		case FSQRTS: TYPE(2,1,1,1,1,0,0); break;
--		case FSQRTD: TYPE(2,2,1,2,1,0,0); break;
--		case FADDD:
--		case FSUBD:
--		case FMULD:
--		case FDIVD: TYPE(2,2,1,2,1,2,1); break;
--		case FADDS:
--		case FSUBS:
--		case FMULS:
--		case FDIVS: TYPE(2,1,1,1,1,1,1); break;
--		case FSMULD: TYPE(2,2,1,1,1,1,1); break;
--		case FDTOS: TYPE(2,1,1,2,1,0,0); break;
--		case FSTOD: TYPE(2,2,1,1,1,0,0); break;
--		case FSTOI: TYPE(2,1,0,1,1,0,0); break;
--		case FDTOI: TYPE(2,1,0,2,1,0,0); break;
--		case FITOS: TYPE(2,1,1,1,0,0,0); break;
--		case FITOD: TYPE(2,2,1,1,0,0,0); break;
--		case FMOVS:
--		case FABSS:
--		case FNEGS: TYPE(2,1,0,1,0,0,0); break;
--		}
--	} else if ((insn & 0xc1f80000) = 0x81a80000)	/* FPOP2 */ {
--		switch ((insn >> 5) & 0x1ff) {
--		case FCMPS: TYPE(3,0,0,1,1,1,1); break;
--		case FCMPES: TYPE(3,0,0,1,1,1,1); break;
--		case FCMPD: TYPE(3,0,0,2,1,2,1); break;
--		case FCMPED: TYPE(3,0,0,2,1,2,1); break;
--		case FCMPQ: TYPE(3,0,0,3,1,3,1); break;
--		case FCMPEQ: TYPE(3,0,0,3,1,3,1); break;
--		}
--	}
--
--	if (!type) {	/* oops, didn't recognise that FPop */
--#ifdef DEBUG_MATHEMU
--		printk("attempt to emulate unrecognised FPop!\n");
--#endif
--		return 0;
--	}
--
--	/* Decode the registers to be used */
--	freg = (*pfsr >> 14) & 0xf;
--
--	*pfsr &= ~0x1c000;				/* clear the traptype bits */
--	
--	freg = ((insn >> 14) & 0x1f);
--	switch (type & 0x3) {				/* is rs1 single, double or quad? */
--	case 3:
--		if (freg & 3) {				/* quadwords must have bits 4&5 of the */
--							/* encoded reg. number set to zero. */
--			*pfsr |= (6 << 14);
--			return 0;			/* simulate invalid_fp_register exception */
--		}
--	/* fall through */
--	case 2:
--		if (freg & 1) {				/* doublewords must have bit 5 zeroed */
--			*pfsr |= (6 << 14);
--			return 0;
--		}
--	}
--	rs1 = (argp)&fregs[freg];
--	switch (type & 0x7) {
--	case 7: FP_UNPACK_QP (QA, rs1); break;
--	case 6: FP_UNPACK_DP (DA, rs1); break;
--	case 5: FP_UNPACK_SP (SA, rs1); break;
--	}
--	freg = (insn & 0x1f);
--	switch ((type >> 3) & 0x3) {			/* same again for rs2 */
--	case 3:
--		if (freg & 3) {				/* quadwords must have bits 4&5 of the */
--							/* encoded reg. number set to zero. */
--			*pfsr |= (6 << 14);
--			return 0;			/* simulate invalid_fp_register exception */
--		}
--	/* fall through */
--	case 2:
--		if (freg & 1) {				/* doublewords must have bit 5 zeroed */
--			*pfsr |= (6 << 14);
--			return 0;
--		}
--	}
--	rs2 = (argp)&fregs[freg];
--	switch ((type >> 3) & 0x7) {
--	case 7: FP_UNPACK_QP (QB, rs2); break;
--	case 6: FP_UNPACK_DP (DB, rs2); break;
--	case 5: FP_UNPACK_SP (SB, rs2); break;
--	}
--	freg = ((insn >> 25) & 0x1f);
--	switch ((type >> 6) & 0x3) {			/* and finally rd. This one's a bit different */
--	case 0:						/* dest is fcc. (this must be FCMPQ or FCMPEQ) */
--		if (freg) {				/* V8 has only one set of condition codes, so */
--							/* anything but 0 in the rd field is an error */
--			*pfsr |= (6 << 14);		/* (should probably flag as invalid opcode */
--			return 0;			/* but SIGFPE will do :-> ) */
--		}
--		break;
--	case 3:
--		if (freg & 3) {				/* quadwords must have bits 4&5 of the */
--							/* encoded reg. number set to zero. */
--			*pfsr |= (6 << 14);
--			return 0;			/* simulate invalid_fp_register exception */
--		}
--	/* fall through */
--	case 2:
--		if (freg & 1) {				/* doublewords must have bit 5 zeroed */
--			*pfsr |= (6 << 14);
--			return 0;
--		}
--	/* fall through */
--	case 1:
--		rd = (void *)&fregs[freg];
--		break;
--	}
--#ifdef DEBUG_MATHEMU
--	printk("executing insn...\n");
--#endif
--	/* do the Right Thing */
--	switch ((insn >> 5) & 0x1ff) {
--	/* + */
--	case FADDS: FP_ADD_S (SR, SA, SB); break;
--	case FADDD: FP_ADD_D (DR, DA, DB); break;
--	case FADDQ: FP_ADD_Q (QR, QA, QB); break;
--	/* - */
--	case FSUBS: FP_SUB_S (SR, SA, SB); break;
--	case FSUBD: FP_SUB_D (DR, DA, DB); break;
--	case FSUBQ: FP_SUB_Q (QR, QA, QB); break;
--	/* * */
--	case FMULS: FP_MUL_S (SR, SA, SB); break;
--	case FSMULD: FP_CONV (D, S, 2, 1, DA, SA);
--		     FP_CONV (D, S, 2, 1, DB, SB);
--	case FMULD: FP_MUL_D (DR, DA, DB); break;
--	case FDMULQ: FP_CONV (Q, D, 4, 2, QA, DA);
--		     FP_CONV (Q, D, 4, 2, QB, DB);
--	case FMULQ: FP_MUL_Q (QR, QA, QB); break;
--	/* / */
--	case FDIVS: FP_DIV_S (SR, SA, SB); break;
--	case FDIVD: FP_DIV_D (DR, DA, DB); break;
--	case FDIVQ: FP_DIV_Q (QR, QA, QB); break;
--	/* sqrt */
--	case FSQRTS: FP_SQRT_S (SR, SB); break;
--	case FSQRTD: FP_SQRT_D (DR, DB); break;
--	case FSQRTQ: FP_SQRT_Q (QR, QB); break;
--	/* mov */
--	case FMOVS: rd->s = rs2->s; break;
--	case FABSS: rd->s = rs2->s & 0x7fffffff; break;
--	case FNEGS: rd->s = rs2->s ^ 0x80000000; break;
--	/* float to int */
--	case FSTOI: FP_TO_INT_S (IR, SB, 32, 1); break;
--	case FDTOI: FP_TO_INT_D (IR, DB, 32, 1); break;
--	case FQTOI: FP_TO_INT_Q (IR, QB, 32, 1); break;
--	/* int to float */
--	case FITOS: IR = rs2->s; FP_FROM_INT_S (SR, IR, 32, int); break;
--	case FITOD: IR = rs2->s; FP_FROM_INT_D (DR, IR, 32, int); break;
--	case FITOQ: IR = rs2->s; FP_FROM_INT_Q (QR, IR, 32, int); break;
--	/* float to float */
--	case FSTOD: FP_CONV (D, S, 2, 1, DR, SB); break;
--	case FSTOQ: FP_CONV (Q, S, 4, 1, QR, SB); break;
--	case FDTOQ: FP_CONV (Q, D, 4, 2, QR, DB); break;
--	case FDTOS: FP_CONV (S, D, 1, 2, SR, DB); break;
--	case FQTOS: FP_CONV (S, Q, 1, 4, SR, QB); break;
--	case FQTOD: FP_CONV (D, Q, 2, 4, DR, QB); break;
--	/* comparison */
--	case FCMPS:
--	case FCMPES:
--		FP_CMP_S(IR, SB, SA, 3);
--		if (IR = 3 &&
--		    (((insn >> 5) & 0x1ff) = FCMPES ||
--		     FP_ISSIGNAN_S(SA) ||
--		     FP_ISSIGNAN_S(SB)))
--			FP_SET_EXCEPTION (FP_EX_INVALID);
--		break;
--	case FCMPD:
--	case FCMPED:
--		FP_CMP_D(IR, DB, DA, 3);
--		if (IR = 3 &&
--		    (((insn >> 5) & 0x1ff) = FCMPED ||
--		     FP_ISSIGNAN_D(DA) ||
--		     FP_ISSIGNAN_D(DB)))
--			FP_SET_EXCEPTION (FP_EX_INVALID);
--		break;
--	case FCMPQ:
--	case FCMPEQ:
--		FP_CMP_Q(IR, QB, QA, 3);
--		if (IR = 3 &&
--		    (((insn >> 5) & 0x1ff) = FCMPEQ ||
--		     FP_ISSIGNAN_Q(QA) ||
--		     FP_ISSIGNAN_Q(QB)))
--			FP_SET_EXCEPTION (FP_EX_INVALID);
--	}
--	if (!FP_INHIBIT_RESULTS) {
--		switch ((type >> 6) & 0x7) {
--		case 0: fsr = *pfsr;
--			if (IR = -1) IR = 2;
--			/* fcc is always fcc0 */
--			fsr &= ~0xc00; fsr |= (IR << 10); break;
--			*pfsr = fsr;
--			break;
--		case 1: rd->s = IR; break;
--		case 5: FP_PACK_SP (rd, SR); break;
--		case 6: FP_PACK_DP (rd, DR); break;
--		case 7: FP_PACK_QP (rd, QR); break;
--		}
--	}
--	if (_fex = 0)
--		return 1;				/* success! */
--	return record_exception(pfsr, _fex);
--}
-diff --git a/arch/sparc/math-emu/math_32.c b/arch/sparc/math-emu/math_32.c
-new file mode 100644
-index 0000000..e13f65d
---- /dev/null
-+++ b/arch/sparc/math-emu/math_32.c
-@@ -0,0 +1,511 @@
-+/*
-+ * arch/sparc/math-emu/math.c
-+ *
-+ * Copyright (C) 1998 Peter Maydell (pmaydell@chiark.greenend.org.uk)
-+ * Copyright (C) 1997, 1999 Jakub Jelinek (jj@ultra.linux.cz)
-+ * Copyright (C) 1999 David S. Miller (davem@redhat.com)
-+ *
-+ * This is a good place to start if you're trying to understand the
-+ * emulation code, because it's pretty simple. What we do is
-+ * essentially analyse the instruction to work out what the operation
-+ * is and which registers are involved. We then execute the appropriate
-+ * FXXXX function. [The floating point queue introduces a minor wrinkle;
-+ * see below...]
-+ * The fxxxxx.c files each emulate a single insn. They look relatively
-+ * simple because the complexity is hidden away in an unholy tangle
-+ * of preprocessor macros.
-+ *
-+ * The first layer of macros is single.h, double.h, quad.h. Generally
-+ * these files define macros for working with floating point numbers
-+ * of the three IEEE formats. FP_ADD_D(R,A,B) is for adding doubles,
-+ * for instance. These macros are usually defined as calls to more
-+ * generic macros (in this case _FP_ADD(D,2,R,X,Y) where the number
-+ * of machine words required to store the given IEEE format is passed
-+ * as a parameter. [double.h and co check the number of bits in a word
-+ * and define FP_ADD_D & co appropriately].
-+ * The generic macros are defined in op-common.h. This is where all
-+ * the grotty stuff like handling NaNs is coded. To handle the possible
-+ * word sizes macros in op-common.h use macros like _FP_FRAC_SLL_##wc()
-+ * where wc is the 'number of machine words' parameter (here 2).
-+ * These are defined in the third layer of macros: op-1.h, op-2.h
-+ * and op-4.h. These handle operations on floating point numbers composed
-+ * of 1,2 and 4 machine words respectively. [For example, on sparc64
-+ * doubles are one machine word so macros in double.h eventually use
-+ * constructs in op-1.h, but on sparc32 they use op-2.h definitions.]
-+ * soft-fp.h is on the same level as op-common.h, and defines some
-+ * macros which are independent of both word size and FP format.
-+ * Finally, sfp-machine.h is the machine dependent part of the
-+ * code: it defines the word size and what type a word is. It also
-+ * defines how _FP_MUL_MEAT_t() maps to _FP_MUL_MEAT_n_* : op-n.h
-+ * provide several possible flavours of multiply algorithm, most
-+ * of which require that you supply some form of asm or C primitive to
-+ * do the actual multiply. (such asm primitives should be defined
-+ * in sfp-machine.h too). udivmodti4.c is the same sort of thing.
-+ *
-+ * There may be some errors here because I'm working from a
-+ * SPARC architecture manual V9, and what I really want is V8...
-+ * Also, the insns which can generate exceptions seem to be a
-+ * greater subset of the FPops than for V9 (for example, FCMPED
-+ * has to be emulated on V8). So I think I'm going to have
-+ * to emulate them all just to be on the safe side...
-+ *
-+ * Emulation routines originate from soft-fp package, which is
-+ * part of glibc and has appropriate copyrights in it (allegedly).
-+ *
-+ * NB: on sparc int = long = 4 bytes, long long = 8 bytes.
-+ * Most bits of the kernel seem to go for long rather than int,
-+ * so we follow that practice...
-+ */
-+
-+/* TODO:
-+ * fpsave() saves the FP queue but fpload() doesn't reload it.
-+ * Therefore when we context switch or change FPU ownership
-+ * we have to check to see if the queue had anything in it and
-+ * emulate it if it did. This is going to be a pain.
-+ */
-+
-+#include <linux/types.h>
-+#include <linux/sched.h>
-+#include <linux/mm.h>
-+#include <asm/uaccess.h>
-+
-+#include "sfp-util_32.h"
-+#include <math-emu/soft-fp.h>
-+#include <math-emu/single.h>
-+#include <math-emu/double.h>
-+#include <math-emu/quad.h>
-+
-+#define FLOATFUNC(x) extern int x(void *,void *,void *)
-+
-+/* The Vn labels indicate what version of the SPARC architecture gas thinks
-+ * each insn is. This is from the binutils source :->
-+ */
-+/* quadword instructions */
-+#define FSQRTQ	0x02b		/* v8 */
-+#define FADDQ	0x043		/* v8 */
-+#define FSUBQ	0x047		/* v8 */
-+#define FMULQ	0x04b		/* v8 */
-+#define FDIVQ	0x04f		/* v8 */
-+#define FDMULQ	0x06e		/* v8 */
-+#define FQTOS	0x0c7		/* v8 */
-+#define FQTOD	0x0cb		/* v8 */
-+#define FITOQ	0x0cc		/* v8 */
-+#define FSTOQ	0x0cd		/* v8 */
-+#define FDTOQ	0x0ce		/* v8 */
-+#define FQTOI	0x0d3		/* v8 */
-+#define FCMPQ	0x053		/* v8 */
-+#define FCMPEQ	0x057		/* v8 */
-+/* single/double instructions (subnormal): should all work */
-+#define FSQRTS	0x029		/* v7 */
-+#define FSQRTD	0x02a		/* v7 */
-+#define FADDS	0x041		/* v6 */
-+#define FADDD	0x042		/* v6 */
-+#define FSUBS	0x045		/* v6 */
-+#define FSUBD	0x046		/* v6 */
-+#define FMULS	0x049		/* v6 */
-+#define FMULD	0x04a		/* v6 */
-+#define FDIVS	0x04d		/* v6 */
-+#define FDIVD	0x04e		/* v6 */
-+#define FSMULD	0x069		/* v6 */
-+#define FDTOS	0x0c6		/* v6 */
-+#define FSTOD	0x0c9		/* v6 */
-+#define FSTOI	0x0d1		/* v6 */
-+#define FDTOI	0x0d2		/* v6 */
-+#define FABSS	0x009		/* v6 */
-+#define FCMPS	0x051		/* v6 */
-+#define FCMPES	0x055		/* v6 */
-+#define FCMPD	0x052		/* v6 */
-+#define FCMPED	0x056		/* v6 */
-+#define FMOVS	0x001		/* v6 */
-+#define FNEGS	0x005		/* v6 */
-+#define FITOS	0x0c4		/* v6 */
-+#define FITOD	0x0c8		/* v6 */
-+
-+#define FSR_TEM_SHIFT	23UL
-+#define FSR_TEM_MASK	(0x1fUL << FSR_TEM_SHIFT)
-+#define FSR_AEXC_SHIFT	5UL
-+#define FSR_AEXC_MASK	(0x1fUL << FSR_AEXC_SHIFT)
-+#define FSR_CEXC_SHIFT	0UL
-+#define FSR_CEXC_MASK	(0x1fUL << FSR_CEXC_SHIFT)
-+
-+static int do_one_mathemu(u32 insn, unsigned long *fsr, unsigned long *fregs);
-+
-+/* Unlike the Sparc64 version (which has a struct fpustate), we
-+ * pass the taskstruct corresponding to the task which currently owns the
-+ * FPU. This is partly because we don't have the fpustate struct and
-+ * partly because the task owning the FPU isn't always current (as is
-+ * the case for the Sparc64 port). This is probably SMP-related...
-+ * This function returns 1 if all queued insns were emulated successfully.
-+ * The test for unimplemented FPop in kernel mode has been moved into
-+ * kernel/traps.c for simplicity.
-+ */
-+int do_mathemu(struct pt_regs *regs, struct task_struct *fpt)
-+{
-+	/* regs->pc isn't necessarily the PC at which the offending insn is sitting.
-+	 * The FPU maintains a queue of FPops which cause traps.
-+	 * When it hits an instruction that requires that the trapped op succeeded
-+	 * (usually because it reads a reg. that the trapped op wrote) then it
-+	 * causes this exception. We need to emulate all the insns on the queue
-+	 * and then allow the op to proceed.
-+	 * This code should also handle the case where the trap was precise,
-+	 * in which case the queue length is zero and regs->pc points at the
-+	 * single FPop to be emulated. (this case is untested, though :->)
-+	 * You'll need this case if you want to be able to emulate all FPops
-+	 * because the FPU either doesn't exist or has been software-disabled.
-+	 * [The UltraSPARC makes FP a precise trap; this isn't as stupid as it
-+	 * might sound because the Ultra does funky things with a superscalar
-+	 * architecture.]
-+	 */
-+
-+	/* You wouldn't believe how often I typed 'ftp' when I meant 'fpt' :-> */
-+
-+	int i;
-+	int retcode = 0;                               /* assume all succeed */
-+	unsigned long insn;
-+
-+#ifdef DEBUG_MATHEMU
-+	printk("In do_mathemu()... pc is %08lx\n", regs->pc);
-+	printk("fpqdepth is %ld\n", fpt->thread.fpqdepth);
-+	for (i = 0; i < fpt->thread.fpqdepth; i++)
-+		printk("%d: %08lx at %08lx\n", i, fpt->thread.fpqueue[i].insn,
-+		       (unsigned long)fpt->thread.fpqueue[i].insn_addr);
-+#endif
-+
-+	if (fpt->thread.fpqdepth = 0) {                   /* no queue, guilty insn is at regs->pc */
-+#ifdef DEBUG_MATHEMU
-+		printk("precise trap at %08lx\n", regs->pc);
-+#endif
-+		if (!get_user(insn, (u32 __user *) regs->pc)) {
-+			retcode = do_one_mathemu(insn, &fpt->thread.fsr, fpt->thread.float_regs);
-+			if (retcode) {
-+				/* in this case we need to fix up PC & nPC */
-+				regs->pc = regs->npc;
-+				regs->npc += 4;
-+			}
-+		}
-+		return retcode;
-+	}
-+
-+	/* Normal case: need to empty the queue... */
-+	for (i = 0; i < fpt->thread.fpqdepth; i++) {
-+		retcode = do_one_mathemu(fpt->thread.fpqueue[i].insn, &(fpt->thread.fsr), fpt->thread.float_regs);
-+		if (!retcode)                               /* insn failed, no point doing any more */
-+			break;
-+	}
-+	/* Now empty the queue and clear the queue_not_empty flag */
-+	if (retcode)
-+		fpt->thread.fsr &= ~(0x3000 | FSR_CEXC_MASK);
-+	else
-+		fpt->thread.fsr &= ~0x3000;
-+	fpt->thread.fpqdepth = 0;
-+
-+	return retcode;
-+}
-+
-+/* All routines returning an exception to raise should detect
-+ * such exceptions _before_ rounding to be consistent with
-+ * the behavior of the hardware in the implemented cases
-+ * (and thus with the recommendations in the V9 architecture
-+ * manual).
-+ *
-+ * We return 0 if a SIGFPE should be sent, 1 otherwise.
-+ */
-+static inline int record_exception(unsigned long *pfsr, int eflag)
-+{
-+	unsigned long fsr = *pfsr;
-+	int would_trap;
-+
-+	/* Determine if this exception would have generated a trap. */
-+	would_trap = (fsr & ((long)eflag << FSR_TEM_SHIFT)) != 0UL;
-+
-+	/* If trapping, we only want to signal one bit. */
-+	if (would_trap != 0) {
-+		eflag &= ((fsr & FSR_TEM_MASK) >> FSR_TEM_SHIFT);
-+		if ((eflag & (eflag - 1)) != 0) {
-+			if (eflag & FP_EX_INVALID)
-+				eflag = FP_EX_INVALID;
-+			else if (eflag & FP_EX_OVERFLOW)
-+				eflag = FP_EX_OVERFLOW;
-+			else if (eflag & FP_EX_UNDERFLOW)
-+				eflag = FP_EX_UNDERFLOW;
-+			else if (eflag & FP_EX_DIVZERO)
-+				eflag = FP_EX_DIVZERO;
-+			else if (eflag & FP_EX_INEXACT)
-+				eflag = FP_EX_INEXACT;
-+		}
-+	}
-+
-+	/* Set CEXC, here is the rule:
-+	 *
-+	 *    In general all FPU ops will set one and only one
-+	 *    bit in the CEXC field, this is always the case
-+	 *    when the IEEE exception trap is enabled in TEM.
-+	 */
-+	fsr &= ~(FSR_CEXC_MASK);
-+	fsr |= ((long)eflag << FSR_CEXC_SHIFT);
-+
-+	/* Set the AEXC field, rule is:
-+	 *
-+	 *    If a trap would not be generated, the
-+	 *    CEXC just generated is OR'd into the
-+	 *    existing value of AEXC.
-+	 */
-+	if (would_trap = 0)
-+		fsr |= ((long)eflag << FSR_AEXC_SHIFT);
-+
-+	/* If trapping, indicate fault trap type IEEE. */
-+	if (would_trap != 0)
-+		fsr |= (1UL << 14);
-+
-+	*pfsr = fsr;
-+
-+	return (would_trap ? 0 : 1);
-+}
-+
-+typedef union {
-+	u32 s;
-+	u64 d;
-+	u64 q[2];
-+} *argp;
-+
-+static int do_one_mathemu(u32 insn, unsigned long *pfsr, unsigned long *fregs)
-+{
-+	/* Emulate the given insn, updating fsr and fregs appropriately. */
-+	int type = 0;
-+	/* r is rd, b is rs2 and a is rs1. The *u arg tells
-+	   whether the argument should be packed/unpacked (0 - do not unpack/pack, 1 - unpack/pack)
-+	   non-u args tells the size of the argument (0 - no argument, 1 - single, 2 - double, 3 - quad */
-+#define TYPE(dummy, r, ru, b, bu, a, au) type = (au << 2) | (a << 0) | (bu << 5) | (b << 3) | (ru << 8) | (r << 6)
-+	int freg;
-+	argp rs1 = NULL, rs2 = NULL, rd = NULL;
-+	FP_DECL_EX;
-+	FP_DECL_S(SA); FP_DECL_S(SB); FP_DECL_S(SR);
-+	FP_DECL_D(DA); FP_DECL_D(DB); FP_DECL_D(DR);
-+	FP_DECL_Q(QA); FP_DECL_Q(QB); FP_DECL_Q(QR);
-+	int IR;
-+	long fsr;
-+
-+#ifdef DEBUG_MATHEMU
-+	printk("In do_mathemu(), emulating %08lx\n", insn);
-+#endif
-+
-+	if ((insn & 0xc1f80000) = 0x81a00000)	/* FPOP1 */ {
-+		switch ((insn >> 5) & 0x1ff) {
-+		case FSQRTQ: TYPE(3,3,1,3,1,0,0); break;
-+		case FADDQ:
-+		case FSUBQ:
-+		case FMULQ:
-+		case FDIVQ: TYPE(3,3,1,3,1,3,1); break;
-+		case FDMULQ: TYPE(3,3,1,2,1,2,1); break;
-+		case FQTOS: TYPE(3,1,1,3,1,0,0); break;
-+		case FQTOD: TYPE(3,2,1,3,1,0,0); break;
-+		case FITOQ: TYPE(3,3,1,1,0,0,0); break;
-+		case FSTOQ: TYPE(3,3,1,1,1,0,0); break;
-+		case FDTOQ: TYPE(3,3,1,2,1,0,0); break;
-+		case FQTOI: TYPE(3,1,0,3,1,0,0); break;
-+		case FSQRTS: TYPE(2,1,1,1,1,0,0); break;
-+		case FSQRTD: TYPE(2,2,1,2,1,0,0); break;
-+		case FADDD:
-+		case FSUBD:
-+		case FMULD:
-+		case FDIVD: TYPE(2,2,1,2,1,2,1); break;
-+		case FADDS:
-+		case FSUBS:
-+		case FMULS:
-+		case FDIVS: TYPE(2,1,1,1,1,1,1); break;
-+		case FSMULD: TYPE(2,2,1,1,1,1,1); break;
-+		case FDTOS: TYPE(2,1,1,2,1,0,0); break;
-+		case FSTOD: TYPE(2,2,1,1,1,0,0); break;
-+		case FSTOI: TYPE(2,1,0,1,1,0,0); break;
-+		case FDTOI: TYPE(2,1,0,2,1,0,0); break;
-+		case FITOS: TYPE(2,1,1,1,0,0,0); break;
-+		case FITOD: TYPE(2,2,1,1,0,0,0); break;
-+		case FMOVS:
-+		case FABSS:
-+		case FNEGS: TYPE(2,1,0,1,0,0,0); break;
-+		}
-+	} else if ((insn & 0xc1f80000) = 0x81a80000)	/* FPOP2 */ {
-+		switch ((insn >> 5) & 0x1ff) {
-+		case FCMPS: TYPE(3,0,0,1,1,1,1); break;
-+		case FCMPES: TYPE(3,0,0,1,1,1,1); break;
-+		case FCMPD: TYPE(3,0,0,2,1,2,1); break;
-+		case FCMPED: TYPE(3,0,0,2,1,2,1); break;
-+		case FCMPQ: TYPE(3,0,0,3,1,3,1); break;
-+		case FCMPEQ: TYPE(3,0,0,3,1,3,1); break;
-+		}
-+	}
-+
-+	if (!type) {	/* oops, didn't recognise that FPop */
-+#ifdef DEBUG_MATHEMU
-+		printk("attempt to emulate unrecognised FPop!\n");
-+#endif
-+		return 0;
-+	}
-+
-+	/* Decode the registers to be used */
-+	freg = (*pfsr >> 14) & 0xf;
-+
-+	*pfsr &= ~0x1c000;				/* clear the traptype bits */
-+	
-+	freg = ((insn >> 14) & 0x1f);
-+	switch (type & 0x3) {				/* is rs1 single, double or quad? */
-+	case 3:
-+		if (freg & 3) {				/* quadwords must have bits 4&5 of the */
-+							/* encoded reg. number set to zero. */
-+			*pfsr |= (6 << 14);
-+			return 0;			/* simulate invalid_fp_register exception */
-+		}
-+	/* fall through */
-+	case 2:
-+		if (freg & 1) {				/* doublewords must have bit 5 zeroed */
-+			*pfsr |= (6 << 14);
-+			return 0;
-+		}
-+	}
-+	rs1 = (argp)&fregs[freg];
-+	switch (type & 0x7) {
-+	case 7: FP_UNPACK_QP (QA, rs1); break;
-+	case 6: FP_UNPACK_DP (DA, rs1); break;
-+	case 5: FP_UNPACK_SP (SA, rs1); break;
-+	}
-+	freg = (insn & 0x1f);
-+	switch ((type >> 3) & 0x3) {			/* same again for rs2 */
-+	case 3:
-+		if (freg & 3) {				/* quadwords must have bits 4&5 of the */
-+							/* encoded reg. number set to zero. */
-+			*pfsr |= (6 << 14);
-+			return 0;			/* simulate invalid_fp_register exception */
-+		}
-+	/* fall through */
-+	case 2:
-+		if (freg & 1) {				/* doublewords must have bit 5 zeroed */
-+			*pfsr |= (6 << 14);
-+			return 0;
-+		}
-+	}
-+	rs2 = (argp)&fregs[freg];
-+	switch ((type >> 3) & 0x7) {
-+	case 7: FP_UNPACK_QP (QB, rs2); break;
-+	case 6: FP_UNPACK_DP (DB, rs2); break;
-+	case 5: FP_UNPACK_SP (SB, rs2); break;
-+	}
-+	freg = ((insn >> 25) & 0x1f);
-+	switch ((type >> 6) & 0x3) {			/* and finally rd. This one's a bit different */
-+	case 0:						/* dest is fcc. (this must be FCMPQ or FCMPEQ) */
-+		if (freg) {				/* V8 has only one set of condition codes, so */
-+							/* anything but 0 in the rd field is an error */
-+			*pfsr |= (6 << 14);		/* (should probably flag as invalid opcode */
-+			return 0;			/* but SIGFPE will do :-> ) */
-+		}
-+		break;
-+	case 3:
-+		if (freg & 3) {				/* quadwords must have bits 4&5 of the */
-+							/* encoded reg. number set to zero. */
-+			*pfsr |= (6 << 14);
-+			return 0;			/* simulate invalid_fp_register exception */
-+		}
-+	/* fall through */
-+	case 2:
-+		if (freg & 1) {				/* doublewords must have bit 5 zeroed */
-+			*pfsr |= (6 << 14);
-+			return 0;
-+		}
-+	/* fall through */
-+	case 1:
-+		rd = (void *)&fregs[freg];
-+		break;
-+	}
-+#ifdef DEBUG_MATHEMU
-+	printk("executing insn...\n");
-+#endif
-+	/* do the Right Thing */
-+	switch ((insn >> 5) & 0x1ff) {
-+	/* + */
-+	case FADDS: FP_ADD_S (SR, SA, SB); break;
-+	case FADDD: FP_ADD_D (DR, DA, DB); break;
-+	case FADDQ: FP_ADD_Q (QR, QA, QB); break;
-+	/* - */
-+	case FSUBS: FP_SUB_S (SR, SA, SB); break;
-+	case FSUBD: FP_SUB_D (DR, DA, DB); break;
-+	case FSUBQ: FP_SUB_Q (QR, QA, QB); break;
-+	/* * */
-+	case FMULS: FP_MUL_S (SR, SA, SB); break;
-+	case FSMULD: FP_CONV (D, S, 2, 1, DA, SA);
-+		     FP_CONV (D, S, 2, 1, DB, SB);
-+	case FMULD: FP_MUL_D (DR, DA, DB); break;
-+	case FDMULQ: FP_CONV (Q, D, 4, 2, QA, DA);
-+		     FP_CONV (Q, D, 4, 2, QB, DB);
-+	case FMULQ: FP_MUL_Q (QR, QA, QB); break;
-+	/* / */
-+	case FDIVS: FP_DIV_S (SR, SA, SB); break;
-+	case FDIVD: FP_DIV_D (DR, DA, DB); break;
-+	case FDIVQ: FP_DIV_Q (QR, QA, QB); break;
-+	/* sqrt */
-+	case FSQRTS: FP_SQRT_S (SR, SB); break;
-+	case FSQRTD: FP_SQRT_D (DR, DB); break;
-+	case FSQRTQ: FP_SQRT_Q (QR, QB); break;
-+	/* mov */
-+	case FMOVS: rd->s = rs2->s; break;
-+	case FABSS: rd->s = rs2->s & 0x7fffffff; break;
-+	case FNEGS: rd->s = rs2->s ^ 0x80000000; break;
-+	/* float to int */
-+	case FSTOI: FP_TO_INT_S (IR, SB, 32, 1); break;
-+	case FDTOI: FP_TO_INT_D (IR, DB, 32, 1); break;
-+	case FQTOI: FP_TO_INT_Q (IR, QB, 32, 1); break;
-+	/* int to float */
-+	case FITOS: IR = rs2->s; FP_FROM_INT_S (SR, IR, 32, int); break;
-+	case FITOD: IR = rs2->s; FP_FROM_INT_D (DR, IR, 32, int); break;
-+	case FITOQ: IR = rs2->s; FP_FROM_INT_Q (QR, IR, 32, int); break;
-+	/* float to float */
-+	case FSTOD: FP_CONV (D, S, 2, 1, DR, SB); break;
-+	case FSTOQ: FP_CONV (Q, S, 4, 1, QR, SB); break;
-+	case FDTOQ: FP_CONV (Q, D, 4, 2, QR, DB); break;
-+	case FDTOS: FP_CONV (S, D, 1, 2, SR, DB); break;
-+	case FQTOS: FP_CONV (S, Q, 1, 4, SR, QB); break;
-+	case FQTOD: FP_CONV (D, Q, 2, 4, DR, QB); break;
-+	/* comparison */
-+	case FCMPS:
-+	case FCMPES:
-+		FP_CMP_S(IR, SB, SA, 3);
-+		if (IR = 3 &&
-+		    (((insn >> 5) & 0x1ff) = FCMPES ||
-+		     FP_ISSIGNAN_S(SA) ||
-+		     FP_ISSIGNAN_S(SB)))
-+			FP_SET_EXCEPTION (FP_EX_INVALID);
-+		break;
-+	case FCMPD:
-+	case FCMPED:
-+		FP_CMP_D(IR, DB, DA, 3);
-+		if (IR = 3 &&
-+		    (((insn >> 5) & 0x1ff) = FCMPED ||
-+		     FP_ISSIGNAN_D(DA) ||
-+		     FP_ISSIGNAN_D(DB)))
-+			FP_SET_EXCEPTION (FP_EX_INVALID);
-+		break;
-+	case FCMPQ:
-+	case FCMPEQ:
-+		FP_CMP_Q(IR, QB, QA, 3);
-+		if (IR = 3 &&
-+		    (((insn >> 5) & 0x1ff) = FCMPEQ ||
-+		     FP_ISSIGNAN_Q(QA) ||
-+		     FP_ISSIGNAN_Q(QB)))
-+			FP_SET_EXCEPTION (FP_EX_INVALID);
-+	}
-+	if (!FP_INHIBIT_RESULTS) {
-+		switch ((type >> 6) & 0x7) {
-+		case 0: fsr = *pfsr;
-+			if (IR = -1) IR = 2;
-+			/* fcc is always fcc0 */
-+			fsr &= ~0xc00; fsr |= (IR << 10); break;
-+			*pfsr = fsr;
-+			break;
-+		case 1: rd->s = IR; break;
-+		case 5: FP_PACK_SP (rd, SR); break;
-+		case 6: FP_PACK_DP (rd, DR); break;
-+		case 7: FP_PACK_QP (rd, QR); break;
-+		}
-+	}
-+	if (_fex = 0)
-+		return 1;				/* success! */
-+	return record_exception(pfsr, _fex);
-+}
-diff --git a/arch/sparc/math-emu/sfp-util.h b/arch/sparc/math-emu/sfp-util.h
-deleted file mode 100644
-index d1b2aff..0000000
---- a/arch/sparc/math-emu/sfp-util.h
-+++ /dev/null
-@@ -1,115 +0,0 @@
--#include <linux/kernel.h>
--#include <linux/sched.h>
--#include <linux/types.h>
--#include <asm/byteorder.h>
--
--#define add_ssaaaa(sh, sl, ah, al, bh, bl) 				\
--  __asm__ ("addcc %r4,%5,%1\n\t"						\
--	   "addx %r2,%3,%0\n"						\
--	   : "=r" ((USItype)(sh)),					\
--	     "=&r" ((USItype)(sl))					\
--	   : "%rJ" ((USItype)(ah)),					\
--	     "rI" ((USItype)(bh)),					\
--	     "%rJ" ((USItype)(al)),					\
--	     "rI" ((USItype)(bl))					\
--	   : "cc")
--#define sub_ddmmss(sh, sl, ah, al, bh, bl) 				\
--  __asm__ ("subcc %r4,%5,%1\n\t"						\
--	   "subx %r2,%3,%0\n"						\
--	   : "=r" ((USItype)(sh)),					\
--	     "=&r" ((USItype)(sl))					\
--	   : "rJ" ((USItype)(ah)),					\
--	     "rI" ((USItype)(bh)),					\
--	     "rJ" ((USItype)(al)),					\
--	     "rI" ((USItype)(bl))					\
--	   : "cc")
--
--#define umul_ppmm(w1, w0, u, v) \
--  __asm__ ("! Inlined umul_ppmm\n\t"					\
--	"wr	%%g0,%2,%%y	! SPARC has 0-3 delay insn after a wr\n\t" \
--	"sra	%3,31,%%g2	! Don't move this insn\n\t"		\
--	"and	%2,%%g2,%%g2	! Don't move this insn\n\t"		\
--	"andcc	%%g0,0,%%g1	! Don't move this insn\n\t"		\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,%3,%%g1\n\t"					\
--	"mulscc	%%g1,0,%%g1\n\t" 					\
--	"add	%%g1,%%g2,%0\n\t" 					\
--	"rd	%%y,%1\n"						\
--	   : "=r" ((USItype)(w1)),					\
--	     "=r" ((USItype)(w0))					\
--	   : "%rI" ((USItype)(u)),					\
--	     "r" ((USItype)(v))						\
--	   : "%g1", "%g2", "cc")
--
--/* It's quite necessary to add this much assembler for the sparc.
--   The default udiv_qrnnd (in C) is more than 10 times slower!  */
--#define udiv_qrnnd(q, r, n1, n0, d) \
--  __asm__ ("! Inlined udiv_qrnnd\n\t"					\
--	   "mov	32,%%g1\n\t"						\
--	   "subcc	%1,%2,%%g0\n\t"					\
--	   "1:	bcs	5f\n\t"						\
--	   "addxcc %0,%0,%0	! shift n1n0 and a q-bit in lsb\n\t"	\
--	   "sub	%1,%2,%1	! this kills msb of n\n\t"		\
--	   "addx	%1,%1,%1	! so this can't give carry\n\t"	\
--	   "subcc	%%g1,1,%%g1\n\t"				\
--	   "2:	bne	1b\n\t"						\
--	   "subcc	%1,%2,%%g0\n\t"					\
--	   "bcs	3f\n\t"							\
--	   "addxcc %0,%0,%0	! shift n1n0 and a q-bit in lsb\n\t"	\
--	   "b		3f\n\t"						\
--	   "sub	%1,%2,%1	! this kills msb of n\n\t"		\
--	   "4:	sub	%1,%2,%1\n\t"					\
--	   "5:	addxcc	%1,%1,%1\n\t"					\
--	   "bcc	2b\n\t"							\
--	   "subcc	%%g1,1,%%g1\n\t"				\
--	   "! Got carry from n.  Subtract next step to cancel this carry.\n\t" \
--	   "bne	4b\n\t"							\
--	   "addcc	%0,%0,%0	! shift n1n0 and a 0-bit in lsb\n\t" \
--	   "sub	%1,%2,%1\n\t"						\
--	   "3:	xnor	%0,0,%0\n\t"					\
--	   "! End of inline udiv_qrnnd\n"				\
--	   : "=&r" ((USItype)(q)),					\
--	     "=&r" ((USItype)(r))					\
--	   : "r" ((USItype)(d)),					\
--	     "1" ((USItype)(n1)),					\
--	     "0" ((USItype)(n0)) : "%g1", "cc")
--#define UDIV_NEEDS_NORMALIZATION 0
--
--#define abort()								\
--	return 0
--
--#ifdef __BIG_ENDIAN
--#define __BYTE_ORDER __BIG_ENDIAN
--#else
--#define __BYTE_ORDER __LITTLE_ENDIAN
--#endif
-diff --git a/arch/sparc/math-emu/sfp-util_32.h b/arch/sparc/math-emu/sfp-util_32.h
-new file mode 100644
-index 0000000..d1b2aff
---- /dev/null
-+++ b/arch/sparc/math-emu/sfp-util_32.h
-@@ -0,0 +1,115 @@
-+#include <linux/kernel.h>
-+#include <linux/sched.h>
-+#include <linux/types.h>
-+#include <asm/byteorder.h>
-+
-+#define add_ssaaaa(sh, sl, ah, al, bh, bl) 				\
-+  __asm__ ("addcc %r4,%5,%1\n\t"						\
-+	   "addx %r2,%3,%0\n"						\
-+	   : "=r" ((USItype)(sh)),					\
-+	     "=&r" ((USItype)(sl))					\
-+	   : "%rJ" ((USItype)(ah)),					\
-+	     "rI" ((USItype)(bh)),					\
-+	     "%rJ" ((USItype)(al)),					\
-+	     "rI" ((USItype)(bl))					\
-+	   : "cc")
-+#define sub_ddmmss(sh, sl, ah, al, bh, bl) 				\
-+  __asm__ ("subcc %r4,%5,%1\n\t"						\
-+	   "subx %r2,%3,%0\n"						\
-+	   : "=r" ((USItype)(sh)),					\
-+	     "=&r" ((USItype)(sl))					\
-+	   : "rJ" ((USItype)(ah)),					\
-+	     "rI" ((USItype)(bh)),					\
-+	     "rJ" ((USItype)(al)),					\
-+	     "rI" ((USItype)(bl))					\
-+	   : "cc")
-+
-+#define umul_ppmm(w1, w0, u, v) \
-+  __asm__ ("! Inlined umul_ppmm\n\t"					\
-+	"wr	%%g0,%2,%%y	! SPARC has 0-3 delay insn after a wr\n\t" \
-+	"sra	%3,31,%%g2	! Don't move this insn\n\t"		\
-+	"and	%2,%%g2,%%g2	! Don't move this insn\n\t"		\
-+	"andcc	%%g0,0,%%g1	! Don't move this insn\n\t"		\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,%3,%%g1\n\t"					\
-+	"mulscc	%%g1,0,%%g1\n\t" 					\
-+	"add	%%g1,%%g2,%0\n\t" 					\
-+	"rd	%%y,%1\n"						\
-+	   : "=r" ((USItype)(w1)),					\
-+	     "=r" ((USItype)(w0))					\
-+	   : "%rI" ((USItype)(u)),					\
-+	     "r" ((USItype)(v))						\
-+	   : "%g1", "%g2", "cc")
-+
-+/* It's quite necessary to add this much assembler for the sparc.
-+   The default udiv_qrnnd (in C) is more than 10 times slower!  */
-+#define udiv_qrnnd(q, r, n1, n0, d) \
-+  __asm__ ("! Inlined udiv_qrnnd\n\t"					\
-+	   "mov	32,%%g1\n\t"						\
-+	   "subcc	%1,%2,%%g0\n\t"					\
-+	   "1:	bcs	5f\n\t"						\
-+	   "addxcc %0,%0,%0	! shift n1n0 and a q-bit in lsb\n\t"	\
-+	   "sub	%1,%2,%1	! this kills msb of n\n\t"		\
-+	   "addx	%1,%1,%1	! so this can't give carry\n\t"	\
-+	   "subcc	%%g1,1,%%g1\n\t"				\
-+	   "2:	bne	1b\n\t"						\
-+	   "subcc	%1,%2,%%g0\n\t"					\
-+	   "bcs	3f\n\t"							\
-+	   "addxcc %0,%0,%0	! shift n1n0 and a q-bit in lsb\n\t"	\
-+	   "b		3f\n\t"						\
-+	   "sub	%1,%2,%1	! this kills msb of n\n\t"		\
-+	   "4:	sub	%1,%2,%1\n\t"					\
-+	   "5:	addxcc	%1,%1,%1\n\t"					\
-+	   "bcc	2b\n\t"							\
-+	   "subcc	%%g1,1,%%g1\n\t"				\
-+	   "! Got carry from n.  Subtract next step to cancel this carry.\n\t" \
-+	   "bne	4b\n\t"							\
-+	   "addcc	%0,%0,%0	! shift n1n0 and a 0-bit in lsb\n\t" \
-+	   "sub	%1,%2,%1\n\t"						\
-+	   "3:	xnor	%0,0,%0\n\t"					\
-+	   "! End of inline udiv_qrnnd\n"				\
-+	   : "=&r" ((USItype)(q)),					\
-+	     "=&r" ((USItype)(r))					\
-+	   : "r" ((USItype)(d)),					\
-+	     "1" ((USItype)(n1)),					\
-+	     "0" ((USItype)(n0)) : "%g1", "cc")
-+#define UDIV_NEEDS_NORMALIZATION 0
-+
-+#define abort()								\
-+	return 0
-+
-+#ifdef __BIG_ENDIAN
-+#define __BYTE_ORDER __BIG_ENDIAN
++#ifdef CONFIG_SPARC32
++# include "vmlinux_32.lds.S"
 +#else
-+#define __BYTE_ORDER __LITTLE_ENDIAN
++# include "vmlinux_64.lds.S"
 +#endif
+diff --git a/arch/sparc/kernel/vmlinux.lds.S b/arch/sparc/kernel/vmlinux_32.lds.S
+similarity index 100%
+rename from arch/sparc/kernel/vmlinux.lds.S
+rename to arch/sparc/kernel/vmlinux_32.lds.S
+diff --git a/arch/sparc64/kernel/vmlinux.lds.S b/arch/sparc/kernel/vmlinux_64.lds.S
+similarity index 100%
+rename from arch/sparc64/kernel/vmlinux.lds.S
+rename to arch/sparc/kernel/vmlinux_64.lds.S
+diff --git a/arch/sparc64/kernel/winfixup.S b/arch/sparc/kernel/winfixup.S
+similarity index 100%
+rename from arch/sparc64/kernel/winfixup.S
+rename to arch/sparc/kernel/winfixup.S
+diff --git a/arch/sparc64/kernel/Makefile b/arch/sparc64/kernel/Makefile
+deleted file mode 100644
+index b3e0b98..0000000
+--- a/arch/sparc64/kernel/Makefile
++++ /dev/null
+@@ -1,36 +0,0 @@
+-#
+-# Makefile for the linux kernel.
+-#
+-
+-EXTRA_AFLAGS := -ansi
+-EXTRA_CFLAGS := -Werror
+-
+-CFLAGS_REMOVE_ftrace.o = -pg
+-
+-extra-y		:= head.o init_task.o vmlinux.lds
+-
+-obj-y		:= process.o setup.o cpu.o idprom.o reboot.o \
+-		   traps.o auxio.o una_asm.o sysfs.o iommu.o \
+-		   irq.o ptrace.o time.o sys_sparc.o signal.o \
+-		   unaligned.o central.o starfire.o \
+-		   power.o sbus.o sparc64_ksyms.o ebus.o \
+-		   visemul.o prom.o of_device.o hvapi.o sstate.o mdesc.o
+-
+-obj-$(CONFIG_DYNAMIC_FTRACE) += ftrace.o
+-obj-$(CONFIG_STACKTRACE) += stacktrace.o
+-obj-$(CONFIG_PCI)	 += pci.o pci_common.o psycho_common.o \
+-			    pci_psycho.o pci_sabre.o pci_schizo.o \
+-			    pci_sun4v.o pci_sun4v_asm.o pci_fire.o
+-obj-$(CONFIG_PCI_MSI)	+= pci_msi.o
+-obj-$(CONFIG_SMP)	 += smp.o trampoline.o hvtramp.o
+-obj-$(CONFIG_COMPAT) += sys32.o sys_sparc32.o signal32.o
+-obj-$(CONFIG_MODULES) += module.o
+-obj-$(CONFIG_US3_FREQ) += us3_cpufreq.o
+-obj-$(CONFIG_US2E_FREQ) += us2e_cpufreq.o
+-obj-$(CONFIG_US3_MC) += chmc.o
+-obj-$(CONFIG_KPROBES) += kprobes.o
+-obj-$(CONFIG_SUN_LDOMS) += ldc.o vio.o viohs.o ds.o
+-obj-$(CONFIG_AUDIT) += audit.o
+-obj-$(CONFIG_AUDIT)$(CONFIG_COMPAT) += compat_audit.o
+-obj-y += $(obj-yy)
+-obj-$(CONFIG_KGDB) += kgdb.o
 -- 
 1.5.6.GIT
 
