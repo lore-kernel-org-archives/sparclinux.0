@@ -1,302 +1,232 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 17 Nov 2008 22:06:02 +0000
-Subject: [PATCH 3/6] sparc: prepare kernel/ for unification
-Message-Id: <1226959565-14796-3-git-send-email-sam@ravnborg.org>
+From: Jim Gifford <maillist@jg555.com>
+Date: Mon, 17 Nov 2008 20:56:16 +0000
+Subject: Re: Tulip Driver Issues
+Message-Id: <4921DA70.3000003@jg555.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-- renamed files where sparc64 used identical names to *_32.c/S
-- added a few new Kconfig symbols to simplify logic in Makefile
-- refactored Makefile
-  - Use _$(BITS) for renamed files
-  - Use CONFIG_SPARC32 for sparc32 specific files
-  - Use new helpers for SMP and PCI files - to prepare for sparc64 merge
+Jim Gifford wrote:
+> Jim Gifford wrote:
+>> I originally posted this on the Sparc list, with no solutions yet. I 
+>> have included the detail from that email as well, but the newer 
+>> kernels are still having the same issue.
+>>
+>> Now I'm running 2.6.27-gentoo and have tried 2.6.26-gentoo.
+>>
+>> The errors are still showing up and still locking up the system 
+>> randomly.
+>>
+>> mail ~ # mii-tool -v eth0
+>> eth0: no autonegotiation, 100baseTx-HD, link ok
+>>  product info: vendor 00:60:6e, model 4 rev 0
+>>  basic mode:   autonegotiation enabled
+>>  basic status: autonegotiation complete, link ok
+>>  capabilities: 100baseTx-FD 100baseTx-HD 10baseT-FD 10baseT-HD
+>>  advertising:  100baseTx-FD 100baseTx-HD 10baseT-FD 10baseT-HD
+>>  link partner: 100baseTx-HD
+>> mail ~ # mii-tool -v eth1
+>> eth1: no autonegotiation, 100baseTx-HD, link ok
+>>  product info: vendor 00:60:6e, model 4 rev 0
+>>  basic mode:   autonegotiation enabled
+>>  basic status: autonegotiation complete, link ok
+>>  capabilities: 100baseTx-FD 100baseTx-HD 10baseT-FD 10baseT-HD
+>>  advertising:  100baseTx-FD 100baseTx-HD 10baseT-FD 10baseT-HD
+>>  link partner: 100baseTx-HD
+>> mail ~ #
+>> Oct 26 08:35:03 mail kernel: [488077.248697] 0000:00:0c.0: 
+>> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+>> Oct 26 08:35:11 mail kernel: [488085.244689] 0000:00:0c.0: 
+>> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+>> Oct 26 08:35:19 mail kernel: [488093.240680] 0000:00:0c.0: 
+>> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+>> Oct 26 08:35:27 mail kernel: [488101.236601] 0000:00:0c.0: 
+>> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+>> Oct 26 08:35:35 mail kernel: [488109.232606] 0000:00:0c.0: 
+>> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+>> Oct 26 08:35:43 mail kernel: [488117.228723] 0000:00:0c.0: 
+>> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+>> Oct 26 08:35:51 mail kernel: [488125.224724] 0000:00:0c.0: 
+>> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+>> Oct 26 08:35:59 mail kernel: [488133.220705] 0000:00:0c.0: 
+>> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+>> Oct 26 08:36:07 mail kernel: [488141.216733] 0000:00:0c.0: 
+>> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+>> Oct 26 08:36:15 mail kernel: [488149.212736] 0000:00:0c.0: 
+>> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+>> Oct 26 08:36:23 mail kernel: [488157.208619] 0000:00:0c.0: 
+>> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+>> Oct 26 08:36:31 mail kernel: [488165.204740] 0000:00:0c.0: 
+>> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+>> Oct 26 08:36:39 mail kernel: [488173.200705] 0000:00:0c.0: 
+>> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+>> Oct 26 08:36:47 mail kernel: [488181.196633] 0000:00:0c.0: 
+>> tulip_stop_rxtx() failed (CSR5 0xfc508100 CSR6 0x22ec000)
+>> Oct 26 08:36:52 mail kernel: [488185.874327] 0000:00:0c.0: 
+>> tulip_stop_rxtx() failed (CSR5 0xfc500100 CSR6 0x22ec000)
+>>
+>>
+>>
+>> Original Email to Sparc Linux Below
+>> -----
+>>
+>> Currently running 2.6.24-gentoo-r8 and 2.6.25-gentoo-r7. Also have 
+>> tried the vanilla kernel as well.
+>>
+>> It appears the issues seems to be isolated tot he Sparc X1's my x86's 
+>> using the tulip driver are not having the issue.
+>>
+>> Not sure if it's a reporting issue or just a problem with the driver. 
+>> Every packet seems to be an error. I've ran out of resources trying 
+>> to figure this out on my own, but no luck. Seems to be TX issue only.
+>>
+>> Here's what I'm seeing
+>>
+>> mail ~ # mii-diag eth0
+>> Basic registers of MII PHY #1:  2100 780d 0181 b840 01e1 0000 0000 0000.
+>> Basic mode control register 0x2100: Auto-negotiation disabled, with
+>> Speed fixed at 100 mbps, full-duplex.
+>> You have link beat, and everything is working OK.
+>> Link partner information is not exchanged when in fixed speed mode.
+>>  End of basic transceiver information.
+>>
+>> mail ~ # mii-diag eth1
+>> Basic registers of MII PHY #1:  2100 780d 0181 b840 01e1 0000 0000 0000.
+>> Basic mode control register 0x2100: Auto-negotiation disabled, with
+>> Speed fixed at 100 mbps, full-duplex.
+>> You have link beat, and everything is working OK.
+>> Link partner information is not exchanged when in fixed speed mode.
+>>  End of basic transceiver information.
+>>
+>> mail ~ # ifconfig
+>> eth0      Link encap:Ethernet  HWaddr 00:03:BA:0F:37:73
+>>         inet addr:172.16.0.50  Bcast:172.16.0.255  Mask:255.255.255.0
+>>         UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+>>         RX packets:147120 errors:0 dropped:0 overruns:0 frame:0
+>>         TX packets:33290 errors:556 dropped:0 overruns:2 carrier:554
+>>         collisions:12 txqueuelen:1000
+>>         RX bytes:11800444 (11.2 Mb)  TX bytes:5032585 (4.7 Mb)
+>>         Interrupt:9
+>>
+>> eth1      Link encap:Ethernet  HWaddr 00:03:BA:0F:37:74
+>>         inet addr:10.0.0.50  Bcast:10.0.0.255  Mask:255.255.255.0
+>>         UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+>>         RX packets:3941 errors:0 dropped:0 overruns:0 frame:0
+>>         TX packets:1 errors:4835 dropped:0 overruns:0 carrier:4835
+>>         collisions:0 txqueuelen:1000
+>>         RX bytes:1089347 (1.0 Mb)  TX bytes:54 (54.0 b)
+>>         Interrupt:10 Base address:0x100
+>>
+>> lo        Link encap:Local Loopback
+>>         inet addr:127.0.0.1  Mask:255.0.0.0
+>>         UP LOOPBACK RUNNING  MTU:16436  Metric:1
+>>         RX packets:51 errors:0 dropped:0 overruns:0 frame:0
+>>         TX packets:51 errors:0 dropped:0 overruns:0 carrier:0
+>>         collisions:0 txqueuelen:0
+>>         RX bytes:3906 (3.8 Kb)  TX bytes:3906 (3.8 Kb)
+>>
+>> Oct  2 23:26:59 mail kernel: [ 9822.736777] NETDEV WATCHDOG: eth0: 
+>> transmit timed out
+>> Oct  2 23:27:07 mail kernel: [ 9830.732649] NETDEV WATCHDOG: eth0: 
+>> transmit timed out
+>> Oct  2 23:27:15 mail kernel: [ 9838.728518] NETDEV WATCHDOG: eth0: 
+>> transmit timed out
+>> Oct  2 23:27:23 mail kernel: [ 9846.724386] NETDEV WATCHDOG: eth0: 
+>> transmit timed out
+>> Oct  2 23:27:31 mail kernel: [ 9854.720177] NETDEV WATCHDOG: eth0: 
+>> transmit timed out
+>> Oct  2 23:27:39 mail kernel: [ 9862.716124] NETDEV WATCHDOG: eth0: 
+>> transmit timed out
+>> Oct  2 23:27:47 mail kernel: [ 9870.711943] NETDEV WATCHDOG: eth0: 
+>> transmit timed out
+>> Oct  2 23:27:55 mail kernel: [ 9878.707824] NETDEV WATCHDOG: eth0: 
+>> transmit timed out
+>> Oct  2 23:28:03 mail kernel: [ 9886.703675] NETDEV WATCHDOG: eth0: 
+>> transmit timed out
+>> Oct  2 23:28:11 mail kernel: [ 9894.699598] NETDEV WATCHDOG: eth0: 
+>> transmit timed out
+>> Oct  2 23:28:19 mail kernel: [ 9902.695467] NETDEV WATCHDOG: eth0: 
+>> transmit timed out
+>> Oct  2 23:28:27 mail kernel: [ 9910.691336] NETDEV WATCHDOG: eth0: 
+>> transmit timed out
+>> Oct  2 23:28:35 mail kernel: [ 9918.687122] NETDEV WATCHDOG: eth0: 
+>> transmit timed out
+>>
+>>
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe linux-net" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Was able to get more watching it boot up a bit. Finally got someone to 
+> attach a console cable so I can watch it.
+>
+> [   77.677266] tulip0: Old style EEPROM with no media selection 
+> information.
+> [   77.677530] tulip0:  MII transceiver #1 config 1000 status 782d 
+> advertising 01e1.
+> [   77.680490] eth0: Davicom DM9102/DM9102A rev 49 at Port 
+> 0x1fe02010000, EEPROM not present, 00:03:ba:0f:37:73, IRQ 9.
+> [   77.683206] tulip1: Old style EEPROM with no media selection 
+> information.
+> [   77.683469] tulip1:  MII transceiver #1 config 1000 status 782d 
+> advertising 01e1.
+> [   77.686416] eth1: Davicom DM9102/DM9102A rev 49 at Port 
+> 0x1fe02010100, EEPROM not present, 00:03:ba:0f:37:74, IRQ 10.
+> [   78.964507] ioctl32(blogd:622): Unknown cmd fd(0) 
+> cmd(40045432){t:'T';sz:4} arg(ffa5db4c) on /dev/console
+> [   79.650247] EXT3 FS on hda2, internal journal
+> [   80.578195] Adding 1510088k swap on /dev/hda4.  Priority:-1 
+> extents:1 across:1510088k
+> [ 1120.671137] ------------[ cut here ]------------
+> [ 1120.671164] WARNING: at net/sched/sch_generic.c:219 
+> dev_watchdog+0x250/0x280()
+> [ 1120.671178] NETDEV WATCHDOG: eth0 (tulip): transmit timed out
+> [ 1120.671187] Modules linked in: openpromfs tulip
+> [ 1120.671203] Call Trace:
+> [ 1120.671219]  [00000000005ece50] dev_watchdog+0x250/0x280
+> [ 1120.671242]  [000000000045f64c] run_timer_softirq+0x16c/0x1e0
+> [ 1120.671260]  [000000000045ab7c] __do_softirq+0x5c/0xe0
+> [ 1120.671286]  [000000000042e3f0] do_softirq+0x70/0xa0
+> [ 1120.671300]  [000000000045a764] irq_exit+0x84/0xc0
+> [ 1120.671316]  [000000000043327c] timer_interrupt+0x5c/0xc0
+> [ 1120.671335]  [00000000004209d4] tl0_irq14+0x14/0x20
+> [ 1120.671350]  [000000000042803c] cpu_idle+0x1c/0xc0
+> [ 1120.671374]  [000000000070c8bc] start_kernel+0x27c/0x2c0
+> [ 1120.671389]  [0000000000643684] tlb_fixup_done+0x80/0x9c
+> [ 1120.671402]  [0000000000000000] 0x0
+> [ 1120.671411] ---[ end trace b22e2d0475606961 ]---
+> [ 1120.672767] 0000:00:0c.0: tulip_stop_rxtx() failed (CSR5 0xfc508100 
+> CSR6 0x20e8000)
+> [ 1128.667904] 0000:00:0c.0: tulip_stop_rxtx() failed (CSR5 0xfc508100 
+> CSR6 0x20e8000)
+> [ 1136.663348] 0000:00:0c.0: tulip_stop_rxtx() failed (CSR5 0xfc508100 
+> CSR6 0x20e8000)
+> [ 1144.658798] 0000:00:0c.0: tulip_stop_rxtx() failed (CSR5 0xfc508100 
+> CSR6 0x20e8000)
+> [ 1152.654254] 0000:00:0c.0: tulip_stop_rxtx() failed (CSR5 0xfc508100 
+> CSR6 0x20e8000)
+>
+>
+Anyone got any ideas??
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
----
- arch/sparc/Kconfig                                 |   17 ++++
- arch/sparc/kernel/Makefile                         |   84 ++++++++++++++------
- arch/sparc/kernel/{auxio.c => auxio_32.c}          |    0
- arch/sparc/kernel/{cpu.c => cpu_32.c}              |    0
- arch/sparc/kernel/{etrap.S => etrap_32.S}          |    0
- arch/sparc/kernel/{head.S => head_32.S}            |    0
- arch/sparc/kernel/{idprom.c => idprom_32.c}        |    0
- arch/sparc/kernel/{init_task.c => init_task_32.c}  |    0
- arch/sparc/kernel/{irq.c => irq_32.c}              |    0
- arch/sparc/kernel/{kgdb.c => kgdb_32.c}            |    0
- arch/sparc/kernel/{module.c => module_32.c}        |    0
- arch/sparc/kernel/{of_device.c => of_device_32.c}  |    0
- arch/sparc/kernel/{process.c => process_32.c}      |    0
- arch/sparc/kernel/{prom.c => prom_32.c}            |    0
- arch/sparc/kernel/{ptrace.c => ptrace_32.c}        |    0
- arch/sparc/kernel/{rtrap.S => rtrap_32.S}          |    0
- arch/sparc/kernel/{setup.c => setup_32.c}          |    0
- arch/sparc/kernel/{signal.c => signal_32.c}        |    0
- arch/sparc/kernel/{smp.c => smp_32.c}              |    0
- .../kernel/{sparc_ksyms.c => sparc_ksyms_32.c}     |    0
- arch/sparc/kernel/{sys_sparc.c => sys_sparc_32.c}  |    0
- arch/sparc/kernel/{systbls.S => systbls_32.S}      |    0
- arch/sparc/kernel/{time.c => time_32.c}            |    0
- .../sparc/kernel/{trampoline.S => trampoline_32.S} |    0
- arch/sparc/kernel/{traps.c => traps_32.c}          |    0
- arch/sparc/kernel/{una_asm.S => una_asm_32.S}      |    0
- arch/sparc/kernel/{unaligned.c => unaligned_32.c}  |    0
- 27 files changed, 75 insertions(+), 26 deletions(-)
- rewrite arch/sparc/kernel/Makefile (94%)
- rename arch/sparc/kernel/{auxio.c => auxio_32.c} (100%)
- rename arch/sparc/kernel/{cpu.c => cpu_32.c} (100%)
- rename arch/sparc/kernel/{etrap.S => etrap_32.S} (100%)
- rename arch/sparc/kernel/{head.S => head_32.S} (100%)
- rename arch/sparc/kernel/{idprom.c => idprom_32.c} (100%)
- rename arch/sparc/kernel/{init_task.c => init_task_32.c} (100%)
- rename arch/sparc/kernel/{irq.c => irq_32.c} (100%)
- rename arch/sparc/kernel/{kgdb.c => kgdb_32.c} (100%)
- rename arch/sparc/kernel/{module.c => module_32.c} (100%)
- rename arch/sparc/kernel/{of_device.c => of_device_32.c} (100%)
- rename arch/sparc/kernel/{process.c => process_32.c} (100%)
- rename arch/sparc/kernel/{prom.c => prom_32.c} (100%)
- rename arch/sparc/kernel/{ptrace.c => ptrace_32.c} (100%)
- rename arch/sparc/kernel/{rtrap.S => rtrap_32.S} (100%)
- rename arch/sparc/kernel/{setup.c => setup_32.c} (100%)
- rename arch/sparc/kernel/{signal.c => signal_32.c} (100%)
- rename arch/sparc/kernel/{smp.c => smp_32.c} (100%)
- rename arch/sparc/kernel/{sparc_ksyms.c => sparc_ksyms_32.c} (100%)
- rename arch/sparc/kernel/{sys_sparc.c => sys_sparc_32.c} (100%)
- rename arch/sparc/kernel/{systbls.S => systbls_32.S} (100%)
- rename arch/sparc/kernel/{time.c => time_32.c} (100%)
- rename arch/sparc/kernel/{trampoline.S => trampoline_32.S} (100%)
- rename arch/sparc/kernel/{traps.c => traps_32.c} (100%)
- rename arch/sparc/kernel/{una_asm.S => una_asm_32.S} (100%)
- rename arch/sparc/kernel/{unaligned.c => unaligned_32.c} (100%)
-
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index 253d011..7cf98a7 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -187,6 +187,15 @@ config EMULATED_CMPXCHG
- 	  Sparc32 does not have a CAS instruction like sparc64. cmpxchg()
- 	  is emulated, and therefore it is not completely atomic.
- 
-+# Makefile helpers
-+config SPARC32_SMP
-+	bool
-+	depends on SPARC32 && SMP
-+
-+config SPARC64_SMP
-+	bool
-+	depends on SPARC64 && SMP
-+
- choice
- 	prompt "Kernel page size" if SPARC64
- 	default SPARC64_PAGE_SIZE_8KB
-@@ -510,6 +519,14 @@ config SUN_OPENPROMFS
- 	  Only choose N if you know in advance that you will not need to modify
- 	  OpenPROM settings on the running system.
- 
-+# Makefile helpers
-+config SPARC32_PCI
-+	bool
-+	depends on SPARC32 && PCI
-+
-+config SPARC64_PCI
-+	bool
-+	depends on SPARC64 && PCI
- 
- endmenu
- 
-diff --git a/arch/sparc/kernel/Makefile b/arch/sparc/kernel/Makefile
-dissimilarity index 94%
-index 2d65820..df6cc9a 100644
---- a/arch/sparc/kernel/Makefile
-+++ b/arch/sparc/kernel/Makefile
-@@ -1,26 +1,58 @@
--#
--# Makefile for the linux kernel.
--#
--
--extra-y		:= head.o init_task.o vmlinux.lds
--
--EXTRA_AFLAGS	:= -ansi
--
--IRQ_OBJS := irq.o sun4m_irq.o sun4c_irq.o sun4d_irq.o
--obj-y    := entry.o wof.o wuf.o etrap.o rtrap.o traps.o $(IRQ_OBJS) \
--	    process.o signal.o ioport.o setup.o idprom.o \
--	    sys_sparc.o systbls.o \
--	    time.o windows.o cpu.o devices.o \
--	    tadpole.o tick14.o ptrace.o \
--	    unaligned.o una_asm.o muldiv.o \
--	    prom.o of_device.o devres.o dma.o
--
--devres-y = ../../../kernel/irq/devres.o
--
--obj-$(CONFIG_PCI) += pcic.o
--obj-$(CONFIG_SMP) += trampoline.o smp.o sun4m_smp.o sun4d_smp.o
--obj-$(CONFIG_SUN_AUXIO) += auxio.o
--obj-$(CONFIG_SUN_PM) += apc.o pmc.o
--obj-$(CONFIG_MODULES) += module.o sparc_ksyms.o
--obj-$(CONFIG_SPARC_LED) += led.o
--obj-$(CONFIG_KGDB) += kgdb.o
-+#
-+# Makefile for the linux kernel.
-+#
-+
-+asflags := -ansi
-+ccflags := -Werror
-+
-+extra-y     := head_$(BITS).o
-+extra-y     += init_task_$(BITS).o
-+extra-y     += vmlinux.lds
-+
-+obj-$(CONFIG_SPARC32)   += entry.o wof.o wuf.o
-+obj-y                   += etrap_$(BITS).o
-+obj-y                   += rtrap_$(BITS).o
-+obj-y                   += traps_$(BITS).o
-+
-+# IRQ
-+obj-y                   += irq_$(BITS).o
-+obj-$(CONFIG_SPARC32)   += sun4m_irq.o sun4c_irq.o sun4d_irq.o
-+
-+obj-y                   += process_$(BITS).o
-+obj-y                   += signal_$(BITS).o
-+obj-$(CONFIG_SPARC32)   += ioport.o
-+obj-y                   += setup_$(BITS).o
-+obj-y                   += idprom_$(BITS).o
-+obj-y                   += sys_sparc_$(BITS).o
-+obj-y                   += systbls_$(BITS).o
-+obj-y                   += time_$(BITS).o
-+obj-$(CONFIG_SPARC32)   += windows.o
-+obj-y                   += cpu_$(BITS).o
-+obj-$(CONFIG_SPARC32)   += devices.o
-+obj-$(CONFIG_SPARC32)   += tadpole.o
-+obj-$(CONFIG_SPARC32)   += tick14.o
-+obj-y                   += ptrace_$(BITS).o
-+obj-y                   += unaligned_$(BITS).o
-+obj-y                   += una_asm_$(BITS).o
-+obj-$(CONFIG_SPARC32)   += muldiv.o
-+obj-y                   += prom_$(BITS).o
-+obj-y                   += of_device_$(BITS).o
-+
-+# sparc32 do not use GENERIC_HARDIRQS but uses the generic devres implmentation
-+obj-$(CONFIG_SPARC32)     += devres.o
-+devres-y                  := ../../../kernel/irq/devres.o
-+
-+obj-$(CONFIG_SPARC32)     += dma.o
-+
-+obj-$(CONFIG_SPARC32_PCI) += pcic.o
-+
-+obj-$(CONFIG_SMP)         += trampoline_$(BITS).o smp_$(BITS).o
-+obj-$(CONFIG_SPARC32_SMP) += sun4m_smp.o sun4d_smp.o
-+
-+obj-y                     += auxio_$(BITS).o
-+obj-$(CONFIG_SUN_PM)      += apc.o pmc.o
-+
-+obj-$(CONFIG_MODULES)     += module_$(BITS).o
-+obj-$(CONFIG_MODULES)     += sparc_ksyms_$(BITS).o
-+obj-$(CONFIG_SPARC_LED)   += led.o
-+obj-$(CONFIG_KGDB)        += kgdb_$(BITS).o
-diff --git a/arch/sparc/kernel/auxio.c b/arch/sparc/kernel/auxio_32.c
-similarity index 100%
-rename from arch/sparc/kernel/auxio.c
-rename to arch/sparc/kernel/auxio_32.c
-diff --git a/arch/sparc/kernel/cpu.c b/arch/sparc/kernel/cpu_32.c
-similarity index 100%
-rename from arch/sparc/kernel/cpu.c
-rename to arch/sparc/kernel/cpu_32.c
-diff --git a/arch/sparc/kernel/etrap.S b/arch/sparc/kernel/etrap_32.S
-similarity index 100%
-rename from arch/sparc/kernel/etrap.S
-rename to arch/sparc/kernel/etrap_32.S
-diff --git a/arch/sparc/kernel/head.S b/arch/sparc/kernel/head_32.S
-similarity index 100%
-rename from arch/sparc/kernel/head.S
-rename to arch/sparc/kernel/head_32.S
-diff --git a/arch/sparc/kernel/idprom.c b/arch/sparc/kernel/idprom_32.c
-similarity index 100%
-rename from arch/sparc/kernel/idprom.c
-rename to arch/sparc/kernel/idprom_32.c
-diff --git a/arch/sparc/kernel/init_task.c b/arch/sparc/kernel/init_task_32.c
-similarity index 100%
-rename from arch/sparc/kernel/init_task.c
-rename to arch/sparc/kernel/init_task_32.c
-diff --git a/arch/sparc/kernel/irq.c b/arch/sparc/kernel/irq_32.c
-similarity index 100%
-rename from arch/sparc/kernel/irq.c
-rename to arch/sparc/kernel/irq_32.c
-diff --git a/arch/sparc/kernel/kgdb.c b/arch/sparc/kernel/kgdb_32.c
-similarity index 100%
-rename from arch/sparc/kernel/kgdb.c
-rename to arch/sparc/kernel/kgdb_32.c
-diff --git a/arch/sparc/kernel/module.c b/arch/sparc/kernel/module_32.c
-similarity index 100%
-rename from arch/sparc/kernel/module.c
-rename to arch/sparc/kernel/module_32.c
-diff --git a/arch/sparc/kernel/of_device.c b/arch/sparc/kernel/of_device_32.c
-similarity index 100%
-rename from arch/sparc/kernel/of_device.c
-rename to arch/sparc/kernel/of_device_32.c
-diff --git a/arch/sparc/kernel/process.c b/arch/sparc/kernel/process_32.c
-similarity index 100%
-rename from arch/sparc/kernel/process.c
-rename to arch/sparc/kernel/process_32.c
-diff --git a/arch/sparc/kernel/prom.c b/arch/sparc/kernel/prom_32.c
-similarity index 100%
-rename from arch/sparc/kernel/prom.c
-rename to arch/sparc/kernel/prom_32.c
-diff --git a/arch/sparc/kernel/ptrace.c b/arch/sparc/kernel/ptrace_32.c
-similarity index 100%
-rename from arch/sparc/kernel/ptrace.c
-rename to arch/sparc/kernel/ptrace_32.c
-diff --git a/arch/sparc/kernel/rtrap.S b/arch/sparc/kernel/rtrap_32.S
-similarity index 100%
-rename from arch/sparc/kernel/rtrap.S
-rename to arch/sparc/kernel/rtrap_32.S
-diff --git a/arch/sparc/kernel/setup.c b/arch/sparc/kernel/setup_32.c
-similarity index 100%
-rename from arch/sparc/kernel/setup.c
-rename to arch/sparc/kernel/setup_32.c
-diff --git a/arch/sparc/kernel/signal.c b/arch/sparc/kernel/signal_32.c
-similarity index 100%
-rename from arch/sparc/kernel/signal.c
-rename to arch/sparc/kernel/signal_32.c
-diff --git a/arch/sparc/kernel/smp.c b/arch/sparc/kernel/smp_32.c
-similarity index 100%
-rename from arch/sparc/kernel/smp.c
-rename to arch/sparc/kernel/smp_32.c
-diff --git a/arch/sparc/kernel/sparc_ksyms.c b/arch/sparc/kernel/sparc_ksyms_32.c
-similarity index 100%
-rename from arch/sparc/kernel/sparc_ksyms.c
-rename to arch/sparc/kernel/sparc_ksyms_32.c
-diff --git a/arch/sparc/kernel/sys_sparc.c b/arch/sparc/kernel/sys_sparc_32.c
-similarity index 100%
-rename from arch/sparc/kernel/sys_sparc.c
-rename to arch/sparc/kernel/sys_sparc_32.c
-diff --git a/arch/sparc/kernel/systbls.S b/arch/sparc/kernel/systbls_32.S
-similarity index 100%
-rename from arch/sparc/kernel/systbls.S
-rename to arch/sparc/kernel/systbls_32.S
-diff --git a/arch/sparc/kernel/time.c b/arch/sparc/kernel/time_32.c
-similarity index 100%
-rename from arch/sparc/kernel/time.c
-rename to arch/sparc/kernel/time_32.c
-diff --git a/arch/sparc/kernel/trampoline.S b/arch/sparc/kernel/trampoline_32.S
-similarity index 100%
-rename from arch/sparc/kernel/trampoline.S
-rename to arch/sparc/kernel/trampoline_32.S
-diff --git a/arch/sparc/kernel/traps.c b/arch/sparc/kernel/traps_32.c
-similarity index 100%
-rename from arch/sparc/kernel/traps.c
-rename to arch/sparc/kernel/traps_32.c
-diff --git a/arch/sparc/kernel/una_asm.S b/arch/sparc/kernel/una_asm_32.S
-similarity index 100%
-rename from arch/sparc/kernel/una_asm.S
-rename to arch/sparc/kernel/una_asm_32.S
-diff --git a/arch/sparc/kernel/unaligned.c b/arch/sparc/kernel/unaligned_32.c
-similarity index 100%
-rename from arch/sparc/kernel/unaligned.c
-rename to arch/sparc/kernel/unaligned_32.c
--- 
-1.5.6.GIT
+[ 6423.138199] ------------[ cut here ]------------
+[ 6423.138230] WARNING: at net/sched/sch_generic.c:219 
+dev_watchdog+0x250/0x280()
+[ 6423.138243] NETDEV WATCHDOG: eth0 (tulip): transmit timed out
+[ 6423.138252] Modules linked in: openpromfs tulip
+[ 6423.138268] Call Trace:
+[ 6423.138285]  [00000000005ecf10] dev_watchdog+0x250/0x280
+[ 6423.138307]  [000000000045f64c] run_timer_softirq+0x16c/0x1e0
+[ 6423.138325]  [000000000045ab7c] __do_softirq+0x5c/0xe0
+[ 6423.138351]  [000000000042e3f0] do_softirq+0x70/0xa0
+[ 6423.138366]  [000000000045a764] irq_exit+0x84/0xc0
+[ 6423.138381]  [000000000043327c] timer_interrupt+0x5c/0xc0
+[ 6423.138400]  [00000000004209d4] tl0_irq14+0x14/0x20
+[ 6423.138414]  [0000000000428040] cpu_idle+0x20/0xc0
+[ 6423.138437]  [000000000070c8bc] start_kernel+0x27c/0x2c0
+[ 6423.138453]  [0000000000643744] tlb_fixup_done+0x80/0x9c
+[ 6423.138465]  [0000000000000000] 0x0
+[ 6423.138475] ---[ end trace f5f651c5dad2e555 ]---
 
