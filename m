@@ -1,7 +1,7 @@
 From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Mon, 24 Nov 2008 02:05:01 +0000
+Date: Mon, 24 Nov 2008 06:45:04 +0000
 Subject: [PATCH] sparc: combine unistd_{32,64}.h
-Message-Id: <20081124130501.f83a5ac0.sfr@canb.auug.org.au>
+Message-Id: <20081124174504.043ab735.sfr@canb.auug.org.au>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20081114141050.3c2f5828.sfr@canb.auug.org.au>
 In-Reply-To: <20081114141050.3c2f5828.sfr@canb.auug.org.au>
@@ -15,24 +15,31 @@ the 32bit syscall numbers, but is being built in a 64bit compile.
 
 Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
 ---
+ arch/sparc/include/asm/Kbuild      |    2 -
  arch/sparc/include/asm/unistd.h    |  446 +++++++++++++++++++++++++++++++++++-
  arch/sparc/include/asm/unistd_32.h |  385 -------------------------------
  arch/sparc/include/asm/unistd_64.h |  380 ------------------------------
  arch/sparc64/kernel/compat_audit.c |    3 +-
- 4 files changed, 443 insertions(+), 771 deletions(-)
+ 5 files changed, 443 insertions(+), 773 deletions(-)
  delete mode 100644 arch/sparc/include/asm/unistd_32.h
  delete mode 100644 arch/sparc/include/asm/unistd_64.h
 
-The commit actually said:
+OK, so this one survives a sparc64 allmodconfig (with pcmcia :-)).  I
+missed the Kbuild update.  Sorry about that.
 
- 3 files changed, 64 insertions(+), 384 deletions(-)
- rename arch/sparc/include/asm/{unistd_32.h => unistd.h} (93%)
- delete mode 100644 arch/sparc/include/asm/unistd_64.h
-
-which is more representative of what actually happened.
-
-Built for both a sparc and sparc64 defconfig.
-
+diff --git a/arch/sparc/include/asm/Kbuild b/arch/sparc/include/asm/Kbuild
+index 2d2769d..89c260a 100644
+--- a/arch/sparc/include/asm/Kbuild
++++ b/arch/sparc/include/asm/Kbuild
+@@ -15,8 +15,6 @@ header-y += signal_32.h
+ header-y += signal_64.h
+ header-y += stat_32.h
+ header-y += stat_64.h
+-header-y += unistd_32.h
+-header-y += unistd_64.h
+ 
+ header-y += apc.h
+ header-y += asi.h
 diff --git a/arch/sparc/include/asm/unistd.h b/arch/sparc/include/asm/unistd.h
 index 4207fb3..031f038 100644
 --- a/arch/sparc/include/asm/unistd.h
