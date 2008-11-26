@@ -1,79 +1,351 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 29 Nov 2008 22:05:48 +0000
-Subject: [PATCH 04/10] sparc: refactor Makefile
-Message-Id: <1227996354-11478-4-git-send-email-sam@ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 26 Nov 2008 08:40:47 +0000
+Subject: [PATCH 2/6]: sparc64: Make %pil level 15 a pseudo-NMI.
+Message-Id: <20081126.004047.237467639.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-The btfixup step needs knowledge of all the .o files,
-but there is no need to pass them in independent variables.
-Simplify it to use only two variables.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+sparc64: Make %pil level 15 a pseudo-NMI.
+
+So that we can profile code even in a local_irq_disable() section,
+only write 14 (instead of 15) into the %pil register to disable IRQs.
+
+This allows PIL level 15 to serve as a pseudo NMI.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/Makefile      |   18 +++++-------------
- arch/sparc/boot/Makefile |    4 ++--
- 2 files changed, 7 insertions(+), 15 deletions(-)
+ arch/sparc/include/asm/irqflags_64.h |    6 ++++--
+ arch/sparc/include/asm/pil.h         |    9 ++++++++-
+ arch/sparc/include/asm/ttable.h      |   15 +++++++++++++--
+ arch/sparc/mm/ultra.S                |    4 ++--
+ arch/sparc64/kernel/cherrs.S         |   10 +++++-----
+ arch/sparc64/kernel/head.S           |    2 +-
+ arch/sparc64/kernel/hvtramp.S        |    5 +++--
+ arch/sparc64/kernel/smp.c            |    4 ++--
+ arch/sparc64/kernel/spiterrs.S       |    2 +-
+ arch/sparc64/kernel/sun4v_ivec.S     |    8 ++++----
+ arch/sparc64/kernel/traps.c          |    4 ++--
+ arch/sparc64/kernel/ttable.S         |    2 +-
+ 12 files changed, 46 insertions(+), 25 deletions(-)
 
-diff --git a/arch/sparc/Makefile b/arch/sparc/Makefile
-index c5f3d6f..04ea968 100644
---- a/arch/sparc/Makefile
-+++ b/arch/sparc/Makefile
-@@ -27,7 +27,6 @@ CPPFLAGS_vmlinux.lds += -m32
- LDFLAGS_vmlinux = -r
+diff --git a/arch/sparc/include/asm/irqflags_64.h b/arch/sparc/include/asm/irqflags_64.h
+index bb42e59..8b49bf9 100644
+--- a/arch/sparc/include/asm/irqflags_64.h
++++ b/arch/sparc/include/asm/irqflags_64.h
+@@ -10,6 +10,8 @@
+ #ifndef _ASM_IRQFLAGS_H
+ #define _ASM_IRQFLAGS_H
  
- head-y := arch/sparc/kernel/head.o arch/sparc/kernel/init_task.o
--HEAD_Y := $(head-y)
++#include <asm/pil.h>
++
+ #ifndef __ASSEMBLY__
  
- core-y += arch/sparc/kernel/ arch/sparc/mm/ arch/sparc/math-emu/
- libs-y += arch/sparc/prom/ arch/sparc/lib/
-@@ -35,23 +34,16 @@ libs-y += arch/sparc/prom/ arch/sparc/lib/
- drivers-$(CONFIG_OPROFILE)	+= arch/sparc/oprofile/
+ static inline unsigned long __raw_local_save_flags(void)
+@@ -40,9 +42,9 @@ static inline void raw_local_irq_restore(unsigned long flags)
+ static inline void raw_local_irq_disable(void)
+ {
+ 	__asm__ __volatile__(
+-		"wrpr	15, %%pil"
++		"wrpr	%0, %%pil"
+ 		: /* no outputs */
+-		: /* no inputs */
++		: "i" (PIL_NORMAL_MAX)
+ 		: "memory"
+ 	);
+ }
+diff --git a/arch/sparc/include/asm/pil.h b/arch/sparc/include/asm/pil.h
+index 71819bb..d573820 100644
+--- a/arch/sparc/include/asm/pil.h
++++ b/arch/sparc/include/asm/pil.h
+@@ -10,7 +10,12 @@
+  *
+  * In fact any XCALL which has to etrap/rtrap has a problem because
+  * it is difficult to prevent rtrap from running BH's, and that would
+- * need to be done if the XCALL arrived while %pil=15.
++ * need to be done if the XCALL arrived while %pil=PIL_NORMAL_MAX.
++ *
++ * Finally, in order to handle profiling events even when a
++ * local_irq_disable() is in progress, we only disable up to level 14
++ * interrupts.  Profile counter overflow interrupts arrive at level
++ * 15.
+  */
+ #define PIL_SMP_CALL_FUNC	1
+ #define PIL_SMP_RECEIVE_SIGNAL	2
+@@ -18,5 +23,7 @@
+ #define PIL_SMP_CTX_NEW_VERSION	4
+ #define PIL_DEVICE_IRQ		5
+ #define PIL_SMP_CALL_FUNC_SNGL	6
++#define PIL_NORMAL_MAX		14
++#define PIL_NMI			15
  
- # Export what is needed by arch/sparc/boot/Makefile
--# Renaming is done to avoid confusing pattern matching rules in 2.5.45 (multy-)
--INIT_Y		:= $(patsubst %/, %/built-in.o, $(init-y))
--CORE_Y		:= $(core-y)
--CORE_Y		+= kernel/ mm/ fs/ ipc/ security/ crypto/ block/
--CORE_Y		:= $(patsubst %/, %/built-in.o, $(CORE_Y))
--DRIVERS_Y	:= $(patsubst %/, %/built-in.o, $(drivers-y))
--NET_Y		:= $(patsubst %/, %/built-in.o, $(net-y))
--LIBS_Y1		:= $(patsubst %/, %/lib.a, $(libs-y))
--LIBS_Y2		:= $(patsubst %/, %/built-in.o, $(libs-y))
--LIBS_Y		:= $(LIBS_Y1) $(LIBS_Y2)
-+export VMLINUX_INIT VMLINUX_MAIN
-+VMLINUX_INIT := $(head-y) $(init-y)
-+VMLINUX_MAIN := $(core-y) kernel/ mm/ fs/ ipc/ security/ crypto/ block/
-+VMLINUX_MAIN += $(patsubst %/, %/lib.a, $(libs-y)) $(libs-y)
-+VMLINUX_MAIN += $(drivers-y) $(net-y)
+ #endif /* !(_SPARC64_PIL_H) */
+diff --git a/arch/sparc/include/asm/ttable.h b/arch/sparc/include/asm/ttable.h
+index 5708ba2..bb2c077 100644
+--- a/arch/sparc/include/asm/ttable.h
++++ b/arch/sparc/include/asm/ttable.h
+@@ -2,6 +2,7 @@
+ #define _SPARC64_TTABLE_H
  
- ifdef CONFIG_KALLSYMS
- kallsyms.o := .tmp_kallsyms2.o
- endif
+ #include <asm/utrap.h>
++#include <asm/pil.h>
  
--export INIT_Y CORE_Y DRIVERS_Y NET_Y LIBS_Y HEAD_Y kallsyms.o
--
- # Default target
- all: zImage
+ #ifdef __ASSEMBLY__
+ #include <asm/thread_info.h>
+@@ -123,7 +124,7 @@
  
-diff --git a/arch/sparc/boot/Makefile b/arch/sparc/boot/Makefile
-index 3e77a9f..4fd5620 100644
---- a/arch/sparc/boot/Makefile
-+++ b/arch/sparc/boot/Makefile
-@@ -37,8 +37,8 @@ define rule_image
- 	echo 'cmd_$@ := $(cmd_image)' > $(@D)/.$(@F).cmd
- endef
+ #define TRAP_IRQ(routine, level)			\
+ 	rdpr	%pil, %g2;				\
+-	wrpr	%g0, 15, %pil;				\
++	wrpr	%g0, PIL_NORMAL_MAX, %pil;		\
+ 	sethi	%hi(1f-4), %g7;				\
+ 	ba,pt	%xcc, etrap_irq;			\
+ 	 or	%g7, %lo(1f-4), %g7;			\
+@@ -143,7 +144,7 @@
  
--BTOBJS := $(HEAD_Y) $(INIT_Y)
--BTLIBS := $(CORE_Y) $(LIBS_Y) $(DRIVERS_Y) $(NET_Y)
-+BTOBJS := $(patsubst %/, %/built-in.o, $(VMLINUX_INIT))
-+BTLIBS := $(patsubst %/, %/built-in.o, $(VMLINUX_MAIN))
- LDFLAGS_image := -T arch/sparc/kernel/vmlinux.lds $(BTOBJS) \
-                   --start-group $(BTLIBS) --end-group \
-                   $(kallsyms.o) $(obj)/btfix.o
+ #define TRAP_IRQ(routine, level)			\
+ 	rdpr	%pil, %g2;				\
+-	wrpr	%g0, 15, %pil;				\
++	wrpr	%g0, PIL_NORMAL_MAX, %pil;		\
+ 	ba,pt	%xcc, etrap_irq;			\
+ 	 rd	%pc, %g7;				\
+ 	mov	level, %o0;				\
+@@ -153,6 +154,16 @@
+ 
+ #endif
+ 
++#define TRAP_NMI_IRQ(routine, level)			\
++	rdpr	%pil, %g2;				\
++	wrpr	%g0, PIL_NMI, %pil;			\
++	ba,pt	%xcc, etrap_irq;			\
++	 rd	%pc, %g7;				\
++	mov	level, %o0;				\
++	call	routine;				\
++	 add	%sp, PTREGS_OFF, %o1;			\
++	ba,a,pt	%xcc, rtrap_irq;
++
+ #define TRAP_IVEC TRAP_NOSAVE(do_ivec)
+ 
+ #define BTRAP(lvl) TRAP_ARG(bad_trap, lvl)
+diff --git a/arch/sparc/mm/ultra.S b/arch/sparc/mm/ultra.S
+index e4c146f..80c788e 100644
+--- a/arch/sparc/mm/ultra.S
++++ b/arch/sparc/mm/ultra.S
+@@ -466,7 +466,7 @@ xcall_sync_tick:
+ 	.previous
+ 
+ 	rdpr		%pil, %g2
+-	wrpr		%g0, 15, %pil
++	wrpr		%g0, PIL_NORMAL_MAX, %pil
+ 	sethi		%hi(109f), %g7
+ 	b,pt		%xcc, etrap_irq
+ 109:	 or		%g7, %lo(109b), %g7
+@@ -688,7 +688,7 @@ xcall_kgdb_capture:
+ 	.previous
+ 
+ 	rdpr		%pil, %g2
+-	wrpr		%g0, 15, %pil
++	wrpr		%g0, PIL_NORMAL_MAX, %pil
+ 	sethi		%hi(109f), %g7
+ 	ba,pt		%xcc, etrap_irq
+ 109:	 or		%g7, %lo(109b), %g7
+diff --git a/arch/sparc64/kernel/cherrs.S b/arch/sparc64/kernel/cherrs.S
+index 89afebd..4ee1ad4 100644
+--- a/arch/sparc64/kernel/cherrs.S
++++ b/arch/sparc64/kernel/cherrs.S
+@@ -102,7 +102,7 @@ cheetah_plus_dcpe_trap_vector:
+ 	.type		do_cheetah_plus_data_parity,#function
+ do_cheetah_plus_data_parity:
+ 	rdpr		%pil, %g2
+-	wrpr		%g0, 15, %pil
++	wrpr		%g0, PIL_NORMAL_MAX, %pil
+ 	ba,pt		%xcc, etrap_irq
+ 	 rd		%pc, %g7
+ #ifdef CONFIG_TRACE_IRQFLAGS
+@@ -144,7 +144,7 @@ cheetah_plus_icpe_trap_vector:
+ 	.type		do_cheetah_plus_insn_parity,#function
+ do_cheetah_plus_insn_parity:
+ 	rdpr		%pil, %g2
+-	wrpr		%g0, 15, %pil
++	wrpr		%g0, PIL_NORMAL_MAX, %pil
+ 	ba,pt		%xcc, etrap_irq
+ 	 rd		%pc, %g7
+ #ifdef CONFIG_TRACE_IRQFLAGS
+@@ -492,7 +492,7 @@ cheetah_fast_ecc:
+ 	.type		c_fast_ecc,#function
+ c_fast_ecc:
+ 	rdpr		%pil, %g2
+-	wrpr		%g0, 15, %pil
++	wrpr		%g0, PIL_NORMAL_MAX, %pil
+ 	ba,pt		%xcc, etrap_irq
+ 	 rd		%pc, %g7
+ #ifdef CONFIG_TRACE_IRQFLAGS
+@@ -528,7 +528,7 @@ cheetah_cee:
+ 	.type		c_cee,#function
+ c_cee:
+ 	rdpr		%pil, %g2
+-	wrpr		%g0, 15, %pil
++	wrpr		%g0, PIL_NORMAL_MAX, %pil
+ 	ba,pt		%xcc, etrap_irq
+ 	 rd		%pc, %g7
+ #ifdef CONFIG_TRACE_IRQFLAGS
+@@ -564,7 +564,7 @@ cheetah_deferred_trap:
+ 	.type		c_deferred,#function
+ c_deferred:
+ 	rdpr		%pil, %g2
+-	wrpr		%g0, 15, %pil
++	wrpr		%g0, PIL_NORMAL_MAX, %pil
+ 	ba,pt		%xcc, etrap_irq
+ 	 rd		%pc, %g7
+ #ifdef CONFIG_TRACE_IRQFLAGS
+diff --git a/arch/sparc64/kernel/head.S b/arch/sparc64/kernel/head.S
+index 353226f..45830c3 100644
+--- a/arch/sparc64/kernel/head.S
++++ b/arch/sparc64/kernel/head.S
+@@ -706,7 +706,7 @@ setup_trap_table:
+ 	andn	%l0, PSTATE_IE, %o1
+ 	wrpr	%o1, 0x0, %pstate
+ 	rdpr	%pil, %l1
+-	wrpr	%g0, 15, %pil
++	wrpr	%g0, PIL_NORMAL_MAX, %pil
+ 
+ 	/* Make the firmware call to jump over to the Linux trap table.  */
+ 	sethi	%hi(is_sun4v), %o0
+diff --git a/arch/sparc64/kernel/hvtramp.S b/arch/sparc64/kernel/hvtramp.S
+index 0236c43..9365432 100644
+--- a/arch/sparc64/kernel/hvtramp.S
++++ b/arch/sparc64/kernel/hvtramp.S
+@@ -1,6 +1,6 @@
+ /* hvtramp.S: Hypervisor start-cpu trampoline code.
+  *
+- * Copyright (C) 2007 David S. Miller <davem@davemloft.net>
++ * Copyright (C) 2007, 2008 David S. Miller <davem@davemloft.net>
+  */
+ 
+ #include <linux/init.h>
+@@ -14,6 +14,7 @@
+ #include <asm/ptrace.h>
+ #include <asm/head.h>
+ #include <asm/asi.h>
++#include <asm/pil.h>
+ 
+ 	__CPUINIT
+ 	.align		8
+@@ -32,7 +33,7 @@
+ 	 */
+ hv_cpu_startup:
+ 	SET_GL(0)
+-	wrpr		%g0, 15, %pil
++	wrpr		%g0, PIL_NORMAL_MAX, %pil
+ 	wrpr		%g0, 0, %canrestore
+ 	wrpr		%g0, 0, %otherwin
+ 	wrpr		%g0, 6, %cansave
+diff --git a/arch/sparc64/kernel/smp.c b/arch/sparc64/kernel/smp.c
+index 4d615d7..978a51d 100644
+--- a/arch/sparc64/kernel/smp.c
++++ b/arch/sparc64/kernel/smp.c
+@@ -1146,8 +1146,8 @@ void smp_release(void)
+ 	}
+ }
+ 
+-/* Imprisoned penguins run with %pil = 15, but PSTATE_IE set, so they
+- * can service tlb flush xcalls...
++/* Imprisoned penguins run with %pil = PIL_NORMAL_MAX, but PSTATE_IE
++ * set, so they can service tlb flush xcalls...
+  */
+ extern void prom_world(int);
+ 
+diff --git a/arch/sparc64/kernel/spiterrs.S b/arch/sparc64/kernel/spiterrs.S
+index ef902c6..c357e40 100644
+--- a/arch/sparc64/kernel/spiterrs.S
++++ b/arch/sparc64/kernel/spiterrs.S
+@@ -80,7 +80,7 @@ __spitfire_cee_trap_continue:
+ 	cmp		%g2, 1
+ 	rdpr		%pil, %g2
+ 	bleu,pt		%xcc, 1f
+-	 wrpr		%g0, 15, %pil
++	 wrpr		%g0, PIL_NORMAL_MAX, %pil
+ 
+ 	ba,pt		%xcc, etraptl1
+ 	 rd		%pc, %g7
+diff --git a/arch/sparc64/kernel/sun4v_ivec.S b/arch/sparc64/kernel/sun4v_ivec.S
+index e2f8e1b..559bc5e 100644
+--- a/arch/sparc64/kernel/sun4v_ivec.S
++++ b/arch/sparc64/kernel/sun4v_ivec.S
+@@ -186,7 +186,7 @@ sun4v_res_mondo:
+ 	 * when it's done.
+ 	 */
+ 	rdpr	%pil, %g2
+-	wrpr	%g0, 15, %pil
++	wrpr	%g0, PIL_NORMAL_MAX, %pil
+ 	mov	%g1, %g4
+ 	ba,pt	%xcc, etrap_irq
+ 	 rd	%pc, %g7
+@@ -216,7 +216,7 @@ sun4v_res_mondo_queue_full:
+ 	membar	#Sync
+ 
+ 	rdpr	%pil, %g2
+-	wrpr	%g0, 15, %pil
++	wrpr	%g0, PIL_NORMAL_MAX, %pil
+ 	ba,pt	%xcc, etrap_irq
+ 	 rd	%pc, %g7
+ #ifdef CONFIG_TRACE_IRQFLAGS
+@@ -297,7 +297,7 @@ sun4v_nonres_mondo:
+ 	 * when it's done.
+ 	 */
+ 	rdpr	%pil, %g2
+-	wrpr	%g0, 15, %pil
++	wrpr	%g0, PIL_NORMAL_MAX, %pil
+ 	mov	%g1, %g4
+ 	ba,pt	%xcc, etrap_irq
+ 	 rd	%pc, %g7
+@@ -327,7 +327,7 @@ sun4v_nonres_mondo_queue_full:
+ 	membar	#Sync
+ 
+ 	rdpr	%pil, %g2
+-	wrpr	%g0, 15, %pil
++	wrpr	%g0, PIL_NORMAL_MAX, %pil
+ 	ba,pt	%xcc, etrap_irq
+ 	 rd	%pc, %g7
+ #ifdef CONFIG_TRACE_IRQFLAGS
+diff --git a/arch/sparc64/kernel/traps.c b/arch/sparc64/kernel/traps.c
+index 04994fc..4638af2 100644
+--- a/arch/sparc64/kernel/traps.c
++++ b/arch/sparc64/kernel/traps.c
+@@ -1832,7 +1832,7 @@ static void sun4v_log_error(struct pt_regs *regs, struct sun4v_error_entry *ent,
+ 	}
+ }
+ 
+-/* We run with %pil set to 15 and PSTATE_IE enabled in %pstate.
++/* We run with %pil set to PIL_NORMAL_MAX and PSTATE_IE enabled in %pstate.
+  * Log the event and clear the first word of the entry.
+  */
+ void sun4v_resum_error(struct pt_regs *regs, unsigned long offset)
+@@ -1880,7 +1880,7 @@ void sun4v_resum_overflow(struct pt_regs *regs)
+ 	atomic_inc(&sun4v_resum_oflow_cnt);
+ }
+ 
+-/* We run with %pil set to 15 and PSTATE_IE enabled in %pstate.
++/* We run with %pil set to PIL_NORMAL_MAX and PSTATE_IE enabled in %pstate.
+  * Log the event, clear the first word of the entry, and die.
+  */
+ void sun4v_nonresum_error(struct pt_regs *regs, unsigned long offset)
+diff --git a/arch/sparc64/kernel/ttable.S b/arch/sparc64/kernel/ttable.S
+index 2a31ffa..ea92550 100644
+--- a/arch/sparc64/kernel/ttable.S
++++ b/arch/sparc64/kernel/ttable.S
+@@ -66,7 +66,7 @@ tl0_irq6:	BTRAP(0x46)
+ tl0_irq7:	BTRAP(0x47) BTRAP(0x48) BTRAP(0x49)
+ tl0_irq10:	BTRAP(0x4a) BTRAP(0x4b) BTRAP(0x4c) BTRAP(0x4d)
+ tl0_irq14:	TRAP_IRQ(timer_interrupt, 14)
+-tl0_irq15:	TRAP_IRQ(perfctr_irq, 15)
++tl0_irq15:	TRAP_NMI_IRQ(perfctr_irq, 15)
+ tl0_resv050:	BTRAP(0x50) BTRAP(0x51) BTRAP(0x52) BTRAP(0x53) BTRAP(0x54) BTRAP(0x55)
+ tl0_resv056:	BTRAP(0x56) BTRAP(0x57) BTRAP(0x58) BTRAP(0x59) BTRAP(0x5a) BTRAP(0x5b)
+ tl0_resv05c:	BTRAP(0x5c) BTRAP(0x5d) BTRAP(0x5e) BTRAP(0x5f)
 -- 
-1.5.6.GIT
+1.5.6.5
 
