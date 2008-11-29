@@ -1,120 +1,122 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 30 Nov 2008 20:15:28 +0000
-Subject: [PATCH 1/5] sparc: prepare lib/ for unification
-Message-Id: <1228076132-18036-1-git-send-email-sam@ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 29 Nov 2008 06:08:32 +0000
+Subject: [PATCH 1/2]: sparc64: Add performance counter hypervisor calls for
+Message-Id: <20081128.220832.153227228.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Identical named files renamed to <name>_32.S
-Refactored Makefile to prepare for unification.
 
-Linking order was altered slightly - but this is a lib.a file so
-it should not matter.
+sparc64: Add performance counter hypervisor calls for sun4v.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/lib/Makefile                            |   35 ++++++++++++-------
- arch/sparc/lib/{atomic.S => atomic_32.S}           |    0
- arch/sparc/lib/{checksum.S => checksum_32.S}       |    0
- arch/sparc/lib/{memcmp.S => memcmp_32.S}           |    0
- arch/sparc/lib/{memscan.S => memscan_32.S}         |    0
- arch/sparc/lib/{rwsem.S => rwsem_32.S}             |    0
- arch/sparc/lib/{strlen.S => strlen_32.S}           |    0
- arch/sparc/lib/{strlen_user.S => strlen_user_32.S} |    0
- arch/sparc/lib/{strncmp.S => strncmp_32.S}         |    0
- ...{strncpy_from_user.S => strncpy_from_user_32.S} |    0
- 10 files changed, 22 insertions(+), 13 deletions(-)
- rewrite arch/sparc/lib/Makefile (89%)
- rename arch/sparc/lib/{atomic.S => atomic_32.S} (100%)
- rename arch/sparc/lib/{checksum.S => checksum_32.S} (100%)
- rename arch/sparc/lib/{memcmp.S => memcmp_32.S} (100%)
- rename arch/sparc/lib/{memscan.S => memscan_32.S} (100%)
- rename arch/sparc/lib/{rwsem.S => rwsem_32.S} (100%)
- rename arch/sparc/lib/{strlen.S => strlen_32.S} (100%)
- rename arch/sparc/lib/{strlen_user.S => strlen_user_32.S} (100%)
- rename arch/sparc/lib/{strncmp.S => strncmp_32.S} (100%)
- rename arch/sparc/lib/{strncpy_from_user.S => strncpy_from_user_32.S} (100%)
+ arch/sparc/include/asm/hypervisor.h |   24 ++++++++++++++++++++++++
+ arch/sparc64/kernel/hvcalls.S       |   32 ++++++++++++++++++++++++++++++++
+ arch/sparc64/kernel/sparc64_ksyms.c |    6 ++++++
+ 3 files changed, 62 insertions(+), 0 deletions(-)
 
-diff --git a/arch/sparc/lib/Makefile b/arch/sparc/lib/Makefile
-dissimilarity index 89%
-index 6e303e1..f265054 100644
---- a/arch/sparc/lib/Makefile
-+++ b/arch/sparc/lib/Makefile
-@@ -1,13 +1,22 @@
--# Makefile for Sparc library files..
--#
--
--EXTRA_AFLAGS := -ansi -DST_DIV0=0x02
--
--lib-y := mul.o rem.o sdiv.o udiv.o umul.o urem.o ashrdi3.o memcpy.o memset.o \
--         strlen.o checksum.o blockops.o memscan.o memcmp.o strncmp.o \
--	 strncpy_from_user.o divdi3.o udivdi3.o strlen_user.o \
--	 copy_user.o locks.o atomic.o \
--	 lshrdi3.o ashldi3.o rwsem.o muldi3.o bitext.o \
--	 cmpdi2.o
--
--obj-y += iomap.o atomic32.o
-+# Makefile for Sparc library files..
-+#
+diff --git a/arch/sparc/include/asm/hypervisor.h b/arch/sparc/include/asm/hypervisor.h
+index 109ae24..bafe5a6 100644
+--- a/arch/sparc/include/asm/hypervisor.h
++++ b/arch/sparc/include/asm/hypervisor.h
+@@ -2713,6 +2713,30 @@ extern unsigned long sun4v_ldc_revoke(unsigned long channel,
+  */
+ #define HV_FAST_SET_PERFREG		0x101
+ 
++#define HV_N2_PERF_SPARC_CTL		0x0
++#define HV_N2_PERF_DRAM_CTL0		0x1
++#define HV_N2_PERF_DRAM_CNT0		0x2
++#define HV_N2_PERF_DRAM_CTL1		0x3
++#define HV_N2_PERF_DRAM_CNT1		0x4
++#define HV_N2_PERF_DRAM_CTL2		0x5
++#define HV_N2_PERF_DRAM_CNT2		0x6
++#define HV_N2_PERF_DRAM_CTL3		0x7
++#define HV_N2_PERF_DRAM_CNT3		0x8
 +
-+asflags-y := -ansi -DST_DIV0=0x02
-+ccflags-y := -Werror
++#define HV_FAST_N2_GET_PERFREG		0x104
++#define HV_FAST_N2_SET_PERFREG		0x105
 +
-+lib-$(CONFIG_SPARC32) += mul.o rem.o sdiv.o udiv.o umul.o urem.o ashrdi3.o
-+lib-$(CONFIG_SPARC32) += memcpy.o memset.o
-+lib-y                 += strlen_$(BITS).o
-+lib-y                 += checksum_$(BITS).o
-+lib-$(CONFIG_SPARC32) += blockops.o
-+lib-y                 += memscan_$(BITS).o memcmp_$(BITS).o strncmp_$(BITS).o
-+lib-y                 += strncpy_from_user_$(BITS).o strlen_user_$(BITS).o
-+lib-$(CONFIG_SPARC32) += divdi3.o udivdi3.o
-+lib-$(CONFIG_SPARC32) += copy_user.o locks.o
-+lib-y                 += atomic_$(BITS).o
-+lib-$(CONFIG_SPARC32) += lshrdi3.o ashldi3.o
-+lib-y                 += rwsem_$(BITS).o
-+lib-$(CONFIG_SPARC32) += muldi3.o bitext.o cmpdi2.o
++#ifndef __ASSEMBLY__
++extern unsigned long sun4v_niagara_getperf(unsigned long reg,
++					   unsigned long *val);
++extern unsigned long sun4v_niagara_setperf(unsigned long reg,
++					   unsigned long val);
++extern unsigned long sun4v_niagara2_getperf(unsigned long reg,
++					    unsigned long *val);
++extern unsigned long sun4v_niagara2_setperf(unsigned long reg,
++					    unsigned long val);
++#endif
 +
-+obj-y                 += iomap.o
-+obj-$(CONFIG_SPARC32) += atomic32.o
-diff --git a/arch/sparc/lib/atomic.S b/arch/sparc/lib/atomic_32.S
-similarity index 100%
-rename from arch/sparc/lib/atomic.S
-rename to arch/sparc/lib/atomic_32.S
-diff --git a/arch/sparc/lib/checksum.S b/arch/sparc/lib/checksum_32.S
-similarity index 100%
-rename from arch/sparc/lib/checksum.S
-rename to arch/sparc/lib/checksum_32.S
-diff --git a/arch/sparc/lib/memcmp.S b/arch/sparc/lib/memcmp_32.S
-similarity index 100%
-rename from arch/sparc/lib/memcmp.S
-rename to arch/sparc/lib/memcmp_32.S
-diff --git a/arch/sparc/lib/memscan.S b/arch/sparc/lib/memscan_32.S
-similarity index 100%
-rename from arch/sparc/lib/memscan.S
-rename to arch/sparc/lib/memscan_32.S
-diff --git a/arch/sparc/lib/rwsem.S b/arch/sparc/lib/rwsem_32.S
-similarity index 100%
-rename from arch/sparc/lib/rwsem.S
-rename to arch/sparc/lib/rwsem_32.S
-diff --git a/arch/sparc/lib/strlen.S b/arch/sparc/lib/strlen_32.S
-similarity index 100%
-rename from arch/sparc/lib/strlen.S
-rename to arch/sparc/lib/strlen_32.S
-diff --git a/arch/sparc/lib/strlen_user.S b/arch/sparc/lib/strlen_user_32.S
-similarity index 100%
-rename from arch/sparc/lib/strlen_user.S
-rename to arch/sparc/lib/strlen_user_32.S
-diff --git a/arch/sparc/lib/strncmp.S b/arch/sparc/lib/strncmp_32.S
-similarity index 100%
-rename from arch/sparc/lib/strncmp.S
-rename to arch/sparc/lib/strncmp_32.S
-diff --git a/arch/sparc/lib/strncpy_from_user.S b/arch/sparc/lib/strncpy_from_user_32.S
-similarity index 100%
-rename from arch/sparc/lib/strncpy_from_user.S
-rename to arch/sparc/lib/strncpy_from_user_32.S
+ /* MMU statistics services.
+  *
+  * The hypervisor maintains MMU statistics and privileged code provides
+diff --git a/arch/sparc64/kernel/hvcalls.S b/arch/sparc64/kernel/hvcalls.S
+index e066269..8a5f35f 100644
+--- a/arch/sparc64/kernel/hvcalls.S
++++ b/arch/sparc64/kernel/hvcalls.S
+@@ -766,3 +766,35 @@ ENTRY(sun4v_mmu_demap_all)
+ 	retl
+ 	 nop
+ ENDPROC(sun4v_mmu_demap_all)
++
++ENTRY(sun4v_niagara_getperf)
++	mov	%o0, %o4
++	mov	HV_FAST_GET_PERFREG, %o5
++	ta	HV_FAST_TRAP
++	stx	%o1, [%o4]
++	retl
++	 nop
++ENDPROC(sun4v_niagara_getperf)
++
++ENTRY(sun4v_niagara_setperf)
++	mov	HV_FAST_SET_PERFREG, %o5
++	ta	HV_FAST_TRAP
++	retl
++	 nop
++ENDPROC(sun4v_niagara_setperf)
++
++ENTRY(sun4v_niagara2_getperf)
++	mov	%o0, %o4
++	mov	HV_FAST_N2_GET_PERFREG, %o5
++	ta	HV_FAST_TRAP
++	stx	%o1, [%o4]
++	retl
++	 nop
++ENDPROC(sun4v_niagara2_getperf)
++
++ENTRY(sun4v_niagara2_setperf)
++	mov	HV_FAST_N2_SET_PERFREG, %o5
++	ta	HV_FAST_TRAP
++	retl
++	 nop
++ENDPROC(sun4v_niagara2_setperf)
+diff --git a/arch/sparc64/kernel/sparc64_ksyms.c b/arch/sparc64/kernel/sparc64_ksyms.c
+index 30bba8b..c450825 100644
+--- a/arch/sparc64/kernel/sparc64_ksyms.c
++++ b/arch/sparc64/kernel/sparc64_ksyms.c
+@@ -49,6 +49,7 @@
+ #include <asm/timer.h>
+ #include <asm/cpudata.h>
+ #include <asm/ftrace.h>
++#include <asm/hypervisor.h>
+ 
+ struct poll {
+ 	int fd;
+@@ -148,6 +149,11 @@ EXPORT_SYMBOL(flush_dcache_page);
+ EXPORT_SYMBOL(__flush_dcache_range);
+ #endif
+ 
++EXPORT_SYMBOL(sun4v_niagara_getperf);
++EXPORT_SYMBOL(sun4v_niagara_setperf);
++EXPORT_SYMBOL(sun4v_niagara2_getperf);
++EXPORT_SYMBOL(sun4v_niagara2_setperf);
++
+ #ifdef CONFIG_SUN_AUXIO
+ EXPORT_SYMBOL(auxio_set_led);
+ EXPORT_SYMBOL(auxio_set_lte);
 -- 
-1.5.6.GIT
+1.5.6.5
 
