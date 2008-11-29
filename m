@@ -1,47 +1,42 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 26 Nov 2008 08:40:54 +0000
-Subject: [PATCH 4/6]: sparc64: Block NMIs in critical section of context
-Message-Id: <20081126.004054.69988085.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 29 Nov 2008 22:05:51 +0000
+Subject: [PATCH 07/10] sparc: gitignore a few files
+Message-Id: <1227996354-11478-7-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+With this 'git status' no longer reports any new files
+At least not for a sparc allnoconfig build
 
-sparc64: Block NMIs in critical section of context switch.
-
-In these instructions we load the new thread register, switch
-the register window, and setup the new frame pointer.
-
-All of these must appear atomic, and things will explode if
-we take a PIL NMI interrupt in the middle of this sequence.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/include/asm/system_64.h |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ arch/sparc/boot/.gitignore   |    5 +++++
+ arch/sparc/kernel/.gitignore |    1 +
+ 2 files changed, 6 insertions(+), 0 deletions(-)
+ create mode 100644 arch/sparc/boot/.gitignore
+ create mode 100644 arch/sparc/kernel/.gitignore
 
-diff --git a/arch/sparc/include/asm/system_64.h b/arch/sparc/include/asm/system_64.h
-index 7554ad3..779cf62 100644
---- a/arch/sparc/include/asm/system_64.h
-+++ b/arch/sparc/include/asm/system_64.h
-@@ -159,6 +159,7 @@ do {	if (test_thread_flag(TIF_PERFCTR)) {				\
- 	"stb	%%o5, [%%g6 + %5]\n\t"					\
- 	"rdpr	%%cwp, %%o5\n\t"					\
- 	"stb	%%o5, [%%g6 + %8]\n\t"					\
-+	"wrpr	%%g0, 15, %%pil\n\t"					\
- 	"mov	%4, %%g6\n\t"						\
- 	"ldub	[%4 + %8], %%g1\n\t"					\
- 	"wrpr	%%g1, %%cwp\n\t"					\
-@@ -169,6 +170,7 @@ do {	if (test_thread_flag(TIF_PERFCTR)) {				\
- 	"ldx	[%%sp + 2047 + 0x70], %%i6\n\t"				\
- 	"ldx	[%%sp + 2047 + 0x78], %%i7\n\t"				\
- 	"ldx	[%%g6 + %9], %%g4\n\t"					\
-+	"wrpr	%%g0, 14, %%pil\n\t"					\
- 	"brz,pt %%o7, switch_to_pc\n\t"					\
- 	" mov	%%g7, %0\n\t"						\
- 	"sethi	%%hi(ret_from_syscall), %%g1\n\t"			\
+diff --git a/arch/sparc/boot/.gitignore b/arch/sparc/boot/.gitignore
+new file mode 100644
+index 0000000..8ffba57
+--- /dev/null
++++ b/arch/sparc/boot/.gitignore
+@@ -0,0 +1,5 @@
++btfix.S
++btfixupprep
++image
++zImage
++
+diff --git a/arch/sparc/kernel/.gitignore b/arch/sparc/kernel/.gitignore
+new file mode 100644
+index 0000000..c5f676c
+--- /dev/null
++++ b/arch/sparc/kernel/.gitignore
+@@ -0,0 +1 @@
++vmlinux.lds
 -- 
-1.5.6.5
+1.5.6.GIT
 
