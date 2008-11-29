@@ -1,71 +1,139 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 26 Nov 2008 08:40:51 +0000
-Subject: [PATCH 3/6]: sparc64: Make special trap return path for TRAP_NMI().
-Message-Id: <20081126.004051.138998912.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 29 Nov 2008 22:05:54 +0000
+Subject: [PATCH 10/10] sparc,sparc64: unify prom/
+Message-Id: <1227996354-11478-10-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+- all files with identical names copied and renamed to *_64.c
+- the remaning files copied as is
+- added sparc64 specific files to sparc/prom/Makefile
+- teach sparc64 Makefile to look into sparc/prom/
+- delete unused Makefile from sparc64/prom/
 
-sparc64: Make special trap return path for TRAP_NMI().
+linking order was not kept for sparc64 with this change.
+It was not possible to keep linking order for both sparc and sparc64
+and as sparc64 see more testing than sparc it was natural to
+break linking order on sparc64. Should it have any effect it
+would be detected sooner this way.
 
-We don't want the rtrap path to try and run softirqs or
-anything like that when returning from a PIL=15 NMI.
+printf_32.c and printf_64.c are obvious candidates to be merged
+but they are not 100% equal so that was left for later
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/include/asm/ttable.h |    2 +-
- arch/sparc64/kernel/rtrap.S     |   14 +++++++++++++-
- 2 files changed, 14 insertions(+), 2 deletions(-)
+ arch/sparc/Makefile                                |    3 +--
+ arch/sparc/prom/Makefile                           |    4 ++++
+ .../prom/bootstr.c => sparc/prom/bootstr_64.c}     |    0
+ arch/{sparc64 => sparc}/prom/cif.S                 |    0
+ .../prom/console.c => sparc/prom/console_64.c}     |    0
+ .../prom/devops.c => sparc/prom/devops_64.c}       |    0
+ arch/{sparc64/prom/init.c => sparc/prom/init_64.c} |    0
+ arch/{sparc64/prom/misc.c => sparc/prom/misc_64.c} |    0
+ arch/{sparc64 => sparc}/prom/p1275.c               |    0
+ .../prom/printf.c => sparc/prom/printf_64.c}       |    0
+ arch/{sparc64/prom/tree.c => sparc/prom/tree_64.c} |    0
+ arch/sparc64/prom/Makefile                         |    9 ---------
+ 12 files changed, 5 insertions(+), 11 deletions(-)
+ rename arch/{sparc64/prom/bootstr.c => sparc/prom/bootstr_64.c} (100%)
+ rename arch/{sparc64 => sparc}/prom/cif.S (100%)
+ rename arch/{sparc64/prom/console.c => sparc/prom/console_64.c} (100%)
+ rename arch/{sparc64/prom/devops.c => sparc/prom/devops_64.c} (100%)
+ rename arch/{sparc64/prom/init.c => sparc/prom/init_64.c} (100%)
+ rename arch/{sparc64/prom/misc.c => sparc/prom/misc_64.c} (100%)
+ rename arch/{sparc64 => sparc}/prom/p1275.c (100%)
+ rename arch/{sparc64/prom/printf.c => sparc/prom/printf_64.c} (100%)
+ rename arch/{sparc64/prom/tree.c => sparc/prom/tree_64.c} (100%)
+ delete mode 100644 arch/sparc64/prom/Makefile
 
-diff --git a/arch/sparc/include/asm/ttable.h b/arch/sparc/include/asm/ttable.h
-index bb2c077..48f2807 100644
---- a/arch/sparc/include/asm/ttable.h
-+++ b/arch/sparc/include/asm/ttable.h
-@@ -162,7 +162,7 @@
- 	mov	level, %o0;				\
- 	call	routine;				\
- 	 add	%sp, PTREGS_OFF, %o1;			\
--	ba,a,pt	%xcc, rtrap_irq;
-+	ba,a,pt	%xcc, rtrap_nmi;
+diff --git a/arch/sparc/Makefile b/arch/sparc/Makefile
+index dae2342..6df8eb5 100644
+--- a/arch/sparc/Makefile
++++ b/arch/sparc/Makefile
+@@ -76,9 +76,8 @@ core-$(CONFIG_SPARC32) += arch/sparc/kernel/
+ core-$(CONFIG_SPARC64) += arch/sparc64/kernel/
+ core-y                 += arch/sparc/mm/ arch/sparc/math-emu/
  
- #define TRAP_IVEC TRAP_NOSAVE(do_ivec)
+-libs-$(CONFIG_SPARC32) += arch/sparc/prom/
++libs-y                 += arch/sparc/prom/
+ libs-$(CONFIG_SPARC32) += arch/sparc/lib/
+-libs-$(CONFIG_SPARC64) += arch/sparc64/prom/
+ libs-$(CONFIG_SPARC64) += arch/sparc64/lib/
  
-diff --git a/arch/sparc64/kernel/rtrap.S b/arch/sparc64/kernel/rtrap.S
-index 6892cf5..fd3cee4 100644
---- a/arch/sparc64/kernel/rtrap.S
-+++ b/arch/sparc64/kernel/rtrap.S
-@@ -132,6 +132,18 @@ __handle_signal:
- 		ba,pt			%xcc, __handle_signal_continue
- 		 andn			%l1, %l4, %l1
+ drivers-$(CONFIG_OPROFILE)	+= arch/sparc/oprofile/
+diff --git a/arch/sparc/prom/Makefile b/arch/sparc/prom/Makefile
+index 74ca9cc..f8e0278 100644
+--- a/arch/sparc/prom/Makefile
++++ b/arch/sparc/prom/Makefile
+@@ -1,6 +1,8 @@
+ # Makefile for the Sun Boot PROM interface library under
+ # Linux.
+ #
++asflags := -ansi
++ccflags := -Werror
  
-+		/* When returning from a NMI (%pil=15) interrupt we want to
-+		 * avoid running softirqs, doing IRQ tracing, preempting, etc.
-+		 */
-+		.globl			rtrap_nmi
-+rtrap_nmi:	ldx			[%sp + PTREGS_OFF + PT_V9_TSTATE], %l1
-+		sethi			%hi(0xf << 20), %l4
-+		and			%l1, %l4, %l4
-+		andn			%l1, %l4, %l1
-+		srl			%l4, 20, %l4
-+		ba,pt			%xcc, rtrap_no_irq_enable
-+		 wrpr			%l4, %pil
-+
- 		.align			64
- 		.globl			rtrap_irq, rtrap, irqsz_patchme, rtrap_xcall
- rtrap_irq:
-@@ -161,8 +173,8 @@ rtrap_xcall:
- 		call			trace_hardirqs_on
- 		 nop
- 		wrpr			%l4, %pil
--rtrap_no_irq_enable:
- #endif
-+rtrap_no_irq_enable:
- 		andcc			%l1, TSTATE_PRIV, %l3
- 		bne,pn			%icc, to_kernel
- 		 nop
+ lib-y                 := bootstr_$(BITS).o
+ lib-$(CONFIG_SPARC32) += devmap.o
+@@ -15,3 +17,5 @@ lib-$(CONFIG_SPARC32) += segment.o
+ lib-y                 += console_$(BITS).o
+ lib-y                 += printf_$(BITS).o
+ lib-y                 += tree_$(BITS).o
++lib-$(CONFIG_SPARC64) += p1275.o
++lib-$(CONFIG_SPARC64) += cif.o
+diff --git a/arch/sparc64/prom/bootstr.c b/arch/sparc/prom/bootstr_64.c
+similarity index 100%
+rename from arch/sparc64/prom/bootstr.c
+rename to arch/sparc/prom/bootstr_64.c
+diff --git a/arch/sparc64/prom/cif.S b/arch/sparc/prom/cif.S
+similarity index 100%
+rename from arch/sparc64/prom/cif.S
+rename to arch/sparc/prom/cif.S
+diff --git a/arch/sparc64/prom/console.c b/arch/sparc/prom/console_64.c
+similarity index 100%
+rename from arch/sparc64/prom/console.c
+rename to arch/sparc/prom/console_64.c
+diff --git a/arch/sparc64/prom/devops.c b/arch/sparc/prom/devops_64.c
+similarity index 100%
+rename from arch/sparc64/prom/devops.c
+rename to arch/sparc/prom/devops_64.c
+diff --git a/arch/sparc64/prom/init.c b/arch/sparc/prom/init_64.c
+similarity index 100%
+rename from arch/sparc64/prom/init.c
+rename to arch/sparc/prom/init_64.c
+diff --git a/arch/sparc64/prom/misc.c b/arch/sparc/prom/misc_64.c
+similarity index 100%
+rename from arch/sparc64/prom/misc.c
+rename to arch/sparc/prom/misc_64.c
+diff --git a/arch/sparc64/prom/p1275.c b/arch/sparc/prom/p1275.c
+similarity index 100%
+rename from arch/sparc64/prom/p1275.c
+rename to arch/sparc/prom/p1275.c
+diff --git a/arch/sparc64/prom/printf.c b/arch/sparc/prom/printf_64.c
+similarity index 100%
+rename from arch/sparc64/prom/printf.c
+rename to arch/sparc/prom/printf_64.c
+diff --git a/arch/sparc64/prom/tree.c b/arch/sparc/prom/tree_64.c
+similarity index 100%
+rename from arch/sparc64/prom/tree.c
+rename to arch/sparc/prom/tree_64.c
+diff --git a/arch/sparc64/prom/Makefile b/arch/sparc64/prom/Makefile
+deleted file mode 100644
+index 8c94483..0000000
+--- a/arch/sparc64/prom/Makefile
++++ /dev/null
+@@ -1,9 +0,0 @@
+-# Makefile for the Sun Boot PROM interface library under
+-# Linux.
+-#
+-
+-EXTRA_AFLAGS := -ansi
+-EXTRA_CFLAGS := -Werror
+-
+-lib-y   := bootstr.o devops.o init.o misc.o \
+-	   tree.o console.o printf.o p1275.o cif.o
 -- 
-1.5.6.5
+1.5.6.GIT
 
