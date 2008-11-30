@@ -1,137 +1,182 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 17 Nov 2008 22:06:01 +0000
-Subject: [PATCH 2/6] sparc,sparc64: unify prom/
-Message-Id: <1226959565-14796-2-git-send-email-sam@ravnborg.org>
+Date: Sun, 30 Nov 2008 20:15:32 +0000
+Subject: [PATCH 5/5] sparc,sparc64: unify boot/
+Message-Id: <1228076132-18036-5-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-- all files with identical names copied and renamed to *_64.c
-- the remaning files copied as is
-- added sparc64 specific files to sparc/prom/Makefile
-- teach sparc64 Makefile to look into sparc/prom/
-- delete unused Makefile from sparc64/prom/
-
-linking order was not kept for sparc64 with this change.
-It was not possible to keep linking order for both sparc and sparc64
-and as sparc64 see more testing than sparc it was natural to
-break linking order on sparc64. Should it have any effect it
-would be detected sooner this way.
-
-printf_32.c and printf_64.c are obvious candidates to be merged
-but they are not 100% equal so that was left for later
+Simple unification:
+o renamed piggyback to *_32.c/*_64.c
+o copied content of Makefile from sparc64 to sparc and guard it
+o updated sparc/boot/.gitignore
+o deleted remaining files in sparc64/boot
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/prom/Makefile                           |    4 ++++
- .../prom/bootstr.c => sparc/prom/bootstr_64.c}     |    0
- arch/{sparc64 => sparc}/prom/cif.S                 |    0
- .../prom/console.c => sparc/prom/console_64.c}     |    0
- .../prom/devops.c => sparc/prom/devops_64.c}       |    0
- arch/{sparc64/prom/init.c => sparc/prom/init_64.c} |    0
- arch/{sparc64/prom/misc.c => sparc/prom/misc_64.c} |    0
- arch/{sparc64 => sparc}/prom/p1275.c               |    0
- .../prom/printf.c => sparc/prom/printf_64.c}       |    0
- arch/{sparc64/prom/tree.c => sparc/prom/tree_64.c} |    0
- arch/sparc64/Makefile                              |    2 +-
- arch/sparc64/prom/Makefile                         |    9 ---------
- 12 files changed, 5 insertions(+), 10 deletions(-)
- rename arch/{sparc64/prom/bootstr.c => sparc/prom/bootstr_64.c} (100%)
- rename arch/{sparc64 => sparc}/prom/cif.S (100%)
- rename arch/{sparc64/prom/console.c => sparc/prom/console_64.c} (100%)
- rename arch/{sparc64/prom/devops.c => sparc/prom/devops_64.c} (100%)
- rename arch/{sparc64/prom/init.c => sparc/prom/init_64.c} (100%)
- rename arch/{sparc64/prom/misc.c => sparc/prom/misc_64.c} (100%)
- rename arch/{sparc64 => sparc}/prom/p1275.c (100%)
- rename arch/{sparc64/prom/printf.c => sparc/prom/printf_64.c} (100%)
- rename arch/{sparc64/prom/tree.c => sparc/prom/tree_64.c} (100%)
- delete mode 100644 arch/sparc64/prom/Makefile
+ arch/sparc/Makefile                                |    9 ++---
+ arch/sparc/boot/.gitignore                         |    3 ++
+ arch/sparc/boot/Makefile                           |   33 ++++++++++++++++++--
+ arch/sparc/boot/{piggyback.c => piggyback_32.c}    |    0
+ .../boot/piggyback.c => sparc/boot/piggyback_64.c} |    0
+ arch/sparc64/boot/.gitignore                       |    4 --
+ arch/sparc64/boot/Makefile                         |   33 --------------------
+ 7 files changed, 37 insertions(+), 45 deletions(-)
+ rename arch/sparc/boot/{piggyback.c => piggyback_32.c} (100%)
+ rename arch/{sparc64/boot/piggyback.c => sparc/boot/piggyback_64.c} (100%)
+ delete mode 100644 arch/sparc64/boot/.gitignore
+ delete mode 100644 arch/sparc64/boot/Makefile
 
-diff --git a/arch/sparc/prom/Makefile b/arch/sparc/prom/Makefile
-index 74ca9cc..f8e0278 100644
---- a/arch/sparc/prom/Makefile
-+++ b/arch/sparc/prom/Makefile
-@@ -1,6 +1,8 @@
- # Makefile for the Sun Boot PROM interface library under
- # Linux.
- #
-+asflags := -ansi
-+ccflags := -Werror
+diff --git a/arch/sparc/Makefile b/arch/sparc/Makefile
+index ee38f76..29161b8 100644
+--- a/arch/sparc/Makefile
++++ b/arch/sparc/Makefile
+@@ -85,17 +85,16 @@ VMLINUX_MAIN := $(core-y) kernel/ mm/ fs/ ipc/ security/ crypto/ block/
+ VMLINUX_MAIN += $(patsubst %/, %/lib.a, $(libs-y)) $(libs-y)
+ VMLINUX_MAIN += $(drivers-y) $(net-y)
  
- lib-y                 := bootstr_$(BITS).o
- lib-$(CONFIG_SPARC32) += devmap.o
-@@ -15,3 +17,5 @@ lib-$(CONFIG_SPARC32) += segment.o
- lib-y                 += console_$(BITS).o
- lib-y                 += printf_$(BITS).o
- lib-y                 += tree_$(BITS).o
-+lib-$(CONFIG_SPARC64) += p1275.o
-+lib-$(CONFIG_SPARC64) += cif.o
-diff --git a/arch/sparc64/prom/bootstr.c b/arch/sparc/prom/bootstr_64.c
-similarity index 100%
-rename from arch/sparc64/prom/bootstr.c
-rename to arch/sparc/prom/bootstr_64.c
-diff --git a/arch/sparc64/prom/cif.S b/arch/sparc/prom/cif.S
-similarity index 100%
-rename from arch/sparc64/prom/cif.S
-rename to arch/sparc/prom/cif.S
-diff --git a/arch/sparc64/prom/console.c b/arch/sparc/prom/console_64.c
-similarity index 100%
-rename from arch/sparc64/prom/console.c
-rename to arch/sparc/prom/console_64.c
-diff --git a/arch/sparc64/prom/devops.c b/arch/sparc/prom/devops_64.c
-similarity index 100%
-rename from arch/sparc64/prom/devops.c
-rename to arch/sparc/prom/devops_64.c
-diff --git a/arch/sparc64/prom/init.c b/arch/sparc/prom/init_64.c
-similarity index 100%
-rename from arch/sparc64/prom/init.c
-rename to arch/sparc/prom/init_64.c
-diff --git a/arch/sparc64/prom/misc.c b/arch/sparc/prom/misc_64.c
-similarity index 100%
-rename from arch/sparc64/prom/misc.c
-rename to arch/sparc/prom/misc_64.c
-diff --git a/arch/sparc64/prom/p1275.c b/arch/sparc/prom/p1275.c
-similarity index 100%
-rename from arch/sparc64/prom/p1275.c
-rename to arch/sparc/prom/p1275.c
-diff --git a/arch/sparc64/prom/printf.c b/arch/sparc/prom/printf_64.c
-similarity index 100%
-rename from arch/sparc64/prom/printf.c
-rename to arch/sparc/prom/printf_64.c
-diff --git a/arch/sparc64/prom/tree.c b/arch/sparc/prom/tree_64.c
-similarity index 100%
-rename from arch/sparc64/prom/tree.c
-rename to arch/sparc/prom/tree_64.c
-diff --git a/arch/sparc64/Makefile b/arch/sparc64/Makefile
-index bfe0868..33d7302 100644
---- a/arch/sparc64/Makefile
-+++ b/arch/sparc64/Makefile
-@@ -29,7 +29,7 @@ head-y := arch/sparc64/kernel/head.o arch/sparc64/kernel/init_task.o
+-boot-y                 := arch/sparc/boot
+-boot-$(CONFIG_SPARC64) := arch/sparc64/boot
++boot := arch/sparc/boot
  
- core-y				+= arch/sparc64/kernel/ arch/sparc/mm/
- core-y				+= arch/sparc/math-emu/
--libs-y				+= arch/sparc64/prom/ arch/sparc64/lib/
-+libs-y				+= arch/sparc/prom/ arch/sparc64/lib/
- drivers-$(CONFIG_OPROFILE)	+= arch/sparc/oprofile/
+ image zImage tftpboot.img vmlinux.aout: vmlinux
+-	$(Q)$(MAKE) $(build)=$(boot-y) $(boot-y)/$@
++	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
  
- boot := arch/sparc64/boot
-diff --git a/arch/sparc64/prom/Makefile b/arch/sparc64/prom/Makefile
+ archclean:
+-	$(Q)$(MAKE) $(clean)=$(boot-y)
++	$(Q)$(MAKE) $(clean)=$(boot)
+ 
+ # This is the image used for packaging
+-KBUILD_IMAGE := $(boot-y)/zImage
++KBUILD_IMAGE := $(boot)/zImage
+ 
+ # Don't use tabs in echo arguments.
+ ifeq ($(ARCH),sparc)
+diff --git a/arch/sparc/boot/.gitignore b/arch/sparc/boot/.gitignore
+index 8ffba57..fc6f398 100644
+--- a/arch/sparc/boot/.gitignore
++++ b/arch/sparc/boot/.gitignore
+@@ -2,4 +2,7 @@ btfix.S
+ btfixupprep
+ image
+ zImage
++tftpboot.img
++vmlinux.aout
++piggyback
+ 
+diff --git a/arch/sparc/boot/Makefile b/arch/sparc/boot/Makefile
+index 74ba65b..07f1936 100644
+--- a/arch/sparc/boot/Makefile
++++ b/arch/sparc/boot/Makefile
+@@ -6,14 +6,16 @@
+ ROOT_IMG	:= /usr/src/root.img
+ ELFTOAOUT	:= elftoaout
+ 
+-hostprogs-y	:= piggyback btfixupprep
+-targets		:= tftpboot.img btfix.o btfix.S image zImage
++hostprogs-y	:= piggyback_32 piggyback_64 btfixupprep
++targets		:= tftpboot.img btfix.o btfix.S image zImage vmlinux.aout
+ clean-files	:= System.map
+ 
+ quiet_cmd_elftoaout	= ELFTOAOUT $@
+       cmd_elftoaout	= $(ELFTOAOUT) $(obj)/image -o $@
++
++ifeq ($(CONFIG_SPARC32),y)
+ quiet_cmd_piggy		= PIGGY   $@
+-      cmd_piggy		= $(obj)/piggyback $@ $(obj)/System.map $(ROOT_IMG)
++      cmd_piggy		= $(obj)/piggyback_32 $@ $(obj)/System.map $(ROOT_IMG)
+ quiet_cmd_btfix		= BTFIX   $@
+       cmd_btfix		= $(OBJDUMP) -x vmlinux | $(obj)/btfixupprep > $@
+ quiet_cmd_sysmap        = SYSMAP  $(obj)/System.map
+@@ -62,3 +64,28 @@ $(obj)/tftpboot.img: $(obj)/piggyback $(obj)/System.map $(obj)/image FORCE
+ 
+ $(obj)/btfix.S: $(obj)/btfixupprep vmlinux FORCE
+ 	$(call if_changed,btfix)
++
++endif
++
++ifeq ($(CONFIG_SPARC64),y)
++quiet_cmd_piggy     = PIGGY   $@
++      cmd_piggy     = $(obj)/piggyback_64 $@ System.map $(ROOT_IMG)
++quiet_cmd_strip     = STRIP   $@
++      cmd_strip     = $(STRIP) -R .comment -R .note -K sun4u_init -K _end -K _start vmlinux -o $@
++
++
++# Actual linking
++$(obj)/image: vmlinux FORCE
++        $(call if_changed,strip)
++        @echo '  kernel: $@ is ready'
++
++$(obj)/tftpboot.img: vmlinux $(obj)/piggyback_64 System.map $(ROOT_IMG) FORCE
++        $(call if_changed,elftoaout)
++        $(call if_changed,piggy)
++        @echo '  kernel: $@ is ready'
++
++$(obj)/vmlinux.aout: vmlinux FORCE
++        $(call if_changed,elftoaout)
++        @echo '  kernel: $@ is ready'
++endif
++
+diff --git a/arch/sparc/boot/piggyback.c b/arch/sparc/boot/piggyback_32.c
+similarity index 100%
+rename from arch/sparc/boot/piggyback.c
+rename to arch/sparc/boot/piggyback_32.c
+diff --git a/arch/sparc64/boot/piggyback.c b/arch/sparc/boot/piggyback_64.c
+similarity index 100%
+rename from arch/sparc64/boot/piggyback.c
+rename to arch/sparc/boot/piggyback_64.c
+diff --git a/arch/sparc64/boot/.gitignore b/arch/sparc64/boot/.gitignore
 deleted file mode 100644
-index 8c94483..0000000
---- a/arch/sparc64/prom/Makefile
+index 36356f9..0000000
+--- a/arch/sparc64/boot/.gitignore
 +++ /dev/null
-@@ -1,9 +0,0 @@
--# Makefile for the Sun Boot PROM interface library under
--# Linux.
+@@ -1,4 +0,0 @@
+-image
+-tftpboot.img
+-vmlinux.aout
+-piggyback
+diff --git a/arch/sparc64/boot/Makefile b/arch/sparc64/boot/Makefile
+deleted file mode 100644
+index 0458b52..0000000
+--- a/arch/sparc64/boot/Makefile
++++ /dev/null
+@@ -1,33 +0,0 @@
+-# Makefile for the Sparc64 boot stuff.
 -#
+-# Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)
+-# Copyright (C) 1997 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
 -
--EXTRA_AFLAGS := -ansi
--EXTRA_CFLAGS := -Werror
+-ROOT_IMG	:= /usr/src/root.img
+-ELFTOAOUT	:= elftoaout
 -
--lib-y   := bootstr.o devops.o init.o misc.o \
--	   tree.o console.o printf.o p1275.o cif.o
+-hostprogs-y	:= piggyback
+-targets		:= image tftpboot.img vmlinux.aout
+-
+-quiet_cmd_elftoaout = ELF2AOUT $@
+-      cmd_elftoaout = $(ELFTOAOUT) vmlinux -o $@
+-quiet_cmd_piggy     = PIGGY   $@
+-      cmd_piggy     = $(obj)/piggyback $@ System.map $(ROOT_IMG)
+-quiet_cmd_strip     = STRIP   $@
+-      cmd_strip     = $(STRIP) -R .comment -R .note -K sun4u_init -K _end -K _start vmlinux -o $@
+-
+-
+-# Actual linking
+-$(obj)/image: vmlinux FORCE
+-	$(call if_changed,strip)
+-	@echo '  kernel: $@ is ready'
+-
+-$(obj)/tftpboot.img: vmlinux $(obj)/piggyback System.map $(ROOT_IMG) FORCE
+-	$(call if_changed,elftoaout)
+-	$(call if_changed,piggy)
+-	@echo '  kernel: $@ is ready'
+-
+-$(obj)/vmlinux.aout: vmlinux FORCE
+-	$(call if_changed,elftoaout)
+-	@echo '  kernel: $@ is ready'
+-
 -- 
 1.5.6.GIT
 
