@@ -1,7 +1,7 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 01 Dec 2008 05:50:17 +0000
+Date: Mon, 01 Dec 2008 08:55:03 +0000
 Subject: Re: sparc next boot failure
-Message-Id: <20081201055017.GA21782@uranus.ravnborg.org>
+Message-Id: <20081201085503.GB30798@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <49334590.8010703@earthlink.net>
 In-Reply-To: <49334590.8010703@earthlink.net>
@@ -34,12 +34,24 @@ On Sun, Nov 30, 2008 at 09:01:52PM -0500, Robert Reif wrote:
 
 Hi Robert.
 
-Thanks for testing and bisecting!
+Can you try to add the following patch on top of
+the " sparc: refactor Makefile" patch.
 
-Can I ask you to send me the output of make V=1 for
-your kernel before and after the above patch is applied.
-It's only the last few lines that are of interest (from btfixup
-and onwards).
-I hope from that to say what is causing the boot regression.
+This was the only difference I could see in my
+limited testing here.
 
 	Sam
+
+diff --git a/arch/sparc/Makefile b/arch/sparc/Makefile
+index 04ea968..da82ba6 100644
+--- a/arch/sparc/Makefile
++++ b/arch/sparc/Makefile
+@@ -44,6 +44,8 @@ ifdef CONFIG_KALLSYMS
+ kallsyms.o := .tmp_kallsyms2.o
+ endif
+ 
++export  kallsyms.o
++
+ # Default target
+ all: zImage
+ 
