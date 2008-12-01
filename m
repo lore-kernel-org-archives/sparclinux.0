@@ -1,20 +1,28 @@
-From: lion <yjfpb04@gmail.com>
-Date: Sat, 20 Dec 2008 03:04:23 +0000
-Subject: Is the sparc linux support kernel preempt?
-Message-Id: <dc46d49c0812191904g71aed1f5y77afd4b1c31674ff@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 01 Dec 2008 08:40:01 +0000
+Subject: Re: final unification of sparc,sparc64
+Message-Id: <20081201.004001.107064970.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <dc46d49c0812191900s47b5bc3cl7a1c53287a2d9eb3@mail.gmail.com>
-In-Reply-To: <dc46d49c0812191900s47b5bc3cl7a1c53287a2d9eb3@mail.gmail.com>
+References: <20081130200745.GA17845@uranus.ravnborg.org>
+In-Reply-To: <20081130200745.GA17845@uranus.ravnborg.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1254"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-SGksIEFsbAoKICAgICAgICBJIHdhbnQgdG8ga25vdyB3aGV0aGVyIHRoZSBzcGFyYyBsaW51eCBz
-dXBwb3J0cyBrZXJuZWwgcHJlZW1wdD8KCkkgaGF2ZSBsb29rZWQgYXQgdGhlIHNvdXJjZSBjb2Rl
-LCBhbmQgZG9uJ3QgdGhpbmsgc28uCgogICAgICAgTWF5IGJlIHdlIGNhbiB0cnkgdG8gZG8gaXSj
-vyBvciB3aHkgeW91ciBndXlzIGRpZG4ndCBpbXBsZW1lbnQgaXSjvwoKICAgIFRoYW5rcyBhbGwu
-CgogICAgICAgU29ycnkgZm9yIHBvc3RpbmcgaXQgYWdhaW4sIGJlY2F1c2Ugb2YgdGhlIHVuY29y
-cmVjdCBuYW1lLgoKQ2hlcnJzCgpsaW9uCv/06Lp7Lm7HK4m3n66JrYYrJYrL/7Hp3bYXpYp3/7p7
-Lm7HK4m3rKWq3JYp7sf4p7YXm6HcqH2pnrLGoHraJmo6K3aJqP74Hq/5Hq53pf6K4DKK3pmo6K3a
-JqIp36GrYbba///74Hq/5Hq53pf6K4P5mo6K3aJq/4p36P4bZgo=
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 30 Nov 2008 21:07:45 +0100
+
+> This is the final step in the unification of sparc,sparc64.
+> Final in the sense that arch/sparc64 is no more and
+> I have not planned additional sparc unification activities
+> in this round...
+
+I really like this work, thanks Sam.
+
+But I'm going to let this sit in my inbox until the
+sparc32 boot failure is figured out.  Once that is resolved,
+I'll work through these changes and do boot testing on
+sparc64.
+
+Thanks!
