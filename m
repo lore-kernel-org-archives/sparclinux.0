@@ -1,34 +1,81 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 21 Dec 2008 20:47:38 +0000
-Subject: Re: [RFC PATCH] use sparc64 version of of_device.c
-Message-Id: <20081221204738.GC18284@uranus.ravnborg.org>
+Date: Mon, 01 Dec 2008 18:51:25 +0000
+Subject: [PATCH] sparc: fix boot regression
+Message-Id: <20081201185125.GA2379@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4945AE56.2040503@earthlink.net>
-In-Reply-To: <4945AE56.2040503@earthlink.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sun, Dec 14, 2008 at 08:09:42PM -0500, Robert Reif wrote:
-> This patch creates a combined kernel/of_device.c by starting with the
-> sparc64 version and adding #ifdefs and sparc32 code.
-> 
-> The only sparc64 difference is a %llx printk change.
-> 
-> The sparc32 changes are:
->    change int rlen to unsigned int rlen in build_one_resource
->    keep the sparc64 op->resources[] array size check
-> 
-> I know #ifdefs are ugly but the files were so similar.
-> Is this acceptable?
-> 
-> Boot tested on sparc32.
-> Compile tested on sparc64.
+From e3b6fc4081669054768f93ea2605d1eba8e1b256 Mon Sep 17 00:00:00 2001
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Mon, 1 Dec 2008 19:41:49 +0100
+Subject: [PATCH] sparc: fix boot regression
 
-Robert - do you still look after this one?
+Robert reported that 21cb8a43216e0595b466e903e0f2a7ae615d9e11
+("sparc: refactor Makefile") caused a boot regression on sparc.
+We tracked it down to the removal of the export of kallsyms.o.
 
-Note: It is a positive thing that three individuals actually
-      reviewed your work!
+This patch adds back the export and the code that was removed
+in a subsequent commit which uses the exported variable.
+Why this caused a boot regression is not understood atm.
+
+Robert tested a simpler version of this patch and reported success.
+
+Reported-by: Robert Reif <reif@earthlink.net>
+Tested-by: Robert Reif <reif@earthlink.net>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+
+The patch is made on top of sparc-next.
+Robert - I would appreciate if you could retest on top of
+sparc-next and confirm that the boot regression is really
+fixed there.
+I added a "Tested-by" since you tested the first version
+but would like you to really test this before Dave apply it.
+
+Note: Applying this will most likely cause a few trivial
+conflicts that I posted yesterday.
+But lets sort out this and then revisit that patch-set.
+
+Thanks,
 
 	Sam
+
+
+ arch/sparc/Makefile      |    4 ++++
+ arch/sparc/boot/Makefile |    2 +-
+ 2 files changed, 5 insertions(+), 1 deletions(-)
+
+diff --git a/arch/sparc/Makefile b/arch/sparc/Makefile
+index 6df8eb5..317aad6 100644
+--- a/arch/sparc/Makefile
++++ b/arch/sparc/Makefile
+@@ -89,6 +89,10 @@ VMLINUX_MAIN := $(core-y) kernel/ mm/ fs/ ipc/ security/ crypto/ block/
+ VMLINUX_MAIN += $(patsubst %/, %/lib.a, $(libs-y)) $(libs-y)
+ VMLINUX_MAIN += $(drivers-y) $(net-y)
+ 
++ifdef CONFIG_KALLSYMS
++export kallsyms.o := .tmp_kallsyms2.o
++endif
++
+ boot-y                 := arch/sparc/boot
+ boot-$(CONFIG_SPARC64) := arch/sparc64/boot
+ 
+diff --git a/arch/sparc/boot/Makefile b/arch/sparc/boot/Makefile
+index 74ba65b..06b653d 100644
+--- a/arch/sparc/boot/Makefile
++++ b/arch/sparc/boot/Makefile
+@@ -42,7 +42,7 @@ BTOBJS := $(patsubst %/, %/built-in.o, $(VMLINUX_INIT))
+ BTLIBS := $(patsubst %/, %/built-in.o, $(VMLINUX_MAIN))
+ LDFLAGS_image := -T arch/sparc/kernel/vmlinux.lds $(BTOBJS) \
+                   --start-group $(BTLIBS) --end-group \
+-                  $(obj)/btfix.o
++                  $(kallsyms.o) $(obj)/btfix.o
+ 
+ # Link the final image including btfixup'ed symbols.
+ # This is a replacement for the link done in the top-level Makefile.
+-- 
+1.5.6.GIT
+
