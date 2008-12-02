@@ -1,40 +1,118 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 30 Dec 2008 02:36:52 +0000
-Subject: Re: [patch 60/71] sparc64: Fix PCI error interrupt registry on
-Message-Id: <20081229.183652.225223730.davem@davemloft.net>
+From: Nicolas Palix <npalix@diku.dk>
+Date: Tue, 02 Dec 2008 10:30:06 +0000
+Subject: [PATCH linux-next] sparc: Add missing of_node_put
+Message-Id: <200812021130.06197.npalix@diku.dk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20081007002606.723632097@mini.kroah.org>
-	<20081007004007.GI3055@suse.de>
-	<Pine.LNX.4.64.0812291813010.1886@anakin>
-In-Reply-To: <Pine.LNX.4.64.0812291813010.1886@anakin>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: geert@linux-m68k.org
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: wli@holomorphy.com
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, Julia Lawall <julia@diku.dk>, Nicolas Palix <npalix@diku.dk>
 
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Mon, 29 Dec 2008 18:14:31 +0100 (CET)
 
-> On Mon, 6 Oct 2008, Greg KH wrote:
-> > 2.6.26-stable review patch.  If anyone has any objections, please let us
-> > know.
-> > 
-> > ------------------
-> > From: David S. Miller <davem@davemloft.net>
-> > 
-> > [ Upstream commit 80a56ab626c70468be92e74cf3d288ffaed23fdb ]
-> > 
-> > We need to pass IRQF_SHARED, otherwise we get things like:
-> 
-> But you forgot to update the comment (see below)...
- ...
-> > --- a/arch/sparc64/kernel/pci_psycho.c
-> > +++ b/arch/sparc64/kernel/pci_psycho.c
-> > @@ -744,16 +744,16 @@ static void psycho_register_error_handle
-> >  	 * the second will just error out since we do not pass in
->                                           ^^^^^^^^^^^^^^^^^^^^^^^
-> >  	 * IRQF_SHARED.
->            ^^^^^^^^^^^
+of_node_put is needed before discarding a value received from
+of_find_node_by_name, eg in error handling code or when the device
+node is no longer used.
 
-Thanks a lot Geert, I'll fix this up.
+The semantic match that catches the bug is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@r exists@
+local idexpression struct device_node *n;
+position p1, p2;
+struct device_node *n1;
+statement S;
+identifier f;
+expression E;
+expression *ptr != NULL;
+@@
+
+n@p1 = of_find_node_by_name(...)
+...
+if (!n) S
+... when != of_node_put(n)
+    when != n1 = f(n,...)
+    when != E = n
+    when any
+    when strict
+(
+  return \(0\|<+...n...+>\|ptr\);
+|
+return@p2 ...;
+|
+  of_node_put(n);
+|
+  n1 = f(n,...)
+|
+  E = n
+)
+
+@script:python@
+p1 << r.p1;
+p2 << r.p2;
+@@
+
+print "* file: %s of_find_node_by_name %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
+// </smpl>
+
+Signed-off-by: Nicolas Palix <npalix@diku.dk>
+Signed-off-by: Julia Lawall <julia@diku.dk>
+---
+ arch/sparc/kernel/sun4c_irq.c |    2 ++
+ arch/sparc/kernel/sun4d_irq.c |    1 +
+ arch/sparc/kernel/sun4m_irq.c |    2 ++
+ 3 files changed, 5 insertions(+)
+
+diff --git a/arch/sparc/kernel/sun4c_irq.c b/arch/sparc/kernel/sun4c_irq.c
+index 5dc8a57..326b8b1 100644
+--- a/arch/sparc/kernel/sun4c_irq.c
++++ b/arch/sparc/kernel/sun4c_irq.c
+@@ -160,6 +160,7 @@ static void __init sun4c_init_timers(irq_handler_t counter_fn)
+ 	sun4c_timers = (void __iomem *) (unsigned long) addr[0];
+ 
+ 	irq = of_get_property(dp, "intr", NULL);
++	of_node_put(dp);
+ 	if (!irq) {
+ 		prom_printf("sun4c_init_timers: No intr property\n");
+ 		prom_halt();
+@@ -200,6 +201,7 @@ void __init sun4c_init_IRQ(void)
+ 	}
+ 
+ 	addr = of_get_property(dp, "address", NULL);
++	of_node_put(dp);
+ 	if (!addr) {
+ 		prom_printf("sun4c_init_IRQ: No address property\n");
+ 		prom_halt();
+diff --git a/arch/sparc/kernel/sun4d_irq.c b/arch/sparc/kernel/sun4d_irq.c
+index d3cb76c..63bc805 100644
+--- a/arch/sparc/kernel/sun4d_irq.c
++++ b/arch/sparc/kernel/sun4d_irq.c
+@@ -508,6 +508,7 @@ static void __init sun4d_init_timers(irq_handler_t counter_fn)
+ 	 * bootbus.
+ 	 */
+ 	reg = of_get_property(dp, "reg", NULL);
++	of_node_put(dp);
+ 	if (!reg) {
+ 		prom_printf("sun4d_init_timers: No reg property\n");
+ 		prom_halt();
+diff --git a/arch/sparc/kernel/sun4m_irq.c b/arch/sparc/kernel/sun4m_irq.c
+index f103171..a1335c1 100644
+--- a/arch/sparc/kernel/sun4m_irq.c
++++ b/arch/sparc/kernel/sun4m_irq.c
+@@ -374,6 +374,7 @@ static void __init sun4m_init_timers(irq_handler_t counter_fn)
+ 	}
+ 
+ 	addr = of_get_property(dp, "address", &len);
++	of_node_put(dp);
+ 	if (!addr) {
+ 		printk(KERN_ERR "sun4m_init_timers: No 'address' prop.\n");
+ 		return;
+@@ -437,6 +438,7 @@ void __init sun4m_init_IRQ(void)
+ 	}
+ 
+ 	addr = of_get_property(dp, "address", &len);
++	of_node_put(dp);
+ 	if (!addr) {
+ 		printk(KERN_ERR "sun4m_init_IRQ: No 'address' prop.\n");
+ 		return;
