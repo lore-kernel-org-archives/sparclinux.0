@@ -1,18 +1,20 @@
 From: David Miller <davem@davemloft.net>
-Date: Mon, 08 Dec 2008 09:07:56 +0000
-Subject: Re: [PATCH 4/5] sparc: add include guards to kernel.h
-Message-Id: <20081208.010756.237908858.davem@davemloft.net>
+Date: Tue, 02 Dec 2008 07:23:00 +0000
+Subject: GIT tree plans
+Message-Id: <20081201.232300.105915235.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1228682256-27812-4-git-send-email-sam@ravnborg.org>
-In-Reply-To: <1228682256-27812-4-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun,  7 Dec 2008 21:37:35 +0100
 
-> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+After Linus takes in the bug fixes I just sent to him I am
+going to rebase the sparc-next-2.6 tree.
 
-Applied.
+I normally wouldn't do this but there is a generic Makefile
+change from Sam that causes a bad bisection point for non-
+sparc systems so it's a good idea to get rid of that.
+
+I normally wouldn't respin the tree like this, but to cure this
+I think it's worth it.
