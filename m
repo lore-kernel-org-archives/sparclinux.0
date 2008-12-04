@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 02 Dec 2008 07:19:35 +0000
+Date: Thu, 04 Dec 2008 19:58:49 +0000
 Subject: [GIT]: Sparc
-Message-Id: <20081201.231935.211354491.davem@davemloft.net>
+Message-Id: <20081204.115849.82772519.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080421.153231.108090227.davem@davemloft.net>
 In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
@@ -12,29 +12,29 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-Two bug sets of fixes:
+Please pull to get these sparc bug fixes, thanks!
 
-1) Several starfire rtc driver bug fixes from Allesandro Zummo.
-
-2) The calculation of the fault fixup offset on sparc64 is upside
-   down.
-
-Please pull, thanks a lot!
-
-The following changes since commit cecf61bdee426a3e0a014f7e26990d09c71ed458:
-  Alessandro Zummo (1):
-        rtc: rtc-sun4v fixes, revised
+The following changes since commit f6f7b52e2f6149d2ee365717afff315b05720162:
+  Linus Torvalds (1):
+        Merge git://git.kernel.org/.../wim/linux-2.6-watchdog
 
 are available in the git repository at:
 
   master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
 
-Alessandro Zummo (1):
-      rtc: rtc-starfire fixes
+Chris Torek (1):
+      sparc64: Fix bug in PTRACE_SETFPREGS64 handling.
 
-David S. Miller (1):
-      sparc64: Fix offset calculation in compute_size()
+Hong H. Pham (1):
+      sparc64: Sync FPU state in VIS emulation handler.
 
- arch/sparc64/lib/user_fixup.c |    2 +-
- drivers/rtc/rtc-starfire.c    |   66 ++++++++---------------------------------
- 2 files changed, 14 insertions(+), 54 deletions(-)
+Joseph Myers (1):
+      sparc64: Fix VIS emulation bugs
+
+Rusty Russell (1):
+      sparc: asm/bitops.h should define __fls
+
+ arch/sparc/include/asm/bitops_32.h |    1 +
+ arch/sparc64/kernel/ptrace.c       |    2 +-
+ arch/sparc64/kernel/visemul.c      |    6 ++++--
+ 3 files changed, 6 insertions(+), 3 deletions(-)
