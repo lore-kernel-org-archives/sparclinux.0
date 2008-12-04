@@ -1,118 +1,28 @@
-From: Nicolas Palix <npalix@diku.dk>
-Date: Tue, 02 Dec 2008 10:30:06 +0000
-Subject: [PATCH linux-next] sparc: Add missing of_node_put
-Message-Id: <200812021130.06197.npalix@diku.dk>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 04 Dec 2008 05:11:52 +0000
+Subject: Re: [PATCH linux-next] sparc: Add missing of_node_put
+Message-Id: <20081203.211152.263373582.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <200812021130.06197.npalix@diku.dk>
+In-Reply-To: <200812021130.06197.npalix@diku.dk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: wli@holomorphy.com
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, Julia Lawall <julia@diku.dk>, Nicolas Palix <npalix@diku.dk>
+To: npalix@diku.dk
+Cc: wli@holomorphy.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, julia@diku.dk
 
+From: Nicolas Palix <npalix@diku.dk>
+Date: Tue, 2 Dec 2008 11:30:06 +0100
 
-of_node_put is needed before discarding a value received from
-of_find_node_by_name, eg in error handling code or when the device
-node is no longer used.
+> 
+> of_node_put is needed before discarding a value received from
+> of_find_node_by_name, eg in error handling code or when the device
+> node is no longer used.
 
-The semantic match that catches the bug is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
+Applied to sparc-next-2.6, thanks.
 
-// <smpl>
-@r exists@
-local idexpression struct device_node *n;
-position p1, p2;
-struct device_node *n1;
-statement S;
-identifier f;
-expression E;
-expression *ptr != NULL;
-@@
-
-n@p1 = of_find_node_by_name(...)
-...
-if (!n) S
-... when != of_node_put(n)
-    when != n1 = f(n,...)
-    when != E = n
-    when any
-    when strict
-(
-  return \(0\|<+...n...+>\|ptr\);
-|
-return@p2 ...;
-|
-  of_node_put(n);
-|
-  n1 = f(n,...)
-|
-  E = n
-)
-
-@script:python@
-p1 << r.p1;
-p2 << r.p2;
-@@
-
-print "* file: %s of_find_node_by_name %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
-// </smpl>
-
-Signed-off-by: Nicolas Palix <npalix@diku.dk>
-Signed-off-by: Julia Lawall <julia@diku.dk>
----
- arch/sparc/kernel/sun4c_irq.c |    2 ++
- arch/sparc/kernel/sun4d_irq.c |    1 +
- arch/sparc/kernel/sun4m_irq.c |    2 ++
- 3 files changed, 5 insertions(+)
-
-diff --git a/arch/sparc/kernel/sun4c_irq.c b/arch/sparc/kernel/sun4c_irq.c
-index 5dc8a57..326b8b1 100644
---- a/arch/sparc/kernel/sun4c_irq.c
-+++ b/arch/sparc/kernel/sun4c_irq.c
-@@ -160,6 +160,7 @@ static void __init sun4c_init_timers(irq_handler_t counter_fn)
- 	sun4c_timers = (void __iomem *) (unsigned long) addr[0];
- 
- 	irq = of_get_property(dp, "intr", NULL);
-+	of_node_put(dp);
- 	if (!irq) {
- 		prom_printf("sun4c_init_timers: No intr property\n");
- 		prom_halt();
-@@ -200,6 +201,7 @@ void __init sun4c_init_IRQ(void)
- 	}
- 
- 	addr = of_get_property(dp, "address", NULL);
-+	of_node_put(dp);
- 	if (!addr) {
- 		prom_printf("sun4c_init_IRQ: No address property\n");
- 		prom_halt();
-diff --git a/arch/sparc/kernel/sun4d_irq.c b/arch/sparc/kernel/sun4d_irq.c
-index d3cb76c..63bc805 100644
---- a/arch/sparc/kernel/sun4d_irq.c
-+++ b/arch/sparc/kernel/sun4d_irq.c
-@@ -508,6 +508,7 @@ static void __init sun4d_init_timers(irq_handler_t counter_fn)
- 	 * bootbus.
- 	 */
- 	reg = of_get_property(dp, "reg", NULL);
-+	of_node_put(dp);
- 	if (!reg) {
- 		prom_printf("sun4d_init_timers: No reg property\n");
- 		prom_halt();
-diff --git a/arch/sparc/kernel/sun4m_irq.c b/arch/sparc/kernel/sun4m_irq.c
-index f103171..a1335c1 100644
---- a/arch/sparc/kernel/sun4m_irq.c
-+++ b/arch/sparc/kernel/sun4m_irq.c
-@@ -374,6 +374,7 @@ static void __init sun4m_init_timers(irq_handler_t counter_fn)
- 	}
- 
- 	addr = of_get_property(dp, "address", &len);
-+	of_node_put(dp);
- 	if (!addr) {
- 		printk(KERN_ERR "sun4m_init_timers: No 'address' prop.\n");
- 		return;
-@@ -437,6 +438,7 @@ void __init sun4m_init_IRQ(void)
- 	}
- 
- 	addr = of_get_property(dp, "address", &len);
-+	of_node_put(dp);
- 	if (!addr) {
- 		printk(KERN_ERR "sun4m_init_IRQ: No 'address' prop.\n");
- 		return;
+I'm not going to add this to sparc-2.6 or stable, it doesn't
+fix any real bugs on sparc (no hot plugged OF nodes, ever)
+and adding it to sparc-2.6 would potentitally create some
+difficult conflicts in sparc-next-2.6 since we're just finishing
+a full merge of arch/sparc64 into arch/sparc there.
