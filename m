@@ -1,56 +1,45 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 29 Dec 2008 23:58:04 +0000
-Subject: [PATCH 05/11] sparc32: use proper types in struct stat
-Message-Id: <1230595090-23982-5-git-send-email-sam@ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 06 Dec 2008 06:22:40 +0000
+Subject: [PATCH]: Fix audit link errors on sparc32.
+Message-Id: <20081205.222240.57715303.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-like sparc64 use proper types in struct stat
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+I just pushed the following build fix to sparc-next-2.6
+
+sparc: Always set AUDIT_ARCH, not just on sparc64.
+
+Without fancy makefile rules it's not straightforward
+to prevent both arch/sparc/kernel/audit.o and lib/audit.o
+from both being used on sparc32.
+
+Since arch/sparc/kernel/audit.c is identical to lib/audit.c
+except some CONFIG_COMPAT protected sections of code, just
+use it on sparc32 too as that's the simplest way to fix
+this.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/include/asm/stat_32.h |   20 ++++++++++----------
- 1 files changed, 10 insertions(+), 10 deletions(-)
+ arch/sparc/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/sparc/include/asm/stat_32.h b/arch/sparc/include/asm/stat_32.h
-index 643d572..45b3ee4 100644
---- a/arch/sparc/include/asm/stat_32.h
-+++ b/arch/sparc/include/asm/stat_32.h
-@@ -5,21 +5,21 @@
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index ecb5ff9..c8c7738 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -85,7 +85,7 @@ config HAVE_LATENCYTOP_SUPPORT
  
- struct stat {
- 	unsigned short	st_dev;
--	unsigned long	st_ino;
--	unsigned short	st_mode;
-+	ino_t		st_ino;
-+	mode_t		st_mode;
- 	short		st_nlink;
--	unsigned short	st_uid;
--	unsigned short	st_gid;
-+	uid_t		st_uid;
-+	gid_t		st_gid;
- 	unsigned short	st_rdev;
--	long		st_size;
--	long		st_atime;
-+	off_t		st_size;
-+	time_t		st_atime;
- 	unsigned long	st_atime_nsec;
--	long		st_mtime;
-+	time_t		st_mtime;
- 	unsigned long	st_mtime_nsec;
--	long		st_ctime;
-+	time_t		st_ctime;
- 	unsigned long	st_ctime_nsec;
--	long		st_blksize;
--	long		st_blocks;
-+	off_t		st_blksize;
-+	off_t		st_blocks;
- 	unsigned long	__unused4[2];
- };
+ config AUDIT_ARCH
+ 	bool
+-	default y if SPARC64
++	default y
  
+ config HAVE_SETUP_PER_CPU_AREA
+ 	def_bool y if SPARC64
 -- 
-1.6.0.2.GIT
+1.5.6.5
 
