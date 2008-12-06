@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 09 Dec 2008 23:35:51 +0000
-Subject: [PATCH 3/4]: sparc: Unify strlen assembler.
-Message-Id: <20081209.153551.105983881.davem@davemloft.net>
+Date: Sat, 06 Dec 2008 03:05:34 +0000
+Subject: [PATCH 13/14]: sparc: Move prom_build_devicetree() into
+Message-Id: <20081205.190534.17855567.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,297 +9,201 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-sparc: Unify strlen assembler.
+sparc: Move prom_build_devicetree() into prom_common.c
 
-Use the new asm/asm.h header to help commonize the
-strlen assembler between 32-bit and 64-bit
-
-While we're here, use proper linux/linkage.h macros
-instead of by-hand stuff.
+To make this work we provide a dummy nop implementation
+of of_fill_in_cpu_data() for sparc32.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/lib/Makefile    |    2 +-
- arch/sparc/lib/strlen.S    |   80 +++++++++++++++++++++++++++++++++++++++++++
- arch/sparc/lib/strlen_32.S |   81 --------------------------------------------
- arch/sparc/lib/strlen_64.S |   80 -------------------------------------------
- 4 files changed, 81 insertions(+), 162 deletions(-)
- create mode 100644 arch/sparc/lib/strlen.S
- delete mode 100644 arch/sparc/lib/strlen_32.S
- delete mode 100644 arch/sparc/lib/strlen_64.S
+ arch/sparc/kernel/prom.h        |    8 +++-----
+ arch/sparc/kernel/prom_32.c     |   20 ++------------------
+ arch/sparc/kernel/prom_64.c     |   33 +++++++--------------------------
+ arch/sparc/kernel/prom_common.c |   32 +++++++++++++++++++++++++++-----
+ 4 files changed, 39 insertions(+), 54 deletions(-)
 
-diff --git a/arch/sparc/lib/Makefile b/arch/sparc/lib/Makefile
-index 05ae5c9..0db2c61 100644
---- a/arch/sparc/lib/Makefile
-+++ b/arch/sparc/lib/Makefile
-@@ -6,7 +6,7 @@ ccflags-y := -Werror
+diff --git a/arch/sparc/kernel/prom.h b/arch/sparc/kernel/prom.h
+index dea8b91..0764b35 100644
+--- a/arch/sparc/kernel/prom.h
++++ b/arch/sparc/kernel/prom.h
+@@ -24,11 +24,9 @@ static inline int is_root_node(const struct device_node *dp)
+ }
  
- lib-$(CONFIG_SPARC32) += mul.o rem.o sdiv.o udiv.o umul.o urem.o ashrdi3.o
- lib-$(CONFIG_SPARC32) += memcpy.o memset.o
--lib-y                 += strlen_$(BITS).o
-+lib-y                 += strlen.o
- lib-y                 += checksum_$(BITS).o
- lib-$(CONFIG_SPARC32) += blockops.o
- lib-y                 += memscan_$(BITS).o memcmp_$(BITS).o strncmp_$(BITS).o
-diff --git a/arch/sparc/lib/strlen.S b/arch/sparc/lib/strlen.S
-new file mode 100644
-index 0000000..536f835
---- /dev/null
-+++ b/arch/sparc/lib/strlen.S
-@@ -0,0 +1,80 @@
-+/* strlen.S: Sparc optimized strlen code
-+ * Hand optimized from GNU libc's strlen
-+ * Copyright (C) 1991,1996 Free Software Foundation
-+ * Copyright (C) 1996,2008 David S. Miller (davem@davemloft.net)
-+ * Copyright (C) 1996, 1997 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
-+ */
+ extern char *build_path_component(struct device_node *dp);
++extern void of_console_init(void);
++extern void of_fill_in_cpu_data(void);
+ 
+-extern struct device_node * __init prom_create_node(phandle node,
+-						    struct device_node *parent);
++extern unsigned int prom_early_allocated;
+ 
+-extern struct device_node * __init prom_build_tree(struct device_node *parent,
+-						   phandle node,
+-						   struct device_node ***nextp);
+ #endif /* __PROM_H */
+diff --git a/arch/sparc/kernel/prom_32.c b/arch/sparc/kernel/prom_32.c
+index 75eb40b..5ad2012 100644
+--- a/arch/sparc/kernel/prom_32.c
++++ b/arch/sparc/kernel/prom_32.c
+@@ -27,8 +27,6 @@
+ 
+ #include "prom.h"
+ 
+-static unsigned int prom_early_allocated;
+-
+ void * __init prom_early_alloc(unsigned long size)
+ {
+ 	void *ret;
+@@ -179,7 +177,7 @@ EXPORT_SYMBOL(of_console_options);
+ 
+ extern void restore_current(void);
+ 
+-static void __init of_console_init(void)
++void __init of_console_init(void)
+ {
+ 	char *msg = "OF stdout device is: %s\n";
+ 	struct device_node *dp;
+@@ -297,20 +295,6 @@ static void __init of_console_init(void)
+ 	printk(msg, of_console_path);
+ }
+ 
+-void __init prom_build_devicetree(void)
++void __init of_fill_in_cpu_data(void)
+ {
+-	struct device_node **nextp;
+-
+-	allnodes = prom_create_node(prom_root_node, NULL);
+-	allnodes->path_component_name = "";
+-	allnodes->full_name = "/";
+-
+-	nextp = &allnodes->allnext;
+-	allnodes->child = prom_build_tree(allnodes,
+-					  prom_getchild(allnodes->node),
+-					  &nextp);
+-	of_console_init();
+-
+-	printk("PROM: Built device tree with %u bytes of memory.\n",
+-	       prom_early_allocated);
+ }
+diff --git a/arch/sparc/kernel/prom_64.c b/arch/sparc/kernel/prom_64.c
+index 0279811..3afb838 100644
+--- a/arch/sparc/kernel/prom_64.c
++++ b/arch/sparc/kernel/prom_64.c
+@@ -32,8 +32,6 @@
+ 
+ #include "prom.h"
+ 
+-static unsigned int prom_early_allocated __initdata;
+-
+ void * __init prom_early_alloc(unsigned long size)
+ {
+ 	unsigned long paddr = lmb_alloc(size, SMP_CACHE_BYTES);
+@@ -401,11 +399,15 @@ struct device_node *of_find_node_by_cpuid(int cpuid)
+ 	return NULL;
+ }
+ 
+-static void __init of_fill_in_cpu_data(void)
++void __init of_fill_in_cpu_data(void)
+ {
+ 	struct device_node *dp;
+-	const char *mid_prop = get_mid_prop();
++	const char *mid_prop;
 +
-+#include <linux/linkage.h>
-+#include <asm/asm.h>
++	if (tlb_type = hypervisor)
++		return;
+ 
++	mid_prop = get_mid_prop();
+ 	ncpus_probed = 0;
+ 	for_each_node_by_type(dp, "cpu") {
+ 		int cpuid = of_getintprop_default(dp, mid_prop, -1);
+@@ -533,7 +535,7 @@ EXPORT_SYMBOL(of_console_path);
+ char *of_console_options;
+ EXPORT_SYMBOL(of_console_options);
+ 
+-static void __init of_console_init(void)
++void __init of_console_init(void)
+ {
+ 	char *msg = "OF stdout device is: %s\n";
+ 	struct device_node *dp;
+@@ -576,24 +578,3 @@ static void __init of_console_init(void)
+ 
+ 	printk(msg, of_console_path);
+ }
+-
+-void __init prom_build_devicetree(void)
+-{
+-	struct device_node **nextp;
+-
+-	allnodes = prom_create_node(prom_root_node, NULL);
+-	allnodes->path_component_name = "";
+-	allnodes->full_name = "/";
+-
+-	nextp = &allnodes->allnext;
+-	allnodes->child = prom_build_tree(allnodes,
+-					  prom_getchild(allnodes->node),
+-					  &nextp);
+-	of_console_init();
+-
+-	printk("PROM: Built device tree with %u bytes of memory.\n",
+-	       prom_early_allocated);
+-
+-	if (tlb_type != hypervisor)
+-		of_fill_in_cpu_data();
+-}
+diff --git a/arch/sparc/kernel/prom_common.c b/arch/sparc/kernel/prom_common.c
+index 3b5de2f..95e8e5d 100644
+--- a/arch/sparc/kernel/prom_common.c
++++ b/arch/sparc/kernel/prom_common.c
+@@ -216,8 +216,8 @@ static char * __init get_one_property(phandle node, const char *name)
+ 	return buf;
+ }
+ 
+-struct device_node * __init prom_create_node(phandle node,
+-					     struct device_node *parent)
++static struct device_node * __init prom_create_node(phandle node,
++						    struct device_node *parent)
+ {
+ 	struct device_node *dp;
+ 
+@@ -261,9 +261,9 @@ static char * __init build_full_name(struct device_node *dp)
+ 	return n;
+ }
+ 
+-struct device_node * __init prom_build_tree(struct device_node *parent,
+-					    phandle node,
+-					    struct device_node ***nextp)
++static struct device_node * __init prom_build_tree(struct device_node *parent,
++						   phandle node,
++						   struct device_node ***nextp)
+ {
+ 	struct device_node *ret = NULL, *prev_sibling = NULL;
+ 	struct device_node *dp;
+@@ -293,3 +293,25 @@ struct device_node * __init prom_build_tree(struct device_node *parent,
+ 
+ 	return ret;
+ }
 +
-+#define LO_MAGIC 0x01010101
-+#define HI_MAGIC 0x80808080
++unsigned int prom_early_allocated __initdata;
 +
-+	.text
-+ENTRY(strlen)
-+	mov	%o0, %o1
-+	andcc	%o0, 3, %g0
-+	BRANCH32(be, pt, 9f)
-+	 sethi	%hi(HI_MAGIC), %o4
-+	ldub	[%o0], %o5
-+	BRANCH_REG_ZERO(pn, %o5, 11f)
-+	 add	%o0, 1, %o0
-+	andcc	%o0, 3, %g0
-+	BRANCH32(be, pn, 4f)
-+	 or	%o4, %lo(HI_MAGIC), %o3
-+	ldub	[%o0], %o5
-+	BRANCH_REG_ZERO(pn, %o5, 12f)
-+	 add	%o0, 1, %o0
-+	andcc	%o0, 3, %g0
-+	BRANCH32(be, pt, 5f)
-+	 sethi	%hi(LO_MAGIC), %o4
-+	ldub	[%o0], %o5
-+	BRANCH_REG_ZERO(pn, %o5, 13f)
-+	 add	%o0, 1, %o0
-+	BRANCH32(ba, pt, 8f)
-+	 or	%o4, %lo(LO_MAGIC), %o2
-+9:
-+	or	%o4, %lo(HI_MAGIC), %o3
-+4:
-+	sethi	%hi(LO_MAGIC), %o4
-+5:
-+	or	%o4, %lo(LO_MAGIC), %o2
-+8:
-+	ld	[%o0], %o5
-+2:
-+	sub	%o5, %o2, %o4
-+	andcc	%o4, %o3, %g0
-+	BRANCH32(be, pt, 8b)
-+	 add	%o0, 4, %o0
++void __init prom_build_devicetree(void)
++{
++	struct device_node **nextp;
 +
-+	/* Check every byte. */
-+	srl	%o5, 24, %g7
-+	andcc	%g7, 0xff, %g0
-+	BRANCH32(be, pn, 1f)
-+	 add	%o0, -4, %o4
-+	srl	%o5, 16, %g7
-+	andcc	%g7, 0xff, %g0
-+	BRANCH32(be, pn, 1f)
-+	 add	%o4, 1, %o4
-+	srl	%o5, 8, %g7
-+	andcc	%g7, 0xff, %g0
-+	BRANCH32(be, pn, 1f)
-+	 add	%o4, 1, %o4
-+	andcc	%o5, 0xff, %g0
-+	BRANCH32_ANNUL(bne, pt, 2b)
-+	 ld	[%o0], %o5
-+	add	%o4, 1, %o4
-+1:
-+	retl
-+	 sub	%o4, %o1, %o0
-+11:
-+	retl
-+	 mov	0, %o0
-+12:
-+	retl
-+	 mov	1, %o0
-+13:
-+	retl
-+	 mov	2, %o0
-+ENDPROC(strlen)
-diff --git a/arch/sparc/lib/strlen_32.S b/arch/sparc/lib/strlen_32.S
-deleted file mode 100644
-index ed9a763..0000000
---- a/arch/sparc/lib/strlen_32.S
-+++ /dev/null
-@@ -1,81 +0,0 @@
--/* strlen.S: Sparc optimized strlen code
-- * Hand optimized from GNU libc's strlen
-- * Copyright (C) 1991,1996 Free Software Foundation
-- * Copyright (C) 1996 David S. Miller (davem@caip.rutgers.edu)
-- * Copyright (C) 1996 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
-- */
--
--#define LO_MAGIC 0x01010101
--#define HI_MAGIC 0x80808080
--
--0:
--	ldub	[%o0], %o5
--	cmp	%o5, 0
--	be	1f
--	 add	%o0, 1, %o0
--	andcc	%o0, 3, %g0
--	be	4f
--	 or	%o4, %lo(HI_MAGIC), %o3
--	ldub	[%o0], %o5
--	cmp	%o5, 0
--	be	2f
--	 add	%o0, 1, %o0
--	andcc	%o0, 3, %g0
--	be	5f
--	 sethi	%hi(LO_MAGIC), %o4
--	ldub	[%o0], %o5
--	cmp	%o5, 0
--	be	3f
--	 add	%o0, 1, %o0
--	b	8f
--	 or	%o4, %lo(LO_MAGIC), %o2
--1:
--	retl
--	 mov	0, %o0
--2:
--	retl
--	 mov	1, %o0
--3:
--	retl
--	 mov	2, %o0
--
--	.align 4
--	.global strlen
--strlen:
--	mov	%o0, %o1
--	andcc	%o0, 3, %g0
--	bne	0b
--	 sethi	%hi(HI_MAGIC), %o4
--	or	%o4, %lo(HI_MAGIC), %o3
--4:
--	sethi	%hi(LO_MAGIC), %o4
--5:
--	or	%o4, %lo(LO_MAGIC), %o2
--8:
--	ld	[%o0], %o5
--2:
--	sub	%o5, %o2, %o4
--	andcc	%o4, %o3, %g0
--	be	8b
--	 add	%o0, 4, %o0
--
--	/* Check every byte. */
--	srl	%o5, 24, %g5
--	andcc	%g5, 0xff, %g0
--	be	1f
--	 add	%o0, -4, %o4
--	srl	%o5, 16, %g5
--	andcc	%g5, 0xff, %g0
--	be	1f
--	 add	%o4, 1, %o4
--	srl	%o5, 8, %g5
--	andcc	%g5, 0xff, %g0
--	be	1f
--	 add	%o4, 1, %o4
--	andcc	%o5, 0xff, %g0
--	bne,a	2b
--	 ld	[%o0], %o5
--	add	%o4, 1, %o4
--1:
--	retl
--	 sub	%o4, %o1, %o0
-diff --git a/arch/sparc/lib/strlen_64.S b/arch/sparc/lib/strlen_64.S
-deleted file mode 100644
-index e9ba192..0000000
---- a/arch/sparc/lib/strlen_64.S
-+++ /dev/null
-@@ -1,80 +0,0 @@
--/* strlen.S: Sparc64 optimized strlen code
-- * Hand optimized from GNU libc's strlen
-- * Copyright (C) 1991,1996 Free Software Foundation
-- * Copyright (C) 1996 David S. Miller (davem@caip.rutgers.edu)
-- * Copyright (C) 1996, 1997 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
-- */
--
--#define LO_MAGIC 0x01010101
--#define HI_MAGIC 0x80808080
--
--	.align	32
--	.globl	strlen
--	.type	strlen,#function
--strlen:
--	mov	%o0, %o1
--	andcc	%o0, 3, %g0
--	be,pt	%icc, 9f
--	 sethi	%hi(HI_MAGIC), %o4
--	ldub	[%o0], %o5
--	brz,pn	%o5, 11f
--	 add	%o0, 1, %o0
--	andcc	%o0, 3, %g0
--	be,pn	%icc, 4f
--	 or	%o4, %lo(HI_MAGIC), %o3
--	ldub	[%o0], %o5
--	brz,pn	%o5, 12f
--	 add	%o0, 1, %o0
--	andcc	%o0, 3, %g0
--	be,pt	%icc, 5f
--	 sethi	%hi(LO_MAGIC), %o4
--	ldub	[%o0], %o5
--	brz,pn	%o5, 13f
--	 add	%o0, 1, %o0
--	ba,pt	%icc, 8f
--	 or	%o4, %lo(LO_MAGIC), %o2
--9:
--	or	%o4, %lo(HI_MAGIC), %o3
--4:
--	sethi	%hi(LO_MAGIC), %o4
--5:
--	or	%o4, %lo(LO_MAGIC), %o2
--8:
--	ld	[%o0], %o5
--2:
--	sub	%o5, %o2, %o4
--	andcc	%o4, %o3, %g0
--	be,pt	%icc, 8b
--	 add	%o0, 4, %o0
--
--	/* Check every byte. */
--	srl	%o5, 24, %g7
--	andcc	%g7, 0xff, %g0
--	be,pn	%icc, 1f
--	 add	%o0, -4, %o4
--	srl	%o5, 16, %g7
--	andcc	%g7, 0xff, %g0
--	be,pn	%icc, 1f
--	 add	%o4, 1, %o4
--	srl	%o5, 8, %g7
--	andcc	%g7, 0xff, %g0
--	be,pn	%icc, 1f
--	 add	%o4, 1, %o4
--	andcc	%o5, 0xff, %g0
--	bne,a,pt %icc, 2b
--	 ld	[%o0], %o5
--	add	%o4, 1, %o4
--1:
--	retl
--	 sub	%o4, %o1, %o0
--11:
--	retl
--	 mov	0, %o0
--12:
--	retl
--	 mov	1, %o0
--13:
--	retl
--	 mov	2, %o0
--
--	.size	strlen, .-strlen
++	allnodes = prom_create_node(prom_root_node, NULL);
++	allnodes->path_component_name = "";
++	allnodes->full_name = "/";
++
++	nextp = &allnodes->allnext;
++	allnodes->child = prom_build_tree(allnodes,
++					  prom_getchild(allnodes->node),
++					  &nextp);
++	of_console_init();
++
++	printk("PROM: Built device tree with %u bytes of memory.\n",
++	       prom_early_allocated);
++
++	of_fill_in_cpu_data();
++}
 -- 
 1.5.6.5
 
