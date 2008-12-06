@@ -1,7 +1,7 @@
-From: Bob <bo-liu@hotmail.com>
-Date: Thu, 11 Dec 2008 07:16:17 +0000
-Subject: what's  a fast syscall
-Message-Id: <BAY123-W38E04698CF11056DC900059FF80@phx.gbl>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 06 Dec 2008 03:05:09 +0000
+Subject: [PATCH 4/14]: sparc: Mark prom_early_alloc non-static.
+Message-Id: <20081205.190509.42712006.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,32 +9,54 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-Hi, all 
- 
-      I have read the code about syscall in file entry.S and didn't known what's a fast syscall. 
- 
-And why line 1322 can distinguish it through "andcc" (there %l7 is the sys_* funtions' address?) ?
- 
-Thanks .
- 
-1313        .globl  linux_sparc_syscall
-1314linux_sparc_syscall:
-1315        sethi   %hi(PSR_SYSCALL), %l4
-1316        or      %l0, %l4, %l0
-1317        /* Direct access to user regs, must faster. */
-1318        cmp     %g1, NR_SYSCALLS
-1319        bgeu    linux_sparc_ni_syscall
-1320         sll    %g1, 2, %l4
-1321        ld      [%l7 + %l4], %l7
-1322        andcc   %l7, 1, %g0
-1323        bne     linux_fast_syscall
-1324         /* Just do first insn from SAVE_ALL in the delay slot */
+sparc: Mark prom_early_alloc non-static.
 
+A subsequent changeset will use this.
 
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
-Best regards
+ arch/sparc/kernel/prom.h    |    2 ++
+ arch/sparc/kernel/prom_32.c |    2 +-
+ arch/sparc/kernel/prom_64.c |    2 +-
+ 3 files changed, 4 insertions(+), 2 deletions(-)
 
-Bo Liu
-_________________________________________________________________
-News, entertainment and everything you care about at Live.com. Get it now!
-http://www.live.com/getstarted.aspx
+diff --git a/arch/sparc/kernel/prom.h b/arch/sparc/kernel/prom.h
+index dce53de..b7258ce 100644
+--- a/arch/sparc/kernel/prom.h
++++ b/arch/sparc/kernel/prom.h
+@@ -7,4 +7,6 @@
+ extern struct device_node *allnodes;	/* temporary while merging */
+ extern rwlock_t devtree_lock;	/* temporary while merging */
+ 
++extern void * prom_early_alloc(unsigned long size);
++
+ #endif /* __PROM_H */
+diff --git a/arch/sparc/kernel/prom_32.c b/arch/sparc/kernel/prom_32.c
+index e41df66..ba3c551 100644
+--- a/arch/sparc/kernel/prom_32.c
++++ b/arch/sparc/kernel/prom_32.c
+@@ -29,7 +29,7 @@
+ 
+ static unsigned int prom_early_allocated;
+ 
+-static void * __init prom_early_alloc(unsigned long size)
++void * __init prom_early_alloc(unsigned long size)
+ {
+ 	void *ret;
+ 
+diff --git a/arch/sparc/kernel/prom_64.c b/arch/sparc/kernel/prom_64.c
+index 1f5666a..1c7b9d7 100644
+--- a/arch/sparc/kernel/prom_64.c
++++ b/arch/sparc/kernel/prom_64.c
+@@ -34,7 +34,7 @@
+ 
+ static unsigned int prom_early_allocated __initdata;
+ 
+-static void * __init prom_early_alloc(unsigned long size)
++void * __init prom_early_alloc(unsigned long size)
+ {
+ 	unsigned long paddr = lmb_alloc(size, SMP_CACHE_BYTES);
+ 	void *ret;
+-- 
+1.5.6.5
+
