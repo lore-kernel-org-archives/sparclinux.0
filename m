@@ -1,30 +1,52 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 11 Dec 2008 08:50:08 +0000
-Subject: Re: what's a fast syscall
-Message-Id: <20081211.005008.33553543.davem@davemloft.net>
+Date: Sat, 06 Dec 2008 03:05:19 +0000
+Subject: [PATCH 8/14]: sparc: Commonize get_one_property() implementations.
+Message-Id: <20081205.190519.205117131.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Bob <bo-liu@hotmail.com>
-Date: Thu, 11 Dec 2008 15:16:17 +0800
 
-> I have read the code about syscall in file entry.S and didn't
-> known what's a fast syscall.
->  
-> And why line 1322 can distinguish it through "andcc" (there %l7 is
-> the sys_* funtions' address?) ?
+sparc: Commonize get_one_property() implementations.
 
-We used to have fast syscall handlers that ran directly in assembler
-without doing a trap entry and exit which is normally necessary to
-call the normal C code implementations.
+Add final len assignment in sparc64's get_one_property() (it's necessary
+to avoid unchecked return value warnings on the sparc32 side),
+and mark name argument const on sparc32's copy.
 
-The way this was distinguished was by setting the low bit in the
-syscall table entry.  Since all Sparc instructios must be 4 byte
-aligned, this works. We just need to clear that bit before jumping to
-the address.
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/kernel/prom_32.c |    2 +-
+ arch/sparc/kernel/prom_64.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Fast syscalls were removed a long time ago, but the support code still
-lives :)
+diff --git a/arch/sparc/kernel/prom_32.c b/arch/sparc/kernel/prom_32.c
+index a9859d2..a6809bc 100644
+--- a/arch/sparc/kernel/prom_32.c
++++ b/arch/sparc/kernel/prom_32.c
+@@ -196,7 +196,7 @@ static char * __init build_full_name(struct device_node *dp)
+ 	return n;
+ }
+ 
+-static char * __init get_one_property(phandle node, char *name)
++static char * __init get_one_property(phandle node, const char *name)
+ {
+ 	char *buf = "<NULL>";
+ 	int len;
+diff --git a/arch/sparc/kernel/prom_64.c b/arch/sparc/kernel/prom_64.c
+index e3969db..ce96c1c 100644
+--- a/arch/sparc/kernel/prom_64.c
++++ b/arch/sparc/kernel/prom_64.c
+@@ -407,7 +407,7 @@ static char * __init get_one_property(phandle node, const char *name)
+ 	len = prom_getproplen(node, name);
+ 	if (len > 0) {
+ 		buf = prom_early_alloc(len);
+-		prom_getproperty(node, name, buf, len);
++		len = prom_getproperty(node, name, buf, len);
+ 	}
+ 
+ 	return buf;
+-- 
+1.5.6.5
+
