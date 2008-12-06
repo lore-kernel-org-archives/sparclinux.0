@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 09 Dec 2008 23:35:47 +0000
-Subject: [PATCH 2/4]: sparc: Add asm/asm.h
-Message-Id: <20081209.153547.87182274.davem@davemloft.net>
+Date: Sat, 06 Dec 2008 03:05:26 +0000
+Subject: [PATCH 11/14]: sparc: Match sparc32's build_tree() up to sparc64's
+Message-Id: <20081205.190526.47726776.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,63 +9,62 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-sparc: Add asm/asm.h
+sparc: Match sparc32's build_tree() up to sparc64's
 
-This will contain macros that help share assembler code
-between the 32-bit and 64-bit platform.
+Sparc64 uses a non-recursive sibling traversal algorithm
+that never got propagated into the sparc32 copy of this
+code.
+
+Sync them up.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/include/asm/asm.h |   40 ++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 40 insertions(+), 0 deletions(-)
- create mode 100644 arch/sparc/include/asm/asm.h
+ arch/sparc/kernel/prom_32.c |   20 +++++++++++++++-----
+ 1 files changed, 15 insertions(+), 5 deletions(-)
 
-diff --git a/arch/sparc/include/asm/asm.h b/arch/sparc/include/asm/asm.h
-new file mode 100644
-index 0000000..e8e1d94
---- /dev/null
-+++ b/arch/sparc/include/asm/asm.h
-@@ -0,0 +1,40 @@
-+#ifndef _SPARC_ASM_H
-+#define _SPARC_ASM_H
+diff --git a/arch/sparc/kernel/prom_32.c b/arch/sparc/kernel/prom_32.c
+index 5881c14..35cb4c7 100644
+--- a/arch/sparc/kernel/prom_32.c
++++ b/arch/sparc/kernel/prom_32.c
+@@ -198,23 +198,33 @@ static char * __init build_full_name(struct device_node *dp)
+ 
+ static struct device_node * __init build_tree(struct device_node *parent, phandle node, struct device_node ***nextp)
+ {
++	struct device_node *ret = NULL, *prev_sibling = NULL;
+ 	struct device_node *dp;
+ 
+-	dp = create_node(node, parent);
+-	if (dp) {
++	while (1) {
++		dp = create_node(node, parent);
++		if (!dp)
++			break;
 +
-+/* Macros to assist the sharing of assembler code between 32-bit and
-+ * 64-bit sparc.
-+ */
++		if (prev_sibling)
++			prev_sibling->sibling = dp;
 +
-+#ifdef CONFIG_SPARC64
-+#define BRANCH32(TYPE, PREDICT, DEST) \
-+	TYPE,PREDICT	%icc, DEST
-+#define BRANCH32_ANNUL(TYPE, PREDICT, DEST) \
-+	TYPE,a,PREDICT	%icc, DEST
-+#define BRANCH_REG_ZERO(PREDICT, REG, DEST) \
-+	brz,PREDICT	REG, DEST
-+#define BRANCH_REG_ZERO_ANNUL(PREDICT, REG, DEST) \
-+	brz,a,PREDICT	REG, DEST
-+#define BRANCH_REG_NOT_ZERO(PREDICT, REG, DEST) \
-+	brnz,PREDICT	REG, DEST
-+#define BRANCH_REG_NOT_ZERO_ANNUL(PREDICT, REG, DEST) \
-+	brnz,a,PREDICT	REG, DEST
-+#else
-+#define BRANCH32(TYPE, PREDICT, DEST) \
-+	TYPE		DEST
-+#define BRANCH32_ANNUL(TYPE, PREDICT, DEST) \
-+	TYPE,a		DEST
-+#define BRANCH_REG_ZERO(PREDICT, REG, DEST) \
-+	cmp		REG, 0; \
-+	be		DEST
-+#define BRANCH_REG_ZERO_ANNUL(PREDICT, REG, DEST) \
-+	cmp		REG, 0; \
-+	be,a		DEST
-+#define BRANCH_REG_NOT_ZERO(PREDICT, REG, DEST) \
-+	cmp		REG, 0; \
-+	bne		DEST
-+#define BRANCH_REG_NOT_ZERO_ANNUL(PREDICT, REG, DEST) \
-+	cmp		REG, 0; \
-+	bne,a		DEST
-+#endif
++		if (!ret)
++			ret = dp;
++		prev_sibling = dp;
 +
-+#endif /* _SPARC_ASM_H */
+ 		*(*nextp) = dp;
+ 		*nextp = &dp->allnext;
+ 
+-		dp->parent = parent;
+ 		dp->path_component_name = build_path_component(dp);
+ 		dp->full_name = build_full_name(dp);
+ 
+ 		dp->child = build_tree(dp, prom_getchild(node), nextp);
+ 
+-		dp->sibling = build_tree(parent, prom_getsibling(node), nextp);
++		node = prom_getsibling(node);
+ 	}
+ 
+-	return dp;
++	return ret;
+ }
+ 
+ struct device_node *of_console_device;
 -- 
 1.5.6.5
 
