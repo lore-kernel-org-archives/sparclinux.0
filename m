@@ -1,283 +1,73 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 28 Dec 2008 21:48:52 +0000
-Subject: [PATCH 2/2] sparc: unify stat.h
-Message-Id: <20081228214852.GA13033@uranus.ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 06 Dec 2008 03:05:00 +0000
+Subject: [PATCH 1/14]: sparc: Create common header file for prom_{32,64}.c
+Message-Id: <20081205.190500.28702030.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-To my suprise struct stat64 was not equal on sparc 32 and sparc64,
-so there was really nothing to share here.
-Unify the files by adding their respective content to stat.h.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+sparc: Create common header file for prom_{32,64}.c
+
+This is where common declarations will go as we unify
+these files as much as possible into common code.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/include/asm/Kbuild    |    2 -
- arch/sparc/include/asm/stat.h    |  115 +++++++++++++++++++++++++++++++++++---
- arch/sparc/include/asm/stat_32.h |   62 --------------------
- arch/sparc/include/asm/stat_64.h |   47 ---------------
- 4 files changed, 107 insertions(+), 119 deletions(-)
- rewrite arch/sparc/include/asm/stat.h (69%)
- delete mode 100644 arch/sparc/include/asm/stat_32.h
- delete mode 100644 arch/sparc/include/asm/stat_64.h
+ arch/sparc/kernel/prom.h    |   10 ++++++++++
+ arch/sparc/kernel/prom_32.c |    4 +---
+ arch/sparc/kernel/prom_64.c |    4 +---
+ 3 files changed, 12 insertions(+), 6 deletions(-)
+ create mode 100644 arch/sparc/kernel/prom.h
 
-diff --git a/arch/sparc/include/asm/Kbuild b/arch/sparc/include/asm/Kbuild
-index 71e52a8..46d3704 100644
---- a/arch/sparc/include/asm/Kbuild
-+++ b/arch/sparc/include/asm/Kbuild
-@@ -9,8 +9,6 @@ header-y += siginfo_32.h
- header-y += siginfo_64.h
- header-y += signal_32.h
- header-y += signal_64.h
--header-y += stat_32.h
--header-y += stat_64.h
+diff --git a/arch/sparc/kernel/prom.h b/arch/sparc/kernel/prom.h
+new file mode 100644
+index 0000000..dce53de
+--- /dev/null
++++ b/arch/sparc/kernel/prom.h
+@@ -0,0 +1,10 @@
++#ifndef __PROM_H
++#define __PROM_H
++
++#include <linux/spinlock.h>
++#include <asm/prom.h>
++
++extern struct device_node *allnodes;	/* temporary while merging */
++extern rwlock_t devtree_lock;	/* temporary while merging */
++
++#endif /* __PROM_H */
+diff --git a/arch/sparc/kernel/prom_32.c b/arch/sparc/kernel/prom_32.c
+index eee5efc..715455b 100644
+--- a/arch/sparc/kernel/prom_32.c
++++ b/arch/sparc/kernel/prom_32.c
+@@ -25,9 +25,7 @@
+ #include <asm/prom.h>
+ #include <asm/oplib.h>
  
- header-y += apc.h
- header-y += asi.h
-diff --git a/arch/sparc/include/asm/stat.h b/arch/sparc/include/asm/stat.h
-dissimilarity index 69%
-index d815301..55db5ec 100644
---- a/arch/sparc/include/asm/stat.h
-+++ b/arch/sparc/include/asm/stat.h
-@@ -1,8 +1,107 @@
--#ifndef ___ASM_SPARC_STAT_H
--#define ___ASM_SPARC_STAT_H
--#if defined(__sparc__) && defined(__arch64__)
--#include <asm/stat_64.h>
--#else
--#include <asm/stat_32.h>
--#endif
--#endif
-+#ifndef __SPARC_STAT_H
-+#define __SPARC_STAT_H
-+
-+#include <linux/types.h>
-+
-+#if defined(__sparc__) && defined(__arch64__)
-+/* 64 bit sparc */
-+struct stat {
-+	unsigned   st_dev;
-+	ino_t   st_ino;
-+	mode_t  st_mode;
-+	short   st_nlink;
-+	uid_t   st_uid;
-+	gid_t   st_gid;
-+	unsigned   st_rdev;
-+	off_t   st_size;
-+	time_t  st_atime;
-+	time_t  st_mtime;
-+	time_t  st_ctime;
-+	off_t   st_blksize;
-+	off_t   st_blocks;
-+	unsigned long  __unused4[2];
-+};
-+
-+struct stat64 {
-+	unsigned long	st_dev;
-+	unsigned long	st_ino;
-+	unsigned long	st_nlink;
-+
-+	unsigned int	st_mode;
-+	unsigned int	st_uid;
-+	unsigned int	st_gid;
-+	unsigned int	__pad0;
-+
-+	unsigned long	st_rdev;
-+	long		st_size;
-+	long		st_blksize;
-+	long		st_blocks;
-+
-+	unsigned long	st_atime;
-+	unsigned long	st_atime_nsec;
-+	unsigned long	st_mtime;
-+	unsigned long	st_mtime_nsec;
-+	unsigned long	st_ctime;
-+	unsigned long	st_ctime_nsec;
-+	long		__unused[3];
-+};
-+
-+#else
-+/* 32 bit sparc */
-+struct stat {
-+	unsigned short	st_dev;
-+	ino_t		st_ino;
-+	mode_t		st_mode;
-+	short		st_nlink;
-+	uid_t		st_uid;
-+	gid_t		st_gid;
-+	unsigned short	st_rdev;
-+	off_t		st_size;
-+	time_t		st_atime;
-+	unsigned long	st_atime_nsec;
-+	time_t		st_mtime;
-+	unsigned long	st_mtime_nsec;
-+	time_t		st_ctime;
-+	unsigned long	st_ctime_nsec;
-+	off_t		st_blksize;
-+	off_t		st_blocks;
-+	unsigned long	__unused4[2];
-+};
-+
-+#define STAT_HAVE_NSEC 1
-+
-+struct stat64 {
-+	unsigned long long st_dev;
-+
-+	unsigned long long st_ino;
-+
-+	unsigned int	st_mode;
-+	unsigned int	st_nlink;
-+
-+	unsigned int	st_uid;
-+	unsigned int	st_gid;
-+
-+	unsigned long long st_rdev;
-+
-+	unsigned char	__pad3[8];
-+
-+	long long	st_size;
-+	unsigned int	st_blksize;
-+
-+	unsigned char	__pad4[8];
-+	unsigned int	st_blocks;
-+
-+	unsigned int	st_atime;
-+	unsigned int	st_atime_nsec;
-+
-+	unsigned int	st_mtime;
-+	unsigned int	st_mtime_nsec;
-+
-+	unsigned int	st_ctime;
-+	unsigned int	st_ctime_nsec;
-+
-+	unsigned int	__unused4;
-+	unsigned int	__unused5;
-+};
-+#endif /* defined(__sparc__) && defined(__arch64__) */
-+#endif /* __SPARC_STAT_H */
-diff --git a/arch/sparc/include/asm/stat_32.h b/arch/sparc/include/asm/stat_32.h
-deleted file mode 100644
-index 45b3ee4..0000000
---- a/arch/sparc/include/asm/stat_32.h
-+++ /dev/null
-@@ -1,62 +0,0 @@
--#ifndef _SPARC_STAT_H
--#define _SPARC_STAT_H
+-extern struct device_node *allnodes;	/* temporary while merging */
 -
--#include <linux/types.h>
+-extern rwlock_t devtree_lock;	/* temporary while merging */
++#include "prom.h"
+ 
+ struct device_node *of_find_node_by_phandle(phandle handle)
+ {
+diff --git a/arch/sparc/kernel/prom_64.c b/arch/sparc/kernel/prom_64.c
+index dbba82f..651448d 100644
+--- a/arch/sparc/kernel/prom_64.c
++++ b/arch/sparc/kernel/prom_64.c
+@@ -30,9 +30,7 @@
+ #include <asm/upa.h>
+ #include <asm/smp.h>
+ 
+-extern struct device_node *allnodes;	/* temporary while merging */
 -
--struct stat {
--	unsigned short	st_dev;
--	ino_t		st_ino;
--	mode_t		st_mode;
--	short		st_nlink;
--	uid_t		st_uid;
--	gid_t		st_gid;
--	unsigned short	st_rdev;
--	off_t		st_size;
--	time_t		st_atime;
--	unsigned long	st_atime_nsec;
--	time_t		st_mtime;
--	unsigned long	st_mtime_nsec;
--	time_t		st_ctime;
--	unsigned long	st_ctime_nsec;
--	off_t		st_blksize;
--	off_t		st_blocks;
--	unsigned long	__unused4[2];
--};
--
--#define STAT_HAVE_NSEC 1
--
--struct stat64 {
--	unsigned long long st_dev;
--
--	unsigned long long st_ino;
--
--	unsigned int	st_mode;
--	unsigned int	st_nlink;
--
--	unsigned int	st_uid;
--	unsigned int	st_gid;
--
--	unsigned long long st_rdev;
--
--	unsigned char	__pad3[8];
--
--	long long	st_size;
--	unsigned int	st_blksize;
--
--	unsigned char	__pad4[8];
--	unsigned int	st_blocks;
--
--	unsigned int	st_atime;
--	unsigned int	st_atime_nsec;
--
--	unsigned int	st_mtime;
--	unsigned int	st_mtime_nsec;
--
--	unsigned int	st_ctime;
--	unsigned int	st_ctime_nsec;
--
--	unsigned int	__unused4;
--	unsigned int	__unused5;
--};
--
--#endif
-diff --git a/arch/sparc/include/asm/stat_64.h b/arch/sparc/include/asm/stat_64.h
-deleted file mode 100644
-index 9650fde..0000000
---- a/arch/sparc/include/asm/stat_64.h
-+++ /dev/null
-@@ -1,47 +0,0 @@
--#ifndef _SPARC64_STAT_H
--#define _SPARC64_STAT_H
--
--#include <linux/types.h>
--
--struct stat {
--	unsigned   st_dev;
--	ino_t   st_ino;
--	mode_t  st_mode;
--	short   st_nlink;
--	uid_t   st_uid;
--	gid_t   st_gid;
--	unsigned   st_rdev;
--	off_t   st_size;
--	time_t  st_atime;
--	time_t  st_mtime;
--	time_t  st_ctime;
--	off_t   st_blksize;
--	off_t   st_blocks;
--	unsigned long  __unused4[2];
--};
--
--struct stat64 {
--	unsigned long	st_dev;
--	unsigned long	st_ino;
--	unsigned long	st_nlink;
--
--	unsigned int	st_mode;
--	unsigned int	st_uid;
--	unsigned int	st_gid;
--	unsigned int	__pad0;
--
--	unsigned long	st_rdev;
--	long		st_size;
--	long		st_blksize;
--	long		st_blocks;
--
--	unsigned long	st_atime;
--	unsigned long	st_atime_nsec;
--	unsigned long	st_mtime;
--	unsigned long	st_mtime_nsec;
--	unsigned long	st_ctime;
--	unsigned long	st_ctime_nsec;
--	long		__unused[3];
--};
--
--#endif
+-extern rwlock_t devtree_lock;	/* temporary while merging */
++#include "prom.h"
+ 
+ struct device_node *of_find_node_by_phandle(phandle handle)
+ {
 -- 
-1.6.0.2.GIT
+1.5.6.5
 
