@@ -1,41 +1,54 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 10 Dec 2008 09:07:33 +0000
-Subject: Re: [PATCH 0/4]: Assembler unification...
-Message-Id: <20081210.010733.208355389.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 07 Dec 2008 20:33:30 +0000
+Subject: sparc: fix a few sparse warnings
+Message-Id: <20081207203330.GA27505@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20081209.153543.106486270.davem@davemloft.net>
-In-Reply-To: <20081209.153543.106486270.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Wed, 10 Dec 2008 08:41:42 +0100
+Hi Dave et al.
 
-> On Tue, Dec 09, 2008 at 03:35:43PM -0800, David Miller wrote:
-> > 
-> > This is just an FYI patch posting, I won't push this out to the
-> > sparc-next-2.6 GIT tree until I go over it some more and do some
-> > testing.
-> > 
-> > This series starts unifying assembler code that is essentially the
-> > same on 32-bit and 64-bit.
-> > 
-> > The differences are mostly in the branch instructions, since sparc
-> > 64-bit has prediction, and branch-on-register instructions.
-> > 
-> > We fabricate this using some helper macros in a new asm/asm.h header
-> > file.  We'll add new stuff there, as needed.
-> > 
-> > I also took the opportunity to get these files using the proper
-> > linux/linkage.h macros to define function boundaries.
-> 
-> Browsed the patches and unification looks good.
-> As I do not speak sparc assembler I did not look
-> at the unified code.
+I spent a few hours fixing some trivial sparse warnings.
+I spent some time trying to find a good way to fix
+the floppy related warnings from irq_32.c but gave up.
 
-Thanks for reviewing.
+The best solution would be to move the interrupt
+handler to floppy_32.h (as we do with sparc64) so
+we keep the dependencies local.
+And if we do this maybe we should just rewrite it to C
+anyway. But that requires some sparc assembler knowledge,
+and the real gain is minimal so I dropped it.
 
-I did my testing and checks and have pushed this work to
-the sparc-next-2.6 GIT tree on kernel.org
+The patches add more lines than they remove - mostly
+because this is about adding proper extern decalarations
+for several functions.
+
+I decided to go for a common entry.h file.
+Because I hope there will be more shared stuff in there
+over time.
+And the same argument applies for kernel.h.
+
+There are 138 warnings to go in kernel/ and many of these
+are simple to fix. But they are for another day.
+
+	Sam
+
+Sam Ravnborg (5):
+      sparc: fix sparse warning in kernel/pmc.c
+      sparc: fix trivial style issues in kernel/pmc.c
+      sparc: fix sparse warnings in traps_32.c
+      sparc: add include guards to kernel.h
+      sparc: fix sparse warnings in irq_32.c
+
+ arch/sparc/include/asm/irq_32.h |    1 +
+ arch/sparc/kernel/entry.h       |   39 ++++++++++++++++++++++++++++++++++++++-
+ arch/sparc/kernel/irq_32.c      |    7 ++++---
+ arch/sparc/kernel/kernel.h      |   23 +++++++++++++++++++++++
+ arch/sparc/kernel/muldiv.c      |    5 ++---
+ arch/sparc/kernel/pmc.c         |   18 +++++++++---------
+ arch/sparc/kernel/sun4d_irq.c   |    2 +-
+ arch/sparc/kernel/traps_32.c    |   34 +++-------------------------------
+ 8 files changed, 81 insertions(+), 48 deletions(-)
+
