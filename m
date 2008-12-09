@@ -1,141 +1,305 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Tue, 23 Dec 2008 14:42:47 +0000
-Subject: [PATCH] sparc64: fix unsigned long long warnings in drivers
-Message-Id: <20081223144247.GA4920@uranus.ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 09 Dec 2008 23:35:51 +0000
+Subject: [PATCH 3/4]: sparc: Unify strlen assembler.
+Message-Id: <20081209.153551.105983881.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20081222152247.b934ed5b.sfr@canb.auug.org.au> <b040c32a0812212249p45aba306tbb68a960b79cd0ee@mail.gmail.com> <20081222070426.GD29160@elte.hu> <20081222181932.5dd9514e.sfr@canb.auug.org.au> <20081222080341.GA18897@elte.hu> <20081222144319.1bfc0061.akpm@linux-foundation.org> <20081222230035.GB4074@uranus.ravnborg.org> <20081222151338.3b6ef997.akpm@linux-foundation.org> <20081223131746.GA7456@uranus.ravnborg.org>
-In-Reply-To: <20081223131746.GA7456@uranus.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>, sparclinux <sparclinux@vger.kernel.org>
-Cc: mingo@elte.hu, sfr@canb.auug.org.au, linux-kernel@vger.kernel.org, kenchen@google.com, paulus@samba.org, tglx@linutronix.de, hpa@zytor.com, linux-next@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Fix warnings caused by the unsigned long long usage in sparc
-specific drivers.
 
-The drivers were considered sparc specific more or less from the
-filename alone.
+sparc: Unify strlen assembler.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Use the new asm/asm.h header to help commonize the
+strlen assembler between 32-bit and 64-bit
+
+While we're here, use proper linux/linkage.h macros
+instead of by-hand stuff.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
+ arch/sparc/lib/Makefile    |    2 +-
+ arch/sparc/lib/strlen.S    |   80 +++++++++++++++++++++++++++++++++++++++++++
+ arch/sparc/lib/strlen_32.S |   81 --------------------------------------------
+ arch/sparc/lib/strlen_64.S |   80 -------------------------------------------
+ 4 files changed, 81 insertions(+), 162 deletions(-)
+ create mode 100644 arch/sparc/lib/strlen.S
+ delete mode 100644 arch/sparc/lib/strlen_32.S
+ delete mode 100644 arch/sparc/lib/strlen_64.S
 
-This turned out easier than expected.
-There were a few generic related warnings that I did not touch.
-I can split it up in smaller chunks if preferred.
-
-	Sam
-
- drivers/block/sunvdc.c          |    8 ++++----
- drivers/char/hw_random/n2-drv.c |    2 +-
- drivers/net/sunvnet.c           |    8 ++++----
- drivers/sbus/char/display7seg.c |    2 +-
- sound/sparc/cs4231.c            |    2 +-
- 5 files changed, 11 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/block/sunvdc.c b/drivers/block/sunvdc.c
-index 953c0b8..5861e33 100644
---- a/drivers/block/sunvdc.c
-+++ b/drivers/block/sunvdc.c
-@@ -153,7 +153,7 @@ static int vdc_send_attr(struct vio_driver_state *vio)
- 	pkt.vdisk_block_size = port->vdisk_block_size;
- 	pkt.max_xfer_size = port->max_xfer_size;
+diff --git a/arch/sparc/lib/Makefile b/arch/sparc/lib/Makefile
+index 05ae5c9..0db2c61 100644
+--- a/arch/sparc/lib/Makefile
++++ b/arch/sparc/lib/Makefile
+@@ -6,7 +6,7 @@ ccflags-y := -Werror
  
--	viodbg(HS, "SEND ATTR xfer_mode[0x%x] blksz[%u] max_xfer[%lu]\n",
-+	viodbg(HS, "SEND ATTR xfer_mode[0x%x] blksz[%u] max_xfer[%llu]\n",
- 	       pkt.xfer_mode, pkt.vdisk_block_size, pkt.max_xfer_size);
- 
- 	return vio_ldc_send(&port->vio, &pkt, sizeof(pkt));
-@@ -164,8 +164,8 @@ static int vdc_handle_attr(struct vio_driver_state *vio, void *arg)
- 	struct vdc_port *port = to_vdc_port(vio);
- 	struct vio_disk_attr_info *pkt = arg;
- 
--	viodbg(HS, "GOT ATTR stype[0x%x] ops[%lx] disk_size[%lu] disk_type[%x] "
--	       "xfer_mode[0x%x] blksz[%u] max_xfer[%lu]\n",
-+	viodbg(HS, "GOT ATTR stype[0x%x] ops[%llx] disk_size[%llu] disk_type[%x] "
-+	       "xfer_mode[0x%x] blksz[%u] max_xfer[%llu]\n",
- 	       pkt->tag.stype, pkt->operations,
- 	       pkt->vdisk_size, pkt->vdisk_type,
- 	       pkt->xfer_mode, pkt->vdisk_block_size,
-@@ -753,7 +753,7 @@ static int __devinit vdc_port_probe(struct vio_dev *vdev,
- 
- 	err = -ENODEV;
- 	if ((vdev->dev_no << PARTITION_SHIFT) & ~(u64)MINORMASK) {
--		printk(KERN_ERR PFX "Port id [%lu] too large.\n",
-+		printk(KERN_ERR PFX "Port id [%llu] too large.\n",
- 		       vdev->dev_no);
- 		goto err_out_release_mdesc;
- 	}
-diff --git a/drivers/char/hw_random/n2-drv.c b/drivers/char/hw_random/n2-drv.c
-index 8859aea..9b3e09c 100644
---- a/drivers/char/hw_random/n2-drv.c
-+++ b/drivers/char/hw_random/n2-drv.c
-@@ -482,7 +482,7 @@ static void n2rng_dump_test_buffer(struct n2rng *np)
- 	int i;
- 
- 	for (i = 0; i < SELFTEST_BUFFER_WORDS; i++)
--		dev_err(&np->op->dev, "Test buffer slot %d [0x%016lx]\n",
-+		dev_err(&np->op->dev, "Test buffer slot %d [0x%016llx]\n",
- 			i, np->test_buffer[i]);
- }
- 
-diff --git a/drivers/net/sunvnet.c b/drivers/net/sunvnet.c
-index a720065..c5335cf 100644
---- a/drivers/net/sunvnet.c
-+++ b/drivers/net/sunvnet.c
-@@ -336,7 +336,7 @@ static int vnet_walk_rx_one(struct vnet_port *port,
- 	if (IS_ERR(desc))
- 		return PTR_ERR(desc);
- 
--	viodbg(DATA, "vio_walk_rx_one desc[%02x:%02x:%08x:%08x:%lx:%lx]\n",
-+	viodbg(DATA, "vio_walk_rx_one desc[%02x:%02x:%08x:%08x:%llx:%llx]\n",
- 	       desc->hdr.state, desc->hdr.ack,
- 	       desc->size, desc->ncookies,
- 	       desc->cookies[0].cookie_addr,
-@@ -394,14 +394,14 @@ static int vnet_rx(struct vnet_port *port, void *msgbuf)
- 	struct vio_dring_state *dr = &port->vio.drings[VIO_DRIVER_RX_RING];
- 	struct vio_driver_state *vio = &port->vio;
- 
--	viodbg(DATA, "vnet_rx stype_env[%04x] seq[%016lx] rcv_nxt[%016lx]\n",
-+	viodbg(DATA, "vnet_rx stype_env[%04x] seq[%016llx] rcv_nxt[%016llx]\n",
- 	       pkt->tag.stype_env, pkt->seq, dr->rcv_nxt);
- 
- 	if (unlikely(pkt->tag.stype_env != VIO_DRING_DATA))
- 		return 0;
- 	if (unlikely(pkt->seq != dr->rcv_nxt)) {
--		printk(KERN_ERR PFX "RX out of sequence seq[0x%lx] "
--		       "rcv_nxt[0x%lx]\n", pkt->seq, dr->rcv_nxt);
-+		printk(KERN_ERR PFX "RX out of sequence seq[0x%llx] "
-+		       "rcv_nxt[0x%llx]\n", pkt->seq, dr->rcv_nxt);
- 		return 0;
- 	}
- 
-diff --git a/drivers/sbus/char/display7seg.c b/drivers/sbus/char/display7seg.c
-index 2550af4..1d46205 100644
---- a/drivers/sbus/char/display7seg.c
-+++ b/drivers/sbus/char/display7seg.c
-@@ -214,7 +214,7 @@ static int __devinit d7s_probe(struct of_device *op,
- 
- 	writeb(regs,  p->regs);
- 
--	printk(KERN_INFO PFX "7-Segment Display%s at [%s:0x%lx] %s\n", 
-+	printk(KERN_INFO PFX "7-Segment Display%s at [%s:0x%llx] %s\n", 
- 	       op->node->full_name,
- 	       (regs & D7S_FLIP) ? " (FLIPPED)" : "",
- 	       op->resource[0].start,
-diff --git a/sound/sparc/cs4231.c b/sound/sparc/cs4231.c
-index d44bf98..41c3875 100644
---- a/sound/sparc/cs4231.c
-+++ b/sound/sparc/cs4231.c
-@@ -2057,7 +2057,7 @@ static int __devinit cs4231_ebus_probe(struct of_device *op, const struct of_dev
- 	if (err)
- 		return err;
- 
--	sprintf(card->longname, "%s at 0x%lx, irq %d",
-+	sprintf(card->longname, "%s at 0x%llx, irq %d",
- 		card->shortname,
- 		op->resource[0].start,
- 		op->irqs[0]);
+ lib-$(CONFIG_SPARC32) += mul.o rem.o sdiv.o udiv.o umul.o urem.o ashrdi3.o
+ lib-$(CONFIG_SPARC32) += memcpy.o memset.o
+-lib-y                 += strlen_$(BITS).o
++lib-y                 += strlen.o
+ lib-y                 += checksum_$(BITS).o
+ lib-$(CONFIG_SPARC32) += blockops.o
+ lib-y                 += memscan_$(BITS).o memcmp_$(BITS).o strncmp_$(BITS).o
+diff --git a/arch/sparc/lib/strlen.S b/arch/sparc/lib/strlen.S
+new file mode 100644
+index 0000000..536f835
+--- /dev/null
++++ b/arch/sparc/lib/strlen.S
+@@ -0,0 +1,80 @@
++/* strlen.S: Sparc optimized strlen code
++ * Hand optimized from GNU libc's strlen
++ * Copyright (C) 1991,1996 Free Software Foundation
++ * Copyright (C) 1996,2008 David S. Miller (davem@davemloft.net)
++ * Copyright (C) 1996, 1997 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
++ */
++
++#include <linux/linkage.h>
++#include <asm/asm.h>
++
++#define LO_MAGIC 0x01010101
++#define HI_MAGIC 0x80808080
++
++	.text
++ENTRY(strlen)
++	mov	%o0, %o1
++	andcc	%o0, 3, %g0
++	BRANCH32(be, pt, 9f)
++	 sethi	%hi(HI_MAGIC), %o4
++	ldub	[%o0], %o5
++	BRANCH_REG_ZERO(pn, %o5, 11f)
++	 add	%o0, 1, %o0
++	andcc	%o0, 3, %g0
++	BRANCH32(be, pn, 4f)
++	 or	%o4, %lo(HI_MAGIC), %o3
++	ldub	[%o0], %o5
++	BRANCH_REG_ZERO(pn, %o5, 12f)
++	 add	%o0, 1, %o0
++	andcc	%o0, 3, %g0
++	BRANCH32(be, pt, 5f)
++	 sethi	%hi(LO_MAGIC), %o4
++	ldub	[%o0], %o5
++	BRANCH_REG_ZERO(pn, %o5, 13f)
++	 add	%o0, 1, %o0
++	BRANCH32(ba, pt, 8f)
++	 or	%o4, %lo(LO_MAGIC), %o2
++9:
++	or	%o4, %lo(HI_MAGIC), %o3
++4:
++	sethi	%hi(LO_MAGIC), %o4
++5:
++	or	%o4, %lo(LO_MAGIC), %o2
++8:
++	ld	[%o0], %o5
++2:
++	sub	%o5, %o2, %o4
++	andcc	%o4, %o3, %g0
++	BRANCH32(be, pt, 8b)
++	 add	%o0, 4, %o0
++
++	/* Check every byte. */
++	srl	%o5, 24, %g7
++	andcc	%g7, 0xff, %g0
++	BRANCH32(be, pn, 1f)
++	 add	%o0, -4, %o4
++	srl	%o5, 16, %g7
++	andcc	%g7, 0xff, %g0
++	BRANCH32(be, pn, 1f)
++	 add	%o4, 1, %o4
++	srl	%o5, 8, %g7
++	andcc	%g7, 0xff, %g0
++	BRANCH32(be, pn, 1f)
++	 add	%o4, 1, %o4
++	andcc	%o5, 0xff, %g0
++	BRANCH32_ANNUL(bne, pt, 2b)
++	 ld	[%o0], %o5
++	add	%o4, 1, %o4
++1:
++	retl
++	 sub	%o4, %o1, %o0
++11:
++	retl
++	 mov	0, %o0
++12:
++	retl
++	 mov	1, %o0
++13:
++	retl
++	 mov	2, %o0
++ENDPROC(strlen)
+diff --git a/arch/sparc/lib/strlen_32.S b/arch/sparc/lib/strlen_32.S
+deleted file mode 100644
+index ed9a763..0000000
+--- a/arch/sparc/lib/strlen_32.S
++++ /dev/null
+@@ -1,81 +0,0 @@
+-/* strlen.S: Sparc optimized strlen code
+- * Hand optimized from GNU libc's strlen
+- * Copyright (C) 1991,1996 Free Software Foundation
+- * Copyright (C) 1996 David S. Miller (davem@caip.rutgers.edu)
+- * Copyright (C) 1996 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
+- */
+-
+-#define LO_MAGIC 0x01010101
+-#define HI_MAGIC 0x80808080
+-
+-0:
+-	ldub	[%o0], %o5
+-	cmp	%o5, 0
+-	be	1f
+-	 add	%o0, 1, %o0
+-	andcc	%o0, 3, %g0
+-	be	4f
+-	 or	%o4, %lo(HI_MAGIC), %o3
+-	ldub	[%o0], %o5
+-	cmp	%o5, 0
+-	be	2f
+-	 add	%o0, 1, %o0
+-	andcc	%o0, 3, %g0
+-	be	5f
+-	 sethi	%hi(LO_MAGIC), %o4
+-	ldub	[%o0], %o5
+-	cmp	%o5, 0
+-	be	3f
+-	 add	%o0, 1, %o0
+-	b	8f
+-	 or	%o4, %lo(LO_MAGIC), %o2
+-1:
+-	retl
+-	 mov	0, %o0
+-2:
+-	retl
+-	 mov	1, %o0
+-3:
+-	retl
+-	 mov	2, %o0
+-
+-	.align 4
+-	.global strlen
+-strlen:
+-	mov	%o0, %o1
+-	andcc	%o0, 3, %g0
+-	bne	0b
+-	 sethi	%hi(HI_MAGIC), %o4
+-	or	%o4, %lo(HI_MAGIC), %o3
+-4:
+-	sethi	%hi(LO_MAGIC), %o4
+-5:
+-	or	%o4, %lo(LO_MAGIC), %o2
+-8:
+-	ld	[%o0], %o5
+-2:
+-	sub	%o5, %o2, %o4
+-	andcc	%o4, %o3, %g0
+-	be	8b
+-	 add	%o0, 4, %o0
+-
+-	/* Check every byte. */
+-	srl	%o5, 24, %g5
+-	andcc	%g5, 0xff, %g0
+-	be	1f
+-	 add	%o0, -4, %o4
+-	srl	%o5, 16, %g5
+-	andcc	%g5, 0xff, %g0
+-	be	1f
+-	 add	%o4, 1, %o4
+-	srl	%o5, 8, %g5
+-	andcc	%g5, 0xff, %g0
+-	be	1f
+-	 add	%o4, 1, %o4
+-	andcc	%o5, 0xff, %g0
+-	bne,a	2b
+-	 ld	[%o0], %o5
+-	add	%o4, 1, %o4
+-1:
+-	retl
+-	 sub	%o4, %o1, %o0
+diff --git a/arch/sparc/lib/strlen_64.S b/arch/sparc/lib/strlen_64.S
+deleted file mode 100644
+index e9ba192..0000000
+--- a/arch/sparc/lib/strlen_64.S
++++ /dev/null
+@@ -1,80 +0,0 @@
+-/* strlen.S: Sparc64 optimized strlen code
+- * Hand optimized from GNU libc's strlen
+- * Copyright (C) 1991,1996 Free Software Foundation
+- * Copyright (C) 1996 David S. Miller (davem@caip.rutgers.edu)
+- * Copyright (C) 1996, 1997 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
+- */
+-
+-#define LO_MAGIC 0x01010101
+-#define HI_MAGIC 0x80808080
+-
+-	.align	32
+-	.globl	strlen
+-	.type	strlen,#function
+-strlen:
+-	mov	%o0, %o1
+-	andcc	%o0, 3, %g0
+-	be,pt	%icc, 9f
+-	 sethi	%hi(HI_MAGIC), %o4
+-	ldub	[%o0], %o5
+-	brz,pn	%o5, 11f
+-	 add	%o0, 1, %o0
+-	andcc	%o0, 3, %g0
+-	be,pn	%icc, 4f
+-	 or	%o4, %lo(HI_MAGIC), %o3
+-	ldub	[%o0], %o5
+-	brz,pn	%o5, 12f
+-	 add	%o0, 1, %o0
+-	andcc	%o0, 3, %g0
+-	be,pt	%icc, 5f
+-	 sethi	%hi(LO_MAGIC), %o4
+-	ldub	[%o0], %o5
+-	brz,pn	%o5, 13f
+-	 add	%o0, 1, %o0
+-	ba,pt	%icc, 8f
+-	 or	%o4, %lo(LO_MAGIC), %o2
+-9:
+-	or	%o4, %lo(HI_MAGIC), %o3
+-4:
+-	sethi	%hi(LO_MAGIC), %o4
+-5:
+-	or	%o4, %lo(LO_MAGIC), %o2
+-8:
+-	ld	[%o0], %o5
+-2:
+-	sub	%o5, %o2, %o4
+-	andcc	%o4, %o3, %g0
+-	be,pt	%icc, 8b
+-	 add	%o0, 4, %o0
+-
+-	/* Check every byte. */
+-	srl	%o5, 24, %g7
+-	andcc	%g7, 0xff, %g0
+-	be,pn	%icc, 1f
+-	 add	%o0, -4, %o4
+-	srl	%o5, 16, %g7
+-	andcc	%g7, 0xff, %g0
+-	be,pn	%icc, 1f
+-	 add	%o4, 1, %o4
+-	srl	%o5, 8, %g7
+-	andcc	%g7, 0xff, %g0
+-	be,pn	%icc, 1f
+-	 add	%o4, 1, %o4
+-	andcc	%o5, 0xff, %g0
+-	bne,a,pt %icc, 2b
+-	 ld	[%o0], %o5
+-	add	%o4, 1, %o4
+-1:
+-	retl
+-	 sub	%o4, %o1, %o0
+-11:
+-	retl
+-	 mov	0, %o0
+-12:
+-	retl
+-	 mov	1, %o0
+-13:
+-	retl
+-	 mov	2, %o0
+-
+-	.size	strlen, .-strlen
 -- 
-1.6.0.2.GIT
+1.5.6.5
 
