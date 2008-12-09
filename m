@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Sat, 06 Dec 2008 03:05:28 +0000
-Subject: [PATCH 12/14]: sparc: Move core of OF device tree building code
-Message-Id: <20081205.190528.51025366.davem@davemloft.net>
+Date: Tue, 09 Dec 2008 23:35:45 +0000
+Subject: [PATCH 1/4]: sparc: Kill memcmp_32.S code which has been ifdef'd
+Message-Id: <20081209.153545.08718417.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,325 +9,310 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-sparc: Move core of OF device tree building code into prom_common.c
+sparc: Kill memcmp_32.S code which has been ifdef'd out for centuries.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/kernel/prom.h        |   17 ++++++++-
- arch/sparc/kernel/prom_32.c     |   69 +++------------------------------------
- arch/sparc/kernel/prom_64.c     |   69 +++------------------------------------
- arch/sparc/kernel/prom_common.c |   57 +++++++++++++++++++++++++++++++-
- 4 files changed, 80 insertions(+), 132 deletions(-)
+ arch/sparc/lib/memcmp_32.S |  282 --------------------------------------------
+ 1 files changed, 0 insertions(+), 282 deletions(-)
 
-diff --git a/arch/sparc/kernel/prom.h b/arch/sparc/kernel/prom.h
-index d14b4ae..dea8b91 100644
---- a/arch/sparc/kernel/prom.h
-+++ b/arch/sparc/kernel/prom.h
-@@ -15,7 +15,20 @@ extern void irq_trans_init(struct device_node *dp);
+diff --git a/arch/sparc/lib/memcmp_32.S b/arch/sparc/lib/memcmp_32.S
+index cb4bdb0..9e21f02 100644
+--- a/arch/sparc/lib/memcmp_32.S
++++ b/arch/sparc/lib/memcmp_32.S
+@@ -3,7 +3,6 @@
+ 	.global __memcmp, memcmp
+ __memcmp:
+ memcmp:
+-#if 1
+ 	cmp	%o2, 0
+ 	ble	L3
+ 	 mov	0, %g3
+@@ -29,284 +28,3 @@ L3:
  
- extern unsigned int prom_unique_id;
- 
--extern struct device_node * __init create_node(phandle node,
--					       struct device_node *parent);
-+static inline int is_root_node(const struct device_node *dp)
-+{
-+	if (!dp)
-+		return 0;
- 
-+	return (dp->parent = NULL);
-+}
-+
-+extern char *build_path_component(struct device_node *dp);
-+
-+extern struct device_node * __init prom_create_node(phandle node,
-+						    struct device_node *parent);
-+
-+extern struct device_node * __init prom_build_tree(struct device_node *parent,
-+						   phandle node,
-+						   struct device_node ***nextp);
- #endif /* __PROM_H */
-diff --git a/arch/sparc/kernel/prom_32.c b/arch/sparc/kernel/prom_32.c
-index 35cb4c7..75eb40b 100644
---- a/arch/sparc/kernel/prom_32.c
-+++ b/arch/sparc/kernel/prom_32.c
-@@ -42,14 +42,6 @@ void * __init prom_early_alloc(unsigned long size)
- 	return ret;
- }
- 
--static int is_root_node(const struct device_node *dp)
--{
--	if (!dp)
--		return 0;
+ 	retl
+ 	 nop
+-#else
+-	save	%sp, -104, %sp
+-	mov	%i2, %o4
+-	mov	%i0, %o0
 -
--	return (dp->parent = NULL);
--}
+-	cmp	%o4, 15
+-	ble	L72
+-	 mov	%i1, %i2
 -
- /* The following routines deal with the black magic of fully naming a
-  * node.
-  *
-@@ -161,7 +153,7 @@ static void __init __build_path_component(struct device_node *dp, char *tmp_buf)
- 	return sparc32_path_component(dp, tmp_buf);
- }
- 
--static char * __init build_path_component(struct device_node *dp)
-+char * __init build_path_component(struct device_node *dp)
- {
- 	char tmp_buf[64], *n;
- 
-@@ -176,57 +168,6 @@ static char * __init build_path_component(struct device_node *dp)
- 	return n;
- }
- 
--static char * __init build_full_name(struct device_node *dp)
--{
--	int len, ourlen, plen;
--	char *n;
+-	andcc	%i2, 3, %g0
+-	be	L161
+-	 andcc	%o0, 3, %g2
+-L75:
+-	ldub	[%o0], %g3
+-	ldub	[%i2], %g2
+-	add	%o0,1, %o0
 -
--	plen = strlen(dp->parent->full_name);
--	ourlen = strlen(dp->path_component_name);
--	len = ourlen + plen + 2;
+-	subcc	%g3, %g2, %i0
+-	bne	L156
+-	 add	%i2, 1, %i2
 -
--	n = prom_early_alloc(len);
--	strcpy(n, dp->parent->full_name);
--	if (!is_root_node(dp->parent)) {
--		strcpy(n + plen, "/");
--		plen++;
--	}
--	strcpy(n + plen, dp->path_component_name);
+-	andcc	%i2, 3, %g0
+-	bne	L75
+-	 add	%o4, -1, %o4
 -
--	return n;
--}
+-	andcc	%o0, 3, %g2
+-L161:
+-	bne,a	L78
+-	 mov	%i2, %i1
 -
--static struct device_node * __init build_tree(struct device_node *parent, phandle node, struct device_node ***nextp)
--{
--	struct device_node *ret = NULL, *prev_sibling = NULL;
--	struct device_node *dp;
+-	mov	%o0, %i5
+-	mov	%i2, %i3
+-	srl	%o4, 2, %i4
 -
--	while (1) {
--		dp = create_node(node, parent);
--		if (!dp)
--			break;
+-	cmp	%i4, 0
+-	bge	L93
+-	 mov	%i4, %g2
 -
--		if (prev_sibling)
--			prev_sibling->sibling = dp;
+-	add %i4, 3, %g2
+-L93:
+-	sra	%g2, 2, %g2
+-	sll	%g2, 2, %g2
+-	sub	%i4, %g2, %g2
 -
--		if (!ret)
--			ret = dp;
--		prev_sibling = dp;
+-	cmp	%g2, 1
+-	be,a	L88
+-	 add	%o0, 4, %i5
 -
--		*(*nextp) = dp;
--		*nextp = &dp->allnext;
+-	bg	L94
+-	 cmp	%g2, 2
 -
--		dp->path_component_name = build_path_component(dp);
--		dp->full_name = build_full_name(dp);
+-	cmp	%g2, 0
+-	be,a	L86
+-	 ld	[%o0], %g3
 -
--		dp->child = build_tree(dp, prom_getchild(node), nextp);
+-	b	L162
+-	 ld	[%i5], %g3
+-L94:
+-	be	L81
+-	 cmp	%g2, 3
 -
--		node = prom_getsibling(node);
--	}
+-	be,a	L83
+-	 add	%o0, -4, %i5
 -
--	return ret;
--}
+-	b	L162
+-	 ld	[%i5], %g3
+-L81:
+-	add	%o0, -8, %i5
+-	ld	[%o0], %g3
+-	add	%i2, -8, %i3
+-	ld	[%i2], %g2
 -
- struct device_node *of_console_device;
- EXPORT_SYMBOL(of_console_device);
- 
-@@ -360,14 +301,14 @@ void __init prom_build_devicetree(void)
- {
- 	struct device_node **nextp;
- 
--	allnodes = create_node(prom_root_node, NULL);
-+	allnodes = prom_create_node(prom_root_node, NULL);
- 	allnodes->path_component_name = "";
- 	allnodes->full_name = "/";
- 
- 	nextp = &allnodes->allnext;
--	allnodes->child = build_tree(allnodes,
--				     prom_getchild(allnodes->node),
--				     &nextp);
-+	allnodes->child = prom_build_tree(allnodes,
-+					  prom_getchild(allnodes->node),
-+					  &nextp);
- 	of_console_init();
- 
- 	printk("PROM: Built device tree with %u bytes of memory.\n",
-diff --git a/arch/sparc/kernel/prom_64.c b/arch/sparc/kernel/prom_64.c
-index c1ce987..0279811 100644
---- a/arch/sparc/kernel/prom_64.c
-+++ b/arch/sparc/kernel/prom_64.c
-@@ -51,14 +51,6 @@ void * __init prom_early_alloc(unsigned long size)
- 	return ret;
- }
- 
--static int is_root_node(const struct device_node *dp)
--{
--	if (!dp)
--		return 0;
+-	b	L82
+-	 add	%i4, 2, %i4
+-L83:
+-	ld	[%o0], %g4
+-	add	%i2, -4, %i3
+-	ld	[%i2], %g1
 -
--	return (dp->parent = NULL);
--}
+-	b	L84
+-	 add	%i4, 1, %i4
+-L86:
+-	b	L87
+-	 ld	[%i2], %g2
+-L88:
+-	add	%i2, 4, %i3
+-	ld	[%o0], %g4
+-	add	%i4, -1, %i4
+-	ld	[%i2], %g1
+-L95:
+-	ld	[%i5], %g3
+-L162:
+-	cmp	%g4, %g1
+-	be	L87
+-	 ld	[%i3], %g2
 -
- /* The following routines deal with the black magic of fully naming a
-  * node.
-  *
-@@ -364,7 +356,7 @@ static void __init __build_path_component(struct device_node *dp, char *tmp_buf)
- 	}
- }
- 
--static char * __init build_path_component(struct device_node *dp)
-+char * __init build_path_component(struct device_node *dp)
- {
- 	char tmp_buf[64], *n;
- 
-@@ -379,57 +371,6 @@ static char * __init build_path_component(struct device_node *dp)
- 	return n;
- }
- 
--static char * __init build_full_name(struct device_node *dp)
--{
--	int len, ourlen, plen;
--	char *n;
+-	cmp	%g4, %g1
+-L163:
+-	bleu	L114
+-	 mov	-1, %i0
 -
--	plen = strlen(dp->parent->full_name);
--	ourlen = strlen(dp->path_component_name);
--	len = ourlen + plen + 2;
+-	b	L114
+-	 mov	1, %i0
+-L87:
+-	ld	[%i5 + 4], %g4
+-	cmp	%g3, %g2
+-	bne	L163
+-	 ld	[%i3 + 4], %g1
+-L84:
+-	ld	[%i5 + 8], %g3
 -
--	n = prom_early_alloc(len);
--	strcpy(n, dp->parent->full_name);
--	if (!is_root_node(dp->parent)) {
--		strcpy(n + plen, "/");
--		plen++;
--	}
--	strcpy(n + plen, dp->path_component_name);
+-	cmp	%g4, %g1
+-	bne	L163
+-	 ld	[%i3 + 8], %g2
+-L82:
+-	ld	[%i5 + 12], %g4
+-	cmp	%g3, %g2
+-	bne	L163
+-	 ld	[%i3 + 12], %g1
 -
--	return n;
--}
+-	add	%i5, 16, %i5
 -
--static struct device_node * __init build_tree(struct device_node *parent, phandle node, struct device_node ***nextp)
--{
--	struct device_node *ret = NULL, *prev_sibling = NULL;
--	struct device_node *dp;
+-	addcc	%i4, -4, %i4
+-	bne	L95
+-	 add	%i3, 16, %i3
 -
--	while (1) {
--		dp = create_node(node, parent);
--		if (!dp)
--			break;
+-	cmp	%g4, %g1
+-	bne	L163
+-	 nop
 -
--		if (prev_sibling)
--			prev_sibling->sibling = dp;
+-	b	L114
+-	 mov	0, %i0
+-L78:
+-	srl	%o4, 2, %i0
+-	and	%o0, -4, %i3
+-	orcc	%i0, %g0, %g3
+-	sll	%g2, 3, %o7
+-	mov	32, %g2
 -
--		if (!ret)
--			ret = dp;
--		prev_sibling = dp;
+-	bge	L129
+-	 sub	%g2, %o7, %o1
 -
--		*(*nextp) = dp;
--		*nextp = &dp->allnext;
+-	add	%i0, 3, %g3
+-L129:
+-	sra	%g3, 2, %g2
+-	sll	%g2, 2, %g2
+-	sub	%i0, %g2, %g2
 -
--		dp->path_component_name = build_path_component(dp);
--		dp->full_name = build_full_name(dp);
+-	cmp	%g2, 1
+-	be,a	L124
+-	 ld	[%i3], %o3
 -
--		dp->child = build_tree(dp, prom_getchild(node), nextp);
+-	bg	L130
+-	 cmp	%g2, 2
 -
--		node = prom_getsibling(node);
--	}
+-	cmp	%g2, 0
+-	be,a	L122
+-	 ld	[%i3], %o2
 -
--	return ret;
--}
+-	b	L164
+-	sll	%o3, %o7, %g3
+-L130:
+-	be	L117
+-	 cmp	%g2, 3
 -
- static const char *get_mid_prop(void)
- {
- 	return (tlb_type = spitfire ? "upa-portid" : "portid");
-@@ -640,14 +581,14 @@ void __init prom_build_devicetree(void)
- {
- 	struct device_node **nextp;
- 
--	allnodes = create_node(prom_root_node, NULL);
-+	allnodes = prom_create_node(prom_root_node, NULL);
- 	allnodes->path_component_name = "";
- 	allnodes->full_name = "/";
- 
- 	nextp = &allnodes->allnext;
--	allnodes->child = build_tree(allnodes,
--				     prom_getchild(allnodes->node),
--				     &nextp);
-+	allnodes->child = prom_build_tree(allnodes,
-+					  prom_getchild(allnodes->node),
-+					  &nextp);
- 	of_console_init();
- 
- 	printk("PROM: Built device tree with %u bytes of memory.\n",
-diff --git a/arch/sparc/kernel/prom_common.c b/arch/sparc/kernel/prom_common.c
-index d3eddc7..3b5de2f 100644
---- a/arch/sparc/kernel/prom_common.c
-+++ b/arch/sparc/kernel/prom_common.c
-@@ -216,8 +216,8 @@ static char * __init get_one_property(phandle node, const char *name)
- 	return buf;
- }
- 
--struct device_node * __init create_node(phandle node,
--					struct device_node *parent)
-+struct device_node * __init prom_create_node(phandle node,
-+					     struct device_node *parent)
- {
- 	struct device_node *dp;
- 
-@@ -240,3 +240,56 @@ struct device_node * __init create_node(phandle node,
- 
- 	return dp;
- }
-+
-+static char * __init build_full_name(struct device_node *dp)
-+{
-+	int len, ourlen, plen;
-+	char *n;
-+
-+	plen = strlen(dp->parent->full_name);
-+	ourlen = strlen(dp->path_component_name);
-+	len = ourlen + plen + 2;
-+
-+	n = prom_early_alloc(len);
-+	strcpy(n, dp->parent->full_name);
-+	if (!is_root_node(dp->parent)) {
-+		strcpy(n + plen, "/");
-+		plen++;
-+	}
-+	strcpy(n + plen, dp->path_component_name);
-+
-+	return n;
-+}
-+
-+struct device_node * __init prom_build_tree(struct device_node *parent,
-+					    phandle node,
-+					    struct device_node ***nextp)
-+{
-+	struct device_node *ret = NULL, *prev_sibling = NULL;
-+	struct device_node *dp;
-+
-+	while (1) {
-+		dp = prom_create_node(node, parent);
-+		if (!dp)
-+			break;
-+
-+		if (prev_sibling)
-+			prev_sibling->sibling = dp;
-+
-+		if (!ret)
-+			ret = dp;
-+		prev_sibling = dp;
-+
-+		*(*nextp) = dp;
-+		*nextp = &dp->allnext;
-+
-+		dp->path_component_name = build_path_component(dp);
-+		dp->full_name = build_full_name(dp);
-+
-+		dp->child = prom_build_tree(dp, prom_getchild(node), nextp);
-+
-+		node = prom_getsibling(node);
-+	}
-+
-+	return ret;
-+}
+-	be,a	L119
+-	 ld	[%i3], %g1
+-
+-	b	L164
+-	 sll	%o3, %o7, %g3
+-L117:
+-	ld	[%i3], %g4
+-	add	%i2, -8, %i1
+-	ld	[%i3 + 4], %o3
+-	add	%i0, 2, %i0
+-	ld	[%i2], %i4
+-
+-	b	L118
+-	 add	%i3, -4, %i3
+-L119:
+-	ld	[%i3 + 4], %g4
+-	add	%i2, -4, %i1
+-	ld	[%i2], %i5
+-
+-	b	L120
+-	 add	%i0, 1, %i0
+-L122:
+-	ld	[%i3 + 4], %g1
+-	ld	[%i2], %i4
+-
+-	b	L123
+-	 add	%i3, 4, %i3
+-L124:
+-	add	%i2, 4, %i1
+-	ld	[%i3 + 4], %o2
+-	add	%i0, -1, %i0
+-	ld	[%i2], %i5
+-	add	%i3, 8, %i3
+-L131:
+-	sll	%o3, %o7, %g3
+-L164:
+-	srl	%o2, %o1, %g2
+-	ld	[%i3], %g1
+-	or	%g3, %g2, %g3
+-
+-	cmp	%g3, %i5
+-	bne	L163
+-	 ld	[%i1], %i4
+-L123:
+-	sll	%o2, %o7, %g3
+-	srl	%g1, %o1, %g2
+-	ld	[%i3 + 4], %g4
+-	or	%g3, %g2, %g3
+-
+-	cmp	%g3, %i4
+-	bne	L163
+-	 ld	[%i1 + 4], %i5
+-L120:
+-	sll	%g1, %o7, %g3
+-	srl	%g4, %o1, %g2
+-	ld	[%i3 + 8], %o3
+-	or	%g3, %g2, %g3
+-
+-	cmp	%g3, %i5
+-	bne	L163
+-	 ld	[%i1 + 8], %i4
+-L118:
+-	sll	%g4, %o7, %g3
+-	srl	%o3, %o1, %g2
+-	ld	[%i3 + 12], %o2
+-	or	%g3, %g2, %g3
+-
+-	cmp	%g3, %i4
+-	bne	L163
+-	 ld	[%i1 + 12], %i5
+-
+-	add	%i3, 16, %i3
+-	addcc	%i0, -4, %i0
+-	bne	L131
+-	 add	%i1, 16, %i1
+-
+-	sll	%o3, %o7, %g3
+-	srl	%o2, %o1, %g2
+-	or	%g3, %g2, %g3
+-
+-	cmp	%g3, %i5
+-	be,a	L114
+-	 mov	0, %i0
+-
+-	b,a L163
+-L114:
+-	cmp	%i0, 0
+-	bne	L156
+-	 and	%o4, -4, %g2
+-
+-	add	%o0, %g2, %o0
+-	add	%i2, %g2, %i2
+-	and	%o4, 3, %o4
+-L72:
+-	cmp	%o4, 0
+-	be	L156
+-	 mov	0, %i0
+-
+-	ldub	[%o0], %g3
+-L165:
+-	ldub	[%i2], %g2
+-	add	%o0, 1, %o0
+-
+-	subcc	%g3, %g2, %i0
+-	bne	L156
+-	 add	%i2, 1, %i2
+-
+-	addcc	%o4, -1, %o4
+-	bne,a	L165
+-	 ldub	[%o0], %g3
+-
+-	mov	0, %i0
+-L156:
+-	ret
+-	restore
+-#endif
 -- 
 1.5.6.5
 
