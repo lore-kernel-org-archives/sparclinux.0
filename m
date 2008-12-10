@@ -1,32 +1,28 @@
-From: Bob <bo-liu@hotmail.com>
-Date: Wed, 10 Dec 2008 02:37:36 +0000
-Subject: Why need to load %%l0 register during switch_to macro
-Message-Id: <COL115-W7714A68DEBC5468C2E0AF59FFB0@phx.gbl>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 10 Dec 2008 03:06:22 +0000
+Subject: Re: Why need to load %%l0 register during switch_to macro
+Message-Id: <20081209.190622.193725776.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <COL115-W7714A68DEBC5468C2E0AF59FFB0@phx.gbl>
+In-Reply-To: <COL115-W7714A68DEBC5468C2E0AF59FFB0@phx.gbl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+From: Bob <bo-liu@hotmail.com>
+Date: Wed, 10 Dec 2008 10:37:36 +0800
 
-HI, all
- 
-I have another question about switch_to macro.
- 
-Why need to load %%l0 register during switch_to macro?
- 
-"ldd [%%sp+0x00], %%l0" 
- 
-I think load %%i6 is enough.
- 
-Hoping this time my mail style is correct.
- 
-Thanks All
+> I have another question about switch_to macro.
+>  
+> Why need to load %%l0 register during switch_to macro?
+>  
+> "ldd [%%sp+0x00], %%l0" 
+>  
+> I think load %%i6 is enough.
 
----
-Best regards
+Read the comment about the switch_to() macro, it explains
+this.  I don't see how you could miss it.
 
-Bob Liu
-_________________________________________________________________
-News, entertainment and everything you care about at Live.com. Get it now!
-http://www.live.com/getstarted.aspx
+The trap return path for newly forked child tasks depend upon these
+specific registers being setup a certain way.
