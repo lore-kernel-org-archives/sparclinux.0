@@ -1,21 +1,48 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 26 Dec 2008 23:36:35 +0000
-Subject: Re: [PATCH 3/5] sparc64: use bit neutral Elf symbols
-Message-Id: <20081226.153635.168433899.davem@davemloft.net>
+From: Bob <bo-liu@hotmail.com>
+Date: Thu, 11 Dec 2008 03:17:54 +0000
+Subject: help about trap_setup..
+Message-Id: <BAY117-W358094378343A8012C52A49FF80@phx.gbl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1229984059-3743-3-git-send-email-sam@ravnborg.org>
-In-Reply-To: <1229984059-3743-3-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 22 Dec 2008 23:14:17 +0100
 
-> To prepare for unification use the bit neutral versions of
-> the Elf types defined by asm/module.h
-> 
-> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+In trap path "trap_setup", if in trap window we will jmp to "trap_setup_kernel_spill". 
+ 
+  /* See if we are in the trap window. */
+  93        andcc   %t_twinmask, %t_wim, %g0
+  94        bne     trap_setup_kernel_spill         ! in trap window, clean up
+  95         nop
+  96
+  97        /* Trap from kernel with a window available.
+  98         * Just do it...
+  99         */
+ 100        jmpl    %t_retpc + 0x8, %g0     ! return to caller
+ 101         mov    %t_kstack, %sp          ! jump onto new stack
+ 102
+ 103trap_setup_kernel_spill:
+ 104        ld      [%curptr + TI_UWINMASK], %g1
+ 105        orcc    %g0, %g1, %g0
+ 106        bne     trap_setup_user_spill   ! there are some user windows, yuck
 
-Applied.
+But where is the %curptr in line 104 is setted? 
+ 
+the comment said   #define curptr g6 /* Set after pt_regs frame is built */ 
+ 
+but i can't find the code set %g6 in these scene. 
+ 
+what'more, what are "user windows" like the line 106 said meaning. There need a lot of particular dealing, 
+ 
+I am still reading it. 
+ 
+Thanks! 
+
+---
+Best regards
+
+Bob Liu
+_________________________________________________________________
+Invite your mail contacts to join your friends list with Windows Live Spaces. It's easy!
+http://spaces.live.com/spacesapi.aspx?wx_action=create&wx_url=/friends.aspx&mkt=en-us
