@@ -1,26 +1,29 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 17 Nov 2008 22:06:05 +0000
-Subject: [PATCH 6/6] sparc: ignore vmlinux.lds
-Message-Id: <1226959565-14796-6-git-send-email-sam@ravnborg.org>
+From: Bob <bo-liu@hotmail.com>
+Date: Fri, 12 Dec 2008 02:16:52 +0000
+Subject: where forked child task first return?
+Message-Id: <COL115-W66A1309552B49F8E7C76509FF90@phx.gbl>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+
+when task is forked, it will copy his parent's kernel stack.
+ 
+Then when first time switch_to a new created task, will change to its kernel stack.
+ 
+But, in switch_to macro will " ldd [%%sp + 0x38], %%i6 ", for child task, stack frame is copyed 
+ 
+from parent, so %%i6 will also the same as the parent's .
+ 
+so switch to child task will return to parent's kernel stack again ?
+ 
+
 ---
- arch/sparc/kernel/.gitignore |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
- create mode 100644 arch/sparc/kernel/.gitignore
+Best regards
 
-diff --git a/arch/sparc/kernel/.gitignore b/arch/sparc/kernel/.gitignore
-new file mode 100644
-index 0000000..c5f676c
---- /dev/null
-+++ b/arch/sparc/kernel/.gitignore
-@@ -0,0 +1 @@
-+vmlinux.lds
--- 
-1.5.6.GIT
-
+Bo Liu
+_________________________________________________________________
+Explore the seven wonders of the world
+http://search.msn.com/results.aspx?q=7+wonders+world&mkt=en-US&form=QBRE
