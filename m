@@ -1,52 +1,75 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 07 Dec 2008 07:35:59 +0000
-Subject: Re: common header file in sparc/kernel/ - kernel.h?
-Message-Id: <20081206.233559.141352181.davem@davemloft.net>
+From: Friedrich Oslage <bluebird@gentoo.org>
+Date: Sat, 13 Dec 2008 15:55:02 +0000
+Subject: Compiling glibc with 2.6.28 linux headers
+Message-Id: <4943DAD6.7070402@gentoo.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20081206083416.GA14404@uranus.ravnborg.org>
-In-Reply-To: <20081206083416.GA14404@uranus.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 6 Dec 2008 23:26:23 +0100
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> On Sat, Dec 06, 2008 at 01:53:27PM -0800, David Miller wrote:
-> > If it's for 32-bit stuff, maybe give the header file
-> > a foo_32.h name?  But otherwise sounds like a good idea.
-> > 
-> > For these things on the sparc64 side I just added them
-> > to the closest appropritate header in asm/*.h, there is
-> > a series of commits here and there where I addressed
-> > sparse warnings in this way.  Probably "gitk arch/sparc64"
-> > would allow you to scan them quickly.
-> 
-> I already did somthing like this and in this case the symbols
-> was added to entry.h despite they came from a .c file.
-> (sparc_cpu_type + sparc_fpu_type).
+Hi,
 
-Indeed.  And actually I got the case reversed, the problematic
-case is where the implementation is in *.c but all of the
-_callers_ are in *.S code.  In this case the sparse warning
-is completely silly, because the whole point of the declaration
-is to make sure the callers and implementation agree on the
-arguments, but no compiler or semantic checker can verify
-that for C code called from assembler :-)
+when compiling glibc(2.9, 20081208 snapshot) with linux 2.6.28-rc8
+headers I get a lot of errors like this one:
 
-> [note: git log --follow arch/sparc/kernel/ is your friend]
-> 
-> Looking at the sparse output there are addition candidates
-> to be added to kernel.h - several being shared with sparc64.
-> 
-> So what I would suggest is to do the following:
-> sparc/kernel/kernel.h for stuff from .c files
-> sparc/kernel/entry_{32,64}.h for the assembler stuff
-> that are 32/64 bit specific.
-> sparc/kernel/entry.h for the common assembler stuff.
-> 
-> If I get around to do additional sparc unification I will try
-> this if you do not beat me or tell me otherwise.
+In file included from
+/tmp/toolchain-build/rootfs/usr/include/asm/byteorder.h:49,
+                 from
+/tmp/toolchain-build/rootfs/usr/include/linux/atalk.h:4,
+                 from ../sysdeps/unix/sysv/linux/netatalk/at.h:25,
+                 from ../sysdeps/unix/sysv/linux/sa_len.c:22:
+/tmp/toolchain-build/rootfs/usr/include/linux/byteorder.h:8:3: error:
+#error Fix asm/byteorder.h to define one endianness
 
-Sounds good to me.
+
+About a month ago arch/sparc/include/asm/byteorder.h was changed to
+include the new linux/byteorder.h instead of the old
+linux/byteorder/big_endian.h. The new one panics if both __LITTLE_ENDIAN
+and __BIG_ENDIAN are defined.
+
+But since glibc's string/endian.h(/usr/include/endian.h) always defines
+__BIG_ENDIAN and __LITTLE_ENDIAN it may occur, depending on the
+includes, that both are defined when asm/byteorder.h is included.
+
+My assumption is that asm/byteorder.h should ensure that only one of
+these is defined.
+
+After applying the patch below compiling glibc works again. But when
+compiling the kernel I get
+
+In file included from drivers/scsi/qla2xxx/qla_dfs.c:7:
+drivers/scsi/qla2xxx/qla_def.h:1487:7: warning: "__LITTLE_ENDIAN" is not
+defined
+
+Which sould be okay...I think the #elif should really be an #elif
+defined but that's another thing ;)
+
+Is this the right solution or did I miss anything?
+
+Cheers,
+Friedrich
+
+- --- arch/sparc/include/asm/byteorder.h
++++ arch/sparc/include/asm/byteorder.h
+@@ -5,6 +5,9 @@
+ #include <asm/asi.h>
+
+ #define __BIG_ENDIAN
++#ifdef __LITTLE_ENDIAN
++# undef __LITTLE_ENDIAN
++#endif
+
+ #ifdef CONFIG_SPARC32
+ #define __SWAB_64_THRU_32__
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.9 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iEYEARECAAYFAklD2tYACgkQknxn9PmJ76XvEACZAajpv/iRLAeEHXp7cIWBCEEX
+V9kAnRZ0BBDwLrMENDsPsYMuPWpLDlKv
+HUQ
+-----END PGP SIGNATURE-----
