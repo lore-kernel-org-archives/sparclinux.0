@@ -1,7 +1,7 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 12 Dec 2008 10:55:26 +0000
+From: David Miller <davem@davemloft.net>
+Date: Sat, 13 Dec 2008 04:44:41 +0000
 Subject: Re: help about trap_setup..
-Message-Id: <20081212105526.GA32337@uranus.ravnborg.org>
+Message-Id: <20081212.204441.124292010.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <BAY117-W358094378343A8012C52A49FF80@phx.gbl>
 In-Reply-To: <BAY117-W358094378343A8012C52A49FF80@phx.gbl>
@@ -10,27 +10,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Fri, Dec 12, 2008 at 05:02:36PM +0800, Bob wrote:
+From: Bob <bo-liu@hotmail.com>
+Date: Fri, 12 Dec 2008 17:02:36 +0800
+
 > 
 > Still no answer...
 
-From the outside it looks like you are reading the assembler and 
-when you encounter somthing you do not understand you trigger a mail
-and then stop looking at it.
+Nobody is obligated to answer your questions.  And that really means
+nobody.
 
-I looked myself at the curptr and could not see where gr6 is assigned,
-but if I really wanted to know then I would grab another cup
-of coffee and look closer.
-And when I found out myself I would know more for next time,
-and I would reply with the answer.
-Just sitting and waitng is not the way forward with this stuff.
+And I personally am in the mountains trying to enjoy some time off.
+So it is very unpleasant for me to see something like this! :-/
 
-So I encourage you to stir at the code for some more hours.
-and maybe try to patch it and see if it changes behaviour.
+I've had enough and personally I'm not going to anwer any of your
+sparc questions.
 
-And when you find out please send a patch adding a comment
-so the next person does not have to spend 20 hours to understand it.
-
-Good luck,
-
-	Sam
+Sorry.
