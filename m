@@ -1,39 +1,367 @@
-From: Chris Torek <chris.torek@windriver.com>
-Date: Mon, 29 Dec 2008 21:55:40 +0000
-Subject: Re: replace incorrect memcpy_user_stub code
-Message-Id: <200812292155.mBTLten13593@elf.torek.net>
+From: Harvey Harrison <harvey.harrison@gmail.com>
+Date: Thu, 18 Dec 2008 01:46:19 +0000
+Subject: [PATCH-2.6.28 final] byteorder: fix new headers for userspace
+Message-Id: <1229564779.6481.26.camel@brick>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200812190208.mBJ28vn13713@elf.torek.net>
-In-Reply-To: <200812190208.mBJ28vn13713@elf.torek.net>
+References: <4943DAD6.7070402@gentoo.org>
+	 <20081216.011334.124918024.davem@davemloft.net>
+In-Reply-To: <20081216.011334.124918024.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: bluebird@gentoo.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, David Miller <davem@davemloft.net>
 
->There might be some way we can annotate the regular memcpy()
->implementations with exception handling markers, like we do
->for the user copy cases, such that they only trigger the
->alternative return value handling when a special thread local
->flag has been set.
+glibc headers define both __LITTLE_ENDIAN and __BIG_ENDIAN
+which was tripping the check in linux/byteorder.h.  Let's
+just stay out of userspace's way and use __KERN_{endian}
 
-I thought about this, but it's ugly and creates (at least potential)
-problems with recursion / interrupts.  (Not sure if these are possible
-in the Linux kernel organization, just "icky on general principles".)
+The old implementation got away with it as it kept the two
+implementations in different headers and conditionally included
+the right one.  The combined header does checks within each
+function body and depends on only one being defined.
 
->First, if the %o7 or %i7 are inside of the function memcpy_user_stub,
->then we are doing one of these in-kernel copies that are allowed to
->fault.  This elides the need for a special thread flag or anything
->like that.
+Converted the arches in mainline that have already moved to the
+new header, as the other arches merge the will need simlar
+fixups.
 
-This, on the other hand, seems quite promising: as with the exception
-table itself, we use the program counter (of the return address,
-in this case) as the flag.
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+---
+ arch/avr32/include/asm/byteorder.h |    2 +-
+ arch/mips/include/asm/byteorder.h  |    4 +-
+ arch/sh/include/asm/byteorder.h    |    4 +-
+ arch/sparc/include/asm/byteorder.h |    2 +-
+ include/linux/byteorder.h          |   84 ++++++++++++++++++------------------
+ 5 files changed, 48 insertions(+), 48 deletions(-)
 
->Then the code in do_kernel_fault() can, if it sees a "fixup" value
->with the low bit set, check %o7/%i7 for being inside range of
->memcpy_user_stub.  If so, we jump to the fixup.  Otherwise we
->behave as if we did not find a matching exception table entry.
+diff --git a/arch/avr32/include/asm/byteorder.h b/arch/avr32/include/asm/byteorder.h
+index 8e3af02..b7d6dd1 100644
+--- a/arch/avr32/include/asm/byteorder.h
++++ b/arch/avr32/include/asm/byteorder.h
+@@ -7,7 +7,7 @@
+ #include <asm/types.h>
+ #include <linux/compiler.h>
+ 
+-#define __BIG_ENDIAN
++#define __KERN_BIG_ENDIAN
+ #define __SWAB_64_THRU_32__
+ 
+ #ifdef __CHECKER__
+diff --git a/arch/mips/include/asm/byteorder.h b/arch/mips/include/asm/byteorder.h
+index 2988d29..8ad8a5b 100644
+--- a/arch/mips/include/asm/byteorder.h
++++ b/arch/mips/include/asm/byteorder.h
+@@ -12,9 +12,9 @@
+ #include <asm/types.h>
+ 
+ #if defined(__MIPSEB__)
+-# define __BIG_ENDIAN
++# define __KERN_BIG_ENDIAN
+ #elif defined(__MIPSEL__)
+-# define __LITTLE_ENDIAN
++# define __KERN_LITTLE_ENDIAN
+ #else
+ # error "MIPS, but neither __MIPSEB__, nor __MIPSEL__???"
+ #endif
+diff --git a/arch/sh/include/asm/byteorder.h b/arch/sh/include/asm/byteorder.h
+index f5fa065..4aa5f1d 100644
+--- a/arch/sh/include/asm/byteorder.h
++++ b/arch/sh/include/asm/byteorder.h
+@@ -9,9 +9,9 @@
+ #include <linux/types.h>
+ 
+ #ifdef __LITTLE_ENDIAN__
+-# define __LITTLE_ENDIAN
++# define __KERN_LITTLE_ENDIAN
+ #else
+-# define __BIG_ENDIAN
++# define __KERN_BIG_ENDIAN
+ #endif
+ 
+ #define __SWAB_64_THRU_32__
+diff --git a/arch/sparc/include/asm/byteorder.h b/arch/sparc/include/asm/byteorder.h
+index 5a70f13..5b8347e 100644
+--- a/arch/sparc/include/asm/byteorder.h
++++ b/arch/sparc/include/asm/byteorder.h
+@@ -4,7 +4,7 @@
+ #include <asm/types.h>
+ #include <asm/asi.h>
+ 
+-#define __BIG_ENDIAN
++#define __KERN_BIG_ENDIAN
+ 
+ #ifdef CONFIG_SPARC32
+ #define __SWAB_64_THRU_32__
+diff --git a/include/linux/byteorder.h b/include/linux/byteorder.h
+index 29f002d..3599fbc 100644
+--- a/include/linux/byteorder.h
++++ b/include/linux/byteorder.h
+@@ -4,33 +4,33 @@
+ #include <linux/types.h>
+ #include <linux/swab.h>
+ 
+-#if defined(__LITTLE_ENDIAN) && defined(__BIG_ENDIAN)
++#if defined(__KERN_LITTLE_ENDIAN) && defined(__KERN_BIG_ENDIAN)
+ # error Fix asm/byteorder.h to define one endianness
+ #endif
+ 
+-#if !defined(__LITTLE_ENDIAN) && !defined(__BIG_ENDIAN)
++#if !defined(__KERN_LITTLE_ENDIAN) && !defined(__KERN_BIG_ENDIAN)
+ # error Fix asm/byteorder.h to define arch endianness
+ #endif
+ 
+-#ifdef __LITTLE_ENDIAN
+-# undef __LITTLE_ENDIAN
+-# define __LITTLE_ENDIAN 1234
++#ifdef __KERN_LITTLE_ENDIAN
++# ifndef __LITTLE_ENDIAN
++#  define __LITTLE_ENDIAN 1234
++# endif
++# ifndef __LITTLE_ENDIAN_BITFIELD
++#  define __LITTLE_ENDIAN_BITFIELD
++# endif
+ #endif
+ 
+-#ifdef __BIG_ENDIAN
+-# undef __BIG_ENDIAN
+-# define __BIG_ENDIAN 4321
++#ifdef __KERN_BIG_ENDIAN
++# ifndef __BIG_ENDIAN
++#  define __BIG_ENDIAN 4321
++# endif
++# ifndef __BIG_ENDIAN_BITFIELD
++#  define __BIG_ENDIAN_BITFIELD
++# endif
+ #endif
+ 
+-#if defined(__LITTLE_ENDIAN) && !defined(__LITTLE_ENDIAN_BITFIELD)
+-# define __LITTLE_ENDIAN_BITFIELD
+-#endif
+-
+-#if defined(__BIG_ENDIAN) && !defined(__BIG_ENDIAN_BITFIELD)
+-# define __BIG_ENDIAN_BITFIELD
+-#endif
+-
+-#ifdef __LITTLE_ENDIAN
++#ifdef __KERN_LITTLE_ENDIAN
+ # define __le16_to_cpu(x) ((__force __u16)(__le16)(x))
+ # define __le32_to_cpu(x) ((__force __u32)(__le32)(x))
+ # define __le64_to_cpu(x) ((__force __u64)(__le64)(x))
+@@ -46,7 +46,7 @@
+ # define __cpu_to_be64(x) ((__force __be64)__swab64(x))
+ #endif
+ 
+-#ifdef __BIG_ENDIAN
++#ifdef __KERN_BIG_ENDIAN
+ # define __be16_to_cpu(x) ((__force __u16)(__be16)(x))
+ # define __be32_to_cpu(x) ((__force __u32)(__be32)(x))
+ # define __be64_to_cpu(x) ((__force __u64)(__be64)(x))
+@@ -87,91 +87,91 @@
+ 
+ static inline void __le16_to_cpus(__u16 *p)
+ {
+-#ifdef __BIG_ENDIAN
++#ifdef __KERN_BIG_ENDIAN
+ 	__swab16s(p);
+ #endif
+ }
+ 
+ static inline void __cpu_to_le16s(__u16 *p)
+ {
+-#ifdef __BIG_ENDIAN
++#ifdef __KERN_BIG_ENDIAN
+ 	__swab16s(p);
+ #endif
+ }
+ 
+ static inline void __le32_to_cpus(__u32 *p)
+ {
+-#ifdef __BIG_ENDIAN
++#ifdef __KERN_BIG_ENDIAN
+ 	__swab32s(p);
+ #endif
+ }
+ 
+ static inline void __cpu_to_le32s(__u32 *p)
+ {
+-#ifdef __BIG_ENDIAN
++#ifdef __KERN_BIG_ENDIAN
+ 	__swab32s(p);
+ #endif
+ }
+ 
+ static inline void __le64_to_cpus(__u64 *p)
+ {
+-#ifdef __BIG_ENDIAN
++#ifdef __KERN_BIG_ENDIAN
+ 	__swab64s(p);
+ #endif
+ }
+ 
+ static inline void __cpu_to_le64s(__u64 *p)
+ {
+-#ifdef __BIG_ENDIAN
++#ifdef __KERN_BIG_ENDIAN
+ 	__swab64s(p);
+ #endif
+ }
+ 
+ static inline void __be16_to_cpus(__u16 *p)
+ {
+-#ifdef __LITTLE_ENDIAN
++#ifdef __KERN_LITTLE_ENDIAN
+ 	__swab16s(p);
+ #endif
+ }
+ 
+ static inline void __cpu_to_be16s(__u16 *p)
+ {
+-#ifdef __LITTLE_ENDIAN
++#ifdef __KERN_LITTLE_ENDIAN
+ 	__swab16s(p);
+ #endif
+ }
+ 
+ static inline void __be32_to_cpus(__u32 *p)
+ {
+-#ifdef __LITTLE_ENDIAN
++#ifdef __KERN_LITTLE_ENDIAN
+ 	__swab32s(p);
+ #endif
+ }
+ 
+ static inline void __cpu_to_be32s(__u32 *p)
+ {
+-#ifdef __LITTLE_ENDIAN
++#ifdef __KERN_LITTLE_ENDIAN
+ 	__swab32s(p);
+ #endif
+ }
+ 
+ static inline void __be64_to_cpus(__u64 *p)
+ {
+-#ifdef __LITTLE_ENDIAN
++#ifdef __KERN_LITTLE_ENDIAN
+ 	__swab64s(p);
+ #endif
+ }
+ 
+ static inline void __cpu_to_be64s(__u64 *p)
+ {
+-#ifdef __LITTLE_ENDIAN
++#ifdef __KERN_LITTLE_ENDIAN
+ 	__swab64s(p);
+ #endif
+ }
+ 
+ static inline __u16 __le16_to_cpup(const __le16 *p)
+ {
+-#ifdef __LITTLE_ENDIAN
++#ifdef __KERN_LITTLE_ENDIAN
+ 	return (__force __u16)*p;
+ #else
+ 	return __swab16p((__force __u16 *)p);
+@@ -180,7 +180,7 @@ static inline __u16 __le16_to_cpup(const __le16 *p)
+ 
+ static inline __u32 __le32_to_cpup(const __le32 *p)
+ {
+-#ifdef __LITTLE_ENDIAN
++#ifdef __KERN_LITTLE_ENDIAN
+ 	return (__force __u32)*p;
+ #else
+ 	return __swab32p((__force __u32 *)p);
+@@ -189,7 +189,7 @@ static inline __u32 __le32_to_cpup(const __le32 *p)
+ 
+ static inline __u64 __le64_to_cpup(const __le64 *p)
+ {
+-#ifdef __LITTLE_ENDIAN
++#ifdef __KERN_LITTLE_ENDIAN
+ 	return (__force __u64)*p;
+ #else
+ 	return __swab64p((__force __u64 *)p);
+@@ -198,7 +198,7 @@ static inline __u64 __le64_to_cpup(const __le64 *p)
+ 
+ static inline __le16 __cpu_to_le16p(const __u16 *p)
+ {
+-#ifdef __LITTLE_ENDIAN
++#ifdef __KERN_LITTLE_ENDIAN
+ 	return (__force __le16)*p;
+ #else
+ 	return (__force __le16)__swab16p(p);
+@@ -207,7 +207,7 @@ static inline __le16 __cpu_to_le16p(const __u16 *p)
+ 
+ static inline __le32 __cpu_to_le32p(const __u32 *p)
+ {
+-#ifdef __LITTLE_ENDIAN
++#ifdef __KERN_LITTLE_ENDIAN
+ 	return (__force __le32)*p;
+ #else
+ 	return (__force __le32)__swab32p(p);
+@@ -216,7 +216,7 @@ static inline __le32 __cpu_to_le32p(const __u32 *p)
+ 
+ static inline __le64 __cpu_to_le64p(const __u64 *p)
+ {
+-#ifdef __LITTLE_ENDIAN
++#ifdef __KERN_LITTLE_ENDIAN
+ 	return (__force __le64)*p;
+ #else
+ 	return (__force __le64)__swab64p(p);
+@@ -225,7 +225,7 @@ static inline __le64 __cpu_to_le64p(const __u64 *p)
+ 
+ static inline __u16 __be16_to_cpup(const __be16 *p)
+ {
+-#ifdef __BIG_ENDIAN
++#ifdef __KERN_BIG_ENDIAN
+ 	return (__force __u16)*p;
+ #else
+ 	return __swab16p((__force __u16 *)p);
+@@ -234,7 +234,7 @@ static inline __u16 __be16_to_cpup(const __be16 *p)
+ 
+ static inline __u32 __be32_to_cpup(const __be32 *p)
+ {
+-#ifdef __BIG_ENDIAN
++#ifdef __KERN_BIG_ENDIAN
+ 	return (__force __u32)*p;
+ #else
+ 	return __swab32p((__force __u32 *)p);
+@@ -243,7 +243,7 @@ static inline __u32 __be32_to_cpup(const __be32 *p)
+ 
+ static inline __u64 __be64_to_cpup(const __be64 *p)
+ {
+-#ifdef __BIG_ENDIAN
++#ifdef __KERN_BIG_ENDIAN
+ 	return (__force __u64)*p;
+ #else
+ 	return __swab64p((__force __u64 *)p);
+@@ -252,7 +252,7 @@ static inline __u64 __be64_to_cpup(const __be64 *p)
+ 
+ static inline __be16 __cpu_to_be16p(const __u16 *p)
+ {
+-#ifdef __BIG_ENDIAN
++#ifdef __KERN_BIG_ENDIAN
+ 	return (__force __be16)*p;
+ #else
+ 	return (__force __be16)__swab16p(p);
+@@ -261,7 +261,7 @@ static inline __be16 __cpu_to_be16p(const __u16 *p)
+ 
+ static inline __be32 __cpu_to_be32p(const __u32 *p)
+ {
+-#ifdef __BIG_ENDIAN
++#ifdef __KERN_BIG_ENDIAN
+ 	return (__force __be32)*p;
+ #else
+ 	return (__force __be32)__swab32p(p);
+@@ -270,7 +270,7 @@ static inline __be32 __cpu_to_be32p(const __u32 *p)
+ 
+ static inline __be64 __cpu_to_be64p(const __u64 *p)
+ {
+-#ifdef __BIG_ENDIAN
++#ifdef __KERN_BIG_ENDIAN
+ 	return (__force __be64)*p;
+ #else
+ 	return (__force __be64)__swab64p(p);
+-- 
+1.6.1.rc2.316.geb2f0
 
-This should work really well.
 
-Chris
+
