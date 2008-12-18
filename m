@@ -1,10 +1,10 @@
 From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Thu, 18 Dec 2008 20:09:54 +0000
+Date: Thu, 18 Dec 2008 20:47:28 +0000
 Subject: Re: [PATCH-2.6.28 final] byteorder: fix new headers for userspace
-Message-Id: <alpine.LFD.2.00.0812181208070.14014@localhost.localdomain>
+Message-Id: <alpine.LFD.2.00.0812181246420.14014@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4943DAD6.7070402@gentoo.org>  <20081216.011334.124918024.davem@davemloft.net> <1229564779.6481.26.camel@brick>
-In-Reply-To: <1229564779.6481.26.camel@brick>
+References: <4943DAD6.7070402@gentoo.org>  <20081216.011334.124918024.davem@davemloft.net> <1229564779.6481.26.camel@brick> <alpine.LFD.2.00.0812181208070.14014@localhost.localdomain>
+In-Reply-To: <alpine.LFD.2.00.0812181208070.14014@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -13,19 +13,16 @@ Cc: Andrew Morton <akpm@linux-foundation.org>, bluebird@gentoo.org, sparclinux@v
 
 
 
-On Wed, 17 Dec 2008, Harvey Harrison wrote:
->
-> glibc headers define both __LITTLE_ENDIAN and __BIG_ENDIAN
-> which was tripping the check in linux/byteorder.h.  Let's
-> just stay out of userspace's way and use __KERN_{endian}
+On Thu, 18 Dec 2008, Linus Torvalds wrote:
+> 
+> I think it would be better to just make it a config option, call it 
+> CONFIG_[LITTLE|BIG]_ENDIAN and set it up in the architecture Kconfig file. 
+> I think some of the people who can set it dynamically (or where it depends 
+> on the target machine) already effectively do that.
 
-Gaah, ugly.
+Never mind, since we end up having to export it to user space (do we?) we 
+can't depend on the config.h file, nor can we pollute the name space.
 
-I think it would be better to just make it a config option, call it 
-CONFIG_[LITTLE|BIG]_ENDIAN and set it up in the architecture Kconfig file. 
-I think some of the people who can set it dynamically (or where it depends 
-on the target machine) already effectively do that.
-
-Hmm?
+Oh well.
 
 		Linus
