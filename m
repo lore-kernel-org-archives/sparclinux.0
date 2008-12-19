@@ -1,7 +1,7 @@
-From: Chris Torek <chris.torek@windriver.com>
-Date: Fri, 19 Dec 2008 03:11:26 +0000
+From: David Miller <davem@davemloft.net>
+Date: Fri, 19 Dec 2008 03:15:16 +0000
 Subject: Re: replace incorrect memcpy_user_stub code
-Message-Id: <200812190311.mBJ3BQn13860@elf.torek.net>
+Message-Id: <20081218.191516.142019548.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <200812190208.mBJ28vn13713@elf.torek.net>
 In-Reply-To: <200812190208.mBJ28vn13713@elf.torek.net>
@@ -10,21 +10,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
->This is going to perform really bad ...
+From: Chris Torek <chris.torek@windriver.com>
+Date: Thu, 18 Dec 2008 20:11:26 -0700
 
-Yes, I went for space on the theory that it was not common...
+> >This is going to perform really bad ...
+> 
+> Yes, I went for space on the theory that it was not common...
+> 
+> >and it's common for
+> >syscalls invoked by the kernel to trigger this case.
+> 
+> ... but so much for that theory. :-)
 
->and it's common for
->syscalls invoked by the kernel to trigger this case.
+At least it used to be the case, it may not matter today and
+I'll do some investigation.  If it doesn't matter, your patch
+is fine and I'll apply it directly.
 
-... but so much for that theory. :-)
+> >I'll have to think about this, thanks for pointing out the
+> >issue.
+> 
+> The other obvious thing is to have a bunch of userlike memcpy
+> variants, one for each *memcpy.S file.  The macros you have
+> should make this straightforward.  I was mostly worried about
+> breaking stuff.
 
->I'll have to think about this, thanks for pointing out the
->issue.
+I'm trending away from that because it's unnecessary bloat.
 
-The other obvious thing is to have a bunch of userlike memcpy
-variants, one for each *memcpy.S file.  The macros you have
-should make this straightforward.  I was mostly worried about
-breaking stuff.
+I wish memcpy() returned void, that would make so many things like
+this easy to handle.  I could just add the annotations to the real
+memcpy, always return the same return values as the user copies do,
+and the memcpy() callers would just ignore the return value.
 
-Chris
+But things are what they are :-)
