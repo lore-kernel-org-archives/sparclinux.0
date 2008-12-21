@@ -1,33 +1,62 @@
-From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
-Date: Thu, 18 Dec 2008 14:12:20 +0000
-Subject: Re: kernel crashes on Sun Fire 480R with cassini network driver
-Message-Id: <20081218141220.GD20418@lemon.iwr.uni-heidelberg.de>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 21 Dec 2008 20:45:59 +0000
+Subject: [PATCH] sparc: fix hardirq.h removal fallout
+Message-Id: <20081221204559.GB18284@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080923133152.GC17211@lemon.iwr.uni-heidelberg.de>
-In-Reply-To: <20080923133152.GC17211@lemon.iwr.uni-heidelberg.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Wed, Dec 17, 2008 at 07:44:36PM -0800, David Miller wrote:
-> Could you please get one of those JTAG SCAN dumps after
-> the crash, and provide the exact kernel image and System.map
-> file for me to download somewhere?
+When hardirq.h are removed from asm-generic/local.h a few
+bits fails to build.  Fix these upfront.
+Reported by Alexey.
 
-I reproduced a crash with the current debian 2.6.24-etchnhalf.1-sparc64-smp
-kernel, and the relevant files from /boot are on:
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+---
 
-http://www.iwr.uni-heidelberg.de/ftp/linux/sparc-boot/
+When I removed hardirq.h from local.h I had to apply
+a similar patch like this to drivers/base/topology.c
+but I assume this is dealt with before the removal
+hits mainline.
 
-The initrd is also included, console with the JTAG SCAN
-output is in crash.console.
+Based on the assumption that the topology.c change
+is not sparc specific but I did not test this.
 
-Please tell me if you need anything else.
-Thanks for looking at it.
+The following changes are sparc specific and needed for
+sparc64 when hardirq is removed form local.h.
 
+	Sam
+
+ arch/sparc/kernel/mdesc.c |    1 +
+ arch/sparc/kernel/sysfs.c |    1 +
+ 2 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/arch/sparc/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
+index dde52bc..3c539a6 100644
+--- a/arch/sparc/kernel/mdesc.c
++++ b/arch/sparc/kernel/mdesc.c
+@@ -11,6 +11,7 @@
+ #include <linux/mm.h>
+ #include <linux/miscdevice.h>
+ 
++#include <asm/cpudata.h>
+ #include <asm/hypervisor.h>
+ #include <asm/mdesc.h>
+ #include <asm/prom.h>
+diff --git a/arch/sparc/kernel/sysfs.c b/arch/sparc/kernel/sysfs.c
+index 84e5ce1..d28f496 100644
+--- a/arch/sparc/kernel/sysfs.c
++++ b/arch/sparc/kernel/sysfs.c
+@@ -8,6 +8,7 @@
+ #include <linux/percpu.h>
+ #include <linux/init.h>
+ 
++#include <asm/cpudata.h>
+ #include <asm/hypervisor.h>
+ #include <asm/spitfire.h>
+ 
 -- 
-Netzwerkadministration/Zentrale Dienste, Interdiziplinaeres 
-Zentrum fuer wissenschaftliches Rechnen der Universitaet Heidelberg
-IWR; INF 368; 69120 Heidelberg; Tel: (06221)54-8236 Fax: -5224
-Email: Hermann.Lauer@iwr.uni-heidelberg.de
+1.6.0.2.GIT
+
