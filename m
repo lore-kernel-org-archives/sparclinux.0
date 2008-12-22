@@ -1,41 +1,41 @@
-From: Chris Torek <chris.torek@windriver.com>
-Date: Mon, 22 Dec 2008 22:34:27 +0000
-Subject: Re: Unify module.*
-Message-Id: <200812222234.mBMMYRn07972@elf.torek.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Mon, 22 Dec 2008 22:14:15 +0000
+Subject: [PATCH 1/5] sparc: introduce CONFIG_BITS
+Message-Id: <1229984059-3743-1-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20081222220745.GA30716@uranus.ravnborg.org>
-In-Reply-To: <20081222220745.GA30716@uranus.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
->I really did not like this part:
->#ifdef CONFIG_SPARC64
->                BUG_ON(((u64)location >> (u64)32) != (u64)0);
->#endif /* CONFIG_SPARC64 */
->
->I think it should be safe to do:
->
->		BUG_ON(((unsigned long)location >> (unsigned long)32) !>		       (unsigned long)0);
+CONFIG_BITS is set to 32 for sparc32
+and 64 for sparc64.
 
-No, you can't safely shift a 32-bit value by 32 bits (the compiler
-is allowed to turn this into a shift of 0 bits for instance, by
-using a 5-bit mask for the shift distance).  However it should be
-safe to do this, which is exactly the same in practice:
+This allow us to use this symbol in for example header files
+to ease unification of sparc32 and sparc64.
 
-		BUG_ON((((unsigned long)location >> 31) >> 1) !		       (unsigned long)0);
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/Kconfig |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
 
->But I did not really see the point of the BUG_ON in the first place,
->and my limited digging did not turn up when it was added.
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index c8c7738..cd8c585 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -46,7 +46,11 @@ config ARCH_DEFCONFIG
+ 	default "arch/sparc/configs/sparc32_defconfig" if SPARC32
+ 	default "arch/sparc/configs/sparc64_defconfig" if SPARC64
+ 
+-
++# CONFIG_BITS can be used at source level to get 32/64 bits
++config BITS
++	int
++	default 32 if SPARC32
++	default 64 if SPARC64
+ 
+ config 64BIT
+ 	def_bool y if SPARC64
+-- 
+1.6.0.2.GIT
 
-Not sure who uses it and why it was added, but it's equivalent to:
-
-	BUG_ON((unsigned long)location > 0xffffffff);
-
-which I personally prefer to the shift version -- I think it makes
-the intent more obvious -- but this might still draw a warning about
-being always-false on 32-bit.  Of course, if gcc gets any smarter,
-so might the shift version.
-
-Chris
