@@ -1,7 +1,7 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 22 Dec 2008 22:31:52 +0000
+From: Chris Torek <chris.torek@windriver.com>
+Date: Mon, 22 Dec 2008 22:34:27 +0000
 Subject: Re: Unify module.*
-Message-Id: <20081222223152.GC30716@uranus.ravnborg.org>
+Message-Id: <200812222234.mBMMYRn07972@elf.torek.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20081222220745.GA30716@uranus.ravnborg.org>
 In-Reply-To: <20081222220745.GA30716@uranus.ravnborg.org>
@@ -10,24 +10,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> 
-> I think it should be safe to do:
-> 
-> 		BUG_ON(((unsigned long)location >> (unsigned long)32) !> 		       (unsigned long)0);
-> 
-> As to my best understanding unsigned long
-> is 32 bit on sparc32 and 64 bit on sparc64.
-> So we should with the above code not get any warnings.
-> 
-> But I did not really see the point of the BUG_ON in the first place,
-> and my limited digging did not turn up when it was added.
-> 
-> So to be safe I kept the ugly ifdef for now.
-> If is easy to spot/remove.
+>I really did not like this part:
+>#ifdef CONFIG_SPARC64
+>                BUG_ON(((u64)location >> (u64)32) != (u64)0);
+>#endif /* CONFIG_SPARC64 */
+>
+>I think it should be safe to do:
+>
+>		BUG_ON(((unsigned long)location >> (unsigned long)32) !>		       (unsigned long)0);
 
-And just tell me and I will respin the patch serie
-with this or any other modifications requested.
+No, you can't safely shift a 32-bit value by 32 bits (the compiler
+is allowed to turn this into a shift of 0 bits for instance, by
+using a 5-bit mask for the shift distance).  However it should be
+safe to do this, which is exactly the same in practice:
 
-Just to make sure this was explicitly stated.
+		BUG_ON((((unsigned long)location >> 31) >> 1) !		       (unsigned long)0);
 
-	Sam
+>But I did not really see the point of the BUG_ON in the first place,
+>and my limited digging did not turn up when it was added.
+
+Not sure who uses it and why it was added, but it's equivalent to:
+
+	BUG_ON((unsigned long)location > 0xffffffff);
+
+which I personally prefer to the shift version -- I think it makes
+the intent more obvious -- but this might still draw a warning about
+being always-false on 32-bit.  Of course, if gcc gets any smarter,
+so might the shift version.
+
+Chris
