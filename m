@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Sat, 27 Dec 2008 08:34:09 +0000
+Date: Sat, 27 Dec 2008 08:35:23 +0000
 Subject: Re: [PATCH] sparc: use .data.init_task section for
-Message-Id: <20081227.003409.208927576.davem@davemloft.net>
+Message-Id: <20081227.003523.164458105.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20081221204054.GA18284@uranus.ravnborg.org>
 In-Reply-To: <20081221204054.GA18284@uranus.ravnborg.org>
@@ -11,16 +11,14 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 27 Dec 2008 08:03:05 +0100
+Date: Sun, 21 Dec 2008 21:40:54 +0100
 
-> On Fri, Dec 26, 2008 at 03:33:50PM -0800, David Miller wrote:
-> > Is this patch from Sam going into Kyle's patch set or should
-> > I apply it directly to sparc-next-2.6?
-> > 
-> > Just let me know...
-> I suggest that you take it via sparc-next-2.6.
+> Use a dedicated aligned section for the init_thread_union
+> variable and declare this section in vmlinux.lds.
 > 
-> With your usual track schedule you will soon have this
-> merged and Kyle can rebase on top of linus' tree.
+> This align sparc with most other architectures.
+> Eventually this allow the init_task bits to be unified across all architectures.
+> 
+> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 
-Ok.
+Applied.
