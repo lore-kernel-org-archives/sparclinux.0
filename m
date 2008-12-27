@@ -1,22 +1,30 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 08 Dec 2008 09:07:27 +0000
-Subject: Re: [PATCH 3/5] sparc: fix sparse warnings in traps_32.c
-Message-Id: <20081208.010727.254730208.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 27 Dec 2008 21:12:36 +0000
+Subject: sparc - next unification bits?
+Message-Id: <20081227211236.GA16704@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1228682256-27812-3-git-send-email-sam@ravnborg.org>
-In-Reply-To: <1228682256-27812-3-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun,  7 Dec 2008 21:37:34 +0100
+Hi Dave.
 
-> o add decalrations to entry.h for functions only used from assembler
-> o add declaratiosn to kernel.h for functions only used from .c
-> o removed unused functions/extern declarations
-> 
-> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+So far I done some random unification where it was simple
+and I could do so more or less in a mechanical fashion.
 
-Applied, thanks.
+But I'm running out of the easy tasks.
+
+Are there any places/files where you would like to see
+some additional effort being made - but yet simple
+enough that I can do it?
+
+My first thought was to put some extra effort in the exported
+headers.
+We have 7 exported headers that are exported but not unified.
+
+But do you have anything else in mind that is more relevant atm?
+
+No promises what I will do - just good with some hints.
+
+	Sam
