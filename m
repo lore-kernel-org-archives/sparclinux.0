@@ -1,83 +1,245 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 06 Dec 2008 03:05:37 +0000
-Subject: [PATCH 14/14]: sparc: Move of_console_{device,path,options} info
-Message-Id: <20081205.190537.240657622.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 28 Dec 2008 20:25:11 +0000
+Subject: [PATCH] sparc: unify posix_types.h
+Message-Id: <20081228202511.GA31130@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+From 58d4d2e49a0da963c2237b1a835a069ab9c97a17 Mon Sep 17 00:00:00 2001
+The posix types differed so much in their definition
+that they are kept in separate blocks.
 
-sparc: Move of_console_{device,path,options} info prom_common.c
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/kernel/prom_32.c     |    9 ---------
- arch/sparc/kernel/prom_64.c     |    9 ---------
- arch/sparc/kernel/prom_common.c |    9 +++++++++
- 3 files changed, 9 insertions(+), 18 deletions(-)
+ arch/sparc/include/asm/Kbuild                      |    2 -
+ .../asm/{posix_types_64.h => posix_types.h}        |   47 +++++++-
+ arch/sparc/include/asm/posix_types_32.h            |  118 --------------------
+ 3 files changed, 40 insertions(+), 127 deletions(-)
+ rename arch/sparc/include/asm/{posix_types_64.h => posix_types.h} (70%)
+ delete mode 100644 arch/sparc/include/asm/posix_types_32.h
 
-diff --git a/arch/sparc/kernel/prom_32.c b/arch/sparc/kernel/prom_32.c
-index 5ad2012..f21e8fc 100644
---- a/arch/sparc/kernel/prom_32.c
-+++ b/arch/sparc/kernel/prom_32.c
-@@ -166,15 +166,6 @@ char * __init build_path_component(struct device_node *dp)
- 	return n;
+diff --git a/arch/sparc/include/asm/Kbuild b/arch/sparc/include/asm/Kbuild
+index b938232..71e52a8 100644
+--- a/arch/sparc/include/asm/Kbuild
++++ b/arch/sparc/include/asm/Kbuild
+@@ -1,8 +1,6 @@
+ # User exported sparc header files
+ include include/asm-generic/Kbuild.asm
+ 
+-header-y += posix_types_32.h
+-header-y += posix_types_64.h
+ header-y += ptrace_32.h
+ header-y += ptrace_64.h
+ header-y += sigcontext_32.h
+diff --git a/arch/sparc/include/asm/posix_types_64.h b/arch/sparc/include/asm/posix_types.h
+similarity index 70%
+rename from arch/sparc/include/asm/posix_types_64.h
+rename to arch/sparc/include/asm/posix_types.h
+index ba8f932..98d6ebb 100644
+--- a/arch/sparc/include/asm/posix_types_64.h
++++ b/arch/sparc/include/asm/posix_types.h
+@@ -1,12 +1,14 @@
+-#ifndef __ARCH_SPARC64_POSIX_TYPES_H
+-#define __ARCH_SPARC64_POSIX_TYPES_H
+-
+ /*
+  * This file is generally used by user-level software, so you need to
+  * be a little careful about namespace pollution etc.  Also, we cannot
+  * assume GCC is being used.
+  */
+ 
++#ifndef __SPARC_POSIX_TYPES_H
++#define __SPARC_POSIX_TYPES_H
++
++#if defined(__sparc__) && defined(__arch64__)
++/* sparc 64 bit */
+ typedef unsigned long          __kernel_size_t;
+ typedef long                   __kernel_ssize_t;
+ typedef long                   __kernel_ptrdiff_t;
+@@ -38,6 +40,38 @@ typedef unsigned int	       __kernel_old_dev_t;
+ /* Note this piece of asymmetry from the v9 ABI.  */
+ typedef int		       __kernel_suseconds_t;
+ 
++#else
++/* sparc 32 bit */
++
++typedef unsigned int           __kernel_size_t;
++typedef int                    __kernel_ssize_t;
++typedef long int               __kernel_ptrdiff_t;
++typedef long                   __kernel_time_t;
++typedef long		       __kernel_suseconds_t;
++typedef long                   __kernel_clock_t;
++typedef int                    __kernel_pid_t;
++typedef unsigned short         __kernel_ipc_pid_t;
++typedef unsigned short         __kernel_uid_t;
++typedef unsigned short         __kernel_gid_t;
++typedef unsigned long          __kernel_ino_t;
++typedef unsigned short         __kernel_mode_t;
++typedef unsigned short         __kernel_umode_t;
++typedef short                  __kernel_nlink_t;
++typedef long                   __kernel_daddr_t;
++typedef long                   __kernel_off_t;
++typedef char *                 __kernel_caddr_t;
++typedef unsigned short	       __kernel_uid16_t;
++typedef unsigned short	       __kernel_gid16_t;
++typedef unsigned int	       __kernel_uid32_t;
++typedef unsigned int	       __kernel_gid32_t;
++typedef unsigned short	       __kernel_old_uid_t;
++typedef unsigned short	       __kernel_old_gid_t;
++typedef unsigned short	       __kernel_old_dev_t;
++typedef int                    __kernel_clockid_t;
++typedef int                    __kernel_timer_t;
++
++#endif /* defined(__sparc__) && defined(__arch64__) */
++
+ #ifdef __GNUC__
+ typedef long long              __kernel_loff_t;
+ #endif
+@@ -46,7 +80,7 @@ typedef struct {
+ 	int	val[2];
+ } __kernel_fsid_t;
+ 
+-#if defined(__KERNEL__)
++#ifdef __KERNEL__
+ 
+ #undef __FD_SET
+ static inline void __FD_SET(unsigned long fd, __kernel_fd_set *fdsetp)
+@@ -117,6 +151,5 @@ static inline void __FD_ZERO(__kernel_fd_set *p)
+ 	}
  }
  
--struct device_node *of_console_device;
--EXPORT_SYMBOL(of_console_device);
+-#endif /* defined(__KERNEL__) */
 -
--char *of_console_path;
--EXPORT_SYMBOL(of_console_path);
+-#endif /* !(__ARCH_SPARC64_POSIX_TYPES_H) */
++#endif /* __KERNEL__ */
++#endif /* __SPARC_POSIX_TYPES_H */
+diff --git a/arch/sparc/include/asm/posix_types_32.h b/arch/sparc/include/asm/posix_types_32.h
+deleted file mode 100644
+index 6bb6eb1..0000000
+--- a/arch/sparc/include/asm/posix_types_32.h
++++ /dev/null
+@@ -1,118 +0,0 @@
+-#ifndef __ARCH_SPARC_POSIX_TYPES_H
+-#define __ARCH_SPARC_POSIX_TYPES_H
 -
--char *of_console_options;
--EXPORT_SYMBOL(of_console_options);
+-/*
+- * This file is generally used by user-level software, so you need to
+- * be a little careful about namespace pollution etc.  Also, we cannot
+- * assume GCC is being used.
+- */
 -
- extern void restore_current(void);
- 
- void __init of_console_init(void)
-diff --git a/arch/sparc/kernel/prom_64.c b/arch/sparc/kernel/prom_64.c
-index 3afb838..edecca7 100644
---- a/arch/sparc/kernel/prom_64.c
-+++ b/arch/sparc/kernel/prom_64.c
-@@ -526,15 +526,6 @@ void __init of_fill_in_cpu_data(void)
- 	smp_fill_in_sib_core_maps();
- }
- 
--struct device_node *of_console_device;
--EXPORT_SYMBOL(of_console_device);
+-typedef unsigned int           __kernel_size_t;
+-typedef int                    __kernel_ssize_t;
+-typedef long int               __kernel_ptrdiff_t;
+-typedef long                   __kernel_time_t;
+-typedef long		       __kernel_suseconds_t;
+-typedef long                   __kernel_clock_t;
+-typedef int                    __kernel_pid_t;
+-typedef unsigned short         __kernel_ipc_pid_t;
+-typedef unsigned short         __kernel_uid_t;
+-typedef unsigned short         __kernel_gid_t;
+-typedef unsigned long          __kernel_ino_t;
+-typedef unsigned short         __kernel_mode_t;
+-typedef unsigned short         __kernel_umode_t;
+-typedef short                  __kernel_nlink_t;
+-typedef long                   __kernel_daddr_t;
+-typedef long                   __kernel_off_t;
+-typedef char *                 __kernel_caddr_t;
+-typedef unsigned short	       __kernel_uid16_t;
+-typedef unsigned short	       __kernel_gid16_t;
+-typedef unsigned int	       __kernel_uid32_t;
+-typedef unsigned int	       __kernel_gid32_t;
+-typedef unsigned short	       __kernel_old_uid_t;
+-typedef unsigned short	       __kernel_old_gid_t;
+-typedef unsigned short	       __kernel_old_dev_t;
+-typedef int                    __kernel_clockid_t;
+-typedef int                    __kernel_timer_t;
 -
--char *of_console_path;
--EXPORT_SYMBOL(of_console_path);
+-#ifdef __GNUC__
+-typedef long long	__kernel_loff_t;
+-#endif
 -
--char *of_console_options;
--EXPORT_SYMBOL(of_console_options);
+-typedef struct {
+-	int	val[2];
+-} __kernel_fsid_t;
 -
- void __init of_console_init(void)
- {
- 	char *msg = "OF stdout device is: %s\n";
-diff --git a/arch/sparc/kernel/prom_common.c b/arch/sparc/kernel/prom_common.c
-index 95e8e5d..2736f3d 100644
---- a/arch/sparc/kernel/prom_common.c
-+++ b/arch/sparc/kernel/prom_common.c
-@@ -25,6 +25,15 @@
- 
- #include "prom.h"
- 
-+struct device_node *of_console_device;
-+EXPORT_SYMBOL(of_console_device);
-+
-+char *of_console_path;
-+EXPORT_SYMBOL(of_console_path);
-+
-+char *of_console_options;
-+EXPORT_SYMBOL(of_console_options);
-+
- struct device_node *of_find_node_by_phandle(phandle handle)
- {
- 	struct device_node *np;
+-#if defined(__KERNEL__)
+-
+-#undef __FD_SET
+-static inline void __FD_SET(unsigned long fd, __kernel_fd_set *fdsetp)
+-{
+-	unsigned long _tmp = fd / __NFDBITS;
+-	unsigned long _rem = fd % __NFDBITS;
+-	fdsetp->fds_bits[_tmp] |= (1UL<<_rem);
+-}
+-
+-#undef __FD_CLR
+-static inline void __FD_CLR(unsigned long fd, __kernel_fd_set *fdsetp)
+-{
+-	unsigned long _tmp = fd / __NFDBITS;
+-	unsigned long _rem = fd % __NFDBITS;
+-	fdsetp->fds_bits[_tmp] &= ~(1UL<<_rem);
+-}
+-
+-#undef __FD_ISSET
+-static inline int __FD_ISSET(unsigned long fd, __const__ __kernel_fd_set *p)
+-{
+-	unsigned long _tmp = fd / __NFDBITS;
+-	unsigned long _rem = fd % __NFDBITS;
+-	return (p->fds_bits[_tmp] & (1UL<<_rem)) != 0;
+-}
+-
+-/*
+- * This will unroll the loop for the normal constant cases (8 or 32 longs,
+- * for 256 and 1024-bit fd_sets respectively)
+- */
+-#undef __FD_ZERO
+-static inline void __FD_ZERO(__kernel_fd_set *p)
+-{
+-	unsigned long *tmp = p->fds_bits;
+-	int i;
+-
+-	if (__builtin_constant_p(__FDSET_LONGS)) {
+-		switch (__FDSET_LONGS) {
+-			case 32:
+-			  tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
+-			  tmp[ 4] = 0; tmp[ 5] = 0; tmp[ 6] = 0; tmp[ 7] = 0;
+-			  tmp[ 8] = 0; tmp[ 9] = 0; tmp[10] = 0; tmp[11] = 0;
+-			  tmp[12] = 0; tmp[13] = 0; tmp[14] = 0; tmp[15] = 0;
+-			  tmp[16] = 0; tmp[17] = 0; tmp[18] = 0; tmp[19] = 0;
+-			  tmp[20] = 0; tmp[21] = 0; tmp[22] = 0; tmp[23] = 0;
+-			  tmp[24] = 0; tmp[25] = 0; tmp[26] = 0; tmp[27] = 0;
+-			  tmp[28] = 0; tmp[29] = 0; tmp[30] = 0; tmp[31] = 0;
+-			  return;
+-			case 16:
+-			  tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
+-			  tmp[ 4] = 0; tmp[ 5] = 0; tmp[ 6] = 0; tmp[ 7] = 0;
+-			  tmp[ 8] = 0; tmp[ 9] = 0; tmp[10] = 0; tmp[11] = 0;
+-			  tmp[12] = 0; tmp[13] = 0; tmp[14] = 0; tmp[15] = 0;
+-			  return;
+-			case 8:
+-			  tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
+-			  tmp[ 4] = 0; tmp[ 5] = 0; tmp[ 6] = 0; tmp[ 7] = 0;
+-			  return;
+-			case 4:
+-			  tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
+-			  return;
+-		}
+-	}
+-	i = __FDSET_LONGS;
+-	while (i) {
+-		i--;
+-		*tmp = 0;
+-		tmp++;
+-	}
+-}
+-
+-#endif /* defined(__KERNEL__) */
+-
+-#endif /* !(__ARCH_SPARC_POSIX_TYPES_H) */
 -- 
-1.5.6.5
+1.6.0.2.GIT
 
