@@ -1,41 +1,46 @@
-From: r1am0p2x41s3v <r1am0p2x41s3v@gmail.com>
-Date: Sun, 21 Dec 2008 08:00:29 +0000
-Subject: =?BIG5?B?ob8yMDA4LzEyLzIxILF6?= =?BIG5?B?wdmoU6azpECt07FNxN2quqX4t3669K+4ttyhSA==?=
-Message-Id: <c0c4ff990812210000x605ba14i893ba08d4da9dada@mail.gmail.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 28 Dec 2008 20:44:30 +0000
+Subject: [PATCH] sparc32: drop __old_kernel_stat
+Message-Id: <20081228204430.GA459@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-2008-12-21  -  16:0
+sparc32 do not define __ARCH_WANT_OLD_STAT so
+we do not use this structure neither do we support it.
 
-=A4sL=E0=BEt=AC=ECP=A7=DEo=BA=F4U=AD=B68=B3]Q=ADp
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/include/asm/stat_32.h |   14 --------------
+ 1 files changed, 0 insertions(+), 14 deletions(-)
 
-=A7=DAc=AD=CC7=AA=BAb=A9vc=A6=AEj=A1G=AB=C8=A4=E1=AA=BA=A8C=A3=B8=A5=F3=A4p=
-=A8=C6=B1=A1=A1A=B3=A3=ACO=A4s=E0=BE=AA=BA=A4j=A8=C6=B1=A1
+diff --git a/arch/sparc/include/asm/stat_32.h b/arch/sparc/include/asm/stat_32.h
+index 2299e1d..643d572 100644
+--- a/arch/sparc/include/asm/stat_32.h
++++ b/arch/sparc/include/asm/stat_32.h
+@@ -3,20 +3,6 @@
+ 
+ #include <linux/types.h>
+ 
+-struct __old_kernel_stat {
+-	unsigned short st_dev;
+-	unsigned short st_ino;
+-	unsigned short st_mode;
+-	unsigned short st_nlink;
+-	unsigned short st_uid;
+-	unsigned short st_gid;
+-	unsigned short st_rdev;
+-	unsigned long  st_size;
+-	unsigned long  st_atime;
+-	unsigned long  st_mtime;
+-	unsigned long  st_ctime;
+-};
+-
+ struct stat {
+ 	unsigned short	st_dev;
+ 	unsigned long	st_ino;
+-- 
+1.6.0.2.GIT
 
-=A7=DAZ=AD=CCKH=A6bC=B1=C0=A5X=A5=F8=B7~=A7=CE=B6H=BA=F4=AF=B8=A5]=A7t=ABe=
-=A5x=BA=F4=AD=B6=AC=FC=A4u+=AB=E1=A5x=BA=DE=B2z=B5{=A6=A1
-
-=AD=ADx=AE=C95=AD=ADV=B6qk=B1M=AE=D7=BB=F9 =A5u=ADn$29,900  (=A6b=B0e=A3=B8=
-=A6~100MB =A4=A3=AD=AD=ACy=B6q=BA=F4=AF=B8=AA=C5=B6=A1)
-
-=A7=DA5=AD=CCf=B0=B5A=AA=BAU=A4=A3e=A5uE=ACOE=BA=F4q=AF=B8=A1A=A6=D3s=ACOx=
-=B1zP=A5=F8k=B7~X=AA=BAh=A4Jd=A4f
-
-=A3=B8Z=AD=D3n=A6nS=AA=BAN=A5=F82=B7~O=BA=F40=AF=B8x=B8=EAx=AE=C6d=A7YR=AE=
-=C9T=A7=F3P=B7sX=AA=BAg=B3ta=AB=D7Z=ACOo=AB=DCM=AD=AB2=ADnI=AA=BA
-
-=A5=F8s=B7~=A2=ED=A4=C6a=B0=AAd=AB~X=BD=E8E=B9=CE6=B6=A4=A1A=A5=B4M=B3ym=B1=
-zd=AA=BA0=BA=F43=B8=F4N=AA=F96=AD=B1
-
-=BF=EFx=BE=DCT=A4sa=E0=BEX=A6=A85=B4Nu=B1zp=AA=BAx=B9=DA24=B7Q
-
-d=C5w=AA=EF=A8=D3=B9q=AC=A2=B8=DF=B6=C0=B1M=AD=FB=A1G0980119812
-B=A1=CFm=A1=AE9=A1=E2U=A1=F7o=A1=B0
-=FF=F4=E8=BA{.n=C7+=89=B7=9F=AE=89=AD=86+%=8A=CB=FF=B1=E9=DD=B6=17=A5=8Aw=
-=FF=BA{.n=C7+=89=B7=AC=A5=AA=DC=96)=EE=C7=F8=A7=B6=17=9B=A1=DC=A8}=A9=9E=B2=
-=C6=A0z=DA&j:+v=89=A8=FE=F8=1E=AF=F9=1E=AEw=A5=FE=8A=E02=8A=DE=99=A8=E8=AD=
-=DA&=A2)=DF=A1=ABa=B6=DA=FF=FF=FB=E0z=BF=E4z=B9=DE=97=FA+=83=F9=9A=8E=8A=DD=
-=A2j=FF=8Aw=E8=FE=1Bf
