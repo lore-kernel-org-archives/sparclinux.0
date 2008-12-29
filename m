@@ -1,694 +1,456 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 29 Dec 2008 23:58:07 +0000
-Subject: [PATCH 08/11] sparc: unify signal.h
-Message-Id: <1230595090-23982-8-git-send-email-sam@ravnborg.org>
+Date: Mon, 29 Dec 2008 23:58:02 +0000
+Subject: [PATCH 03/11] sparc: unify posix_types.h
+Message-Id: <1230595090-23982-3-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-They were almost identical and with the preapration
-patch nothing was needed to be added.
-
-The unified version contains a few sparc64 only definitions
-but they are kept as is and not protected by ifdef/endif.
-The unified version exports a bit more to userspace then the
-32 bit version did.
-This is not considered fatal.
+The posix types differed so much in their definition
+that they are kept in separate blocks.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/include/asm/Kbuild      |    2 -
- arch/sparc/include/asm/signal.h    |  212 +++++++++++++++++++++++++++++++++++-
- arch/sparc/include/asm/signal_32.h |  207 -----------------------------------
- arch/sparc/include/asm/signal_64.h |  210 -----------------------------------
- 4 files changed, 207 insertions(+), 424 deletions(-)
- delete mode 100644 arch/sparc/include/asm/signal_32.h
- delete mode 100644 arch/sparc/include/asm/signal_64.h
+ arch/sparc/include/asm/Kbuild           |    2 -
+ arch/sparc/include/asm/posix_types.h    |  157 ++++++++++++++++++++++++++++++-
+ arch/sparc/include/asm/posix_types_32.h |  118 -----------------------
+ arch/sparc/include/asm/posix_types_64.h |  122 ------------------------
+ 4 files changed, 152 insertions(+), 247 deletions(-)
+ delete mode 100644 arch/sparc/include/asm/posix_types_32.h
+ delete mode 100644 arch/sparc/include/asm/posix_types_64.h
 
 diff --git a/arch/sparc/include/asm/Kbuild b/arch/sparc/include/asm/Kbuild
-index 46d3704..1612229 100644
+index b938232..71e52a8 100644
 --- a/arch/sparc/include/asm/Kbuild
 +++ b/arch/sparc/include/asm/Kbuild
-@@ -7,8 +7,6 @@ header-y += sigcontext_32.h
- header-y += sigcontext_64.h
- header-y += siginfo_32.h
- header-y += siginfo_64.h
--header-y += signal_32.h
--header-y += signal_64.h
+@@ -1,8 +1,6 @@
+ # User exported sparc header files
+ include include/asm-generic/Kbuild.asm
  
- header-y += apc.h
- header-y += asi.h
-diff --git a/arch/sparc/include/asm/signal.h b/arch/sparc/include/asm/signal.h
-index 27ab05d..41535e7 100644
---- a/arch/sparc/include/asm/signal.h
-+++ b/arch/sparc/include/asm/signal.h
-@@ -1,8 +1,210 @@
--#ifndef ___ASM_SPARC_SIGNAL_H
--#define ___ASM_SPARC_SIGNAL_H
--#if defined(__sparc__) && defined(__arch64__)
--#include <asm/signal_64.h>
-+#ifndef __SPARC_SIGNAL_H
-+#define __SPARC_SIGNAL_H
-+
-+#include <asm/sigcontext.h>
-+#include <linux/compiler.h>
-+
-+#ifdef __KERNEL__
-+#ifndef __ASSEMBLY__
-+#include <linux/personality.h>
-+#include <linux/types.h>
-+#endif
-+#endif
-+
-+/* On the Sparc the signal handlers get passed a 'sub-signal' code
-+ * for certain signal types, which we document here.
+-header-y += posix_types_32.h
+-header-y += posix_types_64.h
+ header-y += ptrace_32.h
+ header-y += ptrace_64.h
+ header-y += sigcontext_32.h
+diff --git a/arch/sparc/include/asm/posix_types.h b/arch/sparc/include/asm/posix_types.h
+index 03a0e09..98d6ebb 100644
+--- a/arch/sparc/include/asm/posix_types.h
++++ b/arch/sparc/include/asm/posix_types.h
+@@ -1,8 +1,155 @@
+-#ifndef ___ASM_SPARC_POSIX_TYPES_H
+-#define ___ASM_SPARC_POSIX_TYPES_H
++/*
++ * This file is generally used by user-level software, so you need to
++ * be a little careful about namespace pollution etc.  Also, we cannot
++ * assume GCC is being used.
 + */
-+#define SIGHUP		 1
-+#define SIGINT		 2
-+#define SIGQUIT		 3
-+#define SIGILL		 4
-+#define    SUBSIG_STACK       0
-+#define    SUBSIG_ILLINST     2
-+#define    SUBSIG_PRIVINST    3
-+#define    SUBSIG_BADTRAP(t)  (0x80 + (t))
 +
-+#define SIGTRAP		 5
-+#define SIGABRT		 6
-+#define SIGIOT		 6
++#ifndef __SPARC_POSIX_TYPES_H
++#define __SPARC_POSIX_TYPES_H
 +
-+#define SIGEMT           7
-+#define    SUBSIG_TAG    10
+ #if defined(__sparc__) && defined(__arch64__)
+-#include <asm/posix_types_64.h>
++/* sparc 64 bit */
++typedef unsigned long          __kernel_size_t;
++typedef long                   __kernel_ssize_t;
++typedef long                   __kernel_ptrdiff_t;
++typedef long                   __kernel_time_t;
++typedef long                   __kernel_clock_t;
++typedef int                    __kernel_pid_t;
++typedef int                    __kernel_ipc_pid_t;
++typedef unsigned int           __kernel_uid_t;
++typedef unsigned int           __kernel_gid_t;
++typedef unsigned long          __kernel_ino_t;
++typedef unsigned int           __kernel_mode_t;
++typedef unsigned short         __kernel_umode_t;
++typedef unsigned int           __kernel_nlink_t;
++typedef int                    __kernel_daddr_t;
++typedef long                   __kernel_off_t;
++typedef char *                 __kernel_caddr_t;
++typedef unsigned short	       __kernel_uid16_t;
++typedef unsigned short	       __kernel_gid16_t;
++typedef int                    __kernel_clockid_t;
++typedef int                    __kernel_timer_t;
 +
-+#define SIGFPE		 8
-+#define    SUBSIG_FPDISABLED     0x400
-+#define    SUBSIG_FPERROR        0x404
-+#define    SUBSIG_FPINTOVFL      0x001
-+#define    SUBSIG_FPSTSIG        0x002
-+#define    SUBSIG_IDIVZERO       0x014
-+#define    SUBSIG_FPINEXACT      0x0c4
-+#define    SUBSIG_FPDIVZERO      0x0c8
-+#define    SUBSIG_FPUNFLOW       0x0cc
-+#define    SUBSIG_FPOPERROR      0x0d0
-+#define    SUBSIG_FPOVFLOW       0x0d4
++typedef unsigned short 	       __kernel_old_uid_t;
++typedef unsigned short         __kernel_old_gid_t;
++typedef __kernel_uid_t	       __kernel_uid32_t;
++typedef __kernel_gid_t	       __kernel_gid32_t;
 +
-+#define SIGKILL		 9
-+#define SIGBUS          10
-+#define    SUBSIG_BUSTIMEOUT    1
-+#define    SUBSIG_ALIGNMENT     2
-+#define    SUBSIG_MISCERROR     5
++typedef unsigned int	       __kernel_old_dev_t;
 +
-+#define SIGSEGV		11
-+#define    SUBSIG_NOMAPPING     3
-+#define    SUBSIG_PROTECTION    4
-+#define    SUBSIG_SEGERROR      5
++/* Note this piece of asymmetry from the v9 ABI.  */
++typedef int		       __kernel_suseconds_t;
 +
-+#define SIGSYS		12
-+
-+#define SIGPIPE		13
-+#define SIGALRM		14
-+#define SIGTERM		15
-+#define SIGURG          16
-+
-+/* SunOS values which deviate from the Linux/i386 ones */
-+#define SIGSTOP		17
-+#define SIGTSTP		18
-+#define SIGCONT		19
-+#define SIGCHLD		20
-+#define SIGTTIN		21
-+#define SIGTTOU		22
-+#define SIGIO		23
-+#define SIGPOLL		SIGIO   /* SysV name for SIGIO */
-+#define SIGXCPU		24
-+#define SIGXFSZ		25
-+#define SIGVTALRM	26
-+#define SIGPROF		27
-+#define SIGWINCH	28
-+#define SIGLOST		29
-+#define SIGPWR		SIGLOST
-+#define SIGUSR1		30
-+#define SIGUSR2		31
-+
-+/* Most things should be clean enough to redefine this at will, if care
-+   is taken to make libc match.  */
-+
-+#define __OLD_NSIG	32
-+#define __NEW_NSIG      64
-+#define _NSIG_BPW       64
-+#define _NSIG_WORDS     (__NEW_NSIG / _NSIG_BPW)
-+
-+#define SIGRTMIN       32
-+#define SIGRTMAX       __NEW_NSIG
-+
-+#if defined(__KERNEL__) || defined(__WANT_POSIX1B_SIGNALS__)
-+#define _NSIG			__NEW_NSIG
-+#define __new_sigset_t		sigset_t
-+#define __new_sigaction		sigaction
-+#define __new_sigaction32	sigaction32
-+#define __old_sigset_t		old_sigset_t
-+#define __old_sigaction		old_sigaction
-+#define __old_sigaction32	old_sigaction32
  #else
--#include <asm/signal_32.h>
-+#define _NSIG			__OLD_NSIG
-+#define NSIG			_NSIG
-+#define __old_sigset_t		sigset_t
-+#define __old_sigaction		sigaction
-+#define __old_sigaction32	sigaction32
+-#include <asm/posix_types_32.h>
+-#endif
++/* sparc 32 bit */
++
++typedef unsigned int           __kernel_size_t;
++typedef int                    __kernel_ssize_t;
++typedef long int               __kernel_ptrdiff_t;
++typedef long                   __kernel_time_t;
++typedef long		       __kernel_suseconds_t;
++typedef long                   __kernel_clock_t;
++typedef int                    __kernel_pid_t;
++typedef unsigned short         __kernel_ipc_pid_t;
++typedef unsigned short         __kernel_uid_t;
++typedef unsigned short         __kernel_gid_t;
++typedef unsigned long          __kernel_ino_t;
++typedef unsigned short         __kernel_mode_t;
++typedef unsigned short         __kernel_umode_t;
++typedef short                  __kernel_nlink_t;
++typedef long                   __kernel_daddr_t;
++typedef long                   __kernel_off_t;
++typedef char *                 __kernel_caddr_t;
++typedef unsigned short	       __kernel_uid16_t;
++typedef unsigned short	       __kernel_gid16_t;
++typedef unsigned int	       __kernel_uid32_t;
++typedef unsigned int	       __kernel_gid32_t;
++typedef unsigned short	       __kernel_old_uid_t;
++typedef unsigned short	       __kernel_old_gid_t;
++typedef unsigned short	       __kernel_old_dev_t;
++typedef int                    __kernel_clockid_t;
++typedef int                    __kernel_timer_t;
++
++#endif /* defined(__sparc__) && defined(__arch64__) */
++
++#ifdef __GNUC__
++typedef long long              __kernel_loff_t;
  #endif
-+
-+#ifndef __ASSEMBLY__
-+
-+typedef unsigned long __old_sigset_t;            /* at least 32 bits */
 +
 +typedef struct {
-+       unsigned long sig[_NSIG_WORDS];
-+} __new_sigset_t;
-+
-+/* A SunOS sigstack */
-+struct sigstack {
-+	/* XXX 32-bit pointers pinhead XXX */
-+	char *the_stack;
-+	int   cur_status;
-+};
-+
-+/* Sigvec flags */
-+#define _SV_SSTACK    1u    /* This signal handler should use sig-stack */
-+#define _SV_INTR      2u    /* Sig return should not restart system call */
-+#define _SV_RESET     4u    /* Set handler to SIG_DFL upon taken signal */
-+#define _SV_IGNCHILD  8u    /* Do not send SIGCHLD */
-+
-+/*
-+ * sa_flags values: SA_STACK is not currently supported, but will allow the
-+ * usage of signal stacks by using the (now obsolete) sa_restorer field in
-+ * the sigaction structure as a stack pointer. This is now possible due to
-+ * the changes in signal handling. LBT 010493.
-+ * SA_RESTART flag to get restarting signals (which were the default long ago)
-+ */
-+#define SA_NOCLDSTOP	_SV_IGNCHILD
-+#define SA_STACK	_SV_SSTACK
-+#define SA_ONSTACK	_SV_SSTACK
-+#define SA_RESTART	_SV_INTR
-+#define SA_ONESHOT	_SV_RESET
-+#define SA_NOMASK	0x20u
-+#define SA_NOCLDWAIT    0x100u
-+#define SA_SIGINFO      0x200u
-+
-+
-+#define SIG_BLOCK          0x01	/* for blocking signals */
-+#define SIG_UNBLOCK        0x02	/* for unblocking signals */
-+#define SIG_SETMASK        0x04	/* for setting the signal mask */
-+
-+/*
-+ * sigaltstack controls
-+ */
-+#define SS_ONSTACK	1
-+#define SS_DISABLE	2
-+
-+#define MINSIGSTKSZ	4096
-+#define SIGSTKSZ	16384
-+
-+#ifdef __KERNEL__
-+/*
-+ * DJHR
-+ * SA_STATIC_ALLOC is used for the sparc32 system to indicate that this
-+ * interrupt handler's irq structure should be statically allocated
-+ * by the request_irq routine.
-+ * The alternative is that arch/sparc/kernel/irq.c has carnal knowledge
-+ * of interrupt usage and that sucks. Also without a flag like this
-+ * it may be possible for the free_irq routine to attempt to free
-+ * statically allocated data.. which is NOT GOOD.
-+ *
-+ */
-+#define SA_STATIC_ALLOC         0x8000
- #endif
-+
-+#include <asm-generic/signal.h>
-+
-+struct __new_sigaction {
-+	__sighandler_t		sa_handler;
-+	unsigned long		sa_flags;
-+	__sigrestore_t		sa_restorer;  /* not used by Linux/SPARC yet */
-+	__new_sigset_t		sa_mask;
-+};
-+
-+struct __old_sigaction {
-+	__sighandler_t		sa_handler;
-+	__old_sigset_t		sa_mask;
-+	unsigned long		sa_flags;
-+	void			(*sa_restorer)(void);  /* not used by Linux/SPARC yet */
-+};
-+
-+typedef struct sigaltstack {
-+	void			__user *ss_sp;
-+	int			ss_flags;
-+	size_t			ss_size;
-+} stack_t;
++	int	val[2];
++} __kernel_fsid_t;
 +
 +#ifdef __KERNEL__
 +
-+struct k_sigaction {
-+	struct			__new_sigaction sa;
-+	void			__user *ka_restorer;
-+};
++#undef __FD_SET
++static inline void __FD_SET(unsigned long fd, __kernel_fd_set *fdsetp)
++{
++	unsigned long _tmp = fd / __NFDBITS;
++	unsigned long _rem = fd % __NFDBITS;
++	fdsetp->fds_bits[_tmp] |= (1UL<<_rem);
++}
 +
-+#define ptrace_signal_deliver(regs, cookie) do { } while (0)
++#undef __FD_CLR
++static inline void __FD_CLR(unsigned long fd, __kernel_fd_set *fdsetp)
++{
++	unsigned long _tmp = fd / __NFDBITS;
++	unsigned long _rem = fd % __NFDBITS;
++	fdsetp->fds_bits[_tmp] &= ~(1UL<<_rem);
++}
 +
-+#endif /* !(__KERNEL__) */
++#undef __FD_ISSET
++static inline int __FD_ISSET(unsigned long fd, __const__ __kernel_fd_set *p)
++{
++	unsigned long _tmp = fd / __NFDBITS;
++	unsigned long _rem = fd % __NFDBITS;
++	return (p->fds_bits[_tmp] & (1UL<<_rem)) != 0;
++}
 +
-+#endif /* !(__ASSEMBLY__) */
++/*
++ * This will unroll the loop for the normal constant cases (8 or 32 longs,
++ * for 256 and 1024-bit fd_sets respectively)
++ */
++#undef __FD_ZERO
++static inline void __FD_ZERO(__kernel_fd_set *p)
++{
++	unsigned long *tmp = p->fds_bits;
++	int i;
 +
-+#endif /* !(__SPARC_SIGNAL_H) */
-diff --git a/arch/sparc/include/asm/signal_32.h b/arch/sparc/include/asm/signal_32.h
++	if (__builtin_constant_p(__FDSET_LONGS)) {
++		switch (__FDSET_LONGS) {
++			case 32:
++			  tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
++			  tmp[ 4] = 0; tmp[ 5] = 0; tmp[ 6] = 0; tmp[ 7] = 0;
++			  tmp[ 8] = 0; tmp[ 9] = 0; tmp[10] = 0; tmp[11] = 0;
++			  tmp[12] = 0; tmp[13] = 0; tmp[14] = 0; tmp[15] = 0;
++			  tmp[16] = 0; tmp[17] = 0; tmp[18] = 0; tmp[19] = 0;
++			  tmp[20] = 0; tmp[21] = 0; tmp[22] = 0; tmp[23] = 0;
++			  tmp[24] = 0; tmp[25] = 0; tmp[26] = 0; tmp[27] = 0;
++			  tmp[28] = 0; tmp[29] = 0; tmp[30] = 0; tmp[31] = 0;
++			  return;
++			case 16:
++			  tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
++			  tmp[ 4] = 0; tmp[ 5] = 0; tmp[ 6] = 0; tmp[ 7] = 0;
++			  tmp[ 8] = 0; tmp[ 9] = 0; tmp[10] = 0; tmp[11] = 0;
++			  tmp[12] = 0; tmp[13] = 0; tmp[14] = 0; tmp[15] = 0;
++			  return;
++			case 8:
++			  tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
++			  tmp[ 4] = 0; tmp[ 5] = 0; tmp[ 6] = 0; tmp[ 7] = 0;
++			  return;
++			case 4:
++			  tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
++			  return;
++		}
++	}
++	i = __FDSET_LONGS;
++	while (i) {
++		i--;
++		*tmp = 0;
++		tmp++;
++	}
++}
++
++#endif /* __KERNEL__ */
++#endif /* __SPARC_POSIX_TYPES_H */
+diff --git a/arch/sparc/include/asm/posix_types_32.h b/arch/sparc/include/asm/posix_types_32.h
 deleted file mode 100644
-index 96a60ab..0000000
---- a/arch/sparc/include/asm/signal_32.h
+index 6bb6eb1..0000000
+--- a/arch/sparc/include/asm/posix_types_32.h
 +++ /dev/null
-@@ -1,207 +0,0 @@
--#ifndef _ASMSPARC_SIGNAL_H
--#define _ASMSPARC_SIGNAL_H
+@@ -1,118 +0,0 @@
+-#ifndef __ARCH_SPARC_POSIX_TYPES_H
+-#define __ARCH_SPARC_POSIX_TYPES_H
 -
--#include <asm/sigcontext.h>
--#include <linux/compiler.h>
--
--#ifdef __KERNEL__
--#ifndef __ASSEMBLY__
--#include <linux/personality.h>
--#include <linux/types.h>
--#endif
--#endif
--
--/* On the Sparc the signal handlers get passed a 'sub-signal' code
-- * for certain signal types, which we document here.
-- */
--#define SIGHUP		 1
--#define SIGINT		 2
--#define SIGQUIT		 3
--#define SIGILL		 4
--#define    SUBSIG_STACK       0
--#define    SUBSIG_ILLINST     2
--#define    SUBSIG_PRIVINST    3
--#define    SUBSIG_BADTRAP(t)  (0x80 + (t))
--
--#define SIGTRAP		 5
--#define SIGABRT		 6
--#define SIGIOT		 6
--
--#define SIGEMT           7
--#define    SUBSIG_TAG    10
--
--#define SIGFPE		 8
--#define    SUBSIG_FPDISABLED     0x400
--#define    SUBSIG_FPERROR        0x404
--#define    SUBSIG_FPINTOVFL      0x001
--#define    SUBSIG_FPSTSIG        0x002
--#define    SUBSIG_IDIVZERO       0x014
--#define    SUBSIG_FPINEXACT      0x0c4
--#define    SUBSIG_FPDIVZERO      0x0c8
--#define    SUBSIG_FPUNFLOW       0x0cc
--#define    SUBSIG_FPOPERROR      0x0d0
--#define    SUBSIG_FPOVFLOW       0x0d4
--
--#define SIGKILL		 9
--#define SIGBUS          10
--#define    SUBSIG_BUSTIMEOUT    1
--#define    SUBSIG_ALIGNMENT     2
--#define    SUBSIG_MISCERROR     5
--
--#define SIGSEGV		11
--#define    SUBSIG_NOMAPPING     3
--#define    SUBSIG_PROTECTION    4
--#define    SUBSIG_SEGERROR      5
--
--#define SIGSYS		12
--
--#define SIGPIPE		13
--#define SIGALRM		14
--#define SIGTERM		15
--#define SIGURG          16
--
--/* SunOS values which deviate from the Linux/i386 ones */
--#define SIGSTOP		17
--#define SIGTSTP		18
--#define SIGCONT		19
--#define SIGCHLD		20
--#define SIGTTIN		21
--#define SIGTTOU		22
--#define SIGIO		23
--#define SIGPOLL		SIGIO   /* SysV name for SIGIO */
--#define SIGXCPU		24
--#define SIGXFSZ		25
--#define SIGVTALRM	26
--#define SIGPROF		27
--#define SIGWINCH	28
--#define SIGLOST		29
--#define SIGPWR		SIGLOST
--#define SIGUSR1		30
--#define SIGUSR2		31
--
--/* Most things should be clean enough to redefine this at will, if care
-- * is taken to make libc match.
+-/*
+- * This file is generally used by user-level software, so you need to
+- * be a little careful about namespace pollution etc.  Also, we cannot
+- * assume GCC is being used.
 - */
 -
--#define __OLD_NSIG	32
--#define __NEW_NSIG	64
--#define _NSIG_BPW	32
--#define _NSIG_WORDS	(__NEW_NSIG / _NSIG_BPW)
+-typedef unsigned int           __kernel_size_t;
+-typedef int                    __kernel_ssize_t;
+-typedef long int               __kernel_ptrdiff_t;
+-typedef long                   __kernel_time_t;
+-typedef long		       __kernel_suseconds_t;
+-typedef long                   __kernel_clock_t;
+-typedef int                    __kernel_pid_t;
+-typedef unsigned short         __kernel_ipc_pid_t;
+-typedef unsigned short         __kernel_uid_t;
+-typedef unsigned short         __kernel_gid_t;
+-typedef unsigned long          __kernel_ino_t;
+-typedef unsigned short         __kernel_mode_t;
+-typedef unsigned short         __kernel_umode_t;
+-typedef short                  __kernel_nlink_t;
+-typedef long                   __kernel_daddr_t;
+-typedef long                   __kernel_off_t;
+-typedef char *                 __kernel_caddr_t;
+-typedef unsigned short	       __kernel_uid16_t;
+-typedef unsigned short	       __kernel_gid16_t;
+-typedef unsigned int	       __kernel_uid32_t;
+-typedef unsigned int	       __kernel_gid32_t;
+-typedef unsigned short	       __kernel_old_uid_t;
+-typedef unsigned short	       __kernel_old_gid_t;
+-typedef unsigned short	       __kernel_old_dev_t;
+-typedef int                    __kernel_clockid_t;
+-typedef int                    __kernel_timer_t;
 -
--#define SIGRTMIN	32
--#define SIGRTMAX	__NEW_NSIG
--
--#if defined(__KERNEL__) || defined(__WANT_POSIX1B_SIGNALS__)
--#define	_NSIG		__NEW_NSIG
--#define __new_sigset_t	sigset_t
--#define __new_sigaction	sigaction
--#define __old_sigset_t	old_sigset_t
--#define __old_sigaction	old_sigaction
--#else
--#define _NSIG		__OLD_NSIG
--#define __old_sigset_t	sigset_t
--#define __old_sigaction	sigaction
+-#ifdef __GNUC__
+-typedef long long	__kernel_loff_t;
 -#endif
--
--#ifndef __ASSEMBLY__
--
--typedef unsigned long __old_sigset_t;
 -
 -typedef struct {
--	unsigned long	sig[_NSIG_WORDS];
--} __new_sigset_t;
+-	int	val[2];
+-} __kernel_fsid_t;
 -
+-#if defined(__KERNEL__)
 -
--#ifdef __KERNEL__
--/* A SunOS sigstack */
--struct sigstack {
--	char *the_stack;
--	int   cur_status;
--};
--#endif
+-#undef __FD_SET
+-static inline void __FD_SET(unsigned long fd, __kernel_fd_set *fdsetp)
+-{
+-	unsigned long _tmp = fd / __NFDBITS;
+-	unsigned long _rem = fd % __NFDBITS;
+-	fdsetp->fds_bits[_tmp] |= (1UL<<_rem);
+-}
 -
--/* Sigvec flags */
--#define _SV_SSTACK    1u    /* This signal handler should use sig-stack */
--#define _SV_INTR      2u    /* Sig return should not restart system call */
--#define _SV_RESET     4u    /* Set handler to SIG_DFL upon taken signal */
--#define _SV_IGNCHILD  8u    /* Do not send SIGCHLD */
+-#undef __FD_CLR
+-static inline void __FD_CLR(unsigned long fd, __kernel_fd_set *fdsetp)
+-{
+-	unsigned long _tmp = fd / __NFDBITS;
+-	unsigned long _rem = fd % __NFDBITS;
+-	fdsetp->fds_bits[_tmp] &= ~(1UL<<_rem);
+-}
 -
--/*
-- * sa_flags values: SA_STACK is not currently supported, but will allow the
-- * usage of signal stacks by using the (now obsolete) sa_restorer field in
-- * the sigaction structure as a stack pointer. This is now possible due to
-- * the changes in signal handling. LBT 010493.
-- * SA_RESTART flag to get restarting signals (which were the default long ago)
-- */
--#define SA_NOCLDSTOP	_SV_IGNCHILD
--#define SA_STACK	_SV_SSTACK
--#define SA_ONSTACK	_SV_SSTACK
--#define SA_RESTART	_SV_INTR
--#define SA_ONESHOT	_SV_RESET
--#define SA_NOMASK	0x20u
--#define SA_NOCLDWAIT	0x100u
--#define SA_SIGINFO	0x200u
--
--#define SIG_BLOCK          0x01	/* for blocking signals */
--#define SIG_UNBLOCK        0x02	/* for unblocking signals */
--#define SIG_SETMASK        0x04	/* for setting the signal mask */
+-#undef __FD_ISSET
+-static inline int __FD_ISSET(unsigned long fd, __const__ __kernel_fd_set *p)
+-{
+-	unsigned long _tmp = fd / __NFDBITS;
+-	unsigned long _rem = fd % __NFDBITS;
+-	return (p->fds_bits[_tmp] & (1UL<<_rem)) != 0;
+-}
 -
 -/*
-- * sigaltstack controls
+- * This will unroll the loop for the normal constant cases (8 or 32 longs,
+- * for 256 and 1024-bit fd_sets respectively)
 - */
--#define SS_ONSTACK	1
--#define SS_DISABLE	2
+-#undef __FD_ZERO
+-static inline void __FD_ZERO(__kernel_fd_set *p)
+-{
+-	unsigned long *tmp = p->fds_bits;
+-	int i;
 -
--#define MINSIGSTKSZ	4096
--#define SIGSTKSZ	16384
+-	if (__builtin_constant_p(__FDSET_LONGS)) {
+-		switch (__FDSET_LONGS) {
+-			case 32:
+-			  tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
+-			  tmp[ 4] = 0; tmp[ 5] = 0; tmp[ 6] = 0; tmp[ 7] = 0;
+-			  tmp[ 8] = 0; tmp[ 9] = 0; tmp[10] = 0; tmp[11] = 0;
+-			  tmp[12] = 0; tmp[13] = 0; tmp[14] = 0; tmp[15] = 0;
+-			  tmp[16] = 0; tmp[17] = 0; tmp[18] = 0; tmp[19] = 0;
+-			  tmp[20] = 0; tmp[21] = 0; tmp[22] = 0; tmp[23] = 0;
+-			  tmp[24] = 0; tmp[25] = 0; tmp[26] = 0; tmp[27] = 0;
+-			  tmp[28] = 0; tmp[29] = 0; tmp[30] = 0; tmp[31] = 0;
+-			  return;
+-			case 16:
+-			  tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
+-			  tmp[ 4] = 0; tmp[ 5] = 0; tmp[ 6] = 0; tmp[ 7] = 0;
+-			  tmp[ 8] = 0; tmp[ 9] = 0; tmp[10] = 0; tmp[11] = 0;
+-			  tmp[12] = 0; tmp[13] = 0; tmp[14] = 0; tmp[15] = 0;
+-			  return;
+-			case 8:
+-			  tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
+-			  tmp[ 4] = 0; tmp[ 5] = 0; tmp[ 6] = 0; tmp[ 7] = 0;
+-			  return;
+-			case 4:
+-			  tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
+-			  return;
+-		}
+-	}
+-	i = __FDSET_LONGS;
+-	while (i) {
+-		i--;
+-		*tmp = 0;
+-		tmp++;
+-	}
+-}
 -
--#ifdef __KERNEL__
--/*
-- * DJHR
-- * SA_STATIC_ALLOC is used for the SPARC system to indicate that this
-- * interrupt handler's irq structure should be statically allocated
-- * by the request_irq routine.
-- * The alternative is that arch/sparc/kernel/irq.c has carnal knowledge
-- * of interrupt usage and that sucks. Also without a flag like this
-- * it may be possible for the free_irq routine to attempt to free
-- * statically allocated data.. which is NOT GOOD.
-- *
-- */
--#define SA_STATIC_ALLOC		0x8000
--#endif
+-#endif /* defined(__KERNEL__) */
 -
--#include <asm-generic/signal.h>
--
--#ifdef __KERNEL__
--struct __new_sigaction {
--	__sighandler_t	sa_handler;
--	unsigned long	sa_flags;
--	void		(*sa_restorer)(void);	/* Not used by Linux/SPARC */
--	__new_sigset_t	sa_mask;
--};
--
--struct k_sigaction {
--	struct __new_sigaction	sa;
--	void			__user *ka_restorer;
--};
--
--struct __old_sigaction {
--	__sighandler_t	sa_handler;
--	__old_sigset_t	sa_mask;
--	unsigned long	sa_flags;
--	void		(*sa_restorer) (void);	/* not used by Linux/SPARC */
--};
--
--typedef struct sigaltstack {
--	void		__user *ss_sp;
--	int		ss_flags;
--	size_t		ss_size;
--} stack_t;
--
--#define ptrace_signal_deliver(regs, cookie) do { } while (0)
--
--#endif /* !(__KERNEL__) */
--
--#endif /* !(__ASSEMBLY__) */
--
--#endif /* !(_ASMSPARC_SIGNAL_H) */
-diff --git a/arch/sparc/include/asm/signal_64.h b/arch/sparc/include/asm/signal_64.h
+-#endif /* !(__ARCH_SPARC_POSIX_TYPES_H) */
+diff --git a/arch/sparc/include/asm/posix_types_64.h b/arch/sparc/include/asm/posix_types_64.h
 deleted file mode 100644
-index 41535e7..0000000
---- a/arch/sparc/include/asm/signal_64.h
+index ba8f932..0000000
+--- a/arch/sparc/include/asm/posix_types_64.h
 +++ /dev/null
-@@ -1,210 +0,0 @@
--#ifndef __SPARC_SIGNAL_H
--#define __SPARC_SIGNAL_H
+@@ -1,122 +0,0 @@
+-#ifndef __ARCH_SPARC64_POSIX_TYPES_H
+-#define __ARCH_SPARC64_POSIX_TYPES_H
 -
--#include <asm/sigcontext.h>
--#include <linux/compiler.h>
--
--#ifdef __KERNEL__
--#ifndef __ASSEMBLY__
--#include <linux/personality.h>
--#include <linux/types.h>
--#endif
--#endif
--
--/* On the Sparc the signal handlers get passed a 'sub-signal' code
-- * for certain signal types, which we document here.
+-/*
+- * This file is generally used by user-level software, so you need to
+- * be a little careful about namespace pollution etc.  Also, we cannot
+- * assume GCC is being used.
 - */
--#define SIGHUP		 1
--#define SIGINT		 2
--#define SIGQUIT		 3
--#define SIGILL		 4
--#define    SUBSIG_STACK       0
--#define    SUBSIG_ILLINST     2
--#define    SUBSIG_PRIVINST    3
--#define    SUBSIG_BADTRAP(t)  (0x80 + (t))
 -
--#define SIGTRAP		 5
--#define SIGABRT		 6
--#define SIGIOT		 6
+-typedef unsigned long          __kernel_size_t;
+-typedef long                   __kernel_ssize_t;
+-typedef long                   __kernel_ptrdiff_t;
+-typedef long                   __kernel_time_t;
+-typedef long                   __kernel_clock_t;
+-typedef int                    __kernel_pid_t;
+-typedef int                    __kernel_ipc_pid_t;
+-typedef unsigned int           __kernel_uid_t;
+-typedef unsigned int           __kernel_gid_t;
+-typedef unsigned long          __kernel_ino_t;
+-typedef unsigned int           __kernel_mode_t;
+-typedef unsigned short         __kernel_umode_t;
+-typedef unsigned int           __kernel_nlink_t;
+-typedef int                    __kernel_daddr_t;
+-typedef long                   __kernel_off_t;
+-typedef char *                 __kernel_caddr_t;
+-typedef unsigned short	       __kernel_uid16_t;
+-typedef unsigned short	       __kernel_gid16_t;
+-typedef int                    __kernel_clockid_t;
+-typedef int                    __kernel_timer_t;
 -
--#define SIGEMT           7
--#define    SUBSIG_TAG    10
+-typedef unsigned short 	       __kernel_old_uid_t;
+-typedef unsigned short         __kernel_old_gid_t;
+-typedef __kernel_uid_t	       __kernel_uid32_t;
+-typedef __kernel_gid_t	       __kernel_gid32_t;
 -
--#define SIGFPE		 8
--#define    SUBSIG_FPDISABLED     0x400
--#define    SUBSIG_FPERROR        0x404
--#define    SUBSIG_FPINTOVFL      0x001
--#define    SUBSIG_FPSTSIG        0x002
--#define    SUBSIG_IDIVZERO       0x014
--#define    SUBSIG_FPINEXACT      0x0c4
--#define    SUBSIG_FPDIVZERO      0x0c8
--#define    SUBSIG_FPUNFLOW       0x0cc
--#define    SUBSIG_FPOPERROR      0x0d0
--#define    SUBSIG_FPOVFLOW       0x0d4
+-typedef unsigned int	       __kernel_old_dev_t;
 -
--#define SIGKILL		 9
--#define SIGBUS          10
--#define    SUBSIG_BUSTIMEOUT    1
--#define    SUBSIG_ALIGNMENT     2
--#define    SUBSIG_MISCERROR     5
+-/* Note this piece of asymmetry from the v9 ABI.  */
+-typedef int		       __kernel_suseconds_t;
 -
--#define SIGSEGV		11
--#define    SUBSIG_NOMAPPING     3
--#define    SUBSIG_PROTECTION    4
--#define    SUBSIG_SEGERROR      5
--
--#define SIGSYS		12
--
--#define SIGPIPE		13
--#define SIGALRM		14
--#define SIGTERM		15
--#define SIGURG          16
--
--/* SunOS values which deviate from the Linux/i386 ones */
--#define SIGSTOP		17
--#define SIGTSTP		18
--#define SIGCONT		19
--#define SIGCHLD		20
--#define SIGTTIN		21
--#define SIGTTOU		22
--#define SIGIO		23
--#define SIGPOLL		SIGIO   /* SysV name for SIGIO */
--#define SIGXCPU		24
--#define SIGXFSZ		25
--#define SIGVTALRM	26
--#define SIGPROF		27
--#define SIGWINCH	28
--#define SIGLOST		29
--#define SIGPWR		SIGLOST
--#define SIGUSR1		30
--#define SIGUSR2		31
--
--/* Most things should be clean enough to redefine this at will, if care
--   is taken to make libc match.  */
--
--#define __OLD_NSIG	32
--#define __NEW_NSIG      64
--#define _NSIG_BPW       64
--#define _NSIG_WORDS     (__NEW_NSIG / _NSIG_BPW)
--
--#define SIGRTMIN       32
--#define SIGRTMAX       __NEW_NSIG
--
--#if defined(__KERNEL__) || defined(__WANT_POSIX1B_SIGNALS__)
--#define _NSIG			__NEW_NSIG
--#define __new_sigset_t		sigset_t
--#define __new_sigaction		sigaction
--#define __new_sigaction32	sigaction32
--#define __old_sigset_t		old_sigset_t
--#define __old_sigaction		old_sigaction
--#define __old_sigaction32	old_sigaction32
--#else
--#define _NSIG			__OLD_NSIG
--#define NSIG			_NSIG
--#define __old_sigset_t		sigset_t
--#define __old_sigaction		sigaction
--#define __old_sigaction32	sigaction32
+-#ifdef __GNUC__
+-typedef long long              __kernel_loff_t;
 -#endif
--
--#ifndef __ASSEMBLY__
--
--typedef unsigned long __old_sigset_t;            /* at least 32 bits */
 -
 -typedef struct {
--       unsigned long sig[_NSIG_WORDS];
--} __new_sigset_t;
+-	int	val[2];
+-} __kernel_fsid_t;
 -
--/* A SunOS sigstack */
--struct sigstack {
--	/* XXX 32-bit pointers pinhead XXX */
--	char *the_stack;
--	int   cur_status;
--};
+-#if defined(__KERNEL__)
 -
--/* Sigvec flags */
--#define _SV_SSTACK    1u    /* This signal handler should use sig-stack */
--#define _SV_INTR      2u    /* Sig return should not restart system call */
--#define _SV_RESET     4u    /* Set handler to SIG_DFL upon taken signal */
--#define _SV_IGNCHILD  8u    /* Do not send SIGCHLD */
+-#undef __FD_SET
+-static inline void __FD_SET(unsigned long fd, __kernel_fd_set *fdsetp)
+-{
+-	unsigned long _tmp = fd / __NFDBITS;
+-	unsigned long _rem = fd % __NFDBITS;
+-	fdsetp->fds_bits[_tmp] |= (1UL<<_rem);
+-}
 -
--/*
-- * sa_flags values: SA_STACK is not currently supported, but will allow the
-- * usage of signal stacks by using the (now obsolete) sa_restorer field in
-- * the sigaction structure as a stack pointer. This is now possible due to
-- * the changes in signal handling. LBT 010493.
-- * SA_RESTART flag to get restarting signals (which were the default long ago)
-- */
--#define SA_NOCLDSTOP	_SV_IGNCHILD
--#define SA_STACK	_SV_SSTACK
--#define SA_ONSTACK	_SV_SSTACK
--#define SA_RESTART	_SV_INTR
--#define SA_ONESHOT	_SV_RESET
--#define SA_NOMASK	0x20u
--#define SA_NOCLDWAIT    0x100u
--#define SA_SIGINFO      0x200u
+-#undef __FD_CLR
+-static inline void __FD_CLR(unsigned long fd, __kernel_fd_set *fdsetp)
+-{
+-	unsigned long _tmp = fd / __NFDBITS;
+-	unsigned long _rem = fd % __NFDBITS;
+-	fdsetp->fds_bits[_tmp] &= ~(1UL<<_rem);
+-}
 -
--
--#define SIG_BLOCK          0x01	/* for blocking signals */
--#define SIG_UNBLOCK        0x02	/* for unblocking signals */
--#define SIG_SETMASK        0x04	/* for setting the signal mask */
+-#undef __FD_ISSET
+-static inline int __FD_ISSET(unsigned long fd, __const__ __kernel_fd_set *p)
+-{
+-	unsigned long _tmp = fd / __NFDBITS;
+-	unsigned long _rem = fd % __NFDBITS;
+-	return (p->fds_bits[_tmp] & (1UL<<_rem)) != 0;
+-}
 -
 -/*
-- * sigaltstack controls
+- * This will unroll the loop for the normal constant cases (8 or 32 longs,
+- * for 256 and 1024-bit fd_sets respectively)
 - */
--#define SS_ONSTACK	1
--#define SS_DISABLE	2
+-#undef __FD_ZERO
+-static inline void __FD_ZERO(__kernel_fd_set *p)
+-{
+-	unsigned long *tmp = p->fds_bits;
+-	int i;
 -
--#define MINSIGSTKSZ	4096
--#define SIGSTKSZ	16384
+-	if (__builtin_constant_p(__FDSET_LONGS)) {
+-		switch (__FDSET_LONGS) {
+-			case 32:
+-			  tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
+-			  tmp[ 4] = 0; tmp[ 5] = 0; tmp[ 6] = 0; tmp[ 7] = 0;
+-			  tmp[ 8] = 0; tmp[ 9] = 0; tmp[10] = 0; tmp[11] = 0;
+-			  tmp[12] = 0; tmp[13] = 0; tmp[14] = 0; tmp[15] = 0;
+-			  tmp[16] = 0; tmp[17] = 0; tmp[18] = 0; tmp[19] = 0;
+-			  tmp[20] = 0; tmp[21] = 0; tmp[22] = 0; tmp[23] = 0;
+-			  tmp[24] = 0; tmp[25] = 0; tmp[26] = 0; tmp[27] = 0;
+-			  tmp[28] = 0; tmp[29] = 0; tmp[30] = 0; tmp[31] = 0;
+-			  return;
+-			case 16:
+-			  tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
+-			  tmp[ 4] = 0; tmp[ 5] = 0; tmp[ 6] = 0; tmp[ 7] = 0;
+-			  tmp[ 8] = 0; tmp[ 9] = 0; tmp[10] = 0; tmp[11] = 0;
+-			  tmp[12] = 0; tmp[13] = 0; tmp[14] = 0; tmp[15] = 0;
+-			  return;
+-			case 8:
+-			  tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
+-			  tmp[ 4] = 0; tmp[ 5] = 0; tmp[ 6] = 0; tmp[ 7] = 0;
+-			  return;
+-			case 4:
+-			  tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
+-			  return;
+-		}
+-	}
+-	i = __FDSET_LONGS;
+-	while (i) {
+-		i--;
+-		*tmp = 0;
+-		tmp++;
+-	}
+-}
 -
--#ifdef __KERNEL__
--/*
-- * DJHR
-- * SA_STATIC_ALLOC is used for the sparc32 system to indicate that this
-- * interrupt handler's irq structure should be statically allocated
-- * by the request_irq routine.
-- * The alternative is that arch/sparc/kernel/irq.c has carnal knowledge
-- * of interrupt usage and that sucks. Also without a flag like this
-- * it may be possible for the free_irq routine to attempt to free
-- * statically allocated data.. which is NOT GOOD.
-- *
-- */
--#define SA_STATIC_ALLOC         0x8000
--#endif
+-#endif /* defined(__KERNEL__) */
 -
--#include <asm-generic/signal.h>
--
--struct __new_sigaction {
--	__sighandler_t		sa_handler;
--	unsigned long		sa_flags;
--	__sigrestore_t		sa_restorer;  /* not used by Linux/SPARC yet */
--	__new_sigset_t		sa_mask;
--};
--
--struct __old_sigaction {
--	__sighandler_t		sa_handler;
--	__old_sigset_t		sa_mask;
--	unsigned long		sa_flags;
--	void			(*sa_restorer)(void);  /* not used by Linux/SPARC yet */
--};
--
--typedef struct sigaltstack {
--	void			__user *ss_sp;
--	int			ss_flags;
--	size_t			ss_size;
--} stack_t;
--
--#ifdef __KERNEL__
--
--struct k_sigaction {
--	struct			__new_sigaction sa;
--	void			__user *ka_restorer;
--};
--
--#define ptrace_signal_deliver(regs, cookie) do { } while (0)
--
--#endif /* !(__KERNEL__) */
--
--#endif /* !(__ASSEMBLY__) */
--
--#endif /* !(__SPARC_SIGNAL_H) */
+-#endif /* !(__ARCH_SPARC64_POSIX_TYPES_H) */
 -- 
 1.6.0.2.GIT
 
