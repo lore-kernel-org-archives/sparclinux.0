@@ -1,156 +1,77 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 29 Dec 2008 23:58:01 +0000
-Subject: [PATCH 02/11] sparc: unify ipcbuf.h
-Message-Id: <1230595090-23982-2-git-send-email-sam@ravnborg.org>
+Date: Mon, 29 Dec 2008 23:56:37 +0000
+Subject: Unification continued
+Message-Id: <20081229235637.GA19210@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Looking closer the two structures only differed on the
-size of __kernel_umode_t.
-Add a sparc32 specific padding to cover this difference.
+Hi Dave.
 
-The other types had same size on sparc32 and sparc64.
+This is the set of outstanding patches that is ready but not
+yet applied to sparc-next.
+You can ignore all older patches from me as they are included here.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
----
- arch/sparc/include/asm/Kbuild      |    2 --
- arch/sparc/include/asm/ipcbuf.h    |   36 ++++++++++++++++++++++++++++++------
- arch/sparc/include/asm/ipcbuf_32.h |   31 -------------------------------
- arch/sparc/include/asm/ipcbuf_64.h |   28 ----------------------------
- 4 files changed, 30 insertions(+), 67 deletions(-)
- delete mode 100644 arch/sparc/include/asm/ipcbuf_32.h
- delete mode 100644 arch/sparc/include/asm/ipcbuf_64.h
+Note: the long long patchset is not ready yet - so it is not included.
 
-diff --git a/arch/sparc/include/asm/Kbuild b/arch/sparc/include/asm/Kbuild
-index 89c260a..b938232 100644
---- a/arch/sparc/include/asm/Kbuild
-+++ b/arch/sparc/include/asm/Kbuild
-@@ -1,8 +1,6 @@
- # User exported sparc header files
- include include/asm-generic/Kbuild.asm
- 
--header-y += ipcbuf_32.h
--header-y += ipcbuf_64.h
- header-y += posix_types_32.h
- header-y += posix_types_64.h
- header-y += ptrace_32.h
-diff --git a/arch/sparc/include/asm/ipcbuf.h b/arch/sparc/include/asm/ipcbuf.h
-index 17d6ef7..1e8d84f 100644
---- a/arch/sparc/include/asm/ipcbuf.h
-+++ b/arch/sparc/include/asm/ipcbuf.h
-@@ -1,8 +1,32 @@
--#ifndef ___ASM_SPARC_IPCBUF_H
--#define ___ASM_SPARC_IPCBUF_H
-+#ifndef __SPARC_IPCBUF_H
-+#define __SPARC_IPCBUF_H
-+
-+/*
-+ * The ipc64_perm structure for sparc64 architecture.
-+ * Note extra padding because this structure is passed back and forth
-+ * between kernel and user space.
-+ *
-+ * Pad space is left for:
-+ * - 32 bit mode (only sparc32, it is 32 bit on sparc64)
-+ * - 32-bit seq
-+ * - 2 miscellaneous 64-bit values
-+ */
-+
-+struct ipc64_perm
-+{
-+	__kernel_key_t	key;
-+	__kernel_uid_t	uid;
-+	__kernel_gid_t	gid;
-+	__kernel_uid_t	cuid;
-+	__kernel_gid_t	cgid;
- #if defined(__sparc__) && defined(__arch64__)
--#include <asm/ipcbuf_64.h>
--#else
--#include <asm/ipcbuf_32.h>
--#endif
-+	unsigned short __pad0;
- #endif
-+	__kernel_mode_t	mode;
-+	unsigned short	__pad1;
-+	unsigned short	seq;
-+	unsigned long	__unused1;
-+	unsigned long	__unused2;
-+};
-+
-+#endif /* __SPARC_IPCBUF_H */
-diff --git a/arch/sparc/include/asm/ipcbuf_32.h b/arch/sparc/include/asm/ipcbuf_32.h
-deleted file mode 100644
-index 6387209..0000000
---- a/arch/sparc/include/asm/ipcbuf_32.h
-+++ /dev/null
-@@ -1,31 +0,0 @@
--#ifndef _SPARC_IPCBUF_H
--#define _SPARC_IPCBUF_H
--
--/*
-- * The ipc64_perm structure for sparc architecture.
-- * Note extra padding because this structure is passed back and forth
-- * between kernel and user space.
-- *
-- * Pad space is left for:
-- * - 32-bit mode
-- * - 32-bit seq
-- * - 2 miscellaneous 64-bit values (so that this structure matches
-- *				    sparc64 ipc64_perm)
-- */
--
--struct ipc64_perm
--{
--	__kernel_key_t		key;
--	__kernel_uid32_t	uid;
--	__kernel_gid32_t	gid;
--	__kernel_uid32_t	cuid;
--	__kernel_gid32_t	cgid;
--	unsigned short		__pad1;
--	__kernel_mode_t		mode;
--	unsigned short		__pad2;
--	unsigned short		seq;
--	unsigned long long	__unused1;
--	unsigned long long	__unused2;
--};
--
--#endif /* _SPARC_IPCBUF_H */
-diff --git a/arch/sparc/include/asm/ipcbuf_64.h b/arch/sparc/include/asm/ipcbuf_64.h
-deleted file mode 100644
-index a44b855..0000000
---- a/arch/sparc/include/asm/ipcbuf_64.h
-+++ /dev/null
-@@ -1,28 +0,0 @@
--#ifndef _SPARC64_IPCBUF_H
--#define _SPARC64_IPCBUF_H
--
--/*
-- * The ipc64_perm structure for sparc64 architecture.
-- * Note extra padding because this structure is passed back and forth
-- * between kernel and user space.
-- *
-- * Pad space is left for:
-- * - 32-bit seq
-- * - 2 miscellaneous 64-bit values
-- */
--
--struct ipc64_perm
--{
--	__kernel_key_t	key;
--	__kernel_uid_t	uid;
--	__kernel_gid_t	gid;
--	__kernel_uid_t	cuid;
--	__kernel_gid_t	cgid;
--	__kernel_mode_t	mode;
--	unsigned short	__pad1;
--	unsigned short	seq;
--	unsigned long	__unused1;
--	unsigned long	__unused2;
--};
--
--#endif /* _SPARC64_IPCBUF_H */
--- 
-1.6.0.2.GIT
+There is a few trivial cleanup patches - the rest is the
+continued unification.
+Focus right now is on headers exported to user space.
 
+There is only three exported headers in need for unification now:
+siginfo.h, openprom.h and reg.h
+
+Looking at the ptrace bits it looks like there is a
+possibility to reuse the native sparc32 implmentation for the
+compat implementation in sparc64..
+But I did not pursue that and mention it mainly so
+you can say if this may not fly.
+
+Most of the unification is trivial/mechanical
+and is build tested at least with defconfig
+for sparc32 and sparc64 on my box.
+Please review before applying (as usual).
+
+	Sam
+
+
+Sam Ravnborg (11):
+      sparc: delete unused config symbols
+      sparc: unify ipcbuf.h
+      sparc: unify posix_types.h
+      sparc32: drop __old_kernel_stat
+      sparc32: use proper types in struct stat
+      sparc: unify stat.h
+      sparc64: prepare signal_64 for unification
+      sparc: unify signal.h
+      sparc: add '32' suffix to reg_window, sigcontext, __siginfo_t
+      sparc: unify sigcontext.h
+      sparc: unify ptrace.h
+
+ arch/sparc/Kconfig                                 |   28 ---
+ arch/sparc/include/asm/Kbuild                      |   12 --
+ arch/sparc/include/asm/{ipcbuf_64.h => ipcbuf.h}   |   10 +-
+ arch/sparc/include/asm/ipcbuf_32.h                 |   31 ---
+ .../asm/{posix_types_64.h => posix_types.h}        |   47 ++++-
+ arch/sparc/include/asm/posix_types_32.h            |  118 -----------
+ arch/sparc/include/asm/processor_32.h              |    2 +-
+ arch/sparc/include/asm/{ptrace_64.h => ptrace.h}   |  138 +++++++++++---
+ arch/sparc/include/asm/ptrace_32.h                 |  186 ------------------
+ .../include/asm/{sigcontext_64.h => sigcontext.h}  |   31 ++-
+ arch/sparc/include/asm/sigcontext_32.h             |   62 ------
+ arch/sparc/include/asm/{signal_64.h => signal.h}   |   40 +++--
+ arch/sparc/include/asm/signal_32.h                 |  207 --------------------
+ arch/sparc/include/asm/stat.h                      |  115 ++++++++++-
+ arch/sparc/include/asm/stat_32.h                   |   76 -------
+ arch/sparc/include/asm/stat_64.h                   |   47 -----
+ arch/sparc/include/asm/thread_info_32.h            |    2 +-
+ arch/sparc/kernel/kgdb_32.c                        |   12 +-
+ arch/sparc/kernel/muldiv.c                         |    8 +-
+ arch/sparc/kernel/process_32.c                     |   16 +-
+ arch/sparc/kernel/signal_32.c                      |    6 +-
+ arch/sparc/kernel/traps_32.c                       |    4 +-
+ arch/sparc/kernel/unaligned_32.c                   |   12 +-
+ arch/sparc/kernel/windows.c                        |    6 +-
+ 24 files changed, 350 insertions(+), 866 deletions(-)
