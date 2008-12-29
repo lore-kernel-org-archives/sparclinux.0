@@ -1,108 +1,46 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 06 Dec 2008 03:05:14 +0000
-Subject: [PATCH 6/14]: sparc: Move 'unique_id' into prom_common.c and
-Message-Id: <20081205.190514.50848820.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Mon, 29 Dec 2008 23:58:03 +0000
+Subject: [PATCH 04/11] sparc32: drop __old_kernel_stat
+Message-Id: <1230595090-23982-4-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+sparc32 do not define __ARCH_WANT_OLD_STAT so
+we do not use this structure neither do we support it.
 
-sparc: Move 'unique_id' into prom_common.c and rename to 'prom_unique_id'
-
-This will be used in a subsequent changeset.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/kernel/prom.h        |    2 ++
- arch/sparc/kernel/prom_32.c     |    6 ++----
- arch/sparc/kernel/prom_64.c     |    6 ++----
- arch/sparc/kernel/prom_common.c |    1 +
- 4 files changed, 7 insertions(+), 8 deletions(-)
+ arch/sparc/include/asm/stat_32.h |   14 --------------
+ 1 files changed, 0 insertions(+), 14 deletions(-)
 
-diff --git a/arch/sparc/kernel/prom.h b/arch/sparc/kernel/prom.h
-index 4992510..2575cdb 100644
---- a/arch/sparc/kernel/prom.h
-+++ b/arch/sparc/kernel/prom.h
-@@ -13,4 +13,6 @@ extern void * prom_early_alloc(unsigned long size);
- extern void irq_trans_init(struct device_node *dp);
- #endif
+diff --git a/arch/sparc/include/asm/stat_32.h b/arch/sparc/include/asm/stat_32.h
+index 2299e1d..643d572 100644
+--- a/arch/sparc/include/asm/stat_32.h
++++ b/arch/sparc/include/asm/stat_32.h
+@@ -3,20 +3,6 @@
  
-+extern unsigned int prom_unique_id;
-+
- #endif /* __PROM_H */
-diff --git a/arch/sparc/kernel/prom_32.c b/arch/sparc/kernel/prom_32.c
-index ba3c551..c34888a 100644
---- a/arch/sparc/kernel/prom_32.c
-+++ b/arch/sparc/kernel/prom_32.c
-@@ -196,8 +196,6 @@ static char * __init build_full_name(struct device_node *dp)
- 	return n;
- }
+ #include <linux/types.h>
  
--static unsigned int unique_id;
+-struct __old_kernel_stat {
+-	unsigned short st_dev;
+-	unsigned short st_ino;
+-	unsigned short st_mode;
+-	unsigned short st_nlink;
+-	unsigned short st_uid;
+-	unsigned short st_gid;
+-	unsigned short st_rdev;
+-	unsigned long  st_size;
+-	unsigned long  st_atime;
+-	unsigned long  st_mtime;
+-	unsigned long  st_ctime;
+-};
 -
- static struct property * __init build_one_prop(phandle node, char *prev, char *special_name, void *special_val, int special_len)
- {
- 	static struct property *tmp = NULL;
-@@ -211,7 +209,7 @@ static struct property * __init build_one_prop(phandle node, char *prev, char *s
- 		tmp = NULL;
- 	} else {
- 		p = prom_early_alloc(sizeof(struct property) + 32);
--		p->unique_id = unique_id++;
-+		p->unique_id = prom_unique_id++;
- 	}
- 
- 	p->name = (char *) (p + 1);
-@@ -286,7 +284,7 @@ static struct device_node * __init create_node(phandle node)
- 		return NULL;
- 
- 	dp = prom_early_alloc(sizeof(*dp));
--	dp->unique_id = unique_id++;
-+	dp->unique_id = prom_unique_id++;
- 
- 	kref_init(&dp->kref);
- 
-diff --git a/arch/sparc/kernel/prom_64.c b/arch/sparc/kernel/prom_64.c
-index d745b9f..61cc967 100644
---- a/arch/sparc/kernel/prom_64.c
-+++ b/arch/sparc/kernel/prom_64.c
-@@ -399,8 +399,6 @@ static char * __init build_full_name(struct device_node *dp)
- 	return n;
- }
- 
--static unsigned int unique_id;
--
- static struct property * __init build_one_prop(phandle node, char *prev, char *special_name, void *special_val, int special_len)
- {
- 	static struct property *tmp = NULL;
-@@ -412,7 +410,7 @@ static struct property * __init build_one_prop(phandle node, char *prev, char *s
- 		tmp = NULL;
- 	} else {
- 		p = prom_early_alloc(sizeof(struct property) + 32);
--		p->unique_id = unique_id++;
-+		p->unique_id = prom_unique_id++;
- 	}
- 
- 	p->name = (char *) (p + 1);
-@@ -483,7 +481,7 @@ static struct device_node * __init create_node(phandle node, struct device_node
- 		return NULL;
- 
- 	dp = prom_early_alloc(sizeof(*dp));
--	dp->unique_id = unique_id++;
-+	dp->unique_id = prom_unique_id++;
- 	dp->parent = parent;
- 
- 	kref_init(&dp->kref);
-diff --git a/arch/sparc/kernel/prom_common.c b/arch/sparc/kernel/prom_common.c
-index ded8c62..a231808 100644
---- a/arch/sparc/kernel/prom_common.c
-+++ b/arch/sparc/kernel/prom_common.c
-@@ -119,3 +119,4 @@ int of_find_in_proplist(const char *list, const char *match, int len)
- }
- EXPORT_SYMBOL(of_find_in_proplist);
- 
-+unsigned int prom_unique_id;
+ struct stat {
+ 	unsigned short	st_dev;
+ 	unsigned long	st_ino;
 -- 
-1.5.6.5
+1.6.0.2.GIT
 
