@@ -1,47 +1,37 @@
-From: Josip Rodin <joy@entuzijast.net>
-Date: Mon, 26 Jan 2009 09:49:11 +0000
-Subject: Re: dmfe/tulip kernel module poll
-Message-Id: <20090126094911.GA2936@orion.carnet.hr>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Thu, 01 Jan 2009 20:03:09 +0000
+Subject: [PATCH 6/7] sparc64: delete unused linux_prom64_ranges from openprom_64.h
+Message-Id: <1230840190-31884-6-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+It was not used over the whole tree - so drop it.
 
-I'm just Cc:'ing this to the sparc kernel mailing list...
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/include/asm/openprom_64.h |    6 ------
+ 1 files changed, 0 insertions(+), 6 deletions(-)
 
-On Sun, Jan 25, 2009 at 08:21:56PM -0500, Brian Thompson wrote:
-> 
-> Hello,
-> 
-> I'd like to get some feedback as to whether anyone is actually using
-> the dmfe Davicom kernel module on sparc for 10/100 ethernet.
-> 
-> To the best of my knowledge, Sun never manufactured any
-> expansion cards that utilize the Davicom chip and the UltraAX-i2
-> motherboard (Netra X1 and Sunfire V100) is the only Sun
-> motherboard that uses the chip. That particular motherboard
-> uses the tulip kernel module though, not the dmfe kernel module.
-> 
-> Since the PCI ID of the UltraAX-i2's onboard ethernet
-> (1282:9102 - Davicom 9102) matches up with both the dmfe
-> module and the tulip module, both modules attempt to load and
-> end up causing the network interface to malfunction.
-> 
-> My question is - is anyone actually using the dmfe kernel module
-> on sparc and/or would it be ok to set the default to not build the
-> dmfe kernel module on sparc?
-> 
-> I presume that the only scenario where anyone would actually be
-> using the dmfe kernel module on sparc would be if they've installed
-> a PCI NIC originally intended for x86 machines into their sparc
-> machine.
-> 
-> Any feedback would be greatly appreciated.
-> 
-> Thanks,
-> Brian
-
+diff --git a/arch/sparc/include/asm/openprom_64.h b/arch/sparc/include/asm/openprom_64.h
+index db3711e..8148900 100644
+--- a/arch/sparc/include/asm/openprom_64.h
++++ b/arch/sparc/include/asm/openprom_64.h
+@@ -203,12 +203,6 @@ struct linux_prom_ranges {
+ 	unsigned int or_size;
+ };
+ 
+-struct linux_prom64_ranges {
+-	unsigned long ot_child_base;		/* Bus feels this */
+-	unsigned long ot_parent_base;		/* CPU looks from here */
+-	unsigned long or_size;
+-};
+-
+ /* Ranges and reg properties are a bit different for PCI. */
+ struct linux_prom_pci_registers {
+ 	unsigned int phys_hi;
 -- 
-     2. That which causes joy or happiness.
+1.6.0.2.GIT
+
