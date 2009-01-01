@@ -1,63 +1,44 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 09 Jan 2009 00:54:24 +0000
-Subject: another branch tracer warning fix
-Message-Id: <20090108.165424.04054951.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Thu, 01 Jan 2009 22:36:00 +0000
+Subject: Fix warnings in exported headers
+Message-Id: <20090101223600.GA19647@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+kbuild has recently starting to be noisy of certian patterns
+of bad habit in our exported headers - mostly thanks
+to Mike Frysinger.
 
-I just commited the following to fix a warning with
-gcc-4.1.3 with sparc64 allmodconfig.
+So I ran the latest kbuild tree I had on the sparc headers
+and there were a few things to look after.
 
-sparc: Most unaligned_64.c tweaks for branch tracer warnings.
+I divided it up into one patch/header file.
+The fixes in jsflash and byteorder are straightforward.
 
-arch/sparc/kernel/unaligned_64.c: In function 'handle_lddfmna':
-arch/sparc/kernel/unaligned_64.c:592: warning: 'second' may be used uninitialized in this function
+For traps.h I did a bit of googling and as a result I concluded
+that there were more than the warned thing that should be
+excluded from userspace.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/kernel/unaligned_64.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+I excluded:
+struct tt_entry - it is sparc32 specific and kernel internal
+extern struct tt_entry *sparc_ttable; - kernel internal
+static inline unsigned long get_tbr(void) - kernel internal
 
-diff --git a/arch/sparc/kernel/unaligned_64.c b/arch/sparc/kernel/unaligned_64.c
-index f164d5a..3792099 100644
---- a/arch/sparc/kernel/unaligned_64.c
-+++ b/arch/sparc/kernel/unaligned_64.c
-@@ -589,7 +589,6 @@ void handle_lddfmna(struct pt_regs *regs, unsigned long sfar, unsigned long sfsr
- 	unsigned long pc = regs->tpc;
- 	unsigned long tstate = regs->tstate;
- 	u32 insn;
--	u32 first, second;
- 	u64 value;
- 	u8 freg;
- 	int flag;
-@@ -601,19 +600,20 @@ void handle_lddfmna(struct pt_regs *regs, unsigned long sfar, unsigned long sfsr
- 		pc = (u32)pc;
- 	if (get_user(insn, (u32 __user *) pc) != -EFAULT) {
- 		int asi = decode_asi(insn, regs);
-+		u32 first, second;
- 		int err;
- 
- 		if ((asi > ASI_SNFL) ||
- 		    (asi < ASI_P))
- 			goto daex;
-+		first = second = 0;
- 		err = get_user(first, (u32 __user *)sfar);
- 		if (!err)
- 			err = get_user(second, (u32 __user *)(sfar + 4));
- 		if (err) {
--			if (asi & 0x2) /* NF */ {
--				first = 0; second = 0;
--			} else
-+			if (!(asi & 0x2))
- 				goto daex;
-+			first = second = 0;
- 		}
- 		save_and_clear_fpu();
- 		freg = ((insn >> 25) & 0x1e) | ((insn >> 20) & 0x20);
--- 
-1.6.1.15.g159c88
+In next patch I delete get_tbr() as it turned out there is no users of it.
+
+	Sam
+
+Sam Ravnborg (3):
+      sparc: fix warning in userspace header jsflash.h
+      sparc: fix warnings in userspace header byteorder.h
+      sparc: fix warning in userspace header traps.h
+      sparc: drop get_tbr() in traps.h
+
+ arch/sparc/include/asm/byteorder.h |   12 +++++-------
+ arch/sparc/include/asm/jsflash.h   |    2 +-
+ arch/sparc/include/asm/traps.h     |   11 ++---------
+ 3 files changed, 8 insertions(+), 17 deletions(-)
 
