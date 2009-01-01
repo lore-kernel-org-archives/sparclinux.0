@@ -1,32 +1,87 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 18 Jan 2009 07:11:09 +0000
-Subject: Re: [PATCH] sparc64: fix readout of cpu/fpu type
-Message-Id: <20090117.231109.195938626.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Thu, 01 Jan 2009 20:03:08 +0000
+Subject: [PATCH 5/7] sparc: prepare openprom for unification
+Message-Id: <1230840190-31884-5-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090116203419.GA27053@uranus.ravnborg.org>
-In-Reply-To: <20090116203419.GA27053@uranus.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 16 Jan 2009 21:34:19 +0100
+Align the sparc and sparc64 versions so differences are minimal.
+A few data types are changed to better reflect there actual usage.
 
-> Meelis reported that on his box /proc/cpuinfo started
-> to reported "Unknow CPU" and the same did the boot messages.
-> 
-> It was a stupid bug I introduced when merging
-> cpu.c for 32 and 64 bit.
-> 
-> The code did an array reference where it had to search
-> for the right index.
-> 
-> Reported-by: Meelis Roos <mroos@linux.ee>
-> Tested-by: Meelis Roos <mroos@linux.ee>
-> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/include/asm/openprom_32.h |    8 ++++----
+ arch/sparc/include/asm/openprom_64.h |   14 +++++++-------
+ 2 files changed, 11 insertions(+), 11 deletions(-)
 
-I noticed this bug about a week ago but was too busy
-with other things to look into it.
+diff --git a/arch/sparc/include/asm/openprom_32.h b/arch/sparc/include/asm/openprom_32.h
+index f8b4bf7..2e58db5 100644
+--- a/arch/sparc/include/asm/openprom_32.h
++++ b/arch/sparc/include/asm/openprom_32.h
+@@ -47,7 +47,7 @@ struct linux_dev_v2_funcs {
+ 
+ struct linux_mlist_v0 {
+ 	struct linux_mlist_v0 *theres_more;
+-	char *start_adr;
++	unsigned int start_adr;
+ 	unsigned num_bytes;
+ };
+ 
+@@ -182,9 +182,9 @@ struct linux_nodeops {
+ #define PROMINTR_MAX    15
+ 
+ struct linux_prom_registers {
+-	unsigned int which_io;         /* is this in OBIO space? */
+-	unsigned int phys_addr;        /* The physical address of this register */
+-	unsigned int reg_size;         /* How many bytes does this register take up? */
++	unsigned int which_io;	/* is this in OBIO space? */
++	unsigned int phys_addr;	/* The physical address of this register */
++	unsigned int reg_size;	/* How many bytes does this register take up? */
+ };
+ 
+ struct linux_prom_irqs {
+diff --git a/arch/sparc/include/asm/openprom_64.h b/arch/sparc/include/asm/openprom_64.h
+index 955d7f6..db3711e 100644
+--- a/arch/sparc/include/asm/openprom_64.h
++++ b/arch/sparc/include/asm/openprom_64.h
+@@ -44,7 +44,7 @@ struct linux_dev_v2_funcs {
+ 
+ struct linux_mlist_v0 {
+ 	struct linux_mlist_v0 *theres_more;
+-	unsigned start_adr;
++	unsigned int start_adr;
+ 	unsigned num_bytes;
+ };
+ 
+@@ -167,9 +167,9 @@ struct linux_romvec {
+ struct linux_nodeops {
+ 	int (*no_nextnode)(int node);
+ 	int (*no_child)(int node);
+-	int (*no_proplen)(int node, char *name);
+-	int (*no_getprop)(int node, char *name, char *val);
+-	int (*no_setprop)(int node, char *name, char *val, int len);
++	int (*no_proplen)(int node, const char *name);
++	int (*no_getprop)(int node, const char *name, char *val);
++	int (*no_setprop)(int node, const char *name, char *val, int len);
+ 	char * (*no_nextprop)(int node, char *name);
+ };
+ 
+@@ -179,9 +179,9 @@ struct linux_nodeops {
+ #define PROMINTR_MAX    32
+ 
+ struct linux_prom_registers {
+-	unsigned which_io;	/* hi part of physical address			*/
+-	unsigned phys_addr;	/* The physical address of this register	*/
+-	int reg_size;		/* How many bytes does this register take up?	*/
++	unsigned int which_io;	/* hi part of physical address */
++	unsigned int phys_addr;	/* The physical address of this register */
++	unsigned int reg_size;	/* How many bytes does this register take up? */
+ };
+ 
+ struct linux_prom64_registers {
+-- 
+1.6.0.2.GIT
 
-Thanks for fixing this Sam.
