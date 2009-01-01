@@ -1,30 +1,63 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 19 Jan 2009 21:26:22 +0000
-Subject: Re: fhc led registration warnings
-Message-Id: <20090119.132622.254948193.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Thu, 01 Jan 2009 22:40:28 +0000
+Subject: [PATCH 2/4] sparc: fix warnings in userspace header byteorder.h
+Message-Id: <1230849630-22482-2-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.SOC.4.64.0901161258360.2120@math.ut.ee>
-In-Reply-To: <Pine.SOC.4.64.0901161258360.2120@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Meelis Roos <mroos@linux.ee>
-Date: Mon, 19 Jan 2009 09:49:54 +0200 (EET)
+Fix following warnings in byteorder.h:
 
-> > Does this patch fix the problem?
-> > 
-> > sparc64: Initialize FHC/CLOCK LED platform_device 'id' field correctly.
-> 
-> Yes, than you very much!
-> 
-> [  135.931836] fhc: Board #1, Version[1] PartID[fa0] Manuf[3e] (Central)
-> [  135.932612] fhc: Board #3, Version[1] PartID[fa0] Manuf[3e] (JTAG Master)
-> [  135.933390] fhc: Board #1, Version[1] PartID[fa0] Manuf[3e]
-> [  135.934172] fhc: Board #7, Version[1] PartID[fa0] Manuf[3e]
-> [  135.935570] clock_board: Detected 5 slot Enterprise system.
- ...
-> With Sams 2 patches and this path, my E3500 seems to work fine again.
+byteorder.h:4: include of <linux/types.h> is preferred over <asm/types.h>
+byteorder.h:9: leaks CONFIG_SPARC32 to userspace where it is not valid
+byteorder.h:13: leaks CONFIG_SPARC64 to userspace where it is not valid
+byteorder.h:14: found __[us]{8,16,32,64} type without #include <linux/types.h>
+byteorder.h:47: leaks CONFIG_SPARC64 to userspace where it is not valid
 
-Thank you for testing.
+- changed to use include <linux/types.h> as suggested
+- use preprocessor defined symbols to distingush between 32 and 64 bit
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/include/asm/byteorder.h |   12 +++++-------
+ 1 files changed, 5 insertions(+), 7 deletions(-)
+
+diff --git a/arch/sparc/include/asm/byteorder.h b/arch/sparc/include/asm/byteorder.h
+index 5a70f13..738414b 100644
+--- a/arch/sparc/include/asm/byteorder.h
++++ b/arch/sparc/include/asm/byteorder.h
+@@ -1,16 +1,12 @@
+ #ifndef _SPARC_BYTEORDER_H
+ #define _SPARC_BYTEORDER_H
+ 
+-#include <asm/types.h>
++#include <linux/types.h>
+ #include <asm/asi.h>
+ 
+ #define __BIG_ENDIAN
+ 
+-#ifdef CONFIG_SPARC32
+-#define __SWAB_64_THRU_32__
+-#endif
+-
+-#ifdef CONFIG_SPARC64
++#if defined(__sparc__) && defined(__arch64__)
+ static inline __u16 __arch_swab16p(const __u16 *addr)
+ {
+ 	__u16 ret;
+@@ -44,7 +40,9 @@ static inline __u64 __arch_swab64p(const __u64 *addr)
+ }
+ #define __arch_swab64p __arch_swab64p
+ 
+-#endif /* CONFIG_SPARC64 */
++#else
++#define __SWAB_64_THRU_32__
++#endif /* defined(__sparc__) && defined(__arch64__) */
+ 
+ #include <linux/byteorder.h>
+ 
+-- 
+1.6.0.2.GIT
+
