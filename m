@@ -1,37 +1,52 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 08 Jan 2009 20:01:59 +0000
-Subject: Re: make ARCH=sparc allmodconfig => 64BIT=y
-Message-Id: <20090108.120159.253970868.davem@davemloft.net>
+Date: Sat, 03 Jan 2009 02:22:29 +0000
+Subject: Re: sparc - next unification bits?
+Message-Id: <20090102.182229.07047691.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090108195057.GB1308@uranus.ravnborg.org>
-In-Reply-To: <20090108195057.GB1308@uranus.ravnborg.org>
+References: <20081227211236.GA16704@uranus.ravnborg.org>
+In-Reply-To: <20081227211236.GA16704@uranus.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 8 Jan 2009 20:50:57 +0100
+Date: Sat, 27 Dec 2008 22:12:36 +0100
 
-> After the patch that added a 64BIT menu I cannot
-> generate a 32 bit allmodconfig.
+> So far I done some random unification where it was simple
+> and I could do so more or less in a mechanical fashion.
 > 
-> I have not yet deeply looked at it but I assume this is
-> because "64 bit" is a visible menu when we have
-> arch equa sparc and then allmodconfig set it to
-> the highest value (=y).
-...
-> What I do locally is that I created a file:
+> But I'm running out of the easy tasks.
 > 
-> echo "CONFIG_64BIT=n" > 64bit
-> make ARCH=sparc allmodconfig KCONFIG_ALLCONFIGdbit
-> 
-> This gives me an allmodconfig for 32 bit.
+> Are there any places/files where you would like to see
+> some additional effort being made - but yet simple
+> enough that I can do it?
 
-This is pretty crummy behavior.
+An area with a lot of potential is arch/sparc/prom, I think.
 
-I don't think people should need to know this clever trick
-just to get an allmodconfig 32-bit kernel.  Is every automated
-build tested going to do this?  No way.
+The trick is to decide upon a backend interface for the
+actual calls into the firmware.
 
-We might need to revert unless an easy fix can be found.
+Sparc32 calls into the firmware by ->foo() method calls,
+and the base of the structure with the function pointers
+is given to the kernel at boot time.
+
+Sparc64 on the other hand calls into the firmware by
+invoking a single function address, again given to the
+kernel in a register at boot time, but the method to
+invoke is indicated by a string and the args are pushed
+on the stack (and the args are obtained from stack slots).
+
+Perhaps if a suitable abstraction for this stuff is
+designed, this difference in calling conventions could be
+handled which would make most of the arch/sparc/prom/
+code generic.
+
+For example we could have some prom_invoke() thing that
+would take the method name string as one of it's args,
+but that would be totally ignored by 32-bit sparc's
+implementation of this interface.  Likewise, there would
+be a method name arg, which in turn would be not used
+by 64-bit sparc.
+
+Something like that.  Just throwing out some ideas.
