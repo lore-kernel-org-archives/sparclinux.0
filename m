@@ -1,85 +1,31 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Wed, 14 Jan 2009 18:25:44 +0000
-Subject: Re: sparc32 compile error: redefinition of =?UTF-8?Q?=E2=80=98smp?=
-Message-Id: <20090114102544.71893225.akpm@linux-foundation.org>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 03 Jan 2009 02:25:26 +0000
+Subject: Re: [PATCH] sparc: unify ipcbuf.h
+Message-Id: <20090102.182526.240281821.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <496D4274.6000304@earthlink.net>
-	<20090113.181039.185575172.davem@davemloft.net>
-	<20090113184239.e6b6e68e.akpm@linux-foundation.org>
-	<20090113184536.95ebc973.akpm@linux-foundation.org>
-	<496D5E19.7040802@earthlink.net>
-	<20090113235940.12d856d0.akpm@linux-foundation.org>
-	<20090114153255.GA32082@uranus.ravnborg.org>
-In-Reply-To: <20090114153255.GA32082@uranus.ravnborg.org>
+References: <20081228200418.GA22991@uranus.ravnborg.org>
+In-Reply-To: <20081228200418.GA22991@uranus.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: Robert Reif <reif@earthlink.net>, David Miller <davem@davemloft.net>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, mingo@elte.hu, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Wed, 14 Jan 2009 16:32:55 +0100 Sam Ravnborg <sam@ravnborg.org> wrote:
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 28 Dec 2008 21:04:18 +0100
 
-> On Tue, Jan 13, 2009 at 11:59:40PM -0800, Andrew Morton wrote:
-> > On Tue, 13 Jan 2009 22:38:01 -0500 Robert Reif <reif@earthlink.net> wrote:
-> > 
-> > > This worked:
-> > > 
-> > > diff --git a/kernel/Makefile b/kernel/Makefile
-> > > index 2aebc4c..368227d 100644
-> > > --- a/kernel/Makefile
-> > > +++ b/kernel/Makefile
-> > > @@ -43,8 +43,10 @@ obj-$(CONFIG_GENERIC_ISA_DMA) += dma.o
-> > >  ifeq ($(CONFIG_USE_GENERIC_SMP_HELPERS),y)
-> > >  obj-y += smp.o
-> > >  else
-> > > +ifneq ($(CONFIG_SMP),y)
-> > >  obj-y += up.o
-> > >  endif
-> > > +endif
-> > >  obj-$(CONFIG_SMP) += spinlock.o
-> > >  obj-$(CONFIG_DEBUG_SPINLOCK) += spinlock.o
-> > >  obj-$(CONFIG_PROVE_LOCKING) += spinlock.o
-> > 
-> > This all can be simplified, can't it?
-> > 
-> > obj-$(CONFIG_USE_GENERIC_SMP_HELPERS) += smp.o
-> > ifneq ($(CONFIG_SMP),y)
-> > obj-y += up.o
-> > endif
-> > 
-> > (someone please check my homework - I don't have a good track
-> > record here ;))
+> Looking closer the two structures only differed on the
+> size of __kernel_umode_t.
+> Add a sparc32 specific padding to cover this difference.
 > 
-> Looks correct. We pull in smp.o only for SPARC64 AND SMP
-
-SPARC64=n and SMP, actually (assuming sparc64 is the only
-USE_GENERIC_SMP_HELPERS=n arch)
-
-> But I find the next lines distastefull in a Makefile:
-> > ifneq ($(CONFIG_SMP),y)
-> > obj-y += up.o
-> > endif
-
-me too.
-
-> I would prefer a small Kconfig helper symbol:
+> The other types had same size on sparc32 and sparc64.
 > 
-> config SPARC_UP
-> 	def_bool y
-> 	depends on !SMP
-> 
-> And then we would do the Makefile bits like this:
-> obj-$(CONFIG_SPARC_UP) += up.o
+> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 
-eek.  Mentioning sparc explicitly in kernel/Makefile is badder.
+I'm not sure this will work.
 
-we could remove zillions of these conditionals if something somewhere
-were to generate negated symbols for us.  Say, when kbuild sees
-CONFIG_SMP=y, it will generate another symbol: NOT_CONFIG_SMP=y.  So
-then we can do
+You've changed the size of the structure on 32-bit.
 
-obj-$NOT_CONFIG_SMP += up.o
+The last two "unused" members of ipc64_perm are "unsigned long long",
+not just plain "unsigned long" in the 32-bit variant.
 
-Or is that too cheesy?
-
-
+But you've used plain "unsigned long" in the unified copy.
