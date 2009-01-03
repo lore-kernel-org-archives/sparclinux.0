@@ -1,39 +1,25 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 03 Jan 2009 12:33:41 +0000
-Subject: Export reg.h to userspace
-Message-Id: <20090103123341.GB18259@uranus.ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 03 Jan 2009 21:13:17 +0000
+Subject: Re: Export reg.h to userspace
+Message-Id: <20090103.131317.139628336.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20090103123341.GB18259@uranus.ravnborg.org>
+In-Reply-To: <20090103123341.GB18259@uranus.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi David et al.
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 3 Jan 2009 13:33:41 +0100
 
-I raised this question in another mail - but as it
-may have been overlooked I raise it again.
+> I did not check glibc/gdb if they use ths file - I did
+> not feel brave enough to dive into these as it is new
+> territory for me.
 
-There is no users of arch/sparc/include/asm/reg.h
-and the _32, _64 variants.
-Do we really have to export this file to userspace
-from the kernel?
+GDB used to, a long long time ago, but that didn't turn
+out to be tenable so gdb does things by hand these days
+to get the ptrace layouts it wants to grok.
 
-I did a grep over the whole kernel and there were
-two drivers that used <asm/reg.h> but these were both
-powerpc specific drivers and cannot be configured
-for a sparc system.
-
-I also checked and only some architectures do provide
-a reg.h file - not all of them. So it is not like it is
-a mandatory file per see.
-
-I did not check glibc/gdb if they use ths file - I did
-not feel brave enough to dive into these as it is new
-territory for me.
-
-I could unify tham anyway but they are so different
-that I had to have two separate chunks for sparc and
-sparc64 anyway and thats not nice.
-
-	Sam
-
+There might be some stray userland references still, I'll
+try to do some research on this.
