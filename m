@@ -1,16 +1,20 @@
-From: Kate Duncan <Kate.Duncan@asu.edu>
-Date: Tue, 13 Jan 2009 08:53:09 +0000
-Subject: Mailbox Is Over Its Size Limit
-Message-Id: <C9D7A1F4BE39A340A7B0DC88752C2BB208E66F02@EX03.asurite.ad.asu.edu>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 03 Jan 2009 03:21:26 +0000
+Subject: Re: [PATCH 07/11] sparc64: prepare signal_64 for unification
+Message-Id: <20090102.192126.108598101.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Your mailbox has exceeded the storage limit set by your administrator. You may not be able to send or receive new mail until your mailbox size is increased by your system administrator. You are required to contact your system administrator through e-mail with your Username:{ } and Password:{ } to increase your storage limit.
-System Administrator
-Kate Duncan
-E-mail: webct0@live.com
-You will continue to receive this warning message periodically if your inbox size continues to exceed its size limit.
-This email is intended only for the use of the individual or entity to which it is addressed and contains information that is privileged and confidential.
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Tue, 30 Dec 2008 00:58:06 +0100
+
+> o add a sparc32 only definition
+> o fix a few style issues (white space errors etc).
+> o include compiler.h (for __user)
+> 
+> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+
+Applied.
