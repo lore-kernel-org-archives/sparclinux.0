@@ -1,44 +1,23 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 01 Jan 2009 22:36:00 +0000
-Subject: Fix warnings in exported headers
-Message-Id: <20090101223600.GA19647@uranus.ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 03 Jan 2009 03:36:29 +0000
+Subject: Re: [PATCH 09/11] sparc: add '32' suffix to reg_window,
+Message-Id: <20090102.193629.176477815.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-kbuild has recently starting to be noisy of certian patterns
-of bad habit in our exported headers - mostly thanks
-to Mike Frysinger.
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Tue, 30 Dec 2008 00:58:08 +0100
 
-So I ran the latest kbuild tree I had on the sparc headers
-and there were a few things to look after.
+> Renaming a few types to contain a 32 suffix makes the
+> type names compatible with sparc64 and thus makes sharing
+> between the two a lot easier.
+> 
+> Note: None of these definitions are expected part of the
+> stable ABI towards suerspace.
+> 
+> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 
-I divided it up into one patch/header file.
-The fixes in jsflash and byteorder are straightforward.
-
-For traps.h I did a bit of googling and as a result I concluded
-that there were more than the warned thing that should be
-excluded from userspace.
-
-I excluded:
-struct tt_entry - it is sparc32 specific and kernel internal
-extern struct tt_entry *sparc_ttable; - kernel internal
-static inline unsigned long get_tbr(void) - kernel internal
-
-In next patch I delete get_tbr() as it turned out there is no users of it.
-
-	Sam
-
-Sam Ravnborg (3):
-      sparc: fix warning in userspace header jsflash.h
-      sparc: fix warnings in userspace header byteorder.h
-      sparc: fix warning in userspace header traps.h
-      sparc: drop get_tbr() in traps.h
-
- arch/sparc/include/asm/byteorder.h |   12 +++++-------
- arch/sparc/include/asm/jsflash.h   |    2 +-
- arch/sparc/include/asm/traps.h     |   11 ++---------
- 3 files changed, 8 insertions(+), 17 deletions(-)
-
+Applied.
