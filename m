@@ -1,33 +1,67 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 07 Jan 2009 21:08:36 +0000
-Subject: Re: irqnr fallout in gpiolib on sparc32
-Message-Id: <20090107.130836.128453234.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 04 Jan 2009 11:59:47 +0000
+Subject: [PATCH] MAINTAINERS: update sparc maintainer
+Message-Id: <20090104115947.GA32643@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090106125704.GC20407@elte.hu>
-	<20090106.082913.97432854.davem@davemloft.net>
-	<20090107130213.GB3529@elte.hu>
-In-Reply-To: <20090107130213.GB3529@elte.hu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mingo@elte.hu
-Cc: sam@ravnborg.org, kosaki.motohiro@jp.fujitsu.com, yinghai@kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, tglx@linutronix.de
+To: "David S. Miller" <davem@davemloft.net>, sparclinux <sparclinux@vger.kernel.org>, wli@holomorphy.com, LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
-From: Ingo Molnar <mingo@elte.hu>
-Date: Wed, 7 Jan 2009 14:02:13 +0100
+Reflect the current situation where David Miller
+is the sparc maintainer.
 
-> Each of them crying out loud to be unified. Every time you open irq_64.c 
-> you'll think "why that ugly _64.c postfix, shouldnt this be irq.c 
-> instead?" ;-)
+I have tried to contact Bill on following adresses:
 
-Doesn't work very well when you have sun4c_irq.c, sun4m_irq.c,
-and sun4d_irq.c sitting right next to them.
+    wli@holomorphy.com
+    wlirwin@us.ibm.com
 
-Sparc32 is miles away from sparc64 in terms of being easy to make
-use generic IRQs.
+with no success and Bill has not been active on the
+sparclinux mailing list for a long time.
 
-It's a lot of hard work and testing of which I have to rely upon
-helpers to perform.  The sparc arch directory consolidation in no way
-makes me want to do that work any more or any less, no matter how many
-times I open up irq_64.c :-)
+As sparc and sparc64 are unified I unified the two entries
+in the MAINTAINERS file too.
 
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+
+I added Bill to this mail to do a second attempt on the holomorphy address.
+
+Note: This patch should have an ack from David before it goes in.
+
+	Sam
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index befacf0..141aff6 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -4015,10 +4015,12 @@ L:	alsa-devel@alsa-project.org (subscribers-only)
+ W:	http://alsa-project.org/main/index.php/ASoC
+ S:	Supported
+ 
+-SPARC (sparc32)
+-P:	William L. Irwin
+-M:	wli@holomorphy.com
++SPARC + UltraSPARC (sparc/sparc64)
++P:	David S. Miller
++M:	davem@davemloft.net
+ L:	sparclinux@vger.kernel.org
++T:	git kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git
++T:	git kernel.org:/pub/scm/linux/kernel/git/davem/sparc-next-2.6.git
+ S:	Maintained
+ 
+ SPECIALIX IO8+ MULTIPORT SERIAL CARD DRIVER
+@@ -4302,13 +4304,6 @@ M:	dushistov@mail.ru
+ L:	linux-kernel@vger.kernel.org
+ S:	Maintained
+ 
+-UltraSPARC (sparc64)
+-P:	David S. Miller
+-M:	davem@davemloft.net
+-L:	sparclinux@vger.kernel.org
+-T:	git kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git
+-S:	Maintained
+-
+ ULTRA-WIDEBAND (UWB) SUBSYSTEM:
+ P:	David Vrabel
+ M:	david.vrabel@csr.com
