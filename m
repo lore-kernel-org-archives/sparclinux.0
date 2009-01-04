@@ -1,7 +1,7 @@
-From: "Julian Calaby" <julian.calaby@gmail.com>
-Date: Sun, 04 Jan 2009 08:20:49 +0000
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 04 Jan 2009 08:43:55 +0000
 Subject: Re: [PATCH] sparc: Merge sparc_ksyms_{32,64}.c
-Message-Id: <646765f40901040020wfb76dc3sd64935f1729e2729@mail.gmail.com>
+Message-Id: <20090104084355.GB31198@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4960225E.1000801@gmail.com>
 In-Reply-To: <4960225E.1000801@gmail.com>
@@ -10,38 +10,53 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sun, Jan 4, 2009 at 13:43, Julian Calaby <julian.calaby@gmail.com> wrote:
-> sparc: Merge sparc_ksyms_{32,64}.c
->
-> Signed-off-by: Julian Calaby <julian.calaby@gmail.com>
->
-> ---
->
-> Sorry about the formatting of this patch, I can't seem to convince git to
-> recognise that sparc_ksyms.c is modified from sparc_ksyms_64.c
->
-> Sigh.
->
-> Furthermore, this is a rather mechanical patch that produces a huge set of
-> ifdefs - I've shuffled some of the code to reduce these, but..... - so I'm
-> not going to be surprised if you ask me to re-do it.
->
-> Oh, and this also changes the order of the declarations in both SPARC32 and
-> SPARC64, but it shouldn't be an issue.
->
-> Anyway, this has been built on SPARC64 and an equivalent patch has been boot
-> tested on SPARC64.
+Hi Julian.
 
-Sigh.
+As a first step before trying to merge these two files
+all EXPORT_SYMBOL() that exports symbols defined in .C files
+shall be moved out to their respective definition site.
 
-There's some other cleanups I have to do before I should really do
-this ... so don't apply this for now, and I'll send this, and my other
-patch for today in a series in a couple of days.
+So when you see:
 
-Thanks for understanding =)
+sparc_ksyms.c:
+EXPORT_SYMBOL(foobar);
 
--- 
+foo.c:
 
-Julian Calaby
+int foobar(int bar)
+{
+	...
+}
+EXPORT_SYMBOL(foobar);   <= This is the line you shall add
 
-Email: julian.calaby@gmail.com
+Notice that we put the EXPORT_SYMBOL right after the closing '}'
+with no blank lines in-between.
+
+You also need to pay attention to all the
+prototypes and extern's in the sparc_kysms.c files.
+
+If they are still needed they belong to a header file.
+We have today:
+
+entry.h - this is all the functions defined in .S files
+          It has a common part and a sparc32 and a sparc64 specific part
+
+kernel.h - this is all prototypes defined in arch/sparc/kernel/ and
+not used outside arch/sparc/kernel/.
+
+But some of them will naturally no longer be used.
+
+   extern spinlock_t rtc_lock;
+
+is only contained in sparc_ksyms_*.c because the EXPORT_SYMBOL()
+is there. When you move the EXPORT_SYMBOL to the respective
+file time_32.c then you no longer need the extern in sparc_ksym_32.c
+
+And look after unused stuff too. I noticed struct poll seems
+unused.
+
+This is all straightforward to do it just take some time.
+And if you keep your patches sufficienly small then it
+should be easy to review too.
+
+	Sam
