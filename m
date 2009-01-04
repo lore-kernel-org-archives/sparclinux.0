@@ -1,7 +1,7 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 04 Jan 2009 08:43:55 +0000
+From: "Julian Calaby" <julian.calaby@gmail.com>
+Date: Sun, 04 Jan 2009 10:20:27 +0000
 Subject: Re: [PATCH] sparc: Merge sparc_ksyms_{32,64}.c
-Message-Id: <20090104084355.GB31198@uranus.ravnborg.org>
+Message-Id: <646765f40901040220k5381b746he3997f8fd0abb953@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4960225E.1000801@gmail.com>
 In-Reply-To: <4960225E.1000801@gmail.com>
@@ -10,53 +10,46 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi Julian.
+On Sun, Jan 4, 2009 at 19:43, Sam Ravnborg <sam@ravnborg.org> wrote:
+> Hi Julian.
+>
+> As a first step before trying to merge these two files
+> all EXPORT_SYMBOL() that exports symbols defined in .C files
+> shall be moved out to their respective definition site.
 
-As a first step before trying to merge these two files
-all EXPORT_SYMBOL() that exports symbols defined in .C files
-shall be moved out to their respective definition site.
+Ok.
 
-So when you see:
+> You also need to pay attention to all the
+> prototypes and extern's in the sparc_kysms.c files.
+>
+> If they are still needed they belong to a header file.
 
-sparc_ksyms.c:
-EXPORT_SYMBOL(foobar);
+Ok.
 
-foo.c:
+> This is all straightforward to do it just take some time.
+> And if you keep your patches sufficienly small then it
+> should be easy to review too.
 
-int foobar(int bar)
-{
-	...
-}
-EXPORT_SYMBOL(foobar);   <= This is the line you shall add
+Ok.
 
-Notice that we put the EXPORT_SYMBOL right after the closing '}'
-with no blank lines in-between.
+Some explanation:
 
-You also need to pay attention to all the
-prototypes and extern's in the sparc_kysms.c files.
+This was a (wrong) first step before doing the unification of arch/sparc/prom/*.
 
-If they are still needed they belong to a header file.
-We have today:
+I think I'll take some of the lower hanging fruit first.
 
-entry.h - this is all the functions defined in .S files
-          It has a common part and a sparc32 and a sparc64 specific part
+After I kill PROMLIB_INTERNAL and the exported definitions of
+__prom_*(), I think I'll work on unifying include/asm/oplib_*.h as
+that will make later changes smaller.
 
-kernel.h - this is all prototypes defined in arch/sparc/kernel/ and
-not used outside arch/sparc/kernel/.
+As for moving the EXPORT_SYMBOL()s out of here, I think I'll leave the
+code as it is and eliminate most of the code in kernel/sparc_ksyms_*.c
+as a final step.
 
-But some of them will naturally no longer be used.
+Thanks for the advice!
 
-   extern spinlock_t rtc_lock;
+-- 
 
-is only contained in sparc_ksyms_*.c because the EXPORT_SYMBOL()
-is there. When you move the EXPORT_SYMBOL to the respective
-file time_32.c then you no longer need the extern in sparc_ksym_32.c
+Julian Calaby
 
-And look after unused stuff too. I noticed struct poll seems
-unused.
-
-This is all straightforward to do it just take some time.
-And if you keep your patches sufficienly small then it
-should be easy to review too.
-
-	Sam
+Email: julian.calaby@gmail.com
