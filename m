@@ -1,56 +1,62 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 19 Jan 2009 03:11:38 +0000
-Subject: Re: config for v880
-Message-Id: <20090118.191138.219656360.davem@davemloft.net>
+From: Julian Calaby <julian.calaby@gmail.com>
+Date: Sun, 04 Jan 2009 01:47:52 +0000
+Subject: [PATCH] sparc: Clean arch-specific code in prom_common.c
+Message-Id: <49601548.509@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200901160946.41267.nick.leippe@whitecanyon.com>
-In-Reply-To: <200901160946.41267.nick.leippe@whitecanyon.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Nicholas Leippe <nick.leippe@whitecanyon.com>
-Date: Sun, 18 Jan 2009 16:21:21 -0700
+sparc: Clean arch-specific code in prom_common.c
 
-> So far, I've had it hang at various different points.
-> 
-> One of which is at:
-> 
-> ...
-> console handover: boot [earlyprom0] -> real [tty0]
+prom_nextprop() and prom_firstprop() have slightly different calling 
+conventions in 32 and 64 bit SPARC.
 
-When this happens you won't be able to see the crash
-message because it is being output in between dropping
-the early PROM console and enabling the serial or
-framebuffer console.
+prom_common.c uses a ifdef guard to ensure that these functions are 
+called correctly.
 
-With the patch below (or something like it, it's very easy
-to apply this patch by hand if the one below doesn't work
-for you) you are more likely to see the crash message.
+Adjust code to eliminate this ifdef by using a calling convention that 
+is compatible with both 32 and 64 bit SPARC.
 
-> another (which was on a 480r, not sure if same prob on 880) was:
-> 
-> ...
-> rtc0 = alarms up to one no, 114 bytes nvram
-> 
-> notice the "no" instead of "month" for example.
+Signed-off-by: Julian Calaby <julian.calaby@gmail.com>
 
-This doesn't really indicate much.
+---
 
-Anyways, here is the patch for the other case so you can
-try to fetch some more logging info:
+This has been build tested on sparc64 native, however I'm yet to boot it.
 
-diff --git a/arch/sparc64/kernel/setup.c b/arch/sparc64/kernel/setup.c
-index c8b03a4..2c50796 100644
---- a/arch/sparc64/kernel/setup.c
-+++ b/arch/sparc64/kernel/setup.c
-@@ -82,7 +82,7 @@ unsigned long cmdline_memory_size = 0;
- static struct console prom_early_console = {
- 	.name =		"earlyprom",
- 	.write =	prom_console_write,
--	.flags =	CON_PRINTBUFFER | CON_BOOT | CON_ANYTIME,
-+	.flags =	CON_PRINTBUFFER | CON_ANYTIME,
- 	.index =	-1,
- };
- 
+It hasn't been checked with sparc32 as I lack a working build environment.
+
+  arch/sparc/kernel/prom_common.c |   14 +++-----------
+  1 files changed, 3 insertions(+), 11 deletions(-)
+
+diff --git a/arch/sparc/kernel/prom_common.c 
+b/arch/sparc/kernel/prom_common.c
+index 4e9af59..ff7b591 100644
+--- a/arch/sparc/kernel/prom_common.c
++++ b/arch/sparc/kernel/prom_common.c
+@@ -155,20 +155,12 @@ static struct property * __init 
+build_one_prop(phandle node, char *prev,
+  		p->value = prom_early_alloc(special_len);
+  		memcpy(p->value, special_val, special_len);
+  	} else {
+-#ifdef CONFIG_SPARC32
+-		if (prev = NULL) {
+-			name = prom_firstprop(node, NULL);
+-		} else {
+-			name = prom_nextprop(node, prev, NULL);
+-		}
+-#else
+  		if (prev = NULL) {
+-			prom_firstprop(node, p->name);
++			name = prom_firstprop(node, p->name);
+  		} else {
+-			prom_nextprop(node, prev, p->name);
++			name = prom_nextprop(node, prev, p->name);
+  		}
+-		name = p->name;
+-#endif
++
+  		if (strlen(name) = 0) {
+  			tmp = p;
+  			return NULL;
