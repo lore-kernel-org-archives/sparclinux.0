@@ -1,48 +1,63 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 16 Jan 2009 10:06:57 +0000
-Subject: Re: sparc64 modpost failure - insw/outsw undefined
-Message-Id: <20090116100657.GA20279@uranus.ravnborg.org>
+From: Steven Rostedt <rostedt@goodmis.org>
+Date: Mon, 05 Jan 2009 19:42:59 +0000
+Subject: [PATCH] sparc: make proces_ver_nack a bit more readable
+Message-Id: <alpine.DEB.1.10.0901051437490.27085@gandalf.stny.rr.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.SOC.4.64.0901161113300.2120@math.ut.ee>
-In-Reply-To: <Pine.SOC.4.64.0901161113300.2120@math.ut.ee>
+References: <20090105181922.GA25622@uranus.ravnborg.org> <alpine.DEB.1.10.0901051428370.27085@gandalf.stny.rr.com>
+In-Reply-To: <alpine.DEB.1.10.0901051428370.27085@gandalf.stny.rr.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
-
-On Fri, Jan 16, 2009 at 11:16:06AM +0200, Meelis Roos wrote:
-> Trying todays 2.6.29-rc1+git on a sparc64, config below:
-> 
->   MODPOST 499 modules
-> ERROR: "insw" [drivers/scsi/fdomain.ko] undefined!
-> ERROR: "outsw" [drivers/scsi/fdomain.ko] undefined!
-> ERROR: "insl" [drivers/net/ne2k-pci.ko] undefined!
-> ERROR: "outsl" [drivers/net/ne2k-pci.ko] undefined!
-> ERROR: "outsw" [drivers/net/ne2k-pci.ko] undefined!
-> ERROR: "insw" [drivers/net/ne2k-pci.ko] undefined!
-> ERROR: "outsl" [drivers/net/3c59x.ko] undefined!
-> ERROR: "insl" [drivers/net/3c59x.ko] undefined!
-> ERROR: "insw" [drivers/ata/pata_it821x.ko] undefined!
-> ERROR: "insw" [drivers/ata/libata.ko] undefined!
-> ERROR: "outsl" [drivers/ata/libata.ko] undefined!
-> ERROR: "outsw" [drivers/ata/libata.ko] undefined!
-> ERROR: "insl" [drivers/ata/libata.ko] undefined!
-
-My fault....
-I moved the EXPORT_SYMBOL() from sparc64_ksyms.c to PeeCeeI.c.
-
-But I overlooked a small detail in the Makefile:
-
-lib-$(CONFIG_SPARC64) += PeeCeeI.o
+To: Sam Ravnborg <sam@ravnborg.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Steven Rostedt <srostedt@redhat.com>, Ingo Molnar <mingo@elte.hu>, "David S. Miller" <davem@davemloft.net>, sparclinux <sparclinux@vger.kernel.org>
 
 
-PeeCeeI is a lib- thing so it only get pulled in when needed.
+Impact: clean up
 
-Changing the above to:
-obj-$(CONFIG_SPARC64) += PeeCeeI.o
+The code in process_ver_nack is a little obfuscated. This change
+makes it a bit more readable by humans. It removes the complex
+if statement and replaces it with a cleaner flow of control.
 
-should fix it.
+Signed-off-by: Steven Rostedt <srostedt@redhat.com>
 
-This is not the right fix - I need to dig a little.
+diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
+index d689823..6ce5d25 100644
+--- a/arch/sparc/kernel/ldc.c
++++ b/arch/sparc/kernel/ldc.c
+@@ -625,22 +625,23 @@ static int process_ver_ack(struct ldc_channel *lp, struct ldc_version *vp)
+ static int process_ver_nack(struct ldc_channel *lp, struct ldc_version *vp)
+ {
+ 	struct ldc_version *vap;
++	struct ldc_packet *p;
++	unsigned long new_tail;
+ 
+-	if ((vp->major = 0 && vp->minor = 0) ||
+-	    !(vap = find_by_major(vp->major))) {
++	if (vp->major = 0 && vp->minor = 0)
++		return ldc_abort(lp);
++
++	vap = find_by_major(vp->major);
++	if (!vap)
+ 		return ldc_abort(lp);
+-	} else {
+-		struct ldc_packet *p;
+-		unsigned long new_tail;
+ 
+-		p = handshake_compose_ctrl(lp, LDC_INFO, LDC_VERS,
++	p = handshake_compose_ctrl(lp, LDC_INFO, LDC_VERS,
+ 					   vap, sizeof(*vap),
+ 					   &new_tail);
+-		if (p)
+-			return send_tx_packet(lp, p, new_tail);
+-		else
+-			return ldc_abort(lp);
+-	}
++	if (!p)
++		return ldc_abort(lp);
++
++	return send_tx_packet(lp, p, new_tail);
+ }
+ 
+ static int process_version(struct ldc_channel *lp,
 
-	Sam
+
