@@ -1,32 +1,55 @@
-From: Al Viro <viro@ZenIV.linux.org.uk>
-Date: Mon, 05 Jan 2009 19:48:44 +0000
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Mon, 05 Jan 2009 19:54:15 +0000
 Subject: Re: ftrace breaks sparc64 build
-Message-Id: <20090105194844.GR28946@ZenIV.linux.org.uk>
+Message-Id: <20090105195415.GA6204@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090105181922.GA25622@uranus.ravnborg.org>
-In-Reply-To: <20090105181922.GA25622@uranus.ravnborg.org>
+References: <20090105181922.GA25622@uranus.ravnborg.org> <alpine.DEB.1.10.0901051428370.27085@gandalf.stny.rr.com>
+In-Reply-To: <alpine.DEB.1.10.0901051428370.27085@gandalf.stny.rr.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Steven Rostedt <srostedt@redhat.com>, Ingo Molnar <mingo@elte.hu>, rostedt@goodmis.org, "David S. Miller" <davem@davemloft.net>, sparclinux <sparclinux@vger.kernel.org>
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Steven Rostedt <srostedt@redhat.com>, Ingo Molnar <mingo@elte.hu>, "David S. Miller" <davem@davemloft.net>, sparclinux <sparclinux@vger.kernel.org>
 
-On Mon, Jan 05, 2009 at 07:19:22PM +0100, Sam Ravnborg wrote:
-> With an allmodconfig build on sparc and sparc64 I started
-> to see warnings that become propagated to errors by -Werror.
+Hi Steven.
 
-While we are at it, sparc32 allmodconfig is broken by
-commit 9bb482476c6c9d1ae033306440c51ceac93ea80c
-Author: Jan Beulich <jbeulich@novell.com>
-Date:   Tue Dec 16 11:30:08 2008 +0000
+> 
+> Honestly, that code is a little obfuscated, and would be better to write 
+> it as:
+> 
+> 	if (vp->major = 0 && vp->minor=0)
+> 		return ldc_abort(lp);
+> 
+> 	vap = find_by_major(vp->major);
+> 	if (!vap)
+> 		return ldc_abort(lp);
+> 
+> 	[...]
+> 
+> This is much easier to read and we can remove the else statement 
+> altogether. And I bet the warning will go away if we did it this way.
 
-    allow stripping of generated symbols under CONFIG_KALLSYMS_ALL
+Fully ageed on the readability.
+I happen to trigger this as an error in the sparc code.
+But I see the same warning also in generic code.
 
-Results in
-sparc-linux-objcopy: not stripping symbol `__ksymtab_strings' because it is named in a relocation
-sparc-linux-objcopy: not stripping symbol `__crc_per_cpu__softirq_work_list' because it is named in a relocation
-sparc-linux-objcopy: not stripping symbol `__initcall_end' because it is named in a relocation
-sparc-linux-objcopy: not stripping symbol `__setup_end' because it is named in a relocation
-sparc-linux-objcopy: not stripping symbol `__setup_start' because it is named in a relocation
-sparc-linux-objcopy: not stripping symbol `__initcall_start' because it is named in a relocation
-make: *** [.tmp_vmlinux1.stripped] Error 1
+From kernel/module.c:
+        /* Suck in entire file: we'll want most of it. */
+        /* vmalloc barfs on "unusual" numbers.  Check here */
+        if (len > 64 * 1024 * 1024 || (hdr = vmalloc(len)) = NULL)
+                return ERR_PTR(-ENOMEM);
+
+
+This gives following warning:
+kernel/module.c: In function `load_module':
+kernel/module.c:1842: warning: 'hdr' might be used uninitialized in this function
+
+So this is not a pattern we seen only in sparc code and I wonder if this is
+the first time it is brought up?
+
+I can fix up the cases in sparc - no problem.
+But it was a suprise to me _why_ these warnings started to creep
+up and then it break my build.
+
+
+	Sam
