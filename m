@@ -1,35 +1,35 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 06 Jan 2009 02:12:48 +0000
-Subject: Re: [PATCH] sparc: Fix minor SPARC32 compile error
-Message-Id: <20090105.181248.110302394.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Mon, 05 Jan 2009 08:53:15 +0000
+Subject: [PATCH] sparc: remove reg.h from Kbuild
+Message-Id: <20090105085315.GA17530@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4962098A.4070508@gmail.com>
-In-Reply-To: <4962098A.4070508@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Julian Calaby <julian.calaby@gmail.com>
-Date: Tue, 06 Jan 2009 00:22:18 +1100
+remove stale reference from Kbuild.
 
-> sparc: Fix minor SPARC32 compile error
-> 
-> When CONFIG_PROC_FS is unset, include/linux/interrupt.h defines
-> init_irq_proc() as an empty function.
-> 
-> arch/sparc/kernel/irq_32.c defines this function unconditionally.
-> 
-> Fix the latter so that it only defines this function when CONFIG_PROC_FS
-> is set.
-> 
-> This fixes the following error:
-> arch/sparc/kernel/irq_32.c:672: error: redefinition of 'init_irq_proc'
-> include/linux/interrupt.h:461: error: previous definition of
-> 'init_irq_proc' was here
-> 
-> This was found using randconfig builds.
-> 
-> Signed-off-by: Julian Calaby <julian.calaby@gmail.com>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
 
-Applied, thanks a lot Julian.
+The better solution would be to integrate this with the
+commit that remove the files - but this is only feasible
+if you have not yet pushed out the tree.
+
+	Sam 
+
+diff --git a/arch/sparc/include/asm/Kbuild b/arch/sparc/include/asm/Kbuild
+index aeaec45..deeb0fb 100644
+--- a/arch/sparc/include/asm/Kbuild
++++ b/arch/sparc/include/asm/Kbuild
+@@ -13,9 +13,6 @@ header-y += perfctr.h
+ header-y += psrcompat.h
+ header-y += psr.h
+ header-y += pstate.h
+-header-y += reg.h
+-header-y += reg_32.h
+-header-y += reg_64.h
+ header-y += traps.h
+ header-y += uctx.h
+ header-y += utrap.h
