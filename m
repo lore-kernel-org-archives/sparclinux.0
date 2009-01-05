@@ -1,36 +1,66 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 08 Jan 2009 07:56:25 +0000
-Subject: Re: hardirq.h removal broke sparc64 build...
-Message-Id: <20090108075625.GA14179@uranus.ravnborg.org>
+From: Steven Rostedt <rostedt@goodmis.org>
+Date: Mon, 05 Jan 2009 20:30:25 +0000
+Subject: [PATCH] module: clean up initialization of variable
+Message-Id: <alpine.DEB.1.10.0901051523370.25066@gandalf.stny.rr.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090107.144310.79937111.davem@davemloft.net>
-In-Reply-To: <20090107.144310.79937111.davem@davemloft.net>
+References: <20090105181922.GA25622@uranus.ravnborg.org> <alpine.DEB.1.10.0901051428370.27085@gandalf.stny.rr.com> <20090105195415.GA6204@uranus.ravnborg.org>
+In-Reply-To: <20090105195415.GA6204@uranus.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: rmk+kernel@arm.linux.org.uk, adobriyan@gmail.com, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: Sam Ravnborg <sam@ravnborg.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Steven Rostedt <srostedt@redhat.com>, Ingo Molnar <mingo@elte.hu>, "David S. Miller" <davem@davemloft.net>, sparclinux <sparclinux@vger.kernel.org>, Rusty Russell <rusty@rustcorp.com.au>, Andrew Morton <akpm@linux-foundation.org>
 
+
+
+Impact: clean up
+
+On Mon, 5 Jan 2009, Sam Ravnborg wrote:
 > 
-> Actually, looking at the patch, where is the part from Alexey
-> that does the "fix sparc64"?  I see nothing in the patch that
-> would even appear to possibly be for that.  The diffstat is:
+> Fully ageed on the readability.
+> I happen to trigger this as an error in the sparc code.
+> But I see the same warning also in generic code.
 > 
->  arch/avr32/kernel/traps.c     |    1 +
->  arch/sh/kernel/traps_32.c     |    1 +
->  drivers/acpi/processor_idle.c |    1 +
->  include/asm-generic/local.h   |    1 -
->  4 files changed, 3 insertions(+), 1 deletion(-)
+> >From kernel/module.c:
+>         /* Suck in entire file: we'll want most of it. */
+>         /* vmalloc barfs on "unusual" numbers.  Check here */
+>         if (len > 64 * 1024 * 1024 || (hdr = vmalloc(len)) = NULL)
+>                 return ERR_PTR(-ENOMEM);
 > 
-> Was Alexey's fix removed or lost? :-/
+> 
+> This gives following warning:
+> kernel/module.c: In function `load_module':
+> kernel/module.c:1842: warning: 'hdr' might be used uninitialized in this function
 
-When I made my patch I saw some issues in non-sparc files
-but I did not address these as I thought they were generic
-bugs addressed by someone else.
-I should have checked if the same build error was
-also present on x86/arm then :-(
+The above is caused by having the branch tracer on and the following type 
+of initialization:
 
-I'm glad to see it is sorted out properly now.
+	if (x || !(y = init_me())
+		return;
 
-	Sam
+	use_me(y);
 
+This is sloppy initialization because it initializes, not only in an
+if condition, but also as the second part of a complex conditional.
+
+This patch makes the code a bit easier to read.
+
+Signed-off-by: Steven Rostedt <srostedt@redhat.com>
+Reported-by: Sam Ravnborg <sam@ravnborg.org>
+
+diff --git a/kernel/module.c b/kernel/module.c
+index 9712c52..112d6cd 100644
+--- a/kernel/module.c
++++ b/kernel/module.c
+@@ -1864,7 +1864,10 @@ static noinline struct module *load_module(void __user *umod,
+ 
+ 	/* Suck in entire file: we'll want most of it. */
+ 	/* vmalloc barfs on "unusual" numbers.  Check here */
+-	if (len > 64 * 1024 * 1024 || (hdr = vmalloc(len)) = NULL)
++	if (len > 64 * 1024 * 1024)
++		return ERR_PTR(-ENOMEM);
++	hdr = vmalloc(len);
++	if (hdr = NULL)
+ 		return ERR_PTR(-ENOMEM);
+ 	if (copy_from_user(hdr, umod, len) != 0) {
+ 		err = -EFAULT;
