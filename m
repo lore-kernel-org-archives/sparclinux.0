@@ -1,26 +1,33 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 08 Jan 2009 16:33:51 +0000
-Subject: Re: [PATCH] sparc: refactor code in fault_32.c
-Message-Id: <20090108.083351.68367340.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Mon, 05 Jan 2009 13:29:16 +0000
+Subject: irqnr fallout in gpiolib on sparc32
+Message-Id: <20090105132916.GA10545@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090106205209.GA24034@uranus.ravnborg.org>
-In-Reply-To: <20090106205209.GA24034@uranus.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yinghai Lu <yinghai@kernel.org>, LKML <linux-kernel@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>
 
-From: Ingo Molnar <mingo@elte.hu>
-Date: Thu, 8 Jan 2009 13:02:34 +0100
+I hit the following build error on sparc:
 
-> Can you think of any way we could improve the branch-tracer 
-> instrumentation define in any way to prevent such trouble?
+drivers/gpio/gpiolib.c: In function `gpiolib_dbg_show':
+drivers/gpio/gpiolib.c:1146: error: implicit declaration of function `irq_to_desc'
+drivers/gpio/gpiolib.c:1146: warning: initialization makes pointer from integer without a cast
 
-Steven was looking into this but every variant of the if() macro he
-tried wasn't able to eliminate all of the problems.  We've been
-discussing this with him in another thread for several days.  The
-S390 folks are running into these kinds of problems too.
 
-It's basically an issue of how deeply older GCCs will search
-into the control flow of a very complex conditional.  There
-really isn't anything we can do about that.
+This is with an allmodconfig where I did:
+
+make ARCH=sparc vmlinux
+
+sparc do _not_ have GENERIC_HARDIRQS set to 'y'.
+
+I did a simple:
+#include <linux/irqnr.h> but that did not help.
+
+I have not investigated further atm.
+
+It is preproduceable with HEAD equal fe0bdec68b77020281dc814805edfe594ae89e0f
+[latest -linus when writing this]
+
+	Sam
+
