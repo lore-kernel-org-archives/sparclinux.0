@@ -1,45 +1,68 @@
-From: "Jan Beulich" <jbeulich@novell.com>
-Date: Tue, 06 Jan 2009 07:53:04 +0000
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Date: Tue, 06 Jan 2009 09:36:24 +0000
 Subject: Re: ftrace breaks sparc64 build
-Message-Id: <49631BF0.76E4.0078.0@novell.com>
+Message-Id: <20090106093624.GA5061@osiris.boeblingen.de.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090105181922.GA25622@uranus.ravnborg.org>
- <20090105194844.GR28946@ZenIV.linux.org.uk>
- <20090105195523.GB6204@uranus.ravnborg.org>
-In-Reply-To: <20090105195523.GB6204@uranus.ravnborg.org>
+References: <20090105181922.GA25622@uranus.ravnborg.org> <alpine.DEB.1.10.0901051428370.27085@gandalf.stny.rr.com> <20090105195415.GA6204@uranus.ravnborg.org> <alpine.DEB.1.10.0901051458460.25066@gandalf.stny.rr.com> <20090105213107.GA27293@uranus.ravnborg.org> <alpine.DEB.1.10.0901051649240.25066@gandalf.stny.rr.com> <20090105220156.GC8592@uranus.ravnborg.org> <alpine.DEB.1.10.0901051710450.25066@gandalf.stny.rr.com> <20090105231136.GA5073@osiris.boeblingen.de.ibm.com> <alpine.DEB.1.10.0901052104400.16409@gandalf.stny.rr.com>
+In-Reply-To: <alpine.DEB.1.10.0901052104400.16409@gandalf.stny.rr.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Sam Ravnborg <sam@ravnborg.org>, Al Viro <viro@ZenIV.linux.org.uk>
-Cc: "David S. Miller" <davem@davemloft.net>, Ingo Molnar <mingo@elte.hu>, rostedt@goodmis.org, Steven Rostedt <srostedt@redhat.com>, LKML <linux-kernel@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>, LKML <linux-kernel@vger.kernel.org>, Steven Rostedt <srostedt@redhat.com>, Ingo Molnar <mingo@elte.hu>, "David S. Miller" <davem@davemloft.net>, sparclinux <sparclinux@vger.kernel.org>
 
->On Mon, Jan 05, 2009 at 07:48:44PM +0000, Al Viro wrote:
->> On Mon, Jan 05, 2009 at 07:19:22PM +0100, Sam Ravnborg wrote:
->> > With an allmodconfig build on sparc and sparc64 I started
->> > to see warnings that become propagated to errors by -Werror.
->> 
->> While we are at it, sparc32 allmodconfig is broken by
->> commit 9bb482476c6c9d1ae033306440c51ceac93ea80c
->> Author: Jan Beulich <jbeulich@novell.com>
->> Date:   Tue Dec 16 11:30:08 2008 +0000
->> 
->>     allow stripping of generated symbols under CONFIG_KALLSYMS_ALL
->> 
->> Results in
->> sparc-linux-objcopy: not stripping symbol `__ksymtab_strings' because it is named in a relocation
->> sparc-linux-objcopy: not stripping symbol `__crc_per_cpu__softirq_work_list' because it is named in a relocation
->> sparc-linux-objcopy: not stripping symbol `__initcall_end' because it is named in a relocation
->> sparc-linux-objcopy: not stripping symbol `__setup_end' because it is named in a relocation
->> sparc-linux-objcopy: not stripping symbol `__setup_start' because it is named in a relocation
->> sparc-linux-objcopy: not stripping symbol `__initcall_start' because it is named in a relocation
->> make: *** [.tmp_vmlinux1.stripped] Error 1
+On Mon, Jan 05, 2009 at 09:07:05PM -0500, Steven Rostedt wrote:
+> On Tue, 6 Jan 2009, Heiko Carstens wrote:
+> > On Mon, Jan 05, 2009 at 05:14:22PM -0500, Steven Rostedt wrote:
+> > > On Mon, 5 Jan 2009, Sam Ravnborg wrote:
+> > > 
+> > > > > Is this all sparc cross compiler?  I'm trying to reproduce it on x86 with 
+> > > > > no avail :-(
+> > > > > 
+> > > > > I would like to test other ways to change the macro, but to do so, I need 
+> > > > > to get a compiler that will produce the warnings that you see. What 
+> > > > > version of gcc are you using?
+> > > > 
+> > > > I used crosstool to build a 3.4.5 gcc:
+> > > 
+> > > Hmm, that's a pretty old compiler. I wonder if it wouldn't just help
+> > > if we just make the branch tracer dependent on the compiler used. That is.
+> > > 
+> > > #if defined(CONFIG_PROFILE_ALL_BRANCHES) && (__GNUC__ >= 4)
+> > > #define if(cond) ...
+> > > 
+> > > Or something :-/
+> > 
+> > FWIW, on s390 with gcc 4.3.2 and an allyesconfig I get these:
+> > 
+> >   CC      arch/s390/mm/extmem.o
+> > arch/s390/mm/extmem.c: In function 'segment_modify_shared':
+> > arch/s390/mm/extmem.c:572: warning: 'end_addr' may be used uninitialized in this function
+> > arch/s390/mm/extmem.c:572: warning: 'start_addr' may be used uninitialized in this function
+> > arch/s390/mm/extmem.c: In function 'query_segment_type':
+> > arch/s390/mm/extmem.c:259: warning: 'vmrc' may be used uninitialized in this function
+> > 
+> > Switching off PROFILE_ALL_BRANCHES makes the warnings go away again.
+> 
+> Now that is really interesting. Because end_addr and start_addr are 
+> initialized via functions:
+> 
+> 	if (x)
+> 		init_me(a, &y);
+> 	else
+> 		init_me(b, &y);
+> 
+> Which actually does not make sense why turning off PROFILE_ALL_BRANCHES 
+> would affect this :-/
 
-The __crc_... reference is definitely bogus - none should survive with the
-new .c->.o rule. Could you find out what object file they originate from?
+They are not necessarily initialized via 'initme'. Only if it returns with
+a return value >= 0. So it's a bit more complex:
 
-The others look like a tools side behavioral difference, as I never saw any
-such. Is this problem sparc32-specific (I tested x86 and ia64 only)? What's
-the binutils version used?
-
-Jan
-
+	if (x)
+		rc = init_me(a, &y);
+	else
+		rc = init_me(b, &y);
+	if (rc < 0)
+		/* y unitialized */
+		return;
+	use(y);
