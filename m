@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 06 Jan 2009 20:50:48 +0000
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Tue, 06 Jan 2009 20:59:05 +0000
 Subject: Re: [PATCH 0/5] Eliminate most of sparc_ksyms_*.c
-Message-Id: <20090106.125048.55896622.davem@davemloft.net>
+Message-Id: <20090106205905.GA29514@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4963717C.8080008@gmail.com>
 In-Reply-To: <4963717C.8080008@gmail.com>
@@ -10,16 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Tue, 6 Jan 2009 21:44:04 +0100
-
-> I appreciate you took over this patch-set - thanks!
+On Tue, Jan 06, 2009 at 12:50:48PM -0800, David Miller wrote:
+> From: Sam Ravnborg <sam@ravnborg.org>
+> Date: Tue, 6 Jan 2009 21:44:04 +0100
 > 
-> I have not yet looked over the patches. But at first glance it looked
-> like they were word-wrapped??
+> > I appreciate you took over this patch-set - thanks!
+> > 
+> > I have not yet looked over the patches. But at first glance it looked
+> > like they were word-wrapped??
+> 
+> Also initial spaces were transformed to 2 spaces in the
+> patch.
+> 
+> This happened to all his previous patch postings too, but
+> I just silently fixed them up by hand. :-/
 
-Also initial spaces were transformed to 2 spaces in the
-patch.
+Julian - can I ask you to read Documentation/email-clients.txt
+and fix your setup of Thunderbird and resumit the serie.
+You can then include your fix to one of your patches as
+you already posted.
 
-This happened to all his previous patch postings too, but
-I just silently fixed them up by hand. :-/
+Thanks,
+	Sam
+
