@@ -1,32 +1,133 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 06 Jan 2009 20:46:54 +0000
-Subject: Re: [PATCH] sparc64: refactor code in viohs.c
-Message-Id: <20090106.124654.196952162.davem@davemloft.net>
+Date: Tue, 06 Jan 2009 02:34:00 +0000
+Subject: [GIT]: Sparc
+Message-Id: <20090105.183400.155883414.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090106201742.GA17714@uranus.ravnborg.org>
-In-Reply-To: <20090106201742.GA17714@uranus.ravnborg.org>
+References: <20080421.153231.108090227.davem@davemloft.net>
+In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Tue, 6 Jan 2009 21:17:42 +0100
 
-> The sparc64 allmodconfig build broke due to enabling of the
-> branch_tracer that does some very clever things with
-> all if conditions. This caused my gcc 3.4.5 to be so confused that
-> it emitted a warning:
-> 
-> arch/sparc/kernel/viohs.c: In function `vio_control_pkt_engine':
-> arch/sparc/kernel/viohs.c:335: warning: 'nver' might be used uninitialized in this function
-> 
-> And with -Werror this broke the build.
-> 
-> Refactor code so it:
-> 1) becomes more readable
-> 2) no longer emit a warning with the branch_tracer enabled
-> 
-> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Lots of more 32/64 unification work from Sam Ravnborg,
+with some smaller changes and fixes from Julian Calaby
+and Bastian Blank.
 
-Applied.
+Please pull, thanks a lot!
+
+The following changes since commit fe0bdec68b77020281dc814805edfe594ae89e0f:
+  Linus Torvalds (1):
+        Merge branch 'audit.b61' of git://git.kernel.org/.../viro/audit-current
+
+are available in the git repository at:
+
+  master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
+
+Bastian Blank (1):
+      sparc: Use 64BIT config entry
+
+David S. Miller (5):
+      sparc: Kill bogus comment about IRQF_SHARED in pci_psycho.c
+      sparc: Update 64-bit defconfig.
+      sparc: Kill asm/reg*.h
+      sparc: Remove reg*.h from Kbuild
+
+Julian Calaby (2):
+      sparc: Clean arch-specific code in prom_common.c
+      sparc: Fix minor SPARC32 compile error
+
+Sam Ravnborg (23):
+      sparc: delete unused config symbols
+      sparc: unify posix_types.h
+      sparc32: drop __old_kernel_stat
+      sparc32: use proper types in struct stat
+      sparc: unify stat.h
+      sparc64: prepare signal_64 for unification
+      sparc: unify signal.h
+      sparc: add '32' suffix to reg_window, sigcontext, __siginfo_t
+      sparc: unify sigcontext.h
+      sparc: unify ptrace.h
+      sparc: unify siginfo.h
+      sparc: remove ebus definitions from openprom*.h
+      sparc: remove linux_prom_pci_assigned_addresses from openprom_32.h
+      sparc: prepare openprom for unification
+      sparc64: delete unused linux_prom64_ranges from openprom_64.h
+      sparc: unify openprom.h
+      sparc: fix warning in userspace header jsflash.h
+      sparc: fix warnings in userspace header byteorder.h
+      sparc: fix warning in userspace header traps.h
+      sparc: drop get_tbr() in traps.h
+      sparc: remove NO_PROC_ID - it is no longer used
+      sparc: unify ipcbuf.h
+      MAINTAINERS: update sparc maintainer
+
+ MAINTAINERS                             |   15 +-
+ arch/sparc/Kconfig                      |   57 +---
+ arch/sparc/configs/sparc64_defconfig    |  105 +++++---
+ arch/sparc/include/asm/Kbuild           |   20 --
+ arch/sparc/include/asm/byteorder.h      |   12 +-
+ arch/sparc/include/asm/ipcbuf.h         |   38 +++-
+ arch/sparc/include/asm/ipcbuf_32.h      |   31 ---
+ arch/sparc/include/asm/ipcbuf_64.h      |   28 --
+ arch/sparc/include/asm/jsflash.h        |    2 +-
+ arch/sparc/include/asm/openprom.h       |  277 +++++++++++++++++++-
+ arch/sparc/include/asm/openprom_32.h    |  255 ------------------
+ arch/sparc/include/asm/openprom_64.h    |  280 -------------------
+ arch/sparc/include/asm/posix_types.h    |  157 +++++++++++-
+ arch/sparc/include/asm/posix_types_32.h |  118 --------
+ arch/sparc/include/asm/posix_types_64.h |  122 ---------
+ arch/sparc/include/asm/processor_32.h   |    2 +-
+ arch/sparc/include/asm/ptrace.h         |  448 ++++++++++++++++++++++++++++++-
+ arch/sparc/include/asm/ptrace_32.h      |  186 -------------
+ arch/sparc/include/asm/ptrace_64.h      |  356 ------------------------
+ arch/sparc/include/asm/reg.h            |    8 -
+ arch/sparc/include/asm/reg_32.h         |   79 ------
+ arch/sparc/include/asm/reg_64.h         |   56 ----
+ arch/sparc/include/asm/sigcontext.h     |  102 +++++++-
+ arch/sparc/include/asm/sigcontext_32.h  |   62 -----
+ arch/sparc/include/asm/sigcontext_64.h  |   87 ------
+ arch/sparc/include/asm/siginfo.h        |   43 +++-
+ arch/sparc/include/asm/siginfo_32.h     |   17 --
+ arch/sparc/include/asm/siginfo_64.h     |   32 ---
+ arch/sparc/include/asm/signal.h         |  212 ++++++++++++++-
+ arch/sparc/include/asm/signal_32.h      |  207 --------------
+ arch/sparc/include/asm/signal_64.h      |  194 -------------
+ arch/sparc/include/asm/smp_32.h         |    3 -
+ arch/sparc/include/asm/stat.h           |  111 +++++++-
+ arch/sparc/include/asm/stat_32.h        |   76 ------
+ arch/sparc/include/asm/stat_64.h        |   47 ----
+ arch/sparc/include/asm/thread_info_32.h |    2 +-
+ arch/sparc/include/asm/traps.h          |   11 +-
+ arch/sparc/kernel/irq_32.c              |    2 +
+ arch/sparc/kernel/kgdb_32.c             |   12 +-
+ arch/sparc/kernel/muldiv.c              |    8 +-
+ arch/sparc/kernel/pci_psycho.c          |    5 +-
+ arch/sparc/kernel/process_32.c          |   16 +-
+ arch/sparc/kernel/prom_common.c         |   14 +-
+ arch/sparc/kernel/signal_32.c           |    6 +-
+ arch/sparc/kernel/traps_32.c            |    4 +-
+ arch/sparc/kernel/unaligned_32.c        |   12 +-
+ arch/sparc/kernel/windows.c             |    6 +-
+ 47 files changed, 1481 insertions(+), 2462 deletions(-)
+ delete mode 100644 arch/sparc/include/asm/ipcbuf_32.h
+ delete mode 100644 arch/sparc/include/asm/ipcbuf_64.h
+ delete mode 100644 arch/sparc/include/asm/openprom_32.h
+ delete mode 100644 arch/sparc/include/asm/openprom_64.h
+ delete mode 100644 arch/sparc/include/asm/posix_types_32.h
+ delete mode 100644 arch/sparc/include/asm/posix_types_64.h
+ delete mode 100644 arch/sparc/include/asm/ptrace_32.h
+ delete mode 100644 arch/sparc/include/asm/ptrace_64.h
+ delete mode 100644 arch/sparc/include/asm/reg.h
+ delete mode 100644 arch/sparc/include/asm/reg_32.h
+ delete mode 100644 arch/sparc/include/asm/reg_64.h
+ delete mode 100644 arch/sparc/include/asm/sigcontext_32.h
+ delete mode 100644 arch/sparc/include/asm/sigcontext_64.h
+ delete mode 100644 arch/sparc/include/asm/siginfo_32.h
+ delete mode 100644 arch/sparc/include/asm/siginfo_64.h
+ delete mode 100644 arch/sparc/include/asm/signal_32.h
+ delete mode 100644 arch/sparc/include/asm/signal_64.h
+ delete mode 100644 arch/sparc/include/asm/stat_32.h
+ delete mode 100644 arch/sparc/include/asm/stat_64.h
