@@ -1,32 +1,30 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 06 Jan 2009 18:23:33 +0000
-Subject: Re: [PATCH] sparc: make proces_ver_nack a bit more readable
-Message-Id: <20090106.102333.261099461.davem@davemloft.net>
+From: Julian Calaby <julian.calaby@gmail.com>
+Date: Tue, 06 Jan 2009 14:58:04 +0000
+Subject: [PATCH 0/5] Eliminate most of sparc_ksyms_*.c
+Message-Id: <4963717C.8080008@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.DEB.1.10.0901051428370.27085@gandalf.stny.rr.com>
-	<alpine.DEB.1.10.0901051437490.27085@gandalf.stny.rr.com>
-	<20090105200848.GD6204@uranus.ravnborg.org>
-In-Reply-To: <20090105200848.GD6204@uranus.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sam@ravnborg.org
-Cc: rostedt@goodmis.org, linux-kernel@vger.kernel.org, srostedt@redhat.com, mingo@elte.hu, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 5 Jan 2009 21:08:48 +0100
+Hi all,
 
-> On Mon, Jan 05, 2009 at 02:42:59PM -0500, Steven Rostedt wrote:
-> > 
-> > Impact: clean up
-> > 
-> > The code in process_ver_nack is a little obfuscated. This change
-> > makes it a bit more readable by humans. It removes the complex
-> > if statement and replaces it with a cleaner flow of control.
-> > 
-> > Signed-off-by: Steven Rostedt <srostedt@redhat.com>
-> Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
-> 
-> And I can confirm the warning has dismissed with this patch.
+This patch set eliminates most of the definitions within 
+arch/sparc/kernel/sparc_ksyms_*.c by moving them to their rightful places.
 
-Applied, thanks everyone.
+This is done within patches 1-3.
+
+Note that this work was originally performed by Sam Ravnborg and these 
+patches have been rebased and added to by myself.
+
+I've tried to reflect this in the commit messages but may have gotten it 
+a little wrong.
+
+Patches 4 and 5 are cleanups that I had in my tree for an eventual 
+oplib_*.h unification - but as this screws up my original patches and 
+they're so small, I figured this'd be as good a time as any to send them.
+
+Thanks,
+
+Julian Calaby
