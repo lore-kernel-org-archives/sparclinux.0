@@ -1,29 +1,41 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 03 Jan 2009 05:32:08 +0000
-Subject: Re: [PATCH 2/4] sparc: fix warnings in userspace header byteorder.h
-Message-Id: <20090102.213208.223714841.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Tue, 06 Jan 2009 20:52:09 +0000
+Subject: [PATCH] sparc: refactor code in fault_32.c
+Message-Id: <20090106205209.GA24034@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1230849630-22482-2-git-send-email-sam@ravnborg.org>
-In-Reply-To: <1230849630-22482-2-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu,  1 Jan 2009 23:40:28 +0100
+The sparc allmodconfig build broke due to enabling of the
+branch_tracer that does some very clever things with
+all if conditions. This caused my gcc 3.4.5 to be so confused that
+it emitted a warning:
 
-> Fix following warnings in byteorder.h:
-> 
-> byteorder.h:4: include of <linux/types.h> is preferred over <asm/types.h>
-> byteorder.h:9: leaks CONFIG_SPARC32 to userspace where it is not valid
-> byteorder.h:13: leaks CONFIG_SPARC64 to userspace where it is not valid
-> byteorder.h:14: found __[us]{8,16,32,64} type without #include <linux/types.h>
-> byteorder.h:47: leaks CONFIG_SPARC64 to userspace where it is not valid
-> 
-> - changed to use include <linux/types.h> as suggested
-> - use preprocessor defined symbols to distingush between 32 and 64 bit
-> 
-> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+arch/sparc/mm/fault_32.c: In function `do_sparc_fault':
+arch/sparc/mm/fault_32.c:176: warning: 'fixup' might be used uninitialized in this function
 
-Applied.
+And with -Werror this broke the build.
+
+Refactor code so it:
+1) becomes more readable
+2) no longer emit a warning with the branch_tracer enabled
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+---
+diff --git a/arch/sparc/mm/fault_32.c b/arch/sparc/mm/fault_32.c
+index a507e11..12e447f 100644
+--- a/arch/sparc/mm/fault_32.c
++++ b/arch/sparc/mm/fault_32.c
+@@ -283,7 +283,8 @@ bad_area_nosemaphore:
+ 	/* Is this in ex_table? */
+ no_context:
+ 	g2 = regs->u_regs[UREG_G2];
+-	if (!from_user && (fixup = search_extables_range(regs->pc, &g2))) {
++	if (!from_user) {
++		fixup = search_extables_range(regs->pc, &g2);
+ 		if (fixup > 10) { /* Values below are reserved for other things */
+ 			extern const unsigned __memset_start[];
+ 			extern const unsigned __memset_end[];
