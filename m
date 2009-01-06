@@ -1,30 +1,57 @@
-From: Al Viro <viro@ZenIV.linux.org.uk>
-Date: Tue, 06 Jan 2009 15:52:10 +0000
+From: David Miller <davem@davemloft.net>
+Date: Tue, 06 Jan 2009 18:32:34 +0000
 Subject: Re: ftrace breaks sparc64 build
-Message-Id: <20090106155210.GT28946@ZenIV.linux.org.uk>
+Message-Id: <20090106.103234.163615537.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090105181922.GA25622@uranus.ravnborg.org> <20090105194844.GR28946@ZenIV.linux.org.uk> <20090105195523.GB6204@uranus.ravnborg.org> <49631BF0.76E4.0078.0@novell.com> <20090106113543.GS28946@ZenIV.linux.org.uk> <20090106133442.GA14780@uranus.ravnborg.org>
-In-Reply-To: <20090106133442.GA14780@uranus.ravnborg.org>
+References: <alpine.DEB.1.10.0901051428370.27085@gandalf.stny.rr.com>
+	<20090105195415.GA6204@uranus.ravnborg.org>
+	<alpine.DEB.1.10.0901051458460.25066@gandalf.stny.rr.com>
+In-Reply-To: <alpine.DEB.1.10.0901051458460.25066@gandalf.stny.rr.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: Jan Beulich <jbeulich@novell.com>, "David S. Miller" <davem@davemloft.net>, Ingo Molnar <mingo@elte.hu>, rostedt@goodmis.org, Steven Rostedt <srostedt@redhat.com>, LKML <linux-kernel@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>
+To: rostedt@goodmis.org
+Cc: sam@ravnborg.org, linux-kernel@vger.kernel.org, srostedt@redhat.com, mingo@elte.hu, sparclinux@vger.kernel.org
 
-On Tue, Jan 06, 2009 at 02:34:42PM +0100, Sam Ravnborg wrote:
-> On Tue, Jan 06, 2009 at 11:35:43AM +0000, Al Viro wrote:
-> > On Tue, Jan 06, 2009 at 07:53:04AM +0000, Jan Beulich wrote:
-> > 
-> > > The __crc_... reference is definitely bogus - none should survive with the
-> > > new .c->.o rule. Could you find out what object file they originate from?
-> > 
-> > So can you, by use of arcane tool known as "grep"...  It's in kernel/softirq.c
-> > and that's genksyms parser being fucked in head.  Look for TYPEOF_KEYW
-> > in parse.y and you'll see.  Especially amusing part is a kludge from
-> > commit a89a0a2354ae666612968e254d650bfd04f11eb6...
+From: Steven Rostedt <rostedt@goodmis.org>
+Date: Mon, 5 Jan 2009 15:05:11 -0500 (EST)
+
+> Probably the same issue. The problem is that the first use of a variable 
+> is in the OR section of an if statement that does a return.
 > 
-> Any feedback on what to do to make it better?
-> Never used typeof myself so I do not know the exact syntax.
+> 	if (x || !(y = init_me())
+> 		return;
+> 
+> 	use_me(y);
+> 
+> IMHO I find this sloppy code. When reading the code it can cause reviewers 
+> trouble, and wasted time, to see that y is indeed initialized. I'm 
+> impressed that gcc was able to figure it out.
 
-Same as that of sizeof.  I.e. typeof(<type-name>) or typeof <unary-expression>.
+I'm pretty much in firm disagreement here.
 
+This code is pretty clear.  The only way to get to use_me() is
+by initializing 'y'.  It's very straightforward.
+
+There are many conditionals in the kernel where this order
+of evaluation and side effects is depended upon.  Some of them
+just happen to warn now because of the branch tracer.
+
+> Have you always been compiling with -Werror?
+
+arch/sparc*/ builds with -Werror for 5+ years.
+
+> The reason that gcc complains is because you have the
+> "branch_tracer" on that converts 'if ()' into a macro (as you saw in
+> your -E compile). This makes the if statement more complex, and goes
+> beyond gcc's ability to know that the above 'y' is initialized
+> properly. I would work on fixing this in the branch tracer, but
+> honestly, I'm kind of glad that gcc barfs on it.  This will help us
+> point out this kind of sloppy initializations (sorry if I'm
+> offending anybody about calling it sloppy). I just believe that it
+> makes the code a bit more obfuscated to initialize in an if
+> statement, and a second part of a complex if statement at that!
+
+Keep in mind all this code was fine and built warning free before the
+if() obfuscation done by the branch tracer.  If I wrote the branch
+tracer, I'd probably search for these kinds of excuses too :-)
