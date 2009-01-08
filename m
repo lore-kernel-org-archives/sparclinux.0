@@ -1,62 +1,106 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 06 Dec 2008 03:05:22 +0000
-Subject: [PATCH 9/14]: sparc: Make sparc32's create_node() assign parent
-Message-Id: <20081205.190522.230670042.davem@davemloft.net>
+From: Julian Calaby <julian.calaby@gmail.com>
+Date: Thu, 08 Jan 2009 12:30:48 +0000
+Subject: [PATCH v2 4/5] sparc: Kill exports of prom internal functions
+Message-Id: <4965F1F8.20900@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+sparc: Kill exports of prom internal functions
 
-sparc: Make sparc32's create_node() assign parent pointer.
+__prom_getchild() and __prom_getsibling() are not used anywhere, so
+don't export them.
 
-This makes it match what sparc64's version does.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Julian Calaby <julian.calaby@gmail.com>
 ---
- arch/sparc/kernel/prom_32.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+ arch/sparc/include/asm/oplib_32.h |   11 -----------
+ arch/sparc/include/asm/oplib_64.h |   10 ----------
+ arch/sparc/prom/tree_32.c         |    2 --
+ arch/sparc/prom/tree_64.c         |    2 --
+ 4 files changed, 0 insertions(+), 25 deletions(-)
 
-diff --git a/arch/sparc/kernel/prom_32.c b/arch/sparc/kernel/prom_32.c
-index a6809bc..5818aa9 100644
---- a/arch/sparc/kernel/prom_32.c
-+++ b/arch/sparc/kernel/prom_32.c
-@@ -210,7 +210,7 @@ static char * __init get_one_property(phandle node, const char *name)
- 	return buf;
+diff --git a/arch/sparc/include/asm/oplib_32.h b/arch/sparc/include/asm/oplib_32.h
+index 73d4552..33e31ce 100644
+--- a/arch/sparc/include/asm/oplib_32.h
++++ b/arch/sparc/include/asm/oplib_32.h
+@@ -177,17 +177,6 @@ extern void prom_putsegment(int context, unsigned long virt_addr,
+ 
+ /* PROM device tree traversal functions... */
+ 
+-#ifdef PROMLIB_INTERNAL
+-
+-/* Internal version of prom_getchild. */
+-extern int __prom_getchild(int parent_node);
+-
+-/* Internal version of prom_getsibling. */
+-extern int __prom_getsibling(int node);
+-
+-#endif
+-
+-
+ /* Get the child node of the given node, or zero if no child exists. */
+ extern int prom_getchild(int parent_node);
+ 
+diff --git a/arch/sparc/include/asm/oplib_64.h b/arch/sparc/include/asm/oplib_64.h
+index 6d2c2ca..a5db031 100644
+--- a/arch/sparc/include/asm/oplib_64.h
++++ b/arch/sparc/include/asm/oplib_64.h
+@@ -218,16 +218,6 @@ extern void prom_unmap(unsigned long size, unsigned long vaddr);
+ 
+ /* PROM device tree traversal functions... */
+ 
+-#ifdef PROMLIB_INTERNAL
+-
+-/* Internal version of prom_getchild. */
+-extern int __prom_getchild(int parent_node);
+-
+-/* Internal version of prom_getsibling. */
+-extern int __prom_getsibling(int node);
+-
+-#endif
+-
+ /* Get the child node of the given node, or zero if no child exists. */
+ extern int prom_getchild(int parent_node);
+ 
+diff --git a/arch/sparc/prom/tree_32.c b/arch/sparc/prom/tree_32.c
+index 9d9965c..431e04c 100644
+--- a/arch/sparc/prom/tree_32.c
++++ b/arch/sparc/prom/tree_32.c
+@@ -34,7 +34,6 @@ int __prom_getchild(int node)
+ 
+ 	return cnode;
  }
+-EXPORT_SYMBOL(__prom_getchild);
  
--static struct device_node * __init create_node(phandle node)
-+static struct device_node * __init create_node(phandle node, struct device_node *parent)
+ /* Return the child of node 'node' or zero if no this node has no
+  * direct descendent.
+@@ -67,7 +66,6 @@ int __prom_getsibling(int node)
+ 
+ 	return cnode;
+ }
+-EXPORT_SYMBOL(__prom_getsibling);
+ 
+ /* Return the next sibling of node 'node' or zero if no more siblings
+  * at this level of depth in the tree.
+diff --git a/arch/sparc/prom/tree_64.c b/arch/sparc/prom/tree_64.c
+index 175c709..8ea73dd 100644
+--- a/arch/sparc/prom/tree_64.c
++++ b/arch/sparc/prom/tree_64.c
+@@ -23,7 +23,6 @@ inline int __prom_getchild(int node)
  {
- 	struct device_node *dp;
+ 	return p1275_cmd ("child", P1275_INOUT(1, 1), node);
+ }
+-EXPORT_SYMBOL(__prom_getchild);
  
-@@ -219,6 +219,7 @@ static struct device_node * __init create_node(phandle node)
- 
- 	dp = prom_early_alloc(sizeof(*dp));
- 	dp->unique_id = prom_unique_id++;
-+	dp->parent = parent;
- 
- 	kref_init(&dp->kref);
- 
-@@ -237,7 +238,7 @@ static struct device_node * __init build_tree(struct device_node *parent, phandl
+ inline int prom_getchild(int node)
  {
- 	struct device_node *dp;
- 
--	dp = create_node(node);
-+	dp = create_node(node, parent);
- 	if (dp) {
- 		*(*nextp) = dp;
- 		*nextp = &dp->allnext;
-@@ -387,7 +388,7 @@ void __init prom_build_devicetree(void)
+@@ -53,7 +52,6 @@ inline int __prom_getsibling(int node)
  {
- 	struct device_node **nextp;
+ 	return p1275_cmd(prom_peer_name, P1275_INOUT(1, 1), node);
+ }
+-EXPORT_SYMBOL(__prom_getsibling);
  
--	allnodes = create_node(prom_root_node);
-+	allnodes = create_node(prom_root_node, NULL);
- 	allnodes->path_component_name = "";
- 	allnodes->full_name = "/";
- 
--- 
-1.5.6.5
-
+ inline int prom_getsibling(int node)
+ {
