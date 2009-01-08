@@ -1,37 +1,36 @@
-From: Balaji Rao <balajirrao@openmoko.org>
-Date: Thu, 15 Jan 2009 05:15:25 +0000
-Subject: Re: pcf50663 MFD driver modular build failure
-Message-Id: <20090115050324.GA3199@fedora.yogi>
+From: Julian Calaby <julian.calaby@gmail.com>
+Date: Thu, 08 Jan 2009 12:29:58 +0000
+Subject: [PATCH v2 0/5] Eliminate most of sparc_ksyms_*.c
+Message-Id: <4965F1C6.1090700@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090112.210501.215941396.davem@redhat.com> <20090113065159.GB3218@fedora.yogi> <20090114134712.6f0e430e.randy.dunlap@oracle.com>
-In-Reply-To: <20090114134712.6f0e430e.randy.dunlap@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: David Miller <davem@redhat.com>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, andy@openmoko.com, sameo@openedhand.com, mingo@elte.hu, yinghai@kernel.org, akpm@linux-foundation.org, sfr@canb.auug.org.au
+To: sparclinux@vger.kernel.org
 
-On Wed, Jan 14, 2009 at 01:47:12PM -0800, Randy Dunlap wrote:
-> On Tue, 13 Jan 2009 12:22:02 +0530 Balaji Rao wrote:
-> 
-> > On Mon, Jan 12, 2009 at 09:05:01PM -0800, David Miller wrote:
-> > > 
-> > > This started happening with Linus's pull from today for
-> > > sparc64 allmodconfig:
-> > > 
-> > > ERROR: "__set_irq_handler" [drivers/mfd/pcf50633-core.ko] undefined!
-> > > ERROR: "handle_level_irq" [drivers/mfd/pcf50633-core.ko] undefined!
-> > > 
-> > > Sure we can export __set_irq_handler() and handle_level_irq() to
-> > > modules to fix this, but that looks like some hokey stuff for
-> > > a MFD driver to be doing :-)
-> > 
-> > Yes, right! It's really not necessary. I've sent a patch to remove it.
-> 
-> Who did you send the patch to and where is it in the queue??
+Hi all,
 
-Samuel has taken it into his linux-mfd tree and should be sending a pull
-request real soon.
+This patch set eliminates most of the definitions within 
+arch/sparc/kernel/sparc_ksyms_*.c by moving them to their rightful places.
+
+This is done within patches 1-3.
+
+Note that this work was originally performed by Sam Ravnborg and these 
+patches have been rebased and added to by myself.
+
+I've tried to reflect this in the commit messages but may have gotten it 
+a little wrong.
+
+Patches 4 and 5 are cleanups that I had in my tree for an eventual 
+oplib_*.h unification - but as this screws up my original patches and 
+they're so small, I figured this'd be as good a time as any to send them.
+
+Changes in version 2:
+1. Patches 2 and 3 have a few more includes added to the modified files.
+2. It shouldn't be word wrapped this time!
 
 Thanks,
-Balaji
+
+Julian Calaby
+
+
