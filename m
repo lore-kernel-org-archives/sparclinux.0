@@ -1,43 +1,28 @@
-From: "Julian Calaby" <julian.calaby@gmail.com>
-Date: Tue, 06 Jan 2009 22:44:44 +0000
-Subject: Re: [PATCH 0/5] Eliminate most of sparc_ksyms_*.c
-Message-Id: <646765f40901061444w65eeba27n2091338c0e5edcd9@mail.gmail.com>
+From: Robert Reif <reif@earthlink.net>
+Date: Fri, 09 Jan 2009 00:32:21 +0000
+Subject: sparc32 broke
+Message-Id: <49669B15.7020107@earthlink.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4963717C.8080008@gmail.com>
-In-Reply-To: <4963717C.8080008@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-On Wed, Jan 7, 2009 at 07:50, David Miller <davem@davemloft.net> wrote:
-> From: Sam Ravnborg <sam@ravnborg.org>
-> Date: Tue, 6 Jan 2009 21:44:04 +0100
->
->> I appreciate you took over this patch-set - thanks!
->>
->> I have not yet looked over the patches. But at first glance it looked
->> like they were word-wrapped??
->
-> Also initial spaces were transformed to 2 spaces in the
-> patch.
->
-> This happened to all his previous patch postings too, but
-> I just silently fixed them up by hand. :-/
+A compile of todays mainline produces this compile error:
 
-Sodding heck. I thought that as nobody had complained before,
-everything was working as it should.
+arch/sparc/kernel/sun4d_smp.c:63: error: expected identifier or =91(=92=20
+before =91{=92 token
+arch/sparc/kernel/sun4d_smp.c: In function =91smp4d_callin=92:
+arch/sparc/kernel/sun4d_smp.c:118: error: lvalue required as left=20
+operand of assignment
+arch/sparc/kernel/sun4d_smp.c:118: error: lvalue required as left=20
+operand of assignment
 
-Ok, I'll resubmit with my fixes (and there's another hunk that needs
-to be stuck into patch 3 now too, fecking build test failures) some
-time today, hopefully at lunchtime.
+Prior to today, sparc32 has also failed to boot completely for the last=20
+few days.
+It boots but fails in the init scripts when it can't find the boot=20
+partition.
 
-Hopefully setting up Thunderbird (well, Icedove) will be pain free. =)
+Ill try to bisect the boot problem but it will take a while.
 
-Thanks,
 
--- 
-
-Julian Calaby
-
-Email: julian.calaby@gmail.com
