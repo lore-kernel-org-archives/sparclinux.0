@@ -1,33 +1,47 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 11 Jan 2009 08:31:03 +0000
-Subject: cpumask change causes sparc build bustage
-Message-Id: <20090111.003103.39502700.davem@davemloft.net>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Sun, 11 Jan 2009 09:50:08 +0000
+Subject: Re: cpumask change causes sparc build bustage
+Message-Id: <20090111205008.db0a410e.sfr@canb.auug.org.au>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Signature=_Sun__11_Jan_2009_20_50_08_+1100_2NPpNzhxVnEL8+=4"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: sparclinux@vger.kernel.org, travis@sgi.com, mingo@elte.hu
+References: <20090111.003103.39502700.davem@davemloft.net>
+In-Reply-To: <20090111.003103.39502700.davem@davemloft.net>
+To: David Miller <davem@davemloft.net>
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, travis@sgi.com, mingo@elte.hu
 
+--Signature=_Sun__11_Jan_2009_20_50_08_+1100_2NPpNzhxVnEL8+=4
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-drivers/pci/probe.c: In function 'pci_bus_show_cpuaffinity':
-drivers/pci/probe.c:56: error: implicit declaration of function 'cpumask_of_pcibus'
-drivers/pci/probe.c:56: warning: assignment makes pointer from integer without a cast
+Hi Dave,
 
-Almost certainly caused by:
+On Sun, 11 Jan 2009 00:31:03 -0800 (PST) David Miller <davem@davemloft.net>=
+ wrote:
+>
+> I'm surprised linux-next builds didn't catch this.
 
-commit 588235bb53f2c215f0d4b08fd30b461fedc3338e
-Author: Mike Travis <travis@sgi.com>
-Date:   Sun Jan 4 05:18:02 2009 -0800
+So am I.  http://kisskb.ellerman.id.au/kisskb/compiler/5/ shows my latest
+builds of both linux-next and Linus' tree are OK for defconfig and
+allnoconfig (allmodconfig fails for a different reason).
 
-    cpumask: update pci_bus_show_cpuaffinity to use new cpumask API
-    
-    Impact: use new cpumask API to reduce stack usage
-    
-    Replace the local cpumask_t variable with a pointer to the
-    const cpumask that needs to be printed.
-    
-    Signed-off-by: Mike Travis <travis@sgi.com>
-    Signed-off-by: Ingo Molnar <mingo@elte.hu>
+What is different about the failing config (compiler)?  Are there other
+configs it would be sensible to build test?
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
 
-I'm surprised linux-next builds didn't catch this.
+--Signature=_Sun__11_Jan_2009_20_50_08_+1100_2NPpNzhxVnEL8+=4
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEUEARECAAYFAklpwNAACgkQjjKRsyhoI8zgzgCY+lB8esA4SSbL6SckrGEvfkTW
+yACdEpS7aKGfKWNAlsYxj//iTN88Pnk=
+=AUI2
+-----END PGP SIGNATURE-----
+
+--Signature=_Sun__11_Jan_2009_20_50_08_+1100_2NPpNzhxVnEL8+=4--
