@@ -1,21 +1,65 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 04 Jan 2009 23:45:04 +0000
-Subject: Re: [PATCH] sparc: unify ipcbuf.h
-Message-Id: <20090104.154504.266652417.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Wed, 14 Jan 2009 15:32:55 +0000
+Subject: Re: sparc32 compile error: =?utf-8?Q?redef?=
+Message-Id: <20090114153255.GA32082@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20081228200418.GA22991@uranus.ravnborg.org>
-In-Reply-To: <20081228200418.GA22991@uranus.ravnborg.org>
+References: <496D4274.6000304@earthlink.net> <20090113.181039.185575172.davem@davemloft.net> <20090113184239.e6b6e68e.akpm@linux-foundation.org> <20090113184536.95ebc973.akpm@linux-foundation.org> <496D5E19.7040802@earthlink.net> <20090113235940.12d856d0.akpm@linux-foundation.org>
+In-Reply-To: <20090113235940.12d856d0.akpm@linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Robert Reif <reif@earthlink.net>, David Miller <davem@davemloft.net>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, mingo@elte.hu, linux-kernel@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 3 Jan 2009 13:38:49 +0100
-
-> The ony difference is the size of the mode.
-> sparc has extra padding to compensate for this.
+On Tue, Jan 13, 2009 at 11:59:40PM -0800, Andrew Morton wrote:
+> On Tue, 13 Jan 2009 22:38:01 -0500 Robert Reif <reif@earthlink.net> wrote:
 > 
-> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+> > This worked:
+> > 
+> > diff --git a/kernel/Makefile b/kernel/Makefile
+> > index 2aebc4c..368227d 100644
+> > --- a/kernel/Makefile
+> > +++ b/kernel/Makefile
+> > @@ -43,8 +43,10 @@ obj-$(CONFIG_GENERIC_ISA_DMA) += dma.o
+> >  ifeq ($(CONFIG_USE_GENERIC_SMP_HELPERS),y)
+> >  obj-y += smp.o
+> >  else
+> > +ifneq ($(CONFIG_SMP),y)
+> >  obj-y += up.o
+> >  endif
+> > +endif
+> >  obj-$(CONFIG_SMP) += spinlock.o
+> >  obj-$(CONFIG_DEBUG_SPINLOCK) += spinlock.o
+> >  obj-$(CONFIG_PROVE_LOCKING) += spinlock.o
+> 
+> This all can be simplified, can't it?
+> 
+> obj-$(CONFIG_USE_GENERIC_SMP_HELPERS) += smp.o
+> ifneq ($(CONFIG_SMP),y)
+> obj-y += up.o
+> endif
+> 
+> (someone please check my homework - I don't have a good track
+> record here ;))
 
-Applied, thanks Sam.
+Looks correct. We pull in smp.o only for SPARC64 AND SMP
+
+But I find the next lines distastefull in a Makefile:
+> ifneq ($(CONFIG_SMP),y)
+> obj-y += up.o
+> endif
+
+I would prefer a small Kconfig helper symbol:
+
+config SPARC_UP
+	def_bool y
+	depends on !SMP
+
+And then we would do the Makefile bits like this:
+obj-$(CONFIG_SPARC_UP) += up.o
+
+So maybe a bit more involved patch - but more readable IMO.
+Robert - can I ask you to fix it up if you and others agree.
+
+Thanks,
+	Sam
