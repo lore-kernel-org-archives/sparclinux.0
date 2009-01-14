@@ -1,46 +1,63 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 26 Jan 2009 22:57:06 +0000
-Subject: [GIT]: Sparc
-Message-Id: <20090126.145706.154913313.davem@davemloft.net>
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Wed, 14 Jan 2009 07:59:40 +0000
+Subject: Re: sparc32 compile error: redefinition of =?UTF-8?Q?=E2=80=98smp?=
+Message-Id: <20090113235940.12d856d0.akpm@linux-foundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080421.153231.108090227.davem@davemloft.net>
-In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
+References: <496D4274.6000304@earthlink.net>
+	<20090113.181039.185575172.davem@davemloft.net>
+	<20090113184239.e6b6e68e.akpm@linux-foundation.org>
+	<20090113184536.95ebc973.akpm@linux-foundation.org>
+	<496D5E19.7040802@earthlink.net>
+In-Reply-To: <496D5E19.7040802@earthlink.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Robert Reif <reif@earthlink.net>
+Cc: David Miller <davem@davemloft.net>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, mingo@elte.hu, linux-kernel@vger.kernel.org
 
+On Tue, 13 Jan 2009 22:38:01 -0500 Robert Reif <reif@earthlink.net> wrote:
 
-Please pull to get these Sparc bug fixes, thanks!
+> This worked:
+> 
+> diff --git a/kernel/Makefile b/kernel/Makefile
+> index 2aebc4c..368227d 100644
+> --- a/kernel/Makefile
+> +++ b/kernel/Makefile
+> @@ -43,8 +43,10 @@ obj-$(CONFIG_GENERIC_ISA_DMA) += dma.o
+>  ifeq ($(CONFIG_USE_GENERIC_SMP_HELPERS),y)
+>  obj-y += smp.o
+>  else
+> +ifneq ($(CONFIG_SMP),y)
+>  obj-y += up.o
+>  endif
+> +endif
+>  obj-$(CONFIG_SMP) += spinlock.o
+>  obj-$(CONFIG_DEBUG_SPINLOCK) += spinlock.o
+>  obj-$(CONFIG_PROVE_LOCKING) += spinlock.o
 
-The following changes since commit f3b8436ad9a8ad36b3c9fa1fe030c7f38e5d3d0b:
-  Linus Torvalds (1):
-        Merge branch 'for-linus' of git://git.kernel.org/.../roland/infiniband
+This all can be simplified, can't it?
 
-are available in the git repository at:
+obj-$(CONFIG_USE_GENERIC_SMP_HELPERS) += smp.o
+ifneq ($(CONFIG_SMP),y)
+obj-y += up.o
+endif
 
-  master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
+(someone please check my homework - I don't have a good track
+record here ;))
 
-Christian Borntraeger (1):
-      [CVE-2009-0029] sparc: Enable syscall wrappers for 64-bit
+--- a/kernel/Makefile~kernel-upc-omit-it-if-smp=y-use_generic_smp_helpers=n
++++ a/kernel/Makefile
+@@ -40,9 +40,8 @@ obj-$(CONFIG_RT_MUTEXES) += rtmutex.o
+ obj-$(CONFIG_DEBUG_RT_MUTEXES) += rtmutex-debug.o
+ obj-$(CONFIG_RT_MUTEX_TESTER) += rtmutex-tester.o
+ obj-$(CONFIG_GENERIC_ISA_DMA) += dma.o
+-ifeq ($(CONFIG_USE_GENERIC_SMP_HELPERS),y)
+-obj-y += smp.o
+-else
++obj-$(CONFIG_USE_GENERIC_SMP_HELPERS) += smp.o
++ifneq ($(CONFIG_SMP),y)
+ obj-y += up.o
+ endif
+ obj-$(CONFIG_SMP) += spinlock.o
+_
 
-David S. Miller (3):
-      sparc64: Initialize FHC/CLOCK LED platform_device 'id' field correctly.
-      sparc64: Annotate sparc64 specific syscalls with SYSCALL_DEFINEx()
-      sparc64: Fix DAX handling via userspace access from kernel.
-
-Sam Ravnborg (2):
-      sparc64: fix readout of cpu/fpu type
-      sparc64: fix modpost failure
-
- arch/sparc/Kconfig               |    1 +
- arch/sparc/kernel/central.c      |    2 +
- arch/sparc/kernel/cpu.c          |   18 ++++++++++++--
- arch/sparc/kernel/sys_sparc_64.c |   48 ++++++++++++++++++-------------------
- arch/sparc/kernel/syscalls.S     |    2 +-
- arch/sparc/kernel/systbls.h      |    3 --
- arch/sparc/kernel/systbls_64.S   |   16 ++++++------
- arch/sparc/kernel/traps_64.c     |   17 ++++++++++++-
- arch/sparc/lib/Makefile          |    3 +-
- 9 files changed, 68 insertions(+), 42 deletions(-)
