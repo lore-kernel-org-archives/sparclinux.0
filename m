@@ -1,34 +1,29 @@
-From: "Julian Calaby" <julian.calaby@gmail.com>
-Date: Mon, 05 Jan 2009 22:44:02 +0000
-Subject: Re: kill most of sparc_ksyms*
-Message-Id: <646765f40901051444v2b9a6eefw227f583336e262d8@mail.gmail.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Thu, 15 Jan 2009 21:30:37 +0000
+Subject: ilog2() problems with gcc-3.4.5
+Message-Id: <20090115133037.42ee52aa.akpm@linux-foundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090105194431.GA4976@uranus.ravnborg.org>
-In-Reply-To: <20090105194431.GA4976@uranus.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, Jan 6, 2009 at 06:44, Sam Ravnborg <sam@ravnborg.org> wrote:
-> I gave Julian the receipe but he has focus on the prom_ stuff,
-> so I decided to give it a spin.
 
-It's been in the back of my mind, but I've focused on unifying oplib.h
-first, then unifying arch/sparc/prom/* then following what you
-suggested to *eliminate* sparc_ksyms_*.c
+My sparc64 gcc-3.4.5 cross-compiler has decided to start emitting calls
+to ____ilog2_NaN, due to
 
-As for going softly softly around the prom_* stuff, don't worry about
-it, I've barely started working on that. I'm still cleaning up the
-existing code to make it possible to unify it.
+        eq_context->log_eq_size   = ilog2(eq->nent);
 
-If you don't (want to) make a patch to finish this work, I'll handle
-it when I get home tonight.
+in drivers/net/mlx4/eq.c.  There's another reference coming out of
+drivers/net/mlx4/srq.s.
 
-Thanks,
+I guess this is a gcc bug - it's gone and decided that
+__builtin_constant_p(eq->nent) is true :(
 
--- 
+We've had this __builtin_constant_p() bogon occur before now - it
+happened with one or two kmalloc() callsites on x86 for some gcc
+versions, but we seemed to make it go away by some means.
 
-Julian Calaby
+I guess I can ignore the link errors for now, but it's sad to have to
+rub out yet another gcc version.
 
-Email: julian.calaby@gmail.com
