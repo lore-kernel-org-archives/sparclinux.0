@@ -1,7 +1,7 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 16 Jan 2009 17:18:37 +0000
+Date: Fri, 16 Jan 2009 18:08:31 +0000
 Subject: Re: Unknown CPU in 2.6.29-rc1
-Message-Id: <20090116171837.GA23343@uranus.ravnborg.org>
+Message-Id: <20090116180831.GA25995@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.SOC.4.64.0901161249030.2120@math.ut.ee>
 In-Reply-To: <Pine.SOC.4.64.0901161249030.2120@math.ut.ee>
@@ -10,47 +10,71 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Fri, Jan 16, 2009 at 10:11:49AM -0600, Dennis Gilmore wrote:
-> On Friday 16 January 2009 08:32:17 am you wrote:
-> > On Fri, Jan 16, 2009 at 12:58:32PM +0200, Meelis Roos wrote:
-> > > After Sam's insw/... fix, todays 2.6.29-rc1+git boots up and seems fo
-> > > work on E3500 with 2 USII-400's. However, the CPU has suddenly became
-> > > unknown (it was known in 2.6.27):
-> > >
-> > > [  136.434591] CPU: Unknown chip, impl[0x17] vers[0x11]
-> > > [  136.434649] FPU: Unknown chip, impl[0x17] vers[0x11]
-> >
-> > Did you expect:
-> > CPU: TI UltraSparc II  (BlackBird)
-> > FPU: UltraSparc II integrated FPU
-> >
-> > Ohh, I see why.
-> > The sucker that updated kernel/cpu.c did a poor job doing so.
-> > (For reference: it was me)
-> >
-> > I assume manufacturer_info can be indexed but it needs to be searched.
-> > Will likely fix tonight if you do not beat me.
-> >
-> > I think I know why I did this mistake, as I really did not make up
-> > my mind what approach to use and ended up mixing it.
-> >
-> > [For the record I do not have a sparc to test it on.
-> > My SUN Blade 100 are cauing me troubles..]
-> if its locking up regularly try appending ide=nodma to the kernel line.
+On Fri, Jan 16, 2009 at 12:58:32PM +0200, Meelis Roos wrote:
+> After Sam's insw/... fix, todays 2.6.29-rc1+git boots up and seems fo 
+> work on E3500 with 2 USII-400's. However, the CPU has suddenly became 
+> unknown (it was known in 2.6.27):
+> 
+> [  136.434591] CPU: Unknown chip, impl[0x17] vers[0x11]
+> [  136.434649] FPU: Unknown chip, impl[0x17] vers[0x11]
+> [  136.436067] fhc: Board #1, Version[1] PartID[fa0] Manuf[3e] (Central)
+> [  136.436823] fhc: Board #3, Version[1] PartID[fa0] Manuf[3e] (JTAG Master)
+> 
+> Btw, these fhc messages appear later in boot process than before. 
+> Before the boards were detected just after 'Booting Linux':
+> Booting Linux...
+> CENTRAL: Detected 5 slot Enterprise system. cfreg[68] cver[78]
+> FHC(board 1): Version[1] PartID[fa0] Manuf[3e] (CENTRAL)
+> FHC(board 3): Version[1] PartID[fa0] Manuf[3e] (JTAG Master)
+> FHC(board 1): Version[1] PartID[fa0] Manuf[3e]
+> FHC(board 7): Version[1] PartID[fa0] Manuf[3e]
+> 
+> Now they are after 'Brought up 2 CPUs' together with unknown CPU 
+> messages.
 
-It gave a few strange errors.
-I read somewhere on a debian forum that they did not expect the CD
-based install to work and recommended a network based setup.
-
-So I'm planning to do this. It requires RARP (or DHCP), tftp and
-I think one more thing. I just ran out of time when playing with it.
-
-The box caused me some troubles when I received it:
-- Power supply managed to get it running only once, then it died
-- Of the three RAM blocks two was faulty so I have only 256 MB left :-(
-- I never managed to get the monitor to display anything
-
-But for my purpose - to do some rudimentary kernel tests that will
-suffice.
+Can you thr if the following fix the cpu problem.
 
 	Sam
+
+diff --git a/arch/sparc/kernel/cpu.c b/arch/sparc/kernel/cpu.c
+index f0b8255..32d32b4 100644
+--- a/arch/sparc/kernel/cpu.c
++++ b/arch/sparc/kernel/cpu.c
+@@ -239,14 +239,26 @@ unsigned int fsr_storage;
+ 
+ static void set_cpu_and_fpu(int psr_impl, int psr_vers, int fpu_vers)
+ {
++	const struct manufacturer_info *manuf;
++	int i;
++
+ 	sparc_cpu_type = NULL;
+ 	sparc_fpu_type = NULL;
+-	if (psr_impl < ARRAY_SIZE(manufacturer_info))
++	manuf = NULL;
++
++	for (i = 0; i < ARRAY_SIZE(manufacturer_info); i++)
++	{
++		if (psr_impl = manufacturer_info[i].psr_impl) {
++			manuf = &manufacturer_info[i];
++			break;
++		}
++	}
++	if (manuf != NULL)
+ 	{
+ 		const struct cpu_info *cpu;
+ 		const struct fpu_info *fpu;
+ 
+-		cpu = &manufacturer_info[psr_impl].cpu_info[0];
++		cpu = &manuf->cpu_info[0];
+ 		while (cpu->psr_vers != -1)
+ 		{
+ 			if (cpu->psr_vers = psr_vers) {
+@@ -256,7 +268,7 @@ static void set_cpu_and_fpu(int psr_impl, int psr_vers, int fpu_vers)
+ 			}
+ 			cpu++;
+ 		}
+-		fpu =  &manufacturer_info[psr_impl].fpu_info[0];
++		fpu =  &manuf->fpu_info[0];
+ 		while (fpu->fp_vers != -1)
+ 		{
+ 			if (fpu->fp_vers = fpu_vers) {
