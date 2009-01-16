@@ -1,59 +1,56 @@
-From: Dennis Gilmore <dennis@ausil.us>
-Date: Fri, 16 Jan 2009 16:11:49 +0000
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 16 Jan 2009 17:18:37 +0000
 Subject: Re: Unknown CPU in 2.6.29-rc1
-Message-Id: <200901161011.57560.dennis@ausil.us>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="nextPart11232187.R1svTHGfOc"
+Message-Id: <20090116171837.GA23343@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.SOC.4.64.0901161249030.2120@math.ut.ee>
 In-Reply-To: <Pine.SOC.4.64.0901161249030.2120@math.ut.ee>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
---nextPart11232187.R1svTHGfOc
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-On Friday 16 January 2009 08:32:17 am you wrote:
-> On Fri, Jan 16, 2009 at 12:58:32PM +0200, Meelis Roos wrote:
-> > After Sam's insw/... fix, todays 2.6.29-rc1+git boots up and seems fo
-> > work on E3500 with 2 USII-400's. However, the CPU has suddenly became
-> > unknown (it was known in 2.6.27):
+On Fri, Jan 16, 2009 at 10:11:49AM -0600, Dennis Gilmore wrote:
+> On Friday 16 January 2009 08:32:17 am you wrote:
+> > On Fri, Jan 16, 2009 at 12:58:32PM +0200, Meelis Roos wrote:
+> > > After Sam's insw/... fix, todays 2.6.29-rc1+git boots up and seems fo
+> > > work on E3500 with 2 USII-400's. However, the CPU has suddenly became
+> > > unknown (it was known in 2.6.27):
+> > >
+> > > [  136.434591] CPU: Unknown chip, impl[0x17] vers[0x11]
+> > > [  136.434649] FPU: Unknown chip, impl[0x17] vers[0x11]
 > >
-> > [  136.434591] CPU: Unknown chip, impl[0x17] vers[0x11]
-> > [  136.434649] FPU: Unknown chip, impl[0x17] vers[0x11]
->
-> Did you expect:
-> CPU: TI UltraSparc II  (BlackBird)
-> FPU: UltraSparc II integrated FPU
->
-> Ohh, I see why.
-> The sucker that updated kernel/cpu.c did a poor job doing so.
-> (For reference: it was me)
->
-> I assume manufacturer_info can be indexed but it needs to be searched.
-> Will likely fix tonight if you do not beat me.
->
-> I think I know why I did this mistake, as I really did not make up
-> my mind what approach to use and ended up mixing it.
->
-> [For the record I do not have a sparc to test it on.
-> My SUN Blade 100 are cauing me troubles..]
-if its locking up regularly try appending ide=nodma to the kernel line.
+> > Did you expect:
+> > CPU: TI UltraSparc II  (BlackBird)
+> > FPU: UltraSparc II integrated FPU
+> >
+> > Ohh, I see why.
+> > The sucker that updated kernel/cpu.c did a poor job doing so.
+> > (For reference: it was me)
+> >
+> > I assume manufacturer_info can be indexed but it needs to be searched.
+> > Will likely fix tonight if you do not beat me.
+> >
+> > I think I know why I did this mistake, as I really did not make up
+> > my mind what approach to use and ended up mixing it.
+> >
+> > [For the record I do not have a sparc to test it on.
+> > My SUN Blade 100 are cauing me troubles..]
+> if its locking up regularly try appending ide=nodma to the kernel line.
 
-Dennis
+It gave a few strange errors.
+I read somewhere on a debian forum that they did not expect the CD
+based install to work and recommended a network based setup.
 
---nextPart11232187.R1svTHGfOc
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+So I'm planning to do this. It requires RARP (or DHCP), tftp and
+I think one more thing. I just ran out of time when playing with it.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.10 (GNU/Linux)
+The box caused me some troubles when I received it:
+- Power supply managed to get it running only once, then it died
+- Of the three RAM blocks two was faulty so I have only 256 MB left :-(
+- I never managed to get the monitor to display anything
 
-iEYEABECAAYFAklwsc0ACgkQkSxm47BaWfea9gCgpF3AM/vkA22llKFnHuT/WXmb
-nh4An3gw+r0OPhnho/xWBRz+9o3C5yeh
-=XeGA
------END PGP SIGNATURE-----
+But for my purpose - to do some rudimentary kernel tests that will
+suffice.
 
---nextPart11232187.R1svTHGfOc--
+	Sam
