@@ -1,7 +1,7 @@
-From: Nicholas Leippe <nick.leippe@whitecanyon.com>
-Date: Sun, 18 Jan 2009 23:21:21 +0000
+From: David Miller <davem@davemloft.net>
+Date: Mon, 19 Jan 2009 03:11:38 +0000
 Subject: Re: config for v880
-Message-Id: <200901181621.21213.nick.leippe@whitecanyon.com>
+Message-Id: <20090118.191138.219656360.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <200901160946.41267.nick.leippe@whitecanyon.com>
 In-Reply-To: <200901160946.41267.nick.leippe@whitecanyon.com>
@@ -10,36 +10,47 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sun Jan 18 2009 00:16:03 you wrote:
-> Herman L. is reporting a similar problem that I need to get
-> back to.
->
-> Have you saved a failed boot log and could you post it here
-> if so?  That might help us find this bug.
+From: Nicholas Leippe <nick.leippe@whitecanyon.com>
+Date: Sun, 18 Jan 2009 16:21:21 -0700
 
-I have no experience w/kernel debugging yet.
-What debug options would be most valuable to enable?
-I'll be happy to build & boot any kernel you want to try to solve this.
+> So far, I've had it hang at various different points.
+> 
+> One of which is at:
+> 
+> ...
+> console handover: boot [earlyprom0] -> real [tty0]
 
-I have built all my kernels on a sparc64 gentoo box w/gcc 4.1.2.
+When this happens you won't be able to see the crash
+message because it is being output in between dropping
+the early PROM console and enabling the serial or
+framebuffer console.
 
-So far, I've had it hang at various different points.
+With the patch below (or something like it, it's very easy
+to apply this patch by hand if the one below doesn't work
+for you) you are more likely to see the crash message.
 
-One of which is at:
+> another (which was on a 480r, not sure if same prob on 880) was:
+> 
+> ...
+> rtc0 = alarms up to one no, 114 bytes nvram
+> 
+> notice the "no" instead of "month" for example.
 
-...
-console handover: boot [earlyprom0] -> real [tty0]
+This doesn't really indicate much.
 
-another (which was on a 480r, not sure if same prob on 880) was:
+Anyways, here is the patch for the other case so you can
+try to fetch some more logging info:
 
-...
-rtc0 = alarms up to one no, 114 bytes nvram
-
-notice the "no" instead of "month" for example.
-
-I've also seen it hang on the 880 at other places.
-So, I'm not really sure where it's dying.
-
--- 
-Nicholas Leippe
-
+diff --git a/arch/sparc64/kernel/setup.c b/arch/sparc64/kernel/setup.c
+index c8b03a4..2c50796 100644
+--- a/arch/sparc64/kernel/setup.c
++++ b/arch/sparc64/kernel/setup.c
+@@ -82,7 +82,7 @@ unsigned long cmdline_memory_size = 0;
+ static struct console prom_early_console = {
+ 	.name =		"earlyprom",
+ 	.write =	prom_console_write,
+-	.flags =	CON_PRINTBUFFER | CON_BOOT | CON_ANYTIME,
++	.flags =	CON_PRINTBUFFER | CON_ANYTIME,
+ 	.index =	-1,
+ };
+ 
