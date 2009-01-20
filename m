@@ -1,54 +1,47 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 14 Jan 2009 01:33:19 +0000
-Subject: Re: collision: arch/sparc/include/asm/spinlock_64.h vs.
-Message-Id: <20090113.173319.58865475.davem@davemloft.net>
+Date: Tue, 20 Jan 2009 06:25:14 +0000
+Subject: Re: Sunfire V880 and 480R 2.6.27.x startup hangs
+Message-Id: <20090119.222514.261424510.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <a4423d670901130206r7cc1bdfcw685a3895bb2fc3bf@mail.gmail.com>
-In-Reply-To: <a4423d670901130206r7cc1bdfcw685a3895bb2fc3bf@mail.gmail.com>
+References: <20081219085622.GA20721@lemon.iwr.uni-heidelberg.de>
+In-Reply-To: <20081219085622.GA20721@lemon.iwr.uni-heidelberg.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Alexander Beregalov <a.beregalov@gmail.com>
-Date: Tue, 13 Jan 2009 13:06:26 +0300
+From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
+Date: Fri, 19 Dec 2008 09:56:22 +0100
 
-> __raw_{read,write}*() are defined in both places.
+> On Wed, Dec 17, 2008 at 07:46:46PM -0800, David Miller wrote:
+> > > tried 2.6.27.2 today, but this hangs already at loading the kernel.
+> > > Output is attached. Please tell me what else I can provide.
+> > 
+> > Unfortunately, "-p" doesn't do anything any more and the kernel
+> > is stopping or crashing during the part of the boot between
+> > when the early prom console is disabled and the real console is
+> > setup.
+> > 
+> > The way to debug this is to manually get rid of the CON_BOOT flag
+> > in the early prom console structure, like the following patch.
+> 
+> Applied your patch to the 2.6.27.9 vanilla source and booted,
+> console output up to the hang is below. Just to remember:
+> 2.6.26.5 did not hang.
+ ...
+> [   50.390759] CPU 0: synchronized TICK with master CPU (last diff 0 cycles, maxerr 11 cycles)
+> [   50.390776] Brought up 2 CPUs
+> [   50.391634] net_namespace: 1552 bytes
+> [   50.568542] NET: Registered protocol family 16
+> 
 
-The best part is that we don't need to export any of
-these rwlock symbols from sparc_ksyms_64.c
+The next thing that probably should run is the PCI controller
+probe.  But I can't say that for certain, so we need more
+info.
 
-All of those routines are inline functions.
+Please reboot this test kernel with the following added boot
+command line options: initcall_debug=1 ignore_loglevel
 
-Thanks for the report, both of you, I'll fix it like
-so:
+Let us see the console log output that generates.
 
-diff --git a/arch/sparc/kernel/sparc_ksyms_64.c b/arch/sparc/kernel/sparc_ksyms_64.c
-index da8f804..0f26066 100644
---- a/arch/sparc/kernel/sparc_ksyms_64.c
-+++ b/arch/sparc/kernel/sparc_ksyms_64.c
-@@ -9,7 +9,6 @@
- #include <linux/pci.h>
- #include <linux/init.h>
- 
--#include <asm/spinlock.h>
- #include <asm/system.h>
- #include <asm/cpudata.h>
- #include <asm/uaccess.h>
-@@ -23,16 +22,6 @@ struct poll {
- 	short revents;
- };
- 
--/* used by various drivers */
--#ifdef CONFIG_SMP
--/* Out of line rw-locking implementation. */
--EXPORT_SYMBOL(__read_lock);
--EXPORT_SYMBOL(__read_unlock);
--EXPORT_SYMBOL(__write_lock);
--EXPORT_SYMBOL(__write_unlock);
--EXPORT_SYMBOL(__write_trylock);
--#endif /* CONFIG_SMP */
--
- /* from helpers.S */
- EXPORT_SYMBOL(__flushw_user);
- EXPORT_SYMBOL_GPL(real_hard_smp_processor_id);
+Thanks!
