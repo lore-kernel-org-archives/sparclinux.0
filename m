@@ -1,55 +1,36 @@
-From: "Julian Calaby" <julian.calaby@gmail.com>
-Date: Sun, 04 Jan 2009 10:20:27 +0000
-Subject: Re: [PATCH] sparc: Merge sparc_ksyms_{32,64}.c
-Message-Id: <646765f40901040220k5381b746he3997f8fd0abb953@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 20 Jan 2009 06:26:22 +0000
+Subject: Re: kernel crashes on Sun Fire 480R with cassini network driver
+Message-Id: <20090119.222622.111613313.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4960225E.1000801@gmail.com>
-In-Reply-To: <4960225E.1000801@gmail.com>
+References: <20080923133152.GC17211@lemon.iwr.uni-heidelberg.de>
+In-Reply-To: <20080923133152.GC17211@lemon.iwr.uni-heidelberg.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sun, Jan 4, 2009 at 19:43, Sam Ravnborg <sam@ravnborg.org> wrote:
-> Hi Julian.
->
-> As a first step before trying to merge these two files
-> all EXPORT_SYMBOL() that exports symbols defined in .C files
-> shall be moved out to their respective definition site.
+From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
+Date: Thu, 18 Dec 2008 15:12:20 +0100
 
-Ok.
+> On Wed, Dec 17, 2008 at 07:44:36PM -0800, David Miller wrote:
+> > Could you please get one of those JTAG SCAN dumps after
+> > the crash, and provide the exact kernel image and System.map
+> > file for me to download somewhere?
+> 
+> I reproduced a crash with the current debian 2.6.24-etchnhalf.1-sparc64-smp
+> kernel, and the relevant files from /boot are on:
+> 
+> http://www.iwr.uni-heidelberg.de/ftp/linux/sparc-boot/
+> 
+> The initrd is also included, console with the JTAG SCAN
+> output is in crash.console.
+> 
+> Please tell me if you need anything else.
+> Thanks for looking at it.
 
-> You also need to pay attention to all the
-> prototypes and extern's in the sparc_kysms.c files.
->
-> If they are still needed they belong to a header file.
+I have looked at this for a few days, and there are no real good clues
+in there unfortunately.
 
-Ok.
-
-> This is all straightforward to do it just take some time.
-> And if you keep your patches sufficienly small then it
-> should be easy to review too.
-
-Ok.
-
-Some explanation:
-
-This was a (wrong) first step before doing the unification of arch/sparc/prom/*.
-
-I think I'll take some of the lower hanging fruit first.
-
-After I kill PROMLIB_INTERNAL and the exported definitions of
-__prom_*(), I think I'll work on unifying include/asm/oplib_*.h as
-that will make later changes smaller.
-
-As for moving the EXPORT_SYMBOL()s out of here, I think I'll leave the
-code as it is and eliminate most of the code in kernel/sparc_ksyms_*.c
-as a final step.
-
-Thanks for the advice!
-
--- 
-
-Julian Calaby
-
-Email: julian.calaby@gmail.com
+But don't fear, let's get 2.6.27.x booting properly and then try to
+get back to this bug.
