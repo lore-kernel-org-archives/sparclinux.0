@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 26 Jan 2009 02:30:23 +0000
+From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
+Date: Mon, 26 Jan 2009 10:04:39 +0000
 Subject: Re: Sunfire V880 and 480R 2.6.27.x startup hangs
-Message-Id: <20090125.183023.179806550.davem@davemloft.net>
+Message-Id: <20090126100439.GB1994@lemon.iwr.uni-heidelberg.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20081219085622.GA20721@lemon.iwr.uni-heidelberg.de>
 In-Reply-To: <20081219085622.GA20721@lemon.iwr.uni-heidelberg.de>
@@ -10,81 +10,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
-Date: Thu, 22 Jan 2009 14:29:34 +0100
+On Sun, Jan 25, 2009 at 06:30:23PM -0800, David Miller wrote:
+>
+> > Compiled 2.6.27.12 today without the CON_BOOT flag and booted with the
+> > options above. The hang seems to be in of_bus_driver_init, see
+> > console output below.
+> 
+> I wonder what's getting tripped up in there :-)
+> 
+> Please add this patch and get the new console output, thanks!
 
-> Compiled 2.6.27.12 today without the CON_BOOT flag and booted with the
-> options above. The hang seems to be in of_bus_driver_init, see
-> console output below.
+Not getting much futher, only a "Setting up of bus", see below. 
+The full console output I leave on:
 
-I wonder what's getting tripped up in there :-)
+http://www.iwr.uni-heidelberg.de/ftp/linux/sparc-boot/console20090126.txt
 
-Please add this patch and get the new console output, thanks!
+Is that ok or should I always attach the complete console ?
+If time permits I'll test on a 480R, too. Thanks.
 
-diff --git a/arch/sparc64/kernel/of_device.c b/arch/sparc64/kernel/of_device.c
-index 100ebd5..fefd415 100644
---- a/arch/sparc64/kernel/of_device.c
-+++ b/arch/sparc64/kernel/of_device.c
-@@ -818,10 +818,16 @@ static struct of_device * __init scan_one_device(struct device_node *dp,
- static void __init scan_tree(struct device_node *dp, struct device *parent)
- {
- 	while (dp) {
--		struct of_device *op = scan_one_device(dp, parent);
--
--		if (op)
-+		struct of_device *op;
-+
-+		printk(KERN_ERR "scan_tree: Scanning device %p:[%s]\n",
-+		       dp, (dp ? dp->full_name : "<NULL>"));
-+		op = scan_one_device(dp, parent);
-+		if (op) {
-+			printk(KERN_ERR "scan_tree: Recursing to child %p\n",
-+			       dp->child);
- 			scan_tree(dp->child, &op->dev);
-+		}
- 
- 		dp = dp->sibling;
- 	}
-@@ -832,10 +838,12 @@ static void __init scan_of_devices(void)
- 	struct device_node *root = of_find_node_by_path("/");
- 	struct of_device *parent;
- 
-+	printk(KERN_ERR "Building root from %p\n", root);
- 	parent = scan_one_device(root, NULL);
- 	if (!parent)
- 		return;
- 
-+	printk(KERN_ERR "Scanning tree...\n");
- 	scan_tree(root->child, &parent->dev);
- }
- 
-@@ -843,18 +851,26 @@ static int __init of_bus_driver_init(void)
- {
- 	int err;
- 
-+	printk(KERN_ERR "Setting up of bus\n");
- 	err = of_bus_type_init(&of_platform_bus_type, "of");
- #ifdef CONFIG_PCI
--	if (!err)
-+	if (!err) {
-+		printk(KERN_ERR "Setting up ebus bus\n");
- 		err = of_bus_type_init(&ebus_bus_type, "ebus");
-+	}
- #endif
- #ifdef CONFIG_SBUS
--	if (!err)
-+	if (!err) {
-+		printk(KERN_ERR "Setting up sbus bus\n");
- 		err = of_bus_type_init(&sbus_bus_type, "sbus");
-+	}
- #endif
- 
--	if (!err)
-+	if (!err) {
-+		printk(KERN_ERR "scan_of_devices()\n");
- 		scan_of_devices();
-+		printk(KERN_ERR "Done with scan_of_devices()\n");
-+	}
- 
- 	return err;
- }
+~> tail /tmp/console20090126.txt
+[   48.455736] initcall random32_init+0x0/0xf0 returned 0 after 0 msecs
+[   48.531777] calling  sock_init+0x0/0x64
+[   48.577716] initcall sock_init+0x0/0x64 returned 0 after 0 msecs
+[   48.649494] calling  netpoll_init+0x0/0x30
+[   48.698453] initcall netpoll_init+0x0/0x30 returned 0 after 0 msecs
+[   48.773455] calling  netlink_proto_init+0x0/0x238
+[   48.829727] NET: Registered protocol family 16
+[   48.882871] initcall netlink_proto_init+0x0/0x238 returned 0 after 3 msecs
+[   48.965131] calling  of_bus_driver_init+0x0/0x104
+[   49.021376] Setting up of bus
+
+-- 
+Netzwerkadministration/Zentrale Dienste, Interdiziplinaeres 
+Zentrum fuer wissenschaftliches Rechnen der Universitaet Heidelberg
+IWR; INF 368; 69120 Heidelberg; Tel: (06221)54-8236 Fax: -5224
+Email: Hermann.Lauer@iwr.uni-heidelberg.de
