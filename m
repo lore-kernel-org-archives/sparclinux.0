@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 16 Jan 2009 00:02:59 +0000
+Date: Mon, 26 Jan 2009 22:57:06 +0000
 Subject: [GIT]: Sparc
-Message-Id: <20090115.160259.246293979.davem@davemloft.net>
+Message-Id: <20090126.145706.154913313.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080421.153231.108090227.davem@davemloft.net>
 In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
@@ -12,20 +12,35 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-Please pull to get this build fix for Sparc.
+Please pull to get these Sparc bug fixes, thanks!
 
-Thanks!
-
-The following changes since commit 37a76bd4f1b716949fc38a6842e89f0ccb8384d0:
-  Arjan van de Ven (1):
-        async: fix __lowest_in_progress()
+The following changes since commit f3b8436ad9a8ad36b3c9fa1fe030c7f38e5d3d0b:
+  Linus Torvalds (1):
+        Merge branch 'for-linus' of git://git.kernel.org/.../roland/infiniband
 
 are available in the git repository at:
 
   master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
 
-David S. Miller (1):
-      sparc64: Fix UP build failure.
+Christian Borntraeger (1):
+      [CVE-2009-0029] sparc: Enable syscall wrappers for 64-bit
 
- arch/sparc/kernel/sparc_ksyms_64.c |   11 -----------
- 1 files changed, 0 insertions(+), 11 deletions(-)
+David S. Miller (3):
+      sparc64: Initialize FHC/CLOCK LED platform_device 'id' field correctly.
+      sparc64: Annotate sparc64 specific syscalls with SYSCALL_DEFINEx()
+      sparc64: Fix DAX handling via userspace access from kernel.
+
+Sam Ravnborg (2):
+      sparc64: fix readout of cpu/fpu type
+      sparc64: fix modpost failure
+
+ arch/sparc/Kconfig               |    1 +
+ arch/sparc/kernel/central.c      |    2 +
+ arch/sparc/kernel/cpu.c          |   18 ++++++++++++--
+ arch/sparc/kernel/sys_sparc_64.c |   48 ++++++++++++++++++-------------------
+ arch/sparc/kernel/syscalls.S     |    2 +-
+ arch/sparc/kernel/systbls.h      |    3 --
+ arch/sparc/kernel/systbls_64.S   |   16 ++++++------
+ arch/sparc/kernel/traps_64.c     |   17 ++++++++++++-
+ arch/sparc/lib/Makefile          |    3 +-
+ 9 files changed, 68 insertions(+), 42 deletions(-)
