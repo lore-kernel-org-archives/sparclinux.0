@@ -1,34 +1,47 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 05 Jan 2009 08:54:33 +0000
-Subject: Re: [PATCH] sparc: remove reg.h from Kbuild
-Message-Id: <20090105.005433.248018263.davem@davemloft.net>
+From: Josip Rodin <joy@entuzijast.net>
+Date: Mon, 26 Jan 2009 09:49:11 +0000
+Subject: Re: dmfe/tulip kernel module poll
+Message-Id: <20090126094911.GA2936@orion.carnet.hr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090105085315.GA17530@uranus.ravnborg.org>
-In-Reply-To: <20090105085315.GA17530@uranus.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 5 Jan 2009 09:53:15 +0100
 
-> remove stale reference from Kbuild.
+I'm just Cc:'ing this to the sparc kernel mailing list...
+
+On Sun, Jan 25, 2009 at 08:21:56PM -0500, Brian Thompson wrote:
 > 
-> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-> ---
+> Hello,
 > 
-> The better solution would be to integrate this with the
-> commit that remove the files - but this is only feasible
-> if you have not yet pushed out the tree.
+> I'd like to get some feedback as to whether anyone is actually using
+> the dmfe Davicom kernel module on sparc for 10/100 ethernet.
+> 
+> To the best of my knowledge, Sun never manufactured any
+> expansion cards that utilize the Davicom chip and the UltraAX-i2
+> motherboard (Netra X1 and Sunfire V100) is the only Sun
+> motherboard that uses the chip. That particular motherboard
+> uses the tulip kernel module though, not the dmfe kernel module.
+> 
+> Since the PCI ID of the UltraAX-i2's onboard ethernet
+> (1282:9102 - Davicom 9102) matches up with both the dmfe
+> module and the tulip module, both modules attempt to load and
+> end up causing the network interface to malfunction.
+> 
+> My question is - is anyone actually using the dmfe kernel module
+> on sparc and/or would it be ok to set the default to not build the
+> dmfe kernel module on sparc?
+> 
+> I presume that the only scenario where anyone would actually be
+> using the dmfe kernel module on sparc would be if they've installed
+> a PCI NIC originally intended for x86 machines into their sparc
+> machine.
+> 
+> Any feedback would be greatly appreciated.
+> 
+> Thanks,
+> Brian
 
-I don't get it, I thought I did this when I commited my
-change. :-/
-
-Indeed, git status on my local tree shows:
-
-#	modified:   arch/sparc/include/asm/Kbuild
-
-Ugh!
-
-I'll commit my local forgotten change, thanks Sam.
+-- 
+     2. That which causes joy or happiness.
