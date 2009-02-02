@@ -1,7 +1,7 @@
-From: Julian Calaby <julian.calaby@gmail.com>
-Date: Mon, 02 Feb 2009 13:24:55 +0000
+From: Bastian Blank <waldi@debian.org>
+Date: Mon, 02 Feb 2009 13:34:13 +0000
 Subject: Re: make ARCH=sparc allmodconfig change
-Message-Id: <646765f40902020524h20c19c5ex6f697fa979931b49@mail.gmail.com>
+Message-Id: <20090202133413.GA21476@wavehammer.waldi.eu.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20090201190029.GA8962@x200.localdomain>
 In-Reply-To: <20090201190029.GA8962@x200.localdomain>
@@ -10,32 +10,13 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Mon, Feb 2, 2009 at 16:48, Sam Ravnborg <sam@ravnborg.org> wrote:
-> On Sun, Feb 01, 2009 at 09:51:13PM +0000, Mark Fortescue wrote:
->> Hi all.
->>
->> Silly question. If ARCH=sparc is not 64bit then how do you make a 32bit
->> sparc kernel?
->
-> make arch=sparc menuconfig give you the option to select
-> if the kernel is 64 bit or not.
->
-> And this "64 bit?" option is what is causing us troubles for the
-> all*config targets.
-> allyesconfig and allmodconfig will both set this option to 'y'
-> so we cannot in any simple way generate a 32bit all{yes,mod}config.
+On Tue, Feb 03, 2009 at 12:24:55AM +1100, Julian Calaby wrote:
+> I believe that powerpc also works in this manner, as does x86.
 
-Why not have a sparc32 arch also, which would force 64bit to false. So:
-1. If we detect a 32 bit sparc, we select sparc32.
-2. If we detect a 64 bit sparc, we select sparc64.
-3. Otherwise we select sparc and let the user decide.
+No. Only x86 does this for backward compatibility. Neither s390 nor
+powerpc allows such arch overrides.
 
-I believe that powerpc also works in this manner, as does x86.
-
-Thanks,
+Bastian
 
 -- 
-Julian Calaby
-
-Email: julian.calaby@gmail.com
-.Plan: http://sites.google.com/site/juliancalaby/
+Captain's Log, star date 21:34.5...
