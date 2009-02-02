@@ -1,7 +1,7 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 01 Feb 2009 22:43:41 +0000
+Date: Mon, 02 Feb 2009 05:48:23 +0000
 Subject: Re: make ARCH=sparc allmodconfig change
-Message-Id: <20090201224341.GB30935@uranus.ravnborg.org>
+Message-Id: <20090202054823.GA2973@uranus.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20090201190029.GA8962@x200.localdomain>
 In-Reply-To: <20090201190029.GA8962@x200.localdomain>
@@ -10,21 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sun, Feb 01, 2009 at 08:25:16PM +0100, Bastian Blank wrote:
-> On Sun, Feb 01, 2009 at 10:00:29PM +0300, Alexey Dobriyan wrote:
-> > generates 64-bit kernel, while earlier it generated 32-bit kernel.
+On Sun, Feb 01, 2009 at 09:51:13PM +0000, Mark Fortescue wrote:
+> Hi all.
 > 
-> This is in line with the other 32/64bit arches, s390 and powerpc. If
-> you think this is a problem, you should bring that to the kbuild
-> maintainers, because they need to find something then.
+> Silly question. If ARCH=sparc is not 64bit then how do you make a 32bit 
+> sparc kernel?
 
+make arch=sparc menuconfig give you the option to select
+if the kernel is 64 bit or not.
 
-The sparc situation differs from x86.
-For x86 we have three valid archs that we can specify: x86, i386 and x86_&4.
-For sparc we have only two: sparc and sparc64.
-
-And we really need to find a better way to create a 32 bit all*config.
-I looked at it last time it was brought up - but I did not come up
-with anything that I was really happy with.
+And this "64 bit?" option is what is causing us troubles for the
+all*config targets.
+allyesconfig and allmodconfig will both set this option to 'y'
+so we cannot in any simple way generate a 32bit all{yes,mod}config.
 
 	Sam
