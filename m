@@ -1,100 +1,115 @@
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Date: Thu, 05 Feb 2009 11:14:48 +0000
-Subject: [BUGFIX][PATCH] fix memmap init to initialize  valid memmap for
-Message-Id: <20090205201448.3a0f4182.kamezawa.hiroyu@jp.fujitsu.com>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 03 Feb 2009 06:09:08 +0000
+Subject: [PATCH]: sparc64: Validate kernel generated fault addresses on
+Message-Id: <20090202.220908.168045940.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090204.222651.26527737.davem@davemloft.net>
-	<20090205180617.8ee3dfb5.kamezawa.hiroyu@jp.fujitsu.com>
-	<20090205.012123.141238531.davem@davemloft.net>
-	<20090205183409.1a12c23b.kamezawa.hiroyu@jp.fujitsu.com>
-	<20090205103925.GE26878@csn.ul.ie>
-In-Reply-To: <20090205103925.GE26878@csn.ul.ie>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mel Gorman <mel@csn.ul.ie>
-Cc: David Miller <davem@davemloft.net>, heiko.carstens@de.ibm.com, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Thu, 5 Feb 2009 10:39:25 +0000
-Mel Gorman <mel@csn.ul.ie> wrote:
 
-> ==
-> If a PFN is not in early_node_map[] then the struct page for it is not
-> initialised. If there are holes within a MAX_ORDER_NR_PAGES range of
-> pages, then PG_reserved will not be set. Code that walks PFNs within
-> MAX_ORDER_NR_PAGES will then use uninitialised struct pages.
-> 
-> To avoid any problems, this patch initialises holes within a MAX_ORDER_NR_PAGES
-> that valid memmap exists but is otherwise unused.
-> ==
-> 
-Thank you, I use this text.
-=
-If PFN is not in early_node_map[] then struct page for it is not initialized.
-If there are holes within a MAX_ORDER_NE_PAGES range of pages, then PG_reserved
-will not be set. Code that walks PFNs within MAX_ORDER_NR_PAGES will the use
-uninitialized struct pages.
+I just committed the following debugging aid for sparc64.
 
-To avoid any problems, this patch initializes holes within a MAX_ORDER_NR_PAGES
-that valid memmap exists but is otherwise unused.
+--------------------
 
-Changelog:
-  - renamed variable from "tmp" to "actual_nid"
+sparc64: Validate kernel generated fault addresses on sparc64.
 
-Reported-by: David Miller <davem@davemlloft.net>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+In order to handle all of the cases of address calculation overflow
+properly, we run sparc 32-bit processes in "address masking" mode
+when running on a 64-bit kernel.
+
+Address masking mode zeros out the top 32-bits of the address
+calculated for every load and store instruction.
+
+However, when we're in privileged mode we have to run with that
+address masking mode disabled even when accessing userspace from
+the kernel.
+
+To "simulate" the address masking mode we clear the top-bits by
+hand for 32-bit processes in the fault handler.
+
+It is the responsibility of code in the compat layer to properly
+zero extend addresses used to access userspace.  If this isn't
+followed properly we can get into a fault loop.
+
+Say that the user address is 0xf0000000 but for whatever reason
+the kernel code sign extends this to 64-bit, and then the kernel
+tries to access the result.
+
+In such a case we'll fault on address 0xfffffffff0000000 but the fault
+handler will process that fault as if it were to address 0xf0000000.
+We'll loop faulting forever because the fault never gets satisfied.
+
+So add a check specifically for this case, when the kernel is faulting
+on a user address access and the addresses don't match up.
+
+This code path is sufficiently slow path, and this bug is sufficiently
+painful to diagnose, that this kind of bug check is warranted.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- include/linux/mmzone.h |    6 ------
- mm/page_alloc.c        |   13 +++++++++++--
- 2 files changed, 11 insertions(+), 8 deletions(-)
+ arch/sparc/mm/fault_64.c |   25 ++++++++++++++++++-------
+ 1 files changed, 18 insertions(+), 7 deletions(-)
 
-Index: linux-2.6.28-rc3/mm/page_alloc.c
-=================================--- linux-2.6.28-rc3.orig/mm/page_alloc.c
-+++ linux-2.6.28-rc3/mm/page_alloc.c
-@@ -2632,9 +2632,18 @@ void __meminit memmap_init_zone(unsigned
- 		 * exist on hotplugged memory.
- 		 */
- 		if (context = MEMMAP_EARLY) {
-+			int nid_from_node_memory_map;
+diff --git a/arch/sparc/mm/fault_64.c b/arch/sparc/mm/fault_64.c
+index a9e474b..1a786ab 100644
+--- a/arch/sparc/mm/fault_64.c
++++ b/arch/sparc/mm/fault_64.c
+@@ -19,6 +19,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/kprobes.h>
+ #include <linux/kdebug.h>
++#include <linux/percpu.h>
+ 
+ #include <asm/page.h>
+ #include <asm/pgtable.h>
+@@ -244,8 +245,14 @@ asmlinkage void __kprobes do_sparc64_fault(struct pt_regs *regs)
+ 	    (fault_code & FAULT_CODE_DTLB))
+ 		BUG();
+ 
++	if (test_thread_flag(TIF_32BIT)) {
++		if (!(regs->tstate & TSTATE_PRIV))
++			regs->tpc &= 0xffffffff;
++		address &= 0xffffffff;
++	}
 +
- 			if (!early_pfn_valid(pfn))
- 				continue;
--			if (!early_pfn_in_nid(pfn, nid))
-+			/*
-+			 * early_pfn_to_nid() returns -1 if the page doesn't
-+			 * exist in early_node_map[]. Initialize it in force
-+			 * and set PG_reserved at el.
-+			 */
-+			nid_from_node_memory_map = early_pfn_to_nid(pfn);
-+			if (nid_from_node_memory_map > -1 &&
-+				nid_from_node_memory_map != nid)
- 				continue;
+ 	if (regs->tstate & TSTATE_PRIV) {
+-		unsigned long tpc = regs->tpc;
++		unsigned long eaddr, tpc = regs->tpc;
+ 
+ 		/* Sanity check the PC. */
+ 		if ((tpc >= KERNBASE && tpc < (unsigned long) __init_end) ||
+@@ -255,6 +262,16 @@ asmlinkage void __kprobes do_sparc64_fault(struct pt_regs *regs)
+ 			bad_kernel_pc(regs, address);
+ 			return;
  		}
- 		page = pfn_to_page(pfn);
-@@ -3001,7 +3010,7 @@ int __meminit early_pfn_to_nid(unsigned 
- 			return early_node_map[i].nid;
++
++		insn = get_fault_insn(regs, insn);
++		eaddr = compute_effective_address(regs, insn, 0);
++		if (WARN_ON_ONCE((eaddr & PAGE_MASK) != (address & PAGE_MASK))){
++			printk(KERN_ERR "FAULT: Mismatch kernel fault "
++			       "address: addr[%lx] eaddr[%lx] TPC[%lx]\n",
++			       address, eaddr, tpc);
++			show_regs(regs);
++			goto handle_kernel_fault;
++		}
  	}
  
--	return 0;
-+	return -1;
- }
- #endif /* CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID */
+ 	/*
+@@ -264,12 +281,6 @@ asmlinkage void __kprobes do_sparc64_fault(struct pt_regs *regs)
+ 	if (in_atomic() || !mm)
+ 		goto intr_or_no_mm;
  
-Index: linux-2.6.28-rc3/include/linux/mmzone.h
-=================================--- linux-2.6.28-rc3.orig/include/linux/mmzone.h
-+++ linux-2.6.28-rc3/include/linux/mmzone.h
-@@ -1070,12 +1070,6 @@ void sparse_init(void);
- #define sparse_index_init(_sec, _nid)  do {} while (0)
- #endif /* CONFIG_SPARSEMEM */
- 
--#ifdef CONFIG_NODES_SPAN_OTHER_NODES
--#define early_pfn_in_nid(pfn, nid)	(early_pfn_to_nid(pfn) = (nid))
--#else
--#define early_pfn_in_nid(pfn, nid)	(1)
--#endif
+-	if (test_thread_flag(TIF_32BIT)) {
+-		if (!(regs->tstate & TSTATE_PRIV))
+-			regs->tpc &= 0xffffffff;
+-		address &= 0xffffffff;
+-	}
 -
- #ifndef early_pfn_valid
- #define early_pfn_valid(pfn)	(1)
- #endif
+ 	if (!down_read_trylock(&mm->mmap_sem)) {
+ 		if ((regs->tstate & TSTATE_PRIV) &&
+ 		    !search_exception_tables(regs->tpc)) {
+-- 
+1.6.1.2.253.ga34a
 
