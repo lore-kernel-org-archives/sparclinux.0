@@ -1,71 +1,48 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 03 Feb 2009 05:58:30 +0000
-Subject: Re: [PATCH 0/3]: NMI watchdog support for sparc64
-Message-Id: <20090202.215830.227857358.davem@davemloft.net>
+From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
+Date: Tue, 03 Feb 2009 10:43:53 +0000
+Subject: Two V880, one working with a 2.6.28 kernel image, one hanging
+Message-Id: <20090203104353.GA5223@lemon.iwr.uni-heidelberg.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090130.002549.12348127.davem@davemloft.net>
-In-Reply-To: <20090130.002549.12348127.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-From: David Miller <davem@davemloft.net>
-Date: Sun, 01 Feb 2009 02:05:09 -0800 (PST)
+Hello Adrian,
 
-> The bad news is that the NMI watchdog can trigger spuriously
-> when using NOHZ and I have to figure out a way to fix that.
+On Mon, Feb 02, 2009 at 05:02:43PM +0100, Adrian Knoth wrote:
+> On Mon, Feb 02, 2009 at 04:57:09PM +0100, Hermann Lauer wrote:
+> > May I get your compiled, running kernel image to try that on my V880?
+>=20
+> The extracted tgz contains much more, but also my kernel, the silo
+> config, the modules and so on.
 
-I've just pushed the following fix for this bug.
+unfortunately on my V880 your 2.6.28 image hangs at the same point as my
+tries with David Miller. Looking throught your included dmesg file
+I noticed the following main differences  from my console output available =
+at:
+http://www.iwr.uni-heidelberg.de/ftp/linux/sparc-boot/console-2.6.28-200902=
+03.txt
 
-sparc64: On non-Niagara, need to touch NMI watchdog in NOHZ mode.
+1) your OBP firmware 4.17.1, mine is 4.22.34
+2) you are on the rsc console, here it is the serial port
+3) you have 6 cpus with more memory, I only two
 
-When we're idling in NOHZ mode, timer interrupts are not running.
+Do you have your OBP firmware around ? Please don't search,
+if not, I'll look myself for it. And a "lspci -v" would be interesting
+for me, too.
 
-Evidence of processing timer interrupts is what the NMI watchdog
-uses to determine if the CPU is stuck.
+For the linux sparc list: Adrians report and kernel config is available
+on http://bugs.debian.org/cgi-bin/bugreport.cgi?bugP9202
 
-On Niagara, we'll yield the cpu.  This will make the cpu, at
-worst, hang out in the hypervisor until an interrupt arrives.
-This will prevent the NMI watchdog timer from firing.
+Thanks,
+  Hermann
 
-However on non-Niagara we just loop executing instructions
-which will cause the NMI watchdog to keep firing.  It won't
-see timer interrupts happening so it will think the cpu is
-stuck.
+> PS: Meinetwegen k=F6nnen wir auch auf Deutsch schreiben ;)
+Ist halt schlecht mit den CC, sonst gerne :-)
 
-Fix this by touching the NMI watchdog in the cpu idle loop
-on non-Niagara machines.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/kernel/process_64.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
-
-diff --git a/arch/sparc/kernel/process_64.c b/arch/sparc/kernel/process_64.c
-index cc8b560..a73954b 100644
---- a/arch/sparc/kernel/process_64.c
-+++ b/arch/sparc/kernel/process_64.c
-@@ -29,6 +29,7 @@
- #include <linux/cpu.h>
- #include <linux/elfcore.h>
- #include <linux/sysrq.h>
-+#include <linux/nmi.h>
- 
- #include <asm/uaccess.h>
- #include <asm/system.h>
-@@ -52,8 +53,10 @@
- 
- static void sparc64_yield(int cpu)
- {
--	if (tlb_type != hypervisor)
-+	if (tlb_type != hypervisor) {
-+		touch_nmi_watchdog();
- 		return;
-+	}
- 
- 	clear_thread_flag(TIF_POLLING_NRFLAG);
- 	smp_mb__after_clear_bit();
--- 
-1.6.1.2.253.ga34a
-
+--=20
+Netzwerkadministration/Zentrale Dienste, Interdiziplinaeres=20
+Zentrum fuer wissenschaftliches Rechnen der Universitaet Heidelberg
+IWR; INF 368; 69120 Heidelberg; Tel: (06221)54-8236 Fax: -5224
+Email: Hermann.Lauer@iwr.uni-heidelberg.de
