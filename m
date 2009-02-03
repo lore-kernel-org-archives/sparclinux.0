@@ -1,48 +1,116 @@
-From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
-Date: Tue, 03 Feb 2009 10:43:53 +0000
-Subject: Two V880, one working with a 2.6.28 kernel image, one hanging
-Message-Id: <20090203104353.GA5223@lemon.iwr.uni-heidelberg.de>
+From: adi@drcomp.erfurt.thur.de (Adrian Knoth)
+Date: Tue, 03 Feb 2009 12:05:13 +0000
+Subject: Re: Two V880, one working with a 2.6.28 kernel image, one hanging
+Message-Id: <20090203120513.GM2348@ltw.loris.tv>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20090203104353.GA5223@lemon.iwr.uni-heidelberg.de>
+In-Reply-To: <20090203104353.GA5223@lemon.iwr.uni-heidelberg.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Hello Adrian,
+On Tue, Feb 03, 2009 at 11:43:53AM +0100, Hermann Lauer wrote:
 
-On Mon, Feb 02, 2009 at 05:02:43PM +0100, Adrian Knoth wrote:
-> On Mon, Feb 02, 2009 at 04:57:09PM +0100, Hermann Lauer wrote:
-> > May I get your compiled, running kernel image to try that on my V880?
->=20
-> The extracted tgz contains much more, but also my kernel, the silo
-> config, the modules and so on.
+> Hello Adrian,
 
-unfortunately on my V880 your 2.6.28 image hangs at the same point as my
-tries with David Miller. Looking throught your included dmesg file
-I noticed the following main differences  from my console output available =
-at:
-http://www.iwr.uni-heidelberg.de/ftp/linux/sparc-boot/console-2.6.28-200902=
-03.txt
+Hi!
 
-1) your OBP firmware 4.17.1, mine is 4.22.34
-2) you are on the rsc console, here it is the serial port
-3) you have 6 cpus with more memory, I only two
+> Do you have your OBP firmware around? Please don't search,
 
-Do you have your OBP firmware around ? Please don't search,
-if not, I'll look myself for it. And a "lspci -v" would be interesting
-for me, too.
+Unfortunately not, we inherited the machine without anything. (and I
+don't know enough about it if it's possible to extract it from a special
+character device or something like that)
 
-For the linux sparc list: Adrians report and kernel config is available
-on http://bugs.debian.org/cgi-bin/bugreport.cgi?bugP9202
 
-Thanks,
-  Hermann
+> if not, I'll look myself for it. And a "lspci -v" would be interesting
+> for me, too.
 
-> PS: Meinetwegen k=F6nnen wir auch auf Deutsch schreiben ;)
-Ist halt schlecht mit den CC, sonst gerne :-)
+
+0000:00:01.0 SCSI storage controller: LSI Logic / Symbios Logic 53c875 (rev=
+ 04)
+	Flags: bus master, medium devsel, latency 64, IRQ 5
+	I/O ports at 0300 [size%6]
+	Memory at 00100000 (32-bit, non-prefetchable) [size=3D8K]
+	Memory at 00102000 (32-bit, non-prefetchable) [size=3D8K]
+	[virtual] Memory at fffff80200000000 (32-bit, non-prefetchable) [size=3D1]
+	[virtual] Memory at fffff80200000000 (32-bit, non-prefetchable) [size=3D1]
+	[virtual] Memory at fffff80200000000 (32-bit, non-prefetchable) [size=3D1]
+	[virtual] Expansion ROM at fffff80200000000 [disabled] [size=3D1]
+	Kernel driver in use: sym53c8xx
+
+0001:00:01.0 Ethernet controller: Sun Microsystems Computer Corp. GEM 10/10=
+0/1000 Ethernet [ge] (rev 01)
+	Flags: bus master, 66MHz, slow devsel, latency 64, IRQ 7
+	Memory at 00200000 (32-bit, non-prefetchable) [size=3D2M]
+	[virtual] Memory at fffff80300000000 (32-bit, non-prefetchable) [size=3D1]
+	[virtual] Memory at fffff80300000000 (32-bit, non-prefetchable) [size=3D1]
+	[virtual] Memory at fffff80300000000 (32-bit, non-prefetchable) [size=3D1]
+	[virtual] Memory at fffff80300000000 (32-bit, non-prefetchable) [size=3D1]
+	[virtual] Memory at fffff80300000000 (32-bit, non-prefetchable) [size=3D1]
+	Expansion ROM at 00100000 [disabled] [size=3D1M]
+	Kernel driver in use: gem
+	Kernel modules: sungem
+
+0001:00:02.0 SCSI storage controller: QLogic Corp. QLA2200 64-bit Fibre Cha=
+nnel Adapter (rev 05)
+	Flags: bus master, 66MHz, medium devsel, latency 64, IRQ 8
+	I/O ports at 0300 [size%6]
+	Memory at 00400000 (32-bit, non-prefetchable) [size=3D8K]
+	[virtual] Memory at fffff80300000000 (32-bit, non-prefetchable) [size=3D1]
+	[virtual] Memory at fffff80300000000 (32-bit, non-prefetchable) [size=3D1]
+	[virtual] Memory at fffff80300000000 (32-bit, non-prefetchable) [size=3D1]
+	[virtual] Memory at fffff80300000000 (32-bit, non-prefetchable) [size=3D1]
+	Expansion ROM at 00420000 [disabled] [size=128K]
+	Capabilities: [44] Power Management version 1
+	Kernel driver in use: qla2xxx
+	Kernel modules: qla2xxx
+
+0002:00:01.0 Bridge: Sun Microsystems Computer Corp. RIO EBUS (rev 01)
+	Flags: bus master, medium devsel, latency 64
+	BIST result: 00
+	Memory at fffff80400000000 (32-bit, non-prefetchable) [size=3D1]
+	Memory at fffff80400000000 (32-bit, non-prefetchable) [size=3D1]
+	[virtual] Memory at fffff80400000000 (32-bit, non-prefetchable) [size=3D1]
+	[virtual] Memory at fffff80400000000 (32-bit, non-prefetchable) [size=3D1]
+	[virtual] Memory at fffff80400000000 (32-bit, non-prefetchable) [size=3D1]
+	[virtual] Memory at fffff80400000000 (32-bit, non-prefetchable) [size=3D1]
+	Expansion ROM at fffff80400000000 [disabled] [size=3D1]
+
+0002:00:01.1 Ethernet controller: Sun Microsystems Computer Corp. RIO 10/10=
+0 Ethernet [eri] (rev 01)
+	Flags: bus master, medium devsel, latency 64, IRQ 19
+	BIST result: 00
+	Memory at 00100000 (32-bit, non-prefetchable) [size=128K]
+	[virtual] Memory at fffff80400000000 (32-bit, non-prefetchable) [size=3D1]
+	[virtual] Memory at fffff80400000000 (32-bit, non-prefetchable) [size=3D1]
+	[virtual] Memory at fffff80400000000 (32-bit, non-prefetchable) [size=3D1]
+	[virtual] Memory at fffff80400000000 (32-bit, non-prefetchable) [size=3D1]
+	[virtual] Memory at fffff80400000000 (32-bit, non-prefetchable) [size=3D1]
+	Expansion ROM at 00400000 [disabled] [size=3D4M]
+	Kernel driver in use: gem
+	Kernel modules: sungem
+
+0002:00:01.3 USB Controller: Sun Microsystems Computer Corp. RIO USB (rev 0=
+1) (prog-if 10 [OHCI])
+	Flags: bus master, medium devsel, latency 64, IRQ 20
+	BIST result: 00
+	Memory at 01000000 (32-bit, non-prefetchable) [size=16M]
+	[virtual] Memory at fffff80400000000 (32-bit, non-prefetchable) [size=3D1]
+	[virtual] Memory at fffff80400000000 (32-bit, non-prefetchable) [size=3D1]
+	[virtual] Memory at fffff80400000000 (32-bit, non-prefetchable) [size=3D1]
+	[virtual] Memory at fffff80400000000 (32-bit, non-prefetchable) [size=3D1]
+	[virtual] Memory at fffff80400000000 (32-bit, non-prefetchable) [size=3D1]
+	Expansion ROM at 00c00000 [disabled] [size=3D4M]
+	Kernel driver in use: ohci_hcd
+	Kernel modules: ohci-hcd
+
+
+Does the Gentoo 2008 live CD boots on your machine?
+
+
+Cheerio
 
 --=20
-Netzwerkadministration/Zentrale Dienste, Interdiziplinaeres=20
-Zentrum fuer wissenschaftliches Rechnen der Universitaet Heidelberg
-IWR; INF 368; 69120 Heidelberg; Tel: (06221)54-8236 Fax: -5224
-Email: Hermann.Lauer@iwr.uni-heidelberg.de
+Friedrich-Schiller-Universit=E4t Jena               Tel: +49 3641 9 463 76
+Institut f=FCr Informatik                           Ernst-Abbe-Platz 2
