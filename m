@@ -1,50 +1,36 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 09 Feb 2009 06:46:34 +0000
-Subject: Re: replace incorrect memcpy_user_stub code
-Message-Id: <20090208.224634.141237525.davem@davemloft.net>
+From: Christian Kujau <lists@nerdbynature.de>
+Date: Wed, 04 Feb 2009 09:07:52 +0000
+Subject: Kernel unaligned access at TPC
+Message-Id: <alpine.DEB.2.00.0902041001550.4084@bogon.housecafe.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200812190208.mBJ28vn13713@elf.torek.net>
-In-Reply-To: <200812190208.mBJ28vn13713@elf.torek.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: sparclinux@vger.kernel.org
 
-From: Chris Torek <chris.torek@windriver.com>
-Date: Mon, 29 Dec 2008 14:55:40 -0700
+Hi lkml,
 
-> >There might be some way we can annotate the regular memcpy()
-> >implementations with exception handling markers, like we do
-> >for the user copy cases, such that they only trigger the
-> >alternative return value handling when a special thread local
-> >flag has been set.
-> 
-> I thought about this, but it's ugly and creates (at least potential)
-> problems with recursion / interrupts.  (Not sure if these are possible
-> in the Linux kernel organization, just "icky on general principles".)
+while trying to track -git kernels on this Ultra5, I've seen the following 
+messages during bootup since 2.6.29-rc3:
 
-Yes, it's not very clean.
+[   94.099721] Kernel unaligned access at TPC[54c818] nsm_get_handle+0x158/0x400
+[   94.336558] Kernel unaligned access at TPC[54c81c] nsm_get_handle+0x15c/0x400
+[   94.678623] Kernel unaligned access at TPC[54c818] nsm_get_handle+0x158/0x400
+[   94.915452] Kernel unaligned access at TPC[54c81c] nsm_get_handle+0x15c/0x400
+[   95.252917] Kernel unaligned access at TPC[54c818] nsm_get_handle+0x158/0x400
 
-> >First, if the %o7 or %i7 are inside of the function memcpy_user_stub,
-> >then we are doing one of these in-kernel copies that are allowed to
-> >fault.  This elides the need for a special thread flag or anything
-> >like that.
-> 
-> This, on the other hand, seems quite promising: as with the exception
-> table itself, we use the program counter (of the return address,
-> in this case) as the flag.
-> 
-> >Then the code in do_kernel_fault() can, if it sees a "fixup" value
-> >with the low bit set, check %o7/%i7 for being inside range of
-> >memcpy_user_stub.  If so, we jump to the fixup.  Otherwise we
-> >behave as if we did not find a matching exception table entry.
-> 
-> This should work really well.
+Searching the net only brought up a post[0] from kernel-testers, but this 
+box here is running fine - no filesystem errors or anything. Are these 
+messages something to worry about or can they be ignored?
 
-In the end I decided that this other approach is very ad-hoc
-as well.
+Full dmesg & .config: http://nerdbynature.de/bits/2.6.29-rc3/
 
-I ended up settling on something similar to your approach,
-and I also implemented your .fixup space optimizations.
+Thanks,
+Christian.
 
-Patch series posting forthcoming...
+[0] http://www.mail-archive.com/kernel-testers@vger.kernel.org/msg02959.html
+-- 
+BOFH excuse #129:
+
+The ring needs another token
