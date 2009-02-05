@@ -1,92 +1,116 @@
-From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date: Tue, 03 Feb 2009 00:49:38 +0000
-Subject: Re: make ARCH=sparc allmodconfig change
-Message-Id: <Pine.LNX.4.61.0902022326200.15354@mtfhpc.demon.co.uk>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 05 Feb 2009 06:26:51 +0000
+Subject: HOLES_IN_ZONE...
+Message-Id: <20090204.222651.26527737.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090201190029.GA8962@x200.localdomain>
-In-Reply-To: <20090201190029.GA8962@x200.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: mel@csn.ul.ie
+Cc: kamezawa.hiroyu@jp.fujitsu.com, heiko.carstens@de.ibm.com, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-Hi All,
 
-On Tue, 3 Feb 2009, Julian Calaby wrote:
+So I've been fighting mysterious crashes on my main sparc64 devel
+machine.  What's happening is that the assertion in
+mm/page_alloc.c:move_freepages() is triggering:
 
-> On Mon, Feb 2, 2009 at 16:48, Sam Ravnborg <sam@ravnborg.org> wrote:
->> On Sun, Feb 01, 2009 at 09:51:13PM +0000, Mark Fortescue wrote:
->>> Hi all.
->>>
->>> Silly question. If ARCH=sparc is not 64bit then how do you make a 32bit
->>> sparc kernel?
->>
->> make arch=sparc menuconfig give you the option to select
->> if the kernel is 64 bit or not.
->>
->> And this "64 bit?" option is what is causing us troubles for the
->> all*config targets.
->> allyesconfig and allmodconfig will both set this option to 'y'
->> so we cannot in any simple way generate a 32bit all{yes,mod}config.
->
-> Why not have a sparc32 arch also, which would force 64bit to false. So:
-> 1. If we detect a 32 bit sparc, we select sparc32.
-> 2. If we detect a 64 bit sparc, we select sparc64.
-> 3. Otherwise we select sparc and let the user decide.
->
-> I believe that powerpc also works in this manner, as does x86.
+	BUG_ON(page_zone(start_page) != page_zone(end_page));
 
-I always cross compile as building on a sun4c takes days so detection is 
-not an option. 
-Having an ARCH alias to preset the 32/64bit flag would seem to me to make 
-sence i.e.:
+Once I knew this is what was happening, I added some annotations:
 
-ARCH=sparc would give the current or previous characteristics (see below)
-ARCH=sparc32 would overide CONFIG_64BIT to N (is not set)
-ARCH=sparc64 would overide CONFIG_64BIT to Y
+	if (unlikely(page_zone(start_page) != page_zone(end_page))) {
+		printk(KERN_ERR "move_freepages: Bogus zones: "
+		       "start_page[%p] end_page[%p] zone[%p]\n",
+		       start_page, end_page, zone);
+		printk(KERN_ERR "move_freepages: "
+		       "start_zone[%p] end_zone[%p]\n",
+		       page_zone(start_page), page_zone(end_page));
+		printk(KERN_ERR "move_freepages: "
+		       "start_pfn[0x%lx] end_pfn[0x%lx]\n",
+		       page_to_pfn(start_page), page_to_pfn(end_page));
+		printk(KERN_ERR "move_freepages: "
+		       "start_nid[%d] end_nid[%d]\n",
+		       page_to_nid(start_page), page_to_nid(end_page));
+ ...
 
-Using a 2.6.28.3 kernel source tree for reference (my sparc git trees are 
-on a machine that is not turned on at the moment):
+And here's what I got:
 
-The current toplevel Makefile explicitaly processes the x86 alias. This 
-could be changed to use a small script/alias file (so that, where 
-apropriate for other architectures, it can easilly be extended) to get 
-SRCARCH e.g.:
+	move_freepages: Bogus zones: start_page[2207d0000] end_page[2207dffc0] zone[fffff8103effcb00]
+	move_freepages: start_zone[fffff8103effcb00] end_zone[fffff8003fffeb00]
+	move_freepages: start_pfn[0x81f600] end_pfn[0x81f7ff]
+	move_freepages: start_nid[1] end_nid[0]
 
-SRCARCH=$(shell $(srctree)/scripts/get_srcarch $(ARCH))
+My memory layout on this box is:
 
-get_srcarch could use a simple 'case $1 in' statement get SRCARCH 
-e.g.:
+[    0.000000] Zone PFN ranges:
+[    0.000000]   Normal   0x00000000 -> 0x0081ff5d
+[    0.000000] Movable zone start PFN for each node
+[    0.000000] early_node_map[8] active PFN ranges
+[    0.000000]     0: 0x00000000 -> 0x00020000
+[    0.000000]     1: 0x00800000 -> 0x0081f7ff
+[    0.000000]     1: 0x0081f800 -> 0x0081fe50
+[    0.000000]     1: 0x0081fed1 -> 0x0081fed8
+[    0.000000]     1: 0x0081feda -> 0x0081fedb
+[    0.000000]     1: 0x0081fedd -> 0x0081fee5
+[    0.000000]     1: 0x0081fee7 -> 0x0081ff51
+[    0.000000]     1: 0x0081ff59 -> 0x0081ff5d
 
-#! /bin/sh
-case "$1" in
-   # ARCH             SRCARCH
-   i386)		echo "x86"   ;;
-   x86_64)	echo "x86"   ;;
-   sparc32)	echo "sparc" ;;
-   sparc64)	echo "sparc" ;;
-   *)            echo "$1"    ;;
-esac
+So it's a block move in that 0x81f600-->0x81f7ff region which triggers
+the problem.
 
-In the arch/sparc/Kconfig some alterations would be needed to get the 
-desired overriding of CONFIG_64BIT. Maybe somthing like:
+So I did a lot (and I do mean _A LOT_) of digging.  And it seems that
+unless you set HOLES_IN_ZONE you have to make sure that all of the
+memmap regions of free space in a zone begin and end on an HPAGE_SIZE
+boundary (the requirement used to be that it had to be MAX_ORDER
+sized).
 
-# Select 32 or 64 bit
-config 64BIT
- 	bool "64-bit kernel" if ARCH = "sparc"
- 	default ARCH = "sparc64"
-#       default !(ARCH = "sparc32") would be an alternative
- 	help
- 	  Say yes to build a 64-bit kernel - formerly known as sparc64
- 	  Say no to build a 32-bit kernel - formerly known as sparc
+Well, this assumption enterred the tree back in 2005 (!!!) from
+the following commit in the history-2.6 tree:
 
-Sam, given your work on the sparc32/64 merge, you probably know your 
-way arround recent changes and the current plans for the future a 
-lot better than I ever will. Would this set of ideas be somthing that 
-would be in keeping with current plans?
+commit 69fba2dd0335abec0b0de9ac53d5bbb67c31fc60
+Author: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Date:   Fri Jan 7 22:01:35 2005 -0800
 
-If you think it worth while, I could probably find a few hours this week 
-to generate a patch along these lines and do some simple testing.
+    [PATCH] no buddy bitmap patch revisit: for mm/page_alloc.c
 
-Regards
- 	Mark.
+At the time only IA64 had HOLES_IN_ZONE added, this happens in the
+commit right after the above one.
+
+So in theory Sparc64 has been broken since that commit and subject to
+potential memory corruption and other unnice things.
+
+I also noticed that when S390 got virtual memmap support, it acquired
+the HOLES_IN_ZONE setting as well, in this commit:
+
+commit f4eb07c17df2e6cf9bd58bfcd9cc9e05e9489d07
+Author: Heiko Carstens <heiko.carstens@de.ibm.com>
+Date:   Fri Dec 8 15:56:07 2006 +0100
+
+    [S390] Virtual memmap for s390.
+
+This is confusing.  Is HOLES_IN_ZONE only required when virtual mmap
+is being used?  If so, why is that?  This is a very poorly documented
+flag, and I'm saying this after pouring over every commit referencing
+it.
+
+Later this HOLES_IN_ZONE requirement was removed on s390 by commit:
+
+commit 9f4b0ba81f158df459fa2cfc98ab1475c090f29c
+Author: Heiko Carstens <heiko.carstens@de.ibm.com>
+Date:   Sat Jan 26 14:11:02 2008 +0100
+
+    [S390] Get rid of HOLES_IN_ZONE requirement.
+
+Anyways...
+
+The point of this email is, do I really need to set this thing on
+sparc64?  I've never seen this check triggered before, it only seems
+to have started triggering in 2.6.27 or so but I obviously can't find
+anything that would influence something of this nature.
+
+It takes a lot of stressing to get that specific chunk of pages to
+attempt to be freed up in a group like that :-/
+
+As a suggestion, it would have been a lot more pleasant if the code
+validated this requirement (in the !HOLES_IN_ZONE case) at boot time
+instead of after 2 hours of stress testing :-(
