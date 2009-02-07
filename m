@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 06 Feb 2009 22:20:20 +0000
+Date: Sat, 07 Feb 2009 07:46:00 +0000
 Subject: Re: SBus HME startup failure
-Message-Id: <20090206.142020.233948811.davem@davemloft.net>
+Message-Id: <20090206.234600.211802423.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.SOC.4.64.0901271205350.17434@math.ut.ee>
 In-Reply-To: <Pine.SOC.4.64.0901271205350.17434@math.ut.ee>
@@ -10,27 +10,49 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Eric Brower <ebrower@gmail.com>
-Date: Fri, 6 Feb 2009 11:32:44 -0800
 
-> I'm running a somewhat-current davem sparc-2.6 GIT.  I'm not sure if
-> your kernel is similar, but if PCI and SBUS are both enabled in the
-> kernel, the SBus device probe routines will be run on all matching HME
-> devices, which means both PCI and SBus.
-> 
-> I have not studied the new driver model and OF implementation in
-> sufficient detail, but the underlying bus type for an of_device (PCI,
-> SBus, etc) appears not to be kept, rather "of" is used in these cases.
->  So, without knowing the underlying bus type, simply using "name" or
-> "compatible" for device matching seems insufficient (at least in the
-> case of HME, or any other device that has both PCI and SBus
-> implementations available).
-> 
-> So, admitting this may not be the proper fix, the following at least
-> allows the SBus probe to exit early.  I'm not sure if this will solve
-> your issue, but it solves mine.
+Meelis and Eric, does the following patch do the trick?
 
-Indeed, that seems to be the cause.  I'll try to find a clean way
-to fix this up.
+--------------------
+sunhme: Don't match PCI devices in SBUS probe.
 
-Thanks guys.
+Unfortunately, the OF device tree nodes for SBUS and PCI
+hme devices have the same device node name on some systems.
+
+So if the name of the parent node isn't 'sbus', skip it.
+
+Based upon an excellent report and detective work by
+Meelis Roos and Eric Brower.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+
+diff --git a/drivers/net/sunhme.c b/drivers/net/sunhme.c
+index 7a72a31..cc4013b 100644
+--- a/drivers/net/sunhme.c
++++ b/drivers/net/sunhme.c
+@@ -2629,6 +2629,14 @@ static int __devinit happy_meal_sbus_probe_one(struct of_device *op, int is_qfe)
+ 	int i, qfe_slot = -1;
+ 	int err = -ENODEV;
+ 
++	sbus_dp = to_of_device(op->dev.parent)->node;
++	if (is_qfe)
++		sbus_dp = to_of_device(op->dev.parent->parent)->node;
++
++	/* We can match PCI devices too, do not accept those here. */
++	if (strcmp(sbus_dp->name, "sbus"))
++		return err;
++
+ 	if (is_qfe) {
+ 		qp = quattro_sbus_find(op);
+ 		if (qp = NULL)
+@@ -2734,10 +2742,6 @@ static int __devinit happy_meal_sbus_probe_one(struct of_device *op, int is_qfe)
+ 	if (qp != NULL)
+ 		hp->happy_flags |= HFLAG_QUATTRO;
+ 
+-	sbus_dp = to_of_device(op->dev.parent)->node;
+-	if (is_qfe)
+-		sbus_dp = to_of_device(op->dev.parent->parent)->node;
+-
+ 	/* Get the supported DVMA burst sizes from our Happy SBUS. */
+ 	hp->happy_bursts = of_getintprop_default(sbus_dp,
+ 						 "burst-sizes", 0x00);
