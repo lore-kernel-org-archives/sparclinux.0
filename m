@@ -1,7 +1,7 @@
-From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
-Date: Fri, 06 Feb 2009 10:28:25 +0000
+From: David Miller <davem@davemloft.net>
+Date: Sat, 07 Feb 2009 07:23:52 +0000
 Subject: Re: Sunfire V880 and 480R 2.6.27.x startup hangs
-Message-Id: <20090206102825.GA6446@lemon.iwr.uni-heidelberg.de>
+Message-Id: <20090206.232352.74134222.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20081219085622.GA20721@lemon.iwr.uni-heidelberg.de>
 In-Reply-To: <20081219085622.GA20721@lemon.iwr.uni-heidelberg.de>
@@ -10,32 +10,94 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, Feb 03, 2009 at 03:19:18PM -0800, David Miller wrote:
-> From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
-> Date: Tue, 3 Feb 2009 22:26:32 +0100
+From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
+Date: Fri, 6 Feb 2009 11:28:25 +0100
+
+> I bisected meanwhile the complete versions from 2.6.26 to 2.6.27 series:
 > 
-> > Maybe it's important that this is a two cpu machine (as a similar 6
-> > cpu machine seems to work, see other report on the list) ?
+> <2.6.26.8	boots
+>  2.6.27-rc1	compile fails (see below)
+> >2.6.27-rc2	hangs at boot
 > 
-> I don't think it matters, to be honest.  Memory size and layout
-> may have more to do with it.
+> Any chance that one of the last memory related patches will fix
+> this problem ? Thanks.
 
-I bisected meanwhile the complete versions from 2.6.26 to 2.6.27 series:
+It is possible.
 
-<2.6.26.8	boots
- 2.6.27-rc1	compile fails (see below)
->2.6.27-rc2	hangs at boot
+Here are two seperate things you can try:
 
-Any chance that one of the last memory related patches will fix
-this problem ? Thanks.
+1) Boot with "memQ2m" on the kernel boot command line.
 
-  CC      arch/sparc64/kernel/iommu.o
-In file included from arch/sparc64/kernel/iommu.c:21:
-arch/sparc64/kernel/iommu_common.h:40: error: static declaration of iommu_num_pages follows non-static declaration
-include/linux/iommu-helper.h:11: error: previous declaration of iommu_num_pages was here
+2) Try booting with the patch below.
 
--- 
-Netzwerkadministration/Zentrale Dienste, Interdiziplinaeres 
-Zentrum fuer wissenschaftliches Rechnen der Universitaet Heidelberg
-IWR; INF 368; 69120 Heidelberg; Tel: (06221)54-8236 Fax: -5224
-Email: Hermann.Lauer@iwr.uni-heidelberg.de
+Thanks!
+
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 51daae5..c9ab51a 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -46,6 +46,7 @@
+ #include <linux/page-isolation.h>
+ #include <linux/memcontrol.h>
+ #include <linux/debugobjects.h>
++#include <linux/nmi.h>
+ 
+ #include <asm/tlbflush.h>
+ #include <asm/div64.h>
+@@ -707,7 +708,26 @@ static int move_freepages(struct zone *zone,
+ 	 * Remove at a later date when no bug reports exist related to
+ 	 * grouping pages by mobility
+ 	 */
+-	BUG_ON(page_zone(start_page) != page_zone(end_page));
++	if (unlikely(page_zone(start_page) != page_zone(end_page))) {
++		printk(KERN_ERR "move_freepages: Bogus zones: "
++		       "start_page[%p] end_page[%p] zone[%p]\n",
++		       start_page, end_page, zone);
++		printk(KERN_ERR "move_freepages: "
++		       "start_zone[%p] end_zone[%p]\n",
++		       page_zone(start_page), page_zone(end_page));
++		printk(KERN_ERR "move_freepages: "
++		       "start_pfn[0x%lx] end_pfn[0x%lx]\n",
++		       page_to_pfn(start_page), page_to_pfn(end_page));
++		printk(KERN_ERR "move_freepages: "
++		       "start_nid[%d] end_nid[%d]\n",
++		       page_to_nid(start_page), page_to_nid(end_page));
++		spin_unlock(&zone->lock);
++		local_irq_enable();
++		while (1) {
++			barrier();
++			touch_nmi_watchdog();
++		}
++	}
+ #endif
+ 
+ 	for (page = start_page; page <= end_page;) {
+@@ -2583,6 +2603,7 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
+ 	unsigned long end_pfn = start_pfn + size;
+ 	unsigned long pfn;
+ 	struct zone *z;
++	int tmp;
+ 
+ 	z = &NODE_DATA(nid)->node_zones[zone];
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
+@@ -2594,7 +2615,8 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
+ 		if (context = MEMMAP_EARLY) {
+ 			if (!early_pfn_valid(pfn))
+ 				continue;
+-			if (!early_pfn_in_nid(pfn, nid))
++			tmp = early_pfn_to_nid(pfn);
++			if (tmp > -1 && tmp != nid)
+ 				continue;
+ 		}
+ 		page = pfn_to_page(pfn);
+@@ -2961,8 +2983,9 @@ int __meminit early_pfn_to_nid(unsigned long pfn)
+ 			return early_node_map[i].nid;
+ 	}
+ 
+-	return 0;
++	return -1;
+ }
++
+ #endif /* CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID */
+ 
+ /* Basic iterator support to walk early_node_map[] */
