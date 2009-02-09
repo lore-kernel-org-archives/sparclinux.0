@@ -1,59 +1,50 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 11 Feb 2009 01:32:52 +0000
-Subject: Re: [PATCH] fix Quattro HME irq registration on proble failures
-Message-Id: <20090210.173252.247636723.davem@davemloft.net>
+Date: Mon, 09 Feb 2009 06:46:34 +0000
+Subject: Re: replace incorrect memcpy_user_stub code
+Message-Id: <20090208.224634.141237525.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.SOC.4.64.0902080008100.7639@math.ut.ee>
-In-Reply-To: <Pine.SOC.4.64.0902080008100.7639@math.ut.ee>
+References: <200812190208.mBJ28vn13713@elf.torek.net>
+In-Reply-To: <200812190208.mBJ28vn13713@elf.torek.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Meelis Roos <mroos@linux.ee>
-Date: Sun, 8 Feb 2009 01:12:28 +0200 (EET)
+From: Chris Torek <chris.torek@windriver.com>
+Date: Mon, 29 Dec 2008 14:55:40 -0700
 
-> Currently, the sunhme driver installs SBus Quattro interrupt handler 
-> when at least one HME card was initialized correctly and at least one 
-> Quattro card is present. This breaks when a Quattro card fails 
-> initialization for whatever reason - IRQ is registered and OOPS happens 
-> when it fires.
+> >There might be some way we can annotate the regular memcpy()
+> >implementations with exception handling markers, like we do
+> >for the user copy cases, such that they only trigger the
+> >alternative return value handling when a special thread local
+> >flag has been set.
 > 
-> The solution, as suggested by David Miller, was to keep track which 
-> cards of the Quattro bundles have been initialized, and request/free the 
-> Quattro IRQ only when all four devices have been successfully 
-> initialized.
+> I thought about this, but it's ugly and creates (at least potential)
+> problems with recursion / interrupts.  (Not sure if these are possible
+> in the Linux kernel organization, just "icky on general principles".)
+
+Yes, it's not very clean.
+
+> >First, if the %o7 or %i7 are inside of the function memcpy_user_stub,
+> >then we are doing one of these in-kernel copies that are allowed to
+> >fault.  This elides the need for a special thread flag or anything
+> >like that.
 > 
-> The patch only touches SBus initialization - PCI init already resets the 
-> card pointer to NULL on init failure.
+> This, on the other hand, seems quite promising: as with the exception
+> table itself, we use the program counter (of the return address,
+> in this case) as the flag.
 > 
-> The patch has been tested on Sun E3500 with SBus and PCI single HME 
-> cards and one PCI Quattro HME card in a situation where any PCI card 
-> failed init when the SBus routines tried to init them by mistake.
+> >Then the code in do_kernel_fault() can, if it sees a "fixup" value
+> >with the low bit set, check %o7/%i7 for being inside range of
+> >memcpy_user_stub.  If so, we jump to the fixup.  Otherwise we
+> >behave as if we did not find a matching exception table entry.
 > 
-> Additionally it replaces Quattro request_irq panic with error return - 
-> if this card fails to work, at least let the others work. This change is 
-> untested.
-> 
-> Signed-off-by: Meelis Roos <mroos@linux.ee>
+> This should work really well.
 
-This patch looks great, I made some minor coding style fixups
-and updated to commit log message to indicate that you did
-test this change also on an E450 system.
+In the end I decided that this other approach is very ad-hoc
+as well.
 
-Now, to answer your questions:
+I ended up settling on something similar to your approach,
+and I also implemented your .fixup space optimizations.
 
-> * should we really panic if request_irq fails in 
-> quattro_sbus_register_irqs()? Better propagate the error up. However, do 
-> we still need to return success if any IRQ was registered correctly 
-> (like the logic of of_register_driver one step before)?
-
-Yes, propagating the error is much better.  The panic() is overboard.
-
-> * happy_meal_open() does request_irq for PCI cards and non-quattro SBus 
-> cards, so the printk on failure may lie about SBus? Or did I misread the 
-> code?
-
-It's half lying :-) In some of the cases this request_irq() would be
-for SBUS (non-quattro only) and for others it would be for PCI
-(quattro or not).
+Patch series posting forthcoming...
