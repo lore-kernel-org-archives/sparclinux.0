@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Mon, 09 Feb 2009 06:46:43 +0000
-Subject: [PATCH 2/2]: sparc64: Fix probe_kernel_{read,write}().
-Message-Id: <20090208.224643.170383946.davem@davemloft.net>
+Date: Mon, 09 Feb 2009 06:46:40 +0000
+Subject: [PATCH 1/2]: sparc64: Kill .fixup section bloat.
+Message-Id: <20090208.224640.168410936.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,273 +9,353 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-This is based upon a report from Chris Torek and his initial patch.
-From Chris's report:
-
+This is an implementation of a suggestion made by Chris Torek:
 --------------------
-This came up in testing kgdb, using the built-in tests -- turn
-on CONFIG_KGDB_TESTS, then
-
-    echo V1 > /sys/module/kgdbts/parameters/kgdbts
-
--- but it would affect using kgdb if you were debugging and looking
-at bad pointers.
+Something else I noticed in passing: the EX and EX_LD/EX_ST macros
+scattered throughout the various .S files make a fair bit of .fixup
+code, all of which does the same thing.  At the cost of one symbol
+in copy_in_user.S, you could just have one common two-instruction
+retl-and-mov-1 fixup that they all share.
 --------------------
 
-When we get a copy_{from,to}_user() request and the %asi is set to
-something other than ASI_AIUS (which is userspace) then we branch off
-to a routine called memcpy_user_stub().  It just does a straight
-memcpy since we are copying from kernel to kernel in this case.
+The following is with a defconfig build:
 
-The logic was that since source and destination are both kernel
-pointers we don't need to have exception checks.
-
-But for what probe_kernel_{read,write}() is trying to do, we have to
-have the checks, otherwise things like kgdb bad kernel pointer
-accesses don't do the right thing.
+   text	   data	    bss	    dec	    hex	filename
+3972767	 344024	 584449	4901240	 4ac978	vmlinux.orig
+3968887	 344024	 584449	4897360	 4aba50	vmlinux
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/lib/GENcopy_from_user.S |    2 +-
- arch/sparc/lib/GENcopy_to_user.S   |    2 +-
- arch/sparc/lib/NG2copy_from_user.S |    2 +-
- arch/sparc/lib/NG2copy_to_user.S   |    2 +-
- arch/sparc/lib/NGcopy_from_user.S  |    2 +-
- arch/sparc/lib/NGcopy_to_user.S    |    2 +-
- arch/sparc/lib/U1copy_from_user.S  |    2 +-
- arch/sparc/lib/U1copy_to_user.S    |    2 +-
- arch/sparc/lib/U3copy_to_user.S    |    2 +-
- arch/sparc/lib/copy_in_user.S      |   55 ++++++++++-------------------------
- 10 files changed, 25 insertions(+), 48 deletions(-)
+ arch/sparc/kernel/head_64.S        |   31 ++++++++++++++++++++++++++++---
+ arch/sparc/lib/GENbzero.S          |    6 +-----
+ arch/sparc/lib/GENcopy_from_user.S |    6 +-----
+ arch/sparc/lib/GENcopy_to_user.S   |    6 +-----
+ arch/sparc/lib/NG2copy_from_user.S |    7 +------
+ arch/sparc/lib/NG2copy_to_user.S   |    7 +------
+ arch/sparc/lib/NGbzero.S           |    6 +-----
+ arch/sparc/lib/NGcopy_from_user.S  |    7 +------
+ arch/sparc/lib/NGcopy_to_user.S    |    7 +------
+ arch/sparc/lib/U1copy_from_user.S  |    6 +-----
+ arch/sparc/lib/U1copy_to_user.S    |    6 +-----
+ arch/sparc/lib/U3copy_from_user.S  |    6 +-----
+ arch/sparc/lib/U3copy_to_user.S    |    6 +-----
+ arch/sparc/lib/bzero.S             |    6 +-----
+ arch/sparc/lib/copy_in_user.S      |    6 +-----
+ 15 files changed, 42 insertions(+), 77 deletions(-)
 
+diff --git a/arch/sparc/kernel/head_64.S b/arch/sparc/kernel/head_64.S
+index 8ffee71..a46c3a2 100644
+--- a/arch/sparc/kernel/head_64.S
++++ b/arch/sparc/kernel/head_64.S
+@@ -891,10 +891,35 @@ prom_tba:	.xword	0
+ tlb_type:	.word	0	/* Must NOT end up in BSS */
+ 	.section	".fixup",#alloc,#execinstr
+ 
+-	.globl	__ret_efault, __retl_efault
+-__ret_efault:
++	.globl	__ret_efault, __retl_efault, __ret_one, __retl_one
++ENTRY(__ret_efault)
+ 	ret
+ 	 restore %g0, -EFAULT, %o0
+-__retl_efault:
++ENDPROC(__ret_efault)
++
++ENTRY(__retl_efault)
+ 	retl
+ 	 mov	-EFAULT, %o0
++ENDPROC(__retl_efault)
++
++ENTRY(__retl_one)
++	retl
++	 mov	1, %o0
++ENDPROC(__retl_one)
++
++ENTRY(__ret_one_asi)
++	wr	%g0, ASI_AIUS, %asi
++	ret
++	 restore %g0, 1, %o0
++ENDPROC(__ret_one_asi)
++
++ENTRY(__retl_one_asi)
++	wr	%g0, ASI_AIUS, %asi
++	retl
++	 mov	1, %o0
++ENDPROC(__retl_one_asi)
++
++ENTRY(__retl_o1)
++	retl
++	 mov	%o1, %o0
++ENDPROC(__retl_o1)
+diff --git a/arch/sparc/lib/GENbzero.S b/arch/sparc/lib/GENbzero.S
+index 6a4f956..8e7a843 100644
+--- a/arch/sparc/lib/GENbzero.S
++++ b/arch/sparc/lib/GENbzero.S
+@@ -6,13 +6,9 @@
+ 
+ #define EX_ST(x,y)		\
+ 98:	x,y;			\
+-	.section .fixup;	\
+-	.align 4;		\
+-99:	retl;			\
+-	 mov	%o1, %o0;	\
+ 	.section __ex_table,"a";\
+ 	.align 4;		\
+-	.word 98b, 99b;		\
++	.word 98b, __retl_o1;	\
+ 	.text;			\
+ 	.align 4;
+ 
 diff --git a/arch/sparc/lib/GENcopy_from_user.S b/arch/sparc/lib/GENcopy_from_user.S
-index 9b0e58f..b7d0bd6 100644
+index 2b9df99..9b0e58f 100644
 --- a/arch/sparc/lib/GENcopy_from_user.S
 +++ b/arch/sparc/lib/GENcopy_from_user.S
-@@ -23,7 +23,7 @@
- #define PREAMBLE					\
- 	rd		%asi, %g1;			\
- 	cmp		%g1, ASI_AIUS;			\
--	bne,pn		%icc, memcpy_user_stub;		\
-+	bne,pn		%icc, ___copy_in_user;		\
- 	 nop
- #endif
+@@ -5,13 +5,9 @@
+ 
+ #define EX_LD(x)		\
+ 98:	x;			\
+-	.section .fixup;	\
+-	.align 4;		\
+-99:	retl;			\
+-	 mov	1, %o0;		\
+ 	.section __ex_table,"a";\
+ 	.align 4;		\
+-	.word 98b, 99b;		\
++	.word 98b, __retl_one;	\
+ 	.text;			\
+ 	.align 4;
  
 diff --git a/arch/sparc/lib/GENcopy_to_user.S b/arch/sparc/lib/GENcopy_to_user.S
-index ce79b49..780550e 100644
+index bb3f708..ce79b49 100644
 --- a/arch/sparc/lib/GENcopy_to_user.S
 +++ b/arch/sparc/lib/GENcopy_to_user.S
-@@ -27,7 +27,7 @@
- #define PREAMBLE					\
- 	rd		%asi, %g1;			\
- 	cmp		%g1, ASI_AIUS;			\
--	bne,pn		%icc, memcpy_user_stub;		\
-+	bne,pn		%icc, ___copy_in_user;		\
- 	 nop
- #endif
+@@ -5,13 +5,9 @@
+ 
+ #define EX_ST(x)		\
+ 98:	x;			\
+-	.section .fixup;	\
+-	.align 4;		\
+-99:	retl;			\
+-	 mov	1, %o0;		\
+ 	.section __ex_table,"a";\
+ 	.align 4;		\
+-	.word 98b, 99b;		\
++	.word 98b, __retl_one;	\
+ 	.text;			\
+ 	.align 4;
  
 diff --git a/arch/sparc/lib/NG2copy_from_user.S b/arch/sparc/lib/NG2copy_from_user.S
-index 01ac546..119ccb9 100644
+index c77ef5f..01ac546 100644
 --- a/arch/sparc/lib/NG2copy_from_user.S
 +++ b/arch/sparc/lib/NG2copy_from_user.S
-@@ -28,7 +28,7 @@
- #define PREAMBLE					\
- 	rd		%asi, %g1;			\
- 	cmp		%g1, ASI_AIUS;			\
--	bne,pn		%icc, memcpy_user_stub;		\
-+	bne,pn		%icc, ___copy_in_user;		\
- 	 nop
- #endif
+@@ -5,14 +5,9 @@
+ 
+ #define EX_LD(x)		\
+ 98:	x;			\
+-	.section .fixup;	\
+-	.align 4;		\
+-99:	wr	%g0, ASI_AIUS, %asi;\
+-	retl;			\
+-	 mov	1, %o0;		\
+ 	.section __ex_table,"a";\
+ 	.align 4;		\
+-	.word 98b, 99b;		\
++	.word 98b, __retl_one_asi;\
+ 	.text;			\
+ 	.align 4;
  
 diff --git a/arch/sparc/lib/NG2copy_to_user.S b/arch/sparc/lib/NG2copy_to_user.S
-index c477e15..7fe1cce 100644
+index 4bd4093..c477e15 100644
 --- a/arch/sparc/lib/NG2copy_to_user.S
 +++ b/arch/sparc/lib/NG2copy_to_user.S
-@@ -37,7 +37,7 @@
- #define PREAMBLE					\
- 	rd		%asi, %g1;			\
- 	cmp		%g1, ASI_AIUS;			\
--	bne,pn		%icc, memcpy_user_stub;		\
-+	bne,pn		%icc, ___copy_in_user;		\
- 	 nop
- #endif
+@@ -5,14 +5,9 @@
+ 
+ #define EX_ST(x)		\
+ 98:	x;			\
+-	.section .fixup;	\
+-	.align 4;		\
+-99:	wr	%g0, ASI_AIUS, %asi;\
+-	retl;			\
+-	 mov	1, %o0;		\
+ 	.section __ex_table,"a";\
+ 	.align 4;		\
+-	.word 98b, 99b;		\
++	.word 98b, __retl_one_asi;\
+ 	.text;			\
+ 	.align 4;
+ 
+diff --git a/arch/sparc/lib/NGbzero.S b/arch/sparc/lib/NGbzero.S
+index 814d5f7..beab29b 100644
+--- a/arch/sparc/lib/NGbzero.S
++++ b/arch/sparc/lib/NGbzero.S
+@@ -6,13 +6,9 @@
+ 
+ #define EX_ST(x,y)		\
+ 98:	x,y;			\
+-	.section .fixup;	\
+-	.align 4;		\
+-99:	retl;			\
+-	 mov	%o1, %o0;	\
+ 	.section __ex_table,"a";\
+ 	.align 4;		\
+-	.word 98b, 99b;		\
++	.word 98b, __retl_o1;	\
+ 	.text;			\
+ 	.align 4;
  
 diff --git a/arch/sparc/lib/NGcopy_from_user.S b/arch/sparc/lib/NGcopy_from_user.S
-index 39bb891..5d1e4d1 100644
+index e7f433f..39bb891 100644
 --- a/arch/sparc/lib/NGcopy_from_user.S
 +++ b/arch/sparc/lib/NGcopy_from_user.S
-@@ -25,7 +25,7 @@
- #define PREAMBLE					\
- 	rd		%asi, %g1;			\
- 	cmp		%g1, ASI_AIUS;			\
--	bne,pn		%icc, memcpy_user_stub;		\
-+	bne,pn		%icc, ___copy_in_user;		\
- 	 nop
- #endif
+@@ -5,14 +5,9 @@
+ 
+ #define EX_LD(x)		\
+ 98:	x;			\
+-	.section .fixup;	\
+-	.align 4;		\
+-99:	wr	%g0, ASI_AIUS, %asi;\
+-	ret;			\
+-	 restore %g0, 1, %o0;	\
+ 	.section __ex_table,"a";\
+ 	.align 4;		\
+-	.word 98b, 99b;		\
++	.word 98b, __ret_one_asi;\
+ 	.text;			\
+ 	.align 4;
  
 diff --git a/arch/sparc/lib/NGcopy_to_user.S b/arch/sparc/lib/NGcopy_to_user.S
-index bf62fc1..ff630dc 100644
+index 6ea01c5..bf62fc1 100644
 --- a/arch/sparc/lib/NGcopy_to_user.S
 +++ b/arch/sparc/lib/NGcopy_to_user.S
-@@ -28,7 +28,7 @@
- #define PREAMBLE					\
- 	rd		%asi, %g1;			\
- 	cmp		%g1, ASI_AIUS;			\
--	bne,pn		%icc, memcpy_user_stub;		\
-+	bne,pn		%icc, ___copy_in_user;		\
- 	 nop
- #endif
+@@ -5,14 +5,9 @@
+ 
+ #define EX_ST(x)		\
+ 98:	x;			\
+-	.section .fixup;	\
+-	.align 4;		\
+-99:	wr	%g0, ASI_AIUS, %asi;\
+-	ret;			\
+-	 restore %g0, 1, %o0;	\
+ 	.section __ex_table,"a";\
+ 	.align 4;		\
+-	.word 98b, 99b;		\
++	.word 98b, __ret_one_asi;\
+ 	.text;			\
+ 	.align 4;
  
 diff --git a/arch/sparc/lib/U1copy_from_user.S b/arch/sparc/lib/U1copy_from_user.S
-index f14efdd..a6ae2ea 100644
+index 3192b0b..f14efdd 100644
 --- a/arch/sparc/lib/U1copy_from_user.S
 +++ b/arch/sparc/lib/U1copy_from_user.S
-@@ -23,7 +23,7 @@
- #define PREAMBLE					\
- 	rd		%asi, %g1;			\
- 	cmp		%g1, ASI_AIUS;			\
--	bne,pn		%icc, memcpy_user_stub;		\
-+	bne,pn		%icc, ___copy_in_user;		\
- 	 nop;						\
+@@ -5,13 +5,9 @@
  
- #include "U1memcpy.S"
+ #define EX_LD(x)		\
+ 98:	x;			\
+-	.section .fixup;	\
+-	.align 4;		\
+-99:	retl;			\
+-	 mov	1, %o0;		\
+ 	.section __ex_table,"a";\
+ 	.align 4;		\
+-	.word 98b, 99b;		\
++	.word 98b, __retl_one;	\
+ 	.text;			\
+ 	.align 4;
+ 
 diff --git a/arch/sparc/lib/U1copy_to_user.S b/arch/sparc/lib/U1copy_to_user.S
-index 59d531b..f4b970e 100644
+index d1210ff..59d531b 100644
 --- a/arch/sparc/lib/U1copy_to_user.S
 +++ b/arch/sparc/lib/U1copy_to_user.S
-@@ -23,7 +23,7 @@
- #define PREAMBLE					\
- 	rd		%asi, %g1;			\
- 	cmp		%g1, ASI_AIUS;			\
--	bne,pn		%icc, memcpy_user_stub;		\
-+	bne,pn		%icc, ___copy_in_user;		\
- 	 nop;						\
+@@ -5,13 +5,9 @@
  
- #include "U1memcpy.S"
+ #define EX_ST(x)		\
+ 98:	x;			\
+-	.section .fixup;	\
+-	.align 4;		\
+-99:	retl;			\
+-	 mov	1, %o0;		\
+ 	.section __ex_table,"a";\
+ 	.align 4;		\
+-	.word 98b, 99b;		\
++	.word 98b, __retl_one;	\
+ 	.text;			\
+ 	.align 4;
+ 
+diff --git a/arch/sparc/lib/U3copy_from_user.S b/arch/sparc/lib/U3copy_from_user.S
+index f5bfc8d..b1acd13 100644
+--- a/arch/sparc/lib/U3copy_from_user.S
++++ b/arch/sparc/lib/U3copy_from_user.S
+@@ -5,13 +5,9 @@
+ 
+ #define EX_LD(x)		\
+ 98:	x;			\
+-	.section .fixup;	\
+-	.align 4;		\
+-99:	retl;			\
+-	 mov	1, %o0;		\
+ 	.section __ex_table,"a";\
+ 	.align 4;		\
+-	.word 98b, 99b;		\
++	.word 98b, __retl_one;	\
+ 	.text;			\
+ 	.align 4;
+ 
 diff --git a/arch/sparc/lib/U3copy_to_user.S b/arch/sparc/lib/U3copy_to_user.S
-index b4cbfe5..ef1e493 100644
+index 2334f11..b4cbfe5 100644
 --- a/arch/sparc/lib/U3copy_to_user.S
 +++ b/arch/sparc/lib/U3copy_to_user.S
-@@ -23,7 +23,7 @@
- #define PREAMBLE					\
- 	rd		%asi, %g1;			\
- 	cmp		%g1, ASI_AIUS;			\
--	bne,pn		%icc, memcpy_user_stub;		\
-+	bne,pn		%icc, ___copy_in_user;		\
- 	 nop;						\
+@@ -5,13 +5,9 @@
  
- #include "U3memcpy.S"
+ #define EX_ST(x)		\
+ 98:	x;			\
+-	.section .fixup;	\
+-	.align 4;		\
+-99:	retl;			\
+-	 mov	1, %o0;		\
+ 	.section __ex_table,"a";\
+ 	.align 4;		\
+-	.word 98b, 99b;		\
++	.word 98b, __retl_one;	\
+ 	.text;			\
+ 	.align 4;
+ 
+diff --git a/arch/sparc/lib/bzero.S b/arch/sparc/lib/bzero.S
+index c7bbae8..b655729 100644
+--- a/arch/sparc/lib/bzero.S
++++ b/arch/sparc/lib/bzero.S
+@@ -88,13 +88,9 @@ __bzero_done:
+ 
+ #define EX_ST(x,y)		\
+ 98:	x,y;			\
+-	.section .fixup;	\
+-	.align 4;		\
+-99:	retl;			\
+-	 mov	%o1, %o0;	\
+ 	.section __ex_table,"a";\
+ 	.align 4;		\
+-	.word 98b, 99b;		\
++	.word 98b, __retl_o1;	\
+ 	.text;			\
+ 	.align 4;
+ 
 diff --git a/arch/sparc/lib/copy_in_user.S b/arch/sparc/lib/copy_in_user.S
-index 884f464..302c0e6 100644
+index 650af3f..884f464 100644
 --- a/arch/sparc/lib/copy_in_user.S
 +++ b/arch/sparc/lib/copy_in_user.S
-@@ -3,6 +3,7 @@
-  * Copyright (C) 1999, 2000, 2004 David S. Miller (davem@redhat.com)
-  */
+@@ -9,13 +9,9 @@
  
-+#include <linux/linkage.h>
- #include <asm/asi.h>
+ #define EX(x,y)			\
+ 98:	x,y;			\
+-	.section .fixup;	\
+-	.align 4;		\
+-99:	retl;			\
+-	 mov 1, %o0;		\
+ 	.section __ex_table,"a";\
+ 	.align 4;		\
+-	.word 98b, 99b;		\
++	.word 98b, __retl_one;	\
+ 	.text;			\
+ 	.align 4;
  
- #define XCC xcc
-@@ -27,18 +28,7 @@
- 	 * to copy register windows around during thread cloning.
- 	 */
- 
--	.globl		___copy_in_user
--	.type		___copy_in_user,#function
--___copy_in_user:	/* %o0=dst, %o1=src, %o2=len */
--	/* Writing to %asi is _expensive_ so we hardcode it.
--	 * Reading %asi to check for KERNEL_DS is comparatively
--	 * cheap.
--	 */
--	rd		%asi, %g1
--	cmp		%g1, ASI_AIUS
--	bne,pn		%icc, memcpy_user_stub
--	 nop
--
-+ENTRY(___copy_in_user)	/* %o0=dst, %o1=src, %o2=len */
- 	cmp		%o2, 0
- 	be,pn		%XCC, 85f
- 	 or		%o0, %o1, %o3
-@@ -49,22 +39,24 @@ ___copy_in_user:	/* %o0=dst, %o1=src, %o2=len */
- 	/* 16 < len <= 64 */
- 	andcc		%o3, 0x7, %g0
- 	bne,pn		%XCC, 90f
--	 sub		%o0, %o1, %o3
-+	 nop
- 
- 	andn		%o2, 0x7, %o4
- 	and		%o2, 0x7, %o2
- 1:	subcc		%o4, 0x8, %o4
- 	EX(ldxa [%o1] %asi, %o5)
--	EX(stxa %o5, [%o1 + %o3] ASI_AIUS)
-+	EX(stxa %o5, [%o0] %asi)
-+	add		%o1, 0x8, %o1
- 	bgu,pt		%XCC, 1b
--	 add		%o1, 0x8, %o1
-+	 add		%o0, 0x8, %o0
- 	andcc		%o2, 0x4, %g0
- 	be,pt		%XCC, 1f
- 	 nop
- 	sub		%o2, 0x4, %o2
- 	EX(lduwa [%o1] %asi, %o5)
--	EX(stwa %o5, [%o1 + %o3] ASI_AIUS)
-+	EX(stwa %o5, [%o0] %asi)
- 	add		%o1, 0x4, %o1
-+	add		%o0, 0x4, %o0
- 1:	cmp		%o2, 0
- 	be,pt		%XCC, 85f
- 	 nop
-@@ -74,14 +66,15 @@ ___copy_in_user:	/* %o0=dst, %o1=src, %o2=len */
- 80:	/* 0 < len <= 16 */
- 	andcc		%o3, 0x3, %g0
- 	bne,pn		%XCC, 90f
--	 sub		%o0, %o1, %o3
-+	 nop
- 
- 82:
- 	subcc		%o2, 4, %o2
- 	EX(lduwa [%o1] %asi, %g1)
--	EX(stwa %g1, [%o1 + %o3] ASI_AIUS)
-+	EX(stwa %g1, [%o0] %asi)
-+	add		%o1, 4, %o1
- 	bgu,pt		%XCC, 82b
--	 add		%o1, 4, %o1
-+	 add		%o0, 4, %o0
- 
- 85:	retl
- 	 clr		%o0
-@@ -90,26 +83,10 @@ ___copy_in_user:	/* %o0=dst, %o1=src, %o2=len */
- 90:
- 	subcc		%o2, 1, %o2
- 	EX(lduba [%o1] %asi, %g1)
--	EX(stba %g1, [%o1 + %o3] ASI_AIUS)
-+	EX(stba %g1, [%o0] %asi)
-+	add		%o1, 1, %o1
- 	bgu,pt		%XCC, 90b
--	 add		%o1, 1, %o1
-+	 add		%o0, 1, %o0
- 	retl
- 	 clr		%o0
--
--	.size		___copy_in_user, .-___copy_in_user
--
--	/* Act like copy_{to,in}_user(), ie. return zero instead
--	 * of original destination pointer.  This is invoked when
--	 * copy_{to,in}_user() finds that %asi is kernel space.
--	 */
--	.globl		memcpy_user_stub
--	.type		memcpy_user_stub,#function
--memcpy_user_stub:
--	save		%sp, -192, %sp
--	mov		%i0, %o0
--	mov		%i1, %o1
--	call		memcpy
--	 mov		%i2, %o2
--	ret
--	 restore	%g0, %g0, %o0
--	.size		memcpy_user_stub, .-memcpy_user_stub
-+ENDPROC(___copy_in_user)
 -- 
 1.6.1.2.253.ga34a
 
