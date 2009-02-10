@@ -1,7 +1,7 @@
-From: Meelis Roos <mroos@linux.ee>
-Date: Tue, 10 Feb 2009 20:12:09 +0000
+From: David Miller <davem@davemloft.net>
+Date: Tue, 10 Feb 2009 23:25:26 +0000
 Subject: Re: [PATCH] fix Quattro HME irq registration on proble failures
-Message-Id: <Pine.SOC.4.64.0902102211090.10340@math.ut.ee>
+Message-Id: <20090210.152526.211569623.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.SOC.4.64.0902080008100.7639@math.ut.ee>
 In-Reply-To: <Pine.SOC.4.64.0902080008100.7639@math.ut.ee>
@@ -10,13 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> The patch has been tested on Sun E3500 with SBus and PCI single HME 
-> cards and one PCI Quattro HME card in a situation where any PCI card 
-> failed init when the SBus routines tried to init them by mistake.
+From: Meelis Roos <mroos@linux.ee>
+Date: Tue, 10 Feb 2009 22:12:09 +0200 (EET)
 
-Also tested on E450 with PCI HME and PCI Quad HME.
+> > The patch has been tested on Sun E3500 with SBus and PCI single HME 
+> > cards and one PCI Quattro HME card in a situation where any PCI card 
+> > failed init when the SBus routines tried to init them by mistake.
+> 
+> Also tested on E450 with PCI HME and PCI Quad HME.
+> 
+> Dave, any opinions?
 
-Dave, any opinions?
-
--- 
-Meelis Roos (mroos@linux.ee)
+I'm just real busy, I'll look over your patch soon.
