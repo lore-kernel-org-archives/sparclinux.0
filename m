@@ -1,38 +1,30 @@
-From: reminder <reminder@lmagia.ru>
-Date: Fri, 13 Feb 2009 23:45:05 +0000
-Subject: =?iso-8859-1?Q?Your_purchase_will_be_shipped_with_U.S._Postal_Service=AE?=
-Message-Id: <4a1513e045b0bb6417ca7d4b043ecb67@pharma.org>
+From: "Postcode Loterij" <rolandbosman@yahoo.com>
+Date: Mon, 16 Feb 2009 13:44:51 +0000
+Subject: Ticket Number:194463-85
+Message-Id: <49246.77.249.24.68.1234791891.squirrel@webmail.msm.ru>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Dear Customer,
+Ticket Number:194463-85
 
-Information your order at www.my-order.org
+This email is to notify you that you have won the Sum of (1,000,000:00
+Euro only) in our Netherlands Postcode Loterij E-Mail Prize Program.
 
-You have placed an order for Oxycodone 80mg
+1.Reference Number: YOT/35/20/61
+2.BATCH NUMBER: 36/957/GHW
+3.Ticket Number:194463-85
 
-Oxycodone is in a group of drugs called narcotic pain relievers.=20
-It is similar to morphine.Oxycodone is used to treat moderate to=20
-severe pain. The extended-release form of this medication is for=20
-around-the-clock treatment of pain.
+Contact the claim officer with your winning Ref For more informations.
+Name:Mr.Roy Bosman.
+Tel: 0031-616-939-667.
+E-mail:drroybosman@gmail.com
 
-Please note:=20
-Tracking information is updated throughout the day, but most data=20
-is transmitted in the afternoon or evening. For example, if your=20
-Express Mail=AE package is mailed today at 10:00 a.m., you might not=20
-be able to view tracking information until the next day.
+Congratulations,
 
-----------------------------------------------------------------
-Your Purchase Details can be foud at
-http://www.my-order.org/?id=3DxasdWXZwae213XAaaweq
-----------------------------------------------------------------
-=20
-Regards,
-Margery
-
-If you have already paid the amount mentioned, you may view the attachment.
+Yours Sincerely,
+Mrs.Kate Goih.
 
 
