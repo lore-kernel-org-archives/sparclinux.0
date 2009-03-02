@@ -1,21 +1,27 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 10 Mar 2009 17:19:14 +0000
-Subject: Re: sunhme: SBUS QFE not detected anymore
-Message-Id: <20090310.101914.230298489.davem@davemloft.net>
+From: Roel Kluin <roel.kluin@gmail.com>
+Date: Mon, 02 Mar 2009 15:23:39 +0000
+Subject: [PATCH] sparc64: wait_event_interruptible_timeout may return -ERESTARTSYS
+Message-Id: <49ABF9FB.2040502@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <49B4632D.7010606@gentoo.org>
-In-Reply-To: <49B4632D.7010606@gentoo.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Meelis Roos <mroos@linux.ee>
-Date: Tue, 10 Mar 2009 19:03:38 +0200 (EET)
+wait_event_interruptible_timeout may return -ERESTARTSYS.
 
-> > Setting sbus_dp = to_of_device(op->dev.parent->parent)->node will
-> > therefore get "SUNW,Ultra-2" instead of "sbus".
-> 
-> Tested successfully on E3500 too. I inserted a SBus quad hme, it was not detected with current git kernel. Applied the patch, booted, not it was detected. Nice work!
-
-Thanks for testing.
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+---
+diff --git a/drivers/sbus/char/bbc_i2c.c b/drivers/sbus/char/bbc_i2c.c
+index f08e169..7e30e5f 100644
+--- a/drivers/sbus/char/bbc_i2c.c
++++ b/drivers/sbus/char/bbc_i2c.c
+@@ -129,7 +129,7 @@ static int wait_for_pin(struct bbc_i2c_bus *bp, u8 *status)
+ 	bp->waiting = 1;
+ 	add_wait_queue(&bp->wq, &wait);
+ 	while (limit-- > 0) {
+-		unsigned long val;
++		long val;
+ 
+ 		val = wait_event_interruptible_timeout(
+ 				bp->wq,
