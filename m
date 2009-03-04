@@ -1,35 +1,22 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 10 Mar 2009 12:17:15 +0000
-Subject: Re: Signal handler arguments
-Message-Id: <20090310.051715.17967430.davem@davemloft.net>
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Wed, 04 Mar 2009 00:09:06 +0000
+Subject: "leds: Add openfirmware platform device support" breaks sparc
+Message-Id: <20090303160906.9b30b376.akpm@linux-foundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <49B543AF.4090902@users.sourceforge.net>
-In-Reply-To: <49B543AF.4090902@users.sourceforge.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Trent Piepho <tpiepho@freescale.com>, Grant Likely <grant.likely@secretlab.ca>, Sean MacLennan <smaclennan@pikatech.com>, Richard Purdie <rpurdie@linux.intel.com>
+Cc: sparclinux@vger.kernel.org, linuxppc-dev@ozlabs.org
 
-From: Elad Lahav <e2lahav@gmail.com>
-Date: Tue, 10 Mar 2009 08:00:58 -0400
 
-> David Miller wrote:
-> > Well, whatever it is it can't be changed without breaking
-> > everything out there 
->
-> Do you mean breaking all the applications that use the third
-> parameter as a sigcontext structure? Can you point to any? Remember
-> that this is an undocumented deviation from the POSIX standard,
-> unique to Linux/Sparc. Somehow I have a feeling that very few
-> programs are aware of this feature and are using it.
+linux-next's dc0f6e94d7f487c624254597a0b86ef41c525673 (which I don't
+seem to be able to find on any mailing lists to which I subscribe)
+breaks the sparc64 allmodconfig build:
 
-GCC's dwarf unwinder knows the exact layout, as does MONO's sparc
-backend, GDB, etc...
+drivers/leds/leds-gpio.c: In function `gpio_led_init':
+drivers/leds/leds-gpio.c:286: error: implicit declaration of function `of_register_platform_driver'
+drivers/leds/leds-gpio.c: In function `gpio_led_exit':
+drivers/leds/leds-gpio.c:302: error: implicit declaration of function `of_unregister_platform_driver'
 
-The list goes on and on.
-
-It can't be changed without breaking lots of things.
-
-Since this is machine specific code anyways, I can't see this
-causing any kind of real problem once the programmer knows what
-the type of that third argument is.
+afacit that interface is powerpc-only.
