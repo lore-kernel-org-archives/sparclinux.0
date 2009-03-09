@@ -1,42 +1,75 @@
-From: Julian Calaby <julian.calaby@gmail.com>
-Date: Wed, 04 Mar 2009 00:40:50 +0000
-Subject: Re: "leds: Add openfirmware platform device support" breaks sparc
-Message-Id: <646765f40903031640x39b3361fic8833a4bf15b1381@mail.gmail.com>
+From: Friedrich Oslage <bluebird@gentoo.org>
+Date: Mon, 09 Mar 2009 00:30:37 +0000
+Subject: sunhme: SBUS QFE not detected anymore
+Message-Id: <49B4632D.7010606@gentoo.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------050900050308030504030309"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090303160906.9b30b376.akpm@linux-foundation.org>
-	<20090303192932.31705cf7@lappy.seanm.ca>
-In-Reply-To: <20090303192932.31705cf7@lappy.seanm.ca>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: sparclinux@vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------050900050308030504030309
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-To: Sean MacLennan <smaclennan@pikatech.com>
-Cc: linuxppc-dev@ozlabs.org, Richard Purdie <rpurdie@linux.intel.com>, sparclinux@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Trent Piepho <tpiepho@freescale.com>
 
-On Wed, Mar 4, 2009 at 11:29, Sean MacLennan <smaclennan@pikatech.com> wrote:
-> On Tue, 3 Mar 2009 16:09:06 -0800
-> "Andrew Morton" <akpm@linux-foundation.org> wrote:
->
->> afacit that interface is powerpc-only.
->
-> Yes it is. You might want a CONFIG_PPC with that.
->
-> It has been..... uhhhh carry the two... longer than I want to admit
-> since I worked on a sparc. Would GPIO based LEDS make sense on a sparc
-> platform? Is sparc used much in the embedded world?
->
-> If yes, the of_register_platform_driver is just a nice wrapper. It
-> would be trivial to either change it to work on sparc, or add the
-> wrapper to the sparc includes.
+Hi,
 
-These inconsistencies are causing more problems with PPC drivers
-depending on the generic infrastructure.
+my Ultra 2 has a SBUS Happy Meal and a SBUS Quad FastEthernet, both used
+to work fine but the qfe is no longer detected since:
 
-See: http://lkml.org/lkml/2009/1/11/376 for a similar issue.
+0b492fce3d72d982a7981905f85484a1e1ba7fde
+sunhme: Don't match PCI devices in SBUS probe.
 
-Thanks,
 
--- 
-Julian Calaby
+The parent node, sbus_dp, seems not to be set correctly. And the
+sbus_dp->name == "sbus" check fails.
 
-Email: julian.calaby@gmail.com
-.Plan: http://sites.google.com/site/juliancalaby/
+According to prtconf [0] the tree looks like this:
+
+SUNW,Ultra-2
+  sbus
+    SUNW,hme
+    SUNW,qfe
+    SUNW,qfe
+    SUNW,qfe
+    SUNW,qfe
+
+Setting sbus_dp = to_of_device(op->dev.parent->parent)->node will
+therefore get "SUNW,Ultra-2" instead of "sbus".
+
+This also makes reading the burst sizes fail and end up with the
+default, 0x0.
+
+I attached a patch :)
+
+[0]http://git.kernel.org/?p=linux/kernel/git/davem/prtconfs.git;a=blob_plain;f=ultra2_2
+
+Cheers,
+Friedrich
+
+--------------050900050308030504030309
+Content-Type: text/x-patch;
+ name="sunhme-qfe.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="sunhme-qfe.patch"
+
+    sunhme: Fix qfe parent detection.
+    
+    Signed-off-by: Friedrich Oslage <bluebird@gentoo.org>
+
+diff --git a/drivers/net/sunhme.c b/drivers/net/sunhme.c
+index d4fb4ac..4e9bd38 100644
+--- a/drivers/net/sunhme.c
++++ b/drivers/net/sunhme.c
+@@ -2649,8 +2649,6 @@ static int __devinit happy_meal_sbus_probe_one(struct of_device *op, int is_qfe)
+ 	int err = -ENODEV;
+ 
+ 	sbus_dp = to_of_device(op->dev.parent)->node;
+-	if (is_qfe)
+-		sbus_dp = to_of_device(op->dev.parent->parent)->node;
+ 
+ 	/* We can match PCI devices too, do not accept those here. */
+ 	if (strcmp(sbus_dp->name, "sbus"))
+
+--------------050900050308030504030309--
