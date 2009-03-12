@@ -1,34 +1,43 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 26 Mar 2009 20:54:51 +0000
-Subject: Re: configs
-Message-Id: <20090326.135451.262323297.davem@davemloft.net>
+Date: Thu, 12 Mar 2009 15:58:54 +0000
+Subject: [GIT]: Sparc
+Message-Id: <20090312.085854.191829621.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <c785bba30903250909y5c742607sc32a26ab06b87350@mail.gmail.com>
-In-Reply-To: <c785bba30903250909y5c742607sc32a26ab06b87350@mail.gmail.com>
+References: <20080421.153231.108090227.davem@davemloft.net>
+In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Paul Thomas <pthomas8589@gmail.com>
-Date: Thu, 26 Mar 2009 10:08:30 -0700
 
-> Thanks for the response. That makes sense. It is a lot different from
-> ARM. Does the hypervisor handle the XAUI interfaces also? I see there
-> is a SUNVNET driver. Is that how the kernel accesses the network? It
-> all seems like a very elegant solution. Is the hypervisor under GPL
-> license?
+Please pull to get these sparc bug fixes.
 
-The SUNVNET driver is for logical domain guest, not for for
-Linux executing with access to PCI segments.  Linux running
-on "real iron" uses the normal PCI drivers for whatever network
-hardware is available.
+Thanks!
 
-The hypervisor only gets involved with the XAUI interfaces when you
-want to export portions of the NIU network device to logical domain
-guests from control comains.  Linux has a full hardware driver for the
-NIU chip, drivers/net/niu.c
+The following changes since commit ebdcc81c71937b30e09110c02a1e8a21fa770b6f:
+  Linus Torvalds (1):
+        Merge branch 'drm-fixes' of git://git.kernel.org/.../airlied/drm-2.6
 
-The hypervisor is GPL'd and available from www.opensparc.org, you want
-the "Architecture and Performance Modeling" download that contains the
-full openfirmware and hypervisor sources.
+are available in the git repository at:
+
+  master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
+
+Christoph Hellwig (1):
+      jsflash: stop defining MAJOR_NR
+
+David S. Miller (1):
+      sparc64: Fix lost interrupts on sun4u.
+
+Friedrich Oslage (1):
+      sunhme: Fix qfe parent detection.
+
+Roel Kluin (1):
+      sparc64: wait_event_interruptible_timeout may return -ERESTARTSYS
+
+ arch/sparc/kernel/irq_64.c  |   29 +++++++++++++++++++----------
+ drivers/net/sunhme.c        |    2 --
+ drivers/sbus/char/bbc_i2c.c |    2 +-
+ drivers/sbus/char/jsflash.c |    3 ---
+ 4 files changed, 20 insertions(+), 16 deletions(-)
