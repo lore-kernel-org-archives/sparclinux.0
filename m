@@ -1,41 +1,44 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 19 Mar 2009 06:53:31 +0000
-Subject: Re: [PATCH] crash with /proc/iomem on sparc64
-Message-Id: <20090318.235331.65960278.davem@davemloft.net>
+Date: Fri, 13 Mar 2009 22:45:32 +0000
+Subject: Re: dmfe/tulip kernel module poll
+Message-Id: <20090313.154532.222840601.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.0903170758060.24107@hs20-bc2-1.build.redhat.com>
-	<Pine.LNX.4.64.0903170807440.25109@hs20-bc2-1.build.redhat.com>
-In-Reply-To: <Pine.LNX.4.64.0903170807440.25109@hs20-bc2-1.build.redhat.com>
+References: <20090126094911.GA2936@orion.carnet.hr>
+In-Reply-To: <20090126094911.GA2936@orion.carnet.hr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mpatocka@redhat.com
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Mikulas Patocka <mpatocka@redhat.com>
-Date: Tue, 17 Mar 2009 08:08:08 -0400 (EDT)
+From: Josip Rodin <joy@entuzijast.net>
+Date: Mon, 26 Jan 2009 10:49:11 +0100
 
 > 
+> I'm just Cc:'ing this to the sparc kernel mailing list...
 > 
-> On Tue, 17 Mar 2009, Mikulas Patocka wrote:
-> 
-> > Hi
+> On Sun, Jan 25, 2009 at 08:21:56PM -0500, Brian Thompson wrote:
+> > I'd like to get some feedback as to whether anyone is actually using
+> > the dmfe Davicom kernel module on sparc for 10/100 ethernet.
 > > 
-> > When you compile kernel on Sparc64 with heap memory checking and type
-> > "cat /proc/iomem", you get a crash, because pointers in struct resource 
-> > are uninitialized.
+> > To the best of my knowledge, Sun never manufactured any
+> > expansion cards that utilize the Davicom chip and the UltraAX-i2
+> > motherboard (Netra X1 and Sunfire V100) is the only Sun
+> > motherboard that uses the chip. That particular motherboard
+> > uses the tulip kernel module though, not the dmfe kernel module.
 > > 
-> > Most code fills struct resource with zeros, so I assume that it is 
-> > responsibility of the caller of request_resource to initialized it, not 
-> > the responsibility of request_resource functuion.
+> > Since the PCI ID of the UltraAX-i2's onboard ethernet
+> > (1282:9102 - Davicom 9102) matches up with both the dmfe
+> > module and the tulip module, both modules attempt to load and
+> > end up causing the network interface to malfunction.
 > > 
-> > After 2.6.29 is out, there could be a check for uninitialized fields added 
-> > to request_resource to avoid crashes like this.
+> > My question is - is anyone actually using the dmfe kernel module
+> > on sparc and/or would it be ok to set the default to not build the
+> > dmfe kernel module on sparc?
 > > 
-> > Mikulas
-> 
-> I forgot to add:
-> 
-> Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
+> > I presume that the only scenario where anyone would actually be
+> > using the dmfe kernel module on sparc would be if they've installed
+> > a PCI NIC originally intended for x86 machines into their sparc
+> > machine.
 
-Patch applied and queued up for -stable, thanks a lot.
+Better would be to simply remove the conflicting device IDs
+from the dmfe driver.
