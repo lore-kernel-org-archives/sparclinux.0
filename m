@@ -1,57 +1,42 @@
-From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
-Date: Thu, 05 Mar 2009 15:39:18 +0000
-Subject: Re: Sunfire V880 and 480R 2.6.27.x startup hangs
-Message-Id: <20090305153918.GC16069@lemon.iwr.uni-heidelberg.de>
+From: Mikulas Patocka <mpatocka@redhat.com>
+Date: Tue, 17 Mar 2009 12:03:24 +0000
+Subject: [PATCH] crash with /proc/iomem on sparc64
+Message-Id: <Pine.LNX.4.64.0903170758060.24107@hs20-bc2-1.build.redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20081219085622.GA20721@lemon.iwr.uni-heidelberg.de>
-In-Reply-To: <20081219085622.GA20721@lemon.iwr.uni-heidelberg.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Mar 05, 2009 at 12:04:17AM -0800, David Miller wrote:
-> 
-> So kernel_thread() is where it hangs...
-> 
-> The only big thing changing in sparc64 between 2.6.26.5 (which works)
-> and 2.6.27 are IRQ stacks.
-> 
-> Here is a test patch which reverts sparc64 IRQ stacks.  If this makes
-> your machine work it will be a big clue.
+Hi
 
-Applied your patch to 2.6.27.19 - hangs at the same point. Output
-is on the web.
+When you compile kernel on Sparc64 with heap memory checking and type
+"cat /proc/iomem", you get a crash, because pointers in struct resource 
+are uninitialized.
 
-> (BTW, why do you get "OpenBoot Diagnostics failed" from the firmware
->  on reset/poweron?)
+Most code fills struct resource with zeros, so I assume that it is 
+responsibility of the caller of request_resource to initialized it, not 
+the responsibility of request_resource functuion.
 
-One disk fails diagnostics (see below), but works later without a problem.
-From time to time I check the same on the 480R with has error at 
-the OBP diagnostic, so that does to matter IMHO. The 480R is the
-one with the cassini driver crashing the machine, so tests are a little
-bit more clumsy. 
+After 2.6.29 is out, there could be a check for uninitialized fields added 
+to request_resource to avoid crashes like this.
 
-Btw.: I upgraded the 480R to debian lenny and compiled a 2.6.27.x kernel
-- hangs the same point.
+Mikulas
 
-Thanks for looking again,
+---
+ arch/sparc/kernel/pci_common.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-  Hermann 
-
-------------------------------------
-Testing /pci@8,600000/SUNW,qlc@2
-
-   ERROR   : Disk 0  is not spinning.
-   DEVICE  : /pci@8,600000/SUNW,qlc@2
-   SUBTEST : selftest:loop-tests:inquiry-test:disk-test
-   CALLERS : disk-test
-   MACHINE : Sun Fire 880
-   SERIAL# : 50911524
-   DATE    : 03/05/2009 15:17:50  GMT
-   CONTR0LS: diag-level=max test-args
--- 
-Netzwerkadministration/Zentrale Dienste, Interdiziplinaeres 
-Zentrum fuer wissenschaftliches Rechnen der Universitaet Heidelberg
-IWR; INF 368; 69120 Heidelberg; Tel: (06221)54-8236 Fax: -5224
-Email: Hermann.Lauer@iwr.uni-heidelberg.de
+Index: linux-2.6.29-rc8-devel/arch/sparc/kernel/pci_common.c
+=================================--- linux-2.6.29-rc8-devel.orig/arch/sparc/kernel/pci_common.c	2009-03-17 12:49:51.000000000 +0100
++++ linux-2.6.29-rc8-devel/arch/sparc/kernel/pci_common.c	2009-03-17 12:50:16.000000000 +0100
+@@ -368,7 +368,7 @@ static void pci_register_iommu_region(st
+ 	const u32 *vdma = of_get_property(pbm->op->node, "virtual-dma", NULL);
+ 
+ 	if (vdma) {
+-		struct resource *rp = kmalloc(sizeof(*rp), GFP_KERNEL);
++		struct resource *rp = kzalloc(sizeof(*rp), GFP_KERNEL);
+ 
+ 		if (!rp) {
+ 			prom_printf("Cannot allocate IOMMU resource.\n");
