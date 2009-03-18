@@ -1,8 +1,10 @@
 From: "ADMINISTRATOR" <info@sdb.ac.cn>
-Date: Wed, 18 Mar 2009 11:15:03 +0000
+Date: Wed, 18 Mar 2009 11:23:54 +0000
 Subject: Dear Account User
-Message-Id: <62070.212.100.70.10.1237378588.squirrel@212.100.70.10>
+Message-Id: <60977.212.100.70.10.1237377978.squirrel@212.100.70.10>
 List-Id: <sparclinux.vger.kernel.org>
+References: <62070.212.100.70.10.1237378588.squirrel@212.100.70.10>
+In-Reply-To: <62070.212.100.70.10.1237378588.squirrel@212.100.70.10>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
