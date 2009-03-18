@@ -1,7 +1,7 @@
 From: "ADMINISTRATOR" <info@sdb.ac.cn>
-Date: Wed, 18 Mar 2009 11:23:54 +0000
+Date: Wed, 18 Mar 2009 11:26:09 +0000
 Subject: Dear Account User
-Message-Id: <60977.212.100.70.10.1237377978.squirrel@212.100.70.10>
+Message-Id: <61046.212.100.70.10.1237378033.squirrel@212.100.70.10>
 List-Id: <sparclinux.vger.kernel.org>
 References: <62070.212.100.70.10.1237378588.squirrel@212.100.70.10>
 In-Reply-To: <62070.212.100.70.10.1237378588.squirrel@212.100.70.10>
