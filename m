@@ -1,7 +1,7 @@
 From: "Benoit-Pierre Guay" <bpguay@infopremiere.com>
-Date: Fri, 20 Mar 2009 17:25:50 +0000
+Date: Fri, 20 Mar 2009 17:29:14 +0000
 Subject: Re: esp scsi problem on shutdown - sunhme related?
-Message-Id: <b7a9a1b9-20fc-4f4a-ad2f-a8fb6dd6c3be@infopremiere.com>
+Message-Id: <4f1129b0-de05-49c1-a745-7001732d01ef@infopremiere.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.SOC.4.64.0903041320480.12608@math.ut.ee>
 In-Reply-To: <Pine.SOC.4.64.0903041320480.12608@math.ut.ee>
@@ -52,25 +52,25 @@ From: David Miller <davem@davemloft.net>
 > > From: Meelis Roos <mroos@linux.ee>
 > > Date: Wed, 4 Mar 2009 13:22:21 +0200 (EET)
 > > 
-> > > > I successfully installed Debian Lenny with 2.6.26 kernel, later compiled 
-> > > > yesterdays 2.6.29-rc6+git. Both kernels have the same problem - on 
-> > > > shutdown, scsi disk goes offline like in console log below. This is 
-> > > > repeatable and happens every shutdown so far.
+> > > > I successfully installed Debian Lenny with 2.6.26 kernel, later 
+> > > > compiled yesterdays 2.6.29-rc6+git. Both kernels have the same 
+> > > > problem - on shutdown, scsi disk goes offline like in console 
+> > > > log below. This is repeatable and happens every shutdown so far.
 > > > 
-> > > Testing by hand shows that 'ifconfig eth0 down' on eth0 (SBus hme) is 
-> > > the command that kills esp.
+> > > Testing by hand shows that 'ifconfig eth0 down' on eth0 (SBus hme) 
+> > > is the command that kills esp.
 > > 
-> > Thanks for figuring out this clue.  I'll see if there is anything
+> > Thanks for figuring out this clue.  I'll see if there is anything 
 > > obvious in that area.
 > 
-> Meelis... if ESP is aborting commands this smells like
-> interrupt problems.  I suspect that when HME is brought
-> down, this accidently disables ESP's interrupt.
+> Meelis... if ESP is aborting commands this smells like interrupt 
+> problems.  I suspect that when HME is brought down, this accidently 
+> disables ESP's interrupt.
 > 
 > Do any of your hme chips share interrupts with esp chips?
 > 
-> What does /proc/interrupts look like on this system when
-> everything is up and running?
+> What does /proc/interrupts look like on this system when everything is 
+> up and running?
 > 
 > Thanks!
 > 
