@@ -1,7 +1,7 @@
 From: "Benoit-Pierre Guay" <bpguay@infopremiere.com>
-Date: Fri, 20 Mar 2009 17:29:14 +0000
-Subject: Re: esp scsi problem on shutdown - sunhme related?
-Message-Id: <4f1129b0-de05-49c1-a745-7001732d01ef@infopremiere.com>
+Date: Fri, 20 Mar 2009 17:59:20 +0000
+Subject: RE: esp scsi problem on shutdown - sunhme related?
+Message-Id: <375b073f-2078-4ca3-8a3f-cc2eedf094d3@infopremiere.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.SOC.4.64.0903041320480.12608@math.ut.ee>
 In-Reply-To: <Pine.SOC.4.64.0903041320480.12608@math.ut.ee>
@@ -9,6 +9,21 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
+
+Hi again! ;)
+
+I just saw your message including the kernel patch in the archives.
+
+I'll try to compile a kernel with it and I'll stay you updated on the results.
+
+Benoit-Pierre
+ 
+
+-----Original Message-----
+From: sparclinux-owner@vger.kernel.org [mailto:sparclinux-owner@vger.kernel.org] On Behalf Of Benoit-Pierre Guay
+Sent: Friday, March 20, 2009 13:26
+To: sparclinux@vger.kernel.org
+Subject: Re: esp scsi problem on shutdown - sunhme related?
 
 
 Hello David!
@@ -74,3 +89,6 @@ From: David Miller <davem@davemloft.net>
 > 
 > Thanks!
 > 
+--
+To unsubscribe from this list: send the line "unsubscribe sparclinux" in the body of a message to majordomo@vger.kernel.org More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
