@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 12 Mar 2009 15:58:54 +0000
+Date: Mon, 23 Mar 2009 08:40:54 +0000
 Subject: [GIT]: Sparc
-Message-Id: <20090312.085854.191829621.davem@davemloft.net>
+Message-Id: <20090323.014054.210962886.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080421.153231.108090227.davem@davemloft.net>
 In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
@@ -16,28 +16,28 @@ Please pull to get these sparc bug fixes.
 
 Thanks!
 
-The following changes since commit ebdcc81c71937b30e09110c02a1e8a21fa770b6f:
-  Linus Torvalds (1):
-        Merge branch 'drm-fixes' of git://git.kernel.org/.../airlied/drm-2.6
+The following changes since commit 65c24491b4fef017c64e39ec64384fde5e05e0a0:
+  Jeff Moyer (1):
+        aio: lookup_ioctx can return the wrong value when looking up a bogus context
 
 are available in the git repository at:
 
   master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
 
-Christoph Hellwig (1):
-      jsflash: stop defining MAJOR_NR
+David S. Miller (2):
+      sparc64: Reschedule KGDB capture to a software interrupt.
+      Merge branch 'master' of /home/davem/src/GIT/linux-2.6/
 
-David S. Miller (1):
-      sparc64: Fix lost interrupts on sun4u.
+Mikulas Patocka (1):
+      sparc64: Fix crash with /proc/iomem
 
-Friedrich Oslage (1):
-      sunhme: Fix qfe parent detection.
+Scott James Remnant (1):
+      sbus: Auto-load openprom module when device opened.
 
-Roel Kluin (1):
-      sparc64: wait_event_interruptible_timeout may return -ERESTARTSYS
-
- arch/sparc/kernel/irq_64.c  |   29 +++++++++++++++++++----------
- drivers/net/sunhme.c        |    2 --
- drivers/sbus/char/bbc_i2c.c |    2 +-
- drivers/sbus/char/jsflash.c |    3 ---
- 4 files changed, 20 insertions(+), 16 deletions(-)
+ arch/sparc/include/asm/pil.h   |    1 +
+ arch/sparc/kernel/kgdb_64.c    |    2 +-
+ arch/sparc/kernel/pci_common.c |    2 +-
+ arch/sparc/kernel/ttable.S     |    7 ++++++-
+ arch/sparc/mm/ultra.S          |   24 ++----------------------
+ drivers/sbus/char/openprom.c   |    1 +
+ 6 files changed, 12 insertions(+), 25 deletions(-)
