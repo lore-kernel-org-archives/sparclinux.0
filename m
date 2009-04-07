@@ -1,7 +1,7 @@
-From: Dennis Gilmore <dennis@ausil.us>
-Date: Tue, 07 Apr 2009 16:02:11 +0000
+From: David Miller <davem@davemloft.net>
+Date: Tue, 07 Apr 2009 21:57:55 +0000
 Subject: Re: kernel bug with CONFIG_KEYBOARD_ATKBD=y
-Message-Id: <200904071102.13241.dennis@ausil.us>
+Message-Id: <20090407.145755.213806619.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <200904071001.19368.dennis@ausil.us>
 In-Reply-To: <200904071001.19368.dennis@ausil.us>
@@ -10,42 +10,11 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tuesday 07 April 2009 10:01:17 am Dennis Gilmore wrote:
+From: Dennis Gilmore <dennis@ausil.us>
+Date: Tue, 7 Apr 2009 10:01:17 -0500
 
 > Initalizing network drop monitor service
-> kernel BUG at
-> /builddir/build/BUILD/kernel-2.6.29/linux-2.6.29.sparc64/arch/sparc/include
->/asm/tlb_64.h:48! \|/ ____ \|/
->               "@'/ .. \`@"
->               /_| \__/ |_\
->                  \__U_/
-> init(1): Kernel bad sw trap 5 [#1]
-> TSTATE: 0000004411001600 TPC: 00000000004be804 TNPC: 00000000004be808 Y:
-> 00000000    Not tainted
-> TPC: <unmap_region+0x44/0x134>
-> g0: fffffffffffffffe g1: 00000000009ba400 g2: 0000000000903eb8 g3:
-> 000000000092d908 g4: fffff8005e050000 g5: 000000000000006f g6:
-> fffff8005e060000 g7: 8000000000000000
-> o0: 000000000088f7d0 o1: 0000000000000030 o2: 0000000000000030 o3:
-> ffffffffffffffff o4: 0000000000000000 o5: 0000000000000000 sp:
-> fffff8005e063481 ret_pc: 00000000004be7fc
-> RPC: <unmap_region+0x3c/0x134>
-> l0: fffff8005c1f42a0 l1: 0000000000000000 l2: 0000000000000000 l3:
-> 0000000000000000
-> l4: 0000000000000000 l5: 0000000000000000 l6: 0000000000000000 l7:
-> 00000000f7fe37e8
-> i0: fffff8005c1b8000 i1: fffff8005c180b28 i2: fffff8005c1f5260 i3:
-> 00000000f7fe0000 i4: 00000000f7fe2000 i5: 0000000000000080 i6:
-> fffff8005e063541 i7: 00000000004bfa20
-> I7: <do_munmap+0x278/0x2ec>
-> Caller[00000000004bfa20]: do_munmap+0x278/0x2ec
-> Caller[00000000004bfac0]: SyS_munmap+0x2c/0x48
-> Caller[0000000000406114]: linux_sparc_syscall32+0x34/0x40
-> Caller[00000000f7fb7d98]: 0xf7fb7d98
-> Instruction DUMP: 92102030  7ffdac5c  901223d0 <91d02005> c0206140 
-> 84103fff f0706130  c4206138  ce5e2098
+> kernel BUG at 
+> /builddir/build/BUILD/kernel-2.6.29/linux-2.6.29.sparc64/arch/sparc/include/asm/tlb_64.h:48!
 
-
-I just tested the kernel on one of my netra X1's and go the same result.  
-
-Dennis
+What kernel is this tree based upon?  2.6.29.1?
