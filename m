@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 08 Apr 2009 22:26:26 +0000
+From: seb@frankengul.org
+Date: Wed, 08 Apr 2009 22:44:19 +0000
 Subject: Re: SunFire V240 hangs
-Message-Id: <20090408.152626.220030913.davem@davemloft.net>
+Message-Id: <20090408224419.GD1142@frankengul.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20090408200711.GA1142@frankengul.org>
 In-Reply-To: <20090408200711.GA1142@frankengul.org>
@@ -10,34 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Wed, 8 Apr 2009 23:45:51 +0200
+On Wed, Apr 08, 2009 at 03:26:26PM -0700, David Miller wrote:
+> +#endif
+>  
+>  	switch (tlb_type) {
+>  	case hypervisor:
 
-> The easiet is to comment out the line:
-> 
->     arch_initcall(pcr_arch_init);
-> 
-> In the file: arch/sparc/kernel/pcr.c
+Strange, with arch_initcall(pcr_arch_init); commented, the kernel builds fine;
 
-It won't build since this makes pcr_arch_init() unused
-and sparc builds with -Werror.
+However, the good news is that this kernel boots fine.
 
-This patch below might work better.
+	Seb
 
-But even if the NMI isn't working, the NMI test should just timeout
-and fail if you wait for 10 or 20 seconds.
-
-diff --git a/arch/sparc/kernel/pcr.c b/arch/sparc/kernel/pcr.c
-index 1ae8cdd..62b2b9c 100644
---- a/arch/sparc/kernel/pcr.c
-+++ b/arch/sparc/kernel/pcr.c
-@@ -123,6 +123,9 @@ int __init pcr_arch_init(void)
- 
- 	if (err)
- 		return err;
-+#if 1
-+	return -ENODEV;
-+#endif
- 
- 	switch (tlb_type) {
- 	case hypervisor:
