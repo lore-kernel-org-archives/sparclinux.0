@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 08 Apr 2009 22:45:53 +0000
+From: seb@frankengul.org
+Date: Wed, 08 Apr 2009 23:01:01 +0000
 Subject: Re: SunFire V240 hangs
-Message-Id: <20090408.154553.162926603.davem@davemloft.net>
+Message-Id: <20090408230101.GE1142@frankengul.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20090408200711.GA1142@frankengul.org>
 In-Reply-To: <20090408200711.GA1142@frankengul.org>
@@ -10,18 +10,14 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: seb@frankengul.org
-Date: Thu, 9 Apr 2009 00:44:19 +0200
-
-> On Wed, Apr 08, 2009 at 03:26:26PM -0700, David Miller wrote:
->> +#endif
->>  
->>  	switch (tlb_type) {
->>  	case hypervisor:
+On Wed, Apr 08, 2009 at 03:45:53PM -0700, David Miller wrote:
+> > Strange, with arch_initcall(pcr_arch_init); commented, the kernel builds fine;
+> > 
+> > However, the good news is that this kernel boots fine.
 > 
-> Strange, with arch_initcall(pcr_arch_init); commented, the kernel builds fine;
-> 
-> However, the good news is that this kernel boots fine.
+> I suspect it will boot fine if you wait for the NMI tester to
+> timeout too.
 
-I suspect it will boot fine if you wait for the NMI tester to
-timeout too.
+Hum, how long does it takes to timeout ?
+
+	Seb
