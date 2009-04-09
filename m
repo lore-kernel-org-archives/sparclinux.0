@@ -1,64 +1,102 @@
-From: Tim Abbott <tabbott@MIT.EDU>
-Date: Thu, 30 Apr 2009 23:58:51 +0000
-Subject: [PATCH 2/4] sparc: use new macros for .data.init_task.
-Message-Id: <1241135933-9913-3-git-send-email-tabbott@mit.edu>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 09 Apr 2009 05:37:51 +0000
+Subject: [PATCH 9/12]: sparc64: Defer cpu_data() setup until end of per-cpu
+Message-Id: <20090408.223751.51368318.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1241135933-9913-1-git-send-email-tabbott@mit.edu>
- <1241135933-9913-2-git-send-email-tabbott@mit.edu>
-In-Reply-To: <1241135933-9913-2-git-send-email-tabbott@mit.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: Linux kernel mailing list <linux-kernel@vger.kernel.org>, Anders Kaseorg <andersk@MIT.EDU>, Waseem Daher <wdaher@MIT.EDU>, Denys Vlasenko <vda.linux@googlemail.com>, Jeff Arnold <jbarnold@MIT.EDU>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Tim Abbott <tabbott@MIT.EDU>
+To: tj@kernel.org
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-.data.init_task should not need a separate output section; this change
-moves it into the .data section.
 
-Signed-off-by: Tim Abbott <tabbott@mit.edu>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/kernel/init_task.c   |    5 ++---
- arch/sparc/kernel/vmlinux.lds.S |    6 +-----
- 2 files changed, 3 insertions(+), 8 deletions(-)
+ arch/sparc/kernel/ds.c      |    1 +
+ arch/sparc/kernel/mdesc.c   |    1 -
+ arch/sparc/kernel/prom_64.c |    1 -
+ arch/sparc/kernel/smp_64.c  |    4 ++++
+ arch/sparc/mm/init_64.c     |   12 ++++--------
+ 5 files changed, 9 insertions(+), 10 deletions(-)
 
-diff --git a/arch/sparc/kernel/init_task.c b/arch/sparc/kernel/init_task.c
-index f28cb82..7367984 100644
---- a/arch/sparc/kernel/init_task.c
-+++ b/arch/sparc/kernel/init_task.c
-@@ -21,6 +21,5 @@ EXPORT_SYMBOL(init_task);
-  * If this is not aligned on a 8k boundry, then you should change code
-  * in etrap.S which assumes it.
-  */
--union thread_union init_thread_union
--	__attribute__((section (".data.init_task")))
--	= { INIT_THREAD_INFO(init_task) };
-+union thread_union init_thread_union __init_task_data +	{ INIT_THREAD_INFO(init_task) };
-diff --git a/arch/sparc/kernel/vmlinux.lds.S b/arch/sparc/kernel/vmlinux.lds.S
-index 6587e03..3fbf650 100644
---- a/arch/sparc/kernel/vmlinux.lds.S
-+++ b/arch/sparc/kernel/vmlinux.lds.S
-@@ -52,6 +52,7 @@ SECTIONS
+diff --git a/arch/sparc/kernel/ds.c b/arch/sparc/kernel/ds.c
+index 51b05c4..4a700f4 100644
+--- a/arch/sparc/kernel/ds.c
++++ b/arch/sparc/kernel/ds.c
+@@ -544,6 +544,7 @@ static int __cpuinit dr_cpu_configure(struct ds_info *dp,
+ 			     resp_len, ncpus, mask,
+ 			     DR_CPU_STAT_CONFIGURED);
  
- 	RO_DATA(PAGE_SIZE)
- 	.data :	{
-+		INIT_TASK_DATA(THREAD_SIZE)
- 		CACHELINE_ALIGNED_DATA(SMP_CACHE_BYTES)
- 		DATA_DATA
- 		CONSTRUCTORS
-@@ -66,11 +67,6 @@ SECTIONS
- 	/* End of data section */
- 	_edata = .;
++	mdesc_populate_present_mask(mask);
+ 	mdesc_fill_in_cpu_data(mask);
  
--	/* init_task */
--	. = ALIGN(THREAD_SIZE);
--	.data.init_task : {
--		*(.data.init_task)
--	}
- 	.fixup : {
- 		__start___fixup = .;
- 		*(.fixup)
+ 	for_each_cpu_mask(cpu, *mask) {
+diff --git a/arch/sparc/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
+index 6d2015e..938da19 100644
+--- a/arch/sparc/kernel/mdesc.c
++++ b/arch/sparc/kernel/mdesc.c
+@@ -861,7 +861,6 @@ void __cpuinit mdesc_fill_in_cpu_data(cpumask_t *mask)
+ {
+ 	struct mdesc_handle *hp;
+ 
+-	mdesc_populate_present_mask(mask);
+ 	mdesc_iterate_over_cpus(fill_in_one_cpu, NULL, mask);
+ 
+ #ifdef CONFIG_SMP
+diff --git a/arch/sparc/kernel/prom_64.c b/arch/sparc/kernel/prom_64.c
+index 04b518d..f65d623 100644
+--- a/arch/sparc/kernel/prom_64.c
++++ b/arch/sparc/kernel/prom_64.c
+@@ -537,7 +537,6 @@ void __init of_fill_in_cpu_data(void)
+ 	if (tlb_type = hypervisor)
+ 		return;
+ 
+-	of_populate_present_mask();
+ 	of_iterate_over_cpus(fill_in_one_cpu, NULL);
+ 
+ 	smp_fill_in_sib_core_maps();
+diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
+index 022e5e0..73f5538 100644
+--- a/arch/sparc/kernel/smp_64.c
++++ b/arch/sparc/kernel/smp_64.c
+@@ -1399,4 +1399,8 @@ void __init real_setup_per_cpu_areas(void)
+ 
+ 	/* Setup %g5 for the boot cpu.  */
+ 	__local_per_cpu_offset = __per_cpu_offset(smp_processor_id());
++
++	of_fill_in_cpu_data();
++	if (tlb_type = hypervisor)
++		mdesc_fill_in_cpu_data(CPU_MASK_ALL_PTR);
+ }
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index 87fea94..785f0a2 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -1799,20 +1799,16 @@ void __init paging_init(void)
+ 	if (tlb_type = hypervisor)
+ 		sun4v_ktsb_register();
+ 
+-	/* We must setup the per-cpu areas before we pull in the
+-	 * PROM and the MDESC.  The code there fills in cpu and
+-	 * other information into per-cpu data structures.
+-	 */
+-	real_setup_per_cpu_areas();
+-
+ 	prom_build_devicetree();
+-	of_fill_in_cpu_data();
++	of_populate_present_mask();
+ 
+ 	if (tlb_type = hypervisor) {
+ 		sun4v_mdesc_init();
+-		mdesc_fill_in_cpu_data(CPU_MASK_ALL_PTR);
++		mdesc_populate_present_mask(CPU_MASK_ALL_PTR);
+ 	}
+ 
++	real_setup_per_cpu_areas();
++
+ 	/* Once the OF device tree and MDESC have been setup, we know
+ 	 * the list of possible cpus.  Therefore we can allocate the
+ 	 * IRQ stacks.
 -- 
-1.6.2.1
+1.6.2.2
 
