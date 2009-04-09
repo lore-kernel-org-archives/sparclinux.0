@@ -1,7 +1,7 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 09 Apr 2009 06:44:47 +0000
+From: Tejun Heo <tj@kernel.org>
+Date: Thu, 09 Apr 2009 11:48:12 +0000
 Subject: Re: [PATCH 12/12]: sparc64: Use new dynamic per-cpu allocator.
-Message-Id: <20090409064447.GB14255@uranus.ravnborg.org>
+Message-Id: <49DDE07C.8050101@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20090408.223758.81953207.davem@davemloft.net>
 In-Reply-To: <20090408.223758.81953207.davem@davemloft.net>
@@ -9,31 +9,31 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: David Miller <davem@davemloft.net>
-Cc: tj@kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Apr 08, 2009 at 10:37:58PM -0700, David Miller wrote:
-> 
-> Signed-off-by: David S. Miller <davem@davemloft.net>
-> ---
->  arch/sparc/Kconfig         |    3 +
->  arch/sparc/kernel/smp_64.c |  165 +++++++++++++++++++++++++++++++++++++++++---
->  2 files changed, 159 insertions(+), 9 deletions(-)
-> 
-> diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-> index cc12cd4..2185cf9 100644
-> --- a/arch/sparc/Kconfig
-> +++ b/arch/sparc/Kconfig
-> @@ -93,6 +93,9 @@ config AUDIT_ARCH
->  config HAVE_SETUP_PER_CPU_AREA
->  	def_bool y if SPARC64
->  
-> +config HAVE_DYNAMIC_PER_CPU_AREA
-> +	def_bool y if SPARC64
+Hello,
+
+The percpu part looks good to me.  Just one question below.
+
+David Miller wrote:
+>  void __init setup_per_cpu_areas(void)
+>  {
+> -	unsigned long size, i, nr_possible_cpus = num_possible_cpus();
+> -	char *ptr;
+> +	size_t dyn_size, static_size = __per_cpu_end - __per_cpu_start;
+> +	static struct vm_struct vm;
+> +	unsigned long delta, cpu;
+> +	size_t pcpu_unit_size;
+> +	size_t ptrs_size;
 > +
+> +	pcpur_size = PFN_ALIGN(static_size + PERCPU_MODULE_RESERVE +
+> +			       PERCPU_DYNAMIC_RESERVE);
+> +	dyn_size = pcpur_size - static_size - PERCPU_MODULE_RESERVE;
 
-Not related to this specific patch - but I wonder if there
-is any good reason these HAVE_ varaibles do not follow the
-normal pattern with one definition
-and users using select to enable it.
+Isn't it better to use embedding allocator for !NUMA cases (one less
+TLB entry usage for each CPU)?
 
-	Sam
+Thanks.
+
+-- 
+tejun
