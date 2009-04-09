@@ -1,54 +1,82 @@
-From: Tim Abbott <tabbott@MIT.EDU>
-Date: Thu, 30 Apr 2009 23:58:53 +0000
-Subject: [PATCH 4/4] sparc: convert to new generic read_mostly support.
-Message-Id: <1241135933-9913-5-git-send-email-tabbott@mit.edu>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 09 Apr 2009 05:37:48 +0000
+Subject: [PATCH 8/12]: sparc64: Make mdesc_fill_in_cpu_data take a
+Message-Id: <20090408.223748.69543906.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1241135933-9913-1-git-send-email-tabbott@mit.edu>
- <1241135933-9913-2-git-send-email-tabbott@mit.edu>
- <1241135933-9913-3-git-send-email-tabbott@mit.edu>
- <1241135933-9913-4-git-send-email-tabbott@mit.edu>
-In-Reply-To: <1241135933-9913-4-git-send-email-tabbott@mit.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: Linux kernel mailing list <linux-kernel@vger.kernel.org>, Anders Kaseorg <andersk@MIT.EDU>, Waseem Daher <wdaher@MIT.EDU>, Denys Vlasenko <vda.linux@googlemail.com>, Jeff Arnold <jbarnold@MIT.EDU>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Tim Abbott <tabbott@MIT.EDU>
+To: tj@kernel.org
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Signed-off-by: Tim Abbott <tabbott@mit.edu>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/Kconfig             |    3 +++
- arch/sparc/include/asm/cache.h |    2 --
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ arch/sparc/include/asm/mdesc.h |    2 +-
+ arch/sparc/kernel/ds.c         |    2 +-
+ arch/sparc/kernel/mdesc.c      |    6 +++---
+ arch/sparc/mm/init_64.c        |    2 +-
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index cc12cd4..fbdeded 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -127,6 +127,9 @@ config OF
- config ARCH_SUPPORTS_DEBUG_PAGEALLOC
- 	def_bool y if SPARC64
+diff --git a/arch/sparc/include/asm/mdesc.h b/arch/sparc/include/asm/mdesc.h
+index 8f8a520..9faa046 100644
+--- a/arch/sparc/include/asm/mdesc.h
++++ b/arch/sparc/include/asm/mdesc.h
+@@ -71,7 +71,7 @@ struct mdesc_notifier_client {
  
-+config HAVE_READ_MOSTLY_DATA
-+	def_bool y
-+
- source "init/Kconfig"
+ extern void mdesc_register_notifier(struct mdesc_notifier_client *client);
  
- source "kernel/Kconfig.freezer"
-diff --git a/arch/sparc/include/asm/cache.h b/arch/sparc/include/asm/cache.h
-index 41f85ae..e614736 100644
---- a/arch/sparc/include/asm/cache.h
-+++ b/arch/sparc/include/asm/cache.h
-@@ -19,8 +19,6 @@
+-extern void mdesc_fill_in_cpu_data(cpumask_t mask);
++extern void mdesc_fill_in_cpu_data(cpumask_t *mask);
+ extern void mdesc_populate_present_mask(cpumask_t *mask);
  
- #define SMP_CACHE_BYTES (1 << SMP_CACHE_BYTES_SHIFT)
+ extern void sun4v_mdesc_init(void);
+diff --git a/arch/sparc/kernel/ds.c b/arch/sparc/kernel/ds.c
+index 90350f8..51b05c4 100644
+--- a/arch/sparc/kernel/ds.c
++++ b/arch/sparc/kernel/ds.c
+@@ -544,7 +544,7 @@ static int __cpuinit dr_cpu_configure(struct ds_info *dp,
+ 			     resp_len, ncpus, mask,
+ 			     DR_CPU_STAT_CONFIGURED);
  
--#define __read_mostly __attribute__((__section__(".data.read_mostly")))
--
- #ifdef CONFIG_SPARC32
- #include <asm/asi.h>
+-	mdesc_fill_in_cpu_data(*mask);
++	mdesc_fill_in_cpu_data(mask);
  
+ 	for_each_cpu_mask(cpu, *mask) {
+ 		int err;
+diff --git a/arch/sparc/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
+index 602cbb7..6d2015e 100644
+--- a/arch/sparc/kernel/mdesc.c
++++ b/arch/sparc/kernel/mdesc.c
+@@ -857,12 +857,12 @@ static void * __cpuinit fill_in_one_cpu(struct mdesc_handle *hp, u64 mp, int cpu
+ 	return NULL;
+ }
+ 
+-void __cpuinit mdesc_fill_in_cpu_data(cpumask_t mask)
++void __cpuinit mdesc_fill_in_cpu_data(cpumask_t *mask)
+ {
+ 	struct mdesc_handle *hp;
+ 
+-	mdesc_populate_present_mask(&mask);
+-	mdesc_iterate_over_cpus(fill_in_one_cpu, NULL, &mask);
++	mdesc_populate_present_mask(mask);
++	mdesc_iterate_over_cpus(fill_in_one_cpu, NULL, mask);
+ 
+ #ifdef CONFIG_SMP
+ 	sparc64_multi_core = 1;
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index c589d6e..87fea94 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -1810,7 +1810,7 @@ void __init paging_init(void)
+ 
+ 	if (tlb_type = hypervisor) {
+ 		sun4v_mdesc_init();
+-		mdesc_fill_in_cpu_data(CPU_MASK_ALL);
++		mdesc_fill_in_cpu_data(CPU_MASK_ALL_PTR);
+ 	}
+ 
+ 	/* Once the OF device tree and MDESC have been setup, we know
 -- 
-1.6.2.1
+1.6.2.2
 
