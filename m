@@ -1,7 +1,7 @@
-From: Tanya <tanya@08161.com>
-Date: Tue, 14 Apr 2009 19:52:50 +0000
-Subject: =?iso-8859-1?b?TGV0IEFjY2FpIEJlcnJ5IGltcG9ydmUgeW91ciBoZWFsdGgg?=
-Message-Id: <000701c9bd32$35bf8c50$52dd8752@namai-1y7vmhgjn>
+From: Zuniga <claudia@forteinc.com>
+Date: Tue, 14 Apr 2009 18:49:05 +0000
+Subject: =?iso-8859-1?b?QWNhaSBEaWV0LCBnb29kYnllIG9uZSBwaWVjZS4uLiBoZWxsbyBCaWs=?=
+Message-Id: <790797880.200904142049@forteinc.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -11,8 +11,8 @@ Cc: netdev@vger.kernel.org
 
 he1l0
 
-Order today and start shedding those pounds today 
-visit site http://groups.yahoo.com/group/jymalejyfelib24/message/1
+Don't waste your time with any other diet pills. Acai Diet PLAN is your answer to healthy weight loss. get goin on your free trial.
+visit site http://groups.yahoo.com/group/rymihykawotoq52/message/1
 
-code msg gjh
-id 12
+code msg ljk,nm,
+id 80
