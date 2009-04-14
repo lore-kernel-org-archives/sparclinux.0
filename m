@@ -1,59 +1,59 @@
-From: Jan Kara <jack@suse.cz>
-Date: Mon, 06 Apr 2009 09:20:42 +0000
-Subject: Re: next-20090310: ext4 hangs
-Message-Id: <20090406092042.GA31189@duck.suse.cz>
+From: ipif <ipif@ymail.com>
+Date: Tue, 14 Apr 2009 12:00:41 +0000
+Subject: alloc_io_res: cannot occupy / paging request fails
+Message-Id: <23038125.post@talk.nabble.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <a4423d670903250829w5e9304a7rce24f4220379620f@mail.gmail.com> <20090325161556.GP23439@duck.suse.cz> <a4423d670903251007r72058ca8m28275c1433ab2706@mail.gmail.com> <20090325194316.GQ23439@duck.suse.cz> <a4423d670903251538p3a7c180br1bcfe08c4f044c15@mail.gmail.com> <20090331100150.GF11808@duck.suse.cz> <a4423d670903310307i7acd31f0r4836beae14cfb92d@mail.gmail.com> <20090331123307.GG11808@duck.suse.cz> <a4423d670904021150p5fcd1f82wefa68c839b2869a1@mail.gmail.com> <a4423d670904041409i271c8abbyf5b74d656eeb363f@mail.gmail.com>
-In-Reply-To: <a4423d670904041409i271c8abbyf5b74d656eeb363f@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Alexander Beregalov <a.beregalov@gmail.com>
-Cc: Theodore Tso <tytso@mit.edu>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, linux-ext4@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
-On Sun 05-04-09 01:09:31, Alexander Beregalov wrote:
-> 2009/4/2 Alexander Beregalov <a.beregalov@gmail.com>:
-> >>> > =A0I'm helpless here. I don't see how we can miss a wakeup (plus yo=
-u seem to
-> >>> > be the only one reporting the bug). Could you please compile and te=
-st the kernel
-> >>> > with the attached patch? It will print to kernel log when we go to =
-sleep
-> >>> > waiting for inode commit and when we send wakeups etc. When you hit=
- the
-> >>> > deadlock, please send me your kernel log. It should help with debug=
-ging why do
-> >>> > we miss the wakeup. Thanks.
-> >>>
-> >>> Which patch?
-> >> =A0Ups. Forgot to attach ;).
-> >
-> > Cannot reproduce it on current 2.6.29-git. Strange.
-> > It should already have all ext4/jbd2 patches from next-20090310,
-> > but anyway it happened with 2.6.29-rc8 also.
-> > I ran dbench in cycle on two indentical hosts for more than 24 hours
-> > with no hang tasks.
-> >
-> > I will try 2.6.29.
->=20
-> I cannot reproduce it with vanilla v2.6.29.
-> It seems the problem has gone.
-> Thanks Jan.
-  Thanks for testing. I'm glad we have one mystery less ;).
-=20
-> The patch output:
-> [133886.375874] JBD2: Waiting for ino 1062
-> [133886.376372] JBD2: Waking up sleeper on ino 1062
-> [133886.376824] JBD2: Woken on ino 1062
-> [134611.108451] JBD2: Waiting for ino 1102
-> [134611.108903] JBD2: Waking up sleeper on ino 1102
-> [134611.109787] JBD2: Woken on ino 1102
-> [134611.132912] JBD2: Waiting for ino 1074
-> [134611.133311] JBD2: Waking up sleeper on ino 1074
-> [134611.133707] JBD2: Woken on ino 1074
-  Yes, this is how it should always look...
 
-									Honza
---=20
-Jan Kara <jack@suse.cz>
-SUSE Labs, CR
+Hi,
+
+I'm trying to get MTD support working on my embedded sparc (leon3, V8).
+There are 32MB of flash on the board I want to utilize starting at 0x0. The
+corresponding kernel options are:
+CONFIG_MTD_PHYSMAP=y
+CONFIG_MTD_PHYSMAP_START=0x00000000
+CONFIG_MTD_PHYSMAP_LEN=0x02000000
+With these options the kernel stops booting with
+"alloc_io_res(phys_00000000): cannot occupy".
+So I changed IOBASE_END and VMALLOC_START from 0xfe600000 to 0xff400000 in
+include/asm-sparc/vaddrs.h. And voila, the kernel boots fine. But when I Try
+to access the flash with dd the following happens:
+
+Unable to handle kernel paging request at virtual address fe640000
+tsk->{mm,active_mm}->context = 000000ae
+tsk->{mm,active_mm}->pgd = fc01f400
+              \|/ ____ \|/
+              "@'/ ,. \`@"
+              /_| \__/ |_\
+                 \__U_/
+dd(2616): Oops [#1]
+PSR: f30000c2 PC: f01b543c NPC: f01b5440 Y: 00000000    Not tainted
+PC: <cfi_intelext_read+0x158/0x1b4>
+%G: fbd77d70 00000000  00000000 fe640000  00000000 00000000  fbd76000
+00000000
+%O: 00000000 00000000  01640000 00000000  00032000 01640000  fbd77d78
+f01b53dc
+RPC: <cfi_intelext_read+0xf8/0x1b4>
+%L: 00000200 00000000  f0034ce4 01640000  f0ae39e0 f0b0c3e4  fbd76000
+0005d000
+%I: 00000000 01640000  f0ae3a18 00000200  fbd77e64 fbd16200  fbd77de0
+f01ad1c0
+Caller[f01ad1c0]: mtd_read+0xf8/0x23c
+Caller[f007607c]: vfs_read+0x9c/0x140
+Caller[f0076598]: sys_read+0x38/0x64
+Caller[f0011310]: syscall_is_too_hard+0x3c/0x40
+Caller[00011b20]: 0x11b28
+Instruction DUMP: c405600c  86008013  84102000 <c208c002> c228801d  8400a001 
+80a08010  12bffffc  94100019
+
+Thanks,
+-jan
+
+-- 
+View this message in context: http://www.nabble.com/alloc_io_res%3A-cannot-occupy---paging-request-fails-tp23038125p23038125.html
+Sent from the sparclinux mailing list archive at Nabble.com.
+
