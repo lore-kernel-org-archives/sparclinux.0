@@ -1,29 +1,51 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 25 Apr 2009 10:20:04 +0000
-Subject: Re: Fire V880 hangs at Testing NMI with 2.6.29.1
-Message-Id: <20090425.032004.238238461.davem@davemloft.net>
+From: Wei Yongjun <yjwei@cn.fujitsu.com>
+Date: Tue, 14 Apr 2009 06:16:55 +0000
+Subject: [PATCH] sparc: fix possible build error in arch/sparc/include/asm/parport.h
+Message-Id: <49E42A57.50506@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090421103557.GZ15865@ltw.loris.tv>
-In-Reply-To: <20090421103557.GZ15865@ltw.loris.tv>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: adi@drcomp.erfurt.thur.de (Adrian Knoth)
-Date: Sat, 25 Apr 2009 10:34:14 +0200
+commit 51dcdfec6a274afc1c6fce180d582add9ff512c0 (parport: Use the PCI
+IRQ if offered) parport_pc_probe_port() gained an irqflags arg.  This
+isn't being supplied on sparc.  This patch make sparc fallback to the
+old behaviour, that is using 0 for irqflags.
 
-> On Fri, Apr 24, 2009 at 08:37:56AM -0700, David Miller wrote:
-> 
->> >      ERROR: Power On Self Test Failed. Cause: 
->> > CPU0 Bank 1 Dimm 3, J3200 side 1
->> >      ERROR: POST failed.
->> Just FYI, you have some serious RAM problems in this machine.
-> 
-> That's why the whole CPU0+2 board is offlined.
+No test.
 
-So which cpus usually come up?  I see 1, 4, 5, 6, 7 come up after
-the boot processor.  I wonder what number the boot processor is?
+Signed-off-by: Wei Yongjun <yjwei@cn.fujitsu.com>
+---
+ arch/sparc/include/asm/parport.h |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-You can tell by what number shows up in-between {} braces in the
-OBP firmware prompt.
+diff --git a/arch/sparc/include/asm/parport.h b/arch/sparc/include/asm/parport.h
+index dff3f02..ff9ead6 100644
+--- a/arch/sparc/include/asm/parport.h
++++ b/arch/sparc/include/asm/parport.h
+@@ -117,7 +117,7 @@ static int __devinit ecpp_probe(struct of_device *op, const struct of_device_id
+ 	if (!strcmp(parent->name, "dma")) {
+ 		p = parport_pc_probe_port(base, base + 0x400,
+ 					  op->irqs[0], PARPORT_DMA_NOFIFO,
+-					  op->dev.parent->parent);
++					  op->dev.parent->parent, 0);
+ 		if (!p)
+ 			return -ENOMEM;
+ 		dev_set_drvdata(&op->dev, p);
+@@ -168,7 +168,8 @@ static int __devinit ecpp_probe(struct of_device *op, const struct of_device_id
+ 	p = parport_pc_probe_port(base, base + 0x400,
+ 				  op->irqs[0],
+ 				  slot,
+-				  op->dev.parent);
++				  op->dev.parent,
++				  0);
+ 	err = -ENOMEM;
+ 	if (!p)
+ 		goto out_disable_irq;
+-- 
+1.5.3.8
+
+
+
+
