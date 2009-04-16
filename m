@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 08 Apr 2009 23:08:11 +0000
+Date: Thu, 16 Apr 2009 11:12:56 +0000
 Subject: [GIT]: Sparc
-Message-Id: <20090408.160811.93427992.davem@davemloft.net>
+Message-Id: <20090416.041256.120784220.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080421.153231.108090227.davem@davemloft.net>
 In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
@@ -12,38 +12,33 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-Section mismatch fixes, plus hook up the new preadv/pwritev
-system calls.
+Please pull to get these Sparc updates.
 
-Please pull, thanks a lot!
+Thanks!
 
-The following changes since commit 577c9c456f0e1371cbade38eaf91ae8e8a308555:
+The following changes since commit 3ee8da87ba6151ec91b2b8bbd27633bb248ea0d5:
   Linus Torvalds (1):
-        Linux 2.6.30-rc1
+        Merge branch 'for-linus' of git://git.kernel.org/.../tiwai/sound-2.6
 
 are available in the git repository at:
 
   master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
 
-David S. Miller (7):
-      sparc64: get_cells() can't be marked __init
-      sparc64: Fix section mismatch warnings in power driver.
-      sparc64: Fix section mismatch warnings in PCI controller drivers.
-      sparc: Fix section mismatch warnings in cs4231 sound driver.
-      serial: sunsu: sunsu_kbd_ms_init needs to be __devinit
-      sparc64: add_node_ranges() must be __init
-      sparc: Hook up sys_preadv and sys_pwritev
+David S. Miller (1):
+      sparc64: Fix smp_callin() locking.
 
- arch/sparc/include/asm/unistd.h  |    4 +++-
- arch/sparc/kernel/of_device_64.c |    3 +--
- arch/sparc/kernel/pci_fire.c     |    4 ++--
- arch/sparc/kernel/pci_psycho.c   |    8 ++++----
- arch/sparc/kernel/pci_sabre.c    |    8 ++++----
- arch/sparc/kernel/pci_sun4v.c    |   14 +++++++-------
- arch/sparc/kernel/power.c        |    2 +-
- arch/sparc/kernel/systbls_32.S   |    2 +-
- arch/sparc/kernel/systbls_64.S   |    4 ++--
- arch/sparc/mm/init_64.c          |    8 ++++----
- drivers/serial/sunsu.c           |    2 +-
- sound/sparc/cs4231.c             |   28 ++++++++++++++--------------
- 12 files changed, 44 insertions(+), 43 deletions(-)
+Stephen Rothwell (1):
+      sparc: asm/atomic.h on 32bit should include asm/system.h for xchg
+
+Stoyan Gaydarov (1):
+      sbus: changed ioctls to unlocked
+
+Wei Yongjun (1):
+      sparc: remove some pointless conditionals before kfree()
+
+ arch/sparc/include/asm/atomic_32.h |    2 ++
+ arch/sparc/kernel/ldc.c            |    6 ++----
+ arch/sparc/kernel/smp_64.c         |    4 ++--
+ drivers/sbus/char/jsflash.c        |   15 ++++++++++-----
+ drivers/sbus/char/uctrl.c          |    7 +++----
+ 5 files changed, 19 insertions(+), 15 deletions(-)
