@@ -1,24 +1,113 @@
-From: Josip Rodin <joy@orion.carnet.hr>
-Date: Tue, 14 Apr 2009 17:57:35 +0000
-Subject: Re: [PATCH] sparc: fix possible build error in
-Message-Id: <20090414175735.GA2662@orion.carnet.hr>
+From: David Miller <davem@davemloft.net>
+Date: Fri, 17 Apr 2009 11:10:21 +0000
+Subject: Re: Ultra1 ESP detection problem
+Message-Id: <20090417.041021.125958522.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <49E42A57.50506@cn.fujitsu.com>
-In-Reply-To: <49E42A57.50506@cn.fujitsu.com>
+References: <Pine.SOC.4.64.0903132344220.21922@math.ut.ee>
+In-Reply-To: <Pine.SOC.4.64.0903132344220.21922@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, Apr 14, 2009 at 02:16:55PM +0800, Wei Yongjun wrote:
-> commit 51dcdfec6a274afc1c6fce180d582add9ff512c0 (parport: Use the PCI
-> IRQ if offered) parport_pc_probe_port() gained an irqflags arg.  This
-> isn't being supplied on sparc.  This patch make sparc fallback to the
-> old behaviour, that is using 0 for irqflags.
+From: David Miller <davem@davemloft.net>
+Date: Sun, 15 Mar 2009 20:32:36 -0700 (PDT)
 
-FWIW looks like this is already in Linus' tree:
+> Your change will make the 'qe' nodes match SBUS as a bus.  That's
+> wrong, and we need to use na = 2 and ns = 2 for this case.
+> 
+> So this doesn't work as a mechanism to bypass intermediate parent
+> nodes up to the SBUS.  You need to fix this while preserving the
+> invariants and expectations of how this translation system works.
+> 
+> For now, perhaps we can add those use_1to1_mapping() checks to
+> of_bus_sbus_match() as a quick fix that won't break other cases like
+> the 'qec' mentioned above.
 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h(783eb52013ad20784550bccd482e541c9619c2
+Ok, following through on this... Here is how I would like to
+fix this bug.
 
--- 
-     2. That which causes joy or happiness.
+sparc: Fix bus type probing for ESP and LE devices.
+
+If there is a dummy "espdma" or "ledma" parent device above ESP scsi
+or LE ethernet device nodes, we have to match the bus as SBUS.
+
+Otherwise the address and size cell counts are wrong and we don't
+calculate the final physical device resource values correctly at all.
+
+Commit 5280267c1dddb8d413595b87dc406624bb497946 ("sparc: Fix handling
+of LANCE and ESP parent nodes in of_device.c") was meant to fix this
+problem, but that only influences the inner loop of
+build_device_resources().  We need this logic to also kick in at the
+beginning of build_device_resources() as well, when we make the first
+attempt to determine the device's immediate parent bus type for 'reg'
+property element extraction.
+
+Based almost entirely upon a patch by Friedrich Oslage.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+
+diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device_32.c
+index 0a83bd7..a7164c5 100644
+--- a/arch/sparc/kernel/of_device_32.c
++++ b/arch/sparc/kernel/of_device_32.c
+@@ -246,8 +246,25 @@ static unsigned long of_bus_pci_get_flags(const u32 *addr, unsigned long flags)
+ 
+ static int of_bus_sbus_match(struct device_node *np)
+ {
+-	return !strcmp(np->name, "sbus") ||
+-		!strcmp(np->name, "sbi");
++	struct device_node *dp = np;
++
++	while (dp) {
++		if (!strcmp(np->name, "sbus") ||
++		    !strcmp(np->name, "sbi"))
++			return 1;
++
++		/* Have a look at use_1to1_mapping().  We're trying
++		 * to match SBUS if that's the top-level bus and we
++		 * don't have some intervening real bus that provides
++		 * ranges based translations.
++		 */
++		if (of_find_property(dp, "ranges", NULL) != NULL)
++			break;
++
++		dp = dp->parent;
++	}
++
++	return 0;
+ }
+ 
+ static void of_bus_sbus_count_cells(struct device_node *child,
+diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device_64.c
+index 27381f1..734f7ba 100644
+--- a/arch/sparc/kernel/of_device_64.c
++++ b/arch/sparc/kernel/of_device_64.c
+@@ -300,8 +300,25 @@ static unsigned long of_bus_pci_get_flags(const u32 *addr, unsigned long flags)
+ 
+ static int of_bus_sbus_match(struct device_node *np)
+ {
+-	return !strcmp(np->name, "sbus") ||
+-		!strcmp(np->name, "sbi");
++	struct device_node *dp = np;
++
++	while (dp) {
++		if (!strcmp(np->name, "sbus") ||
++		    !strcmp(np->name, "sbi"))
++			return 1;
++
++		/* Have a look at use_1to1_mapping().  We're trying
++		 * to match SBUS if that's the top-level bus and we
++		 * don't have some intervening real bus that provides
++		 * ranges based translations.
++		 */
++		if (of_find_property(dp, "ranges", NULL) != NULL)
++			break;
++
++		dp = dp->parent;
++	}
++
++	return 0;
+ }
+ 
+ static void of_bus_sbus_count_cells(struct device_node *child,
