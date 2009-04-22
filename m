@@ -1,32 +1,78 @@
-From: Tejun Heo <tj@kernel.org>
-Date: Thu, 09 Apr 2009 21:45:19 +0000
-Subject: Re: [PATCH 12/12]: sparc64: Use new dynamic per-cpu allocator.
-Message-Id: <49DE6C6F.8090402@kernel.org>
+From: Vince Weaver <vince@deater.net>
+Date: Wed, 22 Apr 2009 19:40:42 +0000
+Subject: [patch] Niagara1 Perfcounter Accesses
+Message-Id: <Pine.LNX.4.64.0904221537190.12401@pianoman.cluster.toy>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090408.223758.81953207.davem@davemloft.net>	<49DDE07C.8050101@kernel.org> <20090409.142923.252620650.davem@davemloft.net>
-In-Reply-To: <20090409.142923.252620650.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-David Miller wrote:
->> Isn't it better to use embedding allocator for !NUMA cases (one less
->> TLB entry usage for each CPU)?
-> 
-> Heck, the embedding case would probably be optimal for Niagara NUMA
-> systems too.
-> 
-> On Niagara systems all of the "possible" cpu numbers are linear and in
-> order.  No holes, gaps, or other stuff like this.  So just allocating
-> big TLB mapping chunks and chopping them up to the individual cpus is
-> the best scheme possible.
 
-Sounds great.  I wonder whether the remap allocator could be replaced
-with embed allocator with right parameters on x86 too.
+Add proper Niagara1 perfcounter accesses.
 
-Thanks.
+When trying to track down the hang-on-boot NMI problem on my
+T1 system, I noticed that Niagara2 performance counter accesses
+were being done, even though I only have a Niagara1 system.
+This means "undefined" bits were being written to in the
+performance counter register.
 
--- 
-tejun
+This patch does not fix the hang, but it's possibly the right thing
+to do anyway.
+
+Signed-off-by: Vince Weaver <vince@deater.net>
+
+
+diff --git a/arch/sparc/kernel/pcr.c b/arch/sparc/kernel/pcr.c
+index 1ae8cdd..bc6c67c 100644
+--- a/arch/sparc/kernel/pcr.c
++++ b/arch/sparc/kernel/pcr.c
+@@ -72,11 +72,25 @@ static void n2_pcr_write(u64 val)
+  		write_pcr(val);
+  }
+
++static void n1_pcr_write(u64 val)
++{
++	unsigned long ret;
++
++	ret = sun4v_niagara_setperf(HV_N2_PERF_SPARC_CTL, val);
++	if (val != HV_EOK)
++		write_pcr(val);
++}
++
+  static const struct pcr_ops n2_pcr_ops = {
+  	.read	= direct_pcr_read,
+  	.write	= n2_pcr_write,
+  };
+
++static const struct pcr_ops n1_pcr_ops = {
++	.read	= direct_pcr_read,
++	.write	= n1_pcr_write,
++};
++
+  static unsigned long perf_hsvc_group;
+  static unsigned long perf_hsvc_major;
+  static unsigned long perf_hsvc_minor;
+@@ -126,11 +140,20 @@ int __init pcr_arch_init(void)
+
+  	switch (tlb_type) {
+  	case hypervisor:
++	   switch (sun4v_chip_type) {
++	   case SUN4V_CHIP_NIAGARA1:
++	        pcr_ops = &n1_pcr_ops;
++	        pcr_enable = PCR_SUN4U_ENABLE;
++	        break;
++
++	   case SUN4V_CHIP_NIAGARA2:
+  		pcr_ops = &n2_pcr_ops;
+  		pcr_enable = PCR_N2_ENABLE;
+  		picl_shift = 2;
+  		break;
+-
++	   }
++	   break;
++
+  	case cheetah:
+  	case cheetah_plus:
+  		pcr_ops = &direct_pcr_ops;
+
