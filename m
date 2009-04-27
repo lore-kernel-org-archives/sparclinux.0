@@ -1,62 +1,57 @@
-From: Andrew Robert Nicols <andrew.nicols@luns.net.uk>
-Date: Thu, 23 Apr 2009 15:11:49 +0000
+From: Jurij Smakov <jurij@wooyd.org>
+Date: Mon, 27 Apr 2009 22:29:47 +0000
 Subject: Re: debian unusable on niagara
-Message-Id: <20090423151149.GB4332@banoffee.lancs.ac.uk>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="wwSkEpePV3aFlXly"
+Message-Id: <20090427222947.GA6504@droopy.oc.cox.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20090423.070943.158757350.davem@davemloft.net>
 In-Reply-To: <20090423.070943.158757350.davem@davemloft.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Hi,
 
---wwSkEpePV3aFlXly
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thu, Apr 23, 2009 at 07:09:43AM -0700, David Miller wrote:
+> 
+> I really didn't expect this, and then I saw other users complaining
+> too.
 
-On Thu, Apr 23, 2009 at 07:44:21AM -0700, David Miller wrote:
-> From: David Markey <dmarkey@comp.dit.ie>
-> Date: Thu, 23 Apr 2009 15:36:44 +0100
->=20
-> > I'm running debian5 on a t1000, once i got it going its 100% now.
->=20
-> Yes, but you must have hit the console problem.
->=20
-> Right?
+Please note that I do not actively work on sparc port anymore. I'm still
+poking it a bit whenever I have time, but lately it's been pretty
+irregular.
+ 
+> 1) Please remove the PROM console driver from the kernel config, it
+>    does nothing but get in the way.  This will fix the "console slow
+>    on bootup" problem everyone reports on niagara boxes.
+> 
+>    Putting "console=ttyHV0" on the kernel command line works as a
+>    workaround but it still clears the screen once using the PROM
+>    console and even that takes nearly a minute (!).
 
-I hit it with Lenny on a T1000. Suspect it's the rootskel problem but
-haven't looked into it properly yet. I did an install over ssh and was able
-to log in via ssh to fix the issue on first boot. Alternatively, I could
-have executed a shell on the box at the end of hte install and fixed it
-there.
+I'll file a bug against kernel for that. Do you know if removing that
+driver could have any unintended consequences for non-Niagara machines?
 
-Keep meaning to look into it but time isn't with me this week.
+> 2) Please fix the GETTY setup so that it properly uses ttyS0 on
+>    Niagara.  Otherwise people have no console and can't use their
+>    machine at all after installation.
+> 
+>    Ubuntu does this by making sure there is an /etc/event.d/ttyS0
+>    file with a line saying "exec /sbin/getty -L ttyS0 9600 vt102"
+>    or similar.
 
-Andrew
+Which installer version did you test that with? I've tested the lenny
+installer and it worked correctly with serial console (I remember we
+pushed some fixes for it pretty late in lenny release cycle).
 
---=20
-Systems Developer
+> Between the ultra45 unbootable problem and these, I'm really losing
+> faith... :-/
 
-e: andrew.nicols@luns.net.uk
-im: a.nicols@jabber.lancs.ac.uk
-t: +44 (0)1524 5 10147
+I believe we fixed it in Lenny r1 release, it would be great to it if
+you could upgrade to it and confirm it (or install from scratch using
+5.0.1 media from http://www.debian.org/releases/lenny/debian-installer).
 
-Lancaster University Network Services is a limited company registered in
-England and Wales. Registered number: 4311892. Registered office:
-University House, Lancaster University, Lancaster, LA1 4YW
-
---wwSkEpePV3aFlXly
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAknwhTUACgkQ1j1/OHKCujGJWACfRHl+gTa6UrpXrfGCuAT9Rbug
-dTcAnj8iDQXYotqRZxdlnPhN23+cXaIH
-=ETKl
------END PGP SIGNATURE-----
-
---wwSkEpePV3aFlXly--
+Best regards,
+-- 
+Jurij Smakov                                           jurij@wooyd.org
+Key: http://www.wooyd.org/pgpkey/                      KeyID: C99E03CC
