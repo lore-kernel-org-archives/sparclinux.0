@@ -1,35 +1,50 @@
-From: Rozsahegyi Mark <noreply@nevetosok.hu>
-Date: Tue, 07 Apr 2009 23:10:12 +0000
-Subject: 1 + 1%
-Message-Id: <20090407231012.9715.qmail@kissez893.easyvserver.com>
+From: Tim Abbott <tabbott@MIT.EDU>
+Date: Thu, 30 Apr 2009 23:58:52 +0000
+Subject: [PATCH 3/4] sparc: use new macro for .data.read_mostly section.
+Message-Id: <1241135933-9913-4-git-send-email-tabbott@mit.edu>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1241135933-9913-1-git-send-email-tabbott@mit.edu>
+ <1241135933-9913-2-git-send-email-tabbott@mit.edu>
+ <1241135933-9913-3-git-send-email-tabbott@mit.edu>
+In-Reply-To: <1241135933-9913-3-git-send-email-tabbott@mit.edu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Sam Ravnborg <sam@ravnborg.org>
+Cc: Linux kernel mailing list <linux-kernel@vger.kernel.org>, Anders Kaseorg <andersk@MIT.EDU>, Waseem Daher <wdaher@MIT.EDU>, Denys Vlasenko <vda.linux@googlemail.com>, Jeff Arnold <jbarnold@MIT.EDU>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Tim Abbott <tabbott@MIT.EDU>
 
-:-) (-:
-=20
-Ha =D6n optimista az=E9rt, ha kev=E9sb=E9 az=E9rt seg=EDtsen, ad=F3ja mindk=
-=E9t 1%-=E1nak felaj=E1nl=E1s=E1val, szervezeteink sz=E1m=E1ra!=20
+.data.read_mostly should not need a separate output section; this
+change moves it into the .data section.
 
-Ad=F3ja els=F5 1%-=E1t k=E9rj=FCk adja az Egy Optimista Magyarorsz=E1g=E9rt=
- Alap=EDtv=E1nynak 18161911-1-41, a m=E1sodik 1%-ot a 1524-es technikai sz=
-=E1m=FA Der=FB Egyh=E1znak, hogy a k=E9t szervezet egy=FCttm=FBk=F6d=E9sek=
-=E9nt megval=F3suljon az =E1tl=E1that=F3 adom=E1nyoz=E1s, =E9s mind t=F6bbe=
-n l=E1ss=E1k, adom=E1nyozni nem csak decemberben lehet.
+Signed-off-by: Tim Abbott <tabbott@mit.edu>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+---
+ arch/sparc/kernel/vmlinux.lds.S |    5 +----
+ 1 files changed, 1 insertions(+), 4 deletions(-)
 
-"Adom=E1nyoz=E1shoz nem alkalomra, hanem =D6nre van sz=FCks=E9g!" Amennyibe=
-n CSAK a m=E1sodik 1%-ot adja nek=FCnk, az=E9rt is h=E1l=E1sak lesz=FCnk.
+diff --git a/arch/sparc/kernel/vmlinux.lds.S b/arch/sparc/kernel/vmlinux.lds.S
+index 3fbf650..4760796 100644
+--- a/arch/sparc/kernel/vmlinux.lds.S
++++ b/arch/sparc/kernel/vmlinux.lds.S
+@@ -54,16 +54,13 @@ SECTIONS
+ 	.data :	{
+ 		INIT_TASK_DATA(THREAD_SIZE)
+ 		CACHELINE_ALIGNED_DATA(SMP_CACHE_BYTES)
++		READ_MOSTLY_DATA(SMP_CACHE_BYTES)
+ 		DATA_DATA
+ 		CONSTRUCTORS
+ 	}
+ 	.data1 : {
+ 		*(.data1)
+ 	}
+-	. = ALIGN(SMP_CACHE_BYTES);
+-	.data.read_mostly : {
+-		*(.data.read_mostly)
+-	}
+ 	/* End of data section */
+ 	_edata = .;
+ 
+-- 
+1.6.2.1
 
-Legyen sz=E9p =E9s der=FBs a napja!
-=20
-:-) (-:
-
-Pozit=EDv non-profit kezdem=E9nyez=E9seinkr=F5l t=E1j=E9koztatjuk, amennyib=
-en ide kattint: http://nevetosok.hu/cgi-bin/register.cgi?act=3Dm&list=3D8&s=
-ub=3Dt0vr9kRgCFnH=20
-
-A j=F6v=F6ben nem kap t=F6bb levelet, amennyiben ezt jelzi sz=E1munkra, azz=
-al, hogy ide kattint: http://nevetosok.hu/cgi-bin/register.cgi?un=3Dt0vr9kR=
-gCFnH=20
