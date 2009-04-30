@@ -1,46 +1,49 @@
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
-Date: Fri, 24 Apr 2009 13:58:24 +0000
-Subject: [PATCH] SPARC:  Simplify code using is_power_of_2() routine.
-Message-Id: <alpine.LFD.2.00.0904240957240.17234@localhost.localdomain>
+From: Tim Abbott <tabbott@MIT.EDU>
+Date: Thu, 30 Apr 2009 23:58:50 +0000
+Subject: [PATCH 1/4] sparc: use new macro for .data.cacheline_aligned section.
+Message-Id: <1241135933-9913-2-git-send-email-tabbott@mit.edu>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1241135933-9913-1-git-send-email-tabbott@mit.edu>
+In-Reply-To: <1241135933-9913-1-git-send-email-tabbott@mit.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Sam Ravnborg <sam@ravnborg.org>
+Cc: Linux kernel mailing list <linux-kernel@vger.kernel.org>, Anders Kaseorg <andersk@MIT.EDU>, Waseem Daher <wdaher@MIT.EDU>, Denys Vlasenko <vda.linux@googlemail.com>, Jeff Arnold <jbarnold@MIT.EDU>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Tim Abbott <tabbott@MIT.EDU>
 
+.data.cacheline_aligned should not need a separate output section;
+this change moves it into the .data section.
 
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
-
+Signed-off-by: Tim Abbott <tabbott@mit.edu>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
 ---
+ arch/sparc/kernel/vmlinux.lds.S |    5 +----
+ 1 files changed, 1 insertions(+), 4 deletions(-)
 
-diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-index 06c9a7d..ade4eb3 100644
---- a/arch/sparc/mm/srmmu.c
-+++ b/arch/sparc/mm/srmmu.c
-@@ -19,6 +19,7 @@
- #include <linux/fs.h>
- #include <linux/seq_file.h>
- #include <linux/kdebug.h>
-+#include <linux/log2.h>
-
- #include <asm/bitext.h>
- #include <asm/page.h>
-@@ -349,7 +350,7 @@ static void srmmu_free_nocache(unsigned long vaddr, int size)
- 		    vaddr, srmmu_nocache_end);
- 		BUG();
+diff --git a/arch/sparc/kernel/vmlinux.lds.S b/arch/sparc/kernel/vmlinux.lds.S
+index fcbbd00..6587e03 100644
+--- a/arch/sparc/kernel/vmlinux.lds.S
++++ b/arch/sparc/kernel/vmlinux.lds.S
+@@ -52,6 +52,7 @@ SECTIONS
+ 
+ 	RO_DATA(PAGE_SIZE)
+ 	.data :	{
++		CACHELINE_ALIGNED_DATA(SMP_CACHE_BYTES)
+ 		DATA_DATA
+ 		CONSTRUCTORS
  	}
--	if (size & (size-1)) {
-+	if (!is_power_of_2(size)) {
- 		printk("Size 0x%x is not a power of 2\n", size);
- 		BUG();
+@@ -59,10 +60,6 @@ SECTIONS
+ 		*(.data1)
  	}
+ 	. = ALIGN(SMP_CACHE_BYTES);
+-	.data.cacheline_aligned : {
+-		*(.data.cacheline_aligned)
+-	}
+-	. = ALIGN(SMP_CACHE_BYTES);
+ 	.data.read_mostly : {
+ 		*(.data.read_mostly)
+ 	}
+-- 
+1.6.2.1
 
-====================================
-Robert P. J. Day                               Waterloo, Ontario, CANADA
-
-        Linux Consulting, Training and Annoying Kernel Pedantry.
-
-Web page:                                          http://crashcourse.ca
-Linked In:                             http://www.linkedin.com/in/rpjday
-Twitter:                                       http://twitter.com/rpjday
-====================================
