@@ -1,49 +1,45 @@
 From: Tim Abbott <tabbott@MIT.EDU>
-Date: Thu, 30 Apr 2009 23:58:50 +0000
-Subject: [PATCH 1/4] sparc: use new macro for .data.cacheline_aligned section.
-Message-Id: <1241135933-9913-2-git-send-email-tabbott@mit.edu>
+Date: Thu, 30 Apr 2009 23:58:49 +0000
+Subject: [PATCH 0/4] section name cleanup for sparc
+Message-Id: <1241135933-9913-1-git-send-email-tabbott@mit.edu>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1241135933-9913-1-git-send-email-tabbott@mit.edu>
-In-Reply-To: <1241135933-9913-1-git-send-email-tabbott@mit.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Sam Ravnborg <sam@ravnborg.org>
 Cc: Linux kernel mailing list <linux-kernel@vger.kernel.org>, Anders Kaseorg <andersk@MIT.EDU>, Waseem Daher <wdaher@MIT.EDU>, Denys Vlasenko <vda.linux@googlemail.com>, Jeff Arnold <jbarnold@MIT.EDU>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Tim Abbott <tabbott@MIT.EDU>
 
-.data.cacheline_aligned should not need a separate output section;
-this change moves it into the .data section.
+This patch series cleans up the section names on the sparc
+architecture.  It requires the architecture-independent macro
+definitions from this patch series:
 
-Signed-off-by: Tim Abbott <tabbott@mit.edu>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
----
- arch/sparc/kernel/vmlinux.lds.S |    5 +----
- 1 files changed, 1 insertions(+), 4 deletions(-)
+<http://www.spinics.net/lists/mips/msg33499.html>
 
-diff --git a/arch/sparc/kernel/vmlinux.lds.S b/arch/sparc/kernel/vmlinux.lds.S
-index fcbbd00..6587e03 100644
---- a/arch/sparc/kernel/vmlinux.lds.S
-+++ b/arch/sparc/kernel/vmlinux.lds.S
-@@ -52,6 +52,7 @@ SECTIONS
- 
- 	RO_DATA(PAGE_SIZE)
- 	.data :	{
-+		CACHELINE_ALIGNED_DATA(SMP_CACHE_BYTES)
- 		DATA_DATA
- 		CONSTRUCTORS
- 	}
-@@ -59,10 +60,6 @@ SECTIONS
- 		*(.data1)
- 	}
- 	. = ALIGN(SMP_CACHE_BYTES);
--	.data.cacheline_aligned : {
--		*(.data.cacheline_aligned)
--	}
--	. = ALIGN(SMP_CACHE_BYTES);
- 	.data.read_mostly : {
- 		*(.data.read_mostly)
- 	}
--- 
-1.6.2.1
+The long-term goal here is to add support for building the kernel with
+-ffunction-sections -fdata-sections.  This requires renaming all the
+magic section names in the kernel of the form .text.foo, .data.foo,
+.bss.foo, and .rodata.foo to not have collisions with sections
+generated for code like:
+
+static int nosave = 0; /* -fdata-sections places in .data.nosave */
+static void head(); /* -ffunction-sections places in .text.head */
+
+Note that these patches have not been boot-tested (aside from testing
+the analogous changes on x86), since I don't have access to the
+appropriate hardware.
+
+	-Tim Abbott
+
+
+Tim Abbott (4):
+  sparc: use new macro for .data.cacheline_aligned section.
+  sparc: use new macros for .data.init_task.
+  sparc: use new macro for .data.read_mostly section.
+  sparc: convert to new generic read_mostly support.
+
+ arch/sparc/Kconfig              |    3 +++
+ arch/sparc/include/asm/cache.h  |    2 --
+ arch/sparc/kernel/init_task.c   |    5 ++---
+ arch/sparc/kernel/vmlinux.lds.S |   16 +++-------------
+ 4 files changed, 8 insertions(+), 18 deletions(-)
 
