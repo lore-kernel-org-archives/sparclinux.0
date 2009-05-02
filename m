@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 02 May 2009 21:26:42 +0000
+From: Josip Rodin <joy@entuzijast.net>
+Date: Sat, 02 May 2009 22:54:15 +0000
 Subject: Re: debian unusable on niagara
-Message-Id: <20090502.142642.220385697.davem@davemloft.net>
+Message-Id: <20090502225415.GA21095@orion.carnet.hr>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20090423.070943.158757350.davem@davemloft.net>
 In-Reply-To: <20090423.070943.158757350.davem@davemloft.net>
@@ -10,31 +10,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Jurij Smakov <jurij@wooyd.org>
-Date: Sat, 2 May 2009 21:56:24 +0100
+Hi,
 
-> As I'm doing it in my free time, I don't see why I should tolerate
-> your tantrums, which seem to happen every time you report problems
-> with Debian.
+Now that the discussion has deteriorated to this silly and pointless level,
+I don't want to quote any particular part.
 
-I do this in my spare time too.
+Jurij, please don't ignore Dave just because he vented frustration in bug
+reports. People do that, such is life. Dave, don't expect Jurij to blindly
+trust your judgement. People don't do that, such is life.
 
-And it's not every time I report problems with Debian, it's every
-time I try to just use Debian :-/
+The core pattern of these bug reports has been the simple fact that the
+Debian kernel differs from the upstream kernel (first the X.org-related
+patch, then the default kconfig). There doesn't appear to be any technical
+reason for them to diverge (so much to cause bugs), so it looks like we
+simply need to communicate more efficiently. That isn't going to happen if
+we allow the communication to be either inexistant or based on accusations
+and threats. So I suggest that we get some simple diffing done between the
+two pieces of software as a basis for documenting any differences, or making
+modifications so that they converge.
 
-Here's my track record of installing Debian 5:
-
-1) ultra45, kernel doesn't boot
-
-2) niagara, no console
-
-So you tell me what kind of impression I'm supposed to have?
-
-> Sorry for being a bit harsh, but from now on I'm going to discard
-> any email from you which does not exclusively contain constructive
-> comments, patches, or other information which helps to advance our
-> common goal.
-
-You might want to think twice about alienating yourself from the one
-person in the entire world who can actually fix any sparc kernel
-problems that you want taken care of.
+-- 
+     2. That which causes joy or happiness.
