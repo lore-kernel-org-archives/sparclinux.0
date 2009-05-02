@@ -1,19 +1,32 @@
-From: Robert Reif <reif@earthlink.net>
-Date: Fri, 29 May 2009 03:39:20 +0000
-Subject: Re: [PATCH 0/4] sparc: unify dma-mapping_32.h and dma-mapping_64.h
-Message-Id: <4A1F58E8.3090307@earthlink.net>
+From: Jurij Smakov <jurij@wooyd.org>
+Date: Sat, 02 May 2009 10:38:07 +0000
+Subject: Re: Another set of debian niagara bugs
+Message-Id: <20090502103807.GA7202@droopy.oc.cox.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1242354191-6232-1-git-send-email-fujita.tomonori@lab.ntt.co.jp>
-In-Reply-To: <1242354191-6232-1-git-send-email-fujita.tomonori@lab.ntt.co.jp>
+References: <20090430.030130.124967500.davem@davemloft.net>
+In-Reply-To: <20090430.030130.124967500.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: davem@davemloft.net, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-FUJITA Tomonori wrote:
-> This patchset unifies dma-mapping_32.h and dma-mapping_64.h, that is,
-> it uses dma-mapping.h instead and removes dma-mapping_32.h and
-> dma-mapping_64.h.
->   
-I just boot tested this patch set on sparc32 and it works fine.
+On Thu, Apr 30, 2009 at 03:01:30AM -0700, David Miller wrote:
+> 
+> LDOM guests can't install correctly because sunvdc and sunvnet don't
+> automatically load.
+> 
+> You can get through the installation by picking them in the various
+> module list menus.
+> 
+> But once you reboot into the system, the initram can't load the sunvdc
+> module and therefore root won't mount.
+> 
+> Ubuntu had this and the niagara console detection working two years
+> ago :-(
+
+I've filed http://bugs.debian.org/526621 for this issue.
+
+Best regards,
+-- 
+Jurij Smakov                                           jurij@wooyd.org
+Key: http://www.wooyd.org/pgpkey/                      KeyID: C99E03CC
