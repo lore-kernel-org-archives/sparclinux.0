@@ -1,20 +1,26 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 18 May 2009 18:46:17 +0000
-Subject: Re: Sunfire V880 and 480R 2.6.27x-2.6.29.3 startup hangs
-Message-Id: <20090518.114617.00513073.davem@davemloft.net>
+From: Jurij Smakov <jurij@wooyd.org>
+Date: Sat, 02 May 2009 10:25:37 +0000
+Subject: Re: debian unusable on niagara
+Message-Id: <20090502102537.GB6558@droopy.oc.cox.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090518124504.GA22849@lemon.iwr.uni-heidelberg.de>
-In-Reply-To: <20090518124504.GA22849@lemon.iwr.uni-heidelberg.de>
+References: <20090423.070943.158757350.davem@davemloft.net>
+In-Reply-To: <20090423.070943.158757350.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
-Date: Mon, 18 May 2009 14:45:04 +0200
+On Tue, Apr 28, 2009 at 01:44:57AM -0700, David Miller wrote:
+> It won't, most likely because the device name is totally different
+> for Niagara's console device vs. the serial console device used
+> on all other types of boxes.
 
-> Or are there any other ideas now ?
+Installer's rootskel uses the attached code to detect whether console
+is serial or not (by checking whether ioctl(0, TIOCGSERIAL, buffer)
+succeeds). Can you compile and run it on Niagara's serial console, to
+see whether this mechanism detects it correctly?
 
-I've been on a cruise for a week and am even more heavily backlogged
-than normal.  I simply do not have the time to look into this problem
-at the moment.
+Best regards,
+-- 
+Jurij Smakov                                           jurij@wooyd.org
+Key: http://www.wooyd.org/pgpkey/                      KeyID: C99E03CC
