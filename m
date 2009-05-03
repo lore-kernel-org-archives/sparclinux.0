@@ -1,7 +1,7 @@
-From: Josip Rodin <joy@entuzijast.net>
-Date: Sat, 02 May 2009 22:54:15 +0000
+From: David Miller <davem@davemloft.net>
+Date: Sun, 03 May 2009 00:06:04 +0000
 Subject: Re: debian unusable on niagara
-Message-Id: <20090502225415.GA21095@orion.carnet.hr>
+Message-Id: <20090502.170604.169665011.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20090423.070943.158757350.davem@davemloft.net>
 In-Reply-To: <20090423.070943.158757350.davem@davemloft.net>
@@ -10,24 +10,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi,
+From: Josip Rodin <joy@entuzijast.net>
+Date: Sun, 3 May 2009 00:54:15 +0200
 
-Now that the discussion has deteriorated to this silly and pointless level,
-I don't want to quote any particular part.
+> So I suggest that we get some simple diffing done between the two
+> pieces of software as a basis for documenting any differences, or
+> making modifications so that they converge.
 
-Jurij, please don't ignore Dave just because he vented frustration in bug
-reports. People do that, such is life. Dave, don't expect Jurij to blindly
-trust your judgement. People don't do that, such is life.
+If I had just once seen a "Dave, can you test this image out to make
+sure this Niagara bug is fixed?", I would have been happy with any
+result whatsoever.
 
-The core pattern of these bug reports has been the simple fact that the
-Debian kernel differs from the upstream kernel (first the X.org-related
-patch, then the default kconfig). There doesn't appear to be any technical
-reason for them to diverge (so much to cause bugs), so it looks like we
-simply need to communicate more efficiently. That isn't going to happen if
-we allow the communication to be either inexistant or based on accusations
-and threats. So I suggest that we get some simple diffing done between the
-two pieces of software as a basis for documenting any differences, or making
-modifications so that they converge.
+But because that did not happen, I'm understandably irked that things
+are broken the way that they are.
 
--- 
-     2. That which causes joy or happiness.
+I have tons of machines to test on, and the knowledge to fix just
+about anything, I just have to be asked.
