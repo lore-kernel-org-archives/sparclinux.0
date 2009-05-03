@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 03 May 2009 20:13:13 +0000
+From: Josip Rodin <joy@entuzijast.net>
+Date: Sun, 03 May 2009 20:44:43 +0000
 Subject: Re: debian unusable on niagara
-Message-Id: <20090503.131313.132005829.davem@davemloft.net>
+Message-Id: <20090503204443.GA11390@orion.carnet.hr>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20090423.070943.158757350.davem@davemloft.net>
 In-Reply-To: <20090423.070943.158757350.davem@davemloft.net>
@@ -10,26 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Josip Rodin <joy@entuzijast.net>
-Date: Sun, 3 May 2009 17:58:04 +0200
-
-> David has indicated that he is willing to test other people's kernels on
-> his plethora of machines, which can be a fairly arduous task, so it
-> stands to reason that skimming a couple more mailing lists might be
-> sufficiently less arduous for him that he would we willing to do it.
+On Sun, May 03, 2009 at 01:11:29PM -0700, David Miller wrote:
+> I don't find garbage like this in Ubuntu and Fedora-sparc.  Why?
+> Because those developers contact me when they need help or need a
+> problem fixed.
 > 
-> In case of sparc, it should be mentioned that we're at most a stable
-> community, if not diminishing in size...
+> End of story.
 
-It's PUSH, not PULL that makes it scale!
+Doesn't that mean that they encounter a fairly small amount of
+non-distro-specific sparc-related problems? Otherwise I don't see how
+that procedure can scale.
 
-People contact me when they need something tested, not the other
-way around!
+Neither Ubuntu nor Fedora seem to distribute sparc versions as mainstream,
+which would seem to explain why they aren't seeing enough problems for
+these kinds of issues ever to escalate.
 
-Do you think I have time to murk through every sparc distributions
-mailing list looking for crap like this?  You must be crazy if 
-you think that works and can scale.
-
-Now the other way around, having people who concentrate in their
-so-called "ecosystem" proactively contact me when a specific thing
-need to be looked at, that does scale.
+-- 
+     2. That which causes joy or happiness.
