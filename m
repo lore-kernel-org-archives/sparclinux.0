@@ -1,182 +1,27 @@
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Date: Fri, 15 May 2009 02:23:10 +0000
-Subject: [PATCH 3/4] sparc: use dma_map_page instead of dma_map_single
-Message-Id: <1242354191-6232-4-git-send-email-fujita.tomonori@lab.ntt.co.jp>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 04 May 2009 21:09:55 +0000
+Subject: Re: [PATCH] leo: use standard fields for framebuffer physical
+Message-Id: <20090504.140955.221258678.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1242354191-6232-1-git-send-email-fujita.tomonori@lab.ntt.co.jp>
-In-Reply-To: <1242354191-6232-1-git-send-email-fujita.tomonori@lab.ntt.co.jp>
+References: <20090504224156.058f65ea.krzysztof.h1@poczta.fm>
+In-Reply-To: <20090504224156.058f65ea.krzysztof.h1@poczta.fm>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, fujita.tomonori@lab.ntt.co.jp
+To: krzysztof.h1@poczta.fm
+Cc: sparclinux@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net
 
-This patch converts dma_map_single and dma_unmap_single to use
-map_page and unmap_page respectively and removes unnecessary
-map_single and unmap_single. map_page can be used to implement
-map_single but the opposite is impossible. Having only dma_map_page in
-struct dma_ops is enough.
+From: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Date: Mon, 4 May 2009 22:41:56 +0200
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
----
- arch/sparc/include/asm/dma-mapping_64.h |   23 ++++++++++++-----------
- arch/sparc/kernel/iommu.c               |   15 ++++++++-------
- arch/sparc/kernel/pci_sun4v.c           |   15 ++++++++-------
- 3 files changed, 28 insertions(+), 25 deletions(-)
+> From: Krzysztof Helt <krzysztof.h1@wp.pl>
+> 
+> Use standard fields fbinfo.fix.smem_start and fbinfo.fix.smem_len
+> for physical address and length of framebuffer.
+> 
+> This also fixes output of the 'fbset -i' command - address and length 
+> of the framebuffer are displayed correctly.
+> 
+> Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-diff --git a/arch/sparc/include/asm/dma-mapping_64.h b/arch/sparc/include/asm/dma-mapping_64.h
-index 0c4fb1f..579757e 100644
---- a/arch/sparc/include/asm/dma-mapping_64.h
-+++ b/arch/sparc/include/asm/dma-mapping_64.h
-@@ -9,12 +9,12 @@ struct dma_ops {
- 				dma_addr_t *dma_handle, gfp_t flag);
- 	void (*free_coherent)(struct device *dev, size_t size,
- 			      void *cpu_addr, dma_addr_t dma_handle);
--	dma_addr_t (*map_single)(struct device *dev, void *cpu_addr,
--				 size_t size,
--				 enum dma_data_direction direction);
--	void (*unmap_single)(struct device *dev, dma_addr_t dma_addr,
--			     size_t size,
--			     enum dma_data_direction direction);
-+	dma_addr_t (*map_page)(struct device *dev, struct page *page,
-+			       unsigned long offset, size_t size,
-+			       enum dma_data_direction direction);
-+	void (*unmap_page)(struct device *dev, dma_addr_t dma_addr,
-+			   size_t size,
-+			   enum dma_data_direction direction);
- 	int (*map_sg)(struct device *dev, struct scatterlist *sg, int nents,
- 		      enum dma_data_direction direction);
- 	void (*unmap_sg)(struct device *dev, struct scatterlist *sg,
-@@ -51,29 +51,30 @@ static inline dma_addr_t dma_map_single(struct device *dev, void *cpu_addr,
- 					size_t size,
- 					enum dma_data_direction direction)
- {
--	return dma_ops->map_single(dev, cpu_addr, size, direction);
-+	return dma_ops->map_page(dev, virt_to_page(cpu_addr),
-+				 (unsigned long)cpu_addr & ~PAGE_MASK, size,
-+				 direction);
- }
- 
- static inline void dma_unmap_single(struct device *dev, dma_addr_t dma_addr,
- 				    size_t size,
- 				    enum dma_data_direction direction)
- {
--	dma_ops->unmap_single(dev, dma_addr, size, direction);
-+	dma_ops->unmap_page(dev, dma_addr, size, direction);
- }
- 
- static inline dma_addr_t dma_map_page(struct device *dev, struct page *page,
- 				      unsigned long offset, size_t size,
- 				      enum dma_data_direction direction)
- {
--	return dma_ops->map_single(dev, page_address(page) + offset,
--				   size, direction);
-+	return dma_ops->map_page(dev, page, offset, size, direction);
- }
- 
- static inline void dma_unmap_page(struct device *dev, dma_addr_t dma_address,
- 				  size_t size,
- 				  enum dma_data_direction direction)
- {
--	dma_ops->unmap_single(dev, dma_address, size, direction);
-+	dma_ops->unmap_page(dev, dma_address, size, direction);
- }
- 
- static inline int dma_map_sg(struct device *dev, struct scatterlist *sg,
-diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
-index d8900e1..0aeaefe 100644
---- a/arch/sparc/kernel/iommu.c
-+++ b/arch/sparc/kernel/iommu.c
-@@ -351,8 +351,9 @@ static void dma_4u_free_coherent(struct device *dev, size_t size,
- 		free_pages((unsigned long)cpu, order);
- }
- 
--static dma_addr_t dma_4u_map_single(struct device *dev, void *ptr, size_t sz,
--				    enum dma_data_direction direction)
-+static dma_addr_t dma_4u_map_page(struct device *dev, struct page *page,
-+				  unsigned long offset, size_t sz,
-+				  enum dma_data_direction direction)
- {
- 	struct iommu *iommu;
- 	struct strbuf *strbuf;
-@@ -368,7 +369,7 @@ static dma_addr_t dma_4u_map_single(struct device *dev, void *ptr, size_t sz,
- 	if (unlikely(direction = DMA_NONE))
- 		goto bad_no_ctx;
- 
--	oaddr = (unsigned long)ptr;
-+	oaddr = (unsigned long)(page_address(page) + offset);
- 	npages = IO_PAGE_ALIGN(oaddr + sz) - (oaddr & IO_PAGE_MASK);
- 	npages >>= IO_PAGE_SHIFT;
- 
-@@ -472,8 +473,8 @@ do_flush_sync:
- 		       vaddr, ctx, npages);
- }
- 
--static void dma_4u_unmap_single(struct device *dev, dma_addr_t bus_addr,
--				size_t sz, enum dma_data_direction direction)
-+static void dma_4u_unmap_page(struct device *dev, dma_addr_t bus_addr,
-+			      size_t sz, enum dma_data_direction direction)
- {
- 	struct iommu *iommu;
- 	struct strbuf *strbuf;
-@@ -824,8 +825,8 @@ static void dma_4u_sync_sg_for_cpu(struct device *dev,
- static const struct dma_ops sun4u_dma_ops = {
- 	.alloc_coherent		= dma_4u_alloc_coherent,
- 	.free_coherent		= dma_4u_free_coherent,
--	.map_single		= dma_4u_map_single,
--	.unmap_single		= dma_4u_unmap_single,
-+	.map_page		= dma_4u_map_page,
-+	.unmap_page		= dma_4u_unmap_page,
- 	.map_sg			= dma_4u_map_sg,
- 	.unmap_sg		= dma_4u_unmap_sg,
- 	.sync_single_for_cpu	= dma_4u_sync_single_for_cpu,
-diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
-index 5db5ebe..2485eaa 100644
---- a/arch/sparc/kernel/pci_sun4v.c
-+++ b/arch/sparc/kernel/pci_sun4v.c
-@@ -230,8 +230,9 @@ static void dma_4v_free_coherent(struct device *dev, size_t size, void *cpu,
- 		free_pages((unsigned long)cpu, order);
- }
- 
--static dma_addr_t dma_4v_map_single(struct device *dev, void *ptr, size_t sz,
--				    enum dma_data_direction direction)
-+static dma_addr_t dma_4v_map_page(struct device *dev, struct page *page,
-+				  unsigned long offset, size_t sz,
-+				  enum dma_data_direction direction)
- {
- 	struct iommu *iommu;
- 	unsigned long flags, npages, oaddr;
-@@ -245,7 +246,7 @@ static dma_addr_t dma_4v_map_single(struct device *dev, void *ptr, size_t sz,
- 	if (unlikely(direction = DMA_NONE))
- 		goto bad;
- 
--	oaddr = (unsigned long)ptr;
-+	oaddr = (unsigned long)(page_address(page) + offset);
- 	npages = IO_PAGE_ALIGN(oaddr + sz) - (oaddr & IO_PAGE_MASK);
- 	npages >>= IO_PAGE_SHIFT;
- 
-@@ -294,8 +295,8 @@ iommu_map_fail:
- 	return DMA_ERROR_CODE;
- }
- 
--static void dma_4v_unmap_single(struct device *dev, dma_addr_t bus_addr,
--				size_t sz, enum dma_data_direction direction)
-+static void dma_4v_unmap_page(struct device *dev, dma_addr_t bus_addr,
-+			      size_t sz, enum dma_data_direction direction)
- {
- 	struct pci_pbm_info *pbm;
- 	struct iommu *iommu;
-@@ -537,8 +538,8 @@ static void dma_4v_sync_sg_for_cpu(struct device *dev,
- static const struct dma_ops sun4v_dma_ops = {
- 	.alloc_coherent			= dma_4v_alloc_coherent,
- 	.free_coherent			= dma_4v_free_coherent,
--	.map_single			= dma_4v_map_single,
--	.unmap_single			= dma_4v_unmap_single,
-+	.map_page			= dma_4v_map_page,
-+	.unmap_page			= dma_4v_unmap_page,
- 	.map_sg				= dma_4v_map_sg,
- 	.unmap_sg			= dma_4v_unmap_sg,
- 	.sync_single_for_cpu		= dma_4v_sync_single_for_cpu,
--- 
-1.6.0.6
-
+My objections to the cg3 patch apply here as well.
