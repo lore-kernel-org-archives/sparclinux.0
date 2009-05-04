@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Mon, 04 May 2009 16:55:11 +0000
+Date: Mon, 04 May 2009 16:58:27 +0000
 Subject: Re: debian unusable on niagara
-Message-Id: <20090504.095511.238676352.davem@davemloft.net>
+Message-Id: <20090504.095827.250692140.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20090423.070943.158757350.davem@davemloft.net>
 In-Reply-To: <20090423.070943.158757350.davem@davemloft.net>
@@ -11,15 +11,13 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 From: Josip Rodin <joy@entuzijast.net>
-Date: Mon, 4 May 2009 10:29:17 +0200
+Date: Mon, 4 May 2009 17:03:57 +0200
 
-> Sure, it would probably be better for you if they adjusted to your own
-> development model, and relied on you for every change that they want done,
-> and didn't object to any of your recommendations, but it's free software,
-> they choose to do things bit differently, what with all the separate lists,
-> BTS, installer, and ultimately separate users.
+> The released kernel should actually be working for a large majority of
+> machines, so that goal is almost accomplished. IIRC, in etch, we didn't
+> support a few older classes of Ultra Enterprise machines out of the box
+> because brokenness with some ESP controller, and in lenny we miss the
+> Ultra 45 series because of that fake PCI controller patch undoing (in turn
+> related to broken X on other Ultra workstations).
 
-I never said that they need to run every change they want to
-do past me, that would be rediclious.
-
-Read what I actually said.
+And Niagara systems had a completely busted console in lenny.
