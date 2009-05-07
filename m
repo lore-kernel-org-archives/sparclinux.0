@@ -1,32 +1,25 @@
 From: David Miller <davem@davemloft.net>
-Date: Mon, 04 May 2009 21:08:15 +0000
+Date: Thu, 07 May 2009 18:42:30 +0000
 Subject: Re: [PATCH] cg3: use standard fields for framebuffer physical
-Message-Id: <20090504.140815.256208666.davem@davemloft.net>
+Message-Id: <20090507.114230.248161472.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090504223746.c204fb8c.krzysztof.h1@poczta.fm>
-In-Reply-To: <20090504223746.c204fb8c.krzysztof.h1@poczta.fm>
+References: <20090505084505.C94E615F7883@f12.poczta.interia.pl>
+In-Reply-To: <20090505084505.C94E615F7883@f12.poczta.interia.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: krzysztof.h1@poczta.fm
 Cc: linux-fbdev-devel@lists.sourceforge.net, sparclinux@vger.kernel.org
 
-From: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Date: Mon, 4 May 2009 22:37:46 +0200
+From: krzysztof.h1@poczta.fm
+Date: 05 May 2009 10:45:05 +0200
 
-> Use standard fields fbinfo.fix.smem_start and fbinfo.fix.smem_len
-> for physical address and length of framebuffer.
-> 
-> This also fixes output of the 'fbset -i' command - address and length 
-> of the framebuffer is displayed correctly.
-> 
-> Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+> However, there is no adjustment to the smem_start outside the
+> driver. It is used only to be displayed by the fbset (which is
+> general and does not understand the IO spaces).  Another usage is
+> inside the fb_mmap but only if there is no local fb_mmap function
+> defined by the driver. It is not a case for all sbus drivers.
 
-I think this is not appropriate.
+Good point, OK, I'm fine with these changes:
 
-The "physical address" of these framebuffers is composed of
-two values, the 32-bit physical offset and the "which_io"
-value.  The full physical I/O address is 36 bits.
-
-Considering either seperately makes no sense.  And adjustments
-of one make no sense without consideration of the other.
+Acked-by: David S. Miller <davem@davemloft.net>
