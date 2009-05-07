@@ -1,68 +1,55 @@
-From: =?UTF-8?B?TWFya3VzIEd1dHNjaGtlICjpoaflrZ/li6Qp?=
-Date: Thu, 07 May 2009 08:01:21 +0000
+From: Ingo Molnar <mingo@elte.hu>
+Date: Thu, 07 May 2009 10:11:29 +0000
 Subject: Re: [PATCH 2/2] x86-64: seccomp: fix 32/64 syscall hole
-Message-Id: <904b25810905070101u5abad0dagf8642a6950b1911@mail.gmail.com>
+Message-Id: <20090507101129.GB5978@elte.hu>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090228030226.C0D34FC3DA@magilla.sf.frob.com>
-	 <20090228030413.5B915FC3DA@magilla.sf.frob.com>
-	 <alpine.LFD.2.00.0902271932520.3111@localhost.localdomain>
-	 <alpine.LFD.2.00.0902271948570.3111@localhost.localdomain>
-	 <20090228072554.CFEA6FC3DA@magilla.sf.frob.com>
-	 <alpine.LFD.2.00.0902280916470.3111@localhost.localdomain>
-	 <904b25810905061146ged374f2se0afd24e9e3c1f06@mail.gmail.com>
-	 <20090506212913.GC4861@elte.hu>
-	 <904b25810905061446m73c42040nfff47c9b8950bcfa@mail.gmail.com>
-	 <20090507070312.DCC5EFC39E@magilla.sf.frob.com>
-In-Reply-To: <20090507070312.DCC5EFC39E@magilla.sf.frob.com>
+References: <20090228072554.CFEA6FC3DA@magilla.sf.frob.com> <alpine.LFD.2.00.0902280916470.3111@localhost.localdomain> <904b25810905061146ged374f2se0afd24e9e3c1f06@mail.gmail.com> <20090506212913.GC4861@elte.hu> <904b25810905061446m73c42040nfff47c9b8950bcfa@mail.gmail.com> <20090506215450.GA9537@elte.hu> <904b25810905061508n6d9cb8dbg71de5b1e0332ede7@mail.gmail.com> <20090506221319.GA11493@elte.hu> <904b25810905061521v62b3ddd6l14deb614d203385a@mail.gmail.com> <1241670237.11500.7.camel@entropy>
+In-Reply-To: <1241670237.11500.7.camel@entropy>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Roland McGrath <roland@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, stable@kernel.org, linux-mips@linux-mips.org, sparclinux@vger.kernel.org, linuxppc-dev@ozlabs.org
-
-On Thu, May 7, 2009 at 00:03, Roland McGrath <roland@redhat.com> wrote:
->
-> That is not a "ptrace problem" per se at all. =C2=A0It's an intrinsic pro=
-blem
-> with any method based on "generic" syscall interception, if the filtering
-> and enforcement decisions depend on examining user memory.
-
-Yes, this is indeed the main problem that we are aware of. It can be
-avoided by suspending all threads during user memory inspection, but
-that's a horrible price to pay (also: see below for an alternative
-approach, that could in principle be adapted to use with ptrace)
-
-> The only reason seccomp does not have this "reliability problem" is that
-> its filtering is trivial and depends only on registers (in fact, only on
-> one register, the syscall number).
-
-Simplicity is really the beauty of seccomp. It is very easy to verify
-that it does the right thing from a security point of view, because
-any attempt to call unsafe system calls results in the kernel
-terminating the program. This is much preferable over most ptrace
-solutions which is more difficult to audit for correctness.
-
-The downside is that the sandbox'd code needs to delegate execution of
-most of its system calls to a monitor process. This is slow and rather
-awkward. Although due to the magic of clone(), (almost) all system
-calls can in fact be serialized, sent to the monitor process, have
-their arguments safely inspected, and then executed on behalf of the
-sandbox'd process. Details are tedious but we believe they are
-solvable with current kernel APIs.
-
-The other issue is performance. For system calls that are known to be
-safe, we would rather not pay the penalty of redirecting them. A
-kernel patch that made seccomp more efficient for these system calls
-would be very welcome, and we will post such a patch for discussion
-shortly.
-
-> If you want to do checks that depend on shared or volatile state, then
-> syscall interception is really not the proper mechanism for you.
-
-We agree that syscall interception is a poor abstraction level for a
-sandbox. But in the short term, we need to work with the APIs that are
-available in today's kernels. And we believe that seccomp is one of
-the more promising API that are currently available to us.
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: Nicholas Miell <nmiell@comcast.net>
+Cc: Markus Gutschke =?utf-8?B?KOmhp+Wtn+WLpCk=?= <markus@google.com>, Linus Torvalds <torvalds@linux-foundation.org>, Roland McGrath <roland@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, stable@kernel.org, linux-mips@linux-mips.org, sparclinux@vger.kernel.org, linuxppc-dev@ozlabs.org
 
 
-Markus
+* Nicholas Miell <nmiell@comcast.net> wrote:
+
+> On Wed, 2009-05-06 at 15:21 -0700, Markus Gutschke (顧孟勤) wrote:
+> > On Wed, May 6, 2009 at 15:13, Ingo Molnar <mingo@elte.hu> wrote:
+> > > doing a (per arch) bitmap of harmless syscalls and replacing the
+> > > mode1_syscalls[] check with that in kernel/seccomp.c would be a
+> > > pretty reasonable extension. (.config controllable perhaps, for
+> > > old-style-seccomp)
+> > >
+> > > It would probably be faster than the current loop over
+> > > mode1_syscalls[] as well.
+> > 
+> > This would be a great option to improve performance of our sandbox. I
+> > can detect the availability of the new kernel API dynamically, and
+> > then not intercept the bulk of the system calls. This would allow the
+> > sandbox to work both with existing and with newer kernels.
+> > 
+> > We'll post a kernel patch for discussion in the next few days,
+> > 
+> 
+> I suspect the correct thing to do would be to leave seccomp mode 1 
+> alone and introduce a mode 2 with a less restricted set of system 
+> calls -- the interface was designed to be extended in this way, 
+> after all.
+
+Yes, that is what i alluded to above via the '.config controllable' 
+aspect.
+
+Mode 2 could be implemented like this: extend prctl_set_seccomp() 
+with a bitmap pointer, and copy it to a per task seccomp context 
+structure.
+
+a bitmap for 300 syscalls takes only about 40 bytes.
+
+Please take care to implement nesting properly: if a seccomp context 
+does a seccomp call (which mode 2 could allow), then the resulting 
+bitmap should be the logical-AND of the parent and child bitmaps. 
+There's no reason why seccomp couldnt be used in hiearachy of 
+sandboxes, in a gradually less permissive fashion.
+
+	Ingo
