@@ -1,7 +1,7 @@
-From: =?UTF-8?B?TWFya3VzIEd1dHNjaGtlICjpoaflrZ/li6Qp?=
-Date: Wed, 06 May 2009 22:21:51 +0000
+From: Nicholas Miell <nmiell@comcast.net>
+Date: Thu, 07 May 2009 04:23:57 +0000
 Subject: Re: [PATCH 2/2] x86-64: seccomp: fix 32/64 syscall hole
-Message-Id: <904b25810905061521v62b3ddd6l14deb614d203385a@mail.gmail.com>
+Message-Id: <1241670237.11500.7.camel@entropy>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20090228030413.5B915FC3DA@magilla.sf.frob.com>
 	 <alpine.LFD.2.00.0902271948570.3111@localhost.localdomain>
@@ -13,28 +13,36 @@ References: <20090228030413.5B915FC3DA@magilla.sf.frob.com>
 	 <20090506215450.GA9537@elte.hu>
 	 <904b25810905061508n6d9cb8dbg71de5b1e0332ede7@mail.gmail.com>
 	 <20090506221319.GA11493@elte.hu>
-In-Reply-To: <20090506221319.GA11493@elte.hu>
+	 <904b25810905061521v62b3ddd6l14deb614d203385a@mail.gmail.com>
+In-Reply-To: <904b25810905061521v62b3ddd6l14deb614d203385a@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Roland McGrath <roland@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, stable@kernel.org, linux-mips@linux-mips.org, sparclinux@vger.kernel.org, linuxppc-dev@ozlabs.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: Markus Gutschke =?UTF-8?Q?=28=E9=A1=A7=E5=AD=9F=E5=8B=A4=29?= <markus@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>, Roland McGrath <roland@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, stable@kernel.org, linux-mips@linux-mips.org, sparclinux@vger.kernel.org, linuxppc-dev@ozlabs.org
 
-On Wed, May 6, 2009 at 15:13, Ingo Molnar <mingo@elte.hu> wrote:
-> doing a (per arch) bitmap of harmless syscalls and replacing the
-> mode1_syscalls[] check with that in kernel/seccomp.c would be a
-> pretty reasonable extension. (.config controllable perhaps, for
-> old-style-seccomp)
->
-> It would probably be faster than the current loop over
-> mode1_syscalls[] as well.
+On Wed, 2009-05-06 at 15:21 -0700, Markus Gutschke (顧孟勤) wrote:
+> On Wed, May 6, 2009 at 15:13, Ingo Molnar <mingo@elte.hu> wrote:
+> > doing a (per arch) bitmap of harmless syscalls and replacing the
+> > mode1_syscalls[] check with that in kernel/seccomp.c would be a
+> > pretty reasonable extension. (.config controllable perhaps, for
+> > old-style-seccomp)
+> >
+> > It would probably be faster than the current loop over
+> > mode1_syscalls[] as well.
+> 
+> This would be a great option to improve performance of our sandbox. I
+> can detect the availability of the new kernel API dynamically, and
+> then not intercept the bulk of the system calls. This would allow the
+> sandbox to work both with existing and with newer kernels.
+> 
+> We'll post a kernel patch for discussion in the next few days,
+> 
 
-This would be a great option to improve performance of our sandbox. I
-can detect the availability of the new kernel API dynamically, and
-then not intercept the bulk of the system calls. This would allow the
-sandbox to work both with existing and with newer kernels.
+I suspect the correct thing to do would be to leave seccomp mode 1 alone
+and introduce a mode 2 with a less restricted set of system calls -- the
+interface was designed to be extended in this way, after all.
 
-We'll post a kernel patch for discussion in the next few days,
+-- 
+Nicholas Miell <nmiell@comcast.net>
 
-
-Markus
