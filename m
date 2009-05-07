@@ -1,66 +1,68 @@
-From: Roland McGrath <roland@redhat.com>
-Date: Thu, 07 May 2009 07:31:21 +0000
+From: =?UTF-8?B?TWFya3VzIEd1dHNjaGtlICjpoaflrZ/li6Qp?=
+Date: Thu, 07 May 2009 08:01:21 +0000
 Subject: Re: [PATCH 2/2] x86-64: seccomp: fix 32/64 syscall hole
-Message-Id: <20090507073121.2FAADFC39E@magilla.sf.frob.com>
+Message-Id: <904b25810905070101u5abad0dagf8642a6950b1911@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20090228030226.C0D34FC3DA@magilla.sf.frob.com>
-	<20090228030413.5B915FC3DA@magilla.sf.frob.com>
-	<alpine.LFD.2.00.0902271932520.3111@localhost.localdomain>
-	<alpine.LFD.2.00.0902271948570.3111@localhost.localdomain>
-	<20090228072554.CFEA6FC3DA@magilla.sf.frob.com>
-	<alpine.LFD.2.00.0902280916470.3111@localhost.localdomain>
-	<904b25810905061146ged374f2se0afd24e9e3c1f06@mail.gmail.com>
-	<20090506212913.GC4861@elte.hu>
-	<904b25810905061446m73c42040nfff47c9b8950bcfa@mail.gmail.com>
-In-Reply-To: Markus Gutschke's message of  Wednesday, 6 May 2009 14:46:02 -0700 <904b25810905061446m73c42040nfff47c9b8950bcfa@mail.gmail.com>
+	 <20090228030413.5B915FC3DA@magilla.sf.frob.com>
+	 <alpine.LFD.2.00.0902271932520.3111@localhost.localdomain>
+	 <alpine.LFD.2.00.0902271948570.3111@localhost.localdomain>
+	 <20090228072554.CFEA6FC3DA@magilla.sf.frob.com>
+	 <alpine.LFD.2.00.0902280916470.3111@localhost.localdomain>
+	 <904b25810905061146ged374f2se0afd24e9e3c1f06@mail.gmail.com>
+	 <20090506212913.GC4861@elte.hu>
+	 <904b25810905061446m73c42040nfff47c9b8950bcfa@mail.gmail.com>
+	 <20090507070312.DCC5EFC39E@magilla.sf.frob.com>
+In-Reply-To: <20090507070312.DCC5EFC39E@magilla.sf.frob.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: markus@google.com
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Roland McGrath <roland@redhat.com>
 Cc: Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, stable@kernel.org, linux-mips@linux-mips.org, sparclinux@vger.kernel.org, linuxppc-dev@ozlabs.org
 
-> Ptrace has performance and/or reliability problems when used to
-> sandbox threaded applications due to potential race conditions when
-> inspecting system call arguments. We hope that we can avoid this
-> problem with seccomp.
+On Thu, May 7, 2009 at 00:03, Roland McGrath <roland@redhat.com> wrote:
+>
+> That is not a "ptrace problem" per se at all. =C2=A0It's an intrinsic pro=
+blem
+> with any method based on "generic" syscall interception, if the filtering
+> and enforcement decisions depend on examining user memory.
 
-ptrace certainly has performance issues.  I take it the only "reliability
-problems" you are talking about are MT races with modifications to user
-memory that is relevant to a system call.  (Is there something else?)
-That is not a "ptrace problem" per se at all.  It's an intrinsic problem
-with any method based on "generic" syscall interception, if the filtering
-and enforcement decisions depend on examining user memory.  By the same
-token, no such method has a "reliability problem" if the filtering checks
-only examine the registers (or other thread-synchronous state).
+Yes, this is indeed the main problem that we are aware of. It can be
+avoided by suspending all threads during user memory inspection, but
+that's a horrible price to pay (also: see below for an alternative
+approach, that could in principle be adapted to use with ptrace)
 
-In the sense that I mean, seccomp is "generic syscall interception" too.
-(That is, the checks/enforcement are "around" the call, rather than inside
-it with direct atomicity controls binding the checks and uses together.)
-The only reason seccomp does not have this "reliability problem" is that
-its filtering is trivial and depends only on registers (in fact, only on
-one register, the syscall number).
+> The only reason seccomp does not have this "reliability problem" is that
+> its filtering is trivial and depends only on registers (in fact, only on
+> one register, the syscall number).
 
-If you want to do checks that depend on shared or volatile state, then
-syscall interception is really not the proper mechanism for you.  (Likely
-examples include user memory, e.g. for file names in open calls, or ioctl
-struct contents, etc., fd tables or filesystem details, etc.)  For that
-you need mechanisms that look at stable kernel copies of user data that
-are what the syscall will actually use, such as is done by audit, LSM, etc.
+Simplicity is really the beauty of seccomp. It is very easy to verify
+that it does the right thing from a security point of view, because
+any attempt to call unsafe system calls results in the kernel
+terminating the program. This is much preferable over most ptrace
+solutions which is more difficult to audit for correctness.
 
-If you only have checks confined to thread-synchronous state such as the
-user registers, then you don't have any "reliability problem" regardless
-of the the particular syscall interception mechanism you use.  (ptrace has
-many problems for this or any other purpose, but this is not one of them.)
-That's unless you are referring to some other "reliability problem" that
-I'm not aware of.  (And I'll leave aside the "is it registers or is it
-user memory?" issue on ia64 as irrelevant, since, you know, it's ia64.)
+The downside is that the sandbox'd code needs to delegate execution of
+most of its system calls to a monitor process. This is slow and rather
+awkward. Although due to the magic of clone(), (almost) all system
+calls can in fact be serialized, sent to the monitor process, have
+their arguments safely inspected, and then executed on behalf of the
+sandbox'd process. Details are tedious but we believe they are
+solvable with current kernel APIs.
 
-If syscall interception is indeed an appropriate mechanism for your needs
-and you want something tailored more specifically to your exact use in
-future kernels, a module doing this would be easy to implement using the
-utrace API.  (That might be a "compelling use" of utrace by virtue of the
-Midas brand name effect, if nothing else. ;-)
+The other issue is performance. For system calls that are known to be
+safe, we would rather not pay the penalty of redirecting them. A
+kernel patch that made seccomp more efficient for these system calls
+would be very welcome, and we will post such a patch for discussion
+shortly.
+
+> If you want to do checks that depend on shared or volatile state, then
+> syscall interception is really not the proper mechanism for you.
+
+We agree that syscall interception is a poor abstraction level for a
+sandbox. But in the short term, we need to work with the APIs that are
+available in today's kernels. And we believe that seccomp is one of
+the more promising API that are currently available to us.
 
 
-Thanks,
-Roland
+Markus
