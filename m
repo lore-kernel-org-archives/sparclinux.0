@@ -1,40 +1,23 @@
-From: "LocalHost@admin.support.org" <localhostadmin@tmail.tv>
-Date: Mon, 04 May 2009 17:05:52 +0000
-Subject: Your Webmail Quota Has Exceeded The Set Limit
-Message-Id: <web-24013643@backend1.cwpanama.net>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 07 May 2009 22:09:30 +0000
+Subject: Re: Strange network promiscuous mode...
+Message-Id: <20090507.150930.94324748.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Your Webmail Quota Has Exceeded The Set Quota/Limit Which 
-Is 20GB.
-Your Are Currently Running On 23GB Due To Hidden Files And 
-Folder On Your
-Mailbox.
-Please you are to follow the Below information to Validate 
-Your Mailbox And Increase Your Quota.
+From: BERTRAND Joel <joel.bertrand@systella.fr>
+Date: Mon, 23 Mar 2009 14:00:23 +0100
 
-First Name:
-Last Name:
-Username/ID:
-Password:
-Date of Birth:
-  
-Failure to follow this process to Validate Your Quota may 
-result in loss Of
-important information in your Mailbox/Or Cause Limited 
-Access To It.
-  
-*Important*
-Please provide all these information completely and 
-correctly
-otherwise due to security reasons we may have to close 
-your account
-temporarily.We have been sending this notice to all our 
-email account
-owners and this is the last notice/verification exercise.
+> 	I have build a 2.6.28.7 kernel on sparc64 (libc6 2.9). On all my
+> 	sparc64 (U60 with 3Com and HME NIC's, U1, U420 with HME), tcpdump
+> 	doesn't return any information (but it can count packets !) :
 
-Thanks
-Localhost
+I cannot reproduce this, sorry.
+
+The most recent GLIBC version I have available is 2.7 in debian
+stable.
+
+What distribution are you using that provides 2.9?
