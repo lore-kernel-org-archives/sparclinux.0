@@ -1,27 +1,32 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 04 May 2009 21:10:24 +0000
-Subject: Re: [PATCH] p9100: use standard fields for framebuffer physical
-Message-Id: <20090504.141024.206710584.davem@davemloft.net>
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Date: Fri, 15 May 2009 02:23:07 +0000
+Subject: [PATCH 0/4] sparc: unify dma-mapping_32.h and dma-mapping_64.h
+Message-Id: <1242354191-6232-1-git-send-email-fujita.tomonori@lab.ntt.co.jp>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090504224257.00514552.krzysztof.h1@poczta.fm>
-In-Reply-To: <20090504224257.00514552.krzysztof.h1@poczta.fm>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: krzysztof.h1@poczta.fm
-Cc: linux-fbdev-devel@lists.sourceforge.net, sparclinux@vger.kernel.org
+To: davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, fujita.tomonori@lab.ntt.co.jp
 
-From: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Date: Mon, 4 May 2009 22:42:57 +0200
+This patchset unifies dma-mapping_32.h and dma-mapping_64.h, that is,
+it uses dma-mapping.h instead and removes dma-mapping_32.h and
+dma-mapping_64.h.
 
-> From: Krzysztof Helt <krzysztof.h1@wp.pl>
-> 
-> Use standard fields fbinfo.fix.smem_start and fbinfo.fix.smem_len
-> for physical address and length of framebuffer.
-> 
-> This also fixes output of the 'fbset -i' command - address and length 
-> of the framebuffer are displayed correctly.
-> 
-> Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+In short, this patchset modifies SPARC32 to use struct dma_map
+ops.
 
-My objections to the cg3 patch apply here as well.
+I like to see architectures implement the dma API in the similar way.
+
+Thanks,
+
+ arch/sparc/include/asm/dma-mapping.h    |  168 ++++++++++++++++++++++++++++++-
+ arch/sparc/include/asm/dma-mapping_32.h |   60 -----------
+ arch/sparc/include/asm/dma-mapping_64.h |  154 ----------------------------
+ arch/sparc/kernel/dma.c                 |  127 +++++++----------------
+ arch/sparc/kernel/iommu.c               |   15 ++--
+ arch/sparc/kernel/pci_sun4v.c           |   15 ++--
+ 6 files changed, 218 insertions(+), 321 deletions(-)
+
+
+
