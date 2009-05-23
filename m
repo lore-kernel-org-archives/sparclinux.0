@@ -1,7 +1,7 @@
-From: Josip Rodin <joy@entuzijast.net>
-Date: Fri, 22 May 2009 11:02:51 +0000
+From: Robert Reif <reif@earthlink.net>
+Date: Sat, 23 May 2009 01:21:54 +0000
 Subject: Re: sparc32 boot problem (SCSI?)
-Message-Id: <20090522110250.GA16151@orion.carnet.hr>
+Message-Id: <4A174FB2.2060809@earthlink.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4A1608E3.6040009@earthlink.net>
 In-Reply-To: <4A1608E3.6040009@earthlink.net>
@@ -10,30 +10,48 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, May 21, 2009 at 10:07:31PM -0400, Robert Reif wrote:
-> [42949392.780000]  sda: sda1 sda2 sda3 sda4
-> [42949392.830000] sd 1:0:0:0: [sda] Attached SCSI disk
-> Done.
-> Begin: Mounting root file system... ...
-> Begin: Running /scripts/local-top ...
-> Done.
-> Begin: Running /scripts/local-premount ...
-> Done.
+Josip Rodin wrote:
+> You might want to do the generic initramfs debug steps like those
+> described at http://wiki.debian.org/InitramfsDebug
+>
+>   
+I tried the steps above and I don't see any issues.  All the
+devices are in /dev, fstype returns the right info and
+/proc/modules are the same.
 
-> [   16.130000]  sda: sda1 sda2 sda3 sda4
-> [   16.190000] sd 1:0:0:0: [sda] Attached SCSI disk
-> Done.
-> Begin: Mounting root file system... ...
-> Begin: Running /scripts/local-top ...
-> Done.
-> Begin: Waiting for root file system... ...
-> Done.
-> Begin: Running /scripts/local-premount ...
-> Done.
-> mount: Mounting /dev/sda2 on /root failed: No such device
+The two significant differences in boot messages are the
+timestamps and the premount output of the bad boot
+has less output.
 
-You might want to do the generic initramfs debug steps like those
-described at http://wiki.debian.org/InitramfsDebug
+good:
 
--- 
-     2. That which causes joy or happiness.
+Begin: Running /scripts/init-premount ...
+[42949392.740000] Driver 'sd' needs updating - please use bus_type methods
+[42949392.770000] sd 1:0:0:0: [sda] 17689267 512-byte hardware sectors: 
+(9.05 GB/8.43 GiB)
+[42949392.790000] sd 1:0:0:0: [sda] Write Protect is off
+[42949392.800000] sd 1:0:0:0: [sda] Write cache: disabled, read cache: 
+enabled, supports DPO and FUA
+[42949392.820000] sd 1:0:0:0: [sda] 17689267 512-byte hardware sectors: 
+(9.05 GB/8.43 GiB)
+[42949392.830000] sd 1:0:0:0: [sda] Write Protect is off
+[42949392.850000] sd 1:0:0:0: [sda] Write cache: disabled, read cache: 
+enabled, supports DPO and FUA
+[42949392.860000]  sda: sda1 sda2 sda3 sda4
+[42949392.920000] sd 1:0:0:0: [sda] Attached SCSI disk
+Done.
+
+bad:
+
+Begin: Running /scripts/init-premount ...
+[   16.080000] Driver 'sd' needs updating - please use bus_type methods
+[   16.110000] sd 1:0:0:0: [sda] 17689267 512-byte hardware sectors: 
+(9.05 GB/8.43 GiB)
+[   16.120000] sd 1:0:0:0: [sda] Write Protect is off
+[   16.130000] sd 1:0:0:0: [sda] Write cache: disabled, read cache: 
+enabled, supports DPO and FUA
+[   16.150000]  sda: sda1 sda2 sda3 sda4
+[   16.200000] sd 1:0:0:0: [sda] Attached SCSI disk
+Done.
+
+
