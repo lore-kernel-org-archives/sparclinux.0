@@ -1,47 +1,42 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 04 May 2009 17:57:43 +0000
-Subject: Re: debian unusable on niagara
-Message-Id: <20090504.105743.42790519.davem@davemloft.net>
+From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
+Date: Tue, 26 May 2009 18:36:37 +0000
+Subject: [2.6.29.4] Blade 2000
+Message-Id: <4A1C36B5.6040707@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090423.070943.158757350.davem@davemloft.net>
-In-Reply-To: <20090423.070943.158757350.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Josip Rodin <joy@entuzijast.net>
-Date: Mon, 4 May 2009 19:33:12 +0200
+	Hello,
 
-> On Mon, May 04, 2009 at 09:55:11AM -0700, David Miller wrote:
->> > Sure, it would probably be better for you if they adjusted to your own
->> > development model, and relied on you for every change that they want done,
->> > and didn't object to any of your recommendations, but it's free software,
->> > they choose to do things bit differently, what with all the separate lists,
->> > BTS, installer, and ultimately separate users.
->> 
->> I never said that they need to run every change they want to
->> do past me, that would be rediclious.
->> 
->> Read what I actually said.
-> 
-> You said that he didn't ask you to test that kernel on your Niagaras,
-> instead he let the Niagara user who contacted Debian via BTS test the
-> change.
+	I have made some minor modifications in bbc_i2c driver to add en entry 
+in /proc directory. ALl mofications have been made against 2.6.29.4 but 
+I haven't verified that this kernel was bootable.
 
-And that has nothing to do with asking me to run every change
-through me.
+	I have built my own bbc_i2c driver as a module. 2.6.29.4 kernel hangs 
+just after qla2xxx initialization. I don't think that this driver try to 
+upload firmware. This firmware is built into the kernel.
 
-This was an issue of ability to test a bug fix.
+CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
+# CONFIG_STANDALONE is not set
+# CONFIG_PREVENT_FIRMWARE_BUILD is not set
+CONFIG_FW_LOADER=y
+CONFIG_FIRMWARE_IN_KERNEL=y
+CONFIG_EXTRA_FIRMWARE="ql2200_fw.bin"
+CONFIG_EXTRA_FIRMWARE_DIR="/lib/firmware"
 
-> I can't say my first impulse would have been to bother you - it
-> seems needless, when there's already one person seemingly available
-> to test - the same one who reported it. The bug log indicates that
-> there were several reporters, actually.
+Root rayleigh:[/lib/firmware] > ls
+edgeport  emi62  keyspan_pda  ql2100_fw.bin  ql2300_fw.bin  ql2400_fw.bin
+emi26     ess    korg         ql2200_fw.bin  ql2322_fw.bin  yamaha
+Root rayleigh:[/lib/firmware] >
 
-If you don't have the necessary hardware and know that the sparc
-kernel maintainer does, it absolutely should be your impulse.
+Configuration:
 
-The impulse definitely should not be "cower into a hole if the
-bug reporter doesn't respond".
+Blade 2000, 2 GB, 2*UIII+/900, Creator3D, internal NIC + 2*3Com NIC.
 
+	Is it a known trouble ?
+
+	Regards,
+
+	JKB
