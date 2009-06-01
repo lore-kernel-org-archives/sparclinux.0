@@ -1,35 +1,27 @@
-From: Konrad Eisele <konrad@gaisler.com>
-Date: Thu, 11 Jun 2009 07:50:51 +0000
-Subject: Re: [PATCH 7/7] sparc-leon specific SRMMU initialization and
-Message-Id: <4A30B75B.8040004@gaisler.com>
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Date: Mon, 01 Jun 2009 02:18:38 +0000
+Subject: Re: [PATCH 0/4] sparc: unify dma-mapping_32.h and dma-mapping_64.h
+Message-Id: <20090601111831L.fujita.tomonori@lab.ntt.co.jp>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4A2E45EE.40007@gaisler.com>
-In-Reply-To: <4A2E45EE.40007@gaisler.com>
+References: <1242354191-6232-1-git-send-email-fujita.tomonori@lab.ntt.co.jp>
+	<4A1F58E8.3090307@earthlink.net>
+In-Reply-To: <4A1F58E8.3090307@earthlink.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: reif@earthlink.net
+Cc: fujita.tomonori@lab.ntt.co.jp, davem@davemloft.net, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-> As for leon_kernel.c and leon_mm.c, they shouldn't be compiled unless
-> CONFIG_LEON is set, exactly as you have it now.
-> 
-> As for this code, the cleanest option I see is to make leon_init() and
-> leon_flush_cache_all() no-ops (or empty macros) when CONFIG_LEON isn't
-> set. My rationale for this is simple: support for HyperSPARC CPUs adds
-> some "dead" code on my MicroSPARC / SuperSPARC machines, and yet it
-> cannot be compiled out, so why should LEON CPUs be treated any
-> differently?
-> 
-> As for things like new hardware or new bus types, they add little
-> bulk, so I see no reason to cut them out when CONFIG_LEON isn't set. -
-> and for all we know, AMBA bus may become the emerging standard for
-> open source SPARC systems, not just LEON.
-> 
-> Thanks for understanding =)
-> 
+On Thu, 28 May 2009 23:39:20 -0400
+Robert Reif <reif@earthlink.net> wrote:
 
-Ok, then I'll do a is_leon approach and include the ambapp bus too, removing
-the ifdef. I'll wait for some more comments before I'll post yet enother
-round of patches, maybe next week.
--- Konrad
+> FUJITA Tomonori wrote:
+> > This patchset unifies dma-mapping_32.h and dma-mapping_64.h, that is,
+> > it uses dma-mapping.h instead and removes dma-mapping_32.h and
+> > dma-mapping_64.h.
+> >   
+> I just boot tested this patch set on sparc32 and it works fine.
 
+Great, thanks a lot!
+
+David, any comments?
