@@ -1,7 +1,7 @@
-From: oftedal <oftedal@gmail.com>
-Date: Wed, 03 Jun 2009 23:14:33 +0000
+From: David Miller <davem@davemloft.net>
+Date: Thu, 04 Jun 2009 04:23:13 +0000
 Subject: Re: [Bugme-new] [Bug 13444] New: SparcServer 1000E SMP can cause
-Message-Id: <Pine.LNX.4.64.0906040050120.6782@oizys.tordivel.org>
+Message-Id: <20090603.212313.180781657.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20090603144241.99669d0e.akpm@linux-foundation.org>
 In-Reply-To: <20090603144241.99669d0e.akpm@linux-foundation.org>
@@ -10,88 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Wed, 3 Jun 2009, Andrew Morton wrote:
+From: oftedal <oftedal@gmail.com>
+Date: Thu, 4 Jun 2009 01:14:33 +0200 (CEST)
 
->
-> (switched to email.  Please respond via emailed reply-to-all, not via the
-> bugzilla web interface).
->
-> On Wed, 3 Jun 2009 16:45:33 GMT
-> bugzilla-daemon@bugzilla.kernel.org wrote:
->
->> http://bugzilla.kernel.org/show_bug.cgi?id444
->>
->>            Summary: SparcServer 1000E SMP can cause kernel-nullpointer
->>                     with some hw configurations
->>            Product: Platform Specific/Hardware
->>            Version: 2.5
->>     Kernel Version: 2.4.37
->>           Platform: All
->>         OS/Version: Linux
->>               Tree: Mainline
->>             Status: NEW
->>           Severity: normal
->>           Priority: P1
->>          Component: SPARC32
->>         AssignedTo: zaitcev@yahoo.com
->>         ReportedBy: oftedal@gmail.com
->>         Regression: No
->>
->>
->> Created an attachment (id!732)
->>  --> (http://bugzilla.kernel.org/attachment.cgi?id!732)
->> SUN4D-SMP mode patch
->>
->> SparcServer 1000E/SUN4D machines will cause a kernel-nullpointer when running
->> in SMP-mode with certain hw configurations.
->> According to Sun documentation Slot A on the systemboards should be filled with
->> cpu modules first. This will fill physical cpu-slots 0,2,4,8 with cpus first.
->> The current smp code will then fill the init_tasks-array using the physical
->> cpu-mapping.
->> The scheduler on the other hand uses the logical cpu-mapping.
->> So in a two cpu system with two systemboards cpu-slots 0 and 2 will be occupied
->> and init_tasks-array position 0 and 2 will contain a idle_task. But the
->> scheduler will access init_tasks position 0 and 1 which will cause an error.
->> Any sparcserver 1000(E) system with 2 systemboards and 2 cpus, with 1 cpu per
->> board will cause this error.
->>
->
-> Thanks, but handling patches via bugzilla is far from preferred.
->
-> Please send the patch via email, as a reply-to-all to this email.  The
-> patch should include a full description and a Signed-off-by:, as per
-> Documentation/SubmittingPatches.
->
->
+> As mentioned in the bug-report(#13444) the sun4d-SMP code on
+> 2.4-series kernels(2.4.37) uses the physical cpu-mapping when
+> inserting tasks into the init_tasks array.
+> And the scheduler uses the logical cpu-mapping which will cause a
+> kernel nullpointer when there are gaps in the physical cpu-mapping.
+> 
+> The attached patch uses the cpucount variable, which can be used to
+> find the next logical slot in the init_tasks array. As it is only
+> incremented
+> when a cpu is successfully started.
+> 
+> (I hope this was more compliant with kernel-bugfixing standards. I am
+> new to this)
+> 
+> Signed-off-by: Kjetil Oftedal <oftedal@gmail.com>
 
-As mentioned in the bug-report(#13444) the sun4d-SMP code on 
-2.4-series kernels(2.4.37) uses the physical cpu-mapping when inserting 
-tasks into the init_tasks array.
-And the scheduler uses the logical cpu-mapping which will cause a
-kernel nullpointer when there are gaps in the physical cpu-mapping.
+I don't think we're handling 2.4.x patches at this point. :-)
 
-The attached patch uses the cpucount variable, which can be used to find 
-the next logical slot in the init_tasks array. As it is only incremented
-when a cpu is successfully started.
-
-(I hope this was more compliant with kernel-bugfixing standards. I am new 
-to this)
-
-Signed-off-by: Kjetil Oftedal <oftedal@gmail.com>
----
-diff --git a/arch/sparc/kernel/sun4d_smp.c b/arch/sparc/kernel/sun4d_smp.c
-index 9bb7f78..5b9b34e 100644
---- a/arch/sparc/kernel/sun4d_smp.c
-+++ b/arch/sparc/kernel/sun4d_smp.c
-@@ -221,7 +221,9 @@ void __init smp4d_boot_cpus(void)
- 			cpucount++;
-
- 			p = init_task.prev_task;
--			init_tasks[i] = p;
-+
-+			/* The scheduler uses the logical cpu mapping when accessing this array */
-+			init_tasks[cpucount] = p;
-
- 			p->processor = i;
- 			p->cpus_runnable = 1 << i; /* we schedule the first task manually */
-
+If the bug exists in 2.6.x as well I'd be happy to review such
+a patch and apply it for you.
