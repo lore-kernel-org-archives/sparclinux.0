@@ -1,41 +1,254 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 04 Jun 2009 04:57:58 +0000
-Subject: Re: [PATCH v3 0/1] sparc64: fix and optimize irq distribution
-Message-Id: <20090603.215758.75616521.davem@davemloft.net>
+From: Konrad Eisele <konrad@gaisler.com>
+Date: Tue, 09 Jun 2009 11:22:22 +0000
+Subject: [PATCH 7/7] sparc-leon specific SRMMU initialization
+Message-Id: <4A2E45EE.40007@gaisler.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------040301030600060906060703"
 List-Id: <sparclinux.vger.kernel.org>
-References: <1244047262-15786-1-git-send-email-hong.pham@windriver.com>
-In-Reply-To: <1244047262-15786-1-git-send-email-hong.pham@windriver.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: "Hong H. Pham" <hong.pham@windriver.com>
-Date: Wed,  3 Jun 2009 12:41:01 -0400
+This is a multi-part message in MIME format.
+--------------040301030600060906060703
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> Here's a revised patch to fix and optimize interrupt distribution.  The major
-> change since the last patch is that a tree representation of the CPU hierarchy
-> is built from the per CPU cpu_data.  Each iteration through the CPU tree
-> picks the next optimal CPU.  The following are example CPU distribution maps
-> for various Niagara2/2+ machines.
-> 
->   T5220 (64 cpus)
->   { 0 8 16 24 32 40 48 56 4 12 20 28 36 44 52 60 1 9 17 25 33 41 49 57 5 13 21 29 37 45 53 61 2 10 18 26 34 42 50 58 6 14 22 30 38 46 54 62 3 11 19 27 35 43 51 59 7 15 23 31 39 47 55 63}
-> 
->   T5440 (2 way, 96 cpus)
->   { 0 8 16 24 32 40 72 80 88 96 104 112 4 12 20 28 36 44 76 84 92 100 108 116 1 9 17 25 33 41 73 81 89 97 105 113 5 13 21 29 37 45 77 85 93 101 109 117 2 10 18 26 34 42 74 82 90 98 106 114 6 14 22 30 38 46 78 86 94 102 110 118 3 11 19 27 35 43 75 83 91 99 107 115 7 15 23 31 39 47 79 87 95 103 111 119}
-> 
->   LDOM (on a T5220)
->   { 0 3 1 4 2 5 0 6}
+ From 070d1215c236a01aad7eff61858744a6b05ea1ca Mon Sep 17 00:00:00 2001
+From: Konrad Eisele <konrad@gaisler.com>
+Date: Tue, 9 Jun 2009 13:07:17 +0200
+Subject: [PATCH 7/7] sparc-leon specific SRMMU initialization and
+bootup fixes. The sparc-leon caches are
+virtually tagged so a flush is needed on ctx
+switch.
 
-This looks great!
+Signed-off-by: Konrad Eisele <konrad@gaisler.com>
+---
+  arch/sparc/mm/srmmu.c |   67 +++++++++++++++++++++++++++++++++++++++++++++++++
+  1 files changed, 67 insertions(+), 0 deletions(-)
 
-> An assumption used when building the CPU tree is that cpu_data is sorted
-> by node, core_id, and proc_id (in order of significance).  This the case
-> for the Niagara2 machines I have available.  If this isn't true for all
-> sparc64 machines, a copy of cpu_data would need to be sorted prior to
-> building the CPU tree.
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index 06c9a7d..7bf9ecd 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -46,6 +46,10 @@ #include <asm/tsunami.h>
+  #include <asm/swift.h>
+  #include <asm/turbosparc.h>
 
-The MDESC and OF cpu scanners allocate the node, core_id, and proc_ids
-linearly as the cpu's are scanned linearly, so this should be OK at
-least for now.
++#if defined(CONFIG_LEON)
++#include <asm/leon.h>
++#endif
++
+  #include <asm/btfixup.h>
+
+  enum mbus_module srmmu_modtype;
+@@ -568,6 +572,11 @@ static void srmmu_switch_mm(struct mm_st
+  		srmmu_ctxd_set(&srmmu_context_table[mm->context], mm->pgd);
+  	}
+
++#if defined(CONFIG_LEON)
++	flush_tlb_mm(0);
++	if (leon_flush_during_switch)
++		leon_flush_cache_all();
++#endif
+  	if (is_hypersparc)
+  		hyper_flush_whole_icache();
+
+@@ -1976,6 +1985,57 @@ #endif
+  	poke_srmmu = poke_viking;
+  }
+
++#if defined(CONFIG_LEON)
++
++extern void leon_flush_icache_all(void);
++extern void leon_flush_dcache_all(void);
++extern void leon_flush_pcache_all(struct vm_area_struct *vma,
++				  unsigned long page);
++extern void leon_flush_cache_all(void);
++extern void leon_flush_tlb_all(void);
++extern int leon_flush_during_switch ;
++extern int leon_flush_needed(void);
++extern void leon_flush_pcache_all(struct vm_area_struct *vma,
++				  unsigned long page);
++
++void __init poke_leonsparc(void)
++{
++}
++
++void __init init_leon(void)
++{
++
++	srmmu_name = "Leon";
++
++	BTFIXUPSET_CALL(flush_cache_all, leon_flush_cache_all,
++			BTFIXUPCALL_NORM);
++	BTFIXUPSET_CALL(flush_cache_mm, leon_flush_cache_all,
++			BTFIXUPCALL_NORM);
++	BTFIXUPSET_CALL(flush_cache_page, leon_flush_pcache_all,
++			BTFIXUPCALL_NORM);
++	BTFIXUPSET_CALL(flush_cache_range, leon_flush_cache_all,
++			BTFIXUPCALL_NORM);
++	BTFIXUPSET_CALL(flush_page_for_dma, leon_flush_dcache_all,
++			BTFIXUPCALL_NORM);
++
++	BTFIXUPSET_CALL(flush_tlb_all, leon_flush_tlb_all, BTFIXUPCALL_NORM);
++	BTFIXUPSET_CALL(flush_tlb_mm, leon_flush_tlb_all, BTFIXUPCALL_NORM);
++	BTFIXUPSET_CALL(flush_tlb_page, leon_flush_tlb_all, BTFIXUPCALL_NORM);
++	BTFIXUPSET_CALL(flush_tlb_range, leon_flush_tlb_all, BTFIXUPCALL_NORM);
++
++	BTFIXUPSET_CALL(__flush_page_to_ram, leon_flush_cache_all,
++			BTFIXUPCALL_NOP);
++	BTFIXUPSET_CALL(flush_sig_insns, leon_flush_cache_all, BTFIXUPCALL_NOP);
++
++	poke_srmmu = poke_leonsparc;
++
++	srmmu_cache_pagetables = 0;
++
++	leon_flush_during_switch = leon_flush_needed();
++}
++
++#endif
++
+  /* Probe for the srmmu chip version. */
+  static void __init get_srmmu_type(void)
+  {
+@@ -1991,6 +2051,13 @@ static void __init get_srmmu_type(void)
+  	psr_typ = (psr >> 28) & 0xf;
+  	psr_vers = (psr >> 24) & 0xf;
+
++#ifdef CONFIG_LEON
++	psr_typ = 0xf;	/* hardcoded ids for older models/simulators */
++	psr_vers = 2;
++	init_leon();
++	return;
++#endif
++
+  	/* First, check for HyperSparc or Cypress. */
+  	if(mod_typ == 1) {
+  		switch(mod_rev) {
+-- 
+1.4.2.1
+
+
+--------------040301030600060906060703
+Content-Type: text/plain;
+ name="0007-sparc-leon-specific-SRMMU-initialization-and.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename*0="0007-sparc-leon-specific-SRMMU-initialization-and.txt"
+
+From 070d1215c236a01aad7eff61858744a6b05ea1ca Mon Sep 17 00:00:00 2001
+From: Konrad Eisele <konrad@gaisler.com>
+Date: Tue, 9 Jun 2009 13:07:17 +0200
+Subject: [PATCH 7/7] sparc-leon specific SRMMU initialization and
+bootup fixes. The sparc-leon caches are
+virtually tagged so a flush is needed on ctx
+switch.
+
+Signed-off-by: Konrad Eisele <konrad@gaisler.com>
+---
+ arch/sparc/mm/srmmu.c |   67 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 67 insertions(+), 0 deletions(-)
+
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index 06c9a7d..7bf9ecd 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -46,6 +46,10 @@ #include <asm/tsunami.h>
+ #include <asm/swift.h>
+ #include <asm/turbosparc.h>
+ 
++#if defined(CONFIG_LEON)
++#include <asm/leon.h>
++#endif
++
+ #include <asm/btfixup.h>
+ 
+ enum mbus_module srmmu_modtype;
+@@ -568,6 +572,11 @@ static void srmmu_switch_mm(struct mm_st
+ 		srmmu_ctxd_set(&srmmu_context_table[mm->context], mm->pgd);
+ 	}
+ 
++#if defined(CONFIG_LEON)
++	flush_tlb_mm(0);
++	if (leon_flush_during_switch)
++		leon_flush_cache_all();
++#endif
+ 	if (is_hypersparc)
+ 		hyper_flush_whole_icache();
+ 
+@@ -1976,6 +1985,57 @@ #endif
+ 	poke_srmmu = poke_viking;
+ }
+ 
++#if defined(CONFIG_LEON)
++
++extern void leon_flush_icache_all(void);
++extern void leon_flush_dcache_all(void);
++extern void leon_flush_pcache_all(struct vm_area_struct *vma,
++				  unsigned long page);
++extern void leon_flush_cache_all(void);
++extern void leon_flush_tlb_all(void);
++extern int leon_flush_during_switch ;
++extern int leon_flush_needed(void);
++extern void leon_flush_pcache_all(struct vm_area_struct *vma,
++				  unsigned long page);
++
++void __init poke_leonsparc(void)
++{
++}
++
++void __init init_leon(void)
++{
++
++	srmmu_name = "Leon";
++
++	BTFIXUPSET_CALL(flush_cache_all, leon_flush_cache_all,
++			BTFIXUPCALL_NORM);
++	BTFIXUPSET_CALL(flush_cache_mm, leon_flush_cache_all,
++			BTFIXUPCALL_NORM);
++	BTFIXUPSET_CALL(flush_cache_page, leon_flush_pcache_all,
++			BTFIXUPCALL_NORM);
++	BTFIXUPSET_CALL(flush_cache_range, leon_flush_cache_all,
++			BTFIXUPCALL_NORM);
++	BTFIXUPSET_CALL(flush_page_for_dma, leon_flush_dcache_all,
++			BTFIXUPCALL_NORM);
++
++	BTFIXUPSET_CALL(flush_tlb_all, leon_flush_tlb_all, BTFIXUPCALL_NORM);
++	BTFIXUPSET_CALL(flush_tlb_mm, leon_flush_tlb_all, BTFIXUPCALL_NORM);
++	BTFIXUPSET_CALL(flush_tlb_page, leon_flush_tlb_all, BTFIXUPCALL_NORM);
++	BTFIXUPSET_CALL(flush_tlb_range, leon_flush_tlb_all, BTFIXUPCALL_NORM);
++
++	BTFIXUPSET_CALL(__flush_page_to_ram, leon_flush_cache_all,
++			BTFIXUPCALL_NOP);
++	BTFIXUPSET_CALL(flush_sig_insns, leon_flush_cache_all, BTFIXUPCALL_NOP);
++
++	poke_srmmu = poke_leonsparc;
++
++	srmmu_cache_pagetables = 0;
++
++	leon_flush_during_switch = leon_flush_needed();
++}
++
++#endif
++
+ /* Probe for the srmmu chip version. */
+ static void __init get_srmmu_type(void)
+ {
+@@ -1991,6 +2051,13 @@ static void __init get_srmmu_type(void)
+ 	psr_typ = (psr >> 28) & 0xf;
+ 	psr_vers = (psr >> 24) & 0xf;
+ 
++#ifdef CONFIG_LEON
++	psr_typ = 0xf;	/* hardcoded ids for older models/simulators */
++	psr_vers = 2;
++	init_leon();
++	return;
++#endif
++
+ 	/* First, check for HyperSparc or Cypress. */
+ 	if(mod_typ == 1) {
+ 		switch(mod_rev) {
+-- 
+1.4.2.1
+
+
+--------------040301030600060906060703--
