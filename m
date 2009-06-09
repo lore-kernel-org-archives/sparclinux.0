@@ -1,27 +1,85 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 04 Jun 2009 08:45:31 +0000
-Subject: Re: [PATCH 0/4] sparc: unify dma-mapping_32.h and dma-mapping_64.h
-Message-Id: <20090604.014531.34506854.davem@davemloft.net>
+From: Konrad Eisele <konrad@gaisler.com>
+Date: Tue, 09 Jun 2009 11:22:18 +0000
+Subject: [PATCH 6/7] Handle sparc-leon SRMMU specific bug
+Message-Id: <4A2E45EA.5040705@gaisler.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------000200020307040605020301"
 List-Id: <sparclinux.vger.kernel.org>
-References: <1242354191-6232-1-git-send-email-fujita.tomonori@lab.ntt.co.jp>
-	<4A1F58E8.3090307@earthlink.net>
-In-Reply-To: <4A1F58E8.3090307@earthlink.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: sparclinux@vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------000200020307040605020301
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: reif@earthlink.net
-Cc: fujita.tomonori@lab.ntt.co.jp, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Robert Reif <reif@earthlink.net>
-Date: Thu, 28 May 2009 23:39:20 -0400
+ From f95779d3a4d478d9df1070cc54a42163993f3b97 Mon Sep 17 00:00:00 2001
+From: Konrad Eisele <konrad@gaisler.com>
+Date: Tue, 9 Jun 2009 13:05:17 +0200
+Subject: [PATCH 6/7] Handle sparc-leon SRMMU specific bug. Shielded by CONFIG_LEON.
 
-> FUJITA Tomonori wrote:
->> This patchset unifies dma-mapping_32.h and dma-mapping_64.h, that is,
->> it uses dma-mapping.h instead and removes dma-mapping_32.h and
->> dma-mapping_64.h.
->>   
-> I just boot tested this patch set on sparc32 and it works fine.
+Signed-off-by: Konrad Eisele <konrad@gaisler.com>
+---
+  arch/sparc/mm/fault_32.c |    6 +++++-
+  1 files changed, 5 insertions(+), 1 deletions(-)
 
-All applied and I added a tested-by: for Robert to the commits.
+diff --git a/arch/sparc/mm/fault_32.c b/arch/sparc/mm/fault_32.c
+index 12e447f..602eb82 100644
+--- a/arch/sparc/mm/fault_32.c
++++ b/arch/sparc/mm/fault_32.c
+@@ -227,7 +227,11 @@ asmlinkage void do_sparc_fault(struct pt
+  	 */
+  good_area:
+  	info.si_code = SEGV_ACCERR;
+-	if(write) {
++	if (write
++#ifdef CONFIG_LEON
++	   && !text_fault
++#endif
++	   ) {
+  		if(!(vma->vm_flags & VM_WRITE))
+  			goto bad_area;
+  	} else {
+-- 
+1.4.2.1
 
-Thanks!
+
+--------------000200020307040605020301
+Content-Type: text/plain;
+ name="0006-Handle-sparc-leon-SRMMU-specific-bug.-Shielded-by-CONFIG_LEON.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename*0="0006-Handle-sparc-leon-SRMMU-specific-bug.-Shielded-by-CONFI";
+ filename*1="G_LEON.txt"
+
+From f95779d3a4d478d9df1070cc54a42163993f3b97 Mon Sep 17 00:00:00 2001
+From: Konrad Eisele <konrad@gaisler.com>
+Date: Tue, 9 Jun 2009 13:05:17 +0200
+Subject: [PATCH 6/7] Handle sparc-leon SRMMU specific bug. Shielded by CONFIG_LEON.
+
+Signed-off-by: Konrad Eisele <konrad@gaisler.com>
+---
+ arch/sparc/mm/fault_32.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
+
+diff --git a/arch/sparc/mm/fault_32.c b/arch/sparc/mm/fault_32.c
+index 12e447f..602eb82 100644
+--- a/arch/sparc/mm/fault_32.c
++++ b/arch/sparc/mm/fault_32.c
+@@ -227,7 +227,11 @@ asmlinkage void do_sparc_fault(struct pt
+ 	 */
+ good_area:
+ 	info.si_code = SEGV_ACCERR;
+-	if(write) {
++	if (write
++#ifdef CONFIG_LEON
++	   && !text_fault
++#endif
++	   ) {
+ 		if(!(vma->vm_flags & VM_WRITE))
+ 			goto bad_area;
+ 	} else {
+-- 
+1.4.2.1
+
+
+--------------000200020307040605020301--
