@@ -1,186 +1,242 @@
-From: Konrad Eisele <konrad@gaisler.com>
-Date: Thu, 11 Jun 2009 06:43:47 +0000
-Subject: Re: [PATCH 5/7] Added support for AMBA bus. The device is a AMBA
-Message-Id: <4A30A7A3.2050508@gaisler.com>
+From: akpm@linux-foundation.org
+Date: Wed, 10 Jun 2009 19:57:20 +0000
+Subject: [patch 1/4] sparc: move the duplication in dma-mapping_{32|64}.h to dma-mapping.h
+Message-Id: <200906101957.n5AJvLAp010295@imap1.linux-foundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1244629161-23939-1-git-send-email-konrad@gaisler.com>
-In-Reply-To: <1244629161-23939-1-git-send-email-konrad@gaisler.com>
+References: <1242354191-6232-2-git-send-email-fujita.tomonori@lab.ntt.co.jp>
+In-Reply-To: <1242354191-6232-2-git-send-email-fujita.tomonori@lab.ntt.co.jp>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Julian Calaby wrote:
-> On Wed, Jun 10, 2009 at 20:19, <konrad@gaisler.com> wrote:
->> From: Konrad Eisele <konrad@gaisler.com>
->>
->> it is a child of prom node "ambapp" (AMBA plug and play).
->> Two functions leon_trans_init() and leon_node_init()
->> (defined in sparc/kernel/leon.c) are called in the
->> prom_build_tree() path if CONFIG_SPARC_LEON is defined.
->> leon_node_init() will build up the device tree using
->> AMBA plug and play.
->> ---
->>  arch/sparc/kernel/of_device_32.c |   45 +++++++++++++++++++++++++++++++++++++-
->>  arch/sparc/kernel/prom_32.c      |   38 ++++++++++++++++++++++++++++++++
->>  arch/sparc/kernel/prom_common.c  |   10 +++++++-
->>  3 files changed, 90 insertions(+), 3 deletions(-)
->>
->> diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device_32.c
->> index 0a83bd7..e62daa2 100644
->> --- a/arch/sparc/kernel/of_device_32.c
->> +++ b/arch/sparc/kernel/of_device_32.c
->> @@ -125,7 +126,7 @@ static int of_out_of_range(const u32 *ad
->>        return 0;
->>  }
->>
->> -static int of_bus_default_map(u32 *addr, const u32 *range,
->> +SPARC_LEON_STATIC int of_bus_default_map(u32 *addr, const u32 *range,
->>                              int na, int ns, int pna)
->>  {
->>        u32 result[OF_MAX_ADDR_CELLS];
-> 
-> This is still ugly. Arguably, having it non-static wouldn't be a
-> problem as it is used by the leon-specific code.
-> 
-> I understand that you want to make this entire patch set disappear
-> when SPARC_LEON is unselected, but this is just making the existing
-> code messy.
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-I might be able to remove SPARC_LEON_STATIC and revert it to the old
-state.
+This patchset unifies dma-mapping_32.h and dma-mapping_64.h, that is,
+it uses dma-mapping.h instead and removes dma-mapping_32.h and
+dma-mapping_64.h.
 
-> 
->> @@ -269,6 +270,37 @@ static unsigned long of_bus_sbus_get_fla
->>        return IORESOURCE_MEM;
->>  }
->>
->> +#ifdef CONFIG_SPARC_LEON
->> +
->> + /*
->> + * AMBAPP bus specific translator
->> + */
->> +
->> +int of_bus_ambapp_match(struct device_node *np)
->> +{
->> +       return !strcmp(np->name, "ambapp");
->> +}
->> +
->> +void of_bus_ambapp_count_cells(struct device_node *child,
->> +                                     int *addrc, int *sizec)
->> +{
->> +       if (addrc)
->> +               *addrc = 1;
->> +       if (sizec)
->> +               *sizec = 1;
->> +}
->> +
->> +int of_bus_ambapp_map(u32 *addr, const u32 *range, int na, int ns, int pna)
->> +{
->> +       return of_bus_default_map(addr, range, na, ns, pna);
->> +}
->> +
->> +unsigned long of_bus_ambapp_get_flags(const u32 *addr, unsigned long flags)
->> +{
->> +       return IORESOURCE_MEM;
->> +}
->> +
->> +#endif
->>
->>  /*
->>  * Array of bus specific translators
->> @@ -293,6 +325,17 @@ static struct of_bus of_busses[] = {
->>                .map = of_bus_sbus_map,
->>                .get_flags = of_bus_sbus_get_flags,
->>        },
->> +#ifdef CONFIG_SPARC_LEON
->> +       /* AMBA */
->> +       {
->> +               .name = "ambapp",
->> +               .addr_prop_name = "reg",
->> +               .match = of_bus_ambapp_match,
->> +               .count_cells = of_bus_ambapp_count_cells,
->> +               .map = of_bus_ambapp_map,
->> +               .get_flags = of_bus_ambapp_get_flags,
->> +       },
->> +#endif
->>        /* Default */
->>        {
->>                .name = "default",
->> diff --git a/arch/sparc/kernel/prom_32.c b/arch/sparc/kernel/prom_32.c
->> index fe43e80..5aee484 100644
->> --- a/arch/sparc/kernel/prom_32.c
->> +++ b/arch/sparc/kernel/prom_32.c
->> @@ -24,6 +24,7 @@ #include <linux/module.h>
->>
->>  #include <asm/prom.h>
->>  #include <asm/oplib.h>
->> +#include <asm/leon.h>
->>
->>  #include "prom.h"
->>
->> @@ -131,6 +132,39 @@ static void __init ebus_path_component(s
->>                regs->which_io, regs->phys_addr);
->>  }
->>
->> +#ifdef CONFIG_SPARC_LEON
->> +
->> +/* "name@irq,addrlo" */
->> +static void __init ambapp_path_component(struct device_node *dp, char *tmp_buf)
->> +{
->> +       struct amba_prom_registers *regs; unsigned int *intr;
->> +       unsigned int *device, *vendor;
->> +       struct property *prop;
->> +
->> +       prop = of_find_property(dp, "reg", NULL);
->> +       if (!prop)
->> +               return;
->> +       regs = prop->value;
->> +       prop = of_find_property(dp, "interrupts", NULL);
->> +       if (!prop)
->> +               return;
->> +       intr = prop->value;
->> +       prop = of_find_property(dp, "vendor", NULL);
->> +       if (!prop)
->> +               return;
->> +       vendor = prop->value;
->> +       prop = of_find_property(dp, "device", NULL);
->> +       if (!prop)
->> +               return;
->> +       device = prop->value;
->> +
->> +       sprintf(tmp_buf, "%s:%d:%d@%x,%x",
->> +               dp->name, *vendor, *device,
->> +               *intr, regs->phys_addr);
->> +}
->> +
->> +#endif
->> +
->>  static void __init __build_path_component(struct device_node *dp, char *tmp_buf)
->>  {
->>        struct device_node *parent = dp->parent;
->> @@ -143,6 +177,10 @@ static void __init __build_path_componen
->>                        return sbus_path_component(dp, tmp_buf);
->>                if (!strcmp(parent->type, "ebus"))
->>                        return ebus_path_component(dp, tmp_buf);
->> +#ifdef CONFIG_SPARC_LEON
->> +               if (!strcmp(parent->type, "ambapp"))
->> +                       return ambapp_path_component(dp, tmp_buf);
->> +#endif
->>
->>                /* "isa" is handled with platform naming */
->>        }
-> 
-> Speaking of things that are arguably unnecessary, the #ifdef
-> CONFIG_SPARC_LEON guards in this part of the patch seem to be somewhat
-> unnecessary - this code will not affect the existing code, apart from
-> making it slightly bigger.
-> 
-> Thanks,
-> 
+In short, this patchset modifies SPARC32 to use struct dma_map
+ops.
 
-I could remove the CONFIG_SPARC_LEON but on a sun-sparc machine this
-never would be used because there is no amba bus there. I think weather
-to remove it or not is something somebody other than me should decide
-and patch it himself.
+I like to see architectures implement the dma API in the similar way.
 
+
+This patch:
+
+Move the duplication in dma-mapping_{32|64}.h to dma-mapping.h.
+
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Tested-by: Robert Reif <reif@earthlink.net>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ arch/sparc/include/asm/dma-mapping.h    |   42 ++++++++++++++++++++++
+ arch/sparc/include/asm/dma-mapping_32.h |   18 ---------
+ arch/sparc/include/asm/dma-mapping_64.h |   40 --------------------
+ arch/sparc/kernel/dma.c                 |   30 ---------------
+ 4 files changed, 42 insertions(+), 88 deletions(-)
+
+diff -puN arch/sparc/include/asm/dma-mapping.h~sparc-move-the-duplication-in-dma-mapping_3264h-to-dma-mappingh arch/sparc/include/asm/dma-mapping.h
+--- a/arch/sparc/include/asm/dma-mapping.h~sparc-move-the-duplication-in-dma-mapping_3264h-to-dma-mappingh
++++ a/arch/sparc/include/asm/dma-mapping.h
+@@ -5,4 +5,46 @@
+ #else
+ #include <asm/dma-mapping_32.h>
+ #endif
++
++#define DMA_ERROR_CODE	(~(dma_addr_t)0x0)
++
++extern int dma_supported(struct device *dev, u64 mask);
++extern int dma_set_mask(struct device *dev, u64 dma_mask);
++
++static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
++{
++	return (dma_addr = DMA_ERROR_CODE);
++}
++
++static inline int dma_get_cache_alignment(void)
++{
++	/*
++	 * no easy way to get cache size on all processors, so return
++	 * the maximum possible, to be safe
++	 */
++	return (1 << INTERNODE_CACHE_SHIFT);
++}
++
++#define dma_alloc_noncoherent(d, s, h, f) dma_alloc_coherent(d, s, h, f)
++#define dma_free_noncoherent(d, s, v, h) dma_free_coherent(d, s, v, h)
++#define dma_is_consistent(d, h)	(1)
++
++static inline void dma_sync_single_range_for_cpu(struct device *dev,
++						 dma_addr_t dma_handle,
++						 unsigned long offset,
++						 size_t size,
++						 enum dma_data_direction dir)
++{
++	dma_sync_single_for_cpu(dev, dma_handle+offset, size, dir);
++}
++
++static inline void dma_sync_single_range_for_device(struct device *dev,
++						    dma_addr_t dma_handle,
++						    unsigned long offset,
++						    size_t size,
++						    enum dma_data_direction dir)
++{
++	dma_sync_single_for_device(dev, dma_handle+offset, size, dir);
++}
++
+ #endif
+diff -puN arch/sparc/include/asm/dma-mapping_32.h~sparc-move-the-duplication-in-dma-mapping_3264h-to-dma-mappingh arch/sparc/include/asm/dma-mapping_32.h
+--- a/arch/sparc/include/asm/dma-mapping_32.h~sparc-move-the-duplication-in-dma-mapping_3264h-to-dma-mappingh
++++ a/arch/sparc/include/asm/dma-mapping_32.h
+@@ -7,10 +7,6 @@ struct device;
+ struct scatterlist;
+ struct page;
+ 
+-#define DMA_ERROR_CODE	(~(dma_addr_t)0x0)
+-
+-extern int dma_supported(struct device *dev, u64 mask);
+-extern int dma_set_mask(struct device *dev, u64 dma_mask);
+ extern void *dma_alloc_coherent(struct device *dev, size_t size,
+ 				dma_addr_t *dma_handle, gfp_t flag);
+ extern void dma_free_coherent(struct device *dev, size_t size,
+@@ -37,24 +33,10 @@ extern void dma_sync_single_for_device(s
+ 				       dma_addr_t dma_handle,
+ 				       size_t size,
+ 				       enum dma_data_direction direction);
+-extern void dma_sync_single_range_for_cpu(struct device *dev,
+-					  dma_addr_t dma_handle,
+-					  unsigned long offset,
+-					  size_t size,
+-					  enum dma_data_direction direction);
+-extern void dma_sync_single_range_for_device(struct device *dev,
+-					     dma_addr_t dma_handle,
+-					     unsigned long offset, size_t size,
+-					     enum dma_data_direction direction);
+ extern void dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg,
+ 				int nelems, enum dma_data_direction direction);
+ extern void dma_sync_sg_for_device(struct device *dev,
+ 				   struct scatterlist *sg, int nelems,
+ 				   enum dma_data_direction direction);
+-extern int dma_mapping_error(struct device *dev, dma_addr_t dma_addr);
+-extern int dma_get_cache_alignment(void);
+-
+-#define dma_alloc_noncoherent	dma_alloc_coherent
+-#define dma_free_noncoherent	dma_free_coherent
+ 
+ #endif /* _ASM_SPARC_DMA_MAPPING_H */
+diff -puN arch/sparc/include/asm/dma-mapping_64.h~sparc-move-the-duplication-in-dma-mapping_3264h-to-dma-mappingh arch/sparc/include/asm/dma-mapping_64.h
+--- a/arch/sparc/include/asm/dma-mapping_64.h~sparc-move-the-duplication-in-dma-mapping_3264h-to-dma-mappingh
++++ a/arch/sparc/include/asm/dma-mapping_64.h
+@@ -4,8 +4,6 @@
+ #include <linux/scatterlist.h>
+ #include <linux/mm.h>
+ 
+-#define DMA_ERROR_CODE	(~(dma_addr_t)0x0)
+-
+ struct dma_ops {
+ 	void *(*alloc_coherent)(struct device *dev, size_t size,
+ 				dma_addr_t *dma_handle, gfp_t flag);
+@@ -31,9 +29,6 @@ struct dma_ops {
+ };
+ extern const struct dma_ops *dma_ops;
+ 
+-extern int dma_supported(struct device *dev, u64 mask);
+-extern int dma_set_mask(struct device *dev, u64 dma_mask);
+-
+ static inline void *dma_alloc_coherent(struct device *dev, size_t size,
+ 				       dma_addr_t *dma_handle, gfp_t flag)
+ {
+@@ -102,25 +97,6 @@ static inline void dma_sync_single_for_d
+ 	/* No flushing needed to sync cpu writes to the device.  */
+ }
+ 
+-static inline void dma_sync_single_range_for_cpu(struct device *dev,
+-						 dma_addr_t dma_handle,
+-						 unsigned long offset,
+-						 size_t size,
+-						 enum dma_data_direction direction)
+-{
+-	dma_sync_single_for_cpu(dev, dma_handle+offset, size, direction);
+-}
+-
+-static inline void dma_sync_single_range_for_device(struct device *dev,
+-						    dma_addr_t dma_handle,
+-						    unsigned long offset,
+-						    size_t size,
+-						    enum dma_data_direction direction)
+-{
+-	/* No flushing needed to sync cpu writes to the device.  */
+-}
+-
+-
+ static inline void dma_sync_sg_for_cpu(struct device *dev,
+ 				       struct scatterlist *sg, int nelems,
+ 				       enum dma_data_direction direction)
+@@ -135,20 +111,4 @@ static inline void dma_sync_sg_for_devic
+ 	/* No flushing needed to sync cpu writes to the device.  */
+ }
+ 
+-static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
+-{
+-	return (dma_addr = DMA_ERROR_CODE);
+-}
+-
+-static inline int dma_get_cache_alignment(void)
+-{
+-	/* no easy way to get cache size on all processors, so return
+-	 * the maximum possible, to be safe */
+-	return (1 << INTERNODE_CACHE_SHIFT);
+-}
+-
+-#define dma_alloc_noncoherent(d, s, h, f) dma_alloc_coherent(d, s, h, f)
+-#define dma_free_noncoherent(d, s, v, h) dma_free_coherent(d, s, v, h)
+-#define dma_is_consistent(d, h)	(1)
+-
+ #endif /* _ASM_SPARC64_DMA_MAPPING_H */
+diff -puN arch/sparc/kernel/dma.c~sparc-move-the-duplication-in-dma-mapping_3264h-to-dma-mappingh arch/sparc/kernel/dma.c
+--- a/arch/sparc/kernel/dma.c~sparc-move-the-duplication-in-dma-mapping_3264h-to-dma-mappingh
++++ a/arch/sparc/kernel/dma.c
+@@ -167,24 +167,6 @@ void dma_sync_single_for_device(struct d
+ }
+ EXPORT_SYMBOL(dma_sync_single_for_device);
+ 
+-void dma_sync_single_range_for_cpu(struct device *dev,
+-				   dma_addr_t dma_handle,
+-				   unsigned long offset,
+-				   size_t size,
+-				   enum dma_data_direction direction)
+-{
+-	dma_sync_single_for_cpu(dev, dma_handle+offset, size, direction);
+-}
+-EXPORT_SYMBOL(dma_sync_single_range_for_cpu);
+-
+-void dma_sync_single_range_for_device(struct device *dev, dma_addr_t dma_handle,
+-				      unsigned long offset, size_t size,
+-				      enum dma_data_direction direction)
+-{
+-	dma_sync_single_for_device(dev, dma_handle+offset, size, direction);
+-}
+-EXPORT_SYMBOL(dma_sync_single_range_for_device);
+-
+ void dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg,
+ 			 int nelems, enum dma_data_direction direction)
+ {
+@@ -213,15 +195,3 @@ void dma_sync_sg_for_device(struct devic
+ 	BUG();
+ }
+ EXPORT_SYMBOL(dma_sync_sg_for_device);
+-
+-int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
+-{
+-	return (dma_addr = DMA_ERROR_CODE);
+-}
+-EXPORT_SYMBOL(dma_mapping_error);
+-
+-int dma_get_cache_alignment(void)
+-{
+-	return 32;
+-}
+-EXPORT_SYMBOL(dma_get_cache_alignment);
+_
