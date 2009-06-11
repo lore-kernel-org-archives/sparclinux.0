@@ -1,55 +1,41 @@
-From: konrad@gaisler.com
-Date: Wed, 10 Jun 2009 10:15:43 +0000
-Subject: [PATCH 4/7] Undefine srmmu_hwprobe in the CONFIG_SPARC_LEON case.
-Message-Id: <1244628943-23907-1-git-send-email-konrad@gaisler.com>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 11 Jun 2009 10:27:11 +0000
+Subject: Re: sparc32 boot problem (SCSI?)
+Message-Id: <20090611.032711.03972738.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4A2E45E2.4070906@gaisler.com>
-In-Reply-To: <4A2E45E2.4070906@gaisler.com>
+References: <4A1608E3.6040009@earthlink.net>
+In-Reply-To: <4A1608E3.6040009@earthlink.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Konrad Eisele <konrad@gaisler.com>
+From: Robert Reif <reif@earthlink.net>
+Date: Thu, 28 May 2009 20:52:30 -0400
 
->>  srmmu_get_pte (unsigned long addr)
-> 
-> Surely there is a better way to do this, oh and if this is the only
-> way, #ifndef CONFIG_LEON is much cleaner.
-> 
+> Robert Reif wrote:
+>> I bisected it down to this but it makes no sense.
+>>
+>> f894e74dc1983062d30d4e1b79bdb90b8a847f52 is first bad commit
+>> commit f894e74dc1983062d30d4e1b79bdb90b8a847f52
+>> Author: Jaswinder Singh Rajput <jaswinder@kernel.org>
+>> Date:   Fri Apr 3 01:42:50 2009 +0530
+>>
+>>    [SCSI] qlogicpti: use request_firmware
+>>      Firmware blob is little endian
+>>      Thanks to Stephen Rothwell for fixing typos
+>>      Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput@gmail.com>
+>>    Signed-off-by: James Bottomley <James.Bottomley@HansenPartnership.com>
+>>
+> Compiling a kernel without this module produces a working system.
 
-SPARC-LEON doesnt have a hardware probe, so the function cannot be
-used for leon. I implement a softwareprobe instead. Changed to #ifndef CONFIG_LEON
+Strange bug indeed.
 
+Did you have this built statically into the kernel or modular?
 
-The sparc-leon SRMMU has no mmu probe logic implemented.
-Instead function srmmu_swprobe() is used that is defined in
-arch/sparc/mm/leon.c. arch/sparc/include/asm/leon.h on the
-other hand defines srmmu_hwprobe(addr) as a macro
----
- arch/sparc/include/asm/pgtsrmmu.h |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+If statically, the change may have taken your image over the limit for
+bootable image size on sparc32.
 
-diff --git a/arch/sparc/include/asm/pgtsrmmu.h b/arch/sparc/include/asm/pgtsrmmu.h
-index 808555f..267178c 100644
---- a/arch/sparc/include/asm/pgtsrmmu.h
-+++ b/arch/sparc/include/asm/pgtsrmmu.h
-@@ -267,6 +267,7 @@ static inline void srmmu_flush_tlb_page(
- 
- }
- 
-+#ifndef CONFIG_SPARC_LEON
- static inline unsigned long srmmu_hwprobe(unsigned long vaddr)
- {
- 	unsigned long retval;
-@@ -278,6 +279,7 @@ static inline unsigned long srmmu_hwprob
- 
- 	return retval;
- }
-+#endif
- 
- static inline int
- srmmu_get_pte (unsigned long addr)
--- 
-1.4.2.1
-
+If modular, that's very mysterious.  The probe code of this driver
+should not even execute without an actual qlogicpti card in your
+machine, and that's the only thing really modified here.
