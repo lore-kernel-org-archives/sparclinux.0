@@ -1,7 +1,7 @@
 From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
-Date: Thu, 11 Jun 2009 10:56:12 +0000
+Date: Thu, 11 Jun 2009 16:32:04 +0000
 Subject: Re: [2.6.29.4] Blade 2000
-Message-Id: <4A30E2CC.4050105@systella.fr>
+Message-Id: <4A313184.6000602@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4A1C36B5.6040707@systella.fr>
 In-Reply-To: <4A1C36B5.6040707@systella.fr>
@@ -69,11 +69,43 @@ ry
 > changeset is found.  At most you'll need to do this 6 times.
 >=20
 > Post the result here.
->=20
-> We'll find a way to fix this, thanks!
 
-	I'll try, but I have to install a regular linux system on a blade 2000=20
-that is not used.
+tchebytchev:[~/linux/sparc-2.6] > git bisect start v2.6.29 v2.6.28 --=20
+drivers/scsi/qla2xxx/
+Checking out files: 100% (10708/10708), done.
+Switched to branch "master"
+Bisecting: 19 revisions left to test after this
+[8eca3f39c4b11320787f7b216f63214aee8415a9] [SCSI] qla2xxx: Always=20
+serialize mailbox command execution.
+
+-> kernel boots
+
+tchebytchev:[~/linux/sparc-2.6] > git bisect good
+Bisecting: 9 revisions left to test after this
+[618a752319503a64d1b66615e8ea2a0e7edaf914] [SCSI] qla2xxx: Remove=20
+interrupt request bit check in the response processing path in multiq mode.
+
+-> kernel doesn't boot
+
+tchebytchev:[~/linux/sparc-2.6] > git bisect bad
+Bisecting: 4 revisions left to test after this
+[b872ca4081c480e3d76443282ffd7f206321f50f] [SCSI] qla2xxx: Correct=20
+descriptions in flash manipulation routines.
+tchebytchev:[~/linux/sparc-2.6] >
+
+tchebytchev:[~/linux/sparc-2.6] > git bisect log
+# bad: [8e0ee43bc2c3e19db56a4adaa9a9b04ce885cd84] Linux 2.6.29
+# good: [4a6908a3a050aacc9c3a2f36b276b46c0629ad91] Linux 2.6.28
+git-bisect start 'v2.6.29' 'v2.6.28' '--' 'drivers/scsi/qla2xxx/'
+# good: [8eca3f39c4b11320787f7b216f63214aee8415a9] [SCSI] qla2xxx:=20
+Always serialize mailbox command execution.
+git-bisect good 8eca3f39c4b11320787f7b216f63214aee8415a9
+# bad: [618a752319503a64d1b66615e8ea2a0e7edaf914] [SCSI] qla2xxx: Remove=20
+interrupt request bit check in the response processing path in multiq mode.
+git-bisect bad 618a752319503a64d1b66615e8ea2a0e7edaf914
+tchebytchev:[~/linux/sparc-2.6] >
+
+	I'm investigating...
 
 	Regards,
 
