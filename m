@@ -1,73 +1,117 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Date: Fri, 12 Jun 2009 11:22:10 +0000
-Subject: Re: linux-next: rr-latest-cpumask/sparc tree build failure
-Message-Id: <200906122040.10541.rusty@rustcorp.com.au>
+From: konrad@gaisler.com
+Date: Fri, 12 Jun 2009 08:44:36 +0000
+Subject: round2 [PATCH 6/6] sparc-leon specific SRMMU initialization and bootup fixes. The sparc-leon caches
+Message-Id: <1244796276-7386-1-git-send-email-konrad@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090612185102.2d1391e5.sfr@canb.auug.org.au>
-In-Reply-To: <20090612185102.2d1391e5.sfr@canb.auug.org.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Fri, 12 Jun 2009 06:21:02 pm Stephen Rothwell wrote:
-> Hi Rusty,
->
-> Today's linux-next build (sparc64 defconfig) failed like this:
->
-> arch/sparc/mm/init_64.c: In function 'paging_init':
-> arch/sparc/mm/init_64.c:1802: error: 'CPU_MASK_ALL_PTR' undeclared (first
+From: Konrad Eisele <konrad@gaisler.com>
 
-OK, Dave could you take/fold Stephen's fix then?
-
-FYI here's the patch explaining why we're CPU_MASK_ALL_PTR -> cpu_all_mask:
-
-Subject: cpumask: remove dangerous CPU_MASK_ALL_PTR
-
-(Thanks to Al Viro for reminding me of this, via Ingo)
-
-CPU_MASK_ALL is the (deprecated) "all bits set" cpumask, defined as so:
-
-	#define CPU_MASK_ALL (cpumask_t) { { ... } }
-
-Taking the address of such a temporary is questionable at best,
-unfortunately 321a8e9d (cpumask: add CPU_MASK_ALL_PTR macro) added
-CPU_MASK_ALL_PTR:
-
-	#define CPU_MASK_ALL_PTR (&CPU_MASK_ALL)
-
-Which formalizes this practice.  One day gcc could bite us over this
-usage (though we seem to have gotten away with it so far).
-
-Now all callers are removed, we kill it.
-
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Reported-by: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Mike Travis <travis@sgi.com>
 ---
- include/linux/cpumask.h |    3 ---
- 1 file changed, 3 deletions(-)
+ arch/sparc/mm/srmmu.c |   66 ++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 65 insertions(+), 1 deletions(-)
 
-diff --git a/include/linux/cpumask.h b/include/linux/cpumask.h
---- a/include/linux/cpumask.h
-+++ b/include/linux/cpumask.h
-@@ -324,8 +324,6 @@ static inline const struct cpumask *get_
- 	[BITS_TO_LONGS(NR_CPUS)-1] = CPU_MASK_LAST_WORD			\
- } }
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index 06c9a7d..ae217cc 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -45,6 +45,7 @@
+ #include <asm/tsunami.h>
+ #include <asm/swift.h>
+ #include <asm/turbosparc.h>
++#include <asm/leon.h>
  
--#define CPU_MASK_ALL_PTR	(&CPU_MASK_ALL)
+ #include <asm/btfixup.h>
+ 
+@@ -568,6 +569,10 @@ static void srmmu_switch_mm(struct mm_struct *old_mm, struct mm_struct *mm,
+ 		srmmu_ctxd_set(&srmmu_context_table[mm->context], mm->pgd);
+ 	}
+ 
++	if (sparc_cpu_model = sparc_leon) {
++		leon_switch_mm();
++	}
++	
+ 	if (is_hypersparc)
+ 		hyper_flush_whole_icache();
+ 
+@@ -1976,6 +1981,58 @@ static void __init init_viking(void)
+ 	poke_srmmu = poke_viking;
+ }
+ 
++#ifdef CONFIG_SPARC_LEON
++
++extern void leon_flush_icache_all(void);
++extern void leon_flush_dcache_all(void);
++extern void leon_flush_pcache_all(struct vm_area_struct *vma,
++				  unsigned long page);
++extern void leon_flush_cache_all(void);
++extern void leon_flush_tlb_all(void);
++extern int leon_flush_during_switch ;
++extern int leon_flush_needed(void);
++extern void leon_flush_pcache_all(struct vm_area_struct *vma,
++				  unsigned long page);
++
++void __init poke_leonsparc(void)
++{
++}
++
++void __init init_leon(void)
++{
++
++	srmmu_name = "Leon";
++
++	BTFIXUPSET_CALL(flush_cache_all, leon_flush_cache_all,
++			BTFIXUPCALL_NORM);
++	BTFIXUPSET_CALL(flush_cache_mm, leon_flush_cache_all,
++			BTFIXUPCALL_NORM);
++	BTFIXUPSET_CALL(flush_cache_page, leon_flush_pcache_all,
++			BTFIXUPCALL_NORM);
++	BTFIXUPSET_CALL(flush_cache_range, leon_flush_cache_all,
++			BTFIXUPCALL_NORM);
++	BTFIXUPSET_CALL(flush_page_for_dma, leon_flush_dcache_all,
++			BTFIXUPCALL_NORM);
++
++	BTFIXUPSET_CALL(flush_tlb_all, leon_flush_tlb_all, BTFIXUPCALL_NORM);
++	BTFIXUPSET_CALL(flush_tlb_mm, leon_flush_tlb_all, BTFIXUPCALL_NORM);
++	BTFIXUPSET_CALL(flush_tlb_page, leon_flush_tlb_all, BTFIXUPCALL_NORM);
++	BTFIXUPSET_CALL(flush_tlb_range, leon_flush_tlb_all, BTFIXUPCALL_NORM);
++
++	BTFIXUPSET_CALL(__flush_page_to_ram, leon_flush_cache_all,
++			BTFIXUPCALL_NOP);
++	BTFIXUPSET_CALL(flush_sig_insns, leon_flush_cache_all, BTFIXUPCALL_NOP);
++
++	poke_srmmu = poke_leonsparc;
++
++	srmmu_cache_pagetables = 0;
++
++	leon_flush_during_switch = leon_flush_needed();
++}
++#else
++#define init_leon()
++#endif
++
+ /* Probe for the srmmu chip version. */
+ static void __init get_srmmu_type(void)
+ {
+@@ -1990,7 +2047,14 @@ static void __init get_srmmu_type(void)
+ 	mod_rev = (mreg & 0x0f000000) >> 24;
+ 	psr_typ = (psr >> 28) & 0xf;
+ 	psr_vers = (psr >> 24) & 0xf;
 -
- #else
- 
- #define CPU_MASK_ALL							\
-@@ -333,7 +331,6 @@ static inline const struct cpumask *get_
- 
- /* cpu_mask_all is in init/main.c */
- extern cpumask_t cpu_mask_all;
--#define CPU_MASK_ALL_PTR	(&cpu_mask_all)
- 
- #endif
- 
++	
++	if (sparc_cpu_model = sparc_leon) {
++		psr_typ = 0xf;	/* hardcoded ids for older models/simulators */
++		psr_vers = 2;
++		init_leon(); /* macro if !CONFIG_SPARC_LEON */
++		return;
++	}
++	
+ 	/* First, check for HyperSparc or Cypress. */
+ 	if(mod_typ = 1) {
+ 		switch(mod_rev) {
+-- 
+1.6.3.2
 
