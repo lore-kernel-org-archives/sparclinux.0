@@ -1,53 +1,85 @@
-From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date: Mon, 08 Jun 2009 00:01:00 +0000
-Subject: Re: SILO & Ext4
-Message-Id: <Pine.LNX.4.61.0906080055130.6624@mtfhpc.demon.co.uk>
+From: Robert Reif <reif@earthlink.net>
+Date: Fri, 12 Jun 2009 13:21:24 +0000
+Subject: [PATCH] silo: move second to make room for larger kernel
+Message-Id: <4A325654.3050201@earthlink.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------020507080104010801030906"
 List-Id: <sparclinux.vger.kernel.org>
-References: <a4423d670906010333x16cbae69g667a7441be2f140a@mail.gmail.com>
-In-Reply-To: <a4423d670906010333x16cbae69g667a7441be2f140a@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------020507080104010801030906
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+
+This patch changes the location that second is loaded to make room for 
+larger kernels.
+
+On sparc32 a kernel is loaded at 0x4000 and second is loaded
+at 0x280000. That means that the largest kernel that can be loaded
+is 0x27c000 (2605056) bytes.  Sparc32 kernels have been larger
+than that for years and it has recently been almost impossible
+to strip down a kernel small enough to actually load.
+
+OBP initializes 3 megs of memory and second is loaded at 2.5
+meg.  second is only 40k bytes so most of the last 1/2 meg is
+wasted.  This patch moves second to 0x2e0000 which leaves
+room for a 128k byte second.
+
+This doesn't fix the sparc32 boot problems because you still
+need to compile everything as modules and strip the executable
+but it is a short term fix.
+
+The long term fix is to make the sparc32 kernel relocatable
+like sparc64.  The first step is to make silo load a large sparc32
+kernel.  A patch has been submitted 2 years ago
+http://marc.info/?l=linux-sparc&m=117952409730426&w=2
+that fixes the silo side.  I have tested that patch and it does
+fix the problem of decompressing a large kernel.  However
+sparc32 kernel is not relocatable so silo tries to move the
+kernel down to low memory (0x4000) but refuses because there
+is no room for a large kernel.  I think that patch should go
+into silo so the silo will be ready for relocatable sparc32
+kernels.
+
+Linux head_32.S has some issues with large kernels.  It
+is capable of relocating itself from 0x4000 up to higher
+memory but has a hard coded size limit of 0x300000. I
+tried relocating a smaller image by changing the header
+version to 0x300 which should support relocation and
+silo was OK with that but the kernel boot failed with an
+illegal instruction so the kernel is not OK with being
+loaded at an arbitrary location yet. 
+
+I'm looking into changing linux to be relocatable from
+an arbitrary address but that requires that the 2 year
+old large kernel patch be applied first.
+
+Signed-off-by: Robert Reif <reif@earthlink.net>
 
 
-On Fri, 5 Jun 2009, David Miller wrote:
 
-> From: Robert Reif <reif@earthlink.net>
-> Date: Fri, 05 Jun 2009 08:12:13 -0400
->
->> David Miller wrote:
->>> You'll have to learn how to load kernel TLB entries for about 4 or 5
->>> different major TLB/cache types on sun4c, sun4m, and sun4d systems.
->>
->> Couldn't you do this using OBP in a HW independent way?
->
-> Not really.
->
-> Only sparc64's OBP adds facilities to load locked TLB entries via the
-> firmware.
->
->>> This is what you need to do to relocate the kernel into a new location
->>> then jump to it.
->>
->> On sparc32, is the kernel always loaded in the lower 3 MB
->> of physical memory regardless of the amount of physical
->> memory and just left there?
+--------------020507080104010801030906
+Content-Type: text/plain;
+ name="silo.diff.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="silo.diff.txt"
 
-Last time I looked at this, the primary problem was not where the kernel 
-was loaded but that it only relocated the first 3 MB of kernel thus 
-restricting the kernel to a maximum size of 3 MB (.text+.data). It is a 
-relativly simple patch to head.S to change this to 8 MB which sould be 
-enough to provide a usable kernel.
+diff --git a/Rules.make b/Rules.make
+index 4e722f9..f36e2d4 100644
+--- a/Rules.make
++++ b/Rules.make
+@@ -11,8 +11,8 @@ NM=nm
+ ELFTOAOUT=elftoaout
+ BIN2H=../common/bin2h
+ 
+-SMALL_RELOC=0x280000
+-LARGE_RELOC=0x380000
++SMALL_RELOC=0x2E0000
++LARGE_RELOC=0x3E0000
+ 
+ cc-option-yn = $(shell if $(CC) $(CFLAGS) $(1) -S -o /dev/null -xc /dev/null \
+ 		> /dev/null 2>&1; then echo "y"; else echo "n"; fi;)
 
->
-> I don't know, you'd have to see what SILO does.
->
-> As for direct loads such as tftpboot via the firmware, it loads
-> the A.OUT kernel image at 0x4000 and simply jumps there.
-> --
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+--------------020507080104010801030906--
