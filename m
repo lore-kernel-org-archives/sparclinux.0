@@ -1,61 +1,93 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 17 Jul 2009 17:23:48 +0000
-Subject: Re: [2.6.29.4] Blade 2000
-Message-Id: <20090717.102348.267553979.davem@davemloft.net>
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Date: Mon, 13 Jul 2009 06:25:58 +0000
+Subject: [PATCH 6/8] sparc: replace sbus_map_single and sbus_unmap_single with sbus_map_page and sbus_unmap_p
+Message-Id: <1247466360-13330-7-git-send-email-fujita.tomonori@lab.ntt.co.jp>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4A1C36B5.6040707@systella.fr>
-In-Reply-To: <4A1C36B5.6040707@systella.fr>
+References: <1247466360-13330-1-git-send-email-fujita.tomonori@lab.ntt.co.jp>
+In-Reply-To: <1247466360-13330-1-git-send-email-fujita.tomonori@lab.ntt.co.jp>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, reif@earthlink.net, x86@kernel.org, tony.luck@intel.com, fujita.tomonori@lab.ntt.co.jp, akpm@linux-foundation.org
 
-From: BERTRAND Jo=EBl <joel.bertrand@systella.fr>
-Date: Mon, 22 Jun 2009 12:34:21 +0200
+This is a preparation for using asm-generic/pci-dma-compat.h; SPARC32
+has two dma_map_ops structures for pci and sbus (removing
+arch/sparc/kernel/dma.c, PCI and SBUS DMA accessor).
 
-> 	When I've tried to investigate, kernel oopses :
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Tested-by: Robert Reif <reif@earthlink.net>
+---
+ arch/sparc/kernel/dma.c    |    5 ++---
+ arch/sparc/kernel/dma.h    |    6 +++---
+ arch/sparc/kernel/ioport.c |    7 +++++--
+ 3 files changed, 10 insertions(+), 8 deletions(-)
 
-This will fix the oops, but not the probe failure:
-
-sparc: Fix cleanup crash in bbc_envctrl_cleanup()
-
-If kthread_run() fails or never gets to run we'll have NULL
-or a pointer encoded error in kenvctrld_task, rather than
-a legitimate task pointer.
-
-So this makes bbc_envctrl_cleanup() crash as it passed this
-bogus pointer into kthread_stop().
-
-Reported-by: BERTRAND Jo=EBl <joel.bertrand@systella.fr>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-
-diff --git a/drivers/sbus/char/bbc_envctrl.c b/drivers/sbus/char/bbc_envctr=
-l.c
-index 15dab96..7c815d3 100644
---- a/drivers/sbus/char/bbc_envctrl.c
-+++ b/drivers/sbus/char/bbc_envctrl.c
-@@ -537,8 +537,12 @@ int bbc_envctrl_init(struct bbc_i2c_bus *bp)
+diff --git a/arch/sparc/kernel/dma.c b/arch/sparc/kernel/dma.c
+index 15820a9..a5d50da 100644
+--- a/arch/sparc/kernel/dma.c
++++ b/arch/sparc/kernel/dma.c
+@@ -68,8 +68,7 @@ static dma_addr_t dma32_map_page(struct device *dev, struct page *page,
+ 		return pci_map_page(to_pci_dev(dev), page, offset,
+ 				    size, (int)direction);
+ #endif
+-	return sbus_map_single(dev, page_address(page) + offset,
+-			       size, (int)direction);
++	return sbus_map_page(dev, page, offset, size, (int)direction);
+ }
+ 
+ static void dma32_unmap_page(struct device *dev, dma_addr_t dma_address,
+@@ -83,7 +82,7 @@ static void dma32_unmap_page(struct device *dev, dma_addr_t dma_address,
+ 		return;
  	}
- 	if (temp_index !=3D 0 && fan_index !=3D 0) {
- 		kenvctrld_task =3D kthread_run(kenvctrld, NULL, "kenvctrld");
--		if (IS_ERR(kenvctrld_task))
--			return PTR_ERR(kenvctrld_task);
-+		if (IS_ERR(kenvctrld_task)) {
-+			int err =3D PTR_ERR(kenvctrld_task);
+ #endif
+-	sbus_unmap_single(dev, dma_address, size, (int)direction);
++	sbus_unmap_page(dev, dma_address, size, (int)direction);
+ }
+ 
+ static int dma32_map_sg(struct device *dev, struct scatterlist *sg,
+diff --git a/arch/sparc/kernel/dma.h b/arch/sparc/kernel/dma.h
+index f8d8951..680351e 100644
+--- a/arch/sparc/kernel/dma.h
++++ b/arch/sparc/kernel/dma.h
+@@ -1,8 +1,8 @@
+ void *sbus_alloc_consistent(struct device *dev, long len, u32 *dma_addrp);
+ void sbus_free_consistent(struct device *dev, long n, void *p, u32 ba);
+-dma_addr_t sbus_map_single(struct device *dev, void *va,
+-			   size_t len, int direction);
+-void sbus_unmap_single(struct device *dev, dma_addr_t ba,
++dma_addr_t sbus_map_page(struct device *dev, struct page *page,
++			 unsigned long offset, size_t len, int direction);
++void sbus_unmap_page(struct device *dev, dma_addr_t ba,
+ 		       size_t n, int direction);
+ int sbus_map_sg(struct device *dev, struct scatterlist *sg,
+ 		int n, int direction);
+diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
+index 87ea0d0..39ff1e0 100644
+--- a/arch/sparc/kernel/ioport.c
++++ b/arch/sparc/kernel/ioport.c
+@@ -337,8 +337,11 @@ void sbus_free_consistent(struct device *dev, long n, void *p, u32 ba)
+  * CPU view of this memory may be inconsistent with
+  * a device view and explicit flushing is necessary.
+  */
+-dma_addr_t sbus_map_single(struct device *dev, void *va, size_t len, int direction)
++dma_addr_t sbus_map_page(struct device *dev, struct page *page,
++			 unsigned long offset, size_t len, int direction)
+ {
++	void *va = page_address(page) + offset;
 +
-+			kenvctrld_task =3D NULL;
-+			return err;
-+		}
- 	}
-=20
- 	return 0;
-@@ -561,7 +565,8 @@ void bbc_envctrl_cleanup(struct bbc_i2c_bus *bp)
- 	struct bbc_cpu_temperature *tp, *tpos;
- 	struct bbc_fan_control *fp, *fpos;
-=20
--	kthread_stop(kenvctrld_task);
-+	if (kenvctrld_task)
-+		kthread_stop(kenvctrld_task);
-=20
- 	list_for_each_entry_safe(tp, tpos, &bp->temps, bp_list) {
- 		list_del(&tp->bp_list);
+ 	/* XXX why are some lengths signed, others unsigned? */
+ 	if (len <= 0) {
+ 		return 0;
+@@ -350,7 +353,7 @@ dma_addr_t sbus_map_single(struct device *dev, void *va, size_t len, int directi
+ 	return mmu_get_scsi_one(dev, va, len);
+ }
+ 
+-void sbus_unmap_single(struct device *dev, dma_addr_t ba, size_t n, int direction)
++void sbus_unmap_page(struct device *dev, dma_addr_t ba, size_t n, int direction)
+ {
+ 	mmu_release_scsi_one(dev, ba, n);
+ }
+-- 
+1.6.0.6
+
