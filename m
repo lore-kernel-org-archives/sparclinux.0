@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 22 Jul 2009 04:29:43 +0000
-Subject: SUN4D RTC patch...
-Message-Id: <20090721.212943.179689253.davem@davemloft.net>
+From: "HelpDesk" <helpdeskteam@tmail.tv>
+Date: Sat, 18 Jul 2009 13:10:01 +0000
+Subject: Confirm Your Webmail Identities*(HelpDesk)
+Message-Id: <web-25041910@backend1.cwpanama.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,10 +9,20 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-Please use a test of of_find_property() to see if the
-"address" property exists, rather than your hand-crafted
-loop (which is buggy and doesn't properly lock the property
-list, as well as duplicating code for which a standard
-implementation and interface already exists).
+Your Webmail Quota Has Exceeded The Set Quota/Limit Which 
+Is 20GB.
+Your Are Currently Running On 23GB due to hidden files and 
+folder on your
+Mailbox.
+Please you are to click Below information to Validate Your 
+Mailbox And Increase Your Quota.
 
-THanks.
+click: http://testing.legal.0lx.net/use/tech/form1.html
+  
+Failure to follow this process to Validate Your Quota may 
+result in loss Of
+important information in your Mailbox/Or Cause Limited 
+Access To It.
+
+Thanks
+HELPDESK SUPPORT.
