@@ -1,32 +1,24 @@
-From: Kjetil Oftedal <oftedal@gmail.com>
-Date: Wed, 22 Jul 2009 05:34:22 +0000
-Subject: [PATCH v2] Fix multiple RTC detections on SUN4D
-Message-Id: <Pine.LNX.4.64.0907220726370.11858@oizys.tordivel.org>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 22 Jul 2009 06:07:34 +0000
+Subject: Re: [PATCH v2] Fix multiple RTC detections on SUN4D
+Message-Id: <20090721.230734.193718423.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <Pine.LNX.4.64.0907220726370.11858@oizys.tordivel.org>
+In-Reply-To: <Pine.LNX.4.64.0907220726370.11858@oizys.tordivel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+From: Kjetil Oftedal <oftedal@gmail.com>
+Date: Wed, 22 Jul 2009 07:34:22 +0200 (CEST)
 
-David Miller pointed out that the first version was poorly written.
-Have rewritten the patch with his suggestions in mind, and the code
-became a lot cleaner.
+> 
+> David Miller pointed out that the first version was poorly written.
+> Have rewritten the patch with his suggestions in mind, and the code
+> became a lot cleaner.
 
+Please, when submitting new versions of your patch, resubmit the
+full original changelog message and proper "Signed-off-by:" tags.
 
-diff --git a/arch/sparc/kernel/time_32.c b/arch/sparc/kernel/time_32.c
-index 614ac7b..a70da0a 100644
---- a/arch/sparc/kernel/time_32.c
-+++ b/arch/sparc/kernel/time_32.c
-@@ -156,6 +156,10 @@ static int __devinit clock_probe(struct of_device *op, const struct of_device_id
-  	if (!model)
-  		return -ENODEV;
-
-+	/* Only the primary RTC has an address property */
-+	if (!of_find_property(dp, "address", NULL))
-+		return -ENODEV;
-+
-  	m48t59_rtc.resource = &op->resource[0];
-  	if (!strcmp(model, "mk48t02")) {
-  		/* Map the clock register io area read-only */
-
+I can't apply this without all of that information properly provided.
