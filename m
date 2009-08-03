@@ -1,58 +1,70 @@
-From: Ingo Molnar <mingo@elte.hu>
-Date: Thu, 13 Aug 2009 07:04:02 +0000
-Subject: Re: [PATCH resend 0/8] sparc: use asm-generic/dma-mapping-common.h
-Message-Id: <20090813070402.GE12143@elte.hu>
+From: Eldar Abusalimov <eldar.abusalimov@gmail.com>
+Date: Mon, 03 Aug 2009 17:36:31 +0000
+Subject: Is it a bug in etrap.S srmmu stack check routine?
+Message-Id: <d543c060908031036k66ebd6a5h5285dabf3f5aefe3@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1249872797-1314-1-git-send-email-fujita.tomonori@lab.ntt.co.jp> <20090812.163427.161326946.davem@davemloft.net>
-In-Reply-To: <20090812.163427.161326946.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: fujita.tomonori@lab.ntt.co.jp, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, tony.luck@intel.com, fenghua.yu@intel.com
+To: sparclinux@vger.kernel.org
 
+Hi, David!
 
-* David Miller <davem@davemloft.net> wrote:
+I've been looking into traps-related routines for some time, and was
+confused with srmmu user stack checking code.
 
-> From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-> Date: Mon, 10 Aug 2009 11:53:09 +0900
-> 
-> > This is the repost of the patchset (as Ingo asked me offline) :
-> > 
-> > http://lkml.org/lkml/2009/7/13/20
-> > 
-> > There is no functional change. I just added David's ack to #3-8
-> > patches and Robert's Tested-by to #8 patch.
-> > 
-> > I confirmed that it can be applied cleanly to mainline, -next, and
-> > -tip trees.
-> > 
-> > The git tree is also available:
-> > 
-> > git://git.kernel.org/pub/scm/linux/kernel/git/tomo/linux-2.6-misc.git 
-> > sparc
-> 
-> I just made a quick build test on sparc32 and sparc64, as well as 
-> a non-debug execution test on sparc64 and it all looks fine.
-> 
-> Thanks for doing this work!
-> 
-> I assume Ingo or someone else is going to merge this stuff?
+Here is the corresponding part of etrap.S file:
 
-Yeah, it's in the tip:core/iommu tree:
+278 	        .globl  tsetup_srmmu_stackchk
+279 	tsetup_srmmu_stackchk:
+280 	        /* Check results of callers andcc %sp, 0x7, %g0 */
+281 	        bne     trap_setup_user_stack_is_bolixed
+282 	         sethi   %hi(PAGE_OFFSET), %glob_tmp
+283 	
+284 	        cmp     %glob_tmp, %sp
+285 	        bleu,a  1f
+286 	         lda    [%g0] ASI_M_MMUREGS, %glob_tmp          ! read MMU control
+287 	
+288 	trap_setup_user_stack_is_bolixed:
+289 	        /* From user/kernel into invalid window w/bad user
+290 	         * stack. Save bad user stack, and return to caller.
+291 	         */
+292 	        SAVE_BOLIXED_USER_STACK(curptr, g3)
+293 	        restore %g0, %g0, %g0
+294 	
+295 	        jmpl    %t_retpc + 0x8, %g0
+296 	         mov    %t_kstack, %sp
+297 	
+298 	1:
+299 	        /* Clear the fault status and turn on the no_fault bit. */
+300 	        or      %glob_tmp, 0x2, %glob_tmp               ! or in
+no_fault bit
+301 	        sta     %glob_tmp, [%g0] ASI_M_MMUREGS          ! set it
+302 	
+303 	        /* Dump the registers and cross fingers. */
+304 	        STORE_WINDOW(sp)
 
-451d740: sparc: Add CONFIG_DMA_API_DEBUG support
-ee664a9: sparc: Use asm-generic/pci-dma-compat
-c2c07db: sparc: Replace sbus_map_single and sbus_unmap_single with sbus_map_page and sbus_unmap_page
-595cc85: sparc: Remove no-op dma_4v_sync_single_for_cpu and dma_4v_sync_sg_for_cpu
-02f7a18: sparc: Use asm-generic/dma-mapping-common.h
-bc0a14f: sparc: Use dma_map_ops struct
+On the line 284 we compare user stack pointer with PAGE_OFFSET, and if
+it is greater than PAGE_OFFSET, then we consider user stack is still
+ok and continue checking. On the contrary, if %sp is small enough,
+bollixed stack handler is entered at once. Is it right?
 
-and pushed out to linux-next as well and present there as well.
+The same part of wof.S looks more logical - if %sp is greater than
+kernel base, then branch into a spwin_user_stack_is_bolixed.
 
-I did a cross-build test of Sparc before i pushed it out, but it 
-would be nice if you could check the end result linux-next as well 
-... just in case. (whenever you get around to do it - there's no 
-urgency.)
+398 	         sethi   %hi(PAGE_OFFSET), %glob_tmp
+399 	        cmp     %glob_tmp, %sp
+400 	        bleu    spwin_user_stack_is_bolixed
 
-	Ingo
+I am perplexed especially because of the fact that this part of logic
+has not been changed since 1999, and nevertheless Linux works well.
+(but trap_setup_user_stack_is_bolixed is reached in fact, I've just
+tested on the hardware with grmon).
+Linux version is 2.6.21.1.
+
+Please let me know if this is really a bug or where am I wrong else.
+Thanks in advance.
+
+-- 
+Best regards,
+Eldar Sh. Abusalimov
