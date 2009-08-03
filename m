@@ -1,20 +1,19 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 28 Aug 2009 04:14:28 +0000
-Subject: Re: [PATCH]: sparc64: Validate linear D-TLB misses.
-Message-Id: <20090827.211428.150867123.davem@davemloft.net>
+Date: Mon, 03 Aug 2009 02:51:40 +0000
+Subject: Re: sparc-leon patches round 5 (to follow) (right numbering)
+Message-Id: <20090802.195140.26174602.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090824.232349.236950384.davem@davemloft.net>
-In-Reply-To: <20090824.232349.236950384.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Jim Gifford <maillist@jg555.com>
-Date: Thu, 27 Aug 2009 17:18:39 -0700
+From: Konrad Eisele <konrad@gaisler.com>
+Date: Tue, 23 Jun 2009 11:11:42 +0200
 
-> Spoke too soon, it's started again. So that patch has only delayed the
-> issue.
+> round 5 had wrong numbering, I'll repost.
 
-It wasn't meant to fix your bug so this is no surprise
-to me.
+I'm applying all of this to sparc-next-2.6 and will push it
+out to kernel.org after some build testing.
+
+Thanks!
