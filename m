@@ -1,32 +1,31 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 01 Aug 2009 05:46:17 +0000
-Subject: Re: cmd64x: irq 14: nobody cared - system is dreadfully slow
-Message-Id: <20090731.224617.228354615.davem@davemloft.net>
+From: Greg KH <greg@kroah.com>
+Date: Wed, 05 Aug 2009 20:43:57 +0000
+Subject: Re: [stable] cmd64x: irq 14: nobody cared - system is dreadfully
+Message-Id: <20090805204357.GB10788@kroah.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200906221604.17915.elendil@planet.nl>
-	<20090623.034316.149816033.davem@davemloft.net>
-	<200907311609.01387.elendil@planet.nl>
+References: <200906220843.14337.elendil@planet.nl>
+ <200906221604.17915.elendil@planet.nl>
+ <20090623.034316.149816033.davem@davemloft.net>
+ <200907311609.01387.elendil@planet.nl>
 In-Reply-To: <200907311609.01387.elendil@planet.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: elendil@planet.nl
-Cc: stable@kernel.org, bzolnier@gmail.com, sparclinux@vger.kernel.org, linux-ide@vger.kernel.org
+To: Frans Pop <elendil@planet.nl>
+Cc: stable@kernel.org, sparclinux@vger.kernel.org, linux-ide@vger.kernel.org, David Miller <davem@davemloft.net>, bzolnier@gmail.com
 
-From: Frans Pop <elendil@planet.nl>
-Date: Fri, 31 Jul 2009 16:08:59 +0200
-
+On Fri, Jul 31, 2009 at 04:08:59PM +0200, Frans Pop wrote:
 > On Tuesday 23 June 2009, David Miller wrote:
->> From: Frans Pop <elendil@planet.nl> Date: Mon, 22 Jun 2009:
->> > On Monday 22 June 2009, you wrote:
->> >> From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
->> >> Subject: [PATCH] ide: fix handling of unexpected IRQs vs
->> >> request_irq()
->> >>
->> > Thanks Bart. This does solve the "nobody cared" problem.
->> > Tested-by: Frans Pop <elendil@planet.nl>
->>
->> I've applied this patch to my tree, thanks everyone!
+> > From: Frans Pop <elendil@planet.nl> Date: Mon, 22 Jun 2009:
+> > > On Monday 22 June 2009, you wrote:
+> > >> From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+> > >> Subject: [PATCH] ide: fix handling of unexpected IRQs vs
+> > >> request_irq()
+> > >>
+> > > Thanks Bart. This does solve the "nobody cared" problem.
+> > > Tested-by: Frans Pop <elendil@planet.nl>
+> >
+> > I've applied this patch to my tree, thanks everyone!
 > 
 > Please consider the following two patches for the next stable update:
 > 
@@ -41,4 +40,8 @@ Date: Fri, 31 Jul 2009 16:08:59 +0200
 > The current 2.6.30 Debian kernel (based on .30.3) is still failing on my
 > Sparc Ultra 10 because those patches are missing.
 
-Agreed, these should be applied.
+I have queued both of these up now for the next .30-stable release.
+
+thanks,
+
+greg k-h
