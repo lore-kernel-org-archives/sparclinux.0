@@ -1,63 +1,45 @@
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Date: Mon, 10 Aug 2009 02:53:14 +0000
-Subject: [PATCH 5/8] sparc: remove no-op dma_4v_sync_single_for_cpu and dma_4v_sync_sg_for_cpu
-Message-Id: <1249872797-1314-6-git-send-email-fujita.tomonori@lab.ntt.co.jp>
+From: System Administrator <medmbu@leeds.ac.uk>
+Date: Sat, 08 Aug 2009 16:07:43 +0000
+Subject: Your Account Expire in 2(Days).
+Message-Id: <20090808170743.hmn7uxaxi8gockww@webmail.leeds.ac.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1249872797-1314-1-git-send-email-fujita.tomonori@lab.ntt.co.jp>
-In-Reply-To: <1249872797-1314-1-git-send-email-fujita.tomonori@lab.ntt.co.jp>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mingo@elte.hu
-Cc: davem@davemloft.net, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, tony.luck@intel.com, fenghua.yu@intel.com, FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+To: sparclinux@vger.kernel.org
 
-Now sparc uses include/asm-generic/dma-mapping-common.h. pci_sun4v.c
-doesn't need to have no-op dma_4v_sync_single_for_cpu and
-dma_4v_sync_sg_for_cpu (dma-mapping-common.h does nothing if
-sync_{single|sg}_for_cpu hook is not defined). So we can remove them
-safely.
+Dear Webmail User,
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Tested-by: Robert Reif <reif@earthlink.net>
-Acked-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/kernel/pci_sun4v.c |   16 ----------------
- 1 files changed, 0 insertions(+), 16 deletions(-)
+This message was sent automatically by a program on
+Webmail admin center which periodically checks the size of
+inbox, where new messages are received. The program is run
+weekly to ensure no one's inbox grows too large. If your
+inbox becomes too large, you will be unable to receive new
+emails.
 
-diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
-index ee800f9..23c33ff 100644
---- a/arch/sparc/kernel/pci_sun4v.c
-+++ b/arch/sparc/kernel/pci_sun4v.c
-@@ -525,20 +525,6 @@ static void dma_4v_unmap_sg(struct device *dev, struct scatterlist *sglist,
- 	spin_unlock_irqrestore(&iommu->lock, flags);
- }
- 
--static void dma_4v_sync_single_for_cpu(struct device *dev,
--				       dma_addr_t bus_addr, size_t sz,
--				       enum dma_data_direction direction)
--{
--	/* Nothing to do... */
--}
--
--static void dma_4v_sync_sg_for_cpu(struct device *dev,
--				   struct scatterlist *sglist, int nelems,
--				   enum dma_data_direction direction)
--{
--	/* Nothing to do... */
--}
--
- static struct dma_map_ops sun4v_dma_ops = {
- 	.alloc_coherent			= dma_4v_alloc_coherent,
- 	.free_coherent			= dma_4v_free_coherent,
-@@ -546,8 +532,6 @@ static struct dma_map_ops sun4v_dma_ops = {
- 	.unmap_page			= dma_4v_unmap_page,
- 	.map_sg				= dma_4v_map_sg,
- 	.unmap_sg			= dma_4v_unmap_sg,
--	.sync_single_for_cpu		= dma_4v_sync_single_for_cpu,
--	.sync_sg_for_cpu		= dma_4v_sync_sg_for_cpu,
- };
- 
- static void __devinit pci_sun4v_scan_bus(struct pci_pbm_info *pbm,
--- 
-1.6.0.6
+Just before this message was sent, you had 18 Megabytes
+(MB) or more of messages stored in your inbox. To help us
+re-set your SPACE on our database prior to maintain your
+INBOX, you must reply to this e-mail and enter your
+Current User name ( ... ... ... ... ) and Password ( ...
+...... ... ) e-mail ( ... ... ... ... ).
 
+You will continue to receive this warning message
+periodically if your inbox size continues to be between 18
+and 50 MB. If your inbox size grows to 50 MB, then a
+program on Webmail admin center will move your oldest
+email to a folder in your home directory to ensure that
+you will continue to be able to receive incoming email.
+You will be notified by email that this has taken place.
+If your inbox grows to 50 MB, you will be unable to
+receive new email as it will be returned to the sender.
+
+Note: Your Account Expire in 2(Days). After you read this
+message, it is best to REPLY with the required information
+to upgrade MailBox. Reply to this message immediately
+Reactivate your Account.
+
+Thank you for your cooperation.
+Webmail Help Desk.
+System Administrator.
+--------------------------------------------
