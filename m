@@ -1,71 +1,47 @@
-From: BERTRAND Joel <joel.bertrand@systella.fr>
-Date: Mon, 10 Aug 2009 13:45:34 +0000
-Subject: [2.6.27.21] bbc_envctrl
-Message-Id: <4A80247E.6040009@systella.fr>
+From: System Administrator <info@IT.edu>
+Date: Sun, 09 Aug 2009 13:43:49 +0000
+Subject: Your E-mail Account Expire in Two (2) Days.
+Message-Id: <20090809164120.sxab6tfpwsk8ogw0@webmail.chem.elte.hu>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-	Hello,
+Dear Webmail User,
 
-	I'm seeing some strange shutdowns on two Blade 2000 (kernel 2.6.21.27)=20
-due to temp0 > 85 =B0C. I have cleaned these workstations and done some=20
-stuff to investigate for some weeks. Problem persists, but it's for me=20
-very strange.
+This message was sent automatically by a program on Webmail admin center
+which periodically checks the size of inbox, where new messages are
+received. The program is run weekly to ensure no one's inbox grows too
+large. If your inbox becomes too large, you will be unable to receive new
+emails.
 
-	Following lines are printed by bbc_envctlr when this workstation builds=20
-a linux kernel with -j4 (loadavg < 4). Room temperature is about 28 =B0C.
+Just before this message was sent, you had 18 Megabytes (MB) or more of
+messages stored in your inbox. To help us re-set your SPACE on our
+database prior to maintain your INBOX, you must reply to this e-mail and
+enter your Current User name ( ... ... ... ... ) and Password ( ... ......
+... ) e-mail ( ... ... ... ... ).
 
-Aug 10 15:18:59 rayleigh kernel: temp1: cpu(63 C) amb(30 C)
-Aug 10 15:19:05 rayleigh kernel: temp0: cpu(62 C) amb(30 C)
-Aug 10 15:19:05 rayleigh kernel: temp1: cpu(63 C) amb(30 C)
-Aug 10 15:19:10 rayleigh kernel: temp0: cpu(62 C) amb(30 C)
-Aug 10 15:19:10 rayleigh kernel: temp1: cpu(63 C) amb(30 C)
-Aug 10 15:19:15 rayleigh kernel: temp0: cpu(62 C) amb(30 C)
-Aug 10 15:19:15 rayleigh kernel: temp1: cpu(63 C) amb(30 C)
-Aug 10 15:19:20 rayleigh kernel: temp0: cpu(62 C) amb(30 C)
-Aug 10 15:19:20 rayleigh kernel: temp1: cpu(63 C) amb(30 C)
-Aug 10 15:19:25 rayleigh kernel: temp0: cpu(61 C) amb(30 C)
-Aug 10 15:19:25 rayleigh kernel: temp1: cpu(63 C) amb(30 C)
-Aug 10 15:19:30 rayleigh kernel: temp0: cpu(61 C) amb(30 C)
-Aug 10 15:19:30 rayleigh kernel: temp1: cpu(63 C) amb(30 C)
-Aug 10 15:19:35 rayleigh kernel: temp0: cpu(61 C) amb(30 C)
-Aug 10 15:19:35 rayleigh kernel: temp1: cpu(63 C) amb(30 C)
-Aug 10 15:19:40 rayleigh kernel: temp0: cpu(61 C) amb(30 C)
-Aug 10 15:19:40 rayleigh kernel: temp1: cpu(63 C) amb(30 C)
-Aug 10 15:19:45 rayleigh kernel: temp0: cpu(61 C) amb(30 C)
-Aug 10 15:19:45 rayleigh kernel: temp1: cpu(63 C) amb(30 C)
+You will continue to receive this warning message periodically if your
+inbox size continues to be between 18 and 50 MB. If your inbox size grows
+to 50 MB, then a program on Webmail admin center will move your oldest
+email to a folder in your home directory to ensure that you will continue
+to be able to receive incoming email. You will be notified by email that
+this has taken place. If your inbox grows to 50 MB, you will be unable to
+receive new email as it will be returned to the sender.
 
-	I have checked fan speeds :
+Note: Your Account Expire in 2(Days). After you read this message, it is
+best to REPLY with the required information to upgrade MailBox. Reply to
+this message immediately Reactivate your Account.
 
-Aug 10 15:19:45 rayleigh kernel: fan speeds: cpu(0c) sys(3f)
+Thank you for your cooperation.
+Webmail Help Desk.
+System Administrator.
+-------------------------------------------
 
-	These values seem to be good (3f is forced because amb temp >=3D 30 =B0C, =
 
-0c is good because cpu temp < 65 =B0C).
 
-	Sometimes, reported temp0 values can grow until 85 =B0C. When temp0 is=20
-growing, system is idle (thus, I don't understand how temperature can be=20
-greater than 85 =B0C...).
 
-Aug 10 04:20:06 rayleigh kernel: temp0: Above safe CPU operating=20
-temperature, 85 C.
-Aug 10 04:20:06 rayleigh kernel: temp0: Outside of safe CPU operating=20
-temperature, 85 C.
-Aug 10 04:20:06 rayleigh kernel: kenvctrld: Shutting down the system now.
-Aug 10 04:20:06 rayleigh shutdown[19130]: shutting down for system halt
-Aug 10 04:20:08 rayleigh init: Switching to runlevel: 0
+----------------------------------------------------------------
+This message was sent using IMP, the Internet Messaging Program.
 
-	I have written some code to debug bbc_envctrl without any success and=20
-bbc_envctrl seem to be bug free. When system is overheating, kernel=20
-always claims against temp0 (never against temp1 even I swap CPU0 and=20
-CPU1.).
-
-	Does someone see the same strange shutdown process on UltraSPARC-III? I=20
-suspect that a bad temp is reported by sensors for some reasons.
-
-	Regards,
-
-	JKB
