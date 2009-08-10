@@ -1,44 +1,94 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 14 Aug 2009 03:29:25 +0000
-Subject: Re: Sparc miss chance to fix recoverable fault in copy_from_user
-Message-Id: <20090813.202925.84343745.davem@davemloft.net>
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Date: Mon, 10 Aug 2009 02:53:15 +0000
+Subject: [PATCH 6/8] sparc: replace sbus_map_single and sbus_unmap_single with sbus_map_page and sbus_unmap_p
+Message-Id: <1249872797-1314-7-git-send-email-fujita.tomonori@lab.ntt.co.jp>
 List-Id: <sparclinux.vger.kernel.org>
-References: <505766fa0908111853y7030399ewb07d4cec6829fd16@mail.gmail.com>
-	<20090813.124838.210334778.davem@davemloft.net>
-	<505766fa0908132016v1e705525r92e42c142897bc82@mail.gmail.com>
-In-Reply-To: <505766fa0908132016v1e705525r92e42c142897bc82@mail.gmail.com>
+References: <1249872797-1314-1-git-send-email-fujita.tomonori@lab.ntt.co.jp>
+In-Reply-To: <1249872797-1314-1-git-send-email-fujita.tomonori@lab.ntt.co.jp>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: heyongli@gmail.com
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: mingo@elte.hu
+Cc: davem@davemloft.net, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, tony.luck@intel.com, fenghua.yu@intel.com, FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-From: hyl <heyongli@gmail.com>
-Date: Fri, 14 Aug 2009 11:16:41 +0800
+This is a preparation for using asm-generic/pci-dma-compat.h; SPARC32
+has two dma_map_ops structures for pci and sbus (removing
+arch/sparc/kernel/dma.c, PCI and SBUS DMA accessor).
 
-> console is: (access the address 0xffff fff0 )
->     SUN4V-DTLB: Error at TPC[5f2cc8], tl 1
->     SUN4V-DTLB: TPC<memcpy_user_stub+0x8/0x40>
->     SUN4V-DTLB: O7[4af23c]
->     SUN4V-DTLB: O7<probe_kernel_read+0x3c/0xa0>
->     SUN4V-DTLB: vaddr[ffffffffffffe000] ctx[0] pte[800007ffffffe743] error[2]
-> 
-> 
-> the problem is :
-> this DTLB fault can be fixed by search extable, by fall to the
-> do_sparc64_fault, my draft proposal can verify this:  with this patch, this kind
-> of fault is recovery, so enable copy_from_user  return error instead of halt.
-> 
-> in addition, it is triggered in kernel space, search the extable is mandatory .
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Tested-by: Robert Reif <reif@earthlink.net>
+Acked-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/kernel/dma.c    |    5 ++---
+ arch/sparc/kernel/dma.h    |    6 +++---
+ arch/sparc/kernel/ioport.c |    7 +++++--
+ 3 files changed, 10 insertions(+), 8 deletions(-)
 
-No, that's not the problem.
+diff --git a/arch/sparc/kernel/dma.c b/arch/sparc/kernel/dma.c
+index 15820a9..a5d50da 100644
+--- a/arch/sparc/kernel/dma.c
++++ b/arch/sparc/kernel/dma.c
+@@ -68,8 +68,7 @@ static dma_addr_t dma32_map_page(struct device *dev, struct page *page,
+ 		return pci_map_page(to_pci_dev(dev), page, offset,
+ 				    size, (int)direction);
+ #endif
+-	return sbus_map_single(dev, page_address(page) + offset,
+-			       size, (int)direction);
++	return sbus_map_page(dev, page, offset, size, (int)direction);
+ }
+ 
+ static void dma32_unmap_page(struct device *dev, dma_addr_t dma_address,
+@@ -83,7 +82,7 @@ static void dma32_unmap_page(struct device *dev, dma_addr_t dma_address,
+ 		return;
+ 	}
+ #endif
+-	sbus_unmap_single(dev, dma_address, size, (int)direction);
++	sbus_unmap_page(dev, dma_address, size, (int)direction);
+ }
+ 
+ static int dma32_map_sg(struct device *dev, struct scatterlist *sg,
+diff --git a/arch/sparc/kernel/dma.h b/arch/sparc/kernel/dma.h
+index f8d8951..680351e 100644
+--- a/arch/sparc/kernel/dma.h
++++ b/arch/sparc/kernel/dma.h
+@@ -1,8 +1,8 @@
+ void *sbus_alloc_consistent(struct device *dev, long len, u32 *dma_addrp);
+ void sbus_free_consistent(struct device *dev, long n, void *p, u32 ba);
+-dma_addr_t sbus_map_single(struct device *dev, void *va,
+-			   size_t len, int direction);
+-void sbus_unmap_single(struct device *dev, dma_addr_t ba,
++dma_addr_t sbus_map_page(struct device *dev, struct page *page,
++			 unsigned long offset, size_t len, int direction);
++void sbus_unmap_page(struct device *dev, dma_addr_t ba,
+ 		       size_t n, int direction);
+ int sbus_map_sg(struct device *dev, struct scatterlist *sg,
+ 		int n, int direction);
+diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
+index 87ea0d0..39ff1e0 100644
+--- a/arch/sparc/kernel/ioport.c
++++ b/arch/sparc/kernel/ioport.c
+@@ -337,8 +337,11 @@ void sbus_free_consistent(struct device *dev, long n, void *p, u32 ba)
+  * CPU view of this memory may be inconsistent with
+  * a device view and explicit flushing is necessary.
+  */
+-dma_addr_t sbus_map_single(struct device *dev, void *va, size_t len, int direction)
++dma_addr_t sbus_map_page(struct device *dev, struct page *page,
++			 unsigned long offset, size_t len, int direction)
+ {
++	void *va = page_address(page) + offset;
++
+ 	/* XXX why are some lengths signed, others unsigned? */
+ 	if (len <= 0) {
+ 		return 0;
+@@ -350,7 +353,7 @@ dma_addr_t sbus_map_single(struct device *dev, void *va, size_t len, int directi
+ 	return mmu_get_scsi_one(dev, va, len);
+ }
+ 
+-void sbus_unmap_single(struct device *dev, dma_addr_t ba, size_t n, int direction)
++void sbus_unmap_page(struct device *dev, dma_addr_t ba, size_t n, int direction)
+ {
+ 	mmu_release_scsi_one(dev, ba, n);
+ }
+-- 
+1.6.0.6
 
-The problem is that the virtual address validation done in the TLB
-miss path accepts the address printed in:
-
->     SUN4V-DTLB: vaddr[ffffffffffffe000] ctx[0] pte[800007ffffffe743] error[2]
-
-That's the real bug, not any of the other things you are talking
-about.
-
-Your "fix" would only paper over this problem.
