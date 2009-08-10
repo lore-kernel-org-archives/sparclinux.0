@@ -1,39 +1,44 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 19 Aug 2009 04:21:35 +0000
-Subject: Re: sparc: sys32.S incorrect compat-layer splice() system call
-Message-Id: <20090818.212135.15195620.davem@davemloft.net>
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Date: Mon, 10 Aug 2009 02:53:09 +0000
+Subject: [PATCH resend 0/8] sparc: use asm-generic/dma-mapping-common.h and pci-dma-compat.h
+Message-Id: <1249872797-1314-1-git-send-email-fujita.tomonori@lab.ntt.co.jp>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090819025623.GA11677@Krystal>
-In-Reply-To: <20090819025623.GA11677@Krystal>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: mingo@elte.hu
+Cc: davem@davemloft.net, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, tony.luck@intel.com, fenghua.yu@intel.com, fujita.tomonori@lab.ntt.co.jp
 
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Date: Tue, 18 Aug 2009 23:40:46 -0400
+This is the repost of the patchset (as Ingo asked me offline) :
 
-> * David Miller (davem@davemloft.net) wrote:
->> From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
->> Date: Tue, 18 Aug 2009 22:56:23 -0400
->> 
->> > BTW, I can't figure out why we have %o5 in :
->> > 
->> > SIGN2(sys32_sync_file_range, compat_sync_file_range, %o0, %o5)
->> > 
->> > which takes only 4 arguments:
->> > 
->> >        int sync_file_range(int fd, off64_t offset, off64_t nbytes,
->> >                   unsigned int flags);
->> > 
->> > maybe it has something to do with the return value ? Anyway it should
->> > not hurt if it is unused.
->> 
->> It takes 4 arguments, but they are passed in 6 registers.  Each
->> off64_t is passed in two 32-bit register parts.
->> 
-> 
-> Thanks for the clarification. So the %o5 is there to sign-extend
-> "unsigned int flags" ?
+http://lkml.org/lkml/2009/7/13/20
 
-Yes, but it seems that might be inappropriate (albeit harmless) here.
+There is no functional change. I just added David's ack to #3-8
+patches and Robert's Tested-by to #8 patch.
+
+I confirmed that it can be applied cleanly to mainline, -next, and
+-tip trees.
+
+The git tree is also available:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/tomo/linux-2.6-misc.git sparc
+
+ arch/ia64/include/asm/dma-mapping.h      |    1 -
+ arch/sparc/Kconfig                       |    2 +
+ arch/sparc/include/asm/dma-mapping.h     |  145 ++++-------------------
+ arch/sparc/include/asm/pci.h             |    3 +
+ arch/sparc/include/asm/pci_32.h          |  105 ----------------
+ arch/sparc/include/asm/pci_64.h          |   88 --------------
+ arch/sparc/kernel/Makefile               |    2 +-
+ arch/sparc/kernel/dma.c                  |  175 +--------------------------
+ arch/sparc/kernel/dma.h                  |   14 --
+ arch/sparc/kernel/iommu.c                |   20 ++-
+ arch/sparc/kernel/ioport.c               |  190 ++++++++++++++++-------------
+ arch/sparc/kernel/pci.c                  |    2 +-
+ arch/sparc/kernel/pci_sun4v.c            |   30 ++----
+ arch/x86/kernel/pci-nommu.c              |   27 ++++-
+ include/asm-generic/dma-mapping-common.h |    6 -
+ 15 files changed, 183 insertions(+), 627 deletions(-)
+
+
+
