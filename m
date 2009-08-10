@@ -1,44 +1,71 @@
-From: Konrad Eisele <konrad@gaisler.com>
-Date: Wed, 19 Aug 2009 11:34:10 +0000
-Subject: Sparc-leon uart driver patch for review
-Message-Id: <4A8BE332.80309@gaisler.com>
+From: BERTRAND Joel <joel.bertrand@systella.fr>
+Date: Mon, 10 Aug 2009 13:45:34 +0000
+Subject: [2.6.27.21] bbc_envctrl
+Message-Id: <4A80247E.6040009@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Hi, Here is a patch (will be sent as a reply to this mail) for review
-that will add a sparc-leon uart driver to the
-kernel. It includes the amba plug and play (ambapp) core bus routines
-drivers/ambapp/ambapp.c and drivers/ambapp/ambapp_driver.c
-as well as the first driver drivers/ambapp/gaisler/apbuart/apbuart.c.
-There are some more drivers (ethernet and gpio) that I'll post
-after this one has been accepted.
+	Hello,
 
-  drivers/Kconfig                          |    2 +
-  drivers/Makefile                         |    1 +
-  drivers/ambapp/Kconfig                   |    9 +
-  drivers/ambapp/Makefile                  |    6 +
-  drivers/ambapp/ambapp.c                  |  361 +++++++++++++
-  drivers/ambapp/ambapp.h                  |  246 +++++++++
-  drivers/ambapp/ambapp_driver.c           |  219 ++++++++
-  drivers/ambapp/gaisler/Kconfig           |   20 +
-  drivers/ambapp/gaisler/Makefile          |    3 +
-  drivers/ambapp/gaisler/apbuart/Makefile  |    3 +
-  drivers/ambapp/gaisler/apbuart/apbuart.c |  837 ++++++++++++++++++++++++++++++
-  include/linux/serial_core.h              |    3 +
+	I'm seeing some strange shutdowns on two Blade 2000 (kernel 2.6.21.27)=20
+due to temp0 > 85 =B0C. I have cleaned these workstations and done some=20
+stuff to investigate for some weeks. Problem persists, but it's for me=20
+very strange.
 
-It also includes the _amba_init() routine that is called
-from within sparc at bootup and that will dynamically build the
-device tree.
+	Following lines are printed by bbc_envctlr when this workstation builds=20
+a linux kernel with -j4 (loadavg < 4). Room temperature is about 28 =B0C.
 
-Having the Sparc-leon architectural part and the uart driver
-one can build a simple system for leon already (bootloader and
-user apps on top)...
+Aug 10 15:18:59 rayleigh kernel: temp1: cpu(63 C) amb(30 C)
+Aug 10 15:19:05 rayleigh kernel: temp0: cpu(62 C) amb(30 C)
+Aug 10 15:19:05 rayleigh kernel: temp1: cpu(63 C) amb(30 C)
+Aug 10 15:19:10 rayleigh kernel: temp0: cpu(62 C) amb(30 C)
+Aug 10 15:19:10 rayleigh kernel: temp1: cpu(63 C) amb(30 C)
+Aug 10 15:19:15 rayleigh kernel: temp0: cpu(62 C) amb(30 C)
+Aug 10 15:19:15 rayleigh kernel: temp1: cpu(63 C) amb(30 C)
+Aug 10 15:19:20 rayleigh kernel: temp0: cpu(62 C) amb(30 C)
+Aug 10 15:19:20 rayleigh kernel: temp1: cpu(63 C) amb(30 C)
+Aug 10 15:19:25 rayleigh kernel: temp0: cpu(61 C) amb(30 C)
+Aug 10 15:19:25 rayleigh kernel: temp1: cpu(63 C) amb(30 C)
+Aug 10 15:19:30 rayleigh kernel: temp0: cpu(61 C) amb(30 C)
+Aug 10 15:19:30 rayleigh kernel: temp1: cpu(63 C) amb(30 C)
+Aug 10 15:19:35 rayleigh kernel: temp0: cpu(61 C) amb(30 C)
+Aug 10 15:19:35 rayleigh kernel: temp1: cpu(63 C) amb(30 C)
+Aug 10 15:19:40 rayleigh kernel: temp0: cpu(61 C) amb(30 C)
+Aug 10 15:19:40 rayleigh kernel: temp1: cpu(63 C) amb(30 C)
+Aug 10 15:19:45 rayleigh kernel: temp0: cpu(61 C) amb(30 C)
+Aug 10 15:19:45 rayleigh kernel: temp1: cpu(63 C) amb(30 C)
 
-I'm not shure wher to add the drivers/ambapp/Kconfig, I just
-added it to drivers/Kconfig however maybe arch/sparc/Kconfig
-might be more approprite.
+	I have checked fan speeds :
 
--- Greetings Konrad
+Aug 10 15:19:45 rayleigh kernel: fan speeds: cpu(0c) sys(3f)
+
+	These values seem to be good (3f is forced because amb temp >=3D 30 =B0C, =
+
+0c is good because cpu temp < 65 =B0C).
+
+	Sometimes, reported temp0 values can grow until 85 =B0C. When temp0 is=20
+growing, system is idle (thus, I don't understand how temperature can be=20
+greater than 85 =B0C...).
+
+Aug 10 04:20:06 rayleigh kernel: temp0: Above safe CPU operating=20
+temperature, 85 C.
+Aug 10 04:20:06 rayleigh kernel: temp0: Outside of safe CPU operating=20
+temperature, 85 C.
+Aug 10 04:20:06 rayleigh kernel: kenvctrld: Shutting down the system now.
+Aug 10 04:20:06 rayleigh shutdown[19130]: shutting down for system halt
+Aug 10 04:20:08 rayleigh init: Switching to runlevel: 0
+
+	I have written some code to debug bbc_envctrl without any success and=20
+bbc_envctrl seem to be bug free. When system is overheating, kernel=20
+always claims against temp0 (never against temp1 even I swap CPU0 and=20
+CPU1.).
+
+	Does someone see the same strange shutdown process on UltraSPARC-III? I=20
+suspect that a bad temp is reported by sensors for some reasons.
+
+	Regards,
+
+	JKB
