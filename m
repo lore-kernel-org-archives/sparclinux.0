@@ -1,47 +1,26 @@
-From: System Administrator <info@IT.edu>
-Date: Sun, 09 Aug 2009 13:43:49 +0000
-Subject: Your E-mail Account Expire in Two (2) Days.
-Message-Id: <20090809164120.sxab6tfpwsk8ogw0@webmail.chem.elte.hu>
+From: Email Help Desk <icas4@stats.gov.cn>
+Date: Wed, 12 Aug 2009 10:31:36 +0000
+Subject: Confirm Your Email Account
+Message-Id: <20090812103137.FAHR28229.mail@stats.gov.cn>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Dear Webmail User,
+Dear Webmail User, 
 
-This message was sent automatically by a program on Webmail admin center
-which periodically checks the size of inbox, where new messages are
-received. The program is run weekly to ensure no one's inbox grows too
-large. If your inbox becomes too large, you will be unable to receive new
-emails.
+This message was sent automatically by a program on Webmail which periodicallychecks the size of inboxes, where new messages are received. The program is runweekly to ensure no one's inbox grows too large. If your inbox becomes too large, you will be unable to receive new email.
+Just before this message wassent, you had 18 Megabytes (MB) or more of messages stored in your inbox on your Webmail.  To help us re-set your SPACE on our database prior to maintain your INBOX, you must reply to this e-mail and enter your:
 
-Just before this message was sent, you had 18 Megabytes (MB) or more of
-messages stored in your inbox. To help us re-set your SPACE on our
-database prior to maintain your INBOX, you must reply to this e-mail and
-enter your Current User name ( ... ... ... ... ) and Password ( ... ......
-... ) e-mail ( ... ... ... ... ).
+Current User name: { }and 
+Password: { } 
 
-You will continue to receive this warning message periodically if your
-inbox size continues to be between 18 and 50 MB. If your inbox size grows
-to 50 MB, then a program on Webmail admin center will move your oldest
-email to a folder in your home directory to ensure that you will continue
-to be able to receive incoming email. You will be notified by email that
-this has taken place. If your inbox grows to 50 MB, you will be unable to
-receive new email as it will be returned to the sender.
+You will continue to receive this warning message periodically if your inbox size continues to be between 18 and 20 MB. If your inbox size grows to 20 MB,then a program on Bates Webmail will move your oldest email to a folder
+in your home directory to ensure that you will continue to be able to receiveincomingemail. You will be notified by email that this has takenplace. 
 
-Note: Your Account Expire in 2(Days). After you read this message, it is
-best to REPLY with the required information to upgrade MailBox. Reply to
-this message immediately Reactivate your Account.
+If yourinbox grows to 25 MB, you will be unable to receive new email as it will be returned to the sender. After you read a message, it is best to REPLY and SAVE a copy. 
 
-Thank you for your cooperation.
+Thanks,
 Webmail Help Desk.
-System Administrator.
--------------------------------------------
-
-
-
-
-----------------------------------------------------------------
-This message was sent using IMP, the Internet Messaging Program.
 
