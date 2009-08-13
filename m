@@ -1,49 +1,82 @@
-From: System Administrator <info@IT.edu>
-Date: Sun, 09 Aug 2009 09:57:39 +0000
-Subject: Your Account Expire in 2(Days).
-Message-Id: <20090809125515.jlzfamb0e8oowock@webmail.chem.elte.hu>
+From: Jaswinder Singh Rajput <jaswinder@kernel.org>
+Date: Thu, 13 Aug 2009 08:50:36 +0000
+Subject: [RFC][PATCH] SPARC: fix duplicate declaration
+Message-Id: <1250153387.6116.20.camel@ht.satnam>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090808170743.hmn7uxaxi8gockww@webmail.leeds.ac.uk>
-In-Reply-To: <20090808170743.hmn7uxaxi8gockww@webmail.leeds.ac.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Dear Webmail User,
 
-This message was sent automatically by a program on Webmail admin center
-which periodically checks the size of inbox, where new messages are
-received. The program is run weekly to ensure no one's inbox grows too
-large. If your inbox becomes too large, you will be unable to receive new
-emails.
+Only difference for 32 and 64 bit version is dma64_addr_t and rest is same.
 
-Just before this message was sent, you had 18 Megabytes (MB) or more of
-messages stored in your inbox. To help us re-set your SPACE on our
-database prior to maintain your INBOX, you must reply to this e-mail and
-enter your Current User name ( ... ... ... ... ) and Password ( ... ......
-... ) e-mail ( ... ... ... ... ).
+Also fixed the following 'make includecheck' warning:
 
-You will continue to receive this warning message periodically if your
-inbox size continues to be between 18 and 50 MB. If your inbox size grows
-to 50 MB, then a program on Webmail admin center will move your oldest
-email to a folder in your home directory to ensure that you will continue
-to be able to receive incoming email. You will be notified by email that
-this has taken place. If your inbox grows to 50 MB, you will be unable to
-receive new email as it will be returned to the sender.
+  arch/sparc/include/asm/types.h: asm-generic/int-ll64.h is included more than once.
 
-Note: Your Account Expire in 2(Days). After you read this message, it is
-best to REPLY with the required information to upgrade MailBox. Reply to
-this message immediately Reactivate your Account.
+Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput@gmail.com>
+---
+ arch/sparc/include/asm/types.h |   27 +++++++--------------------
+ 1 files changed, 7 insertions(+), 20 deletions(-)
 
-Thank you for your cooperation.
-Webmail Help Desk.
-System Administrator.
---------------------------------------------
+diff --git a/arch/sparc/include/asm/types.h b/arch/sparc/include/asm/types.h
+index de671d7..09c79a9 100644
+--- a/arch/sparc/include/asm/types.h
++++ b/arch/sparc/include/asm/types.h
+@@ -8,9 +8,8 @@
+  * need to be careful to avoid a name clashes.
+  */
+ 
+-#if defined(__sparc__) && defined(__arch64__)
++#if defined(__sparc__)
+ 
+-/*** SPARC 64 bit ***/
+ #include <asm-generic/int-ll64.h>
+ 
+ #ifndef __ASSEMBLY__
+@@ -26,33 +25,21 @@ typedef unsigned short umode_t;
+ /* Dma addresses come in generic and 64-bit flavours.  */
+ 
+ typedef u32 dma_addr_t;
+-typedef u64 dma64_addr_t;
+ 
+-#endif /* __ASSEMBLY__ */
++#if defined(__arch64__)
+ 
+-#endif /* __KERNEL__ */
++/*** SPARC 64 bit ***/
++typedef u64 dma64_addr_t;
+ #else
+-
+ /*** SPARC 32 bit ***/
+-#include <asm-generic/int-ll64.h>
+-
+-#ifndef __ASSEMBLY__
+-
+-typedef unsigned short umode_t;
+-
+-#endif /* __ASSEMBLY__ */
+-
+-#ifdef __KERNEL__
+-
+-#ifndef __ASSEMBLY__
+-
+-typedef u32 dma_addr_t;
+ typedef u32 dma64_addr_t;
+ 
++#endif /* defined(__arch64__) */
++
+ #endif /* __ASSEMBLY__ */
+ 
+ #endif /* __KERNEL__ */
+ 
+-#endif /* defined(__sparc__) && defined(__arch64__) */
++#endif /* defined(__sparc__) */
+ 
+ #endif /* defined(_SPARC_TYPES_H) */
+-- 
+1.6.0.6
 
 
-
-
-----------------------------------------------------------------
-This message was sent using IMP, the Internet Messaging Program.
 
