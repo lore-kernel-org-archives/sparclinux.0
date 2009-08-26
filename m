@@ -1,16 +1,25 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 25 Aug 2009 06:23:49 +0000
-Subject: [PATCH]: sparc64: Validate linear D-TLB misses.
-Message-Id: <20090824.232349.236950384.davem@davemloft.net>
+Date: Wed, 26 Aug 2009 03:37:16 +0000
+Subject: Re: [PATCH]: sparc64: Validate linear D-TLB misses.
+Message-Id: <20090825.203716.227878711.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20090824.232349.236950384.davem@davemloft.net>
+In-Reply-To: <20090824.232349.236950384.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+From: David Miller <davem@davemloft.net>
+Date: Mon, 24 Aug 2009 23:23:49 -0700 (PDT)
 
-Heyong-ssi, can you try your test case with the following
-updated patch?  It works quite well for me.
+> Heyong-ssi, can you try your test case with the following
+> updated patch?  It works quite well for me.
+> 
+> sparc64: Validate linear D-TLB misses.
+
+Ok I added one more safety check, and the following is
+what I'm going to push to Linus tonight.
 
 sparc64: Validate linear D-TLB misses.
 
@@ -43,19 +52,30 @@ If we're in a TLB miss it could be the deepest trap level that's legal
 inside of the cpu.  So if we TLB miss referencing the bitmap, the cpu
 will be out of trap levels and enter RED state.
 
-On the plus side, since we load all of these translations into the
-special 4MB mapping TSB, and we check the TSB first for TLB misses,
-there should be absolutely no real cost for these new checks in the
-TLB miss path.
+To guard against out-of-range accesses to the bitmap, we have to check
+to make sure no bits in the physical address above bit 40 are set.  We
+could export and use last_valid_pfn for this check, but that's just an
+unnecessary extra memory reference.
+
+On the plus side of all this, since we load all of these translations
+into the special 4MB mapping TSB, and we check the TSB first for TLB
+misses, there should be absolutely no real cost for these new checks
+in the TLB miss path.
 
 Reported-by: heyongli@gmail.com
 Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/include/asm/pgtable_64.h |   12 +++++++--
+ arch/sparc/kernel/ktlb.S            |   42 ++++++++++++++++++++++++++++++---
+ arch/sparc/mm/init_64.c             |   43 +++++++++++++++++++---------------
+ arch/sparc/mm/init_64.h             |    7 ++++-
+ 4 files changed, 76 insertions(+), 28 deletions(-)
 
 diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index b049abf..8bd6c73 100644
+index b049abf..0ff92fa 100644
 --- a/arch/sparc/include/asm/pgtable_64.h
 +++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -726,11 +726,15 @@ extern unsigned long pte_file(pte_t);
+@@ -726,11 +726,17 @@ extern unsigned long pte_file(pte_t);
  extern pte_t pgoff_to_pte(unsigned long);
  #define PTE_FILE_MAX_BITS	(64UL - PAGE_SHIFT - 1UL)
  
@@ -69,16 +89,18 @@ index b049abf..8bd6c73 100644
 +{
 +	unsigned long paddr = __pa(addr);
 +
++	if ((paddr >> 41UL) != 0UL)
++		return false;
 +	return test_bit(paddr >> 22, sparc64_valid_addr_bitmap);
 +}
  
  extern int page_in_phys_avail(unsigned long paddr);
  
 diff --git a/arch/sparc/kernel/ktlb.S b/arch/sparc/kernel/ktlb.S
-index cef8def..aaa264a 100644
+index cef8def..3ea6e8c 100644
 --- a/arch/sparc/kernel/ktlb.S
 +++ b/arch/sparc/kernel/ktlb.S
-@@ -151,12 +151,42 @@ kvmap_dtlb_4v:
+@@ -151,12 +151,46 @@ kvmap_dtlb_4v:
  	 * Must preserve %g1 and %g6 (TAG).
  	 */
  kvmap_dtlb_tsb4m_miss:
@@ -91,9 +113,13 @@ index cef8def..aaa264a 100644
  
 -	/* Clear the PAGE_OFFSET top virtual bits, then shift
 -	 * down to get a 256MB physical address index.
-+	/* Check to see if we know about valid memory at the 256MB
++	/* Check to see if we know about valid memory at the 4MB
 +	 * chunk this physical address will reside within.
  	 */
++	srlx		%g5, 21 + 41, %g2
++	brnz,pn		%g2, kvmap_dtlb_longpath
++	 nop
++
 +	/* This unconditional branch and delay-slot nop gets patched
 +	 * by the sethi sequence once the bitmap is properly setup.
 +	 */
@@ -233,3 +259,6 @@ index 1606387..c2f772d 100644
  
  extern unsigned long kern_linear_pte_xor[2];
  extern unsigned long kpte_linear_bitmap[KPTE_BITMAP_BYTES / sizeof(unsigned long)];
+-- 
+1.6.4.1
+
