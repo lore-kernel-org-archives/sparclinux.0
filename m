@@ -1,92 +1,52 @@
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Date: Mon, 06 Jul 2009 06:13:39 +0000
-Subject: [PATCH 4/5] sparc: replace sbus_map_single and sbus_unmap_single with sbus_map_page and sbus_unmap_p
-Message-Id: <1246860820-20629-5-git-send-email-fujita.tomonori@lab.ntt.co.jp>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 26 Aug 2009 03:38:28 +0000
+Subject: [GIT]: Sparc
+Message-Id: <20090825.203828.211231142.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1246860820-20629-1-git-send-email-fujita.tomonori@lab.ntt.co.jp>
-In-Reply-To: <1246860820-20629-1-git-send-email-fujita.tomonori@lab.ntt.co.jp>
+References: <20080421.153231.108090227.davem@davemloft.net>
+In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, reif@earthlink.net, FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-This is a preparation for using asm-generic/pci-dma-compat.h; SPARC32
-has two dma_map_ops structures for pci and sbus (removing
-arch/sparc/kernel/dma.c, PCI and SBUS DMA accessor).
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
----
- arch/sparc/kernel/dma.c    |    5 ++---
- arch/sparc/kernel/dma.h    |    6 +++---
- arch/sparc/kernel/ioport.c |    7 +++++--
- 3 files changed, 10 insertions(+), 8 deletions(-)
+Please pull to get these sparc bug fixes.
 
-diff --git a/arch/sparc/kernel/dma.c b/arch/sparc/kernel/dma.c
-index 15820a9..a5d50da 100644
---- a/arch/sparc/kernel/dma.c
-+++ b/arch/sparc/kernel/dma.c
-@@ -68,8 +68,7 @@ static dma_addr_t dma32_map_page(struct device *dev, struct page *page,
- 		return pci_map_page(to_pci_dev(dev), page, offset,
- 				    size, (int)direction);
- #endif
--	return sbus_map_single(dev, page_address(page) + offset,
--			       size, (int)direction);
-+	return sbus_map_page(dev, page, offset, size, (int)direction);
- }
- 
- static void dma32_unmap_page(struct device *dev, dma_addr_t dma_address,
-@@ -83,7 +82,7 @@ static void dma32_unmap_page(struct device *dev, dma_addr_t dma_address,
- 		return;
- 	}
- #endif
--	sbus_unmap_single(dev, dma_address, size, (int)direction);
-+	sbus_unmap_page(dev, dma_address, size, (int)direction);
- }
- 
- static int dma32_map_sg(struct device *dev, struct scatterlist *sg,
-diff --git a/arch/sparc/kernel/dma.h b/arch/sparc/kernel/dma.h
-index f8d8951..680351e 100644
---- a/arch/sparc/kernel/dma.h
-+++ b/arch/sparc/kernel/dma.h
-@@ -1,8 +1,8 @@
- void *sbus_alloc_consistent(struct device *dev, long len, u32 *dma_addrp);
- void sbus_free_consistent(struct device *dev, long n, void *p, u32 ba);
--dma_addr_t sbus_map_single(struct device *dev, void *va,
--			   size_t len, int direction);
--void sbus_unmap_single(struct device *dev, dma_addr_t ba,
-+dma_addr_t sbus_map_page(struct device *dev, struct page *page,
-+			 unsigned long offset, size_t len, int direction);
-+void sbus_unmap_page(struct device *dev, dma_addr_t ba,
- 		       size_t n, int direction);
- int sbus_map_sg(struct device *dev, struct scatterlist *sg,
- 		int n, int direction);
-diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
-index 87ea0d0..39ff1e0 100644
---- a/arch/sparc/kernel/ioport.c
-+++ b/arch/sparc/kernel/ioport.c
-@@ -337,8 +337,11 @@ void sbus_free_consistent(struct device *dev, long n, void *p, u32 ba)
-  * CPU view of this memory may be inconsistent with
-  * a device view and explicit flushing is necessary.
-  */
--dma_addr_t sbus_map_single(struct device *dev, void *va, size_t len, int direction)
-+dma_addr_t sbus_map_page(struct device *dev, struct page *page,
-+			 unsigned long offset, size_t len, int direction)
- {
-+	void *va = page_address(page) + offset;
-+
- 	/* XXX why are some lengths signed, others unsigned? */
- 	if (len <= 0) {
- 		return 0;
-@@ -350,7 +353,7 @@ dma_addr_t sbus_map_single(struct device *dev, void *va, size_t len, int directi
- 	return mmu_get_scsi_one(dev, va, len);
- }
- 
--void sbus_unmap_single(struct device *dev, dma_addr_t ba, size_t n, int direction)
-+void sbus_unmap_page(struct device *dev, dma_addr_t ba, size_t n, int direction)
- {
- 	mmu_release_scsi_one(dev, ba, n);
- }
--- 
-1.6.0.6
+Thanks!
 
+The following changes since commit 4075ea8c54a7506844a69f674990241e7766357b:
+  Linus Torvalds (1):
+        Merge branch 'for-linus' of git://git.kernel.org/.../bp/bp
+
+are available in the git repository at:
+
+  master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
+
+David S. Miller (7):
+      sparc: Fix cleanup crash in bbc_envctrl_cleanup()
+      sparc64: Sign extend length arg to truncate syscalls when compat.
+      sparc: Use page_fault_out_of_memory() for VM_FAULT_OOM.
+      sparc32: Kill trap table freeing code.
+      sparc32: Update defconfig.
+      sparc64: Update defconfig.
+      sparc64: Validate linear D-TLB misses.
+
+Mathieu Desnoyers (1):
+      sparc: sys32.S incorrect compat-layer splice() system call
+
+ arch/sparc/configs/sparc32_defconfig |   74 ++++++++++++++++++++--------------
+ arch/sparc/configs/sparc64_defconfig |   59 +++++++++++++++-----------
+ arch/sparc/include/asm/pgtable_64.h  |   12 ++++-
+ arch/sparc/kernel/ktlb.S             |   42 +++++++++++++++++--
+ arch/sparc/kernel/sun4d_smp.c        |   22 ----------
+ arch/sparc/kernel/sun4m_smp.c        |   26 ------------
+ arch/sparc/kernel/sys32.S            |    4 +-
+ arch/sparc/kernel/systbls_64.S       |    4 +-
+ arch/sparc/mm/fault_32.c             |    7 ++-
+ arch/sparc/mm/fault_64.c             |    7 ++-
+ arch/sparc/mm/init_64.c              |   43 +++++++++++---------
+ arch/sparc/mm/init_64.h              |    7 ++-
+ drivers/sbus/char/bbc_envctrl.c      |   11 ++++-
+ 13 files changed, 175 insertions(+), 143 deletions(-)
