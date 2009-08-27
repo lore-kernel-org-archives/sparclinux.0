@@ -1,27 +1,18 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 26 Aug 2009 03:37:16 +0000
+From: hyl <heyongli@gmail.com>
+Date: Thu, 27 Aug 2009 07:03:44 +0000
 Subject: Re: [PATCH]: sparc64: Validate linear D-TLB misses.
-Message-Id: <20090825.203716.227878711.davem@davemloft.net>
+Message-Id: <505766fa0908270003k14b75070u59233e1414a5d6cb@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20090824.232349.236950384.davem@davemloft.net>
 In-Reply-To: <20090824.232349.236950384.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: sparclinux@vger.kernel.org
 
-From: David Miller <davem@davemloft.net>
-Date: Mon, 24 Aug 2009 23:23:49 -0700 (PDT)
+Work fine, and back port to 2.6.27, for someone may like it.
 
-> Heyong-ssi, can you try your test case with the following
-> updated patch?  It works quite well for me.
-> 
-> sparc64: Validate linear D-TLB misses.
-
-Ok I added one more safety check, and the following is
-what I'm going to push to Linus tonight.
-
-sparc64: Validate linear D-TLB misses.
+Sparc64: Validate linear D-TLB misses.
 
 When page alloc debugging is not enabled, we essentially accept any
 virtual address for linear kernel TLB misses.  But with kgdb, kernel
@@ -62,110 +53,131 @@ into the special 4MB mapping TSB, and we check the TSB first for TLB
 misses, there should be absolutely no real cost for these new checks
 in the TLB miss path.
 
-Reported-by: heyongli@gmail.com
+Reported-by:  Yongli He <heyongli@hotmail.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
+Integrated-by: Yongli He <heyongli@hotmail.com>
 ---
- arch/sparc/include/asm/pgtable_64.h |   12 +++++++--
- arch/sparc/kernel/ktlb.S            |   42 ++++++++++++++++++++++++++++++---
- arch/sparc/mm/init_64.c             |   43 +++++++++++++++++++---------------
- arch/sparc/mm/init_64.h             |    7 ++++-
- 4 files changed, 76 insertions(+), 28 deletions(-)
+ arch/sparc/include/asm/pgtable_64.h |   12 +++++--
+ arch/sparc64/kernel/ktlb.S          |   46 +++++++++++++++++++++++++----
+ arch/sparc64/mm/init.c              |   56 ++++++++++++++++++++---------------
+ 3 files changed, 81 insertions(+), 33 deletions(-)
 
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index b049abf..0ff92fa 100644
+diff --git a/arch/sparc/include/asm/pgtable_64.h
+b/arch/sparc/include/asm/pgtable_64.h
+index bb9ec2c..09615a6 100644
 --- a/arch/sparc/include/asm/pgtable_64.h
 +++ b/arch/sparc/include/asm/pgtable_64.h
 @@ -726,11 +726,17 @@ extern unsigned long pte_file(pte_t);
  extern pte_t pgoff_to_pte(unsigned long);
  #define PTE_FILE_MAX_BITS	(64UL - PAGE_SHIFT - 1UL)
- 
+
 -extern unsigned long *sparc64_valid_addr_bitmap;
 +extern unsigned long sparc64_valid_addr_bitmap[];
- 
+
  /* Needs to be defined here and not in linux/mm.h, as it is arch dependent */
 -#define kern_addr_valid(addr)	\
 -	(test_bit(__pa((unsigned long)(addr))>>22, sparc64_valid_addr_bitmap))
 +static inline bool kern_addr_valid(unsigned long addr)
 +{
-+	unsigned long paddr = __pa(addr);
++       unsigned long paddr = __pa(addr);
 +
-+	if ((paddr >> 41UL) != 0UL)
-+		return false;
-+	return test_bit(paddr >> 22, sparc64_valid_addr_bitmap);
++       if ((paddr >> 41UL) != 0UL)
++               return false;
++       return test_bit(paddr >> 22, sparc64_valid_addr_bitmap);
 +}
- 
+
  extern int page_in_phys_avail(unsigned long paddr);
- 
-diff --git a/arch/sparc/kernel/ktlb.S b/arch/sparc/kernel/ktlb.S
-index cef8def..3ea6e8c 100644
---- a/arch/sparc/kernel/ktlb.S
-+++ b/arch/sparc/kernel/ktlb.S
+
+diff --git a/arch/sparc64/kernel/ktlb.S b/arch/sparc64/kernel/ktlb.S
+index cef8def..a041fd0 100644
+--- a/arch/sparc64/kernel/ktlb.S
++++ b/arch/sparc64/kernel/ktlb.S
 @@ -151,12 +151,46 @@ kvmap_dtlb_4v:
  	 * Must preserve %g1 and %g6 (TAG).
  	 */
  kvmap_dtlb_tsb4m_miss:
 -	sethi		%hi(kpte_linear_bitmap), %g2
 -	or		%g2, %lo(kpte_linear_bitmap), %g2
-+	/* Clear the PAGE_OFFSET top virtual bits, shift
-+	 * down to get PFN, and make sure PFN is in range.
-+	 */
-+	sllx		%g4, 21, %g5
- 
+-
 -	/* Clear the PAGE_OFFSET top virtual bits, then shift
 -	 * down to get a 256MB physical address index.
-+	/* Check to see if we know about valid memory at the 4MB
-+	 * chunk this physical address will reside within.
- 	 */
-+	srlx		%g5, 21 + 41, %g2
-+	brnz,pn		%g2, kvmap_dtlb_longpath
-+	 nop
+-	 */
++       /* Clear the PAGE_OFFSET top virtual bits, shift
++        * down to get PFN, and make sure PFN is in range.
++        */
++       sllx            %g4, 21, %g5
 +
-+	/* This unconditional branch and delay-slot nop gets patched
-+	 * by the sethi sequence once the bitmap is properly setup.
-+	 */
-+	.globl		valid_addr_bitmap_insn
++        /* Check to see if we know about valid memory at the 4MB
++        * chunk this physical address will reside within.
++        */
++       srlx            %g5, 21 + 41, %g2
++       brnz,pn         %g2, kvmap_dtlb_longpath
++        nop
++
++       /* This unconditional branch and delay-slot nop gets patched
++        * by the sethi sequence once the bitmap is properly setup.
++        */
++       .globl          valid_addr_bitmap_insn
 +valid_addr_bitmap_insn:
-+	ba,pt		%xcc, 2f
-+	 nop
-+	.subsection	2
-+	.globl		valid_addr_bitmap_patch
++       ba,pt           %xcc, 2f
++        nop
++       .subsection     2
++       .globl          valid_addr_bitmap_patch
 +valid_addr_bitmap_patch:
-+	sethi		%hi(sparc64_valid_addr_bitmap), %g7
-+	or		%g7, %lo(sparc64_valid_addr_bitmap), %g7
-+	.previous
++       sethi           %hi(sparc64_valid_addr_bitmap), %g7
++       or              %g7, %lo(sparc64_valid_addr_bitmap), %g7
++       .previous
 +
-+	srlx		%g5, 21 + 22, %g2
-+	srlx		%g2, 6, %g5
-+	and		%g2, 63, %g2
-+	sllx		%g5, 3, %g5
-+	ldx		[%g7 + %g5], %g5
-+	mov		1, %g7
-+	sllx		%g7, %g2, %g7
-+	andcc		%g5, %g7, %g0
-+	be,pn		%xcc, kvmap_dtlb_longpath
++       srlx            %g5, 21 + 22, %g2
++       srlx            %g2, 6, %g5
++       and             %g2, 63, %g2
++       sllx            %g5, 3, %g5
++       ldx             [%g7 + %g5], %g5
++       mov             1, %g7
++       sllx            %g7, %g2, %g7
++       andcc           %g5, %g7, %g0
++       be,pn           %xcc, kvmap_dtlb_longpath
 +
-+2:	 sethi		%hi(kpte_linear_bitmap), %g2
-+	or		%g2, %lo(kpte_linear_bitmap), %g2
++2:      sethi          %hi(kpte_linear_bitmap), %g2
++       or              %g2, %lo(kpte_linear_bitmap), %g2
 +
-+	/* Get the 256MB physical address index. */
++       /* Get the 256MB physical address index. */
  	sllx		%g4, 21, %g5
  	mov		1, %g7
  	srlx		%g5, 21 + 28, %g5
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index ed6be6b..a70a5e1 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -145,7 +145,8 @@ static void __init read_obp_memory(const char *property,
+diff --git a/arch/sparc64/mm/init.c b/arch/sparc64/mm/init.c
+index a41df7b..d2b4f70 100644
+--- a/arch/sparc64/mm/init.c
++++ b/arch/sparc64/mm/init.c
+@@ -51,11 +51,13 @@
+ #include <asm/cpudata.h>
+ #include <asm/irq.h>
+
+-#define MAX_PHYS_ADDRESS	(1UL << 42UL)
+-#define KPTE_BITMAP_CHUNK_SZ	(256UL * 1024UL * 1024UL)
++#define MAX_PHYS_ADDRESS       (1UL << 41UL)
++#define KPTE_BITMAP_CHUNK_SZ           (256UL * 1024UL * 1024UL)
+ #define KPTE_BITMAP_BYTES	\
+ 	((MAX_PHYS_ADDRESS / KPTE_BITMAP_CHUNK_SZ) / 8)
+-
++#define VALID_ADDR_BITMAP_CHUNK_SZ     (4UL * 1024UL * 1024UL)
++#define VALID_ADDR_BITMAP_BYTES        \
++       ((MAX_PHYS_ADDRESS / VALID_ADDR_BITMAP_CHUNK_SZ) / 8)
+ unsigned long kern_linear_pte_xor[2] __read_mostly;
+
+ /* A bitmap, one bit for every 256MB of physical memory.  If the bit
+@@ -149,7 +151,9 @@ static void __init read_obp_memory(const char *property,
  	     cmp_p64, NULL);
  }
- 
+
 -unsigned long *sparc64_valid_addr_bitmap __read_mostly;
 +unsigned long sparc64_valid_addr_bitmap[VALID_ADDR_BITMAP_BYTES /
-+					sizeof(unsigned long)];
- EXPORT_SYMBOL(sparc64_valid_addr_bitmap);
- 
++                                       sizeof(unsigned long)];
++EXPORT_SYMBOL(sparc64_valid_addr_bitmap);
+
  /* Kernel physical address base and size in bytes.  */
-@@ -1874,7 +1875,7 @@ static int pavail_rescan_ents __initdata;
+ unsigned long kern_base __read_mostly;
+@@ -1843,7 +1847,7 @@ static int pavail_rescan_ents __initdata;
   * memory list again, and make sure it provides at least as much
   * memory as 'pavail' does.
   */
@@ -173,9 +185,10 @@ index ed6be6b..a70a5e1 100644
 +static void __init setup_valid_addr_bitmap_from_pavail(unsigned long *bitmap)
  {
  	int i;
- 
-@@ -1897,8 +1898,7 @@ static void __init setup_valid_addr_bitmap_from_pavail(void)
- 
+
+@@ -1866,8 +1870,7 @@ static void __init
+setup_valid_addr_bitmap_from_pavail(void)
+
  				if (new_start <= old_start &&
  				    new_end >= (old_start + PAGE_SIZE)) {
 -					set_bit(old_start >> 22,
@@ -184,19 +197,20 @@ index ed6be6b..a70a5e1 100644
  					goto do_next_page;
  				}
  			}
-@@ -1919,20 +1919,21 @@ static void __init setup_valid_addr_bitmap_from_pavail(void)
+@@ -1888,20 +1891,21 @@ static void __init
+setup_valid_addr_bitmap_from_pavail(void)
  	}
  }
- 
+
 +static void __init patch_tlb_miss_handler_bitmap(void)
 +{
-+	extern unsigned int valid_addr_bitmap_insn[];
-+	extern unsigned int valid_addr_bitmap_patch[];
++       extern unsigned int valid_addr_bitmap_insn[];
++       extern unsigned int valid_addr_bitmap_patch[];
 +
-+	valid_addr_bitmap_insn[1] = valid_addr_bitmap_patch[1];
-+	mb();
-+	valid_addr_bitmap_insn[0] = valid_addr_bitmap_patch[0];
-+	flushi(&valid_addr_bitmap_insn[0]);
++       valid_addr_bitmap_insn[1] = valid_addr_bitmap_patch[1];
++       mb();
++       valid_addr_bitmap_insn[0] = valid_addr_bitmap_patch[0];
++       flushi(&valid_addr_bitmap_insn[0]);
 +}
 +
  void __init mem_init(void)
@@ -213,52 +227,311 @@ index ed6be6b..a70a5e1 100644
 -		prom_halt();
 -	}
 -	memset(sparc64_valid_addr_bitmap, 0, i << 3);
- 
+
  	addr = PAGE_OFFSET + kern_base;
  	last = PAGE_ALIGN(kern_size) + addr;
-@@ -1941,15 +1942,19 @@ void __init mem_init(void)
+@@ -1910,17 +1914,21 @@ void __init mem_init(void)
  		addr += PAGE_SIZE;
  	}
- 
+
 -	setup_valid_addr_bitmap_from_pavail();
-+	setup_valid_addr_bitmap_from_pavail(sparc64_valid_addr_bitmap);
-+	patch_tlb_miss_handler_bitmap();
- 
++       setup_valid_addr_bitmap_from_pavail(sparc64_valid_addr_bitmap);
++       patch_tlb_miss_handler_bitmap();
+
  	high_memory = __va(last_valid_pfn << PAGE_SHIFT);
- 
+
  #ifdef CONFIG_NEED_MULTIPLE_NODES
 -	for_each_online_node(i) {
 -		if (NODE_DATA(i)->node_spanned_pages != 0) {
 -			totalram_pages +-				free_all_bootmem_node(NODE_DATA(i));
-+	{
-+		int i;
-+		for_each_online_node(i) {
-+			if (NODE_DATA(i)->node_spanned_pages != 0) {
-+				totalram_pages ++					free_all_bootmem_node(NODE_DATA(i));
-+			}
- 		}
- 	}
+-		}
+-	}
++       {
++               int i;
++               for_each_online_node(i) {
++                       if (NODE_DATA(i)->node_spanned_pages != 0) {
++                               totalram_pages ++                                       free_all_bootmem_node(NODE_DATA(i));
++                       }		
++                 }
++	   }
  #else
-diff --git a/arch/sparc/mm/init_64.h b/arch/sparc/mm/init_64.h
-index 1606387..c2f772d 100644
---- a/arch/sparc/mm/init_64.h
-+++ b/arch/sparc/mm/init_64.h
-@@ -5,10 +5,13 @@
-  * marked non-static so that assembler code can get at them.
-  */
- 
--#define MAX_PHYS_ADDRESS	(1UL << 42UL)
--#define KPTE_BITMAP_CHUNK_SZ	(256UL * 1024UL * 1024UL)
-+#define MAX_PHYS_ADDRESS	(1UL << 41UL)
-+#define KPTE_BITMAP_CHUNK_SZ		(256UL * 1024UL * 1024UL)
- #define KPTE_BITMAP_BYTES	\
- 	((MAX_PHYS_ADDRESS / KPTE_BITMAP_CHUNK_SZ) / 8)
-+#define VALID_ADDR_BITMAP_CHUNK_SZ	(4UL * 1024UL * 1024UL)
-+#define VALID_ADDR_BITMAP_BYTES	\
-+	((MAX_PHYS_ADDRESS / VALID_ADDR_BITMAP_CHUNK_SZ) / 8)
- 
- extern unsigned long kern_linear_pte_xor[2];
- extern unsigned long kpte_linear_bitmap[KPTE_BITMAP_BYTES / sizeof(unsigned long)];
+ 	totalram_pages = free_all_bootmem();
+ #endif
 -- 
-1.6.4.1
+1.5.5.1
 
+
+2009/8/27 hyl <heyongli@gmail.com>:
+> great, i'm going to  try it .
+>
+> Yongli he
+>
+> 2009/8/27 Jim Gifford <maillist@jg555.com>:
+>> David Miller wrote:
+>>
+>> From: David Miller <davem@davemloft.net>
+>> Date: Mon, 24 Aug 2009 23:23:49 -0700 (PDT)
+>>
+>>
+>>
+>> Heyong-ssi, can you try your test case with the following
+>> updated patch?  It works quite well for me.
+>>
+>> sparc64: Validate linear D-TLB misses.
+>>
+>>
+>> Ok I added one more safety check, and the following is
+>> what I'm going to push to Linus tonight.
+>>
+>> sparc64: Validate linear D-TLB misses.
+>>
+>> When page alloc debugging is not enabled, we essentially accept any
+>> virtual address for linear kernel TLB misses.  But with kgdb, kernel
+>> address probing, and other facilities we can try to access arbitrary
+>> crap.
+>>
+>> So, make sure the address we miss on will translate to physical memory
+>> that actually exists.
+>>
+>> In order to make this work we have to embed the valid address bitmap
+>> into the kernel image.  And in order to make that less expensive we
+>> make an adjustment, in that the max physical memory address is
+>> decreased to "1 << 41", even on the chips that support a 42-bit
+>> physical address space.  We can do this because bit 41 indicates
+>> "I/O space" and thus covers non-memory ranges.
+>>
+>> The result of this is that:
+>>
+>> 1) kpte_linear_bitmap shrinks from 2K to 1K in size
+>>
+>> 2) we need 64K more for the valid address bitmap
+>>
+>> We can't let the valid address bitmap be dynamically allocated
+>> once we start using it to validate TLB misses, otherwise we have
+>> crazy issues to deal with wrt. recursive TLB misses and such.
+>>
+>> If we're in a TLB miss it could be the deepest trap level that's legal
+>> inside of the cpu.  So if we TLB miss referencing the bitmap, the cpu
+>> will be out of trap levels and enter RED state.
+>>
+>> To guard against out-of-range accesses to the bitmap, we have to check
+>> to make sure no bits in the physical address above bit 40 are set.  We
+>> could export and use last_valid_pfn for this check, but that's just an
+>> unnecessary extra memory reference.
+>>
+>> On the plus side of all this, since we load all of these translations
+>> into the special 4MB mapping TSB, and we check the TSB first for TLB
+>> misses, there should be absolutely no real cost for these new checks
+>> in the TLB miss path.
+>>
+>> Reported-by: heyongli@gmail.com
+>> Signed-off-by: David S. Miller <davem@davemloft.net>
+>> ---
+>>  arch/sparc/include/asm/pgtable_64.h |   12 +++++++--
+>>  arch/sparc/kernel/ktlb.S            |   42
+>> ++++++++++++++++++++++++++++++---
+>>  arch/sparc/mm/init_64.c             |   43
+>> +++++++++++++++++++---------------
+>>  arch/sparc/mm/init_64.h             |    7 ++++-
+>>  4 files changed, 76 insertions(+), 28 deletions(-)
+>>
+>> diff --git a/arch/sparc/include/asm/pgtable_64.h
+>> b/arch/sparc/include/asm/pgtable_64.h
+>> index b049abf..0ff92fa 100644
+>> --- a/arch/sparc/include/asm/pgtable_64.h
+>> +++ b/arch/sparc/include/asm/pgtable_64.h
+>> @@ -726,11 +726,17 @@ extern unsigned long pte_file(pte_t);
+>>  extern pte_t pgoff_to_pte(unsigned long);
+>>  #define PTE_FILE_MAX_BITS    (64UL - PAGE_SHIFT - 1UL)
+>>
+>> -extern unsigned long *sparc64_valid_addr_bitmap;
+>> +extern unsigned long sparc64_valid_addr_bitmap[];
+>>
+>>  /* Needs to be defined here and not in linux/mm.h, as it is arch dependent
+>> */
+>> -#define kern_addr_valid(addr)        \
+>> -     (test_bit(__pa((unsigned long)(addr))>>22, sparc64_valid_addr_bitmap))
+>> +static inline bool kern_addr_valid(unsigned long addr)
+>> +{
+>> +     unsigned long paddr = __pa(addr);
+>> +
+>> +     if ((paddr >> 41UL) != 0UL)
+>> +             return false;
+>> +     return test_bit(paddr >> 22, sparc64_valid_addr_bitmap);
+>> +}
+>>
+>>  extern int page_in_phys_avail(unsigned long paddr);
+>>
+>> diff --git a/arch/sparc/kernel/ktlb.S b/arch/sparc/kernel/ktlb.S
+>> index cef8def..3ea6e8c 100644
+>> --- a/arch/sparc/kernel/ktlb.S
+>> +++ b/arch/sparc/kernel/ktlb.S
+>> @@ -151,12 +151,46 @@ kvmap_dtlb_4v:
+>>        * Must preserve %g1 and %g6 (TAG).
+>>        */
+>>  kvmap_dtlb_tsb4m_miss:
+>> -     sethi           %hi(kpte_linear_bitmap), %g2
+>> -     or              %g2, %lo(kpte_linear_bitmap), %g2
+>> +     /* Clear the PAGE_OFFSET top virtual bits, shift
+>> +      * down to get PFN, and make sure PFN is in range.
+>> +      */
+>> +     sllx            %g4, 21, %g5
+>>
+>> -     /* Clear the PAGE_OFFSET top virtual bits, then shift
+>> -      * down to get a 256MB physical address index.
+>> +     /* Check to see if we know about valid memory at the 4MB
+>> +      * chunk this physical address will reside within.
+>>        */
+>> +     srlx            %g5, 21 + 41, %g2
+>> +     brnz,pn         %g2, kvmap_dtlb_longpath
+>> +      nop
+>> +
+>> +     /* This unconditional branch and delay-slot nop gets patched
+>> +      * by the sethi sequence once the bitmap is properly setup.
+>> +      */
+>> +     .globl          valid_addr_bitmap_insn
+>> +valid_addr_bitmap_insn:
+>> +     ba,pt           %xcc, 2f
+>> +      nop
+>> +     .subsection     2
+>> +     .globl          valid_addr_bitmap_patch
+>> +valid_addr_bitmap_patch:
+>> +     sethi           %hi(sparc64_valid_addr_bitmap), %g7
+>> +     or              %g7, %lo(sparc64_valid_addr_bitmap), %g7
+>> +     .previous
+>> +
+>> +     srlx            %g5, 21 + 22, %g2
+>> +     srlx            %g2, 6, %g5
+>> +     and             %g2, 63, %g2
+>> +     sllx            %g5, 3, %g5
+>> +     ldx             [%g7 + %g5], %g5
+>> +     mov             1, %g7
+>> +     sllx            %g7, %g2, %g7
+>> +     andcc           %g5, %g7, %g0
+>> +     be,pn           %xcc, kvmap_dtlb_longpath
+>> +
+>> +2:    sethi          %hi(kpte_linear_bitmap), %g2
+>> +     or              %g2, %lo(kpte_linear_bitmap), %g2
+>> +
+>> +     /* Get the 256MB physical address index. */
+>>       sllx            %g4, 21, %g5
+>>       mov             1, %g7
+>>       srlx            %g5, 21 + 28, %g5
+>> diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+>> index ed6be6b..a70a5e1 100644
+>> --- a/arch/sparc/mm/init_64.c
+>> +++ b/arch/sparc/mm/init_64.c
+>> @@ -145,7 +145,8 @@ static void __init read_obp_memory(const char *property,
+>>            cmp_p64, NULL);
+>>  }
+>>
+>> -unsigned long *sparc64_valid_addr_bitmap __read_mostly;
+>> +unsigned long sparc64_valid_addr_bitmap[VALID_ADDR_BITMAP_BYTES /
+>> +                                     sizeof(unsigned long)];
+>>  EXPORT_SYMBOL(sparc64_valid_addr_bitmap);
+>>
+>>  /* Kernel physical address base and size in bytes.  */
+>> @@ -1874,7 +1875,7 @@ static int pavail_rescan_ents __initdata;
+>>   * memory list again, and make sure it provides at least as much
+>>   * memory as 'pavail' does.
+>>   */
+>> -static void __init setup_valid_addr_bitmap_from_pavail(void)
+>> +static void __init setup_valid_addr_bitmap_from_pavail(unsigned long
+>> *bitmap)
+>>  {
+>>       int i;
+>>
+>> @@ -1897,8 +1898,7 @@ static void __init
+>> setup_valid_addr_bitmap_from_pavail(void)
+>>
+>>                               if (new_start <= old_start &&
+>>                                   new_end >= (old_start + PAGE_SIZE)) {
+>> -                                     set_bit(old_start >> 22,
+>> -                                             sparc64_valid_addr_bitmap);
+>> +                                     set_bit(old_start >> 22, bitmap);
+>>                                       goto do_next_page;
+>>                               }
+>>                       }
+>> @@ -1919,20 +1919,21 @@ static void __init
+>> setup_valid_addr_bitmap_from_pavail(void)
+>>       }
+>>  }
+>>
+>> +static void __init patch_tlb_miss_handler_bitmap(void)
+>> +{
+>> +     extern unsigned int valid_addr_bitmap_insn[];
+>> +     extern unsigned int valid_addr_bitmap_patch[];
+>> +
+>> +     valid_addr_bitmap_insn[1] = valid_addr_bitmap_patch[1];
+>> +     mb();
+>> +     valid_addr_bitmap_insn[0] = valid_addr_bitmap_patch[0];
+>> +     flushi(&valid_addr_bitmap_insn[0]);
+>> +}
+>> +
+>>  void __init mem_init(void)
+>>  {
+>>       unsigned long codepages, datapages, initpages;
+>>       unsigned long addr, last;
+>> -     int i;
+>> -
+>> -     i = last_valid_pfn >> ((22 - PAGE_SHIFT) + 6);
+>> -     i += 1;
+>> -     sparc64_valid_addr_bitmap = (unsigned long *) alloc_bootmem(i << 3);
+>> -     if (sparc64_valid_addr_bitmap = NULL) {
+>> -             prom_printf("mem_init: Cannot alloc valid_addr_bitmap.\n");
+>> -             prom_halt();
+>> -     }
+>> -     memset(sparc64_valid_addr_bitmap, 0, i << 3);
+>>
+>>       addr = PAGE_OFFSET + kern_base;
+>>       last = PAGE_ALIGN(kern_size) + addr;
+>> @@ -1941,15 +1942,19 @@ void __init mem_init(void)
+>>               addr += PAGE_SIZE;
+>>       }
+>>
+>> -     setup_valid_addr_bitmap_from_pavail();
+>> +     setup_valid_addr_bitmap_from_pavail(sparc64_valid_addr_bitmap);
+>> +     patch_tlb_miss_handler_bitmap();
+>>
+>>       high_memory = __va(last_valid_pfn << PAGE_SHIFT);
+>>
+>>  #ifdef CONFIG_NEED_MULTIPLE_NODES
+>> -     for_each_online_node(i) {
+>> -             if (NODE_DATA(i)->node_spanned_pages != 0) {
+>> -                     totalram_pages +>> -                             free_all_bootmem_node(NODE_DATA(i));
+>> +     {
+>> +             int i;
+>> +             for_each_online_node(i) {
+>> +                     if (NODE_DATA(i)->node_spanned_pages != 0) {
+>> +                             totalram_pages +>> +                                     free_all_bootmem_node(NODE_DATA(i));
+>> +                     }
+>>               }
+>>       }
+>>  #else
+>> diff --git a/arch/sparc/mm/init_64.h b/arch/sparc/mm/init_64.h
+>> index 1606387..c2f772d 100644
+>> --- a/arch/sparc/mm/init_64.h
+>> +++ b/arch/sparc/mm/init_64.h
+>> @@ -5,10 +5,13 @@
+>>   * marked non-static so that assembler code can get at them.
+>>   */
+>>
+>> -#define MAX_PHYS_ADDRESS     (1UL << 42UL)
+>> -#define KPTE_BITMAP_CHUNK_SZ (256UL * 1024UL * 1024UL)
+>> +#define MAX_PHYS_ADDRESS     (1UL << 41UL)
+>> +#define KPTE_BITMAP_CHUNK_SZ         (256UL * 1024UL * 1024UL)
+>>  #define KPTE_BITMAP_BYTES    \
+>>       ((MAX_PHYS_ADDRESS / KPTE_BITMAP_CHUNK_SZ) / 8)
+>> +#define VALID_ADDR_BITMAP_CHUNK_SZ   (4UL * 1024UL * 1024UL)
+>> +#define VALID_ADDR_BITMAP_BYTES      \
+>> +     ((MAX_PHYS_ADDRESS / VALID_ADDR_BITMAP_CHUNK_SZ) / 8)
+>>
+>>  extern unsigned long kern_linear_pte_xor[2];
+>>  extern unsigned long kpte_linear_bitmap[KPTE_BITMAP_BYTES / sizeof(unsigned
+>> long)];
+>>
+>>
+>> Dave, This also seems to fix the error I was having on the Netra X1, so far
+>> it's been up 24 hours with no issues.
+>>
+>
