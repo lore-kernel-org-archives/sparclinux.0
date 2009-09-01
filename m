@@ -1,90 +1,67 @@
-From: hyl <heyongli@gmail.com>
-Date: Thu, 24 Sep 2009 02:03:25 +0000
-Subject: Re: Linux guest domain with two vnets bound to the same vswitch
-Message-Id: <505766fa0909231903t2fe2f7b6y26d2681d6d38ef0e@mail.gmail.com>
+From: Julian Calaby <julian.calaby@gmail.com>
+Date: Tue, 01 Sep 2009 06:51:01 +0000
+Subject: Re: [PATCH 1/1] sparc,leon: Sparc-Leon SMP support
+Message-Id: <646765f40908312351v3574b542o9e483ec481f26b98@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <505766fa0909222137q217be3d0x8fc12ab467833666@mail.gmail.com>
-	 <505766fa0909230040m13e3dc34x2ceb83848767d825@mail.gmail.com>
-In-Reply-To: <505766fa0909230040m13e3dc34x2ceb83848767d825@mail.gmail.com>
+References: <1251726441-1032-1-git-send-email-konrad@gaisler.com>
+In-Reply-To: <1251726441-1032-1-git-send-email-konrad@gaisler.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, David Miller <davem@davemloft.net>
 
-From 57b549e5e4dfc8b34d66bbad7f4297a1bc81a43d Mon Sep 17 00:00:00 2001
-From: Yongli He <heyongli@gmail.com>
-Date: Thu, 24 Sep 2009 10:00:04 +0800
-Subject: [PATCH] Sun ldom vnet driver dead lock
+On Tue, Sep 1, 2009 at 16:54, Konrad Eisele<konrad@gaisler.com> wrote:
+> Julian Calaby wrote:
+>>
+>>> =A0struct leon3_irqctrl_regs_map *leon3_irqctrl_regs; /* interrupt
+>>> controller base address, initialized by amba_init() */
+>>> =A0struct leon3_gptimer_regs_map *leon3_gptimer_regs; /* timer controll=
+er
+>>> base address, initialized by amba_init() */
+>>> =A0struct amba_apb_device leon_percpu_timer_dev[16];
+>>> diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+>>> index 509b1ff..d55c255 100644
+>>> --- a/arch/sparc/mm/srmmu.c
+>>> +++ b/arch/sparc/mm/srmmu.c
+>>> @@ -2301,7 +2301,8 @@ void __init ld_mmu_srmmu(void)
+>>> =A0 =A0 =A0 BTFIXUPSET_CALL(flush_cache_mm, smp_flush_cache_mm,
+>>> BTFIXUPCALL_NORM);
+>>> =A0 =A0 =A0 BTFIXUPSET_CALL(flush_cache_range, smp_flush_cache_range,
+>>> BTFIXUPCALL_NORM);
+>>> =A0 =A0 =A0 BTFIXUPSET_CALL(flush_cache_page, smp_flush_cache_page,
+>>> BTFIXUPCALL_NORM);
+>>> - =A0 =A0 =A0 if (sparc_cpu_model !=3D sun4d) {
+>>> + =A0 =A0 =A0 if (sparc_cpu_model !=3D sun4d &&
+>>> + =A0 =A0 =A0 =A0 =A0 sparc_cpu_model !=3D sparc_leon) {
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 BTFIXUPSET_CALL(flush_tlb_all, smp_flush_tl=
+b_all,
+>>> BTFIXUPCALL_NORM);
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 BTFIXUPSET_CALL(flush_tlb_mm, smp_flush_tlb=
+_mm,
+>>> BTFIXUPCALL_NORM);
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 BTFIXUPSET_CALL(flush_tlb_range, smp_flush_=
+tlb_range,
+>>> BTFIXUPCALL_NORM);
+>>
+>> Again, doesn't seem SMP related.
+>
+> This is in srmmu.c inside a CONFIG_SMP section:
+> #ifdef CONFIG_SMP
+> =A0 =A0 =A0 =A0/* El switcheroo... */
+> =A0...
+>>> + =A0 =A0 =A0 if (sparc_cpu_model !=3D sun4d &&
+>>> + =A0 =A0 =A0 =A0 =A0 sparc_cpu_model !=3D sparc_leon) {
+> =A0...
+> #endif
 
-if 2 vnet attach to same vswitch, ldom will report
-2 same irq then lead to dead lock on the lp->lock
-or the vio->lock
+That's what I get from reading over the patch at work without access
+to the actual codebase.
 
-static irqreturn_t ldc_rx(int irq, void *dev_id){
-...
-out:
-	spin_unlock_irqrestore(&lp->lock, flags);
-           << here run with out any lock
-	send_events(lp, event_mask);
-           >> vnet evetn process will dead lock on
-           >> lp->lock or the vio->lock
+Thanks!
 
-Signed-off-by: Yongli He <heyongli@gmail.com>
----
- arch/sparc/include/asm/ldc.h |    1 +
- arch/sparc64/kernel/ldc.c    |    4 ++++
- drivers/net/sunvnet.c        |    2 ++
- 3 files changed, 7 insertions(+), 0 deletions(-)
+--=20
 
-diff --git a/arch/sparc/include/asm/ldc.h b/arch/sparc/include/asm/ldc.h
-index bdb524a..dd2b30f 100644
---- a/arch/sparc/include/asm/ldc.h
-+++ b/arch/sparc/include/asm/ldc.h
-@@ -20,6 +20,7 @@ extern void ldom_power_off(void);
-  */
- struct ldc_channel_config {
- 	void (*event)(void *arg, int event);
-+	spinlock_t *serial_lock;
+Julian Calaby
 
- 	u32			mtu;
- 	unsigned int		rx_irq;
-diff --git a/arch/sparc64/kernel/ldc.c b/arch/sparc64/kernel/ldc.c
-index a6b75cd..72b9501 100644
---- a/arch/sparc64/kernel/ldc.c
-+++ b/arch/sparc64/kernel/ldc.c
-@@ -892,9 +892,13 @@ handshake_complete:
- 	}
-
- out:
-+	if(lp->cfg.serial_lock)
-+		spin_lock_irqsave(lp->cfg.serial_lock, flags);
- 	spin_unlock_irqrestore(&lp->lock, flags);
-
- 	send_events(lp, event_mask);
-+	if(lp->cfg.serial_lock)
-+        	spin_unlock_irqrestore(lp->cfg.serial_lock, flags);
-
- 	return IRQ_HANDLED;
- }
-diff --git a/drivers/net/sunvnet.c b/drivers/net/sunvnet.c
-index 6415ce1..e58f9da 100644
---- a/drivers/net/sunvnet.c
-+++ b/drivers/net/sunvnet.c
-@@ -1117,11 +1117,13 @@ static struct vnet * __devinit
-vnet_find_parent(struct mdesc_handle *hp,
-
- 	return vnet_find_or_create(local_mac);
- }
-+static spinlock_t event_lock=__SPIN_LOCK_UNLOCKED("vnet_event");
-
- static struct ldc_channel_config vnet_ldc_cfg = {
- 	.event		= vnet_event,
- 	.mtu		= 64,
- 	.mode		= LDC_MODE_UNRELIABLE,
-+	.serial_lock	= &event_lock,
- };
-
- static struct vio_driver_ops vnet_vio_ops = {
--- 
-1.5.5.1.dirty
+Email: julian.calaby@gmail.com
+.Plan: http://sites.google.com/site/juliancalaby/
