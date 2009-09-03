@@ -1,97 +1,66 @@
-From: =?ISO-8859-1?Q?S=E9bastien_Bernard?= <seb@frankengul.org>
-Date: Mon, 07 Sep 2009 20:12:53 +0000
-Subject: Re: Cassini problem
-Message-Id: <4AA56945.3070305@frankengul.org>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 03 Sep 2009 09:54:25 +0000
+Subject: Re: SILO & Ext4
+Message-Id: <20090903.025425.253601562.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-S=E9bastien Bernard a =E9crit :
-> I'm running on linux-image-2.6.29-2-sparc64-smp on an U60 (2x Uii=20
-> 450mhz).
->
-> I'm on SID and I had quite a lot of problems with my ethernet controler.
->
-> Here's the references of the controler :
-> 0000:00:02.0 Ethernet controller: National Semiconductor Corporation=20
-> DP83065 [Saturn] 10/100/1000 Ethernet Controller (rev 30)
->
-> PCI Id is 100b:0035.
->
-> The Kernel reported the following problem :
-> [1684214.274488] eth1: Link down
-> [1684214.274512] eth1:reset called in cas_abnormal_irq [0xa721000]
-> [1684220.889911] eth1: Link up at 1000 Mbps, full-duplex.
-> [1684220.889937] eth1: Pause is enabled (rxfifo: 16384 off: 13312 on:=20
-> 11776)
-> [1684221.081675] eth1: Link down
-> [1684221.081694] eth1:reset called in cas_abnormal_irq [0x21000]
-> [1684236.586802] eth1: Link up at 100 Mbps, full-duplex.
-> [1684236.586826] eth1: Pause is enabled (rxfifo: 16384 off: 13312 on:=20
-> 11776)
-> [1707485.501429] eth1: Link down
-> [1707485.501448] eth1:reset called in cas_abnormal_irq [0x4621000]
-> [1707505.313339] eth1: Link up at 1000 Mbps, full-duplex.
-> [1707505.313363] eth1: Pause is enabled (rxfifo: 16384 off: 13312 on:=20
-> 11776)
-> [1707505.321494] eth1: Link down
-> [1707505.321511] eth1:reset called in cas_abnormal_irq [0x21000]
-> [1707509.789804] eth1: Link up at 100 Mbps, full-duplex.
-> [1707509.789826] eth1: Pause is enabled (rxfifo: 16384 off: 13312 on:=20
-> 11776)
->
->
-> The machine was working ok with 2.6.28-7-smp kernel.
-> Transfert are slow (~ 4-7 MBytes/s) and pauses at regular times.
->
-> On 2.6.30-1, it goes worse. Link goes down and up every few seconds,=20
-> making the work
-> a nightmare.
->
-> Is this a know problem or should I report a bug for this ?
->
->    Seb
->
-> --=20
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
+Date: Mon, 8 Jun 2009 01:01:00 +0100 (BST)
 
-I did a little investigation. The driver involved is the cassini.
-The updated driver doesn't want to negociate 1000 Mbps full duplex as=20
-before.
-Did a manual compile of a vanilla 2.6.30.5 kernel and got the same results.
-100Mbp/FD negociation.
-Each time the link is loaded (a.k.a. transfer a consequent file), the=20
-transfer stall several times and
-overall I get a 3Mbyte/s average transfer (before I was getting full=20
-100mb link saturated i.e. near 11Mbytes/s).
-During the transfer, one can see one the console the following warnings :
+> Last time I looked at this, the primary problem was not where the
+> kernel was loaded but that it only relocated the first 3 MB of kernel
+> thus restricting the kernel to a maximum size of 3 MB
+> (.text+.data). It is a relativly simple patch to head.S to change this
+> to 8 MB which sould be enough to provide a usable kernel.
 
-[ 7698.289666] eth1: Link down
-[ 7698.294095] eth1:reset called in cas_abnormal_irq [0xfa1000]
-[ 7709.312133] eth1: Link up at 1000 Mbps, full-duplex.
-[ 7709.316612] eth1: Pause is enabled (rxfifo: 16384 off: 13312 on: 11776)
-[ 7710.247998] eth1: Link down
-[ 7710.252406] eth1:reset called in cas_abnormal_irq [0x5a1000]
-[ 7714.656684] eth1: Link up at 1000 Mbps, full-duplex.
-[ 7714.661096] eth1: Pause is enabled (rxfifo: 16384 off: 13312 on: 11776)
-[ 7714.878336] eth1: Link down
-[ 7714.882719] eth1:reset called in cas_abnormal_irq [0xa1000]
-[ 7719.285192] eth1: Link up at 1000 Mbps, full-duplex.
-[ 7719.289763] eth1: Pause is enabled (rxfifo: 16384 off: 13312 on: 11776)
-[ 7719.582541] eth1: Link down
-[ 7719.587005] eth1:reset called in cas_abnormal_irq [0x321000]
-[ 7723.989687] eth1: Link up at 100 Mbps, full-duplex.
-[ 7723.994047] eth1: Pause is enabled (rxfifo: 16384 off: 13312 on: 11776)
+This is true on sun4c, and it's controlled by this constant
+0x300000 loaded into %g5 in arch/sparc/kernel/head_32.S:
 
+sun4c_remap:
+		mov	0, %g3			! source base
+		set	KERNBASE, %g4		! destination base
+		set	0x300000, %g5		! upper bound 3MB
+		mov	1, %l6
+		sll	%l6, 18, %l6		! sun4c mmu segmap size
 
-I suspect either :  =20
-    a- some kind of firmware misbehavior since the 2.6.28 which was=20
-working ok got the same problem.
-    b- a hardware problem
+(same applies to the sun4_mutant_remap and sun4_normal_remap code)
 
-    Seb
+For sun4m/sun4d SRMMU, we inherit up to 16MB of whatever is
+mapped at address 0x0.  This corresponds to one PGD entry
+in the PGD table for context 0, and is copied by the following
+for non-Viking srmmu chips:
 
+srmmu_nviking:
+		set	AC_M_CTPR, %g1
+		lda	[%g1] ASI_M_MMUREGS, %g1	! get ctx table ptr
+		sll	%g1, 0x4, %g1			! make physical addr
+		lda	[%g1] ASI_M_BYPASS, %g1		! ptr to level 1 pg_table
+		srl	%g1, 0x4, %g1
+		sll	%g1, 0x8, %g1			! make phys addr for l1 tbl
+
+		lda	[%g1] ASI_M_BYPASS, %g2		! get level1 entry for 0x0
+		add	%g1, KERNBASE >> (SRMMU_PGDIR_SHIFT - 2), %g3
+		sta	%g2, [%g3] ASI_M_BYPASS		! place at KERNBASE entry
+
+So for the sun4c case, yes, increasing the 3MB constant in the
+sun4c_remap code would help us get further here.
+
+And srmmu should already be propagating up to 16MB of mappings.
+
+But the next issue is to make sure that the code in the memory
+management initialization also is ready to handle this mapping
+inheritance properly.
+
+For SRMMU, it seems to me that arch/sparc/mm/srmmu.c:map_kernel()
+is doing this (note that: KERNBASE = PAGE_OFFSET).
+
+For SUN4C, the arch/sparc/mm/sun4c.c:sun4c_init_map_kernelprom() code
+looks like it locks into the TLB everything up to symbol &_end so
+that should be good too.
+
+But of course this has been tried I guess and it doesn't work so
+simply like that for whatever reason :-)
