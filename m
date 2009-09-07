@@ -1,116 +1,94 @@
-From: =?ISO-8859-1?Q?S=E9bastien_Bernard?= <sbernard@nerim.net>
-Date: Sun, 06 Sep 2009 21:21:42 +0000
+From: David Miller <davem@davemloft.net>
+Date: Mon, 07 Sep 2009 00:52:59 +0000
 Subject: Re: Sparc release requalification
-Message-Id: <4AA427E6.5000801@nerim.net>
+Message-Id: <20090906.175259.243140550.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <4AA427E6.5000801@nerim.net>
+In-Reply-To: <4AA427E6.5000801@nerim.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-On Sat, 22 Aug 2009 21:32:43 +0100, Josip Rodin Wrote :
-> [dropping debian-release, as it's not very interesting for them anymore]
->
-> On Wed, Aug 19, 2009 at 12:00:54AM +0200, Josip Rodin wrote:
-> > On Tue, Aug 18, 2009 at 10:30:29PM +0100, Jurij Smakov wrote:
-> > > > > the sid kernels are not booting on my machine (SunBlade 1000), and I have
-> > > > > an independent confirmation from someone with a similar machine that they
-> > > > > are experiencing similar problems - I'm going to file a bug for that if
-> > > > > the situation does not improve with the next kernel upload.
-> > > > 
-> > > > What seems to be the problem? FWIW the prtconfs.git repo has two SB1000
-> > > > entries one of which is davem's, so we should have upstream support for
-> > > > this at least.
-> > > 
-> > > After the message mentioning the console handoff from earlyprom to a real
-> > > console it proceeds to clear the screen, however after a couple of lines
-> > > it hangs.
-> > 
-> > Did you try to avoid the handoff? That patch davem keeps telling people to
-> > try when something like this happens:
-> > 
-> > --- a/arch/sparc64/kernel/setup.c
-> > +++ b/arch/sparc64/kernel/setup.c
-> > @@ -82,7 +82,7 @@ unsigned long cmdline_memory_size = 0;
-> >  static struct console prom_early_console = {
-> >         .name =         "earlyprom",
-> >         .write =        prom_console_write,
-> > -       .flags =        CON_PRINTBUFFER | CON_BOOT | CON_ANYTIME,
-> > +       .flags =        CON_PRINTBUFFER | CON_ANYTIME,
-> >         .index =        -1,
-> >  };
->
-> I tried this patch, and the box still hangs early during boot with the
-> latest kernel from unstable, even though console handover does not
-> appear to be happening anymore. Here's the last screenful of messages
-> I see on the serial console:
->
-> [    0.000000] Kernel: Using 2 locked TLB entries for main kernel image.
-> [    0.000000] Remapping the kernel... done.
-> [    0.000000] OF stdout device is: /pci@8,700000/ebus@5/serial@1,400000:a
-> [    0.000000] PROM: Built device tree with 73716 bytes of memory.
-> [    0.000000] Top of RAM: 0x7fede000, Total RAM: 0x7fed6000
-> [    0.000000] Memory hole size: 0MB
-> [    0.000000] [0000000200000000-fffff80000400000] page_structs1072 node=0 entry=0/0
-> [    0.000000] [0000000200000000-fffff80000800000] page_structs1072 node=0 entry=1/0
-> [    0.000000] [0000000200800000-fffff80000c00000] page_structs1072 node=0 entry=2/0
-> [    0.000000] [0000000200800000-fffff80001000000] page_structs1072 node=0 entry=3/0
-> [    0.000000] Zone PFN ranges:
-> [    0.000000]   Normal   0x00000000 -> 0x0003ff6f
-> [    0.000000] Movable zone start PFN for each node
-> [    0.000000] early_node_map[3] active PFN ranges
-> [    0.000000]     0: 0x00000000 -> 0x0003f7ff
-> [    0.000000]     0: 0x0003f800 -> 0x0003ff5d
-> [    0.000000]     0: 0x0003ff60 -> 0x0003ff6f
-> [    0.000000] Booting Linux...
-> [    0.000000] Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 259948
-> [    0.000000] Kernel command line: root=LABEL=root ro
-> [    0.000000] NR_IRQS:255
-> [    0.000000] PID hash table entries: 4096 (order: 12, 32768 bytes)
-> [    0.000000] clocksource: mult[c80000] shift[16]
-> [    0.000000] clockevent: mult[147ae14] shift[32]
-> [   57.812617] Console: colour dummy device 80x25
-> [   57.865696] console [tty0] enabled
-> [   60.031281] Dentry cache hash table entries: 262144 (order: 8, 2097152 bytes)
-> [   60.120115] Inode-cache hash table entries: 131072 (order: 7, 1048576 bytes)
-> [   60.311406] Memory: 2062032k available (3304k kernel code, 1248k data, 208k init) [fffff80000000000,000000007fede000]
-> [   60.516890] Calibrating delay using timer specific routine.. 10.00 BogoMIPS (lpj 015)
-> [   60.611164] Security Framework initialized
-> [   60.659890] SELinux:  Disabled at boot.
-> [   60.705771] Mount-cache hash table entries: 512
-> [   60.760489] Initializing cgroup subsys ns
-> [   60.807803] Initializing cgroup subsys cpuacct
-> [   60.860920] Initializing cgroup subsys devices
-> [   60.914042] Initializing cgroup subsys freezer
-> [   60.967166] Initializing cgroup subsys net_cls
-> [   61.022918] CPU 1: synchronized TICK with master CPU (last diff 0 cycles, maxerr 5 cycles)
-> [   61.022933] Brought up 2 CPUs
-> [   61.024050] net_namespace: 1936 bytes
-> [   61.200137] regulator: core version 0.5
-> [   61.245754] NET: Registered protocol family 16
-> [   61
->
-> It just hangs right there, with the last string only partially displayed
-> and cursor blinking right after '61'.
->
-> Best regards,
-> -- 
-> Jurij Smakov                                           jurij@wooyd.org
-> Key: http://www.wooyd.org/pgpkey/                      KeyID: C99E03CC
->
->   
-I think you hit the same bug as I do on my V240 (same hardware I think).
-Please Check this patch and see if it resolves your problem :
-http://marc.info/?l=linux-sparc&m3922959800843&w=2 
-<http://marc.info/?l=linux-sparc&m3922959800843&w=2>
+From: S=E9bastien Bernard <sbernard@nerim.net>
+Date: Sun, 06 Sep 2009 23:21:42 +0200
 
+> David said, he'll look this bug later. I'll need to remind him.
 
-You can also check the whole thread. At the present time, the kernel 
-still freezes if this patch is not applied.
-Unfortunately, all kernel now from debian or derived distribution are 
-hanging my machine. There is no workaroung but
-disabling the NMI watchdog by this patch.
+In Linus's tree is the following fix for this.  I'll submit it
+to -stable when I get a chance.
 
-David said, he'll look this bug later. I'll need to remind him.
+sparc64: Kill spurious NMI watchdog triggers by increasing limit to 30 seco=
+nds.
 
-Seb
+This is a compromise and a temporary workaround for bootup NMI
+watchdog triggers some people see with qla2xxx devices present.
+
+This happens when, for example:
+
+CPU 0 is in the driver init and looping submitting mailbox commands to
+load the firmware, then waiting for completion.
+
+CPU 1 is receiving the device interrupts.  CPU 1 is where the NMI
+watchdog triggers.
+
+CPU 0 is submitting mailbox commands fast enough that by the time CPU
+1 returns from the device interrupt handler, a new one is pending.
+This sequence runs for more than 5 seconds.
+
+The problematic case is CPU 1's timer interrupt running when the
+barrage of device interrupts begin.  Then we have:
+
+	timer interrupt
+	return for softirq checking
+	pending, thus enable interrupts
+
+		 qla2xxx interrupt
+		 return
+		 qla2xxx interrupt
+		 return
+		 ... 5+ seconds pass
+		 final qla2xxx interrupt for fw load
+		 return
+
+	run timer softirq
+	return
+
+At some point in the multi-second qla2xxx interrupt storm we trigger
+the NMI watchdog on CPU 1 from the NMI interrupt handler.
+
+The timer softirq, once we get back to running it, is smart enough to
+run the timer work enough times to make up for the missed timer
+interrupts.
+
+However, the NMI watchdogs (both x86 and sparc) use the timer
+interrupt count to notice the cpu is wedged.  But in the above
+scenerio we'll receive only one such timer interrupt even if we last
+all the way back to running the timer softirq.
+
+The default watchdog trigger point is only 5 seconds, which is pretty
+low (the softwatchdog triggers at 60 seconds).  So increase it to 30
+seconds for now.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/kernel/nmi.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/sparc/kernel/nmi.c b/arch/sparc/kernel/nmi.c
+index 2c0cc72..b75bf50 100644
+--- a/arch/sparc/kernel/nmi.c
++++ b/arch/sparc/kernel/nmi.c
+@@ -103,7 +103,7 @@ notrace __kprobes void perfctr_irq(int irq, struct pt_r=
+egs *regs)
+ 	}
+ 	if (!touched && __get_cpu_var(last_irq_sum) =3D sum) {
+ 		local_inc(&__get_cpu_var(alert_counter));
+-		if (local_read(&__get_cpu_var(alert_counter)) =3D 5 * nmi_hz)
++		if (local_read(&__get_cpu_var(alert_counter)) =3D 30 * nmi_hz)
+ 			die_nmi("BUG: NMI Watchdog detected LOCKUP",
+ 				regs, panic_on_timeout);
+ 	} else {
+--=20
+1.6.4.2
+
