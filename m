@@ -1,41 +1,36 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 07 Sep 2009 23:51:21 +0000
+From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
+Date: Wed, 09 Sep 2009 13:04:03 +0000
 Subject: Re: SunFire V240 hangs
-Message-Id: <20090907.165121.16205325.davem@davemloft.net>
+Message-Id: <20090909130403.GC13248@lemon.iwr.uni-heidelberg.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20090408200711.GA1142@frankengul.org>
 In-Reply-To: <20090408200711.GA1142@frankengul.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
-Date: Mon, 7 Sep 2009 16:19:22 +0200
+On Mon, Sep 07, 2009 at 04:51:21PM -0700, David Miller wrote:
+> > Any other patches I can try (or what else) ?
+> 
+> So turning NMI watchdog off entirely doesn't solve it.
+> 
+> Oh well.  I'm going to be honest with you guys, that until I
+> can reproduce that problem myself here locally it's too heavy
+> of a bug for me to fix just going back and forth with someone
+> with debug patches.
 
-> On Sun, Sep 06, 2009 at 11:48:05PM +0200, Sbastien Bernard wrote:
->> David Miller a =E9crit :
->> >From: S=E9bastien Bernard <seb@sfrdev.fr>
->> >Date: Tue, 28 Apr 2009 14:52:54 +0200
->> >
->> > =20
->> >>Unfortunately, this kernel hangs in the same way as the others.
->> >>Same place, same symptom.
-> ...
->> Hi, the problem is still present in the 2.6.30 kernel and, since=20
->> distributions are
->> pushing new kernels, I'm now unable to boot any kernel released either=20
->> by debian or Ubuntu.
->=20
-> tried 2.6.30.5 on my Sun Fire 880 (uses qla2xxx) with the nmi patches=20
-> (see below), but the kernel still hangs after the famous=20
-> "NET: Registered protocol family 16" line.
->=20
-> Any other patches I can try (or what else) ?
+Would it help you to have rsc (remote serial console) access to a
+SunFire 480 here for remote debugging and restarting of the machine ?
 
-So turning NMI watchdog off entirely doesn't solve it.
+If you are interested, I'll try to find out how to set up that
+beast for you (any pointers from others how to do that are welcome).
 
-Oh well.  I'm going to be honest with you guys, that until I
-can reproduce that problem myself here locally it's too heavy
-of a bug for me to fix just going back and forth with someone
-with debug patches.
+Thanks,
+  Hermann
+
+-- 
+Netzwerkadministration/Zentrale Dienste, Interdiziplinaeres 
+Zentrum fuer wissenschaftliches Rechnen der Universitaet Heidelberg
+IWR; INF 368; 69120 Heidelberg; Tel: (06221)54-8236 Fax: -5224
+Email: Hermann.Lauer@iwr.uni-heidelberg.de
