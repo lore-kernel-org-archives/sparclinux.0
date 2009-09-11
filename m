@@ -1,31 +1,32 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 25 Sep 2009 21:31:09 +0000
-Subject: [GIT]: Sparc
-Message-Id: <20090925.143109.189133359.davem@davemloft.net>
+From: Josip Rodin <joy@entuzijast.net>
+Date: Fri, 11 Sep 2009 22:38:50 +0000
+Subject: blackbird errata workaround
+Message-Id: <20090911223849.GA3160@orion.carnet.hr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080421.153231.108090227.davem@davemloft.net>
-In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
+Hi,
 
-Please pull to get this sparc bug fix.
+Just a small glitch:
 
-Thanks!
+% grep -r smp_percpu_timer_interrupt arch/sparc/ -B2 -A2
+arch/sparc/kernel/syscalls.S-
+arch/sparc/kernel/syscalls.S-   /* Blackbird errata workaround.  See commentary in
+arch/sparc/kernel/syscalls.S:    * smp.c:smp_percpu_timer_interrupt() for more
+arch/sparc/kernel/syscalls.S-    * information.
+arch/sparc/kernel/syscalls.S-    */
+--
+arch/sparc/include/asm/system_64.h-
+arch/sparc/include/asm/system_64.h-/* Blackbird errata workaround.  See commentary in
+arch/sparc/include/asm/system_64.h: * arch/sparc64/kernel/smp.c:smp_percpu_timer_interrupt()
+arch/sparc/include/asm/system_64.h- * for more information.
+arch/sparc/include/asm/system_64.h- */
 
-The following changes since commit df58bee21ed218cb7dfb561a590b1bd2a99531cf:
-  Linus Torvalds (1):
-        Merge branch 'x86-mce-for-linus' of git://git.kernel.org/.../tip/linux-2.6-tip
+It looks like that information is now in tick_add_compare() in
+arch/sparc/kernel/time_64.c so these two references should be updated.
 
-are available in the git repository at:
-
-  master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
-
-David S. Miller (1):
-      sparc64: vio: Kill BUILD_BUG_ON() in vio_dring_avail().
-
- arch/sparc/include/asm/vio.h |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+-- 
+     2. That which causes joy or happiness.
