@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 04 Sep 2009 12:27:35 +0000
+Date: Sat, 12 Sep 2009 04:01:56 +0000
 Subject: [GIT]: Sparc
-Message-Id: <20090904.052735.120899977.davem@davemloft.net>
+Message-Id: <20090911.210156.127191632.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080421.153231.108090227.davem@davemloft.net>
 In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
@@ -12,24 +12,104 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-Please pull to get these two sparc bug fixes.
+Items of note here:
 
-Thanks!
+1) Initial LEON processor support, from Konrad Eisele
 
-The following changes since commit 37d0892c5a94e208cf863e3b7bac014edee4346d:
-  Ian Kent (1):
-        autofs4 - fix missed case when changing to use struct path
+2) Basic SW perf counter support from Jens Axboe
+
+3) Very simple HW counter support for UltraSPARC-IIIi and Niagara-2
+
+Please pull, thanks a lot!
+
+The following changes since commit 86d710146fb9975f04c505ec78caa43d227c1018:
+  Linus Torvalds (1):
+        Merge git://git.linux-nfs.org/projects/trondmy/nfs-2.6
 
 are available in the git repository at:
 
-  master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
+  master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-next-2.6.git master
 
-David S. Miller (2):
-      sparc64: Kill spurious NMI watchdog triggers by increasing limit to 30 seconds.
-      sparc64: Fix bootup with mcount in some configs.
+Alexey Dobriyan (2):
+      sparc64: cheaper asm/uaccess.h inclusion
+      sparc: convert /proc/io_map, /proc/dvma_map to seq_file
 
- arch/sparc/kernel/irq_64.c |    2 +-
- arch/sparc/kernel/nmi.c    |    2 +-
- arch/sparc/prom/misc_64.c  |    2 +-
- arch/sparc/prom/printf.c   |    7 +++----
- 4 files changed, 6 insertions(+), 7 deletions(-)
+David S. Miller (13):
+      Merge branch 'master' of /home/davem/src/GIT/linux-2.6/
+      sparc64: Manage NMI watchdog enabling like x86.
+      sparc64: Kill unnecessary cast in profile_timer_exceptions_notify().
+      sparc64: Make touch_nmi_watchdog() actually work.
+      sparc64: Provide extern decls for sparc_??u_type strings.
+      sparc64: Use nmi_enter() and nmi_exit(), as needed.
+      sparc64: Implement a real set_perf_counter_pending().
+      sparc64: Initial hw perf counter support.
+      sparc64: Provide hypervisor tracing bit support for perf counters.
+      sparc64: Provide a way to specify a perf counter overflow IRQ enable bit.
+      sparc64: Perf counter 'nop' event is not constant.
+      sparc64: Initial niagara2 perf counter support.
+      Merge branch 'master' of /home/davem/src/GIT/linux-2.6/
+
+Jaswinder Singh Rajput (1):
+      SPARC: fix duplicate declaration
+
+Jens Axboe (1):
+      sparc: add basic support for 'perf'
+
+Jurij Smakov (1):
+      sparc64: build compressed image (zImage) by default
+
+Konrad Eisele (5):
+      sparc,leon: CONFIG_SPARC_LEON option and leon specific files.
+      sparc,leon: Redefine MMU register access asi if CONFIG_LEON
+      sparc,leon: Introduce the sparc-leon CPU type.
+      sparc,leon: Added support for AMBAPP bus.
+      sparc, leon: sparc-leon specific SRMMU initialization and bootup fixes.
+
+ arch/sparc/Kconfig                    |   13 +
+ arch/sparc/Makefile                   |   12 +-
+ arch/sparc/boot/Makefile              |    3 +
+ arch/sparc/include/asm/asi.h          |    4 +
+ arch/sparc/include/asm/leon.h         |  362 +++++++++++++++++++++
+ arch/sparc/include/asm/leon_amba.h    |  263 ++++++++++++++++
+ arch/sparc/include/asm/machines.h     |    6 +-
+ arch/sparc/include/asm/nmi.h          |    5 +-
+ arch/sparc/include/asm/perf_counter.h |   14 +
+ arch/sparc/include/asm/pgtsrmmu.h     |    4 +
+ arch/sparc/include/asm/prom.h         |    3 +
+ arch/sparc/include/asm/system_32.h    |    1 +
+ arch/sparc/include/asm/system_64.h    |    4 +
+ arch/sparc/include/asm/types.h        |   27 +--
+ arch/sparc/include/asm/uaccess_64.h   |    2 +-
+ arch/sparc/include/asm/unistd.h       |    3 +-
+ arch/sparc/kernel/Makefile            |    5 +
+ arch/sparc/kernel/cpu.c               |    5 +
+ arch/sparc/kernel/head_32.S           |    5 +
+ arch/sparc/kernel/idprom.c            |    2 +
+ arch/sparc/kernel/ioport.c            |   32 ++-
+ arch/sparc/kernel/irq_32.c            |    5 +
+ arch/sparc/kernel/leon_kernel.c       |  203 ++++++++++++
+ arch/sparc/kernel/nmi.c               |   72 +++--
+ arch/sparc/kernel/of_device_32.c      |   40 +++
+ arch/sparc/kernel/pcr.c               |   14 +-
+ arch/sparc/kernel/perf_counter.c      |  557 +++++++++++++++++++++++++++++++++
+ arch/sparc/kernel/prom_32.c           |   33 ++
+ arch/sparc/kernel/prom_common.c       |   10 +-
+ arch/sparc/kernel/setup_32.c          |    5 +
+ arch/sparc/kernel/sysfs.c             |    1 +
+ arch/sparc/kernel/systbls_32.S        |    2 +-
+ arch/sparc/kernel/systbls_64.S        |    4 +-
+ arch/sparc/mm/Makefile                |    1 +
+ arch/sparc/mm/init_32.c               |    4 +
+ arch/sparc/mm/leon_mm.c               |  260 +++++++++++++++
+ arch/sparc/mm/loadmmu.c               |    1 +
+ arch/sparc/mm/srmmu.c                 |   53 +++-
+ arch/sparc/oprofile/init.c            |    4 +-
+ samples/kprobes/kretprobe_example.c   |    1 +
+ tools/perf/perf.h                     |    6 +
+ 41 files changed, 1981 insertions(+), 70 deletions(-)
+ create mode 100644 arch/sparc/include/asm/leon.h
+ create mode 100644 arch/sparc/include/asm/leon_amba.h
+ create mode 100644 arch/sparc/include/asm/perf_counter.h
+ create mode 100644 arch/sparc/kernel/leon_kernel.c
+ create mode 100644 arch/sparc/kernel/perf_counter.c
+ create mode 100644 arch/sparc/mm/leon_mm.c
