@@ -1,50 +1,39 @@
-From: Josip Rodin <joy@entuzijast.net>
-Date: Mon, 14 Sep 2009 12:40:22 +0000
+From: =?ISO-8859-15?Q?S=E9bastien_Bernard?= <seb@frankengul.org>
+Date: Mon, 14 Sep 2009 13:25:19 +0000
 Subject: Re: Sparc release requalification
-Message-Id: <20090914124022.GA24872@orion.carnet.hr>
+Message-Id: <4AAE443F.7020400@frankengul.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4AA427E6.5000801@nerim.net>
 In-Reply-To: <4AA427E6.5000801@nerim.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-On Mon, Sep 14, 2009 at 02:36:48PM +0200, Josip Rodin wrote:
-> > > 2) Try a UP kernel build, does it work even with all of the NMI
-> > >    bits enabled on this machine?
-> > 
-> > Will try and report shortly.
-> 
-> It seems to work just fine without SMP.
+David Miller a =E9crit :
+>
+> 1) Give me the output of /proc/cpuinfo
+>
+> 2) Try a UP kernel build, does it work even with all of the NMI
+>    bits enabled on this machine?
+>
+> Thanks.
+>
+>
+>  =20
+Here's the cpuinfo from a 2.6.24 UP kernel :
+cpu             : TI UltraSparc IIIi (Jalapeno)
+fpu             : UltraSparc IIIi integrated FPU
+prom            : OBP 4.22.33 2007/06/18 12:45
+type            : sun4u
+ncpus probed    : 2
+ncpus active    : 1
+D$ parity tl1   : 0
+I$ parity tl1   : 0
+Cpu0ClkTck      : 000000004c4b4000
+MMU Type        : Cheetah+
 
-Just in case it might matter:
+There is no hang with UP kernel.
 
---- /boot/config-2.6.31.old     2009-09-11 23:10:03.000000000 +0000
-+++ /boot/config-2.6.31 2009-09-14 12:08:04.000000000 +0000
-@@ -4 +4 @@
--# Fri Sep 11 18:23:35 2009
-+# Mon Sep 14 11:47:09 2009
-@@ -35 +35 @@
--CONFIG_LOCK_KERNEL=y
-+CONFIG_BROKEN_ON_SMP=y
-@@ -114 +113,0 @@
--CONFIG_USE_GENERIC_SMP_HELPERS=y
-@@ -131 +129,0 @@
--CONFIG_STOP_MACHINE=y
-@@ -154,2 +152 @@
--CONFIG_SMP=y
--CONFIG_NR_CPUS2
-+# CONFIG_SMP is not set
-@@ -167 +163,0 @@
--CONFIG_SPARC64_SMP=y
-@@ -171 +166,0 @@
--# CONFIG_HOTPLUG_CPU is not set
-@@ -178 +172,0 @@
--# CONFIG_NUMA is not set
-@@ -200,2 +193,0 @@
--CONFIG_SCHED_SMT=y
--CONFIG_SCHED_MC=y
+    Seb
 
--- 
-     2. That which causes joy or happiness.
