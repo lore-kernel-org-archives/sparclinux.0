@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 14 Sep 2009 10:24:56 +0000
+From: Josip Rodin <joy@entuzijast.net>
+Date: Mon, 14 Sep 2009 11:46:43 +0000
 Subject: Re: Sparc release requalification
-Message-Id: <20090914.032456.123703342.davem@davemloft.net>
+Message-Id: <20090914114643.GA12068@orion.carnet.hr>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4AA427E6.5000801@nerim.net>
 In-Reply-To: <4AA427E6.5000801@nerim.net>
@@ -10,17 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Josip Rodin <joy@entuzijast.net>
-Date: Sat, 12 Sep 2009 13:05:59 +0200
+On Mon, Sep 14, 2009 at 03:24:56AM -0700, David Miller wrote:
+> 1) Give me the output of /proc/cpuinfo
 
-> The 2.6.31 release. (Actually stable 2.6.31.y git but that's
-> currently the same.)
+cpu             : TI UltraSparc IIIi (Jalapeno)
+fpu             : UltraSparc IIIi integrated FPU
+pmu             : ultra3i
+prom            : OBP 4.11.4 2003/07/23 08:04
+type            : sun4u
+ncpus probed    : 2
+ncpus active    : 2
+D$ parity tl1   : 0
+I$ parity tl1   : 0
+Cpu0ClkTck      : 000000003bb94e80
+Cpu1ClkTck      : 000000003bb94e80
+MMU Type        : Cheetah+
+State:
+CPU0:           online
+CPU1:           online
 
-Ok:
+> 2) Try a UP kernel build, does it work even with all of the NMI
+>    bits enabled on this machine?
 
-1) Give me the output of /proc/cpuinfo
+Will try and report shortly.
 
-2) Try a UP kernel build, does it work even with all of the NMI
-   bits enabled on this machine?
-
-Thanks.
+-- 
+     2. That which causes joy or happiness.
