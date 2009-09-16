@@ -1,39 +1,105 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 18 Sep 2009 00:45:30 +0000
-Subject: Re: [PATCH] fix BUILD_BUG_ON() and a couple of bogus uses of it
-Message-Id: <20090917.174530.262030717.davem@davemloft.net>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Wed, 16 Sep 2009 09:01:17 +0000
+Subject: Re: [PATCH 0/3] /proc/kmem cleanups and hwpoison bits
+Message-Id: <10f740e80909160201l4834369s75e63fe8df0991aa@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090917.170156.152594715.davem@davemloft.net>
-	<20090917171504.649ba29b.akpm@linux-foundation.org>
-	<20090917.173154.100425957.davem@davemloft.net>
-In-Reply-To: <20090917.173154.100425957.davem@davemloft.net>
+References: <20090915021851.168285585@intel.com>
+	 <20090915120939.bcc571e1.kamezawa.hiroyu@jp.fujitsu.com>
+	 <20090915082200.GA2588@localhost>
+	 <Pine.LNX.4.64.0909151057020.26095@sister.anvils>
+In-Reply-To: <Pine.LNX.4.64.0909151057020.26095@sister.anvils>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: akpm@linux-foundation.org
-Cc: JBeulich@novell.com, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Wu Fengguang <fengguang.wu@intel.com>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Andrew Morton <akpm@linux-foundation.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@elte.hu>, Tejun Heo <tj@kernel.org>, Nick Piggin <npiggin@suse.de>, LKML <linux-kernel@vger.kernel.org>, linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org
 
-From: David Miller <davem@davemloft.net>
-Date: Thu, 17 Sep 2009 17:31:54 -0700 (PDT)
+On Tue, Sep 15, 2009 at 12:16, Hugh Dickins <hugh.dickins@tiscali.co.uk> wrote:
+> On Tue, 15 Sep 2009, Wu Fengguang wrote:
+>> On Tue, Sep 15, 2009 at 11:09:39AM +0800, KAMEZAWA Hiroyuki wrote:
+>> > On Tue, 15 Sep 2009 10:18:51 +0800
+>> > Wu Fengguang <fengguang.wu@intel.com> wrote:
+>> >
+>> > > Hi Kame,
+>> > >
+>> > > Here are 3 more kmem patches in my queue. Comments are welcome.
+>> > > If you feel good about them, I can send all recent kmem cleanup
+>> > > patches for you.
+>> > >
+>> >
+>> > This is my quick hack. But I don't want to be an obstacle for you.
+>> > So, I'll wait for your updates.
+>>
+>> Thanks. This is also a bug fix: vmalloc_to_page() will otherwise BUG()
+>> on !is_vmalloc_or_module_addr() pages.
+>>
+>> > =
+>> > Now, /dev/kmem's read/write vmalloc area doesn't do
+>> > range-check. Because vread/vwrite traverse vmalloc area list
+>> > under system-wide spinlock, it's better to avoid unnecessary
+>> > to do unnecessary calls to vread/vwrite.
+>>
+>> is_vmalloc_or_module_addr() could be put to either read_kmem()
+>> or aligned_vread(), and I'm fine with both.
+>>
+>> It looks like vread can be shared by kmem and kcore :)
+>>
+>> > And, vread/vwrite returns 0 if we accessed memory holes.
+>> > We can avoid copy-to-user in read side, we just ignore at write.
+>> >
+>> > Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+>> > ---
+>> >  drivers/char/mem.c |   27 +++++++++++++++++++--------
+>> >  1 file changed, 19 insertions(+), 8 deletions(-)
+>
+> Sorry guys, I'm picking this mail pretty much at random
+> as something to reply to.
+>
+> I'm interested to notice such work going on in drivers/char/mem.c,
+> and don't have time to join in - you interact a lot faster than I
+> manage, and I've other priorities to attend to; but thought I should
+> at least send over the patch I've been including in my private debug
+> kernels for the last couple of years (rebased to 2.6.31), which lets
+> me peek and poke into /dev/kmem as I occasionally wish.
+>
+> Warning: it may be rubbish, it may just be a hack which appeared to
+> work for me the last time I tried, on a particular address range of a
+> particular set of configurations of a particular set of architectures
+> (x86_32, x86_64, powerpc64).  I've never thought it through enough to
+> consider submitting, but it _might_ contain something useful for you
+> to factor into your own efforts.
+>
+> Sorry for chucking it over the wall to you in this way, but I guess
+> that's better than just sitting quietly on it for a few more years.
+>
+> Certainly-Not-Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+> ---
+>
+>  drivers/char/mem.c |  265 +++++++++++++++----------------------------
+>  fs/read_write.c    |    9 +
+>  2 files changed, 105 insertions(+), 169 deletions(-)
+>
+> but if completed would also remove vread() and vwrite() from
+>
+>  include/linux/vmalloc.h
+>  mm/nommu.c
+>  mm/vmalloc.c
+>
+> --- 2.6.31/drivers/char/mem.c   2009-09-09 23:13:59.000000000 +0100
+> +++ 2.6.31d/drivers/char/mem.c  2009-09-10 09:38:30.000000000 +0100
 
-> From: Andrew Morton <akpm@linux-foundation.org>
-> Date: Thu, 17 Sep 2009 17:15:04 -0700
-> 
->> There's a shortcoming in the current BUILD_BUG_ON() - it silently does
->> nothing if passed a non-constant arg.
->> 
->> I suspect that in the 2.6.31 code, that BUILD_BUG_ON() just does
->> nothing at all, and that Jan's patch is now exposing this.  It might be
->> compiler-version dependent too.
->> 
->> 
->> <tests it>
->> 
->> Yup, on base 2.6.31, this:
-> 
-> Ok, I'll have to either change this function to a macro or
-> get rid of the check.
+> -#ifdef __ARCH_HAS_NO_PAGE_ZERO_MAPPED
+> -               /* we don't have page 0 mapped on sparc and m68k.. */
 
-I can't even get GCC to see the constant evaluated by is_power_of_2().
+Is this `feature' removed?
 
-I give up, I'll just remove the BUILD_BUG_ON() entirely.
+Gr{oetje,eeting}s,
+
+						Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+							    -- Linus Torvalds
