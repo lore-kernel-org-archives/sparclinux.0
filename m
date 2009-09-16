@@ -1,105 +1,71 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Wed, 16 Sep 2009 09:01:17 +0000
+From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Date: Wed, 16 Sep 2009 11:26:36 +0000
 Subject: Re: [PATCH 0/3] /proc/kmem cleanups and hwpoison bits
-Message-Id: <10f740e80909160201l4834369s75e63fe8df0991aa@mail.gmail.com>
+Message-Id: <Pine.LNX.4.64.0909161211100.12659@sister.anvils>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="8323584-1472666607-1253100396=:12659"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090915021851.168285585@intel.com>
-	 <20090915120939.bcc571e1.kamezawa.hiroyu@jp.fujitsu.com>
-	 <20090915082200.GA2588@localhost>
-	 <Pine.LNX.4.64.0909151057020.26095@sister.anvils>
-In-Reply-To: <Pine.LNX.4.64.0909151057020.26095@sister.anvils>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Wu Fengguang <fengguang.wu@intel.com>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Andrew Morton <akpm@linux-foundation.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@elte.hu>, Tejun Heo <tj@kernel.org>, Nick Piggin <npiggin@suse.de>, LKML <linux-kernel@vger.kernel.org>, linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org
+References: <20090915021851.168285585@intel.com> 
+ <20090915120939.bcc571e1.kamezawa.hiroyu@jp.fujitsu.com> 
+ <20090915082200.GA2588@localhost>  <Pine.LNX.4.64.0909151057020.26095@sister.anvils>
+ <10f740e80909160201l4834369s75e63fe8df0991aa@mail.gmail.com>
+In-Reply-To: <10f740e80909160201l4834369s75e63fe8df0991aa@mail.gmail.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Wu Fengguang <fengguang.wu@intel.com>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Andrew Morton <akpm@linux-foundation.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@elte.hu>, Tejun Heo <tj@kernel.org>, Nick Piggin <npiggin@suse.de>, LKML <linux-kernel@vger.kernel.org>, linux-m68k@vger.kernel.org, sparclinux@vger.kernel.org
 
-On Tue, Sep 15, 2009 at 12:16, Hugh Dickins <hugh.dickins@tiscali.co.uk> wrote:
-> On Tue, 15 Sep 2009, Wu Fengguang wrote:
->> On Tue, Sep 15, 2009 at 11:09:39AM +0800, KAMEZAWA Hiroyuki wrote:
->> > On Tue, 15 Sep 2009 10:18:51 +0800
->> > Wu Fengguang <fengguang.wu@intel.com> wrote:
->> >
->> > > Hi Kame,
->> > >
->> > > Here are 3 more kmem patches in my queue. Comments are welcome.
->> > > If you feel good about them, I can send all recent kmem cleanup
->> > > patches for you.
->> > >
->> >
->> > This is my quick hack. But I don't want to be an obstacle for you.
->> > So, I'll wait for your updates.
->>
->> Thanks. This is also a bug fix: vmalloc_to_page() will otherwise BUG()
->> on !is_vmalloc_or_module_addr() pages.
->>
->> > =
->> > Now, /dev/kmem's read/write vmalloc area doesn't do
->> > range-check. Because vread/vwrite traverse vmalloc area list
->> > under system-wide spinlock, it's better to avoid unnecessary
->> > to do unnecessary calls to vread/vwrite.
->>
->> is_vmalloc_or_module_addr() could be put to either read_kmem()
->> or aligned_vread(), and I'm fine with both.
->>
->> It looks like vread can be shared by kmem and kcore :)
->>
->> > And, vread/vwrite returns 0 if we accessed memory holes.
->> > We can avoid copy-to-user in read side, we just ignore at write.
->> >
->> > Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
->> > ---
->> >  drivers/char/mem.c |   27 +++++++++++++++++++--------
->> >  1 file changed, 19 insertions(+), 8 deletions(-)
->
-> Sorry guys, I'm picking this mail pretty much at random
-> as something to reply to.
->
-> I'm interested to notice such work going on in drivers/char/mem.c,
-> and don't have time to join in - you interact a lot faster than I
-> manage, and I've other priorities to attend to; but thought I should
-> at least send over the patch I've been including in my private debug
-> kernels for the last couple of years (rebased to 2.6.31), which lets
-> me peek and poke into /dev/kmem as I occasionally wish.
->
-> Warning: it may be rubbish, it may just be a hack which appeared to
-> work for me the last time I tried, on a particular address range of a
-> particular set of configurations of a particular set of architectures
-> (x86_32, x86_64, powerpc64).  I've never thought it through enough to
-> consider submitting, but it _might_ contain something useful for you
-> to factor into your own efforts.
->
-> Sorry for chucking it over the wall to you in this way, but I guess
-> that's better than just sitting quietly on it for a few more years.
->
-> Certainly-Not-Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-> ---
->
->  drivers/char/mem.c |  265 +++++++++++++++----------------------------
->  fs/read_write.c    |    9 +
->  2 files changed, 105 insertions(+), 169 deletions(-)
->
-> but if completed would also remove vread() and vwrite() from
->
->  include/linux/vmalloc.h
->  mm/nommu.c
->  mm/vmalloc.c
->
-> --- 2.6.31/drivers/char/mem.c   2009-09-09 23:13:59.000000000 +0100
-> +++ 2.6.31d/drivers/char/mem.c  2009-09-10 09:38:30.000000000 +0100
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> -#ifdef __ARCH_HAS_NO_PAGE_ZERO_MAPPED
-> -               /* we don't have page 0 mapped on sparc and m68k.. */
+--8323584-1472666607-1253100396=:12659
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Is this `feature' removed?
+On Wed, 16 Sep 2009, Geert Uytterhoeven wrote:
+> On Tue, Sep 15, 2009 at 12:16, Hugh Dickins <hugh.dickins@tiscali.co.uk> =
+wrote:
+> > Warning: it may be rubbish, it may just be a hack which appeared to
+> > work for me the last time I tried, on a particular address range of a
+> > particular set of configurations of a particular set of architectures
+> > (x86_32, x86_64, powerpc64). =C2=A0I've never thought it through enough=
+ to
+> > consider submitting, but it _might_ contain something useful for you
+> > to factor into your own efforts.
+> >
+> > Sorry for chucking it over the wall to you in this way, but I guess
+> > that's better than just sitting quietly on it for a few more years.
+> >
+> > Certainly-Not-Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-Gr{oetje,eeting}s,
+I think that gives a good idea of the status of this patch:
+I'm not making any policy decisions here or submitting to any tree.
 
-						Geert
+> > --- 2.6.31/drivers/char/mem.c =C2=A0 2009-09-09 23:13:59.000000000 +010=
+0
+> > +++ 2.6.31d/drivers/char/mem.c =C2=A02009-09-10 09:38:30.000000000 +010=
+0
+>=20
+> > -#ifdef __ARCH_HAS_NO_PAGE_ZERO_MAPPED
+> > - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* we don't have pag=
+e 0 mapped on sparc and m68k.. */
+>=20
+> Is this `feature' removed?
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+The feature that some arches don't have page zero mapped?
+No, I could hardly change that from drivers/char/mem.c,
+and wouldn't wish to.
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-							    -- Linus Torvalds
+The feature that reading from one unmapped page gave zeroes
+and writing to it threw away what you wrote?  Yes, in making
+that patch, I was thinking that if we cope with unmapped areas
+elsewhere by returning -ENXIO, it made little sense to have
+special code to do something different for page zero.
+
+But of course there might be userspace compatibility reasons
+why that couldn't change e.g. a body of /dev/kmem users who
+would be surprised by an error right at the "start" (though
+in kmem's case, they've already had to seek to get anywhere).
+
+Take the patch as saying "hmm, I wonder if we could do it this way".
+
+Hugh
+--8323584-1472666607-1253100396=:12659--
