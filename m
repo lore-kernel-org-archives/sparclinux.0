@@ -1,98 +1,28 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 03 Sep 2009 09:36:35 +0000
-Subject: Re: NMI watchdog + NOHZ question
-Message-Id: <20090903.023635.110571297.davem@davemloft.net>
+From: Tim Abbott <tabbott@ksplice.com>
+Date: Wed, 16 Sep 2009 16:46:31 +0000
+Subject: [PATCH v2] Linker script cleanup for sparc
+Message-Id: <1253119592-19598-1-git-send-email-tabbott@ksplice.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <87bpog3clx.fsf@basil.nowhere.org>
-	<20090622.022752.219499742.davem@davemloft.net>
-	<20090623.171735.154729801.davem@davemloft.net>
-In-Reply-To: <20090623.171735.154729801.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: andi@firstfloor.org
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>, Tim Abbott <tabbott@ksplice.com>
 
-From: David Miller <davem@davemloft.net>
-Date: Tue, 23 Jun 2009 17:17:35 -0700 (PDT)
+This is an updated version of the patch series I sent in late July
+cleaning up the sparc architecture's linker scripts.  The only change is
+that it is rebased on top of Linus's current master.
 
-> I'm not exactly sure what to do about this.
+This cross-architecture linker script cleanup project is in
+preparation for adding support for building the kernel with
+-ffunction-sections -fdata-sections, which is a prerequisite for
+Ksplice.
 
-As a followup I'm going to push the following to Linus and -stable to
-work around the problem for the time being.
+	-Tim Abbott
 
-From e6617c6ec28a17cf2f90262b835ec05b9b861400 Mon Sep 17 00:00:00 2001
-From: David S. Miller <davem@davemloft.net>
-Date: Thu, 3 Sep 2009 02:35:20 -0700
-Subject: [PATCH] sparc64: Kill spurious NMI watchdog triggers by increasing limit to 30 seconds.
+Geoffrey Thomas (1):
+  sparc: Clean up linker script using new linker script macros.
 
-This is a compromise and a temporary workaround for bootup NMI
-watchdog triggers some people see with qla2xxx devices present.
-
-This happens when, for example:
-
-CPU 0 is in the driver init and looping submitting mailbox commands to
-load the firmware, then waiting for completion.
-
-CPU 1 is receiving the device interrupts.  CPU 1 is where the NMI
-watchdog triggers.
-
-CPU 0 is submitting mailbox commands fast enough that by the time CPU
-1 returns from the device interrupt handler, a new one is pending.
-This sequence runs for more than 5 seconds.
-
-The problematic case is CPU 1's timer interrupt running when the
-barrage of device interrupts begin.  Then we have:
-
-	timer interrupt
-	return for softirq checking
-	pending, thus enable interrupts
-
-		 qla2xxx interrupt
-		 return
-		 qla2xxx interrupt
-		 return
-		 ... 5+ seconds pass
-		 final qla2xxx interrupt for fw load
-		 return
-
-	run timer softirq
-	return
-
-At some point in the multi-second qla2xxx interrupt storm we trigger
-the NMI watchdog on CPU 1 from the NMI interrupt handler.
-
-The timer softirq, once we get back to running it, is smart enough to
-run the timer work enough times to make up for the missed timer
-interrupts.
-
-However, the NMI watchdogs (both x86 and sparc) use the timer
-interrupt count to notice the cpu is wedged.  But in the above
-scenerio we'll receive only one such timer interrupt even if we last
-all the way back to running the timer softirq.
-
-The default watchdog trigger point is only 5 seconds, which is pretty
-low (the softwatchdog triggers at 60 seconds).  So increase it to 30
-seconds for now.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/kernel/nmi.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/arch/sparc/kernel/nmi.c b/arch/sparc/kernel/nmi.c
-index 2c0cc72..b75bf50 100644
---- a/arch/sparc/kernel/nmi.c
-+++ b/arch/sparc/kernel/nmi.c
-@@ -103,7 +103,7 @@ notrace __kprobes void perfctr_irq(int irq, struct pt_regs *regs)
- 	}
- 	if (!touched && __get_cpu_var(last_irq_sum) = sum) {
- 		local_inc(&__get_cpu_var(alert_counter));
--		if (local_read(&__get_cpu_var(alert_counter)) = 5 * nmi_hz)
-+		if (local_read(&__get_cpu_var(alert_counter)) = 30 * nmi_hz)
- 			die_nmi("BUG: NMI Watchdog detected LOCKUP",
- 				regs, panic_on_timeout);
- 	} else {
--- 
-1.6.4.2
+ arch/sparc/kernel/vmlinux.lds.S |   75 ++++-----------------------------------
+ 1 files changed, 7 insertions(+), 68 deletions(-)
 
