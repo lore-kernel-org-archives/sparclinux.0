@@ -1,7 +1,7 @@
-From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
-Date: Wed, 16 Sep 2009 09:22:33 +0000
+From: Josip Rodin <joy@entuzijast.net>
+Date: Wed, 16 Sep 2009 12:49:00 +0000
 Subject: Re: Sparc release requalification
-Message-Id: <20090916092233.GB15341@lemon.iwr.uni-heidelberg.de>
+Message-Id: <20090916124900.GA23181@orion.carnet.hr>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4AA427E6.5000801@nerim.net>
 In-Reply-To: <4AA427E6.5000801@nerim.net>
@@ -10,31 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-tested davem's vmliux-debug on my sunfire880, hangs as usual.
+On Wed, Sep 16, 2009 at 01:14:35AM -0700, David Miller wrote:
+> >> I thought I messed up between patches and built kernels.
+> >> I realize now that I had the explanation under my nose.
+> >> Duh....
+> > 
+> > I had just recompiled and booted my SMP kernel without the dreaded
+> > PROM_CONSOLE, and yet the machine got stuck in the same place in the
+> > NMI code. I then removed initcall_debug, and it still doesn't work.
+> > What am I missing?!
+> > 
+> > The .config diff between the working UP kernel and this one is:
+> 
+> I put up the kernel image I booted with your config (sans PROM_CONSOLE)
+> at:
+> 
+> 	http://vger.kernel.org/~davem/vmlinux-debug
+> 
+> give it a try.
 
-Interresting, thougt, is when I send a xir via the rsc, after a moment
-a line "ERROR: System-Watchdog Reset" appears and the system restarts 
-- see below.
-
-Greetings,
-  Hermann
-
-...
-Memory: 4138880k available (2520k kernel code, 936k data, 184k init) [fffff80000000000,000000a0ffb1a000]
-Calibrating delay using timer specific routine.. 20.01 BogoMIPS (lpj@035)
-Mount-cache hash table entries: 512
-CPU 0: synchronized TICK with master CPU (last diff 0 cycles, maxerr 11 cycles)
-Brought up 2 CPUs
-net_namespace: 1712 bytes
-NET: Registered protocol family 16
-
-ERROR: System-Watchdog Reset
-
-Executing POST w/%o0 = 0000.0800.0101.4001
-...
+Yours works fine... I've reverted all the interim patches and rebuilt mine,
+and it still won't boot, hanging in the same place again. I don't get it.
+I'm attaching the exact .config used in my last attempt, just in case.
+diff says PROM_CONSOLE is the only change. I'll be going over your image's
+config (extracted from /proc/config.gz).
 
 -- 
-Netzwerkadministration/Zentrale Dienste, Interdiziplinaeres 
-Zentrum fuer wissenschaftliches Rechnen der Universitaet Heidelberg
-IWR; INF 368; 69120 Heidelberg; Tel: (06221)54-8236 Fax: -5224
-Email: Hermann.Lauer@iwr.uni-heidelberg.de
+     2. That which causes joy or happiness.
