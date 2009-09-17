@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 16 Sep 2009 23:49:34 +0000
+Date: Thu, 17 Sep 2009 00:07:34 +0000
 Subject: Re: Sparc release requalification
-Message-Id: <20090916.164934.34045194.davem@davemloft.net>
+Message-Id: <20090916.170734.187290451.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4AA427E6.5000801@nerim.net>
 In-Reply-To: <4AA427E6.5000801@nerim.net>
@@ -24,7 +24,7 @@ Date: Thu, 17 Sep 2009 01:29:37 +0200
 > 
 > Oh sorry, standard attachment error :) Now it's attached.
 
-I built my kernel using v2.6.30.x -stable FWIW.
-
-I'll try straight 2.6.31 with your config.  I wonder if we're
-in the territory of some compiler issue.
+BTW, while we're on the topic of configurations, dists should use a
+CONFIG_NR_CPUS value of at least 256 as that's the highest cpu count
+out there on real sparc64 systems (Bartoka 4 socket Niagara-T2+, 64
+cpus per socket, 4 * 64 = 256).
