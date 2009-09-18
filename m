@@ -1,20 +1,20 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Fri, 18 Sep 2009 00:18:10 +0000
+From: David Miller <davem@davemloft.net>
+Date: Fri, 18 Sep 2009 00:31:54 +0000
 Subject: Re: [PATCH] fix BUILD_BUG_ON() and a couple of bogus uses of it
-Message-Id: <20090917171810.f675c8f2.akpm@linux-foundation.org>
+Message-Id: <20090917.173154.100425957.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4A8AEBFD0200007800010580@vpn.id2.novell.com>
-	<20090917162437.b1a890de.akpm@linux-foundation.org>
+References: <20090917162437.b1a890de.akpm@linux-foundation.org>
 	<20090917.170156.152594715.davem@davemloft.net>
 	<20090917171504.649ba29b.akpm@linux-foundation.org>
 In-Reply-To: <20090917171504.649ba29b.akpm@linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, JBeulich@novell.com, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: JBeulich@novell.com, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-On Thu, 17 Sep 2009 17:15:04 -0700
-Andrew Morton <akpm@linux-foundation.org> wrote:
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Thu, 17 Sep 2009 17:15:04 -0700
 
 > There's a shortcoming in the current BUILD_BUG_ON() - it silently does
 > nothing if passed a non-constant arg.
@@ -27,22 +27,8 @@ Andrew Morton <akpm@linux-foundation.org> wrote:
 > <tests it>
 > 
 > Yup, on base 2.6.31, this:
-> 
-> --- a/arch/sparc/kernel/vio.c~a
-> +++ a/arch/sparc/kernel/vio.c
-> @@ -23,6 +23,8 @@ static const struct vio_device_id *vio_m
->  	const char *type, *compat;
->  	int len;
->  
-> +	vio_dring_avail(NULL, 33);
-> +
->  	type = dev->type;
->  	compat = dev->compat;
->  	len = dev->compat_len;
-> _
-> 
-> compiles without error with gcc-3.4.5.
 
-And I can't immediately find a way to make any compile-time error occur here, with
-or without Jan's patch.  hm.
+Ok, I'll have to either change this function to a macro or
+get rid of the check.
 
+Thanks.
