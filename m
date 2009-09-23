@@ -1,33 +1,48 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 03 Sep 2009 09:57:26 +0000
-Subject: Re: [PATCH] silo: move second to make room for larger kernel
-Message-Id: <20090903.025726.51525776.davem@davemloft.net>
+From: hyl <heyongli@gmail.com>
+Date: Wed, 23 Sep 2009 04:37:48 +0000
+Subject: Linux guest domain with two vnets bound to the same vswitch
+Message-Id: <505766fa0909222137q217be3d0x8fc12ab467833666@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4A325654.3050201@earthlink.net>
-In-Reply-To: <4A325654.3050201@earthlink.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, David Miller <davem@davemloft.net>
 
-From: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date: Wed, 17 Jun 2009 02:41:34 +0100 (BST)
+console output:
 
-> Making the relocate size bigger worked for sun4c with the some what
-> limited capabilities of the SunOS 4.1 A.OUT loader last time I tried a
-> new kernel. It is the only way I found of using a sun4c Linux kernels
-> from about 2.6.16 to 2.6.23 (work got in the way so I have not done
-> any testing of more recent kernels). I can't think of anything that
-> will prevent it from working with more recent kernels.
+e1000e: Intel(R) PRO/1000 Network Driver - 0.3.3.3-k6
+e1000e: Intel(R) PRO/1000 Network Driver - 0.3.3.3-k6
+e1000e: Copyright (c) 1999-2008 Intel Corporation.
+e1000e: Copyright (c) 1999-2008 Intel Corporation.
+sunvnet.c:v1.0 (June 25, 2007)
+sunvnet.c:v1.0 (June 25, 2007)
+eth0: Sun LDOM vnet 00:14:4f:f9:68:e0:t
+e0
+eth0: PORT ( remote-mac 00:14:4f:fa:03:81 switch-port )
+eth0: PORT ( remote-mac 00:14:4f:fa:03:81 switch-port )
+eth0: PORT ( remote-mac 00:14:4f:f9:84:06 )
+eth0: PORT ( remote-mac 00:14:4f:f9:84:06 )
+eth0: PORT ( remote-mac 00:14:4f:f9:9a:40 )
+eth0: PORT ( remote-mac 00:14:4f:f9:9a:40 )
+eth0: PORT ( remote-mac 00:14:4f:f8:c5:7b )
+eth0: PORT ( remote-mac 00:14:4f:f8:c5:7b )
+eth1: Sun LDOM vnet 00:14:4f:f8:c5:7b:t
+7b
+eth1: PORT ( remote-mac 00:14:4f:fa:03:81 switch-port )
+eth1: PORT ( remote-mac 00:14:4f:fa:03:81 switch-port )
+eth1: PORT ( remote-mac 00:14:4f:f9:84:06 )
+eth1: PORT ( remote-mac 00:14:4f:f9:84:06 )
+eth1: PORT ( remote-mac 00:14:4f:f9:9a:40 )
+eth1: PORT ( remote-mac 00:14:4f:f9:9a:40 )
+eth1: PORT ( remote-mac 00:14:4f:f9:68:e0 )
+eth1: PORT ( remote-mac 00:14:4f:f9:68:e0 )
 
-Ok, if that works, the thing to do is:
+two vnets bound to the same vswitch, then hang,
+ldm add-vnet vnet0 primary-vsw1 dom1
+ldm add-vnet vnet1 primary-vsw1 ldom1
 
-1) Calculate "SUN4C_SEGMAP_ROUND_UP(&_end - KERNBASE)"
+If 'eth1' and 'eth2' are bound to different vswitches, everything is fine.
 
-   Make this calculation a macro.
 
-2) Use that instead of the 3MB constant in the sun4/sun4c remapping
-   loops of head_32.S
-
-I'd be happy to apply this if it can get at least a minimal smoke
-test by someone.
+Yongli He
