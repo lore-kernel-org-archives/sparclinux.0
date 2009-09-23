@@ -1,56 +1,160 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Wed, 16 Sep 2009 11:42:20 +0000
-Subject: Re: [PATCH 0/3] /proc/kmem cleanups and hwpoison bits
-Message-Id: <10f740e80909160442w470f70cao28a3b6de3e5689b4@mail.gmail.com>
+From: hyl <heyongli@gmail.com>
+Date: Wed, 23 Sep 2009 09:44:01 +0000
+Subject: Re: Linux guest domain with two vnets , the dirty quick fix
+Message-Id: <505766fa0909230244r3737379s1748a8f7c181f366@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20090915021851.168285585@intel.com>
-	 <20090915120939.bcc571e1.kamezawa.hiroyu@jp.fujitsu.com>
-	 <20090915082200.GA2588@localhost>
-	 <Pine.LNX.4.64.0909151057020.26095@sister.anvils>
-	 <10f740e80909160201l4834369s75e63fe8df0991aa@mail.gmail.com>
-	 <Pine.LNX.4.64.0909161211100.12659@sister.anvils>
-In-Reply-To: <Pine.LNX.4.64.0909161211100.12659@sister.anvils>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Wu Fengguang <fengguang.wu@intel.com>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Andrew Morton <akpm@linux-foundation.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@elte.hu>, Tejun Heo <tj@kernel.org>, Nick Piggin <npiggin@suse.de>, LKML <linux-kernel@vger.kernel.org>, linux-m68k@vger.kernel.org, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, David Miller <davem@davemloft.net>
 
-On Wed, Sep 16, 2009 at 13:26, Hugh Dickins <hugh.dickins@tiscali.co.uk> wr=
-ote:
-> On Wed, 16 Sep 2009, Geert Uytterhoeven wrote:
->> On Tue, Sep 15, 2009 at 12:16, Hugh Dickins <hugh.dickins@tiscali.co.uk>=
- wrote:
->> > Warning: it may be rubbish, it may just be a hack which appeared to
->> > work for me the last time I tried, on a particular address range of a
->> > particular set of configurations of a particular set of architectures
->> > (x86_32, x86_64, powerpc64). =C2=A0I've never thought it through enoug=
-h to
->> > consider submitting, but it _might_ contain something useful for you
->> > to factor into your own efforts.
->> >
->> > Sorry for chucking it over the wall to you in this way, but I guess
->> > that's better than just sitting quietly on it for a few more years.
->> >
->> > Certainly-Not-Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+1. add the debug code:
+--- a/drivers/net/sunvnet.c
++++ b/drivers/net/sunvnet.c
+@@ -540,6 +540,11 @@ static void vnet_event(void *arg, int event)
+                }
+                if (err = 0)
+                        break;
++                {
++                  long stackdiff;
++                 viodbg(DATA, "** vio:%llx, vio->lp:%llx, stack:%llx\n",
++                                   &vio,     &vio->lp,     &stackdiff);
++                }
+                viodbg(DATA, "TAG [%02x:%02x:%04x:%08x]\n",
+                       msgbuf.tag.type,
+                       msgbuf.tag.stype,
+
+2. the output
+from the below output, we see a re-enter to  vnet_event happend. the
+vio-hardwre report 2 interrupt
+for same packet/or msg( why?)
+
+vio: ID[0] vnet_walk_rx start[00000009] end[00000008]
+vio: ID[0] vio_walk_rx_one desc[02:00:0000003c:00000001:842800:800]
+vio: ID[0] vio_walk_rx_one desc[01:00:00000000:00000001:845000:800]
+vio: ID[0] ** vio:fffff8003f9cafa8, vio->lp:fffff8003ebf0008,
+stack:fffff8003f9cafa0  << same ldc vio
+vio: ID[0] ** vio:fffff8003f9cafa8, vio->lp:fffff8003ebf0008,
+stack:fffff8003f9ccc     << with diffrent run stack
+afa0
+vio: ID[0] TAG [02:01:0042:0d4becc7]
+vio: ID[0] TAG [02:01:0042:0d4becc7]
+...........
+vio: ID[0] vnet_walk_rx start[0000000a] end[00000009]
+vio: ID[0] vio_walk_rx_one desc[02:00:0000003c:00000001:845000:800]
+vio: ID[0] vio_walk_rx_one desc[02:00:0000003c:00000001:845000:800]
+vio: ID[0] vio_walk_rx_one desc[01:00:00000000:00000001:847800:800]
+vio: ID[0] vio_walk_rx_one desc[01:00:00000000:00000001:847800:800]
+vio: ID[0] ** vio:fffff8003f9cb588, vio->lp:fffff8003ebf0008,
+stack:fffff8003f9cb580
+vio: ID[0] ** vio:fffff8003f9cb588, vio->lp:fffff8003ebf0008,
+stack:fffff8003f9ccc
+
+
+3. where need protection
+the reason is :
+static irqreturn_t ldc_rx(int irq, void *dev_id){
+
+out:
+	spin_unlock_irqrestore(&lp->lock, flags);
+                                                                  <<
+here run with out any lock
+	send_events(lp, event_mask);
+
+4. the dirty fix, welcome fain grained lock implementation suggestion:
+
+From f24f76cc7b9bba04fcbe0406d8a1ada959c0bc4a Mon Sep 17 00:00:00 2001
+From: Yongli He <yongli.he@windriver.com>
+Date: Wed, 23 Sep 2009 17:42:16 +0800
+Subject: [PATCH] Sun ldom vnet driver dead lock
+
+static irqreturn_t ldc_rx(int irq, void *dev_id){
+...
+out:
+	spin_unlock_irqrestore(&lp->lock, flags);
+                     << here run with out any lock
+	send_events(lp, event_mask);
+       //if 2 vnet attach to same vswitch, ldom
+       //will report 2 irq then lead to dead lock
+       //on the vio->lock or lp->lock
+}
+
+this version fix just serialize all the event.
+
+Signed-off-by: Yongli He <heyongli@gmail.com>
+---
+ arch/sparc64/kernel/ldc.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/arch/sparc64/kernel/ldc.c b/arch/sparc64/kernel/ldc.c
+index a6b75cd..8d7c9b5 100644
+--- a/arch/sparc64/kernel/ldc.c
++++ b/arch/sparc64/kernel/ldc.c
+@@ -785,6 +785,8 @@ static void send_events(struct ldc_channel *lp,
+unsigned int event_mask)
+ 		lp->cfg.event(lp->event_arg, LDC_EVENT_DATA_READY);
+ }
+
++static spinlock_t event_lock=__SPIN_LOCK_UNLOCKED("ldc_event lock");
++
+ static irqreturn_t ldc_rx(int irq, void *dev_id)
+ {
+ 	struct ldc_channel *lp = dev_id;
+@@ -892,9 +894,10 @@ handshake_complete:
+ 	}
+
+ out:
++	spin_lock_irqsave(&event_lock, flags);//serialize all events
+ 	spin_unlock_irqrestore(&lp->lock, flags);
+-
+ 	send_events(lp, event_mask);
++        spin_unlock_irqrestore(&event_lock, flags);
+
+ 	return IRQ_HANDLED;
+ }
+-- 
+1.5.5.1.dirty
+
+
+
+
+2009/9/23 hyl <heyongli@gmail.com>:
+> console output:
 >
-> I think that gives a good idea of the status of this patch:
-> I'm not making any policy decisions here or submitting to any tree.
-
-OK, that was my understanding, too.
-
-But I thought it would hurt to verify. You never know who's gonna take
-your patch and (try to) sneak it in ;-)
-
-Gr{oetje,eeting}s,
-
-						Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
-.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like t=
-hat.
-							    -- Linus Torvalds
+> e1000e: Intel(R) PRO/1000 Network Driver - 0.3.3.3-k6
+> e1000e: Intel(R) PRO/1000 Network Driver - 0.3.3.3-k6
+> e1000e: Copyright (c) 1999-2008 Intel Corporation.
+> e1000e: Copyright (c) 1999-2008 Intel Corporation.
+> sunvnet.c:v1.0 (June 25, 2007)
+> sunvnet.c:v1.0 (June 25, 2007)
+> eth0: Sun LDOM vnet 00:14:4f:f9:68:e0:t
+> e0
+> eth0: PORT ( remote-mac 00:14:4f:fa:03:81 switch-port )
+> eth0: PORT ( remote-mac 00:14:4f:fa:03:81 switch-port )
+> eth0: PORT ( remote-mac 00:14:4f:f9:84:06 )
+> eth0: PORT ( remote-mac 00:14:4f:f9:84:06 )
+> eth0: PORT ( remote-mac 00:14:4f:f9:9a:40 )
+> eth0: PORT ( remote-mac 00:14:4f:f9:9a:40 )
+> eth0: PORT ( remote-mac 00:14:4f:f8:c5:7b )
+> eth0: PORT ( remote-mac 00:14:4f:f8:c5:7b )
+> eth1: Sun LDOM vnet 00:14:4f:f8:c5:7b:t
+> 7b
+> eth1: PORT ( remote-mac 00:14:4f:fa:03:81 switch-port )
+> eth1: PORT ( remote-mac 00:14:4f:fa:03:81 switch-port )
+> eth1: PORT ( remote-mac 00:14:4f:f9:84:06 )
+> eth1: PORT ( remote-mac 00:14:4f:f9:84:06 )
+> eth1: PORT ( remote-mac 00:14:4f:f9:9a:40 )
+> eth1: PORT ( remote-mac 00:14:4f:f9:9a:40 )
+> eth1: PORT ( remote-mac 00:14:4f:f9:68:e0 )
+> eth1: PORT ( remote-mac 00:14:4f:f9:68:e0 )
+>
+> two vnets bound to the same vswitch, then hang,
+> ldm add-vnet vnet0 primary-vsw1 dom1
+> ldm add-vnet vnet1 primary-vsw1 ldom1
+>
+> If 'eth1' and 'eth2' are bound to different vswitches, everything is fine.
+>
+>
+> Yongli He
+>
