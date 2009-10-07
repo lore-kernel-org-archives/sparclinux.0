@@ -1,34 +1,38 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 07 Oct 2009 21:09:38 +0000
-Subject: Re: [RFC PATCH 00/12] Merge common OpenFirmware device tree code
-Message-Id: <20091007.140938.255120957.davem@davemloft.net>
+From: Leif Sawyer <lsawyer@gci.com>
+Date: Wed, 07 Oct 2009 22:20:10 +0000
+Subject: RE: [RFC PATCH 00/12] Merge common OpenFirmware device tree code
+Message-Id: <18B2C6E38A3A324986B392B2D18ABC5102B90E@fnb1mbx01.gci.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20091007135243.GC21646@anhedonia> <4ACCEC67.9070106@firmworks.com>
-	<Pine.LNX.4.60.0910072148040.11795@mailgate.netunix.com>
-In-Reply-To: <Pine.LNX.4.60.0910072148040.11795-pb599fR3TxWvwYtD5Hs6llaTQe2KTcn/@public.gmane.org>
+References: <20091007041007.16890.62194.stgit@angua>
+In-Reply-To: <20091007041007.16890.62194.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: crn-Tjka5CH3XzFBDgjK7y7TUQ@public.gmane.org
-Cc: sammy-4OGMY2YDKIVeoWH0uzbU5w@public.gmane.org, sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org, microblaze-uclinux-rVRm/Wmeqae7NGdpmJTKYQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, julian.calaby-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: sparclinux@vger.kernel.org
 
-From: Chris Newport <crn@netunix.com>
-Date: Wed, 7 Oct 2009 21:54:34 +0100 (BST)
+Mitch Bradley writes:
+> Taking this one step further, I don't see any real good
+> reason to continue supporting Sun4 going forward.  I got rid
+> of my Sun4 systems long ago because it was just too hard to
+> keep them working - after having used them long after most
+> people had moved on.
 
-> Sun4c has also been broken for a long time and sun4d has never worked
-> properly. Is it time to also prune these ?.
-> That would leave only Sun4m in the 32bit kernel, which still works and
-> has plenty of ongoing user interest.
+I've got a few sun4u machines that are going strong.  I'd
+hate to see support "go away" going forward.
 
-Chris don't over-exaggerate the state.
+I do wish I knew more about the archetecture and kernel development,
+but alas, my life conspires against me when I try to learn more.
 
-The truth is that the whole sparc32 port is in a state of mild
-disrepair, and many of the issues apply to all the port rather than
-just one family of systems.  I think someone suitably motivated
-could get most of the bugs sorted out.
+I do know that this release seems to be the latest version that I can cleanly
+boot without much issue:
 
-There is no reason to drop support for SS1 machines, we already fully
-build the software device tree and use all of the generic OF
-infrastructure in the Linux kernel on those systems.  It is not a road
-block at all for the OF genericization work, if that's what you read
-into wmb's email.
+Linux wormhole 2.6.25-gentoo-r2 #2 SMP PREEMPT Tue May 6 20:59:30 AKDT 2008 sparc64 sun4u TI UltraSparc II (BlackBird) GNU/Linux
+
+I do try to send bug reports/comments to the various lists, and watch the development.
+Unfortunately, none of my systems are available for "lab" work, as they're all remotely deployed,
+so testing of new kernels can really only happen when I have somebody available onsite
+to remotely powercycle, as the crashes tend to be severe enough that I can't break-to-OBP
+
+But thanks for all the hard work.
+
+Leif
