@@ -1,65 +1,48 @@
-From: Michal Simek <monstr@monstr.eu>
-Date: Wed, 07 Oct 2009 14:07:39 +0000
-Subject: Re: [microblaze-uclinux] Re: [RFC PATCH 05/12] of: add common header
-Message-Id: <4ACCA0AB.80407@monstr.eu>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Wed, 07 Oct 2009 04:29:57 +0000
+Subject: [RFC PATCH 00/12] Merge common OpenFirmware device tree code
+Message-Id: <20091007041007.16890.62194.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20091007041007.16890.62194.stgit@angua>
-	<20091007043052.16890.15975.stgit@angua>
-	<20091007155717.8df62c4d.sfr@canb.auug.org.au>
-	<4ACC861A.7020506@monstr.eu>
-	<fa686aa40910070638v16c1b811w4e5ecb61a9afd836@mail.gmail.com>
-In-Reply-To: <fa686aa40910070638v16c1b811w4e5ecb61a9afd836@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: microblaze-uclinux@itee.uq.edu.au
-Cc: sparclinux@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
+To: linuxppc-dev@lists.ozlabs.org, benh@kernel.crashing.org, Stephen Rothwell <sfr@canb.auug.org.au>, davem@davemloft.net, sparclinux@vger.kernel.org, monstr@monstr.eu, microblaze-uclinux@itee.uq.edu.au, devicetree-discuss@lists.ozlabs.org
+
+Well, I've got to start somewhere...
+
+So here goes.  I've begun the work to merge and clean up the OF device
+tree handling code and this is my first set of patches.  Not fully
+tested yet, but I'm getting them out to the lists so that I can start
+responding to comments and collecting acks.  This first batch isn't
+anything exciting, just a merge of common code
+
+---
+
+Grant Likely (12):
+      of: merge of_find_all_nodes() implementations
+      of: merge other miscellaneous prototypes
+      of: merge of_*_flat_dt*() functions
+      of: merge of_node_get(), of_node_put() and of_find_all_nodes()
+      of: merge of_read_number() an of_read_ulong()
+      of: merge of_node_*_flag() and set_node_proc_entry()
+      of: merge struct boot_param_header from Microblaze and PowerPC
+      of: add common header for flattened device tree representation
+      of: Move OF_IS_DYNAMIC and OF_MARK_DYNAMIC macros to of.h
+      of: merge struct device_node
+      of: merge phandle, ihandle and struct property
+      of: Rework linux/of.h and asm/prom.h include ordering
 
 
-
-Grant Likely wrote:
-> On Wed, Oct 7, 2009 at 6:14 AM, Michal Simek <monstr@monstr.eu> wrote:
->>
->> Stephen Rothwell wrote:
->>> Hi Grant,
->>>
->>> Just first obvious thing:
->>>
->>> On Tue, 06 Oct 2009 22:30:59 -0600 Grant Likely <grant.likely@secretlab.ca> wrote:
->>>> diff --git a/arch/microblaze/include/asm/prom.h b/arch/microblaze/include/asm/prom.h
->>>> index 64e8b3a..5f461f0 100644
->>>> --- a/arch/microblaze/include/asm/prom.h
->>>> +++ b/arch/microblaze/include/asm/prom.h
->>>> @@ -17,20 +17,10 @@
->>>>  #ifndef _ASM_MICROBLAZE_PROM_H
->>>>  #define _ASM_MICROBLAZE_PROM_H
->>>>  #ifdef __KERNEL__
->>>> -
->>>> -/* Definitions used by the flattened device tree */
->>>> -#define OF_DT_HEADER                0xd00dfeed /* marker */
->>> This is used in arch/microblaze/kernel/head.S, but you move its
->>> definition inside "#ifndef __ASSEMBLY__" below.  You should probably
->>> replace the include of asm/prom.h in arch/microblaze/kernel/head.S with
->>> linux/of_fdt.h (assuming that the comment in there is correct).
->> yes, Stephen is right here. I created one patch (in attachment) which fixed it. I tested your
->> patches on Microblaze (noMMU and MMU) and I have no problem with compilation and simple boot-up
->> works for both versions too.
->>
->> With that my patch: Acked-by: Michal Simek <monstr@monstr.eu>
-> 
-> Thanks.  I'll merge your change with my patch so that bisect isn't broken.
-
-if is possible to do it, please do it.
-
-Thanks,
-Michal
-
-> 
-> g.
-> 
+ arch/microblaze/include/asm/prom.h |  135 +--------------------------------
+ arch/microblaze/kernel/prom.c      |   23 ------
+ arch/powerpc/include/asm/prom.h    |  147 ------------------------------------
+ arch/powerpc/kernel/prom.c         |   23 ------
+ arch/sparc/include/asm/prom.h      |   55 -------------
+ drivers/of/base.c                  |   26 ++++++
+ include/linux/of.h                 |  103 +++++++++++++++++++++++++
+ include/linux/of_fdt.h             |   87 +++++++++++++++++++++
+ 8 files changed, 221 insertions(+), 378 deletions(-)
+ create mode 100644 include/linux/of_fdt.h
 
 -- 
-Michal Simek, Ing. (M.Eng)
-w: www.monstr.eu p: +42-0-721842854
-Maintainer of Linux kernel 2.6 Microblaze Linux - http://www.monstr.eu/fdt/
-Microblaze U-BOOT custodian
+Signature
