@@ -1,56 +1,102 @@
-From: noreply@Konkours.com
-Date: Sun, 18 Oct 2009 18:37:43 +0000
-Subject: =?UTF-8?Q?Participez_GRATUITEMENT_=E0_des_centaines_de_jeux_concours_grat?=  =?UTF-8?Q?uits_en_quelq
-Message-Id: <bb82e2c7e187af38796fb61795e099b8@www.sevaderpascher.fr>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Wed, 07 Oct 2009 04:30:10 +0000
+Subject: [RFC PATCH 01/12] of: Rework linux/of.h and asm/prom.h include
+Message-Id: <20091007043002.16890.93443.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20091007041007.16890.62194.stgit@angua>
+In-Reply-To: <20091007041007.16890.62194.stgit@angua>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1254"
-Content-Transfer-Encoding: base64
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org, Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org, microblaze-uclinux
 
-CgoKPGh0dHA6Ly93d3cuY2FzaHRyYWZpYy5jb20vc2NyaXB0L2NsaWMucGhwP2lkgDA5MyZvcHRp
-b249ZW1haWxpbmcmYmFuNzI2JmRhdGE9JnJlZGlyZWN0aW9uPWh0dHAlM0ElMkYlMkZ3d3cua29u
-a291cnMuY29tJTJGcHVicyUyRnBkdi1tb2R1bGUlMkZwZHYzX2luZGV4LnBocCUzRnBhcmVudCUz
-RGNhc2glMjZwZHYlM0QxJTI2Zm9ybV90eXBlJTNEMSUyNmQlM0Q1OTU3PgoKCjxodHRwOi8vd3d3
-LmNhc2h0cmFmaWMuY29tL3NjcmlwdC9jbGljLnBocD9pZIAwOTMmb3B0aW9uPWVtYWlsaW5nJmJh
-bjcyNiZkYXRhPSZyZWRpcmVjdGlvbj1odHRwJTNBJTJGJTJGd3d3LmtvbmtvdXJzLmNvbSUyRnB1
-YnMlMkZwZHYtbW9kdWxlJTJGcGR2M19pbmRleC5waHAlM0ZwYXJlbnQlM0RjYXNoJTI2cGR2JTNE
-MSUyNmZvcm1fdHlwZSUzRDElMjZkJTNENTk1Nz4KCgo8aHR0cDovL3d3dy5jYXNodHJhZmljLmNv
-bS9zY3JpcHQvY2xpYy5waHA/aWSAMDkzJm9wdGlvbj1lbWFpbGluZyZiYW43MjYmZGF0YT0mcmVk
-aXJlY3Rpb249aHR0cCUzQSUyRiUyRnd3dy5rb25rb3Vycy5jb20lMkZwdWJzJTJGcGR2LW1vZHVs
-ZSUyRnBkdjNfaW5kZXgucGhwJTNGcGFyZW50JTNEY2FzaCUyNnBkdiUzRDElMjZmb3JtX3R5cGUl
-M0QxJTI2ZCUzRDU5NTc+CgoKPGh0dHA6Ly93d3cuY2FzaHRyYWZpYy5jb20vc2NyaXB0L2NsaWMu
-cGhwP2lkgDA5MyZvcHRpb249ZW1haWxpbmcmYmFuNzI2JmRhdGE9JnJlZGlyZWN0aW9uPWh0dHAl
-M0ElMkYlMkZ3d3cua29ua291cnMuY29tJTJGcHVicyUyRnBkdi1tb2R1bGUlMkZwZHYzX2luZGV4
-LnBocCUzRnBhcmVudCUzRGNhc2glMjZwZHYlM0QxJTI2Zm9ybV90eXBlJTNEMSUyNmQlM0Q1OTU3
-PgoKCjxodHRwOi8vd3d3LmNhc2h0cmFmaWMuY29tL3NjcmlwdC9jbGljLnBocD9pZIAwOTMmb3B0
-aW9uPWVtYWlsaW5nJmJhbjcyNiZkYXRhPSZyZWRpcmVjdGlvbj1odHRwJTNBJTJGJTJGd3d3Lmtv
-bmtvdXJzLmNvbSUyRnB1YnMlMkZwZHYtbW9kdWxlJTJGcGR2M19pbmRleC5waHAlM0ZwYXJlbnQl
-M0RjYXNoJTI2cGR2JTNEMSUyNmZvcm1fdHlwZSUzRDElMjZkJTNENTk1Nz4KCgo8aHR0cDovL3d3
-dy5jYXNodHJhZmljLmNvbS9zY3JpcHQvY2xpYy5waHA/aWSAMDkzJm9wdGlvbj1lbWFpbGluZyZi
-YW43MjYmZGF0YT0mcmVkaXJlY3Rpb249aHR0cCUzQSUyRiUyRnd3dy5rb25rb3Vycy5jb20lMkZw
-dWJzJTJGcGR2LW1vZHVsZSUyRnBkdjNfaW5kZXgucGhwJTNGcGFyZW50JTNEY2FzaCUyNnBkdiUz
-RDElMjZmb3JtX3R5cGUlM0QxJTI2ZCUzRDU5NTc+CgoKPGh0dHA6Ly93d3cuY2FzaHRyYWZpYy5j
-b20vc2NyaXB0L2NsaWMucGhwP2lkgDA5MyZvcHRpb249ZW1haWxpbmcmYmFuNzI2JmRhdGE9JnJl
-ZGlyZWN0aW9uPWh0dHAlM0ElMkYlMkZ3d3cua29ua291cnMuY29tJTJGcHVicyUyRnBkdi1tb2R1
-bGUlMkZwZHYzX2luZGV4LnBocCUzRnBhcmVudCUzRGNhc2glMjZwZHYlM0QxJTI2Zm9ybV90eXBl
-JTNEMSUyNmQlM0Q1OTU3PgoKCjxodHRwOi8vd3d3LmNhc2h0cmFmaWMuY29tL3NjcmlwdC9jbGlj
-LnBocD9pZIAwOTMmb3B0aW9uPWVtYWlsaW5nJmJhbjcyNiZkYXRhPSZyZWRpcmVjdGlvbj1odHRw
-JTNBJTJGJTJGd3d3LmtvbmtvdXJzLmNvbSUyRnB1YnMlMkZwZHYtbW9kdWxlJTJGcGR2M19pbmRl
-eC5waHAlM0ZwYXJlbnQlM0RjYXNoJTI2cGR2JTNEMSUyNmZvcm1fdHlwZSUzRDElMjZkJTNENTk1
-Nz4KCgo8aHR0cDovL3d3dy5jYXNodHJhZmljLmNvbS9zY3JpcHQvY2xpYy5waHA/aWSAMDkzJm9w
-dGlvbj1lbWFpbGluZyZiYW43MjYmZGF0YT0mcmVkaXJlY3Rpb249aHR0cCUzQSUyRiUyRnd3dy5r
-b25rb3Vycy5jb20lMkZwdWJzJTJGcGR2LW1vZHVsZSUyRnBkdjNfaW5kZXgucGhwJTNGcGFyZW50
-JTNEY2FzaCUyNnBkdiUzRDElMjZmb3JtX3R5cGUlM0QxJTI2ZCUzRDU5NTc+CgoKCi0tClNpIHZv
-dXMgbmUgdm91bGV6IHBsdXMgcmVjZXZvaXIgbm9zIGxldHRyZXMgZCdpbmZvcm1hdGlvbiwgCmh0
-dHA6Ly93d3cuc2V2YWRlcnBhc2NoZXIuZnIvbGlzdHMvP3A9dW5zdWJzY3JpYmUmdWlkgTFlNWQ1
-OTAxYjBlNTY2NmIwZjUyZDk0YzcwMjA4MQoKTWV0dHJlIOAgam91ciBtZXMgcHLpZulyZW5jZXMg
-b3UgbWUgZOlzYWJvbm5lcgpodHRwOi8vd3d3LnNldmFkZXJwYXNjaGVyLmZyL2xpc3RzLz9wPXBy
-ZWZlcmVuY2VzJnVpZIExZTVkNTkwMWIwZTU2NjZiMGY1MmQ5NGM3MDIwODEKRW52b3llciBjZSBN
-ZXNzYWdlIOAgdW4gYW1pLApodHRwOi8vd3d3LnNldmFkZXJwYXNjaGVyLmZyL2xpc3RzLz9wPWZv
-cndhcmQmdWlkgTFlNWQ1OTAxYjBlNTY2NmIwZjUyZDk0YzcwMjA4MSZtaWQ9MwoKCi0tClBvd2Vy
-ZWQgYnkgUEhQbGlzdCwgd3d3LnBocGxpc3QuY29tIC0tCgoKLS0KVG8gdW5zdWJzY3JpYmUgZnJv
-bSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIHNwYXJjbGludXgiIGluCnRo
-ZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnCk1vcmUgbWFq
-b3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRt
-bA==
+In preparation to prune things out of the Sparc, PowerPC and Microblaze
+asm/prom.h files, change the #include statements to ensure that
+even if asm/prom.h is included first, linux/of.h gets to determine the
+order in which files are processed.
+
+This patch adds a #include <linux/of.h> to each of the prom.h files
+*above* the multi-include protection macros to ensure that linux/of.h
+can define things before prom.h gets processed.
+
+At the end of the merge the cross dependencies between the files should
+be gone and a sane #include scheme can be restored.
+
+Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+---
+
+ arch/microblaze/include/asm/prom.h |    8 ++------
+ arch/powerpc/include/asm/prom.h    |    7 +------
+ arch/sparc/include/asm/prom.h      |    7 +------
+ 3 files changed, 4 insertions(+), 18 deletions(-)
+
+diff --git a/arch/microblaze/include/asm/prom.h b/arch/microblaze/include/asm/prom.h
+index 37e6f30..6636889 100644
+--- a/arch/microblaze/include/asm/prom.h
++++ b/arch/microblaze/include/asm/prom.h
+@@ -12,6 +12,8 @@
+  * 2 of the License, or (at your option) any later version.
+  */
+ 
++#include <linux/of.h>	/* linux/of.h gets to determine #include ordering */
++
+ #ifndef _ASM_MICROBLAZE_PROM_H
+ #define _ASM_MICROBLAZE_PROM_H
+ #ifdef __KERNEL__
+@@ -305,12 +307,6 @@ extern int of_irq_to_resource(struct device_node *dev, int index,
+  */
+ extern void __iomem *of_iomap(struct device_node *device, int index);
+ 
+-/*
+- * NB: This is here while we transition from using asm/prom.h
+- * to linux/of.h
+- */
+-#include <linux/of.h>
+-
+ #endif /* __ASSEMBLY__ */
+ #endif /* __KERNEL__ */
+ #endif /* _ASM_MICROBLAZE_PROM_H */
+diff --git a/arch/powerpc/include/asm/prom.h b/arch/powerpc/include/asm/prom.h
+index 6ff0418..b0a84ea 100644
+--- a/arch/powerpc/include/asm/prom.h
++++ b/arch/powerpc/include/asm/prom.h
+@@ -1,3 +1,4 @@
++#include <linux/of.h>	/* linux/of.h gets to determine #include ordering */
+ #ifndef _POWERPC_PROM_H
+ #define _POWERPC_PROM_H
+ #ifdef __KERNEL__
+@@ -349,11 +350,5 @@ extern int of_irq_to_resource(struct device_node *dev, int index,
+  */
+ extern void __iomem *of_iomap(struct device_node *device, int index);
+ 
+-/*
+- * NB:  This is here while we transition from using asm/prom.h
+- * to linux/of.h
+- */
+-#include <linux/of.h>
+-
+ #endif /* __KERNEL__ */
+ #endif /* _POWERPC_PROM_H */
+diff --git a/arch/sparc/include/asm/prom.h b/arch/sparc/include/asm/prom.h
+index 82a190d..0733170 100644
+--- a/arch/sparc/include/asm/prom.h
++++ b/arch/sparc/include/asm/prom.h
+@@ -1,3 +1,4 @@
++#include <linux/of.h>	/* linux/of.h gets to determine #include ordering */
+ #ifndef _SPARC_PROM_H
+ #define _SPARC_PROM_H
+ #ifdef __KERNEL__
+@@ -108,12 +109,6 @@ static inline void irq_dispose_mapping(unsigned int virq)
+ {
+ }
+ 
+-/*
+- * NB:  This is here while we transition from using asm/prom.h
+- * to linux/of.h
+- */
+-#include <linux/of.h>
+-
+ extern struct device_node *of_console_device;
+ extern char *of_console_path;
+ extern char *of_console_options;
+
