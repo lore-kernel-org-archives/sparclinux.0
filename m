@@ -1,41 +1,96 @@
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Date: Thu, 29 Oct 2009 08:53:29 +0000
-Subject: Re: [PATCH 1/7] bitmap: Introduce bitmap_set, bitmap_clear,
-Message-Id: <961aa3350910290153n70c3d982w10699ac28be63b6c@mail.gmail.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Wed, 07 Oct 2009 04:32:02 +0000
+Subject: [RFC PATCH 10/12] of: merge of_*_flat_dt*() functions
+Message-Id: <20091007043154.16890.18883.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1256719397-4258-1-git-send-email-akinobu.mita@gmail.com>
-	<20091028131141.523854cb.akpm@linux-foundation.org>
-In-Reply-To: <20091028131141.523854cb.akpm@linux-foundation.org>
+References: <20091007041007.16890.62194.stgit@angua>
+In-Reply-To: <20091007041007.16890.62194.stgit@angua>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-usb@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@ozlabs.org, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Lothar Wassmann <LW@karo-electronics.de>, x86@kernel.org, linux-altix@sgi.com, Ingo Molnar <mingo@redhat.com>, Fenghua Yu <fenghua.yu@intel.com>, Joerg Roedel <joerg.roedel@amd.com>, Yevgeny Petrilin <yevgenyp@mellanox.co.il>, Thomas Gleixner <tglx@linutronix.de>, Tony Luck <tony.luck@intel.com>, netdev@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>, linux-kernel@vger.kernel.org, FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>, "David S. Miller" <davem@davemloft.net>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linuxppc-dev@lists.ozlabs.org, benh@kernel.crashing.org, Stephen Rothwell <sfr@canb.auug.org.au>, davem@davemloft.net, sparclinux@vger.kernel.org, monstr@monstr.eu, microblaze-uclinux@itee.uq.edu.au, devicetree-discuss@lists.ozlabs.org
 
-2009/10/29 Andrew Morton <akpm@linux-foundation.org>:
->
-> Why were these patches resent? =A0What changed?
->
-> Everybody who is going to review these patches has already reviewed
-> them and now they need to review them all again?
+Merge common flattened device tree code between Microblaze and PowerPC
 
-I resent the patches because the iommu-helper change was not correct
-and I introduced serious bug in bitmap_find_next_zero_area()
-if align_mask !=3D 0 in follow-up patch then those were dropped from
-the -mm tree.
+Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+---
 
-Only [PATCH 1/7] and [PATCH 2/7] have changes since the first submission of
-this patch set.
+ arch/microblaze/include/asm/prom.h |   11 -----------
+ arch/powerpc/include/asm/prom.h    |   10 ----------
+ include/linux/of_fdt.h             |   14 ++++++++++++++
+ 3 files changed, 14 insertions(+), 21 deletions(-)
 
-* [PATCH 1/7]
-- Rewrite bitmap_set() and bitmap_clear()
-- Let bitmap_find_next_zero_area() check the last bit of the limit
-- Add kerneldoc for bitmap_find_next_zero_area()
+diff --git a/arch/microblaze/include/asm/prom.h b/arch/microblaze/include/asm/prom.h
+index c92b4a9..be4db2a 100644
+--- a/arch/microblaze/include/asm/prom.h
++++ b/arch/microblaze/include/asm/prom.h
+@@ -40,17 +40,6 @@ extern struct device_node *of_chosen;
+ extern struct device_node *allnodes;	/* temporary while merging */
+ extern rwlock_t devtree_lock;	/* temporary while merging */
+ 
+-/* For scanning the flat device-tree at boot time */
+-extern int __init of_scan_flat_dt(int (*it)(unsigned long node,
+-					const char *uname, int depth,
+-					void *data),
+-				void *data);
+-extern void *__init of_get_flat_dt_prop(unsigned long node, const char *name,
+-					unsigned long *size);
+-extern int __init
+-		of_flat_dt_is_compatible(unsigned long node, const char *name);
+-extern unsigned long __init of_get_flat_dt_root(void);
+-
+ /* For updating the device tree at runtime */
+ extern void of_attach_node(struct device_node *);
+ extern void of_detach_node(struct device_node *);
+diff --git a/arch/powerpc/include/asm/prom.h b/arch/powerpc/include/asm/prom.h
+index 622769c..c8b5933 100644
+--- a/arch/powerpc/include/asm/prom.h
++++ b/arch/powerpc/include/asm/prom.h
+@@ -34,16 +34,6 @@ extern struct device_node *of_chosen;
+ 
+ #define HAVE_ARCH_DEVTREE_FIXUPS
+ 
+-/* For scanning the flat device-tree at boot time */
+-extern int __init of_scan_flat_dt(int (*it)(unsigned long node,
+-					    const char *uname, int depth,
+-					    void *data),
+-				  void *data);
+-extern void* __init of_get_flat_dt_prop(unsigned long node, const char *name,
+-					unsigned long *size);
+-extern int __init of_flat_dt_is_compatible(unsigned long node, const char *name);
+-extern unsigned long __init of_get_flat_dt_root(void);
+-
+ /* For updating the device tree at runtime */
+ extern void of_attach_node(struct device_node *);
+ extern void of_detach_node(struct device_node *);
+diff --git a/include/linux/of_fdt.h b/include/linux/of_fdt.h
+index 8b87bcb..ac31d4f 100644
+--- a/include/linux/of_fdt.h
++++ b/include/linux/of_fdt.h
+@@ -16,6 +16,9 @@
+ #ifndef _LINUX_OF_FDT_H
+ #define _LINUX_OF_FDT_H
+ 
++#include <linux/types.h>
++#include <linux/init.h>
++
+ /* Definitions used by the flattened device tree */
+ #define OF_DT_HEADER		0xd00dfeed	/* marker */
+ #define OF_DT_BEGIN_NODE	0x1		/* Start of node, full name */
+@@ -57,4 +60,15 @@ struct boot_param_header {
+ 	u32	dt_struct_size;		/* size of the DT structure block */
+ };
+ 
++/* For scanning the flat device-tree at boot time */
++extern int __init of_scan_flat_dt(int (*it)(unsigned long node,
++					    const char *uname, int depth,
++					    void *data),
++				  void *data);
++extern void __init *of_get_flat_dt_prop(unsigned long node, const char *name,
++					unsigned long *size);
++extern int __init of_flat_dt_is_compatible(unsigned long node,
++					   const char *name);
++extern unsigned long __init of_get_flat_dt_root(void);
++
+ #endif /* _LINUX_OF_FDT_H */
 
-* [PATCH 2/7]
-- Convert find_next_zero_area() to use bitmap_find_next_zero_area() correct=
-ly
-  iommu-helper doesn't want to search the last bit of the limist in bitmap
-
-* [PATCH 3/7] - [PATCH 7/7]
-- No changes
