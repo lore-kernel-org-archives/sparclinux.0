@@ -1,7 +1,7 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Date: Wed, 07 Oct 2009 04:31:24 +0000
-Subject: [RFC PATCH 07/12] of: merge of_node_*_flag() and set_node_proc_entry()
-Message-Id: <20091007043117.16890.91667.stgit@angua>
+Date: Wed, 07 Oct 2009 04:30:22 +0000
+Subject: [RFC PATCH 02/12] of: merge phandle, ihandle and struct property
+Message-Id: <20091007043015.16890.5220.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20091007041007.16890.62194.stgit@angua>
 In-Reply-To: <20091007041007.16890.62194.stgit@angua>
@@ -10,98 +10,103 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linuxppc-dev@lists.ozlabs.org, benh@kernel.crashing.org, Stephen Rothwell <sfr@canb.auug.org.au>, davem@davemloft.net, sparclinux@vger.kernel.org, monstr@monstr.eu, microblaze-uclinux@itee.uq.edu.au, devicetree-discuss@lists.ozlabs.org
 
-Merge common code between PowerPC and Microblaze
+Merge of common code duplicated between Sparc, PowerPC and Microblaze
 
 Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 ---
 
- arch/microblaze/include/asm/prom.h |   16 ----------------
- arch/powerpc/include/asm/prom.h    |   17 -----------------
- include/linux/of.h                 |   16 ++++++++++++++++
- 3 files changed, 16 insertions(+), 33 deletions(-)
+ arch/microblaze/include/asm/prom.h |   10 ----------
+ arch/powerpc/include/asm/prom.h    |   12 ------------
+ arch/sparc/include/asm/prom.h      |   12 ------------
+ include/linux/of.h                 |   12 ++++++++++++
+ 4 files changed, 12 insertions(+), 34 deletions(-)
 
 diff --git a/arch/microblaze/include/asm/prom.h b/arch/microblaze/include/asm/prom.h
-index dfc4afc..180d844 100644
+index 6636889..11cb484 100644
 --- a/arch/microblaze/include/asm/prom.h
 +++ b/arch/microblaze/include/asm/prom.h
-@@ -35,24 +35,8 @@
- 
- extern struct device_node *of_chosen;
- 
--static inline int of_node_check_flag(struct device_node *n, unsigned long flag)
--{
--	return test_bit(flag, &n->_flags);
--}
--
--static inline void of_node_set_flag(struct device_node *n, unsigned long flag)
--{
--	set_bit(flag, &n->_flags);
--}
--
- #define HAVE_ARCH_DEVTREE_FIXUPS
- 
--static inline void set_node_proc_entry(struct device_node *dn,
--					struct proc_dir_entry *de)
--{
--	dn->pde = de;
--}
--
- extern struct device_node *allnodes;	/* temporary while merging */
- extern rwlock_t devtree_lock;	/* temporary while merging */
- 
-diff --git a/arch/powerpc/include/asm/prom.h b/arch/powerpc/include/asm/prom.h
-index ef20e6c..2cfd432 100644
---- a/arch/powerpc/include/asm/prom.h
-+++ b/arch/powerpc/include/asm/prom.h
-@@ -32,25 +32,8 @@
- 
- extern struct device_node *of_chosen;
- 
--static inline int of_node_check_flag(struct device_node *n, unsigned long flag)
--{
--	return test_bit(flag, &n->_flags);
--}
--
--static inline void of_node_set_flag(struct device_node *n, unsigned long flag)
--{
--	set_bit(flag, &n->_flags);
--}
--
--
- #define HAVE_ARCH_DEVTREE_FIXUPS
- 
--static inline void set_node_proc_entry(struct device_node *dn, struct proc_dir_entry *de)
--{
--	dn->pde = de;
--}
--
--
- extern struct device_node *of_find_all_nodes(struct device_node *prev);
- extern struct device_node *of_node_get(struct device_node *node);
- extern void of_node_put(struct device_node *node);
-diff --git a/include/linux/of.h b/include/linux/of.h
-index a66c1eb..d5f6662 100644
---- a/include/linux/of.h
-+++ b/include/linux/of.h
-@@ -63,6 +63,22 @@ struct device_node {
- #endif
+@@ -73,16 +73,6 @@ struct boot_param_header {
+ 	u32	dt_struct_size; /* size of the DT structure block */
  };
  
-+static inline int of_node_check_flag(struct device_node *n, unsigned long flag)
-+{
-+	return test_bit(flag, &n->_flags);
-+}
+-typedef u32 phandle;
+-typedef u32 ihandle;
+-
+-struct property {
+-	char	*name;
+-	int	length;
+-	void	*value;
+-	struct property *next;
+-};
+-
+ struct device_node {
+ 	const char *name;
+ 	const char *type;
+diff --git a/arch/powerpc/include/asm/prom.h b/arch/powerpc/include/asm/prom.h
+index b0a84ea..c236326 100644
+--- a/arch/powerpc/include/asm/prom.h
++++ b/arch/powerpc/include/asm/prom.h
+@@ -71,18 +71,6 @@ struct boot_param_header
+ 	u32	dt_struct_size;		/* size of the DT structure block */
+ };
+ 
+-
+-
+-typedef u32 phandle;
+-typedef u32 ihandle;
+-
+-struct property {
+-	char	*name;
+-	int	length;
+-	void	*value;
+-	struct property *next;
+-};
+-
+ struct device_node {
+ 	const char *name;
+ 	const char *type;
+diff --git a/arch/sparc/include/asm/prom.h b/arch/sparc/include/asm/prom.h
+index 0733170..b34f988 100644
+--- a/arch/sparc/include/asm/prom.h
++++ b/arch/sparc/include/asm/prom.h
+@@ -29,18 +29,6 @@
+ #define of_prop_cmp(s1, s2)		strcasecmp((s1), (s2))
+ #define of_node_cmp(s1, s2)		strcmp((s1), (s2))
+ 
+-typedef u32 phandle;
+-typedef u32 ihandle;
+-
+-struct property {
+-	char	*name;
+-	int	length;
+-	void	*value;
+-	struct property *next;
+-	unsigned long _flags;
+-	unsigned int unique_id;
+-};
+-
+ struct of_irq_controller;
+ struct device_node {
+ 	const char	*name;
+diff --git a/include/linux/of.h b/include/linux/of.h
+index 7be2d10..4668b29 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -19,6 +19,18 @@
+ #include <linux/bitops.h>
+ #include <linux/mod_devicetable.h>
+ 
++typedef u32 phandle;
++typedef u32 ihandle;
 +
-+static inline void of_node_set_flag(struct device_node *n, unsigned long flag)
-+{
-+	set_bit(flag, &n->_flags);
-+}
-+
-+static inline void
-+set_node_proc_entry(struct device_node *dn, struct proc_dir_entry *de)
-+{
-+	dn->pde = de;
-+}
++struct property {
++	char	*name;
++	int	length;
++	void	*value;
++	struct property *next;
++	unsigned long _flags;
++	unsigned int unique_id;
++};
 +
  #include <asm/prom.h>
  
