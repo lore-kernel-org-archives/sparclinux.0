@@ -1,171 +1,268 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Wed, 07 Oct 2009 04:30:34 +0000
-Subject: [RFC PATCH 03/12] of: merge struct device_node
-Message-Id: <20091007043027.16890.46731.stgit@angua>
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Date: Fri, 09 Oct 2009 08:29:16 +0000
+Subject: [PATCH 3/8] iommu-helper: Use bitmap library
+Message-Id: <1255076961-21325-3-git-send-email-akinobu.mita@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20091007041007.16890.62194.stgit@angua>
-In-Reply-To: <20091007041007.16890.62194.stgit@angua>
+References: <> <1255076961-21325-1-git-send-email-akinobu.mita@gmail.com>
+	<1255076961-21325-2-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1255076961-21325-2-git-send-email-akinobu.mita@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org, Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org, microblaze-uclinux
+To: linux-kernel@vger.kernel.org, akpm@linux-foundation.org
+Cc: x86@kernel.org, Akinobu Mita <akinobu.mita@gmail.com>, FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>, linuxppc-dev@ozlabs.org, Ingo Molnar <mingo@redhat.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, "David S. Miller" <davem@davemloft.net>
 
-Merge of common code duplicated between Sparc, PowerPC and Microblaze
+Use bitmap library and kill some unused iommu helper functions.
 
-Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: linuxppc-dev@ozlabs.org
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: x86@kernel.org
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 ---
+ arch/powerpc/kernel/iommu.c      |    4 +-
+ arch/sparc/kernel/iommu.c        |    3 +-
+ arch/x86/kernel/amd_iommu.c      |    4 +-
+ arch/x86/kernel/pci-calgary_64.c |    6 ++--
+ arch/x86/kernel/pci-gart_64.c    |    6 ++--
+ include/linux/iommu-helper.h     |    3 --
+ lib/iommu-helper.c               |   55 ++++---------------------------------
+ 7 files changed, 18 insertions(+), 63 deletions(-)
 
- arch/microblaze/include/asm/prom.h |   20 --------------------
- arch/powerpc/include/asm/prom.h    |   20 --------------------
- arch/sparc/include/asm/prom.h      |   24 ------------------------
- include/linux/of.h                 |   32 ++++++++++++++++++++++++++++++++
- 4 files changed, 32 insertions(+), 64 deletions(-)
-
-diff --git a/arch/microblaze/include/asm/prom.h b/arch/microblaze/include/asm/prom.h
-index 11cb484..64e8b3a 100644
---- a/arch/microblaze/include/asm/prom.h
-+++ b/arch/microblaze/include/asm/prom.h
-@@ -73,26 +73,6 @@ struct boot_param_header {
- 	u32	dt_struct_size; /* size of the DT structure block */
- };
+diff --git a/arch/powerpc/kernel/iommu.c b/arch/powerpc/kernel/iommu.c
+index fd51578..5547ae6 100644
+--- a/arch/powerpc/kernel/iommu.c
++++ b/arch/powerpc/kernel/iommu.c
+@@ -30,7 +30,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/string.h>
+ #include <linux/dma-mapping.h>
+-#include <linux/bitops.h>
++#include <linux/bitmap.h>
+ #include <linux/iommu-helper.h>
+ #include <linux/crash_dump.h>
+ #include <asm/io.h>
+@@ -251,7 +251,7 @@ static void __iommu_free(struct iommu_table *tbl, dma_addr_t dma_addr,
+ 	}
  
--struct device_node {
--	const char *name;
--	const char *type;
--	phandle	node;
--	phandle linux_phandle;
--	char	*full_name;
--
--	struct	property *properties;
--	struct	property *deadprops; /* removed properties */
--	struct	device_node *parent;
--	struct	device_node *child;
--	struct	device_node *sibling;
--	struct	device_node *next; /* next device of same type */
--	struct	device_node *allnext; /* next in list of all nodes */
--	struct	proc_dir_entry *pde; /* this node's proc directory */
--	struct	kref kref;
--	unsigned long _flags;
--	void	*data;
--};
--
- extern struct device_node *of_chosen;
+ 	ppc_md.tce_free(tbl, entry, npages);
+-	iommu_area_free(tbl->it_map, free_entry, npages);
++	bitmap_clear(tbl->it_map, free_entry, npages);
+ }
  
- static inline int of_node_check_flag(struct device_node *n, unsigned long flag)
-diff --git a/arch/powerpc/include/asm/prom.h b/arch/powerpc/include/asm/prom.h
-index c236326..c918db5 100644
---- a/arch/powerpc/include/asm/prom.h
-+++ b/arch/powerpc/include/asm/prom.h
-@@ -71,26 +71,6 @@ struct boot_param_header
- 	u32	dt_struct_size;		/* size of the DT structure block */
- };
+ static void iommu_free(struct iommu_table *tbl, dma_addr_t dma_addr,
+diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
+index 7690cc2..5fad949 100644
+--- a/arch/sparc/kernel/iommu.c
++++ b/arch/sparc/kernel/iommu.c
+@@ -11,6 +11,7 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/errno.h>
+ #include <linux/iommu-helper.h>
++#include <linux/bitmap.h>
  
--struct device_node {
--	const char *name;
--	const char *type;
--	phandle	node;
--	phandle linux_phandle;
--	char	*full_name;
--
--	struct	property *properties;
--	struct  property *deadprops; /* removed properties */
--	struct	device_node *parent;
--	struct	device_node *child;
--	struct	device_node *sibling;
--	struct	device_node *next;	/* next device of same type */
--	struct	device_node *allnext;	/* next in list of all nodes */
--	struct  proc_dir_entry *pde;	/* this node's proc directory */
--	struct  kref kref;
--	unsigned long _flags;
--	void	*data;
--};
--
- extern struct device_node *of_chosen;
+ #ifdef CONFIG_PCI
+ #include <linux/pci.h>
+@@ -169,7 +170,7 @@ void iommu_range_free(struct iommu *iommu, dma_addr_t dma_addr, unsigned long np
  
- static inline int of_node_check_flag(struct device_node *n, unsigned long flag)
-diff --git a/arch/sparc/include/asm/prom.h b/arch/sparc/include/asm/prom.h
-index b34f988..e5f4a1d 100644
---- a/arch/sparc/include/asm/prom.h
-+++ b/arch/sparc/include/asm/prom.h
-@@ -29,30 +29,6 @@
- #define of_prop_cmp(s1, s2)		strcasecmp((s1), (s2))
- #define of_node_cmp(s1, s2)		strcmp((s1), (s2))
+ 	entry = (dma_addr - iommu->page_table_map_base) >> IO_PAGE_SHIFT;
  
--struct of_irq_controller;
--struct device_node {
--	const char	*name;
--	const char	*type;
--	phandle	node;
--	char	*path_component_name;
--	char	*full_name;
--
--	struct	property *properties;
--	struct  property *deadprops; /* removed properties */
--	struct	device_node *parent;
--	struct	device_node *child;
--	struct	device_node *sibling;
--	struct	device_node *next;	/* next device of same type */
--	struct	device_node *allnext;	/* next in list of all nodes */
--	struct  proc_dir_entry *pde;	/* this node's proc directory */
--	struct  kref kref;
--	unsigned long _flags;
--	void	*data;
--	unsigned int unique_id;
--
--	struct of_irq_controller *irq_trans;
--};
--
- struct of_irq_controller {
- 	unsigned int	(*irq_build)(struct device_node *, unsigned int, void *);
- 	void		*data;
-diff --git a/include/linux/of.h b/include/linux/of.h
-index 4668b29..65a158d 100644
---- a/include/linux/of.h
-+++ b/include/linux/of.h
-@@ -17,6 +17,7 @@
+-	iommu_area_free(arena->map, entry, npages);
++	bitmap_clear(arena->map, entry, npages);
+ }
+ 
+ int iommu_table_init(struct iommu *iommu, int tsbsize,
+diff --git a/arch/x86/kernel/amd_iommu.c b/arch/x86/kernel/amd_iommu.c
+index 98f230f..08b1d20 100644
+--- a/arch/x86/kernel/amd_iommu.c
++++ b/arch/x86/kernel/amd_iommu.c
+@@ -19,7 +19,7 @@
+ 
+ #include <linux/pci.h>
+ #include <linux/gfp.h>
+-#include <linux/bitops.h>
++#include <linux/bitmap.h>
+ #include <linux/debugfs.h>
+ #include <linux/scatterlist.h>
+ #include <linux/dma-mapping.h>
+@@ -959,7 +959,7 @@ static void dma_ops_free_addresses(struct dma_ops_domain *dom,
+ 
+ 	address = (address % APERTURE_RANGE_SIZE) >> PAGE_SHIFT;
+ 
+-	iommu_area_free(range->bitmap, address, pages);
++	bitmap_clear(range->bitmap, address, pages);
+ 
+ }
+ 
+diff --git a/arch/x86/kernel/pci-calgary_64.c b/arch/x86/kernel/pci-calgary_64.c
+index 971a3be..c87bb20 100644
+--- a/arch/x86/kernel/pci-calgary_64.c
++++ b/arch/x86/kernel/pci-calgary_64.c
+@@ -31,7 +31,7 @@
+ #include <linux/string.h>
+ #include <linux/crash_dump.h>
+ #include <linux/dma-mapping.h>
+-#include <linux/bitops.h>
++#include <linux/bitmap.h>
+ #include <linux/pci_ids.h>
+ #include <linux/pci.h>
+ #include <linux/delay.h>
+@@ -211,7 +211,7 @@ static void iommu_range_reserve(struct iommu_table *tbl,
+ 
+ 	spin_lock_irqsave(&tbl->it_lock, flags);
+ 
+-	iommu_area_reserve(tbl->it_map, index, npages);
++	bitmap_set(tbl->it_map, index, npages);
+ 
+ 	spin_unlock_irqrestore(&tbl->it_lock, flags);
+ }
+@@ -305,7 +305,7 @@ static void iommu_free(struct iommu_table *tbl, dma_addr_t dma_addr,
+ 
+ 	spin_lock_irqsave(&tbl->it_lock, flags);
+ 
+-	iommu_area_free(tbl->it_map, entry, npages);
++	bitmap_clear(tbl->it_map, entry, npages);
+ 
+ 	spin_unlock_irqrestore(&tbl->it_lock, flags);
+ }
+diff --git a/arch/x86/kernel/pci-gart_64.c b/arch/x86/kernel/pci-gart_64.c
+index 98a827e..3010cd1 100644
+--- a/arch/x86/kernel/pci-gart_64.c
++++ b/arch/x86/kernel/pci-gart_64.c
+@@ -22,7 +22,7 @@
+ #include <linux/module.h>
+ #include <linux/topology.h>
+ #include <linux/interrupt.h>
+-#include <linux/bitops.h>
++#include <linux/bitmap.h>
+ #include <linux/kdebug.h>
+ #include <linux/scatterlist.h>
+ #include <linux/iommu-helper.h>
+@@ -122,7 +122,7 @@ static void free_iommu(unsigned long offset, int size)
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&iommu_bitmap_lock, flags);
+-	iommu_area_free(iommu_gart_bitmap, offset, size);
++	bitmap_clear(iommu_gart_bitmap, offset, size);
+ 	if (offset >= next_bit)
+ 		next_bit = offset + size;
+ 	spin_unlock_irqrestore(&iommu_bitmap_lock, flags);
+@@ -781,7 +781,7 @@ void __init gart_iommu_init(void)
+ 	 * Out of IOMMU space handling.
+ 	 * Reserve some invalid pages at the beginning of the GART.
+ 	 */
+-	iommu_area_reserve(iommu_gart_bitmap, 0, EMERGENCY_PAGES);
++	bitmap_set(iommu_gart_bitmap, 0, EMERGENCY_PAGES);
+ 
+ 	agp_memory_reserved = iommu_size;
+ 	printk(KERN_INFO
+diff --git a/include/linux/iommu-helper.h b/include/linux/iommu-helper.h
+index 3b068e5..64d1b63 100644
+--- a/include/linux/iommu-helper.h
++++ b/include/linux/iommu-helper.h
+@@ -14,14 +14,11 @@ static inline unsigned long iommu_device_max_index(unsigned long size,
+ extern int iommu_is_span_boundary(unsigned int index, unsigned int nr,
+ 				  unsigned long shift,
+ 				  unsigned long boundary_size);
+-extern void iommu_area_reserve(unsigned long *map, unsigned long i, int len);
+ extern unsigned long iommu_area_alloc(unsigned long *map, unsigned long size,
+ 				      unsigned long start, unsigned int nr,
+ 				      unsigned long shift,
+ 				      unsigned long boundary_size,
+ 				      unsigned long align_mask);
+-extern void iommu_area_free(unsigned long *map, unsigned long start,
+-			    unsigned int nr);
+ 
+ extern unsigned long iommu_num_pages(unsigned long addr, unsigned long len,
+ 				     unsigned long io_page_size);
+diff --git a/lib/iommu-helper.c b/lib/iommu-helper.c
+index dddbf22..51b53d3 100644
+--- a/lib/iommu-helper.c
++++ b/lib/iommu-helper.c
+@@ -3,40 +3,7 @@
   */
- #include <linux/types.h>
- #include <linux/bitops.h>
-+#include <linux/kref.h>
- #include <linux/mod_devicetable.h>
  
- typedef u32 phandle;
-@@ -31,6 +32,37 @@ struct property {
- 	unsigned int unique_id;
- };
+ #include <linux/module.h>
+-#include <linux/bitops.h>
+-
+-static unsigned long find_next_zero_area(unsigned long *map,
+-					 unsigned long size,
+-					 unsigned long start,
+-					 unsigned int nr,
+-					 unsigned long align_mask)
+-{
+-	unsigned long index, end, i;
+-again:
+-	index = find_next_zero_bit(map, size, start);
+-
+-	/* Align allocation */
+-	index = (index + align_mask) & ~align_mask;
+-
+-	end = index + nr;
+-	if (end >= size)
+-		return -1;
+-	i = find_next_bit(map, end, index);
+-	if (i < end) {
+-		start = i + 1;
+-		goto again;
+-	}
+-	return index;
+-}
+-
+-void iommu_area_reserve(unsigned long *map, unsigned long i, int len)
+-{
+-	unsigned long end = i + len;
+-	while (i < end) {
+-		__set_bit(i, map);
+-		i++;
+-	}
+-}
++#include <linux/bitmap.h>
  
-+#if defined(CONFIG_SPARC)
-+struct of_irq_controller;
-+#endif
-+
-+struct device_node {
-+	const char *name;
-+	const char *type;
-+	phandle	node;
-+#if !defined(CONFIG_SPARC)
-+	phandle linux_phandle;
-+#endif
-+	char	*full_name;
-+
-+	struct	property *properties;
-+	struct	property *deadprops;	/* removed properties */
-+	struct	device_node *parent;
-+	struct	device_node *child;
-+	struct	device_node *sibling;
-+	struct	device_node *next;	/* next device of same type */
-+	struct	device_node *allnext;	/* next in list of all nodes */
-+	struct	proc_dir_entry *pde;	/* this node's proc directory */
-+	struct	kref kref;
-+	unsigned long _flags;
-+	void	*data;
-+#if defined(CONFIG_SPARC)
-+	char	*path_component_name;
-+	unsigned int unique_id;
-+	struct of_irq_controller *irq_trans;
-+#endif
-+};
-+
- #include <asm/prom.h>
+ int iommu_is_span_boundary(unsigned int index, unsigned int nr,
+ 			   unsigned long shift,
+@@ -55,30 +22,20 @@ unsigned long iommu_area_alloc(unsigned long *map, unsigned long size,
+ {
+ 	unsigned long index;
+ again:
+-	index = find_next_zero_area(map, size, start, nr, align_mask);
+-	if (index != -1) {
++	index = bitmap_find_next_zero_area(map, size, start, nr, align_mask);
++	if (index < size) {
+ 		if (iommu_is_span_boundary(index, nr, shift, boundary_size)) {
+ 			/* we could do more effectively */
+ 			start = index + 1;
+ 			goto again;
+ 		}
+-		iommu_area_reserve(map, index, nr);
++		bitmap_set(map, index, nr);
++		return index;
+ 	}
+-	return index;
++	return -1;
+ }
+ EXPORT_SYMBOL(iommu_area_alloc);
  
- /* flag descriptions */
+-void iommu_area_free(unsigned long *map, unsigned long start, unsigned int nr)
+-{
+-	unsigned long end = start + nr;
+-
+-	while (start < end) {
+-		__clear_bit(start, map);
+-		start++;
+-	}
+-}
+-EXPORT_SYMBOL(iommu_area_free);
+-
+ unsigned long iommu_num_pages(unsigned long addr, unsigned long len,
+ 			      unsigned long io_page_size)
+ {
+-- 
+1.5.4.3
 
