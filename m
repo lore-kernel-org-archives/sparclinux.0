@@ -1,46 +1,54 @@
-From: Kjetil Oftedal <oftedal@gmail.com>
-Date: Thu, 08 Oct 2009 13:24:43 +0000
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Thu, 15 Oct 2009 01:00:07 +0000
 Subject: Re: [RFC PATCH 00/12] Merge common OpenFirmware device tree code
-Message-Id: <Pine.LNX.4.64.0910081515160.2356@oizys.tordivel.org>
+Message-Id: <20091015120007.3780c59b.sfr@canb.auug.org.au>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Signature=_Thu__15_Oct_2009_12_00_07_+1100_F.cmwanLGW4bt_y7"
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.60.0910072148040.11795@mailgate.netunix.com>
- <20091007.140938.255120957.davem@davemloft.net>
- <Pine.LNX.4.60.0910080155210.12519@mailgate.netunix.com>
- <20091007.213915.37481688.davem@davemloft.net>
-In-Reply-To: <20091007.213915.37481688.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: crn-Tjka5CH3XzFBDgjK7y7TUQ@public.gmane.org, wmb-D5eQfiDGL7eakBO8gow8eQ@public.gmane.org, sammy-4OGMY2YDKIVeoWH0uzbU5w@public.gmane.org, julian.calaby-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, microblaze-uclinux-rVRm/Wmeqae7NGdpmJTKYQ@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+References: <20091007041007.16890.62194.stgit@angua>
+In-Reply-To: <20091007041007.16890.62194.stgit@angua>
+To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, microblaze-uclinux-rVRm/Wmeqae7NGdpmJTKYQ@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
 
-On Wed, 7 Oct 2009, David Miller wrote:
+--Signature=_Thu__15_Oct_2009_12_00_07_+1100_F.cmwanLGW4bt_y7
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> From: Chris Newport <crn@netunix.com>
-> Date: Thu, 8 Oct 2009 02:29:25 +0100 (BST)
->
->> Sun4d has never had SMP support and
->
-> Wrong.
->
->> this is apparantly problematic due to Cray interlectual property
->>  causing a lack of bus documentation.
->
-> XBUS documentation is not available, but we fully know how to
-> program the SBUS interrupt controller and whatnot.  It's all
-> there in the sun4d interrupt and SMP support and it did work
-> just fine at one point.
->
-> Amusingly the SBUS interrupt stuff on sun4d is a very close
-> sibling to the IMAP/ICLR scheme used on sun4u.
->
+Hi Grant,
 
-The Sun4d SMP support exists, but is broken in 2.6.
-And the UP support is buggy. At least on my test-setup, the
-kernel is unable to load userland from scsi-drives.
+On Tue, 06 Oct 2009 22:29:57 -0600 Grant Likely <grant.likely@secretlab.ca>=
+ wrote:
+>
+> Well, I've got to start somewhere...
+>=20
+> So here goes.  I've begun the work to merge and clean up the OF device
+> tree handling code and this is my first set of patches.  Not fully
+> tested yet, but I'm getting them out to the lists so that I can start
+> responding to comments and collecting acks.  This first batch isn't
+> anything exciting, just a merge of common code
 
-Dropping the sun4 32-bit SPARC is a bit counterproductive when
-considering the resent effort to unify sparc64 and sparc
-arch-branches ?
+This all looks OK to me.  One thing:  I started in this as well some time
+ago and in my attempt I was hoping to avoid the ARCH ifdefs in linux/of.h
+by creating asm/of.h and moving the differing bits in there ...
 
+I'll send out the two patches I did just to show what I mean (these are
+from before microblaze was using the OF stuff).
 
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
+
+--Signature=_Thu__15_Oct_2009_12_00_07_+1100_F.cmwanLGW4bt_y7
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAkrWdBcACgkQjjKRsyhoI8w26gCgrC6aXsKjJZJN+rq7j8hhiiDb
+ZK0AnRqc0bw0h1mbhMJ1vnCTuvoej99J
+=ZMeC
+-----END PGP SIGNATURE-----
+
+--Signature=_Thu__15_Oct_2009_12_00_07_+1100_F.cmwanLGW4bt_y7--
