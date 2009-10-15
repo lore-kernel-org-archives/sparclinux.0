@@ -1,78 +1,142 @@
-From: David Gibson <david@gibson.dropbear.id.au>
-Date: Wed, 14 Oct 2009 04:47:07 +0000
-Subject: Re: [RFC PATCH 05/12] of: add common header for flattened device
-Message-Id: <20091014044707.GA3952@yookeroo.seuss>
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Date: Thu, 15 Oct 2009 06:07:07 +0000
+Subject: [PATCH -mmotm -v2] Fix
+Message-Id: <20091015060706.GA26956@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20091007041007.16890.62194.stgit@angua>
-	<20091007043052.16890.15975.stgit@angua>
-	<20091009063534.GC12948@yookeroo.seuss>
-	<fa686aa40910090007lef3fddbod0c5843abfe33be5@mail.gmail.com>
-In-Reply-To: <fa686aa40910090007lef3fddbod0c5843abfe33be5-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+References: <1255076961-21325-1-git-send-email-akinobu.mita@gmail.com>
+	<1255076961-21325-2-git-send-email-akinobu.mita@gmail.com>
+	<20091009164100.85a36188.akpm@linux-foundation.org>
+	<20091013021818.GA3898@localhost.localdomain>
+	<20091013091017.GA18431@localhost.localdomain>
+	<20091014032258.GA18527@localhost.localdomain>
+In-Reply-To: <20091014032258.GA18527@localhost.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Cc: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, microblaze-uclinux-rVRm/Wmeqae7NGdpmJTKYQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-usb@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@ozlabs.org, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Lothar Wassmann <LW@KARO-electronics.de>, x86@kernel.org, linux-altix@sgi.com, Ingo Molnar <mingo@redhat.com>, Fenghua Yu <fenghua.yu@intel.com>, Yevgeny Petrilin <yevgenyp@mellanox.co.il>, Thomas Gleixner <tglx@linutronix.de>, Tony Luck <tony.luck@intel.com>, Kyle Hubert <khubert@gmail.com>, netdev@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>, linux-kernel@vger.kernel.org, FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>, "David S. Miller" <davem@davemloft.net>
 
-On Fri, Oct 09, 2009 at 01:07:57AM -0600, Grant Likely wrote:
-> On Fri, Oct 9, 2009 at 12:35 AM, David Gibson
-> <david@gibson.dropbear.id.au> wrote:
-> > On Tue, Oct 06, 2009 at 10:30:59PM -0600, Grant Likely wrote:
-> >> Add a common header file for working with the flattened device tree
-> >> data structure and merge the shared data tags used by Microblaze and
-> >> PowerPC
-> >>
-> >> Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
-> >> ---
-> >>
-> >> =A0arch/microblaze/include/asm/prom.h | =A0 12 +-----------
-> >> =A0arch/powerpc/include/asm/prom.h =A0 =A0| =A0 12 +-----------
-> >> =A0include/linux/of_fdt.h =A0 =A0 =A0 =A0 =A0 =A0 | =A0 30 +++++++++++=
-+++++++++++++++++++
-> >> =A03 files changed, 32 insertions(+), 22 deletions(-)
-> >> =A0create mode 100644 include/linux/of_fdt.h
-> >>
-> >> diff --git a/arch/microblaze/include/asm/prom.h b/arch/microblaze/incl=
-ude/asm/prom.h
-> >> index 64e8b3a..5f461f0 100644
-> >> --- a/arch/microblaze/include/asm/prom.h
-> >> +++ b/arch/microblaze/include/asm/prom.h
-> >> @@ -17,20 +17,10 @@
-> >> =A0#ifndef _ASM_MICROBLAZE_PROM_H
-> >> =A0#define _ASM_MICROBLAZE_PROM_H
-> >> =A0#ifdef __KERNEL__
-> >> -
-> >> -/* Definitions used by the flattened device tree */
-> >> -#define OF_DT_HEADER =A0 =A0 =A0 =A0 0xd00dfeed /* marker */
-> >> -#define OF_DT_BEGIN_NODE =A0 =A0 0x1 /* Start of node, full name */
-> >> -#define OF_DT_END_NODE =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x2 /* End node */
-> >> -#define OF_DT_PROP =A0 =A0 =A0 =A0 =A0 0x3 /* Property: name off, siz=
-e, content */
-> >> -#define OF_DT_NOP =A0 =A0 =A0 =A0 =A0 =A00x4 /* nop */
-> >> -#define OF_DT_END =A0 =A0 =A0 =A0 =A0 =A00x9
-> >> -
-> >> -#define OF_DT_VERSION =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A00x10
-> >
-> >
-> > So, if you're merging all these, I guess the question is do we also
-> > want to merge them with scripts/dtc/libfdt/fdt.h, and by extension
-> > with the upstream libfdt header file which defines the same things.
->=20
-> I see your question and raise you another.  Where should the merge
-> file live for it to be included both by dtc and kernel code? Or should
-> it just be cloned in the kernel tree?
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: Fix bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area.patch
 
-Yeah, a good question.  As I see it there are two options.  Number one
-is just make sure everything relevant that the kernel needs is in the
-libfdt version, then just have the kernel code reference it from its
-location in scripts/dtc.  Other option is we clone the file in the
-kernel tree.  Requires keeping in sync, in theory at least, but since
-that file has been pretty static (since it's only supposed to contain
-passive structures/constants related to the physical flat tree
-structure - no code or prototypes).
+- Rewrite bitmap_set and bitmap_clear
 
---=20
-David Gibson			| I'll have my music baroque, and my code
-david AT gibson.dropbear.id.au	| minimalist, thank you.  NOT _the_ _other_
-				| _way_ _around_!
-http://www.ozlabs.org/~dgibson
+  Instead of setting or clearing for each bit.
+
+- Fix off-by-one errors in bitmap_find_next_zero_area
+
+  This bug was derived from find_next_zero_area in iommu-helper.
+
+- Add kerneldoc for bitmap_find_next_zero_area
+
+This patch is supposed to be folded into
+bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area.patch
+
+* -v2
+- Remove an extra test at the "index" value by find_next_bit
+
+Index was just returned by find_next_zero_bit, so we know it's zero.
+
+Noticed-by: Kyle Hubert <khubert@gmail.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+---
+ lib/bitmap.c |   62 ++++++++++++++++++++++++++++++++++++++++++++-------------
+ 1 files changed, 48 insertions(+), 14 deletions(-)
+
+diff --git a/lib/bitmap.c b/lib/bitmap.c
+index 2415da4..962b863 100644
+--- a/lib/bitmap.c
++++ b/lib/bitmap.c
+@@ -271,28 +271,62 @@ int __bitmap_weight(const unsigned long *bitmap, int bits)
+ }
+ EXPORT_SYMBOL(__bitmap_weight);
+ 
+-void bitmap_set(unsigned long *map, int i, int len)
+-{
+-	int end = i + len;
++#define BITMAP_FIRST_WORD_MASK(start) (~0UL << ((start) % BITS_PER_LONG))
+ 
+-	while (i < end) {
+-		__set_bit(i, map);
+-		i++;
++void bitmap_set(unsigned long *map, int start, int nr)
++{
++	unsigned long *p = map + BIT_WORD(start);
++	const int size = start + nr;
++	int bits_to_set = BITS_PER_LONG - (start % BITS_PER_LONG);
++	unsigned long mask_to_set = BITMAP_FIRST_WORD_MASK(start);
++
++	while (nr - bits_to_set >= 0) {
++		*p |= mask_to_set;
++		nr -= bits_to_set;
++		bits_to_set = BITS_PER_LONG;
++		mask_to_set = ~0UL;
++		p++;
++	}
++	if (nr) {
++		mask_to_set &= BITMAP_LAST_WORD_MASK(size);
++		*p |= mask_to_set;
+ 	}
+ }
+ EXPORT_SYMBOL(bitmap_set);
+ 
+ void bitmap_clear(unsigned long *map, int start, int nr)
+ {
+-	int end = start + nr;
+-
+-	while (start < end) {
+-		__clear_bit(start, map);
+-		start++;
++	unsigned long *p = map + BIT_WORD(start);
++	const int size = start + nr;
++	int bits_to_clear = BITS_PER_LONG - (start % BITS_PER_LONG);
++	unsigned long mask_to_clear = BITMAP_FIRST_WORD_MASK(start);
++
++	while (nr - bits_to_clear >= 0) {
++		*p &= ~mask_to_clear;
++		nr -= bits_to_clear;
++		bits_to_clear = BITS_PER_LONG;
++		mask_to_clear = ~0UL;
++		p++;
++	}
++	if (nr) {
++		mask_to_clear &= BITMAP_LAST_WORD_MASK(size);
++		*p &= ~mask_to_clear;
+ 	}
+ }
+ EXPORT_SYMBOL(bitmap_clear);
+ 
++/*
++ * bitmap_find_next_zero_area - find a contiguous aligned zero area
++ * @map: The address to base the search on
++ * @size: The bitmap size in bits
++ * @start: The bitnumber to start searching at
++ * @nr: The number of zeroed bits we're looking for
++ * @align_mask: Alignment mask for zero area
++ *
++ * The @align_mask should be one less than a power of 2; the effect is that
++ * the bit offset of all zero areas this function finds is multiples of that
++ * power of 2. A @align_mask of 0 means no alignment is required.
++ */
+ unsigned long bitmap_find_next_zero_area(unsigned long *map,
+ 					 unsigned long size,
+ 					 unsigned long start,
+@@ -304,12 +338,12 @@ again:
+ 	index = find_next_zero_bit(map, size, start);
+ 
+ 	/* Align allocation */
+-	index = (index + align_mask) & ~align_mask;
++	index = __ALIGN_MASK(index, align_mask);
+ 
+ 	end = index + nr;
+-	if (end >= size)
++	if (end > size)
+ 		return end;
+-	i = find_next_bit(map, end, index);
++	i = find_next_bit(map, end, index + 1);
+ 	if (i < end) {
+ 		start = i + 1;
+ 		goto again;
+-- 
+1.5.4.3
+
