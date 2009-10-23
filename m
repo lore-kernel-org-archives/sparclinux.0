@@ -1,58 +1,69 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Fri, 16 Oct 2009 03:18:21 +0000
-Subject: Re: [RFC PATCH 00/12] Merge common OpenFirmware device tree code
-Message-Id: <fa686aa40910152018i2dbf1876s4de3771e42f9c3d@mail.gmail.com>
+From: Frans van Berckel <fberckel@xs4all.nl>
+Date: Fri, 23 Oct 2009 09:06:58 +0000
+Subject: temperature & fan-control
+Message-Id: <1256288818.1858.15.camel@deblnxsrv254.opensoftwarenetwork.nl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20091007041007.16890.62194.stgit@angua>
-	<20091015120007.3780c59b.sfr@canb.auug.org.au>
-	<fa686aa40910151006k43b07c30q1e43c3b1ae4af561@mail.gmail.com>
-	<20091016103829.323c89d7.sfr@canb.auug.org.au>
-In-Reply-To: <20091016103829.323c89d7.sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, microblaze-uclinux-rVRm/Wmeqae7NGdpmJTKYQ@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
-On Thu, Oct 15, 2009 at 5:38 PM, Stephen Rothwell <sfr@canb.auug.org.au> wr=
-ote:
-> Hi Grant,
->
-> On Thu, 15 Oct 2009 11:06:15 -0600 Grant Likely <grant.likely@secretlab.c=
-a> wrote:
->>
->> In the mean time, I've pushed out the current series with acked-bys
->> added to my git server. =A0I think I'm ready for things to start going
->> into linux-next. =A0Since this is the first time I've asked for a tree
->> to be added to linux-next, please let me know if you see anything
->> troublesome or problematic. =A0Here's the tree:
->>
->> The following changes since commit 4bdf0bb7d64cf672199519b3d808e2a82f5b5=
-9e9:
->> =A0 Grant Likely (1):
->> =A0 =A0 =A0 =A0 powerpc/5200: Update defconfigs
->
-> Um, that commit is in no tree but yours ...
+Hi,
 
-It should be in Ben's merge tree shortly, and Linus' shortly after
-that, but yeah that was lazy.  It was the tree that I tested my
-commits on, and I should have either rebased or waited until it
-actually hit mainline.  I just wanted to get the ball rolling before
-heading out the door for Japan.
+Is speeding the fans on a Blade 1000/2000 and Fire 280R well supported
+by the kernel? What sensor modules & tools are needed to compile?
 
->> are available in the git repository at:
->>
->> =A0 git://git.secretlab.ca/git/linux-2.6 next-devicetree
->
-> I have added this for today, but note that it contains stuff that is not
-> devicetree related. =A0Trees in linux-next should be based on other trees
-> in linux-next (almost always Linus' tree, but any other nonrebasing tree
-> is fine).
+Thanks,
 
-Thanks.
+Frans van Berckel
 
-g.
+uname -a: Linux sunbladesrv249 2.6.32-rc5-kernelbuilder #1 SMP Tue Oct
+20 23:34:41 CEST 2009 sparc GNU/Linux
 
---=20
-Grant Likely, B.Sc., P.Eng.
-Secret Lab Technologies Ltd.
+prtconf:     pci (driver probably installed)
+prtconf:         ebus (driver probably installed)
+prtconf:             flashprom (driver probably installed)
+prtconf:             bbc (driver probably installed)
+prtconf:             ppm (driver probably installed)
+prtconf:             i2c (driver probably installed)
+prtconf:                 dimm-fru (driver probably installed)
+prtconf:                 dimm-fru (driver probably installed)
+prtconf:                 dimm-fru (driver probably installed)
+prtconf:                 dimm-fru (driver probably installed)
+prtconf:                 dimm-fru (driver probably installed)
+prtconf:                 dimm-fru (driver probably installed)
+prtconf:                 dimm-fru (driver probably installed)
+prtconf:                 dimm-fru (driver probably installed)
+prtconf:                 nvram (driver probably installed)
+prtconf:                 idprom (driver probably installed)
+prtconf:             i2c (driver probably installed)
+prtconf:                 cpu-fru (driver probably installed)
+prtconf:                 temperature (driver probably installed)
+prtconf:                 cpu-fru (driver probably installed)
+prtconf:                 temperature (driver probably installed)
+prtconf:                 fan-control (driver probably installed)
+prtconf:                 card-reader (driver probably installed)
+prtconf:                 motherboard-fru (driver probably installed)
+prtconf:                 i2c-bridge (driver probably installed)
+
+
+lsmod: Module                  Size  Used by
+lsmod: openpromfs              4731  1 
+lsmod: evdev                   8479  0 
+lsmod: sd_mod                 32227  4 
+lsmod: crc_t10dif              1507  1 sd_mod
+lsmod: sg                     27580  0 
+lsmod: sr_mod                 14561  0 
+lsmod: cdrom                  36852  1 sr_mod
+lsmod: qla2xxx               231393  3 
+lsmod: scsi_transport_fc      43776  1 qla2xxx
+lsmod: ohci_hcd               19010  0 
+lsmod: sym53c8xx              73756  0 
+lsmod: ohci1394               27982  0 
+lsmod: scsi_tgt               10531  1 scsi_transport_fc
+lsmod: ehci_hcd               33847  0 
+lsmod: scsi_transport_spi     23476  1 sym53c8xx
+lsmod: scsi_mod              163367  8 sd_mod,sg, sr_mod,qla2xxx,
+scsi_transport_fc, sym53c8xx, scsi_tgt, scsi_transport_spi
+lsmod: ieee1394               84208  1 ohci1394
+
