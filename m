@@ -1,109 +1,70 @@
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Date: Wed, 28 Oct 2009 08:43:15 +0000
-Subject: [PATCH 5/7] sparc: Use bitmap_find_next_zero_area
-Message-Id: <1256719397-4258-5-git-send-email-akinobu.mita@gmail.com>
+From: Frans van Berckel <fberckel@xs4all.nl>
+Date: Sat, 24 Oct 2009 15:18:03 +0000
+Subject: Re: temperature & fan-control modprobe Oops
+Message-Id: <1256397483.5117.28.camel@deblnxsrv254.opensoftwarenetwork.nl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1256719397-4258-1-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1256719397-4258-1-git-send-email-akinobu.mita@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, akpm@linux-foundation.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Acked-by: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
----
- arch/sparc/kernel/ldc.c |   16 ++++------------
- arch/sparc/mm/sun4c.c   |   17 +++++------------
- 2 files changed, 9 insertions(+), 24 deletions(-)
+On Sat, 2009-10-24 at 17:06 +0200, Frans van Berckel wrote:
 
-diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
-index cb3c72c..cefd05e 100644
---- a/arch/sparc/kernel/ldc.c
-+++ b/arch/sparc/kernel/ldc.c
-@@ -14,6 +14,7 @@
- #include <linux/interrupt.h>
- #include <linux/list.h>
- #include <linux/init.h>
-+#include <linux/bitmap.h>
- 
- #include <asm/hypervisor.h>
- #include <asm/iommu.h>
-@@ -1875,7 +1876,7 @@ EXPORT_SYMBOL(ldc_read);
- static long arena_alloc(struct ldc_iommu *iommu, unsigned long npages)
- {
- 	struct iommu_arena *arena = &iommu->arena;
--	unsigned long n, i, start, end, limit;
-+	unsigned long n, start, end, limit;
- 	int pass;
- 
- 	limit = arena->limit;
-@@ -1883,7 +1884,7 @@ static long arena_alloc(struct ldc_iommu *iommu, unsigned long npages)
- 	pass = 0;
- 
- again:
--	n = find_next_zero_bit(arena->map, limit, start);
-+	n = bitmap_find_next_zero_area(arena->map, limit, start, npages, 0);
- 	end = n + npages;
- 	if (unlikely(end >= limit)) {
- 		if (likely(pass < 1)) {
-@@ -1896,16 +1897,7 @@ again:
- 			return -1;
- 		}
- 	}
--
--	for (i = n; i < end; i++) {
--		if (test_bit(i, arena->map)) {
--			start = i + 1;
--			goto again;
--		}
--	}
--
--	for (i = n; i < end; i++)
--		__set_bit(i, arena->map);
-+	bitmap_set(arena->map, n, npages);
- 
- 	arena->hint = end;
- 
-diff --git a/arch/sparc/mm/sun4c.c b/arch/sparc/mm/sun4c.c
-index 2ffacd6..a89baf0 100644
---- a/arch/sparc/mm/sun4c.c
-+++ b/arch/sparc/mm/sun4c.c
-@@ -17,6 +17,7 @@
- #include <linux/fs.h>
- #include <linux/seq_file.h>
- #include <linux/scatterlist.h>
-+#include <linux/bitmap.h>
- 
- #include <asm/sections.h>
- #include <asm/page.h>
-@@ -1021,20 +1022,12 @@ static char *sun4c_lockarea(char *vaddr, unsigned long size)
- 	npages = (((unsigned long)vaddr & ~PAGE_MASK) +
- 		  size + (PAGE_SIZE-1)) >> PAGE_SHIFT;
- 
--	scan = 0;
- 	local_irq_save(flags);
--	for (;;) {
--		scan = find_next_zero_bit(sun4c_iobuffer_map,
--					  iobuffer_map_size, scan);
--		if ((base = scan) + npages > iobuffer_map_size) goto abend;
--		for (;;) {
--			if (scan >= base + npages) goto found;
--			if (test_bit(scan, sun4c_iobuffer_map)) break;
--			scan++;
--		}
--	}
-+	base = bitmap_find_next_zero_area(sun4c_iobuffer_map, iobuffer_map_size,
-+						0, npages, 0);
-+	if (base >= iobuffer_map_size)
-+		goto abend;
- 
--found:
- 	high = ((base + npages) << PAGE_SHIFT) + sun4c_iobuffer_start;
- 	high = SUN4C_REAL_PGDIR_ALIGN(high);
- 	while (high > sun4c_iobuffer_high) {
--- 
-1.6.5.1
+Hmmm unloading bbc looks even better!
+
+Thanks,
+
+Frans van Berckel
+
+Oct 24 17:09:15  [ 3028.673489] Unable to handle kernel NULL pointer
+dereference
+Oct 24 17:09:15  [ 3028.676334] tsk->{mm,active_mm}->context 0000000000000cc3
+Oct 24 17:09:15  [ 3028.679201] tsk->{mm,active_mm}->pgd fffff8007c1c0000
+Oct 24 17:09:15  [ 3028.681982]               \|/ ____ \|/
+Oct 24 17:09:15  [ 3028.681986]               "@'/ .. \`@"
+Oct 24 17:09:15  [ 3028.681990]               /_| \__/ |_\
+Oct 24 17:09:15  [ 3028.681993]                  \__U_/
+Oct 24 17:09:15  [ 3028.692891] modprobe(2361): Oops [#1]
+Oct 24 17:09:15  [ 3028.695567] TSTATE: 0000004411009605 TPC:
+00000000005bc144 TNPC: 00000000005bc148 Y: 00000001    Not tainted
+Oct 24 17:09:15  [ 3028.698262] TPC: <atomic_add+0x4/0x48>
+Oct 24 17:09:15  [ 3028.700897] g0: 00000000001200d2 g1:
+0000000000000001 g2: 0000000000000002 g3: 0000000000000002
+Oct 24 17:09:15  [ 3028.703671] g4: fffff8007b033840 g5:
+fffff8007defc000 g6: fffff8007b9e4000 g7: 0000000000000000
+Oct 24 17:09:15  [ 3028.706442] o0: 0000000000000001 o1:
+0000000000000010 o2: 0000000000000001 o3: 00000000005462f4
+Oct 24 17:09:15  [ 3028.709187] o4: 0000000000000080 o5:
+0000000000000019 sp: fffff8007b9e7041 ret_pc: 000000000047e5bc
+Oct 24 17:09:15  [ 3028.712008] RPC: <kthread_stop+0x1c/0xa0>
+Oct 24 17:09:15  [ 3028.714739] l0: 0000000000000010 l1:
+000000000094a000 l2: 000000000087a400 l3: fffff8007e8004e0
+Oct 24 17:09:15  [ 3028.717547] l4: 000002b3226d7400 l5:
+0000000000000000 l6: 000002b3226d7400 l7: 000002b322306ef2
+Oct 24 17:09:15  [ 3028.720341] i0: 0000000000000000 i1:
+0000000000980a38 i2: 0000000000000001 i3: fffff8007d8d0280
+Oct 24 17:09:15  [ 3028.723162] i4: 0000000000000000 i5:
+7fffffffffffffff i6: fffff8007b9e7101 i7: 00000000102ea68c
+Oct 24 17:09:15  [ 3028.725939] I7: <bbc_envctrl_cleanup+0xc/0x120
+[bbc]>
+Oct 24 17:09:15  [ 3028.728651] Caller[00000000102ea68c]:
+bbc_envctrl_cleanup+0xc/0x120 [bbc]
+Oct 24 17:09:15  [ 3028.731467] Caller[00000000102eb580]: bbc_i2c_remove
++0x8/0x58 [bbc]
+Oct 24 17:09:15  [ 3028.734235] Caller[000000000069b6fc]:
+of_platform_device_remove+0x1c/0x40
+Oct 24 17:09:15  [ 3028.736960] Caller[0000000000638910]:
+__device_release_driver+0x70/0xc0
+Oct 24 17:09:15  [ 3028.739751] Caller[0000000000638a14]: driver_detach
++0xb4/0xe0
+Oct 24 17:09:15  [ 3028.742516] Caller[0000000000637bc8]:
+bus_remove_driver+0x88/0xc0
+Oct 24 17:09:15  [ 3028.745234] Caller[00000000004921bc]:
+SyS_delete_module+0x19c/0x280
+Oct 24 17:09:15  [ 3028.748015] Caller[0000000000406214]:
+linux_sparc_syscall32+0x34/0x40
+Oct 24 17:09:15  [ 3028.750756] Caller[0000000000013258]: 0x13258
+Oct 24 17:09:15  [ 3028.753485] Instruction DUMP: 01000000  01000000
+94102001 <c2024000> 8e004008  cfe25001  80a04007  12400004  01000000 
+
 
