@@ -1,102 +1,109 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Wed, 07 Oct 2009 04:30:10 +0000
-Subject: [RFC PATCH 01/12] of: Rework linux/of.h and asm/prom.h include
-Message-Id: <20091007043002.16890.93443.stgit@angua>
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Date: Wed, 28 Oct 2009 08:43:15 +0000
+Subject: [PATCH 5/7] sparc: Use bitmap_find_next_zero_area
+Message-Id: <1256719397-4258-5-git-send-email-akinobu.mita@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20091007041007.16890.62194.stgit@angua>
-In-Reply-To: <20091007041007.16890.62194.stgit@angua>
+References: <1256719397-4258-1-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1256719397-4258-1-git-send-email-akinobu.mita@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org, Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org, microblaze-uclinux
+To: linux-kernel@vger.kernel.org, akpm@linux-foundation.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>, sparclinux@vger.kernel.org
 
-In preparation to prune things out of the Sparc, PowerPC and Microblaze
-asm/prom.h files, change the #include statements to ensure that
-even if asm/prom.h is included first, linux/of.h gets to determine the
-order in which files are processed.
-
-This patch adds a #include <linux/of.h> to each of the prom.h files
-*above* the multi-include protection macros to ensure that linux/of.h
-can define things before prom.h gets processed.
-
-At the end of the merge the cross dependencies between the files should
-be gone and a sane #include scheme can be restored.
-
-Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Acked-by: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
 ---
+ arch/sparc/kernel/ldc.c |   16 ++++------------
+ arch/sparc/mm/sun4c.c   |   17 +++++------------
+ 2 files changed, 9 insertions(+), 24 deletions(-)
 
- arch/microblaze/include/asm/prom.h |    8 ++------
- arch/powerpc/include/asm/prom.h    |    7 +------
- arch/sparc/include/asm/prom.h      |    7 +------
- 3 files changed, 4 insertions(+), 18 deletions(-)
-
-diff --git a/arch/microblaze/include/asm/prom.h b/arch/microblaze/include/asm/prom.h
-index 37e6f30..6636889 100644
---- a/arch/microblaze/include/asm/prom.h
-+++ b/arch/microblaze/include/asm/prom.h
-@@ -12,6 +12,8 @@
-  * 2 of the License, or (at your option) any later version.
-  */
+diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
+index cb3c72c..cefd05e 100644
+--- a/arch/sparc/kernel/ldc.c
++++ b/arch/sparc/kernel/ldc.c
+@@ -14,6 +14,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/list.h>
+ #include <linux/init.h>
++#include <linux/bitmap.h>
  
-+#include <linux/of.h>	/* linux/of.h gets to determine #include ordering */
-+
- #ifndef _ASM_MICROBLAZE_PROM_H
- #define _ASM_MICROBLAZE_PROM_H
- #ifdef __KERNEL__
-@@ -305,12 +307,6 @@ extern int of_irq_to_resource(struct device_node *dev, int index,
-  */
- extern void __iomem *of_iomap(struct device_node *device, int index);
- 
--/*
-- * NB: This is here while we transition from using asm/prom.h
-- * to linux/of.h
-- */
--#include <linux/of.h>
--
- #endif /* __ASSEMBLY__ */
- #endif /* __KERNEL__ */
- #endif /* _ASM_MICROBLAZE_PROM_H */
-diff --git a/arch/powerpc/include/asm/prom.h b/arch/powerpc/include/asm/prom.h
-index 6ff0418..b0a84ea 100644
---- a/arch/powerpc/include/asm/prom.h
-+++ b/arch/powerpc/include/asm/prom.h
-@@ -1,3 +1,4 @@
-+#include <linux/of.h>	/* linux/of.h gets to determine #include ordering */
- #ifndef _POWERPC_PROM_H
- #define _POWERPC_PROM_H
- #ifdef __KERNEL__
-@@ -349,11 +350,5 @@ extern int of_irq_to_resource(struct device_node *dev, int index,
-  */
- extern void __iomem *of_iomap(struct device_node *device, int index);
- 
--/*
-- * NB:  This is here while we transition from using asm/prom.h
-- * to linux/of.h
-- */
--#include <linux/of.h>
--
- #endif /* __KERNEL__ */
- #endif /* _POWERPC_PROM_H */
-diff --git a/arch/sparc/include/asm/prom.h b/arch/sparc/include/asm/prom.h
-index 82a190d..0733170 100644
---- a/arch/sparc/include/asm/prom.h
-+++ b/arch/sparc/include/asm/prom.h
-@@ -1,3 +1,4 @@
-+#include <linux/of.h>	/* linux/of.h gets to determine #include ordering */
- #ifndef _SPARC_PROM_H
- #define _SPARC_PROM_H
- #ifdef __KERNEL__
-@@ -108,12 +109,6 @@ static inline void irq_dispose_mapping(unsigned int virq)
+ #include <asm/hypervisor.h>
+ #include <asm/iommu.h>
+@@ -1875,7 +1876,7 @@ EXPORT_SYMBOL(ldc_read);
+ static long arena_alloc(struct ldc_iommu *iommu, unsigned long npages)
  {
- }
+ 	struct iommu_arena *arena = &iommu->arena;
+-	unsigned long n, i, start, end, limit;
++	unsigned long n, start, end, limit;
+ 	int pass;
  
--/*
-- * NB:  This is here while we transition from using asm/prom.h
-- * to linux/of.h
-- */
--#include <linux/of.h>
+ 	limit = arena->limit;
+@@ -1883,7 +1884,7 @@ static long arena_alloc(struct ldc_iommu *iommu, unsigned long npages)
+ 	pass = 0;
+ 
+ again:
+-	n = find_next_zero_bit(arena->map, limit, start);
++	n = bitmap_find_next_zero_area(arena->map, limit, start, npages, 0);
+ 	end = n + npages;
+ 	if (unlikely(end >= limit)) {
+ 		if (likely(pass < 1)) {
+@@ -1896,16 +1897,7 @@ again:
+ 			return -1;
+ 		}
+ 	}
 -
- extern struct device_node *of_console_device;
- extern char *of_console_path;
- extern char *of_console_options;
+-	for (i = n; i < end; i++) {
+-		if (test_bit(i, arena->map)) {
+-			start = i + 1;
+-			goto again;
+-		}
+-	}
+-
+-	for (i = n; i < end; i++)
+-		__set_bit(i, arena->map);
++	bitmap_set(arena->map, n, npages);
+ 
+ 	arena->hint = end;
+ 
+diff --git a/arch/sparc/mm/sun4c.c b/arch/sparc/mm/sun4c.c
+index 2ffacd6..a89baf0 100644
+--- a/arch/sparc/mm/sun4c.c
++++ b/arch/sparc/mm/sun4c.c
+@@ -17,6 +17,7 @@
+ #include <linux/fs.h>
+ #include <linux/seq_file.h>
+ #include <linux/scatterlist.h>
++#include <linux/bitmap.h>
+ 
+ #include <asm/sections.h>
+ #include <asm/page.h>
+@@ -1021,20 +1022,12 @@ static char *sun4c_lockarea(char *vaddr, unsigned long size)
+ 	npages = (((unsigned long)vaddr & ~PAGE_MASK) +
+ 		  size + (PAGE_SIZE-1)) >> PAGE_SHIFT;
+ 
+-	scan = 0;
+ 	local_irq_save(flags);
+-	for (;;) {
+-		scan = find_next_zero_bit(sun4c_iobuffer_map,
+-					  iobuffer_map_size, scan);
+-		if ((base = scan) + npages > iobuffer_map_size) goto abend;
+-		for (;;) {
+-			if (scan >= base + npages) goto found;
+-			if (test_bit(scan, sun4c_iobuffer_map)) break;
+-			scan++;
+-		}
+-	}
++	base = bitmap_find_next_zero_area(sun4c_iobuffer_map, iobuffer_map_size,
++						0, npages, 0);
++	if (base >= iobuffer_map_size)
++		goto abend;
+ 
+-found:
+ 	high = ((base + npages) << PAGE_SHIFT) + sun4c_iobuffer_start;
+ 	high = SUN4C_REAL_PGDIR_ALIGN(high);
+ 	while (high > sun4c_iobuffer_high) {
+-- 
+1.6.5.1
 
