@@ -1,143 +1,284 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Thu, 15 Oct 2009 01:01:44 +0000
-Subject: [PATCH 1/2] of: create asm/of.h
-Message-Id: <20091015120144.73ef384c.sfr@canb.auug.org.au>
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Date: Wed, 28 Oct 2009 08:43:12 +0000
+Subject: [PATCH 2/7] iommu-helper: Use bitmap library
+Message-Id: <1256719397-4258-2-git-send-email-akinobu.mita@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20091007041007.16890.62194.stgit@angua>
-	<20091015120007.3780c59b.sfr@canb.auug.org.au>
-In-Reply-To: <20091015120007.3780c59b.sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
+References: <1256719397-4258-1-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1256719397-4258-1-git-send-email-akinobu.mita@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, microblaze-uclinux-rVRm/Wmeqae7NGdpmJTKYQ@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+To: linux-kernel@vger.kernel.org, akpm@linux-foundation.org
+Cc: Joerg Roedel <joerg.roedel@amd.com>, x86@kernel.org, Akinobu Mita <akinobu.mita@gmail.com>, FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>, linuxppc-dev@ozlabs.org, Ingo Molnar <mingo@redhat.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, "David S. Miller" <davem@davemloft.net>
 
-This creates asm/of.h for powerpc and sparc and includes it
-from linux/of.h, it also moves the first trivial stuff there from
-asm/prom.h
+Use bitmap library and kill some unused iommu helper functions.
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+1. s/iommu_area_free/bitmap_clear/
+
+2. s/iommu_area_reserve/bitmap_set/
+
+3. Use bitmap_find_next_zero_area instead of find_next_zero_area
+
+  This cannot be simple substitution because find_next_zero_area
+  doesn't check the last bit of the limit in bitmap
+
+4. Remove iommu_area_free, iommu_area_reserve, and find_next_zero_area
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: linuxppc-dev@ozlabs.org
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: x86@kernel.org
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Joerg Roedel <joerg.roedel@amd.com>
 ---
- arch/powerpc/include/asm/of.h   |   23 +++++++++++++++++++++++
- arch/powerpc/include/asm/prom.h |    7 -------
- arch/sparc/include/asm/of.h     |   24 ++++++++++++++++++++++++
- arch/sparc/include/asm/prom.h   |    7 -------
- include/linux/of.h              |    1 +
- 5 files changed, 48 insertions(+), 14 deletions(-)
- create mode 100644 arch/powerpc/include/asm/of.h
- create mode 100644 arch/sparc/include/asm/of.h
+ arch/powerpc/kernel/iommu.c      |    4 +-
+ arch/sparc/kernel/iommu.c        |    3 +-
+ arch/x86/kernel/amd_iommu.c      |    4 +-
+ arch/x86/kernel/pci-calgary_64.c |    6 ++--
+ arch/x86/kernel/pci-gart_64.c    |    6 ++--
+ include/linux/iommu-helper.h     |    3 --
+ lib/iommu-helper.c               |   59 ++++++--------------------------------
+ 7 files changed, 21 insertions(+), 64 deletions(-)
 
-diff --git a/arch/powerpc/include/asm/of.h b/arch/powerpc/include/asm/of.h
-new file mode 100644
-index 0000000..1c1089a
---- /dev/null
-+++ b/arch/powerpc/include/asm/of.h
-@@ -0,0 +1,23 @@
-+#ifndef _POWERPC_OF_H
-+#define _POWERPC_OF_H
-+/*
-+ * Definitions for accessing the in memory device tree.
-+ *
-+ * Extracted from prom.h
-+ *	Copyright (C) 1996-2005 Paul Mackerras.
-+ *	Updates for PPC64 by Peter Bergner & David Engebretsen, IBM Corp.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version
-+ * 2 of the License, or (at your option) any later version.
-+ */
-+
-+#define OF_ROOT_NODE_ADDR_CELLS_DEFAULT	1
-+#define OF_ROOT_NODE_SIZE_CELLS_DEFAULT	1
-+
-+#define of_compat_cmp(s1, s2, l)	strcasecmp((s1), (s2))
-+#define of_prop_cmp(s1, s2)		strcmp((s1), (s2))
-+#define of_node_cmp(s1, s2)		strcasecmp((s1), (s2))
-+
-+#endif /* _POWERPC_OF_H */
-diff --git a/arch/powerpc/include/asm/prom.h b/arch/powerpc/include/asm/prom.h
-index 6ff0418..07aef9f 100644
---- a/arch/powerpc/include/asm/prom.h
-+++ b/arch/powerpc/include/asm/prom.h
-@@ -21,13 +21,6 @@
- #include <asm/irq.h>
- #include <asm/atomic.h>
+diff --git a/arch/powerpc/kernel/iommu.c b/arch/powerpc/kernel/iommu.c
+index fd51578..5547ae6 100644
+--- a/arch/powerpc/kernel/iommu.c
++++ b/arch/powerpc/kernel/iommu.c
+@@ -30,7 +30,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/string.h>
+ #include <linux/dma-mapping.h>
+-#include <linux/bitops.h>
++#include <linux/bitmap.h>
+ #include <linux/iommu-helper.h>
+ #include <linux/crash_dump.h>
+ #include <asm/io.h>
+@@ -251,7 +251,7 @@ static void __iommu_free(struct iommu_table *tbl, dma_addr_t dma_addr,
+ 	}
  
--#define OF_ROOT_NODE_ADDR_CELLS_DEFAULT	1
--#define OF_ROOT_NODE_SIZE_CELLS_DEFAULT	1
+ 	ppc_md.tce_free(tbl, entry, npages);
+-	iommu_area_free(tbl->it_map, free_entry, npages);
++	bitmap_clear(tbl->it_map, free_entry, npages);
+ }
+ 
+ static void iommu_free(struct iommu_table *tbl, dma_addr_t dma_addr,
+diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
+index 7690cc2..5fad949 100644
+--- a/arch/sparc/kernel/iommu.c
++++ b/arch/sparc/kernel/iommu.c
+@@ -11,6 +11,7 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/errno.h>
+ #include <linux/iommu-helper.h>
++#include <linux/bitmap.h>
+ 
+ #ifdef CONFIG_PCI
+ #include <linux/pci.h>
+@@ -169,7 +170,7 @@ void iommu_range_free(struct iommu *iommu, dma_addr_t dma_addr, unsigned long np
+ 
+ 	entry = (dma_addr - iommu->page_table_map_base) >> IO_PAGE_SHIFT;
+ 
+-	iommu_area_free(arena->map, entry, npages);
++	bitmap_clear(arena->map, entry, npages);
+ }
+ 
+ int iommu_table_init(struct iommu *iommu, int tsbsize,
+diff --git a/arch/x86/kernel/amd_iommu.c b/arch/x86/kernel/amd_iommu.c
+index 98f230f..08b1d20 100644
+--- a/arch/x86/kernel/amd_iommu.c
++++ b/arch/x86/kernel/amd_iommu.c
+@@ -19,7 +19,7 @@
+ 
+ #include <linux/pci.h>
+ #include <linux/gfp.h>
+-#include <linux/bitops.h>
++#include <linux/bitmap.h>
+ #include <linux/debugfs.h>
+ #include <linux/scatterlist.h>
+ #include <linux/dma-mapping.h>
+@@ -959,7 +959,7 @@ static void dma_ops_free_addresses(struct dma_ops_domain *dom,
+ 
+ 	address = (address % APERTURE_RANGE_SIZE) >> PAGE_SHIFT;
+ 
+-	iommu_area_free(range->bitmap, address, pages);
++	bitmap_clear(range->bitmap, address, pages);
+ 
+ }
+ 
+diff --git a/arch/x86/kernel/pci-calgary_64.c b/arch/x86/kernel/pci-calgary_64.c
+index 971a3be..c87bb20 100644
+--- a/arch/x86/kernel/pci-calgary_64.c
++++ b/arch/x86/kernel/pci-calgary_64.c
+@@ -31,7 +31,7 @@
+ #include <linux/string.h>
+ #include <linux/crash_dump.h>
+ #include <linux/dma-mapping.h>
+-#include <linux/bitops.h>
++#include <linux/bitmap.h>
+ #include <linux/pci_ids.h>
+ #include <linux/pci.h>
+ #include <linux/delay.h>
+@@ -211,7 +211,7 @@ static void iommu_range_reserve(struct iommu_table *tbl,
+ 
+ 	spin_lock_irqsave(&tbl->it_lock, flags);
+ 
+-	iommu_area_reserve(tbl->it_map, index, npages);
++	bitmap_set(tbl->it_map, index, npages);
+ 
+ 	spin_unlock_irqrestore(&tbl->it_lock, flags);
+ }
+@@ -305,7 +305,7 @@ static void iommu_free(struct iommu_table *tbl, dma_addr_t dma_addr,
+ 
+ 	spin_lock_irqsave(&tbl->it_lock, flags);
+ 
+-	iommu_area_free(tbl->it_map, entry, npages);
++	bitmap_clear(tbl->it_map, entry, npages);
+ 
+ 	spin_unlock_irqrestore(&tbl->it_lock, flags);
+ }
+diff --git a/arch/x86/kernel/pci-gart_64.c b/arch/x86/kernel/pci-gart_64.c
+index a7f1b64..156e362 100644
+--- a/arch/x86/kernel/pci-gart_64.c
++++ b/arch/x86/kernel/pci-gart_64.c
+@@ -23,7 +23,7 @@
+ #include <linux/module.h>
+ #include <linux/topology.h>
+ #include <linux/interrupt.h>
+-#include <linux/bitops.h>
++#include <linux/bitmap.h>
+ #include <linux/kdebug.h>
+ #include <linux/scatterlist.h>
+ #include <linux/iommu-helper.h>
+@@ -123,7 +123,7 @@ static void free_iommu(unsigned long offset, int size)
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&iommu_bitmap_lock, flags);
+-	iommu_area_free(iommu_gart_bitmap, offset, size);
++	bitmap_clear(iommu_gart_bitmap, offset, size);
+ 	if (offset >= next_bit)
+ 		next_bit = offset + size;
+ 	spin_unlock_irqrestore(&iommu_bitmap_lock, flags);
+@@ -782,7 +782,7 @@ void __init gart_iommu_init(void)
+ 	 * Out of IOMMU space handling.
+ 	 * Reserve some invalid pages at the beginning of the GART.
+ 	 */
+-	iommu_area_reserve(iommu_gart_bitmap, 0, EMERGENCY_PAGES);
++	bitmap_set(iommu_gart_bitmap, 0, EMERGENCY_PAGES);
+ 
+ 	agp_memory_reserved = iommu_size;
+ 	printk(KERN_INFO
+diff --git a/include/linux/iommu-helper.h b/include/linux/iommu-helper.h
+index 3b068e5..64d1b63 100644
+--- a/include/linux/iommu-helper.h
++++ b/include/linux/iommu-helper.h
+@@ -14,14 +14,11 @@ static inline unsigned long iommu_device_max_index(unsigned long size,
+ extern int iommu_is_span_boundary(unsigned int index, unsigned int nr,
+ 				  unsigned long shift,
+ 				  unsigned long boundary_size);
+-extern void iommu_area_reserve(unsigned long *map, unsigned long i, int len);
+ extern unsigned long iommu_area_alloc(unsigned long *map, unsigned long size,
+ 				      unsigned long start, unsigned int nr,
+ 				      unsigned long shift,
+ 				      unsigned long boundary_size,
+ 				      unsigned long align_mask);
+-extern void iommu_area_free(unsigned long *map, unsigned long start,
+-			    unsigned int nr);
+ 
+ extern unsigned long iommu_num_pages(unsigned long addr, unsigned long len,
+ 				     unsigned long io_page_size);
+diff --git a/lib/iommu-helper.c b/lib/iommu-helper.c
+index 75dbda0..c0251f4 100644
+--- a/lib/iommu-helper.c
++++ b/lib/iommu-helper.c
+@@ -3,41 +3,7 @@
+  */
+ 
+ #include <linux/module.h>
+-#include <linux/bitops.h>
 -
--#define of_compat_cmp(s1, s2, l)	strcasecmp((s1), (s2))
--#define of_prop_cmp(s1, s2)		strcmp((s1), (s2))
--#define of_node_cmp(s1, s2)		strcasecmp((s1), (s2))
+-static unsigned long find_next_zero_area(unsigned long *map,
+-					 unsigned long size,
+-					 unsigned long start,
+-					 unsigned int nr,
+-					 unsigned long align_mask)
+-{
+-	unsigned long index, end, i;
+-again:
+-	index = find_next_zero_bit(map, size, start);
 -
- /* Definitions used by the flattened device tree */
- #define OF_DT_HEADER		0xd00dfeed	/* marker */
- #define OF_DT_BEGIN_NODE	0x1		/* Start of node, full name */
-diff --git a/arch/sparc/include/asm/of.h b/arch/sparc/include/asm/of.h
-new file mode 100644
-index 0000000..57ab8f9
---- /dev/null
-+++ b/arch/sparc/include/asm/of.h
-@@ -0,0 +1,24 @@
-+#ifndef _SPARC_OF_H
-+#define _SPARC_OF_H
-+/*
-+ * Definitions for accessing the in memory device tree.
-+ *
-+ * Extracted from prom.h
-+ *	Copyright (C) 1996-2005 Paul Mackerras.
-+ *	Updates for PPC64 by Peter Bergner & David Engebretsen, IBM Corp.
-+ *	Updates for SPARC by David S. Miller
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version
-+ * 2 of the License, or (at your option) any later version.
-+ */
-+
-+#define OF_ROOT_NODE_ADDR_CELLS_DEFAULT	2
-+#define OF_ROOT_NODE_SIZE_CELLS_DEFAULT	1
-+
-+#define of_compat_cmp(s1, s2, l)	strncmp((s1), (s2), (l))
-+#define of_prop_cmp(s1, s2)		strcasecmp((s1), (s2))
-+#define of_node_cmp(s1, s2)		strcmp((s1), (s2))
-+
-+#endif /* _SPARC_OF_H */
-diff --git a/arch/sparc/include/asm/prom.h b/arch/sparc/include/asm/prom.h
-index 82a190d..4b6ec43 100644
---- a/arch/sparc/include/asm/prom.h
-+++ b/arch/sparc/include/asm/prom.h
-@@ -21,13 +21,6 @@
- #include <linux/mutex.h>
- #include <asm/atomic.h>
- 
--#define OF_ROOT_NODE_ADDR_CELLS_DEFAULT	2
--#define OF_ROOT_NODE_SIZE_CELLS_DEFAULT	1
+-	/* Align allocation */
+-	index = (index + align_mask) & ~align_mask;
 -
--#define of_compat_cmp(s1, s2, l)	strncmp((s1), (s2), (l))
--#define of_prop_cmp(s1, s2)		strcasecmp((s1), (s2))
--#define of_node_cmp(s1, s2)		strcmp((s1), (s2))
+-	end = index + nr;
+-	if (end >= size)
+-		return -1;
+-	for (i = index; i < end; i++) {
+-		if (test_bit(i, map)) {
+-			start = i+1;
+-			goto again;
+-		}
+-	}
+-	return index;
+-}
 -
- typedef u32 phandle;
- typedef u32 ihandle;
+-void iommu_area_reserve(unsigned long *map, unsigned long i, int len)
+-{
+-	unsigned long end = i + len;
+-	while (i < end) {
+-		__set_bit(i, map);
+-		i++;
+-	}
+-}
++#include <linux/bitmap.h>
  
-diff --git a/include/linux/of.h b/include/linux/of.h
-index 7be2d10..3bfdaec 100644
---- a/include/linux/of.h
-+++ b/include/linux/of.h
-@@ -19,6 +19,7 @@
- #include <linux/bitops.h>
- #include <linux/mod_devicetable.h>
+ int iommu_is_span_boundary(unsigned int index, unsigned int nr,
+ 			   unsigned long shift,
+@@ -55,31 +21,24 @@ unsigned long iommu_area_alloc(unsigned long *map, unsigned long size,
+ 			       unsigned long align_mask)
+ {
+ 	unsigned long index;
++
++	/* We don't want the last of the limit */
++	size -= 1;
+ again:
+-	index = find_next_zero_area(map, size, start, nr, align_mask);
+-	if (index != -1) {
++	index = bitmap_find_next_zero_area(map, size, start, nr, align_mask);
++	if (index < size) {
+ 		if (iommu_is_span_boundary(index, nr, shift, boundary_size)) {
+ 			/* we could do more effectively */
+ 			start = index + 1;
+ 			goto again;
+ 		}
+-		iommu_area_reserve(map, index, nr);
++		bitmap_set(map, index, nr);
++		return index;
+ 	}
+-	return index;
++	return -1;
+ }
+ EXPORT_SYMBOL(iommu_area_alloc);
  
-+#include <asm/of.h>
- #include <asm/prom.h>
- 
- /* flag descriptions */
+-void iommu_area_free(unsigned long *map, unsigned long start, unsigned int nr)
+-{
+-	unsigned long end = start + nr;
+-
+-	while (start < end) {
+-		__clear_bit(start, map);
+-		start++;
+-	}
+-}
+-EXPORT_SYMBOL(iommu_area_free);
+-
+ unsigned long iommu_num_pages(unsigned long addr, unsigned long len,
+ 			      unsigned long io_page_size)
+ {
 -- 
-1.6.4.3
+1.6.5.1
 
--- 
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
