@@ -1,62 +1,85 @@
-From: Wolfram Sang <w.sang@pengutronix.de>
-Date: Thu, 05 Nov 2009 08:49:45 +0000
-Subject: Re: [PATCH 05/11] of/flattree: merge of_get_flat_dt_prop
-Message-Id: <20091105084945.GC3478@pengutronix.de>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="jousvV0MzM2p6OtC"
+From: BERTRAND Joel <joel.bertrand@systella.fr>
+Date: Sun, 01 Nov 2009 13:26:03 +0000
+Subject: Re: temperature & fan-control
+Message-Id: <4AED8C6B.1070902@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20091105073728.10460.6061.stgit@angua> <20091105074606.10460.23775.stgit@angua>
-In-Reply-To: <20091105074606.10460.23775.stgit@angua>
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: linuxppc-dev@lists.ozlabs.org, devicetree-discuss@lists.ozlabs.org, benh@kernel.crashing.org, sfr@canb.auug.org.au, davem@davemloft.net, sparclinux@vger.kernel.org, monstr@monstr.eu, microblaze-uclinux@itee.uq.edu.au
+References: <1256288818.1858.15.camel@deblnxsrv254.opensoftwarenetwork.nl>
+In-Reply-To: <1256288818.1858.15.camel@deblnxsrv254.opensoftwarenetwork.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: sparclinux@vger.kernel.org
 
+Raúl Porcel wrote:
+> Frans van Berckel wrote:
+>> On Fri, 2009-10-23 at 21:24 +0200, Raúl Porcel wrote:
+>>> Frans van Berckel wrote:
+>>>> Hi,
+>>>>
+>>>> Is speeding the fans on a Blade 1000/2000 and Fire 280R well supported
+>>>> by the kernel? What sensor modules & tools are needed to compile?
+>>>>
+>>>> Thanks,
+>>>>
+>>>> Frans van Berckel
+>>> Frans,
+>>>
+>>> can't say about the 280R, but the fan control on the Blade 1000/2000
+>>> worked until kernel 2.6.29, when it stopped working and hasn't worked
+>>> since then. If you downgrade to a 2.6.28 kernel for example, you don't
+>>> need any tool for it to work, you just need the CONFIG_ENVCTRL option
+>>> enabled in your kernel either as built-in or as a module.
+>>>
+>>> @all: feel free to correct me if i'm wrong :)
+>> Hi Raúl,
+>>
+>> Thanks for guiding. Did some testing & checking the envctrl sources, I
+>> found out it got to be the bbc parts for the SunBLADE-1000.
+>>
+>> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=tree;f=drivers/sbus/char;hb=HEAD
+>>
+>> Next I did boot into 2.6.28-6-sparc64-smp but modprobe show's the -22
+>> error while loading the bbc module and does not slow down the fans.
+>>
+>> Oct 24 16:35:20 sunbladesrv249 kernel: [  994.142927] i2c-0: Regs at
+>> 000007fe7e00002e, 8 devices, own a0, clock 10.
+>> Oct 24 16:35:20 sunbladesrv249 kernel: [  994.145987] bbc_i2c: probe of
+>> f007f00c failed with error -22
+>>
+>> So that's faling. I just did upgrade to Sun IEEE Boot Prom 'OBP 4.16.4
+>> 2004/12/18 05:18', to be sure but isn't solving my problem.
+>>
+>> Did you start a bug ticket yet?
+>>
+>>
+>> Thanks,
+>>
+>> Frans van Berckel
+>>
+>>
+>>
+>>
+> 
+> Hi,
+> 
+> maybe it was 2.6.27 the latest working? And no, i didn't file a bug,
+> feel free to do it yourself.
 
---jousvV0MzM2p6OtC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+	Hello,
 
-On Thu, Nov 05, 2009 at 12:46:13AM -0700, Grant Likely wrote:
-> Merge common code between PowerPC and Microblaze
->=20
-> Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+	2.6.27 is the last usable kernel on Blade 2000. I run a 2.6.28.10 with 
+some patches and env_bbc is initialized. Module can be unloaded without 
+Oops, but no information is read.
 
-nanodoc comment again
+	I have disabled bbc on all my Blades because bbc module (2.6.27) 
+randomly returns very strange values (more than 85 °C) and workstation 
+switches off. It can happen when these workstations do not run anything. 
+These workstations are clean and run without any trouble with Solaris.
 
-> diff --git a/drivers/of/fdt.c b/drivers/of/fdt.c
-> index a6e869e..7a51343 100644
-> --- a/drivers/of/fdt.c
-> +++ b/drivers/of/fdt.c
-> @@ -100,3 +100,46 @@ unsigned long __init of_get_flat_dt_root(void)
->  	return _ALIGN(p + strlen((char *)p) + 1, 4);
->  }
-> =20
-> +/**
-> + * of_get_flat_dt_prop - Given a node in the flat blob, return the prope=
-rty pointer
-> + *
-> + * This  function can be used within scan_flattened_dt callback to get
+	When bbc returns an overheating event, fan speed is not set to its 
+maximum value. I have try to debug without any success because I cannot 
+reproduce it.
 
-double space
+	Regards,
 
-> + * access to properties
-> + */
-
---=20
-Pengutronix e.K.                           | Wolfram Sang                |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-
---jousvV0MzM2p6OtC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkrykakACgkQD27XaX1/VRviXwCgmd8x2wzO31elQKz+vb54m/fl
-LdQAoMIpSqdRZ6QoqDQJON/9Rr7LZ07u
-=pnJ0
------END PGP SIGNATURE-----
-
---jousvV0MzM2p6OtC--
+	JKB
