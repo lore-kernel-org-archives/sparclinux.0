@@ -1,30 +1,35 @@
 From: David Miller <davem@davemloft.net>
-Date: Mon, 02 Nov 2009 12:24:21 +0000
-Subject: Leon patches...
-Message-Id: <20091102.042421.72817389.davem@davemloft.net>
+Date: Mon, 02 Nov 2009 13:08:10 +0000
+Subject: Re: Leon patches...
+Message-Id: <20091102.050810.240472884.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20091102.042421.72817389.davem@davemloft.net>
+In-Reply-To: <20091102.042421.72817389.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+From: Konrad Eisele <konrad@gaisler.com>
+Date: Mon, 02 Nov 2009 14:13:35 +0100
 
-Konrad, I've just done a review of the two pending Leon patches.
-Sorry for taking so long.
+> We are currently trying to rewrite this patch anyway:
+> kristoffer@gaisler.com sent the uart driver (that was included
+> in the AMBA device patch) to linux-serial instead. He seem to have
+> rewritten it so that it was only dependent on Openfirmware, not the
+> AMBA plug and play scanning. So, I'll have to rewrite this patch
+> anyway
+> and take that driver out. What remains will be the AMBA p&p scanning.
 
-The SMP patch looks fine, I've applied it to sparc-next-2.6 and am
-doing some build validation tests before pushing it out to kernel.org
+What prevents all AMBA drivers from using openfirmware?
 
-The AMBA device patch needs a little bit of work.
+That would be the ideal situation.
 
-I think you should create a CONFIG_AMBA in drivera/ambapp/Kconfig
-that protects everything.  CONFIG_AMBA should "depends on SPARC_LEON"
+> Can you until then postphone the AMBA device patch so that
+> it (the new patch to be sent) might be applied at a later time?
 
-Then drivers/Makefile should only traverse down into ambapp/
-if CONFIG_AMBA is set, just as we do for other bus layers such
-as PCI.
-
-Fix that up and I'll try to add the Amba patch into sparc-next-2.6
-too, thanks!
+I'll just apply the Leon SMP patch for now, and then I'll apply
+the updated device stuff when you send it to me.
 
 Thanks.
+
