@@ -1,7 +1,7 @@
-From: Konrad Eisele <konrad@gaisler.com>
-Date: Mon, 02 Nov 2009 13:13:35 +0000
+From: Kristoffer Glembo <kristoffer@gaisler.com>
+Date: Mon, 02 Nov 2009 13:19:48 +0000
 Subject: Re: Leon patches...
-Message-Id: <4AEEDAFF.8040902@gaisler.com>
+Message-Id: <4AEEDC74.5090603@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20091102.042421.72817389.davem@davemloft.net>
 In-Reply-To: <20091102.042421.72817389.davem@davemloft.net>
@@ -11,44 +11,24 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 David Miller wrote:
-> Konrad, I've just done a review of the two pending Leon patches.
-> Sorry for taking so long.
 > 
-> The SMP patch looks fine, I've applied it to sparc-next-2.6 and am
-> doing some build validation tests before pushing it out to kernel.org
+> What prevents all AMBA drivers from using openfirmware?
 > 
-
-O, that is great news.
-
-> The AMBA device patch needs a little bit of work.
-> 
-> I think you should create a CONFIG_AMBA in drivera/ambapp/Kconfig
-> that protects everything.  CONFIG_AMBA should "depends on SPARC_LEON"
-> 
-> Then drivers/Makefile should only traverse down into ambapp/
-> if CONFIG_AMBA is set, just as we do for other bus layers such
-> as PCI.
-> 
-> Fix that up and I'll try to add the Amba patch into sparc-next-2.6
-> too, thanks!
-
-I'll do that in the new version of the patch.
-We are currently trying to rewrite this patch anyway:
-kristoffer@gaisler.com sent the uart driver (that was included
-in the AMBA device patch) to linux-serial instead. He seem to have
-rewritten it so that it was only dependent on Openfirmware, not the
-AMBA plug and play scanning. So, I'll have to rewrite this patch anyway
-and take that driver out. What remains will be the AMBA p&p scanning.
-
-It'll take a  while to get a new patch.
-Can you until then postphone the AMBA device patch so that
-it (the new patch to be sent) might be applied at a later time?
-
--- Greetings Konrad
-
-
-> 
-> Thanks.
-> 
+> That would be the ideal situation.
 > 
 
+We are working on converting our device drivers to only depend on OF. 
+Currently only the UART and Ethernet are done. I will send the Ethernet 
+driver to netdev pretty soon. As Konrad said I posted the UART driver to 
+linux-serial. I haven't gotten any response or feedback though, and I'm 
+not sure who is the responsible maintainer for the serial subsystem. Is 
+it possible to push it through sparc-next instead? In that case I can 
+send the patch to this list.
+
+Still, the code that scans the bus and creates the device tree must 
+reside somewhere and that is what we want to clean up and put in 
+drivers/ambapp.
+
+
+Thanks,
+Kristoffer
