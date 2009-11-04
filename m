@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 04 Nov 2009 13:39:28 +0000
-Subject: Re: [PATCH 2/2] Added leon3_dma_ops and LEON specific
-Message-Id: <20091104.053928.92073166.davem@davemloft.net>
+From: Kristoffer Glembo <kristoffer@gaisler.com>
+Date: Wed, 04 Nov 2009 15:50:36 +0000
+Subject: Re: [PATCH 2/2] Added leon3_dma_ops and LEON specific mmu_inval_dma_area.
+Message-Id: <4AF1A2CC.10100@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1257172092-25026-2-git-send-email-kristoffer@gaisler.com>
 In-Reply-To: <1257172092-25026-2-git-send-email-kristoffer@gaisler.com>
@@ -10,19 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Kristoffer Glembo <kristoffer@gaisler.com>
-Date: Mon,  2 Nov 2009 15:28:12 +0100
+David Miller wrote:
+>
+> This is a lot of code duplication for what you're trying to
+> accomplish I think.
 
-> Added mmu_inval_dma_area for LEON which flushes dcache if snooping
-> is not enabled and created LEON specific dma_ops.
+Yeah I know. The leon3_dma_ops are copied from the pci32_dma_ops.
+I think only unmap_page was added basically. Why is there no 
+pci32_unmap_page by the way? Maybe I can just add that and use
+them as is.
 
-This is a lot of code duplication for what you're trying to
-accomplish I think.
+My original thought was that it would be future proof to have separate
+versions that might evolve. But I agree and will change it ...
 
-And now that your drivers will use OpenFirmware driver interfaces
-that's yet another difference you no longer have to account for.
+> 
+> And now that your drivers will use OpenFirmware driver interfaces
+> that's yet another difference you no longer have to account for.
+> I would suggest that you crib the SBUS routines and parameterize
+> them cleanly for the small differences your LEON cases needs.
+> 
 
-I would suggest that you crib the SBUS routines and parameterize
-them cleanly for the small differences your LEON cases needs.
+The SBUS routines look quite different though. I will use the pci32_dma_ops.
 
-Thanks.
+I will modify all the patches according to yours and Julian's feedback
+and resend them as soon as possible.
+
+Thanks,
+Kristoffer Glembo
+
