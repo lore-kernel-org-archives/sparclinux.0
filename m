@@ -1,49 +1,238 @@
-From: "J. Bruce Fields" <bfields@citi.umich.edu>
-Date: Wed, 25 Nov 2009 20:13:15 +0000
-Subject: Re: [PATCH 5/5] vfs: nfsctl.c unused nfsd #includes
-Message-Id: <20091125201315.GH32502@fieldses.org>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Thu, 05 Nov 2009 07:45:35 +0000
+Subject: [PATCH 02/11] of/flattree: merge of_scan_flat_dt
+Message-Id: <20091105074527.10460.23877.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4B0C1EB7.50508@panasas.com> <4B0C201C.4040400@panasas.com>
-In-Reply-To: <4B0C201C.4040400@panasas.com>
+References: <20091105073728.10460.6061.stgit@angua>
+In-Reply-To: <20091105073728.10460.6061.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Boaz Harrosh <bharrosh@panasas.com>
-Cc: Linux Kernel <linux-kernel@vger.kernel.org>, linux-parisc <linux-parisc@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, NFS list <linux-nfs@vger.kernel.org>, pNFS Mailing List <pnfs@linux-nfs.org>, Andrew Morton <akpm@linux-foundation.org>
+To: linuxppc-dev@lists.ozlabs.org, devicetree-discuss@lists.ozlabs.org, benh@kernel.crashing.org, sfr@canb.auug.org.au, davem@davemloft.net, sparclinux@vger.kernel.org, monstr@monstr.eu
 
-On Tue, Nov 24, 2009 at 08:04:12PM +0200, Boaz Harrosh wrote:
-> 
-> Only linux/nfsd/syscall.h is actually used. Remove the
-> other nfsd #includes, so they can be moved to source
-> directory.
+Merge common code between PowerPC and Microblaze
+---
 
-I guess I'll take this one too.
+ arch/microblaze/kernel/prom.c |   61 --------------------------------------
+ arch/powerpc/kernel/prom.c    |   61 --------------------------------------
+ drivers/of/fdt.c              |   65 +++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 65 insertions(+), 122 deletions(-)
 
-The arch-specific ones I'm assuming are someone else's problem unless I
-hear otherwise.
+diff --git a/arch/microblaze/kernel/prom.c b/arch/microblaze/kernel/prom.c
+index 06d620a..0db8ee6 100644
+--- a/arch/microblaze/kernel/prom.c
++++ b/arch/microblaze/kernel/prom.c
+@@ -50,67 +50,6 @@ typedef u32 cell_t;
+ /* export that to outside world */
+ struct device_node *of_chosen;
+ 
+-/**
+- * This function is used to scan the flattened device-tree, it is
+- * used to extract the memory informations at boot before we can
+- * unflatten the tree
+- */
+-int __init of_scan_flat_dt(int (*it)(unsigned long node,
+-				     const char *uname, int depth,
+-				     void *data),
+-			   void *data)
+-{
+-	unsigned long p = ((unsigned long)initial_boot_params) +
+-		initial_boot_params->off_dt_struct;
+-	int rc = 0;
+-	int depth = -1;
+-
+-	do {
+-		u32 tag = *((u32 *)p);
+-		char *pathp;
+-
+-		p += 4;
+-		if (tag = OF_DT_END_NODE) {
+-			depth--;
+-			continue;
+-		}
+-		if (tag = OF_DT_NOP)
+-			continue;
+-		if (tag = OF_DT_END)
+-			break;
+-		if (tag = OF_DT_PROP) {
+-			u32 sz = *((u32 *)p);
+-			p += 8;
+-			if (initial_boot_params->version < 0x10)
+-				p = _ALIGN(p, sz >= 8 ? 8 : 4);
+-			p += sz;
+-			p = _ALIGN(p, 4);
+-			continue;
+-		}
+-		if (tag != OF_DT_BEGIN_NODE) {
+-			printk(KERN_WARNING "Invalid tag %x scanning flattened"
+-				" device tree !\n", tag);
+-			return -EINVAL;
+-		}
+-		depth++;
+-		pathp = (char *)p;
+-		p = _ALIGN(p + strlen(pathp) + 1, 4);
+-		if ((*pathp) = '/') {
+-			char *lp, *np;
+-			for (lp = NULL, np = pathp; *np; np++)
+-				if ((*np) = '/')
+-					lp = np+1;
+-			if (lp != NULL)
+-				pathp = lp;
+-		}
+-		rc = it(p, pathp, depth, data);
+-		if (rc != 0)
+-			break;
+-	} while (1);
+-
+-	return rc;
+-}
+-
+ unsigned long __init of_get_flat_dt_root(void)
+ {
+ 	unsigned long p = ((unsigned long)initial_boot_params) +
+diff --git a/arch/powerpc/kernel/prom.c b/arch/powerpc/kernel/prom.c
+index fccf7e4..14a07b9 100644
+--- a/arch/powerpc/kernel/prom.c
++++ b/arch/powerpc/kernel/prom.c
+@@ -80,67 +80,6 @@ extern rwlock_t devtree_lock;	/* temporary while merging */
+ /* export that to outside world */
+ struct device_node *of_chosen;
+ 
+-/**
+- * This function is used to scan the flattened device-tree, it is
+- * used to extract the memory informations at boot before we can
+- * unflatten the tree
+- */
+-int __init of_scan_flat_dt(int (*it)(unsigned long node,
+-				     const char *uname, int depth,
+-				     void *data),
+-			   void *data)
+-{
+-	unsigned long p = ((unsigned long)initial_boot_params) +
+-		initial_boot_params->off_dt_struct;
+-	int rc = 0;
+-	int depth = -1;
+-
+-	do {
+-		u32 tag = *((u32 *)p);
+-		char *pathp;
+-		
+-		p += 4;
+-		if (tag = OF_DT_END_NODE) {
+-			depth --;
+-			continue;
+-		}
+-		if (tag = OF_DT_NOP)
+-			continue;
+-		if (tag = OF_DT_END)
+-			break;
+-		if (tag = OF_DT_PROP) {
+-			u32 sz = *((u32 *)p);
+-			p += 8;
+-			if (initial_boot_params->version < 0x10)
+-				p = _ALIGN(p, sz >= 8 ? 8 : 4);
+-			p += sz;
+-			p = _ALIGN(p, 4);
+-			continue;
+-		}
+-		if (tag != OF_DT_BEGIN_NODE) {
+-			printk(KERN_WARNING "Invalid tag %x scanning flattened"
+-			       " device tree !\n", tag);
+-			return -EINVAL;
+-		}
+-		depth++;
+-		pathp = (char *)p;
+-		p = _ALIGN(p + strlen(pathp) + 1, 4);
+-		if ((*pathp) = '/') {
+-			char *lp, *np;
+-			for (lp = NULL, np = pathp; *np; np++)
+-				if ((*np) = '/')
+-					lp = np+1;
+-			if (lp != NULL)
+-				pathp = lp;
+-		}
+-		rc = it(p, pathp, depth, data);
+-		if (rc != 0)
+-			break;		
+-	} while(1);
+-
+-	return rc;
+-}
+-
+ unsigned long __init of_get_flat_dt_root(void)
+ {
+ 	unsigned long p = ((unsigned long)initial_boot_params) +
+diff --git a/drivers/of/fdt.c b/drivers/of/fdt.c
+index 9faa9a5..7c3c13c 100644
+--- a/drivers/of/fdt.c
++++ b/drivers/of/fdt.c
+@@ -19,3 +19,68 @@ char *find_flat_dt_string(u32 offset)
+ 	return ((char *)initial_boot_params) +
+ 		initial_boot_params->off_dt_strings + offset;
+ }
++
++/**
++ * of_scan_flat_dt - scan flattend tree blob and call callback on each.
++ * @it: callback function
++ * @data: context data pointer
++ *
++ * This function is used to scan the flattened device-tree, it is
++ * used to extract the memory informations at boot before we can
++ * unflatten the tree
++ */
++int __init of_scan_flat_dt(int (*it)(unsigned long node,
++				     const char *uname, int depth,
++				     void *data),
++			   void *data)
++{
++	unsigned long p = ((unsigned long)initial_boot_params) +
++		initial_boot_params->off_dt_struct;
++	int rc = 0;
++	int depth = -1;
++
++	do {
++		u32 tag = *((u32 *)p);
++		char *pathp;
++
++		p += 4;
++		if (tag = OF_DT_END_NODE) {
++			depth--;
++			continue;
++		}
++		if (tag = OF_DT_NOP)
++			continue;
++		if (tag = OF_DT_END)
++			break;
++		if (tag = OF_DT_PROP) {
++			u32 sz = *((u32 *)p);
++			p += 8;
++			if (initial_boot_params->version < 0x10)
++				p = _ALIGN(p, sz >= 8 ? 8 : 4);
++			p += sz;
++			p = _ALIGN(p, 4);
++			continue;
++		}
++		if (tag != OF_DT_BEGIN_NODE) {
++			printk(KERN_WARNING "Invalid tag %x scanning flattened"
++			       " device tree !\n", tag);
++			return -EINVAL;
++		}
++		depth++;
++		pathp = (char *)p;
++		p = _ALIGN(p + strlen(pathp) + 1, 4);
++		if ((*pathp) = '/') {
++			char *lp, *np;
++			for (lp = NULL, np = pathp; *np; np++)
++				if ((*np) = '/')
++					lp = np+1;
++			if (lp != NULL)
++				pathp = lp;
++		}
++		rc = it(p, pathp, depth, data);
++		if (rc != 0)
++			break;
++	} while (1);
++
++	return rc;
++}
 
---b.
-
-> 
-> Signed-off-by: Boaz Harrosh <bharrosh@panasas.com>
-> ---
->  fs/nfsctl.c |    2 --
->  1 files changed, 0 insertions(+), 2 deletions(-)
-> 
-> diff --git a/fs/nfsctl.c b/fs/nfsctl.c
-> index 8f9a205..d3854d9 100644
-> --- a/fs/nfsctl.c
-> +++ b/fs/nfsctl.c
-> @@ -7,8 +7,6 @@
->  #include <linux/types.h>
->  #include <linux/file.h>
->  #include <linux/fs.h>
-> -#include <linux/sunrpc/svc.h>
-> -#include <linux/nfsd/nfsd.h>
->  #include <linux/nfsd/syscall.h>
->  #include <linux/cred.h>
->  #include <linux/sched.h>
-> -- 
-> 1.6.5.2
-> 
-> 
