@@ -1,38 +1,36 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Wed, 25 Nov 2009 01:33:33 +0000
-Subject: Re: [PATCH v2 11/11] of: unify phandle name in struct device_node
-Message-Id: <fa686aa40911241733s4588c6fag4ed56153842dcd83@mail.gmail.com>
+From: Roel Kluin <roel.kluin@gmail.com>
+Date: Thu, 05 Nov 2009 16:40:44 +0000
+Subject: [PATCH] sparc,sparc64: replace parentheses in pmul()
+Message-Id: <4AF3000C.8080607@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20091124215908.559.23998.stgit@angua> <AE8D50AE-03EE-45FC-80EF-376F0836B5CB@kernel.crashing.org>
-In-Reply-To: <AE8D50AE-03EE-45FC-80EF-376F0836B5CB@kernel.crashing.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Segher Boessenkool <segher@kernel.crashing.org>
-Cc: linuxppc-dev@lists.ozlabs.org, devicetree-discuss@lists.ozlabs.org, sparclinux@vger.kernel.org, microblaze-uclinux@itee.uq.edu.au, benh@kernel.crashing.org, sfr@canb.auug.org.au, davem@davemloft.net, monstr@monstr.eu
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Tue, Nov 24, 2009 at 6:30 PM, Segher Boessenkool
-<segher@kernel.crashing.org> wrote:
->> In struct device_node, the phandle is named 'linux_phandle' for PowerPC
->> and MicroBlaze, and 'node' for SPARC. =A0There is no good reason for the
->> difference, it is just an artifact of the code diverging over a couple
->> of years. =A0This patch renames both to simply .phandle.
->>
->> Note: the .node also existed in PowerPC/MicroBlaze, but the only user
->> seems to be arch/powerpc/platforms/powermac/pfunc_core.c. =A0It doesn't
->> look like the assignment between .linux_phandle and .node is
->> significantly different enough to warrant the separate code paths
->> unless ibm,phandle properties actually appear in Apple device trees.
->>
->> I think it is safe to eliminate the old .node property and use
->> linux_phandle everywhere.
->
-> =A0^^^^^^^^^^^^ =A0You forgot to update one :-)
+`>>' has a higher precedence than `?' so src2 evaluated to
+either 16 or 0 dependent on the bits set in rs2.
 
-Heeheehee.  oops.
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+---
+ arch/sparc/kernel/visemul.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-g.
+I am not 100% sure that the code was incorrect, however, if it
+was intended I think it is a very strange way to write it.
 
---=20
-Grant Likely, B.Sc., P.Eng.
-Secret Lab Technologies Ltd.
+Roel
+
+diff --git a/arch/sparc/kernel/visemul.c b/arch/sparc/kernel/visemul.c
+index b956fd7..d231cbd 100644
+--- a/arch/sparc/kernel/visemul.c
++++ b/arch/sparc/kernel/visemul.c
+@@ -617,7 +617,7 @@ static void pmul(struct pt_regs *regs, unsigned int insn, unsigned int opf)
+ 		rs2 = fps_regval(f, RS2(insn));
+ 
+ 		rd_val = 0;
+-		src2 = (rs2 >> (opf = FMUL8x16AU_OPF) ? 16 : 0);
++		src2 = rs2 >> (opf = FMUL8x16AU_OPF ? 16 : 0);
+ 		for (byte = 0; byte < 4; byte++) {
+ 			u16 src1 = (rs1 >> (byte * 8)) & 0x00ff;
+ 			u32 prod = src1 * src2;
