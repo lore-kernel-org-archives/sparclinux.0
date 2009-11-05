@@ -1,294 +1,658 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Date: Thu, 26 Nov 2009 04:07:48 +0000
-Subject: Re: [PATCH 09/11] of: merge of_attach_node() & of_detach_node()
-Message-Id: <1259208468.16367.234.camel@pasglop>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Thu, 05 Nov 2009 07:46:38 +0000
+Subject: [PATCH 07/11] of/flattree: Merge unflatten_dt_node
+Message-Id: <20091105074631.10460.97676.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20091124081316.6216.66310.stgit@angua>
-	 <20091124081931.6216.27102.stgit@angua>
-In-Reply-To: <20091124081931.6216.27102.stgit@angua>
+References: <20091105073728.10460.6061.stgit@angua>
+In-Reply-To: <20091105073728.10460.6061.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: linuxppc-dev@lists.ozlabs.org, devicetree-discuss@lists.ozlabs.org, sparclinux@vger.kernel.org, microblaze-uclinux@itee.uq.edu.au, sfr@canb.auug.org.au, davem@davemloft.net, monstr@monstr.eu
+To: linuxppc-dev@lists.ozlabs.org, devicetree-discuss@lists.ozlabs.org, benh@kernel.crashing.org, sfr@canb.auug.org.au, davem@davemloft.net, sparclinux@vger.kernel.org, monstr@monstr.eu
 
-On Tue, 2009-11-24 at 01:19 -0700, Grant Likely wrote:
-> Merge common code between PowerPC and Microblaze
+Merge common code between PowerPC and MicroBlaze
 
-Some of those guys might wnat to be in of_dynamic (see previous email)
+Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+---
 
-Remember: We want to keep the footprint low for embedded archs that
-don't want to do dynamic stuff. Really low.
+ arch/microblaze/kernel/prom.c |  195 ----------------------------------------
+ arch/powerpc/kernel/prom.c    |  194 ----------------------------------------
+ drivers/of/fdt.c              |  200 +++++++++++++++++++++++++++++++++++++++++
+ include/linux/of_fdt.h        |    4 +
+ 4 files changed, 204 insertions(+), 389 deletions(-)
 
-Cheers,
-Ben.
-
-> Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
-> ---
-> 
->  arch/microblaze/include/asm/prom.h |    4 --
->  arch/microblaze/kernel/prom.c      |   59 -----------------------------------
->  arch/powerpc/include/asm/prom.h    |    4 --
->  arch/powerpc/kernel/prom.c         |   59 -----------------------------------
->  drivers/of/base.c                  |   60 ++++++++++++++++++++++++++++++++++++
->  include/linux/of.h                 |    4 ++
->  6 files changed, 64 insertions(+), 126 deletions(-)
-> 
-> diff --git a/arch/microblaze/include/asm/prom.h b/arch/microblaze/include/asm/prom.h
-> index 07d1063..6c6b386 100644
-> --- a/arch/microblaze/include/asm/prom.h
-> +++ b/arch/microblaze/include/asm/prom.h
-> @@ -39,10 +39,6 @@ extern struct device_node *of_chosen;
->  
->  extern rwlock_t devtree_lock;	/* temporary while merging */
->  
-> -/* For updating the device tree at runtime */
-> -extern void of_attach_node(struct device_node *);
-> -extern void of_detach_node(struct device_node *);
-> -
->  /* Other Prototypes */
->  extern int early_uartlite_console(void);
->  
-> diff --git a/arch/microblaze/kernel/prom.c b/arch/microblaze/kernel/prom.c
-> index c0d53b7..8c00457 100644
-> --- a/arch/microblaze/kernel/prom.c
-> +++ b/arch/microblaze/kernel/prom.c
-> @@ -313,65 +313,6 @@ struct device_node *of_find_node_by_phandle(phandle handle)
->  }
->  EXPORT_SYMBOL(of_find_node_by_phandle);
->  
-> -/*
-> - * Plug a device node into the tree and global list.
-> - */
-> -void of_attach_node(struct device_node *np)
-> -{
-> -	unsigned long flags;
-> -
-> -	write_lock_irqsave(&devtree_lock, flags);
-> -	np->sibling = np->parent->child;
-> -	np->allnext = allnodes;
-> -	np->parent->child = np;
-> -	allnodes = np;
-> -	write_unlock_irqrestore(&devtree_lock, flags);
-> -}
-> -
-> -/*
-> - * "Unplug" a node from the device tree.  The caller must hold
-> - * a reference to the node.  The memory associated with the node
-> - * is not freed until its refcount goes to zero.
-> - */
-> -void of_detach_node(struct device_node *np)
-> -{
-> -	struct device_node *parent;
-> -	unsigned long flags;
-> -
-> -	write_lock_irqsave(&devtree_lock, flags);
-> -
-> -	parent = np->parent;
-> -	if (!parent)
-> -		goto out_unlock;
-> -
-> -	if (allnodes = np)
-> -		allnodes = np->allnext;
-> -	else {
-> -		struct device_node *prev;
-> -		for (prev = allnodes;
-> -		     prev->allnext != np;
-> -		     prev = prev->allnext)
-> -			;
-> -		prev->allnext = np->allnext;
-> -	}
-> -
-> -	if (parent->child = np)
-> -		parent->child = np->sibling;
-> -	else {
-> -		struct device_node *prevsib;
-> -		for (prevsib = np->parent->child;
-> -		     prevsib->sibling != np;
-> -		     prevsib = prevsib->sibling)
-> -			;
-> -		prevsib->sibling = np->sibling;
-> -	}
-> -
-> -	of_node_set_flag(np, OF_DETACHED);
-> -
-> -out_unlock:
-> -	write_unlock_irqrestore(&devtree_lock, flags);
-> -}
-> -
->  #if defined(CONFIG_DEBUG_FS) && defined(DEBUG)
->  static struct debugfs_blob_wrapper flat_dt_blob;
->  
-> diff --git a/arch/powerpc/include/asm/prom.h b/arch/powerpc/include/asm/prom.h
-> index 2ab9cbd..f384db8 100644
-> --- a/arch/powerpc/include/asm/prom.h
-> +++ b/arch/powerpc/include/asm/prom.h
-> @@ -34,10 +34,6 @@ extern struct device_node *of_chosen;
->  
->  #define HAVE_ARCH_DEVTREE_FIXUPS
->  
-> -/* For updating the device tree at runtime */
-> -extern void of_attach_node(struct device_node *);
-> -extern void of_detach_node(struct device_node *);
-> -
->  #ifdef CONFIG_PPC32
->  /*
->   * PCI <-> OF matching functions
-> diff --git a/arch/powerpc/kernel/prom.c b/arch/powerpc/kernel/prom.c
-> index 6873db9..7d0beeb 100644
-> --- a/arch/powerpc/kernel/prom.c
-> +++ b/arch/powerpc/kernel/prom.c
-> @@ -740,65 +740,6 @@ struct device_node *of_find_next_cache_node(struct device_node *np)
->  	return NULL;
->  }
->  
-> -/*
-> - * Plug a device node into the tree and global list.
-> - */
-> -void of_attach_node(struct device_node *np)
-> -{
-> -	unsigned long flags;
-> -
-> -	write_lock_irqsave(&devtree_lock, flags);
-> -	np->sibling = np->parent->child;
-> -	np->allnext = allnodes;
-> -	np->parent->child = np;
-> -	allnodes = np;
-> -	write_unlock_irqrestore(&devtree_lock, flags);
-> -}
-> -
-> -/*
-> - * "Unplug" a node from the device tree.  The caller must hold
-> - * a reference to the node.  The memory associated with the node
-> - * is not freed until its refcount goes to zero.
-> - */
-> -void of_detach_node(struct device_node *np)
-> -{
-> -	struct device_node *parent;
-> -	unsigned long flags;
-> -
-> -	write_lock_irqsave(&devtree_lock, flags);
-> -
-> -	parent = np->parent;
-> -	if (!parent)
-> -		goto out_unlock;
-> -
-> -	if (allnodes = np)
-> -		allnodes = np->allnext;
-> -	else {
-> -		struct device_node *prev;
-> -		for (prev = allnodes;
-> -		     prev->allnext != np;
-> -		     prev = prev->allnext)
-> -			;
-> -		prev->allnext = np->allnext;
-> -	}
-> -
-> -	if (parent->child = np)
-> -		parent->child = np->sibling;
-> -	else {
-> -		struct device_node *prevsib;
-> -		for (prevsib = np->parent->child;
-> -		     prevsib->sibling != np;
-> -		     prevsib = prevsib->sibling)
-> -			;
-> -		prevsib->sibling = np->sibling;
-> -	}
-> -
-> -	of_node_set_flag(np, OF_DETACHED);
-> -
-> -out_unlock:
-> -	write_unlock_irqrestore(&devtree_lock, flags);
-> -}
-> -
->  #ifdef CONFIG_PPC_PSERIES
->  /*
->   * Fix up the uninitialized fields in a new device node:
-> diff --git a/drivers/of/base.c b/drivers/of/base.c
-> index 4b10c89..9212b87 100644
-> --- a/drivers/of/base.c
-> +++ b/drivers/of/base.c
-> @@ -60,6 +60,66 @@ int of_n_size_cells(struct device_node *np)
->  }
->  EXPORT_SYMBOL(of_n_size_cells);
->  
-> +/**
-> + * of_attach_node - Plug a device node into the tree and global list.
-> + */
-> +void of_attach_node(struct device_node *np)
-> +{
-> +	unsigned long flags;
-> +
-> +	write_lock_irqsave(&devtree_lock, flags);
-> +	np->sibling = np->parent->child;
-> +	np->allnext = allnodes;
-> +	np->parent->child = np;
-> +	allnodes = np;
-> +	write_unlock_irqrestore(&devtree_lock, flags);
-> +}
-> +
-> +/**
-> + * of_detach_node - "Unplug" a node from the device tree.
-> + *
-> + * The caller must hold a reference to the node.  The memory associated with
-> + * the node is not freed until its refcount goes to zero.
-> + */
-> +void of_detach_node(struct device_node *np)
-> +{
-> +	struct device_node *parent;
-> +	unsigned long flags;
-> +
-> +	write_lock_irqsave(&devtree_lock, flags);
-> +
-> +	parent = np->parent;
-> +	if (!parent)
-> +		goto out_unlock;
-> +
-> +	if (allnodes = np)
-> +		allnodes = np->allnext;
-> +	else {
-> +		struct device_node *prev;
-> +		for (prev = allnodes;
-> +		     prev->allnext != np;
-> +		     prev = prev->allnext)
-> +			;
-> +		prev->allnext = np->allnext;
-> +	}
-> +
-> +	if (parent->child = np)
-> +		parent->child = np->sibling;
-> +	else {
-> +		struct device_node *prevsib;
-> +		for (prevsib = np->parent->child;
-> +		     prevsib->sibling != np;
-> +		     prevsib = prevsib->sibling)
-> +			;
-> +		prevsib->sibling = np->sibling;
-> +	}
-> +
-> +	of_node_set_flag(np, OF_DETACHED);
-> +
-> +out_unlock:
-> +	write_unlock_irqrestore(&devtree_lock, flags);
-> +}
-> +
->  #if !defined(CONFIG_SPARC)   /* SPARC doesn't do ref counting (yet) */
->  /**
->   *	of_node_get - Increment refcount of a node
-> diff --git a/include/linux/of.h b/include/linux/of.h
-> index d4c014a..0a51742 100644
-> --- a/include/linux/of.h
-> +++ b/include/linux/of.h
-> @@ -130,6 +130,10 @@ static inline unsigned long of_read_ulong(const u32 *cell, int size)
->  
->  #define OF_BAD_ADDR	((u64)-1)
->  
-> +/* For updating the device tree at runtime */
-> +extern void of_attach_node(struct device_node *);
-> +extern void of_detach_node(struct device_node *);
-> +
->  extern struct device_node *of_find_node_by_name(struct device_node *from,
->  	const char *name);
->  #define for_each_node_by_name(dn, name) \
-
+diff --git a/arch/microblaze/kernel/prom.c b/arch/microblaze/kernel/prom.c
+index eb27bd3..021770a 100644
+--- a/arch/microblaze/kernel/prom.c
++++ b/arch/microblaze/kernel/prom.c
+@@ -50,201 +50,6 @@ typedef u32 cell_t;
+ /* export that to outside world */
+ struct device_node *of_chosen;
+ 
+-static void *__init unflatten_dt_alloc(unsigned long *mem, unsigned long size,
+-					unsigned long align)
+-{
+-	void *res;
+-
+-	*mem = _ALIGN(*mem, align);
+-	res = (void *)*mem;
+-	*mem += size;
+-
+-	return res;
+-}
+-
+-static unsigned long __init unflatten_dt_node(unsigned long mem,
+-					unsigned long *p,
+-					struct device_node *dad,
+-					struct device_node ***allnextpp,
+-					unsigned long fpsize)
+-{
+-	struct device_node *np;
+-	struct property *pp, **prev_pp = NULL;
+-	char *pathp;
+-	u32 tag;
+-	unsigned int l, allocl;
+-	int has_name = 0;
+-	int new_format = 0;
+-
+-	tag = *((u32 *)(*p));
+-	if (tag != OF_DT_BEGIN_NODE) {
+-		printk("Weird tag at start of node: %x\n", tag);
+-		return mem;
+-	}
+-	*p += 4;
+-	pathp = (char *)*p;
+-	l = allocl = strlen(pathp) + 1;
+-	*p = _ALIGN(*p + l, 4);
+-
+-	/* version 0x10 has a more compact unit name here instead of the full
+-	 * path. we accumulate the full path size using "fpsize", we'll rebuild
+-	 * it later. We detect this because the first character of the name is
+-	 * not '/'.
+-	 */
+-	if ((*pathp) != '/') {
+-		new_format = 1;
+-		if (fpsize = 0) {
+-			/* root node: special case. fpsize accounts for path
+-			 * plus terminating zero. root node only has '/', so
+-			 * fpsize should be 2, but we want to avoid the first
+-			 * level nodes to have two '/' so we use fpsize 1 here
+-			 */
+-			fpsize = 1;
+-			allocl = 2;
+-		} else {
+-			/* account for '/' and path size minus terminal 0
+-			 * already in 'l'
+-			 */
+-			fpsize += l;
+-			allocl = fpsize;
+-		}
+-	}
+-
+-	np = unflatten_dt_alloc(&mem, sizeof(struct device_node) + allocl,
+-				__alignof__(struct device_node));
+-	if (allnextpp) {
+-		memset(np, 0, sizeof(*np));
+-		np->full_name = ((char *)np) + sizeof(struct device_node);
+-		if (new_format) {
+-			char *p2 = np->full_name;
+-			/* rebuild full path for new format */
+-			if (dad && dad->parent) {
+-				strcpy(p2, dad->full_name);
+-#ifdef DEBUG
+-				if ((strlen(p2) + l + 1) != allocl) {
+-					pr_debug("%s: p: %d, l: %d, a: %d\n",
+-						pathp, (int)strlen(p2),
+-						l, allocl);
+-				}
+-#endif
+-				p2 += strlen(p2);
+-			}
+-			*(p2++) = '/';
+-			memcpy(p2, pathp, l);
+-		} else
+-			memcpy(np->full_name, pathp, l);
+-		prev_pp = &np->properties;
+-		**allnextpp = np;
+-		*allnextpp = &np->allnext;
+-		if (dad != NULL) {
+-			np->parent = dad;
+-			/* we temporarily use the next field as `last_child'*/
+-			if (dad->next = NULL)
+-				dad->child = np;
+-			else
+-				dad->next->sibling = np;
+-			dad->next = np;
+-		}
+-		kref_init(&np->kref);
+-	}
+-	while (1) {
+-		u32 sz, noff;
+-		char *pname;
+-
+-		tag = *((u32 *)(*p));
+-		if (tag = OF_DT_NOP) {
+-			*p += 4;
+-			continue;
+-		}
+-		if (tag != OF_DT_PROP)
+-			break;
+-		*p += 4;
+-		sz = *((u32 *)(*p));
+-		noff = *((u32 *)((*p) + 4));
+-		*p += 8;
+-		if (initial_boot_params->version < 0x10)
+-			*p = _ALIGN(*p, sz >= 8 ? 8 : 4);
+-
+-		pname = find_flat_dt_string(noff);
+-		if (pname = NULL) {
+-			printk(KERN_INFO
+-				"Can't find property name in list !\n");
+-			break;
+-		}
+-		if (strcmp(pname, "name") = 0)
+-			has_name = 1;
+-		l = strlen(pname) + 1;
+-		pp = unflatten_dt_alloc(&mem, sizeof(struct property),
+-					__alignof__(struct property));
+-		if (allnextpp) {
+-			if (strcmp(pname, "linux,phandle") = 0) {
+-				np->node = *((u32 *)*p);
+-				if (np->linux_phandle = 0)
+-					np->linux_phandle = np->node;
+-			}
+-			if (strcmp(pname, "ibm,phandle") = 0)
+-				np->linux_phandle = *((u32 *)*p);
+-			pp->name = pname;
+-			pp->length = sz;
+-			pp->value = (void *)*p;
+-			*prev_pp = pp;
+-			prev_pp = &pp->next;
+-		}
+-		*p = _ALIGN((*p) + sz, 4);
+-	}
+-	/* with version 0x10 we may not have the name property, recreate
+-	 * it here from the unit name if absent
+-	 */
+-	if (!has_name) {
+-		char *p1 = pathp, *ps = pathp, *pa = NULL;
+-		int sz;
+-
+-		while (*p1) {
+-			if ((*p1) = '@')
+-				pa = p1;
+-			if ((*p1) = '/')
+-				ps = p1 + 1;
+-			p1++;
+-		}
+-		if (pa < ps)
+-			pa = p1;
+-		sz = (pa - ps) + 1;
+-		pp = unflatten_dt_alloc(&mem, sizeof(struct property) + sz,
+-					__alignof__(struct property));
+-		if (allnextpp) {
+-			pp->name = "name";
+-			pp->length = sz;
+-			pp->value = pp + 1;
+-			*prev_pp = pp;
+-			prev_pp = &pp->next;
+-			memcpy(pp->value, ps, sz - 1);
+-			((char *)pp->value)[sz - 1] = 0;
+-			pr_debug("fixed up name for %s -> %s\n", pathp,
+-				(char *)pp->value);
+-		}
+-	}
+-	if (allnextpp) {
+-		*prev_pp = NULL;
+-		np->name = of_get_property(np, "name", NULL);
+-		np->type = of_get_property(np, "device_type", NULL);
+-
+-		if (!np->name)
+-			np->name = "<NULL>";
+-		if (!np->type)
+-			np->type = "<NULL>";
+-	}
+-	while (tag = OF_DT_BEGIN_NODE) {
+-		mem = unflatten_dt_node(mem, p, np, allnextpp, fpsize);
+-		tag = *((u32 *)(*p));
+-	}
+-	if (tag != OF_DT_END_NODE) {
+-		printk(KERN_INFO "Weird tag at end of node: %x\n", tag);
+-		return mem;
+-	}
+-	*p += 4;
+-	return mem;
+-}
+-
+ /**
+  * unflattens the device-tree passed by the firmware, creating the
+  * tree of struct device_node. It also fills the "name" and "type"
+diff --git a/arch/powerpc/kernel/prom.c b/arch/powerpc/kernel/prom.c
+index 413e608..a102a0a 100644
+--- a/arch/powerpc/kernel/prom.c
++++ b/arch/powerpc/kernel/prom.c
+@@ -80,200 +80,6 @@ extern rwlock_t devtree_lock;	/* temporary while merging */
+ /* export that to outside world */
+ struct device_node *of_chosen;
+ 
+-static void *__init unflatten_dt_alloc(unsigned long *mem, unsigned long size,
+-				       unsigned long align)
+-{
+-	void *res;
+-
+-	*mem = _ALIGN(*mem, align);
+-	res = (void *)*mem;
+-	*mem += size;
+-
+-	return res;
+-}
+-
+-static unsigned long __init unflatten_dt_node(unsigned long mem,
+-					      unsigned long *p,
+-					      struct device_node *dad,
+-					      struct device_node ***allnextpp,
+-					      unsigned long fpsize)
+-{
+-	struct device_node *np;
+-	struct property *pp, **prev_pp = NULL;
+-	char *pathp;
+-	u32 tag;
+-	unsigned int l, allocl;
+-	int has_name = 0;
+-	int new_format = 0;
+-
+-	tag = *((u32 *)(*p));
+-	if (tag != OF_DT_BEGIN_NODE) {
+-		printk("Weird tag at start of node: %x\n", tag);
+-		return mem;
+-	}
+-	*p += 4;
+-	pathp = (char *)*p;
+-	l = allocl = strlen(pathp) + 1;
+-	*p = _ALIGN(*p + l, 4);
+-
+-	/* version 0x10 has a more compact unit name here instead of the full
+-	 * path. we accumulate the full path size using "fpsize", we'll rebuild
+-	 * it later. We detect this because the first character of the name is
+-	 * not '/'.
+-	 */
+-	if ((*pathp) != '/') {
+-		new_format = 1;
+-		if (fpsize = 0) {
+-			/* root node: special case. fpsize accounts for path
+-			 * plus terminating zero. root node only has '/', so
+-			 * fpsize should be 2, but we want to avoid the first
+-			 * level nodes to have two '/' so we use fpsize 1 here
+-			 */
+-			fpsize = 1;
+-			allocl = 2;
+-		} else {
+-			/* account for '/' and path size minus terminal 0
+-			 * already in 'l'
+-			 */
+-			fpsize += l;
+-			allocl = fpsize;
+-		}
+-	}
+-
+-
+-	np = unflatten_dt_alloc(&mem, sizeof(struct device_node) + allocl,
+-				__alignof__(struct device_node));
+-	if (allnextpp) {
+-		memset(np, 0, sizeof(*np));
+-		np->full_name = ((char*)np) + sizeof(struct device_node);
+-		if (new_format) {
+-			char *p = np->full_name;
+-			/* rebuild full path for new format */
+-			if (dad && dad->parent) {
+-				strcpy(p, dad->full_name);
+-#ifdef DEBUG
+-				if ((strlen(p) + l + 1) != allocl) {
+-					DBG("%s: p: %d, l: %d, a: %d\n",
+-					    pathp, (int)strlen(p), l, allocl);
+-				}
+-#endif
+-				p += strlen(p);
+-			}
+-			*(p++) = '/';
+-			memcpy(p, pathp, l);
+-		} else
+-			memcpy(np->full_name, pathp, l);
+-		prev_pp = &np->properties;
+-		**allnextpp = np;
+-		*allnextpp = &np->allnext;
+-		if (dad != NULL) {
+-			np->parent = dad;
+-			/* we temporarily use the next field as `last_child'*/
+-			if (dad->next = 0)
+-				dad->child = np;
+-			else
+-				dad->next->sibling = np;
+-			dad->next = np;
+-		}
+-		kref_init(&np->kref);
+-	}
+-	while(1) {
+-		u32 sz, noff;
+-		char *pname;
+-
+-		tag = *((u32 *)(*p));
+-		if (tag = OF_DT_NOP) {
+-			*p += 4;
+-			continue;
+-		}
+-		if (tag != OF_DT_PROP)
+-			break;
+-		*p += 4;
+-		sz = *((u32 *)(*p));
+-		noff = *((u32 *)((*p) + 4));
+-		*p += 8;
+-		if (initial_boot_params->version < 0x10)
+-			*p = _ALIGN(*p, sz >= 8 ? 8 : 4);
+-
+-		pname = find_flat_dt_string(noff);
+-		if (pname = NULL) {
+-			printk("Can't find property name in list !\n");
+-			break;
+-		}
+-		if (strcmp(pname, "name") = 0)
+-			has_name = 1;
+-		l = strlen(pname) + 1;
+-		pp = unflatten_dt_alloc(&mem, sizeof(struct property),
+-					__alignof__(struct property));
+-		if (allnextpp) {
+-			if (strcmp(pname, "linux,phandle") = 0) {
+-				np->node = *((u32 *)*p);
+-				if (np->linux_phandle = 0)
+-					np->linux_phandle = np->node;
+-			}
+-			if (strcmp(pname, "ibm,phandle") = 0)
+-				np->linux_phandle = *((u32 *)*p);
+-			pp->name = pname;
+-			pp->length = sz;
+-			pp->value = (void *)*p;
+-			*prev_pp = pp;
+-			prev_pp = &pp->next;
+-		}
+-		*p = _ALIGN((*p) + sz, 4);
+-	}
+-	/* with version 0x10 we may not have the name property, recreate
+-	 * it here from the unit name if absent
+-	 */
+-	if (!has_name) {
+-		char *p = pathp, *ps = pathp, *pa = NULL;
+-		int sz;
+-
+-		while (*p) {
+-			if ((*p) = '@')
+-				pa = p;
+-			if ((*p) = '/')
+-				ps = p + 1;
+-			p++;
+-		}
+-		if (pa < ps)
+-			pa = p;
+-		sz = (pa - ps) + 1;
+-		pp = unflatten_dt_alloc(&mem, sizeof(struct property) + sz,
+-					__alignof__(struct property));
+-		if (allnextpp) {
+-			pp->name = "name";
+-			pp->length = sz;
+-			pp->value = pp + 1;
+-			*prev_pp = pp;
+-			prev_pp = &pp->next;
+-			memcpy(pp->value, ps, sz - 1);
+-			((char *)pp->value)[sz - 1] = 0;
+-			DBG("fixed up name for %s -> %s\n", pathp,
+-				(char *)pp->value);
+-		}
+-	}
+-	if (allnextpp) {
+-		*prev_pp = NULL;
+-		np->name = of_get_property(np, "name", NULL);
+-		np->type = of_get_property(np, "device_type", NULL);
+-
+-		if (!np->name)
+-			np->name = "<NULL>";
+-		if (!np->type)
+-			np->type = "<NULL>";
+-	}
+-	while (tag = OF_DT_BEGIN_NODE) {
+-		mem = unflatten_dt_node(mem, p, np, allnextpp, fpsize);
+-		tag = *((u32 *)(*p));
+-	}
+-	if (tag != OF_DT_END_NODE) {
+-		printk("Weird tag at end of node: %x\n", tag);
+-		return mem;
+-	}
+-	*p += 4;
+-	return mem;
+-}
+-
+ static int __init early_parse_mem(char *p)
+ {
+ 	if (!p)
+diff --git a/drivers/of/fdt.c b/drivers/of/fdt.c
+index 01a7f5f..df1ac8d 100644
+--- a/drivers/of/fdt.c
++++ b/drivers/of/fdt.c
+@@ -167,3 +167,203 @@ int __init of_flat_dt_is_compatible(unsigned long node, const char *compat)
+ 	return 0;
+ }
+ 
++static void *__init unflatten_dt_alloc(unsigned long *mem, unsigned long size,
++				       unsigned long align)
++{
++	void *res;
++
++	*mem = _ALIGN(*mem, align);
++	res = (void *)*mem;
++	*mem += size;
++
++	return res;
++}
++
++/**
++ * unflatten_dt_node - Alloc and populate a device_node from the flat tree
++ * @p: pointer to node in flat tree
++ * @dad: Parent struct device_node
++ * @allnextpp: pointer to ->allnext from last allocated device_node
++ * @fpsize: Size of the node path up at the current depth.
++ */
++unsigned long __init unflatten_dt_node(unsigned long mem,
++					unsigned long *p,
++					struct device_node *dad,
++					struct device_node ***allnextpp,
++					unsigned long fpsize)
++{
++	struct device_node *np;
++	struct property *pp, **prev_pp = NULL;
++	char *pathp;
++	u32 tag;
++	unsigned int l, allocl;
++	int has_name = 0;
++	int new_format = 0;
++
++	tag = *((u32 *)(*p));
++	if (tag != OF_DT_BEGIN_NODE) {
++		printk("Weird tag at start of node: %x\n", tag);
++		return mem;
++	}
++	*p += 4;
++	pathp = (char *)*p;
++	l = allocl = strlen(pathp) + 1;
++	*p = _ALIGN(*p + l, 4);
++
++	/* version 0x10 has a more compact unit name here instead of the full
++	 * path. we accumulate the full path size using "fpsize", we'll rebuild
++	 * it later. We detect this because the first character of the name is
++	 * not '/'.
++	 */
++	if ((*pathp) != '/') {
++		new_format = 1;
++		if (fpsize = 0) {
++			/* root node: special case. fpsize accounts for path
++			 * plus terminating zero. root node only has '/', so
++			 * fpsize should be 2, but we want to avoid the first
++			 * level nodes to have two '/' so we use fpsize 1 here
++			 */
++			fpsize = 1;
++			allocl = 2;
++		} else {
++			/* account for '/' and path size minus terminal 0
++			 * already in 'l'
++			 */
++			fpsize += l;
++			allocl = fpsize;
++		}
++	}
++
++	np = unflatten_dt_alloc(&mem, sizeof(struct device_node) + allocl,
++				__alignof__(struct device_node));
++	if (allnextpp) {
++		memset(np, 0, sizeof(*np));
++		np->full_name = ((char *)np) + sizeof(struct device_node);
++		if (new_format) {
++			char *fn = np->full_name;
++			/* rebuild full path for new format */
++			if (dad && dad->parent) {
++				strcpy(fn, dad->full_name);
++#ifdef DEBUG
++				if ((strlen(fn) + l + 1) != allocl) {
++					pr_debug("%s: p: %d, l: %d, a: %d\n",
++						pathp, (int)strlen(fn),
++						l, allocl);
++				}
++#endif
++				fn += strlen(fn);
++			}
++			*(fn++) = '/';
++			memcpy(fn, pathp, l);
++		} else
++			memcpy(np->full_name, pathp, l);
++		prev_pp = &np->properties;
++		**allnextpp = np;
++		*allnextpp = &np->allnext;
++		if (dad != NULL) {
++			np->parent = dad;
++			/* we temporarily use the next field as `last_child'*/
++			if (dad->next = NULL)
++				dad->child = np;
++			else
++				dad->next->sibling = np;
++			dad->next = np;
++		}
++		kref_init(&np->kref);
++	}
++	while (1) {
++		u32 sz, noff;
++		char *pname;
++
++		tag = *((u32 *)(*p));
++		if (tag = OF_DT_NOP) {
++			*p += 4;
++			continue;
++		}
++		if (tag != OF_DT_PROP)
++			break;
++		*p += 4;
++		sz = *((u32 *)(*p));
++		noff = *((u32 *)((*p) + 4));
++		*p += 8;
++		if (initial_boot_params->version < 0x10)
++			*p = _ALIGN(*p, sz >= 8 ? 8 : 4);
++
++		pname = find_flat_dt_string(noff);
++		if (pname = NULL) {
++			pr_info("Can't find property name in list !\n");
++			break;
++		}
++		if (strcmp(pname, "name") = 0)
++			has_name = 1;
++		l = strlen(pname) + 1;
++		pp = unflatten_dt_alloc(&mem, sizeof(struct property),
++					__alignof__(struct property));
++		if (allnextpp) {
++			if (strcmp(pname, "linux,phandle") = 0) {
++				np->node = *((u32 *)*p);
++				if (np->linux_phandle = 0)
++					np->linux_phandle = np->node;
++			}
++			if (strcmp(pname, "ibm,phandle") = 0)
++				np->linux_phandle = *((u32 *)*p);
++			pp->name = pname;
++			pp->length = sz;
++			pp->value = (void *)*p;
++			*prev_pp = pp;
++			prev_pp = &pp->next;
++		}
++		*p = _ALIGN((*p) + sz, 4);
++	}
++	/* with version 0x10 we may not have the name property, recreate
++	 * it here from the unit name if absent
++	 */
++	if (!has_name) {
++		char *p1 = pathp, *ps = pathp, *pa = NULL;
++		int sz;
++
++		while (*p1) {
++			if ((*p1) = '@')
++				pa = p1;
++			if ((*p1) = '/')
++				ps = p1 + 1;
++			p1++;
++		}
++		if (pa < ps)
++			pa = p1;
++		sz = (pa - ps) + 1;
++		pp = unflatten_dt_alloc(&mem, sizeof(struct property) + sz,
++					__alignof__(struct property));
++		if (allnextpp) {
++			pp->name = "name";
++			pp->length = sz;
++			pp->value = pp + 1;
++			*prev_pp = pp;
++			prev_pp = &pp->next;
++			memcpy(pp->value, ps, sz - 1);
++			((char *)pp->value)[sz - 1] = 0;
++			pr_debug("fixed up name for %s -> %s\n", pathp,
++				(char *)pp->value);
++		}
++	}
++	if (allnextpp) {
++		*prev_pp = NULL;
++		np->name = of_get_property(np, "name", NULL);
++		np->type = of_get_property(np, "device_type", NULL);
++
++		if (!np->name)
++			np->name = "<NULL>";
++		if (!np->type)
++			np->type = "<NULL>";
++	}
++	while (tag = OF_DT_BEGIN_NODE) {
++		mem = unflatten_dt_node(mem, p, np, allnextpp, fpsize);
++		tag = *((u32 *)(*p));
++	}
++	if (tag != OF_DT_END_NODE) {
++		printk("Weird tag at end of node: %x\n", tag);
++		return mem;
++	}
++	*p += 4;
++	return mem;
++}
+diff --git a/include/linux/of_fdt.h b/include/linux/of_fdt.h
+index 81231e0..ace9068 100644
+--- a/include/linux/of_fdt.h
++++ b/include/linux/of_fdt.h
+@@ -69,6 +69,10 @@ extern void *of_get_flat_dt_prop(unsigned long node, const char *name,
+ 				 unsigned long *size);
+ extern int of_flat_dt_is_compatible(unsigned long node, const char *name);
+ extern unsigned long of_get_flat_dt_root(void);
++extern unsigned long unflatten_dt_node(unsigned long mem, unsigned long *p,
++					struct device_node *dad,
++					struct device_node ***allnextpp,
++					unsigned long fpsize);
+ 
+ /* Other Prototypes */
+ extern void finish_device_tree(void);
 
