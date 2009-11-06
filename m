@@ -1,134 +1,148 @@
-From: Konrad Eisele <konrad@gaisler.com>
-Date: Mon, 02 Nov 2009 12:33:05 +0000
-Subject: Re: nocache/highmem mapping
-Message-Id: <4AEED181.10204@gaisler.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Fri, 06 Nov 2009 22:41:39 +0000
+Subject: [patch 08/16] sparc: Make atomic locks raw
+Message-Id: <20091106223806.721945005@linutronix.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4ACB63BC.90200@gaisler.com>
-In-Reply-To: <4ACB63BC.90200@gaisler.com>
+References: <20091106223547.784916750@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>, Peter Zijlstra <peterz@infradead.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-David Miller wrote:
-> From: Konrad Eisele <konrad@gaisler.com>
-> Date: Tue, 06 Oct 2009 17:35:24 +0200
-> 
-> I looked over this in detail and I can't see what the problem
-> is.
+SPIN_LOCK_UNLOCKED is deprecated and the locks which protect the
+atomic operations have no dependency on other locks and the code is
+well tested so the conversion to a raw lock is safe.
 
-You are right. Now that you say that PKMAP_BASE should be
-0xfc800000 instead of 0xfc500000 I went over my local version
-of the code and saw what went wrong on my machine:
-A earalier patch was aligning PKMAP_BASE to an odd value,
-this was done because I was patching my local version of the
-sourcecode to support a hardware-srmmu-configuration with
-pagesize > 4k. Thanks that you pointed it out. Sorry for
-the confusion.
--- Konrad
+Make the lock array static while at it.
 
-> 
->> Here is what we digged out:
->> The virtual address regions with 512 MB ram and
->> #define SRMMU_MAX_NOCACHE_PAGES	(1280)
->> are:
->>
->> 0xfc0000000 - 0xfc5000000 : nocache mem
->> 0xfc5000000 - 0xfc9000000 : highmem
->>
->> however srmmu_nocache_init()->srmmu_early_allocate_ptable_skeleton()
->> initializes the the page skelleton in steps of:
->>                 ...
->> 	while(start < end) {
->>                 ...
->> 		start = (start + PMD_SIZE) & PMD_MASK;
->>         }
->>                 ...
->>
->> PMD_SIZE is 0x4000000, that means it will will initilize
->>
->> 0xfc0000000 - 0xfc4000000 and
->> 0xfc4000000 - 0xfc8000000
->> before it breaks.
->>
->> But this leaves highmem's front region
->> 0xfc5000000 - 0xfc8000000 allocated with a
->> skelleton (!).
-> 
-> That's perfectly fine, these page tables can be shared by
-> multiple region users.  And in fact you calculate of the
-> highmem front region is flawed, it's not 0xfc500000, in
-> fact it's a constant and not at all related to how much of
-> a nocache region we decide to use.
-> 
->> The effect is that  srmmu_paging_init()'s:
->>         ...
->>         pgd = pgd_offset_k(PKMAP_BASE);
->> 	pmd = srmmu_pmd_offset(pgd, PKMAP_BASE);
->> 	pte = srmmu_pte_offset(pmd, PKMAP_BASE);
->> 	pkmap_page_table = pte;
->>         ...
->>
->> pkmap_page_table will end up with the pte-ptd-set that nocache
->> has allocated, highmem's  mm/highmem.c:map_new_virtual()
->>               ...
->>               set_pte_at(&init_mm, vaddr,
->> 		   &(pkmap_page_table[last_pkmap_nr]), mk_pte(page,
->> 		   kmap_prot));
->>               ...
->> will fail starting from v-address 0xfc800000.
-> 
-> The only real requirement is that PKMAP_BASE is aligned to a single
-> PTE chunk, so that pkmap_page_table highmem thing works.
-> 
-> Since I see no real reason to lower the NOCACHE area size, it's better
-> to just properly align-up the PKMAP_BASE.
-> 
-> And wait.... that's exactly what PKMAP_BASE is defined to do:
-> 
-> #define PKMAP_SIZE (LAST_PKMAP << PAGE_SHIFT)
-> #define PKMAP_BASE PMD_ALIGN(SRMMU_NOCACHE_VADDR + (SRMMU_MAX_NOCACHE_PAGES << PAGE_SHIFT))
-> 
-> PKMAP_BASE is defined to be PMD_ALIGN'd _exactly_ because of the
-> requirements created by pkmap_page_table and the highmem code.
-> 
-> PKMAP_BASE should evaluate always to:
-> 
-> 	PMD_ALIGN(KERNBASE + SRMMU_MAXMEM + (1280 << PAGE_SHIFT))
-> 	|
-> 	PMD_ALIGN(0xf0000000 + 0x0c000000 + (1280 << PAGE_SHIFT))
-> 	|
-> 	PMD_ALIGN(0xfc000000 + (1280 << PAGE_SHIFT))
-> 	|
-> 	PMD_ALIGN(0xfc000000 + 0x500000)
-> 	|
-> 	PMD_ALIGN(0xfc500000)
-> 
-> So what's PMD_ALIGN?
-> 
-> #define PMD_SHIFT		SUN4C_PMD_SHIFT
-> #define PMD_SIZE        	(1UL << PMD_SHIFT)
-> #define PMD_MASK        	(~(PMD_SIZE-1))
-> #define PMD_ALIGN(__addr) 	(((__addr) + ~PMD_MASK) & PMD_MASK)
-> 
-> This value here is the "abstract" PMD size we use in the sparc32 port,
-> which we happen to just use the sun4c PMD size.
-> 
-> And since that is larger than the SRMMU's PMD size, this should
-> still align PKMAP_BASE sufficiently.
-> 
-> #define PMD_SHIFT		22
-> #define PMD_SIZE        	(1UL << 22)
-> #define PMD_MASK        	(~(PMD_SIZE-1))
-> #define PMD_ALIGN(__addr) 	(((__addr) + ~PMD_MASK) & PMD_MASK)
-> 
-> Thus:
-> 
-> 	PMD_ALIGN(0xfc500000)
-> 	|
-> 	0xfc800000
-> 
-> So PKMAP_BASE is 0xfc800000, and your bug must be something else.
-> 
-> 
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+---
+ arch/sparc/lib/atomic32.c |   36 ++++++++++++++++++------------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
+
+Index: linux-2.6/arch/sparc/lib/atomic32.c
+=================================--- linux-2.6.orig/arch/sparc/lib/atomic32.c
++++ linux-2.6/arch/sparc/lib/atomic32.c
+@@ -15,8 +15,8 @@
+ #define ATOMIC_HASH_SIZE	4
+ #define ATOMIC_HASH(a)	(&__atomic_hash[(((unsigned long)a)>>8) & (ATOMIC_HASH_SIZE-1)])
+ 
+-spinlock_t __atomic_hash[ATOMIC_HASH_SIZE] = {
+-	[0 ... (ATOMIC_HASH_SIZE-1)] = SPIN_LOCK_UNLOCKED
++static raw_spinlock_t __atomic_hash[ATOMIC_HASH_SIZE] = {
++	[0 ... (ATOMIC_HASH_SIZE-1)] = __RAW_SPIN_LOCK_UNLOCKED
+ };
+ 
+ #else /* SMP */
+@@ -31,11 +31,11 @@ int __atomic_add_return(int i, atomic_t 
+ {
+ 	int ret;
+ 	unsigned long flags;
+-	spin_lock_irqsave(ATOMIC_HASH(v), flags);
++	__raw_spin_lock_irqsave(ATOMIC_HASH(v), flags);
+ 
+ 	ret = (v->counter += i);
+ 
+-	spin_unlock_irqrestore(ATOMIC_HASH(v), flags);
++	__raw_spin_unlock_irqrestore(ATOMIC_HASH(v), flags);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(__atomic_add_return);
+@@ -45,12 +45,12 @@ int atomic_cmpxchg(atomic_t *v, int old,
+ 	int ret;
+ 	unsigned long flags;
+ 
+-	spin_lock_irqsave(ATOMIC_HASH(v), flags);
++	__raw_spin_lock_irqsave(ATOMIC_HASH(v), flags);
+ 	ret = v->counter;
+ 	if (likely(ret = old))
+ 		v->counter = new;
+ 
+-	spin_unlock_irqrestore(ATOMIC_HASH(v), flags);
++	__raw_spin_unlock_irqrestore(ATOMIC_HASH(v), flags);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(atomic_cmpxchg);
+@@ -60,11 +60,11 @@ int atomic_add_unless(atomic_t *v, int a
+ 	int ret;
+ 	unsigned long flags;
+ 
+-	spin_lock_irqsave(ATOMIC_HASH(v), flags);
++	__raw_spin_lock_irqsave(ATOMIC_HASH(v), flags);
+ 	ret = v->counter;
+ 	if (ret != u)
+ 		v->counter += a;
+-	spin_unlock_irqrestore(ATOMIC_HASH(v), flags);
++	__raw_spin_unlock_irqrestore(ATOMIC_HASH(v), flags);
+ 	return ret != u;
+ }
+ EXPORT_SYMBOL(atomic_add_unless);
+@@ -74,9 +74,9 @@ void atomic_set(atomic_t *v, int i)
+ {
+ 	unsigned long flags;
+ 
+-	spin_lock_irqsave(ATOMIC_HASH(v), flags);
++	__raw_spin_lock_irqsave(ATOMIC_HASH(v), flags);
+ 	v->counter = i;
+-	spin_unlock_irqrestore(ATOMIC_HASH(v), flags);
++	__raw_spin_unlock_irqrestore(ATOMIC_HASH(v), flags);
+ }
+ EXPORT_SYMBOL(atomic_set);
+ 
+@@ -84,10 +84,10 @@ unsigned long ___set_bit(unsigned long *
+ {
+ 	unsigned long old, flags;
+ 
+-	spin_lock_irqsave(ATOMIC_HASH(addr), flags);
++	__raw_spin_lock_irqsave(ATOMIC_HASH(addr), flags);
+ 	old = *addr;
+ 	*addr = old | mask;
+-	spin_unlock_irqrestore(ATOMIC_HASH(addr), flags);
++	__raw_spin_unlock_irqrestore(ATOMIC_HASH(addr), flags);
+ 
+ 	return old & mask;
+ }
+@@ -97,10 +97,10 @@ unsigned long ___clear_bit(unsigned long
+ {
+ 	unsigned long old, flags;
+ 
+-	spin_lock_irqsave(ATOMIC_HASH(addr), flags);
++	__raw_spin_lock_irqsave(ATOMIC_HASH(addr), flags);
+ 	old = *addr;
+ 	*addr = old & ~mask;
+-	spin_unlock_irqrestore(ATOMIC_HASH(addr), flags);
++	__raw_spin_unlock_irqrestore(ATOMIC_HASH(addr), flags);
+ 
+ 	return old & mask;
+ }
+@@ -110,10 +110,10 @@ unsigned long ___change_bit(unsigned lon
+ {
+ 	unsigned long old, flags;
+ 
+-	spin_lock_irqsave(ATOMIC_HASH(addr), flags);
++	__raw_spin_lock_irqsave(ATOMIC_HASH(addr), flags);
+ 	old = *addr;
+ 	*addr = old ^ mask;
+-	spin_unlock_irqrestore(ATOMIC_HASH(addr), flags);
++	__raw_spin_unlock_irqrestore(ATOMIC_HASH(addr), flags);
+ 
+ 	return old & mask;
+ }
+@@ -124,10 +124,10 @@ unsigned long __cmpxchg_u32(volatile u32
+ 	unsigned long flags;
+ 	u32 prev;
+ 
+-	spin_lock_irqsave(ATOMIC_HASH(ptr), flags);
++	__raw_spin_lock_irqsave(ATOMIC_HASH(ptr), flags);
+ 	if ((prev = *ptr) = old)
+ 		*ptr = new;
+-	spin_unlock_irqrestore(ATOMIC_HASH(ptr), flags);
++	__raw_spin_unlock_irqrestore(ATOMIC_HASH(ptr), flags);
+ 
+ 	return (unsigned long)prev;
+ }
+
 
