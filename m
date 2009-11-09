@@ -1,44 +1,38 @@
-From: EAGLE LOAN MANAGEMENT <eagleloan.advertunit@london.com>
-Date: Tue, 06 Oct 2009 04:50:30 +0000
-Subject: 
-Message-Id: <20091006005030.10941r5tuq0n637o@mail.cosett.com.bo>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 09 Nov 2009 05:31:38 +0000
+Subject: [GIT]: Sparc
+Message-Id: <20091108.213138.205827243.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20080421.153231.108090227.davem@davemloft.net>
+In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
+Fix a locking bug pointed out by Thomas Gleixner and clarify some
+aspects of our sparc64 barriers.
 
-This is Eagle Loan Management, a private loan lender.We provide funding for
-companies and individuals that need funding. We work domestic as well as
-international companies. Our funding sources specialize in creative  
-solutions to
-meet your needs for expansion, growth etc.
-Our company do grant loans to individuals and companies as the loan  
-grant varies
-from $5 thousand to $5 million Dollars with an interest rate of just 2.5%.
+Please pull, thanks a lot.
 
-Borrower's Information Needed
-Full Names:................................................
-Country:...................................................
-Phone Number:............................................
-Loan Amount Needed:..................................
-Loan Term Duration:.....................................
+The following changes since commit 2e2ec952350f25242f2e0539db16b1e46f9eb01b:
+  Linus Torvalds (1):
+        Merge branch 'bugfix' of git://git.kernel.org/.../jeremy/xen
 
-Contact us today with the above information at
-eagleinvestment@sifymail.com
+are available in the git repository at:
 
-Company Name:EAGLE LOAN MANAGEMENT.
-Registration Number: EA-ASL/941OYI/02/LN-UK
-Telephone: +44-701-112-8005
-Fax: +44 91-791-52-20
+  master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
 
-Regards,
-EAGLE LOAN MANAGEMENT
-eagleloan.2009@gmail.com
+David S. Miller (2):
+      sparc64: Add a comment about why we only use certain memory barriers these days.
+      sparc: Move of_set_property_mutex acquisition outside of devtree_lock grab.
 
-----------------------------------------------------------------
-This message was sent using IMP, the Internet Messaging Program.
+Roel Kluin (1):
+      sparc64: replace parentheses in pmul()
 
-
+ arch/sparc/include/asm/system_64.h |    4 ++++
+ arch/sparc/kernel/prom_common.c    |    4 ++--
+ arch/sparc/kernel/visemul.c        |    2 +-
+ 3 files changed, 7 insertions(+), 3 deletions(-)
