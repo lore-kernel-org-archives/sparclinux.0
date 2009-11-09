@@ -1,31 +1,20 @@
-From: Kristoffer Glembo <kristoffer@gaisler.com>
-Date: Fri, 27 Nov 2009 16:43:35 +0000
-Subject: ioport.c
-Message-Id: <4B1001B7.8070609@gaisler.com>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 09 Nov 2009 05:04:57 +0000
+Subject: away but active for next 6 days.
+Message-Id: <20091108.210457.203791846.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: linux-ide@vger.kernel.org, sparclinux@vger.kernel.org
 
-Hi,
 
-I'm adding LEON support for the DMA-API into ioport.c and at the
-same time wanting to clean things up somewhat.
+I will be away in New York City from Monday night until Saturday.
 
-One thing that bugs me a little bit is this one:
+I intend to be as responsive as I was this past summer when I spent
+nearly 2 months there :-)
 
-#define mmu_inval_dma_area(p, l)/* Anton pulled it out for 2.4.0-xx */
-
-It seems this was never implemented. I'm not sure which machines needs
-to invalidate the cache after DMA but LEON needs it in some
-configurations and as far as I understand the microsparc IIep needs it
-as well. I'm not so familiar with where this chip is used but the
-JavaStation (Krups) uses it and has the Sun HappyMeal ethernet card
-doing DMA from the PCI bus.
-
-Can anyone explain why this was never implemented and instead removed?
-Is it not needed even on the IIep ?
-
-Best regards,
-Kristoffer
+I have one IDE fix, 2 or 3 Sparc fixes, and a moderately sized handful
+of networking fixes sitting in my trees which I'll send pull requests
+out for tonight.
