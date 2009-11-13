@@ -1,30 +1,34 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 08 Nov 2009 08:28:15 +0000
-Subject: Re: [PATCH] sparc,sparc64: replace parentheses in pmul()
-Message-Id: <20091108.002815.06996631.davem@davemloft.net>
+From: Kristoffer Glembo <kristoffer@gaisler.com>
+Date: Fri, 13 Nov 2009 13:57:05 +0000
+Subject: [PATCH] No auxio on LEON
+Message-Id: <4AFD65B1.7070300@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4AF3000C.8080607@gmail.com>
-In-Reply-To: <4AF3000C.8080607@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: roel.kluin@gmail.com
-Cc: sparclinux@vger.kernel.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Roel Kluin <roel.kluin@gmail.com>
-Date: Thu, 05 Nov 2009 17:40:44 +0100
+Do not probe for auxio register on SPARC LEON.
 
-> `>>' has a higher precedence than `?' so src2 evaluated to
-> either 16 or 0 dependent on the bits set in rs2.
-> 
-> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-> ---
->  arch/sparc/kernel/visemul.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> I am not 100% sure that the code was incorrect, however, if it
-> was intended I think it is a very strange way to write it.
+(with proper emacs settings this time, thanks Josip)
 
-Your fix is correct, thanks Roel!
+Signed-off-by: Kristoffer Glembo <kristoffer@gaisler.com>
 
-I really need to write a testsuite for this VIS emulation code.
+---
+  arch/sparc/kernel/auxio_32.c |    1 +
+  1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/arch/sparc/kernel/auxio_32.c b/arch/sparc/kernel/auxio_32.c
+index 45c4123..ee8d214 100644
+--- a/arch/sparc/kernel/auxio_32.c
++++ b/arch/sparc/kernel/auxio_32.c
+@@ -28,6 +28,7 @@ void __init auxio_probe(void)
+  	struct resource r;
+
+  	switch (sparc_cpu_model) {
++	case sparc_leon:
+  	case sun4d:
+  	case sun4:
+  		return;
+-- 
+1.5.2.2
