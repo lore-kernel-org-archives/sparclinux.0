@@ -1,32 +1,32 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 30 Nov 2009 21:05:21 +0000
-Subject: Re: Boot problems on a V880
-Message-Id: <20091130.130521.261909944.davem@davemloft.net>
+From: Kristoffer Glembo <kristoffer@gaisler.com>
+Date: Fri, 13 Nov 2009 13:28:15 +0000
+Subject: [PATH] No auxio on LEON
+Message-Id: <4AFD5EEF.4000805@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <200911262202.45791.pat@computer-refuge.org>
-In-Reply-To: <200911262202.45791.pat@computer-refuge.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Patrick Finnegan <pat@computer-refuge.org>
-Date: Mon, 30 Nov 2009 16:02:14 -0500
+Do not probe for auxio register on SPARC LEON.
 
-> It doesn't seem that the RSC is the problem, but I have two bad slots on 
-> the CPU backplane (as verified by booting this on my other V880).  That 
-> V880 is installed with "2.6.26-1-sparc64" from Debian/Lenny, which 
-> booted ok on this one when I cloned the disk (and pulled the CPU modules 
-> from the bottom two slots).  It looks like this 2.6.32-rc3 will boot, 
-> but I can't get the onboard (sungem) ethernet to work (on either 
-> 2.6.26-1-sparc64 or 2.6.32-rc3).
+Signed-off-by: Kristoffer Glembo <kristoffer@gaisler.com>
 
-What are the symptoms, link simply doesn't come up?
+---
+  arch/sparc/kernel/auxio_32.c |    1 +
+  1 files changed, 1 insertions(+), 0 deletions(-)
 
-We made some fixes to link type detection in sungem recently, maybe we
-need some more touchups to get it perfect.
+diff --git a/arch/sparc/kernel/auxio_32.c b/arch/sparc/kernel/auxio_32.c
+index 45c4123..40c709d 100644
+--- a/arch/sparc/kernel/auxio_32.c
++++ b/arch/sparc/kernel/auxio_32.c
+@@ -28,6 +28,7 @@ void __init auxio_probe(void)
+  	struct resource r;
 
-Can you please post the output of "prtconf -pv" either from Linux or
-Solaris on this machine?
-
-Thanks.
+  	switch (sparc_cpu_model) {
++        case sparc_leon:
+  	case sun4d:
+  	case sun4:
+  		return;
+-- 
+1.5.2.2
