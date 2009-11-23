@@ -1,38 +1,27 @@
-From: Josip Rodin <joy@entuzijast.net>
-Date: Fri, 13 Nov 2009 13:42:27 +0000
-Subject: Re: [PATH] No auxio on LEON
-Message-Id: <20091113134227.GA16435@orion.carnet.hr>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 23 Nov 2009 20:24:46 +0000
+Subject: Re: Sparc release requalification
+Message-Id: <20091123.122446.113872933.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4AFD5EEF.4000805@gaisler.com>
-In-Reply-To: <4AFD5EEF.4000805@gaisler.com>
+References: <4AA427E6.5000801@nerim.net>
+In-Reply-To: <4AA427E6.5000801@nerim.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Fri, Nov 13, 2009 at 02:28:15PM +0100, Kristoffer Glembo wrote:
-> Do not probe for auxio register on SPARC LEON.
->
-> Signed-off-by: Kristoffer Glembo <kristoffer@gaisler.com>
->
-> ---
->  arch/sparc/kernel/auxio_32.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/sparc/kernel/auxio_32.c b/arch/sparc/kernel/auxio_32.c
-> index 45c4123..40c709d 100644
-> --- a/arch/sparc/kernel/auxio_32.c
-> +++ b/arch/sparc/kernel/auxio_32.c
-> @@ -28,6 +28,7 @@ void __init auxio_probe(void)
->  	struct resource r;
->
->  	switch (sparc_cpu_model) {
-> +        case sparc_leon:
->  	case sun4d:
->  	case sun4:
->  		return;
+From: Josip Rodin <joy@entuzijast.net>
+Date: Sat, 31 Oct 2009 17:48:06 +0100
 
-Spaces vs. tabs :)
+> No idea, I got stuck there and reverted to .28. Then the machine started
+> exhibiting some other issues so it was reverted to .26. :/
 
--- 
-     2. That which causes joy or happiness.
+Sorry for dropping the ball on this one.
+
+As promised long ago, here is a 2.6.31.6 kernel built with you
+2.6.31 config file.  Let me know if it exhibits the bootup problem
+so we can diagnose further:
+
+	http://vger.kernel.org/~davem/josip_test_2631_6.img
+
+Thanks!
