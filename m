@@ -1,83 +1,59 @@
-From: Helge Deller <deller@gmx.de>
-Date: Thu, 26 Nov 2009 21:47:53 +0000
-Subject: Re: [PATCH 1/5] parsic: remove unused nfsd #includes
-Message-Id: <4B0EF789.8060805@gmx.de>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Tue, 24 Nov 2009 08:17:41 +0000
+Subject: [PATCH 00/11] Yet another series of OF merge patches.
+Message-Id: <20091124081316.6216.66310.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4B0C1EB7.50508@panasas.com> <4B0C1F1A.8070605@panasas.com> <4B0E94D4.5090800@panasas.com>
-In-Reply-To: <4B0E94D4.5090800@panasas.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Boaz Harrosh <bharrosh@panasas.com>
-Cc: "J. Bruce Fields" <bfields@citi.umich.edu>, linux-parisc <linux-parisc@vger.kernel.org>, Grant Grundler <grundler@parisc-linux.org>, Kyle McMartin <kyle@mcmartin.ca>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Linux Kernel <linux-kernel@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, NFS list <linux-nfs@vger.kernel.org>, pNFS Mailing List <pnfs@linux-nfs.org>, Andrew Morton <akpm@linux-foundation.org>
+To: linuxppc-dev@lists.ozlabs.org, devicetree-discuss@lists.ozlabs.org, sparclinux@vger.kernel.org, microblaze-uclinux@itee.uq.edu.au, benh@kernel.crashing.org, sfr@canb.auug.org.au, dave
 
-On 11/26/2009 03:46 PM, Boaz Harrosh wrote:
-> On 11/24/2009 11:27 PM, Grant Grundler wrote:
->> On Tue, Nov 24, 2009 at 07:58:15PM +0200, Boaz Harrosh wrote:
->>> Some arch files had unneeded #includes directives from linux/nfsd/*.
->>> Some vfs files had unneeded #includes directives from linux/nfsd/*.
->> ...
->>> patches:
->>> [PATCH 1/5] parsic: remove unused nfsd #includes
->>> 	Some kind soul, please compile with this patch? compile
->>> 	is all that's needed.
->>
->> Boaz,
->> linux-2.6 compiles for parisc with this patch. Please add:
->>      Tested-by: Grant Grundler<grundler@parisc-linux.org>
->>
->> thanks,
->> grant
->>
->
-> CCing registered parsic maintainers. Could we please get an ACK on
-> this patch, and cary this through the nfsd tree?
+Nothing much to say here other than mostly mechanical merging of OF
+support code.  Some of it remains a little ugly, but I'm taking the
+approach of merging the code first, and refactoring it second.
 
-Sure.
+I've pushed this series out to my test-devicetree branch on my git
+server if anyone wants to test.  That branch also includes the
+previous 2 patch series that I've sent out.
 
-Acked-by: Helge Deller <deller@gmx.de>
+git://git.secretlab.ca/git/linux-2.6 test-devicetree
 
-Helge
+Compile tested on: ppc64, ppc32, microblaze, sparc64, sparc32.
+Boot tested on mpc5200 (ppc32) platform.
+
+---
+
+Grant Likely (11):
+      of: unify phandle name in struct device_node
+      microblaze: gut implementation of early_init_dt_scan_cpus()
+      of: merge of_attach_node() & of_detach_node()
+      of: Merge of_node_get() and of_node_put()
+      of: merge machine_is_compatible()
+      of/flattree: merge early_init_devtree() and early_init_move_devtree()
+      of/flattree: merge early_init_dt_scan_chosen()
+      of/flattree: eliminate cell_t typedef
+      of/flattree: merge dt_mem_next_cell
+      of/flattree: Merge earlyinit_dt_scan_root()
+      of/flattree: Merge early_init_dt_check_for_initrd()
 
 
->
-> Thanks
-> Boaz
->
-> On 11/24/2009 07:59 PM, Boaz Harrosh wrote:
->>
->> Some unused includes removed.
->>
->> This patch is in an effort to cleanup nfsd headers and move
->> private definitions to source directory.
->>
->> Signed-off-by: Boaz Harrosh<bharrosh@panasas.com>
->> ---
->>   arch/parisc/kernel/sys_parisc32.c |    6 ------
->>   1 files changed, 0 insertions(+), 6 deletions(-)
->>
->> diff --git a/arch/parisc/kernel/sys_parisc32.c b/arch/parisc/kernel/sys_parisc32.c
->> index 561388b..4a8ca63 100644
->> --- a/arch/parisc/kernel/sys_parisc32.c
->> +++ b/arch/parisc/kernel/sys_parisc32.c
->> @@ -26,13 +26,7 @@
->>   #include<linux/shm.h>
->>   #include<linux/slab.h>
->>   #include<linux/uio.h>
->> -#include<linux/nfs_fs.h>
->>   #include<linux/ncp_fs.h>
->> -#include<linux/sunrpc/svc.h>
->> -#include<linux/nfsd/nfsd.h>
->> -#include<linux/nfsd/cache.h>
->> -#include<linux/nfsd/xdr.h>
->> -#include<linux/nfsd/syscall.h>
->>   #include<linux/poll.h>
->>   #include<linux/personality.h>
->>   #include<linux/stat.h>
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+ arch/microblaze/include/asm/prom.h           |    4 
+ arch/microblaze/kernel/prom.c                |  375 +-------------------------
+ arch/powerpc/include/asm/prom.h              |    4 
+ arch/powerpc/kernel/prom.c                   |  366 ++-----------------------
+ arch/powerpc/platforms/powermac/pfunc_core.c |    2 
+ arch/sparc/kernel/devices.c                  |    2 
+ arch/sparc/kernel/of_device_32.c             |    2 
+ arch/sparc/kernel/of_device_64.c             |    2 
+ arch/sparc/kernel/prom_common.c              |    8 -
+ arch/sparc/kernel/smp_64.c                   |    2 
+ drivers/of/base.c                            |  153 +++++++++++
+ drivers/of/fdt.c                             |  204 ++++++++++++++
+ drivers/sbus/char/openprom.c                 |   10 -
+ drivers/video/aty/atyfb_base.c               |    2 
+ include/linux/of.h                           |    7 
+ include/linux/of_fdt.h                       |   18 +
+ 16 files changed, 430 insertions(+), 731 deletions(-)
 
+-- 
+Signature
