@@ -1,67 +1,62 @@
-From: Wolfram Sang <w.sang@pengutronix.de>
-Date: Thu, 05 Nov 2009 08:45:27 +0000
-Subject: Re: [PATCH 02/11] of/flattree: merge of_scan_flat_dt
-Message-Id: <20091105084527.GB3478@pengutronix.de>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="rJwd6BRFiFCcLxzm"
+From: Boaz Harrosh <bharrosh@panasas.com>
+Date: Tue, 24 Nov 2009 18:02:00 +0000
+Subject: [PATCH 3/5] s390: remove unused nfsd #includes
+Message-Id: <4B0C1F98.4000204@panasas.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20091105073728.10460.6061.stgit@angua> <20091105074527.10460.23877.stgit@angua>
-In-Reply-To: <20091105074527.10460.23877.stgit@angua>
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: linuxppc-dev@lists.ozlabs.org, devicetree-discuss@lists.ozlabs.org, benh@kernel.crashing.org, sfr@canb.auug.org.au, davem@davemloft.net, sparclinux@vger.kernel.org, monstr@monstr.eu, microblaze-uclinux@itee.uq.edu.au
+References: <4B0C1EB7.50508@panasas.com>
+In-Reply-To: <4B0C1EB7.50508@panasas.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: "J. Bruce Fields" <bfields@citi.umich.edu>, Linux Kernel <linux-kernel@vger.kernel.org>, linux-parisc <linux-parisc@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, linux-s
 
 
---rJwd6BRFiFCcLxzm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Some unused includes removed.
 
-On Thu, Nov 05, 2009 at 12:45:35AM -0700, Grant Likely wrote:
-> Merge common code between PowerPC and Microblaze
+This patch is in an effort to cleanup nfsd headers and move
+private definitions to source directory.
 
-Just minor fixes in nanodoc.
+Signed-off-by: Boaz Harrosh <bharrosh@panasas.com>
+---
+ arch/s390/kernel/compat_linux.c |    6 ------
+ arch/s390/kernel/compat_linux.h |    4 ----
+ 2 files changed, 0 insertions(+), 10 deletions(-)
 
-> diff --git a/drivers/of/fdt.c b/drivers/of/fdt.c
-> index 9faa9a5..7c3c13c 100644
-> --- a/drivers/of/fdt.c
-> +++ b/drivers/of/fdt.c
-> @@ -19,3 +19,68 @@ char *find_flat_dt_string(u32 offset)
->  	return ((char *)initial_boot_params) +
->  		initial_boot_params->off_dt_strings + offset;
->  }
-> +
-> +/**
-> + * of_scan_flat_dt - scan flattend tree blob and call callback on each.
+diff --git a/arch/s390/kernel/compat_linux.c b/arch/s390/kernel/compat_linux.c
+index 0debcec..29a2f34 100644
+--- a/arch/s390/kernel/compat_linux.c
++++ b/arch/s390/kernel/compat_linux.c
+@@ -31,14 +31,8 @@
+ #include <linux/shm.h>
+ #include <linux/slab.h>
+ #include <linux/uio.h>
+-#include <linux/nfs_fs.h>
+ #include <linux/quota.h>
+ #include <linux/module.h>
+-#include <linux/sunrpc/svc.h>
+-#include <linux/nfsd/nfsd.h>
+-#include <linux/nfsd/cache.h>
+-#include <linux/nfsd/xdr.h>
+-#include <linux/nfsd/syscall.h>
+ #include <linux/poll.h>
+ #include <linux/personality.h>
+ #include <linux/stat.h>
+diff --git a/arch/s390/kernel/compat_linux.h b/arch/s390/kernel/compat_linux.h
+index c07f9ca..81d6ee8 100644
+--- a/arch/s390/kernel/compat_linux.h
++++ b/arch/s390/kernel/compat_linux.h
+@@ -4,10 +4,6 @@
+ #include <linux/compat.h>
+ #include <linux/socket.h>
+ #include <linux/syscalls.h>
+-#include <linux/nfs_fs.h>
+-#include <linux/sunrpc/svc.h>
+-#include <linux/nfsd/nfsd.h>
+-#include <linux/nfsd/export.h>
+ 
+ /* Macro that masks the high order bit of an 32 bit pointer and converts it*/
+ /*       to a 64 bit pointer */
+-- 
+1.6.5.2
 
-flattened
 
-> + * @it: callback function
-> + * @data: context data pointer
-> + *
-> + * This function is used to scan the flattened device-tree, it is
-> + * used to extract the memory informations at boot before we can
-
-I am not a native speaker, yet I have been taught there is no "informations=
-".
-
-> + * unflatten the tree
-> + */
-
---=20
-Pengutronix e.K.                           | Wolfram Sang                |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-
---rJwd6BRFiFCcLxzm
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkrykKcACgkQD27XaX1/VRsLywCgs3Py1XfEtmhn0ZIIgaxE/5HJ
-gw0An2Zx/QwbSHDpR+dyZfLr5OkTTpjt
-=hGVU
------END PGP SIGNATURE-----
-
---rJwd6BRFiFCcLxzm--
