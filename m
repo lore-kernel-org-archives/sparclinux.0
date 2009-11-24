@@ -1,39 +1,93 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 20 Nov 2009 19:15:15 +0000
-Subject: Re: [experimental patch] sungem: force serdes dection on buildin
-Message-Id: <20091120.111515.51717434.davem@davemloft.net>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Tue, 24 Nov 2009 08:18:21 +0000
+Subject: [PATCH 03/11] of/flattree: merge dt_mem_next_cell
+Message-Id: <20091124081814.6216.97169.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20091113124350.GA1926@lemon.iwr.uni-heidelberg.de>
-In-Reply-To: <20091113124350.GA1926@lemon.iwr.uni-heidelberg.de>
+References: <20091124081316.6216.66310.stgit@angua>
+In-Reply-To: <20091124081316.6216.66310.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linuxppc-dev@lists.ozlabs.org, devicetree-discuss@lists.ozlabs.org, sparclinux@vger.kernel.org, microblaze-uclinux@itee.uq.edu.au, benh@kernel.crashing.org, sfr@canb.auug.org.au, dave
 
-From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
-Date: Fri, 20 Nov 2009 15:28:03 +0100
+Merge common code between PowerPC and Microblaze
 
-> Works on the SunFire 880 with internel fibre serdes and on a SunFire 480
-> with a PCI Card with fibre serdes here.
-> 
-> On the PCI card interrestingly there were initially type phy_mii_mdio1 
-> or phy_mii_mdio0 detected and only after failing to read the phy_mii 
-> fall back to type phy_serdes. The 'shared-pins' property would be
-> available for testing for a serdes on that card, too.
+Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+---
 
-Yes, it seems we could sample that shared-pins property for
-all PHY types, not just for handling the serdes case.
+ arch/microblaze/kernel/prom.c |    8 --------
+ arch/powerpc/kernel/prom.c    |    8 --------
+ drivers/of/fdt.c              |    8 ++++++++
+ include/linux/of_fdt.h        |    1 +
+ 4 files changed, 9 insertions(+), 16 deletions(-)
 
-> But anyways, all interfaces are working. Thanks.
+diff --git a/arch/microblaze/kernel/prom.c b/arch/microblaze/kernel/prom.c
+index 189179a..e0f4c34 100644
+--- a/arch/microblaze/kernel/prom.c
++++ b/arch/microblaze/kernel/prom.c
+@@ -155,14 +155,6 @@ static int __init early_init_dt_scan_chosen(unsigned long node,
+ 	return 1;
+ }
+ 
+-static u64 __init dt_mem_next_cell(int s, cell_t **cellp)
+-{
+-	cell_t *p = *cellp;
+-
+-	*cellp = p + s;
+-	return of_read_number(p, s);
+-}
+-
+ static int __init early_init_dt_scan_memory(unsigned long node,
+ 				const char *uname, int depth, void *data)
+ {
+diff --git a/arch/powerpc/kernel/prom.c b/arch/powerpc/kernel/prom.c
+index 78f65a4..048e3a3 100644
+--- a/arch/powerpc/kernel/prom.c
++++ b/arch/powerpc/kernel/prom.c
+@@ -432,14 +432,6 @@ static int __init early_init_dt_scan_chosen(unsigned long node,
+ 	return 1;
+ }
+ 
+-static u64 __init dt_mem_next_cell(int s, cell_t **cellp)
+-{
+-	cell_t *p = *cellp;
+-
+-	*cellp = p + s;
+-	return of_read_number(p, s);
+-}
+-
+ #ifdef CONFIG_PPC_PSERIES
+ /*
+  * Interpret the ibm,dynamic-memory property in the
+diff --git a/drivers/of/fdt.c b/drivers/of/fdt.c
+index be200be..ebce509 100644
+--- a/drivers/of/fdt.c
++++ b/drivers/of/fdt.c
+@@ -432,6 +432,14 @@ int __init early_init_dt_scan_root(unsigned long node, const char *uname,
+ 	return 1;
+ }
+ 
++u64 __init dt_mem_next_cell(int s, u32 **cellp)
++{
++	u32 *p = *cellp;
++
++	*cellp = p + s;
++	return of_read_number(p, s);
++}
++
+ /**
+  * unflatten_device_tree - create tree of device_nodes from flat blob
+  *
+diff --git a/include/linux/of_fdt.h b/include/linux/of_fdt.h
+index 828c3cd..d1a37e5 100644
+--- a/include/linux/of_fdt.h
++++ b/include/linux/of_fdt.h
+@@ -72,6 +72,7 @@ extern void *of_get_flat_dt_prop(unsigned long node, const char *name,
+ extern int of_flat_dt_is_compatible(unsigned long node, const char *name);
+ extern unsigned long of_get_flat_dt_root(void);
+ extern void early_init_dt_check_for_initrd(unsigned long node);
++extern u64 dt_mem_next_cell(int s, u32 **cellp);
+ 
+ /* Early flat tree scan hooks */
+ extern int early_init_dt_scan_root(unsigned long node, const char *uname,
 
-Thanks for testing.
-
-> BTW, are there any new ideas about getting post 2.6.26 kernels booting
-> on that class of sparc machines ? My last try with 2.6.31.6 still
-> hangs at the usual point. Anything I could/should try ?
-> 
-> The offer of remote debugging on the SunFire 480 still stands,
-> if you could find a few spare minutes...
-
-Sorry for not getting to this, I'll make a special effort to
-do so soon.
