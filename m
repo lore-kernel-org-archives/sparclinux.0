@@ -1,42 +1,110 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 04 Nov 2009 13:36:08 +0000
-Subject: Re: [PATCH 1/1] Support for GRLIB APBUART serial port
-Message-Id: <20091104.053608.126412435.davem@davemloft.net>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Tue, 24 Nov 2009 08:19:13 +0000
+Subject: [PATCH 07/11] of: merge machine_is_compatible()
+Message-Id: <20091124081906.6216.67035.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1257173328-25144-1-git-send-email-kristoffer@gaisler.com>
-In-Reply-To: <1257173328-25144-1-git-send-email-kristoffer@gaisler.com>
+References: <20091124081316.6216.66310.stgit@angua>
+In-Reply-To: <20091124081316.6216.66310.stgit@angua>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linuxppc-dev@lists.ozlabs.org, devicetree-discuss@lists.ozlabs.org, sparclinux@vger.kernel.org, microblaze-uclinux@itee.uq.edu.au, benh@kernel.crashing.org, sfr@canb.auug.org.au, dave
 
-From: Julian Calaby <julian.calaby@gmail.com>
-Date: Wed, 4 Nov 2009 09:48:20 +1100
+Merge common code between PowerPC and Microblaze
 
-> On Tue, Nov 3, 2009 at 01:48, Kristoffer Glembo <kristoffer@gaisler.com> =
-wrote:
->> This patch adds support for the APBUART serial port from Aeroflex
->> Gaisler's IP library GRLIB. It is currently used in all LEON3 designs
->> (SPARC V8) but can be used on other platforms as well.
-> [snip]
->> +config SERIAL_GRLIB_GAISLER_APBUART
->> + =A0 =A0 =A0 tristate "GRLIB APBUART serial support"
->> + =A0 =A0 =A0 depends on SPARC_LEON
->> + =A0 =A0 =A0 ---help---
->> + =A0 =A0 =A0 Add support for the GRLIB APBUART serial port.
->> +
->=20
-> Shouldn't it then depend on OpenFirmware rather than SPARC_LEON?
+Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+---
 
-Yeah it probably should unless there are real dependencies
-on LEON specific functions, which I don't think this serial
-driver does.
+ arch/microblaze/kernel/prom.c |   18 ------------------
+ arch/powerpc/kernel/prom.c    |   18 ------------------
+ drivers/of/base.c             |   18 ++++++++++++++++++
+ 3 files changed, 18 insertions(+), 36 deletions(-)
 
-Using "OF" as the dependency would be great for me because
-then I'd be able to test the build on this even on sparc64.
-:-)
+diff --git a/arch/microblaze/kernel/prom.c b/arch/microblaze/kernel/prom.c
+index 543465a..c97192d 100644
+--- a/arch/microblaze/kernel/prom.c
++++ b/arch/microblaze/kernel/prom.c
+@@ -281,24 +281,6 @@ void __init early_init_devtree_arch(void)
+ 	/* No Microblaze specific code here */
+ }
+ 
+-/**
+- * Indicates whether the root node has a given value in its
+- * compatible property.
+- */
+-int machine_is_compatible(const char *compat)
+-{
+-	struct device_node *root;
+-	int rc = 0;
+-
+-	root = of_find_node_by_path("/");
+-	if (root) {
+-		rc = of_device_is_compatible(root, compat);
+-		of_node_put(root);
+-	}
+-	return rc;
+-}
+-EXPORT_SYMBOL(machine_is_compatible);
+-
+ /*******
+  *
+  * New implementation of the OF "find" APIs, return a refcounted
+diff --git a/arch/powerpc/kernel/prom.c b/arch/powerpc/kernel/prom.c
+index a5b3b9d..65de093 100644
+--- a/arch/powerpc/kernel/prom.c
++++ b/arch/powerpc/kernel/prom.c
+@@ -677,24 +677,6 @@ void __init early_init_devtree_arch(void)
+ 	lmb_enforce_memory_limit(limit);
+ }
+ 
+-/**
+- * Indicates whether the root node has a given value in its
+- * compatible property.
+- */
+-int machine_is_compatible(const char *compat)
+-{
+-	struct device_node *root;
+-	int rc = 0;
+-
+-	root = of_find_node_by_path("/");
+-	if (root) {
+-		rc = of_device_is_compatible(root, compat);
+-		of_node_put(root);
+-	}
+-	return rc;
+-}
+-EXPORT_SYMBOL(machine_is_compatible);
+-
+ /*******
+  *
+  * New implementation of the OF "find" APIs, return a refcounted
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index ec56739..e81558f 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -144,6 +144,24 @@ int of_device_is_compatible(const struct device_node *device,
+ EXPORT_SYMBOL(of_device_is_compatible);
+ 
+ /**
++ * Indicates whether the root node has a given value in its
++ * compatible property.
++ */
++int machine_is_compatible(const char *compat)
++{
++	struct device_node *root;
++	int rc = 0;
++
++	root = of_find_node_by_path("/");
++	if (root) {
++		rc = of_device_is_compatible(root, compat);
++		of_node_put(root);
++	}
++	return rc;
++}
++EXPORT_SYMBOL(machine_is_compatible);
++
++/**
+  *  of_device_is_available - check if a device is available for use
+  *
+  *  @device: Node to check for availability
 
-So Kristoffer, please make this change and resubmit your patch.
-The driver looks fine to me otherwise.
-
-Thanks!
