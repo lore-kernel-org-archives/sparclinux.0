@@ -1,64 +1,51 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Tue, 24 Nov 2009 20:33:22 +0000
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Date: Tue, 24 Nov 2009 21:06:55 +0000
 Subject: Re: [PATCH 11/11] of: unify phandle name in struct device_node
-Message-Id: <fa686aa40911241233k7c6d428g8f70f00abdd754e8@mail.gmail.com>
+Message-Id: <1259096815.16367.133.camel@pasglop>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20091124081316.6216.66310.stgit@angua> <20091124081957.6216.74456.stgit@angua>
+References: <20091124081316.6216.66310.stgit@angua>
+	<20091124081957.6216.74456.stgit@angua>
 	<20091124.093732.203692950.davem@davemloft.net>
-In-Reply-To: <20091124.093732.203692950.davem@davemloft.net>
+In-Reply-To: <20091124.093732.203692950.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: David Miller <davem@davemloft.net>
-Cc: linuxppc-dev@lists.ozlabs.org, devicetree-discuss@lists.ozlabs.org, sparclinux@vger.kernel.org, microblaze-uclinux@itee.uq.edu.au, benh@kernel.crashing.org, sfr@canb.auug.org.au, monstr@monstr.eu
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org, microblaze-uclinux-rVRm/Wmeqae7NGdpmJTKYQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 
-On Tue, Nov 24, 2009 at 10:37 AM, David Miller <davem@davemloft.net> wrote:
+On Tue, 2009-11-24 at 09:37 -0800, David Miller wrote:
 > From: Grant Likely <grant.likely@secretlab.ca>
 > Date: Tue, 24 Nov 2009 01:20:05 -0700
->
->> In struct device_node, the phandle is named 'linux_phandle' for PowerPC
->> and MicroBlaze, and 'node' for SPARC. =A0There is no good reason for the
->> difference, it is just an artifact of the code diverging over a couple
->> of years. =A0This patch renames .node to .linux_phandle for SPARC.
->
+> 
+> > In struct device_node, the phandle is named 'linux_phandle' for PowerPC
+> > and MicroBlaze, and 'node' for SPARC.  There is no good reason for the
+> > difference, it is just an artifact of the code diverging over a couple
+> > of years.  This patch renames .node to .linux_phandle for SPARC.
+> 
 > I know it's just a name, but there is no reason to put "linux" in the
-> member name. =A0It's the real device phandle value from OpenFirmware not
+> member name.  It's the real device phandle value from OpenFirmware not
 > something invented by Linux's OF layer.
-
-I agree, and I also considered renaming it to simply 'phandle' or to
-change the powerpc code back to using .node everywhere (more on .node
-usage in powerpc below).  I didn't want to use .node because .node is
-pretty generic, and is used in other places for different things.
-Basically I wanted to avoid confusion.  In particular, .node points to
-a device_node, not a phandle, in struct of_device.  Changing all
-references to simply 'phandle' seems to be the best, but it does
-require changes to more locations in the code.  In the end I decided
-on some constructive lazyness by settling for the already-used
-.linux_phandle so that I would need to touch as many files, but still
-retain a unique name that is easy to find.  If you prefer, I can
-change it all to simply '.phandle'.
-
+> 
 > PowerPC uses this for something different, it records the information
 > here using the special "linux,phandle" and "ibm,phandle" properties.
-
-Agreed, the phandle isn't a real phandle when using the flat tree.
-However, though the source of the phandle value is different, the use
-case is identical, so it make sense to stuff it into the same member.
-Merging them lets me unify more code.  For example,
-of_find_node_by_phandle().
-
+> 
 > See unflatten_dt_node() in arch/powerpc/kernel/prom.c before your
 > changes.
 
-Yup, I looked at this.  The unflatten code stuffs both linux,phandle
-and ibm,phandle into .linux_phandle, and linux,phandle also gets
-stuffed into .node.  But all the users except one use the
-.linux_phandle, not .node, and that remaining user *I think* can
-safely use .linux_phandle too.
+Right, this comes from a subtle problem with our firmwares on pSeries.
 
-Thanks for the review,
-g.
+We have a phandle from OF. But some devices, especially virtual devices,
+also have an "ibm,phandle" which may or may not be the same afaik.
 
---=20
-Grant Likely, B.Sc., P.Eng.
-Secret Lab Technologies Ltd.
+In addition, when the hypervisor hotplugs some devices, it sends us some
+new device-tree bits to add. Those don't have a phandle in the formal
+sense afaik, but -do- have an ibm,phandle property.
+
+I think we can always just use ibm,phandle instead of the OF one when
+the former is present, they should be non overlapping, but of course,
+any chance in that area will require plenty of testing on some of those
+machines.
+
+Cheers,
+Ben.
+
