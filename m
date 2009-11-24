@@ -1,49 +1,282 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 30 Nov 2009 09:14:18 +0000
-Subject: [GIT]: Sparc
-Message-Id: <20091130.011418.100555495.davem@davemloft.net>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Tue, 24 Nov 2009 08:19:39 +0000
+Subject: [PATCH 09/11] of: merge of_attach_node() & of_detach_node()
+Message-Id: <20091124081931.6216.27102.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20080421.153231.108090227.davem@davemloft.net>
-In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
+References: <20091124081316.6216.66310.stgit@angua>
+In-Reply-To: <20091124081316.6216.66310.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linuxppc-dev@lists.ozlabs.org, devicetree-discuss@lists.ozlabs.org, sparclinux@vger.kernel.org, microblaze-uclinux@itee.uq.edu.au, benh@kernel.crashing.org, sfr@canb.auug.org.au, dave
 
+Merge common code between PowerPC and Microblaze
 
-This fixes a long standing memory corruption on bootup issue
-effecting several sparc64 machines, due to an improper definition
-of VMEMMAP_SIZE.  So if you had physical memory past a certain
-point we're overwrite past the end of an array and spam random
-data section stuff.
+Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+---
 
-Also, get RSC/LOM serial consoles working properly.
+ arch/microblaze/include/asm/prom.h |    4 --
+ arch/microblaze/kernel/prom.c      |   59 -----------------------------------
+ arch/powerpc/include/asm/prom.h    |    4 --
+ arch/powerpc/kernel/prom.c         |   59 -----------------------------------
+ drivers/of/base.c                  |   60 ++++++++++++++++++++++++++++++++++++
+ include/linux/of.h                 |    4 ++
+ 6 files changed, 64 insertions(+), 126 deletions(-)
 
-Please pull, thanks a lot!
+diff --git a/arch/microblaze/include/asm/prom.h b/arch/microblaze/include/asm/prom.h
+index 07d1063..6c6b386 100644
+--- a/arch/microblaze/include/asm/prom.h
++++ b/arch/microblaze/include/asm/prom.h
+@@ -39,10 +39,6 @@ extern struct device_node *of_chosen;
+ 
+ extern rwlock_t devtree_lock;	/* temporary while merging */
+ 
+-/* For updating the device tree at runtime */
+-extern void of_attach_node(struct device_node *);
+-extern void of_detach_node(struct device_node *);
+-
+ /* Other Prototypes */
+ extern int early_uartlite_console(void);
+ 
+diff --git a/arch/microblaze/kernel/prom.c b/arch/microblaze/kernel/prom.c
+index c0d53b7..8c00457 100644
+--- a/arch/microblaze/kernel/prom.c
++++ b/arch/microblaze/kernel/prom.c
+@@ -313,65 +313,6 @@ struct device_node *of_find_node_by_phandle(phandle handle)
+ }
+ EXPORT_SYMBOL(of_find_node_by_phandle);
+ 
+-/*
+- * Plug a device node into the tree and global list.
+- */
+-void of_attach_node(struct device_node *np)
+-{
+-	unsigned long flags;
+-
+-	write_lock_irqsave(&devtree_lock, flags);
+-	np->sibling = np->parent->child;
+-	np->allnext = allnodes;
+-	np->parent->child = np;
+-	allnodes = np;
+-	write_unlock_irqrestore(&devtree_lock, flags);
+-}
+-
+-/*
+- * "Unplug" a node from the device tree.  The caller must hold
+- * a reference to the node.  The memory associated with the node
+- * is not freed until its refcount goes to zero.
+- */
+-void of_detach_node(struct device_node *np)
+-{
+-	struct device_node *parent;
+-	unsigned long flags;
+-
+-	write_lock_irqsave(&devtree_lock, flags);
+-
+-	parent = np->parent;
+-	if (!parent)
+-		goto out_unlock;
+-
+-	if (allnodes = np)
+-		allnodes = np->allnext;
+-	else {
+-		struct device_node *prev;
+-		for (prev = allnodes;
+-		     prev->allnext != np;
+-		     prev = prev->allnext)
+-			;
+-		prev->allnext = np->allnext;
+-	}
+-
+-	if (parent->child = np)
+-		parent->child = np->sibling;
+-	else {
+-		struct device_node *prevsib;
+-		for (prevsib = np->parent->child;
+-		     prevsib->sibling != np;
+-		     prevsib = prevsib->sibling)
+-			;
+-		prevsib->sibling = np->sibling;
+-	}
+-
+-	of_node_set_flag(np, OF_DETACHED);
+-
+-out_unlock:
+-	write_unlock_irqrestore(&devtree_lock, flags);
+-}
+-
+ #if defined(CONFIG_DEBUG_FS) && defined(DEBUG)
+ static struct debugfs_blob_wrapper flat_dt_blob;
+ 
+diff --git a/arch/powerpc/include/asm/prom.h b/arch/powerpc/include/asm/prom.h
+index 2ab9cbd..f384db8 100644
+--- a/arch/powerpc/include/asm/prom.h
++++ b/arch/powerpc/include/asm/prom.h
+@@ -34,10 +34,6 @@ extern struct device_node *of_chosen;
+ 
+ #define HAVE_ARCH_DEVTREE_FIXUPS
+ 
+-/* For updating the device tree at runtime */
+-extern void of_attach_node(struct device_node *);
+-extern void of_detach_node(struct device_node *);
+-
+ #ifdef CONFIG_PPC32
+ /*
+  * PCI <-> OF matching functions
+diff --git a/arch/powerpc/kernel/prom.c b/arch/powerpc/kernel/prom.c
+index 6873db9..7d0beeb 100644
+--- a/arch/powerpc/kernel/prom.c
++++ b/arch/powerpc/kernel/prom.c
+@@ -740,65 +740,6 @@ struct device_node *of_find_next_cache_node(struct device_node *np)
+ 	return NULL;
+ }
+ 
+-/*
+- * Plug a device node into the tree and global list.
+- */
+-void of_attach_node(struct device_node *np)
+-{
+-	unsigned long flags;
+-
+-	write_lock_irqsave(&devtree_lock, flags);
+-	np->sibling = np->parent->child;
+-	np->allnext = allnodes;
+-	np->parent->child = np;
+-	allnodes = np;
+-	write_unlock_irqrestore(&devtree_lock, flags);
+-}
+-
+-/*
+- * "Unplug" a node from the device tree.  The caller must hold
+- * a reference to the node.  The memory associated with the node
+- * is not freed until its refcount goes to zero.
+- */
+-void of_detach_node(struct device_node *np)
+-{
+-	struct device_node *parent;
+-	unsigned long flags;
+-
+-	write_lock_irqsave(&devtree_lock, flags);
+-
+-	parent = np->parent;
+-	if (!parent)
+-		goto out_unlock;
+-
+-	if (allnodes = np)
+-		allnodes = np->allnext;
+-	else {
+-		struct device_node *prev;
+-		for (prev = allnodes;
+-		     prev->allnext != np;
+-		     prev = prev->allnext)
+-			;
+-		prev->allnext = np->allnext;
+-	}
+-
+-	if (parent->child = np)
+-		parent->child = np->sibling;
+-	else {
+-		struct device_node *prevsib;
+-		for (prevsib = np->parent->child;
+-		     prevsib->sibling != np;
+-		     prevsib = prevsib->sibling)
+-			;
+-		prevsib->sibling = np->sibling;
+-	}
+-
+-	of_node_set_flag(np, OF_DETACHED);
+-
+-out_unlock:
+-	write_unlock_irqrestore(&devtree_lock, flags);
+-}
+-
+ #ifdef CONFIG_PPC_PSERIES
+ /*
+  * Fix up the uninitialized fields in a new device node:
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index 4b10c89..9212b87 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -60,6 +60,66 @@ int of_n_size_cells(struct device_node *np)
+ }
+ EXPORT_SYMBOL(of_n_size_cells);
+ 
++/**
++ * of_attach_node - Plug a device node into the tree and global list.
++ */
++void of_attach_node(struct device_node *np)
++{
++	unsigned long flags;
++
++	write_lock_irqsave(&devtree_lock, flags);
++	np->sibling = np->parent->child;
++	np->allnext = allnodes;
++	np->parent->child = np;
++	allnodes = np;
++	write_unlock_irqrestore(&devtree_lock, flags);
++}
++
++/**
++ * of_detach_node - "Unplug" a node from the device tree.
++ *
++ * The caller must hold a reference to the node.  The memory associated with
++ * the node is not freed until its refcount goes to zero.
++ */
++void of_detach_node(struct device_node *np)
++{
++	struct device_node *parent;
++	unsigned long flags;
++
++	write_lock_irqsave(&devtree_lock, flags);
++
++	parent = np->parent;
++	if (!parent)
++		goto out_unlock;
++
++	if (allnodes = np)
++		allnodes = np->allnext;
++	else {
++		struct device_node *prev;
++		for (prev = allnodes;
++		     prev->allnext != np;
++		     prev = prev->allnext)
++			;
++		prev->allnext = np->allnext;
++	}
++
++	if (parent->child = np)
++		parent->child = np->sibling;
++	else {
++		struct device_node *prevsib;
++		for (prevsib = np->parent->child;
++		     prevsib->sibling != np;
++		     prevsib = prevsib->sibling)
++			;
++		prevsib->sibling = np->sibling;
++	}
++
++	of_node_set_flag(np, OF_DETACHED);
++
++out_unlock:
++	write_unlock_irqrestore(&devtree_lock, flags);
++}
++
+ #if !defined(CONFIG_SPARC)   /* SPARC doesn't do ref counting (yet) */
+ /**
+  *	of_node_get - Increment refcount of a node
+diff --git a/include/linux/of.h b/include/linux/of.h
+index d4c014a..0a51742 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -130,6 +130,10 @@ static inline unsigned long of_read_ulong(const u32 *cell, int size)
+ 
+ #define OF_BAD_ADDR	((u64)-1)
+ 
++/* For updating the device tree at runtime */
++extern void of_attach_node(struct device_node *);
++extern void of_detach_node(struct device_node *);
++
+ extern struct device_node *of_find_node_by_name(struct device_node *from,
+ 	const char *name);
+ #define for_each_node_by_name(dn, name) \
 
-The following changes since commit a8a8a669ea13d792296737505adc43ccacf3a648:
-  Linus Torvalds (1):
-        Merge branch 'i2c-pnx-fixes' of git://git.fluff.org/bjdooks/linux
-
-are available in the git repository at:
-
-  master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
-
-David S. Miller (7):
-      sparc64: Fix definition of VMEMMAP_SIZE.
-      sunsab: Do not set sunsab_reg.cons right before registering minors.
-      sunsu: Fix detection of SU ports which are RSC console or control.
-      serial: suncore: Add 'ignore_line' argument to sunserial_console_match().
-      serial: suncore: Fix RSC/LOM handling in sunserial_console_termios().
-      sunsu: Pass true 'ignore_line' to console match when RSC or LOM console.
-      sunsu: Use sunserial_console_termios() in sunsu_console_setup().
-
- arch/sparc/mm/init_64.h   |    2 +-
- drivers/serial/suncore.c  |   37 ++++++++++++++++++++-----------------
- drivers/serial/suncore.h  |    5 +++--
- drivers/serial/sunhv.c    |    2 +-
- drivers/serial/sunsab.c   |    9 +++++----
- drivers/serial/sunsu.c    |   36 ++++++++++++++++++++++++++++--------
- drivers/serial/sunzilog.c |    8 +++++---
- 7 files changed, 63 insertions(+), 36 deletions(-)
