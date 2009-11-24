@@ -1,64 +1,56 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 09 Nov 2009 01:41:34 +0000
-Subject: Re: [patch] sparc: Remove bogus of_set_property_mutex
-Message-Id: <20091108.174134.45234225.davem@davemloft.net>
+From: Boaz Harrosh <bharrosh@panasas.com>
+Date: Tue, 24 Nov 2009 18:03:12 +0000
+Subject: [PATCH 4/5] lockd: Remove unused nfsd headers #includes
+Message-Id: <4B0C1FE0.8040105@panasas.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20091107184538.543684450@linutronix.de>
-In-Reply-To: <20091107184538.543684450@linutronix.de>
+References: <4B0C1EB7.50508@panasas.com>
+In-Reply-To: <4B0C1EB7.50508@panasas.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "J. Bruce Fields" <bfields@citi.umich.edu>, Linux Kernel <linux-kernel@vger.kernel.org>, linux-parisc <linux-parisc@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, linux-s
 
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Sun, 8 Nov 2009 21:16:47 +0100 (CET)
 
-> Then you need to fix the problem that you lock the mutex inside the
-> preempt disabled region under devtree_lock. :)
+In what history where these ever needed? Well not
+any more.
 
-That's simple, just move it outside the rwlock:
-
-sparc: Move of_set_property_mutex acquisition outside of devtree_lock grab.
-
-Otherwise we try to sleep with preemption disabled, etc.
-
-Noticed by Thomas Gleixner.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Boaz Harrosh <bharrosh@panasas.com>
 ---
- arch/sparc/kernel/prom_common.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ fs/lockd/svc4proc.c |    4 ----
+ fs/lockd/svcproc.c  |    4 ----
+ 2 files changed, 0 insertions(+), 8 deletions(-)
 
-diff --git a/arch/sparc/kernel/prom_common.c b/arch/sparc/kernel/prom_common.c
-index 138910c..d80a65d 100644
---- a/arch/sparc/kernel/prom_common.c
-+++ b/arch/sparc/kernel/prom_common.c
-@@ -79,6 +79,7 @@ int of_set_property(struct device_node *dp, const char *name, void *val, int len
+diff --git a/fs/lockd/svc4proc.c b/fs/lockd/svc4proc.c
+index bd173a6..a7966ee 100644
+--- a/fs/lockd/svc4proc.c
++++ b/fs/lockd/svc4proc.c
+@@ -11,10 +11,6 @@
+ #include <linux/time.h>
+ #include <linux/slab.h>
+ #include <linux/smp_lock.h>
+-#include <linux/in.h>
+-#include <linux/sunrpc/svc.h>
+-#include <linux/sunrpc/clnt.h>
+-#include <linux/nfsd/nfsd.h>
+ #include <linux/lockd/lockd.h>
+ #include <linux/lockd/share.h>
  
- 	err = -ENODEV;
- 
-+	mutex_lock(&of_set_property_mutex);
- 	write_lock(&devtree_lock);
- 	prevp = &dp->properties;
- 	while (*prevp) {
-@@ -88,9 +89,7 @@ int of_set_property(struct device_node *dp, const char *name, void *val, int len
- 			void *old_val = prop->value;
- 			int ret;
- 
--			mutex_lock(&of_set_property_mutex);
- 			ret = prom_setprop(dp->node, name, val, len);
--			mutex_unlock(&of_set_property_mutex);
- 
- 			err = -EINVAL;
- 			if (ret >= 0) {
-@@ -109,6 +108,7 @@ int of_set_property(struct device_node *dp, const char *name, void *val, int len
- 		prevp = &(*prevp)->next;
- 	}
- 	write_unlock(&devtree_lock);
-+	mutex_unlock(&of_set_property_mutex);
- 
- 	/* XXX Upate procfs if necessary... */
+diff --git a/fs/lockd/svcproc.c b/fs/lockd/svcproc.c
+index e1d28dd..56c9519 100644
+--- a/fs/lockd/svcproc.c
++++ b/fs/lockd/svcproc.c
+@@ -11,10 +11,6 @@
+ #include <linux/time.h>
+ #include <linux/slab.h>
+ #include <linux/smp_lock.h>
+-#include <linux/in.h>
+-#include <linux/sunrpc/svc.h>
+-#include <linux/sunrpc/clnt.h>
+-#include <linux/nfsd/nfsd.h>
+ #include <linux/lockd/lockd.h>
+ #include <linux/lockd/share.h>
  
 -- 
 1.6.5.2
+
 
