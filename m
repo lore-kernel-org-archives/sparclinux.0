@@ -1,68 +1,227 @@
-From: Jiri Slaby <jslaby@suse.cz>
-Date: Fri, 27 Nov 2009 23:05:58 +0000
-Subject: [PATCH v3 18/27] SPARC: use helpers for rlimits
-Message-Id: <1259363167-9347-18-git-send-email-jslaby@suse.cz>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Tue, 24 Nov 2009 08:18:48 +0000
+Subject: [PATCH 05/11] of/flattree: merge early_init_dt_scan_chosen()
+Message-Id: <20091124081840.6216.49419.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1259363167-9347-1-git-send-email-jslaby@suse.cz>
-In-Reply-To: <1259363167-9347-1-git-send-email-jslaby@suse.cz>
+References: <20091124081316.6216.66310.stgit@angua>
+In-Reply-To: <20091124081316.6216.66310.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: jirislaby@gmail.com
-Cc: mingo@elte.hu, nhorman@tuxdriver.com, sfr@canb.auug.org.au, linux-kernel@vger.kernel.org, akpm@linux-foundation.org, marcin.slusarz@gmail.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, torvalds@linux-foundation.org, oleg@redhat.com, James Morris <jmorris@namei.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: linuxppc-dev@lists.ozlabs.org, devicetree-discuss@lists.ozlabs.org, sparclinux@vger.kernel.org, microblaze-uclinux@itee.uq.edu.au, benh@kernel.crashing.org, sfr@canb.auug.org.au, dave
 
-Make sure compiler won't do weird things with limits. E.g. fetching
-them twice may return 2 different values after writable limits are
-implemented.
+Merge common code between PowerPC and Microblaze.  This patch
+splits the arch-specific stuff out into a new function,
+early_init_dt_scan_chosen_arch().
 
-I.e. either use newly added rlimit helpers or ACCESS_ONCE if not
-applicable.
-
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: James Morris <jmorris@namei.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
+Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 ---
- arch/sparc/kernel/sys_sparc_64.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/sparc/kernel/sys_sparc_64.c b/arch/sparc/kernel/sys_sparc_64.c
-index e2d1024..d53870c 100644
---- a/arch/sparc/kernel/sys_sparc_64.c
-+++ b/arch/sparc/kernel/sys_sparc_64.c
-@@ -361,6 +361,7 @@ EXPORT_SYMBOL(get_fb_unmapped_area);
- void arch_pick_mmap_layout(struct mm_struct *mm)
+ arch/microblaze/kernel/prom.c |   44 ++-------------------------------------
+ arch/powerpc/kernel/prom.c    |   46 +++++++++--------------------------------
+ drivers/of/fdt.c              |   38 ++++++++++++++++++++++++++++++++++
+ include/linux/of_fdt.h        |    3 +++
+ 4 files changed, 53 insertions(+), 78 deletions(-)
+
+diff --git a/arch/microblaze/kernel/prom.c b/arch/microblaze/kernel/prom.c
+index 7760186..7ee021f 100644
+--- a/arch/microblaze/kernel/prom.c
++++ b/arch/microblaze/kernel/prom.c
+@@ -108,49 +108,9 @@ static int __init early_init_dt_scan_cpus(unsigned long node,
+ 	return 0;
+ }
+ 
+-static int __init early_init_dt_scan_chosen(unsigned long node,
+-				const char *uname, int depth, void *data)
++void __init early_init_dt_scan_chosen_arch(unsigned long node)
  {
- 	unsigned long random_factor = 0UL;
-+	unsigned long gap;
+-	unsigned long l;
+-	char *p;
+-
+-	pr_debug("search \"chosen\", depth: %d, uname: %s\n", depth, uname);
+-
+-	if (depth != 1 ||
+-		(strcmp(uname, "chosen") != 0 &&
+-				strcmp(uname, "chosen@0") != 0))
+-		return 0;
+-
+-#ifdef CONFIG_KEXEC
+-	lprop = (u64 *)of_get_flat_dt_prop(node,
+-				"linux,crashkernel-base", NULL);
+-	if (lprop)
+-		crashk_res.start = *lprop;
+-
+-	lprop = (u64 *)of_get_flat_dt_prop(node,
+-				"linux,crashkernel-size", NULL);
+-	if (lprop)
+-		crashk_res.end = crashk_res.start + *lprop - 1;
+-#endif
+-
+-	early_init_dt_check_for_initrd(node);
+-
+-	/* Retreive command line */
+-	p = of_get_flat_dt_prop(node, "bootargs", &l);
+-	if (p != NULL && l > 0)
+-		strlcpy(cmd_line, p, min((int)l, COMMAND_LINE_SIZE));
+-
+-#ifdef CONFIG_CMDLINE
+-#ifndef CONFIG_CMDLINE_FORCE
+-	if (p = NULL || l = 0 || (l = 1 && (*p) = 0))
+-#endif
+-		strlcpy(cmd_line, CONFIG_CMDLINE, COMMAND_LINE_SIZE);
+-#endif /* CONFIG_CMDLINE */
+-
+-	pr_debug("Command line is: %s\n", cmd_line);
+-
+-	/* break now */
+-	return 1;
++	/* No Microblaze specific code here */
+ }
  
- 	if (current->flags & PF_RANDOMIZE) {
- 		random_factor = get_random_int();
-@@ -375,9 +376,10 @@ void arch_pick_mmap_layout(struct mm_struct *mm)
- 	 * Fall back to the standard layout if the personality
- 	 * bit is set, or if the expected stack growth is unlimited:
- 	 */
-+	gap = rlim_get_cur(RLIMIT_STACK);
- 	if (!test_thread_flag(TIF_32BIT) ||
- 	    (current->personality & ADDR_COMPAT_LAYOUT) ||
--	    current->signal->rlim[RLIMIT_STACK].rlim_cur = RLIM_INFINITY ||
-+	    gap = RLIM_INFINITY ||
- 	    sysctl_legacy_va_layout) {
- 		mm->mmap_base = TASK_UNMAPPED_BASE + random_factor;
- 		mm->get_unmapped_area = arch_get_unmapped_area;
-@@ -385,9 +387,7 @@ void arch_pick_mmap_layout(struct mm_struct *mm)
- 	} else {
- 		/* We know it's 32-bit */
- 		unsigned long task_size = STACK_TOP32;
--		unsigned long gap;
+ static int __init early_init_dt_scan_memory(unsigned long node,
+diff --git a/arch/powerpc/kernel/prom.c b/arch/powerpc/kernel/prom.c
+index 43cdba2..2c7d4a3 100644
+--- a/arch/powerpc/kernel/prom.c
++++ b/arch/powerpc/kernel/prom.c
+@@ -367,18 +367,9 @@ static int __init early_init_dt_scan_cpus(unsigned long node,
+ 	return 0;
+ }
  
--		gap = current->signal->rlim[RLIMIT_STACK].rlim_cur;
- 		if (gap < 128 * 1024 * 1024)
- 			gap = 128 * 1024 * 1024;
- 		if (gap > (task_size / 6 * 5))
--- 
-1.6.5.3
+-static int __init early_init_dt_scan_chosen(unsigned long node,
+-					    const char *uname, int depth, void *data)
++void __init early_init_dt_scan_chosen_arch(unsigned long node)
+ {
+ 	unsigned long *lprop;
+-	unsigned long l;
+-	char *p;
+-
+-	DBG("search \"chosen\", depth: %d, uname: %s\n", depth, uname);
+-
+-	if (depth != 1 ||
+-	    (strcmp(uname, "chosen") != 0 && strcmp(uname, "chosen@0") != 0))
+-		return 0;
+ 
+ #ifdef CONFIG_PPC64
+ 	/* check if iommu is forced on or off */
+@@ -389,17 +380,17 @@ static int __init early_init_dt_scan_chosen(unsigned long node,
+ #endif
+ 
+ 	/* mem=x on the command line is the preferred mechanism */
+- 	lprop = of_get_flat_dt_prop(node, "linux,memory-limit", NULL);
+- 	if (lprop)
+- 		memory_limit = *lprop;
++	lprop = of_get_flat_dt_prop(node, "linux,memory-limit", NULL);
++	if (lprop)
++		memory_limit = *lprop;
+ 
+ #ifdef CONFIG_PPC64
+- 	lprop = of_get_flat_dt_prop(node, "linux,tce-alloc-start", NULL);
+- 	if (lprop)
+- 		tce_alloc_start = *lprop;
+- 	lprop = of_get_flat_dt_prop(node, "linux,tce-alloc-end", NULL);
+- 	if (lprop)
+- 		tce_alloc_end = *lprop;
++	lprop = of_get_flat_dt_prop(node, "linux,tce-alloc-start", NULL);
++	if (lprop)
++		tce_alloc_start = *lprop;
++	lprop = of_get_flat_dt_prop(node, "linux,tce-alloc-end", NULL);
++	if (lprop)
++		tce_alloc_end = *lprop;
+ #endif
+ 
+ #ifdef CONFIG_KEXEC
+@@ -411,23 +402,6 @@ static int __init early_init_dt_scan_chosen(unsigned long node,
+ 	if (lprop)
+ 		crashk_res.end = crashk_res.start + *lprop - 1;
+ #endif
+-
+-	early_init_dt_check_for_initrd(node);
+-
+-	/* Retreive command line */
+- 	p = of_get_flat_dt_prop(node, "bootargs", &l);
+-	if (p != NULL && l > 0)
+-		strlcpy(cmd_line, p, min((int)l, COMMAND_LINE_SIZE));
+-
+-#ifdef CONFIG_CMDLINE
+-	if (p = NULL || l = 0 || (l = 1 && (*p) = 0))
+-		strlcpy(cmd_line, CONFIG_CMDLINE, COMMAND_LINE_SIZE);
+-#endif /* CONFIG_CMDLINE */
+-
+-	DBG("Command line is: %s\n", cmd_line);
+-
+-	/* break now */
+-	return 1;
+ }
+ 
+ #ifdef CONFIG_PPC_PSERIES
+diff --git a/drivers/of/fdt.c b/drivers/of/fdt.c
+index ebce509..616a476 100644
+--- a/drivers/of/fdt.c
++++ b/drivers/of/fdt.c
+@@ -15,6 +15,10 @@
+ #include <linux/of.h>
+ #include <linux/of_fdt.h>
+ 
++#ifdef CONFIG_PPC
++#include <asm/machdep.h>
++#endif /* CONFIG_PPC */
++
+ int __initdata dt_root_addr_cells;
+ int __initdata dt_root_size_cells;
+ 
+@@ -440,6 +444,40 @@ u64 __init dt_mem_next_cell(int s, u32 **cellp)
+ 	return of_read_number(p, s);
+ }
+ 
++int __init early_init_dt_scan_chosen(unsigned long node, const char *uname,
++				     int depth, void *data)
++{
++	unsigned long l;
++	char *p;
++
++	pr_debug("search \"chosen\", depth: %d, uname: %s\n", depth, uname);
++
++	if (depth != 1 ||
++	    (strcmp(uname, "chosen") != 0 && strcmp(uname, "chosen@0") != 0))
++		return 0;
++
++	early_init_dt_check_for_initrd(node);
++
++	/* Retreive command line */
++	p = of_get_flat_dt_prop(node, "bootargs", &l);
++	if (p != NULL && l > 0)
++		strlcpy(cmd_line, p, min((int)l, COMMAND_LINE_SIZE));
++
++#ifdef CONFIG_CMDLINE
++#ifndef CONFIG_CMDLINE_FORCE
++	if (p = NULL || l = 0 || (l = 1 && (*p) = 0))
++#endif
++		strlcpy(cmd_line, CONFIG_CMDLINE, COMMAND_LINE_SIZE);
++#endif /* CONFIG_CMDLINE */
++
++	early_init_dt_scan_chosen_arch(node);
++
++	pr_debug("Command line is: %s\n", cmd_line);
++
++	/* break now */
++	return 1;
++}
++
+ /**
+  * unflatten_device_tree - create tree of device_nodes from flat blob
+  *
+diff --git a/include/linux/of_fdt.h b/include/linux/of_fdt.h
+index d1a37e5..8118d45 100644
+--- a/include/linux/of_fdt.h
++++ b/include/linux/of_fdt.h
+@@ -71,6 +71,9 @@ extern void *of_get_flat_dt_prop(unsigned long node, const char *name,
+ 				 unsigned long *size);
+ extern int of_flat_dt_is_compatible(unsigned long node, const char *name);
+ extern unsigned long of_get_flat_dt_root(void);
++extern void early_init_dt_scan_chosen_arch(unsigned long node);
++extern int early_init_dt_scan_chosen(unsigned long node, const char *uname,
++				     int depth, void *data);
+ extern void early_init_dt_check_for_initrd(unsigned long node);
+ extern u64 dt_mem_next_cell(int s, u32 **cellp);
+ 
 
