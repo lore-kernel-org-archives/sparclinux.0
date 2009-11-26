@@ -1,26 +1,23 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Date: Thu, 26 Nov 2009 05:27:46 +0000
+From: "M. Warner Losh" <imp@bsdimp.com>
+Date: Thu, 26 Nov 2009 06:28:18 +0000
 Subject: Re: [PATCH 04/11] of/flattree: eliminate cell_t typedef
-Message-Id: <1259213266.16367.274.camel@pasglop>
+Message-Id: <20091125.232818.-1350498258.imp@bsdimp.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20091124081316.6216.66310.stgit@angua>
-	<20091124081827.6216.1896.stgit@angua>
+References: <20091124081827.6216.1896.stgit@angua>
 	<1259207974.16367.226.camel@pasglop>
 	<fa686aa40911252005o2db85dfk3d9acc61c12ca5e5@mail.gmail.com>
-In-Reply-To: <fa686aa40911252005o2db85dfk3d9acc61c12ca5e5@mail.gmail.com>
+In-Reply-To: <fa686aa40911252005o2db85dfk3d9acc61c12ca5e5-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: sfr@canb.auug.org.au, monstr@monstr.eu, microblaze-uclinux@itee.uq.edu.au, devicetree-discuss@lists.ozlabs.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
+To: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org
+Cc: sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, microblaze-uclinux-rVRm/Wmeqae7NGdpmJTKYQ@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
 
-On Wed, 2009-11-25 at 21:05 -0700, Grant Likely wrote:
-> 
-> You're right, it's not, but makes merging less complex, and then I can
-> refactor properly. 
+In message: <fa686aa40911252005o2db85dfk3d9acc61c12ca5e5@mail.gmail.com>
+            Grant Likely <grant.likely@secretlab.ca> writes:
+: Word from Mitch is the device tree is network byte order.  period.
 
-Still, make them __be32 at least
+OpenFirmware defines the order to be big endian always, even on little
+endian processors.
 
-Cheers,
-Ben.
-
+Warner
