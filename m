@@ -1,68 +1,37 @@
-From: "J. Bruce Fields" <bfields@citi.umich.edu>
-Date: Wed, 25 Nov 2009 20:23:24 +0000
+From: Boaz Harrosh <bharrosh@panasas.com>
+Date: Thu, 26 Nov 2009 12:39:17 +0000
 Subject: Re: [PATCH 4/5] lockd: Remove unused nfsd headers #includes
-Message-Id: <20091125202323.GJ32502@fieldses.org>
+Message-Id: <4B0E76F5.1030006@panasas.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4B0C1EB7.50508@panasas.com> <4B0C1FE0.8040105@panasas.com> <20091125201011.GG32502@fieldses.org>
-In-Reply-To: <20091125201011.GG32502@fieldses.org>
+References: <4B0C1EB7.50508@panasas.com> <4B0C1FE0.8040105@panasas.com> <20091125201011.GG32502@fieldses.org> <20091125202323.GJ32502@fieldses.org>
+In-Reply-To: <20091125202323.GJ32502@fieldses.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Boaz Harrosh <bharrosh@panasas.com>
+To: "J. Bruce Fields" <bfields@citi.umich.edu>
 Cc: Linux Kernel <linux-kernel@vger.kernel.org>, linux-parisc <linux-parisc@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, NFS list <linux-nfs@vger.kernel.org>, pNFS Mailing List <pnfs@linux-nfs.org>, Andrew Morton <akpm@linux-foundation.org>
 
-On Wed, Nov 25, 2009 at 03:10:11PM -0500, J. Bruce Fields wrote:
-> On Tue, Nov 24, 2009 at 08:03:12PM +0200, Boaz Harrosh wrote:
-> > 
-> > In what history where these ever needed? Well not
-> > any more.
+On 11/25/2009 10:23 PM, J. Bruce Fields wrote:
+> On Wed, Nov 25, 2009 at 03:10:11PM -0500, J. Bruce Fields wrote:
+>> On Tue, Nov 24, 2009 at 08:03:12PM +0200, Boaz Harrosh wrote:
+>>>
+>>> In what history where these ever needed? Well not
+>>> any more.
+>>
+>> Applied, thanks.--b.
 > 
-> Applied, thanks.--b.
-
-Um, I said that before I actually tried to compile it....  OK, dropping
-for now (assuming I'm missing some earlier patch).
-
---b.
-
+> Um, I said that before I actually tried to compile it....  OK, dropping
+> for now (assuming I'm missing some earlier patch).
 > 
-> > 
-> > Signed-off-by: Boaz Harrosh <bharrosh@panasas.com>
-> > ---
-> >  fs/lockd/svc4proc.c |    4 ----
-> >  fs/lockd/svcproc.c  |    4 ----
-> >  2 files changed, 0 insertions(+), 8 deletions(-)
-> > 
-> > diff --git a/fs/lockd/svc4proc.c b/fs/lockd/svc4proc.c
-> > index bd173a6..a7966ee 100644
-> > --- a/fs/lockd/svc4proc.c
-> > +++ b/fs/lockd/svc4proc.c
-> > @@ -11,10 +11,6 @@
-> >  #include <linux/time.h>
-> >  #include <linux/slab.h>
-> >  #include <linux/smp_lock.h>
-> > -#include <linux/in.h>
-> > -#include <linux/sunrpc/svc.h>
-> > -#include <linux/sunrpc/clnt.h>
-> > -#include <linux/nfsd/nfsd.h>
-> >  #include <linux/lockd/lockd.h>
-> >  #include <linux/lockd/share.h>
-> >  
-> > diff --git a/fs/lockd/svcproc.c b/fs/lockd/svcproc.c
-> > index e1d28dd..56c9519 100644
-> > --- a/fs/lockd/svcproc.c
-> > +++ b/fs/lockd/svcproc.c
-> > @@ -11,10 +11,6 @@
-> >  #include <linux/time.h>
-> >  #include <linux/slab.h>
-> >  #include <linux/smp_lock.h>
-> > -#include <linux/in.h>
-> > -#include <linux/sunrpc/svc.h>
-> > -#include <linux/sunrpc/clnt.h>
-> > -#include <linux/nfsd/nfsd.h>
-> >  #include <linux/lockd/lockd.h>
-> >  #include <linux/lockd/share.h>
-> >  
-> > -- 
-> > 1.6.5.2
-> > 
-> > 
+> --b.
+> 
+
+OK, I didn't realize it but, yes I have these on top of the previous 6
+so it makes sense.
+
+I have posted the previous 6 rebased on your new current tree, have you seen
+it? All the patches are the same but [5/6] which has a "version 3". Do I need
+to re post?
+
+Thanks
+Boaz
