@@ -1,227 +1,189 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Tue, 24 Nov 2009 08:18:48 +0000
-Subject: [PATCH 05/11] of/flattree: merge early_init_dt_scan_chosen()
-Message-Id: <20091124081840.6216.49419.stgit@angua>
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Date: Thu, 26 Nov 2009 03:51:18 +0000
+Subject: Re: [PATCH 01/11] of/flattree: Merge
+Message-Id: <1259207478.16367.218.camel@pasglop>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20091124081316.6216.66310.stgit@angua>
-In-Reply-To: <20091124081316.6216.66310.stgit@angua>
+	<20091124081747.6216.88376.stgit@angua>
+In-Reply-To: <20091124081747.6216.88376.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linuxppc-dev@lists.ozlabs.org, devicetree-discuss@lists.ozlabs.org, sparclinux@vger.kernel.org, microblaze-uclinux@itee.uq.edu.au, benh@kernel.crashing.org, sfr@canb.auug.org.au, dave
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: sfr@canb.auug.org.au, monstr@monstr.eu, microblaze-uclinux@itee.uq.edu.au, devicetree-discuss@lists.ozlabs.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 
-Merge common code between PowerPC and Microblaze.  This patch
-splits the arch-specific stuff out into a new function,
-early_init_dt_scan_chosen_arch().
+On Tue, 2009-11-24 at 01:17 -0700, Grant Likely wrote:
+> Merge common code between PowerPC and Microblaze
+> 
+> Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+> Reviewed-by: Wolfram Sang <w.sang@pengutronix.de>
+> Tested-by: Michal Simek <monstr@monstr.eu>
 
-Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
----
+Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
- arch/microblaze/kernel/prom.c |   44 ++-------------------------------------
- arch/powerpc/kernel/prom.c    |   46 +++++++++--------------------------------
- drivers/of/fdt.c              |   38 ++++++++++++++++++++++++++++++++++
- include/linux/of_fdt.h        |    3 +++
- 4 files changed, 53 insertions(+), 78 deletions(-)
+Remind me how you want to merge that ? via my tree ?
 
-diff --git a/arch/microblaze/kernel/prom.c b/arch/microblaze/kernel/prom.c
-index 7760186..7ee021f 100644
---- a/arch/microblaze/kernel/prom.c
-+++ b/arch/microblaze/kernel/prom.c
-@@ -108,49 +108,9 @@ static int __init early_init_dt_scan_cpus(unsigned long node,
- 	return 0;
- }
- 
--static int __init early_init_dt_scan_chosen(unsigned long node,
--				const char *uname, int depth, void *data)
-+void __init early_init_dt_scan_chosen_arch(unsigned long node)
- {
--	unsigned long l;
--	char *p;
--
--	pr_debug("search \"chosen\", depth: %d, uname: %s\n", depth, uname);
--
--	if (depth != 1 ||
--		(strcmp(uname, "chosen") != 0 &&
--				strcmp(uname, "chosen@0") != 0))
--		return 0;
--
--#ifdef CONFIG_KEXEC
--	lprop = (u64 *)of_get_flat_dt_prop(node,
--				"linux,crashkernel-base", NULL);
--	if (lprop)
--		crashk_res.start = *lprop;
--
--	lprop = (u64 *)of_get_flat_dt_prop(node,
--				"linux,crashkernel-size", NULL);
--	if (lprop)
--		crashk_res.end = crashk_res.start + *lprop - 1;
--#endif
--
--	early_init_dt_check_for_initrd(node);
--
--	/* Retreive command line */
--	p = of_get_flat_dt_prop(node, "bootargs", &l);
--	if (p != NULL && l > 0)
--		strlcpy(cmd_line, p, min((int)l, COMMAND_LINE_SIZE));
--
--#ifdef CONFIG_CMDLINE
--#ifndef CONFIG_CMDLINE_FORCE
--	if (p = NULL || l = 0 || (l = 1 && (*p) = 0))
--#endif
--		strlcpy(cmd_line, CONFIG_CMDLINE, COMMAND_LINE_SIZE);
--#endif /* CONFIG_CMDLINE */
--
--	pr_debug("Command line is: %s\n", cmd_line);
--
--	/* break now */
--	return 1;
-+	/* No Microblaze specific code here */
- }
- 
- static int __init early_init_dt_scan_memory(unsigned long node,
-diff --git a/arch/powerpc/kernel/prom.c b/arch/powerpc/kernel/prom.c
-index 43cdba2..2c7d4a3 100644
---- a/arch/powerpc/kernel/prom.c
-+++ b/arch/powerpc/kernel/prom.c
-@@ -367,18 +367,9 @@ static int __init early_init_dt_scan_cpus(unsigned long node,
- 	return 0;
- }
- 
--static int __init early_init_dt_scan_chosen(unsigned long node,
--					    const char *uname, int depth, void *data)
-+void __init early_init_dt_scan_chosen_arch(unsigned long node)
- {
- 	unsigned long *lprop;
--	unsigned long l;
--	char *p;
--
--	DBG("search \"chosen\", depth: %d, uname: %s\n", depth, uname);
--
--	if (depth != 1 ||
--	    (strcmp(uname, "chosen") != 0 && strcmp(uname, "chosen@0") != 0))
--		return 0;
- 
- #ifdef CONFIG_PPC64
- 	/* check if iommu is forced on or off */
-@@ -389,17 +380,17 @@ static int __init early_init_dt_scan_chosen(unsigned long node,
- #endif
- 
- 	/* mem=x on the command line is the preferred mechanism */
-- 	lprop = of_get_flat_dt_prop(node, "linux,memory-limit", NULL);
-- 	if (lprop)
-- 		memory_limit = *lprop;
-+	lprop = of_get_flat_dt_prop(node, "linux,memory-limit", NULL);
-+	if (lprop)
-+		memory_limit = *lprop;
- 
- #ifdef CONFIG_PPC64
-- 	lprop = of_get_flat_dt_prop(node, "linux,tce-alloc-start", NULL);
-- 	if (lprop)
-- 		tce_alloc_start = *lprop;
-- 	lprop = of_get_flat_dt_prop(node, "linux,tce-alloc-end", NULL);
-- 	if (lprop)
-- 		tce_alloc_end = *lprop;
-+	lprop = of_get_flat_dt_prop(node, "linux,tce-alloc-start", NULL);
-+	if (lprop)
-+		tce_alloc_start = *lprop;
-+	lprop = of_get_flat_dt_prop(node, "linux,tce-alloc-end", NULL);
-+	if (lprop)
-+		tce_alloc_end = *lprop;
- #endif
- 
- #ifdef CONFIG_KEXEC
-@@ -411,23 +402,6 @@ static int __init early_init_dt_scan_chosen(unsigned long node,
- 	if (lprop)
- 		crashk_res.end = crashk_res.start + *lprop - 1;
- #endif
--
--	early_init_dt_check_for_initrd(node);
--
--	/* Retreive command line */
-- 	p = of_get_flat_dt_prop(node, "bootargs", &l);
--	if (p != NULL && l > 0)
--		strlcpy(cmd_line, p, min((int)l, COMMAND_LINE_SIZE));
--
--#ifdef CONFIG_CMDLINE
--	if (p = NULL || l = 0 || (l = 1 && (*p) = 0))
--		strlcpy(cmd_line, CONFIG_CMDLINE, COMMAND_LINE_SIZE);
--#endif /* CONFIG_CMDLINE */
--
--	DBG("Command line is: %s\n", cmd_line);
--
--	/* break now */
--	return 1;
- }
- 
- #ifdef CONFIG_PPC_PSERIES
-diff --git a/drivers/of/fdt.c b/drivers/of/fdt.c
-index ebce509..616a476 100644
---- a/drivers/of/fdt.c
-+++ b/drivers/of/fdt.c
-@@ -15,6 +15,10 @@
- #include <linux/of.h>
- #include <linux/of_fdt.h>
- 
-+#ifdef CONFIG_PPC
-+#include <asm/machdep.h>
-+#endif /* CONFIG_PPC */
-+
- int __initdata dt_root_addr_cells;
- int __initdata dt_root_size_cells;
- 
-@@ -440,6 +444,40 @@ u64 __init dt_mem_next_cell(int s, u32 **cellp)
- 	return of_read_number(p, s);
- }
- 
-+int __init early_init_dt_scan_chosen(unsigned long node, const char *uname,
-+				     int depth, void *data)
-+{
-+	unsigned long l;
-+	char *p;
-+
-+	pr_debug("search \"chosen\", depth: %d, uname: %s\n", depth, uname);
-+
-+	if (depth != 1 ||
-+	    (strcmp(uname, "chosen") != 0 && strcmp(uname, "chosen@0") != 0))
-+		return 0;
-+
-+	early_init_dt_check_for_initrd(node);
-+
-+	/* Retreive command line */
-+	p = of_get_flat_dt_prop(node, "bootargs", &l);
-+	if (p != NULL && l > 0)
-+		strlcpy(cmd_line, p, min((int)l, COMMAND_LINE_SIZE));
-+
-+#ifdef CONFIG_CMDLINE
-+#ifndef CONFIG_CMDLINE_FORCE
-+	if (p = NULL || l = 0 || (l = 1 && (*p) = 0))
-+#endif
-+		strlcpy(cmd_line, CONFIG_CMDLINE, COMMAND_LINE_SIZE);
-+#endif /* CONFIG_CMDLINE */
-+
-+	early_init_dt_scan_chosen_arch(node);
-+
-+	pr_debug("Command line is: %s\n", cmd_line);
-+
-+	/* break now */
-+	return 1;
-+}
-+
- /**
-  * unflatten_device_tree - create tree of device_nodes from flat blob
-  *
-diff --git a/include/linux/of_fdt.h b/include/linux/of_fdt.h
-index d1a37e5..8118d45 100644
---- a/include/linux/of_fdt.h
-+++ b/include/linux/of_fdt.h
-@@ -71,6 +71,9 @@ extern void *of_get_flat_dt_prop(unsigned long node, const char *name,
- 				 unsigned long *size);
- extern int of_flat_dt_is_compatible(unsigned long node, const char *name);
- extern unsigned long of_get_flat_dt_root(void);
-+extern void early_init_dt_scan_chosen_arch(unsigned long node);
-+extern int early_init_dt_scan_chosen(unsigned long node, const char *uname,
-+				     int depth, void *data);
- extern void early_init_dt_check_for_initrd(unsigned long node);
- extern u64 dt_mem_next_cell(int s, u32 **cellp);
- 
+Cheers,
+Ben.
+
+> ---
+> 
+>  arch/microblaze/kernel/prom.c |   32 --------------------------------
+>  arch/powerpc/kernel/prom.c    |   30 ------------------------------
+>  drivers/of/fdt.c              |   37 +++++++++++++++++++++++++++++++++++++
+>  include/linux/of_fdt.h        |    1 +
+>  4 files changed, 38 insertions(+), 62 deletions(-)
+> 
+> diff --git a/arch/microblaze/kernel/prom.c b/arch/microblaze/kernel/prom.c
+> index a38e373..7959495 100644
+> --- a/arch/microblaze/kernel/prom.c
+> +++ b/arch/microblaze/kernel/prom.c
+> @@ -113,38 +113,6 @@ static int __init early_init_dt_scan_cpus(unsigned long node,
+>  	return 0;
+>  }
+>  
+> -#ifdef CONFIG_BLK_DEV_INITRD
+> -static void __init early_init_dt_check_for_initrd(unsigned long node)
+> -{
+> -	unsigned long l;
+> -	u32 *prop;
+> -
+> -	pr_debug("Looking for initrd properties... ");
+> -
+> -	prop = of_get_flat_dt_prop(node, "linux,initrd-start", &l);
+> -	if (prop) {
+> -		initrd_start = (unsigned long)
+> -					__va((u32)of_read_ulong(prop, l/4));
+> -
+> -		prop = of_get_flat_dt_prop(node, "linux,initrd-end", &l);
+> -		if (prop) {
+> -			initrd_end = (unsigned long)
+> -					__va((u32)of_read_ulong(prop, 1/4));
+> -			initrd_below_start_ok = 1;
+> -		} else {
+> -			initrd_start = 0;
+> -		}
+> -	}
+> -
+> -	pr_debug("initrd_start=0x%lx  initrd_end=0x%lx\n",
+> -					initrd_start, initrd_end);
+> -}
+> -#else
+> -static inline void early_init_dt_check_for_initrd(unsigned long node)
+> -{
+> -}
+> -#endif /* CONFIG_BLK_DEV_INITRD */
+> -
+>  static int __init early_init_dt_scan_chosen(unsigned long node,
+>  				const char *uname, int depth, void *data)
+>  {
+> diff --git a/arch/powerpc/kernel/prom.c b/arch/powerpc/kernel/prom.c
+> index 7f88566..1ecd6c6 100644
+> --- a/arch/powerpc/kernel/prom.c
+> +++ b/arch/powerpc/kernel/prom.c
+> @@ -373,36 +373,6 @@ static int __init early_init_dt_scan_cpus(unsigned long node,
+>  	return 0;
+>  }
+>  
+> -#ifdef CONFIG_BLK_DEV_INITRD
+> -static void __init early_init_dt_check_for_initrd(unsigned long node)
+> -{
+> -	unsigned long l;
+> -	u32 *prop;
+> -
+> -	DBG("Looking for initrd properties... ");
+> -
+> -	prop = of_get_flat_dt_prop(node, "linux,initrd-start", &l);
+> -	if (prop) {
+> -		initrd_start = (unsigned long)__va(of_read_ulong(prop, l/4));
+> -
+> -		prop = of_get_flat_dt_prop(node, "linux,initrd-end", &l);
+> -		if (prop) {
+> -			initrd_end = (unsigned long)
+> -					__va(of_read_ulong(prop, l/4));
+> -			initrd_below_start_ok = 1;
+> -		} else {
+> -			initrd_start = 0;
+> -		}
+> -	}
+> -
+> -	DBG("initrd_start=0x%lx  initrd_end=0x%lx\n", initrd_start, initrd_end);
+> -}
+> -#else
+> -static inline void early_init_dt_check_for_initrd(unsigned long node)
+> -{
+> -}
+> -#endif /* CONFIG_BLK_DEV_INITRD */
+> -
+>  static int __init early_init_dt_scan_chosen(unsigned long node,
+>  					    const char *uname, int depth, void *data)
+>  {
+> diff --git a/drivers/of/fdt.c b/drivers/of/fdt.c
+> index 43d236c..6ad98e8 100644
+> --- a/drivers/of/fdt.c
+> +++ b/drivers/of/fdt.c
+> @@ -11,6 +11,7 @@
+>  
+>  #include <linux/kernel.h>
+>  #include <linux/lmb.h>
+> +#include <linux/initrd.h>
+>  #include <linux/of.h>
+>  #include <linux/of_fdt.h>
+>  
+> @@ -369,6 +370,42 @@ unsigned long __init unflatten_dt_node(unsigned long mem,
+>  	return mem;
+>  }
+>  
+> +#ifdef CONFIG_BLK_DEV_INITRD
+> +/**
+> + * early_init_dt_check_for_initrd - Decode initrd location from flat tree
+> + * @node: reference to node containing initrd location ('chosen')
+> + */
+> +void __init early_init_dt_check_for_initrd(unsigned long node)
+> +{
+> +	unsigned long len;
+> +	u32 *prop;
+> +
+> +	pr_debug("Looking for initrd properties... ");
+> +
+> +	prop = of_get_flat_dt_prop(node, "linux,initrd-start", &len);
+> +	if (prop) {
+> +		initrd_start = (unsigned long)
+> +				__va(of_read_ulong(prop, len/4));
+> +
+> +		prop = of_get_flat_dt_prop(node, "linux,initrd-end", &len);
+> +		if (prop) {
+> +			initrd_end = (unsigned long)
+> +				__va(of_read_ulong(prop, len/4));
+> +			initrd_below_start_ok = 1;
+> +		} else {
+> +			initrd_start = 0;
+> +		}
+> +	}
+> +
+> +	pr_debug("initrd_start=0x%lx  initrd_end=0x%lx\n",
+> +		 initrd_start, initrd_end);
+> +}
+> +#else
+> +inline void early_init_dt_check_for_initrd(unsigned long node)
+> +{
+> +}
+> +#endif /* CONFIG_BLK_DEV_INITRD */
+> +
+>  /**
+>   * unflatten_device_tree - create tree of device_nodes from flat blob
+>   *
+> diff --git a/include/linux/of_fdt.h b/include/linux/of_fdt.h
+> index 81231e0..ec2db82 100644
+> --- a/include/linux/of_fdt.h
+> +++ b/include/linux/of_fdt.h
+> @@ -69,6 +69,7 @@ extern void *of_get_flat_dt_prop(unsigned long node, const char *name,
+>  				 unsigned long *size);
+>  extern int of_flat_dt_is_compatible(unsigned long node, const char *name);
+>  extern unsigned long of_get_flat_dt_root(void);
+> +extern void early_init_dt_check_for_initrd(unsigned long node);
+>  
+>  /* Other Prototypes */
+>  extern void finish_device_tree(void);
+
 
