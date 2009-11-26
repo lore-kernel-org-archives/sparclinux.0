@@ -1,32 +1,25 @@
-From: Mitch Bradley <wmb@firmworks.com>
-Date: Thu, 26 Nov 2009 07:52:35 +0000
+From: Segher Boessenkool <segher@kernel.crashing.org>
+Date: Thu, 26 Nov 2009 21:36:41 +0000
 Subject: Re: [PATCH 04/11] of/flattree: eliminate cell_t typedef
-Message-Id: <4B0E33C3.1020803@firmworks.com>
+Message-Id: <F307E7FB-0819-47E8-9CF4-CA1433C18DA6@kernel.crashing.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20091124081827.6216.1896.stgit@angua>	<1259207974.16367.226.camel@pasglop>	<fa686aa40911252005o2db85dfk3d9acc61c12ca5e5@mail.gmail.com>	<20091125.232818.-1350498258.imp@bsdimp.com>
-	<1259219171.16367.331.camel@pasglop>
-In-Reply-To: <1259219171.16367.331.camel@pasglop>
+References: <20091124081316.6216.66310.stgit@angua> <20091124081827.6216.1896.stgit@angua> <1259207974.16367.226.camel@pasglop> <fa686aa40911252005o2db85dfk3d9acc61c12ca5e5@mail.gmail.com> <1259213266.16367.274.camel@pasglop>
+In-Reply-To: <1259213266.16367.274.camel@pasglop>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
-Cc: sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org, microblaze-uclinux-rVRm/Wmeqae7NGdpmJTKYQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Grant Likely <grant.likely@secretlab.ca>, sfr@canb.auug.org.au, microblaze-uclinux@itee.uq.edu.au, devicetree-discuss@lists.ozlabs.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 
+>> You're right, it's not, but makes merging less complex, and then I  
+>> can
+>> refactor properly.
 >
-> Right, that's the only sane way to do it, I just didn't remember off
-> hand what was said in the OF spec  :-) 
+> Still, make them __be32 at least
+
+There is no alignment guarantee at all either, better make it all u8
+and use accessor functions everywhere.
 
 
-3.2.2.1.2 Property values
-
-The property-encoding format is independent of hardware byte order and 
-alignment characteristics.  The encoded byte order is well-defined (in 
-particular, it is big endian). ...
-
-...
-
--- 32-bit integer.  A 32-bit integer is encoded into a property value 
-byte array by storing the most significant byte at the next available 
-address, followed (at address+1) by the high middle byte, the low middle 
-byte, and (at address+3) the least significant byte.
+Segher
 
