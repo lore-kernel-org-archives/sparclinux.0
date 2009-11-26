@@ -1,59 +1,54 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Tue, 24 Nov 2009 08:17:41 +0000
-Subject: [PATCH 00/11] Yet another series of OF merge patches.
-Message-Id: <20091124081316.6216.66310.stgit@angua>
+From: Wolfram Sang <w.sang@pengutronix.de>
+Date: Thu, 26 Nov 2009 12:28:42 +0000
+Subject: Re: [PATCH 00/11] Yet another series of OF merge patches.
+Message-Id: <20091126122842.GC4846@pengutronix.de>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="JgQwtEuHJzHdouWu"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linuxppc-dev@lists.ozlabs.org, devicetree-discuss@lists.ozlabs.org, sparclinux@vger.kernel.org, microblaze-uclinux@itee.uq.edu.au, benh@kernel.crashing.org, sfr@canb.auug.org.au, dave
-
-Nothing much to say here other than mostly mechanical merging of OF
-support code.  Some of it remains a little ugly, but I'm taking the
-approach of merging the code first, and refactoring it second.
-
-I've pushed this series out to my test-devicetree branch on my git
-server if anyone wants to test.  That branch also includes the
-previous 2 patch series that I've sent out.
-
-git://git.secretlab.ca/git/linux-2.6 test-devicetree
-
-Compile tested on: ppc64, ppc32, microblaze, sparc64, sparc32.
-Boot tested on mpc5200 (ppc32) platform.
-
----
-
-Grant Likely (11):
-      of: unify phandle name in struct device_node
-      microblaze: gut implementation of early_init_dt_scan_cpus()
-      of: merge of_attach_node() & of_detach_node()
-      of: Merge of_node_get() and of_node_put()
-      of: merge machine_is_compatible()
-      of/flattree: merge early_init_devtree() and early_init_move_devtree()
-      of/flattree: merge early_init_dt_scan_chosen()
-      of/flattree: eliminate cell_t typedef
-      of/flattree: merge dt_mem_next_cell
-      of/flattree: Merge earlyinit_dt_scan_root()
-      of/flattree: Merge early_init_dt_check_for_initrd()
+References: <20091124081316.6216.66310.stgit@angua>
+In-Reply-To: <20091124081316.6216.66310.stgit@angua>
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: linuxppc-dev@lists.ozlabs.org, devicetree-discuss@lists.ozlabs.org, sparclinux@vger.kernel.org, microblaze-uclinux@itee.uq.edu.au, benh@kernel.crashing.org, sfr@canb.auug.org.au, davem@davemloft.net, monstr@monstr.eu
 
 
- arch/microblaze/include/asm/prom.h           |    4 
- arch/microblaze/kernel/prom.c                |  375 +-------------------------
- arch/powerpc/include/asm/prom.h              |    4 
- arch/powerpc/kernel/prom.c                   |  366 ++-----------------------
- arch/powerpc/platforms/powermac/pfunc_core.c |    2 
- arch/sparc/kernel/devices.c                  |    2 
- arch/sparc/kernel/of_device_32.c             |    2 
- arch/sparc/kernel/of_device_64.c             |    2 
- arch/sparc/kernel/prom_common.c              |    8 -
- arch/sparc/kernel/smp_64.c                   |    2 
- drivers/of/base.c                            |  153 +++++++++++
- drivers/of/fdt.c                             |  204 ++++++++++++++
- drivers/sbus/char/openprom.c                 |   10 -
- drivers/video/aty/atyfb_base.c               |    2 
- include/linux/of.h                           |    7 
- include/linux/of_fdt.h                       |   18 +
- 16 files changed, 430 insertions(+), 731 deletions(-)
+--JgQwtEuHJzHdouWu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
--- 
-Signature
+On Tue, Nov 24, 2009 at 01:17:41AM -0700, Grant Likely wrote:
+> Nothing much to say here other than mostly mechanical merging of OF
+> support code.  Some of it remains a little ugly, but I'm taking the
+> approach of merging the code first, and refactoring it second.
+>=20
+> I've pushed this series out to my test-devicetree branch on my git
+> server if anyone wants to test.  That branch also includes the
+> previous 2 patch series that I've sent out.
+>=20
+> git://git.secretlab.ca/git/linux-2.6 test-devicetree
+>=20
+> Compile tested on: ppc64, ppc32, microblaze, sparc64, sparc32.
+> Boot tested on mpc5200 (ppc32) platform.
+
+test-devicetree as of today also works fine on my phyCORE-MPC5200B-IO.
+
+Tested-by: Wolfram Sang <w.sang@pengutronix.de>
+
+--=20
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+
+--JgQwtEuHJzHdouWu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAksOdHkACgkQD27XaX1/VRsPLgCgv0ZKmj3Ea/43SgVMA6CJ/tB0
+zy0AoLrdXihljb6X17/9LaL0mQa7ugeS
+=eVCc
+-----END PGP SIGNATURE-----
+
+--JgQwtEuHJzHdouWu--
