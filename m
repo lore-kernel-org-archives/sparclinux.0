@@ -1,47 +1,68 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 24 Nov 2009 22:21:38 +0000
-Subject: [PATCH 6/7]: sunsu: Pass true 'ignore_line' to console match when
-Message-Id: <20091124.142138.85245096.davem@davemloft.net>
+From: Jiri Slaby <jslaby@suse.cz>
+Date: Fri, 27 Nov 2009 23:05:58 +0000
+Subject: [PATCH v3 18/27] SPARC: use helpers for rlimits
+Message-Id: <1259363167-9347-18-git-send-email-jslaby@suse.cz>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1259363167-9347-1-git-send-email-jslaby@suse.cz>
+In-Reply-To: <1259363167-9347-1-git-send-email-jslaby@suse.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: jirislaby@gmail.com
+Cc: mingo@elte.hu, nhorman@tuxdriver.com, sfr@canb.auug.org.au, linux-kernel@vger.kernel.org, akpm@linux-foundation.org, marcin.slusarz@gmail.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, torvalds@linux-foundation.org, oleg@redhat.com, James Morris <jmorris@namei.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
+Make sure compiler won't do weird things with limits. E.g. fetching
+them twice may return 2 different values after writable limits are
+implemented.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+I.e. either use newly added rlimit helpers or ACCESS_ONCE if not
+applicable.
+
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: James Morris <jmorris@namei.org>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
 ---
- drivers/serial/sunsu.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletions(-)
+ arch/sparc/kernel/sys_sparc_64.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/serial/sunsu.c b/drivers/serial/sunsu.c
-index 4868b31..4ee4167 100644
---- a/drivers/serial/sunsu.c
-+++ b/drivers/serial/sunsu.c
-@@ -1409,6 +1409,7 @@ static int __devinit su_probe(struct of_device *op, const struct of_device_id *m
- 	struct uart_sunsu_port *up;
- 	struct resource *rp;
- 	enum su_type type;
-+	bool ignore_line;
- 	int err;
+diff --git a/arch/sparc/kernel/sys_sparc_64.c b/arch/sparc/kernel/sys_sparc_64.c
+index e2d1024..d53870c 100644
+--- a/arch/sparc/kernel/sys_sparc_64.c
++++ b/arch/sparc/kernel/sys_sparc_64.c
+@@ -361,6 +361,7 @@ EXPORT_SYMBOL(get_fb_unmapped_area);
+ void arch_pick_mmap_layout(struct mm_struct *mm)
+ {
+ 	unsigned long random_factor = 0UL;
++	unsigned long gap;
  
- 	type = su_get_type(dp);
-@@ -1467,9 +1468,14 @@ static int __devinit su_probe(struct of_device *op, const struct of_device_id *m
+ 	if (current->flags & PF_RANDOMIZE) {
+ 		random_factor = get_random_int();
+@@ -375,9 +376,10 @@ void arch_pick_mmap_layout(struct mm_struct *mm)
+ 	 * Fall back to the standard layout if the personality
+ 	 * bit is set, or if the expected stack growth is unlimited:
+ 	 */
++	gap = rlim_get_cur(RLIMIT_STACK);
+ 	if (!test_thread_flag(TIF_32BIT) ||
+ 	    (current->personality & ADDR_COMPAT_LAYOUT) ||
+-	    current->signal->rlim[RLIMIT_STACK].rlim_cur = RLIM_INFINITY ||
++	    gap = RLIM_INFINITY ||
+ 	    sysctl_legacy_va_layout) {
+ 		mm->mmap_base = TASK_UNMAPPED_BASE + random_factor;
+ 		mm->get_unmapped_area = arch_get_unmapped_area;
+@@ -385,9 +387,7 @@ void arch_pick_mmap_layout(struct mm_struct *mm)
+ 	} else {
+ 		/* We know it's 32-bit */
+ 		unsigned long task_size = STACK_TOP32;
+-		unsigned long gap;
  
- 	up->port.ops = &sunsu_pops;
- 
-+	ignore_line = false;
-+	if (!strcmp(dp->name, "rsc-console") ||
-+	    !strcmp(dp->name, "lom-console"))
-+		ignore_line = true;
-+
- 	sunserial_console_match(SUNSU_CONSOLE(), dp,
- 				&sunsu_reg, up->port.line,
--				false);
-+				ignore_line);
- 	err = uart_add_one_port(&sunsu_reg, &up->port);
- 	if (err)
- 		goto out_unmap;
+-		gap = current->signal->rlim[RLIMIT_STACK].rlim_cur;
+ 		if (gap < 128 * 1024 * 1024)
+ 			gap = 128 * 1024 * 1024;
+ 		if (gap > (task_size / 6 * 5))
 -- 
 1.6.5.3
 
