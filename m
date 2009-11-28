@@ -1,71 +1,20 @@
-From: "HENRY CARR" <dglkhddd@jonny-fn.homepage.t-online.de>
-Date: Sun, 15 Nov 2009 09:40:28 +0000
-Subject: My Good Friend..
-Message-Id: <1N9bax-0DaXqq0@fwd08.t-online.de>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_NextPart_000_0010_01C2A9A6.19C1D07C"
+From: "Andrew Mensah" <andrysmen2@mchsi.com>
+Date: Sat, 28 Nov 2009 09:54:07 +0000
+Subject: personal proposal
+Message-Id: <112820090954.10511.4B10F33E000E78B90000290F223045151403010CD2079C080C03BFCD020A039C979D0B020E@mchsi.com>
 List-Id: <sparclinux.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-This is a multi-part message in MIME format.
-
-------=_NextPart_000_0010_01C2A9A6.19C1D07C
-Content-Type: text/plain;
-	charset="Windows-1251"
-Content-Transfer-Encoding: 7bit
-
-Attached is the DetailsThe message enlosed as an attachment is from Henry Carr. You should view the attach and reply as quick as possible.
 
 
-------=_NextPart_000_0010_01C2A9A6.19C1D07C
-Content-Type: application/octet-stream;
-	name="Mr carr.txt"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="Mr carr.txt"
+--
+My name is Andrew  Mensah and I have a business 
+proposal of about USD$17,540,000.00 for you. I 
+will however accept your offer based on my 
+conditions. Kindly get back to me through my 
+private email: andrewmensah122@yahoo.com.hk
+Andrew Mensah
 
-SSBhbSBNci4gSGVucnkgQ2FyciBhIHNlbmlvciBzdGFmZiB3aXRoIHRoZSBj
-ZW50cmFsIGJhbmsgb2YgTmlnZXJpYSAoQ0JOKS4NCg0KSSBhbSB0aGUgY2hp
-ZWYgc2VjdXJpdHkgb2ZmaWNlciAoY3NvKSBvZiBvdXIgYmFuaywgSSBoYXZl
-IGFycmFuZ2VkIHdpdGggYW4gb2ZmaWNlciBpbiB0aGUgY29tcHV0ZXIgc2Vj
-dGlvbiBvZiBvdXIgYmFuaywgZW5naW5lZXIgY2h1a2thIGlsb2ggdG8gYnJp
-bmcgb3V0IHBhcnQgb2YgeW91ciB0b3RhbCBjb250cmFjdCBzdW0gYW1vdW50
-aW5nIHRvICh1c2QkNW0pIGZpdmUgbWlsbGlvbiB1cyBkb2xsYXJzLiBhcyBp
-IGZvdW5kIG91dCB0aGF0IHlvdSBoYXZlIGFsbW9zdCBtZXQgYWxsIHRoZSBz
-dGF0dXRvcnkgcmVxdWlyZW1lbnRzIG9mIHRoZSBjYm4gaW4gcmVzcGVjdCBv
-ZiB5b3VyIGNvbnRyYWN0IHBheW1lbnQsIGJ1dCB5b3VyIHByb2JsZW0gaXMg
-dGhhdCBvZiBpbnRlcmVzdCBncm91cHMuDQoNCm5vdGU7IGEgbG90IG9mIHBl
-b3BsZSBhcmUgaW50ZXJlc3RlZCBpbiB5b3VyIHBheW1lbnQgYW5kIHRob3Nl
-IHBlb3BsZSBhcmUgbWVyZWx5IGRvaW5nIHBhcGVyIHdvcmsgd2l0aCB5b3Ug
-YW5kIHRoYXQgZXhwbGFpbnMgd2h5IHlvdSByZWNlaXZlIGVtYWlscyBhbmQg
-cGhvbmUgbWVzc2FnZXMgZnJvbSBkaWZmZXJlbnQgcGVvcGxlIGV2ZXJ5ZGF5
-LiBhbHNvIHdlIGZvdW5kIG91dCB0aGF0IHNvbWUgb2YgdGhlIG9mZmljaWFs
-cyBvZiB2YXJpb3VzIHByb3N0YXRlcyBoYXZlIGJlZW4gZXh0b3J0aW5nIGEg
-bG90IG9mIG1vbmV5IGZyb20geW91IGluIHRoZSBwcmV0ZXh0IG9mIGhlbHBp
-bmcgeW91IHJlY2VpdmUgeW91ciBtb25leSwgaSBjYW4gYXNzdXJlIHlvdSB0
-aGF0IHRoaXMgbWF5IGxhc3QgZm9yIHllYXJzIHlldCBub3RoaW5nIHdvdWxk
-IGhhcHBlbiBpZiB5b3UgZG8gbm90IGRvIGF3YXkgd2l0aCB0aG9zZSBvZmZp
-Y2VycyB0aGF0IHlvdSBjYWxsIHlvdXIgcGFydG5lcnMuDQoNCkkgYW0gd2ls
-bGluZyB0byBoZWxwIHlvdSBnZXQgeW91ciBtb25leSBidXQgcGxlYXNlIGZv
-ciBzZWN1cml0eSByZWFzb25zIGRvIG5vdCB0ZWxsIGFueWJvZHkgdGhhdCB5
-b3UgYXJlIGFib3V0IHRvIHJlY2VpdmUgeW91ciBtb25leSB1bnRpbCB5b3Ug
-cmVjZWl2ZSB5b3VyIGZ1bmQgYXQgeW91ciBkb29yc3RlcC4gdGhlIG1vbmV5
-IGlzIGluIHR3byBzZWN1cml0eS1wcm9vZiBib3hlcyB3ZWlnaGluZyAxMGtn
-IGVhY2gsIHRoYXQgaXMgMjBrZyBmb3IgdGhlIHR3byBib3hlcywNCg0KdG8g
-dGhpcyBlZmZlY3QsIHlvdSB3aWxsIHNlbmQgdXMgYSBwcm9taXNzb3J5IG5v
-dGUgZm9yIDEwJSBvZiB0aGUgdG90YWwgZnVuZCB3aGljaCBpcyB1c2QkNTAw
-LDAwMC4wMCAgYWxvbmcgd2l0aCB5b3VyIHJlY2VpdmluZyBhZGRyZXNzIGZv
-ciBzZW5kaW5nIHRoZSBib3hlcyBieSBjb3VyaWVyLiBwbGVhc2UgbWFpbnRh
-aW4gdG9wbW9zdCBzZWNyZWN5IGFzIGl0IG1heSBjYXVzZSBhIGxvdCBvZiBw
-cm9ibGVtcyBpZiBmb3VuZCBvdXQgdGhhdCB3ZSBhcmUgdXNpbmcgdGhpcyB3
-YXkgdG8gaGVscCB5b3UuDQoNCnlvdSBhcmUgYWR2aXNlZCB0byByZS1jb25m
-aXJtIHRoZSB1bmRlciBsaXN0ZWQgaW5mb3JtYXRpb26ScyBzbyB0aGF0IHRo
-ZSBjb25zaWdubWVudCBjYW4gYmUgZGVsaXZlcmVkIHRvIHlvdS4NCnlvdXIg
-ZnVsbCBuYW1lOg0KcHJpdmF0ZSB0ZWxlcGhvbmUgbnVtYmVyOg0KY2hvaWNl
-IG9mIGFkZHJlc3Mge3doZXJlIHlvdSB3aXNoIHRoZSBjb25zaWdubWVudCB0
-byBiZSBkZWxpdmVyZWR9OiANCiBOb2V0OlBsZWFzZSByZXBseSBvbiB0aGlz
-IG15IHByaXZhdGUgZS1tYWlsOmhlbnJ5Y2FycjFAdm9pbGEuZnINCmdvZCBp
-cyB3aXRoIHVzIGFzIHdlIHdhaXQgZm9yIHlvdXIgcmVwbHkuDQoNCnlvdXJz
-IGZhaXRoZnVsbHksDQpNci5IZW5yeSBjYXJy
-
-------=_NextPart_000_0010_01C2A9A6.19C1D07C--
