@@ -1,31 +1,40 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 24 Dec 2009 04:52:41 +0000
-Subject: Re: [RFC][PATCH 14/14] Convert sparc to
-Message-Id: <20091223.205241.70185990.davem@davemloft.net>
+From: Kristoffer Glembo <kristoffer@gaisler.com>
+Date: Tue, 01 Dec 2009 14:52:56 +0000
+Subject: [PATCH 4/4] Removed unused assignment and capitalized srmmu name for sparc_leon
+Message-Id: <1259679176-29835-4-git-send-email-kristoffer@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1261541643.3508.74.camel@localhost.localdomain>
-	<1261541703.3508.75.camel@localhost.localdomain>
-	<1261541771.3508.76.camel@localhost.localdomain>
-In-Reply-To: <1261541771.3508.76.camel@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: johnstul@us.ibm.com
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: john stultz <johnstul@us.ibm.com>
-Date: Tue, 22 Dec 2009 20:16:11 -0800
+Signed-off-by: Kristoffer Glembo <kristoffer@gaisler.com>
+---
+ arch/sparc/mm/srmmu.c |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
 
-> This patch converts the sparc architecture to use the generic
-> read_persistent_clock and update_persistent_clock interfaces, reducing
-> the amount of arch specific code we have to maintain, and allowing for
-> further cleanups in the future.
-> 
-> I have not built or tested this patch, so help from arch maintainers
-> would be appreciated.
-> 
-> Signed-off-by: John Stultz <johnstul@us.ibm.com>
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index d55c255..367321a 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -1990,7 +1990,7 @@ void __init poke_leonsparc(void)
+ void __init init_leon(void)
+ {
+ 
+-	srmmu_name = "Leon";
++	srmmu_name = "LEON";
+ 
+ 	BTFIXUPSET_CALL(flush_cache_all, leon_flush_cache_all,
+ 			BTFIXUPCALL_NORM);
+@@ -2037,8 +2037,6 @@ static void __init get_srmmu_type(void)
+ 
+ 	/* First, check for sparc-leon. */
+ 	if (sparc_cpu_model = sparc_leon) {
+-		psr_typ = 0xf;	/* hardcoded ids for older models/simulators */
+-		psr_vers = 2;
+ 		init_leon();
+ 		return;
+ 	}
+-- 
+1.5.4
 
-This looks fine to me:
-
-Acked-by: David S. Miller <davem@davemloft.net>
