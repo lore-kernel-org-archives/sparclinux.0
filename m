@@ -1,43 +1,31 @@
-From: Kristoffer Glembo <kristoffer@gaisler.com>
-Date: Tue, 01 Dec 2009 14:52:53 +0000
-Subject: [PATCH 1/4] Added Aeroflex Gaisler entry in manufacturer_info structure
-Message-Id: <1259679176-29835-1-git-send-email-kristoffer@gaisler.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Tue, 01 Dec 2009 18:13:04 +0000
+Subject: Re: [PATCH 1/4] Added Aeroflex Gaisler entry in manufacturer_info
+Message-Id: <20091201181304.GA25617@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1259679176-29835-1-git-send-email-kristoffer@gaisler.com>
+In-Reply-To: <1259679176-29835-1-git-send-email-kristoffer@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Here comes a series of small patches. This first one just adds 
-an entry in manufacturer_info for Aeroflex Gaisler and LEON.
+Hi Kristoffer.
 
-Signed-off-by: Kristoffer Glembo <kristoffer@gaisler.com>
----
- arch/sparc/kernel/cpu.c |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
+You need to fix up the $subject of all four patches.
+Then should all contain a proper subsystem prefix.
 
-diff --git a/arch/sparc/kernel/cpu.c b/arch/sparc/kernel/cpu.c
-index 1446df9..e447938 100644
---- a/arch/sparc/kernel/cpu.c
-+++ b/arch/sparc/kernel/cpu.c
-@@ -185,6 +185,17 @@ static const struct manufacturer_info __initconst manufacturer_info[] = {
- 		FPU(-1, NULL)
- 	}
- },{
-+	0xF,		/* Aeroflex Gaisler */
-+	.cpu_info = {
-+		CPU(3, "LEON"),
-+		CPU(-1, NULL)
-+	},
-+	.fpu_info = {
-+		FPU(2, "GRFPU"),
-+		FPU(3, "GRFPU-Lite"),
-+		FPU(-1, NULL)
-+	}
-+},{
- 	0x17,
- 	.cpu_info = {
- 		CPU_PMU(0x10, "TI UltraSparc I   (SpitFire)", "ultra12"),
--- 
-1.5.4
+    "sparc,leon: short title"
 
+was used in the past.
+It is good to be consistent here.
+
+On Tue, Dec 01, 2009 at 03:52:53PM +0100, Kristoffer Glembo wrote:
+> Here comes a series of small patches.
+
+This does not belong to a changelog. This is to be added
+in an intro mail.
+The changelog should be readable as a changelog 3 years from now.
+
+
+	Sam
