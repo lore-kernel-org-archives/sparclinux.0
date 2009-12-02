@@ -1,35 +1,49 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 02 Dec 2009 09:25:17 +0000
-Subject: Re: ioport.c
-Message-Id: <20091202.012517.11240899.davem@davemloft.net>
+Date: Wed, 02 Dec 2009 23:06:24 +0000
+Subject: T5240 onboard ethernet detection...
+Message-Id: <20091202.150624.90790575.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Kristoffer Glembo <kristoffer@gaisler.com>
-Date: Fri, 27 Nov 2009 17:43:35 +0100
 
-> I'm adding LEON support for the DMA-API into ioport.c and at the
-> same time wanting to clean things up somewhat.
-> 
-> One thing that bugs me a little bit is this one:
-> 
-> #define mmu_inval_dma_area(p, l)/* Anton pulled it out for 2.4.0-xx */
-> 
-> It seems this was never implemented. I'm not sure which machines needs
-> to invalidate the cache after DMA but LEON needs it in some
-> configurations and as far as I understand the microsparc IIep needs it
-> as well. I'm not so familiar with where this chip is used but the
-> JavaStation (Krups) uses it and has the Sun HappyMeal ethernet card
-> doing DMA from the PCI bus.
-> 
-> Can anyone explain why this was never implemented and instead removed?
-> Is it not needed even on the IIep ?
+This machine uses NIU as the onboard ethernet, but for
+whatever reason the debian installer couldn't find it
+in the stable install images.
 
-I don't know offhand, sorry.
+The debian kernel does have the driver built into it, so it's
+something to do with detection by device IDs or whatever I suppose.
 
-But I seem to remember that Microsparc-IIep is coherent all the
-way to the L1 caches with DMA so it wouldn't need flushes after
-DMA at all.
+NIU can appear on sparc64 in two forms.  Either as a PCI device, or as
+an OpenFirmware device.
+
+The driver module does have the proper device recognition tags, one
+for PCI:
+
+static struct pci_device_id niu_pci_tbl[] = {
+	{PCI_DEVICE(PCI_VENDOR_ID_SUN, 0xabcd)},
+	{}
+};
+
+MODULE_DEVICE_TABLE(pci, niu_pci_tbl);
+
+and one for OpenFirmware:
+
+static const struct of_device_id niu_match[] = {
+	{
+		.name = "network",
+		.compatible = "SUNW,niusl",
+	},
+	{},
+};
+MODULE_DEVICE_TABLE(of, niu_match);
+
+The module did load properly when I booted into the installation.
+
+This machine has the PCI variant of the device.
+
+Perhaps the presence of two different kinds of device tables in the
+same kernel module is confusing the logic the installer uses to detect
+the ethernet device during installation?
