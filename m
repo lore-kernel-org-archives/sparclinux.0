@@ -1,21 +1,18 @@
 From: David Miller <davem@davemloft.net>
-Date: Sat, 12 Dec 2009 06:55:18 +0000
-Subject: [PATCH 0/10]: Filling feature holes and bug fixes
-Message-Id: <20091211.225518.193687539.davem@davemloft.net>
+Date: Thu, 03 Dec 2009 06:27:16 +0000
+Subject: Re: [PATCH] fix dma warning in Sun HME
+Message-Id: <20091202.222716.230090972.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+From: Mikulas Patocka <mpatocka@redhat.com>
+Date: Mon, 30 Nov 2009 10:07:56 -0500 (EST)
 
-I went through all of the changes that went into the merge
-window so far (primarily x86, powerpc, tracing, kprobes,
-perf) to see if there were any holes to fill in for sparc.
+> Hi
+> 
+> This patches fixed warnings with CONFIG_HAVE_DMA_API_DEBUG
 
-The 10 patches following this posting are the result and are
-all in sparc-2.6 tree and will be sent to Linus.
-
-The only real gap left is finishing the dependency engine
-necessary to support more than 1 performance counter at a
-time on sparc64.  I hope to get back to that soon.
+Thanks I'll toss this into the net-next-2.6 tree.
