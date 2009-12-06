@@ -1,57 +1,31 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 06 Dec 2009 04:18:02 +0000
+From: Igor Kovalenko <igor.v.kovalenko@gmail.com>
+Date: Sun, 06 Dec 2009 17:37:03 +0000
 Subject: Re: sparc64 mcount misaligned stack
-Message-Id: <20091205.201802.71100445.davem@davemloft.net>
+Message-Id: <b2fa41d60912060937u6e7011d5if491d89e711e11@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <b2fa41d60912051427y546958a4q729877dd7a970a79@mail.gmail.com>
 In-Reply-To: <b2fa41d60912051427y546958a4q729877dd7a970a79@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-From: Igor Kovalenko <igor.v.kovalenko@gmail.com>
-Date: Sun, 6 Dec 2009 01:27:08 +0300
+On Sun, Dec 6, 2009 at 7:18 AM, David Miller <davem@davemloft.net> wrote:
+> From: Igor Kovalenko <igor.v.kovalenko@gmail.com>
+> Date: Sun, 6 Dec 2009 01:27:08 +0300
+>
+>> I wonder if mcount ever works on sparc64, if it does work indeed I'd
+>> like to know what I'm missing there.
+>
+> Yep, two distinct bugs there. =A0Please try this patch, thanks
+> for the report.
 
-> I wonder if mcount ever works on sparc64, if it does work indeed I'd
-> like to know what I'm missing there.
+Works here, thanks!
 
-Yep, two distinct bugs there.  Please try this patch, thanks
-for the report.
+- does not trap too early
+- prints "Stack overflow" and exits to prom without fault (I tried
+removing STACK_BIAS adjustment to make it trap)
 
-sparc64: Fix stack debugging IRQ stack regression.
-
-Commit 4f70f7a91bffdcc39f088748dc678953eb9a3fbd
-(sparc64: Implement IRQ stacks.) has two bugs.
-
-First, the softirq range check forgets to subtract STACK_BIAS
-before comparing with %sp.  Next, on failure the wrong label
-is jumped to, resulting in a bogus stack being loaded.
-
-Reported-by: Igor Kovalenko <igor.v.kovalenko@gmail.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-
-diff --git a/arch/sparc/lib/mcount.S b/arch/sparc/lib/mcount.S
-index 7ce9c65..24b8b12 100644
---- a/arch/sparc/lib/mcount.S
-+++ b/arch/sparc/lib/mcount.S
-@@ -64,8 +64,9 @@ mcount:
- 2:	 sethi		%hi(softirq_stack), %g3
- 	or		%g3, %lo(softirq_stack), %g3
- 	ldx		[%g3 + %g1], %g7
-+	sub		%g7, STACK_BIAS, %g7
- 	cmp		%sp, %g7
--	bleu,pt		%xcc, 2f
-+	bleu,pt		%xcc, 3f
- 	 sethi		%hi(THREAD_SIZE), %g3
- 	add		%g7, %g3, %g7
- 	cmp		%sp, %g7
-@@ -75,7 +76,7 @@ mcount:
- 	 * again, we are already trying to output the stack overflow
- 	 * message.
- 	 */
--	sethi		%hi(ovstack), %g7		! cant move to panic stack fast enough
-+3:	sethi		%hi(ovstack), %g7		! cant move to panic stack fast enough
- 	 or		%g7, %lo(ovstack), %g7
- 	add		%g7, OVSTACKSIZE, %g3
- 	sub		%g3, STACK_BIAS + 192, %g3
+--=20
+Kind regards,
+Igor V. Kovalenko
