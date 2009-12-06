@@ -1,26 +1,97 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Wed, 30 Dec 2009 13:14:37 +0000
-Subject: Re: [PATCH] SPARC: Simplify param.h by simply including
-Message-Id: <20091230131437.GA13201@merkur.ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Sun, 06 Dec 2009 03:35:11 +0000
+Subject: [GIT]: Sparc
+Message-Id: <20091205.193511.226786837.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LFD.2.00.0912300356540.13010@localhost>
-In-Reply-To: <alpine.LFD.2.00.0912300356540.13010@localhost>
+References: <20080421.153231.108090227.davem@davemloft.net>
+In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Dec 30, 2009 at 03:58:39AM -0500, Robert P. J. Day wrote:
-> 
-> Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
-> 
-> ---
-> 
->   override the only difference, EXEC_PAGESIZE, then include the
-> generic version.
 
-Looks good.
+More progress on 32-bit LEON cpu support.
 
-Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
+BKL removals from Thomas Gleixner.
 
-	Sam
+A nicer early-boot OpenFirmware based framebuffer for sparc64
+based upon PowerPC's bootx.
+
+Please pull, thanks a lot!
+
+The following changes since commit 6ec22f9b037fc0c2e00ddb7023fad279c365324d:
+  Linus Torvalds (1):
+        Merge branch 'x86-debug-for-linus' of git://git.kernel.org/.../tip/linux-2.6-tip
+
+are available in the git repository at:
+
+  master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-next-2.6.git master
+
+Boaz Harrosh (1):
+      sparc: remove unused nfsd #includes
+
+David S. Miller (6):
+      apbuart: Fix build warning.
+      apbuart: Kill dependency on deprecated Sparc-only PROM interfaces.
+      apbuart: Fix build and missing driver unregister.
+      Revert "sparc: Make atomic locks raw"
+      sparc64: Faster early-boot framebuffer console.
+      sparc: Set UTS_MACHINE correctly.
+
+Konrad Eisele (1):
+      sparc,leon: Sparc-Leon SMP support
+
+Kristoffer Glembo (7):
+      sparc: Support for GRLIB APBUART serial port
+      apbuart: Use of_find_node_by_path to find root node.
+      No auxio on LEON
+      Added sparc_leon3_snooping_enabled() and converted extern inline to static inline
+      sparc, leon: Added Aeroflex Gaisler entry in manufacturer_info structure
+      sparc32: Remove early interrupt enable.
+      sparc,leon: init_leon srmmu cleanup
+
+Thomas Gleixner (5):
+      sparc: Remove BKL from apc
+      watchdog: Remove BKL from rio watchdog driver
+      sparc: Make atomic locks raw
+      sparc: Replace old style lock initializer
+      sparc: Fixup last users of irq_chip->typename
+
+ arch/sparc/Kconfig                |    7 +
+ arch/sparc/Makefile               |    2 +
+ arch/sparc/include/asm/btext.h    |    6 +
+ arch/sparc/include/asm/leon.h     |   45 ++-
+ arch/sparc/include/asm/rwsem.h    |    4 +-
+ arch/sparc/include/asm/smp_32.h   |    9 +
+ arch/sparc/kernel/Makefile        |    3 +-
+ arch/sparc/kernel/apc.c           |   37 +--
+ arch/sparc/kernel/auxio_32.c      |    1 +
+ arch/sparc/kernel/btext.c         |  673 +++++++++++++++++++++++++++++++++++
+ arch/sparc/kernel/cpu.c           |   11 +
+ arch/sparc/kernel/entry.S         |   33 ++
+ arch/sparc/kernel/head_32.S       |   22 ++
+ arch/sparc/kernel/ioport.c        |    5 +
+ arch/sparc/kernel/irq_64.c        |    8 +-
+ arch/sparc/kernel/leon_kernel.c   |   84 +++++
+ arch/sparc/kernel/leon_smp.c      |  468 ++++++++++++++++++++++++
+ arch/sparc/kernel/pci_msi.c       |    2 +-
+ arch/sparc/kernel/setup_64.c      |    6 +-
+ arch/sparc/kernel/smp_32.c        |   10 +
+ arch/sparc/kernel/sys_sparc32.c   |    5 -
+ arch/sparc/kernel/time_32.c       |    3 -
+ arch/sparc/kernel/trampoline_32.S |   69 ++++-
+ arch/sparc/mm/srmmu.c             |    9 +-
+ drivers/serial/Kconfig            |   13 +
+ drivers/serial/Makefile           |    1 +
+ drivers/serial/apbuart.c          |  710 +++++++++++++++++++++++++++++++++++++
+ drivers/serial/apbuart.h          |   64 ++++
+ drivers/watchdog/riowd.c          |    6 +-
+ include/linux/serial_core.h       |    3 +
+ 30 files changed, 2262 insertions(+), 57 deletions(-)
+ create mode 100644 arch/sparc/include/asm/btext.h
+ create mode 100644 arch/sparc/kernel/btext.c
+ create mode 100644 arch/sparc/kernel/leon_smp.c
+ create mode 100644 drivers/serial/apbuart.c
+ create mode 100644 drivers/serial/apbuart.h
