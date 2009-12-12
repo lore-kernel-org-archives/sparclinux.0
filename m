@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 08 Dec 2009 23:45:08 +0000
-Subject: README: sparc-2.6 and sparc-next-2.6 rebased...
-Message-Id: <20091208.154508.133726649.davem@davemloft.net>
+Date: Sat, 12 Dec 2009 06:55:18 +0000
+Subject: [PATCH 0/10]: Filling feature holes and bug fixes
+Message-Id: <20091211.225518.193687539.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,12 +9,13 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-Now that Linus has taken sparc-next-2.6 into his tree for the
-merge window, I have rebased sparc-2.6 and sparc-next-2.6
+I went through all of the changes that went into the merge
+window so far (primarily x86, powerpc, tracing, kprobes,
+perf) to see if there were any holes to fill in for sparc.
 
-All work will now commence in the sparc-2.6 tree and I will
-be taking bug fixes only until 2.6.33-rc1 is released, at
-which time sparc-next-2.6 will be updated and be used to
-queue up new features for the next merge window.
+The 10 patches following this posting are the result and are
+all in sparc-2.6 tree and will be sent to Linus.
 
-Thanks.
+The only real gap left is finishing the dependency engine
+necessary to support more than 1 performance counter at a
+time on sparc64.  I hope to get back to that soon.
