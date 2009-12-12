@@ -1,40 +1,62 @@
-From: Kristoffer Glembo <kristoffer@gaisler.com>
-Date: Tue, 01 Dec 2009 14:52:54 +0000
-Subject: [PATCH 2/4] Enabling interrupts at this point causes warning in start_kernel()
-Message-Id: <1259679176-29835-2-git-send-email-kristoffer@gaisler.com>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 12 Dec 2009 06:55:53 +0000
+Subject: [PATCH 8/10]: sparc64: Use free_bootmem_late() in mdesc_lmb_free().
+Message-Id: <20091211.225553.59659092.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Enabling interrupts at this points causes the warning
-"start_kernel(): bug: interrupts were enabled early" 
-to be printed in start_kernel().
 
-Interrupts are enabled shortly after time_init() in start_kernel().
-
-Tested on LEON only.
-
-Signed-off-by: Kristoffer Glembo <kristoffer@gaisler.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/kernel/time_32.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+ arch/sparc/kernel/mdesc.c |   21 ++++++---------------
+ 1 files changed, 6 insertions(+), 15 deletions(-)
 
-diff --git a/arch/sparc/kernel/time_32.c b/arch/sparc/kernel/time_32.c
-index 614ac7b..5b2f595 100644
---- a/arch/sparc/kernel/time_32.c
-+++ b/arch/sparc/kernel/time_32.c
-@@ -210,9 +210,6 @@ static void __init sbus_time_init(void)
- 	btfixup();
+diff --git a/arch/sparc/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
+index 938da19..cdc91d9 100644
+--- a/arch/sparc/kernel/mdesc.c
++++ b/arch/sparc/kernel/mdesc.c
+@@ -10,6 +10,7 @@
+ #include <linux/slab.h>
+ #include <linux/mm.h>
+ #include <linux/miscdevice.h>
++#include <linux/bootmem.h>
  
- 	sparc_init_timers(timer_interrupt);
--	
--	/* Now that OBP ticker has been silenced, it is safe to enable IRQ. */
--	local_irq_enable();
+ #include <asm/cpudata.h>
+ #include <asm/hypervisor.h>
+@@ -108,25 +109,15 @@ static struct mdesc_handle * __init mdesc_lmb_alloc(unsigned int mdesc_size)
+ 
+ static void mdesc_lmb_free(struct mdesc_handle *hp)
+ {
+-	unsigned int alloc_size, handle_size = hp->handle_size;
+-	unsigned long start, end;
++	unsigned int alloc_size;
++	unsigned long start;
+ 
+ 	BUG_ON(atomic_read(&hp->refcnt) != 0);
+ 	BUG_ON(!list_empty(&hp->list));
+ 
+-	alloc_size = PAGE_ALIGN(handle_size);
+-
+-	start = (unsigned long) hp;
+-	end = start + alloc_size;
+-
+-	while (start < end) {
+-		struct page *p;
+-
+-		p = virt_to_page(start);
+-		ClearPageReserved(p);
+-		__free_page(p);
+-		start += PAGE_SIZE;
+-	}
++	alloc_size = PAGE_ALIGN(hp->handle_size);
++	start = __pa(hp);
++	free_bootmem_late(start, alloc_size);
  }
  
- void __init time_init(void)
+ static struct mdesc_mem_ops lmb_mdesc_ops = {
 -- 
-1.5.4
+1.6.5
 
