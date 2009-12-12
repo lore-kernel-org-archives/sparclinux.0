@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Sat, 12 Dec 2009 06:55:30 +0000
-Subject: [PATCH 2/10]: sparc64: Use kprobes_built_in() to avoid ifdefs in
-Message-Id: <20091211.225530.71091382.davem@davemloft.net>
+Date: Sat, 12 Dec 2009 06:56:00 +0000
+Subject: [PATCH 10/10]: sparc64: Fix clock event multiplier printf format.
+Message-Id: <20091211.225600.48525530.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,43 +9,39 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
+The type got changed to u32, so %lx generated warnings
+(and thus build failure on sparc64)
+
+Stephen Rothwell fixed it like so:
+
+-	printk("clockevent: mult[%lx] shift[%d]\n",
++	printk("clockevent: mult[%ux] shift[%d]\n",
+
+But that's not a valid transformation, we now get:
+
+clockevent: mult[51539607x] shift[32]
+
+in the logs.
+
+Fix it to use the correct plain "%x" instead.
+
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/mm/fault_64.c |    9 +--------
- 1 files changed, 1 insertions(+), 8 deletions(-)
+ arch/sparc/kernel/time_64.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/sparc/mm/fault_64.c b/arch/sparc/mm/fault_64.c
-index 43b0da9..0aa50b2 100644
---- a/arch/sparc/mm/fault_64.c
-+++ b/arch/sparc/mm/fault_64.c
-@@ -31,13 +31,12 @@
- #include <asm/sections.h>
- #include <asm/mmu_context.h>
+diff --git a/arch/sparc/kernel/time_64.c b/arch/sparc/kernel/time_64.c
+index c310875..67e1651 100644
+--- a/arch/sparc/kernel/time_64.c
++++ b/arch/sparc/kernel/time_64.c
+@@ -827,7 +827,7 @@ void __init time_init(void)
+ 	sparc64_clockevent.min_delta_ns  		clockevent_delta2ns(0xF, &sparc64_clockevent);
  
--#ifdef CONFIG_KPROBES
- static inline int notify_page_fault(struct pt_regs *regs)
- {
- 	int ret = 0;
+-	printk("clockevent: mult[%ux] shift[%d]\n",
++	printk("clockevent: mult[%x] shift[%d]\n",
+ 	       sparc64_clockevent.mult, sparc64_clockevent.shift);
  
- 	/* kprobe_running() needs smp_processor_id() */
--	if (!user_mode(regs)) {
-+	if (kprobes_built_in() && !user_mode(regs)) {
- 		preempt_disable();
- 		if (kprobe_running() && kprobe_fault_handler(regs, 0))
- 			ret = 1;
-@@ -45,12 +44,6 @@ static inline int notify_page_fault(struct pt_regs *regs)
- 	}
- 	return ret;
- }
--#else
--static inline int notify_page_fault(struct pt_regs *regs)
--{
--	return 0;
--}
--#endif
- 
- static void __kprobes unhandled_fault(unsigned long address,
- 				      struct task_struct *tsk,
+ 	setup_sparc64_timer();
 -- 
 1.6.5
 
