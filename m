@@ -1,27 +1,58 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Fri, 11 Dec 2009 07:09:24 +0000
-Subject: Re: [PATCH] of: merge of_find_node_by_phandle
-Message-Id: <fa686aa40912102309y3b0882ddn90bb95c8ab0ae62d@mail.gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Date: Sun, 13 Dec 2009 23:08:11 +0000
+Subject: fstat seems broken on sparc64
+Message-Id: <alpine.LSU.2.01.0912132357090.19051@obet.zrqbmnf.qr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1260413279.306784.161998452424.1.gpush@pororo>
-In-Reply-To: <1260413279.306784.161998452424.1.gpush@pororo>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jeremy Kerr <jeremy.kerr@canonical.com>
-Cc: devicetree-discuss@lists.ozlabs.org, sparclinux@vger.kernel.org, microblaze-uclinux@itee.uq.edu.au, linuxppc-dev@lists.ozlabs.org
+To: sparclinux@vger.kernel.org
 
-On Wed, Dec 9, 2009 at 7:47 PM, Jeremy Kerr <jeremy.kerr@canonical.com> wrote:
-> Merge common function between powerpc, sparc and microblaze. Code is
-> identical for powerpc and microblaze, but adds a lock (and release) of
-> the devtree_lock on sparc.
->
-> Currently untested.
->
-> Signed-off-by: Jeremy Kerr <jeremy.kerr@canonical.com>
+Hi,
 
-Added to my test branch.  We'll see how it shakes out.
 
--- 
-Grant Likely, B.Sc., P.Eng.
-Secret Lab Technologies Ltd.
+I noticed 64-bit tar incorrectly creating symlinks, and isolated this to 
+this testcase:
+
+---
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(void)
+{
+	struct stat sb;
+	int fd = open("foo", O_RDWR | O_CREAT, 0666);
+
+	if (fd < 0)
+		abort();
+	if (fstat(fd, &sb) < 0)
+		abort();
+	printf("%lu.%lu\n", sb.st_mtim.tv_sec, sb.st_mtim.tv_nsec);
+	if (stat("foo", &sb) < 0)
+		abort();
+	printf("%lu.%lu\n", sb.st_mtim.tv_sec, sb.st_mtim.tv_nsec);
+	if (fstatat(AT_FDCWD, "foo", &sb, 0) < 0)
+		abort();
+	printf("%lu.%lu\n", sb.st_mtim.tv_sec, sb.st_mtim.tv_nsec);
+	return 0;
+}
+---
+
+Compile with -m64. The problem does not show up with -m32.
+
+Linux ares 2.6.32 #16 SMP Sat Dec 5 21:02:04 CET 2009 sparc64 sparc64 
+sparc64 GNU/Linux [sun4v]
+
+This testcase will print, for example:
+
+1260745109.0
+1260745109.876573675
+1260745109.876573675
+
+So on a quick glance, fstat64 looks broken.
+I am trying to look at it further, but I hope you can beat me to it ;-)
+
+
+Jan
