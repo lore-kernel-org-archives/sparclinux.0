@@ -1,33 +1,93 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Thu, 10 Dec 2009 22:21:47 +0000
-Subject: Re: [PATCH 09/11] of: merge of_attach_node() & of_detach_node()
-Message-Id: <fa686aa40912101421h4eabfeaat7925d89ebfe2c5a0@mail.gmail.com>
+From: Alexander Beregalov <a.beregalov@gmail.com>
+Date: Sun, 20 Dec 2009 12:16:36 +0000
+Subject: [PATCH 2/2] sparc: us2e_cpufreq.c: fix warnings/errors
+Message-Id: <1261311396-609-2-git-send-email-a.beregalov@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20091124081316.6216.66310.stgit@angua> <20091124081931.6216.27102.stgit@angua>
-	<1259208468.16367.234.camel@pasglop>
-In-Reply-To: <1259208468.16367.234.camel@pasglop>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: linuxppc-dev@lists.ozlabs.org, devicetree-discuss@lists.ozlabs.org, sparclinux@vger.kernel.org, microblaze-uclinux@itee.uq.edu.au, sfr@canb.auug.org.au, davem@davemloft.net, monstr@monstr.eu
+To: sparclinux@vger.kernel.org
 
-On Wed, Nov 25, 2009 at 9:07 PM, Benjamin Herrenschmidt
-<benh@kernel.crashing.org> wrote:
-> On Tue, 2009-11-24 at 01:19 -0700, Grant Likely wrote:
->> Merge common code between PowerPC and Microblaze
->
-> Some of those guys might wnat to be in of_dynamic (see previous email)
->
-> Remember: We want to keep the footprint low for embedded archs that
-> don't want to do dynamic stuff. Really low.
+Fix warnings which become build errors since -Werror is used.
+arch/sparc/kernel/us2e_cpufreq.c:180: error: control reaches end of non-void function
+arch/sparc/kernel/us2e_cpufreq.c:203: error: control reaches end of non-void function
 
-I agree.  If it is okay by you I'll update this in a subsequent patch.
- Once the code is merge, then I'm going to do a bunch of refactoring
-patches.
+Signed-off-by: Alexander Beregalov <a.beregalov@gmail.com>
+---
+ arch/sparc/kernel/us2e_cpufreq.c |   28 ++++++++++++++++++----------
+ 1 files changed, 18 insertions(+), 10 deletions(-)
 
-g.
-
+diff --git a/arch/sparc/kernel/us2e_cpufreq.c b/arch/sparc/kernel/us2e_cpufreq.c
+index 791c151..d505233 100644
+--- a/arch/sparc/kernel/us2e_cpufreq.c
++++ b/arch/sparc/kernel/us2e_cpufreq.c
+@@ -158,48 +158,56 @@ static void us2e_transition(unsigned long estar, unsigned long new_bits,
+ 
+ static unsigned long index_to_estar_mode(unsigned int index)
+ {
++	unsigned long ret = 0;
++
+ 	switch (index) {
+ 	case 0:
+-		return ESTAR_MODE_DIV_1;
++		ret = ESTAR_MODE_DIV_1;
+ 
+ 	case 1:
+-		return ESTAR_MODE_DIV_2;
++		ret = ESTAR_MODE_DIV_2;
+ 
+ 	case 2:
+-		return ESTAR_MODE_DIV_4;
++		ret = ESTAR_MODE_DIV_4;
+ 
+ 	case 3:
+-		return ESTAR_MODE_DIV_6;
++		ret = ESTAR_MODE_DIV_6;
+ 
+ 	case 4:
+-		return ESTAR_MODE_DIV_8;
++		ret = ESTAR_MODE_DIV_8;
+ 
+ 	default:
+ 		BUG();
+ 	};
++
++	return ret;
+ }
+ 
+ static unsigned long index_to_divisor(unsigned int index)
+ {
++	unsigned long ret = 0;
++
+ 	switch (index) {
+ 	case 0:
+-		return 1;
++		ret = 1;
+ 
+ 	case 1:
+-		return 2;
++		ret = 2;
+ 
+ 	case 2:
+-		return 4;
++		ret = 4;
+ 
+ 	case 3:
+-		return 6;
++		ret = 6;
+ 
+ 	case 4:
+-		return 8;
++		ret = 8;
+ 
+ 	default:
+ 		BUG();
+ 	};
++
++	return ret;
+ }
+ 
+ static unsigned long estar_to_divisor(unsigned long estar)
 -- 
-Grant Likely, B.Sc., P.Eng.
-Secret Lab Technologies Ltd.
+1.6.6.rc3
+
