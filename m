@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 15 Dec 2009 07:38:40 +0000
+From: Jan Engelhardt <jengelh@medozas.de>
+Date: Tue, 22 Dec 2009 14:38:44 +0000
 Subject: Re: fstat seems broken on sparc64
-Message-Id: <20091214.233840.236673621.davem@davemloft.net>
+Message-Id: <alpine.LSU.2.01.0912221512520.26016@obet.zrqbmnf.qr>
 List-Id: <sparclinux.vger.kernel.org>
 References: <alpine.LSU.2.01.0912132357090.19051@obet.zrqbmnf.qr>
 In-Reply-To: <alpine.LSU.2.01.0912132357090.19051@obet.zrqbmnf.qr>
@@ -10,35 +10,83 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Jan Engelhardt <jengelh@medozas.de>
-Date: Mon, 14 Dec 2009 15:22:16 +0100 (CET)
 
-> I added some dump_stack() to all the cp_* functions, leading
-> to this result:
-> 
-> Call Trace:
->  [0000000000522990] cp_new_stat+0xdc/0x134
->  [0000000000522d9c] SyS_newfstat+0x24/0x38
->  [0000000000406294] linux_sparc_syscall+0x34/0x44
-> 
-> Is glibc doing the right thing here? Calling sys_newfstat (instead of 
-> sys_newfstat64) for fstat64()?
+David Miller wrote:
+>David Miller wrote:
+>>Jan Engelhardt wrote:
+>>
+>>> It is because arch/sparc/include/stat.h does not define STAT_HAVE_NSEC 
+>>> for 64-bit sparc, even though there's nsec in struct stat64.
+>>> That leads to fs/stat.c not copying the subsecond parts to userspace (in 
+>>> function cp_new_stat).
+>>
+>>cp_new_stat() handles "struct stat", not "struct stat64"
+>>
+>>cp_new_stat64() does that, and it unconditionally fills in
+>>the nsec parts.
+>
+>BTW, did you ever resolve the 64-bit stat() issue?  Was it
+>a bum build of Fedora's sparc64 glibc?
 
-That's completely bogus.
+Seems Debian's glibc is also affected:
 
-And I can't reproduce your problem on debian unstable.  What
-are you using, Fedora?  Maybe something is fubared in their
-glibc build or the checkout they are using.
+$ LD_LIBRARY_PATH=/dev/shm/d/lib64
+  /dev/shm/d/lib64/ld-linux.so.2 ./stat64
+1260745109.0
 
-davem@sunset:~/src/GIT/linux-2.6$ /lib/libc.so.6 --version
+$ LD_LIBRARY_PATH=/dev/shm/d/lib64 /dev/shm/d/lib64/libc.so.6 
+
+GNU C Library stable release version 2.7, by Roland McGrath et al.
+Copyright (C) 2007 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.
+There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.
+Compiled by GNU CC version 4.3.2.
+Compiled on a Linux >>2.6.28.10<< system on 2009-10-20.
+Available extensions:
+        crypt add-on version 2.1 by Michael Glad and others
+        GNU Libidn by Simon Josefsson
+        Native POSIX Threads Library by Ulrich Drepper et al
+        BIND-8.2.3-T5B
+        software FPU emulation by Richard Henderson, Jakub Jelinek and others
+For bug reporting instructions, please see:
+<http://www.gnu.org/software/libc/bugs.html>.
+
+Same for eglibc 2.10:
+
+$ LD_LIBRARY_PATH=/dev/shm/d10/lib64 /dev/shm/d10/lib64/ld-linux.so.2 ./stat64
+1260745109.0
+
+$ LD_LIBRARY_PATH=/dev/shm/d10/lib64 /dev/shm/d10/lib64/libc.so.6
+
 GNU C Library (EGLIBC) stable release version 2.10.2, by Roland McGrath et al.
- ...
-davem@sunset:~/src/GIT/linux-2.6$ gcc -m64 -o x x.c
-davem@sunset:~/src/GIT/linux-2.6$ ./x
-1260862562.0
-1260862562.0
-1260862562.0
-davem@sunset:~/src/GIT/linux-2.6$
+Copyright (C) 2009 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.
+There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.
+Compiled by GNU CC version 4.4.2.
+Compiled on a Linux >>2.6.26-2-sparc64-smp<< system on 2009-11-24.
+Available extensions:
+        crypt add-on version 2.1 by Michael Glad and others
+        GNU Libidn by Simon Josefsson
+        Native POSIX Threads Library by Ulrich Drepper et al
+        BIND-8.2.3-T5B
+        software FPU emulation by Richard Henderson, Jakub Jelinek and others
+For bug reporting instructions, please see:
+<http://www.eglibc.org/issues/>.
 
-I even checked current glibc GIT and everything looks kosher there
-too.
+
+>   Also, why are you
+>building 64-bit binaries?  Just for testing?
+
+Same reason koji builds sparc64... or:
+
+Assume there's a scientific program needing >4GB address space, so I
+need at least _a little_ 64-bit. It just so happens that I defaulted
+to populate the buildroot with a 64-bit base, as using a 32-bit base
+would have meant ugly changes to the build script I am using --
+coexistence of, say, libacl-64bit (dependency of sci prog) and
+libacl-32bit (dependency of a 32-bit coreutils).
+
+Well yes, call it testing. Apparently, I found a bug.
+So mission accomplished :-)
