@@ -1,32 +1,31 @@
-From: Alexander Beregalov <a.beregalov@gmail.com>
-Date: Wed, 23 Dec 2009 01:14:11 +0000
-Subject: Re: [PATCH 1/2] sparc: us3_cpufreq.c: fix warnings/errors
-Message-Id: <a4423d670912221714o520010faoe45e5e5c87fb7a3c@mail.gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Date: Tue, 22 Dec 2009 00:06:26 +0000
+Subject: Checking for v9v/64v capability
+Message-Id: <alpine.LSU.2.01.0912220054220.25079@obet.zrqbmnf.qr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1261311396-609-1-git-send-email-a.beregalov@gmail.com>
-In-Reply-To: <1261311396-609-1-git-send-email-a.beregalov@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: sparclinux@vger.kernel.org
 
-2009/12/21 Sam Ravnborg <sam@ravnborg.org>:
-> On Mon, Dec 21, 2009 at 12:14:11PM -0800, David Miller wrote:
->> From: Sam Ravnborg <sam@ravnborg.org>
->> Date: Mon, 21 Dec 2009 20:59:21 +0100
->>
->> > As the comment says:
->> > "Don't use BUG() or BUG_ON() unless there's really no way out;"
->> >
->> > I would have expected to see something like this:
->> > #define BUG() do {} while(1)
->>
->> Maybe we can use "unreachable()" here.
-> Makes sense.
->
-> Alexander - could you please try to add an
-> unreachable() call in in bug.h and if it
-> kills the warnings as expected then send
-> a patch to Arnd including a proper
-> changelog describing why this was need.
-It fixes the problem, thanks!
+Hi,
+
+
+RPM offers the targets sparcv9v/sparc64v (which is, simply put,
+cflags += -mtune=niagara).
+
+On a sun4v, it would make sense to prefer v9v/64v packages over v9/64
+packages — and the reverse on sun4u — when a package manager
+considers potential candidate files for installation of a wanted
+package.
+
+But how would the package manager (apt-get/yum/zypper) decide whether 
+they are on sun4v or not, without resorting to testing for 
+SPARC-specific hardware itself? That is to say, I think the kernel 
+should hand out this information in some way perhaps. Solaris's uname(2) 
+syscall would directly return sun4[cduv], while Linux just outputs 
+sparc/sparc64.
+
+
+thanks,
+Jan
