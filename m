@@ -1,25 +1,25 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 03 Dec 2009 06:29:29 +0000
-Subject: Re: [PATCH 0/3] sparc,leon: SPARC/LEON cleanup patches
-Message-Id: <20091202.222929.112243970.davem@davemloft.net>
+From: Meelis Roos <mroos@linux.ee>
+Date: Wed, 23 Dec 2009 08:48:22 +0000
+Subject: arch/sparc/include/asm/uaccess_64.h warning/error
+Message-Id: <alpine.SOC.1.00.0912231041010.1790@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1259764222-1802-1-git-send-email-kristoffer@gaisler.com>
-In-Reply-To: <1259764222-1802-1-git-send-email-kristoffer@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Kristoffer Glembo <kristoffer@gaisler.com>
-Date: Wed,  2 Dec 2009 15:30:19 +0100
+Like on x86, I got an error with CONFIG_DEBUG_STRICT_USER_COPY_CHECKS on 
+sparc64 too:
 
-> These patches remove warnings and do some minor cleanup.
-> 
-> I dropped the idprom patch. We fake one in the boot loader.
-> 
-> Kristoffer Glembo (3):
->   sparc,leon: Added Aeroflex Gaisler in manufacturer_info structure
->   sparc32: Remove early interrupt enable.
->   sparc,leon: init_leon srmmu cleanup
+  CC      fs/debugfs/file.o
+In file included from /home/mroos/compile/linux-2.6/arch/sparc/include/asm/uaccess.h:4,
+                 from /home/mroos/compile/linux-2.6/arch/sparc/include/asm/elf_64.h:10,
+                 from /home/mroos/compile/linux-2.6/arch/sparc/include/asm/elf.h:4,
+                 from include/linux/elf.h:7,
+                 from include/linux/module.h:14,
+                 from fs/debugfs/file.c:16:
+/home/mroos/compile/linux-2.6/arch/sparc/include/asm/uaccess_64.h: In function 'write_file_bool':
+/home/mroos/compile/linux-2.6/arch/sparc/include/asm/uaccess_64.h:232: error: call to 'copy_from_user_overflow' declared with attribute error: copy_from_user() buffer size is not provably correct
 
-Thanks a lot, all applied to sparc-next-2.6
+-- 
+Meelis Roos (mroos@linux.ee)
