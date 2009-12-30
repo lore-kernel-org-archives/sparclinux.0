@@ -1,60 +1,26 @@
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
-Date: Wed, 30 Dec 2009 08:58:39 +0000
-Subject: [PATCH] SPARC: Simplify param.h by simply including
-Message-Id: <alpine.LFD.2.00.0912300356540.13010@localhost>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Wed, 30 Dec 2009 13:14:37 +0000
+Subject: Re: [PATCH] SPARC: Simplify param.h by simply including
+Message-Id: <20091230131437.GA13201@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <alpine.LFD.2.00.0912300356540.13010@localhost>
+In-Reply-To: <alpine.LFD.2.00.0912300356540.13010@localhost>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+On Wed, Dec 30, 2009 at 03:58:39AM -0500, Robert P. J. Day wrote:
+> 
+> Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+> 
+> ---
+> 
+>   override the only difference, EXEC_PAGESIZE, then include the
+> generic version.
 
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Looks good.
 
----
+Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 
-  override the only difference, EXEC_PAGESIZE, then include the
-generic version.
-
-diff --git a/arch/sparc/include/asm/param.h b/arch/sparc/include/asm/param.h
-index 9836d9a..0bc356b 100644
---- a/arch/sparc/include/asm/param.h
-+++ b/arch/sparc/include/asm/param.h
-@@ -1,22 +1,7 @@
- #ifndef _ASMSPARC_PARAM_H
- #define _ASMSPARC_PARAM_H
-
--#ifdef __KERNEL__
--# define HZ		CONFIG_HZ	/* Internal kernel timer frequency */
--# define USER_HZ	100	/* .. some user interfaces are in "ticks" */
--# define CLOCKS_PER_SEC (USER_HZ)
--#endif
--
--#ifndef HZ
--#define HZ 100
--#endif
--
- #define EXEC_PAGESIZE	8192    /* Thanks for sun4's we carry baggage... */
-+#include <asm-generic/param.h>
-
--#ifndef NOGROUP
--#define NOGROUP		(-1)
--#endif
--
--#define MAXHOSTNAMELEN	64	/* max length of hostname */
--
--#endif
-+#endif /* _ASMSPARC_PARAM_H */
-
-
-rday
---
-
-====================================
-Robert P. J. Day                               Waterloo, Ontario, CANADA
-
-            Linux Consulting, Training and Kernel Pedantry.
-
-Web page:                                          http://crashcourse.ca
-Twitter:                                       http://twitter.com/rpjday
-====================================
+	Sam
