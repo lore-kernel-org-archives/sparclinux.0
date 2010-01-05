@@ -1,29 +1,41 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 12 Jan 2010 09:59:58 +0000
-Subject: Re: [PATCH] SPARC: Simplify param.h by simply including
-Message-Id: <20100112.015958.146880763.davem@davemloft.net>
+Date: Tue, 05 Jan 2010 07:28:35 +0000
+Subject: [GIT]: Sparc
+Message-Id: <20100104.232835.124284338.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LFD.2.00.0912300356540.13010@localhost>
-In-Reply-To: <alpine.LFD.2.00.0912300356540.13010@localhost>
+References: <20080421.153231.108090227.davem@davemloft.net>
+In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Wed, 30 Dec 2009 14:14:37 +0100
 
-> On Wed, Dec 30, 2009 at 03:58:39AM -0500, Robert P. J. Day wrote:
->> 
->> Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
->> 
->> ---
->> 
->>   override the only difference, EXEC_PAGESIZE, then include the
->> generic version.
-> 
-> Looks good.
-> 
-> Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
+Fix some fundamental perf issues that were undiscovered until perf top
+started using rate based profiling by default.
 
-Applied, thanks everyone.
+Fix a crash in bbc_envctrl on unload if kthread_run() fails during
+load.  Still need to figure out why kthread_run() is erroring out
+though...
+
+Please pull, thanks a lot!
+
+The following changes since commit c5974b835a909ff15c3b7e6cf6789b5eb919f419:
+  Linus Torvalds (1):
+        Merge branch 'limits_cleanup' of git://decibel.fi.muni.cz/~xslaby/linux
+
+are available in the git repository at:
+
+  master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
+
+David S. Miller (4):
+      bbc_envctrl: Clean up properly if kthread_run() fails.
+      Merge branch 'master' of /home/davem/src/GIT/linux-2.6/
+      sparc64: Fix NMI programming when perf events are active.
+      sparc64: Fix Niagara2 perf event handling.
+
+ arch/sparc/kernel/nmi.c         |    3 +-
+ arch/sparc/kernel/perf_event.c  |   11 +++++++
+ drivers/sbus/char/bbc_envctrl.c |   64 +++++++++++++++++++++++----------------
+ 3 files changed, 51 insertions(+), 27 deletions(-)
