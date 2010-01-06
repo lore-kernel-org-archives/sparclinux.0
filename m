@@ -1,53 +1,49 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 26 Jan 2010 12:12:53 +0000
-Subject: Re: [GIT]: Sparc
-Message-Id: <20100126.041253.189819572.davem@davemloft.net>
+From: Anton Blanchard <anton@samba.org>
+Date: Wed, 06 Jan 2010 04:55:14 +0000
+Subject: [patch 5/6] sparc: cpumask_of_node() should handle -1 as a node
+Message-Id: <20100106045525.329010098@samba.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100125.165644.197238824.davem@davemloft.net>
-	<a4423d671001260123r7013a92fqb007e4f255e8b3ba@mail.gmail.com>
-In-Reply-To: <a4423d671001260123r7013a92fqb007e4f255e8b3ba@mail.gmail.com>
+References: <20100106045509.245662398@samba.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: a.beregalov@gmail.com
-Cc: torvalds@linux-foundation.org, akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Rusty Russell <rusty@rustcorp.com.au>, Andrew Morton <akpm@linux-foundation.org>
 
-From: Alexander Beregalov <a.beregalov@gmail.com>
-Date: Tue, 26 Jan 2010 12:23:06 +0300
+pcibus_to_node can return -1 if we cannot determine which node a pci bus
+is on. If passed -1, cpumask_of_node will negatively index the lookup array
+and pull in random data:
 
-> Hi David
->=20
->> 7) IRQ ->set_affinity() using wrong cpu mask, thanks to Ben H. for
->> =A0 noticing.
->> =A0 =A0 =A0sparc64: Fix IRQ ->set_affinity() methods.
->=20
-> This commit breaks UP build
+# cat /sys/devices/pci0000:00/0000:00:01.0/local_cpus
+00000000,00000003,00000000,00000000
+# cat /sys/devices/pci0000:00/0000:00:01.0/local_cpulist
+64-65
 
-Sorry, I'll fix this, thanks for the report.
+Change cpumask_of_node to check for -1 and return cpu_all_mask in this
+case:
 
-sparc64: Fix UP build.
+# cat /sys/devices/pci0000:00/0000:00:01.0/local_cpus
+ffffffff,ffffffff,ffffffff,ffffffff
+# cat /sys/devices/pci0000:00/0000:00:01.0/local_cpulist
+0-127
 
-Can't reference irq_desc[].affinity when !SMP.
+Signed-off-by: Anton Blanchard <anton@samba.org>
+---
 
-Reported-by: Alexander Beregalov <a.beregalov@gmail.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Index: linux-cpumask/arch/sparc/include/asm/topology_64.h
+=================================--- linux-cpumask.orig/arch/sparc/include/asm/topology_64.h	2010-01-06 15:20:22.912584116 +1100
++++ linux-cpumask/arch/sparc/include/asm/topology_64.h	2010-01-06 15:27:17.209419879 +1100
+@@ -12,7 +12,9 @@ static inline int cpu_to_node(int cpu)
+ 
+ #define parent_node(node)	(node)
+ 
+-#define cpumask_of_node(node) (&numa_cpumask_lookup_table[node])
++#define cpumask_of_node(node) ((node) = -1 ?				\
++			       cpu_all_mask :				\
++			       &numa_cpumask_lookup_table[node])
+ 
+ struct pci_bus;
+ #ifdef CONFIG_PCI
 
-diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
-index f2179cc..e1cbdb9 100644
---- a/arch/sparc/kernel/irq_64.c
-+++ b/arch/sparc/kernel/irq_64.c
-@@ -268,10 +268,8 @@ static int irq_choose_cpu(unsigned int virt_irq, const=
- struct cpumask *affinity)
- 	return cpuid;
- }
- #else
--static int irq_choose_cpu(unsigned int virt_irq, const struct cpumask *aff=
-inity)
--{
--	return real_hard_smp_processor_id();
--}
-+#define irq_choose_cpu(virt_irq, affinity)	\
-+	real_hard_smp_processor_id()
- #endif
-=20
- static void sun4u_irq_enable(unsigned int virt_irq)
+-- 
+
