@@ -1,73 +1,65 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 12 Dec 2009 06:55:33 +0000
-Subject: [PATCH 3/10]: sparc64: Add some missing __kprobes annotations to
-Message-Id: <20091211.225533.104035837.davem@davemloft.net>
+From: Jiri Slaby <jslaby@suse.cz>
+Date: Wed, 06 Jan 2010 15:24:33 +0000
+Subject: [PATCH] SPARC: use helpers for rlimits
+Message-Id: <1262791479-26594-5-git-send-email-jslaby@suse.cz>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1262791479-26594-1-git-send-email-jslaby@suse.cz>
+In-Reply-To: <1262791479-26594-1-git-send-email-jslaby@suse.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: jirislaby@gmail.com
+Cc: linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
+Make sure compiler won't do weird things with limits. E.g. fetching
+them twice may return 2 different values after writable limits are
+implemented.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+I.e. either use rlimit helpers added in
+3e10e716abf3c71bdb5d86b8f507f9e72236c9cd
+or ACCESS_ONCE if not applicable.
+
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
 ---
- arch/sparc/mm/fault_64.c |   15 ++++++++-------
- 1 files changed, 8 insertions(+), 7 deletions(-)
+ arch/sparc/kernel/sys_sparc_64.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/sparc/mm/fault_64.c b/arch/sparc/mm/fault_64.c
-index 0aa50b2..6081936 100644
---- a/arch/sparc/mm/fault_64.c
-+++ b/arch/sparc/mm/fault_64.c
-@@ -31,7 +31,7 @@
- #include <asm/sections.h>
- #include <asm/mmu_context.h>
- 
--static inline int notify_page_fault(struct pt_regs *regs)
-+static inline __kprobes int notify_page_fault(struct pt_regs *regs)
+diff --git a/arch/sparc/kernel/sys_sparc_64.c b/arch/sparc/kernel/sys_sparc_64.c
+index cfa0e19..d77f543 100644
+--- a/arch/sparc/kernel/sys_sparc_64.c
++++ b/arch/sparc/kernel/sys_sparc_64.c
+@@ -365,6 +365,7 @@ EXPORT_SYMBOL(get_fb_unmapped_area);
+ void arch_pick_mmap_layout(struct mm_struct *mm)
  {
- 	int ret = 0;
+ 	unsigned long random_factor = 0UL;
++	unsigned long gap;
  
-@@ -66,7 +66,7 @@ static void __kprobes unhandled_fault(unsigned long address,
- 	die_if_kernel("Oops", regs);
- }
+ 	if (current->flags & PF_RANDOMIZE) {
+ 		random_factor = get_random_int();
+@@ -379,9 +380,10 @@ void arch_pick_mmap_layout(struct mm_struct *mm)
+ 	 * Fall back to the standard layout if the personality
+ 	 * bit is set, or if the expected stack growth is unlimited:
+ 	 */
++	gap = rlimit(RLIMIT_STACK);
+ 	if (!test_thread_flag(TIF_32BIT) ||
+ 	    (current->personality & ADDR_COMPAT_LAYOUT) ||
+-	    current->signal->rlim[RLIMIT_STACK].rlim_cur = RLIM_INFINITY ||
++	    gap = RLIM_INFINITY ||
+ 	    sysctl_legacy_va_layout) {
+ 		mm->mmap_base = TASK_UNMAPPED_BASE + random_factor;
+ 		mm->get_unmapped_area = arch_get_unmapped_area;
+@@ -389,9 +391,7 @@ void arch_pick_mmap_layout(struct mm_struct *mm)
+ 	} else {
+ 		/* We know it's 32-bit */
+ 		unsigned long task_size = STACK_TOP32;
+-		unsigned long gap;
  
--static void bad_kernel_pc(struct pt_regs *regs, unsigned long vaddr)
-+static void __kprobes bad_kernel_pc(struct pt_regs *regs, unsigned long vaddr)
- {
- 	printk(KERN_CRIT "OOPS: Bogus kernel PC [%016lx] in fault handler\n",
- 	       regs->tpc);
-@@ -163,8 +163,9 @@ static unsigned int get_fault_insn(struct pt_regs *regs, unsigned int insn)
- 	return insn;
- }
- 
--static void do_kernel_fault(struct pt_regs *regs, int si_code, int fault_code,
--			    unsigned int insn, unsigned long address)
-+static void __kprobes do_kernel_fault(struct pt_regs *regs, int si_code,
-+				      int fault_code, unsigned int insn,
-+				      unsigned long address)
- {
- 	unsigned char asi = ASI_P;
-  
-@@ -218,7 +219,7 @@ cannot_handle:
- 	unhandled_fault (address, current, regs);
- }
- 
--static void noinline bogus_32bit_fault_tpc(struct pt_regs *regs)
-+static void noinline __kprobes bogus_32bit_fault_tpc(struct pt_regs *regs)
- {
- 	static int times;
- 
-@@ -230,8 +231,8 @@ static void noinline bogus_32bit_fault_tpc(struct pt_regs *regs)
- 	show_regs(regs);
- }
- 
--static void noinline bogus_32bit_fault_address(struct pt_regs *regs,
--					       unsigned long addr)
-+static void noinline __kprobes bogus_32bit_fault_address(struct pt_regs *regs,
-+							 unsigned long addr)
- {
- 	static int times;
- 
+-		gap = current->signal->rlim[RLIMIT_STACK].rlim_cur;
+ 		if (gap < 128 * 1024 * 1024)
+ 			gap = 128 * 1024 * 1024;
+ 		if (gap > (task_size / 6 * 5))
 -- 
-1.6.5
+1.6.5.7
 
