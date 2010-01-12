@@ -1,28 +1,29 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 08 Jan 2010 08:03:37 +0000
-Subject: Re: [PATCH] SPARC: use helpers for rlimits
-Message-Id: <20100108.000337.255400791.davem@davemloft.net>
+Date: Tue, 12 Jan 2010 09:59:58 +0000
+Subject: Re: [PATCH] SPARC: Simplify param.h by simply including
+Message-Id: <20100112.015958.146880763.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1262791479-26594-1-git-send-email-jslaby@suse.cz>
-	<1262791479-26594-5-git-send-email-jslaby@suse.cz>
-In-Reply-To: <1262791479-26594-5-git-send-email-jslaby@suse.cz>
+References: <alpine.LFD.2.00.0912300356540.13010@localhost>
+In-Reply-To: <alpine.LFD.2.00.0912300356540.13010@localhost>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: jslaby@suse.cz
-Cc: jirislaby@gmail.com, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Jiri Slaby <jslaby@suse.cz>
-Date: Wed,  6 Jan 2010 16:24:33 +0100
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Wed, 30 Dec 2009 14:14:37 +0100
 
-> Make sure compiler won't do weird things with limits. E.g. fetching
-> them twice may return 2 different values after writable limits are
-> implemented.
+> On Wed, Dec 30, 2009 at 03:58:39AM -0500, Robert P. J. Day wrote:
+>> 
+>> Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+>> 
+>> ---
+>> 
+>>   override the only difference, EXEC_PAGESIZE, then include the
+>> generic version.
 > 
-> I.e. either use rlimit helpers added in
-> 3e10e716abf3c71bdb5d86b8f507f9e72236c9cd
-> or ACCESS_ONCE if not applicable.
+> Looks good.
 > 
-> Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+> Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 
-Applied, thanks Jiri.
+Applied, thanks everyone.
