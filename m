@@ -1,28 +1,26 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 14 Jan 2010 11:12:07 +0000
-Subject: Re: [PATCH 2/2] Added leon3_dma_ops and LEON specific
-Message-Id: <20100114.031207.73913126.davem@davemloft.net>
+Date: Tue, 12 Jan 2010 08:42:35 +0000
+Subject: Re: [patch 1/1] sparc: convert to arch_gettimeoffset()
+Message-Id: <20100112.004235.234303007.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1257172092-25026-2-git-send-email-kristoffer@gaisler.com>
-In-Reply-To: <1257172092-25026-2-git-send-email-kristoffer@gaisler.com>
+References: <200912220028.nBM0S5uX005437@imap1.linux-foundation.org>
+In-Reply-To: <200912220028.nBM0S5uX005437@imap1.linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Kristoffer Glembo <kristoffer@gaisler.com>
-Date: Thu, 14 Jan 2010 12:05:34 +0100
+From: akpm@linux-foundation.org
+Date: Mon, 21 Dec 2009 16:28:05 -0800
 
-> It works fine for me!
- ...
-> Yes this change works as well.
+> +extern u32 (*do_arch_gettimeoffset)(void);
+> +
 
-Thanks for testing.
+Please put this declaration into a header file that both
+pcic.c and time_32.c can include, rather than pcic.c
 
-> Hmm, srmmu_mk_pte() uses page_to_pfn() which accounts for pfn_base?
+Otherwise sparse will complain, time_32.c's definition
+can get out of sync, etc.
 
-My eyes aren't working, I confused page_to_pfn() with page_to_phys().
+Thanks.
 
-Great, now it is all clear.
-
-I'll add the fix to sparc-2.6, thanks again.
