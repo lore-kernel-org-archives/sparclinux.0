@@ -1,25 +1,28 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 15 Jan 2010 09:28:03 +0000
-Subject: Re: [PATCH] sparc: leds_resource.end assigned to itself in
-Message-Id: <20100115.012803.118035218.davem@davemloft.net>
+From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
+Date: Wed, 13 Jan 2010 08:29:25 +0000
+Subject: Re: linux-image-2.6.26-1-sparc64-smp: [sparc] SunFire480R cassini network driver kernel panic
+Message-Id: <20100113082925.GA15798@lemon.iwr.uni-heidelberg.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4B4F4C9B.9040202@gmail.com>
-	<20100114183054.0b53c351@taxman.wild-wind.fr.eu.org>
-	<4B4F762A.20605@gmail.com>
-In-Reply-To: <4B4F762A.20605@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: roel.kluin@gmail.com
-Cc: maz@misterjones.org, sparclinux@vger.kernel.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Roel Kluin <roel.kluin@gmail.com>
-Date: Thu, 14 Jan 2010 20:53:14 +0100
+On Tue, Jan 12, 2010 at 10:35:53PM +0100, Moritz Muehlenhoff wrote:
+> The conversation with Dave petered out, was the further discussion/
+> investigation?
 
-> It should be a 1 byte region.
-> 
-> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+I tried again with vanilla 2.6.32 (2.6.27-2.6.31 are unusable due to a kernel
+memory corruption bug), the driver is still crashing my Sunfire V480R.
 
-Yes, that was the intention.
+Have no time to enable debugging and test more at the moment, but will try 
+later.
 
-Applied, thanks Roel!
+Greetings
+  Hermann
+
+-- 
+Netzwerkadministration/Zentrale Dienste, Interdiziplinaeres 
+Zentrum fuer wissenschaftliches Rechnen der Universitaet Heidelberg
+IWR; INF 368; 69120 Heidelberg; Tel: (06221)54-8236 Fax: -5224
+Email: Hermann.Lauer@iwr.uni-heidelberg.de
