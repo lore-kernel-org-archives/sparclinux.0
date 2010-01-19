@@ -1,86 +1,168 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Date: Mon, 11 Jan 2010 09:06:45 +0000
-Subject: Re: fstat seems broken on sparc64
-Message-Id: <alpine.LSU.2.01.1001111000290.14377@obet.zrqbmnf.qr>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 19 Jan 2010 08:26:45 +0000
+Subject: [PATCH]: sparc64: Add perf callchain support.
+Message-Id: <20100119.002645.70252139.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LSU.2.01.1001082355250.20848@obet.zrqbmnf.qr> <20100110.131158.242584083.davem@davemloft.net> <alpine.LSU.2.01.1001102347280.23052@obet.zrqbmnf.qr> <20100110.224253.00558907.davem@davemloft.net>
-In-Reply-To: <20100110.224253.00558907.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
 
-On Monday 2010-01-11 07:42, David Miller wrote:
->> On Sunday 2010-01-10 22:11, David Miller wrote:
->>>
->>>> libc6   2.10.2-4
->>>
->>>Perfect, now you just have to audit what changed between the -2 and
->>>the -4 package to find the bug :-)
->> 
->> I really do not believe you when you say your glibc is not affected.
->
->Why not :-)
->
->davem@sunset:~$ dpkg-query -W | grep libc6-sparc64
->libc6-sparc64	2.10.2-2
->davem@sunset:~$ cat fstat_test.c
->#include <sys/stat.h>
->#include <fcntl.h>
->#include <stdio.h>
->#include <stdlib.h>
->
->int main(void)
->{
->	struct stat sb;
->	int fd = open("foo", O_RDWR | O_CREAT, 0666);
->
->	if (fd < 0)
->		abort();
->	if (fstat(fd, &sb) < 0)
->		abort();
->	printf("%lu.%lu\n", sb.st_mtim.tv_sec, sb.st_mtim.tv_nsec);
->	if (stat("foo", &sb) < 0)
->		abort();
->	printf("%lu.%lu\n", sb.st_mtim.tv_sec, sb.st_mtim.tv_nsec);
->	if (fstatat(AT_FDCWD, "foo", &sb, 0) < 0)
->		abort();
->	printf("%lu.%lu\n", sb.st_mtim.tv_sec, sb.st_mtim.tv_nsec);
->	return 0;
->}
->davem@sunset:~$ gcc -m64 -o fstat_test fstat_test.c
->davem@sunset:~$ ./fstat_test
->1261510364.0
->1261510364.0
->1261510364.0
->davem@sunset:~$ 
->But, indeed when I run it under strace64 it goes:
->
->open("foo", O_RDWR|O_CREAT, 0666)       = 3
->fstat(3, {st_mode=S_IFREG|0644, st_size=0, ...}) = 0
->fstat(1, {st_mode=S_IFCHR|0620, st_rdev=makedev(136, 2), ...}) = 0
->
->I wonder why I get a sane output from the test program even though
->it's not using fstat64.
+Pretty straightforward, and it should be easy to add accurate
+walk through of signal stack frames in userspace.
 
-I would recommend that you run the testcase on a filesystem that
-supports and records subsecond timestamps, and that the file is
-created at a moment where the subsecond part is not 0. When in doubt,
-use touch(1) to apply some subseconds, but usually, just running it
-will create it at a non-zero subsecond with a high probability.
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/kernel/perf_event.c |  120 +++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 119 insertions(+), 1 deletions(-)
 
->> =================================>> --- glibc-2.10.1.orig/sysdeps/unix/sysv/linux/sparc/sparc64/fxstat.c
->> +++ glibc-2.10.1/sysdeps/unix/sysv/linux/sparc/sparc64/fxstat.c
->> @@ -1 +1 @@
->> -#include "../../fxstat.c"
->> +#include "../../i386/fxstat.c"
->> 
->> (Hint: Compare with sparc64/lxstat.c
->
->Thanks a lot!
->
->Please submit this to the glibc/eglibc folks for inclusion!
->
-http://sources.redhat.com/bugzilla/show_bug.cgi?id155
+diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
+index 198fb4e..2386ac6 100644
+--- a/arch/sparc/kernel/perf_event.c
++++ b/arch/sparc/kernel/perf_event.c
+@@ -1,6 +1,6 @@
+ /* Performance event support for sparc64.
+  *
+- * Copyright (C) 2009 David S. Miller <davem@davemloft.net>
++ * Copyright (C) 2009, 2010 David S. Miller <davem@davemloft.net>
+  *
+  * This code is based almost entirely upon the x86 perf event
+  * code, which is:
+@@ -18,11 +18,15 @@
+ #include <linux/kdebug.h>
+ #include <linux/mutex.h>
+ 
++#include <asm/stacktrace.h>
+ #include <asm/cpudata.h>
++#include <asm/uaccess.h>
+ #include <asm/atomic.h>
+ #include <asm/nmi.h>
+ #include <asm/pcr.h>
+ 
++#include "kstack.h"
++
+ /* Sparc64 chips have two performance counters, 32-bits each, with
+  * overflow interrupts generated on transition from 0xffffffff to 0.
+  * The counters are accessed in one go using a 64-bit register.
+@@ -1062,3 +1066,117 @@ void __init init_hw_perf_events(void)
+ 
+ 	register_die_notifier(&perf_event_nmi_notifier);
+ }
++
++static inline void callchain_store(struct perf_callchain_entry *entry, u64 ip)
++{
++	if (entry->nr < PERF_MAX_STACK_DEPTH)
++		entry->ip[entry->nr++] = ip;
++}
++
++static void perf_callchain_kernel(struct pt_regs *regs,
++				  struct perf_callchain_entry *entry)
++{
++	unsigned long ksp, fp;
++
++	callchain_store(entry, PERF_CONTEXT_KERNEL);
++	callchain_store(entry, regs->tpc);
++
++	ksp = regs->u_regs[UREG_I6];
++	fp = ksp + STACK_BIAS;
++	do {
++		struct sparc_stackf *sf;
++		struct pt_regs *regs;
++		unsigned long pc;
++
++		if (!kstack_valid(current_thread_info(), fp))
++			break;
++
++		sf = (struct sparc_stackf *) fp;
++		regs = (struct pt_regs *) (sf + 1);
++
++		if (kstack_is_trap_frame(current_thread_info(), regs)) {
++			if (user_mode(regs))
++				break;
++			pc = regs->tpc;
++			fp = regs->u_regs[UREG_I6] + STACK_BIAS;
++		} else {
++			pc = sf->callers_pc;
++			fp = (unsigned long)sf->fp + STACK_BIAS;
++		}
++		callchain_store(entry, pc);
++	} while (entry->nr < PERF_MAX_STACK_DEPTH);
++}
++
++static void perf_callchain_user_64(struct pt_regs *regs,
++				   struct perf_callchain_entry *entry)
++{
++	unsigned long ufp;
++
++	callchain_store(entry, PERF_CONTEXT_USER);
++	callchain_store(entry, regs->tpc);
++
++	ufp = regs->u_regs[UREG_I6] + STACK_BIAS;
++	do {
++		struct sparc_stackf *usf, sf;
++		unsigned long pc;
++
++		usf = (struct sparc_stackf *) ufp;
++		if (__copy_from_user_inatomic(&sf, usf, sizeof(sf)))
++			break;
++
++		pc = sf.callers_pc;
++		ufp = (unsigned long)sf.fp + STACK_BIAS;
++		callchain_store(entry, pc);
++	} while (entry->nr < PERF_MAX_STACK_DEPTH);
++}
++
++static void perf_callchain_user_32(struct pt_regs *regs,
++				   struct perf_callchain_entry *entry)
++{
++	unsigned long ufp;
++
++	callchain_store(entry, PERF_CONTEXT_USER);
++	callchain_store(entry, regs->tpc);
++
++	ufp = regs->u_regs[UREG_I6];
++	do {
++		struct sparc_stackf32 *usf, sf;
++		unsigned long pc;
++
++		usf = (struct sparc_stackf32 *) ufp;
++		if (__copy_from_user_inatomic(&sf, usf, sizeof(sf)))
++			break;
++
++		pc = sf.callers_pc;
++		ufp = (unsigned long)sf.fp;
++		callchain_store(entry, pc);
++	} while (entry->nr < PERF_MAX_STACK_DEPTH);
++}
++
++/* Like powerpc we can't get PMU interrupts within the PMU handler,
++ * so no need for seperate NMI and IRQ chains as on x86.
++ */
++static DEFINE_PER_CPU(struct perf_callchain_entry, callchain);
++
++struct perf_callchain_entry *perf_callchain(struct pt_regs *regs)
++{
++	struct perf_callchain_entry *entry = &__get_cpu_var(callchain);
++
++	entry->nr = 0;
++	if (!user_mode(regs)) {
++		stack_trace_flush();
++		perf_callchain_kernel(regs, entry);
++		if (current->mm)
++			regs = task_pt_regs(current);
++		else
++			regs = NULL;
++	}
++	if (regs) {
++		flushw_user();
++		if (test_thread_flag(TIF_32BIT))
++			perf_callchain_user_32(regs, entry);
++		else
++			perf_callchain_user_64(regs, entry);
++	}
++	return entry;
++}
+-- 
+1.6.5
+
