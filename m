@@ -1,35 +1,20 @@
-From: Jens Axboe <jens.axboe@oracle.com>
-Date: Wed, 20 Jan 2010 11:35:08 +0000
-Subject: Re: [PATCH]: sparc64: Add perf callchain support.
-Message-Id: <20100120113508.GC13771@kernel.dk>
+From: Meelis Roos <mroos@linux.ee>
+Date: Tue, 26 Jan 2010 10:59:43 +0000
+Subject: irq_64.c compiler error in todays 2.6.33-rc5+git
+Message-Id: <alpine.SOC.1.00.1001261258400.10773@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100119.002645.70252139.davem@davemloft.net>
-In-Reply-To: <20100119.002645.70252139.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Wed, Jan 20 2010, David Miller wrote:
-> From: Jens Axboe <jens.axboe@oracle.com>
-> Date: Wed, 20 Jan 2010 12:26:59 +0100
-> 
-> > On Tue, Jan 19 2010, David Miller wrote:
-> >> 
-> >> Pretty straightforward, and it should be easy to add accurate
-> >> walk through of signal stack frames in userspace.
-> > 
-> > I tested it, works for me. Thanks Dave! You can add my Tested-by, if you
-> > wish.
-> 
-> Great, thanks for testing.
-> 
-> I just posted a patch to sparclinux and lkml adding support for both
-> sparc64 performance counters as well, so you might want to check that
-> out too. :-)
-
-Thanks for the pointer, I had not seen that yet. Will give it a go.
+  CC      arch/sparc/kernel/irq_64.o
+arch/sparc/kernel/irq_64.c: In function 'sun4u_irq_enable':
+arch/sparc/kernel/irq_64.c:286: error: 'struct irq_desc' has no member named 'affinity'
+arch/sparc/kernel/irq_64.c: In function 'sun4v_irq_enable':
+arch/sparc/kernel/irq_64.c:362: error: 'struct irq_desc' has no member named 'affinity'
+arch/sparc/kernel/irq_64.c: In function 'sun4v_virq_enable':
+arch/sparc/kernel/irq_64.c:425: error: 'struct irq_desc' has no member named 'affinity'
 
 -- 
-Jens Axboe
-
+Meelis Roos (mroos@linux.ee)
