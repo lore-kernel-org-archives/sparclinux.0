@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 05 Jan 2010 07:28:35 +0000
+Date: Tue, 26 Jan 2010 00:56:44 +0000
 Subject: [GIT]: Sparc
-Message-Id: <20100104.232835.124284338.davem@davemloft.net>
+Message-Id: <20100125.165644.197238824.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080421.153231.108090227.davem@davemloft.net>
 In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
@@ -12,30 +12,82 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-Fix some fundamental perf issues that were undiscovered until perf top
-started using rate based profiling by default.
+1) Use rlimit helpers, from Jiri Slaby.
 
-Fix a crash in bbc_envctrl on unload if kthread_run() fails during
-load.  Still need to figure out why kthread_run() is erroring out
-though...
+2) Use arch_gettimeoffset() in sparc32.
+
+3) Simplify asm/param.h by using asm-generic/param.h
+
+4) Central board driver sets up leds_resource erroneously, fix from
+   Roel Kluin.
+
+5) Fix copy_from_user() return on error, from Heiko Carstens.
+
+6) Page fault perf SW events not being counted.
+
+7) IRQ ->set_affinity() using wrong cpu mask, thanks to Ben H. for
+   noticing.
+
+8) page_to_phys() calculations completely busted on sparc32.
+
+9) cpumask_of_node() fix to handle -1 properly from Anton Blanchard.
+
+10) Perf callchain support and full support of both PMU counters
+    on sparc64.
 
 Please pull, thanks a lot!
 
-The following changes since commit c5974b835a909ff15c3b7e6cf6789b5eb919f419:
+The following changes since commit f6760aa024199cfbce564311dc4bc4d47b6fb349:
   Linus Torvalds (1):
-        Merge branch 'limits_cleanup' of git://decibel.fi.muni.cz/~xslaby/linux
+        Merge branch 'timers-fixes-for-linus' of git://git.kernel.org/.../tip/linux-2.6-tip
 
 are available in the git repository at:
 
   master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
 
-David S. Miller (4):
-      bbc_envctrl: Clean up properly if kthread_run() fails.
-      Merge branch 'master' of /home/davem/src/GIT/linux-2.6/
-      sparc64: Fix NMI programming when perf events are active.
-      sparc64: Fix Niagara2 perf event handling.
+Anton Blanchard (1):
+      sparc: cpumask_of_node() should handle -1 as a node
 
- arch/sparc/kernel/nmi.c         |    3 +-
- arch/sparc/kernel/perf_event.c  |   11 +++++++
- drivers/sbus/char/bbc_envctrl.c |   64 +++++++++++++++++++++++----------------
- 3 files changed, 51 insertions(+), 27 deletions(-)
+David S. Miller (7):
+      sparc32: Update defconfig.
+      sparc32: Fix page_to_phys().
+      sparc64: Add perf callchain support.
+      sparc64: Fully support both performance counters.
+      sparc: Add missing SW perf fault events.
+      sparc64: Update defconfig.
+      sparc64: Fix IRQ ->set_affinity() methods.
+
+Heiko Carstens (1):
+      sparc: copy_from_user() should not return -EFAULT
+
+Jiri Slaby (1):
+      SPARC: use helpers for rlimits
+
+John Stultz (1):
+      sparc: convert to arch_gettimeoffset()
+
+Robert P. J. Day (1):
+      sparc: Simplify param.h by simply including <asm-generic/param.h>
+
+Roel Kluin (1):
+      sparc: leds_resource.end assigned to itself in clock_board_probe()
+
+ arch/sparc/Kconfig                   |    5 +-
+ arch/sparc/configs/sparc32_defconfig |   87 ++++-
+ arch/sparc/configs/sparc64_defconfig |  131 ++++++--
+ arch/sparc/include/asm/io_32.h       |    2 +-
+ arch/sparc/include/asm/page_32.h     |    2 +-
+ arch/sparc/include/asm/param.h       |   19 +-
+ arch/sparc/include/asm/timex_32.h    |    1 +
+ arch/sparc/include/asm/topology_64.h |    4 +-
+ arch/sparc/include/asm/uaccess_32.h  |    2 +-
+ arch/sparc/include/asm/uaccess_64.h  |    2 +-
+ arch/sparc/kernel/central.c          |    4 +-
+ arch/sparc/kernel/irq_64.c           |   37 ++-
+ arch/sparc/kernel/pcic.c             |  103 +-----
+ arch/sparc/kernel/perf_event.c       |  627 +++++++++++++++++++++++++---------
+ arch/sparc/kernel/sys_sparc_64.c     |    6 +-
+ arch/sparc/kernel/time_32.c          |  116 ++-----
+ arch/sparc/mm/fault_32.c             |   12 +-
+ arch/sparc/mm/fault_64.c             |   13 +-
+ 18 files changed, 749 insertions(+), 424 deletions(-)
