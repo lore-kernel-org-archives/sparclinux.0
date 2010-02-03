@@ -1,51 +1,28 @@
-From: Chris Torek <chris.torek@windriver.com>
-Date: Thu, 04 Feb 2010 11:25:56 +0000
-Subject: [PATCH 2/8] niu: increase ring size
-Message-Id: <14d7f5a63a7026b4413d4b4efa4ce6ddea0e055b.1265231568.git.chris.torek@windriver.com>
+From: jennifer kohne <janifer.khone@btinternet.com>
+Date: Wed, 03 Feb 2010 11:24:13 +0000
+Subject: Donation to Haiti.
+Message-Id: <357247.1132.qm@web87002.mail.ird.yahoo.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Hong H. Pham <hong.pham@windriver.com>
-
-Configurable niu parameters made it possible to overrun the rings, which
-requires a hardware reset to recover.  Since all RCR and TR entries
-must fit within a page (hardware constraint), calculate the maximums.
-(Note: this means the TX ring size is actually unchanged on x86, but
-doubled on SPARC.)
-
-Signed-off-by: Hong H. Pham <hong.pham@windriver.com>
-Signed-off-by: Chris Torek <chris.torek@windriver.com>
----
- drivers/net/niu.h |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/net/niu.h b/drivers/net/niu.h
-index 3bd0b59..0c1d17a 100644
---- a/drivers/net/niu.h
-+++ b/drivers/net/niu.h
-@@ -2843,7 +2843,7 @@ struct txdma_mailbox {
- 	__le64	resv2[2];
- } __attribute__((aligned(64)));
+Donation to Haiti.
  
--#define MAX_TX_RING_SIZE	256
-+#define MAX_TX_RING_SIZE	(PAGE_SIZE / sizeof(u64))
- #define MAX_TX_DESC_LEN		4076
+I have a proposal for you,this however is not  mandatory nor will I in any manner compel you to honor against your will. Your profile pushed me to send you this mail,
+ I am Mrs Jennifer Kohne. from Kuwait. I am married to Mr. Jean Kohne who worked with Kuwait embassy i Ivory Coast for nine years before he died in the year 2006. We were married for eleven years without a child. He died after a brief illness that lasted for only four days. 
  
- struct tx_ring_info {
-@@ -2893,8 +2893,8 @@ struct rxdma_mailbox {
- 	__le64	resv2[2];
- } __attribute__((aligned(64)));
+ Since his death I decided not to remarry or get a child outside my matrimonial home which. When my late husband was alive he deposited the sum of US$3.8million dollars in a Bank here in Abidjan Cote d'Ivoire. Presently, this money is still in bank. Recently, my Doctor told me that I would not last for the next Eight months due to cancer problem. 
  
--#define MAX_RBR_RING_SIZE	128
--#define MAX_RCR_RING_SIZE	(MAX_RBR_RING_SIZE * 2)
-+#define MAX_RBR_RING_SIZE	256
-+#define MAX_RCR_RING_SIZE	(PAGE_SIZE / sizeof(u64))
+The one that disturbs me most is my stroke sickness. Having known my condition I decided to donate this fund to a charity organization that will utilize this money the way I am going to instruct herein. I want to donate this fund to Haiti toward recoery efforts.
  
- #define RBR_REFILL_MIN		16
+ I took this decision because I don't have any child that will inherit this money. This is why I am taking this decision, And I don't need any telephone communication in this regard because of my health,
  
--- 
-1.6.0.4.766.g6fc4a
+ As soon as I receive your reply I shall give you the contact of the Bank here in  Abidjan Cote d'Ivoire. I will also issue you an authority  letter that will prove you the present beneficiary of this fund. I want you and the organization to always pray for me. 
+ 
+Any  delay in your reply will give me room in sourcing  of another organization or good person for this same  purpose. Please assure me that you will act accordingly as I Stated herein. Hoping to receive your reply. 
+ 
+Thank Yours 
+Mrs Jennifer Kohne
 
