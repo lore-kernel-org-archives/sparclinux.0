@@ -1,32 +1,53 @@
-From: Edward Ebii II <ebi_edii@yahoo.com.hk>
-Date: Thu, 04 Feb 2010 01:13:49 +0000
-Subject: Hi Waiting
-Message-Id: <20100203201349.1348apstgkkoo8wk@webmail.hawk-security.net>
+From: Chris Torek <chris.torek@windriver.com>
+Date: Thu, 04 Feb 2010 11:26:01 +0000
+Subject: [PATCH 7/8] niu: reserve interrupt-service CPU
+Message-Id: <a808bc11fd003313e180c91e9aac769cb9c94448.1265231570.git.chris.torek@windriver.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+From: Hong H. Pham <hong.pham@windriver.com>
 
+Register the CPU used for interrupt handling with the network
+device layer so that other work can be distributed evenly and
+optimally across the remaining CPUs.
 
-Dear Friend,
+Signed-off-by: Hong H. Pham <hong.pham@windriver.com>
+Signed-off-by: Chris Torek <chris.torek@windriver.com>
+---
+ drivers/net/niu.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-Greetings and how are you doing today?
+diff --git a/drivers/net/niu.c b/drivers/net/niu.c
+index cfb43a4..c82e970 100644
+--- a/drivers/net/niu.c
++++ b/drivers/net/niu.c
+@@ -6143,6 +6143,7 @@ static int niu_request_irq(struct niu *np)
+ 	for (i = 0; i < np->num_ldg; i++) {
+ 		struct niu_ldg *lp = &np->ldg[i];
+ 
++		netdev_reserve_cpu(netdev_map_to_cpu(lp->irq));
+ 		err = request_irq(lp->irq, niu_interrupt,
+ 				  IRQF_SHARED | IRQF_SAMPLE_RANDOM,
+ 				  np->irq_name[i], lp);
+@@ -6158,6 +6159,7 @@ out_free_irqs:
+ 		struct niu_ldg *lp = &np->ldg[j];
+ 
+ 		free_irq(lp->irq, lp);
++		netdev_release_cpu(netdev_map_to_cpu(lp->irq));
+ 	}
+ 	return err;
+ }
+@@ -6170,6 +6172,7 @@ static void niu_free_irq(struct niu *np)
+ 		struct niu_ldg *lp = &np->ldg[i];
+ 
+ 		free_irq(lp->irq, lp);
++		netdev_release_cpu(netdev_map_to_cpu(lp->irq));
+ 	}
+ }
+ 
+-- 
+1.6.0.4.766.g6fc4a
 
-By summarized profile,I am Edward Ebi II, an International Business
-Consultants.I have a reputable client in my custody who
-inherited US$18.2M and wish to invest the sum in your custody
-but our problem remains we are novice to international business/
-any lucrative project to invest the fund hence we contact you.
-
-
-More importantly, we intend to make you our fund manager because
-you are in a much better position to guide us with your country's
-regulatory policies to investment and receival of funds in your
-nominated account for safety.
-
-Thanks as we look forward to your earliest response.
-
-Regards,
-Edward Ebi II
