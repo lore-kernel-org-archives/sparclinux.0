@@ -1,66 +1,80 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Date: Sun, 14 Feb 2010 06:14:57 +0000
-Subject: Re: [PATCH 9/9] of: remove undefined request_OF_resource &
-Message-Id: <1266128097.16346.67.camel@pasglop>
+From: Frans Pop <elendil@planet.nl>
+Date: Sat, 06 Feb 2010 18:16:43 +0000
+Subject: Re: [PATCH 09/16 v2] sparc: remove trailing space in messages
+Message-Id: <201002061916.44473.elendil@planet.nl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100213154838.4767.83881.stgit@angua>
-	<20100213160314.4767.93924.stgit@angua>
-In-Reply-To: <20100213160314.4767.93924.stgit@angua>
+References: <201002061844.45212.elendil@planet.nl> <1265478443-31072-9-git-send-email-elendil@planet.nl>
+In-Reply-To: <1265478443-31072-9-git-send-email-elendil@planet.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Cc: sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org, microblaze-uclinux-rVRm/Wmeqae7NGdpmJTKYQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-mnsaURCQ41sdnm+yROfE0A@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jeremy.kerr-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+To: linux-kernel@vger.kernel.org
+Cc: sparclinux@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
 
-On Sat, 2010-02-13 at 09:03 -0700, Grant Likely wrote:
-> Neither request_OF_resource or release_OF_resource are defined
-> anywhere.  Remove the declarations.
-> 
-> Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
-> ---
+Also fixes a typo in one message.
 
-Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Frans Pop <elendil@planet.nl>
+Cc: sparclinux@vger.kernel.org
+Cc: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/kernel/leon_kernel.c |    2 +-
+ arch/sparc/kernel/leon_smp.c    |    4 ++--
+ arch/sparc/kernel/sun4d_smp.c   |    2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
->  arch/microblaze/include/asm/prom.h |    4 ----
->  arch/powerpc/include/asm/prom.h    |    5 -----
->  2 files changed, 0 insertions(+), 9 deletions(-)
-> 
-> diff --git a/arch/microblaze/include/asm/prom.h b/arch/microblaze/include/asm/prom.h
-> index aa1a437..03f45a9 100644
-> --- a/arch/microblaze/include/asm/prom.h
-> +++ b/arch/microblaze/include/asm/prom.h
-> @@ -31,10 +31,6 @@
->  /* Other Prototypes */
->  extern int early_uartlite_console(void);
->  
-> -extern struct resource *request_OF_resource(struct device_node *node,
-> -				int index, const char *name_postfix);
-> -extern int release_OF_resource(struct device_node *node, int index);
-> -
->  /*
->   * OF address retreival & translation
->   */
-> diff --git a/arch/powerpc/include/asm/prom.h b/arch/powerpc/include/asm/prom.h
-> index 7f9a50a..ddd408a 100644
-> --- a/arch/powerpc/include/asm/prom.h
-> +++ b/arch/powerpc/include/asm/prom.h
-> @@ -39,11 +39,6 @@ extern struct device_node* pci_device_to_OF_node(struct pci_dev *);
->  extern void pci_create_OF_bus_map(void);
->  #endif
->  
-> -extern struct resource *request_OF_resource(struct device_node* node,
-> -				int index, const char* name_postfix);
-> -extern int release_OF_resource(struct device_node* node, int index);
-> -
-> -
->  /*
->   * OF address retreival & translation
->   */
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+Change relative to v1:
+- spelling correction in first chunk (with thanks to Josip Rodin)
 
+P.S. I like the "whirrr, whirrr, whirrrrrrrrr..." :-)
+
+diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
+index 87f1760..771072b 100644
+--- a/arch/sparc/kernel/leon_kernel.c
++++ b/arch/sparc/kernel/leon_kernel.c
+@@ -124,7 +124,7 @@ void __init leon_init_timers(irq_handler_t counter_fn)
+ 
+ 		if (!(LEON3_BYPASS_LOAD_PA(&leon3_gptimer_regs->config) &
+ 		      (1<<LEON3_GPTIMER_SEPIRQ))) {
+-			prom_printf("irq timer not configured with seperate irqs \n");
++			prom_printf("irq timer not configured with separate irqs\n");
+ 			BUG();
+ 		}
+ 
+diff --git a/arch/sparc/kernel/leon_smp.c b/arch/sparc/kernel/leon_smp.c
+index 05c0dad..8578757 100644
+--- a/arch/sparc/kernel/leon_smp.c
++++ b/arch/sparc/kernel/leon_smp.c
+@@ -177,7 +177,7 @@ void __init leon_boot_cpus(void)
+ 	int nrcpu = leon_smp_nrcpus();
+ 	int me = smp_processor_id();
+ 
+-	printk(KERN_INFO "%d:(%d:%d) cpus mpirq at 0x%x \n", (unsigned int)me,
++	printk(KERN_INFO "%d:(%d:%d) cpus mpirq at 0x%x\n", (unsigned int)me,
+ 	       (unsigned int)nrcpu, (unsigned int)NR_CPUS,
+ 	       (unsigned int)&(leon3_irqctrl_regs->mpstatus));
+ 
+@@ -226,7 +226,7 @@ int __cpuinit leon_boot_one_cpu(int i)
+ 			break;
+ 		udelay(200);
+ 	}
+-	printk(KERN_INFO "Started CPU %d \n", (unsigned int)i);
++	printk(KERN_INFO "Started CPU %d\n", (unsigned int)i);
+ 
+ 	if (!(cpu_callin_map[i])) {
+ 		printk(KERN_ERR "Processor %d is stuck.\n", i);
+diff --git a/arch/sparc/kernel/sun4d_smp.c b/arch/sparc/kernel/sun4d_smp.c
+index 68791ca..482f2ab 100644
+--- a/arch/sparc/kernel/sun4d_smp.c
++++ b/arch/sparc/kernel/sun4d_smp.c
+@@ -194,7 +194,7 @@ int __cpuinit smp4d_boot_one_cpu(int i)
+ 			smp_penguin_ctable.reg_size = 0;
+ 
+ 			/* whirrr, whirrr, whirrrrrrrrr... */
+-			SMP_PRINTK(("Starting CPU %d at %p \n", i, entry));
++			SMP_PRINTK(("Starting CPU %d at %p\n", i, entry));
+ 			local_flush_cache_all();
+ 			prom_startcpu(cpu_node,
+ 				      &smp_penguin_ctable, 0, (char *)entry);
+-- 
+1.6.6.1
 
