@@ -1,41 +1,61 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 14 Feb 2010 23:54:54 +0000
-Subject: Re: soft lookup
-Message-Id: <20100214.155454.58421488.davem@davemloft.net>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Sat, 13 Feb 2010 16:03:09 +0000
+Subject: [PATCH 8/9] of/sparc: Remove sparc-local declaration of allnodes and
+Message-Id: <20100213160309.4767.94443.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100213170856.GA8334@pcpool00.mathematik.uni-freiburg.de>
-In-Reply-To: <20100213170856.GA8334@pcpool00.mathematik.uni-freiburg.de>
+References: <20100213154838.4767.83881.stgit@angua>
+In-Reply-To: <20100213154838.4767.83881.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: monstr@monstr.eu, sfr@canb.auug.org.au, benh@kernel.crashing.org, jeremy.kerr@canonical.com, davem@davemloft.net, microblaze-uclinux@itee.uq.edu.au, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org
 
-From: "Bernhard R. Link" <brlink@debian.org>
-Date: Sun, 14 Feb 2010 21:49:31 +0100
+Both allnodes and devtree_lock are defined in common code.  The
+extern declaration should be in the common header too so that the
+compiler can type check.  allnodes is already in of.h, but
+devtree_lock should be declared there too.
 
-> As I said, my sparc assembler knowledge is almost not existing,
-> so excuses in advance for messing everything up.
-> 
-> I'm assuming objdump -d on the unpacked vmlinuz gives me correct
-> addresses. That means it is here (the sparc64_realfault_common):
-> 
->   407a94:       10 6f f3 2b     b  %xcc, 404740
->   407a98:       8f 41 40 00     rd  %pc, %g7
->   407a9c:       e8 29 a0 08     stb  %l4, [ %g6 + 8 ]     <-TPC
->   407aa0:       ea 71 a0 20     stx  %l5, [ %g6 + 0x20 ]  <-TNPC
->   407aa4:       40 01 09 1e     call  449f1c              <-ret_pc
->   407aa8:       90 03 a8 bf     add  %sp, 0x8bf, %o0
->   407aac:       10 6f f4 35     b  %xcc, 404b80
->   407ab0:       01 00 00 00     nop
-> 
-> That seems very strange in my eyes. The odd sp value does not make my
-> confusion smaller.
+This patch removes the SPARC declarations and uses decls in of.h instead.
 
-%g6 holds the current thread pointer.
+Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+---
 
-The stack pointer is always odd on sparc64.  The value stored
-in the %sp register is "biased" by 2047 bytes from the real
-base of the current stack frame.  It's done this way to allow
-more of the stack variables to be accessible with a 13-bit
-signed offset from the frame pointer %fp since that can be
-done in one load or store instruction.
+ arch/sparc/kernel/prom.h |    3 ---
+ include/linux/of.h       |    2 ++
+ 2 files changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/arch/sparc/kernel/prom.h b/arch/sparc/kernel/prom.h
+index 453397f..a8591ef 100644
+--- a/arch/sparc/kernel/prom.h
++++ b/arch/sparc/kernel/prom.h
+@@ -4,9 +4,6 @@
+ #include <linux/spinlock.h>
+ #include <asm/prom.h>
+ 
+-extern struct device_node *allnodes;	/* temporary while merging */
+-extern rwlock_t devtree_lock;	/* temporary while merging */
+-
+ extern void * prom_early_alloc(unsigned long size);
+ extern void irq_trans_init(struct device_node *dp);
+ 
+diff --git a/include/linux/of.h b/include/linux/of.h
+index d34cc5d..f6d9cbc 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -19,6 +19,7 @@
+ #include <linux/bitops.h>
+ #include <linux/kref.h>
+ #include <linux/mod_devicetable.h>
++#include <linux/spinlock.h>
+ 
+ #include <asm/byteorder.h>
+ 
+@@ -67,6 +68,7 @@ struct device_node {
+ /* Pointer for first entry in chain of all nodes. */
+ extern struct device_node *allnodes;
+ extern struct device_node *of_chosen;
++extern rwlock_t devtree_lock;
+ 
+ static inline int of_node_check_flag(struct device_node *n, unsigned long flag)
+ {
+
