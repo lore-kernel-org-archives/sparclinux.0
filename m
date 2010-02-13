@@ -1,97 +1,105 @@
-From: spender@grsecurity.net (Brad Spengler)
-Date: Fri, 19 Feb 2010 23:54:51 +0000
-Subject: Re: Execution possible in non-executable mappings in recent 2.6 kernels
-Message-Id: <20100219235451.GA30274@grsecurity.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="5vNYLRcllDrimb99"
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Sat, 13 Feb 2010 16:03:04 +0000
+Subject: [PATCH 7/9] of: move definition of of_chosen into common code.
+Message-Id: <20100213160303.4767.36411.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100219225724.GA29861@grsecurity.net>
-In-Reply-To: <20100219225724.GA29861@grsecurity.net>
-To: sparclinux@vger.kernel.org
+References: <20100213154838.4767.83881.stgit@angua>
+In-Reply-To: <20100213154838.4767.83881.stgit@angua>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: monstr@monstr.eu, sfr@canb.auug.org.au, benh@kernel.crashing.org, jeremy.kerr@canonical.com, davem@davemloft.net, microblaze-uclinux@itee.uq.edu.au, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org
 
+Rather than defining of_chosen in each arch, it can be defined for all
+in driver/of/base.c
 
---5vNYLRcllDrimb99
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+---
 
-I can confirm this resolved the problem.  Thanks again for the=20
-incredibly quick fix!
+ arch/microblaze/include/asm/prom.h |    2 --
+ arch/microblaze/kernel/prom.c      |    3 ---
+ arch/powerpc/include/asm/prom.h    |    2 --
+ arch/powerpc/kernel/prom.c         |    3 ---
+ drivers/of/base.c                  |    1 +
+ include/linux/of.h                 |    1 +
+ 6 files changed, 2 insertions(+), 10 deletions(-)
 
-Tested-by: Brad Spengler <spender@grsecurity.net>
+diff --git a/arch/microblaze/include/asm/prom.h b/arch/microblaze/include/asm/prom.h
+index 8b1ebd3..aa1a437 100644
+--- a/arch/microblaze/include/asm/prom.h
++++ b/arch/microblaze/include/asm/prom.h
+@@ -26,8 +26,6 @@
+ #include <asm/irq.h>
+ #include <asm/atomic.h>
+ 
+-extern struct device_node *of_chosen;
+-
+ #define HAVE_ARCH_DEVTREE_FIXUPS
+ 
+ /* Other Prototypes */
+diff --git a/arch/microblaze/kernel/prom.c b/arch/microblaze/kernel/prom.c
+index a7dcaf0..a15ef6d 100644
+--- a/arch/microblaze/kernel/prom.c
++++ b/arch/microblaze/kernel/prom.c
+@@ -42,9 +42,6 @@
+ #include <asm/sections.h>
+ #include <asm/pci-bridge.h>
+ 
+-/* export that to outside world */
+-struct device_node *of_chosen;
+-
+ void __init early_init_dt_scan_chosen_arch(unsigned long node)
+ {
+ 	/* No Microblaze specific code here */
+diff --git a/arch/powerpc/include/asm/prom.h b/arch/powerpc/include/asm/prom.h
+index 4a5070e..7f9a50a 100644
+--- a/arch/powerpc/include/asm/prom.h
++++ b/arch/powerpc/include/asm/prom.h
+@@ -23,8 +23,6 @@
+ #include <asm/irq.h>
+ #include <asm/atomic.h>
+ 
+-extern struct device_node *of_chosen;
+-
+ #define HAVE_ARCH_DEVTREE_FIXUPS
+ 
+ #ifdef CONFIG_PPC32
+diff --git a/arch/powerpc/kernel/prom.c b/arch/powerpc/kernel/prom.c
+index 4869c93..43238b2 100644
+--- a/arch/powerpc/kernel/prom.c
++++ b/arch/powerpc/kernel/prom.c
+@@ -67,9 +67,6 @@ int __initdata iommu_force_on;
+ unsigned long tce_alloc_start, tce_alloc_end;
+ #endif
+ 
+-/* export that to outside world */
+-struct device_node *of_chosen;
+-
+ static int __init early_parse_mem(char *p)
+ {
+ 	if (!p)
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index 873479a..cb96888 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -23,6 +23,7 @@
+ #include <linux/proc_fs.h>
+ 
+ struct device_node *allnodes;
++struct device_node *of_chosen;
+ 
+ /* use when traversing tree through the allnext, child, sibling,
+  * or parent members of struct device_node.
+diff --git a/include/linux/of.h b/include/linux/of.h
+index 5cd2840..d34cc5d 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -66,6 +66,7 @@ struct device_node {
+ 
+ /* Pointer for first entry in chain of all nodes. */
+ extern struct device_node *allnodes;
++extern struct device_node *of_chosen;
+ 
+ static inline int of_node_check_flag(struct device_node *n, unsigned long flag)
+ {
 
--Brad
-
-On Fri, Feb 19, 2010 at 03:20:11PM -0800, David Miller wrote:
->=20
-> Here's the fix, thanks again for the report:
->=20
-> sparc64: Fix sun4u execute bit check in TSB I-TLB load.
->=20
-> Thanks to testcase and report from Brad Spengler:
->=20
-> --------------------
-> #include <stdio.h>
->=20
-> typedef int (* _wee)(void);
->=20
-> int main(void)
-> {
->         char buf[8] =3D { '\x81', '\xc7', '\xe0', '\x08', '\x81', '\xe8',
->                         '\x00', '\x00' };
->         _wee wee;
->         printf("%p\n", &buf);
->         wee =3D (_wee)&buf;
->         wee();
->=20
->         return 0;
-> }
-> --------------------
->=20
-> TSB I-tlb load code tries to use andcc to check the _PAGE_EXEC_4U bit,
-> but that's bit 12 so it gets sign extended all the way up to bit 63
-> and the test nearly always passes as a result.
->=20
-> Use sethi to fix the bug.
->=20
-> Signed-off-by: David S. Miller <davem@davemloft.net>
-> ---
->  arch/sparc/kernel/tsb.S |    6 ++++--
->  1 files changed, 4 insertions(+), 2 deletions(-)
->=20
-> diff --git a/arch/sparc/kernel/tsb.S b/arch/sparc/kernel/tsb.S
-> index 8c91d9b..db15d12 100644
-> --- a/arch/sparc/kernel/tsb.S
-> +++ b/arch/sparc/kernel/tsb.S
-> @@ -191,10 +191,12 @@ tsb_dtlb_load:
-> =20
->  tsb_itlb_load:
->  	/* Executable bit must be set.  */
-> -661:	andcc		%g5, _PAGE_EXEC_4U, %g0
-> -	.section	.sun4v_1insn_patch, "ax"
-> +661:	sethi		%hi(_PAGE_EXEC_4U), %g4
-> +	andcc		%g5, %g4, %g0
-> +	.section	.sun4v_2insn_patch, "ax"
->  	.word		661b
->  	andcc		%g5, _PAGE_EXEC_4V, %g0
-> +	nop
->  	.previous
-> =20
->  	be,pn		%xcc, tsb_do_fault
-> --=20
-> 1.6.6.1
-
---5vNYLRcllDrimb99
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFLfyTJmHm2SUJF1GoRAmspAJ0dV6IyqVUckDrK9ggZC7Rl9eNwhQCcCpNv
-6RGtHlgv4kEQ8AcsoNMPUWY=
-=FjpX
------END PGP SIGNATURE-----
-
---5vNYLRcllDrimb99--
