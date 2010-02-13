@@ -1,62 +1,44 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Date: Sun, 14 Feb 2010 06:12:14 +0000
-Subject: Re: [PATCH 6/9] of: remove unused extern reference to devtree_lock
-Message-Id: <1266127934.16346.63.camel@pasglop>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Sat, 13 Feb 2010 16:02:42 +0000
+Subject: [PATCH 3/9] of: protect linux/of.h with CONFIG_OF
+Message-Id: <20100213160242.4767.57641.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100213154838.4767.83881.stgit@angua>
-	 <20100213160258.4767.22371.stgit@angua>
-In-Reply-To: <20100213160258.4767.22371.stgit@angua>
+In-Reply-To: <20100213154838.4767.83881.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: monstr@monstr.eu, sfr@canb.auug.org.au, jeremy.kerr@canonical.com, davem@davemloft.net, microblaze-uclinux@itee.uq.edu.au, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org
+To: monstr@monstr.eu, sfr@canb.auug.org.au, benh@kernel.crashing.org, jeremy.kerr@canonical.com, davem@davemloft.net, microblaze-uclinux@itee.uq.edu.au, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org
 
-On Sat, 2010-02-13 at 09:02 -0700, Grant Likely wrote:
-> Neither the powerpc nor the microblaze code use devtree_lock anymore.
-> Remove the extern reference.
-> 
-> Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
-> ---
+From: Jeremy Kerr <jeremy.kerr@canonical.com>
 
-Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+For platforms that have CONFIG_OF optional, we need to make the contents
+of linux/of.h conditional on CONFIG_OF.
 
+Signed-off-by: Jeremy Kerr <jeremy.kerr@canonical.com>
+Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+---
 
->  arch/microblaze/include/asm/prom.h |    2 --
->  arch/powerpc/kernel/prom.c         |    2 --
->  2 files changed, 0 insertions(+), 4 deletions(-)
-> 
-> diff --git a/arch/microblaze/include/asm/prom.h b/arch/microblaze/include/asm/prom.h
-> index ddc5c57..8b1ebd3 100644
-> --- a/arch/microblaze/include/asm/prom.h
-> +++ b/arch/microblaze/include/asm/prom.h
-> @@ -30,8 +30,6 @@ extern struct device_node *of_chosen;
->  
->  #define HAVE_ARCH_DEVTREE_FIXUPS
->  
-> -extern rwlock_t devtree_lock;	/* temporary while merging */
-> -
->  /* Other Prototypes */
->  extern int early_uartlite_console(void);
->  
-> diff --git a/arch/powerpc/kernel/prom.c b/arch/powerpc/kernel/prom.c
-> index 5bbbdb2..4869c93 100644
-> --- a/arch/powerpc/kernel/prom.c
-> +++ b/arch/powerpc/kernel/prom.c
-> @@ -67,8 +67,6 @@ int __initdata iommu_force_on;
->  unsigned long tce_alloc_start, tce_alloc_end;
->  #endif
->  
-> -extern rwlock_t devtree_lock;	/* temporary while merging */
-> -
->  /* export that to outside world */
->  struct device_node *of_chosen;
->  
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+ include/linux/of.h |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
+diff --git a/include/linux/of.h b/include/linux/of.h
+index 5c7b6a6..48b0ee6 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -22,6 +22,8 @@
+ 
+ #include <asm/byteorder.h>
+ 
++#ifdef CONFIG_OF
++
+ typedef u32 phandle;
+ typedef u32 ihandle;
+ 
+@@ -194,4 +196,5 @@ extern void of_attach_node(struct device_node *);
+ extern void of_detach_node(struct device_node *);
+ #endif
+ 
++#endif /* CONFIG_OF */
+ #endif /* _LINUX_OF_H */
 
