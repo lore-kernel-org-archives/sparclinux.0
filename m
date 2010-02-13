@@ -1,27 +1,75 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 11 Feb 2010 20:27:43 +0000
-Subject: Re: Bug in [PATCH] sparc: Align clone and signal stacks to 16 bytes
-Message-Id: <20100211.122743.20125640.davem@davemloft.net>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Sat, 13 Feb 2010 16:02:31 +0000
+Subject: [PATCH 1/9] of: Remove old and misplaced function declarations
+Message-Id: <20100213160231.4767.23831.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
-References: <f43fc5581002110931s3923f3d1haa9d82abe2c9451@mail.gmail.com>
-In-Reply-To: <f43fc5581002110931s3923f3d1haa9d82abe2c9451@mail.gmail.com>
+References: <20100213154838.4767.83881.stgit@angua>
+In-Reply-To: <20100213154838.4767.83881.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org, sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org, benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org, jeremy.kerr-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, microblaze-uclinux-rVRm/Wmeqae7NGdpmJTKYQ@public.gmane.org, linuxppc-dev-mnsaURCQ41sdnm+yROfE0A@public.gmane.org, sparclinu
 
-From: Blue Swirl <blauwirbel@gmail.com>
-Date: Thu, 11 Feb 2010 19:31:47 +0200
+The following functions don't exist:
+  finish_device_tree()
+  print_properties()
+  prom_n_intr_cells()
+  prom_get_irq_senses()
 
-> Hi,
-> 
-> I just browsed sparc-linux list and spotted this bug in the patch:
-> 
->  			childstack = (struct sparc_stackf __user *)
-> -				(sp & ~0x7UL);
-> +				(sp & ~0x15UL);
->  			parentstack = (struct sparc_stackf __user *)
-> 
-> 0x15UL is wrong, it should be either 0xfUL or 15UL.
+The following functions are in drivers/of/base.c, so the declaration
+belongs in of.h instead of of_fdt.h
+  of_machine_is_compatible()
+  prom_add_property()
+  prom_remove_property()
+  prom_update_property()
 
-Thanks, I'll fix that.
+Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+---
+
+ include/linux/of.h     |    8 ++++++++
+ include/linux/of_fdt.h |   10 ----------
+ 2 files changed, 8 insertions(+), 10 deletions(-)
+
+diff --git a/include/linux/of.h b/include/linux/of.h
+index fa5571b..5c7b6a6 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -180,6 +180,14 @@ extern int of_parse_phandles_with_args(struct device_node *np,
+ 	const char *list_name, const char *cells_name, int index,
+ 	struct device_node **out_node, const void **out_args);
+ 
++extern int of_machine_is_compatible(const char *compat);
++
++extern int prom_add_property(struct device_node* np, struct property* prop);
++extern int prom_remove_property(struct device_node *np, struct property *prop);
++extern int prom_update_property(struct device_node *np,
++				struct property *newprop,
++				struct property *oldprop);
++
+ #if defined(CONFIG_OF_DYNAMIC)
+ /* For updating the device tree at runtime */
+ extern void of_attach_node(struct device_node *);
+diff --git a/include/linux/of_fdt.h b/include/linux/of_fdt.h
+index 0007187..c9cb8a7 100644
+--- a/include/linux/of_fdt.h
++++ b/include/linux/of_fdt.h
+@@ -95,18 +95,8 @@ extern int early_init_dt_scan_root(unsigned long node, const char *uname,
+ 				   int depth, void *data);
+ 
+ /* Other Prototypes */
+-extern void finish_device_tree(void);
+ extern void unflatten_device_tree(void);
+ extern void early_init_devtree(void *);
+-extern int of_machine_is_compatible(const char *compat);
+-extern void print_properties(struct device_node *node);
+-extern int prom_n_intr_cells(struct device_node* np);
+-extern void prom_get_irq_senses(unsigned char *senses, int off, int max);
+-extern int prom_add_property(struct device_node* np, struct property* prop);
+-extern int prom_remove_property(struct device_node *np, struct property *prop);
+-extern int prom_update_property(struct device_node *np,
+-				struct property *newprop,
+-				struct property *oldprop);
+ 
+ #endif /* __ASSEMBLY__ */
+ #endif /* _LINUX_OF_FDT_H */
+
