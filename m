@@ -1,18 +1,17 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Date: Sun, 14 Feb 2010 06:11:23 +0000
+From: Michal Simek <michal.simek@petalogix.com>
+Date: Sun, 14 Feb 2010 14:00:26 +0000
 Subject: Re: [PATCH 4/9] of/flattree: Don't assume HAVE_LMB
-Message-Id: <1266127883.16346.61.camel@pasglop>
+Message-Id: <4B7801FA.9080203@petalogix.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100213154838.4767.83881.stgit@angua>
-	<20100213160247.4767.74578.stgit@angua>
+References: <20100213154838.4767.83881.stgit@angua> <20100213160247.4767.74578.stgit@angua>
 In-Reply-To: <20100213160247.4767.74578.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Cc: sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org, microblaze-uclinux-rVRm/Wmeqae7NGdpmJTKYQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-mnsaURCQ41sdnm+yROfE0A@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jeremy.kerr-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: monstr@monstr.eu, sfr@canb.auug.org.au, benh@kernel.crashing.org, jeremy.kerr@canonical.com, davem@davemloft.net, microblaze-uclinux@itee.uq.edu.au, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org
 
-On Sat, 2010-02-13 at 09:02 -0700, Grant Likely wrote:
+Grant Likely wrote:
 > From: Jeremy Kerr <jeremy.kerr@canonical.com>
 > 
 > We don't always have lmb available, so make arches provide an
@@ -23,9 +22,6 @@ On Sat, 2010-02-13 at 09:02 -0700, Grant Likely wrote:
 > 
 > Signed-off-by: Jeremy Kerr <jeremy.kerr@canonical.com>
 > Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
-
-Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-
 > ---
 > 
 >  arch/microblaze/kernel/prom.c |    5 +++++
@@ -85,6 +81,14 @@ Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 >  #ifdef CONFIG_PPC
 >  #include <asm/machdep.h>
 >  #endif /* CONFIG_PPC */
+
+It is not part of your patch but I think that will be great completely 
+remove this CONFIG_PPC part from generic OF file.
+Would it be possible to include your asm/machdep.h through asm/page.h or 
+any other file?
+
+Michal
+
 >  
 > +#include <asm/page.h>
 > +
@@ -113,5 +117,15 @@ Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 >  extern u64 dt_mem_next_cell(int s, __be32 **cellp);
 >  
 >  /*
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 
 
+-- 
+Michal Simek, Ing. (M.Eng)
+PetaLogix - Linux Solutions for a Reconfigurable World
+w: www.petalogix.com p: +61-7-30090663,+42-0-721842854 f: +61-7-30090663
