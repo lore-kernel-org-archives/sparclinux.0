@@ -1,50 +1,33 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Date: Sun, 14 Feb 2010 06:09:54 +0000
-Subject: Re: [PATCH 2/9] proc_devtree: fix THIS_MODULE without module.h
-Message-Id: <1266127794.16346.59.camel@pasglop>
+From: Kristoffer Glembo <kristoffer@gaisler.com>
+Date: Mon, 15 Feb 2010 15:10:28 +0000
+Subject: [PATCH] sparc: Fix incorrect comparison in of_bus_ambapp_match()
+Message-Id: <1266246628-860-1-git-send-email-kristoffer@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100213154838.4767.83881.stgit@angua>
-	 <20100213160236.4767.48310.stgit@angua>
-In-Reply-To: <20100213160236.4767.48310.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: monstr@monstr.eu, sfr@canb.auug.org.au, jeremy.kerr@canonical.com, davem@davemloft.net, microblaze-uclinux@itee.uq.edu.au, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Sat, 2010-02-13 at 09:02 -0700, Grant Likely wrote:
-> From: Jeremy Kerr <jeremy.kerr@canonical.com>
-> 
-> Commit e22f628395432b967f2f505858c64450f7835365 introduced a build
-> breakage for ARM devtree work: the THIS_MODULE macro was added, but we
-> don't have module.h
-> 
-> This change adds the necessary #include to get THIS_MODULE defined.
-> While we could just replace it with NULL (PROC_FS is a bool, not a
-> tristate), using THIS_MODULE will prevent unexpected breakage if we
-> ever do compile this as a module.
-> 
-> Signed-off-by: Jeremy Kerr <jeremy.kerr@canonical.com>
-> Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+Use type instead of name in comparison.
 
-Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Kristoffer Glembo <kristoffer@gaisler.com>
+---
+ arch/sparc/kernel/of_device_32.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-> ---
-> 
->  fs/proc/proc_devtree.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/fs/proc/proc_devtree.c b/fs/proc/proc_devtree.c
-> index 0ec4511..f8650dc 100644
-> --- a/fs/proc/proc_devtree.c
-> +++ b/fs/proc/proc_devtree.c
-> @@ -11,6 +11,7 @@
->  #include <linux/stat.h>
->  #include <linux/string.h>
->  #include <linux/of.h>
-> +#include <linux/module.h>
->  #include <asm/prom.h>
->  #include <asm/uaccess.h>
->  #include "internal.h"
-
+diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device_32.c
+index 4c26eb5..53a58b3 100644
+--- a/arch/sparc/kernel/of_device_32.c
++++ b/arch/sparc/kernel/of_device_32.c
+@@ -105,7 +105,7 @@ static unsigned long of_bus_sbus_get_flags(const u32 *addr, unsigned long flags)
+ 
+ static int of_bus_ambapp_match(struct device_node *np)
+ {
+-	return !strcmp(np->name, "ambapp");
++	return !strcmp(np->type, "ambapp");
+ }
+ 
+ static void of_bus_ambapp_count_cells(struct device_node *child,
+-- 
+1.6.4.1
 
