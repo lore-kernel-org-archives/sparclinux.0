@@ -1,148 +1,158 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Sun, 14 Feb 2010 14:08:52 +0000
-Subject: Re: [PATCH 4/9] of/flattree: Don't assume HAVE_LMB
-Message-Id: <fa686aa41002140608q77af6878n70821d874ea7ecde@mail.gmail.com>
+From: spender@grsecurity.net (Brad Spengler)
+Date: Fri, 19 Feb 2010 22:57:24 +0000
+Subject: Execution possible in non-executable mappings in recent 2.6 kernels
+Message-Id: <20100219225724.GA29861@grsecurity.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="fdj2RfSjLxBAspz7"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100213154838.4767.83881.stgit@angua> <20100213160247.4767.74578.stgit@angua>
-	<4B7801FA.9080203@petalogix.com>
-In-Reply-To: <4B7801FA.9080203@petalogix.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
+To: sparclinux@vger.kernel.org
+
+
+--fdj2RfSjLxBAspz7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
-To: michal.simek@petalogix.com
-Cc: monstr@monstr.eu, sfr@canb.auug.org.au, benh@kernel.crashing.org, jeremy.kerr@canonical.com, davem@davemloft.net, microblaze-uclinux@itee.uq.edu.au, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org
 
-On Sun, Feb 14, 2010 at 7:00 AM, Michal Simek
-<michal.simek@petalogix.com> wrote:
-> Grant Likely wrote:
->>
->> From: Jeremy Kerr <jeremy.kerr@canonical.com>
->>
->> We don't always have lmb available, so make arches provide an
->> early_init_dt_alloc_memory_arch() to handle the allocation of
->> memory in the fdt code.
->>
->> When we don't have lmb.h included, we need asm/page.h for __va.
->>
->> Signed-off-by: Jeremy Kerr <jeremy.kerr@canonical.com>
->> Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
->> ---
->>
->> =A0arch/microblaze/kernel/prom.c | =A0 =A05 +++++
->> =A0arch/powerpc/kernel/prom.c =A0 =A0| =A0 =A05 +++++
->> =A0drivers/of/fdt.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A09 ++++++---
->> =A0include/linux/of_fdt.h =A0 =A0 =A0 =A0| =A0 =A01 +
->> =A04 files changed, 17 insertions(+), 3 deletions(-)
->>
->> diff --git a/arch/microblaze/kernel/prom.c b/arch/microblaze/kernel/prom=
-.c
->> index 050b799..a7dcaf0 100644
->> --- a/arch/microblaze/kernel/prom.c
->> +++ b/arch/microblaze/kernel/prom.c
->> @@ -55,6 +55,11 @@ void __init early_init_dt_add_memory_arch(u64 base, u=
-64
->> size)
->> =A0 =A0 =A0 =A0lmb_add(base, size);
->> =A0}
->> =A0+u64 __init early_init_dt_alloc_memory_arch(u64 size, u64 align)
->> +{
->> + =A0 =A0 =A0 return lmb_alloc(size, align);
->> +}
->> +
->> =A0#ifdef CONFIG_EARLY_PRINTK
->> =A0/* MS this is Microblaze specifig function */
->> =A0static int __init early_init_dt_scan_serial(unsigned long node,
->> diff --git a/arch/powerpc/kernel/prom.c b/arch/powerpc/kernel/prom.c
->> index 43c78d7..5bbbdb2 100644
->> --- a/arch/powerpc/kernel/prom.c
->> +++ b/arch/powerpc/kernel/prom.c
->> @@ -510,6 +510,11 @@ void __init early_init_dt_add_memory_arch(u64 base,
->> u64 size)
->> =A0 =A0 =A0 =A0memstart_addr =3D min((u64)memstart_addr, base);
->> =A0}
->> =A0+u64 __init early_init_dt_alloc_memory_arch(u64 size, u64 align)
->> +{
->> + =A0 =A0 =A0 return lmb_alloc(size, align);
->> +}
->> +
->> =A0#ifdef CONFIG_BLK_DEV_INITRD
->> =A0void __init early_init_dt_setup_initrd_arch(unsigned long start,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0unsigned long end)
->> diff --git a/drivers/of/fdt.c b/drivers/of/fdt.c
->> index b51f797..406757a 100644
->> --- a/drivers/of/fdt.c
->> +++ b/drivers/of/fdt.c
->> @@ -10,16 +10,18 @@
->> =A0*/
->> =A0=A0#include <linux/kernel.h>
->> -#include <linux/lmb.h>
->> =A0#include <linux/initrd.h>
->> =A0#include <linux/of.h>
->> =A0#include <linux/of_fdt.h>
->> -
->> +#include <linux/string.h>
->> +#include <linux/errno.h>
->> =A0=A0#ifdef CONFIG_PPC
->> =A0#include <asm/machdep.h>
->> =A0#endif /* CONFIG_PPC */
->
-> It is not part of your patch but I think that will be great completely
-> remove this CONFIG_PPC part from generic OF file.
-> Would it be possible to include your asm/machdep.h through asm/page.h or =
-any
-> other file?
+Hi Dave & list:
 
-Yup.  I'll get there unless someone else beats me to it.  :-)
+I'm writing to report a bug in recent vanilla kernels regarding the
+ability to execute in non-executable pages on SPARC.  I'm no SPARC
+expert, but I'll try to explain as best I can the problem and make
+myself available for debugging/testing any fixes.
 
->
-> Michal
->
->> =A0+#include <asm/page.h>
->> +
->> =A0int __initdata dt_root_addr_cells;
->> =A0int __initdata dt_root_size_cells;
->> =A0@@ -560,7 +562,8 @@ void __init unflatten_device_tree(void)
->> =A0 =A0 =A0 =A0pr_debug(" =A0size is %lx, allocating...\n", size);
->> =A0 =A0 =A0 =A0 =A0/* Allocate memory for the expanded device tree */
->> - =A0 =A0 =A0 mem =3D lmb_alloc(size + 4, __alignof__(struct device_node=
-));
->> + =A0 =A0 =A0 mem =3D early_init_dt_alloc_memory_arch(size + 4,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __alignof__(struct device_=
-node));
->> =A0 =A0 =A0 =A0mem =3D (unsigned long) __va(mem);
->> =A0 =A0 =A0 =A0 =A0((__be32 *)mem)[size / 4] =3D cpu_to_be32(0xdeadbeef);
->> diff --git a/include/linux/of_fdt.h b/include/linux/of_fdt.h
->> index c9cb8a7..a1ca92c 100644
->> --- a/include/linux/of_fdt.h
->> +++ b/include/linux/of_fdt.h
->> @@ -78,6 +78,7 @@ extern void early_init_dt_check_for_initrd(unsigned lo=
-ng
->> node);
->> =A0extern int early_init_dt_scan_memory(unsigned long node, const char
->> *uname,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-int depth, void *data);
->> =A0extern void early_init_dt_add_memory_arch(u64 base, u64 size);
->> +extern u64 early_init_dt_alloc_memory_arch(u64 size, u64 align);
->> =A0extern u64 dt_mem_next_cell(int s, __be32 **cellp);
->> =A0=A0/*
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-kernel" =
-in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->> Please read the FAQ at =A0http://www.tux.org/lkml/
->
->
-> --
-> Michal Simek, Ing. (M.Eng)
-> PetaLogix - Linux Solutions for a Reconfigurable World
-> w: www.petalogix.com p: +61-7-30090663,+42-0-721842854 f: +61-7-30090663
->
+I have 4 sparc systems currently, a Netra T1, an Ultra 10, a Sunfire
+V210, and a Blade 2500.  The first two systems run the latest 2.4
+kernels and experience no problems.  The second two systems run recent
+2.6 kernels (2.6.31 and 2.6.32) and both utilize the Cheetah+ MMU.  Both
+of these systems running the recent 2.6 kernels exhibit the problem.
+
+I've provided two simple testcases that illustrate the problem.  Either
+run them in a loop or just multiple times -- eventually instead of
+receiving a segfault (as it should every time for attempting to execute
+on the stack, which is non-executable by default per ABI) the shellcode
+I've set up on the stack will execute without problems.  In the first
+testcase I haven't set up enough code to perform a return from the
+function pointer, so you see the varied signals when an instruction
+fetch is attempted on the 2nd instruction (made up of whatever
+happened to be located on the stack).  In the second case I set up the
+proper ret/restore and the program is able to exit cleanly.
+
+I'm willing to do anything to help debug the problem, but I thought it=20
+would
+be wiser to report it first in case anyone had any immediate ideas on
+what the problem could be.  I figured it would also help in being able
+to debug the issue more effectively, given its seemingly somewhat-random
+nature.
+
+Please keep the PaX team and myself CC'd as we're not subscribed to the
+list.
+
+Thanks for your help,
+-Brad
+
+cat /proc/self/maps output (showing the stack non-executable):
+00010000-00014000 r-xp 00000000 08:02 1769474   /bin/cat
+00024000-00026000 rwxp 00004000 08:02 1769474   /bin/cat
+00026000-00048000 rwxp 00000000 00:00 0         [heap]
+f7cf0000-f7e2a000 r--p 00000000 08:02 295830    /usr/lib/locale/locale-arch=
+ive
+f7e2c000-f7fa4000 r-xp 00000000 08:02 1277958   /lib/ultra3/libc-2.7.so
+f7fa4000-f7fb4000 ---p 00178000 08:02 1277958   /lib/ultra3/libc-2.7.so
+f7fb4000-f7fba000 rwxp 00178000 08:02 1277958   /lib/ultra3/libc-2.7.so
+f7fba000-f7fbc000 rwxp 00000000 00:00 0
+f7fbc000-f7fde000 r-xp 00000000 08:02 1270085   /lib/ld-2.7.so
+f7fec000-f7ff0000 rwxp 00020000 08:02 1270085   /lib/ld-2.7.so
+f7ff0000-f7ff2000 rw-p 00000000 00:00 0
+ffdb6000-ffde0000 rw-p 00000000 00:00 0         [stack]
+
+First test case:
+#include <stdio.h>
+
+typedef int (* _wee)(void);
+
+int main(void)
+{
+        char buf[4] =3D { '\x81', '\xc7', '\xe0', '\x08'};
+        _wee wee;
+        printf("%p\n", &buf);
+        wee =3D (_wee)&buf;
+        wee();
+
+        return 0;
+}
+
+gdb output in 90-95% of the cases:
+Program received signal SIGSEGV, Segmentation fault.
+0xff9d9cb0 in ?? ()
+
+gdb output in the other 5-10% of cases:
+(gdb) run
+The program being debugged has been started already.
+Start it from the beginning? (y or n) y
+Starting program: /root/test
+0xff811cb0
+
+Program received signal SIGBUS, Bus error.
+0xff811cb4 in ?? ()
+(gdb) x/x 0xff811cb0
+0xff811cb0:     0x81c7e008
+(gdb) x/i 0xff811cb0
+0xff811cb0:     ret
+0xff811cb4:     lda  [ %g4 + %l0 ] (229), %f31
+
+(gdb) run
+The program being debugged has been started already.
+Start it from the beginning? (y or n) y
+Starting program: /root/test
+0xff97dcb0
+
+Program received signal SIGILL, Illegal instruction.
+0xff97dcb4 in ?? ()
+(gdb) x/8x $pc-4
+0xff97dcb0:     0x81c7e008      0xff97dcb0      0xf7f3af00
+0x00000000
+0xff97dcc0:     0x00000000      0x00000000      0xfffffffc
+0x00000000
+(gdb) x/i $pc-4
+0xff97dcb0:     ret
+0xff97dcb4:     ldqa  [ %i7 + %l0 ] (229), %f62
+
+modified code so it executed a ret / restore:
+#include <stdio.h>
+
+typedef int (* _wee)(void);
+
+int main(void)
+{
+        char buf[8] =3D { '\x81', '\xc7', '\xe0', '\x08', '\x81', '\xe8',
+                        '\x00', '\x00' };
+        _wee wee;
+        printf("%p\n", &buf);
+        wee =3D (_wee)&buf;
+        wee();
+
+        return 0;
+}
 
 
+gdb output in the 5-10% case:
+Starting program: /root/test
+0xffb4fca8
 
---=20
-Grant Likely, B.Sc., P.Eng.
-Secret Lab Technologies Ltd.
+Program exited with code 01.
+
+
+--fdj2RfSjLxBAspz7
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFLfxdTmHm2SUJF1GoRAvXIAJ9FVNpIIIaeNv2uGqMBaJBvg3H7nQCePHpi
+SvfVbu6uKdUw8h7Q/FNCXEw=
+=gSyK
+-----END PGP SIGNATURE-----
+
+--fdj2RfSjLxBAspz7--
