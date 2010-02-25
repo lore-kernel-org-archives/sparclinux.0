@@ -1,78 +1,152 @@
-From: Chris Torek <chris.torek@windriver.com>
-Date: Thu, 04 Feb 2010 11:26:02 +0000
-Subject: [PATCH 8/8] niu: rxflow integration
-Message-Id: <bf51d8c647b3eb974d6ea8cb35e716f4b2ba2192.1265231570.git.chris.torek@windriver.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Thu, 25 Feb 2010 17:51:43 +0000
+Subject: [git pull] OF device tree rework for 2.6.34
+Message-Id: <fa686aa41002250951s7bc64063wf227e5efbb406d66@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linuxppc-dev <linuxppc-dev@ozlabs.org>, devicetree-discuss <devicetree-discuss@lists.ozlabs.org>, microblaze-uclinux@itee.uq.edu.au, sparclinux@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Michal Simek <michal.simek@petalogix.com>, David Miller <davem@davemloft.net>
 
-Set the number of CPUs to be used to handle separated flows on
-receive.  The default maximum is 16, but we never use more than
-half the online processors.
+Hi Linus,
 
-Signed-off-by: Hong H. Pham <hong.pham@windriver.com>
-Signed-off-by: Chris Torek <chris.torek@windriver.com>
----
- drivers/net/niu.c |   30 ++++++++++++++++++++++++++++++
- 1 files changed, 30 insertions(+), 0 deletions(-)
+Here is a bunch of device tree rework.  This has also been simmering
+in linux-next for a while now.  Most of this is merging PowerPC &
+Microblaze code with a sprinkling of SPARC changes, although there is
+a small bit of minor rework throughout the drivers tree, all pretty
+much powerpc specific stuff.
 
-diff --git a/drivers/net/niu.c b/drivers/net/niu.c
-index c82e970..488a4ae 100644
---- a/drivers/net/niu.c
-+++ b/drivers/net/niu.c
-@@ -76,6 +76,14 @@ static unsigned int rbr_refill_min __read_mostly = RBR_REFILL_MIN;
- module_param(rbr_refill_min, uint, 0644);
- MODULE_PARM_DESC(rbr_refill_min, "Minimum RBR refill threshold");
- 
-+/*
-+ * An upper limit of 16 CPUs in rxflow separation usually works well.
-+ * Lowering this value to 0 reverts the driver to pre-rxflow behavior.
-+ */
-+static unsigned int rxflow_max_cpus = 16;
-+module_param(rxflow_max_cpus, uint, 0644);
-+MODULE_PARM_DESC(rxflow_max_cpus, "Maximum CPUs for RXflow separation");
-+
- #ifndef readq
- static u64 readq(void __iomem *reg)
- {
-@@ -9812,6 +9820,26 @@ static void __devinit niu_driver_version(void)
- 		pr_info("%s", version);
- }
- 
-+#ifdef CONFIG_SMP
-+/*
-+ * Set number of CPUs to handle flow separation on receive.  We
-+ * want half the online CPUs, or the module-parameter upper limit
-+ * (normally 16), whichever is smaller.
-+ */
-+static void __devinit niu_set_default_rx_cpus(struct net_device *dev)
-+{
-+	unsigned int n;
-+
-+	n = num_online_cpus() / 2;
-+	if (n > rxflow_max_cpus)
-+		n = rxflow_max_cpus;
-+
-+	dev->rx_cpus = n;
-+}
-+#else
-+#define niu_set_default_rx_cpus(dev) do {} while (0)
-+#endif /* CONFIG_SMP */
-+
- static struct net_device * __devinit niu_alloc_and_init(
- 	struct device *gen_dev, struct pci_dev *pdev,
- 	struct of_device *op, const struct niu_ops *ops,
-@@ -9842,6 +9870,8 @@ static struct net_device * __devinit niu_alloc_and_init(
- 
- 	np->port = port;
- 
-+	niu_set_default_rx_cpus(dev);
-+
- 	return dev;
- }
- 
+Cheers,
+g.
+
+The following changes since commit 60b341b778cc2929df16c0a504c91621b3c6a4ad:
+  Linus Torvalds (1):
+        Linux 2.6.33
+
+are available in the git repository at:
+
+  git://git.secretlab.ca/git/linux-2.6 next-devicetree
+
+David Gibson (1):
+      of/flattree: Make the kernel accept ePAPR style phandle information
+
+Grant Likely (30):
+      Merge commit 'v2.6.32-rc8'
+      of/flattree: merge find_flat_dt_string and initial_boot_params
+      of/flattree: merge of_scan_flat_dt
+      of/flattree: merge of_get_flat_dt_root
+      of/flattree: remove __init annotations from the header file
+      of/flattree: merge of_get_flat_dt_prop
+      of/flattree: Merge of_flat_dt_is_compatible
+      of/flattree: Merge unflatten_dt_node
+      of/flattree: Merge unflatten_device_tree
+      of: merge prom_{add,remove,modify}_property
+      of: remove special case definition of of_read_ulong()
+      of/flattree: Merge early_init_dt_check_for_initrd()
+      of/flattree: Merge earlyinit_dt_scan_root()
+      of/flattree: merge dt_mem_next_cell
+      of/flattree: eliminate cell_t typedef
+      of/flattree: merge early_init_dt_scan_chosen()
+      of: merge machine_is_compatible()
+      of: Merge of_node_get() and of_node_put()
+      of: unify phandle name in struct device_node
+      Merge commit 'v2.6.33-rc5' into secretlab/test-devicetree
+      microblaze: remove early_init_dt_scan_cpus() and phyp_dump_*()
+      of: merge of_attach_node() & of_detach_node()
+      of: add 'of_' prefix to machine_is_compatible()
+      of/flattree: merge early_init_dt_scan_memory() common code
+      of: Remove old and misplaced function declarations
+      of: put default string compare and #a/s-cell values into common header
+      of: remove unused extern reference to devtree_lock
+      of: move definition of of_chosen into common code.
+      of/sparc: Remove sparc-local declaration of allnodes and devtree_lock
+      of: remove undefined request_OF_resource & release_OF_resource
+
+Jeremy Kerr (12):
+      of: merge of_find_node_by_phandle
+      of: include linux/proc_fs.h
+      of: make set_node_proc_entry private to proc_devtree.c
+      proc_devtree: include linux/of.h
+      of/flattree: use callback to setup initrd from /chosen
+      of/flattree: use OF_ROOT_NODE_{SIZE,ADDR}_CELLS DEFAULT for fdt parsing
+      of: use __be32 for cell value accessors
+      of: assume big-endian properties, adding conversions where necessary
+      of/flattree: endian-convert members of boot_param_header
+      proc_devtree: fix THIS_MODULE without module.h
+      of: protect linux/of.h with CONFIG_OF
+      of/flattree: Don't assume HAVE_LMB
+
+ arch/microblaze/Kconfig                       |    1 +
+ arch/microblaze/include/asm/prom.h            |   20 -
+ arch/microblaze/kernel/of_platform.c          |    2 +-
+ arch/microblaze/kernel/prom.c                 |  990 +------------------------
+ arch/powerpc/Kconfig                          |    1 +
+ arch/powerpc/include/asm/prom.h               |   18 -
+ arch/powerpc/kernel/of_platform.c             |    2 +-
+ arch/powerpc/kernel/pci_64.c                  |    2 +-
+ arch/powerpc/kernel/prom.c                    |  887 ++---------------------
+ arch/powerpc/platforms/85xx/xes_mpc85xx.c     |    4 +-
+ arch/powerpc/platforms/cell/cbe_powerbutton.c |    2 +-
+ arch/powerpc/platforms/cell/ras.c             |    2 +-
+ arch/powerpc/platforms/cell/spu_manage.c      |    6 +-
+ arch/powerpc/platforms/pasemi/cpufreq.c       |    4 +-
+ arch/powerpc/platforms/powermac/cpufreq_32.c  |   14 +-
+ arch/powerpc/platforms/powermac/cpufreq_64.c  |   14 +-
+ arch/powerpc/platforms/powermac/feature.c     |    2 +-
+ arch/powerpc/platforms/powermac/pfunc_core.c  |    2 +-
+ arch/powerpc/platforms/powermac/smp.c         |   12 +-
+ arch/powerpc/platforms/powermac/time.c        |    8 +-
+ arch/powerpc/platforms/powermac/udbg_scc.c    |    6 +-
+ arch/powerpc/sysdev/grackle.c                 |    4 +-
+ arch/sparc/kernel/devices.c                   |    2 +-
+ arch/sparc/kernel/of_device_32.c              |    2 +-
+ arch/sparc/kernel/of_device_64.c              |    2 +-
+ arch/sparc/kernel/prom.h                      |    3 -
+ arch/sparc/kernel/prom_common.c               |   18 +-
+ arch/sparc/kernel/smp_64.c                    |    2 +-
+ drivers/char/hvc_beat.c                       |    2 +-
+ drivers/gpu/drm/radeon/radeon_combios.c       |   44 +-
+ drivers/macintosh/adb.c                       |    4 +-
+ drivers/macintosh/therm_pm72.c                |    8 +-
+ drivers/macintosh/therm_windtunnel.c          |    2 +-
+ drivers/macintosh/via-pmu-backlight.c         |    8 +-
+ drivers/macintosh/via-pmu.c                   |    8 +-
+ drivers/macintosh/windfarm_core.c             |    6 +-
+ drivers/macintosh/windfarm_cpufreq_clamp.c    |    6 +-
+ drivers/macintosh/windfarm_lm75_sensor.c      |    6 +-
+ drivers/macintosh/windfarm_max6690_sensor.c   |    6 +-
+ drivers/macintosh/windfarm_pm112.c            |    2 +-
+ drivers/macintosh/windfarm_pm121.c            |    2 +-
+ drivers/macintosh/windfarm_pm81.c             |    4 +-
+ drivers/macintosh/windfarm_pm91.c             |    2 +-
+ drivers/macintosh/windfarm_smu_sensors.c      |    6 +-
+ drivers/net/mace.c                            |    2 +-
+ drivers/of/Kconfig                            |    8 +
+ drivers/of/Makefile                           |    1 +
+ drivers/of/base.c                             |  318 ++++++++-
+ drivers/of/fdt.c                              |  590 +++++++++++++++
+ drivers/of/gpio.c                             |   13 +-
+ drivers/of/of_i2c.c                           |    4 +-
+ drivers/of/of_mdio.c                          |    8 +-
+ drivers/of/of_spi.c                           |    6 +-
+ drivers/sbus/char/openprom.c                  |   10 +-
+ drivers/serial/pmac_zilog.c                   |    6 +-
+ drivers/video/aty/aty128fb.c                  |   14 +-
+ drivers/video/aty/atyfb_base.c                |   10 +-
+ drivers/video/aty/radeon_backlight.c          |    6 +-
+ fs/proc/proc_devtree.c                        |    7 +-
+ include/linux/of.h                            |   62 ++-
+ include/linux/of_fdt.h                        |   75 ++-
+ sound/aoa/fabrics/layout.c                    |    2 +-
+ sound/ppc/awacs.c                             |   24 +-
+ sound/ppc/burgundy.c                          |    4 +-
+ sound/ppc/pmac.c                              |   18 +-
+ sound/soc/fsl/efika-audio-fabric.c            |    2 +-
+ sound/soc/fsl/pcm030-audio-fabric.c           |    2 +-
+ 67 files changed, 1244 insertions(+), 2096 deletions(-)
+ create mode 100644 drivers/of/fdt.c
+
+
 -- 
-1.6.0.4.766.g6fc4a
-
+Grant Likely, B.Sc., P.Eng.
+Secret Lab Technologies Ltd.
