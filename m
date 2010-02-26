@@ -1,28 +1,54 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 12 Feb 2010 20:09:25 +0000
-Subject: Re: [PATCH 09/16 v2] sparc: remove trailing space in messages
-Message-Id: <20100212.120925.30297279.davem@davemloft.net>
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Date: Fri, 26 Feb 2010 00:43:51 +0000
+Subject: [PATCH] sparc: use asm-generic/scatterlist.h
+Message-Id: <20100226093941C.fujita.tomonori@lab.ntt.co.jp>
 List-Id: <sparclinux.vger.kernel.org>
-References: <201002061844.45212.elendil@planet.nl>
-	<1265478443-31072-9-git-send-email-elendil@planet.nl>
-	<201002061916.44473.elendil@planet.nl>
-In-Reply-To: <201002061916.44473.elendil@planet.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: elendil@planet.nl
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Frans Pop <elendil@planet.nl>
-Date: Sat, 6 Feb 2010 19:16:43 +0100
+sparc's scatterlist structure is identical to the generic one.
 
-> Also fixes a typo in one message.
-> 
-> Signed-off-by: Frans Pop <elendil@planet.nl>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+---
+ arch/sparc/include/asm/scatterlist.h |   21 +--------------------
+ 1 files changed, 1 insertions(+), 20 deletions(-)
 
-Applied to sparc-next-2.6, thanks!
+diff --git a/arch/sparc/include/asm/scatterlist.h b/arch/sparc/include/asm/scatterlist.h
+index e580f55..d112025 100644
+--- a/arch/sparc/include/asm/scatterlist.h
++++ b/arch/sparc/include/asm/scatterlist.h
+@@ -1,27 +1,8 @@
+ #ifndef _SPARC_SCATTERLIST_H
+ #define _SPARC_SCATTERLIST_H
+ 
+-#include <asm/page.h>
+-#include <asm/types.h>
+-
+-struct scatterlist {
+-#ifdef CONFIG_DEBUG_SG
+-	unsigned long	sg_magic;
+-#endif
+-	unsigned long	page_link;
+-	unsigned int	offset;
+-
+-	unsigned int	length;
+-
+-	dma_addr_t	dma_address;
+-	__u32		dma_length;
+-};
+-
+-#define sg_dma_address(sg)	((sg)->dma_address)
+ #define sg_dma_len(sg)     	((sg)->dma_length)
+ 
+-#define ISA_DMA_THRESHOLD	(~0UL)
+-
+-#define ARCH_HAS_SG_CHAIN
++#include <asm-generic/scatterlist.h>
+ 
+ #endif /* !(_SPARC_SCATTERLIST_H) */
+-- 
+1.6.5
 
-> P.S. I like the "whirrr, whirrr, whirrrrrrrrr..." :-)
-
-That's the sound my brain makes when I'm working on low-level
-sparc code.
