@@ -1,39 +1,51 @@
-From: Paul Cao <pcao@ashland.edu>
-Date: Tue, 23 Mar 2010 23:22:41 +0000
-Subject: RE: Debian Sparc 5.4 on Sun blade 2500
-Message-Id: <67C7C7D8FEEAD841B31B9F6867E915DE0786BCBBD3@ex-mb1.ad.ashland.edu>
+From: Frans van Berckel <fberckel@xs4all.nl>
+Date: Tue, 02 Mar 2010 08:20:39 +0000
+Subject: Re: XVR-500 additional pci ids
+Message-Id: <1267518039.1750.16.camel@deblnxsrv254.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1268768091.1768.29.camel@deblnxsrv254.localdomain>
-In-Reply-To: <1268768091.1768.29.camel@deblnxsrv254.localdomain>
+References: <201002251955.23519.dennis@ausil.us>
+In-Reply-To: <201002251955.23519.dennis@ausil.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-I didn't get the time to install the iso image. I will try to install debian on another sun 2500 during the summer.Hopefully the other one will work on debian 5.04.  thanks for the help.
+Sorry, i did link the wrong BSD sources. I wasn't looking for Xorg
+support yet. But I wanne get my XVR-1200 supported by the kernel.
 
-pc
-________________________________________
-From: David Miller [davem@davemloft.net]
-Sent: Tuesday, March 23, 2010 2:55 PM
-To: Paul Cao
-Cc: fberckel@xs4all.nl; joy@debian.org; sparclinux@vger.kernel.org; debian-sparc@lists.debian.org
-Subject: Re: Debian Sparc 5.4 on Sun blade 2500
+For what I found out this BSD kernel driver does. Because they did
+extend the acceleration code to handle XVR-600 and XVR-1200. It's based
+on the driver you created. The sources are available here.
 
-From: David Miller <davem@davemloft.net>
-Date: Tue, 16 Mar 2010 21:34:42 -0700 (PDT)
+http://www.openbsd.org/cgi-bin/cvsweb/src/sys/arch/sparc64/dev/ifb.c
 
-> From: Paul Cao <pcao@ashland.edu>
-> Date: Tue, 16 Mar 2010 19:21:53 -0400
->
->> I have download the iso image. I will install it tomorrow and post the
->> results here.
->
-> Meanwhile I tried the DVD myself and it worked with my
-> XVR-500.
+Now I know you are very busy these day's, so leave it on for now. Or if
+someone els wanna look into it?
 
-With the Lenny mini.iso my screen came up just fine on a SunBlade-2500
-with an XVR-600 as the console.
+Thanks,
 
-There is something not right on your end, because even with what
-should be the same hardware I cannot reproduce your problem.
+
+Frans van Berckel
+
+On Sat, 2010-02-27 at 01:59 -0800, David Miller wrote:
+> From: Frans van Berckel <fberckel@xs4all.nl>
+> Date: Sat, 27 Feb 2010 10:05:26 +0100
+> 
+> > Reading the Sparc64 OpenSolaris xwindow forum list last year about
+> > closed drivers pointed up a open BSD driver for Wildcat fb cards.
+> > 
+> > http://www.openbsd.org/cgi-bin/cvsweb/xenocara/driver/xf86-video-wildcatfb/
+> > 
+> > Did you know this BSD sources are available? Are you able to port it
+> > into the kernel?
+> 
+> You should be able to use the plain ole' 'fbdev' driver under X.
+> 
+> It can drive any card that has a drivers/video driver under Linux.
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
