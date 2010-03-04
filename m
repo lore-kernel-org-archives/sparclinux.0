@@ -1,25 +1,27 @@
-From: Sean MacLennan <smaclennan@pikatech.com>
-Date: Fri, 12 Mar 2010 17:31:02 +0000
-Subject: Re: [PATCH 12/27] drivers/mtd/of: don't use deprecated field in
-Message-Id: <20100312123102.453ff2d0@lappy.seanm.ca>
+From: Josip Rodin <joy@entuzijast.net>
+Date: Thu, 04 Mar 2010 09:30:07 +0000
+Subject: Re: Sparc release requalification
+Message-Id: <20100304093007.GA24311@orion.carnet.hr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100311181604.13103.30088.stgit@angua>
-	<20100311182253.13103.92479.stgit@angua>
-In-Reply-To: <20100311182253.13103.92479.stgit@angua>
+References: <4AA427E6.5000801@nerim.net>
+In-Reply-To: <4AA427E6.5000801@nerim.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: alsa-devel@alsa-project.org, gregkh@suse.de, linux-ide@vger.kernel.org, James.Bottomley@suse.de, linux-i2c@vger.kernel.org, sparclinux@vger.kernel.org, jeremy.kerr@canonical.com, sfr@canb.auug.org.au, linux-scsi@vger.kernel.org, jgarzik@pobox.com, microblaze-uclinux@itee.uq.edu.au, devicetree-discuss@lists.ozlabs.org, ben-linux@fluff.org, monstr@monstr.eu, linuxppc-dev@ozlabs.org, netdev@vger.kernel.org, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, akpm@linux-foundation.org, dwmw2@infradead.org, davem@davemloft.net
+To: sparclinux@vger.kernel.org
 
-On Thu, 11 Mar 2010 11:22:54 -0700
-Grant Likely <grant.likely@secretlab.ca> wrote:
-
-> .name, .match_table and .owner are duplicated in both
-> of_platform_driver and device_driver, so the of_platform_driver
-> copies will be removed soon.
+On Sat, Dec 05, 2009 at 02:00:33PM +0100, Josip Rodin wrote:
+> I've tried that one right now, and this is what I got:
 > 
-> Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+> [   41.596742] Brought up 2 CPUs
+> [   41.744948] regulator: core version 0.5
+> [   41.795563] NET: Registered protocol family 16
+> [   
+> 
+> There it hung. Doesn't look much different from before.
+[...]
 
-NDFC
-Acked-by: Sean MacLennan <smaclennan@pikatech.com>
+Just a fix confirmation for our mailing list - http://bugs.debian.org/572442
+
+-- 
+     2. That which causes joy or happiness.
