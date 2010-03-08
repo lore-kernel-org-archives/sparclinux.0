@@ -1,33 +1,38 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 14 Mar 2010 00:21:37 +0000
-Subject: Re: XVR-500 additional pci ids
-Message-Id: <20100313.162137.82715595.davem@davemloft.net>
+From: Meelis Roos <mroos@linux.ee>
+Date: Mon, 08 Mar 2010 18:23:20 +0000
+Subject: [PATCH] Remove slash in QlogicPTI irq name
+Message-Id: <alpine.SOC.1.00.1003081809380.26387@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <201002251955.23519.dennis@ausil.us>
-In-Reply-To: <201002251955.23519.dennis@ausil.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org
 
-From: Frans van Berckel <fberckel@xs4all.nl>
-Date: Sat, 13 Mar 2010 22:33:17 +0100
+qlogicpti driver registers its irq with a name containing slash.
+This results in 
 
-> On Sat, 2010-03-13 at 11:19 -0800, David Miller wrote:
->> From: David Miller <davem@davemloft.net>
->> Date: Sat, 13 Mar 2010 11:12:41 -0800 (PST)
->> > 
->> > So once the kernel switches from the PROM console output and
->> > into the framebuffer driver, the characters printed are blue?
->> > 
->> > What color is the screen background when this happens?
->> 
->> Meanwhile I think I know what the problem is, please try
->> this patch on top of what you have:
-> 
-> Yes ... {being happy}
-> 
-> sunxvr1000
-> Acked-by: Frans van Berckel <fberckel@xs4all.nl>
+[   71.049735] WARNING: at fs/proc/generic.c:316 __xlate_proc_name+0xa8/0xb8()
+[   71.132815] name 'Qlogic/PTI'
 
-Thanks for testing, I'll push this new driver around.
+because proc_mkdir with the name of the irq fails. Fix it by just 
+removing the slash from irq name. Discovered and tested on real hardware 
+(Sun Ultra 1).
+
+Signed-off-by: Meelis Roos <mroos@linux.ee>
+
+diff --git a/drivers/scsi/qlogicpti.c b/drivers/scsi/qlogicpti.c
+index fa34b92..1b82170 100644
+--- a/drivers/scsi/qlogicpti.c
++++ b/drivers/scsi/qlogicpti.c
+@@ -738,7 +738,7 @@ static int __devinit qpti_register_irq(struct qlogicpti *qpti)
+ 	 * sanely maintain.
+ 	 */
+ 	if (request_irq(qpti->irq, qpti_intr,
+-			IRQF_SHARED, "Qlogic/PTI", qpti))
++			IRQF_SHARED, "QlogicPTI", qpti))
+ 		goto fail;
+ 
+ 	printk("qlogicpti%d: IRQ %d ", qpti->qpti_id, qpti->irq);
+
+-- 
+Meelis Roos (mroos@linux.ee)
