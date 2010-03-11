@@ -1,136 +1,132 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Date: Thu, 11 Mar 2010 18:24:00 +0000
-Subject: [PATCH 24/27] sound/of: don't use deprecated fields in
-Message-Id: <20100311182400.13103.45617.stgit@angua>
+Date: Thu, 11 Mar 2010 18:06:44 +0000
+Subject: [PATCH 32/37] sound/aoa: use .dev.of_node instead of .node in struct
+Message-Id: <20100311180644.4824.41302.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100311181604.13103.30088.stgit@angua>
-In-Reply-To: <20100311181604.13103.30088.stgit@angua>
+References: <20100311174830.4824.19820.stgit@angua>
+In-Reply-To: <20100311174830.4824.19820.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infrade
+To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infradead.org, jeremy.kerr@canonical.com, James.Bottomley@suse.de, broonie@opensource.wolfsonmicro.com, microblaze-uclinux@itee.uq.edu.au, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, linux-ide@vger.kernel.org, netdev@vger.kernel.org, linux-i2c@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-scsi@vger.kernel.org, alsa-devel@alsa-project.org
 
-.name, .match_table and .owner are duplicated in both of_platform_driver
-and device_driver, so the of_platform_driver copies will be removed soon.
+.node is being removed
 
 Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 ---
 
- sound/soc/fsl/mpc5200_psc_ac97.c |    2 +-
- sound/soc/fsl/mpc5200_psc_i2s.c  |    2 +-
- sound/soc/fsl/mpc8610_hpcd.c     |    8 +++++---
- sound/sparc/amd7930.c            |    7 +++++--
- sound/sparc/cs4231.c             |    7 +++++--
- sound/sparc/dbri.c               |    7 +++++--
- 6 files changed, 22 insertions(+), 11 deletions(-)
+ sound/aoa/fabrics/layout.c          |    2 +-
+ sound/aoa/soundbus/core.c           |    8 ++++----
+ sound/aoa/soundbus/i2sbus/control.c |    2 +-
+ sound/aoa/soundbus/i2sbus/core.c    |    4 ++--
+ sound/aoa/soundbus/sysfs.c          |    4 ++--
+ 5 files changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/sound/soc/fsl/mpc5200_psc_ac97.c b/sound/soc/fsl/mpc5200_psc_ac97.c
-index 3dbc7f7..e2ee220 100644
---- a/sound/soc/fsl/mpc5200_psc_ac97.c
-+++ b/sound/soc/fsl/mpc5200_psc_ac97.c
-@@ -317,12 +317,12 @@ static struct of_device_id psc_ac97_match[] __devinitdata = {
- MODULE_DEVICE_TABLE(of, psc_ac97_match);
+diff --git a/sound/aoa/fabrics/layout.c b/sound/aoa/fabrics/layout.c
+index 7a437da..da38f2b 100644
+--- a/sound/aoa/fabrics/layout.c
++++ b/sound/aoa/fabrics/layout.c
+@@ -991,7 +991,7 @@ static int aoa_fabric_layout_probe(struct soundbus_dev *sdev)
+ 		return -ENODEV;
  
- static struct of_platform_driver psc_ac97_driver = {
--	.match_table = psc_ac97_match,
- 	.probe = psc_ac97_of_probe,
- 	.remove = __devexit_p(psc_ac97_of_remove),
- 	.driver = {
- 		.name = "mpc5200-psc-ac97",
- 		.owner = THIS_MODULE,
-+		.of_match_table = psc_ac97_match,
- 	},
- };
+ 	/* by breaking out we keep a reference */
+-	while ((sound = of_get_next_child(sdev->ofdev.node, sound))) {
++	while ((sound = of_get_next_child(sdev->ofdev.dev.of_node, sound))) {
+ 		if (sound->type && strcasecmp(sound->type, "soundchip") = 0)
+ 			break;
+ 	}
+diff --git a/sound/aoa/soundbus/core.c b/sound/aoa/soundbus/core.c
+index fa8ab28..99ca712 100644
+--- a/sound/aoa/soundbus/core.c
++++ b/sound/aoa/soundbus/core.c
+@@ -74,11 +74,11 @@ static int soundbus_uevent(struct device *dev, struct kobj_uevent_env *env)
+ 	of = &soundbus_dev->ofdev;
  
-diff --git a/sound/soc/fsl/mpc5200_psc_i2s.c b/sound/soc/fsl/mpc5200_psc_i2s.c
-index ce8de90..f6c507c 100644
---- a/sound/soc/fsl/mpc5200_psc_i2s.c
-+++ b/sound/soc/fsl/mpc5200_psc_i2s.c
-@@ -220,12 +220,12 @@ static struct of_device_id psc_i2s_match[] __devinitdata = {
- MODULE_DEVICE_TABLE(of, psc_i2s_match);
+ 	/* stuff we want to pass to /sbin/hotplug */
+-	retval = add_uevent_var(env, "OF_NAME=%s", of->node->name);
++	retval = add_uevent_var(env, "OF_NAME=%s", of->dev.of_node->name);
+ 	if (retval)
+ 		return retval;
  
- static struct of_platform_driver psc_i2s_driver = {
--	.match_table = psc_i2s_match,
- 	.probe = psc_i2s_of_probe,
- 	.remove = __devexit_p(psc_i2s_of_remove),
- 	.driver = {
- 		.name = "mpc5200-psc-i2s",
- 		.owner = THIS_MODULE,
-+		.of_match_table = psc_i2s_match,
- 	},
- };
+-	retval = add_uevent_var(env, "OF_TYPE=%s", of->node->type);
++	retval = add_uevent_var(env, "OF_TYPE=%s", of->dev.of_node->type);
+ 	if (retval)
+ 		return retval;
  
-diff --git a/sound/soc/fsl/mpc8610_hpcd.c b/sound/soc/fsl/mpc8610_hpcd.c
-index d7e1b9a..511d721 100644
---- a/sound/soc/fsl/mpc8610_hpcd.c
-+++ b/sound/soc/fsl/mpc8610_hpcd.c
-@@ -579,9 +579,11 @@ static struct of_device_id mpc8610_hpcd_match[] = {
- MODULE_DEVICE_TABLE(of, mpc8610_hpcd_match);
+@@ -86,7 +86,7 @@ static int soundbus_uevent(struct device *dev, struct kobj_uevent_env *env)
+ 	 * it's not really legal to split it out with commas. We split it
+ 	 * up using a number of environment variables instead. */
  
- static struct of_platform_driver mpc8610_hpcd_of_driver = {
--	.owner  	= THIS_MODULE,
--	.name   	= "mpc8610_hpcd",
--	.match_table    = mpc8610_hpcd_match,
-+	.driver = {
-+		.name = "mpc8610_hpcd",
-+		.owner = THIS_MODULE,
-+		.of_match_table = mpc8610_hpcd_match,
-+	},
- 	.probe  	= mpc8610_hpcd_probe,
- 	.remove 	= mpc8610_hpcd_remove,
- };
-diff --git a/sound/sparc/amd7930.c b/sound/sparc/amd7930.c
-index 574af56..71221fd 100644
---- a/sound/sparc/amd7930.c
-+++ b/sound/sparc/amd7930.c
-@@ -1065,8 +1065,11 @@ static const struct of_device_id amd7930_match[] = {
- };
+-	compat = of_get_property(of->node, "compatible", &cplen);
++	compat = of_get_property(of->dev.of_node, "compatible", &cplen);
+ 	while (compat && cplen > 0) {
+ 		int tmp = env->buflen;
+ 		retval = add_uevent_var(env, "OF_COMPATIBLE_%d=%s", seen, compat);
+@@ -169,7 +169,7 @@ int soundbus_add_one(struct soundbus_dev *dev)
  
- static struct of_platform_driver amd7930_sbus_driver = {
--	.name		= "audio",
--	.match_table	= amd7930_match,
-+	.driver = {
-+		.name = "audio",
-+		.owner = THIS_MODULE,
-+		.of_match_table = amd7930_match,
-+	},
- 	.probe		= amd7930_sbus_probe,
- };
+ 	/* sanity checks */
+ 	if (!dev->attach_codec ||
+-	    !dev->ofdev.node ||
++	    !dev->ofdev.dev.of_node ||
+ 	    dev->pcmname ||
+ 	    dev->pcmid != -1) {
+ 		printk(KERN_ERR "soundbus: adding device failed sanity check!\n");
+diff --git a/sound/aoa/soundbus/i2sbus/control.c b/sound/aoa/soundbus/i2sbus/control.c
+index 87beb4a..799804d 100644
+--- a/sound/aoa/soundbus/i2sbus/control.c
++++ b/sound/aoa/soundbus/i2sbus/control.c
+@@ -41,7 +41,7 @@ int i2sbus_control_add_dev(struct i2sbus_control *c,
+ {
+ 	struct device_node *np;
  
-diff --git a/sound/sparc/cs4231.c b/sound/sparc/cs4231.c
-index 14cb87c..47db872 100644
---- a/sound/sparc/cs4231.c
-+++ b/sound/sparc/cs4231.c
-@@ -2110,8 +2110,11 @@ static const struct of_device_id cs4231_match[] = {
- MODULE_DEVICE_TABLE(of, cs4231_match);
+-	np = i2sdev->sound.ofdev.node;
++	np = i2sdev->sound.ofdev.dev.of_node;
+ 	i2sdev->enable = pmf_find_function(np, "enable");
+ 	i2sdev->cell_enable = pmf_find_function(np, "cell-enable");
+ 	i2sdev->clock_enable = pmf_find_function(np, "clock-enable");
+diff --git a/sound/aoa/soundbus/i2sbus/core.c b/sound/aoa/soundbus/i2sbus/core.c
+index 4e3b819..ddb1577 100644
+--- a/sound/aoa/soundbus/i2sbus/core.c
++++ b/sound/aoa/soundbus/i2sbus/core.c
+@@ -220,8 +220,8 @@ static int i2sbus_add_dev(struct macio_dev *macio,
  
- static struct of_platform_driver cs4231_driver = {
--	.name		= "audio",
--	.match_table	= cs4231_match,
-+	.driver = {
-+		.name = "audio",
-+		.owner = THIS_MODULE,
-+		.of_match_table = cs4231_match,
-+	},
- 	.probe		= cs4231_probe,
- 	.remove		= __devexit_p(cs4231_remove),
- };
-diff --git a/sound/sparc/dbri.c b/sound/sparc/dbri.c
-index 2734c36..6e5d1dd 100644
---- a/sound/sparc/dbri.c
-+++ b/sound/sparc/dbri.c
-@@ -2686,8 +2686,11 @@ static const struct of_device_id dbri_match[] = {
- MODULE_DEVICE_TABLE(of, dbri_match);
+ 	mutex_init(&dev->lock);
+ 	spin_lock_init(&dev->low_lock);
+-	dev->sound.ofdev.node = np;
+ 	dev->sound.ofdev.dma_mask = macio->ofdev.dma_mask;
++	dev->sound.ofdev.dev.of_node = np;
+ 	dev->sound.ofdev.dev.dma_mask = &dev->sound.ofdev.dma_mask;
+ 	dev->sound.ofdev.dev.parent = &macio->ofdev.dev;
+ 	dev->sound.ofdev.dev.release = i2sbus_release_dev;
+@@ -345,7 +345,7 @@ static int i2sbus_probe(struct macio_dev* dev, const struct of_device_id *match)
+ 		return -ENODEV;
+ 	}
  
- static struct of_platform_driver dbri_sbus_driver = {
--	.name		= "dbri",
--	.match_table	= dbri_match,
-+	.driver = {
-+		.name = "dbri",
-+		.owner = THIS_MODULE,
-+		.of_match_table = dbri_match,
-+	},
- 	.probe		= dbri_probe,
- 	.remove		= __devexit_p(dbri_remove),
- };
+-	while ((np = of_get_next_child(dev->ofdev.node, np))) {
++	while ((np = of_get_next_child(dev->ofdev.dev.of_node, np))) {
+ 		if (of_device_is_compatible(np, "i2sbus") ||
+ 		    of_device_is_compatible(np, "i2s-modem")) {
+ 			got += i2sbus_add_dev(dev, control, np);
+diff --git a/sound/aoa/soundbus/sysfs.c b/sound/aoa/soundbus/sysfs.c
+index f580942..6496e75 100644
+--- a/sound/aoa/soundbus/sysfs.c
++++ b/sound/aoa/soundbus/sysfs.c
+@@ -9,7 +9,7 @@ field##_show (struct device *dev, struct device_attribute *attr,	\
+               char *buf)						\
+ {									\
+ 	struct soundbus_dev *mdev = to_soundbus_device (dev);		\
+-	return sprintf (buf, format_string, mdev->ofdev.node->field);	\
++	return sprintf (buf, format_string, mdev->ofdev.dev.of_node->field); \
+ }
+ 
+ static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
+@@ -25,7 +25,7 @@ static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
+ 		length = strlen(buf);
+ 	} else {
+ 		length = sprintf(buf, "of:N%sT%s\n",
+-				 of->node->name, of->node->type);
++				 of->dev.of_node->name, of->dev.of_node->type);
+ 	}
+ 
+ 	return length;
 
