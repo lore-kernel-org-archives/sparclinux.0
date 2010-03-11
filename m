@@ -1,48 +1,69 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Date: Thu, 11 Mar 2010 18:04:43 +0000
-Subject: [PATCH 10/37] drivers/video: use .dev.of_node instead of .node in
-Message-Id: <20100311180442.4824.14836.stgit@angua>
+Date: Thu, 11 Mar 2010 18:05:38 +0000
+Subject: [PATCH 20/37] drivers/input: use .dev.of_node instead of .node in
+Message-Id: <20100311180538.4824.40399.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100311174830.4824.19820.stgit@angua>
 In-Reply-To: <20100311174830.4824.19820.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infrade
+To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infradead.org, jeremy.kerr@canonical.com, James.Bottomley@suse.de, broonie@opensource.wolfsonmicro.com, microblaze-uclinux@itee.uq.edu.au, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, linux-ide@vger.kernel.org, netdev@vger.kernel.org, linux-i2c@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-scsi@vger.kernel.org, alsa-devel@alsa-project.org
 
 .node is being removed
 
 Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 ---
 
- drivers/video/cg6.c |    2 +-
- drivers/video/ffb.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/input/serio/i8042-sparcio.h |    2 +-
+ drivers/input/serio/xilinx_ps2.c    |    8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/video/cg6.c b/drivers/video/cg6.c
-index 0d47c60..978c15f 100644
---- a/drivers/video/cg6.c
-+++ b/drivers/video/cg6.c
-@@ -741,7 +741,7 @@ static void cg6_unmap_regs(struct of_device *op, struct fb_info *info,
- static int __devinit cg6_probe(struct of_device *op,
- 				const struct of_device_id *match)
+diff --git a/drivers/input/serio/i8042-sparcio.h b/drivers/input/serio/i8042-sparcio.h
+index 5071af2..29e1769 100644
+--- a/drivers/input/serio/i8042-sparcio.h
++++ b/drivers/input/serio/i8042-sparcio.h
+@@ -51,7 +51,7 @@ static inline void i8042_write_command(int val)
+ 
+ static int __devinit sparc_i8042_probe(struct of_device *op, const struct of_device_id *match)
  {
 -	struct device_node *dp = op->node;
 +	struct device_node *dp = op->dev.of_node;
- 	struct fb_info *info;
- 	struct cg6_par *par;
- 	int linebytes, err;
-diff --git a/drivers/video/ffb.c b/drivers/video/ffb.c
-index 9dbb964..be0c982 100644
---- a/drivers/video/ffb.c
-+++ b/drivers/video/ffb.c
-@@ -897,7 +897,7 @@ static void ffb_init_fix(struct fb_info *info)
- static int __devinit ffb_probe(struct of_device *op,
- 			       const struct of_device_id *match)
- {
--	struct device_node *dp = op->node;
-+	struct device_node *dp = op->dev.of_node;
- 	struct ffb_fbc __iomem *fbc;
- 	struct ffb_dac __iomem *dac;
- 	struct fb_info *info;
+ 
+ 	dp = dp->child;
+ 	while (dp) {
+diff --git a/drivers/input/serio/xilinx_ps2.c b/drivers/input/serio/xilinx_ps2.c
+index 8298e1f..f154153 100644
+--- a/drivers/input/serio/xilinx_ps2.c
++++ b/drivers/input/serio/xilinx_ps2.c
+@@ -243,17 +243,17 @@ static int __devinit xps2_of_probe(struct of_device *ofdev,
+ 	int error;
+ 
+ 	dev_info(dev, "Device Tree Probing \'%s\'\n",
+-			ofdev->node->name);
++			ofdev->dev.of_node->name);
+ 
+ 	/* Get iospace for the device */
+-	error = of_address_to_resource(ofdev->node, 0, &r_mem);
++	error = of_address_to_resource(ofdev->dev.of_node, 0, &r_mem);
+ 	if (error) {
+ 		dev_err(dev, "invalid address\n");
+ 		return error;
+ 	}
+ 
+ 	/* Get IRQ for the device */
+-	if (of_irq_to_resource(ofdev->node, 0, &r_irq) = NO_IRQ) {
++	if (of_irq_to_resource(ofdev->dev.of_node, 0, &r_irq) = NO_IRQ) {
+ 		dev_err(dev, "no IRQ found\n");
+ 		return -ENODEV;
+ 	}
+@@ -341,7 +341,7 @@ static int __devexit xps2_of_remove(struct of_device *of_dev)
+ 	iounmap(drvdata->base_address);
+ 
+ 	/* Get iospace of the device */
+-	if (of_address_to_resource(of_dev->node, 0, &r_mem))
++	if (of_address_to_resource(of_dev->dev.of_node, 0, &r_mem))
+ 		dev_err(dev, "invalid address\n");
+ 	else
+ 		release_mem_region(r_mem.start, resource_size(&r_mem));
 
