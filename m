@@ -1,55 +1,78 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Date: Thu, 11 Mar 2010 18:06:55 +0000
-Subject: [PATCH 34/37] sound/sparc: use .dev.of_node instead of .node in
-Message-Id: <20100311180655.4824.33693.stgit@angua>
+Date: Thu, 11 Mar 2010 18:04:21 +0000
+Subject: [PATCH 06/37] arch/microblaze: use .dev.of_node instead of .node in
+Message-Id: <20100311180420.4824.30530.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100311174830.4824.19820.stgit@angua>
 In-Reply-To: <20100311174830.4824.19820.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infrade
+To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infradead.org, jeremy.kerr@canonical.com, James.Bottomley@suse.de, broonie@opensource.wolfsonmicro.com, microblaze-uclinux@itee.uq.edu.au, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, linux-ide@vger.kernel.org, netdev@vger.kernel.org, linux-i2c@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-scsi@vger.kernel.org, alsa-devel@alsa-project.org
 
 .node is being removed
 
 Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 ---
 
- sound/sparc/cs4231.c |    6 +++---
- sound/sparc/dbri.c   |    2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ arch/microblaze/kernel/of_device.c   |    8 ++++----
+ arch/microblaze/kernel/of_platform.c |    4 ++--
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/sound/sparc/cs4231.c b/sound/sparc/cs4231.c
-index 8d13d93..14cb87c 100644
---- a/sound/sparc/cs4231.c
-+++ b/sound/sparc/cs4231.c
-@@ -2076,12 +2076,12 @@ static int __devinit cs4231_ebus_probe(struct of_device *op, const struct of_dev
- static int __devinit cs4231_probe(struct of_device *op, const struct of_device_id *match)
+diff --git a/arch/microblaze/kernel/of_device.c b/arch/microblaze/kernel/of_device.c
+index 12371bd..ae165fc 100644
+--- a/arch/microblaze/kernel/of_device.c
++++ b/arch/microblaze/kernel/of_device.c
+@@ -12,7 +12,7 @@
+ void of_device_make_bus_id(struct of_device *dev)
  {
- #ifdef EBUS_SUPPORT
--	if (!strcmp(op->node->parent->name, "ebus"))
-+	if (!strcmp(op->dev.of_node->parent->name, "ebus"))
- 		return cs4231_ebus_probe(op, match);
- #endif
- #ifdef SBUS_SUPPORT
--	if (!strcmp(op->node->parent->name, "sbus") ||
--	    !strcmp(op->node->parent->name, "sbi"))
-+	if (!strcmp(op->dev.of_node->parent->name, "sbus") ||
-+	    !strcmp(op->dev.of_node->parent->name, "sbi"))
- 		return cs4231_sbus_probe(op, match);
- #endif
- 	return -ENODEV;
-diff --git a/sound/sparc/dbri.c b/sound/sparc/dbri.c
-index 1d2e51b..2734c36 100644
---- a/sound/sparc/dbri.c
-+++ b/sound/sparc/dbri.c
-@@ -2650,7 +2650,7 @@ static int __devinit dbri_probe(struct of_device *op, const struct of_device_id
+ 	static atomic_t bus_no_reg_magic;
+-	struct device_node *node = dev->node;
++	struct device_node *node = dev->dev.of_node;
+ 	const u32 *reg;
+ 	u64 addr;
+ 	int magic;
+@@ -76,17 +76,17 @@ int of_device_uevent(struct device *dev, struct kobj_uevent_env *env)
  
- 	printk(KERN_INFO "audio%d at %p (irq %d) is DBRI(%c)+CS4215(%d)\n",
- 	       dev, dbri->regs,
--	       dbri->irq, op->node->name[9], dbri->mm.version);
-+	       dbri->irq, op->dev.of_node->name[9], dbri->mm.version);
- 	dev++;
+ 	ofdev = to_of_device(dev);
  
- 	return 0;
+-	if (add_uevent_var(env, "OF_NAME=%s", ofdev->node->name))
++	if (add_uevent_var(env, "OF_NAME=%s", ofdev->dev.of_node->name))
+ 		return -ENOMEM;
+ 
+-	if (add_uevent_var(env, "OF_TYPE=%s", ofdev->node->type))
++	if (add_uevent_var(env, "OF_TYPE=%s", ofdev->dev.of_node->type))
+ 		return -ENOMEM;
+ 
+ 	/* Since the compatible field can contain pretty much anything
+ 	 * it's not really legal to split it out with commas. We split it
+ 	 * up using a number of environment variables instead. */
+ 
+-	compat = of_get_property(ofdev->node, "compatible", &cplen);
++	compat = of_get_property(ofdev->dev.of_node, "compatible", &cplen);
+ 	while (compat && *compat && cplen > 0) {
+ 		if (add_uevent_var(env, "OF_COMPATIBLE_%d=%s", seen, compat))
+ 			return -ENOMEM;
+diff --git a/arch/microblaze/kernel/of_platform.c b/arch/microblaze/kernel/of_platform.c
+index 1c6d684..ea7d024 100644
+--- a/arch/microblaze/kernel/of_platform.c
++++ b/arch/microblaze/kernel/of_platform.c
+@@ -167,7 +167,7 @@ EXPORT_SYMBOL(of_platform_bus_probe);
+ 
+ static int of_dev_node_match(struct device *dev, void *data)
+ {
+-	return to_of_device(dev)->node = data;
++	return to_of_device(dev)->dev.of_node = data;
+ }
+ 
+ struct of_device *of_find_device_by_node(struct device_node *np)
+@@ -185,7 +185,7 @@ EXPORT_SYMBOL(of_find_device_by_node);
+ static int of_dev_phandle_match(struct device *dev, void *data)
+ {
+ 	phandle *ph = data;
+-	return to_of_device(dev)->node->phandle = *ph;
++	return to_of_device(dev)->dev.of_node->phandle = *ph;
+ }
+ 
+ struct of_device *of_find_device_by_phandle(phandle ph)
 
