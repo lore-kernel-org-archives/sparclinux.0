@@ -1,67 +1,42 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 04 Mar 2010 07:53:15 +0000
-Subject: [PATCH] Fix NMI openfirmware bug.
-Message-Id: <20100303.235315.211254866.davem@davemloft.net>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Thu, 11 Mar 2010 18:23:55 +0000
+Subject: [PATCH 23/27] drivers/infiniband/of: don't use deprecated fields in
+Message-Id: <20100311182354.13103.40771.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20100311181604.13103.30088.stgit@angua>
+In-Reply-To: <20100311181604.13103.30088.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infradead.org, jeremy.kerr@canonical.com, James.Bottomley@suse.de, broonie@opensource.wolfsonmicro.com, microblaze-uclinux@itee.uq.edu.au, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, linux-ide@vger.kernel.org, netdev@vger.kernel.org, linux-i2c@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-scsi@vger.kernel.org, alsa-devel@alsa-project.org
 
+.name, .match_table and .owner are duplicated in both of_platform_driver
+and device_driver, so the of_platform_driver copies will be removed soon.
 
-This fixes the bootup hangs Josip Rodin was seeing, I'll push it
-to -stable too.
-
-sparc64: Make prom entry spinlock NMI safe.
-
-If we do something like try to print to the OF console from an NMI
-while we're already in OpenFirmware, we'll deadlock on the spinlock.
-
-Use a raw spinlock and disable NMIs when we take it.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 ---
- arch/sparc/prom/p1275.c |   12 +++++++-----
- 1 files changed, 7 insertions(+), 5 deletions(-)
 
-diff --git a/arch/sparc/prom/p1275.c b/arch/sparc/prom/p1275.c
-index 4b7c937..2d8b70d 100644
---- a/arch/sparc/prom/p1275.c
-+++ b/arch/sparc/prom/p1275.c
-@@ -32,10 +32,9 @@ extern void prom_cif_interface(void);
- extern void prom_cif_callback(void);
+ drivers/infiniband/hw/ehca/ehca_main.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/infiniband/hw/ehca/ehca_main.c b/drivers/infiniband/hw/ehca/ehca_main.c
+index 2639185..252489e 100644
+--- a/drivers/infiniband/hw/ehca/ehca_main.c
++++ b/drivers/infiniband/hw/ehca/ehca_main.c
+@@ -937,12 +937,13 @@ static struct of_device_id ehca_device_table[]  MODULE_DEVICE_TABLE(of, ehca_device_table);
  
- /*
-- * This provides SMP safety on the p1275buf. prom_callback() drops this lock
-- * to allow recursuve acquisition.
-+ * This provides SMP safety on the p1275buf.
-  */
--DEFINE_SPINLOCK(prom_entry_lock);
-+DEFINE_RAW_SPINLOCK(prom_entry_lock);
+ static struct of_platform_driver ehca_driver = {
+-	.name        = "ehca",
+-	.match_table = ehca_device_table,
+ 	.probe       = ehca_probe,
+ 	.remove      = ehca_remove,
+-	.driver	     = {
++	.driver = {
++		.name = "ehca",
++		.owner = THIS_MODULE,
+ 		.groups = ehca_drv_attr_groups,
++		.of_match_table = ehca_device_table,
+ 	},
+ };
  
- long p1275_cmd(const char *service, long fmt, ...)
- {
-@@ -47,7 +46,9 @@ long p1275_cmd(const char *service, long fmt, ...)
- 	
- 	p = p1275buf.prom_buffer;
- 
--	spin_lock_irqsave(&prom_entry_lock, flags);
-+	raw_local_save_flags(flags);
-+	raw_local_irq_restore(PIL_NMI);
-+	raw_spin_lock(&prom_entry_lock);
- 
- 	p1275buf.prom_args[0] = (unsigned long)p;		/* service */
- 	strcpy (p, service);
-@@ -139,7 +140,8 @@ long p1275_cmd(const char *service, long fmt, ...)
- 	va_end(list);
- 	x = p1275buf.prom_args [nargs + 3];
- 
--	spin_unlock_irqrestore(&prom_entry_lock, flags);
-+	raw_spin_unlock(&prom_entry_lock);
-+	raw_local_irq_restore(flags);
- 
- 	return x;
- }
--- 
-1.6.6.1
 
