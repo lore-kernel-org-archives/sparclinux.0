@@ -1,161 +1,150 @@
-From: Dennis Gilmore <dennis@ausil.us>
-Date: Fri, 26 Mar 2010 16:26:25 +0000
-Subject: Re: [PATCH] Disable execmem for sparc
-Message-Id: <201003261126.34217.dennis@ausil.us>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="nextPart1869215.iisYHG9UhN"
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Thu, 11 Mar 2010 18:22:54 +0000
+Subject: [PATCH 12/27] drivers/mtd/of: don't use deprecated field in
+Message-Id: <20100311182253.13103.92479.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4BAA89B9.2030102@redhat.com>
-In-Reply-To: <4BAA89B9.2030102@redhat.com>
-To: sparclinux@vger.kernel.org
+References: <20100311181604.13103.30088.stgit@angua>
+In-Reply-To: <20100311181604.13103.30088.stgit@angua>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infrade
 
---nextPart1869215.iisYHG9UhN
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+.name, .match_table and .owner are duplicated in both of_platform_driver
+and device_driver, so the of_platform_driver copies will be removed soon.
 
-On Friday 26 March 2010 10:33:50 am Stephen Smalley wrote:
-> On Thu, 2010-03-25 at 15:48 -0500, Dennis Gilmore wrote:
-> > On Thursday 25 March 2010 03:24:58 pm David Miller wrote:
-> > > From: "Tom \"spot\" Callaway" <tcallawa@redhat.com>
-> > > Date: Wed, 24 Mar 2010 17:52:57 -0400
-> > >=20
-> > > > Attached is a patch which disables execmem for sparc. Without it,
-> > > > selinux does not work at all on SPARC64.
-> > > >=20
-> > > > This patch should be reasonably non-controversial, because this is
-> > > > already being done for PPC32.
-> > > >=20
-> > > > Tested-by: Tom "spot" Callaway <tcallawa@redhat.com> (Ultra 10,
-> > > > T5220)
-> > > >=20
-> > > >            Dennis Gilmore <dgilmore@redhat.com>
-> > > >=20
-> > > > Signed-off-by: Tom "spot" Callaway <tcallawa@redhat.com>
-> > >=20
-> > > What is the reason why it doesn't work, I'm just curious?
-> > >=20
-> > > Is there some dependency upon executable stacks or executable data
-> > > segments always working?  Why can't SELINUX protect be used with
-> > > that correctly?
-> >=20
-> > what happens is that almost all binaries end up with execmem set  and
-> > selinux prevents them from running.  the system fails to even get close
-> > to coming up in a usable state
-> >=20
-> > Dec 31 18:00:40 sparcbook kernel: type=3D1400 audit(8.160:3): avc:  den=
-ied=20
-> > { execmem } for  pid=3D208 comm=3D"consoletype"
-> > scontext=3Dsystem_u:system_r:consoletype_t:s0
-> > tcontext=3Dsystem_u:system_r:consoletype_t:s0 tclass=3Dprocess
-> > Dec 31 18:00:40 sparcbook kernel: type=3D1400 audit(8.315:4): avc:  den=
-ied=20
-> > { execmem } for  pid=3D211 comm=3D"hostname"
-> > scontext=3Dsystem_u:system_r:hostname_t:s0
-> > tcontext=3Dsystem_u:system_r:hostname_t:s0 tclass=3Dprocess
-> > Dec 31 18:00:40 sparcbook kernel: type=3D1400 audit(8.520:5): avc:  den=
-ied=20
-> > { execmem } for  pid=3D213 comm=3D"mount"
-> > scontext=3Dsystem_u:system_r:mount_t:s0
-> > tcontext=3Dsystem_u:system_r:mount_t:s0 tclass=3Dprocess
-> > Dec 31 18:00:40 sparcbook kernel: type=3D1400 audit(8.570:6): avc:  den=
-ied=20
-> > { execmem } for  pid=3D203 comm=3D"readahead-colle"
-> > scontext=3Dsystem_u:system_r:readahead_t:s0
-> > tcontext=3Dsystem_u:system_r:readahead_t:s0 tclass=3Dprocess
-> >=20
-> > is a small sample of the logs you get  not everything fails but almost
-> > everything
->=20
-> I think we need to understand why this is happening - it usually
-> reflects a toolchain problem (that was the case in the ppc32 situation,
-> and was later fixed in Fedora through an updated toolchain and rebuilt
-> userland).  eu-readelf -l /bin/hostname shows what?
-eu-readelf -l /bin/hostname
-Program Headers:
-  Type           Offset   VirtAddr   PhysAddr   FileSiz  MemSiz   Flg Align
-  PHDR           0x000034 0x00010034 0x00010034 0x000100 0x000100 R E 0x4
-  INTERP         0x000134 0x00010134 0x00010134 0x000013 0x000013 R   0x1
-        [Requesting program interpreter: /lib/ld-linux.so.2]
-  LOAD           0x000000 0x00010000 0x00010000 0x002204 0x002204 R E 0x100=
-00
-  LOAD           0x002204 0x00022204 0x00022204 0x000284 0x0002ac RWE 0x100=
-00
-  DYNAMIC        0x002218 0x00022218 0x00022218 0x0000d0 0x0000d0 RW  0x4
-  NOTE           0x000148 0x00010148 0x00010148 0x000044 0x000044 R   0x4
-  GNU_EH_FRAME   0x002110 0x00012110 0x00012110 0x00003c 0x00003c R   0x4
-  GNU_STACK      0x000000 0x00000000 0x00000000 0x000000 0x000000 RW  0x4
+Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+---
 
- Section to Segment mapping:
-  Segment Sections...
-   00    =20
-   01      [RO: .interp]
-   02      [RO: .interp .note.ABI-tag .note.gnu.build-id .gnu.hash .dynsym=
-=20
-=2Edynstr .gnu.version .gnu.version_r .rela.dyn .rela.plt .init .text .fini=
-=20
-=2Erodata .eh_frame_hdr .eh_frame]
-   03      .ctors .dtors .jcr .dynamic .got .plt .data .bss
-   04      .dynamic
-   05      [RO: .note.ABI-tag .note.gnu.build-id]
-   06      [RO: .eh_frame_hdr]
-   07    =20
+ drivers/mtd/maps/physmap_of.c    |    7 +++++--
+ drivers/mtd/maps/sun_uflash.c    |    7 +++++--
+ drivers/mtd/nand/fsl_elbc_nand.c |    5 +++--
+ drivers/mtd/nand/fsl_upm.c       |    7 +++++--
+ drivers/mtd/nand/ndfc.c          |    5 +++--
+ drivers/mtd/nand/pasemi_nand.c   |    7 +++++--
+ drivers/mtd/nand/socrates_nand.c |    7 +++++--
+ 7 files changed, 31 insertions(+), 14 deletions(-)
 
->=20
-> > > And since we're touching selinux code we need to at a minimum
-> > > CC: them so they can have a look at your change.
-> > >=20
-> > > --------------------
-> > > diff -up linux-2.6.32.noarch/security/selinux/hooks.c.mprotect-sparc
-> > > linux-2.6.32.noarch/security/selinux/hooks.c ---
-> > > linux-2.6.32.noarch/security/selinux/hooks.c.mprotect-sparc	2010-03-10
-> > > 08:28:20.957571926 -0500 +++
-> > > linux-2.6.32.noarch/security/selinux/hooks.c	2010-03-10
-> > > 08:29:15.732698763 -0500 @@ -3010,7 +3010,7 @@ static int
-> > > file_map_prot_check(struct fi
-> > >=20
-> > >  	const struct cred *cred =3D current_cred();
-> > >  	int rc =3D 0;
-> > >=20
-> > > -#ifndef CONFIG_PPC32
-> > > +#if !defined(CONFIG_PPC32) && !defined(CONFIG_SPARC)
-> > >=20
-> > >  	if ((prot & PROT_EXEC) && (!file || (!shared && (prot &
-> > >  	PROT_WRITE)))) {
-> > >  =09
-> > >  		/*
-> > >  	=09
-> > >  		 * We are making executable an anonymous mapping or a
-> > >=20
-> > > @@ -3082,7 +3082,7 @@ static int selinux_file_mprotect(struct
-> > >=20
-> > >  	if (selinux_checkreqprot)
-> > >  =09
-> > >  		prot =3D reqprot;
-> > >=20
-> > > -#ifndef CONFIG_PPC32
-> > > +#if !defined(CONFIG_PPC32) && !defined(CONFIG_SPARC)
-> > >=20
-> > >  	if ((prot & PROT_EXEC) && !(vma->vm_flags & VM_EXEC)) {
-> > >  =09
-> > >  		int rc =3D 0;
-> > >  		if (vma->vm_start >=3D vma->vm_mm->start_brk &&
-> > >=20
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe sparclinux"
-> > > in the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/mtd/maps/physmap_of.c b/drivers/mtd/maps/physmap_of.c
+index 494af8e..997ee62 100644
+--- a/drivers/mtd/maps/physmap_of.c
++++ b/drivers/mtd/maps/physmap_of.c
+@@ -374,8 +374,11 @@ static struct of_device_id of_flash_match[] = {
+ MODULE_DEVICE_TABLE(of, of_flash_match);
+ 
+ static struct of_platform_driver of_flash_driver = {
+-	.name		= "of-flash",
+-	.match_table	= of_flash_match,
++	.driver = {
++		.name = "of-flash",
++		.owner = THIS_MODULE,
++		.of_match_table = of_flash_match,
++	},
+ 	.probe		= of_flash_probe,
+ 	.remove		= of_flash_remove,
+ };
+diff --git a/drivers/mtd/maps/sun_uflash.c b/drivers/mtd/maps/sun_uflash.c
+index 365811d..b27be02 100644
+--- a/drivers/mtd/maps/sun_uflash.c
++++ b/drivers/mtd/maps/sun_uflash.c
+@@ -148,8 +148,11 @@ static const struct of_device_id uflash_match[] = {
+ MODULE_DEVICE_TABLE(of, uflash_match);
+ 
+ static struct of_platform_driver uflash_driver = {
+-	.name		= DRIVER_NAME,
+-	.match_table	= uflash_match,
++	.driver = {
++		.name = DRIVER_NAME,
++		.owner = THIS_MODULE,
++		.of_match_table = uflash_match,
++	},
+ 	.probe		= uflash_probe,
+ 	.remove		= __devexit_p(uflash_remove),
+ };
+diff --git a/drivers/mtd/nand/fsl_elbc_nand.c b/drivers/mtd/nand/fsl_elbc_nand.c
+index 4a60795..f45a8d0 100644
+--- a/drivers/mtd/nand/fsl_elbc_nand.c
++++ b/drivers/mtd/nand/fsl_elbc_nand.c
+@@ -1078,9 +1078,10 @@ static const struct of_device_id fsl_elbc_match[] = {
+ 
+ static struct of_platform_driver fsl_elbc_ctrl_driver = {
+ 	.driver = {
+-		.name	= "fsl-elbc",
++		.name = "fsl-elbc",
++		.owner = THIS_MODULE,
++		.of_match_table = fsl_elbc_match,
+ 	},
+-	.match_table = fsl_elbc_match,
+ 	.probe = fsl_elbc_ctrl_probe,
+ 	.remove = fsl_elbc_ctrl_remove,
+ };
+diff --git a/drivers/mtd/nand/fsl_upm.c b/drivers/mtd/nand/fsl_upm.c
+index 071a60c..8dcbb18 100644
+--- a/drivers/mtd/nand/fsl_upm.c
++++ b/drivers/mtd/nand/fsl_upm.c
+@@ -356,8 +356,11 @@ static struct of_device_id of_fun_match[] = {
+ MODULE_DEVICE_TABLE(of, of_fun_match);
+ 
+ static struct of_platform_driver of_fun_driver = {
+-	.name		= "fsl,upm-nand",
+-	.match_table	= of_fun_match,
++	.driver = {
++		.name = "fsl,upm-nand",
++		.owner = THIS_MODULE,
++		.of_match_table = of_fun_match,
++	},
+ 	.probe		= fun_probe,
+ 	.remove		= __devexit_p(fun_remove),
+ };
+diff --git a/drivers/mtd/nand/ndfc.c b/drivers/mtd/nand/ndfc.c
+index 40b5658..19d94a2 100644
+--- a/drivers/mtd/nand/ndfc.c
++++ b/drivers/mtd/nand/ndfc.c
+@@ -293,9 +293,10 @@ MODULE_DEVICE_TABLE(of, ndfc_match);
+ 
+ static struct of_platform_driver ndfc_driver = {
+ 	.driver = {
+-		.name	= "ndfc",
++		.name = "ndfc",
++		.owner = THIS_MODULE,
++		.of_match_table = ndfc_match,
+ 	},
+-	.match_table = ndfc_match,
+ 	.probe = ndfc_probe,
+ 	.remove = __devexit_p(ndfc_remove),
+ };
+diff --git a/drivers/mtd/nand/pasemi_nand.c b/drivers/mtd/nand/pasemi_nand.c
+index edfc27b..a97e9c9 100644
+--- a/drivers/mtd/nand/pasemi_nand.c
++++ b/drivers/mtd/nand/pasemi_nand.c
+@@ -221,8 +221,11 @@ MODULE_DEVICE_TABLE(of, pasemi_nand_match);
+ 
+ static struct of_platform_driver pasemi_nand_driver  {
+-	.name		= (char*)driver_name,
+-	.match_table	= pasemi_nand_match,
++	.driver = {
++		.name = (char*)driver_name,
++		.owner = THIS_MODULE,
++		.of_match_table = pasemi_nand_match,
++	},
+ 	.probe		= pasemi_nand_probe,
+ 	.remove		= pasemi_nand_remove,
+ };
+diff --git a/drivers/mtd/nand/socrates_nand.c b/drivers/mtd/nand/socrates_nand.c
+index a4519a7..edb9b13 100644
+--- a/drivers/mtd/nand/socrates_nand.c
++++ b/drivers/mtd/nand/socrates_nand.c
+@@ -301,8 +301,11 @@ static struct of_device_id socrates_nand_match[]  MODULE_DEVICE_TABLE(of, socrates_nand_match);
+ 
+ static struct of_platform_driver socrates_nand_driver = {
+-	.name		= "socrates_nand",
+-	.match_table	= socrates_nand_match,
++	.driver = {
++		.name = "socrates_nand",
++		.owner = THIS_MODULE,
++		.of_match_table = socrates_nand_match,
++	},
+ 	.probe		= socrates_nand_probe,
+ 	.remove		= __devexit_p(socrates_nand_remove),
+ };
 
---nextPart1869215.iisYHG9UhN
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.14 (GNU/Linux)
-
-iEYEABECAAYFAkus4DoACgkQkSxm47BaWfekugCfWOZWIM1FTCSTNExmfsDJItD6
-WSoAnApi3BsSlXC5U77fevI804H7azI6
-=s2Sa
------END PGP SIGNATURE-----
-
---nextPart1869215.iisYHG9UhN--
