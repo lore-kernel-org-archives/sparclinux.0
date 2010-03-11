@@ -1,33 +1,38 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Date: Thu, 11 Mar 2010 18:31:14 +0000
+From: Jeff Garzik <jgarzik@pobox.com>
+Date: Thu, 11 Mar 2010 18:36:55 +0000
 Subject: Re: [PATCH 21/37] drivers/ata: use .dev.of_node instead of .node
-Message-Id: <4B9936F2.3020105@ru.mvista.com>
+Message-Id: <4B993847.3030100@pobox.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100311174830.4824.19820.stgit@angua> <20100311180543.4824.70491.stgit@angua>
-In-Reply-To: <20100311180543.4824.70491.stgit@angua>
+References: <20100311174830.4824.19820.stgit@angua> <20100311180543.4824.70491.stgit@angua> <4B9936F2.3020105@ru.mvista.com>
+In-Reply-To: <4B9936F2.3020105@ru.mvista.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infradead.org, jeremy.kerr@canonical.com, James.Bottomley@suse.de, broonie@opensource.wolfsonmicro.com, microblaze-uclinux@itee.uq.edu.au, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, linux-ide@vger.kernel.org, netdev@vger.kernel.org, linux-i2c@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-scsi@vger.kernel.org, alsa-devel@alsa-project.org
+To: Sergei Shtylyov <sshtylyov@mvista.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, ben-linux@fluff.org, dwmw2@infradead.org, jeremy.kerr@canonical.com, James.Bottomley@suse.de, broonie@opensource.wolfsonmicro.com, microblaze-uclinux@itee.uq.edu.au, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, linux-ide@vger.kernel.org, netdev@vger.kernel.org, linux-i2c@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-scsi@vger.kernel.org, alsa-devel@alsa-project.org
 
-Hello.
-
-Grant Likely wrote:
-
-> .node is being removed
+On 03/11/2010 01:31 PM, Sergei Shtylyov wrote:
+> Hello.
 >
-> Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
-> ---
+> Grant Likely wrote:
 >
->  drivers/ata/pata_macio.c       |    2 +-
->  drivers/ata/pata_of_platform.c |    2 +-
->  drivers/ide/pmac.c             |   10 +++++-----
->  3 files changed, 7 insertions(+), 7 deletions(-)
->   
+>> .node is being removed
+>>
+>> Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+>> ---
+>>
+>> drivers/ata/pata_macio.c | 2 +-
+>> drivers/ata/pata_of_platform.c | 2 +-
+>> drivers/ide/pmac.c | 10 +++++-----
+>> 3 files changed, 7 insertions(+), 7 deletions(-)
+>
+> Should probably have been 2 patches instead of one, as drivers/ata/ and
+> drivers/ide/ are different subsystems...
 
-   Should probably have been 2 patches instead of one, as drivers/ata/ 
-and drivers/ide/ are different subsystems...
+Possibly, but these patches should go in via the OF tree anyway, so 
+collecting ACKs should be sufficient.
 
-MBR, Sergei
+	Jeff
+
+
 
