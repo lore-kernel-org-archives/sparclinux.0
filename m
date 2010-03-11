@@ -1,96 +1,91 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Date: Thu, 11 Mar 2010 18:06:17 +0000
-Subject: [PATCH 27/37] drivers/of: use .dev.of_node instead of .node in struct
-Message-Id: <20100311180616.4824.50413.stgit@angua>
+Date: Thu, 11 Mar 2010 18:04:04 +0000
+Subject: [PATCH 03/37] of/sparc: use dev->of_node instead of
+Message-Id: <20100311180403.4824.90589.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100311174830.4824.19820.stgit@angua>
 In-Reply-To: <20100311174830.4824.19820.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infradead.org, jeremy.kerr@canonical.com, James.Bottomley@suse.de, broonie@opensource.wolfsonmicro.com, microblaze-uclinux@itee.uq.edu.au, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, linux-ide@vger.kernel.org, netdev@vger.kernel.org, linux-i2c@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-scsi@vger.kernel.org, alsa-devel@alsa-project.org
+To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infrade
 
-.node is being removed
+The prom_node pointer is being moved out of archdata to dev->of_node.
+This patch changes users of prom_node to use the new location.
 
 Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 ---
 
- drivers/of/device.c |   20 ++++++++++----------
- 1 files changed, 10 insertions(+), 10 deletions(-)
+ arch/sparc/include/asm/fb.h      |    2 +-
+ arch/sparc/kernel/of_device_32.c |    3 ++-
+ arch/sparc/kernel/of_device_64.c |    3 ++-
+ arch/sparc/kernel/pci.c          |    4 ++--
+ 4 files changed, 7 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/of/device.c b/drivers/of/device.c
-index 224ae6b..24068bb 100644
---- a/drivers/of/device.c
-+++ b/drivers/of/device.c
-@@ -21,9 +21,9 @@
- const struct of_device_id *of_match_device(const struct of_device_id *matches,
- 					const struct of_device *dev)
- {
--	if (!dev->node)
-+	if (!dev->dev.of_node)
+diff --git a/arch/sparc/include/asm/fb.h b/arch/sparc/include/asm/fb.h
+index b83e447..e834880 100644
+--- a/arch/sparc/include/asm/fb.h
++++ b/arch/sparc/include/asm/fb.h
+@@ -18,7 +18,7 @@ static inline int fb_is_primary_device(struct fb_info *info)
+ 	struct device *dev = info->device;
+ 	struct device_node *node;
+ 
+-	node = dev->archdata.prom_node;
++	node = dev->of_node;
+ 	if (node &&
+ 	    node = of_console_device)
+ 		return 1;
+diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device_32.c
+index da527b3..5a5509c 100644
+--- a/arch/sparc/kernel/of_device_32.c
++++ b/arch/sparc/kernel/of_device_32.c
+@@ -345,8 +345,9 @@ static struct of_device * __init scan_one_device(struct device_node *dp,
  		return NULL;
--	return of_match_node(matches, dev->node);
-+	return of_match_node(matches, dev->dev.of_node);
+ 
+ 	sd = &op->dev.archdata;
+-	sd->prom_node = dp;
++	sd->prom_node = dp; /* temporary */
+ 	sd->op = op;
++	op->dev.of_node = dp;
+ 
+ 	op->node = dp;
+ 
+diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device_64.c
+index b3d4cb5..9d30b07 100644
+--- a/arch/sparc/kernel/of_device_64.c
++++ b/arch/sparc/kernel/of_device_64.c
+@@ -640,9 +640,10 @@ static struct of_device * __init scan_one_device(struct device_node *dp,
+ 		return NULL;
+ 
+ 	sd = &op->dev.archdata;
+-	sd->prom_node = dp;
++	sd->prom_node = dp; /* temporary */
+ 	sd->op = op;
+ 
++	op->dev.of_node = dp;
+ 	op->node = dp;
+ 
+ 	op->clock_freq = of_getintprop_default(dp, "clock-frequency",
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index cf73f43..40861ed 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -654,7 +654,7 @@ show_pciobppath_attr(struct device * dev, struct device_attribute * attr, char *
+ 	struct device_node *dp;
+ 
+ 	pdev = to_pci_dev(dev);
+-	dp = pdev->dev.archdata.prom_node;
++	dp = pdev->dev.of_node;
+ 
+ 	return snprintf (buf, PAGE_SIZE, "%s\n", dp->full_name);
  }
- EXPORT_SYMBOL(of_match_device);
+@@ -1023,7 +1023,7 @@ void arch_teardown_msi_irq(unsigned int virt_irq)
  
-@@ -54,7 +54,7 @@ static ssize_t devspec_show(struct device *dev,
- 	struct of_device *ofdev;
- 
- 	ofdev = to_of_device(dev);
--	return sprintf(buf, "%s\n", ofdev->node->full_name);
-+	return sprintf(buf, "%s\n", ofdev->dev.of_node->full_name);
- }
- 
- static ssize_t name_show(struct device *dev,
-@@ -63,7 +63,7 @@ static ssize_t name_show(struct device *dev,
- 	struct of_device *ofdev;
- 
- 	ofdev = to_of_device(dev);
--	return sprintf(buf, "%s\n", ofdev->node->name);
-+	return sprintf(buf, "%s\n", ofdev->dev.of_node->name);
- }
- 
- static ssize_t modalias_show(struct device *dev,
-@@ -97,14 +97,14 @@ void of_release_dev(struct device *dev)
- 	struct of_device *ofdev;
- 
- 	ofdev = to_of_device(dev);
--	of_node_put(ofdev->node);
-+	of_node_put(ofdev->dev.of_node);
- 	kfree(ofdev);
- }
- EXPORT_SYMBOL(of_release_dev);
- 
- int of_device_register(struct of_device *ofdev)
+ struct device_node *pci_device_to_OF_node(struct pci_dev *pdev)
  {
--	BUG_ON(ofdev->node = NULL);
-+	BUG_ON(ofdev->dev.of_node = NULL);
- 
- 	device_initialize(&ofdev->dev);
- 
-@@ -112,7 +112,7 @@ int of_device_register(struct of_device *ofdev)
- 	 * the parent. If there is no parent defined, set the node
- 	 * explicitly */
- 	if (!ofdev->dev.parent)
--		set_dev_node(&ofdev->dev, of_node_to_nid(ofdev->node));
-+		set_dev_node(&ofdev->dev, of_node_to_nid(ofdev->dev.of_node));
- 
- 	return device_add(&ofdev->dev);
+-	return pdev->dev.archdata.prom_node;
++	return pdev->dev.of_node;
  }
-@@ -132,11 +132,11 @@ ssize_t of_device_get_modalias(struct of_device *ofdev,
- 	ssize_t tsize, csize, repend;
- 
- 	/* Name & Type */
--	csize = snprintf(str, len, "of:N%sT%s",
--				ofdev->node->name, ofdev->node->type);
-+	csize = snprintf(str, len, "of:N%sT%s", ofdev->dev.of_node->name,
-+			 ofdev->dev.of_node->type);
- 
- 	/* Get compatible property if any */
--	compat = of_get_property(ofdev->node, "compatible", &cplen);
-+	compat = of_get_property(ofdev->dev.of_node, "compatible", &cplen);
- 	if (!compat)
- 		return csize;
+ EXPORT_SYMBOL(pci_device_to_OF_node);
  
 
