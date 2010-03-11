@@ -1,34 +1,75 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Date: Thu, 11 Mar 2010 18:06:33 +0000
-Subject: [PATCH 30/37] drivers/cdrom: use .of_node instead of
-Message-Id: <20100311180633.4824.27717.stgit@angua>
+Date: Thu, 11 Mar 2010 18:22:48 +0000
+Subject: [PATCH 11/27] drivers/macintosh/of: don't use deprecated field in
+Message-Id: <20100311182248.13103.6111.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100311174830.4824.19820.stgit@angua>
-In-Reply-To: <20100311174830.4824.19820.stgit@angua>
+References: <20100311181604.13103.30088.stgit@angua>
+In-Reply-To: <20100311181604.13103.30088.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infrade
 
-.archdata.node is being removed from Microblaze, SPARC and PowerPC.
+.name, .match_table and .owner are duplicated in both of_platform_driver
+and device_driver, so the of_platform_driver copies will be removed soon.
 
 Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 ---
 
- drivers/cdrom/viocd.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/macintosh/smu.c              |    7 +++++--
+ drivers/macintosh/therm_pm72.c       |    7 +++++--
+ drivers/macintosh/therm_windtunnel.c |    7 +++++--
+ 3 files changed, 15 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/cdrom/viocd.c b/drivers/cdrom/viocd.c
-index cc435be..451cd70 100644
---- a/drivers/cdrom/viocd.c
-+++ b/drivers/cdrom/viocd.c
-@@ -567,7 +567,7 @@ static int viocd_probe(struct vio_dev *vdev, const struct vio_device_id *id)
- 	struct disk_info *d;
- 	struct cdrom_device_info *c;
- 	struct request_queue *q;
--	struct device_node *node = vdev->dev.archdata.of_node;
-+	struct device_node *node = vdev->dev.of_node;
+diff --git a/drivers/macintosh/smu.c b/drivers/macintosh/smu.c
+index f96feeb..4e912b2 100644
+--- a/drivers/macintosh/smu.c
++++ b/drivers/macintosh/smu.c
+@@ -670,8 +670,11 @@ static const struct of_device_id smu_platform_match[]  
+ static struct of_platform_driver smu_of_platform_driver  {
+-	.name 		= "smu",
+-	.match_table	= smu_platform_match,
++	.driver = {
++		.name = "smu",
++		.owner = THIS_MODULE,
++		.of_match_table = smu_platform_match,
++	},
+ 	.probe		= smu_platform_probe,
+ };
  
- 	deviceno = vdev->unit_address;
- 	if (deviceno >= VIOCD_MAX_CD)
+diff --git a/drivers/macintosh/therm_pm72.c b/drivers/macintosh/therm_pm72.c
+index f5b0f9e..c99f937 100644
+--- a/drivers/macintosh/therm_pm72.c
++++ b/drivers/macintosh/therm_pm72.c
+@@ -2221,8 +2221,11 @@ static const struct of_device_id fcu_match[]  
+ static struct of_platform_driver fcu_of_platform_driver = 
+ {
+-	.name 		= "temperature",
+-	.match_table	= fcu_match,
++	.driver = {
++		.name = "temperature",
++		.owner = THIS_MODULE,
++		.of_match_table = fcu_match,
++	},
+ 	.probe		= fcu_of_probe,
+ 	.remove		= fcu_of_remove
+ };
+diff --git a/drivers/macintosh/therm_windtunnel.c b/drivers/macintosh/therm_windtunnel.c
+index 7fb8b4d..dc6a47a 100644
+--- a/drivers/macintosh/therm_windtunnel.c
++++ b/drivers/macintosh/therm_windtunnel.c
+@@ -464,8 +464,11 @@ static const struct of_device_id therm_of_match[] = {{
+ };
+ 
+ static struct of_platform_driver therm_of_driver = {
+-	.name		= "temperature",
+-	.match_table	= therm_of_match,
++	.driver = {
++		.name = "temperature",
++		.owner = THIS_MODULE,
++		.of_match_table = therm_of_match,
++	},
+ 	.probe		= therm_of_probe,
+ 	.remove		= therm_of_remove,
+ };
 
