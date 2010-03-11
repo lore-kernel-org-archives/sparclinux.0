@@ -1,63 +1,40 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 03 Mar 2010 10:53:54 +0000
-Subject: [PATCH] sparc: Provide io{read,write}{16,32}be().
-Message-Id: <20100303.025354.65744092.davem@davemloft.net>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Thu, 11 Mar 2010 18:23:44 +0000
+Subject: [PATCH 21/27] drivers/hwmon/of: don't use deprecated field in
+Message-Id: <20100311182343.13103.98096.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20100311181604.13103.30088.stgit@angua>
+In-Reply-To: <20100311181604.13103.30088.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infrade
 
+.name, .match_table and .owner are duplicated in both of_platform_driver
+and device_driver, so the of_platform_driver copies will be removed soon.
 
-This fixes the build of a few drivers that can be enabled
-via "make allmodconfig", committed to sparc-2.6
-
-sparc: Provide io{read,write}{16,32}be().
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 ---
- arch/sparc/include/asm/io_32.h |    4 ++++
- arch/sparc/include/asm/io_64.h |    4 ++++
- 2 files changed, 8 insertions(+), 0 deletions(-)
 
-diff --git a/arch/sparc/include/asm/io_32.h b/arch/sparc/include/asm/io_32.h
-index 679c750..2889574 100644
---- a/arch/sparc/include/asm/io_32.h
-+++ b/arch/sparc/include/asm/io_32.h
-@@ -249,10 +249,14 @@ extern void iounmap(volatile void __iomem *addr);
+ drivers/hwmon/ultra45_env.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/hwmon/ultra45_env.c b/drivers/hwmon/ultra45_env.c
+index 68e90ab..5da5942 100644
+--- a/drivers/hwmon/ultra45_env.c
++++ b/drivers/hwmon/ultra45_env.c
+@@ -300,8 +300,11 @@ static const struct of_device_id env_match[] = {
+ MODULE_DEVICE_TABLE(of, env_match);
  
- #define ioread8(X)			readb(X)
- #define ioread16(X)			readw(X)
-+#define ioread16be(X)			__raw_readw(X)
- #define ioread32(X)			readl(X)
-+#define ioread32be(X)			__raw_readl(X)
- #define iowrite8(val,X)			writeb(val,X)
- #define iowrite16(val,X)		writew(val,X)
-+#define iowrite16be(val,X)		__raw_writew(val,X)
- #define iowrite32(val,X)		writel(val,X)
-+#define iowrite32be(val,X)		__raw_writel(val,X)
- 
- static inline void ioread8_rep(void __iomem *port, void *buf, unsigned long count)
- {
-diff --git a/arch/sparc/include/asm/io_64.h b/arch/sparc/include/asm/io_64.h
-index 4aee21d..9517d06 100644
---- a/arch/sparc/include/asm/io_64.h
-+++ b/arch/sparc/include/asm/io_64.h
-@@ -468,10 +468,14 @@ static inline void iounmap(volatile void __iomem *addr)
- 
- #define ioread8(X)			readb(X)
- #define ioread16(X)			readw(X)
-+#define ioread16be(X)			__raw_readw(X)
- #define ioread32(X)			readl(X)
-+#define ioread32be(X)			__raw_readl(X)
- #define iowrite8(val,X)			writeb(val,X)
- #define iowrite16(val,X)		writew(val,X)
-+#define iowrite16be(val,X)		__raw_writew(val,X)
- #define iowrite32(val,X)		writel(val,X)
-+#define iowrite32be(val,X)		__raw_writel(val,X)
- 
- /* Create a virtual mapping cookie for an IO port range */
- extern void __iomem *ioport_map(unsigned long port, unsigned int nr);
--- 
-1.6.6.1
+ static struct of_platform_driver env_driver = {
+-	.name		= "ultra45_env",
+-	.match_table	= env_match,
++	.driver = {
++		.name = "ultra45_env",
++		.owner = THIS_MODULE,
++		.of_match_table = env_match,
++	},
+ 	.probe		= env_probe,
+ 	.remove		= __devexit_p(env_remove),
+ };
 
