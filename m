@@ -1,60 +1,59 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Date: Thu, 18 Mar 2010 15:22:44 +0000
-Subject: [V2 PATCH 07/10] of: eliminate calls to dev_archdata_set_node()
-Message-Id: <20100318152244.21082.81121.stgit@angua>
+Date: Thu, 11 Mar 2010 18:22:32 +0000
+Subject: [PATCH 08/27] drivers/crypto/of: don't use deprecated field in
+Message-Id: <20100311182231.13103.47091.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100318144836.21082.93040.stgit@angua>
-In-Reply-To: <20100318144836.21082.93040.stgit@angua>
+References: <20100311181604.13103.30088.stgit@angua>
+In-Reply-To: <20100311181604.13103.30088.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, benh@kernel.crashing.org, linux-kernel@vger.kernel.org, michal.simek@petalogix.com, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, microblaze-uclinux@itee.uq.edu.au
+To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infrade
 
-At this point, there are no more users of the archdata node pointer,
-so the calls to set it can be dropped.
+.name, .match_table and .owner are duplicated in both of_platform_driver
+and device_driver, so the of_platform_driver copies will be removed soon.
 
 Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 ---
 
- drivers/of/of_i2c.c  |    1 -
- drivers/of/of_mdio.c |    1 -
- drivers/of/of_spi.c  |    1 -
- 3 files changed, 0 insertions(+), 3 deletions(-)
+ drivers/crypto/amcc/crypto4xx_core.c |    7 +++++--
+ drivers/crypto/talitos.c             |    7 +++++--
+ 2 files changed, 10 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/of/of_i2c.c b/drivers/of/of_i2c.c
-index 604ba96..ab6522c 100644
---- a/drivers/of/of_i2c.c
-+++ b/drivers/of/of_i2c.c
-@@ -42,7 +42,6 @@ void of_register_i2c_devices(struct i2c_adapter *adap,
+diff --git a/drivers/crypto/amcc/crypto4xx_core.c b/drivers/crypto/amcc/crypto4xx_core.c
+index 1c3849f..36b5fb1 100644
+--- a/drivers/crypto/amcc/crypto4xx_core.c
++++ b/drivers/crypto/amcc/crypto4xx_core.c
+@@ -1280,8 +1280,11 @@ static const struct of_device_id crypto4xx_match[] = {
+ };
  
- 		info.addr = be32_to_cpup(addr);
+ static struct of_platform_driver crypto4xx_driver = {
+-	.name		= "crypto4xx",
+-	.match_table	= crypto4xx_match,
++	.driver = {
++		.name = "crypto4xx",
++		.owner = THIS_MODULE,
++		.of_match_table = crypto4xx_match,
++	},
+ 	.probe		= crypto4xx_probe,
+ 	.remove		= crypto4xx_remove,
+ };
+diff --git a/drivers/crypto/talitos.c b/drivers/crypto/talitos.c
+index fd529d6..917faf7 100644
+--- a/drivers/crypto/talitos.c
++++ b/drivers/crypto/talitos.c
+@@ -1967,8 +1967,11 @@ static const struct of_device_id talitos_match[] = {
+ MODULE_DEVICE_TABLE(of, talitos_match);
  
--		dev_archdata_set_node(&dev_ad, node);
- 		info.of_node = node;
- 		info.archdata = &dev_ad;
- 
-diff --git a/drivers/of/of_mdio.c b/drivers/of/of_mdio.c
-index 01d794a..794fbc2 100644
---- a/drivers/of/of_mdio.c
-+++ b/drivers/of/of_mdio.c
-@@ -79,7 +79,6 @@ int of_mdiobus_register(struct mii_bus *mdio, struct device_node *np)
- 		/* Associate the OF node with the device structure so it
- 		 * can be looked up later */
- 		of_node_get(child);
--		dev_archdata_set_node(&phy->dev.archdata, child);
- 		phy->dev.of_node = child;
- 
- 		/* All data is now stored in the phy struct; register it */
-diff --git a/drivers/of/of_spi.c b/drivers/of/of_spi.c
-index f3119a0..5fed7e3 100644
---- a/drivers/of/of_spi.c
-+++ b/drivers/of/of_spi.c
-@@ -80,7 +80,6 @@ void of_register_spi_devices(struct spi_master *master, struct device_node *np)
- 		/* Store a pointer to the node in the device structure */
- 		of_node_get(nc);
- 		spi->dev.of_node = nc;
--		spi->dev.archdata.of_node = nc;
- 
- 		/* Register the new device */
- 		request_module(spi->modalias);
+ static struct of_platform_driver talitos_driver = {
+-	.name = "talitos",
+-	.match_table = talitos_match,
++	.driver = {
++		.name = "talitos",
++		.owner = THIS_MODULE,
++		.of_match_table = talitos_match,
++	},
+ 	.probe = talitos_probe,
+ 	.remove = talitos_remove,
+ };
 
