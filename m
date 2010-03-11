@@ -1,56 +1,108 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Date: Thu, 11 Mar 2010 18:24:17 +0000
-Subject: [PATCH 27/27] of: remove obsolete members from of_platform_driver
-Message-Id: <20100311182416.13103.38891.stgit@angua>
+Date: Thu, 11 Mar 2010 18:05:05 +0000
+Subject: [PATCH 14/37] drivers/spi: use .dev.of_node instead of .node in
+Message-Id: <20100311180504.4824.59817.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100311181604.13103.30088.stgit@angua>
-In-Reply-To: <20100311181604.13103.30088.stgit@angua>
+References: <20100311174830.4824.19820.stgit@angua>
+In-Reply-To: <20100311174830.4824.19820.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org, gregkh-l3A5Bk7waGM@public.gmane.org, benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org, jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, dwmw2@infrade
+To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infrade
 
-.name, .match_table and .owner already exist in struct device_driver.
-Remove the duplication from struct of_platform_driver.
+.node is being removed
 
 Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 ---
 
- drivers/of/platform.c       |    7 -------
- include/linux/of_platform.h |    4 ----
- 2 files changed, 0 insertions(+), 11 deletions(-)
+ drivers/spi/mpc52xx_psc_spi.c |   11 ++++++-----
+ drivers/spi/mpc52xx_spi.c     |   14 +++++++-------
+ 2 files changed, 13 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/of/platform.c b/drivers/of/platform.c
-index 9fd7f7d..ba402c6 100644
---- a/drivers/of/platform.c
-+++ b/drivers/of/platform.c
-@@ -385,13 +385,6 @@ int of_bus_type_init(struct bus_type *bus, const char *name)
+diff --git a/drivers/spi/mpc52xx_psc_spi.c b/drivers/spi/mpc52xx_psc_spi.c
+index 0474786..f12cfd9 100644
+--- a/drivers/spi/mpc52xx_psc_spi.c
++++ b/drivers/spi/mpc52xx_psc_spi.c
+@@ -471,18 +471,18 @@ static int __init mpc52xx_psc_spi_of_probe(struct of_device *op,
+ 	s16 id = -1;
+ 	int rc;
  
- int of_register_driver(struct of_platform_driver *drv, struct bus_type *bus)
- {
--	/* initialize common driver fields */
--	if (!drv->driver.name)
--		drv->driver.name = drv->name;
--	if (!drv->driver.owner)
--		drv->driver.owner = drv->owner;
--	if (!drv->driver.of_match_table)
--		drv->driver.of_match_table = drv->match_table;
- 	drv->driver.bus = bus;
+-	regaddr_p = of_get_address(op->node, 0, &size64, NULL);
++	regaddr_p = of_get_address(op->dev.of_node, 0, &size64, NULL);
+ 	if (!regaddr_p) {
+ 		dev_err(&op->dev, "Invalid PSC address\n");
+ 		return -EINVAL;
+ 	}
+-	regaddr64 = of_translate_address(op->node, regaddr_p);
++	regaddr64 = of_translate_address(op->dev.of_node, regaddr_p);
  
- 	/* register with core */
-diff --git a/include/linux/of_platform.h b/include/linux/of_platform.h
-index ac3ae07..1643d37 100644
---- a/include/linux/of_platform.h
-+++ b/include/linux/of_platform.h
-@@ -31,10 +31,6 @@ extern struct bus_type of_platform_bus_type;
-  */
- struct of_platform_driver
- {
--	const char		*name;
--	const struct of_device_id	*match_table;
--	struct module		*owner;
--
- 	int	(*probe)(struct of_device* dev,
- 			 const struct of_device_id *match);
- 	int	(*remove)(struct of_device* dev);
+ 	/* get PSC id (1..6, used by port_config) */
+ 	if (op->dev.platform_data = NULL) {
+ 		const u32 *psc_nump;
+ 
+-		psc_nump = of_get_property(op->node, "cell-index", NULL);
++		psc_nump = of_get_property(op->dev.of_node, "cell-index", NULL);
+ 		if (!psc_nump || *psc_nump > 5) {
+ 			dev_err(&op->dev, "Invalid cell-index property\n");
+ 			return -EINVAL;
+@@ -491,9 +491,10 @@ static int __init mpc52xx_psc_spi_of_probe(struct of_device *op,
+ 	}
+ 
+ 	rc = mpc52xx_psc_spi_do_probe(&op->dev, (u32)regaddr64, (u32)size64,
+-					irq_of_parse_and_map(op->node, 0), id);
++				irq_of_parse_and_map(op->dev.of_node, 0), id);
+ 	if (rc = 0)
+-		of_register_spi_devices(dev_get_drvdata(&op->dev), op->node);
++		of_register_spi_devices(dev_get_drvdata(&op->dev),
++					op->dev.of_node);
+ 
+ 	return rc;
+ }
+diff --git a/drivers/spi/mpc52xx_spi.c b/drivers/spi/mpc52xx_spi.c
+index 6eab465..907c39a 100644
+--- a/drivers/spi/mpc52xx_spi.c
++++ b/drivers/spi/mpc52xx_spi.c
+@@ -402,7 +402,7 @@ static int __devinit mpc52xx_spi_probe(struct of_device *op,
+ 
+ 	/* MMIO registers */
+ 	dev_dbg(&op->dev, "probing mpc5200 SPI device\n");
+-	regs = of_iomap(op->node, 0);
++	regs = of_iomap(op->dev.of_node, 0);
+ 	if (!regs)
+ 		return -ENODEV;
+ 
+@@ -444,11 +444,11 @@ static int __devinit mpc52xx_spi_probe(struct of_device *op,
+ 	ms = spi_master_get_devdata(master);
+ 	ms->master = master;
+ 	ms->regs = regs;
+-	ms->irq0 = irq_of_parse_and_map(op->node, 0);
+-	ms->irq1 = irq_of_parse_and_map(op->node, 1);
++	ms->irq0 = irq_of_parse_and_map(op->dev.of_node, 0);
++	ms->irq1 = irq_of_parse_and_map(op->dev.of_node, 1);
+ 	ms->state = mpc52xx_spi_fsmstate_idle;
+-	ms->ipb_freq = mpc5xxx_get_bus_frequency(op->node);
+-	ms->gpio_cs_count = of_gpio_count(op->node);
++	ms->ipb_freq = mpc5xxx_get_bus_frequency(op->dev.of_node);
++	ms->gpio_cs_count = of_gpio_count(op->dev.of_node);
+ 	if (ms->gpio_cs_count > 0) {
+ 		master->num_chipselect = ms->gpio_cs_count;
+ 		ms->gpio_cs = kmalloc(ms->gpio_cs_count * sizeof(unsigned int),
+@@ -459,7 +459,7 @@ static int __devinit mpc52xx_spi_probe(struct of_device *op,
+ 		}
+ 
+ 		for (i = 0; i < ms->gpio_cs_count; i++) {
+-			gpio_cs = of_get_gpio(op->node, i);
++			gpio_cs = of_get_gpio(op->dev.of_node, i);
+ 			if (gpio_cs < 0) {
+ 				dev_err(&op->dev,
+ 					"could not parse the gpio field "
+@@ -511,7 +511,7 @@ static int __devinit mpc52xx_spi_probe(struct of_device *op,
+ 	if (rc)
+ 		goto err_register;
+ 
+-	of_register_spi_devices(master, op->node);
++	of_register_spi_devices(master, op->dev.of_node);
+ 	dev_info(&ms->master->dev, "registered MPC5200 SPI bus\n");
+ 
+ 	return rc;
 
