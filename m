@@ -1,7 +1,7 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Date: Thu, 11 Mar 2010 18:22:32 +0000
-Subject: [PATCH 08/27] drivers/crypto/of: don't use deprecated field in
-Message-Id: <20100311182231.13103.47091.stgit@angua>
+Date: Thu, 11 Mar 2010 18:23:16 +0000
+Subject: [PATCH 16/27] drivers/scsi/of: don't use deprecated field in
+Message-Id: <20100311182316.13103.87138.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100311181604.13103.30088.stgit@angua>
 In-Reply-To: <20100311181604.13103.30088.stgit@angua>
@@ -16,44 +16,44 @@ and device_driver, so the of_platform_driver copies will be removed soon.
 Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 ---
 
- drivers/crypto/amcc/crypto4xx_core.c |    7 +++++--
- drivers/crypto/talitos.c             |    7 +++++--
+ drivers/scsi/qlogicpti.c |    7 +++++--
+ drivers/scsi/sun_esp.c   |    7 +++++--
  2 files changed, 10 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/crypto/amcc/crypto4xx_core.c b/drivers/crypto/amcc/crypto4xx_core.c
-index 1c3849f..36b5fb1 100644
---- a/drivers/crypto/amcc/crypto4xx_core.c
-+++ b/drivers/crypto/amcc/crypto4xx_core.c
-@@ -1280,8 +1280,11 @@ static const struct of_device_id crypto4xx_match[] = {
- };
+diff --git a/drivers/scsi/qlogicpti.c b/drivers/scsi/qlogicpti.c
+index 7374fbe..16dc12e 100644
+--- a/drivers/scsi/qlogicpti.c
++++ b/drivers/scsi/qlogicpti.c
+@@ -1456,8 +1456,11 @@ static const struct of_device_id qpti_match[] = {
+ MODULE_DEVICE_TABLE(of, qpti_match);
  
- static struct of_platform_driver crypto4xx_driver = {
--	.name		= "crypto4xx",
--	.match_table	= crypto4xx_match,
+ static struct of_platform_driver qpti_sbus_driver = {
+-	.name		= "qpti",
+-	.match_table	= qpti_match,
 +	.driver = {
-+		.name = "crypto4xx",
++		.name = "qpti",
 +		.owner = THIS_MODULE,
-+		.of_match_table = crypto4xx_match,
++		.of_match_table = qpti_match,
 +	},
- 	.probe		= crypto4xx_probe,
- 	.remove		= crypto4xx_remove,
+ 	.probe		= qpti_sbus_probe,
+ 	.remove		= __devexit_p(qpti_sbus_remove),
  };
-diff --git a/drivers/crypto/talitos.c b/drivers/crypto/talitos.c
-index fd529d6..917faf7 100644
---- a/drivers/crypto/talitos.c
-+++ b/drivers/crypto/talitos.c
-@@ -1967,8 +1967,11 @@ static const struct of_device_id talitos_match[] = {
- MODULE_DEVICE_TABLE(of, talitos_match);
+diff --git a/drivers/scsi/sun_esp.c b/drivers/scsi/sun_esp.c
+index 4369b76..10ba30a 100644
+--- a/drivers/scsi/sun_esp.c
++++ b/drivers/scsi/sun_esp.c
+@@ -632,8 +632,11 @@ static const struct of_device_id esp_match[] = {
+ MODULE_DEVICE_TABLE(of, esp_match);
  
- static struct of_platform_driver talitos_driver = {
--	.name = "talitos",
--	.match_table = talitos_match,
+ static struct of_platform_driver esp_sbus_driver = {
+-	.name		= "esp",
+-	.match_table	= esp_match,
 +	.driver = {
-+		.name = "talitos",
++		.name = "esp",
 +		.owner = THIS_MODULE,
-+		.of_match_table = talitos_match,
++		.of_match_table = esp_match,
 +	},
- 	.probe = talitos_probe,
- 	.remove = talitos_remove,
+ 	.probe		= esp_sbus_probe,
+ 	.remove		= __devexit_p(esp_sbus_remove),
  };
 
