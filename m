@@ -1,59 +1,101 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Date: Thu, 11 Mar 2010 18:06:39 +0000
-Subject: [PATCH 31/37] drivers/of: use .of_node instead of .archdata.of_node
-Message-Id: <20100311180638.4824.71650.stgit@angua>
+Date: Thu, 11 Mar 2010 18:22:04 +0000
+Subject: [PATCH 03/27] drivers/watchdog/of: don't use deprecated .name and
+Message-Id: <20100311182204.13103.79395.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100311174830.4824.19820.stgit@angua>
-In-Reply-To: <20100311174830.4824.19820.stgit@angua>
+References: <20100311181604.13103.30088.stgit@angua>
+In-Reply-To: <20100311181604.13103.30088.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infrade
 
-.archdata.node is being removed from Microblaze, SPARC and PowerPC.
+.name, .match_table and .owner are duplicated in both of_platform_driver
+and device_driver, so the of_platform_driver copies will be removed soon.
 
 Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 ---
 
- drivers/of/of_i2c.c  |    1 -
- drivers/of/of_mdio.c |    1 -
- drivers/of/of_spi.c  |    1 -
- 3 files changed, 0 insertions(+), 3 deletions(-)
+ drivers/watchdog/cpwd.c        |    7 +++++--
+ drivers/watchdog/gef_wdt.c     |    8 +++++---
+ drivers/watchdog/mpc8xxx_wdt.c |    8 ++++----
+ drivers/watchdog/riowd.c       |    7 +++++--
+ 4 files changed, 19 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/of/of_i2c.c b/drivers/of/of_i2c.c
-index 43f803e..ab6522c 100644
---- a/drivers/of/of_i2c.c
-+++ b/drivers/of/of_i2c.c
-@@ -42,7 +42,6 @@ void of_register_i2c_devices(struct i2c_adapter *adap,
+diff --git a/drivers/watchdog/cpwd.c b/drivers/watchdog/cpwd.c
+index 89da14f..4215b5d 100644
+--- a/drivers/watchdog/cpwd.c
++++ b/drivers/watchdog/cpwd.c
+@@ -676,8 +676,11 @@ static const struct of_device_id cpwd_match[] = {
+ MODULE_DEVICE_TABLE(of, cpwd_match);
  
- 		info.addr = be32_to_cpup(addr);
+ static struct of_platform_driver cpwd_driver = {
+-	.name		= DRIVER_NAME,
+-	.match_table	= cpwd_match,
++	.driver = {
++		.name = DRIVER_NAME,
++		.owner = THIS_MODULE,
++		.of_match_table = cpwd_match,
++	},
+ 	.probe		= cpwd_probe,
+ 	.remove		= __devexit_p(cpwd_remove),
+ };
+diff --git a/drivers/watchdog/gef_wdt.c b/drivers/watchdog/gef_wdt.c
+index abdbad0..ca0f4c6 100644
+--- a/drivers/watchdog/gef_wdt.c
++++ b/drivers/watchdog/gef_wdt.c
+@@ -303,9 +303,11 @@ static const struct of_device_id gef_wdt_ids[] = {
+ };
  
--		dev_archdata_set_node(&dev_ad, node); /* temporary */
- 		info.of_node = node;
- 		info.archdata = &dev_ad;
+ static struct of_platform_driver gef_wdt_driver = {
+-	.owner		= THIS_MODULE,
+-	.name		= "gef_wdt",
+-	.match_table	= gef_wdt_ids,
++	.driver = {
++		.name = "gef_wdt",
++		.owner = THIS_MODULE,
++		.of_match_table = gef_wdt_ids,
++	},
+ 	.probe		= gef_wdt_probe,
+ };
  
-diff --git a/drivers/of/of_mdio.c b/drivers/of/of_mdio.c
-index 64e08d7..794fbc2 100644
---- a/drivers/of/of_mdio.c
-+++ b/drivers/of/of_mdio.c
-@@ -79,7 +79,6 @@ int of_mdiobus_register(struct mii_bus *mdio, struct device_node *np)
- 		/* Associate the OF node with the device structure so it
- 		 * can be looked up later */
- 		of_node_get(child);
--		dev_archdata_set_node(&phy->dev.archdata, child); /* temp */
- 		phy->dev.of_node = child;
+diff --git a/drivers/watchdog/mpc8xxx_wdt.c b/drivers/watchdog/mpc8xxx_wdt.c
+index 4e3941c..7b55974 100644
+--- a/drivers/watchdog/mpc8xxx_wdt.c
++++ b/drivers/watchdog/mpc8xxx_wdt.c
+@@ -273,12 +273,12 @@ static const struct of_device_id mpc8xxx_wdt_match[] = {
+ MODULE_DEVICE_TABLE(of, mpc8xxx_wdt_match);
  
- 		/* All data is now stored in the phy struct; register it */
-diff --git a/drivers/of/of_spi.c b/drivers/of/of_spi.c
-index 433d76d..5fed7e3 100644
---- a/drivers/of/of_spi.c
-+++ b/drivers/of/of_spi.c
-@@ -80,7 +80,6 @@ void of_register_spi_devices(struct spi_master *master, struct device_node *np)
- 		/* Store a pointer to the node in the device structure */
- 		of_node_get(nc);
- 		spi->dev.of_node = nc;
--		spi->dev.archdata.of_node = nc; /* temporary */
+ static struct of_platform_driver mpc8xxx_wdt_driver = {
+-	.match_table	= mpc8xxx_wdt_match,
+ 	.probe		= mpc8xxx_wdt_probe,
+ 	.remove		= __devexit_p(mpc8xxx_wdt_remove),
+-	.driver		= {
+-		.name	= "mpc8xxx_wdt",
+-		.owner	= THIS_MODULE,
++	.driver = {
++		.name = "mpc8xxx_wdt",
++		.owner = THIS_MODULE,
++		.of_match_table = mpc8xxx_wdt_match,
+ 	},
+ };
  
- 		/* Register the new device */
- 		request_module(spi->modalias);
+diff --git a/drivers/watchdog/riowd.c b/drivers/watchdog/riowd.c
+index ae57bf9..e7973bf 100644
+--- a/drivers/watchdog/riowd.c
++++ b/drivers/watchdog/riowd.c
+@@ -238,8 +238,11 @@ static const struct of_device_id riowd_match[] = {
+ MODULE_DEVICE_TABLE(of, riowd_match);
+ 
+ static struct of_platform_driver riowd_driver = {
+-	.name		= DRIVER_NAME,
+-	.match_table	= riowd_match,
++	.driver = {
++		.name = DRIVER_NAME,
++		.owner = THIS_MODULE,
++		.of_match_table = riowd_match,
++	},
+ 	.probe		= riowd_probe,
+ 	.remove		= __devexit_p(riowd_remove),
+ };
 
