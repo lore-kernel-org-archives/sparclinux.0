@@ -1,72 +1,40 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Date: Thu, 11 Mar 2010 18:04:37 +0000
-Subject: [PATCH 09/37] drivers/atm: use .dev.of_node instead of .node in
-Message-Id: <20100311180437.4824.86345.stgit@angua>
+Date: Thu, 11 Mar 2010 18:22:37 +0000
+Subject: [PATCH 09/27] drivers/atm/of: don't use deprecated field in
+Message-Id: <20100311182237.13103.61327.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100311174830.4824.19820.stgit@angua>
-In-Reply-To: <20100311174830.4824.19820.stgit@angua>
+References: <20100311181604.13103.30088.stgit@angua>
+In-Reply-To: <20100311181604.13103.30088.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infrade
 
-.node is being removed
+.name, .match_table and .owner are duplicated in both of_platform_driver
+and device_driver, so the of_platform_driver copies will be removed soon.
 
 Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 ---
 
- drivers/atm/fore200e.c |   16 +++++++++-------
- 1 files changed, 9 insertions(+), 7 deletions(-)
+ drivers/atm/fore200e.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/atm/fore200e.c b/drivers/atm/fore200e.c
-index f7d6eba..593a03a 100644
+index 593a03a..da8f176 100644
 --- a/drivers/atm/fore200e.c
 +++ b/drivers/atm/fore200e.c
-@@ -789,7 +789,7 @@ static int __init fore200e_sba_map(struct fore200e *fore200e)
- 	fore200e->bus->write(0x02, fore200e->regs.sba.isr); /* XXX hardwired interrupt level */
+@@ -2695,8 +2695,11 @@ static const struct of_device_id fore200e_sba_match[] = {
+ MODULE_DEVICE_TABLE(of, fore200e_sba_match);
  
- 	/* get the supported DVMA burst sizes */
--	bursts = of_getintprop_default(op->node->parent, "burst-sizes", 0x00);
-+	bursts = of_getintprop_default(op->dev.of_node->parent, "burst-sizes", 0x00);
- 
- 	if (sbus_can_dma_64bit())
- 		sbus_set_sbus64(&op->dev, bursts);
-@@ -820,18 +820,20 @@ static int __init fore200e_sba_prom_read(struct fore200e *fore200e, struct prom_
- 	const u8 *prop;
- 	int len;
- 
--	prop = of_get_property(op->node, "madaddrlo2", &len);
-+	prop = of_get_property(op->dev.of_node, "madaddrlo2", &len);
- 	if (!prop)
- 		return -ENODEV;
- 	memcpy(&prom->mac_addr[4], prop, 4);
- 
--	prop = of_get_property(op->node, "madaddrhi4", &len);
-+	prop = of_get_property(op->dev.of_node, "madaddrhi4", &len);
- 	if (!prop)
- 		return -ENODEV;
- 	memcpy(&prom->mac_addr[2], prop, 4);
- 
--	prom->serial_number = of_getintprop_default(op->node, "serialnumber", 0);
--	prom->hw_revision = of_getintprop_default(op->node, "promversion", 0);
-+	prom->serial_number = of_getintprop_default(op->dev.of_node,
-+						    "serialnumber", 0);
-+	prom->hw_revision = of_getintprop_default(op->dev.of_node,
-+						  "promversion", 0);
-     
- 	return 0;
- }
-@@ -841,10 +843,10 @@ static int fore200e_sba_proc_read(struct fore200e *fore200e, char *page)
- 	struct of_device *op = fore200e->bus_dev;
- 	const struct linux_prom_registers *regs;
- 
--	regs = of_get_property(op->node, "reg", NULL);
-+	regs = of_get_property(op->dev.of_node, "reg", NULL);
- 
- 	return sprintf(page, "   SBUS slot/device:\t\t%d/'%s'\n",
--		       (regs ? regs->which_io : 0), op->node->name);
-+		       (regs ? regs->which_io : 0), op->dev.of_node->name);
- }
- #endif /* CONFIG_SBUS */
- 
+ static struct of_platform_driver fore200e_sba_driver = {
+-	.name		= "fore_200e",
+-	.match_table	= fore200e_sba_match,
++	.driver = {
++		.name = "fore_200e",
++		.owner = THIS_MODULE,
++		.of_match_table = fore200e_sba_match,
++	},
+ 	.probe		= fore200e_sba_probe,
+ 	.remove		= __devexit_p(fore200e_sba_remove),
+ };
 
