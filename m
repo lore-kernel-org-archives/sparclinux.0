@@ -1,24 +1,62 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 11 Mar 2010 18:38:36 +0000
-Subject: Re: [PATCH 21/37] drivers/ata: use .dev.of_node instead of .node
-Message-Id: <20100311.103836.13755632.davem@davemloft.net>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Thu, 11 Mar 2010 18:04:54 +0000
+Subject: [PATCH 12/37] drivers/usb: use .dev.of_node instead of .node in
+Message-Id: <20100311180453.4824.61269.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100311174830.4824.19820.stgit@angua>
-	<20100311180543.4824.70491.stgit@angua>
-	<4B9936F2.3020105@ru.mvista.com>
-In-Reply-To: <4B9936F2.3020105@ru.mvista.com>
+In-Reply-To: <20100311174830.4824.19820.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sshtylyov@mvista.com
-Cc: alsa-devel@alsa-project.org, gregkh@suse.de, benh@kernel.crashing.org, grant.likely@secretlab.ca, linux-ide@vger.kernel.org, linux-i2c@vger.kernel.org, sparclinux@vger.kernel.org, jeremy.kerr@canonical.com, sfr@canb.auug.org.au, linux-scsi@vger.kernel.org, jgarzik@pobox.com, microblaze-uclinux@itee.uq.edu.au, devicetree-discuss@lists.ozlabs.org, James.Bottomley@suse.de, ben-linux@fluff.org, monstr@monstr.eu, linuxppc-dev@ozlabs.org, netdev@vger.kernel.org, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, akpm@linux-foundation.org, dwmw2@infradead.org
+To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infradead.org, jeremy.kerr@canonical.com, James.Bottomley@suse.de, broonie@opensource.wolfsonmicro.com, microblaze-uclinux@itee.uq.edu.au, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, linux-ide@vger.kernel.org, netdev@vger.kernel.org, linux-i2c@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-scsi@vger.kernel.org, alsa-devel@alsa-project.org
 
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Date: Thu, 11 Mar 2010 21:31:14 +0300
+.node is being removed
 
->   Should probably have been 2 patches instead of one, as drivers/ata/
->   and drivers/ide/ are different subsystems...
+Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+---
 
-No, he should consolidate these changes _MORE_ not less.
+ drivers/usb/host/ehci-ppc-of.c |    2 +-
+ drivers/usb/host/isp1760-if.c  |    2 +-
+ drivers/usb/host/ohci-ppc-of.c |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-The patch set is already too large to review at it is!
+diff --git a/drivers/usb/host/ehci-ppc-of.c b/drivers/usb/host/ehci-ppc-of.c
+index 8df33b8..ad06623 100644
+--- a/drivers/usb/host/ehci-ppc-of.c
++++ b/drivers/usb/host/ehci-ppc-of.c
+@@ -108,7 +108,7 @@ ppc44x_enable_bmt(struct device_node *dn)
+ static int __devinit
+ ehci_hcd_ppc_of_probe(struct of_device *op, const struct of_device_id *match)
+ {
+-	struct device_node *dn = op->node;
++	struct device_node *dn = op->dev.of_node;
+ 	struct usb_hcd *hcd;
+ 	struct ehci_hcd	*ehci = NULL;
+ 	struct resource res;
+diff --git a/drivers/usb/host/isp1760-if.c b/drivers/usb/host/isp1760-if.c
+index 4293cfd..36360e2 100644
+--- a/drivers/usb/host/isp1760-if.c
++++ b/drivers/usb/host/isp1760-if.c
+@@ -31,7 +31,7 @@ static int of_isp1760_probe(struct of_device *dev,
+ 		const struct of_device_id *match)
+ {
+ 	struct usb_hcd *hcd;
+-	struct device_node *dp = dev->node;
++	struct device_node *dp = dev->dev.of_node;
+ 	struct resource *res;
+ 	struct resource memory;
+ 	struct of_irq oirq;
+diff --git a/drivers/usb/host/ohci-ppc-of.c b/drivers/usb/host/ohci-ppc-of.c
+index 103263c..003aea2 100644
+--- a/drivers/usb/host/ohci-ppc-of.c
++++ b/drivers/usb/host/ohci-ppc-of.c
+@@ -83,7 +83,7 @@ static const struct hc_driver ohci_ppc_of_hc_driver = {
+ static int __devinit
+ ohci_hcd_ppc_of_probe(struct of_device *op, const struct of_device_id *match)
+ {
+-	struct device_node *dn = op->node;
++	struct device_node *dn = op->dev.of_node;
+ 	struct usb_hcd *hcd;
+ 	struct ohci_hcd	*ohci;
+ 	struct resource res;
+
