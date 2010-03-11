@@ -1,75 +1,34 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Date: Thu, 11 Mar 2010 18:22:48 +0000
-Subject: [PATCH 11/27] drivers/macintosh/of: don't use deprecated field in
-Message-Id: <20100311182248.13103.6111.stgit@angua>
+Date: Thu, 11 Mar 2010 18:05:10 +0000
+Subject: [PATCH 15/37] drivers/mmc: use .dev.of_node instead of .node in
+Message-Id: <20100311180510.4824.40934.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100311181604.13103.30088.stgit@angua>
-In-Reply-To: <20100311181604.13103.30088.stgit@angua>
+References: <20100311174830.4824.19820.stgit@angua>
+In-Reply-To: <20100311174830.4824.19820.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infrade
+To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infradead.org, jeremy.kerr@canonical.com, James.Bottomley@suse.de, broonie@opensource.wolfsonmicro.com, microblaze-uclinux@itee.uq.edu.au, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, linux-ide@vger.kernel.org, netdev@vger.kernel.org, linux-i2c@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-scsi@vger.kernel.org, alsa-devel@alsa-project.org
 
-.name, .match_table and .owner are duplicated in both of_platform_driver
-and device_driver, so the of_platform_driver copies will be removed soon.
+.node is being removed
 
 Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 ---
 
- drivers/macintosh/smu.c              |    7 +++++--
- drivers/macintosh/therm_pm72.c       |    7 +++++--
- drivers/macintosh/therm_windtunnel.c |    7 +++++--
- 3 files changed, 15 insertions(+), 6 deletions(-)
+ drivers/mmc/host/sdhci-of-core.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/macintosh/smu.c b/drivers/macintosh/smu.c
-index f96feeb..4e912b2 100644
---- a/drivers/macintosh/smu.c
-+++ b/drivers/macintosh/smu.c
-@@ -670,8 +670,11 @@ static const struct of_device_id smu_platform_match[]  
- static struct of_platform_driver smu_of_platform_driver  {
--	.name 		= "smu",
--	.match_table	= smu_platform_match,
-+	.driver = {
-+		.name = "smu",
-+		.owner = THIS_MODULE,
-+		.of_match_table = smu_platform_match,
-+	},
- 	.probe		= smu_platform_probe,
- };
- 
-diff --git a/drivers/macintosh/therm_pm72.c b/drivers/macintosh/therm_pm72.c
-index f5b0f9e..c99f937 100644
---- a/drivers/macintosh/therm_pm72.c
-+++ b/drivers/macintosh/therm_pm72.c
-@@ -2221,8 +2221,11 @@ static const struct of_device_id fcu_match[]  
- static struct of_platform_driver fcu_of_platform_driver = 
+diff --git a/drivers/mmc/host/sdhci-of-core.c b/drivers/mmc/host/sdhci-of-core.c
+index 55e3313..dfe5cea 100644
+--- a/drivers/mmc/host/sdhci-of-core.c
++++ b/drivers/mmc/host/sdhci-of-core.c
+@@ -118,7 +118,7 @@ static bool __devinit sdhci_of_wp_inverted(struct device_node *np)
+ static int __devinit sdhci_of_probe(struct of_device *ofdev,
+ 				 const struct of_device_id *match)
  {
--	.name 		= "temperature",
--	.match_table	= fcu_match,
-+	.driver = {
-+		.name = "temperature",
-+		.owner = THIS_MODULE,
-+		.of_match_table = fcu_match,
-+	},
- 	.probe		= fcu_of_probe,
- 	.remove		= fcu_of_remove
- };
-diff --git a/drivers/macintosh/therm_windtunnel.c b/drivers/macintosh/therm_windtunnel.c
-index 7fb8b4d..dc6a47a 100644
---- a/drivers/macintosh/therm_windtunnel.c
-+++ b/drivers/macintosh/therm_windtunnel.c
-@@ -464,8 +464,11 @@ static const struct of_device_id therm_of_match[] = {{
- };
- 
- static struct of_platform_driver therm_of_driver = {
--	.name		= "temperature",
--	.match_table	= therm_of_match,
-+	.driver = {
-+		.name = "temperature",
-+		.owner = THIS_MODULE,
-+		.of_match_table = therm_of_match,
-+	},
- 	.probe		= therm_of_probe,
- 	.remove		= therm_of_remove,
- };
+-	struct device_node *np = ofdev->node;
++	struct device_node *np = ofdev->dev.of_node;
+ 	struct sdhci_of_data *sdhci_of_data = match->data;
+ 	struct sdhci_host *host;
+ 	struct sdhci_of_host *of_host;
 
