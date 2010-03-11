@@ -1,34 +1,127 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Date: Thu, 11 Mar 2010 18:05:27 +0000
-Subject: [PATCH 18/37] drivers/pcmcia: use .dev.of_node instead of .node in
-Message-Id: <20100311180527.4824.74325.stgit@angua>
+Date: Thu, 11 Mar 2010 18:05:33 +0000
+Subject: [PATCH 19/37] drivers/serial: use .dev.of_node instead of .node in
+Message-Id: <20100311180532.4824.64755.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100311174830.4824.19820.stgit@angua>
 In-Reply-To: <20100311174830.4824.19820.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infrade
+To: monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org, gregkh-l3A5Bk7waGM@public.gmane.org, benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org, jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, dwmw2@infrade
 
 .node is being removed
 
 Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 ---
 
- drivers/pcmcia/electra_cf.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/serial/apbuart.c    |    2 +-
+ drivers/serial/nwpserial.c  |    2 +-
+ drivers/serial/of_serial.c  |    4 ++--
+ drivers/serial/pmac_zilog.c |    2 +-
+ drivers/serial/sunhv.c      |    2 +-
+ drivers/serial/sunsab.c     |    6 +++---
+ 6 files changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/pcmcia/electra_cf.c b/drivers/pcmcia/electra_cf.c
-index 89cfddc..a4d821f 100644
---- a/drivers/pcmcia/electra_cf.c
-+++ b/drivers/pcmcia/electra_cf.c
-@@ -184,7 +184,7 @@ static int __devinit electra_cf_probe(struct of_device *ofdev,
- 				      const struct of_device_id *match)
+diff --git a/drivers/serial/apbuart.c b/drivers/serial/apbuart.c
+index fe91319..52015d7 100644
+--- a/drivers/serial/apbuart.c
++++ b/drivers/serial/apbuart.c
+@@ -559,7 +559,7 @@ static int __devinit apbuart_probe(struct of_device *op,
+ 
+ 	i = 0;
+ 	for (i = 0; i < grlib_apbuart_port_nr; i++) {
+-		if (op->node = grlib_apbuart_nodes[i])
++		if (op->dev.of_node = grlib_apbuart_nodes[i])
+ 			break;
+ 	}
+ 
+diff --git a/drivers/serial/nwpserial.c b/drivers/serial/nwpserial.c
+index e1ab8ec..3c02fa9 100644
+--- a/drivers/serial/nwpserial.c
++++ b/drivers/serial/nwpserial.c
+@@ -344,7 +344,7 @@ int nwpserial_register_port(struct uart_port *port)
+ 
+ 	mutex_lock(&nwpserial_mutex);
+ 
+-	dn = to_of_device(port->dev)->node;
++	dn = to_of_device(port->dev)->dev.of_node;
+ 	if (dn = NULL)
+ 		goto out;
+ 
+diff --git a/drivers/serial/of_serial.c b/drivers/serial/of_serial.c
+index cdf172e..18bf39b 100644
+--- a/drivers/serial/of_serial.c
++++ b/drivers/serial/of_serial.c
+@@ -30,7 +30,7 @@ static int __devinit of_platform_serial_setup(struct of_device *ofdev,
+ 					int type, struct uart_port *port)
  {
- 	struct device *device = &ofdev->dev;
+ 	struct resource resource;
 -	struct device_node *np = ofdev->node;
 +	struct device_node *np = ofdev->dev.of_node;
- 	struct electra_cf_socket   *cf;
- 	struct resource mem, io;
- 	int status;
+ 	const unsigned int *clk, *spd;
+ 	const u32 *prop;
+ 	int ret, prop_size;
+@@ -87,7 +87,7 @@ static int __devinit of_platform_serial_probe(struct of_device *ofdev,
+ 	int port_type;
+ 	int ret;
+ 
+-	if (of_find_property(ofdev->node, "used-by-rtas", NULL))
++	if (of_find_property(ofdev->dev.of_node, "used-by-rtas", NULL))
+ 		return -EBUSY;
+ 
+ 	info = kmalloc(sizeof(*info), GFP_KERNEL);
+diff --git a/drivers/serial/pmac_zilog.c b/drivers/serial/pmac_zilog.c
+index f020de1..8abbbb3 100644
+--- a/drivers/serial/pmac_zilog.c
++++ b/drivers/serial/pmac_zilog.c
+@@ -1610,7 +1610,7 @@ static int pmz_attach(struct macio_dev *mdev, const struct of_device_id *match)
+ 	/* Iterate the pmz_ports array to find a matching entry
+ 	 */
+ 	for (i = 0; i < MAX_ZS_PORTS; i++)
+-		if (pmz_ports[i].node = mdev->ofdev.node) {
++		if (pmz_ports[i].node = mdev->ofdev.dev.of_node) {
+ 			struct uart_pmac_port *uap = &pmz_ports[i];
+ 
+ 			uap->dev = mdev;
+diff --git a/drivers/serial/sunhv.c b/drivers/serial/sunhv.c
+index d14cca7..d1eedf1 100644
+--- a/drivers/serial/sunhv.c
++++ b/drivers/serial/sunhv.c
+@@ -565,7 +565,7 @@ static int __devinit hv_probe(struct of_device *op, const struct of_device_id *m
+ 	if (err)
+ 		goto out_free_con_read_page;
+ 
+-	sunserial_console_match(&sunhv_console, op->node,
++	sunserial_console_match(&sunhv_console, op->dev.of_node,
+ 				&sunhv_reg, port->line, false);
+ 
+ 	err = uart_add_one_port(&sunhv_reg, port);
+diff --git a/drivers/serial/sunsab.c b/drivers/serial/sunsab.c
+index d514e28..2b8b2c2 100644
+--- a/drivers/serial/sunsab.c
++++ b/drivers/serial/sunsab.c
+@@ -883,7 +883,7 @@ static int sunsab_console_setup(struct console *con, char *options)
+ 	printk("Console: ttyS%d (SAB82532)\n",
+ 	       (sunsab_reg.minor - 64) + con->index);
+ 
+-	sunserial_console_termios(con, to_of_device(up->port.dev)->node);
++	sunserial_console_termios(con, to_of_device(up->port.dev)->dev.of_node);
+ 
+ 	switch (con->cflag & CBAUD) {
+ 	case B150: baud = 150; break;
+@@ -1026,11 +1026,11 @@ static int __devinit sab_probe(struct of_device *op, const struct of_device_id *
+ 	if (err)
+ 		goto out1;
+ 
+-	sunserial_console_match(SUNSAB_CONSOLE(), op->node,
++	sunserial_console_match(SUNSAB_CONSOLE(), op->dev.of_node,
+ 				&sunsab_reg, up[0].port.line,
+ 				false);
+ 
+-	sunserial_console_match(SUNSAB_CONSOLE(), op->node,
++	sunserial_console_match(SUNSAB_CONSOLE(), op->dev.of_node,
+ 				&sunsab_reg, up[1].port.line,
+ 				false);
+ 
 
