@@ -1,108 +1,137 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Date: Thu, 11 Mar 2010 18:07:12 +0000
-Subject: [PATCH 37/37] arch/sparc: Remove .archdata.of_node and use .of_node
-Message-Id: <20100311180711.4824.57524.stgit@angua>
+Date: Thu, 11 Mar 2010 18:04:48 +0000
+Subject: [PATCH 11/37] drivers/scsi: use .dev.of_node instead of .node in
+Message-Id: <20100311180448.4824.67773.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100311174830.4824.19820.stgit@angua>
 In-Reply-To: <20100311174830.4824.19820.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infradead.org, jeremy.kerr@canonical.com, James.Bottomley@suse.de, broonie@opensource.wolfsonmicro.com, microblaze-uclinux@itee.uq.edu.au, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, linux-ide@vger.kernel.org, netdev@vger.kernel.org, linux-i2c@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-scsi@vger.kernel.org, alsa-devel@alsa-project.org
+To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infrade
 
-.archdata.of_node is being removed from Microblaze, SPARC and PowerPC
-because it duplicates the struct device .of_node pointer.  This patch
-also removes .node from struct of_device for the same reason.
+.node is being removed
 
 Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 ---
 
- arch/sparc/include/asm/device.h    |    9 ---------
- arch/sparc/include/asm/of_device.h |    1 -
- arch/sparc/kernel/of_device_32.c   |    3 ---
- arch/sparc/kernel/of_device_64.c   |    2 --
- arch/sparc/kernel/pci.c            |    1 -
- 5 files changed, 0 insertions(+), 16 deletions(-)
+ drivers/scsi/qlogicpti.c |   10 +++++-----
+ drivers/scsi/sun_esp.c   |   16 ++++++++--------
+ 2 files changed, 13 insertions(+), 13 deletions(-)
 
-diff --git a/arch/sparc/include/asm/device.h b/arch/sparc/include/asm/device.h
-index 55dadca..d4c4521 100644
---- a/arch/sparc/include/asm/device.h
-+++ b/arch/sparc/include/asm/device.h
-@@ -13,19 +13,10 @@ struct dev_archdata {
- 	void			*iommu;
- 	void			*stc;
- 	void			*host_controller;
--
--	struct device_node	*prom_node;
- 	struct of_device	*op;
--
- 	int			numa_node;
- };
+diff --git a/drivers/scsi/qlogicpti.c b/drivers/scsi/qlogicpti.c
+index fa34b92..7374fbe 100644
+--- a/drivers/scsi/qlogicpti.c
++++ b/drivers/scsi/qlogicpti.c
+@@ -755,7 +755,7 @@ static void __devinit qpti_get_scsi_id(struct qlogicpti *qpti)
+ 	struct of_device *op = qpti->op;
+ 	struct device_node *dp;
  
--static inline void dev_archdata_set_node(struct dev_archdata *ad,
--					 struct device_node *np)
--{
--	ad->prom_node = np;
--}
--
- struct pdev_archdata {
- };
+-	dp = op->node;
++	dp = op->dev.of_node;
  
-diff --git a/arch/sparc/include/asm/of_device.h b/arch/sparc/include/asm/of_device.h
-index a5d9811..f320246 100644
---- a/arch/sparc/include/asm/of_device.h
-+++ b/arch/sparc/include/asm/of_device.h
-@@ -14,7 +14,6 @@
-  */
- struct of_device
+ 	qpti->scsi_id = of_getintprop_default(dp, "initiator-id", -1);
+ 	if (qpti->scsi_id = -1)
+@@ -776,8 +776,8 @@ static void qpti_get_bursts(struct qlogicpti *qpti)
+ 	struct of_device *op = qpti->op;
+ 	u8 bursts, bmask;
+ 
+-	bursts = of_getintprop_default(op->node, "burst-sizes", 0xff);
+-	bmask = of_getintprop_default(op->node->parent, "burst-sizes", 0xff);
++	bursts = of_getintprop_default(op->dev.of_node, "burst-sizes", 0xff);
++	bmask = of_getintprop_default(op->dev.of_node->parent, "burst-sizes", 0xff);
+ 	if (bmask != 0xff)
+ 		bursts &= bmask;
+ 	if (bursts = 0xff ||
+@@ -1293,7 +1293,7 @@ static struct scsi_host_template qpti_template = {
+ static int __devinit qpti_sbus_probe(struct of_device *op, const struct of_device_id *match)
  {
--	struct device_node		*node;
- 	struct device			dev;
- 	struct resource			resource[PROMREG_MAX];
- 	unsigned int			irqs[PROMINTR_MAX];
-diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device_32.c
-index 909bee0..37ab163 100644
---- a/arch/sparc/kernel/of_device_32.c
-+++ b/arch/sparc/kernel/of_device_32.c
-@@ -345,12 +345,9 @@ static struct of_device * __init scan_one_device(struct device_node *dp,
- 		return NULL;
+ 	struct scsi_host_template *tpnt = match->data;
+-	struct device_node *dp = op->node;
++	struct device_node *dp = op->dev.of_node;
+ 	struct Scsi_Host *host;
+ 	struct qlogicpti *qpti;
+ 	static int nqptis;
+@@ -1315,7 +1315,7 @@ static int __devinit qpti_sbus_probe(struct of_device *op, const struct of_devic
+ 	qpti->qhost = host;
+ 	qpti->op = op;
+ 	qpti->qpti_id = nqptis;
+-	strcpy(qpti->prom_name, op->node->name);
++	strcpy(qpti->prom_name, op->dev.of_node->name);
+ 	qpti->is_pti = strcmp(qpti->prom_name, "QLGC,isp");
  
- 	sd = &op->dev.archdata;
--	sd->prom_node = dp; /* temporary */
- 	sd->op = op;
- 	op->dev.of_node = dp;
+ 	if (qpti_map_regs(qpti) < 0)
+diff --git a/drivers/scsi/sun_esp.c b/drivers/scsi/sun_esp.c
+index 3d73aad..4369b76 100644
+--- a/drivers/scsi/sun_esp.c
++++ b/drivers/scsi/sun_esp.c
+@@ -124,7 +124,7 @@ static void __devinit esp_get_scsi_id(struct esp *esp, struct of_device *espdma)
+ 	struct of_device *op = esp->dev;
+ 	struct device_node *dp;
  
--	op->node = dp;
--
- 	op->clock_freq = of_getintprop_default(dp, "clock-frequency",
- 					       (25*1000*1000));
- 	op->portid = of_getintprop_default(dp, "upa-portid", -1);
-diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device_64.c
-index e436381..1dae807 100644
---- a/arch/sparc/kernel/of_device_64.c
-+++ b/arch/sparc/kernel/of_device_64.c
-@@ -640,11 +640,9 @@ static struct of_device * __init scan_one_device(struct device_node *dp,
- 		return NULL;
+-	dp = op->node;
++	dp = op->dev.of_node;
+ 	esp->scsi_id = of_getintprop_default(dp, "initiator-id", 0xff);
+ 	if (esp->scsi_id != 0xff)
+ 		goto done;
+@@ -133,7 +133,7 @@ static void __devinit esp_get_scsi_id(struct esp *esp, struct of_device *espdma)
+ 	if (esp->scsi_id != 0xff)
+ 		goto done;
  
- 	sd = &op->dev.archdata;
--	sd->prom_node = dp; /* temporary */
- 	sd->op = op;
+-	esp->scsi_id = of_getintprop_default(espdma->node,
++	esp->scsi_id = of_getintprop_default(espdma->dev.of_node,
+ 					     "scsi-initiator-id", 7);
  
- 	op->dev.of_node = dp;
--	op->node = dp;
+ done:
+@@ -146,7 +146,7 @@ static void __devinit esp_get_differential(struct esp *esp)
+ 	struct of_device *op = esp->dev;
+ 	struct device_node *dp;
  
- 	op->clock_freq = of_getintprop_default(dp, "clock-frequency",
- 					       (25*1000*1000));
-diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index 89c17d0..8a8363a 100644
---- a/arch/sparc/kernel/pci.c
-+++ b/arch/sparc/kernel/pci.c
-@@ -261,7 +261,6 @@ static struct pci_dev *of_create_pci_dev(struct pci_pbm_info *pbm,
- 	sd->iommu = pbm->iommu;
- 	sd->stc = &pbm->stc;
- 	sd->host_controller = pbm;
--	sd->prom_node = node; /* temporary */
- 	sd->op = op = of_find_device_by_node(node);
- 	sd->numa_node = pbm->numa_node;
+-	dp = op->node;
++	dp = op->dev.of_node;
+ 	if (of_find_property(dp, "differential", NULL))
+ 		esp->flags |= ESP_FLAG_DIFFERENTIAL;
+ 	else
+@@ -159,7 +159,7 @@ static void __devinit esp_get_clock_params(struct esp *esp)
+ 	struct device_node *bus_dp, *dp;
+ 	int fmhz;
  
+-	dp = op->node;
++	dp = op->dev.of_node;
+ 	bus_dp = dp->parent;
+ 
+ 	fmhz = of_getintprop_default(dp, "clock-frequency", 0);
+@@ -171,12 +171,12 @@ static void __devinit esp_get_clock_params(struct esp *esp)
+ 
+ static void __devinit esp_get_bursts(struct esp *esp, struct of_device *dma_of)
+ {
+-	struct device_node *dma_dp = dma_of->node;
++	struct device_node *dma_dp = dma_of->dev.of_node;
+ 	struct of_device *op = esp->dev;
+ 	struct device_node *dp;
+ 	u8 bursts, val;
+ 
+-	dp = op->node;
++	dp = op->dev.of_node;
+ 	bursts = of_getintprop_default(dp, "burst-sizes", 0xff);
+ 	val = of_getintprop_default(dma_dp, "burst-sizes", 0xff);
+ 	if (val != 0xff)
+@@ -564,7 +564,7 @@ fail:
+ static int __devinit esp_sbus_probe(struct of_device *op, const struct of_device_id *match)
+ {
+ 	struct device_node *dma_node = NULL;
+-	struct device_node *dp = op->node;
++	struct device_node *dp = op->dev.of_node;
+ 	struct of_device *dma_of = NULL;
+ 	int hme = 0;
+ 
+@@ -573,7 +573,7 @@ static int __devinit esp_sbus_probe(struct of_device *op, const struct of_device
+ 	     !strcmp(dp->parent->name, "dma")))
+ 		dma_node = dp->parent;
+ 	else if (!strcmp(dp->name, "SUNW,fas")) {
+-		dma_node = op->node;
++		dma_node = op->dev.of_node;
+ 		hme = 1;
+ 	}
+ 	if (dma_node)
 
