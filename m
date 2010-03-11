@@ -1,14 +1,14 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Date: Thu, 11 Mar 2010 18:23:22 +0000
-Subject: [PATCH 17/27] drivers/sbus/of: don't use deprecated field in
-Message-Id: <20100311182321.13103.29782.stgit@angua>
+Date: Thu, 11 Mar 2010 18:23:11 +0000
+Subject: [PATCH 15/27] drivers/spi/of: don't use deprecated field in
+Message-Id: <20100311182310.13103.62043.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100311181604.13103.30088.stgit@angua>
 In-Reply-To: <20100311181604.13103.30088.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infradead.org, jeremy.kerr@canonical.com, James.Bottomley@suse.de, broonie@opensource.wolfsonmicro.com, microblaze-uclinux@itee.uq.edu.au, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, linux-ide@vger.kernel.org, netdev@vger.kernel.org, linux-i2c@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-scsi@vger.kernel.org, alsa-devel@alsa-project.org
+To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infrade
 
 .name, .match_table and .owner are duplicated in both of_platform_driver
 and device_driver, so the of_platform_driver copies will be removed soon.
@@ -16,101 +16,104 @@ and device_driver, so the of_platform_driver copies will be removed soon.
 Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 ---
 
- drivers/sbus/char/bbc_i2c.c     |    7 +++++--
- drivers/sbus/char/display7seg.c |    7 +++++--
- drivers/sbus/char/envctrl.c     |    7 +++++--
- drivers/sbus/char/flash.c       |    7 +++++--
- drivers/sbus/char/uctrl.c       |    7 +++++--
- 5 files changed, 25 insertions(+), 10 deletions(-)
+ drivers/spi/mpc52xx_psc_spi.c |    4 +---
+ drivers/spi/mpc52xx_spi.c     |    8 +++++---
+ drivers/spi/spi_mpc8xxx.c     |    7 +++++--
+ drivers/spi/spi_ppc4xx.c      |    2 +-
+ drivers/spi/xilinx_spi_of.c   |    2 +-
+ 5 files changed, 13 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/sbus/char/bbc_i2c.c b/drivers/sbus/char/bbc_i2c.c
-index 1543ac3..8bfdd63 100644
---- a/drivers/sbus/char/bbc_i2c.c
-+++ b/drivers/sbus/char/bbc_i2c.c
-@@ -414,8 +414,11 @@ static const struct of_device_id bbc_i2c_match[] = {
- MODULE_DEVICE_TABLE(of, bbc_i2c_match);
+diff --git a/drivers/spi/mpc52xx_psc_spi.c b/drivers/spi/mpc52xx_psc_spi.c
+index f12cfd9..babd529 100644
+--- a/drivers/spi/mpc52xx_psc_spi.c
++++ b/drivers/spi/mpc52xx_psc_spi.c
+@@ -513,14 +513,12 @@ static const struct of_device_id mpc52xx_psc_spi_of_match[] = {
+ MODULE_DEVICE_TABLE(of, mpc52xx_psc_spi_of_match);
  
- static struct of_platform_driver bbc_i2c_driver = {
--	.name		= "bbc_i2c",
--	.match_table	= bbc_i2c_match,
-+	.driver = {
-+		.name = "bbc_i2c",
-+		.owner = THIS_MODULE,
-+		.of_match_table = bbc_i2c_match,
-+	},
- 	.probe		= bbc_i2c_probe,
- 	.remove		= __devexit_p(bbc_i2c_remove),
+ static struct of_platform_driver mpc52xx_psc_spi_of_driver = {
+-	.owner = THIS_MODULE,
+-	.name = "mpc52xx-psc-spi",
+-	.match_table = mpc52xx_psc_spi_of_match,
+ 	.probe = mpc52xx_psc_spi_of_probe,
+ 	.remove = __exit_p(mpc52xx_psc_spi_of_remove),
+ 	.driver = {
+ 		.name = "mpc52xx-psc-spi",
+ 		.owner = THIS_MODULE,
++		.of_match_table = mpc52xx_psc_spi_of_match,
+ 	},
  };
-diff --git a/drivers/sbus/char/display7seg.c b/drivers/sbus/char/display7seg.c
-index d0a10f4..e1db005 100644
---- a/drivers/sbus/char/display7seg.c
-+++ b/drivers/sbus/char/display7seg.c
-@@ -265,8 +265,11 @@ static const struct of_device_id d7s_match[] = {
- MODULE_DEVICE_TABLE(of, d7s_match);
  
- static struct of_platform_driver d7s_driver = {
--	.name		= DRIVER_NAME,
--	.match_table	= d7s_match,
-+	.driver = {
-+		.name = DRIVER_NAME,
-+		.owner = THIS_MODULE,
-+		.of_match_table = d7s_match,
-+	},
- 	.probe		= d7s_probe,
- 	.remove		= __devexit_p(d7s_remove),
- };
-diff --git a/drivers/sbus/char/envctrl.c b/drivers/sbus/char/envctrl.c
-index 84a4310..dc9e8ef 100644
---- a/drivers/sbus/char/envctrl.c
-+++ b/drivers/sbus/char/envctrl.c
-@@ -1130,8 +1130,11 @@ static const struct of_device_id envctrl_match[] = {
- MODULE_DEVICE_TABLE(of, envctrl_match);
+diff --git a/drivers/spi/mpc52xx_spi.c b/drivers/spi/mpc52xx_spi.c
+index 907c39a..792ffb9 100644
+--- a/drivers/spi/mpc52xx_spi.c
++++ b/drivers/spi/mpc52xx_spi.c
+@@ -557,9 +557,11 @@ static const struct of_device_id mpc52xx_spi_match[] __devinitconst = {
+ MODULE_DEVICE_TABLE(of, mpc52xx_spi_match);
  
- static struct of_platform_driver envctrl_driver = {
--	.name		= DRIVER_NAME,
--	.match_table	= envctrl_match,
+ static struct of_platform_driver mpc52xx_spi_of_driver = {
+-	.owner = THIS_MODULE,
+-	.name = "mpc52xx-spi",
+-	.match_table = mpc52xx_spi_match,
 +	.driver = {
-+		.name = DRIVER_NAME,
++		.name = "mpc52xx-spi",
 +		.owner = THIS_MODULE,
-+		.of_match_table = envctrl_match,
++		.of_match_table = mpc52xx_spi_match,
 +	},
- 	.probe		= envctrl_probe,
- 	.remove		= __devexit_p(envctrl_remove),
+ 	.probe = mpc52xx_spi_probe,
+ 	.remove = __exit_p(mpc52xx_spi_remove),
  };
-diff --git a/drivers/sbus/char/flash.c b/drivers/sbus/char/flash.c
-index dc8f95d..0e8ae6b 100644
---- a/drivers/sbus/char/flash.c
-+++ b/drivers/sbus/char/flash.c
-@@ -208,8 +208,11 @@ static const struct of_device_id flash_match[] = {
- MODULE_DEVICE_TABLE(of, flash_match);
+diff --git a/drivers/spi/spi_mpc8xxx.c b/drivers/spi/spi_mpc8xxx.c
+index 38b9c32..fd90c30 100644
+--- a/drivers/spi/spi_mpc8xxx.c
++++ b/drivers/spi/spi_mpc8xxx.c
+@@ -1311,8 +1311,11 @@ static const struct of_device_id of_mpc8xxx_spi_match[] = {
+ MODULE_DEVICE_TABLE(of, of_mpc8xxx_spi_match);
  
- static struct of_platform_driver flash_driver = {
--	.name		= "flash",
--	.match_table	= flash_match,
+ static struct of_platform_driver of_mpc8xxx_spi_driver = {
+-	.name		= "mpc8xxx_spi",
+-	.match_table	= of_mpc8xxx_spi_match,
 +	.driver = {
-+		.name = "flash",
++		.name = "mpc8xxx_spi",
 +		.owner = THIS_MODULE,
-+		.of_match_table = flash_match,
++		.of_match_table = of_mpc8xxx_spi_match,
 +	},
- 	.probe		= flash_probe,
- 	.remove		= __devexit_p(flash_remove),
+ 	.probe		= of_mpc8xxx_spi_probe,
+ 	.remove		= __devexit_p(of_mpc8xxx_spi_remove),
  };
-diff --git a/drivers/sbus/char/uctrl.c b/drivers/sbus/char/uctrl.c
-index acc6738..5f25366 100644
---- a/drivers/sbus/char/uctrl.c
-+++ b/drivers/sbus/char/uctrl.c
-@@ -425,8 +425,11 @@ static const struct of_device_id uctrl_match[] = {
- MODULE_DEVICE_TABLE(of, uctrl_match);
+diff --git a/drivers/spi/spi_ppc4xx.c b/drivers/spi/spi_ppc4xx.c
+index 6d8d402..fa6f01c 100644
+--- a/drivers/spi/spi_ppc4xx.c
++++ b/drivers/spi/spi_ppc4xx.c
+@@ -586,12 +586,12 @@ static const struct of_device_id spi_ppc4xx_of_match[] = {
+ MODULE_DEVICE_TABLE(of, spi_ppc4xx_of_match);
  
- static struct of_platform_driver uctrl_driver = {
--	.name		= "uctrl",
--	.match_table	= uctrl_match,
-+	.driver = {
-+		.name = "uctrl",
-+		.owner = THIS_MODULE,
-+		.of_match_table = uctrl_match,
-+	},
- 	.probe		= uctrl_probe,
- 	.remove		= __devexit_p(uctrl_remove),
+ static struct of_platform_driver spi_ppc4xx_of_driver = {
+-	.match_table = spi_ppc4xx_of_match,
+ 	.probe = spi_ppc4xx_of_probe,
+ 	.remove = __exit_p(spi_ppc4xx_of_remove),
+ 	.driver = {
+ 		.name = DRIVER_NAME,
+ 		.owner = THIS_MODULE,
++		.of_match_table = spi_ppc4xx_of_match,
+ 	},
  };
+ 
+diff --git a/drivers/spi/xilinx_spi_of.c b/drivers/spi/xilinx_spi_of.c
+index ed34a8d..416a8cd 100644
+--- a/drivers/spi/xilinx_spi_of.c
++++ b/drivers/spi/xilinx_spi_of.c
+@@ -108,12 +108,12 @@ static const struct of_device_id xilinx_spi_of_match[] = {
+ MODULE_DEVICE_TABLE(of, xilinx_spi_of_match);
+ 
+ static struct of_platform_driver xilinx_spi_of_driver = {
+-	.match_table = xilinx_spi_of_match,
+ 	.probe = xilinx_spi_of_probe,
+ 	.remove = __exit_p(xilinx_spi_of_remove),
+ 	.driver = {
+ 		.name = "xilinx-xps-spi",
+ 		.owner = THIS_MODULE,
++		.of_match_table = xilinx_spi_of_match,
+ 	},
+ };
+ 
 
