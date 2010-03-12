@@ -1,86 +1,25 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Thu, 11 Mar 2010 18:23:49 +0000
-Subject: [PATCH 22/27] drivers/i2c/of: don't use deprecated field in
-Message-Id: <20100311182349.13103.39322.stgit@angua>
+From: Sean MacLennan <smaclennan@pikatech.com>
+Date: Fri, 12 Mar 2010 17:31:58 +0000
+Subject: Re: [PATCH 22/27] drivers/i2c/of: don't use deprecated field in
+Message-Id: <20100312123158.7ed9d9a0@lappy.seanm.ca>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100311181604.13103.30088.stgit@angua>
-In-Reply-To: <20100311181604.13103.30088.stgit@angua>
+	<20100311182349.13103.39322.stgit@angua>
+In-Reply-To: <20100311182349.13103.39322.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infrade
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: alsa-devel@alsa-project.org, gregkh@suse.de, linux-ide@vger.kernel.org, James.Bottomley@suse.de, linux-i2c@vger.kernel.org, sparclinux@vger.kernel.org, jeremy.kerr@canonical.com, sfr@canb.auug.org.au, linux-scsi@vger.kernel.org, jgarzik@pobox.com, microblaze-uclinux@itee.uq.edu.au, devicetree-discuss@lists.ozlabs.org, ben-linux@fluff.org, monstr@monstr.eu, linuxppc-dev@ozlabs.org, netdev@vger.kernel.org, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, akpm@linux-foundation.org, dwmw2@infradead.org, davem@davemloft.net
 
-.name, .match_table and .owner are duplicated in both of_platform_driver
-and device_driver, so the of_platform_driver copies will be removed soon.
+On Thu, 11 Mar 2010 11:23:49 -0700
+Grant Likely <grant.likely@secretlab.ca> wrote:
 
-Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
----
+> .name, .match_table and .owner are duplicated in both
+> of_platform_driver and device_driver, so the of_platform_driver
+> copies will be removed soon.
+> 
+> Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 
- drivers/i2c/busses/i2c-cpm.c     |   10 +++++-----
- drivers/i2c/busses/i2c-ibm_iic.c |    7 +++++--
- drivers/i2c/busses/i2c-mpc.c     |    8 ++++----
- 3 files changed, 14 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/i2c/busses/i2c-cpm.c b/drivers/i2c/busses/i2c-cpm.c
-index 9c2e100..47994d2 100644
---- a/drivers/i2c/busses/i2c-cpm.c
-+++ b/drivers/i2c/busses/i2c-cpm.c
-@@ -718,13 +718,13 @@ static const struct of_device_id cpm_i2c_match[] = {
- MODULE_DEVICE_TABLE(of, cpm_i2c_match);
- 
- static struct of_platform_driver cpm_i2c_driver = {
--	.match_table	= cpm_i2c_match,
- 	.probe		= cpm_i2c_probe,
- 	.remove		= __devexit_p(cpm_i2c_remove),
--	.driver		= {
--		.name	= "fsl-i2c-cpm",
--		.owner	= THIS_MODULE,
--	}
-+	.driver = {
-+		.name = "fsl-i2c-cpm",
-+		.owner = THIS_MODULE,
-+		.of_match_table = cpm_i2c_match,
-+	},
- };
- 
- static int __init cpm_i2c_init(void)
-diff --git a/drivers/i2c/busses/i2c-ibm_iic.c b/drivers/i2c/busses/i2c-ibm_iic.c
-index b1bc6e2..21dba9d 100644
---- a/drivers/i2c/busses/i2c-ibm_iic.c
-+++ b/drivers/i2c/busses/i2c-ibm_iic.c
-@@ -807,8 +807,11 @@ static const struct of_device_id ibm_iic_match[] = {
- };
- 
- static struct of_platform_driver ibm_iic_driver = {
--	.name	= "ibm-iic",
--	.match_table = ibm_iic_match,
-+	.driver = {
-+		.name = "ibm-iic",
-+		.owner = THIS_MODULE,
-+		.of_match_table = ibm_iic_match,
-+	},
- 	.probe	= iic_probe,
- 	.remove	= __devexit_p(iic_remove),
- };
-diff --git a/drivers/i2c/busses/i2c-mpc.c b/drivers/i2c/busses/i2c-mpc.c
-index 0123a6e..6063dc3 100644
---- a/drivers/i2c/busses/i2c-mpc.c
-+++ b/drivers/i2c/busses/i2c-mpc.c
-@@ -674,12 +674,12 @@ MODULE_DEVICE_TABLE(of, mpc_i2c_of_match);
- 
- /* Structure for a device driver */
- static struct of_platform_driver mpc_i2c_driver = {
--	.match_table	= mpc_i2c_of_match,
- 	.probe		= fsl_i2c_probe,
- 	.remove		= __devexit_p(fsl_i2c_remove),
--	.driver		= {
--		.owner	= THIS_MODULE,
--		.name	= DRV_NAME,
-+	.driver = {
-+		.owner = THIS_MODULE,
-+		.name = DRV_NAME,
-+		.of_match_table = mpc_i2c_of_match,
- 	},
- };
- 
-
+i2c-ibm_iic
+Acked-by: Sean MacLennan <smaclennan@pikatech.com>
