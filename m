@@ -1,7 +1,7 @@
 From: Frans van Berckel <fberckel@xs4all.nl>
-Date: Sat, 13 Mar 2010 10:09:16 +0000
+Date: Sat, 13 Mar 2010 10:29:18 +0000
 Subject: Re: XVR-500 additional pci ids
-Message-Id: <1268474956.1775.10.camel@deblnxsrv254.localdomain>
+Message-Id: <1268476158.1775.25.camel@deblnxsrv254.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
 References: <201002251955.23519.dennis@ausil.us>
 In-Reply-To: <201002251955.23519.dennis@ausil.us>
@@ -21,5 +21,16 @@ On Fri, 2010-03-12 at 00:08 -0800, David Miller wrote:
 > 
 > I look forward to it :-)
 
-Did i do patch wrong, if the driver is not showing up in menuconfig?
+Getting a compile error ...
+
+> Arch sparc is not supported with CONFIG_FTRACE_MCOUNT_RECORD at /usr/src/linux-source-2.6-next-git/scripts/recordmcount.pl line 356.
+> make[5]: *** [drivers/char/tty_ioctl.o] Error 2
+> make[4]: *** [drivers/char] Error 2
+> make[3]: *** [drivers] Error 2
+
+On line #280
+} elsif ($arch eq "sparc64") {
+
+Does it got to be instead?
+} elsif ($arch eq "sparc") {
 
