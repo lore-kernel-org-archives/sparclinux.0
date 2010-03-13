@@ -1,7 +1,7 @@
 From: Frans van Berckel <fberckel@xs4all.nl>
-Date: Sat, 13 Mar 2010 10:29:18 +0000
+Date: Sat, 13 Mar 2010 11:05:24 +0000
 Subject: Re: XVR-500 additional pci ids
-Message-Id: <1268476158.1775.25.camel@deblnxsrv254.localdomain>
+Message-Id: <1268478324.1775.43.camel@deblnxsrv254.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
 References: <201002251955.23519.dennis@ausil.us>
 In-Reply-To: <201002251955.23519.dennis@ausil.us>
@@ -21,16 +21,41 @@ On Fri, 2010-03-12 at 00:08 -0800, David Miller wrote:
 > 
 > I look forward to it :-)
 
-Getting a compile error ...
+I am not wanne dislike perl in general today, bud is it possible, one of
+the scripts is un-setting the LC_ALL value? 
 
-> Arch sparc is not supported with CONFIG_FTRACE_MCOUNT_RECORD at /usr/src/linux-source-2.6-next-git/scripts/recordmcount.pl line 356.
-> make[5]: *** [drivers/char/tty_ioctl.o] Error 2
-> make[4]: *** [drivers/char] Error 2
-> make[3]: *** [drivers] Error 2
+It's because i set my environment LC_ALL="C" and perl -V:d_setlocale
+echo's d_setlocale='define'; but it's still warning on.
 
-On line #280
-} elsif ($arch eq "sparc64") {
+If not it's somewhere in Debian and out of the scoop of this list!
 
-Does it got to be instead?
-} elsif ($arch eq "sparc") {
+make[3]: Entering directory `/usr/src/linux-source-2.6-next-git'
+  CHK     include/linux/version.h
+  CHK     include/generated/utsrelease.h
+  CALL    scripts/checksyscalls.sh
+<stdin>:1527:2: warning: #warning syscall fanotify_init not implemented
+<stdin>:1531:2: warning: #warning syscall fanotify_mark not implemented
+<stdin>:1535:2: warning: #warning syscall getprlimit not implemented
+<stdin>:1539:2: warning: #warning syscall setprlimit not implemented
+  HOSTCC  scripts/genksyms/genksyms.o
+  SHIPPED scripts/genksyms/lex.c
+  SHIPPED scripts/genksyms/parse.h
+  SHIPPED scripts/genksyms/keywords.c
+  HOSTCC  scripts/genksyms/lex.o
+  SHIPPED scripts/genksyms/parse.c
+  HOSTCC  scripts/genksyms/parse.o
+  HOSTLD  scripts/genksyms/genksyms
+  CC      scripts/mod/empty.o
+perl: warning: Setting locale failed.
+perl: warning: Please check that your locale settings:
+	LANGUAGE = "en",
+	LC_ALL = (unset),
+	LC_CTYPE = "C",
+	LC_COLLATE = "C",
+	LC_MESSANGES = "C",
+	LC_LANG = "C",
+	LC_NUMERIC = "C",
+	LANG = "en"
+    are supported and installed on your system.
+perl: warning: Falling back to the standard locale ("C").
 
