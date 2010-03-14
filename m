@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 04 Mar 2010 08:28:17 +0000
+Date: Sun, 14 Mar 2010 02:17:54 +0000
 Subject: [GIT]: Sparc
-Message-Id: <20100304.002817.98885540.davem@davemloft.net>
+Message-Id: <20100313.181754.107699673.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20080421.153231.108090227.davem@davemloft.net>
 In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
@@ -12,50 +12,29 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-1) Fix long standing bootup wedge wrt. NMIs, we need to disable NMIs
-   when we enter the firmware for two reasons.  One so we don't
-   deadlock on the PROM spinlock if we try to print things to the
-   firmware console from an NMI.  Two, because many of OpenFirmware's
-   routines do not like to be interrupted at all.  The latter can
-   cause garbage characters over serial consoles and crashes.
-
-   I'll be pushing this one to -stable.
-
-2) Kill off the dinky sys_perfctr, perf_events should be used.
-
-3) Fix some driver builds by providing big-endian io{read,write}*().
+A framebuffer driver for XVR-1000 cards and a fixup for the string
+used in a request_irq() call in a sparc qlogicpti scsi driver (it
+contained a "/" character so procfs rightly complains).
 
 Please pull, thanks a lot!
 
-The following changes since commit 3a5b27bf6f29574d667230c7e76e4b83fe3014e0:
+The following changes since commit d89b218b801fd93ea95880f1c7fde348cbcc51c5:
   Linus Torvalds (1):
-        Merge branch 'for-linus' of git://gitorious.org/linux-omap-dss2/linux
+        Merge git://git.kernel.org/.../davem/net-2.6
 
 are available in the git repository at:
 
   master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
 
-David S. Miller (4):
-      sparc: Provide io{read,write}{16,32}be().
-      sparc: Update defconfigs.
-      sparc64: Kill off old sys_perfctr system call and state.
-      sparc64: Make prom entry spinlock NMI safe.
+David S. Miller (1):
+      sparc64: Add very basic XVR-1000 framebuffer driver.
 
- arch/sparc/configs/sparc32_defconfig    |   56 ++++++++++++++---
- arch/sparc/configs/sparc64_defconfig    |   34 ++++++----
- arch/sparc/include/asm/io_32.h          |    4 +
- arch/sparc/include/asm/io_64.h          |    4 +
- arch/sparc/include/asm/perfctr.h        |    4 +-
- arch/sparc/include/asm/system_64.h      |   15 +----
- arch/sparc/include/asm/thread_info_64.h |   25 ++-----
- arch/sparc/kernel/entry.h               |    1 -
- arch/sparc/kernel/process_64.c          |   23 -------
- arch/sparc/kernel/rtrap_64.S            |   54 +---------------
- arch/sparc/kernel/sys32.S               |    1 -
- arch/sparc/kernel/sys_sparc_64.c        |  104 -------------------------------
- arch/sparc/kernel/syscalls.S            |   23 +------
- arch/sparc/kernel/systbls.h             |    2 -
- arch/sparc/kernel/systbls_64.S          |    4 +-
- arch/sparc/kernel/traps_64.c            |    9 ---
- arch/sparc/prom/p1275.c                 |   12 ++--
- 17 files changed, 99 insertions(+), 276 deletions(-)
+Meelis Roos (1):
+      qlogicpti: Remove slash in QlogicPTI irq name
+
+ drivers/scsi/qlogicpti.c   |    2 +-
+ drivers/video/Kconfig      |   12 +++
+ drivers/video/Makefile     |    1 +
+ drivers/video/sunxvr1000.c |  228 ++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 242 insertions(+), 1 deletions(-)
+ create mode 100644 drivers/video/sunxvr1000.c
