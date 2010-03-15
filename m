@@ -1,24 +1,43 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 28 Mar 2010 04:12:13 +0000
-Subject: Re: [PATCH 7/7] arch/sparc/kernel: Use set_cpus_allowed_ptr
-Message-Id: <20100327.211213.13750482.davem@davemloft.net>
+From: Frans Pop <elendil@planet.nl>
+Date: Mon, 15 Mar 2010 17:09:27 +0000
+Subject: Serial console issue with 2.6.32
+Message-Id: <201003151809.27436.elendil@planet.nl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.1003262303500.6480@ask.diku.dk>
-In-Reply-To: <Pine.LNX.4.64.1003262303500.6480@ask.diku.dk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: julia@diku.dk
-Cc: peterz@infradead.org, mingo@elte.hu, tglx@linutronix.de, oleg@redhat.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Julia Lawall <julia@diku.dk>
-Date: Fri, 26 Mar 2010 23:04:09 +0100 (CET)
+I've got a bit of a puzzler here.
 
-> Use set_cpus_allowed_ptr rather than set_cpus_allowed.
-> 
-> The semantic patch that makes this change is as follows:
-> (http://coccinelle.lip6.fr/)
- ...
-> Signed-off-by: Julia Lawall <julia@diku.dk>
+With earlier kernels I can install Debian on my Ultra 10 using 3 methods:
+1) headless: without keyboard connected
+2) with head: using attached keyboard and monitor
+3) with unused head: keyboard connected, but boot with 'console=ttyS0'
 
-Applied, thanks Julia.
+With Debian Lenny (2.6.26.x) and the alpha1 installer for Squeeze 
+(2.6.30.x) all three methods work.
+
+With a daily built version of the installer (based on 2.6.32.9) the first 
+two methods work, but the third doesn't.
+At the point where output should start appearing on my remote system, 
+minicom shows ttyS0 going offline.
+
+What's visible on the console of the U10 looks the same. With both .30 
+and .32 I see the tftp loading of the boot image and the early boot 
+messages. Then the screen goes black with only Tux displayed.
+
+I've verified that it's not an issue in the installer by booting with
+'BOOT_DEBUG=3', which means that a debug shell is started at the very 
+beginning of init, even before busybox init is called. With .30 that 
+correctly gives me the debug shell in minicom; with .32 it goes offline 
+again.
+
+The exact commands I used to boot are:
+   boot net install console=ttyS0
+   boot net install console=ttyS0 BOOT_DEBUG=3
+
+Any ideas?
+
+Cheers,
+FJP
