@@ -1,7 +1,7 @@
-From: Paul Cao <pcao@ashland.edu>
-Date: Tue, 16 Mar 2010 23:13:36 +0000
+From: David Miller <davem@davemloft.net>
+Date: Tue, 16 Mar 2010 23:18:07 +0000
 Subject: Re: Debian Sparc 5.4 on Sun blade 2500
-Message-Id: <4CEC305B-31E1-463B-AB12-3C83230AD7EC@ashland.edu>
+Message-Id: <20100316.161807.183711744.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1268768091.1768.29.camel@deblnxsrv254.localdomain>
 In-Reply-To: <1268768091.1768.29.camel@deblnxsrv254.localdomain>
@@ -10,26 +10,9 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-I can't have access to the image on the website. Privilege problem.
+From: Paul Cao <pcao@ashland.edu>
+Date: Tue, 16 Mar 2010 19:13:36 -0400
 
-I will install the image tomorrow if I can download it.
-Thanks.
-pc
-On Mar 16, 2010, at 7:07 PM, David Miller wrote:
+> I can't have access to the image on the website. Privilege problem.
 
-> From: Paul Cao <pcao@ashland.edu>
-> Date: Tue, 16 Mar 2010 19:04:55 -0400
->
->> Thanks so much for helping. The image is debian 5.04 DVD iso from
->> http://cdimage.debian.org/debian-cd/5.0.4/sparc/iso-dvd/
->
-> Hmmm, can you try the mini.iso instead?  That's what I used.
->
-> I put a copy up at:
->
-> 	http://vger.kernel.org/~davem/lenny-mini.iso
->
-> so we can make sure we're testing exactly the same thing.
->
-> Thanks!
-
+Sorry, I've fixed that, please try again.
