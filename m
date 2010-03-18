@@ -1,61 +1,58 @@
-From: Li Zefan <lizf@cn.fujitsu.com>
-Date: Thu, 18 Mar 2010 06:39:13 +0000
+From: Tejun Heo <tj@kernel.org>
+Date: Thu, 18 Mar 2010 09:30:34 +0000
 Subject: Re: [BUG] percpu misaligned allocation
-Message-Id: <4BA1CA91.2060004@cn.fujitsu.com>
+Message-Id: <4BA1F2BA.30604@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100318044930.GC5045@nowhere> <20100317.232648.59697287.davem@davemloft.net>
-In-Reply-To: <20100317.232648.59697287.davem@davemloft.net>
+References: <20100318044930.GC5045@nowhere>
+In-Reply-To: <20100318044930.GC5045@nowhere>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: fweisbec@gmail.com, sparclinux@vger.kernel.org, tj@kernel.org, linux-kernel@vger.kernel.org
+To: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Sparc <sparclinux@vger.kernel.org>, David Miller <davem@davemloft.net>, LKML <linux-kernel@vger.kernel.org>
 
-David Miller wrote:
-> From: Frederic Weisbecker <fweisbec@gmail.com>
-> Date: Thu, 18 Mar 2010 05:49:33 +0100
-> 
->> While using the lock events through perf in a sparc box, I can see
->> the following message repeated many times:
->>
->> 	Kernel unaligned access at TPC[49357c] perf_trace_lock_acquire+0xb4/0x180
->>
->> It actually hangs the box as the messages are sent to a serial console.
->>
->> When used with perf, the trace events use a per cpu buffer allocated
->> in kernel/trace/trace_event_perf.c, and the allocation appears to return
->> a misaligned percpu pointer. It is aligned to 4 while it seems it
->> requires to be aligned to 8.
-> 
-> Thanks I'll take a look at this.
-> 
-> RAW locks (both rwlocks and spinlocks) on sparc64 are 4-bytes
-> in size, maybe some piece of code is assuming that locks
-> are cpu word sized.
-> 
-> Where is perf_trace_lock_acquire() I can't find it in Linus's
-> tree?  Does it get created by some crazy macro expansion?
-> 
+Hello,
 
-Yes, it's expanded by some crazy macro in include/trace/ftrace.h..
+On 03/18/2010 01:49 PM, Frederic Weisbecker wrote:
+> Hi,
+> 
+> While using the lock events through perf in a sparc box, I can see
+> the following message repeated many times:
+> 
+> 	Kernel unaligned access at TPC[49357c] perf_trace_lock_acquire+0xb4/0x180
+> 
+> It actually hangs the box as the messages are sent to a serial console.
+> 
+> When used with perf, the trace events use a per cpu buffer allocated
+> in kernel/trace/trace_event_perf.c, and the allocation appears to return
+> a misaligned percpu pointer. It is aligned to 4 while it seems it
+> requires to be aligned to 8.
 
-In linus' tree, it's called ftrace_profile_lock_acquire(), and it's
-renamed to perf_trace_lock_acquire() in -tip tree by commit
-97d5a22005f38057b4bc0d95f81cd26510268794.
+Does this fix the problem?
 
-#undef DECLARE_EVENT_CLASS
-#define DECLARE_EVENT_CLASS(call, proto, args, tstruct, assign, print)  \
-static notrace void                                                     \
-ftrace_profile_templ_##call(struct ftrace_event_call *event_call,       \
-                            proto)                                      \
-{                                                                       \
-        struct ftrace_data_offsets_##call __maybe_unused __data_offsets;\
-        struct ftrace_raw_##call *entry;                                \
-        u64 __addr = 0, __count = 1;                                    \
-        unsigned long irq_flags;                                        \
-        int __entry_size;                                               \
-        int __data_size;                                                \
-        int rctx;                                                       \
-                                                                        \
-...
-}
+diff --git a/kernel/trace/trace_event_profile.c b/kernel/trace/trace_event_profile.c
+index c1cc3ab..d3f7d1b 100644
+--- a/kernel/trace/trace_event_profile.c
++++ b/kernel/trace/trace_event_profile.c
+@@ -27,13 +27,15 @@ static int ftrace_profile_enable_event(struct ftrace_event_call *event)
+ 		return 0;
+ 
+ 	if (!total_profile_count) {
+-		buf = (char *)alloc_percpu(perf_trace_t);
++		buf = (char *)__alloc_percpu(sizeof(perf_trace_t),
++					     __alignof__(unsigned long));
+ 		if (!buf)
+ 			goto fail_buf;
+ 
+ 		rcu_assign_pointer(perf_trace_buf, buf);
+ 
+-		buf = (char *)alloc_percpu(perf_trace_t);
++		buf = (char *)__alloc_percpu(sizeof(perf_trace_t),
++					     __alignof__(unsigned long));
+ 		if (!buf)
+ 			goto fail_buf_nmi;
+ 
+
+
+-- 
+tejun
