@@ -1,39 +1,58 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 29 Mar 2010 22:32:08 +0000
-Subject: Re: [BUG] fault while using perf callchains in sparc64
-Message-Id: <20100329.153208.190256896.davem@davemloft.net>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Thu, 18 Mar 2010 16:52:47 +0000
+Subject: RFC: of_platform and platform bus merge
+Message-Id: <fa686aa41003180952q547ab888kff72a4f0bf258677@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329212839.GA12254@nowhere>
-	<20100329.150253.11262563.davem@davemloft.net>
-	<20100329222132.GB12254@nowhere>
-In-Reply-To: <20100329222132.GB12254@nowhere>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: fweisbec@gmail.com
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: devicetree-discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jeremy Kerr <jeremy.kerr-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Michal Simek <michal.simek-g5w7nrANp4BDPfheJLI6IQ@public.gmane.org>, Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
 
-From: Frederic Weisbecker <fweisbec@gmail.com>
-Date: Tue, 30 Mar 2010 00:21:34 +0200
+Hi Dave,
 
-> $ ldd /usr/bin/as
-> 	libopcodes-2.18.0.20080103.so => /usr/lib/libopcodes-2.18.0.20080103.so (0xf7ec4000)
-> 	libbfd-2.18.0.20080103.so => /usr/lib/libbfd-2.18.0.20080103.so (0xf7e14000)
-> 	libc.so.6 => /lib/libc.so.6 (0xf7ca0000)
-> 	/lib/ld-linux.so.2 (0xf7efc000)
+I need your opinion on the of_platform bus.  For powerpc, microblaze,
+and all others I intend to merge the current of_platform_bus_type with
+platform_bus_type.  powerpc and microblaze basically use of_platform
+bus as if it were the platform bus, so this is an easy decision to
+make.  As I mentioned, I've already written a patch that makes
+of_device and platform_device the same structure.  I also think I have
+a way to adapt the of_platform_driver registration to make existing
+of_platform_drivers register on the platform bus without any driver
+changes, and preserving the existing OF-style match behaviour
+(basically by moving the of_match_table into struct device_driver when
+CONFIG_OF is set; I've got a patch that does this too), and preserving
+the existing device hierarchy.
 
-Ok, same here.
+However, I know that sparc uses a different model in that every node
+in a sparc device tree gets registered on the of_platform_bus, not
+just the things that would be analogous to 'platform' devices.
+Therefore, the merging of_platform_bus_type and platform_bus_type, and
+the inherent co-mingling of device drivers for both buses, has a
+higher likelyhood of causing problems on sparc than it does on powerpc
+or microblaze.
 
-> The last kernel I know that don't have such problems is 2.6.31-rc6
-> May be I should bisect?
+I see two possible ways to proceed.
+1. Split of_platform code so that sparc preserves the old behaviour,
+while powerpc, mb, arm, etc. go ahead with the of_platform bus merge.
+ie. when building sparc, of_platform_drivers will get registered on
+the of_platform_bus_type as they currently do.  When building
+everything else, of_platform_driver registration will use an adapter
+shim to register of_platform_drivers onto the platform bus.  Non-sparc
+of_platform_drivers will slowly get migrated to normal platform
+drivers, and eventually the of_platform_bus APIs will be a
+sparc-specific thing.
 
-Hmmm, since you know a good and bad point, yes a bisect
-might be the best way to proceed here.
+2. Merge of_platform_bus_type with platform_bus on sparc too.
 
-It might be quicker if you first test 2.6.32 and 2.6.33
-and then use the results of that to guide your bisect.
+I'm happy to take either path, so I need to know your opinion on the
+of_platform/platform bus merger.  I will of course do all the sparc
+compile testing on any changes that I make, but I'll need help making
+sure I don't break things at runtime.
 
-Anyways, if you narrow it down to a commit I should be
-able to fix this quickly.
+Thanks,
+g.
 
-Thanks!
+-- 
+Grant Likely, B.Sc., P.Eng.
+Secret Lab Technologies Ltd.
