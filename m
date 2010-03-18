@@ -1,108 +1,82 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Date: Thu, 11 Mar 2010 18:05:05 +0000
-Subject: [PATCH 14/37] drivers/spi: use .dev.of_node instead of .node in
-Message-Id: <20100311180504.4824.59817.stgit@angua>
+Date: Thu, 18 Mar 2010 15:22:16 +0000
+Subject: [V2 PATCH 02/10] i2c/of: Allow device node to be passed via
+Message-Id: <20100318152216.21082.63.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100311174830.4824.19820.stgit@angua>
-In-Reply-To: <20100311174830.4824.19820.stgit@angua>
+References: <20100318144836.21082.93040.stgit@angua>
+In-Reply-To: <20100318144836.21082.93040.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infrade
+To: davem@davemloft.net, benh@kernel.crashing.org, linux-kernel@vger.kernel.org, michal.simek@petalogix.com, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, microblaze-uclinux@itee.uq.edu.au
 
-.node is being removed
+The struct device_node *of_node pointer is moving out of dev->archdata
+and into the struct device proper.  of_i2c.c needs to set the of_node
+pointer before the device is registered.  Since the i2c subsystem
+doesn't allow 2 stage allocation and registration of i2c devices, the
+of_node pointer needs to be passed via the i2c_board_info structure
+so that it is set prior to registration.
+
+This patch adds of_node to struct i2c_board_info (conditional on
+CONFIG_OF), sets of_node in i2c_new_device(), and modifies of_i2c.c
+to use the new parameter.  The calling of dev_archdata_set_node()
+from of_i2c will be removed in a subsequent patch when of_node is
+removed from archdata and all users are converted over.
 
 Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 ---
 
- drivers/spi/mpc52xx_psc_spi.c |   11 ++++++-----
- drivers/spi/mpc52xx_spi.c     |   14 +++++++-------
- 2 files changed, 13 insertions(+), 12 deletions(-)
+ drivers/i2c/i2c-core.c |    3 +++
+ drivers/of/of_i2c.c    |    1 +
+ include/linux/i2c.h    |    4 ++++
+ 3 files changed, 8 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/spi/mpc52xx_psc_spi.c b/drivers/spi/mpc52xx_psc_spi.c
-index 0474786..f12cfd9 100644
---- a/drivers/spi/mpc52xx_psc_spi.c
-+++ b/drivers/spi/mpc52xx_psc_spi.c
-@@ -471,18 +471,18 @@ static int __init mpc52xx_psc_spi_of_probe(struct of_device *op,
- 	s16 id = -1;
- 	int rc;
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+index 3202a86..4099b2b 100644
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -387,6 +387,9 @@ i2c_new_device(struct i2c_adapter *adap, struct i2c_board_info const *info)
+ 	client->dev.parent = &client->adapter->dev;
+ 	client->dev.bus = &i2c_bus_type;
+ 	client->dev.type = &i2c_client_type;
++#ifdef CONFIG_OF
++	client->dev.of_node = info->of_node;
++#endif
  
--	regaddr_p = of_get_address(op->node, 0, &size64, NULL);
-+	regaddr_p = of_get_address(op->dev.of_node, 0, &size64, NULL);
- 	if (!regaddr_p) {
- 		dev_err(&op->dev, "Invalid PSC address\n");
- 		return -EINVAL;
- 	}
--	regaddr64 = of_translate_address(op->node, regaddr_p);
-+	regaddr64 = of_translate_address(op->dev.of_node, regaddr_p);
+ 	dev_set_name(&client->dev, "%d-%04x", i2c_adapter_id(adap),
+ 		     client->addr);
+diff --git a/drivers/of/of_i2c.c b/drivers/of/of_i2c.c
+index a3a708e..e690a2a 100644
+--- a/drivers/of/of_i2c.c
++++ b/drivers/of/of_i2c.c
+@@ -43,6 +43,7 @@ void of_register_i2c_devices(struct i2c_adapter *adap,
+ 		info.addr = be32_to_cpup(addr);
  
- 	/* get PSC id (1..6, used by port_config) */
- 	if (op->dev.platform_data = NULL) {
- 		const u32 *psc_nump;
+ 		dev_archdata_set_node(&dev_ad, node);
++		info.of_node = node;
+ 		info.archdata = &dev_ad;
  
--		psc_nump = of_get_property(op->node, "cell-index", NULL);
-+		psc_nump = of_get_property(op->dev.of_node, "cell-index", NULL);
- 		if (!psc_nump || *psc_nump > 5) {
- 			dev_err(&op->dev, "Invalid cell-index property\n");
- 			return -EINVAL;
-@@ -491,9 +491,10 @@ static int __init mpc52xx_psc_spi_of_probe(struct of_device *op,
- 	}
+ 		request_module("%s", info.type);
+diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+index 0a5da63..4f37ff1 100644
+--- a/include/linux/i2c.h
++++ b/include/linux/i2c.h
+@@ -34,6 +34,7 @@
+ #include <linux/device.h>	/* for struct device */
+ #include <linux/sched.h>	/* for completion */
+ #include <linux/mutex.h>
++#include <linux/of.h>		/* for struct device_node */
  
- 	rc = mpc52xx_psc_spi_do_probe(&op->dev, (u32)regaddr64, (u32)size64,
--					irq_of_parse_and_map(op->node, 0), id);
-+				irq_of_parse_and_map(op->dev.of_node, 0), id);
- 	if (rc = 0)
--		of_register_spi_devices(dev_get_drvdata(&op->dev), op->node);
-+		of_register_spi_devices(dev_get_drvdata(&op->dev),
-+					op->dev.of_node);
+ extern struct bus_type i2c_bus_type;
  
- 	return rc;
- }
-diff --git a/drivers/spi/mpc52xx_spi.c b/drivers/spi/mpc52xx_spi.c
-index 6eab465..907c39a 100644
---- a/drivers/spi/mpc52xx_spi.c
-+++ b/drivers/spi/mpc52xx_spi.c
-@@ -402,7 +402,7 @@ static int __devinit mpc52xx_spi_probe(struct of_device *op,
+@@ -251,6 +252,9 @@ struct i2c_board_info {
+ 	unsigned short	addr;
+ 	void		*platform_data;
+ 	struct dev_archdata	*archdata;
++#ifdef CONFIG_OF
++	struct device_node *of_node;
++#endif
+ 	int		irq;
+ };
  
- 	/* MMIO registers */
- 	dev_dbg(&op->dev, "probing mpc5200 SPI device\n");
--	regs = of_iomap(op->node, 0);
-+	regs = of_iomap(op->dev.of_node, 0);
- 	if (!regs)
- 		return -ENODEV;
- 
-@@ -444,11 +444,11 @@ static int __devinit mpc52xx_spi_probe(struct of_device *op,
- 	ms = spi_master_get_devdata(master);
- 	ms->master = master;
- 	ms->regs = regs;
--	ms->irq0 = irq_of_parse_and_map(op->node, 0);
--	ms->irq1 = irq_of_parse_and_map(op->node, 1);
-+	ms->irq0 = irq_of_parse_and_map(op->dev.of_node, 0);
-+	ms->irq1 = irq_of_parse_and_map(op->dev.of_node, 1);
- 	ms->state = mpc52xx_spi_fsmstate_idle;
--	ms->ipb_freq = mpc5xxx_get_bus_frequency(op->node);
--	ms->gpio_cs_count = of_gpio_count(op->node);
-+	ms->ipb_freq = mpc5xxx_get_bus_frequency(op->dev.of_node);
-+	ms->gpio_cs_count = of_gpio_count(op->dev.of_node);
- 	if (ms->gpio_cs_count > 0) {
- 		master->num_chipselect = ms->gpio_cs_count;
- 		ms->gpio_cs = kmalloc(ms->gpio_cs_count * sizeof(unsigned int),
-@@ -459,7 +459,7 @@ static int __devinit mpc52xx_spi_probe(struct of_device *op,
- 		}
- 
- 		for (i = 0; i < ms->gpio_cs_count; i++) {
--			gpio_cs = of_get_gpio(op->node, i);
-+			gpio_cs = of_get_gpio(op->dev.of_node, i);
- 			if (gpio_cs < 0) {
- 				dev_err(&op->dev,
- 					"could not parse the gpio field "
-@@ -511,7 +511,7 @@ static int __devinit mpc52xx_spi_probe(struct of_device *op,
- 	if (rc)
- 		goto err_register;
- 
--	of_register_spi_devices(master, op->node);
-+	of_register_spi_devices(master, op->dev.of_node);
- 	dev_info(&ms->master->dev, "registered MPC5200 SPI bus\n");
- 
- 	return rc;
 
