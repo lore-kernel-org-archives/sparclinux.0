@@ -1,40 +1,38 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Thu, 11 Mar 2010 18:23:44 +0000
-Subject: [PATCH 21/27] drivers/hwmon/of: don't use deprecated field in
-Message-Id: <20100311182343.13103.98096.stgit@angua>
+From: Jan Kara <jack@suse.cz>
+Date: Tue, 23 Mar 2010 00:32:18 +0000
+Subject: [PATCH 16/18] Generate empty tracepoints if syscall tracing is disabled
+Message-Id: <1269304340-25372-17-git-send-email-jack@suse.cz>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100311181604.13103.30088.stgit@angua>
-In-Reply-To: <20100311181604.13103.30088.stgit@angua>
+References: <1269304340-25372-1-git-send-email-jack@suse.cz>
+In-Reply-To: <1269304340-25372-1-git-send-email-jack@suse.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infrade
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Jan Kara <jack@suse.cz>, x86@kernel.org, sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, Alexander Schulz <alex@shark-linux.de>
 
-.name, .match_table and .owner are duplicated in both of_platform_driver
-and device_driver, so the of_platform_driver copies will be removed soon.
-
-Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+CC: x86@kernel.org
+CC: sparclinux@vger.kernel.org
+CC: linux-s390@vger.kernel.org
+CC: Alexander Schulz <alex@shark-linux.de>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
+ include/trace/events/syscalls.h |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
- drivers/hwmon/ultra45_env.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/hwmon/ultra45_env.c b/drivers/hwmon/ultra45_env.c
-index 68e90ab..5da5942 100644
---- a/drivers/hwmon/ultra45_env.c
-+++ b/drivers/hwmon/ultra45_env.c
-@@ -300,8 +300,11 @@ static const struct of_device_id env_match[] = {
- MODULE_DEVICE_TABLE(of, env_match);
+diff --git a/include/trace/events/syscalls.h b/include/trace/events/syscalls.h
+index fb726ac..6f0ad30 100644
+--- a/include/trace/events/syscalls.h
++++ b/include/trace/events/syscalls.h
+@@ -1,6 +1,8 @@
+ #undef TRACE_SYSTEM
++#undef TRACE_CONFIG
+ #define TRACE_SYSTEM raw_syscalls
+ #define TRACE_INCLUDE_FILE syscalls
++#define TRACE_CONFIG CONFIG_FTRACE_SYSCALLS
  
- static struct of_platform_driver env_driver = {
--	.name		= "ultra45_env",
--	.match_table	= env_match,
-+	.driver = {
-+		.name = "ultra45_env",
-+		.owner = THIS_MODULE,
-+		.of_match_table = env_match,
-+	},
- 	.probe		= env_probe,
- 	.remove		= __devexit_p(env_remove),
- };
+ #if !defined(_TRACE_EVENTS_SYSCALLS_H) || defined(TRACE_HEADER_MULTI_READ)
+ #define _TRACE_EVENTS_SYSCALLS_H
+-- 
+1.6.4.2
 
