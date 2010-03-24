@@ -1,34 +1,49 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Thu, 11 Mar 2010 18:05:10 +0000
-Subject: [PATCH 15/37] drivers/mmc: use .dev.of_node instead of .node in
-Message-Id: <20100311180510.4824.40934.stgit@angua>
+From: "UBS International Holdings(Beuker Hendrik)" <torres.guitian@usc.es>
+Date: Wed, 24 Mar 2010 23:53:02 +0000
+Subject: 
+Message-Id: <20100325005302.9r8t6e5iucss4k08@correoweb.usc.es>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100311174830.4824.19820.stgit@angua>
-In-Reply-To: <20100311174830.4824.19820.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: monstr@monstr.eu, gregkh@suse.de, benh@kernel.crashing.org, akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, jgarzik@pobox.com, ben-linux@fluff.org, dwmw2@infradead.org, jeremy.kerr@canonical.com, James.Bottomley@suse.de, broonie@opensource.wolfsonmicro.com, microblaze-uclinux@itee.uq.edu.au, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org, linux-ide@vger.kernel.org, netdev@vger.kernel.org, linux-i2c@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-scsi@vger.kernel.org, alsa-devel@alsa-project.org
+To: sparclinux@vger.kernel.org
 
-.node is being removed
 
-Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
----
 
- drivers/mmc/host/sdhci-of-core.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+UBS International Holdings BV
+Herengracht 600 NL-1017 CJ Amsterdam, Netherlands.
+www.ubs.com/investmentbank
 
-diff --git a/drivers/mmc/host/sdhci-of-core.c b/drivers/mmc/host/sdhci-of-core.c
-index 55e3313..dfe5cea 100644
---- a/drivers/mmc/host/sdhci-of-core.c
-+++ b/drivers/mmc/host/sdhci-of-core.c
-@@ -118,7 +118,7 @@ static bool __devinit sdhci_of_wp_inverted(struct device_node *np)
- static int __devinit sdhci_of_probe(struct of_device *ofdev,
- 				 const struct of_device_id *match)
- {
--	struct device_node *np = ofdev->node;
-+	struct device_node *np = ofdev->dev.of_node;
- 	struct sdhci_of_data *sdhci_of_data = match->data;
- 	struct sdhci_host *host;
- 	struct sdhci_of_host *of_host;
+Greetings,
 
+I am an investment consultant working with UBS International Holdings BV
+in the  Netherlands. I will be happy to work this transaction out with you
+if you have a corporate or personal Bank Account and if you are reliable
+and honest.
+
+I need strong Assurance that you will never let me down, as I can arrange
+and  provide you details/documentatal proof so that fund ($8.5million)
+will be transferred into your account as the next of kin to the late
+depositor(Abbas Farhan  al-Jabouri, who was an Election candidate and also
+a business man). Abbas Farhan al- Jabouri and his two relatives were
+executed in Mohammed al Malih, near Mandali on the 29th of January 2009.
+
+During one of our periodic auditing I discovered a dormant accounts with
+the said balance (Eight million, five Hundred thousand Dollars only), this
+account have not been operated for some years now.
+
+At this moment I will not be able to issue more details about this
+business, until your response is received.
+
+If you are not familiar with my Bank profile, please take a moment of your
+very  busy schedules to read about my Bank
+website(www.ubs.com/investmentbank).
+
+I look forward to hearing from you as soon as possible via my private email;
+mrbeukerhendrik@foxitos.com
+
+Thank you for your time and attention.
+Warmest Regards,
+Mr.Beuker Hendrik
+Investment Consultant.
+UBS.
