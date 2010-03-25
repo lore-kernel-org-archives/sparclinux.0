@@ -1,38 +1,38 @@
-From: "Tom \"spot\" Callaway" <tcallawa@redhat.com>
-Date: Wed, 24 Mar 2010 21:52:57 +0000
-Subject: [PATCH] Disable execmem for sparc
-Message-Id: <4BAA89B9.2030102@redhat.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------000403070008070804010202"
+From: David Miller <davem@davemloft.net>
+Date: Thu, 25 Mar 2010 20:24:58 +0000
+Subject: Re: [PATCH] Disable execmem for sparc
+Message-Id: <20100325.132458.08954631.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <4BAA89B9.2030102@redhat.com>
+In-Reply-To: <4BAA89B9.2030102@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000403070008070804010202
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: "Tom \"spot\" Callaway" <tcallawa@redhat.com>
+Date: Wed, 24 Mar 2010 17:52:57 -0400
 
-Attached is a patch which disables execmem for sparc. Without it,
-selinux does not work at all on SPARC64.
+> Attached is a patch which disables execmem for sparc. Without it,
+> selinux does not work at all on SPARC64.
+> 
+> This patch should be reasonably non-controversial, because this is
+> already being done for PPC32.
+> 
+> Tested-by: Tom "spot" Callaway <tcallawa@redhat.com> (Ultra 10, T5220)
+>            Dennis Gilmore <dgilmore@redhat.com>
+> Signed-off-by: Tom "spot" Callaway <tcallawa@redhat.com>
 
-This patch should be reasonably non-controversial, because this is
-already being done for PPC32.
+What is the reason why it doesn't work, I'm just curious?
 
-Tested-by: Tom "spot" Callaway <tcallawa@redhat.com> (Ultra 10, T5220)
-           Dennis Gilmore <dgilmore@redhat.com>
-Signed-off-by: Tom "spot" Callaway <tcallawa@redhat.com>
+Is there some dependency upon executable stacks or executable data
+segments always working?  Why can't SELINUX protect be used with
+that correctly?
 
-Thanks in advance,
+And since we're touching selinux code we need to at a minimum
+CC: them so they can have a look at your change.
 
-~spot
-
---------------000403070008070804010202
-Content-Type: text/plain;
- name="linux-2.6-sparc-selinux-mprotect-checks.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="linux-2.6-sparc-selinux-mprotect-checks.patch"
-
+--------------------
 diff -up linux-2.6.32.noarch/security/selinux/hooks.c.mprotect-sparc linux-2.6.32.noarch/security/selinux/hooks.c
 --- linux-2.6.32.noarch/security/selinux/hooks.c.mprotect-sparc	2010-03-10 08:28:20.957571926 -0500
 +++ linux-2.6.32.noarch/security/selinux/hooks.c	2010-03-10 08:29:15.732698763 -0500
@@ -54,5 +54,3 @@ diff -up linux-2.6.32.noarch/security/selinux/hooks.c.mprotect-sparc linux-2.6.3
  	if ((prot & PROT_EXEC) && !(vma->vm_flags & VM_EXEC)) {
  		int rc = 0;
  		if (vma->vm_start >= vma->vm_mm->start_brk &&
-
---------------000403070008070804010202--
