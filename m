@@ -1,44 +1,34 @@
-From: Frederic Weisbecker <fweisbec@gmail.com>
-Date: Mon, 05 Apr 2010 06:57:04 +0000
+From: David Miller <davem@davemloft.net>
+Date: Mon, 05 Apr 2010 19:22:33 +0000
 Subject: Re: Random scheduler/unaligned accesses crashes with perf lock
-Message-Id: <20100405065701.GC5127@nowhere>
+Message-Id: <20100405.122233.188421941.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100404121851.GC5177@nowhere> <20100404122113.GD5177@nowhere> <20100404.180057.109331958.davem@davemloft.net>
-In-Reply-To: <20100404.180057.109331958.davem@davemloft.net>
+References: <20100404122113.GD5177@nowhere>
+	<20100404.180057.109331958.davem@davemloft.net>
+	<20100405065701.GC5127@nowhere>
+In-Reply-To: <20100405065701.GC5127@nowhere>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
+To: fweisbec@gmail.com
 Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, mingo@elte.hu, acme@redhat.com, a.p.zijlstra@chello.nl, paulus@samba.org
 
-On Sun, Apr 04, 2010 at 06:00:57PM -0700, David Miller wrote:
-> From: Frederic Weisbecker <fweisbec@gmail.com>
-> Date: Sun, 4 Apr 2010 14:21:19 +0200
-> 
-> > Forgot the config, it's in attachment.
-> 
-> I get them too when even trying to use the function tracer in some
-> simple way.  They occur in random places and eventually the entire
-> machine wedges and is unusuable.
+From: Frederic Weisbecker <fweisbec@gmail.com>
+Date: Mon, 5 Apr 2010 08:57:04 +0200
 
+> It seems to happen after an unaligned access fixup.
 
-Yeah. But it's not totally random. I often see the same scheduler
-crash.
+You shouldn't be getting the unaligned fixup in the first place,
+especially in the locations where you see them.  I suspect that
+once you see first fixup, all of the registers in the cpu have
+been corrupted in one way or another.
 
-It seems to happen after an unaligned access fixup.
+I suspect something fundamental gets corrupted, for example the
+current register window (%cwp) is corrupted and that screws up all of
+the registers so every single function starts accessing garbage.
 
-
-> 
-> I suspect there is some bug that ends up corrupting memory, so I
-> started trying to debug this last night when I first saw it.
-
-
-Ok. I indeed have the same problem with the function tracer when
-it is running.
-
- 
-> I'll let you know if I make any progress.
-
-
-Thanks!
-
+My suspicions lie in three places, the ftrace mcount()
+stubs, stack_trace_flush(), or the new perf_arch_save_caller_regs()
+since those are the three places offhand that could make
+us potentially make us return to function in the wrong
+register window.
