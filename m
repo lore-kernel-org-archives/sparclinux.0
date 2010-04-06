@@ -1,56 +1,37 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 16 Mar 2010 07:34:10 +0000
-Subject: Re: [PATCH] drivers/serial/sunsab.c: adjust the constant used to
-Message-Id: <20100316.003410.232587710.davem@davemloft.net>
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Date: Tue, 06 Apr 2010 13:28:10 +0000
+Subject: [patch 3/3] sched: Use local_irq_save_nmi() in cpu_clock()
+Message-Id: <20100406133141.039454288@chello.nl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.1003121816500.3043@ask.diku.dk>
-In-Reply-To: <Pine.LNX.4.64.1003121816500.3043@ask.diku.dk>
+References: <20100406132807.698467930@chello.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: julia@diku.dk
-Cc: linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, sparclinux@vger.kernel.org
+To: mingo@elte.hu, David Miller <davem@davemloft.net>, acme@redhat.com, paulus@samba.org, Mike Galbraith <efault@gmx.de>, Frederic Weisbecker <fweisbec@gmail.com>, Thomas Gleixner <tglx@l>
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-From: Julia Lawall <julia@diku.dk>
-Date: Fri, 12 Mar 2010 18:17:13 +0100 (CET)
+Since we can call cpu_clock() from NMI context fix up the IRQ
+disabling to conform to the new rules.
 
-> From: Julia Lawall <julia@diku.dk>
-> 
-> SAB82532_ISR0_TCD is declared in drivers/serial/subsab.h as relating to a
-> status register, while SAB82532_IMR0_TCD is declared in the same file as
-> relating to a mask register.  The latter seems more appropriate for the
-> interrupt_mask0 field, and follows the strategy for initializing this field
-> elsewhere in the same file.
-> 
-> Both SAB82532_ISR0_TCD and SAB82532_IMR0_TCD have the same value.
-> 
-> Signed-off-by: Julia Lawall <julia@diku.dk>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+---
+ kernel/sched_clock.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Applied, thanks Julia.
+Index: linux-2.6/kernel/sched_clock.c
+=================================--- linux-2.6.orig/kernel/sched_clock.c
++++ linux-2.6/kernel/sched_clock.c
+@@ -241,9 +241,9 @@ unsigned long long cpu_clock(int cpu)
+ 	unsigned long long clock;
+ 	unsigned long flags;
+ 
+-	local_irq_save(flags);
++	local_irq_save_nmi(flags);
+ 	clock = sched_clock_cpu(cpu);
+-	local_irq_restore(flags);
++	local_irq_restore_nmi(flags);
+ 
+ 	return clock;
+ }
 
-I'll add some entries to MAINTAINERS so that you know to
-CC: sparclinux for these sparc serial drivers in the future.
 
-> 
-> ---
->  drivers/serial/sunsab.c             |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/serial/sunsab.c b/drivers/serial/sunsab.c
-> index d514e28..d2e0321 100644
-> --- a/drivers/serial/sunsab.c
-> +++ b/drivers/serial/sunsab.c
-> @@ -474,7 +474,7 @@ static void sunsab_stop_rx(struct uart_port *port)
->  {
->  	struct uart_sunsab_port *up = (struct uart_sunsab_port *) port;
->  
-> -	up->interrupt_mask0 |= SAB82532_ISR0_TCD;
-> +	up->interrupt_mask0 |= SAB82532_IMR0_TCD;
->  	writeb(up->interrupt_mask1, &up->regs->w.imr0);
->  }
->  
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
