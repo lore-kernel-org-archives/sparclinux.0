@@ -1,92 +1,30 @@
-From: Frederic Weisbecker <fweisbec@gmail.com>
-Date: Tue, 06 Apr 2010 10:19:28 +0000
+From: David Miller <davem@davemloft.net>
+Date: Tue, 06 Apr 2010 10:28:50 +0000
 Subject: Re: Random scheduler/unaligned accesses crashes with perf lock
-Message-Id: <20100406101925.GD5147@nowhere>
+Message-Id: <20100406.032850.137831355.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100405065701.GC5127@nowhere> <20100405.122233.188421941.davem@davemloft.net> <20100405194055.GA5265@nowhere> <20100406.025049.267615796.davem@davemloft.net>
-In-Reply-To: <20100406.025049.267615796.davem@davemloft.net>
+References: <20100405194055.GA5265@nowhere>
+	<20100406.025049.267615796.davem@davemloft.net>
+	<20100406101925.GD5147@nowhere>
+In-Reply-To: <20100406101925.GD5147@nowhere>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>, Steven Rostedt <rostedt@goodmis.org>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, mingo@elte.hu, acme@redhat.com, a.p.zijlstra@chello.nl, paulus@samba.org
+To: fweisbec@gmail.com
+Cc: rostedt@goodmis.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, mingo@elte.hu, acme@redhat.com, a.p.zijlstra@chello.nl, paulus@samba.org
 
-On Tue, Apr 06, 2010 at 02:50:49AM -0700, David Miller wrote:
-> From: Frederic Weisbecker <fweisbec@gmail.com>
-> Date: Mon, 5 Apr 2010 21:40:58 +0200
-> 
-> > It happens without CONFIG_FUNCTION_TRACER as well (but it happens
-> > when the function tracer runs). And I hadn't your
-> > perf_arch_save_caller_regs() when I triggered this.
-> 
-> I figured out the problem, it's NMIs.  As soon as I disable all of the
-> NMI watchdog code, the problem goes away.
-> 
-> This is because some parts of the NMI interrupt handling path are not
-> marked with "notrace" and the various tracer code paths use
-> local_irq_disable() (either directly or indirectly) which doesn't work
-> with sparc64's NMI scheme.  These essentially turn NMIs back on in the
-> NMI handler before the NMI condition has been cleared, and thus we can
-> re-enter with another NMI interrupt.
-> 
-> We went through this for perf events, and we just made sure that
-> local_irq_{enable,disable}() never occurs in any of the code paths in
-> perf events that can be reached via the NMI interrupt handler.  (the
-> only one we had was sched_clock() and that was easily fixed)
-> 
-> So, the first mcount hit we get is for rcu_nmi_enter() via
-> nmi_enter().
-> 
-> I can see two ways to handle this:
-> 
-> 1) Pepper 'notrace' markers onto rcu_nmi_enter(), rcu_nmi_exit()
->    and whatever else I can see getting hit in the NMI interrupt
->    handler code paths.
-> 
-> 2) Add a hack to __raw_local_irq_save() that keeps it from writing
->    anything to the interrupt level register if we have NMI's disabled.
->    (this puts the cost on the entire kernel instead of just the NMI
->    paths).
-> 
-> #1 seems to be the intent on other platforms, the majority of the NMI
-> code paths are protected with 'notrace' on x86, I bet nobody noticed
-> that nmi_enter() when CONFIG_NO_HZ && !CONFIG_TINY_RCU ends up calling
-> a function that does tracing.
-> 
-> The next one we'll hit is atomic_notifier_call_chain()  (amusingly
-> notify_die() is marked 'notrace' but the one thing it calls isn't)
-> 
-> For example, the following are the generic notrace annotations I
-> would need to get sparc64 ftrace functioning again. (Frederic I will
-> send you the full patch with the sparc specific bits under seperate
-> cover in so that you can test things...)
-> 
-> --------------------
-> kernel: Add notrace annotations to common routines invoked via NMI.
-> 
-> This includes the atomic notifier call chain as well as the RCU
-> specific NMI enter/exit handlers.
+From: Frederic Weisbecker <fweisbec@gmail.com>
+Date: Tue, 6 Apr 2010 12:19:28 +0200
 
+> It means having such interrupt reentrancy is not a problem.
 
+It's not reentrancy.
 
-Ok, but this as a cause looks weird.
-The function tracer handler disables interrupts. I don't remember exactly
-why but we also have a no-preempt mode that only disables preemption instead:
-(function_trace_call_preempt_only())
+It's the fact that local_irq_disable() (read it again, it's the
+"disable" that re-renables NMIs on sparc64) turns NMIs back on even in
+code where we are still trying to figure out how to service the NMI
+still.
 
-It means having such interrupt reentrancy is not a problem. In fact, the
-function tracer is not reentrant:
-
-	data = tr->data[cpu];
-	disabled = atomic_inc_return(&data->disabled);
-
-	if (likely(disabled = 1))
-		trace_function(tr, ip, parent_ip, flags, pc);
-
-	atomic_dec(&data->disabled);
-
-we do this just to prevent from tracing recursion (in case we have
-a traceable function in the inner function tracing path).
-
-Nmis are just supposed to be fine with the function tracer.
-
+It's because we implement NMIs on sparc64 by having the performance
+counter interrupt come in on the level 15 interrupt, and we run the
+entire kernel at level 14 when IRQs are "disabled".
