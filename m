@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 06 Apr 2010 17:54:41 +0000
+Date: Tue, 06 Apr 2010 23:39:51 +0000
 Subject: Re: [patch 0/3] IRQ disable vs NMI
-Message-Id: <20100406.105441.99879289.davem@davemloft.net>
+Message-Id: <20100406.163951.115014932.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100406132807.698467930@chello.nl>
 In-Reply-To: <20100406132807.698467930@chello.nl>
@@ -18,6 +18,12 @@ Date: Tue, 06 Apr 2010 15:28:07 +0200
 > that SPARC has by providing new arch hooks and instrumenting the
 > existing interface to WARN on conflicting usage.
 
-Thanks Peter, looks good at first sight.
+Ok, two patches coming.
 
-I'll toss together the sparc bits and give this a go.
+One which adds the sparc64 irqflags.h methods.
+
+And one which annotates the ftrace functions, as needed.
+
+With this I have the function tracer working.
+
+Thanks!
