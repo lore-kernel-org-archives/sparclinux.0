@@ -1,24 +1,66 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 13 Apr 2010 21:29:03 +0000
-Subject: Re: [PATCH] sparc: Fix forgotten kmemleak headers inclusion
-Message-Id: <20100413.142903.15937226.davem@davemloft.net>
+Date: Tue, 06 Apr 2010 23:39:55 +0000
+Subject: [PATCH 1/2] sparc64: Implement local_irq_save_nmi().
+Message-Id: <20100406.163955.28809295.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1271185164-5958-1-git-send-regression-fweisbec@gmail.com>
-In-Reply-To: <1271185164-5958-1-git-send-regression-fweisbec@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1254"
-Content-Transfer-Encoding: base64
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: a.p.zijlstra@chello.nl
+Cc: mingo@elte.hu, acme@redhat.com, paulus@samba.org, efault@gmx.de, fweisbec@gmail.com, tglx@linutronix.de, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org
 
-RnJvbTogRnJlZGVyaWMgV2Vpc2JlY2tlciA8ZndlaXNiZWNAZ21haWwuY29tPgpEYXRlOiBUdWUs
-IDEzIEFwciAyMDEwIDIwOjU5OjI0ICswMjAwCgo+IEZpeCBmb3Jnb3R0ZW4ga21lbWxlYWsgaGVh
-ZGVycyBpbmNsdXNpb24gZm9yIGttZW1sZWFrX25vdF9sZWFrKCkKPiBkZWNsYXJhdGlvbi4KPiAK
-PiBUaGlzIGZpeGVzIHRoZSBmb2xsb3dpbmcgYnVpbGQgZXJyb3I6Cj4gCj4gCWFyY2gvc3BhcmMv
-a2VybmVsL2lycV82NC5jOiBJbiBmdW5jdGlvbiChc3VuNHZfYnVpbGRfdmlycaI6Cj4gCWFyY2gv
-c3BhcmMva2VybmVsL2lycV82NC5jOjY1NzogZXJyb3I6IGltcGxpY2l0IGRlY2xhcmF0aW9uIG9m
-IGZ1bmN0aW9uIKFrbWVtbGVha19ub3RfbGVha6IKPiAKPiBTaWduZWQtb2ZmLWJ5OiBGcmVkZXJp
-YyBXZWlzYmVja2VyIDxmd2Vpc2JlY0BnbWFpbC5jb20+CgpTdHJhbmdlLCBhbGwgbXkgYnVpbGQg
-dGVzdHMgcGFzc2VkIDotKSAgSSBtdXN0IGJlIGdldHRpbmcgdGhlCmhlYWRlciBpbXBsaWNpdGx5
-IHNvbWVob3cuCgpBcHBsaWVkLCB0aGFua3MgRnJlZGVyaWMhCv/06Lp7Lm7HK4m3n66JrYYrJYrL
-/7Hp3bYXpYp3/7p7Lm7HK4m3rKWq3JYp7sf4p7YXm6HcqH2pnrLGoHraJmo6K3aJqP74Hq/5Hq53
-pf6K4DKK3pmo6K3aJqIp36GrYbba///74Hq/5Hq53pf6K4P5mo6K3aJq/4p36P4bZgo=
+
+It disables up to PIL_NMI instead of just PIL_NORMAL_MAX.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+
+diff --git a/arch/sparc/include/asm/irqflags_64.h b/arch/sparc/include/asm/irqflags_64.h
+index 8b49bf9..fa1e00e 100644
+--- a/arch/sparc/include/asm/irqflags_64.h
++++ b/arch/sparc/include/asm/irqflags_64.h
+@@ -49,6 +49,16 @@ static inline void raw_local_irq_disable(void)
+ 	);
+ }
+ 
++static inline void raw_local_irq_disable_nmi(void)
++{
++	__asm__ __volatile__(
++		"wrpr	%0, %%pil"
++		: /* no outputs */
++		: "i" (PIL_NMI)
++		: "memory"
++	);
++}
++
+ static inline void raw_local_irq_enable(void)
+ {
+ 	__asm__ __volatile__(
+@@ -83,9 +93,28 @@ static inline unsigned long __raw_local_irq_save(void)
+ 	return flags;
+ }
+ 
++static inline unsigned long __raw_local_irq_save_nmi(void)
++{
++	unsigned long flags = __raw_local_save_flags();
++
++	raw_local_irq_disable_nmi();
++
++	return flags;
++}
++
+ #define raw_local_irq_save(flags) \
+ 		do { (flags) = __raw_local_irq_save(); } while (0)
+ 
++#define raw_local_irq_save_nmi(flags) \
++		do { (flags) = __raw_local_irq_save_nmi(); } while (0)
++
++#define local_irq_save_nmi(flags) 			\
++	do {						\
++		 typecheck(unsigned long, flags);	\
++		 raw_local_irq_save_nmi(flags);		\
++		 trace_hardirqs_off();			\
++	} while (0)
++
+ #endif /* (__ASSEMBLY__) */
+ 
+ #endif /* !(_ASM_IRQFLAGS_H) */
