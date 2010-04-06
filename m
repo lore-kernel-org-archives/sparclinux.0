@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 06 Apr 2010 02:15:55 +0000
+Date: Tue, 06 Apr 2010 09:50:49 +0000
 Subject: Re: Random scheduler/unaligned accesses crashes with perf lock
-Message-Id: <20100405.191555.184824968.davem@davemloft.net>
+Message-Id: <20100406.025049.267615796.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100405065701.GC5127@nowhere>
 	<20100405.122233.188421941.davem@davemloft.net>
@@ -11,7 +11,7 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: fweisbec@gmail.com
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, mingo@elte.hu, acme@redhat.com, a.p.zijlstra@chello.nl, paulus@samba.org, srostedt@redhat.com
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, mingo@elte.hu, acme@redhat.com, a.p.zijlstra@chello.nl, paulus@samba.org
 
 From: Frederic Weisbecker <fweisbec@gmail.com>
 Date: Mon, 5 Apr 2010 21:40:58 +0200
@@ -20,73 +20,118 @@ Date: Mon, 5 Apr 2010 21:40:58 +0200
 > when the function tracer runs). And I hadn't your
 > perf_arch_save_caller_regs() when I triggered this.
 
-I think there's still something wrong with the ring buffer stuff on
-architectures like sparc64.
+I figured out the problem, it's NMIs.  As soon as I disable all of the
+NMI watchdog code, the problem goes away.
 
-Stephen, I'm looking at the 8-byte alignment fix that was made a few
-weeks ago, commit:
+This is because some parts of the NMI interrupt handling path are not
+marked with "notrace" and the various tracer code paths use
+local_irq_disable() (either directly or indirectly) which doesn't work
+with sparc64's NMI scheme.  These essentially turn NMIs back on in the
+NMI handler before the NMI condition has been cleared, and thus we can
+re-enter with another NMI interrupt.
 
-commit 2271048d1b3b0aabf83d25b29c20646dcabedc05
-Author: Steven Rostedt <srostedt@redhat.com>
-Date:   Thu Mar 18 17:54:19 2010 -0400
+We went through this for perf events, and we just made sure that
+local_irq_{enable,disable}() never occurs in any of the code paths in
+perf events that can be reached via the NMI interrupt handler.  (the
+only one we had was sched_clock() and that was easily fixed)
 
-    ring-buffer: Do 8 byte alignment for 64 bit that can not handle 4 byte align
+So, the first mcount hit we get is for rcu_nmi_enter() via
+nmi_enter().
 
-and I'm not so sure it's completely correct.
+I can see two ways to handle this:
 
-Originally, the ring buffer entries determine where the entry data
-resides (either &event->array[0] or &event->array[1]) based upon the
-length.
+1) Pepper 'notrace' markers onto rcu_nmi_enter(), rcu_nmi_exit()
+   and whatever else I can see getting hit in the NMI interrupt
+   handler code paths.
 
-Beforehand, in all cases:
+2) Add a hack to __raw_local_irq_save() that keeps it from writing
+   anything to the interrupt level register if we have NMI's disabled.
+   (this puts the cost on the entire kernel instead of just the NMI
+   paths).
 
-1) If length could be encoded into event->type_len (ie. <   RB_MAX_SMALL_DATA) then event->type_len holds the length
-   and the event data starts at &event->array[0]
+#1 seems to be the intent on other platforms, the majority of the NMI
+code paths are protected with 'notrace' on x86, I bet nobody noticed
+that nmi_enter() when CONFIG_NO_HZ && !CONFIG_TINY_RCU ends up calling
+a function that does tracing.
 
-2) Otherwise (length > RB_MAX_SMALL_DATA) the length is
-   encoded into event->array[0] and the event data starts at
-   &event->array[1]
+The next one we'll hit is atomic_notifier_call_chain()  (amusingly
+notify_die() is marked 'notrace' but the one thing it calls isn't)
 
-But now, there is a new semantic when CONFIG_64BIT is true and
-CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS is false (which isn't the right
-test btw, f.e. sparc 32-bit needs this handling just like sparc 64-bit
-does since it uses full 64-bit loads and stores to access u64 objects
-and thus will crash without proper alignment, the correct test should
-be just CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS being false).
+For example, the following are the generic notrace annotations I
+would need to get sparc64 ftrace functioning again. (Frederic I will
+send you the full patch with the sparc specific bits under seperate
+cover in so that you can test things...)
 
-This new semantic is:
+--------------------
+kernel: Add notrace annotations to common routines invoked via NMI.
 
-1) Entries always encode the length in ->array[0] and ->type_len
-   is set to zero.
+This includes the atomic notifier call chain as well as the RCU
+specific NMI enter/exit handlers.
 
-And then there are special cases like events of type
-RINGBUF_TYPE_PADDING which, even though ->type_len is non-zero, encode
-a length field in ->array[0] which is used by the ring buffer
-iterators such as rb_event_length(), but this only applies only if
-event->time_delta is non-zero.  (Phew!)
+Signed-off-by: David S. Miller <davem@davemloft.net>
 
-The commit adjusts the code in rb_calculate_event_length() to force 8
-byte chunks when RB_FORCE_8BYTE_ALIGNMENT is set.  It also adjusted
-the rb_update_event() logic so that it unconditionally uses
-event->array[0] for the length on such platforms.
+diff --git a/kernel/notifier.c b/kernel/notifier.c
+index 2488ba7..ceae89a 100644
+--- a/kernel/notifier.c
++++ b/kernel/notifier.c
+@@ -71,9 +71,9 @@ static int notifier_chain_unregister(struct notifier_block **nl,
+  *	@returns:	notifier_call_chain returns the value returned by the
+  *			last notifier function called.
+  */
+-static int __kprobes notifier_call_chain(struct notifier_block **nl,
+-					unsigned long val, void *v,
+-					int nr_to_call,	int *nr_calls)
++static int notrace __kprobes notifier_call_chain(struct notifier_block **nl,
++						 unsigned long val, void *v,
++						 int nr_to_call,	int *nr_calls)
+ {
+ 	int ret = NOTIFY_DONE;
+ 	struct notifier_block *nb, *next_nb;
+@@ -172,9 +172,9 @@ EXPORT_SYMBOL_GPL(atomic_notifier_chain_unregister);
+  *	Otherwise the return value is the return value
+  *	of the last notifier function called.
+  */
+-int __kprobes __atomic_notifier_call_chain(struct atomic_notifier_head *nh,
+-					unsigned long val, void *v,
+-					int nr_to_call, int *nr_calls)
++int notrace __kprobes __atomic_notifier_call_chain(struct atomic_notifier_head *nh,
++						   unsigned long val, void *v,
++						   int nr_to_call, int *nr_calls)
+ {
+ 	int ret;
+ 
+@@ -185,8 +185,8 @@ int __kprobes __atomic_notifier_call_chain(struct atomic_notifier_head *nh,
+ }
+ EXPORT_SYMBOL_GPL(__atomic_notifier_call_chain);
+ 
+-int __kprobes atomic_notifier_call_chain(struct atomic_notifier_head *nh,
+-		unsigned long val, void *v)
++int notrace __kprobes atomic_notifier_call_chain(struct atomic_notifier_head *nh,
++						 unsigned long val, void *v)
+ {
+ 	return __atomic_notifier_call_chain(nh, val, v, -1, NULL);
+ }
+diff --git a/kernel/rcutree.c b/kernel/rcutree.c
+index 3ec8160..d1a44ab 100644
+--- a/kernel/rcutree.c
++++ b/kernel/rcutree.c
+@@ -286,7 +286,7 @@ void rcu_exit_nohz(void)
+  * irq handler running, this updates rdtp->dynticks_nmi to let the
+  * RCU grace-period handling know that the CPU is active.
+  */
+-void rcu_nmi_enter(void)
++void notrace rcu_nmi_enter(void)
+ {
+ 	struct rcu_dynticks *rdtp = &__get_cpu_var(rcu_dynticks);
+ 
+@@ -304,7 +304,7 @@ void rcu_nmi_enter(void)
+  * irq handler running, this updates rdtp->dynticks_nmi to let the
+  * RCU grace-period handling know that the CPU is no longer active.
+  */
+-void rcu_nmi_exit(void)
++void notrace rcu_nmi_exit(void)
+ {
+ 	struct rcu_dynticks *rdtp = &__get_cpu_var(rcu_dynticks);
+ 
 
-However I don't see any logic added to ring_buffer_event_length()
-to handle this forcing.   That alone can't explain the crashes
-Frederic and I are seeing, since only oprofile seems to use that
-helper function, but I can just imagine there might be other
-subtle bugs linering after the above commit.
 
-Anyways, that's just the inital potential problem I've discovered.
-I'll start auditing the rest of this code.
-
-I wonder if there's a simpler way to implement this alignment fix such
-that we don't have to constantly make sure scores of locations in
-ring_buffer.c get this magic exception case correct.
-
-We should probably also BUILD_BUG_ON() if BUF_PAGE_HDR_SIZE is not
-a multiple of the necessary alignment, since the ring buffer
-entries start at the end of that.
-
-Also I noticed (painfully :-) that 2.6.33 needs a backport of this
-alignment fix too, so we should submit it to -stable (once we sift
-out all the bugs of course).
