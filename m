@@ -1,44 +1,64 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 07 Apr 2010 01:17:17 +0000
+Date: Wed, 07 Apr 2010 10:28:32 +0000
 Subject: Re: [PATCH 2/2] ftrace: Use local_irq_{save,restore}_nmi() in
-Message-Id: <20100406.181717.01368166.davem@davemloft.net>
+Message-Id: <20100407.032832.150975074.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100406.164002.40105966.davem@davemloft.net>
-	<1270602850.19685.15604.camel@gandalf.stny.rr.com>
-In-Reply-To: <1270602850.19685.15604.camel@gandalf.stny.rr.com>
+In-Reply-To: <20100406.164002.40105966.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: rostedt@goodmis.org
-Cc: a.p.zijlstra@chello.nl, mingo@elte.hu, acme@redhat.com, paulus@samba.org, efault@gmx.de, fweisbec@gmail.com, tglx@linutronix.de, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org
+To: a.p.zijlstra@chello.nl
+Cc: mingo@elte.hu, acme@redhat.com, paulus@samba.org, efault@gmx.de, fweisbec@gmail.com, tglx@linutronix.de, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org
 
-From: Steven Rostedt <rostedt@goodmis.org>
-Date: Tue, 06 Apr 2010 21:14:10 -0400
+From: David Miller <davem@davemloft.net>
+Date: Tue, 06 Apr 2010 16:40:02 -0700 (PDT)
 
-> On Tue, 2010-04-06 at 16:40 -0700, David Miller wrote:
->> Signed-off-by: David S. Miller <davem@davemloft.net>
->> ---
->>  kernel/trace/ftrace.c             |    4 ++--
->>  kernel/trace/trace_functions.c    |    8 ++++----
->>  kernel/trace/trace_sched_wakeup.c |    4 ++--
->>  kernel/trace/trace_stack.c        |    4 ++--
->>  4 files changed, 10 insertions(+), 10 deletions(-)
->> 
->> diff --git a/kernel/trace/ftrace.c b/kernel/trace/ftrace.c
->> index d9062f5..41d4282 100644
->> --- a/kernel/trace/ftrace.c
->> +++ b/kernel/trace/ftrace.c
->> @@ -612,7 +612,7 @@ function_profile_call(unsigned long ip, unsigned long parent_ip)
->>  	if (!ftrace_profile_enabled)
->>  		return;
->>  
->> -	local_irq_save(flags);
->> +	local_irq_save_nmi(flags);
 > 
-> These are equivalent for non sparc archs, correct?
+> Signed-off-by: David S. Miller <davem@davemloft.net>
 
-Yes.
+Peter, I found one more file that needs this annotation while
+implementing function graph tracing support on sparc64.
 
-> If so,
-> 
-> Acked-by: Steven Rostedt <rostedt@goodmis.org>
+Please add this to the original patch when you queue it up, thanks.
+
+diff --git a/kernel/trace/trace_functions_graph.c b/kernel/trace/trace_functions_graph.c
+index e6989d9..67fbdf1 100644
+--- a/kernel/trace/trace_functions_graph.c
++++ b/kernel/trace/trace_functions_graph.c
+@@ -220,7 +220,7 @@ int trace_graph_entry(struct ftrace_graph_ent *trace)
+ 	if (!(trace->depth || ftrace_graph_addr(trace->func)))
+ 		return 0;
+ 
+-	local_irq_save(flags);
++	local_irq_save_nmi(flags);
+ 	cpu = raw_smp_processor_id();
+ 	data = tr->data[cpu];
+ 	disabled = atomic_inc_return(&data->disabled);
+@@ -232,7 +232,7 @@ int trace_graph_entry(struct ftrace_graph_ent *trace)
+ 	}
+ 
+ 	atomic_dec(&data->disabled);
+-	local_irq_restore(flags);
++	local_irq_restore_nmi(flags);
+ 
+ 	return ret;
+ }
+@@ -277,7 +277,7 @@ void trace_graph_return(struct ftrace_graph_ret *trace)
+ 	int cpu;
+ 	int pc;
+ 
+-	local_irq_save(flags);
++	local_irq_save_nmi(flags);
+ 	cpu = raw_smp_processor_id();
+ 	data = tr->data[cpu];
+ 	disabled = atomic_inc_return(&data->disabled);
+@@ -286,7 +286,7 @@ void trace_graph_return(struct ftrace_graph_ret *trace)
+ 		__trace_graph_return(tr, trace, flags, pc);
+ 	}
+ 	atomic_dec(&data->disabled);
+-	local_irq_restore(flags);
++	local_irq_restore_nmi(flags);
+ }
+ 
+ void set_graph_array(struct trace_array *tr)
