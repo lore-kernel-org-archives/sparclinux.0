@@ -1,50 +1,70 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 13 Apr 2010 06:48:56 +0000
-Subject: [PATCH 1/3] sparc64: Support kmemleak.
-Message-Id: <20100412.234856.177627643.davem@davemloft.net>
+Date: Fri, 09 Apr 2010 23:01:37 +0000
+Subject: [PATCH 2/4] sparc64: Implement local_irq_save_nmi() override.
+Message-Id: <20100409.160137.48119461.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: peterz@infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, sparclinux@vger.kernel.org
 
-
-Only missing thing was an _sdata marker in vmlinux.lds.S
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/kernel/vmlinux.lds.S |    4 ++++
- lib/Kconfig.debug               |    2 +-
- 2 files changed, 5 insertions(+), 1 deletions(-)
+ arch/sparc/include/asm/irqflags_64.h |   29 +++++++++++++++++++++++++++++
+ 1 files changed, 29 insertions(+), 0 deletions(-)
 
-diff --git a/arch/sparc/kernel/vmlinux.lds.S b/arch/sparc/kernel/vmlinux.lds.S
-index c4f5758..0c1e678 100644
---- a/arch/sparc/kernel/vmlinux.lds.S
-+++ b/arch/sparc/kernel/vmlinux.lds.S
-@@ -52,6 +52,10 @@ SECTIONS
- 	_etext = .;
+diff --git a/arch/sparc/include/asm/irqflags_64.h b/arch/sparc/include/asm/irqflags_64.h
+index 8b49bf9..fa1e00e 100644
+--- a/arch/sparc/include/asm/irqflags_64.h
++++ b/arch/sparc/include/asm/irqflags_64.h
+@@ -49,6 +49,16 @@ static inline void raw_local_irq_disable(void)
+ 	);
+ }
  
- 	RO_DATA(PAGE_SIZE)
++static inline void raw_local_irq_disable_nmi(void)
++{
++	__asm__ __volatile__(
++		"wrpr	%0, %%pil"
++		: /* no outputs */
++		: "i" (PIL_NMI)
++		: "memory"
++	);
++}
 +
-+	/* Start of data section */
-+	_sdata = .;
-+
- 	.data1 : {
- 		*(.data1)
- 	}
-diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
-index 1fafb4b..6c2be60 100644
---- a/lib/Kconfig.debug
-+++ b/lib/Kconfig.debug
-@@ -356,7 +356,7 @@ config SLUB_STATS
- config DEBUG_KMEMLEAK
- 	bool "Kernel memory leak detector"
- 	depends on DEBUG_KERNEL && EXPERIMENTAL && !MEMORY_HOTPLUG && \
--		(X86 || ARM || PPC || S390 || SUPERH)
-+		(X86 || ARM || PPC || S390 || SPARC64 || SUPERH)
+ static inline void raw_local_irq_enable(void)
+ {
+ 	__asm__ __volatile__(
+@@ -83,9 +93,28 @@ static inline unsigned long __raw_local_irq_save(void)
+ 	return flags;
+ }
  
- 	select DEBUG_FS if SYSFS
- 	select STACKTRACE if STACKTRACE_SUPPORT
++static inline unsigned long __raw_local_irq_save_nmi(void)
++{
++	unsigned long flags = __raw_local_save_flags();
++
++	raw_local_irq_disable_nmi();
++
++	return flags;
++}
++
+ #define raw_local_irq_save(flags) \
+ 		do { (flags) = __raw_local_irq_save(); } while (0)
+ 
++#define raw_local_irq_save_nmi(flags) \
++		do { (flags) = __raw_local_irq_save_nmi(); } while (0)
++
++#define local_irq_save_nmi(flags) 			\
++	do {						\
++		 typecheck(unsigned long, flags);	\
++		 raw_local_irq_save_nmi(flags);		\
++		 trace_hardirqs_off();			\
++	} while (0)
++
+ #endif /* (__ASSEMBLY__) */
+ 
+ #endif /* !(_ASM_IRQFLAGS_H) */
 -- 
 1.7.0.4
 
