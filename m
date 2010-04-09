@@ -1,29 +1,40 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 06 Apr 2010 23:39:51 +0000
-Subject: Re: [patch 0/3] IRQ disable vs NMI
-Message-Id: <20100406.163951.115014932.davem@davemloft.net>
+Date: Fri, 09 Apr 2010 23:01:40 +0000
+Subject: [PATCH 3/4] sched: Use local_irq_save_nmi() in cpu_clock()
+Message-Id: <20100409.160140.250344636.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100406132807.698467930@chello.nl>
-In-Reply-To: <20100406132807.698467930@chello.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: a.p.zijlstra@chello.nl
-Cc: mingo@elte.hu, acme@redhat.com, paulus@samba.org, efault@gmx.de, fweisbec@gmail.com, tglx@linutronix.de, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org
+To: peterz@infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, sparclinux@vger.kernel.org
 
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Date: Tue, 06 Apr 2010 15:28:07 +0200
 
-> This patch set tries to solve the local_irq_disable() vs NMI problem
-> that SPARC has by providing new arch hooks and instrumenting the
-> existing interface to WARN on conflicting usage.
+Since we can call cpu_clock() from NMI context fix up the IRQ
+disabling to conform to the new rules.
 
-Ok, two patches coming.
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ kernel/sched_clock.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-One which adds the sparc64 irqflags.h methods.
+diff --git a/kernel/sched_clock.c b/kernel/sched_clock.c
+index 5b49613..ef159ee 100644
+--- a/kernel/sched_clock.c
++++ b/kernel/sched_clock.c
+@@ -241,9 +241,9 @@ unsigned long long cpu_clock(int cpu)
+ 	unsigned long long clock;
+ 	unsigned long flags;
+ 
+-	local_irq_save(flags);
++	local_irq_save_nmi(flags);
+ 	clock = sched_clock_cpu(cpu);
+-	local_irq_restore(flags);
++	local_irq_restore_nmi(flags);
+ 
+ 	return clock;
+ }
+-- 
+1.7.0.4
 
-And one which annotates the ftrace functions, as needed.
-
-With this I have the function tracer working.
-
-Thanks!
