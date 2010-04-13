@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 13 Apr 2010 22:11:25 +0000
+Date: Tue, 13 Apr 2010 23:34:53 +0000
 Subject: Re: [PATCH 7/7] sparc64: Add function graph tracer support.
-Message-Id: <20100413.151125.230139297.davem@davemloft.net>
+Message-Id: <20100413.163453.141492778.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100412.234300.212396783.davem@davemloft.net>
 In-Reply-To: <20100412.234300.212396783.davem@davemloft.net>
@@ -10,27 +10,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Frederic Weisbecker <fweisbec@gmail.com>
-Date: Wed, 14 Apr 2010 00:05:43 +0200
+From: Steven Rostedt <rostedt@goodmis.org>
+Date: Tue, 13 Apr 2010 17:52:21 -0400
 
-> [  127.911796] FAULT[bash:2183]: 32-bit process reports 64-bit fault address [1dc5d706cc]
+> On Tue, 2010-04-13 at 14:34 -0700, David Miller wrote:
+>> BTW, one thing that drives me nuts on this machine is that catting the
+>> 'trace' file takes several seconds to start up.  Is it calling
+>> stop_machine() or something else which very expensive with high cpu
+>> counts?
+> 
+> No, in does not call stop_machine, but it stops all tracing on all cpus.
+> I wonder what is happening :-/
+> 
+> It does allocate an "iterator" that has per cpu descriptors.
+> 
+> Does "trace_pipe" give you the same issues?
 
-Any time I see this in a trace it usually means that the
-register set of the cpu has been completely corrupted.
+Indeed, "trace_pipe" does not show the stall.
 
-I just got a crash shortly after catting the 'trace' file
-on my Niagara2 box too.  And I had never seen this before.
+And when I 'perf' the stalling case, nothing interesting shows up.
 
-One thing that happened since I last tested is I did
-a merge of Linus's tree into the sparc-2.6 tree I was
-doing testing on.
+Then I went snooping around the call path for this stuff and looked at
+ring_buffer_read_start()
 
-So I wonder if some tracing et al. change in that merge
-introduced this problem.
+That does a synchronize_sched(), and this function is invoked for
+every cpu when we open the "trace" file.
 
-I'll take a look at the commits under kernel/trace to look
-for clues and thanks for the heads up about cleaning up
-the backtraces ala x86.  I can't decide which is more useful
-for me, since at least half of the time I'll want to see
-the real return address values in the cpu registers. :-)
+So this likely explains the delay.
 
+This synchronize_sched() is meant to make sure that the buffer's cpu
+has finished any pending ring buffer writes, and thus will see the new
+->record_disabled setting.  It is only at that point that we can
+safely call rb_iter_reset() and start reading.
+
+But synchronize_sched() waits for an RCU grace peiod considering all
+cpus, so this is overkill since we only care about writes to a
+particular cpu's buffer not all cpu buffers.
+
+I think the criteria we are looking for is that "cpu X has returned
+from a function" since that would guarentee that it left the tracing
+code paths.  So maybe there's some clever way we can do this more
+cheaply.
