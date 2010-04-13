@@ -1,43 +1,17 @@
-From: "MICROSOFT EMAIL PROMOTION" <info.winners@microsoft.com>
-Date: Thu, 22 Apr 2010 04:49:57 +0000
-Subject: Congratulations - You Have Won (Winning Numbers)
-Message-Id: <9587.41.220.68.1.1271911797.squirrel@41.220.68.1>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 13 Apr 2010 06:42:32 +0000
+Subject: [PATCH 0/7] sparc64 function graph tracer support and tidy ups
+Message-Id: <20100412.234232.149823029.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Congratulations - You Have Won (Winning Numbers)
 
-The MICROSOFT EMAIL PROMO TEAM is glad to announce that
-after a successful completion of the PROMO DRAWS held on the
-21st April March 2010,your e-mail address,attached to winning
-numbers:(11) (80) (12)(96) (09) (43) won in the Tenth
-lottery category.
+This patch set adds function graph tracer support to sparc64.
+It was actually pretty easy.
 
-You have therefore been approved to claim a total sum of
-=A3250,000,00 Pounds Sterling in cash credited to REF
-NO:MICRO-L/2009-END10.
-
-All participants were selected through our Microsoft computer
-ballot system drawn from 167,000 Names,as part of our
-International  "E-MAIL" Promotion Program for our prominent
-MS-WORD users all over the world and for the continuous use
-of the internet. You are advised to contact the claims
-processor with the details below via his e-mail address :
-
-NAME:  Ivan Nickerson
-EMAIL: mrivan_nickerson04@yahoo.com.hk
-
-PLEASE NOTE YOU ARE TO SEND THE FOLLOWING INFORMATION TO
-
-CLAIM YOUR PRIZE:
-1.Full Name:... 2.Address:... 3.Phone:... 4.Country:...
-
-5.Sex/Gender:...
-
-
-YOURS SINCERELY,
-ANASTACIA SHEFFIELD.
-
+It also gets rid of the stack overflow detector we had hard
+coded into mcount, the stack tracer does just as good with
+generic facilities.
