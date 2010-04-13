@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 13 Apr 2010 05:17:26 +0000
-Subject: [PATCH] sparc64: Use kstack_valid() in die_if_kernel().
-Message-Id: <20100412.221726.239347571.davem@davemloft.net>
+Date: Tue, 13 Apr 2010 06:49:04 +0000
+Subject: [PATCH 3/3] sparc64: Fix memory leak in
+Message-Id: <20100412.234904.109075583.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,68 +9,46 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-This gets rid of a local function (is_kernel_stack()) which tries to
-do the same thing, yet poorly in that it doesn't handle IRQ stacks
-properly.
+Found by kmemleak.
+
+If request_resource() fails, we leak the struct resource we
+allocated to represent the IOMMU mapping area.
+
+This actually happens on sun4v machines because the IOMEM area is only
+reported sans the IOMMU region, unlike all previous systems.  I'll
+need to fix that at some point, but for now fix the leak.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
+ arch/sparc/kernel/pci_common.c |   11 ++++++++---
+ 1 files changed, 8 insertions(+), 3 deletions(-)
 
-Committed to sparc-2.6
-
- arch/sparc/kernel/traps_64.c |   26 +++-----------------------
- 1 files changed, 3 insertions(+), 23 deletions(-)
-
-diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
-index bdc05a2..2ff178c 100644
---- a/arch/sparc/kernel/traps_64.c
-+++ b/arch/sparc/kernel/traps_64.c
-@@ -2202,27 +2202,6 @@ void dump_stack(void)
+diff --git a/arch/sparc/kernel/pci_common.c b/arch/sparc/kernel/pci_common.c
+index b775658..8a00058 100644
+--- a/arch/sparc/kernel/pci_common.c
++++ b/arch/sparc/kernel/pci_common.c
+@@ -371,14 +371,19 @@ static void pci_register_iommu_region(struct pci_pbm_info *pbm)
+ 		struct resource *rp = kzalloc(sizeof(*rp), GFP_KERNEL);
  
- EXPORT_SYMBOL(dump_stack);
- 
--static inline int is_kernel_stack(struct task_struct *task,
--				  struct reg_window *rw)
--{
--	unsigned long rw_addr = (unsigned long) rw;
--	unsigned long thread_base, thread_end;
--
--	if (rw_addr < PAGE_OFFSET) {
--		if (task != &init_task)
--			return 0;
--	}
--
--	thread_base = (unsigned long) task_stack_page(task);
--	thread_end = thread_base + sizeof(union thread_union);
--	if (rw_addr >= thread_base &&
--	    rw_addr < thread_end &&
--	    !(rw_addr & 0x7UL))
--		return 1;
--
--	return 0;
--}
--
- static inline struct reg_window *kernel_stack_up(struct reg_window *rw)
- {
- 	unsigned long fp = rw->ins[6];
-@@ -2251,6 +2230,7 @@ void die_if_kernel(char *str, struct pt_regs *regs)
- 	show_regs(regs);
- 	add_taint(TAINT_DIE);
- 	if (regs->tstate & TSTATE_PRIV) {
-+		struct thread_info *tp = current_thread_info();
- 		struct reg_window *rw = (struct reg_window *)
- 			(regs->u_regs[UREG_FP] + STACK_BIAS);
- 
-@@ -2258,8 +2238,8 @@ void die_if_kernel(char *str, struct pt_regs *regs)
- 		 * find some badly aligned kernel stack.
- 		 */
- 		while (rw &&
--		       count++ < 30&&
--		       is_kernel_stack(current, rw)) {
-+		       count++ < 30 &&
-+		       kstack_valid(tp, (unsigned long) rw)) {
- 			printk("Caller[%016lx]: %pS\n", rw->ins[7],
- 			       (void *) rw->ins[7]);
+ 		if (!rp) {
+-			prom_printf("Cannot allocate IOMMU resource.\n");
+-			prom_halt();
++			pr_info("%s: Cannot allocate IOMMU resource.\n",
++				pbm->name);
++			return;
+ 		}
+ 		rp->name = "IOMMU";
+ 		rp->start = pbm->mem_space.start + (unsigned long) vdma[0];
+ 		rp->end = rp->start + (unsigned long) vdma[1] - 1UL;
+ 		rp->flags = IORESOURCE_BUSY;
+-		request_resource(&pbm->mem_space, rp);
++		if (request_resource(&pbm->mem_space, rp)) {
++			pr_info("%s: Unable to request IOMMU resource.\n",
++				pbm->name);
++			kfree(rp);
++		}
+ 	}
+ }
  
 -- 
 1.7.0.4
