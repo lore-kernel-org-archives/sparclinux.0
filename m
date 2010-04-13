@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 01 Apr 2010 01:06:13 +0000
-Subject: [PATCH] sparc: Fix regset register window handling.
-Message-Id: <20100331.180613.21424983.davem@davemloft.net>
+Date: Tue, 13 Apr 2010 06:42:56 +0000
+Subject: [PATCH 6/7] sparc64: Give a stack frame to the ftrace call sites.
+Message-Id: <20100412.234256.168589035.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,91 +9,70 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-We have to adjust 'reg_window' down by 16 becuase the 'pos' iterator
-we'll use to index into the stack slots will be between 16 and 32.
+It's the only way we'll be able to implement the function
+graph tracer properly.
+
+A positive is that we no longer have to worry about the
+linker over-optimizing the tail call, since we don't
+use a tail call any more.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
+ arch/sparc/lib/mcount.S |   31 ++++++++++++++++---------------
+ 1 files changed, 16 insertions(+), 15 deletions(-)
 
-This should fix registers in core dumps and other debugging
-problems on Sparc.  I'll push this to Linus and stable too.
-
- arch/sparc/kernel/ptrace_32.c |    4 ++++
- arch/sparc/kernel/ptrace_64.c |    4 ++++
- 2 files changed, 8 insertions(+), 0 deletions(-)
-
-diff --git a/arch/sparc/kernel/ptrace_32.c b/arch/sparc/kernel/ptrace_32.c
-index 7e3dfd9..e608f39 100644
---- a/arch/sparc/kernel/ptrace_32.c
-+++ b/arch/sparc/kernel/ptrace_32.c
-@@ -65,6 +65,7 @@ static int genregs32_get(struct task_struct *target,
- 			*k++ = regs->u_regs[pos++];
- 
- 		reg_window = (unsigned long __user *) regs->u_regs[UREG_I6];
-+		reg_window -= 16;
- 		for (; count > 0 && pos < 32; count--) {
- 			if (get_user(*k++, &reg_window[pos++]))
- 				return -EFAULT;
-@@ -76,6 +77,7 @@ static int genregs32_get(struct task_struct *target,
- 		}
- 
- 		reg_window = (unsigned long __user *) regs->u_regs[UREG_I6];
-+		reg_window -= 16;
- 		for (; count > 0 && pos < 32; count--) {
- 			if (get_user(reg, &reg_window[pos++]) ||
- 			    put_user(reg, u++))
-@@ -141,6 +143,7 @@ static int genregs32_set(struct task_struct *target,
- 			regs->u_regs[pos++] = *k++;
- 
- 		reg_window = (unsigned long __user *) regs->u_regs[UREG_I6];
-+		reg_window -= 16;
- 		for (; count > 0 && pos < 32; count--) {
- 			if (put_user(*k++, &reg_window[pos++]))
- 				return -EFAULT;
-@@ -153,6 +156,7 @@ static int genregs32_set(struct task_struct *target,
- 		}
- 
- 		reg_window = (unsigned long __user *) regs->u_regs[UREG_I6];
-+		reg_window -= 16;
- 		for (; count > 0 && pos < 32; count--) {
- 			if (get_user(reg, u++) ||
- 			    put_user(reg, &reg_window[pos++]))
-diff --git a/arch/sparc/kernel/ptrace_64.c b/arch/sparc/kernel/ptrace_64.c
-index 2f6524d..aa90da0 100644
---- a/arch/sparc/kernel/ptrace_64.c
-+++ b/arch/sparc/kernel/ptrace_64.c
-@@ -492,6 +492,7 @@ static int genregs32_get(struct task_struct *target,
- 			*k++ = regs->u_regs[pos++];
- 
- 		reg_window = (compat_ulong_t __user *) regs->u_regs[UREG_I6];
-+		reg_window -= 16;
- 		if (target = current) {
- 			for (; count > 0 && pos < 32; count--) {
- 				if (get_user(*k++, &reg_window[pos++]))
-@@ -516,6 +517,7 @@ static int genregs32_get(struct task_struct *target,
- 		}
- 
- 		reg_window = (compat_ulong_t __user *) regs->u_regs[UREG_I6];
-+		reg_window -= 16;
- 		if (target = current) {
- 			for (; count > 0 && pos < 32; count--) {
- 				if (get_user(reg, &reg_window[pos++]) ||
-@@ -599,6 +601,7 @@ static int genregs32_set(struct task_struct *target,
- 			regs->u_regs[pos++] = *k++;
- 
- 		reg_window = (compat_ulong_t __user *) regs->u_regs[UREG_I6];
-+		reg_window -= 16;
- 		if (target = current) {
- 			for (; count > 0 && pos < 32; count--) {
- 				if (put_user(*k++, &reg_window[pos++]))
-@@ -625,6 +628,7 @@ static int genregs32_set(struct task_struct *target,
- 		}
- 
- 		reg_window = (compat_ulong_t __user *) regs->u_regs[UREG_I6];
-+		reg_window -= 16;
- 		if (target = current) {
- 			for (; count > 0 && pos < 32; count--) {
- 				if (get_user(reg, u++) ||
+diff --git a/arch/sparc/lib/mcount.S b/arch/sparc/lib/mcount.S
+index 73ed0f3..153c80e 100644
+--- a/arch/sparc/lib/mcount.S
++++ b/arch/sparc/lib/mcount.S
+@@ -33,9 +33,13 @@ mcount:
+ 	or		%g2, %lo(ftrace_stub), %g2
+ 	cmp		%g1, %g2
+ 	be,pn		%icc, 1f
+-	 mov		%i7, %o1
+-	jmpl		%g1, %g0
+-	 mov		%o7, %o0
++	 mov		%i7, %g2
++	save		%sp, -128, %sp
++	mov		%g2, %o1
++	jmpl		%g1, %o7
++	 mov		%i7, %o0
++	ret
++	 restore
+ 	/* not reached */
+ 1:
+ #endif
+@@ -57,21 +61,18 @@ ftrace_stub:
+ 	.type		ftrace_caller,#function
+ ftrace_caller:
+ 	sethi		%hi(function_trace_stop), %g1
+-	mov		%i7, %o1
+-	lduw		[%g1 + %lo(function_trace_stop)], %g2
+-	brnz,pn		%g2, ftrace_stub
+-	 mov		%o7, %o0
++	mov		%i7, %g2
++	lduw		[%g1 + %lo(function_trace_stop)], %g3
++	brnz,pn		%g3, ftrace_stub
++	 nop
++	save		%sp, -128, %sp
++	mov		%g2, %o1
+ 	.globl		ftrace_call
+ ftrace_call:
+-	/* If the final kernel link ever turns on relaxation, we'll need
+-	 * to do something about this tail call.  Otherwise the linker
+-	 * will rewrite the call into a branch and nop out the move
+-	 * instruction.
+-	 */
+ 	call		ftrace_stub
+-	 mov		%o0, %o7
+-	retl
+-	 nop
++	 mov		%i7, %o0
++	ret
++	 restore
+ 	.size		ftrace_call,.-ftrace_call
+ 	.size		ftrace_caller,.-ftrace_caller
+ #endif
 -- 
-1.7.0.3
+1.7.0.4
 
