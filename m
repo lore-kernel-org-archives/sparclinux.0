@@ -1,40 +1,50 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 09 Apr 2010 23:01:40 +0000
-Subject: [PATCH 3/4] sched: Use local_irq_save_nmi() in cpu_clock()
-Message-Id: <20100409.160140.250344636.davem@davemloft.net>
+Date: Tue, 13 Apr 2010 06:48:56 +0000
+Subject: [PATCH 1/3] sparc64: Support kmemleak.
+Message-Id: <20100412.234856.177627643.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: peterz@infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
 
-Since we can call cpu_clock() from NMI context fix up the IRQ
-disabling to conform to the new rules.
+Only missing thing was an _sdata marker in vmlinux.lds.S
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- kernel/sched_clock.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/sparc/kernel/vmlinux.lds.S |    4 ++++
+ lib/Kconfig.debug               |    2 +-
+ 2 files changed, 5 insertions(+), 1 deletions(-)
 
-diff --git a/kernel/sched_clock.c b/kernel/sched_clock.c
-index 5b49613..ef159ee 100644
---- a/kernel/sched_clock.c
-+++ b/kernel/sched_clock.c
-@@ -241,9 +241,9 @@ unsigned long long cpu_clock(int cpu)
- 	unsigned long long clock;
- 	unsigned long flags;
+diff --git a/arch/sparc/kernel/vmlinux.lds.S b/arch/sparc/kernel/vmlinux.lds.S
+index c4f5758..0c1e678 100644
+--- a/arch/sparc/kernel/vmlinux.lds.S
++++ b/arch/sparc/kernel/vmlinux.lds.S
+@@ -52,6 +52,10 @@ SECTIONS
+ 	_etext = .;
  
--	local_irq_save(flags);
-+	local_irq_save_nmi(flags);
- 	clock = sched_clock_cpu(cpu);
--	local_irq_restore(flags);
-+	local_irq_restore_nmi(flags);
+ 	RO_DATA(PAGE_SIZE)
++
++	/* Start of data section */
++	_sdata = .;
++
+ 	.data1 : {
+ 		*(.data1)
+ 	}
+diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
+index 1fafb4b..6c2be60 100644
+--- a/lib/Kconfig.debug
++++ b/lib/Kconfig.debug
+@@ -356,7 +356,7 @@ config SLUB_STATS
+ config DEBUG_KMEMLEAK
+ 	bool "Kernel memory leak detector"
+ 	depends on DEBUG_KERNEL && EXPERIMENTAL && !MEMORY_HOTPLUG && \
+-		(X86 || ARM || PPC || S390 || SUPERH)
++		(X86 || ARM || PPC || S390 || SPARC64 || SUPERH)
  
- 	return clock;
- }
+ 	select DEBUG_FS if SYSFS
+ 	select STACKTRACE if STACKTRACE_SUPPORT
 -- 
 1.7.0.4
 
