@@ -1,20 +1,453 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 13 Apr 2010 21:35:37 +0000
+From: Frederic Weisbecker <fweisbec@gmail.com>
+Date: Tue, 13 Apr 2010 21:51:46 +0000
 Subject: Re: [PATCH 7/7] sparc64: Add function graph tracer support.
-Message-Id: <20100413.143537.161971430.davem@davemloft.net>
+Message-Id: <20100413215144.GE5602@nowhere>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100412.234300.212396783.davem@davemloft.net>
 In-Reply-To: <20100412.234300.212396783.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: sparclinux@vger.kernel.org
 
-From: Frederic Weisbecker <fweisbec@gmail.com>
-Date: Tue, 13 Apr 2010 21:45:07 +0200
+On Tue, Apr 13, 2010 at 02:35:37PM -0700, David Miller wrote:
+> From: Frederic Weisbecker <fweisbec@gmail.com>
+> Date: Tue, 13 Apr 2010 21:45:07 +0200
+> 
+> > Heh yeah. The trace/trace_pipe in the main directory are basically
+> > unusable there. Only per_cpu can make it :)
+> 
+> Does it delay for several seconds at the beginning when you 'cat' them
+> just like it does for me?
 
-> Heh yeah. The trace/trace_pipe in the main directory are basically
-> unusable there. Only per_cpu can make it :)
 
-Does it delay for several seconds at the beginning when you 'cat' them
-just like it does for me?
+More than that actually, I tried and it just crashed :-)
+
+
+[  344.012840] INFO: RCU detected CPU stalls: 23 37 41 (detected by 0, tE02 jiffies)
+[  344.025991] CPU[0]: Unexpected SUN4V mondo error 6
+[  344.032430] CPU[0]: Args were cnt(63) cpulist_pa(3ff00e040) mondo_block_pa(3ff00e000)
+[  344.045283] CPU[0]: CPU list [ 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 65535 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 ]
+[  344.084875] * CPU[  0]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[�^@:-2113896449]
+[  344.098508]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[(null)]
+[  344.112395]   CPU[  1]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.126399]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.140583]   CPU[  2]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.154895]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.169076]   CPU[  3]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.183521]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.197909]   CPU[  4]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.212263]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.226612]   CPU[  5]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.240553]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.254027]   CPU[  6]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.267131]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.280255]   CPU[  7]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.293348]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.306543]   CPU[  8]: TSTATE[0000009980001603] TPC[000000000042f51c] TNPC[000000000042f520] TASK[swapper:0]
+[  344.319678]              TPC[__delay+0x2c/0x4c] O7[__delay+0x2c/0x4c] I7[do_raw_spin_lock+0xbc/0x120] RPC[_raw_spin_lock_irq+0x64/0x80]
+[  344.332845]   CPU[  9]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.345914]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.359070]   CPU[ 10]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.372142]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.385268]   CPU[ 11]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.398325]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.411479]   CPU[ 12]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.424539]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.437692]   CPU[ 13]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.450748]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.463870]   CPU[ 14]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.476900]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.490005]   CPU[ 15]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.503061]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.516222]   CPU[ 16]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.529317]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.542513]   CPU[ 17]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.555608]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.568769]   CPU[ 18]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.581849]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.594985]   CPU[ 19]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.608051]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.621238]   CPU[ 20]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.634357]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.647597]   CPU[ 21]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.660763]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.673977]   CPU[ 22]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.687099]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.700291]   CPU[ 23]: TSTATE[0000000080001606] TPC[000000000042f4f4] TNPC[000000000042f4f8] TASK[swapper:0]
+[  344.713429]              TPC[__delay+0x4/0x4c] O7[__delay+0x2c/0x4c] I7[do_raw_spin_lock+0xbc/0x120] RPC[_raw_spin_lock_irqsave+0x6c/0x88]
+[  344.726659]   CPU[ 24]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.739760]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.752939]   CPU[ 25]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.766021]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.779151]   CPU[ 26]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.792185]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.805257]   CPU[ 27]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.818276]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.831423]   CPU[ 28]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.844424]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.857496]   CPU[ 29]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.870459]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.883482]   CPU[ 30]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.896482]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.909565]   CPU[ 31]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.922580]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.935690]   CPU[ 32]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.948716]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.961824]   CPU[ 33]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  344.974824]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  344.987877]   CPU[ 34]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  345.000852]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  345.013897]   CPU[ 35]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  345.026871]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  345.039967]   CPU[ 36]: TSTATE[0000004411001601] TPC[000000000042ca74] TNPC[000000000042ca78] TASK[swapper:0]
+[  345.052993]              TPC[cpu_idle+0xd8/0x164] O7[cpu_idle+0xc4/0x164] I7[after_lock_tlb+0x1b4/0x1cc] RPC[clocksource_tick_read+0x10/0x20]
+[  345.066257]   CPU[ 37]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.079270]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.085891]   CPU[ 38]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.098833]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.105400]   CPU[ 39]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.119523]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.126561]   CPU[ 40]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.139451]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.145944]   CPU[ 41]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.158607]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.165032]   CPU[ 42]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.177583]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.183933]   CPU[ 43]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.196318]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.202575]   CPU[ 44]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.214796]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.220984]   CPU[ 45]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.233051]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.239219]   CPU[ 46]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.251249]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.257386]   CPU[ 47]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.269344]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.275456]   CPU[ 48]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.287363]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.293462]   CPU[ 49]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.305399]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.311510]   CPU[ 50]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.323437]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.329550]   CPU[ 51]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.341503]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.347639]   CPU[ 52]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.359611]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.365736]   CPU[ 53]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.377683]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.383778]   CPU[ 54]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.395690]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.401807]   CPU[ 55]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.413781]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.419931]   CPU[ 56]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.431927]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.438068]   CPU[ 57]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.450041]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.456182]   CPU[ 58]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.468155]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.474271]   CPU[ 59]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.486216]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.492310]   CPU[ 60]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.504249]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.510388]   CPU[ 61]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.522387]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.528539]   CPU[ 62]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.540542]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.546689]   CPU[ 63]: TSTATE[0000000000000000] TPC[0000000000000000] TNPC[0000000000000000] TASK[NULL:-1]
+[  345.558657]              TPC[0] O7[0] I7[0] RPC[0]
+[  345.564659] CPU[0]: Unexpected SUN4V mondo error 6
+[  345.570555] CPU[0]: Args were cnt(1) cpulist_pa(3ff00e040) mondo_block_pa(3ff00e000)
+[  345.582283] CPU[0]: CPU list [ 37 ]
+[  345.588358] FAULT[�^@:-2113896449]: 32-bit process reports 64-bit fault address [fffffffe094b6000]
+[  345.600198] TSTATE: 0000000880e01607 TPC: 00000000004c9d58 TNPC: 00000000004c9d5c Y: 00000000    Tainted: G      D W 
+[  345.612325] TPC: <tracing_record_cmdline+0x74/0x150>
+[  345.618411] g0: fffff803f41f5220 g1: 000000000149607c g2: fffffffe0801fffc g3: c25e61f0c25e6088
+[  345.630440] g4: 0000000000457a98 g5: fffff80011244000 g6: fffff803f6830000 g7: 0000000000457a98
+[  345.642799] o0: 0000000000000001 o1: fffff803f08e0500 o2: 0000000000000003 o3: 0000000000000000
+[  345.655381] o4: 0000000000000002 o5: 0000000000000000 sp: fffff803f6832b41 ret_pc: 00000000004c9d0c
+[  345.668216] RPC: <tracing_record_cmdline+0x28/0x150>
+[  345.674722] l0: 00000000008e23c0 l1: 0000000000457a98 l2: 0000000000462ec0 l3: 0000000000bf3d30
+[  345.687603] l4: 000000000000e096 l5: 0000000000bf3d10 l6: 0000000000bf3d20 l7: 00000000008d0180
+[  345.700812] i0: 0000000000457a98 i1: fffff803f08e0500 i2: 0000000000000001 i3: 0000000000000000
+[  345.714324] i4: 0000000000000002 i5: 0000000000000000 i6: fffff803f6832c01 i7: 00000000004ce3a4
+[  345.728341] I7: <probe_sched_wakeup+0x18/0xcc>
+[  345.735308] Unable to handle kernel paging request at virtual address fffffffe094b6000
+[  345.749377] Kernel unaligned access at TPC[44e4f4] unhandled_fault+0x4c/0xa8
+[  345.756615] Unable to handle kernel paging request in mna handler
+[  345.757001]  at virtual address c25e400082086382
+[  345.770927] Kernel unaligned access at TPC[4334d8] kernel_mna_trap_fault+0x80/0x108
+[  345.785055] Unable to handle kernel paging request in mna handler
+[  345.785441]  at virtual address c25e400082086382
+[  345.799386] Kernel unaligned access at TPC[4334d8] kernel_mna_trap_fault+0x80/0x108
+[  345.813172] Unable to handle kernel paging request in mna handler
+[  345.813558]  at virtual address c25e400082086382
+[  345.827112] Kernel unaligned access at TPC[4334d8] kernel_mna_trap_fault+0x80/0x108
+[  345.840680] Unable to handle kernel paging request in mna handler
+[  345.841067]  at virtual address c25e400082086382
+[  345.854636] Kernel unaligned access at TPC[4334d8] kernel_mna_trap_fault+0x80/0x108
+[  345.868038] Unable to handle kernel paging request in mna handler
+[  345.868423]  at virtual address c25e400082086382
+[  345.881562] Unable to handle kernel paging request in mna handler
+[  345.881949]  at virtual address c25e400082086382
+[  345.894779] Unable to handle kernel paging request in mna handler
+[  345.895166]  at virtual address c25e400082086382
+[  345.908006] Unable to handle kernel paging request in mna handler
+[  345.908394]  at virtual address c25e400082086382
+[  345.920982] Unable to handle kernel paging request in mna handler
+[  345.921375]  at virtual address fffffffffffff803
+[  349.722230]               \|/ ____ \|/
+[  349.722239]               "@'/ .. \`@"
+[  349.722246]               /_| \__/ |_\
+[  349.722254]                  \__U_/
+[  349.745936] swapper(0): Kernel illegal instruction [#7]
+[  349.751644] TSTATE: 0000004480e01602 TPC: 0000000000457b5c TNPC: 0000000000457b60 Y: 00000002    Tainted: G      D W 
+[  349.762859] TPC: <enqueue_task+0x18/0x84>
+[  349.768324] g0: 0000000000000002 g1: 0000000000000001 g2: 0000000000457d08 g3: fffff803f7c76fc1
+[  349.779262] g4: fffff803f7c72900 g5: fffff80013444000 g6: fffff803f7c74000 g7: 0000000000000000
+[  349.790308] o0: 00000000008f06e0 o1: fffff80013fc5c98 o2: 000000000076328c o3: 0000000000000000
+[  349.801676] o4: 0000000000000002 o5: 0000000000000001 sp: fffff803f7c76f01 ret_pc: 0000000000457b4c
+[  349.813239] RPC: <enqueue_task+0x8/0x84>
+[  349.818953] l0: 0000000000000000 l1: 000000000000000e l2: ffffffffffffffff l3: 0000000000000000
+[  349.830486] l4: fffff803f7c72900 l5: 0006000000000000 l6: 000000000000000e l7: 0000000080001002
+[  349.842331] i0: fffff80013fc5c80 i1: fffff803f792a600 i2: 0000000000000001 i3: 0000000000000000
+[  349.854441] i4: 0000000000000002 i5: 0000000000000000 i6: fffff803f7c76fc1 i7: 0000000000457d08
+[  349.866888] I7: <activate_task+0x48/0x64>
+[  349.873274] Caller[0000000000457d08]: activate_task+0x48/0x64
+[  349.879855] Caller[0000000000463080]: try_to_wake_up+0x368/0x57c
+[  349.886501] Caller[0000000000463304]: wake_up_process+0x18/0x2c
+[  349.893098] Caller[0000000000492854]: hrtimer_wakeup+0x1c/0x2c
+[  349.899590] Caller[0000000000492a4c]: __run_hrtimer+0x1e8/0x344
+[  349.905973] Caller[0000000000492e1c]: hrtimer_interrupt+0xe0/0x1d8
+[  349.912359] Caller[0000000000764534]: timer_interrupt+0xe0/0x11c
+[  349.918642] Caller[0000000000426b04]: valid_addr_bitmap_patch+0xbc/0x238
+[  349.924822] Caller[000000000042ca60]: cpu_idle+0xc4/0x164
+[  349.930805] Caller[000000000075c318]: after_lock_tlb+0x1b4/0x1cc
+[  349.936677] Caller[0000000000000000]: (null)
+[  349.942263] Instruction DUMP: 901222e0  22ce8005  ca484db2 <da7c9876> c27660b8  c25e61f0  0ac0400d  05002e07  c25e6008 
+[  349.953956] Kernel panic - not syncing: Aiee, killing interrupt handler!
+[  349.959488] Call Trace:
+[  349.964988]  [000000000075f960] panic+0x64/0x130
+[  349.970469]  [0000000000472e2c] do_exit+0x70/0x77c
+[  349.975756]  [0000000000427e84] die_if_kernel+0x2a8/0x2d4
+[  349.980912]  [00000000004281dc] do_illegal_instruction+0x58/0x180
+[  349.985940]  [0000000000420210] tl0_ill+0x10/0x20
+[  349.990751]  [0000000000457b5c] enqueue_task+0x18/0x84
+[  349.995410]  [0000000000457d08] activate_task+0x48/0x64
+[  349.999903]  [0000000000463080] try_to_wake_up+0x368/0x57c
+[  350.004233]  [0000000000463304] wake_up_process+0x18/0x2c
+[  350.008568]  [0000000000492854] hrtimer_wakeup+0x1c/0x2c
+[  350.012872]  [0000000000492a4c] __run_hrtimer+0x1e8/0x344
+[  350.017180]  [0000000000492e1c] hrtimer_interrupt+0xe0/0x1d8
+[  350.021502]  [0000000000764534] timer_interrupt+0xe0/0x11c
+[  350.025828]  [0000000000426b04] valid_addr_bitmap_patch+0xbc/0x238
+[  350.030195]  [000000000042ca74] cpu_idle+0xd8/0x164
+[  350.034505]  [000000000075c318] after_lock_tlb+0x1b4/0x1cc
+[  350.038920] Press Stop-A (L1-A) to return to the boot prom
+[  354.379142] BUG: NMI Watchdog detected LOCKUP on CPU0, ip 0042f518, registers:
+[  354.388171] TSTATE: 0000009980e01603 TPC: 000000000042f518 TNPC: 000000000042f51c Y: 00000000    Tainted: G      D W 
+[  354.397811] TPC: <__delay+0x28/0x4c>
+[  354.402429] g0: 000000000000000e g1: 00000000008e2440 g2: 00000000008e2440 g3: 0000000000000000
+[  354.411707] g4: fffff803f6752ce0 g5: fffff80011244000 g6: fffff803f43c8000 g7: 0000000000000000
+[  354.421574] o0: 0000000000000000 o1: fffff803f43c8400 o2: 00000000005ea904 o3: 0000000000000000
+[  354.432139] o4: 0000000000000102 o5: 0000000000000008 sp: fffff803ffa6a981 ret_pc: 000000000042f51c
+[  354.443299] RPC: <__delay+0x2c/0x4c>
+[  354.448944] l0: 000000601f09927f l1: 00000000008e23c8 l2: 00000000005ea900 l3: 0000000000000400
+[  354.460644] l4: 000000000000000e l5: 0000000000000002 l6: 0000000000000000 l7: 0000000000000008
+[  354.473018] i0: 0000000000000001 i1: 0000000000877be8 i2: 00000000005e32dc i3: 0000000000000000
+[  354.486104] i4: 0000000000000002 i5: 0000000000000001 i6: fffff803ffa6aa41 i7: 00000000005ea90c
+[  354.499817] I7: <do_raw_spin_lock+0xbc/0x120>
+[  354.506789] Call Trace:
+[  354.513660]  [000000000043a7f4] perfctr_irq+0x248/0x3f4
+[  354.520555]  [00000000004209f4] tl0_irq15+0x14/0x20
+[  354.527184]  [000000000042f518] __delay+0x28/0x4c
+[  354.533649]  [00000000005ea90c] do_raw_spin_lock+0xbc/0x120
+[  354.540074]  [0000000000763410] _raw_spin_lock_irqsave+0x6c/0x88
+[  354.546547]  [00000000005e32dc] ftrace_graph_caller+0x10/0x18
+[  354.552910]  [00000000005e32dc] ftrace_graph_caller+0x10/0x18
+[  354.558978]  [00000000005e32dc] ftrace_graph_caller+0x10/0x18
+[  354.564780]  [00000000005e32dc] ftrace_graph_caller+0x10/0x18
+[  354.570306]  [00000000005e32dc] ftrace_graph_caller+0x10/0x18
+[  364.853704] BUG: NMI Watchdog detected LOCKUP on CPU46, ip 0042f174, registers:
+[  364.863806] TSTATE: 0000000080e01604 TPC: 000000000042f174 TNPC: 000000000042f178 Y: 00000000    Tainted: G      D W 
+[  364.874219] TPC: <stick_get_tick+0x4/0x18>
+[  364.879332] g0: 0000000000001000 g1: 000000000042f170 g2: 00000000008e2440 g3: 0000000000000000
+[  364.889400] g4: fffff803f69d80e0 g5: fffff80016e44000 g6: fffff803f69e4000 g7: 0000000000000000
+[  364.899456] o0: 0000000000000002 o1: fffff803f69e4400 o2: 000000000042f538 o3: 0000000000000000
+[  364.909482] o4: 000000000000004f o5: 0000000000000002 sp: fffff803ff8fb1a1 ret_pc: 00000000004209f4
+[  364.919667] RPC: <tl0_irq15+0x14/0x20>
+[  364.924821] l0: 0000000000001000 l1: 0000000080001603 l2: 000000000042f534 l3: 0000000000000400
+[  364.935493] l4: 000000000000000e l5: 0000000000000002 l6: 0000000000000000 l7: 0000000000000008
+[  364.946876] i0: 0000000000000080 i1: fffff803f69e4400 i2: 00000000005ea904 i3: 0000000000000000
+[  364.958878] i4: 0000000000000102 i5: 00000000005c8c78 i6: fffff803ff8fb261 i7: 000000000042f508
+[  364.971820] I7: <__delay+0x18/0x4c>
+[  364.978506] Call Trace:
+[  364.985232]  [000000000043a7f4] perfctr_irq+0x248/0x3f4
+[  364.992013]  [00000000004209f4] tl0_irq15+0x14/0x20
+[  364.998527]  [000000000042f174] stick_get_tick+0x4/0x18
+[  365.004942]  [000000000042f508] __delay+0x18/0x4c
+[  365.011157]  [00000000005ea90c] do_raw_spin_lock+0xbc/0x120
+[  365.017473]  [0000000000763410] _raw_spin_lock_irqsave+0x6c/0x88
+[  365.023707]  [00000000005c8c80] blk_rq_timed_out_timer+0x18/0xf0
+[  365.029795]  [000000000047f0a0] run_timer_softirq+0x370/0x50c
+[  365.035736]  [0000000000476b0c] __do_softirq+0x1c4/0x384
+[  365.041495]  [000000000042a720] do_softirq+0x9c/0xdc
+[  365.047059]  [00000000004764d0] irq_exit+0x74/0xdc
+[  365.052368]  [000000000076453c] timer_interrupt+0xe8/0x11c
+[  365.057586]  [0000000000426b04] valid_addr_bitmap_patch+0xbc/0x238
+[  365.062701]  [000000000042ca74] cpu_idle+0xd8/0x164
+[  365.067743]  [000000000075c318] after_lock_tlb+0x1b4/0x1cc
+[  365.072767]  [0000000000000000] (null)
+[  368.199367] BUG: NMI Watchdog detected LOCKUP on CPU8, ip 0042f178, registers:
+[  368.209054] TSTATE: 0000009980e01604 TPC: 000000000042f178 TNPC: 000000000042f17c Y: 00000000    Tainted: G      D W 
+[  368.218808] TPC: <stick_get_tick+0x8/0x18>
+[  368.223475] g0: 0000000000001000 g1: 00000063deac43ff g2: 00000000008e2440 g3: 0000000000000000
+[  368.232857] g4: fffff803f1c383a0 g5: fffff80012244000 g6: fffff803f0a30000 g7: 0000000000000000
+[  368.242978] o0: 0000000000000001 o1: fffff803f0a30400 o2: 000000000042f530 o3: 0000000000000000
+[  368.253788] o4: 000000000000004f o5: 0000000000000002 sp: fffff803f0a323d1 ret_pc: 00000000004209f4
+[  368.265260] RPC: <tl0_irq15+0x14/0x20>
+[  368.271042] l0: 0000000000001000 l1: 0000009980001603 l2: 000000000042f52c l3: 0000000000000400
+[  368.282920] l4: 000000000000000e l5: 0000000000000000 l6: 0000000000000000 l7: 0000000000000008
+[  368.295455] i0: 0000000000000000 i1: fffff803f0a30400 i2: 000000000042f4f4 i3: 0000000000000000
+[  368.308751] i4: 0000000000000000 i5: 00000000005c3cd0 i6: fffff803f0a32491 i7: 000000000042f51c
+[  368.322673] I7: <__delay+0x2c/0x4c>
+[  368.329662] Call Trace:
+[  368.336588]  [000000000043a7f4] perfctr_irq+0x248/0x3f4
+[  368.343537]  [00000000004209f4] tl0_irq15+0x14/0x20
+[  368.350231]  [000000000042f178] stick_get_tick+0x8/0x18
+[  368.356841]  [000000000042f51c] __delay+0x2c/0x4c
+[  368.363211]  [00000000005ea90c] do_raw_spin_lock+0xbc/0x120
+[  368.369654]  [0000000000763388] _raw_spin_lock_irq+0x64/0x80
+[  368.375995]  [00000000005c3d08] __make_request+0x40/0x604
+[  368.382150]  [00000000005c1bd0] generic_make_request+0x51c/0x5a4
+[  368.388183]  [00000000005c1d44] submit_bio+0xec/0xfc
+[  368.394041]  [0000000000545df4] submit_bh+0x150/0x178
+[  368.399691]  [0000000000549604] __block_write_full_page+0x29c/0x404
+[  368.405236]  [0000000000549840] block_write_full_page_endio+0xd4/0xe8
+[  368.410667]  [0000000000549874] block_write_full_page+0x20/0x34
+[  368.415904]  [0000000000583f98] ext3_writeback_writepage+0xe0/0x1d0
+[  368.421184]  [00000000004e91d4] __writepage+0x1c/0x54
+[  368.426319]  [00000000004e9514] write_cache_pages+0x1d4/0x300
+[  371.360598] BUG: NMI Watchdog detected LOCKUP on CPU0, ip 0042f520, registers:
+[  371.370081] TSTATE: 0000009980001601 TPC: 000000000042f520 TNPC: 000000000042f170 Y: 00000000    Tainted: G      D W 
+[  371.379609] TPC: <__delay+0x30/0x4c>
+[  371.384111] g0: 0000000000000000 g1: 000000000042f170 g2: 00000000008e2440 g3: fffff803ff922561
+[  371.393235] g4: fffff803f68eed00 g5: fffff80011244000 g6: fffff803f68f0000 g7: 0000000000bb0e18
+[  371.403069] o0: 0000000012fda000 o1: 000000000046e9ec o2: fffff803ff922c08 o3: fffff803ff922561
+[  371.413571] o4: 0000000000000000 o5: 0000001900000058 sp: fffff803ff922321 ret_pc: 000000000042f51c
+[  371.424803] RPC: <__delay+0x2c/0x4c>
+[  371.430468] l0: 00000064a73050ff l1: 00000000008e23c8 l2: fffff803f78edec0 l3: 0000000000000000
+[  371.442169] l4: fffff80011dc2c88 l5: 0000000000000058 l6: 0000000000000000 l7: 0000000000000008
+[  371.454500] i0: 0000000045707d40 i1: 000000000046e9ec i2: fffff803ff922561 i3: 0000000000045c34
+[  371.467462] i4: 0000000000000000 i5: fffff803ff922b28 i6: fffff803ff9223e1 i7: 000000000042f548
+[  371.481096] I7: <udelay+0xc/0x1c>
+[  371.487949] Call Trace:
+[  371.494725] Kernel panic - not syncing: Attempted to kill the idle task!
+[  371.501741] Call Trace:
+[  371.508588] Press Stop-A (L1-A) to return to the boot prom
+[  379.500916] BUG: NMI Watchdog detected LOCKUP on CPU63, ip 0042f520, registers:
+[  379.514625] TSTATE: 0000000080e01603 TPC: 000000000042f520 TNPC: 000000000042f170 Y: 00000000    Tainted: G      D W 
+[  379.528626] TPC: <__delay+0x30/0x4c>
+[  379.535357] g0: 000000000000000e g1: 000000000042f170 g2: 00000000008e2440 g3: fffff803f6d1ee41
+[  379.548748] g4: fffff803f6d156a0 g5: fffff80019044000 g6: fffff803f6d1c000 g7: 0000000000cf3e80
+[  379.562091] o0: 00000066ef6b447f o1: fffff803f6d1c400 o2: 00000000005ea904 o3: 0000000000000000
+[  379.575670] o4: 0000000000000002 o5: fffff803f6d1fc48 sp: fffff803f6d1ee41 ret_pc: 000000000042f51c
+[  379.589562] RPC: <__delay+0x2c/0x4c>
+[  379.596306] l0: 00000066ef6b447f l1: 00000000008e23c8 l2: 00000000005ea900 l3: 0000000000000400
+[  379.609707] l4: 000000000000000e l5: 0000000000000002 l6: 0000000000000000 l7: 0000000000000008
+[  379.623163] i0: 0000000000000001 i1: fffff80019bc5c98 i2: 0000000000000000 i3: 0000000000000000
+[  379.636819] i4: 0000000000000002 i5: 000000000046b8d8 i6: fffff803f6d1ef01 i7: 00000000005ea90c
+[  379.651076] I7: <do_raw_spin_lock+0xbc/0x120>
+[  379.658091] Call Trace:
+[  379.664946]  [000000000043a7f4] perfctr_irq+0x248/0x3f4
+[  379.671840]  [00000000004209f4] tl0_irq15+0x14/0x20
+[  379.678477]  [000000000042f520] __delay+0x30/0x4c
+[  379.684930]  [00000000005ea90c] do_raw_spin_lock+0xbc/0x120
+[  379.691344]  [0000000000763280] _raw_spin_lock+0x58/0x74
+[  379.697763]  [000000000046b8d8] scheduler_tick+0x48/0x358
+[  379.704073]  [00000000004803d4] update_process_times+0x4c/0x64
+[  379.710271]  [000000000049c210] tick_sched_timer+0xb4/0xdc
+[  379.716295]  [0000000000492a4c] __run_hrtimer+0x1e8/0x344
+[  379.722164]  [0000000000492e1c] hrtimer_interrupt+0xe0/0x1d8
+[  379.727870]  [0000000000764534] timer_interrupt+0xe0/0x11c
+[  379.733392]  [0000000000426b04] valid_addr_bitmap_patch+0xbc/0x238
+[  379.738799]  [000000000042ca74] cpu_idle+0xd8/0x164
+[  379.743964]  [000000000075c318] after_lock_tlb+0x1b4/0x1cc
+[  379.749241]  [0000000000000000] (null)
+[  379.754287] Kernel panic - not syncing: Aiee, killing interrupt handler!
+[  379.759425] Call Trace:
+[  379.764308]  [000000000075f960] panic+0x64/0x130
+[  379.769088]  [0000000000472e2c] do_exit+0x70/0x77c
+[  379.773683]  [000000000043a878] perfctr_irq+0x2cc/0x3f4
+[  379.778170]  [00000000004209f4] tl0_irq15+0x14/0x20
+[  379.782434]  [000000000042f520] __delay+0x30/0x4c
+[  379.786508]  [00000000005ea90c] do_raw_spin_lock+0xbc/0x120
+[  379.790632]  [0000000000763280] _raw_spin_lock+0x58/0x74
+[  379.794745]  [000000000046b8d8] scheduler_tick+0x48/0x358
+[  379.798870]  [00000000004803d4] update_process_times+0x4c/0x64
+[  379.803028]  [000000000049c210] tick_sched_timer+0xb4/0xdc
+[  379.807211]  [0000000000492a4c] __run_hrtimer+0x1e8/0x344
+[  379.811379]  [0000000000492e1c] hrtimer_interrupt+0xe0/0x1d8
+[  379.815557]  [0000000000764534] timer_interrupt+0xe0/0x11c
+[  379.819713]  [0000000000426b04] valid_addr_bitmap_patch+0xbc/0x238
+[  379.823892]  [000000000042ca74] cpu_idle+0xd8/0x164
+[  379.827963]  [000000000075c318] after_lock_tlb+0x1b4/0x1cc
+[  379.832187] Press Stop-A (L1-A) to return to the boot prom
+[  380.330871] BUG: NMI Watchdog detected LOCKUP on CPU53, ip 0042f178, registers:
+[  380.339479] TSTATE: 0000009980e01605 TPC: 000000000042f178 TNPC: 000000000042f17c Y: 00000000    Tainted: G      D W 
+[  380.348735] TPC: <stick_get_tick+0x8/0x18>
+[  380.353369] g0: 0000000000461494 g1: 00000067290c71ff g2: 00000000008e2440 g3: 0000000000000000
+[  380.362648] g4: fffff803f6b2e7e0 g5: fffff80017c44000 g6: fffff803f6b30000 g7: 0000000000000000
+[  380.372507] o0: 0000000000000002 o1: fffff803f6b30400 o2: 000000000042f4f8 o3: 0000000000000000
+[  380.383136] o4: 000000000000004f o5: 0000000000000002 sp: fffff803f6b32cc1 ret_pc: 00000000004209f4
+[  380.394519] RPC: <tl0_irq15+0x14/0x20>
+[  380.400265] l0: 0000000000001000 l1: 0000000080001604 l2: 000000000042f4f4 l3: 0000000000000400
+[  380.412106] l4: 000000000000000e l5: 0000000000000002 l6: 0000000000000000 l7: 0000000000000008
+[  380.424652] i0: 0000000000000000 i1: fffff803f6b30400 i2: 000000000042f4f4 i3: 0000000000000000
+[  380.437935] i4: 000000467c1cc03f i5: 00000046ee702859 i6: fffff803f6b32d81 i7: 000000000042f51c
+[  380.451842] I7: <__delay+0x2c/0x4c>
+[  380.458851] Call Trace:
+[  380.465769]  [000000000043a7f4] perfctr_irq+0x248/0x3f4
+[  380.472708]  [00000000004209f4] tl0_irq15+0x14/0x20
+[  380.479391]  [000000000042f178] stick_get_tick+0x8/0x18
+[  380.485978]  [000000000042f51c] __delay+0x2c/0x4c
+[  380.492352]  [00000000005ea90c] do_raw_spin_lock+0xbc/0x120
+[  380.498811]  [0000000000763410] _raw_spin_lock_irqsave+0x6c/0x88
+[  380.505185]  [000000000045c384] __wake_up+0x10/0x48
+[  380.511293]  [000000000046f774] printk_tick+0x70/0x80
+[  380.517288]  [00000000004803c4] update_process_times+0x3c/0x64
+[  380.523184]  [000000000049c210] tick_sched_timer+0xb4/0xdc
+[  380.528889]  [0000000000492a4c] __run_hrtimer+0x1e8/0x344
+[  380.534401]  [0000000000492e1c] hrtimer_interrupt+0xe0/0x1d8
+[  380.539754]  [0000000000764534] timer_interrupt+0xe0/0x11c
+[  380.544960]  [0000000000426b04] valid_addr_bitmap_patch+0xbc/0x238
+[  380.550238]  [000000000042ca74] cpu_idle+0xd8/0x164
+[  380.555309]  [000000000075c318] after_lock_tlb+0x1b4/0x1cc
+[  380.560279] Kernel panic - not syncing: Aiee, killing interrupt handler!
+[  380.565173] Call Trace:
+[  380.569823]  [000000000075f960] panic+0x64/0x130
+[  380.574369]  [0000000000472e2c] do_exit+0x70/0x77c
+[  380.578723]  [000000000043a878] perfctr_irq+0x2cc/0x3f4
+[  380.582958]  [00000000004209f4] tl0_irq15+0x14/0x20
+[  380.586959]  [000000000042f178] stick_get_tick+0x8/0x18
+[  380.591022]  [000000000042f51c] __delay+0x2c/0x4c
+[  380.595032]  [00000000005ea90c] do_raw_spin_lock+0xbc/0x120
+[  380.599112]  [0000000000763410] _raw_spin_lock_irqsave+0x6c/0x88
+[  380.603209]  [000000000045c384] __wake_up+0x10/0x48
+[  380.607234]  [000000000046f774] printk_tick+0x70/0x80
+[  380.611345]  [00000000004803c4] update_process_times+0x3c/0x64
+[  380.615518]  [000000000049c210] tick_sched_timer+0xb4/0xdc
+[  380.619668]  [0000000000492a4c] __run_hrtimer+0x1e8/0x344
+[  380.623790]  [0000000000492e1c] hrtimer_interrupt+0xe0/0x1d8
+[  380.627920]  [0000000000764534] timer_interrupt+0xe0/0x11c
+[  380.632014]  [0000000000426b04] valid_addr_bitmap_patch+0xbc/0x238
+[  380.636207] Press Stop-A (L1-A) to return to the boot prom
+[  381.932130] BUG: NMI Watchdog detected LOCKUP on CPU11, ip 0042f518, registers:
+[  381.940854] TSTATE: 0000009980e01604 TPC: 000000000042f518 TNPC: 000000000042f51c Y: 00000000    Tainted: G      D W 
+[  381.950254] TPC: <__delay+0x28/0x4c>
+[  381.954924] g0: 000000000000000e g1: 00000000008e2440 g2: 00000000008e2440 g3: 0000000000000000
+[  381.964403] g4: fffff803f7b62800 g5: fffff80012844000 g6: fffff803f7b64000 g7: 0000000000000000
+[  381.974455] o0: 0000000000000000 o1: fffff803f7b64400 o2: 00000000005ea904 o3: 0000000000000000
+[  381.985256] o4: 000000467c1cc03f o5: 00000046edc6e5bb
+
+
