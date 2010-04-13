@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 13 Apr 2010 21:57:19 +0000
+From: Frederic Weisbecker <fweisbec@gmail.com>
+Date: Tue, 13 Apr 2010 21:57:29 +0000
 Subject: Re: [PATCH 7/7] sparc64: Add function graph tracer support.
-Message-Id: <20100413.145719.08253677.davem@davemloft.net>
+Message-Id: <20100413215728.GF5602@nowhere>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100412.234300.212396783.davem@davemloft.net>
 In-Reply-To: <20100412.234300.212396783.davem@davemloft.net>
@@ -10,23 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Steven Rostedt <rostedt@goodmis.org>
-Date: Tue, 13 Apr 2010 17:52:21 -0400
-
-> On Tue, 2010-04-13 at 14:34 -0700, David Miller wrote:
->> BTW, one thing that drives me nuts on this machine is that catting the
->> 'trace' file takes several seconds to start up.  Is it calling
->> stop_machine() or something else which very expensive with high cpu
->> counts?
+On Tue, Apr 13, 2010 at 02:35:37PM -0700, David Miller wrote:
+> From: Frederic Weisbecker <fweisbec@gmail.com>
+> Date: Tue, 13 Apr 2010 21:45:07 +0200
 > 
-> No, in does not call stop_machine, but it stops all tracing on all cpus.
-> I wonder what is happening :-/
+> > Heh yeah. The trace/trace_pipe in the main directory are basically
+> > unusable there. Only per_cpu can make it :)
 > 
-> It does allocate an "iterator" that has per cpu descriptors.
-> 
-> Does "trace_pipe" give you the same issues?
+> Does it delay for several seconds at the beginning when you 'cat' them
+> just like it does for me?
 
-Ok, I'll try to track down the cause, thanks Steven.
 
-'perf' works fine in this configuration so maybe that will
-provide some clues.
+May be the stall started before.
+
+Enabling the tracer now gives me the same result:
+
+echo function_graph > current_tracer
+
