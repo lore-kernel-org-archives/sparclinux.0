@@ -1,39 +1,24 @@
-From: Frederic Weisbecker <fweisbec@gmail.com>
-Date: Tue, 13 Apr 2010 18:59:24 +0000
-Subject: [PATCH] sparc: Fix forgotten kmemleak headers inclusion
-Message-Id: <1271185164-5958-1-git-send-regression-fweisbec@gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 13 Apr 2010 21:29:03 +0000
+Subject: Re: [PATCH] sparc: Fix forgotten kmemleak headers inclusion
+Message-Id: <20100413.142903.15937226.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1271185164-5958-1-git-send-regression-fweisbec@gmail.com>
+In-Reply-To: <1271185164-5958-1-git-send-regression-fweisbec@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="windows-1254"
+Content-Transfer-Encoding: base64
 To: sparclinux@vger.kernel.org
 
-Fix forgotten kmemleak headers inclusion for kmemleak_not_leak()
-declaration.
-
-This fixes the following build error:
-
-	arch/sparc/kernel/irq_64.c: In function ‘sun4v_build_virq’:
-	arch/sparc/kernel/irq_64.c:657: error: implicit declaration of function ‘kmemleak_not_leak’
-
-Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: David Miller <davem@davemloft.net>
----
- arch/sparc/kernel/irq_64.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
-index 454ce3a..2b04c72 100644
---- a/arch/sparc/kernel/irq_64.c
-+++ b/arch/sparc/kernel/irq_64.c
-@@ -22,6 +22,7 @@
- #include <linux/seq_file.h>
- #include <linux/ftrace.h>
- #include <linux/irq.h>
-+#include <linux/kmemleak.h>
- 
- #include <asm/ptrace.h>
- #include <asm/processor.h>
--- 
-1.6.2.3
-
+RnJvbTogRnJlZGVyaWMgV2Vpc2JlY2tlciA8ZndlaXNiZWNAZ21haWwuY29tPgpEYXRlOiBUdWUs
+IDEzIEFwciAyMDEwIDIwOjU5OjI0ICswMjAwCgo+IEZpeCBmb3Jnb3R0ZW4ga21lbWxlYWsgaGVh
+ZGVycyBpbmNsdXNpb24gZm9yIGttZW1sZWFrX25vdF9sZWFrKCkKPiBkZWNsYXJhdGlvbi4KPiAK
+PiBUaGlzIGZpeGVzIHRoZSBmb2xsb3dpbmcgYnVpbGQgZXJyb3I6Cj4gCj4gCWFyY2gvc3BhcmMv
+a2VybmVsL2lycV82NC5jOiBJbiBmdW5jdGlvbiChc3VuNHZfYnVpbGRfdmlycaI6Cj4gCWFyY2gv
+c3BhcmMva2VybmVsL2lycV82NC5jOjY1NzogZXJyb3I6IGltcGxpY2l0IGRlY2xhcmF0aW9uIG9m
+IGZ1bmN0aW9uIKFrbWVtbGVha19ub3RfbGVha6IKPiAKPiBTaWduZWQtb2ZmLWJ5OiBGcmVkZXJp
+YyBXZWlzYmVja2VyIDxmd2Vpc2JlY0BnbWFpbC5jb20+CgpTdHJhbmdlLCBhbGwgbXkgYnVpbGQg
+dGVzdHMgcGFzc2VkIDotKSAgSSBtdXN0IGJlIGdldHRpbmcgdGhlCmhlYWRlciBpbXBsaWNpdGx5
+IHNvbWVob3cuCgpBcHBsaWVkLCB0aGFua3MgRnJlZGVyaWMhCv/06Lp7Lm7HK4m3n66JrYYrJYrL
+/7Hp3bYXpYp3/7p7Lm7HK4m3rKWq3JYp7sf4p7YXm6HcqH2pnrLGoHraJmo6K3aJqP74Hq/5Hq53
+pf6K4DKK3pmo6K3aJqIp36GrYbba///74Hq/5Hq53pf6K4P5mo6K3aJq/4p36P4bZgo=
