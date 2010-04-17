@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Sat, 17 Apr 2010 21:25:59 +0000
+Date: Sat, 17 Apr 2010 21:29:06 +0000
 Subject: Re: [PATCH 7/7] sparc64: Add function graph tracer support.
-Message-Id: <20100417.142559.147951803.davem@davemloft.net>
+Message-Id: <20100417.142906.24235257.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100412.234300.212396783.davem@davemloft.net>
 In-Reply-To: <20100412.234300.212396783.davem@davemloft.net>
@@ -13,24 +13,12 @@ To: sparclinux@vger.kernel.org
 From: Frederic Weisbecker <fweisbec@gmail.com>
 Date: Sat, 17 Apr 2010 19:22:21 +0200
 
-> This looks like the true cause.
-> 
 > I tested the following patch and it fixes the issue after several
 > manual loops of:
-> 
-> 	echo function_graph > current_tracer
-> 	echo nop > current_tracer
-> 
-> 
-> Before it was triggering after two trials. Now it doesn't happen
-> after 10 iterations.
-> 
-> I'm going to hunt the culprit that causes this, we certainly need
-> a new __notrace somewhere.
 
-Hmmm, interesting... and see my other email about how my
-per-cpu traces with the non-graph tracer look corrupted when
-that hrtimer timeout triggers....
+Wait, this is completely normal.
 
-Let me know where this __notrace marker is needed though, sounds
-interesting!
+NMIs can come in at any time and nmi_enter() emits a trace via the
+rcu_nmi_enter().
+
+This happens on x86 too.
