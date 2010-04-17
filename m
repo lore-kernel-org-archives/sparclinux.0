@@ -1,7 +1,7 @@
 From: Frederic Weisbecker <fweisbec@gmail.com>
-Date: Sat, 17 Apr 2010 21:34:15 +0000
+Date: Sat, 17 Apr 2010 21:38:18 +0000
 Subject: Re: [PATCH 7/7] sparc64: Add function graph tracer support.
-Message-Id: <20100417213413.GC15037@nowhere>
+Message-Id: <20100417213817.GD15037@nowhere>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100412.234300.212396783.davem@davemloft.net>
 In-Reply-To: <20100412.234300.212396783.davem@davemloft.net>
@@ -25,17 +25,10 @@ On Sat, Apr 17, 2010 at 02:29:06PM -0700, David Miller wrote:
 > This happens on x86 too.
 
 
-Yeah but I've dumped the recursion cases I could find and there
-was no NMI path.
+Ok, I've just dropped the protection from the entry path and it runs
+fine.
 
-I haven't started the watchdog nor perf, I guess NMI don't trigger
-in other cases, right?
+The problem happens on function return path.
 
-For now, the only reentrancy I could find was irqs that interrupt
-the tracing path. Which means no good clue there. That said I
-have only logged recursivity on trace entry path, not yet
-on return.
-
-I'm disabling the protections on entry, just to narrow down
-the recursivity place, in case it only happens on return.
+I'm going to do some dumps there.
 
