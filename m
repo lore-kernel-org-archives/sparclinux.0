@@ -1,7 +1,7 @@
 From: Frederic Weisbecker <fweisbec@gmail.com>
-Date: Sat, 17 Apr 2010 21:41:30 +0000
+Date: Sun, 18 Apr 2010 15:31:24 +0000
 Subject: Re: [PATCH 7/7] sparc64: Add function graph tracer support.
-Message-Id: <20100417214128.GE15037@nowhere>
+Message-Id: <20100418153121.GA5174@nowhere>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100412.234300.212396783.davem@davemloft.net>
 In-Reply-To: <20100412.234300.212396783.davem@davemloft.net>
@@ -32,10 +32,35 @@ On Sat, Apr 17, 2010 at 02:38:37PM -0700, David Miller wrote:
 > clearly.
 
 
+In fact it's quite hard to dump, because most of them I get
+are irrelevant (irqs that do reentering the tracing path).
+And after some time, dumps end up crashing.
 
-This is what I'm doing. But I needed to know where the tracing
-recursion happens: on tracing entry or return.
+All I could do is narrowing down the source, everything
+happens well with this patch:
 
-And obviously it looks like that only happens on return. And
-now I'm trying the dumps on return
+
+diff --git a/kernel/trace/trace_functions_graph.c b/kernel/trace/trace_functions_graph.c
+index 9aed1a5..cfcb863 100644
+--- a/kernel/trace/trace_functions_graph.c
++++ b/kernel/trace/trace_functions_graph.c
+@@ -287,7 +287,9 @@ void trace_graph_return(struct ftrace_graph_ret *trace)
+ 		__trace_graph_return(tr, trace, flags, pc);
+ 	}
+ 	atomic_dec(&data->disabled);
++	pause_graph_tracing();
+ 	local_irq_restore(flags);
++	unpause_graph_tracing();
+ }
+ 
+ void set_graph_array(struct trace_array *tr)
+
+
+That reminds me badly the problems with NMIs, and I saw
+an NMI path in one of the dumps, so I guess you were
+right after all as it looks like more an NMIs related problem
+rather than a recursion.
+
+I thought if I won't enable the watchdog I wouldn't have NMIs
+but I have some in /proc/interrupts
 
