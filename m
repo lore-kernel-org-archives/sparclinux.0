@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 19 Apr 2010 08:15:55 +0000
+From: Frederic Weisbecker <fweisbec@gmail.com>
+Date: Mon, 19 Apr 2010 19:52:47 +0000
 Subject: Re: [PATCH 7/7] sparc64: Add function graph tracer support.
-Message-Id: <20100419.011555.28802719.davem@davemloft.net>
+Message-Id: <20100419195244.GB8171@nowhere>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100412.234300.212396783.davem@davemloft.net>
 In-Reply-To: <20100412.234300.212396783.davem@davemloft.net>
@@ -10,13 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: David Miller <davem@davemloft.net>
-Date: Mon, 19 Apr 2010 00:56:13 -0700 (PDT)
+On Mon, Apr 19, 2010 at 01:15:55AM -0700, David Miller wrote:
+> From: David Miller <davem@davemloft.net>
+> Date: Mon, 19 Apr 2010 00:56:13 -0700 (PDT)
+> 
+> > Another idea is to decrement the ->disabled counter after the
+> > local_irq_restore().  Yes, we might lose IRQ handler traces which
+> > occur between the local_irq_restore() and the counter decrment, but we
+> > would also be completely immune to recursion problems.
+> 
+> So I just gave this a try and I still get the crashes I've
+> been seeing with the non-graph function tracer, oh well :-)
 
-> Another idea is to decrement the ->disabled counter after the
-> local_irq_restore().  Yes, we might lose IRQ handler traces which
-> occur between the local_irq_restore() and the counter decrment, but we
-> would also be completely immune to recursion problems.
 
-So I just gave this a try and I still get the crashes I've
-been seeing with the non-graph function tracer, oh well :-)
+Are you using the pause_graph_tracing() thing on the function
+tracer? If so it won't work as it only applies to the function
+graph tracer.
+
