@@ -1,50 +1,47 @@
-From: Frederic Weisbecker <fweisbec@gmail.com>
-Date: Wed, 07 Apr 2010 11:44:14 +0000
-Subject: Re: [patch 3/3] sched: Use local_irq_save_nmi() in cpu_clock()
-Message-Id: <20100407114411.GB5143@nowhere>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 20 Apr 2010 08:49:08 +0000
+Subject: [GIT]: Sparc
+Message-Id: <20100420.014908.46443175.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100406132807.698467930@chello.nl> <20100406133141.039454288@chello.nl> <20100407112707.GA5143@nowhere> <1270639894.20295.749.camel@laptop>
-In-Reply-To: <1270639894.20295.749.camel@laptop>
+References: <20080421.153231.108090227.davem@davemloft.net>
+In-Reply-To: <20080421.153231.108090227.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: mingo@elte.hu, David Miller <davem@davemloft.net>, acme@redhat.com, paulus@samba.org, Mike Galbraith <efault@gmx.de>, Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org
-
-On Wed, Apr 07, 2010 at 01:31:34PM +0200, Peter Zijlstra wrote:
-> On Wed, 2010-04-07 at 13:27 +0200, Frederic Weisbecker wrote:
-> > On Tue, Apr 06, 2010 at 03:28:10PM +0200, Peter Zijlstra wrote:
-> > > Since we can call cpu_clock() from NMI context fix up the IRQ
-> > > disabling to conform to the new rules.
-> > > 
-> > > Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-> > > ---
-> > >  kernel/sched_clock.c |    4 ++--
-> > >  1 file changed, 2 insertions(+), 2 deletions(-)
-> > > 
-> > > Index: linux-2.6/kernel/sched_clock.c
-> > > =================================> > > --- linux-2.6.orig/kernel/sched_clock.c
-> > > +++ linux-2.6/kernel/sched_clock.c
-> > > @@ -241,9 +241,9 @@ unsigned long long cpu_clock(int cpu)
-> > >  	unsigned long long clock;
-> > >  	unsigned long flags;
-> > >  
-> > > -	local_irq_save(flags);
-> > > +	local_irq_save_nmi(flags);
-> > >  	clock = sched_clock_cpu(cpu);
-> > > -	local_irq_restore(flags);
-> > > +	local_irq_restore_nmi(flags);
-> > >  
-> > >  	return clock;
-> > >  }
-> > 
-> > 
-> > That seem to add a small overhead in various places.
-> > Do we want to make local_irq_save_nmi = local_irq_save
-> > for archs that have native nmi?
-> 
-> That is already so, see 1/3.
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-Ah you're right.
+Please pull to get these sparc bug fixes.
 
+Including a IRQ tracing trap return blunder I've been tracking
+down for 2 weeks :-)
+
+Thanks!
+
+The following changes since commit 13bd8e4673d527a9e48f41956b11d391e7c2cfe0:
+  Linus Torvalds (1):
+        Merge branch 'for-linus' of git://git.kernel.org/.../anholt/drm-intel
+
+are available in the git repository at:
+
+  master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
+
+David S. Miller (5):
+      sparc64: Allocate sufficient stack space in ftrace stubs.
+      sparc64: Run NMIs on the hardirq stack.
+      sparc64: Fix PREEMPT_ACTIVE value.
+      sparc64: Use correct pt_regs in decode_access_size() error paths.
+      sparc64: Fix hardirq tracing in trap return path.
+
+Frederic Weisbecker (1):
+      sparc: Fix forgotten kmemleak headers inclusion
+
+ arch/sparc/include/asm/thread_info_64.h |    2 +-
+ arch/sparc/kernel/irq_64.c              |   20 ++------------------
+ arch/sparc/kernel/kstack.h              |   19 +++++++++++++++++++
+ arch/sparc/kernel/nmi.c                 |    7 +++++++
+ arch/sparc/kernel/rtrap_64.S            |   12 +++++++++++-
+ arch/sparc/kernel/unaligned_64.c        |    6 +++---
+ arch/sparc/lib/mcount.S                 |    8 ++++----
+ 7 files changed, 47 insertions(+), 27 deletions(-)
