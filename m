@@ -1,7 +1,7 @@
-From: Frederic Weisbecker <fweisbec@gmail.com>
-Date: Mon, 19 Apr 2010 20:37:24 +0000
+From: David Miller <davem@davemloft.net>
+Date: Tue, 20 Apr 2010 05:51:05 +0000
 Subject: Re: [PATCH 7/7] sparc64: Add function graph tracer support.
-Message-Id: <20100419203722.GA8811@nowhere>
+Message-Id: <20100419.225105.71120452.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100412.234300.212396783.davem@davemloft.net>
 In-Reply-To: <20100412.234300.212396783.davem@davemloft.net>
@@ -10,30 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Mon, Apr 19, 2010 at 12:56:41PM -0700, David Miller wrote:
-> From: Frederic Weisbecker <fweisbec@gmail.com>
-> Date: Mon, 19 Apr 2010 21:52:47 +0200
-> 
-> > On Mon, Apr 19, 2010 at 01:15:55AM -0700, David Miller wrote:
-> >> From: David Miller <davem@davemloft.net>
-> >> Date: Mon, 19 Apr 2010 00:56:13 -0700 (PDT)
-> >> 
-> >> > Another idea is to decrement the ->disabled counter after the
-> >> > local_irq_restore().  Yes, we might lose IRQ handler traces which
-> >> > occur between the local_irq_restore() and the counter decrment, but we
-> >> > would also be completely immune to recursion problems.
-> >> 
-> >> So I just gave this a try and I still get the crashes I've
-> >> been seeing with the non-graph function tracer, oh well :-)
-> > 
-> > 
-> > Are you using the pause_graph_tracing() thing on the function
-> > tracer? If so it won't work as it only applies to the function
-> > graph tracer.
-> 
-> No, I simply moved the atomic_dec() below the local_irq_restore()
-> as stated in the first paragraph above :-)
 
+Frederic, I think I got it.
 
-Ah right, read too fast :)
+When CONFIG_TRACE_IRQFLAGS is enabled, we can recurse forever in IRQ
+traps, and this is exacerbated by the slowness of tracing as it makes
+it more likely we'll hit the small sequence of instructions where we
+erroneously enable irqs in the trap return path.
 
+I'm doing my stress tests right now, but if you want to try it out
+in parallel, comment out the:
+
+	wrpr	%l4, %pil
+
+enclosed in CONFIG_TRACE_IRQFLAGS in arch/sparc/kernel/rtrap_64.S
+
+The issue here is that we normally restore the trap time %pil further
+in the trap return sequence, but this is much beyond the point where
+we can still invoke C functions properly.  Which means that we can't
+call trace_hardirqs_on() there.  So I was trying to do it early.
+
+But this also means we restore the %pil before we hard disable all
+interrupts by clearing PSTATE_IE in the %pstate register.  And this
+is what creates the window of instructions where every IRQ return
+can erroneously take another IRQ trap.
+
+I have to think about why I might have done things this way to
+make sure I fix this right.
