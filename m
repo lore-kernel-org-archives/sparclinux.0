@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 20 Apr 2010 05:51:05 +0000
+Date: Tue, 20 Apr 2010 07:50:51 +0000
 Subject: Re: [PATCH 7/7] sparc64: Add function graph tracer support.
-Message-Id: <20100419.225105.71120452.davem@davemloft.net>
+Message-Id: <20100420.005051.40113282.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100412.234300.212396783.davem@davemloft.net>
 In-Reply-To: <20100412.234300.212396783.davem@davemloft.net>
@@ -10,30 +10,56 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+From: David Miller <davem@davemloft.net>
+Date: Mon, 19 Apr 2010 22:51:05 -0700 (PDT)
 
-Frederic, I think I got it.
+> I have to think about why I might have done things this way to
+> make sure I fix this right.
 
-When CONFIG_TRACE_IRQFLAGS is enabled, we can recurse forever in IRQ
-traps, and this is exacerbated by the slowness of tracing as it makes
-it more likely we'll hit the small sequence of instructions where we
-erroneously enable irqs in the trap return path.
+Ok, I don't get crashes any more.  There are all kinds of issues
+with the sw watchdog triggering because cpus get slogged in
+the scheduler rebalance code, but that's a seperate set of
+issues.
 
-I'm doing my stress tests right now, but if you want to try it out
-in parallel, comment out the:
+Here is the final fix I'll commit.
 
-	wrpr	%l4, %pil
+sparc64: Fix hardirq tracing in trap return path.
 
-enclosed in CONFIG_TRACE_IRQFLAGS in arch/sparc/kernel/rtrap_64.S
+We can overflow the hardirq stack if we set the %pil here
+so early, just let the normal control flow do it.
 
-The issue here is that we normally restore the trap time %pil further
-in the trap return sequence, but this is much beyond the point where
-we can still invoke C functions properly.  Which means that we can't
-call trace_hardirqs_on() there.  So I was trying to do it early.
+This is fine as we are allowed to do the actual IRQ enable
+at any point after we call trace_hardirqs_on.
 
-But this also means we restore the %pil before we hard disable all
-interrupts by clearing PSTATE_IE in the %pstate register.  And this
-is what creates the window of instructions where every IRQ return
-can erroneously take another IRQ trap.
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/kernel/rtrap_64.S |   12 +++++++++++-
+ 1 files changed, 11 insertions(+), 1 deletions(-)
 
-I have to think about why I might have done things this way to
-make sure I fix this right.
+diff --git a/arch/sparc/kernel/rtrap_64.S b/arch/sparc/kernel/rtrap_64.S
+index 83f1873..090b9e9 100644
+--- a/arch/sparc/kernel/rtrap_64.S
++++ b/arch/sparc/kernel/rtrap_64.S
+@@ -130,7 +130,17 @@ rtrap_xcall:
+ 		 nop
+ 		call			trace_hardirqs_on
+ 		 nop
+-		wrpr			%l4, %pil
++		/* Do not actually set the %pil here.  We will do that
++		 * below after we clear PSTATE_IE in the %pstate register.
++		 * If we re-enable interrupts here, we can recurse down
++		 * the hardirq stack potentially endlessly, causing a
++		 * stack overflow.
++		 *
++		 * It is tempting to put this test and trace_hardirqs_on
++		 * call at the 'rt_continue' label, but that will not work
++		 * as that path hits unconditionally and we do not want to
++		 * execute this in NMI return paths, for example.
++		 */
+ #endif
+ rtrap_no_irq_enable:
+ 		andcc			%l1, TSTATE_PRIV, %l3
+-- 
+1.7.0.4
+
+
