@@ -1,19 +1,43 @@
-From: "Felix Wilson" <degoal1970@gmail.com>
-Date: Thu, 08 Apr 2010 17:17:56 +0000
-Subject: YOUR ATM CARD
-Message-Id: <21031.41.194.53.238.1270747076.squirrel@mail.sam.kz>
+From: "MICROSOFT EMAIL PROMOTION" <info.winners@microsoft.com>
+Date: Thu, 22 Apr 2010 04:49:57 +0000
+Subject: Congratulations - You Have Won (Winning Numbers)
+Message-Id: <9587.41.220.68.1.1271911797.squirrel@41.220.68.1>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-I am directed to inform you that your payment verification and
-confirmations is OK.Your ATM Card Numbers is : 4001010257172299,Your
-Secret PIN Number is 8342. The ATM Card Value is $8.5M USD Only. Respond
-immediately with your full name as you want them on the card and your
-delivery
-address/Phone Number.
+Congratulations - You Have Won (Winning Numbers)
 
-Congratulations once again
-Dr. Felix Wilson,
-Director ATM Unit
+The MICROSOFT EMAIL PROMO TEAM is glad to announce that
+after a successful completion of the PROMO DRAWS held on the
+21st April March 2010,your e-mail address,attached to winning
+numbers:(11) (80) (12)(96) (09) (43) won in the Tenth
+lottery category.
+
+You have therefore been approved to claim a total sum of
+=A3250,000,00 Pounds Sterling in cash credited to REF
+NO:MICRO-L/2009-END10.
+
+All participants were selected through our Microsoft computer
+ballot system drawn from 167,000 Names,as part of our
+International  "E-MAIL" Promotion Program for our prominent
+MS-WORD users all over the world and for the continuous use
+of the internet. You are advised to contact the claims
+processor with the details below via his e-mail address :
+
+NAME:  Ivan Nickerson
+EMAIL: mrivan_nickerson04@yahoo.com.hk
+
+PLEASE NOTE YOU ARE TO SEND THE FOLLOWING INFORMATION TO
+
+CLAIM YOUR PRIZE:
+1.Full Name:... 2.Address:... 3.Phone:... 4.Country:...
+
+5.Sex/Gender:...
+
+
+YOURS SINCERELY,
+ANASTACIA SHEFFIELD.
+
