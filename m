@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 28 Apr 2010 20:02:16 +0000
+From: James Morris <jmorris@namei.org>
+Date: Wed, 28 Apr 2010 22:59:15 +0000
 Subject: Re: [PATCH] Disable execmem for sparc
-Message-Id: <20100428.130216.242154515.davem@davemloft.net>
+Message-Id: <alpine.LRH.2.00.1004290859010.1488@tundra.namei.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4BAA89B9.2030102@redhat.com>
 In-Reply-To: <4BAA89B9.2030102@redhat.com>
@@ -10,8 +10,7 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Stephen Smalley <sds@tycho.nsa.gov>
-Date: Wed, 28 Apr 2010 15:57:57 -0400
+On Wed, 28 Apr 2010, Stephen Smalley wrote:
 
 > To avoid maintaining per-arch ifdefs, it seems that we could just
 > directly use (VM_DATA_DEFAULT_FLAGS & VM_EXEC) as the basis for deciding
@@ -23,4 +22,11 @@ Date: Wed, 28 Apr 2010 15:57:57 -0400
 > 
 > Signed-off-by:  Stephen Smalley <sds@tycho.nsa.gov>
 
-Acked-by: David S. Miller <davem@davemloft.net>
+
+Applied to
+git://git.kernel.org/pub/scm/linux/kernel/git/jmorris/security-testing-2.6#next
+
+
+-- 
+James Morris
+<jmorris@namei.org>
