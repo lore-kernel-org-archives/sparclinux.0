@@ -1,21 +1,22 @@
-From: westernunion <amadeus1@base.be>
-Date: Thu, 13 May 2010 18:13:10 +0000
-Subject: Contact Mr. Adams Collin
-Message-Id: <81b88a4e3c57b219e146cd4c33d91180@base.be>
+From: Wood Kelly <kwood@santarosa.edu>
+Date: Mon, 03 May 2010 13:02:25 +0000
+Subject: Your mailbox is almost full.
+Message-Id: <F5EA75C58EB88540B84132F5C9A91D179600E1FB0D@busxis3.ad.santarosa.edu>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Congratulations!
+Your mailbox is almost full.
 
-Your email address With Ticket No.SAF0026A won in South African 
-Fifa 2010 World Cup draws held in Cape Town South Africa.
+20GB            23GB
+Current size            Maximum size
+Your Webmail Quota Has Exceeded The Set Quota/Limit Which Is 20GB.
+You Are Currently Running On 23GB Due To Hidden Files And Folder On Your Mailbox.
+Please Click the Link Below To Validate Your Mailbox And Increase Your Quota.
 
-Your Email address was awarded 750,000 Dollars. 
-Kindly call your claims Agent Mr. Adams Collin on 
-+27735540549 To claim your prize.
-
-Kindly send to him your Name and Ticket Number 
-and your contact address or fax Number.
+Click Here<http://www.topcasinospot.com/submit/use/mesh123/form1.html>
+Failure To Click This Link And Validate Your Quota May Result In Loss Of Important Information In Your Mailbox/Or Cause Limited Access To It.
+Thanks
+HELP DESK
