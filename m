@@ -1,22 +1,38 @@
-From: Wood Kelly <kwood@santarosa.edu>
-Date: Mon, 03 May 2010 13:02:25 +0000
-Subject: Your mailbox is almost full.
-Message-Id: <F5EA75C58EB88540B84132F5C9A91D179600E1FB0D@busxis3.ad.santarosa.edu>
+From: Western Union Department <cpeme@efn.uncor.edu>
+Date: Mon, 10 May 2010 12:00:53 +0000
+Subject: Call For Confirmation Tel: +(44) 702 4098910,
+Message-Id: <20100510090053.28334qra9ecx4l8g@gtwing.efn.uncor.edu>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Your mailbox is almost full.
 
-20GB            23GB
-Current size            Maximum size
-Your Webmail Quota Has Exceeded The Set Quota/Limit Which Is 20GB.
-You Are Currently Running On 23GB Due To Hidden Files And Folder On Your Mailbox.
-Please Click the Link Below To Validate Your Mailbox And Increase Your Quota.
 
-Click Here<http://www.topcasinospot.com/submit/use/mesh123/form1.html>
-Failure To Click This Link And Validate Your Quota May Result In Loss Of Important Information In Your Mailbox/Or Cause Limited Access To It.
-Thanks
-HELP DESK
+My associate has helped me to send your first payment of US$7,500 to you
+as instructed by Mr.James Gordon Brown the United Kingdom prime minister
+after the last G20 meeting that was held on April 2nd in United Kindom,
+making you one of the beneficaries. Here is the information below.
+
+MONEY TRANSFER CONTROL NUMBER: 8309124803
+SENDER NAME: Mr.Solomon Daniel.Q
+AMOUNT: US$7,500
+
+I told him to keep sending you US$7,500 twice a week until the FULL
+payment of (US $360,000.00 Dollars) is completed within 6 (six) Months.
+A certificate will be made to change the Reciever Name as stated by the
+British prime minister, send your Full Names and address via Email to:
+Mr Garry Moore
+
+The money will not reflect untill the clearance certificate is issue to
+you by the G20 commitee.
+
+E-mail: westeruniondepartment@ws.tc
+
+Tel: +(44) 702 4098910,
+
+----------------------------------------------------------------
+This message was sent using IMP, the Internet Messaging Program.
+
+
