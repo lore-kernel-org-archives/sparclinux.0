@@ -1,45 +1,38 @@
-From: "MICROSOFT EMAIL PROMOTION" <info.winners@microsoft.com>
-Date: Fri, 21 May 2010 04:27:44 +0000
-Subject: Congratulations - You have won
-Message-Id: <28276.41.206.15.1.1274416064.squirrel@41.206.15.1>
+From: Mrs Saman <nordicair@gci.net>
+Date: Sat, 15 May 2010 13:14:29 +0000
+Subject: Trust
+Message-Id: <2492184.203865.1273929269046.JavaMail.nordicair@mail.gci.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <50311.41.206.15.1.1274406488.squirrel@41.206.15.1>
-In-Reply-To: <50311.41.206.15.1.1274406488.squirrel@41.206.15.1>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Congratulations - You have won
-
-The MICROSOFT EMAIL PROMO TEAM is glad to announce that
-after a successful completion of the PROMO DRAWS held on the
-19th May 2010,your e-mail address,attached to winning
-numbers:(11) (80) (12)(96) (09) (43) won in the Tenth
-lottery category.
-
-You have therefore been approved to claim a total sum of
-=A3250,000,00 Pounds Sterling in cash credited to REF
-NO:MICRO-L/2009-END10.
-
-All participants were selected through our Microsoft computer
-ballot system drawn from 167,000 Names,as part of our
-International  "E-MAIL" Promotion Program for our prominent
-MS-WORD users all over the world and for the continuous use
-of the internet. You are advised to contact the claims
-processor with the details below via his e-mail address :
-
-NAME:  Ivan Nickerson
-EMAIL: mrivan.nickerson05@yahoo.com.hk
-
-PLEASE NOTE YOU ARE TO SEND THE FOLLOWING INFORMATION TO
-
-CLAIM YOUR PRIZE:
-1.Full Name:... 2.Address:... 3.Phone:... 4.Country:...
-
-5.Sex/Gender:...
 
 
-YOURS SINCERELY,
-ANASTACIA SHEFFIELD.
 
+ From Mrs.Saman
+
+I am the above named person, now undergoing medical treatment. I was 
+married to late Engr M.N Saman who worked With the Embassy for Nine 
+years.
+
+We were married for eleven years without a child. My late husband Engr 
+M.N Saman died on the 24th of April 2006 after a brief illness that 
+lasted for only four Days. I decided not to re-marry or get a Child 
+outside my matrimonial home.
+
+When my late husband was alive he deposited the sum of $22 with one 
+Finance house in London. I have been in the hospital for eight months 
+suffering from cancer. The 1st surgery operation has been conducted 
+.Recently my Doctor told me that I may die any time any day because of 
+my cancer sickness.
+
+Having known my condition I decided to donate the $22 my late husband 
+deposited with a finance house in London to you a good organization that 
+will utilize this fund very well by helping the less privilege.
+
+I want you to always pray for me as I have no life again says my doctor.
+
+Mrs Saman
+samanfamily1@aol.com
