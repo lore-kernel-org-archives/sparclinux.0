@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 18 May 2010 19:34:35 +0000
+Date: Tue, 18 May 2010 19:36:14 +0000
 Subject: Re: sun4v_data_access_exception during access to hardware
-Message-Id: <20100518.123435.223498021.davem@davemloft.net>
+Message-Id: <20100518.123614.133386989.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100513.042552.242119562.davem@davemloft.net>
 In-Reply-To: <20100513.042552.242119562.davem@davemloft.net>
@@ -10,20 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: "Alex Mach" <alexvm12e@mail.ru>
-Date: Tue, 18 May 2010 17:41:06 +0400
+From: Alex Mach <alexvm12e@mail.ru>
+Date: Tue, 18 May 2010 16:43:40 +0400
 
-> 
->> This driver is terribly non-portable and needs some work before you'll
->> be able to use it on sparc64.
-> 
-> Could you call any driver that was succesfully ported on Sparc and
-> which use access to physical IO space, please?
+> Sure it should not always grant a requested access, it should lock
+> the address ranges used by guest systems and so prevent granting
+> access to other systems to the locked addresses. Isn't it? I just
+> find strange if adding a device that uses physical IO space (any
+> non-PnP ISA card for example) will result in pathching the
+> OpenFirmware.
 
-Only drivers/net/niu.c does, it does the physical address handling
-by hand.
+I/O space is protected as well, because it is also valid and common
+to make certain I/O devices only accessible to certain guests in the
+system.
 
-You can't use the DMA interfaces because dma_addr_t is 32-bits and
-there is no reason to bloat up the kernel by making it 64-bits
-just for one or two drivers that want to work with real physical
-addresses instead of DMA addresses.
+In fact, the PCI host controller's registers aren't accesible at
+all by any guest, it is only accessible by the hypervisor itself.
+Even programming DMA mappings into the IOMMU has to go through
+hypervisor calls.
