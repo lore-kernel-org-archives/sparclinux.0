@@ -1,87 +1,75 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 27 May 2010 04:19:40 +0000
-Subject: Re: question about drivers/serial/sunsu.c
-Message-Id: <20100526.211940.200373719.davem@davemloft.net>
+Date: Wed, 26 May 2010 06:38:49 +0000
+Subject: Re: [PATCH]sparc32: Fix impossibility of swap disabling after
+Message-Id: <20100525.233849.104052594.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.1003281737590.29824@ask.diku.dk>
-In-Reply-To: <Pine.LNX.4.64.1003281737590.29824@ask.diku.dk>
+References: <20100429.165815.235700454.davem@davemloft.net>
+In-Reply-To: <20100429.165815.235700454.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: base64
 To: sparclinux@vger.kernel.org
 
-From: Julia Lawall <julia@diku.dk>
-Date: Sat, 15 May 2010 10:15:17 +0200 (CEST)
-
-> The following function in drivers/serial/sunsu.c contains a possible use 
-> after free:
- ...
-> Is it safe to simply move the if (up->port.membase) of_iounmap(...); up 
-> above the other ifs, or should something else be done?
-
-No, that isn't safe.  We have to unregister the device from the SERIO
-layer before we do that.
-
-Practically speaking, these remove methods never really ever execute
-on sparc64 since 1) sunsu is usually built statically so we can get
-a console and 2) hotplug of these devices is basically a non-occurance
-as well.
-
-Anyways, I'm going to fix this bug as follows, thanks for spotting it!
-
---------------------
-sunsu: Fix use after free in su_remove().
-
-Real serial port 'up' objects are statically allocated from an
-array in the driver.  Keyboard and mouse ports, on the other
-hand, are dynamically allocated.
-
-Unfortunately, we free these dynamic 'up' objects before we unmap the
-I/O registers.
-
-Rearrange su_remove() so that this does not happen.
-
-Noticed by Julia Lawall.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- drivers/serial/sunsu.c |   13 +++++++++----
- 1 files changed, 9 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/serial/sunsu.c b/drivers/serial/sunsu.c
-index 234459c..ffbf455 100644
---- a/drivers/serial/sunsu.c
-+++ b/drivers/serial/sunsu.c
-@@ -1500,20 +1500,25 @@ out_unmap:
- static int __devexit su_remove(struct of_device *op)
- {
- 	struct uart_sunsu_port *up = dev_get_drvdata(&op->dev);
-+	bool kbdms = false;
- 
- 	if (up->su_type = SU_PORT_MS ||
--	    up->su_type = SU_PORT_KBD) {
-+	    up->su_type = SU_PORT_KBD)
-+		kbdms = true;
-+
-+	if (kbdms) {
- #ifdef CONFIG_SERIO
- 		serio_unregister_port(&up->serio);
- #endif
--		kfree(up);
--	} else if (up->port.type != PORT_UNKNOWN) {
-+	} else if (up->port.type != PORT_UNKNOWN)
- 		uart_remove_one_port(&sunsu_reg, &up->port);
--	}
- 
- 	if (up->port.membase)
- 		of_iounmap(&op->resource[0], up->port.membase, up->reg_size);
- 
-+	if (kbdms)
-+		kfree(up);
-+
- 	dev_set_drvdata(&op->dev, NULL);
- 
- 	return 0;
--- 
-1.7.0.4
-
+RnJvbTog9MjByiDrydLJzMwgPHRraGFpQHlhbmRleC5ydT4KRGF0ZTogRnJpLCAzMCBBcHIgMjAx
+MCAwOTo1NzoxOSArMDQwMAoKPiBJIGNhbiBtaXN0YWtlLCBidXQgaXQgc2VlbXMgdG8gbWUsIHRo
+YXQgcHRlX25vbmUgaXMgbW9yZSB3aWRlIGNoZWNrLAo+IHRoYW4gYmVsb25naW5nIHB0ZSB0byBt
+bXUgZGV2aWNlLgoKTm90IGV4YWN0bHkuICBwdGVfbm9uZSgpIHNob3VsZCBiZSB0cnVlIGlmIHRo
+ZSBQVEUgZW5jb2RlcyBub3RoaW5nLApub3QgYSBzd2FwIGVudHJ5LCBub3QgYSBNTVUgUFRFLCBu
+b3RoaW5nIGF0IGFsbC4KCj4gSW4gb3RoZXIgY2FzZSBub25lX21hc2sgbXVzdCBiZSBzb21ldGhp
+bmcgbGlrZSAweEYwMDAwMDA0LCBiZWNhdXNlCj4gaGFyZHdhcmUgaWdub3JlcyBwdGVzIHdpdGgg
+emVyb2VkIGxvd2VyIHR3byBiaXRzLgoKSXQgc2VlbXMgdGhhdCB0aGUgY29ycmVjdCB0aGluZyB0
+byBkbyBpcyB0byBraWxsIHRoaXMgbm9uZV9tYXNrIHRoaW5nCmVudGlyZWx5LgoKQ291bGQgeW91
+IHRyeSB0aGlzIHBhdGNoIGluc3RlYWQgb2YgeW91cidzPwoKVGhhbmtzIQoKLS0Kc3BhcmMzMjog
+S2lsbCBub25lX21hc2ssIGl0J3MgYm9ndXMuCgpGb3Igc29tZSByZWFzb24sIHRoZSBwdGVfbm9u
+ZSgpIGNhbGN1bGF0aW9uIGZvciBzcm1tdSBzcGFyYzMyCmNoaXBzIHdhcyBtYXNraW5nIG91dCB0
+aGUgdG9wIDQgYml0cy4gIFRoYXQgZG9lc24ndCBtYWtlIGFueQpzZW5zZSwgYXMgdGhvc2UgYXJl
+IGp1c3Qgc29tZSBvZiB0aGUgcGh5c2ljYWwgYml0cyBvZiB0aGUgUFRFCmVuY29kaW5nLgoKRnVy
+dGhlcm1vcmUsIHRoaXMgbWlzdGFrZSBicmVha3MgdGhpbmdzIHdoZW4gdGhlIG9mZnNldCBvZiBv
+ZiBhIHN3YXAKZW50cnkgaGFzIGEgbGFyZ2UgZW5vdWdoIG9mZnNldCBhcyByZXBvcnRlZCBieSD0
+yMHKIOvJ0snMzC4KClN1bjRjIGFsd2F5cyBzZXQgaXQgdG8gemVybywgc28gaXQncyByZWFsbHkg
+Y29tcGxldGVseSB1c2VsZXNzLApraWxsIGl0LgoKUmVwb3J0ZWQtYnk6IPTIwcog68nSyczMIDx0
+a2hhaUB5YW5kZXgucnU+ClNpZ25lZC1vZmYtYnk6IERhdmlkIFMuIE1pbGxlciA8ZGF2ZW1AZGF2
+ZW1sb2Z0Lm5ldD4KLS0tCiBhcmNoL3NwYXJjL2luY2x1ZGUvYXNtL3BndGFibGVfMzIuaCB8ICAg
+IDUgKystLS0KIGFyY2gvc3BhcmMvbW0vc3JtbXUuYyAgICAgICAgICAgICAgIHwgICAgMiAtLQog
+YXJjaC9zcGFyYy9tbS9zdW40Yy5jICAgICAgICAgICAgICAgfCAgICAzIC0tLQogMyBmaWxlcyBj
+aGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDggZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvYXJj
+aC9zcGFyYy9pbmNsdWRlL2FzbS9wZ3RhYmxlXzMyLmggYi9hcmNoL3NwYXJjL2luY2x1ZGUvYXNt
+L3BndGFibGVfMzIuaAppbmRleCA3N2Y5MDZkLi4wZWNlNzdmIDEwMDY0NAotLS0gYS9hcmNoL3Nw
+YXJjL2luY2x1ZGUvYXNtL3BndGFibGVfMzIuaAorKysgYi9hcmNoL3NwYXJjL2luY2x1ZGUvYXNt
+L3BndGFibGVfMzIuaApAQCAtMTQyLDEzICsxNDIsMTIgQEAgQlRGSVhVUERFRl9DQUxMX0NPTlNU
+KHVuc2lnbmVkIGxvbmcsIHBnZF9wYWdlX3ZhZGRyLCBwZ2RfdCkKICNkZWZpbmUgcG1kX3BhZ2Uo
+cG1kKSBCVEZJWFVQX0NBTEwocG1kX3BhZ2UpKHBtZCkKICNkZWZpbmUgcGdkX3BhZ2VfdmFkZHIo
+cGdkKSBCVEZJWFVQX0NBTEwocGdkX3BhZ2VfdmFkZHIpKHBnZCkKIAotQlRGSVhVUERFRl9TRVRI
+SShub25lX21hc2spCiBCVEZJWFVQREVGX0NBTExfQ09OU1QoaW50LCBwdGVfcHJlc2VudCwgcHRl
+X3QpCiBCVEZJWFVQREVGX0NBTEwodm9pZCwgcHRlX2NsZWFyLCBwdGVfdCAqKQogCiBzdGF0aWMg
+aW5saW5lIGludCBwdGVfbm9uZShwdGVfdCBwdGUpCiB7Ci0JcmV0dXJuICEocHRlX3ZhbChwdGUp
+ICYgfkJURklYVVBfU0VUSEkobm9uZV9tYXNrKSk7CisJcmV0dXJuICFwdGVfdmFsKHB0ZSk7CiB9
+CiAKICNkZWZpbmUgcHRlX3ByZXNlbnQocHRlKSBCVEZJWFVQX0NBTEwocHRlX3ByZXNlbnQpKHB0
+ZSkKQEAgLTE2MCw3ICsxNTksNyBAQCBCVEZJWFVQREVGX0NBTEwodm9pZCwgcG1kX2NsZWFyLCBw
+bWRfdCAqKQogCiBzdGF0aWMgaW5saW5lIGludCBwbWRfbm9uZShwbWRfdCBwbWQpCiB7Ci0JcmV0
+dXJuICEocG1kX3ZhbChwbWQpICYgfkJURklYVVBfU0VUSEkobm9uZV9tYXNrKSk7CisJcmV0dXJu
+ICFwbWRfdmFsKHBtZCk7CiB9CiAKICNkZWZpbmUgcG1kX2JhZChwbWQpIEJURklYVVBfQ0FMTChw
+bWRfYmFkKShwbWQpCmRpZmYgLS1naXQgYS9hcmNoL3NwYXJjL21tL3NybW11LmMgYi9hcmNoL3Nw
+YXJjL21tL3NybW11LmMKaW5kZXggZjVmNzVhNS4uYjBiNDNhYSAxMDA2NDQKLS0tIGEvYXJjaC9z
+cGFyYy9tbS9zcm1tdS5jCisrKyBiL2FyY2gvc3BhcmMvbW0vc3JtbXUuYwpAQCAtMjIxNSw4ICsy
+MjE1LDYgQEAgdm9pZCBfX2luaXQgbGRfbW11X3NybW11KHZvaWQpCiAJQlRGSVhVUFNFVF9DQUxM
+KHBtZF9wYWdlLCBzcm1tdV9wbWRfcGFnZSwgQlRGSVhVUENBTExfTk9STSk7CiAJQlRGSVhVUFNF
+VF9DQUxMKHBnZF9wYWdlX3ZhZGRyLCBzcm1tdV9wZ2RfcGFnZSwgQlRGSVhVUENBTExfTk9STSk7
+CiAKLQlCVEZJWFVQU0VUX1NFVEhJKG5vbmVfbWFzaywgMHhGMDAwMDAwMCk7Ci0KIAlCVEZJWFVQ
+U0VUX0NBTEwocHRlX3ByZXNlbnQsIHNybW11X3B0ZV9wcmVzZW50LCBCVEZJWFVQQ0FMTF9OT1JN
+KTsKIAlCVEZJWFVQU0VUX0NBTEwocHRlX2NsZWFyLCBzcm1tdV9wdGVfY2xlYXIsIEJURklYVVBD
+QUxMX1NXQVBPMEcwKTsKIApkaWZmIC0tZ2l0IGEvYXJjaC9zcGFyYy9tbS9zdW40Yy5jIGIvYXJj
+aC9zcGFyYy9tbS9zdW40Yy5jCmluZGV4IGNmMzg4NDYuLjQyODlmOTAgMTAwNjQ0Ci0tLSBhL2Fy
+Y2gvc3BhcmMvbW0vc3VuNGMuYworKysgYi9hcmNoL3NwYXJjL21tL3N1bjRjLmMKQEAgLTIwODcs
+OSArMjA4Nyw2IEBAIHZvaWQgX19pbml0IGxkX21tdV9zdW40Yyh2b2lkKQogCiAJQlRGSVhVUFNF
+VF9DQUxMKHNldF9wdGUsIHN1bjRjX3NldF9wdGUsIEJURklYVVBDQUxMX1NUTzFPMCk7CiAKLQkv
+KiBUaGUgMi40LjE4IGNvZGUgZG9lcyBub3Qgc2V0IHRoaXMgb24gc3VuNGMsIGhvdyBkb2VzIGl0
+IHdvcms/IFhYWCAqLwotCS8qIEJURklYVVBTRVRfU0VUSEkobm9uZV9tYXNrLCAweDAwMDAwMDAw
+KTsgKi8JLyogRGVmYXVsdHMgdG8gemVybz8gKi8KLQogCUJURklYVVBTRVRfQ0FMTChwdGVfcGZu
+LCBzdW40Y19wdGVfcGZuLCBCVEZJWFVQQ0FMTF9OT1JNKTsKICNpZiAwIC8qIFBBR0VfU0hJRlQg
+PD0gMTIgKi8gLyogRWVrLiBJbnZlc3RpZ2F0ZS4gWFhYICovCiAJQlRGSVhVUFNFVF9DQUxMKHBt
+ZF9wYWdlLCBzdW40Y19wbWRfcGFnZSwgQlRGSVhVUENBTExfQU5ETklOVChQQUdFX1NJWkUgLSAx
+KSk7Ci0tIAoxLjcuMC40CgotLQpUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0
+aGUgbGluZSAidW5zdWJzY3JpYmUgc3BhcmNsaW51eCIgaW4KdGhlIGJvZHkgb2YgYSBtZXNzYWdl
+IHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcKTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0
+cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1s
