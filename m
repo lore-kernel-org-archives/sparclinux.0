@@ -1,184 +1,87 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 09 Apr 2010 23:01:43 +0000
-Subject: [PATCH 4/4] tracing: Use local_irq_{save,restore}_nmi() in tracers.
-Message-Id: <20100409.160143.201915197.davem@davemloft.net>
+Date: Thu, 27 May 2010 04:19:40 +0000
+Subject: Re: question about drivers/serial/sunsu.c
+Message-Id: <20100526.211940.200373719.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <Pine.LNX.4.64.1003281737590.29824@ask.diku.dk>
+In-Reply-To: <Pine.LNX.4.64.1003281737590.29824@ask.diku.dk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: peterz@infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
+From: Julia Lawall <julia@diku.dk>
+Date: Sat, 15 May 2010 10:15:17 +0200 (CEST)
+
+> The following function in drivers/serial/sunsu.c contains a possible use 
+> after free:
+ ...
+> Is it safe to simply move the if (up->port.membase) of_iounmap(...); up 
+> above the other ifs, or should something else be done?
+
+No, that isn't safe.  We have to unregister the device from the SERIO
+layer before we do that.
+
+Practically speaking, these remove methods never really ever execute
+on sparc64 since 1) sunsu is usually built statically so we can get
+a console and 2) hotplug of these devices is basically a non-occurance
+as well.
+
+Anyways, I'm going to fix this bug as follows, thanks for spotting it!
+
+--------------------
+sunsu: Fix use after free in su_remove().
+
+Real serial port 'up' objects are statically allocated from an
+array in the driver.  Keyboard and mouse ports, on the other
+hand, are dynamically allocated.
+
+Unfortunately, we free these dynamic 'up' objects before we unmap the
+I/O registers.
+
+Rearrange su_remove() so that this does not happen.
+
+Noticed by Julia Lawall.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- kernel/trace/ftrace.c                |    8 ++++----
- kernel/trace/trace_functions.c       |    8 ++++----
- kernel/trace/trace_functions_graph.c |    8 ++++----
- kernel/trace/trace_sched_wakeup.c    |    4 ++--
- kernel/trace/trace_stack.c           |    4 ++--
- 5 files changed, 16 insertions(+), 16 deletions(-)
+ drivers/serial/sunsu.c |   13 +++++++++----
+ 1 files changed, 9 insertions(+), 4 deletions(-)
 
-diff --git a/kernel/trace/ftrace.c b/kernel/trace/ftrace.c
-index 2404b59..6be1e33 100644
---- a/kernel/trace/ftrace.c
-+++ b/kernel/trace/ftrace.c
-@@ -613,7 +613,7 @@ function_profile_call(unsigned long ip, unsigned long parent_ip)
- 	if (!ftrace_profile_enabled)
- 		return;
+diff --git a/drivers/serial/sunsu.c b/drivers/serial/sunsu.c
+index 234459c..ffbf455 100644
+--- a/drivers/serial/sunsu.c
++++ b/drivers/serial/sunsu.c
+@@ -1500,20 +1500,25 @@ out_unmap:
+ static int __devexit su_remove(struct of_device *op)
+ {
+ 	struct uart_sunsu_port *up = dev_get_drvdata(&op->dev);
++	bool kbdms = false;
  
--	local_irq_save(flags);
-+	local_irq_save_nmi(flags);
+ 	if (up->su_type = SU_PORT_MS ||
+-	    up->su_type = SU_PORT_KBD) {
++	    up->su_type = SU_PORT_KBD)
++		kbdms = true;
++
++	if (kbdms) {
+ #ifdef CONFIG_SERIO
+ 		serio_unregister_port(&up->serio);
+ #endif
+-		kfree(up);
+-	} else if (up->port.type != PORT_UNKNOWN) {
++	} else if (up->port.type != PORT_UNKNOWN)
+ 		uart_remove_one_port(&sunsu_reg, &up->port);
+-	}
  
- 	stat = &__get_cpu_var(ftrace_profile_stats);
- 	if (!stat->hash || !ftrace_profile_enabled)
-@@ -628,7 +628,7 @@ function_profile_call(unsigned long ip, unsigned long parent_ip)
+ 	if (up->port.membase)
+ 		of_iounmap(&op->resource[0], up->port.membase, up->reg_size);
  
- 	rec->counter++;
-  out:
--	local_irq_restore(flags);
-+	local_irq_restore_nmi(flags);
- }
++	if (kbdms)
++		kfree(up);
++
+ 	dev_set_drvdata(&op->dev, NULL);
  
- #ifdef CONFIG_FUNCTION_GRAPH_TRACER
-@@ -645,7 +645,7 @@ static void profile_graph_return(struct ftrace_graph_ret *trace)
- 	struct ftrace_profile *rec;
- 	unsigned long flags;
- 
--	local_irq_save(flags);
-+	local_irq_save_nmi(flags);
- 	stat = &__get_cpu_var(ftrace_profile_stats);
- 	if (!stat->hash || !ftrace_profile_enabled)
- 		goto out;
-@@ -672,7 +672,7 @@ static void profile_graph_return(struct ftrace_graph_ret *trace)
- 		rec->time += calltime;
- 
-  out:
--	local_irq_restore(flags);
-+	local_irq_restore_nmi(flags);
- }
- 
- static int register_ftrace_profiler(void)
-diff --git a/kernel/trace/trace_functions.c b/kernel/trace/trace_functions.c
-index b3f3776..cac3f8d 100644
---- a/kernel/trace/trace_functions.c
-+++ b/kernel/trace/trace_functions.c
-@@ -91,7 +91,7 @@ function_trace_call(unsigned long ip, unsigned long parent_ip)
- 	 * Need to use raw, since this must be called before the
- 	 * recursive protection is performed.
- 	 */
--	local_irq_save(flags);
-+	local_irq_save_nmi(flags);
- 	cpu = raw_smp_processor_id();
- 	data = tr->data[cpu];
- 	disabled = atomic_inc_return(&data->disabled);
-@@ -102,7 +102,7 @@ function_trace_call(unsigned long ip, unsigned long parent_ip)
- 	}
- 
- 	atomic_dec(&data->disabled);
--	local_irq_restore(flags);
-+	local_irq_restore_nmi(flags);
- }
- 
- static void
-@@ -122,7 +122,7 @@ function_stack_trace_call(unsigned long ip, unsigned long parent_ip)
- 	 * Need to use raw, since this must be called before the
- 	 * recursive protection is performed.
- 	 */
--	local_irq_save(flags);
-+	local_irq_save_nmi(flags);
- 	cpu = raw_smp_processor_id();
- 	data = tr->data[cpu];
- 	disabled = atomic_inc_return(&data->disabled);
-@@ -142,7 +142,7 @@ function_stack_trace_call(unsigned long ip, unsigned long parent_ip)
- 	}
- 
- 	atomic_dec(&data->disabled);
--	local_irq_restore(flags);
-+	local_irq_restore_nmi(flags);
- }
- 
- 
-diff --git a/kernel/trace/trace_functions_graph.c b/kernel/trace/trace_functions_graph.c
-index 9aed1a5..84f92ef 100644
---- a/kernel/trace/trace_functions_graph.c
-+++ b/kernel/trace/trace_functions_graph.c
-@@ -221,7 +221,7 @@ int trace_graph_entry(struct ftrace_graph_ent *trace)
- 	if (!(trace->depth || ftrace_graph_addr(trace->func)))
- 		return 0;
- 
--	local_irq_save(flags);
-+	local_irq_save_nmi(flags);
- 	cpu = raw_smp_processor_id();
- 	data = tr->data[cpu];
- 	disabled = atomic_inc_return(&data->disabled);
-@@ -233,7 +233,7 @@ int trace_graph_entry(struct ftrace_graph_ent *trace)
- 	}
- 
- 	atomic_dec(&data->disabled);
--	local_irq_restore(flags);
-+	local_irq_restore_nmi(flags);
- 
- 	return ret;
- }
-@@ -278,7 +278,7 @@ void trace_graph_return(struct ftrace_graph_ret *trace)
- 	int cpu;
- 	int pc;
- 
--	local_irq_save(flags);
-+	local_irq_save_nmi(flags);
- 	cpu = raw_smp_processor_id();
- 	data = tr->data[cpu];
- 	disabled = atomic_inc_return(&data->disabled);
-@@ -287,7 +287,7 @@ void trace_graph_return(struct ftrace_graph_ret *trace)
- 		__trace_graph_return(tr, trace, flags, pc);
- 	}
- 	atomic_dec(&data->disabled);
--	local_irq_restore(flags);
-+	local_irq_restore_nmi(flags);
- }
- 
- void set_graph_array(struct trace_array *tr)
-diff --git a/kernel/trace/trace_sched_wakeup.c b/kernel/trace/trace_sched_wakeup.c
-index 0271742..891d3a0 100644
---- a/kernel/trace/trace_sched_wakeup.c
-+++ b/kernel/trace/trace_sched_wakeup.c
-@@ -65,11 +65,11 @@ wakeup_tracer_call(unsigned long ip, unsigned long parent_ip)
- 	if (unlikely(disabled != 1))
- 		goto out;
- 
--	local_irq_save(flags);
-+	local_irq_save_nmi(flags);
- 
- 	trace_function(tr, ip, parent_ip, flags, pc);
- 
--	local_irq_restore(flags);
-+	local_irq_restore_nmi(flags);
- 
-  out:
- 	atomic_dec(&data->disabled);
-diff --git a/kernel/trace/trace_stack.c b/kernel/trace/trace_stack.c
-index f4bc9b2..14fa61c 100644
---- a/kernel/trace/trace_stack.c
-+++ b/kernel/trace/trace_stack.c
-@@ -53,7 +53,7 @@ static inline void check_stack(void)
- 	if (!object_is_on_stack(&this_size))
- 		return;
- 
--	local_irq_save(flags);
-+	local_irq_save_nmi(flags);
- 	arch_spin_lock(&max_stack_lock);
- 
- 	/* a race could have already updated it */
-@@ -104,7 +104,7 @@ static inline void check_stack(void)
- 
-  out:
- 	arch_spin_unlock(&max_stack_lock);
--	local_irq_restore(flags);
-+	local_irq_restore_nmi(flags);
- }
- 
- static void
+ 	return 0;
 -- 
 1.7.0.4
 
