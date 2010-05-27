@@ -1,48 +1,54 @@
-From: Igor Kovalenko <igor.v.kovalenko@gmail.com>
-Date: Sun, 09 May 2010 06:39:00 +0000
-Subject: sparc64: atapi pio mode lost interrupt
-Message-Id: <AANLkTim3QMFYkheq20g-M1N0DiCi9LZPjtRmZk96AwMy@mail.gmail.com>
+From: Julia Lawall <julia@diku.dk>
+Date: Thu, 27 May 2010 12:32:45 +0000
+Subject: [PATCH 3/11] arch/sparc/kernel: Eliminate what looks like a NULL
+Message-Id: <Pine.LNX.4.64.1005271432250.5422@ask.diku.dk>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, Grant Likely <grant.likely@secretlab.ca>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.orgkern
 
-Hi!
+From: Julia Lawall <julia@diku.dk>
 
-In qemu-system-sparc64 run I see an issue with cdrom access in PIO mode.
+At the point of the test, action cannot be NULL, as it has been dereferenced
+in the code just above.
 
-Passing ATAPI packets in PIO mode requires two interrupts, first
-interrupt indicates start of packet transmission so host can start PIO
-reads/writes, and the second interrupt indicates end of packet
-transmission. If ide-cd driver cdrom_newpc_intr is not invoked upon
-receipt of second interrupt it fails to finalize transmission, and
-eventually I see "hdc: lost interrupt"
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
-Second interrupt happens to be generated while cdrom_newpc_intr is
-reading last byte of PIO data packet. Hardware interrupt handler then
-schedules softint which is delayed because interrupts are still
-disabled. When cdrom_newpc_intr returns back to ide_intr the latter
-enables interrupts. At this point nothing blocks softirq handler so it
-is reentered. Now handle_fasteoi_irq skips calling handler since
-IRQ_INPROGRESS is set in irq handler descriptor because we are still
-in the handler of first interrupt. If I set IRQF_DISABLED in ide port
-flags then interrupts are not reenabled by ide_intr and second
-interrupt is not missed.
+// <smpl>
+@r exists@
+expression E,E1;
+identifier f;
+statement S1,S2,S3;
+@@
 
-Not sure if this issue can be seen on real hardware, since it depends
-on PIO interrupt timing. If handlers happen to return before drive
-asserts second interrupt there is no issue. Still since interrupts are
-enabled there may be extra delay before returning from ide handler due
-to timer handlers etc..
+if ((E = NULL && ...) || ...)
+{
+  ... when != if (...) S1 else S2
+      when != E = E1
+* E->f
+  ... when any
+}
+else S3
+// </smpl>
 
-In case ide drivers operate as designed we may want to change qemu
-code so it delays interrupt generation.
+Signed-off-by: Julia Lawall <julia@diku.dk>
 
-I use latest checkout of
-git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc-2.6 to run
-kernel in qemu-system-sparc64.
+---
+ arch/sparc/kernel/sun4d_irq.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
--- 
-Kind regards,
-Igor V. Kovalenko
+diff --git a/arch/sparc/kernel/sun4d_irq.c b/arch/sparc/kernel/sun4d_irq.c
+index ab036a7..e11b461 100644
+--- a/arch/sparc/kernel/sun4d_irq.c
++++ b/arch/sparc/kernel/sun4d_irq.c
+@@ -183,7 +183,7 @@ void sun4d_free_irq(unsigned int irq, void *dev_id)
+ 		goto out_unlock;
+ 	}
+ 	
+-	if (action && tmp)
++	if (tmp)
+ 		tmp->next = action->next;
+ 	else
+ 		*actionp = action->next;
