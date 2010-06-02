@@ -1,38 +1,40 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Fri, 11 Jun 2010 03:08:37 +0000
-Subject: Re: [PATCH 0/2] Replace of_device with platform_device
-Message-Id: <AANLkTinVTGV32OfFaEp-zJpHtOWFHOvWPgxtxxocY2Du@mail.gmail.com>
+From: Frans Pop <elendil@planet.nl>
+Date: Wed, 02 Jun 2010 17:53:34 +0000
+Subject: Re: Serial console issue with 2.6.32
+Message-Id: <201006021953.36508.elendil@planet.nl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100604205930.2762.17131.stgit@angua>
-	<AANLkTim24kEYJplwHYgZK0EGRm_7LtQ3fWm8OmC9rvTK@mail.gmail.com>
-	<1276151543.1962.48.camel@pasglop>
-	<AANLkTik2j5iDwcgIl_WyajaSRqLx5WK8Zf-25FBJ92Ch@mail.gmail.com>
-	<1276218990.1962.81.camel@pasglop>
-In-Reply-To: <1276218990.1962.81.camel@pasglop>
+References: <201003151809.27436.elendil@planet.nl>
+In-Reply-To: <201003151809.27436.elendil@planet.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Michal Simek <monstr@monstr.eu>, microblaze-uclinux@itee.uq.edu.au, linuxppc-dev <linuxppc-dev@ozlabs.org>, sparclinux@vger.kernel.org, David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
-On Thu, Jun 10, 2010 at 7:16 PM, Benjamin Herrenschmidt
-<benh@kernel.crashing.org> wrote:
-> On Thu, 2010-06-10 at 10:46 -0600, Grant Likely wrote:
->>
->> It shouldn't need any fixing because I'm not touching the driver side
->> of the equation (unlike the last breakage where macio_driver had its
->> own copy of the match table which I missed). =A0In fact, there aren't
->> even any logic changes other than dealing with moving some of the
->> structure members in the sparc arch code. =A0If I did miss anything,
->> then it should show up in build testing.
+On Wednesday 26 May 2010, David Miller wrote:
+> From: Frans Pop <elendil@planet.nl>
+> Date: Wed, 17 Mar 2010 11:50:07 +0100
 >
-> Ok, but I though you were actually replacing occurences of "of_device"
-> with "platform_device", and so was wondering why you aren't changing the
-> ones in macio. But yes, the #define you did might do the trick as long
-> as the resources are still named the same etc...
+> > Now that I know it's not a huge issue for me personally. It just means
+> > I can no longer use my Sparc box for testing use of console= for
+> > Debian installations, which is a pity as it's the most suitable box I
+> > have for that.
+> >
+> > I'm not sure how much this is going to throw off other users, but I
+> > suspect the majority (except maybe for long time sparc sysadmins)
+> > would expect console= to be honored.
+>
+> Frans, is this patch enough to get the behavior you want?
+>
+> --------------------
+> sunserial: Don't call add_preferred_console() when console= is
+> specified.
 
-I will, but it is a big job, so the #define lets me do it in chunks.
-I made sure the member names in of_device were identical to
-platform_device so that it works as a drop-in.
+Thanks for the patch David. I've tried to test with it, but for some reason 
+the box does not boot at all with .34 (both with and without the patch) if 
+I pass console=ttyS0. If I don't pass the parameter it boots fine.
 
-g.
+Need to investigate (using netconsole or earlier kernels), but that will 
+take some more time.
+
+Cheers,
+FJP
