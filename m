@@ -1,38 +1,27 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Tue, 29 Jun 2010 02:45:51 +0000
-Subject: [PATCH 4/5] of: define CONFIG_OF globally so architectures can
-Message-Id: <20100629124551.06fe1015.sfr@canb.auug.org.au>
+From: David Miller <davem@davemloft.net>
+Date: Fri, 04 Jun 2010 23:17:50 +0000
+Subject: Re: [PATCH 3/11] arch/sparc/kernel: Eliminate what looks like a
+Message-Id: <20100604.161750.70215425.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <0bcc23b9-2cbd-4465-b17c-7b3c2dff9fd3@VA3EHSMHS007.ehs.local>
-	<20100629123843.5f94d477.sfr@canb.auug.org.au>
-In-Reply-To: <20100629123843.5f94d477.sfr@canb.auug.org.au>
+References: <Pine.LNX.4.64.1005271432250.5422@ask.diku.dk>
+In-Reply-To: <Pine.LNX.4.64.1005271432250.5422@ask.diku.dk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Stephen Neuendorffer <stephen.neuendorffer@xilinx.com>, devicetree-discuss@lists.ozlabs.org, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, Michal Simek <monstr@monstr.eu>, microblaze-uclinux@itee.uq.edu.au, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, linuxppc-dev@lists.ozlabs.org
+To: julia@diku.dk
+Cc: grant.likely@secretlab.ca, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, kernel-janitors@vger.kernel.org
 
+From: Julia Lawall <julia@diku.dk>
+Date: Thu, 27 May 2010 14:32:45 +0200 (CEST)
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
----
- drivers/of/Kconfig |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+> From: Julia Lawall <julia@diku.dk>
+> 
+> At the point of the test, action cannot be NULL, as it has been dereferenced
+> in the code just above.
+> 
+> A simplified version of the semantic match that finds this problem is as
+> follows: (http://coccinelle.lip6.fr/)
+ ...
+> Signed-off-by: Julia Lawall <julia@diku.dk>
 
-diff --git a/drivers/of/Kconfig b/drivers/of/Kconfig
-index 7cecc8f..1678dbc 100644
---- a/drivers/of/Kconfig
-+++ b/drivers/of/Kconfig
-@@ -1,3 +1,6 @@
-+config OF
-+	bool
-+
- config OF_FLATTREE
- 	bool
- 	depends on OF
--- 
-1.7.1
-
--- 
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
+Applied, thanks Julia.
