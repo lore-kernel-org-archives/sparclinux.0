@@ -1,29 +1,43 @@
-From: Andres Salomon <dilinger@queued.net>
-Date: Tue, 29 Jun 2010 01:54:07 +0000
-Subject: [PATCH 0/4] RFC: OLPC/x86 device tree code
-Message-Id: <20100628215407.2017bf2f@debian>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Fri, 04 Jun 2010 21:24:54 +0000
+Subject: [PATCH 0/5] Consolidate OF IRQ handling code
+Message-Id: <AANLkTil1-afn4-qCEAza53taNamu-agigv09VSdyB0sB@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: devicetree-discuss@lists.ozlabs.org
-Cc: sparclinux@vger.kernel.org, x86@kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, cjb@laptop.org, Mitch Bradley <wmb@laptop.org>, pgf@laptop.org, linux-kernel@vger.kernel.org, davem@davemloft.net, grant.likely@secretlab.ca
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Michal Simek <monstr@monstr.eu>, microblaze-uclinux@itee.uq.edu.au, devicetree-discuss@lists.ozlabs.org, linuxppc-dev@ozlabs.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, sparclinux@vger.kernel.org, Jeremy Kerr <jeremy.kerr@canonical.com>, "David S. Miller" <davem@davemloft.net>
 
-Hi,
+This series merges the common IRQ handling code between Microblaze and Powerpc.
 
-I'm looking for input on the following patches; they're based upon the
-OFW patch that's currently in the x86-tip tree[0], and they've only been
-compile tested (on x86 and sparc64).  This stuff takes the sparc
-device tree creation code and makes it available for multiple
-architectures, which OLPC then makes use of to build the tree.
-There's still a bunch of little stuff that I need to fix (and of
-course, I need to verify that it actually remains compatible w/ the
-old promfs code that OLPC's been using[1]).
+I'll be adding these patches to linux-next next week unless there are
+objections.
 
-[0]
-http://git.kernel.org/?p=3Dlinux/kernel/git/mingo/linux-2.6-x86.git;a=3Dcom=
-mit;h=FD699c76552bb
+Cheers,
+g.
 
-[1]
-http://dev.laptop.org/git/olpc-2.6/commit/?id=0B9734dc5f0b3d24e8f3dfedaeacb=
-61675c838ff
+Grant Likely (5):
+      of/irq: Move irq_of_parse_and_map() to common code
+      of/microblaze: strip out of_irq_workarounds code
+      of/irq: merge of_irq_find_parent()
+      of/irq: Merge of_irq_map_raw()
+      of/irq: merge of_irq_map_one()
+
+ arch/microblaze/include/asm/irq.h   |   13 --
+ arch/microblaze/include/asm/prom.h  |   63 +-------
+ arch/microblaze/kernel/irq.c        |   14 +--
+ arch/microblaze/kernel/prom_parse.c |  321 +---------------------------------
+ arch/powerpc/include/asm/irq.h      |   13 --
+ arch/powerpc/include/asm/prom.h     |   51 +-----
+ arch/powerpc/kernel/irq.c           |   14 +--
+ arch/powerpc/kernel/prom_parse.c    |  254 +--------------------------
+ arch/sparc/include/asm/prom.h       |    1 -
+ drivers/of/Kconfig                  |    4 +
+ drivers/of/Makefile                 |    1 +
+ drivers/of/irq.c                    |  336 +++++++++++++++++++++++++++++++++++
+ drivers/of/of_mdio.c                |    1 +
+ include/linux/of_irq.h              |   49 +++++
+ 14 files changed, 405 insertions(+), 730 deletions(-)
+ create mode 100644 drivers/of/irq.c
+ create mode 100644 include/linux/of_irq.h
