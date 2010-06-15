@@ -1,83 +1,41 @@
-From: Brad Spengler <spender@grsecurity.net>
-Date: Tue, 22 Jun 2010 23:16:14 +0000
-Subject: Unaligned accesses w/ generic segmentation/rx/tx offloading
-Message-Id: <20100622231614.GA10926@grsecurity.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="r5Pyd7+fXNt84Ff3"
+From: "Bar.Hamzah Mohamed" <1nfo.nipponcompany2@gmail.com>
+Date: Tue, 15 Jun 2010 17:58:41 +0000
+Subject: NIPPON JOB OFFER
+Message-Id: <b5a793a2263faf1ec6abc32be03d1267.squirrel@mail.netneed.net.pk>
 List-Id: <sparclinux.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
---r5Pyd7+fXNt84Ff3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi all,
 
-I'm running the 2.6.32.15 kernel on a Sun Blade 2500 with the tg3=20
-driver.
-gcc version is:
-gcc --version
-gcc (Debian 4.3.2-1.1) 4.3.2
+HUMAN RESOURCE DEPARTMENT
+NIPPON OIL EXPLORATION (MALAYSIA), LTD
+Lot 1168, 3rd Floor Wisma Interhill,
+Miri Waterfront Commercial Centre,
+98000 Kuala Lumpur  Malaysia.
+Tel: +60 10290 2643 Fax +603 2033 4506
 
-When rx/tx/generic segmentation offloading is disabled:
-ethtool -k eth0
-Offload parameters for eth0:
-rx-checksumming: off
-tx-checksumming: off
-scatter-gather: off
-tcp segmentation offload: off
-udp fragmentation offload: off
-generic segmentation offload: off
-large receive offload: off
+ATTN: APPLICANT
+INTERNATIONAL EXPATRIATE OFFICIAL JOB ONLINE INTERVIEW
+Your name has been shortlisted/Chosen among the Lucky expatriates who
+submitted the CV to the MALAYSIA ONLINE JOB ,before we will issue you
+the
+Success Letter and the Contract Document You have to fill the following
+informations and send it back to us
+Full Names
+City:
+State:
+Country:
+Zip code:
+Sex:
+Phone:
+AGE:
+MARITAL STATUS:
+Get back to me as soon as possible.
+Email :info.nipponcompany2@gmail.com
+Bar.Hamzah Mohamed
+  Head of Recruitment Service
 
-I've received several unaligned access messages:
-Kernel unaligned access at TPC[6dae50]
-Kernel unaligned access at TPC[6dae58]
-Kernel unaligned access at TPC[6c8788]
-Kernel unaligned access at TPC[6c8798]
-Kernel unaligned access at TPC[704864]
-They've only occurred once so far in a week or so, so I won't be able to=20
-reproduce it at will.
-
-The unaligned accesses appear to come from the following sources:
-
-net/ipv4/tcp_output.c:tcp_transmit_skb():
-6dae50:       c2 26 e0 04     st  %g1, [ %i3 + 4 ]
-6dae58:       c2 26 e0 08     st  %g1, [ %i3 + 8 ]
-If my analysis is correct, these are the two lines at 666 in 2.6.32.15:
-        th->seq                 =3D htonl(tcb->seq);
-        th->ack_seq             =3D htonl(tp->rcv_nxt);
-the problem being the unaligned th.
-net/ipv4/ip_output.c:ip_queue_xmit():
-6c8788:       c2 24 20 0c     st  %g1, [ %l0 + 0xc ]
-6c8798:       c2 24 20 10     st  %g1, [ %l0 + 0x10 ]
-If my analysis is correct, these are the two lines at 376 in 2.6.32.15:
-        iph->saddr    =3D rt->rt_src;
-        iph->daddr    =3D rt->rt_dst;
-the problem being an unaligned iph.
-arch/sparc/lib/ipcsum.S:ip_fast_csum() (2nd asm instruction, unaligned iph)
-
-I've uploaded the associated vmlinux for analysis to:
-http://grsecurity.net/unaligned-vmlinux
-
-Please keep me on CC for any replies.
-
-Thanks,
--Brad
-
---r5Pyd7+fXNt84Ff3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkwhRD4ACgkQmHm2SUJF1Gq3DgCeMcjMka5M2nOHNA38iZGLwhob
-pIEAoIcJQQ4cl4fW9DdCTNRFNUCbe/sJ
-=4Ted
------END PGP SIGNATURE-----
-
---r5Pyd7+fXNt84Ff3--
