@@ -1,33 +1,31 @@
-From: Vladislav Bolkhovitin <vst@vlnb.net>
-Date: Wed, 16 Jun 2010 19:08:03 +0000
-Subject: How to printk/sprintf uint64_t on Sparc without format and argument
-Message-Id: <4C192113.7030101@vlnb.net>
+From: Kyle McMartin <kyle@mcmartin.ca>
+Date: Wed, 16 Jun 2010 19:29:34 +0000
+Subject: Re: How to printk/sprintf uint64_t on Sparc without format and
+Message-Id: <20100616192934.GX20317@bombadil.infradead.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <AANLkTimuv7nOlcGFxqPZlwcAjLmFMiLAvbA5O7F32Wbg@mail.gmail.com>
-In-Reply-To: <AANLkTimuv7nOlcGFxqPZlwcAjLmFMiLAvbA5O7F32Wbg@mail.gmail.com>
+References: <AANLkTimuv7nOlcGFxqPZlwcAjLmFMiLAvbA5O7F32Wbg@mail.gmail.com> <4C192113.7030101@vlnb.net>
+In-Reply-To: <4C192113.7030101@vlnb.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
-Cc: Simone Ricci <simone.ricci@gmail.com>, scst-devel@lists.sourceforge.net, Joe Eykholt <jeykholt@cisco.com>, linux-kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Vladislav Bolkhovitin <vst@vlnb.net>
+Cc: sparclinux@vger.kernel.org, Simone Ricci <simone.ricci@gmail.com>, scst-devel@lists.sourceforge.net, Joe Eykholt <jeykholt@cisco.com>, linux-kernel <linux-kernel@vger.kernel.org>
 
-Hello,
+On Wed, Jun 16, 2010 at 11:08:03PM +0400, Vladislav Bolkhovitin wrote:
+> scst/src/scst_targ.c:2136: warning: format ?%llx? expects type ?long  
+> long unsigned int?, but argument 4 has type ?uint64_t?.
+>
+> It is because on Sparc uint64_t defined as unsigned long, but on x86 -  
+> as unsigned long long.
+>
 
-We in SCST project need to printk/sprintf variables of type uint64_t.=20
-Size of those variables is required to be 64-bit integer. On x86 we=20
-printk/sprintf them as %lld, but on Sparc we have a compiler warnings like:
+From your other mail, it looks like you're using 2.6.26... this is
+ancient! Sparc has since been fixed to use unsigned long long for u64.
 
-scst/src/scst_targ.c:2136: warning: format =91%llx=92 expects type =91long =
+commit 9018113649348c689da107166c05d436cd52e7bf
+Author: Sam Ravnborg <sam@ravnborg.org>
+Date:   Tue Jan 6 13:19:28 2009 -0800
 
-long unsigned int=92, but argument 4 has type =91uint64_t=92.
+    sparc64: Use unsigned long long for u64.
 
-It is because on Sparc uint64_t defined as unsigned long, but on x86 -=20
-as unsigned long long.
-
-Sure, we can cast all the cases to unsigned long long, but we wonder,=20
-maybe there is a more elegant way to do that without the warning? For=20
-instance, like %z for size_t or PRId64 in the user space.
-
-Thanks,
-Vlad
-
+regards, Kyle
