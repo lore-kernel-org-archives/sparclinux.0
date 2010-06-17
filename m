@@ -1,22 +1,31 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 02 Jun 2010 09:08:36 +0000
-Subject: Re: [2.6.35-rc1 regression] sysfs: cannot create duplicate
-Message-Id: <20100602.020836.25148560.davem@davemloft.net>
+From: Dongdong Deng <dongdong.deng@windriver.com>
+Date: Thu, 17 Jun 2010 06:58:26 +0000
+Subject: [PATCH] sparc64: fix the build error due to smp_kgdb_capture_client()
+Message-Id: <1276757906-8514-1-git-send-email-dongdong.deng@windriver.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <19461.26166.427857.612983@pilspetsen.it.uu.se>
-	<20100601.153105.90813554.davem@davemloft.net>
-	<20100602030925.GA3402@canonical.com>
-In-Reply-To: <20100602030925.GA3402@canonical.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: achiang@canonical.com
-Cc: mikpe@it.uu.se, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Alex Chiang <achiang@canonical.com>
-Date: Tue, 1 Jun 2010 21:09:25 -0600
+Signed-off-by: Dongdong Deng <dongdong.deng@windriver.com>
+---
+ arch/sparc/kernel/ttable.S |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-> Does sparc64 load any PCI hotplug drivers?
+diff --git a/arch/sparc/kernel/ttable.S b/arch/sparc/kernel/ttable.S
+index 76d837f..c6dfdaa 100644
+--- a/arch/sparc/kernel/ttable.S
++++ b/arch/sparc/kernel/ttable.S
+@@ -64,7 +64,7 @@ tl0_irq6:	TRAP_IRQ(smp_call_function_single_client, 6)
+ tl0_irq6:	BTRAP(0x46)
+ #endif
+ tl0_irq7:	TRAP_IRQ(deferred_pcr_work_irq, 7)
+-#ifdef CONFIG_KGDB
++#if defined(CONFIG_KGDB) && defined(CONFIG_SMP)
+ tl0_irq8:	TRAP_IRQ(smp_kgdb_capture_client, 8)
+ #else
+ tl0_irq8:	BTRAP(0x48)
+-- 
+1.6.0.4
 
-Never.  And everything and all PCI controllers and devices are probed
-and registered at boot time.
