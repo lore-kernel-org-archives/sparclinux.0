@@ -1,8 +1,10 @@
 From: workforce2@homecall.co.uk
-Date: Mon, 21 Jun 2010 22:49:27 +0000
+Date: Mon, 21 Jun 2010 23:30:50 +0000
 Subject: #####Job-Offer#####
-Message-Id: <E1OQpnz-000J9Y-Rd@mk-webmail-1.b2b.uk.tiscali.com>
+Message-Id: <E1OQqS2-000Lnz-V9@mk-webmail-1.b2b.uk.tiscali.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <E1OQpnz-000J9Y-Rd@mk-webmail-1.b2b.uk.tiscali.com>
+In-Reply-To: <E1OQpnz-000J9Y-Rd@mk-webmail-1.b2b.uk.tiscali.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
