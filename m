@@ -1,39 +1,24 @@
-From: "Mrs.Saman" <ccarverbrowncorp@gci.net>
-Date: Fri, 18 Jun 2010 16:29:12 +0000
-Subject: Trust
-Message-Id: <13083924.421499.1276878552561.JavaMail.ccarverbrowncorp@mail.gci.net>
+From: workforce2@homecall.co.uk
+Date: Mon, 21 Jun 2010 22:49:27 +0000
+Subject: #####Job-Offer#####
+Message-Id: <E1OQpnz-000J9Y-Rd@mk-webmail-1.b2b.uk.tiscali.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <2492184.203865.1273929269046.JavaMail.nordicair@mail.gci.net>
-In-Reply-To: <2492184.203865.1273929269046.JavaMail.nordicair@mail.gci.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Job-Description: Mystery-Shopper
+Salary: 300$ Weekly
+Time: 1/2 Hrs Weekly
+Location: Usa/Canada/Australia
+This is a P/T job 
 
+If satisfied apply below: 
 
- From Mrs.Saman
+Full Legal Names____ Mailing-Address____, City___,
+State____,Zip-Code___,Home and Cell#____Age___Present-Occupation___ & 
+Country___ 
 
-I am the above named person, now undergoing medical treatment. I was 
-married to late Engr M.N Saman who worked With the Embassy for Nine 
-years.
-
-We were married for eleven years without a child. My late husband Engr 
-M.N Saman died on the 24th of April 2006 after a brief illness that 
-lasted for only four Days. I decided not to re-marry or get a Child 
-outside my matrimonial home.
-
-When my late husband was alive he deposited the sum of $22 with one 
-Finance house in London.I have been in the hospital for eight months 
-suffering from cancer. The 1st surgery operation has been conducted 
-.Recently my Doctor told me that I may die any time any day because of 
-my cancer sickness.
-
-Having known my condition I decided to donate the $22 my late husband 
-deposited with a finance house in London to you a good organization that 
-will utilize this fund very well by helping the less privilege.
-
-Please respond to this email samanfamily1@aol.com
-
-Mrs. Saman
-samanfamily1@aol.com
+Fred McGuire
+Perfect-Choice Ltd
