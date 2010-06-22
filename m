@@ -1,34 +1,83 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 16 Jun 2010 20:36:42 +0000
-Subject: Re: How to printk/sprintf uint64_t on Sparc without format and
-Message-Id: <20100616.133642.112602306.davem@davemloft.net>
+From: Brad Spengler <spender@grsecurity.net>
+Date: Tue, 22 Jun 2010 23:16:14 +0000
+Subject: Unaligned accesses w/ generic segmentation/rx/tx offloading
+Message-Id: <20100622231614.GA10926@grsecurity.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="r5Pyd7+fXNt84Ff3"
 List-Id: <sparclinux.vger.kernel.org>
-References: <AANLkTimuv7nOlcGFxqPZlwcAjLmFMiLAvbA5O7F32Wbg@mail.gmail.com>
-	<4C192113.7030101@vlnb.net>
-In-Reply-To: <4C192113.7030101@vlnb.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+To: sparclinux@vger.kernel.org
+
+
+--r5Pyd7+fXNt84Ff3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
-To: vst@vlnb.net
-Cc: sparclinux@vger.kernel.org, simone.ricci@gmail.com, scst-devel@lists.sourceforge.net, jeykholt@cisco.com, linux-kernel@vger.kernel.org
 
-From: Vladislav Bolkhovitin <vst@vlnb.net>
-Date: Wed, 16 Jun 2010 23:08:03 +0400
+Hi all,
 
-> We in SCST project need to printk/sprintf variables of type
-> uint64_t. Size of those variables is required to be 64-bit integer. On
-> x86 we printk/sprintf them as %lld, but on Sparc we have a compiler
-> warnings like:
->=20
-> scst/src/scst_targ.c:2136: warning: format =A1%llx=A2 expects type =A1long
-> long unsigned int=A2, but argument 4 has type =A1uint64_t=A2.
->=20
-> It is because on Sparc uint64_t defined as unsigned long, but on x86 -
-> as unsigned long long.
+I'm running the 2.6.32.15 kernel on a Sun Blade 2500 with the tg3=20
+driver.
+gcc version is:
+gcc --version
+gcc (Debian 4.3.2-1.1) 4.3.2
 
-You must use %ll and explicitly cast the argument to "long long".
-=FF=F4=E8=BA{.n=C7+=89=B7=9F=AE=89=AD=86+%=8A=CB=FF=B1=E9=DD=B6=17=A5=8Aw=
-=FF=BA{.n=C7+=89=B7=AC=A5=AA=DC=96)=EE=C7=F8=A7=B6=17=9B=A1=DC=A8}=A9=9E=B2=
-=C6=A0z=DA&j:+v=89=A8=FE=F8=1E=AF=F9=1E=AEw=A5=FE=8A=E02=8A=DE=99=A8=E8=AD=
-=DA&=A2)=DF=A1=ABa=B6=DA=FF=FF=FB=E0z=BF=E4z=B9=DE=97=FA+=83=F9=9A=8E=8A=DD=
-=A2j=FF=8Aw=E8=FE=1Bf
+When rx/tx/generic segmentation offloading is disabled:
+ethtool -k eth0
+Offload parameters for eth0:
+rx-checksumming: off
+tx-checksumming: off
+scatter-gather: off
+tcp segmentation offload: off
+udp fragmentation offload: off
+generic segmentation offload: off
+large receive offload: off
+
+I've received several unaligned access messages:
+Kernel unaligned access at TPC[6dae50]
+Kernel unaligned access at TPC[6dae58]
+Kernel unaligned access at TPC[6c8788]
+Kernel unaligned access at TPC[6c8798]
+Kernel unaligned access at TPC[704864]
+They've only occurred once so far in a week or so, so I won't be able to=20
+reproduce it at will.
+
+The unaligned accesses appear to come from the following sources:
+
+net/ipv4/tcp_output.c:tcp_transmit_skb():
+6dae50:       c2 26 e0 04     st  %g1, [ %i3 + 4 ]
+6dae58:       c2 26 e0 08     st  %g1, [ %i3 + 8 ]
+If my analysis is correct, these are the two lines at 666 in 2.6.32.15:
+        th->seq                 =3D htonl(tcb->seq);
+        th->ack_seq             =3D htonl(tp->rcv_nxt);
+the problem being the unaligned th.
+net/ipv4/ip_output.c:ip_queue_xmit():
+6c8788:       c2 24 20 0c     st  %g1, [ %l0 + 0xc ]
+6c8798:       c2 24 20 10     st  %g1, [ %l0 + 0x10 ]
+If my analysis is correct, these are the two lines at 376 in 2.6.32.15:
+        iph->saddr    =3D rt->rt_src;
+        iph->daddr    =3D rt->rt_dst;
+the problem being an unaligned iph.
+arch/sparc/lib/ipcsum.S:ip_fast_csum() (2nd asm instruction, unaligned iph)
+
+I've uploaded the associated vmlinux for analysis to:
+http://grsecurity.net/unaligned-vmlinux
+
+Please keep me on CC for any replies.
+
+Thanks,
+-Brad
+
+--r5Pyd7+fXNt84Ff3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAkwhRD4ACgkQmHm2SUJF1Gq3DgCeMcjMka5M2nOHNA38iZGLwhob
+pIEAoIcJQQ4cl4fW9DdCTNRFNUCbe/sJ
+=4Ted
+-----END PGP SIGNATURE-----
+
+--r5Pyd7+fXNt84Ff3--
