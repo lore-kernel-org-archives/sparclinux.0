@@ -1,18 +1,33 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 25 Jun 2010 18:18:11 +0000
-Subject: Re: [PATCH] sparc64: fix the build error due to
-Message-Id: <20100625.111811.191385862.davem@davemloft.net>
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Date: Tue, 29 Jun 2010 07:29:01 +0000
+Subject: [PATCH] sparc: remove homegrown L1_CACHE_ALIGN macro
+Message-Id: <20100629162149Z.fujita.tomonori@lab.ntt.co.jp>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1276757906-8514-1-git-send-email-dongdong.deng@windriver.com>
-In-Reply-To: <1276757906-8514-1-git-send-email-dongdong.deng@windriver.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Dongdong Deng <dongdong.deng@windriver.com>
-Date: Thu, 17 Jun 2010 14:58:26 +0800
+Let's use the standard L1_CACHE_ALIGN macro instead.
 
-> Signed-off-by: Dongdong Deng <dongdong.deng@windriver.com>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+---
+ arch/sparc/include/asm/cache.h |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-Applied, thanks a lot!
+diff --git a/arch/sparc/include/asm/cache.h b/arch/sparc/include/asm/cache.h
+index 0588b8c..69358b5 100644
+--- a/arch/sparc/include/asm/cache.h
++++ b/arch/sparc/include/asm/cache.h
+@@ -11,7 +11,6 @@
+ 
+ #define L1_CACHE_SHIFT 5
+ #define L1_CACHE_BYTES 32
+-#define L1_CACHE_ALIGN(x) ((((x)+(L1_CACHE_BYTES-1))&~(L1_CACHE_BYTES-1)))
+ 
+ #ifdef CONFIG_SPARC32
+ #define SMP_CACHE_BYTES_SHIFT 5
+-- 
+1.6.5
+
