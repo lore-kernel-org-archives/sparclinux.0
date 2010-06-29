@@ -1,93 +1,50 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Tue, 29 Jun 2010 07:33:59 +0000
-Subject: Re: [PATCH 3/4] proc: unify PROC_DEVICETREE config
-Message-Id: <AANLkTil30jVU79NGdPdAw516-_AOTzbX6DQdwahv4evx@mail.gmail.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Tue, 29 Jun 2010 02:44:50 +0000
+Subject: [PATCH 3/5] sparc: turn CONFIG_OF into a select
+Message-Id: <20100629124450.5e85bafe.sfr@canb.auug.org.au>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100628215407.2017bf2f@debian> <20100628220048.6a07c5ee@debian>
-In-Reply-To: <20100628220048.6a07c5ee@debian>
+References: <0bcc23b9-2cbd-4465-b17c-7b3c2dff9fd3@VA3EHSMHS007.ehs.local>
+	<20100629123843.5f94d477.sfr@canb.auug.org.au>
+In-Reply-To: <20100629123843.5f94d477.sfr@canb.auug.org.au>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Andres Salomon <dilinger@queued.net>
-Cc: devicetree-discuss@lists.ozlabs.org, sparclinux@vger.kernel.org, x86@kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, cjb@laptop.org, Mitch Bradley <wmb@laptop.org>, pgf@laptop.org, linux-kernel@vger.kernel.org, davem@davemloft.net
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org
+Cc: Stephen Neuendorffer <stephen.neuendorffer@xilinx.com>, Grant Likely <grant.likely@secretlab.ca>, devicetree-discuss@lists.ozlabs.org, Michal Simek <monstr@monstr.eu>, microblaze-uclinux@itee.uq.edu.au, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, linuxppc-dev@lists.ozlabs.org
 
-On Mon, Jun 28, 2010 at 7:00 PM, Andres Salomon <dilinger@queued.net> wrote:
->
-> Microblaze and PPC both use PROC_DEVICETREE, and OLPC will as well.. put
-> the Kconfig option into fs/ rather than in arch/*/Kconfig.
->
-> Signed-off-by: Andres Salomon <dilinger@queued.net>
-> ---
-> =A0arch/microblaze/Kconfig | =A0 =A08 --------
-> =A0arch/powerpc/Kconfig =A0 =A0| =A0 =A08 --------
-> =A0fs/proc/Kconfig =A0 =A0 =A0 =A0 | =A0 =A08 ++++++++
-> =A03 files changed, 8 insertions(+), 16 deletions(-)
->
-> diff --git a/arch/microblaze/Kconfig b/arch/microblaze/Kconfig
-> index 76818f9..b66c962 100644
-> --- a/arch/microblaze/Kconfig
-> +++ b/arch/microblaze/Kconfig
-> @@ -128,14 +128,6 @@ config OF
-> =A0 =A0 =A0 =A0def_bool y
-> =A0 =A0 =A0 =A0select OF_FLATTREE
->
-> -config PROC_DEVICETREE
-> - =A0 =A0 =A0 bool "Support for device tree in /proc"
-> - =A0 =A0 =A0 depends on PROC_FS
-> - =A0 =A0 =A0 help
-> - =A0 =A0 =A0 =A0 This option adds a device-tree directory under /proc wh=
-ich contains
-> - =A0 =A0 =A0 =A0 an image of the device tree that the kernel copies from=
- Open
-> - =A0 =A0 =A0 =A0 Firmware or other boot firmware. If unsure, say Y here.
-> -
-> =A0endmenu
->
-> =A0menu "Advanced setup"
-> diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-> index 328774b..8a56e8b 100644
-> --- a/arch/powerpc/Kconfig
-> +++ b/arch/powerpc/Kconfig
-> @@ -578,14 +578,6 @@ config SCHED_SMT
-> =A0 =A0 =A0 =A0 =A0when dealing with POWER5 cpus at a cost of slightly in=
-creased
-> =A0 =A0 =A0 =A0 =A0overhead in some places. If unsure say N here.
->
-> -config PROC_DEVICETREE
-> - =A0 =A0 =A0 bool "Support for device tree in /proc"
-> - =A0 =A0 =A0 depends on PROC_FS
-> - =A0 =A0 =A0 help
-> - =A0 =A0 =A0 =A0 This option adds a device-tree directory under /proc wh=
-ich contains
-> - =A0 =A0 =A0 =A0 an image of the device tree that the kernel copies from=
- Open
-> - =A0 =A0 =A0 =A0 Firmware or other boot firmware. If unsure, say Y here.
-> -
-> =A0config CMDLINE_BOOL
-> =A0 =A0 =A0 =A0bool "Default bootloader kernel arguments"
->
-> diff --git a/fs/proc/Kconfig b/fs/proc/Kconfig
-> index 50f8f06..858a859 100644
-> --- a/fs/proc/Kconfig
-> +++ b/fs/proc/Kconfig
-> @@ -39,6 +39,14 @@ config PROC_VMCORE
-> =A0 =A0 =A0 =A0 help
-> =A0 =A0 =A0 =A0 Exports the dump image of crashed kernel in ELF format.
->
-> +config PROC_DEVICETREE
-> + =A0 =A0 =A0 bool "Support for device tree in /proc"
-> + =A0 =A0 =A0 depends on PROC_FS && (PPC || MICROBLAZE)
-> + =A0 =A0 =A0 help
-> + =A0 =A0 =A0 =A0 This option adds a device-tree directory under /proc wh=
-ich contains
-> + =A0 =A0 =A0 =A0 an image of the device tree that the kernel copies from=
- Open
-> + =A0 =A0 =A0 =A0 Firmware or other boot firmware. If unsure, say Y here.
-> +
+so that we can make CONFIG_OF global and remove it from
+the architecture Kconfig files later.
 
-Looks good to me.  However, I've changed the depends line to the following.
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+---
+ arch/sparc/Kconfig |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-depends on PROC_FS && OF && !SPARC
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 6f1470b..d02e8ac 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -18,6 +18,7 @@ config 64BIT
+ config SPARC
+ 	bool
+ 	default y
++	select OF
+ 	select HAVE_IDE
+ 	select HAVE_OPROFILE
+ 	select HAVE_ARCH_KGDB if !SMP || SPARC64
+@@ -149,7 +150,7 @@ config ARCH_NO_VIRT_TO_BUS
+ 	def_bool y
+ 
+ config OF
+-	def_bool y
++	bool
+ 
+ config ARCH_SUPPORTS_DEBUG_PAGEALLOC
+ 	def_bool y if SPARC64
+-- 
+1.7.1
 
+-- 
 Cheers,
-g.
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
