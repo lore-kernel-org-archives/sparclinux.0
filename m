@@ -1,52 +1,67 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Tue, 29 Jun 2010 02:43:34 +0000
-Subject: [PATCH 2/5] powerpc: turn CONFIG_OF into a select
-Message-Id: <20100629124334.8f3678e5.sfr@canb.auug.org.au>
+From: Andres Salomon <dilinger@queued.net>
+Date: Tue, 29 Jun 2010 02:00:29 +0000
+Subject: [PATCH 1/4] x86: OLPC: constify an olpc_ofw() arg
+Message-Id: <20100628220029.1555ac24@debian>
 List-Id: <sparclinux.vger.kernel.org>
-References: <0bcc23b9-2cbd-4465-b17c-7b3c2dff9fd3@VA3EHSMHS007.ehs.local>
-	<20100629123843.5f94d477.sfr@canb.auug.org.au>
-In-Reply-To: <20100629123843.5f94d477.sfr@canb.auug.org.au>
+References: <20100628215407.2017bf2f@debian>
+In-Reply-To: <20100628215407.2017bf2f@debian>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, linuxppc-dev@lists.ozlabs.org
-Cc: Stephen Neuendorffer <stephen.neuendorffer@xilinx.com>, Grant Likely <grant.likely@secretlab.ca>, devicetree-discuss@lists.ozlabs.org, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, Michal Simek <monstr@monstr.eu>, microblaze-uclinux@itee.uq.edu.au
+To: devicetree-discuss@lists.ozlabs.org
+Cc: sparclinux@vger.kernel.org, x86@kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, cjb@laptop.org, Mitch Bradley <wmb@laptop.org>, pgf@laptop.org, linux-kernel@vger.kernel.org, davem@davemloft.net, grant.likely@secretlab.ca
 
-so that we can make CONFIG_OF global and remove it from
-the architecture Kconfig files later.
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+The arguments passed to OFW shouldn't be modified; update the 'args'
+argument of olpc_ofw to reflect this.  This saves us some later
+casting away of consts.
+
+Signed-off-by: Andres Salomon <dilinger@queued.net>
 ---
- arch/powerpc/Kconfig |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ arch/x86/include/asm/olpc_ofw.h |    2 +-
+ arch/x86/kernel/olpc.c          |    2 +-
+ arch/x86/kernel/olpc_ofw.c      |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index 328774b..3697231 100644
---- a/arch/powerpc/Kconfig
-+++ b/arch/powerpc/Kconfig
-@@ -120,6 +120,8 @@ config ARCH_NO_VIRT_TO_BUS
- config PPC
- 	bool
- 	default y
-+	select OF
-+	select OF_FLATTREE
- 	select HAVE_FTRACE_MCOUNT_RECORD
- 	select HAVE_DYNAMIC_FTRACE
- 	select HAVE_FUNCTION_TRACER
-@@ -173,8 +175,7 @@ config PPC_OF
- 	def_bool y
+diff --git a/arch/x86/include/asm/olpc_ofw.h b/arch/x86/include/asm/olpc_ofw.h
+index 3e63d85..08fde47 100644
+--- a/arch/x86/include/asm/olpc_ofw.h
++++ b/arch/x86/include/asm/olpc_ofw.h
+@@ -12,7 +12,7 @@
+ #define olpc_ofw(name, args, res) \
+ 	__olpc_ofw((name), ARRAY_SIZE(args), args, ARRAY_SIZE(res), res)
  
- config OF
--	def_bool y
--	select OF_FLATTREE
-+	bool
+-extern int __olpc_ofw(const char *name, int nr_args, void **args, int nr_res,
++extern int __olpc_ofw(const char *name, int nr_args, const void **args, int nr_res,
+ 		void **res);
  
- config PPC_UDBG_16550
- 	bool
+ /* determine whether OFW is available and lives in the proper memory */
+diff --git a/arch/x86/kernel/olpc.c b/arch/x86/kernel/olpc.c
+index f5ff390..0e0cdde 100644
+--- a/arch/x86/kernel/olpc.c
++++ b/arch/x86/kernel/olpc.c
+@@ -188,7 +188,7 @@ static void __init platform_detect(void)
+ {
+ 	size_t propsize;
+ 	__be32 rev;
+-	void *args[] = { NULL, "board-revision-int", &rev, (void *)4 };
++	const void *args[] = { NULL, "board-revision-int", &rev, (void *)4 };
+ 	void *res[] = { &propsize };
+ 
+ 	if (olpc_ofw("getprop", args, res) || propsize != 4) {
+diff --git a/arch/x86/kernel/olpc_ofw.c b/arch/x86/kernel/olpc_ofw.c
+index deac703..3e13a4b 100644
+--- a/arch/x86/kernel/olpc_ofw.c
++++ b/arch/x86/kernel/olpc_ofw.c
+@@ -39,7 +39,7 @@ void __init setup_olpc_ofw_pgd(void)
+ 	/* implicit optimization barrier here due to uninline function return */
+ }
+ 
+-int __olpc_ofw(const char *name, int nr_args, void **args, int nr_res,
++int __olpc_ofw(const char *name, int nr_args, const void **args, int nr_res,
+ 		void **res)
+ {
+ 	int ofw_args[MAXARGS + 3];
 -- 
-1.7.1
+1.5.6.5
 
--- 
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
