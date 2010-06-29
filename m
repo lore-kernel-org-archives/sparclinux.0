@@ -1,40 +1,60 @@
-From: Frans Pop <elendil@planet.nl>
-Date: Wed, 02 Jun 2010 17:53:34 +0000
-Subject: Re: Serial console issue with 2.6.32
-Message-Id: <201006021953.36508.elendil@planet.nl>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Tue, 29 Jun 2010 02:38:43 +0000
+Subject: Re: Using devices trees on X86
+Message-Id: <20100629123843.5f94d477.sfr@canb.auug.org.au>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Signature=_Tue__29_Jun_2010_12_38_43_+1000_6/+G0i=trb5PHtPo"
 List-Id: <sparclinux.vger.kernel.org>
-References: <201003151809.27436.elendil@planet.nl>
-In-Reply-To: <201003151809.27436.elendil@planet.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+References: <0bcc23b9-2cbd-4465-b17c-7b3c2dff9fd3@VA3EHSMHS007.ehs.local>
+In-Reply-To: <0bcc23b9-2cbd-4465-b17c-7b3c2dff9fd3@VA3EHSMHS007.ehs.local>
+To: Stephen Neuendorffer <stephen.neuendorffer@xilinx.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, devicetree-discuss@lists.ozlabs.org, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, Michal Simek <monstr@monstr.eu>, microblaze-uclinux@itee.uq.edu.au, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, linuxppc-dev@lists.ozlabs.org
 
-On Wednesday 26 May 2010, David Miller wrote:
-> From: Frans Pop <elendil@planet.nl>
-> Date: Wed, 17 Mar 2010 11:50:07 +0100
+--Signature=_Tue__29_Jun_2010_12_38_43_+1000_6/+G0i=trb5PHtPo
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi Stephen,
+
+On Mon, 28 Jun 2010 10:57:33 -0700 Stephen Neuendorffer <stephen.neuendorff=
+er@xilinx.com> wrote:
 >
-> > Now that I know it's not a huge issue for me personally. It just means
-> > I can no longer use my Sparc box for testing use of console= for
-> > Debian installations, which is a pity as it's the most suitable box I
-> > have for that.
-> >
-> > I'm not sure how much this is going to throw off other users, but I
-> > suspect the majority (except maybe for long time sparc sysadmins)
-> > would expect console= to be honored.
->
-> Frans, is this patch enough to get the behavior you want?
->
-> --------------------
-> sunserial: Don't call add_preferred_console() when console= is
-> specified.
+> 2) config OF is currently implemented in the architecture code.  This
+> should be non-architecture dependent and selected by the arches that
+> need it.
+>=20
+> Comments greatly appreciated, in particular if you have
+> likely-to-be-easy-to-get-accepted suggestions for 3), or feel like
+> carefully solving 2) in
+> a way which doesn't bork the existing of-based arches.
 
-Thanks for the patch David. I've tried to test with it, but for some reason 
-the box does not boot at all with .34 (both with and without the patch) if 
-I pass console=ttyS0. If I don't pass the parameter it boots fine.
+See the following patch set.  Parts 1, 2 and 3 could be applied to the
+respective architecture trees as well as Grant's tree to aleviate some
+conflict problems.  Part 5 could wait until a later time if necessary.
+However, this is relatively trivial, so we could just collect ACKs and
+put it all in Grant's tree and live with any minor pain.
 
-Need to investigate (using netconsole or earlier kernels), but that will 
-take some more time.
-
+Having OF in more than one Kconfig file should not cause any problems as
+long as they are all the same.
+--=20
 Cheers,
-FJP
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
+
+--Signature=_Tue__29_Jun_2010_12_38_43_+1000_6/+G0i=trb5PHtPo
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iQEcBAEBAgAGBQJMKVyzAAoJEDMEi1NhKgbsQRgIAIPkdifxF0VxMUohwgnhP1/R
+tI24htug80Ew6UTIS2p3U2kVfKITfiqhBcROCsC5M7QDhlT4Yq4y5N622Hzth92W
+Yfi9sqN+mHWXVni4dj3uZrUGaGiz9+ZUxO0Ltw8W7SWL9c5wMz6s5FW9BNV7mkHj
+/1vVuUsAGoOdlTGpj/78ZZFbaAz0kELXHAy5n1aJsndxXra3GK1AktZhb7d5Pqf5
+cjzgFfsh8QQ9J+ibWtNwXuLm5B+m8E6LqXP5j2yk5tU9R0OgOchtZrkNTRby6Usu
+eH5k0CMgT6D77SAcSh4NnnaRxDSoSxj8wwFd/3ejwvH+VRUM9nintSNZNs2A604=
+=jbyG
+-----END PGP SIGNATURE-----
+
+--Signature=_Tue__29_Jun_2010_12_38_43_+1000_6/+G0i=trb5PHtPo--
