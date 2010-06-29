@@ -1,43 +1,38 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Fri, 04 Jun 2010 21:24:54 +0000
-Subject: [PATCH 0/5] Consolidate OF IRQ handling code
-Message-Id: <AANLkTil1-afn4-qCEAza53taNamu-agigv09VSdyB0sB@mail.gmail.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Tue, 29 Jun 2010 02:45:51 +0000
+Subject: [PATCH 4/5] of: define CONFIG_OF globally so architectures can
+Message-Id: <20100629124551.06fe1015.sfr@canb.auug.org.au>
 List-Id: <sparclinux.vger.kernel.org>
+References: <0bcc23b9-2cbd-4465-b17c-7b3c2dff9fd3@VA3EHSMHS007.ehs.local>
+	<20100629123843.5f94d477.sfr@canb.auug.org.au>
+In-Reply-To: <20100629123843.5f94d477.sfr@canb.auug.org.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Michal Simek <monstr@monstr.eu>, microblaze-uclinux@itee.uq.edu.au, devicetree-discuss@lists.ozlabs.org, linuxppc-dev@ozlabs.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, sparclinux@vger.kernel.org, Jeremy Kerr <jeremy.kerr@canonical.com>, "David S. Miller" <davem@davemloft.net>
+Cc: Stephen Neuendorffer <stephen.neuendorffer@xilinx.com>, devicetree-discuss@lists.ozlabs.org, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, Michal Simek <monstr@monstr.eu>, microblaze-uclinux@itee.uq.edu.au, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, linuxppc-dev@lists.ozlabs.org
 
-This series merges the common IRQ handling code between Microblaze and Powerpc.
 
-I'll be adding these patches to linux-next next week unless there are
-objections.
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+---
+ drivers/of/Kconfig |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
+diff --git a/drivers/of/Kconfig b/drivers/of/Kconfig
+index 7cecc8f..1678dbc 100644
+--- a/drivers/of/Kconfig
++++ b/drivers/of/Kconfig
+@@ -1,3 +1,6 @@
++config OF
++	bool
++
+ config OF_FLATTREE
+ 	bool
+ 	depends on OF
+-- 
+1.7.1
+
+-- 
 Cheers,
-g.
-
-Grant Likely (5):
-      of/irq: Move irq_of_parse_and_map() to common code
-      of/microblaze: strip out of_irq_workarounds code
-      of/irq: merge of_irq_find_parent()
-      of/irq: Merge of_irq_map_raw()
-      of/irq: merge of_irq_map_one()
-
- arch/microblaze/include/asm/irq.h   |   13 --
- arch/microblaze/include/asm/prom.h  |   63 +-------
- arch/microblaze/kernel/irq.c        |   14 +--
- arch/microblaze/kernel/prom_parse.c |  321 +---------------------------------
- arch/powerpc/include/asm/irq.h      |   13 --
- arch/powerpc/include/asm/prom.h     |   51 +-----
- arch/powerpc/kernel/irq.c           |   14 +--
- arch/powerpc/kernel/prom_parse.c    |  254 +--------------------------
- arch/sparc/include/asm/prom.h       |    1 -
- drivers/of/Kconfig                  |    4 +
- drivers/of/Makefile                 |    1 +
- drivers/of/irq.c                    |  336 +++++++++++++++++++++++++++++++++++
- drivers/of/of_mdio.c                |    1 +
- include/linux/of_irq.h              |   49 +++++
- 14 files changed, 405 insertions(+), 730 deletions(-)
- create mode 100644 drivers/of/irq.c
- create mode 100644 include/linux/of_irq.h
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
