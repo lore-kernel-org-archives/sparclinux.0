@@ -1,66 +1,72 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Wed, 30 Jun 2010 21:52:51 +0000
-Subject: Re: [PATCH 2/4] sparc: break out some prom device-tree building code
-Message-Id: <AANLkTilme2uAoXjorUEzam9j_xosR8kl70W8PS71d-Th@mail.gmail.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Tue, 29 Jun 2010 02:47:01 +0000
+Subject: [PATCH 5/5] of: remove architecture CONFIG_OF definitions
+Message-Id: <20100629124701.f879c55c.sfr@canb.auug.org.au>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100628215407.2017bf2f@debian> <20100628220037.5744c207@debian>
-	<AANLkTilN3_ntG7AWKi-8LM9X_dZJPPlWM6xRM_V_00xU@mail.gmail.com>
-	<20100629110324.2756cc02@debian> <AANLkTinPsrqxj5oQirEDRvVOuOeWgWSdljsMRbw8wn8V@mail.gmail.com>
-	<20100629193618.5a840b8e@dev.queued.net>
-In-Reply-To: <20100629193618.5a840b8e@dev.queued.net>
+References: <0bcc23b9-2cbd-4465-b17c-7b3c2dff9fd3@VA3EHSMHS007.ehs.local>
+	<20100629123843.5f94d477.sfr@canb.auug.org.au>
+In-Reply-To: <20100629123843.5f94d477.sfr@canb.auug.org.au>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Andres Salomon <dilinger@queued.net>
-Cc: devicetree-discuss@lists.ozlabs.org, sparclinux@vger.kernel.org, x86@kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, cjb@laptop.org, Mitch Bradley <wmb@laptop.org>, pgf@laptop.org, linux-kernel@vger.kernel.org, davem@davemloft.net, Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Stephen Neuendorffer <stephen.neuendorffer@xilinx.com>, devicetree-discuss@lists.ozlabs.org, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, Michal Simek <monstr@monstr.eu>, microblaze-uclinux@itee.uq.edu.au, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, linuxppc-dev@lists.ozlabs.org
 
-On Tue, Jun 29, 2010 at 5:36 PM, Andres Salomon <dilinger@queued.net> wrote:
-> On Tue, 29 Jun 2010 15:42:54 -0600
-> Grant Likely <grant.likely@secretlab.ca> wrote:
->
->> On Tue, Jun 29, 2010 at 9:03 AM, Andres Salomon <dilinger@queued.net>
->> wrote:
-> [...]
->>
->> > =A0Sparc and OLPC have very similar
->> > mechanisms for getting device tree info from OFW, so it makes sense
->> > to share code between them.
->>
->> Other than the flattened tree step; is the powerpc method dissimilar
->> from the Sparc and OLPC method for talking to OFW? =A0(This is not a
->> rhetorical question, I'm want to know if I'm missing some details).
->> The main difference I know about is that OFW can still kept alive at
->> runtime for sparc, which powerpc does not do. =A0However, keeping OFW
->> callable is a separate issue from how to extract the device tree.
->>
->
-> After having a look at powerpc's flatten_device_tree, I don't see any
-> obvious reason why OLPC couldn't use this
+now that CONFIG_OF is defined globally
 
-Okay.
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+---
+ arch/microblaze/Kconfig |    3 ---
+ arch/powerpc/Kconfig    |    3 ---
+ arch/sparc/Kconfig      |    3 ---
+ 3 files changed, 0 insertions(+), 9 deletions(-)
 
->(though it still strikes me
-> as weird to go from prom->fdt->dt when the option of prom->dt is
-> available and less complex).
+diff --git a/arch/microblaze/Kconfig b/arch/microblaze/Kconfig
+index 2b37820..1a8f682 100644
+--- a/arch/microblaze/Kconfig
++++ b/arch/microblaze/Kconfig
+@@ -126,9 +126,6 @@ config CMDLINE_FORCE
+ 	  Set this to have arguments from the default kernel command string
+ 	  override those passed by the boot loader.
+ 
+-config OF
+-	bool
+-
+ config PROC_DEVICETREE
+ 	bool "Support for device tree in /proc"
+ 	depends on PROC_FS
+diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
+index 3697231..402f4c0 100644
+--- a/arch/powerpc/Kconfig
++++ b/arch/powerpc/Kconfig
+@@ -174,9 +174,6 @@ config ARCH_MAY_HAVE_PC_FDC
+ config PPC_OF
+ 	def_bool y
+ 
+-config OF
+-	bool
+-
+ config PPC_UDBG_16550
+ 	bool
+ 	default n
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index d02e8ac..13a9f2f 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -149,9 +149,6 @@ config GENERIC_GPIO
+ config ARCH_NO_VIRT_TO_BUS
+ 	def_bool y
+ 
+-config OF
+-	bool
+-
+ config ARCH_SUPPORTS_DEBUG_PAGEALLOC
+ 	def_bool y if SPARC64
+ 
+-- 
+1.7.1
 
-Which is why I didn't simply NACK it out of hand.  It is a valid point.
-
-I'd probably be happier if both fdt and pdt used a shared set of
-utility functions for allocating and tying together the device_node
-data structures.  Then at least there would be only one instance of
-code to deal with the fiddly data structure interconnections.
-
-The nice thing about the powerpc version is that the tree can be
-extracted really early in the boot process, before any of the core
-kernel infrastructure or memory management is initialized.
-
-> Do you already have the patches that put
-> this into drivers/of/?
-
-No.
-
-g.
-
---=20
-Grant Likely, B.Sc., P.Eng.
-Secret Lab Technologies Ltd.
+-- 
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
