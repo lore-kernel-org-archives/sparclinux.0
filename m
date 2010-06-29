@@ -1,41 +1,52 @@
-From: "Bar.Hamzah Mohamed" <1nfo.nipponcompany2@gmail.com>
-Date: Tue, 15 Jun 2010 17:58:41 +0000
-Subject: NIPPON JOB OFFER
-Message-Id: <b5a793a2263faf1ec6abc32be03d1267.squirrel@mail.netneed.net.pk>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Tue, 29 Jun 2010 02:43:34 +0000
+Subject: [PATCH 2/5] powerpc: turn CONFIG_OF into a select
+Message-Id: <20100629124334.8f3678e5.sfr@canb.auug.org.au>
 List-Id: <sparclinux.vger.kernel.org>
+References: <0bcc23b9-2cbd-4465-b17c-7b3c2dff9fd3@VA3EHSMHS007.ehs.local>
+	<20100629123843.5f94d477.sfr@canb.auug.org.au>
+In-Reply-To: <20100629123843.5f94d477.sfr@canb.auug.org.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, linuxppc-dev@lists.ozlabs.org
+Cc: Stephen Neuendorffer <stephen.neuendorffer@xilinx.com>, Grant Likely <grant.likely@secretlab.ca>, devicetree-discuss@lists.ozlabs.org, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, Michal Simek <monstr@monstr.eu>, microblaze-uclinux@itee.uq.edu.au
 
+so that we can make CONFIG_OF global and remove it from
+the architecture Kconfig files later.
 
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+---
+ arch/powerpc/Kconfig |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
+diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
+index 328774b..3697231 100644
+--- a/arch/powerpc/Kconfig
++++ b/arch/powerpc/Kconfig
+@@ -120,6 +120,8 @@ config ARCH_NO_VIRT_TO_BUS
+ config PPC
+ 	bool
+ 	default y
++	select OF
++	select OF_FLATTREE
+ 	select HAVE_FTRACE_MCOUNT_RECORD
+ 	select HAVE_DYNAMIC_FTRACE
+ 	select HAVE_FUNCTION_TRACER
+@@ -173,8 +175,7 @@ config PPC_OF
+ 	def_bool y
+ 
+ config OF
+-	def_bool y
+-	select OF_FLATTREE
++	bool
+ 
+ config PPC_UDBG_16550
+ 	bool
+-- 
+1.7.1
 
-HUMAN RESOURCE DEPARTMENT
-NIPPON OIL EXPLORATION (MALAYSIA), LTD
-Lot 1168, 3rd Floor Wisma Interhill,
-Miri Waterfront Commercial Centre,
-98000 Kuala Lumpur  Malaysia.
-Tel: +60 10290 2643 Fax +603 2033 4506
-
-ATTN: APPLICANT
-INTERNATIONAL EXPATRIATE OFFICIAL JOB ONLINE INTERVIEW
-Your name has been shortlisted/Chosen among the Lucky expatriates who
-submitted the CV to the MALAYSIA ONLINE JOB ,before we will issue you
-the
-Success Letter and the Contract Document You have to fill the following
-informations and send it back to us
-Full Names
-City:
-State:
-Country:
-Zip code:
-Sex:
-Phone:
-AGE:
-MARITAL STATUS:
-Get back to me as soon as possible.
-Email :info.nipponcompany2@gmail.com
-Bar.Hamzah Mohamed
-  Head of Recruitment Service
-
+-- 
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
