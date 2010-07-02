@@ -1,27 +1,38 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 23 Jul 2010 20:04:02 +0000
-Subject: Re: [PATCH] of: make of_find_device_by_node generic
-Message-Id: <20100723.130402.232759717.davem@davemloft.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Date: Fri, 02 Jul 2010 13:27:44 +0000
+Subject: Re: Checking for v9v/64v capability
+Message-Id: <alpine.LSU.2.01.1007021524280.15958@obet.zrqbmnf.qr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100723200217.18363.48627.stgit@angua>
-In-Reply-To: <20100723200217.18363.48627.stgit@angua>
+References: <alpine.LSU.2.01.0912220054220.25079@obet.zrqbmnf.qr>
+In-Reply-To: <alpine.LSU.2.01.0912220054220.25079@obet.zrqbmnf.qr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: grant.likely@secretlab.ca
-Cc: jonas@southpole.se, monstr@monstr.eu, microblaze-uclinux@itee.uq.edu.au, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Fri, 23 Jul 2010 14:02:17 -0600
 
-> From: Jonas Bonn <jonas@southpole.se>
-> 
-> There's no need for this function to be architecture specific and all four
-> architectures defining it had the same definition.  The function has been
-> moved to drivers/of/platform.c.
-> 
-> Signed-off-by: Jonas Bonn <jonas@southpole.se>
-> [grant.likely@secretlab.ca: moved to drivers/of/platform.c, simplified code, and added kerneldoc comment]
-> Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+On Tuesday 2009-12-22 16:21, Jan Engelhardt wrote:
+>On Tuesday 2009-12-22 01:19, Dennis Gilmore wrote:
+>>On Monday 21 December 2009 06:06:26 pm Jan Engelhardt wrote:
+>>> 
+>>> RPM offers the targets sparcv9v/sparc64v (which is, simply put,
+>>> cflags += -mtune=niagara).
+>>> 
+>>> But how would the package manager (apt-get/yum/zypper) decide whether
+>>> they are on sun4v or not[...]
+>>
+>>yum does this by checking /proc/cpuinfo look at /usr/lib/python2.6/site-
+>>packages/rpmUtils/arch.py on a F-12 box  and search for sun4v  rpm has a 
+>>similar check based on the same information. both will refuse to install a 
+>>sparcv9v package on hardware that is not capable of running it.
+[...]
 
-Acked-by: David S. Miller <davem@davemloft.net>
+But is there a C-programmatical way that does not rely on external
+files? /proc may not be mounted. auxv is usually not accessible,
+and forking is a sin too. OpenSSL uses assembler tricks and traps
+to determine if something has 4v or not, which leaves the realm of C.
+But it looks like it's okay, given x86 programs also do asm/cpuid
+to determine SSE availability.
+
+
+Jan
