@@ -1,23 +1,109 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 23 Jul 2010 05:51:15 +0000
-Subject: Re: [PATCH 3/4] sparc: remove references to of_device and
-Message-Id: <20100722.225115.160202643.davem@davemloft.net>
+From: Andres Salomon <dilinger@queued.net>
+Date: Mon, 12 Jul 2010 06:21:00 +0000
+Subject: [PATCH] sparc: move is_root_node from private header to of.h
+Message-Id: <20100713094226.33b421dd@debxo>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100722222600.21557.34167.stgit@angua>
-	<20100722223016.21557.40832.stgit@angua>
-In-Reply-To: <20100722223016.21557.40832.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: grant.likely@secretlab.ca
-Cc: sfr@canb.auug.org.au, monstr@monstr.eu, microblaze-uclinux@itee.uq.edu.au, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, benh@kernel.crashing.org, sparclinux@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: devicetree-discuss@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, davem@davemloft.net
 
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Thu, 22 Jul 2010 16:30:16 -0600
 
-> of_device is just a #define alias to platform_device.  This patch
-> replaces all references to it with platform_device.
-> 
-> Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+Make is_root_node available for all archs to use, as it's not PROM-specific.
+Also rename it to of_is_root_node, and a few other minor changes for
+style/consistency.
 
-Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Andres Salomon <dilinger@queued.net>
+---
+ arch/sparc/kernel/prom.h        |    8 --------
+ arch/sparc/kernel/prom_64.c     |    6 +++---
+ arch/sparc/kernel/prom_common.c |    2 +-
+ include/linux/of.h              |    8 ++++++++
+ 4 files changed, 12 insertions(+), 12 deletions(-)
+
+diff --git a/arch/sparc/kernel/prom.h b/arch/sparc/kernel/prom.h
+index a8591ef..eeb04a7 100644
+--- a/arch/sparc/kernel/prom.h
++++ b/arch/sparc/kernel/prom.h
+@@ -9,14 +9,6 @@ extern void irq_trans_init(struct device_node *dp);
+ 
+ extern unsigned int prom_unique_id;
+ 
+-static inline int is_root_node(const struct device_node *dp)
+-{
+-	if (!dp)
+-		return 0;
+-
+-	return (dp->parent = NULL);
+-}
+-
+ extern char *build_path_component(struct device_node *dp);
+ extern void of_console_init(void);
+ 
+diff --git a/arch/sparc/kernel/prom_64.c b/arch/sparc/kernel/prom_64.c
+index fb06ac2..dd5e487 100644
+--- a/arch/sparc/kernel/prom_64.c
++++ b/arch/sparc/kernel/prom_64.c
+@@ -21,7 +21,7 @@
+ #include <linux/mm.h>
+ #include <linux/module.h>
+ #include <linux/lmb.h>
+-#include <linux/of_device.h>
++#include <linux/of.h>
+ 
+ #include <asm/prom.h>
+ #include <asm/oplib.h>
+@@ -81,7 +81,7 @@ static void __init sun4v_path_component(struct device_node *dp, char *tmp_buf)
+ 		return;
+ 
+ 	regs = rprop->value;
+-	if (!is_root_node(dp->parent)) {
++	if (!of_is_root_node(dp->parent)) {
+ 		sprintf(tmp_buf, "%s@%x,%x",
+ 			dp->name,
+ 			(unsigned int) (regs->phys_addr >> 32UL),
+@@ -121,7 +121,7 @@ static void __init sun4u_path_component(struct device_node *dp, char *tmp_buf)
+ 		return;
+ 
+ 	regs = prop->value;
+-	if (!is_root_node(dp->parent)) {
++	if (!of_is_root_node(dp->parent)) {
+ 		sprintf(tmp_buf, "%s@%x,%x",
+ 			dp->name,
+ 			(unsigned int) (regs->phys_addr >> 32UL),
+diff --git a/arch/sparc/kernel/prom_common.c b/arch/sparc/kernel/prom_common.c
+index 57ac9e2..40123a6 100644
+--- a/arch/sparc/kernel/prom_common.c
++++ b/arch/sparc/kernel/prom_common.c
+@@ -244,7 +244,7 @@ char * __init build_full_name(struct device_node *dp)
+ 
+ 	n = prom_early_alloc(len);
+ 	strcpy(n, dp->parent->full_name);
+-	if (!is_root_node(dp->parent)) {
++	if (!of_is_root_node(dp->parent)) {
+ 		strcpy(n + plen, "/");
+ 		plen++;
+ 	}
+diff --git a/include/linux/of.h b/include/linux/of.h
+index a367e19..b38cdf7 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -97,6 +97,14 @@ extern struct device_node *of_node_get(struct device_node *node);
+ extern void of_node_put(struct device_node *node);
+ #endif
+ 
++static inline bool of_is_root_node(const struct device_node *node)
++{
++	if (!node)
++		return false;
++
++	return (node->parent = NULL);
++}
++
+ /*
+  * OF address retreival & translation
+  */
+-- 
+1.5.6.5
+
