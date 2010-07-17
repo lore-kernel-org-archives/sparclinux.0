@@ -1,20 +1,44 @@
-From: "Sonia Porter" <sporter@jusd.k12.ca.us>
-Date: Tue, 20 Jul 2010 01:26:37 +0000
-Subject: Dear Webmail User
-Message-Id: <8A78544F83994B468EAC5A3D242C1E34C79054@exchsrv02.jusd.dom>
+From: king <sarahking@jaybrooksnet.org>
+Date: Sat, 17 Jul 2010 23:02:45 +0000
+Subject: charity projects,
+Message-Id: <20100717160245.qeprp9susc0oo88w@jaybrooksnet.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: info@upgrade.com
+To: sparclinux@vger.kernel.org
 
-This message was sent automatically by a program on Web mail which periodically checks the size of in boxes, where new messages are received.The program is run weekly to ensure no one's in box grows too large. If your in box becomes too large,you will be unable to receive new email. Just before this message was sent,you had 18 Mega bytes (MB) or more of messages stored in your in box on your Web mail. To help's re-set your SPACE on our database prior to maintain your IN BOX.
- 
-YOU MUST COPY AND PAST THE BELOW LINK TO INCREASE YOUR INBOX QUOTA AND UPGRADE YOUR WEBMAIL ACCOUNT
+My name is Mrs. SARAH King I am a dying woman who has decided to
+donate what I have to charity through you.You may be wondering why I
+chose you. But someone has to be chosen. I am 59 years old and was
+diagnosed for cancer about 2 years ago,immediately after the death of
+my husband who had left me everything he worked for.I have been
+touched by the lord to donate from what I have inherited from my late
+husband to charity through you for the good work of humanity,rather
+than allow my relatives to use my husband's hard earned funds
+inappropriately.I have asked the lord to forgive me all my sins and I
+believe he has,because He is merciful. I will be going in for an
+operation,and I pray that I survive the operation.I have decided to
+WILL/Donate the sum of $10.5 Million (10 Million five hundred thousand
+Dollars) to charity through you for the good work of the lord, and to
+help the motherless,less privileged and also fortheassistance of the
+widows At the moment I cannot take any telephone calls, due to the
+fact that my relatives are around me and I have been restricted by my
+doctor from taking telephone calls because I deserve all the rest I
+can get.Presently,I have informed my lawyer about my decision in
+WILLING this fund to charity through you. I wish you all the best and
+may the good Lord bless you abundantly, and please use the funds well
+and always extend the good work to others.If you are interested in
+carrying out this task,i will inform my family Lawyer so that he can
+arrange the release of the funds to you.I know i have never met you
+but my mind tells me to do this,and I hope you act sincerely.I will
+pay you 30% of this money if you will assist me because I am now too
+weak and fragile to do things myself because of my cancer.NB: I will
+appreciate your utmost confidentiality in this matter until the task
+is accomplished,as I don't want anything that will Jeopardize my last
+wish, due to the fact that I do not want relatives or family members
+standing in the way of my last wish. pls send email to my  
+privet,sarahking01@yahoo.com
+address Love,SARAH King
 
-http://www.eformit.com/eform.aspx?webmasterupgradesystem 
- 
- You will continue to receive this warning message periodically if your inbox size continues to be between 18 and 20 MB. If your in box size grows to 20MB,then a program on the Web mail will move your oldest email to a folder in your home directory to ensure that you will continue to be able to receive incoming email. You will be notified by email that this has taken place. If your in box grows to 25 MB, you will be unable to receive new email as it will be returned to the sender.After you read a message,it is best to REPLY and SAVE a copy.
- 
-Thanks.
-Web mail Help Desk
+
