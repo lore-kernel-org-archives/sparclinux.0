@@ -1,86 +1,56 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 21 Jul 2010 04:25:39 +0000
-Subject: [GIT] SPARC
-Message-Id: <20100720.212539.94888874.davem@davemloft.net>
+From: Mikael Pettersson <mikpe@it.uu.se>
+Date: Mon, 19 Jul 2010 21:58:42 +0000
+Subject: [PATCH] math-emu: correct test for downshifting fraction in _FP_FROM_INT()
+Message-Id: <19524.51858.992299.119315@pilspetsen.it.uu.se>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linuxppc-dev@ozlabs.org, linux-alpha@vger.kernel.org
 
+The kernel's math-emu code contains a macro _FP_FROM_INT() which is
+used to convert an integer to a raw normalized floating-point value.
+It does this basically in three steps:
 
-Couple sparc fixes that have piled up over the past few week:
+1. Compute the exponent from the number of leading zero bits.
+2. Downshift large fractions to put the MSB in the right position
+   for normalized fractions.
+3. Upshift small fractions to put the MSB in the right position.
 
-1) L1_CACHE_ALIGN macro unnecessary, from FUJITA Tomonori
+There is an boundary error in step 2, causing a fraction with its
+MSB exactly one bit above the normalized MSB position to not be
+downshifted.  This results in a non-normalized raw float, which when
+packed becomes a massively inaccurate representation for that input.
 
-2) _FP_FROM_INT() math-emu off-by-one bug that hits sparc and
-   other math-emu using platforms.  From Mikael Pettersson.
+The impact of this depends on a number of arch-specific factors,
+but it is known to have broken emulation of FXTOD instructions
+on UltraSPARC III, which was originally reported as GCC bug 44631
+<http://gcc.gnu.org/bugzilla/show_bug.cgi?idD631>.
 
-3) Add missing DWARF register lookup to perf.
+Any arch which uses math-emu to emulate conversions from integers to
+same-size floats may be affected.
 
-4) When console= is explicitly specified for a serial console,
-   don't try to override with firmware provided settings.
+The fix is simple: the exponent comparison used to determine if the
+fraction should be downshifted must be "<=" not "<".
 
-5) Use after free in sunsu driver.
+I'm sending a kernel module to test this as a reply to this message.
+There are also SPARC user-space test cases in the GCC bug entry.
 
-6) maybe_change_configuration() perf event code uses wrong %pcr
-   setting, notices by Peter Z.
+Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
+---
+ include/math-emu/op-common.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-7) Fix build failure in some configs, from Dongdong Deng.
-
-Please pull, thanks a lot!
-
-The following changes since commit e0959371b4aaddb9b986019d5cfef93f9801d0ff:
-
-  Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/sage/ceph-client (2010-07-20 16:27:58 -0700)
-
-are available in the git repository at:
-
-  master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
-
-David S. Miller (8):
-      sparc32: Kill none_mask, it's bogus.
-      sunserial: Don't call add_preferred_console() when console= is specified.
-      sunsu: Fix use after free in su_remove().
-      sparc64: Update defconfig.
-      sparc64: Fix maybe_change_configuration() PCR setting.
-      Merge branch 'master' of /home/davem/src/GIT/linux-2.6/
-      MAINTAINERS: Add SBUS driver path to sparc entry.
-      perf: Add DWARF register lookup for sparc
-
-Dongdong Deng (1):
-      sparc64: fix the build error due to smp_kgdb_capture_client()
-
-FUJITA Tomonori (1):
-      sparc: remove homegrown L1_CACHE_ALIGN macro
-
-Joe Perches (1):
-      drivers/sbus: Remove unnecessary casts of private_data
-
-Julia Lawall (1):
-      arch/sparc/kernel: Eliminate what looks like a NULL pointer dereference
-
-Mikael Pettersson (1):
-      math-emu: correct test for downshifting fraction in _FP_FROM_INT()
-
- MAINTAINERS                             |    1 +
- arch/sparc/configs/sparc64_defconfig    |   49 ++++++++++++++++++++++---------
- arch/sparc/include/asm/cache.h          |    1 -
- arch/sparc/include/asm/pgtable_32.h     |    5 +--
- arch/sparc/kernel/perf_event.c          |    1 +
- arch/sparc/kernel/sun4d_irq.c           |    2 +-
- arch/sparc/kernel/ttable.S              |    2 +-
- arch/sparc/mm/srmmu.c                   |    2 -
- arch/sparc/mm/sun4c.c                   |    3 --
- drivers/sbus/char/openprom.c            |    4 +-
- drivers/serial/suncore.c                |    4 ++-
- drivers/serial/sunsu.c                  |   13 ++++++--
- include/math-emu/op-common.h            |    2 +-
- tools/perf/arch/sparc/Makefile          |    4 ++
- tools/perf/arch/sparc/util/dwarf-regs.c |   43 +++++++++++++++++++++++++++
- 15 files changed, 103 insertions(+), 33 deletions(-)
- create mode 100644 tools/perf/arch/sparc/Makefile
- create mode 100644 tools/perf/arch/sparc/util/dwarf-regs.c
+diff -rupN linux-2.6.35-rc5/include/math-emu/op-common.h linux-2.6.35-rc5.mathemu-FP_FROM_INT-fraction-downshift-condition/include/math-emu/op-common.h
+--- linux-2.6.35-rc5/include/math-emu/op-common.h	2010-05-17 19:51:32.000000000 +0200
++++ linux-2.6.35-rc5.mathemu-FP_FROM_INT-fraction-downshift-condition/include/math-emu/op-common.h	2010-07-18 22:33:46.000000000 +0200
+@@ -799,7 +799,7 @@ do {									\
+ 		X##_e -= (_FP_W_TYPE_SIZE - rsize);			\
+ 	X##_e = rsize - X##_e - 1;					\
+ 									\
+-	if (_FP_FRACBITS_##fs < rsize && _FP_WFRACBITS_##fs < X##_e)	\
++	if (_FP_FRACBITS_##fs < rsize && _FP_WFRACBITS_##fs <= X##_e)	\
+ 	  __FP_FRAC_SRS_1(ur_, (X##_e - _FP_WFRACBITS_##fs + 1), rsize);\
+ 	_FP_FRAC_DISASSEMBLE_##wc(X, ur_, rsize);			\
+ 	if ((_FP_WFRACBITS_##fs - X##_e - 1) > 0)			\
