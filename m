@@ -1,95 +1,20 @@
-From: Jason Wessel <jason.wessel@windriver.com>
-Date: Fri, 30 Jul 2010 19:17:35 +0000
-Subject: [PATCH 14/15] sunhv,kgdboc: Add sunhv console poll hooks for kgdboc
-Message-Id: <1280517456-1167-15-git-send-email-jason.wessel@windriver.com>
+From: "Sonia Porter" <sporter@jusd.k12.ca.us>
+Date: Tue, 20 Jul 2010 01:26:37 +0000
+Subject: Dear Webmail User
+Message-Id: <8A78544F83994B468EAC5A3D242C1E34C79054@exchsrv02.jusd.dom>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1280517456-1167-1-git-send-email-jason.wessel@windriver.com>
-In-Reply-To: <1280517456-1167-1-git-send-email-jason.wessel@windriver.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: kgdb-bugreport@lists.sourceforge.net, mingo@elte.hu, Jason Wessel <jason.wessel@windriver.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: info@upgrade.com
 
-Add the CONSOLE_POLL hooks for use with kgdboc on the sunhv uart
-driver.
-
-Signed-off-by: Jason Wessel <jason.wessel@windriver.com>
-CC: David S. Miller <davem@davemloft.net>
-CC: sparclinux@vger.kernel.org
----
- drivers/serial/sunhv.c |   51 ++++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 51 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/serial/sunhv.c b/drivers/serial/sunhv.c
-index 890f917..bab9515 100644
---- a/drivers/serial/sunhv.c
-+++ b/drivers/serial/sunhv.c
-@@ -309,6 +309,53 @@ static void sunhv_break_ctl(struct uart_port *port, int break_state)
- 	}
- }
+This message was sent automatically by a program on Web mail which periodically checks the size of in boxes, where new messages are received.The program is run weekly to ensure no one's in box grows too large. If your in box becomes too large,you will be unable to receive new email. Just before this message was sent,you had 18 Mega bytes (MB) or more of messages stored in your in box on your Web mail. To help's re-set your SPACE on our database prior to maintain your IN BOX.
  
-+#ifdef CONFIG_CONSOLE_POLL
-+/*
-+ * Console polling routines for writing and reading from the uart while
-+ * in an interrupt or debug context.
-+ */
-+
-+static int poll_buf[PAGE_SIZE];
-+static int poll_buf_cnt;
-+static int poll_buf_idx;
-+
-+static int sunhv_get_poll_char(struct uart_port *port)
-+{
-+	unsigned long bytes_read;
-+	long stat;
-+	unsigned long ra;
-+	int i;
-+
-+	if (poll_buf_idx < poll_buf_cnt)
-+		return poll_buf[poll_buf_idx++];
-+
-+	ra = __pa(con_read_page);
-+	stat = sun4v_con_read(ra, PAGE_SIZE, &bytes_read);
-+	if (stat = HV_EOK) {
-+		poll_buf_idx = 1;
-+		poll_buf_cnt = bytes_read;
-+		for (i = 0; i < bytes_read; i++)
-+			poll_buf[i] = con_read_page[i];
-+		return poll_buf[0];
-+	}
-+
-+	return NO_POLL_CHAR;
-+}
-+
-+
-+static void sunhv_put_poll_char(struct uart_port *port,
-+			 unsigned char c)
-+{
-+	while (1) {
-+		long status = sun4v_con_putchar(c);
-+		if (status = HV_EOK)
-+			break;
-+		udelay(1);
-+	}
-+}
-+
-+#endif /* CONFIG_CONSOLE_POLL */
-+
- /* port->lock is not held.  */
- static int sunhv_startup(struct uart_port *port)
- {
-@@ -388,6 +435,10 @@ static struct uart_ops sunhv_pops = {
- 	.request_port	= sunhv_request_port,
- 	.config_port	= sunhv_config_port,
- 	.verify_port	= sunhv_verify_port,
-+#ifdef CONFIG_CONSOLE_POLL
-+	.poll_get_char = sunhv_get_poll_char,
-+	.poll_put_char = sunhv_put_poll_char,
-+#endif
- };
- 
- static struct uart_driver sunhv_reg = {
--- 
-1.6.4.rc1
+YOU MUST COPY AND PAST THE BELOW LINK TO INCREASE YOUR INBOX QUOTA AND UPGRADE YOUR WEBMAIL ACCOUNT
 
+http://www.eformit.com/eform.aspx?webmasterupgradesystem 
+ 
+ You will continue to receive this warning message periodically if your inbox size continues to be between 18 and 20 MB. If your in box size grows to 20MB,then a program on the Web mail will move your oldest email to a folder in your home directory to ensure that you will continue to be able to receive incoming email. You will be notified by email that this has taken place. If your in box grows to 25 MB, you will be unable to receive new email as it will be returned to the sender.After you read a message,it is best to REPLY and SAVE a copy.
+ 
+Thanks.
+Web mail Help Desk
