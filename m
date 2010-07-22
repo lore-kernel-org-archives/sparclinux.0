@@ -1,32 +1,45 @@
-From: Rene Rebe <rene@exactcode.de>
-Date: Thu, 22 Jul 2010 10:17:22 +0000
-Subject: compiling silo with any gcc newer than 4.3 (4.4, 4.5)
-Message-Id: <5C484984-6370-4804-8617-18C83CF16296@exactcode.de>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Thu, 22 Jul 2010 22:30:21 +0000
+Subject: [PATCH 4/4] microblaze: remove references to of_device and
+Message-Id: <20100722223021.21557.65702.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20100722222600.21557.34167.stgit@angua>
+In-Reply-To: <20100722222600.21557.34167.stgit@angua>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sfr@canb.auug.org.au, monstr@monstr.eu, microblaze-uclinux@itee.uq.edu.au, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, benh@kernel.cras
 
-Hi David,
+of_device is just a #define alias to platform_device.  This patch
+replaces all references to it with platform_device.
 
-I got some problem compiling silo with gcc 4.4 or 4.5. This binary diff cre=
-ation fails due to too big chunks:
+Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+---
+ arch/microblaze/kernel/of_platform.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-./util second.map second.aout second2.aout second.b second.b2
-Distance between two changes larger than 63K 3 116953 43805
-
-Anything else and the kernel do build just fine, silo appears to be my last=
- problem getting a new T2 ISO out, ...
-
-Do you get the same error, or just use very much older gcc versions? Then a=
-gain you may not compile silo to often at all, ...
-
-Any idea or feedback appreciated.
-
-Ren=E9
-
---=20
-  Ren=E9 Rebe, ExactCODE GmbH, Jaegerstr. 67, DE-10117 Berlin
-  http://exactcode.com | http://t2-project.org | http://rene.rebe.de
+diff --git a/arch/microblaze/kernel/of_platform.c b/arch/microblaze/kernel/of_platform.c
+index 80c9c49..c664b27 100644
+--- a/arch/microblaze/kernel/of_platform.c
++++ b/arch/microblaze/kernel/of_platform.c
+@@ -50,16 +50,16 @@ const struct of_device_id of_default_bus_ids[] = {
+ 
+ static int of_dev_node_match(struct device *dev, void *data)
+ {
+-	return to_of_device(dev)->dev.of_node = data;
++	return to_platform_device(dev)->dev.of_node = data;
+ }
+ 
+-struct of_device *of_find_device_by_node(struct device_node *np)
++struct platform_device *of_find_device_by_node(struct device_node *np)
+ {
+ 	struct device *dev;
+ 
+ 	dev = bus_find_device(&platform_bus_type, NULL, np, of_dev_node_match);
+ 	if (dev)
+-		return to_of_device(dev);
++		return to_platform_device(dev);
+ 	return NULL;
+ }
+ EXPORT_SYMBOL(of_find_device_by_node);
 
