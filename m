@@ -1,45 +1,84 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Date: Thu, 22 Jul 2010 22:30:21 +0000
-Subject: [PATCH 4/4] microblaze: remove references to of_device and
-Message-Id: <20100722223021.21557.65702.stgit@angua>
+Date: Fri, 23 Jul 2010 20:09:01 +0000
+Subject: [PATCH] of: Fix phandle endian issues
+Message-Id: <20100723200901.19485.35303.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100722222600.21557.34167.stgit@angua>
-In-Reply-To: <20100722222600.21557.34167.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sfr@canb.auug.org.au, monstr@monstr.eu, microblaze-uclinux@itee.uq.edu.au, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, benh@kernel.cras
+To: jonas@southpole.se, sfr@canb.auug.org.au, monstr@monstr.eu, microblaze-uclinux@itee.uq.edu.au, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, benh@kernel.crashing.org, sparclinux@vger.kernel.org, davem@davemloft.net
 
-of_device is just a #define alias to platform_device.  This patch
-replaces all references to it with platform_device.
+The flat tree code wasn't fixing the endianness on phandle values when
+unflattening the tree, and the code in drivers/of wasn't always doing a
+be32_to_cpu before trying to dereference the phandle values.  This patch
+fixes them.
 
 Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 ---
- arch/microblaze/kernel/of_platform.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/of/base.c |   12 ++++++------
+ drivers/of/fdt.c  |    4 ++--
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/arch/microblaze/kernel/of_platform.c b/arch/microblaze/kernel/of_platform.c
-index 80c9c49..c664b27 100644
---- a/arch/microblaze/kernel/of_platform.c
-+++ b/arch/microblaze/kernel/of_platform.c
-@@ -50,16 +50,16 @@ const struct of_device_id of_default_bus_ids[] = {
- 
- static int of_dev_node_match(struct device *dev, void *data)
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index e3f7af8..aa80525 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -605,14 +605,14 @@ EXPORT_SYMBOL(of_find_node_by_phandle);
+ struct device_node *
+ of_parse_phandle(struct device_node *np, const char *phandle_name, int index)
  {
--	return to_of_device(dev)->dev.of_node = data;
-+	return to_platform_device(dev)->dev.of_node = data;
- }
+-	const phandle *phandle;
++	const __be32 *phandle;
+ 	int size;
  
--struct of_device *of_find_device_by_node(struct device_node *np)
-+struct platform_device *of_find_device_by_node(struct device_node *np)
- {
- 	struct device *dev;
+ 	phandle = of_get_property(np, phandle_name, &size);
+ 	if ((!phandle) || (size < sizeof(*phandle) * (index + 1)))
+ 		return NULL;
  
- 	dev = bus_find_device(&platform_bus_type, NULL, np, of_dev_node_match);
- 	if (dev)
--		return to_of_device(dev);
-+		return to_platform_device(dev);
- 	return NULL;
+-	return of_find_node_by_phandle(phandle[index]);
++	return of_find_node_by_phandle(be32_to_cpup(phandle + index));
  }
- EXPORT_SYMBOL(of_find_device_by_node);
+ EXPORT_SYMBOL(of_parse_phandle);
+ 
+@@ -668,16 +668,16 @@ int of_parse_phandles_with_args(struct device_node *np, const char *list_name,
+ 
+ 	while (list < list_end) {
+ 		const __be32 *cells;
+-		const phandle *phandle;
++		phandle phandle;
+ 
+-		phandle = list++;
++		phandle = be32_to_cpup(list++);
+ 		args = list;
+ 
+ 		/* one cell hole in the list = <>; */
+-		if (!*phandle)
++		if (!phandle)
+ 			goto next;
+ 
+-		node = of_find_node_by_phandle(*phandle);
++		node = of_find_node_by_phandle(phandle);
+ 		if (!node) {
+ 			pr_debug("%s: could not find phandle\n",
+ 				 np->full_name);
+diff --git a/drivers/of/fdt.c b/drivers/of/fdt.c
+index d61fda8..f3a7b4f 100644
+--- a/drivers/of/fdt.c
++++ b/drivers/of/fdt.c
+@@ -320,13 +320,13 @@ unsigned long __init unflatten_dt_node(unsigned long mem,
+ 			if ((strcmp(pname, "phandle") = 0) ||
+ 			    (strcmp(pname, "linux,phandle") = 0)) {
+ 				if (np->phandle = 0)
+-					np->phandle = *((u32 *)*p);
++					np->phandle = be32_to_cpup((__be32*)*p);
+ 			}
+ 			/* And we process the "ibm,phandle" property
+ 			 * used in pSeries dynamic device tree
+ 			 * stuff */
+ 			if (strcmp(pname, "ibm,phandle") = 0)
+-				np->phandle = *((u32 *)*p);
++				np->phandle = be32_to_cpup((__be32 *)*p);
+ 			pp->name = pname;
+ 			pp->length = sz;
+ 			pp->value = (void *)*p;
 
