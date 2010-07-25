@@ -1,98 +1,62 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Sat, 24 Jul 2010 15:43:31 +0000
-Subject: [PATCH] of: Provide default of_node_to_nid() when CONFIG_NUMA is not
-Message-Id: <20100724154331.22701.3409.stgit@angua>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Sun, 25 Jul 2010 03:07:23 +0000
+Subject: Re: [PATCH] of: Provide default of_node_to_nid() when CONFIG_NUMA
+Message-Id: <20100725130723.a5192793.sfr@canb.auug.org.au>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Signature=_Sun__25_Jul_2010_13_07_23_+1000_RD.pz8Eexz.QQVh="
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sfr@canb.auug.org.au, monstr@monstr.eu, microblaze-uclinux@itee.uq.edu.au, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, benh@kernel.cras
+References: <20100724154331.22701.3409.stgit@angua>
+In-Reply-To: <20100724154331.22701.3409.stgit@angua>
+To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Cc: microblaze-uclinux-rVRm/Wmeqae7NGdpmJTKYQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-mnsaURCQ41sdnm+yROfE0A@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
 
-of_node_to_nid() is only relevant for NUMA.  Don't force architectures to
-implement it if CONFIG_NUMA is not set.
+--Signature=_Sun__25_Jul_2010_13_07_23_+1000_RD.pz8Eexz.QQVh=
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
----
- arch/microblaze/include/asm/topology.h |   10 ----------
- arch/powerpc/include/asm/topology.h    |    7 -------
- arch/sparc/include/asm/prom.h          |    5 -----
- include/linux/of.h                     |    8 ++++++++
- 4 files changed, 8 insertions(+), 22 deletions(-)
+Hi Grant,
 
-diff --git a/arch/microblaze/include/asm/topology.h b/arch/microblaze/include/asm/topology.h
-index 96bcea5..5428f33 100644
---- a/arch/microblaze/include/asm/topology.h
-+++ b/arch/microblaze/include/asm/topology.h
-@@ -1,11 +1 @@
- #include <asm-generic/topology.h>
--
--#ifndef _ASM_MICROBLAZE_TOPOLOGY_H
--#define _ASM_MICROBLAZE_TOPOLOGY_H
--
--struct device_node;
--static inline int of_node_to_nid(struct device_node *device)
--{
--	return 0;
--}
--#endif /* _ASM_MICROBLAZE_TOPOLOGY_H */
-diff --git a/arch/powerpc/include/asm/topology.h b/arch/powerpc/include/asm/topology.h
-index 32adf72..09dd38c 100644
---- a/arch/powerpc/include/asm/topology.h
-+++ b/arch/powerpc/include/asm/topology.h
-@@ -41,8 +41,6 @@ static inline int cpu_to_node(int cpu)
- 			       cpu_all_mask :				\
- 			       node_to_cpumask_map[node])
- 
--int of_node_to_nid(struct device_node *device);
--
- struct pci_bus;
- #ifdef CONFIG_PCI
- extern int pcibus_to_node(struct pci_bus *bus);
-@@ -94,11 +92,6 @@ extern void sysfs_remove_device_from_node(struct sys_device *dev, int nid);
- 
- #else
- 
--static inline int of_node_to_nid(struct device_node *device)
--{
--	return 0;
--}
--
- static inline void dump_numa_cpu_topology(void) {}
- 
- static inline int sysfs_add_device_to_node(struct sys_device *dev, int nid)
-diff --git a/arch/sparc/include/asm/prom.h b/arch/sparc/include/asm/prom.h
-index c82a7da..b47d2a7 100644
---- a/arch/sparc/include/asm/prom.h
-+++ b/arch/sparc/include/asm/prom.h
-@@ -41,11 +41,6 @@ extern int of_getintprop_default(struct device_node *np,
- 				 const char *name,
- 				 int def);
- extern int of_find_in_proplist(const char *list, const char *match, int len);
--#ifdef CONFIG_NUMA
--extern int of_node_to_nid(struct device_node *dp);
--#else
--#define of_node_to_nid(dp)	(-1)
--#endif
- 
- extern void prom_build_devicetree(void);
- extern void of_populate_present_mask(void);
-diff --git a/include/linux/of.h b/include/linux/of.h
-index b0756f3..ec25482 100644
---- a/include/linux/of.h
-+++ b/include/linux/of.h
-@@ -205,6 +205,14 @@ extern int of_parse_phandles_with_args(struct device_node *np,
- 
- extern int of_machine_is_compatible(const char *compat);
- 
-+#if defined(CONFIG_NUMA)
-+extern int of_node_to_nid(struct device_node *device);
-+#elif defined(CONFIG_SPARC)
-+static inline int of_node_to_nid(struct device_node *device) { return -1; }
-+#else
-+static inline int of_node_to_nid(struct device_node *device) { return 0; }
-+#endif
-+
- extern int prom_add_property(struct device_node* np, struct property* prop);
- extern int prom_remove_property(struct device_node *np, struct property *prop);
- extern int prom_update_property(struct device_node *np,
+On Sat, 24 Jul 2010 09:43:31 -0600 Grant Likely <grant.likely@secretlab.ca>=
+ wrote:
+>
+> of_node_to_nid() is only relevant for NUMA.  Don't force architectures to
+> implement it if CONFIG_NUMA is not set.
 
+Why not just do:
+
+#ifndef of_node_to_nid
+static inline int of_node_to_nid(struct device_node *device) { return 0; }
+#define of_node_to_nid	of_node_to_nid
+#endif
+
+in include/linux/of.h
+
+and then add:
+
+#define of_node_to_nid	of_node_to_nid
+
+Where it is declared/defined for each arch ...
+(it would be nice if all the archs were consistent in where it was
+declared).
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
+
+--Signature=_Sun__25_Jul_2010_13_07_23_+1000_RD.pz8Eexz.QQVh=
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iQEcBAEBAgAGBQJMS6prAAoJEDMEi1NhKgbshFMH/i8Aj76EKx/9C5bPwVVHExHD
+pYd2B3ivu0HASm+xvMsZE+8AAsRmRrfHczhyLgQDw0SbxsvWmZKAP6bJg8KscMSF
+s73yV3tvEzCZpgTtCks/PxjVjkt/MHdSgyzaD+vcW62ZKyuNFXnGOEBbnC8d/v5G
+G7aQ5gFrLMLUbdoGL+C1aSRr283ur2Wdukfe5ooVgoao3EayDvZOhlxr5aF2r4nq
+WsZf5is1JQqwzcDiM2PykD8ReTtE+ZG/IUBzaOUi1OsxYhOMCEJsOm+egr93++lW
+HKqd/qgvyKwL2tlTAnYttTsgtQCWtA2zX16ef/Ea9kLgVeOd935Plk2pcfG6XXA=
+=FG69
+-----END PGP SIGNATURE-----
+
+--Signature=_Sun__25_Jul_2010_13_07_23_+1000_RD.pz8Eexz.QQVh=--
