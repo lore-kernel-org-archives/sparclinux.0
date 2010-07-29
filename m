@@ -1,480 +1,435 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Date: Thu, 22 Jul 2010 22:30:11 +0000
-Subject: [PATCH 2/4] powerpc: remove references to of_device and to_of_device
-Message-Id: <20100722223011.21557.77496.stgit@angua>
+Date: Thu, 29 Jul 2010 19:04:40 +0000
+Subject: [PATCH] of/address: Clean up function declarations
+Message-Id: <20100729190429.28739.21521.stgit@angua>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100722222600.21557.34167.stgit@angua>
-In-Reply-To: <20100722222600.21557.34167.stgit@angua>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sfr@canb.auug.org.au, monstr@monstr.eu, microblaze-uclinux@itee.uq.edu.au, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linuxppc-dev@ozlabs.org, benh@kernel.cras
 
-of_device is just a #define alias to platform_device.  This patch
-replaces all references to it with platform_device.
+This patch moves the declaration of of_get_address(), of_get_pci_address(),
+and of_pci_address_to_resource() out of arch code and into the common
+linux/of_address header file.
+
+This patch also fixes some of the asm/prom.h ordering issues.  It still
+includes some header files that it ideally shouldn't be, but at least the
+ordering is consistent now so that of_* overrides work.
 
 Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 ---
- arch/powerpc/kernel/ibmebus.c                 |    8 ++++----
- arch/powerpc/kernel/of_platform.c             |    8 ++++----
- arch/powerpc/platforms/512x/clock.c           |    2 +-
- arch/powerpc/platforms/52xx/mpc52xx_gpio.c    |    6 +++---
- arch/powerpc/platforms/52xx/mpc52xx_gpt.c     |    4 ++--
- arch/powerpc/platforms/52xx/mpc52xx_lpbfifo.c |    6 +++---
- arch/powerpc/platforms/82xx/ep8248e.c         |    4 ++--
- arch/powerpc/platforms/83xx/suspend.c         |    6 +++---
- arch/powerpc/platforms/cell/axon_msi.c        |    4 ++--
- arch/powerpc/platforms/pasemi/gpio_mdio.c     |    4 ++--
- arch/powerpc/sysdev/axonram.c                 |   12 ++++++------
- arch/powerpc/sysdev/bestcomm/bestcomm.c       |    7 +++----
- arch/powerpc/sysdev/fsl_msi.c                 |    4 ++--
- arch/powerpc/sysdev/fsl_pmc.c                 |    3 ++-
- arch/powerpc/sysdev/fsl_rio.c                 |    4 ++--
- arch/powerpc/sysdev/pmi.c                     |    6 +++---
- arch/powerpc/sysdev/qe_lib/qe.c               |    5 +++--
- 17 files changed, 47 insertions(+), 46 deletions(-)
+ arch/microblaze/include/asm/prom.h        |   33 +++++++-------------
+ arch/powerpc/include/asm/prom.h           |   49 +++++++----------------------
+ arch/powerpc/kernel/legacy_serial.c       |    1 +
+ arch/powerpc/kernel/pci-common.c          |    1 +
+ arch/powerpc/platforms/52xx/lite5200.c    |    1 +
+ arch/powerpc/platforms/amigaone/setup.c   |    3 +-
+ arch/powerpc/platforms/iseries/mf.c       |    1 +
+ arch/powerpc/platforms/powermac/feature.c |    2 +
+ drivers/char/bsr.c                        |    1 +
+ drivers/net/fsl_pq_mdio.c                 |    1 +
+ drivers/net/xilinx_emaclite.c             |    2 +
+ drivers/serial/uartlite.c                 |    1 +
+ drivers/spi/mpc512x_psc_spi.c             |    1 +
+ drivers/spi/mpc52xx_psc_spi.c             |    1 +
+ drivers/spi/xilinx_spi_of.c               |    1 +
+ drivers/usb/gadget/fsl_qe_udc.c           |    1 +
+ drivers/video/controlfb.c                 |    2 +
+ drivers/video/offb.c                      |    3 +-
+ include/linux/of_address.h                |   32 +++++++++++++++++++
+ 19 files changed, 74 insertions(+), 63 deletions(-)
 
-diff --git a/arch/powerpc/kernel/ibmebus.c b/arch/powerpc/kernel/ibmebus.c
-index 21266ab..9b626cf 100644
---- a/arch/powerpc/kernel/ibmebus.c
-+++ b/arch/powerpc/kernel/ibmebus.c
-@@ -140,19 +140,19 @@ static struct dma_map_ops ibmebus_dma_ops = {
+diff --git a/arch/microblaze/include/asm/prom.h b/arch/microblaze/include/asm/prom.h
+index cb9c3dd..101fa09 100644
+--- a/arch/microblaze/include/asm/prom.h
++++ b/arch/microblaze/include/asm/prom.h
+@@ -20,11 +20,6 @@
+ #ifndef __ASSEMBLY__
  
- static int ibmebus_match_path(struct device *dev, void *data)
- {
--	struct device_node *dn = to_of_device(dev)->dev.of_node;
-+	struct device_node *dn = to_platform_device(dev)->dev.of_node;
- 	return (dn->full_name &&
- 		(strcasecmp((char *)data, dn->full_name) = 0));
- }
+ #include <linux/types.h>
+-#include <linux/of_address.h>
+-#include <linux/of_irq.h>
+-#include <linux/of_fdt.h>
+-#include <linux/proc_fs.h>
+-#include <linux/platform_device.h>
+ #include <asm/irq.h>
+ #include <asm/atomic.h>
  
- static int ibmebus_match_node(struct device *dev, void *data)
- {
--	return to_of_device(dev)->dev.of_node = data;
-+	return to_platform_device(dev)->dev.of_node = data;
- }
- 
- static int ibmebus_create_device(struct device_node *dn)
- {
--	struct of_device *dev;
-+	struct platform_device *dev;
- 	int ret;
- 
- 	dev = of_device_alloc(dn, NULL, &ibmebus_bus_device);
-@@ -298,7 +298,7 @@ static ssize_t ibmebus_store_remove(struct bus_type *bus,
- 
- 	if ((dev = bus_find_device(&ibmebus_bus_type, NULL, path,
- 				   ibmebus_match_path))) {
--		of_device_unregister(to_of_device(dev));
-+		of_device_unregister(to_platform_device(dev));
- 
- 		kfree(path);
- 		return count;
-diff --git a/arch/powerpc/kernel/of_platform.c b/arch/powerpc/kernel/of_platform.c
-index b093d4b..84439d1 100644
---- a/arch/powerpc/kernel/of_platform.c
-+++ b/arch/powerpc/kernel/of_platform.c
-@@ -54,16 +54,16 @@ const struct of_device_id of_default_bus_ids[] = {
- 
- static int of_dev_node_match(struct device *dev, void *data)
- {
--	return to_of_device(dev)->dev.of_node = data;
-+	return to_platform_device(dev)->dev.of_node = data;
- }
- 
--struct of_device *of_find_device_by_node(struct device_node *np)
-+struct platform_device *of_find_device_by_node(struct device_node *np)
- {
- 	struct device *dev;
- 
- 	dev = bus_find_device(&platform_bus_type, NULL, np, of_dev_node_match);
- 	if (dev)
--		return to_of_device(dev);
-+		return to_platform_device(dev);
- 	return NULL;
- }
- EXPORT_SYMBOL(of_find_device_by_node);
-@@ -76,7 +76,7 @@ EXPORT_SYMBOL(of_find_device_by_node);
-  * lacking some bits needed here.
+@@ -52,25 +47,9 @@ extern void pci_create_OF_bus_map(void);
+  * OF address retreival & translation
   */
  
--static int __devinit of_pci_phb_probe(struct of_device *dev,
-+static int __devinit of_pci_phb_probe(struct platform_device *dev,
- 				      const struct of_device_id *match)
- {
- 	struct pci_controller *phb;
-diff --git a/arch/powerpc/platforms/512x/clock.c b/arch/powerpc/platforms/512x/clock.c
-index 4c42246..65e2d67 100644
---- a/arch/powerpc/platforms/512x/clock.c
-+++ b/arch/powerpc/platforms/512x/clock.c
-@@ -660,7 +660,7 @@ static void psc_clks_init(void)
- {
- 	struct device_node *np;
- 	const u32 *cell_index;
--	struct of_device *ofdev;
-+	struct platform_device *ofdev;
+-/* Extract an address from a device, returns the region size and
+- * the address space flags too. The PCI version uses a BAR number
+- * instead of an absolute index
+- */
+-extern const u32 *of_get_address(struct device_node *dev, int index,
+-			u64 *size, unsigned int *flags);
+-extern const u32 *of_get_pci_address(struct device_node *dev, int bar_no,
+-			u64 *size, unsigned int *flags);
+-
+-extern int of_pci_address_to_resource(struct device_node *dev, int bar,
+-				struct resource *r);
+-
+ #ifdef CONFIG_PCI
+ extern unsigned long pci_address_to_pio(phys_addr_t address);
+-#else
+-static inline unsigned long pci_address_to_pio(phys_addr_t address)
+-{
+-	return (unsigned long)-1;
+-}
++#define pci_address_to_pio pci_address_to_pio
+ #endif	/* CONFIG_PCI */
  
- 	for_each_compatible_node(np, NULL, "fsl,mpc5121-psc") {
- 		cell_index = of_get_property(np, "cell-index", NULL);
-diff --git a/arch/powerpc/platforms/52xx/mpc52xx_gpio.c b/arch/powerpc/platforms/52xx/mpc52xx_gpio.c
-index 0855e80..0dad9a9 100644
---- a/arch/powerpc/platforms/52xx/mpc52xx_gpio.c
-+++ b/arch/powerpc/platforms/52xx/mpc52xx_gpio.c
-@@ -147,7 +147,7 @@ mpc52xx_wkup_gpio_dir_out(struct gpio_chip *gc, unsigned int gpio, int val)
- 	return 0;
- }
- 
--static int __devinit mpc52xx_wkup_gpiochip_probe(struct of_device *ofdev,
-+static int __devinit mpc52xx_wkup_gpiochip_probe(struct platform_device *ofdev,
- 					const struct of_device_id *match)
- {
- 	struct mpc52xx_gpiochip *chip;
-@@ -179,7 +179,7 @@ static int __devinit mpc52xx_wkup_gpiochip_probe(struct of_device *ofdev,
- 	return 0;
- }
- 
--static int mpc52xx_gpiochip_remove(struct of_device *ofdev)
-+static int mpc52xx_gpiochip_remove(struct platform_device *ofdev)
- {
- 	return -EBUSY;
- }
-@@ -310,7 +310,7 @@ mpc52xx_simple_gpio_dir_out(struct gpio_chip *gc, unsigned int gpio, int val)
- 	return 0;
- }
- 
--static int __devinit mpc52xx_simple_gpiochip_probe(struct of_device *ofdev,
-+static int __devinit mpc52xx_simple_gpiochip_probe(struct platform_device *ofdev,
- 					const struct of_device_id *match)
- {
- 	struct mpc52xx_gpiochip *chip;
-diff --git a/arch/powerpc/platforms/52xx/mpc52xx_gpt.c b/arch/powerpc/platforms/52xx/mpc52xx_gpt.c
-index 5d7d607..fea833e 100644
---- a/arch/powerpc/platforms/52xx/mpc52xx_gpt.c
-+++ b/arch/powerpc/platforms/52xx/mpc52xx_gpt.c
-@@ -720,7 +720,7 @@ static inline int mpc52xx_gpt_wdt_setup(struct mpc52xx_gpt_priv *gpt,
- /* ---------------------------------------------------------------------
-  * of_platform bus binding code
+ /* Parse the ibm,dma-window property of an OF node into the busno, phys and
+@@ -99,8 +78,18 @@ extern const void *of_get_mac_address(struct device_node *np);
+  * resolving using the OF tree walking.
   */
--static int __devinit mpc52xx_gpt_probe(struct of_device *ofdev,
-+static int __devinit mpc52xx_gpt_probe(struct platform_device *ofdev,
- 				       const struct of_device_id *match)
- {
- 	struct mpc52xx_gpt_priv *gpt;
-@@ -766,7 +766,7 @@ static int __devinit mpc52xx_gpt_probe(struct of_device *ofdev,
- 	return 0;
- }
+ struct pci_dev;
++struct of_irq;
+ extern int of_irq_map_pci(struct pci_dev *pdev, struct of_irq *out_irq);
  
--static int mpc52xx_gpt_remove(struct of_device *ofdev)
-+static int mpc52xx_gpt_remove(struct platform_device *ofdev)
- {
- 	return -EBUSY;
- }
-diff --git a/arch/powerpc/platforms/52xx/mpc52xx_lpbfifo.c b/arch/powerpc/platforms/52xx/mpc52xx_lpbfifo.c
-index e86aec6..f4ac213 100644
---- a/arch/powerpc/platforms/52xx/mpc52xx_lpbfifo.c
-+++ b/arch/powerpc/platforms/52xx/mpc52xx_lpbfifo.c
-@@ -436,8 +436,8 @@ void mpc52xx_lpbfifo_abort(struct mpc52xx_lpbfifo_request *req)
- }
- EXPORT_SYMBOL(mpc52xx_lpbfifo_abort);
- 
--static int __devinit
--mpc52xx_lpbfifo_probe(struct of_device *op, const struct of_device_id *match)
-+static int __devinit mpc52xx_lpbfifo_probe(struct platform_device *op,
-+					   const struct of_device_id *match)
- {
- 	struct resource res;
- 	int rc = -ENOMEM;
-@@ -507,7 +507,7 @@ mpc52xx_lpbfifo_probe(struct of_device *op, const struct of_device_id *match)
- }
- 
- 
--static int __devexit mpc52xx_lpbfifo_remove(struct of_device *op)
-+static int __devexit mpc52xx_lpbfifo_remove(struct platform_device *op)
- {
- 	if (lpbfifo.dev != &op->dev)
- 		return 0;
-diff --git a/arch/powerpc/platforms/82xx/ep8248e.c b/arch/powerpc/platforms/82xx/ep8248e.c
-index 9f2e52b..1565e04 100644
---- a/arch/powerpc/platforms/82xx/ep8248e.c
-+++ b/arch/powerpc/platforms/82xx/ep8248e.c
-@@ -111,7 +111,7 @@ static struct mdiobb_ctrl ep8248e_mdio_ctrl = {
- 	.ops = &ep8248e_mdio_ops,
- };
- 
--static int __devinit ep8248e_mdio_probe(struct of_device *ofdev,
-+static int __devinit ep8248e_mdio_probe(struct platform_device *ofdev,
-                                         const struct of_device_id *match)
- {
- 	struct mii_bus *bus;
-@@ -154,7 +154,7 @@ err_free_bus:
- 	return ret;
- }
- 
--static int ep8248e_mdio_remove(struct of_device *ofdev)
-+static int ep8248e_mdio_remove(struct platform_device *ofdev)
- {
- 	BUG();
- 	return 0;
-diff --git a/arch/powerpc/platforms/83xx/suspend.c b/arch/powerpc/platforms/83xx/suspend.c
-index ebe6c35..75ae77f 100644
---- a/arch/powerpc/platforms/83xx/suspend.c
-+++ b/arch/powerpc/platforms/83xx/suspend.c
-@@ -99,7 +99,7 @@ struct pmc_type {
- 	int has_deep_sleep;
- };
- 
--static struct of_device *pmc_dev;
-+static struct platform_device *pmc_dev;
- static int has_deep_sleep, deep_sleeping;
- static int pmc_irq;
- static struct mpc83xx_pmc __iomem *pmc_regs;
-@@ -318,7 +318,7 @@ static struct platform_suspend_ops mpc83xx_suspend_ops = {
- 	.end = mpc83xx_suspend_end,
- };
- 
--static int pmc_probe(struct of_device *ofdev,
-+static int pmc_probe(struct platform_device *ofdev,
-                      const struct of_device_id *match)
- {
- 	struct device_node *np = ofdev->dev.of_node;
-@@ -396,7 +396,7 @@ out:
- 	return ret;
- }
- 
--static int pmc_remove(struct of_device *ofdev)
-+static int pmc_remove(struct platform_device *ofdev)
- {
- 	return -EPERM;
- };
-diff --git a/arch/powerpc/platforms/cell/axon_msi.c b/arch/powerpc/platforms/cell/axon_msi.c
-index 6257e53..9708553 100644
---- a/arch/powerpc/platforms/cell/axon_msi.c
-+++ b/arch/powerpc/platforms/cell/axon_msi.c
-@@ -328,7 +328,7 @@ static struct irq_host_ops msic_host_ops = {
- 	.map	= msic_host_map,
- };
- 
--static int axon_msi_shutdown(struct of_device *device)
-+static int axon_msi_shutdown(struct platform_device *device)
- {
- 	struct axon_msic *msic = dev_get_drvdata(&device->dev);
- 	u32 tmp;
-@@ -342,7 +342,7 @@ static int axon_msi_shutdown(struct of_device *device)
- 	return 0;
- }
- 
--static int axon_msi_probe(struct of_device *device,
-+static int axon_msi_probe(struct platform_device *device,
- 			  const struct of_device_id *device_id)
- {
- 	struct device_node *dn = device->dev.of_node;
-diff --git a/arch/powerpc/platforms/pasemi/gpio_mdio.c b/arch/powerpc/platforms/pasemi/gpio_mdio.c
-index 627ee08..a5d907b 100644
---- a/arch/powerpc/platforms/pasemi/gpio_mdio.c
-+++ b/arch/powerpc/platforms/pasemi/gpio_mdio.c
-@@ -216,7 +216,7 @@ static int gpio_mdio_reset(struct mii_bus *bus)
- }
- 
- 
--static int __devinit gpio_mdio_probe(struct of_device *ofdev,
-+static int __devinit gpio_mdio_probe(struct platform_device *ofdev,
- 				     const struct of_device_id *match)
- {
- 	struct device *dev = &ofdev->dev;
-@@ -275,7 +275,7 @@ out:
- }
- 
- 
--static int gpio_mdio_remove(struct of_device *dev)
-+static int gpio_mdio_remove(struct platform_device *dev)
- {
- 	struct mii_bus *bus = dev_get_drvdata(&dev->dev);
- 
-diff --git a/arch/powerpc/sysdev/axonram.c b/arch/powerpc/sysdev/axonram.c
-index 402d221..2659a60 100644
---- a/arch/powerpc/sysdev/axonram.c
-+++ b/arch/powerpc/sysdev/axonram.c
-@@ -60,7 +60,7 @@
- static int azfs_major, azfs_minor;
- 
- struct axon_ram_bank {
--	struct of_device	*device;
-+	struct platform_device	*device;
- 	struct gendisk		*disk;
- 	unsigned int		irq_id;
- 	unsigned long		ph_addr;
-@@ -72,7 +72,7 @@ struct axon_ram_bank {
- static ssize_t
- axon_ram_sysfs_ecc(struct device *dev, struct device_attribute *attr, char *buf)
- {
--	struct of_device *device = to_of_device(dev);
-+	struct platform_device *device = to_platform_device(dev);
- 	struct axon_ram_bank *bank = device->dev.platform_data;
- 
- 	BUG_ON(!bank);
-@@ -90,7 +90,7 @@ static DEVICE_ATTR(ecc, S_IRUGO, axon_ram_sysfs_ecc, NULL);
- static irqreturn_t
- axon_ram_irq_handler(int irq, void *dev)
- {
--	struct of_device *device = dev;
-+	struct platform_device *device = dev;
- 	struct axon_ram_bank *bank = device->dev.platform_data;
- 
- 	BUG_ON(!bank);
-@@ -174,8 +174,8 @@ static const struct block_device_operations axon_ram_devops = {
-  * axon_ram_probe - probe() method for platform driver
-  * @device, @device_id: see of_platform_driver method
+ #endif /* __ASSEMBLY__ */
+ #endif /* __KERNEL__ */
++
++/* These includes are put at the bottom because they may contain things
++ * that are overridden by this file.  Ideally they shouldn't be included
++ * by this file, but there are a bunch of .c files that currently depend
++ * on it.  Eventually they will be cleaned up. */
++#include <linux/of_fdt.h>
++#include <linux/of_irq.h>
++#include <linux/platform_device.h>
++
+ #endif /* _ASM_MICROBLAZE_PROM_H */
+diff --git a/arch/powerpc/include/asm/prom.h b/arch/powerpc/include/asm/prom.h
+index 55bccc0..ae26f2e 100644
+--- a/arch/powerpc/include/asm/prom.h
++++ b/arch/powerpc/include/asm/prom.h
+@@ -17,11 +17,6 @@
+  * 2 of the License, or (at your option) any later version.
   */
--static int
--axon_ram_probe(struct of_device *device, const struct of_device_id *device_id)
-+static int axon_ram_probe(struct platform_device *device,
-+			  const struct of_device_id *device_id)
- {
- 	static int axon_ram_bank_id = -1;
- 	struct axon_ram_bank *bank;
-@@ -304,7 +304,7 @@ failed:
-  * @device: see of_platform_driver method
+ #include <linux/types.h>
+-#include <linux/of_fdt.h>
+-#include <linux/of_address.h>
+-#include <linux/of_irq.h>
+-#include <linux/proc_fs.h>
+-#include <linux/platform_device.h>
+ #include <asm/irq.h>
+ #include <asm/atomic.h>
+ 
+@@ -49,41 +44,9 @@ extern void pci_create_OF_bus_map(void);
+ extern u64 of_translate_dma_address(struct device_node *dev,
+ 				    const u32 *in_addr);
+ 
+-/* Extract an address from a device, returns the region size and
+- * the address space flags too. The PCI version uses a BAR number
+- * instead of an absolute index
+- */
+-extern const u32 *of_get_address(struct device_node *dev, int index,
+-			   u64 *size, unsigned int *flags);
+-#ifdef CONFIG_PCI
+-extern const u32 *of_get_pci_address(struct device_node *dev, int bar_no,
+-			       u64 *size, unsigned int *flags);
+-#else
+-static inline const u32 *of_get_pci_address(struct device_node *dev,
+-		int bar_no, u64 *size, unsigned int *flags)
+-{
+-	return NULL;
+-}
+-#endif /* CONFIG_PCI */
+-
+-#ifdef CONFIG_PCI
+-extern int of_pci_address_to_resource(struct device_node *dev, int bar,
+-				      struct resource *r);
+-#else
+-static inline int of_pci_address_to_resource(struct device_node *dev, int bar,
+-		struct resource *r)
+-{
+-	return -ENOSYS;
+-}
+-#endif /* CONFIG_PCI */
+-
+ #ifdef CONFIG_PCI
+ extern unsigned long pci_address_to_pio(phys_addr_t address);
+-#else
+-static inline unsigned long pci_address_to_pio(phys_addr_t address)
+-{
+-	return (unsigned long)-1;
+-}
++#define pci_address_to_pio pci_address_to_pio
+ #endif	/* CONFIG_PCI */
+ 
+ /* Parse the ibm,dma-window property of an OF node into the busno, phys and
+@@ -122,9 +85,19 @@ static inline int of_node_to_nid(struct device_node *device) { return 0; }
+  * resolving using the OF tree walking.
   */
- static int
--axon_ram_remove(struct of_device *device)
-+axon_ram_remove(struct platform_device *device)
- {
- 	struct axon_ram_bank *bank = device->dev.platform_data;
+ struct pci_dev;
++struct of_irq;
+ extern int of_irq_map_pci(struct pci_dev *pdev, struct of_irq *out_irq);
  
-diff --git a/arch/powerpc/sysdev/bestcomm/bestcomm.c b/arch/powerpc/sysdev/bestcomm/bestcomm.c
-index a7c5c47..6502561 100644
---- a/arch/powerpc/sysdev/bestcomm/bestcomm.c
-+++ b/arch/powerpc/sysdev/bestcomm/bestcomm.c
-@@ -365,8 +365,8 @@ bcom_engine_cleanup(void)
- /* OF platform driver                                                       */
- /* ==================================== */
+ extern void of_instantiate_rtc(void);
  
--static int __devinit
--mpc52xx_bcom_probe(struct of_device *op, const struct of_device_id *match)
-+static int __devinit mpc52xx_bcom_probe(struct platform_device *op,
-+					const struct of_device_id *match)
- {
- 	struct device_node *ofn_sram;
- 	struct resource res_bcom;
-@@ -461,8 +461,7 @@ error_ofput:
- }
- 
- 
--static int
--mpc52xx_bcom_remove(struct of_device *op)
-+static int mpc52xx_bcom_remove(struct platform_device *op)
- {
- 	/* Clean up the engine */
- 	bcom_engine_cleanup();
-diff --git a/arch/powerpc/sysdev/fsl_msi.c b/arch/powerpc/sysdev/fsl_msi.c
-index 962c2d8..87991d3 100644
---- a/arch/powerpc/sysdev/fsl_msi.c
-+++ b/arch/powerpc/sysdev/fsl_msi.c
-@@ -250,7 +250,7 @@ unlock:
- 	raw_spin_unlock(&desc->lock);
- }
- 
--static int fsl_of_msi_remove(struct of_device *ofdev)
-+static int fsl_of_msi_remove(struct platform_device *ofdev)
- {
- 	struct fsl_msi *msi = ofdev->dev.platform_data;
- 	int virq, i;
-@@ -274,7 +274,7 @@ static int fsl_of_msi_remove(struct of_device *ofdev)
- 	return 0;
- }
- 
--static int __devinit fsl_of_msi_probe(struct of_device *dev,
-+static int __devinit fsl_of_msi_probe(struct platform_device *dev,
- 				const struct of_device_id *match)
- {
- 	struct fsl_msi *msi;
-diff --git a/arch/powerpc/sysdev/fsl_pmc.c b/arch/powerpc/sysdev/fsl_pmc.c
-index 9082eb9..44de855 100644
---- a/arch/powerpc/sysdev/fsl_pmc.c
-+++ b/arch/powerpc/sysdev/fsl_pmc.c
-@@ -58,7 +58,8 @@ static struct platform_suspend_ops pmc_suspend_ops = {
- 	.enter = pmc_suspend_enter,
- };
- 
--static int pmc_probe(struct of_device *ofdev, const struct of_device_id *id)
-+static int pmc_probe(struct platform_device *ofdev,
-+		     const struct of_device_id *id)
- {
- 	pmc_regs = of_iomap(ofdev->dev.of_node, 0);
- 	if (!pmc_regs)
-diff --git a/arch/powerpc/sysdev/fsl_rio.c b/arch/powerpc/sysdev/fsl_rio.c
-index 30e1626..8bd8653 100644
---- a/arch/powerpc/sysdev/fsl_rio.c
-+++ b/arch/powerpc/sysdev/fsl_rio.c
-@@ -1338,7 +1338,7 @@ static inline void fsl_rio_info(struct device *dev, u32 ccsr)
-  * master port with system-specific info, and registers the
-  * master port with the RapidIO subsystem.
++/* These includes are put at the bottom because they may contain things
++ * that are overridden by this file.  Ideally they shouldn't be included
++ * by this file, but there are a bunch of .c files that currently depend
++ * on it.  Eventually they will be cleaned up. */
++#include <linux/of_fdt.h>
++#include <linux/of_address.h>
++#include <linux/of_irq.h>
++#include <linux/platform_device.h>
++
+ #endif /* __KERNEL__ */
+ #endif /* _POWERPC_PROM_H */
+diff --git a/arch/powerpc/kernel/legacy_serial.c b/arch/powerpc/kernel/legacy_serial.c
+index 035ada5..c1fd0f9 100644
+--- a/arch/powerpc/kernel/legacy_serial.c
++++ b/arch/powerpc/kernel/legacy_serial.c
+@@ -4,6 +4,7 @@
+ #include <linux/serial_core.h>
+ #include <linux/console.h>
+ #include <linux/pci.h>
++#include <linux/of_address.h>
+ #include <linux/of_device.h>
+ #include <asm/io.h>
+ #include <asm/mmu.h>
+diff --git a/arch/powerpc/kernel/pci-common.c b/arch/powerpc/kernel/pci-common.c
+index 5b38f6a..9021c4a 100644
+--- a/arch/powerpc/kernel/pci-common.c
++++ b/arch/powerpc/kernel/pci-common.c
+@@ -21,6 +21,7 @@
+ #include <linux/string.h>
+ #include <linux/init.h>
+ #include <linux/bootmem.h>
++#include <linux/of_address.h>
+ #include <linux/mm.h>
+ #include <linux/list.h>
+ #include <linux/syscalls.h>
+diff --git a/arch/powerpc/platforms/52xx/lite5200.c b/arch/powerpc/platforms/52xx/lite5200.c
+index 6d584f4..de55bc0 100644
+--- a/arch/powerpc/platforms/52xx/lite5200.c
++++ b/arch/powerpc/platforms/52xx/lite5200.c
+@@ -18,6 +18,7 @@
+ #include <linux/init.h>
+ #include <linux/pci.h>
+ #include <linux/of.h>
++#include <linux/of_address.h>
+ #include <linux/root_dev.h>
+ #include <linux/initrd.h>
+ #include <asm/time.h>
+diff --git a/arch/powerpc/platforms/amigaone/setup.c b/arch/powerpc/platforms/amigaone/setup.c
+index fb4eb0d..03aabc0 100644
+--- a/arch/powerpc/platforms/amigaone/setup.c
++++ b/arch/powerpc/platforms/amigaone/setup.c
+@@ -13,12 +13,13 @@
   */
--int fsl_rio_setup(struct of_device *dev)
-+int fsl_rio_setup(struct platform_device *dev)
- {
- 	struct rio_ops *ops;
- 	struct rio_mport *port;
-@@ -1536,7 +1536,7 @@ err_ops:
  
- /* The probe function for RapidIO peer-to-peer network.
-  */
--static int __devinit fsl_of_rio_rpn_probe(struct of_device *dev,
-+static int __devinit fsl_of_rio_rpn_probe(struct platform_device *dev,
- 				     const struct of_device_id *match)
- {
- 	int rc;
-diff --git a/arch/powerpc/sysdev/pmi.c b/arch/powerpc/sysdev/pmi.c
-index d07137a..24a0bb9 100644
---- a/arch/powerpc/sysdev/pmi.c
-+++ b/arch/powerpc/sysdev/pmi.c
-@@ -43,7 +43,7 @@ struct pmi_data {
- 	struct mutex		msg_mutex;
- 	pmi_message_t		msg;
- 	struct completion	*completion;
--	struct of_device	*dev;
-+	struct platform_device	*dev;
- 	int			irq;
- 	u8 __iomem		*pmi_reg;
- 	struct work_struct	work;
-@@ -121,7 +121,7 @@ static void pmi_notify_handlers(struct work_struct *work)
- 	spin_unlock(&data->handler_spinlock);
- }
+ #include <linux/kernel.h>
++#include <linux/of.h>
++#include <linux/of_address.h>
+ #include <linux/seq_file.h>
+ #include <generated/utsrelease.h>
  
--static int pmi_of_probe(struct of_device *dev,
-+static int pmi_of_probe(struct platform_device *dev,
- 			const struct of_device_id *match)
- {
- 	struct device_node *np = dev->dev.of_node;
-@@ -185,7 +185,7 @@ out:
- 	return rc;
- }
+ #include <asm/machdep.h>
+ #include <asm/cputable.h>
+-#include <asm/prom.h>
+ #include <asm/pci-bridge.h>
+ #include <asm/i8259.h>
+ #include <asm/time.h>
+diff --git a/arch/powerpc/platforms/iseries/mf.c b/arch/powerpc/platforms/iseries/mf.c
+index d2c1d49..33e5fc7 100644
+--- a/arch/powerpc/platforms/iseries/mf.c
++++ b/arch/powerpc/platforms/iseries/mf.c
+@@ -30,6 +30,7 @@
+ #include <linux/init.h>
+ #include <linux/completion.h>
+ #include <linux/delay.h>
++#include <linux/proc_fs.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/bcd.h>
+ #include <linux/rtc.h>
+diff --git a/arch/powerpc/platforms/powermac/feature.c b/arch/powerpc/platforms/powermac/feature.c
+index 9e1b9fd..75eec03 100644
+--- a/arch/powerpc/platforms/powermac/feature.c
++++ b/arch/powerpc/platforms/powermac/feature.c
+@@ -21,6 +21,8 @@
+ #include <linux/delay.h>
+ #include <linux/kernel.h>
+ #include <linux/sched.h>
++#include <linux/of.h>
++#include <linux/of_address.h>
+ #include <linux/spinlock.h>
+ #include <linux/adb.h>
+ #include <linux/pmu.h>
+diff --git a/drivers/char/bsr.c b/drivers/char/bsr.c
+index 89d871e..9191713 100644
+--- a/drivers/char/bsr.c
++++ b/drivers/char/bsr.c
+@@ -23,6 +23,7 @@
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+ #include <linux/of_platform.h>
++#include <linux/fs.h>
+ #include <linux/module.h>
+ #include <linux/cdev.h>
+ #include <linux/list.h>
+diff --git a/drivers/net/fsl_pq_mdio.c b/drivers/net/fsl_pq_mdio.c
+index b4c41d7..f53f850 100644
+--- a/drivers/net/fsl_pq_mdio.c
++++ b/drivers/net/fsl_pq_mdio.c
+@@ -35,6 +35,7 @@
+ #include <linux/mii.h>
+ #include <linux/phy.h>
+ #include <linux/of.h>
++#include <linux/of_address.h>
+ #include <linux/of_mdio.h>
+ #include <linux/of_platform.h>
  
--static int pmi_of_remove(struct of_device *dev)
-+static int pmi_of_remove(struct platform_device *dev)
- {
- 	struct pmi_handler *handler, *tmp;
+diff --git a/drivers/net/xilinx_emaclite.c b/drivers/net/xilinx_emaclite.c
+index d04c5b2..b2c2f39 100644
+--- a/drivers/net/xilinx_emaclite.c
++++ b/drivers/net/xilinx_emaclite.c
+@@ -20,7 +20,7 @@
+ #include <linux/skbuff.h>
+ #include <linux/io.h>
+ #include <linux/slab.h>
+-
++#include <linux/of_address.h>
+ #include <linux/of_device.h>
+ #include <linux/of_platform.h>
+ #include <linux/of_mdio.h>
+diff --git a/drivers/serial/uartlite.c b/drivers/serial/uartlite.c
+index 8acccd5..caf085d 100644
+--- a/drivers/serial/uartlite.c
++++ b/drivers/serial/uartlite.c
+@@ -21,6 +21,7 @@
+ #include <asm/io.h>
+ #if defined(CONFIG_OF) && (defined(CONFIG_PPC32) || defined(CONFIG_MICROBLAZE))
+ #include <linux/of.h>
++#include <linux/of_address.h>
+ #include <linux/of_device.h>
+ #include <linux/of_platform.h>
  
-diff --git a/arch/powerpc/sysdev/qe_lib/qe.c b/arch/powerpc/sysdev/qe_lib/qe.c
-index 093e0ae..3da8014 100644
---- a/arch/powerpc/sysdev/qe_lib/qe.c
-+++ b/arch/powerpc/sysdev/qe_lib/qe.c
-@@ -651,14 +651,15 @@ unsigned int qe_get_num_of_snums(void)
- EXPORT_SYMBOL(qe_get_num_of_snums);
+diff --git a/drivers/spi/mpc512x_psc_spi.c b/drivers/spi/mpc512x_psc_spi.c
+index 1bb4315..10baac3 100644
+--- a/drivers/spi/mpc512x_psc_spi.c
++++ b/drivers/spi/mpc512x_psc_spi.c
+@@ -19,6 +19,7 @@
+ #include <linux/init.h>
+ #include <linux/errno.h>
+ #include <linux/interrupt.h>
++#include <linux/of_address.h>
+ #include <linux/of_platform.h>
+ #include <linux/workqueue.h>
+ #include <linux/completion.h>
+diff --git a/drivers/spi/mpc52xx_psc_spi.c b/drivers/spi/mpc52xx_psc_spi.c
+index bd81ff9..66d1701 100644
+--- a/drivers/spi/mpc52xx_psc_spi.c
++++ b/drivers/spi/mpc52xx_psc_spi.c
+@@ -16,6 +16,7 @@
+ #include <linux/types.h>
+ #include <linux/errno.h>
+ #include <linux/interrupt.h>
++#include <linux/of_address.h>
+ #include <linux/of_platform.h>
+ #include <linux/workqueue.h>
+ #include <linux/completion.h>
+diff --git a/drivers/spi/xilinx_spi_of.c b/drivers/spi/xilinx_spi_of.c
+index 87cda09..f53d3f6 100644
+--- a/drivers/spi/xilinx_spi_of.c
++++ b/drivers/spi/xilinx_spi_of.c
+@@ -29,6 +29,7 @@
+ #include <linux/io.h>
+ #include <linux/slab.h>
  
- #if defined(CONFIG_SUSPEND) && defined(CONFIG_PPC_85xx)
--static int qe_resume(struct of_device *ofdev)
-+static int qe_resume(struct platform_device *ofdev)
- {
- 	if (!qe_alive_during_sleep())
- 		qe_reset();
- 	return 0;
- }
++#include <linux/of_address.h>
+ #include <linux/of_platform.h>
+ #include <linux/of_device.h>
+ #include <linux/of_spi.h>
+diff --git a/drivers/usb/gadget/fsl_qe_udc.c b/drivers/usb/gadget/fsl_qe_udc.c
+index 82506ca..9648b75 100644
+--- a/drivers/usb/gadget/fsl_qe_udc.c
++++ b/drivers/usb/gadget/fsl_qe_udc.c
+@@ -32,6 +32,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/io.h>
+ #include <linux/moduleparam.h>
++#include <linux/of_address.h>
+ #include <linux/of_platform.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/usb/ch9.h>
+diff --git a/drivers/video/controlfb.c b/drivers/video/controlfb.c
+index 49fcbe8..c225dcc 100644
+--- a/drivers/video/controlfb.c
++++ b/drivers/video/controlfb.c
+@@ -40,6 +40,8 @@
+ #include <linux/vmalloc.h>
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
++#include <linux/of.h>
++#include <linux/of_address.h>
+ #include <linux/fb.h>
+ #include <linux/init.h>
+ #include <linux/pci.h>
+diff --git a/drivers/video/offb.c b/drivers/video/offb.c
+index 46dda7d..cb163a5 100644
+--- a/drivers/video/offb.c
++++ b/drivers/video/offb.c
+@@ -19,13 +19,14 @@
+ #include <linux/mm.h>
+ #include <linux/vmalloc.h>
+ #include <linux/delay.h>
++#include <linux/of.h>
++#include <linux/of_address.h>
+ #include <linux/interrupt.h>
+ #include <linux/fb.h>
+ #include <linux/init.h>
+ #include <linux/ioport.h>
+ #include <linux/pci.h>
+ #include <asm/io.h>
+-#include <asm/prom.h>
  
--static int qe_probe(struct of_device *ofdev, const struct of_device_id *id)
-+static int qe_probe(struct platform_device *ofdev,
-+		    const struct of_device_id *id)
- {
- 	return 0;
- }
+ #ifdef CONFIG_PPC64
+ #include <asm/pci-bridge.h>
+diff --git a/include/linux/of_address.h b/include/linux/of_address.h
+index cc567df..8aea06f 100644
+--- a/include/linux/of_address.h
++++ b/include/linux/of_address.h
+@@ -8,5 +8,37 @@ extern int of_address_to_resource(struct device_node *dev, int index,
+ 				  struct resource *r);
+ extern void __iomem *of_iomap(struct device_node *device, int index);
+ 
++/* Extract an address from a device, returns the region size and
++ * the address space flags too. The PCI version uses a BAR number
++ * instead of an absolute index
++ */
++extern const u32 *of_get_address(struct device_node *dev, int index,
++			   u64 *size, unsigned int *flags);
++
++#ifndef pci_address_to_pio
++static inline unsigned long pci_address_to_pio(phys_addr_t addr) { return -1; }
++#define pci_address_to_pio pci_address_to_pio
++#endif
++
++#ifdef CONFIG_PCI
++extern const u32 *of_get_pci_address(struct device_node *dev, int bar_no,
++			       u64 *size, unsigned int *flags);
++extern int of_pci_address_to_resource(struct device_node *dev, int bar,
++				      struct resource *r);
++#else /* CONFIG_PCI */
++static inline int of_pci_address_to_resource(struct device_node *dev, int bar,
++				             struct resource *r)
++{
++	return -ENOSYS;
++}
++
++static inline const u32 *of_get_pci_address(struct device_node *dev,
++		int bar_no, u64 *size, unsigned int *flags)
++{
++	return NULL;
++}
++#endif /* CONFIG_PCI */
++
++
+ #endif /* __OF_ADDRESS_H */
+ 
 
