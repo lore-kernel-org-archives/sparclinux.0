@@ -1,32 +1,54 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Mon, 30 Aug 2010 17:58:22 +0000
-Subject: Re: [PATCH 0/9] add OLPC device-tree support
-Message-Id: <AANLkTikvVizX2jcnxgWOcJoewXR1hAE5SsEd9yzPF9Ys@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 05 Aug 2010 00:30:43 +0000
+Subject: Re: parport on Sun Blade 2500 Red ?
+Message-Id: <20100804.173043.116396197.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100628215407.2017bf2f@debian> <20100829235100.6dcedcb8@debxo>
-In-Reply-To: <20100829235100.6dcedcb8@debxo>
+References: <19422.55728.571998.756336@pilspetsen.it.uu.se>
+In-Reply-To: <19422.55728.571998.756336@pilspetsen.it.uu.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Andres Salomon <dilinger-pFFUokh25LWsTnJN9+BGXg@public.gmane.org>
-Cc: pgf-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitch Bradley <wmb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
-On Sun, Aug 29, 2010 at 9:51 PM, Andres Salomon <dilinger@queued.net> wrote:
-> These patches modify drivers/of, sparc, and x86 accordingly to add
-> OLPC device-tree support. =A0Updates have been made based upon Grant and
-> Davem's comments. =A0They've been compile-tested on sparc64 and x86, and
-> runtime tested on OLPC machines.
->
-> Dave's 25edd6946 commit caused some conflicts w/ patch #2;
-> hopefully I mangled it properly.
+From: Mikael Pettersson <mikpe@it.uu.se>
+Date: Mon, 3 May 2010 16:12:00 +0200
 
-I've only looked through this code lightly, but it seems fairly sane,
-other than issues already raised.  Since this has more impact on sparc
-than anything, I'll need to have David's feedback before doing
-anything with it.
+> According to Sun's documentation, a Sun Blade 2500 Red includes
+> a PC-style parallel port.
+> 
+> If I build a kernel (any recent 2.6 kernel) with plain parport
+> support (PARPORT_PC=y), there are no kernel messages of any kind
+> related to parport, indicating it didn't find one.
 
-g.
+Just a missing device ID in the driver, give this patch a try:
 
---=20
-Grant Likely, B.Sc., P.Eng.
-Secret Lab Technologies Ltd.
+--------------------
+sparc64: Add missing ID to parport probing code.
+
+SunBlade-2500 has 'parallel' device node with compatible
+property "pnpALI,1533,3" so add that to the ID table.
+
+Reported-by: Mikael Pettersson <mikpe@it.uu.se>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/include/asm/parport.h |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/arch/sparc/include/asm/parport.h b/arch/sparc/include/asm/parport.h
+index c333b8d..d21ad50 100644
+--- a/arch/sparc/include/asm/parport.h
++++ b/arch/sparc/include/asm/parport.h
+@@ -228,6 +228,10 @@ static const struct of_device_id ecpp_match[] = {
+ 		.name = "parallel",
+ 		.compatible = "ns87317-ecpp",
+ 	},
++	{
++		.name = "parallel",
++		.compatible = "pnpALI,1533,3",
++	},
+ 	{},
+ };
+ 
+-- 
+1.7.1.1
+
