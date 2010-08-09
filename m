@@ -1,105 +1,123 @@
-From: Andres Salomon <dilinger@queued.net>
-Date: Mon, 30 Aug 2010 04:04:45 +0000
-Subject: [PATCH 7/9] of: add package-to-path support to pdt
-Message-Id: <20100830000445.3beb3e79@debxo>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 09 Aug 2010 09:25:39 +0000
+Subject: [PATCH] sparc: Kill user copy check code.
+Message-Id: <20100809.022539.24574396.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100628215407.2017bf2f@debian>
-	<20100829235100.6dcedcb8@debxo>
-In-Reply-To: <20100829235100.6dcedcb8@debxo>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: devicetree-discuss@lists.ozlabs.org
-Cc: sparclinux@vger.kernel.org, x86@kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, cjb@laptop.org, Mitch Bradley <wmb@laptop.org>, pgf@laptop.org, linux-kernel@vger.kernel.org, davem@davemloft.net, grant.likely@secretlab.ca, Stephen Neuendorffer <stephen.neuendorffer@xilinx.com>
+To: sparclinux@vger.kernel.org
 
 
-package-to-path is a PROM function which tells us the real (full) name of the
-node.  This provides a hook for that in the prom ops struct, and makes use
-of it in the pdt code when attempting to determine a node's name.  If the
-hook is available, try using it (falling back to looking at the "name"
-property if it fails).
+For whatever reason GCC isn't able to figure things out in
+the control flow (in particular when min() and max() expressions
+are involved) on sparc as well as it can on x86.
 
-Signed-off-by: Andres Salomon <dilinger@queued.net>
+So lots of useless incorrect user copy warnings get spewed and the
+full-on compile failure mode of the user copy checks were never usable
+on sparc at all.
+
+People can debug these kinds of problems on x86.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- drivers/of/pdt.c       |   43 ++++++++++++++++++++++++++++++++++++++++++-
- include/linux/of_pdt.h |    3 +++
- 2 files changed, 45 insertions(+), 1 deletions(-)
+ arch/sparc/Kconfig.debug            |   14 --------------
+ arch/sparc/include/asm/uaccess_32.h |   15 ---------------
+ arch/sparc/include/asm/uaccess_64.h |   23 +++++------------------
+ 3 files changed, 5 insertions(+), 47 deletions(-)
 
-diff --git a/drivers/of/pdt.c b/drivers/of/pdt.c
-index 31a4fb8..28295d0 100644
---- a/drivers/of/pdt.c
-+++ b/drivers/of/pdt.c
-@@ -132,6 +132,47 @@ static char * __init of_pdt_get_one_property(phandle node, const char *name)
- 	return buf;
+diff --git a/arch/sparc/Kconfig.debug b/arch/sparc/Kconfig.debug
+index 1b4a831..d9a795e 100644
+--- a/arch/sparc/Kconfig.debug
++++ b/arch/sparc/Kconfig.debug
+@@ -30,18 +30,4 @@ config FRAME_POINTER
+ 	depends on MCOUNT
+ 	default y
+ 
+-config DEBUG_STRICT_USER_COPY_CHECKS
+-	bool "Strict copy size checks"
+-	depends on DEBUG_KERNEL && !TRACE_BRANCH_PROFILING
+-	---help---
+-	  Enabling this option turns a certain set of sanity checks for user
+-	  copy operations into compile time failures.
+-
+-	  The copy_from_user() etc checks are there to help test if there
+-	  are sufficient security checks on the length argument of
+-	  the copy operation, by having gcc prove that the argument is
+-	  within bounds.
+-
+-	  If unsure, or if you run an older (pre 4.4) gcc, say N.
+-
+ endmenu
+diff --git a/arch/sparc/include/asm/uaccess_32.h b/arch/sparc/include/asm/uaccess_32.h
+index 25f1d10..8303ac4 100644
+--- a/arch/sparc/include/asm/uaccess_32.h
++++ b/arch/sparc/include/asm/uaccess_32.h
+@@ -260,23 +260,8 @@ static inline unsigned long __copy_to_user(void __user *to, const void *from, un
+ 	return __copy_user(to, (__force void __user *) from, n);
  }
  
-+static char * __init of_pdt_try_pkg2path(phandle node)
-+{
-+	char *res, *buf = NULL;
-+	int len;
-+
-+	if (!of_pdt_prom_ops->pkg2path)
-+		return NULL;
-+
-+	if (of_pdt_prom_ops->pkg2path(node, buf, 0, &len))
-+		return NULL;
-+	buf = prom_early_alloc(len + 1);
-+	if (of_pdt_prom_ops->pkg2path(node, buf, len, &len)) {
-+		pr_err("%s: package-to-path failed\n", __func__);
-+		return NULL;
-+	}
-+
-+	res = strrchr(buf, '/');
-+	if (!res) {
-+		pr_err("%s: couldn't find / in %s\n", __func__, buf);
-+		return NULL;
-+	}
-+	return res+1;
-+}
-+
-+/*
-+ * When fetching the node's name, first try using package-to-path; if
-+ * that fails (either because the arch hasn't supplied a PROM callback,
-+ * or some other random failure), fall back to just looking at the node's
-+ * 'name' property.
-+ */
-+static char * __init of_pdt_build_name(phandle node)
-+{
-+	char *buf;
-+
-+	buf = of_pdt_try_pkg2path(node);
-+	if (!buf)
-+		buf = of_pdt_get_one_property(node, "name");
-+
-+	return buf;
-+}
-+
- static struct device_node * __init of_pdt_create_node(phandle node,
- 						    struct device_node *parent)
+-extern void copy_from_user_overflow(void)
+-#ifdef CONFIG_DEBUG_STRICT_USER_COPY_CHECKS
+-	__compiletime_error("copy_from_user() buffer size is not provably correct")
+-#else
+-	__compiletime_warning("copy_from_user() buffer size is not provably correct")
+-#endif
+-;
+-
+ static inline unsigned long copy_from_user(void *to, const void __user *from, unsigned long n)
  {
-@@ -146,7 +187,7 @@ static struct device_node * __init of_pdt_create_node(phandle node,
+-	int sz = __compiletime_object_size(to);
+-
+-	if (unlikely(sz != -1 && sz < n)) {
+-		copy_from_user_overflow();
+-		return n;
+-	}
+-
+ 	if (n && __access_ok((unsigned long) from, n))
+ 		return __copy_user((__force void __user *) to, from, n);
+ 	else
+diff --git a/arch/sparc/include/asm/uaccess_64.h b/arch/sparc/include/asm/uaccess_64.h
+index 2406788..3e1449f 100644
+--- a/arch/sparc/include/asm/uaccess_64.h
++++ b/arch/sparc/include/asm/uaccess_64.h
+@@ -205,14 +205,6 @@ __asm__ __volatile__(							\
  
- 	kref_init(&dp->kref);
+ extern int __get_user_bad(void);
  
--	dp->name = of_pdt_get_one_property(node, "name");
-+	dp->name = of_pdt_build_name(node);
- 	dp->type = of_pdt_get_one_property(node, "device_type");
- 	dp->phandle = node;
- 
-diff --git a/include/linux/of_pdt.h b/include/linux/of_pdt.h
-index a057417..9945e58 100644
---- a/include/linux/of_pdt.h
-+++ b/include/linux/of_pdt.h
-@@ -29,6 +29,9 @@ struct of_pdt_ops {
- 	/* phandles are 0 if no child or sibling exists */
- 	phandle (*getchild)(phandle parent);
- 	phandle (*getsibling)(phandle node);
+-extern void copy_from_user_overflow(void)
+-#ifdef CONFIG_DEBUG_STRICT_USER_COPY_CHECKS
+-	__compiletime_error("copy_from_user() buffer size is not provably correct")
+-#else
+-	__compiletime_warning("copy_from_user() buffer size is not provably correct")
+-#endif
+-;
+-
+ extern unsigned long __must_check ___copy_from_user(void *to,
+ 						    const void __user *from,
+ 						    unsigned long size);
+@@ -221,16 +213,11 @@ extern unsigned long copy_from_user_fixup(void *to, const void __user *from,
+ static inline unsigned long __must_check
+ copy_from_user(void *to, const void __user *from, unsigned long size)
+ {
+-	int sz = __compiletime_object_size(to);
+-	unsigned long ret = size;
+-
+-	if (likely(sz = -1 || sz >= size)) {
+-		ret = ___copy_from_user(to, from, size);
+-		if (unlikely(ret))
+-			ret = copy_from_user_fixup(to, from, size);
+-	} else {
+-		copy_from_user_overflow();
+-	}
++	unsigned long ret = ___copy_from_user(to, from, size);
 +
-+	/* return 0 on success; fill in 'len' with number of bytes in path */
-+	int (*pkg2path)(phandle node, char *buf, const int buflen, int *len);
- };
- 
- extern void *prom_early_alloc(unsigned long size);
++	if (unlikely(ret))
++		ret = copy_from_user_fixup(to, from, size);
++
+ 	return ret;
+ }
+ #define __copy_from_user copy_from_user
 -- 
-1.5.6.5
+1.7.2.1
 
