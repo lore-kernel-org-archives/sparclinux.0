@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 05 Aug 2010 00:21:18 +0000
+Date: Mon, 09 Aug 2010 10:28:06 +0000
 Subject: [GIT] Sparc
-Message-Id: <20100804.172118.242112071.davem@davemloft.net>
+Message-Id: <20100809.032806.226789571.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100329.131141.80866523.davem@davemloft.net>
 In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
@@ -12,37 +12,36 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-1) Convert BKL --> mutex in SBUS drivers, from Arnd Bergmann.
+Just some misc sparc64 bits:
 
-2) Should use GFP_KERNEL in sparc32 SBUS init code, from Julia
-   Lawall.
+1) Add missing ID to sparc64 parport support.
 
-3) MAINTAINERS tweak
+2) Sync sparc64's perf_arch_get_caller_regs() with recent changes.
+
+3) Toss user-copy check code, it never worked properly on sparc for
+   whatever reason and just adds warning noise to the logs.
 
 Please pull, thanks a lot!
 
-The following changes since commit 3cfc2c42c1cbc8e238bb9c0612c0df4565e3a8b4:
+The following changes since commit 45d7f32c7a43cbb9592886d38190e379e2eb2226:
 
-  Merge branch 'for-next' of git://git.kernel.org/pub/scm/linux/kernel/git/jikos/trivial (2010-08-04 15:31:02 -0700)
+  Merge git://git.kernel.org/pub/scm/linux/kernel/git/cmetcalf/linux-tile (2010-08-08 10:10:11 -0700)
 
 are available in the git repository at:
 
   master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
 
-Arnd Bergmann (1):
-      sbus: autoconvert trivial BKL users to private mutex
+David S. Miller (4):
+      sparc64: Add missing ID to parport probing code.
+      sparc64: Fix perf_arch_get_caller_regs().
+      sparc: Kill user copy check code.
+      sparc64: Update defconfig.
 
-David S. Miller (1):
-      MAINTAINERS: Add trailing slash to SBUS path.
-
-Julia Lawall (1):
-      arch/sparc/mm: Use GFP_KERNEL
-
- MAINTAINERS                     |    2 +-
- arch/sparc/mm/iommu.c           |    2 +-
- drivers/sbus/char/display7seg.c |    8 ++++----
- drivers/sbus/char/envctrl.c     |    2 --
- drivers/sbus/char/flash.c       |   15 ++++++++-------
- drivers/sbus/char/openprom.c    |   15 ++++++++-------
- drivers/sbus/char/uctrl.c       |    7 ++++---
- 7 files changed, 26 insertions(+), 25 deletions(-)
+ arch/sparc/Kconfig.debug             |   14 ------
+ arch/sparc/configs/sparc64_defconfig |   67 +++++++++++++++++-------------
+ arch/sparc/include/asm/parport.h     |    4 ++
+ arch/sparc/include/asm/perf_event.h  |   25 +++++++++--
+ arch/sparc/include/asm/uaccess_32.h  |   15 -------
+ arch/sparc/include/asm/uaccess_64.h  |   23 ++--------
+ arch/sparc/kernel/helpers.S          |   75 ----------------------------------
+ 7 files changed, 68 insertions(+), 155 deletions(-)
