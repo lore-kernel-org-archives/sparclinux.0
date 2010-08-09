@@ -1,36 +1,184 @@
-From: Julia Lawall <julia@diku.dk>
-Date: Sat, 31 Jul 2010 09:35:17 +0000
-Subject: question about arch/sparc/mm/iommu.c
-Message-Id: <Pine.LNX.4.64.1007311132590.6434@ask.diku.dk>
+From: Andres Salomon <dilinger@queued.net>
+Date: Mon, 09 Aug 2010 03:11:42 +0000
+Subject: [PATCH 3/3] sparc: add pdt/of_pdt namespace to pdt code
+Message-Id: <20100808231142.61da6c64@dev.queued.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Cc: sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-The function sbus_iommu_init in arch/sparc/mm/iommu.c sometimes uses 
-GFP_ATOMIC and sometimes GFP_KERNEL.  Is there a reason for that?
 
-static void __init sbus_iommu_init(struct platform_device *op)
-{
-        struct iommu_struct *iommu;
-	unsigned int impl, vers;
-        unsigned long *bitmap;
-        unsigned long tmp;
+For symbols still lacking namespace qualifiers, add of_pdt to non-static
+stuff and pdt_ to static names.
 
-        iommu = kmalloc(sizeof(struct iommu_struct), GFP_ATOMIC);
-	...
-        /* Allocate IOMMU page table */
-	/* Stupid alignment constraints give me a headache.
-           We need 256K or 512K or 1M or 2M area aligned to
-           its size and current gfp will fortunately give
-           it to us. */
-        tmp = __get_free_pages(GFP_KERNEL, IOMMU_ORDER);
-	...
-	bitmap = kmalloc(IOMMU_NPTES>>3, GFP_KERNEL);
-	...
-}
+Signed-off-by: Andres Salomon <dilinger@queued.net>
+---
+ arch/sparc/kernel/leon_kernel.c |    2 +-
+ drivers/of/pdt.c                |   40 +++++++++++++++++++-------------------
+ include/linux/of_pdt.h          |    2 +-
+ 3 files changed, 22 insertions(+), 22 deletions(-)
 
---------------------
+diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
+index 6a7b4db..2d51527 100644
+--- a/arch/sparc/kernel/leon_kernel.c
++++ b/arch/sparc/kernel/leon_kernel.c
+@@ -282,5 +282,5 @@ void __init leon_init_IRQ(void)
+ 
+ void __init leon_init(void)
+ {
+-	prom_build_more = &leon_node_init;
++	of_pdt_build_more = &leon_node_init;
+ }
+diff --git a/drivers/of/pdt.c b/drivers/of/pdt.c
+index 22f46fb..ad31d5d 100644
+--- a/drivers/of/pdt.c
++++ b/drivers/of/pdt.c
+@@ -23,7 +23,7 @@
+ #include <linux/of_pdt.h>
+ #include <asm/prom.h>
+ 
+-void __initdata (*prom_build_more)(struct device_node *dp,
++void __initdata (*of_pdt_build_more)(struct device_node *dp,
+ 		struct device_node ***nextp);
+ 
+ static struct of_pdt_ops prom_ops __initdata;
+@@ -59,7 +59,7 @@ static inline void irq_trans_init(struct device_node *dp)
+ 
+ #endif /* !CONFIG_SPARC */
+ 
+-static struct property * __init build_one_prop(phandle node, char *prev,
++static struct property * __init pdt_build_one_prop(phandle node, char *prev,
+ 					       char *special_name,
+ 					       void *special_val,
+ 					       int special_len)
+@@ -110,17 +110,17 @@ static struct property * __init build_one_prop(phandle node, char *prev,
+ 	return p;
+ }
+ 
+-static struct property * __init build_prop_list(phandle node)
++static struct property * __init pdt_build_prop_list(phandle node)
+ {
+ 	struct property *head, *tail;
+ 
+-	head = tail = build_one_prop(node, NULL,
++	head = tail = pdt_build_one_prop(node, NULL,
+ 				     ".node", &node, sizeof(node));
+ 
+-	tail->next = build_one_prop(node, NULL, NULL, NULL, 0);
++	tail->next = pdt_build_one_prop(node, NULL, NULL, NULL, 0);
+ 	tail = tail->next;
+ 	while(tail) {
+-		tail->next = build_one_prop(node, tail->name,
++		tail->next = pdt_build_one_prop(node, tail->name,
+ 					    NULL, NULL, 0);
+ 		tail = tail->next;
+ 	}
+@@ -128,7 +128,7 @@ static struct property * __init build_prop_list(phandle node)
+ 	return head;
+ }
+ 
+-static char * __init get_one_property(phandle node, const char *name)
++static char * __init pdt_get_one_property(phandle node, const char *name)
+ {
+ 	char *buf = "<NULL>";
+ 	int len;
+@@ -142,7 +142,7 @@ static char * __init get_one_property(phandle node, const char *name)
+ 	return buf;
+ }
+ 
+-static struct device_node * __init prom_create_node(phandle node,
++static struct device_node * __init pdt_create_node(phandle node,
+ 						    struct device_node *parent)
+ {
+ 	struct device_node *dp;
+@@ -156,18 +156,18 @@ static struct device_node * __init prom_create_node(phandle node,
+ 
+ 	kref_init(&dp->kref);
+ 
+-	dp->name = get_one_property(node, "name");
+-	dp->type = get_one_property(node, "device_type");
++	dp->name = pdt_get_one_property(node, "name");
++	dp->type = pdt_get_one_property(node, "device_type");
+ 	dp->phandle = node;
+ 
+-	dp->properties = build_prop_list(node);
++	dp->properties = pdt_build_prop_list(node);
+ 
+ 	irq_trans_init(dp);
+ 
+ 	return dp;
+ }
+ 
+-static char * __init build_full_name(struct device_node *dp)
++static char * __init pdt_build_full_name(struct device_node *dp)
+ {
+ 	int len, ourlen, plen;
+ 	char *n;
+@@ -187,7 +187,7 @@ static char * __init build_full_name(struct device_node *dp)
+ 	return n;
+ }
+ 
+-static struct device_node * __init prom_build_tree(struct device_node *parent,
++static struct device_node * __init pdt_build_tree(struct device_node *parent,
+ 						   phandle node,
+ 						   struct device_node ***nextp)
+ {
+@@ -195,7 +195,7 @@ static struct device_node * __init prom_build_tree(struct device_node *parent,
+ 	struct device_node *dp;
+ 
+ 	while (1) {
+-		dp = prom_create_node(node, parent);
++		dp = pdt_create_node(node, parent);
+ 		if (!dp)
+ 			break;
+ 
+@@ -212,12 +212,12 @@ static struct device_node * __init prom_build_tree(struct device_node *parent,
+ #if defined(CONFIG_SPARC)
+ 		dp->path_component_name = build_path_component(dp);
+ #endif
+-		dp->full_name = build_full_name(dp);
++		dp->full_name = pdt_build_full_name(dp);
+ 
+-		dp->child = prom_build_tree(dp, prom_ops.getchild(node), nextp);
++		dp->child = pdt_build_tree(dp, prom_ops.getchild(node), nextp);
+ 
+-		if (prom_build_more)
+-			prom_build_more(dp, nextp);
++		if (of_pdt_build_more)
++			of_pdt_build_more(dp, nextp);
+ 
+ 		node = prom_ops.getsibling(node);
+ 	}
+@@ -229,12 +229,12 @@ void __init of_pdt_build_devicetree(int root_node)
+ {
+ 	struct device_node **nextp;
+ 
+-	allnodes = prom_create_node(root_node, NULL);
++	allnodes = pdt_create_node(root_node, NULL);
+ 	allnodes->path_component_name = "";
+ 	allnodes->full_name = "/";
+ 
+ 	nextp = &allnodes->allnext;
+-	allnodes->child = prom_build_tree(allnodes,
++	allnodes->child = pdt_build_tree(allnodes,
+ 			prom_ops.getchild(allnodes->phandle),
+ 			&nextp);
+ }
+diff --git a/include/linux/of_pdt.h b/include/linux/of_pdt.h
+index 1324ba5..ea7a17b 100644
+--- a/include/linux/of_pdt.h
++++ b/include/linux/of_pdt.h
+@@ -36,7 +36,7 @@ extern void of_pdt_set_ops(struct of_pdt_ops *ops);
+ /* for building the device tree */
+ extern void of_pdt_build_devicetree(int root_node);
+ 
+-extern void (*prom_build_more)(struct device_node *dp,
++extern void (*of_pdt_build_more)(struct device_node *dp,
+ 		struct device_node ***nextp);
+ 
+ #endif /* _LINUX_OF_PDT_H */
+-- 
+1.5.6.5
 
-julia
