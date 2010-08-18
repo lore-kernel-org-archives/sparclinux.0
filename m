@@ -1,63 +1,42 @@
 From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Wed, 18 Aug 2010 01:31:50 +0000
+Date: Wed, 18 Aug 2010 01:59:17 +0000
 Subject: Re: [GIT] Sparc
-Message-Id: <AANLkTikQ1dGw0aO10_ZwmVEc-JAVhB==3HS7SrWycE49@mail.gmail.com>
+Message-Id: <AANLkTimZ3rhX2AzPExEGfRCXiFNN-BGOWRKqL241-qNa@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100817.180325.104051399.davem@davemloft.net>
-In-Reply-To: <20100817.180325.104051399.davem@davemloft.net>
+References: <20100817.180325.104051399.davem@davemloft.net> <AANLkTikQ1dGw0aO10_ZwmVEc-JAVhB==3HS7SrWycE49@mail.gmail.com>
+In-Reply-To: <AANLkTikQ1dGw0aO10_ZwmVEc-JAVhB==3HS7SrWycE49@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: David Miller <davem@davemloft.net>
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Aug 17, 2010 at 6:03 PM, David Miller <davem@davemloft.net> wrote:
->
-> Among other things, this fixes the rwsem signedness issue we
-> were discussing earlier today.
+Oh,
+ I noticed another thing:
 
-Your commit message is missing the C rules for hex constants. It says
+In commit 86fa04b8742ac681d470786f55e2403ada0075b2 you fix the return
+type, but you still have the wrong _argument_ type:
 
-  "hex constants are unsigned unless explicitly casted or negated."
+  extern void atomic64_add(int, atomic64_t *);
+  extern void atomic64_sub(int, atomic64_t *);
+  extern long atomic64_add_ret(int, atomic64_t *);
+  extern long atomic64_sub_ret(int, atomic64_t *);
 
-and that's not true.
+note how if somebody does
 
-The rule is that hex constants are signed _except_ if they don't fit
-in a signed.
+   atomic64_add(0x100000000ull, &x)
 
-So with a 32-bit 'int', 0x123 is signed, but 0x80000000 is unsigned.
+sparc64 will get it wrong, because it will only take the low 32 bits
+of the first argument, and add zero to the 64-bit counter.
 
-So the reason (-0x00010000) is signed is _not_ because of the
-negation, but simply because 0x00010000 fits in a signed int. So for
-example, the constant (-0xf0000000) is still unsigned, despite the
-negation.
+Which is definitely not what the code intended, I think.
 
-So to make something signed, you need to either cast it, make sure it
-fits in a signed int, use the 'l' postfix (which also makes it long,
-of course), or use a decimal representation. So
+I merged your pull request, but you've got some fixing up to do,
+methinks. I also really think you need to make your rwsem's use 64-bit
+values on sparc64, because otherwise you can overflow the mmap_sem by
+having more than 65536 threads doing page-faults (on 32-bit, having
+more than 2**16 threads in one process is unlikely to work for other
+reasons, like just pure stack usage, so we don't really care about the
+32-bit case)
 
-   #define X 4294901760
-
-is a _signed_ constant with same value as 0xffff0000 (but it's "signed
-long", because the rules for decimal numbers and hex numbers are
-different: a decimal number is always signed and because it doesn't
-fit in 'int' it will extend to 'long'. A hex number is first done as
-unsigned, and only extended to long if it doesn't fit in that.
-
-To make things _really_ confused, sometimes the types actually depend
-on whether you're compiling with the c90 standards. A decimal constant
-is _always_ signed in traditional C - it goes from 'int' to 'long',
-and stays 'long' even if it doesn't fit (ie with a 32-bit long,
-2147483648 is of type 'long' even though it doesn't fit in 'long' and
-is negative). But in c90, it does from 'int' to 'long' to 'unsigned
-long'.
-
-Or maybe it was the other way around. I forget.
-
-Confused yet?
-
-The basic rule becomes: never _ever_ overflow 'int' in a constant,
-without specifying the exact type you want. That way you avoid all the
-subtle cases.
-
-                     Linus
+                         Linus
