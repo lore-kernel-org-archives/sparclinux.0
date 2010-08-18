@@ -1,39 +1,50 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 18 Aug 2010 02:14:24 +0000
+From: Al Viro <viro@ZenIV.linux.org.uk>
+Date: Wed, 18 Aug 2010 02:50:23 +0000
 Subject: Re: [GIT] Sparc
-Message-Id: <20100817.191424.183031381.davem@davemloft.net>
+Message-Id: <20100818025022.GM31363@ZenIV.linux.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100817.180325.104051399.davem@davemloft.net>
-	<AANLkTikQ1dGw0aO10_ZwmVEc-JAVhB==3HS7SrWycE49@mail.gmail.com>
-	<AANLkTimZ3rhX2AzPExEGfRCXiFNN-BGOWRKqL241-qNa@mail.gmail.com>
-In-Reply-To: <AANLkTimZ3rhX2AzPExEGfRCXiFNN-BGOWRKqL241-qNa@mail.gmail.com>
+ <AANLkTikQ1dGw0aO10_ZwmVEc-JAVhB==3HS7SrWycE49@mail.gmail.com>
+ <20100817.191245.112612004.davem@davemloft.net>
+In-Reply-To: <20100817.191245.112612004.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, paulus@au.ibm.com, benh@kernel.crashing.org
+To: David Miller <davem@davemloft.net>
+Cc: torvalds@linux-foundation.org, akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Tue, 17 Aug 2010 18:59:17 -0700
-
-> In commit 86fa04b8742ac681d470786f55e2403ada0075b2 you fix the return
-> type, but you still have the wrong _argument_ type:
+On Tue, Aug 17, 2010 at 07:12:45PM -0700, David Miller wrote:
+> From: Linus Torvalds <torvalds@linux-foundation.org>
+> Date: Tue, 17 Aug 2010 18:31:50 -0700
 > 
->   extern void atomic64_add(int, atomic64_t *);
->   extern void atomic64_sub(int, atomic64_t *);
->   extern long atomic64_add_ret(int, atomic64_t *);
->   extern long atomic64_sub_ret(int, atomic64_t *);
+> > Confused yet?
+> 
+> Beyond...
+> 
+> > The basic rule becomes: never _ever_ overflow 'int' in a constant,
+> > without specifying the exact type you want. That way you avoid all the
+> > subtle cases.
+> 
+> That's easier to understand.
 
-Thanks, I'll fix that up.
+Actually, it's not that complicated:
 
-> I merged your pull request, but you've got some fixing up to do,
-> methinks. I also really think you need to make your rwsem's use 64-bit
-> values on sparc64, because otherwise you can overflow the mmap_sem by
-> having more than 65536 threads doing page-faults (on 32-bit, having
-> more than 2**16 threads in one process is unlikely to work for other
-> reasons, like just pure stack usage, so we don't really care about the
-> 32-bit case)
+1) base and suffices choose the possible types.
+2) order of types is always the same: int -> unsigned -> long -> unsigned
+long -> long long -> unsigned long long
+3) we always choose the first type the value would fit into
+4) L in suffix = "at least long"
+5) LL in suffix = "at least long long"
+6) U in suffix = "unsigned"
+7) without U in suffix, base 10 = "signed"
 
-I have a patch to do this already, just need to test it.
+That's it.  C90 differs from C99 only in one thing - long long (and LL) isn't
+there.  The subtle mess Linus has mentioned is C90 gccism: gcc has allowed
+unsigned long for decimal constants, as the last resort.  I.e. if you had
+a plain decimal constant that wouldn't fit into long but would fit into
+unsigned long, gcc generated a warning and treated it as unsigned long.
+C90 would reject the damn thing.  _Bad_ extension, since in C99 the same
+constant would be a legitimate signed long long.
 
-You should bug the powerpc folks too :-)
+But yes, "use the suffix when unsure" is a damn good idea, _especially_ since
+the sizeof(long) actually varies between the targets we care about.
