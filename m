@@ -1,44 +1,24 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Date: Tue, 24 Aug 2010 01:32:05 +0000
-Subject: Re: [PATCH 2/2] rwsem: Move powerpc atomic-long based
-Message-Id: <1282613525.22370.486.camel@pasglop>
+From: Mikulas Patocka <mpatocka@redhat.com>
+Date: Thu, 19 Aug 2010 13:15:16 +0000
+Subject: Re: Userspace process crashes with PREEMPT
+Message-Id: <Pine.LNX.4.64.1008190907280.19440@hs20-bc2-1.build.redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1282107803.22370.173.camel@pasglop>
-	<20100817.222818.193699062.davem@davemloft.net>
-	<1282195403.22370.296.camel@pasglop>
-	<20100818.222925.233689776.davem@davemloft.net>
-	<1282281295.22370.401.camel@pasglop>
-	<20100820064348.GA19989@merkur.ravnborg.org>
-In-Reply-To: <20100820064348.GA19989@merkur.ravnborg.org>
+References: <Pine.LNX.4.64.0805311050430.24707@artax.karlin.mff.cuni.cz>
+In-Reply-To: <Pine.LNX.4.64.0805311050430.24707@artax.karlin.mff.cuni.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, paulus@au.ibm.com, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, akpm@linux-foundation.org, linuxppc-dev@lists.ozlabs.org, David Miller <davem@davemloft.net>
+To: sparclinux@vger.kernel.org
 
-On Fri, 2010-08-20 at 08:43 +0200, Sam Ravnborg wrote:
-> > diff --git a/include/asm-generic/rwsem-cmpxchg.h b/include/asm-generic/rwsem-cmpxchg.h
-> > new file mode 100644
-> > index 0000000..2b1c859
-> > --- /dev/null
-> > +++ b/include/asm-generic/rwsem-cmpxchg.h
-> > @@ -0,0 +1,183 @@
-> > +#ifndef _RWSEM_CMPXCHG_H
-> > +#define _RWSEM_CMPXCHG_H
-> > +
-> > +#ifndef _LINUX_RWSEM_H
-> > +#error "Please don't include <asm/rwsem.h> directly, use <linux/rwsem.h> instead."
-> > +#endif
-> > +
-> > +#ifdef __KERNEL__
-> 
-> #ifdef __KERNEL__ is only relevant for exported headers.
-> For kernel only headers like this is does not make sense,
-> but it does not harm.
+BTW. two years ago, I reported a bug that userspace programs on sparc64 
+would randomly crash in a few hours with preempt enabled 
+( http://marc.info/?l=linux-sparc&m1222607414906&w=4 )
 
-Well, it was there in the first place, I think we've carried around
-forever, but as you say, it doesn't really harm.
+Now I tried the same workload with 2.6.35 and it is stable with preempt.
 
-Ben.
+Are you aware that the bug was fixed? Or if not, it may be still lurking 
+there and some unrelated change hid the race condition. Should I bisect 
+the kernel to find out which patch actually fixed (or hid) the bug?
 
+Mikulas
 
