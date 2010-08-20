@@ -1,25 +1,181 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 03 Aug 2010 13:06:50 +0000
-Subject: Re: kgdb/sunhv patch
-Message-Id: <20100803.060650.22046866.davem@davemloft.net>
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Date: Fri, 20 Aug 2010 05:14:55 +0000
+Subject: [PATCH 1/2] powerpc: Make rwsem use "long" type
+Message-Id: <1282281295.22370.400.camel@pasglop>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100803.003508.35833306.davem@davemloft.net>
-In-Reply-To: <20100803.003508.35833306.davem@davemloft.net>
+References: <1282107803.22370.173.camel@pasglop>
+	<20100817.222818.193699062.davem@davemloft.net>
+	<1282195403.22370.296.camel@pasglop>
+	<20100818.222925.233689776.davem@davemloft.net>
+In-Reply-To: <20100818.222925.233689776.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: paulus@au.ibm.com, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, akpm@linux-foundation.org, linuxppc-dev@lists.ozlabs.org, David Miller <davem@davemloft.net>
 
-From: Jason Wessel <jason.wessel@windriver.com>
-Date: Tue, 03 Aug 2010 06:58:24 -0500
+This makes the 64-bit kernel use 64-bit signed integers for the counter
+(effectively supporting 32-bit of active count in the semaphore), thus
+avoiding things like overflow of the mmap_sem if you use a really crazy
+number of threads
 
-> I am not exactly sure how the large Sun systems are hooked up at our lab
-> because I have never actually seen one in person.  My understand was
-> that it was hook up something like this:
-> 
-> Developer pc --->  RS232 Terminal Server ---> Big Sun System HV --->
-> Linux Guest
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+---
+ arch/powerpc/include/asm/rwsem.h |   64 ++++++++++++++++++++++----------------
+ 1 files changed, 37 insertions(+), 27 deletions(-)
 
-You can access the hypervisor console over the RS232 port, but most
-of the time people use the ethernet port to access the system
-console.
+diff --git a/arch/powerpc/include/asm/rwsem.h b/arch/powerpc/include/asm/rwsem.h
+index 24cd928..8447d89 100644
+--- a/arch/powerpc/include/asm/rwsem.h
++++ b/arch/powerpc/include/asm/rwsem.h
+@@ -21,15 +21,20 @@
+ /*
+  * the semaphore definition
+  */
+-struct rw_semaphore {
+-	/* XXX this should be able to be an atomic_t  -- paulus */
+-	signed int		count;
+-#define RWSEM_UNLOCKED_VALUE		0x00000000
+-#define RWSEM_ACTIVE_BIAS		0x00000001
+-#define RWSEM_ACTIVE_MASK		0x0000ffff
+-#define RWSEM_WAITING_BIAS		(-0x00010000)
++#ifdef CONFIG_PPC64
++# define RWSEM_ACTIVE_MASK		0xffffffffL
++#else
++# define RWSEM_ACTIVE_MASK		0x0000ffffL
++#endif
++
++#define RWSEM_UNLOCKED_VALUE		0x00000000L
++#define RWSEM_ACTIVE_BIAS		0x00000001L
++#define RWSEM_WAITING_BIAS		(-RWSEM_ACTIVE_MASK-1)
+ #define RWSEM_ACTIVE_READ_BIAS		RWSEM_ACTIVE_BIAS
+ #define RWSEM_ACTIVE_WRITE_BIAS		(RWSEM_WAITING_BIAS + RWSEM_ACTIVE_BIAS)
++
++struct rw_semaphore {
++	long			count;
+ 	spinlock_t		wait_lock;
+ 	struct list_head	wait_list;
+ #ifdef CONFIG_DEBUG_LOCK_ALLOC
+@@ -43,9 +48,13 @@ struct rw_semaphore {
+ # define __RWSEM_DEP_MAP_INIT(lockname)
+ #endif
+ 
+-#define __RWSEM_INITIALIZER(name) \
+-	{ RWSEM_UNLOCKED_VALUE, __SPIN_LOCK_UNLOCKED((name).wait_lock), \
+-	  LIST_HEAD_INIT((name).wait_list) __RWSEM_DEP_MAP_INIT(name) }
++#define __RWSEM_INITIALIZER(name)				\
++{								\
++	RWSEM_UNLOCKED_VALUE,					\
++	__SPIN_LOCK_UNLOCKED((name).wait_lock),			\
++	LIST_HEAD_INIT((name).wait_list)			\
++	__RWSEM_DEP_MAP_INIT(name)				\
++}
+ 
+ #define DECLARE_RWSEM(name)		\
+ 	struct rw_semaphore name = __RWSEM_INITIALIZER(name)
+@@ -70,13 +79,13 @@ extern void __init_rwsem(struct rw_semaphore *sem, const char *name,
+  */
+ static inline void __down_read(struct rw_semaphore *sem)
+ {
+-	if (unlikely(atomic_inc_return((atomic_t *)(&sem->count)) <= 0))
++	if (unlikely(atomic_long_inc_return((atomic_long_t *)&sem->count) <= 0))
+ 		rwsem_down_read_failed(sem);
+ }
+ 
+ static inline int __down_read_trylock(struct rw_semaphore *sem)
+ {
+-	int tmp;
++	long tmp;
+ 
+ 	while ((tmp = sem->count) >= 0) {
+ 		if (tmp = cmpxchg(&sem->count, tmp,
+@@ -92,10 +101,10 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
+  */
+ static inline void __down_write_nested(struct rw_semaphore *sem, int subclass)
+ {
+-	int tmp;
++	long tmp;
+ 
+-	tmp = atomic_add_return(RWSEM_ACTIVE_WRITE_BIAS,
+-				(atomic_t *)(&sem->count));
++	tmp = atomic_long_add_return(RWSEM_ACTIVE_WRITE_BIAS,
++				     (atomic_long_t *)&sem->count);
+ 	if (unlikely(tmp != RWSEM_ACTIVE_WRITE_BIAS))
+ 		rwsem_down_write_failed(sem);
+ }
+@@ -107,7 +116,7 @@ static inline void __down_write(struct rw_semaphore *sem)
+ 
+ static inline int __down_write_trylock(struct rw_semaphore *sem)
+ {
+-	int tmp;
++	long tmp;
+ 
+ 	tmp = cmpxchg(&sem->count, RWSEM_UNLOCKED_VALUE,
+ 		      RWSEM_ACTIVE_WRITE_BIAS);
+@@ -119,9 +128,9 @@ static inline int __down_write_trylock(struct rw_semaphore *sem)
+  */
+ static inline void __up_read(struct rw_semaphore *sem)
+ {
+-	int tmp;
++	long tmp;
+ 
+-	tmp = atomic_dec_return((atomic_t *)(&sem->count));
++	tmp = atomic_long_dec_return((atomic_long_t *)&sem->count);
+ 	if (unlikely(tmp < -1 && (tmp & RWSEM_ACTIVE_MASK) = 0))
+ 		rwsem_wake(sem);
+ }
+@@ -131,17 +140,17 @@ static inline void __up_read(struct rw_semaphore *sem)
+  */
+ static inline void __up_write(struct rw_semaphore *sem)
+ {
+-	if (unlikely(atomic_sub_return(RWSEM_ACTIVE_WRITE_BIAS,
+-			      (atomic_t *)(&sem->count)) < 0))
++	if (unlikely(atomic_long_sub_return(RWSEM_ACTIVE_WRITE_BIAS,
++				 (atomic_long_t *)&sem->count) < 0))
+ 		rwsem_wake(sem);
+ }
+ 
+ /*
+  * implement atomic add functionality
+  */
+-static inline void rwsem_atomic_add(int delta, struct rw_semaphore *sem)
++static inline void rwsem_atomic_add(long delta, struct rw_semaphore *sem)
+ {
+-	atomic_add(delta, (atomic_t *)(&sem->count));
++	atomic_long_add(delta, (atomic_long_t *)&sem->count);
+ }
+ 
+ /*
+@@ -149,9 +158,10 @@ static inline void rwsem_atomic_add(int delta, struct rw_semaphore *sem)
+  */
+ static inline void __downgrade_write(struct rw_semaphore *sem)
+ {
+-	int tmp;
++	long tmp;
+ 
+-	tmp = atomic_add_return(-RWSEM_WAITING_BIAS, (atomic_t *)(&sem->count));
++	tmp = atomic_long_add_return(-RWSEM_WAITING_BIAS,
++				     (atomic_long_t *)&sem->count);
+ 	if (tmp < 0)
+ 		rwsem_downgrade_wake(sem);
+ }
+@@ -159,14 +169,14 @@ static inline void __downgrade_write(struct rw_semaphore *sem)
+ /*
+  * implement exchange and add functionality
+  */
+-static inline int rwsem_atomic_update(int delta, struct rw_semaphore *sem)
++static inline long rwsem_atomic_update(long delta, struct rw_semaphore *sem)
+ {
+-	return atomic_add_return(delta, (atomic_t *)(&sem->count));
++	return atomic_long_add_return(delta, (atomic_long_t *)&sem->count);
+ }
+ 
+ static inline int rwsem_is_locked(struct rw_semaphore *sem)
+ {
+-	return (sem->count != 0);
++	return sem->count != 0;
+ }
+ 
+ #endif	/* __KERNEL__ */
+
+
