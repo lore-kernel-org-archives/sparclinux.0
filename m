@@ -1,51 +1,45 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Mon, 23 Aug 2010 13:44:16 +0000
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Date: Mon, 23 Aug 2010 22:01:25 +0000
 Subject: Re: 64-bit ppc rwsem
-Message-Id: <201008231544.16422.arnd@arndb.de>
+Message-Id: <1282600885.22370.453.camel@pasglop>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1282107803.22370.173.camel@pasglop>
 	<1282195403.22370.296.camel@pasglop>
 	<20100818.222925.233689776.davem@davemloft.net>
-In-Reply-To: <20100818.222925.233689776.davem@davemloft.net>
+	<201008231544.16422.arnd@arndb.de>
+In-Reply-To: <201008231544.16422.arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linuxppc-dev@lists.ozlabs.org
-Cc: paulus@au.ibm.com, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, akpm@linux-foundation.org, torvalds@linux-foundation.org, David Miller <davem@davemloft.net>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linuxppc-dev@lists.ozlabs.org, paulus@au.ibm.com, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, akpm@linux-foundation.org, torvalds@linux-foundation.org, David Miller <davem@davemloft.net>
 
-On Thursday 19 August 2010, David Miller wrote:
-> From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> Date: Thu, 19 Aug 2010 15:23:23 +1000
+On Mon, 2010-08-23 at 15:44 +0200, Arnd Bergmann wrote:
 > 
-> > Similar here, but using atomic_long_t instead so it works for 32-bit too
-> > for me. I suppose we could make that part common indeed.
-> > 
-> > What about asm-generic/rwsem-atomic.h  or rwsem-cmpxchg.h ?
-> 
-> Using rwsem-cmpxchg.h sounds best I guess.
+> * Alpha has an optimization for the uniprocessor case, where the atomic
+> instructions get turned into nonatomic additions. The spinlock based
+> version uses no locks on UP but disables interrupts for reasons I don't
+> understand (nothing running at interrupt time should try to access an rwsem).
+> Should the generic version do the same as Alpha?
 
-The implementation looks good for asm-generic, but there is now an asymmetry
-between the spinlock and the atomic_long_t based version.
+I've seen drivers in the past do trylocks at interrupt time ... tho I
+agree it sucks.
 
-Maybe we can make them both do the same thing, either of
+> * Is there any architecture that would still benefit from having a separate
+> rwsem implementation? AFAICT all the remaining ones are just variations of
+> the same concept of using cmpxchg (or xadd in case of x86), which is what
+> atomics typically end up doing anyway.
 
-1. create include/linux/rwsem-cmpxchg.h and add an
-   #elif defined(CONFIG_RWSEM_GENERIC_ATOMIC) to include/linux/rwsem.h
+It depends how sensitive rwsems are. 
 
-2. move include/linux/rwsem-spinlock.h to include/asm-generic/ and
-   include that from all architectures that want the spinlock based version.
+The "generic" variant based on atomic's and cmpxchg on powerpc is
+sub-optimal in the sense that it has stronger memory barriers that would
+be necessary (atomic_inc_return for example has both acquire and
+release).
 
-Further comments:
+But that vs. one more pile of inline asm, we decided it wasn't hot
+enough a spot for us to care back then.
 
-* Alpha has an optimization for the uniprocessor case, where the atomic
-instructions get turned into nonatomic additions. The spinlock based
-version uses no locks on UP but disables interrupts for reasons I don't
-understand (nothing running at interrupt time should try to access an rwsem).
-Should the generic version do the same as Alpha?
+Cheers,
+Ben.
 
-* Is there any architecture that would still benefit from having a separate
-rwsem implementation? AFAICT all the remaining ones are just variations of
-the same concept of using cmpxchg (or xadd in case of x86), which is what
-atomics typically end up doing anyway.
-
-	Arnd
