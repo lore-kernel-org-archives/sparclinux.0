@@ -1,50 +1,69 @@
-From: Al Viro <viro@ZenIV.linux.org.uk>
-Date: Wed, 18 Aug 2010 02:50:23 +0000
-Subject: Re: [GIT] Sparc
-Message-Id: <20100818025022.GM31363@ZenIV.linux.org.uk>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 24 Aug 2010 09:02:07 +0000
+Subject: [GIT] Sparc
+Message-Id: <20100824.020207.71104293.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100817.180325.104051399.davem@davemloft.net>
- <AANLkTikQ1dGw0aO10_ZwmVEc-JAVhB==3HS7SrWycE49@mail.gmail.com>
- <20100817.191245.112612004.davem@davemloft.net>
-In-Reply-To: <20100817.191245.112612004.davem@davemloft.net>
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: torvalds@linux-foundation.org, akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Aug 17, 2010 at 07:12:45PM -0700, David Miller wrote:
-> From: Linus Torvalds <torvalds@linux-foundation.org>
-> Date: Tue, 17 Aug 2010 18:31:50 -0700
-> 
-> > Confused yet?
-> 
-> Beyond...
-> 
-> > The basic rule becomes: never _ever_ overflow 'int' in a constant,
-> > without specifying the exact type you want. That way you avoid all the
-> > subtle cases.
-> 
-> That's easier to understand.
 
-Actually, it's not that complicated:
+A few sparc64 bug fixes and proper 64-bit rwsem support as you
+suggested.
 
-1) base and suffices choose the possible types.
-2) order of types is always the same: int -> unsigned -> long -> unsigned
-long -> long long -> unsigned long long
-3) we always choose the first type the value would fit into
-4) L in suffix = "at least long"
-5) LL in suffix = "at least long long"
-6) U in suffix = "unsigned"
-7) without U in suffix, base 10 = "signed"
+1) Fetching large device properties from openfirmware spams all
+   over the kernel data section, based upon a report by Meelis
+   Roos.  The fix is to just use the caller's buffers directly
+   instead of this unnecessary 3k bounce buffer business.
 
-That's it.  C90 differs from C99 only in one thing - long long (and LL) isn't
-there.  The subtle mess Linus has mentioned is C90 gccism: gcc has allowed
-unsigned long for decimal constants, as the last resort.  I.e. if you had
-a plain decimal constant that wouldn't fit into long but would fit into
-unsigned long, gcc generated a warning and treated it as unsigned long.
-C90 would reject the damn thing.  _Bad_ extension, since in C99 the same
-constant would be a legitimate signed long long.
+2) The atomic64_t interface 'long' cases I missed.
 
-But yes, "use the suffix when unsure" is a damn good idea, _especially_ since
-the sizeof(long) actually varies between the targets we care about.
+3) Lock loop backoff didn't really NOP out correctly on UP.
+
+4) Perf control register writes would write the register
+   twice by mistake due to a missing delay slot nop.  Fix
+   from Mikulas Patocka.
+
+Please pull, thanks a lot!
+
+The following changes since commit d1b113bb028999e82a8528e1484be8c23fb5a7d9:
+
+  Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-2.6 (2010-08-23 18:30:30 -0700)
+
+are available in the git repository at:
+
+  master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
+
+David S. Miller (4):
+      sparc64: Really fix atomic64_t interface types.
+      sparc64: Make rwsems 64-bit.
+      sparc64: Make lock backoff really a NOP on UP builds.
+      sparc64: Get rid of indirect p1275 PROM call buffer.
+
+Mikulas Patocka (2):
+      sparc64: simple microoptimizations for atomic functions
+      sparc64: Fill a missing delay slot.
+
+ arch/sparc/include/asm/atomic_64.h   |    8 +-
+ arch/sparc/include/asm/backoff.h     |   11 +-
+ arch/sparc/include/asm/oplib_64.h    |   27 +---
+ arch/sparc/include/asm/rwsem-const.h |   12 --
+ arch/sparc/include/asm/rwsem.h       |  120 +++++++++++--
+ arch/sparc/include/asm/system_64.h   |    1 +
+ arch/sparc/lib/Makefile              |    2 +-
+ arch/sparc/lib/atomic_64.S           |   36 ++---
+ arch/sparc/lib/bitops.S              |   12 +-
+ arch/sparc/lib/rwsem_64.S            |  163 ------------------
+ arch/sparc/prom/cif.S                |   16 +-
+ arch/sparc/prom/console_64.c         |   48 ++++--
+ arch/sparc/prom/devops_64.c          |   36 ++++-
+ arch/sparc/prom/misc_64.c            |  314 ++++++++++++++++++++++++----------
+ arch/sparc/prom/p1275.c              |  102 +-----------
+ arch/sparc/prom/tree_64.c            |  210 +++++++++++++++++------
+ 16 files changed, 595 insertions(+), 523 deletions(-)
+ delete mode 100644 arch/sparc/include/asm/rwsem-const.h
+ delete mode 100644 arch/sparc/lib/rwsem_64.S
