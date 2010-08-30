@@ -1,61 +1,105 @@
-From: "NOKIA MOBILE PROMO AWARD" <tguy1@dodo.com.au>
-Date: Sat, 21 Aug 2010 23:04:10 +0000
-Subject: Payment Information
-Message-Id: <20100822090410.22950.4C7052D44F71C-4C70@webmail.dodo.com.au>
+From: Andres Salomon <dilinger@queued.net>
+Date: Mon, 30 Aug 2010 04:04:45 +0000
+Subject: [PATCH 7/9] of: add package-to-path support to pdt
+Message-Id: <20100830000445.3beb3e79@debxo>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20100628215407.2017bf2f@debian>
+	<20100829235100.6dcedcb8@debxo>
+In-Reply-To: <20100829235100.6dcedcb8@debxo>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
-
---
-FROM THE DESK OF THE PROMOTION OFFICER,
-NOKIA MOBILE SWEEPSTAKES PROMO.
-2ND FLOOR BERKLEY SQUARE HOUSE
-BERKLEY SQUARE LONDON W1J 6BD,
-LONDON. UNITED KINGDOM.
-
-NOKIA MOBILE PROMO AWARD
-
-OFFICIAL WINNING NOTIFICATION.
-
-We are pleased to inform you of the release of the long
-awaited results of Nokia LOTTERY promotion organized
-in conjunction with T-MOBILE your email address emerged as
-one of the seven others online Winning e-mails in the 2nd
-category and therefore attracted a cash award of
-$1,000.000.00 USD (ONE MILLION United States Dollars)
-
-To begin your claim, do file for the release of your winning
-by contacting our Foreign Transfer Manager with your
-PERSONAL DETAILS (Compulsory)
-
-Fill the form below:
-
-NAME:
-ADDRESS:
-PHONE NO:
-OCCUPATION:
-AGE:
-SEX:
-COUNTRY:
-
-Mr. John Bamaco
-Tel: +447045710800
-Email: awardnokiamobilepromo@yahoo.com.hk
+To: devicetree-discuss@lists.ozlabs.org
+Cc: sparclinux@vger.kernel.org, x86@kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, cjb@laptop.org, Mitch Bradley <wmb@laptop.org>, pgf@laptop.org, linux-kernel@vger.kernel.org, davem@davemloft.net, grant.likely@secretlab.ca, Stephen Neuendorffer <stephen.neuendorffer@xilinx.com>
 
 
-The Nokia E-mail LOTTERY draw is held periodically and is organized
-to encourage the use of Internet and promote computer literacy worldwide.
+package-to-path is a PROM function which tells us the real (full) name of the
+node.  This provides a hook for that in the prom ops struct, and makes use
+of it in the pdt code when attempting to determine a node's name.  If the
+hook is available, try using it (falling back to looking at the "name"
+property if it fails).
 
-Congratulations!!
+Signed-off-by: Andres Salomon <dilinger@queued.net>
+---
+ drivers/of/pdt.c       |   43 ++++++++++++++++++++++++++++++++++++++++++-
+ include/linux/of_pdt.h |    3 +++
+ 2 files changed, 45 insertions(+), 1 deletions(-)
 
-Sincerely,
-Mrs. Maria Alanjedro
-Promotions Manager.
-
-________________________________________________
-
-This message was sent
-using Dodo Webmail - www.dodo.com.au
+diff --git a/drivers/of/pdt.c b/drivers/of/pdt.c
+index 31a4fb8..28295d0 100644
+--- a/drivers/of/pdt.c
++++ b/drivers/of/pdt.c
+@@ -132,6 +132,47 @@ static char * __init of_pdt_get_one_property(phandle node, const char *name)
+ 	return buf;
+ }
+ 
++static char * __init of_pdt_try_pkg2path(phandle node)
++{
++	char *res, *buf = NULL;
++	int len;
++
++	if (!of_pdt_prom_ops->pkg2path)
++		return NULL;
++
++	if (of_pdt_prom_ops->pkg2path(node, buf, 0, &len))
++		return NULL;
++	buf = prom_early_alloc(len + 1);
++	if (of_pdt_prom_ops->pkg2path(node, buf, len, &len)) {
++		pr_err("%s: package-to-path failed\n", __func__);
++		return NULL;
++	}
++
++	res = strrchr(buf, '/');
++	if (!res) {
++		pr_err("%s: couldn't find / in %s\n", __func__, buf);
++		return NULL;
++	}
++	return res+1;
++}
++
++/*
++ * When fetching the node's name, first try using package-to-path; if
++ * that fails (either because the arch hasn't supplied a PROM callback,
++ * or some other random failure), fall back to just looking at the node's
++ * 'name' property.
++ */
++static char * __init of_pdt_build_name(phandle node)
++{
++	char *buf;
++
++	buf = of_pdt_try_pkg2path(node);
++	if (!buf)
++		buf = of_pdt_get_one_property(node, "name");
++
++	return buf;
++}
++
+ static struct device_node * __init of_pdt_create_node(phandle node,
+ 						    struct device_node *parent)
+ {
+@@ -146,7 +187,7 @@ static struct device_node * __init of_pdt_create_node(phandle node,
+ 
+ 	kref_init(&dp->kref);
+ 
+-	dp->name = of_pdt_get_one_property(node, "name");
++	dp->name = of_pdt_build_name(node);
+ 	dp->type = of_pdt_get_one_property(node, "device_type");
+ 	dp->phandle = node;
+ 
+diff --git a/include/linux/of_pdt.h b/include/linux/of_pdt.h
+index a057417..9945e58 100644
+--- a/include/linux/of_pdt.h
++++ b/include/linux/of_pdt.h
+@@ -29,6 +29,9 @@ struct of_pdt_ops {
+ 	/* phandles are 0 if no child or sibling exists */
+ 	phandle (*getchild)(phandle parent);
+ 	phandle (*getsibling)(phandle node);
++
++	/* return 0 on success; fill in 'len' with number of bytes in path */
++	int (*pkg2path)(phandle node, char *buf, const int buflen, int *len);
+ };
+ 
+ extern void *prom_early_alloc(unsigned long size);
+-- 
+1.5.6.5
 
