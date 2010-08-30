@@ -1,45 +1,83 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 30 Aug 2010 05:06:27 +0000
-Subject: Re: [PATCH 1/9] of: move phandle/ihandle into types.h
-Message-Id: <20100830050627.GA12153@merkur.ravnborg.org>
+From: Andres Salomon <dilinger@queued.net>
+Date: Mon, 30 Aug 2010 04:06:14 +0000
+Subject: [PATCH 8/9] x86: of: irq additions to make drivers/of/* build on
+Message-Id: <20100830000614.0d571f10@debxo>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100628215407.2017bf2f@debian> <20100829235100.6dcedcb8@debxo> <20100829235352.1744e7e3@debxo>
-In-Reply-To: <20100829235352.1744e7e3@debxo>
+References: <20100628215407.2017bf2f@debian>
+	<20100829235100.6dcedcb8@debxo>
+In-Reply-To: <20100829235100.6dcedcb8@debxo>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andres Salomon <dilinger@queued.net>
-Cc: devicetree-discuss@lists.ozlabs.org, sparclinux@vger.kernel.org, x86@kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, cjb@laptop.org, Mitch Bradley <wmb@laptop.org>, pgf@laptop.org, linux-kernel@vger.kernel.org, davem@davemloft.net, grant.likely@secretlab.ca, Stephen Neuendorffer <stephen.neuendorffer@xilinx.com>
+To: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Cc: pgf-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitch Bradley <wmb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
 
-On Sun, Aug 29, 2010 at 11:53:52PM -0400, Andres Salomon wrote:
-> 
-> We need phandle for some exported sparc headers; of.h isn't an
-> exported header, and it would be silly to export it when all we
-> really need is one or two types from it.  So, move the phandle/ihandle
-> definitions into types.h.
-> 
-> diff --git a/include/linux/types.h b/include/linux/types.h
-> index 01a082f..26526ea 100644
-> --- a/include/linux/types.h
-> +++ b/include/linux/types.h
-> @@ -219,6 +219,10 @@ struct ustat {
->  	char			f_fpack[6];
->  };
->  
-> +/* Basic openboot/openfirmware types */
-> +typedef u32 phandle;
-> +typedef u32 ihandle;
-> +
->  #endif	/* __KERNEL__ */
 
-The above is inside #ifdef __KERNEL__ / #endif
-so it is not exported as we drop code protected
-by __KERNEL__ when we prepare for export.
+This functionality overlaps with patches previously submitted
+by Stephen Neuendorffer.  I don't care whose eventually get applied,
+so long as drivers/of/* becomes buildable on x86.
 
-Id addition "phandle" and "ihandle" needs to have
-two underscores apended as we cannot just add the above
-to the userspace namespace and expect it to be OK.
+Signed-off-by: Andres Salomon <dilinger@queued.net>
+---
+ arch/x86/include/asm/irq.h |    5 +++++
+ arch/x86/kernel/irq.c      |    8 ++++++++
+ include/linux/of_irq.h     |    1 +
+ 3 files changed, 14 insertions(+), 0 deletions(-)
 
-We do this for many other typers already, see __u32 for example.
+diff --git a/arch/x86/include/asm/irq.h b/arch/x86/include/asm/irq.h
+index 5458380..0a656b9 100644
+--- a/arch/x86/include/asm/irq.h
++++ b/arch/x86/include/asm/irq.h
+@@ -10,6 +10,11 @@
+ #include <asm/apicdef.h>
+ #include <asm/irq_vectors.h>
+ 
++#define NO_IRQ 0
++
++/* Even though we don't support this, supply it to appease OF */
++static inline void irq_dispose_mapping(unsigned int virq) { }
++
+ static inline int irq_canonicalize(int irq)
+ {
+ 	return ((irq = 2) ? 9 : irq);
+diff --git a/arch/x86/kernel/irq.c b/arch/x86/kernel/irq.c
+index 91fd0c7..d53f639 100644
+--- a/arch/x86/kernel/irq.c
++++ b/arch/x86/kernel/irq.c
+@@ -7,6 +7,7 @@
+ #include <linux/seq_file.h>
+ #include <linux/smp.h>
+ #include <linux/ftrace.h>
++#include <linux/of.h>
+ 
+ #include <asm/apic.h>
+ #include <asm/io_apic.h>
+@@ -275,6 +276,13 @@ void smp_x86_platform_ipi(struct pt_regs *regs)
+ 
+ EXPORT_SYMBOL_GPL(vector_used_by_percpu_irq);
+ 
++unsigned int irq_create_of_mapping(struct device_node *controller,
++		const u32 *intspec, unsigned int intsize)
++{
++	return intspec[0] + 1;
++}
++EXPORT_SYMBOL_GPL(irq_create_of_mapping);
++
+ #ifdef CONFIG_HOTPLUG_CPU
+ /* A cpu has been removed from cpu_online_mask.  Reset irq affinities. */
+ void fixup_irqs(void)
+diff --git a/include/linux/of_irq.h b/include/linux/of_irq.h
+index 5929781..05ad27b 100644
+--- a/include/linux/of_irq.h
++++ b/include/linux/of_irq.h
+@@ -5,6 +5,7 @@
+ struct of_irq;
+ #include <linux/types.h>
+ #include <linux/errno.h>
++#include <linux/irq.h>
+ #include <linux/ioport.h>
+ #include <linux/of.h>
+ 
+-- 
+1.5.6.5
 
-	Sam
