@@ -1,28 +1,20 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 16 Aug 2010 19:25:02 +0000
-Subject: Re: Serial console issue with 2.6.32
-Message-Id: <20100816.122502.91328760.davem@davemloft.net>
+From: Andres Salomon <dilinger@queued.net>
+Date: Mon, 30 Aug 2010 03:51:00 +0000
+Subject: [PATCH 0/9] add OLPC device-tree support
+Message-Id: <20100829235100.6dcedcb8@debxo>
 List-Id: <sparclinux.vger.kernel.org>
-References: <201003151809.27436.elendil@planet.nl>
-In-Reply-To: <201003151809.27436.elendil@planet.nl>
+References: <20100628215407.2017bf2f@debian>
+In-Reply-To: <20100628215407.2017bf2f@debian>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: devicetree-discuss@lists.ozlabs.org
+Cc: sparclinux@vger.kernel.org, x86@kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, cjb@laptop.org, Mitch Bradley <wmb@laptop.org>, pgf@laptop.org, linux-kernel@vger.kernel.org, davem@davemloft.net, grant.likely@secretlab.ca, Stephen Neuendorffer <stephen.neuendorffer@xilinx.com>
 
-From: Frans Pop <elendil@planet.nl>
-Date: Mon, 16 Aug 2010 10:59:28 +0200
+These patches modify drivers/of, sparc, and x86 accordingly to add
+OLPC device-tree support.  Updates have been made based upon Grant and
+Davem's comments.  They've been compile-tested on sparc64 and x86, and
+runtime tested on OLPC machines.
 
-> Works great.
-> 
-> Tested on top of previous patch (against 2.6.34; I've not done any kernel 
-> testing recently and am thus a bit behind).
-> 
->> Reported-by: Frans Pop <elendil@planet.nl>
-> 
-> s/-by:/-and-tested-by:/
-> 
-> As always: many thanks David!
-> 
-
-Thanks a lot for everything Frans.
+Dave's 25edd6946 commit caused some conflicts w/ patch #2;
+hopefully I mangled it properly.
