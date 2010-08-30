@@ -1,7 +1,7 @@
 From: Andres Salomon <dilinger@queued.net>
-Date: Mon, 30 Aug 2010 04:02:43 +0000
-Subject: [PATCH 6/9] of: add of_pdt namespace to pdt code
-Message-Id: <20100830000243.26b1174b@debxo>
+Date: Mon, 30 Aug 2010 03:57:28 +0000
+Subject: [PATCH 3/9] sparc: break out some PROM device-tree building code
+Message-Id: <20100829235728.54acb704@debxo>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100628215407.2017bf2f@debian>
 	<20100829235100.6dcedcb8@debxo>
@@ -13,176 +13,444 @@ To: devicetree-discuss@lists.ozlabs.org
 Cc: sparclinux@vger.kernel.org, x86@kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, cjb@laptop.org, Mitch Bradley <wmb@laptop.org>, pgf@laptop.org, linux-kernel@vger.kernel.org, davem@davemloft.net, grant.likely@secretlab.ca, Stephen Neuendorffer <stephen.neuendorffer@xilinx.com>
 
 
-For symbols still lacking namespace qualifiers, add an of_pdt_ prefix.
+Transitioning into making this useful for architectures other than sparc.
+This is a verbatim copy of all functions/variables that've been moved.
 
 Signed-off-by: Andres Salomon <dilinger@queued.net>
 ---
- arch/sparc/kernel/leon_kernel.c |    2 +-
- drivers/of/pdt.c                |   40 +++++++++++++++++++-------------------
- include/linux/of_pdt.h          |    2 +-
- 3 files changed, 22 insertions(+), 22 deletions(-)
+ arch/sparc/kernel/prom_common.c |  190 +----------------------------------
+ drivers/of/pdt.c                |  215 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 216 insertions(+), 189 deletions(-)
+ create mode 100644 drivers/of/pdt.c
 
-diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
-index 6a7b4db..2d51527 100644
---- a/arch/sparc/kernel/leon_kernel.c
-+++ b/arch/sparc/kernel/leon_kernel.c
-@@ -282,5 +282,5 @@ void __init leon_init_IRQ(void)
+diff --git a/arch/sparc/kernel/prom_common.c b/arch/sparc/kernel/prom_common.c
+index 1f830da..7b454f6 100644
+--- a/arch/sparc/kernel/prom_common.c
++++ b/arch/sparc/kernel/prom_common.c
+@@ -26,8 +26,6 @@
  
- void __init leon_init(void)
- {
--	prom_build_more = &leon_node_init;
-+	of_pdt_build_more = &leon_node_init;
+ #include "prom.h"
+ 
+-void (*prom_build_more)(struct device_node *dp, struct device_node ***nextp);
+-
+ struct device_node *of_console_device;
+ EXPORT_SYMBOL(of_console_device);
+ 
+@@ -119,192 +117,6 @@ int of_find_in_proplist(const char *list, const char *match, int len)
  }
-diff --git a/drivers/of/pdt.c b/drivers/of/pdt.c
-index fd02fc1..31a4fb8 100644
---- a/drivers/of/pdt.c
-+++ b/drivers/of/pdt.c
-@@ -26,7 +26,7 @@
+ EXPORT_SYMBOL(of_find_in_proplist);
  
- static struct of_pdt_ops *of_pdt_prom_ops __initdata;
- 
--void __initdata (*prom_build_more)(struct device_node *dp,
-+void __initdata (*of_pdt_build_more)(struct device_node *dp,
- 		struct device_node ***nextp);
- 
- #if defined(CONFIG_SPARC)
-@@ -53,7 +53,7 @@ static inline const char *of_pdt_node_name(struct device_node *dp)
- 
- #endif /* !CONFIG_SPARC */
- 
+-unsigned int prom_unique_id;
+-
 -static struct property * __init build_one_prop(phandle node, char *prev,
-+static struct property * __init of_pdt_build_one_prop(phandle node, char *prev,
- 					       char *special_name,
- 					       void *special_val,
- 					       int special_len)
-@@ -100,17 +100,17 @@ static struct property * __init build_one_prop(phandle node, char *prev,
- 	return p;
- }
- 
+-					       char *special_name,
+-					       void *special_val,
+-					       int special_len)
+-{
+-	static struct property *tmp = NULL;
+-	struct property *p;
+-	const char *name;
+-
+-	if (tmp) {
+-		p = tmp;
+-		memset(p, 0, sizeof(*p) + 32);
+-		tmp = NULL;
+-	} else {
+-		p = prom_early_alloc(sizeof(struct property) + 32);
+-		p->unique_id = prom_unique_id++;
+-	}
+-
+-	p->name = (char *) (p + 1);
+-	if (special_name) {
+-		strcpy(p->name, special_name);
+-		p->length = special_len;
+-		p->value = prom_early_alloc(special_len);
+-		memcpy(p->value, special_val, special_len);
+-	} else {
+-		if (prev = NULL) {
+-			name = prom_firstprop(node, p->name);
+-		} else {
+-			name = prom_nextprop(node, prev, p->name);
+-		}
+-
+-		if (!name || strlen(name) = 0) {
+-			tmp = p;
+-			return NULL;
+-		}
+-#ifdef CONFIG_SPARC32
+-		strcpy(p->name, name);
+-#endif
+-		p->length = prom_getproplen(node, p->name);
+-		if (p->length <= 0) {
+-			p->length = 0;
+-		} else {
+-			int len;
+-
+-			p->value = prom_early_alloc(p->length + 1);
+-			len = prom_getproperty(node, p->name, p->value,
+-					       p->length);
+-			if (len <= 0)
+-				p->length = 0;
+-			((unsigned char *)p->value)[p->length] = '\0';
+-		}
+-	}
+-	return p;
+-}
+-
 -static struct property * __init build_prop_list(phandle node)
-+static struct property * __init of_pdt_build_prop_list(phandle node)
- {
- 	struct property *head, *tail;
- 
+-{
+-	struct property *head, *tail;
+-
 -	head = tail = build_one_prop(node, NULL,
-+	head = tail = of_pdt_build_one_prop(node, NULL,
- 				     ".node", &node, sizeof(node));
- 
+-				     ".node", &node, sizeof(node));
+-
 -	tail->next = build_one_prop(node, NULL, NULL, NULL, 0);
-+	tail->next = of_pdt_build_one_prop(node, NULL, NULL, NULL, 0);
- 	tail = tail->next;
- 	while(tail) {
+-	tail = tail->next;
+-	while(tail) {
 -		tail->next = build_one_prop(node, tail->name,
-+		tail->next = of_pdt_build_one_prop(node, tail->name,
- 					    NULL, NULL, 0);
- 		tail = tail->next;
- 	}
-@@ -118,7 +118,7 @@ static struct property * __init build_prop_list(phandle node)
- 	return head;
- }
- 
+-					    NULL, NULL, 0);
+-		tail = tail->next;
+-	}
+-
+-	return head;
+-}
+-
 -static char * __init get_one_property(phandle node, const char *name)
-+static char * __init of_pdt_get_one_property(phandle node, const char *name)
- {
- 	char *buf = "<NULL>";
- 	int len;
-@@ -132,7 +132,7 @@ static char * __init get_one_property(phandle node, const char *name)
- 	return buf;
- }
- 
+-{
+-	char *buf = "<NULL>";
+-	int len;
+-
+-	len = prom_getproplen(node, name);
+-	if (len > 0) {
+-		buf = prom_early_alloc(len);
+-		len = prom_getproperty(node, name, buf, len);
+-	}
+-
+-	return buf;
+-}
+-
 -static struct device_node * __init prom_create_node(phandle node,
-+static struct device_node * __init of_pdt_create_node(phandle node,
- 						    struct device_node *parent)
- {
- 	struct device_node *dp;
-@@ -146,18 +146,18 @@ static struct device_node * __init prom_create_node(phandle node,
- 
- 	kref_init(&dp->kref);
- 
+-						    struct device_node *parent)
+-{
+-	struct device_node *dp;
+-
+-	if (!node)
+-		return NULL;
+-
+-	dp = prom_early_alloc(sizeof(*dp));
+-	dp->unique_id = prom_unique_id++;
+-	dp->parent = parent;
+-
+-	kref_init(&dp->kref);
+-
 -	dp->name = get_one_property(node, "name");
 -	dp->type = get_one_property(node, "device_type");
-+	dp->name = of_pdt_get_one_property(node, "name");
-+	dp->type = of_pdt_get_one_property(node, "device_type");
- 	dp->phandle = node;
- 
+-	dp->phandle = node;
+-
 -	dp->properties = build_prop_list(node);
-+	dp->properties = of_pdt_build_prop_list(node);
- 
- 	irq_trans_init(dp);
- 
- 	return dp;
- }
- 
--static char * __init build_full_name(struct device_node *dp)
-+static char * __init of_pdt_build_full_name(struct device_node *dp)
- {
- 	int len, ourlen, plen;
- 	char *n;
-@@ -177,7 +177,7 @@ static char * __init build_full_name(struct device_node *dp)
- 	return n;
- }
- 
+-
+-	irq_trans_init(dp);
+-
+-	return dp;
+-}
+-
+-char * __init build_full_name(struct device_node *dp)
+-{
+-	int len, ourlen, plen;
+-	char *n;
+-
+-	plen = strlen(dp->parent->full_name);
+-	ourlen = strlen(dp->path_component_name);
+-	len = ourlen + plen + 2;
+-
+-	n = prom_early_alloc(len);
+-	strcpy(n, dp->parent->full_name);
+-	if (!of_node_is_root(dp->parent)) {
+-		strcpy(n + plen, "/");
+-		plen++;
+-	}
+-	strcpy(n + plen, dp->path_component_name);
+-
+-	return n;
+-}
+-
 -static struct device_node * __init prom_build_tree(struct device_node *parent,
-+static struct device_node * __init of_pdt_build_tree(struct device_node *parent,
- 						   phandle node,
- 						   struct device_node ***nextp)
- {
-@@ -185,7 +185,7 @@ static struct device_node * __init prom_build_tree(struct device_node *parent,
- 	struct device_node *dp;
- 
- 	while (1) {
+-						   phandle node,
+-						   struct device_node ***nextp)
+-{
+-	struct device_node *ret = NULL, *prev_sibling = NULL;
+-	struct device_node *dp;
+-
+-	while (1) {
 -		dp = prom_create_node(node, parent);
-+		dp = of_pdt_create_node(node, parent);
- 		if (!dp)
- 			break;
- 
-@@ -202,13 +202,13 @@ static struct device_node * __init prom_build_tree(struct device_node *parent,
- #if defined(CONFIG_SPARC)
- 		dp->path_component_name = build_path_component(dp);
- #endif
+-		if (!dp)
+-			break;
+-
+-		if (prev_sibling)
+-			prev_sibling->sibling = dp;
+-
+-		if (!ret)
+-			ret = dp;
+-		prev_sibling = dp;
+-
+-		*(*nextp) = dp;
+-		*nextp = &dp->allnext;
+-
+-		dp->path_component_name = build_path_component(dp);
 -		dp->full_name = build_full_name(dp);
-+		dp->full_name = of_pdt_build_full_name(dp);
- 
--		dp->child = prom_build_tree(dp,
-+		dp->child = of_pdt_build_tree(dp,
- 				of_pdt_prom_ops->getchild(node), nextp);
- 
+-
+-		dp->child = prom_build_tree(dp, prom_getchild(node), nextp);
+-
 -		if (prom_build_more)
 -			prom_build_more(dp, nextp);
-+		if (of_pdt_build_more)
-+			of_pdt_build_more(dp, nextp);
+-
+-		node = prom_getsibling(node);
+-	}
+-
+-	return ret;
+-}
+-
+ unsigned int prom_early_allocated __initdata;
  
- 		node = of_pdt_prom_ops->getsibling(node);
- 	}
-@@ -223,13 +223,13 @@ void __init of_pdt_build_devicetree(phandle root_node, struct of_pdt_ops *ops)
- 	BUG_ON(!ops);
- 	of_pdt_prom_ops = ops;
- 
--	allnodes = prom_create_node(root_node, NULL);
-+	allnodes = of_pdt_create_node(root_node, NULL);
- #if defined(CONFIG_SPARC)
- 	allnodes->path_component_name = "";
- #endif
- 	allnodes->full_name = "/";
- 
- 	nextp = &allnodes->allnext;
+-void __init prom_build_devicetree(void)
+-{
+-	struct device_node **nextp;
+-
+-	allnodes = prom_create_node(prom_root_node, NULL);
+-	allnodes->path_component_name = "";
+-	allnodes->full_name = "/";
+-
+-	nextp = &allnodes->allnext;
 -	allnodes->child = prom_build_tree(allnodes,
-+	allnodes->child = of_pdt_build_tree(allnodes,
- 			of_pdt_prom_ops->getchild(allnodes->phandle), &nextp);
- }
-diff --git a/include/linux/of_pdt.h b/include/linux/of_pdt.h
-index 7acabff..a057417 100644
---- a/include/linux/of_pdt.h
-+++ b/include/linux/of_pdt.h
-@@ -36,7 +36,7 @@ extern void *prom_early_alloc(unsigned long size);
- /* for building the device tree */
- extern void of_pdt_build_devicetree(phandle root_node, struct of_pdt_ops *ops);
- 
--extern void (*prom_build_more)(struct device_node *dp,
-+extern void (*of_pdt_build_more)(struct device_node *dp,
- 		struct device_node ***nextp);
- 
- #endif /* _LINUX_OF_PDT_H */
+-					  prom_getchild(allnodes->phandle),
+-					  &nextp);
+-	of_console_init();
+-
+-	printk("PROM: Built device tree with %u bytes of memory.\n",
+-	       prom_early_allocated);
+-}
++#include "../../../drivers/of/pdt.c"
+diff --git a/drivers/of/pdt.c b/drivers/of/pdt.c
+new file mode 100644
+index 0000000..c3c2d70
+--- /dev/null
++++ b/drivers/of/pdt.c
+@@ -0,0 +1,215 @@
++/* prom_common.c: OF device tree support common code.
++ *
++ * Paul Mackerras	August 1996.
++ * Copyright (C) 1996-2005 Paul Mackerras.
++ *
++ *  Adapted for 64bit PowerPC by Dave Engebretsen and Peter Bergner.
++ *    {engebret|bergner}@us.ibm.com
++ *
++ *  Adapted for sparc by David S. Miller davem@davemloft.net
++ *
++ *      This program is free software; you can redistribute it and/or
++ *      modify it under the terms of the GNU General Public License
++ *      as published by the Free Software Foundation; either version
++ *      2 of the License, or (at your option) any later version.
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/errno.h>
++#include <linux/mutex.h>
++#include <linux/slab.h>
++#include <linux/of.h>
++#include <asm/prom.h>
++#include <asm/oplib.h>
++#include <asm/leon.h>
++
++void (*prom_build_more)(struct device_node *dp, struct device_node ***nextp);
++
++unsigned int prom_unique_id;
++
++static struct property * __init build_one_prop(phandle node, char *prev,
++					       char *special_name,
++					       void *special_val,
++					       int special_len)
++{
++	static struct property *tmp = NULL;
++	struct property *p;
++	const char *name;
++
++	if (tmp) {
++		p = tmp;
++		memset(p, 0, sizeof(*p) + 32);
++		tmp = NULL;
++	} else {
++		p = prom_early_alloc(sizeof(struct property) + 32);
++		p->unique_id = prom_unique_id++;
++	}
++
++	p->name = (char *) (p + 1);
++	if (special_name) {
++		strcpy(p->name, special_name);
++		p->length = special_len;
++		p->value = prom_early_alloc(special_len);
++		memcpy(p->value, special_val, special_len);
++	} else {
++		if (prev = NULL) {
++			name = prom_firstprop(node, p->name);
++		} else {
++			name = prom_nextprop(node, prev, p->name);
++		}
++
++		if (!name || strlen(name) = 0) {
++			tmp = p;
++			return NULL;
++		}
++#ifdef CONFIG_SPARC32
++		strcpy(p->name, name);
++#endif
++		p->length = prom_getproplen(node, p->name);
++		if (p->length <= 0) {
++			p->length = 0;
++		} else {
++			int len;
++
++			p->value = prom_early_alloc(p->length + 1);
++			len = prom_getproperty(node, p->name, p->value,
++					       p->length);
++			if (len <= 0)
++				p->length = 0;
++			((unsigned char *)p->value)[p->length] = '\0';
++		}
++	}
++	return p;
++}
++
++static struct property * __init build_prop_list(phandle node)
++{
++	struct property *head, *tail;
++
++	head = tail = build_one_prop(node, NULL,
++				     ".node", &node, sizeof(node));
++
++	tail->next = build_one_prop(node, NULL, NULL, NULL, 0);
++	tail = tail->next;
++	while(tail) {
++		tail->next = build_one_prop(node, tail->name,
++					    NULL, NULL, 0);
++		tail = tail->next;
++	}
++
++	return head;
++}
++
++static char * __init get_one_property(phandle node, const char *name)
++{
++	char *buf = "<NULL>";
++	int len;
++
++	len = prom_getproplen(node, name);
++	if (len > 0) {
++		buf = prom_early_alloc(len);
++		len = prom_getproperty(node, name, buf, len);
++	}
++
++	return buf;
++}
++
++static struct device_node * __init prom_create_node(phandle node,
++						    struct device_node *parent)
++{
++	struct device_node *dp;
++
++	if (!node)
++		return NULL;
++
++	dp = prom_early_alloc(sizeof(*dp));
++	dp->unique_id = prom_unique_id++;
++	dp->parent = parent;
++
++	kref_init(&dp->kref);
++
++	dp->name = get_one_property(node, "name");
++	dp->type = get_one_property(node, "device_type");
++	dp->phandle = node;
++
++	dp->properties = build_prop_list(node);
++
++	irq_trans_init(dp);
++
++	return dp;
++}
++
++char * __init build_full_name(struct device_node *dp)
++{
++	int len, ourlen, plen;
++	char *n;
++
++	plen = strlen(dp->parent->full_name);
++	ourlen = strlen(dp->path_component_name);
++	len = ourlen + plen + 2;
++
++	n = prom_early_alloc(len);
++	strcpy(n, dp->parent->full_name);
++	if (!of_node_is_root(dp->parent)) {
++		strcpy(n + plen, "/");
++		plen++;
++	}
++	strcpy(n + plen, dp->path_component_name);
++
++	return n;
++}
++
++static struct device_node * __init prom_build_tree(struct device_node *parent,
++						   phandle node,
++						   struct device_node ***nextp)
++{
++	struct device_node *ret = NULL, *prev_sibling = NULL;
++	struct device_node *dp;
++
++	while (1) {
++		dp = prom_create_node(node, parent);
++		if (!dp)
++			break;
++
++		if (prev_sibling)
++			prev_sibling->sibling = dp;
++
++		if (!ret)
++			ret = dp;
++		prev_sibling = dp;
++
++		*(*nextp) = dp;
++		*nextp = &dp->allnext;
++
++		dp->path_component_name = build_path_component(dp);
++		dp->full_name = build_full_name(dp);
++
++		dp->child = prom_build_tree(dp, prom_getchild(node), nextp);
++
++		if (prom_build_more)
++			prom_build_more(dp, nextp);
++
++		node = prom_getsibling(node);
++	}
++
++	return ret;
++}
++
++void __init prom_build_devicetree(void)
++{
++	struct device_node **nextp;
++
++	allnodes = prom_create_node(prom_root_node, NULL);
++	allnodes->path_component_name = "";
++	allnodes->full_name = "/";
++
++	nextp = &allnodes->allnext;
++	allnodes->child = prom_build_tree(allnodes,
++					  prom_getchild(allnodes->phandle),
++					  &nextp);
++	of_console_init();
++
++	printk("PROM: Built device tree with %u bytes of memory.\n",
++	       prom_early_allocated);
++}
 -- 
 1.5.6.5
 
