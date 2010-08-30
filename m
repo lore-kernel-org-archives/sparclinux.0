@@ -1,91 +1,313 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Mon, 30 Aug 2010 17:31:44 +0000
-Subject: Re: [PATCH 8/9] x86: of: irq additions to make drivers/of/* build on x86
-Message-Id: <AANLkTiky2-Sr6+0+yyCuo3sVNYB6cxOuSHQkE9LbyynA@mail.gmail.com>
+From: Andres Salomon <dilinger@queued.net>
+Date: Mon, 30 Aug 2010 03:59:13 +0000
+Subject: [PATCH 4/9] sparc: make drivers/of/pdt.c no longer sparc-only
+Message-Id: <20100829235913.30df023c@debxo>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100628215407.2017bf2f@debian> <20100829235100.6dcedcb8@debxo>
-	<20100830000614.0d571f10@debxo>
-	<c7823e09-3ce8-434f-98f4-6a84a996c942@SG2EHSMHS001.ehs.local>
-In-Reply-To: <c7823e09-3ce8-434f-98f4-6a84a996c942-RaUQJvECHitZbvUCbuG1mrjjLBE8jN/0@public.gmane.org>
+References: <20100628215407.2017bf2f@debian>
+	<20100829235100.6dcedcb8@debxo>
+In-Reply-To: <20100829235100.6dcedcb8@debxo>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Stephen Neuendorffer <stephen.neuendorffer-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>
-Cc: pgf-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org, hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitch Bradley <wmb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Andres Salomon <dilinger-pFFUokh25LWsTnJN9+BGXg@public.gmane.org>, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: devicetree-discuss@lists.ozlabs.org
+Cc: sparclinux@vger.kernel.org, x86@kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, cjb@laptop.org, Mitch Bradley <wmb@laptop.org>, pgf@laptop.org, linux-kernel@vger.kernel.org, davem@davemloft.net, grant.likely@secretlab.ca, Stephen Neuendorffer <stephen.neuendorffer@xilinx.com>
 
-On Mon, Aug 30, 2010 at 9:58 AM, Stephen Neuendorffer
-<stephen.neuendorffer@xilinx.com> wrote:
->
->
->> -----Original Message-----
->> From: Andres Salomon [mailto:dilinger@queued.net]
->> Sent: Sunday, August 29, 2010 9:06 PM
->> To: devicetree-discuss@lists.ozlabs.org
->> Cc: sparclinux@vger.kernel.org; x86@kernel.org; tglx@linutronix.de;
-> mingo@redhat.com; hpa@zytor.com;
->> cjb@laptop.org; Mitch Bradley; pgf@laptop.org;
-> linux-kernel@vger.kernel.org; davem@davemloft.net;
->> grant.likely@secretlab.ca; Stephen Neuendorffer
->> Subject: [PATCH 8/9] x86: of: irq additions to make drivers/of/* build
-> on x86
->>
->>
->> This functionality overlaps with patches previously submitted
->> by Stephen Neuendorffer. =A0I don't care whose eventually get applied,
->> so long as drivers/of/* becomes buildable on x86.
->>
->> Signed-off-by: Andres Salomon <dilinger@queued.net>
->
-> Agreed..
-> Signed-off-by: Stephen Neuendorffer <stephen.neuendorffer@xilinx.com>
 
-Okay, I've thought about this problem some more, and I think I've
-decided how I want it solved.  Nack on this particular patch because
-it adds NO_IRQ to arch/x86/kernel/irq.c (it has been nacked before).
-Instead, I'd like the of irq code to be reworked a bit to make this
-nicer and isolate the NO_IRQ definition only to the OF irq .c file
-(when the arch doesn't explicitly define it).
+Clean up pdt.c:
+ - make build dependent upon config OF_PROMTREE
+ - #ifdef out the sparc-specific stuff
+ - create pdt-specific header
 
-Right now, there are two files in drivers/of referencing NO_IRQ;
-drivers/of/platform.c and drivers/of/irq.c.  platform.c only
-references in the context of figuring out how many irqs there are and
-populating a resource table.  I'd like to remove that code from
-platform.c and add a pair of helper functions to irq.c.  Then the top
-of irq.c could conditionally #define NO_IRQ 0 and thereby prevent the
-definition leaking out to the rest of the kernel.
+Signed-off-by: Andres Salomon <dilinger@queued.net>
+---
+ arch/sparc/Kconfig              |    1 +
+ arch/sparc/include/asm/prom.h   |    5 ++-
+ arch/sparc/kernel/prom.h        |    6 ----
+ arch/sparc/kernel/prom_common.c |   10 ++++++-
+ drivers/of/Kconfig              |    5 +++-
+ drivers/of/Makefile             |    1 +
+ drivers/of/pdt.c                |   55 +++++++++++++++++++++++++++-----------
+ include/linux/of_pdt.h          |   24 +++++++++++++++++
+ 8 files changed, 81 insertions(+), 26 deletions(-)
+ create mode 100644 include/linux/of_pdt.h
 
-Eventually I'll get around to doing this myself, but it would be
-helpful to me if either you or Stephen could craft and test a patch.
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 491e9d6..a06c959 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -19,6 +19,7 @@ config SPARC
+ 	bool
+ 	default y
+ 	select OF
++	select OF_PROMTREE
+ 	select HAVE_IDE
+ 	select HAVE_OPROFILE
+ 	select HAVE_ARCH_KGDB if !SMP || SPARC64
+diff --git a/arch/sparc/include/asm/prom.h b/arch/sparc/include/asm/prom.h
+index 291f125..56bbaad 100644
+--- a/arch/sparc/include/asm/prom.h
++++ b/arch/sparc/include/asm/prom.h
+@@ -18,6 +18,7 @@
+  * 2 of the License, or (at your option) any later version.
+  */
+ #include <linux/types.h>
++#include <linux/of_pdt.h>
+ #include <linux/proc_fs.h>
+ #include <linux/mutex.h>
+ #include <asm/atomic.h>
+@@ -67,8 +68,8 @@ extern struct device_node *of_console_device;
+ extern char *of_console_path;
+ extern char *of_console_options;
+ 
+-extern void (*prom_build_more)(struct device_node *dp, struct device_node ***nextp);
+-extern char *build_full_name(struct device_node *dp);
++extern void irq_trans_init(struct device_node *dp);
++extern char *build_path_component(struct device_node *dp);
+ 
+ #endif /* __KERNEL__ */
+ #endif /* _SPARC_PROM_H */
+diff --git a/arch/sparc/kernel/prom.h b/arch/sparc/kernel/prom.h
+index eeb04a7..cf5fe1c 100644
+--- a/arch/sparc/kernel/prom.h
++++ b/arch/sparc/kernel/prom.h
+@@ -4,12 +4,6 @@
+ #include <linux/spinlock.h>
+ #include <asm/prom.h>
+ 
+-extern void * prom_early_alloc(unsigned long size);
+-extern void irq_trans_init(struct device_node *dp);
+-
+-extern unsigned int prom_unique_id;
+-
+-extern char *build_path_component(struct device_node *dp);
+ extern void of_console_init(void);
+ 
+ extern unsigned int prom_early_allocated;
+diff --git a/arch/sparc/kernel/prom_common.c b/arch/sparc/kernel/prom_common.c
+index 7b454f6..fe84d56 100644
+--- a/arch/sparc/kernel/prom_common.c
++++ b/arch/sparc/kernel/prom_common.c
+@@ -20,6 +20,7 @@
+ #include <linux/mutex.h>
+ #include <linux/slab.h>
+ #include <linux/of.h>
++#include <linux/of_pdt.h>
+ #include <asm/prom.h>
+ #include <asm/oplib.h>
+ #include <asm/leon.h>
+@@ -119,4 +120,11 @@ EXPORT_SYMBOL(of_find_in_proplist);
+ 
+ unsigned int prom_early_allocated __initdata;
+ 
+-#include "../../../drivers/of/pdt.c"
++void __init prom_build_devicetree(void)
++{
++	of_pdt_build_devicetree(prom_root_node);
++	of_console_init();
++
++	pr_info("PROM: Built device tree with %u bytes of memory.\n",
++			prom_early_allocated);
++}
+diff --git a/drivers/of/Kconfig b/drivers/of/Kconfig
+index 6acbff3..aa675eb 100644
+--- a/drivers/of/Kconfig
++++ b/drivers/of/Kconfig
+@@ -4,7 +4,7 @@ config DTC
+ config OF
+ 	bool
+ 
+-menu "Flattened Device Tree and Open Firmware support"
++menu "Device Tree and Open Firmware support"
+ 	depends on OF
+ 
+ config PROC_DEVICETREE
+@@ -19,6 +19,9 @@ config OF_FLATTREE
+ 	bool
+ 	select DTC
+ 
++config OF_PROMTREE
++	bool
++
+ config OF_DYNAMIC
+ 	def_bool y
+ 	depends on PPC_OF
+diff --git a/drivers/of/Makefile b/drivers/of/Makefile
+index 0052c40..7888155 100644
+--- a/drivers/of/Makefile
++++ b/drivers/of/Makefile
+@@ -1,5 +1,6 @@
+ obj-y = base.o
+ obj-$(CONFIG_OF_FLATTREE) += fdt.o
++obj-$(CONFIG_OF_PROMTREE) += pdt.o
+ obj-$(CONFIG_OF_ADDRESS)  += address.o
+ obj-$(CONFIG_OF_IRQ)    += irq.o
+ obj-$(CONFIG_OF_DEVICE) += device.o platform.o
+diff --git a/drivers/of/pdt.c b/drivers/of/pdt.c
+index c3c2d70..f0872b6 100644
+--- a/drivers/of/pdt.c
++++ b/drivers/of/pdt.c
+@@ -1,4 +1,4 @@
+-/* prom_common.c: OF device tree support common code.
++/* pdt.c: OF PROM device tree support code.
+  *
+  * Paul Mackerras	August 1996.
+  * Copyright (C) 1996-2005 Paul Mackerras.
+@@ -7,6 +7,7 @@
+  *    {engebret|bergner}@us.ibm.com
+  *
+  *  Adapted for sparc by David S. Miller davem@davemloft.net
++ *  Adapted for multiple architectures by Andres Salomon <dilinger@queued.net>
+  *
+  *      This program is free software; you can redistribute it and/or
+  *      modify it under the terms of the GNU General Public License
+@@ -20,13 +21,35 @@
+ #include <linux/mutex.h>
+ #include <linux/slab.h>
+ #include <linux/of.h>
++#include <linux/of_pdt.h>
+ #include <asm/prom.h>
+-#include <asm/oplib.h>
+-#include <asm/leon.h>
+ 
+-void (*prom_build_more)(struct device_node *dp, struct device_node ***nextp);
++void __initdata (*prom_build_more)(struct device_node *dp,
++		struct device_node ***nextp);
+ 
+-unsigned int prom_unique_id;
++#if defined(CONFIG_SPARC)
++unsigned int of_pdt_unique_id __initdata;
++
++#define of_pdt_incr_unique_id(p) do { \
++	(p)->unique_id = of_pdt_unique_id++; \
++} while (0)
++
++static inline const char *of_pdt_node_name(struct device_node *dp)
++{
++	return dp->path_component_name;
++}
++
++#else
++
++static inline void of_pdt_incr_unique_id(void *p) { }
++static inline void irq_trans_init(struct device_node *dp) { }
++
++static inline const char *of_pdt_node_name(struct device_node *dp)
++{
++	return dp->name;
++}
++
++#endif /* !CONFIG_SPARC */
+ 
+ static struct property * __init build_one_prop(phandle node, char *prev,
+ 					       char *special_name,
+@@ -43,7 +66,7 @@ static struct property * __init build_one_prop(phandle node, char *prev,
+ 		tmp = NULL;
+ 	} else {
+ 		p = prom_early_alloc(sizeof(struct property) + 32);
+-		p->unique_id = prom_unique_id++;
++		of_pdt_incr_unique_id(p);
+ 	}
+ 
+ 	p->name = (char *) (p + 1);
+@@ -124,7 +147,7 @@ static struct device_node * __init prom_create_node(phandle node,
+ 		return NULL;
+ 
+ 	dp = prom_early_alloc(sizeof(*dp));
+-	dp->unique_id = prom_unique_id++;
++	of_pdt_incr_unique_id(dp);
+ 	dp->parent = parent;
+ 
+ 	kref_init(&dp->kref);
+@@ -140,13 +163,13 @@ static struct device_node * __init prom_create_node(phandle node,
+ 	return dp;
+ }
+ 
+-char * __init build_full_name(struct device_node *dp)
++static char * __init build_full_name(struct device_node *dp)
+ {
+ 	int len, ourlen, plen;
+ 	char *n;
+ 
+ 	plen = strlen(dp->parent->full_name);
+-	ourlen = strlen(dp->path_component_name);
++	ourlen = strlen(of_pdt_node_name(dp));
+ 	len = ourlen + plen + 2;
+ 
+ 	n = prom_early_alloc(len);
+@@ -155,7 +178,7 @@ char * __init build_full_name(struct device_node *dp)
+ 		strcpy(n + plen, "/");
+ 		plen++;
+ 	}
+-	strcpy(n + plen, dp->path_component_name);
++	strcpy(n + plen, of_pdt_node_name(dp));
+ 
+ 	return n;
+ }
+@@ -182,7 +205,9 @@ static struct device_node * __init prom_build_tree(struct device_node *parent,
+ 		*(*nextp) = dp;
+ 		*nextp = &dp->allnext;
+ 
++#if defined(CONFIG_SPARC)
+ 		dp->path_component_name = build_path_component(dp);
++#endif
+ 		dp->full_name = build_full_name(dp);
+ 
+ 		dp->child = prom_build_tree(dp, prom_getchild(node), nextp);
+@@ -196,20 +221,18 @@ static struct device_node * __init prom_build_tree(struct device_node *parent,
+ 	return ret;
+ }
+ 
+-void __init prom_build_devicetree(void)
++void __init of_pdt_build_devicetree(phandle root_node)
+ {
+ 	struct device_node **nextp;
+ 
+-	allnodes = prom_create_node(prom_root_node, NULL);
++	allnodes = prom_create_node(root_node, NULL);
++#if defined(CONFIG_SPARC)
+ 	allnodes->path_component_name = "";
++#endif
+ 	allnodes->full_name = "/";
+ 
+ 	nextp = &allnodes->allnext;
+ 	allnodes->child = prom_build_tree(allnodes,
+ 					  prom_getchild(allnodes->phandle),
+ 					  &nextp);
+-	of_console_init();
+-
+-	printk("PROM: Built device tree with %u bytes of memory.\n",
+-	       prom_early_allocated);
+ }
+diff --git a/include/linux/of_pdt.h b/include/linux/of_pdt.h
+new file mode 100644
+index 0000000..c0a8774
+--- /dev/null
++++ b/include/linux/of_pdt.h
+@@ -0,0 +1,24 @@
++/*
++ * Definitions for building a device tree by calling into the
++ * Open Firmware PROM.
++ *
++ * Copyright (C) 2010  Andres Salomon <dilinger@queued.net>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version
++ * 2 of the License, or (at your option) any later version.
++ */
++
++#ifndef _LINUX_OF_PDT_H
++#define _LINUX_OF_PDT_H
++
++extern void *prom_early_alloc(unsigned long size);
++
++/* for building the device tree */
++extern void of_pdt_build_devicetree(phandle root_node);
++
++extern void (*prom_build_more)(struct device_node *dp,
++		struct device_node ***nextp);
++
++#endif /* _LINUX_OF_PDT_H */
+-- 
+1.5.6.5
 
-Perhaps something like:
-
-int of_irq_count(device_node *np)
-{
-        /* Count and return the number of IRQs. */
-}
-
-int of_irq_to_resource_table(device_node *np, struct resource *res, int max)
-{
-        for (i =3D 0; i < max; i++; res++)
-                if (of_irq_to_resource(np, i, res) =3D NO_IRQ)
-                        break;
-        return i;
-}
-
->> ---
->> @@ -275,6 +276,13 @@ void smp_x86_platform_ipi(struct pt_regs *regs)
->>
->> =A0EXPORT_SYMBOL_GPL(vector_used_by_percpu_irq);
->>
->> +unsigned int irq_create_of_mapping(struct device_node *controller,
->> + =A0 =A0 =A0 =A0 =A0 =A0 const u32 *intspec, unsigned int intsize)
->> +{
->> + =A0 =A0 return intspec[0] + 1;
->> +}
->> +EXPORT_SYMBOL_GPL(irq_create_of_mapping);
->> +
-
-This simplistic implementation is of course non-ideal, but it works as
-a stop-gap measure until I've got the irq infrastructure more mature.
-
-g.
