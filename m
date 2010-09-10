@@ -1,49 +1,34 @@
-From: Dennis Gilmore <dennis@ausil.us>
-Date: Fri, 10 Sep 2010 03:56:29 +0000
+From: David Miller <davem@davemloft.net>
+Date: Fri, 10 Sep 2010 04:08:24 +0000
 Subject: Re: bugs compiling 2.6.35.4
-Message-Id: <201009092256.31949.dennis@ausil.us>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="nextPart1797320.FHsGRslaRA"
+Message-Id: <20100909.210824.15251132.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <201009092029.52510.dennis@ausil.us>
 In-Reply-To: <201009092029.52510.dennis@ausil.us>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
---nextPart1797320.FHsGRslaRA
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+From: Dennis Gilmore <dennis@ausil.us>
+Date: Thu, 9 Sep 2010 22:56:29 -0500
 
-On Thursday, September 09, 2010 10:36:51 pm David Miller wrote:
-> Turn off CONFIG_DEBUG_STRICT_USER_COPY_CHECKS in your config, it
-> is a debugging facility for kernel developers not something you
-> should enable yourself.
->=20
-> In fact because so many people turned this on and report the build
-> failures, I've simply just removed it from the tree as I got tired
-> of explaining this every single time :-/
-> --
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> for now ive turned it off however the first issue still exists.
 
-the fedora kernel devs have it enabled.  and we picked it up though the=20
-generic configs for every arch.  for now ive turned it off however the firs=
-t=20
-issue still exists.
+Ok, I need to add a CRYPTO_DES dependency on the N2 crypto
+driver.
 
-Dennis
+I'll send the following patch to the crypto maintainer, thanks.
 
---nextPart1797320.FHsGRslaRA
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.16 (GNU/Linux)
-
-iEYEABECAAYFAkyJrG8ACgkQkSxm47BaWfebdwCdFRYMgHRMcgvvjLkxU8PHOobV
-HHMAn00tBQrBmoaXHmZSew0ES8KxsSlN
-=AjCY
------END PGP SIGNATURE-----
-
---nextPart1797320.FHsGRslaRA--
+diff --git a/drivers/crypto/Kconfig b/drivers/crypto/Kconfig
+index ea0b386..ad1cd59 100644
+--- a/drivers/crypto/Kconfig
++++ b/drivers/crypto/Kconfig
+@@ -172,6 +172,7 @@ config CRYPTO_DEV_MV_CESA
+ 
+ config CRYPTO_DEV_NIAGARA2
+        tristate "Niagara2 Stream Processing Unit driver"
++       select CRYPTO_DES
+        select CRYPTO_ALGAPI
+        depends on SPARC64
+        help
