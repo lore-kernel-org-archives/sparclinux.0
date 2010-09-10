@@ -1,7 +1,7 @@
-From: Mikulas Patocka <mpatocka@redhat.com>
-Date: Fri, 10 Sep 2010 19:33:08 +0000
+From: David Miller <davem@davemloft.net>
+Date: Fri, 10 Sep 2010 19:45:31 +0000
 Subject: Re: Userspace process crashes with PREEMPT
-Message-Id: <Pine.LNX.4.64.1009101527570.29949@hs20-bc2-1.build.redhat.com>
+Message-Id: <20100910.124531.186319864.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.LNX.4.64.0805311050430.24707@artax.karlin.mff.cuni.cz>
 In-Reply-To: <Pine.LNX.4.64.0805311050430.24707@artax.karlin.mff.cuni.cz>
@@ -10,42 +10,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+From: Mikulas Patocka <mpatocka@redhat.com>
+Date: Fri, 10 Sep 2010 15:33:08 -0400 (EDT)
 
+> I assume that there was some commit ID in your tree when you started to do 
+> sparc+sparc64 unification and there was some commit ID when you finished 
+> it. So give me these two and I hope git will go linearly between them.
 
-On Fri, 10 Sep 2010, David Miller wrote:
+Maybe not this specific portion, but some parts of the unification
+work was not done linearly, it was partly done in a GIT tree
+maintained by Sam Ravnborg and partly done in mine.
 
-> From: Mikulas Patocka <mpatocka@redhat.com>
-> Date: Fri, 10 Sep 2010 14:46:39 -0400 (EDT)
-> 
-> > If you can't interpret it --- there happened sparc+sparc64 -> sparc merge 
-> > between this and it looks like a probable cause. Could you give me your 
-> > git tree with linear commits that I could try?
-> 
-> I rebase my tree every time the merge window completes, so
-> I can't give that to you, sorry.
-> 
-> But you don't need my tree from back then, you can git bisect between
-> the commits on my line of development branch when Linus pulled my tree
-> in.
-> 
-> And even my original tree was linear, I would pull Linus's tree in now
-> and again to deal with merge conflicts and similar.
+Non-linear development is just how things are much of the time.
 
-I assume that there was some commit ID in your tree when you started to do 
-sparc+sparc64 unification and there was some commit ID when you finished 
-it. So give me these two and I hope git will go linearly between them.
+And regardless, you could figure out the commits you're looking for by
+looking in GITK at the merge commit when Linus brought the my tree in
+during the merge window, walk up the line that represents my branch going
+back in time to the point where the line connects back up to the mainline.
 
-> Anyways, all the information is there, you just need to give GIT the
-> properl commit ranges.
-> 
-> BTW, if you're so disappointed about how it walks the graph during git
-> bisect, feel free to suggest alternatives to the GIT developers.  I
-> think they considered long and hard about this, and therefore the
-> current behavior isn't arbitrary :-)
+Start with something like "gitk v2.6.28..v2.6.29-rc1 -- arch/sparc arch/spar64"
+it's pretty clear what the sequence of commits are in that branch when you
+look at that window.
 
-If you understand git better than me, please explain to me how to 
-interpret bisect result --- i.e. I sent a list of commit IDs that are 
-result of bisecting, so tell me which fixed the bug and how did you find 
-it.
+The boundaries (inclusive) you come up with will be something like:
 
-Mikulas
+4696b64d234b84b5b70ffd49a76833aa5c49cb61
+86821d18f9d8fd42fa3180ad3703d491aecc52d9
+
+Btw, "git bisect visualize" uses gitk to show you where the good and
+bad points are in the graph during bisection.
