@@ -1,456 +1,64 @@
-From: Andres Salomon <dilinger@queued.net>
-Date: Mon, 30 Aug 2010 03:57:28 +0000
-Subject: [PATCH 3/9] sparc: break out some PROM device-tree building code
-Message-Id: <20100829235728.54acb704@debxo>
+From: Dennis Gilmore <dennis@ausil.us>
+Date: Fri, 10 Sep 2010 01:29:48 +0000
+Subject: bugs compiling 2.6.35.4
+Message-Id: <201009092029.52510.dennis@ausil.us>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="nextPart3206096.bclhWbxIis"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100628215407.2017bf2f@debian>
-	<20100829235100.6dcedcb8@debxo>
-In-Reply-To: <20100829235100.6dcedcb8@debxo>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: devicetree-discuss@lists.ozlabs.org
-Cc: sparclinux@vger.kernel.org, x86@kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, cjb@laptop.org, Mitch Bradley <wmb@laptop.org>, pgf@laptop.org, linux-kernel@vger.kernel.org, davem@davemloft.net, grant.likely@secretlab.ca, Stephen Neuendorffer <stephen.neuendorffer@xilinx.com>
+To: sparclinux@vger.kernel.org
+
+--nextPart3206096.bclhWbxIis
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+Trying to compile the current Fedora 14 kernel=20
+im getting=20
+drivers/built-in.o: In function `n2_des_setkey':
+/builddir/build/BUILD/kernel-2.6.35.fc14/linux-2.6.35.sparc64/drivers/crypt=
+o/n2_core.c:701:=20
+undefined reference to `des_ekey'
+`.exit.text' referenced in section `.devexit.text' of drivers/built-in.o:=20
+defined in discarded section `.exit.text' of drivers/built-in.o
+
+we have CONFIG_CRYPTO_DEV_NIAGARA2=3Dy and CONFIG_CRYPTO_DES=3Dm=20
 
 
-Transitioning into making this useful for architectures other than sparc.
-This is a verbatim copy of all functions/variables that've been moved.
+With CONFIG_DEBUG_STRICT_USER_COPY_CHECKS=3Dy  i get the following while=20
+unsetting it allows compilation to move on
 
-Signed-off-by: Andres Salomon <dilinger@queued.net>
----
- arch/sparc/kernel/prom_common.c |  190 +----------------------------------
- drivers/of/pdt.c                |  215 +++++++++++++++++++++++++++++++++++++++
- 2 files changed, 216 insertions(+), 189 deletions(-)
- create mode 100644 drivers/of/pdt.c
+In file included from=20
+/builddir/build/BUILD/kernel-2.6.35.fc14/linux-2.6.35.sparc64/arch/sparc/in=
+clude/asm/uaccess.h:4,
+                 from=20
+/builddir/build/BUILD/kernel-2.6.35.fc14/linux-2.6.35.sparc64/arch/sparc/in=
+clude/asm/elf_64.h:10,
+                 from=20
+/builddir/build/BUILD/kernel-2.6.35.fc14/linux-2.6.35.sparc64/arch/sparc/in=
+clude/asm/elf.h:4,
+                 from include/linux/elf.h:7,
+                 from include/linux/module.h:14,
+                 from fs/debugfs/file.c:16:
+In function 'copy_from_user',
+    inlined from 'write_file_bool' at fs/debugfs/file.c:434:
+/builddir/build/BUILD/kernel-2.6.35.fc14/linux-2.6.35.sparc64/arch/sparc/in=
+clude/asm/uaccess_64.h:232:=20
+error: call to 'copy_from_user_overflow' declared with attribute error:=20
+copy_from_user() buffer size is not provably correct
+make[2]: *** [fs/debugfs/file.o] Error 1
 
-diff --git a/arch/sparc/kernel/prom_common.c b/arch/sparc/kernel/prom_common.c
-index 1f830da..7b454f6 100644
---- a/arch/sparc/kernel/prom_common.c
-+++ b/arch/sparc/kernel/prom_common.c
-@@ -26,8 +26,6 @@
- 
- #include "prom.h"
- 
--void (*prom_build_more)(struct device_node *dp, struct device_node ***nextp);
--
- struct device_node *of_console_device;
- EXPORT_SYMBOL(of_console_device);
- 
-@@ -119,192 +117,6 @@ int of_find_in_proplist(const char *list, const char *match, int len)
- }
- EXPORT_SYMBOL(of_find_in_proplist);
- 
--unsigned int prom_unique_id;
--
--static struct property * __init build_one_prop(phandle node, char *prev,
--					       char *special_name,
--					       void *special_val,
--					       int special_len)
--{
--	static struct property *tmp = NULL;
--	struct property *p;
--	const char *name;
--
--	if (tmp) {
--		p = tmp;
--		memset(p, 0, sizeof(*p) + 32);
--		tmp = NULL;
--	} else {
--		p = prom_early_alloc(sizeof(struct property) + 32);
--		p->unique_id = prom_unique_id++;
--	}
--
--	p->name = (char *) (p + 1);
--	if (special_name) {
--		strcpy(p->name, special_name);
--		p->length = special_len;
--		p->value = prom_early_alloc(special_len);
--		memcpy(p->value, special_val, special_len);
--	} else {
--		if (prev = NULL) {
--			name = prom_firstprop(node, p->name);
--		} else {
--			name = prom_nextprop(node, prev, p->name);
--		}
--
--		if (!name || strlen(name) = 0) {
--			tmp = p;
--			return NULL;
--		}
--#ifdef CONFIG_SPARC32
--		strcpy(p->name, name);
--#endif
--		p->length = prom_getproplen(node, p->name);
--		if (p->length <= 0) {
--			p->length = 0;
--		} else {
--			int len;
--
--			p->value = prom_early_alloc(p->length + 1);
--			len = prom_getproperty(node, p->name, p->value,
--					       p->length);
--			if (len <= 0)
--				p->length = 0;
--			((unsigned char *)p->value)[p->length] = '\0';
--		}
--	}
--	return p;
--}
--
--static struct property * __init build_prop_list(phandle node)
--{
--	struct property *head, *tail;
--
--	head = tail = build_one_prop(node, NULL,
--				     ".node", &node, sizeof(node));
--
--	tail->next = build_one_prop(node, NULL, NULL, NULL, 0);
--	tail = tail->next;
--	while(tail) {
--		tail->next = build_one_prop(node, tail->name,
--					    NULL, NULL, 0);
--		tail = tail->next;
--	}
--
--	return head;
--}
--
--static char * __init get_one_property(phandle node, const char *name)
--{
--	char *buf = "<NULL>";
--	int len;
--
--	len = prom_getproplen(node, name);
--	if (len > 0) {
--		buf = prom_early_alloc(len);
--		len = prom_getproperty(node, name, buf, len);
--	}
--
--	return buf;
--}
--
--static struct device_node * __init prom_create_node(phandle node,
--						    struct device_node *parent)
--{
--	struct device_node *dp;
--
--	if (!node)
--		return NULL;
--
--	dp = prom_early_alloc(sizeof(*dp));
--	dp->unique_id = prom_unique_id++;
--	dp->parent = parent;
--
--	kref_init(&dp->kref);
--
--	dp->name = get_one_property(node, "name");
--	dp->type = get_one_property(node, "device_type");
--	dp->phandle = node;
--
--	dp->properties = build_prop_list(node);
--
--	irq_trans_init(dp);
--
--	return dp;
--}
--
--char * __init build_full_name(struct device_node *dp)
--{
--	int len, ourlen, plen;
--	char *n;
--
--	plen = strlen(dp->parent->full_name);
--	ourlen = strlen(dp->path_component_name);
--	len = ourlen + plen + 2;
--
--	n = prom_early_alloc(len);
--	strcpy(n, dp->parent->full_name);
--	if (!of_node_is_root(dp->parent)) {
--		strcpy(n + plen, "/");
--		plen++;
--	}
--	strcpy(n + plen, dp->path_component_name);
--
--	return n;
--}
--
--static struct device_node * __init prom_build_tree(struct device_node *parent,
--						   phandle node,
--						   struct device_node ***nextp)
--{
--	struct device_node *ret = NULL, *prev_sibling = NULL;
--	struct device_node *dp;
--
--	while (1) {
--		dp = prom_create_node(node, parent);
--		if (!dp)
--			break;
--
--		if (prev_sibling)
--			prev_sibling->sibling = dp;
--
--		if (!ret)
--			ret = dp;
--		prev_sibling = dp;
--
--		*(*nextp) = dp;
--		*nextp = &dp->allnext;
--
--		dp->path_component_name = build_path_component(dp);
--		dp->full_name = build_full_name(dp);
--
--		dp->child = prom_build_tree(dp, prom_getchild(node), nextp);
--
--		if (prom_build_more)
--			prom_build_more(dp, nextp);
--
--		node = prom_getsibling(node);
--	}
--
--	return ret;
--}
--
- unsigned int prom_early_allocated __initdata;
- 
--void __init prom_build_devicetree(void)
--{
--	struct device_node **nextp;
--
--	allnodes = prom_create_node(prom_root_node, NULL);
--	allnodes->path_component_name = "";
--	allnodes->full_name = "/";
--
--	nextp = &allnodes->allnext;
--	allnodes->child = prom_build_tree(allnodes,
--					  prom_getchild(allnodes->phandle),
--					  &nextp);
--	of_console_init();
--
--	printk("PROM: Built device tree with %u bytes of memory.\n",
--	       prom_early_allocated);
--}
-+#include "../../../drivers/of/pdt.c"
-diff --git a/drivers/of/pdt.c b/drivers/of/pdt.c
-new file mode 100644
-index 0000000..c3c2d70
---- /dev/null
-+++ b/drivers/of/pdt.c
-@@ -0,0 +1,215 @@
-+/* prom_common.c: OF device tree support common code.
-+ *
-+ * Paul Mackerras	August 1996.
-+ * Copyright (C) 1996-2005 Paul Mackerras.
-+ *
-+ *  Adapted for 64bit PowerPC by Dave Engebretsen and Peter Bergner.
-+ *    {engebret|bergner}@us.ibm.com
-+ *
-+ *  Adapted for sparc by David S. Miller davem@davemloft.net
-+ *
-+ *      This program is free software; you can redistribute it and/or
-+ *      modify it under the terms of the GNU General Public License
-+ *      as published by the Free Software Foundation; either version
-+ *      2 of the License, or (at your option) any later version.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/errno.h>
-+#include <linux/mutex.h>
-+#include <linux/slab.h>
-+#include <linux/of.h>
-+#include <asm/prom.h>
-+#include <asm/oplib.h>
-+#include <asm/leon.h>
-+
-+void (*prom_build_more)(struct device_node *dp, struct device_node ***nextp);
-+
-+unsigned int prom_unique_id;
-+
-+static struct property * __init build_one_prop(phandle node, char *prev,
-+					       char *special_name,
-+					       void *special_val,
-+					       int special_len)
-+{
-+	static struct property *tmp = NULL;
-+	struct property *p;
-+	const char *name;
-+
-+	if (tmp) {
-+		p = tmp;
-+		memset(p, 0, sizeof(*p) + 32);
-+		tmp = NULL;
-+	} else {
-+		p = prom_early_alloc(sizeof(struct property) + 32);
-+		p->unique_id = prom_unique_id++;
-+	}
-+
-+	p->name = (char *) (p + 1);
-+	if (special_name) {
-+		strcpy(p->name, special_name);
-+		p->length = special_len;
-+		p->value = prom_early_alloc(special_len);
-+		memcpy(p->value, special_val, special_len);
-+	} else {
-+		if (prev = NULL) {
-+			name = prom_firstprop(node, p->name);
-+		} else {
-+			name = prom_nextprop(node, prev, p->name);
-+		}
-+
-+		if (!name || strlen(name) = 0) {
-+			tmp = p;
-+			return NULL;
-+		}
-+#ifdef CONFIG_SPARC32
-+		strcpy(p->name, name);
-+#endif
-+		p->length = prom_getproplen(node, p->name);
-+		if (p->length <= 0) {
-+			p->length = 0;
-+		} else {
-+			int len;
-+
-+			p->value = prom_early_alloc(p->length + 1);
-+			len = prom_getproperty(node, p->name, p->value,
-+					       p->length);
-+			if (len <= 0)
-+				p->length = 0;
-+			((unsigned char *)p->value)[p->length] = '\0';
-+		}
-+	}
-+	return p;
-+}
-+
-+static struct property * __init build_prop_list(phandle node)
-+{
-+	struct property *head, *tail;
-+
-+	head = tail = build_one_prop(node, NULL,
-+				     ".node", &node, sizeof(node));
-+
-+	tail->next = build_one_prop(node, NULL, NULL, NULL, 0);
-+	tail = tail->next;
-+	while(tail) {
-+		tail->next = build_one_prop(node, tail->name,
-+					    NULL, NULL, 0);
-+		tail = tail->next;
-+	}
-+
-+	return head;
-+}
-+
-+static char * __init get_one_property(phandle node, const char *name)
-+{
-+	char *buf = "<NULL>";
-+	int len;
-+
-+	len = prom_getproplen(node, name);
-+	if (len > 0) {
-+		buf = prom_early_alloc(len);
-+		len = prom_getproperty(node, name, buf, len);
-+	}
-+
-+	return buf;
-+}
-+
-+static struct device_node * __init prom_create_node(phandle node,
-+						    struct device_node *parent)
-+{
-+	struct device_node *dp;
-+
-+	if (!node)
-+		return NULL;
-+
-+	dp = prom_early_alloc(sizeof(*dp));
-+	dp->unique_id = prom_unique_id++;
-+	dp->parent = parent;
-+
-+	kref_init(&dp->kref);
-+
-+	dp->name = get_one_property(node, "name");
-+	dp->type = get_one_property(node, "device_type");
-+	dp->phandle = node;
-+
-+	dp->properties = build_prop_list(node);
-+
-+	irq_trans_init(dp);
-+
-+	return dp;
-+}
-+
-+char * __init build_full_name(struct device_node *dp)
-+{
-+	int len, ourlen, plen;
-+	char *n;
-+
-+	plen = strlen(dp->parent->full_name);
-+	ourlen = strlen(dp->path_component_name);
-+	len = ourlen + plen + 2;
-+
-+	n = prom_early_alloc(len);
-+	strcpy(n, dp->parent->full_name);
-+	if (!of_node_is_root(dp->parent)) {
-+		strcpy(n + plen, "/");
-+		plen++;
-+	}
-+	strcpy(n + plen, dp->path_component_name);
-+
-+	return n;
-+}
-+
-+static struct device_node * __init prom_build_tree(struct device_node *parent,
-+						   phandle node,
-+						   struct device_node ***nextp)
-+{
-+	struct device_node *ret = NULL, *prev_sibling = NULL;
-+	struct device_node *dp;
-+
-+	while (1) {
-+		dp = prom_create_node(node, parent);
-+		if (!dp)
-+			break;
-+
-+		if (prev_sibling)
-+			prev_sibling->sibling = dp;
-+
-+		if (!ret)
-+			ret = dp;
-+		prev_sibling = dp;
-+
-+		*(*nextp) = dp;
-+		*nextp = &dp->allnext;
-+
-+		dp->path_component_name = build_path_component(dp);
-+		dp->full_name = build_full_name(dp);
-+
-+		dp->child = prom_build_tree(dp, prom_getchild(node), nextp);
-+
-+		if (prom_build_more)
-+			prom_build_more(dp, nextp);
-+
-+		node = prom_getsibling(node);
-+	}
-+
-+	return ret;
-+}
-+
-+void __init prom_build_devicetree(void)
-+{
-+	struct device_node **nextp;
-+
-+	allnodes = prom_create_node(prom_root_node, NULL);
-+	allnodes->path_component_name = "";
-+	allnodes->full_name = "/";
-+
-+	nextp = &allnodes->allnext;
-+	allnodes->child = prom_build_tree(allnodes,
-+					  prom_getchild(allnodes->phandle),
-+					  &nextp);
-+	of_console_init();
-+
-+	printk("PROM: Built device tree with %u bytes of memory.\n",
-+	       prom_early_allocated);
-+}
--- 
-1.5.6.5
+Dennis
 
+--nextPart3206096.bclhWbxIis
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.16 (GNU/Linux)
+
+iEYEABECAAYFAkyJihAACgkQkSxm47BaWffo3QCeJaqthQo7al3SXYOY7BnpnvoG
+xC8AnRKp15FVv/7qdkiF9VCaLPHVXv18
+=aBCy
+-----END PGP SIGNATURE-----
+
+--nextPart3206096.bclhWbxIis--
