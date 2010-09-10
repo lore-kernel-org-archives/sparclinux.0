@@ -1,73 +1,65 @@
-From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Wed, 15 Sep 2010 07:20:00 +0000
-Subject: Re: SPARC32 SMP 2.6.36-rc3 build error
-Message-Id: <4C9073A0.5090409@gaisler.com>
+From: Mikulas Patocka <mpatocka@redhat.com>
+Date: Fri, 10 Sep 2010 18:31:27 +0000
+Subject: Re: Userspace process crashes with PREEMPT
+Message-Id: <Pine.LNX.4.64.1009101425350.7839@hs20-bc2-1.build.redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4C8F78F3.7020408@gaisler.com> <20100914.214235.183040334.davem@davemloft.net>
-In-Reply-To: <20100914.214235.183040334.davem@davemloft.net>
+References: <Pine.LNX.4.64.0805311050430.24707@artax.karlin.mff.cuni.cz>
+In-Reply-To: <Pine.LNX.4.64.0805311050430.24707@artax.karlin.mff.cuni.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org, netdev@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
 
-David Miller wrote:
 
->From: Daniel Hellstrom <daniel@gaisler.com>
->Date: Tue, 14 Sep 2010 15:30:27 +0200
->
->  
->
->>I have problems linking Linux SPARC32 when SMP is enabled:
->>
->> LD      vmlinux
->> SYSMAP  System.map
->> SYSMAP  .tmp_System.map
->> BTFIX   arch/sparc/boot/btfix.S
->> AS      arch/sparc/boot/btfix.o
->> LD      arch/sparc/boot/image
->>net/built-in.o: In function `net_rps_action_and_irq_enable':
->>/home/daniel/linux/linux/linux-2.6/net/core/dev.c:3337: undefined
->>reference to `__smp_call_function_single'
->>make[1]: *** [arch/sparc/boot/image] Error 1
->>make: *** [zImage] Error 2
->>    
->>
->
->It's a missing dependency in the networking code, I'll fix this
->in the net-2.6 tree as follows:
->
->--------------------
->net: RPS needs to depend upon USE_GENERIC_SMP_HELPERS
->
->You cannot invoke __smp_call_function_single() unless the
->architecture sets this symbol.
->
->Reported-by: Daniel Hellstrom <daniel@gaisler.com>
->Signed-off-by: David S. Miller <davem@davemloft.net>
->---
-> net/Kconfig |    2 +-
-> 1 files changed, 1 insertions(+), 1 deletions(-)
->
->diff --git a/net/Kconfig b/net/Kconfig
->index e330594..e926884 100644
->--- a/net/Kconfig
->+++ b/net/Kconfig
->@@ -217,7 +217,7 @@ source "net/dns_resolver/Kconfig"
+On Thu, 19 Aug 2010, David Miller wrote:
+
+> From: Mikulas Patocka <mpatocka@redhat.com>
+> Date: Thu, 19 Aug 2010 09:15:16 -0400 (EDT)
 > 
-> config RPS
-> 	boolean
->-	depends on SMP && SYSFS
->+	depends on SMP && SYSFS && USE_GENERIC_SMP_HELPERS
-> 	default y
+> > BTW. two years ago, I reported a bug that userspace programs on sparc64 
+> > would randomly crash in a few hours with preempt enabled 
+> > ( http://marc.info/?l=linux-sparc&m1222607414906&w=4 )
+> > 
+> > Now I tried the same workload with 2.6.35 and it is stable with preempt.
+> > 
+> > Are you aware that the bug was fixed? Or if not, it may be still lurking 
+> > there and some unrelated change hid the race condition. Should I bisect 
+> > the kernel to find out which patch actually fixed (or hid) the bug?
 > 
-> menu "Network testing"
->  
->
+> I can't think of anything we did explicitly to fix that.
+> 
+> I'm sure you can find more useful things to do than to try and
+> bisect that thing down, really :-)
 
-That resolved the problem nicely.
+From my experience with development --- no race should be silently 
+ignored. Because if you ignore a race, there is a possibility that the 
+race is still lurking there, only hitting under different conditions.
 
-Thank you very much,
-Daniel
+I did the bisect anyway, the race was fixed between 2.6.28 and 2.6.29-rc1.
+Here "bad" really means "doesn't have a bug" and "good" means "does have 
+the bug", because bisect tool was written to search for bugs that were 
+created, not fixed. "X" means "doesn't work, I guessed".
 
+bad:    47676   590cf28580c999c8ba70dc39b40bab09d69e2630
+bad:    61357   0191b625ca5a46206d2fb862bb08f36f2fcb3b31
+bad:    61391   54a696bd07c14d3b1192d03ce7269bc59b45209a
+bad:    61578   bb26c6c29b7cc9f39e491b074b09f3c284738d36
+good:   65849   a65056205cdf7efb96fb2558e4f1ec6bae2582ed
+good:   61638   cb10ea549fdc0ab2dd8988adab5bf40b4fa642f3
+good:   113707  745ca2475a6ac596e3d8d37c2759c0fbe2586227 - X
+good:   66223   d8a5e2e9f4e70ade136c67ce8242f0db4c2cddc7
+bad:    86684   94d6a5f7341ebaff53d4e41cc81fab37f0d9fbed
+good:   112956  e50a906e0200084f04f8f3b7c3a14b0442d1347f
+bad:    102852  6ded6ab9be4f6164aef1c527407c1b94f0929799
+bad:    109140  7596b27dbd8de7bcfa7a80b2756114b49bd5c018
+bad:    111150  f3a5c547012a09f38f7c27b17a8e3150b69cd259
+
+I very much don't understand the bisect tool, I thought that it will do a 
+binary search between the entries in the ChangeLog file, but it skips very 
+randomly (the second columnt is the line in the ChangeLog file).
+
+How does it really work? Do you know how to interpret it and which patch 
+really fixed the bug?
+
+Mikulas
