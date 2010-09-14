@@ -1,43 +1,58 @@
-From: BERTRAND Joel <joel.bertrand@systella.fr>
-Date: Sun, 05 Sep 2010 11:39:41 +0000
-Subject: Re: [2.6.34.5] Parport panics
-Message-Id: <4C83817D.7090308@systella.fr>
+From: Daniel Hellstrom <daniel@gaisler.com>
+Date: Tue, 14 Sep 2010 13:30:27 +0000
+Subject: SPARC32 SMP 2.6.36-rc3 build error
+Message-Id: <4C8F78F3.7020408@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4C82626D.2050108@systella.fr>
-In-Reply-To: <4C82626D.2050108@systella.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-David Miller a =E9crit :
-> From: Josip Rodin<joy@entuzijast.net>
-> Date: Sun, 5 Sep 2010 00:00:43 +0200
->
->> On Sat, Sep 04, 2010 at 05:14:53PM +0200, BERTRAND Joel wrote:
->>> 	Hello,
->>>
->>> 	One of my UltraSparc Blade 2000 has crashed during an apt-get
->>> dist-upgrade. Panic is reproductible. Kernel is 2.6.34.5 from
->>> kernel.org. I never see any panic with 2.6.34.1.
->>>
->>> 	I have check difference between 2.6.34.1 and 2.6.34.5 without success.
->>
->> What do you mean "check difference"? Did you try git bisect?
->
-> If you guys have PARPORT_PC_SUPERIO enabled in your kernel configs you'll
-> need to turn that off on sparc64.
->
-> He's getting this now because we've recently added the necessary device
-> ID for the parport chip to get detected properly on his SunBlade-2000.
->
-> But if you have PARPORT_PC_SUPERIO enabled it tries to do things which
-> only work on x86-like machines (direct I/O port accesses in ISA space
-> poking around for chip presence, etc.).  I should probably add
-> something to the Kconfig dependencies to prevent this.
+Hi,
 
-	Kernel has this option. I will try without PARPORT_PC_SUPERIO.
+I have problems linking Linux SPARC32 when SMP is enabled:
 
-	Thanks a lot,
+  LD      vmlinux
+  SYSMAP  System.map
+  SYSMAP  .tmp_System.map
+  BTFIX   arch/sparc/boot/btfix.S
+  AS      arch/sparc/boot/btfix.o
+  LD      arch/sparc/boot/image
+net/built-in.o: In function `net_rps_action_and_irq_enable':
+/home/daniel/linux/linux/linux-2.6/net/core/dev.c:3337: undefined 
+reference to `__smp_call_function_single'
+make[1]: *** [arch/sparc/boot/image] Error 1
+make: *** [zImage] Error 2
 
-	JKB
+
+It seems that __smp_call_function_single() is missing in smp_32.h for 
+SPARC32, for SPARC64 the function is declared in linux/smp.h and 
+kernel/smp.c by defining USE_GENERIC_SMP_HELPERS in arch/sparc/Kconfig.
+
+__smp_call_function_single() was introduced in 
+e77c8e83dd587f2616d7ff20d23a897891e6e20d:
+
++#ifdef CONFIG_SMP
++/*
++ * net_rps_action sends any pending IPI's for rps.  This is only called from
++ * softirq and interrupts must be enabled.
++ */
++static void net_rps_action(cpumask_t *mask)
++{
++       int cpu;
++
++       /* Send pending IPI's to kick RPS processing on remote cpus. */
++       for_each_cpu_mask_nr(cpu, *mask) {
++               struct softnet_data *queue = &per_cpu(softnet_data, cpu);
++               if (cpu_online(cpu))
++                       __smp_call_function_single(cpu, &queue->csd, 0);
++       }
++       cpus_clear(*mask);
++}
++#endif
+
+
+Any ideas what I might have done wrong?
+
+Thanks,
+Daniel Hellstrom
