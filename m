@@ -1,64 +1,170 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 05 Sep 2010 06:22:07 +0000
-Subject: Re: [PATCH 1/9] of: move phandle/ihandle into types.h
-Message-Id: <20100905062207.GA31275@merkur.ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 22 Sep 2010 06:36:20 +0000
+Subject: [PATCH 1/3] sparc64: Fix race in signal instruction flushing.
+Message-Id: <20100921.233620.35039006.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100628215407.2017bf2f@debian> <20100829235100.6dcedcb8@debxo> <20100829235352.1744e7e3@debxo> <20100830050627.GA12153@merkur.ravnborg.org> <20100903041715.573471e4@debxo>
-In-Reply-To: <20100903041715.573471e4@debxo>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andres Salomon <dilinger@queued.net>
-Cc: devicetree-discuss@lists.ozlabs.org, sparclinux@vger.kernel.org, x86@kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, cjb@laptop.org, Mitch Bradley <wmb@laptop.org>, pgf@laptop.org, linux-kernel@vger.kernel.org, davem@davemloft.net, grant.likely@secretlab.ca, Stephen Neuendorffer <stephen.neuendorffer@xilinx.com>
+To: sparclinux@vger.kernel.org
 
-On Fri, Sep 03, 2010 at 04:17:15AM -0400, Andres Salomon wrote:
-> On Mon, 30 Aug 2010 07:06:27 +0200
-> Sam Ravnborg <sam@ravnborg.org> wrote:
-> 
-> > On Sun, Aug 29, 2010 at 11:53:52PM -0400, Andres Salomon wrote:
-> > > 
-> > > We need phandle for some exported sparc headers; of.h isn't an
-> > > exported header, and it would be silly to export it when all we
-> > > really need is one or two types from it.  So, move the
-> > > phandle/ihandle definitions into types.h.
-> > > 
-> > > diff --git a/include/linux/types.h b/include/linux/types.h
-> > > index 01a082f..26526ea 100644
-> > > --- a/include/linux/types.h
-> > > +++ b/include/linux/types.h
-> > > @@ -219,6 +219,10 @@ struct ustat {
-> > >  	char			f_fpack[6];
-> > >  };
-> > >  
-> > > +/* Basic openboot/openfirmware types */
-> > > +typedef u32 phandle;
-> > > +typedef u32 ihandle;
-> > > +
-> > >  #endif	/* __KERNEL__ */
-> > 
-> > The above is inside #ifdef __KERNEL__ / #endif
-> > so it is not exported as we drop code protected
-> > by __KERNEL__ when we prepare for export.
-> 
-> 
-> 
-> At least for me, that's fine; I don't need phandle/ihandle to be
-> available to userspace.  The folks who work on the userspace fdt code
-> may feel differently, however.
-> 
-> (I'm not sure if you're suggesting it be outside the __KERNEL__ ifdef
-> or not..)
 
-If the goal is to get ihandle/phandle exported to userspace then
-they have to be moved outside __KERNEL__.
+If another cpu does a very wide munmap() on the signal frame area,
+it can tear down the page table hierarchy from underneath us.
 
-I just tried to export sparc64 headers,
-and here I found references to ihandle/phandle in a comment
-only sparc does not need these types today.
+Borrow an idea from the 64-bit fault path's get_user_insn(), and
+disable cross call interrupts during the page table traversal
+to lock them in place while we operate.
 
-The relevant function took and returns an int btw.
+Reported-by: Al Viro <viro@ZenIV.linux.org.uk>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/kernel/signal32.c |  102 ++++++++++++++++++++++++-----------------
+ 1 files changed, 60 insertions(+), 42 deletions(-)
 
-So the above looks good considerign that userspace
-so far does not require ihanlde/phandle.
+diff --git a/arch/sparc/kernel/signal32.c b/arch/sparc/kernel/signal32.c
+index ea22cd3..76b67c4 100644
+--- a/arch/sparc/kernel/signal32.c
++++ b/arch/sparc/kernel/signal32.c
+@@ -453,6 +453,64 @@ static int save_fpu_state32(struct pt_regs *regs, __siginfo_fpu_t __user *fpu)
+ 	return err;
+ }
+ 
++/* The I-cache flush instruction only works in the primary ASI, which
++ * right now is the nucleus, aka. kernel space.
++ *
++ * Therefore we have to kick the instructions out using the kernel
++ * side linear mapping of the physical address backing the user
++ * instructions.
++ */
++static void flush_signal_insns(unsigned long address)
++{
++	unsigned long pstate, paddr;
++	pte_t *ptep, pte;
++	pgd_t *pgdp;
++	pud_t *pudp;
++	pmd_t *pmdp;
++
++	/* Commit all stores of the instructions we are about to flush.  */
++	wmb();
++
++	/* Disable cross-call reception.  In this way even a very wide
++	 * munmap() on another cpu can't tear down the page table
++	 * hierarchy from underneath us, since that can't complete
++	 * until the IPI tlb flush returns.
++	 */
++
++	__asm__ __volatile__("rdpr %%pstate, %0" : "=r" (pstate));
++	__asm__ __volatile__("wrpr %0, %1, %%pstate"
++				: : "r" (pstate), "i" (PSTATE_IE));
++
++	pgdp = pgd_offset(current->mm, address);
++	if (pgd_none(*pgdp))
++		goto out_irqs_on;
++	pudp = pud_offset(pgdp, address);
++	if (pud_none(*pudp))
++		goto out_irqs_on;
++	pmdp = pmd_offset(pudp, address);
++	if (pmd_none(*pmdp))
++		goto out_irqs_on;
++
++	ptep = pte_offset_map(pmdp, address);
++	pte = *ptep;
++	if (!pte_present(pte))
++		goto out_unmap;
++
++	paddr = (unsigned long) page_address(pte_page(pte));
++
++	__asm__ __volatile__("flush	%0 + %1"
++			     : /* no outputs */
++			     : "r" (paddr),
++			       "r" (address & (PAGE_SIZE - 1))
++			     : "memory");
++
++out_unmap:
++	pte_unmap(ptep);
++out_irqs_on:
++	__asm__ __volatile__("wrpr %0, 0x0, %%pstate" : : "r" (pstate));
++
++}
++
+ static void setup_frame32(struct k_sigaction *ka, struct pt_regs *regs,
+ 			  int signo, sigset_t *oldset)
+ {
+@@ -547,13 +605,7 @@ static void setup_frame32(struct k_sigaction *ka, struct pt_regs *regs,
+ 	if (ka->ka_restorer) {
+ 		regs->u_regs[UREG_I7] = (unsigned long)ka->ka_restorer;
+ 	} else {
+-		/* Flush instruction space. */
+ 		unsigned long address = ((unsigned long)&(sf->insns[0]));
+-		pgd_t *pgdp = pgd_offset(current->mm, address);
+-		pud_t *pudp = pud_offset(pgdp, address);
+-		pmd_t *pmdp = pmd_offset(pudp, address);
+-		pte_t *ptep;
+-		pte_t pte;
+ 
+ 		regs->u_regs[UREG_I7] = (unsigned long) (&(sf->insns[0]) - 2);
+ 	
+@@ -562,22 +614,7 @@ static void setup_frame32(struct k_sigaction *ka, struct pt_regs *regs,
+ 		if (err)
+ 			goto sigsegv;
+ 
+-		preempt_disable();
+-		ptep = pte_offset_map(pmdp, address);
+-		pte = *ptep;
+-		if (pte_present(pte)) {
+-			unsigned long page = (unsigned long)
+-				page_address(pte_page(pte));
+-
+-			wmb();
+-			__asm__ __volatile__("flush	%0 + %1"
+-					     : /* no outputs */
+-					     : "r" (page),
+-					       "r" (address & (PAGE_SIZE - 1))
+-					     : "memory");
+-		}
+-		pte_unmap(ptep);
+-		preempt_enable();
++		flush_signal_insns(address);
+ 	}
+ 	return;
+ 
+@@ -687,12 +724,7 @@ static void setup_rt_frame32(struct k_sigaction *ka, struct pt_regs *regs,
+ 	if (ka->ka_restorer)
+ 		regs->u_regs[UREG_I7] = (unsigned long)ka->ka_restorer;
+ 	else {
+-		/* Flush instruction space. */
+ 		unsigned long address = ((unsigned long)&(sf->insns[0]));
+-		pgd_t *pgdp = pgd_offset(current->mm, address);
+-		pud_t *pudp = pud_offset(pgdp, address);
+-		pmd_t *pmdp = pmd_offset(pudp, address);
+-		pte_t *ptep;
+ 
+ 		regs->u_regs[UREG_I7] = (unsigned long) (&(sf->insns[0]) - 2);
+ 	
+@@ -704,21 +736,7 @@ static void setup_rt_frame32(struct k_sigaction *ka, struct pt_regs *regs,
+ 		if (err)
+ 			goto sigsegv;
+ 
+-		preempt_disable();
+-		ptep = pte_offset_map(pmdp, address);
+-		if (pte_present(*ptep)) {
+-			unsigned long page = (unsigned long)
+-				page_address(pte_page(*ptep));
+-
+-			wmb();
+-			__asm__ __volatile__("flush	%0 + %1"
+-					     : /* no outputs */
+-					     : "r" (page),
+-					       "r" (address & (PAGE_SIZE - 1))
+-					     : "memory");
+-		}
+-		pte_unmap(ptep);
+-		preempt_enable();
++		flush_signal_insns(address);
+ 	}
+ 	return;
+ 
+-- 
+1.7.3
 
-	Sam
