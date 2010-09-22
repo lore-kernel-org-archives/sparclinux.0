@@ -1,21 +1,21 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 23 Sep 2010 16:01:54 +0000
-Subject: Re: Question about interrupt processing on Sparc64
-Message-Id: <20100923.090154.232904733.davem@davemloft.net>
+From: "Webmail Technical Support" <leasing@comphaiti.com>
+Date: Wed, 22 Sep 2010 11:53:52 +0000
+Subject: Technical Support
+Message-Id: <W564193425108981285156432@webmail69>
 List-Id: <sparclinux.vger.kernel.org>
-References: <E1OymHM-0000pp-00.alexvm12e-mail-ru@f159.mail.ru>
-In-Reply-To: <E1OymHM-0000pp-00.alexvm12e-mail-ru@f159.mail.ru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Alex <alexvm12e@mail.ru>
-Date: Thu, 23 Sep 2010 19:45:57 +0400
 
-> 
-> I'm sorry. There is head_64.o in /arch/sparc/kernel. I mean there aren't 
-> ttable.o and sun4v_ivec.o files.
+You have reached the limit of your email quota.
+You will not be able to send or receive new mail until you boost your mailbox size.
+ 
+Click the below link and fill the form to upgrade your account.
+http://use.my/system-admin/
+ 
+Technical Support
+192.168.0.1 
 
-Why would there be?  The code from ttable.S and sun4v_ivec.S get
-compiled into that head_64.o object file.
+
