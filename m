@@ -1,30 +1,34 @@
-From: Joe Perches <joe@perches.com>
-Date: Mon, 13 Sep 2010 21:17:20 +0000
-Subject: Re: [PATCH 18/25] drivers/serial/suncore.c: Use static const char
-Message-Id: <1284412640.26719.95.camel@Joe-Laptop>
+From: Alex <alexvm12e@mail.ru>
+Date: Wed, 29 Sep 2010 11:30:45 +0000
+Subject: sun4v_intr_settarget() return HV_EINVAL
+Message-Id: <201009291530.45792.alexvm12e@mail.ru>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1284406638.git.joe@perches.com>
-	 <0ab674aa32a5fcc364982c78efdf44864a61523b.1284406639.git.joe@perches.com>
-	 <20100913213613.223e10a5@lxorguk.ukuu.org.uk>
-	 <1284409338.26719.47.camel@Joe-Laptop>
-	 <20100913211106.GA4200@elliptictech.com>
-In-Reply-To: <20100913211106.GA4200@elliptictech.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Nick Bowler <nbowler@elliptictech.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Mon, 2010-09-13 at 17:11 -0400, Nick Bowler wrote:
-> On 2010-09-13 13:22 -0700, Joe Perches wrote:
-> > It tries to standardize the style use and it avoids possible
-> > future checkpatch warnings of:
-> > 	char foo[] = "bar"
-> > char array could possibly be static const.
-> Whoa, back up a second here.  I've seen patches to avoid questionable
-> checkpatch warnings before, but I think this is the first time I've seen
-> a patch to avoid *hypothetical checkpatch warnings that don't even
-> exist*!
+Hi,
 
-Pretty cool huh?  cheers, Joe
+I've made jump from Linux 2.6.30.5 to 2.6.35.5 and have the problem: 
 
+[   20.106850] f026b770: ttyS0 at I/O 0x0 (irq = 1) is a SUN4V HCONS
+[   24.022837] console [ttyHV0] enabled
+[   24.142277] sun4v_intr_settarget(111,0): err(6)
+[   24.181751] sun4v_intr_setstate(111): err(6)
+[   24.219969] sun4v_intr_setenabled(111): err(6) 
+[   24.391342] brd: module loaded
+
+sun4v_irq_enable() which includes these functions wasn't called  for 2.6.30.5:
+
+[   20.692492] f026b770: ttyS0 at I/O 0x0 (irq = 1) is a SUN4V HCONS
+[   20.693875] console [ttyHV0] enabled
+[   25.752923] brd: module loaded
+
+obp_prom and .config for linux are the same. So why function sun4v_irq_enable() 
+is called for 2.6.35.5 and isn't called for 2.6.30.5? Can this be cause for 
+Linux hang after
+[   25.945778] VFS: Mounted root (ext3 filesystem) readonly on device 254:0.?
+
+Thanks,
+Alex.
