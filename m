@@ -1,65 +1,40 @@
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Date: Fri, 22 Oct 2010 07:55:10 +0000
-Subject: Re: [PATCH v2 22/22] bitops: remove minix bitops from asm/bitops.h
-Message-Id: <AANLkTikgRWWH0RhR2S5cFE+jkJbW30Arwsjic4UANuVd@mail.gmail.com>
+From: Mikael Pettersson <mikpe@it.uu.se>
+Date: Sun, 03 Oct 2010 21:36:16 +0000
+Subject: Re: [2.6.36-rc regression] occasional complete system hangs on sparc64 SMP
+Message-Id: <19624.63312.156073.410319@pilspetsen.it.uu.se>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1287672077-5797-1-git-send-email-akinobu.mita@gmail.com>
-	<1287672077-5797-23-git-send-email-akinobu.mita@gmail.com>
-	<4CC0CA8E.4050600@monstr.eu>
-In-Reply-To: <4CC0CA8E.4050600@monstr.eu>
+References: <19611.34846.813757.309183@pilspetsen.it.uu.se>
+In-Reply-To: <19611.34846.813757.309183@pilspetsen.it.uu.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: monstr@monstr.eu
-Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Christoph Hellwig <hch@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Greg Ungerer <gerg@uclinux.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Roman Zippel <zippel@linux-m68k.org>, Andreas Schwab <schwab@linux-m68k.org>, linux-m68k@lists.linux-m68k.org, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux390@de.ibm.com, linux-s390@vger.kernel.org, Yoshinori Sato <ysato@users.sourceforge.jp>, microblaze-uclinux@itee.uq.edu.au, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Hirokazu Takata <takata@linux-m32r.org>, linux-m32r@ml.linux-m32r.org, Ralf Baechle <ralf@linux-mips.org>, linux-mips@linux-mips.org, Paul Mundt <lethal@linux-sh.org>, linux-sh@vger.kernel.org, Chris Zankel <chris@zankel.net>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Mikael Pettersson <mikpe@it.uu.se>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-2010/10/22 Michal Simek <monstr@monstr.eu>:
-> Akinobu Mita wrote:
->> minix bit operations are only used by minix filesystem and useless
->> by other modules. Because byte order of inode and block bitmaps is
->> defferent on each architecture like below:
->>
->> m68k:
->> =A0 =A0 =A0 big-endian 16bit indexed bitmaps
->>
->> h8300, microblaze, s390, sparc, m68knommu:
->> =A0 =A0 =A0 big-endian 32 or 64bit indexed bitmaps
->
-> Just one small fix microblaze little endian support is ready for merging
-> to mainline which means that microblaze is
-> big-endian 32bit =A0and =A0little-endian 32bit
->
->>
->> m32r, mips, sh, xtensa:
->> =A0 =A0 =A0 big-endian 32 or 64bit indexed bitmaps for big-endian mode
->> =A0 =A0 =A0 little-endian bitmaps for little-endian mode
->>
->> Others:
->> =A0 =A0 =A0 little-endian bitmaps
->>
->> In order to move minix bit operations from asm/bitops.h to
->> architecture independent code in minix file system, this provides two
->> config options.
->>
->> CONFIG_MINIX_FS_BIG_ENDIAN_16BIT_INDEXED is only selected by m68k.
->> CONFIG_MINIX_FS_NATIVE_ENDIAN is selected by the architectures which
->> use native byte order bitmaps (h8300, microblaze, s390, sparc,
->> m68knommu, m32r, mips, sh, xtensa).
->> The architectures which always use little-endian bitmaps do not select
->> these options.
->
-> I haven't created any Kconfig option for little/big endian microblaze
-> but there should be a little bit different handling for MINIX_FS_NATIVE_E=
-NDIAN
-> as you are describing above.
-> Anyway I think you don't need to reflect this in your patch because
-> we are not using that filesystem and I will write it to my to-do list and
-> will fix it later.
+Mikael Pettersson writes:
+ > On my Sun Blade 2500 (2 CPUs), post 2.6.35 kernels sometimes hang
+ > completely without visible messages on either the console or in
+ > the kernel logs.
+ > 
+ > The first two times (with -rc1 or -rc3) it happended during gcc
+ > bootstraps + regression test runs, today (with -rc4) it happended
+ > while compiling the 2.6.36-rc5 kernel.  It's very sporadic, perhaps
+ > one of ten boots will eventually hang like this.
+ > 
+ > With 2.6.35 the machine is rock solid.
+ > 
+ > The 2.6.36-rc kernels do appear to be solid on a UP Ultra5, but that
+ > one no longer does any gcc builds or tests, only kernel builds.
+ > 
+ > Any ideas, or do I have to try to bisect this?
 
-If upcomming microblade little-endian mode will use little-endian
-bitmaps for minixfs, microblade can continue to select
-CONFIG_MINIX_FS_NATIVE_ENDIAN and you don't need to change it.
+I've been testing older kernels and can now say that 2.6.35-git5
+and newer kernels are definitely affected, but 2.6.35-git4 seems
+solid.  I'll dig deeper into the .35-git4->git5 changes towards
+the end of next week.
 
-But if it will use big-endian bitmaps, it may need some extra work
-to support it. Becuase there is no little-endian architecture
-which uses bit-endian bitmaps for minixfs.
+I never got any data out of sysrq-y or any other sysrq when a hang
+occurs; usually they'd just print the name of the command but no data,
+sometimes they'd oops and crash the kernel even harder.
+
+/Mikael
