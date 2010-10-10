@@ -1,109 +1,308 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Date: Fri, 15 Oct 2010 17:14:54 +0000
-Subject: Linux 2.6.36-rc8 won't boot
-Message-Id: <alpine.LNX.2.01.1010151559250.28469@obet.zrqbmnf.qr>
+From: Andres Salomon <dilinger@queued.net>
+Date: Sun, 10 Oct 2010 09:06:26 +0000
+Subject: [PATCH 5/5] x86: OLPC: add OLPC device-tree support
+Message-Id: <20101010020626.102437f5@debxo>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Cc: sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-Hi,
 
+Make use of PROC_DEVICETREE to export the tree, and sparc's PROMTREE code to
+call into OLPC's Open Firmware to build the tree.
 
-I just compiled 2.6.36-rc8 and observe a hang on boot. My previous 
-working version was 2.6.34-rc1/gcc 4.4.1, and I checked that gcc isn't 
-at fault by recompiling 2.6.34-rc1 with gcc 4.5.0 (it boots).
+Signed-off-by: Andres Salomon <dilinger@queued.net>
+---
+ arch/x86/Kconfig                |    2 +
+ arch/x86/include/asm/olpc_ofw.h |    4 +
+ arch/x86/include/asm/prom.h     |    1 +
+ arch/x86/kernel/Makefile        |    1 +
+ arch/x86/kernel/olpc_ofw.c      |    8 ++
+ arch/x86/kernel/olpc_prom.c     |  152 +++++++++++++++++++++++++++++++++++++++
+ drivers/of/pdt.c                |    2 +
+ fs/proc/proc_devtree.c          |    4 +
+ include/linux/of_pdt.h          |    1 +
+ 9 files changed, 175 insertions(+), 0 deletions(-)
+ create mode 100644 arch/x86/include/asm/prom.h
+ create mode 100644 arch/x86/kernel/olpc_prom.c
 
-silo SILO
-boot: ares36
-Allocated 64 Megs of memory at 0x40000000 for kernel
-Loaded kernel version 2.6.36
-Loading initial ramdisk (4724778 bytes at 0xC800000 phys, 0x40C00000 virt)...
-/
-PROMLIB: Sun IEEE Boot Prom 'OBP 4.30.4.a 2010/01/06 14:54'
-PROMLIB: Root node compatible: sun4v
-Initializing cgroup subsys cpuset
-Linux version 2.6.36-rc8 (jengelh@ares) (gcc version 4.5.0 20100604 [gcc-4_5-branch revision 160292] (SUSE Linux) ) #3 SMP Fri Oct 15 15:45:00 CEST 2010
-bootconsole [earlyprom0] enabled
-ARCH: SUN4V
-Ethernet address: 00:14:4f:e1:d1:24
-Kernel: Using 4 locked TLB entries for main kernel image.
-Remapping the kernel... done.
-OF stdout device is: /virtual-devices@100/console@1
-PROM: Built device tree with 67484 bytes of memory.
-MDESC: Size is 33456 bytes.
-PLATFORM: banner-name [SPARC Enterprise T1000]
-PLATFORM: name [SUNW,SPARC-Enterprise-T1000]
-PLATFORM: hostid [84e1d124]
-PLATFORM: serial# [00ab4130]
-PLATFORM: stick-frequency [3b9aca00]
-PLATFORM: mac-address [144fe1d124]
-PLATFORM: watchdog-resolution [1000 ms]
-PLATFORM: watchdog-max-timeout [31536000000 ms]
-PLATFORM: max-cpus [32]
-Top of RAM: 0x1ffdb4000, Total RAM: 0x1f79a4000
-Memory hole size: 132MB
-[0000010000000000-fffff80009800000] page_structs1072 node=0 entry=0/8192
-[0000010000000000-fffff80009c00000] page_structs1072 node=0 entry=1/8192
-[0000010000800000-fffff8000a000000] page_structs1072 node=0 entry=2/8192
-[0000010000800000-fffff8000a400000] page_structs1072 node=0 entry=3/8192
-[0000010001000000-fffff8000a800000] page_structs1072 node=0 entry=4/8192
-[0000010001000000-fffff8000ac00000] page_structs1072 node=0 entry=5/8192
-[0000010001800000-fffff8000b000000] page_structs1072 node=0 entry=6/8192
-[0000010001800000-fffff8000b400000] page_structs1072 node=0 entry=7/8192
-[0000010002000000-fffff8000b800000] page_structs1072 node=0 entry=8/8192
-[0000010002000000-fffff8000bc00000] page_structs1072 node=0 entry=9/8192
-[0000010002800000-fffff8000c000000] page_structs1072 node=0 entry/8192
-[0000010002800000-fffff8000c400000] page_structs1072 node=0 entry/8192
-[0000010003000000-fffff8000d000000] page_structs1072 node=0 entry/8192
-[0000010003000000-fffff8000d400000] page_structs1072 node=0 entry/8192
-[0000010003800000-fffff8000d800000] page_structs1072 node=0 entry/8192
-[0000010003800000-fffff8000dc00000] page_structs1072 node=0 entry/8192
-Zone PFN ranges:
-  Normal   0x00004200 -> 0x000ffeda
-Movable zone start PFN for each node
-early_node_map[2] active PFN ranges
-    0: 0x00004200 -> 0x000ffec2
-    0: 0x000ffeca -> 0x000ffeda
-Booting Linux...
-PERCPU: Embedded 231 pages/cpu @fffff8000e000000 s1855552 r8192 d28608 u2097152
-pcpu-alloc: s1855552 r8192 d28608 u2097152 alloc=1*4194304
-pcpu-alloc: [0] 00 01 [0] 02 03 [0] 04 05 [0] 06 07 
-pcpu-alloc: [0] 08 09 [0] 10 11 [0] 12 13 [0] 14 15 
-pcpu-alloc: [0] 16 17 [0] 18 19 [0] 20 21 [0] 22 23 
-pcpu-alloc: [0] 24 25 [0] 26 27 [0] 28 29 [0] 30 31 
-Built 1 zonelists in Node order, mobility grouping on.  Total pages: 1023320
-Policy zone: Normal
-Kernel command line: console=ttyS0
-PID hash table entries: 4096 (order: 2, 32768 bytes)
-Memory: 8104152k available (3880k kernel code, 2216k data, 2000k init) [fffff80000000000,00000001ffdb4000]
-SLUB: Genslabs, HWalign2, Order=0-3, MinObjects=0, CPUs2, Nodes
-Hierarchical RCU implementation.
-        RCU debugfs-based tracing is enabled.
-        Verbose stalled-CPUs detection is disabled.
-NR_IRQS:255
-clocksource: mult[80000000] shift[31]
-clockevent: mult[80000000] shift[31]
-Console: colour dummy device 80x25
-Lock dependency validator: Copyright (c) 2006 Red Hat, Inc., Ingo Molnar
-... MAX_LOCKDEP_SUBCLASSES:  8
-... MAX_LOCK_DEPTH:          48
-... MAX_LOCKDEP_KEYS:        8191
-... CLASSHASH_SIZE:          4096
-... MAX_LOCKDEP_ENTRIES:     16384
-... MAX_LOCKDEP_CHAINS:      32768
-... CHAINHASH_SIZE:          16384
- memory used by lock dependency info: 6335 kB
- per task-struct memory footprint: 2688 bytes
-Calibrating delay using timer specific routine.. 2007.88 BogoMIPS (lpj@15773)
-pid_max: default: 32768 minimum: 301
-Security Framework initialized
-Dentry cache hash table entries: 1048576 (order: 10, 8388608 bytes)
-Inode-cache hash table entries: 524288 (order: 9, 4194304 bytes)
-Mount-cache hash table entries: 512
-Initializing cgroup subsys ns
-Initializing cgroup subsys cpuacct
-Initializing cgroup subsys devices
-Initializing cgroup subsys blkio
-<hangs here>
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index cea0cd9..7d4ef72 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -2069,6 +2069,8 @@ config OLPC_OPENFIRMWARE
+ 	bool "Support for OLPC's Open Firmware"
+ 	depends on !X86_64 && !X86_PAE
+ 	default y if OLPC
++	select OF
++	select OF_PROMTREE
+ 	help
+ 	  This option adds support for the implementation of Open Firmware
+ 	  that is used on the OLPC XO-1 Children's Machine.
+diff --git a/arch/x86/include/asm/olpc_ofw.h b/arch/x86/include/asm/olpc_ofw.h
+index 08fde47..13075df 100644
+--- a/arch/x86/include/asm/olpc_ofw.h
++++ b/arch/x86/include/asm/olpc_ofw.h
+@@ -28,4 +28,8 @@ static inline void setup_olpc_ofw_pgd(void) { }
+ 
+ #endif /* !CONFIG_OLPC_OPENFIRMWARE */
+ 
++#ifdef CONFIG_PROC_DEVICETREE
++extern void olpc_prom_build_devicetree(void);
++#endif /* CONFIG_PROC_DEVICETREE */
++
+ #endif /* _ASM_X86_OLPC_OFW_H */
+diff --git a/arch/x86/include/asm/prom.h b/arch/x86/include/asm/prom.h
+new file mode 100644
+index 0000000..b4ec95f
+--- /dev/null
++++ b/arch/x86/include/asm/prom.h
+@@ -0,0 +1 @@
++/* dummy prom.h; here to make linux/of.h's #includes happy */
+diff --git a/arch/x86/kernel/Makefile b/arch/x86/kernel/Makefile
+index fedf32a..ced0c9a 100644
+--- a/arch/x86/kernel/Makefile
++++ b/arch/x86/kernel/Makefile
+@@ -107,6 +107,7 @@ scx200-y			+= scx200_32.o
+ 
+ obj-$(CONFIG_OLPC)		+= olpc.o
+ obj-$(CONFIG_OLPC_OPENFIRMWARE)	+= olpc_ofw.o
++obj-$(CONFIG_PROC_DEVICETREE)	+= olpc_prom.o
+ obj-$(CONFIG_X86_MRST)		+= mrst.o
+ 
+ microcode-y				:= microcode_core.o
+diff --git a/arch/x86/kernel/olpc_ofw.c b/arch/x86/kernel/olpc_ofw.c
+index 3218aa7..6c4d243 100644
+--- a/arch/x86/kernel/olpc_ofw.c
++++ b/arch/x86/kernel/olpc_ofw.c
+@@ -1,5 +1,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_pdt.h>
+ #include <linux/init.h>
+ #include <asm/page.h>
+ #include <asm/setup.h>
+@@ -38,6 +40,12 @@ void __init setup_olpc_ofw_pgd(void)
+ 	/* implicit optimization barrier here due to uninline function return */
+ 
+ 	early_iounmap(base, sizeof(olpc_ofw_pgd) * PTRS_PER_PGD);
++
++#ifdef CONFIG_PROC_DEVICETREE
++	/* OFW set up succesfully; use it for the device tree */
++	of_pdt_init_devicetree = olpc_prom_build_devicetree;
++#endif
++
+ }
+ 
+ int __olpc_ofw(const char *name, int nr_args, const void **args, int nr_res,
+diff --git a/arch/x86/kernel/olpc_prom.c b/arch/x86/kernel/olpc_prom.c
+new file mode 100644
+index 0000000..e2ecaf2
+--- /dev/null
++++ b/arch/x86/kernel/olpc_prom.c
+@@ -0,0 +1,152 @@
++/*
++ * olpc_prom.c: OLPC-specific OFW device tree support code.
++ *
++ * Paul Mackerras	August 1996.
++ * Copyright (C) 1996-2005 Paul Mackerras.
++ *
++ *  Adapted for 64bit PowerPC by Dave Engebretsen and Peter Bergner.
++ *    {engebret|bergner}@us.ibm.com
++ *
++ *  Adapted for sparc by David S. Miller davem@davemloft.net
++ *  Adapted for x86/OLPC by Andres Salomon <dilinger@queued.net>
++ *
++ *      This program is free software; you can redistribute it and/or
++ *      modify it under the terms of the GNU General Public License
++ *      as published by the Free Software Foundation; either version
++ *      2 of the License, or (at your option) any later version.
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/errno.h>
++#include <linux/slab.h>
++#include <linux/of.h>
++#include <linux/of_pdt.h>
++#include <asm/olpc_ofw.h>
++
++static phandle __init olpc_prom_getsibling(phandle node)
++{
++	const void *args[] = { (void *)node };
++	void *res[] = { &node };
++
++	if (node = -1)
++		return 0;
++
++	if (olpc_ofw("peer", args, res) || node = -1)
++		return 0;
++
++	return node;
++}
++
++static phandle __init olpc_prom_getchild(phandle node)
++{
++	const void *args[] = { (void *)node };
++	void *res[] = { &node };
++
++	if (node = -1)
++		return 0;
++
++	if (olpc_ofw("child", args, res) || node = -1) {
++		pr_err("PROM: %s: fetching child failed!\n", __func__);
++		return 0;
++	}
++
++	return node;
++}
++
++static int __init olpc_prom_getproplen(phandle node, const char *prop)
++{
++	const void *args[] = { (void *)node, prop };
++	int len;
++	void *res[] = { &len };
++
++	if (node = -1)
++		return -1;
++
++	if (olpc_ofw("getproplen", args, res)) {
++		pr_err("PROM: %s: getproplen failed!\n", __func__);
++		return -1;
++	}
++
++	return len;
++}
++
++static int __init olpc_prom_getproperty(phandle node, const char *prop,
++		char *buf, int bufsize)
++{
++	int plen;
++
++	plen = olpc_prom_getproplen(node, prop);
++	if (plen > bufsize || plen < 1)
++		return -1;
++	else {
++		const void *args[] = { (void *)node, prop, buf, (void *)plen };
++		void *res[] = { &plen };
++
++		if (olpc_ofw("getprop", args, res)) {
++			pr_err("PROM: %s: getprop failed!\n", __func__);
++			return -1;
++		}
++	}
++
++	return plen;
++}
++
++static int __init olpc_prom_nextprop(phandle node, char *prev, char *buf)
++{
++	const void *args[] = { (void *)node, prev, buf };
++	int success;
++	void *res[] = { &success };
++
++	buf[0] = '\0';
++
++	if (node = -1)
++		return -1;
++
++	if (olpc_ofw("nextprop", args, res) || success != 1)
++		return -1;
++
++	return 0;
++}
++
++static int __init olpc_prom_pkg2path(phandle node, char *buf,
++		const int buflen, int *len)
++{
++	const void *args[] = { (void *)node, buf, (void *)buflen };
++	void *res[] = { len };
++
++	if (node = -1)
++		return -1;
++
++	if (olpc_ofw("package-to-path", args, res) || *len < 1)
++		return -1;
++
++	return 0;
++}
++
++void * __init prom_early_alloc(unsigned long size)
++{
++	/* this is called late enough that we can alloc normally */
++	return kzalloc(size, GFP_KERNEL);
++}
++
++static struct of_pdt_ops prom_olpc_ops __initdata = {
++	.nextprop = olpc_prom_nextprop,
++	.getproplen = olpc_prom_getproplen,
++	.getproperty = olpc_prom_getproperty,
++	.getchild = olpc_prom_getchild,
++	.getsibling = olpc_prom_getsibling,
++	.pkg2path = olpc_prom_pkg2path,
++};
++
++void __init olpc_prom_build_devicetree(void)
++{
++	phandle root;
++
++	root = olpc_prom_getsibling(0);
++	if (root < 0) {
++		pr_err("PROM: unable to get root node from OFW!\n");
++		return;
++	}
++	of_pdt_build_devicetree(root, &prom_olpc_ops);
++}
+diff --git a/drivers/of/pdt.c b/drivers/of/pdt.c
+index 28295d0..07e3daa 100644
+--- a/drivers/of/pdt.c
++++ b/drivers/of/pdt.c
+@@ -29,6 +29,8 @@ static struct of_pdt_ops *of_pdt_prom_ops __initdata;
+ void __initdata (*of_pdt_build_more)(struct device_node *dp,
+ 		struct device_node ***nextp);
+ 
++void __initdata (*of_pdt_init_devicetree)(void);
++
+ #if defined(CONFIG_SPARC)
+ unsigned int of_pdt_unique_id __initdata;
+ 
+diff --git a/fs/proc/proc_devtree.c b/fs/proc/proc_devtree.c
+index d9396a4..9779039 100644
+--- a/fs/proc/proc_devtree.c
++++ b/fs/proc/proc_devtree.c
+@@ -11,6 +11,7 @@
+ #include <linux/stat.h>
+ #include <linux/string.h>
+ #include <linux/of.h>
++#include <linux/of_pdt.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
+ #include <asm/prom.h>
+@@ -228,6 +229,9 @@ void __init proc_device_tree_init(void)
+ {
+ 	struct device_node *root;
+ 
++	if (of_pdt_init_devicetree)
++		of_pdt_init_devicetree();
++
+ 	proc_device_tree = proc_mkdir("device-tree", NULL);
+ 	if (proc_device_tree = NULL)
+ 		return;
+diff --git a/include/linux/of_pdt.h b/include/linux/of_pdt.h
+index c65a18a..5b29aef 100644
+--- a/include/linux/of_pdt.h
++++ b/include/linux/of_pdt.h
+@@ -38,6 +38,7 @@ extern void *prom_early_alloc(unsigned long size);
+ 
+ /* for building the device tree */
+ extern void of_pdt_build_devicetree(phandle root_node, struct of_pdt_ops *ops);
++extern void (*of_pdt_init_devicetree)(void);
+ 
+ extern void (*of_pdt_build_more)(struct device_node *dp,
+ 		struct device_node ***nextp);
+-- 
+1.5.6.5
+
