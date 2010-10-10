@@ -1,29 +1,102 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 08 Oct 2010 21:20:13 +0000
-Subject: Re: [PATCH v3] sparc: convert various prom_* functions to use
-Message-Id: <20101008.142013.68132581.davem@davemloft.net>
+From: Andres Salomon <dilinger@queued.net>
+Date: Sun, 10 Oct 2010 09:06:09 +0000
+Subject: [PATCH 4/5] of: add package-to-path support to pdt
+Message-Id: <20101010020609.3adde588@debxo>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20101008141811.19074b7c@debxo>
-In-Reply-To: <20101008141811.19074b7c@debxo>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: dilinger@queued.net
-Cc: grant.likely@secretlab.ca, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: devicetree-discuss@lists.ozlabs.org, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Andres Salomon <dilinger@queued.net>
-Date: Fri, 8 Oct 2010 14:18:11 -0700
 
-> 
-> Rather than passing around ints everywhere, use the
-> phandle type where appropriate for the various functions
-> that talk to the PROM.
-> 
-> v3: revert v2 changes, and include linux/of.h in openprom.h
->     instead of linux/types.h.
-> 
-> Note: this has only been compile-tested for 64bit sparc.
-> 
-> Signed-off-by: Andres Salomon <dilinger@queued.net>
+package-to-path is a PROM function which tells us the real (full) name of the
+node.  This provides a hook for that in the prom ops struct, and makes use
+of it in the pdt code when attempting to determine a node's name.  If the
+hook is available, try using it (falling back to looking at the "name"
+property if it fails).
 
-Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Andres Salomon <dilinger@queued.net>
+---
+ drivers/of/pdt.c       |   43 ++++++++++++++++++++++++++++++++++++++++++-
+ include/linux/of_pdt.h |    3 +++
+ 2 files changed, 45 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/of/pdt.c b/drivers/of/pdt.c
+index 31a4fb8..28295d0 100644
+--- a/drivers/of/pdt.c
++++ b/drivers/of/pdt.c
+@@ -132,6 +132,47 @@ static char * __init of_pdt_get_one_property(phandle node, const char *name)
+ 	return buf;
+ }
+ 
++static char * __init of_pdt_try_pkg2path(phandle node)
++{
++	char *res, *buf = NULL;
++	int len;
++
++	if (!of_pdt_prom_ops->pkg2path)
++		return NULL;
++
++	if (of_pdt_prom_ops->pkg2path(node, buf, 0, &len))
++		return NULL;
++	buf = prom_early_alloc(len + 1);
++	if (of_pdt_prom_ops->pkg2path(node, buf, len, &len)) {
++		pr_err("%s: package-to-path failed\n", __func__);
++		return NULL;
++	}
++
++	res = strrchr(buf, '/');
++	if (!res) {
++		pr_err("%s: couldn't find / in %s\n", __func__, buf);
++		return NULL;
++	}
++	return res+1;
++}
++
++/*
++ * When fetching the node's name, first try using package-to-path; if
++ * that fails (either because the arch hasn't supplied a PROM callback,
++ * or some other random failure), fall back to just looking at the node's
++ * 'name' property.
++ */
++static char * __init of_pdt_build_name(phandle node)
++{
++	char *buf;
++
++	buf = of_pdt_try_pkg2path(node);
++	if (!buf)
++		buf = of_pdt_get_one_property(node, "name");
++
++	return buf;
++}
++
+ static struct device_node * __init of_pdt_create_node(phandle node,
+ 						    struct device_node *parent)
+ {
+@@ -146,7 +187,7 @@ static struct device_node * __init of_pdt_create_node(phandle node,
+ 
+ 	kref_init(&dp->kref);
+ 
+-	dp->name = of_pdt_get_one_property(node, "name");
++	dp->name = of_pdt_build_name(node);
+ 	dp->type = of_pdt_get_one_property(node, "device_type");
+ 	dp->phandle = node;
+ 
+diff --git a/include/linux/of_pdt.h b/include/linux/of_pdt.h
+index 0f7d0c5..c65a18a 100644
+--- a/include/linux/of_pdt.h
++++ b/include/linux/of_pdt.h
+@@ -29,6 +29,9 @@ struct of_pdt_ops {
+ 	/* phandles are 0 if no child or sibling exists */
+ 	phandle (*getchild)(phandle parent);
+ 	phandle (*getsibling)(phandle node);
++
++	/* return 0 on success; fill in 'len' with number of bytes in path */
++	int (*pkg2path)(phandle node, char *buf, const int buflen, int *len);
+ };
+ 
+ extern void *prom_early_alloc(unsigned long size);
+-- 
+1.5.6.5
+
