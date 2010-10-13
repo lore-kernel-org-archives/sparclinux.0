@@ -1,29 +1,21 @@
-From: "VIVA 48hrs FINANCE LOAN" <info@lenders.co.uk>
-Date: Thu, 14 Oct 2010 10:33:24 +0000
-Subject: Apply For A Guaranteed Loan
-Message-Id: <47505.72.20.109.58.1287052404.squirrel@mail.page.bi>
+From: "Prophet,Dr Lloyd V Robinson" <prophetdrlv@gmail.com>
+Date: Wed, 13 Oct 2010 09:49:52 +0000
+Subject: DELL,,,,,,,,,u
+Message-Id: <AANLkTimuxh9KQJQwL1oMY0tcvyQbXrLj7yejaGkK5vW4@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Dear Friends:
+Website: chinashoppingwholesale.com
 
+We accept paypal payment.
+The main wholesale and sales of electronic products (Sony, LG, AUSU,
+Samsung, Philips ..... and so on), send our products to the world.
+Product quality assurance! Have questions, please contact me.
 
+Website: chinashoppingwholesale.com
 
-VIVA 48hrs FINANCE LOAN
-5 Churchill Place,
-London, E14 5HP.
-Tel:+447024019643
-
-Attention,
-
-We are currently giving out loans to any part of the world at 2% interest
-rate. If interested, send your name, Resident country and Phone number to
-Mr. Mayson Scout with the email address bellow Email:
- viva.48hrslenders85@live.co.uk .or call: +447024019643
-
-Regards
-Mr. Mayson Scout
-C.E.O
-VIVA 48hrs FINANCE LOAN
+Thank you!
