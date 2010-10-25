@@ -1,351 +1,56 @@
-From: Andres Salomon <dilinger@queued.net>
-Date: Thu, 21 Oct 2010 21:17:52 +0000
-Subject: Re: [PATCH 5/5] x86: OLPC: add OLPC device-tree support
-Message-Id: <20101021141752.7f3f7bf2@queued.net>
+From: Namhyung Kim <namhyung@gmail.com>
+Date: Mon, 25 Oct 2010 15:52:38 +0000
+Subject: [PATCH 3/3] sparc32: fix build failure on CONFIG_SPARC_LEON
+Message-Id: <1288021958-3130-3-git-send-email-namhyung@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20101010020626.102437f5@debxo>
-	<20101011041312.GF23588@angua.secretlab.ca>
-	<AANLkTikg-HOM3EVQiPvuDahLuUWvhg_VeBBXLtJu6Tzo@mail.gmail.com>
-In-Reply-To: <AANLkTikg-HOM3EVQiPvuDahLuUWvhg_VeBBXLtJu6Tzo@mail.gmail.com>
+References: <1288021958-3130-1-git-send-email-namhyung@gmail.com>
+In-Reply-To: <1288021958-3130-1-git-send-email-namhyung@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: devicetree-discuss@lists.ozlabs.org, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, 20 Oct 2010 12:56:21 -0600
-Grant Likely <grant.likely@secretlab.ca> wrote:
+  CC      arch/sparc/kernel/irq_32.o
+arch/sparc/kernel/irq_32.c: In function 'request_fast_irq':
+arch/sparc/kernel/irq_32.c:370:25: error: conflicting types for 'trapbase_cpu1'
+arch/sparc/include/asm/leon.h:366:22: note: previous declaration of 'trapbase_cpu1' was here
+arch/sparc/kernel/irq_32.c:370:40: error: conflicting types for 'trapbase_cpu2'
+arch/sparc/include/asm/leon.h:367:22: note: previous declaration of 'trapbase_cpu2' was here
+arch/sparc/kernel/irq_32.c:370:55: error: conflicting types for 'trapbase_cpu3'
+arch/sparc/include/asm/leon.h:368:22: note: previous declaration of 'trapbase_cpu3' was here
+make[3]: *** [arch/sparc/kernel/irq_32.o] Error 1
+make[2]: *** [arch/sparc/kernel] Error 2
+make[1]: *** [sub-make] Error 2
+make: *** [all] Error 2
 
-> On Sun, Oct 10, 2010 at 10:13 PM, Grant Likely
-> <grant.likely@secretlab.ca> wrote:
-> > On Sun, Oct 10, 2010 at 02:06:26AM -0700, Andres Salomon wrote:
-> >>
-> >> Make use of PROC_DEVICETREE to export the tree, and sparc's
-> >> PROMTREE code to call into OLPC's Open Firmware to build the tree.
-> >>
-> >> Signed-off-by: Andres Salomon <dilinger@queued.net>
-> >
-> > Holding off on this one until I hear from the x86 maintainers
-> > [cc'd].
-> 
-> Oops, and it appears that patch breaks the build on other
-> architectures when CONFIG_OF is enabled and CONFIG_PROMTREE is not due
-> to how of_pdt_init_devicetree is defined.
-> 
-> g.
-> 
+Signed-off-by: Namhyung Kim <namhyung@gmail.com>
+---
+ arch/sparc/kernel/irq_32.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-D'oh.  Do you have any preferences for what we should be using here?
-Generic OF hook?  PDT-specific hook?  Forget the hook and just call
-a PDT function?  I'm leaning towards that last option.
+diff --git a/arch/sparc/kernel/irq_32.c b/arch/sparc/kernel/irq_32.c
+index 0116d8d..5ad6e5c 100644
+--- a/arch/sparc/kernel/irq_32.c
++++ b/arch/sparc/kernel/irq_32.c
+@@ -365,7 +365,7 @@ static int request_fast_irq(unsigned int irq,
+ 	unsigned long flags;
+ 	unsigned int cpu_irq;
+ 	int ret;
+-#ifdef CONFIG_SMP
++#if defined CONFIG_SMP && !defined CONFIG_SPARC_LEON
+ 	struct tt_entry *trap_table;
+ 	extern struct tt_entry trapbase_cpu1, trapbase_cpu2, trapbase_cpu3;
+ #endif
+@@ -425,7 +425,7 @@ static int request_fast_irq(unsigned int irq,
+ 	table[SP_TRAP_IRQ1+(cpu_irq-1)].inst_four = SPARC_NOP;
+ 
+ 	INSTANTIATE(sparc_ttable)
+-#ifdef CONFIG_SMP
++#if defined CONFIG_SMP && !defined CONFIG_SPARC_LEON
+ 	trap_table = &trapbase_cpu1; INSTANTIATE(trap_table)
+ 	trap_table = &trapbase_cpu2; INSTANTIATE(trap_table)
+ 	trap_table = &trapbase_cpu3; INSTANTIATE(trap_table)
+-- 
+1.7.0.4
 
-
-> >
-> > g.
-> >
-> >> ---
-> >>  arch/x86/Kconfig                |    2 +
-> >>  arch/x86/include/asm/olpc_ofw.h |    4 +
-> >>  arch/x86/include/asm/prom.h     |    1 +
-> >>  arch/x86/kernel/Makefile        |    1 +
-> >>  arch/x86/kernel/olpc_ofw.c      |    8 ++
-> >>  arch/x86/kernel/olpc_prom.c     |  152
-> >> +++++++++++++++++++++++++++++++++++++++ drivers/of/pdt.c
-> >>      |    2 + fs/proc/proc_devtree.c          |    4 +
-> >>  include/linux/of_pdt.h          |    1 +
-> >>  9 files changed, 175 insertions(+), 0 deletions(-)
-> >>  create mode 100644 arch/x86/include/asm/prom.h
-> >>  create mode 100644 arch/x86/kernel/olpc_prom.c
-> >>
-> >> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-> >> index cea0cd9..7d4ef72 100644
-> >> --- a/arch/x86/Kconfig
-> >> +++ b/arch/x86/Kconfig
-> >> @@ -2069,6 +2069,8 @@ config OLPC_OPENFIRMWARE
-> >>       bool "Support for OLPC's Open Firmware"
-> >>       depends on !X86_64 && !X86_PAE
-> >>       default y if OLPC
-> >> +     select OF
-> >> +     select OF_PROMTREE
-> >>       help
-> >>         This option adds support for the implementation of Open
-> >> Firmware that is used on the OLPC XO-1 Children's Machine.
-> >> diff --git a/arch/x86/include/asm/olpc_ofw.h
-> >> b/arch/x86/include/asm/olpc_ofw.h index 08fde47..13075df 100644
-> >> --- a/arch/x86/include/asm/olpc_ofw.h
-> >> +++ b/arch/x86/include/asm/olpc_ofw.h
-> >> @@ -28,4 +28,8 @@ static inline void setup_olpc_ofw_pgd(void) { }
-> >>
-> >>  #endif /* !CONFIG_OLPC_OPENFIRMWARE */
-> >>
-> >> +#ifdef CONFIG_PROC_DEVICETREE
-> >> +extern void olpc_prom_build_devicetree(void);
-> >> +#endif /* CONFIG_PROC_DEVICETREE */
-> >> +
-> >>  #endif /* _ASM_X86_OLPC_OFW_H */
-> >> diff --git a/arch/x86/include/asm/prom.h
-> >> b/arch/x86/include/asm/prom.h new file mode 100644
-> >> index 0000000..b4ec95f
-> >> --- /dev/null
-> >> +++ b/arch/x86/include/asm/prom.h
-> >> @@ -0,0 +1 @@
-> >> +/* dummy prom.h; here to make linux/of.h's #includes happy */
-> >> diff --git a/arch/x86/kernel/Makefile b/arch/x86/kernel/Makefile
-> >> index fedf32a..ced0c9a 100644
-> >> --- a/arch/x86/kernel/Makefile
-> >> +++ b/arch/x86/kernel/Makefile
-> >> @@ -107,6 +107,7 @@ scx200-y                  += scx200_32.o
-> >>
-> >>  obj-$(CONFIG_OLPC)           += olpc.o
-> >>  obj-$(CONFIG_OLPC_OPENFIRMWARE)      += olpc_ofw.o
-> >> +obj-$(CONFIG_PROC_DEVICETREE)        += olpc_prom.o
-> >>  obj-$(CONFIG_X86_MRST)               += mrst.o
-> >>
-> >>  microcode-y                          := microcode_core.o
-> >> diff --git a/arch/x86/kernel/olpc_ofw.c
-> >> b/arch/x86/kernel/olpc_ofw.c index 3218aa7..6c4d243 100644
-> >> --- a/arch/x86/kernel/olpc_ofw.c
-> >> +++ b/arch/x86/kernel/olpc_ofw.c
-> >> @@ -1,5 +1,7 @@
-> >>  #include <linux/kernel.h>
-> >>  #include <linux/module.h>
-> >> +#include <linux/of.h>
-> >> +#include <linux/of_pdt.h>
-> >>  #include <linux/init.h>
-> >>  #include <asm/page.h>
-> >>  #include <asm/setup.h>
-> >> @@ -38,6 +40,12 @@ void __init setup_olpc_ofw_pgd(void)
-> >>       /* implicit optimization barrier here due to uninline
-> >> function return */
-> >>
-> >>       early_iounmap(base, sizeof(olpc_ofw_pgd) * PTRS_PER_PGD);
-> >> +
-> >> +#ifdef CONFIG_PROC_DEVICETREE
-> >> +     /* OFW set up succesfully; use it for the device tree */
-> >> +     of_pdt_init_devicetree = olpc_prom_build_devicetree;
-> >> +#endif
-> >> +
-> >>  }
-> >>
-> >>  int __olpc_ofw(const char *name, int nr_args, const void **args,
-> >> int nr_res, diff --git a/arch/x86/kernel/olpc_prom.c
-> >> b/arch/x86/kernel/olpc_prom.c new file mode 100644
-> >> index 0000000..e2ecaf2
-> >> --- /dev/null
-> >> +++ b/arch/x86/kernel/olpc_prom.c
-> >> @@ -0,0 +1,152 @@
-> >> +/*
-> >> + * olpc_prom.c: OLPC-specific OFW device tree support code.
-> >> + *
-> >> + * Paul Mackerras    August 1996.
-> >> + * Copyright (C) 1996-2005 Paul Mackerras.
-> >> + *
-> >> + *  Adapted for 64bit PowerPC by Dave Engebretsen and Peter
-> >> Bergner.
-> >> + *    {engebret|bergner}@us.ibm.com
-> >> + *
-> >> + *  Adapted for sparc by David S. Miller davem@davemloft.net
-> >> + *  Adapted for x86/OLPC by Andres Salomon <dilinger@queued.net>
-> >> + *
-> >> + *      This program is free software; you can redistribute it
-> >> and/or
-> >> + *      modify it under the terms of the GNU General Public
-> >> License
-> >> + *      as published by the Free Software Foundation; either
-> >> version
-> >> + *      2 of the License, or (at your option) any later version.
-> >> + */
-> >> +
-> >> +#include <linux/kernel.h>
-> >> +#include <linux/module.h>
-> >> +#include <linux/errno.h>
-> >> +#include <linux/slab.h>
-> >> +#include <linux/of.h>
-> >> +#include <linux/of_pdt.h>
-> >> +#include <asm/olpc_ofw.h>
-> >> +
-> >> +static phandle __init olpc_prom_getsibling(phandle node)
-> >> +{
-> >> +     const void *args[] = { (void *)node };
-> >> +     void *res[] = { &node };
-> >> +
-> >> +     if (node = -1)
-> >> +             return 0;
-> >> +
-> >> +     if (olpc_ofw("peer", args, res) || node = -1)
-> >> +             return 0;
-> >> +
-> >> +     return node;
-> >> +}
-> >> +
-> >> +static phandle __init olpc_prom_getchild(phandle node)
-> >> +{
-> >> +     const void *args[] = { (void *)node };
-> >> +     void *res[] = { &node };
-> >> +
-> >> +     if (node = -1)
-> >> +             return 0;
-> >> +
-> >> +     if (olpc_ofw("child", args, res) || node = -1) {
-> >> +             pr_err("PROM: %s: fetching child failed!\n",
-> >> __func__);
-> >> +             return 0;
-> >> +     }
-> >> +
-> >> +     return node;
-> >> +}
-> >> +
-> >> +static int __init olpc_prom_getproplen(phandle node, const char
-> >> *prop) +{
-> >> +     const void *args[] = { (void *)node, prop };
-> >> +     int len;
-> >> +     void *res[] = { &len };
-> >> +
-> >> +     if (node = -1)
-> >> +             return -1;
-> >> +
-> >> +     if (olpc_ofw("getproplen", args, res)) {
-> >> +             pr_err("PROM: %s: getproplen failed!\n", __func__);
-> >> +             return -1;
-> >> +     }
-> >> +
-> >> +     return len;
-> >> +}
-> >> +
-> >> +static int __init olpc_prom_getproperty(phandle node, const char
-> >> *prop,
-> >> +             char *buf, int bufsize)
-> >> +{
-> >> +     int plen;
-> >> +
-> >> +     plen = olpc_prom_getproplen(node, prop);
-> >> +     if (plen > bufsize || plen < 1)
-> >> +             return -1;
-> >> +     else {
-> >> +             const void *args[] = { (void *)node, prop, buf,
-> >> (void *)plen };
-> >> +             void *res[] = { &plen };
-> >> +
-> >> +             if (olpc_ofw("getprop", args, res)) {
-> >> +                     pr_err("PROM: %s: getprop failed!\n",
-> >> __func__);
-> >> +                     return -1;
-> >> +             }
-> >> +     }
-> >> +
-> >> +     return plen;
-> >> +}
-> >> +
-> >> +static int __init olpc_prom_nextprop(phandle node, char *prev,
-> >> char *buf) +{
-> >> +     const void *args[] = { (void *)node, prev, buf };
-> >> +     int success;
-> >> +     void *res[] = { &success };
-> >> +
-> >> +     buf[0] = '\0';
-> >> +
-> >> +     if (node = -1)
-> >> +             return -1;
-> >> +
-> >> +     if (olpc_ofw("nextprop", args, res) || success != 1)
-> >> +             return -1;
-> >> +
-> >> +     return 0;
-> >> +}
-> >> +
-> >> +static int __init olpc_prom_pkg2path(phandle node, char *buf,
-> >> +             const int buflen, int *len)
-> >> +{
-> >> +     const void *args[] = { (void *)node, buf, (void *)buflen };
-> >> +     void *res[] = { len };
-> >> +
-> >> +     if (node = -1)
-> >> +             return -1;
-> >> +
-> >> +     if (olpc_ofw("package-to-path", args, res) || *len < 1)
-> >> +             return -1;
-> >> +
-> >> +     return 0;
-> >> +}
-> >> +
-> >> +void * __init prom_early_alloc(unsigned long size)
-> >> +{
-> >> +     /* this is called late enough that we can alloc normally */
-> >> +     return kzalloc(size, GFP_KERNEL);
-> >> +}
-> >> +
-> >> +static struct of_pdt_ops prom_olpc_ops __initdata = {
-> >> +     .nextprop = olpc_prom_nextprop,
-> >> +     .getproplen = olpc_prom_getproplen,
-> >> +     .getproperty = olpc_prom_getproperty,
-> >> +     .getchild = olpc_prom_getchild,
-> >> +     .getsibling = olpc_prom_getsibling,
-> >> +     .pkg2path = olpc_prom_pkg2path,
-> >> +};
-> >> +
-> >> +void __init olpc_prom_build_devicetree(void)
-> >> +{
-> >> +     phandle root;
-> >> +
-> >> +     root = olpc_prom_getsibling(0);
-> >> +     if (root < 0) {
-> >> +             pr_err("PROM: unable to get root node from OFW!\n");
-> >> +             return;
-> >> +     }
-> >> +     of_pdt_build_devicetree(root, &prom_olpc_ops);
-> >> +}
-> >> diff --git a/drivers/of/pdt.c b/drivers/of/pdt.c
-> >> index 28295d0..07e3daa 100644
-> >> --- a/drivers/of/pdt.c
-> >> +++ b/drivers/of/pdt.c
-> >> @@ -29,6 +29,8 @@ static struct of_pdt_ops *of_pdt_prom_ops
-> >> __initdata; void __initdata (*of_pdt_build_more)(struct
-> >> device_node *dp, struct device_node ***nextp);
-> >>
-> >> +void __initdata (*of_pdt_init_devicetree)(void);
-> >> +
-> >>  #if defined(CONFIG_SPARC)
-> >>  unsigned int of_pdt_unique_id __initdata;
-> >>
-> >> diff --git a/fs/proc/proc_devtree.c b/fs/proc/proc_devtree.c
-> >> index d9396a4..9779039 100644
-> >> --- a/fs/proc/proc_devtree.c
-> >> +++ b/fs/proc/proc_devtree.c
-> >> @@ -11,6 +11,7 @@
-> >>  #include <linux/stat.h>
-> >>  #include <linux/string.h>
-> >>  #include <linux/of.h>
-> >> +#include <linux/of_pdt.h>
-> >>  #include <linux/module.h>
-> >>  #include <linux/slab.h>
-> >>  #include <asm/prom.h>
-> >> @@ -228,6 +229,9 @@ void __init proc_device_tree_init(void)
-> >>  {
-> >>       struct device_node *root;
-> >>
-> >> +     if (of_pdt_init_devicetree)
-> >> +             of_pdt_init_devicetree();
-> >> +
-> >>       proc_device_tree = proc_mkdir("device-tree", NULL);
-> >>       if (proc_device_tree = NULL)
-> >>               return;
-> >> diff --git a/include/linux/of_pdt.h b/include/linux/of_pdt.h
-> >> index c65a18a..5b29aef 100644
-> >> --- a/include/linux/of_pdt.h
-> >> +++ b/include/linux/of_pdt.h
-> >> @@ -38,6 +38,7 @@ extern void *prom_early_alloc(unsigned long
-> >> size);
-> >>
-> >>  /* for building the device tree */
-> >>  extern void of_pdt_build_devicetree(phandle root_node, struct
-> >> of_pdt_ops *ops); +extern void (*of_pdt_init_devicetree)(void);
-> >>
-> >>  extern void (*of_pdt_build_more)(struct device_node *dp,
-> >>               struct device_node ***nextp);
-> >> --
-> >> 1.5.6.5
-> >>
-> >
-> 
-> 
-> 
