@@ -1,56 +1,23 @@
-From: Namhyung Kim <namhyung@gmail.com>
-Date: Mon, 25 Oct 2010 15:52:38 +0000
-Subject: [PATCH 3/3] sparc32: fix build failure on CONFIG_SPARC_LEON
-Message-Id: <1288021958-3130-3-git-send-email-namhyung@gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 25 Oct 2010 16:00:43 +0000
+Subject: Re: [PATCH 3/3] sparc32: fix build failure on CONFIG_SPARC_LEON
+Message-Id: <20101025.090043.71110898.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1288021958-3130-1-git-send-email-namhyung@gmail.com>
-In-Reply-To: <1288021958-3130-1-git-send-email-namhyung@gmail.com>
+	<1288021958-3130-3-git-send-email-namhyung@gmail.com>
+In-Reply-To: <1288021958-3130-3-git-send-email-namhyung@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>
+To: namhyung@gmail.com
 Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-  CC      arch/sparc/kernel/irq_32.o
-arch/sparc/kernel/irq_32.c: In function 'request_fast_irq':
-arch/sparc/kernel/irq_32.c:370:25: error: conflicting types for 'trapbase_cpu1'
-arch/sparc/include/asm/leon.h:366:22: note: previous declaration of 'trapbase_cpu1' was here
-arch/sparc/kernel/irq_32.c:370:40: error: conflicting types for 'trapbase_cpu2'
-arch/sparc/include/asm/leon.h:367:22: note: previous declaration of 'trapbase_cpu2' was here
-arch/sparc/kernel/irq_32.c:370:55: error: conflicting types for 'trapbase_cpu3'
-arch/sparc/include/asm/leon.h:368:22: note: previous declaration of 'trapbase_cpu3' was here
-make[3]: *** [arch/sparc/kernel/irq_32.o] Error 1
-make[2]: *** [arch/sparc/kernel] Error 2
-make[1]: *** [sub-make] Error 2
-make: *** [all] Error 2
+From: Namhyung Kim <namhyung@gmail.com>
+Date: Tue, 26 Oct 2010 00:52:38 +0900
 
-Signed-off-by: Namhyung Kim <namhyung@gmail.com>
----
- arch/sparc/kernel/irq_32.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+>   CC      arch/sparc/kernel/irq_32.o
+> arch/sparc/kernel/irq_32.c: In function 'request_fast_irq':
+> arch/sparc/kernel/irq_32.c:370:25: error: conflicting types for 'trapbase_cpu1'
 
-diff --git a/arch/sparc/kernel/irq_32.c b/arch/sparc/kernel/irq_32.c
-index 0116d8d..5ad6e5c 100644
---- a/arch/sparc/kernel/irq_32.c
-+++ b/arch/sparc/kernel/irq_32.c
-@@ -365,7 +365,7 @@ static int request_fast_irq(unsigned int irq,
- 	unsigned long flags;
- 	unsigned int cpu_irq;
- 	int ret;
--#ifdef CONFIG_SMP
-+#if defined CONFIG_SMP && !defined CONFIG_SPARC_LEON
- 	struct tt_entry *trap_table;
- 	extern struct tt_entry trapbase_cpu1, trapbase_cpu2, trapbase_cpu3;
- #endif
-@@ -425,7 +425,7 @@ static int request_fast_irq(unsigned int irq,
- 	table[SP_TRAP_IRQ1+(cpu_irq-1)].inst_four = SPARC_NOP;
- 
- 	INSTANTIATE(sparc_ttable)
--#ifdef CONFIG_SMP
-+#if defined CONFIG_SMP && !defined CONFIG_SPARC_LEON
- 	trap_table = &trapbase_cpu1; INSTANTIATE(trap_table)
- 	trap_table = &trapbase_cpu2; INSTANTIATE(trap_table)
- 	trap_table = &trapbase_cpu3; INSTANTIATE(trap_table)
--- 
-1.7.0.4
-
+I doubt SMP LEON chips even exist, so better to just anti-dep
+this in arch/sparc/Kconfig
