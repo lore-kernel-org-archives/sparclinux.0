@@ -1,47 +1,40 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Date: Wed, 27 Oct 2010 21:20:20 +0000
-Subject: Re: [PATCH] jump_label: Fix unaligned traps on sparc.
-Message-Id: <1288214420.18238.130.camel@gandalf.stny.rr.com>
+From: Daniel Hellstrom <daniel@gaisler.com>
+Date: Tue, 26 Oct 2010 17:55:31 +0000
+Subject: [PATCH] SPARC/LEON: removed constant timer initialization as if HZ=100, now it reflects the value of
+Message-Id: <1288115731-28803-1-git-send-email-daniel@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20101023.110624.226758370.davem@davemloft.net>
-In-Reply-To: <20101023.110624.226758370.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: jbaron@redhat.com, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Sat, 2010-10-23 at 11:06 -0700, David Miller wrote:
-> The vmlinux.lds.h knobs to emit the __jump_table section in the main
-> kernel image takes care to align the section, but this doesn't help
-> for the __jump_table section that gets emitted into modules.
-> 
-> Fix the resulting lack of section alignment by explicitly specifying
-> it in the assembler.
-> 
-> Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
+---
+ arch/sparc/kernel/leon_kernel.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-Thanks! I'll pull this in tonight with the other jump label patches.
-
-Unfortunately, it turns out that gcc has a bug that can cause crashes
-when jump label is used. We need to set it to broken until gcc has a fix
-and we can detect if the compiler has the bug or not.
-
--- Steve
-
-
-> 
-> diff --git a/arch/sparc/include/asm/jump_label.h b/arch/sparc/include/asm/jump_label.h
-> index 62e66d7..d95cf44 100644
-> --- a/arch/sparc/include/asm/jump_label.h
-> +++ b/arch/sparc/include/asm/jump_label.h
-> @@ -14,6 +14,7 @@
->  			 "nop\n\t"				\
->  			 "nop\n\t"				\
->  			 ".pushsection __jump_table,  \"a\"\n\t"\
-> +			 ".align 4\n\t"				\
->  			 ".word 1b, %l[" #label "], %c0\n\t"	\
->  			 ".popsection \n\t"			\
->  			 : :  "i" (key) :  : label);\
-
+diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
+index 6a7b4db..dcefd22 100644
+--- a/arch/sparc/kernel/leon_kernel.c
++++ b/arch/sparc/kernel/leon_kernel.c
+@@ -114,7 +114,7 @@ void __init leon_init_timers(irq_handler_t counter_fn)
+ 	if (leon3_gptimer_regs && leon3_irqctrl_regs) {
+ 		LEON3_BYPASS_STORE_PA(&leon3_gptimer_regs->e[0].val, 0);
+ 		LEON3_BYPASS_STORE_PA(&leon3_gptimer_regs->e[0].rld,
+-				      (((1000000 / 100) - 1)));
++				      (((1000000 / HZ) - 1)));
+ 		LEON3_BYPASS_STORE_PA(&leon3_gptimer_regs->e[0].ctrl, 0);
+ 
+ #ifdef CONFIG_SMP
+@@ -128,7 +128,7 @@ void __init leon_init_timers(irq_handler_t counter_fn)
+ 		}
+ 
+ 		LEON3_BYPASS_STORE_PA(&leon3_gptimer_regs->e[1].val, 0);
+-		LEON3_BYPASS_STORE_PA(&leon3_gptimer_regs->e[1].rld, (((1000000/100) - 1)));
++		LEON3_BYPASS_STORE_PA(&leon3_gptimer_regs->e[1].rld, (((1000000/HZ) - 1)));
+ 		LEON3_BYPASS_STORE_PA(&leon3_gptimer_regs->e[1].ctrl, 0);
+ # endif
+ 
+-- 
+1.5.4
 
