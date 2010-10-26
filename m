@@ -1,36 +1,37 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 26 Oct 2010 16:26:43 +0000
+Date: Tue, 26 Oct 2010 16:32:13 +0000
 Subject: Re: [PATCH] sparc32: make CONFIG_SPARC_LEON depends on !SMP to fix
-Message-Id: <20101026.092643.39179121.davem@davemloft.net>
+Message-Id: <20101026.093213.115933777.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1288108303-2712-1-git-send-email-namhyung@gmail.com>
-In-Reply-To: <1288108303-2712-1-git-send-email-namhyung@gmail.com>
+References: <20101026.085338.104057457.davem@davemloft.net>
+	<1288108960.1717.1.camel@leonhard>
+	<20101026.090428.189722351.davem@davemloft.net>
+In-Reply-To: <20101026.090428.189722351.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: namhyung@gmail.com
 Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Namhyung Kim <namhyung@gmail.com>
-Date: Wed, 27 Oct 2010 00:51:43 +0900
+From: David Miller <davem@davemloft.net>
+Date: Tue, 26 Oct 2010 09:04:28 -0700 (PDT)
 
-> diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-> index 4db8bc0..a6685ba 100644
-> --- a/arch/sparc/Kconfig
-> +++ b/arch/sparc/Kconfig
-> @@ -463,7 +463,7 @@ config SERIAL_CONSOLE
->  
->  config SPARC_LEON
->  	bool "Sparc Leon processor family"
-> -	depends on SPARC32
-> +	depends on SPARC32 && !SMP
->  	---help---
->  	  If you say Y here if you are running on a SPARC-LEON processor.
->  	  The LEON processor is a synthesizable VHDL model of the
-> -- 
+> From: Namhyung Kim <namhyung@gmail.com>
+> Date: Wed, 27 Oct 2010 01:02:40 +0900
+>=20
+>> 2010-10-26 (=C8=AD), 08:53 -0700, David Miller:
+>>> Great, I'll apply all three of your patches thanks.
+>>=20
+>> Thanks. BTW, can you please take a look below too?
+>>=20
+>> http://lkml.org/lkml/2010/10/25/13
+>=20
+> Sure.
 
-Upon further consideration, since not only do SMP leon chips exist,
-but people are posting real bug fixes for that configuration, I'll
-apply your original patch.
+I've applied this.
 
-Thanks!
+Please CC: sparclinux@vger.kernel.org on such patches next time, so
+that it gets into my patchwork queue and you don't need to ask me
+to go looking around in other places for your patches.
+
+Thanks.
