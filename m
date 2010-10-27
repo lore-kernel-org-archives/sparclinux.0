@@ -1,18 +1,25 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 29 Oct 2010 20:25:34 +0000
-Subject: Re: [PATCH] SPARC/LEON: removed constant timer initialization as
-Message-Id: <20101029.132534.59685431.davem@davemloft.net>
+From: "Dr. Robert William" <pascale.vial@noos.fr>
+Date: Wed, 27 Oct 2010 00:33:05 +0000
+Subject: Yours Faithfully
+Message-Id: <ea-mime-4cc77341-611-6ac86778@webmail.numericable.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1288115731-28803-1-git-send-email-daniel@gaisler.com>
-In-Reply-To: <1288115731-28803-1-git-send-email-daniel@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Tue, 26 Oct 2010 19:55:31 +0200
+Good News My Dear Friend,
+ 
+I'm happy to inform you about my success in getting those funds transferred under the co-operation of a new partner from Paraguay. Presently i'm in Paraguay for investment projects with my own share of the total sum. meanwhile,i didn't forget your past efforts and attempts to assist me in transferring those funds despite that it failed us some how.
+Now contact my secretary in Benin Republic
 
-> Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
+His name is Mr. Timothy Adams
+Phone Number: +229 97373889
+Email:  timothyadams90@gmail.com
+ 
+Please do let me know immediately you receive it so that we can share the joy after all the sufferings at that time. in the moment, I'm very busy here because of the investment projects which me and the new partner are having at hand, finally, remember that I had forwarded instruction to the secretary on your behalf to receive that money, so feel free to get in touch with Mr. Timothy Adams on timothyadams90@gmail.com, he will send the amount to you without any delay.
+ 
+Yours Faithfully
+Dr Robert William
 
-Applied, thanks Daniel.
+
