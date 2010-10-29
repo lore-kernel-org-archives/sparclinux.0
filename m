@@ -1,7 +1,7 @@
-From: Webmaster Help Desk Support <health@utgsu.ca>
-Date: Mon, 25 Oct 2010 18:02:17 +0000
+From: Webmaster Help Desk Support <info@webmaster.org>
+Date: Fri, 29 Oct 2010 20:29:48 +0000
 Subject: Technical Support
-Message-Id: <20101025140217.8xpz5ngs9w0kssos@webmail.utgsu.ca>
+Message-Id: <20101029162948.akjyh6nudc80g4ks@webmail.utgsu.ca>
 List-Id: <sparclinux.vger.kernel.org>
 References: <W564193425108981285156432@webmail69>
 In-Reply-To: <W564193425108981285156432@webmail69>
@@ -17,7 +17,7 @@ You will not be able to send or receive new mail until you boost your mailbox
 size.
 
 Click the below link and fill the form to upgrade your account.
-http://use.my/system-helpdeskdesk/
+http://use.my/helpdesk-supportwebmaster-ac-uk/
 
 Technical Support
 192.168.0.1
