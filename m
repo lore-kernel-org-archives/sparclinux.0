@@ -1,38 +1,52 @@
-From: Mr Jerry Ntai <skyplus@citechco.net>
-Date: Wed, 27 Oct 2010 03:36:51 +0000
-Subject: ***IMPORTANT NOTICE***
-Message-Id: <18619698.2391.1288150611175.JavaMail.root@pop3>
+From: "Hpuaf" <fucci_tj@yahoo.com.au>
+Date: Sun, 31 Oct 2010 01:58:31 +0000
+Subject: Vkp Mrwbhm
+Message-Id: <134277.81272.bm@smtp104.mail.gq1.yahoo.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-MR.JERRY NTAI. 
-MEVAS BANK
-QUEEN`S ROAD
-CENTRAL BRANCH, 
-HONG KONG.
-
-Good Day,
-
-Please kindly accept my apology for sending you this email without your consent. I believe you are a highly respected personality, considering the fact that I sourced your email from the peoples search database on the web during my descret search for a foreign partner whom can assist me in taking this business to it success. Though, I do not know to what extent you are familiar with events. I have a proposal for you.This however is not mandatory nor will I in any manner compel you to honor against your will, but I hope you will read on and consider the value I offer. 
-
-My name is Mr. Jerry Ntai, I am the Head of Operations in Mevas Bank, Hong Kong. I have a business proposal in the tune of US$25.2m  to be transferred to an offshore account with your assistance if willing.
-
-After the successful transfer, we shall share in ratio of 30% for you and 70% for me. Should you be interested, please 
-respond to my letter immediately, so we can commence all arrangements and I will give you more information on the project and 
-how we would handle it.
-
-You can contact me on my private email:(mrjerryntai72@yahoo.com.hk) and send me the following information for documentation 
-purpose:
-
-(1)Full name:
-(2)private phone number:
-(3)current residential address:
-(4)Occupation:
-(5)Age and Sex:
-
-I look forward to hearing from you.
-Kind Regards,
-Mr.Jerry Ntai.
-
+=A9=B0=A9=A4=A9=D0=A9=A4=A9=D0=A9=A4=A9=D0=A9=A4=A9=D0=A9=A4=A9=B4
+=A9=A6=CE=D2=A9=AA=D7=C9=A9=AA=D3=B5=A9=AA=B8=F7=A9=AA=C1=AA=A9=A6
+=A9=A6=CB=BE=A9=AA=D1=AF=A9=AA=D3=D0=A9=AA=D6=D6=A9=AA=CF=B5=A9=A6
+=A9=A6=CD=A8=A9=AA=BB=E1=A9=AA=BC=B8=A9=AA=C6=B1=A9=AA=C8=CB=A9=A6
+=A9=A6=B9=FD=A9=AA=CE=F1=A9=AA=CA=AE=A9=AA=BE=DD=A9=AA=A3=BA=A9=A6
+=A9=A6=B9=D8=A9=AA=B7=D1=A9=AA=BC=D2=A9=AA=BE=F9=A9=AA=C0=EE=A9=A6
+=A9=A6=CF=B5=A9=AA=A1=A2=A9=AA=B3=C7=A9=AA=BF=C9=A9=AA=BE=AD=A9=A6
+=A9=A6=BF=C9=A9=AA=BD=A8=A9=AA=CA=D0=A9=AA=C9=CF=A9=AA=C0=ED=A9=A6
+=A9=A6=D3=C5=A9=AA=D6=FE=A9=AA=B2=BB=A9=AA=CD=F8=A9=AA=A3=BA=A9=A6
+=A9=A6=BB=DD=A9=AA=D2=B5=A9=AA=CD=AC=A9=AA=B2=E9=A9=AA=A3=B1=A9=A6
+=A9=A6=B4=FA=A9=AA=B5=C8=A9=AA=D0=D0=A9=AA=D1=AF=A9=AA=A3=B3=A9=A6
+=A9=A6=BF=AA=A9=AA=C6=B1=A9=AA=D2=B5=A9=AA=BB=F2=A9=AA=A3=B2=A9=A6
+=A9=A6=B8=F7=A9=AA=A3=AC=A9=AA=B5=C4=A9=AA=B5=BD=A9=AA=A3=B6=A9=A6
+=A9=A6=C0=E0=A9=AA=B6=BC=A9=AA=BA=CF=A9=AA=CB=B0=A9=AA=A3=B6=A9=A6
+=A9=A6=B7=FE=A9=AA=BF=C9=A9=AA=D7=F7=A9=AA=CE=F1=A9=AA=A3=B5=A9=A6
+=A9=A6=CE=F1=A9=AA=D5=D2=A9=AA=B9=AB=A9=AA=D1=E9=A9=AA=A3=B6=A9=A6
+=A9=A6=D2=B5=A9=AA=B5=BD=A9=AA=CB=BE=A9=AA=D6=A4=A9=AA=A3=B5=A9=A6
+=A9=A6=BC=B0=A9=AA=B6=D4=A9=AA=A1=A3=A9=AA=BA=F3=A9=AA=A3=B5=A9=A6
+=A9=A6=C9=CC=A9=AA=BF=DA=A9=AA=A1=A1=A9=AA=B8=B6=A9=AA=A3=B5=A9=A6
+=A9=A6=D2=B5=A9=AA=B9=AB=A9=AA=A1=A1=A9=AA=BF=EE=A9=AA=A3=B8=A9=A6
+=A9=A6=B7=A2=A9=AA=CB=BE=A9=AA=A1=A1=A9=AA=A3=A1=A9=AA=A1=A1=A9=A6
+=A9=A6=C6=B1=A9=AA=BF=AA=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=A6
+=A9=A6=A3=AC=A9=AA=A3=BB=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=A6
+=A9=A6=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=A6
+=A9=A6=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=A6
+=A9=A6=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=A6
+=A9=A6=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=A6
+=A9=A6=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=A6
+=A9=A6=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=A6
+=A9=A6=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=A6
+=A9=A6=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=A6
+=A9=A6=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=A6
+=A9=A6=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=A6
+=A9=A6=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=A6
+=A9=A6=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=A6
+=A9=A6=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=AA=A1=A1=A9=A6
+=A9=B8=A9=A4=A9=D8=A9=A4=A9=D8=A9=A4=A9=D8=A9=A4=A9=D8=A9=A4=A9=BC
+=FF=F4=E8=BA{.n=C7+=89=B7=9F=AE=89=AD=86+%=8A=CB=FF=B1=E9=DD=B6=17=A5=8Aw=
+=FF=BA{.n=C7+=89=B7=AC=A5=AA=DC=96)=EE=C7=F8=A7=B6=17=9B=A1=DC=A8}=A9=9E=B2=
+=C6=A0z=DA&j:+v=89=A8=FE=F8=1E=AF=F9=1E=AEw=A5=FE=8A=E02=8A=DE=99=A8=E8=AD=
+=DA&=A2)=DF=A1=ABa=B6=DA=FF=FF=FB=E0z=BF=E4z=B9=DE=97=FA+=83=F9=9A=8E=8A=DD=
+=A2j=FF=8Aw=E8=FE=1Bf
