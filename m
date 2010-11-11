@@ -1,13 +1,14 @@
-From: "Gabriel kante" <gabkante1@gmail.com>
-Date: Sat, 06 Nov 2010 08:30:28 +0000
-Subject: hi
-Message-Id: <35b361b2fb653b80e63bcb30a8a6b3d2.squirrel@macmail.unitelsd.com>
+From: "Sueli Silva de Oliveira - Membro da Enfermagem" <suelio@hc.ufu.br>
+Date: Thu, 11 Nov 2010 18:26:15 +0000
+Subject: WESTERN UNION FUNDS COMPENSATION!!!
+Message-Id: <20101111181959.M70257@hc.ufu.br>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
 
-I write to seek your help in the retrieval sum funds from US Bank account
-belonging to my late Dad.
+Please be informed that you have $250,000.00 Lodged in our Western Union to 
+transfer to you as Compensation. Contact 
+Email: western.union0660@yahoo.com.hk
+
 
