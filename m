@@ -1,26 +1,28 @@
-From: Frans van Berckel <fberckel@xs4all.nl>
-Date: Sun, 28 Nov 2010 06:30:55 +0000
-Subject: Re: Linux 2.6.36-rc8 won't boot
-Message-Id: <1290925855.1887.9.camel@deblnxsrv222>
+From: Alex Buell <alex.buell@munted.org.uk>
+Date: Fri, 12 Nov 2010 23:23:26 +0000
+Subject: Re: XVR-500
+Message-Id: <1289604206.26034.53.camel@lithium>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LNX.2.01.1010151559250.28469@obet.zrqbmnf.qr>
-In-Reply-To: <alpine.LNX.2.01.1010151559250.28469@obet.zrqbmnf.qr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi Jan,
+On Fri, 2010-11-12 at 23:21 +0100, Frans van Berckel wrote:
+> On Fri, 2010-11-12 at 12:56 -0800, David Miller wrote:
+> > 
+> > There is zero public documentation on this chipset, so yes you will
+> > need to reverse engineer everything.  But you may look at the openbsd
+> > driver for some hints as they've already undertaken reverse
+> > engineering some of the chip variants.
+> 
+> Hi Alex,
+> 
+> If you are gonna reverse engineer it's good to know Martin Bochnig did
+> work as well on porting the video drivers into OpenSolaris/marTux.
+> 
+> The keywords are: Intense3D, 3Dlabs, Sun Expert 3D & Wildcat 4110.
 
-> I just compiled 2.6.36-rc8 and observe a hang on boot. My previous 
-> working version was 2.6.34-rc1/gcc 4.4.1, and I checked that gcc
-> isn't at fault by recompiling 2.6.34-rc1 with gcc 4.5.0 (it boots).
-
-Is there any progress to call om 2.6.36 on sparc64? What did you find
-out so far? Gonna checkout 2.6.34-rc1, because I am still on 2.6.26.
-
-Thanks,
-
-
-Frans van Berckel
-
+Thanks, most useful. 
+-- 
+Tactical Nuclear Kittens
