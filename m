@@ -1,37 +1,44 @@
-From: "MICROSOFT EMAIL PROMOTION" <information@microsoft.com>
-Date: Tue, 02 Nov 2010 06:38:28 +0000
-Subject: Congratulations - Promo Winner
-Message-Id: <57916.220.101.190.178.1288679908.squirrel@220.101.190.178>
+From: Frans van Berckel <fberckel@xs4all.nl>
+Date: Fri, 12 Nov 2010 21:11:34 +0000
+Subject: =?UTF-8?Q?=E2=80=9CSponsor=E2=80=9D?= needed for X sparc video
+Message-Id: <1289596294.1717.31.camel@deblnxsrv254>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
-Congratulations - Promo Winner
+A e-mail sent last month .. forwarding now to Sparclinux @ kernel list.
 
-The MICROSOFT EMAIL PROMO TEAM is glad to announce that
-after a successful completion of the PROMO DRAWS held on the
-1st November 2010, your e-mail address,attached to winning
-numbers:(11) (80) (12)(96) (09) (43) won in the Tenth
-lottery category.
+Thanks for supporting,
 
-You have therefore been approved to claim a total sum of
-=A3450,000,00 Pounds Sterling in cash credited to REF NO:MICRO-L/2009-END10.
+Frans van Berckel
 
-All participants were selected through our Microsoft computer
-ballot system drawn from 167,000 Names,as part of our
-International  "E-MAIL" Promotion Program for our prominent
-MS-WORD users all over the world and for the continuous use
-of the internet. You are advised to contact the claims
-processor with the details below via his e-mail address :
+To: 	debian-sparc@lists.debian.org
+Cc: 	debian-x@lists.debian.org
+On Sat, 2010-10-16 at 22:53 +0200, Cyril Brulebois wrote:
 
-NAME:  Glenn Bradley
-EMAIL: mrglenn_bradley01@yahoo.com.hk
+> Hi,
+> 
+> I don't have sparc hardware, so I can't build this bunch of sparc-only
+> X video drivers, and I'd be grateful if somebody could sponsor those
+> to experimental (as in: build && sign && upload) for me.
+> 
+> Packages:
+>   http://people.debian.org/~kibi/queue/xserver-xorg-video-suncg14_1.1.1-4.dsc
+>   http://people.debian.org/~kibi/queue/xserver-xorg-video-suncg3_1.1.1-4.dsc
+>   http://people.debian.org/~kibi/queue/xserver-xorg-video-suncg6_1.1.1-4.dsc
+>   http://people.debian.org/~kibi/queue/xserver-xorg-video-sunffb_1.2.1-3.dsc
+>   http://people.debian.org/~kibi/queue/xserver-xorg-video-sunleo_1.2.0-4.dsc
+>   http://people.debian.org/~kibi/queue/xserver-xorg-video-suntcx_1.1.1-4.dsc
+> 
+> Checksums:
+>   http://people.debian.org/~kibi/queue/SHA256SUM
+>   http://people.debian.org/~kibi/queue/SHA256SUM.sig
+> 
+> Thanks already!
+> 
+> Mraw,
+> KiBi.
 
-PLEASE NOTE YOU ARE TO SEND THE FOLLOWING INFORMATION TO CLAIM YOUR PRIZE:
-1.Full Name:... 2.Address:... 3.Phone:... 4.Country:... 5.Sex/Gender:...
-
-
-YOURS SINCERELY,
-RACHEL STEWART.
 
