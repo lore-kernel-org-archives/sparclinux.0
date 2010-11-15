@@ -1,45 +1,45 @@
-From: Daniel Smolik <marvin@mydatex.cz>
-Date: Sun, 21 Nov 2010 09:25:53 +0000
-Subject: Re: handover boot console problem
-Message-Id: <4CE8E5A1.1070303@mydatex.cz>
+From: Jan Engelhardt <jengelh@medozas.de>
+Date: Mon, 15 Nov 2010 21:46:19 +0000
+Subject: openpromfs: fix compile error
+Message-Id: <alpine.LNX.2.01.1011152245320.30823@obet.zrqbmnf.qr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4CE81804.3000909@mydatex.cz>
-In-Reply-To: <4CE81804.3000909@mydatex.cz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: sparclinux@vger.kernel.org
 
-David Miller napsal(a):
-> From: Daniel Smolik <marvin@mydatex.cz>
-> Date: Sat, 20 Nov 2010 19:48:36 +0100
-> 
->> Hi all,
->> I upgrade my old E250 with RSC console to 2.6.36 an found that there
->> is some broken with handover early console.
->  ...
->> I don't know why console is switched to tty0. With 2.6.26 console work
->> normaly.
-> 
-> Ten releases is hundreds of megabytes worth of changes, and thus
-> makes it difficult to track down the problem.
-> 
-> Can you try some releases in between to try and bisect this down to
-> something more specific?
-> 
-> Also make sure you do have all the necessary drivers and serial
-> console options enabled.
-> 
-> Thanks.
-Yes I can, I mean that problem starts betveen 2.6.26-2.6.32.
-Yes I use same config on 2.6.26 and 2.6.32 and 2.6.26 works.
+parent b3cfc0e84039db344d2e1c5ccf870ebec6b89af3 (v2.6.37-rc1-3-gb3cfc0e)
+commit 56a31331f7f834c41c4841d901ab9097d200b5de
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Mon Nov 15 22:38:16 2010 +0100
 
-Dan
+openpromfs: fix compile error
 
+Fix a compile error introduced by v2.6.37-rc1~44^2~23.
 
+  CC [M]  fs/openpromfs/inode.o
+fs/openpromfs/inode.c: In function ‘openprom_mount’:
+fs/openpromfs/inode.c:422:1: error: expected ‘;’ before ‘}’ token
+
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ fs/openpromfs/inode.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/fs/openpromfs/inode.c b/fs/openpromfs/inode.c
+index ddb1f41..911e61f 100644
+--- a/fs/openpromfs/inode.c
++++ b/fs/openpromfs/inode.c
+@@ -418,7 +418,7 @@ out_no_root:
+ static struct dentry *openprom_mount(struct file_system_type *fs_type,
+ 	int flags, const char *dev_name, void *data)
+ {
+-	return mount_single(fs_type, flags, data, openprom_fill_super)
++	return mount_single(fs_type, flags, data, openprom_fill_super);
+ }
+ 
+ static struct file_system_type openprom_fs_type = {
 -- 
-Mydatex s r.o.
-http://www.mydatex.cz
-email: smolik@mydatex.cz
-mob: 604200362
-tel: 226210085
+# Created with git-export-patch
+
