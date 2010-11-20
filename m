@@ -1,41 +1,51 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 16 Nov 2010 20:01:01 +0000
-Subject: Re: [PATCH] sparc64: Netra AX1105 loses console output while
-Message-Id: <20101116.120101.15223441.davem@davemloft.net>
+From: Daniel Smolik <marvin@mydatex.cz>
+Date: Sat, 20 Nov 2010 18:48:36 +0000
+Subject: handover boot console problem
+Message-Id: <4CE81804.3000909@mydatex.cz>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20101107132051.GE19881@here>
-In-Reply-To: <20101107132051.GE19881@here>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-From: Adrien Mazarguil <maz@p0d.org>
-Date: Sun, 7 Nov 2010 14:20:51 +0100
+Hi all,
+I upgrade my old E250 with RSC console to 2.6.36 an found that there is som=
+e broken with handover early console.
 
-> While trying recent kernels on a Sun Netra AX1105 board, I noticed that the
-> boot process stopped before init had a chance to run. Using git bisect, I
-> narrowed this regression down to that commit:
- ...
-> On this board, the new prom_nbputchar() fails at some point in the boot
-> process and no subsequent output is shown. Using either the older function
-> in place of this one or a static buffer solve that issue. This seems related
-> to this paragraph in the above commit log:
-...
-> Looks like it is still required by older boards, or maybe something else
-> needs to be fixed? This is strange because everything works fine until the
-> first call to schedule() just before the last assembly part of switch_to()
-> macro.
+PERCPU: Embedded 6 pages/cpu @fffff80001400000 s18432 r8192 d22528 u4194304
+pcpu-alloc: s18432 r8192 d22528 u4194304 alloc=3D1*4194304
+pcpu-alloc: [0] 0
+Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 64848
+Kernel command line: root=3D/dev/sda1 ro devfs=3Dnomount elevator=CFq sym53=
+c8xx.hostid=3D6
+PID hash table entries: 2048 (order: 1, 16384 bytes)
+Dentry cache hash table entries: 65536 (order: 6, 524288 bytes)
+Inode-cache hash table entries: 32768 (order: 5, 262144 bytes)
+Memory: 508200k available (3184k kernel code, 1208k data, 232k init) [fffff=
+80000000000,000000001feb0000]
+SLUB: Genslabs=14, HWalign2, Order=3D0-3, MinObjects=3D0, CPUs=3D1, Nodes=
+=3D1
+Hierarchical RCU implementation.
+	CONFIG_RCU_FANOUT set to non-default value of 32
+	RCU-based detection of stalled CPUs is disabled.
+	Verbose stalled-CPUs detection is disabled.
+NR_IRQS:255
+clocksource: mult[a0000000] shift[30]
+clockevent: mult[66666666] shift[32]
+Console: colour dummy device 80x25
+console [tty0] enabled, bootconsole disabled
+I am connected to remote RSC console. This is last message. In OBP have inp=
+ut and output set to rsc.
+I don't know why console is switched to tty0. With 2.6.26 console work norm=
+aly.
 
-Thanks for tracking down this problem.
+Regards
+	Dan
 
-The real issue is that on older boards, passing larger than 32-bit
-addresses to prom calls (generally) doesn't work correctly.
 
-That's why using a static variable instead of a kernel stack variable
-fixes the problem.
-
-This is a larger can of worms than just these two console I/O
-routines, let me do the audit and I'll give you a patch to test.
-
-Thanks!
+--=20
+Mydatex s r.o.
+http://www.mydatex.cz
+email: smolik@mydatex.cz
+mob: 604200362
+tel: 226210085
