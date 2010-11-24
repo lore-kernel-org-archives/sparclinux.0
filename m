@@ -1,14 +1,25 @@
-From: "Sueli Silva de Oliveira - Membro da Enfermagem" <suelio@hc.ufu.br>
-Date: Thu, 11 Nov 2010 18:26:15 +0000
-Subject: WESTERN UNION FUNDS COMPENSATION!!!
-Message-Id: <20101111181959.M70257@hc.ufu.br>
+From: "UNITED NATIONS TRUST FUND" <danilovici@t-com.me>
+Date: Wed, 24 Nov 2010 22:29:14 +0000
+Subject: YOU HAVE WON $650,500.00usd....
+Message-Id: <129063775982432572@mxnode-2-21>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
-Please be informed that you have $250,000.00 Lodged in our Western Union to 
-transfer to you as Compensation. Contact 
-Email: western.union0660@yahoo.com.hk
+A lump sum of  ($650,500.00usd)  has been credited to your E-mail  Address.Congrats...
+Confirm this receipt by contacting Mr. Ali Abdul. 
+on redeemofficer@aol.com
+Tel: +60143417081
+Name:___ 
+Address:___ 
+Age:___ 
+Sex:___ 
+Telephone____
+Occupation:___ 
+Country__ 
 
-
+Sincerely, 
+Regards,
+Mr Ali Abdul.
