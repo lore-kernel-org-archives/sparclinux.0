@@ -1,56 +1,106 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 30 Dec 2010 20:56:12 +0000
-Subject: sparc32 and GCC - build and boot failures
-Message-Id: <20101230205612.GA12356@merkur.ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Fri, 03 Dec 2010 18:41:01 +0000
+Subject: [PATCH 6/9] sparc: Do not export prom_nb{get,put}char().
+Message-Id: <20101203.104101.68123711.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-In the need for updated toolchains for sparc and sparc64 I
-have started adding support for sparc in crosstool-ng[*].
 
-In this process I have tested several gcc versions.
-I tried to build for and test a kernel on my sparc classic box (32 bit).
+Never used outside of console_{32,64}.c
 
-gcc version      Result
-4.4.1            OK  (kernel builds and the final kernel can boot)
-4.4.2            Not tested
-4.4.3            Not tested
-4.4.4            BAD (Kernel can build but fails during boot)
-4.4.5            BAD (Kernel can build but fails during boot)
-4.5.1            BAD (Build fails with a spill related ICE - http://gcc.gnu.org/bugzilla/show_bug.cgi?id5664)
-4.5.2            OK  (kernel builds and boots)
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/include/asm/oplib_32.h |    6 ------
+ arch/sparc/include/asm/oplib_64.h |    6 ------
+ arch/sparc/prom/console_32.c      |    6 ++----
+ arch/sparc/prom/console_64.c      |    6 ++----
+ 4 files changed, 4 insertions(+), 20 deletions(-)
 
-This is all provided for information only in case others
-decides to play with recent gcc versions on sparc (32 bit).
+diff --git a/arch/sparc/include/asm/oplib_32.h b/arch/sparc/include/asm/oplib_32.h
+index 1d893fa..49fe426 100644
+--- a/arch/sparc/include/asm/oplib_32.h
++++ b/arch/sparc/include/asm/oplib_32.h
+@@ -104,12 +104,6 @@ extern int prom_getprev(void);
+ 
+ /* Character operations to/from the console.... */
+ 
+-/* Non-blocking get character from console. */
+-extern int prom_nbgetchar(void);
+-
+-/* Non-blocking put character to console. */
+-extern int prom_nbputchar(char character);
+-
+ /* Blocking get character from console. */
+ extern char prom_getchar(void);
+ 
+diff --git a/arch/sparc/include/asm/oplib_64.h b/arch/sparc/include/asm/oplib_64.h
+index 56985e3..d541de4 100644
+--- a/arch/sparc/include/asm/oplib_64.h
++++ b/arch/sparc/include/asm/oplib_64.h
+@@ -96,12 +96,6 @@ extern unsigned char prom_get_idprom(char *idp_buffer, int idpbuf_size);
+ 
+ /* Character operations to/from the console.... */
+ 
+-/* Non-blocking get character from console. */
+-extern int prom_nbgetchar(void);
+-
+-/* Non-blocking put character to console. */
+-extern int prom_nbputchar(char character);
+-
+ /* Blocking get character from console. */
+ extern char prom_getchar(void);
+ 
+diff --git a/arch/sparc/prom/console_32.c b/arch/sparc/prom/console_32.c
+index 5340264..2ce5acb 100644
+--- a/arch/sparc/prom/console_32.c
++++ b/arch/sparc/prom/console_32.c
+@@ -19,8 +19,7 @@ extern void restore_current(void);
+ /* Non blocking get character from console input device, returns -1
+  * if no input was taken.  This can be used for polling.
+  */
+-int
+-prom_nbgetchar(void)
++static int prom_nbgetchar(void)
+ {
+ 	static char inc;
+ 	int i = -1;
+@@ -51,8 +50,7 @@ prom_nbgetchar(void)
+ /* Non blocking put character to console device, returns -1 if
+  * unsuccessful.
+  */
+-int
+-prom_nbputchar(char c)
++static int prom_nbputchar(char c)
+ {
+ 	static char outc;
+ 	unsigned long flags;
+diff --git a/arch/sparc/prom/console_64.c b/arch/sparc/prom/console_64.c
+index de67fc7..33a8b27 100644
+--- a/arch/sparc/prom/console_64.c
++++ b/arch/sparc/prom/console_64.c
+@@ -18,8 +18,7 @@ extern int prom_stdin, prom_stdout;
+ /* Non blocking get character from console input device, returns -1
+  * if no input was taken.  This can be used for polling.
+  */
+-inline int
+-prom_nbgetchar(void)
++static int prom_nbgetchar(void)
+ {
+ 	unsigned long args[7];
+ 	char inc;
+@@ -42,8 +41,7 @@ prom_nbgetchar(void)
+ /* Non blocking put character to console device, returns -1 if
+  * unsuccessful.
+  */
+-inline int
+-prom_nbputchar(char c)
++static int prom_nbputchar(char c)
+ {
+ 	unsigned long args[7];
+ 	char outc;
+-- 
+1.7.3.2
 
-
-The boot failure I see manifest itself like this in the boot log:
-
-Freeing initrd memory: 4108k freed
-BUG: Bad page state in process swapper  pfn:0037a
-page:f09ad7a0 count:0 mapcount:0 mapping:  (null) index:0x0
-page flags: 0x80000(buddy)
-[f006b918 : free_hot_cold_page+0x18/0x1cc ]
-[f001d614 : free_initrd_mem+0x9c/0xd0 ]
-...
-And later it hangs with "rcu_sched_state detected stall on CPU 0 (t000 jiffies)
-
-I have not tried to track down the cause of the boot failure.
-A quick search did not reveal any gcc bugzilla entry.
-
-
-[*] I tried to build a toolchain manually but I never found a
-decent HOWTO - so gave up and went for crosstool-ng.
-Adding sparc support to crosstool-ng also helps much
-more people than a random howto somewhere on the net.
-
-I will announce it on this list when crosstol-ng
-has sparc support included.
-
-See http://ymorin.is-a-geek.org/projects/crosstool
-for more info on crosstool-ng.
-
-	Sam
