@@ -1,44 +1,48 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 31 Dec 2010 09:39:36 +0000
-Subject: [PATCH] sparc: use trapbase in setup_arch
-Message-Id: <1293788379-32709-2-git-send-email-sam@ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Fri, 03 Dec 2010 18:40:55 +0000
+Subject: [PATCH 4/9] sparc64: Unexport prom_service_exists().
+Message-Id: <20101203.104055.233708672.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-start and trapbase point to the same address.
-But using start to assing to sparc_ttable looked confusing.
 
-Replace this with the use of trapbase.
+Only used by functions in misc_64.c so make it private
+to that file.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/kernel/setup_32.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+ arch/sparc/include/asm/oplib_64.h |    1 -
+ arch/sparc/prom/misc_64.c         |    2 +-
+ 2 files changed, 1 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/kernel/setup_32.c b/arch/sparc/kernel/setup_32.c
-index b22ce61..648f216 100644
---- a/arch/sparc/kernel/setup_32.c
-+++ b/arch/sparc/kernel/setup_32.c
-@@ -185,7 +185,6 @@ static void __init boot_flags_init(char *commands)
+diff --git a/arch/sparc/include/asm/oplib_64.h b/arch/sparc/include/asm/oplib_64.h
+index 8441d1a..daf02d3 100644
+--- a/arch/sparc/include/asm/oplib_64.h
++++ b/arch/sparc/include/asm/oplib_64.h
+@@ -259,7 +259,6 @@ extern int prom_setprop(phandle node, const char *prop_name, char *prop_value,
+ 			int value_size);
  
- extern void sun4c_probe_vac(void);
- extern char cputypval;
--extern unsigned long start, end;
+ extern phandle prom_inst2pkg(int);
+-extern int prom_service_exists(const char *service_name);
+ extern void prom_sun4v_guest_soft_state(void);
  
- extern unsigned short root_flags;
- extern unsigned short root_dev;
-@@ -210,7 +209,7 @@ void __init setup_arch(char **cmdline_p)
- 	int i;
- 	unsigned long highest_paddr;
+ extern int prom_ihandle2path(int handle, char *buffer, int bufsize);
+diff --git a/arch/sparc/prom/misc_64.c b/arch/sparc/prom/misc_64.c
+index d24bc44..b900fdf 100644
+--- a/arch/sparc/prom/misc_64.c
++++ b/arch/sparc/prom/misc_64.c
+@@ -18,7 +18,7 @@
+ #include <asm/system.h>
+ #include <asm/ldc.h>
  
--	sparc_ttable = (struct tt_entry *) &start;
-+	sparc_ttable = (struct tt_entry *) &trapbase;
+-int prom_service_exists(const char *service_name)
++static int prom_service_exists(const char *service_name)
+ {
+ 	unsigned long args[5];
  
- 	/* Initialize PROM console and command line. */
- 	*cmdline_p = prom_getbootargs();
 -- 
-1.6.0.6
+1.7.3.2
 
