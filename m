@@ -1,8 +1,10 @@
-From: Julian Calaby <jcalaby@julian.is-a-geek.org>
-Date: Sat, 04 Dec 2010 03:55:50 +0000
+From: Julian Calaby <julian.calaby@gmail.com>
+Date: Sat, 04 Dec 2010 03:56:45 +0000
 Subject: [RFC 1/8] sparc: prom: Sanitize return value from prom_nbputchar()
-Message-Id: <4CF9BBC6.3080809@julian.is-a-geek.org>
+Message-Id: <4CF9BBFD.70503@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <4CF9BBC6.3080809@julian.is-a-geek.org>
+In-Reply-To: <4CF9BBC6.3080809@julian.is-a-geek.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -10,6 +12,9 @@ To: sparclinux@vger.kernel.org
 
 Signed-off-by: Julian Calaby <julian.calaby@gmail.com>
 ---
+
+Sorry about the dupe, wrong from address.
+
  arch/sparc/prom/console_32.c |    7 ++++---
  1 files changed, 4 insertions(+), 3 deletions(-)
 
@@ -43,7 +48,3 @@ index 4886310..b05e3db 100644
  			continue;
  		len--;
  		buf++;
--- 
-1.7.2.3
-
-
