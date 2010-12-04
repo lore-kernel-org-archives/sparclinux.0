@@ -1,47 +1,28 @@
 From: Julian Calaby <julian.calaby@gmail.com>
-Date: Sun, 12 Dec 2010 23:09:55 +0000
-Subject: Re: [RFC 5/8] sparc: prom: Merge console_*.c into printf.c
-Message-Id: <AANLkTi=bOdZbvL1ux7g6r2RnMXL7UCAqJVkx1BDVjay5@mail.gmail.com>
+Date: Sat, 04 Dec 2010 03:59:43 +0000
+Subject: [RFC 8/8] sparc: prom: Update DaveM's email address
+Message-Id: <4CF9BCAF.8090606@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4CF9BC3B.10306@gmail.com>
-In-Reply-To: <4CF9BC3B.10306@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Mon, Dec 13, 2010 at 09:46, David Miller <davem@davemloft.net> wrote:
-> From: Julian Calaby <julian.calaby@gmail.com>
-> Date: Sat, 04 Dec 2010 14:57:47 +1100
->
->> prom_console_write_buf() is only used in prom/printf.c, so as it's
->> the only remaining function in console_*.c, let's merge console_*.c
->> into printf.c.
->>
->> We'll also rename prom_nbputchar() to __prom_console_write_buf()
->> and merge the definitions of prom_console_write_buf() as they're
->> identical.
->>
->> Signed-off-by: Julian Calaby <julian.calaby@gmail.com>
->
-> This doesn't make sense.
->
-> The whole idea is that when there is a 32-bit and 64-bit implementation
-> of the same interface, we have foo_32.c and foo_64.c to implement
-> them which is exactly what is happening here.
+Signed-off-by: Julian Calaby <julian.calaby@gmail.com>
+---
+ arch/sparc/prom/printf.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Fair enough.
-
-The reason for these changes were that I feel that having two files
-for one function is a little excessive - hence this move.
-
-But that said, #ifdefs are also evil.
-
-Thanks,
-
--- 
-Julian Calaby
-
-Email: julian.calaby@gmail.com
-Profile: http://www.google.com/profiles/julian.calaby/
-.Plan: http://sites.google.com/site/juliancalaby/
+diff --git a/arch/sparc/prom/printf.c b/arch/sparc/prom/printf.c
+index 187e2fa..1901e5f 100644
+--- a/arch/sparc/prom/printf.c
++++ b/arch/sparc/prom/printf.c
+@@ -1,7 +1,7 @@
+ /*
+  * printf.c:  Internal prom library printf facility.
+  *
+- * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)
++ * Copyright (C) 1995 David S. Miller (davem@davemloft.net)
+  * Copyright (C) 1996,1997 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
+  * Copyright (c) 1998,2002 Pete Zaitcev (zaitcev@yahoo.com)
+  *
