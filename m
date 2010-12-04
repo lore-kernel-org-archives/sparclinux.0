@@ -1,25 +1,41 @@
-From: Dshmulik <khairulanuar@kppk.gov.my>
-Date: Sun, 07 Nov 2010 06:16:28 +0000
-Subject: Urgent Enquiry
-Message-Id: <24466569.124951289110588997.JavaMail.root@jati.kppk.gov.my>
+From: Julian Calaby <julian.calaby@gmail.com>
+Date: Sat, 04 Dec 2010 03:55:24 +0000
+Subject: [RFC 0/8] prom/console cleanups
+Message-Id: <4CF9BBAC.4070407@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-I have 95 kg of Switz refined gold, 99.99(24 karat).
+Dave,
 
-Should you be interested to buy it, please reply me for more and better arrangement on the method of transaction;
+After having a good poke around in the patches you sent to address the PROM call regressions, I saw a few places where some files could be cleaned up and dropped.
 
-I will offer you cheaper than the international gold price. 
+These haven't even been compile tested as I currently lack the equipment - hence the RFC tags, however they're a few obvious changes and moving some code so they *should* be safe. ..... er scratch that. Test them, please?
 
-If we can develop a certain level of trust between us, I will consider letting you lift it to your country and sell, then pay me based on the price we will agree on as I am only interested to sell it to a capable client instead of selling per kilo.
+Oh, and I hope this doesn't increase your workload any =)
 
-Please get back to me. 
+Thanks,
 
--- 
-This message has been scanned for viruses and
-dangerous content by MailScanner, and is
-believed to be clean.
+Julian Calaby
 
+Julian Calaby (8):
+  sparc: prom: Sanitize return value from prom_nbputchar()
+  sparc: prom: Use the return value from prom_nbputchar()
+  sparc: prom: Use n instead of len to decrement buf
+  sparc: prom: Remove unused definition of prom_stdin
+  sparc: prom: Merge console_*.c into printf.c
+  sparc: oplib: Remove prom_console_write_buf() definition
+  sparc: prom: Make prom_console_write_buf() static
+  sparc: prom: Update DaveM's email address
+
+ arch/sparc/include/asm/oplib_32.h |    3 --
+ arch/sparc/include/asm/oplib_64.h |    3 --
+ arch/sparc/prom/Makefile          |    1 -
+ arch/sparc/prom/console_32.c      |   56 ----------------------------
+ arch/sparc/prom/console_64.c      |   48 ------------------------
+ arch/sparc/prom/printf.c          |   73 +++++++++++++++++++++++++++++++++++--
+ 6 files changed, 70 insertions(+), 114 deletions(-)
+ delete mode 100644 arch/sparc/prom/console_32.c
+ delete mode 100644 arch/sparc/prom/console_64.c
