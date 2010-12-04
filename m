@@ -1,52 +1,47 @@
 From: Julian Calaby <julian.calaby@gmail.com>
-Date: Mon, 27 Dec 2010 11:04:52 +0000
-Subject: Re: Bleeding edge kernel booted on SPARC Classic (32bit/sun4m/v8/50Mhz/96MB
-Message-Id: <AANLkTinSVd7Gqfhq-4okqR61XCKQv7EmJxy=5AaV0gd9@mail.gmail.com>
+Date: Sat, 04 Dec 2010 03:58:05 +0000
+Subject: [RFC 6/8] sparc: oplib: Remove prom_console_write_buf() definition
+Message-Id: <4CF9BC4D.3020605@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20101227084057.GA31211@merkur.ravnborg.org>
-In-Reply-To: <20101227084057.GA31211@merkur.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Mon, Dec 27, 2010 at 19:40, Sam Ravnborg <sam@ravnborg.org> wrote:
-> Some time ago I brought a SPARC Classic on ebay and
-> this holiday I found some time to play around with it.
+Remove prom_console_write_buf() defs as they are not used anywhere
+within the kernel tree.
 
-Snap! I have a SS LX, which is essentially a classic called "LX".
+Signed-off-by: Julian Calaby <julian.calaby@gmail.com>
+---
+ arch/sparc/include/asm/oplib_32.h |    3 ---
+ arch/sparc/include/asm/oplib_64.h |    3 ---
+ 2 files changed, 0 insertions(+), 6 deletions(-)
 
-> I got the bleeding edge kernel booting on the box
-> and no hicups in the process.
-> [Lots of smaller issues getting netboot working etc.
-> but thats another story].
-
-Good work!
-
-I'm having trouble getting my box to even netboot - the last time I
-tried it (years ago) it wouldn't attempt to either net or disk boot.
-
-> For now it is net booted and runs Linux only in a small
-> RAM disk. I want to keep Solaris around until I have
-> captued relevant info (prtconf etc).
->
-> I have used buildroot as the base and userspace is
-> only busybox for now - as it fits in my RAM disk.
-
-I'll give this a go with my SS10s when I get them out next, and see what's what.
-
-> I will try with regular intervals to boot bleeding edge
-> kernels on this box to catch any regressions.
-> I can assist in minimal testing of SPARC32 stuff,
-> so just let me know if there is anything to look at.
-
-If I can get it all running, I'll do the same.
-
-Thanks,
-
--- 
-Julian Calaby
-
-Email: julian.calaby@gmail.com
-Profile: http://www.google.com/profiles/julian.calaby/
-.Plan: http://sites.google.com/site/juliancalaby/
+diff --git a/arch/sparc/include/asm/oplib_32.h b/arch/sparc/include/asm/oplib_32.h
+index 9e5c640..24952ba 100644
+--- a/arch/sparc/include/asm/oplib_32.h
++++ b/arch/sparc/include/asm/oplib_32.h
+@@ -102,9 +102,6 @@ extern int prom_getrev(void);
+ /* Get the prom firmware revision. */
+ extern int prom_getprev(void);
+ 
+-/* Write a buffer of characters to the console. */
+-extern void prom_console_write_buf(const char *buf, int len);
+-
+ /* Prom's internal routines, don't use in kernel/boot code. */
+ extern void prom_printf(const char *fmt, ...);
+ extern void prom_write(const char *buf, unsigned int len);
+diff --git a/arch/sparc/include/asm/oplib_64.h b/arch/sparc/include/asm/oplib_64.h
+index 8cd0df3..37cf9f7 100644
+--- a/arch/sparc/include/asm/oplib_64.h
++++ b/arch/sparc/include/asm/oplib_64.h
+@@ -94,9 +94,6 @@ extern void prom_halt_power_off(void) __attribute__ ((noreturn));
+  */
+ extern unsigned char prom_get_idprom(char *idp_buffer, int idpbuf_size);
+ 
+-/* Write a buffer of characters to the console. */
+-extern void prom_console_write_buf(const char *buf, int len);
+-
+ /* Prom's internal routines, don't use in kernel/boot code. */
+ extern void prom_printf(const char *fmt, ...);
+ extern void prom_write(const char *buf, unsigned int len);
