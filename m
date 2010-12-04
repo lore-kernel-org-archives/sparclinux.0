@@ -1,32 +1,37 @@
-From: "RED DOT COMPANY" <info@reddot.com>
-Date: Tue, 14 Dec 2010 16:12:20 +0000
-Subject: 
-Message-Id: <3090.83.229.4.228.1292343140.squirrel@webmail.fimm.com.ar>
+From: Tetsuya Koike <info@maillondon.co.uk>
+Date: Sat, 04 Dec 2010 14:55:58 +0000
+Subject: Re Your Urgent Response
+Message-Id: <20101204145558.306957z3gqcmmx0k@webmail.lapo-nigeria.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-We are happy to notify you that your e-mail address was selected which won
-you 600,000 Dollars in our on-going 2010 award presentation,
 
-To file for the claim of this award money you are
-therefore advice to reply back with your
 
-Name....
-Address....
-Occupation....
-Contact number.......
-Age...
+Mr. Tetsuya Koike
+Chiba Bank Ltd
+3rd Floor, Atlas House 1 King Street,
+London EC2V 8AU,
+U.K.
 
-Upon your response you will be updated with more information on
-the claim.feel free to call us on the number below.
-+2348091425514
+Dear Friend,
+
+I am Mr. Tetsuya Koike the Manager, Branch Support Division of Chiba =20
+Bank Ltd of 3rd Floor, Atlas House 1 King Street, London EC2V 8AU, U.K.
+
+I have a very confidential business proposition with you; I will need =20
+you to execute a project on behalf of my late client which amount to =20
+GBP=A325 MILLION POUNDS in my bank. Please, indicate your interest to =20
+enable me furnish you with full detail of this transaction.
+
+Your urgent response will highly Appreciated and Provide Me with the =20
+following;
+1. Full Name
+2. Your Telephone Number and Fax Number
+3. Your Contact Address.
 
 Regards
-Dr. Peter Zec (Red Dot).
-
-
-
-
+Mr. Tetsuya Koike.
 
