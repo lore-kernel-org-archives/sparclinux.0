@@ -1,30 +1,32 @@
-From: Julian Calaby <julian.calaby@gmail.com>
-Date: Sun, 12 Dec 2010 23:17:39 +0000
-Subject: Re: [PATCH] sparc: Eliminate prom_stdin.
-Message-Id: <AANLkTi=HwQUYJqhv5rjXNPfHRYbS8ddtDF=2fZo9-E21@mail.gmail.com>
+From: Julian Calaby <jcalaby@julian.is-a-geek.org>
+Date: Sat, 04 Dec 2010 03:57:34 +0000
+Subject: [RFC 4/8] sparc: prom: Remove unused definition of prom_stdin
+Message-Id: <4CF9BC2E.9050300@julian.is-a-geek.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20101212.145810.232741904.davem@davemloft.net>
-In-Reply-To: <20101212.145810.232741904.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Mon, Dec 13, 2010 at 09:58, David Miller <davem@davemloft.net> wrote:
->
-> Completely unused.
->
-> Based upon a patch by Julian Calaby.
->
-> Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Julian Calaby <julian.calaby@gmail.com>
+---
+ arch/sparc/prom/console_64.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Looks good!
-
-Thanks,
-
+diff --git a/arch/sparc/prom/console_64.c b/arch/sparc/prom/console_64.c
+index d4eb8ae..d66b98c 100644
+--- a/arch/sparc/prom/console_64.c
++++ b/arch/sparc/prom/console_64.c
+@@ -13,7 +13,7 @@
+ #include <asm/system.h>
+ #include <linux/string.h>
+ 
+-extern int prom_stdin, prom_stdout;
++extern int prom_stdout;
+ 
+ static int __prom_console_write_buf(const char *buf, int len)
+ {
 -- 
-Julian Calaby
+1.7.2.3
 
-Email: julian.calaby@gmail.com
-Profile: http://www.google.com/profiles/julian.calaby/
-.Plan: http://sites.google.com/site/juliancalaby/
+
