@@ -1,13 +1,32 @@
-From: "COCOCOLA BOTTLING COMPANY" <info@systemadminitrator.com>
-Date: Sun, 19 Dec 2010 21:12:50 +0000
-Subject: Celebrate!
-Message-Id: <672546.7865.qm@smtp111.biz.mail.sp1.yahoo.com>
+From: "RED DOT COMPANY" <info@reddot.com>
+Date: Tue, 14 Dec 2010 16:12:20 +0000
+Subject: 
+Message-Id: <3090.83.229.4.228.1292343140.squirrel@webmail.fimm.com.ar>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
 
-Celebrate! you have just won three hundred thousand British pounds,
-(300,000) in ongoing United Kingdom COCACOLA PROMO.
-Email: to cocacola1913@live.com and wait for claim info.
+We are happy to notify you that your e-mail address was selected which won
+you 600,000 Dollars in our on-going 2010 award presentation,
+
+To file for the claim of this award money you are
+therefore advice to reply back with your
+
+Name....
+Address....
+Occupation....
+Contact number.......
+Age...
+
+Upon your response you will be updated with more information on
+the claim.feel free to call us on the number below.
++2348091425514
+
+Regards
+Dr. Peter Zec (Red Dot).
+
+
+
+
+
