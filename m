@@ -1,7 +1,7 @@
-From: Alex Buell <alex.buell@munted.org.uk>
-Date: Wed, 22 Dec 2010 20:23:56 +0000
+From: David Miller <davem@davemloft.net>
+Date: Wed, 22 Dec 2010 22:28:41 +0000
 Subject: Re: SPARC32 SMP IRQ15 question
-Message-Id: <1293049436.12085.3.camel@lithium>
+Message-Id: <20101222.142841.59678110.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4D0A2102.8030100@gaisler.com>
 In-Reply-To: <4D0A2102.8030100@gaisler.com>
@@ -10,20 +10,14 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Wed, 2010-12-22 at 11:53 -0800, David Miller wrote:
-> > Rather than specialising it for LEON, why not just test for CASA
-> > availability and use it if it available?
-> 
-> Run time detection of this is going to really be terrible.
-> 
-> Lots of cmpxchg() uses are inline, and we'll have to implement
-> it out-of-line and patch the call instructions dynamically.
-> 
-> LEON is the only chip that can do the instruction and we already
-> do a special LEON specific build. 
+From: Daniel Hellstrom <daniel@gaisler.com>
+Date: Wed, 22 Dec 2010 14:23:27 +0100
 
-Inlines do save a lot of time, so I guess you're right there's no point.
-But I think changing the way IRQ15/IRQ14 interrupt works could be an
-extra bonus. 
--- 
-Tactical Nuclear Kittens
+> I will try to create a patch for the atomic layer for SMP LEON systems
+> since they have the CASA instruction.
+
+But see my other posting, you still have to fix the irq15 problem.
+
+Merely switching to CASA doesn't mean you don't still have a problem
+because spin_lock_irqsave() and other similar pieces of code expect
+they will not be interrupted by smp_call_function() calls.
