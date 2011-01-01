@@ -1,54 +1,69 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 02 Jan 2011 15:50:15 +0000
-Subject: Re: [PATCH 7/9] sparc: use piggyback_32 for sparc64
-Message-Id: <20110102155014.GA21411@merkur.ravnborg.org>
+Date: Sat, 01 Jan 2011 21:00:32 +0000
+Subject: [PATCH 9/9] sparc: unify strip command in boot/Makefile
+Message-Id: <1293915632-4596-9-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1293915632-4596-7-git-send-email-sam@ravnborg.org>
-In-Reply-To: <1293915632-4596-7-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sun, Jan 02, 2011 at 01:54:28AM +0100, Josip Rodin wrote:
-> On Sun, Jan 02, 2011 at 12:48:35AM +0100, Sam Ravnborg wrote:
-> > On Sun, Jan 02, 2011 at 12:29:17AM +0100, Josip Rodin wrote:
-> > > On Sat, Jan 01, 2011 at 10:00:30PM +0100, Sam Ravnborg wrote:
-> > > > +		for (i = 0; i < LOOKBACK; ++i) {
-> > > > +			if (buffer[i + 0] = 'H' && buffer[i + 1] = 'd' &&
-> > > > +			    buffer[i + 2] = 'r' && buffer[i + 3] = 'S') {
-> > > > +				return offset + i;
-> > > > +			}
-> > > > +		}
-> > > 
-> > > > -	for (q = buffer, r = q + 512; q < r; q += 4) {
-> > > > -		if (*q = 'H' && q[1] = 'd' && q[2] = 'r' && q[3] = 'S')
-> > > > -			break;
-> > > > -	}
-> > > 
-> > > BTW, while the new code is eminently more readable in general, is there
-> > > a reason to slow down that search by using increments of 1 instead of 4?
-> > > Did the old one ever miss?
-> > 
-> > I used increment by 1 because there was nothing in head_32/_64 comments
-> > that guaranteed that "HdrS" would be on a 4-byte aligned address.
-> > [The actual implmentation guarantees this today].
-> > 
-> > I had two options:
-> > - use increment by one
-> > - use increment by 4 and explain why it was safe to do so
-> > 
-> > And I just picked the simpler variant.
-> > 
-> > So I do not fix any know issue - just playing safe.
-> > And speed does not matter here....
-> 
-> OK, just thought you might want to document that, given all the discussion
-> about arcane code. (Thanks.) I would actually hesitate from calling this one
-> the simpler variant, because making as few changes as possible compared to
-> the old code usually makes a refactoring simpler to debug if the need arises :)
+Include an additional "Kernel is ready" print for zImage
 
-Good points!
-I will aredo this to use increment-by-four and document this in v3 of the patchset.
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/boot/Makefile |   10 ++++------
+ 1 files changed, 4 insertions(+), 6 deletions(-)
 
-	Sam
+diff --git a/arch/sparc/boot/Makefile b/arch/sparc/boot/Makefile
+index f9d3bf9..a2c5898 100644
+--- a/arch/sparc/boot/Makefile
++++ b/arch/sparc/boot/Makefile
+@@ -14,6 +14,8 @@ quiet_cmd_elftoaout	= ELFTOAOUT $@
+       cmd_elftoaout	= $(ELFTOAOUT) $(obj)/image -o $@
+ quiet_cmd_piggy		= PIGGY   $@
+       cmd_piggy		= $(obj)/piggyback $(BITS) $@ System.map $(ROOT_IMG)
++quiet_cmd_strip		= STRIP   $@
++      cmd_strip		= $(STRIP) -R .comment -R .note -K sun4u_init -K _end -K _start $< -o $@
+ 
+ ifeq ($(CONFIG_SPARC32),y)
+ quiet_cmd_btfix		= BTFIX   $@
+@@ -22,9 +24,6 @@ quiet_cmd_sysmap        = SYSMAP  $(obj)/System.map
+       cmd_sysmap        = $(CONFIG_SHELL) $(srctree)/scripts/mksysmap
+ quiet_cmd_image = LD      $@
+       cmd_image = $(LD) $(LDFLAGS) $(EXTRA_LDFLAGS) $(LDFLAGS_$(@F)) -o $@
+-quiet_cmd_strip = STRIP   $@
+-      cmd_strip = $(STRIP) -R .comment -R .note -K sun4u_init -K _end -K _start $(obj)/image -o $@
+-
+ 
+ define rule_image
+ 	$(if $($(quiet)cmd_image),               \
+@@ -57,6 +56,7 @@ $(obj)/image: $(obj)/btfix.o FORCE
+ 
+ $(obj)/zImage: $(obj)/image
+ 	$(call if_changed,strip)
++	@echo '  kernel: $@ is ready'
+ 
+ $(obj)/btfix.S: $(obj)/btfixupprep vmlinux FORCE
+ 	$(call if_changed,btfix)
+@@ -64,9 +64,6 @@ $(obj)/btfix.S: $(obj)/btfixupprep vmlinux FORCE
+ endif
+ 
+ ifeq ($(CONFIG_SPARC64),y)
+-quiet_cmd_strip     = STRIP   $@
+-      cmd_strip     = $(STRIP) -R .comment -R .note -K sun4u_init -K _end -K _start vmlinux -o $@
+-
+ 
+ # Actual linking
+ $(obj)/image: vmlinux FORCE
+@@ -75,6 +72,7 @@ $(obj)/image: vmlinux FORCE
+ 
+ $(obj)/zImage: $(obj)/image
+ 	$(call if_changed,gzip)
++	@echo '  kernel: $@ is ready'
+ 
+ $(obj)/vmlinux.aout: vmlinux FORCE
+ 	$(call if_changed,elftoaout)
+-- 
+1.6.0.6
+
