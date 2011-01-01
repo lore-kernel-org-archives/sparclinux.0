@@ -1,77 +1,105 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 21 Jan 2011 22:26:52 +0000
-Subject: [PATCH 1/5] sparc64: fix direct access to irq_desc
-Message-Id: <1295648816-29516-1-git-send-email-sam@ravnborg.org>
+Date: Sat, 01 Jan 2011 22:53:09 +0000
+Subject: [PATCH 2/4] sparc: drop prom/palloc.c
+Message-Id: <1293922391-17661-2-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110121222451.GA29468@merkur.ravnborg.org>
-In-Reply-To: <20110121222451.GA29468@merkur.ravnborg.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>
-Cc: sparclinux <sparclinux@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Sam Ravnborg <sam@ravnborg.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
-GENERIC_HARDIRQS_NO_DEPRECATED require us to access data via irq_data
-No functional changes as data has same layout due to use of union
+None of the functions was used.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/kernel/irq_64.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+ arch/sparc/include/asm/oplib_32.h |   10 --------
+ arch/sparc/prom/Makefile          |    1 -
+ arch/sparc/prom/palloc.c          |   43 -------------------------------------
+ 3 files changed, 0 insertions(+), 54 deletions(-)
+ delete mode 100644 arch/sparc/prom/palloc.c
 
-diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
-index 830d70a..ee67dae 100644
---- a/arch/sparc/kernel/irq_64.c
-+++ b/arch/sparc/kernel/irq_64.c
-@@ -190,7 +190,7 @@ int show_interrupts(struct seq_file *p, void *v)
- 		for_each_online_cpu(j)
- 			seq_printf(p, "%10u ", kstat_irqs_cpu(i, j));
- #endif
--		seq_printf(p, " %9s", irq_desc[i].chip->name);
-+		seq_printf(p, " %9s", irq_desc[i].irq_data.chip->name);
- 		seq_printf(p, "  %s", action->name);
-=20
- 		for (action=ACtion->next; action; action =3D action->next)
-@@ -284,7 +284,7 @@ static void sun4u_irq_enable(unsigned int virt_irq)
- 		unsigned int tid;
-=20
- 		cpuid =3D irq_choose_cpu(virt_irq,
--				       irq_desc[virt_irq].affinity);
-+				       irq_desc[virt_irq].irq_data.affinity);
- 		imap =3D data->imap;
-=20
- 		tid =3D sun4u_compute_tid(imap, cpuid);
-@@ -360,7 +360,7 @@ static void sun4v_irq_enable(unsigned int virt_irq)
- {
- 	unsigned int ino =3D virt_irq_table[virt_irq].dev_ino;
- 	unsigned long cpuid =3D irq_choose_cpu(virt_irq,
--					     irq_desc[virt_irq].affinity);
-+					     irq_desc[virt_irq].irq_data.affinity);
- 	int err;
-=20
- 	err =3D sun4v_intr_settarget(ino, cpuid);
-@@ -423,7 +423,7 @@ static void sun4v_virq_enable(unsigned int virt_irq)
- 	unsigned long cpuid, dev_handle, dev_ino;
- 	int err;
-=20
--	cpuid =3D irq_choose_cpu(virt_irq, irq_desc[virt_irq].affinity);
-+	cpuid =3D irq_choose_cpu(virt_irq, irq_desc[virt_irq].irq_data.affinity);
-=20
- 	dev_handle =3D virt_irq_table[virt_irq].dev_handle;
- 	dev_ino =3D virt_irq_table[virt_irq].dev_ino;
-@@ -798,9 +798,9 @@ void fixup_irqs(void)
- 		raw_spin_lock_irqsave(&irq_desc[irq].lock, flags);
- 		if (irq_desc[irq].action &&
- 		    !(irq_desc[irq].status & IRQ_PER_CPU)) {
--			if (irq_desc[irq].chip->set_affinity)
--				irq_desc[irq].chip->set_affinity(irq,
--					irq_desc[irq].affinity);
-+			if (irq_desc[irq].irq_data.chip->set_affinity)
-+				irq_desc[irq].irq_data.chip->set_affinity(irq,
-+					irq_desc[irq].irq_data.affinity);
- 		}
- 		raw_spin_unlock_irqrestore(&irq_desc[irq].lock, flags);
- 	}
---=20
+diff --git a/arch/sparc/include/asm/oplib_32.h b/arch/sparc/include/asm/oplib_32.h
+index 31d2249..91411bc 100644
+--- a/arch/sparc/include/asm/oplib_32.h
++++ b/arch/sparc/include/asm/oplib_32.h
+@@ -114,16 +114,6 @@ extern int prom_idlecpu(int cpunode);
+ /* Re-Start the CPU with the passed device tree node. */
+ extern int prom_restartcpu(int cpunode);
+ 
+-/* PROM memory allocation facilities... */
+-
+-/* Allocated at possibly the given virtual address a chunk of the
+- * indicated size.
+- */
+-extern char *prom_alloc(char *virt_hint, unsigned int size);
+-
+-/* Free a previously allocated chunk. */
+-extern void prom_free(char *virt_addr, unsigned int size);
+-
+ /* Sun4/sun4c specific memory-management startup hook. */
+ 
+ /* Map the passed segment in the given context at the passed
+diff --git a/arch/sparc/prom/Makefile b/arch/sparc/prom/Makefile
+index 113e630..8287bbe 100644
+--- a/arch/sparc/prom/Makefile
++++ b/arch/sparc/prom/Makefile
+@@ -9,7 +9,6 @@ lib-y                 += init_$(BITS).o
+ lib-$(CONFIG_SPARC32) += memory.o
+ lib-y                 += misc_$(BITS).o
+ lib-$(CONFIG_SPARC32) += mp.o
+-lib-$(CONFIG_SPARC32) += palloc.o
+ lib-$(CONFIG_SPARC32) += ranges.o
+ lib-$(CONFIG_SPARC32) += segment.o
+ lib-y                 += console_$(BITS).o
+diff --git a/arch/sparc/prom/palloc.c b/arch/sparc/prom/palloc.c
+deleted file mode 100644
+index 2e2a88b..0000000
+--- a/arch/sparc/prom/palloc.c
++++ /dev/null
+@@ -1,43 +0,0 @@
+-/*
+- * palloc.c:  Memory allocation from the Sun PROM.
+- *
+- * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)
+- */
+-
+-#include <asm/openprom.h>
+-#include <asm/oplib.h>
+-
+-/* You should not call these routines after memory management
+- * has been initialized in the kernel, if fact you should not
+- * use these if at all possible in the kernel.  They are mainly
+- * to be used for a bootloader for temporary allocations which
+- * it will free before jumping into the kernel it has loaded.
+- *
+- * Also, these routines don't work on V0 proms, only V2 and later.
+- */
+-
+-/* Allocate a chunk of memory of size 'num_bytes' giving a suggestion
+- * of virtual_hint as the preferred virtual base address of this chunk.
+- * There are no guarantees that you will get the allocation, or that
+- * the prom will abide by your "hint".  So check your return value.
+- */
+-char *
+-prom_alloc(char *virtual_hint, unsigned int num_bytes)
+-{
+-	if(prom_vers = PROM_V0) return (char *) 0x0;
+-	if(num_bytes = 0x0) return (char *) 0x0;
+-	return (*(romvec->pv_v2devops.v2_dumb_mem_alloc))(virtual_hint, num_bytes);
+-}
+-
+-/* Free a previously allocated chunk back to the prom at virtual address
+- * 'vaddr' of size 'num_bytes'.  NOTE: This vaddr is not the hint you
+- * used for the allocation, but the virtual address the prom actually
+- * returned to you.  They may be have been the same, they may have not,
+- * doesn't matter.
+- */
+-void
+-prom_free(char *vaddr, unsigned int num_bytes)
+-{
+-	if((prom_vers = PROM_V0) || (num_bytes = 0x0)) return;
+-	(*(romvec->pv_v2devops.v2_dumb_mem_free))(vaddr, num_bytes);
+-}
+-- 
 1.6.0.6
 
