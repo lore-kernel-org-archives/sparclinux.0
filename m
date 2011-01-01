@@ -1,45 +1,59 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Tue, 18 Jan 2011 10:29:02 +0000
-Subject: Re: [PATCH 4/4 V2] sparc/leon: Add LEON dma_ops.
-Message-Id: <20110118102902.GA11942@merkur.ravnborg.org>
+Date: Sat, 01 Jan 2011 20:57:01 +0000
+Subject: [PATCH v2 0/9] sparc: unify sparc/boot/piggyback
+Message-Id: <20110101205701.GA4544@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1294909535-6290-5-git-send-email-kristoffer@gaisler.com>
-In-Reply-To: <1294909535-6290-5-git-send-email-kristoffer@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, Jan 18, 2011 at 10:25:24AM +0100, Kristoffer Glembo wrote:
-> Hi,
-> 
-> 
-> Sam Ravnborg wrote:
-> > 
-> > I have failed to see what is the difference between pci32_alloc_coherent()
-> > and the LEON variant of sbus_alloc_coherent().
-> 
-> Yes the only difference it the setting of the name in the resource. Maybe it does not warrant the messy code.
-> 
-> >  
-> > Likewise for this. It looks equal to pci32_free_coherent().
-> > 
-> 
-> Yes this case is actually totally equal.
-> 
-> For me it is no problem using the pci versions. I tried using the sbus versions on advice from Dave but maybe it was not very successful :)
-> 
-> 
-> > Please investigate if you can use pci32_unmap_sg.
-> > If this is the case you can reuse pci32_dma_ops direct.
-> > As you can use pci32_map_sg() I would assume you can also
-> > use the counterpart for unmap..
-> > 
-> 
-> Yes I can remove it. It was pretty unnecessary.
-I look forward for next version.
+I decided to complete the unification of piggyback.
+This was inspired by comments from Julian Calaby.
 
-Note: I review this with only limited knowledge of the DMA stuff etc.
-      So you shall (as always) treat the input as such.
+The patchset documents my findings while reverse engineering
+piggyback. And some limited refactoring also increased
+readability a lot.
+piggyback now takes an argument that tell if this is for
+sparc or sparc64 and uses this info to adjust behaviour
+as sparc and sparc64 differs in a few places.
+
+With these additions we can now use the same piggyback for
+both sparc and sparc64.
+
+My testing turned out that piggyback_64 was broken on my x86 box,
+because it was hardcoded to assume a big-endian host.
+I also found a few code-spots that assuemd the host was big-endian.
+All cases are fixed to be endian neutral.
+
+Julian Calaby acknowledged that piggyback_64 had endian troubles.
+
+This is boot tested on my sparc box.
+I have only build tested the sparc64 bits!
+
+Since v1 of the patchset I have included 4 additional patches,
+the original 5 patches has not seen any updates.
+And the patches are properly numbered this time.
 
 	Sam
+ 
+
+Sam Ravnborg (9):
+      sparc: refactor piggy_32.c
+      sparc: use trapbase in setup_arch
+      sparc: use _start for the start entry (like 64 bit does)
+      sparc: additional comments to piggyback_32.c
+      sparc: remove obsolete ELF support in piggyback_32.c
+      sparc: add $BITS to piggyback arguments
+      sparc: use piggyback_32 for sparc64
+      sparc: rename piggyback_32 to piggyback
+      sparc: unify strip command in boot/Makefile
+
+ arch/sparc/boot/Makefile       |   28 ++---
+ arch/sparc/boot/piggyback.c    |  266 ++++++++++++++++++++++++++++++++++++++++
+ arch/sparc/boot/piggyback_32.c |  137 ---------------------
+ arch/sparc/boot/piggyback_64.c |  110 -----------------
+ arch/sparc/kernel/head_32.S    |    3 +-
+ arch/sparc/kernel/setup_32.c   |    3 +-
+ arch/sparc/mm/sun4c.c          |    8 +-
+ 7 files changed, 280 insertions(+), 275 deletions(-)
