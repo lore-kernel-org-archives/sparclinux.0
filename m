@@ -1,41 +1,33 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 13 Jan 2011 02:33:33 +0000
-Subject: Re: [PATCH 3/4] sparc: Add pci32_unmap_page.
-Message-Id: <20110112.183333.140737711.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 01 Jan 2011 23:16:09 +0000
+Subject: [PATCH v2 10/9] sparc: update copyright in piggyback.c
+Message-Id: <20110101231608.GA17937@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1294742946-1040-4-git-send-email-kristoffer@gaisler.com>
-In-Reply-To: <1294742946-1040-4-git-send-email-kristoffer@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Kristoffer Glembo <kristoffer@gaisler.com>
-Date: Tue, 11 Jan 2011 11:49:05 +0100
+Update copyright info in piggyback.c to include
+info from piggyback_64.c.
+Include my own copyright too.
 
-> Signed-off-by: Kristoffer Glembo <kristoffer@gaisler.com>
-> ---
->  arch/sparc/kernel/ioport.c |    9 +++++++++
->  1 files changed, 9 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
-> index bfcbd1e..ba5cf62 100644
-> --- a/arch/sparc/kernel/ioport.c
-> +++ b/arch/sparc/kernel/ioport.c
-> @@ -529,6 +529,14 @@ static dma_addr_t pci32_map_page(struct device *dev, struct page *page,
->  	return page_to_phys(page) + offset;
->  }
->  
-> +static void pci32_unmap_page(struct device *dev, dma_addr_t ba, size_t size,
-> +			     enum dma_data_direction dir, struct dma_attrs *attrs)
-> +{
-> +	if (dir != PCI_DMA_TODEVICE) {
-> +		mmu_inval_dma_area((unsigned long)phys_to_virt(ba), PAGE_ALIGN(size));
-> +	}
-> +}
-> +
-
-Please do not enclose a basic block consisting of one single statement
-into braces.
-
-Fix this up for all of your patches and resubmit.
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Josip Rodin <joy@entuzijast.net>
+Cc: Jakub Jelinek <jakub@redhat.com>
+---
+diff --git a/arch/sparc/boot/piggyback.c b/arch/sparc/boot/piggyback.c
+index 82926f4..2f9bf07 100644
+--- a/arch/sparc/boot/piggyback.c
++++ b/arch/sparc/boot/piggyback.c
+@@ -2,8 +2,9 @@
+    Simple utility to make a single-image install kernel with initial ramdisk
+    for Sparc tftpbooting without need to set up nfs.
+ 
+-   Copyright (C) 1996 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
++   Copyright (C) 1996,1997 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
+    Pete Zaitcev <zaitcev@yahoo.com> endian fixes for cross-compiles, 2000.
++   Copyright (C) 2011 Sam Ravnborg <sam@ravnborg.org>
+ 
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
