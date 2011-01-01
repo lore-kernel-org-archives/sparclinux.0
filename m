@@ -1,34 +1,44 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 11 Jan 2011 23:53:53 +0000
-Subject: [PATCH 18/22] s3fb: Don't clobber par->state.vgabase during open
-Message-Id: <20110111.155353.123417336.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 01 Jan 2011 21:00:25 +0000
+Subject: [PATCH 2/9] sparc: use trapbase in setup_arch
+Message-Id: <1293915632-4596-2-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-fbdev@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
+start and trapbase point to the same address.
+But using start to assing to sparc_ttable looked confusing.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Replace this with the use of trapbase.
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- drivers/video/s3fb.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ arch/sparc/kernel/setup_32.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/video/s3fb.c b/drivers/video/s3fb.c
-index 2d436ec..45e1d43 100644
---- a/drivers/video/s3fb.c
-+++ b/drivers/video/s3fb.c
-@@ -379,7 +379,10 @@ static int s3fb_open(struct fb_info *info, int user)
+diff --git a/arch/sparc/kernel/setup_32.c b/arch/sparc/kernel/setup_32.c
+index b22ce61..648f216 100644
+--- a/arch/sparc/kernel/setup_32.c
++++ b/arch/sparc/kernel/setup_32.c
+@@ -185,7 +185,6 @@ static void __init boot_flags_init(char *commands)
  
- 	mutex_lock(&(par->open_lock));
- 	if (par->ref_count = 0) {
-+		void __iomem *vgabase = par->state.vgabase;
-+
- 		memset(&(par->state), 0, sizeof(struct vgastate));
-+		par->state.vgabase = vgabase;
- 		par->state.flags = VGA_SAVE_MODE | VGA_SAVE_FONTS | VGA_SAVE_CMAP;
- 		par->state.num_crtc = 0x70;
- 		par->state.num_seq = 0x20;
+ extern void sun4c_probe_vac(void);
+ extern char cputypval;
+-extern unsigned long start, end;
+ 
+ extern unsigned short root_flags;
+ extern unsigned short root_dev;
+@@ -210,7 +209,7 @@ void __init setup_arch(char **cmdline_p)
+ 	int i;
+ 	unsigned long highest_paddr;
+ 
+-	sparc_ttable = (struct tt_entry *) &start;
++	sparc_ttable = (struct tt_entry *) &trapbase;
+ 
+ 	/* Initialize PROM console and command line. */
+ 	*cmdline_p = prom_getbootargs();
 -- 
-1.7.3.4
+1.6.0.6
 
