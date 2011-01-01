@@ -1,44 +1,44 @@
-From: Julian Calaby <julian.calaby@gmail.com>
-Date: Sat, 08 Jan 2011 02:34:45 +0000
-Subject: Re: [PATCH] use __devexit not __exit in n2_unregister_algs fixes
-Message-Id: <AANLkTik9haL1UYkgj80XqsDRTOEthRrSOMwRiugseEwi@mail.gmail.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 01 Jan 2011 22:50:07 +0000
+Subject: [PATCH 0/4] sparc: remove unused prom stuff
+Message-Id: <20110101225007.GA17611@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1294257371-19695-1-git-send-email-dennis@ausil.us>
-In-Reply-To: <1294257371-19695-1-git-send-email-dennis@ausil.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sat, Jan 8, 2011 at 11:36, Dennis Gilmore <dennis@ausil.us> wrote:
-> On Friday, January 07, 2011 06:11:59 pm Julian Calaby wrote:
->> On Thu, Jan 6, 2011 at 06:56, Dennis Gilmore <dennis@ausil.us> wrote:
->> > From: dennis <dennis@daedalus.ausil.us>
->> >
->> > thanks to kylem for helping with debugging
->>
->> Better, but you're still missing your Signed-Off-By and this isn't a
->> proper patch description - you should, at least, include the error you
->> were getting.
->>
->> Also, as this patch is for crypto code, you should probably send it to
->> their mailing list instead of sparclinux. If you look in the
->> MAINTAINERS file, you should be able to find the email addresses of
->> the relevant people.
->>
->> Thanks,
->
-> Its been sent to the right place and applied already. this was my first attempt
-> that git gave an error on sending yesterday. sorry for the nosie
+There was a few patches recently that touched arch/sparc/prom/*
+This triggered me to look up why sparc and sparc64 differed
+so much in their low-level prom functions.
 
-Ah, sorry for the criticism then.
+And it was obvious that the older sparcs implementes the
+ROMVEC interface (I never found a spec for this).
+Where newer sparcs implements IEEE 1275.
 
-Thanks,
+While looking through the code I noticed that
+several functions/files was unused.
+I used "git grep" in the kernel tree to check - and
+I have sucessfully build a sparc kernel with
+the patches applied.
 
--- 
+Note: focus on sparc (not sparc64) as this is what I
+have running now.
 
-Julian Calaby
+Patches are on top of sparc-next-2.6.git
 
-Email: julian.calaby@gmail.com
-Profile: http://www.google.com/profiles/julian.calaby/
-.Plan: http://sites.google.com/site/juliancalaby/
+	Sam
+
+Sam Ravnborg (4):
+      sparc: drop prom/devmap.c
+      sparc: drop prom/palloc.c
+      sparc: remove unused prom cpu functions
+      sparc: remove unused prom tree functions
+
+ arch/sparc/include/asm/oplib_32.h |   42 --------------------
+ arch/sparc/prom/Makefile          |    2 -
+ arch/sparc/prom/devmap.c          |   53 -------------------------
+ arch/sparc/prom/mp.c              |   78 -------------------------------------
+ arch/sparc/prom/palloc.c          |   43 --------------------
+ arch/sparc/prom/tree_32.c         |   44 +-------------------
+ 6 files changed, 3 insertions(+), 259 deletions(-)
