@@ -1,117 +1,253 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 01 Jan 2011 22:53:08 +0000
-Subject: [PATCH 1/4] sparc: drop prom/devmap.c
-Message-Id: <1293922391-17661-1-git-send-email-sam@ravnborg.org>
+Date: Sat, 01 Jan 2011 21:00:24 +0000
+Subject: [PATCH 1/9] sparc: refactor piggy_32.c
+Message-Id: <1293915632-4596-1-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-None of the functions was used.
+Refactoring to increase readability (a little).
+- sort includes
+- spaces around operators
+- small helpers introduced
+- added a few comments
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/include/asm/oplib_32.h |   12 --------
- arch/sparc/prom/Makefile          |    1 -
- arch/sparc/prom/devmap.c          |   53 -------------------------------------
- 3 files changed, 0 insertions(+), 66 deletions(-)
- delete mode 100644 arch/sparc/prom/devmap.c
+ arch/sparc/boot/piggyback_32.c |  142 ++++++++++++++++++++++++++++-----------
+ 1 files changed, 102 insertions(+), 40 deletions(-)
 
-diff --git a/arch/sparc/include/asm/oplib_32.h b/arch/sparc/include/asm/oplib_32.h
-index 9e5c640..31d2249 100644
---- a/arch/sparc/include/asm/oplib_32.h
-+++ b/arch/sparc/include/asm/oplib_32.h
-@@ -48,18 +48,6 @@ extern void prom_init(struct linux_romvec *rom_ptr);
- /* Boot argument acquisition, returns the boot command line string. */
- extern char *prom_getbootargs(void);
+diff --git a/arch/sparc/boot/piggyback_32.c b/arch/sparc/boot/piggyback_32.c
+index ac944ae..cfd95ec 100644
+--- a/arch/sparc/boot/piggyback_32.c
++++ b/arch/sparc/boot/piggyback_32.c
+@@ -9,7 +9,7 @@
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+-   
++
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+@@ -18,15 +18,16 @@
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+-   
+-#include <stdio.h>
++
++#include <dirent.h>
++#include <stdlib.h>
+ #include <string.h>
++#include <unistd.h>
+ #include <ctype.h>
+ #include <errno.h>
+ #include <fcntl.h>
+-#include <dirent.h>
+-#include <unistd.h>
+-#include <stdlib.h>
++#include <stdio.h>
++
+ #include <sys/types.h>
+ #include <sys/stat.h>
  
--/* Device utilities. */
--
--/* Map and unmap devices in IO space at virtual addresses. Note that the
-- * virtual address you pass is a request and the prom may put your mappings
-- * somewhere else, so check your return value as that is where your new
-- * mappings really are!
-- *
-- * Another note, these are only available on V2 or higher proms!
-- */
--extern char *prom_mapio(char *virt_hint, int io_space, unsigned int phys_addr, unsigned int num_bytes);
--extern void prom_unmapio(char *virt_addr, unsigned int num_bytes);
--
- /* Miscellaneous routines, don't really fit in any category per se. */
+@@ -35,16 +36,19 @@
+  * as PROM looks for a.out image only.
+  */
  
- /* Reboot the machine with the command line passed. */
-diff --git a/arch/sparc/prom/Makefile b/arch/sparc/prom/Makefile
-index 816c0fa..113e630 100644
---- a/arch/sparc/prom/Makefile
-+++ b/arch/sparc/prom/Makefile
-@@ -5,7 +5,6 @@ asflags := -ansi
- ccflags := -Werror
++/* read two bytes as big endian */
+ static unsigned short ld2(char *p)
+ {
+ 	return (p[0] << 8) | p[1];
+ }
  
- lib-y                 := bootstr_$(BITS).o
--lib-$(CONFIG_SPARC32) += devmap.o
- lib-y                 += init_$(BITS).o
- lib-$(CONFIG_SPARC32) += memory.o
- lib-y                 += misc_$(BITS).o
-diff --git a/arch/sparc/prom/devmap.c b/arch/sparc/prom/devmap.c
-deleted file mode 100644
-index 46157d2..0000000
---- a/arch/sparc/prom/devmap.c
-+++ /dev/null
-@@ -1,53 +0,0 @@
--/*
-- * promdevmap.c:  Map device/IO areas to virtual addresses.
-- *
-- * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)
-- */
--
--#include <linux/types.h>
--#include <linux/kernel.h>
--#include <linux/sched.h>
--
--#include <asm/openprom.h>
--#include <asm/oplib.h>
--
--extern void restore_current(void);
--
--/* Just like the routines in palloc.c, these should not be used
-- * by the kernel at all.  Bootloader facility mainly.  And again,
-- * this is only available on V2 proms and above.
-- */
--
--/* Map physical device address 'paddr' in IO space 'ios' of size
-- * 'num_bytes' to a virtual address, with 'vhint' being a hint to
-- * the prom as to where you would prefer the mapping.  We return
-- * where the prom actually mapped it.
-- */
--char *
--prom_mapio(char *vhint, int ios, unsigned int paddr, unsigned int num_bytes)
--{
--	unsigned long flags;
--	char *ret;
--
--	spin_lock_irqsave(&prom_lock, flags);
--	if((num_bytes = 0) || (paddr = 0)) ret = (char *) 0x0;
--	else
--	ret = (*(romvec->pv_v2devops.v2_dumb_mmap))(vhint, ios, paddr,
--						    num_bytes);
--	restore_current();
--	spin_unlock_irqrestore(&prom_lock, flags);
--	return ret;
--}
--
--/* Unmap an IO/device area that was mapped using the above routine. */
--void
--prom_unmapio(char *vaddr, unsigned int num_bytes)
--{
--	unsigned long flags;
--
--	if(num_bytes = 0x0) return;
--	spin_lock_irqsave(&prom_lock, flags);
--	(*(romvec->pv_v2devops.v2_dumb_munmap))(vaddr, num_bytes);
--	restore_current();
--	spin_unlock_irqrestore(&prom_lock, flags);
--}
++/* read 4 bytes as big endian */
+ static unsigned int ld4(char *p)
+ {
+ 	return (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];
+ }
+ 
++/* save 4 bytes as big endian */
+ static void st4(char *p, unsigned int x)
+ {
+ 	p[0] = x >> 24;
+@@ -53,6 +57,12 @@ static void st4(char *p, unsigned int x)
+ 	p[3] = x;
+ }
+ 
++static void die(const char *str)
++{
++	perror(str);
++	exit(1);
++}
++
+ static void usage(void)
+ {
+ 	/* fs_img.gz is an image of initial ramdisk. */
+@@ -61,10 +71,57 @@ static void usage(void)
+ 	exit(1);
+ }
+ 
+-static void die(char *str)
++static int start_line(const char *line)
+ {
+-	perror (str);
+-	exit(1);
++	if (strcmp(line + 8, " T start\n") = 0)
++		return 1;
++	else if (strcmp(line + 16, " T start\n") = 0)
++		return 1;
++	return 0;
++}
++
++static int end_line(const char *line)
++{
++	if (strcmp(line + 8, " A _end\n") = 0)
++		return 1;
++	else if (strcmp (line + 16, " A _end\n") = 0)
++		return 1;
++	return 0;
++}
++
++/*
++ * Find address for start and end in System.map.
++ * The file looks like this:
++ * f0004000 T start
++ * f0379f79 A _end
++ * 1234567890123456
++ * ^coloumn 1
++ * There is support for 64 bit addresses too.
++ *
++ * Return 0 if either start or end is not found
++ */
++static int get_start_end(const char *filename, unsigned int *start, unsigned int *end)
++{
++	FILE *map;
++	char buffer[1024];
++
++	*start = 0;
++	*end = 0;
++	map = fopen(filename, "r");
++	if (!map)
++		die(filename);
++	while (fgets(buffer, 1024, map)) {
++		if (start_line(buffer))
++			*start = strtoul(buffer, NULL, 16);
++		else if (end_line(buffer))
++			*end = strtoul(buffer, NULL, 16);
++	}
++	fclose (map);
++
++	if (*start = 0 || *end = 0)
++		return 0;
++
++	return 1;
+ }
+ 
+ int main(int argc,char **argv)
+@@ -72,33 +129,29 @@ int main(int argc,char **argv)
+ 	static char aout_magic[] = { 0x01, 0x03, 0x01, 0x07 };
+ 	char buffer[1024], *q, *r;
+ 	unsigned int i, j, k, start, end, offset;
+-	FILE *map;
+ 	struct stat s;
+ 	int image, tail;
+ 
+-	if (argc != 4) usage();
+-	start = end = 0;
+-	if (stat (argv[3], &s) < 0) die (argv[3]);
+-	map = fopen (argv[2], "r");
+-	if (!map) die(argv[2]);
+-	while (fgets (buffer, 1024, map)) {
+-		if (!strcmp (buffer + 8, " T start\n") || !strcmp (buffer + 16, " T start\n"))
+-			start = strtoul (buffer, NULL, 16);
+-		else if (!strcmp (buffer + 8, " A _end\n") || !strcmp (buffer + 16, " A _end\n"))
+-			end = strtoul (buffer, NULL, 16);
+-	}
+-	fclose (map);
+-	if (!start || !end) {
+-		fprintf (stderr, "Could not determine start and end from System.map\n");
++	if (argc != 4)
++		usage();
++	if (stat (argv[3], &s) < 0)
++		die(argv[3]);
++
++	if (!get_start_end(argv[2], &start, &end)) {
++		fprintf (stderr, "Could not determine start and end from %s\n", argv[2]);
+ 		exit(1);
+ 	}
+-	if ((image = open(argv[1],O_RDWR)) < 0) die(argv[1]);
+-	if (read(image,buffer,512) != 512) die(argv[1]);
++	if ((image = open(argv[1], O_RDWR)) < 0)
++		die(argv[1]);
++	if (read(image, buffer, 512) != 512)
++		die(argv[1]);
+ 	if (memcmp (buffer, "\177ELF", 4) = 0) {
+ 		q = buffer + ld4(buffer + 28);
+ 		i = ld4(q + 4) + ld4(buffer + 24) - ld4(q + 8);
+-		if (lseek(image,i,0) < 0) die("lseek");
+-		if (read(image,buffer,512) != 512) die(argv[1]);
++		if (lseek(image, i, 0) < 0)
++			die("lseek");
++		if (read(image, buffer, 512) != 512)
++			die(argv[1]);
+ 		j = 0;
+ 	} else if (memcmp(buffer, aout_magic, 4) = 0) {
+ 		i = j = 32;
+@@ -107,9 +160,11 @@ int main(int argc,char **argv)
+ 		exit(1);
+ 	}
+ 	k = i;
+-	i += (ld2(buffer + j + 2)<<2) - 512;
+-	if (lseek(image,i,0) < 0) die("lseek");
+-	if (read(image,buffer,1024) != 1024) die(argv[1]);
++	i += (ld2(buffer + j + 2) << 2) - 512;
++	if (lseek(image, i, 0) < 0)
++		die("lseek");
++	if (read(image, buffer, 1024) != 1024)
++		die(argv[1]);
+ 	for (q = buffer, r = q + 512; q < r; q += 4) {
+ 		if (*q = 'H' && q[1] = 'd' && q[2] = 'r' && q[3] = 'S')
+ 			break;
+@@ -119,19 +174,26 @@ int main(int argc,char **argv)
+ 		exit(1);
+ 	}
+ 	offset = i + (q - buffer) + 10;
+-	if (lseek(image, offset, 0) < 0) die ("lseek");
++	if (lseek(image, offset, 0) < 0)
++		die("lseek");
+ 
+ 	st4(buffer, 0);
+ 	st4(buffer + 4, 0x01000000);
+ 	st4(buffer + 8, (end + 32 + 4095) & ~4095);
+ 	st4(buffer + 12, s.st_size);
+ 
+-	if (write(image,buffer+2,14) != 14) die (argv[1]);
+-	if (lseek(image, k - start + ((end + 32 + 4095) & ~4095), 0) < 0) die ("lseek");
+-	if ((tail = open(argv[3],O_RDONLY)) < 0) die(argv[3]);
+-	while ((i = read (tail,buffer,1024)) > 0)
+-		if (write(image,buffer,i) != i) die (argv[1]);
+-	if (close(image) < 0) die("close");
+-	if (close(tail) < 0) die("close");
+-    	return 0;
++	if (write(image, buffer + 2, 14) != 14)
++		die(argv[1]);
++	if (lseek(image, k - start + ((end + 32 + 4095) & ~4095), 0) < 0)
++		die("lseek");
++	if ((tail = open(argv[3],O_RDONLY)) < 0)
++		die(argv[3]);
++	while ((i = read (tail, buffer, 1024)) > 0)
++		if (write(image, buffer, i) != i)
++			die(argv[1]);
++	if (close(image) < 0)
++		die("close");
++	if (close(tail) < 0)
++		die("close");
++	return 0;
+ }
 -- 
 1.6.0.6
 
