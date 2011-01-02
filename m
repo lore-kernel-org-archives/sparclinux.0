@@ -1,44 +1,44 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 01 Jan 2011 22:50:07 +0000
-Subject: [PATCH 0/4] sparc: remove unused prom stuff
-Message-Id: <20110101225007.GA17611@merkur.ravnborg.org>
+From: Julian Calaby <julian.calaby@gmail.com>
+Date: Sun, 02 Jan 2011 00:31:48 +0000
+Subject: Re: [PATCH 0/4] sparc: remove unused prom stuff
+Message-Id: <AANLkTik6wqpLg65JMNaL+HyFmJ=juHAYO_h1FgPFXB-h@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20110101225007.GA17611@merkur.ravnborg.org>
+In-Reply-To: <20110101225007.GA17611@merkur.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-There was a few patches recently that touched arch/sparc/prom/*
-This triggered me to look up why sparc and sparc64 differed
-so much in their low-level prom functions.
+On Sun, Jan 2, 2011 at 09:50, Sam Ravnborg <sam@ravnborg.org> wrote:
+> There was a few patches recently that touched arch/sparc/prom/*
+> This triggered me to look up why sparc and sparc64 differed
+> so much in their low-level prom functions.
+>
+> And it was obvious that the older sparcs implementes the
+> ROMVEC interface (I never found a spec for this).
+> Where newer sparcs implements IEEE 1275.
 
-And it was obvious that the older sparcs implementes the
-ROMVEC interface (I never found a spec for this).
-Where newer sparcs implements IEEE 1275.
+I had vague plans to split this out into some form of ops structure,
+but they never got off the ground - and it probably would have been
+another layer of indirection that relatively slow sparcs might notice.
+Though it'd give us a chance for proper openprom support for SUN3(X)
+on m68k.
 
-While looking through the code I noticed that
-several functions/files was unused.
-I used "git grep" in the kernel tree to check - and
-I have sucessfully build a sparc kernel with
-the patches applied.
+> While looking through the code I noticed that
+> several functions/files was unused.
+> I used "git grep" in the kernel tree to check - and
+> I have sucessfully build a sparc kernel with
+> the patches applied.
 
-Note: focus on sparc (not sparc64) as this is what I
-have running now.
+Looks good, for what it's worth.
 
-Patches are on top of sparc-next-2.6.git
+Thanks,
 
-	Sam
+-- 
 
-Sam Ravnborg (4):
-      sparc: drop prom/devmap.c
-      sparc: drop prom/palloc.c
-      sparc: remove unused prom cpu functions
-      sparc: remove unused prom tree functions
+Julian Calaby
 
- arch/sparc/include/asm/oplib_32.h |   42 --------------------
- arch/sparc/prom/Makefile          |    2 -
- arch/sparc/prom/devmap.c          |   53 -------------------------
- arch/sparc/prom/mp.c              |   78 -------------------------------------
- arch/sparc/prom/palloc.c          |   43 --------------------
- arch/sparc/prom/tree_32.c         |   44 +-------------------
- 6 files changed, 3 insertions(+), 259 deletions(-)
+Email: julian.calaby@gmail.com
+Profile: http://www.google.com/profiles/julian.calaby/
+.Plan: http://sites.google.com/site/juliancalaby/
