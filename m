@@ -1,127 +1,36 @@
-From: Julian Calaby <julian.calaby@gmail.com>
-Date: Mon, 03 Jan 2011 07:31:08 +0000
+From: Frans van Berckel <fberckel@xs4all.nl>
+Date: Mon, 03 Jan 2011 08:52:24 +0000
 Subject: Re: [PATCH v2 0/9] sparc: unify sparc/boot/piggyback
-Message-Id: <AANLkTimBUYuXHp4QdTb8ifQPeqYwgS9O=VKEmZ5wYZ9p@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="00032557a35ee924bf0498ec2300"
+Message-Id: <1294044744.1549.30.camel@deblnxsrv222>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20110101205701.GA4544@merkur.ravnborg.org>
 In-Reply-To: <20110101205701.GA4544@merkur.ravnborg.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
---00032557a35ee924bf0498ec2300
-Content-Type: text/plain; charset=ISO-8859-1
+On Mon, 2011-01-03 at 18:31 +1100, Julian Calaby wrote:
+> I've found an old laptop with a serial port to use as a serial console
+> and resurrected my Ultra 1e. I decided to upgrade it to the latest
+> Debian Squeeze, and it now won't load SILO. *sigh*. On boot, it fails
+> with the message "Fast data access MMU miss" before SILO even prints
+> anything. Apparently these messages are due to things being too large
+> according to the ubuntu forums, but this occurs before SILO even
+> loads, which makes me suspicious. I'll have to investigate further,
+> but that means I'll have to take a trip to an installer environment -
+> and given that I now lack the machine I had set up for installing them
+> off, that's going to be difficult at best. I'm thinking a complete
+> re-install might be an idea, but I've had persistent issues getting my
+> Ultra 5 to install in the past, so I'm concerned that this might not
+> happen.
 
-On Mon, Jan 3, 2011 at 02:50, Sam Ravnborg <sam@ravnborg.org> wrote:
->>
->> That said, I know that my old endian fixed version of piggyback_64
->> works, so I'll do a quick check first to ensure that your version
->> produces the same output.
->
-> Testing like this would be great.
+Have seen this happening on different sparc boxes, several times.
 
-Update:
-
-I've found an old laptop with a serial port to use as a serial console
-and resurrected my Ultra 1e. I decided to upgrade it to the latest
-Debian Squeeze, and it now won't load SILO. *sigh*. On boot, it fails
-with the message "Fast data access MMU miss" before SILO even prints
-anything. Apparently these messages are due to things being too large
-according to the ubuntu forums, but this occurs before SILO even
-loads, which makes me suspicious. I'll have to investigate further,
-but that means I'll have to take a trip to an installer environment -
-and given that I now lack the machine I had set up for installing them
-off, that's going to be difficult at best. I'm thinking a complete
-re-install might be an idea, but I've had persistent issues getting my
-Ultra 5 to install in the past, so I'm concerned that this might not
-happen.
-
-So, the net result of that machine becoming FUBAR is that I now have
-no way to compile anything for SPARC as that was my last working SPARC
-compilation platform. ARGH!
-
-I've attached my endian fix patch for piggyback_64.c. I have
-previously confirmed - by generating piggyback files with an empty
-root-image - that this produces identical files (same SHA1 sums) to
-the original version before any cleanup patches under a sparc64
-environment. If you'd perform the same test between the output of a
-version with this patch and your new version you should be able to
-confirm that it's working properly.
-
-Sorry about all this fuckup, but .... that's life =(
-
-At least it gives me more reason to get my Ultra 5 running. (It's the
-one that I've been unable to install)
+Boot the install cd, now in rescue mode. Chrooting the installed
+partition and run # silo -u -f again. Next reboot the Ultra.
 
 Thanks,
 
--- 
+Frans van Berckel
 
-Julian Calaby
-
-Email: julian.calaby@gmail.com
-Profile: http://www.google.com/profiles/julian.calaby/
-.Plan: http://sites.google.com/site/juliancalaby/
-
---00032557a35ee924bf0498ec2300
-Content-Type: text/x-patch; charset=US-ASCII; name="endian-fix-piggyback-64.diff"
-Content-Disposition: attachment; filename="endian-fix-piggyback-64.diff"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gih1nve60
-
-ZGlmZiAtLWdpdCBhL2FyY2gvc3BhcmMvYm9vdC9waWdneWJhY2tfNjQuYyBiL2FyY2gvc3BhcmMv
-Ym9vdC9waWdneWJhY2tfNjQuYwppbmRleCBhMjZhNjg2Li4wNmUwOTE3IDEwMDY0NAotLS0gYS9h
-cmNoL3NwYXJjL2Jvb3QvcGlnZ3liYWNrXzY0LmMKKysrIGIvYXJjaC9zcGFyYy9ib290L3BpZ2d5
-YmFja182NC5jCkBAIC0zMiw2ICszMiwyNCBAQAogLyogTm90ZTogcnVuIHRoaXMgb24gYW4gYS5v
-dXQga2VybmVsICh1c2UgZWxmdG9hb3V0IGZvciBpdCksIGFzIFBST00gbG9va3MgZm9yIGEub3V0
-IGltYWdlIG9ubGx5CiAgICB1c2FnZTogcGlnZ3liYWNrIHZtbGludXggU3lzdGVtLm1hcCB0YWls
-LCB3aGVyZSB0YWlsIGlzIGd6aXBwZWQgZnMgb2YgdGhlIGluaXRpYWwgcmFtZGlzayAqLwogCit1
-bnNpZ25lZCBzaG9ydCBsZDIoY2hhciAqcCkKK3sKKwlyZXR1cm4gKHBbMF0gPDwgOCkgfCBwWzFd
-OworfQorCit1bnNpZ25lZCBpbnQgbGQ0KGNoYXIgKnApCit7CisJcmV0dXJuIChwWzBdIDw8IDI0
-KSB8IChwWzFdIDw8IDE2KSB8IChwWzJdIDw8IDgpIHwgcFszXTsKK30KKwordm9pZCBzdDQoY2hh
-ciAqcCwgdW5zaWduZWQgaW50IHgpCit7CisJcFswXSA9IHggPj4gMjQ7CisJcFsxXSA9IHggPj4g
-MTY7CisJcFsyXSA9IHggPj4gODsKKwlwWzNdID0geDsKK30KKwogc3RhdGljIHZvaWQgZGllKGNo
-YXIgKnN0cikKIHsKIAlwZXJyb3IgKHN0cik7CkBAIC00MCw2ICs1OCw3IEBAIHN0YXRpYyB2b2lk
-IGRpZShjaGFyICpzdHIpCiAKIGludCBtYWluKGludCBhcmdjLGNoYXIgKiphcmd2KQogeworCXN0
-YXRpYyBjaGFyIGFvdXRfbWFnaWNbXSA9IHsgMHgwMSwgMHgwMywgMHgwMSwgMHgwNyB9OwogCWNo
-YXIgYnVmZmVyIFsxMDI0XSwgKnEsICpyOwogCXVuc2lnbmVkIGludCBpLCBqLCBrLCBzdGFydCwg
-ZW5kLCBvZmZzZXQ7CiAJRklMRSAqbWFwOwpAQCAtNjAsMTMgKzc5LDEyIEBAIGludCBtYWluKGlu
-dCBhcmdjLGNoYXIgKiphcmd2KQogCWlmICgoaW1hZ2UgPSBvcGVuKGFyZ3ZbMV0sT19SRFdSKSkg
-PCAwKSBkaWUoYXJndlsxXSk7CiAJaWYgKHJlYWQoaW1hZ2UsYnVmZmVyLDUxMikgIT0gNTEyKSBk
-aWUoYXJndlsxXSk7CiAJaWYgKCFtZW1jbXAgKGJ1ZmZlciwgIlwxNzdFTEYiLCA0KSkgewotCQl1
-bnNpZ25lZCBpbnQgKnAgPSAodW5zaWduZWQgaW50ICopKGJ1ZmZlciArICoodW5zaWduZWQgaW50
-ICopKGJ1ZmZlciArIDI4KSk7Ci0JCQotCQlpID0gcFsxXSArICoodW5zaWduZWQgaW50ICopKGJ1
-ZmZlciArIDI0KSAtIHBbMl07CisJCXEgPSBidWZmZXIgKyBsZDQoYnVmZmVyICsgMjgpOworCQlp
-ID0gbGQ0KHEgKyA0KSArIGxkNChidWZmZXIgKyAyNCkgLSBsZDQocSArIDgpOwogCQlpZiAobHNl
-ZWsoaW1hZ2UsaSwwKSA8IDApIGRpZSgibHNlZWsiKTsKIAkJaWYgKHJlYWQoaW1hZ2UsYnVmZmVy
-LDUxMikgIT0gNTEyKSBkaWUoYXJndlsxXSk7CiAJCWogPSAwOwotCX0gZWxzZSBpZiAoKih1bnNp
-Z25lZCBpbnQgKilidWZmZXIgPT0gMHgwMTAzMDEwNykgeworCX0gZWxzZSBpZiAobWVtY21wKGJ1
-ZmZlciwgYW91dF9tYWdpYywgNCkgPT0gMCkgewogCQlpID0gaiA9IDMyOwogCX0gZWxzZSB7CiAJ
-CWZwcmludGYgKHN0ZGVyciwgIk5vdCBFTEYgbm9yIGEub3V0LiBEb24ndCBibGFtZSBtZS5cbiIp
-OwpAQCAtNzYsNyArOTQsNyBAQCBpbnQgbWFpbihpbnQgYXJnYyxjaGFyICoqYXJndikKIAlpZiAo
-aiA9PSAzMiAmJiBidWZmZXJbNDBdID09ICdIJyAmJiBidWZmZXJbNDFdID09ICdkJyAmJiBidWZm
-ZXJbNDJdID09ICdyJyAmJiBidWZmZXJbNDNdID09ICdTJykgewogCQlvZmZzZXQgPSA0MCArIDEw
-OwogCX0gZWxzZSB7Ci0JCWkgKz0gKCgqKHVuc2lnbmVkIHNob3J0ICopKGJ1ZmZlciArIGogKyAy
-KSk8PDIpIC0gNTEyOworCQlpICs9IChsZDIoYnVmZmVyICsgaiArIDIpIDw8IDIpIC0gNTEyOwog
-CQlpZiAobHNlZWsoaW1hZ2UsaSwwKSA8IDApIGRpZSgibHNlZWsiKTsKIAkJaWYgKHJlYWQoaW1h
-Z2UsYnVmZmVyLDEwMjQpICE9IDEwMjQpIGRpZShhcmd2WzFdKTsKIAkJZm9yIChxID0gYnVmZmVy
-LCByID0gcSArIDUxMjsgcSA8IHI7IHEgKz0gNCkgewpAQCAtOTAsMTUgKzEwOCwxNSBAQCBpbnQg
-bWFpbihpbnQgYXJnYyxjaGFyICoqYXJndikKIAkJb2Zmc2V0ID0gaSArIChxIC0gYnVmZmVyKSAr
-IDEwOwogCX0KIAlpZiAobHNlZWsoaW1hZ2UsIG9mZnNldCwgMCkgPCAwKSBkaWUgKCJsc2VlayIp
-OwotCSoodW5zaWduZWQgKilidWZmZXIgPSAwOwotCSoodW5zaWduZWQgKikoYnVmZmVyICsgNCkg
-PSAweDAxMDAwMDAwOwotCSoodW5zaWduZWQgKikoYnVmZmVyICsgOCkgPSAoKGVuZCArIDMyICsg
-ODE5MSkgJiB+ODE5MSk7Ci0JKih1bnNpZ25lZCAqKShidWZmZXIgKyAxMikgPSBzLnN0X3NpemU7
-CisJc3Q0KGJ1ZmZlciwgMCk7CisJc3Q0KGJ1ZmZlciArIDQsIDB4MDEwMDAwMDApOworCXN0NChi
-dWZmZXIgKyA4LCAoZW5kICsgMzIgKyA4MTkxKSAmIH44MTkxKTsKKwlzdDQoYnVmZmVyICsgMTIs
-IHMuc3Rfc2l6ZSk7CiAJaWYgKHdyaXRlKGltYWdlLGJ1ZmZlcisyLDE0KSAhPSAxNCkgZGllIChh
-cmd2WzFdKTsKIAlpZiAobHNlZWsoaW1hZ2UsIDQsIDApIDwgMCkgZGllICgibHNlZWsiKTsKLQkq
-KHVuc2lnbmVkICopYnVmZmVyID0gKChlbmQgKyAzMiArIDgxOTEpICYgfjgxOTEpIC0gKHN0YXJ0
-ICYgfjB4M2ZmZmZmVUwpICsgcy5zdF9zaXplOwotCSoodW5zaWduZWQgKikoYnVmZmVyICsgNCkg
-PSAwOwotCSoodW5zaWduZWQgKikoYnVmZmVyICsgOCkgPSAwOworCXN0NChidWZmZXIsICgoZW5k
-ICsgMzIgKyA4MTkxKSAmIH44MTkxKSAtIChzdGFydCAmIH4weDNmZmZmZlVMKSArIHMuc3Rfc2l6
-ZSk7CisJc3Q0KGJ1ZmZlciArIDQsIDApOworCXN0NChidWZmZXIgKyA4LCAwKTsKIAlpZiAod3Jp
-dGUoaW1hZ2UsYnVmZmVyLDEyKSAhPSAxMikgZGllIChhcmd2WzFdKTsKIAlpZiAobHNlZWsoaW1h
-Z2UsIGsgLSBzdGFydCArICgoZW5kICsgMzIgKyA4MTkxKSAmIH44MTkxKSwgMCkgPCAwKSBkaWUg
-KCJsc2VlayIpOwogCWlmICgodGFpbCA9IG9wZW4oYXJndlszXSxPX1JET05MWSkpIDwgMCkgZGll
-KGFyZ3ZbM10pOwo=
---00032557a35ee924bf0498ec2300--
