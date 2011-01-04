@@ -1,86 +1,44 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Tue, 04 Jan 2011 21:39:13 +0000
-Subject: [PATCH 04/10] sparc: additional comments to piggyback_32.c
-Message-Id: <1294177159-15817-4-git-send-email-sam@ravnborg.org>
+Date: Tue, 04 Jan 2011 21:39:11 +0000
+Subject: [PATCH 02/10] sparc: use trapbase in setup_arch
+Message-Id: <1294177159-15817-2-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-While reverse engineering the functionality of piggyback
-I missed that the code was actually commented.
-So I added a few comments.
+start and trapbase point to the same address.
+But using start to assing to sparc_ttable looked confusing.
+
+Replace this with the use of trapbase.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/boot/piggyback_32.c |   23 +++++++++++++++++++++--
- 1 files changed, 21 insertions(+), 2 deletions(-)
+ arch/sparc/kernel/setup_32.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/boot/piggyback_32.c b/arch/sparc/boot/piggyback_32.c
-index 5c86a7d..5e856f2 100644
---- a/arch/sparc/boot/piggyback_32.c
-+++ b/arch/sparc/boot/piggyback_32.c
-@@ -36,6 +36,8 @@
-  * as PROM looks for a.out image only.
-  */
+diff --git a/arch/sparc/kernel/setup_32.c b/arch/sparc/kernel/setup_32.c
+index b22ce61..648f216 100644
+--- a/arch/sparc/kernel/setup_32.c
++++ b/arch/sparc/kernel/setup_32.c
+@@ -185,7 +185,6 @@ static void __init boot_flags_init(char *commands)
  
-+#define AOUT_TEXT_OFFSET   32
-+
- /* read two bytes as big endian */
- static unsigned short ld2(char *p)
- {
-@@ -154,12 +156,20 @@ int main(int argc,char **argv)
- 			die(argv[1]);
- 		j = 0;
- 	} else if (memcmp(buffer, aout_magic, 4) = 0) {
--		i = j = 32;
-+		i = j = AOUT_TEXT_OFFSET;
- 	} else {
- 		fprintf (stderr, "Not ELF nor a.out. Don't blame me.\n");
- 		exit(1);
- 	}
- 	k = i;
-+	/*
-+	 * We need to fill in values for sparc_ramdisk_image + sparc_ramdisk_size
-+	 * To locate these symbols search for the "HdrS" text which appear
-+	 * in the image a little before the gokernel symbol.
-+	 * See definition of these in init_32.S
-+	 */
-+
-+	/*  Find the gokernel label */
- 	i += (ld2(buffer + j + 2) << 2) - 512;
- 	if (lseek(image, i, 0) < 0)
- 		die("lseek");
-@@ -177,6 +187,13 @@ int main(int argc,char **argv)
- 	if (lseek(image, offset, 0) < 0)
- 		die("lseek");
+ extern void sun4c_probe_vac(void);
+ extern char cputypval;
+-extern unsigned long start, end;
  
-+	/*
-+	 * root_flags = 0
-+	 * root_dev = 1 (RAMDISK_MAJOR)
-+	 * ram_flags = 0
-+	 * sparc_ramdisk_image = "PAGE aligned address after _end")
-+	 * sparc_ramdisk_size = size of image
-+	 */
- 	st4(buffer, 0);
- 	st4(buffer + 4, 0x01000000);
- 	st4(buffer + 8, (end + 32 + 4095) & ~4095);
-@@ -184,11 +201,13 @@ int main(int argc,char **argv)
+ extern unsigned short root_flags;
+ extern unsigned short root_dev;
+@@ -210,7 +209,7 @@ void __init setup_arch(char **cmdline_p)
+ 	int i;
+ 	unsigned long highest_paddr;
  
- 	if (write(image, buffer + 2, 14) != 14)
- 		die(argv[1]);
-+
-+	/* seek page aligned boundary in the image file and add boot image */
- 	if (lseek(image, k - start + ((end + 32 + 4095) & ~4095), 0) < 0)
- 		die("lseek");
- 	if ((tail = open(argv[3],O_RDONLY)) < 0)
- 		die(argv[3]);
--	while ((i = read (tail, buffer, 1024)) > 0)
-+	while ((i = read(tail, buffer, 1024)) > 0)
- 		if (write(image, buffer, i) != i)
- 			die(argv[1]);
- 	if (close(image) < 0)
+-	sparc_ttable = (struct tt_entry *) &start;
++	sparc_ttable = (struct tt_entry *) &trapbase;
+ 
+ 	/* Initialize PROM console and command line. */
+ 	*cmdline_p = prom_getbootargs();
 -- 
 1.6.0.6
 
