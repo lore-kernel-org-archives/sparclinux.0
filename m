@@ -1,118 +1,86 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 11 Jan 2011 23:50:36 +0000
-Subject: [PATCH 6/22] svga: Make svga_set_default_atc_regs take an iomem
-Message-Id: <20110111.155036.191158491.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Tue, 04 Jan 2011 21:39:13 +0000
+Subject: [PATCH 04/10] sparc: additional comments to piggyback_32.c
+Message-Id: <1294177159-15817-4-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-fbdev@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
+While reverse engineering the functionality of piggyback
+I missed that the code was actually commented.
+So I added a few comments.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- drivers/video/arkfb.c    |    2 +-
- drivers/video/s3fb.c     |    2 +-
- drivers/video/svgalib.c  |   24 ++++++++++++------------
- drivers/video/vt8623fb.c |    2 +-
- include/linux/svga.h     |    2 +-
- 5 files changed, 16 insertions(+), 16 deletions(-)
+ arch/sparc/boot/piggyback_32.c |   23 +++++++++++++++++++++--
+ 1 files changed, 21 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/video/arkfb.c b/drivers/video/arkfb.c
-index 7939d5e..2dfecbf 100644
---- a/drivers/video/arkfb.c
-+++ b/drivers/video/arkfb.c
-@@ -654,7 +654,7 @@ static int arkfb_set_par(struct fb_info *info)
+diff --git a/arch/sparc/boot/piggyback_32.c b/arch/sparc/boot/piggyback_32.c
+index 5c86a7d..5e856f2 100644
+--- a/arch/sparc/boot/piggyback_32.c
++++ b/arch/sparc/boot/piggyback_32.c
+@@ -36,6 +36,8 @@
+  * as PROM looks for a.out image only.
+  */
  
- 	/* Set default values */
- 	svga_set_default_gfx_regs(par->state.vgabase);
--	svga_set_default_atc_regs();
-+	svga_set_default_atc_regs(par->state.vgabase);
- 	svga_set_default_seq_regs();
- 	svga_set_default_crt_regs();
- 	svga_wcrt_multi(par->state.vgabase, ark_line_compare_regs, 0xFFFFFFFF);
-diff --git a/drivers/video/s3fb.c b/drivers/video/s3fb.c
-index 773650c..a187376 100644
---- a/drivers/video/s3fb.c
-+++ b/drivers/video/s3fb.c
-@@ -515,7 +515,7 @@ static int s3fb_set_par(struct fb_info *info)
- 
- 	/* Set default values */
- 	svga_set_default_gfx_regs(par->state.vgabase);
--	svga_set_default_atc_regs();
-+	svga_set_default_atc_regs(par->state.vgabase);
- 	svga_set_default_seq_regs();
- 	svga_set_default_crt_regs();
- 	svga_wcrt_multi(par->state.vgabase, s3_line_compare_regs, 0xFFFFFFFF);
-diff --git a/drivers/video/svgalib.c b/drivers/video/svgalib.c
-index 25f9f87..8b97359 100644
---- a/drivers/video/svgalib.c
-+++ b/drivers/video/svgalib.c
-@@ -93,26 +93,26 @@ void svga_set_default_gfx_regs(void __iomem *regbase)
- }
- 
- /* Set attribute controller registers to sane values */
--void svga_set_default_atc_regs(void)
-+void svga_set_default_atc_regs(void __iomem *regbase)
++#define AOUT_TEXT_OFFSET   32
++
+ /* read two bytes as big endian */
+ static unsigned short ld2(char *p)
  {
- 	u8 count;
+@@ -154,12 +156,20 @@ int main(int argc,char **argv)
+ 			die(argv[1]);
+ 		j = 0;
+ 	} else if (memcmp(buffer, aout_magic, 4) = 0) {
+-		i = j = 32;
++		i = j = AOUT_TEXT_OFFSET;
+ 	} else {
+ 		fprintf (stderr, "Not ELF nor a.out. Don't blame me.\n");
+ 		exit(1);
+ 	}
+ 	k = i;
++	/*
++	 * We need to fill in values for sparc_ramdisk_image + sparc_ramdisk_size
++	 * To locate these symbols search for the "HdrS" text which appear
++	 * in the image a little before the gokernel symbol.
++	 * See definition of these in init_32.S
++	 */
++
++	/*  Find the gokernel label */
+ 	i += (ld2(buffer + j + 2) << 2) - 512;
+ 	if (lseek(image, i, 0) < 0)
+ 		die("lseek");
+@@ -177,6 +187,13 @@ int main(int argc,char **argv)
+ 	if (lseek(image, offset, 0) < 0)
+ 		die("lseek");
  
--	vga_r(NULL, 0x3DA);
--	vga_w(NULL, VGA_ATT_W, 0x00);
-+	vga_r(regbase, 0x3DA);
-+	vga_w(regbase, VGA_ATT_W, 0x00);
++	/*
++	 * root_flags = 0
++	 * root_dev = 1 (RAMDISK_MAJOR)
++	 * ram_flags = 0
++	 * sparc_ramdisk_image = "PAGE aligned address after _end")
++	 * sparc_ramdisk_size = size of image
++	 */
+ 	st4(buffer, 0);
+ 	st4(buffer + 4, 0x01000000);
+ 	st4(buffer + 8, (end + 32 + 4095) & ~4095);
+@@ -184,11 +201,13 @@ int main(int argc,char **argv)
  
- 	/* All standard ATC registers (AR00 - AR14) */
- 	for (count = 0; count <= 0xF; count ++)
--		svga_wattr(NULL, count, count);
-+		svga_wattr(regbase, count, count);
- 
--	svga_wattr(NULL, VGA_ATC_MODE, 0x01);
--/*	svga_wattr(NULL, VGA_ATC_MODE, 0x41); */
--	svga_wattr(NULL, VGA_ATC_OVERSCAN, 0x00);
--	svga_wattr(NULL, VGA_ATC_PLANE_ENABLE, 0x0F);
--	svga_wattr(NULL, VGA_ATC_PEL, 0x00);
--	svga_wattr(NULL, VGA_ATC_COLOR_PAGE, 0x00);
-+	svga_wattr(regbase, VGA_ATC_MODE, 0x01);
-+/*	svga_wattr(regbase, VGA_ATC_MODE, 0x41); */
-+	svga_wattr(regbase, VGA_ATC_OVERSCAN, 0x00);
-+	svga_wattr(regbase, VGA_ATC_PLANE_ENABLE, 0x0F);
-+	svga_wattr(regbase, VGA_ATC_PEL, 0x00);
-+	svga_wattr(regbase, VGA_ATC_COLOR_PAGE, 0x00);
- 
--	vga_r(NULL, 0x3DA);
--	vga_w(NULL, VGA_ATT_W, 0x20);
-+	vga_r(regbase, 0x3DA);
-+	vga_w(regbase, VGA_ATT_W, 0x20);
- }
- 
- /* Set sequencer registers to sane values */
-diff --git a/drivers/video/vt8623fb.c b/drivers/video/vt8623fb.c
-index 77382e9..24f5b43 100644
---- a/drivers/video/vt8623fb.c
-+++ b/drivers/video/vt8623fb.c
-@@ -426,7 +426,7 @@ static int vt8623fb_set_par(struct fb_info *info)
- 
- 	/* Set default values */
- 	svga_set_default_gfx_regs(par->state.vgabase);
--	svga_set_default_atc_regs();
-+	svga_set_default_atc_regs(par->state.vgabase);
- 	svga_set_default_seq_regs();
- 	svga_set_default_crt_regs();
- 	svga_wcrt_multi(par->state.vgabase, vt8623_line_compare_regs, 0xFFFFFFFF);
-diff --git a/include/linux/svga.h b/include/linux/svga.h
-index 4591032..87a4164 100644
---- a/include/linux/svga.h
-+++ b/include/linux/svga.h
-@@ -100,7 +100,7 @@ void svga_wcrt_multi(void __iomem *regbase, const struct vga_regset *regset, u32
- void svga_wseq_multi(void __iomem *regbase, const struct vga_regset *regset, u32 value);
- 
- void svga_set_default_gfx_regs(void __iomem *regbase);
--void svga_set_default_atc_regs(void);
-+void svga_set_default_atc_regs(void __iomem *regbase);
- void svga_set_default_seq_regs(void);
- void svga_set_default_crt_regs(void);
- void svga_set_textmode_vga_regs(void);
+ 	if (write(image, buffer + 2, 14) != 14)
+ 		die(argv[1]);
++
++	/* seek page aligned boundary in the image file and add boot image */
+ 	if (lseek(image, k - start + ((end + 32 + 4095) & ~4095), 0) < 0)
+ 		die("lseek");
+ 	if ((tail = open(argv[3],O_RDONLY)) < 0)
+ 		die(argv[3]);
+-	while ((i = read (tail, buffer, 1024)) > 0)
++	while ((i = read(tail, buffer, 1024)) > 0)
+ 		if (write(image, buffer, i) != i)
+ 			die(argv[1]);
+ 	if (close(image) < 0)
 -- 
-1.7.3.4
+1.6.0.6
 
