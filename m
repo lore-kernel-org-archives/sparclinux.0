@@ -1,23 +1,50 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 22 Jan 2011 00:51:56 +0000
-Subject: Re: [PATCH 4/6 V3] sparc/leon: Make mmu_inval_dma_area flush
-Message-Id: <20110121.165156.121229306.davem@davemloft.net>
+From: Daniel Hellstrom <daniel@gaisler.com>
+Date: Tue, 04 Jan 2011 11:41:31 +0000
+Subject: [PATCH 3/7] LEON: added raw AMBA vendor/device number to find TIMER,IRQCTRL
+Message-Id: <1294141295-26584-3-git-send-email-daniel@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1295359829-27308-5-git-send-email-kristoffer@gaisler.com>
-In-Reply-To: <1295359829-27308-5-git-send-email-kristoffer@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Tue, 18 Jan 2011 20:40:53 +0100
+Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
+---
+ arch/sparc/kernel/leon_kernel.c |   14 ++++++++++----
+ 1 files changed, 10 insertions(+), 4 deletions(-)
 
-> On Tue, Jan 18, 2011 at 03:10:27PM +0100, Kristoffer Glembo wrote:
->> Signed-off-by: Kristoffer Glembo <kristoffer@gaisler.com>
-> 
-> Looks OK to me.
-> But I do not know enough about the background to add
-> my "Acked-by:" as this imply some knowledge about the code touched.
+diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
+index 91a978f..88ade07 100644
+--- a/arch/sparc/kernel/leon_kernel.c
++++ b/arch/sparc/kernel/leon_kernel.c
+@@ -120,8 +120,11 @@ void __init leon_init_timers(irq_handler_t counter_fn)
+ 	if (!rootnp)
+ 		goto bad;
+ 	np = of_find_node_by_name(rootnp, "GAISLER_IRQMP");
+-	if (!np)
+-		goto bad;
++	if (!np) {
++		np = of_find_node_by_name(rootnp, "01_00d");
++		if (!np)
++			goto bad;
++	}
+ 	pp = of_find_property(np, "reg", &len);
+ 	if (!pp)
+ 		goto bad;
+@@ -129,8 +132,11 @@ void __init leon_init_timers(irq_handler_t counter_fn)
+ 
+ 	/* Find GPTIMER Timer Registers base address otherwise bail out. */
+ 	np = of_find_node_by_name(rootnp, "GAISLER_GPTIMER");
+-	if (!np)
+-		goto bad;
++	if (!np) {
++		np = of_find_node_by_name(np, "01_011");
++		if (!np)
++			goto bad;
++	}
+ 	pp = of_find_property(np, "reg", &len);
+ 	if (!pp)
+ 		goto bad;
+-- 
+1.5.4
 
-Applied.
