@@ -1,815 +1,324 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 23 Jan 2011 21:41:08 +0000
-Subject: [PATCH 5/7] sparc32,sun4d: irq, smp files cleanup
-Message-Id: <1295818870-25450-5-git-send-email-sam@ravnborg.org>
+Date: Tue, 04 Jan 2011 21:39:16 +0000
+Subject: [PATCH 07/10] sparc: fix tfptboot.img for sparc64 on little-endian host
+Message-Id: <1294177159-15817-7-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-- drop filename in file header
-- drop unused includes
-- add description of sun4d interrupts (from davem)
-- add KERN_* to printk
-- fix spaces => tabs
-- add spaces after reserved words
-- fix indent of a whole code block in smp4d_boot_one_cpu()
-  Note: two printk() was updated from debug to KERN_INFO in this code block
-- drop all externs, they are now in header files
+piggyback_32 adapted to support sparc64:
+- locating "HdrS" differs for sparc and sparc64
+- sparc64 updates a_text, a_data + a_bss in the final a.out header
 
-This is partly based on a patch from: David Miller <davem@davemloft.net>
+Updated Makefile to use piggyback_32 for sparc64.
+Deleted the now unused piggyback_64.c
+
+piggyback_32.c is host endian neutral and works on both
+little-endian and big-endian hosts.
+This fixes a long standing bug where sparc64 could not
+generate tftpboot.img on a x86 host.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/kernel/sun4d_irq.c |  195 +++++++++++++++++++++++------------------
- arch/sparc/kernel/sun4d_smp.c |  176 ++++++++++++++-----------------------
- 2 files changed, 174 insertions(+), 197 deletions(-)
+ arch/sparc/boot/Makefile       |    6 +-
+ arch/sparc/boot/piggyback_32.c |   97 ++++++++++++++++++++++++++++-------
+ arch/sparc/boot/piggyback_64.c |  110 ----------------------------------------
+ 3 files changed, 80 insertions(+), 133 deletions(-)
+ delete mode 100644 arch/sparc/boot/piggyback_64.c
 
-diff --git a/arch/sparc/kernel/sun4d_irq.c b/arch/sparc/kernel/sun4d_irq.c
-index e11b461..14d6253 100644
---- a/arch/sparc/kernel/sun4d_irq.c
-+++ b/arch/sparc/kernel/sun4d_irq.c
-@@ -1,49 +1,48 @@
- /*
-- *  arch/sparc/kernel/sun4d_irq.c:
-- *			SS1000/SC2000 interrupt handling.
-+ * SS1000/SC2000 interrupt handling.
+diff --git a/arch/sparc/boot/Makefile b/arch/sparc/boot/Makefile
+index 4c81fe5..06a79a2 100644
+--- a/arch/sparc/boot/Makefile
++++ b/arch/sparc/boot/Makefile
+@@ -6,7 +6,7 @@
+ ROOT_IMG	:= /usr/src/root.img
+ ELFTOAOUT	:= elftoaout
+ 
+-hostprogs-y	:= piggyback_32 piggyback_64 btfixupprep
++hostprogs-y	:= piggyback_32 btfixupprep
+ targets		:= tftpboot.img btfix.o btfix.S image zImage vmlinux.aout
+ clean-files	:= System.map
+ 
+@@ -69,7 +69,7 @@ endif
+ 
+ ifeq ($(CONFIG_SPARC64),y)
+ quiet_cmd_piggy     = PIGGY   $@
+-      cmd_piggy     = $(obj)/piggyback_64 $@ System.map $(ROOT_IMG)
++      cmd_piggy     = $(obj)/piggyback_32 $(BITS) $@ System.map $(ROOT_IMG)
+ quiet_cmd_strip     = STRIP   $@
+       cmd_strip     = $(STRIP) -R .comment -R .note -K sun4u_init -K _end -K _start vmlinux -o $@
+ 
+@@ -82,7 +82,7 @@ $(obj)/image: vmlinux FORCE
+ $(obj)/zImage: $(obj)/image
+ 	$(call if_changed,gzip)
+ 
+-$(obj)/tftpboot.img: $(obj)/image $(obj)/piggyback_64 System.map $(ROOT_IMG) FORCE
++$(obj)/tftpboot.img: $(obj)/image $(obj)/piggyback_32 System.map $(ROOT_IMG) FORCE
+ 	$(call if_changed,elftoaout)
+ 	$(call if_changed,piggy)
+ 	@echo '  kernel: $@ is ready'
+diff --git a/arch/sparc/boot/piggyback_32.c b/arch/sparc/boot/piggyback_32.c
+index c4b0843..d56e9de 100644
+--- a/arch/sparc/boot/piggyback_32.c
++++ b/arch/sparc/boot/piggyback_32.c
+@@ -107,7 +107,8 @@ static int end_line(const char *line)
   *
-  *  Copyright (C) 1997,1998 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
-  *  Heavily based on arch/sparc/kernel/irq.c.
+  * Return 0 if either start or end is not found
   */
+-static int get_start_end(const char *filename, unsigned int *start, unsigned int *end)
++static int get_start_end(const char *filename, unsigned int *start,
++                                               unsigned int *end)
+ {
+ 	FILE *map;
+ 	char buffer[1024];
+@@ -131,11 +132,60 @@ static int get_start_end(const char *filename, unsigned int *start, unsigned int
+ 	return 1;
+ }
  
--#include <linux/errno.h>
--#include <linux/linkage.h>
- #include <linux/kernel_stat.h>
--#include <linux/signal.h>
--#include <linux/sched.h>
--#include <linux/ptrace.h>
--#include <linux/interrupt.h>
--#include <linux/slab.h>
--#include <linux/random.h>
--#include <linux/init.h>
--#include <linux/smp.h>
--#include <linux/spinlock.h>
- #include <linux/seq_file.h>
--#include <linux/of.h>
--#include <linux/of_device.h>
--
--#include <asm/ptrace.h>
--#include <asm/processor.h>
--#include <asm/system.h>
--#include <asm/psr.h>
--#include <asm/smp.h>
--#include <asm/vaddrs.h>
-+
- #include <asm/timer.h>
--#include <asm/openprom.h>
--#include <asm/oplib.h>
- #include <asm/traps.h>
- #include <asm/irq.h>
- #include <asm/io.h>
--#include <asm/pgalloc.h>
--#include <asm/pgtable.h>
- #include <asm/sbi.h>
- #include <asm/cacheflush.h>
--#include <asm/irq_regs.h>
- 
- #include "kernel.h"
- #include "irq.h"
- 
--/* If you trust current SCSI layer to handle different SCSI IRQs, enable this. I don't trust it... -jj */
-+/* Sun4d interrupts fall roughly into two categories.  SBUS and
-+ * cpu local.  CPU local interrupts cover the timer interrupts
-+ * and whatnot, and we encode those as normal PILs between
-+ * 0 and 15.
-+ *
-+ * SBUS interrupts are encoded integers including the board number
-+ * (plus one), the SBUS level, and the SBUS slot number.  Sun4D
-+ * IRQ dispatch is done by:
-+ *
-+ * 1) Reading the BW local interrupt table in order to get the bus
-+ *    interrupt mask.
-+ *
-+ *    This table is indexed by SBUS interrupt level which can be
-+ *    derived from the PIL we got interrupted on.
-+ *
-+ * 2) For each bus showing interrupt pending from #1, read the
-+ *    SBI interrupt state register.  This will indicate which slots
-+ *    have interrupts pending for that SBUS interrupt level.
-+ */
-+
++#define LOOKBACK (128 * 4)
++#define BUFSIZE 1024
 +/*
-+ * If you trust current SCSI layer to handle different
-+ * SCSI IRQs, enable this.
-+ * I don't trust it... -jj
++ * Find the HdrS entry from head_32/head_64.
++ * We check if it is at the beginning of the file (sparc64 case)
++ * and if not we search for it.
++ * When we search do so in steps of 4 as HdrS is on a 4-byte aligned
++ * address (it is on same alignment as sparc instructions)
++ * Return the offset to the HdrS entry (as off_t)
 + */
- /* #define DISTRIBUTE_IRQS */
- 
- struct sun4d_timer_regs {
-@@ -59,11 +58,9 @@ static struct sun4d_timer_regs __iomem *sun4d_timers;
- #define TIMER_IRQ	10
- 
- #define MAX_STATIC_ALLOC	4
--extern int static_irq_count;
- static unsigned char sbus_tid[32];
- 
- static struct irqaction *irq_action[NR_IRQS];
--extern spinlock_t irq_action_lock;
- 
- static struct sbus_action {
- 	struct irqaction *action;
-@@ -71,11 +68,33 @@ static struct sbus_action {
- } *sbus_actions;
- 
- static int pil_to_sbus[] = {
--	0, 0, 1, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 0,
-+	0,
-+	0,
-+	1,
-+	2,
-+	0,
-+	3,
-+	0,
-+	4,
-+	0,
-+	5,
-+	0,
-+	6,
-+	0,
-+	7,
-+	0,
-+	0,
- };
- 
- static int sbus_to_pil[] = {
--	0, 2, 3, 5, 7, 9, 11, 13,
-+	0,
-+	2,
-+	3,
-+	5,
-+	7,
-+	9,
-+	11,
-+	13,
- };
- 
- static int nsbi;
-@@ -86,7 +105,7 @@ DEFINE_SPINLOCK(sun4d_imsk_lock);
- int show_sun4d_interrupts(struct seq_file *p, void *v)
- {
- 	int i = *(loff_t *) v, j = 0, k = 0, sbusl;
--	struct irqaction * action;
-+	struct irqaction *action;
- 	unsigned long flags;
- #ifdef CONFIG_SMP
- 	int x;
-@@ -96,13 +115,14 @@ int show_sun4d_interrupts(struct seq_file *p, void *v)
- 	if (i < NR_IRQS) {
- 		sbusl = pil_to_sbus[i];
- 		if (!sbusl) {
--	 		action = *(i + irq_action);
--			if (!action) 
--		        	goto out_unlock;
-+			action = *(i + irq_action);
-+			if (!action)
-+				goto out_unlock;
- 		} else {
- 			for (j = 0; j < nsbi; j++) {
- 				for (k = 0; k < 4; k++)
--					if ((action = sbus_actions [(j << 5) + (sbusl << 2) + k].action))
-+					action = sbus_actions[(j << 5) + (sbusl << 2) + k].action;
-+					if (action)
- 						goto found_it;
- 			}
- 			goto out_unlock;
-@@ -125,15 +145,17 @@ found_it:	seq_printf(p, "%3d: ", i);
- 					(action->flags & IRQF_DISABLED) ? " +" : "",
- 					action->name);
- 			}
--			if (!sbusl) break;
-+			if (!sbusl)
-+				break;
- 			k++;
--			if (k < 4)
--				action = sbus_actions [(j << 5) + (sbusl << 2) + k].action;
--			else {
-+			if (k < 4) {
-+				action = sbus_actions[(j << 5) + (sbusl << 2) + k].action;
-+			} else {
- 				j++;
--				if (j = nsbi) break;
-+				if (j = nsbi)
-+					break;
- 				k = 0;
--				action = sbus_actions [(j << 5) + (sbusl << 2)].action;
-+				action = sbus_actions[(j << 5) + (sbusl << 2)].action;
- 			}
- 		}
- 		seq_putc(p, '\n');
-@@ -147,7 +169,7 @@ void sun4d_free_irq(unsigned int irq, void *dev_id)
- {
- 	struct irqaction *action, **actionp;
- 	struct irqaction *tmp = NULL;
--        unsigned long flags;
-+	unsigned long flags;
- 
- 	spin_lock_irqsave(&irq_action_lock, flags);
- 	if (irq < 15)
-@@ -156,7 +178,7 @@ void sun4d_free_irq(unsigned int irq, void *dev_id)
- 		actionp = &(sbus_actions[irq - (1 << 5)].action);
- 	action = *actionp;
- 	if (!action) {
--		printk("Trying to free free IRQ%d\n",irq);
-+		printk(KERN_ERR "Trying to free free IRQ%d\n", irq);
- 		goto out_unlock;
- 	}
- 	if (dev_id) {
-@@ -166,23 +188,25 @@ void sun4d_free_irq(unsigned int irq, void *dev_id)
- 			tmp = action;
- 		}
- 		if (!action) {
--			printk("Trying to free free shared IRQ%d\n",irq);
-+			printk(KERN_ERR "Trying to free free shared IRQ%d\n",
-+			       irq);
- 			goto out_unlock;
- 		}
- 	} else if (action->flags & IRQF_SHARED) {
--		printk("Trying to free shared IRQ%d with NULL device ID\n", irq);
-+		printk(KERN_ERR "Trying to free shared IRQ%d with NULL device ID\n",
-+		       irq);
- 		goto out_unlock;
- 	}
--	if (action->flags & SA_STATIC_ALLOC)
--	{
--		/* This interrupt is marked as specially allocated
-+	if (action->flags & SA_STATIC_ALLOC) {
-+		/*
-+		 * This interrupt is marked as specially allocated
- 		 * so it is a bad idea to free it.
- 		 */
--		printk("Attempt to free statically allocated IRQ%d (%s)\n",
-+		printk(KERN_ERR "Attempt to free statically allocated IRQ%d (%s)\n",
- 		       irq, action->name);
- 		goto out_unlock;
- 	}
--	
++static off_t get_hdrs_offset(int kernelfd, const char *filename)
++{
++	char buffer[BUFSIZE];
++	off_t offset;
++	int i;
 +
- 	if (tmp)
- 		tmp->next = action->next;
- 	else
-@@ -203,21 +227,19 @@ out_unlock:
- 	spin_unlock_irqrestore(&irq_action_lock, flags);
- }
- 
--extern void unexpected_irq(int, void *, struct pt_regs *);
--
--void sun4d_handler_irq(int irq, struct pt_regs * regs)
-+void sun4d_handler_irq(int irq, struct pt_regs *regs)
- {
- 	struct pt_regs *old_regs;
--	struct irqaction * action;
-+	struct irqaction *action;
- 	int cpu = smp_processor_id();
- 	/* SBUS IRQ level (1 - 7) */
- 	int sbusl = pil_to_sbus[irq];
--	
++	if (lseek(kernelfd, 0, SEEK_SET) < 0)
++		die("lseek");
++	if (read(kernelfd, buffer, BUFSIZE) != BUFSIZE)
++		die(filename);
 +
- 	/* FIXME: Is this necessary?? */
- 	cc_get_ipen();
--	
++	if (buffer[40] = 'H' && buffer[41] = 'd' &&
++	    buffer[42] = 'r' && buffer[43] = 'S') {
++		return 40;
++	} else {
++		/*  Find the gokernel label */
++		/* Decode offset from branch instruction */
++		offset = ld2(buffer + AOUT_TEXT_OFFSET + 2) << 2;
++		/* Go back 512 bytes so we do not miss HdrS */
++		offset -= LOOKBACK;
++		/* skip a.out header */
++		offset += AOUT_TEXT_OFFSET;
++		if (lseek(kernelfd, offset, SEEK_SET) < 0)
++			die("lseek");
++		if (read(kernelfd, buffer, BUFSIZE) != BUFSIZE)
++			die(filename);
 +
- 	cc_set_iclr(1 << irq);
--	
-+
- 	old_regs = set_irq_regs(regs);
- 	irq_enter();
- 	kstat_cpu(cpu).irqs[irq]++;
-@@ -235,9 +257,9 @@ void sun4d_handler_irq(int irq, struct pt_regs * regs)
- 		struct sbus_action *actionp;
- 		unsigned mask, slot;
- 		int sbil = (sbusl << 2);
--		
-+
- 		bw_clear_intr_mask(sbusl, bus_mask);
--		
-+
- 		/* Loop for each pending SBI */
- 		for (sbino = 0; bus_mask; sbino++, bus_mask >>= 1)
- 			if (bus_mask & 1) {
-@@ -249,7 +271,7 @@ void sun4d_handler_irq(int irq, struct pt_regs * regs)
- 					if (mask & slot) {
- 						mask &= ~slot;
- 						action = actionp->action;
--						
-+
- 						if (!action)
- 							unexpected_irq(irq, NULL, regs);
- 						do {
-@@ -266,13 +288,13 @@ void sun4d_handler_irq(int irq, struct pt_regs * regs)
- 
- int sun4d_request_irq(unsigned int irq,
- 		irq_handler_t handler,
--		unsigned long irqflags, const char * devname, void *dev_id)
-+		unsigned long irqflags, const char *devname, void *dev_id)
- {
- 	struct irqaction *action, *tmp = NULL, **actionp;
- 	unsigned long flags;
- 	int ret;
--	
--	if(irq > 14 && irq < (1 << 5)) {
-+
-+	if (irq > 14 && irq < (1 << 5)) {
- 		ret = -EINVAL;
- 		goto out;
- 	}
-@@ -289,7 +311,7 @@ int sun4d_request_irq(unsigned int irq,
- 	else
- 		actionp = irq + irq_action;
- 	action = *actionp;
--	
-+
- 	if (action) {
- 		if ((action->flags & IRQF_SHARED) && (irqflags & IRQF_SHARED)) {
- 			for (tmp = action; tmp->next; tmp = tmp->next);
-@@ -298,7 +320,8 @@ int sun4d_request_irq(unsigned int irq,
- 			goto out_unlock;
- 		}
- 		if ((action->flags & IRQF_DISABLED) ^ (irqflags & IRQF_DISABLED)) {
--			printk("Attempt to mix fast and slow interrupts on IRQ%d denied\n", irq);
-+			printk(KERN_ERR "Attempt to mix fast and slow interrupts on IRQ%d denied\n",
-+			       irq);
- 			ret = -EBUSY;
- 			goto out_unlock;
- 		}
-@@ -312,14 +335,14 @@ int sun4d_request_irq(unsigned int irq,
- 		if (static_irq_count < MAX_STATIC_ALLOC)
- 			action = &static_irqaction[static_irq_count++];
- 		else
--			printk("Request for IRQ%d (%s) SA_STATIC_ALLOC failed using kmalloc\n", irq, devname);
-+			printk(KERN_ERR "Request for IRQ%d (%s) SA_STATIC_ALLOC failed using kmalloc\n",
-+			       irq, devname);
- 	}
--	
-+
- 	if (action = NULL)
--		action = kmalloc(sizeof(struct irqaction),
--						     GFP_ATOMIC);
--	
--	if (!action) { 
-+		action = kmalloc(sizeof(struct irqaction), GFP_ATOMIC);
-+
-+	if (!action) {
- 		ret = -ENOMEM;
- 		goto out_unlock;
- 	}
-@@ -334,7 +357,7 @@ int sun4d_request_irq(unsigned int irq,
- 		tmp->next = action;
- 	else
- 		*actionp = action;
--		
-+
- 	__enable_irq(irq);
- 
- 	ret = 0;
-@@ -348,7 +371,7 @@ static void sun4d_disable_irq(unsigned int irq)
- {
- 	int tid = sbus_tid[(irq >> 5) - 1];
- 	unsigned long flags;
--	
-+
- 	if (irq < NR_IRQS)
- 		return;
- 
-@@ -361,7 +384,7 @@ static void sun4d_enable_irq(unsigned int irq)
- {
- 	int tid = sbus_tid[(irq >> 5) - 1];
- 	unsigned long flags;
--	
-+
- 	if (irq < NR_IRQS)
- 		return;
- 
-@@ -411,7 +434,7 @@ void __init sun4d_distribute_irqs(void)
- 		int board = of_getintprop_default(dp, "board#", 0);
- 		if (sbus_tid[board] = 0xff) {
- 			int i = 31;
--				
-+
- 			if (cpus_empty(sbus_serving_map))
- 				sbus_serving_map = cpu_present_map;
- 			while (cpu_isset(i, sbus_serving_map))
-@@ -423,7 +446,8 @@ void __init sun4d_distribute_irqs(void)
- 	for_each_node_by_name(dp, "sbi") {
- 		int devid = of_getintprop_default(dp, "device-id", 0);
- 		int board = of_getintprop_default(dp, "board#", 0);
--		printk("sbus%d IRQs directed to CPU%d\n", board, sbus_tid[board]);
-+		printk(KERN_ERR "sbus%d IRQs directed to CPU%d\n",
-+		       board, sbus_tid[board]);
- 		set_sbi_tid(devid, sbus_tid[board] << 3);
- 	}
- #else
-@@ -437,11 +461,11 @@ void __init sun4d_distribute_irqs(void)
- 		sbus_tid[board] = cpuid;
- 		set_sbi_tid(devid, cpuid << 3);
- 	}
--	printk("All sbus IRQs directed to CPU%d\n", cpuid);
-+	printk(KERN_ERR "All sbus IRQs directed to CPU%d\n", cpuid);
- #endif
- }
- #endif
-- 
-+
- static void sun4d_clear_clock_irq(void)
- {
- 	sbus_readl(&sun4d_timers->l10_timer_limit);
-@@ -466,10 +490,7 @@ static void __init sun4d_fixup_trap_table(void)
- {
- #ifdef CONFIG_SMP
- 	unsigned long flags;
--	extern unsigned long lvl14_save[4];
- 	struct tt_entry *trap_table = &sparc_ttable[SP_TRAP_IRQ1 + (14 - 1)];
--	extern unsigned int real_irq_entry[], smp4d_ticker[];
--	extern unsigned int patchme_maybe_smp_msg[];
- 
- 	/* Adjust so that we jump directly to smp4d_ticker */
- 	lvl14_save[2] += smp4d_ticker - real_irq_entry;
-@@ -531,7 +552,8 @@ static void __init sun4d_init_timers(irq_handler_t counter_fn)
- 			  (IRQF_DISABLED | SA_STATIC_ALLOC),
- 			  "timer", NULL);
- 	if (err) {
--		prom_printf("sun4d_init_timers: request_irq() failed with %d\n", err);
-+		prom_printf("sun4d_init_timers: request_irq() failed with %d\n",
-+		             err);
- 		prom_halt();
- 	}
- 	sun4d_load_profile_irqs();
-@@ -550,7 +572,7 @@ void __init sun4d_init_sbi_irq(void)
- 	nsbi = 0;
- 	for_each_node_by_name(dp, "sbi")
- 		nsbi++;
--	sbus_actions = kzalloc (nsbi * 8 * 4 * sizeof(struct sbus_action), GFP_ATOMIC);
-+	sbus_actions = kzalloc(nsbi * 8 * 4 * sizeof(struct sbus_action), GFP_ATOMIC);
- 	if (!sbus_actions) {
- 		prom_printf("SUN4D: Cannot allocate sbus_actions, halting.\n");
- 		prom_halt();
-@@ -566,7 +588,8 @@ void __init sun4d_init_sbi_irq(void)
- 		/* Get rid of pending irqs from PROM */
- 		mask = acquire_sbi(devid, 0xffffffff);
- 		if (mask) {
--			printk ("Clearing pending IRQs %08x on SBI %d\n", mask, board);
-+			printk(KERN_ERR "Clearing pending IRQs %08x on SBI %d\n",
-+			       mask, board);
- 			release_sbi(devid, mask);
- 		}
- 	}
-diff --git a/arch/sparc/kernel/sun4d_smp.c b/arch/sparc/kernel/sun4d_smp.c
-index 482f2ab..475d50b 100644
---- a/arch/sparc/kernel/sun4d_smp.c
-+++ b/arch/sparc/kernel/sun4d_smp.c
-@@ -1,4 +1,4 @@
--/* sun4d_smp.c: Sparc SS1000/SC2000 SMP support.
-+/* Sparc SS1000/SC2000 SMP support.
-  *
-  * Copyright (C) 1998 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
-  *
-@@ -6,59 +6,23 @@
-  * Copyright (C) 1996 David S. Miller (davem@caip.rutgers.edu)
-  */
- 
--#include <asm/head.h>
--
--#include <linux/kernel.h>
--#include <linux/sched.h>
--#include <linux/threads.h>
--#include <linux/smp.h>
- #include <linux/interrupt.h>
--#include <linux/kernel_stat.h>
--#include <linux/init.h>
--#include <linux/spinlock.h>
--#include <linux/mm.h>
--#include <linux/swap.h>
- #include <linux/profile.h>
- #include <linux/delay.h>
- #include <linux/cpu.h>
- 
--#include <asm/ptrace.h>
--#include <asm/atomic.h>
--#include <asm/irq_regs.h>
--
--#include <asm/irq.h>
--#include <asm/page.h>
--#include <asm/pgalloc.h>
--#include <asm/pgtable.h>
--#include <asm/oplib.h>
- #include <asm/sbi.h>
-+#include <asm/mmu.h>
- #include <asm/tlbflush.h>
- #include <asm/cacheflush.h>
--#include <asm/cpudata.h>
- 
-+#include "kernel.h"
- #include "irq.h"
--#define IRQ_CROSS_CALL		15
- 
--extern ctxd_t *srmmu_ctx_table_phys;
-+#define IRQ_CROSS_CALL		15
- 
--static volatile int smp_processors_ready = 0;
-+static volatile int smp_processors_ready;
- static int smp_highest_cpu;
--extern volatile unsigned long cpu_callin_map[NR_CPUS];
--extern cpuinfo_sparc cpu_data[NR_CPUS];
--extern unsigned char boot_cpu_id;
--extern volatile int smp_process_available;
--
--extern cpumask_t smp_commenced_mask;
--
--extern int __smp4d_processor_id(void);
--
--/* #define SMP_DEBUG */
--
--#ifdef SMP_DEBUG
--#define SMP_PRINTK(x)	printk x
--#else
--#define SMP_PRINTK(x)
--#endif
- 
- static inline unsigned long sun4d_swap(volatile unsigned long *ptr, unsigned long val)
- {
-@@ -69,8 +33,6 @@ static inline unsigned long sun4d_swap(volatile unsigned long *ptr, unsigned lon
- }
- 
- static void smp_setup_percpu_timer(void);
--extern void cpu_probe(void);
--extern void sun4d_distribute_irqs(void);
- 
- static unsigned char cpu_leds[32];
- 
-@@ -86,9 +48,8 @@ static inline void show_leds(int cpuid)
- void __cpuinit smp4d_callin(void)
- {
- 	int cpuid = hard_smp4d_processor_id();
--	extern spinlock_t sun4d_imsk_lock;
- 	unsigned long flags;
--	
-+
- 	/* Show we are alive */
- 	cpu_leds[cpuid] = 0x6;
- 	show_leds(cpuid);
-@@ -118,15 +79,15 @@ void __cpuinit smp4d_callin(void)
- 	sun4d_swap((unsigned long *)&cpu_callin_map[cpuid], 1);
- 	local_flush_cache_all();
- 	local_flush_tlb_all();
--	
-+
- 	cpu_probe();
- 
--	while((unsigned long)current_set[cpuid] < PAGE_OFFSET)
-+	while ((unsigned long)current_set[cpuid] < PAGE_OFFSET)
- 		barrier();
--		
--	while(current_set[cpuid]->cpu != cpuid)
-+
-+	while (current_set[cpuid]->cpu != cpuid)
- 		barrier();
--		
-+
- 	/* Fix idle thread fields. */
- 	__asm__ __volatile__("ld [%0], %%g6\n\t"
- 			     : : "r" (&current_set[cpuid])
-@@ -134,16 +95,16 @@ void __cpuinit smp4d_callin(void)
- 
- 	cpu_leds[cpuid] = 0x9;
- 	show_leds(cpuid);
--	
-+
- 	/* Attach to the address space of init_task. */
- 	atomic_inc(&init_mm.mm_count);
- 	current->active_mm = &init_mm;
- 
- 	local_flush_cache_all();
- 	local_flush_tlb_all();
--	
-+
- 	local_irq_enable();	/* We don't allow PIL 14 yet */
--	
-+
- 	while (!cpu_isset(cpuid, smp_commenced_mask))
- 		barrier();
- 
-@@ -154,15 +115,9 @@ void __cpuinit smp4d_callin(void)
- 
- }
- 
--extern void init_IRQ(void);
--extern void cpu_panic(void);
--
- /*
-  *	Cycle through the processors asking the PROM to start each one.
-  */
-- 
--extern struct linux_prom_registers smp_penguin_ctable;
--
- void __init smp4d_boot_cpus(void)
- {
- 	if (boot_cpu_id)
-@@ -173,43 +128,42 @@ void __init smp4d_boot_cpus(void)
- 
- int __cpuinit smp4d_boot_one_cpu(int i)
- {
--			extern unsigned long sun4d_cpu_startup;
--			unsigned long *entry = &sun4d_cpu_startup;
--			struct task_struct *p;
--			int timeout;
--			int cpu_node;
-+	unsigned long *entry = &sun4d_cpu_startup;
-+	struct task_struct *p;
-+	int timeout;
-+	int cpu_node;
- 
--			cpu_find_by_instance(i, &cpu_node,NULL);
--			/* Cook up an idler for this guy. */
--			p = fork_idle(i);
--			current_set[i] = task_thread_info(p);
-+	cpu_find_by_instance(i, &cpu_node, NULL);
-+	/* Cook up an idler for this guy. */
-+	p = fork_idle(i);
-+	current_set[i] = task_thread_info(p);
-+
-+	/*
-+	 * Initialize the contexts table
-+	 * Since the call to prom_startcpu() trashes the structure,
-+	 * we need to re-initialize it for each cpu
-+	 */
-+	smp_penguin_ctable.which_io = 0;
-+	smp_penguin_ctable.phys_addr = (unsigned int) srmmu_ctx_table_phys;
-+	smp_penguin_ctable.reg_size = 0;
-+
-+	/* whirrr, whirrr, whirrrrrrrrr... */
-+	printk(KERN_INFO "Starting CPU %d at %p\n", i, entry);
-+	local_flush_cache_all();
-+	prom_startcpu(cpu_node,
-+		      &smp_penguin_ctable, 0, (char *)entry);
-+
-+	printk(KERN_INFO "prom_startcpu returned :)\n");
-+
-+	/* wheee... it's going... */
-+	for (timeout = 0; timeout < 10000; timeout++) {
-+		if (cpu_callin_map[i])
-+			break;
-+		udelay(200);
++		for (i = 0; i < LOOKBACK; i += 4) {
++			if (buffer[i + 0] = 'H' && buffer[i + 1] = 'd' &&
++			    buffer[i + 2] = 'r' && buffer[i + 3] = 'S') {
++				return offset + i;
++			}
++		}
 +	}
++	fprintf (stderr, "Couldn't find headers signature in %s\n", filename);
++	exit(1);
++}
++
+ int main(int argc,char **argv)
+ {
+ 	static char aout_magic[] = { 0x01, 0x03, 0x01, 0x07 };
+-	char buffer[1024], *q, *r;
+-	unsigned int i, start, end, offset;
++	char buffer[1024];
++	unsigned int i, start, end;
++	off_t offset;
+ 	struct stat s;
+ 	int image, tail;
  
--			/*
--			 * Initialize the contexts table
--			 * Since the call to prom_startcpu() trashes the structure,
--			 * we need to re-initialize it for each cpu
--			 */
--			smp_penguin_ctable.which_io = 0;
--			smp_penguin_ctable.phys_addr = (unsigned int) srmmu_ctx_table_phys;
--			smp_penguin_ctable.reg_size = 0;
--
--			/* whirrr, whirrr, whirrrrrrrrr... */
--			SMP_PRINTK(("Starting CPU %d at %p\n", i, entry));
--			local_flush_cache_all();
--			prom_startcpu(cpu_node,
--				      &smp_penguin_ctable, 0, (char *)entry);
--				      
--			SMP_PRINTK(("prom_startcpu returned :)\n"));
--
--			/* wheee... it's going... */
--			for(timeout = 0; timeout < 10000; timeout++) {
--				if(cpu_callin_map[i])
--					break;
--				udelay(200);
--			}
--			
- 	if (!(cpu_callin_map[i])) {
--		printk("Processor %d is stuck.\n", i);
-+		printk(KERN_ERR "Processor %d is stuck.\n", i);
- 		return -ENODEV;
+@@ -147,7 +197,8 @@ int main(int argc,char **argv)
+ 		die(argv[4]);
  
+ 	if (!get_start_end(argv[3], &start, &end)) {
+-		fprintf (stderr, "Could not determine start and end from %s\n", argv[3]);
++		fprintf(stderr, "Could not determine start and end from %s\n",
++		        argv[3]);
+ 		exit(1);
  	}
-@@ -255,14 +209,17 @@ static void smp4d_cross_call(smpfunc_t func, cpumask_t mask, unsigned long arg1,
- 			     unsigned long arg2, unsigned long arg3,
- 			     unsigned long arg4)
- {
--	if(smp_processors_ready) {
-+	if (smp_processors_ready) {
- 		register int high = smp_highest_cpu;
- 		unsigned long flags;
+ 	if ((image = open(argv[2], O_RDWR)) < 0)
+@@ -159,27 +210,17 @@ int main(int argc,char **argv)
+ 		exit(1);
+ 	}
+ 	/*
+-	 * We need to fill in values for sparc_ramdisk_image + sparc_ramdisk_size
++	 * We need to fill in values for
++	 * sparc_ramdisk_image + sparc_ramdisk_size
+ 	 * To locate these symbols search for the "HdrS" text which appear
+ 	 * in the image a little before the gokernel symbol.
+ 	 * See definition of these in init_32.S
+ 	 */
  
- 		spin_lock_irqsave(&cross_call_lock, flags);
+-	/*  Find the gokernel label */
+-	i = AOUT_TEXT_OFFSET + (ld2(buffer + AOUT_TEXT_OFFSET + 2) << 2) - 512;
+-	if (lseek(image, i, 0) < 0)
+-		die("lseek");
+-	if (read(image, buffer, 1024) != 1024)
+-		die(argv[2]);
+-	for (q = buffer, r = q + 512; q < r; q += 4) {
+-		if (*q = 'H' && q[1] = 'd' && q[2] = 'r' && q[3] = 'S')
+-			break;
+-	}
+-	if (q = r) {
+-		fprintf (stderr, "Couldn't find headers signature in the kernel.\n");
+-		exit(1);
+-	}
+-	offset = i + (q - buffer) + 10;
++	offset = get_hdrs_offset(image, argv[2]);
++	/* skip HdrS + LINUX_VERSION_CODE + HdrS version */
++	offset += 10;
++
+ 	if (lseek(image, offset, 0) < 0)
+ 		die("lseek");
  
- 		{
--			/* If you make changes here, make sure gcc generates proper code... */
-+			/*
-+			 * If you make changes here, make sure
-+			 * gcc generates proper code...
-+			 */
- 			register smpfunc_t f asm("i0") = func;
- 			register unsigned long a1 asm("i1") = arg1;
- 			register unsigned long a2 asm("i2") = arg2;
-@@ -284,7 +241,7 @@ static void smp4d_cross_call(smpfunc_t func, cpumask_t mask, unsigned long arg1,
+@@ -198,6 +239,22 @@ int main(int argc,char **argv)
+ 	if (write(image, buffer + 2, 14) != 14)
+ 		die(argv[2]);
  
- 			cpu_clear(smp_processor_id(), mask);
- 			cpus_and(mask, cpu_online_map, mask);
--			for(i = 0; i <= high; i++) {
-+			for (i = 0; i <= high; i++) {
- 				if (cpu_isset(i, mask)) {
- 					ccall_info.processors_in[i] = 0;
- 					ccall_info.processors_out[i] = 0;
-@@ -300,17 +257,17 @@ static void smp4d_cross_call(smpfunc_t func, cpumask_t mask, unsigned long arg1,
- 			do {
- 				if (!cpu_isset(i, mask))
- 					continue;
--				while(!ccall_info.processors_in[i])
-+				while (!ccall_info.processors_in[i])
- 					barrier();
--			} while(++i <= high);
-+			} while (++i <= high);
- 
- 			i = 0;
- 			do {
- 				if (!cpu_isset(i, mask))
- 					continue;
--				while(!ccall_info.processors_out[i])
-+				while (!ccall_info.processors_out[i])
- 					barrier();
--			} while(++i <= high);
-+			} while (++i <= high);
- 		}
- 
- 		spin_unlock_irqrestore(&cross_call_lock, flags);
-@@ -336,7 +293,7 @@ void smp4d_percpu_timer_interrupt(struct pt_regs *regs)
- 	static char led_mask[] = { 0xe, 0xd, 0xb, 0x7, 0xb, 0xd };
- 
- 	old_regs = set_irq_regs(regs);
--	bw_get_prof_limit(cpu);	
-+	bw_get_prof_limit(cpu);
- 	bw_clear_intr_mask(0, 1);	/* INTR_TABLE[0] & 1 is Profile IRQ */
- 
- 	cpu_tick[cpu]++;
-@@ -349,7 +306,7 @@ void smp4d_percpu_timer_interrupt(struct pt_regs *regs)
- 
- 	profile_tick(CPU_PROFILING);
- 
--	if(!--prof_counter(cpu)) {
-+	if (!--prof_counter(cpu)) {
- 		int user = user_mode(regs);
- 
- 		irq_enter();
-@@ -361,8 +318,6 @@ void smp4d_percpu_timer_interrupt(struct pt_regs *regs)
- 	set_irq_regs(old_regs);
- }
- 
--extern unsigned int lvl14_resolution;
++	/* For sparc64 update a_text and clear a_data + a_bss */
++	if (is64bit)
++	{
++		if (lseek(image, 4, 0) < 0)
++			die("lseek");
++		/* a_text */
++		st4(buffer, align(end + 32 + 8191) - (start & ~0x3fffffUL) +
++		            s.st_size);
++		/* a_data */
++		st4(buffer + 4, 0);
++		/* a_bss */
++		st4(buffer + 8, 0);
++		if (write(image, buffer, 12) != 12)
++			die(argv[2]);
++	}
++
+ 	/* seek page aligned boundary in the image file and add boot image */
+ 	if (lseek(image, AOUT_TEXT_OFFSET - start + align(end + 32), 0) < 0)
+ 		die("lseek");
+diff --git a/arch/sparc/boot/piggyback_64.c b/arch/sparc/boot/piggyback_64.c
+deleted file mode 100644
+index a26a686..0000000
+--- a/arch/sparc/boot/piggyback_64.c
++++ /dev/null
+@@ -1,110 +0,0 @@
+-/*
+-   Simple utility to make a single-image install kernel with initial ramdisk
+-   for Sparc64 tftpbooting without need to set up nfs.
+-   
+-   Copyright (C) 1997 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
+-   
+-   This program is free software; you can redistribute it and/or modify
+-   it under the terms of the GNU General Public License as published by
+-   the Free Software Foundation; either version 2 of the License, or
+-   (at your option) any later version.
+-   
+-   This program is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-   GNU General Public License for more details.
 -
- static void __cpuinit smp_setup_percpu_timer(void)
- {
- 	int cpu = hard_smp4d_processor_id();
-@@ -374,16 +329,16 @@ static void __cpuinit smp_setup_percpu_timer(void)
- void __init smp4d_blackbox_id(unsigned *addr)
- {
- 	int rd = *addr & 0x3e000000;
+-   You should have received a copy of the GNU General Public License
+-   along with this program; if not, write to the Free Software
+-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+-   
+-#include <stdio.h>
+-#include <string.h>
+-#include <ctype.h>
+-#include <errno.h>
+-#include <fcntl.h>
+-#include <dirent.h>
+-#include <unistd.h>
+-#include <stdlib.h>
+-#include <sys/types.h>
+-#include <sys/stat.h>
+-
+-/* Note: run this on an a.out kernel (use elftoaout for it), as PROM looks for a.out image onlly
+-   usage: piggyback vmlinux System.map tail, where tail is gzipped fs of the initial ramdisk */
+-
+-static void die(char *str)
+-{
+-	perror (str);
+-	exit(1);
+-}
+-
+-int main(int argc,char **argv)
+-{
+-	char buffer [1024], *q, *r;
+-	unsigned int i, j, k, start, end, offset;
+-	FILE *map;
+-	struct stat s;
+-	int image, tail;
 -	
-+
- 	addr[0] = 0xc0800800 | rd;		/* lda [%g0] ASI_M_VIKING_TMP1, reg */
--	addr[1] = 0x01000000;    		/* nop */
--	addr[2] = 0x01000000;    		/* nop */
-+	addr[1] = 0x01000000;			/* nop */
-+	addr[2] = 0x01000000;			/* nop */
- }
- 
- void __init smp4d_blackbox_current(unsigned *addr)
- {
- 	int rd = *addr & 0x3e000000;
--	
-+
- 	addr[0] = 0xc0800800 | rd;		/* lda [%g0] ASI_M_VIKING_TMP1, reg */
- 	addr[2] = 0x81282002 | rd | (rd >> 11);	/* sll reg, 2, reg */
- 	addr[4] = 0x01000000;			/* nop */
-@@ -392,17 +347,16 @@ void __init smp4d_blackbox_current(unsigned *addr)
- void __init sun4d_init_smp(void)
- {
- 	int i;
--	extern unsigned int t_nmi[], linux_trap_ipi15_sun4d[], linux_trap_ipi15_sun4m[];
- 
- 	/* Patch ipi15 trap table */
- 	t_nmi[1] = t_nmi[1] + (linux_trap_ipi15_sun4d - linux_trap_ipi15_sun4m);
--	
-+
- 	/* And set btfixup... */
- 	BTFIXUPSET_BLACKBOX(hard_smp_processor_id, smp4d_blackbox_id);
- 	BTFIXUPSET_BLACKBOX(load_current, smp4d_blackbox_current);
- 	BTFIXUPSET_CALL(smp_cross_call, smp4d_cross_call, BTFIXUPCALL_NORM);
- 	BTFIXUPSET_CALL(__hard_smp_processor_id, __smp4d_processor_id, BTFIXUPCALL_NORM);
--	
-+
- 	for (i = 0; i < NR_CPUS; i++) {
- 		ccall_info.processors_in[i] = 1;
- 		ccall_info.processors_out[i] = 1;
+-	start = end = 0;
+-	if (stat (argv[3], &s) < 0) die (argv[3]);
+-	map = fopen (argv[2], "r");
+-	if (!map) die(argv[2]);
+-	while (fgets (buffer, 1024, map)) {
+-		if (!strcmp (buffer + 19, "_start\n"))
+-		start = strtoul (buffer + 8, NULL, 16);
+-		else if (!strcmp (buffer + 19, "_end\n"))
+-		end = strtoul (buffer + 8, NULL, 16);
+-	}
+-	fclose (map);
+-	if ((image = open(argv[1],O_RDWR)) < 0) die(argv[1]);
+-	if (read(image,buffer,512) != 512) die(argv[1]);
+-	if (!memcmp (buffer, "\177ELF", 4)) {
+-		unsigned int *p = (unsigned int *)(buffer + *(unsigned int *)(buffer + 28));
+-		
+-		i = p[1] + *(unsigned int *)(buffer + 24) - p[2];
+-		if (lseek(image,i,0) < 0) die("lseek");
+-		if (read(image,buffer,512) != 512) die(argv[1]);
+-		j = 0;
+-	} else if (*(unsigned int *)buffer = 0x01030107) {
+-		i = j = 32;
+-	} else {
+-		fprintf (stderr, "Not ELF nor a.out. Don't blame me.\n");
+-		exit(1);
+-	}
+-	k = i;
+-	if (j = 32 && buffer[40] = 'H' && buffer[41] = 'd' && buffer[42] = 'r' && buffer[43] = 'S') {
+-		offset = 40 + 10;
+-	} else {
+-		i += ((*(unsigned short *)(buffer + j + 2))<<2) - 512;
+-		if (lseek(image,i,0) < 0) die("lseek");
+-		if (read(image,buffer,1024) != 1024) die(argv[1]);
+-		for (q = buffer, r = q + 512; q < r; q += 4) {
+-			if (*q = 'H' && q[1] = 'd' && q[2] = 'r' && q[3] = 'S')
+-				break;
+-		}
+-		if (q = r) {
+-			fprintf (stderr, "Couldn't find headers signature in the kernel.\n");
+-			exit(1);
+-		}
+-		offset = i + (q - buffer) + 10;
+-	}
+-	if (lseek(image, offset, 0) < 0) die ("lseek");
+-	*(unsigned *)buffer = 0;
+-	*(unsigned *)(buffer + 4) = 0x01000000;
+-	*(unsigned *)(buffer + 8) = ((end + 32 + 8191) & ~8191);
+-	*(unsigned *)(buffer + 12) = s.st_size;
+-	if (write(image,buffer+2,14) != 14) die (argv[1]);
+-	if (lseek(image, 4, 0) < 0) die ("lseek");
+-	*(unsigned *)buffer = ((end + 32 + 8191) & ~8191) - (start & ~0x3fffffUL) + s.st_size;
+-	*(unsigned *)(buffer + 4) = 0;
+-	*(unsigned *)(buffer + 8) = 0;
+-	if (write(image,buffer,12) != 12) die (argv[1]);
+-	if (lseek(image, k - start + ((end + 32 + 8191) & ~8191), 0) < 0) die ("lseek");
+-	if ((tail = open(argv[3],O_RDONLY)) < 0) die(argv[3]);
+-	while ((i = read (tail,buffer,1024)) > 0)
+-		if (write(image,buffer,i) != i) die (argv[1]);
+-	if (close(image) < 0) die("close");
+-	if (close(tail) < 0) die("close");
+-    	return 0;
+-}
 -- 
 1.6.0.6
 
