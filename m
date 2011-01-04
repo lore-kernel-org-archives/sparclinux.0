@@ -1,33 +1,62 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 03 Jan 2011 20:15:34 +0000
-Subject: Re: [PATCH] sparc: fix sparse warnings in arch/sparc/prom for 32
-Message-Id: <20110103.121534.233690879.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Tue, 04 Jan 2011 21:38:00 +0000
+Subject: [PATCH v3 00/10] sparc: unify piggyback - and fix tftpboot.img on
+Message-Id: <20110104213800.GA14732@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110103182755.GA9524@merkur.ravnborg.org>
-In-Reply-To: <20110103182755.GA9524@merkur.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 3 Jan 2011 19:27:55 +0100
+The following set of 10 patches unify piggyback for
+sparc32 and sparc64.
+This has the side effect that we fix a longstanding bug in
+sparc64 so we can now generate tftpboot.img on a x86 box.
 
-> Fix following sparse warnings:
-> arch/sparc/prom/bootstr_32.c:32:35: warning: Using plain integer as NULL pointer
-> arch/sparc/prom/memory.c:61:13: warning: symbol 'prom_meminit' was not declared. Should it be static?
-> arch/sparc/prom/misc_32.c:74:1: error: symbol 'prom_halt' redeclared with different type (originally declared at arch/sparc/include/asm/oplib_32.h:67) - different modifiers
-> arch/sparc/prom/ranges.c:16:26: warning: symbol 'promlib_obio_ranges' was not declared. Should it be static?
-> arch/sparc/prom/ranges.c:17:5: warning: symbol 'num_obio_ranges' was not declared. Should it be static?
-> arch/sparc/prom/ranges.c:39:1: warning: symbol 'prom_adjust_ranges' was not declared. Should it be static?
-> arch/sparc/prom/ranges.c:69:13: warning: symbol 'prom_ranges_init' was not declared. Should it be static?
-> arch/sparc/prom/tree_32.c:286:22: warning: Using plain integer as NULL pointer
-> arch/sparc/prom/tree_32.c:286:38: warning: Using plain integer as NULL pointer
-> 
-> None of the warnings indicated any serious issues.
-> 
-> We are now sparse clean for 32 bit build in arch/sparc/prom.
-> 
-> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+The patch is test on a sparc32 system where I got a
+ext2 image mounted and working.
 
-Applied, thanks Sam.
+On sparc64 I managed to boot a kernel on my Sun Blade 100
+but the kernel stopped with a message:
+
+	"console [tty0] enabled, bootconsole disabled"
+
+So I did not reach the point where it try to mount 
+the appended image.
+Any hints what is wrong is appreciated!
+[I guess I have the wrong framebuffer driver - but I do not know which is the right one]
+
+This was anyway enough that I have concluded that it works
+better than before.
+I have only tested this using my x86 build host.
+
+Changes since v1:
+- Updated copyrights (from from Josip Rodin)
+- Fixed algorithm to locate "HdrS" (from Josip Rodin)
+- Verified the endian fixes (based on code received from Julian Calaby)
+
+Please apply.
+
+	Sam
+
+
+Sam Ravnborg (10):
+      sparc: refactor piggy_32.c
+      sparc: use trapbase in setup_arch
+      sparc: use _start for the start entry (like 64 bit does)
+      sparc: additional comments to piggyback_32.c
+      sparc: remove obsolete ELF support in piggyback_32.c
+      sparc: add $BITS to piggyback arguments
+      sparc: fix tfptboot.img for sparc64 on little-endian host
+      sparc: rename piggyback_32 to piggyback
+      sparc: unify strip command in boot/Makefile
+      sparc: update copyright in piggyback.c
+
+ arch/sparc/boot/Makefile       |   28 ++---
+ arch/sparc/boot/piggyback.c    |  272 ++++++++++++++++++++++++++++++++++++++++
+ arch/sparc/boot/piggyback_32.c |  137 --------------------
+ arch/sparc/boot/piggyback_64.c |  110 ----------------
+ arch/sparc/kernel/head_32.S    |    3 +-
+ arch/sparc/kernel/setup_32.c   |    3 +-
+ arch/sparc/mm/sun4c.c          |    8 +-
+ 7 files changed, 286 insertions(+), 275 deletions(-)
