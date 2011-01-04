@@ -1,46 +1,72 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 28 Jan 2011 23:03:34 +0000
-Subject: Re: [PATCH v3] SPARC: added U-Boot build target: uImage
-Message-Id: <20110128.150334.245395629.davem@davemloft.net>
+From: Daniel Hellstrom <daniel@gaisler.com>
+Date: Tue, 04 Jan 2011 11:41:33 +0000
+Subject: [PATCH 5/7] SPARC/LEON: avoid AMBAPP name duplicates in openprom fs when REG is missing
+Message-Id: <1294141295-26584-5-git-send-email-daniel@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1296059795-22807-1-git-send-email-daniel@gaisler.com>
-In-Reply-To: <1296059795-22807-1-git-send-email-daniel@gaisler.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: daniel@gaisler.com
-Date: Wed, 26 Jan 2011 15:37:22 -0500
+When the REG property is not available the NODE-ID is used as an unique
+identifier in order to avoid filesystem name duplicates in /proc/openprom
+filesystem
 
->=20
->=20
-> On Wed, 26 Jan 2011 21:10:37  0100, Sam Ravnborg  wrote:
-> On Wed, Jan 26, 2011 at 05:36:35PM  0100, Daniel Hellstrom wrote:
->  > > This is only for LEON as u-boot for SPARC only supports LEON.   > >
->  > > Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
->  >
->  > Looks good.   > Acked-by: Sam Ravnborg <sam@ravnborg.org>
->  >
->  > A general note about patch subjects.   >
->  > I have started to use the following conventions for
->  > patch subjects:
->  >
->  > sparc: bla         <=3D stuff that is relevant for sparc32 and sparc64
->  > sparc32: bla       <=3D sparc32 specific stuff
->  > sparc64: bla       <=3D sparc64 specific stuff
->  > sparc32,leon: bla  <=3D leon specific stuff (on sparc32)
->  > sparc32,sun4m: bla <=3D sun4m specific stuff (on sparc32)
->  >
->  > I try to find something useful as "bla" - this is sometimes
->  > defficult..  >
->  > If I could convince you to use same syntax we could get
->  > a bit more consistency in the patch subjects.   =A0
->  =A0
->  Sounds reasonable, will adopt to that.. hopefully others will do
->  too... :)
+Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
+---
+ arch/sparc/kernel/prom_32.c |   27 +++++++++++++++++++--------
+ 1 files changed, 19 insertions(+), 8 deletions(-)
 
-I've applied this patch to sparc-next-2.6, and to get the ball rolling
-I changed your subject line to read "sparc32: " instead of "SPARC: "
+diff --git a/arch/sparc/kernel/prom_32.c b/arch/sparc/kernel/prom_32.c
+index 0a37e8c..05fb253 100644
+--- a/arch/sparc/kernel/prom_32.c
++++ b/arch/sparc/kernel/prom_32.c
+@@ -136,18 +136,29 @@ static void __init ebus_path_component(struct device_node *dp, char *tmp_buf)
+ /* "name:vendor:device@irq,addrlo" */
+ static void __init ambapp_path_component(struct device_node *dp, char *tmp_buf)
+ {
+-	struct amba_prom_registers *regs; unsigned int *intr;
+-	unsigned int *device, *vendor;
++	struct amba_prom_registers *regs;
++	unsigned int *intr, *device, *vendor, reg0;
+ 	struct property *prop;
++	int interrupt = 0;
+ 
++	/* In order to get a unique ID in the device tree (multiple AMBA devices
++	 * may have the same name) the node number is printed
++	 */
+ 	prop = of_find_property(dp, "reg", NULL);
+-	if (!prop)
+-		return;
+-	regs = prop->value;
++	if (!prop) {
++		reg0 = (unsigned int)dp->phandle;
++	} else {
++		regs = prop->value;
++		reg0 = regs->phys_addr;
++	}
++
++	/* Not all cores have Interrupt */
+ 	prop = of_find_property(dp, "interrupts", NULL);
+ 	if (!prop)
+-		return;
+-	intr = prop->value;
++		intr = &interrupt; /* IRQ0 does not exist */
++	else
++		intr = prop->value;
++
+ 	prop = of_find_property(dp, "vendor", NULL);
+ 	if (!prop)
+ 		return;
+@@ -159,7 +170,7 @@ static void __init ambapp_path_component(struct device_node *dp, char *tmp_buf)
+ 
+ 	sprintf(tmp_buf, "%s:%d:%d@%x,%x",
+ 		dp->name, *vendor, *device,
+-		*intr, regs->phys_addr);
++		*intr, reg0);
+ }
+ 
+ static void __init __build_path_component(struct device_node *dp, char *tmp_buf)
+-- 
+1.5.4
 
-Thanks.
