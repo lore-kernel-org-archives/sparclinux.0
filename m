@@ -1,72 +1,81 @@
-From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Date: Sat, 22 Jan 2011 17:15:49 +0000
-Subject: Re: [patch 2/3] tracing: fix sparc64 alignment crash with
-Message-Id: <20110122171549.GB31308@Krystal>
+From: Daniel Hellstrom <daniel@gaisler.com>
+Date: Wed, 05 Jan 2011 10:20:19 +0000
+Subject: Re: LEON SMP
+Message-Id: <4D2445E3.5070901@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110121203630.725922272@efficios.com> <20110121203642.884088920@efficios.com> <20110121.160509.146106348.davem@davemloft.net>
-In-Reply-To: <20110121.160509.146106348.davem@davemloft.net>
+References: <4CC714EC.2050001@gaisler.com>
+In-Reply-To: <4CC714EC.2050001@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: linux-kernel@vger.kernel.org, rostedt@goodmis.org, fweisbec@gmail.com, mingo@elte.hu, richm@oldelvet.org.uk, ben@decadent.org.uk, sparclinux@vger.kernel.org, stable <stable@kernel.org>
+To: sparclinux@vger.kernel.org
 
-* David Miller (davem@davemloft.net) wrote:
-> From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-> Date: Fri, 21 Jan 2011 15:36:32 -0500
-> 
-> > Problem description:
-> > 
-> > gcc happily align structures defined statically on 32-byte. Ftrace trace events
-> > and Tracepoints both statically define structures into sections (using the
-> > "section" attribute), to then assign these to symbols with the linker scripts to
-> > iterate the these sections as an array.
-> > 
-> > However, gcc uses different alignments for these structures when they are
-> > defined statically and when they are globally visible and/or in an array.
-> > Therefore iteration on these arrays sees "holes" of padding.
-> > 
-> > Use the __u64_aligned for type declarations and variable definitions to ensure
-> > that gcc:
-> > 
-> > a) iterates on the correctly aligned type. (type attribute)
-> > b) generates the definitions within the sections with the appropriate alignment.
-> >    (variable attribute)
-> > 
-> > The Ftrace code introduced the "aligned(4)" variable attribute in commit
-> > 1473e4417c79f12d91ef91a469699bfa911f510f to try to work around this problem that
-> > showed up on x86_64, but it causes unaligned accesses on sparc64, and is
-> > generally a bad idea on 64-bit if RCU pointers are contained within the
-> > structure. Moreover, it did not use the same attribute as type attribute, which
-> > could cause the iteration on the extern array structure not to match the
-> > variable definitions for some structure sizes.
-> > 
-> > We should also ensure proper alignment of each Ftrace section in
-> > include/asm-generic/vmlinux.lds.h.
-> > 
-> > Moving all STRUCT_ALIGN() for FTRACE_EVENTS() and TRACE_SYSCALLS() into the
-> > definitions, so the alignment is only done if these infrastructures are
-> > configured in. Use U64_ALIGN instead of STRUCT_ALIGN.
-> > 
-> > Also align TRACE_PRINTKS on U64_ALIGN to make sure the beginning of the section
-> > is aligned on pointer size.
-> > 
-> > Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-> 
-> Acked-by: David S. Miller <davem@davemloft.net>
+Daniel Hellstrom wrote:
 
-Thanks! This patch, just like 1/3, should also go into -stable, for both .36 and
-.37.
+> David Miller wrote:
+>
+>> From: Daniel Hellstrom <daniel@gaisler.com>
+>> Date: Tue, 26 Oct 2010 19:50:36 +0200
+>>
+>>  
+>>
+>>> The LEON do not have internal timers as some CPUs does, it has
+>>> one/multiple General Purpose TIMERs on the Processor Local Bus. On
+>>> single-CPU/SMP systems the first Timer is used for System Clock, and
+>>> on SMP systems timer two is also used to generate a simultaneous IRQ
+>>> on all CPUs for profiling etc. (leon_percpu_timer_interrupt()). On the
+>>> quad-core SMP system I discovered that since the per-cpu timer is
+>>> generated at the same frequency (and almost simultaneously) as the
+>>> System Clock Timer. I have made a patch that uses only one Timer for
+>>> SMP systems, the Timer generates a per-cpu tick as before, however on
+>>> CPU0 the handler_irq() is also called after profiling has been done,
+>>> this is to handle the System Clock Tick. I seems to work successfully,
+>>> and it saves me HZ interrupts per second and a Timer instance. What is
+>>> you opinion about that? Is it possible to use the same timer for
+>>> System Clock and for per-cpu profiling etc.?
+>>>   
+>>
+>>
+>> You only need to generate one timer interrupt per-cpu, and the kernel
+>> generically decides to run the global timer actions (jiffies update,
+>> etc.) on a choosen cpu, transparently, in the per-cpu periodic timer
+>> code.
+>>
+>>  
+>>
+> That is interesting, I didn't even think about that. So then I can 
+> even remove the extra call to handler_irq() from within the per-cpu 
+> timer IRQ handler, and I will probably have to fix some code in the 
+> System Clock Timer setup as well. I will have to investigate this 
+> further then.
+>
+> So actually it is bad to make 5 timer IRQs per tick on a quad core 
+> system, and one of them is calling handler_irq. But I can see that the 
+> system clock is progressing in the correct pace, unless my watch is 
+> bad :) I will get back to this issue later on.
 
-As I'm thinking, the following patch (for Tracepoints) should only go into the
--tip tree, as it does not fix a problem -- it merely reduces the data footprint
-of the tracepoints structures. I'm therefore not forwarding patch 3/3 for
-inclusion into -stable.
 
-Mathieu
+I have started working on this timer patch again...
 
--- 
-Mathieu Desnoyers
-Operating System Efficiency R&D Consultant
-EfficiOS Inc.
-http://www.efficios.com
+I tried looking a sun4d and sun4m to get an example of how to implement 
+this in a better way, however they seem to implement the per-cpu ticker 
+using hardcoded IRQ number 14 and a custom trap handler for the per-cpu 
+timer ticker (see bottom of kernel/sun4m_irq.c: sun4m_init_timers()). 
+The system clock is implemented using the time-tick at IRQ10. I'm not 
+sure why the time-tick timer is used at all, unless the hardware 
+requires it (the per-cpu timer perhaps can not get the time or limits HZ).
+
+The LEON port mimics this behaviour, however the LEON CPU does not have 
+a "per-cpu" timer. The new patch uses only one timer to generate one IRQ 
+on each CPU simultaneously, and only CPU0 will call handler_irq() to 
+handle the standard system clock tick interrupt handler. Please see the 
+patch I will submit to the list soon as reference.
+
+This patch is bad if one would want the system clock tick to run at a 
+different rate than the profiling per-cpu ticks, or if the system clock 
+tick is turned off/on as it will affect the profiling, however I have 
+not seen code indicating such a behaviour.
+
+Thanks for applying the other patches,
+
+Daniel
