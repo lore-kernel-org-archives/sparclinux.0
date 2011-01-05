@@ -1,42 +1,36 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Wed, 05 Jan 2011 21:02:17 +0000
-Subject: [PATCH 0/4] sparc: drop SBUS ifdefs
-Message-Id: <20110105210217.GA22415@merkur.ravnborg.org>
+From: Julian Calaby <julian.calaby@gmail.com>
+Date: Wed, 05 Jan 2011 23:23:43 +0000
+Subject: Re: [PATCH 0/4] sparc: drop SBUS ifdefs
+Message-Id: <AANLkTimZm5jD+O8xYUGM9EcXRMEioW5r6Q+f75kX2Rxr@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20110105210217.GA22415@merkur.ravnborg.org>
+In-Reply-To: <20110105210217.GA22415@merkur.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Kristoffer Glembo noticed that SBUS is always defined for SPARC.
-So I went out and dropped all #ifdef SBUS that were
-present in SPARC only code.
+On Thu, Jan 6, 2011 at 08:02, Sam Ravnborg <sam@ravnborg.org> wrote:
+> Kristoffer Glembo noticed that SBUS is always defined for SPARC.
+> So I went out and dropped all #ifdef SBUS that were
+> present in SPARC only code.
 
-This touches:
-- arch/sparc
-- drivers/net
-- sound/sparc
+Good catch, but is this necessarily correct - i.e. do all sparc
+machines have sbus hardware, and is it necessary to have sbus support
+compiled into all sparc kernels? - should this be a (hidden) compile
+option in like most other bus types? (e.g. PCI)
 
-But despite this I expect we can add all this to sparc.git.
-If you prefer I can submit the patches via the usual channels.
+And beyond that, keeping these (unnecessary) #ifdefs is good
+documentation - it makes it obvious that these drivers require sbus to
+function. Would it potentially be a better choice to drop the SPARC
+dependency as it's the only architecture that defines SBUS?
 
-Build tested on sparc64 & sparc.
+Thanks,
 
-Patches are on top of sparc-next as of yesterday.
+-- 
 
-	Sam
+Julian Calaby
 
-Sam Ravnborg (4):
-      sparc: drop ifdef CONFIG_SBUS in arch/sparc - SBUS is always defined
-      sunhme: cleanup conditional on CONFIG_SBUS
-      cs4231: cleanup conditional on CONFIG_SBUS
-      sound,sparc: drop SBUS dependency
-
- arch/sparc/kernel/ioport.c        |    4 ----
- arch/sparc/kernel/prom_irqtrans.c |    5 -----
- arch/sparc/mm/io-unit.c           |    4 ----
- arch/sparc/mm/iommu.c             |    4 ----
- drivers/net/sunhme.c              |    9 +--------
- sound/sparc/Kconfig               |    2 --
- sound/sparc/cs4231.c              |   13 -------------
- 7 files changed, 1 insertions(+), 40 deletions(-)
+Email: julian.calaby@gmail.com
+Profile: http://www.google.com/profiles/julian.calaby/
+.Plan: http://sites.google.com/site/juliancalaby/
