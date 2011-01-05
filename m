@@ -1,27 +1,42 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 22 Jan 2011 00:51:48 +0000
-Subject: Re: [PATCH 2/6 V3] sparc: Add pci32_unmap_page.
-Message-Id: <20110121.165148.134128183.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Wed, 05 Jan 2011 21:02:17 +0000
+Subject: [PATCH 0/4] sparc: drop SBUS ifdefs
+Message-Id: <20110105210217.GA22415@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1295359829-27308-3-git-send-email-kristoffer@gaisler.com>
-In-Reply-To: <1295359829-27308-3-git-send-email-kristoffer@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Tue, 18 Jan 2011 20:37:29 +0100
+Kristoffer Glembo noticed that SBUS is always defined for SPARC.
+So I went out and dropped all #ifdef SBUS that were
+present in SPARC only code.
 
-> On Tue, Jan 18, 2011 at 03:10:25PM +0100, Kristoffer Glembo wrote:
->> Signed-off-by: Kristoffer Glembo <kristoffer@gaisler.com>
-> 
-> I am still missing from the changelog this information:
-> 
-> pci32_unmap_page is part of the DMA API and needed by
-> the leon ethernet driver.
-> 
-> Anyway:
-> Acked-by: Sam Ravnborg <sam@ravnborg.org>
+This touches:
+- arch/sparc
+- drivers/net
+- sound/sparc
 
-Applied.
+But despite this I expect we can add all this to sparc.git.
+If you prefer I can submit the patches via the usual channels.
+
+Build tested on sparc64 & sparc.
+
+Patches are on top of sparc-next as of yesterday.
+
+	Sam
+
+Sam Ravnborg (4):
+      sparc: drop ifdef CONFIG_SBUS in arch/sparc - SBUS is always defined
+      sunhme: cleanup conditional on CONFIG_SBUS
+      cs4231: cleanup conditional on CONFIG_SBUS
+      sound,sparc: drop SBUS dependency
+
+ arch/sparc/kernel/ioport.c        |    4 ----
+ arch/sparc/kernel/prom_irqtrans.c |    5 -----
+ arch/sparc/mm/io-unit.c           |    4 ----
+ arch/sparc/mm/iommu.c             |    4 ----
+ drivers/net/sunhme.c              |    9 +--------
+ sound/sparc/Kconfig               |    2 --
+ sound/sparc/cs4231.c              |   13 -------------
+ 7 files changed, 1 insertions(+), 40 deletions(-)
