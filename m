@@ -1,26 +1,33 @@
-From: Alex Buell <alex.buell@munted.org.uk>
-Date: Sat, 22 Jan 2011 10:55:29 +0000
-Subject: Re: [PATCH 0/22] Make SVGA oriented FBs work on multi-domain PCI
-Message-Id: <1295693729.349.2.camel@lithium>
+From: Dennis Gilmore <dennis@ausil.us>
+Date: Wed, 05 Jan 2011 19:56:11 +0000
+Subject: [PATCH] use __devexit not __exit in n2_unregister_algs fixes build failure on fedora
+Message-Id: <1294257371-19695-1-git-send-email-dennis@ausil.us>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110111.154846.233419170.davem@davemloft.net>
-In-Reply-To: <20110111.154846.233419170.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-fbdev@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Fri, 2011-01-21 at 20:11 -0800, David Miller wrote:
+From: dennis <dennis@daedalus.ausil.us>
 
-> > [00000000000a0000]
-> 
-> Yeah, it's dying the same way as before.
-> 
-> I'm stumped at the moment.
+thanks to kylem for helping with debugging
+---
+ drivers/crypto/n2_core.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I just spotted something. Looking at the above address, it seems to be
-0xA0000, same as the high address for accessing VGA memory in a PC.
-Perhaps it's still trying to access that whereas on a SUN it may need
-remapping to the correct location?
+diff --git a/drivers/crypto/n2_core.c b/drivers/crypto/n2_core.c
+index 88ee015..3372491 100644
+--- a/drivers/crypto/n2_core.c
++++ b/drivers/crypto/n2_core.c
+@@ -1542,7 +1542,7 @@ out:
+ 	return err;
+ }
+ 
+-static void __exit n2_unregister_algs(void)
++static void __devexit n2_unregister_algs(void)
+ {
+ 	mutex_lock(&spu_lock);
+ 	if (!--algs_registered)
 -- 
-Tactical Nuclear Kittens
+1.6.6.1
+
