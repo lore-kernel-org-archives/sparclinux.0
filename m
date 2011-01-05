@@ -1,244 +1,141 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 22 Jan 2011 21:32:16 +0000
-Subject: [PATCH 3/7] sparc64: all pointers to irq_handler_data renamed to handler_data
-Message-Id: <1295731940-31697-3-git-send-email-sam@ravnborg.org>
+Date: Wed, 05 Jan 2011 21:03:44 +0000
+Subject: [PATCH 1/4] sparc: drop ifdef CONFIG_SBUS in arch/sparc - SBUS is always defined
+Message-Id: <1294261427-26104-1-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-In preparation of moving to use irq_data.handler_data rename
-all pointers to irq_handler_data "handler_data".
-This will also prevent name clash when we introduce the
-new irq methods.
+Noticed by: Kristoffer Glembo <kristoffer@gaisler.com>
 
+Cc: Kristoffer Glembo <kristoffer@gaisler.com>
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 ---
- arch/sparc/kernel/irq_64.c |   78 ++++++++++++++++++++++----------------------
- 1 files changed, 39 insertions(+), 39 deletions(-)
+ arch/sparc/kernel/ioport.c        |    4 ----
+ arch/sparc/kernel/prom_irqtrans.c |    5 -----
+ arch/sparc/mm/io-unit.c           |    4 ----
+ arch/sparc/mm/iommu.c             |    4 ----
+ 4 files changed, 0 insertions(+), 17 deletions(-)
 
-diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
-index d4d1233..a763f9a 100644
---- a/arch/sparc/kernel/irq_64.c
-+++ b/arch/sparc/kernel/irq_64.c
-@@ -277,15 +277,15 @@ static int irq_choose_cpu(unsigned int virt_irq, const struct cpumask *affinity)
- 
- static void sun4u_irq_enable(unsigned int virt_irq)
- {
--	struct irq_handler_data *data = get_irq_chip_data(virt_irq);
-+	struct irq_handler_data *handler_data = get_irq_chip_data(virt_irq);
- 
--	if (likely(data)) {
-+	if (likely(handler_data)) {
- 		unsigned long cpuid, imap, val;
- 		unsigned int tid;
- 
- 		cpuid = irq_choose_cpu(virt_irq,
- 				       irq_desc[virt_irq].irq_data.affinity);
--		imap = data->imap;
-+		imap = handler_data->imap;
- 
- 		tid = sun4u_compute_tid(imap, cpuid);
- 
-@@ -294,21 +294,21 @@ static void sun4u_irq_enable(unsigned int virt_irq)
- 			 IMAP_AID_SAFARI | IMAP_NID_SAFARI);
- 		val |= tid | IMAP_VALID;
- 		upa_writeq(val, imap);
--		upa_writeq(ICLR_IDLE, data->iclr);
-+		upa_writeq(ICLR_IDLE, handler_data->iclr);
- 	}
+diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
+index 41f7e4e..ee21708 100644
+--- a/arch/sparc/kernel/ioport.c
++++ b/arch/sparc/kernel/ioport.c
+@@ -237,8 +237,6 @@ static void _sparc_free_io(struct resource *res)
+ 	release_resource(res);
  }
  
- static int sun4u_set_affinity(unsigned int virt_irq,
- 			       const struct cpumask *mask)
+-#ifdef CONFIG_SBUS
+-
+ void sbus_set_sbus64(struct device *dev, int x)
  {
--	struct irq_handler_data *data = get_irq_chip_data(virt_irq);
-+	struct irq_handler_data *handler_data = get_irq_chip_data(virt_irq);
+ 	printk("sbus_set_sbus64: unsupported\n");
+@@ -420,8 +418,6 @@ static int __init sparc_register_ioport(void)
  
--	if (likely(data)) {
-+	if (likely(handler_data)) {
- 		unsigned long cpuid, imap, val;
- 		unsigned int tid;
+ arch_initcall(sparc_register_ioport);
  
- 		cpuid = irq_choose_cpu(virt_irq, mask);
--		imap = data->imap;
-+		imap = handler_data->imap;
+-#endif /* CONFIG_SBUS */
+-
+ #ifdef CONFIG_PCI
  
- 		tid = sun4u_compute_tid(imap, cpuid);
+ /* Allocate and map kernel buffer using consistent mode DMA for a device.
+diff --git a/arch/sparc/kernel/prom_irqtrans.c b/arch/sparc/kernel/prom_irqtrans.c
+index ce65114..bfbcd20 100644
+--- a/arch/sparc/kernel/prom_irqtrans.c
++++ b/arch/sparc/kernel/prom_irqtrans.c
+@@ -556,7 +556,6 @@ static void __init fire_irq_trans_init(struct device_node *dp)
+ }
+ #endif /* CONFIG_PCI */
  
-@@ -317,7 +317,7 @@ static int sun4u_set_affinity(unsigned int virt_irq,
- 			 IMAP_AID_SAFARI | IMAP_NID_SAFARI);
- 		val |= tid | IMAP_VALID;
- 		upa_writeq(val, imap);
--		upa_writeq(ICLR_IDLE, data->iclr);
-+		upa_writeq(ICLR_IDLE, handler_data->iclr);
+-#ifdef CONFIG_SBUS
+ /* INO number to IMAP register offset for SYSIO external IRQ's.
+  * This should conform to both Sunfire/Wildfire server and Fusion
+  * desktop designs.
+@@ -711,8 +710,6 @@ static void __init sbus_irq_trans_init(struct device_node *dp)
+ 	regs = of_get_property(dp, "reg", NULL);
+ 	dp->irq_trans->data = (void *) (unsigned long) regs->phys_addr;
+ }
+-#endif /* CONFIG_SBUS */
+-
+ 
+ static unsigned int central_build_irq(struct device_node *dp,
+ 				      unsigned int ino,
+@@ -822,13 +819,11 @@ void __init irq_trans_init(struct device_node *dp)
+ 		}
  	}
- 
- 	return 0;
-@@ -346,14 +346,14 @@ static void sun4u_irq_disable(unsigned int virt_irq)
- 
- static void sun4u_irq_eoi(unsigned int virt_irq)
- {
--	struct irq_handler_data *data = get_irq_chip_data(virt_irq);
-+	struct irq_handler_data *handler_data = get_irq_chip_data(virt_irq);
- 	struct irq_desc *desc = irq_desc + virt_irq;
- 
- 	if (unlikely(desc->status & (IRQ_DISABLED|IRQ_INPROGRESS)))
+ #endif
+-#ifdef CONFIG_SBUS
+ 	if (!strcmp(dp->name, "sbus") ||
+ 	    !strcmp(dp->name, "sbi")) {
+ 		sbus_irq_trans_init(dp);
  		return;
- 
--	if (likely(data))
--		upa_writeq(ICLR_IDLE, data->iclr);
-+	if (likely(handler_data))
-+		upa_writeq(ICLR_IDLE, handler_data->iclr);
+ 	}
+-#endif
+ 	if (!strcmp(dp->name, "fhc") &&
+ 	    !strcmp(dp->parent->name, "central")) {
+ 		central_irq_trans_init(dp);
+diff --git a/arch/sparc/mm/io-unit.c b/arch/sparc/mm/io-unit.c
+index fc58c3e..27eb5b4 100644
+--- a/arch/sparc/mm/io-unit.c
++++ b/arch/sparc/mm/io-unit.c
+@@ -196,7 +196,6 @@ static void iounit_release_scsi_sgl(struct device *dev, struct scatterlist *sg,
+ 	spin_unlock_irqrestore(&iounit->lock, flags);
  }
  
- static void sun4v_irq_enable(unsigned int virt_irq)
-@@ -530,10 +530,10 @@ static struct irq_chip sun4v_virq = {
- static void pre_flow_handler(unsigned int virt_irq,
- 				      struct irq_desc *desc)
+-#ifdef CONFIG_SBUS
+ static int iounit_map_dma_area(struct device *dev, dma_addr_t *pba, unsigned long va, __u32 addr, int len)
  {
--	struct irq_handler_data *data = get_irq_chip_data(virt_irq);
-+	struct irq_handler_data *handler_data = get_irq_chip_data(virt_irq);
- 	unsigned int ino = virt_irq_table[virt_irq].dev_ino;
- 
--	data->pre_handler(ino, data->arg1, data->arg2);
-+	handler_data->pre_handler(ino, handler_data->arg1, handler_data->arg2);
- 
- 	handle_fasteoi_irq(virt_irq, desc);
+ 	struct iounit_struct *iounit = dev->archdata.iommu;
+@@ -240,7 +239,6 @@ static void iounit_unmap_dma_area(struct device *dev, unsigned long addr, int le
+ {
+ 	/* XXX Somebody please fill this in */
  }
-@@ -542,12 +542,12 @@ void irq_install_pre_handler(int virt_irq,
- 			     void (*func)(unsigned int, void *, void *),
- 			     void *arg1, void *arg2)
+-#endif
+ 
+ static char *iounit_lockarea(char *vaddr, unsigned long len)
  {
--	struct irq_handler_data *data = get_irq_chip_data(virt_irq);
-+	struct irq_handler_data *handler_data = get_irq_chip_data(virt_irq);
- 	struct irq_desc *desc = irq_desc + virt_irq;
+@@ -263,8 +261,6 @@ void __init ld_mmu_iounit(void)
+ 	BTFIXUPSET_CALL(mmu_release_scsi_one, iounit_release_scsi_one, BTFIXUPCALL_NORM);
+ 	BTFIXUPSET_CALL(mmu_release_scsi_sgl, iounit_release_scsi_sgl, BTFIXUPCALL_NORM);
  
--	data->pre_handler = func;
--	data->arg1 = arg1;
--	data->arg2 = arg2;
-+	handler_data->pre_handler = func;
-+	handler_data->arg1 = arg1;
-+	handler_data->arg2 = arg2;
- 
- 	desc->handle_irq = pre_flow_handler;
+-#ifdef CONFIG_SBUS
+ 	BTFIXUPSET_CALL(mmu_map_dma_area, iounit_map_dma_area, BTFIXUPCALL_NORM);
+ 	BTFIXUPSET_CALL(mmu_unmap_dma_area, iounit_unmap_dma_area, BTFIXUPCALL_NORM);
+-#endif
  }
-@@ -555,7 +555,7 @@ void irq_install_pre_handler(int virt_irq,
- unsigned int build_irq(int inofixup, unsigned long iclr, unsigned long imap)
+diff --git a/arch/sparc/mm/iommu.c b/arch/sparc/mm/iommu.c
+index 07fc6a6..a9f4108 100644
+--- a/arch/sparc/mm/iommu.c
++++ b/arch/sparc/mm/iommu.c
+@@ -336,7 +336,6 @@ static void iommu_release_scsi_sgl(struct device *dev, struct scatterlist *sg, i
+ 	}
+ }
+ 
+-#ifdef CONFIG_SBUS
+ static int iommu_map_dma_area(struct device *dev, dma_addr_t *pba, unsigned long va,
+ 			      unsigned long addr, int len)
  {
- 	struct ino_bucket *bucket;
--	struct irq_handler_data *data;
-+	struct irq_handler_data *handler_data;
- 	unsigned int virt_irq;
- 	int ino;
+@@ -424,7 +423,6 @@ static void iommu_unmap_dma_area(struct device *dev, unsigned long busa, int len
+ 	iommu_invalidate(iommu->regs);
+ 	bit_map_clear(&iommu->usemap, ioptex, len >> PAGE_SHIFT);
+ }
+-#endif
  
-@@ -573,19 +573,19 @@ unsigned int build_irq(int inofixup, unsigned long iclr, unsigned long imap)
- 					      "IVEC");
- 	}
- 
--	data = get_irq_chip_data(virt_irq);
--	if (unlikely(data))
-+	handler_data = get_irq_chip_data(virt_irq);
-+	if (unlikely(handler_data))
- 		goto out;
- 
--	data = kzalloc(sizeof(struct irq_handler_data), GFP_ATOMIC);
--	if (unlikely(!data)) {
-+	handler_data = kzalloc(sizeof(struct irq_handler_data), GFP_ATOMIC);
-+	if (unlikely(!handler_data)) {
- 		prom_printf("IRQ: kzalloc(irq_handler_data) failed.\n");
- 		prom_halt();
- 	}
--	set_irq_chip_data(virt_irq, data);
-+	set_irq_chip_data(virt_irq, handler_data);
- 
--	data->imap  = imap;
--	data->iclr  = iclr;
-+	handler_data->imap  = imap;
-+	handler_data->iclr  = iclr;
- 
- out:
- 	return virt_irq;
-@@ -595,7 +595,7 @@ static unsigned int sun4v_build_common(unsigned long sysino,
- 				       struct irq_chip *chip)
+ static char *iommu_lockarea(char *vaddr, unsigned long len)
  {
- 	struct ino_bucket *bucket;
--	struct irq_handler_data *data;
-+	struct irq_handler_data *handler_data;
- 	unsigned int virt_irq;
+@@ -456,10 +454,8 @@ void __init ld_mmu_iommu(void)
+ 	BTFIXUPSET_CALL(mmu_release_scsi_one, iommu_release_scsi_one, BTFIXUPCALL_NORM);
+ 	BTFIXUPSET_CALL(mmu_release_scsi_sgl, iommu_release_scsi_sgl, BTFIXUPCALL_NORM);
  
- 	BUG_ON(tlb_type != hypervisor);
-@@ -610,23 +610,23 @@ static unsigned int sun4v_build_common(unsigned long sysino,
- 					      "IVEC");
- 	}
+-#ifdef CONFIG_SBUS
+ 	BTFIXUPSET_CALL(mmu_map_dma_area, iommu_map_dma_area, BTFIXUPCALL_NORM);
+ 	BTFIXUPSET_CALL(mmu_unmap_dma_area, iommu_unmap_dma_area, BTFIXUPCALL_NORM);
+-#endif
  
--	data = get_irq_chip_data(virt_irq);
--	if (unlikely(data))
-+	handler_data = get_irq_chip_data(virt_irq);
-+	if (unlikely(handler_data))
- 		goto out;
- 
--	data = kzalloc(sizeof(struct irq_handler_data), GFP_ATOMIC);
--	if (unlikely(!data)) {
-+	handler_data = kzalloc(sizeof(struct irq_handler_data), GFP_ATOMIC);
-+	if (unlikely(!handler_data)) {
- 		prom_printf("IRQ: kzalloc(irq_handler_data) failed.\n");
- 		prom_halt();
- 	}
--	set_irq_chip_data(virt_irq, data);
-+	set_irq_chip_data(virt_irq, handler_data);
- 
- 	/* Catch accidental accesses to these things.  IMAP/ICLR handling
- 	 * is done by hypervisor calls on sun4v platforms, not by direct
- 	 * register accesses.
- 	 */
--	data->imap = ~0UL;
--	data->iclr = ~0UL;
-+	handler_data->imap = ~0UL;
-+	handler_data->iclr = ~0UL;
- 
- out:
- 	return virt_irq;
-@@ -641,7 +641,7 @@ unsigned int sun4v_build_irq(u32 devhandle, unsigned int devino)
- 
- unsigned int sun4v_build_virq(u32 devhandle, unsigned int devino)
- {
--	struct irq_handler_data *data;
-+	struct irq_handler_data *handler_data;
- 	unsigned long hv_err, cookie;
- 	struct ino_bucket *bucket;
- 	struct irq_desc *desc;
-@@ -669,8 +669,8 @@ unsigned int sun4v_build_virq(u32 devhandle, unsigned int devino)
- 				      handle_fasteoi_irq,
- 				      "IVEC");
- 
--	data = kzalloc(sizeof(struct irq_handler_data), GFP_ATOMIC);
--	if (unlikely(!data))
-+	handler_data = kzalloc(sizeof(struct irq_handler_data), GFP_ATOMIC);
-+	if (unlikely(!handler_data))
- 		return 0;
- 
- 	/* In order to make the LDC channel startup sequence easier,
-@@ -680,14 +680,14 @@ unsigned int sun4v_build_virq(u32 devhandle, unsigned int devino)
- 	desc = irq_desc + virt_irq;
- 	desc->status |= IRQ_NOAUTOEN;
- 
--	set_irq_chip_data(virt_irq, data);
-+	set_irq_chip_data(virt_irq, handler_data);
- 
- 	/* Catch accidental accesses to these things.  IMAP/ICLR handling
- 	 * is done by hypervisor calls on sun4v platforms, not by direct
- 	 * register accesses.
- 	 */
--	data->imap = ~0UL;
--	data->iclr = ~0UL;
-+	handler_data->imap = ~0UL;
-+	handler_data->iclr = ~0UL;
- 
- 	cookie = ~__pa(bucket);
- 	hv_err = sun4v_vintr_set_cookie(devhandle, devino, cookie);
+ 	if (viking_mxcc_present || srmmu_modtype = HyperSparc) {
+ 		dvma_prot = __pgprot(SRMMU_CACHE | SRMMU_ET_PTE | SRMMU_PRIV);
 -- 
 1.6.0.6
 
