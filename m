@@ -1,29 +1,26 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 28 Jan 2011 23:07:28 +0000
-Subject: Re: [PATCH] SPARC/LEON: FPU-FSR only available when FPU present
-Message-Id: <20110128.150728.232748941.davem@davemloft.net>
+Date: Wed, 05 Jan 2011 19:20:12 +0000
+Subject: sb-100 bootup hangs...
+Message-Id: <20110105.112012.183041683.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1296059825-22822-1-git-send-email-daniel@gaisler.com>
-In-Reply-To: <1296059825-22822-1-git-send-email-daniel@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 27 Jan 2011 18:29:16 +0100
 
-> On Thu, Jan 27, 2011 at 12:06:27PM +0100, Daniel Hellstrom wrote:
->> Sam Ravnborg wrote:
->>
->>> On Wed, Jan 26, 2011 at 05:37:05PM +0100, Daniel Hellstrom wrote:
->>>  
->>>
->>>> Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
-...
-> Acked-by: Sam Ravnborg <sam@ravnborg.org>
-> 
-> Btw. my ack is not a precondition for David to merge your
-> patches - but it may help a little :-)
+Sam, just FYI, I think I know what this bug is, I've been helping
+Fabio hunt down a similar bug on his machine, and he generated enough
+debug info for me to work on a fix.
 
-:-)  Applied to sparc-next-2.6, thanks guys.
+The issue is that the atyfb_setup_sparc() code in the ATY driver is
+doing direct PROM calls to fetch information from the device tree, and
+it's doing it in such a way that we will violate the PROM restrictions
+that we can only pass <4GB virtual addresses down into prom calls.
+
+That code should be using the in-kernel copy of the device tree,
+via the of_*() interfaces, to do it's probing.  And I'm going to
+write such a patch to fix this bug.
+
+So sit tight :-)
+
