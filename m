@@ -1,31 +1,95 @@
-From: Julian Calaby <julian.calaby@gmail.com>
-Date: Sun, 02 Jan 2011 00:46:27 +0000
-Subject: Re: [PATCH 9/9] sparc: unify strip command in boot/Makefile
-Message-Id: <AANLkTikHUM4Pn5mffWgb79eCiZmKQu-GNQKNwUmKi8k3@mail.gmail.com>
+From: Daniel Hellstrom <daniel@gaisler.com>
+Date: Wed, 05 Jan 2011 10:42:40 +0000
+Subject: [PATCH] SPARC: added U-Boot build target: uImage
+Message-Id: <1294224160-7333-2-git-send-email-daniel@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1293915632-4596-9-git-send-email-sam@ravnborg.org>
-In-Reply-To: <1293915632-4596-9-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sun, Jan 2, 2011 at 08:00, Sam Ravnborg <sam@ravnborg.org> wrote:
-> Include an additional "Kernel is ready" print for zImage
+This is only for LEON as u-boot for SPARC only supports LEON.
 
-I was going to ask if this line is necessary, but a quick peek through
-the other architectures reveals that most of them print something
-along these lines, notable exceptions being "xtensa", "s390",
-"powerpc", "mips", "frv" and "blackfin". Blackfin doesn't count
-because it seems to be producing files to be fed into some external
-utility before sticking it on a board.
+Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
+---
+ arch/sparc/Makefile      |    3 ++-
+ arch/sparc/boot/Makefile |   36 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 38 insertions(+), 1 deletions(-)
 
-Thanks,
-
+diff --git a/arch/sparc/Makefile b/arch/sparc/Makefile
+index 113225b..012d289 100644
+--- a/arch/sparc/Makefile
++++ b/arch/sparc/Makefile
+@@ -88,7 +88,7 @@ boot := arch/sparc/boot
+ # Default target
+ all: zImage
+ 
+-image zImage tftpboot.img vmlinux.aout: vmlinux
++image zImage uImage tftpboot.img vmlinux.aout: vmlinux
+ 	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
+ 
+ archclean:
+@@ -102,6 +102,7 @@ ifeq ($(ARCH),sparc)
+ define archhelp
+   echo  '* image        - kernel image ($(boot)/image)'
+   echo  '* zImage       - stripped kernel image ($(boot)/zImage)'
++  echo  '  uImage       - U-Boot SPARC32/LEON Image'
+   echo  '  tftpboot.img - image prepared for tftp'
+ endef
+ else
+diff --git a/arch/sparc/boot/Makefile b/arch/sparc/boot/Makefile
+index 97e3feb..9574958 100644
+--- a/arch/sparc/boot/Makefile
++++ b/arch/sparc/boot/Makefile
+@@ -5,6 +5,7 @@
+ 
+ ROOT_IMG	:= /usr/src/root.img
+ ELFTOAOUT	:= elftoaout
++MKIMAGE 	:= $(srctree)/scripts/mkuboot.sh
+ 
+ hostprogs-y	:= piggyback_32 piggyback_64 btfixupprep
+ targets		:= tftpboot.img btfix.o btfix.S image zImage vmlinux.aout
+@@ -90,5 +91,40 @@ $(obj)/tftpboot.img: $(obj)/image $(obj)/piggyback_64 System.map $(ROOT_IMG) FOR
+ $(obj)/vmlinux.aout: vmlinux FORCE
+ 	$(call if_changed,elftoaout)
+ 	@echo '  kernel: $@ is ready'
++else
++
++# The following lines make a readable image for U-Boot.
++#  uImage   - Binary file read by U-boot
++#  uImage.o - object file of uImage for loading with a
++#             flash programmer understanding ELF.
++
++OBJCOPYFLAGS_image.bin := -S -O binary -R .note -R .comment
++$(obj)/image.bin: $(obj)/image FORCE
++	$(call if_changed,objcopy)
++
++$(obj)/image.gz: $(obj)/image.bin
++	$(call if_changed,gzip)
++
++# Start of Main memory which this Linux kernel will be loaded to.
++ifndef UIMAGE_LOADADDR
++UIMAGE_LOADADDR=0x40004000
+ endif
+ 
++# The first sector after the U-Boot image (512k). Override this accoring to
++# your u-boot binary size and FLASH block size.
++ifndef UIMAGE_FLASHADDR
++UIMAGE_FLASHADDR=0x00080000
++endif
++
++quiet_cmd_uimage = UIMAGE  $@
++      cmd_uimage = $(CONFIG_SHELL) $(MKIMAGE) -A sparc -O linux -T kernel \
++               -C gzip -a $(UIMAGE_LOADADDR) -e 0xf0004000 -n 'Linux-$(KERNELRELEASE)' \
++               -d $< $@
++
++targets += uImage
++$(obj)/uImage: $(obj)/image.gz
++	$(call if_changed,uimage)
++	sparc-linux-ld -Tdata $(UIMAGE_FLASHADDR) -r -b binary arch/sparc/boot/uImage -o arch/sparc/boot/uImage.o
++	@echo '  Image $@ is ready'
++
++endif
 -- 
+1.5.4
 
-Julian Calaby
-
-Email: julian.calaby@gmail.com
-Profile: http://www.google.com/profiles/julian.calaby/
-.Plan: http://sites.google.com/site/juliancalaby/
