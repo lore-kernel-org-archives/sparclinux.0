@@ -1,7 +1,7 @@
-From: Richard Mortimer <richm@oldelvet.org.uk>
-Date: Thu, 06 Jan 2011 14:33:02 +0000
-Subject: Re: [PATCH v2] cassini: Use local-mac-address prom property for	Cassini
-Message-Id: <4D25D29E.3010806@oldelvet.org.uk>
+From: vincent@cojot.name
+Date: Thu, 06 Jan 2011 15:43:20 +0000
+Subject: Re: [PATCH v2] cassini: Use local-mac-address prom property for
+Message-Id: <alpine.LRH.2.02.1101061618030.20587@thorbardin.lasthome.solace.krynn>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1294321167.6193.69.camel@duncow>
 In-Reply-To: <1294321167.6193.69.camel@duncow>
@@ -11,18 +11,25 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
+Hi everyone,
 
-On 06/01/2011 14:08, Sam Ravnborg wrote:
-> On Thu, Jan 06, 2011 at 01:39:27PM +0000, Richard Mortimer wrote:
->> +#if defined(CONFIG_OF)
->> +#include<linux/of.h>
->> +#include<linux/of_device.h>
->> +#endif
->
-> The ifdefs are not required - the files include these already.
->
-> 	Sam
+Sorry for stepping in but aside from these patches, is there a current 
+maintainer for the cassini driver who's willing to help debug a few 
+issues?
 
-Ah yes you are right thanks. v3 on its way soon.
+I currently have a few X4422A cards which I'm trying to use on recent 
+x86 hardware under Centos5 and the cards 'work' but their network 
+performance spectrum is very strange:
 
-Richard
+iperf starts around 400Mb/s then 
+starts dropping and dropping - currently around 40Mb/s after an hour of 
+iperf, as measured from another centos5 system with e1000e on an idle 
+network.
+
+Looking at the source, there were also some ifdefs for which I couldn't 
+find a log/reason for:
+USE_HP_WORKAROUND, CAS_HP_ALT_FIRMWARE, etc...
+
+Any ideas, etc...?
+
+Vincent
