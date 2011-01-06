@@ -1,7 +1,7 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 06 Jan 2011 07:47:43 +0000
+From: "Fabio M. Di Nitto" <fabbione@fabbione.net>
+Date: Thu, 06 Jan 2011 08:15:02 +0000
 Subject: Re: [PATCH] atyfb: Fix bootup hangs on sparc64.
-Message-Id: <20110106074743.GA14681@merkur.ravnborg.org>
+Message-Id: <4D257A06.9020208@fabbione.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20110105.130959.260100853.davem@davemloft.net>
 In-Reply-To: <20110105.130959.260100853.davem@davemloft.net>
@@ -10,27 +10,102 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> 
-> The patch did not fix my hang during boot.
-> I have added a few prinks and I can see that the boot
-> hangs here:
->                 printk(KERN_INFO "console [%s%d] enabled, bootconsole disabled\n",
->                         newcon->name, newcon->index);
->                 for_each_console(bcon) {
->                         if (bcon->flags & CON_BOOT)
->                                 unregister_console(bcon);  <<<<<<<
->                 }
-> 
-> We succeed to unregister "tty" but when we unregister "earlyprom" I see a hang.
-> 
-> So what I see is a different bug.
-> 
-> I did not try to persuade it further as it is getting late here.
+Signed-off-by: Fabio M. Di NItto <fabbione@fabbione.net>
 
-I tried to drop "CON_BOOT" from earlyprom and then the box
-continued booting until it failed to mount my root filesystem.
+tested the patch on top of a clean 2.6.37 and on top of 2.6.36.x +
+proposed patch set (as you mailed them to me).
 
-I could see that atyfb_init() was called but
-atyfb_setup_sparc() was never called - so I did not test your patch.
+Both works like a charm.
 
-	Sam
+Thanks for fixing this David, I am working on a patch for Debian so
+hopefully they can get it in before release.
+
+Fabio
+
+On 1/5/2011 10:09 PM, David Miller wrote:
+> 
+> After commit 25edd6946a1d74e5e77813c2324a0908c68bcf9e ("sparc64: Get
+> rid of indirect p1275 PROM call buffer.")  we can't pass virtual
+> addresses >4GB to PROM calls.
+> 
+> Largely this is never necessary in drivers because we have a copy of
+> the entire PROM device tree in the kernel and a set of of_*()
+> interfaces to access it.
+> 
+> Unfortunately there were some lingering prom calls in the atyfb
+> driver, in particular prom_finddevice() was being called with an
+> on-stack address which could be anywhere.
+> 
+> This code is actually probing for information we already have, the
+> PROM choosen console output device is stored in of_console_device so
+> all of this nasty code consolidates into a one-line comparison.
+> 
+> Next we have some prom_getintdefault() calls which are trivially
+> transformed into the equivalent of_getintprop_default().
+> 
+> Special thanks to Fabio, who figured out exactly where the bootup
+> was hanging.  That made this bug trivial to fix.
+> 
+> Reported-by: Fabio M. Di NItto <fabbione@fabbione.net>
+> Reported-by: Sam Ravnborg <sam@ravnborg.org>
+> Reported-by: Frans van Berckel <fberckel@xs4all.nl>
+> Signed-off-by: David S. Miller <davem@davemloft.net>
+> ---
+>  drivers/video/aty/atyfb_base.c |   27 +++++----------------------
+>  1 files changed, 5 insertions(+), 22 deletions(-)
+> 
+> diff --git a/drivers/video/aty/atyfb_base.c b/drivers/video/aty/atyfb_base.c
+> index 5bf9123..5a3ce3a 100644
+> --- a/drivers/video/aty/atyfb_base.c
+> +++ b/drivers/video/aty/atyfb_base.c
+> @@ -2969,10 +2969,8 @@ static int __devinit atyfb_setup_sparc(struct pci_dev *pdev,
+>  {
+>  	struct atyfb_par *par = info->par;
+>  	struct device_node *dp;
+> -	char prop[128];
+> -	phandle node;
+> -	int len, i, j, ret;
+>  	u32 mem, chip_id;
+> +	int i, j, ret;
+>  
+>  	/*
+>  	 * Map memory-mapped registers.
+> @@ -3088,23 +3086,8 @@ static int __devinit atyfb_setup_sparc(struct pci_dev *pdev,
+>  		aty_st_le32(MEM_CNTL, mem, par);
+>  	}
+>  
+> -	/*
+> -	 * If this is the console device, we will set default video
+> -	 * settings to what the PROM left us with.
+> -	 */
+> -	node = prom_getchild(prom_root_node);
+> -	node = prom_searchsiblings(node, "aliases");
+> -	if (node) {
+> -		len = prom_getproperty(node, "screen", prop, sizeof(prop));
+> -		if (len > 0) {
+> -			prop[len] = '\0';
+> -			node = prom_finddevice(prop);
+> -		} else
+> -			node = 0;
+> -	}
+> -
+>  	dp = pci_device_to_OF_node(pdev);
+> -	if (node = dp->phandle) {
+> +	if (dp = of_console_device) {
+>  		struct fb_var_screeninfo *var = &default_var;
+>  		unsigned int N, P, Q, M, T, R;
+>  		u32 v_total, h_total;
+> @@ -3112,9 +3095,9 @@ static int __devinit atyfb_setup_sparc(struct pci_dev *pdev,
+>  		u8 pll_regs[16];
+>  		u8 clock_cntl;
+>  
+> -		crtc.vxres = prom_getintdefault(node, "width", 1024);
+> -		crtc.vyres = prom_getintdefault(node, "height", 768);
+> -		var->bits_per_pixel = prom_getintdefault(node, "depth", 8);
+> +		crtc.vxres = of_getintprop_default(dp, "width", 1024);
+> +		crtc.vyres = of_getintprop_default(dp, "height", 768);
+> +		var->bits_per_pixel = of_getintprop_default(dp, "depth", 8);
+>  		var->xoffset = var->yoffset = 0;
+>  		crtc.h_tot_disp = aty_ld_le32(CRTC_H_TOTAL_DISP, par);
+>  		crtc.h_sync_strt_wid = aty_ld_le32(CRTC_H_SYNC_STRT_WID, par);
+
