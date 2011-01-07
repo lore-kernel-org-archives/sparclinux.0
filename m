@@ -1,21 +1,60 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 04 Jan 2011 19:17:10 +0000
-Subject: Re: [PATCH 4/7] SPARC/LEON: added support for selecting Timer Core
-Message-Id: <20110104.111710.115936265.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 07 Jan 2011 20:18:05 +0000
+Subject: sparc boot failure due to perf init
+Message-Id: <20110107201805.GA28104@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1294141295-26584-4-git-send-email-daniel@gaisler.com>
-In-Reply-To: <1294141295-26584-4-git-send-email-daniel@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: David Miller <davem@davemloft.net>, Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: lkml <linux-kernel@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>
 
-From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Tue,  4 Jan 2011 12:41:32 +0100
+I have upgraded my Sun Blade 100 to latest mainline,
+and when it booted I hit an oops.
 
-> The ability to select Timer Core and Timer instance for system clock
-> makes it possible for multiple AMP systems to coexist.
-> 
-> Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
+Relevant bits from the oops:
+Mount-cache hash table entries: 512
+Performance events: perf (null)    <<<<<<<<<<<<<<<<<<<
+Unable to handle kernel NULL pointer dereference
+tsk->{mm,active_mm}->context = 0000000000000000
+tsk->{mm,active_mm}->pgd = fffff800003e4634
+              \|/ ____ \|/
+              "@'/ .. \`@"
+              /_| \__/ |_\
+                 \__U_/
+swapper(1): Oops [#1]
+TSTATE: 0000004480001606 TPC: 000000000055c180 TNPC: 000000000055c184 Y: 00000000    Not tainted
+TPC: <strcmp+0x0/0x40>
+g0: fffff8000f03f800 g1: 00000000007df800 g2: 000000000078f918 g3: 0000000000799168
+g4: fffff8000f0358c0 g5: fffff80000c22000 g6: fffff8000f038000 g7: 0000000000000001
+o0: 0000000000000000 o1: 000000000073b050 o2: 0000000000000001 o3: 0000000000000001
+o4: fffff8000f0356c8 o5: 0000000000000000 sp: fffff8000f03b531 ret_pc: 00000000007b9e30
+RPC: <init_hw_perf_events+0x30/0x168>
+l0: 0000000000000000 l1: 00000000007e0a80 l2: 00000000007e2140 l3: 0000000000000001
+l4: 0000000000000000 l5: 0000000000000000 l6: 0000000000000000 l7: 0000000000777b78
+i0: fffff80001402a80 i1: 0000000000000000 i2: 0000000000000001 i3: 0000000000000001
+i4: 0000000000000000 i5: 0000000000000005 i6: fffff8000f03b5e1 i7: 00000000007b41c8
+I7: <do_one_initcall+0x68/0x140>
 
-Applied.
+The line mared "<<<<<<<<<<<<<" is added by my printf debugging.
+It shows that sparc_pmu_type is NULL.
+
+sparc_pmu_type is set in cpu_type_probe(void) which is:
+
+   arch_initcall(cpu_type_probe);
+
+But init_hw_perf_events() is:
+
+   early_initcall(init_hw_perf_events);
+
+So we end up calling init_hw_perf_events() before we call cpu_type_probe(),
+and sparc_pmu_type is not set.
+
+This was introduced by: 
+"perf, arch: Cleanup perf-pmu init vs lockup-detector" - 004417a6d468e24399e383645c068b498eed84ad
+
+I did not see any obvious fix.
+(To avoid it is simple - I can disable it in my config).
+
+	Sam
+
