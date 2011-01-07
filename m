@@ -1,7 +1,7 @@
-From: "Fabio M. Di NItto" <fabbione@fabbione.net>
-Date: Thu, 06 Jan 2011 19:57:14 +0000
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 07 Jan 2011 22:41:51 +0000
 Subject: Re: [PATCH] atyfb: Fix bootup hangs on sparc64.
-Message-Id: <4D261E9A.4060607@fabbione.net>
+Message-Id: <20110107224151.GA10353@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20110105.130959.260100853.davem@davemloft.net>
 In-Reply-To: <20110105.130959.260100853.davem@davemloft.net>
@@ -10,22 +10,47 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 01/06/2011 08:36 PM, David Miller wrote:
-> From: "Fabio M. Di Nitto" <fabbione@fabbione.net>
-> Date: Thu, 06 Jan 2011 09:15:02 +0100
 > 
->> Signed-off-by: Fabio M. Di NItto <fabbione@fabbione.net>
->>
->> tested the patch on top of a clean 2.6.37 and on top of 2.6.36.x +
->> proposed patch set (as you mailed them to me).
->>
->> Both works like a charm.
->>
->> Thanks for fixing this David, I am working on a patch for Debian so
->> hopefully they can get it in before release.
+> What kernel version are you running exactly? config says 2.6.36-rc7, if
+> so it's missing other fixes related to the console handover.
 > 
-> Thanks a lot for testing and debugging.
+> Basically, grab 2.6.37 that was released a day ago and apply the patch.
+> 
+> If the problem persist, please comment out the call to
+> unregister_console and boot with -p. That should give us enough extra
+> output to see where it's hanging.
 
-No problem. I miss the good old times :)
+Just a quick status.
+I used HEAD from mainline today as it included all my sparc patches.
+[Initially it oopsed but this was unrelated].
 
-Fabio
+After enabling all ATYFB related options in the config
+I could see that it got probed and I got output on the screen.
+
+There is a few seconds period with no output.
+Then I get output where all text are displayed in four coloums, where
+two of the coloums are copies.
+I can see the cursor is rapidly moving around on the screen - or
+at least it looks like a cursor.
+
+I tried to change resolution like this:
+
+prom> setenv output-device=screen:x1024x768x70
+prom> reset-all
+
+I then used:
+prom> cd /pci/SUNW,m64B
+prom> .properties
+
+This showed that the new resolution had been stored.
+
+But this had no effect on he output :-(
+
+Anyway.
+I can see that we suceed callign the setup function that David fixes.
+And what I see now is most likely a driver issue.
+
+For now I will just accept that I need to use serial.
+I may revist this later.
+
+	Sam
