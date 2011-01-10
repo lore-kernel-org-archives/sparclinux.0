@@ -1,7 +1,7 @@
-From: "Fabio M. Di NItto" <fabbione@fabbione.net>
-Date: Sun, 09 Jan 2011 11:32:55 +0000
+From: David Miller <davem@davemloft.net>
+Date: Mon, 10 Jan 2011 08:20:37 +0000
 Subject: Re: [PATCH] atyfb: Fix bootup hangs on sparc64.
-Message-Id: <4D299CE7.9070509@fabbione.net>
+Message-Id: <20110110.002037.149839029.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20110105.130959.260100853.davem@davemloft.net>
 In-Reply-To: <20110105.130959.260100853.davem@davemloft.net>
@@ -10,19 +10,33 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 01/08/2011 08:26 PM, David Miller wrote:
-> From: "Fabio M. Di NItto" <fabbione@fabbione.net>
-> Date: Sat, 08 Jan 2011 10:01:43 +0100
-> 
->> Oh ok.. so you do use the card output (that would have been useful info
->> earlier ;)). All my tests were around fixing serial console (as it's
->> really the only one I have). I'll try to hook up a monitor to the SB100
->> and see if I can reproduce here.
-> 
-> Sam figured out the bug the other day, see the thread starting at:
-> 
-> http://marc.info/?l=linux-sparc&m9443149014127&w=2
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 7 Jan 2011 23:41:51 +0100
 
-Ok thanks for the head up.
+> I tried to change resolution like this:
+> 
+> prom> setenv output-device=screen:x1024x768x70
+> prom> reset-all
+> 
+> I then used:
+> prom> cd /pci/SUNW,m64B
+> prom> .properties
+> 
+> This showed that the new resolution had been stored.
+> 
+> But this had no effect on he output :-(
 
-Fabio
+Weird, because the atyfb code in atyfb_setup_sparc() is designed to
+explicitly respect the OpenFirmware resolution and refresh settings.
+
+Can you make sure that:
+
+	dp = pci_device_to_OF_node(pdev);
+	if (dp = of_console_device) {
+
+check does in fact trigger?  The code protected by that conditional is
+the code that implements the importing of OpenFirmware's configured
+resolution.
+
+I'll try to find time to fire up my sb100 and try to help debug this,
+since I'm actually at the physical location of mine at the moment :-)
