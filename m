@@ -1,75 +1,41 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 22 Jan 2011 21:32:14 +0000
-Subject: [PATCH 1/7] sparc64: fix direct access to irq_desc
-Message-Id: <1295731940-31697-1-git-send-email-sam@ravnborg.org>
+From: Kristoffer Glembo <kristoffer@gaisler.com>
+Date: Tue, 11 Jan 2011 10:49:04 +0000
+Subject: [PATCH 2/4] sparc/leon: Make mmu_inval_dma_area flush dcache for LEONs without snooping enabled.
+Message-Id: <1294742946-1040-3-git-send-email-kristoffer@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-GENERIC_HARDIRQS_NO_DEPRECATED require us to access data via irq_data.
-No functional changes as data has same layout due to use of union
-
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Kristoffer Glembo <kristoffer@gaisler.com>
 ---
- arch/sparc/kernel/irq_64.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+ arch/sparc/kernel/ioport.c |   11 ++++++++---
+ 1 files changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
-index 830d70a..ee67dae 100644
---- a/arch/sparc/kernel/irq_64.c
-+++ b/arch/sparc/kernel/irq_64.c
-@@ -190,7 +190,7 @@ int show_interrupts(struct seq_file *p, void *v)
- 		for_each_online_cpu(j)
- 			seq_printf(p, "%10u ", kstat_irqs_cpu(i, j));
+diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
+index cea49c0..bfcbd1e 100644
+--- a/arch/sparc/kernel/ioport.c
++++ b/arch/sparc/kernel/ioport.c
+@@ -50,10 +50,15 @@
+ #include <asm/io-unit.h>
+ #include <asm/leon.h>
+ 
+-#ifdef CONFIG_SPARC_LEON
+-#define mmu_inval_dma_area(p, l) leon_flush_dcache_all()
+-#else
++#ifndef CONFIG_SPARC_LEON
+ #define mmu_inval_dma_area(p, l)	/* Anton pulled it out for 2.4.0-xx */
++#else
++static inline void mmu_inval_dma_area(unsigned long va, unsigned long len)
++{
++	if (!sparc_leon3_snooping_enabled()) {
++		leon_flush_dcache_all();
++	}
++}
  #endif
--		seq_printf(p, " %9s", irq_desc[i].chip->name);
-+		seq_printf(p, " %9s", irq_desc[i].irq_data.chip->name);
- 		seq_printf(p, "  %s", action->name);
-=20
- 		for (action=ACtion->next; action; action =3D action->next)
-@@ -284,7 +284,7 @@ static void sun4u_irq_enable(unsigned int virt_irq)
- 		unsigned int tid;
-=20
- 		cpuid =3D irq_choose_cpu(virt_irq,
--				       irq_desc[virt_irq].affinity);
-+				       irq_desc[virt_irq].irq_data.affinity);
- 		imap =3D data->imap;
-=20
- 		tid =3D sun4u_compute_tid(imap, cpuid);
-@@ -360,7 +360,7 @@ static void sun4v_irq_enable(unsigned int virt_irq)
- {
- 	unsigned int ino =3D virt_irq_table[virt_irq].dev_ino;
- 	unsigned long cpuid =3D irq_choose_cpu(virt_irq,
--					     irq_desc[virt_irq].affinity);
-+					     irq_desc[virt_irq].irq_data.affinity);
- 	int err;
-=20
- 	err =3D sun4v_intr_settarget(ino, cpuid);
-@@ -423,7 +423,7 @@ static void sun4v_virq_enable(unsigned int virt_irq)
- 	unsigned long cpuid, dev_handle, dev_ino;
- 	int err;
-=20
--	cpuid =3D irq_choose_cpu(virt_irq, irq_desc[virt_irq].affinity);
-+	cpuid =3D irq_choose_cpu(virt_irq, irq_desc[virt_irq].irq_data.affinity);
-=20
- 	dev_handle =3D virt_irq_table[virt_irq].dev_handle;
- 	dev_ino =3D virt_irq_table[virt_irq].dev_ino;
-@@ -798,9 +798,9 @@ void fixup_irqs(void)
- 		raw_spin_lock_irqsave(&irq_desc[irq].lock, flags);
- 		if (irq_desc[irq].action &&
- 		    !(irq_desc[irq].status & IRQ_PER_CPU)) {
--			if (irq_desc[irq].chip->set_affinity)
--				irq_desc[irq].chip->set_affinity(irq,
--					irq_desc[irq].affinity);
-+			if (irq_desc[irq].irq_data.chip->set_affinity)
-+				irq_desc[irq].irq_data.chip->set_affinity(irq,
-+					irq_desc[irq].irq_data.affinity);
- 		}
- 		raw_spin_unlock_irqrestore(&irq_desc[irq].lock, flags);
- 	}
---=20
-1.6.0.6
+ 
+ static struct resource *_sparc_find_resource(struct resource *r,
+-- 
+1.6.4.1
 
