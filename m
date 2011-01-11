@@ -1,90 +1,180 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Tue, 04 Jan 2011 21:39:12 +0000
-Subject: [PATCH 03/10] sparc: use _start for the start entry (like 64 bit does)
-Message-Id: <1294177159-15817-3-git-send-email-sam@ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 11 Jan 2011 23:52:25 +0000
+Subject: [PATCH 13/22] svga: Make svga_set_timings() take an iomem regbase
+Message-Id: <20110111.155225.233876725.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-fbdev@vger.kernel.org
 
-We use "_start" in 64 bit - do the same in 32 bit.
-It is always good to be consistent.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/boot/piggyback_32.c |    6 +++---
- arch/sparc/kernel/head_32.S    |    3 +--
- arch/sparc/mm/sun4c.c          |    8 +++-----
- 3 files changed, 7 insertions(+), 10 deletions(-)
+ drivers/video/arkfb.c    |    2 +-
+ drivers/video/s3fb.c     |    2 +-
+ drivers/video/svgalib.c  |   33 +++++++++++++++++----------------
+ drivers/video/vt8623fb.c |    2 +-
+ include/linux/svga.h     |    2 +-
+ 5 files changed, 21 insertions(+), 20 deletions(-)
 
-diff --git a/arch/sparc/boot/piggyback_32.c b/arch/sparc/boot/piggyback_32.c
-index cfd95ec..5c86a7d 100644
---- a/arch/sparc/boot/piggyback_32.c
-+++ b/arch/sparc/boot/piggyback_32.c
-@@ -73,9 +73,9 @@ static void usage(void)
- 
- static int start_line(const char *line)
- {
--	if (strcmp(line + 8, " T start\n") = 0)
-+	if (strcmp(line + 8, " T _start\n") = 0)
- 		return 1;
--	else if (strcmp(line + 16, " T start\n") = 0)
-+	else if (strcmp(line + 16, " T _start\n") = 0)
- 		return 1;
- 	return 0;
- }
-@@ -92,7 +92,7 @@ static int end_line(const char *line)
- /*
-  * Find address for start and end in System.map.
-  * The file looks like this:
-- * f0004000 T start
-+ * f0004000 T _start
-  * f0379f79 A _end
-  * 1234567890123456
-  * ^coloumn 1
-diff --git a/arch/sparc/kernel/head_32.S b/arch/sparc/kernel/head_32.S
-index 21bb259..5942349 100644
---- a/arch/sparc/kernel/head_32.S
-+++ b/arch/sparc/kernel/head_32.S
-@@ -73,12 +73,11 @@ sun4e_notsup:
- 
- 	/* The Sparc trap table, bootloader gives us control at _start. */
- 	__HEAD
--	.globl	start, _stext, _start, __stext
-+	.globl	_stext, _start, __stext
- 	.globl  trapbase
- _start:   /* danger danger */
- __stext:
- _stext:
--start:
- trapbase:
- #ifdef CONFIG_SMP
- trapbase_cpu0:
-diff --git a/arch/sparc/mm/sun4c.c b/arch/sparc/mm/sun4c.c
-index ddd0d86..b5137cc 100644
---- a/arch/sparc/mm/sun4c.c
-+++ b/arch/sparc/mm/sun4c.c
-@@ -435,16 +435,14 @@ void __init sun4c_probe_memerr_reg(void)
- 
- static inline void sun4c_init_ss2_cache_bug(void)
- {
--	extern unsigned long start;
--
- 	if ((idprom->id_machtype = (SM_SUN4C | SM_4C_SS2)) ||
- 	    (idprom->id_machtype = (SM_SUN4C | SM_4C_IPX)) ||
- 	    (idprom->id_machtype = (SM_SUN4C | SM_4C_ELC))) {
- 		/* Whee.. */
- 		printk("SS2 cache bug detected, uncaching trap table page\n");
--		sun4c_flush_page((unsigned int) &start);
--		sun4c_put_pte(((unsigned long) &start),
--			(sun4c_get_pte((unsigned long) &start) | _SUN4C_PAGE_NOCACHE));
-+		sun4c_flush_page((unsigned int) &_start);
-+		sun4c_put_pte(((unsigned long) &_start),
-+			(sun4c_get_pte((unsigned long) &_start) | _SUN4C_PAGE_NOCACHE));
+diff --git a/drivers/video/arkfb.c b/drivers/video/arkfb.c
+index 7c21bb7..9c1632e 100644
+--- a/drivers/video/arkfb.c
++++ b/drivers/video/arkfb.c
+@@ -781,7 +781,7 @@ static int arkfb_set_par(struct fb_info *info)
  	}
+ 
+ 	ark_set_pixclock(info, (hdiv * info->var.pixclock) / hmul);
+-	svga_set_timings(&ark_timing_regs, &(info->var), hmul, hdiv,
++	svga_set_timings(par->state.vgabase, &ark_timing_regs, &(info->var), hmul, hdiv,
+ 			 (info->var.vmode & FB_VMODE_DOUBLE)     ? 2 : 1,
+ 			 (info->var.vmode & FB_VMODE_INTERLACED) ? 2 : 1,
+ 			  hmul, info->node);
+diff --git a/drivers/video/s3fb.c b/drivers/video/s3fb.c
+index 0ec0f39..a53d974 100644
+--- a/drivers/video/s3fb.c
++++ b/drivers/video/s3fb.c
+@@ -712,7 +712,7 @@ static int s3fb_set_par(struct fb_info *info)
+ 	}
+ 
+ 	s3_set_pixclock(info, info->var.pixclock);
+-	svga_set_timings(&s3_timing_regs, &(info->var), hmul, 1,
++	svga_set_timings(par->state.vgabase, &s3_timing_regs, &(info->var), hmul, 1,
+ 			 (info->var.vmode & FB_VMODE_DOUBLE)     ? 2 : 1,
+ 			 (info->var.vmode & FB_VMODE_INTERLACED) ? 2 : 1,
+ 			 hmul, info->node);
+diff --git a/drivers/video/svgalib.c b/drivers/video/svgalib.c
+index 4876be8..33df9ec 100644
+--- a/drivers/video/svgalib.c
++++ b/drivers/video/svgalib.c
+@@ -507,8 +507,9 @@ int svga_check_timings(const struct svga_timing_regs *tm, struct fb_var_screenin
  }
+ 
+ /* Set CRT timing registers */
+-void svga_set_timings(const struct svga_timing_regs *tm, struct fb_var_screeninfo *var,
+-			u32 hmul, u32 hdiv, u32 vmul, u32 vdiv, u32 hborder, int node)
++void svga_set_timings(void __iomem *regbase, const struct svga_timing_regs *tm,
++		      struct fb_var_screeninfo *var,
++		      u32 hmul, u32 hdiv, u32 vmul, u32 vdiv, u32 hborder, int node)
+ {
+ 	u8 regval;
+ 	u32 value;
+@@ -516,66 +517,66 @@ void svga_set_timings(const struct svga_timing_regs *tm, struct fb_var_screeninf
+ 	value = var->xres + var->left_margin + var->right_margin + var->hsync_len;
+ 	value = (value * hmul) / hdiv;
+ 	pr_debug("fb%d: horizontal total      : %d\n", node, value);
+-	svga_wcrt_multi(NULL, tm->h_total_regs, (value / 8) - 5);
++	svga_wcrt_multi(regbase, tm->h_total_regs, (value / 8) - 5);
+ 
+ 	value = var->xres;
+ 	value = (value * hmul) / hdiv;
+ 	pr_debug("fb%d: horizontal display    : %d\n", node, value);
+-	svga_wcrt_multi(NULL, tm->h_display_regs, (value / 8) - 1);
++	svga_wcrt_multi(regbase, tm->h_display_regs, (value / 8) - 1);
+ 
+ 	value = var->xres;
+ 	value = (value * hmul) / hdiv;
+ 	pr_debug("fb%d: horizontal blank start: %d\n", node, value);
+-	svga_wcrt_multi(NULL, tm->h_blank_start_regs, (value / 8) - 1 + hborder);
++	svga_wcrt_multi(regbase, tm->h_blank_start_regs, (value / 8) - 1 + hborder);
+ 
+ 	value = var->xres + var->left_margin + var->right_margin + var->hsync_len;
+ 	value = (value * hmul) / hdiv;
+ 	pr_debug("fb%d: horizontal blank end  : %d\n", node, value);
+-	svga_wcrt_multi(NULL, tm->h_blank_end_regs, (value / 8) - 1 - hborder);
++	svga_wcrt_multi(regbase, tm->h_blank_end_regs, (value / 8) - 1 - hborder);
+ 
+ 	value = var->xres + var->right_margin;
+ 	value = (value * hmul) / hdiv;
+ 	pr_debug("fb%d: horizontal sync start : %d\n", node, value);
+-	svga_wcrt_multi(NULL, tm->h_sync_start_regs, (value / 8));
++	svga_wcrt_multi(regbase, tm->h_sync_start_regs, (value / 8));
+ 
+ 	value = var->xres + var->right_margin + var->hsync_len;
+ 	value = (value * hmul) / hdiv;
+ 	pr_debug("fb%d: horizontal sync end   : %d\n", node, value);
+-	svga_wcrt_multi(NULL, tm->h_sync_end_regs, (value / 8));
++	svga_wcrt_multi(regbase, tm->h_sync_end_regs, (value / 8));
+ 
+ 	value = var->yres + var->upper_margin + var->lower_margin + var->vsync_len;
+ 	value = (value * vmul) / vdiv;
+ 	pr_debug("fb%d: vertical total        : %d\n", node, value);
+-	svga_wcrt_multi(NULL, tm->v_total_regs, value - 2);
++	svga_wcrt_multi(regbase, tm->v_total_regs, value - 2);
+ 
+ 	value = var->yres;
+ 	value = (value * vmul) / vdiv;
+ 	pr_debug("fb%d: vertical display      : %d\n", node, value);
+-	svga_wcrt_multi(NULL, tm->v_display_regs, value - 1);
++	svga_wcrt_multi(regbase, tm->v_display_regs, value - 1);
+ 
+ 	value = var->yres;
+ 	value = (value * vmul) / vdiv;
+ 	pr_debug("fb%d: vertical blank start  : %d\n", node, value);
+-	svga_wcrt_multi(NULL, tm->v_blank_start_regs, value);
++	svga_wcrt_multi(regbase, tm->v_blank_start_regs, value);
+ 
+ 	value = var->yres + var->upper_margin + var->lower_margin + var->vsync_len;
+ 	value = (value * vmul) / vdiv;
+ 	pr_debug("fb%d: vertical blank end    : %d\n", node, value);
+-	svga_wcrt_multi(NULL, tm->v_blank_end_regs, value - 2);
++	svga_wcrt_multi(regbase, tm->v_blank_end_regs, value - 2);
+ 
+ 	value = var->yres + var->lower_margin;
+ 	value = (value * vmul) / vdiv;
+ 	pr_debug("fb%d: vertical sync start   : %d\n", node, value);
+-	svga_wcrt_multi(NULL, tm->v_sync_start_regs, value);
++	svga_wcrt_multi(regbase, tm->v_sync_start_regs, value);
+ 
+ 	value = var->yres + var->lower_margin + var->vsync_len;
+ 	value = (value * vmul) / vdiv;
+ 	pr_debug("fb%d: vertical sync end     : %d\n", node, value);
+-	svga_wcrt_multi(NULL, tm->v_sync_end_regs, value);
++	svga_wcrt_multi(regbase, tm->v_sync_end_regs, value);
+ 
+ 	/* Set horizontal and vertical sync pulse polarity in misc register */
+ 
+-	regval = vga_r(NULL, VGA_MIS_R);
++	regval = vga_r(regbase, VGA_MIS_R);
+ 	if (var->sync & FB_SYNC_HOR_HIGH_ACT) {
+ 		pr_debug("fb%d: positive horizontal sync\n", node);
+ 		regval = regval & ~0x80;
+@@ -590,7 +591,7 @@ void svga_set_timings(const struct svga_timing_regs *tm, struct fb_var_screeninf
+ 		pr_debug("fb%d: negative vertical sync\n\n", node);
+ 		regval = regval | 0x40;
+ 	}
+-	vga_w(NULL, VGA_MIS_W, regval);
++	vga_w(regbase, VGA_MIS_W, regval);
+ }
+ 
+ 
+diff --git a/drivers/video/vt8623fb.c b/drivers/video/vt8623fb.c
+index 7e6afe1..f36c0e5 100644
+--- a/drivers/video/vt8623fb.c
++++ b/drivers/video/vt8623fb.c
+@@ -505,7 +505,7 @@ static int vt8623fb_set_par(struct fb_info *info)
+ 	}
+ 
+ 	vt8623_set_pixclock(info, info->var.pixclock);
+-	svga_set_timings(&vt8623_timing_regs, &(info->var), 1, 1,
++	svga_set_timings(par->state.vgabase, &vt8623_timing_regs, &(info->var), 1, 1,
+ 			 (info->var.vmode & FB_VMODE_DOUBLE) ? 2 : 1, 1,
+ 			 1, info->node);
+ 
+diff --git a/include/linux/svga.h b/include/linux/svga.h
+index 8787950..bfa68e8 100644
+--- a/include/linux/svga.h
++++ b/include/linux/svga.h
+@@ -116,7 +116,7 @@ void svga_get_caps(struct fb_info *info, struct fb_blit_caps *caps,
+ 
+ int svga_compute_pll(const struct svga_pll *pll, u32 f_wanted, u16 *m, u16 *n, u16 *r, int node);
+ int svga_check_timings(const struct svga_timing_regs *tm, struct fb_var_screeninfo *var, int node);
+-void svga_set_timings(const struct svga_timing_regs *tm, struct fb_var_screeninfo *var, u32 hmul, u32 hdiv, u32 vmul, u32 vdiv, u32 hborder, int node);
++void svga_set_timings(void __iomem *regbase, const struct svga_timing_regs *tm, struct fb_var_screeninfo *var, u32 hmul, u32 hdiv, u32 vmul, u32 vdiv, u32 hborder, int node);
+ 
+ int svga_match_format(const struct svga_fb_format *frm, struct fb_var_screeninfo *var, struct fb_fix_screeninfo *fix);
  
 -- 
-1.6.0.6
+1.7.3.4
 
