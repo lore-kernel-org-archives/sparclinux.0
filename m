@@ -1,144 +1,131 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 22 Jan 2011 21:32:15 +0000
-Subject: [PATCH 2/7] sparc: in handler_irq() rename irq parameter to pil
-Message-Id: <1295731940-31697-2-git-send-email-sam@ravnborg.org>
+From: Kristoffer Glembo <kristoffer@gaisler.com>
+Date: Tue, 11 Jan 2011 10:49:03 +0000
+Subject: [PATCH 1/4] sparc: Replace open coded page alignment with PAGE_ALIGN macro.
+Message-Id: <1294742946-1040-2-git-send-email-kristoffer@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-The generic irq support uses "irq" to identify the
-virtual irq number. To avoid confusion rename the
-argument to handler_irq() to pil to match the
-name of the parameter in the PCR register.
-
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Kristoffer Glembo <kristoffer@gaisler.com>
 ---
- arch/sparc/kernel/irq_32.c    |   20 ++++++++++----------
- arch/sparc/kernel/irq_64.c    |    4 ++--
- arch/sparc/kernel/sun4d_irq.c |   18 +++++++++---------
- 3 files changed, 21 insertions(+), 21 deletions(-)
+ arch/sparc/kernel/ioport.c |   25 +++++++++++--------------
+ 1 files changed, 11 insertions(+), 14 deletions(-)
 
-diff --git a/arch/sparc/kernel/irq_32.c b/arch/sparc/kernel/irq_32.c
-index 5ad6e5c..07c3e39 100644
---- a/arch/sparc/kernel/irq_32.c
-+++ b/arch/sparc/kernel/irq_32.c
-@@ -320,7 +320,7 @@ void unexpected_irq(int irq, void *dev_id, struct pt_regs * regs)
- 	panic("bogus interrupt received");
+diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
+index 41f7e4e..cea49c0 100644
+--- a/arch/sparc/kernel/ioport.c
++++ b/arch/sparc/kernel/ioport.c
+@@ -254,7 +254,7 @@ static void *sbus_alloc_coherent(struct device *dev, size_t len,
+ 				 dma_addr_t *dma_addrp, gfp_t gfp)
+ {
+ 	struct platform_device *op = to_platform_device(dev);
+-	unsigned long len_total = (len + PAGE_SIZE-1) & PAGE_MASK;
++	unsigned long len_total = PAGE_ALIGN(len);
+ 	unsigned long va;
+ 	struct resource *res;
+ 	int order;
+@@ -281,6 +281,7 @@ static void *sbus_alloc_coherent(struct device *dev, size_t len,
+ 		goto err_nova;
+ 	}
+ 	mmu_inval_dma_area(va, len_total);
++
+ 	// XXX The mmu_map_dma_area does this for us below, see comments.
+ 	// sparc_mapiorange(0, virt_to_phys(va), res->start, len_total);
+ 	/*
+@@ -321,7 +322,7 @@ static void sbus_free_coherent(struct device *dev, size_t n, void *p,
+ 		return;
+ 	}
+ 
+-	n = (n + PAGE_SIZE-1) & PAGE_MASK;
++	n = PAGE_ALIGN(n);
+ 	if ((res->end-res->start)+1 != n) {
+ 		printk("sbus_free_consistent: region 0x%lx asked 0x%zx\n",
+ 		    (long)((res->end-res->start)+1), n);
+@@ -430,7 +431,7 @@ arch_initcall(sparc_register_ioport);
+ static void *pci32_alloc_coherent(struct device *dev, size_t len,
+ 				  dma_addr_t *pba, gfp_t gfp)
+ {
+-	unsigned long len_total = (len + PAGE_SIZE-1) & PAGE_MASK;
++	unsigned long len_total = PAGE_ALIGN(len);
+ 	unsigned long va;
+ 	struct resource *res;
+ 	int order;
+@@ -463,10 +464,6 @@ static void *pci32_alloc_coherent(struct device *dev, size_t len,
+ 		return NULL;
+ 	}
+ 	mmu_inval_dma_area(va, len_total);
+-#if 0
+-/* P3 */ printk("pci_alloc_consistent: kva %lx uncva %lx phys %lx size %lx\n",
+-  (long)va, (long)res->start, (long)virt_to_phys(va), len_total);
+-#endif
+ 	sparc_mapiorange(0, virt_to_phys(va), res->start, len_total);
+ 
+ 	*pba = virt_to_phys(va); /* equals virt_to_bus (R.I.P.) for us. */
+@@ -498,7 +495,7 @@ static void pci32_free_coherent(struct device *dev, size_t n, void *p,
+ 		return;
+ 	}
+ 
+-	n = (n + PAGE_SIZE-1) & PAGE_MASK;
++	n = PAGE_ALIGN(n);
+ 	if ((res->end-res->start)+1 != n) {
+ 		printk("pci_free_consistent: region 0x%lx asked 0x%lx\n",
+ 		    (long)((res->end-res->start)+1), (long)n);
+@@ -574,7 +571,7 @@ static void pci32_unmap_sg(struct device *dev, struct scatterlist *sgl,
+ 			BUG_ON(page_address(sg_page(sg)) = NULL);
+ 			mmu_inval_dma_area(
+ 			    (unsigned long) page_address(sg_page(sg)),
+-			    (sg->length + PAGE_SIZE-1) & PAGE_MASK);
++			    PAGE_ALIGN(sg->length));
+ 		}
+ 	}
+ }
+@@ -594,7 +591,7 @@ static void pci32_sync_single_for_cpu(struct device *dev, dma_addr_t ba,
+ {
+ 	if (dir != PCI_DMA_TODEVICE) {
+ 		mmu_inval_dma_area((unsigned long)phys_to_virt(ba),
+-		    (size + PAGE_SIZE-1) & PAGE_MASK);
++				   PAGE_ALIGN(size));
+ 	}
  }
  
--void handler_irq(int irq, struct pt_regs * regs)
-+void handler_irq(int pil, struct pt_regs * regs)
+@@ -603,7 +600,7 @@ static void pci32_sync_single_for_device(struct device *dev, dma_addr_t ba,
  {
- 	struct pt_regs *old_regs;
- 	struct irqaction * action;
-@@ -331,23 +331,23 @@ void handler_irq(int irq, struct pt_regs * regs)
- 
- 	old_regs = set_irq_regs(regs);
- 	irq_enter();
--	disable_pil_irq(irq);
-+	disable_pil_irq(pil);
- #ifdef CONFIG_SMP
- 	/* Only rotate on lower priority IRQs (scsi, ethernet, etc.). */
--	if((sparc_cpu_model=sun4m) && (irq < 10))
-+	if((sparc_cpu_model=sun4m) && (pil < 10))
- 		smp4m_irq_rotate(cpu);
- #endif
--	action = sparc_irq[irq].action;
--	sparc_irq[irq].flags |= SPARC_IRQ_INPROGRESS;
--	kstat_cpu(cpu).irqs[irq]++;
-+	action = sparc_irq[pil].action;
-+	sparc_irq[pil].flags |= SPARC_IRQ_INPROGRESS;
-+	kstat_cpu(cpu).irqs[pil]++;
- 	do {
- 		if (!action || !action->handler)
--			unexpected_irq(irq, NULL, regs);
--		action->handler(irq, action->dev_id);
-+			unexpected_irq(pil, NULL, regs);
-+		action->handler(pil, action->dev_id);
- 		action = action->next;
- 	} while (action);
--	sparc_irq[irq].flags &= ~SPARC_IRQ_INPROGRESS;
--	enable_pil_irq(irq);
-+	sparc_irq[pil].flags &= ~SPARC_IRQ_INPROGRESS;
-+	enable_pil_irq(pil);
- 	irq_exit();
- 	set_irq_regs(old_regs);
+ 	if (dir != PCI_DMA_TODEVICE) {
+ 		mmu_inval_dma_area((unsigned long)phys_to_virt(ba),
+-		    (size + PAGE_SIZE-1) & PAGE_MASK);
++				   PAGE_ALIGN(size));
+ 	}
  }
-diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
-index ee67dae..d4d1233 100644
---- a/arch/sparc/kernel/irq_64.c
-+++ b/arch/sparc/kernel/irq_64.c
-@@ -714,13 +714,13 @@ void ack_bad_irq(unsigned int virt_irq)
- void *hardirq_stack[NR_CPUS];
- void *softirq_stack[NR_CPUS];
  
--void __irq_entry handler_irq(int irq, struct pt_regs *regs)
-+void __irq_entry handler_irq(int pil, struct pt_regs *regs)
+@@ -624,7 +621,7 @@ static void pci32_sync_sg_for_cpu(struct device *dev, struct scatterlist *sgl,
+ 			BUG_ON(page_address(sg_page(sg)) = NULL);
+ 			mmu_inval_dma_area(
+ 			    (unsigned long) page_address(sg_page(sg)),
+-			    (sg->length + PAGE_SIZE-1) & PAGE_MASK);
++			    PAGE_ALIGN(sg->length));
+ 		}
+ 	}
+ }
+@@ -640,7 +637,7 @@ static void pci32_sync_sg_for_device(struct device *device, struct scatterlist *
+ 			BUG_ON(page_address(sg_page(sg)) = NULL);
+ 			mmu_inval_dma_area(
+ 			    (unsigned long) page_address(sg_page(sg)),
+-			    (sg->length + PAGE_SIZE-1) & PAGE_MASK);
++			    PAGE_ALIGN(sg->length));
+ 		}
+ 	}
+ }
+@@ -717,7 +714,7 @@ static const struct file_operations sparc_io_proc_fops = {
+ static struct resource *_sparc_find_resource(struct resource *root,
+ 					     unsigned long hit)
  {
- 	unsigned long pstate, bucket_pa;
- 	struct pt_regs *old_regs;
- 	void *orig_sp;
+-        struct resource *tmp;
++	struct resource *tmp;
  
--	clear_softint(1 << irq);
-+	clear_softint(1 << pil);
- 
- 	old_regs = set_irq_regs(regs);
- 	irq_enter();
-diff --git a/arch/sparc/kernel/sun4d_irq.c b/arch/sparc/kernel/sun4d_irq.c
-index e11b461..3af649e 100644
---- a/arch/sparc/kernel/sun4d_irq.c
-+++ b/arch/sparc/kernel/sun4d_irq.c
-@@ -205,28 +205,28 @@ out_unlock:
- 
- extern void unexpected_irq(int, void *, struct pt_regs *);
- 
--void sun4d_handler_irq(int irq, struct pt_regs * regs)
-+void sun4d_handler_irq(int pil, struct pt_regs * regs)
- {
- 	struct pt_regs *old_regs;
- 	struct irqaction * action;
- 	int cpu = smp_processor_id();
- 	/* SBUS IRQ level (1 - 7) */
--	int sbusl = pil_to_sbus[irq];
-+	int sbusl = pil_to_sbus[pil];
- 	
- 	/* FIXME: Is this necessary?? */
- 	cc_get_ipen();
- 	
--	cc_set_iclr(1 << irq);
-+	cc_set_iclr(1 << pil);
- 	
- 	old_regs = set_irq_regs(regs);
- 	irq_enter();
--	kstat_cpu(cpu).irqs[irq]++;
-+	kstat_cpu(cpu).irqs[pil]++;
- 	if (!sbusl) {
--		action = *(irq + irq_action);
-+		action = *(pil + irq_action);
- 		if (!action)
--			unexpected_irq(irq, NULL, regs);
-+			unexpected_irq(pil, NULL, regs);
- 		do {
--			action->handler(irq, action->dev_id);
-+			action->handler(pil, action->dev_id);
- 			action = action->next;
- 		} while (action);
- 	} else {
-@@ -251,9 +251,9 @@ void sun4d_handler_irq(int irq, struct pt_regs * regs)
- 						action = actionp->action;
- 						
- 						if (!action)
--							unexpected_irq(irq, NULL, regs);
-+							unexpected_irq(pil, NULL, regs);
- 						do {
--							action->handler(irq, action->dev_id);
-+							action->handler(pil, action->dev_id);
- 							action = action->next;
- 						} while (action);
- 						release_sbi(SBI2DEVID(sbino), slot);
+ 	for (tmp = root->child; tmp != 0; tmp = tmp->sibling) {
+ 		if (tmp->start <= hit && tmp->end >= hit)
 -- 
-1.6.0.6
+1.6.4.1
 
