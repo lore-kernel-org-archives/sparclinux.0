@@ -1,49 +1,21 @@
-From: Julian Calaby <julian.calaby@gmail.com>
-Date: Wed, 05 Jan 2011 13:20:43 +0000
-Subject: Re: [PATCH v2 0/9] sparc: unify sparc/boot/piggyback
-Message-Id: <AANLkTi=zaYiWF+tnNNg+C4Abe=3aGR_f46b=d23_DO9P@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 11 Jan 2011 23:48:46 +0000
+Subject: [PATCH 0/22] Make SVGA oriented FBs work on multi-domain PCI
+Message-Id: <20110111.154846.233419170.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110101205701.GA4544@merkur.ravnborg.org>
-In-Reply-To: <20110101205701.GA4544@merkur.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-fbdev@vger.kernel.org
 
-On Mon, Jan 3, 2011 at 19:52, Frans van Berckel <fberckel@xs4all.nl> wrote:
-> On Mon, 2011-01-03 at 18:31 +1100, Julian Calaby wrote:
->> I've found an old laptop with a serial port to use as a serial console
->> and resurrected my Ultra 1e. I decided to upgrade it to the latest
->> Debian Squeeze, and it now won't load SILO. *sigh*. On boot, it fails
->> with the message "Fast data access MMU miss" before SILO even prints
->> anything. Apparently these messages are due to things being too large
->> according to the ubuntu forums, but this occurs before SILO even
->> loads, which makes me suspicious. I'll have to investigate further,
->> but that means I'll have to take a trip to an installer environment -
->> and given that I now lack the machine I had set up for installing them
->> off, that's going to be difficult at best. I'm thinking a complete
->> re-install might be an idea, but I've had persistent issues getting my
->> Ultra 5 to install in the past, so I'm concerned that this might not
->> happen.
->
-> Have seen this happening on different sparc boxes, several times.
->
-> Boot the install cd, now in rescue mode. Chrooting the installed
-> partition and run # silo -u -f again. Next reboot the Ultra.
 
-Thanks!!!!!
+This patch set makes sure that FB drivers for PCI devices utilizing
+the svgalib interfaces work on multi-domain PCI architectures.
 
-After a bit of stuffing around involving a broken CD-ROM drive, a very
-slow laptop, broken installer images and the realisation that TFTPboot
-images are not ISOs, I managed to finally get in and do that and it
-works like a charm
+Basically this amounts to making sure that the vgastate->vgabase
+__iomem pointer makes it way into every interfaces and gets used
+by all of the I/O access calls.
 
-Thanks!
+All of arkfb, s3fb, and vt8623fb have been converted.
 
--- 
-
-Julian Calaby
-
-Email: julian.calaby@gmail.com
-Profile: http://www.google.com/profiles/julian.calaby/
-.Plan: http://sites.google.com/site/juliancalaby/
+Signed-off-by: David S. Miller <davem@davemloft.net>
