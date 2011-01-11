@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 11 Jan 2011 23:49:03 +0000
-Subject: [PATCH 1/22] svga: Use proper VGA register name macros in
-Message-Id: <20110111.154903.129760880.davem@davemloft.net>
+Date: Tue, 11 Jan 2011 23:53:38 +0000
+Subject: [PATCH 17/22] arkfb: Don't clobber par->state.vgabase during open
+Message-Id: <20110111.155338.77341413.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,30 +9,26 @@ Content-Transfer-Encoding: 7bit
 To: linux-fbdev@vger.kernel.org
 
 
-Instead of magic register location constants.
-
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- include/linux/svga.h |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/video/arkfb.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-diff --git a/include/linux/svga.h b/include/linux/svga.h
-index c59a51a..3fc52cb 100644
---- a/include/linux/svga.h
-+++ b/include/linux/svga.h
-@@ -69,9 +69,9 @@ struct svga_pll {
+diff --git a/drivers/video/arkfb.c b/drivers/video/arkfb.c
+index f328c9d..7a648a7 100644
+--- a/drivers/video/arkfb.c
++++ b/drivers/video/arkfb.c
+@@ -535,7 +535,10 @@ static int arkfb_open(struct fb_info *info, int user)
  
- static inline void svga_wattr(u8 index, u8 data)
- {
--	inb(0x3DA);
--	outb(index, 0x3C0);
--	outb(data, 0x3C0);
-+	inb(VGA_IS1_RC);
-+	outb(index, VGA_ATT_IW);
-+	outb(data, VGA_ATT_W);
- }
- 
- /* Write a value to a sequence register with a mask */
+ 	mutex_lock(&(par->open_lock));
+ 	if (par->ref_count = 0) {
++		void __iomem *vgabase = par->state.vgabase;
++
+ 		memset(&(par->state), 0, sizeof(struct vgastate));
++		par->state.vgabase = vgabase;
+ 		par->state.flags = VGA_SAVE_MODE | VGA_SAVE_FONTS | VGA_SAVE_CMAP;
+ 		par->state.num_crtc = 0x60;
+ 		par->state.num_seq = 0x30;
 -- 
 1.7.3.4
 
