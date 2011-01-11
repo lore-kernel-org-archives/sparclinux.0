@@ -1,42 +1,51 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Wed, 05 Jan 2011 21:03:47 +0000
-Subject: [PATCH 4/4] sound,sparc: drop SBUS dependency
-Message-Id: <1294261427-26104-4-git-send-email-sam@ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 11 Jan 2011 23:54:21 +0000
+Subject: [PATCH 20/22] s3fb: Compute VGA base iomem pointer explicitly.
+Message-Id: <20110111.155421.51284798.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-fbdev@vger.kernel.org
 
-SPARC has always SBUS equal to y to
-the "depends on SBUS" is redundant.
 
-Cc: Takashi Iwai <tiwai@suse.de>
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+This allows the driver to work in multi-domain PCI
+configurations.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- sound/sparc/Kconfig |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+ drivers/video/s3fb.c |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
 
-diff --git a/sound/sparc/Kconfig b/sound/sparc/Kconfig
-index d75deba..750a452 100644
---- a/sound/sparc/Kconfig
-+++ b/sound/sparc/Kconfig
-@@ -11,7 +11,6 @@ if SND_SPARC
+diff --git a/drivers/video/s3fb.c b/drivers/video/s3fb.c
+index 45e1d43..64ef7b3 100644
+--- a/drivers/video/s3fb.c
++++ b/drivers/video/s3fb.c
+@@ -934,6 +934,8 @@ static int __devinit s3_identification(struct s3fb_info *par)
  
- config SND_SUN_AMD7930
- 	tristate "Sun AMD7930"
--	depends on SBUS
- 	select SND_PCM
- 	help
- 	  Say Y here to include support for AMD7930 sound device on Sun.
-@@ -30,7 +29,6 @@ config SND_SUN_CS4231
+ static int __devinit s3_pci_probe(struct pci_dev *dev, const struct pci_device_id *id)
+ {
++	struct pci_bus_region bus_reg;
++	struct resource vga_res;
+ 	struct fb_info *info;
+ 	struct s3fb_info *par;
+ 	int rc;
+@@ -983,6 +985,15 @@ static int __devinit s3_pci_probe(struct pci_dev *dev, const struct pci_device_i
+ 		goto err_iomap;
+ 	}
  
- config SND_SUN_DBRI
- 	tristate "Sun DBRI"
--	depends on SBUS
- 	select SND_PCM
- 	help
- 	  Say Y here to include support for DBRI sound device on Sun.
++	bus_reg.start = 0;
++	bus_reg.end = 64 * 1024;
++
++	vga_res.flags = IORESOURCE_IO;
++
++	pcibios_bus_to_resource(dev, &vga_res, &bus_reg);
++
++	par->state.vgabase = (void __iomem *) vga_res.start;
++
+ 	/* Unlock regs */
+ 	cr38 = vga_rcrt(par->state.vgabase, 0x38);
+ 	cr39 = vga_rcrt(par->state.vgabase, 0x39);
 -- 
-1.6.0.6
+1.7.3.4
 
