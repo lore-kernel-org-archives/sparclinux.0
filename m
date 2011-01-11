@@ -1,105 +1,76 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 01 Jan 2011 22:53:09 +0000
-Subject: [PATCH 2/4] sparc: drop prom/palloc.c
-Message-Id: <1293922391-17661-2-git-send-email-sam@ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 11 Jan 2011 23:49:49 +0000
+Subject: [PATCH 4/22] svga: Make svga_wseq_multi take an iomem regbase
+Message-Id: <20110111.154949.139112133.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-fbdev@vger.kernel.org
 
-None of the functions was used.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/include/asm/oplib_32.h |   10 --------
- arch/sparc/prom/Makefile          |    1 -
- arch/sparc/prom/palloc.c          |   43 -------------------------------------
- 3 files changed, 0 insertions(+), 54 deletions(-)
- delete mode 100644 arch/sparc/prom/palloc.c
+ drivers/video/svgalib.c  |    8 ++++----
+ drivers/video/vt8623fb.c |    2 +-
+ include/linux/svga.h     |    2 +-
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/arch/sparc/include/asm/oplib_32.h b/arch/sparc/include/asm/oplib_32.h
-index 31d2249..91411bc 100644
---- a/arch/sparc/include/asm/oplib_32.h
-+++ b/arch/sparc/include/asm/oplib_32.h
-@@ -114,16 +114,6 @@ extern int prom_idlecpu(int cpunode);
- /* Re-Start the CPU with the passed device tree node. */
- extern int prom_restartcpu(int cpunode);
+diff --git a/drivers/video/svgalib.c b/drivers/video/svgalib.c
+index bf3c7a9..ed190aa 100644
+--- a/drivers/video/svgalib.c
++++ b/drivers/video/svgalib.c
+@@ -40,12 +40,12 @@ void svga_wcrt_multi(void __iomem *regbase, const struct vga_regset *regset, u32
+ }
  
--/* PROM memory allocation facilities... */
+ /* Write a sequencer register value spread across multiple registers */
+-void svga_wseq_multi(const struct vga_regset *regset, u32 value) {
 -
--/* Allocated at possibly the given virtual address a chunk of the
-- * indicated size.
-- */
--extern char *prom_alloc(char *virt_hint, unsigned int size);
--
--/* Free a previously allocated chunk. */
--extern void prom_free(char *virt_addr, unsigned int size);
--
- /* Sun4/sun4c specific memory-management startup hook. */
++void svga_wseq_multi(void __iomem *regbase, const struct vga_regset *regset, u32 value)
++{
+ 	u8 regval, bitval, bitnum;
  
- /* Map the passed segment in the given context at the passed
-diff --git a/arch/sparc/prom/Makefile b/arch/sparc/prom/Makefile
-index 113e630..8287bbe 100644
---- a/arch/sparc/prom/Makefile
-+++ b/arch/sparc/prom/Makefile
-@@ -9,7 +9,6 @@ lib-y                 += init_$(BITS).o
- lib-$(CONFIG_SPARC32) += memory.o
- lib-y                 += misc_$(BITS).o
- lib-$(CONFIG_SPARC32) += mp.o
--lib-$(CONFIG_SPARC32) += palloc.o
- lib-$(CONFIG_SPARC32) += ranges.o
- lib-$(CONFIG_SPARC32) += segment.o
- lib-y                 += console_$(BITS).o
-diff --git a/arch/sparc/prom/palloc.c b/arch/sparc/prom/palloc.c
-deleted file mode 100644
-index 2e2a88b..0000000
---- a/arch/sparc/prom/palloc.c
-+++ /dev/null
-@@ -1,43 +0,0 @@
--/*
-- * palloc.c:  Memory allocation from the Sun PROM.
-- *
-- * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)
-- */
--
--#include <asm/openprom.h>
--#include <asm/oplib.h>
--
--/* You should not call these routines after memory management
-- * has been initialized in the kernel, if fact you should not
-- * use these if at all possible in the kernel.  They are mainly
-- * to be used for a bootloader for temporary allocations which
-- * it will free before jumping into the kernel it has loaded.
-- *
-- * Also, these routines don't work on V0 proms, only V2 and later.
-- */
--
--/* Allocate a chunk of memory of size 'num_bytes' giving a suggestion
-- * of virtual_hint as the preferred virtual base address of this chunk.
-- * There are no guarantees that you will get the allocation, or that
-- * the prom will abide by your "hint".  So check your return value.
-- */
--char *
--prom_alloc(char *virtual_hint, unsigned int num_bytes)
--{
--	if(prom_vers = PROM_V0) return (char *) 0x0;
--	if(num_bytes = 0x0) return (char *) 0x0;
--	return (*(romvec->pv_v2devops.v2_dumb_mem_alloc))(virtual_hint, num_bytes);
--}
--
--/* Free a previously allocated chunk back to the prom at virtual address
-- * 'vaddr' of size 'num_bytes'.  NOTE: This vaddr is not the hint you
-- * used for the allocation, but the virtual address the prom actually
-- * returned to you.  They may be have been the same, they may have not,
-- * doesn't matter.
-- */
--void
--prom_free(char *vaddr, unsigned int num_bytes)
--{
--	if((prom_vers = PROM_V0) || (num_bytes = 0x0)) return;
--	(*(romvec->pv_v2devops.v2_dumb_mem_free))(vaddr, num_bytes);
--}
+ 	while (regset->regnum != VGA_REGSET_END_VAL) {
+-		regval = vga_rseq(NULL, regset->regnum);
++		regval = vga_rseq(regbase, regset->regnum);
+ 		bitnum = regset->lowbit;
+ 		while (bitnum <= regset->highbit) {
+ 			bitval = 1 << bitnum;
+@@ -54,7 +54,7 @@ void svga_wseq_multi(const struct vga_regset *regset, u32 value) {
+ 			bitnum ++;
+ 			value = value >> 1;
+ 		}
+-		vga_wseq(NULL, regset->regnum, regval);
++		vga_wseq(regbase, regset->regnum, regval);
+ 		regset ++;
+ 	}
+ }
+diff --git a/drivers/video/vt8623fb.c b/drivers/video/vt8623fb.c
+index 9d4f7d4..5301151 100644
+--- a/drivers/video/vt8623fb.c
++++ b/drivers/video/vt8623fb.c
+@@ -433,7 +433,7 @@ static int vt8623fb_set_par(struct fb_info *info)
+ 	svga_wcrt_multi(par->state.vgabase, vt8623_start_address_regs, 0);
+ 
+ 	svga_wcrt_multi(par->state.vgabase, vt8623_offset_regs, offset_value);
+-	svga_wseq_multi(vt8623_fetch_count_regs, fetch_value);
++	svga_wseq_multi(par->state.vgabase, vt8623_fetch_count_regs, fetch_value);
+ 
+ 	/* Clear H/V Skew */
+ 	svga_wcrt_mask(0x03, 0x00, 0x60);
+diff --git a/include/linux/svga.h b/include/linux/svga.h
+index 8ca81e0..357e2bd 100644
+--- a/include/linux/svga.h
++++ b/include/linux/svga.h
+@@ -97,7 +97,7 @@ static inline int svga_primary_device(struct pci_dev *dev)
+ 
+ 
+ void svga_wcrt_multi(void __iomem *regbase, const struct vga_regset *regset, u32 value);
+-void svga_wseq_multi(const struct vga_regset *regset, u32 value);
++void svga_wseq_multi(void __iomem *regbase, const struct vga_regset *regset, u32 value);
+ 
+ void svga_set_default_gfx_regs(void);
+ void svga_set_default_atc_regs(void);
 -- 
-1.6.0.6
+1.7.3.4
 
