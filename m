@@ -1,108 +1,158 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 22 Jan 2011 23:26:10 +0000
-Subject: [PATCH] sparc32: remove tick14.c
-Message-Id: <20110122232610.GA4188@merkur.ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 11 Jan 2011 23:52:11 +0000
+Subject: [PATCH 12/22] svga: Make svga_tilecursor() take an iomem regbase
+Message-Id: <20110111.155211.255391137.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-fbdev@vger.kernel.org
 
-From b676100143a84b63c5bcdeda44909147d59fe9a3 Mon Sep 17 00:00:00 2001
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 23 Jan 2011 00:12:55 +0100
-Subject: [PATCH] sparc32: remove tick14.c
 
-The two methods included in tick14.c are no-op because
-the static variable linux_lvl14 is always NULL.
-
-So remove the file and callers.
-
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/kernel/Makefile |    1 -
- arch/sparc/kernel/tick14.c |   39 ---------------------------------------
- arch/sparc/prom/misc_32.c  |    4 ----
- 3 files changed, 0 insertions(+), 44 deletions(-)
- delete mode 100644 arch/sparc/kernel/tick14.c
+ drivers/video/arkfb.c    |    9 ++++++++-
+ drivers/video/s3fb.c     |   11 +++++++++--
+ drivers/video/svgalib.c  |   12 ++++++------
+ drivers/video/vt8623fb.c |    8 +++++++-
+ include/linux/svga.h     |    2 +-
+ 5 files changed, 31 insertions(+), 11 deletions(-)
 
-diff --git a/arch/sparc/kernel/Makefile b/arch/sparc/kernel/Makefile
-index 599398f..5beae63 100644
---- a/arch/sparc/kernel/Makefile
-+++ b/arch/sparc/kernel/Makefile
-@@ -42,7 +42,6 @@ obj-$(CONFIG_SPARC32)   += windows.o
- obj-y                   += cpu.o
- obj-$(CONFIG_SPARC32)   += devices.o
- obj-$(CONFIG_SPARC32)   += tadpole.o
--obj-$(CONFIG_SPARC32)   += tick14.o
- obj-y                   += ptrace_$(BITS).o
- obj-y                   += unaligned_$(BITS).o
- obj-y                   += una_asm_$(BITS).o
-diff --git a/arch/sparc/kernel/tick14.c b/arch/sparc/kernel/tick14.c
-deleted file mode 100644
-index 138bbf5..0000000
---- a/arch/sparc/kernel/tick14.c
-+++ /dev/null
-@@ -1,39 +0,0 @@
--/* tick14.c
-- *
-- * Copyright (C) 1996 David Redman (djhr@tadpole.co.uk)
-- *
-- * This file handles the Sparc specific level14 ticker
-- * This is really useful for profiling OBP uses it for keyboard
-- * aborts and other stuff.
-- */
--#include <linux/kernel.h>
--
--extern unsigned long lvl14_save[5];
--static unsigned long *linux_lvl14 = NULL;
--static unsigned long obp_lvl14[4];
-- 
--/*
-- * Call with timer IRQ closed.
-- * First time we do it with disable_irq, later prom code uses spin_lock_irq().
-- */
--void install_linux_ticker(void)
--{
--
--	if (!linux_lvl14)
--		return;
--	linux_lvl14[0] =  lvl14_save[0];
--	linux_lvl14[1] =  lvl14_save[1];
--	linux_lvl14[2] =  lvl14_save[2];
--	linux_lvl14[3] =  lvl14_save[3];
--}
--
--void install_obp_ticker(void)
--{
--
--	if (!linux_lvl14)
--		return;
--	linux_lvl14[0] =  obp_lvl14[0];
--	linux_lvl14[1] =  obp_lvl14[1];
--	linux_lvl14[2] =  obp_lvl14[2];
--	linux_lvl14[3] =  obp_lvl14[3]; 
--}
-diff --git a/arch/sparc/prom/misc_32.c b/arch/sparc/prom/misc_32.c
-index 8c278c3..677b6a1 100644
---- a/arch/sparc/prom/misc_32.c
-+++ b/arch/sparc/prom/misc_32.c
-@@ -54,15 +54,11 @@ EXPORT_SYMBOL(prom_feval);
- void
- prom_cmdline(void)
- {
--	extern void install_obp_ticker(void);
--	extern void install_linux_ticker(void);
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&prom_lock, flags);
--	install_obp_ticker();
- 	(*(romvec->pv_abort))();
- 	restore_current();
--	install_linux_ticker();
- 	spin_unlock_irqrestore(&prom_lock, flags);
- 	set_auxio(AUXIO_LED, 0);
+diff --git a/drivers/video/arkfb.c b/drivers/video/arkfb.c
+index d282aa1..7c21bb7 100644
+--- a/drivers/video/arkfb.c
++++ b/drivers/video/arkfb.c
+@@ -158,12 +158,19 @@ static void arkfb_settile(struct fb_info *info, struct fb_tilemap *map)
+ 	}
  }
+ 
++static void arkfb_tilecursor(struct fb_info *info, struct fb_tilecursor *cursor)
++{
++	struct arkfb_info *par = info->par;
++
++	svga_tilecursor(par->state.vgabase, info, cursor);
++}
++
+ static struct fb_tile_ops arkfb_tile_ops = {
+ 	.fb_settile	= arkfb_settile,
+ 	.fb_tilecopy	= svga_tilecopy,
+ 	.fb_tilefill    = svga_tilefill,
+ 	.fb_tileblit    = svga_tileblit,
+-	.fb_tilecursor  = svga_tilecursor,
++	.fb_tilecursor  = arkfb_tilecursor,
+ 	.fb_get_tilemax = svga_get_tilemax,
+ };
+ 
+diff --git a/drivers/video/s3fb.c b/drivers/video/s3fb.c
+index eef988d..0ec0f39 100644
+--- a/drivers/video/s3fb.c
++++ b/drivers/video/s3fb.c
+@@ -188,12 +188,19 @@ static void s3fb_settile_fast(struct fb_info *info, struct fb_tilemap *map)
+ 	}
+ }
+ 
++static void s3fb_tilecursor(struct fb_info *info, struct fb_tilecursor *cursor)
++{
++	struct s3fb_info *par = info->par;
++
++	svga_tilecursor(par->state.vgabase, info, cursor);
++}
++
+ static struct fb_tile_ops s3fb_tile_ops = {
+ 	.fb_settile	= svga_settile,
+ 	.fb_tilecopy	= svga_tilecopy,
+ 	.fb_tilefill    = svga_tilefill,
+ 	.fb_tileblit    = svga_tileblit,
+-	.fb_tilecursor  = svga_tilecursor,
++	.fb_tilecursor  = s3fb_tilecursor,
+ 	.fb_get_tilemax = svga_get_tilemax,
+ };
+ 
+@@ -202,7 +209,7 @@ static struct fb_tile_ops s3fb_fast_tile_ops = {
+ 	.fb_tilecopy	= svga_tilecopy,
+ 	.fb_tilefill    = svga_tilefill,
+ 	.fb_tileblit    = svga_tileblit,
+-	.fb_tilecursor  = svga_tilecursor,
++	.fb_tilecursor  = s3fb_tilecursor,
+ 	.fb_get_tilemax = svga_get_tilemax,
+ };
+ 
+diff --git a/drivers/video/svgalib.c b/drivers/video/svgalib.c
+index ecda90e..4876be8 100644
+--- a/drivers/video/svgalib.c
++++ b/drivers/video/svgalib.c
+@@ -299,7 +299,7 @@ void svga_tileblit(struct fb_info *info, struct fb_tileblit *blit)
+ }
+ 
+ /* Set cursor in text (tileblit) mode */
+-void svga_tilecursor(struct fb_info *info, struct fb_tilecursor *cursor)
++void svga_tilecursor(void __iomem *regbase, struct fb_info *info, struct fb_tilecursor *cursor)
+ {
+ 	u8 cs = 0x0d;
+ 	u8 ce = 0x0e;
+@@ -310,7 +310,7 @@ void svga_tilecursor(struct fb_info *info, struct fb_tilecursor *cursor)
+ 	if (! cursor -> mode)
+ 		return;
+ 
+-	svga_wcrt_mask(NULL, 0x0A, 0x20, 0x20); /* disable cursor */
++	svga_wcrt_mask(regbase, 0x0A, 0x20, 0x20); /* disable cursor */
+ 
+ 	if (cursor -> shape = FB_TILE_CURSOR_NONE)
+ 		return;
+@@ -334,11 +334,11 @@ void svga_tilecursor(struct fb_info *info, struct fb_tilecursor *cursor)
+ 	}
+ 
+ 	/* set cursor position */
+-	vga_wcrt(NULL, 0x0E, pos >> 8);
+-	vga_wcrt(NULL, 0x0F, pos & 0xFF);
++	vga_wcrt(regbase, 0x0E, pos >> 8);
++	vga_wcrt(regbase, 0x0F, pos & 0xFF);
+ 
+-	vga_wcrt(NULL, 0x0B, ce); /* set cursor end */
+-	vga_wcrt(NULL, 0x0A, cs); /* set cursor start and enable it */
++	vga_wcrt(regbase, 0x0B, ce); /* set cursor end */
++	vga_wcrt(regbase, 0x0A, cs); /* set cursor start and enable it */
+ }
+ 
+ int svga_get_tilemax(struct fb_info *info)
+diff --git a/drivers/video/vt8623fb.c b/drivers/video/vt8623fb.c
+index 47f0199..7e6afe1 100644
+--- a/drivers/video/vt8623fb.c
++++ b/drivers/video/vt8623fb.c
+@@ -121,13 +121,19 @@ MODULE_PARM_DESC(mtrr, "Enable write-combining with MTRR (1=enable, 0=disable, d
+ 
+ /* ------------------------------------------------------------------------- */
+ 
++static void vt8623fb_tilecursor(struct fb_info *info, struct fb_tilecursor *cursor)
++{
++	struct vt8623fb_info *par = info->par;
++
++	svga_tilecursor(par->state.vgabase, info, cursor);
++}
+ 
+ static struct fb_tile_ops vt8623fb_tile_ops = {
+ 	.fb_settile	= svga_settile,
+ 	.fb_tilecopy	= svga_tilecopy,
+ 	.fb_tilefill    = svga_tilefill,
+ 	.fb_tileblit    = svga_tileblit,
+-	.fb_tilecursor  = svga_tilecursor,
++	.fb_tilecursor  = vt8623fb_tilecursor,
+ 	.fb_get_tilemax = svga_get_tilemax,
+ };
+ 
+diff --git a/include/linux/svga.h b/include/linux/svga.h
+index 767937d..8787950 100644
+--- a/include/linux/svga.h
++++ b/include/linux/svga.h
+@@ -109,7 +109,7 @@ void svga_settile(struct fb_info *info, struct fb_tilemap *map);
+ void svga_tilecopy(struct fb_info *info, struct fb_tilearea *area);
+ void svga_tilefill(struct fb_info *info, struct fb_tilerect *rect);
+ void svga_tileblit(struct fb_info *info, struct fb_tileblit *blit);
+-void svga_tilecursor(struct fb_info *info, struct fb_tilecursor *cursor);
++void svga_tilecursor(void __iomem *regbase, struct fb_info *info, struct fb_tilecursor *cursor);
+ int svga_get_tilemax(struct fb_info *info);
+ void svga_get_caps(struct fb_info *info, struct fb_blit_caps *caps,
+ 		   struct fb_var_screeninfo *var);
 -- 
-1.6.0.6
+1.7.3.4
 
