@@ -1,7 +1,7 @@
 From: Peter Zijlstra <peterz@infradead.org>
-Date: Mon, 10 Jan 2011 15:21:08 +0000
+Date: Thu, 13 Jan 2011 10:55:28 +0000
 Subject: Re: sparc boot failure due to perf init
-Message-Id: <1294672868.12715.0.camel@laptop>
+Message-Id: <1294916129.19601.88.camel@laptop>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1294431832.2016.457.camel@laptop>
 	 <1294432055.2016.458.camel@laptop>
@@ -28,7 +28,36 @@ On Sun, 2011-01-09 at 15:37 -0800, David Miller wrote:
 > an early_initcall as well.
 > 
 > Reported-by: Sam Ravnborg <sam@ravnborg.org>
-> Signed-off-by: David S. Miller <davem@davemloft.net> 
+> Signed-off-by: David S. Miller <davem@davemloft.net>
+> ---
+>  arch/sparc/kernel/cpu.c |    2 +-
+>  arch/sparc/kernel/pcr.c |    2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/sparc/kernel/cpu.c b/arch/sparc/kernel/cpu.c
+> index e447938..0dc714f 100644
+> --- a/arch/sparc/kernel/cpu.c
+> +++ b/arch/sparc/kernel/cpu.c
+> @@ -375,5 +375,5 @@ static int __init cpu_type_probe(void)
+>         return 0;
+>  }
+>  
+> -arch_initcall(cpu_type_probe);
+> +early_initcall(cpu_type_probe);
+>  #endif
+> diff --git a/arch/sparc/kernel/pcr.c b/arch/sparc/kernel/pcr.c
+> index b87873c..ae96cf5 100644
+> --- a/arch/sparc/kernel/pcr.c
+> +++ b/arch/sparc/kernel/pcr.c
+> @@ -168,4 +168,4 @@ out_unregister:
+>         return err;
+>  }
+>  
+> -arch_initcall(pcr_arch_init);
+> +early_initcall(pcr_arch_init);
 
-Thanks for sorting that David! and sorry for causing the breakage to
-begin with.
+
+I just realized, doesn't this make bootability depend on link order?
+Since both the pmu init and its dependencies are now early_initcall()
+how do we guarantee pcr_arch_init() and cpu_type_probe() are in fact
+called _before_ init_hw_perf_events()?
