@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 10 Jan 2011 19:29:07 +0000
-Subject: Re: silo fails to build with e2fsprogs-1.41.14 (undefined
-Message-Id: <20110110.112907.235685272.davem@davemloft.net>
+From: =?ISO-8859-1?Q?Ra=FAl_Porcel?= <armin76@gentoo.org>
+Date: Sat, 15 Jan 2011 12:07:46 +0000
+Subject: Re: silo fails to build with e2fsprogs-1.41.14 (undefined references
+Message-Id: <4D318E12.5000406@gentoo.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4D2B59AC.8040203@gentoo.org>
 In-Reply-To: <4D2B59AC.8040203@gentoo.org>
@@ -10,42 +10,38 @@ Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-From: Ra=FAl Porcel <armin76@gentoo.org>
-Date: Mon, 10 Jan 2011 20:10:36 +0100
-
-> Hi,
+On 01/10/2011 08:29 PM, David Miller wrote:
+> From: Ra=FAl Porcel <armin76@gentoo.org>
+> Date: Mon, 10 Jan 2011 20:10:36 +0100
 >=20
-> SILO fails to build here with e2fsprogs-1.41.14 installed, i'm attaching
-> the build log.
+>> Hi,
+>>
+>> SILO fails to build here with e2fsprogs-1.41.14 installed, i'm attaching
+>> the build log.
+>=20
+> I really appreciate how they make libext2 harder and harder to link into
+> embedded self-contained things like bootloaders over time.
+>=20
+> I just pushed the following fix for this:
+> <snip>
 
-I really appreciate how they make libext2 harder and harder to link into
-embedded self-contained things like bootloaders over time.
 
-I just pushed the following fix for this:
+Hi,
 
---------------------
-second: Add dummy posix_memalign stubb for libext2
+Thanks, it builds, but silo fails to work:
 
-Reported-by: Ra=FAl Porcel <armin76@gentoo.org>
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- second/fs/ext2.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+Boot device: disk1  File and args:
+SILO Version 1.4.14_git2010228_p1
 
-diff --git a/second/fs/ext2.c b/second/fs/ext2.c
-index 57f5e9a..12d00dc 100644
---- a/second/fs/ext2.c
-+++ b/second/fs/ext2.c
-@@ -163,3 +163,9 @@ void *realloc(void *p, int size)
- {
-         return NULL;
- }
-+
-+int posix_memalign(void **memptr, size_t alignment, size_t size)
-+{
-+	*memptr =3D NULL;
-+	return -1;
-+}
---=20
-1.7.3.4
+Unknown ext2 error: 4294967295
+
+Fatal error: Unable to open filesystem
+
+Couldn't load /etc/silo.conf
+No config file loaded, you can boot just from this command line
+Type [prompath;]part/path_to_image [parameters] on the prompt
+E.g. /iommu/sbus/espdma/esp/sd@3,0;4/vmlinux root=3D/dev/sda4
+or 2/vmlinux.live (to load vmlinux.live from 2nd partition of boot disk)
+boot:
+
 
