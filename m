@@ -1,32 +1,105 @@
-From: Bastian Blank <waldi@debian.org>
-Date: Mon, 17 Jan 2011 14:37:56 +0000
+From: "Bernhard R. Link"
+Date: Mon, 17 Jan 2011 14:39:54 +0000
 Subject: Re: Bug#609371: linux-image-2.6.37-trunk-sparc64: module scsi_mod:
-Message-Id: <20110117143755.GA1119@wavehammer.waldi.eu.org>
+Message-Id: <20110117143954.GA17813@pcpool00.mathematik.uni-freiburg.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4D3074FE.3030707@oldelvet.org.uk>
- <20110115.211722.39173519.davem@davemloft.net>
- <1295187469.22527.13.camel@duncow>
- <20110116.113944.48514452.davem@davemloft.net>
- <1295273486.16479.15.camel@gandalf.stny.rr.com>
-In-Reply-To: <1295273486.16479.15.camel@gandalf.stny.rr.com>
+References: <4D302B2F.7030108@oldelvet.org.uk> <4D3074FE.3030707@oldelvet.org.uk> <20110115.211722.39173519.davem@davemloft.net> <20110116.220755.179947617.davem@davemloft.net>
+In-Reply-To: <20110116.220755.179947617.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Steven Rostedt <rostedt@goodmis.org>, 609371@bugs.debian.org
-Cc: David Miller <davem@davemloft.net>, richm@oldelvet.org.uk, ben@decadent.org.uk, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, fweisbec@gmail.com, mingo@redhat.com, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+To: David Miller <davem@davemloft.net>
+Cc: richm@oldelvet.org.uk, 609371@bugs.debian.org, ben@decadent.org.uk, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, rostedt@goodmis.org, fweisbec@gmail.com, mingo@redhat.com, Jesper.Nilsson@axis.com, jeffm@suse.com
 
-On Mon, Jan 17, 2011 at 09:11:26AM -0500, Steven Rostedt wrote:
-> The problem comes when the linker puts these sections together. We read
-> all the sections as one big array. If the linker puts in holes, then
-> this breaks the array, and the kernel crashes while reading the section.
+* David Miller <davem@davemloft.net> [110117 07:07]:
+> Although I've seen commentary to the contrary, in fact using a too-small
+> __attribute__((aligned())) directive will lower the alignment of data
+> members, and yes that means it will lower the alignemnt to be below the
+> natural and required alignment for the given type.
+>
+> So if you have, on 64-bit:
+>
+> struct foo {
+> 	void *bar;
+> };
+>
+> static struct foo test __attribute__((__aligned__(4)));
+>
+> The compiler will emit "test" with 4-byte alignment into the data
+> section, even though 8-byte alignment is required for "test.bar"
+>
+> Assuming we wanted that to actually happen, the GCC manual is very
+> explicit to state that in order for this to work, such down-aligned
+> data structures must also use the "packed" attribute.
 
-I think this are still bugs in the linker script. #537862[1] was the
-first occurance, but I don't find further information.
+The manual seems to have changed in that regard.
 
-Bastian
+http://gcc.gnu.org/onlinedocs/gcc-4.2.4/gcc/Variable-Attributes.html
+and earlier versions say:
 
-[1]: http://bugs.debian.org/537862
--- 
-What kind of love is that?  Not to be loved; never to have shown love.
-		-- Commissioner Nancy Hedford, "Metamorphosis",
-		   stardate 3219.8
+"The aligned attribute can only increase the alignment; but you can
+decrease it by specifying packed as well. See below."
+
+but http://gcc.gnu.org/onlinedocs/gcc-4.3.5/gcc/Variable-Attributes.html
+and later versions say:
+
+"When used on a struct, or struct member, the aligned attribute can only
+increase the alignment; in order to decrease it, the packed attribute
+must be specified as well. When used as part of a typedef, the aligned
+attribute can both increase and decrease alignment, and specifying the
+packed attribute will generate a warning."
+
+And seems to still be a bit confusing, as an attribute in a
+variable declaration seems to count as typedef:
+
+| struct foo {
+|         void *bar;
+| };
+| 
+| static struct foo a __attribute__((__aligned__(2)));
+| static struct foo b;
+| 
+| struct foo2 {
+|         void *bar;
+| } __attribute__((__aligned__(2)));
+| 
+| static struct foo2 c __attribute__((__aligned__(2)));
+| static struct foo2 d;
+| 
+| struct foo3 {
+|         void *bar;
+| } __attribute__((__aligned__(2))) __attribute__((__packed__));
+| 
+| static struct foo3 e;
+| 
+| int main() {
+|         printf("a: %d, b: %d, c: %d, d: %d, e: %d\n",
+|                 __alignof__(a), __alignof__(b),
+|                 __alignof__(c), __alignof__(d),
+|                 __alignof__(e)
+|                 );
+|         return 0;
+| }
+
+gives something like:
+a: 2, b: 4, c: 2, d: 4, e: 2
+or on sparc64:
+a: 2, b: 8, c: 2, d: 8, e: 2
+
+> I think we want none of this, and I think we should elide the align
+> directives entirely, or at least fix them so we don't get unaligned
+> stuff on 64-bit.
+
+One fix might be to move the __attribute__ from include/trace/ftrace.h
+(and from include/linux/syscalls.h) to include/linux/ftrace_event.h
+and attach it to the struct there. This way it should only increase it.
+
+> Ugh, and I just noticed that include/linux/klist.h does this fixed
+> alignment of "4" too, where is this stuff coming from?  It's
+> wrong on 64-bit, at best.  But I can't see the impetus behind doing
+> this at all in the first place.
+
+Is that actually misaligned? Unless I still mix things up, that is in the
+struct thus should be fine (i.e. the "d" case in my example above).
+
+	Bernhard R. Link
