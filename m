@@ -1,60 +1,32 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Date: Mon, 17 Jan 2011 14:15:41 +0000
+From: Bastian Blank <waldi@debian.org>
+Date: Mon, 17 Jan 2011 14:37:56 +0000
 Subject: Re: Bug#609371: linux-image-2.6.37-trunk-sparc64: module scsi_mod:
-Message-Id: <1295273741.16479.19.camel@gandalf.stny.rr.com>
+Message-Id: <20110117143755.GA1119@wavehammer.waldi.eu.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4D302B2F.7030108@oldelvet.org.uk>
-	 <4D3074FE.3030707@oldelvet.org.uk>
-	 <20110115.211722.39173519.davem@davemloft.net>
-	 <20110116.220755.179947617.davem@davemloft.net>
-	 <1295259761.32152.20.camel@duncow>
-In-Reply-To: <1295259761.32152.20.camel@duncow>
+References: <4D3074FE.3030707@oldelvet.org.uk>
+ <20110115.211722.39173519.davem@davemloft.net>
+ <1295187469.22527.13.camel@duncow>
+ <20110116.113944.48514452.davem@davemloft.net>
+ <1295273486.16479.15.camel@gandalf.stny.rr.com>
+In-Reply-To: <1295273486.16479.15.camel@gandalf.stny.rr.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Richard Mortimer <richm@oldelvet.org.uk>
-Cc: David Miller <davem@davemloft.net>, 609371@bugs.debian.org, ben@decadent.org.uk, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, fweisbec@gmail.com, mingo@redhat.com, Jesper.Nilsson@axis.com, jeffm@suse.com, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+To: Steven Rostedt <rostedt@goodmis.org>, 609371@bugs.debian.org
+Cc: David Miller <davem@davemloft.net>, richm@oldelvet.org.uk, ben@decadent.org.uk, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, fweisbec@gmail.com, mingo@redhat.com, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 
-On Mon, 2011-01-17 at 10:22 +0000, Richard Mortimer wrote:
-> On Sun, 2011-01-16 at 22:07 -0800, David Miller wrote:
-> > From: David Miller <davem@davemloft.net>
-> > Date: Sat, 15 Jan 2011 21:17:22 -0800 (PST)
-> 
-> > > I think the problem we have here is that the _ftrace_events section is
-> > > not aligned sufficiently.  That ".align 4" mnemonic is a good indication
-> > > of this.  It should at least "8" on sparc64.
-> > 
-> I noticed another potentially 64 bit unfriendly alignment on struct
-> tracepoint in include/linux/tracepoint.h. I don't think that the
-> alignment of 32 breaks anything but it does leave a 24 byte hole. I
-> don't know enough about tracing to know if that is necessary.
-> 
-> struct tracepoint {
->         const char *name;               /* Tracepoint name */
->         int state;                      /* State. */
->         void (*regfunc)(void);
->         void (*unregfunc)(void);
->         struct tracepoint_func *funcs;
-> }  __attribute__((aligned(32)));        /*
->                                          * Aligned on 32 bytes because it is
->                                          * globally visible and gcc happily
->                                          * align these on the structure size.
->                                          * Keep in sync with vmlinux.lds.h.
->                                          */
-> 
-> Note I spotted this when looking at some residual sparc64 relocation
-> issues when _ftrace_events alignment is changed to 8. I'll follow those
-> issues up in a separate email when I get time later today.
+On Mon, Jan 17, 2011 at 09:11:26AM -0500, Steven Rostedt wrote:
+> The problem comes when the linker puts these sections together. We read
+> all the sections as one big array. If the linker puts in holes, then
+> this breaks the array, and the kernel crashes while reading the section.
 
-Again, this is to help the linker keep arrays in tacked. Tracepoints are
-allocated into the tracepoint section, and then read like an array. If
-the linker adds holes as it links sections into one big one, then the
-reading of the array breaks.
+I think this are still bugs in the linker script. #537862[1] was the
+first occurance, but I don't find further information.
 
-We either need to compact it (with the align(4)) which is undesirable,
-or add our own holes like the above does.
+Bastian
 
--- Steve
-
-
-
+[1]: http://bugs.debian.org/537862
+-- 
+What kind of love is that?  Not to be loved; never to have shown love.
+		-- Commissioner Nancy Hedford, "Metamorphosis",
+		   stardate 3219.8
