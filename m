@@ -1,7 +1,7 @@
 From: Alex Buell <alex.buell@munted.org.uk>
-Date: Mon, 17 Jan 2011 04:03:18 +0000
+Date: Mon, 17 Jan 2011 13:22:38 +0000
 Subject: Re: silo fails to build with e2fsprogs-1.41.14 (undefined
-Message-Id: <1295236998.15315.8.camel@lithium>
+Message-Id: <1295270558.15315.17.camel@lithium>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4D2B59AC.8040203@gentoo.org>
 In-Reply-To: <4D2B59AC.8040203@gentoo.org>
@@ -117,7 +117,16 @@ k)
 > -	return -1;
 > -}
 
-I'll test it first thing tomorrow morning. The 'Blade 2000's busy
-cross-compiling PPC packages for my dog-slow iMac at the moment.=20
+With that patch, I now get a different error:
+
+SILO Version 1.4.14
+	ERROR: Last trap: Memory Address not aligned
+
+Error -256
+{0] OK
+
+(Now I've got to boot off my rescue CD and rebuild SILO)
+
+Is anyone else getting the same error?
 --=20
 Tactical Nuclear Kittens
