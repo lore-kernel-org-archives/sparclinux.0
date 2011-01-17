@@ -1,105 +1,133 @@
-From: "Bernhard R. Link"
-Date: Mon, 17 Jan 2011 14:39:54 +0000
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Date: Mon, 17 Jan 2011 19:35:25 +0000
 Subject: Re: Bug#609371: linux-image-2.6.37-trunk-sparc64: module scsi_mod:
-Message-Id: <20110117143954.GA17813@pcpool00.mathematik.uni-freiburg.de>
+Message-Id: <20110117193525.GD16154@Krystal>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4D302B2F.7030108@oldelvet.org.uk> <4D3074FE.3030707@oldelvet.org.uk> <20110115.211722.39173519.davem@davemloft.net> <20110116.220755.179947617.davem@davemloft.net>
-In-Reply-To: <20110116.220755.179947617.davem@davemloft.net>
+References: <4D3074FE.3030707@oldelvet.org.uk> <20110115.211722.39173519.davem@davemloft.net> <1295187469.22527.13.camel@duncow> <20110116.113944.48514452.davem@davemloft.net> <1295273486.16479.15.camel@gandalf.stny.rr.com>
+In-Reply-To: <1295273486.16479.15.camel@gandalf.stny.rr.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: richm@oldelvet.org.uk, 609371@bugs.debian.org, ben@decadent.org.uk, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, rostedt@goodmis.org, fweisbec@gmail.com, mingo@redhat.com, Jesper.Nilsson@axis.com, jeffm@suse.com
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: David Miller <davem@davemloft.net>, richm@oldelvet.org.uk, 609371@bugs.debian.org, ben@decadent.org.uk, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, fweisbec@gmail.com, mingo@redhat.com
 
-* David Miller <davem@davemloft.net> [110117 07:07]:
-> Although I've seen commentary to the contrary, in fact using a too-small
-> __attribute__((aligned())) directive will lower the alignment of data
-> members, and yes that means it will lower the alignemnt to be below the
-> natural and required alignment for the given type.
->
-> So if you have, on 64-bit:
->
-> struct foo {
-> 	void *bar;
-> };
->
-> static struct foo test __attribute__((__aligned__(4)));
->
-> The compiler will emit "test" with 4-byte alignment into the data
-> section, even though 8-byte alignment is required for "test.bar"
->
-> Assuming we wanted that to actually happen, the GCC manual is very
-> explicit to state that in order for this to work, such down-aligned
-> data structures must also use the "packed" attribute.
+* Steven Rostedt (rostedt@goodmis.org) wrote:
+> [ Added Mathieu on Cc, since he likes alignments ;-) ]
 
-The manual seems to have changed in that regard.
+Oh yes, alignments are so much fun! (for some definitions of fun) ;)
 
-http://gcc.gnu.org/onlinedocs/gcc-4.2.4/gcc/Variable-Attributes.html
-and earlier versions say:
+> 
+> On Sun, 2011-01-16 at 11:39 -0800, David Miller wrote:
+> > From: Richard Mortimer <richm@oldelvet.org.uk>
+> > Date: Sun, 16 Jan 2011 14:17:49 +0000
+> > 
+> > > I'm wondering if gcc is just getting better at honouring the source
+> > > code. The DEFINE_EVENT macros in include/trace/ftrace.h have a
+> > > __aligned__(4) attribute in them. Maybe that should be 8 on sparc64
+> > > systems.
+> > > The aligned 4 seems to be unchanged since include/trace/ftrace.h was
+> > > created in f42c85e74faa422cf0bc747ed808681145448f88 in April 2009.
+> > 
+> > That needs to be at least "8" on 64-bit systems.  Why is this aligned
+> > directive there at all?
+> 
+> IIRC, the problem showed up in 64-bit systems. OK, x86-64 (but of
+> course ;-).
+> 
+> The problem comes when the linker puts these sections together. We read
+> all the sections as one big array. If the linker puts in holes, then
+> this breaks the array, and the kernel crashes while reading the section.
+> 
+> I guess one solution is to remove the alignment at the allocation and
+> place it at the structure. This will mean all accesses to this structure
+> will need to be on an alignment.
 
-"The aligned attribute can only increase the alignment; but you can
-decrease it by specifying packed as well. See below."
+The problem with these alignments is that they are just a hint to gcc, telling
+it what the minimum alignment of a type should be. gcc is free to align on a
+larger boundary if it wants to.
 
-but http://gcc.gnu.org/onlinedocs/gcc-4.3.5/gcc/Variable-Attributes.html
-and later versions say:
+But the following test program is very instructive:
 
-"When used on a struct, or struct member, the aligned attribute can only
-increase the alignment; in order to decrease it, the packed attribute
-must be specified as well. When used as part of a typedef, the aligned
-attribute can both increase and decrease alignment, and specifying the
-packed attribute will generate a warning."
+#include <stdio.h>
 
-And seems to still be a bit confusing, as an attribute in a
-variable declaration seems to count as typedef:
+struct test {
+        void *a;
+        void *b;
+        void *c;
+        void *d;
+        void *e;
+        void *f;
+        void *g;
+        void *h;
+        void *i;
+        void *j;
+        void *k;
+        void *l;
+        void *m;
+        void *n;
+        void *o;
+        void *p;
+        void *q;
+};
 
-| struct foo {
-|         void *bar;
-| };
-| 
-| static struct foo a __attribute__((__aligned__(2)));
-| static struct foo b;
-| 
-| struct foo2 {
-|         void *bar;
-| } __attribute__((__aligned__(2)));
-| 
-| static struct foo2 c __attribute__((__aligned__(2)));
-| static struct foo2 d;
-| 
-| struct foo3 {
-|         void *bar;
-| } __attribute__((__aligned__(2))) __attribute__((__packed__));
-| 
-| static struct foo3 e;
-| 
-| int main() {
-|         printf("a: %d, b: %d, c: %d, d: %d, e: %d\n",
-|                 __alignof__(a), __alignof__(b),
-|                 __alignof__(c), __alignof__(d),
-|                 __alignof__(e)
-|                 );
-|         return 0;
-| }
+int main()
+{
+        struct test __attribute__((aligned(4))) v;
+        printf("%d\n", __alignof__(v));
+        return 0;
+}
 
-gives something like:
-a: 2, b: 4, c: 2, d: 4, e: 2
-or on sparc64:
-a: 2, b: 8, c: 2, d: 8, e: 2
+(on x86_64, with gcc 4.5.1 and gcc 4.4.4)
 
-> I think we want none of this, and I think we should elide the align
-> directives entirely, or at least fix them so we don't get unaligned
-> stuff on 64-bit.
+if we put the "__attribute__((aligned(4)))" at the v definition (variable
+attribute), the program returns an alignment of 4. If we move it after struct
+test declaration (type attribute), the program returns an alignment of 8 (thus
+taking the max between the attribute alignment and the largest field).
 
-One fix might be to move the __attribute__ from include/trace/ftrace.h
-(and from include/linux/syscalls.h) to include/linux/ftrace_event.h
-and attach it to the struct there. This way it should only increase it.
+But that's a real problem, because in include/trace/ftrace.h, we have an
+alignment of 4 forced on the definition, but there is a mismatch with
+trace_events.c:
 
-> Ugh, and I just noticed that include/linux/klist.h does this fixed
-> alignment of "4" too, where is this stuff coming from?  It's
-> wrong on 64-bit, at best.  But I can't see the impetus behind doing
-> this at all in the first place.
+extern struct ftrace_event_call __start_ftrace_events[];
+extern struct ftrace_event_call __stop_ftrace_events[];
 
-Is that actually misaligned? Unless I still mix things up, that is in the
-struct thus should be fine (i.e. the "d" case in my example above).
+for which the alignment attribute is missing (so an alignment of 8 will be
+used there).
 
-	Bernhard R. Link
+So it all worked as long as the size of struct ftrace_event_call was a multiple
+of 8 bytes (struct ftrace_event_call constains 2 integers if we exclude the perf
+fields), but the new fields added by perf contain a supplementary 4-byte
+integer, which seems to be causing the breakage: the structures are appended one
+next to another when defined, but the iteration on these structures thinks they
+are 8-byte aligned.
+
+Steven, what were you trying to fix in the first place when you added the
+aligned(4) to the definition ? It might have just been that the _ftrace_events
+section needed to be aligned on at least 8 bytes in the linker scripts, but was
+only aligned on 4-bytes. Forcing the definition alignment down to 4 possibly
+fixed the problem you experienced on x86_64, but seems to be causing other
+problems.
+
+I would recommend to:
+
+- Keep the linker script _ftrace_events alignment as it is now (aligned on 32
+  bytes).
+- Remove the aligned(4) attributes from all struct ftrace_event_call
+  definitions.
+
+And see how this works. The only problem that might come up is if gcc decides to
+align struct ftrace_event_call (which is about 136 bytes in size) on an
+alignment larger than 32 bytes, which would be really surprising.
+
+Mathieu
+
+> 
+> -- Steve
+> 
+> 
+
+-- 
+Mathieu Desnoyers
+Operating System Efficiency R&D Consultant
+EfficiOS Inc.
+http://www.efficios.com
