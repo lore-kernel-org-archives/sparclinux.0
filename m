@@ -1,46 +1,60 @@
 From: Steven Rostedt <rostedt@goodmis.org>
-Date: Mon, 17 Jan 2011 14:11:26 +0000
+Date: Mon, 17 Jan 2011 14:15:41 +0000
 Subject: Re: Bug#609371: linux-image-2.6.37-trunk-sparc64: module scsi_mod:
-Message-Id: <1295273486.16479.15.camel@gandalf.stny.rr.com>
+Message-Id: <1295273741.16479.19.camel@gandalf.stny.rr.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4D3074FE.3030707@oldelvet.org.uk>
+References: <4D302B2F.7030108@oldelvet.org.uk>
+	 <4D3074FE.3030707@oldelvet.org.uk>
 	 <20110115.211722.39173519.davem@davemloft.net>
-	 <1295187469.22527.13.camel@duncow>
-	 <20110116.113944.48514452.davem@davemloft.net>
-In-Reply-To: <20110116.113944.48514452.davem@davemloft.net>
+	 <20110116.220755.179947617.davem@davemloft.net>
+	 <1295259761.32152.20.camel@duncow>
+In-Reply-To: <1295259761.32152.20.camel@duncow>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: richm@oldelvet.org.uk, 609371@bugs.debian.org, ben@decadent.org.uk, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, fweisbec@gmail.com, mingo@redhat.com, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+To: Richard Mortimer <richm@oldelvet.org.uk>
+Cc: David Miller <davem@davemloft.net>, 609371@bugs.debian.org, ben@decadent.org.uk, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, fweisbec@gmail.com, mingo@redhat.com, Jesper.Nilsson@axis.com, jeffm@suse.com, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 
-[ Added Mathieu on Cc, since he likes alignments ;-) ]
-
-On Sun, 2011-01-16 at 11:39 -0800, David Miller wrote:
-> From: Richard Mortimer <richm@oldelvet.org.uk>
-> Date: Sun, 16 Jan 2011 14:17:49 +0000
+On Mon, 2011-01-17 at 10:22 +0000, Richard Mortimer wrote:
+> On Sun, 2011-01-16 at 22:07 -0800, David Miller wrote:
+> > From: David Miller <davem@davemloft.net>
+> > Date: Sat, 15 Jan 2011 21:17:22 -0800 (PST)
 > 
-> > I'm wondering if gcc is just getting better at honouring the source
-> > code. The DEFINE_EVENT macros in include/trace/ftrace.h have a
-> > __aligned__(4) attribute in them. Maybe that should be 8 on sparc64
-> > systems.
-> > The aligned 4 seems to be unchanged since include/trace/ftrace.h was
-> > created in f42c85e74faa422cf0bc747ed808681145448f88 in April 2009.
+> > > I think the problem we have here is that the _ftrace_events section is
+> > > not aligned sufficiently.  That ".align 4" mnemonic is a good indication
+> > > of this.  It should at least "8" on sparc64.
+> > 
+> I noticed another potentially 64 bit unfriendly alignment on struct
+> tracepoint in include/linux/tracepoint.h. I don't think that the
+> alignment of 32 breaks anything but it does leave a 24 byte hole. I
+> don't know enough about tracing to know if that is necessary.
 > 
-> That needs to be at least "8" on 64-bit systems.  Why is this aligned
-> directive there at all?
+> struct tracepoint {
+>         const char *name;               /* Tracepoint name */
+>         int state;                      /* State. */
+>         void (*regfunc)(void);
+>         void (*unregfunc)(void);
+>         struct tracepoint_func *funcs;
+> }  __attribute__((aligned(32)));        /*
+>                                          * Aligned on 32 bytes because it is
+>                                          * globally visible and gcc happily
+>                                          * align these on the structure size.
+>                                          * Keep in sync with vmlinux.lds.h.
+>                                          */
+> 
+> Note I spotted this when looking at some residual sparc64 relocation
+> issues when _ftrace_events alignment is changed to 8. I'll follow those
+> issues up in a separate email when I get time later today.
 
-IIRC, the problem showed up in 64-bit systems. OK, x86-64 (but of
-course ;-).
+Again, this is to help the linker keep arrays in tacked. Tracepoints are
+allocated into the tracepoint section, and then read like an array. If
+the linker adds holes as it links sections into one big one, then the
+reading of the array breaks.
 
-The problem comes when the linker puts these sections together. We read
-all the sections as one big array. If the linker puts in holes, then
-this breaks the array, and the kernel crashes while reading the section.
-
-I guess one solution is to remove the alignment at the allocation and
-place it at the structure. This will mean all accesses to this structure
-will need to be on an alignment.
+We either need to compact it (with the align(4)) which is undesirable,
+or add our own holes like the above does.
 
 -- Steve
+
 
 
