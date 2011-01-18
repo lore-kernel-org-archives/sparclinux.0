@@ -1,12 +1,12 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 18 Jan 2011 06:00:39 +0000
+Date: Tue, 18 Jan 2011 06:08:57 +0000
 Subject: Re: Bug#609371: linux-image-2.6.37-trunk-sparc64: module scsi_mod:
-Message-Id: <20110117.220039.71097651.davem@davemloft.net>
+Message-Id: <20110117.220857.104046847.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110116.113944.48514452.davem@davemloft.net>
-	<1295273486.16479.15.camel@gandalf.stny.rr.com>
+References: <1295273486.16479.15.camel@gandalf.stny.rr.com>
 	<20110117.213448.226787087.davem@davemloft.net>
-In-Reply-To: <20110117.213448.226787087.davem@davemloft.net>
+	<20110117.220039.71097651.davem@davemloft.net>
+In-Reply-To: <20110117.220039.71097651.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -14,112 +14,91 @@ To: rostedt@goodmis.org
 Cc: richm@oldelvet.org.uk, 609371@bugs.debian.org, ben@decadent.org.uk, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, fweisbec@gmail.com, mingo@redhat.com, mathieu.desnoyers@efficios.com
 
 From: David Miller <davem@davemloft.net>
-Date: Mon, 17 Jan 2011 21:34:48 -0800 (PST)
+Date: Mon, 17 Jan 2011 22:00:39 -0800 (PST)
 
-> Where are these "holes" coming from?  Reading the commit message for
-> the change that introduced this problem
-> (86c38a31aa7f2dd6e74a262710bf8ebf7455acc5), it seems like the issue is
-> coming from the compiler, and that fact that beforehand some
-> structures were marked with 4-byte alignment.  The existing 4-byte
-> alignment cases sound like the real bug to me, where is that happening
-> and why?
+> ftrace: Remove unnecessary alignment tag from ftrace_event_call.
+> 
+> It's completely unnecessary and causes problems on platforms
+> where this tag down-aligns the structure's alignment.
+> 
+> Signed-off-by: David S. Miller <davem@davemloft.net>
+ ...
 
-Ok, now I'm getting a bit irritated.  I went and looked into the
-history of this "aligned(4)" tag on ftrace_event_call.
-
-The reason for it is completely undocumented, and in fact it gets
-added in a commit whose commit message doesn't mention this part
-of the commit's change at all.
-
-That really sucks.
-
-The commit message is:
-
-commit 1473e4417c79f12d91ef91a469699bfa911f510f
-Author: Steven Rostedt <srostedt@redhat.com>
-Date:   Tue Feb 24 14:15:08 2009 -0500
-
-    tracing: make event directory structure
-    
-    This patch adds the directory /debug/tracing/events/ that will contain
-    all the registered trace points.
-    
-     # ls /debug/tracing/events/
-    sched_kthread_stop      sched_process_fork  sched_switch
-    sched_kthread_stop_ret  sched_process_free  sched_wait_task
-    sched_migrate_task      sched_process_wait  sched_wakeup
-    sched_process_exit      sched_signal_send   sched_wakeup_new
-    
-     # ls /debug/tracing/events/sched_switch/
-    enable
-    
-     # cat /debug/tracing/events/sched_switch/enable
-    1
-    
-     # cat /debug/tracing/set_event
-    sched_switch
-    
-    Signed-off-by: Steven Rostedt <srostedt@redhat.com>
-
-And in this commit we have:
-
-@@ -39,6 +41,7 @@ static void ftrace_unreg_event_##call(void)				\
- }									\
- 									\
- static struct ftrace_event_call __used					\
-+__attribute__((__aligned__(4)))						\
- __attribute__((section("_ftrace_events"))) event_##call = {		\
- 	.name 			= #call,				\
- 	.regfunc		= ftrace_reg_event_##call,		\
-
-Excuse me?
-
-This is a serious infraction of responsible development, and it makes
-bugs hard if not impossible to analyze.  I see it was postedo on LKML,
-and I'm surprised nobody asked "Why are you adding that alignment, and
-whatever the reason why isn't it mentioned in the commit message or in
-a comment?"
-
-Anyways, this commit is where this alignment originates.
-
-It probably is spurious and unnecessary and we can remove it
-completely from _ALL_ of the cases.  Did anyone do any research
-whatsoever into why the alignment tag was put there in the first place
-when the GCC 4.5 bug showed up?
-
-Steven what is the deal here?
-
-Can't we just do the following patch?  Also, I notice similar
-alignment tag being used for syscall_metadata, what's the story there?
+Ok, unless we can explain why these alignments are needed at all, we
+should kill all of them:
 
 --------------------
-ftrace: Remove unnecessary alignment tag from ftrace_event_call.
+tracing: Remove unnecessary __aligned__(4) tag from trace data.
 
 It's completely unnecessary and causes problems on platforms
 where this tag down-aligns the structure's alignment.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 
+diff --git a/include/linux/compiler.h b/include/linux/compiler.h
+index 320d6c9..8620723 100644
+--- a/include/linux/compiler.h
++++ b/include/linux/compiler.h
+@@ -94,7 +94,6 @@ void ftrace_likely_update(struct ftrace_branch_data *f, int val, int expect);
+ #define __branch_check__(x, expect) ({					\
+ 			int ______r;					\
+ 			static struct ftrace_branch_data		\
+-				__attribute__((__aligned__(4)))		\
+ 				__attribute__((section("_ftrace_annotated_branch"))) \
+ 				______f = {				\
+ 				.func = __func__,			\
+@@ -129,7 +128,6 @@ void ftrace_likely_update(struct ftrace_branch_data *f, int val, int expect);
+ 	({								\
+ 		int ______r;						\
+ 		static struct ftrace_branch_data			\
+-			__attribute__((__aligned__(4)))			\
+ 			__attribute__((section("_ftrace_branch")))	\
+ 			______f = {					\
+ 				.func = __func__,			\
 diff --git a/include/linux/syscalls.h b/include/linux/syscalls.h
-index 18cd068..05295f2 100644
+index 18cd068..e23a188 100644
 --- a/include/linux/syscalls.h
 +++ b/include/linux/syscalls.h
-@@ -128,7 +128,6 @@ extern struct trace_event_functions exit_syscall_print_funcs;
- 	static struct syscall_metadata					\
- 	__attribute__((__aligned__(4))) __syscall_meta_##sname;		\
+@@ -125,10 +125,8 @@ extern struct trace_event_functions enter_syscall_print_funcs;
+ extern struct trace_event_functions exit_syscall_print_funcs;
+ 
+ #define SYSCALL_TRACE_ENTER_EVENT(sname)				\
+-	static struct syscall_metadata					\
+-	__attribute__((__aligned__(4))) __syscall_meta_##sname;		\
++	static struct syscall_metadata __syscall_meta_##sname;		\
  	static struct ftrace_event_call __used				\
 -	  __attribute__((__aligned__(4)))				\
  	  __attribute__((section("_ftrace_events")))			\
  	  event_enter_##sname = {					\
  		.name                   = "sys_enter"#sname,		\
-@@ -142,7 +141,6 @@ extern struct trace_event_functions exit_syscall_print_funcs;
- 	static struct syscall_metadata					\
- 	__attribute__((__aligned__(4))) __syscall_meta_##sname;		\
+@@ -139,10 +137,8 @@ extern struct trace_event_functions exit_syscall_print_funcs;
+ 	__TRACE_EVENT_FLAGS(enter_##sname, TRACE_EVENT_FL_CAP_ANY)
+ 
+ #define SYSCALL_TRACE_EXIT_EVENT(sname)					\
+-	static struct syscall_metadata					\
+-	__attribute__((__aligned__(4))) __syscall_meta_##sname;		\
++	static struct syscall_metadata __syscall_meta_##sname;		\
  	static struct ftrace_event_call __used				\
 -	  __attribute__((__aligned__(4)))				\
  	  __attribute__((section("_ftrace_events")))			\
  	  event_exit_##sname = {					\
  		.name                   = "sys_exit"#sname,		\
+@@ -156,7 +152,6 @@ extern struct trace_event_functions exit_syscall_print_funcs;
+ 	SYSCALL_TRACE_ENTER_EVENT(sname);			\
+ 	SYSCALL_TRACE_EXIT_EVENT(sname);			\
+ 	static struct syscall_metadata __used			\
+-	  __attribute__((__aligned__(4)))			\
+ 	  __attribute__((section("__syscalls_metadata")))	\
+ 	  __syscall_meta_##sname = {				\
+ 		.name 		= "sys"#sname,			\
+@@ -172,7 +167,6 @@ extern struct trace_event_functions exit_syscall_print_funcs;
+ 	SYSCALL_TRACE_ENTER_EVENT(_##sname);			\
+ 	SYSCALL_TRACE_EXIT_EVENT(_##sname);			\
+ 	static struct syscall_metadata __used			\
+-	  __attribute__((__aligned__(4)))			\
+ 	  __attribute__((section("__syscalls_metadata")))	\
+ 	  __syscall_meta__##sname = {				\
+ 		.name 		= "sys_"#sname,			\
 diff --git a/include/trace/ftrace.h b/include/trace/ftrace.h
 index e16610c..bd86d1b 100644
 --- a/include/trace/ftrace.h
