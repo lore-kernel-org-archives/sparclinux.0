@@ -1,52 +1,160 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 18 Jan 2011 05:34:48 +0000
+Date: Tue, 18 Jan 2011 06:00:39 +0000
 Subject: Re: Bug#609371: linux-image-2.6.37-trunk-sparc64: module scsi_mod:
-Message-Id: <20110117.213448.226787087.davem@davemloft.net>
+Message-Id: <20110117.220039.71097651.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1295187469.22527.13.camel@duncow>
-	<20110116.113944.48514452.davem@davemloft.net>
+References: <20110116.113944.48514452.davem@davemloft.net>
 	<1295273486.16479.15.camel@gandalf.stny.rr.com>
-In-Reply-To: <1295273486.16479.15.camel@gandalf.stny.rr.com>
+	<20110117.213448.226787087.davem@davemloft.net>
+In-Reply-To: <20110117.213448.226787087.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: rostedt@goodmis.org
 Cc: richm@oldelvet.org.uk, 609371@bugs.debian.org, ben@decadent.org.uk, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, fweisbec@gmail.com, mingo@redhat.com, mathieu.desnoyers@efficios.com
 
-From: Steven Rostedt <rostedt@goodmis.org>
-Date: Mon, 17 Jan 2011 09:11:26 -0500
+From: David Miller <davem@davemloft.net>
+Date: Mon, 17 Jan 2011 21:34:48 -0800 (PST)
 
-> The problem comes when the linker puts these sections together. We read
-> all the sections as one big array. If the linker puts in holes, then
-> this breaks the array, and the kernel crashes while reading the section.
+> Where are these "holes" coming from?  Reading the commit message for
+> the change that introduced this problem
+> (86c38a31aa7f2dd6e74a262710bf8ebf7455acc5), it seems like the issue is
+> coming from the compiler, and that fact that beforehand some
+> structures were marked with 4-byte alignment.  The existing 4-byte
+> alignment cases sound like the real bug to me, where is that happening
+> and why?
 
-Ummm, this sounds like a serious binutils bug.
+Ok, now I'm getting a bit irritated.  I went and looked into the
+history of this "aligned(4)" tag on ftrace_event_call.
 
-If it's doing this, than things like constructor and destructor
-sections will not work properly.  Those are constructed in the
-same exact way, objects with constructors register a pointer into
-a special section (".ctors" or something like that) and all such
-section contents are linked together into an array for the final
-binary.  crt0.S and similar code on program startup walks the
-array and executes every pointer in that array.
+The reason for it is completely undocumented, and in fact it gets
+added in a commit whose commit message doesn't mention this part
+of the commit's change at all.
 
-Or is the problem, rather, that you're storing different kinds of data
-structures into this section?  Is the problem that they turn out to
-have different sizes and this is what disturbs the array walk?
+That really sucks.
 
-I really don't understand what the problem is, and the align(4)
-fix is definitely the wrong thing to do for several reasons.
+The commit message is:
 
-Where are these "holes" coming from?  Reading the commit message for
-the change that introduced this problem
-(86c38a31aa7f2dd6e74a262710bf8ebf7455acc5), it seems like the issue is
-coming from the compiler, and that fact that beforehand some
-structures were marked with 4-byte alignment.  The existing 4-byte
-alignment cases sound like the real bug to me, where is that happening
-and why?
+commit 1473e4417c79f12d91ef91a469699bfa911f510f
+Author: Steven Rostedt <srostedt@redhat.com>
+Date:   Tue Feb 24 14:15:08 2009 -0500
 
-If you want these things to be in the array, you have to define them
-all identically.  But down-aligning structures with pointers in them
-is definitely not the right fix.
+    tracing: make event directory structure
+    
+    This patch adds the directory /debug/tracing/events/ that will contain
+    all the registered trace points.
+    
+     # ls /debug/tracing/events/
+    sched_kthread_stop      sched_process_fork  sched_switch
+    sched_kthread_stop_ret  sched_process_free  sched_wait_task
+    sched_migrate_task      sched_process_wait  sched_wakeup
+    sched_process_exit      sched_signal_send   sched_wakeup_new
+    
+     # ls /debug/tracing/events/sched_switch/
+    enable
+    
+     # cat /debug/tracing/events/sched_switch/enable
+    1
+    
+     # cat /debug/tracing/set_event
+    sched_switch
+    
+    Signed-off-by: Steven Rostedt <srostedt@redhat.com>
 
+And in this commit we have:
 
+@@ -39,6 +41,7 @@ static void ftrace_unreg_event_##call(void)				\
+ }									\
+ 									\
+ static struct ftrace_event_call __used					\
++__attribute__((__aligned__(4)))						\
+ __attribute__((section("_ftrace_events"))) event_##call = {		\
+ 	.name 			= #call,				\
+ 	.regfunc		= ftrace_reg_event_##call,		\
+
+Excuse me?
+
+This is a serious infraction of responsible development, and it makes
+bugs hard if not impossible to analyze.  I see it was postedo on LKML,
+and I'm surprised nobody asked "Why are you adding that alignment, and
+whatever the reason why isn't it mentioned in the commit message or in
+a comment?"
+
+Anyways, this commit is where this alignment originates.
+
+It probably is spurious and unnecessary and we can remove it
+completely from _ALL_ of the cases.  Did anyone do any research
+whatsoever into why the alignment tag was put there in the first place
+when the GCC 4.5 bug showed up?
+
+Steven what is the deal here?
+
+Can't we just do the following patch?  Also, I notice similar
+alignment tag being used for syscall_metadata, what's the story there?
+
+--------------------
+ftrace: Remove unnecessary alignment tag from ftrace_event_call.
+
+It's completely unnecessary and causes problems on platforms
+where this tag down-aligns the structure's alignment.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+
+diff --git a/include/linux/syscalls.h b/include/linux/syscalls.h
+index 18cd068..05295f2 100644
+--- a/include/linux/syscalls.h
++++ b/include/linux/syscalls.h
+@@ -128,7 +128,6 @@ extern struct trace_event_functions exit_syscall_print_funcs;
+ 	static struct syscall_metadata					\
+ 	__attribute__((__aligned__(4))) __syscall_meta_##sname;		\
+ 	static struct ftrace_event_call __used				\
+-	  __attribute__((__aligned__(4)))				\
+ 	  __attribute__((section("_ftrace_events")))			\
+ 	  event_enter_##sname = {					\
+ 		.name                   = "sys_enter"#sname,		\
+@@ -142,7 +141,6 @@ extern struct trace_event_functions exit_syscall_print_funcs;
+ 	static struct syscall_metadata					\
+ 	__attribute__((__aligned__(4))) __syscall_meta_##sname;		\
+ 	static struct ftrace_event_call __used				\
+-	  __attribute__((__aligned__(4)))				\
+ 	  __attribute__((section("_ftrace_events")))			\
+ 	  event_exit_##sname = {					\
+ 		.name                   = "sys_exit"#sname,		\
+diff --git a/include/trace/ftrace.h b/include/trace/ftrace.h
+index e16610c..bd86d1b 100644
+--- a/include/trace/ftrace.h
++++ b/include/trace/ftrace.h
+@@ -68,8 +68,7 @@
+ 
+ #undef DEFINE_EVENT
+ #define DEFINE_EVENT(template, name, proto, args)	\
+-	static struct ftrace_event_call	__used		\
+-	__attribute__((__aligned__(4))) event_##name
++	static struct ftrace_event_call	__used event_##name
+ 
+ #undef DEFINE_EVENT_PRINT
+ #define DEFINE_EVENT_PRINT(template, name, proto, args, print)	\
+@@ -447,7 +446,6 @@ static inline notrace int ftrace_get_offsets_##call(			\
+  * };
+  *
+  * static struct ftrace_event_call __used
+- * __attribute__((__aligned__(4)))
+  * __attribute__((section("_ftrace_events"))) event_<call> = {
+  *	.name			= "<call>",
+  *	.class			= event_class_<template>,
+@@ -580,7 +578,6 @@ static struct ftrace_event_class __used event_class_##call = {		\
+ #define DEFINE_EVENT(template, call, proto, args)			\
+ 									\
+ static struct ftrace_event_call __used					\
+-__attribute__((__aligned__(4)))						\
+ __attribute__((section("_ftrace_events"))) event_##call = {		\
+ 	.name			= #call,				\
+ 	.class			= &event_class_##template,		\
+@@ -594,7 +591,6 @@ __attribute__((section("_ftrace_events"))) event_##call = {		\
+ static const char print_fmt_##call[] = print;				\
+ 									\
+ static struct ftrace_event_call __used					\
+-__attribute__((__aligned__(4)))						\
+ __attribute__((section("_ftrace_events"))) event_##call = {		\
+ 	.name			= #call,				\
+ 	.class			= &event_class_##template,		\
