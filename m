@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 18 Jan 2011 00:18:57 +0000
+Date: Tue, 18 Jan 2011 00:37:09 +0000
 Subject: Re: R_SPARC_13
-Message-Id: <20110117.161857.35031651.davem@davemloft.net>
+Message-Id: <20110117.163709.15244083.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1295293581.32152.70.camel@duncow>
 	<20110117.130238.245404805.davem@davemloft.net>
@@ -16,9 +16,25 @@ Cc: 609371@bugs.debian.org, ben@decadent.org.uk, sparclinux@vger.kernel.org, lin
 From: Richard Mortimer <richm@oldelvet.org.uk>
 Date: Mon, 17 Jan 2011 23:34:03 +0000
 
-> However the same R_SPARC_13 also exists in scsi_mod.ko. It exists in the
-> original Debian 2.6.37-trunk-sparc64 version and in my current build of
-> the same with the 8 byte alignment for _trace_events.
- ...
+> I guess that points towards the binutils linker not doing the correct
+> thing.
 
-Thanks for the info Richard, I'll look more deeply into this.
+Ok, it is in fact doing the correct thing.
+
+I'm really surprised we never hit this before in all of these years
+:-) I guess we've simply never hit this kind of expression in a module
+before.
+
+The issue is that modules aren't a "final link", it's really more like
+an intermediate partial link.
+
+So we do end up seeing the R_SPARC_LO10 + R_SPARC_13 sequences in the
+final module object.
+
+Therefore, we really should handle R_SPARC_13 in the sparc module loader.
+
+Richard, I want you to get full credit for this since you did all of
+the dirty work :-) Would you please cons up a formal patch with commit
+message and signoff for this and I'll push it around?
+
+Thanks a lot!
