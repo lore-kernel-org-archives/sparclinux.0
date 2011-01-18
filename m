@@ -1,78 +1,131 @@
-From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Wed, 05 Jan 2011 08:58:11 +0000
-Subject: Re: [RFC 1/8] sparc: prom: Sanitize return value from prom_nbputchar()
-Message-Id: <4D2432A3.307@gaisler.com>
+From: Kristoffer Glembo <kristoffer@gaisler.com>
+Date: Tue, 18 Jan 2011 14:10:24 +0000
+Subject: [PATCH 1/6 V3] sparc: Replace open coded page alignment with PAGE_ALIGN macro.
+Message-Id: <1295359829-27308-2-git-send-email-kristoffer@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4CF9BBC6.3080809@julian.is-a-geek.org>
-In-Reply-To: <4CF9BBC6.3080809@julian.is-a-geek.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Julian Calaby wrote:
+Signed-off-by: Kristoffer Glembo <kristoffer@gaisler.com>
+---
+ arch/sparc/kernel/ioport.c |   25 +++++++++++--------------
+ 1 files changed, 11 insertions(+), 14 deletions(-)
 
->On Wed, Jan 5, 2011 at 04:50, David Miller <davem@davemloft.net> wrote:
->  
->
->>From: Daniel Hellstrom <daniel@gaisler.com>
->>Date: Tue, 04 Jan 2011 15:42:45 +0100
->>
->>    
->>
->>>David Miller wrote:
->>>
->>>      
->>>
->>>>From: Julian Calaby <jcalaby@julian.is-a-geek.org>
->>>>Date: Sat, 04 Dec 2010 14:55:50 +1100
->>>>
->>>>
->>>>        
->>>>
->>>>>Signed-off-by: Julian Calaby <julian.calaby@gmail.com>
->>>>>
->>>>>          
->>>>>
->>>>Applied.
->>>>
->>>>        
->>>>
->>>I think this patch breaks the backwards compatability...
->>>      
->>>
->>Backwards compatability for who?  There is one and only one caller
->>of this function, and it is marked static and not exported to any
->>other piece of code in the tree.
->>    
->>
-With this patch we need to have two different versions of the PROM 
-emulation implementation, it is a bit sad that it will not work for both 
-versions of the linux kernel 2.6.36 and 2.6.37, that's all.
-
-I'm probably out of line here, I havn't read the PROMv0 specification, 
-the old linux implementation was perhaps faulty all along and we made 
-our PROM code looking at it rather than the PROMv0 spec.
-
-My impression was that pv_nbputchar() in PROM has to be implemented as 
-non-blocking in order to avoid taking the prom_lock too long, in order 
-to do that in a linux 2.6.36 kernel the PROM has to return -1 from 
-pv_nbputchar() when the UART is busy and a 1 when pv_nbputchar() 
-actually sends a character. However with this patch the pv_nbputchar() 
-must return a 0 when UART is busy, this means that backwards compability 
-to the PROM emultation software is lost.
-
->
->The other point is that sparc64's version works like this, so why
->should sparc32's version be different?
->  
->
-Good point. Havn't looked at the SPARC64 code. Probably we should have 
-submitted a patch for the old bad behaviour before.
-
-We can live with two different versions of the PROM... there are more 
-important things in life :)
-
-Thank you,
-Daniel
+diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
+index 41f7e4e..cea49c0 100644
+--- a/arch/sparc/kernel/ioport.c
++++ b/arch/sparc/kernel/ioport.c
+@@ -254,7 +254,7 @@ static void *sbus_alloc_coherent(struct device *dev, size_t len,
+ 				 dma_addr_t *dma_addrp, gfp_t gfp)
+ {
+ 	struct platform_device *op = to_platform_device(dev);
+-	unsigned long len_total = (len + PAGE_SIZE-1) & PAGE_MASK;
++	unsigned long len_total = PAGE_ALIGN(len);
+ 	unsigned long va;
+ 	struct resource *res;
+ 	int order;
+@@ -281,6 +281,7 @@ static void *sbus_alloc_coherent(struct device *dev, size_t len,
+ 		goto err_nova;
+ 	}
+ 	mmu_inval_dma_area(va, len_total);
++
+ 	// XXX The mmu_map_dma_area does this for us below, see comments.
+ 	// sparc_mapiorange(0, virt_to_phys(va), res->start, len_total);
+ 	/*
+@@ -321,7 +322,7 @@ static void sbus_free_coherent(struct device *dev, size_t n, void *p,
+ 		return;
+ 	}
+ 
+-	n = (n + PAGE_SIZE-1) & PAGE_MASK;
++	n = PAGE_ALIGN(n);
+ 	if ((res->end-res->start)+1 != n) {
+ 		printk("sbus_free_consistent: region 0x%lx asked 0x%zx\n",
+ 		    (long)((res->end-res->start)+1), n);
+@@ -430,7 +431,7 @@ arch_initcall(sparc_register_ioport);
+ static void *pci32_alloc_coherent(struct device *dev, size_t len,
+ 				  dma_addr_t *pba, gfp_t gfp)
+ {
+-	unsigned long len_total = (len + PAGE_SIZE-1) & PAGE_MASK;
++	unsigned long len_total = PAGE_ALIGN(len);
+ 	unsigned long va;
+ 	struct resource *res;
+ 	int order;
+@@ -463,10 +464,6 @@ static void *pci32_alloc_coherent(struct device *dev, size_t len,
+ 		return NULL;
+ 	}
+ 	mmu_inval_dma_area(va, len_total);
+-#if 0
+-/* P3 */ printk("pci_alloc_consistent: kva %lx uncva %lx phys %lx size %lx\n",
+-  (long)va, (long)res->start, (long)virt_to_phys(va), len_total);
+-#endif
+ 	sparc_mapiorange(0, virt_to_phys(va), res->start, len_total);
+ 
+ 	*pba = virt_to_phys(va); /* equals virt_to_bus (R.I.P.) for us. */
+@@ -498,7 +495,7 @@ static void pci32_free_coherent(struct device *dev, size_t n, void *p,
+ 		return;
+ 	}
+ 
+-	n = (n + PAGE_SIZE-1) & PAGE_MASK;
++	n = PAGE_ALIGN(n);
+ 	if ((res->end-res->start)+1 != n) {
+ 		printk("pci_free_consistent: region 0x%lx asked 0x%lx\n",
+ 		    (long)((res->end-res->start)+1), (long)n);
+@@ -574,7 +571,7 @@ static void pci32_unmap_sg(struct device *dev, struct scatterlist *sgl,
+ 			BUG_ON(page_address(sg_page(sg)) = NULL);
+ 			mmu_inval_dma_area(
+ 			    (unsigned long) page_address(sg_page(sg)),
+-			    (sg->length + PAGE_SIZE-1) & PAGE_MASK);
++			    PAGE_ALIGN(sg->length));
+ 		}
+ 	}
+ }
+@@ -594,7 +591,7 @@ static void pci32_sync_single_for_cpu(struct device *dev, dma_addr_t ba,
+ {
+ 	if (dir != PCI_DMA_TODEVICE) {
+ 		mmu_inval_dma_area((unsigned long)phys_to_virt(ba),
+-		    (size + PAGE_SIZE-1) & PAGE_MASK);
++				   PAGE_ALIGN(size));
+ 	}
+ }
+ 
+@@ -603,7 +600,7 @@ static void pci32_sync_single_for_device(struct device *dev, dma_addr_t ba,
+ {
+ 	if (dir != PCI_DMA_TODEVICE) {
+ 		mmu_inval_dma_area((unsigned long)phys_to_virt(ba),
+-		    (size + PAGE_SIZE-1) & PAGE_MASK);
++				   PAGE_ALIGN(size));
+ 	}
+ }
+ 
+@@ -624,7 +621,7 @@ static void pci32_sync_sg_for_cpu(struct device *dev, struct scatterlist *sgl,
+ 			BUG_ON(page_address(sg_page(sg)) = NULL);
+ 			mmu_inval_dma_area(
+ 			    (unsigned long) page_address(sg_page(sg)),
+-			    (sg->length + PAGE_SIZE-1) & PAGE_MASK);
++			    PAGE_ALIGN(sg->length));
+ 		}
+ 	}
+ }
+@@ -640,7 +637,7 @@ static void pci32_sync_sg_for_device(struct device *device, struct scatterlist *
+ 			BUG_ON(page_address(sg_page(sg)) = NULL);
+ 			mmu_inval_dma_area(
+ 			    (unsigned long) page_address(sg_page(sg)),
+-			    (sg->length + PAGE_SIZE-1) & PAGE_MASK);
++			    PAGE_ALIGN(sg->length));
+ 		}
+ 	}
+ }
+@@ -717,7 +714,7 @@ static const struct file_operations sparc_io_proc_fops = {
+ static struct resource *_sparc_find_resource(struct resource *root,
+ 					     unsigned long hit)
+ {
+-        struct resource *tmp;
++	struct resource *tmp;
+ 
+ 	for (tmp = root->child; tmp != 0; tmp = tmp->sibling) {
+ 		if (tmp->start <= hit && tmp->end >= hit)
+-- 
+1.6.4.1
 
