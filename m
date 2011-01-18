@@ -1,48 +1,36 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 21 Jan 2011 06:42:00 +0000
-Subject: Re: physical_package_id on sun4v
-Message-Id: <20110120.224200.190365297.davem@davemloft.net>
+From: Kristoffer Glembo <kristoffer@gaisler.com>
+Date: Tue, 18 Jan 2011 14:10:29 +0000
+Subject: [PATCH 6/6 V3] sparc: Fix sbus_alloc_coherent error handling.
+Message-Id: <1295359829-27308-7-git-send-email-kristoffer@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LNX.2.01.1101210131480.6015@obet.zrqbmnf.qr>
-In-Reply-To: <alpine.LNX.2.01.1101210131480.6015@obet.zrqbmnf.qr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Jan Engelhardt <jengelh@medozas.de>
-Date: Fri, 21 Jan 2011 02:17:52 +0100 (CET)
+Order of kfree and free_pages were swapped in the error handling.
 
-> I am still a bit puzzled since the T1 is configured quite like the
-> Intel i7 920:
->=20
-> T1: 4 threads =D7 6 cores =D7 1 CPU
-> 	core_sibling_list=3D0-3, thread_sibling_list=3D0-3
->=20
-> i7: 2 threads =D7 4 cores =D7 1 CPU
-> 	core_sibling_list=3D0-7, thread_sibling_list=3D0,4
->=20
-> And in comparison:
-> Altix4700: 2 threads =D7 2 cores =D7 128 CPUs
-> 	cpu0/core_sibling=3D0x03 (inferring>) core_sibling_list=3D0-3
-> 	cpu0/thread_sibling=3D0x01 (inferring>) thread_sibling_list=3D0-1
->=20
->=20
-> So it seems as if, because the toplogy is different between sparc
-> and {ia64, x86}, at least one has worse scheduling.
+Signed-off-by: Kristoffer Glembo <kristoffer@gaisler.com>
+---
+ arch/sparc/kernel/ioport.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-This is to make room for T2's design, wherein inside of a core there
-are two integer units.
-
-So in the T2 we get:
-
-cpu0 --> cpu7    --> core_id =3D 1
-cpu8 --> cpu15   --> core_id =3D 2
-
-cpu0 --> cpu3    --> phys_package_id =3D 0
-cpu4 --> cpu7    --> phys_package_id =3D 1
-cpu8 --> cpu11   --> phys_package_id =3D 2
-cpu12 --> cpu15  --> phys_package_id =3D 3
-
-etc. etc. etc.
+diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
+index bd4fb10..c6ce9a6 100644
+--- a/arch/sparc/kernel/ioport.c
++++ b/arch/sparc/kernel/ioport.c
+@@ -302,9 +302,9 @@ static void *sbus_alloc_coherent(struct device *dev, size_t len,
+ err_noiommu:
+ 	release_resource(res);
+ err_nova:
+-	free_pages(va, order);
+-err_nomem:
+ 	kfree(res);
++err_nomem:
++	free_pages(va, order);
+ err_nopages:
+ 	return NULL;
+ }
+-- 
+1.6.4.1
 
