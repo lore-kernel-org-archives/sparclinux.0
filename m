@@ -1,43 +1,42 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 18 Jan 2011 06:27:24 +0000
+Date: Tue, 18 Jan 2011 06:35:13 +0000
 Subject: Re: Bug#609371: linux-image-2.6.37-trunk-sparc64: module scsi_mod:
-Message-Id: <20110117.222724.112609854.davem@davemloft.net>
+Message-Id: <20110117.223513.183031917.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110115.211722.39173519.davem@davemloft.net>
-	<20110116.220755.179947617.davem@davemloft.net>
-	<20110117143954.GA17813@pcpool00.mathematik.uni-freiburg.de>
-In-Reply-To: <20110117143954.GA17813@pcpool00.mathematik.uni-freiburg.de>
+References: <20110116.220755.179947617.davem@davemloft.net>
+	<1295259761.32152.20.camel@duncow>
+	<1295273741.16479.19.camel@gandalf.stny.rr.com>
+In-Reply-To: <1295273741.16479.19.camel@gandalf.stny.rr.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: brl+ccmadness@pcpool00.mathematik.uni-freiburg.de
-Cc: richm@oldelvet.org.uk, 609371@bugs.debian.org, ben@decadent.org.uk, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, rostedt@goodmis.org, fweisbec@gmail.com, mingo@redhat.com, Jesper.Nilsson@axis.com, jeffm@suse.com
+To: rostedt@goodmis.org
+Cc: richm@oldelvet.org.uk, 609371@bugs.debian.org, ben@decadent.org.uk, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, fweisbec@gmail.com, mingo@redhat.com, Jesper.Nilsson@axis.com, jeffm@suse.com, mathieu.desnoyers@efficios.com
 
-From: "Bernhard R. Link" <brl+ccmadness@pcpool00.mathematik.uni-freiburg.de>
-Date: Mon, 17 Jan 2011 15:39:54 +0100
+From: Steven Rostedt <rostedt@goodmis.org>
+Date: Mon, 17 Jan 2011 09:15:41 -0500
 
->> I think we want none of this, and I think we should elide the align
->> directives entirely, or at least fix them so we don't get unaligned
->> stuff on 64-bit.
+> Again, this is to help the linker keep arrays in tacked. Tracepoints are
+> allocated into the tracepoint section, and then read like an array. If
+> the linker adds holes as it links sections into one big one, then the
+> reading of the array breaks.
 > 
-> One fix might be to move the __attribute__ from include/trace/ftrace.h
-> (and from include/linux/syscalls.h) to include/linux/ftrace_event.h
-> and attach it to the struct there. This way it should only increase it.
+> We either need to compact it (with the align(4)) which is undesirable,
+> or add our own holes like the above does.
 
-I'm beginning to think that the align directive is there purposely to
-down-align the structure so that the amount of space that tracing
-information consumes is minimized.
+Just take away all of the align directives, it should just work.
 
-I honestly can't tell, only Steven Rostedt can tell us for sure,
-because there are no commit messages or comments that explain why
-these things need to be there.
+If it doesn't, then we should investigate to find out the real reason
+why.
 
-If the align directives exist for that reason, then your suggestion
-would likely completely undo what these directives are trying to
-achieve.
+The linker has no reason to add holes, and in fact if we are to believe
+the commit message for 86c38a31aa7f2dd6e74a262710bf8ebf7455acc5
+("tracing: Fix ftrace_event_call alignment for use with gcc 4.5"), with
+gcc-4.x where x < 5, it did work even though some ftrace_event_call
+declarations lacked the align directive.
 
-Someone mentioned that the default struct alignment on x86-64 is
-something rather rediculious like 32 bytes or something like that.
-Yet someone else suggested to use __aligned__(32) to fix this, so
-color me completely confused.
-
+If this align thing is so critical, why don't we need it for the
+exception table entries which live in the "__ex_table" section in the
+kernel?  It's the same _exact_ kind of thing, and the asm sequence we
+use to populate it is identical to what GCC emits for the tracing
+object declarations in question.
