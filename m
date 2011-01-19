@@ -1,66 +1,50 @@
-From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Date: Wed, 19 Jan 2011 15:11:39 +0000
+From: Richard Mortimer <richm@oldelvet.org.uk>
+Date: Wed, 19 Jan 2011 15:27:17 +0000
 Subject: Re: Bug#609371: linux-image-2.6.37-trunk-sparc64: module scsi_mod:
-Message-Id: <20110119151139.GB11022@Krystal>
+Message-Id: <4D3702D5.5050502@oldelvet.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110118201323.GA14930@Krystal> <1295382144.12215.123.camel@gandalf.stny.rr.com> <20110119050844.GA8776@Krystal> <20110118.223247.241909079.davem@davemloft.net>
-In-Reply-To: <20110118.223247.241909079.davem@davemloft.net>
+References: <1295273486.16479.15.camel@gandalf.stny.rr.com>	<20110117.213448.226787087.davem@davemloft.net>	<20110117.220039.71097651.davem@davemloft.net> <20110117.220857.104046847.davem@davemloft.net>
+In-Reply-To: <20110117.220857.104046847.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: David Miller <davem@davemloft.net>
-Cc: rostedt@goodmis.org, richm@oldelvet.org.uk, 609371@bugs.debian.org, ben@decadent.org.uk, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, fweisbec@gmail.com, mingo@redhat.com
-
-* David Miller (davem@davemloft.net) wrote:
-> From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-> Date: Wed, 19 Jan 2011 00:08:45 -0500
-> 
-> > - No aligned() type attribute nor variable attribute. I get a crash on x86_64
-> >   (NULL pointer exception when executing __trace_add_event_call, the 5th call).
-> >   __alignof__(struct ftrace_event_call) is worth 8.
-> 
-> I think I figured it out.
-> 
-> It's the static vs. non-static thing, or some other crazyness wrt.
-> how x86-64 implements it's alignment rules.
-> 
-> GCC on x86-64 uses a completely different policy for aligning local
-> (ie. "static") data objects vs. globally visible ones, for one thing.
-> It also has different alignment policies for objects that are part
-> of an array vs. those which are not.
-> 
-> On both counts, we're lying to the compiler, so maybe it's sort of our
-> fault.
-
-Yep, we're in strong agreement here.
-
-> 
-> As far as GCC can see, the object is static and also not part of an
-> array or any other C construct for which things like this could matter
-> as long as the alignment it chooses meets the minimum alignment
-> requirements of the ABI.
-> 
-> So it doesn't let us do this trick where we put the individual event
-> markers into a special section, yet mark it __used and static, then
-> later access them as if they were part of a globally visible array.
-> 
-> If you look these static objects, they are emitted with a leading
-> ".align 32" directive.  This is what screws everything up.
-
-Ah, yep, good way to identify the culprit.
-
-> 
-> When the linker sees this, it aligns the start of every individual
-> "_ftrace_events" section, and that's where the "gaps" come from and
-> the crashes.
-
-OK (more to come in the following email response).
-
-Mathieu
+Cc: rostedt@goodmis.org, 609371@bugs.debian.org, ben@decadent.org.uk, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, fweisbec@gmail.com, mingo@redhat.com, mathieu.desnoyers@efficios.com
 
 
--- 
-Mathieu Desnoyers
-Operating System Efficiency R&D Consultant
-EfficiOS Inc.
-http://www.efficios.com
+
+On 18/01/2011 06:08, David Miller wrote:
+> From: David Miller<davem@davemloft.net>
+> Date: Mon, 17 Jan 2011 22:00:39 -0800 (PST)
+>
+>> ftrace: Remove unnecessary alignment tag from ftrace_event_call.
+>>
+>> It's completely unnecessary and causes problems on platforms
+>> where this tag down-aligns the structure's alignment.
+>>
+>> Signed-off-by: David S. Miller<davem@davemloft.net>
+>   ...
+>
+> Ok, unless we can explain why these alignments are needed at all, we
+> should kill all of them:
+>
+> --------------------
+> tracing: Remove unnecessary __aligned__(4) tag from trace data.
+>
+> It's completely unnecessary and causes problems on platforms
+> where this tag down-aligns the structure's alignment.
+>
+> Signed-off-by: David S. Miller<davem@davemloft.net>
+>
+
+For reference my build with the above patch completed last night. That 
+does boot on my sparc64 Sun Fire V120 so at the very least the 
+relocation issues go away.
+
+The machine wasn't very happy and networking/nfs was a little upset but 
+I'll wait until the patchset is more refined before investigating 
+further and trying to work out if it is related or not.
+
+Regards
+
+Richard
