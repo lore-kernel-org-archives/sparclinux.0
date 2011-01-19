@@ -1,10 +1,10 @@
 From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Date: Wed, 19 Jan 2011 15:10:04 +0000
+Date: Wed, 19 Jan 2011 15:11:39 +0000
 Subject: Re: Bug#609371: linux-image-2.6.37-trunk-sparc64: module scsi_mod:
-Message-Id: <20110119151004.GA11022@Krystal>
+Message-Id: <20110119151139.GB11022@Krystal>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110118201323.GA14930@Krystal> <1295382144.12215.123.camel@gandalf.stny.rr.com> <20110119050844.GA8776@Krystal> <20110118.211639.68142725.davem@davemloft.net>
-In-Reply-To: <20110118.211639.68142725.davem@davemloft.net>
+References: <20110118201323.GA14930@Krystal> <1295382144.12215.123.camel@gandalf.stny.rr.com> <20110119050844.GA8776@Krystal> <20110118.223247.241909079.davem@davemloft.net>
+In-Reply-To: <20110118.223247.241909079.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -15,54 +15,49 @@ Cc: rostedt@goodmis.org, richm@oldelvet.org.uk, 609371@bugs.debian.org, ben@deca
 > From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 > Date: Wed, 19 Jan 2011 00:08:45 -0500
 > 
-> > The following works fine for me now. Comments are welcome.
-> 
-> Thanks for doing this work Mathieu.
-> 
 > > - No aligned() type attribute nor variable attribute. I get a crash on x86_64
 > >   (NULL pointer exception when executing __trace_add_event_call, the 5th call).
 > >   __alignof__(struct ftrace_event_call) is worth 8.
 > 
-> This is really bizarre.  Does it only happen on x86_64?
-
-Sadly, my ppc32 test machine is currently broken, so I could not check on other
-than x86 archs.
-
-> I'm wondering if GCC does something bizarre like work with different
-> default alignments based upon the section or something like that.
+> I think I figured it out.
 > 
-> If so, maybe adding the section attribute to the array definition will
-> "fix" things?
+> It's the static vs. non-static thing, or some other crazyness wrt.
+> how x86-64 implements it's alignment rules.
+> 
+> GCC on x86-64 uses a completely different policy for aligning local
+> (ie. "static") data objects vs. globally visible ones, for one thing.
+> It also has different alignment policies for objects that are part
+> of an array vs. those which are not.
+> 
+> On both counts, we're lying to the compiler, so maybe it's sort of our
+> fault.
 
-Well, I thought about it in my sleep, and it looks like gcc is within its rights
-to align these statically declared structures on a larger alignment: gcc has no
-clue that we're going to do tricks with the linker to access the structures as
-an array, so aligning on a larger alignment *should* be fine for the compiler,
-but we suffer because we're doing something non-standard.
+Yep, we're in strong agreement here.
 
 > 
-> > On 32-bit architectures, we really want a aligned(4), and on 64-bit
-> > architectures, aligned(8). Represent this by creating:
-> > 
-> > #define __long_aligned __attribute__((__aligned__(__alignof__(long))))
+> As far as GCC can see, the object is static and also not part of an
+> array or any other C construct for which things like this could matter
+> as long as the alignment it chooses meets the minimum alignment
+> requirements of the ABI.
 > 
-> Do any of these datastructures have, or will have, "u64" or "long
-> long" types in them?  If so, then we will need to use "8"
-> unconditionally or "__alignof__(long long)".
+> So it doesn't let us do this trick where we put the individual event
+> markers into a special section, yet mark it __used and static, then
+> later access them as if they were part of a globally visible array.
+> 
+> If you look these static objects, they are emitted with a leading
+> ".align 32" directive.  This is what screws everything up.
 
-If my memory serves me correctly, I think "long long" is aligned on 4 bytes on
-ppc32, but on 8 bytes on x86_32 (yeah, that's weird). How about we create a
-#define __long_long_aligned __attribute__((__aligned__(__alignof__(long long))))
+Ah, yep, good way to identify the culprit.
 
-?
+> 
+> When the linker sees this, it aligns the start of every individual
+> "_ftrace_events" section, and that's where the "gaps" come from and
+> the crashes.
 
-Thanks,
+OK (more to come in the following email response).
 
 Mathieu
 
-> 
-> I'll see if I can work out why using no align directive explodes
-> on x86-64.
 
 -- 
 Mathieu Desnoyers
