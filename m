@@ -1,29 +1,32 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 28 Jan 2011 23:05:44 +0000
-Subject: Re: [PATCH v2] SPARC/LEON: power down instruction different of
-Message-Id: <20110128.150544.70192030.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Wed, 19 Jan 2011 22:52:34 +0000
+Subject: Documentation for sun4m
+Message-Id: <20110119225234.GA20692@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1296127618-10894-1-git-send-email-daniel@gaisler.com>
-In-Reply-To: <1296127618-10894-1-git-send-email-daniel@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 27 Jan 2011 18:40:02 +0100
+Hi all.
 
-> On Thu, Jan 27, 2011 at 12:26:58PM +0100, Daniel Hellstrom wrote:
->> The way a LEON is powered down is implemented differently depending
->> on CHIP type. The AMBA Plug&Play system ID tells revision of GRLIB
->> and CHIP.
->> 
->> This is for example needed by the GR-LEON4-ITX board and the UT699.
->> 
->> Previously the power down support for LEON was limited to SMP, now
->> both SMP and UP systems use the instruction.
->> 
->> Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
-> Acked-by: Sam Ravnborg <sam@ravnborg.org>
+While trying to understand the interrupt code in the kernel
+I have searched around to find a description of how it
+all fits together.
 
-Applied to sparc-next-2.6, thanks.
+I found the documentation for SPARC V8 (and V9).
+This helped to some degree - but left a lot to be understood.
+
+I also found a low-level description of SBUS and
+a few other CPU related documents.
+But they did not help much - or I missed the relevant info.
+
+So I miss something that gives a deeper intro to sun4m.
+Info on sun4c, sun4d is also needed but my focus is sun4m for now,
+as I only have sun4m hardware available.
+
+Do you have any pointers to relevant documentation?
+
+Thanks in advance,
+
+	Sam
