@@ -1,53 +1,43 @@
-From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Date: Wed, 19 Jan 2011 16:18:57 +0000
+From: Steven Rostedt <rostedt@goodmis.org>
+Date: Wed, 19 Jan 2011 18:13:42 +0000
 Subject: Re: Bug#609371: linux-image-2.6.37-trunk-sparc64: module scsi_mod:
-Message-Id: <20110119161857.GC15031@Krystal>
+Message-Id: <1295460822.12215.1389.camel@gandalf.stny.rr.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110118201323.GA14930@Krystal> <1295382144.12215.123.camel@gandalf.stny.rr.com> <20110119050844.GA8776@Krystal> <20110118.211639.68142725.davem@davemloft.net> <20110119151004.GA11022@Krystal> <20110119161455.GA18503@merkur.ravnborg.org>
-In-Reply-To: <20110119161455.GA18503@merkur.ravnborg.org>
+References: <1295382144.12215.123.camel@gandalf.stny.rr.com>
+	 <20110119050844.GA8776@Krystal>
+	 <20110118.223247.241909079.davem@davemloft.net>
+	 <20110118.232045.58440904.davem@davemloft.net>
+	 <1295451961.12215.1291.camel@gandalf.stny.rr.com>
+	 <20110119161534.GB15031@Krystal>
+In-Reply-To: <20110119161534.GB15031@Krystal>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: David Miller <davem@davemloft.net>, rostedt@goodmis.org, richm@oldelvet.org.uk, 609371@bugs.debian.org, ben@decadent.org.uk, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, fweisbec@gmail.com, mingo@redhat.com
+To: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: David Miller <davem@davemloft.net>, richm@oldelvet.org.uk, 609371@bugs.debian.org, ben@decadent.org.uk, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, fweisbec@gmail.com, mingo@redhat.com
 
-* Sam Ravnborg (sam@ravnborg.org) wrote:
+On Wed, 2011-01-19 at 11:15 -0500, Mathieu Desnoyers wrote:
+> * Steven Rostedt (rostedt@goodmis.org) wrote:
+> > After applying David's "remove align" patch, I got it to boot on x86_64
+> > with the following two patches. I thought just adding the "align" to the
+> > structure declaration would work, but it still failed on the syscall for
+> > init_module. By removing the double "declaration" of event_exit_##sname,
+> > removed this problem.
 > > 
-> > If my memory serves me correctly, I think "long long" is aligned on 4 bytes on
-> > ppc32, but on 8 bytes on x86_32 (yeah, that's weird). How about we create a
-> > #define __long_long_aligned __attribute__((__aligned__(__alignof__(long long))))
+> > I'll test this on x86 32bit and PPC 64. If it works there, I'll push all
+> > of them out for 38. Should these go to 37 stable too?
 > 
-> #define __u64_aligned __attribute__((__aligned__(__alignof__(long long))))
+> Please hold before adding these patches into git. They don't seem to address the
+> underlying problem correctly. See the latest exchanges between David Miller and
+> myself for more info.
 > 
-> A bit shorter but maybe less obvious.
+> We need to come up with something better than "it boots" as an explanation for
+> the fix.
 
-Yep, that would make sense.
+Yes, I agree that we should solve this issue correctly. But if there is
+a work around to the problem, we could implement that if the real
+solution is not in our grasp yet.
 
-I'm tempted to try creating
+-- Steve
 
-#defined __u64_packed_aligned __attribute__((__packed__, __aligned__(__alignof__(long long))))
 
-in the hope that gcc sees this as a strict alignment requirement (including a
-max bound) rather than just a hint. From what I gather in my reading of 
-
-http://gcc.gnu.org/onlinedocs/gcc/Type-Attributes.html
-
-"The aligned attribute can only increase the alignment; but you can decrease it
-by specifying packed as well. See below."
-
-gcc seems to support having both specified. I think this would provide the kind
-of alignment guarantees we really need here: both specifying the minimum _and_
-maximum alignment.
-
-Thoughts ?
-
-Mathieu
-
-> 
-> 	Sam
-
--- 
-Mathieu Desnoyers
-Operating System Efficiency R&D Consultant
-EfficiOS Inc.
-http://www.efficios.com
