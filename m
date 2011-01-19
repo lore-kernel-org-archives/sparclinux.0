@@ -1,45 +1,27 @@
-From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Date: Wed, 19 Jan 2011 22:21:44 +0000
+From: David Miller <davem@davemloft.net>
+Date: Wed, 19 Jan 2011 22:22:04 +0000
 Subject: Re: Bug#609371: linux-image-2.6.37-trunk-sparc64: module scsi_mod:
-Message-Id: <20110119222144.GC23544@Krystal>
+Message-Id: <20110119.142204.124077863.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110118.223247.241909079.davem@davemloft.net> <20110118.232045.58440904.davem@davemloft.net> <20110119153326.GC11022@Krystal> <20110119.134047.232915743.davem@davemloft.net> <1295474423.12215.1612.camel@gandalf.stny.rr.com>
-In-Reply-To: <1295474423.12215.1612.camel@gandalf.stny.rr.com>
+References: <20110119182052.GB18970@Krystal>
+	<20110119.134428.71569409.davem@davemloft.net>
+	<20110119221538.GB23544@Krystal>
+In-Reply-To: <20110119221538.GB23544@Krystal>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: David Miller <davem@davemloft.net>, richm@oldelvet.org.uk, 609371@bugs.debian.org, ben@decadent.org.uk, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, fweisbec@gmail.com, mingo@redhat.com
+To: mathieu.desnoyers@efficios.com
+Cc: rostedt@goodmis.org, richm@oldelvet.org.uk, 609371@bugs.debian.org, ben@decadent.org.uk, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, fweisbec@gmail.com, mingo@redhat.com
 
-* Steven Rostedt (rostedt@goodmis.org) wrote:
-> On Wed, 2011-01-19 at 13:40 -0800, David Miller wrote:
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Date: Wed, 19 Jan 2011 17:15:38 -0500
+
+> * David Miller (davem@davemloft.net) wrote:
+>> If plain "__long_aligned" works and, since you're tagging it to the structure
+>> definition, it only specifies a minimum-alignment, then I'm fine with using
+>> that to fix this.
 > 
-> > My concern is that if there is ever a u64 or similarly "long long"
-> > typed member in these tracing structures, it will not be aligned
-> > sufficiently to avoid unaligned access traps on 32-bit systems.
-> 
-> The structure that gets placed in this section is the ftrace_event_call.
-> It consists only of pointers, a struct list_head, a couple of "int", and
-> a struct trace_event, which consists of: a struct hlist_node, a struct
-> list_head, an int, and a pointer.
-> 
-> None of these are more than "long" and I don't foresee them needing a
-> long long type. I think assuming that a long is the largest item should
-> due.
-> 
-> We can add a comment next to these structures specifying this
-> dependency, and hopefully it would be updated if we ever do include a
-> long long in them.
+> I'd prefer to add the "packed" to ensure that gcc never decides for some odd
+> reason to use an alignment larger than the one we specify in the linker script.
 
-I still wonder how a 32-bit system can generate an unaligned access trap for an
-access to a 64-bit variable aligned on 32-bit, given that there is, by
-definition, no 64-bit memory accesses available on the architecture ?
-
-Mathieu
-
-
--- 
-Mathieu Desnoyers
-Operating System Efficiency R&D Consultant
-EfficiOS Inc.
-http://www.efficios.com
+Agreed.
