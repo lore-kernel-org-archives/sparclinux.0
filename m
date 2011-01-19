@@ -1,23 +1,72 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Wed, 19 Jan 2011 16:14:55 +0000
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Date: Wed, 19 Jan 2011 16:15:34 +0000
 Subject: Re: Bug#609371: linux-image-2.6.37-trunk-sparc64: module scsi_mod:
-Message-Id: <20110119161455.GA18503@merkur.ravnborg.org>
+Message-Id: <20110119161534.GB15031@Krystal>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110118201323.GA14930@Krystal> <1295382144.12215.123.camel@gandalf.stny.rr.com> <20110119050844.GA8776@Krystal> <20110118.211639.68142725.davem@davemloft.net> <20110119151004.GA11022@Krystal>
-In-Reply-To: <20110119151004.GA11022@Krystal>
+References: <1295382144.12215.123.camel@gandalf.stny.rr.com> <20110119050844.GA8776@Krystal> <20110118.223247.241909079.davem@davemloft.net> <20110118.232045.58440904.davem@davemloft.net> <1295451961.12215.1291.camel@gandalf.stny.rr.com>
+In-Reply-To: <1295451961.12215.1291.camel@gandalf.stny.rr.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: David Miller <davem@davemloft.net>, rostedt@goodmis.org, richm@oldelvet.org.uk, 609371@bugs.debian.org, ben@decadent.org.uk, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, fweisbec@gmail.com, mingo@redhat.com
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: David Miller <davem@davemloft.net>, richm@oldelvet.org.uk, 609371@bugs.debian.org, ben@decadent.org.uk, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, fweisbec@gmail.com, mingo@redhat.com
+
+* Steven Rostedt (rostedt@goodmis.org) wrote:
+> After applying David's "remove align" patch, I got it to boot on x86_64
+> with the following two patches. I thought just adding the "align" to the
+> structure declaration would work, but it still failed on the syscall for
+> init_module. By removing the double "declaration" of event_exit_##sname,
+> removed this problem.
+> 
+> I'll test this on x86 32bit and PPC 64. If it works there, I'll push all
+> of them out for 38. Should these go to 37 stable too?
+
+Please hold before adding these patches into git. They don't seem to address the
+underlying problem correctly. See the latest exchanges between David Miller and
+myself for more info.
+
+We need to come up with something better than "it boots" as an explanation for
+the fix.
+
+Thanks,
+
+Mathieu
 
 > 
-> If my memory serves me correctly, I think "long long" is aligned on 4 bytes on
-> ppc32, but on 8 bytes on x86_32 (yeah, that's weird). How about we create a
-> #define __long_long_aligned __attribute__((__aligned__(__alignof__(long long))))
+> -- Steve
+> 
+> diff --git a/include/linux/syscalls.h b/include/linux/syscalls.h
+> index cacc27a..0e3bce6 100644
+> --- a/include/linux/syscalls.h
+> +++ b/include/linux/syscalls.h
+> @@ -142,8 +142,6 @@ extern struct trace_event_functions exit_syscall_print_funcs;
+>  #define SYSCALL_TRACE_EXIT_EVENT(sname)					\
+>  	static struct syscall_metadata					\
+>  	__attribute__((__aligned__(4))) __syscall_meta_##sname;		\
+> -	static struct ftrace_event_call					\
+> -	__attribute__((__aligned__(4))) event_exit_##sname;		\
+>  	static struct ftrace_event_call __used				\
+>  	  __attribute__((__aligned__(4)))				\
+>  	  __attribute__((section("_ftrace_events")))			\
+> 
+> 
+> Index: linux-trace.git/include/linux/ftrace_event.h
+> =================================> --- linux-trace.git.orig/include/linux/ftrace_event.h
+> +++ linux-trace.git/include/linux/ftrace_event.h
+> @@ -194,7 +194,7 @@ struct ftrace_event_call {
+>  	int				perf_refcount;
+>  	struct hlist_head __percpu	*perf_events;
+>  #endif
+> -};
+> +} __attribute__((__aligned__(32)));
+>  
+>  #define PERF_MAX_TRACE_SIZE	2048
+>  
+> 
+> 
 
-#define __u64_aligned __attribute__((__aligned__(__alignof__(long long))))
-
-A bit shorter but maybe less obvious.
-
-	Sam
+-- 
+Mathieu Desnoyers
+Operating System Efficiency R&D Consultant
+EfficiOS Inc.
+http://www.efficios.com
