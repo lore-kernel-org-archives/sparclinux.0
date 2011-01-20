@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 20 Jan 2011 00:39:34 +0000
+From: Alex Buell <alex.buell@munted.org.uk>
+Date: Thu, 20 Jan 2011 09:46:33 +0000
 Subject: Re: Documentation for sun4m
-Message-Id: <20110119.163934.90811524.davem@davemloft.net>
+Message-Id: <1295516793.25725.13.camel@lithium>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20110119225234.GA20692@merkur.ravnborg.org>
 In-Reply-To: <20110119225234.GA20692@merkur.ravnborg.org>
@@ -10,28 +10,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: David Miller <davem@davemloft.net>
-Date: Wed, 19 Jan 2011 16:33:26 -0800 (PST)
-
-> From: Robert Reif <reif@earthlink.net>
-> Date: Wed, 19 Jan 2011 18:52:32 -0500
+On Wed, 2011-01-19 at 16:27 -0800, David Miller wrote:
 > 
->> Sam Ravnborg wrote:
->>> Do you have any pointers to relevant documentation?
->>>
->>>    
->> http://wikis.sun.com/display/FOSSdocs/Home used to have "Sun-4M System
->> Architecture (revision 2.0)" by Chuck Narad online but I guess Oracle
->> took it offline.  I have a copy I can send.
-> 
-> Oh that's rediculious that they took it offline.
+> http://wikis.sun.com/display/FOSSdocs/Home 
 
-BTW, there is also:
+None of the links provided to the documentation works; clicking on any
+of the documentation links goes to the Oracle community page
+http://www.oracle.com/technetwork/community/index.html
 
-http://www.ibiblio.org/pub/historic-linux/early-ports/Sparc/NCR/NCR89C105.txt
+Although I have my ID for logging onto Sun^WOracle, one has to have a
+support contract to be able to access the information whereas it used to
+be freely available on login before last December. Very disappointed
+with the 'lockdown'.
 
-Also, the qemu sparc folks have implemented a full virtual sun4m system
-controller driver in the qemu tree.  It is based upon the NCR and the
-Sun-4M system architecture PDF.
-
-
+Can we get someone to bash Larry over the head with with a clue-stick?
+-- 
+Tactical Nuclear Kittens
