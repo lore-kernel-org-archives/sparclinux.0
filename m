@@ -1,7 +1,7 @@
-From: Robert Reif <reif@earthlink.net>
-Date: Wed, 19 Jan 2011 23:52:32 +0000
+From: David Miller <davem@davemloft.net>
+Date: Thu, 20 Jan 2011 00:27:11 +0000
 Subject: Re: Documentation for sun4m
-Message-Id: <4D377940.7030902@earthlink.net>
+Message-Id: <20110119.162711.235697295.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20110119225234.GA20692@merkur.ravnborg.org>
 In-Reply-To: <20110119225234.GA20692@merkur.ravnborg.org>
@@ -10,10 +10,11 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Sam Ravnborg wrote:
-> Do you have any pointers to relevant documentation?
->
->    
-http://wikis.sun.com/display/FOSSdocs/Home used to have "Sun-4M System 
-Architecture (revision 2.0)" by Chuck Narad online but I guess Oracle 
-took it offline.  I have a copy I can send.
+
+You want:
+
+http://mediacast.sun.com/users/Barton808/media/Sun4M_SystemArchitecture_edited2.pdf
+
+You'll find the following link quite helpful, in general:
+
+http://wikis.sun.com/display/FOSSdocs/Home
