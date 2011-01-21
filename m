@@ -1,33 +1,34 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Wed, 05 Jan 2011 19:48:01 +0000
-Subject: Re: sb-100 bootup hangs...
-Message-Id: <20110105194801.GA25578@merkur.ravnborg.org>
+From: Jan Engelhardt <jengelh@medozas.de>
+Date: Fri, 21 Jan 2011 00:40:03 +0000
+Subject: physical_package_id on sun4v
+Message-Id: <alpine.LNX.2.01.1101210131480.6015@obet.zrqbmnf.qr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110105.112012.183041683.davem@davemloft.net>
-In-Reply-To: <20110105.112012.183041683.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Wed, Jan 05, 2011 at 11:20:12AM -0800, David Miller wrote:
-> 
-> Sam, just FYI, I think I know what this bug is, I've been helping
-> Fabio hunt down a similar bug on his machine, and he generated enough
-> debug info for me to work on a fix.
-> 
-> The issue is that the atyfb_setup_sparc() code in the ATY driver is
-> doing direct PROM calls to fetch information from the device tree, and
-> it's doing it in such a way that we will violate the PROM restrictions
-> that we can only pass <4GB virtual addresses down into prom calls.
-> 
-> That code should be using the in-kernel copy of the device tree,
-> via the of_*() interfaces, to do it's probing.  And I'm going to
-> write such a patch to fix this bug.
-> 
-> So sit tight :-)
+Hi,
 
-Great - I was anyway postponing debugging this until the weekend.
-I will test whatever you come up with.
 
-	Sam
+I notice that on the T1, the physical_package_id is the same as the core 
+id:
+
+01:36 ares:../system/cpu > grep '' cpu*/topology/physical_package_id
+cpu0/topology/physical_package_id:0
+cpu1/topology/physical_package_id:0
+cpu10/topology/physical_package_id:2
+cpu11/topology/physical_package_id:2
+...
+
+But as far as I can spot on the Eerie motherboard, there is just one 
+copper heatsink block, and thus one CPU. (Besides that the T1 does not 
+do SMP, so there can only be just one package.)
+
+Did I get something wrong? Is perhaps the Machine Description not 
+expressive enough to figure out how many packages (CPU sockets) there 
+are?
+
+
+thanks,
+Jan
