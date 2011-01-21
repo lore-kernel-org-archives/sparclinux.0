@@ -1,69 +1,48 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Date: Fri, 21 Jan 2011 01:17:52 +0000
+From: David Miller <davem@davemloft.net>
+Date: Fri, 21 Jan 2011 06:42:00 +0000
 Subject: Re: physical_package_id on sun4v
-Message-Id: <alpine.LNX.2.01.1101210158320.9501@obet.zrqbmnf.qr>
+Message-Id: <20110120.224200.190365297.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <alpine.LNX.2.01.1101210131480.6015@obet.zrqbmnf.qr>
 In-Reply-To: <alpine.LNX.2.01.1101210131480.6015@obet.zrqbmnf.qr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-On Friday 2011-01-21 01:43, David Miller wrote:
+From: Jan Engelhardt <jengelh@medozas.de>
+Date: Fri, 21 Jan 2011 02:17:52 +0100 (CET)
 
->From: Jan Engelhardt <jengelh@medozas.de>
->Date: Fri, 21 Jan 2011 01:40:03 +0100 (CET)
->
->> Did I get something wrong? Is perhaps the Machine Description not 
->> expressive enough to figure out how many packages (CPU sockets) there 
->> are?
->
->This is simply how we number physical packages and "cores" on Niagara.
->
->CPU sockets are represented by NUMA nodes.
->
->We need three layers of scheduler grouping, and those are the three
->layers provided by the kernel's generic hierarchy:
->
->	NUMA node --> physical_package --> core
->
->Inside the CPU socket we need two layers of scheduler grouping, so
->that's how I decided to implement things.
->
->So it's intentional and on purpose.
+> I am still a bit puzzled since the T1 is configured quite like the
+> Intel i7 920:
+>=20
+> T1: 4 threads =D7 6 cores =D7 1 CPU
+> 	core_sibling_list=3D0-3, thread_sibling_list=3D0-3
+>=20
+> i7: 2 threads =D7 4 cores =D7 1 CPU
+> 	core_sibling_list=3D0-7, thread_sibling_list=3D0,4
+>=20
+> And in comparison:
+> Altix4700: 2 threads =D7 2 cores =D7 128 CPUs
+> 	cpu0/core_sibling=3D0x03 (inferring>) core_sibling_list=3D0-3
+> 	cpu0/thread_sibling=3D0x01 (inferring>) thread_sibling_list=3D0-1
+>=20
+>=20
+> So it seems as if, because the toplogy is different between sparc
+> and {ia64, x86}, at least one has worse scheduling.
 
-Linux 2.6.32 used to output the scheduler grouping on bootup (these 
-messages are gone in Linux 2.6.37):
+This is to make room for T2's design, wherein inside of a core there
+are two integer units.
 
-CPU0 attaching sched-domain:
- domain 0: span 0-3 level SIBLING
-  groups: 0 (cpu_power = 294) 1 (cpu_power = 294) 2 (cpu_power = 294) 3
- (cpu_power = 294)
-  domain 1: span 0-3 level MC
-   groups: 0-3 (cpu_power = 1176)
-   domain 2: span 0-23 level CPU
-    groups: 0-3 (cpu_power = 1176) 4-7 (cpu_power = 1176) 8-11 (cpu_power = 1176) 12-15 (cpu_power = 1176) 16-19 (cpu_power = 1176) 20-23 (cpu_power = 1176)
+So in the T2 we get:
 
-SIBLING, MC, CPU. That looks pretty much like the three-level
-grouping you described. Though if 0-23 makes up a CPU and 0-3
-makes up a core (that's what one could infer), 0-3 is not
-one thread.
+cpu0 --> cpu7    --> core_id =3D 1
+cpu8 --> cpu15   --> core_id =3D 2
 
-I am still a bit puzzled since the T1 is configured quite like the
-Intel i7 920:
+cpu0 --> cpu3    --> phys_package_id =3D 0
+cpu4 --> cpu7    --> phys_package_id =3D 1
+cpu8 --> cpu11   --> phys_package_id =3D 2
+cpu12 --> cpu15  --> phys_package_id =3D 3
 
-T1: 4 threads × 6 cores × 1 CPU
-	core_sibling_list=0-3, thread_sibling_list=0-3
+etc. etc. etc.
 
-i7: 2 threads × 4 cores × 1 CPU
-	core_sibling_list=0-7, thread_sibling_list=0,4
-
-And in comparison:
-Altix4700: 2 threads × 2 cores × 128 CPUs
-	cpu0/core_sibling=0x03 (inferring>) core_sibling_list=0-3
-	cpu0/thread_sibling=0x01 (inferring>) thread_sibling_list=0-1
-
-
-So it seems as if, because the toplogy is different between sparc
-and {ia64, x86}, at least one has worse scheduling.
