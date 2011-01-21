@@ -1,43 +1,91 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Tue, 04 Jan 2011 03:01:38 +0000
-Subject: Re: [PATCH] sparc: explicitly cast negative phandle checks to s32
-Message-Id: <20110104030138.GB10725@angua.secretlab.ca>
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Date: Fri, 21 Jan 2011 20:36:33 +0000
+Subject: [patch 3/3] tracepoints: use __u64_aligned/U64_ALIGN()
+Message-Id: <20110121203643.046218322@efficios.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20101111224206.79239902@queued.net>
-In-Reply-To: <20101111224206.79239902@queued.net>
+References: <20110121203630.725922272@efficios.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>, David Miller <davem@davemloft.net>, Steven Rostedt <rostedt@goodmis.org>, Frederic Weisbecker <fweisbec@gmail.com>, Ingo Molnar <mingo@elte.hu>, Richard Mortimer <richm@oldelvet.org.uk>, ben@decadent.org.uk, sparclinux@vger.kernel.org
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 
-On Mon, Jan 03, 2011 at 06:56:09PM -0800, David Miller wrote:
-> From: Grant Likely <grant.likely@secretlab.ca>
-> Date: Mon, 3 Jan 2011 19:26:38 -0700
-> 
-> > On Thu, Nov 11, 2010 at 10:42:06PM -0800, Andres Salomon wrote:
-> >> 
-> >> When we switched sparc from using 'int's to 'phandle's (which is a u32), we
-> >> neglected to do anything with the various checks for -1.  For those tests,
-> >> explicitly cast the phandles to s32.
-> >> 
-> >> My sparc machine is down, so I was unable to build-test this..
-> >> 
-> >> Signed-off-by: Andres Salomon <dilinger@queued.net>
-> > 
-> > Two hunks in this patch no longer apply as the code it touches appears
-> > to have been removed, but the rest applies and at least compiles.  I
-> > haven't boot tested it though.
-> > 
-> > Dave, I imagine this fix should go in via your tree, but I can pick it
-> > up if you prefer.
-> > 
-> > Acked-by: Grant Likely <grant.likely@secretlab.ca>
-> 
-> Indeed, I was hoping you would pick it up Grant, thanks :-)
-> 
-> Acked-by: David S. Miller <davem@davemloft.net>
+commit 7e066fb870fcd1025ec3ba7bbde5d541094f4ce1 added the aligned(32) type and
+variable attribute to the tracepoint structures to deal with gcc happily
+aligning statically defined structures on 32-byte multiples.
 
-Done.  It will show up in my public tree later tonight.
+Working on issues within Ftrace, we came up with __64_aligned, which deals with
+this issue more elegantly by forcing an 8-byte alignment to both the type
+declaration and variable definition.
 
-g.
+This therefore saves space, bringing down the size of struct tracepoint from 64
+bytes to 38 on 64-bit architectures.
+
+Updating:
+- The type attribute (for iteration over the struct tracepoint array)
+- Added the variable attribute to the extern definition (needed to force gcc to
+  consider this alignment for the following definition)
+- The definition variable attribute (to force gcc to this specific alignment for
+  the static definitions)
+- The linker script (8-byte alignment can now replace the previous 32-byte
+  alignment for the custom tracepoint section)
+
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+CC: David Miller <davem@davemloft.net>
+CC: Steven Rostedt <rostedt@goodmis.org>
+CC: Frederic Weisbecker <fweisbec@gmail.com>
+CC: Ingo Molnar <mingo@elte.hu>
+---
+ include/asm-generic/vmlinux.lds.h |    2 +-
+ include/linux/tracepoint.h        |   12 ++++--------
+ 2 files changed, 5 insertions(+), 9 deletions(-)
+
+Index: linux-2.6-lttng/include/asm-generic/vmlinux.lds.h
+=================================--- linux-2.6-lttng.orig/include/asm-generic/vmlinux.lds.h
++++ linux-2.6-lttng/include/asm-generic/vmlinux.lds.h
+@@ -168,7 +168,7 @@
+ 	CPU_KEEP(exit.data)						\
+ 	MEM_KEEP(init.data)						\
+ 	MEM_KEEP(exit.data)						\
+-	. = ALIGN(32);							\
++	U64_ALIGN();							\
+ 	VMLINUX_SYMBOL(__start___tracepoints) = .;			\
+ 	*(__tracepoints)						\
+ 	VMLINUX_SYMBOL(__stop___tracepoints) = .;			\
+Index: linux-2.6-lttng/include/linux/tracepoint.h
+=================================--- linux-2.6-lttng.orig/include/linux/tracepoint.h
++++ linux-2.6-lttng/include/linux/tracepoint.h
+@@ -33,12 +33,7 @@ struct tracepoint {
+ 	void (*regfunc)(void);
+ 	void (*unregfunc)(void);
+ 	struct tracepoint_func *funcs;
+-} __attribute__((aligned(32)));		/*
+-					 * Aligned on 32 bytes because it is
+-					 * globally visible and gcc happily
+-					 * align these on the structure size.
+-					 * Keep in sync with vmlinux.lds.h.
+-					 */
++} __u64_aligned;
+ 
+ /*
+  * Connect a probe to a tracepoint.
+@@ -143,7 +138,7 @@ static inline void tracepoint_update_pro
+  * structure. Force alignment to the same alignment as the section start.
+  */
+ #define __DECLARE_TRACE(name, proto, args, data_proto, data_args)	\
+-	extern struct tracepoint __tracepoint_##name;			\
++	extern struct tracepoint __u64_aligned __tracepoint_##name;	\
+ 	static inline void trace_##name(proto)				\
+ 	{								\
+ 		JUMP_LABEL(&__tracepoint_##name.state, do_trace);	\
+@@ -174,7 +169,8 @@ do_trace:								\
+ 	static const char __tpstrtab_##name[]				\
+ 	__attribute__((section("__tracepoints_strings"))) = #name;	\
+ 	struct tracepoint __tracepoint_##name				\
+-	__attribute__((section("__tracepoints"), aligned(32))) =	\
++	__u64_aligned							\
++	__attribute__((section("__tracepoints"))) =			\
+ 		{ __tpstrtab_##name, 0, reg, unreg, NULL }
+ 
+ #define DEFINE_TRACE(name)						\
 
