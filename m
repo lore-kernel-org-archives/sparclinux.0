@@ -1,22 +1,60 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 22 Jan 2011 00:52:03 +0000
-Subject: Re: [PATCH 6/6 V3] sparc: Fix sbus_alloc_coherent error handling.
-Message-Id: <20110121.165203.172625635.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 21 Jan 2011 22:24:51 +0000
+Subject: [RFC PATCH 0/5] sparc64: drop deprecated irq features
+Message-Id: <20110121222451.GA29468@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1295359829-27308-7-git-send-email-kristoffer@gaisler.com>
-In-Reply-To: <1295359829-27308-7-git-send-email-kristoffer@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: sparclinux <sparclinux@vger.kernel.org>, David Miller <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>
+Cc: lkml <linux-kernel@vger.kernel.org>
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Tue, 18 Jan 2011 20:43:17 +0100
+This set of patches update sparc64 so no deprecated genirq
+features are used.
 
-> On Tue, Jan 18, 2011 at 03:10:29PM +0100, Kristoffer Glembo wrote:
->> Order of kfree and free_pages were swapped in the error handling.
-> Well spotted!
-> 
-> Acked-by: Sam Ravnborg <sam@ravnborg.org>
+I did this mainly to understand the genirq stuff better.
+Originally I looked into sparc64 code and was confused
+because it used deprecated stuff. So the logical step
+was to update sparc64 to avoid the deprecated stuff.
+So I did so and the result follows.
 
-Applied.
+This is an RFC because:
+- This is not yet tested
+- I expect a (trivial) conflict when we get Thomas'
+  __DO_irq stuff merged
+- I expect to get some feedback that needs to be addressed
+
+I made one conceptual change.
+irq_handler_data was previously assinged to irq_data.chip_data.
+This is changed so it uses irq_data.handler_data
+
+Looking into kernel/irq/* this looked OK.
+
+I plan to do some testing within the next week.
+
+I looked at integrating struct virt_irq_table[] as
+chip_data in irq_data.
+But the way the virt_irq_alloc() function is used did not
+make this bovious how to do so. So I played safe and did
+not try to do so.
+
+Any comments aprreciated.
+If there are more features from genirq we could use let me
+know and I may look at it.
+And if something just looks wrong please say so too.
+
+	Sam
+
+
+Sam Ravnborg (5):
+      sparc64: fix direct access to irq_desc
+      sparc: in handler_irq() rename irq parameter to pil
+      sparc64: all pointers to irq_handler_data renamed to handler_data
+      sparc64: use {get,set}_irq_data for handler_data
+      sparc64: use up-to-data genirq functions
+
+ arch/sparc/Kconfig            |    2 -
+ arch/sparc/kernel/irq_32.c    |   20 ++--
+ arch/sparc/kernel/irq_64.c    |  197 ++++++++++++++++++++---------------------
+ arch/sparc/kernel/sun4d_irq.c |   18 ++--
+ 4 files changed, 117 insertions(+), 120 deletions(-)
