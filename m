@@ -1,326 +1,376 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 11 Jan 2011 23:51:08 +0000
-Subject: [PATCH 8/22] svga: Make svga_wseq_mask() take an iomem regbase
-Message-Id: <20110111.155108.73362778.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 22 Jan 2011 21:32:20 +0000
+Subject: [PATCH 7/7] sparc64: rename virt_irq => irq - II
+Message-Id: <1295731940-31697-7-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-fbdev@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
+The generic irq support uses the term 'irq' for the
+allocated irq number.
+Fix it so sparc64 use the same term for an irq as the
+generic irq support does.
+For a naive reader this is less confusing.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- drivers/video/arkfb.c    |   16 +++++++++-------
- drivers/video/s3fb.c     |   20 +++++++++++---------
- drivers/video/svgalib.c  |    2 +-
- drivers/video/vt8623fb.c |   43 +++++++++++++++++++++++--------------------
- include/linux/svga.h     |    4 ++--
- 5 files changed, 46 insertions(+), 39 deletions(-)
+ arch/sparc/include/asm/irq_64.h   |   18 +++++++-------
+ arch/sparc/kernel/pci.c           |   10 ++++----
+ arch/sparc/kernel/pci_fire.c      |    8 +++---
+ arch/sparc/kernel/pci_impl.h      |    4 +-
+ arch/sparc/kernel/pci_msi.c       |   44 ++++++++++++++++++------------------
+ arch/sparc/kernel/pci_sun4v.c     |    6 ++--
+ arch/sparc/kernel/prom_irqtrans.c |   16 ++++++------
+ 7 files changed, 53 insertions(+), 53 deletions(-)
 
-diff --git a/drivers/video/arkfb.c b/drivers/video/arkfb.c
-index 41a065d..39f00ac 100644
---- a/drivers/video/arkfb.c
-+++ b/drivers/video/arkfb.c
-@@ -649,7 +649,7 @@ static int arkfb_set_par(struct fb_info *info)
- 	svga_wcrt_mask(0x11, 0x00, 0x80);
+diff --git a/arch/sparc/include/asm/irq_64.h b/arch/sparc/include/asm/irq_64.h
+index a0b443c..4f09666 100644
+--- a/arch/sparc/include/asm/irq_64.h
++++ b/arch/sparc/include/asm/irq_64.h
+@@ -33,34 +33,34 @@
  
- 	/* Blank screen and turn off sync */
--	svga_wseq_mask(0x01, 0x20, 0x20);
-+	svga_wseq_mask(par->state.vgabase, 0x01, 0x20, 0x20);
- 	svga_wcrt_mask(0x17, 0x00, 0x80);
+ /* The largest number of unique interrupt sources we support.
+  * If this needs to ever be larger than 255, you need to change
+- * the type of ino_bucket->virt_irq as appropriate.
++ * the type of ino_bucket->irq as appropriate.
+  *
+- * ino_bucket->virt_irq allocation is made during {sun4v_,}build_irq().
++ * ino_bucket->irq allocation is made during {sun4v_,}build_irq().
+  */
+ #define NR_IRQS    255
  
- 	/* Set default values */
-@@ -661,8 +661,8 @@ static int arkfb_set_par(struct fb_info *info)
- 	svga_wcrt_multi(par->state.vgabase, ark_start_address_regs, 0);
+-extern void irq_install_pre_handler(int virt_irq,
++extern void irq_install_pre_handler(int irq,
+ 				    void (*func)(unsigned int, void *, void *),
+ 				    void *arg1, void *arg2);
+ #define irq_canonicalize(irq)	(irq)
+ extern unsigned int build_irq(int inofixup, unsigned long iclr, unsigned long imap);
+ extern unsigned int sun4v_build_irq(u32 devhandle, unsigned int devino);
+ extern unsigned int sun4v_build_virq(u32 devhandle, unsigned int devino);
+-extern unsigned int sun4v_build_msi(u32 devhandle, unsigned int *virt_irq_p,
++extern unsigned int sun4v_build_msi(u32 devhandle, unsigned int *irq_p,
+ 				    unsigned int msi_devino_start,
+ 				    unsigned int msi_devino_end);
+-extern void sun4v_destroy_msi(unsigned int virt_irq);
+-extern unsigned int sun4u_build_msi(u32 portid, unsigned int *virt_irq_p,
++extern void sun4v_destroy_msi(unsigned int irq);
++extern unsigned int sun4u_build_msi(u32 portid, unsigned int *irq_p,
+ 				    unsigned int msi_devino_start,
+ 				    unsigned int msi_devino_end,
+ 				    unsigned long imap_base,
+ 				    unsigned long iclr_base);
+-extern void sun4u_destroy_msi(unsigned int virt_irq);
++extern void sun4u_destroy_msi(unsigned int irq);
  
- 	/* ARK specific initialization */
--	svga_wseq_mask(0x10, 0x1F, 0x1F); /* enable linear framebuffer and full memory access */
--	svga_wseq_mask(0x12, 0x03, 0x03); /* 4 MB linear framebuffer size */
-+	svga_wseq_mask(par->state.vgabase, 0x10, 0x1F, 0x1F); /* enable linear framebuffer and full memory access */
-+	svga_wseq_mask(par->state.vgabase, 0x12, 0x03, 0x03); /* 4 MB linear framebuffer size */
+-extern unsigned char virt_irq_alloc(unsigned int dev_handle,
++extern unsigned char irq_alloc(unsigned int dev_handle,
+ 				    unsigned int dev_ino);
+ #ifdef CONFIG_PCI_MSI
+-extern void virt_irq_free(unsigned int virt_irq);
++extern void irq_free(unsigned int irq);
+ #endif
  
- 	vga_wseq(NULL, 0x13, info->fix.smem_start >> 16);
- 	vga_wseq(NULL, 0x14, info->fix.smem_start >> 24);
-@@ -787,7 +787,7 @@ static int arkfb_set_par(struct fb_info *info)
- 	memset_io(info->screen_base, 0x00, screen_size);
- 	/* Device and screen back on */
- 	svga_wcrt_mask(0x17, 0x80, 0x80);
--	svga_wseq_mask(0x01, 0x00, 0x20);
-+	svga_wseq_mask(par->state.vgabase, 0x01, 0x00, 0x20);
+ extern void __init init_IRQ(void);
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index 4137579..bfede51 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -1001,22 +1001,22 @@ EXPORT_SYMBOL(pci_domain_nr);
+ int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
+ {
+ 	struct pci_pbm_info *pbm = pdev->dev.archdata.host_controller;
+-	unsigned int virt_irq;
++	unsigned int irq;
+ 
+ 	if (!pbm->setup_msi_irq)
+ 		return -EINVAL;
+ 
+-	return pbm->setup_msi_irq(&virt_irq, pdev, desc);
++	return pbm->setup_msi_irq(&irq, pdev, desc);
+ }
+ 
+-void arch_teardown_msi_irq(unsigned int virt_irq)
++void arch_teardown_msi_irq(unsigned int irq)
+ {
+-	struct msi_desc *entry = get_irq_msi(virt_irq);
++	struct msi_desc *entry = get_irq_msi(irq);
+ 	struct pci_dev *pdev = entry->dev;
+ 	struct pci_pbm_info *pbm = pdev->dev.archdata.host_controller;
+ 
+ 	if (pbm->teardown_msi_irq)
+-		pbm->teardown_msi_irq(virt_irq, pdev);
++		pbm->teardown_msi_irq(irq, pdev);
+ }
+ #endif /* !(CONFIG_PCI_MSI) */
+ 
+diff --git a/arch/sparc/kernel/pci_fire.c b/arch/sparc/kernel/pci_fire.c
+index efb896d..539d3a8 100644
+--- a/arch/sparc/kernel/pci_fire.c
++++ b/arch/sparc/kernel/pci_fire.c
+@@ -277,7 +277,7 @@ static int pci_fire_msiq_build_irq(struct pci_pbm_info *pbm,
+ {
+ 	unsigned long cregs = (unsigned long) pbm->pbm_regs;
+ 	unsigned long imap_reg, iclr_reg, int_ctrlr;
+-	unsigned int virt_irq;
++	unsigned int irq;
+ 	int fixup;
+ 	u64 val;
+ 
+@@ -293,14 +293,14 @@ static int pci_fire_msiq_build_irq(struct pci_pbm_info *pbm,
+ 
+ 	fixup = ((pbm->portid << 6) | devino) - int_ctrlr;
+ 
+-	virt_irq = build_irq(fixup, iclr_reg, imap_reg);
+-	if (!virt_irq)
++	irq = build_irq(fixup, iclr_reg, imap_reg);
++	if (!irq)
+ 		return -ENOMEM;
+ 
+ 	upa_writeq(EVENT_QUEUE_CONTROL_SET_EN,
+ 		   pbm->pbm_regs + EVENT_QUEUE_CONTROL_SET(msiqid));
+ 
+-	return virt_irq;
++	return irq;
+ }
+ 
+ static const struct sparc64_msiq_ops pci_fire_msiq_ops = {
+diff --git a/arch/sparc/kernel/pci_impl.h b/arch/sparc/kernel/pci_impl.h
+index e20ed5f..6beb60d 100644
+--- a/arch/sparc/kernel/pci_impl.h
++++ b/arch/sparc/kernel/pci_impl.h
+@@ -131,9 +131,9 @@ struct pci_pbm_info {
+ 	void				*msi_queues;
+ 	unsigned long			*msi_bitmap;
+ 	unsigned int			*msi_irq_table;
+-	int (*setup_msi_irq)(unsigned int *virt_irq_p, struct pci_dev *pdev,
++	int (*setup_msi_irq)(unsigned int *irq_p, struct pci_dev *pdev,
+ 			     struct msi_desc *entry);
+-	void (*teardown_msi_irq)(unsigned int virt_irq, struct pci_dev *pdev);
++	void (*teardown_msi_irq)(unsigned int irq, struct pci_dev *pdev);
+ 	const struct sparc64_msiq_ops	*msi_ops;
+ #endif /* !(CONFIG_PCI_MSI) */
+ 
+diff --git a/arch/sparc/kernel/pci_msi.c b/arch/sparc/kernel/pci_msi.c
+index b210416..550e937 100644
+--- a/arch/sparc/kernel/pci_msi.c
++++ b/arch/sparc/kernel/pci_msi.c
+@@ -31,12 +31,12 @@ static irqreturn_t sparc64_msiq_interrupt(int irq, void *cookie)
+ 		err = ops->dequeue_msi(pbm, msiqid, &head, &msi);
+ 		if (likely(err > 0)) {
+ 			struct irq_desc *desc;
+-			unsigned int virt_irq;
++			unsigned int irq;
+ 
+-			virt_irq = pbm->msi_irq_table[msi - pbm->msi_first];
+-			desc = irq_desc + virt_irq;
++			irq = pbm->msi_irq_table[msi - pbm->msi_first];
++			desc = irq_desc + irq;
+ 
+-			desc->handle_irq(virt_irq, desc);
++			desc->handle_irq(irq, desc);
+ 		}
+ 
+ 		if (unlikely(err < 0))
+@@ -121,7 +121,7 @@ static struct irq_chip msi_irq = {
+ 	/* XXX affinity XXX */
+ };
+ 
+-static int sparc64_setup_msi_irq(unsigned int *virt_irq_p,
++static int sparc64_setup_msi_irq(unsigned int *irq_p,
+ 				 struct pci_dev *pdev,
+ 				 struct msi_desc *entry)
+ {
+@@ -131,17 +131,17 @@ static int sparc64_setup_msi_irq(unsigned int *virt_irq_p,
+ 	int msi, err;
+ 	u32 msiqid;
+ 
+-	*virt_irq_p = virt_irq_alloc(0, 0);
++	*irq_p = irq_alloc(0, 0);
+ 	err = -ENOMEM;
+-	if (!*virt_irq_p)
++	if (!*irq_p)
+ 		goto out_err;
+ 
+-	set_irq_chip_and_handler_name(*virt_irq_p, &msi_irq,
++	set_irq_chip_and_handler_name(*irq_p, &msi_irq,
+ 				      handle_simple_irq, "MSI");
+ 
+ 	err = alloc_msi(pbm);
+ 	if (unlikely(err < 0))
+-		goto out_virt_irq_free;
++		goto out_irq_free;
+ 
+ 	msi = err;
+ 
+@@ -152,7 +152,7 @@ static int sparc64_setup_msi_irq(unsigned int *virt_irq_p,
+ 	if (err)
+ 		goto out_msi_free;
+ 
+-	pbm->msi_irq_table[msi - pbm->msi_first] = *virt_irq_p;
++	pbm->msi_irq_table[msi - pbm->msi_first] = *irq_p;
+ 
+ 	if (entry->msi_attrib.is_64) {
+ 		msg.address_hi = pbm->msi64_start >> 32;
+@@ -163,24 +163,24 @@ static int sparc64_setup_msi_irq(unsigned int *virt_irq_p,
+ 	}
+ 	msg.data = msi;
+ 
+-	set_irq_msi(*virt_irq_p, entry);
+-	write_msi_msg(*virt_irq_p, &msg);
++	set_irq_msi(*irq_p, entry);
++	write_msi_msg(*irq_p, &msg);
  
  	return 0;
- }
-@@ -857,22 +857,24 @@ static int arkfb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
  
- static int arkfb_blank(int blank_mode, struct fb_info *info)
- {
-+	struct arkfb_info *par = info->par;
-+
- 	switch (blank_mode) {
- 	case FB_BLANK_UNBLANK:
- 		pr_debug("fb%d: unblank\n", info->node);
--		svga_wseq_mask(0x01, 0x00, 0x20);
-+		svga_wseq_mask(par->state.vgabase, 0x01, 0x00, 0x20);
- 		svga_wcrt_mask(0x17, 0x80, 0x80);
- 		break;
- 	case FB_BLANK_NORMAL:
- 		pr_debug("fb%d: blank\n", info->node);
--		svga_wseq_mask(0x01, 0x20, 0x20);
-+		svga_wseq_mask(par->state.vgabase, 0x01, 0x20, 0x20);
- 		svga_wcrt_mask(0x17, 0x80, 0x80);
- 		break;
- 	case FB_BLANK_POWERDOWN:
- 	case FB_BLANK_HSYNC_SUSPEND:
- 	case FB_BLANK_VSYNC_SUSPEND:
- 		pr_debug("fb%d: sync down\n", info->node);
--		svga_wseq_mask(0x01, 0x20, 0x20);
-+		svga_wseq_mask(par->state.vgabase, 0x01, 0x20, 0x20);
- 		svga_wcrt_mask(0x17, 0x00, 0x80);
- 		break;
- 	}
-diff --git a/drivers/video/s3fb.c b/drivers/video/s3fb.c
-index a4301b6..aafffcc 100644
---- a/drivers/video/s3fb.c
-+++ b/drivers/video/s3fb.c
-@@ -510,7 +510,7 @@ static int s3fb_set_par(struct fb_info *info)
- 	svga_wcrt_mask(0x11, 0x00, 0x80);
+ out_msi_free:
+ 	free_msi(pbm, msi);
  
- 	/* Blank screen and turn off sync */
--	svga_wseq_mask(0x01, 0x20, 0x20);
-+	svga_wseq_mask(par->state.vgabase, 0x01, 0x20, 0x20);
- 	svga_wcrt_mask(0x17, 0x00, 0x80);
+-out_virt_irq_free:
+-	set_irq_chip(*virt_irq_p, NULL);
+-	virt_irq_free(*virt_irq_p);
+-	*virt_irq_p = 0;
++out_irq_free:
++	set_irq_chip(*irq_p, NULL);
++	irq_free(*irq_p);
++	*irq_p = 0;
  
- 	/* Set default values */
-@@ -700,8 +700,8 @@ static int s3fb_set_par(struct fb_info *info)
- 	}
- 
- 	if (par->chip != CHIP_988_VIRGE_VX) {
--		svga_wseq_mask(0x15, multiplex ? 0x10 : 0x00, 0x10);
--		svga_wseq_mask(0x18, multiplex ? 0x80 : 0x00, 0x80);
-+		svga_wseq_mask(par->state.vgabase, 0x15, multiplex ? 0x10 : 0x00, 0x10);
-+		svga_wseq_mask(par->state.vgabase, 0x18, multiplex ? 0x80 : 0x00, 0x80);
- 	}
- 
- 	s3_set_pixclock(info, info->var.pixclock);
-@@ -718,7 +718,7 @@ static int s3fb_set_par(struct fb_info *info)
- 	memset_io(info->screen_base, 0x00, screen_size);
- 	/* Device and screen back on */
- 	svga_wcrt_mask(0x17, 0x80, 0x80);
--	svga_wseq_mask(0x01, 0x00, 0x20);
-+	svga_wseq_mask(par->state.vgabase, 0x01, 0x00, 0x20);
- 
- 	return 0;
- }
-@@ -788,31 +788,33 @@ static int s3fb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
- 
- static int s3fb_blank(int blank_mode, struct fb_info *info)
- {
-+	struct s3fb_info *par = info->par;
-+
- 	switch (blank_mode) {
- 	case FB_BLANK_UNBLANK:
- 		pr_debug("fb%d: unblank\n", info->node);
- 		svga_wcrt_mask(0x56, 0x00, 0x06);
--		svga_wseq_mask(0x01, 0x00, 0x20);
-+		svga_wseq_mask(par->state.vgabase, 0x01, 0x00, 0x20);
- 		break;
- 	case FB_BLANK_NORMAL:
- 		pr_debug("fb%d: blank\n", info->node);
- 		svga_wcrt_mask(0x56, 0x00, 0x06);
--		svga_wseq_mask(0x01, 0x20, 0x20);
-+		svga_wseq_mask(par->state.vgabase, 0x01, 0x20, 0x20);
- 		break;
- 	case FB_BLANK_HSYNC_SUSPEND:
- 		pr_debug("fb%d: hsync\n", info->node);
- 		svga_wcrt_mask(0x56, 0x02, 0x06);
--		svga_wseq_mask(0x01, 0x20, 0x20);
-+		svga_wseq_mask(par->state.vgabase, 0x01, 0x20, 0x20);
- 		break;
- 	case FB_BLANK_VSYNC_SUSPEND:
- 		pr_debug("fb%d: vsync\n", info->node);
- 		svga_wcrt_mask(0x56, 0x04, 0x06);
--		svga_wseq_mask(0x01, 0x20, 0x20);
-+		svga_wseq_mask(par->state.vgabase, 0x01, 0x20, 0x20);
- 		break;
- 	case FB_BLANK_POWERDOWN:
- 		pr_debug("fb%d: sync down\n", info->node);
- 		svga_wcrt_mask(0x56, 0x06, 0x06);
--		svga_wseq_mask(0x01, 0x20, 0x20);
-+		svga_wseq_mask(par->state.vgabase, 0x01, 0x20, 0x20);
- 		break;
- 	}
- 
-diff --git a/drivers/video/svgalib.c b/drivers/video/svgalib.c
-index 6d3d39f..ea74904 100644
---- a/drivers/video/svgalib.c
-+++ b/drivers/video/svgalib.c
-@@ -139,7 +139,7 @@ void svga_set_default_crt_regs(void)
- 
- void svga_set_textmode_vga_regs(void)
- {
--	/* svga_wseq_mask(0x1, 0x00, 0x01); */   /* Switch 8/9 pixel per char */
-+	/* svga_wseq_mask(NULL, 0x1, 0x00, 0x01); */   /* Switch 8/9 pixel per char */
- 	vga_wseq(NULL, VGA_SEQ_MEMORY_MODE,	VGA_SR04_EXT_MEM);
- 	vga_wseq(NULL, VGA_SEQ_PLANE_WRITE,	0x03);
- 
-diff --git a/drivers/video/vt8623fb.c b/drivers/video/vt8623fb.c
-index f19dbed..c0ccaae 100644
---- a/drivers/video/vt8623fb.c
-+++ b/drivers/video/vt8623fb.c
-@@ -253,6 +253,7 @@ static void vt8623fb_fillrect(struct fb_info *info, const struct fb_fillrect *re
- 
- static void vt8623_set_pixclock(struct fb_info *info, u32 pixclock)
- {
-+	struct vt8623fb_info *par = info->par;
- 	u16 m, n, r;
- 	u8 regval;
- 	int rv;
-@@ -274,8 +275,8 @@ static void vt8623_set_pixclock(struct fb_info *info, u32 pixclock)
- 	udelay(1000);
- 
- 	/* PLL reset */
--	svga_wseq_mask(0x40, 0x02, 0x02);
--	svga_wseq_mask(0x40, 0x00, 0x02);
-+	svga_wseq_mask(par->state.vgabase, 0x40, 0x02, 0x02);
-+	svga_wseq_mask(par->state.vgabase, 0x40, 0x00, 0x02);
+ out_err:
+ 	return err;
  }
  
- 
-@@ -415,12 +416,12 @@ static int vt8623fb_set_par(struct fb_info *info)
- 	info->var.activate = FB_ACTIVATE_NOW;
- 
- 	/* Unlock registers */
--	svga_wseq_mask(0x10, 0x01, 0x01);
-+	svga_wseq_mask(par->state.vgabase, 0x10, 0x01, 0x01);
- 	svga_wcrt_mask(0x11, 0x00, 0x80);
- 	svga_wcrt_mask(0x47, 0x00, 0x01);
- 
- 	/* Device, screen and sync off */
--	svga_wseq_mask(0x01, 0x20, 0x20);
-+	svga_wseq_mask(par->state.vgabase, 0x01, 0x20, 0x20);
- 	svga_wcrt_mask(0x36, 0x30, 0x30);
- 	svga_wcrt_mask(0x17, 0x00, 0x80);
- 
-@@ -444,12 +445,12 @@ static int vt8623fb_set_par(struct fb_info *info)
- 	else
- 		svga_wcrt_mask(0x09, 0x00, 0x80);
- 
--	svga_wseq_mask(0x1E, 0xF0, 0xF0); // DI/DVP bus
--	svga_wseq_mask(0x2A, 0x0F, 0x0F); // DI/DVP bus
--	svga_wseq_mask(0x16, 0x08, 0xBF); // FIFO read threshold
-+	svga_wseq_mask(par->state.vgabase, 0x1E, 0xF0, 0xF0); // DI/DVP bus
-+	svga_wseq_mask(par->state.vgabase, 0x2A, 0x0F, 0x0F); // DI/DVP bus
-+	svga_wseq_mask(par->state.vgabase, 0x16, 0x08, 0xBF); // FIFO read threshold
- 	vga_wseq(NULL, 0x17, 0x1F);       // FIFO depth
- 	vga_wseq(NULL, 0x18, 0x4E);
--	svga_wseq_mask(0x1A, 0x08, 0x08); // enable MMIO ?
-+	svga_wseq_mask(par->state.vgabase, 0x1A, 0x08, 0x08); // enable MMIO ?
- 
- 	vga_wcrt(NULL, 0x32, 0x00);
- 	vga_wcrt(NULL, 0x34, 0x00);
-@@ -466,31 +467,31 @@ static int vt8623fb_set_par(struct fb_info *info)
- 	case 0:
- 		pr_debug("fb%d: text mode\n", info->node);
- 		svga_set_textmode_vga_regs();
--		svga_wseq_mask(0x15, 0x00, 0xFE);
-+		svga_wseq_mask(par->state.vgabase, 0x15, 0x00, 0xFE);
- 		svga_wcrt_mask(0x11, 0x60, 0x70);
- 		break;
- 	case 1:
- 		pr_debug("fb%d: 4 bit pseudocolor\n", info->node);
- 		vga_wgfx(NULL, VGA_GFX_MODE, 0x40);
--		svga_wseq_mask(0x15, 0x20, 0xFE);
-+		svga_wseq_mask(par->state.vgabase, 0x15, 0x20, 0xFE);
- 		svga_wcrt_mask(0x11, 0x00, 0x70);
- 		break;
- 	case 2:
- 		pr_debug("fb%d: 4 bit pseudocolor, planar\n", info->node);
--		svga_wseq_mask(0x15, 0x00, 0xFE);
-+		svga_wseq_mask(par->state.vgabase, 0x15, 0x00, 0xFE);
- 		svga_wcrt_mask(0x11, 0x00, 0x70);
- 		break;
- 	case 3:
- 		pr_debug("fb%d: 8 bit pseudocolor\n", info->node);
--		svga_wseq_mask(0x15, 0x22, 0xFE);
-+		svga_wseq_mask(par->state.vgabase, 0x15, 0x22, 0xFE);
- 		break;
- 	case 4:
- 		pr_debug("fb%d: 5/6/5 truecolor\n", info->node);
--		svga_wseq_mask(0x15, 0xB6, 0xFE);
-+		svga_wseq_mask(par->state.vgabase, 0x15, 0xB6, 0xFE);
- 		break;
- 	case 5:
- 		pr_debug("fb%d: 8/8/8 truecolor\n", info->node);
--		svga_wseq_mask(0x15, 0xAE, 0xFE);
-+		svga_wseq_mask(par->state.vgabase, 0x15, 0xAE, 0xFE);
- 		break;
- 	default:
- 		printk(KERN_ERR "vt8623fb: unsupported mode - bug\n");
-@@ -507,7 +508,7 @@ static int vt8623fb_set_par(struct fb_info *info)
- 	/* Device and screen back on */
- 	svga_wcrt_mask(0x17, 0x80, 0x80);
- 	svga_wcrt_mask(0x36, 0x00, 0x30);
--	svga_wseq_mask(0x01, 0x00, 0x20);
-+	svga_wseq_mask(par->state.vgabase, 0x01, 0x00, 0x20);
- 
- 	return 0;
- }
-@@ -570,31 +571,33 @@ static int vt8623fb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
- 
- static int vt8623fb_blank(int blank_mode, struct fb_info *info)
+-static void sparc64_teardown_msi_irq(unsigned int virt_irq,
++static void sparc64_teardown_msi_irq(unsigned int irq,
+ 				     struct pci_dev *pdev)
  {
-+	struct vt8623fb_info *par = info->par;
-+
- 	switch (blank_mode) {
- 	case FB_BLANK_UNBLANK:
- 		pr_debug("fb%d: unblank\n", info->node);
- 		svga_wcrt_mask(0x36, 0x00, 0x30);
--		svga_wseq_mask(0x01, 0x00, 0x20);
-+		svga_wseq_mask(par->state.vgabase, 0x01, 0x00, 0x20);
- 		break;
- 	case FB_BLANK_NORMAL:
- 		pr_debug("fb%d: blank\n", info->node);
- 		svga_wcrt_mask(0x36, 0x00, 0x30);
--		svga_wseq_mask(0x01, 0x20, 0x20);
-+		svga_wseq_mask(par->state.vgabase, 0x01, 0x20, 0x20);
- 		break;
- 	case FB_BLANK_HSYNC_SUSPEND:
- 		pr_debug("fb%d: DPMS standby (hsync off)\n", info->node);
- 		svga_wcrt_mask(0x36, 0x10, 0x30);
--		svga_wseq_mask(0x01, 0x20, 0x20);
-+		svga_wseq_mask(par->state.vgabase, 0x01, 0x20, 0x20);
- 		break;
- 	case FB_BLANK_VSYNC_SUSPEND:
- 		pr_debug("fb%d: DPMS suspend (vsync off)\n", info->node);
- 		svga_wcrt_mask(0x36, 0x20, 0x30);
--		svga_wseq_mask(0x01, 0x20, 0x20);
-+		svga_wseq_mask(par->state.vgabase, 0x01, 0x20, 0x20);
- 		break;
- 	case FB_BLANK_POWERDOWN:
- 		pr_debug("fb%d: DPMS off (no sync)\n", info->node);
- 		svga_wcrt_mask(0x36, 0x30, 0x30);
--		svga_wseq_mask(0x01, 0x20, 0x20);
-+		svga_wseq_mask(par->state.vgabase, 0x01, 0x20, 0x20);
- 		break;
+ 	struct pci_pbm_info *pbm = pdev->dev.archdata.host_controller;
+@@ -189,12 +189,12 @@ static void sparc64_teardown_msi_irq(unsigned int virt_irq,
+ 	int i, err;
+ 
+ 	for (i = 0; i < pbm->msi_num; i++) {
+-		if (pbm->msi_irq_table[i] = virt_irq)
++		if (pbm->msi_irq_table[i] = irq)
+ 			break;
+ 	}
+ 	if (i >= pbm->msi_num) {
+ 		printk(KERN_ERR "%s: teardown: No MSI for irq %u\n",
+-		       pbm->name, virt_irq);
++		       pbm->name, irq);
+ 		return;
  	}
  
-diff --git a/include/linux/svga.h b/include/linux/svga.h
-index d31a398..93f7777 100644
---- a/include/linux/svga.h
-+++ b/include/linux/svga.h
-@@ -76,9 +76,9 @@ static inline void svga_wattr(void __iomem *regbase, u8 index, u8 data)
+@@ -205,14 +205,14 @@ static void sparc64_teardown_msi_irq(unsigned int virt_irq,
+ 	if (err) {
+ 		printk(KERN_ERR "%s: teardown: ops->teardown() on MSI %u, "
+ 		       "irq %u, gives error %d\n",
+-		       pbm->name, msi_num, virt_irq, err);
++		       pbm->name, msi_num, irq, err);
+ 		return;
+ 	}
  
- /* Write a value to a sequence register with a mask */
+ 	free_msi(pbm, msi_num);
  
--static inline void svga_wseq_mask(u8 index, u8 data, u8 mask)
-+static inline void svga_wseq_mask(void __iomem *regbase, u8 index, u8 data, u8 mask)
- {
--	vga_wseq(NULL, index, (data & mask) | (vga_rseq(NULL, index) & ~mask));
-+	vga_wseq(regbase, index, (data & mask) | (vga_rseq(regbase, index) & ~mask));
+-	set_irq_chip(virt_irq, NULL);
+-	virt_irq_free(virt_irq);
++	set_irq_chip(irq, NULL);
++	irq_free(irq);
  }
  
- /* Write a value to a CRT register with a mask */
+ static int msi_bitmap_alloc(struct pci_pbm_info *pbm)
+diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
+index 743344a..825c4a0 100644
+--- a/arch/sparc/kernel/pci_sun4v.c
++++ b/arch/sparc/kernel/pci_sun4v.c
+@@ -844,9 +844,9 @@ static int pci_sun4v_msiq_build_irq(struct pci_pbm_info *pbm,
+ 				    unsigned long msiqid,
+ 				    unsigned long devino)
+ {
+-	unsigned int virt_irq = sun4v_build_irq(pbm->devhandle, devino);
++	unsigned int irq = sun4v_build_irq(pbm->devhandle, devino);
+ 
+-	if (!virt_irq)
++	if (!irq)
+ 		return -ENOMEM;
+ 
+ 	if (pci_sun4v_msiq_setstate(pbm->devhandle, msiqid, HV_MSIQSTATE_IDLE))
+@@ -854,7 +854,7 @@ static int pci_sun4v_msiq_build_irq(struct pci_pbm_info *pbm,
+ 	if (pci_sun4v_msiq_setvalid(pbm->devhandle, msiqid, HV_MSIQ_VALID))
+ 		return -EINVAL;
+ 
+-	return virt_irq;
++	return irq;
+ }
+ 
+ static const struct sparc64_msiq_ops pci_sun4v_msiq_ops = {
+diff --git a/arch/sparc/kernel/prom_irqtrans.c b/arch/sparc/kernel/prom_irqtrans.c
+index ce65114..570b98f 100644
+--- a/arch/sparc/kernel/prom_irqtrans.c
++++ b/arch/sparc/kernel/prom_irqtrans.c
+@@ -227,7 +227,7 @@ static unsigned int sabre_irq_build(struct device_node *dp,
+ 	unsigned long imap, iclr;
+ 	unsigned long imap_off, iclr_off;
+ 	int inofixup = 0;
+-	int virt_irq;
++	int irq;
+ 
+ 	ino &= 0x3f;
+ 	if (ino < SABRE_ONBOARD_IRQ_BASE) {
+@@ -247,7 +247,7 @@ static unsigned int sabre_irq_build(struct device_node *dp,
+ 	if ((ino & 0x20) = 0)
+ 		inofixup = ino & 0x03;
+ 
+-	virt_irq = build_irq(inofixup, iclr, imap);
++	irq = build_irq(inofixup, iclr, imap);
+ 
+ 	/* If the parent device is a PCI<->PCI bridge other than
+ 	 * APB, we have to install a pre-handler to ensure that
+@@ -256,13 +256,13 @@ static unsigned int sabre_irq_build(struct device_node *dp,
+ 	 */
+ 	regs = of_get_property(dp, "reg", NULL);
+ 	if (regs && sabre_device_needs_wsync(dp)) {
+-		irq_install_pre_handler(virt_irq,
++		irq_install_pre_handler(irq,
+ 					sabre_wsync_handler,
+ 					(void *) (long) regs->phys_hi,
+ 					(void *) irq_data);
+ 	}
+ 
+-	return virt_irq;
++	return irq;
+ }
+ 
+ static void __init sabre_irq_trans_init(struct device_node *dp)
+@@ -382,7 +382,7 @@ static unsigned int schizo_irq_build(struct device_node *dp,
+ 	unsigned long pbm_regs = irq_data->pbm_regs;
+ 	unsigned long imap, iclr;
+ 	int ign_fixup;
+-	int virt_irq;
++	int irq;
+ 	int is_tomatillo;
+ 
+ 	ino &= 0x3f;
+@@ -409,17 +409,17 @@ static unsigned int schizo_irq_build(struct device_node *dp,
+ 			ign_fixup = (1 << 6);
+ 	}
+ 
+-	virt_irq = build_irq(ign_fixup, iclr, imap);
++	irq = build_irq(ign_fixup, iclr, imap);
+ 
+ 	if (is_tomatillo) {
+-		irq_install_pre_handler(virt_irq,
++		irq_install_pre_handler(irq,
+ 					tomatillo_wsync_handler,
+ 					((irq_data->chip_version <= 4) ?
+ 					 (void *) 1 : (void *) 0),
+ 					(void *) irq_data->sync_reg);
+ 	}
+ 
+-	return virt_irq;
++	return irq;
+ }
+ 
+ static void __init __schizo_irq_trans_init(struct device_node *dp,
 -- 
-1.7.3.4
+1.6.0.6
 
