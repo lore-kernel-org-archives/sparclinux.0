@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 22 Jan 2011 00:02:52 +0000
+From: Josip Rodin <joy@entuzijast.net>
+Date: Sat, 22 Jan 2011 01:21:24 +0000
 Subject: Re: [PATCH 5/5] sparc64: use up-to-data genirq functions
-Message-Id: <20110121.160252.255390101.davem@davemloft.net>
+Message-Id: <20110122012124.GA9824@entuzijast.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1295648816-29516-5-git-send-email-sam@ravnborg.org>
 In-Reply-To: <1295648816-29516-5-git-send-email-sam@ravnborg.org>
@@ -10,30 +10,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Josip Rodin <joy@entuzijast.net>
-Date: Sat, 22 Jan 2011 00:43:44 +0100
-
-> On Fri, Jan 21, 2011 at 11:26:56PM +0100, Sam Ravnborg wrote:
->> Drop all uses of deprecated genirq features
+On Fri, Jan 21, 2011 at 04:02:52PM -0800, David Miller wrote:
+> From: Josip Rodin <joy@entuzijast.net>
+> Date: Sat, 22 Jan 2011 00:43:44 +0100
 > 
->> -static int sun4u_set_affinity(unsigned int virt_irq,
->> -			       const struct cpumask *mask)
->> +static int sun4u_set_affinity(struct irq_data *data,
->> +			       const struct cpumask *mask, bool force)
->> -static int sun4v_set_affinity(unsigned int virt_irq,
->> -			       const struct cpumask *mask)
->> +static int sun4v_set_affinity(struct irq_data *data,
->> +			       const struct cpumask *mask, bool force)
->> -static int sun4v_virt_set_affinity(unsigned int virt_irq,
->> -				    const struct cpumask *mask)
->> +static int sun4v_virt_set_affinity(struct irq_data *data,
->> +				    const struct cpumask *mask, bool force)
+> > On Fri, Jan 21, 2011 at 11:26:56PM +0100, Sam Ravnborg wrote:
+> >> Drop all uses of deprecated genirq features
+> > 
+> >> -static int sun4u_set_affinity(unsigned int virt_irq,
+> >> -			       const struct cpumask *mask)
+> >> +static int sun4u_set_affinity(struct irq_data *data,
+> >> +			       const struct cpumask *mask, bool force)
+> >> -static int sun4v_set_affinity(unsigned int virt_irq,
+> >> -			       const struct cpumask *mask)
+> >> +static int sun4v_set_affinity(struct irq_data *data,
+> >> +			       const struct cpumask *mask, bool force)
+> >> -static int sun4v_virt_set_affinity(unsigned int virt_irq,
+> >> -				    const struct cpumask *mask)
+> >> +static int sun4v_virt_set_affinity(struct irq_data *data,
+> >> +				    const struct cpumask *mask, bool force)
+> > 
+> > For the benefit of future readers, maybe add a short comment to the commit
+> > description to explain why these functions are now apparently ignoring the
+> > 'force' parameter, that is, does it not apply because it's not presently
+> > implemented, or because it just doesn't make sense.
 > 
-> For the benefit of future readers, maybe add a short comment to the commit
-> description to explain why these functions are now apparently ignoring the
-> 'force' parameter, that is, does it not apply because it's not presently
-> implemented, or because it just doesn't make sense.
+> I don't see any implementation where the "force" parameter is used, and
+> I see no call of these methods that every sets "force" to anything other
+> than "false".
 
-I don't see any implementation where the "force" parameter is used, and
-I see no call of these methods that every sets "force" to anything other
-than "false".
+So the conversion to a non-deprecated API is introducing cruft?
+That sounds like the change defeats its own point :)
+
+-- 
+     2. That which causes joy or happiness.
