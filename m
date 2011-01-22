@@ -1,20 +1,144 @@
-From: tsaenz@uach.mx
-Date: Mon, 24 Jan 2011 08:37:19 +0000
-Subject: Transaction notice
-Message-Id: <f668b4516151.4d3d484f@uach.mx>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 22 Jan 2011 21:32:15 +0000
+Subject: [PATCH 2/7] sparc: in handler_irq() rename irq parameter to pil
+Message-Id: <1295731940-31697-2-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+The generic irq support uses "irq" to identify the
+virtual irq number. To avoid confusion rename the
+argument to handler_irq() to pil to match the
+name of the parameter in the PCR register.
 
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+---
+ arch/sparc/kernel/irq_32.c    |   20 ++++++++++----------
+ arch/sparc/kernel/irq_64.c    |    4 ++--
+ arch/sparc/kernel/sun4d_irq.c |   18 +++++++++---------
+ 3 files changed, 21 insertions(+), 21 deletions(-)
 
-I humbly seek your cooperation towards an immense beneficial proposal to you.
-Contact me through the email address below for details.
+diff --git a/arch/sparc/kernel/irq_32.c b/arch/sparc/kernel/irq_32.c
+index 5ad6e5c..07c3e39 100644
+--- a/arch/sparc/kernel/irq_32.c
++++ b/arch/sparc/kernel/irq_32.c
+@@ -320,7 +320,7 @@ void unexpected_irq(int irq, void *dev_id, struct pt_regs * regs)
+ 	panic("bogus interrupt received");
+ }
  
-aapp@nwpp.co-mail.com
+-void handler_irq(int irq, struct pt_regs * regs)
++void handler_irq(int pil, struct pt_regs * regs)
+ {
+ 	struct pt_regs *old_regs;
+ 	struct irqaction * action;
+@@ -331,23 +331,23 @@ void handler_irq(int irq, struct pt_regs * regs)
+ 
+ 	old_regs = set_irq_regs(regs);
+ 	irq_enter();
+-	disable_pil_irq(irq);
++	disable_pil_irq(pil);
+ #ifdef CONFIG_SMP
+ 	/* Only rotate on lower priority IRQs (scsi, ethernet, etc.). */
+-	if((sparc_cpu_model=sun4m) && (irq < 10))
++	if((sparc_cpu_model=sun4m) && (pil < 10))
+ 		smp4m_irq_rotate(cpu);
+ #endif
+-	action = sparc_irq[irq].action;
+-	sparc_irq[irq].flags |= SPARC_IRQ_INPROGRESS;
+-	kstat_cpu(cpu).irqs[irq]++;
++	action = sparc_irq[pil].action;
++	sparc_irq[pil].flags |= SPARC_IRQ_INPROGRESS;
++	kstat_cpu(cpu).irqs[pil]++;
+ 	do {
+ 		if (!action || !action->handler)
+-			unexpected_irq(irq, NULL, regs);
+-		action->handler(irq, action->dev_id);
++			unexpected_irq(pil, NULL, regs);
++		action->handler(pil, action->dev_id);
+ 		action = action->next;
+ 	} while (action);
+-	sparc_irq[irq].flags &= ~SPARC_IRQ_INPROGRESS;
+-	enable_pil_irq(irq);
++	sparc_irq[pil].flags &= ~SPARC_IRQ_INPROGRESS;
++	enable_pil_irq(pil);
+ 	irq_exit();
+ 	set_irq_regs(old_regs);
+ }
+diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
+index ee67dae..d4d1233 100644
+--- a/arch/sparc/kernel/irq_64.c
++++ b/arch/sparc/kernel/irq_64.c
+@@ -714,13 +714,13 @@ void ack_bad_irq(unsigned int virt_irq)
+ void *hardirq_stack[NR_CPUS];
+ void *softirq_stack[NR_CPUS];
+ 
+-void __irq_entry handler_irq(int irq, struct pt_regs *regs)
++void __irq_entry handler_irq(int pil, struct pt_regs *regs)
+ {
+ 	unsigned long pstate, bucket_pa;
+ 	struct pt_regs *old_regs;
+ 	void *orig_sp;
+ 
+-	clear_softint(1 << irq);
++	clear_softint(1 << pil);
+ 
+ 	old_regs = set_irq_regs(regs);
+ 	irq_enter();
+diff --git a/arch/sparc/kernel/sun4d_irq.c b/arch/sparc/kernel/sun4d_irq.c
+index e11b461..3af649e 100644
+--- a/arch/sparc/kernel/sun4d_irq.c
++++ b/arch/sparc/kernel/sun4d_irq.c
+@@ -205,28 +205,28 @@ out_unlock:
+ 
+ extern void unexpected_irq(int, void *, struct pt_regs *);
+ 
+-void sun4d_handler_irq(int irq, struct pt_regs * regs)
++void sun4d_handler_irq(int pil, struct pt_regs * regs)
+ {
+ 	struct pt_regs *old_regs;
+ 	struct irqaction * action;
+ 	int cpu = smp_processor_id();
+ 	/* SBUS IRQ level (1 - 7) */
+-	int sbusl = pil_to_sbus[irq];
++	int sbusl = pil_to_sbus[pil];
+ 	
+ 	/* FIXME: Is this necessary?? */
+ 	cc_get_ipen();
+ 	
+-	cc_set_iclr(1 << irq);
++	cc_set_iclr(1 << pil);
+ 	
+ 	old_regs = set_irq_regs(regs);
+ 	irq_enter();
+-	kstat_cpu(cpu).irqs[irq]++;
++	kstat_cpu(cpu).irqs[pil]++;
+ 	if (!sbusl) {
+-		action = *(irq + irq_action);
++		action = *(pil + irq_action);
+ 		if (!action)
+-			unexpected_irq(irq, NULL, regs);
++			unexpected_irq(pil, NULL, regs);
+ 		do {
+-			action->handler(irq, action->dev_id);
++			action->handler(pil, action->dev_id);
+ 			action = action->next;
+ 		} while (action);
+ 	} else {
+@@ -251,9 +251,9 @@ void sun4d_handler_irq(int irq, struct pt_regs * regs)
+ 						action = actionp->action;
+ 						
+ 						if (!action)
+-							unexpected_irq(irq, NULL, regs);
++							unexpected_irq(pil, NULL, regs);
+ 						do {
+-							action->handler(irq, action->dev_id);
++							action->handler(pil, action->dev_id);
+ 							action = action->next;
+ 						} while (action);
+ 						release_sbi(SBI2DEVID(sbino), slot);
+-- 
+1.6.0.6
 
-Remember that the subject of this mail is Transaction notice.
-It is very important that you recall this so that you will recognize my email when I send the details after your response. 
-J.S.
