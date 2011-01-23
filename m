@@ -1,36 +1,23 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Sun, 23 Jan 2011 15:17:04 +0000
-Subject: [patch 4/9] sparc: Replace deprecated spinlock initialization
-Message-Id: <20110123143837.223928325@linutronix.de>
+From: David Miller <davem@davemloft.net>
+Date: Sun, 23 Jan 2011 19:54:58 +0000
+Subject: Re: [patch 4/9] sparc: Replace deprecated spinlock initialization
+Message-Id: <20110123.115458.183063678.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20110123143631.392446736@linutronix.de>
+	<20110123143837.223928325@linutronix.de>
+In-Reply-To: <20110123143837.223928325@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>, Peter Zijlstra <peterz@infradead.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: tglx@linutronix.de
+Cc: linux-kernel@vger.kernel.org, mingo@elte.hu, peterz@infradead.org, sparclinux@vger.kernel.org
 
-SPIN_LOCK_UNLOCK is deprecated. Use the lockdep capable variant
-instead.
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Sun, 23 Jan 2011 15:17:04 -0000
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
----
- arch/sparc/lib/atomic32.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> SPIN_LOCK_UNLOCK is deprecated. Use the lockdep capable variant
+> instead.
+> 
+> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 
-Index: linux-2.6/arch/sparc/lib/atomic32.c
-=================================--- linux-2.6.orig/arch/sparc/lib/atomic32.c
-+++ linux-2.6/arch/sparc/lib/atomic32.c
-@@ -16,7 +16,7 @@
- #define ATOMIC_HASH(a)	(&__atomic_hash[(((unsigned long)a)>>8) & (ATOMIC_HASH_SIZE-1)])
- 
- spinlock_t __atomic_hash[ATOMIC_HASH_SIZE] = {
--	[0 ... (ATOMIC_HASH_SIZE-1)] = SPIN_LOCK_UNLOCKED
-+	[0 ... (ATOMIC_HASH_SIZE-1)] = __SPIN_LOCK_UNLOCKED(__atomic_hash)
- };
- 
- #else /* SMP */
-
-
+Acked-by: David S. Miller <davem@davemloft.net>
