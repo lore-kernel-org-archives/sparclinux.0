@@ -1,32 +1,36 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 12 Jan 2011 00:26:59 +0000
-Subject: [GIT] Sparc
-Message-Id: <20110111.162659.172602331.davem@davemloft.net>
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Sun, 23 Jan 2011 15:17:04 +0000
+Subject: [patch 4/9] sparc: Replace deprecated spinlock initialization
+Message-Id: <20110123143837.223928325@linutronix.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
+References: <20110123143631.392446736@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>, Peter Zijlstra <peterz@infradead.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+
+SPIN_LOCK_UNLOCK is deprecated. Use the lockdep capable variant
+instead.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+---
+ arch/sparc/lib/atomic32.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: linux-2.6/arch/sparc/lib/atomic32.c
+=================================--- linux-2.6.orig/arch/sparc/lib/atomic32.c
++++ linux-2.6/arch/sparc/lib/atomic32.c
+@@ -16,7 +16,7 @@
+ #define ATOMIC_HASH(a)	(&__atomic_hash[(((unsigned long)a)>>8) & (ATOMIC_HASH_SIZE-1)])
+ 
+ spinlock_t __atomic_hash[ATOMIC_HASH_SIZE] = {
+-	[0 ... (ATOMIC_HASH_SIZE-1)] = SPIN_LOCK_UNLOCKED
++	[0 ... (ATOMIC_HASH_SIZE-1)] = __SPIN_LOCK_UNLOCKED(__atomic_hash)
+ };
+ 
+ #else /* SMP */
 
 
-This fixes a bootup regression caused by some recent perf NMI changes.
-
-Please pull, thanks a lot!
-
-The following changes since commit 7bc4a4ce68f8c6d064ea949446852e996526f692:
-
-  Merge branch 'for-linus-merged' of git://oss.sgi.com/xfs/xfs (2011-01-11 11:42:06 -0800)
-
-are available in the git repository at:
-
-  master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
-
-David S. Miller (1):
-      sparc64: Fix bootup regression due to perf init ordering.
-
- arch/sparc/kernel/cpu.c |    2 +-
- arch/sparc/kernel/pcr.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
