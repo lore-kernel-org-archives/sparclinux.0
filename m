@@ -1,461 +1,548 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 22 Jan 2011 21:32:19 +0000
-Subject: [PATCH 6/7] sparc64: rename virt_irq => irq - I
-Message-Id: <1295731940-31697-6-git-send-email-sam@ravnborg.org>
+Date: Sun, 23 Jan 2011 21:41:07 +0000
+Subject: [PATCH 4/7] sparc32,sun4m: irq, smp files cleanup
+Message-Id: <1295818870-25450-4-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-The generic irq support uses the term 'irq' for the
-allocated irq number.
-Fix it so sparc64 use the same term for an irq as the
-generic irq support does.
-For a naive reader this is less confusing.
+- drop filename in file header
+- drop unused includes
+- add description of sun4m interrupts (from davem)
+- add KERN_* to printk
+- fix spaces => tabs
+- add spaces after reserved words
+- drop all externs, they are now in header files
+
+This is partly based on a patch from: David Miller <davem@davemloft.net>
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/kernel/entry.h  |    4 +-
- arch/sparc/kernel/irq_64.c |  153 +++++++++++++++++++++----------------------
- 2 files changed, 77 insertions(+), 80 deletions(-)
+ arch/sparc/kernel/sun4m_irq.c |  182 +++++++++++++++++++++--------------------
+ arch/sparc/kernel/sun4m_smp.c |   91 +++++----------------
+ 2 files changed, 115 insertions(+), 158 deletions(-)
 
-diff --git a/arch/sparc/kernel/entry.h b/arch/sparc/kernel/entry.h
-index c011b93..d1f1361 100644
---- a/arch/sparc/kernel/entry.h
-+++ b/arch/sparc/kernel/entry.h
-@@ -213,8 +213,8 @@ extern struct cheetah_err_info *cheetah_error_log;
- struct ino_bucket {
- /*0x00*/unsigned long __irq_chain_pa;
+diff --git a/arch/sparc/kernel/sun4m_irq.c b/arch/sparc/kernel/sun4m_irq.c
+index 7f3b97f..3c6657a 100644
+--- a/arch/sparc/kernel/sun4m_irq.c
++++ b/arch/sparc/kernel/sun4m_irq.c
+@@ -1,5 +1,5 @@
+-/*  sun4m_irq.c
+- *  arch/sparc/kernel/sun4m_irq.c:
++/*
++ * sun4m irq support
+  *
+  *  djhr: Hacked out of irq.c into a CPU dependent version.
+  *
+@@ -9,36 +9,92 @@
+  *  Copyright (C) 1996 Dave Redman (djhr@tadpole.co.uk)
+  */
  
--	/* Virtual interrupt number assigned to this INO.  */
--/*0x08*/unsigned int __virt_irq;
-+	/* Interrupt number assigned to this INO.  */
-+/*0x08*/unsigned int __irq;
- /*0x0c*/unsigned int __pad;
- };
+-#include <linux/errno.h>
+-#include <linux/linkage.h>
+-#include <linux/kernel_stat.h>
+-#include <linux/signal.h>
+-#include <linux/sched.h>
+-#include <linux/ptrace.h>
+-#include <linux/smp.h>
+-#include <linux/interrupt.h>
+-#include <linux/init.h>
+-#include <linux/ioport.h>
+-#include <linux/of.h>
+-#include <linux/of_device.h>
+-
+-#include <asm/ptrace.h>
+-#include <asm/processor.h>
+-#include <asm/system.h>
+-#include <asm/psr.h>
+-#include <asm/vaddrs.h>
+ #include <asm/timer.h>
+-#include <asm/openprom.h>
+-#include <asm/oplib.h>
+ #include <asm/traps.h>
+ #include <asm/pgalloc.h>
+ #include <asm/pgtable.h>
+-#include <asm/smp.h>
+ #include <asm/irq.h>
+ #include <asm/io.h>
+ #include <asm/cacheflush.h>
  
-diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
-index f356e4c..eb16e3b 100644
---- a/arch/sparc/kernel/irq_64.c
-+++ b/arch/sparc/kernel/irq_64.c
-@@ -82,7 +82,7 @@ static void bucket_clear_chain_pa(unsigned long bucket_pa)
- 			       "i" (ASI_PHYS_USE_EC));
+ #include "irq.h"
++#include "kernel.h"
++
++/* Sample sun4m IRQ layout:
++ *
++ * 0x22 - Power
++ * 0x24 - ESP SCSI
++ * 0x26 - Lance ethernet
++ * 0x2b - Floppy
++ * 0x2c - Zilog uart
++ * 0x32 - SBUS level 0
++ * 0x33 - Parallel port, SBUS level 1
++ * 0x35 - SBUS level 2
++ * 0x37 - SBUS level 3
++ * 0x39 - Audio, Graphics card, SBUS level 4
++ * 0x3b - SBUS level 5
++ * 0x3d - SBUS level 6
++ *
++ * Each interrupt source has a mask bit in the interrupt registers.
++ * When the mask bit is set, this blocks interrupt deliver.  So you
++ * clear the bit to enable the interrupt.
++ *
++ * Interrupts numbered less than 0x10 are software triggered interrupts
++ * and unused by Linux.
++ *
++ * Interrupt level assignment on sun4m:
++ *
++ *	level		source
++ * ------------------------------------------------------------
++ *	  1		softint-1
++ *	  2		softint-2, VME/SBUS level 1
++ *	  3		softint-3, VME/SBUS level 2
++ *	  4		softint-4, onboard SCSI
++ *	  5		softint-5, VME/SBUS level 3
++ *	  6		softint-6, onboard ETHERNET
++ *	  7		softint-7, VME/SBUS level 4
++ *	  8		softint-8, onboard VIDEO
++ *	  9		softint-9, VME/SBUS level 5, Module Interrupt
++ *	 10		softint-10, system counter/timer
++ *	 11		softint-11, VME/SBUS level 6, Floppy
++ *	 12		softint-12, Keyboard/Mouse, Serial
++ *	 13		softint-13, VME/SBUS level 7, ISDN Audio
++ *	 14		softint-14, per-processor counter/timer
++ *	 15		softint-15, Asynchronous Errors (broadcast)
++ *
++ * Each interrupt source is masked distinctly in the sun4m interrupt
++ * registers.  The PIL level alone is therefore ambiguous, since multiple
++ * interrupt sources map to a single PIL.
++ *
++ * This ambiguity is resolved in the 'intr' property for device nodes
++ * in the OF device tree.  Each 'intr' property entry is composed of
++ * two 32-bit words.  The first word is the IRQ priority value, which
++ * is what we're intersted in.  The second word is the IRQ vector, which
++ * is unused.
++ *
++ * The low 4 bits of the IRQ priority indicate the PIL, and the upper
++ * 4 bits indicate onboard vs. SBUS leveled vs. VME leveled.  0x20
++ * means onboard, 0x30 means SBUS leveled, and 0x40 means VME leveled.
++ *
++ * For example, an 'intr' IRQ priority value of 0x24 is onboard SCSI
++ * whereas a value of 0x33 is SBUS level 2.  Here are some sample
++ * 'intr' property IRQ priority values from ss4, ss5, ss10, ss20, and
++ * Tadpole S3 GX systems.
++ *
++ * esp:		0x24	onboard ESP SCSI
++ * le:		0x26	onboard Lance ETHERNET
++ * p9100:	0x32	SBUS level 1 P9100 video
++ * bpp:		0x33	SBUS level 2 BPP parallel port device
++ * DBRI:	0x39	SBUS level 5 DBRI ISDN audio
++ * SUNW,leo:	0x39	SBUS level 5 LEO video
++ * pcmcia:	0x3b	SBUS level 6 PCMCIA controller
++ * uctrl:	0x3b	SBUS level 6 UCTRL device
++ * modem:	0x3d	SBUS level 7 MODEM
++ * zs:		0x2c	onboard keyboard/mouse/serial
++ * floppy:	0x2b	onboard Floppy
++ * power:	0x22	onboard power device (XXX unknown mask bit XXX)
++ */
++
+ 
+ struct sun4m_irq_percpu {
+ 	u32		pending;
+@@ -61,9 +117,9 @@ struct sun4m_irq_global __iomem *sun4m_irq_global;
+ /* Dave Redman (djhr@tadpole.co.uk)
+  * The sun4m interrupt registers.
+  */
+-#define SUN4M_INT_ENABLE  	0x80000000
+-#define SUN4M_INT_E14     	0x00000080
+-#define SUN4M_INT_E10     	0x00080000
++#define SUN4M_INT_ENABLE	0x80000000
++#define SUN4M_INT_E14		0x00000080
++#define SUN4M_INT_E10		0x00080000
+ 
+ #define SUN4M_HARD_INT(x)	(0x000000001 << (x))
+ #define SUN4M_SOFT_INT(x)	(0x000010000 << (x))
+@@ -99,59 +155,6 @@ struct sun4m_irq_global __iomem *sun4m_irq_global;
+ #define	OBP_INT_LEVEL_SBUS	0x30
+ #define	OBP_INT_LEVEL_VME	0x40
+ 
+-/* Interrupt level assignment on sun4m:
+- *
+- *	level		source
+- * ------------------------------------------------------------
+- *        1		softint-1
+- *	  2		softint-2, VME/SBUS level 1
+- *	  3		softint-3, VME/SBUS level 2
+- *	  4		softint-4, onboard SCSI
+- *	  5		softint-5, VME/SBUS level 3
+- *	  6		softint-6, onboard ETHERNET
+- *	  7		softint-7, VME/SBUS level 4
+- *	  8		softint-8, onboard VIDEO
+- *	  9		softint-9, VME/SBUS level 5, Module Interrupt
+- *	 10		softint-10, system counter/timer
+- *	 11		softint-11, VME/SBUS level 6, Floppy
+- *	 12		softint-12, Keyboard/Mouse, Serial
+- *	 13		softint-13, VME/SBUS level 7, ISDN Audio
+- *	 14		softint-14, per-processor counter/timer
+- *	 15		softint-15, Asynchronous Errors (broadcast)
+- *
+- * Each interrupt source is masked distinctly in the sun4m interrupt
+- * registers.  The PIL level alone is therefore ambiguous, since multiple
+- * interrupt sources map to a single PIL.
+- *
+- * This ambiguity is resolved in the 'intr' property for device nodes
+- * in the OF device tree.  Each 'intr' property entry is composed of
+- * two 32-bit words.  The first word is the IRQ priority value, which
+- * is what we're intersted in.  The second word is the IRQ vector, which
+- * is unused.
+- *
+- * The low 4 bits of the IRQ priority indicate the PIL, and the upper
+- * 4 bits indicate onboard vs. SBUS leveled vs. VME leveled.  0x20
+- * means onboard, 0x30 means SBUS leveled, and 0x40 means VME leveled.
+- *
+- * For example, an 'intr' IRQ priority value of 0x24 is onboard SCSI
+- * whereas a value of 0x33 is SBUS level 2.  Here are some sample
+- * 'intr' property IRQ priority values from ss4, ss5, ss10, ss20, and
+- * Tadpole S3 GX systems.
+- *
+- * esp: 	0x24	onboard ESP SCSI
+- * le:  	0x26	onboard Lance ETHERNET
+- * p9100:	0x32	SBUS level 1 P9100 video
+- * bpp:  	0x33	SBUS level 2 BPP parallel port device
+- * DBRI:	0x39	SBUS level 5 DBRI ISDN audio
+- * SUNW,leo:	0x39	SBUS level 5 LEO video
+- * pcmcia:	0x3b	SBUS level 6 PCMCIA controller
+- * uctrl:	0x3b	SBUS level 6 UCTRL device
+- * modem:	0x3d	SBUS level 7 MODEM
+- * zs:		0x2c	onboard keyboard/mouse/serial
+- * floppy:	0x2b	onboard Floppy
+- * power:	0x22	onboard power device (XXX unknown mask bit XXX)
+- */
+-
+ static unsigned long irq_mask[0x50] = {
+ 	/* SMP */
+ 	0,  SUN4M_SOFT_INT(1),
+@@ -193,7 +196,7 @@ static unsigned long irq_mask[0x50] = {
+ static unsigned long sun4m_get_irqmask(unsigned int irq)
+ {
+ 	unsigned long mask;
+-    
++
+ 	if (irq < 0x50)
+ 		mask = irq_mask[irq];
+ 	else
+@@ -217,7 +220,7 @@ static void sun4m_disable_irq(unsigned int irq_nr)
+ 		sbus_writel(mask, &sun4m_irq_global->mask_set);
+ 	else
+ 		sbus_writel(mask, &sun4m_irq_percpu[cpu]->set);
+-	local_irq_restore(flags);    
++	local_irq_restore(flags);
  }
  
--static unsigned int bucket_get_virt_irq(unsigned long bucket_pa)
-+static unsigned int bucket_get_irq(unsigned long bucket_pa)
- {
- 	unsigned int ret;
+ static void sun4m_enable_irq(unsigned int irq_nr)
+@@ -226,17 +229,17 @@ static void sun4m_enable_irq(unsigned int irq_nr)
+ 	int cpu = smp_processor_id();
  
-@@ -90,21 +90,20 @@ static unsigned int bucket_get_virt_irq(unsigned long bucket_pa)
- 			     : "=&r" (ret)
- 			     : "r" (bucket_pa +
- 				    offsetof(struct ino_bucket,
--					     __virt_irq)),
-+					     __irq)),
- 			       "i" (ASI_PHYS_USE_EC));
- 
- 	return ret;
- }
- 
--static void bucket_set_virt_irq(unsigned long bucket_pa,
--				unsigned int virt_irq)
-+static void bucket_set_irq(unsigned long bucket_pa, unsigned int irq)
- {
- 	__asm__ __volatile__("stwa	%0, [%1] %2"
- 			     : /* no outputs */
--			     : "r" (virt_irq),
-+			     : "r" (irq),
- 			       "r" (bucket_pa +
- 				    offsetof(struct ino_bucket,
--					     __virt_irq)),
-+					     __irq)),
- 			       "i" (ASI_PHYS_USE_EC));
- }
- 
-@@ -114,50 +113,49 @@ static struct {
- 	unsigned int dev_handle;
- 	unsigned int dev_ino;
- 	unsigned int in_use;
--} virt_irq_table[NR_IRQS];
--static DEFINE_SPINLOCK(virt_irq_alloc_lock);
-+} irq_table[NR_IRQS];
-+static DEFINE_SPINLOCK(irq_alloc_lock);
- 
--unsigned char virt_irq_alloc(unsigned int dev_handle,
--			     unsigned int dev_ino)
-+unsigned char irq_alloc(unsigned int dev_handle, unsigned int dev_ino)
- {
- 	unsigned long flags;
- 	unsigned char ent;
- 
- 	BUILD_BUG_ON(NR_IRQS >= 256);
- 
--	spin_lock_irqsave(&virt_irq_alloc_lock, flags);
-+	spin_lock_irqsave(&irq_alloc_lock, flags);
- 
- 	for (ent = 1; ent < NR_IRQS; ent++) {
--		if (!virt_irq_table[ent].in_use)
-+		if (!irq_table[ent].in_use)
- 			break;
- 	}
- 	if (ent >= NR_IRQS) {
- 		printk(KERN_ERR "IRQ: Out of virtual IRQs.\n");
- 		ent = 0;
+ 	/* Dreadful floppy hack. When we use 0x2b instead of
+-         * 0x0b the system blows (it starts to whistle!).
+-         * So we continue to use 0x0b. Fixme ASAP. --P3
+-         */
+-        if (irq_nr != 0x0b) {
++	 * 0x0b the system blows (it starts to whistle!).
++	 * So we continue to use 0x0b. Fixme ASAP. --P3
++	 */
++	if (irq_nr != 0x0b) {
+ 		mask = sun4m_get_irqmask(irq_nr);
+ 		local_irq_save(flags);
+ 		if (irq_nr > 15)
+ 			sbus_writel(mask, &sun4m_irq_global->mask_clear);
+ 		else
+ 			sbus_writel(mask, &sun4m_irq_percpu[cpu]->clear);
+-		local_irq_restore(flags);    
++		local_irq_restore(flags);
  	} else {
--		virt_irq_table[ent].dev_handle = dev_handle;
--		virt_irq_table[ent].dev_ino = dev_ino;
--		virt_irq_table[ent].in_use = 1;
-+		irq_table[ent].dev_handle = dev_handle;
-+		irq_table[ent].dev_ino = dev_ino;
-+		irq_table[ent].in_use = 1;
- 	}
- 
--	spin_unlock_irqrestore(&virt_irq_alloc_lock, flags);
-+	spin_unlock_irqrestore(&irq_alloc_lock, flags);
- 
- 	return ent;
- }
- 
- #ifdef CONFIG_PCI_MSI
--void virt_irq_free(unsigned int virt_irq)
-+void irq_free(unsigned int irq)
- {
- 	unsigned long flags;
- 
--	if (virt_irq >= NR_IRQS)
-+	if (irq >= NR_IRQS)
- 		return;
- 
--	spin_lock_irqsave(&virt_irq_alloc_lock, flags);
-+	spin_lock_irqsave(&irq_alloc_lock, flags);
- 
--	virt_irq_table[virt_irq].in_use = 0;
-+	irq_table[irq].in_use = 0;
- 
--	spin_unlock_irqrestore(&virt_irq_alloc_lock, flags);
-+	spin_unlock_irqrestore(&irq_alloc_lock, flags);
- }
- #endif
- 
-@@ -253,25 +251,25 @@ struct irq_handler_data {
+ 		local_irq_save(flags);
+ 		sbus_writel(SUN4M_INT_FLOPPY, &sun4m_irq_global->mask_clear);
+@@ -260,7 +263,7 @@ static unsigned long cpu_pil_to_imask[16] = {
+ /*12*/	SUN4M_INT_SERIAL  | SUN4M_INT_KBDMS,
+ /*13*/	SUN4M_INT_SBUS(6) | SUN4M_INT_VME(6) | SUN4M_INT_AUDIO,
+ /*14*/	SUN4M_INT_E14,
+-/*15*/	SUN4M_INT_ERROR
++/*15*/	SUN4M_INT_ERROR,
  };
  
+ /* We assume the caller has disabled local interrupts when these are called,
+@@ -280,12 +283,14 @@ static void sun4m_enable_pil_irq(unsigned int pil)
+ static void sun4m_send_ipi(int cpu, int level)
+ {
+ 	unsigned long mask = sun4m_get_irqmask(level);
++
+ 	sbus_writel(mask, &sun4m_irq_percpu[cpu]->set);
+ }
+ 
+ static void sun4m_clear_ipi(int cpu, int level)
+ {
+ 	unsigned long mask = sun4m_get_irqmask(level);
++
+ 	sbus_writel(mask, &sun4m_irq_percpu[cpu]->clear);
+ }
+ 
+@@ -314,7 +319,7 @@ struct sun4m_timer_global {
+ 
+ static struct sun4m_timer_global __iomem *timers_global;
+ 
+-#define TIMER_IRQ  	(OBP_INT_LEVEL_ONBOARD | 10)
++#define TIMER_IRQ	(OBP_INT_LEVEL_ONBOARD | 10)
+ 
+ unsigned int lvl14_resolution = (((1000000/HZ) + 1) << 10);
+ 
+@@ -407,7 +412,6 @@ static void __init sun4m_init_timers(irq_handler_t counter_fn)
  #ifdef CONFIG_SMP
--static int irq_choose_cpu(unsigned int virt_irq, const struct cpumask *affinity)
-+static int irq_choose_cpu(unsigned int irq, const struct cpumask *affinity)
+ 	{
+ 		unsigned long flags;
+-		extern unsigned long lvl14_save[4];
+ 		struct tt_entry *trap_table = &sparc_ttable[SP_TRAP_IRQ1 + (14 - 1)];
+ 
+ 		/* For SMP we use the level 14 ticker, however the bootup code
+diff --git a/arch/sparc/kernel/sun4m_smp.c b/arch/sparc/kernel/sun4m_smp.c
+index 762d6ee..5cc7dc5 100644
+--- a/arch/sparc/kernel/sun4m_smp.c
++++ b/arch/sparc/kernel/sun4m_smp.c
+@@ -1,59 +1,22 @@
+-/* sun4m_smp.c: Sparc SUN4M SMP support.
++/*
++ *  sun4m SMP support.
+  *
+  * Copyright (C) 1996 David S. Miller (davem@caip.rutgers.edu)
+  */
+ 
+-#include <asm/head.h>
+-
+-#include <linux/kernel.h>
+-#include <linux/sched.h>
+-#include <linux/threads.h>
+-#include <linux/smp.h>
+ #include <linux/interrupt.h>
+-#include <linux/kernel_stat.h>
+-#include <linux/init.h>
+-#include <linux/spinlock.h>
+-#include <linux/mm.h>
+-#include <linux/swap.h>
+ #include <linux/profile.h>
+ #include <linux/delay.h>
+ #include <linux/cpu.h>
+ 
+ #include <asm/cacheflush.h>
+ #include <asm/tlbflush.h>
+-#include <asm/irq_regs.h>
+-
+-#include <asm/ptrace.h>
+-#include <asm/atomic.h>
+-
+-#include <asm/irq.h>
+-#include <asm/page.h>
+-#include <asm/pgalloc.h>
+-#include <asm/pgtable.h>
+-#include <asm/oplib.h>
+-#include <asm/cpudata.h>
+ 
+ #include "irq.h"
++#include "kernel.h"
+ 
+ #define IRQ_CROSS_CALL		15
+ 
+-extern ctxd_t *srmmu_ctx_table_phys;
+-
+-extern volatile unsigned long cpu_callin_map[NR_CPUS];
+-extern unsigned char boot_cpu_id;
+-
+-extern cpumask_t smp_commenced_mask;
+-
+-extern int __smp4m_processor_id(void);
+-
+-/*#define SMP_DEBUG*/
+-
+-#ifdef SMP_DEBUG
+-#define SMP_PRINTK(x)	printk x
+-#else
+-#define SMP_PRINTK(x)
+-#endif
+-
+ static inline unsigned long
+ swap_ulong(volatile unsigned long *ptr, unsigned long val)
  {
- 	cpumask_t mask;
- 	int cpuid;
- 
- 	cpumask_copy(&mask, affinity);
- 	if (cpus_equal(mask, cpu_online_map)) {
--		cpuid = map_to_cpu(virt_irq);
-+		cpuid = map_to_cpu(irq);
- 	} else {
- 		cpumask_t tmp;
- 
- 		cpus_and(tmp, cpu_online_map, mask);
--		cpuid = cpus_empty(tmp) ? map_to_cpu(virt_irq) : first_cpu(tmp);
-+		cpuid = cpus_empty(tmp) ? map_to_cpu(irq) : first_cpu(tmp);
- 	}
- 
- 	return cpuid;
- }
- #else
--#define irq_choose_cpu(virt_irq, affinity)	\
-+#define irq_choose_cpu(irq, affinity)	\
- 	real_hard_smp_processor_id()
- #endif
- 
-@@ -357,7 +355,7 @@ static void sun4u_irq_eoi(struct irq_data *data)
- 
- static void sun4v_irq_enable(struct irq_data *data)
- {
--	unsigned int ino = virt_irq_table[data->irq].dev_ino;
-+	unsigned int ino = irq_table[data->irq].dev_ino;
- 	unsigned long cpuid = irq_choose_cpu(data->irq, data->affinity);
- 	int err;
- 
-@@ -378,7 +376,7 @@ static void sun4v_irq_enable(struct irq_data *data)
- static int sun4v_set_affinity(struct irq_data *data,
- 			       const struct cpumask *mask, bool force)
- {
--	unsigned int ino = virt_irq_table[data->irq].dev_ino;
-+	unsigned int ino = irq_table[data->irq].dev_ino;
- 	unsigned long cpuid = irq_choose_cpu(data->irq, mask);
- 	int err;
- 
-@@ -392,7 +390,7 @@ static int sun4v_set_affinity(struct irq_data *data,
- 
- static void sun4v_irq_disable(struct irq_data *data)
- {
--	unsigned int ino = virt_irq_table[data->irq].dev_ino;
-+	unsigned int ino = irq_table[data->irq].dev_ino;
- 	int err;
- 
- 	err = sun4v_intr_setenabled(ino, HV_INTR_DISABLED);
-@@ -403,7 +401,7 @@ static void sun4v_irq_disable(struct irq_data *data)
- 
- static void sun4v_irq_eoi(struct irq_data *data)
- {
--	unsigned int ino = virt_irq_table[data->irq].dev_ino;
-+	unsigned int ino = irq_table[data->irq].dev_ino;
- 	struct irq_desc *desc = irq_desc + data->irq;
- 	int err;
- 
-@@ -423,8 +421,8 @@ static void sun4v_virq_enable(struct irq_data *data)
- 
- 	cpuid = irq_choose_cpu(data->irq, data->affinity);
- 
--	dev_handle = virt_irq_table[data->irq].dev_handle;
--	dev_ino = virt_irq_table[data->irq].dev_ino;
-+	dev_handle = irq_table[data->irq].dev_handle;
-+	dev_ino = irq_table[data->irq].dev_ino;
- 
- 	err = sun4v_vintr_set_target(dev_handle, dev_ino, cpuid);
- 	if (err != HV_EOK)
-@@ -453,8 +451,8 @@ static int sun4v_virt_set_affinity(struct irq_data *data,
- 
- 	cpuid = irq_choose_cpu(data->irq, mask);
- 
--	dev_handle = virt_irq_table[data->irq].dev_handle;
--	dev_ino = virt_irq_table[data->irq].dev_ino;
-+	dev_handle = irq_table[data->irq].dev_handle;
-+	dev_ino = irq_table[data->irq].dev_ino;
- 
- 	err = sun4v_vintr_set_target(dev_handle, dev_ino, cpuid);
- 	if (err != HV_EOK)
-@@ -470,8 +468,8 @@ static void sun4v_virq_disable(struct irq_data *data)
- 	unsigned long dev_handle, dev_ino;
- 	int err;
- 
--	dev_handle = virt_irq_table[data->irq].dev_handle;
--	dev_ino = virt_irq_table[data->irq].dev_ino;
-+	dev_handle = irq_table[data->irq].dev_handle;
-+	dev_ino = irq_table[data->irq].dev_ino;
- 
- 	err = sun4v_vintr_set_valid(dev_handle, dev_ino,
- 				    HV_INTR_DISABLED);
-@@ -490,8 +488,8 @@ static void sun4v_virq_eoi(struct irq_data *data)
- 	if (unlikely(desc->status & (IRQ_DISABLED|IRQ_INPROGRESS)))
- 		return;
- 
--	dev_handle = virt_irq_table[data->irq].dev_handle;
--	dev_ino = virt_irq_table[data->irq].dev_ino;
-+	dev_handle = irq_table[data->irq].dev_handle;
-+	dev_ino = irq_table[data->irq].dev_ino;
- 
- 	err = sun4v_vintr_set_state(dev_handle, dev_ino,
- 				    HV_INTR_STATE_IDLE);
-@@ -525,23 +523,22 @@ static struct irq_chip sun4v_virq = {
- 	.irq_set_affinity	= sun4v_virt_set_affinity,
- };
- 
--static void pre_flow_handler(unsigned int virt_irq,
--				      struct irq_desc *desc)
-+static void pre_flow_handler(unsigned int irq, struct irq_desc *desc)
- {
--	struct irq_handler_data *handler_data = get_irq_data(virt_irq);
--	unsigned int ino = virt_irq_table[virt_irq].dev_ino;
-+	struct irq_handler_data *handler_data = get_irq_data(irq);
-+	unsigned int ino = irq_table[irq].dev_ino;
- 
- 	handler_data->pre_handler(ino, handler_data->arg1, handler_data->arg2);
- 
--	handle_fasteoi_irq(virt_irq, desc);
-+	handle_fasteoi_irq(irq, desc);
+@@ -64,7 +27,6 @@ swap_ulong(volatile unsigned long *ptr, unsigned long val)
  }
  
--void irq_install_pre_handler(int virt_irq,
-+void irq_install_pre_handler(int irq,
- 			     void (*func)(unsigned int, void *, void *),
- 			     void *arg1, void *arg2)
+ static void smp_setup_percpu_timer(void);
+-extern void cpu_probe(void);
+ 
+ void __cpuinit smp4m_callin(void)
  {
--	struct irq_handler_data *handler_data = get_irq_data(virt_irq);
--	struct irq_desc *desc = irq_desc + virt_irq;
-+	struct irq_handler_data *handler_data = get_irq_data(irq);
-+	struct irq_desc *desc = irq_desc + irq;
+@@ -96,7 +58,7 @@ void __cpuinit smp4m_callin(void)
+ 	/* XXX: What's up with all the flushes? */
+ 	local_flush_cache_all();
+ 	local_flush_tlb_all();
+-	
++
+ 	cpu_probe();
  
- 	handler_data->pre_handler = func;
- 	handler_data->arg1 = arg1;
-@@ -554,24 +551,24 @@ unsigned int build_irq(int inofixup, unsigned long iclr, unsigned long imap)
+ 	/* Fix idle thread fields. */
+@@ -119,9 +81,6 @@ void __cpuinit smp4m_callin(void)
+ /*
+  *	Cycle through the processors asking the PROM to start each one.
+  */
+- 
+-extern struct linux_prom_registers smp_penguin_ctable;
+-
+ void __init smp4m_boot_cpus(void)
  {
- 	struct ino_bucket *bucket;
- 	struct irq_handler_data *handler_data;
--	unsigned int virt_irq;
-+	unsigned int irq;
- 	int ino;
+ 	smp_setup_percpu_timer();
+@@ -130,7 +89,6 @@ void __init smp4m_boot_cpus(void)
  
- 	BUG_ON(tlb_type = hypervisor);
+ int __cpuinit smp4m_boot_one_cpu(int i)
+ {
+-	extern unsigned long sun4m_cpu_startup;
+ 	unsigned long *entry = &sun4m_cpu_startup;
+ 	struct task_struct *p;
+ 	int timeout;
+@@ -142,7 +100,7 @@ int __cpuinit smp4m_boot_one_cpu(int i)
+ 	p = fork_idle(i);
+ 	current_set[i] = task_thread_info(p);
+ 	/* See trampoline.S for details... */
+-	entry += ((i-1) * 3);
++	entry += ((i - 1) * 3);
  
- 	ino = (upa_readq(imap) & (IMAP_IGN | IMAP_INO)) + inofixup;
- 	bucket = &ivector_table[ino];
--	virt_irq = bucket_get_virt_irq(__pa(bucket));
--	if (!virt_irq) {
--		virt_irq = virt_irq_alloc(0, ino);
--		bucket_set_virt_irq(__pa(bucket), virt_irq);
--		set_irq_chip_and_handler_name(virt_irq,
-+	irq = bucket_get_irq(__pa(bucket));
-+	if (!irq) {
-+		irq = irq_alloc(0, ino);
-+		bucket_set_irq(__pa(bucket), irq);
-+		set_irq_chip_and_handler_name(irq,
- 					      &sun4u_irq,
- 					      handle_fasteoi_irq,
- 					      "IVEC");
+ 	/*
+ 	 * Initialize the contexts table
+@@ -154,20 +112,19 @@ int __cpuinit smp4m_boot_one_cpu(int i)
+ 	smp_penguin_ctable.reg_size = 0;
+ 
+ 	/* whirrr, whirrr, whirrrrrrrrr... */
+-	printk("Starting CPU %d at %p\n", i, entry);
++	printk(KERN_INFO "Starting CPU %d at %p\n", i, entry);
+ 	local_flush_cache_all();
+-	prom_startcpu(cpu_node,
+-		      &smp_penguin_ctable, 0, (char *)entry);
++	prom_startcpu(cpu_node, &smp_penguin_ctable, 0, (char *)entry);
+ 
+ 	/* wheee... it's going... */
+-	for(timeout = 0; timeout < 10000; timeout++) {
+-		if(cpu_callin_map[i])
++	for (timeout = 0; timeout < 10000; timeout++) {
++		if (cpu_callin_map[i])
+ 			break;
+ 		udelay(200);
  	}
  
--	handler_data = get_irq_data(virt_irq);
-+	handler_data = get_irq_data(irq);
- 	if (unlikely(handler_data))
- 		goto out;
- 
-@@ -580,13 +577,13 @@ unsigned int build_irq(int inofixup, unsigned long iclr, unsigned long imap)
- 		prom_printf("IRQ: kzalloc(irq_handler_data) failed.\n");
- 		prom_halt();
+ 	if (!(cpu_callin_map[i])) {
+-		printk("Processor %d is stuck.\n", i);
++		printk(KERN_ERR "Processor %d is stuck.\n", i);
+ 		return -ENODEV;
  	}
--	set_irq_data(virt_irq, handler_data);
-+	set_irq_data(irq, handler_data);
  
- 	handler_data->imap  = imap;
- 	handler_data->iclr  = iclr;
+@@ -202,6 +159,7 @@ void __init smp4m_smp_done(void)
+ void smp4m_irq_rotate(int cpu)
+ {
+ 	int next = cpu_data(cpu).next;
++
+ 	if (next != cpu)
+ 		set_irq_udt(next);
+ }
+@@ -243,7 +201,7 @@ static void smp4m_cross_call(smpfunc_t func, cpumask_t mask, unsigned long arg1,
  
- out:
--	return virt_irq;
-+	return irq;
+ 			cpu_clear(smp_processor_id(), mask);
+ 			cpus_and(mask, cpu_online_map, mask);
+-			for(i = 0; i < ncpus; i++) {
++			for (i = 0; i < ncpus; i++) {
+ 				if (cpu_isset(i, mask)) {
+ 					ccall_info.processors_in[i] = 0;
+ 					ccall_info.processors_out[i] = 0;
+@@ -262,19 +220,18 @@ static void smp4m_cross_call(smpfunc_t func, cpumask_t mask, unsigned long arg1,
+ 			do {
+ 				if (!cpu_isset(i, mask))
+ 					continue;
+-				while(!ccall_info.processors_in[i])
++				while (!ccall_info.processors_in[i])
+ 					barrier();
+-			} while(++i < ncpus);
++			} while (++i < ncpus);
+ 
+ 			i = 0;
+ 			do {
+ 				if (!cpu_isset(i, mask))
+ 					continue;
+-				while(!ccall_info.processors_out[i])
++				while (!ccall_info.processors_out[i])
+ 					barrier();
+-			} while(++i < ncpus);
++			} while (++i < ncpus);
+ 		}
+-
+ 		spin_unlock_irqrestore(&cross_call_lock, flags);
  }
  
- static unsigned int sun4v_build_common(unsigned long sysino,
-@@ -594,21 +591,21 @@ static unsigned int sun4v_build_common(unsigned long sysino,
+@@ -289,8 +246,6 @@ void smp4m_cross_call_irq(void)
+ 	ccall_info.processors_out[i] = 1;
+ }
+ 
+-extern void sun4m_clear_profile_irq(int cpu);
+-
+ void smp4m_percpu_timer_interrupt(struct pt_regs *regs)
  {
- 	struct ino_bucket *bucket;
- 	struct irq_handler_data *handler_data;
--	unsigned int virt_irq;
-+	unsigned int irq;
+ 	struct pt_regs *old_regs;
+@@ -302,7 +257,7 @@ void smp4m_percpu_timer_interrupt(struct pt_regs *regs)
  
- 	BUG_ON(tlb_type != hypervisor);
+ 	profile_tick(CPU_PROFILING);
  
- 	bucket = &ivector_table[sysino];
--	virt_irq = bucket_get_virt_irq(__pa(bucket));
--	if (!virt_irq) {
--		virt_irq = virt_irq_alloc(0, sysino);
--		bucket_set_virt_irq(__pa(bucket), virt_irq);
--		set_irq_chip_and_handler_name(virt_irq, chip,
-+	irq = bucket_get_irq(__pa(bucket));
-+	if (!irq) {
-+		irq = irq_alloc(0, sysino);
-+		bucket_set_irq(__pa(bucket), irq);
-+		set_irq_chip_and_handler_name(irq, chip,
- 					      handle_fasteoi_irq,
- 					      "IVEC");
- 	}
+-	if(!--prof_counter(cpu)) {
++	if (!--prof_counter(cpu)) {
+ 		int user = user_mode(regs);
  
--	handler_data = get_irq_data(virt_irq);
-+	handler_data = get_irq_data(irq);
- 	if (unlikely(handler_data))
- 		goto out;
- 
-@@ -617,7 +614,7 @@ static unsigned int sun4v_build_common(unsigned long sysino,
- 		prom_printf("IRQ: kzalloc(irq_handler_data) failed.\n");
- 		prom_halt();
- 	}
--	set_irq_data(virt_irq, handler_data);
-+	set_irq_data(irq, handler_data);
- 
- 	/* Catch accidental accesses to these things.  IMAP/ICLR handling
- 	 * is done by hypervisor calls on sun4v platforms, not by direct
-@@ -627,7 +624,7 @@ static unsigned int sun4v_build_common(unsigned long sysino,
- 	handler_data->iclr = ~0UL;
- 
- out:
--	return virt_irq;
-+	return irq;
+ 		irq_enter();
+@@ -314,8 +269,6 @@ void smp4m_percpu_timer_interrupt(struct pt_regs *regs)
+ 	set_irq_regs(old_regs);
  }
  
- unsigned int sun4v_build_irq(u32 devhandle, unsigned int devino)
-@@ -643,7 +640,7 @@ unsigned int sun4v_build_virq(u32 devhandle, unsigned int devino)
- 	unsigned long hv_err, cookie;
- 	struct ino_bucket *bucket;
- 	struct irq_desc *desc;
--	unsigned int virt_irq;
-+	unsigned int irq;
- 
- 	bucket = kzalloc(sizeof(struct ino_bucket), GFP_ATOMIC);
- 	if (unlikely(!bucket))
-@@ -660,10 +657,10 @@ unsigned int sun4v_build_virq(u32 devhandle, unsigned int devino)
- 			     ((unsigned long) bucket +
- 			      sizeof(struct ino_bucket)));
- 
--	virt_irq = virt_irq_alloc(devhandle, devino);
--	bucket_set_virt_irq(__pa(bucket), virt_irq);
-+	irq = irq_alloc(devhandle, devino);
-+	bucket_set_irq(__pa(bucket), irq);
- 
--	set_irq_chip_and_handler_name(virt_irq, &sun4v_virq,
-+	set_irq_chip_and_handler_name(irq, &sun4v_virq,
- 				      handle_fasteoi_irq,
- 				      "IVEC");
- 
-@@ -675,10 +672,10 @@ unsigned int sun4v_build_virq(u32 devhandle, unsigned int devino)
- 	 * especially wrt. locking, we do not let request_irq() enable
- 	 * the interrupt.
- 	 */
--	desc = irq_desc + virt_irq;
-+	desc = irq_desc + irq;
- 	desc->status |= IRQ_NOAUTOEN;
- 
--	set_irq_data(virt_irq, handler_data);
-+	set_irq_data(irq, handler_data);
- 
- 	/* Catch accidental accesses to these things.  IMAP/ICLR handling
- 	 * is done by hypervisor calls on sun4v platforms, not by direct
-@@ -695,18 +692,18 @@ unsigned int sun4v_build_virq(u32 devhandle, unsigned int devino)
- 		prom_halt();
- 	}
- 
--	return virt_irq;
-+	return irq;
- }
- 
--void ack_bad_irq(unsigned int virt_irq)
-+void ack_bad_irq(unsigned int irq)
+-extern unsigned int lvl14_resolution;
+-
+ static void __cpuinit smp_setup_percpu_timer(void)
  {
--	unsigned int ino = virt_irq_table[virt_irq].dev_ino;
-+	unsigned int ino = irq_table[irq].dev_ino;
+ 	int cpu = smp_processor_id();
+@@ -323,7 +276,7 @@ static void __cpuinit smp_setup_percpu_timer(void)
+ 	prof_counter(cpu) = prof_multiplier(cpu) = 1;
+ 	load_profile_irq(cpu, lvl14_resolution);
  
- 	if (!ino)
- 		ino = 0xdeadbeef;
- 
--	printk(KERN_CRIT "Unexpected IRQ from ino[%x] virt_irq[%u]\n",
--	       ino, virt_irq);
-+	printk(KERN_CRIT "Unexpected IRQ from ino[%x] irq[%u]\n",
-+	       ino, irq);
+-	if(cpu = boot_cpu_id)
++	if (cpu = boot_cpu_id)
+ 		enable_pil_irq(14);
  }
  
- void *hardirq_stack[NR_CPUS];
-@@ -739,16 +736,16 @@ void __irq_entry handler_irq(int pil, struct pt_regs *regs)
- 	while (bucket_pa) {
- 		struct irq_desc *desc;
- 		unsigned long next_pa;
--		unsigned int virt_irq;
-+		unsigned int irq;
+@@ -331,9 +284,9 @@ static void __init smp4m_blackbox_id(unsigned *addr)
+ {
+ 	int rd = *addr & 0x3e000000;
+ 	int rs1 = rd >> 11;
+-	
++
+ 	addr[0] = 0x81580000 | rd;		/* rd %tbr, reg */
+-	addr[1] = 0x8130200c | rd | rs1;    	/* srl reg, 0xc, reg */
++	addr[1] = 0x8130200c | rd | rs1;	/* srl reg, 0xc, reg */
+ 	addr[2] = 0x80082003 | rd | rs1;	/* and reg, 3, reg */
+ }
  
- 		next_pa = bucket_get_chain_pa(bucket_pa);
--		virt_irq = bucket_get_virt_irq(bucket_pa);
-+		irq = bucket_get_irq(bucket_pa);
- 		bucket_clear_chain_pa(bucket_pa);
+@@ -341,9 +294,9 @@ static void __init smp4m_blackbox_current(unsigned *addr)
+ {
+ 	int rd = *addr & 0x3e000000;
+ 	int rs1 = rd >> 11;
+-	
++
+ 	addr[0] = 0x81580000 | rd;		/* rd %tbr, reg */
+-	addr[2] = 0x8130200a | rd | rs1;    	/* srl reg, 0xa, reg */
++	addr[2] = 0x8130200a | rd | rs1;	/* srl reg, 0xa, reg */
+ 	addr[4] = 0x8008200c | rd | rs1;	/* and reg, 0xc, reg */
+ }
  
--		desc = irq_desc + virt_irq;
-+		desc = irq_desc + irq;
- 
- 		if (!(desc->status & IRQ_DISABLED))
--			desc->handle_irq(virt_irq, desc);
-+			desc->handle_irq(irq, desc);
- 
- 		bucket_pa = next_pa;
- 	}
 -- 
 1.6.0.6
 
