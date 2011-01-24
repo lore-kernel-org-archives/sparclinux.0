@@ -1,7 +1,7 @@
-From: Alex Buell <alex.buell@munted.org.uk>
-Date: Thu, 20 Jan 2011 09:46:33 +0000
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Mon, 24 Jan 2011 16:08:07 +0000
 Subject: Re: Documentation for sun4m
-Message-Id: <1295516793.25725.13.camel@lithium>
+Message-Id: <20110124160807.GA7073@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20110119225234.GA20692@merkur.ravnborg.org>
 In-Reply-To: <20110119225234.GA20692@merkur.ravnborg.org>
@@ -10,19 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Wed, 2011-01-19 at 16:27 -0800, David Miller wrote:
-> 
-> http://wikis.sun.com/display/FOSSdocs/Home 
+On Wed, Jan 19, 2011 at 06:52:32PM -0500, Robert Reif wrote:
+> Sam Ravnborg wrote:
+>> Do you have any pointers to relevant documentation?
+>>
+>>    
+> http://wikis.sun.com/display/FOSSdocs/Home used to have "Sun-4M System  
+> Architecture (revision 2.0)" by Chuck Narad online but I guess Oracle  
+> took it offline.  I have a copy I can send.
 
-None of the links provided to the documentation works; clicking on any
-of the documentation links goes to the Oracle community page
-http://www.oracle.com/technetwork/community/index.html
+I tried to ask for help on a forum - but the answer was negative:
+http://forums.oracle.com/forums/thread.jspa?forumID5&threadID!61509
 
-Although I have my ID for logging onto Sun^WOracle, one has to have a
-support contract to be able to access the information whereas it used to
-be freely available on login before last December. Very disappointed
-with the 'lockdown'.
+Quote:
+I asked someone, who asked someone, who asked several
+other people (all of them Oracle-internal), but no
+luck: No one knows a location for that Chuck Narad
+document. That piece of information evidently got
+"lost" during the migration of Sun material to OTN.
 
-Can we get someone to bash Larry over the head with with a clue-stick?
--- 
-Tactical Nuclear Kittens
+
+So if you have it available I would be very glad to receive a copy.
+I have tried to search google with no luck.
+
+	Sam
