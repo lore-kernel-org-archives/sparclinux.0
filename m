@@ -1,7 +1,7 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 23 Jan 2011 21:54:38 +0000
+From: David Miller <davem@davemloft.net>
+Date: Tue, 25 Jan 2011 00:11:32 +0000
 Subject: Re: [RFC PATCH 0/7] sparc32: cleanup irq + smp files
-Message-Id: <20110123215438.GA28153@merkur.ravnborg.org>
+Message-Id: <20110124.161132.242141846.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20110123213940.GA15063@merkur.ravnborg.org>
 In-Reply-To: <20110123213940.GA15063@merkur.ravnborg.org>
@@ -10,39 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sun, Jan 23, 2011 at 10:39:40PM +0100, Sam Ravnborg wrote:
-> I am slowly working towards the goal of migrating
-> sparc32 to genirq.
-> PArt of the job is to understand the current code-base.
-> While reading the code I was constantly distracted
-> by all the minor issues in these.
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 23 Jan 2011 22:54:38 +0100
+
+> The patches survied my SPARCclassic config and defconfig.
+> But allnoconfig bails out with an error.
 > 
-> So I cooked up a few patches to clean up the files.
+> This is because asm-generic/tlb.h require linux/pagemap.h.
+> The include happended implicitly before.
+> 
+> 
+> Workaround is simple - see below.
+> I will try to get it fixed in asm-generic for benefit of all users.
 
-The patches survied my SPARCclassic config and defconfig.
-But allnoconfig bails out with an error.
+Please get this fix in asm-generic and merged upstream, then
+repost your series and mention this dependency so I can merge
+in Linus's tree first.
 
-This is because asm-generic/tlb.h require linux/pagemap.h.
-The include happended implicitly before.
-
-
-Workaround is simple - see below.
-I will try to get it fixed in asm-generic for benefit of all users.
-
-	Sam
-
-
-diff --git a/arch/sparc/include/asm/tlb_32.h b/arch/sparc/include/asm/tlb_32.h
-index 6d02d1c..d29b2ea 100644
---- a/arch/sparc/include/asm/tlb_32.h
-+++ b/arch/sparc/include/asm/tlb_32.h
-@@ -1,6 +1,8 @@
- #ifndef _SPARC_TLB_H
- #define _SPARC_TLB_H
- 
-+#include <linux/pagemap.h>
-+
- #define tlb_start_vma(tlb, vma) \
- do {								\
- 	flush_cache_range(vma, vma->vm_start, vma->vm_end);	\
-
+Thanks.
