@@ -1,125 +1,78 @@
-From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Wed, 26 Jan 2011 16:38:30 +0000
-Subject: [PATCH 1/2] SPARC32: implement SMP IPIs using the generic functions
-Message-Id: <1296059911-22861-1-git-send-email-daniel@gaisler.com>
+From: David Miller <davem@davemloft.net>
+Date: Fri, 28 Jan 2011 23:33:19 +0000
+Subject: Re: [PATCH 1/2] SPARC32: implement SMP IPIs using the generic
+Message-Id: <20110128.153319.35042623.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1296059911-22861-1-git-send-email-daniel@gaisler.com>
+In-Reply-To: <1296059911-22861-1-git-send-email-daniel@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-The current SPARC32 SMP IPI generation is implemented the
-cross call function. The cross call function uses IRQ15 the
-NMI, this is has the effect that IPIs will interrupt IRQ
-critical areas and hang the system. Typically on/after
-spin_lock_irqsave calls can be aborted.
+From: Daniel Hellstrom <daniel@gaisler.com>
+Date: Wed, 26 Jan 2011 17:38:30 +0100
 
-The cross call functionality must still exist to flush
-cache/TLBS.
+> The current SPARC32 SMP IPI generation is implemented the
+> cross call function. The cross call function uses IRQ15 the
+> NMI, this is has the effect that IPIs will interrupt IRQ
+> critical areas and hang the system. Typically on/after
+> spin_lock_irqsave calls can be aborted.
+> 
+> The cross call functionality must still exist to flush
+> cache/TLBS.
+> 
+> This patch provides CPU models a custom way to implement
+> generation of IPIs on the generic code's request. The
+> typical approach is to generate an IRQ for each IPI case.
+> 
+> After this patch each SPARC32 SMP CPU model needs to
+> implement IPIs in order to function properly.
+> 
+> Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
 
-This patch provides CPU models a custom way to implement
-generation of IPIs on the generic code's request. The
-typical approach is to generate an IRQ for each IPI case.
+Overall this looks fine, but there are some things we need to
+fix up before we can consider applying this.
 
-After this patch each SPARC32 SMP CPU model needs to
-implement IPIs in order to function properly.
+First off, since you do the:
 
-Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
----
- arch/sparc/Kconfig              |    1 +
- arch/sparc/include/asm/smp_32.h |   15 ++-------------
- arch/sparc/kernel/smp_32.c      |   34 +++++++++++++++++++++++++++++++++-
- 3 files changed, 36 insertions(+), 14 deletions(-)
+	select USE_GENERIC_SMP_HELPERS if SMP
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index e48f471..0e7b361 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -25,6 +25,7 @@ config SPARC
- 	select HAVE_DMA_ATTRS
- 	select HAVE_DMA_API_DEBUG
- 	select HAVE_ARCH_JUMP_LABEL
-+	select USE_GENERIC_SMP_HELPERS if SMP
- 
- config SPARC32
- 	def_bool !64BIT
-diff --git a/arch/sparc/include/asm/smp_32.h b/arch/sparc/include/asm/smp_32.h
-index 841905c..a56961c 100644
---- a/arch/sparc/include/asm/smp_32.h
-+++ b/arch/sparc/include/asm/smp_32.h
-@@ -67,19 +67,8 @@ static inline void xc4(smpfunc_t func, unsigned long arg1, unsigned long arg2,
- 			   unsigned long arg3, unsigned long arg4)
- { smp_cross_call(func, cpu_online_map, arg1, arg2, arg3, arg4); }
- 
--static inline int smp_call_function(void (*func)(void *info), void *info, int wait)
--{
--	xc1((smpfunc_t)func, (unsigned long)info);
--	return 0;
--}
--
--static inline int smp_call_function_single(int cpuid, void (*func) (void *info),
--					   void *info, int wait)
--{
--	smp_cross_call((smpfunc_t)func, cpumask_of_cpu(cpuid),
--		       (unsigned long) info, 0, 0, 0);
--	return 0;
--}
-+extern void arch_send_call_function_single_ipi(int cpu);
-+extern void arch_send_call_function_ipi_mask(const struct cpumask *mask);
- 
- static inline int cpu_logical_map(int cpu)
- {
-diff --git a/arch/sparc/kernel/smp_32.c b/arch/sparc/kernel/smp_32.c
-index 91c10fb..a1bb3a8 100644
---- a/arch/sparc/kernel/smp_32.c
-+++ b/arch/sparc/kernel/smp_32.c
-@@ -125,13 +125,45 @@ struct linux_prom_registers smp_penguin_ctable __cpuinitdata = { 0 };
- 
- void smp_send_reschedule(int cpu)
- {
--	/* See sparc64 */
-+	/*
-+	 * CPU model dependent way of implementing IPI generation targeting
-+	 * a single CPU. The trap handler needs only to do trap entry/return
-+	 * to call schedule.
-+	 */
-+	switch (sparc_cpu_model) {
-+	default:
-+		BUG();
-+	}
- }
- 
- void smp_send_stop(void)
- {
- }
- 
-+void arch_send_call_function_single_ipi(int cpu)
-+{
-+	/*
-+	 * CPU model dependent way of implementing IPI generation targeting
-+	 * a single CPU
-+	 */
-+	switch (sparc_cpu_model) {
-+	default:
-+		BUG();
-+	}
-+}
-+
-+void arch_send_call_function_ipi_mask(const struct cpumask *mask)
-+{
-+	/*
-+	 * CPU model dependent way of implementing IPI generation targeting
-+	 * a set of CPUs
-+	 */
-+	switch (sparc_cpu_model) {
-+	default:
-+		BUG();
-+	}
-+}
-+
- void smp_flush_cache_all(void)
- {
- 	xc0((smpfunc_t) BTFIXUP_CALL(local_flush_cache_all));
--- 
-1.5.4
+under "SPARC", you can remove the select line for this that
+exists under "SPARC64" since that is no longer needed.
 
+As per the implementation, I think there are implicit races
+which come to be shown more explicitly in your LEON implementation.
+
+You can't have a per-cpu blob of status and modify remote cpu
+values the way you do, it's racy.
+
+Let's say cpu 1 sends to cpu 2, and cpu 3 tries to send to cpu 2
+at the same time.  It's possible for events to be lost since the
+setting and clearing of the per-cpu masks are done non-atomically.
+
+The solution, I think, is to use multiple software interrupt vectors
+to distinguish the various cases.
+
+I think we need 3, plus IRQ 15 for the cache/tlb flush IPIs.
+
+I tried to figure out if we have enough on LEON, but because the
+per-cpu timer is variable, I can't figure that out.  Does that per-cpu
+timer use IRQ 14?
+
+I think we can make this work on sun4m/sun4c/sun4d, which have several
+software interrupt vectors available.
+
+sun4m has 15 soft interrupts, in the sun4m_irq_percpu->{pending,clear,set}
+registers, these live sequentially starting at bit 16, as per the definition
+of the SUN4M_SOFT_INT() macro.
+
+The only catch is that we'll need to peek at the ->pending register(s) to
+determine if we have a hardware or software interrupt pending at a given
+PIL level (or both).
+
+I'm not sure how the software interrupt triggering works on sun4c, but that
+doesn't matter since we only need this on SMP.
+
+The sun4d code has a sun4d_send_ipi() interface from which the necessary
+code can be constructed.
