@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 25 Jan 2011 20:42:41 +0000
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 29 Jan 2011 08:13:16 +0000
 Subject: Re: [RFC PATCH 0/7] sparc32: cleanup irq + smp files
-Message-Id: <20110125.124241.189702326.davem@davemloft.net>
+Message-Id: <20110129081316.GA15931@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20110123213940.GA15063@merkur.ravnborg.org>
 In-Reply-To: <20110123213940.GA15063@merkur.ravnborg.org>
@@ -10,15 +10,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Tue, 25 Jan 2011 08:52:47 +0100
-
-> Andrew already fixed it:
-> http://marc.info/?l=linux-mips&m9593731808647&w=2
+On Mon, Jan 24, 2011 at 04:17:54PM -0800, David Miller wrote:
+> From: David Miller <davem@davemloft.net>
+> Date: Mon, 24 Jan 2011 16:11:32 -0800 (PST)
 > 
-> I have build tested sparc32 allnoconfig + defconfig.
+> > From: Sam Ravnborg <sam@ravnborg.org>
+> > Date: Sun, 23 Jan 2011 22:54:38 +0100
+> > 
+> >> The patches survied my SPARCclassic config and defconfig.
+> >> But allnoconfig bails out with an error.
+> >> 
+> >> This is because asm-generic/tlb.h require linux/pagemap.h.
+> >> The include happended implicitly before.
+> >> 
+> >> 
+> >> Workaround is simple - see below.
+> >> I will try to get it fixed in asm-generic for benefit of all users.
+> > 
+> > Please get this fix in asm-generic and merged upstream, then
+> > repost your series and mention this dependency so I can merge
+> > in Linus's tree first.
+> > 
+> > Thanks.
 > 
-> I will repost my serie when this fix is in mainline.
-> The updated serie will be on top of sparc-next.
+> BTW, I did review the patches and they do otherwise look perfectly
+> fine to me.
+Just realised that I did not give you credit for this review
+in the patch-set I just sent out.
+Would you like me to add your "Acked-by" / "Reviewed-by" in
+future patches?
 
-Thanks a lot Sam.
+As you anyway sign-off the patches it may look a bit redundant.
+But then it would be documented that you did not blindly
+apply the patches.
+
+	Sam
