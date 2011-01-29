@@ -1,641 +1,93 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Tue, 04 Jan 2011 21:39:17 +0000
-Subject: [PATCH 08/10] sparc: rename piggyback_32 to piggyback
-Message-Id: <1294177159-15817-8-git-send-email-sam@ravnborg.org>
+Date: Sat, 29 Jan 2011 08:08:22 +0000
+Subject: [PATCH 6/8] sparc32,sun4d: drop unused code in sun4d_distribute_irqs()
+Message-Id: <1296288504-15933-6-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Now that we use the same piggyback for 32 and 64 bit
-we can drop the _32 suffix.
-Include some trivial unification in the Makefile
-now that 32 and 64 bit can share the same piggyback command.
+The preprocessor symbol was not defined and the code
+was therefore not in use.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/boot/Makefile       |   20 +--
- arch/sparc/boot/piggyback.c    |  271 ++++++++++++++++++++++++++++++++++++++++
- arch/sparc/boot/piggyback_32.c |  271 ----------------------------------------
- 3 files changed, 277 insertions(+), 285 deletions(-)
- create mode 100644 arch/sparc/boot/piggyback.c
- delete mode 100644 arch/sparc/boot/piggyback_32.c
+ arch/sparc/kernel/sun4d_irq.c |   47 -----------------------------------------
+ 1 files changed, 0 insertions(+), 47 deletions(-)
 
-diff --git a/arch/sparc/boot/Makefile b/arch/sparc/boot/Makefile
-index 06a79a2..f9d3bf9 100644
---- a/arch/sparc/boot/Makefile
-+++ b/arch/sparc/boot/Makefile
-@@ -6,16 +6,16 @@
- ROOT_IMG	:= /usr/src/root.img
- ELFTOAOUT	:= elftoaout
+diff --git a/arch/sparc/kernel/sun4d_irq.c b/arch/sparc/kernel/sun4d_irq.c
+index 5fc4c22..b2e3fbf 100644
+--- a/arch/sparc/kernel/sun4d_irq.c
++++ b/arch/sparc/kernel/sun4d_irq.c
+@@ -38,13 +38,6 @@
+  *    have interrupts pending for that SBUS interrupt level.
+  */
  
--hostprogs-y	:= piggyback_32 btfixupprep
-+hostprogs-y	:= piggyback btfixupprep
- targets		:= tftpboot.img btfix.o btfix.S image zImage vmlinux.aout
- clean-files	:= System.map
- 
- quiet_cmd_elftoaout	= ELFTOAOUT $@
-       cmd_elftoaout	= $(ELFTOAOUT) $(obj)/image -o $@
-+quiet_cmd_piggy		= PIGGY   $@
-+      cmd_piggy		= $(obj)/piggyback $(BITS) $@ System.map $(ROOT_IMG)
- 
- ifeq ($(CONFIG_SPARC32),y)
--quiet_cmd_piggy		= PIGGY   $@
--      cmd_piggy		= $(obj)/piggyback_32 $(BITS) $@ System.map $(ROOT_IMG)
- quiet_cmd_btfix		= BTFIX   $@
-       cmd_btfix		= $(OBJDUMP) -x vmlinux | $(obj)/btfixupprep > $@
- quiet_cmd_sysmap        = SYSMAP  $(obj)/System.map
-@@ -58,18 +58,12 @@ $(obj)/image: $(obj)/btfix.o FORCE
- $(obj)/zImage: $(obj)/image
- 	$(call if_changed,strip)
- 
--$(obj)/tftpboot.img: $(obj)/image $(obj)/piggyback_32 System.map $(ROOT_IMG) FORCE
--	$(call if_changed,elftoaout)
--	$(call if_changed,piggy)
--
- $(obj)/btfix.S: $(obj)/btfixupprep vmlinux FORCE
- 	$(call if_changed,btfix)
- 
- endif
- 
- ifeq ($(CONFIG_SPARC64),y)
--quiet_cmd_piggy     = PIGGY   $@
--      cmd_piggy     = $(obj)/piggyback_32 $(BITS) $@ System.map $(ROOT_IMG)
- quiet_cmd_strip     = STRIP   $@
-       cmd_strip     = $(STRIP) -R .comment -R .note -K sun4u_init -K _end -K _start vmlinux -o $@
- 
-@@ -82,13 +76,11 @@ $(obj)/image: vmlinux FORCE
- $(obj)/zImage: $(obj)/image
- 	$(call if_changed,gzip)
- 
--$(obj)/tftpboot.img: $(obj)/image $(obj)/piggyback_32 System.map $(ROOT_IMG) FORCE
--	$(call if_changed,elftoaout)
--	$(call if_changed,piggy)
--	@echo '  kernel: $@ is ready'
--
- $(obj)/vmlinux.aout: vmlinux FORCE
- 	$(call if_changed,elftoaout)
- 	@echo '  kernel: $@ is ready'
- endif
- 
-+$(obj)/tftpboot.img: $(obj)/image $(obj)/piggyback System.map $(ROOT_IMG) FORCE
-+	$(call if_changed,elftoaout)
-+	$(call if_changed,piggy)
-diff --git a/arch/sparc/boot/piggyback.c b/arch/sparc/boot/piggyback.c
-new file mode 100644
-index 0000000..d56e9de
---- /dev/null
-+++ b/arch/sparc/boot/piggyback.c
-@@ -0,0 +1,271 @@
-+/*
-+   Simple utility to make a single-image install kernel with initial ramdisk
-+   for Sparc tftpbooting without need to set up nfs.
-+
-+   Copyright (C) 1996 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
-+   Pete Zaitcev <zaitcev@yahoo.com> endian fixes for cross-compiles, 2000.
-+
-+   This program is free software; you can redistribute it and/or modify
-+   it under the terms of the GNU General Public License as published by
-+   the Free Software Foundation; either version 2 of the License, or
-+   (at your option) any later version.
-+
-+   This program is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+   GNU General Public License for more details.
-+
-+   You should have received a copy of the GNU General Public License
-+   along with this program; if not, write to the Free Software
-+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
-+
-+#include <dirent.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <unistd.h>
-+#include <ctype.h>
-+#include <errno.h>
-+#include <fcntl.h>
-+#include <stdio.h>
-+
-+#include <sys/types.h>
-+#include <sys/stat.h>
-+
-+/*
-+ * Note: run this on an a.out kernel (use elftoaout for it),
-+ * as PROM looks for a.out image only.
-+ */
-+
-+#define AOUT_TEXT_OFFSET   32
-+
-+static int is64bit = 0;
-+
-+/* align to power-of-two size */
-+static int align(int n)
-+{
-+	if (is64bit)
-+		return (n + 0x1fff) & ~0x1fff;
-+	else
-+		return (n + 0xfff) & ~0xfff;
-+}
-+
-+/* read two bytes as big endian */
-+static unsigned short ld2(char *p)
-+{
-+	return (p[0] << 8) | p[1];
-+}
-+
-+/* save 4 bytes as big endian */
-+static void st4(char *p, unsigned int x)
-+{
-+	p[0] = x >> 24;
-+	p[1] = x >> 16;
-+	p[2] = x >> 8;
-+	p[3] = x;
-+}
-+
-+static void die(const char *str)
-+{
-+	perror(str);
-+	exit(1);
-+}
-+
-+static void usage(void)
-+{
-+	/* fs_img.gz is an image of initial ramdisk. */
-+	fprintf(stderr, "Usage: piggyback bits vmlinux.aout System.map fs_img.gz\n");
-+	fprintf(stderr, "\tKernel image will be modified in place.\n");
-+	exit(1);
-+}
-+
-+static int start_line(const char *line)
-+{
-+	if (strcmp(line + 8, " T _start\n") = 0)
-+		return 1;
-+	else if (strcmp(line + 16, " T _start\n") = 0)
-+		return 1;
-+	return 0;
-+}
-+
-+static int end_line(const char *line)
-+{
-+	if (strcmp(line + 8, " A _end\n") = 0)
-+		return 1;
-+	else if (strcmp (line + 16, " A _end\n") = 0)
-+		return 1;
-+	return 0;
-+}
-+
-+/*
-+ * Find address for start and end in System.map.
-+ * The file looks like this:
-+ * f0004000 T _start
-+ * f0379f79 A _end
-+ * 1234567890123456
-+ * ^coloumn 1
-+ * There is support for 64 bit addresses too.
-+ *
-+ * Return 0 if either start or end is not found
-+ */
-+static int get_start_end(const char *filename, unsigned int *start,
-+                                               unsigned int *end)
-+{
-+	FILE *map;
-+	char buffer[1024];
-+
-+	*start = 0;
-+	*end = 0;
-+	map = fopen(filename, "r");
-+	if (!map)
-+		die(filename);
-+	while (fgets(buffer, 1024, map)) {
-+		if (start_line(buffer))
-+			*start = strtoul(buffer, NULL, 16);
-+		else if (end_line(buffer))
-+			*end = strtoul(buffer, NULL, 16);
-+	}
-+	fclose (map);
-+
-+	if (*start = 0 || *end = 0)
-+		return 0;
-+
-+	return 1;
-+}
-+
-+#define LOOKBACK (128 * 4)
-+#define BUFSIZE 1024
-+/*
-+ * Find the HdrS entry from head_32/head_64.
-+ * We check if it is at the beginning of the file (sparc64 case)
-+ * and if not we search for it.
-+ * When we search do so in steps of 4 as HdrS is on a 4-byte aligned
-+ * address (it is on same alignment as sparc instructions)
-+ * Return the offset to the HdrS entry (as off_t)
-+ */
-+static off_t get_hdrs_offset(int kernelfd, const char *filename)
-+{
-+	char buffer[BUFSIZE];
-+	off_t offset;
-+	int i;
-+
-+	if (lseek(kernelfd, 0, SEEK_SET) < 0)
-+		die("lseek");
-+	if (read(kernelfd, buffer, BUFSIZE) != BUFSIZE)
-+		die(filename);
-+
-+	if (buffer[40] = 'H' && buffer[41] = 'd' &&
-+	    buffer[42] = 'r' && buffer[43] = 'S') {
-+		return 40;
-+	} else {
-+		/*  Find the gokernel label */
-+		/* Decode offset from branch instruction */
-+		offset = ld2(buffer + AOUT_TEXT_OFFSET + 2) << 2;
-+		/* Go back 512 bytes so we do not miss HdrS */
-+		offset -= LOOKBACK;
-+		/* skip a.out header */
-+		offset += AOUT_TEXT_OFFSET;
-+		if (lseek(kernelfd, offset, SEEK_SET) < 0)
-+			die("lseek");
-+		if (read(kernelfd, buffer, BUFSIZE) != BUFSIZE)
-+			die(filename);
-+
-+		for (i = 0; i < LOOKBACK; i += 4) {
-+			if (buffer[i + 0] = 'H' && buffer[i + 1] = 'd' &&
-+			    buffer[i + 2] = 'r' && buffer[i + 3] = 'S') {
-+				return offset + i;
-+			}
-+		}
-+	}
-+	fprintf (stderr, "Couldn't find headers signature in %s\n", filename);
-+	exit(1);
-+}
-+
-+int main(int argc,char **argv)
-+{
-+	static char aout_magic[] = { 0x01, 0x03, 0x01, 0x07 };
-+	char buffer[1024];
-+	unsigned int i, start, end;
-+	off_t offset;
-+	struct stat s;
-+	int image, tail;
-+
-+	if (argc != 5)
-+		usage();
-+	if (strcmp(argv[1], "64") = 0)
-+		is64bit = 1;
-+	if (stat (argv[4], &s) < 0)
-+		die(argv[4]);
-+
-+	if (!get_start_end(argv[3], &start, &end)) {
-+		fprintf(stderr, "Could not determine start and end from %s\n",
-+		        argv[3]);
-+		exit(1);
-+	}
-+	if ((image = open(argv[2], O_RDWR)) < 0)
-+		die(argv[2]);
-+	if (read(image, buffer, 512) != 512)
-+		die(argv[2]);
-+	if (memcmp(buffer, aout_magic, 4) != 0) {
-+		fprintf (stderr, "Not a.out. Don't blame me.\n");
-+		exit(1);
-+	}
-+	/*
-+	 * We need to fill in values for
-+	 * sparc_ramdisk_image + sparc_ramdisk_size
-+	 * To locate these symbols search for the "HdrS" text which appear
-+	 * in the image a little before the gokernel symbol.
-+	 * See definition of these in init_32.S
-+	 */
-+
-+	offset = get_hdrs_offset(image, argv[2]);
-+	/* skip HdrS + LINUX_VERSION_CODE + HdrS version */
-+	offset += 10;
-+
-+	if (lseek(image, offset, 0) < 0)
-+		die("lseek");
-+
-+	/*
-+	 * root_flags = 0
-+	 * root_dev = 1 (RAMDISK_MAJOR)
-+	 * ram_flags = 0
-+	 * sparc_ramdisk_image = "PAGE aligned address after _end")
-+	 * sparc_ramdisk_size = size of image
-+	 */
-+	st4(buffer, 0);
-+	st4(buffer + 4, 0x01000000);
-+	st4(buffer + 8, align(end + 32));
-+	st4(buffer + 12, s.st_size);
-+
-+	if (write(image, buffer + 2, 14) != 14)
-+		die(argv[2]);
-+
-+	/* For sparc64 update a_text and clear a_data + a_bss */
-+	if (is64bit)
-+	{
-+		if (lseek(image, 4, 0) < 0)
-+			die("lseek");
-+		/* a_text */
-+		st4(buffer, align(end + 32 + 8191) - (start & ~0x3fffffUL) +
-+		            s.st_size);
-+		/* a_data */
-+		st4(buffer + 4, 0);
-+		/* a_bss */
-+		st4(buffer + 8, 0);
-+		if (write(image, buffer, 12) != 12)
-+			die(argv[2]);
-+	}
-+
-+	/* seek page aligned boundary in the image file and add boot image */
-+	if (lseek(image, AOUT_TEXT_OFFSET - start + align(end + 32), 0) < 0)
-+		die("lseek");
-+	if ((tail = open(argv[4], O_RDONLY)) < 0)
-+		die(argv[4]);
-+	while ((i = read(tail, buffer, 1024)) > 0)
-+		if (write(image, buffer, i) != i)
-+			die(argv[2]);
-+	if (close(image) < 0)
-+		die("close");
-+	if (close(tail) < 0)
-+		die("close");
-+	return 0;
-+}
-diff --git a/arch/sparc/boot/piggyback_32.c b/arch/sparc/boot/piggyback_32.c
-deleted file mode 100644
-index d56e9de..0000000
---- a/arch/sparc/boot/piggyback_32.c
-+++ /dev/null
-@@ -1,271 +0,0 @@
 -/*
--   Simple utility to make a single-image install kernel with initial ramdisk
--   for Sparc tftpbooting without need to set up nfs.
--
--   Copyright (C) 1996 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
--   Pete Zaitcev <zaitcev@yahoo.com> endian fixes for cross-compiles, 2000.
--
--   This program is free software; you can redistribute it and/or modify
--   it under the terms of the GNU General Public License as published by
--   the Free Software Foundation; either version 2 of the License, or
--   (at your option) any later version.
--
--   This program is distributed in the hope that it will be useful,
--   but WITHOUT ANY WARRANTY; without even the implied warranty of
--   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--   GNU General Public License for more details.
--
--   You should have received a copy of the GNU General Public License
--   along with this program; if not, write to the Free Software
--   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
--
--#include <dirent.h>
--#include <stdlib.h>
--#include <string.h>
--#include <unistd.h>
--#include <ctype.h>
--#include <errno.h>
--#include <fcntl.h>
--#include <stdio.h>
--
--#include <sys/types.h>
--#include <sys/stat.h>
--
--/*
-- * Note: run this on an a.out kernel (use elftoaout for it),
-- * as PROM looks for a.out image only.
+- * If you trust current SCSI layer to handle different
+- * SCSI IRQs, enable this.
+- * I don't trust it... -jj
 - */
+-/* #define DISTRIBUTE_IRQS */
 -
--#define AOUT_TEXT_OFFSET   32
+ struct sun4d_timer_regs {
+ 	u32	l10_timer_limit;
+ 	u32	l10_cur_countx;
+@@ -412,45 +405,6 @@ void __init sun4d_distribute_irqs(void)
+ {
+ 	struct device_node *dp;
+ 
+-#ifdef DISTRIBUTE_IRQS
+-	cpumask_t sbus_serving_map;
 -
--static int is64bit = 0;
+-	sbus_serving_map = cpu_present_map;
+-	for_each_node_by_name(dp, "sbi") {
+-		int board = of_getintprop_default(dp, "board#", 0);
 -
--/* align to power-of-two size */
--static int align(int n)
--{
--	if (is64bit)
--		return (n + 0x1fff) & ~0x1fff;
--	else
--		return (n + 0xfff) & ~0xfff;
--}
--
--/* read two bytes as big endian */
--static unsigned short ld2(char *p)
--{
--	return (p[0] << 8) | p[1];
--}
--
--/* save 4 bytes as big endian */
--static void st4(char *p, unsigned int x)
--{
--	p[0] = x >> 24;
--	p[1] = x >> 16;
--	p[2] = x >> 8;
--	p[3] = x;
--}
--
--static void die(const char *str)
--{
--	perror(str);
--	exit(1);
--}
--
--static void usage(void)
--{
--	/* fs_img.gz is an image of initial ramdisk. */
--	fprintf(stderr, "Usage: piggyback bits vmlinux.aout System.map fs_img.gz\n");
--	fprintf(stderr, "\tKernel image will be modified in place.\n");
--	exit(1);
--}
--
--static int start_line(const char *line)
--{
--	if (strcmp(line + 8, " T _start\n") = 0)
--		return 1;
--	else if (strcmp(line + 16, " T _start\n") = 0)
--		return 1;
--	return 0;
--}
--
--static int end_line(const char *line)
--{
--	if (strcmp(line + 8, " A _end\n") = 0)
--		return 1;
--	else if (strcmp (line + 16, " A _end\n") = 0)
--		return 1;
--	return 0;
--}
--
--/*
-- * Find address for start and end in System.map.
-- * The file looks like this:
-- * f0004000 T _start
-- * f0379f79 A _end
-- * 1234567890123456
-- * ^coloumn 1
-- * There is support for 64 bit addresses too.
-- *
-- * Return 0 if either start or end is not found
-- */
--static int get_start_end(const char *filename, unsigned int *start,
--                                               unsigned int *end)
--{
--	FILE *map;
--	char buffer[1024];
--
--	*start = 0;
--	*end = 0;
--	map = fopen(filename, "r");
--	if (!map)
--		die(filename);
--	while (fgets(buffer, 1024, map)) {
--		if (start_line(buffer))
--			*start = strtoul(buffer, NULL, 16);
--		else if (end_line(buffer))
--			*end = strtoul(buffer, NULL, 16);
+-		if ((board * 2) = boot_cpu_id && cpu_isset(board * 2 + 1, cpu_present_map))
+-			sbus_tid[board] = (board * 2 + 1);
+-		else if (cpu_isset(board * 2, cpu_present_map))
+-			sbus_tid[board] = (board * 2);
+-		else if (cpu_isset(board * 2 + 1, cpu_present_map))
+-			sbus_tid[board] = (board * 2 + 1);
+-		else
+-			sbus_tid[board] = 0xff;
+-		if (sbus_tid[board] != 0xff)
+-			cpu_clear(sbus_tid[board], sbus_serving_map);
 -	}
--	fclose (map);
+-	for_each_node_by_name(dp, "sbi") {
+-		int board = of_getintprop_default(dp, "board#", 0);
+-		if (sbus_tid[board] = 0xff) {
+-			int i = 31;
 -
--	if (*start = 0 || *end = 0)
--		return 0;
--
--	return 1;
--}
--
--#define LOOKBACK (128 * 4)
--#define BUFSIZE 1024
--/*
-- * Find the HdrS entry from head_32/head_64.
-- * We check if it is at the beginning of the file (sparc64 case)
-- * and if not we search for it.
-- * When we search do so in steps of 4 as HdrS is on a 4-byte aligned
-- * address (it is on same alignment as sparc instructions)
-- * Return the offset to the HdrS entry (as off_t)
-- */
--static off_t get_hdrs_offset(int kernelfd, const char *filename)
--{
--	char buffer[BUFSIZE];
--	off_t offset;
--	int i;
--
--	if (lseek(kernelfd, 0, SEEK_SET) < 0)
--		die("lseek");
--	if (read(kernelfd, buffer, BUFSIZE) != BUFSIZE)
--		die(filename);
--
--	if (buffer[40] = 'H' && buffer[41] = 'd' &&
--	    buffer[42] = 'r' && buffer[43] = 'S') {
--		return 40;
--	} else {
--		/*  Find the gokernel label */
--		/* Decode offset from branch instruction */
--		offset = ld2(buffer + AOUT_TEXT_OFFSET + 2) << 2;
--		/* Go back 512 bytes so we do not miss HdrS */
--		offset -= LOOKBACK;
--		/* skip a.out header */
--		offset += AOUT_TEXT_OFFSET;
--		if (lseek(kernelfd, offset, SEEK_SET) < 0)
--			die("lseek");
--		if (read(kernelfd, buffer, BUFSIZE) != BUFSIZE)
--			die(filename);
--
--		for (i = 0; i < LOOKBACK; i += 4) {
--			if (buffer[i + 0] = 'H' && buffer[i + 1] = 'd' &&
--			    buffer[i + 2] = 'r' && buffer[i + 3] = 'S') {
--				return offset + i;
--			}
+-			if (cpus_empty(sbus_serving_map))
+-				sbus_serving_map = cpu_present_map;
+-			while (cpu_isset(i, sbus_serving_map))
+-				i--;
+-			sbus_tid[board] = i;
+-			cpu_clear(i, sbus_serving_map);
 -		}
 -	}
--	fprintf (stderr, "Couldn't find headers signature in %s\n", filename);
--	exit(1);
--}
--
--int main(int argc,char **argv)
--{
--	static char aout_magic[] = { 0x01, 0x03, 0x01, 0x07 };
--	char buffer[1024];
--	unsigned int i, start, end;
--	off_t offset;
--	struct stat s;
--	int image, tail;
--
--	if (argc != 5)
--		usage();
--	if (strcmp(argv[1], "64") = 0)
--		is64bit = 1;
--	if (stat (argv[4], &s) < 0)
--		die(argv[4]);
--
--	if (!get_start_end(argv[3], &start, &end)) {
--		fprintf(stderr, "Could not determine start and end from %s\n",
--		        argv[3]);
--		exit(1);
+-	for_each_node_by_name(dp, "sbi") {
+-		int devid = of_getintprop_default(dp, "device-id", 0);
+-		int board = of_getintprop_default(dp, "board#", 0);
+-		printk(KERN_ERR "sbus%d IRQs directed to CPU%d\n",
+-		       board, sbus_tid[board]);
+-		set_sbi_tid(devid, sbus_tid[board] << 3);
 -	}
--	if ((image = open(argv[2], O_RDWR)) < 0)
--		die(argv[2]);
--	if (read(image, buffer, 512) != 512)
--		die(argv[2]);
--	if (memcmp(buffer, aout_magic, 4) != 0) {
--		fprintf (stderr, "Not a.out. Don't blame me.\n");
--		exit(1);
--	}
--	/*
--	 * We need to fill in values for
--	 * sparc_ramdisk_image + sparc_ramdisk_size
--	 * To locate these symbols search for the "HdrS" text which appear
--	 * in the image a little before the gokernel symbol.
--	 * See definition of these in init_32.S
--	 */
--
--	offset = get_hdrs_offset(image, argv[2]);
--	/* skip HdrS + LINUX_VERSION_CODE + HdrS version */
--	offset += 10;
--
--	if (lseek(image, offset, 0) < 0)
--		die("lseek");
--
--	/*
--	 * root_flags = 0
--	 * root_dev = 1 (RAMDISK_MAJOR)
--	 * ram_flags = 0
--	 * sparc_ramdisk_image = "PAGE aligned address after _end")
--	 * sparc_ramdisk_size = size of image
--	 */
--	st4(buffer, 0);
--	st4(buffer + 4, 0x01000000);
--	st4(buffer + 8, align(end + 32));
--	st4(buffer + 12, s.st_size);
--
--	if (write(image, buffer + 2, 14) != 14)
--		die(argv[2]);
--
--	/* For sparc64 update a_text and clear a_data + a_bss */
--	if (is64bit)
--	{
--		if (lseek(image, 4, 0) < 0)
--			die("lseek");
--		/* a_text */
--		st4(buffer, align(end + 32 + 8191) - (start & ~0x3fffffUL) +
--		            s.st_size);
--		/* a_data */
--		st4(buffer + 4, 0);
--		/* a_bss */
--		st4(buffer + 8, 0);
--		if (write(image, buffer, 12) != 12)
--			die(argv[2]);
--	}
--
--	/* seek page aligned boundary in the image file and add boot image */
--	if (lseek(image, AOUT_TEXT_OFFSET - start + align(end + 32), 0) < 0)
--		die("lseek");
--	if ((tail = open(argv[4], O_RDONLY)) < 0)
--		die(argv[4]);
--	while ((i = read(tail, buffer, 1024)) > 0)
--		if (write(image, buffer, i) != i)
--			die(argv[2]);
--	if (close(image) < 0)
--		die("close");
--	if (close(tail) < 0)
--		die("close");
--	return 0;
--}
+-#else
+ 	int cpuid = cpu_logical_map(1);
+ 
+ 	if (cpuid = -1)
+@@ -462,7 +416,6 @@ void __init sun4d_distribute_irqs(void)
+ 		set_sbi_tid(devid, cpuid << 3);
+ 	}
+ 	printk(KERN_ERR "All sbus IRQs directed to CPU%d\n", cpuid);
+-#endif
+ }
+ #endif
+ 
 -- 
 1.6.0.6
 
