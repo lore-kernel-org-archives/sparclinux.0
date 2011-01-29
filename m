@@ -1,114 +1,194 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 11 Jan 2011 23:50:04 +0000
-Subject: [PATCH 5/22] svga: Make svga_set_default_gfx_regs take an iomem
-Message-Id: <20110111.155004.141237935.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 29 Jan 2011 08:08:18 +0000
+Subject: [PATCH 2/8] sparc32: add irq + smp declarations to headers
+Message-Id: <1296288504-15933-2-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-fbdev@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
+In preparation for cleaning up a number of files add
+declarations for irq and smp related data/functions to
+the relevant headers.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+This showed that the extern declaration of cputypval differed
+in the two files where it was used.
+As cputypval is defined like this:
+
+cputypval:
+        .asciz "sun4c"
+
+the correct representation is a char array.
+Fix users to use the new declaration.
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- drivers/video/arkfb.c    |    2 +-
- drivers/video/s3fb.c     |    2 +-
- drivers/video/svgalib.c  |   26 +++++++++++++-------------
- drivers/video/vt8623fb.c |    2 +-
- include/linux/svga.h     |    2 +-
- 5 files changed, 17 insertions(+), 17 deletions(-)
+ arch/sparc/include/asm/mmu_32.h |    3 ++
+ arch/sparc/include/asm/smp_32.h |    6 +++++
+ arch/sparc/kernel/irq_32.c      |    6 ++--
+ arch/sparc/kernel/kernel.h      |   47 +++++++++++++++++++++++++++++++++++++++
+ arch/sparc/kernel/setup_32.c    |   19 +++++++--------
+ 5 files changed, 68 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/video/arkfb.c b/drivers/video/arkfb.c
-index 311a512..7939d5e 100644
---- a/drivers/video/arkfb.c
-+++ b/drivers/video/arkfb.c
-@@ -653,7 +653,7 @@ static int arkfb_set_par(struct fb_info *info)
- 	svga_wcrt_mask(0x17, 0x00, 0x80);
+diff --git a/arch/sparc/include/asm/mmu_32.h b/arch/sparc/include/asm/mmu_32.h
+index ccd36d2..6f056e5 100644
+--- a/arch/sparc/include/asm/mmu_32.h
++++ b/arch/sparc/include/asm/mmu_32.h
+@@ -4,4 +4,7 @@
+ /* Default "unsigned long" context */
+ typedef unsigned long mm_context_t;
  
- 	/* Set default values */
--	svga_set_default_gfx_regs();
-+	svga_set_default_gfx_regs(par->state.vgabase);
- 	svga_set_default_atc_regs();
- 	svga_set_default_seq_regs();
- 	svga_set_default_crt_regs();
-diff --git a/drivers/video/s3fb.c b/drivers/video/s3fb.c
-index 26698e6..773650c 100644
---- a/drivers/video/s3fb.c
-+++ b/drivers/video/s3fb.c
-@@ -514,7 +514,7 @@ static int s3fb_set_par(struct fb_info *info)
- 	svga_wcrt_mask(0x17, 0x00, 0x80);
++/* mm/srmmu.c */
++extern ctxd_t *srmmu_ctx_table_phys;
++
+ #endif
+diff --git a/arch/sparc/include/asm/smp_32.h b/arch/sparc/include/asm/smp_32.h
+index 841905c..d82d7f4 100644
+--- a/arch/sparc/include/asm/smp_32.h
++++ b/arch/sparc/include/asm/smp_32.h
+@@ -29,10 +29,16 @@
+  */
  
- 	/* Set default values */
--	svga_set_default_gfx_regs();
-+	svga_set_default_gfx_regs(par->state.vgabase);
- 	svga_set_default_atc_regs();
- 	svga_set_default_seq_regs();
- 	svga_set_default_crt_regs();
-diff --git a/drivers/video/svgalib.c b/drivers/video/svgalib.c
-index ed190aa..25f9f87 100644
---- a/drivers/video/svgalib.c
-+++ b/drivers/video/svgalib.c
-@@ -75,21 +75,21 @@ static unsigned int svga_regset_size(const struct vga_regset *regset)
+ extern unsigned char boot_cpu_id;
++extern volatile unsigned long cpu_callin_map[NR_CPUS];
++extern cpumask_t smp_commenced_mask;
++extern struct linux_prom_registers smp_penguin_ctable;
  
+ typedef void (*smpfunc_t)(unsigned long, unsigned long, unsigned long,
+ 		       unsigned long, unsigned long);
  
- /* Set graphics controller registers to sane values */
--void svga_set_default_gfx_regs(void)
-+void svga_set_default_gfx_regs(void __iomem *regbase)
++void cpu_panic(void);
++extern void smp4m_irq_rotate(int cpu);
++
+ /*
+  *	General functions that each host system must provide.
+  */
+diff --git a/arch/sparc/kernel/irq_32.c b/arch/sparc/kernel/irq_32.c
+index 07c3e39..85db35d 100644
+--- a/arch/sparc/kernel/irq_32.c
++++ b/arch/sparc/kernel/irq_32.c
+@@ -130,9 +130,9 @@ EXPORT_SYMBOL(arch_local_irq_restore);
+ 
+ static void irq_panic(void)
  {
- 	/* All standard GFX registers (GR00 - GR08) */
--	vga_wgfx(NULL, VGA_GFX_SR_VALUE, 0x00);
--	vga_wgfx(NULL, VGA_GFX_SR_ENABLE, 0x00);
--	vga_wgfx(NULL, VGA_GFX_COMPARE_VALUE, 0x00);
--	vga_wgfx(NULL, VGA_GFX_DATA_ROTATE, 0x00);
--	vga_wgfx(NULL, VGA_GFX_PLANE_READ, 0x00);
--	vga_wgfx(NULL, VGA_GFX_MODE, 0x00);
--/*	vga_wgfx(NULL, VGA_GFX_MODE, 0x20); */
--/*	vga_wgfx(NULL, VGA_GFX_MODE, 0x40); */
--	vga_wgfx(NULL, VGA_GFX_MISC, 0x05);
--/*	vga_wgfx(NULL, VGA_GFX_MISC, 0x01); */
--	vga_wgfx(NULL, VGA_GFX_COMPARE_MASK, 0x0F);
--	vga_wgfx(NULL, VGA_GFX_BIT_MASK, 0xFF);
-+	vga_wgfx(regbase, VGA_GFX_SR_VALUE, 0x00);
-+	vga_wgfx(regbase, VGA_GFX_SR_ENABLE, 0x00);
-+	vga_wgfx(regbase, VGA_GFX_COMPARE_VALUE, 0x00);
-+	vga_wgfx(regbase, VGA_GFX_DATA_ROTATE, 0x00);
-+	vga_wgfx(regbase, VGA_GFX_PLANE_READ, 0x00);
-+	vga_wgfx(regbase, VGA_GFX_MODE, 0x00);
-+/*	vga_wgfx(regbase, VGA_GFX_MODE, 0x20); */
-+/*	vga_wgfx(regbase, VGA_GFX_MODE, 0x40); */
-+	vga_wgfx(regbase, VGA_GFX_MISC, 0x05);
-+/*	vga_wgfx(regbase, VGA_GFX_MISC, 0x01); */
-+	vga_wgfx(regbase, VGA_GFX_COMPARE_MASK, 0x0F);
-+	vga_wgfx(regbase, VGA_GFX_BIT_MASK, 0xFF);
+-    extern char *cputypval;
+-    prom_printf("machine: %s doesn't have irq handlers defined!\n",cputypval);
+-    prom_halt();
++	prom_printf("machine: %s doesn't have irq handlers defined!\n",
++		    &cputypval[0]);
++	prom_halt();
  }
  
- /* Set attribute controller registers to sane values */
-diff --git a/drivers/video/vt8623fb.c b/drivers/video/vt8623fb.c
-index 5301151..77382e9 100644
---- a/drivers/video/vt8623fb.c
-+++ b/drivers/video/vt8623fb.c
-@@ -425,7 +425,7 @@ static int vt8623fb_set_par(struct fb_info *info)
- 	svga_wcrt_mask(0x17, 0x00, 0x80);
+ void (*sparc_init_timers)(irq_handler_t ) diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
+index 15d8a3f..7eb7363 100644
+--- a/arch/sparc/kernel/kernel.h
++++ b/arch/sparc/kernel/kernel.h
+@@ -26,6 +26,53 @@ extern int static_irq_count;
+ extern spinlock_t irq_action_lock;
  
- 	/* Set default values */
--	svga_set_default_gfx_regs();
-+	svga_set_default_gfx_regs(par->state.vgabase);
- 	svga_set_default_atc_regs();
- 	svga_set_default_seq_regs();
- 	svga_set_default_crt_regs();
-diff --git a/include/linux/svga.h b/include/linux/svga.h
-index 357e2bd..4591032 100644
---- a/include/linux/svga.h
-+++ b/include/linux/svga.h
-@@ -99,7 +99,7 @@ static inline int svga_primary_device(struct pci_dev *dev)
- void svga_wcrt_multi(void __iomem *regbase, const struct vga_regset *regset, u32 value);
- void svga_wseq_multi(void __iomem *regbase, const struct vga_regset *regset, u32 value);
+ extern void unexpected_irq(int irq, void *dev_id, struct pt_regs * regs);
++extern void init_IRQ(void);
++
++/* sun4c_irq.c */
++extern void sun4c_init_IRQ(void);
++
++/* sun4m_irq.c */
++extern unsigned int lvl14_resolution;
++
++extern void sun4m_init_IRQ(void);
++extern void sun4m_clear_profile_irq(int cpu);
++
++/* sun4d_irq.c */
++extern spinlock_t sun4d_imsk_lock;
++
++extern void sun4d_init_IRQ(void);
++extern int sun4d_request_irq(unsigned int irq,
++                             irq_handler_t handler,
++                             unsigned long irqflags,
++                             const char *devname, void *dev_id);
++extern int show_sun4d_interrupts(struct seq_file *, void *);
++extern void sun4d_distribute_irqs(void);
++extern void sun4d_free_irq(unsigned int irq, void *dev_id);
++
++/* head_32.S */
++extern unsigned int t_nmi[];
++extern unsigned int linux_trap_ipi15_sun4d[];
++extern unsigned int linux_trap_ipi15_sun4m[];
++
++extern unsigned long trapbase_cpu1[];
++extern unsigned long trapbase_cpu2[];
++extern unsigned long trapbase_cpu3[];
++
++extern char cputypval[];
++
++/* entry.S */
++extern unsigned long lvl14_save[4];
++extern unsigned int real_irq_entry[];
++extern unsigned int smp4d_ticker[];
++extern unsigned int patchme_maybe_smp_msg[];
++
++extern void floppy_hardint(void);
++
++/* trampoline_32.S */
++extern int __smp4m_processor_id(void);
++extern int __smp4d_processor_id(void);
++extern unsigned long sun4m_cpu_startup;
++extern unsigned long sun4d_cpu_startup;
  
--void svga_set_default_gfx_regs(void);
-+void svga_set_default_gfx_regs(void __iomem *regbase);
- void svga_set_default_atc_regs(void);
- void svga_set_default_seq_regs(void);
- void svga_set_default_crt_regs(void);
+ #else /* CONFIG_SPARC32 */
+ #endif /* CONFIG_SPARC32 */
+diff --git a/arch/sparc/kernel/setup_32.c b/arch/sparc/kernel/setup_32.c
+index 648f216..7b8b76c 100644
+--- a/arch/sparc/kernel/setup_32.c
++++ b/arch/sparc/kernel/setup_32.c
+@@ -184,7 +184,6 @@ static void __init boot_flags_init(char *commands)
+  */
+ 
+ extern void sun4c_probe_vac(void);
+-extern char cputypval;
+ 
+ extern unsigned short root_flags;
+ extern unsigned short root_dev;
+@@ -218,21 +217,21 @@ void __init setup_arch(char **cmdline_p)
+ 
+ 	/* Set sparc_cpu_model */
+ 	sparc_cpu_model = sun_unknown;
+-	if (!strcmp(&cputypval,"sun4 "))
++	if (!strcmp(&cputypval[0], "sun4 "))
+ 		sparc_cpu_model = sun4;
+-	if (!strcmp(&cputypval,"sun4c"))
++	if (!strcmp(&cputypval[0], "sun4c"))
+ 		sparc_cpu_model = sun4c;
+-	if (!strcmp(&cputypval,"sun4m"))
++	if (!strcmp(&cputypval[0], "sun4m"))
+ 		sparc_cpu_model = sun4m;
+-	if (!strcmp(&cputypval,"sun4s"))
++	if (!strcmp(&cputypval[0], "sun4s"))
+ 		sparc_cpu_model = sun4m; /* CP-1200 with PROM 2.30 -E */
+-	if (!strcmp(&cputypval,"sun4d"))
++	if (!strcmp(&cputypval[0], "sun4d"))
+ 		sparc_cpu_model = sun4d;
+-	if (!strcmp(&cputypval,"sun4e"))
++	if (!strcmp(&cputypval[0], "sun4e"))
+ 		sparc_cpu_model = sun4e;
+-	if (!strcmp(&cputypval,"sun4u"))
++	if (!strcmp(&cputypval[0], "sun4u"))
+ 		sparc_cpu_model = sun4u;
+-	if (!strncmp(&cputypval, "leon" , 4))
++	if (!strncmp(&cputypval[0], "leon" , 4))
+ 		sparc_cpu_model = sparc_leon;
+ 
+ 	printk("ARCH: ");
+@@ -335,7 +334,7 @@ static int show_cpuinfo(struct seq_file *m, void *__unused)
+ 		   prom_rev,
+ 		   romvec->pv_printrev >> 16,
+ 		   romvec->pv_printrev & 0xffff,
+-		   &cputypval,
++		   &cputypval[0],
+ 		   ncpus_probed,
+ 		   num_online_cpus()
+ #ifndef CONFIG_SMP
 -- 
-1.7.3.4
+1.6.0.6
 
