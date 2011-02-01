@@ -1,43 +1,48 @@
-From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Tue, 01 Feb 2011 18:03:43 +0000
-Subject: [PATCH] sparc32: unaligned memory access (MNA) trap handler bug
-Message-Id: <1296583423-5469-1-git-send-email-daniel@gaisler.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Tue, 01 Feb 2011 19:59:26 +0000
+Subject: Re: [PATCH] sparc32: unaligned memory access (MNA) trap handler bug
+Message-Id: <20110201195926.GA11487@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1296583423-5469-1-git-send-email-daniel@gaisler.com>
+In-Reply-To: <1296583423-5469-1-git-send-email-daniel@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Since the merge process of the sparc and sparc64 the sparc32
-MNA trap handler does not emulate stores to unaligned addresses
-correctly. MNA operation from both from kernel and user space
-are affected.
+On Tue, Feb 01, 2011 at 07:03:43PM +0100, Daniel Hellstrom wrote:
+> Since the merge process of the sparc and sparc64 the sparc32
+> MNA trap handler does not emulate stores to unaligned addresses
+> correctly. MNA operation from both from kernel and user space
+> are affected.
 
-A typical effect of this bug is nr_frags in skbs are overwritten
-during buffer copying/checksum-calculation, or maximally 6 bytes
-of data in the network buffer will be overwitten with garbage.
+Well spotted!
 
-Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
----
- arch/sparc/kernel/una_asm_32.S |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+This bug was actually introduced by:
+f0e98c387e61de00646be31fab4c2fa0224e1efb "[SPARC]: Fix link errors with gcc-4.3"
 
-diff --git a/arch/sparc/kernel/una_asm_32.S b/arch/sparc/kernel/una_asm_32.S
-index 8cc0345..8f096e8 100644
---- a/arch/sparc/kernel/una_asm_32.S
-+++ b/arch/sparc/kernel/una_asm_32.S
-@@ -24,9 +24,9 @@ retl_efault:
- 	.globl	__do_int_store
- __do_int_store:
- 	ld	[%o2], %g1
--	cmp	%1, 2
-+	cmp	%o1, 2
- 	be	2f
--	 cmp	%1, 4
-+	 cmp	%o1, 4
- 	be	1f
- 	 srl	%g1, 24, %g2
- 	srl	%g1, 16, %g7
--- 
-1.5.4
+I wanted to check if there were similar bugs introduced, but
+this looks like a solo incident.
 
+I grepped for "%1" in the other *.S files, no hits.
+[Likewise for "%2", "%3", "%4"]
+
+Patch looks good to me.
+Reluctant with an "Acked-by" only because I do not feel confident
+with the code in question. The change looks obviously correct.
+
+I noticed you copied Greg on this. I guess you did so because you
+consider this -stable material.
+
+A better way to do so is to add:
+
+Cc: <stable@kernel.org>
+
+Then the stable team(s) will all be notified when this patch is applied
+by Linus to mainline.
+
+This is also a strong hint for David to apply this to sparc-2.6.git and not
+sparc-next-2.6.git
+But being explicit is always preferred.
+
+	Sam
