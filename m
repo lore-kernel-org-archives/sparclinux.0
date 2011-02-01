@@ -1,34 +1,26 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 13 Feb 2011 23:05:28 +0000
-Subject: Re: [PATCH 4/4] sparc32: genirq conversion (buggy)
-Message-Id: <20110213.150528.232911419.davem@davemloft.net>
+From: <tyder13@cox.net>
+Date: Tue, 01 Feb 2011 01:42:37 +0000
+Subject: Lucky Winner!
+Message-Id: <20110131204237.17XWR.1067459.imail@fed1rmwml34>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110213192952.GD25069@merkur.ravnborg.org>
-In-Reply-To: <20110213192952.GD25069@merkur.ravnborg.org>
+References: <20081106012058.ZH04O.125547.imail@eastrmwml24.mgt.cox.net>
+In-Reply-To: <20081106012058.ZH04O.125547.imail@eastrmwml24.mgt.cox.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 13 Feb 2011 23:30:18 +0100
+You have been awarded Â£850,000 from the OXFAM GB - UK 
+the cash/grant donation Promo for Global Economic Scheme.
+For claims, Contact Dr. Ben Andrew. 
+via e-mail
 
-> On Sun, Feb 13, 2011 at 02:00:26PM -0800, David Miller wrote:
->> From: Sam Ravnborg <sam@ravnborg.org>
->> Date: Sun, 13 Feb 2011 22:48:44 +0100
->> 
->> > In the original implmentation we did the same via __enable_irq().
->> 
->> And we did so Via a function that's invoked by every cpu as it is booted.
->> 
->> Right?
-> 
-> To the best of my knowledge - no.
+Name:
+Country:
+Age:
+Phone Number:
+Gender:
+Occupation:
+Your Qualification Number (OG/N231/E101/BDB) 
 
-I was thinking of:
-ofarch/sparc/kernel/sun4m_smp.c:smp_setup_percpu_timer()
-
-which enables it explicitly via enable_pil_irq(14).
-
-Oh, it's a global IRQ, so we should be Ok nevermind. :-)
-
+ (oxfam003@aol.com)
