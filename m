@@ -1,117 +1,294 @@
-From: Julian Calaby <julian.calaby@gmail.com>
-Date: Thu, 03 Feb 2011 22:28:57 +0000
-Subject: Re: sparc32 community [Was: sparc32: unaligned memory access (MNA)
-Message-Id: <AANLkTindBEp9BFWBeyjN446JQKhRZUyggQVcyMe87H+G@mail.gmail.com>
+From: Daniel Hellstrom <daniel@gaisler.com>
+Date: Wed, 02 Feb 2011 19:40:56 +0000
+Subject: [PATCH 2/2 v2] sparc32,leon: Implemented SMP IPIs for LEON CPU
+Message-Id: <1296675656-19165-2-git-send-email-daniel@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110203165821.GA14776@merkur.ravnborg.org>
-In-Reply-To: <20110203165821.GA14776@merkur.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Fri, Feb 4, 2011 at 03:58, Sam Ravnborg <sam@ravnborg.org> wrote:
->>
->> I really hope that the sparc community can take benefit of the time we
->> invested in this.
->
-> Sometimes I have asked myself what is the size of the sparc32 community?
+This patch implements SMP IPIs on LEON using software generated
+IRQs to signal between CPUs.
 
-Raises hand =)
+The IPI IRQ number is set by using the ipi_num property in the
+device tree, or defaults to 13. LEON SMP systems should reserve
+IRQ 13 (and IRQ 15) to Linux in order for the defaults to work.
 
-> Personally I got more involved in sparc development because I wanted
-> to simplify the way we handled our headers and a natural step forward
-> was to get the remaining architectures merged where sparc & sparc64
-> was one of the outstanding architectures.
+Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
+---
+ arch/sparc/include/asm/leon.h |    7 ++-
+ arch/sparc/kernel/entry.S     |   16 +++++
+ arch/sparc/kernel/leon_smp.c  |  122 ++++++++++++++++++++++++++++++++++++++++-
+ arch/sparc/kernel/smp_32.c    |    9 +++
+ 4 files changed, 151 insertions(+), 3 deletions(-)
 
-My motivation was that Debian dropped SPARC32 support and subsequently
-broke my first SS10. (Linux doesn't run well when libc6 won't load)
-Reading up on the lists indicated that their decision was due to there
-being no active kernel contributors. My immediate thought was "That
-sounds interesting, I could help with that", leading to the small
-amount of work I've done so far.
-
-> I have looked around for a decent distribution that claim up-to-date
-> support for sparc. But they all seem to be dropping sparc support.
-> And here sparc64 is in focus - not sparc32.
-
-At the moment, the only way I've found to get sparc32 support with
-modern packages involves installing Gentoo 2006.1 then upgrading it.
-Annoyingly, I'm yet to complete an installation as I ran out of disk
-space on my SSLX and both disks in my first SS10 died. I'm currently
-trying to set up some form of NFS root environment for installing that
-on them, but I'm running into issues involving shiny new hardware and
-glacial ARM development. (Rant: people have patches to add full
-support for the GoFlex Net, why haven't they been waved under the
-noses of the relevant maintainers?)
-
-I've never investigated sparc64 support as my Ultra 1e runs fine on
-bleeding edge Debian.
-
-> And I understand that sparc32 does not work well for many people.
-> I know that recent kernels only can run on SparcServer 1000 for
-> a few minutes before it locks hard. And I expect we see similar
-> problems on sun4m boxes with > 1 CPU.
-
-Both of my SS10s have > 1 CPU, so my focus, once I get them working,
-will be to thoroughly test them. I'm thinking of using the Phoronix
-Test Suite as a general hardware stresser, but I'll have to see if it
-will actually run on them.
-
-> The bug you have fixed (with great effort) in the unaligned
-> trap handler further confirm to me that that not many users
-> are running recent kernels on sparc32 hardware.
-> I also recall that I broke sparc32 during the unification,
-> which took months to e detected.
->
-> Personally I run sparc only to test my kernel contributions,
-> as the hw I have available is too noisy / too slow to
-> be used for anything else.
-
-I'm in the exact same boat. There was a time when I'd leave my Ultra1E
-running overnight doing sparc32 / sparc64 randconfig builds (and I
-found a couple of minor bugs with that) but my goal at the moment is
-to come up with some way to do automated testing on my machines.
-
-> It also looks better on the CV when I can say that I have refactored
-> the IRQ support on sparc compared to some random kbuild hacking :-)
-
-I put that I am active within the open source community, and I can
-always boast that I've (indirectly^3) helped the ESA =)
-
-> So Gaislers contributions helps the sparc32 community.
-> And I expect that the combined effort will allow more people to
-> use a recent kernel on sparc32 and thus will increase the community.
-> But how big the community is - is an open question to me.
-
-My estimates, based upon mailing list contributions and the general
-attitude of distros is that the Linux sparc32 community that's vocally
-interested in modern software consists of 5-10 people. That said,
-Gaisler is changing things considerably. I was surprised to download
-the source of u-boot the other day and see that there was a sparc32
-directory in there with their code in it. I was more surprised when I
-saw that it was listed as supported in their architecture list.
-
-Leon seems to be really re-igniting the sparc32 kernel effort, and I
-can only praise them for that.
-
-> Note: If someone has - or knows about - a SS1000 that I can use
-> for Linux testing I am all ears. (I live in Scandinavia / Denmark)
-> Contact me in private as this in not relevant on the list.
-
-If anyone has one in south-eastern Australia, I would be happy to
-provide it with power, accommodation and occasional kernel builds.
-Again, contact me in private as this is not relevant to the list.
-
-Sam, if I do end up with one, I'm happy to be your hands / give you
-whatever access to it that you want.
-
-Thanks,
-
+diff --git a/arch/sparc/include/asm/leon.h b/arch/sparc/include/asm/leon.h
+index 8580d17..fb60642 100644
+--- a/arch/sparc/include/asm/leon.h
++++ b/arch/sparc/include/asm/leon.h
+@@ -239,7 +239,7 @@ static inline int sparc_leon3_cpuid(void)
+ #endif /*!__ASSEMBLY__*/
+ 
+ #ifdef CONFIG_SMP
+-# define LEON3_IRQ_RESCHEDULE		13
++# define LEON3_IRQ_IPI_DEFAULT		13
+ # define LEON3_IRQ_TICKER		(leon_percpu_timer_dev[0].irq)
+ # define LEON3_IRQ_CROSS_CALL		15
+ #endif
+@@ -366,6 +366,9 @@ extern void leon_smp_done(void);
+ extern void leon_boot_cpus(void);
+ extern int leon_boot_one_cpu(int i);
+ void leon_init_smp(void);
++extern void leon_send_call_function_ipi_mask(const struct cpumask *mask);
++extern void leon_send_call_function_single_ipi(int cpu);
++extern void leon_send_resched(int cpu);
+ extern void cpu_probe(void);
+ extern void cpu_idle(void);
+ extern void init_IRQ(void);
+@@ -374,12 +377,14 @@ extern int __leon_processor_id(void);
+ void leon_enable_irq_cpu(unsigned int irq_nr, unsigned int cpu);
+ 
+ extern unsigned int real_irq_entry[], smpleon_ticker[];
++extern unsigned int smpleon_ipi[];
+ extern unsigned int patchme_maybe_smp_msg[];
+ extern unsigned long trapbase_cpu1[];
+ extern unsigned long trapbase_cpu2[];
+ extern unsigned long trapbase_cpu3[];
+ extern unsigned int t_nmi[], linux_trap_ipi15_leon[];
+ extern unsigned int linux_trap_ipi15_sun4m[];
++extern int leon_ipi_irq;
+ 
+ #endif /* CONFIG_SMP */
+ 
+diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
+index 1504df8..666344d 100644
+--- a/arch/sparc/kernel/entry.S
++++ b/arch/sparc/kernel/entry.S
+@@ -417,6 +417,22 @@ smpleon_ticker:
+ 	WRITE_PAUSE
+ 	RESTORE_ALL
+ 
++	.globl	smpleon_ipi
++	.extern leon_ipi_interrupt
++	/* SMP per-cpu IPI interrupts are handled specially. */
++smpleon_ipi:
++        SAVE_ALL
++	or	%l0, PSR_PIL, %g2
++	wr	%g2, 0x0, %psr
++	WRITE_PAUSE
++	wr	%g2, PSR_ET, %psr
++	WRITE_PAUSE
++	call	leonsmp_ipi_interrupt
++	 add	%sp, STACKFRAME_SZ, %o1 ! pt_regs
++	wr	%l0, PSR_ET, %psr
++	WRITE_PAUSE
++	RESTORE_ALL
++
+ 	.align	4
+ 	.globl	linux_trap_ipi15_leon
+ linux_trap_ipi15_leon:
+diff --git a/arch/sparc/kernel/leon_smp.c b/arch/sparc/kernel/leon_smp.c
+index e9df87f..b19e9aa 100644
+--- a/arch/sparc/kernel/leon_smp.c
++++ b/arch/sparc/kernel/leon_smp.c
+@@ -29,6 +29,7 @@
+ #include <asm/ptrace.h>
+ #include <asm/atomic.h>
+ #include <asm/irq_regs.h>
++#include <asm/traps.h>
+ 
+ #include <asm/delay.h>
+ #include <asm/irq.h>
+@@ -51,6 +52,10 @@ extern volatile unsigned long cpu_callin_map[NR_CPUS];
+ extern unsigned char boot_cpu_id;
+ extern cpumask_t smp_commenced_mask;
+ void __init leon_configure_cache_smp(void);
++void leon_ipi_init(void);
++
++/* IRQ number of LEON IPIs */
++int leon_ipi_irq = LEON3_IRQ_IPI_DEFAULT;
+ 
+ static inline unsigned long do_swap(volatile unsigned long *ptr,
+ 				    unsigned long val)
+@@ -177,13 +182,16 @@ void __init leon_boot_cpus(void)
+ 	int nrcpu = leon_smp_nrcpus();
+ 	int me = smp_processor_id();
+ 
++	/* Setup IPI */
++	leon_ipi_init();
++
+ 	printk(KERN_INFO "%d:(%d:%d) cpus mpirq at 0x%x\n", (unsigned int)me,
+ 	       (unsigned int)nrcpu, (unsigned int)NR_CPUS,
+ 	       (unsigned int)&(leon3_irqctrl_regs->mpstatus));
+ 
+ 	leon_enable_irq_cpu(LEON3_IRQ_CROSS_CALL, me);
+ 	leon_enable_irq_cpu(LEON3_IRQ_TICKER, me);
+-	leon_enable_irq_cpu(LEON3_IRQ_RESCHEDULE, me);
++	leon_enable_irq_cpu(leon_ipi_irq, me);
+ 
+ 	leon_smp_setbroadcast(1 << LEON3_IRQ_TICKER);
+ 
+@@ -234,7 +242,7 @@ int __cpuinit leon_boot_one_cpu(int i)
+ 	} else {
+ 		leon_enable_irq_cpu(LEON3_IRQ_CROSS_CALL, i);
+ 		leon_enable_irq_cpu(LEON3_IRQ_TICKER, i);
+-		leon_enable_irq_cpu(LEON3_IRQ_RESCHEDULE, i);
++		leon_enable_irq_cpu(leon_ipi_irq, i);
+ 	}
+ 
+ 	local_flush_cache_all();
+@@ -290,6 +298,116 @@ void leon_irq_rotate(int cpu)
+ {
+ }
+ 
++struct leon_ipi_work {
++	int single;
++	int msk;
++	spinlock_t lock;
++};
++
++static DEFINE_PER_CPU_SHARED_ALIGNED(struct leon_ipi_work, leon_ipi_work);
++
++/* Initialize IPIs on the LEON */
++void __init leon_ipi_init(void)
++{
++	int cpu, len;
++	struct leon_ipi_work *work;
++	struct property *pp;
++	struct device_node *rootnp;
++	struct tt_entry *trap_table;
++	unsigned long flags;
++
++	/* Find IPI IRQ or stick with default value */
++	rootnp = of_find_node_by_path("/ambapp0");
++	if (rootnp) {
++		pp = of_find_property(rootnp, "ipi_num", &len);
++		if (pp && (*(int *)pp->value))
++			leon_ipi_irq = *(int *)pp->value;
++	}
++	printk(KERN_INFO "leon: SMP IPIs at IRQ %d\n", leon_ipi_irq);
++
++	/* Adjust so that we jump directly to smpleon_ipi */
++	local_irq_save(flags);
++	trap_table = &sparc_ttable[SP_TRAP_IRQ1 + (leon_ipi_irq - 1)];
++	trap_table->inst_three += smpleon_ipi - real_irq_entry;
++	local_flush_cache_all();
++	local_irq_restore(flags);
++
++	for_each_possible_cpu(cpu) {
++		work = &per_cpu(leon_ipi_work, cpu);
++		work->single = work->msk = 0;
++		spin_lock_init(&work->lock);
++	}
++}
++
++void leon_send_call_function_single_ipi(int cpu)
++{
++	struct leon_ipi_work *work = &per_cpu(leon_ipi_work, cpu);
++	unsigned long flags;
++
++	spin_lock_irqsave(&work->lock, flags);
++
++	/* Mark work */
++	work->single = 1;
++
++	/* Generate IRQ on the CPU */
++	set_cpu_int(cpu, leon_ipi_irq);
++
++	spin_unlock_irqrestore(&work->lock, flags);
++}
++
++void leon_send_call_function_ipi_mask(const struct cpumask *mask)
++{
++	struct leon_ipi_work *work;
++	int i;
++	unsigned long flags;
++
++	for_each_cpu(i, mask) {
++		work = &per_cpu(leon_ipi_work, i);
++
++		spin_lock_irqsave(&work->lock, flags);
++
++		/* Toggle work */
++		work->msk = 1;
++
++		/* Generate IRQ on the CPU */
++		set_cpu_int(i, leon_ipi_irq);
++
++		spin_unlock_irqrestore(&work->lock, flags);
++	}
++}
++
++void leon_send_resched(int cpu)
++{
++	/* Generate IRQ on the CPU (any IRQ will cause resched) */
++	set_cpu_int(cpu, leon_ipi_irq);
++}
++
++void leonsmp_ipi_interrupt(void)
++{
++	struct leon_ipi_work *work = &__get_cpu_var(leon_ipi_work);
++	int single, msk;
++
++	spin_lock(&work->lock);
++	if (work->single) {
++		single = 1;
++		work->single = 0;
++	}
++	if (work->msk) {
++		msk = 1;
++		work->msk = 0;
++	}
++	spin_unlock(&work->lock);
++
++	if (single)
++		generic_smp_call_function_single_interrupt();
++	if (msk)
++		generic_smp_call_function_interrupt();
++
++	/* RESCHED: do nothing, since it all was about calling re-schedule
++	 * routine called by interrupt return code.
++	 */
++}
++
+ static struct smp_funcall {
+ 	smpfunc_t func;
+ 	unsigned long arg1;
+diff --git a/arch/sparc/kernel/smp_32.c b/arch/sparc/kernel/smp_32.c
+index a1bb3a8..bd9da00 100644
+--- a/arch/sparc/kernel/smp_32.c
++++ b/arch/sparc/kernel/smp_32.c
+@@ -131,6 +131,9 @@ void smp_send_reschedule(int cpu)
+ 	 * to call schedule.
+ 	 */
+ 	switch (sparc_cpu_model) {
++	case sparc_leon:
++		leon_send_resched(cpu);
++		break;
+ 	default:
+ 		BUG();
+ 	}
+@@ -147,6 +150,9 @@ void arch_send_call_function_single_ipi(int cpu)
+ 	 * a single CPU
+ 	 */
+ 	switch (sparc_cpu_model) {
++	case sparc_leon:
++		leon_send_call_function_single_ipi(cpu);
++		break;
+ 	default:
+ 		BUG();
+ 	}
+@@ -159,6 +165,9 @@ void arch_send_call_function_ipi_mask(const struct cpumask *mask)
+ 	 * a set of CPUs
+ 	 */
+ 	switch (sparc_cpu_model) {
++	case sparc_leon:
++		leon_send_call_function_ipi_mask(mask);
++		break;
+ 	default:
+ 		BUG();
+ 	}
 -- 
+1.5.4
 
-Julian Calaby
-
-Email: julian.calaby@gmail.com
-Profile: http://www.google.com/profiles/julian.calaby/
-.Plan: http://sites.google.com/site/juliancalaby/
