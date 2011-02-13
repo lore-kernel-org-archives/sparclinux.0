@@ -1,48 +1,68 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Mon, 28 Feb 2011 07:35:29 +0000
-Subject: Re: [RFC PATCH 01/15] dt/powerpc: move of_bus_type infrastructure
-Message-Id: <20110228073529.GA7855@angua.secretlab.ca>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 13 Feb 2011 19:23:33 +0000
+Subject: [RFC] sparc32 genirq support
+Message-Id: <20110213192333.GA25042@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110223043015.20795.37090.stgit@localhost6.localdomain6>
- <20110223043340.20795.84024.stgit@localhost6.localdomain6>
- <201102241546.48790.arnd@arndb.de>
-In-Reply-To: <201102241546.48790.arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: devicetree-discuss@lists.ozlabs.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, sfr@canb.auug.org.au, linux-kernel@vger.kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+To: sparclinux@vger.kernel.org
 
-On Thu, Feb 24, 2011 at 03:46:48PM +0100, Arnd Bergmann wrote:
-> On Wednesday 23 February 2011, Grant Likely wrote:
-> > arch/powerpc/kernel/ibmebus.c is the only remaining user of the
-> > of_bus_type support code for initializing the bus and registering
-> > drivers.  All others have either been switched to the vanilla platform
-> > bus or already have their own infrastructure.
-> > 
-> > This patch moves the functionality that ibmebus is using out of
-> > drivers/of/{platform,device}.c and into ibmebus.c where it is actually
-> > used.  Also renames the moved symbols from of_platform_* to
-> > ibmebus_bus_* to reflect the actual usage.
-> > 
-> > This patch is part of moving all of the of_platform_bus_type users
-> > over to the platform_bus_type.
-> > 
-> > Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
-> 
-> The ibmebus is essentially the platform bus of the IBM Power Systems (a.k.a.
-> pSeries a.k.a. System p), I think it would make a lot of sense to convert
-> the two drivers (ehca and ehea) on this bus into platform drivers as well.
-> 
-> The original reason for this bus was to provide a different IOMMU for them
-> than what is used on the PCI devices. This should now be possible in simpler
-> ways.
+I have over the weekend tried to port sparc32 to support genirq.
+This is based on an old patch by David Miller.
 
-Agreed.  Anybody want to volunteer to craft a patch?
+I have concentrated on sum4m - as this is HW I have.
+Status is that booting hangs in calibrate_delay() which
+gives us a good hint that the timer interrupt is not working.
 
-In the mean time, do you have any problem with this patch?  (assuming
-nobody is able to take on the task of converting those drivers
-immediately).
+I have tried to debug it but ran out of ideas for now.
 
-g.
+Note: Please do not look at sun4c + sun4d - code
+is only included if someone wanted to build it.
 
+Also - I have not looked at leon.
+
+
+The diffstat looks promising:
+ arch/sparc/Kconfig                 |    5 +-
+ arch/sparc/include/asm/irq_32.h    |    8 +-
+ arch/sparc/include/asm/system_32.h |    5 -
+ arch/sparc/kernel/Makefile         |    4 -
+ arch/sparc/kernel/irq.h            |   70 +++---
+ arch/sparc/kernel/irq_32.c         |  502 ++++++++++--------------------------
+ arch/sparc/kernel/leon_kernel.c    |    2 +-
+ arch/sparc/kernel/of_device_32.c   |   59 +----
+ arch/sparc/kernel/pcic.c           |   42 ---
+ arch/sparc/kernel/sun4c_irq.c      |  139 ++++++----
+ arch/sparc/kernel/sun4d_irq.c      |  453 +++++++++++++-------------------
+ arch/sparc/kernel/sun4m_irq.c      |  193 +++++++-------
+ arch/sparc/kernel/sun4m_smp.c      |    2 +-
+ arch/sparc/kernel/time_32.c        |    2 +-
+ 14 files changed, 546 insertions(+), 940 deletions(-)
+
+The first three patches are preparational patches:
+
+      sparc32: introduce sparc_irq_config
+      sparc32: introduce build_device_irq
+      sparc32,sun4m: made a few structs global
+
+Theey need a fresh-up of the changelog - otherwise I consider
+these OK.
+
+The last patch is the actual conversion. And by nature it
+is rather big (and not easy to read either).
+
+handler_irq() in irq_32.c is a rough copy of the sparc64 variant.
+But I may have missed something obvious.
+
+In pcic.c I deleted some enable/disable functions.
+I simply fail to see how they were used before - but it is
+likely that I need to re-introduce these again.
+
+For now my problem is that my timer interrupt never seems
+to trigger thus causing the hang in calibrate_delay()
+
+Any input is appreciated - especially the setup of
+the genirq stuff etc.
+
+	Sam
