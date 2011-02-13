@@ -1,152 +1,174 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Wed, 23 Feb 2011 19:45:10 +0000
-Subject: Re: [PATCH] of/pdt: don't bother parsing pkg2path results, return
-Message-Id: <20110223194510.GS14597@angua.secretlab.ca>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 13 Feb 2011 19:27:08 +0000
+Subject: [PATCH 1/4] sparc32: introduce sparc_irq_config
+Message-Id: <20110213192708.GA25069@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110216222820.487AE9D401C@zog.reactivated.net>
- <1297896277.3011.5.camel@macbook.infradead.org>
- <AANLkTikAF2X1A5jfoNfCPRhZkZ7qPdZ57c8B5b9z4+qr@mail.gmail.com>
- <20110218190659.7f955e4c@queued.net>
- <20110218191225.5e38b8bc@queued.net>
-In-Reply-To: <20110218191225.5e38b8bc@queued.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Andres Salomon <dilinger@queued.net>
-Cc: Daniel Drake <dsd@laptop.org>, David Woodhouse <dwmw2@infradead.org>, cbou@mail.ru, linux-kernel@vger.kernel.org, x86@kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, dmitry.torokhov@gmail.com, devicetree-discuss@lists.ozlabs.org, Mitch Bradley <wmb@laptop.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
-On Fri, Feb 18, 2011 at 07:12:25PM -0800, Andres Salomon wrote:
-> On Fri, 18 Feb 2011 19:06:59 -0800
-> Andres Salomon <dilinger@queued.net> wrote:
->=20
-> > On Fri, 18 Feb 2011 23:42:57 +0000
-> > Daniel Drake <dsd@laptop.org> wrote:
-> >=20
-> > > On 16 February 2011 22:44, David Woodhouse <dwmw2@infradead.org>
-> > > wrote:
-> > > > On Wed, 2011-02-16 at 22:28 +0000, Daniel Drake wrote:
-> > > >>
-> > > >> +static int __init add_common_platform_devices(void)
-> > > >> +{
-> > > >> + =A0 =A0 =A0 struct platform_device *pdev;
-> > > >> +
-> > > >> + =A0 =A0 =A0 pdev =3D platform_device_register_simple("olpc-batte=
-ry",
-> > > >> -1, NULL, 0);
-> > > >> + =A0 =A0 =A0 if (IS_ERR(pdev))
-> > > >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return PTR_ERR(pdev);
-> > > >> +
-> > > >> + =A0 =A0 =A0 return 0;
-> > > >> +}
-> > > >> +
-> > > >
-> > > > Still kind of sucks that you have to do this, and can't bind to
-> > > > something in the device-tree.
-> > >=20
-> > > OK, feel free to put this patch on hold for now. I started looking
-> > > at the device tree approach today. It looks doable but first we
-> > > have to fix a DT bug/inconsistency that is preventing us from
-> > > correctly binding to the tree's devices.
-> > >=20
-> > > Daniel
-> >=20
-> >=20
-> > Mea culpa.  The patch below fixes a bug I introduced earlier.
-> > Cc'ing the sparc folks, as this probably affects them
-> > (although I would think that it fixes broken behavior for them..?)
-> >=20
-> >=20
-> >=20
->=20
-> And this is a followup to the prior patch; an optimization based
-> upon what we're doing with pkg2path stuff.
->=20
-> The sparc folks don't use pkg2path, so this shouldn't affect them at
-> all.
->=20
-> Cc'ing Mitch as well, in case there's some reason why I should be
-> wary of doing this.  :)
->=20
->=20
->=20
->=20
-> From: Andres Salomon <dilinger@queued.net>
->=20
-> The of_pdt_try_pkg2path() function currently allocates memory for
-> and fetches the full path name from OFW (of the form '/foo/bar/baz@0').
-> It then returns only the name ('baz@0)', and the caller re-constructs
-> the full name (for dp->full_name) based upon dp->parent->full_name and
-> what was returned by of_pdt_try_pkg2path().  Oh, and it allocates more
-> memory for it.
->=20
-> OLPC is the only architecture which fills in the pkg2path hook, so
-> this shouldn't affect any other users (ie, sparc).  Since in practice
-> (dp->parent->full_name + '/' + strrchr(pkg2path, '/')) and the result
-> from pkg2path end up being exactly the same, just short circuit the rest
-> of the of_pdt_build_full_name logic and set dp->full_name to the result
-> of pkg2path.  This means we don't have to parse it nor allocate more
-> memory for it.
->=20
-> This saves time, code, and memory.
->=20
-> Signed-off-by: Andres Salomon <dilinger@queued.net>
-> ---
->  drivers/of/pdt.c |   17 +++++++----------
->  1 files changed, 7 insertions(+), 10 deletions(-)
->=20
-> diff --git a/drivers/of/pdt.c b/drivers/of/pdt.c
-> index b39d584..605834b 100644
-> --- a/drivers/of/pdt.c
-> +++ b/drivers/of/pdt.c
-> @@ -134,7 +134,7 @@ static char * __init of_pdt_get_one_property(phandle =
-node, const char *name)
-> =20
->  static char * __init of_pdt_try_pkg2path(phandle node)
->  {
-> -	char *res, *buf =3D NULL;
-> +	char *buf =3D NULL;
->  	int len;
-> =20
->  	if (!of_pdt_prom_ops->pkg2path)
-> @@ -147,13 +147,7 @@ static char * __init of_pdt_try_pkg2path(phandle nod=
-e)
->  		pr_err("%s: package-to-path failed\n", __func__);
->  		return NULL;
->  	}
-> -
-> -	res =3D strrchr(buf, '/');
-> -	if (!res) {
-> -		pr_err("%s: couldn't find / in %s\n", __func__, buf);
-> -		return NULL;
-> -	}
-> -	return res+1;
-> +	return buf;
->  }
-> =20
->  static struct device_node * __init of_pdt_create_node(phandle node,
-> @@ -193,10 +187,13 @@ static char * __init of_pdt_build_full_name(struct =
-device_node *dp,
->  	 * name property (ie, 'battery'), we want the name we see with
->  	 * package-to-path (ie, 'battery@0').
->  	 */
-> +	n =3D of_pdt_try_pkg2path(node);
-> +	if (n)
-> +		return n;
-> +
-> +	/* Older methods for determining full name */
->  	name =3D of_pdt_node_name(dp);
->  	if (!name)
-> -		name =3D of_pdt_try_pkg2path(node);
-> -	if (!name)
+From e9d880b02a15a3f6408a09b4b162abfb4f28f977 Mon Sep 17 00:00:00 2001
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 11 Feb 2011 19:22:54 +0100
+Subject: [PATCH 1/4] sparc32: introduce sparc_irq_config
 
-Ah, this addresses one of the comments I just made on the first patch.
-I'd squash the two patches together before you repost.
+sparc_irq_config is used to hold the platform specific setup.
 
-g.
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/kernel/irq.h         |   17 +++++++++++------
+ arch/sparc/kernel/irq_32.c      |   18 +++++++++++-------
+ arch/sparc/kernel/leon_kernel.c |    2 +-
+ arch/sparc/kernel/sun4c_irq.c   |    2 +-
+ arch/sparc/kernel/sun4d_irq.c   |    2 +-
+ arch/sparc/kernel/sun4m_irq.c   |    2 +-
+ arch/sparc/kernel/time_32.c     |    2 +-
+ 7 files changed, 27 insertions(+), 18 deletions(-)
 
->  		name =3D dp->name;
-> =20
->  	plen =3D strlen(dp->parent->full_name);
-> --=20
-> 1.7.2.3
->=20
+diff --git a/arch/sparc/kernel/irq.h b/arch/sparc/kernel/irq.h
+index db75138..4b4e54f 100644
+--- a/arch/sparc/kernel/irq.h
++++ b/arch/sparc/kernel/irq.h
+@@ -1,5 +1,16 @@
+ #include <asm/btfixup.h>
+ 
++/*
++ * Platform specific irq configuration
++ * The individual platforms assign their platform
++ * specifics in their init functions.
++ */
++struct sparc_irq_config {
++	void (*init_timers)(irq_handler_t);
++};
++extern struct sparc_irq_config sparc_irq_config;
++
++
+ /* Dave Redman (djhr@tadpole.co.uk)
+  * changed these to function pointers.. it saves cycles and will allow
+  * the irq dependencies to be split into different files at a later date
+@@ -45,12 +56,6 @@ static inline void load_profile_irq(int cpu, int limit)
+ 	BTFIXUP_CALL(load_profile_irq)(cpu, limit);
+ }
+ 
+-extern void (*sparc_init_timers)(irq_handler_t lvl10_irq);
+-
+-extern void claim_ticker14(irq_handler_t irq_handler,
+-			   int irq,
+-			   unsigned int timeout);
+-
+ #ifdef CONFIG_SMP
+ BTFIXUPDEF_CALL(void, set_cpu_int, int, int)
+ BTFIXUPDEF_CALL(void, clear_cpu_int, int, int)
+diff --git a/arch/sparc/kernel/irq_32.c b/arch/sparc/kernel/irq_32.c
+index 974dab0..7297b8a 100644
+--- a/arch/sparc/kernel/irq_32.c
++++ b/arch/sparc/kernel/irq_32.c
+@@ -80,6 +80,15 @@ void arch_local_irq_restore(unsigned long old_psr)
+ }
+ EXPORT_SYMBOL(arch_local_irq_restore);
+ 
++struct sparc_irq_config sparc_irq_config;
++
++static void irq_panic(irq_handler_t handler)
++{
++	prom_printf("machine: %s doesn't have irq handlers defined!\n",
++		    &cputypval[0]);
++	prom_halt();
++}
++
+ /*
+  * Dave Redman (djhr@tadpole.co.uk)
+  *
+@@ -99,14 +108,7 @@ EXPORT_SYMBOL(arch_local_irq_restore);
+  *
+  */
+ 
+-static void irq_panic(void)
+-{
+-	prom_printf("machine: %s doesn't have irq handlers defined!\n",
+-		    &cputypval[0]);
+-	prom_halt();
+-}
+ 
+-void (*sparc_init_timers)(irq_handler_t) = (void (*)(irq_handler_t))irq_panic;
+ 
+ /*
+  * Dave Redman (djhr@tadpole.co.uk)
+@@ -595,6 +597,8 @@ EXPORT_SYMBOL(probe_irq_off);
+ 
+ void __init init_IRQ(void)
+ {
++	sparc_irq_config.init_timers = irq_panic;
++
+ 	switch (sparc_cpu_model) {
+ 	case sun4c:
+ 	case sun4:
+diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
+index 2f8a9a2..2969f77 100644
+--- a/arch/sparc/kernel/leon_kernel.c
++++ b/arch/sparc/kernel/leon_kernel.c
+@@ -347,7 +347,7 @@ void leon_enable_irq_cpu(unsigned int irq_nr, unsigned int cpu)
+ 
+ void __init leon_init_IRQ(void)
+ {
+-	sparc_init_timers = leon_init_timers;
++	sparc_irq_config.init_timers = leon_init_timers;
+ 
+ 	BTFIXUPSET_CALL(enable_irq, leon_enable_irq, BTFIXUPCALL_NORM);
+ 	BTFIXUPSET_CALL(disable_irq, leon_disable_irq, BTFIXUPCALL_NORM);
+diff --git a/arch/sparc/kernel/sun4c_irq.c b/arch/sparc/kernel/sun4c_irq.c
+index f543b45..5122e70 100644
+--- a/arch/sparc/kernel/sun4c_irq.c
++++ b/arch/sparc/kernel/sun4c_irq.c
+@@ -221,7 +221,7 @@ void __init sun4c_init_IRQ(void)
+ 	BTFIXUPSET_CALL(disable_pil_irq, sun4c_disable_irq, BTFIXUPCALL_NORM);
+ 	BTFIXUPSET_CALL(clear_clock_irq, sun4c_clear_clock_irq, BTFIXUPCALL_NORM);
+ 	BTFIXUPSET_CALL(load_profile_irq, sun4c_load_profile_irq, BTFIXUPCALL_NOP);
+-	sparc_init_timers = sun4c_init_timers;
++	sparc_irq_config.init_timers = sun4c_init_timers;
+ #ifdef CONFIG_SMP
+ 	BTFIXUPSET_CALL(set_cpu_int, sun4c_nop, BTFIXUPCALL_NOP);
+ 	BTFIXUPSET_CALL(clear_cpu_int, sun4c_nop, BTFIXUPCALL_NOP);
+diff --git a/arch/sparc/kernel/sun4d_irq.c b/arch/sparc/kernel/sun4d_irq.c
+index 609a13c..5b58a43 100644
+--- a/arch/sparc/kernel/sun4d_irq.c
++++ b/arch/sparc/kernel/sun4d_irq.c
+@@ -557,7 +557,7 @@ void __init sun4d_init_IRQ(void)
+ 	BTFIXUPSET_CALL(disable_irq, sun4d_disable_irq, BTFIXUPCALL_NORM);
+ 	BTFIXUPSET_CALL(clear_clock_irq, sun4d_clear_clock_irq, BTFIXUPCALL_NORM);
+ 	BTFIXUPSET_CALL(load_profile_irq, sun4d_load_profile_irq, BTFIXUPCALL_NORM);
+-	sparc_init_timers = sun4d_init_timers;
++	sparc_irq_config.init_timers = sun4d_init_timers;
+ #ifdef CONFIG_SMP
+ 	BTFIXUPSET_CALL(set_cpu_int, sun4d_set_cpu_int, BTFIXUPCALL_NORM);
+ 	BTFIXUPSET_CALL(clear_cpu_int, sun4d_clear_ipi, BTFIXUPCALL_NOP);
+diff --git a/arch/sparc/kernel/sun4m_irq.c b/arch/sparc/kernel/sun4m_irq.c
+index 3c6657a..9378ccd 100644
+--- a/arch/sparc/kernel/sun4m_irq.c
++++ b/arch/sparc/kernel/sun4m_irq.c
+@@ -470,7 +470,7 @@ void __init sun4m_init_IRQ(void)
+ 	BTFIXUPSET_CALL(disable_pil_irq, sun4m_disable_pil_irq, BTFIXUPCALL_NORM);
+ 	BTFIXUPSET_CALL(clear_clock_irq, sun4m_clear_clock_irq, BTFIXUPCALL_NORM);
+ 	BTFIXUPSET_CALL(load_profile_irq, sun4m_load_profile_irq, BTFIXUPCALL_NORM);
+-	sparc_init_timers = sun4m_init_timers;
++	sparc_irq_config.init_timers = sun4m_init_timers;
+ #ifdef CONFIG_SMP
+ 	BTFIXUPSET_CALL(set_cpu_int, sun4m_send_ipi, BTFIXUPCALL_NORM);
+ 	BTFIXUPSET_CALL(clear_cpu_int, sun4m_clear_ipi, BTFIXUPCALL_NORM);
+diff --git a/arch/sparc/kernel/time_32.c b/arch/sparc/kernel/time_32.c
+index 9c743b1..fe5ab2d 100644
+--- a/arch/sparc/kernel/time_32.c
++++ b/arch/sparc/kernel/time_32.c
+@@ -224,7 +224,7 @@ static void __init sbus_time_init(void)
+ 
+ 	btfixup();
+ 
+-	sparc_init_timers(timer_interrupt);
++	sparc_irq_config.init_timers(timer_interrupt);
+ }
+ 
+ void __init time_init(void)
+-- 
+1.6.0.6
+
