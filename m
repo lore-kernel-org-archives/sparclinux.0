@@ -1,29 +1,28 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 13 Feb 2011 19:27:47 +0000
+Date: Sat, 19 Feb 2011 15:47:02 +0000
 Subject: [PATCH 2/4] sparc32: introduce build_device_irq
-Message-Id: <20110213192747.GB25069@merkur.ravnborg.org>
+Message-Id: <1298130424-6934-2-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20110213192747.GB25069@merkur.ravnborg.org>
+In-Reply-To: <20110213192747.GB25069@merkur.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From d28c1be53f7170f578318da0754ccb3ae8771daf Mon Sep 17 00:00:00 2001
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 11 Feb 2011 20:59:18 +0100
-Subject: [PATCH 2/4] sparc32: introduce build_device_irq
-
-build_device_irq() is used to encapsulate the plaform specific details
-we we build an irq.
+build_device_irq() is used to encapsulate the plaform
+specific details when we build an irq.
 For now the default is a simple 1:1 but sun4d differs.
+This patch refactors functionality - but does not change
+the existing functionality.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
  arch/sparc/kernel/irq.h          |    3 ++
- arch/sparc/kernel/irq_32.c       |    6 ++++
+ arch/sparc/kernel/irq_32.c       |    7 ++++
  arch/sparc/kernel/of_device_32.c |   59 +++----------------------------------
- arch/sparc/kernel/sun4d_irq.c    |   52 +++++++++++++++++++++++++++++++++
- 4 files changed, 66 insertions(+), 54 deletions(-)
+ arch/sparc/kernel/sun4d_irq.c    |   50 ++++++++++++++++++++++++++++++++
+ 4 files changed, 65 insertions(+), 54 deletions(-)
 
 diff --git a/arch/sparc/kernel/irq.h b/arch/sparc/kernel/irq.h
 index 4b4e54f..d8d2daa 100644
@@ -44,10 +43,10 @@ index 4b4e54f..d8d2daa 100644
  extern struct sparc_irq_config sparc_irq_config;
  
 diff --git a/arch/sparc/kernel/irq_32.c b/arch/sparc/kernel/irq_32.c
-index 7297b8a..8f31959 100644
+index 0ad3e5a..46453a7 100644
 --- a/arch/sparc/kernel/irq_32.c
 +++ b/arch/sparc/kernel/irq_32.c
-@@ -587,6 +587,11 @@ int probe_irq_off(unsigned long mask)
+@@ -581,6 +581,11 @@ int probe_irq_off(unsigned long mask)
  }
  EXPORT_SYMBOL(probe_irq_off);
  
@@ -59,14 +58,15 @@ index 7297b8a..8f31959 100644
  /* djhr
   * This could probably be made indirect too and assigned in the CPU
   * bits of the code. That would be much nicer I think and would also
-@@ -598,6 +603,7 @@ EXPORT_SYMBOL(probe_irq_off);
+@@ -591,6 +596,8 @@ EXPORT_SYMBOL(probe_irq_off);
+ 
  void __init init_IRQ(void)
  {
- 	sparc_irq_config.init_timers = irq_panic;
 +	sparc_irq_config.build_device_irq = build_device_irq;
- 
++
  	switch (sparc_cpu_model) {
  	case sun4c:
+ 	case sun4:
 diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device_32.c
 index 2d055a1..a312af4 100644
 --- a/arch/sparc/kernel/of_device_32.c
@@ -154,7 +154,7 @@ index 2d055a1..a312af4 100644
  
  	op->dev.parent = parent;
 diff --git a/arch/sparc/kernel/sun4d_irq.c b/arch/sparc/kernel/sun4d_irq.c
-index 5b58a43..6388087 100644
+index fc1c22f..6388087 100644
 --- a/arch/sparc/kernel/sun4d_irq.c
 +++ b/arch/sparc/kernel/sun4d_irq.c
 @@ -549,6 +549,55 @@ void __init sun4d_init_sbi_irq(void)
@@ -213,17 +213,14 @@ index 5b58a43..6388087 100644
  void __init sun4d_init_IRQ(void)
  {
  	local_irq_disable();
-@@ -557,7 +606,10 @@ void __init sun4d_init_IRQ(void)
- 	BTFIXUPSET_CALL(disable_irq, sun4d_disable_irq, BTFIXUPCALL_NORM);
- 	BTFIXUPSET_CALL(clear_clock_irq, sun4d_clear_clock_irq, BTFIXUPCALL_NORM);
+@@ -559,6 +608,7 @@ void __init sun4d_init_IRQ(void)
  	BTFIXUPSET_CALL(load_profile_irq, sun4d_load_profile_irq, BTFIXUPCALL_NORM);
-+
+ 
  	sparc_irq_config.init_timers = sun4d_init_timers;
 +	sparc_irq_config.build_device_irq = sun4d_build_device_irq;
-+
+ 
  #ifdef CONFIG_SMP
  	BTFIXUPSET_CALL(set_cpu_int, sun4d_set_cpu_int, BTFIXUPCALL_NORM);
- 	BTFIXUPSET_CALL(clear_cpu_int, sun4d_clear_ipi, BTFIXUPCALL_NOP);
 -- 
 1.6.0.6
 
