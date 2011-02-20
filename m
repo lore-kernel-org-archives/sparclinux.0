@@ -1,77 +1,68 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 13 Feb 2011 19:26:03 +0000
-Subject: [RFC] sparc32 genirq support
-Message-Id: <20110213192603.GA25058@merkur.ravnborg.org>
+Date: Sun, 20 Feb 2011 20:37:57 +0000
+Subject: [RFC/PATCH 0/5] sparc32 genirq support
+Message-Id: <20110220203757.GA12981@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110213192333.GA25042@merkur.ravnborg.org>
-In-Reply-To: <20110213192333.GA25042@merkur.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Added Thomas Gleixner
+Convert sparc32 to use genirq.
 
-On Sun, Feb 13, 2011 at 08:23:33PM +0100, Sam Ravnborg wrote:
-> I have over the weekend tried to port sparc32 to support genirq.
-> This is based on an old patch by David Miller.
-> 
-> I have concentrated on sum4m - as this is HW I have.
-> Status is that booting hangs in calibrate_delay() which
-> gives us a good hint that the timer interrupt is not working.
-> 
-> I have tried to debug it but ran out of ideas for now.
-> 
-> Note: Please do not look at sun4c + sun4d - code
-> is only included if someone wanted to build it.
-> 
-> Also - I have not looked at leon.
-> 
-> 
-> The diffstat looks promising:
->  arch/sparc/Kconfig                 |    5 +-
->  arch/sparc/include/asm/irq_32.h    |    8 +-
->  arch/sparc/include/asm/system_32.h |    5 -
->  arch/sparc/kernel/Makefile         |    4 -
->  arch/sparc/kernel/irq.h            |   70 +++---
->  arch/sparc/kernel/irq_32.c         |  502 ++++++++++--------------------------
->  arch/sparc/kernel/leon_kernel.c    |    2 +-
->  arch/sparc/kernel/of_device_32.c   |   59 +----
->  arch/sparc/kernel/pcic.c           |   42 ---
->  arch/sparc/kernel/sun4c_irq.c      |  139 ++++++----
->  arch/sparc/kernel/sun4d_irq.c      |  453 +++++++++++++-------------------
->  arch/sparc/kernel/sun4m_irq.c      |  193 +++++++-------
->  arch/sparc/kernel/sun4m_smp.c      |    2 +-
->  arch/sparc/kernel/time_32.c        |    2 +-
->  14 files changed, 546 insertions(+), 940 deletions(-)
-> 
-> The first three patches are preparational patches:
-> 
->       sparc32: introduce sparc_irq_config
->       sparc32: introduce build_device_irq
->       sparc32,sun4m: made a few structs global
-> 
-> Theey need a fresh-up of the changelog - otherwise I consider
-> these OK.
-> 
-> The last patch is the actual conversion. And by nature it
-> is rather big (and not easy to read either).
-> 
-> handler_irq() in irq_32.c is a rough copy of the sparc64 variant.
-> But I may have missed something obvious.
-> 
-> In pcic.c I deleted some enable/disable functions.
-> I simply fail to see how they were used before - but it is
-> likely that I need to re-introduce these again.
-> 
-> For now my problem is that my timer interrupt never seems
-> to trigger thus causing the hang in calibrate_delay()
-> 
-> Any input is appreciated - especially the setup of
-> the genirq stuff etc.
-> 
-> 	Sam
-> --
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Changes since v2:
+- avoid moving function in sun4d_irq to make diff more readable (Josip Rodin)
+- added patch that fixes build with floppy or LEON enabled
+  I broke that during my cleanup.
+  This is 1/5 - and should be applied to -next soon.
+- converted leon to genirq
+  It was straight forward. I identified some dead code in leon_kernel
+  but I did not clean it up (stuff that reference eirq).
+- converted pcic to genirq
+  I had missed this during the last rounds. I had also missed
+  that we either used sun4m_irq OR pcic irq support.
+  Note: I assume the handle_level_irq is the right handler for pcic too.
+
+The TODO list contains only two items now:
+- What to do with the smp4m_irq_rotate(cpu) functionality?
+  Can we just ignore it as we have a maximum of 4 CPUs
+- Are the sun4d mask/unmask implementation buggy with respect
+  to cpu interrupts?
+  I do not know the sun4d platform - and has no HW to test on (yet at least)
+
+
+I feel quite confident with most of the code-changes.
+The sun4d stuff is where I am most unsafe.
+If anyone can test it on real HW it would be great!
+
+I will try to setup QEMU during the next week or two
+to see if this can help me in more testing.
+
+	Sam
+
+Sam Ravnborg (5):
+      sparc32: fix build with leon or floppy enabled
+      sparc32: introduce sparc_irq_config
+      sparc32: introduce build_device_irq
+      sparc32,sun4m: percpu and global register definitions moved to irq.h
+      sparc32: genirq support
+
+ arch/sparc/Kconfig                 |    5 +-
+ arch/sparc/include/asm/floppy_32.h |   41 ++-
+ arch/sparc/include/asm/irq_32.h    |    8 +-
+ arch/sparc/include/asm/leon.h      |    3 -
+ arch/sparc/include/asm/system_32.h |    5 -
+ arch/sparc/kernel/Makefile         |    4 -
+ arch/sparc/kernel/irq.h            |   86 ++++--
+ arch/sparc/kernel/irq_32.c         |  504 ++++++++--------------------------
+ arch/sparc/kernel/kernel.h         |    9 +-
+ arch/sparc/kernel/leon_kernel.c    |   62 ++++-
+ arch/sparc/kernel/leon_smp.c       |   20 +-
+ arch/sparc/kernel/of_device_32.c   |   59 +----
+ arch/sparc/kernel/pcic.c           |   82 ++++--
+ arch/sparc/kernel/sun4c_irq.c      |  146 ++++++----
+ arch/sparc/kernel/sun4d_irq.c      |  522 +++++++++++++++---------------------
+ arch/sparc/kernel/sun4m_irq.c      |  204 +++++++-------
+ arch/sparc/kernel/sun4m_smp.c      |   16 +-
+ arch/sparc/kernel/time_32.c        |    2 +-
+ 18 files changed, 748 insertions(+), 1030 deletions(-)
