@@ -1,158 +1,307 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 13 Feb 2011 19:28:16 +0000
-Subject: [PATCH 3/4] sparc32,sun4m: made a few structs global
-Message-Id: <20110213192816.GC25069@merkur.ravnborg.org>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Wed, 23 Feb 2011 04:34:00 +0000
+Subject: [RFC PATCH 05/15] leds/leds-gpio: merge platform_driver with
+Message-Id: <20110223043400.20795.32203.stgit@localhost6.localdomain6>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20110223043015.20795.37090.stgit@localhost6.localdomain6>
+In-Reply-To: <20110223043015.20795.37090.stgit@localhost6.localdomain6>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, devicetree-discuss@lists.ozlabs.org, sfr@canb.auug.org.au, linux-kernel@vger.kernel.org, davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
 
-From 9827c35c7bf1c3ac7f692064377c3c592633b14c Mon Sep 17 00:00:00 2001
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 13 Feb 2011 12:56:13 +0100
-Subject: [PATCH 3/4] sparc32,sun4m: made a few structs global
+Both interfaces can be driven with the same driver, and
+of_platform_driver is getting removed.  This patch merges the two
+driver registrations.
 
-entry.S access percpu + global data defined in sun4m_irq - so make the types global.
-This makes sparse happy and allow us to utilize asm-offsetts later.
-
-Also added a few comments in the sun4m_irq.c file.
-
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 ---
- arch/sparc/kernel/irq.h       |   21 +++++++++++++++++++++
- arch/sparc/kernel/sun4m_irq.c |   32 +++++++++++---------------------
- 2 files changed, 32 insertions(+), 21 deletions(-)
+ drivers/leds/leds-gpio.c |  206 +++++++++++++++++++---------------------------
+ 1 files changed, 83 insertions(+), 123 deletions(-)
 
-diff --git a/arch/sparc/kernel/irq.h b/arch/sparc/kernel/irq.h
-index d8d2daa..2c2ce9b 100644
---- a/arch/sparc/kernel/irq.h
-+++ b/arch/sparc/kernel/irq.h
-@@ -2,6 +2,27 @@
+diff --git a/drivers/leds/leds-gpio.c b/drivers/leds/leds-gpio.c
+index 4d9fa38..c4efece 100644
+--- a/drivers/leds/leds-gpio.c
++++ b/drivers/leds/leds-gpio.c
+@@ -14,6 +14,8 @@
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
+ #include <linux/leds.h>
++#include <linux/of_platform.h>
++#include <linux/of_gpio.h>
+ #include <linux/slab.h>
+ #include <linux/workqueue.h>
  
- #include <asm/btfixup.h>
+@@ -151,96 +153,34 @@ static void delete_gpio_led(struct gpio_led_data *led)
+ 	gpio_free(led->gpio);
+ }
  
-+/* sun4m specific type definitions */
-+
-+/* This maps direct to CPU specific interrupt registers */
-+struct sun4m_irq_percpu {
-+	u32	pending;
-+	u32	clear;
-+	u32	set;
+-#ifdef CONFIG_LEDS_GPIO_PLATFORM
+-static int __devinit gpio_led_probe(struct platform_device *pdev)
+-{
+-	struct gpio_led_platform_data *pdata = pdev->dev.platform_data;
+-	struct gpio_led_data *leds_data;
+-	int i, ret = 0;
+-
+-	if (!pdata)
+-		return -EBUSY;
+-
+-	leds_data = kzalloc(sizeof(struct gpio_led_data) * pdata->num_leds,
+-				GFP_KERNEL);
+-	if (!leds_data)
+-		return -ENOMEM;
+-
+-	for (i = 0; i < pdata->num_leds; i++) {
+-		ret = create_gpio_led(&pdata->leds[i], &leds_data[i],
+-				      &pdev->dev, pdata->gpio_blink_set);
+-		if (ret < 0)
+-			goto err;
+-	}
+-
+-	platform_set_drvdata(pdev, leds_data);
+-
+-	return 0;
+-
+-err:
+-	for (i = i - 1; i >= 0; i--)
+-		delete_gpio_led(&leds_data[i]);
+-
+-	kfree(leds_data);
+-
+-	return ret;
+-}
++struct gpio_leds_priv {
++	int num_leds;
++	struct gpio_led_data leds[];
 +};
-+
-+/* This maps direct to global interrupt registers */
-+struct sun4m_irq_global {
-+	u32	pending;
-+	u32	mask;
-+	u32	mask_clear;
-+	u32	mask_set;
-+	u32	interrupt_target;
-+};
-+
-+extern struct sun4m_irq_percpu __iomem *sun4m_irq_percpu[SUN4M_NCPUS];
-+extern struct sun4m_irq_global __iomem *sun4m_irq_global;
-+
- /*
-  * Platform specific irq configuration
-  * The individual platforms assign their platform
-diff --git a/arch/sparc/kernel/sun4m_irq.c b/arch/sparc/kernel/sun4m_irq.c
-index 9378ccd..69df625 100644
---- a/arch/sparc/kernel/sun4m_irq.c
-+++ b/arch/sparc/kernel/sun4m_irq.c
-@@ -96,20 +96,6 @@
-  */
  
+-static int __devexit gpio_led_remove(struct platform_device *pdev)
++static inline int sizeof_gpio_leds_priv(int num_leds)
+ {
+-	int i;
+-	struct gpio_led_platform_data *pdata = pdev->dev.platform_data;
+-	struct gpio_led_data *leds_data;
+-
+-	leds_data = platform_get_drvdata(pdev);
+-
+-	for (i = 0; i < pdata->num_leds; i++)
+-		delete_gpio_led(&leds_data[i]);
+-
+-	kfree(leds_data);
+-
+-	return 0;
++	return sizeof(struct gpio_leds_priv) +
++		(sizeof(struct gpio_led_data) * num_leds);
+ }
  
--struct sun4m_irq_percpu {
--	u32		pending;
--	u32		clear;
--	u32		set;
+-static struct platform_driver gpio_led_driver = {
+-	.probe		= gpio_led_probe,
+-	.remove		= __devexit_p(gpio_led_remove),
+-	.driver		= {
+-		.name	= "leds-gpio",
+-		.owner	= THIS_MODULE,
+-	},
 -};
 -
--struct sun4m_irq_global {
--	u32		pending;
--	u32		mask;
--	u32		mask_clear;
--	u32		mask_set;
--	u32		interrupt_target;
+-MODULE_ALIAS("platform:leds-gpio");
+-#endif /* CONFIG_LEDS_GPIO_PLATFORM */
+-
+ /* Code to create from OpenFirmware platform devices */
+ #ifdef CONFIG_LEDS_GPIO_OF
+-#include <linux/of_platform.h>
+-#include <linux/of_gpio.h>
+-
+-struct gpio_led_of_platform_data {
+-	int num_leds;
+-	struct gpio_led_data led_data[];
 -};
 -
- /* Code in entry.S needs to get at these register mappings.  */
- struct sun4m_irq_percpu __iomem *sun4m_irq_percpu[SUN4M_NCPUS];
- struct sun4m_irq_global __iomem *sun4m_irq_global;
-@@ -155,8 +141,11 @@ struct sun4m_irq_global __iomem *sun4m_irq_global;
- #define	OBP_INT_LEVEL_SBUS	0x30
- #define	OBP_INT_LEVEL_VME	0x40
+-static int __devinit of_gpio_leds_probe(struct platform_device *ofdev,
+-					const struct of_device_id *match)
++static struct gpio_leds_priv *gpio_leds_create_of(struct platform_device *pdev)
+ {
+ 	struct device_node *np = ofdev->dev.of_node, *child;
+-	struct gpio_led_of_platform_data *pdata;
++	struct gpio_leds_priv *priv;
+ 	int count = 0, ret;
  
-+#define SUN4M_TIMER_IRQ         (OBP_INT_LEVEL_ONBOARD | 10)
-+#define SUM4M_PROFILE_IRQ       (OBP_INT_LEVEL_ONBOARD | 14)
+-	/* count LEDs defined by this device, so we know how much to allocate */
++	/* count LEDs in this device, so we know how much to allocate */
+ 	for_each_child_of_node(np, child)
+ 		count++;
+ 	if (!count)
+-		return 0; /* or ENODEV? */
++		return NULL;
+ 
+-	pdata = kzalloc(sizeof(*pdata) + sizeof(struct gpio_led_data) * count,
+-			GFP_KERNEL);
+-	if (!pdata)
+-		return -ENOMEM;
++	priv = kzalloc(sizeof_gpio_leds_priv(count), GFP_KERNEL);
++	if (!priv)
++		return NULL;
+ 
+ 	for_each_child_of_node(np, child) {
+ 		struct gpio_led led = {};
+@@ -256,13 +196,13 @@ static int __devinit of_gpio_leds_probe(struct platform_device *ofdev,
+ 		if (state) {
+ 			if (!strcmp(state, "keep"))
+ 				led.default_state = LEDS_GPIO_DEFSTATE_KEEP;
+-			else if(!strcmp(state, "on"))
++			else if (!strcmp(state, "on"))
+ 				led.default_state = LEDS_GPIO_DEFSTATE_ON;
+ 			else
+ 				led.default_state = LEDS_GPIO_DEFSTATE_OFF;
+ 		}
+ 
+-		ret = create_gpio_led(&led, &pdata->led_data[pdata->num_leds++],
++		ret = create_gpio_led(&led, &priv->leds[priv->num_leds++],
+ 				      &ofdev->dev, NULL);
+ 		if (ret < 0) {
+ 			of_node_put(child);
+@@ -270,78 +210,98 @@ static int __devinit of_gpio_leds_probe(struct platform_device *ofdev,
+ 		}
+ 	}
+ 
+-	dev_set_drvdata(&ofdev->dev, pdata);
+-
+-	return 0;
++	return priv;
+ 
+ err:
+ 	for (count = pdata->num_leds - 2; count >= 0; count--)
+ 		delete_gpio_led(&pdata->led_data[count]);
++	kfree(priv);
++	return NULL;
++}
+ 
+-	kfree(pdata);
++static const struct of_device_id of_gpio_leds_match[] = {
++	{ .compatible = "gpio-leds", },
++	{},
++};
++#else
++static struct gpio_leds_priv *gpio_leds_create_of(struct platform_device *pdev)
++{
++	return NULL;
++}
++#define of_gpio_leds_match NULL
++#endif
+ 
+-	return ret;
 +
- static unsigned long irq_mask[0x50] = {
--	/* SMP */
-+	/* 0x00 - SMP */
- 	0,  SUN4M_SOFT_INT(1),
- 	SUN4M_SOFT_INT(2),  SUN4M_SOFT_INT(3),
- 	SUN4M_SOFT_INT(4),  SUN4M_SOFT_INT(5),
-@@ -165,7 +154,7 @@ static unsigned long irq_mask[0x50] = {
- 	SUN4M_SOFT_INT(10), SUN4M_SOFT_INT(11),
- 	SUN4M_SOFT_INT(12), SUN4M_SOFT_INT(13),
- 	SUN4M_SOFT_INT(14), SUN4M_SOFT_INT(15),
--	/* soft */
-+	/* 0x10 - soft */
- 	0,  SUN4M_SOFT_INT(1),
- 	SUN4M_SOFT_INT(2),  SUN4M_SOFT_INT(3),
- 	SUN4M_SOFT_INT(4),  SUN4M_SOFT_INT(5),
-@@ -174,19 +163,19 @@ static unsigned long irq_mask[0x50] = {
- 	SUN4M_SOFT_INT(10), SUN4M_SOFT_INT(11),
- 	SUN4M_SOFT_INT(12), SUN4M_SOFT_INT(13),
- 	SUN4M_SOFT_INT(14), SUN4M_SOFT_INT(15),
--	/* onboard */
-+	/* 0x20 - onboard */
- 	0, 0, 0, 0,
- 	SUN4M_INT_SCSI,  0, SUN4M_INT_ETHERNET, 0,
- 	SUN4M_INT_VIDEO, SUN4M_INT_MODULE,
- 	SUN4M_INT_REALTIME, SUN4M_INT_FLOPPY,
- 	(SUN4M_INT_SERIAL | SUN4M_INT_KBDMS),
- 	SUN4M_INT_AUDIO, 0, SUN4M_INT_MODULE_ERR,
--	/* sbus */
-+	/* 0x30 - sbus */
- 	0, 0, SUN4M_INT_SBUS(0), SUN4M_INT_SBUS(1),
- 	0, SUN4M_INT_SBUS(2), 0, SUN4M_INT_SBUS(3),
- 	0, SUN4M_INT_SBUS(4), 0, SUN4M_INT_SBUS(5),
- 	0, SUN4M_INT_SBUS(6), 0, 0,
--	/* vme */
-+	/* 0x40 - vme */
- 	0, 0, SUN4M_INT_VME(0), SUN4M_INT_VME(1),
- 	0, SUN4M_INT_VME(2), 0, SUN4M_INT_VME(3),
- 	0, SUN4M_INT_VME(4), 0, SUN4M_INT_VME(5),
-@@ -319,7 +308,6 @@ struct sun4m_timer_global {
- 
- static struct sun4m_timer_global __iomem *timers_global;
- 
--#define TIMER_IRQ	(OBP_INT_LEVEL_ONBOARD | 10)
- 
- unsigned int lvl14_resolution = (((1000000/HZ) + 1) << 10);
- 
-@@ -396,7 +384,7 @@ static void __init sun4m_init_timers(irq_handler_t counter_fn)
- 
- 	master_l10_counter = &timers_global->l10_count;
- 
--	err = request_irq(TIMER_IRQ, counter_fn,
-+	err = request_irq(SUN4M_TIMER_IRQ, counter_fn,
- 			  (IRQF_DISABLED | SA_STATIC_ALLOC), "timer", NULL);
- 	if (err) {
- 		printk(KERN_ERR "sun4m_init_timers: Register IRQ error %d.\n",
-@@ -470,7 +458,9 @@ void __init sun4m_init_IRQ(void)
- 	BTFIXUPSET_CALL(disable_pil_irq, sun4m_disable_pil_irq, BTFIXUPCALL_NORM);
- 	BTFIXUPSET_CALL(clear_clock_irq, sun4m_clear_clock_irq, BTFIXUPCALL_NORM);
- 	BTFIXUPSET_CALL(load_profile_irq, sun4m_load_profile_irq, BTFIXUPCALL_NORM);
++static int __devinit gpio_led_probe(struct platform_device *pdev)
++{
++	struct gpio_led_platform_data *pdata = pdev->dev.platform_data;
++	struct gpio_leds_priv *priv;
++	int i, ret = 0;
 +
- 	sparc_irq_config.init_timers = sun4m_init_timers;
++	if (pdata && pdata->num_leds) {
++		priv = kzalloc(sizeof_gpio_leds_priv(pdata->num_leds),
++				GFP_KERNEL);
++		if (!priv)
++			return -ENOMEM;
 +
- #ifdef CONFIG_SMP
- 	BTFIXUPSET_CALL(set_cpu_int, sun4m_send_ipi, BTFIXUPCALL_NORM);
- 	BTFIXUPSET_CALL(clear_cpu_int, sun4m_clear_ipi, BTFIXUPCALL_NORM);
--- 
-1.6.0.6
++		priv->num_leds = pdata->num_leds;
++		for (i = 0; i < priv->num_leds; i++) {
++			ret = create_gpio_led(&pdata->leds[i],
++					      &priv->leds[i],
++					      &pdev->dev, pdata->gpio_blink_set);
++			if (ret < 0) {
++				/* On failure: unwind the led creations */
++				for (i = i - 1; i >= 0; i--)
++					delete_gpio_led(&priv->leds[i]);
++				kfree(priv);
++				return ret;
++			}
++		}
++	} else {
++		priv = gpio_leds_create_of(pdev);
++		if (!priv)
++			return -ENODEV;
++	}
++
++	platform_set_drvdata(pdev, priv);
++
++	return 0;
+ }
+ 
+-static int __devexit of_gpio_leds_remove(struct platform_device *ofdev)
++static int __devexit gpio_led_remove(struct platform_device *pdev)
+ {
+-	struct gpio_led_of_platform_data *pdata = dev_get_drvdata(&ofdev->dev);
++	struct gpio_leds_priv *priv = dev_get_drvdata(&pdev->dev);
+ 	int i;
+ 
+-	for (i = 0; i < pdata->num_leds; i++)
+-		delete_gpio_led(&pdata->led_data[i]);
+-
+-	kfree(pdata);
++	for (i = 0; i < priv->num_leds; i++)
++		delete_gpio_led(&priv->leds[i]);
+ 
+-	dev_set_drvdata(&ofdev->dev, NULL);
++	dev_set_drvdata(&pdev->dev, NULL);
++	kfree(priv);
+ 
+ 	return 0;
+ }
+ 
+-static const struct of_device_id of_gpio_leds_match[] = {
+-	{ .compatible = "gpio-leds", },
+-	{},
+-};
+-
+-static struct of_platform_driver of_gpio_leds_driver = {
+-	.driver = {
+-		.name = "of_gpio_leds",
+-		.owner = THIS_MODULE,
++static struct platform_driver gpio_led_driver = {
++	.probe		= gpio_led_probe,
++	.remove		= __devexit_p(gpio_led_remove),
++	.driver		= {
++		.name	= "leds-gpio",
++		.owner	= THIS_MODULE,
+ 		.of_match_table = of_gpio_leds_match,
+ 	},
+-	.probe = of_gpio_leds_probe,
+-	.remove = __devexit_p(of_gpio_leds_remove),
+ };
+-#endif
++
++MODULE_ALIAS("platform:leds-gpio");
+ 
+ static int __init gpio_led_init(void)
+ {
+-	int ret = 0;
+-
+-#ifdef CONFIG_LEDS_GPIO_PLATFORM	
+-	ret = platform_driver_register(&gpio_led_driver);
+-	if (ret)
+-		return ret;
+-#endif
+-#ifdef CONFIG_LEDS_GPIO_OF
+-	ret = of_register_platform_driver(&of_gpio_leds_driver);
+-#endif
+-#ifdef CONFIG_LEDS_GPIO_PLATFORM	
+-	if (ret)
+-		platform_driver_unregister(&gpio_led_driver);
+-#endif
+-
+-	return ret;
++	return platform_driver_register(&gpio_led_driver);
+ }
+ 
+ static void __exit gpio_led_exit(void)
+ {
+-#ifdef CONFIG_LEDS_GPIO_PLATFORM
+ 	platform_driver_unregister(&gpio_led_driver);
+-#endif
+-#ifdef CONFIG_LEDS_GPIO_OF
+-	of_unregister_platform_driver(&of_gpio_leds_driver);
+-#endif
+ }
+ 
+ module_init(gpio_led_init);
 
