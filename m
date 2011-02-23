@@ -1,56 +1,193 @@
-From: Kjetil Oftedal <oftedal@gmail.com>
-Date: Sat, 26 Feb 2011 10:04:23 +0000
-Subject: Re: [PATCH v3] Fix multiple RTC detections on SUN4D
-Message-Id: <Pine.LNX.4.64.1102261057260.8080@oizys.tordivel.org>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Wed, 23 Feb 2011 04:34:11 +0000
+Subject: [RFC PATCH 07/15] dt: uartlite: merge platform and of_platform driver
+Message-Id: <20110223043411.20795.57850.stgit@localhost6.localdomain6>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.1010170628050.5462@oizys.tordivel.org>
-In-Reply-To: <Pine.LNX.4.64.1010170628050.5462@oizys.tordivel.org>
+References: <20110223043015.20795.37090.stgit@localhost6.localdomain6>
+In-Reply-To: <20110223043015.20795.37090.stgit@localhost6.localdomain6>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, devicetree-discuss@lists.ozlabs.org, sfr@canb.auug.org.au, linux-kernel@vger.kernel.org, davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
 
-On Fri, 25 Feb 2011, David Miller wrote:
+of_platform_driver is getting removed, and a single platform_driver
+can now support both devicetree and non-devicetree use cases.  This
+patch merges the two driver registrations.
 
-> From: Kjetil Oftedal <oftedal@gmail.com>
-> Date: Sun, 17 Oct 2010 06:38:57 +0200 (CEST)
-> 
-> 
-> Fix the date on your computer, today is not Oct 17th 2010.
-> 
-
-Whoops. Resubmitting with the correct date in the e-mail header:
-
-During the preparation for testing the recent changes made to the SUN4D
-specific code in the kernel by Sam Ravnborg the following was discovered:
-
-Since the removal of of_platform_bus_type (commit: eca3930163ba8884060ce9d9ff5ef0d9b7c7b00f )
-multiboard SUN4Ds have not been able to boot. The kernel crashes due to a
-zero-pointer error encountered when registering multiple M48T59 RTCs
-(There is one on each board).
-
-A patch for the was previously submitted, but the problem was not a
-serious at that time, as it would only generate warnings. Now the kernel
-will crash and stop executing before the serial console has been started.
-(Crash output can be viewed by using the -p boot flag)
-
-Signed-off-by: Kjetil Oftedal <oftedal@gmail.com>
+Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 ---
- arch/sparc/kernel/time_32.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+ drivers/tty/serial/uartlite.c |  103 ++++++++++-------------------------------
+ 1 files changed, 24 insertions(+), 79 deletions(-)
 
-diff --git a/arch/sparc/kernel/time_32.c b/arch/sparc/kernel/time_32.c
-index 9c743b1..ec8476d 100644
---- a/arch/sparc/kernel/time_32.c
-+++ b/arch/sparc/kernel/time_32.c
-@@ -150,6 +150,10 @@ static int __devinit clock_probe(struct platform_device *op, const struct of_dev
- 	if (!model)
+diff --git a/drivers/tty/serial/uartlite.c b/drivers/tty/serial/uartlite.c
+index d2fce86..457ac34 100644
+--- a/drivers/tty/serial/uartlite.c
++++ b/drivers/tty/serial/uartlite.c
+@@ -19,22 +19,11 @@
+ #include <linux/interrupt.h>
+ #include <linux/init.h>
+ #include <asm/io.h>
+-#if defined(CONFIG_OF) && (defined(CONFIG_PPC32) || defined(CONFIG_MICROBLAZE))
+ #include <linux/of.h>
+ #include <linux/of_address.h>
+ #include <linux/of_device.h>
+ #include <linux/of_platform.h>
+ 
+-/* Match table for of_platform binding */
+-static struct of_device_id ulite_of_match[] __devinitdata = {
+-	{ .compatible = "xlnx,opb-uartlite-1.00.b", },
+-	{ .compatible = "xlnx,xps-uartlite-1.00.a", },
+-	{}
+-};
+-MODULE_DEVICE_TABLE(of, ulite_of_match);
+-
+-#endif
+-
+ #define ULITE_NAME		"ttyUL"
+ #define ULITE_MAJOR		204
+ #define ULITE_MINOR		187
+@@ -571,9 +560,23 @@ static int __devexit ulite_release(struct device *dev)
+  * Platform bus binding
+  */
+ 
++#if defined(CONFIG_OF)
++/* Match table for of_platform binding */
++static struct of_device_id ulite_of_match[] __devinitdata = {
++	{ .compatible = "xlnx,opb-uartlite-1.00.b", },
++	{ .compatible = "xlnx,xps-uartlite-1.00.a", },
++	{}
++};
++MODULE_DEVICE_TABLE(of, ulite_of_match);
++#else /* CONFIG_OF */
++#define ulite_of_match NULL
++#endif /* CONFIG_OF */
++
+ static int __devinit ulite_probe(struct platform_device *pdev)
+ {
+ 	struct resource *res, *res2;
++	const __be32 *prop;
++	int id = pdev->id;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!res)
+@@ -583,7 +586,13 @@ static int __devinit ulite_probe(struct platform_device *pdev)
+ 	if (!res2)
  		return -ENODEV;
  
-+	/* Only the primary RTC has an address property */
-+	if (!of_find_property(dp, "address", NULL))
-+		return -ENODEV;
+-	return ulite_assign(&pdev->dev, pdev->id, res->start, res2->start);
++#ifdef CONFIG_OF
++	prop = of_get_property(pdev->dev.of_node, "port-number", NULL);
++	if (prop)
++		id = be32_to_cpup(prop);
++#endif
 +
- 	m48t59_rtc.resource = &op->resource[0];
- 	if (!strcmp(model, "mk48t02")) {
- 		/* Map the clock register io area read-only */
++	return ulite_assign(&pdev->dev, id, res->start, res2->start);
+ }
+ 
+ static int __devexit ulite_remove(struct platform_device *pdev)
+@@ -595,72 +604,15 @@ static int __devexit ulite_remove(struct platform_device *pdev)
+ MODULE_ALIAS("platform:uartlite");
+ 
+ static struct platform_driver ulite_platform_driver = {
+-	.probe	= ulite_probe,
+-	.remove	= __devexit_p(ulite_remove),
+-	.driver	= {
+-		   .owner = THIS_MODULE,
+-		   .name  = "uartlite",
+-		   },
+-};
+-
+-/* ---------------------------------------------------------------------
+- * OF bus bindings
+- */
+-#if defined(CONFIG_OF) && (defined(CONFIG_PPC32) || defined(CONFIG_MICROBLAZE))
+-static int __devinit
+-ulite_of_probe(struct platform_device *op, const struct of_device_id *match)
+-{
+-	struct resource res;
+-	const unsigned int *id;
+-	int irq, rc;
+-
+-	dev_dbg(&op->dev, "%s(%p, %p)\n", __func__, op, match);
+-
+-	rc = of_address_to_resource(op->dev.of_node, 0, &res);
+-	if (rc) {
+-		dev_err(&op->dev, "invalid address\n");
+-		return rc;
+-	}
+-
+-	irq = irq_of_parse_and_map(op->dev.of_node, 0);
+-
+-	id = of_get_property(op->dev.of_node, "port-number", NULL);
+-
+-	return ulite_assign(&op->dev, id ? *id : -1, res.start, irq);
+-}
+-
+-static int __devexit ulite_of_remove(struct platform_device *op)
+-{
+-	return ulite_release(&op->dev);
+-}
+-
+-static struct of_platform_driver ulite_of_driver = {
+-	.probe = ulite_of_probe,
+-	.remove = __devexit_p(ulite_of_remove),
++	.probe = ulite_probe,
++	.remove = __devexit_p(ulite_remove),
+ 	.driver = {
+-		.name = "uartlite",
+ 		.owner = THIS_MODULE,
++		.name  = "uartlite",
+ 		.of_match_table = ulite_of_match,
+ 	},
+ };
+ 
+-/* Registration helpers to keep the number of #ifdefs to a minimum */
+-static inline int __init ulite_of_register(void)
+-{
+-	pr_debug("uartlite: calling of_register_platform_driver()\n");
+-	return of_register_platform_driver(&ulite_of_driver);
+-}
+-
+-static inline void __exit ulite_of_unregister(void)
+-{
+-	of_unregister_platform_driver(&ulite_of_driver);
+-}
+-#else /* CONFIG_OF && (CONFIG_PPC32 || CONFIG_MICROBLAZE) */
+-/* Appropriate config not enabled; do nothing helpers */
+-static inline int __init ulite_of_register(void) { return 0; }
+-static inline void __exit ulite_of_unregister(void) { }
+-#endif /* CONFIG_OF && (CONFIG_PPC32 || CONFIG_MICROBLAZE) */
+-
+ /* ---------------------------------------------------------------------
+  * Module setup/teardown
+  */
+@@ -674,10 +626,6 @@ int __init ulite_init(void)
+ 	if (ret)
+ 		goto err_uart;
+ 
+-	ret = ulite_of_register();
+-	if (ret)
+-		goto err_of;
+-
+ 	pr_debug("uartlite: calling platform_driver_register()\n");
+ 	ret = platform_driver_register(&ulite_platform_driver);
+ 	if (ret)
+@@ -686,8 +634,6 @@ int __init ulite_init(void)
+ 	return 0;
+ 
+ err_plat:
+-	ulite_of_unregister();
+-err_of:
+ 	uart_unregister_driver(&ulite_uart_driver);
+ err_uart:
+ 	printk(KERN_ERR "registering uartlite driver failed: err=%i", ret);
+@@ -697,7 +643,6 @@ err_uart:
+ void __exit ulite_exit(void)
+ {
+ 	platform_driver_unregister(&ulite_platform_driver);
+-	ulite_of_unregister();
+ 	uart_unregister_driver(&ulite_uart_driver);
+ }
+ 
+
