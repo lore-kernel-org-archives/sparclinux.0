@@ -1,226 +1,246 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 19 Feb 2011 15:47:02 +0000
-Subject: [PATCH 2/4] sparc32: introduce build_device_irq
-Message-Id: <1298130424-6934-2-git-send-email-sam@ravnborg.org>
+Date: Sat, 26 Feb 2011 08:51:51 +0000
+Subject: [PATCH] sparc64: fix unused-but-set-variable warnings
+Message-Id: <20110226085151.GA23117@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110213192747.GB25069@merkur.ravnborg.org>
-In-Reply-To: <20110213192747.GB25069@merkur.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-build_device_irq() is used to encapsulate the plaform
-specific details when we build an irq.
-For now the default is a simple 1:1 but sun4d differs.
-This patch refactors functionality - but does not change
-the existing functionality.
+Dennis Gilmore reported that sparc64 generate warnings
+when build with gcc 4.6.
+This broke the build as sparc is intolerant for warnings in arch specific code.
 
+Fix following warnings seen with gcc 4.6:
+
+arch/sparc/kernel/traps_64.c: In function 'show_stack':
+arch/sparc/kernel/traps_64.c:2155:20: warning: variable 'thread_base' set but not used [-Wunused-but-set-variable]
+arch/sparc/kernel/iommu.c: In function 'dma_4u_free_coherent':
+arch/sparc/kernel/iommu.c:336:11: warning: variable 'iopte' set but not used [-Wunused-but-set-variable]
+arch/sparc/kernel/pcr.c: In function 'n2_pcr_write':
+arch/sparc/kernel/pcr.c:81:16: warning: variable 'ret' set but not used [- Wunused-but-set-variable]
+arch/sparc/kernel/smp_64.c: In function 'smp_synchronize_tick_client':
+arch/sparc/kernel/smp_64.c:192:46: warning: variable 'bound' set but not used [-Wunused-but-set-variable]
+arch/sparc/kernel/smp_64.c: In function 'flush_dcache_page_all':
+arch/sparc/kernel/smp_64.c:936:6: warning: variable 'this_cpu' set but not used [-Wunused-but-set-variable]
+arch/sparc/kernel/pci_common.c: In function 'sun4v_write_pci_cfg':
+arch/sparc/kernel/pci_common.c:298:16: warning: variable 'ret' set but not used [-Wunused-but-set-variable]
+arch/sparc/kernel/pci_sun4v.c: In function 'pci_sun4v_iommu_init':
+arch/sparc/kernel/pci_sun4v.c:583:37: warning: variable 'tsbsize' set but not used [-Wunused-but-set-variable]
+arch/sparc/kernel/pci_schizo.c: In function 'schizo_pbm_init':
+arch/sparc/kernel/pci_schizo.c:1316:6: warning: variable 'is_pbm_a' set but not used [-Wunused-but-set-variable]
+arch/sparc/kernel/pci_fire.c: In function 'pci_fire_msi_teardown':
+arch/sparc/kernel/pci_fire.c:217:16: warning: variable 'msiqid' set but not used [-Wunused-but-set-variable]
+arch/sparc/kernel/ldc.c: In function 'ldc_rx':
+arch/sparc/kernel/ldc.c:793:28: warning: variable 'hv_err' set but not used [-Wunused-but-set-variable]
+arch/sparc/kernel/ldc.c: In function 'ldc_tx':
+arch/sparc/kernel/ldc.c:907:23: warning: variable 'hv_err' set but not used [-Wunused-but-set-variable]
+
+Following warning was silenced as we must use the return result of sysfs_create_file()
+arch/sparc/kernel/pci.c: In function 'pci_bus_register_of_sysfs':
+arch/sparc/kernel/pci.c:667:6: warning: variable 'err' set but not used [-Wunused-but-set-variable]
+
+Cc: Dennis Gilmore <dennis@ausil.us>
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/kernel/irq.h          |    3 ++
- arch/sparc/kernel/irq_32.c       |    7 ++++
- arch/sparc/kernel/of_device_32.c |   59 +++----------------------------------
- arch/sparc/kernel/sun4d_irq.c    |   50 ++++++++++++++++++++++++++++++++
- 4 files changed, 65 insertions(+), 54 deletions(-)
 
-diff --git a/arch/sparc/kernel/irq.h b/arch/sparc/kernel/irq.h
-index 4b4e54f..d8d2daa 100644
---- a/arch/sparc/kernel/irq.h
-+++ b/arch/sparc/kernel/irq.h
-@@ -1,3 +1,5 @@
-+#include <linux/platform_device.h>
-+
- #include <asm/btfixup.h>
- 
- /*
-@@ -7,6 +9,7 @@
-  */
- struct sparc_irq_config {
- 	void (*init_timers)(irq_handler_t);
-+	int (*build_device_irq)(struct platform_device *op, int interrupt);
- };
- extern struct sparc_irq_config sparc_irq_config;
- 
-diff --git a/arch/sparc/kernel/irq_32.c b/arch/sparc/kernel/irq_32.c
-index 0ad3e5a..46453a7 100644
---- a/arch/sparc/kernel/irq_32.c
-+++ b/arch/sparc/kernel/irq_32.c
-@@ -581,6 +581,11 @@ int probe_irq_off(unsigned long mask)
- }
- EXPORT_SYMBOL(probe_irq_off);
- 
-+static int build_device_irq(struct platform_device *op, int interrupt)
-+{
-+	return interrupt;
-+}
-+
- /* djhr
-  * This could probably be made indirect too and assigned in the CPU
-  * bits of the code. That would be much nicer I think and would also
-@@ -591,6 +596,8 @@ EXPORT_SYMBOL(probe_irq_off);
- 
- void __init init_IRQ(void)
+I took a qucik stab on this - most look legitimate.
+Following is only build tested and needs a bit of review.
+
+I expect a similar set of warnings on sparc32 - I will look into this
+when I get a chance (need gcc or someone send a list of warnings)
+
+	Sam
+
+diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
+index 47977a7..a4393bf 100644
+--- a/arch/sparc/kernel/iommu.c
++++ b/arch/sparc/kernel/iommu.c
+@@ -334,13 +334,10 @@ static void dma_4u_free_coherent(struct device *dev, size_t size,
+ 				 void *cpu, dma_addr_t dvma)
  {
-+	sparc_irq_config.build_device_irq = build_device_irq;
-+
- 	switch (sparc_cpu_model) {
- 	case sun4c:
- 	case sun4:
-diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device_32.c
-index 2d055a1..a312af4 100644
---- a/arch/sparc/kernel/of_device_32.c
-+++ b/arch/sparc/kernel/of_device_32.c
-@@ -13,6 +13,7 @@
- #include <asm/leon_amba.h>
+ 	struct iommu *iommu;
+-	iopte_t *iopte;
+ 	unsigned long flags, order, npages;
  
- #include "of_device_common.h"
-+#include "irq.h"
+ 	npages = IO_PAGE_ALIGN(size) >> IO_PAGE_SHIFT;
+ 	iommu = dev->archdata.iommu;
+-	iopte = iommu->page_table +
+-		((dvma - iommu->page_table_map_base) >> IO_PAGE_SHIFT);
  
- /*
-  * PCI bus specific translator
-@@ -355,7 +356,8 @@ static struct platform_device * __init scan_one_device(struct device_node *dp,
- 	if (intr) {
- 		op->archdata.num_irqs = len / sizeof(struct linux_prom_irqs);
- 		for (i = 0; i < op->archdata.num_irqs; i++)
--			op->archdata.irqs[i] = intr[i].pri;
-+			op->archdata.irqs[i] +			    sparc_irq_config.build_device_irq(op, intr[i].pri);
+ 	spin_lock_irqsave(&iommu->lock, flags);
+ 
+diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
+index df39a0f..fa83776 100644
+--- a/arch/sparc/kernel/ldc.c
++++ b/arch/sparc/kernel/ldc.c
+@@ -790,16 +790,16 @@ static void send_events(struct ldc_channel *lp, unsigned int event_mask)
+ static irqreturn_t ldc_rx(int irq, void *dev_id)
+ {
+ 	struct ldc_channel *lp = dev_id;
+-	unsigned long orig_state, hv_err, flags;
++	unsigned long orig_state, flags;
+ 	unsigned int event_mask;
+ 
+ 	spin_lock_irqsave(&lp->lock, flags);
+ 
+ 	orig_state = lp->chan_state;
+-	hv_err = sun4v_ldc_rx_get_state(lp->id,
+-					&lp->rx_head,
+-					&lp->rx_tail,
+-					&lp->chan_state);
++	sun4v_ldc_rx_get_state(lp->id,
++				&lp->rx_head,
++				&lp->rx_tail,
++				&lp->chan_state);
+ 
+ 	ldcdbg(RX, "RX state[0x%02lx:0x%02lx] head[0x%04lx] tail[0x%04lx]\n",
+ 	       orig_state, lp->chan_state, lp->rx_head, lp->rx_tail);
+@@ -904,16 +904,16 @@ out:
+ static irqreturn_t ldc_tx(int irq, void *dev_id)
+ {
+ 	struct ldc_channel *lp = dev_id;
+-	unsigned long flags, hv_err, orig_state;
++	unsigned long flags, orig_state;
+ 	unsigned int event_mask = 0;
+ 
+ 	spin_lock_irqsave(&lp->lock, flags);
+ 
+ 	orig_state = lp->chan_state;
+-	hv_err = sun4v_ldc_tx_get_state(lp->id,
+-					&lp->tx_head,
+-					&lp->tx_tail,
+-					&lp->chan_state);
++	sun4v_ldc_tx_get_state(lp->id,
++				&lp->tx_head,
++				&lp->tx_tail,
++				&lp->chan_state);
+ 
+ 	ldcdbg(TX, " TX state[0x%02lx:0x%02lx] head[0x%04lx] tail[0x%04lx]\n",
+ 	       orig_state, lp->chan_state, lp->tx_head, lp->tx_tail);
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index bfede51..e4efcc3 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -675,6 +675,7 @@ static void __devinit pci_bus_register_of_sysfs(struct pci_bus *bus)
+ 		 * humanoid.
+ 		 */
+ 		err = sysfs_create_file(&dev->dev.kobj, &dev_attr_obppath.attr);
++		(void)err;
+ 	}
+ 	list_for_each_entry(child_bus, &bus->children, node)
+ 		pci_bus_register_of_sysfs(child_bus);
+diff --git a/arch/sparc/kernel/pci_common.c b/arch/sparc/kernel/pci_common.c
+index 6c7a33a..34845cf 100644
+--- a/arch/sparc/kernel/pci_common.c
++++ b/arch/sparc/kernel/pci_common.c
+@@ -295,12 +295,11 @@ static int sun4v_write_pci_cfg(struct pci_bus *bus_dev, unsigned int devfn,
+ 	unsigned int bus = bus_dev->number;
+ 	unsigned int device = PCI_SLOT(devfn);
+ 	unsigned int func = PCI_FUNC(devfn);
+-	unsigned long ret;
+ 
+ 	if (config_out_of_range(pbm, bus, devfn, where)) {
+ 		/* Do nothing. */
  	} else {
- 		const unsigned int *irq  			of_get_property(dp, "interrupts", &len);
-@@ -363,64 +365,13 @@ static struct platform_device * __init scan_one_device(struct device_node *dp,
- 		if (irq) {
- 			op->archdata.num_irqs = len / sizeof(unsigned int);
- 			for (i = 0; i < op->archdata.num_irqs; i++)
--				op->archdata.irqs[i] = irq[i];
-+				op->archdata.irqs[i] +				    sparc_irq_config.build_device_irq(op, irq[i]);
- 		} else {
- 			op->archdata.num_irqs = 0;
- 		}
+-		ret = pci_sun4v_config_put(devhandle,
++		pci_sun4v_config_put(devhandle,
+ 				HV_PCI_DEVICE_BUILD(bus, device, func),
+ 				where, size, value);
  	}
--	if (sparc_cpu_model = sun4d) {
--		static int pil_to_sbus[] = {
--			0, 0, 1, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 0,
--		};
--		struct device_node *io_unit, *sbi = dp->parent;
--		const struct linux_prom_registers *regs;
--		int board, slot;
--
--		while (sbi) {
--			if (!strcmp(sbi->name, "sbi"))
--				break;
--
--			sbi = sbi->parent;
--		}
--		if (!sbi)
--			goto build_resources;
--
--		regs = of_get_property(dp, "reg", NULL);
--		if (!regs)
--			goto build_resources;
--
--		slot = regs->which_io;
--
--		/* If SBI's parent is not io-unit or the io-unit lacks
--		 * a "board#" property, something is very wrong.
--		 */
--		if (!sbi->parent || strcmp(sbi->parent->name, "io-unit")) {
--			printk("%s: Error, parent is not io-unit.\n",
--			       sbi->full_name);
--			goto build_resources;
--		}
--		io_unit = sbi->parent;
--		board = of_getintprop_default(io_unit, "board#", -1);
--		if (board = -1) {
--			printk("%s: Error, lacks board# property.\n",
--			       io_unit->full_name);
--			goto build_resources;
--		}
--
--		for (i = 0; i < op->archdata.num_irqs; i++) {
--			int this_irq = op->archdata.irqs[i];
--			int sbusl = pil_to_sbus[this_irq];
--
--			if (sbusl)
--				this_irq = (((board + 1) << 5) +
--					    (sbusl << 2) +
--					    slot);
--
--			op->archdata.irqs[i] = this_irq;
--		}
--	}
+diff --git a/arch/sparc/kernel/pci_fire.c b/arch/sparc/kernel/pci_fire.c
+index 539d3a8..e225945 100644
+--- a/arch/sparc/kernel/pci_fire.c
++++ b/arch/sparc/kernel/pci_fire.c
+@@ -214,11 +214,9 @@ static int pci_fire_msi_setup(struct pci_pbm_info *pbm, unsigned long msiqid,
  
--build_resources:
- 	build_device_resources(op, parent);
- 
- 	op->dev.parent = parent;
-diff --git a/arch/sparc/kernel/sun4d_irq.c b/arch/sparc/kernel/sun4d_irq.c
-index fc1c22f..6388087 100644
---- a/arch/sparc/kernel/sun4d_irq.c
-+++ b/arch/sparc/kernel/sun4d_irq.c
-@@ -549,6 +549,55 @@ void __init sun4d_init_sbi_irq(void)
- 	}
- }
- 
-+int sun4d_build_device_irq(struct platform_device *op, int interrupt)
-+{
-+	static int pil_to_sbus[] = {
-+		0, 0, 1, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 0,
-+	};
-+	struct device_node *dp = op->dev.of_node;
-+	struct device_node *io_unit, *sbi = dp->parent;
-+	const struct linux_prom_registers *regs;
-+	int board, slot;
-+	int sbusl;
-+
-+	while (sbi) {
-+		if (!strcmp(sbi->name, "sbi"))
-+			break;
-+
-+		sbi = sbi->parent;
-+	}
-+	if (!sbi)
-+		goto err_out;
-+
-+	regs = of_get_property(dp, "reg", NULL);
-+	if (!regs)
-+		goto err_out;
-+
-+	slot = regs->which_io;
-+
-+	/*
-+	 *  If SBI's parent is not io-unit or the io-unit lacks
-+	 * a "board#" property, something is very wrong.
-+	 */
-+	if (!sbi->parent || strcmp(sbi->parent->name, "io-unit")) {
-+		printk("%s: Error, parent is not io-unit.\n", sbi->full_name);
-+		goto err_out;
-+	}
-+	io_unit = sbi->parent;
-+	board = of_getintprop_default(io_unit, "board#", -1);
-+	if (board = -1) {
-+		printk("%s: Error, lacks board# property.\n", io_unit->full_name);
-+		goto err_out;
-+	}
-+
-+	sbusl = pil_to_sbus[interrupt];
-+	if (sbusl)
-+		return (((board + 1) << 5) + (sbusl << 2) + slot);
-+
-+err_out:
-+	return interrupt;
-+}
-+
- void __init sun4d_init_IRQ(void)
+ static int pci_fire_msi_teardown(struct pci_pbm_info *pbm, unsigned long msi)
  {
- 	local_irq_disable();
-@@ -559,6 +608,7 @@ void __init sun4d_init_IRQ(void)
- 	BTFIXUPSET_CALL(load_profile_irq, sun4d_load_profile_irq, BTFIXUPCALL_NORM);
+-	unsigned long msiqid;
+ 	u64 val;
  
- 	sparc_irq_config.init_timers = sun4d_init_timers;
-+	sparc_irq_config.build_device_irq = sun4d_build_device_irq;
+ 	val = upa_readq(pbm->pbm_regs + MSI_MAP(msi));
+-	msiqid = (val & MSI_MAP_EQNUM);
  
- #ifdef CONFIG_SMP
- 	BTFIXUPSET_CALL(set_cpu_int, sun4d_set_cpu_int, BTFIXUPCALL_NORM);
--- 
-1.6.0.6
-
+ 	val &= ~MSI_MAP_VALID;
+ 
+diff --git a/arch/sparc/kernel/pci_schizo.c b/arch/sparc/kernel/pci_schizo.c
+index 445a47a..4620eb7 100644
+--- a/arch/sparc/kernel/pci_schizo.c
++++ b/arch/sparc/kernel/pci_schizo.c
+@@ -1313,7 +1313,7 @@ static int __devinit schizo_pbm_init(struct pci_pbm_info *pbm,
+ 	const struct linux_prom64_registers *regs;
+ 	struct device_node *dp = op->dev.of_node;
+ 	const char *chipset_name;
+-	int is_pbm_a, err;
++	int err;
+ 
+ 	switch (chip_type) {
+ 	case PBM_CHIP_TYPE_TOMATILLO:
+@@ -1343,8 +1343,6 @@ static int __devinit schizo_pbm_init(struct pci_pbm_info *pbm,
+ 	 */
+ 	regs = of_get_property(dp, "reg", NULL);
+ 
+-	is_pbm_a = ((regs[0].phys_addr & 0x00700000) = 0x00600000);
+-
+ 	pbm->next = pci_pbm_root;
+ 	pci_pbm_root = pbm;
+ 
+diff --git a/arch/sparc/kernel/pcr.c b/arch/sparc/kernel/pcr.c
+index ae96cf5..564ab22 100644
+--- a/arch/sparc/kernel/pcr.c
++++ b/arch/sparc/kernel/pcr.c
+@@ -78,9 +78,7 @@ static const struct pcr_ops direct_pcr_ops = {
+ 
+ static void n2_pcr_write(u64 val)
+ {
+-	unsigned long ret;
+-
+-	ret = sun4v_niagara2_setperf(HV_N2_PERF_SPARC_CTL, val);
++	sun4v_niagara2_setperf(HV_N2_PERF_SPARC_CTL, val);
+ 	if (val != HV_EOK)
+ 		write_pcr(val);
+ }
+diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
+index b6a2b8f..274f361 100644
+--- a/arch/sparc/kernel/smp_64.c
++++ b/arch/sparc/kernel/smp_64.c
+@@ -188,7 +188,7 @@ static inline long get_delta (long *rt, long *master)
+ void smp_synchronize_tick_client(void)
+ {
+ 	long i, delta, adj, adjust_latency = 0, done = 0;
+-	unsigned long flags, rt, master_time_stamp, bound;
++	unsigned long flags, rt, master_time_stamp;
+ #if DEBUG_TICK_SYNC
+ 	struct {
+ 		long rt;	/* roundtrip time */
+@@ -209,7 +209,6 @@ void smp_synchronize_tick_client(void)
+ 			delta = get_delta(&rt, &master_time_stamp);
+ 			if (delta = 0) {
+ 				done = 1;	/* let's lock on to this... */
+-				bound = rt;
+ 			}
+ 
+ 			if (!done) {
+diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
+index 1e97709..1ed547b 100644
+--- a/arch/sparc/kernel/traps_64.c
++++ b/arch/sparc/kernel/traps_64.c
+@@ -2152,7 +2152,7 @@ static void user_instruction_dump(unsigned int __user *pc)
+ 
+ void show_stack(struct task_struct *tsk, unsigned long *_ksp)
+ {
+-	unsigned long fp, thread_base, ksp;
++	unsigned long fp, ksp;
+ 	struct thread_info *tp;
+ 	int count = 0;
+ #ifdef CONFIG_FUNCTION_GRAPH_TRACER
+@@ -2173,7 +2173,6 @@ void show_stack(struct task_struct *tsk, unsigned long *_ksp)
+ 		flushw_all();
+ 
+ 	fp = ksp + STACK_BIAS;
+-	thread_base = (unsigned long) tp;
+ 
+ 	printk("Call Trace:\n");
+ 	do {
