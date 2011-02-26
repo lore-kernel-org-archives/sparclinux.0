@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 26 Feb 2011 02:16:11 +0000
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 26 Feb 2011 09:30:55 +0000
 Subject: Re: [PATCH v3] Fix multiple RTC detections on SUN4D
-Message-Id: <20110225.181611.189702682.davem@davemloft.net>
+Message-Id: <20110226093055.GA23199@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <Pine.LNX.4.64.1010170628050.5462@oizys.tordivel.org>
 In-Reply-To: <Pine.LNX.4.64.1010170628050.5462@oizys.tordivel.org>
@@ -10,8 +10,10 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Kjetil Oftedal <oftedal@gmail.com>
-Date: Sun, 17 Oct 2010 06:38:57 +0200 (CEST)
+On Sun, Oct 17, 2010 at 06:38:57AM +0200, Kjetil Oftedal wrote:
+> During the preparation for testing the recent changes made to the SUN4D 
+> specific code in the kernel by Sam Ravnborg
 
+I look forward for the test results!
 
-Fix the date on your computer, today is not Oct 17th 2010.
+	Sam
