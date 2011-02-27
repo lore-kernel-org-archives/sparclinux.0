@@ -1,7 +1,7 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 27 Feb 2011 13:12:19 +0000
+From: David Miller <davem@davemloft.net>
+Date: Sun, 27 Feb 2011 23:24:33 +0000
 Subject: Re: [PATCH] sparc64: fix unused-but-set-variable warnings
-Message-Id: <20110227131219.GA26699@merkur.ravnborg.org>
+Message-Id: <20110227.152433.179928285.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20110226085151.GA23117@merkur.ravnborg.org>
 In-Reply-To: <20110226085151.GA23117@merkur.ravnborg.org>
@@ -10,27 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sat, Feb 26, 2011 at 11:41:12PM -0800, David Miller wrote:
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 27 Feb 2011 14:12:19 +0100
+
+> On Sat, Feb 26, 2011 at 11:41:12PM -0800, David Miller wrote:
+>> +	/* We should probably check for hypervisor errors here and
+>> +	 * reset the LDC channel if we get one.
+>> +	 */
 > 
-> Here is the patch I will push upstream, it passes sparc64_defconfig,
-> sparc64_defconfig + CONFIG_SMP=n, allnoconfig, and allmodconfig builds.
+> Coding style purist would say that the comment should look like this:
 
-Looks good.
+Not in my coding style.  That initial comment line is wasted space.
 
-> +	/* We should probably check for hypervisor errors here and
-> +	 * reset the LDC channel if we get one.
-> +	 */
+And a coding style purist would understand why that very rule
+goes aginst the proported reasoning behind the coding style
+rules (eliminating wasted space so more real information fits on
+the screen at once) and would thus have the rules fixed.
 
-Coding style purist would say that the comment should look like this:
+:-)
 
-> +     /*
-> +	 * We should probably check for hypervisor errors here and
-> +      * reset the LDC channel if we get one.
-> +      */
-
-I do this for new stuff - and as part of other changes when I do
-general clean-ups. It does not warrant an independet patch.
-
-Patch is already pushed to kernel.org - so I do not expect any update.
-
-	Sam
+I will reject any future changes from you which add wasted vertical
+space like this, so please don't get into the habit of trying to inject
+this folly into either sparc or the networking, thanks.
