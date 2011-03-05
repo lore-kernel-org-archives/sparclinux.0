@@ -1,65 +1,73 @@
-From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Wed, 30 Mar 2011 10:10:58 +0000
-Subject: Re: [PATCH 5/5] sparc32: genirq support
-Message-Id: <4D9301B2.9030609@gaisler.com>
+From: Kjetil Oftedal <oftedal@gmail.com>
+Date: Sat, 05 Mar 2011 14:55:11 +0000
+Subject: Sun4d scsi<->fs issues [Was: Status update on sparc32 genirq support]
+Message-Id: <Pine.LNX.4.64.1103051535390.27582@oizys.tordivel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1298234400-22378-5-git-send-email-sam@ravnborg.org>
-In-Reply-To: <1298234400-22378-5-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-David Miller wrote:
+>On Sat, 5 Mar 2011, Kjetil Oftedal wrote:
+>> 
+>> Hi,
+>> 
+>> With regards to testing on sun4d, I have run into problems with the
+>> existing kernel, during the process of getting a test system up and
+>> running. The system is unable to mount partitions correctly,
+>> (both ext2 on a hdd, and iso8859 on a cdrom), however dd, running from an
+>> initrd filesystem is able to read the ext2 blocks correctly. So I have
+>> started investigating this instead.
+>> 
+>> Is there anyone aware of any alignment requirements in the sun4d on DMA
+>> transfers and such ? Or have the datasheet for the FAS2x6 (236) scsi
+>> controllers ?
+>
+> First check that you can see the drive correctly from the OBP
+> ok> probe-scsi-all
+>
+> If that is OK try booting with no SMP, I forget the correct incantation
+> but something like "max-cpus=1" sounds familiar.
+>
+> You could also try booting with a 2.2.x kernel, if that does not work
+> something is SERIOUSLY wrong. 2.2.x does not support SMP and has
+> always booted OK for me.
+>
+> Do you have Solaris, it should boot and run 2.6, 7, or 8 (last supported).
+> If this fails you certainly have hardware issues.
+>
+> Sorry to be vague, there has been no properly working Sun4d kernel
+> since 2.2.x so expect to find bitrot in all sorts of obscure places.
 
->From: Daniel Hellstrom <daniel@gaisler.com>
->Date: Wed, 16 Mar 2011 16:53:18 +0100
->
->  
->
->>I think it is very good as well, it will save us a lot of problems in
->>the future! However LEON needs VIRQ to map 1:1 to real IRQs. I figured
->>that it does not hurt the SUNs if we map 1:1 as long as it is
->>possible. The reason is that LEON drivers must have the possibility to
->>do request_irq on IRQ and IRQ+1 and IRQ+2 and so on. Due to how the
->>Plug&Play information is designed we can only know the first IRQ of a
->>device, a device may have 2 IRQs (always IRQ and IRQ+1 in that
->>case). And since VIRQ->REAL_IRQ but not VIRQ+1->REAL_IRQ+1 this will
->>break.
->>
->>Please see my patches sent to the list (not the APBUART patches),
->>perhaps Sam can include the single patch into the PATCH5? The other
->>patches for the exteneded IRQ controller and irq_shutdown must be
->>applied afterwards.
->>    
->>
->
->I disagree with the validity of your conclusion.
->
->The physical interrupts can be anything.
->
->What you need to do on LEON is convert this linear sequence of
->physical IRQs to a set of virtual IRQs and make the drivers receive
->this information.
->
->The method by which the IRQs are communicated to the kernel is
->absolutely arbitrary, and has no bearing on how this stuff must
->or must not work.
->
->Therefore, there is absolutely no 1:1 requirement, and I am strongly
->against supporting such a mapping.  It makes the whole VIRQ exercise
->pointless.
->  
->
-I agree, but the problem is that due to hardware limitation the LEON IRQ 
-layers or bootloader can not know this. Please see my reply to "[PATCH 
-1/2 v2] sparc32,leon: APBUART driver must use ..."
+Hi again,
 
->Make the drivers LEON drivers and able to receive a set of IRQs from
->the kernel, instead of depending upon linearity.
->
->  
->
-That is no problem, I can have that done by today. The problem is the 
-bootloader or the IRQ layer of sparc32-leon.
+probe-scsi-all reports no duplicate devices or anything else that might 
+indicate problems. 
+
+I have now tested with debian hamm, which uses some flavour of linux-2.2, 
+and that was able to mount the filesystem and read files successfully. 
+
+The linux-2.6 kernels I build are non-SMP ones, as SMP disables the 
+ability to jump back to openboot, so SMP is problably not the source of 
+the scsi problems.
+
+The exact problem manifest with a successful mount of the filesystem. 
+But it is not possible to read or list any files on the ext2 parition.
+
+# mount /dev/sda2 /mnt
+EXT2-fs (sda2): warning: mounting ext3 filesystem as ext2
+# cd /mnt
+# ls
+EXT2-fs (sda2): error: ext2_check_page: bad entry in directory #2: : 
+rec_len is smaller than minimal - offset=0, inode=0, rec_len=0, name_len=0
+#
+
+I have dumped out the memory area ext2_check_page is reading and it 
+contains only zero-data. Hence, the error message. 
+
+As mentioned if I use dd to access the same block on sda2 directly I get 
+the correct data. (Address verified by enabling scsi command debugging 
+messages in the esp driver)
+
+Kjetil Oftedal
 
