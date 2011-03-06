@@ -1,32 +1,33 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 31 Mar 2011 23:57:59 +0000
-Subject: Re: [PATCH] sparc32,leon: need VIRQ:IRQ 1:1, don't mask/ack IRQ
-Message-Id: <20110331.165759.112599932.davem@davemloft.net>
+From: Bob Breuer <breuerr@mc.net>
+Date: Sun, 06 Mar 2011 22:55:33 +0000
+Subject: sparc32 build failure in fault_32.c
+Message-Id: <4D7410E5.3090904@mc.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1300290864-20678-1-git-send-email-daniel@gaisler.com>
-In-Reply-To: <1300290864-20678-1-git-send-email-daniel@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Thu, 31 Mar 2011 17:13:35 +0200
+Using gcc 3.3.4, I'm getting this build failure for sparc32:
 
-> This is sad, as we have designed all LEON architecture to be Plug&Play
-> as far as possible, and it will be software that limits it in the
-> end.
+arch/sparc/mm/fault_32.c: In function `do_sparc_fault':
+arch/sparc/mm/fault_32.c:229: warning: `code' might be used
+uninitialized in this function
+make[3]: *** [arch/sparc/mm/fault_32.o] Error 1
 
-Never is this the case.
+I have no idea why gcc 3.3 is catching this while 4.x is not, but the
+problem is caused by these lines:
+  if (!ARCH_SUN4C && address >= TASK_SIZE)
+<http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=arch/sparc/mm/fault_32.c;h[836f5aea90bcd94d4e4ba1b3114a8115291135;hb=HEAD#l244>         
+goto vmalloc_fault;
+  code = SEGV_MAPERR;
 
-For any future device you can provide properly formed firmware
-device tree nodes, with all IRQ entries included.
+This first branch can jump to vmalloc_fault before "code" gets
+initialized, and from there can jump back to bad_area_nosemaphore, which
+may then use "code" without it being initialized.
 
-Stop fighting this, you made a mistake in the past, and the set of
-broken device nodes that need fixing will not expand if you start
-creating them properly starting now.
+Would it be safe enough to initialize code to SEGV_MAPERR earlier, or
+should vmalloc_fault have a different fault code?
 
-You made a mistake, add handlers to cope with that mistake, and
-take this opportunity to fix things so that future LEON device
-nodes found in firmware are properly formed and contain multiple
-IRQ entries when necessary.
+Bob
+
