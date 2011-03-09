@@ -1,24 +1,37 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 30 Mar 2011 11:29:54 +0000
-Subject: Re: [PATCH 2/2 v4] sparc32,leon: Fixed APBUART frequency detection
-Message-Id: <20110330.042954.149834893.davem@davemloft.net>
+From: Ben Hutchings <ben@decadent.org.uk>
+Date: Wed, 09 Mar 2011 00:31:59 +0000
+Subject: [PATCH 3/5] sparc: Fix .size directive for do_int_load
+Message-Id: <1299630719.4146.24.camel@localhost>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1301483561-1402-2-git-send-email-daniel@gaisler.com>
-In-Reply-To: <1301483561-1402-2-git-send-email-daniel@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Wed, 30 Mar 2011 13:12:41 +0200
+gas used to accept (and ignore?) .size directives which referred to
+undefined symbols, as this does.  In binutils 2.21 these are treated
+as errors.
 
-> The UARTs may be located on different APB buses, thus have
-> different UART clock frequency. The system frequency is not
-> the same (but often) as the UART frequency, rather the APB bus
-> frequency that the APBUART is located at has the same
-> frequency, so this looks at the "freq" property instead.
-> 
-> Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/sparc/kernel/una_asm_64.S |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Applied.
+diff --git a/arch/sparc/kernel/una_asm_64.S b/arch/sparc/kernel/una_asm_64.S
+index be183fe..1c8d332 100644
+--- a/arch/sparc/kernel/una_asm_64.S
++++ b/arch/sparc/kernel/una_asm_64.S
+@@ -127,7 +127,7 @@ do_int_load:
+ 	wr	%o5, 0x0, %asi
+ 	retl
+ 	 mov	0, %o0
+-	.size	__do_int_load, .-__do_int_load
++	.size	do_int_load, .-do_int_load
+ 
+ 	.section	__ex_table,"a"
+ 	.word		4b, __retl_efault
+-- 
+1.7.4.1
+
+
+
