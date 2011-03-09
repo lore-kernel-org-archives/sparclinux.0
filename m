@@ -1,33 +1,54 @@
-From: Bob Breuer <breuerr@mc.net>
-Date: Sun, 06 Mar 2011 22:55:33 +0000
-Subject: sparc32 build failure in fault_32.c
-Message-Id: <4D7410E5.3090904@mc.net>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 09 Mar 2011 21:01:18 +0000
+Subject: Re: sparc32 build failure in fault_32.c
+Message-Id: <20110309.130118.59686145.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <4D7410E5.3090904@mc.net>
+In-Reply-To: <4D7410E5.3090904@mc.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Using gcc 3.3.4, I'm getting this build failure for sparc32:
+From: Bob Breuer <breuerr@mc.net>
+Date: Sun, 06 Mar 2011 16:55:33 -0600
 
-arch/sparc/mm/fault_32.c: In function `do_sparc_fault':
-arch/sparc/mm/fault_32.c:229: warning: `code' might be used
-uninitialized in this function
-make[3]: *** [arch/sparc/mm/fault_32.o] Error 1
+> Would it be safe enough to initialize code to SEGV_MAPERR earlier, or
+> should vmalloc_fault have a different fault code?
 
-I have no idea why gcc 3.3 is catching this while 4.x is not, but the
-problem is caused by these lines:
-  if (!ARCH_SUN4C && address >= TASK_SIZE)
-<http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=arch/sparc/mm/fault_32.c;h[836f5aea90bcd94d4e4ba1b3114a8115291135;hb=HEAD#l244>         
-goto vmalloc_fault;
-  code = SEGV_MAPERR;
+Yep, and that's how I'll fix this, thanks!
 
-This first branch can jump to vmalloc_fault before "code" gets
-initialized, and from there can jump back to bad_area_nosemaphore, which
-may then use "code" without it being initialized.
+---
+sparc32: Fix might-be-used-uninitialized warning in do_sparc_fault().
 
-Would it be safe enough to initialize code to SEGV_MAPERR earlier, or
-should vmalloc_fault have a different fault code?
+When we try to handle vmalloc faults, we can take a code
+path which uses "code" before we actually set it.
 
-Bob
+Amusingly gcc-3.3 notices this yet gcc-4.x does not.
+
+Reported-by: Bob Breuer <breuerr@mc.net>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/mm/fault_32.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/arch/sparc/mm/fault_32.c b/arch/sparc/mm/fault_32.c
+index 5b836f5..b10ac4d 100644
+--- a/arch/sparc/mm/fault_32.c
++++ b/arch/sparc/mm/fault_32.c
+@@ -240,11 +240,10 @@ asmlinkage void do_sparc_fault(struct pt_regs *regs, int text_fault, int write,
+ 	 * only copy the information from the master page table,
+ 	 * nothing more.
+ 	 */
++	code = SEGV_MAPERR;
+ 	if (!ARCH_SUN4C && address >= TASK_SIZE)
+ 		goto vmalloc_fault;
+ 
+-	code = SEGV_MAPERR;
+-
+ 	/*
+ 	 * If we're in an interrupt or have no user
+ 	 * context, we must not take the fault..
+-- 
+1.7.4.1
 
