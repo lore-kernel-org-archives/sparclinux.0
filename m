@@ -1,89 +1,72 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Fri, 25 Mar 2011 14:10:47 +0000
-Subject: [patch 4/4] sparc: Use generic show_interrupts()
-Message-Id: <20110325140947.231703709@linutronix.de>
+From: Ben Hutchings <ben@decadent.org.uk>
+Date: Wed, 09 Mar 2011 00:21:51 +0000
+Subject: [PATCH 0/5] Fix build failures with binutils 2.21
+Message-Id: <1299630111.4146.15.camel@localhost>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=-lCEVQB91eekdBOJnn8BY"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
+To: linux-arm-kernel@lists.infradead.org
+
+
+--=-lCEVQB91eekdBOJnn8BY
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: sparclinux@vger.kernel.org
----
- arch/sparc/Kconfig         |    1 +
- arch/sparc/kernel/irq_64.c |   45 +++++-----------------------------------=
------
- 2 files changed, 6 insertions(+), 40 deletions(-)
+gas has been silently ignoring .size directives with typos, but this was
+fixed in binutils 2.21, resulting in build failures with the new
+version.
 
-Index: linux-2.6-tip/arch/sparc/Kconfig
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D--- linux-2.6-tip.orig/arch/sparc/Kconfig
-+++ linux-2.6-tip/arch/sparc/Kconfig
-@@ -52,6 +52,7 @@ config SPARC64
- 	select PERF_USE_VMALLOC
- 	select HAVE_GENERIC_HARDIRQS
- 	select GENERIC_HARDIRQS_NO_DEPRECATED
-+	select GENERIC_IRQ_SHOW
- 	select IRQ_PREFLOW_FASTEOI
-=20
- config ARCH_DEFCONFIG
-Index: linux-2.6-tip/arch/sparc/kernel/irq_64.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D--- linux-2.6-tip.orig/arch/sparc/kernel/irq_64.c
-+++ linux-2.6-tip/arch/sparc/kernel/irq_64.c
-@@ -162,47 +162,12 @@ void irq_free(unsigned int irq)
- /*
-  * /proc/interrupts printing:
-  */
--
--int show_interrupts(struct seq_file *p, void *v)
-+int arch_show_interrupts(struct seq_file *p, int prec)
- {
--	int i =3D *(loff_t *) v, j;
--	struct irqaction * action;
--	unsigned long flags;
--
--	if (i =3D 0) {
--		seq_printf(p, "           ");
--		for_each_online_cpu(j)
--			seq_printf(p, "CPU%d       ",j);
--		seq_putc(p, '\n');
--	}
--
--	if (i < NR_IRQS) {
--		raw_spin_lock_irqsave(&irq_desc[i].lock, flags);
--		action =3D irq_desc[i].action;
--		if (!action)
--			goto skip;
--		seq_printf(p, "%3d: ",i);
--#ifndef CONFIG_SMP
--		seq_printf(p, "%10u ", kstat_irqs(i));
--#else
--		for_each_online_cpu(j)
--			seq_printf(p, "%10u ", kstat_irqs_cpu(i, j));
--#endif
--		seq_printf(p, " %9s", irq_desc[i].irq_data.chip->name);
--		seq_printf(p, "  %s", action->name);
--
--		for (action=ACtion->next; action; action =3D action->next)
--			seq_printf(p, ", %s", action->name);
--
--		seq_putc(p, '\n');
--skip:
--		raw_spin_unlock_irqrestore(&irq_desc[i].lock, flags);
--	} else if (i =3D NR_IRQS) {
--		seq_printf(p, "NMI: ");
--		for_each_online_cpu(j)
--			seq_printf(p, "%10u ", cpu_data(j).__nmi_count);
--		seq_printf(p, "     Non-maskable interrupts\n");
--	}
-+	seq_printf(p, "NMI: ");
-+	for_each_online_cpu(j)
-+		seq_printf(p, "%10u ", cpu_data(j).__nmi_count);
-+	seq_printf(p, "     Non-maskable interrupts\n");
- 	return 0;
- }
-=20
+I collected a couple of fixes for x86, then saw a similar failure on
+sparc and went hunting for more instances.  This series, based on
+2.6.38-rc8, should cover them all.  However, my changes are not even
+build-tested.
+
+Ben.
+
+Alan Modra (1):
+  x86: Fix .size directive for async_page_fault
+
+Ben Hutchings (3):
+  sparc: Fix .size directive for do_int_load
+  avr32: Fix .size directive for cpu_enter_idle
+  arm: Fix .size directives for __arm{7,9}tdmi_proc_info
+
+H.J. Lu (1):
+  x86: Fix .size directive for xen_do_hypervisor_callback
+
+ arch/arm/mm/proc-arm7tdmi.S            |    2 +-
+ arch/arm/mm/proc-arm9tdmi.S            |    2 +-
+ arch/avr32/mach-at32ap/pm-at32ap700x.S |    2 +-
+ arch/sparc/kernel/una_asm_64.S         |    2 +-
+ arch/x86/kernel/entry_32.S             |    2 +-
+ arch/x86/kernel/entry_64.S             |    2 +-
+ 6 files changed, 6 insertions(+), 6 deletions(-)
+
+--=20
+1.7.4.1
 
 
+
+--=-lCEVQB91eekdBOJnn8BY
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIVAwUATXbIEue/yOyVhhEJAQqMPxAAuw4TGiDdsPdPjPDoMIQvcjEbV/+uK6s5
+I7KXIK6LS8FGDlNDF7AZjrW5fonJXdafjKIAIq7OAQq0xAWysPHnb70pQ4E3dxdW
+431DhHz1ZDnNQMd4mKWI3ONR1Na0jER2bdTe5FGTqccMXb6TVMhxswvR38wlJspk
+fk3jwp2r7PMkWN1LLyWPudOEcwToJrmF8D/NIuFtkCm2q+sjvOSUcecoRYROEsib
+ZtxbF1WX8FzBzrfk+zBKdayUpMo1gZvzB36zsVaWJCLWs0lbyN2HJQ7vDyfiLrFs
+q09GZihLRA/0iEx9M1ZlqKsln+fP/icqjtvCrM616NioQP3aFyOdW9OxUfQMkI8q
+u3irjEydxZ/xw5gLfuoqxdJsYUZVvEia3ybe4qVksN1yNAmjaATmKs0OOqsJdUTJ
+5BLlvzq+a6BaAgXhfqys6g7SajwLHq4LI+D+pMnS6sNkpVoKAJkbphI0mvM/XguL
+3O8SXq8TmQI/7t2NgAQlJVDbQ57hlopkS2d9riaNSb2YJo+CgEL8X+QrtfA5Lq6i
+YRd51YRhgogVsTipV+GPT4OpmHvDHbVF1m7tbH7Vy3xv3lnYBdorq3INw/G2/vwk
+0zKTTn9pGlxUmGN2Isbg4sD+B5DCmPhgTvMafC3sKaFUmQBni375FB5K7/YKhRxR
+YCun04dSpRU=
+=bGlp
+-----END PGP SIGNATURE-----
+
+--=-lCEVQB91eekdBOJnn8BY--
