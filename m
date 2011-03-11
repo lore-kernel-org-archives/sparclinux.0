@@ -1,28 +1,194 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 09 Mar 2011 20:17:46 +0000
+From: Marcel van Nies <morcles@gmail.com>
+Date: Fri, 11 Mar 2011 21:26:36 +0000
 Subject: Re: Status update on sparc32 genirq support
-Message-Id: <20110309.121746.112586063.davem@davemloft.net>
+Message-Id: <AANLkTi=qJnnSOA5v4KD8YV+gkzoP7aoibCHLhcFo8Jd+@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="000325557406eb26ba049e3b9d19"
 List-Id: <sparclinux.vger.kernel.org>
 References: <20110307.230120.226776255.davem@davemloft.net>
 In-Reply-To: <20110307.230120.226776255.davem@davemloft.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Bob Breuer <breuerr@mc.net>
-Date: Wed, 09 Mar 2011 00:16:50 -0600
+--000325557406eb26ba049e3b9d19
+Content-Type: text/plain; charset=ISO-8859-1
 
-> My guess is that we're no longer using the special hyperSparc block copy
-> and fill from mm/hypersparc.S and are now leaving some data in the cache
-> that wasn't there before.
+Hi,
 
-That is a possibility.
+> Regarding the segfault - the easiest way forward would be to split the
+> patch up in smaller chunks so we know which part causes the segfault to happen.
+>
+> I assume you had to hand-apply the revert. If you could post the exact patch
+> you used for revert I will try to split it up in smaller logical parts.
 
-But let's be clear that this only applies to:
+I attached the patch which I used to revert commit
+4d14a459857bd151ecbd14bcd37b4628da00792b
 
-1) memcpy calls with constant "count" of PAGE_SIZE
-2) memset calls with constant "c" of zero and "count" of PAGE_SIZE
+I did a split of this patch, and build kernels with only the memcpy or
+only the memset part reverted.
+They both segfault.
 
-Since those are the only cases where memset/memcpy gets translated
-into calls to those optimized Hypersparc routines.
+memset reverted
+===============
+[   11.129998] VFS: Mounted root (ext3 filesystem) readonly on device 8:20.
+[   11.133332] Freeing unused kernel memory: 108k freed
+[   11.196665] init[1]: segfault at 0 ip 5000dac8 (rpc f000eea4)
+ sp eff4f8a0 error 30001 in ld-2.3.5.so[50000000+1a000]
+[   12.023332] Kernel panic - not syncing: Attempted to kill init!
+[   12.026665] [f002f494 : do_group_exit+0x84/0xb4 ]
+ [f003a130 : get_signal_to_deliver+0x338/0x35c ]
+ [f0012654 : do_signal+0x30/0x914 ]
+ [f0012f4c : do_notify_resume+0x14/0x38 ]
+ [f000fd4c : signal_p+0x14/0x24 ]
+ [f000eea4 : srmmu_fault+0x58/0x68 ]
+[   12.069998] Press Stop-A (L1-A) to return to the boot prom
+
+memcpy reverted
+===============
+[   11.113332] VFS: Mounted root (ext3 filesystem) readonly on device 8:20.
+[   11.119998] Freeing unused kernel memory: 108k freed
+INIT: version 2.86 booting
+[   12.453332] bash[23]: segfault at ffffffe8 ip 5015e81c (rpc 5015e80c)
+ sp ef868ac8 error 30002 in libc-2.3.5.so[5009a000+11e000]
+[   12.533332] rc[26]: segfault at 50189568 ip 50013ce0 (rpc 5000e034)
+ sp efbb1558 error 30001 in ld-2.3.5.so[50000000+1a000]
+[   13.156665] modprobe[43]: segfault at 24 ip 500aebdc (rpc 500aeb1c)
+ sp ef8fd800 error 30001 in libc-2.3.5.so[5004e000+11e000]
+modprobe: FATAL: Error inserting unix
+(/lib/modules/2.6.38-rc2-up-rev-memcpy/kernel/net/unix/unix.ko):
+Invalid module format
+[   13.316665] modprobe[39]: segfault at 50 ip 500b7e28 (rpc 500b7e04)
+ sp ef885e18 error 30001 in libc-2.3.5.so[5004e000+11e000]
+modprobe: FATAL: Error inserting unix
+(/lib/modules/2.6.38-rc2-up-rev-memcpy/kernel/net/unix/unix.ko):
+Invalid module format
+modprobe: *** glibc detected *** realloc(): invalid next size: 0x000262d0 ***
+modprobe: FATAL: Error inserting unix
+(/lib/modules/2.6.38-rc2-up-rev-memcpy/kernel/net/unix/unix.ko):
+Invalid module format
+modprobe: FATAL: Error inserting unix
+(/lib/modules/2.6.38-rc2-up-rev-memcpy/kernel/net/unix/unix.ko):
+Invalid module format
+modprobe: FATAL: Error inserting unix
+(/lib/modules/2.6.38-rc2-up-rev-memcpy/kernel/net/unix/unix.ko):
+Invalid module format
+modprobe: *** glibc detected *** realloc(): invalid pointer: 0x000262d0 ***
+INIT: Entering runlevel: 3
+[   14.169998] rc[44]: segfault at 3 ip 50013c2c (rpc 5000e034)
+ sp eff09558 error 30001 in ld-2.3.5.so[50000000+1a000]
+
+Marcel
+
+--000325557406eb26ba049e3b9d19
+Content-Type: application/octet-stream; name="revert.patch"
+Content-Disposition: attachment; filename="revert.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gl5jufqa0
+
+ZGlmZiAtdU5yIGEvYXJjaC9zcGFyYy9pbmNsdWRlL2FzbS9zdHJpbmdfMzIuaCBiL2FyY2gvc3Bh
+cmMvaW5jbHVkZS9hc20vc3RyaW5nXzMyLmgKLS0tIGEvYXJjaC9zcGFyYy9pbmNsdWRlL2FzbS9z
+dHJpbmdfMzIuaAorKysgYi9hcmNoL3NwYXJjL2luY2x1ZGUvYXNtL3N0cmluZ18zMi5oCkBAIC0x
+Niw3ICsxNiw5IEBACiAjaWZkZWYgX19LRVJORUxfXwogCiBleHRlcm4gdm9pZCBfX21lbW1vdmUo
+dm9pZCAqLGNvbnN0IHZvaWQgKixfX2tlcm5lbF9zaXplX3QpOwotCitleHRlcm4gX19rZXJuZWxf
+c2l6ZV90IF9fbWVtY3B5KHZvaWQgKixjb25zdCB2b2lkICosX19rZXJuZWxfc2l6ZV90KTsKK2V4
+dGVybiBfX2tlcm5lbF9zaXplX3QgX19tZW1zZXQodm9pZCAqLGludCxfX2tlcm5lbF9zaXplX3Qp
+OworIAogI2lmbmRlZiBFWFBPUlRfU1lNVEFCX1NUUk9QUwogCiAvKiBGaXJzdCB0aGUgbWVtKigp
+IHRoaW5ncy4gKi8KQEAgLTMwLDEwICszMiw4MiBAQAogfSkKIAogI2RlZmluZSBfX0hBVkVfQVJD
+SF9NRU1DUFkKLSNkZWZpbmUgbWVtY3B5KHQsIGYsIG4pIF9fYnVpbHRpbl9tZW1jcHkodCwgZiwg
+bikKKworc3RhdGljIGlubGluZSB2b2lkICpfX2NvbnN0YW50X21lbWNweSh2b2lkICp0bywgY29u
+c3Qgdm9pZCAqZnJvbSwgX19rZXJuZWxfc2l6ZV90IG4pCit7CisgICAgICAgZXh0ZXJuIHZvaWQg
+X19jb3B5XzFwYWdlKHZvaWQgKiwgY29uc3Qgdm9pZCAqKTsKKworICAgICAgIGlmKG4gPD0gMzIp
+IHsKKyAgICAgICAgICAgICAgIF9fYnVpbHRpbl9tZW1jcHkodG8sIGZyb20sIG4pOworICAgICAg
+IH0gZWxzZSBpZiAoKCh1bnNpZ25lZCBpbnQpIHRvICYgNykgIT0gMCkgeworICAgICAgICAgICAg
+ICAgLyogRGVzdGluYXRpb24gaXMgbm90IGFsaWduZWQgb24gdGhlIGRvdWJsZS13b3JkIGJvdW5k
+YXJ5ICovCisgICAgICAgICAgICAgICBfX21lbWNweSh0bywgZnJvbSwgbik7CisgICAgICAgfSBl
+bHNlIHsKKyAgICAgICAgICAgICAgIHN3aXRjaChuKSB7CisgICAgICAgICAgICAgICBjYXNlIFBB
+R0VfU0laRToKKyAgICAgICAgICAgICAgICAgICAgICAgX19jb3B5XzFwYWdlKHRvLCBmcm9tKTsK
+KyAgICAgICAgICAgICAgICAgICAgICAgYnJlYWs7CisgICAgICAgICAgICAgICBkZWZhdWx0Ogor
+ICAgICAgICAgICAgICAgICAgICAgICBfX21lbWNweSh0bywgZnJvbSwgbik7CisgICAgICAgICAg
+ICAgICAgICAgICAgIGJyZWFrOworICAgICAgICAgICAgICAgfQorICAgICAgIH0KKyAgICAgICBy
+ZXR1cm4gdG87Cit9CisKK3N0YXRpYyBpbmxpbmUgdm9pZCAqX19ub25jb25zdGFudF9tZW1jcHko
+dm9pZCAqdG8sIGNvbnN0IHZvaWQgKmZyb20sIF9fa2VybmVsX3NpemVfdCBuKQoreworICAgICAg
+IF9fbWVtY3B5KHRvLCBmcm9tLCBuKTsKKyAgICAgICByZXR1cm4gdG87Cit9CisKKyN1bmRlZiBt
+ZW1jcHkKKyNkZWZpbmUgbWVtY3B5KHQsIGYsIG4pIFwKKyhfX2J1aWx0aW5fY29uc3RhbnRfcChu
+KSA/IFwKKyBfX2NvbnN0YW50X21lbWNweSgodCksKGYpLChuKSkgOiBcCisgX19ub25jb25zdGFu
+dF9tZW1jcHkoKHQpLChmKSwobikpKQogCiAjZGVmaW5lIF9fSEFWRV9BUkNIX01FTVNFVAotI2Rl
+ZmluZSBtZW1zZXQocywgYywgY291bnQpIF9fYnVpbHRpbl9tZW1zZXQocywgYywgY291bnQpCisK
+K3N0YXRpYyBpbmxpbmUgdm9pZCAqX19jb25zdGFudF9jX2FuZF9jb3VudF9tZW1zZXQodm9pZCAq
+cywgY2hhciBjLCBfX2tlcm5lbF9zaXplX3QgY291bnQpCit7CisgICAgICAgZXh0ZXJuIHZvaWQg
+Ynplcm9fMXBhZ2Uodm9pZCAqKTsKKyAgICAgICBleHRlcm4gX19rZXJuZWxfc2l6ZV90IF9fYnpl
+cm8odm9pZCAqLCBfX2tlcm5lbF9zaXplX3QpOworCisgICAgICAgaWYoIWMpIHsKKyAgICAgICAg
+ICAgICAgIGlmKGNvdW50ID09IFBBR0VfU0laRSkKKyAgICAgICAgICAgICAgICAgICAgICAgYnpl
+cm9fMXBhZ2Uocyk7CisgICAgICAgICAgICAgICBlbHNlCisgICAgICAgICAgICAgICAgICAgICAg
+IF9fYnplcm8ocywgY291bnQpOworICAgICAgIH0gZWxzZSB7CisgICAgICAgICAgICAgICBfX21l
+bXNldChzLCBjLCBjb3VudCk7CisgICAgICAgfQorICAgICAgIHJldHVybiBzOworfQorCitzdGF0
+aWMgaW5saW5lIHZvaWQgKl9fY29uc3RhbnRfY19tZW1zZXQodm9pZCAqcywgY2hhciBjLCBfX2tl
+cm5lbF9zaXplX3QgY291bnQpCit7CisgICAgICAgZXh0ZXJuIF9fa2VybmVsX3NpemVfdCBfX2J6
+ZXJvKHZvaWQgKiwgX19rZXJuZWxfc2l6ZV90KTsKKworICAgICAgIGlmKCFjKQorICAgICAgICAg
+ICAgICAgX19iemVybyhzLCBjb3VudCk7CisgICAgICAgZWxzZQorICAgICAgICAgICAgICAgX19t
+ZW1zZXQocywgYywgY291bnQpOworICAgICAgIHJldHVybiBzOworfQorCitzdGF0aWMgaW5saW5l
+IHZvaWQgKl9fbm9uY29uc3RhbnRfbWVtc2V0KHZvaWQgKnMsIGNoYXIgYywgX19rZXJuZWxfc2l6
+ZV90IGNvdW50KQoreworICAgICAgIF9fbWVtc2V0KHMsIGMsIGNvdW50KTsKKyAgICAgICByZXR1
+cm4gczsKK30KKworI3VuZGVmIG1lbXNldAorI2RlZmluZSBtZW1zZXQocywgYywgY291bnQpIFwK
+KyhfX2J1aWx0aW5fY29uc3RhbnRfcChjKSA/IChfX2J1aWx0aW5fY29uc3RhbnRfcChjb3VudCkg
+PyBcCisgICAgICAgICAgICAgICAgICAgICAgICAgICAgX19jb25zdGFudF9jX2FuZF9jb3VudF9t
+ZW1zZXQoKHMpLCAoYyksIChjb3VudCkpIDogXAorICAgICAgICAgICAgICAgICAgICAgICAgICAg
+IF9fY29uc3RhbnRfY19tZW1zZXQoKHMpLCAoYyksIChjb3VudCkpKSBcCisgICAgICAgICAgICAg
+ICAgICAgICAgICAgIDogX19ub25jb25zdGFudF9tZW1zZXQoKHMpLCAoYyksIChjb3VudCkpKQog
+CiAjZGVmaW5lIF9fSEFWRV9BUkNIX01FTVNDQU4KIApkaWZmIC11TnIgYS9hcmNoL3NwYXJjL2lu
+Y2x1ZGUvYXNtL3N0cmluZ182NC5oIGIvYXJjaC9zcGFyYy9pbmNsdWRlL2FzbS9zdHJpbmdfNjQu
+aAotLS0gYS9hcmNoL3NwYXJjL2luY2x1ZGUvYXNtL3N0cmluZ182NC5oCisrKyBiL2FyY2gvc3Bh
+cmMvaW5jbHVkZS9hc20vc3RyaW5nXzY0LmgKQEAgLTE1LDYgKzE1LDggQEAKIAogI2luY2x1ZGUg
+PGFzbS9hc2kuaD4KIAorZXh0ZXJuIHZvaWQgKl9fbWVtc2V0KHZvaWQgKixpbnQsX19rZXJuZWxf
+c2l6ZV90KTsKKwogI2lmbmRlZiBFWFBPUlRfU1lNVEFCX1NUUk9QUwogCiAvKiBGaXJzdCB0aGUg
+bWVtKigpIHRoaW5ncy4gKi8KQEAgLTIyLDEwICsyNCwyOSBAQAogZXh0ZXJuIHZvaWQgKm1lbW1v
+dmUodm9pZCAqLCBjb25zdCB2b2lkICosIF9fa2VybmVsX3NpemVfdCk7CiAKICNkZWZpbmUgX19I
+QVZFX0FSQ0hfTUVNQ1BZCi0jZGVmaW5lIG1lbWNweSh0LCBmLCBuKSBfX2J1aWx0aW5fbWVtY3B5
+KHQsIGYsIG4pCitleHRlcm4gdm9pZCAqbWVtY3B5KHZvaWQgKiwgY29uc3Qgdm9pZCAqLCBfX2tl
+cm5lbF9zaXplX3QpOwogCiAjZGVmaW5lIF9fSEFWRV9BUkNIX01FTVNFVAotI2RlZmluZSBtZW1z
+ZXQocywgYywgY291bnQpIF9fYnVpbHRpbl9tZW1zZXQocywgYywgY291bnQpCitleHRlcm4gdm9p
+ZCAqX19idWlsdGluX21lbXNldCh2b2lkICosaW50LF9fa2VybmVsX3NpemVfdCk7CisKK3N0YXRp
+YyBpbmxpbmUgdm9pZCAqX19jb25zdGFudF9tZW1zZXQodm9pZCAqcywgaW50IGMsIF9fa2VybmVs
+X3NpemVfdCBjb3VudCkKK3sKKyAgICAgICBleHRlcm4gX19rZXJuZWxfc2l6ZV90IF9fYnplcm8o
+dm9pZCAqLCBfX2tlcm5lbF9zaXplX3QpOworCisgICAgICAgaWYgKCFjKSB7CisgICAgICAgICAg
+ICAgICBfX2J6ZXJvKHMsIGNvdW50KTsKKyAgICAgICAgICAgICAgIHJldHVybiBzOworICAgICAg
+IH0gZWxzZQorICAgICAgICAgICAgICAgcmV0dXJuIF9fbWVtc2V0KHMsIGMsIGNvdW50KTsKK30K
+KworI3VuZGVmIG1lbXNldAorI2RlZmluZSBtZW1zZXQocywgYywgY291bnQpIFwKKygoX19idWls
+dGluX2NvbnN0YW50X3AoY291bnQpICYmIChjb3VudCkgPD0gMzIpID8gXAorIF9fYnVpbHRpbl9t
+ZW1zZXQoKHMpLCAoYyksIChjb3VudCkpIDogXAorIChfX2J1aWx0aW5fY29uc3RhbnRfcChjKSA/
+IFwKKyAgX19jb25zdGFudF9tZW1zZXQoKHMpLCAoYyksIChjb3VudCkpIDogXAorICBfX21lbXNl
+dCgocyksIChjKSwgKGNvdW50KSkpKQogCiAjZGVmaW5lIF9fSEFWRV9BUkNIX01FTVNDQU4KIApk
+aWZmIC11TnIgYS9hcmNoL3NwYXJjL2xpYi9iemVyby5TIGIvYXJjaC9zcGFyYy9saWIvYnplcm8u
+UwotLS0gYS9hcmNoL3NwYXJjL2xpYi9iemVyby5TCisrKyBiL2FyY2gvc3BhcmMvbGliL2J6ZXJv
+LlMKQEAgLTYsNiArNiwxMCBAQAogCiAJLnRleHQKIAorICAgICAgIC5nbG9ibCAgX19tZW1zZXQK
+KyAgICAgICAudHlwZSAgIF9fbWVtc2V0LCAjZnVuY3Rpb24KK19fbWVtc2V0OiAgICAgICAgICAg
+ICAgLyogJW8wPWJ1ZiwgJW8xPXBhdCwgJW8yPWxlbiAqLworCiAJLmdsb2JsCW1lbXNldAogCS50
+eXBlCW1lbXNldCwgI2Z1bmN0aW9uCiBtZW1zZXQ6CQkJLyogJW8wPWJ1ZiwgJW8xPXBhdCwgJW8y
+PWxlbiAqLwpAQCAtNzksNiArODMsNyBAQAogCXJldGwKIAkgbW92CQklbzMsICVvMAogCS5zaXpl
+CQlfX2J6ZXJvLCAuLV9fYnplcm8KKwkuc2l6ZQkJX19tZW1zZXQsIC4tX19tZW1zZXQKIAkuc2l6
+ZQkJbWVtc2V0LCAuLW1lbXNldAogCiAjZGVmaW5lIEVYX1NUKHgseSkJCVwKZGlmZiAtdU5yIGEv
+YXJjaC9zcGFyYy9saWIvY2hlY2tzdW1fMzIuUyBiL2FyY2gvc3BhcmMvbGliL2NoZWNrc3VtXzMy
+LlMKLS0tIGEvYXJjaC9zcGFyYy9saWIvY2hlY2tzdW1fMzIuUworKysgYi9hcmNoL3NwYXJjL2xp
+Yi9jaGVja3N1bV8zMi5TCkBAIC01NjAsNyArNTYwLDcgQEAKIAkgbW92CSVpMCwgJW8xCiAJbW92
+CSVpMSwgJW8wCiA1OgotCWNhbGwJbWVtY3B5CisJY2FsbAlfX21lbWNweQogCSBtb3YJJWkyLCAl
+bzIKIAl0c3QJJW8wCiAJYm5lLGEJMmYKZGlmZiAtdU5yIGEvYXJjaC9zcGFyYy9saWIva3N5bXMu
+YyBiL2FyY2gvc3BhcmMvbGliL2tzeW1zLmMKLS0tIGEvYXJjaC9zcGFyYy9saWIva3N5bXMuYwor
+KysgYi9hcmNoL3NwYXJjL2xpYi9rc3ltcy5jCkBAIC0zMCw2ICszMCw3IEBACiBFWFBPUlRfU1lN
+Qk9MKG1lbWNtcCk7CiBFWFBPUlRfU1lNQk9MKG1lbWNweSk7CiBFWFBPUlRfU1lNQk9MKG1lbXNl
+dCk7CitFWFBPUlRfU1lNQk9MKF9fbWVtc2V0KTsKIEVYUE9SVF9TWU1CT0wobWVtbW92ZSk7CiBF
+WFBPUlRfU1lNQk9MKF9fYnplcm8pOwogCkBAIC04MCw2ICs4MSw3IEBACiAKIC8qIFNwZWNpYWwg
+aW50ZXJuYWwgdmVyc2lvbnMgb2YgbGlicmFyeSBmdW5jdGlvbnMuICovCiBFWFBPUlRfU1lNQk9M
+KF9fY29weV8xcGFnZSk7CitFWFBPUlRfU1lNQk9MKF9fbWVtY3B5KTsKIEVYUE9SVF9TWU1CT0wo
+X19tZW1tb3ZlKTsKIEVYUE9SVF9TWU1CT0woYnplcm9fMXBhZ2UpOwogCmRpZmYgLXVOciBhL2Fy
+Y2gvc3BhcmMvbGliL21lbWNweS5TIGIvYXJjaC9zcGFyYy9saWIvbWVtY3B5LlMKLS0tIGEvYXJj
+aC9zcGFyYy9saWIvbWVtY3B5LlMKKysrIGIvYXJjaC9zcGFyYy9saWIvbWVtY3B5LlMKQEAgLTU0
+Myw2ICs1NDMsOSBAQAogCWIJCTNmCiAJIGFkZAkJJW8wLCAyLCAlbzAKIAorI2lmZGVmIF9fS0VS
+TkVMX18KK0ZVTkMoX19tZW1jcHkpCisjZW5kaWYKIEZVTkMobWVtY3B5KQkvKiAlbzA9ZHN0ICVv
+MT1zcmMgJW8yPWxlbiAqLwogCiAJc3ViCQklbzAsICVvMSwgJW80CmRpZmYgLXVOciBhL2FyY2gv
+c3BhcmMvbGliL21lbXNldC5TIGIvYXJjaC9zcGFyYy9saWIvbWVtc2V0LlMKLS0tIGEvYXJjaC9z
+cGFyYy9saWIvbWVtc2V0LlMKKysrIGIvYXJjaC9zcGFyYy9saWIvbWVtc2V0LlMKQEAgLTYwLDEw
+ICs2MCwxMSBAQAogICAgICAgICAuZ2xvYmwgIF9fYnplcm9fYmVnaW4KIF9fYnplcm9fYmVnaW46
+CiAKLQkuZ2xvYmwJX19iemVybworCS5nbG9ibAlfX2J6ZXJvLAlfX21lbXNldCwKIAkuZ2xvYmwJ
+bWVtc2V0CiAJLmdsb2JsCV9fbWVtc2V0X3N0YXJ0LCBfX21lbXNldF9lbmQKIF9fbWVtc2V0X3N0
+YXJ0OgorX19tZW1zZXQ6CiBtZW1zZXQ6CiAJYW5kCSVvMSwgMHhmZiwgJWczCiAJc2xsCSVnMywg
+OCwgJWcyCg==
+--000325557406eb26ba049e3b9d19--
