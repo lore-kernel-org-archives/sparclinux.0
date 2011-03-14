@@ -1,77 +1,97 @@
-From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Wed, 16 Mar 2011 13:33:54 +0000
-Subject: [PATCH 2/2] sparc32,leon: Fixed APBUART frequency detection
-Message-Id: <1300282434-17917-2-git-send-email-daniel@gaisler.com>
+From: Prasad Joshi <prasadjoshi124@gmail.com>
+Date: Mon, 14 Mar 2011 18:01:03 +0000
+Subject: [RFC][PATCH v2 17/23] (sparc) __vmalloc: add gfp flags variant of pte
+Message-Id: <AANLkTin1RfkdzK+oXG1mHR_KBAHyQfeOa_WrDEnLiFFW@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Prasad Joshi <prasadjoshi124@gmail.com>, Anand Mitra <mitra@kqinfotech.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-The UARTs may be located on different APB buses, thus have
-different UART clock frequency. The system frequency is not
-the same (but often) as the UART frequency, rather the APB bus
-frequency that the APBUART is located at has the same
-frequency, so this looks at the "freq" property instead.
+__vmalloc: propagating GFP allocation flag.
 
-Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
+- adds functions to allow caller to pass the GFP flag for memory allocation
+- helps in fixing the Bug 30702 (__vmalloc(GFP_NOFS) can callback
+		  file system evict_inode).
+
+Signed-off-by: Anand Mitra <mitra@kqinfotech.com>
+Signed-off-by: Prasad Joshi <prasadjoshi124@gmail.com>
 ---
- drivers/tty/serial/apbuart.c |   24 +++++++-----------------
- 1 files changed, 7 insertions(+), 17 deletions(-)
+Chnagelog:
+arch/sparc/include/asm/pgalloc_32.h |    5 +++++
+arch/sparc/include/asm/pgalloc_64.h |   17 +++++++++++++++--
+2 files changed, 20 insertions(+), 2 deletions(-)
+---
+diff --git a/arch/sparc/include/asm/pgalloc_32.h
+b/arch/sparc/include/asm/pgalloc_32.h
+index ca2b344..ad68597 100644
+--- a/arch/sparc/include/asm/pgalloc_32.h
++++ b/arch/sparc/include/asm/pgalloc_32.h
+@@ -41,6 +41,9 @@ BTFIXUPDEF_CALL(void, pgd_set, pgd_t *, pmd_t *)
+ BTFIXUPDEF_CALL(pmd_t *, pmd_alloc_one, struct mm_struct *, unsigned long)
+ #define pmd_alloc_one(mm, address)	BTFIXUP_CALL(pmd_alloc_one)(mm, address)
 
-diff --git a/drivers/tty/serial/apbuart.c b/drivers/tty/serial/apbuart.c
-index de286d9..67f93fb 100644
---- a/drivers/tty/serial/apbuart.c
-+++ b/drivers/tty/serial/apbuart.c
-@@ -599,24 +599,12 @@ static struct of_platform_driver grlib_apbuart_of_driver = {
- 
- static int grlib_apbuart_configure(void)
++BTFIXUPDEF_CALL(pmd_t *, __pmd_alloc_one, struct mm_struct *,
+unsigned long, gfp_t)
++#define __pmd_alloc_one(mm, address,
+gfp_mask)	BTFIXUP_CALL(pmd_alloc_one)(mm, address)
++
+ BTFIXUPDEF_CALL(void, free_pmd_fast, pmd_t *)
+ #define free_pmd_fast(pmd)	BTFIXUP_CALL(free_pmd_fast)(pmd)
+
+@@ -57,6 +60,8 @@ BTFIXUPDEF_CALL(pgtable_t , pte_alloc_one, struct
+mm_struct *, unsigned long)
+ #define pte_alloc_one(mm, address)	BTFIXUP_CALL(pte_alloc_one)(mm, address)
+ BTFIXUPDEF_CALL(pte_t *, pte_alloc_one_kernel, struct mm_struct *,
+unsigned long)
+ #define pte_alloc_one_kernel(mm,
+addr)	BTFIXUP_CALL(pte_alloc_one_kernel)(mm, addr)
++BTFIXUPDEF_CALL(pte_t *, __pte_alloc_one_kernel, struct mm_struct *,
+unsigned long, gfp_t)
++#define __pte_alloc_one_kernel(mm, addr,
+gfp_mask)	BTFIXUP_CALL(pte_alloc_one_kernel)(mm, addr)
+
+ BTFIXUPDEF_CALL(void, free_pte_fast, pte_t *)
+ #define pte_free_kernel(mm, pte)	BTFIXUP_CALL(free_pte_fast)(pte)
+diff --git a/arch/sparc/include/asm/pgalloc_64.h
+b/arch/sparc/include/asm/pgalloc_64.h
+index 5bdfa2c..a7952a5 100644
+--- a/arch/sparc/include/asm/pgalloc_64.h
++++ b/arch/sparc/include/asm/pgalloc_64.h
+@@ -26,9 +26,15 @@ static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
+
+ #define pud_populate(MM, PUD, PMD)	pud_set(PUD, PMD)
+
++static inline pmd_t *
++__pmd_alloc_one(struct mm_struct *mm, unsigned long addr, gfp_t gfp_mask)
++{
++	return quicklist_alloc(0, gfp_mask, NULL);
++}
++
+ static inline pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long addr)
  {
--	struct device_node *np, *rp;
--	const u32 *prop;
--	int freq_khz, line = 0;
--
--	/* Get bus frequency */
--	rp = of_find_node_by_path("/");
--	if (!rp)
--		return -ENODEV;
--	rp = of_get_next_child(rp, NULL);
--	if (!rp)
--		return -ENODEV;
--	prop = of_get_property(rp, "clock-frequency", NULL);
--	if (!prop)
--		return -ENODEV;
--	freq_khz = *prop;
-+	struct device_node *np;
-+	int line = 0;
- 
- 	for_each_matching_node(np, apbuart_match) {
- 		const int *ampopts;
-+		const u32 *freq_hz;
- 		const struct amba_prom_registers *regs;
- 		struct uart_port *port;
- 		unsigned long addr;
-@@ -625,8 +613,10 @@ static int grlib_apbuart_configure(void)
- 		if (ampopts && (*ampopts = 0))
- 			continue; /* Ignore if used by another OS instance */
- 		regs = of_get_property(np, "reg", NULL);
-+		/* Frequency of APB Bus is frequency of UART */
-+		freq_hz = of_get_property(np, "freq", NULL);
- 
--		if (!regs)
-+		if (!regs || !freq_hz || (*freq_hz = 0))
- 			continue;
- 
- 		grlib_apbuart_nodes[line] = np;
-@@ -642,7 +632,7 @@ static int grlib_apbuart_configure(void)
- 		port->ops = &grlib_apbuart_ops;
- 		port->flags = UPF_BOOT_AUTOCONF;
- 		port->line = line;
--		port->uartclk = freq_khz * 1000;
-+		port->uartclk = *freq_hz;
- 		port->fifosize = apbuart_scan_fifo_size((struct uart_port *) port, line);
- 		line++;
- 
--- 
-1.5.4
+-	return quicklist_alloc(0, GFP_KERNEL, NULL);
++	return __pmd_alloc_one(mm, addr, GFP_KERNEL);
+ }
 
+ static inline void pmd_free(struct mm_struct *mm, pmd_t *pmd)
+@@ -36,10 +42,17 @@ static inline void pmd_free(struct mm_struct *mm,
+pmd_t *pmd)
+ 	quicklist_free(0, NULL, pmd);
+ }
+
++static inline pte_t *
++__pte_alloc_one_kernel(struct mm_struct *mm, unsigned long address,
++		gfp_t gfp_mask)
++{
++	return quicklist_alloc(0, gfp_mask, NULL);
++}
++
+ static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
+ 					  unsigned long address)
+ {
+-	return quicklist_alloc(0, GFP_KERNEL, NULL);
++	return __pte_alloc_one_kernel(mm, address, GFP_KERNEL);
+ }
+
+ static inline pgtable_t pte_alloc_one(struct mm_struct *mm,
