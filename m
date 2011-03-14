@@ -1,7 +1,7 @@
 From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Mon, 14 Mar 2011 11:17:08 +0000
+Date: Mon, 14 Mar 2011 11:25:42 +0000
 Subject: Re: Status update on sparc32 genirq support
-Message-Id: <4D7DF934.6080405@gaisler.com>
+Message-Id: <4D7DFB36.5040200@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20110307.230120.226776255.davem@davemloft.net>
 In-Reply-To: <20110307.230120.226776255.davem@davemloft.net>
@@ -16,87 +16,95 @@ Sam Ravnborg wrote:
 >
 >I was actually planning to send it to David tonight.
 >But after your comments I will wait.
->
 >  
 >
->> I have begun too look at the patches, one thing that strikes me is
->>why handle_level_irq is used and why the ack functions irq_ack and
->>irq_mask_ack are not defined.
->>    
->>
->
->The sun4m at least uses level triggered interrupts.
->And looking at the implmentation the enable() and disable() functions
->in all cases did a simple mask and unmask - also the leon variants.
->  
->
-Ok.
+Thanks, please hold it a couple of days until I can test this a bit more.
 
-mask and unmask is harmless on the LEON, incomming IRQs will be pending 
-but not propagated to the CPU until it is unmasked, they will not disapear.
+Below is a patch that adds irq_unlink (havn't tested it yet), I figure 
+we must have that in order to implement irq_shutdown?
 
-As I understand it the mask/unmask in handler_irq is done in order to 
-avoid generating an extra IRQ for level triggered IRQs. When first 
-unmasking no more IRQs will be queued for the CPU from this IRQ source, 
-the current pending IRQ is cleared by acking the IRQ controller, the 
-"real" IRQ source (for example a PCI board) is acked in the ISR, then 
-handler_irq unmasks the IRQ again and can safely avoid an extra spurious 
-IRQ.
+I used the patch on irq_alloc() below to get LEON booting, this will 
+make VIRQs map 1:1 to real IRQs in most cases. This is needed in order 
+to get APBUART driver working, however as said in previous email I will 
+try fixing APBUART driver instead so you should probably ignore that hunk.
 
->So based on this observation I decided to go got the handle_level_irq
->flow handler. From the implmentation in kernel/irq/ I could
->also see that handle_level_irq always called irq_mask() / irq_unmask()
->which was a match towoards to earlier implemtnation.
->
->On top of this - this just worked for my sun4m box.
->  
->
-Ok
-
->  
->
->>On the LEON architecture IRQs are
->>normally edge triggered, the exception beeing PCI interrupts that is
->>level triggered. Implementing the ack functions in the current
->>implementation would result in acking edge triggered IRQs which means
->>IRQs may be lost (on the LEON at least)? I thought SUN SPARCs also have
->>edge triggered interrupts and that the CPU acks the IRQ automatically
->>when the trap is taken?
->>  
->> What is the difference between having handle_level_irq without ACKs
->>implemented and having handle_edge_irq doing the interrupt flow
->>handling?
->>    
->>
->
->Thomas? Can you help here? You are much more into these details than I am.
->  
->
-
-Must add one more thing here: I now see that the egde IRQ handler 
-(handler_edge_irq) does ack which is also incorrect on the LEON. One 
-could argue that irq_ack should be left undefined, however it is needed 
-for PCI Level IRQs later. Mixing handler_edge_irq and handler_level_irq 
-does not seem to be a good idea on LEON since ack is called both times, 
-and edge IRQs must not be acked whereas level IRQs should on the LEON. 
-Instead I suggest for the LEON:
-1. using handle_fasteoi_irq for "edge" IRQs
-2. using handle_level_irq for PCI IRQs in the future, this also requires 
-that irq_ack and irq_mask_ack is defined (I have a patch for this)
-
-
-One other thing is that I can't boot anymore on the LEON with the genirq 
-patch, this is because the virtual IRQs is not 1:1 to real IRQs and the 
-APBUART serial tty console driver uses the "interrupt" property 
-directely, thus VIRQs and real IRQs are mixed and that can not work. 
-Perhaps there are other drivers on sparc32 machines that use the 
-interrupt propery directely? I will try creating a patch for APBUART 
-driver to use VIRQs instead, perhaps that patch can go in before Sam's 
-genirq patch...
-
-I really think this is the right way forward for IRQ handling on 
-sparc32, this is an improvement for LEON indeed. Thank you all for your 
-efforts in this.
-
-Thanks,
 Daniel
+
+
+---
+ arch/sparc/kernel/irq.h    |    1 +
+ arch/sparc/kernel/irq_32.c |   28 +++++++++++++++++++++++-----
+ 2 files changed, 24 insertions(+), 5 deletions(-)
+
+diff --git a/arch/sparc/kernel/irq.h b/arch/sparc/kernel/irq.h
+index a43fc46..ecff50f 100644
+--- a/arch/sparc/kernel/irq.h
++++ b/arch/sparc/kernel/irq.h
+@@ -54,6 +54,7 @@ extern struct sparc_irq_config sparc_irq_config;
+ 
+ unsigned int irq_alloc(unsigned int real_irq, unsigned int pil);
+ void irq_link(unsigned int irq);
++void irq_unlink(unsigned int irq);
+ void handler_irq(unsigned int pil, struct pt_regs *regs);
+ 
+ /* Dave Redman (djhr@tadpole.co.uk)
+diff --git a/arch/sparc/kernel/irq_32.c b/arch/sparc/kernel/irq_32.c
+index 9ce6b97..f698f07 100644
+--- a/arch/sparc/kernel/irq_32.c
++++ b/arch/sparc/kernel/irq_32.c
+@@ -105,12 +105,12 @@ EXPORT_SYMBOL(arch_local_irq_restore);
+  * Sun4d complicates things even further.  IRQ numbers are arbitrary
+  * 32-bit values in that case.  Since this is similar to sparc64,
+  * we adopt a virtual IRQ numbering scheme as is done there.
+- * Virutal interrupt numbers are allocated by build_irq().  So NR_IRQS
++ * Virtual interrupt numbers are allocated by build_irq().  So NR_IRQS
+  * just becomes a limit of how many interrupt sources we can handle in
+  * a single system.  Even fully loaded SS2000 machines top off at
+  * about 32 interrupt sources or so, therefore a NR_IRQS value of 64
+  * is more than enough.
+-  *
++ *
+  * We keep a map of per-PIL enable interrupts.  These get wired
+  * up via the irq_chip->startup() method which gets invoked by
+  * the generic IRQ layer during request_irq().
+@@ -135,9 +135,13 @@ unsigned int irq_alloc(unsigned int real_irq, 
+unsigned int pil)
+             return i;
+     }
+ 
+-    for (i = 1; i < NR_IRQS; i++) {
+-        if (!irq_table[i].irq)
+-            break;
++    if (real_irq < NR_IRQS && irq_table[real_irq].irq = 0) {
++        i = real_irq;
++    } else {
++        for (i = 1; i < NR_IRQS; i++) {
++            if (!irq_table[i].irq)
++                break;
++        }
+     }
+ 
+     if (i >= NR_IRQS) {
+@@ -170,6 +174,20 @@ void irq_link(unsigned int irq)
+     irq_map[pil] = p;
+ }
+ 
++void irq_unlink(unsigned int irq)
++{
++    struct irq_bucket *p, **pnext;
++
++    BUG_ON(irq >= NR_IRQS);
++
++    p = &irq_table[irq];
++    BUG_ON(p->pil > SUN4D_MAX_IRQ);
++    pnext = &irq_map[p->pil];
++    while (*pnext != p)
++        pnext = &(*pnext)->next;
++    *pnext = p->next;
++}
++
+ int show_interrupts(struct seq_file *p, void *v)
+ {
+     int i = *(loff_t *) v, j;
+-- 
+1.6.3.3
