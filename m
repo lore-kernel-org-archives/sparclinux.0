@@ -1,68 +1,78 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 19 Mar 2011 04:50:50 +0000
-Subject: [PATCH] sparc: Add {open_by,name_to}_handle_at and clock_adjtime
-Message-Id: <20110318.215050.173839906.davem@davemloft.net>
+From: Daniel Hellstrom <daniel@gaisler.com>
+Date: Wed, 16 Mar 2011 15:54:49 +0000
+Subject: [PATCH 1/2] sparc32,leon: added irq_shutdown handler for genirq implementation
+Message-Id: <1300290890-20694-1-git-send-email-daniel@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
 ---
- arch/sparc/include/asm/unistd.h |    5 ++++-
- arch/sparc/kernel/systbls_32.S  |    2 +-
- arch/sparc/kernel/systbls_64.S  |    4 ++--
- 3 files changed, 7 insertions(+), 4 deletions(-)
+ arch/sparc/kernel/irq.h         |    1 +
+ arch/sparc/kernel/irq_32.c      |   14 ++++++++++++++
+ arch/sparc/kernel/leon_kernel.c |    7 +++++++
+ 3 files changed, 22 insertions(+), 0 deletions(-)
 
-diff --git a/arch/sparc/include/asm/unistd.h b/arch/sparc/include/asm/unistd.h
-index 03eb5a8..2f475d7 100644
---- a/arch/sparc/include/asm/unistd.h
-+++ b/arch/sparc/include/asm/unistd.h
-@@ -400,8 +400,11 @@
- #define __NR_fanotify_init	329
- #define __NR_fanotify_mark	330
- #define __NR_prlimit64		331
-+#define __NR_name_to_handle_at	332
-+#define __NR_open_by_handle_at	333
-+#define __NR_clock_adjtime	334
+diff --git a/arch/sparc/kernel/irq.h b/arch/sparc/kernel/irq.h
+index a43fc46..ecff50f 100644
+--- a/arch/sparc/kernel/irq.h
++++ b/arch/sparc/kernel/irq.h
+@@ -54,6 +54,7 @@ extern struct sparc_irq_config sparc_irq_config;
  
--#define NR_syscalls		332
-+#define NR_syscalls		335
+ unsigned int irq_alloc(unsigned int real_irq, unsigned int pil);
+ void irq_link(unsigned int irq);
++void irq_unlink(unsigned int irq);
+ void handler_irq(unsigned int pil, struct pt_regs *regs);
  
- #ifdef __32bit_syscall_numbers__
- /* Sparc 32-bit only has the "setresuid32", "getresuid32" variants,
-diff --git a/arch/sparc/kernel/systbls_32.S b/arch/sparc/kernel/systbls_32.S
-index ec396e1..4b86eaf 100644
---- a/arch/sparc/kernel/systbls_32.S
-+++ b/arch/sparc/kernel/systbls_32.S
-@@ -83,5 +83,5 @@ sys_call_table:
- /*315*/	.long sys_timerfd_settime, sys_timerfd_gettime, sys_signalfd4, sys_eventfd2, sys_epoll_create1
- /*320*/	.long sys_dup3, sys_pipe2, sys_inotify_init1, sys_accept4, sys_preadv
- /*325*/	.long sys_pwritev, sys_rt_tgsigqueueinfo, sys_perf_event_open, sys_recvmmsg, sys_fanotify_init
--/*330*/	.long sys_fanotify_mark, sys_prlimit64
-+/*330*/	.long sys_fanotify_mark, sys_prlimit64, sys_name_to_handle_at, sys_open_by_handle_at, sys_clock_adjtime
+ /* Dave Redman (djhr@tadpole.co.uk)
+diff --git a/arch/sparc/kernel/irq_32.c b/arch/sparc/kernel/irq_32.c
+index 46a573a..1be0ae3 100644
+--- a/arch/sparc/kernel/irq_32.c
++++ b/arch/sparc/kernel/irq_32.c
+@@ -175,6 +175,20 @@ void irq_link(unsigned int irq)
+ 	irq_map[pil] = p;
+ }
  
-diff --git a/arch/sparc/kernel/systbls_64.S b/arch/sparc/kernel/systbls_64.S
-index 8cfcaa5..0331baf 100644
---- a/arch/sparc/kernel/systbls_64.S
-+++ b/arch/sparc/kernel/systbls_64.S
-@@ -84,7 +84,7 @@ sys_call_table32:
- 	.word compat_sys_timerfd_settime, compat_sys_timerfd_gettime, compat_sys_signalfd4, sys_eventfd2, sys_epoll_create1
- /*320*/	.word sys_dup3, sys_pipe2, sys_inotify_init1, sys_accept4, compat_sys_preadv
- 	.word compat_sys_pwritev, compat_sys_rt_tgsigqueueinfo, sys_perf_event_open, compat_sys_recvmmsg, sys_fanotify_init
--/*330*/	.word sys32_fanotify_mark, sys_prlimit64
-+/*330*/	.word sys32_fanotify_mark, sys_prlimit64, sys_name_to_handle_at, compat_sys_open_by_handle_at, compat_sys_clock_adjtime
++void irq_unlink(unsigned int irq)
++{
++	struct irq_bucket *p, **pnext;
++
++	BUG_ON(irq >= NR_IRQS);
++
++	p = &irq_table[irq];
++	BUG_ON(p->pil > SUN4D_MAX_IRQ);
++	pnext = &irq_map[p->pil];
++	while (*pnext != p)
++		pnext = &(*pnext)->next;
++	*pnext = p->next;
++}
++
+ int show_interrupts(struct seq_file *p, void *v)
+ {
+ 	int i = *(loff_t *) v, j;
+diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
+index 0c1ae2b..4ddf367 100644
+--- a/arch/sparc/kernel/leon_kernel.c
++++ b/arch/sparc/kernel/leon_kernel.c
+@@ -113,9 +113,16 @@ static unsigned int leon_startup_irq(struct irq_data *data)
+ 	return 0;
+ }
  
- #endif /* CONFIG_COMPAT */
- 
-@@ -160,4 +160,4 @@ sys_call_table:
- 	.word sys_timerfd_settime, sys_timerfd_gettime, sys_signalfd4, sys_eventfd2, sys_epoll_create1
- /*320*/	.word sys_dup3, sys_pipe2, sys_inotify_init1, sys_accept4, sys_preadv
- 	.word sys_pwritev, sys_rt_tgsigqueueinfo, sys_perf_event_open, sys_recvmmsg, sys_fanotify_init
--/*330*/	.word sys_fanotify_mark, sys_prlimit64
-+/*330*/	.word sys_fanotify_mark, sys_prlimit64, sys_name_to_handle_at, sys_open_by_handle_at, sys_clock_adjtime
++static void leon_shutdown_irq(struct irq_data *data)
++{
++	irq_unlink(data->irq);
++	leon_mask_irq(data);
++}
++
+ static struct irq_chip leon_irq = {
+ 	.name		= "leon",
+ 	.irq_startup	= leon_startup_irq,
++	.irq_shutdown	= leon_shutdown_irq,
+ 	.irq_mask	= leon_mask_irq,
+ 	.irq_unmask	= leon_unmask_irq,
+ };
 -- 
-1.7.4.1
+1.5.4
 
