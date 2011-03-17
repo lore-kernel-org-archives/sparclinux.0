@@ -1,40 +1,123 @@
-From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Wed, 30 Mar 2011 11:14:42 +0000
-Subject: Re: [PATCH 1/2 v3] sparc32,leon: APBUART driver must use archdata
-Message-Id: <4D9310A2.7010802@gaisler.com>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 17 Mar 2011 03:06:38 +0000
+Subject: [GIT] Sparc
+Message-Id: <20110316.200638.189689580.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1301481109-1207-1-git-send-email-daniel@gaisler.com>
-In-Reply-To: <1301481109-1207-1-git-send-email-daniel@gaisler.com>
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-David Miller wrote:
 
->From: Daniel Hellstrom <daniel@gaisler.com>
->Date: Wed, 30 Mar 2011 12:31:48 +0200
->
->  
->
->>See Commit id 1636f8ac2b08410df4766449f7c86b912443cd99, this
->>patch is similar to 19e4875fb21a69fbf620e84769a74d189c69c58d.
->>
->>Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
->>    
->>
->
->In Sam's feedback he asked you to refer to commits by not only
->their SHA1 ID but also by their commit message header line, like
->this:
->
->	See commit 1636f8ac2b08410df4766449f7c86b912443cd99
->	("sparc/of: Move of_device fields into struct pdev_archdata")
->
->  
->
-I really screwed that up... Now I have resent the both patches.
+Several small fixes, and a series of cleanups to the IRQ
+handling code of sparc32 to get us ready for a full generic
+IRQ conversion.
 
-Thanks,
-Daniel
+Please pull, thanks a lot!
 
+The following changes since commit 4c5811bf463b0ef82fabbd1708f8bb2d753aeb18:
+
+  Merge branch 'devicetree/next' of git://git.secretlab.ca/git/linux-2.6 (2011-03-16 17:28:10 -0700)
+
+are available in the git repository at:
+
+  master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-next-2.6.git master
+
+Ben Hutchings (1):
+      sparc: Fix .size directive for do_int_load
+
+Daniel Hellstrom (3):
+      sparc32: added U-Boot build target: uImage
+      SPARC/LEON: power down instruction different of different LEONs
+      sparc32/leon: FPU-FSR only available when FPU present
+
+David S. Miller (3):
+      sparc64: Sharpen address space randomization calculations.
+      sparc64: Fix build errors with gcc-4.6.0
+      sparc32: Fix might-be-used-uninitialized warning in do_sparc_fault().
+
+John Stultz (1):
+      sparc: convert to clocksource_register_hz/khz
+
+Kristoffer Glembo (6):
+      sparc: Replace open coded page alignment with PAGE_ALIGN macro.
+      sparc: Add pci32_unmap_page.
+      sparc/leon: Add LEON dma_ops.
+      sparc/leon: Make mmu_inval_dma_area flush dcache for LEONs without snooping enabled.
+      sparc: Make mmu_inval_dma_area take void * instead of unsigned long to minimize casts.
+      sparc: Fix sbus_alloc_coherent error handling.
+
+Sam Ravnborg (19):
+      sparc64: fix direct access to irq_desc
+      sparc: in handler_irq() rename irq parameter to pil
+      sparc64: all pointers to irq_handler_data renamed to handler_data
+      sparc64: use {get,set}_irq_data for handler_data
+      sparc64: use up-to-data genirq functions
+      sparc64: rename virt_irq => irq - I
+      sparc64: rename virt_irq => irq - II
+      sparc32: remove tick14.c
+      sparc32: add irq + smp declarations to headers
+      sparc32,sun4c: irq file cleanup
+      sparc32,sun4m: irq, smp files cleanup
+      sparc32,sun4d: irq, smp files cleanup
+      sparc32,sun4d: drop unused code in sun4d_distribute_irqs()
+      sparc32, sun4d: add comment in empty statement in sun4d_request_irq()
+      sparc32: irq_32.c cleanup
+      sparc32: fix build with leon or floppy enabled
+      sparc32: introduce sparc_irq_config
+      sparc32: introduce build_device_irq
+      sparc32,sun4m: percpu and global register definitions moved to irq.h
+
+ arch/sparc/Kconfig                 |   34 ++++
+ arch/sparc/Makefile                |    3 +-
+ arch/sparc/boot/Makefile           |   31 ++++
+ arch/sparc/include/asm/irq_64.h    |   18 +-
+ arch/sparc/include/asm/leon.h      |    3 -
+ arch/sparc/include/asm/leon_amba.h |    6 +
+ arch/sparc/include/asm/mmu_32.h    |    3 +
+ arch/sparc/include/asm/smp_32.h    |    6 +
+ arch/sparc/kernel/Makefile         |    2 +-
+ arch/sparc/kernel/cpu.c            |    2 +-
+ arch/sparc/kernel/entry.h          |    4 +-
+ arch/sparc/kernel/iommu.c          |    3 -
+ arch/sparc/kernel/ioport.c         |  108 +++++++-----
+ arch/sparc/kernel/irq.h            |   42 ++++-
+ arch/sparc/kernel/irq_32.c         |  260 +++++++++++++-----------------
+ arch/sparc/kernel/irq_64.c         |  312 ++++++++++++++++++------------------
+ arch/sparc/kernel/kernel.h         |   49 ++++++
+ arch/sparc/kernel/ldc.c            |   28 ++--
+ arch/sparc/kernel/leon_kernel.c    |   11 +-
+ arch/sparc/kernel/leon_pmc.c       |   82 ++++++++++
+ arch/sparc/kernel/leon_smp.c       |   36 ++---
+ arch/sparc/kernel/of_device_32.c   |   59 +------
+ arch/sparc/kernel/pci.c            |   11 +-
+ arch/sparc/kernel/pci_common.c     |   11 +-
+ arch/sparc/kernel/pci_fire.c       |   10 +-
+ arch/sparc/kernel/pci_impl.h       |    4 +-
+ arch/sparc/kernel/pci_msi.c        |   44 +++---
+ arch/sparc/kernel/pci_schizo.c     |    4 +-
+ arch/sparc/kernel/pci_sun4v.c      |    9 +-
+ arch/sparc/kernel/pcr.c            |    2 +-
+ arch/sparc/kernel/prom_irqtrans.c  |   16 +-
+ arch/sparc/kernel/ptrace_64.c      |    3 +-
+ arch/sparc/kernel/setup_32.c       |   19 +--
+ arch/sparc/kernel/smp_64.c         |   11 +-
+ arch/sparc/kernel/sun4c_irq.c      |   85 ++++++-----
+ arch/sparc/kernel/sun4d_irq.c      |  298 +++++++++++++++++++---------------
+ arch/sparc/kernel/sun4d_smp.c      |  176 ++++++++-------------
+ arch/sparc/kernel/sun4m_irq.c      |  202 +++++++++++------------
+ arch/sparc/kernel/sun4m_smp.c      |   91 +++--------
+ arch/sparc/kernel/sys_sparc_64.c   |   21 ++-
+ arch/sparc/kernel/tick14.c         |   39 -----
+ arch/sparc/kernel/time_32.c        |    2 +-
+ arch/sparc/kernel/time_64.c        |    4 +-
+ arch/sparc/kernel/traps_64.c       |    3 +-
+ arch/sparc/kernel/una_asm_64.S     |    2 +-
+ arch/sparc/mm/fault_32.c           |    3 +-
+ arch/sparc/prom/misc_32.c          |    4 -
+ 47 files changed, 1117 insertions(+), 1059 deletions(-)
+ create mode 100644 arch/sparc/kernel/leon_pmc.c
+ delete mode 100644 arch/sparc/kernel/tick14.c
