@@ -1,97 +1,131 @@
-From: Prasad Joshi <prasadjoshi124@gmail.com>
-Date: Mon, 14 Mar 2011 18:01:03 +0000
-Subject: [RFC][PATCH v2 17/23] (sparc) __vmalloc: add gfp flags variant of pte
-Message-Id: <AANLkTin1RfkdzK+oXG1mHR_KBAHyQfeOa_WrDEnLiFFW@mail.gmail.com>
+From: BERTRAND Joel <joel.bertrand@systella.fr>
+Date: Sat, 19 Mar 2011 22:27:23 +0000
+Subject: Issuing Reset from mpt_config!!
+Message-Id: <4D852DCB.50104@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Prasad Joshi <prasadjoshi124@gmail.com>, Anand Mitra <mitra@kqinfotech.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-__vmalloc: propagating GFP allocation flag.
+	Hello,
 
-- adds functions to allow caller to pass the GFP flag for memory allocation
-- helps in fixing the Bug 30702 (__vmalloc(GFP_NOFS) can callback
-		  file system evict_inode).
+	I have upgraded this saturday two Fire T1000 from 2.6.30.9 to 2.6.38 
+linux kernel to have better performances with ietd. I don't see any 
+hardware differences between both servers (same firmware) but one of 
+them doesn't boot 2.6.38 kernel:
 
-Signed-off-by: Anand Mitra <mitra@kqinfotech.com>
-Signed-off-by: Prasad Joshi <prasadjoshi124@gmail.com>
----
-Chnagelog:
-arch/sparc/include/asm/pgalloc_32.h |    5 +++++
-arch/sparc/include/asm/pgalloc_64.h |   17 +++++++++++++++--
-2 files changed, 20 insertions(+), 2 deletions(-)
----
-diff --git a/arch/sparc/include/asm/pgalloc_32.h
-b/arch/sparc/include/asm/pgalloc_32.h
-index ca2b344..ad68597 100644
---- a/arch/sparc/include/asm/pgalloc_32.h
-+++ b/arch/sparc/include/asm/pgalloc_32.h
-@@ -41,6 +41,9 @@ BTFIXUPDEF_CALL(void, pgd_set, pgd_t *, pmd_t *)
- BTFIXUPDEF_CALL(pmd_t *, pmd_alloc_one, struct mm_struct *, unsigned long)
- #define pmd_alloc_one(mm, address)	BTFIXUP_CALL(pmd_alloc_one)(mm, address)
+...
+Fusion MPT base driver 3.04.18
+Copyright (c) 1999-2008 LSI Corporation
+Fusion MPT SAS Host driver 3.04.18
+mptbase: ioc0: Initiating bringup
+ioc0: LSISAS1064 A3: Capabilities={Initiator}
+mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
+doorbell=0x24000000
+mptbase: ioc0: Attempting Retry Config request type 0x1, page 0x2, action 0
+mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
+doorbell=0x24000000
+mptbase: ioc0: Initiating recovery
+mptbase: ioc0: Attempting Retry Config request type 0x1, page 0x2, action 0
+mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
+doorbell=0x24000000
+mptbase: ioc0: Initiating recovery
+mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
+doorbell=0x24000000
+mptbase: ioc0: Attempting Retry Config request type 0x1, page 0x1, action 0
+mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
+doorbell=0x24000000
+mptbase: ioc0: Initiating recovery
+mptbase: ioc0: Attempting Retry Config request type 0x1, page 0x1, action 0
+mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
+doorbell=0x24000000
+mptbase: ioc0: Initiating recovery
+mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
+doorbell=0x24000000
+mptbase: ioc0: Attempting Retry Config request type 0x0, page 0x2, action 0
+mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
+doorbell=0x24000000
+mptbase: ioc0: Initiating recovery
+mptbase: ioc0: Attempting Retry Config request type 0x0, page 0x2, action 0
+mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
+doorbell=0x24000000
+mptbase: ioc0: Initiating recovery
+mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
+doorbell=0x24000000
+mptbase: ioc0: Attempting Retry Config request type 0x9, page 0x0, action 0
+mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
+doorbell=0x24000000
+mptbase: ioc0: Initiating recovery
+mptbase: ioc0: Attempting Retry Config request type 0x9, page 0x0, action 0
+mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
+doorbell=0x24000000
+mptbase: ioc0: Initiating recovery
+scsi0 : ioc0: LSISAS1064 A3, FwRev0a0000h, Ports=1, MaxQQ1, IRQ'
+mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
+doorbell=0x24000000
+mptbase: ioc0: Attempting Retry Config request type 0x10, page 0x0, action 0
+mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
+doorbell=0x24000000
+mptbase: ioc0: Initiating recovery
+mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
+doorbell=0x2c000000
+mptbase: ioc0: Attempting Retry Config request type 0x1, page 0x2, action 0
+mptbase: ioc0: Attempting Retry Config request type 0x10, page 0x0, action 0
+mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
+doorbell=0x24000000
+mptbase: ioc0: Initiating recovery
+mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
+doorbell=0x2c000000
+mptbase: ioc0: Attempting Retry Config request type 0x1, page 0x2, action 0
+mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
+doorbell=0x24000000
+mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
+doorbell=0x2c000001
+mptbase: ioc0: Attempting Retry Config request type 0x1, page 0x2, action 0
+mptbase: ioc0: Attempting Retry Config request type 0x11, page 0x0, action 0
+...
+mptbase: ioc0: Initiating recovery
+mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
+doorbell=0x2c000000
+mptbase: ioc0: Attempting Retry Config request type 0x1, page 0x2, action 0
+Fusion MPT misc device (ioctl) driver 3.04.18
+mptctl: Registered with Fusion MPT base driver
+mptctl: /dev/mptctl @ (major,minor,220)
+mousedev: PS/2 mouse device common for all mice
+rtc-sun4v rtc-sun4v: rtc core: registered sun4v as rtc0
+md: raid1 personality registered for level 1
+usbcore: registered new interface driver usbhid
+usbhid: USB HID core driver
+NET: Registered protocol family 17
+Registering the dns_resolver key type
+rtc-sun4v rtc-sun4v: setting system clock to 2011-03-19 22:17:18 UTC 
+(1300573038)
+md: Skipping autodetection of RAID arrays. (raid=autodetect will force)
+md: Unknown device name: sda4
+VFS: Cannot open root device "md0" or unknown-block(0,0)
+Please append a correct "root=" boot option; here are the available 
+partitions:
+Kernel panic - not syncing: VFS: Unable to mount root fs on 
+unknown-block(0,0)
+Call Trace:
+  [00000000008aae24] mount_block_root+0x29c/0x2b8
+  [00000000008ab02c] prepare_namespace+0x184/0x1c8
+  [00000000008aa390] kernel_init+0x204/0x21c
+  [000000000042b00c] kernel_thread+0x30/0x48
+  [000000000074d35c] rest_init+0x18/0x7c
+Press Stop-A (L1-A) to return to the boot prom
 
-+BTFIXUPDEF_CALL(pmd_t *, __pmd_alloc_one, struct mm_struct *,
-unsigned long, gfp_t)
-+#define __pmd_alloc_one(mm, address,
-gfp_mask)	BTFIXUP_CALL(pmd_alloc_one)(mm, address)
-+
- BTFIXUPDEF_CALL(void, free_pmd_fast, pmd_t *)
- #define free_pmd_fast(pmd)	BTFIXUP_CALL(free_pmd_fast)(pmd)
+	If I try to reboot with 2.6.30.9 kernel, the same server boots fine 
+(but hangs later due to another soft raid trouble) wihtout any trouble 
+during MPT initialization. I have built kernel in the first T1000 and 
+copied this kernel on the second one.
 
-@@ -57,6 +60,8 @@ BTFIXUPDEF_CALL(pgtable_t , pte_alloc_one, struct
-mm_struct *, unsigned long)
- #define pte_alloc_one(mm, address)	BTFIXUP_CALL(pte_alloc_one)(mm, address)
- BTFIXUPDEF_CALL(pte_t *, pte_alloc_one_kernel, struct mm_struct *,
-unsigned long)
- #define pte_alloc_one_kernel(mm,
-addr)	BTFIXUP_CALL(pte_alloc_one_kernel)(mm, addr)
-+BTFIXUPDEF_CALL(pte_t *, __pte_alloc_one_kernel, struct mm_struct *,
-unsigned long, gfp_t)
-+#define __pte_alloc_one_kernel(mm, addr,
-gfp_mask)	BTFIXUP_CALL(pte_alloc_one_kernel)(mm, addr)
+	Both servers boot Solaris without trouble.
 
- BTFIXUPDEF_CALL(void, free_pte_fast, pte_t *)
- #define pte_free_kernel(mm, pte)	BTFIXUP_CALL(free_pte_fast)(pte)
-diff --git a/arch/sparc/include/asm/pgalloc_64.h
-b/arch/sparc/include/asm/pgalloc_64.h
-index 5bdfa2c..a7952a5 100644
---- a/arch/sparc/include/asm/pgalloc_64.h
-+++ b/arch/sparc/include/asm/pgalloc_64.h
-@@ -26,9 +26,15 @@ static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
+	I have found some informations about this trouble but no one is sparc 
+specific and I have no idea to fix it. Any idea ?
 
- #define pud_populate(MM, PUD, PMD)	pud_set(PUD, PMD)
+	Best regards,
 
-+static inline pmd_t *
-+__pmd_alloc_one(struct mm_struct *mm, unsigned long addr, gfp_t gfp_mask)
-+{
-+	return quicklist_alloc(0, gfp_mask, NULL);
-+}
-+
- static inline pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long addr)
- {
--	return quicklist_alloc(0, GFP_KERNEL, NULL);
-+	return __pmd_alloc_one(mm, addr, GFP_KERNEL);
- }
-
- static inline void pmd_free(struct mm_struct *mm, pmd_t *pmd)
-@@ -36,10 +42,17 @@ static inline void pmd_free(struct mm_struct *mm,
-pmd_t *pmd)
- 	quicklist_free(0, NULL, pmd);
- }
-
-+static inline pte_t *
-+__pte_alloc_one_kernel(struct mm_struct *mm, unsigned long address,
-+		gfp_t gfp_mask)
-+{
-+	return quicklist_alloc(0, gfp_mask, NULL);
-+}
-+
- static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
- 					  unsigned long address)
- {
--	return quicklist_alloc(0, GFP_KERNEL, NULL);
-+	return __pte_alloc_one_kernel(mm, address, GFP_KERNEL);
- }
-
- static inline pgtable_t pte_alloc_one(struct mm_struct *mm,
+	JB
