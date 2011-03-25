@@ -1,28 +1,29 @@
-From: Meelis Roos <mroos@linux.ee>
-Date: Sat, 19 Mar 2011 20:57:08 +0000
-Subject: Re: 38-git2-6 -- kernel/futex.c warning
-Message-Id: <alpine.SOC.1.00.1103192255440.4548@math.ut.ee>
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Fri, 25 Mar 2011 14:10:44 +0000
+Subject: [patch 0/4] sparc: Final irq bits for .39
+Message-Id: <20110325140808.738196492@linutronix.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <201103181932.p2IJW5cg002394@clem.clem-digital.net> <20110318.125808.233714688.davem@davemloft.net> <4D847191.7000806@linux.intel.com>
-In-Reply-To: <4D847191.7000806@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Darren Hart <dvhart@linux.intel.com>
-Cc: David Miller <davem@davemloft.net>, clem@clem.clem-digital.net, Linux Kernel list <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-> > > Fyi. Have been experiencing the below since 38-git2. Continual scrolling
-> > > such that cannot complete system startup. System is i386 UP, Debian
-> > > "squeeze".
-> > 
-> > Looks similar to the problems reported by Meelis, CC:'d
-> 
-> yes, and the same answer, see Steven Rostedts patch set from March 17th:
-> 
-> [PATCH 0/2 v2] [GIT PULL] futex: Fix WARN_ON trigging on UP
+David,
 
-And applying both his patches on top of 2.6.38-06439-g5bab188 fixed the 
-problem for me.
+the following series 
 
--- 
-Meelis Roos (mroos@linux.ee)
+    - makes use of the new core functions
+    - cleans up open coded irq_desc access
+    - converts to new function names
+    - switches to the generic show_interrupts()
+
+Thanks,
+
+	tglx
+---
+ Kconfig          |    2 
+ kernel/irq_64.c  |  123 ++++++++++++++-----------------------------------------
+ kernel/pci.c     |    2 
+ kernel/pci_msi.c |   15 ++----
+ 4 files changed, 41 insertions(+), 101 deletions(-)
+
