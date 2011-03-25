@@ -1,163 +1,156 @@
-From: bertrand <joel.bertrand@systella.fr>
-Date: Tue, 22 Mar 2011 11:42:49 +0000
-Subject: Re: Issuing Reset from =?UTF-8?Q?mpt=5Fconfig!!?=
-Message-Id: <6ce274895f6085a7705ab2afd08c830b@systella.fr>
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Fri, 25 Mar 2011 14:10:45 +0000
+Subject: [patch 1/4] sparc: Use the new genirq functionality
+Message-Id: <20110325140946.928691193@linutronix.de>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
- On Sat, 19 Mar 2011 23:27:23 +0100, BERTRAND Joel wrote:
-> Hello,
+Make use of the new features in genirq:
 
- Some news.
+1) Set the chip flag IRCHIP_EOI_IF_HANDLED, which ensures in the
+   core code that irq_eoi() is only called when the interrupt was
+   handled. That removes the extra status check in the callback.
 
- I have checked last night this Fire T1000 doesn't have hardware issue. 
- Both Fire T1000 have same installed hardware and firmware level (1.00 
- for LSI adapter and 6.7.6 for LDOM). The first one runs fine with 2.6.38 
- and the second refuses to boot. With 2.6.30.9 kernel, it boots without 
- any trouble. SunVTS doesn't return failure.
+2) Use the preflow handler, which is called from the fasteoi core code
+   before the device handler. That avoids another status check and the
+   open coded handler redirection.
 
- I have checked if this T1000 boots with only one disk, with only the 
- other one and I always see 'Issuing Reset' message. I have swapped disks 
- between both T1000 and I see the same message on the same T1000. Thus 
- this message comes from adapter, not from disks.
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: sparclinux@vger.kernel.org
 
-> I have upgraded this saturday two Fire T1000 from 2.6.30.9 to 2.6.38
-> linux kernel to have better performances with ietd. I don't see any
-> hardware differences between both servers (same firmware) but one of
-> them doesn't boot 2.6.38 kernel:
->
-> ...
-> Fusion MPT base driver 3.04.18
-> Copyright (c) 1999-2008 LSI Corporation
-> Fusion MPT SAS Host driver 3.04.18
-> mptbase: ioc0: Initiating bringup
-> ioc0: LSISAS1064 A3: Capabilities={Initiator}
-> mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-> doorbell=0x24000000
-> mptbase: ioc0: Attempting Retry Config request type 0x1, page 0x2, 
-> action 0
-> mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-> doorbell=0x24000000
-> mptbase: ioc0: Initiating recovery
-> mptbase: ioc0: Attempting Retry Config request type 0x1, page 0x2, 
-> action 0
-> mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-> doorbell=0x24000000
-> mptbase: ioc0: Initiating recovery
-> mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-> doorbell=0x24000000
-> mptbase: ioc0: Attempting Retry Config request type 0x1, page 0x1, 
-> action 0
-> mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-> doorbell=0x24000000
-> mptbase: ioc0: Initiating recovery
-> mptbase: ioc0: Attempting Retry Config request type 0x1, page 0x1, 
-> action 0
-> mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-> doorbell=0x24000000
-> mptbase: ioc0: Initiating recovery
-> mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-> doorbell=0x24000000
-> mptbase: ioc0: Attempting Retry Config request type 0x0, page 0x2, 
-> action 0
-> mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-> doorbell=0x24000000
-> mptbase: ioc0: Initiating recovery
-> mptbase: ioc0: Attempting Retry Config request type 0x0, page 0x2, 
-> action 0
-> mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-> doorbell=0x24000000
-> mptbase: ioc0: Initiating recovery
-> mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-> doorbell=0x24000000
-> mptbase: ioc0: Attempting Retry Config request type 0x9, page 0x0, 
-> action 0
-> mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-> doorbell=0x24000000
-> mptbase: ioc0: Initiating recovery
-> mptbase: ioc0: Attempting Retry Config request type 0x9, page 0x0, 
-> action 0
-> mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-> doorbell=0x24000000
-> mptbase: ioc0: Initiating recovery
-> scsi0 : ioc0: LSISAS1064 A3, FwRev0a0000h, Ports=1, MaxQQ1, 
-> IRQ'
-> mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-> doorbell=0x24000000
-> mptbase: ioc0: Attempting Retry Config request type 0x10, page 0x0, 
-> action 0
-> mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-> doorbell=0x24000000
-> mptbase: ioc0: Initiating recovery
-> mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-> doorbell=0x2c000000
-> mptbase: ioc0: Attempting Retry Config request type 0x1, page 0x2, 
-> action 0
-> mptbase: ioc0: Attempting Retry Config request type 0x10, page 0x0, 
-> action 0
-> mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-> doorbell=0x24000000
-> mptbase: ioc0: Initiating recovery
-> mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-> doorbell=0x2c000000
-> mptbase: ioc0: Attempting Retry Config request type 0x1, page 0x2, 
-> action 0
-> mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-> doorbell=0x24000000
-> mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-> doorbell=0x2c000001
-> mptbase: ioc0: Attempting Retry Config request type 0x1, page 0x2, 
-> action 0
-> mptbase: ioc0: Attempting Retry Config request type 0x11, page 0x0, 
-> action 0
-> ...
-> mptbase: ioc0: Initiating recovery
-> mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-> doorbell=0x2c000000
-> mptbase: ioc0: Attempting Retry Config request type 0x1, page 0x2, 
-> action 0
-> Fusion MPT misc device (ioctl) driver 3.04.18
-> mptctl: Registered with Fusion MPT base driver
-> mptctl: /dev/mptctl @ (major,minor,220)
-> mousedev: PS/2 mouse device common for all mice
-> rtc-sun4v rtc-sun4v: rtc core: registered sun4v as rtc0
-> md: raid1 personality registered for level 1
-> usbcore: registered new interface driver usbhid
-> usbhid: USB HID core driver
-> NET: Registered protocol family 17
-> Registering the dns_resolver key type
-> rtc-sun4v rtc-sun4v: setting system clock to 2011-03-19 22:17:18 UTC
-> (1300573038)
-> md: Skipping autodetection of RAID arrays. (raid=autodetect will 
-> force)
-> md: Unknown device name: sda4
-> VFS: Cannot open root device "md0" or unknown-block(0,0)
-> Please append a correct "root=" boot option; here are the available
-> partitions:
-> Kernel panic - not syncing: VFS: Unable to mount root fs on
-> unknown-block(0,0)
-> Call Trace:
->  [00000000008aae24] mount_block_root+0x29c/0x2b8
->  [00000000008ab02c] prepare_namespace+0x184/0x1c8
->  [00000000008aa390] kernel_init+0x204/0x21c
->  [000000000042b00c] kernel_thread+0x30/0x48
->  [000000000074d35c] rest_init+0x18/0x7c
-> Press Stop-A (L1-A) to return to the boot prom
->
-> If I try to reboot with 2.6.30.9 kernel, the same server boots fine
-> (but hangs later due to another soft raid trouble) wihtout any 
-> trouble
-> during MPT initialization. I have built kernel in the first T1000 and
-> copied this kernel on the second one.
->
-> Both servers boot Solaris without trouble.
->
-> I have found some informations about this trouble but no one is sparc
-> specific and I have no idea to fix it. Any idea ?
+---
+ arch/sparc/Kconfig         |    1 +
+ arch/sparc/kernel/irq_64.c |   32 ++++++++------------------------
+ 2 files changed, 9 insertions(+), 24 deletions(-)
 
- Best regards,
+Index: linux-2.6/arch/sparc/Kconfig
+=================================--- linux-2.6.orig/arch/sparc/Kconfig
++++ linux-2.6/arch/sparc/Kconfig
+@@ -52,6 +52,7 @@ config SPARC64
+ 	select PERF_USE_VMALLOC
+ 	select HAVE_GENERIC_HARDIRQS
+ 	select GENERIC_HARDIRQS_NO_DEPRECATED
++	select IRQ_PREFLOW_FASTEOI
+ 
+ config ARCH_DEFCONFIG
+ 	string
+Index: linux-2.6/arch/sparc/kernel/irq_64.c
+=================================--- linux-2.6.orig/arch/sparc/kernel/irq_64.c
++++ linux-2.6/arch/sparc/kernel/irq_64.c
+@@ -344,10 +344,6 @@ static void sun4u_irq_disable(struct irq
+ static void sun4u_irq_eoi(struct irq_data *data)
+ {
+ 	struct irq_handler_data *handler_data = data->handler_data;
+-	struct irq_desc *desc = irq_desc + data->irq;
+-
+-	if (unlikely(desc->status & (IRQ_DISABLED|IRQ_INPROGRESS)))
+-		return;
+ 
+ 	if (likely(handler_data))
+ 		upa_writeq(ICLR_IDLE, handler_data->iclr);
+@@ -402,12 +398,8 @@ static void sun4v_irq_disable(struct irq
+ static void sun4v_irq_eoi(struct irq_data *data)
+ {
+ 	unsigned int ino = irq_table[data->irq].dev_ino;
+-	struct irq_desc *desc = irq_desc + data->irq;
+ 	int err;
+ 
+-	if (unlikely(desc->status & (IRQ_DISABLED|IRQ_INPROGRESS)))
+-		return;
+-
+ 	err = sun4v_intr_setstate(ino, HV_INTR_STATE_IDLE);
+ 	if (err != HV_EOK)
+ 		printk(KERN_ERR "sun4v_intr_setstate(%x): "
+@@ -481,13 +473,9 @@ static void sun4v_virq_disable(struct ir
+ 
+ static void sun4v_virq_eoi(struct irq_data *data)
+ {
+-	struct irq_desc *desc = irq_desc + data->irq;
+ 	unsigned long dev_handle, dev_ino;
+ 	int err;
+ 
+-	if (unlikely(desc->status & (IRQ_DISABLED|IRQ_INPROGRESS)))
+-		return;
+-
+ 	dev_handle = irq_table[data->irq].dev_handle;
+ 	dev_ino = irq_table[data->irq].dev_ino;
+ 
+@@ -505,6 +493,7 @@ static struct irq_chip sun4u_irq = {
+ 	.irq_disable		= sun4u_irq_disable,
+ 	.irq_eoi		= sun4u_irq_eoi,
+ 	.irq_set_affinity	= sun4u_set_affinity,
++	.flags			= IRQCHIP_EOI_IF_HANDLED,
+ };
+ 
+ static struct irq_chip sun4v_irq = {
+@@ -513,6 +502,7 @@ static struct irq_chip sun4v_irq = {
+ 	.irq_disable		= sun4v_irq_disable,
+ 	.irq_eoi		= sun4v_irq_eoi,
+ 	.irq_set_affinity	= sun4v_set_affinity,
++	.flags			= IRQCHIP_EOI_IF_HANDLED,
+ };
+ 
+ static struct irq_chip sun4v_virq = {
+@@ -521,16 +511,15 @@ static struct irq_chip sun4v_virq = {
+ 	.irq_disable		= sun4v_virq_disable,
+ 	.irq_eoi		= sun4v_virq_eoi,
+ 	.irq_set_affinity	= sun4v_virt_set_affinity,
++	.flags			= IRQCHIP_EOI_IF_HANDLED,
+ };
+ 
+-static void pre_flow_handler(unsigned int irq, struct irq_desc *desc)
++static void pre_flow_handler(struct irq_data *d)
+ {
+-	struct irq_handler_data *handler_data = get_irq_data(irq);
+-	unsigned int ino = irq_table[irq].dev_ino;
++	struct irq_handler_data *handler_data = irq_data_get_irq_handler_data(d);
++	unsigned int ino = irq_table[d->irq].dev_ino;
+ 
+ 	handler_data->pre_handler(ino, handler_data->arg1, handler_data->arg2);
+-
+-	handle_fasteoi_irq(irq, desc);
+ }
+ 
+ void irq_install_pre_handler(int irq,
+@@ -538,13 +527,12 @@ void irq_install_pre_handler(int irq,
+ 			     void *arg1, void *arg2)
+ {
+ 	struct irq_handler_data *handler_data = get_irq_data(irq);
+-	struct irq_desc *desc = irq_desc + irq;
+ 
+ 	handler_data->pre_handler = func;
+ 	handler_data->arg1 = arg1;
+ 	handler_data->arg2 = arg2;
+ 
+-	desc->handle_irq = pre_flow_handler;
++	__irq_set_preflow_handler(virt_irq, pre_flow_handler);
+ }
+ 
+ unsigned int build_irq(int inofixup, unsigned long iclr, unsigned long imap)
+@@ -734,7 +722,6 @@ void __irq_entry handler_irq(int pil, st
+ 	orig_sp = set_hardirq_stack();
+ 
+ 	while (bucket_pa) {
+-		struct irq_desc *desc;
+ 		unsigned long next_pa;
+ 		unsigned int irq;
+ 
+@@ -742,10 +729,7 @@ void __irq_entry handler_irq(int pil, st
+ 		irq = bucket_get_irq(bucket_pa);
+ 		bucket_clear_chain_pa(bucket_pa);
+ 
+-		desc = irq_desc + irq;
+-
+-		if (!(desc->status & IRQ_DISABLED))
+-			desc->handle_irq(irq, desc);
++		generic_handle_irq(irq);
+ 
+ 		bucket_pa = next_pa;
+ 	}
 
- JKB
+
+
+
