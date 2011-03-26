@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 17 Mar 2011 01:55:27 +0000
-Subject: GIT sparc-next-2.6 rebased...
-Message-Id: <20110316.185527.71125501.davem@davemloft.net>
+From: "Sgt.Dixon Hamilton" <sgt.d95hamilton@yahoo.com.hk>
+Date: Sat, 26 Mar 2011 14:53:43 +0000
+Subject: TRUST NEEDED
+Message-Id: <20110326155343.15311c71l4gth4hj@webmail.univ-paris13.fr>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,9 +9,9 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-I made an incredible mess of things in the sparc-next-2.6 tree due to
-merges and such.
+DIXON HAMILTON (U.S.M.C).I have an oil deal for you.contact via
+sgt.d_95hamilton@yahoo.com.hk
 
-So I simply pulled all of the patches out and rebuilt the tree.
+----------------------------------------------------------------
+This message was sent using IMP, the Internet Messaging Program.
 
-Sorry for any inconvenience this may cause.
