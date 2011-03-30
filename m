@@ -1,150 +1,77 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Thu, 24 Mar 2011 08:03:45 +0000
-Subject: [PATCH] sparc: Use the new genirq functionality
-Message-Id: <alpine.LFD.2.00.1103240900400.31464@localhost6.localdomain6>
+From: Daniel Hellstrom <daniel@gaisler.com>
+Date: Wed, 30 Mar 2011 10:31:49 +0000
+Subject: [PATCH 2/2 v3] sparc32,leon: Fixed APBUART frequency detection
+Message-Id: <1301481109-1207-2-git-send-email-daniel@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Make use of the new features in genirq:
+The UARTs may be located on different APB buses, thus have
+different UART clock frequency. The system frequency is not
+the same (but often) as the UART frequency, rather the APB bus
+frequency that the APBUART is located at has the same
+frequency, so this looks at the "freq" property instead.
 
-1) Set the chip flag IRCHIP_EOI_IF_HANDLED, which ensures in the
-   core code that irq_eoi() is only called when the interrupt was
-   handled. That removes the extra status check in the callback.
-
-2) Use the preflow handler, which is called from the fasteoi core code
-   before the device handler. That avoids another status check and the
-   open coded handler redirection.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
 ---
- arch/sparc/Kconfig         |    1 +
- arch/sparc/kernel/irq_64.c |   32 ++++++++------------------------
- 2 files changed, 9 insertions(+), 24 deletions(-)
+ drivers/tty/serial/apbuart.c |   24 +++++++-----------------
+ 1 files changed, 7 insertions(+), 17 deletions(-)
 
-Index: linux-2.6/arch/sparc/Kconfig
-=================================--- linux-2.6.orig/arch/sparc/Kconfig
-+++ linux-2.6/arch/sparc/Kconfig
-@@ -52,6 +52,7 @@ config SPARC64
- 	select PERF_USE_VMALLOC
- 	select HAVE_GENERIC_HARDIRQS
- 	select GENERIC_HARDIRQS_NO_DEPRECATED
-+	select IRQ_PREFLOW_FASTEOI
+diff --git a/drivers/tty/serial/apbuart.c b/drivers/tty/serial/apbuart.c
+index 12d4e7c..19a9436 100644
+--- a/drivers/tty/serial/apbuart.c
++++ b/drivers/tty/serial/apbuart.c
+@@ -598,24 +598,12 @@ static struct platform_driver grlib_apbuart_of_driver = {
  
- config ARCH_DEFCONFIG
- 	string
-Index: linux-2.6/arch/sparc/kernel/irq_64.c
-=================================--- linux-2.6.orig/arch/sparc/kernel/irq_64.c
-+++ linux-2.6/arch/sparc/kernel/irq_64.c
-@@ -344,10 +344,6 @@ static void sun4u_irq_disable(struct irq
- static void sun4u_irq_eoi(struct irq_data *data)
+ static int grlib_apbuart_configure(void)
  {
- 	struct irq_handler_data *handler_data = data->handler_data;
--	struct irq_desc *desc = irq_desc + data->irq;
+-	struct device_node *np, *rp;
+-	const u32 *prop;
+-	int freq_khz, line = 0;
 -
--	if (unlikely(desc->status & (IRQ_DISABLED|IRQ_INPROGRESS)))
--		return;
+-	/* Get bus frequency */
+-	rp = of_find_node_by_path("/");
+-	if (!rp)
+-		return -ENODEV;
+-	rp = of_get_next_child(rp, NULL);
+-	if (!rp)
+-		return -ENODEV;
+-	prop = of_get_property(rp, "clock-frequency", NULL);
+-	if (!prop)
+-		return -ENODEV;
+-	freq_khz = *prop;
++	struct device_node *np;
++	int line = 0;
  
- 	if (likely(handler_data))
- 		upa_writeq(ICLR_IDLE, handler_data->iclr);
-@@ -402,12 +398,8 @@ static void sun4v_irq_disable(struct irq
- static void sun4v_irq_eoi(struct irq_data *data)
- {
- 	unsigned int ino = irq_table[data->irq].dev_ino;
--	struct irq_desc *desc = irq_desc + data->irq;
- 	int err;
+ 	for_each_matching_node(np, apbuart_match) {
+ 		const int *ampopts;
++		const u32 *freq_hz;
+ 		const struct amba_prom_registers *regs;
+ 		struct uart_port *port;
+ 		unsigned long addr;
+@@ -624,8 +612,10 @@ static int grlib_apbuart_configure(void)
+ 		if (ampopts && (*ampopts = 0))
+ 			continue; /* Ignore if used by another OS instance */
+ 		regs = of_get_property(np, "reg", NULL);
++		/* Frequency of APB Bus is frequency of UART */
++		freq_hz = of_get_property(np, "freq", NULL);
  
--	if (unlikely(desc->status & (IRQ_DISABLED|IRQ_INPROGRESS)))
--		return;
--
- 	err = sun4v_intr_setstate(ino, HV_INTR_STATE_IDLE);
- 	if (err != HV_EOK)
- 		printk(KERN_ERR "sun4v_intr_setstate(%x): "
-@@ -481,13 +473,9 @@ static void sun4v_virq_disable(struct ir
+-		if (!regs)
++		if (!regs || !freq_hz || (*freq_hz = 0))
+ 			continue;
  
- static void sun4v_virq_eoi(struct irq_data *data)
- {
--	struct irq_desc *desc = irq_desc + data->irq;
- 	unsigned long dev_handle, dev_ino;
- 	int err;
+ 		grlib_apbuart_nodes[line] = np;
+@@ -641,7 +631,7 @@ static int grlib_apbuart_configure(void)
+ 		port->ops = &grlib_apbuart_ops;
+ 		port->flags = UPF_BOOT_AUTOCONF;
+ 		port->line = line;
+-		port->uartclk = freq_khz * 1000;
++		port->uartclk = *freq_hz;
+ 		port->fifosize = apbuart_scan_fifo_size((struct uart_port *) port, line);
+ 		line++;
  
--	if (unlikely(desc->status & (IRQ_DISABLED|IRQ_INPROGRESS)))
--		return;
--
- 	dev_handle = irq_table[data->irq].dev_handle;
- 	dev_ino = irq_table[data->irq].dev_ino;
- 
-@@ -505,6 +493,7 @@ static struct irq_chip sun4u_irq = {
- 	.irq_disable		= sun4u_irq_disable,
- 	.irq_eoi		= sun4u_irq_eoi,
- 	.irq_set_affinity	= sun4u_set_affinity,
-+	.flags			= IRQCHIP_EOI_IF_HANDLED,
- };
- 
- static struct irq_chip sun4v_irq = {
-@@ -513,6 +502,7 @@ static struct irq_chip sun4v_irq = {
- 	.irq_disable		= sun4v_irq_disable,
- 	.irq_eoi		= sun4v_irq_eoi,
- 	.irq_set_affinity	= sun4v_set_affinity,
-+	.flags			= IRQCHIP_EOI_IF_HANDLED,
- };
- 
- static struct irq_chip sun4v_virq = {
-@@ -521,16 +511,15 @@ static struct irq_chip sun4v_virq = {
- 	.irq_disable		= sun4v_virq_disable,
- 	.irq_eoi		= sun4v_virq_eoi,
- 	.irq_set_affinity	= sun4v_virt_set_affinity,
-+	.flags			= IRQCHIP_EOI_IF_HANDLED,
- };
- 
--static void pre_flow_handler(unsigned int irq, struct irq_desc *desc)
-+static void pre_flow_handler(struct irq_data *d)
- {
--	struct irq_handler_data *handler_data = get_irq_data(irq);
--	unsigned int ino = irq_table[irq].dev_ino;
-+	struct irq_handler_data *handler_data = irq_data_get_irq_handler_data(d);
-+	unsigned int ino = irq_table[d->irq].dev_ino;
- 
- 	handler_data->pre_handler(ino, handler_data->arg1, handler_data->arg2);
--
--	handle_fasteoi_irq(irq, desc);
- }
- 
- void irq_install_pre_handler(int irq,
-@@ -538,13 +527,12 @@ void irq_install_pre_handler(int irq,
- 			     void *arg1, void *arg2)
- {
- 	struct irq_handler_data *handler_data = get_irq_data(irq);
--	struct irq_desc *desc = irq_desc + irq;
- 
- 	handler_data->pre_handler = func;
- 	handler_data->arg1 = arg1;
- 	handler_data->arg2 = arg2;
- 
--	desc->handle_irq = pre_flow_handler;
-+	__irq_set_preflow_handler(virt_irq, pre_flow_handler);
- }
- 
- unsigned int build_irq(int inofixup, unsigned long iclr, unsigned long imap)
-@@ -734,7 +722,6 @@ void __irq_entry handler_irq(int pil, st
- 	orig_sp = set_hardirq_stack();
- 
- 	while (bucket_pa) {
--		struct irq_desc *desc;
- 		unsigned long next_pa;
- 		unsigned int irq;
- 
-@@ -742,10 +729,7 @@ void __irq_entry handler_irq(int pil, st
- 		irq = bucket_get_irq(bucket_pa);
- 		bucket_clear_chain_pa(bucket_pa);
- 
--		desc = irq_desc + irq;
--
--		if (!(desc->status & IRQ_DISABLED))
--			desc->handle_irq(irq, desc);
-+		generic_handle_irq(irq);
- 
- 		bucket_pa = next_pa;
- 	}
+-- 
+1.5.4
+
