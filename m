@@ -1,67 +1,76 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Mon, 14 Mar 2011 17:03:50 +0000
-Subject: Re: Status update on sparc32 genirq support
-Message-Id: <alpine.LFD.2.00.1103141800470.2787@localhost6.localdomain6>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="-1463795968-2037753956-1300122231=:2787"
+From: Daniel Hellstrom <daniel@gaisler.com>
+Date: Wed, 30 Mar 2011 10:31:48 +0000
+Subject: [PATCH 1/2 v3] sparc32,leon: APBUART driver must use archdata to get IRQ number
+Message-Id: <1301481109-1207-1-git-send-email-daniel@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110307.230120.226776255.davem@davemloft.net>
-In-Reply-To: <20110307.230120.226776255.davem@davemloft.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+See Commit id 1636f8ac2b08410df4766449f7c86b912443cd99, this
+patch is similar to 19e4875fb21a69fbf620e84769a74d189c69c58d.
 
----1463795968-2037753956-1300122231=:2787
-Content-Type: TEXT/PLAIN; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
+---
+ drivers/tty/serial/apbuart.c |   12 +++++-------
+ 1 files changed, 5 insertions(+), 7 deletions(-)
 
-On Sun, 13 Mar 2011, Sam Ravnborg wrote:
+diff --git a/drivers/tty/serial/apbuart.c b/drivers/tty/serial/apbuart.c
+index 1ab999b..12d4e7c 100644
+--- a/drivers/tty/serial/apbuart.c
++++ b/drivers/tty/serial/apbuart.c
+@@ -555,10 +555,9 @@ static struct uart_driver grlib_apbuart_driver = {
+ 
+ static int __devinit apbuart_probe(struct platform_device *op)
+ {
+-	int i = -1;
++	int i;
+ 	struct uart_port *port = NULL;
+ 
+-	i = 0;
+ 	for (i = 0; i < grlib_apbuart_port_nr; i++) {
+ 		if (op->dev.of_node = grlib_apbuart_nodes[i])
+ 			break;
+@@ -566,6 +565,7 @@ static int __devinit apbuart_probe(struct platform_device *op)
+ 
+ 	port = &grlib_apbuart_ports[i];
+ 	port->dev = &op->dev;
++	port->irq = op->archdata.irqs[0];
+ 
+ 	uart_add_one_port(&grlib_apbuart_driver, (struct uart_port *) port);
+ 
+@@ -615,7 +615,7 @@ static int grlib_apbuart_configure(void)
+ 	freq_khz = *prop;
+ 
+ 	for_each_matching_node(np, apbuart_match) {
+-		const int *irqs, *ampopts;
++		const int *ampopts;
+ 		const struct amba_prom_registers *regs;
+ 		struct uart_port *port;
+ 		unsigned long addr;
+@@ -623,11 +623,9 @@ static int grlib_apbuart_configure(void)
+ 		ampopts = of_get_property(np, "ampopts", NULL);
+ 		if (ampopts && (*ampopts = 0))
+ 			continue; /* Ignore if used by another OS instance */
+-
+-		irqs = of_get_property(np, "interrupts", NULL);
+ 		regs = of_get_property(np, "reg", NULL);
+ 
+-		if (!irqs || !regs)
++		if (!regs)
+ 			continue;
+ 
+ 		grlib_apbuart_nodes[line] = np;
+@@ -638,7 +636,7 @@ static int grlib_apbuart_configure(void)
+ 
+ 		port->mapbase = addr;
+ 		port->membase = ioremap(addr, sizeof(struct grlib_apbuart_regs_map));
+-		port->irq = *irqs;
++		port->irq = 0;
+ 		port->iotype = UPIO_MEM;
+ 		port->ops = &grlib_apbuart_ops;
+ 		port->flags = UPF_BOOT_AUTOCONF;
+-- 
+1.5.4
 
-> Hi Daniel - thanks for looking at this patch.
->=20
-> I was actually planning to send it to David tonight.
-> But after your comments I will wait.
->=20
-> >  I have begun too look at the patches, one thing that strikes me is
-> > why handle_level_irq is used and why the ack functions irq_ack and
-> > irq_mask_ack are not defined.
->=20
-> The sun4m at least uses level triggered interrupts.
-> And looking at the implmentation the enable() and disable() functions
-> in all cases did a simple mask and unmask - also the leon variants.
->=20
-> So based on this observation I decided to go got the handle_level_irq
-> flow handler. From the implmentation in kernel/irq/ I could
-> also see that handle_level_irq always called irq_mask() / irq_unmask()
-> which was a match towoards to earlier implemtnation.
->=20
-> On top of this - this just worked for my sun4m box.
->=20
-> > On the LEON architecture IRQs are
-> > normally edge triggered, the exception beeing PCI interrupts that is
-> > level triggered. Implementing the ack functions in the current
-> > implementation would result in acking edge triggered IRQs which means
-> > IRQs may be lost (on the LEON at least)? I thought SUN SPARCs also have
-> > edge triggered interrupts and that the CPU acks the IRQ automatically
-> > when the trap is taken?
-> >  =A0
-> >  What is the difference between having handle_level_irq without ACKs
-> > implemented and having handle_edge_irq doing the interrupt flow
-> > handling?
->=20
-> Thomas? Can you help here? You are much more into these details than I am.
-
-That largely depends on the hardware. There is hardware which
-automatically acks either on trap entry or with the mask.
-
-Also edge triggered interrupts can be handled entirely safe by
-handle_level_irq if the hardware latches the edge even when the
-interrupt line is masked.
-
-W/o looking at the actual datasheets I can't tell.
-
-Thanks,
-
-	tglx
----1463795968-2037753956-1300122231=:2787--
