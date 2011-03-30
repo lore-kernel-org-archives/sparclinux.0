@@ -1,40 +1,77 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 05 Mar 2011 16:29:03 +0000
-Subject: Re: Sun4d scsi<->fs issues [Was: Status update on sparc32 genirq
-Message-Id: <20110305162903.GB14644@merkur.ravnborg.org>
+From: Daniel Hellstrom <daniel@gaisler.com>
+Date: Wed, 30 Mar 2011 11:12:41 +0000
+Subject: [PATCH 2/2 v4] sparc32,leon: Fixed APBUART frequency detection
+Message-Id: <1301483561-1402-2-git-send-email-daniel@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.1103051535390.27582@oizys.tordivel.org>
-In-Reply-To: <Pine.LNX.4.64.1103051535390.27582@oizys.tordivel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> 
-> The exact problem manifest with a successful mount of the filesystem. 
-> But it is not possible to read or list any files on the ext2 parition.
-> 
-> # mount /dev/sda2 /mnt
-> EXT2-fs (sda2): warning: mounting ext3 filesystem as ext2
-> # cd /mnt
-> # ls
-> EXT2-fs (sda2): error: ext2_check_page: bad entry in directory #2: : 
-> rec_len is smaller than minimal - offset=0, inode=0, rec_len=0, name_len=0
-> #
-> 
-> I have dumped out the memory area ext2_check_page is reading and it 
-> contains only zero-data. Hence, the error message. 
+The UARTs may be located on different APB buses, thus have
+different UART clock frequency. The system frequency is not
+the same (but often) as the UART frequency, rather the APB bus
+frequency that the APBUART is located at has the same
+frequency, so this looks at the "freq" property instead.
 
-I have not yet used disk access during my sparc32 testing.
-My userland is all on a RAMDISK as I have so far concentrated
-on the kernel side. And here booting is success criteria #1.
+Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
+---
+ drivers/tty/serial/apbuart.c |   24 +++++++-----------------
+ 1 files changed, 7 insertions(+), 17 deletions(-)
 
-So I just want to say that you may have hit something more generalm
-and not necessarily sun4d specific.
+diff --git a/drivers/tty/serial/apbuart.c b/drivers/tty/serial/apbuart.c
+index 12d4e7c..19a9436 100644
+--- a/drivers/tty/serial/apbuart.c
++++ b/drivers/tty/serial/apbuart.c
+@@ -598,24 +598,12 @@ static struct platform_driver grlib_apbuart_of_driver = {
+ 
+ static int grlib_apbuart_configure(void)
+ {
+-	struct device_node *np, *rp;
+-	const u32 *prop;
+-	int freq_khz, line = 0;
+-
+-	/* Get bus frequency */
+-	rp = of_find_node_by_path("/");
+-	if (!rp)
+-		return -ENODEV;
+-	rp = of_get_next_child(rp, NULL);
+-	if (!rp)
+-		return -ENODEV;
+-	prop = of_get_property(rp, "clock-frequency", NULL);
+-	if (!prop)
+-		return -ENODEV;
+-	freq_khz = *prop;
++	struct device_node *np;
++	int line = 0;
+ 
+ 	for_each_matching_node(np, apbuart_match) {
+ 		const int *ampopts;
++		const u32 *freq_hz;
+ 		const struct amba_prom_registers *regs;
+ 		struct uart_port *port;
+ 		unsigned long addr;
+@@ -624,8 +612,10 @@ static int grlib_apbuart_configure(void)
+ 		if (ampopts && (*ampopts = 0))
+ 			continue; /* Ignore if used by another OS instance */
+ 		regs = of_get_property(np, "reg", NULL);
++		/* Frequency of APB Bus is frequency of UART */
++		freq_hz = of_get_property(np, "freq", NULL);
+ 
+-		if (!regs)
++		if (!regs || !freq_hz || (*freq_hz = 0))
+ 			continue;
+ 
+ 		grlib_apbuart_nodes[line] = np;
+@@ -641,7 +631,7 @@ static int grlib_apbuart_configure(void)
+ 		port->ops = &grlib_apbuart_ops;
+ 		port->flags = UPF_BOOT_AUTOCONF;
+ 		port->line = line;
+-		port->uartclk = freq_khz * 1000;
++		port->uartclk = *freq_hz;
+ 		port->fifosize = apbuart_scan_fifo_size((struct uart_port *) port, line);
+ 		line++;
+ 
+-- 
+1.5.4
 
-I have Solaris on the disk on my sun4m box - which I hesitate
-to format.
-And I do not yet have a spare disk to play with. So I cannot
-do testing with ext2 right away.
-
-	Sam
