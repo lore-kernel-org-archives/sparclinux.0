@@ -1,51 +1,39 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Tue, 08 Mar 2011 06:00:39 +0000
-Subject: Re: Status update on sparc32 genirq support [Was: sparc32: genirq
-Message-Id: <20110308060039.GA23819@merkur.ravnborg.org>
+From: Kirill Tkhai <tkhai@yandex.ru>
+Date: Thu, 31 Mar 2011 07:49:51 +0000
+Subject: [PATCH] SPARC32: wrong scheduling of freshly created processes
+Message-Id: <1301557791.5962.19.camel@hp>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110304214850.GA12197@merkur.ravnborg.org>
-In-Reply-To: <20110304214850.GA12197@merkur.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi Marcel.
+SPARC32: Pass task_struct to schedule_tail() in ret_from_fork
 
-Added davem...
-We see strange SEGV faults in userspace and fail to read from ext2..
-All on some (but not all) sparc32 boxes.
+Hello, Dave.
 
-On Tue, Mar 08, 2011 at 02:10:03AM +0100, Marcel van Nies wrote:
-> Hi,
-> 
-> git bisect came up with this:
-> 
-> 4d14a459857bd151ecbd14bcd37b4628da00792b is the first bad commit
-> commit 4d14a459857bd151ecbd14bcd37b4628da00792b
-> Author: David S. Miller <davem@davemloft.net>
-> Date:   Thu Dec 10 23:32:10 2009 -0800
-> 
->     sparc: Stop trying to be so fancy and use __builtin_{memcpy,memset}()
-> 
->     This mirrors commit ff60fab71bb3b4fdbf8caf57ff3739ffd0887396
->     (x86: Use __builtin_memset and __builtin_memcpy for memset/memcpy)
-> 
->     Signed-off-by: David S. Miller <davem@davemloft.net>
-> 
-> Marcel
+We have to pass task_struct of previous process to function
+schedule_tail(). Currently in ret_from_fork previous thread_info
+is passed:
 
-Great work!
+switch_to: mov %g6, %g3 /* previous thread_info in g6 */
 
-Did you try a clean revert on said commit on top of sparc-next?
-Just to confirm that this indeed the commit causing the bug -
-and that reverting it fixes the bug.
-Maybe you already planned to do so...
+ret_from_fork: call    schedule_tail
+                mov    %g3, %o0 /* previous thread_info is passed */
 
-Looking at the commit I can see that it will require same hand-editing
-to revert it. Obviously you can skip the parts that touches
-sparc64 files.
-On the way out of the door - so I cannot produce a patch
-for you right away.
+void schedule_tail(struct task_struct *prev);
 
-	Sam
+Signed-off-by: Tkhai Kirill <tkhai@yandex.ru>
+
+--- arch/sparc/kernel/entry.S.orig	2011-03-27 22:37:20.000000000 +0400
++++ arch/sparc/kernel/entry.S	2011-03-29 20:52:00.165292813 +0400
+@@ -1283,7 +1283,7 @@ linux_syscall_trace:
+ 	.globl	ret_from_fork
+ ret_from_fork:
+ 	call	schedule_tail
+-	 mov	%g3, %o0
++	 ld	[%g3 + TI_TASK], %o0
+ 	b	ret_sys_call
+ 	 ld	[%sp + STACKFRAME_SZ + PT_I0], %o0
+
+
