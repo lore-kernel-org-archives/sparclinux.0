@@ -1,75 +1,61 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 18 Apr 2011 20:36:33 +0000
-Subject: Re: Sparc station IPX (sparc32 - sun4c) does not boot Linux
-Message-Id: <20110418203633.GA13513@merkur.ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Fri, 01 Apr 2011 06:33:30 +0000
+Subject: [GIT] Sparc
+Message-Id: <20110331.233330.226762625.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110418065540.GA21094@merkur.ravnborg.org>
-In-Reply-To: <20110418065540.GA21094@merkur.ravnborg.org>
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Apr 18, 2011 at 04:57:43PM +0100, mark@mtfhpc.demon.co.uk wrote:
-> Hi Sam,
-> 
-> Thee things that may help.
-> 
-> 1) Change head.S to remap 8M. Last time I did anything on
-> sun4c, it only remapped 3M and minimum kernel size i
-> ended up working with was > 3M.
-This looked rather promising - but same result.
 
-I only changed this:
---- a/arch/sparc/kernel/head_32.S
-+++ b/arch/sparc/kernel/head_32.S
-@@ -716,7 +716,7 @@ sun4_normal_loop:
- sun4c_remap:
-                mov     0, %g3                  ! source base
-                set     KERNBASE, %g4           ! destination base
--               set     0x300000, %g5           ! upper bound 3MB
-+               set     0x800000, %g5           ! upper bound 8MB
-                mov     1, %l6
-                sll     %l6, 18, %l6            ! sun4c mmu segmap size
+1) Fix section mismatch errors on sparc64.  These were all legitimate
+   and were resulting in freed memory being referenced after boot.
 
-I think we get stuck somewhere before this - or durign the very
-early phases. I tried to read out call-chain with prom debugger.
-But that failed.
+2) Hook up sys_syncfs
 
-My attempts to set proper breakpoints also failed - maybe I
-mixed up some addresses.
+3) apbuart LEON driver fixes from Daniel Hellstrom.
 
-I have left it for now as I need to get forward with other stuff.
+Please pull, thanks a lot!
 
-> 2) Add in code to disable the Lance before setting up
-> the device tree. If you don't do this then it may generate
-> interrupts before you have a handler installed.
-> DaveM had a patch for this somewhere (> 2 years ago).
+The following changes since commit ecb78ab6f30106ab72a575a25b1cdfd1633b7ca2:
 
-Digged a little. Found a patch that dacem created in response
-to a thread you were invloved in.
+  Merge branch 'release' of git://git.kernel.org/pub/scm/linux/kernel/git/aegl/linux-2.6 (2011-03-30 12:22:15 -0700)
 
-commit 76fcdb30ae1cb28e438e5ffd4db5f49ea3d96cd7
-Author: David S. Miller <davem@sunset.davemloft.net>
-Date:   Mon Jul 30 18:23:39 2007 -0700
+are available in the git repository at:
 
-    [SUNLANCE]: Fix sparc32 crashes by using of_*() interfaces.
+  master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
 
-    This driver was still using the deprecated prom_*() interfaces to
-    obtain values out of the OBP device tree, and this is causing
-    some kinds of problems on sparc32 especially SMP boxes.
+Daniel Hellstrom (2):
+      sparc32, leon: APBUART driver must use archdata to get IRQ number
+      sparc32,leon: Fixed APBUART frequency detection
 
-    Signed-off-by: David S. Miller <davem@davemloft.net>
+David S. Miller (3):
+      sparc: Hook up syncfs system call.
+      sparc64: Fix section mis-match errors.
+      apbuart: Depend upon sparc.
 
-So I think it is fixed in-tree. And I anyway does not get that far.
+Tkhai Kirill (1):
+      sparc32: Pass task_struct to schedule_tail() in ret_from_fork
 
-> 3) I had problems with my SparcStation clone. It has a CG3
-> and the default driver set up results in a black on black
-> screen. This is fine when using serial console but a pain
-> if you forget to unplug the keyboard before booting.
-
-Good to know.
-
-Thanks for your reply!
-
-	Sam
+ arch/sparc/include/asm/unistd.h |    3 ++-
+ arch/sparc/kernel/auxio_64.c    |    2 +-
+ arch/sparc/kernel/central.c     |    4 ++--
+ arch/sparc/kernel/ds.c          |    2 +-
+ arch/sparc/kernel/entry.S       |    2 +-
+ arch/sparc/kernel/mdesc.c       |    2 +-
+ arch/sparc/kernel/pci_fire.c    |    2 +-
+ arch/sparc/kernel/pci_psycho.c  |    2 +-
+ arch/sparc/kernel/pci_sabre.c   |    2 +-
+ arch/sparc/kernel/pci_schizo.c  |    2 +-
+ arch/sparc/kernel/pci_sun4v.c   |    2 +-
+ arch/sparc/kernel/power.c       |    2 +-
+ arch/sparc/kernel/systbls_32.S  |    2 +-
+ arch/sparc/kernel/systbls_64.S  |    2 ++
+ arch/sparc/kernel/time_64.c     |    6 +++---
+ drivers/tty/serial/Kconfig      |    2 +-
+ drivers/tty/serial/apbuart.c    |   34 +++++++++++-----------------------
+ 17 files changed, 32 insertions(+), 41 deletions(-)
