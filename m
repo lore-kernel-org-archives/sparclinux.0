@@ -1,77 +1,33 @@
-From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Tue, 19 Apr 2011 16:07:13 +0000
-Subject: [PATCH 1/7] sparc32,leon: must protect IRQ controller register with spinlock
-Message-Id: <1303229239-21551-1-git-send-email-daniel@gaisler.com>
+From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
+Date: Mon, 11 Apr 2011 14:42:41 +0000
+Subject: Sun Fire 480R booting now [Was: Re: linux-image-2.6.26-1-sparc64-smp: [sparc] SunFire480R cassini ne
+Message-Id: <20110411144241.GD12087@lemon.iwr.uni-heidelberg.de>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-The LEON interrupt controller has one single mask register for all
-IRQs per CPU, even though the genirq layer protects us from accessing
-the same IRQ at the same time other IRQs share the same mask register
-and may thus interfere. Some other IRQ controllers has a mask register
-or similar per IRQ instead which makes spinlocks unncessary.
+> On Tue, Apr 05, 2011 at 05:20:21PM +0200, Hermann Lauer wrote:
+> Just found the "initcall_debug=1 ignore_loglevel" suggested by davem
+> during the last debugging session with this machine.
+> 
+> Tail of the output is below for completeness, thought I feel
+> I should try the latest stable vanilla kernel when time permits.
 
-Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
----
- arch/sparc/kernel/leon_kernel.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+2.6.38.2 vanilla compiled under squeeze is booting and running fine 
+since around an hour here on a 480R. Also on 880 it is running
+with minor glitches so far.
 
-diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
-index 8591cf1..390e469 100644
---- a/arch/sparc/kernel/leon_kernel.c
-+++ b/arch/sparc/kernel/leon_kernel.c
-@@ -31,6 +31,7 @@ int leondebug_irq_disable;
- int leon_debug_irqout;
- static int dummy_master_l10_counter;
- unsigned long amba_system_id;
-+static DEFINE_SPINLOCK(leon_irq_lock);
- 
- unsigned long leon3_gptimer_irq; /* interrupt controller irq number */
- unsigned long leon3_gptimer_idx; /* Timer Index (0..6) within Timer Core */
-@@ -88,10 +89,10 @@ static void leon_unmask_irq(struct irq_data *data)
- 	unsigned long mask, flags;
- 
- 	mask = (unsigned long)data->chip_data;
--	local_irq_save(flags);
-+	spin_lock_irqsave(&leon_irq_lock, flags);
- 	LEON3_BYPASS_STORE_PA(LEON_IMASK,
- 			      (LEON3_BYPASS_LOAD_PA(LEON_IMASK) | (mask)));
--	local_irq_restore(flags);
-+	spin_unlock_irqrestore(&leon_irq_lock, flags);
- }
- 
- static void leon_mask_irq(struct irq_data *data)
-@@ -99,11 +100,10 @@ static void leon_mask_irq(struct irq_data *data)
- 	unsigned long mask, flags;
- 
- 	mask = (unsigned long)data->chip_data;
--	local_irq_save(flags);
-+	spin_lock_irqsave(&leon_irq_lock, flags);
- 	LEON3_BYPASS_STORE_PA(LEON_IMASK,
- 			      (LEON3_BYPASS_LOAD_PA(LEON_IMASK) & ~(mask)));
--	local_irq_restore(flags);
--
-+	spin_unlock_irqrestore(&leon_irq_lock, flags);
- }
- 
- static unsigned int leon_startup_irq(struct irq_data *data)
-@@ -383,10 +383,10 @@ void leon_enable_irq_cpu(unsigned int irq_nr, unsigned int cpu)
- {
- 	unsigned long mask, flags, *addr;
- 	mask = get_irqmask(irq_nr);
--	local_irq_save(flags);
-+	spin_lock_irqsave(&leon_irq_lock, flags);
- 	addr = (unsigned long *)&(leon3_irqctrl_regs->mask[cpu]);
- 	LEON3_BYPASS_STORE_PA(addr, (LEON3_BYPASS_LOAD_PA(addr) | (mask)));
--	local_irq_restore(flags);
-+	spin_unlock_irqrestore(&leon_irq_lock, flags);
- }
- 
- #endif
+Thanks to all the sparc linux people for this good release.
+
+For the debian sparc list: Hoping that wheezy will get a 2.6.38 kernel.
+
+Thanks & greetings
+  Hermann
+
 -- 
-1.5.4
-
+Netzwerkadministration/Zentrale Dienste, Interdiziplinaeres 
+Zentrum fuer wissenschaftliches Rechnen der Universitaet Heidelberg
+IWR; INF 368; 69120 Heidelberg; Tel: (06221)54-8236 Fax: -5224
+Email: Hermann.Lauer@iwr.uni-heidelberg.de
