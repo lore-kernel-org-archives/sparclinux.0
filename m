@@ -1,251 +1,120 @@
-From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Wed, 20 Apr 2011 08:39:07 +0000
-Subject: [PATCH 5/7 v2] sparc32,leon: code cleanup of timer/IRQ controller initialization
-Message-Id: <1303288747-28521-5-git-send-email-daniel@gaisler.com>
+From: Ben Hutchings <ben@decadent.org.uk>
+Date: Fri, 15 Apr 2011 03:39:12 +0000
+Subject: pata_cmd64x provokes bus error on Sun Fire 480R or 880
+Message-Id: <1302838752.5282.741.camel@localhost>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=-y+VkwHECz+UpkQs+q3US"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+References: <20110414111838.5205.29518.reportbug@tantalus.iwr.uni-heidelberg.de>
+	 <1302782688.5282.684.camel@localhost>
+	 <20110414135725.GD13256@lemon.iwr.uni-heidelberg.de>
+In-Reply-To: <20110414135725.GD13256@lemon.iwr.uni-heidelberg.de>
+To: linux-ide@vger.kernel.org, sparclinux@vger.kernel.org
+Cc: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>, 622745@bugs.debian.org, debian-sparc@lists.debian.org
 
-Cleaned up leon_init_timers() by removing unnecessary double checking
-and one indentation level. Changed LEON_IMASK to LEON_IMASK(cpu).
 
-Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
----
- arch/sparc/kernel/leon_kernel.c |  156 ++++++++++++++++++---------------------
- 1 files changed, 72 insertions(+), 84 deletions(-)
+--=-y+VkwHECz+UpkQs+q3US
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
-index 5d7e41c..d8fafea 100644
---- a/arch/sparc/kernel/leon_kernel.c
-+++ b/arch/sparc/kernel/leon_kernel.c
-@@ -37,7 +37,7 @@ unsigned long leon3_gptimer_irq; /* interrupt controller irq number */
- unsigned long leon3_gptimer_idx; /* Timer Index (0..6) within Timer Core */
- int leon3_ticker_irq; /* Timer ticker IRQ */
- unsigned int sparc_leon_eirq;
--#define LEON_IMASK (&leon3_irqctrl_regs->mask[0])
-+#define LEON_IMASK(cpu) (&leon3_irqctrl_regs->mask[cpu])
- #define LEON_IACK (&leon3_irqctrl_regs->iclear)
- #define LEON_DO_ACK_HW 1
- 
-@@ -79,8 +79,8 @@ void leon_eirq_setup(unsigned int eirq)
- 	 */
- 	irq_link(veirq);
- 	mask = 1 << eirq;
--	oldmask = LEON3_BYPASS_LOAD_PA(LEON_IMASK);
--	LEON3_BYPASS_STORE_PA(LEON_IMASK, (oldmask | mask));
-+	oldmask = LEON3_BYPASS_LOAD_PA(LEON_IMASK(0));
-+	LEON3_BYPASS_STORE_PA(LEON_IMASK(0), (oldmask | mask));
- 	sparc_leon_eirq = eirq;
- }
- 
-@@ -101,23 +101,23 @@ static inline unsigned long get_irqmask(unsigned int irq)
- 
- static void leon_unmask_irq(struct irq_data *data)
- {
--	unsigned long mask, flags;
-+	unsigned long mask, oldmask, flags;
- 
- 	mask = (unsigned long)data->chip_data;
- 	spin_lock_irqsave(&leon_irq_lock, flags);
--	LEON3_BYPASS_STORE_PA(LEON_IMASK,
--			      (LEON3_BYPASS_LOAD_PA(LEON_IMASK) | (mask)));
-+	oldmask = LEON3_BYPASS_LOAD_PA(LEON_IMASK(0));
-+	LEON3_BYPASS_STORE_PA(LEON_IMASK(0), (oldmask | mask));
- 	spin_unlock_irqrestore(&leon_irq_lock, flags);
- }
- 
- static void leon_mask_irq(struct irq_data *data)
- {
--	unsigned long mask, flags;
-+	unsigned long mask, oldmask, flags;
- 
- 	mask = (unsigned long)data->chip_data;
- 	spin_lock_irqsave(&leon_irq_lock, flags);
--	LEON3_BYPASS_STORE_PA(LEON_IMASK,
--			      (LEON3_BYPASS_LOAD_PA(LEON_IMASK) & ~(mask)));
-+	oldmask = LEON3_BYPASS_LOAD_PA(LEON_IMASK(0));
-+	LEON3_BYPASS_STORE_PA(LEON_IMASK(0), (oldmask & ~mask));
- 	spin_unlock_irqrestore(&leon_irq_lock, flags);
- }
- 
-@@ -261,92 +261,83 @@ void __init leon_init_timers(irq_handler_t counter_fn)
- 			leon3_gptimer_irq = *(unsigned int *)pp->value;
- 	} while (0);
- 
--	if (leon3_gptimer_regs && leon3_irqctrl_regs && leon3_gptimer_irq) {
--		LEON3_BYPASS_STORE_PA(
--			&leon3_gptimer_regs->e[leon3_gptimer_idx].val, 0);
--		LEON3_BYPASS_STORE_PA(
--			&leon3_gptimer_regs->e[leon3_gptimer_idx].rld,
--			(((1000000 / HZ) - 1)));
--		LEON3_BYPASS_STORE_PA(
-+	if (!(leon3_gptimer_regs && leon3_irqctrl_regs && leon3_gptimer_irq))
-+		goto bad;
-+
-+	LEON3_BYPASS_STORE_PA(&leon3_gptimer_regs->e[leon3_gptimer_idx].val, 0);
-+	LEON3_BYPASS_STORE_PA(&leon3_gptimer_regs->e[leon3_gptimer_idx].rld,
-+				(((1000000 / HZ) - 1)));
-+	LEON3_BYPASS_STORE_PA(
- 			&leon3_gptimer_regs->e[leon3_gptimer_idx].ctrl, 0);
- 
- #ifdef CONFIG_SMP
--		leon3_ticker_irq = leon3_gptimer_irq + 1 + leon3_gptimer_idx;
--
--		if (!(LEON3_BYPASS_LOAD_PA(&leon3_gptimer_regs->config) &
--		      (1<<LEON3_GPTIMER_SEPIRQ))) {
--			prom_printf("irq timer not configured with separate irqs\n");
--			BUG();
--		}
-+	leon3_ticker_irq = leon3_gptimer_irq + 1 + leon3_gptimer_idx;
- 
--		LEON3_BYPASS_STORE_PA(
--			&leon3_gptimer_regs->e[leon3_gptimer_idx+1].val, 0);
--		LEON3_BYPASS_STORE_PA(
--			&leon3_gptimer_regs->e[leon3_gptimer_idx+1].rld,
--			(((1000000/HZ) - 1)));
--		LEON3_BYPASS_STORE_PA(
--			&leon3_gptimer_regs->e[leon3_gptimer_idx+1].ctrl, 0);
--# endif
--
--		/*
--		 * The IRQ controller may (if implemented) consist of multiple
--		 * IRQ controllers, each mapped on a 4Kb boundary.
--		 * Each CPU may be routed to different IRQCTRLs, however
--		 * we assume that all CPUs (in SMP system) is routed to the
--		 * same IRQ Controller, and for non-SMP only one IRQCTRL is
--		 * accessed anyway.
--		 * In AMP systems, Linux must run on CPU0 for the time being.
--		 */
--		cpu = sparc_leon3_cpuid();
--		icsel = LEON3_BYPASS_LOAD_PA(&leon3_irqctrl_regs->icsel[cpu/8]);
--		icsel = (icsel >> ((7 - (cpu&0x7)) * 4)) & 0xf;
--		leon3_irqctrl_regs += icsel;
--
--		/* Probe extended IRQ controller */
--		eirq = (LEON3_BYPASS_LOAD_PA(&leon3_irqctrl_regs->mpstatus)
--			>> 16) & 0xf;
--		if (eirq != 0)
--			leon_eirq_setup(eirq);
--	} else {
--		goto bad;
-+	if (!(LEON3_BYPASS_LOAD_PA(&leon3_gptimer_regs->config) &
-+	      (1<<LEON3_GPTIMER_SEPIRQ))) {
-+		printk(KERN_ERR "timer not configured with separate irqs\n");
-+		BUG();
- 	}
- 
-+	LEON3_BYPASS_STORE_PA(&leon3_gptimer_regs->e[leon3_gptimer_idx+1].val,
-+				0);
-+	LEON3_BYPASS_STORE_PA(&leon3_gptimer_regs->e[leon3_gptimer_idx+1].rld,
-+				(((1000000/HZ) - 1)));
-+	LEON3_BYPASS_STORE_PA(&leon3_gptimer_regs->e[leon3_gptimer_idx+1].ctrl,
-+				0);
-+#endif
-+
-+	/*
-+	 * The IRQ controller may (if implemented) consist of multiple
-+	 * IRQ controllers, each mapped on a 4Kb boundary.
-+	 * Each CPU may be routed to different IRQCTRLs, however
-+	 * we assume that all CPUs (in SMP system) is routed to the
-+	 * same IRQ Controller, and for non-SMP only one IRQCTRL is
-+	 * accessed anyway.
-+	 * In AMP systems, Linux must run on CPU0 for the time being.
-+	 */
-+	cpu = sparc_leon3_cpuid();
-+	icsel = LEON3_BYPASS_LOAD_PA(&leon3_irqctrl_regs->icsel[cpu/8]);
-+	icsel = (icsel >> ((7 - (cpu&0x7)) * 4)) & 0xf;
-+	leon3_irqctrl_regs += icsel;
-+
-+	/* Probe extended IRQ controller */
-+	eirq = (LEON3_BYPASS_LOAD_PA(&leon3_irqctrl_regs->mpstatus)
-+		>> 16) & 0xf;
-+	if (eirq != 0)
-+		leon_eirq_setup(eirq);
-+
- 	irq = _leon_build_device_irq(NULL, leon3_gptimer_irq+leon3_gptimer_idx);
- 	err = request_irq(irq, counter_fn, IRQF_TIMER, "timer", NULL);
--
- 	if (err) {
--		printk(KERN_ERR "leon_time_init: unable to attach IRQ%d\n",
--		       irq);
-+		printk(KERN_ERR "unable to attach timer IRQ%d\n", irq);
- 		prom_halt();
- 	}
- 
--	if (leon3_gptimer_regs) {
--		LEON3_BYPASS_STORE_PA(&leon3_gptimer_regs->e[leon3_gptimer_idx].ctrl,
--				      LEON3_GPTIMER_EN |
--				      LEON3_GPTIMER_RL |
--				      LEON3_GPTIMER_LD | LEON3_GPTIMER_IRQEN);
-+	LEON3_BYPASS_STORE_PA(&leon3_gptimer_regs->e[leon3_gptimer_idx].ctrl,
-+			      LEON3_GPTIMER_EN |
-+			      LEON3_GPTIMER_RL |
-+			      LEON3_GPTIMER_LD |
-+			      LEON3_GPTIMER_IRQEN);
- 
- #ifdef CONFIG_SMP
--		/* Install per-cpu IRQ handler for broadcasted ticker */
--		irq = leon_build_device_irq(leon3_ticker_irq,
--						handle_percpu_irq, "per-cpu",
--						0);
--		err = request_irq(irq, leon_percpu_timer_interrupt,
--					IRQF_PERCPU | IRQF_TIMER, "ticker",
--					NULL);
--		if (err) {
--			printk(KERN_ERR "unable to attach ticker IRQ%d\n", irq);
--			prom_halt();
--		}
-+	/* Install per-cpu IRQ handler for broadcasted ticker */
-+	irq = leon_build_device_irq(leon3_ticker_irq, handle_percpu_irq,
-+				    "per-cpu", 0);
-+	err = request_irq(irq, leon_percpu_timer_interrupt,
-+			  IRQF_PERCPU | IRQF_TIMER, "ticker",
-+			  NULL);
-+	if (err) {
-+		printk(KERN_ERR "unable to attach ticker IRQ%d\n", irq);
-+		prom_halt();
-+	}
- 
--		LEON3_BYPASS_STORE_PA(&leon3_gptimer_regs->e[leon3_gptimer_idx+1].ctrl,
--				      LEON3_GPTIMER_EN |
--				      LEON3_GPTIMER_RL |
--				      LEON3_GPTIMER_LD |
--				      LEON3_GPTIMER_IRQEN);
-+	LEON3_BYPASS_STORE_PA(&leon3_gptimer_regs->e[leon3_gptimer_idx+1].ctrl,
-+			      LEON3_GPTIMER_EN |
-+			      LEON3_GPTIMER_RL |
-+			      LEON3_GPTIMER_LD |
-+			      LEON3_GPTIMER_IRQEN);
- #endif
--
--	}
- 	return;
- bad:
- 	printk(KERN_ERR "No Timer/irqctrl found\n");
-@@ -363,9 +354,6 @@ void leon_load_profile_irq(int cpu, unsigned int limit)
- 	BUG();
- }
- 
--
--
--
- void __init leon_trans_init(struct device_node *dp)
- {
- 	if (strcmp(dp->type, "cpu") = 0 && strcmp(dp->name, "<NULL>") = 0) {
-@@ -420,8 +408,8 @@ void leon_enable_irq_cpu(unsigned int irq_nr, unsigned int cpu)
- 	unsigned long mask, flags, *addr;
- 	mask = get_irqmask(irq_nr);
- 	spin_lock_irqsave(&leon_irq_lock, flags);
--	addr = (unsigned long *)&(leon3_irqctrl_regs->mask[cpu]);
--	LEON3_BYPASS_STORE_PA(addr, (LEON3_BYPASS_LOAD_PA(addr) | (mask)));
-+	addr = (unsigned long *)LEON_IMASK(cpu);
-+	LEON3_BYPASS_STORE_PA(addr, (LEON3_BYPASS_LOAD_PA(addr) | mask));
- 	spin_unlock_irqrestore(&leon_irq_lock, flags);
- }
- 
--- 
-1.5.4
+Debian received a bug report that pata_cmd64x fails on some SPARC
+machines, whereas cmd64x works.  The bug report is logged at
+<http://bugs.debian.org/622745>.
 
+On Thu, 2011-04-14 at 15:57 +0200, Hermann Lauer wrote:
+> On Thu, Apr 14, 2011 at 01:04:48PM +0100, Ben Hutchings wrote:
+> > Does your custom kernel use the old IDE cmd64x driver?
+> >=20
+> > What happens if you add 'blacklist=3Dpata_cmd64x' to the kernel command
+> > line for the Debian kernel?
+>=20
+> Not better, see below. I attached the config of the self compiled kernel
+> for comparisons.
+>=20
+> Greetings
+>  Hermann
+>=20
+> Starting the hotplug events dispatcher: udevd[  164.169235] udev[344]: st=
+arting version 164
+> .
+> Synthesizing the initial hotplug events...done.
+> Waitin[  164.654174] udev[380]: renamed network interface eth0 to eth2
+> g for /dev to be fully populated...[  164.779803] /pci@8,700000: PCI Erro=
+r, primary error type[Master Abort]
+> [  164.779990] ERROR(2): Cheetah error trap taken afsr[0010080000000000] =
+afar[000007ffef000410] TL1(0)
+> [  164.780002] ERROR(2): TPC[10247bdc] TNPC[10247be0] O7[10247cdc] TSTATE=
+[4411e01602]
+> [  164.780009] ERROR(2): TPC<ata_sff_check_status+0x4/0x10 [libata]>
+> [  164.780079] ERROR(2): M_SYND(0),  E_SYND(0), Privileged
+> [  164.780089] ERROR(2): Highest priority error (0000080000000000) "Bus e=
+rror response from system bus"
+> [  164.780102] ERROR(2): D-cache idx[0] tag[0000000000000000] utag[000000=
+0000000000] stag[0000000000000000]
+> [  164.780114] ERROR(2): D-cache data0[0000000000000000] data1[0000000000=
+000000] data2[0000000000000000] data3[0000000000000000]
+> [  164.780128] ERROR(2): I-cache idx[0] tag[0000000000000000] utag[000000=
+0000000000] stag[0000000000000000] u[0000000000000000] l[0000000000000000]
+> [  164.780141] ERROR(2): I-cache INSN0[0000000000000000] INSN1[0000000000=
+000000] INSN2[0000000000000000] INSN3[0000000000000000]
+> [  164.780153] ERROR(2): I-cache INSN4[0000000000000000] INSN5[0000000000=
+000000] INSN6[0000000000000000] INSN7[0000000000000000]
+> [  164.780164] ERROR(2): E-cache idx[ef000400] tag[0000028feb922802]
+> [  164.780174] ERROR(2): E-cache data0[0000000000000006] data1[fffff8a3fa=
+d752c0] data2[0000000000000000] data3[0000000000000000]
+> [  164.780187] Kernel panic - not syncing: Irrecoverable deferred error t=
+rap.
+> [  164.780192]=20
+> [  164.780197] Call Trace:
+> [  164.780217]  [0000000000429398] cheetah_deferred_handler+0x49c/0x4ec
+> [  164.780234]  [0000000000405e30] c_deferred+0x18/0x24
+> [  164.780255]  [0000000010247bdc] ata_sff_check_status+0x4/0x10 [libata]
+> [  164.780276]  [00000000102415a4] __ata_port_freeze+0x34/0x50 [libata]
+> [  164.780297]  [000000001024169c] ata_eh_freeze_port+0x20/0x3c [libata]
+> [  164.780316]  [0000000010235998] ata_host_start+0x120/0x1b4 [libata]
+> [  164.780339]  [00000000102488b8] ata_pci_sff_activate_host+0x14/0x1e4 [=
+libata]
+> [  164.780361]  [0000000010248d94] ata_pci_bmdma_init_one+0xc0/0x124 [lib=
+ata]
+> [  164.780375]  [0000000010354148] cmd64x_init_one+0xf0/0x104 [pata_cmd64=
+x]
+> [  164.780394]  [00000000005f08c8] local_pci_probe+0x10/0x24
+> [  164.780404]  [00000000005f0b50] pci_device_probe+0x4c/0x84
+> [  164.780424]  [0000000000663380] driver_probe_device+0xa8/0x158
+> [  164.780434]  [0000000000663484] __driver_attach+0x54/0x80
+> [  164.780444]  [0000000000662bac] bus_for_each_dev+0x3c/0x84
+> [  164.780454]  [0000000000662494] bus_add_driver+0xa8/0x244
+> [  164.780464]  [0000000000663780] driver_register+0xb8/0x168
+> [  164.780475] Press Stop-A (L1-A) to return to the boot prom
+> [  167.770834] /pci@8,700000: bytemask[0004] was_block(0) space(I/O)
+> [  167.850103] /pci@8,700000: PCI AFAR [0000000000000408]
+> [  167.916774] /pci@8,700000: PCI Secondary errors [(none)]
+
+
+--=20
+Ben Hutchings
+Once a job is fouled up, anything done to improve it makes it worse.
+
+--=-y+VkwHECz+UpkQs+q3US
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIVAwUATae92ee/yOyVhhEJAQpKwg/+NDKvyjTPeEtCaSqBk921K0s2LTQcUlpx
+m0IcMog8CPx31GdUXfB/A4JyX3dLCXm6hbccTOr+N20LYX/sMfIW+QGO0K0Ub51s
+G741lWYMJrgNpz8+oQ9ZWExg707M9P3t+hV9YbYlilefF/Rmk+80VCbw4fXiUgKJ
+ygkGgy28SSuw/mWuQY9b1y3eqJNWx0c/bfl2Tjw9wFzXeTw+fqzp6XW/fIvJtYqs
+/H3Mcm4Mt7Ju1Ru7pHFJMK+k7meCan+HS7OtPVMl4i+00OnAKANKxY2UGhBXSGuB
+JRb/uQJtX1Z4aTGQdOHSoaRsbiK3DaT1EQPuvAcWNisv3y+kLLa2ENxXIpFigkG9
+T603ZzsaDc0K/u3NSCoiAFCjJxNvT+Xdkx3PWXe9nL/3G033hSsOGOVdcVSliLyB
+J0PWoycQEfEPEuO9dOSezSRZC1Mnp+5TIfCjAgwA09TfumAZu9la8ISPmkx16KJB
+E3v2ciXMj6aDH/j+LUG20IO8TtiBdQUXODdD5ZHnvfPQoCuygVPyM0eZi58xYqiV
+XpzNXKeHYuBeqXHphigtoUaGa+cwWRBdEViWa6NrkTnte0MQEJW+SNTrrHxzRDeq
+9UfRtOkoK1H8h6M/2+JkZvl78GK3jkmxYMdA8FozHdrQ32PshW1m7Ufn3YFkBe3q
+aSBIpwdU1Sg=
+=TGgF
+-----END PGP SIGNATURE-----
+
+--=-y+VkwHECz+UpkQs+q3US--
