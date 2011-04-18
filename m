@@ -1,36 +1,67 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 13 Apr 2011 17:48:31 +0000
-Subject: Re: Warning when mounting btrfs partition, kernel unaligned access
-Message-Id: <20110413.104831.189703153.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Mon, 18 Apr 2011 21:25:43 +0000
+Subject: [PATCH 2/3] sparc32: cleanup code for irq init
+Message-Id: <1303161944-13611-2-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4DA4DA5C.3050703@frankengul.org>
-	<20110413094037.GL31675@twin.jikos.cz>
-In-Reply-To: <20110413094037.GL31675@twin.jikos.cz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: dave@jikos.cz
-Cc: seb@frankengul.org, linux-btrfs@vger.kernel.org, sparclinux@vger.kernel.org, debian-sparc@lists.debian.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
-From: David Sterba <dave@jikos.cz>
-Date: Wed, 13 Apr 2011 11:40:37 +0200
+Move the iddef to a header file to make the logic more
+obvious in the .c file
 
-> On Wed, Apr 13, 2011 at 01:03:56AM +0200, S=E9bastien Bernard wrote:
->> Then, after writing on the disk, I got a lot of warning:
->> [  822.515875] Kernel unaligned access at TPC[103c2204]
->>=20
->> I peeked a look at the btrf_csum_final and here's the function :
->> void btrfs_csum_final(u32 crc, char *result)
->> {
->>         *(__le32 *)result =3D ~cpu_to_le32(crc);
->> }
->=20
-> FYI, this has been fixed and is already merged into Linus' tree. Commit
-> 7e75bf3ff3a716d7b21d8fb43bf823115801c1e9.
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/include/asm/pcic.h |   10 +++++++---
+ arch/sparc/kernel/irq_32.c    |    9 +++------
+ 2 files changed, 10 insertions(+), 9 deletions(-)
 
-Might I suggest adding a BUG_ON() validation of the alignment or
-similar here?
+diff --git a/arch/sparc/include/asm/pcic.h b/arch/sparc/include/asm/pcic.h
+index f20ef56..b4c63d1 100644
+--- a/arch/sparc/include/asm/pcic.h
++++ b/arch/sparc/include/asm/pcic.h
+@@ -29,11 +29,15 @@ struct linux_pcic {
+ 	int			pcic_imdim;
+ };
+ 
+-extern int pcic_probe(void);
+-/* Erm... MJ redefined pcibios_present() so that it does not work early. */
++#ifdef CONFIG_PCI
+ extern int pcic_present(void);
++extern int pcic_probe(void);
+ extern void sun4m_pci_init_IRQ(void);
+-
++#else
++extern int pcic_present(void) { return 0; }
++static inline int pcic_probe(void) { return 0; }
++static inline void sun4m_pci_init_IRQ(void) {}
++#endif
+ #endif
+ 
+ /* Size of PCI I/O space which we relocate. */
+diff --git a/arch/sparc/kernel/irq_32.c b/arch/sparc/kernel/irq_32.c
+index 7c93df4..b2dbb4b 100644
+--- a/arch/sparc/kernel/irq_32.c
++++ b/arch/sparc/kernel/irq_32.c
+@@ -607,14 +607,11 @@ void __init init_IRQ(void)
+ 		break;
+ 
+ 	case sun4m:
+-#ifdef CONFIG_PCI
+ 		pcic_probe();
+-		if (pcic_present()) {
++		if (pcic_present())
+ 			sun4m_pci_init_IRQ();
+-			break;
+-		}
+-#endif
+-		sun4m_init_IRQ();
++		else
++			sun4m_init_IRQ();
+ 		break;
+ 
+ 	case sun4d:
+-- 
+1.6.0.6
 
-You can make the test really cheap, and this way no matter what kind
-of systems the btrfs folks do their testing on this kind of regression
-will be spotted fast.
