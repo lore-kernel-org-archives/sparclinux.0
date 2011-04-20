@@ -1,33 +1,67 @@
-From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
-Date: Mon, 11 Apr 2011 14:42:41 +0000
-Subject: Sun Fire 480R booting now [Was: Re: linux-image-2.6.26-1-sparc64-smp: [sparc] SunFire480R cassini ne
-Message-Id: <20110411144241.GD12087@lemon.iwr.uni-heidelberg.de>
+From: Daniel Hellstrom <daniel@gaisler.com>
+Date: Wed, 20 Apr 2011 09:41:24 +0000
+Subject: [PATCH 5/8] sparc32,leon: cleaned away code from the LEON2 days
+Message-Id: <1303292487-12623-5-git-send-email-daniel@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> On Tue, Apr 05, 2011 at 05:20:21PM +0200, Hermann Lauer wrote:
-> Just found the "initcall_debug=1 ignore_loglevel" suggested by davem
-> during the last debugging session with this machine.
-> 
-> Tail of the output is below for completeness, thought I feel
-> I should try the latest stable vanilla kernel when time permits.
+Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/include/asm/leon.h   |   23 -----------------------
+ arch/sparc/kernel/leon_kernel.c |    2 +-
+ 2 files changed, 1 insertions(+), 24 deletions(-)
 
-2.6.38.2 vanilla compiled under squeeze is booting and running fine 
-since around an hour here on a 480R. Also on 880 it is running
-with minor glitches so far.
-
-Thanks to all the sparc linux people for this good release.
-
-For the debian sparc list: Hoping that wheezy will get a 2.6.38 kernel.
-
-Thanks & greetings
-  Hermann
-
+diff --git a/arch/sparc/include/asm/leon.h b/arch/sparc/include/asm/leon.h
+index 204dc0f..31fb2ac 100644
+--- a/arch/sparc/include/asm/leon.h
++++ b/arch/sparc/include/asm/leon.h
+@@ -52,29 +52,6 @@
+ #define LEON_DIAGF_VALID	0x2000
+ #define LEON_DIAGF_VALID_SHIFT	13
+ 
+-/*
+- *  Interrupt Sources
+- *
+- *  The interrupt source numbers directly map to the trap type and to
+- *  the bits used in the Interrupt Clear, Interrupt Force, Interrupt Mask,
+- *  and the Interrupt Pending Registers.
+- */
+-#define LEON_INTERRUPT_CORRECTABLE_MEMORY_ERROR	1
+-#define LEON_INTERRUPT_UART_1_RX_TX		2
+-#define LEON_INTERRUPT_UART_0_RX_TX		3
+-#define LEON_INTERRUPT_EXTERNAL_0		4
+-#define LEON_INTERRUPT_EXTERNAL_1		5
+-#define LEON_INTERRUPT_EXTERNAL_2		6
+-#define LEON_INTERRUPT_EXTERNAL_3		7
+-#define LEON_INTERRUPT_TIMER1			8
+-#define LEON_INTERRUPT_TIMER2			9
+-#define LEON_INTERRUPT_EMPTY1			10
+-#define LEON_INTERRUPT_EMPTY2			11
+-#define LEON_INTERRUPT_OPEN_ETH			12
+-#define LEON_INTERRUPT_EMPTY4			13
+-#define LEON_INTERRUPT_EMPTY5			14
+-#define LEON_INTERRUPT_EMPTY6			15
+-
+ /* irq masks */
+ #define LEON_HARD_INT(x)	(1 << (x))	/* irq 0-15 */
+ #define LEON_IRQMASK_R		0x0000fffe	/* bit 15- 1 of lregs.irqmask */
+diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
+index d867543..5d7e41c 100644
+--- a/arch/sparc/kernel/leon_kernel.c
++++ b/arch/sparc/kernel/leon_kernel.c
+@@ -316,7 +316,7 @@ void __init leon_init_timers(irq_handler_t counter_fn)
+ 
+ 	if (err) {
+ 		printk(KERN_ERR "leon_time_init: unable to attach IRQ%d\n",
+-		       LEON_INTERRUPT_TIMER1);
++		       irq);
+ 		prom_halt();
+ 	}
+ 
 -- 
-Netzwerkadministration/Zentrale Dienste, Interdiziplinaeres 
-Zentrum fuer wissenschaftliches Rechnen der Universitaet Heidelberg
-IWR; INF 368; 69120 Heidelberg; Tel: (06221)54-8236 Fax: -5224
-Email: Hermann.Lauer@iwr.uni-heidelberg.de
+1.5.4
+
