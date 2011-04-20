@@ -1,7 +1,7 @@
-From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Wed, 20 Apr 2011 08:12:25 +0000
+From: David Miller <davem@davemloft.net>
+Date: Wed, 20 Apr 2011 08:15:54 +0000
 Subject: Re: [PATCH 6/7] sparc32,leon: operate on boot-cpu IRQ controller
-Message-Id: <4DAE9569.1050905@gaisler.com>
+Message-Id: <20110420.011554.71130177.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1303229239-21551-6-git-send-email-daniel@gaisler.com>
 In-Reply-To: <1303229239-21551-6-git-send-email-daniel@gaisler.com>
@@ -10,29 +10,13 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-crn@post.netunix.com wrote:
+From: Daniel Hellstrom <daniel@gaisler.com>
+Date: Wed, 20 Apr 2011 10:12:25 +0200
 
->
->
-> On Wed, 20 Apr 2011, Daniel Hellstrom wrote:
->
->>>
->> I agree that it would be nicer, however I think the SUNs will never 
->> be booted on CPU1 anyway? Anyways, I think this should go into 
->> another patch series.
->
->
-> You cannot assume this, sun4d and AFAIK all 64bit systems will boot on
-> the first non-blacklisted CPU found.
-> For example, it is perfectly OK to have no CPU present on board0 slot0
-> in which case the SS1000 will boot using CPU1.
+> Sorry I meant the UP 32-bit SUNs, some if not all SMP 32-bit SUNs
+> apparently use the boot_cpu_id Sam is talking about. Have you tried
+> booting on CPU1 with a UP Linux kernel on the SS1000 machine?
 
-Sorry I meant the UP 32-bit SUNs, some if not all SMP 32-bit SUNs 
-apparently use the boot_cpu_id Sam is talking about. Have you tried 
-booting on CPU1 with a UP Linux kernel on the SS1000 machine?
+Regardless, we should make it work.
 
-I still believe that the changes should go into a separate patch series 
-though.
-
-Thanks,
-Daniel
+It was terrible when I had to fix this on sparc64.
