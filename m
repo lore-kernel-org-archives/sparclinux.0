@@ -1,247 +1,195 @@
 From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Wed, 27 Apr 2011 13:19:38 +0000
-Subject: [PATCH 2/3] sparc32,leon: Implemented SMP IPIs for LEON CPU
-Message-Id: <1303910379-32209-2-git-send-email-daniel@gaisler.com>
+Date: Wed, 20 Apr 2011 09:41:23 +0000
+Subject: [PATCH 4/8] sparc32,leon: per-cpu ticker use genirq per-cpu handler
+Message-Id: <1303292487-12623-4-git-send-email-daniel@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-This patch implements SMP IPIs on LEON using software generated
-IRQs to signal between CPUs.
-
-The IPI IRQ number is set by using the ipi_num property in the
-device tree, or defaults to 13. LEON SMP systems should reserve
-IRQ 13 (and IRQ 15) to Linux in order for the defaults to work.
-
 Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/include/asm/leon.h |    4 +-
- arch/sparc/kernel/entry.S     |   16 ++++++
- arch/sparc/kernel/leon_smp.c  |  109 ++++++++++++++++++++++++++++++++++++++++-
- 3 files changed, 126 insertions(+), 3 deletions(-)
+ arch/sparc/include/asm/leon.h   |    6 ++++--
+ arch/sparc/kernel/entry.S       |   16 ----------------
+ arch/sparc/kernel/leon_kernel.c |   39 ++++++++++++++-------------------------
+ arch/sparc/kernel/leon_smp.c    |   12 ++++--------
+ 4 files changed, 22 insertions(+), 51 deletions(-)
 
 diff --git a/arch/sparc/include/asm/leon.h b/arch/sparc/include/asm/leon.h
-index b921560..98eea86 100644
+index 1271254..204dc0f 100644
 --- a/arch/sparc/include/asm/leon.h
 +++ b/arch/sparc/include/asm/leon.h
-@@ -215,7 +215,7 @@ static inline int sparc_leon3_cpuid(void)
- #endif /*!__ASSEMBLY__*/
+@@ -239,7 +239,7 @@ static inline int sparc_leon3_cpuid(void)
  
  #ifdef CONFIG_SMP
--# define LEON3_IRQ_RESCHEDULE		13
-+# define LEON3_IRQ_IPI_DEFAULT		13
- # define LEON3_IRQ_TICKER		(leon3_ticker_irq)
+ # define LEON3_IRQ_RESCHEDULE		13
+-# define LEON3_IRQ_TICKER		(leon_percpu_timer_dev[0].irq)
++# define LEON3_IRQ_TICKER		(leon3_ticker_irq)
  # define LEON3_IRQ_CROSS_CALL		15
  #endif
-@@ -355,9 +355,11 @@ void leon_enable_irq_cpu(unsigned int irq_nr, unsigned int cpu);
- extern irqreturn_t leon_percpu_timer_interrupt(int irq, void *unused);
  
- extern unsigned int real_irq_entry[];
-+extern unsigned int smpleon_ipi[];
+@@ -357,6 +357,7 @@ extern void leon3_getCacheRegs(struct leon3_cacheregs *regs);
+ extern int leon_flush_needed(void);
+ extern void leon_switch_mm(void);
+ extern int srmmu_swprobe_trace;
++extern int leon3_ticker_irq;
+ 
+ #ifdef CONFIG_SMP
+ extern int leon_smp_nrcpus(void);
+@@ -371,8 +372,9 @@ extern void init_IRQ(void);
+ extern void cpu_panic(void);
+ extern int __leon_processor_id(void);
+ void leon_enable_irq_cpu(unsigned int irq_nr, unsigned int cpu);
++extern irqreturn_t leon_percpu_timer_interrupt(int irq, void *unused);
+ 
+-extern unsigned int real_irq_entry[], smpleon_ticker[];
++extern unsigned int real_irq_entry[];
  extern unsigned int patchme_maybe_smp_msg[];
  extern unsigned int t_nmi[], linux_trap_ipi15_leon[];
  extern unsigned int linux_trap_ipi15_sun4m[];
-+extern int leon_ipi_irq;
- 
- #endif /* CONFIG_SMP */
- 
 diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
-index 4511c20..c5962d0 100644
+index 6da784a..1879739 100644
 --- a/arch/sparc/kernel/entry.S
 +++ b/arch/sparc/kernel/entry.S
-@@ -401,6 +401,22 @@ linux_trap_ipi15_sun4d:
+@@ -401,22 +401,6 @@ linux_trap_ipi15_sun4d:
  1:	b,a	1b
  
  #ifdef CONFIG_SPARC_LEON
-+	.globl	smpleon_ipi
-+	.extern leon_ipi_interrupt
-+	/* SMP per-cpu IPI interrupts are handled specially. */
-+smpleon_ipi:
-+        SAVE_ALL
-+	or	%l0, PSR_PIL, %g2
-+	wr	%g2, 0x0, %psr
-+	WRITE_PAUSE
-+	wr	%g2, PSR_ET, %psr
-+	WRITE_PAUSE
-+	call	leonsmp_ipi_interrupt
-+	 add	%sp, STACKFRAME_SZ, %o1 ! pt_regs
-+	wr	%l0, PSR_ET, %psr
-+	WRITE_PAUSE
-+	RESTORE_ALL
-+
+-
+-	.globl	smpleon_ticker
+-	/* SMP per-cpu ticker interrupts are handled specially. */
+-smpleon_ticker:
+-        SAVE_ALL
+-	or	%l0, PSR_PIL, %g2
+-	wr	%g2, 0x0, %psr
+-	WRITE_PAUSE
+-	wr	%g2, PSR_ET, %psr
+-	WRITE_PAUSE
+-	call	leon_percpu_timer_interrupt
+-	 add	%sp, STACKFRAME_SZ, %o0
+-	wr	%l0, PSR_ET, %psr
+-	WRITE_PAUSE
+-	RESTORE_ALL
+-
  	.align	4
  	.globl	linux_trap_ipi15_leon
  linux_trap_ipi15_leon:
-diff --git a/arch/sparc/kernel/leon_smp.c b/arch/sparc/kernel/leon_smp.c
-index 826a505..473e0f7 100644
---- a/arch/sparc/kernel/leon_smp.c
-+++ b/arch/sparc/kernel/leon_smp.c
-@@ -14,6 +14,7 @@
- #include <linux/smp.h>
- #include <linux/interrupt.h>
- #include <linux/kernel_stat.h>
-+#include <linux/of.h>
- #include <linux/init.h>
- #include <linux/spinlock.h>
- #include <linux/mm.h>
-@@ -29,6 +30,7 @@
- #include <asm/ptrace.h>
- #include <asm/atomic.h>
- #include <asm/irq_regs.h>
-+#include <asm/traps.h>
+diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
+index 210f4a0..d867543 100644
+--- a/arch/sparc/kernel/leon_kernel.c
++++ b/arch/sparc/kernel/leon_kernel.c
+@@ -26,7 +26,6 @@
  
- #include <asm/delay.h>
- #include <asm/irq.h>
-@@ -52,6 +54,10 @@ static int smp_processors_ready;
- extern volatile unsigned long cpu_callin_map[NR_CPUS];
- extern cpumask_t smp_commenced_mask;
- void __init leon_configure_cache_smp(void);
-+static void leon_ipi_init(void);
-+
-+/* IRQ number of LEON IPIs */
-+int leon_ipi_irq = LEON3_IRQ_IPI_DEFAULT;
+ struct leon3_irqctrl_regs_map *leon3_irqctrl_regs; /* interrupt controller base address */
+ struct leon3_gptimer_regs_map *leon3_gptimer_regs; /* timer controller base address */
+-struct amba_apb_device leon_percpu_timer_dev[16];
  
- static inline unsigned long do_swap(volatile unsigned long *ptr,
- 				    unsigned long val)
-@@ -178,13 +184,16 @@ void __init leon_boot_cpus(void)
- 	int nrcpu = leon_smp_nrcpus();
- 	int me = smp_processor_id();
+ int leondebug_irq_disable;
+ int leon_debug_irqout;
+@@ -36,6 +35,7 @@ static DEFINE_SPINLOCK(leon_irq_lock);
  
-+	/* Setup IPI */
-+	leon_ipi_init();
-+
- 	printk(KERN_INFO "%d:(%d:%d) cpus mpirq at 0x%x\n", (unsigned int)me,
- 	       (unsigned int)nrcpu, (unsigned int)NR_CPUS,
- 	       (unsigned int)&(leon3_irqctrl_regs->mpstatus));
+ unsigned long leon3_gptimer_irq; /* interrupt controller irq number */
+ unsigned long leon3_gptimer_idx; /* Timer Index (0..6) within Timer Core */
++int leon3_ticker_irq; /* Timer ticker IRQ */
+ unsigned int sparc_leon_eirq;
+ #define LEON_IMASK (&leon3_irqctrl_regs->mask[0])
+ #define LEON_IACK (&leon3_irqctrl_regs->iclear)
+@@ -271,9 +271,7 @@ void __init leon_init_timers(irq_handler_t counter_fn)
+ 			&leon3_gptimer_regs->e[leon3_gptimer_idx].ctrl, 0);
  
- 	leon_enable_irq_cpu(LEON3_IRQ_CROSS_CALL, me);
- 	leon_enable_irq_cpu(LEON3_IRQ_TICKER, me);
--	leon_enable_irq_cpu(LEON3_IRQ_RESCHEDULE, me);
-+	leon_enable_irq_cpu(leon_ipi_irq, me);
+ #ifdef CONFIG_SMP
+-		leon_percpu_timer_dev[0].start = (int)leon3_gptimer_regs;
+-		leon_percpu_timer_dev[0].irq = leon3_gptimer_irq + 1 +
+-					       leon3_gptimer_idx;
++		leon3_ticker_irq = leon3_gptimer_irq + 1 + leon3_gptimer_idx;
  
- 	leon_smp_setbroadcast(1 << LEON3_IRQ_TICKER);
- 
-@@ -239,7 +248,7 @@ int __cpuinit leon_boot_one_cpu(int i)
- 	} else {
- 		leon_enable_irq_cpu(LEON3_IRQ_CROSS_CALL, i);
- 		leon_enable_irq_cpu(LEON3_IRQ_TICKER, i);
--		leon_enable_irq_cpu(LEON3_IRQ_RESCHEDULE, i);
-+		leon_enable_irq_cpu(leon_ipi_irq, i);
+ 		if (!(LEON3_BYPASS_LOAD_PA(&leon3_gptimer_regs->config) &
+ 		      (1<<LEON3_GPTIMER_SEPIRQ))) {
+@@ -322,27 +320,6 @@ void __init leon_init_timers(irq_handler_t counter_fn)
+ 		prom_halt();
  	}
  
- 	local_flush_cache_all();
-@@ -295,6 +304,99 @@ void leon_irq_rotate(int cpu)
+-# ifdef CONFIG_SMP
+-	{
+-		unsigned long flags;
+-		struct tt_entry *trap_table = &sparc_ttable[SP_TRAP_IRQ1 + (leon_percpu_timer_dev[0].irq - 1)];
+-
+-		/* For SMP we use the level 14 ticker, however the bootup code
+-		 * has copied the firmwares level 14 vector into boot cpu's
+-		 * trap table, we must fix this now or we get squashed.
+-		 */
+-		local_irq_save(flags);
+-
+-		patchme_maybe_smp_msg[0] = 0x01000000; /* NOP out the branch */
+-
+-		/* Adjust so that we jump directly to smpleon_ticker */
+-		trap_table->inst_three += smpleon_ticker - real_irq_entry;
+-
+-		local_flush_cache_all();
+-		local_irq_restore(flags);
+-	}
+-# endif
+-
+ 	if (leon3_gptimer_regs) {
+ 		LEON3_BYPASS_STORE_PA(&leon3_gptimer_regs->e[leon3_gptimer_idx].ctrl,
+ 				      LEON3_GPTIMER_EN |
+@@ -350,6 +327,18 @@ void __init leon_init_timers(irq_handler_t counter_fn)
+ 				      LEON3_GPTIMER_LD | LEON3_GPTIMER_IRQEN);
+ 
+ #ifdef CONFIG_SMP
++		/* Install per-cpu IRQ handler for broadcasted ticker */
++		irq = leon_build_device_irq(leon3_ticker_irq,
++						handle_percpu_irq, "per-cpu",
++						0);
++		err = request_irq(irq, leon_percpu_timer_interrupt,
++					IRQF_PERCPU | IRQF_TIMER, "ticker",
++					NULL);
++		if (err) {
++			printk(KERN_ERR "unable to attach ticker IRQ%d\n", irq);
++			prom_halt();
++		}
++
+ 		LEON3_BYPASS_STORE_PA(&leon3_gptimer_regs->e[leon3_gptimer_idx+1].ctrl,
+ 				      LEON3_GPTIMER_EN |
+ 				      LEON3_GPTIMER_RL |
+diff --git a/arch/sparc/kernel/leon_smp.c b/arch/sparc/kernel/leon_smp.c
+index 8f5de4a..053eca9 100644
+--- a/arch/sparc/kernel/leon_smp.c
++++ b/arch/sparc/kernel/leon_smp.c
+@@ -386,27 +386,23 @@ void leon_cross_call_irq(void)
+ 	ccall_info.processors_out[i] = 1;
+ }
+ 
+-void leon_percpu_timer_interrupt(struct pt_regs *regs)
++irqreturn_t leon_percpu_timer_interrupt(int irq, void *unused)
  {
+-	struct pt_regs *old_regs;
+ 	int cpu = smp_processor_id();
+ 
+-	old_regs = set_irq_regs(regs);
+-
+ 	leon_clear_profile_irq(cpu);
+ 
+ 	profile_tick(CPU_PROFILING);
+ 
+ 	if (!--prof_counter(cpu)) {
+-		int user = user_mode(regs);
++		int user = user_mode(get_irq_regs());
+ 
+-		irq_enter();
+ 		update_process_times(user);
+-		irq_exit();
+ 
+ 		prof_counter(cpu) = prof_multiplier(cpu);
+ 	}
+-	set_irq_regs(old_regs);
++
++	return IRQ_HANDLED;
  }
  
-+struct leon_ipi_work {
-+	int single;
-+	int msk;
-+	int resched;
-+};
-+
-+static DEFINE_PER_CPU_SHARED_ALIGNED(struct leon_ipi_work, leon_ipi_work);
-+
-+/* Initialize IPIs on the LEON, in order to save IRQ resources only one IRQ
-+ * is used for all three types of IPIs.
-+ */
-+static void __init leon_ipi_init(void)
-+{
-+	int cpu, len;
-+	struct leon_ipi_work *work;
-+	struct property *pp;
-+	struct device_node *rootnp;
-+	struct tt_entry *trap_table;
-+	unsigned long flags;
-+
-+	/* Find IPI IRQ or stick with default value */
-+	rootnp = of_find_node_by_path("/ambapp0");
-+	if (rootnp) {
-+		pp = of_find_property(rootnp, "ipi_num", &len);
-+		if (pp && (*(int *)pp->value))
-+			leon_ipi_irq = *(int *)pp->value;
-+	}
-+	printk(KERN_INFO "leon: SMP IPIs at IRQ %d\n", leon_ipi_irq);
-+
-+	/* Adjust so that we jump directly to smpleon_ipi */
-+	local_irq_save(flags);
-+	trap_table = &sparc_ttable[SP_TRAP_IRQ1 + (leon_ipi_irq - 1)];
-+	trap_table->inst_three += smpleon_ipi - real_irq_entry;
-+	local_flush_cache_all();
-+	local_irq_restore(flags);
-+
-+	for_each_possible_cpu(cpu) {
-+		work = &per_cpu(leon_ipi_work, cpu);
-+		work->single = work->msk = work->resched = 0;
-+	}
-+}
-+
-+static void leon_ipi_single(int cpu)
-+{
-+	struct leon_ipi_work *work = &per_cpu(leon_ipi_work, cpu);
-+
-+	/* Mark work */
-+	work->single = 1;
-+
-+	/* Generate IRQ on the CPU */
-+	set_cpu_int(cpu, leon_ipi_irq);
-+}
-+
-+static void leon_ipi_mask_one(int cpu)
-+{
-+	struct leon_ipi_work *work = &per_cpu(leon_ipi_work, cpu);
-+
-+	/* Mark work */
-+	work->msk = 1;
-+
-+	/* Generate IRQ on the CPU */
-+	set_cpu_int(cpu, leon_ipi_irq);
-+}
-+
-+static void leon_ipi_resched(int cpu)
-+{
-+	struct leon_ipi_work *work = &per_cpu(leon_ipi_work, cpu);
-+
-+	/* Mark work */
-+	work->resched = 1;
-+
-+	/* Generate IRQ on the CPU (any IRQ will cause resched) */
-+	set_cpu_int(cpu, leon_ipi_irq);
-+}
-+
-+void leonsmp_ipi_interrupt(void)
-+{
-+	struct leon_ipi_work *work = &__get_cpu_var(leon_ipi_work);
-+
-+	if (work->single) {
-+		work->single = 0;
-+		smp_call_function_single_interrupt();
-+	}
-+	if (work->msk) {
-+		work->msk = 0;
-+		smp_call_function_interrupt();
-+	}
-+	if (work->resched) {
-+		work->resched = 0;
-+		smp_resched_interrupt();
-+	}
-+}
-+
- static struct smp_funcall {
- 	smpfunc_t func;
- 	unsigned long arg1;
-@@ -448,6 +550,9 @@ void __init leon_init_smp(void)
- 	BTFIXUPSET_CALL(smp_cross_call, leon_cross_call, BTFIXUPCALL_NORM);
- 	BTFIXUPSET_CALL(__hard_smp_processor_id, __leon_processor_id,
- 			BTFIXUPCALL_NORM);
-+	BTFIXUPSET_CALL(smp_ipi_resched, leon_ipi_resched, BTFIXUPCALL_NORM);
-+	BTFIXUPSET_CALL(smp_ipi_single, leon_ipi_single, BTFIXUPCALL_NORM);
-+	BTFIXUPSET_CALL(smp_ipi_mask_one, leon_ipi_mask_one, BTFIXUPCALL_NORM);
- }
- 
- #endif /* CONFIG_SPARC_LEON */
+ static void __init smp_setup_percpu_timer(void)
 -- 
 1.5.4
 
