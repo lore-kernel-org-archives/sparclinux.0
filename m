@@ -1,7 +1,7 @@
 From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Wed, 20 Apr 2011 10:47:34 +0000
+Date: Wed, 20 Apr 2011 11:25:35 +0000
 Subject: Re: [PATCH 6/7] sparc32,leon: operate on boot-cpu IRQ controller
-Message-Id: <4DAEB9C6.7090102@gaisler.com>
+Message-Id: <4DAEC2AF.5010902@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1303229239-21551-6-git-send-email-daniel@gaisler.com>
 In-Reply-To: <1303229239-21551-6-git-send-email-daniel@gaisler.com>
@@ -10,26 +10,33 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Josip Rodin wrote:
+Daniel Hellstrom wrote:
 
->On Wed, Apr 20, 2011 at 11:06:54AM +0200, Sam Ravnborg wrote:
->  
+> Josip Rodin wrote:
 >
->>[PATCH]sparc32: always define boot_cpu_id
+>> On Wed, Apr 20, 2011 at 11:06:54AM +0200, Sam Ravnborg wrote:
+>>  
 >>
->>+extern unsigned char boot_cpu_id;
->>+unsigned char boot_cpu_id;
->>-unsigned char boot_cpu_id = 0;
->>-	int target_cpu = 0;
->>+	int target_cpu;
->> 	target_cpu = boot_cpu_id;
->>    
+>>> [PATCH]sparc32: always define boot_cpu_id
+>>>
+>>> +extern unsigned char boot_cpu_id;
+>>> +unsigned char boot_cpu_id;
+>>> -unsigned char boot_cpu_id = 0;
+>>> -    int target_cpu = 0;
+>>> +    int target_cpu;
+>>>     target_cpu = boot_cpu_id;
+>>>   
 >>
->
->You declared it, but you didn't actually define it?
->  
->
-There is an error in this patch, setup.h include is missing. I will repost.
+>>
+>> You declared it, but you didn't actually define it?
+>>  
+>>
+> There is an error in this patch, setup.h include is missing. I will 
+> repost.
+
+I will not repost at this point. I think this is broken in sparc32 
+anyway. boot_cpu_id is always 0 because it is initialized before BSS is 
+cleared, and boot_cpu_id is part of BSS. see arch/sparc/kernel/head_32.S
 
 Daniel
 
