@@ -1,131 +1,104 @@
-From: BERTRAND Joel <joel.bertrand@systella.fr>
-Date: Sat, 19 Mar 2011 22:27:23 +0000
-Subject: Issuing Reset from mpt_config!!
-Message-Id: <4D852DCB.50104@systella.fr>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Wed, 20 Apr 2011 21:11:04 +0000
+Subject: [PATCH] sparc32: always register a PROM based early console
+Message-Id: <20110420211104.GA11377@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-	Hello,
+From f6443589822110b80967c26ced29b5781bcec43f Mon Sep 17 00:00:00 2001
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Wed, 20 Apr 2011 23:07:00 +0200
+Subject: [PATCH] sparc32: always register a PROM based early console
 
-	I have upgraded this saturday two Fire T1000 from 2.6.30.9 to 2.6.38 
-linux kernel to have better performances with ietd. I don't see any 
-hardware differences between both servers (same firmware) but one of 
-them doesn't boot 2.6.38 kernel:
+Do not require user to add "-p" to boot arguments to see
+early info printed to prom console.
 
-...
-Fusion MPT base driver 3.04.18
-Copyright (c) 1999-2008 LSI Corporation
-Fusion MPT SAS Host driver 3.04.18
-mptbase: ioc0: Initiating bringup
-ioc0: LSISAS1064 A3: Capabilities={Initiator}
-mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-doorbell=0x24000000
-mptbase: ioc0: Attempting Retry Config request type 0x1, page 0x2, action 0
-mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-doorbell=0x24000000
-mptbase: ioc0: Initiating recovery
-mptbase: ioc0: Attempting Retry Config request type 0x1, page 0x2, action 0
-mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-doorbell=0x24000000
-mptbase: ioc0: Initiating recovery
-mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-doorbell=0x24000000
-mptbase: ioc0: Attempting Retry Config request type 0x1, page 0x1, action 0
-mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-doorbell=0x24000000
-mptbase: ioc0: Initiating recovery
-mptbase: ioc0: Attempting Retry Config request type 0x1, page 0x1, action 0
-mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-doorbell=0x24000000
-mptbase: ioc0: Initiating recovery
-mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-doorbell=0x24000000
-mptbase: ioc0: Attempting Retry Config request type 0x0, page 0x2, action 0
-mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-doorbell=0x24000000
-mptbase: ioc0: Initiating recovery
-mptbase: ioc0: Attempting Retry Config request type 0x0, page 0x2, action 0
-mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-doorbell=0x24000000
-mptbase: ioc0: Initiating recovery
-mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-doorbell=0x24000000
-mptbase: ioc0: Attempting Retry Config request type 0x9, page 0x0, action 0
-mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-doorbell=0x24000000
-mptbase: ioc0: Initiating recovery
-mptbase: ioc0: Attempting Retry Config request type 0x9, page 0x0, action 0
-mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-doorbell=0x24000000
-mptbase: ioc0: Initiating recovery
-scsi0 : ioc0: LSISAS1064 A3, FwRev0a0000h, Ports=1, MaxQQ1, IRQ'
-mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-doorbell=0x24000000
-mptbase: ioc0: Attempting Retry Config request type 0x10, page 0x0, action 0
-mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-doorbell=0x24000000
-mptbase: ioc0: Initiating recovery
-mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-doorbell=0x2c000000
-mptbase: ioc0: Attempting Retry Config request type 0x1, page 0x2, action 0
-mptbase: ioc0: Attempting Retry Config request type 0x10, page 0x0, action 0
-mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-doorbell=0x24000000
-mptbase: ioc0: Initiating recovery
-mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-doorbell=0x2c000000
-mptbase: ioc0: Attempting Retry Config request type 0x1, page 0x2, action 0
-mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-doorbell=0x24000000
-mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-doorbell=0x2c000001
-mptbase: ioc0: Attempting Retry Config request type 0x1, page 0x2, action 0
-mptbase: ioc0: Attempting Retry Config request type 0x11, page 0x0, action 0
-...
-mptbase: ioc0: Initiating recovery
-mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!, 
-doorbell=0x2c000000
-mptbase: ioc0: Attempting Retry Config request type 0x1, page 0x2, action 0
-Fusion MPT misc device (ioctl) driver 3.04.18
-mptctl: Registered with Fusion MPT base driver
-mptctl: /dev/mptctl @ (major,minor,220)
-mousedev: PS/2 mouse device common for all mice
-rtc-sun4v rtc-sun4v: rtc core: registered sun4v as rtc0
-md: raid1 personality registered for level 1
-usbcore: registered new interface driver usbhid
-usbhid: USB HID core driver
-NET: Registered protocol family 17
-Registering the dns_resolver key type
-rtc-sun4v rtc-sun4v: setting system clock to 2011-03-19 22:17:18 UTC 
-(1300573038)
-md: Skipping autodetection of RAID arrays. (raid=autodetect will force)
-md: Unknown device name: sda4
-VFS: Cannot open root device "md0" or unknown-block(0,0)
-Please append a correct "root=" boot option; here are the available 
-partitions:
-Kernel panic - not syncing: VFS: Unable to mount root fs on 
-unknown-block(0,0)
-Call Trace:
-  [00000000008aae24] mount_block_root+0x29c/0x2b8
-  [00000000008ab02c] prepare_namespace+0x184/0x1c8
-  [00000000008aa390] kernel_init+0x204/0x21c
-  [000000000042b00c] kernel_thread+0x30/0x48
-  [000000000074d35c] rest_init+0x18/0x7c
-Press Stop-A (L1-A) to return to the boot prom
+This is similar to the sparc64 functionality - which was added with:
+3c62a2d3477ff7725210db57aec3d2806fa10c20 ("[SPARC64]: Always register
+a PROM based early console.")
 
-	If I try to reboot with 2.6.30.9 kernel, the same server boots fine 
-(but hangs later due to another soft raid trouble) wihtout any trouble 
-during MPT initialization. I have built kernel in the first T1000 and 
-copied this kernel on the second one.
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/kernel/devices.c  |    2 +-
+ arch/sparc/kernel/prom_32.c  |    1 -
+ arch/sparc/kernel/setup_32.c |   14 ++++++++------
+ 3 files changed, 9 insertions(+), 8 deletions(-)
 
-	Both servers boot Solaris without trouble.
+diff --git a/arch/sparc/kernel/devices.c b/arch/sparc/kernel/devices.c
+index 12aff23..113c052 100644
+--- a/arch/sparc/kernel/devices.c
++++ b/arch/sparc/kernel/devices.c
+@@ -114,7 +114,7 @@ int cpu_get_hwmid(phandle prom_node)
+ 
+ void __init device_scan(void)
+ {
+-	prom_printf("Booting Linux...\n");
++	printk(KERN_NOTICE "Booting Linux...\n");
+ 
+ #ifndef CONFIG_SMP
+ 	{
+diff --git a/arch/sparc/kernel/prom_32.c b/arch/sparc/kernel/prom_32.c
+index 05fb253..5ce3d15 100644
+--- a/arch/sparc/kernel/prom_32.c
++++ b/arch/sparc/kernel/prom_32.c
+@@ -326,7 +326,6 @@ void __init of_console_init(void)
+ 			of_console_options = NULL;
+ 	}
+ 
+-	prom_printf(msg, of_console_path);
+ 	printk(msg, of_console_path);
+ }
+ 
+diff --git a/arch/sparc/kernel/setup_32.c b/arch/sparc/kernel/setup_32.c
+index 8f3031f..ef8a2ed 100644
+--- a/arch/sparc/kernel/setup_32.c
++++ b/arch/sparc/kernel/setup_32.c
+@@ -109,10 +109,10 @@ prom_console_write(struct console *con, const char *s, unsigned n)
+ 	prom_write(s, n);
+ }
+ 
+-static struct console prom_debug_console = {
+-	.name =		"debug",
++static struct console prom_early_console = {
++	.name =		"earlyprom",
+ 	.write =	prom_console_write,
+-	.flags =	CON_PRINTBUFFER,
++	.flags =	CON_PRINTBUFFER | CON_BOOT,
+ 	.index =	-1,
+ };
+ 
+@@ -133,8 +133,7 @@ static void __init process_switch(char c)
+ 		prom_halt();
+ 		break;
+ 	case 'p':
+-		/* Use PROM debug console. */
+-		register_console(&prom_debug_console);
++		/* Just ignore, this behavior is now the default.  */
+ 		break;
+ 	default:
+ 		printk("Unknown boot switch (-%c)\n", c);
+@@ -215,6 +214,10 @@ void __init setup_arch(char **cmdline_p)
+ 	strcpy(boot_command_line, *cmdline_p);
+ 	parse_early_param();
+ 
++	boot_flags_init(*cmdline_p);
++
++	register_console(&prom_early_console);
++
+ 	/* Set sparc_cpu_model */
+ 	sparc_cpu_model = sun_unknown;
+ 	if (!strcmp(&cputypval[0], "sun4 "))
+@@ -265,7 +268,6 @@ void __init setup_arch(char **cmdline_p)
+ #ifdef CONFIG_DUMMY_CONSOLE
+ 	conswitchp = &dummy_con;
+ #endif
+-	boot_flags_init(*cmdline_p);
+ 
+ 	idprom_init();
+ 	if (ARCH_SUN4C)
+-- 
+1.6.0.6
 
-	I have found some informations about this trouble but no one is sparc 
-specific and I have no idea to fix it. Any idea ?
-
-	Best regards,
-
-	JB
