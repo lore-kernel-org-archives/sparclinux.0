@@ -1,43 +1,34 @@
 From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Tue, 26 Apr 2011 08:54:16 +0000
-Subject: [PATCH 0/2] sparc32,leon: PCI patches
-Message-Id: <4DB68838.1020304@gaisler.com>
+Date: Wed, 20 Apr 2011 09:57:28 +0000
+Subject: [PATCH] sparc32: avoid build warning at mm/percpu.c:1647
+Message-Id: <1303293448-13168-1-git-send-email-daniel@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hello Dave,
+Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
+---
+ arch/sparc/include/asm/pgtable_32.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-The patches in this series must be applied ontop of the genriq patches 
-sent previously.
-
-The patches implement PCI for the LEON architecture. The LEON supports 
-different PCI Host controllers, I have tried to collect common parts in 
-leon_pci.c and host drivers will be named leon_pci_*.c.
-
-There is no BIOS or bootloader initializing PCI for use in comparison to 
-the PCIC-SPARC32 code. LEON rely on the Linux generic resource & IRQ 
-code to probe and setup the bus for us, drivers/pci/Makefile is 
-dependent on CONFIG_SPARC_LEON in order not to brake PCIC. PCIC can not 
-be defined at the same time as the LEON PCI layer, so the CONFIG_PCI 
-ifdeffs has been replaced with CONFIG_PCI && !CONFIG_SPARC_LEON.
-
-Thanks,
-Daniel
-
- arch/sparc/Kconfig                  |    7 +
- arch/sparc/include/asm/leon.h       |    3 +
- arch/sparc/include/asm/pci_32.h     |    5 +
- arch/sparc/include/asm/pci_leon.h   |   36 ++
- arch/sparc/include/asm/pcic.h       |    2 +-
- arch/sparc/kernel/Makefile          |    5 +
- arch/sparc/kernel/entry.S           |    2 +-
- arch/sparc/kernel/leon_kernel.c     |   15 +
- arch/sparc/kernel/leon_pci.c        |  237 +++++++++
- arch/sparc/kernel/leon_pci_grpci2.c |  905 
-+++++++++++++++++++++++++++++++++++
- drivers/pci/Makefile                |    1 +
- 11 files changed, 1216 insertions(+), 2 deletions(-)
+diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
+index 303bd4d..5aa2e9c 100644
+--- a/arch/sparc/include/asm/pgtable_32.h
++++ b/arch/sparc/include/asm/pgtable_32.h
+@@ -456,9 +456,9 @@ extern int io_remap_pfn_range(struct vm_area_struct *vma,
+ 
+ #endif /* !(__ASSEMBLY__) */
+ 
+-#define VMALLOC_START           0xfe600000
++#define VMALLOC_START           0xfe600000UL
+ /* XXX Alter this when I get around to fixing sun4c - Anton */
+-#define VMALLOC_END             0xffc00000
++#define VMALLOC_END             0xffc00000UL
+ 
+ 
+ /* We provide our own get_unmapped_area to cope with VA holes for userland */
+-- 
+1.5.4
 
