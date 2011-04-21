@@ -1,39 +1,50 @@
-From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Wed, 27 Apr 2011 13:18:43 +0000
-Subject: [PATCH 0/3] sparc32: SMP IPI patches
-Message-Id: <4DB817B3.5050205@gaisler.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Thu, 21 Apr 2011 18:35:56 +0000
+Subject: [PATCH revised v2] sparc32: avoid build warning at mm/percpu.c:1647
+Message-Id: <20110421183556.GA27199@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hello Dave,
+Fix following warning:
 
-I have made a new set of IPI patches, this time it includes a patch for 
-SUN4M but still missing SUN4D however.
+mm/percpu.c: In function 'pcpu_embed_first_chunk':
+mm/percpu.c:1647:3: warning: format '%lx' expects type 'long unsigned int', but argument 3 has type 'unsigned int'
 
-I have tried to use BTFIXUPs and extract some code from the LEON to the 
-common smp_32.c as you suggested. I have left the non-spinlock LEON code 
-around per-cpu work data as we discussed, I think the same argumentation 
-works for sun4m to avoid races when clearing the pending register in the 
-interrupt trap handler.
+Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
+[sam: added warning message to changelog, use _AC()]
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
 
-This time I added some IPI IRQ statistics to the genirq 
-arch_show_interrupts(),
-so the patches must be applied to sparc-next containing genirq patches.
+Use _AC() as pointed out.
+Build tested. 
 
-Daniel
+	Sam
 
- arch/sparc/Kconfig                  |    3 +-
- arch/sparc/include/asm/cpudata_32.h |    5 ++
- arch/sparc/include/asm/leon.h       |    4 +-
- arch/sparc/include/asm/smp_32.h     |   22 +++----
- arch/sparc/kernel/entry.S           |   45 +++++++++++++-
- arch/sparc/kernel/irq_32.c          |   10 +++
- arch/sparc/kernel/leon_smp.c        |  109 
-++++++++++++++++++++++++++++++++++-
- arch/sparc/kernel/smp_32.c          |   52 +++++++++++++++--
- arch/sparc/kernel/sun4m_smp.c       |   29 +++++++++
- 9 files changed, 251 insertions(+), 28 deletions(-)
-
+diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
+index 303bd4d..5b31a8e 100644
+--- a/arch/sparc/include/asm/pgtable_32.h
++++ b/arch/sparc/include/asm/pgtable_32.h
+@@ -8,6 +8,8 @@
+  *  Copyright (C) 1998 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
+  */
+ 
++#include <linux/const.h>
++
+ #ifndef __ASSEMBLY__
+ #include <asm-generic/4level-fixup.h>
+ 
+@@ -456,9 +458,9 @@ extern int io_remap_pfn_range(struct vm_area_struct *vma,
+ 
+ #endif /* !(__ASSEMBLY__) */
+ 
+-#define VMALLOC_START           0xfe600000
++#define VMALLOC_START           _AC(0xfe600000,UL)
+ /* XXX Alter this when I get around to fixing sun4c - Anton */
+-#define VMALLOC_END             0xffc00000
++#define VMALLOC_END             _AC(0xffc00000,UL)
+ 
+ 
+ /* We provide our own get_unmapped_area to cope with VA holes for userland */
