@@ -1,61 +1,58 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 28 Apr 2011 19:08:06 +0000
-Subject: Re: [PATCH] SPARC32/LEON: Remove unnecessary page_address calls in
-Message-Id: <20110428190805.GA11189@merkur.ravnborg.org>
+Date: Thu, 21 Apr 2011 08:29:34 +0000
+Subject: [PATCH] sparc32: fix sparcstation 5 boot
+Message-Id: <20110421082934.GA22659@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1303981009-22274-1-git-send-email-kristoffer@gaisler.com>
-In-Reply-To: <1303981009-22274-1-git-send-email-kristoffer@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi Kristoffer.
-On Thu, Apr 28, 2011 at 10:56:49AM +0200, Kristoffer Glembo wrote:
-> The function mmu_inval_dma_area takes a virtual address as a parameter which is problematic in case the
-> buffer is located in highmem and the mapping currently is unavailable.
-> 
-> Since the function was only implemented for LEON this patch removes calls to it in non LEON code paths and
-> renames it to dma_make_coherent which instead takes a physical address (which for now is unused since we
-> flush the whole cache). This way it is possible to remove several unnecessary calls to page_address which
-> will fail if the virtual mapping is unavailable.
-> 
-> Signed-off-by: Kristoffer Glembo <kristoffer@gaisler.com>
+From b0777dd526dbc375fa6e35fc07016af82cf71636 Mon Sep 17 00:00:00 2001
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Thu, 21 Apr 2011 10:25:41 +0200
+Subject: [PATCH] sparc32: fix sparcstation 5 boot
 
-To make changelog look consistent please use:
-sparc: headline        <= for general sparc stuff
-sparc32: headline      <= for sparc32 specific stuff
-sparc32,leon: headline <= for leon specific stuff
+The sparcstation 5 I have available has no MID property for the CPU.
+This resulted in a panic when booting a SMP kernel on this box.
 
-This is so shortlogs looks the same.
+The assigned field in cpu_data is never used, so if we fail
+to read the MID property then inform user and continue booting.
 
-And please keep the line-length in the changelogs below 80 chars.
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/kernel/smp_32.c |   10 +++++++---
+ 1 files changed, 7 insertions(+), 3 deletions(-)
 
-> ---
->  arch/sparc/kernel/ioport.c |   40 ++++++++++++++--------------------------
->  1 files changed, 14 insertions(+), 26 deletions(-)
-> 
-> diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
-> index c6ce9a6..7dc268d 100644
-> --- a/arch/sparc/kernel/ioport.c
-> +++ b/arch/sparc/kernel/ioport.c
-> @@ -50,10 +50,13 @@
->  #include <asm/io-unit.h>
->  #include <asm/leon.h>
->  
-> +/* This function must make sure that caches and memory are coherent after DMA
-> + * On LEON systems without cache snooping it flushes the entire D-CACHE.
-> + */
->  #ifndef CONFIG_SPARC_LEON
-> -#define mmu_inval_dma_area(p, l)	/* Anton pulled it out for 2.4.0-xx */
-> +#define dma_make_coherent(p, l)
+diff --git a/arch/sparc/kernel/smp_32.c b/arch/sparc/kernel/smp_32.c
+index 91c10fb..850a136 100644
+--- a/arch/sparc/kernel/smp_32.c
++++ b/arch/sparc/kernel/smp_32.c
+@@ -53,6 +53,7 @@ cpumask_t smp_commenced_mask = CPU_MASK_NONE;
+ void __cpuinit smp_store_cpu_info(int id)
+ {
+ 	int cpu_node;
++	int mid;
+ 
+ 	cpu_data(id).udelay_val = loops_per_jiffy;
+ 
+@@ -60,10 +61,13 @@ void __cpuinit smp_store_cpu_info(int id)
+ 	cpu_data(id).clock_tick = prom_getintdefault(cpu_node,
+ 						     "clock-frequency", 0);
+ 	cpu_data(id).prom_node = cpu_node;
+-	cpu_data(id).mid = cpu_get_hwmid(cpu_node);
++	mid = cpu_get_hwmid(cpu_node);
+ 
+-	if (cpu_data(id).mid < 0)
+-		panic("No MID found for CPU%d at node 0x%08d", id, cpu_node);
++	if (mid < 0) {
++		printk(KERN_NOTICE "No MID found for CPU%d at node 0x%08d", id, cpu_node);
++		mid = 0;
++	}
++	cpu_data(id).mid = mid;
+ }
+ 
+ void __init smp_cpus_done(unsigned int max_cpus)
+-- 
+1.6.0.6
 
-Please make this a "static inline dma_make_coherent(unsigned long pa, unsigned long len)"
-so we get proper type-check for non-leon code.
-
-
-For the actual implementation I have no comments - I do not
-know the code well enough.
-But I like the simplification - thats always good.
-
-	Sam
