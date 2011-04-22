@@ -1,67 +1,30 @@
-From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Wed, 20 Apr 2011 09:41:24 +0000
-Subject: [PATCH 5/8] sparc32,leon: cleaned away code from the LEON2 days
-Message-Id: <1303292487-12623-5-git-send-email-daniel@gaisler.com>
+From: <mcrsoft07@cox.net>
+Date: Fri, 22 Apr 2011 17:45:13 +0000
+Subject: CONGRATULATIONS
+Message-Id: <20110422134513.1FNWY.230240.imail@fed1rmwml34>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
----
- arch/sparc/include/asm/leon.h   |   23 -----------------------
- arch/sparc/kernel/leon_kernel.c |    2 +-
- 2 files changed, 1 insertions(+), 24 deletions(-)
+Dear Recipient,
 
-diff --git a/arch/sparc/include/asm/leon.h b/arch/sparc/include/asm/leon.h
-index 204dc0f..31fb2ac 100644
---- a/arch/sparc/include/asm/leon.h
-+++ b/arch/sparc/include/asm/leon.h
-@@ -52,29 +52,6 @@
- #define LEON_DIAGF_VALID	0x2000
- #define LEON_DIAGF_VALID_SHIFT	13
- 
--/*
-- *  Interrupt Sources
-- *
-- *  The interrupt source numbers directly map to the trap type and to
-- *  the bits used in the Interrupt Clear, Interrupt Force, Interrupt Mask,
-- *  and the Interrupt Pending Registers.
-- */
--#define LEON_INTERRUPT_CORRECTABLE_MEMORY_ERROR	1
--#define LEON_INTERRUPT_UART_1_RX_TX		2
--#define LEON_INTERRUPT_UART_0_RX_TX		3
--#define LEON_INTERRUPT_EXTERNAL_0		4
--#define LEON_INTERRUPT_EXTERNAL_1		5
--#define LEON_INTERRUPT_EXTERNAL_2		6
--#define LEON_INTERRUPT_EXTERNAL_3		7
--#define LEON_INTERRUPT_TIMER1			8
--#define LEON_INTERRUPT_TIMER2			9
--#define LEON_INTERRUPT_EMPTY1			10
--#define LEON_INTERRUPT_EMPTY2			11
--#define LEON_INTERRUPT_OPEN_ETH			12
--#define LEON_INTERRUPT_EMPTY4			13
--#define LEON_INTERRUPT_EMPTY5			14
--#define LEON_INTERRUPT_EMPTY6			15
--
- /* irq masks */
- #define LEON_HARD_INT(x)	(1 << (x))	/* irq 0-15 */
- #define LEON_IRQMASK_R		0x0000fffe	/* bit 15- 1 of lregs.irqmask */
-diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
-index d867543..5d7e41c 100644
---- a/arch/sparc/kernel/leon_kernel.c
-+++ b/arch/sparc/kernel/leon_kernel.c
-@@ -316,7 +316,7 @@ void __init leon_init_timers(irq_handler_t counter_fn)
- 
- 	if (err) {
- 		printk(KERN_ERR "leon_time_init: unable to attach IRQ%d\n",
--		       LEON_INTERRUPT_TIMER1);
-+		       irq);
- 		prom_halt();
- 	}
- 
--- 
-1.5.4
+We are pleased to inform You that you have won the sum of 1,000,000.00 Euro=
+s on the=20
+Microsoft Promo Commission.your e-mail address attached to:Ticket Number:03=
+-02-1,
+Reference Number:SL/07/4009 Please acknowledge the receipt of this mail to =
+Pastor Anthony Patrick
+With the details below:
 
+1.) Name...
+2.) Address..
+3.) Phone...
+4.) Sex...
+5.) Occupation....
+6.) Age...
+7.) Country Of Origin....
+
+Sir Ivan Smith
+Mircosoft =C2=A9 Promo Cordinator.
