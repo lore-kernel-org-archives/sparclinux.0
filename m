@@ -1,7 +1,7 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 22 Apr 2011 07:41:57 +0000
-Subject: Re: [PATCH revised v2] sparc32: avoid build warning at
-Message-Id: <20110422074157.GA20613@merkur.ravnborg.org>
+From: Daniel Hellstrom <daniel@gaisler.com>
+Date: Fri, 22 Apr 2011 08:17:28 +0000
+Subject: Re: [PATCH revised v2] sparc32: avoid build warning at	mm/percpu.c:1647
+Message-Id: <4DB13998.6010301@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20110421183556.GA27199@merkur.ravnborg.org>
 In-Reply-To: <20110421183556.GA27199@merkur.ravnborg.org>
@@ -10,23 +10,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, Apr 21, 2011 at 03:48:49PM -0700, David Miller wrote:
-> From: Sam Ravnborg <sam@ravnborg.org>
-> Date: Thu, 21 Apr 2011 20:35:56 +0200
-> 
-> > Fix following warning:
-> > 
-> > mm/percpu.c: In function 'pcpu_embed_first_chunk':
-> > mm/percpu.c:1647:3: warning: format '%lx' expects type 'long unsigned int', but argument 3 has type 'unsigned int'
-> > 
-> > Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
-> > [sam: added warning message to changelog, use _AC()]
-> > Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-> 
-> Applied to sparc-next-2.6, thanks.
+Sam Ravnborg wrote:
 
-I screwed up author-ship on this one - Daniel was the original author.
-But I guess Daniel and I can fix this over a beer if we meet someday.
-Will try to be more carefull in the future!
+>On Thu, Apr 21, 2011 at 03:48:49PM -0700, David Miller wrote:
+>  
+>
+>>From: Sam Ravnborg <sam@ravnborg.org>
+>>Date: Thu, 21 Apr 2011 20:35:56 +0200
+>>
+>>    
+>>
+>>>Fix following warning:
+>>>
+>>>mm/percpu.c: In function 'pcpu_embed_first_chunk':
+>>>mm/percpu.c:1647:3: warning: format '%lx' expects type 'long unsigned int', but argument 3 has type 'unsigned int'
+>>>
+>>>Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
+>>>[sam: added warning message to changelog, use _AC()]
+>>>Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+>>>      
+>>>
+>>Applied to sparc-next-2.6, thanks.
+>>    
+>>
+>
+>I screwed up author-ship on this one - Daniel was the original author.
+>But I guess Daniel and I can fix this over a beer if we meet someday.
+>Will try to be more carefull in the future!
+>  
+>
+I think we have to meet in Germany in order to get a big beer enough to 
+compensate for that... :) by the way thanks for cleaning up the patch 
+for me.
 
-	Sam
+Daniel
