@@ -1,77 +1,17 @@
-From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Wed, 20 Apr 2011 09:41:21 +0000
-Subject: [PATCH 2/8] sparc32,leon: must protect IRQ controller register with spinlock
-Message-Id: <1303292487-12623-2-git-send-email-daniel@gaisler.com>
+From: "CONFIDENTIAL" <europaycen@hotmail.com>
+Date: Mon, 25 Apr 2011 19:46:54 +0000
+Subject: CONFIDENTIAL
+Message-Id: <20110424221029.09CF92AABB7D@mail.alsa.co.cr>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-The LEON interrupt controller has one single mask register for all
-IRQs per CPU, even though the genirq layer protects us from accessing
-the same IRQ at the same time other IRQs share the same mask register
-and may thus interfere. Some other IRQ controllers has a mask register
-or similar per IRQ instead which makes spinlocks unncessary.
+Acknowledge,
 
-Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
----
- arch/sparc/kernel/leon_kernel.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
-
-diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
-index 8591cf1..390e469 100644
---- a/arch/sparc/kernel/leon_kernel.c
-+++ b/arch/sparc/kernel/leon_kernel.c
-@@ -31,6 +31,7 @@ int leondebug_irq_disable;
- int leon_debug_irqout;
- static int dummy_master_l10_counter;
- unsigned long amba_system_id;
-+static DEFINE_SPINLOCK(leon_irq_lock);
- 
- unsigned long leon3_gptimer_irq; /* interrupt controller irq number */
- unsigned long leon3_gptimer_idx; /* Timer Index (0..6) within Timer Core */
-@@ -88,10 +89,10 @@ static void leon_unmask_irq(struct irq_data *data)
- 	unsigned long mask, flags;
- 
- 	mask = (unsigned long)data->chip_data;
--	local_irq_save(flags);
-+	spin_lock_irqsave(&leon_irq_lock, flags);
- 	LEON3_BYPASS_STORE_PA(LEON_IMASK,
- 			      (LEON3_BYPASS_LOAD_PA(LEON_IMASK) | (mask)));
--	local_irq_restore(flags);
-+	spin_unlock_irqrestore(&leon_irq_lock, flags);
- }
- 
- static void leon_mask_irq(struct irq_data *data)
-@@ -99,11 +100,10 @@ static void leon_mask_irq(struct irq_data *data)
- 	unsigned long mask, flags;
- 
- 	mask = (unsigned long)data->chip_data;
--	local_irq_save(flags);
-+	spin_lock_irqsave(&leon_irq_lock, flags);
- 	LEON3_BYPASS_STORE_PA(LEON_IMASK,
- 			      (LEON3_BYPASS_LOAD_PA(LEON_IMASK) & ~(mask)));
--	local_irq_restore(flags);
--
-+	spin_unlock_irqrestore(&leon_irq_lock, flags);
- }
- 
- static unsigned int leon_startup_irq(struct irq_data *data)
-@@ -383,10 +383,10 @@ void leon_enable_irq_cpu(unsigned int irq_nr, unsigned int cpu)
- {
- 	unsigned long mask, flags, *addr;
- 	mask = get_irqmask(irq_nr);
--	local_irq_save(flags);
-+	spin_lock_irqsave(&leon_irq_lock, flags);
- 	addr = (unsigned long *)&(leon3_irqctrl_regs->mask[cpu]);
- 	LEON3_BYPASS_STORE_PA(addr, (LEON3_BYPASS_LOAD_PA(addr) | (mask)));
--	local_irq_restore(flags);
-+	spin_unlock_irqrestore(&leon_irq_lock, flags);
- }
- 
- #endif
--- 
-1.5.4
-
+An Iraqi made a fixed deposit of $6.5m usd in my bank branch (Hang Seng Bank,Hong Kong) where am a director and he died with his entire family in the war leaving behind no next of kin, I?m ready to share 50/50 with you if you choose to stand as my deceased client next of kin. If interested mail me at the address below: 
+tongwon@ibibo.com  or
+tongwonhk@ibibo.com
+Yours Truly,
+Tong Won.
