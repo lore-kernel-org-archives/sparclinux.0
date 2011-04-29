@@ -1,8 +1,10 @@
-From: John Salman <officee.desk1917@virgilio.it>
-Date: Thu, 28 Apr 2011 19:44:30 +0000
+From: John Salman <officee.desk19166@virgilio.it>
+Date: Fri, 29 Apr 2011 20:18:39 +0000
 Subject: mail
-Message-Id: <12f9da423ee.officee.desk1917@virgilio.it>
+Message-Id: <12fa2e9c225.officee.desk19166@virgilio.it>
 List-Id: <sparclinux.vger.kernel.org>
+References: <12f9da423ee.officee.desk1917@virgilio.it>
+In-Reply-To: <12f9da423ee.officee.desk1917@virgilio.it>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
