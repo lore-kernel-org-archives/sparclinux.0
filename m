@@ -1,7 +1,7 @@
-From: Kristoffer Glembo <kristoffer@gaisler.com>
-Date: Tue, 10 May 2011 11:26:52 +0000
+From: Matthias Rosenfelder <rosenfelder.lkml@googlemail.com>
+Date: Tue, 10 May 2011 22:31:03 +0000
 Subject: Re: [RFC/PATCH] sparc32/LEON: Cache flush during context switch
-Message-Id: <4DC920FC.1050808@gaisler.com>
+Message-Id: <4DC9BCA7.5090709@googlemail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4DC89ECB.6030309@googlemail.com>
 In-Reply-To: <4DC89ECB.6030309@googlemail.com>
@@ -10,77 +10,77 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Matthias Rosenfelder wrote:
-> Am 10.05.2011 09:19, schrieb Daniel Hellstrom:
->>
->> Have you taken cache aliasing into account? The problem may be that
->> the same physical address may be mapped onto different virtual
->> addresses. This is no problem when there is only one location in
->> the cache multiple virtual addresses with the same page offset can
->> be located at, one virtual address mapped to the same physical
->> address will replace the other. That is why the check is for 4KByte
->> cache of less (less then one page) and only one set.
-> 
-> In this case cache aliasing is not an issue. It is only a problem if two
-> aliases (i.e. two virtual addresses that are mapped to the same
-> physical address) can be present in the cache _and_ the cache can
-> generate a hit when reading from one of these two after having written
-> the other one before. Then the cache hit will return the old data rather
-> than then new ones.
-> 
-> But in the case of context switching the cache does not generate a hit.
-> The context number stored alongside every cache line prevents this. You
-> never get a cache hit from data that was pulled into the cache in a
-> different address space than the current. That's why after _changing_
-> the address space the cache will produce a series of misses. It is like
-> flushing the cache atomically within one cycle when you write a
-> different context number into the SRMMU register.
-> 
+On 10.05.2011 13:26, Kristoffer Glembo wrote:
+>
+> The cache can generate a hit after a context switch if there exists cache lines
+> belonging to the newly switched in process.
 
+Is this really possible? You mean that the cache line has "survived" 
+during the execution of the last timeslice of another (i.e. different) 
+task AND that the last and the new task have shared a memory region AND 
+this shared memory region is susceptible to virtual aliasing in the data 
+cache AND the last task has actually written to one of these virtual 
+addresses AND the new task actually reads from exactly this virtual 
+alias address that the last task wrote to?
 
-The cache can generate a hit after a context switch if there exists cache lines
-belonging to the newly switched in process. Then the new process can get a hit in 
-the cache when another process has updated the value in memory. Just because you write 
-the context register it does not mean that the cache is automatically invalidated.
+This seems very unlikely to me but I must admit that you have a point 
+here. It is possible in theory, though very unlikely.
 
-You could avoid this if you always make shared memory regions non-cacheable. I don't know 
-enough to say whether this is currently possible.
+But then what is the context number stored for every cache line for?
+Only for the case when you have a tiny cache with the lowest possible 
+associativity that you can save a few cycle on a context switch? People 
+want _big_ caches with _high_ associativity in order to improve the hit 
+rate. Having a bigger cache even if you have to flush it on a context 
+switch is much better for performance than having a tiny one without a 
+flush. Why do you waste so much hardware on a feature that has so little 
+benefit?
 
 
 
->> We are well aware of this problem, I think some day Jiri will present a
->> solution.
-> 
-> Hmm, this is non-standard terminology. How can others understand the
-> source code if it doesn't use the generally accepted terms found in
-> textbooks about computer architecture?
+> You could avoid this if you always make shared memory regions non-cacheable. I don't know
+> enough to say whether this is currently possible.
 
-> I think this might confuse a lot of people (as it did confuse me
-> in the past until I found out and understood the error) and should
-> therefore not be tolerated to remain in the Linux kernel in the long
-> run. The promise of a solution "some day" is way too vague for my taste.
-> This should be changed in the near future.
+I don't think this is a good idea. It is propably better to still use 
+caches and flush the caches on a context switch than making these 
+regions uncacheable at all. This will propably slow down access to these 
+regions too much.
 
 
-I think Daniel meant a solution to the cache coherency problem. It is possible to
-fully avoid aliases in hardware.
+>
+> I think Daniel meant a solution to the cache coherency problem. It is possible to
+> fully avoid aliases in hardware.
 
-What terminology do you have a problem with in the Linux kernel? That it is written
-"set size" instead of "way size" in some comments? I don't think "set size" is an uncommon
-alias for "way size" ...
+Ah yes, of course.
+
+>
+> What terminology do you have a problem with in the Linux kernel? That it is written
+> "set size" instead of "way size" in some comments? I don't think "set size" is an uncommon
+> alias for "way size" ...
+
+But I do. A cache set consists of all cache lines in a cache that can 
+store data belonging to addresses that have the same index (i.e. the 
+"middle" part of the cache address is the same for all cache lines in a 
+cache set). The way size is the sum of all cache lines that belong to a 
+certain way, i.e. the n-th possiblity within a cache set to store and 
+retrieve a cache line. Way zero is the first possibility in each set; 
+Way one is the second and so on...
+Cache lines belonging to the same way don't necessarily have any address 
+bits in common. Whereas the cache lines belonging to a cache set do...
+
+By the way: If it is correct what you say then why was this changed for 
+the Leon4 manual? Leon2 and 3 manuals use the wrong terminology while 
+the Leon4 manual uses the correct one. Obviously, there must be at least 
+one person at Gaisler who believes that the previous terminology was not 
+correct. Leon2 and 3 manual mention "multi-set caches" while 
+Leon4-manual mentions "multi-way caches". Look at the GRLIB ipcore 
+user's manual.
+
+One thing in addition: Please don't get me wrong. I don't want to blame 
+anybody too much. I just would like to see consistent terminology in the 
+code so it is easier for everybody to understand. That's all I am aiming 
+for.
 
 
+Thanks,
 
-> The Leon3 cache configuration is the standard one. If I remember
-> correctly there are a 4 kiB direct-mapped and a 8 kiB 2-way associative
-> cache but I don't remember which one was for data and instructions.
-> 
-
-Try using shared memory to a greater extent.
-
-Best regards,
-Kristoffer Glembo
-Aeroflex Gaisler
-
-
-
+      Matthias
