@@ -1,7 +1,7 @@
 From: Tkhai Kirill <tkhai@yandex.ru>
-Date: Mon, 09 May 2011 19:55:55 +0000
+Date: Tue, 10 May 2011 12:31:41 +0000
 Subject: [PATCH]SPARC32: Fixed unaligned memory copying in function __csum_partial_copy_sparc_generic
-Message-Id: <772061304970955@web57.yandex.ru>
+Message-Id: <41391305030701@web6.yandex.ru>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1304845558.9492.14.camel@big>
 In-Reply-To: <1304845558.9492.14.camel@big>
@@ -9,6 +9,11 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
+
+Hello, Dave!
+
+I'm sorry, there is a error in my previous letter. I added excess annul field to bge.
+Final patch from me is following:
 
 When we are in the label cc_dword_align, registers %o0 and %o1 have the same last 2 bits,
 but it's not guaranteed one of they is zero. So we can get unaligned memory access
@@ -20,6 +25,8 @@ This patch corrects the error.
 
 One comment to the patch. We don't care about the third bit in %o1, because cc_end_cruft
 stores word or less.
+
+Thanks. Kirill.
 
 Signed-off-by: Tkhai Kirill <tkhai@yandex.ru>
 ---
@@ -33,7 +40,7 @@ Signed-off-by: Tkhai Kirill <tkhai@yandex.ru>
 -	cmp	%g1, 6
 -	bl,a	ccte
 +	cmp	%g1, 16
-+	bge,a	1f
++	bge	1f
 +	 srl	%g1, 1, %o3
 +2:	cmp	%o3, 0
 +	be,a	ccte
