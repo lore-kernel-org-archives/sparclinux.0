@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 10 May 2011 20:28:53 +0000
-Subject: Re: [PATCH]SPARC32: Fixed unaligned memory copying in function
-Message-Id: <20110510.132853.179921515.davem@davemloft.net>
+From: Tkhai Kirill <tkhai@yandex.ru>
+Date: Tue, 10 May 2011 23:21:49 +0000
+Subject: Re: [PATCH]SPARC32: Fixed unaligned memory copying in function __csum_partial_copy_sparc_generic
+Message-Id: <414351305069709@web42.yandex.ru>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1304845558.9492.14.camel@big>
 In-Reply-To: <1304845558.9492.14.camel@big>
@@ -10,26 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Tkhai Kirill <tkhai@yandex.ru>
-Date: Tue, 10 May 2011 16:31:41 +0400
+11.05.11, 00:28, "David Miller" <davem@davemloft.net>:
 
->  	/* Also, handle the alignment code out of band. */
->  cc_dword_align:
-> -	cmp	%g1, 6
-> -	bl,a	ccte
-> +	cmp	%g1, 16
-> +	bge	1f
-> +	 srl	%g1, 1, %o3
-> +2:	cmp	%o3, 0
-> +	be,a	ccte
->  	 andcc	%g1, 0xf, %o3
-> -	andcc	%o0, 0x1, %g0
-> +	andcc	%o3, %o0, %g0	! Check %o0 only (%o1 has the same last 2 bits)
-> +	be,a	2b
-> +	 srl	%o3, 1, %o3
-> +1:	andcc	%o0, 0x1, %g0
+>I don't understand why you're testing "andcc %o3, %o0, %g0", as %o3 has
+>the value computed in "srl %g1, 1, %o3" here.
 
-I don't understand why you're testing "andcc %o3, %o0, %g0", as %o3 has
-the value computed in "srl %g1, 1, %o3" here.
+>What is so interesting about "ptr & (length >> 1)"?
 
-What is so interesting about "ptr & (length >> 1)"?
+1)Label ccte (rather, cc_end_cruft) copies data sequentially by pieces of length 2^x bytes from biggest to smallest. For example, if %g1 is 15, then the label copies 8+4+2+1, and %o0 must be aligned to 8.
+
+Let alignment a = 2^x. Pointer ptr % a = 0 when:
+ptr & (a >> 1) = 0
+ptr & (a >> 2) = 0
+..
+
+Or, what is the same:
+ptr & (length >> 1) = 0
+ptr & (length >> 2) = 0
+..
+
+I.e. we are looking for right alignment, if another case don't call ccte.
+
+2)We check %o0 only, because %o1 has the same last two bits, and cc_end_cruft writes 4 bytes or less.
