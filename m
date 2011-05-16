@@ -1,34 +1,29 @@
 From: David Miller <davem@davemloft.net>
-Date: Mon, 16 May 2011 15:10:51 +0000
-Subject: Re: [PATCH] sparc: add {read,write}*_be routines
-Message-Id: <20110516.111051.2030227501627112630.davem@davemloft.net>
+Date: Mon, 16 May 2011 20:01:30 +0000
+Subject: Re: [PATCH 0/2] sparc32,leon: PCI patches
+Message-Id: <20110516.130130.226775028.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1305105213-31675-1-git-send-email-jan@gaisler.com>
-In-Reply-To: <1305105213-31675-1-git-send-email-jan@gaisler.com>
+References: <4DB68838.1020304@gaisler.com>
+In-Reply-To: <4DB68838.1020304@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Jan Andersson <jan@gaisler.com>
-Date: Mon, 16 May 2011 09:57:28 +0200
+From: Daniel Hellstrom <daniel@gaisler.com>
+Date: Tue, 26 Apr 2011 10:54:16 +0200
 
-> On 05/12/2011 10:45 PM, David Miller wrote:
->> From: Jan Andersson <jan@gaisler.com>
->> Date: Wed, 11 May 2011 11:13:33 +0200
->> 
->>> This patch adds {read,write}*_be big endian memory access
->>> routines to the io.h header used on SPARC32 and SPARC64.
->>>
->>> Tested on SPARC32 (LEON)
->>>
->>> Signed-off-by: Jan Andersson <jan@gaisler.com>
->> 
->> Applied, thanks Jan.
-> 
-> Thanks David. Will this show up in sparc-next? Any chance that you could
-> update the tree on kernel.org? I was asked to provide identification of
-> the commit so that it could be merged into usb-next - in order for me to
-> get another patchset accepted.
+> There is no BIOS or bootloader initializing PCI for use in comparison
+> to the PCIC-SPARC32 code. LEON rely on the Linux generic resource &
 
-It's now pushed to sparc-2.6
+Well since the kernel doesn't support Leon/PCI yet you still have
+an opportunity to "fix" this.
+
+This is going to create an enormous huge inconsistency between
+Leon and other SPARC PCI implementations, so please avoid this
+special case.
+
+Create the device tree nodes, via whatever means possible, and that
+way you won't have to implement anything special in the kernel.
+
+I'm not applying these patches.
