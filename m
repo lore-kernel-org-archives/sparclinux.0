@@ -1,41 +1,30 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 12 May 2011 04:38:50 +0000
-Subject: Re: [PATCH]SPARC32: Fixed unaligned memory copying in function
-Message-Id: <20110511.213850.71132196.davem@davemloft.net>
+Date: Mon, 16 May 2011 20:40:10 +0000
+Subject: Re: [PATCH] sparc: convert old cpumask API into new one
+Message-Id: <20110516.134010.39174667.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1304845558.9492.14.camel@big>
-In-Reply-To: <1304845558.9492.14.camel@big>
+References: <20110429001547.3D6C.A69D9226@jp.fujitsu.com>
+In-Reply-To: <20110429001547.3D6C.A69D9226@jp.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-From: Tkhai Kirill <tkhai@yandex.ru>
-Date: Wed, 11 May 2011 03:21:49 +0400
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Date: Fri, 29 Apr 2011 00:14:08 +0900 (JST)
 
-> 11.05.11, 00:28, "David Miller" <davem@davemloft.net>:
+> Adapt new API. Almost change is trivial, most important change are to
+> remove following like =operator.
 > 
->>I don't understand why you're testing "andcc %o3, %o0, %g0", as %o3 has
->>the value computed in "srl %g1, 1, %o3" here.
+>  cpumask_t cpu_mask = *mm_cpumask(mm);
+>  cpus_allowed = current->cpus_allowed;
 > 
->>What is so interesting about "ptr & (length >> 1)"?
+> Because cpumask_var_t is =operator unsafe. These usage might prevent
+> kernel core improvement.
 > 
-> 1)Label ccte (rather, cc_end_cruft) copies data sequentially by pieces of length 2^x bytes from biggest to smallest. For example, if %g1 is 15, then the label copies 8+4+2+1, and %o0 must be aligned to 8.
+> No functional change.
 > 
-> Let alignment a = 2^x. Pointer ptr % a = 0 when:
-> ptr & (a >> 1) = 0
-> ptr & (a >> 2) = 0
-> ..
-> 
-> Or, what is the same:
-> ptr & (length >> 1) = 0
-> ptr & (length >> 2) = 0
-> ..
-> 
-> I.e. we are looking for right alignment, if another case don't call ccte.
-> 
-> 2)We check %o0 only, because %o1 has the same last two bits, and cc_end_cruft writes 4 bytes or less.
+> Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Now I understand, thanks for explaining.
-
-Applied.
+Applied, thanks.
