@@ -1,31 +1,32 @@
 From: David Miller <davem@davemloft.net>
-Date: Mon, 23 May 2011 06:45:58 +0000
-Subject: Re: [PATCH 1/4] sparc: _sparc_find_resource() should check for
-Message-Id: <20110523.024558.1625882862305082516.davem@davemloft.net>
+Date: Mon, 16 May 2011 20:42:04 +0000
+Subject: Re: [PATCH] sparc32,leon: Remove unnecessary page_address calls in
+Message-Id: <20110516.134204.59675881.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1306006756-32009-1-git-send-email-geert@linux-m68k.org>
-	<1306006756-32009-2-git-send-email-geert@linux-m68k.org>
-In-Reply-To: <1306006756-32009-2-git-send-email-geert@linux-m68k.org>
+References: <1304065020-28326-1-git-send-email-kristoffer@gaisler.com>
+In-Reply-To: <1304065020-28326-1-git-send-email-kristoffer@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: geert@linux-m68k.org
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-m68k@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Sat, 21 May 2011 21:39:13 +0200
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 29 Apr 2011 12:29:27 +0200
 
-> The address that's passed to _sparc_find_resource() should always be the
-> start address of a resource:
->   - iounmap() passes a page-aligned virtual address, while the original
->     address was created by adding the in-page offset to the resource's
->     start address,
->   - sbus_free_coherent() and pci32_free_coherent() should be passed an
->     address obtained from sbus_alloc_coherent() resp. pci32_alloc_coherent(),
->     which is always a resource's start address.
+> On Fri, Apr 29, 2011 at 10:17:00AM +0200, Kristoffer Glembo wrote:
+>> The function mmu_inval_dma_area takes a virtual address as a parameter
+>> which is problematic in case the buffer is located in highmem and the
+>> mapping currently is unavailable.
+>> 
+>> Since the function was only implemented for LEON this patch removes
+>> calls to it in non LEON code paths and renames it to dma_make_coherent
+>> which instead takes a physical address (which for now is unused since we
+>> flush the whole cache). This way it is possible to remove several unnecessary
+>> calls to page_address which will fail if the virtual mapping is unavailable.
+>> 
+>> Signed-off-by: Kristoffer Glembo <kristoffer@gaisler.com>
+> Looks good!
 > 
-> Hence replace the range check by a check for an exact match.
-> 
-> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+> Acked-by: Sam Ravnborg <sam@ravnborg.org>
 
-Acked-by: David S. Miller <davem@davemloft.net>
+Applied.
