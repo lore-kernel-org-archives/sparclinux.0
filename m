@@ -1,36 +1,53 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 20 May 2011 20:13:01 +0000
-Subject: Re: [PATCH 1/2] Fix merge problem between sparc32 IPI patches and
-Message-Id: <20110520.161301.913577691507123777.davem@davemloft.net>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Wed, 18 May 2011 19:21:00 +0000
+Subject: [PATCH 1/2] of: fix race when matching drivers
+Message-Id: <20110518192100.28986.94335.stgit@ponder>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1305900070-23492-1-git-send-email-daniel@gaisler.com>
-In-Reply-To: <1305900070-23492-1-git-send-email-daniel@gaisler.com>
+References: <20110518185751.28986.69446.stgit@ponder>
+In-Reply-To: <20110518185751.28986.69446.stgit@ponder>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: daniel@gaisler.com
-Cc: sparclinux@vger.kernel.org, sfr@canb.auug.org.au, peterz@infradead.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org
+To: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, gregkh-l3A5Bk7waGM@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Milton Miller <miltonm-ogEGBHC/i9Y@public.gmane.org>, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Torvalds <torvalds@linux-foundati>
 
-From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Fri, 20 May 2011 16:01:09 +0200
+From: Milton Miller <miltonm@bga.com>
 
-> Fixes a merge conflict in arch/sparc/kernel/smp_32.c between commit
-> d6d048192b1d ("sparc32: implement SMP IPIs using the generic functions")
-> from the sparc tree and commit 184748cc50b2 ("sched: Provide
-> scheduler_ipi() callback in response to smp_send_reschedule()").
-> 
-> The patch adds a call to scheduler_ipi() from the resched IPI handler in
-> sparc32.
-> 
-> Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
+If two drivers are probing devices at the same time, both will write
+their match table result to the dev->of_match cache at the same time.
 
-What I did to handle this was merge in enough of the upstream commit
-by Peter such that both of these patches apply, via:
+Only write the result if the device matches.
 
-git merge --no-commit 317f394160e9beb97d19a84c39b7e5eb3d7815a8
+In a thread titled "SBus devices sometimes detected, sometimes not",
+Meelis reported his SBus hme was not detected about 50% of the time.
+From the debug suggested by Grant it was obvious another driver matched
+some devices between the call to match the hme and the hme discovery
+failling.
 
-then I added patch #1 into the merge commit.
+Reported-by: Meelis Roos <mroos@linux.ee>
+Signed-off-by: Milton Miller <miltonm@bga.com>
+[grant.likely: modified to only call of_match_device() once]
+Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+---
+ include/linux/of_device.h |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
 
-Next, I applied patch #2 afterwards.
+diff --git a/include/linux/of_device.h b/include/linux/of_device.h
+index 8bfe6c1..b33d688 100644
+--- a/include/linux/of_device.h
++++ b/include/linux/of_device.h
+@@ -21,8 +21,12 @@ extern void of_device_make_bus_id(struct device *dev);
+ static inline int of_driver_match_device(struct device *dev,
+ 					 const struct device_driver *drv)
+ {
+-	dev->of_match = of_match_device(drv->of_match_table, dev);
+-	return dev->of_match != NULL;
++	const struct of_device_id *match;
++
++	match = of_match_device(drv->of_match_table, dev);
++	if (match)
++		dev->of_match = match;
++	return match != NULL;
+ }
+ 
+ extern struct platform_device *of_dev_get(struct platform_device *dev);
 
-So we should be all set when I push this out to Linus, thanks!
