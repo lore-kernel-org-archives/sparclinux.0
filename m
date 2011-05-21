@@ -1,30 +1,30 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Tue, 31 May 2011 07:51:40 +0000
-Subject: Re: [PATCH 0/4] resources: Add lookup_resource()
-Message-Id: <BANLkTinm9uHHmRscV7w6y5WxGroGH0hSNQ@mail.gmail.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 21 May 2011 21:25:50 +0000
+Subject: [PATCH 0/2] sparc32 build fixes
+Message-Id: <20110521212549.GA17236@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1306006756-32009-1-git-send-email-geert@linux-m68k.org>
-	<BANLkTi=YE4fSVQTNaYAwZ1YijqsUfTRmHg@mail.gmail.com>
-In-Reply-To: <BANLkTi=YE4fSVQTNaYAwZ1YijqsUfTRmHg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-m68k@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>, Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
-On Tue, May 31, 2011 at 09:47, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
-> As I got two acks from David for the sparc bits and no objections, I
-> queued these on my for-2.6.41 and for-next branches.
+While trying to do some other hacking on sparc32 tonight
+I hit several build issues.
 
-Did I really write that??? for-3.1, of course ;-)
+Some of these are already addressed by Stephen Rotwell.
+The sparc specific patches follows.
 
-Gr{oetje,eeting}s,
+I have not posted the generic ones - I assume Stephen
+will take care...
 
-                        Geert (heading for coffee)
+	Sam
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+ arch/sparc/include/asm/smp_32.h      |    8 --------
+ arch/sparc/include/asm/spinlock_32.h |    1 +
+ arch/sparc/kernel/smp_32.c           |    8 ++++++++
+ 3 files changed, 9 insertions(+), 8 deletions(-)
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Sam Ravnborg (2):
+      sparc: fix build, fix missing cpu_relax declaration
+      sparc32: fix build, move inline function to .c file
+
