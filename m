@@ -1,45 +1,83 @@
-From: mroos@linux.ee
-Date: Wed, 18 May 2011 13:59:45 +0000
-Subject: Re: SBus devices sometimes detected, sometimes not
-Message-Id: <alpine.SOC.1.00.1105181149290.9877@math.ut.ee>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 21 May 2011 21:27:58 +0000
+Subject: [PATCH 2/2] sparc32: fix build, move inline function to .c file
+Message-Id: <20110521212758.GB18545@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.SOC.1.00.1105021259220.6200@math.ut.ee> <20110517.134312.226762699.davem@davemloft.net> <BANLkTikhKqcpdadpM3RQdYvDrPn46_v6_Q@mail.gmail.com>
-In-Reply-To: <BANLkTikhKqcpdadpM3RQdYvDrPn46_v6_Q@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-> It would be good to know the exact failure mode, so we need to know if
-> of_driver_match_device() is setting of_match which is subsequently
-> getting cleared, or if of_driver_match_device() isn't getting called
-> at all.  Meelis, can you add something like the following code to
-> include/linux/of_device.h in the of_driver_match_device() function
-> between the of_match_device() call and the return statement:
-> 
-> if (dev->of_match)
->         printk("found match; node=%s, driver=%s\n",
->                  dev->of_node->full_name, drv->name);
-> 
+From 875da4871c4654390d41aa110480211ccbd2aac2 Mon Sep 17 00:00:00 2001
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 21 May 2011 22:59:19 +0200
+Subject: [PATCH 2/2] sparc32: fix build, move inline function to .c file
 
-Tried it with todays 2.6.39-rc7-00211-gc1d10d1. It was harder to 
-reproduce this time, about 1 time out of 10.
+Fix following build eroor:
 
-In normal operation:
+  CC      arch/sparc/kernel/irq_32.o
+In file included from arch/sparc/include/asm/smp.h:6:0,
+                 from arch/sparc/include/asm/system_32.h:12,
+                 from arch/sparc/include/asm/system.h:6,
+                 from arch/sparc/include/asm/ptrace.h:235,
+                 from arch/sparc/include/asm/thread_info_32.h:19,
+                 from sparc/include/asm/thread_info.h:6,
+                 from include/linux/thread_info.h:53,
+                 from include/linux/preempt.h:9,
+                 from include/linux/smp.h:34,
+                 from include/linux/kernel_stat.h:4,
+                 from arch/sparc/kernel/irq_32.c:14:
+arch/sparc/include/asm/smp_32.h:82:19: error: static declaration of 'smp_call_function_single' follows non-static declaration
+include/linux/smp.h:29:5: note: previous declaration of 'smp_call_function_single' was here
 
-[   77.794877] found match; node=/sbus@1f,0/SUNW,hme@0,8c00000, driver=hme
-[   77.872379] sunhme.c:v3.10 August 26, 2008 David S. Miller (davem@davemloft.net)
-[   77.962865] eth0: HAPPY MEAL (SBUS) 10/100baseT Ethernet 08:00:20:88:6d:6a
+Bug is likely triggered by changes in include files.
+The fix was obviously correct so I found no value in tracking
+down the offending commit.
 
-In case of error (bpp show only as an example that some things work):
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/include/asm/smp_32.h |    8 --------
+ arch/sparc/kernel/smp_32.c      |    8 ++++++++
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-[   70.312166] found match; node=/sbus@1f,0/SUNW,bpp@e,c800000, driver=bpp
-[   70.389649] parport0: sunbpp at 0x1ffec800000
-[   70.477720] found match; node=/sbus@1f,0/SUNW,hme@0,8c00000, driver=hme
-[   70.578023] found match; node=/sbus@1f,0/QLGC,isp@1,10000, driver=qpti
-[   70.915544] hme: probe of f006be34 failed with error -22
-[   70.978825] qpti: probe of f00798c4 failed with error -22
-
+diff --git a/arch/sparc/include/asm/smp_32.h b/arch/sparc/include/asm/smp_32.h
+index d82d7f4..4b905ab 100644
+--- a/arch/sparc/include/asm/smp_32.h
++++ b/arch/sparc/include/asm/smp_32.h
+@@ -79,14 +79,6 @@ static inline int smp_call_function(void (*func)(void *info), void *info, int wa
+ 	return 0;
+ }
+ 
+-static inline int smp_call_function_single(int cpuid, void (*func) (void *info),
+-					   void *info, int wait)
+-{
+-	smp_cross_call((smpfunc_t)func, cpumask_of_cpu(cpuid),
+-		       (unsigned long) info, 0, 0, 0);
+-	return 0;
+-}
+-
+ static inline int cpu_logical_map(int cpu)
+ {
+ 	return cpu;
+diff --git a/arch/sparc/kernel/smp_32.c b/arch/sparc/kernel/smp_32.c
+index 442286d..d677327 100644
+--- a/arch/sparc/kernel/smp_32.c
++++ b/arch/sparc/kernel/smp_32.c
+@@ -235,6 +235,14 @@ void smp_reschedule_irq(void)
+ 	set_need_resched();
+ }
+ 
++inline int smp_call_function_single(int cpuid, void (*func) (void *info),
++                                           void *info, int wait)
++{
++	smp_cross_call((smpfunc_t)func, cpumask_of_cpu(cpuid),
++	               (unsigned long) info, 0, 0, 0);
++	return 0;
++}
++
+ void smp_flush_page_to_ram(unsigned long page)
+ {
+ 	/* Current theory is that those who call this are the one's
 -- 
-Meelis Roos (mroos@linux.ee)
+1.6.0.6
+
