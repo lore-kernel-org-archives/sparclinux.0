@@ -1,36 +1,61 @@
-From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Tue, 24 May 2011 07:02:02 +0000
-Subject: [PATCH 0/2 v3] sparc32,leon: PCI patches
-Message-Id: <4DDB57EA.8020008@gaisler.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Sat, 21 May 2011 19:39:15 +0000
+Subject: [PATCH 3/4] m68k/amiga: Chip RAM - Use lookup_resource()
+Message-Id: <1306006756-32009-4-git-send-email-geert@linux-m68k.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1306006756-32009-1-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1306006756-32009-1-git-send-email-geert@linux-m68k.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-m68k@vger.kernel.org
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 
-Hello,
+Replace a custom implementation (which doesn't lock the resource tree) by a
+call to lookup_resource()
 
-I have tried to cleanup the patches as Sam/Julian suggested, I have 
-added a PCIC_PCI and a LEON_PCI Kconfig setting which depend on PCI and 
-(!)SPARC_LEON. Before pci_leon.h was included from pci_32.h, now the pci 
-related stuff is declared inside of pci_32.h instead. The LEON host 
-controller implementation specific stuff was moved into leon_pci.h in 
-the same manner as the AMBA bus implementation on LEON in leon_amba.h.
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+---
+ arch/m68k/amiga/chipram.c |   22 +++++++++++-----------
+ 1 files changed, 11 insertions(+), 11 deletions(-)
 
-Thank you for your time,
-Daniel
-
- arch/sparc/Kconfig                  |   17 +
- arch/sparc/include/asm/leon.h       |    3 +
- arch/sparc/include/asm/leon_pci.h   |   21 +
- arch/sparc/include/asm/pci_32.h     |   24 +
- arch/sparc/include/asm/pcic.h       |    2 +-
- arch/sparc/kernel/Makefile          |    4 +-
- arch/sparc/kernel/entry.S           |    4 +-
- arch/sparc/kernel/leon_kernel.c     |   15 +
- arch/sparc/kernel/leon_pci.c        |  253 ++++++++++
- arch/sparc/kernel/leon_pci_grpci2.c |  897 
-+++++++++++++++++++++++++++++++++++
- drivers/pci/Makefile                |    1 +
- 11 files changed, 1237 insertions(+), 4 deletions(-)
+diff --git a/arch/m68k/amiga/chipram.c b/arch/m68k/amiga/chipram.c
+index cfd3b7a..9d53417 100644
+--- a/arch/m68k/amiga/chipram.c
++++ b/arch/m68k/amiga/chipram.c
+@@ -93,21 +93,21 @@ void *amiga_chip_alloc_res(unsigned long size, struct resource *res)
+ void amiga_chip_free(void *ptr)
+ {
+ 	unsigned long start = ZTWO_PADDR(ptr);
+-	struct resource **p, *res;
++	struct resource *res;
+ 	unsigned long size;
+ 
+-	for (p = &chipram_res.child; (res = *p); p = &res->sibling) {
+-		if (res->start != start)
+-			continue;
+-		*p = res->sibling;
+-		size = resource_size(res);
+-		pr_debug("amiga_chip_free: free %lu bytes at %p\n", size, ptr);
+-		atomic_add(size, &chipavail);
+-		kfree(res);
++	res = lookup_resource(&chipram_res, start);
++	if (!res) {
++		pr_err("amiga_chip_free: trying to free nonexistent region at "
++		       "%p\n", ptr);
+ 		return;
+ 	}
+-	pr_err("amiga_chip_free: trying to free nonexistent region at %p\n",
+-	       ptr);
++
++	size = resource_size(res);
++	pr_debug("amiga_chip_free: free %lu bytes at %p\n", size, ptr);
++	atomic_add(size, &chipavail);
++	release_resource(res);
++	kfree(res);
+ }
+ EXPORT_SYMBOL(amiga_chip_free);
+ 
+-- 
+1.7.0.4
 
