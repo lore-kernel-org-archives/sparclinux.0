@@ -1,95 +1,23 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Sat, 21 May 2011 19:39:16 +0000
-Subject: [PATCH 4/4] sparc: iounmap() and *_free_coherent() - Use lookup_resource()
-Message-Id: <1306006756-32009-5-git-send-email-geert@linux-m68k.org>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 23 May 2011 06:46:20 +0000
+Subject: Re: [PATCH 4/4] sparc: iounmap() and *_free_coherent() - Use
+Message-Id: <20110523.024620.245701157448889932.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1306006756-32009-1-git-send-email-geert@linux-m68k.org>
-In-Reply-To: <1306006756-32009-1-git-send-email-geert@linux-m68k.org>
+	<1306006756-32009-5-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1306006756-32009-5-git-send-email-geert@linux-m68k.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-m68k@lists.linux-m68k.org
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+To: geert@linux-m68k.org
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-m68k@vger.kernel.org
 
-Replace a custom implementation (which doesn't lock the resource tree) by a
-call to lookup_resource()
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Sat, 21 May 2011 21:39:16 +0200
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
----
- arch/sparc/kernel/ioport.c |   32 +++++++-------------------------
- 1 files changed, 7 insertions(+), 25 deletions(-)
+> Replace a custom implementation (which doesn't lock the resource tree) by a
+> call to lookup_resource()
+> 
+> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 
-diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
-index 91e8c76..7be5438 100644
---- a/arch/sparc/kernel/ioport.c
-+++ b/arch/sparc/kernel/ioport.c
-@@ -60,9 +60,6 @@ static inline void mmu_inval_dma_area(void *va, unsigned long len)
- }
- #endif
- 
--static struct resource *_sparc_find_resource(struct resource *r,
--					     unsigned long);
--
- static void __iomem *_sparc_ioremap(struct resource *res, u32 bus, u32 pa, int sz);
- static void __iomem *_sparc_alloc_io(unsigned int busno, unsigned long phys,
-     unsigned long size, char *name);
-@@ -138,7 +135,11 @@ void iounmap(volatile void __iomem *virtual)
- 	unsigned long vaddr = (unsigned long) virtual & PAGE_MASK;
- 	struct resource *res;
- 
--	if ((res = _sparc_find_resource(&sparc_iomap, vaddr)) = NULL) {
-+	/*
-+	 * XXX Too slow. Can have 8192 DVMA pages on sun4m in the worst case.
-+	 * This probably warrants some sort of hashing.
-+	*/
-+	if ((res = lookup_resource(&sparc_iomap, vaddr)) = NULL) {
- 		printk("free_io/iounmap: cannot free %lx\n", vaddr);
- 		return;
- 	}
-@@ -315,7 +316,7 @@ static void sbus_free_coherent(struct device *dev, size_t n, void *p,
- 	struct resource *res;
- 	struct page *pgv;
- 
--	if ((res = _sparc_find_resource(&_sparc_dvma,
-+	if ((res = lookup_resource(&_sparc_dvma,
- 	    (unsigned long)p)) = NULL) {
- 		printk("sbus_free_consistent: cannot free %p\n", p);
- 		return;
-@@ -491,7 +492,7 @@ static void pci32_free_coherent(struct device *dev, size_t n, void *p,
- 	struct resource *res;
- 	void *pgp;
- 
--	if ((res = _sparc_find_resource(&_sparc_dvma,
-+	if ((res = lookup_resource(&_sparc_dvma,
- 	    (unsigned long)p)) = NULL) {
- 		printk("pci_free_consistent: cannot free %p\n", p);
- 		return;
-@@ -725,25 +726,6 @@ static const struct file_operations sparc_io_proc_fops = {
- };
- #endif /* CONFIG_PROC_FS */
- 
--/*
-- * This is a version of find_resource and it belongs to kernel/resource.c.
-- * Until we have agreement with Linus and Martin, it lingers here.
-- *
-- * XXX Too slow. Can have 8192 DVMA pages on sun4m in the worst case.
-- * This probably warrants some sort of hashing.
-- */
--static struct resource *_sparc_find_resource(struct resource *root,
--					     unsigned long start)
--{
--	struct resource *tmp;
--
--	for (tmp = root->child; tmp != 0; tmp = tmp->sibling) {
--		if (tmp->start = start)
--			return tmp;
--	}
--	return NULL;
--}
--
- static void register_proc_sparc_ioport(void)
- {
- #ifdef CONFIG_PROC_FS
--- 
-1.7.0.4
-
+Acked-by: David S. Miller <davem@davemloft.net>
