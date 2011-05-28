@@ -1,60 +1,36 @@
 From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Sat, 21 May 2011 19:39:15 +0000
-Subject: [PATCH 3/4] m68k/amiga: Chip RAM - Use lookup_resource()
-Message-Id: <1306006756-32009-4-git-send-email-geert@linux-m68k.org>
+Date: Sat, 28 May 2011 07:39:56 +0000
+Subject: [PATCH] sparc: Do not select GENERIC_HARDIRQS_NO_DEPRECATED
+Message-Id: <1306568396-10438-1-git-send-email-geert@linux-m68k.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1306006756-32009-1-git-send-email-geert@linux-m68k.org>
-In-Reply-To: <1306006756-32009-1-git-send-email-geert@linux-m68k.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-m68k@vger.kernel.org
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Sam Ravnborg <sam@ravnborg.org>, Daniel Hellstrom <daniel@gaisler.com>, "David S. Miller" <davem@davemloft.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Geert Uytterhoeven <geert@linux-m68k.org>
 
-Replace a custom implementation (which doesn't lock the resource tree) by a
-call to lookup_resource()
+Config option GENERIC_HARDIRQS_NO_DEPRECATED was removed in commit
+78c89825649a9a5ed526c507603196f467d781a5 ("genirq: Remove the now obsolete
+config options and select statements"), but the select was accidentally
+reintroduced in commit 6baa9b20a68a88c2fd751cbe8d7652009379351b
+("sparc32: genirq support")
 
 Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 ---
- arch/m68k/amiga/chipram.c |   22 +++++++++++-----------
- 1 files changed, 11 insertions(+), 11 deletions(-)
+ arch/sparc/Kconfig |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-diff --git a/arch/m68k/amiga/chipram.c b/arch/m68k/amiga/chipram.c
-index cfd3b7a..9d53417 100644
---- a/arch/m68k/amiga/chipram.c
-+++ b/arch/m68k/amiga/chipram.c
-@@ -93,21 +93,21 @@ void *amiga_chip_alloc_res(unsigned long size, struct resource *res)
- void amiga_chip_free(void *ptr)
- {
- 	unsigned long start = ZTWO_PADDR(ptr);
--	struct resource **p, *res;
-+	struct resource *res;
- 	unsigned long size;
- 
--	for (p = &chipram_res.child; (res = *p); p = &res->sibling) {
--		if (res->start != start)
--			continue;
--		*p = res->sibling;
--		size = resource_size(res);
--		pr_debug("amiga_chip_free: free %lu bytes at %p\n", size, ptr);
--		atomic_add(size, &chipavail);
--		kfree(res);
-+	res = lookup_resource(&chipram_res, start);
-+	if (!res) {
-+		pr_err("amiga_chip_free: trying to free nonexistent region at "
-+		       "%p\n", ptr);
- 		return;
- 	}
--	pr_err("amiga_chip_free: trying to free nonexistent region at %p\n",
--	       ptr);
-+
-+	size = resource_size(res);
-+	pr_debug("amiga_chip_free: free %lu bytes at %p\n", size, ptr);
-+	atomic_add(size, &chipavail);
-+	release_resource(res);
-+	kfree(res);
- }
- EXPORT_SYMBOL(amiga_chip_free);
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index af32e17..789e178 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -26,7 +26,6 @@ config SPARC
+ 	select HAVE_DMA_API_DEBUG
+ 	select HAVE_ARCH_JUMP_LABEL
+ 	select HAVE_GENERIC_HARDIRQS
+-	select GENERIC_HARDIRQS_NO_DEPRECATED
+ 	select GENERIC_IRQ_SHOW
+ 	select USE_GENERIC_SMP_HELPERS if SMP
  
 -- 
 1.7.0.4
