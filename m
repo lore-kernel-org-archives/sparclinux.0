@@ -1,68 +1,84 @@
-From: Daniel Smolik <marvin@mydatex.cz>
-Date: Wed, 15 Jun 2011 23:10:07 +0000
-Subject: 2.6.39.1 on E450
-Message-Id: <4DF93BCF.9010805@mydatex.cz>
+From: Kjetil Oftedal <oftedal@gmail.com>
+Date: Wed, 01 Jun 2011 21:04:20 +0000
+Subject: [PATCH 2/3] Do not skip interrupt sources in sun4d interrupt handler
+Message-Id: <Pine.LNX.4.64.1106012243560.16937@oizys.tordivel.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-I have compile this kernel with the same config as 2.6.36 which work.
+During the introduction of genirq on sparc32 bugs were introduced in 
+the interrupt handler for sun4d. The interrupts handler checks the status 
+of the various sbus interfaces in the system and generates a virtual 
+interrupt, based upon the location of the interrupt source. This lookup 
+was broken by restructuring the code in such a way that index and shift 
+operations were performed prior to comparing this against the values 
+read from the interrupt controllers.
 
-udev[292]: starting version 164
-/pci@1f,4000/ebus@1/flashprom@10,0: OBP Flash, RD 1fff0000000[100000] WR 1fff0000000[100000]
-Unable to handle kernel NULL pointer dereference
-tsk->{mm,active_mm}->context = 000000000000025a
-tsk->{mm,active_mm}->pgd = fffff8003e1ea000
-               \|/ ____ \|/
-               "@'/ .. \`@"
-               /_| \__/ |_\
-                  \__U_/
-cdrom_id(397): Oops [#1]
-TSTATE: 0000004411001605 TPC: 000000000053a138 TNPC: 000000000053a13c Y: 00000000    Not tainted
-TPC: <blkdev_get+0x2ac/0x328>
-g0: 0000000000000000 g1: 000000000097e300 g2: fffff80000004cf0 g3: 0000000000000009
-g4: fffff8000414d080 g5: fffff800009ec000 g6: fffff8003dd40000 g7: 00000000009c8560
-o0: fffff80000004ce8 o1: fffff8003e826748 o2: 0000000000000000 o3: 0000000000552470
-o4: 0000000000000003 o5: fffff80001406b70 sp: fffff8003dd43161 ret_pc: 000000000053a124
-RPC: <blkdev_get+0x298/0x328>
-l0: fffff8003e826700 l1: ffffffffffffff83 l2: fffff8003e826718 l3: 0000000000000000
-l4: fffff8003eb512c8 l5: 0000000000480f14 l6: 000000000053889c l7: fffff8003e826748
-i0: fffff8003e826700 i1: 000000000000009d i2: fffff8003ce01680 i3: fffff8003f010120
-i4: 0000000000000000 i5: fffff8003f010120 i6: fffff8003dd43241 i7: 000000000050cbcc
-I7: <__dentry_open+0x1bc/0x300>
-Call Trace:
-  [000000000050cbcc] __dentry_open+0x1bc/0x300
-  [000000000051990c] do_last+0x79c/0x8e4
-  [000000000051a718] path_openat+0x90/0x360
-  [000000000051aab0] do_filp_open+0x20/0x78
-  [000000000050c920] do_sys_open+0x110/0x1b4
-  [0000000000406114] linux_sparc_syscall32+0x34/0x40
-Disabling lock debugging due to kernel taint
-Caller[000000000050cbcc]: __dentry_open+0x1bc/0x300
-Caller[000000000051990c]: do_last+0x79c/0x8e4
-Caller[000000000051a718]: path_openat+0x90/0x360
-Caller[000000000051aab0]: do_filp_open+0x20/0x78
-Caller[000000000050c920]: do_sys_open+0x110/0x1b4
-Caller[0000000000406114]: linux_sparc_syscall32+0x34/0x40
-Caller[00000000f7744ba8]: 0xf7744ba8
-Instruction DUMP: 030025f8  82106300  c0284000 <c404e220> 80a00011  82603fff  8530a008  80888001  0248000b
+This could cause the handler to loop eternally as the interrupt source 
+could be skipped before any check was performed. Additionally 
+sun4d_encode_irq performs shifting internally, so it should not be performed 
+twice.
 
+In sun4d_unmask interrupts were not correctly acknowledged, as the 
+corresponding bit it the interrupt mask was not actually cleared.
 
-How can I help ?
+Signed-off-by: Kjetil Oftedal <oftedal@gmail.com>
+---
 
-Regards
-	Dan
+ arch/sparc/kernel/sun4d_irq.c |   48 
++++++++++++++++++++++++------------------
+ 1 files changed, 27 insertions(+), 21 deletions(-)
 
-
-
-
-
-
--- 
-Mydatex s r.o.
-http://www.mydatex.cz
-email: smolik@mydatex.cz
-mob: 604200362
-tel: 226210085
+diff --git a/arch/sparc/kernel/sun4d_irq.c b/arch/sparc/kernel/sun4d_irq.c
+index 487c1bb..eaec8a9 100644
+--- a/arch/sparc/kernel/sun4d_irq.c
++++ b/arch/sparc/kernel/sun4d_irq.c
+@@ -103,10 +103,9 @@ static void sun4d_sbus_handler_irq(int sbusl)
+ 
+ 	sbil = (sbusl << 2);
+ 	/* Loop for each pending SBI */
+-	for (sbino = 0; bus_mask; sbino++) {
++	for (sbino = 0; bus_mask; sbino++, bus_mask >>= 1) {
+ 		unsigned int idx, mask;
+ 
+-		bus_mask >>= 1;
+ 		if (!(bus_mask & 1))
+ 			continue;
+ 		/* XXX This seems to ACK the irq twice.  acquire_sbi()
+@@ -118,19 +117,16 @@ static void sun4d_sbus_handler_irq(int sbusl)
+ 		mask &= (0xf << sbil);
+ 
+ 		/* Loop for each pending SBI slot */
+-		idx = 0;
+ 		slot = (1 << sbil);
+-		while (mask != 0) {
++		for (idx = 0; mask != 0; idx++, slot <<= 1) {
+ 			unsigned int pil;
+ 			struct irq_bucket *p;
+ 
+-			idx++;
+-			slot <<= 1;
+ 			if (!(mask & slot))
+ 				continue;
+ 
+ 			mask &= ~slot;
+-			pil = sun4d_encode_irq(sbino, sbil, idx);
++			pil = sun4d_encode_irq(sbino, sbusl, idx);
+ 
+ 			p = irq_map[pil];
+ 			while (p) {
+@@ -218,10 +214,10 @@ static void sun4d_unmask_irq(struct irq_data *data)
+ 
+ #ifdef CONFIG_SMP
+ 	spin_lock_irqsave(&sun4d_imsk_lock, flags);
+-	cc_set_imsk_other(cpuid, cc_get_imsk_other(cpuid) | ~(1 << real_irq));
++	cc_set_imsk_other(cpuid, cc_get_imsk_other(cpuid) & ~(1 << real_irq));
+ 	spin_unlock_irqrestore(&sun4d_imsk_lock, flags);
+ #else
+-	cc_set_imsk(cc_get_imsk() | ~(1 << real_irq));
++	cc_set_imsk(cc_get_imsk() & ~(1 << real_irq));
+ #endif
+ }
+ 
