@@ -1,88 +1,25 @@
-From: Kjetil Oftedal <oftedal@gmail.com>
-Date: Wed, 01 Jun 2011 21:11:41 +0000
-Subject: [PATCH 3/3] Add support for allocating irqs for bootbus devices
-Message-Id: <Pine.LNX.4.64.1106012304260.16937@oizys.tordivel.org>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 02 Jun 2011 21:42:05 +0000
+Subject: Re: [PATCH] sparc: Do not select GENERIC_HARDIRQS_NO_DEPRECATED
+Message-Id: <20110602.144205.1691129951056490754.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1306568396-10438-1-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1306568396-10438-1-git-send-email-geert@linux-m68k.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: geert@linux-m68k.org
+Cc: sam@ravnborg.org, daniel@gaisler.com, tglx@linutronix.de, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Some devices that can generate interrupts are connected directly to the 
-CPU through the bootbus on sun4d. This patch allows IRQs to be allocated 
-for such devices. The information used for allocating interrupts for 
-sbus devices are present at the corresponding SBI node. For bootbus 
-devices this information is present in the bootbus node.
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Sat, 28 May 2011 09:39:56 +0200
 
-Signed-off-by: Kjetil Oftedal <oftedal@gmail.com>
----
- arch/sparc/kernel/sun4d_irq.c |   48 
-+++++++++++++++++++++++------------------
- 1 files changed, 27 insertions(+), 21 deletions(-)
+> Config option GENERIC_HARDIRQS_NO_DEPRECATED was removed in commit
+> 78c89825649a9a5ed526c507603196f467d781a5 ("genirq: Remove the now obsolete
+> config options and select statements"), but the select was accidentally
+> reintroduced in commit 6baa9b20a68a88c2fd751cbe8d7652009379351b
+> ("sparc32: genirq support")
+> 
+> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 
-diff --git a/arch/sparc/kernel/sun4d_irq.c b/arch/sparc/kernel/sun4d_irq.c
-index eaec8a9..1d13c5b 100644
---- a/arch/sparc/kernel/sun4d_irq.c
-+++ b/arch/sparc/kernel/sun4d_irq.c
-@@ -334,7 +334,8 @@ unsigned int sun4d_build_device_irq(struct platform_device *op,
-                                     unsigned int real_irq)
- {
- 	struct device_node *dp = op->dev.of_node;
--	struct device_node *io_unit, *sbi = dp->parent;
-+	struct device_node *board_parent, *bus = dp->parent;
-+	char *bus_connection;
- 	const struct linux_prom_registers *regs;
- 	unsigned int pil;
- 	unsigned int irq;
-@@ -342,13 +343,20 @@ unsigned int sun4d_build_device_irq(struct platform_device *op,
- 	int sbusl;
- 
- 	irq = real_irq;
--	while (sbi) {
--		if (!strcmp(sbi->name, "sbi"))
-+	while (bus) {
-+		if (!strcmp(bus->name, "sbi")) {
-+			bus_connection = "io-unit";
- 			break;
-+		}
-+
-+		if (!strcmp(bus->name, "bootbus")) {
-+			bus_connection = "cpu-unit";
-+			break;
-+		}
- 
--		sbi = sbi->parent;
-+		bus = bus->parent;
- 	}
--	if (!sbi)
-+	if (!bus)
- 		goto err_out;
- 
- 	regs = of_get_property(dp, "reg", NULL);
-@@ -358,17 +366,19 @@ unsigned int sun4d_build_device_irq(struct platform_device *op,
- 	slot = regs->which_io;
- 
- 	/*
--	 *  If SBI's parent is not io-unit or the io-unit lacks
--	 * a "board#" property, something is very wrong.
-+	 * If Bus nodes parent is not io-unit/cpu-unit or the io-unit/cpu-unit
-+	 * lacks a "board#" property, something is very wrong.
- 	 */
--	if (!sbi->parent || strcmp(sbi->parent->name, "io-unit")) {
--		printk("%s: Error, parent is not io-unit.\n", sbi->full_name);
-+	if (!bus->parent || strcmp(bus->parent->name, bus_connection)) {
-+		printk(KERN_ERR "%s: Error, parent is not %s.\n",
-+			bus->full_name, bus_connection);
- 		goto err_out;
- 	}
--	io_unit = sbi->parent;
--	board = of_getintprop_default(io_unit, "board#", -1);
-+	board_parent = bus->parent;
-+	board = of_getintprop_default(board_parent, "board#", -1);
- 	if (board = -1) {
--		printk("%s: Error, lacks board# property.\n", io_unit->full_name);
-+		printk(KERN_ERR "%s: Error, lacks board# property.\n",
-+			board_parent->full_name);
- 		goto err_out;
- 	}
- 
+I'll apply this, thanks Geert.
