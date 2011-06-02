@@ -1,17 +1,27 @@
-From: Meelis Roos <mroos@linux.ee>
-Date: Thu, 16 Jun 2011 12:16:10 +0000
-Subject: Re: [PATCH v2][RFC] i2c-ali1535: enable SPARC support
-Message-Id: <alpine.SOC.1.00.1106161515150.20628@math.ut.ee>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 02 Jun 2011 21:36:22 +0000
+Subject: Re: [PATCH 1/3 v3] sparc32: added CONFIG_PCIC_PCI Kconfig setting
+Message-Id: <20110602.143622.27567493396791333.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4DF8DA1B.3020509@geomatys.fr>
-In-Reply-To: <4DF8DA1B.3020509@geomatys.fr>
+References: <1306220688-8438-1-git-send-email-daniel@gaisler.com>
+In-Reply-To: <1306220688-8438-1-git-send-email-daniel@gaisler.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Tested the patch on my Blade 100 - worked fine. I could read adm1023 
-temperatures and decode dimm spd.
+From: Julian Calaby <julian.calaby@gmail.com>
+Date: Wed, 25 May 2011 08:47:41 +1000
 
--- 
-Meelis Roos (mroos@linux.ee)
+> On Tue, May 24, 2011 at 17:04, Daniel Hellstrom <daniel@gaisler.com> wrot=
+e:
+>> @@ -1650,7 +1650,7 @@ pcic_nmi_trap_patch:
+>> =A0 =A0 =A0 =A0 rd =A0 =A0 %psr, %l0
+>> =A0 =A0 =A0 =A0.word =A0 0
+>>
+>> -#endif /* CONFIG_PCI */
+>> +#endif /* CONFIG_PCI_PCIC */
+>=20
+> This should be CONFIG_PCIC_PCI
+
+I fixed this up when applying the patches.
