@@ -1,7 +1,7 @@
-From: william felipe_welter <wfelipew@gmail.com>
-Date: Thu, 02 Jun 2011 15:47:50 +0000
+From: David Miller <davem@davemloft.net>
+Date: Thu, 02 Jun 2011 21:27:59 +0000
 Subject: Re: mmap operation not working as expected on sparc linux
-Message-Id: <BANLkTinivZes36--eWz_RGnJ8kDpSB2Y4w@mail.gmail.com>
+Message-Id: <20110602.142759.545467293328553082.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4DE5F5B9.4020601@redhat.com>
 In-Reply-To: <4DE5F5B9.4020601@redhat.com>
@@ -10,40 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> http://en.wikipedia.org/wiki/Ring_buffer#Exemplary_POSIX_Implementation
->
-> This doesn't appear to work on sparclinux, returning an error EINVAL  on
-> the second memory map operation:
->
-> address = mmap (buffer->address + buffer->count_bytes,
->                   buffer->count_bytes, PROT_READ | PROT_WRITE,
->                   MAP_FIXED | MAP_SHARED, file_descriptor, 0);
->
-> Any ideas?
+From: Steven Dake <sdake@redhat.com>
+Date: Wed, 01 Jun 2011 02:37:04 -0700
 
-Steven the problem are on the second mmap, this is the third call to mmap...
+> Thanks for the response.  For those searching for this problem in the
+> future, We tried 16384, and then decided to have a look at the kernel
+> source tree and came up with some speculation that the hugetlb settings
+> would result in EINVAL via prepare_hugetlb.  The minimum page we could
+> execute this operation on was 4MB.  I notice on some other arches this
+> is not required.
 
+Requiring 4MB is not kosher, it shouldn't be asking you to do that
+much.
 
-First call:
-buffer->address = mmap (NULL, buffer->count_bytes << 1, PROT_NONE,
-                          MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+Where is this prepare_hugetlb() function in the kernel?  I cannot
+find it.
 
-Second call (where the problem occurs, returns 0xffffffff):
-address =    mmap (buffer->address, buffer->count_bytes, PROT_READ | PROT_WRITE,
-          MAP_FIXED | MAP_SHARED, file_descriptor, 0);
+Also, please prepare a test case for me, I want to fix this.
 
-Third (is not called because the error of the second) :
- address = mmap (buffer->address + buffer->count_bytes,
-                  buffer->count_bytes, PROT_READ | PROT_WRITE,
-                  MAP_FIXED | MAP_SHARED, file_descriptor, 0);
-
-
-Some ideas ? What can be the reason of this behavior ?
-
-
--- 
-William Felipe Welter
-------------------------------
-Consultor em Tecnologias Livres
-william.welter@4linux.com.br
-www.4linux.com.br
+Thanks.
