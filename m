@@ -1,43 +1,39 @@
-From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Fri, 03 Jun 2011 07:27:47 +0000
-Subject: Re: [PATCH 1/3 v3] sparc32: added CONFIG_PCIC_PCI Kconfig setting
-Message-Id: <4DE88CF3.5010907@gaisler.com>
+From: Matthias Rosenfelder <rosenfelder.lkml@googlemail.com>
+Date: Mon, 06 Jun 2011 23:24:48 +0000
+Subject: Re: [PATCH] sparc32,leon: Added __init declaration to leon_flush_needed()
+Message-Id: <4DED61C0.8010809@googlemail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1306220688-8438-1-git-send-email-daniel@gaisler.com>
-In-Reply-To: <1306220688-8438-1-git-send-email-daniel@gaisler.com>
+References: <4DCA7CCC.7050404@googlemail.com>
+In-Reply-To: <4DCA7CCC.7050404@googlemail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-David Miller wrote:
-
->From: Julian Calaby <julian.calaby@gmail.com>
->Date: Wed, 25 May 2011 08:47:41 +1000
+On 16.05.2011 22:33, David Miller wrote:
+> From: Matthias Rosenfelder<rosenfelder.lkml@googlemail.com>
+> Date: Wed, 11 May 2011 14:10:52 +0200
 >
->  
->
->>On Tue, May 24, 2011 at 17:04, Daniel Hellstrom <daniel@gaisler.com> wrote:
->>    
+>> The function leon_flush_needed() is called only during bootup
+>> from another __init function. Therefore, we can add
+>> __init to leon_flush_needed().
 >>
->>>@@ -1650,7 +1650,7 @@ pcic_nmi_trap_patch:
->>>        rd     %psr, %l0
->>>       .word   0
->>>
->>>-#endif /* CONFIG_PCI */
->>>+#endif /* CONFIG_PCI_PCIC */
->>>      
->>>
->>This should be CONFIG_PCIC_PCI
->>    
->>
+>> Signed-off-by: Matthias Rosenfelder<rosenfelder.lkml@googlemail.com>
+>> Acked-by: Daniel Hellstrom<daniel@gaisler.com>
 >
->I fixed this up when applying the patches.
->  
->
-Thanks all for the previous comments and for finding and fixing this 
-particular problem. Thanks for applying the patches.
+> This patch has been corrupted by your email client, making it
+> unusable.
 
-Best Regards,
+I'm sorry. I'm new to sending patches and posting on mailing lists.
 
-Daniel
+Currently, I'm using Thunderbird with standard settings. As I even don't 
+know what went wrong when submitting this patch, I would like to know if 
+there are any known issues with this software or if there is any 
+recommended mail program for working with the kernel mailing lists?!
+
+What program does the usual kernel hacker use?
+
+I also want to apologize for not reacting for such a long time. I'm 
+doing this in my spare time only but I didn't have much time lately.
+
+Thank you for your answers.
