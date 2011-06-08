@@ -1,31 +1,32 @@
-From: Andi Kleen <andi@firstfloor.org>
-Date: Sun, 19 Jun 2011 23:14:02 +0000
-Subject: Re: reorganized struct inode results in unaligned accesses
-Message-Id: <20110619231402.GK16236@one.firstfloor.org>
+From: Meelis Roos <mroos@linux.ee>
+Date: Wed, 08 Jun 2011 07:20:26 +0000
+Subject: Re: problem with newaliases & db
+Message-Id: <alpine.SOC.1.00.1106081016030.8911@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.SOC.1.00.1106191927250.4844@math.ut.ee> <BANLkTiktb6GS7fcHRRgC=bHJjz8k0hVmPw@mail.gmail.com> <m2boxtfo0d.fsf@firstfloor.org> <20110619.160150.1199476848151993579.davem@davemloft.net>
-In-Reply-To: <20110619.160150.1199476848151993579.davem@davemloft.net>
+References: <alpine.SOC.1.00.1105131558530.20145@math.ut.ee>
+In-Reply-To: <alpine.SOC.1.00.1105131558530.20145@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: andi@firstfloor.org, torvalds@linux-foundation.org, mroos@linux.ee, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-> Hmmm, can this scheme actually work out properly on both big and
-> little endian?  Because endianness determines whether the bits start
-> in the "lower addressed" 32-bit word or the "higher addressed" 32-bit
-> word.
-
-True, it needs an ifdef, with the other order in BE. struct page has that iirc.
-
+> > While trying to run postix's newaliases (specifically 
+> > /usr/sbin/postalias hash:/etc/aliases as it is invoked by newaliases), I 
+> > get the following error with 2.6.39-rc7 while it worked fine with 
+> > 2.6.38. This is reproducible. postfix is from Debian unstable, using 
+> > db-5.1 (ldd below). Nothing in dmesg, stderr and strace included. 
 > 
-> If this trick is being attempted elsewhere, I think it could perhaps
-> account for some strange bugs :-)
+> Definitely looks like garbage was read from the file for whatever
+> reason, I really doubt a sparc specific change introduced this
+> problem as we were pretty light on sparc64 changes during that time
+> period.
 
-Well if you want to be sure better try to get rid of the void *
+I have had a look at it again. 2.6.39 packages from Debian also showed 
+this problem on one machine, so 2 machines with different kernel 
+configurations (Blade 100 and Ultra 10) out of 7 tested. 3.0.0-rc2 works 
+fine on all of them so far. Debian has also been updated meanwhile.
 
-(I tried early on in x86-64, it caused a lot of warnings all over)
+If I see it again, I will try bisecting it.
 
--Andi
 -- 
-ak@linux.intel.com -- Speaking for myself only.
+Meelis Roos (mroos@linux.ee)
