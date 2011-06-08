@@ -1,59 +1,42 @@
-From: Oleg Nesterov <oleg@redhat.com>
-Date: Wed, 08 Jun 2011 19:19:10 +0000
-Subject: Re: [PATCH -v2] Audit: push audit success and retcode into arch
-Message-Id: <20110608191910.GA18698@redhat.com>
+From: Meelis Roos <mroos@linux.ee>
+Date: Wed, 08 Jun 2011 12:40:33 +0000
+Subject: 11 bogomips at 500 MHz?
+Message-Id: <alpine.SOC.1.00.1106081531580.8911@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110603220451.23134.47368.stgit@paris.rdu.redhat.com> <20110607171952.GA25729@redhat.com> <1307472796.2052.12.camel@localhost.localdomain> <20110608163653.GA9592@redhat.com> <1307556823.2577.5.camel@localhost.localdomain> <20110608183720.GA16883@redhat.com>
-In-Reply-To: <20110608183720.GA16883@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eric Paris <eparis@redhat.com>
-Cc: linux-kernel@vger.kernel.org, tony.luck@intel.com, fenghua.yu@intel.com, monstr@monstr.eu, ralf@linux-mips.org, benh@kernel.crashing.org, paulus@samba.org, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, linux390@de.ibm.com, lethal@linux-sh.org, davem@davemloft.net, jdike@addtoit.com, richard@nod.at, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, viro@zeniv.linux.org.uk, akpm@linux-foundation.org, linux-ia64@vger.kernel.org, microblaze-uclinux@itee.uq.edu.au, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, user-mode-linux-devel@lists.sourceforge.net
+To: sparclinux@vger.kernel.org
 
-On 06/08, Oleg Nesterov wrote:
->
-> OK. Thanks a lot Eric for your explanations.
+I see this on 500 MHz Fire V100.
 
-Yes. but may I ask another one?
+[   59.253164] calibrate_delay_direct() timer_rate_maxU726 timer_rate_minU504 pre_start29128453 pre_end29184069
+[   59.283196] calibrate_delay_direct() timer_rate_maxU721 timer_rate_minU503 pre_start29295308 pre_end29350920
+[   59.313228] calibrate_delay_direct() timer_rate_maxU722 timer_rate_minU502 pre_start29462156 pre_end29517768
+[   59.343261] calibrate_delay_direct() timer_rate_maxU723 timer_rate_minU505 pre_start29629002 pre_end29684616
+[   59.373293] calibrate_delay_direct() timer_rate_maxU718 timer_rate_minU499 pre_start29795855 pre_end29851464
+[   59.373349] Calibrating delay using timer specific routine.. 11.14 BogoMIPS (lpjU722)
 
-Shouldn't copy_process()->audit_alloc(tsk) path do
-clear_tsk_thread_flag(tsk, TIF_SYSCALL_AUDIT) if it doesn't
-set tsk->audit_context?
+11 bogomips seems ... slow. Older machines like Ultra 1, Ultra 5/10 show 
+double the CPU clock speed as bogomips. Is it normal or is something 
+clock-related broken?
 
-I can be easily wrong, but afaics otherwise the child can run
-with TIF_SYSCALL_AUDIT bit copied from parent's thread_info by
-dup_task_struct()->setup_thread_stack() and without ->audit_context,
-right? For what?
+cpu             : TI UltraSparc IIe (Hummingbird)
+fpu             : UltraSparc IIe integrated FPU
+pmu             : ultra12
+prom            : OBP 4.0.18 2002/05/23 18:22
+type            : sun4u
+ncpus probed    : 1
+ncpus active    : 1
+D$ parity tl1   : 0
+I$ parity tl1   : 0
+Cpu0ClkTck      : 000000001dcd6500
+MMU Type        : Spitfire
 
-Any other reason why audit_syscall_entry() checks context != NULL?
+Netra X1 has it also similarly.
 
-IOW. Any reason the patch below is wrong?
+My dmesg logs go back to August 2008 and it has been the same always (at 
+least at about 2.6.25), so it's not anything recent.
 
-I am just curious, thanks.
-
-Oleg.
-
---- x/kernel/auditsc.c
-+++ x/kernel/auditsc.c
-@@ -885,6 +885,8 @@ int audit_alloc(struct task_struct *tsk)
- 	if (likely(!audit_ever_enabled))
- 		return 0; /* Return if not auditing. */
- 
-+	clear_tsk_thread_flag(tsk, TIF_SYSCALL_AUDIT);
-+
- 	state = audit_filter_task(tsk, &key);
- 	if (likely(state = AUDIT_DISABLED))
- 		return 0;
-@@ -1591,9 +1593,7 @@ void audit_syscall_entry(int arch, int m
- 	struct audit_context *context = tsk->audit_context;
- 	enum audit_state     state;
- 
--	if (unlikely(!context))
--		return;
--
-+	BUG_ON(!context);
- 	/*
- 	 * This happens only on certain architectures that make system
- 	 * calls in kernel_thread via the entry.S interface, instead of
-
+-- 
+Meelis Roos (mroos@linux.ee)
