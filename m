@@ -1,64 +1,70 @@
-From: Will Drewry <wad@chromium.org>
-Date: Fri, 24 Jun 2011 00:36:51 +0000
-Subject: [PATCH v9 12/13] sparc: select HAVE_SECCOMP_FILTER and provide seccomp_execve
-Message-Id: <1308875813-20122-12-git-send-email-wad@chromium.org>
+From: BERTRAND Joel <joel.bertrand@systella.fr>
+Date: Wed, 08 Jun 2011 14:42:28 +0000
+Subject: [2.6.39] WARNING: at mm/page_alloc.c
+Message-Id: <4DEF8A54.6020705@systella.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1308875813-20122-1-git-send-email-wad@chromium.org>
-In-Reply-To: <1308875813-20122-1-git-send-email-wad@chromium.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: torvalds@linux-foundation.org, djm@mindrot.org, segoon@openwall.com, kees.cook@canonical.com, mingo@elte.hu, rostedt@goodmis.org, jmorris@namei.org, fweisbec@gmail.com, tglx@linutronix.de, scarybeasts@gmail.com, Will Drewry <wad@chromium.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Facilitate the use of CONFIG_SECCOMP_FILTER by wrapping compatibility
-system call numbering for execve and selecting HAVE_SECCOMP_FILTER.
+	Hello,
 
-v9: rebase on to bccaeafd7c117acee36e90d37c7e05c19be9e7bf
+	I have upgraded my blade 2000/smp from 2.6.32 to 2.6.39 kernel 
+yesterday and this server stops to answer on its console. I have 
+rebooted and found in /var/log/syslog :
 
-Signed-off-by: Will Drewry <wad@chromium.org>
----
- arch/sparc/Kconfig               |    2 ++
- arch/sparc/include/asm/seccomp.h |    2 ++
- 2 files changed, 4 insertions(+), 0 deletions(-)
+Jun  8 16:17:06 rayleigh kernel: ------------[ cut here ]------------
+Jun  8 16:17:06 rayleigh kernel: WARNING: at mm/page_alloc.c:2032
+__alloc_pages_nodemask+0x148/0x720()
+Jun  8 16:17:06 rayleigh kernel: Modules linked in: openpromfs 
+xt_multiport tcp_diag inet_diag snd_hrtimer xt_mark iptable_mangle 
+ipt_MASQUERADE iptable_nat xt_state xt_tcpudp iptable_filter ip_tables 
+x_tables parport_pc lp parport af_packet cpufreq_stats cpufreq_powersave 
+cpufreq_conservative cpufreq_userspace
+nfsd nfs lockd fscache nfs_acl sunrpc fuse raid456 async_pq async_xor 
+xor async_memcpy async_raid6_recov raid6_pq async_tx nf_nat_ftp nf_nat
+nf_conntrack_ipv4 nf_defrag_ipv4 nf_conntrack_ftp nf_conntrack loop 
+usbhid hid usblp pl2303 st ch sg sr_mod cdrom snd_sun_cs4231 snd_pcm_oss 
+snd_mixer_oss snd_pcm option snd_seq_dummy usb_wwan snd_seq_oss 
+snd_seq_midi snd_rawmidi snd_seq_midi_event snd_seq usbserial snd_timer 
+snd_seq_device mptspi snd mptscsih firewire_ohci sungem ohci_hcd 
+soundcore mptbase 3c59x sym53c8xx snd_page_alloc firewire_core riowd bbc 
+flash ehci_hcd crc_itu_t sungem_phy mii
+unix
+Jun  8 16:17:06 rayleigh kernel: Call Trace:
+Jun  8 16:17:06 rayleigh kernel: [00000000004c1ac8]
+__alloc_pages_nodemask+0x148/0x720
+Jun  8 16:17:06 rayleigh kernel: [00000000004c0f68] 
+__get_free_pages+0x8/0x40
+Jun  8 16:17:06 rayleigh kernel: [00000000004f5958]
+__kmalloc_node_track_caller+0x18/0x140
+Jun  8 16:17:06 rayleigh kernel: [00000000006c3a8c] __alloc_skb+0x4c/0x120
+Jun  8 16:17:06 rayleigh kernel: [00000000006c4eb4] 
+__netdev_alloc_skb+0x14/0x60
+Jun  8 16:17:06 rayleigh kernel: [00000000100456d0] boomerang_rx+0x3f0/0x5a0
+[3c59x]
+Jun  8 16:17:06 rayleigh kernel: [0000000010047430]
+boomerang_interrupt+0x210/0x3a0 [3c59x]
+Jun  8 16:17:06 rayleigh kernel: [00000000004a3b80]
+handle_irq_event_percpu+0x60/0x1a0
+Jun  8 16:17:06 rayleigh kernel: [00000000004a3cf0] 
+handle_irq_event+0x30/0x60
+Jun  8 16:17:06 rayleigh kernel: [00000000004a65f0]
+handle_fasteoi_irq+0x90/0x120
+Jun  8 16:17:06 rayleigh kernel: [000000000042a7dc] handler_irq+0xbc/0x100
+Jun  8 16:17:06 rayleigh kernel: [00000000004208b4] tl0_irq5+0x14/0x20
+Jun  8 16:17:06 rayleigh kernel: [000000000043a43c] 
+touch_nmi_watchdog+0x5c/0xc0
+Jun  8 16:17:06 rayleigh kernel: [000000000042c534] cpu_idle+0x74/0x160
+Jun  8 16:17:06 rayleigh kernel: [00000000008b2804] start_kernel+0x318/0x328
+Jun  8 16:17:06 rayleigh kernel: [000000000074e59c] tlb_fixup_done+0x98/0xbc
+Jun  8 16:17:06 rayleigh kernel: ---[ end trace cbaa4d66fc5e5778 ]---
+Jun  8 16:17:06 rayleigh kernel: eth1: memory shortage
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index 253986b..d4d0ec4 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -26,6 +26,7 @@ config SPARC
- 	select HAVE_DMA_API_DEBUG
- 	select HAVE_ARCH_JUMP_LABEL
- 	select HAVE_GENERIC_HARDIRQS
-+	select HAVE_SECCOMP_FILTER
- 	select GENERIC_IRQ_SHOW
- 	select USE_GENERIC_SMP_HELPERS if SMP
- 
-@@ -42,6 +43,7 @@ config SPARC64
- 	select HAVE_KRETPROBES
- 	select HAVE_KPROBES
- 	select HAVE_MEMBLOCK
-+	select HAVE_SECCOMP_FILTER
- 	select HAVE_SYSCALL_WRAPPERS
- 	select HAVE_DYNAMIC_FTRACE
- 	select HAVE_FTRACE_MCOUNT_RECORD
-diff --git a/arch/sparc/include/asm/seccomp.h b/arch/sparc/include/asm/seccomp.h
-index adca1bc..a1dac08 100644
---- a/arch/sparc/include/asm/seccomp.h
-+++ b/arch/sparc/include/asm/seccomp.h
-@@ -6,10 +6,12 @@
- #define __NR_seccomp_write __NR_write
- #define __NR_seccomp_exit __NR_exit
- #define __NR_seccomp_sigreturn __NR_rt_sigreturn
-+#define __NR_seccomp_execve __NR_execve
- 
- #define __NR_seccomp_read_32 __NR_read
- #define __NR_seccomp_write_32 __NR_write
- #define __NR_seccomp_exit_32 __NR_exit
- #define __NR_seccomp_sigreturn_32 __NR_sigreturn
-+#define __NR_seccomp_execve_32 __NR_execve
- 
- #endif /* _ASM_SECCOMP_H */
--- 
-1.7.0.4
+	Just after these lines, system has crashed. 2.6.32 works like a charm, 
+thus I'll downgrade kernel.
 
+	Regards,
+
+	JB
