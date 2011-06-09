@@ -1,40 +1,55 @@
-From: Chris Metcalf <cmetcalf@tilera.com>
-Date: Wed, 15 Jun 2011 14:35:38 +0000
-Subject: [PATCH] arch/tile: remove useless set_fixmap_nocache() macro
-Message-Id: <201106151442.p5FEg4ir010298@farm-0002.internal.tilera.com>
+From: Daniel Hellstrom <daniel@gaisler.com>
+Date: Thu, 09 Jun 2011 12:54:09 +0000
+Subject: [PATCH 2/2] sparc32, leon: bugfix in LEON SMP interrupt init
+Message-Id: <1307624049-29690-2-git-send-email-daniel@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110609172745.dfd3a298.sfr@canb.auug.org.au><20110609184127.GA2760@kroah.com><20110609192243.GA3980@kroah.com><20110610160548.529797c7.sfr@canb.auug.org.au>
-In-Reply-To: <20110610160548.529797c7.sfr@canb.auug.org.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Geert Uytterhoeven <geert@linux-m68k.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Greg KH <greg@kroah.com>, brudley@broadcom.com, henryp@broadcom.com, rvossen@broadcom.co
+To: sparclinux@vger.kernel.org
 
-TILE doesn't support PAGE_KERNEL_NOCACHE so the macro isn't useful;
-it's a copy-and-paste from the first version of this header in 2007.
+During converting per-cpu ticker to genirq layer some
+IRQ initialization code was removed by commit
+2cf9530420e446bb61f665d02afeb81070106900 ("sparc32,leon:
+per-cpu ticker use genirq per-cpu handler").
 
-Signed-off-by: Chris Metcalf <cmetcalf@tilera.com>
+This patch reintroduces the code at the same place it was
+removed from. IRQ12 - IRQ14 will crash on LEON SMP without
+this patch because it will run the SUN4M IRQ trap handler.
+
+Reported-by: Jan Andersson <jan@gaisler.com>
+Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
 ---
- arch/tile/include/asm/fixmap.h |    6 ------
- 1 files changed, 0 insertions(+), 6 deletions(-)
+ arch/sparc/kernel/leon_kernel.c |   16 ++++++++++++++++
+ 1 files changed, 16 insertions(+), 0 deletions(-)
 
-diff --git a/arch/tile/include/asm/fixmap.h b/arch/tile/include/asm/fixmap.h
-index 51537ff..c66f793 100644
---- a/arch/tile/include/asm/fixmap.h
-+++ b/arch/tile/include/asm/fixmap.h
-@@ -75,12 +75,6 @@ extern void __set_fixmap(enum fixed_addresses idx,
+diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
+index c23d61e..d17255a 100644
+--- a/arch/sparc/kernel/leon_kernel.c
++++ b/arch/sparc/kernel/leon_kernel.c
+@@ -376,6 +376,22 @@ void __init leon_init_timers(irq_handler_t counter_fn)
+ 		prom_halt();
+ 	}
  
- #define set_fixmap(idx, phys) \
- 		__set_fixmap(idx, phys, PAGE_KERNEL)
--/*
-- * Some hardware wants to get fixmapped without caching.
-- */
--#define set_fixmap_nocache(idx, phys) \
--		__set_fixmap(idx, phys, PAGE_KERNEL_NOCACHE)
--
- #define clear_fixmap(idx) \
- 		__set_fixmap(idx, 0, __pgprot(0))
- 
++#ifdef CONFIG_SMP
++	{
++		unsigned long flags;
++
++		/*
++		 * In SMP, sun4m adds a IPI handler to IRQ trap handler that
++		 * LEON never must take, sun4d and LEON overwrites the branch
++		 * with a NOP.
++		 */
++		local_irq_save(flags);
++		patchme_maybe_smp_msg[0] = 0x01000000; /* NOP out the branch */
++		local_flush_cache_all();
++		local_irq_restore(flags);
++	}
++#endif
++
+ 	LEON3_BYPASS_STORE_PA(&leon3_gptimer_regs->e[leon3_gptimer_idx].ctrl,
+ 			      LEON3_GPTIMER_EN |
+ 			      LEON3_GPTIMER_RL |
 -- 
-1.6.5.2
+1.5.4
 
