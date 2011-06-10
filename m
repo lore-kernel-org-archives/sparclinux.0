@@ -1,22 +1,53 @@
-From: Meelis Roos <mroos@linux.ee>
-Date: Tue, 14 Jun 2011 10:39:03 +0000
-Subject: Re: 3.0-rc3: Kernel unaligned access at end_writeback+0x38
-Message-Id: <alpine.SOC.1.00.1106141338270.16316@math.ut.ee>
+From: Mathias Krause <minipli@googlemail.com>
+Date: Fri, 10 Jun 2011 13:10:53 +0000
+Subject: [PATCH] sparc, exec: remove redundant addr_limit assignment
+Message-Id: <1307711453-17412-1-git-send-email-minipli@googlemail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.SOC.1.00.1106141331430.16316@math.ut.ee>
-In-Reply-To: <alpine.SOC.1.00.1106141331430.16316@math.ut.ee>
+References: <BANLkTinv1teZEHMK0qymaVdcxPOErpqSyg@mail.gmail.com>
+In-Reply-To: <BANLkTinv1teZEHMK0qymaVdcxPOErpqSyg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org, Linux Kernel list <linux-kernel@vger.kernel.org>
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Mathias Krause <minipli@googlemail.com>
 
-> Tested 3.0-rc3 on a sparc64 machine and got loads of these warnings:
-> 
-> [   71.909647] Kernel unaligned access at TPC[4d95b8] end_writeback+0x38/0xc0
+The address limit is already set in flush_old_exec() so this
+assignment of USER_DS is redundant.
 
-Another machinbe also shows
-Kernel unaligned access at TPC[4ee800] iget_locked+0x60/0x160
-with 3.0.rc2-0400-...
+Signed-off-by: Mathias Krause <minipli@googlemail.com>
+---
+ arch/sparc/kernel/process_32.c |    3 +--
+ arch/sparc/kernel/process_64.c |    3 ---
+ 2 files changed, 1 insertions(+), 5 deletions(-)
 
+diff --git a/arch/sparc/kernel/process_32.c b/arch/sparc/kernel/process_32.c
+index c8cc461..f793742 100644
+--- a/arch/sparc/kernel/process_32.c
++++ b/arch/sparc/kernel/process_32.c
+@@ -380,8 +380,7 @@ void flush_thread(void)
+ #endif
+ 	}
+ 
+-	/* Now, this task is no longer a kernel thread. */
+-	current->thread.current_ds = USER_DS;
++	/* This task is no longer a kernel thread. */
+ 	if (current->thread.flags & SPARC_FLAG_KTHREAD) {
+ 		current->thread.flags &= ~SPARC_FLAG_KTHREAD;
+ 
+diff --git a/arch/sparc/kernel/process_64.c b/arch/sparc/kernel/process_64.c
+index c158a95..d959cd0 100644
+--- a/arch/sparc/kernel/process_64.c
++++ b/arch/sparc/kernel/process_64.c
+@@ -368,9 +368,6 @@ void flush_thread(void)
+ 
+ 	/* Clear FPU register state. */
+ 	t->fpsaved[0] = 0;
+-	
+-	if (get_thread_current_ds() != ASI_AIUS)
+-		set_fs(USER_DS);
+ }
+ 
+ /* It's a bit more tricky when 64-bit tasks are involved... */
 -- 
-Meelis Roos (mroos@linux.ee)
+1.5.6.5
+
