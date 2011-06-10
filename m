@@ -1,28 +1,54 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 09 Jun 2011 23:06:11 +0000
-Subject: Re: [PATCH][RFC] Sparc: Remove trigraph in die_if_kernel() message.
-Message-Id: <20110609.160611.1243367560228886911.davem@davemloft.net>
+From: Jesper Juhl <jj@chaosbits.net>
+Date: Fri, 10 Jun 2011 07:51:22 +0000
+Subject: Re: [PATCH][RFC] Sparc: Remove trigraph in die_if_kernel()
+Message-Id: <alpine.LNX.2.00.1106100947010.19998@swampdragon.chaosbits.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="8323328-1561661386-1307692113=:19998"
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LNX.2.00.1106071627260.8844@swampdragon.chaosbits.net>
-	<20110609.155943.162785602513776337.davem@davemloft.net>
-	<20110609230322.GY11521@ZenIV.linux.org.uk>
-In-Reply-To: <20110609230322.GY11521@ZenIV.linux.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: viro@ZenIV.linux.org.uk
-Cc: jj@chaosbits.net, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <alpine.LNX.2.00.1106071627260.8844@swampdragon.chaosbits.net> <20110609.155943.162785602513776337.davem@davemloft.net> <20110609230322.GY11521@ZenIV.linux.org.uk> <20110609.160611.1243367560228886911.davem@davemloft.net>
+In-Reply-To: <20110609.160611.1243367560228886911.davem@davemloft.net>
+To: David Miller <davem@davemloft.net>
+Cc: viro@ZenIV.linux.org.uk, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Al Viro <viro@ZenIV.linux.org.uk>
-Date: Fri, 10 Jun 2011 00:03:22 +0100
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> On Thu, Jun 09, 2011 at 03:59:43PM -0700, David Miller wrote:
->> > If I'm not mistaken, that "??!" will be taken as a trigraph for "|" by the 
->> > preprocessor, so the final string will end up either as
->> >   "Penguin instruction from Penguin mode|?!"
-> 
-> Not without -trigraphs, which is not on by default...
+--8323328-1561661386-1307692113=:19998
+Content-Type: TEXT/PLAIN; charset="iso-8859-7"
+Content-Transfer-Encoding: base64
+Content-ID: <alpine.LNX.2.00.1106100948511.19998@swampdragon.chaosbits.net>
 
-Oh, in that case I'll rever this.
+T24gVGh1LCA5IEp1biAyMDExLCBEYXZpZCBNaWxsZXIgd3JvdGU6Cgo+IEZyb206IEFsIFZpcm8g
+PHZpcm9AWmVuSVYubGludXgub3JnLnVrPgo+IERhdGU6IEZyaSwgMTAgSnVuIDIwMTEgMDA6MDM6
+MjIgKzAxMDAKPiAKPiA+IE9uIFRodSwgSnVuIDA5LCAyMDExIGF0IDAzOjU5OjQzUE0gLTA3MDAs
+IERhdmlkIE1pbGxlciB3cm90ZToKPiA+PiA+IElmIEknbSBub3QgbWlzdGFrZW4sIHRoYXQgIj8/
+ISIgd2lsbCBiZSB0YWtlbiBhcyBhIHRyaWdyYXBoIGZvciAifCIgYnkgdGhlIAo+ID4+ID4gcHJl
+cHJvY2Vzc29yLCBzbyB0aGUgZmluYWwgc3RyaW5nIHdpbGwgZW5kIHVwIGVpdGhlciBhcwo+ID4+
+ID4gICAiUGVuZ3VpbiBpbnN0cnVjdGlvbiBmcm9tIFBlbmd1aW4gbW9kZXw/ISIKPiA+IAo+ID4g
+Tm90IHdpdGhvdXQgLXRyaWdyYXBocywgd2hpY2ggaXMgbm90IG9uIGJ5IGRlZmF1bHQuLi4KPiAK
+PiBPaCwgaW4gdGhhdCBjYXNlIEknbGwgcmV2ZXIgdGhpcy4KPiAKCldlbGwsIG15IGdjYyB3YXJu
+cyBhYm91dCBpdC4gSXQgc2VlbXMgdGhhdCAtV3RyaWdyYXBocyBpcyBlbmFibGVkIGJ5IApkZWZh
+dWx0OgoKW2pqQGRyYWdvbiBzcmNdJCBnY2MgLS12ZXJzaW9uCmdjYyAoR0NDKSA0LjYuMCAyMDEx
+MDYwMyAocHJlcmVsZWFzZSkKQ29weXJpZ2h0IChDKSAyMDExIEZyZWUgU29mdHdhcmUgRm91bmRh
+dGlvbiwgSW5jLgpUaGlzIGlzIGZyZWUgc29mdHdhcmU7IHNlZSB0aGUgc291cmNlIGZvciBjb3B5
+aW5nIGNvbmRpdGlvbnMuICBUaGVyZSBpcyBOTyAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAp3
+YXJyYW50eTsgbm90IGV2ZW4gZm9yIE1FUkNIQU5UQUJJTElUWSBvciBGSVRORVNTIEZPUiBBIFBB
+UlRJQ1VMQVIgClBVUlBPU0UuCgpbampAZHJhZ29uIHNyY10kIGNhdCB0ZXN0LmMKI2luY2x1ZGUg
+PHN0ZGlvLmg+CgppbnQgbWFpbigpCnsKICBwcmludGYoIlBlbmd1aW4gaW5zdHJ1Y3Rpb24gZnJv
+bSBQZW5ndWluIG1vZGU/PyE/ISIpOwogIHJldHVybiAwOwp9CltqakBkcmFnb24gc3JjXSQgZ2Nj
+IHRlc3QuYwp0ZXN0LmM6IEluIGZ1bmN0aW9uIKFtYWluojoKdGVzdC5jOjU6NDg6IHdhcm5pbmc6
+IHRyaWdyYXBoID8/ISBpZ25vcmVkLCB1c2UgLXRyaWdyYXBocyB0byBlbmFibGUgWy1XdHJpZ3Jh
+cGhzXQoKCldoaWNoIHdhcyB3aHkgSSB3cm90ZSBpbiBteSBvcmlnaW5hbCBzdWJtaXNzaW9uIG1h
+aWwgOgoKIi4uLiB3aGljaCBJIGFzc3VtZSBpcyBub3Qgd2hhdCB3ZSB3YW50LCBvciBhcyB0aGUg
+Y29ycmVjdCBzdHJpbmcgYnV0IHdpdGggCmEgd2FybmluZyBhYm91dCBhbiBpZ25vcmVkIHRyaWdy
+YXBoIHdoaWNoIEkgYXNzdW1lIHdlIGRvbid0IHdhbnQgZWl0aGVyLiIKClNvIGVpdGhlciB3ZSBn
+ZXQgdGhlIHdyb25nIHN0cmluZyAoaWYgc29tZW9uZSBlbmFibGVzIC10cmlncmFwaHMpIG9yIHdl
+IApnZXQgYSB3YXJuaW5nIChhdCBsZWFzdCB3aXRoIG5ld2VyIGdjYydzKS4gV2hpY2ggaXMgd2h5
+IEkgZmVsdCB0aGUgcGF0Y2ggCm1hZGUgc2Vuc2UgYXMgYSB3YXkgdG8gYXZvaWQgYm90aCB1bmZv
+cnR1bmF0ZSByZXN1bHRzLgoKLS0gCkplc3BlciBKdWhsIDxqakBjaGFvc2JpdHMubmV0PiAgICAg
+ICBodHRwOi8vd3d3LmNoYW9zYml0cy5uZXQvCkRvbid0IHRvcC1wb3N0IGh0dHA6Ly93d3cuY2F0
+Yi5vcmcvamFyZ29uL2h0bWwvVC90b3AtcG9zdC5odG1sClBsYWluIHRleHQgbWFpbHMgb25seSwg
+cGxlYXNlLg==
 
-Thanks Al.
+--8323328-1561661386-1307692113=:19998--
