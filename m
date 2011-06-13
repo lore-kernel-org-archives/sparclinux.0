@@ -1,7 +1,7 @@
 From: Meelis Roos <mroos@linux.ee>
-Date: Sat, 11 Jun 2011 16:51:01 +0000
+Date: Mon, 13 Jun 2011 17:28:05 +0000
 Subject: Re: RTC problem on Netra X1?
-Message-Id: <alpine.SOC.1.00.1106111948100.27021@math.ut.ee>
+Message-Id: <alpine.SOC.1.00.1106132011540.20957@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
 References: <alpine.SOC.1.00.1106081454240.8911@math.ut.ee>
 In-Reply-To: <alpine.SOC.1.00.1106081454240.8911@math.ut.ee>
@@ -10,83 +10,43 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> > > # hwclock --systohc
-> > > Timed out waiting for time change.
-> 
-> The hwclock problem seems to have apperaed between 2.6.37 and 2.6.38 and 
-> I will bisect it later.
+> > Dmesg finds both OF RTC and PC RTC but later complains
+> > "No RTC device found, ALARM timers will not wake from suspend"
 
-Done bisecting. Found the following patch. Reverting this patch in 
-3.0.0-rc2 fixes hwclock --systohc on my Sun Fire V100 (sparc64).
+Bisected this too - first on driver/rtc arch/sparc, the result seemed 
+suspicious, redid with last good and bad commit with whole tree. Got
+32673822e440eb92eb334631eb0a199d0c532d13 to be the first bad commit.
+This is about jump labels - seemingly unrelated but touches several 
+architectures, sparc included. It can not be easily reverted on master 
+for testing either.
 
-commit ac54cd2bd5b4db4f1c03392d63daf355627ea180
-Author: John Stultz <john.stultz@linaro.org>
-Date:   Wed Feb 2 16:55:19 2011 -0800
+Another data point: If I applied the other revert for hwclock RTC 
+problem on top of 3.0rc2, it also cured this problem.
 
-    RTC: Fix rtc driver ioctl specific shortcutting
-    
-    Some RTC drivers enable functionality directly via their ioctl method
-    instead of using the generic ioctl handling code. With the recent
-    virtualization of the RTC layer, its now important that the generic
-    layer always be used.
-    
-    This patch moved the rtc driver ioctl method call to after the generic
-    ioctl processing is done. This allows hardware specific features or
-    ioctls to still function, while relying on the generic code for handling
-    everything else.
-    
-    This patch on its own may more obviously break rtc drivers that
-    implement the alarm irq enablement via their ioctl method instead of
-    implementing the alarm_irq_eanble method. Those drivers will be fixed
-    in a following patch. Additionaly, those drivers are already likely to
-    not be functioning reliably without this patch.
-    
-    CC: Alessandro Zummo <a.zummo@towertech.it>
-    CC: Marcelo Roberto Jimenez <mroberto@cpti.cetuc.puc-rio.br>
-    CC: Thomas Gleixner <tglx@linutronix.de>
-    Reported-by: Marcelo Roberto Jimenez <mroberto@cpti.cetuc.puc-rio.br>
-    Tested-by: Marcelo Roberto Jimenez <mroberto@cpti.cetuc.puc-rio.br>
-    Signed-off-by: John Stultz <john.stultz@linaro.org>
+Whole git bisect log if it is of any interest. Started from
+git bisect start '32673822e440eb92eb334631eb0a199d0c532d13' 'f400bdb1d6de4344980cf39041497b288090dd33'
+as these were the last bad and good commits from bisecting just 
+drivers/rtc and arch/sparc.
 
-diff --git a/drivers/rtc/rtc-dev.c b/drivers/rtc/rtc-dev.c
-index 212b16e..37c3cc1 100644
---- a/drivers/rtc/rtc-dev.c
-+++ b/drivers/rtc/rtc-dev.c
-@@ -154,19 +154,7 @@ static long rtc_dev_ioctl(struct file *file,
- 	if (err)
- 		goto done;
- 
--	/* try the driver's ioctl interface */
--	if (ops->ioctl) {
--		err = ops->ioctl(rtc->dev.parent, cmd, arg);
--		if (err != -ENOIOCTLCMD) {
--			mutex_unlock(&rtc->ops_lock);
--			return err;
--		}
--	}
--
--	/* if the driver does not provide the ioctl interface
--	 * or if that particular ioctl was not implemented
--	 * (-ENOIOCTLCMD), we will try to emulate here.
--	 *
-+	/*
- 	 * Drivers *SHOULD NOT* provide ioctl implementations
- 	 * for these requests.  Instead, provide methods to
- 	 * support the following code, so that the RTC's main
-@@ -329,7 +317,12 @@ static long rtc_dev_ioctl(struct file *file,
- 		return err;
- 
- 	default:
--		err = -ENOTTY;
-+		/* Finally try the driver's ioctl interface */
-+		if (ops->ioctl) {
-+			err = ops->ioctl(rtc->dev.parent, cmd, arg);
-+			if (err = -ENOIOCTLCMD)
-+				err = -ENOTTY;
-+		}
- 		break;
- 	}
- 
+# bad: [32673822e440eb92eb334631eb0a199d0c532d13] Merge branch 'tip/perf/core' of git://git.kernel.org/pub/scm/linux/kernel/git/rostedt/linux-2.6-trace into perf/core
+# good: [f400bdb1d6de4344980cf39041497b288090dd33] sparc32: fix build, fix missing cpu_relax declaration
+git bisect start '32673822e440eb92eb334631eb0a199d0c532d13' 'f400bdb1d6de4344980cf39041497b288090dd33'
+# good: [2f666bcf757cb72549f360ef6da02f03620a48b6] Merge branch 'drm-fixes' of git://git.kernel.org/pub/scm/linux/kernel/git/airlied/drm-2.6
+git bisect good 2f666bcf757cb72549f360ef6da02f03620a48b6
+# good: [25b210371f76ac63b30d998549f5f4891d805f3b] Merge branch 'drm-intel-fixes' of git://git.kernel.org/pub/scm/linux/kernel/git/keithp/linux-2.6
+git bisect good 25b210371f76ac63b30d998549f5f4891d805f3b
+# good: [91e8549bde9e5cc88c5a2e8c8114389279e240b5] Merge branch 'for-linus' of git://git.kernel.dk/linux-2.6-block
+git bisect good 91e8549bde9e5cc88c5a2e8c8114389279e240b5
+# good: [f18568aae5612ab37f20e5f383d6154ea69c9dfc] perf tools: git mv tools/perf/{features-tests.mak,config/}
+git bisect good f18568aae5612ab37f20e5f383d6154ea69c9dfc
+# good: [5373db886b791b2bc7811e2c115377916c409a5d] jump label: Add s390 support
+git bisect good 5373db886b791b2bc7811e2c115377916c409a5d
+# good: [eff430de53be6f3328c3eebe93755f1ecf499e37] Merge branch 'linus' into perf/core
+git bisect good eff430de53be6f3328c3eebe93755f1ecf499e37
+# good: [fa7b69475a6c192853949ba496dd9c37b497b548] perf events, x86, P4: Fix typo in comment
+git bisect good fa7b69475a6c192853949ba496dd9c37b497b548
+
+Any ideas what to look next?
 
 -- 
 Meelis Roos (mroos@linux.ee)
