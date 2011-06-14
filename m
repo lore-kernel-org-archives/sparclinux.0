@@ -1,22 +1,16 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 07 Jun 2011 23:07:47 +0000
-Subject: Re: [PATCH] sparc: Remove unnecessary semicolons
-Message-Id: <20110607.160747.1497130458418856130.davem@davemloft.net>
+From: Meelis Roos <mroos@linux.ee>
+Date: Tue, 14 Jun 2011 10:32:44 +0000
+Subject: 3.0-rc3: Kernel unaligned access at end_writeback+0x38
+Message-Id: <alpine.SOC.1.00.1106141331430.16316@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <6249a3b9b6716eb774d4c7958c259e5e2d43d642.1307148187.git.joe@perches.com>
-In-Reply-To: <6249a3b9b6716eb774d4c7958c259e5e2d43d642.1307148187.git.joe@perches.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: joe@perches.com
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org, Linux Kernel list <linux-kernel@vger.kernel.org>
 
-From: Joe Perches <joe@perches.com>
-Date: Fri,  3 Jun 2011 17:45:23 -0700
+Tested 3.0-rc3 on a sparc64 machine and got loads of these warnings:
 
-> Semicolons are not necessary after switch/while/for/if braces
-> so remove them.
-> 
-> Signed-off-by: Joe Perches <joe@perches.com>
+[   71.909647] Kernel unaligned access at TPC[4d95b8] end_writeback+0x38/0xc0
 
-Applied, thanks Joe.
+-- 
+Meelis Roos (mroos@linux.ee)
