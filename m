@@ -1,55 +1,97 @@
-From: "Daniel K." <dk@uw.no>
-Date: Sun, 12 Jun 2011 07:23:29 +0000
-Subject: Re: [PATCH][RFC] Sparc: Remove trigraph in die_if_kernel() message.
-Message-Id: <4DF46971.6080200@uw.no>
+From: "corentin.labbe" <corentin.labbe@geomatys.fr>
+Date: Wed, 15 Jun 2011 16:13:15 +0000
+Subject: [PATCH v2][RFC] i2c-ali1535: enable SPARC support
+Message-Id: <4DF8DA1B.3020509@geomatys.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LNX.2.00.1106071627260.8844@swampdragon.chaosbits.net> <20110609.155943.162785602513776337.davem@davemloft.net> <20110609230322.GY11521@ZenIV.linux.org.uk> <20110609.160611.1243367560228886911.davem@davemloft.net> <alpine.LNX.2.00.1106100947010.19998@swampdragon.chaosbits.net>
-In-Reply-To: <alpine.LNX.2.00.1106100947010.19998@swampdragon.chaosbits.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jesper Juhl <jj@chaosbits.net>
-Cc: David Miller <davem@davemloft.net>, viro@ZenIV.linux.org.uk, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Jesper Juhl wrote:
-> On Thu, 9 Jun 2011, David Miller wrote:
-> 
->> From: Al Viro <viro@ZenIV.linux.org.uk>
->> Date: Fri, 10 Jun 2011 00:03:22 +0100
->>
->>> On Thu, Jun 09, 2011 at 03:59:43PM -0700, David Miller wrote:
->>>>> If I'm not mistaken, that "??!" will be taken as a trigraph for "|" by the 
->>>>> preprocessor, so the final string will end up either as
->>>>>   "Penguin instruction from Penguin mode|?!"
->>> Not without -trigraphs, which is not on by default...
->> Oh, in that case I'll rever this.
->>
-> 
-> Well, my gcc warns about it. It seems that -Wtrigraphs is enabled by 
-> default:
+Hello
 
-Perhaps the _real_ fix is just to remove all the interrobanging going on here,
-and be in line with all the other die_if_kernel() calls in the file.
+I have discovered pci_resource_start that largely simplify my patch.
+And I am very sorry for the non-respect of Documentation/SubmittingPatches for my precedent mails.
 
-Something like this?
+Thanks in advance
+Bests regards,
 
-(Yeah, I shamelessly snarfed the patch from Jesper, and deleted all the excess
-?'s and !'s. I haven't cared enough figure out the proper *-by: attribution
-magic to credit Jesper, so someone just add whatever is necessary if they feel
-so inclined. I can't pretend to care much about my contribution in this.)
-
-Signed-off-by: Daniel K. <dk@uw.no>
+Signed-off-by: LABBE Corentin <corentin.labbe@geomatys.fr>
 ---
-diff --git a/arch/sparc/kernel/traps_32.c b/arch/sparc/kernel/traps_32.c
-index c0490c7..d99ca40 100644
---- a/arch/sparc/kernel/traps_32.c
-+++ b/arch/sparc/kernel/traps_32.c
-@@ -137,7 +137,7 @@ void do_priv_instruction(struct pt_regs *regs, unsigned long pc, unsigned long n
- 	siginfo_t info;
- 
- 	if(psr & PSR_PS)
--		die_if_kernel("Penguin instruction from Penguin mode??!?!", regs);
-+		die_if_kernel("Penguin instruction from Penguin mode", regs);
- 	info.si_signo = SIGILL;
- 	info.si_errno = 0;
- 	info.si_code = ILL_PRVOPC;
+--- linux/drivers/i2c/busses/i2c-ali1535.c.orig	2011-06-15 18:02:56.000000000 +0200
++++ linux/drivers/i2c/busses/i2c-ali1535.c	2011-06-15 18:05:26.000000000 +0200
+@@ -132,7 +132,7 @@
+ #define	ALI1535_SMBIO_EN	0x04	/* SMB I/O Space enable		*/
+
+ static struct pci_driver ali1535_driver;
+-static unsigned short ali1535_smba;
++static unsigned long ali1535_smba;
+
+ /* Detect whether a ALI1535 can be found, and initialize it, where necessary.
+    Note the differences between kernels with the old PCI BIOS interface and
+@@ -142,6 +142,7 @@ static int __devinit ali1535_setup(struc
+ {
+ 	int retval = -ENODEV;
+ 	unsigned char temp;
++	unsigned short offset;
+
+ 	/* Check the following things:
+ 		- SMB I/O address is initialized
+@@ -149,15 +150,27 @@ static int __devinit ali1535_setup(struc
+ 		- We can use the addresses
+ 	*/
+
++	if (pci_enable_device(dev)) {
++		dev_err(&dev->dev, "ALI1535_smb cant enable device");
++		goto exit;
++	}
++
+ 	/* Determine the address of the SMBus area */
+-	pci_read_config_word(dev, SMBBA, &ali1535_smba);
+-	ali1535_smba &= (0xffff & ~(ALI1535_SMB_IOSIZE - 1));
+-	if (ali1535_smba = 0) {
++	pci_read_config_word(dev, SMBBA, &offset);
++	dev_dbg(&dev->dev, "ALI1535_smb is at offset 0x%04x", offset);
++	offset &= (0xffff & ~(ALI1535_SMB_IOSIZE - 1));
++	if (offset = 0) {
+ 		dev_warn(&dev->dev,
+ 			"ALI1535_smb region uninitialized - upgrade BIOS?\n");
+ 		goto exit;
+ 	}
+
++	ali1535_smba = pci_resource_start(dev, 0) + offset;
++	if ((pci_resource_flags(dev, 0) & IORESOURCE_IO) = 0) {
++		dev_err(&dev->dev, "ALI1535_smb bar 0 is not IORESOURCE_IO");
++		goto exit;
++	}
++
+ 	retval = acpi_check_region(ali1535_smba, ALI1535_SMB_IOSIZE,
+ 				   ali1535_driver.name);
+ 	if (retval)
+@@ -165,7 +178,7 @@ static int __devinit ali1535_setup(struc
+
+ 	if (!request_region(ali1535_smba, ALI1535_SMB_IOSIZE,
+ 			    ali1535_driver.name)) {
+-		dev_err(&dev->dev, "ALI1535_smb region 0x%x already in use!\n",
++		dev_err(&dev->dev, "ALI1535_smb region 0x%lx already in use!\n",
+ 			ali1535_smba);
+ 		goto exit;
+ 	}
+@@ -196,7 +209,7 @@ static int __devinit ali1535_setup(struc
+ 	*/
+ 	pci_read_config_byte(dev, SMBREV, &temp);
+ 	dev_dbg(&dev->dev, "SMBREV = 0x%X\n", temp);
+-	dev_dbg(&dev->dev, "ALI1535_smba = 0x%X\n", ali1535_smba);
++	dev_dbg(&dev->dev, "ALI1535_smba = 0x%0lx\n", ali1535_smba);
+
+ 	retval = 0;
+ exit:
+@@ -499,7 +512,7 @@ static int __devinit ali1535_probe(struc
+ 	ali1535_adapter.dev.parent = &dev->dev;
+
+ 	snprintf(ali1535_adapter.name, sizeof(ali1535_adapter.name),
+-		"SMBus ALI1535 adapter at %04x", ali1535_smba);
++		"SMBus ALI1535 adapter at %0lx", ali1535_smba);
+ 	return i2c_add_adapter(&ali1535_adapter);
+ }
+
