@@ -1,17 +1,23 @@
 From: Mathias Krause <minipli@googlemail.com>
-Date: Mon, 13 Jun 2011 20:28:20 +0000
+Date: Fri, 17 Jun 2011 18:45:47 +0000
 Subject: Re: [PATCH] sparc, exec: remove redundant addr_limit assignment
-Message-Id: <09961391-F83F-4499-A0A3-00AA5C2028CE@googlemail.com>
+Message-Id: <C6872B72-24ED-425D-BA9E-9983779B393A@googlemail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Apple-Mail-26--683334308"
 List-Id: <sparclinux.vger.kernel.org>
 References: <1307642718-22257-1-git-send-email-minipli@googlemail.com> <20110609155630.0f734351.akpm@linux-foundation.org> <1307711453-17412-1-git-send-email-minipli@googlemail.com> <20110611.160842.2135350880385482648.davem@davemloft.net>
 In-Reply-To: <20110611.160842.2135350880385482648.davem@davemloft.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: David Miller <davem@davemloft.net>
 Cc: akpm@linux-foundation.org, torvalds@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 12.06.2011, at 01:08 David Miller wrote:
+
+--Apple-Mail-26--683334308
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset=us-ascii
+
+On 12.06.2011, 01:08 David Miller wrote:
+
 > From: Mathias Krause <minipli@googlemail.com>
 > Date: Fri, 10 Jun 2011 15:10:53 +0200
 > 
@@ -33,8 +39,108 @@ On 12.06.2011, at 01:08 David Miller wrote:
 > because the %asi register write which set_fs() does is extremely
 > expensive on sparc64 and %99.99999 of the time we can avoid it.
 
-As Linus already pointed out, that set_fs() was never called because
-we already had (and still have) an unconditional set_fs() in the arch
-independent code. So this patch just removes some dead code.
 
+David, can you please use the attached test program to give us some
+numbers on how expensive the write to the %asi register is, relative to
+the complexity of the whole exec() path. Please test it w/ and w/o the
+attached patch. If the difference is significant it might be worth the
+pain to push the set_fs() down to the arch specific code, e.g. into
+flush_thread() as on SPARC, and remove it from flush_old_exec().
+
+For the test something like:
+$ for i in 1 2 3; do echo "run #$i:"; time exec_test 5000 /bin/true; done
+or better:
+$ perf stat -r3 exec_test 5000 /bin/true
+should give some reasonable numbers.
+
+I've no SPARC machine, so can't test myself.
+
+
+Thanks,
 Mathias
+
+--Apple-Mail-26--683334308
+Content-Disposition: attachment;
+	filename=exec_test.c
+Content-Type: application/octet-stream;
+	name="exec_test.c"
+Content-Transfer-Encoding: 7bit
+
+#include <sys/mman.h>
+#include <sys/wait.h>
+
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <errno.h>
+
+
+int main(int argc, char **argv, char **envp) {
+	unsigned long loops;
+	struct {
+		unsigned long parent;
+		unsigned long child;
+	} *err;
+
+	if (argc < 3) {
+		printf("usage: %s LOOPS CMD [ARGS]\n", argv[0]);
+		exit(1);
+	}
+
+	loops = strtoul(argv[1], NULL, 0);
+
+	err = mmap(NULL, sizeof(*err), PROT_READ | PROT_WRITE,
+	           MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+	if (err == MAP_FAILED) {
+		printf("failed to create shared mapping (%s)\n", strerror(errno));
+		exit(1);
+	}
+
+	err->parent = err->child = 0;
+	while (loops--) {
+		switch (fork()) {
+			case 0:
+				execve(argv[2], &argv[2], envp);
+				err->child++;
+				exit(1);
+				break;
+
+			case -1:
+				err->parent++;
+				break;
+
+			default:
+				wait(NULL);
+		}
+	}
+
+	if (err->parent || err->child) {
+		printf("fork() errors: %lu\n", err->parent);
+		printf("exec() errors: %lu\n", err->child);
+	}
+
+	return 0;
+}
+
+--Apple-Mail-26--683334308
+Content-Disposition: attachment;
+	filename=no_unconditional_set_fs.diff
+Content-Type: application/octet-stream;
+	name="no_unconditional_set_fs.diff"
+Content-Transfer-Encoding: 7bit
+
+diff --git a/fs/exec.c b/fs/exec.c
+index 97e0d52..31df75f 100644
+--- a/fs/exec.c
++++ b/fs/exec.c
+@@ -1093,7 +1093,6 @@ int flush_old_exec(struct linux_binprm * bprm)
+ 
+ 	bprm->mm = NULL;		/* We're using it now */
+ 
+-	set_fs(USER_DS);
+ 	current->flags &= ~(PF_RANDOMIZE | PF_KTHREAD);
+ 	flush_thread();
+ 	current->personality &= ~bprm->per_clear;
+
+--Apple-Mail-26--683334308--
