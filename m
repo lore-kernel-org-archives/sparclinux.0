@@ -1,29 +1,36 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 30 Jun 2011 12:54:16 +0000
-Subject: Re: SB16 build error.
-Message-Id: <201106301454.16530.arnd@arndb.de>
+From: Clemens Ladisch <clemens@ladisch.de>
+Date: Thu, 30 Jun 2011 13:10:21 +0000
+Subject: Re: [alsa-devel] SB16 build error.
+Message-Id: <4E0C75BD.1050103@ladisch.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110630091754.GA12119@linux-mips.org> <s5hy60jwocc.wl%tiwai@suse.de> <20110630123212.GA6690@linux-mips.org>
-In-Reply-To: <20110630123212.GA6690@linux-mips.org>
+References: <20110630091754.GA12119@linux-mips.org>	<s5h8vsjy68z.wl%tiwai@suse.de> <20110630105254.GA25732@linux-mips.org>
+In-Reply-To: <20110630105254.GA25732@linux-mips.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Ralf Baechle <ralf@linux-mips.org>
-Cc: Takashi Iwai <tiwai@suse.de>, Jaroslav Kysela <perex@perex.cz>, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, florian@linux-mips.org, Florian Fainelli <florian@openwrt.org>, linux-arch@vger.kernel.org, Richard Henderson <rth@twiddle.net>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+Cc: Takashi Iwai <tiwai@suse.de>, linux-arch@vger.kernel.org, linux-mips@linux-mips.org, alsa-devel@alsa-project.org, florian@linux-mips.org, "David S. Miller" <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linux-kernel@vger.kernel.org, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, sparclinux@vger.kernel.org, Paul Mackerras <paulus@samba.org>, Matt Turner <mattst88@gmail.com>, Florian Fainelli <florian@openwrt.org>, Richard Henderson <rth@twiddle.net>
 
-On Thursday 30 June 2011, Ralf Baechle wrote:
-> #define SNDRV_SB_CSP_IOCTL_LOAD_CODE                            \
->         _IOC(_IOC_WRITE,'H', 0x11, sizeof(struct snd_sb_csp_microcode))
-> 
-> error checking can be bypassed and all will be fine as long as the
-> resulting value doesn't result in in a a duplicate case value - which it
-> doesn't, at least not in my testing.
-> 
-> Should work but isn't nice.
+Ralf Baechle wrote:
+> I have no idea how big the soundblaster microcode being loaded actually is,
+> that is if the reduced size of 0x1f00 will be sufficient.
 
-Right. It's probably the best we can do. I think we added a few similar
-definitions when we originally introduce _IOC_TYPECHECK. The idea was
-never to break existing code, but rather to avoid merging new drivers that
-use inconsistent ioctl command numbers.
+The biggest file is WFM0001A.CSP with 0x2df0 bytes.
 
-	Arnd
+> I don't see how the old ioctl can possibly have been
+> used before so there isn't a compatibility problem.
+
+The code uses SNDRV_SB_CSP_MAX_MICROCODE_FILE_SIZE but doesn't care what
+the size field of the ioctl code is, so we could use any random value on
+those architectures.
+
+> Or you could entirely sidestep the problem and use request_firmware()
+> but I guess that's more effort than you want to invest.
+
+The driver already implements this for a bunch of predefined CSP code
+blobs.  I'm not sure whether anybody has ever loaded additional .csp
+files.
+
+
+Regards,
+Clemens
