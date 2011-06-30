@@ -1,27 +1,57 @@
-From: Ralf Baechle <ralf@linux-mips.org>
-Date: Thu, 30 Jun 2011 09:17:54 +0000
-Subject: SB16 build error.
-Message-Id: <20110630091754.GA12119@linux-mips.org>
+From: Takashi Iwai <tiwai@suse.de>
+Date: Thu, 30 Jun 2011 10:15:56 +0000
+Subject: Re: SB16 build error.
+Message-Id: <s5h8vsjy68z.wl%tiwai@suse.de>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20110630091754.GA12119@linux-mips.org>
+In-Reply-To: <20110630091754.GA12119@linux-mips.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
-Cc: linux-arch@vger.kernel.org, linux-mips@linux-mips.org, alsa-devel@alsa-project.org, florian@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, sparclinux@vger.kernel.org, Paul Mackerras <paulus@samba.org>, Matt Turner <mattst88@gmail.com>, Florian Fainelli <florian@openwrt.org>, Richard Henderson <rth@twiddle.net>
+Content-Type: text/plain; charset="iso-2022-jp"
+Content-Transfer-Encoding: 7bit
+To: Ralf Baechle <ralf@linux-mips.org>
+Cc: Jaroslav Kysela <perex@perex.cz>, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, florian@linux-mips.org, Florian Fainelli <florian@openwrt.org>, linux-arch@vger.kernel.org, Richard Henderson <rth@twiddle.net>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-Found on a MIPS build but certain other architectures will have the same
-issue:
+At Thu, 30 Jun 2011 10:17:54 +0100,
+Ralf Baechle wrote:
+> 
+> Found on a MIPS build but certain other architectures will have the same
+> issue:
+> 
+>   CC      sound/isa/sb/sb16_csp.o
+> sound/isa/sb/sb16_csp.c: In function $B!F(Bsnd_sb_csp_ioctl$B!G(B:
+> sound/isa/sb/sb16_csp.c:228: error: case label does not reduce to an integer constant
+> make[1]: *** [sound/isa/sb/sb16_csp.o] Error 1
+> make: *** [sound/isa/sb/sb16_csp.o] Error 2
+> 
+> This error message is caused by the _IOC_TYPECHECK() error check triggering
+> due to excessive ioctl size on Alpha, PowerPC, MIPS and SPARC which define
+> _IOC_SIZEBITS as 13.  On all other architectures define it as 14 so struct
+> snd_sb_csp_microcode with it's little over 12kB will just about fit into
+> the 16kB limit.
 
-  CC      sound/isa/sb/sb16_csp.o
-sound/isa/sb/sb16_csp.c: In function ‘snd_sb_csp_ioctl’:
-sound/isa/sb/sb16_csp.c:228: error: case label does not reduce to an integer constant
-make[1]: *** [sound/isa/sb/sb16_csp.o] Error 1
-make: *** [sound/isa/sb/sb16_csp.o] Error 2
+What about the patch below?
+This is an old ISA driver, so the impact must be very low.
 
-This error message is caused by the _IOC_TYPECHECK() error check triggering
-due to excessive ioctl size on Alpha, PowerPC, MIPS and SPARC which define
-_IOC_SIZEBITS as 13.  On all other architectures define it as 14 so struct
-snd_sb_csp_microcode with it's little over 12kB will just about fit into
-the 16kB limit.
 
-  Ralf
+thanks,
+
+Takashi
+
+---
+diff --git a/include/sound/sb16_csp.h b/include/sound/sb16_csp.h
+index 736eac7..2806586 100644
+--- a/include/sound/sb16_csp.h
++++ b/include/sound/sb16_csp.h
+@@ -60,7 +60,12 @@
+ #define SNDRV_SB_CSP_QSOUND_MAX_RIGHT	0x20
+ 
+ /* maximum microcode RIFF file size */
++#if _IOC_SIZEBITS < 14
++/* reduced the size to fit with ioctl size limit */
++#define SNDRV_SB_CSP_MAX_MICROCODE_FILE_SIZE	0x1f00
++#else
+ #define SNDRV_SB_CSP_MAX_MICROCODE_FILE_SIZE	0x3000
++#endif
+ 
+ /* microcode header */
+ struct snd_sb_csp_mc_header {
