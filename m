@@ -1,24 +1,40 @@
 From: David Miller <davem@davemloft.net>
-Date: Sun, 31 Jul 2011 09:07:35 +0000
-Subject: Re: Sparc, dma mapping and endianness
-Message-Id: <20110731.020735.1629786346435387295.davem@davemloft.net>
+Date: Sat, 16 Jul 2011 17:48:19 +0000
+Subject: [GIT] Sparc
+Message-Id: <20110716.104819.855316771212871477.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4E351418.50101@broadcom.com>
-In-Reply-To: <4E351418.50101@broadcom.com>
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: "Roland Vossen" <rvossen@broadcom.com>
-Date: Sun, 31 Jul 2011 10:36:40 +0200
 
-> I read that the Sparc-V9 64 bit architecture also supports endianness
-> swapping of pages. I wonder if it is easy to make use of this
-> functionality in Linux.
+Please pull, to get these Sparc bug fixes.
 
-Not really.
+Thanks!
 
-You'll need to use le32_to_cpu() and friends on the data when
-interpreting it.  Or even better, le32_to_cpup() which works
-on pointers and emits little-endian loads on sparc v9.
+The following changes since commit 1765a367a3b5d5e9692949b0c5ec933eff2c0701:
+
+  Merge branch 'gpio/merge' of git://git.secretlab.ca/git/linux-2.6 (2011-07-15 18:03:30 -0700)
+
+are available in the git repository at:
+
+  master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git master
+
+Matthias Rosenfelder (1):
+      sparc32,leon: Added __init declaration to leon_flush_needed()
+
+Steven Rostedt (1):
+      sparc/irqs: Do not trace arch_local_{*,irq_*} functions
+
+Will Simoneau (1):
+      sparc: sun4m SMP: fix wrong shift instruction in IPI handler
+
+ arch/sparc/include/asm/irqflags_32.h |    8 ++++----
+ arch/sparc/include/asm/irqflags_64.h |   14 +++++++-------
+ arch/sparc/kernel/entry.S            |    2 +-
+ arch/sparc/mm/leon_mm.c              |    2 +-
+ 4 files changed, 13 insertions(+), 13 deletions(-)
