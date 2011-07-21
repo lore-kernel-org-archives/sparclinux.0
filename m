@@ -1,216 +1,286 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 28 Jul 2011 08:44:20 +0000
-Subject: [PATCH 4/6] sparc: Detect and handle UltraSPARC-T3 cpu types.
-Message-Id: <20110728.014420.1201831076516202797.davem@davemloft.net>
+From: "Mrs. Evelyn McGregor" <mredemptionsa@gala.net>
+Date: Thu, 21 Jul 2011 16:16:23 +0000
+Subject: Congratulation's, Your e-mail have won $1,000,000.00 Dollars
+Message-Id: <1311264983.98071.YahooMailRC@web181108.mail.ne1.yahoo.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="0-792654604-1311264983=:98071"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+--0-792654604-1311264983=:98071
+Content-Type: text/plain; charset=us-ascii
 
-The cpu compatible string we look for is "SPARC-T3".
 
-As far as memset/memcpy optimizations go, we treat this chip the same
-as Niagara-T2/T2+.  Use cache initializing stores for memset, and use
-perfetch, FPU block loads, cache initializing stores, and block stores
-for copies.
 
-We use the Niagara-T2 perf support, since T3 is a close relative in
-this regard.  Later we'll add support for the new events T3 can
-report, plus enable T3's new "sample" mode.
+ Congratulation's, Your e-mail have won $1,000,000.00 Dollars
 
-For now I haven't added any new ELF hwcap flags.  We probably need
-to add a couple, for example:
+--0-792654604-1311264983=:98071
+Content-Type: application/rtf; name="CANADA_NOTIFICATION.rtf"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="CANADA_NOTIFICATION.rtf"
 
-T2 and T3 both support the population count instruction in hardware.
+e1xydGYxXGFuc2lcYW5zaWNwZzEyNTJcdWMxXGRlZmYwXHN0c2hmZGJjaDBc
+c3RzaGZsb2NoMFxzdHNoZmhpY2gwXHN0c2hmYmkwXGRlZmxhbmcxMDMzXGRl
+ZmxhbmdmZTEwMzN7XGZvbnR0Ymx7XGYwXGZyb21hblxmY2hhcnNldDBcZnBy
+cTJ7XCpccGFub3NlIDAyMDIwNjAzMDUwNDA1MDIwMzA0fVRpbWVzIE5ldyBS
+b21hbjt9e1xmMVxmc3dpc3NcZmNoYXJzZXQwXGZwcnEye1wqXHBhbm9zZSAw
+MjBiMDYwNDAyMDIwMjAyMDIwNH1BcmlhbDt9DQp7XGYzNlxmcm9tYW5cZmNo
+YXJzZXQyMzhcZnBycTIgVGltZXMgTmV3IFJvbWFuIENFO317XGYzN1xmcm9t
+YW5cZmNoYXJzZXQyMDRcZnBycTIgVGltZXMgTmV3IFJvbWFuIEN5cjt9e1xm
+MzlcZnJvbWFuXGZjaGFyc2V0MTYxXGZwcnEyIFRpbWVzIE5ldyBSb21hbiBH
+cmVlazt9e1xmNDBcZnJvbWFuXGZjaGFyc2V0MTYyXGZwcnEyIFRpbWVzIE5l
+dyBSb21hbiBUdXI7fQ0Ke1xmNDFcZnJvbWFuXGZjaGFyc2V0MTc3XGZwcnEy
+IFRpbWVzIE5ldyBSb21hbiAoSGVicmV3KTt9e1xmNDJcZnJvbWFuXGZjaGFy
+c2V0MTc4XGZwcnEyIFRpbWVzIE5ldyBSb21hbiAoQXJhYmljKTt9e1xmNDNc
+ZnJvbWFuXGZjaGFyc2V0MTg2XGZwcnEyIFRpbWVzIE5ldyBSb21hbiBCYWx0
+aWM7fXtcZjQ0XGZyb21hblxmY2hhcnNldDE2M1xmcHJxMiBUaW1lcyBOZXcg
+Um9tYW4gKFZpZXRuYW1lc2UpO30NCntcZjQ2XGZzd2lzc1xmY2hhcnNldDIz
+OFxmcHJxMiBBcmlhbCBDRTt9e1xmNDdcZnN3aXNzXGZjaGFyc2V0MjA0XGZw
+cnEyIEFyaWFsIEN5cjt9e1xmNDlcZnN3aXNzXGZjaGFyc2V0MTYxXGZwcnEy
+IEFyaWFsIEdyZWVrO317XGY1MFxmc3dpc3NcZmNoYXJzZXQxNjJcZnBycTIg
+QXJpYWwgVHVyO317XGY1MVxmc3dpc3NcZmNoYXJzZXQxNzdcZnBycTIgQXJp
+YWwgKEhlYnJldyk7fQ0Ke1xmNTJcZnN3aXNzXGZjaGFyc2V0MTc4XGZwcnEy
+IEFyaWFsIChBcmFiaWMpO317XGY1M1xmc3dpc3NcZmNoYXJzZXQxODZcZnBy
+cTIgQXJpYWwgQmFsdGljO317XGY1NFxmc3dpc3NcZmNoYXJzZXQxNjNcZnBy
+cTIgQXJpYWwgKFZpZXRuYW1lc2UpO319e1xjb2xvcnRibDtccmVkMFxncmVl
+bjBcYmx1ZTA7XHJlZDBcZ3JlZW4wXGJsdWUyNTU7XHJlZDBcZ3JlZW4yNTVc
+Ymx1ZTI1NTtccmVkMFxncmVlbjI1NVxibHVlMDsNClxyZWQyNTVcZ3JlZW4w
+XGJsdWUyNTU7XHJlZDI1NVxncmVlbjBcYmx1ZTA7XHJlZDI1NVxncmVlbjI1
+NVxibHVlMDtccmVkMjU1XGdyZWVuMjU1XGJsdWUyNTU7XHJlZDBcZ3JlZW4w
+XGJsdWUxMjg7XHJlZDBcZ3JlZW4xMjhcYmx1ZTEyODtccmVkMFxncmVlbjEy
+OFxibHVlMDtccmVkMTI4XGdyZWVuMFxibHVlMTI4O1xyZWQxMjhcZ3JlZW4w
+XGJsdWUwO1xyZWQxMjhcZ3JlZW4xMjhcYmx1ZTA7XHJlZDEyOFxncmVlbjEy
+OFxibHVlMTI4Ow0KXHJlZDE5MlxncmVlbjE5MlxibHVlMTkyO317XHN0eWxl
+c2hlZXR7XHFsIFxsaTBccmkwXHdpZGN0bHBhclxhc3BhbHBoYVxhc3BudW1c
+ZmFhdXRvXGFkanVzdHJpZ2h0XHJpbjBcbGluMFxpdGFwMCBcZnMyNFxsYW5n
+MTAzM1xsYW5nZmUxMDMzXGNncmlkXGxhbmducDEwMzNcbGFuZ2ZlbnAxMDMz
+IFxzbmV4dDAgTm9ybWFsO317XCpcY3MxMCBcYWRkaXRpdmUgXHNzZW1paGlk
+ZGVuIERlZmF1bHQgUGFyYWdyYXBoIEZvbnQ7fXtcKg0KXHRzMTFcdHNyb3dk
+XHRyZnRzV2lkdGhCM1x0cnBhZGRsMTA4XHRycGFkZHIxMDhcdHJwYWRkZmwz
+XHRycGFkZGZ0M1x0cnBhZGRmYjNcdHJwYWRkZnIzXHRzY2VsbHdpZHRoZnRz
+MFx0c3ZlcnRhbHRcdHNicmRydFx0c2JyZHJsXHRzYnJkcmJcdHNicmRyclx0
+c2JyZHJkZ2xcdHNicmRyZGdyXHRzYnJkcmhcdHNicmRydiANClxxbCBcbGkw
+XHJpMFx3aWRjdGxwYXJcYXNwYWxwaGFcYXNwbnVtXGZhYXV0b1xhZGp1c3Ry
+aWdodFxyaW4wXGxpbjBcaXRhcDAgXGZzMjBcbGFuZzEwMjRcbGFuZ2ZlMTAy
+NFxjZ3JpZFxsYW5nbnAxMDI0XGxhbmdmZW5wMTAyNCBcc25leHQxMSBcc3Nl
+bWloaWRkZW4gTm9ybWFsIFRhYmxlO319e1wqXGxhdGVudHN0eWxlc1xsc2Rz
+dGltYXgxNTZcbHNkbG9ja2VkZGVmMH17XCpccnNpZHRibCBccnNpZDc0NTk5
+MVxyc2lkOTkzMjYzDQpccnNpZDM0MzAyMTVccnNpZDU1ODc0NDBccnNpZDc3
+MzYzMDRccnNpZDEwNjE5MzA1XHJzaWQxNTQ5MTQyNlxyc2lkMTU4MDcxODl9
+e1wqXGdlbmVyYXRvciBNaWNyb3NvZnQgV29yZCAxMS4wLjU2MDQ7fXtcaW5m
+b3tcdGl0bGUgQ0FOQURBIExPVFRFUlkvIEVNQUlMIERSQVcgT05UQVJJTyA0
+OSB9e1xhdXRob3IgcGMwMn17XG9wZXJhdG9yIHBjMDN9e1xjcmVhdGltXHly
+MjAxMVxtbzdcZHkyM1xocjE3XG1pbjIyfQ0Ke1xyZXZ0aW1ceXIyMDExXG1v
+N1xkeTIzXGhyMTdcbWluMjJ9e1x2ZXJzaW9uMn17XGVkbWluczJ9e1xub2Zw
+YWdlczF9e1xub2Z3b3JkczMzN317XG5vZmNoYXJzMTkyMX17XG5vZmNoYXJz
+d3MyMjU0fXtcdmVybjI0Njg5fX1cd2lkb3djdHJsXGZ0bmJqXGFlbmRkb2Nc
+bm94bGF0dG95ZW5cZXhwc2hydG5cbm91bHRybHNwY1xkbnRibG5zYmRiXG5v
+c3BhY2Vmb3J1bFxoeXBoY2FwczBcaG9yemRvY1xkZ2hzcGFjZTEyMFxkZ3Zz
+cGFjZTEyMA0KXGRnaG9yaWdpbjE3MDFcZGd2b3JpZ2luMTk4NFxkZ2hzaG93
+MFxkZ3ZzaG93M1xqY29tcHJlc3Ncdmlld2tpbmQ0XHZpZXdzY2FsZTEwMFxu
+b2xuaHRhZGp0YmxccnNpZHJvb3Q1NTg3NDQwIFxmZXQwXHNlY3RkIFxsaW5l
+eDBcc2VjdGRlZmF1bHRjbFxzZnRuYmoge1wqXHBuc2VjbHZsMVxwbnVjcm1c
+cG5zdGFydDFccG5pbmRlbnQ3MjBccG5oYW5nIHtccG50eHRhIC59fXtcKlxw
+bnNlY2x2bDINClxwbnVjbHRyXHBuc3RhcnQxXHBuaW5kZW50NzIwXHBuaGFu
+ZyB7XHBudHh0YSAufX17XCpccG5zZWNsdmwzXHBuZGVjXHBuc3RhcnQxXHBu
+aW5kZW50NzIwXHBuaGFuZyB7XHBudHh0YSAufX17XCpccG5zZWNsdmw0XHBu
+bGNsdHJccG5zdGFydDFccG5pbmRlbnQ3MjBccG5oYW5nIHtccG50eHRhICl9
+fXtcKlxwbnNlY2x2bDVccG5kZWNccG5zdGFydDFccG5pbmRlbnQ3MjBccG5o
+YW5nIHtccG50eHRiICh9e1xwbnR4dGEgKX19e1wqXHBuc2VjbHZsNg0KXHBu
+bGNsdHJccG5zdGFydDFccG5pbmRlbnQ3MjBccG5oYW5nIHtccG50eHRiICh9
+e1xwbnR4dGEgKX19e1wqXHBuc2VjbHZsN1xwbmxjcm1ccG5zdGFydDFccG5p
+bmRlbnQ3MjBccG5oYW5nIHtccG50eHRiICh9e1xwbnR4dGEgKX19e1wqXHBu
+c2VjbHZsOFxwbmxjbHRyXHBuc3RhcnQxXHBuaW5kZW50NzIwXHBuaGFuZyB7
+XHBudHh0YiAofXtccG50eHRhICl9fXtcKlxwbnNlY2x2bDlccG5sY3JtXHBu
+c3RhcnQxXHBuaW5kZW50NzIwXHBuaGFuZyANCntccG50eHRiICh9e1xwbnR4
+dGEgKX19XHBhcmRccGxhaW4gXHFsIFxsaTBccmkwXG5vd2lkY3RscGFyXGZh
+YXV0b1xyaW4wXGxpbjBcaXRhcDBccGFyYXJzaWQ3NDU5OTEgXGZzMjRcbGFu
+ZzEwMzNcbGFuZ2ZlMTAzM1xjZ3JpZFxsYW5nbnAxMDMzXGxhbmdmZW5wMTAz
+MyB7XGJcZjFcZnMyMFxpbnNyc2lkNzQ1OTkxIENBTkFEQSBMT1RURVJZLyBF
+TUFJTCBEUkFXIE9OVEFSSU8gNDl9e1xmMVxmczIwXGluc3JzaWQ3NDU5OTEg
+IA0KXHBhciB9e1xiXGYxXGZzMjBcY2YxXGluc3JzaWQ3NDU5OTEgMTU1MCBQ
+cmluY2VzcyBTdHJlZXQgS2luZ3N0b24sIE9OLCBDYW5hZGEsIEs3TSA5RTN9
+e1xmMVxmczIwXGluc3JzaWQ3NDU5OTEgIA0KXHBhciB9e1xmMVxmczIwXGNm
+MVxpbnNyc2lkNzQ1OTkxIFdlYnNpdGU6IH17XGYxXGZzMjBcdWxcaW5zcnNp
+ZDc0NTk5MSBodHRwOi8vd3d3LmxvdHRvbG9yZS5jb20vb250YXJpbzQ5Lmh0
+bWx9e1xmMVxmczIwXGluc3JzaWQ3NDU5OTEgDQpccGFyIH17XGJcZjFcZnMy
+MFxjZjFcaW5zcnNpZDc0NTk5MSBVSyBPZmZpY2UgTm8gNDcgU2UxIDduYSBc
+ZW5kYXNoICBCYWxraW5nIExvbmRvbiBVbml0ZWQgS2luZ2RvbSB9e1xmMVxm
+czIwXGluc3JzaWQ3NDU5OTEgDQpccGFyIH17XGYxXGZzMTlcaW5zcnNpZDc0
+NTk5MSBcfn17XGYxXGZzMjBcaW5zcnNpZDc0NTk5MSAgDQpccGFyIH17XGJc
+ZnMzNlxpbnNyc2lkNzQ1OTkxIFNhdCwgSnVseSAxNiwgMjAxMX17XGJcZjFc
+ZnMzNlxpbnNyc2lkNzQ1OTkxICAtIE9udGFyaW8gNDl9e1xmMVxmczIwXGlu
+c3JzaWQ3NDU5OTEgDQpccGFyIH17XGJcZjFcZnMyMFxjZjFcaW5zcnNpZDc0
+NTk5MSBcflx+XH5cflx+XH5cflx+XH5cflx+XH5cflx+XH5cflx+XH5cflx+
+XH5cflx+XH5cflx+XH5cflx+XH5cflx+XH5cflx+XH5cflx+XH5cflx+XH5c
+flx+XH5cflx+XH5cflx+XH5cflx+XH4gXH5cfn17XGJcZjFcZnMyMFx1bFxj
+ZjFcaW5zcnNpZDc0NTk5MSBXSU5OSU5HIE5VTUJFUlMgfXtcZjFcZnMyMFxp
+bnNyc2lkNzQ1OTkxIA0KXHBhciB9XHRyb3dkIFxpcm93MFxpcm93YmFuZDBc
+bGFzdHJvdyBcdHMxMVx0cnFjXHRyZ2FwaDEwXHRycmgyNTdcdHJsZWZ0LTEw
+XHRyZnRzV2lkdGgxXHRyZnRzV2lkdGhCM1x0cmZ0c1dpZHRoQTNcdHJwYWRk
+bDEwXHRycGFkZHIxMFx0cnBhZGRmbDNcdHJwYWRkZnIzIFxjbHZlcnRhbGNc
+Y2xicmRydFxicmRyc1xicmRydzE1XGJyZHJjZjE2IFxjbGJyZHJsXGJyZHJz
+XGJyZHJ3MTVcYnJkcmNmMTYgXGNsYnJkcmJcYnJkcnNcYnJkcncxNVxicmRy
+Y2YxNiANClxjbGJyZHJyXGJyZHJzXGJyZHJ3MTVcYnJkcmNmMTYgXGNsdHhs
+cnRiXGNsZnRzV2lkdGgzXGNsd1dpZHRoNDY3XGNsc2hkcmF3bmlsIFxjZWxs
+eDQ1N1xjbHZlcnRhbGNcY2xicmRydFxicmRyc1xicmRydzE1XGJyZHJjZjE2
+IFxjbGJyZHJsXGJyZHJzXGJyZHJ3MTVcYnJkcmNmMTYgXGNsYnJkcmJcYnJk
+cnNcYnJkcncxNVxicmRyY2YxNiBcY2xicmRyclxicmRyc1xicmRydzE1XGJy
+ZHJjZjE2IA0KXGNsdHhscnRiXGNsZnRzV2lkdGgzXGNsd1dpZHRoNjI4XGNs
+c2hkcmF3bmlsIFxjZWxseDEwODVcY2x2ZXJ0YWxjXGNsYnJkcnRcYnJkcnNc
+YnJkcncxNVxicmRyY2YxNiBcY2xicmRybFxicmRyc1xicmRydzE1XGJyZHJj
+ZjE2IFxjbGJyZHJiXGJyZHJzXGJyZHJ3MTVcYnJkcmNmMTYgXGNsYnJkcnJc
+YnJkcnNcYnJkcncxNVxicmRyY2YxNiBcY2x0eGxydGJcY2xmdHNXaWR0aDNc
+Y2x3V2lkdGg2MjhcY2xzaGRyYXduaWwgXGNlbGx4MTcxMw0KXGNsdmVydGFs
+Y1xjbGJyZHJ0XGJyZHJzXGJyZHJ3MTVcYnJkcmNmMTYgXGNsYnJkcmxcYnJk
+cnNcYnJkcncxNVxicmRyY2YxNiBcY2xicmRyYlxicmRyc1xicmRydzE1XGJy
+ZHJjZjE2IFxjbGJyZHJyXGJyZHJzXGJyZHJ3MTVcYnJkcmNmMTYgXGNsdHhs
+cnRiXGNsZnRzV2lkdGgzXGNsd1dpZHRoNjI4XGNsc2hkcmF3bmlsIFxjZWxs
+eDIzNDFcY2x2ZXJ0YWxjXGNsYnJkcnRcYnJkcnNcYnJkcncxNVxicmRyY2Yx
+NiBcY2xicmRybA0KXGJyZHJzXGJyZHJ3MTVcYnJkcmNmMTYgXGNsYnJkcmJc
+YnJkcnNcYnJkcncxNVxicmRyY2YxNiBcY2xicmRyclxicmRyc1xicmRydzE1
+XGJyZHJjZjE2IFxjbHR4bHJ0YlxjbGZ0c1dpZHRoM1xjbHdXaWR0aDYyOFxj
+bHNoZHJhd25pbCBcY2VsbHgyOTY5XGNsdmVydGFsY1xjbGJyZHJ0XGJyZHJz
+XGJyZHJ3MTVcYnJkcmNmMTYgXGNsYnJkcmxcYnJkcnNcYnJkcncxNVxicmRy
+Y2YxNiBcY2xicmRyYlxicmRyc1xicmRydzE1XGJyZHJjZjE2IA0KXGNsYnJk
+cnJcYnJkcnNcYnJkcncxNVxicmRyY2YxNiBcY2x0eGxydGJcY2xmdHNXaWR0
+aDNcY2x3V2lkdGg1NThcY2xzaGRyYXduaWwgXGNlbGx4MzUyN1xjbHZlcnRh
+bGNcY2xicmRydFxicmRyc1xicmRydzE1XGJyZHJjZjE2IFxjbGJyZHJsXGJy
+ZHJzXGJyZHJ3MTVcYnJkcmNmMTYgXGNsYnJkcmJcYnJkcnNcYnJkcncxNVxi
+cmRyY2YxNiBcY2xicmRyclxicmRyc1xicmRydzE1XGJyZHJjZjE2IA0KXGNs
+dHhscnRiXGNsZnRzV2lkdGgzXGNsd1dpZHRoMTgxNlxjbHNoZHJhd25pbCBc
+Y2VsbHg1MzQzXHBhcmQgXHFjIFxsaTBccmkwXG5vd2lkY3RscGFyXGludGJs
+XGZhYXV0b1xyaW4wXGxpbjBccGFyYXJzaWQxMDYxOTMwNSB7XGJcZnMzNlxp
+bnNyc2lkNzQ1OTkxIDZ9e1xpbnNyc2lkNzQ1OTkxIFx+IFxjZWxsIH17XGJc
+ZnMzNlxpbnNyc2lkNzQ1OTkxIDI3fXtcaW5zcnNpZDc0NTk5MSAgXGNlbGwg
+fXtcYlxmczM2XGluc3JzaWQ3NDU5OTEgMzV9DQp7XGluc3JzaWQ3NDU5OTEg
+XGNlbGwgfXtcYlxmczM2XGluc3JzaWQ3NDU5OTEgMzZ9e1xpbnNyc2lkNzQ1
+OTkxICBcY2VsbCB9e1xiXGZzMzZcaW5zcnNpZDc0NTk5MSAzOH17XGluc3Jz
+aWQ3NDU5OTEgIFxjZWxsIH17XGJcZnMzNlxpbnNyc2lkNzQ1OTkxIDQ2fXtc
+aW5zcnNpZDc0NTk5MSAgXGNlbGwgfXtcYlxmczM2XGluc3JzaWQ3NDU5OTEg
+Qm9udXN9e1xiXGluc3JzaWQ3NDU5OTEgXH5cfn17XGJcZnMzNlxpbnNyc2lk
+NzQ1OTkxIDEzfXsNClxpbnNyc2lkNzQ1OTkxIFxjZWxsIH1ccGFyZCBccWwg
+XGxpMFxyaTBcd2lkY3RscGFyXGludGJsXGFzcGFscGhhXGFzcG51bVxmYWF1
+dG9cYWRqdXN0cmlnaHRccmluMFxsaW4wIHtcaW5zcnNpZDc0NTk5MSBcdHJv
+d2QgXGlyb3cwXGlyb3diYW5kMFxsYXN0cm93IA0KXHRzMTFcdHJxY1x0cmdh
+cGgxMFx0cnJoMjU3XHRybGVmdC0xMFx0cmZ0c1dpZHRoMVx0cmZ0c1dpZHRo
+QjNcdHJmdHNXaWR0aEEzXHRycGFkZGwxMFx0cnBhZGRyMTBcdHJwYWRkZmwz
+XHRycGFkZGZyMyBcY2x2ZXJ0YWxjXGNsYnJkcnRcYnJkcnNcYnJkcncxNVxi
+cmRyY2YxNiBcY2xicmRybFxicmRyc1xicmRydzE1XGJyZHJjZjE2IFxjbGJy
+ZHJiXGJyZHJzXGJyZHJ3MTVcYnJkcmNmMTYgXGNsYnJkcnJcYnJkcnNcYnJk
+cncxNVxicmRyY2YxNiANClxjbHR4bHJ0YlxjbGZ0c1dpZHRoM1xjbHdXaWR0
+aDQ2N1xjbHNoZHJhd25pbCBcY2VsbHg0NTdcY2x2ZXJ0YWxjXGNsYnJkcnRc
+YnJkcnNcYnJkcncxNVxicmRyY2YxNiBcY2xicmRybFxicmRyc1xicmRydzE1
+XGJyZHJjZjE2IFxjbGJyZHJiXGJyZHJzXGJyZHJ3MTVcYnJkcmNmMTYgXGNs
+YnJkcnJcYnJkcnNcYnJkcncxNVxicmRyY2YxNiBcY2x0eGxydGJcY2xmdHNX
+aWR0aDNcY2x3V2lkdGg2MjhcY2xzaGRyYXduaWwgXGNlbGx4MTA4NQ0KXGNs
+dmVydGFsY1xjbGJyZHJ0XGJyZHJzXGJyZHJ3MTVcYnJkcmNmMTYgXGNsYnJk
+cmxcYnJkcnNcYnJkcncxNVxicmRyY2YxNiBcY2xicmRyYlxicmRyc1xicmRy
+dzE1XGJyZHJjZjE2IFxjbGJyZHJyXGJyZHJzXGJyZHJ3MTVcYnJkcmNmMTYg
+XGNsdHhscnRiXGNsZnRzV2lkdGgzXGNsd1dpZHRoNjI4XGNsc2hkcmF3bmls
+IFxjZWxseDE3MTNcY2x2ZXJ0YWxjXGNsYnJkcnRcYnJkcnNcYnJkcncxNVxi
+cmRyY2YxNiBcY2xicmRybA0KXGJyZHJzXGJyZHJ3MTVcYnJkcmNmMTYgXGNs
+YnJkcmJcYnJkcnNcYnJkcncxNVxicmRyY2YxNiBcY2xicmRyclxicmRyc1xi
+cmRydzE1XGJyZHJjZjE2IFxjbHR4bHJ0YlxjbGZ0c1dpZHRoM1xjbHdXaWR0
+aDYyOFxjbHNoZHJhd25pbCBcY2VsbHgyMzQxXGNsdmVydGFsY1xjbGJyZHJ0
+XGJyZHJzXGJyZHJ3MTVcYnJkcmNmMTYgXGNsYnJkcmxcYnJkcnNcYnJkcncx
+NVxicmRyY2YxNiBcY2xicmRyYlxicmRyc1xicmRydzE1XGJyZHJjZjE2IA0K
+XGNsYnJkcnJcYnJkcnNcYnJkcncxNVxicmRyY2YxNiBcY2x0eGxydGJcY2xm
+dHNXaWR0aDNcY2x3V2lkdGg2MjhcY2xzaGRyYXduaWwgXGNlbGx4Mjk2OVxj
+bHZlcnRhbGNcY2xicmRydFxicmRyc1xicmRydzE1XGJyZHJjZjE2IFxjbGJy
+ZHJsXGJyZHJzXGJyZHJ3MTVcYnJkcmNmMTYgXGNsYnJkcmJcYnJkcnNcYnJk
+cncxNVxicmRyY2YxNiBcY2xicmRyclxicmRyc1xicmRydzE1XGJyZHJjZjE2
+IA0KXGNsdHhscnRiXGNsZnRzV2lkdGgzXGNsd1dpZHRoNTU4XGNsc2hkcmF3
+bmlsIFxjZWxseDM1MjdcY2x2ZXJ0YWxjXGNsYnJkcnRcYnJkcnNcYnJkcncx
+NVxicmRyY2YxNiBcY2xicmRybFxicmRyc1xicmRydzE1XGJyZHJjZjE2IFxj
+bGJyZHJiXGJyZHJzXGJyZHJ3MTVcYnJkcmNmMTYgXGNsYnJkcnJcYnJkcnNc
+YnJkcncxNVxicmRyY2YxNiBcY2x0eGxydGJcY2xmdHNXaWR0aDNcY2x3V2lk
+dGgxODE2XGNsc2hkcmF3bmlsIFxjZWxseDUzNDMNClxyb3cgfVxwYXJkIFxx
+YyBcbGkwXHJpMFxub3dpZGN0bHBhclxmYWF1dG9ccmluMFxsaW4wXGl0YXAw
+XHBhcmFyc2lkNzQ1OTkxIHtcZjFcZnMyMFxjZjFcaW5zcnNpZDc0NTk5MSBc
+fn17XGYxXGZzMjBcaW5zcnNpZDc0NTk5MSAgDQpccGFyIH17XGYxXGZzMjBc
+Y2YxXGluc3JzaWQ3NDU5OTEgV2UgaGFwcGlseSBhbm5vdW5jZSB0byB5b3Ug
+dGhlIGRyYXcgb2YgQ2FuYWRpYW4gTmF0aW9uYWwgTG90dGVyeSB0aGUgfXtc
+YlxmMVxmczIwXGNmMVxpbnNyc2lkNzQ1OTkxIFVLL0NBTkFEQX17XGYxXGZz
+MjBcY2YxXGluc3JzaWQ3NDU5OTEgIG9ubGluZSBTd2VlcHN0YWtlcyBJbnRl
+cm5hdGlvbmFsIHByb2dyYW0gaGVsZCBvbiB9e1xiXGYxXGZzMjBcY2YxXGlu
+c3JzaWQ3NDU5OTEgU2F0fXsNClxiXGYxXGZzMjBcaW5zcnNpZDc0NTk5MSAs
+IEp1bHkgMTYsIDIwMTF9e1xmMVxmczIwXGNmMVxpbnNyc2lkNzQ1OTkxIC59
+e1xmMVxmczIwXGluc3JzaWQ3NDU5OTEgIA0KXHBhciB9e1xmMVxmczIwXGNm
+MVxpbnNyc2lkNzQ1OTkxIFx+IH17XGYxXGZzMjBcaW5zcnNpZDc0NTk5MSAN
+ClxwYXIgWW91IGhhdmUgd29uIH17XGJcZjFcZnMyMFxpbnNyc2lkNzQ1OTkx
+IFVTRCQxLDAwMCwwMDAuMDAgKE9uZSBNaWxsaW9uIFVuaXRlZCBTdGF0ZXMg
+RG9sbGFycyBPbmx5KX17XGYxXGZzMjBcaW5zcnNpZDc0NTk5MSAgZnJvbSBD
+YW5hZGlhbiBsb3R0ZXJ5IGRyYXcgfXtcYlxmMVxmczIwXGNmMVxpbnNyc2lk
+NzQ1OTkxIDIwMTEuIFl9e1xmMVxmczIwXGNmMVxpbnNyc2lkNzQ1OTkxIA0K
+b3VyIEVtYWlsIElEIHdhcyBvbmUgb2YgdGhlIHNlbGVjdGVkIGVtYWlscyBh
+bGwgb3ZlciB0aGUgd29ybGQgaW4gdGhlIGxvdHRlcnkgZHJhdyBhbmQgaXQg
+Y29tZXMgb3V0IG9uZSBvZiB0aGUgbHVja3kgd2lubmluZyBudW1iZXJ9e1xi
+XGYxXGZzMjBcY2YxXGluc3JzaWQ3NDU5OTEgLn17XGYxXGZzMjBcY2YxXGlu
+c3JzaWQ3NDU5OTEgIH17XGYxXGZzMjBcaW5zcnNpZDc0NTk5MSANClxwYXIg
+fXtcZjFcZnMyMFxjZjFcaW5zcnNpZDc0NTk5MSBcfn17XGYxXGZzMjBcaW5z
+cnNpZDc0NTk5MSAgDQpccGFyIFlvdSBhcmUgcmVxdWVzdGVkIHRvIGNvbnRh
+Y3QgdGhlIFByb2Nlc3NpbmcgRGlyZWN0b3IgaW1tZWRpYXRlbHkgeW91IHJl
+Y2VpdmUgdGhpcyBub3RpZmljYXRpb24gd2l0aCB0aGUgYmVsb3cgaW5mb3Jt
+YXRpb24sIHRvIGVuYWJsZSBoaW0gc3RhcnQgd2l0aCB0aGUgcHJvY2Vzc2lu
+ZyBmb3IgdGhlIHJlbGVhc2Ugb2YgeW91ciB3aW5uaW5nIHByaXplIHdpdGhv
+dXQgYW55IGRlbGF5LiANClxwYXIgfXtcZjFcZnMyMFxjZjFcaW5zcnNpZDc0
+NTk5MSBcfn17XGYxXGZzMjBcaW5zcnNpZDc0NTk5MSAgDQpccGFyIEZvciBm
+dXJ0aGVyIGluZm9ybWF0aW9uIGFib3V0IGhvdyB0byByZWNlaXZlIHlvdSBh
+d2FyZCB3aW5uaW5nIHByaXplIGNvbnRhY3Q6IA0KXHBhciB9e1xiXGYxXGZz
+MjhcY2YxXGluc3JzaWQ3NDU5OTEgXH59e1xmMVxmczIwXGluc3JzaWQ3NDU5
+OTEgIA0KXHBhciB9e1xiXGYxXGZzMjhcY2YxXGluc3JzaWQ3NDU5OTEgRElS
+RUNUT1IgT0YgUEFZTUVOVC9JTkZPUk1BVElPTn17XGYxXGZzMjBcaW5zcnNp
+ZDc0NTk5MSAgDQpccGFyIH17XGJcZjFcZnMyOFxjZjFcaW5zcnNpZDc0NTk5
+MSBDQU5BREEgUkVHSU9OQUwgT0ZGSUNFIFMuQX17XGYxXGZzMjBcaW5zcnNp
+ZDc0NTk5MSBcfiANClxwYXIgfXtcYlxmMVxmczI4XGNmMVxpbnNyc2lkNzQ1
+OTkxIE5BTUU6IE1SLiBEQVZJRVMgR1JBVFRBTn17XGYxXGZzMjBcaW5zcnNp
+ZDc0NTk5MSAgDQpccGFyIH17XGJcZjFcZnMyOFxjZjFcaW5zcnNpZDc0NTk5
+MSBcflx+XH5cflx+XH5cflx+XH5cfiBQSE9ORTogKzI3IDczIDYyNyAxMDQ2
+fXtcZjFcZnMyMFxpbnNyc2lkNzQ1OTkxICANClxwYXIgfXtcYlxmMVxmczI4
+XGNmMVxpbnNyc2lkNzQ1OTkxIEUtTUFJTDogfXtcYlxmMVxmczI4XHVsXGlu
+c3JzaWQ3NDU5OTFcY2hhcnJzaWQxNTgwNzE4OSBjYW5hZGlhbi5zYWZyaWNh
+LnJlZGVtcHRpb24yfXtcYlxmMVxmczI4XHVsXGluc3JzaWQ3NDU5OTEgQGdt
+YWlsLmNvbX17XGYxXGZzMjBcaW5zcnNpZDc0NTk5MSAgDQpccGFyIH17XGJc
+ZjFcZnMyOFxjZjFcaW5zcnNpZDc0NTk5MSBFLU1BSUw6IH17XGJcZjFcZnMy
+OFx1bFxpbnNyc2lkNzQ1OTkxIGNhbmFkaWFuLnNhZnJpY2EucmVkZW1wdGlv
+bjFAZ21haWwuY29tfXtcZjFcZnMyMFxpbnNyc2lkNzQ1OTkxIA0KXHBhciB9
+e1xiXGYxXGZzMTZcbGFuZzcxNzdcbGFuZ2ZlMTAzM1xsYW5nbnA3MTc3XGlu
+c3JzaWQ3NDU5OTEgKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqICoq
+KiAqKioqKioqKioqKioqKioqKioqKioqKioqKipcbGluZSB9e1xmMVxmczE2
+XGxhbmc3MTc3XGxhbmdmZTEwMzNcbGFuZ25wNzE3N1xpbnNyc2lkNzQ1OTkx
+IERJU0NMQUlNRVIgJiBDT05GSURFTlRJQUxJVFk6XGxpbmUgVGhlIGluZm9y
+bWF0aW8NCm4gY29udGFpbmVkIGluIHRoaXMgY29tbXVuaWNhdGlvbiBpcyBp
+bnRlbmRlZCBzb2xlbHkgZm9yIHRoZSB1c2Ugb2YgdGhlIGluZGl2aWR1YWwg
+b3IgZW50aXR5IHRvIHdob20gaXQgaXMgYWRkcmVzc2VkIGFuZCBvdGhlcnMg
+YXV0aG9yaXplZCB0byByZWNlaXZlIGl0LCBhcyBpdCBtYXkgY29udGFpbiBj
+b25maWRlbnRpYWwgb3IgbGVnYWxseSBwcml2aWxlZ2VkIGluZm9ybWF0aW9u
+LiBJZiB5b3UgYXJlIG5vdCB0aGUgaW50ZW5kZWQgcmVjaXBpZQ0Kbg0KdCB5
+b3UgYXJlIGhlcmVieSBub3RpZmllZCB0aGF0IGFueSBkaXNjbG9zdXJlLCB1
+bmF1dGhvcml6ZWQgdXNlLCBjb3B5aW5nLCBkaXN0cmlidXRpb24gb3IgdGFr
+aW5nIGFueSBhY3Rpb24gaW4gcmVsaWFuY2Ugb24gdGhlIGNvbnRlbnRzIG9m
+IHRoaXMgaW5mb3JtYXRpb24gaXMgc3RyaWN0bHkgcHJvaGliaXRlZCBhbmQg
+bWF5IGJlIHVubGF3ZnVsLiBJZiB5b3UgaGF2ZSByZWNlaXZlZCB0aGlzIGNv
+bW11bmljYXRpb24gaW4gZXJyb3IsIHBsZWFzDQplIG5vdGlmeSB1cyBpbW1l
+ZGlhdGVseSBieSByZXNwb25kaW5nIHRvIHRoaXMgZW1haWwgYW5kIHRoZW4g
+ZGVsZXRlIGl0IGZyb20geW91ciBzeXN0ZW0uXGxpbmUgQ2FuYWRhIExvdHRl
+cnkgaXMgbmVpdGhlciBsaWFibGUgZm9yIHRoZSBwcm9wZXIgYW5kIGNvbXBs
+ZXRlIHRyYW5zbWlzc2lvbiBvZiB0aGUgaW5mb3JtYXRpb24gY29udGFpbmVk
+IGluIHRoaXMgY29tbXVuaWNhdGlvbiBub3IgZm9yIGFueSBkZWxheSBpbiBp
+dHMgcmVjZWlwdC4gDQpcbGluZSB9e1xiXGYxXGZzMTZcbGFuZzcxNzdcbGFu
+Z2ZlMTAzM1xsYW5nbnA3MTc3XGluc3JzaWQ3NDU5OTEgKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqICoqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKn17XGYxXGZzMTZcbGFuZzcxNzdcbGFuZ2ZlMTAzM1xsYW5nbnA3MTc3
+XGluc3JzaWQ3NDU5OTEgXH59e1xmMVxmczE2XGluc3JzaWQ3NDU5OTEgXH59
+e1xmMVxmczIwXGluc3JzaWQ3NDU5OTEgIA0KXHBhciB9e1xiXGYxXGZzMjhc
+Y2YxXGluc3JzaWQ3NDU5OTEgWW91cnMgZmFpdGhmdWxseSx9e1xmMVxmczIw
+XGluc3JzaWQ3NDU5OTEgIA0KXHBhciB9e1xiXGYxXGZzMjhcY2YxXGluc3Jz
+aWQ3NDU5OTEgTXJzLiBFdmVseW4gTWNHcmVnb3IgfXtcZjFcZnMyMFxpbnNy
+c2lkNzQ1OTkxIA0KXHBhciB9e1xmMVxmczI4XGNmMVxpbnNyc2lkNzQ1OTkx
+IFtQdWJsaWNpdHkgU2VjcmV0YXJ5XS59e1xmMVxmczIwXGluc3JzaWQ3NDU5
+OTFcY2hhcnJzaWQ1NTg3NDQwIA0KXHBhciB9XHBhcmQgXHFsIFxsaTBccmkw
+XHdpZGN0bHBhclxhc3BhbHBoYVxhc3BudW1cZmFhdXRvXGFkanVzdHJpZ2h0
+XHJpbjBcbGluMFxpdGFwMFxwYXJhcnNpZDc0NTk5MSB7XGluc3JzaWQ1NTg3
+NDQwXGNoYXJyc2lkNzQ1OTkxIA0KXHBhciB9fQ==
 
-T3 supports VIS3 instructions, including support (finally) for
-partitioned shift.  One can also now move directly between float
-and integer registers.
-
-T3 supports instructions meant to help with Galois Field and other HPC
-calculations, such as XOR multiply.  Also there are "OP and negate"
-instructions, for example "fnmul" which is multiply-and-negate.
-
-T3 recognizes the transactional memory opcodes, however since
-transactional memory isn't supported: 1) 'commit' behaves as a NOP and
-2) 'chkpt' always branches 3) 'rdcps' returns all zeros and 4) 'wrcps'
-behaves as a NOP.
-
-So we'll need about 3 new elf capability flags in the end to represent
-all of these things.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/include/asm/elf_64.h |    6 ++++--
- arch/sparc/include/asm/xor_64.h |    3 ++-
- arch/sparc/kernel/cpu.c         |    6 ++++++
- arch/sparc/kernel/cpumap.c      |    1 +
- arch/sparc/kernel/head_64.S     |   31 +++++++++++++++++++++++++++++++
- arch/sparc/kernel/pcr.c         |    4 ++++
- arch/sparc/kernel/perf_event.c  |    3 ++-
- 7 files changed, 50 insertions(+), 4 deletions(-)
-
-diff --git a/arch/sparc/include/asm/elf_64.h b/arch/sparc/include/asm/elf_64.h
-index cfa9cd2..64f7a00 100644
---- a/arch/sparc/include/asm/elf_64.h
-+++ b/arch/sparc/include/asm/elf_64.h
-@@ -177,9 +177,11 @@ static inline unsigned int sparc64_elf_hwcap(void)
- 		cap |= HWCAP_SPARC_ULTRA3;
- 	else if (tlb_type = hypervisor) {
- 		if (sun4v_chip_type = SUN4V_CHIP_NIAGARA1 ||
--		    sun4v_chip_type = SUN4V_CHIP_NIAGARA2)
-+		    sun4v_chip_type = SUN4V_CHIP_NIAGARA2 ||
-+		    sun4v_chip_type = SUN4V_CHIP_NIAGARA3)
- 			cap |= HWCAP_SPARC_BLKINIT;
--		if (sun4v_chip_type = SUN4V_CHIP_NIAGARA2)
-+		if (sun4v_chip_type = SUN4V_CHIP_NIAGARA2 ||
-+		    sun4v_chip_type = SUN4V_CHIP_NIAGARA3)
- 			cap |= HWCAP_SPARC_N2;
- 	}
- 
-diff --git a/arch/sparc/include/asm/xor_64.h b/arch/sparc/include/asm/xor_64.h
-index bee4bf4..9ed6ff6 100644
---- a/arch/sparc/include/asm/xor_64.h
-+++ b/arch/sparc/include/asm/xor_64.h
-@@ -65,6 +65,7 @@ static struct xor_block_template xor_block_niagara = {
- #define XOR_SELECT_TEMPLATE(FASTEST) \
- 	((tlb_type = hypervisor && \
- 	  (sun4v_chip_type = SUN4V_CHIP_NIAGARA1 || \
--	   sun4v_chip_type = SUN4V_CHIP_NIAGARA2)) ? \
-+	   sun4v_chip_type = SUN4V_CHIP_NIAGARA2 || \
-+	   sun4v_chip_type = SUN4V_CHIP_NIAGARA3)) ? \
- 	 &xor_block_niagara : \
- 	 &xor_block_VIS)
-diff --git a/arch/sparc/kernel/cpu.c b/arch/sparc/kernel/cpu.c
-index 70f035c..17cf290 100644
---- a/arch/sparc/kernel/cpu.c
-+++ b/arch/sparc/kernel/cpu.c
-@@ -474,6 +474,12 @@ static void __init sun4v_cpu_probe(void)
- 		sparc_pmu_type = "niagara2";
- 		break;
- 
-+	case SUN4V_CHIP_NIAGARA3:
-+		sparc_cpu_type = "UltraSparc T3 (Niagara3)";
-+		sparc_fpu_type = "UltraSparc T3 integrated FPU";
-+		sparc_pmu_type = "niagara3";
-+		break;
-+
- 	default:
- 		printk(KERN_WARNING "CPU: Unknown sun4v cpu type [%s]\n",
- 		       prom_cpu_compatible);
-diff --git a/arch/sparc/kernel/cpumap.c b/arch/sparc/kernel/cpumap.c
-index d91fd78..4197e8d 100644
---- a/arch/sparc/kernel/cpumap.c
-+++ b/arch/sparc/kernel/cpumap.c
-@@ -324,6 +324,7 @@ static int iterate_cpu(struct cpuinfo_tree *t, unsigned int root_index)
- 	switch (sun4v_chip_type) {
- 	case SUN4V_CHIP_NIAGARA1:
- 	case SUN4V_CHIP_NIAGARA2:
-+	case SUN4V_CHIP_NIAGARA3:
- 		rover_inc_table = niagara_iterate_method;
- 		break;
- 	default:
-diff --git a/arch/sparc/kernel/head_64.S b/arch/sparc/kernel/head_64.S
-index aa594c7..c752603 100644
---- a/arch/sparc/kernel/head_64.S
-+++ b/arch/sparc/kernel/head_64.S
-@@ -132,6 +132,8 @@ prom_sun4v_name:
- 	.asciz	"sun4v"
- prom_niagara_prefix:
- 	.asciz	"SUNW,UltraSPARC-T"
-+prom_sparc_prefix:
-+	.asciz	"SPARC-T"
- 	.align	4
- prom_root_compatible:
- 	.skip	64
-@@ -382,6 +384,22 @@ sun4v_chip_type:
- 90:	ldub	[%g7], %g2
- 	ldub	[%g1], %g4
- 	cmp	%g2, %g4
-+	bne,pn	%icc, 89f
-+	 add	%g7, 1, %g7
-+	subcc	%g3, 1, %g3
-+	bne,pt	%xcc, 90b
-+	 add	%g1, 1, %g1
-+	ba,pt	%xcc, 91f
-+	 nop
-+
-+89:	sethi	%hi(prom_cpu_compatible), %g1
-+	or	%g1, %lo(prom_cpu_compatible), %g1
-+	sethi	%hi(prom_sparc_prefix), %g7
-+	or	%g7, %lo(prom_sparc_prefix), %g7
-+	mov	7, %g3
-+90:	ldub	[%g7], %g2
-+	ldub	[%g1], %g4
-+	cmp	%g2, %g4
- 	bne,pn	%icc, 4f
- 	 add	%g7, 1, %g7
- 	subcc	%g3, 1, %g3
-@@ -390,6 +408,15 @@ sun4v_chip_type:
- 
- 	sethi	%hi(prom_cpu_compatible), %g1
- 	or	%g1, %lo(prom_cpu_compatible), %g1
-+	ldub	[%g1 + 7], %g2
-+	cmp	%g2, '3'
-+	be,pt	%xcc, 5f
-+	 mov	SUN4V_CHIP_NIAGARA3, %g4
-+	ba,pt	%xcc, 4f
-+	 nop
-+
-+91:	sethi	%hi(prom_cpu_compatible), %g1
-+	or	%g1, %lo(prom_cpu_compatible), %g1
- 	ldub	[%g1 + 17], %g2
- 	cmp	%g2, '1'
- 	be,pt	%xcc, 5f
-@@ -397,6 +424,7 @@ sun4v_chip_type:
- 	cmp	%g2, '2'
- 	be,pt	%xcc, 5f
- 	 mov	SUN4V_CHIP_NIAGARA2, %g4
-+	
- 4:
- 	mov	SUN4V_CHIP_UNKNOWN, %g4
- 5:	sethi	%hi(sun4v_chip_type), %g2
-@@ -514,6 +542,9 @@ niagara_tlb_fixup:
- 	 cmp	%g1, SUN4V_CHIP_NIAGARA2
- 	be,pt	%xcc, niagara2_patch
- 	 nop
-+	cmp	%g1, SUN4V_CHIP_NIAGARA3
-+	be,pt	%xcc, niagara2_patch
-+	 nop
- 
- 	call	generic_patch_copyops
- 	 nop
-diff --git a/arch/sparc/kernel/pcr.c b/arch/sparc/kernel/pcr.c
-index 878c682..343b0f9 100644
---- a/arch/sparc/kernel/pcr.c
-+++ b/arch/sparc/kernel/pcr.c
-@@ -109,6 +109,10 @@ static int __init register_perf_hsvc(void)
- 			perf_hsvc_group = HV_GRP_N2_CPU;
- 			break;
- 
-+		case SUN4V_CHIP_NIAGARA3:
-+			perf_hsvc_group = HV_GRP_KT_CPU;
-+			break;
-+
- 		default:
- 			return -ENODEV;
- 		}
-diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
-index 171e8d8..614da62 100644
---- a/arch/sparc/kernel/perf_event.c
-+++ b/arch/sparc/kernel/perf_event.c
-@@ -1343,7 +1343,8 @@ static bool __init supported_pmu(void)
- 		sparc_pmu = &niagara1_pmu;
- 		return true;
- 	}
--	if (!strcmp(sparc_pmu_type, "niagara2")) {
-+	if (!strcmp(sparc_pmu_type, "niagara2") ||
-+	    !strcmp(sparc_pmu_type, "niagara3")) {
- 		sparc_pmu = &niagara2_pmu;
- 		return true;
- 	}
--- 
-1.7.2.5
-
+--0-792654604-1311264983=:98071--
