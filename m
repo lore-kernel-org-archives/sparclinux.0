@@ -1,16 +1,115 @@
-From: Anca Emanuel <anca.emanuel@gmail.com>
-Date: Thu, 28 Jul 2011 10:08:08 +0000
-Subject: Re: [GIT] Sparc
-Message-Id: <CAJL_dMt9Cc1Htv2-134zja=5JFu2cFBG2TUr+oA8no7uSwHZvA@mail.gmail.com>
+From: Tejun Heo <tj@kernel.org>
+Date: Tue, 26 Jul 2011 15:35:27 +0000
+Subject: [PATCH 16/23] sparc: Use HAVE_MEMBLOCK_NODE_MAP
+Message-Id: <1311694534-5161-17-git-send-email-tj@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110728.014631.1261854605882078979.davem@davemloft.net>
-In-Reply-To: <20110728.014631.1261854605882078979.davem@davemloft.net>
+References: <1311694534-5161-1-git-send-email-tj@kernel.org>
+In-Reply-To: <1311694534-5161-1-git-send-email-tj@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: torvalds@linux-foundation.org, akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: benh@kernel.crashing.org, yinghai@kernel.org, hpa@zytor.com, tony.luck@intel.com, ralf@linux-mips.org, schwidefsky@de.ibm.com, liqin.chen@sunplusct.com, lethal@linux-sh.org, davem@davemloft.net, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
+Cc: mingo@redhat.com, Tejun Heo <tj@kernel.org>, sparclinux@vger.kernel.org
 
-https://plus.google.com/101384639386588513837/posts/gMTHsvprF3L
+sparc doesn't access early_node_map[] directly and enabling
+HAVE_MEMBLOCK_NODE_MAP is trivial - replacing add_active_range() calls
+with memblock_set_node() and selecting HAVE_MEMBLOCK_NODE_MAP is
+enough.
 
-Congratulations.
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+---
+David, memblock now can carry node information itself without relying
+on early_node_map[], which makes operations which make use of both
+information much saner and generally makes NUMA memory init simpler.
+
+Boot-tested 64bit [!]SMP [!]NUMA on my non-NUMA u60.  Compile tested
+32bit [!]SMP.
+
+The patches implementing HAVE_MEMBLOCK_NODE_MAP is currently in
+tip:x86/memblock branch on which this patch is based on.
+
+Thanks.
+
+ arch/sparc/Kconfig      |    3 +++
+ arch/sparc/mm/init_64.c |   24 ++++--------------------
+ 2 files changed, 7 insertions(+), 20 deletions(-)
+
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 253986b..9ae3b19 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -356,6 +356,9 @@ config NODES_SPAN_OTHER_NODES
+ config ARCH_POPULATES_NODE_MAP
+ 	def_bool y if SPARC64
+ 
++config HAVE_MEMBLOCK_NODE_MAP
++	def_bool y if SPARC64
++
+ config ARCH_SELECT_MEMORY_MODEL
+ 	def_bool y if SPARC64
+ 
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index ae9bab4..3985d3b 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -811,7 +811,7 @@ static u64 memblock_nid_range(u64 start, u64 end, int *nid)
+ #endif
+ 
+ /* This must be invoked after performing all of the necessary
+- * add_active_range() calls for 'nid'.  We need to be able to get
++ * memblock_set_node() calls for 'nid'.  We need to be able to get
+  * correct data from get_pfn_range_for_nid().
+  */
+ static void __init allocate_node_data(int nid)
+@@ -982,14 +982,11 @@ static void __init add_node_ranges(void)
+ 
+ 			this_end = memblock_nid_range(start, end, &nid);
+ 
+-			numadbg("Adding active range nid[%d] "
++			numadbg("Setting memblock NUMA node nid[%d] "
+ 				"start[%lx] end[%lx]\n",
+ 				nid, start, this_end);
+ 
+-			add_active_range(nid,
+-					 start >> PAGE_SHIFT,
+-					 this_end >> PAGE_SHIFT);
+-
++			memblock_set_node(start, this_end - start, nid);
+ 			start = this_end;
+ 		}
+ 	}
+@@ -1277,7 +1274,6 @@ static void __init bootmem_init_nonnuma(void)
+ {
+ 	unsigned long top_of_ram = memblock_end_of_DRAM();
+ 	unsigned long total_ram = memblock_phys_mem_size();
+-	struct memblock_region *reg;
+ 
+ 	numadbg("bootmem_init_nonnuma()\n");
+ 
+@@ -1287,20 +1283,8 @@ static void __init bootmem_init_nonnuma(void)
+ 	       (top_of_ram - total_ram) >> 20);
+ 
+ 	init_node_masks_nonnuma();
+-
+-	for_each_memblock(memory, reg) {
+-		unsigned long start_pfn, end_pfn;
+-
+-		if (!reg->size)
+-			continue;
+-
+-		start_pfn = memblock_region_memory_base_pfn(reg);
+-		end_pfn = memblock_region_memory_end_pfn(reg);
+-		add_active_range(0, start_pfn, end_pfn);
+-	}
+-
++	memblock_set_node(0, (phys_addr_t)ULLONG_MAX, 0);
+ 	allocate_node_data(0);
+-
+ 	node_set_online(0);
+ }
+ 
+-- 
+1.7.6
+
