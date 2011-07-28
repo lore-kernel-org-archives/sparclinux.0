@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 28 Jul 2011 08:44:23 +0000
-Subject: [PATCH 5/6] n2rng: Attach on Niagara-T3.
-Message-Id: <20110728.014423.346127809978122665.davem@davemloft.net>
+Date: Thu, 28 Jul 2011 08:44:20 +0000
+Subject: [PATCH 4/6] sparc: Detect and handle UltraSPARC-T3 cpu types.
+Message-Id: <20110728.014420.1201831076516202797.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,116 +9,208 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-And stop referring to Victoria Falls, as the attribute we're
-talking about is whether the rng is multi-unit capable which
-applies to several chip variants now.
+The cpu compatible string we look for is "SPARC-T3".
+
+As far as memset/memcpy optimizations go, we treat this chip the same
+as Niagara-T2/T2+.  Use cache initializing stores for memset, and use
+perfetch, FPU block loads, cache initializing stores, and block stores
+for copies.
+
+We use the Niagara-T2 perf support, since T3 is a close relative in
+this regard.  Later we'll add support for the new events T3 can
+report, plus enable T3's new "sample" mode.
+
+For now I haven't added any new ELF hwcap flags.  We probably need
+to add a couple, for example:
+
+T2 and T3 both support the population count instruction in hardware.
+
+T3 supports VIS3 instructions, including support (finally) for
+partitioned shift.  One can also now move directly between float
+and integer registers.
+
+T3 supports instructions meant to help with Galois Field and other HPC
+calculations, such as XOR multiply.  Also there are "OP and negate"
+instructions, for example "fnmul" which is multiply-and-negate.
+
+T3 recognizes the transactional memory opcodes, however since
+transactional memory isn't supported: 1) 'commit' behaves as a NOP and
+2) 'chkpt' always branches 3) 'rdcps' returns all zeros and 4) 'wrcps'
+behaves as a NOP.
+
+So we'll need about 3 new elf capability flags in the end to represent
+all of these things.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- drivers/char/hw_random/n2-drv.c |   29 +++++++++++++++++------------
- drivers/char/hw_random/n2rng.h  |    2 +-
- 2 files changed, 18 insertions(+), 13 deletions(-)
+ arch/sparc/include/asm/elf_64.h |    6 ++++--
+ arch/sparc/include/asm/xor_64.h |    3 ++-
+ arch/sparc/kernel/cpu.c         |    6 ++++++
+ arch/sparc/kernel/cpumap.c      |    1 +
+ arch/sparc/kernel/head_64.S     |   31 +++++++++++++++++++++++++++++++
+ arch/sparc/kernel/pcr.c         |    4 ++++
+ arch/sparc/kernel/perf_event.c  |    3 ++-
+ 7 files changed, 50 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/char/hw_random/n2-drv.c b/drivers/char/hw_random/n2-drv.c
-index ac6739e..c3de70d 100644
---- a/drivers/char/hw_random/n2-drv.c
-+++ b/drivers/char/hw_random/n2-drv.c
-@@ -1,6 +1,6 @@
- /* n2-drv.c: Niagara-2 RNG driver.
-  *
-- * Copyright (C) 2008 David S. Miller <davem@davemloft.net>
-+ * Copyright (C) 2008, 2011 David S. Miller <davem@davemloft.net>
-  */
- 
- #include <linux/kernel.h>
-@@ -22,8 +22,8 @@
- 
- #define DRV_MODULE_NAME		"n2rng"
- #define PFX DRV_MODULE_NAME	": "
--#define DRV_MODULE_VERSION	"0.1"
--#define DRV_MODULE_RELDATE	"May 15, 2008"
-+#define DRV_MODULE_VERSION	"0.2"
-+#define DRV_MODULE_RELDATE	"July 27, 2011"
- 
- static char version[] __devinitdata  	DRV_MODULE_NAME ".c:v" DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")\n";
-@@ -623,14 +623,14 @@ static const struct of_device_id n2rng_match[];
- static int __devinit n2rng_probe(struct platform_device *op)
- {
- 	const struct of_device_id *match;
--	int victoria_falls;
-+	int multi_capable;
- 	int err = -ENOMEM;
- 	struct n2rng *np;
- 
- 	match = of_match_device(n2rng_match, &op->dev);
- 	if (!match)
- 		return -EINVAL;
--	victoria_falls = (match->data != NULL);
-+	multi_capable = (match->data != NULL);
- 
- 	n2rng_driver_version();
- 	np = kzalloc(sizeof(*np), GFP_KERNEL);
-@@ -640,8 +640,8 @@ static int __devinit n2rng_probe(struct platform_device *op)
- 
- 	INIT_DELAYED_WORK(&np->work, n2rng_work);
- 
--	if (victoria_falls)
--		np->flags |= N2RNG_FLAG_VF;
-+	if (multi_capable)
-+		np->flags |= N2RNG_FLAG_MULTI;
- 
- 	err = -ENODEV;
- 	np->hvapi_major = 2;
-@@ -658,10 +658,10 @@ static int __devinit n2rng_probe(struct platform_device *op)
- 		}
+diff --git a/arch/sparc/include/asm/elf_64.h b/arch/sparc/include/asm/elf_64.h
+index cfa9cd2..64f7a00 100644
+--- a/arch/sparc/include/asm/elf_64.h
++++ b/arch/sparc/include/asm/elf_64.h
+@@ -177,9 +177,11 @@ static inline unsigned int sparc64_elf_hwcap(void)
+ 		cap |= HWCAP_SPARC_ULTRA3;
+ 	else if (tlb_type = hypervisor) {
+ 		if (sun4v_chip_type = SUN4V_CHIP_NIAGARA1 ||
+-		    sun4v_chip_type = SUN4V_CHIP_NIAGARA2)
++		    sun4v_chip_type = SUN4V_CHIP_NIAGARA2 ||
++		    sun4v_chip_type = SUN4V_CHIP_NIAGARA3)
+ 			cap |= HWCAP_SPARC_BLKINIT;
+-		if (sun4v_chip_type = SUN4V_CHIP_NIAGARA2)
++		if (sun4v_chip_type = SUN4V_CHIP_NIAGARA2 ||
++		    sun4v_chip_type = SUN4V_CHIP_NIAGARA3)
+ 			cap |= HWCAP_SPARC_N2;
  	}
  
--	if (np->flags & N2RNG_FLAG_VF) {
-+	if (np->flags & N2RNG_FLAG_MULTI) {
- 		if (np->hvapi_major < 2) {
--			dev_err(&op->dev, "VF RNG requires HVAPI major "
--				"version 2 or later, got %lu\n",
-+			dev_err(&op->dev, "multi-unit-capable RNG requires "
-+				"HVAPI major version 2 or later, got %lu\n",
- 				np->hvapi_major);
- 			goto out_hvapi_unregister;
+diff --git a/arch/sparc/include/asm/xor_64.h b/arch/sparc/include/asm/xor_64.h
+index bee4bf4..9ed6ff6 100644
+--- a/arch/sparc/include/asm/xor_64.h
++++ b/arch/sparc/include/asm/xor_64.h
+@@ -65,6 +65,7 @@ static struct xor_block_template xor_block_niagara = {
+ #define XOR_SELECT_TEMPLATE(FASTEST) \
+ 	((tlb_type = hypervisor && \
+ 	  (sun4v_chip_type = SUN4V_CHIP_NIAGARA1 || \
+-	   sun4v_chip_type = SUN4V_CHIP_NIAGARA2)) ? \
++	   sun4v_chip_type = SUN4V_CHIP_NIAGARA2 || \
++	   sun4v_chip_type = SUN4V_CHIP_NIAGARA3)) ? \
+ 	 &xor_block_niagara : \
+ 	 &xor_block_VIS)
+diff --git a/arch/sparc/kernel/cpu.c b/arch/sparc/kernel/cpu.c
+index 70f035c..17cf290 100644
+--- a/arch/sparc/kernel/cpu.c
++++ b/arch/sparc/kernel/cpu.c
+@@ -474,6 +474,12 @@ static void __init sun4v_cpu_probe(void)
+ 		sparc_pmu_type = "niagara2";
+ 		break;
+ 
++	case SUN4V_CHIP_NIAGARA3:
++		sparc_cpu_type = "UltraSparc T3 (Niagara3)";
++		sparc_fpu_type = "UltraSparc T3 integrated FPU";
++		sparc_pmu_type = "niagara3";
++		break;
++
+ 	default:
+ 		printk(KERN_WARNING "CPU: Unknown sun4v cpu type [%s]\n",
+ 		       prom_cpu_compatible);
+diff --git a/arch/sparc/kernel/cpumap.c b/arch/sparc/kernel/cpumap.c
+index d91fd78..4197e8d 100644
+--- a/arch/sparc/kernel/cpumap.c
++++ b/arch/sparc/kernel/cpumap.c
+@@ -324,6 +324,7 @@ static int iterate_cpu(struct cpuinfo_tree *t, unsigned int root_index)
+ 	switch (sun4v_chip_type) {
+ 	case SUN4V_CHIP_NIAGARA1:
+ 	case SUN4V_CHIP_NIAGARA2:
++	case SUN4V_CHIP_NIAGARA3:
+ 		rover_inc_table = niagara_iterate_method;
+ 		break;
+ 	default:
+diff --git a/arch/sparc/kernel/head_64.S b/arch/sparc/kernel/head_64.S
+index aa594c7..c752603 100644
+--- a/arch/sparc/kernel/head_64.S
++++ b/arch/sparc/kernel/head_64.S
+@@ -132,6 +132,8 @@ prom_sun4v_name:
+ 	.asciz	"sun4v"
+ prom_niagara_prefix:
+ 	.asciz	"SUNW,UltraSPARC-T"
++prom_sparc_prefix:
++	.asciz	"SPARC-T"
+ 	.align	4
+ prom_root_compatible:
+ 	.skip	64
+@@ -382,6 +384,22 @@ sun4v_chip_type:
+ 90:	ldub	[%g7], %g2
+ 	ldub	[%g1], %g4
+ 	cmp	%g2, %g4
++	bne,pn	%icc, 89f
++	 add	%g7, 1, %g7
++	subcc	%g3, 1, %g3
++	bne,pt	%xcc, 90b
++	 add	%g1, 1, %g1
++	ba,pt	%xcc, 91f
++	 nop
++
++89:	sethi	%hi(prom_cpu_compatible), %g1
++	or	%g1, %lo(prom_cpu_compatible), %g1
++	sethi	%hi(prom_sparc_prefix), %g7
++	or	%g7, %lo(prom_sparc_prefix), %g7
++	mov	7, %g3
++90:	ldub	[%g7], %g2
++	ldub	[%g1], %g4
++	cmp	%g2, %g4
+ 	bne,pn	%icc, 4f
+ 	 add	%g7, 1, %g7
+ 	subcc	%g3, 1, %g3
+@@ -390,6 +408,15 @@ sun4v_chip_type:
+ 
+ 	sethi	%hi(prom_cpu_compatible), %g1
+ 	or	%g1, %lo(prom_cpu_compatible), %g1
++	ldub	[%g1 + 7], %g2
++	cmp	%g2, '3'
++	be,pt	%xcc, 5f
++	 mov	SUN4V_CHIP_NIAGARA3, %g4
++	ba,pt	%xcc, 4f
++	 nop
++
++91:	sethi	%hi(prom_cpu_compatible), %g1
++	or	%g1, %lo(prom_cpu_compatible), %g1
+ 	ldub	[%g1 + 17], %g2
+ 	cmp	%g2, '1'
+ 	be,pt	%xcc, 5f
+@@ -397,6 +424,7 @@ sun4v_chip_type:
+ 	cmp	%g2, '2'
+ 	be,pt	%xcc, 5f
+ 	 mov	SUN4V_CHIP_NIAGARA2, %g4
++	
+ 4:
+ 	mov	SUN4V_CHIP_UNKNOWN, %g4
+ 5:	sethi	%hi(sun4v_chip_type), %g2
+@@ -514,6 +542,9 @@ niagara_tlb_fixup:
+ 	 cmp	%g1, SUN4V_CHIP_NIAGARA2
+ 	be,pt	%xcc, niagara2_patch
+ 	 nop
++	cmp	%g1, SUN4V_CHIP_NIAGARA3
++	be,pt	%xcc, niagara2_patch
++	 nop
+ 
+ 	call	generic_patch_copyops
+ 	 nop
+diff --git a/arch/sparc/kernel/pcr.c b/arch/sparc/kernel/pcr.c
+index 878c682..343b0f9 100644
+--- a/arch/sparc/kernel/pcr.c
++++ b/arch/sparc/kernel/pcr.c
+@@ -109,6 +109,10 @@ static int __init register_perf_hsvc(void)
+ 			perf_hsvc_group = HV_GRP_N2_CPU;
+ 			break;
+ 
++		case SUN4V_CHIP_NIAGARA3:
++			perf_hsvc_group = HV_GRP_KT_CPU;
++			break;
++
+ 		default:
+ 			return -ENODEV;
  		}
-@@ -688,8 +688,8 @@ static int __devinit n2rng_probe(struct platform_device *op)
- 		goto out_free_units;
- 
- 	dev_info(&op->dev, "Found %s RNG, units: %d\n",
--		 ((np->flags & N2RNG_FLAG_VF) ?
--		  "Victoria Falls" : "Niagara2"),
-+		 ((np->flags & N2RNG_FLAG_MULTI) ?
-+		  "multi-unit-capable" : "single-unit"),
- 		 np->num_units);
- 
- 	np->hwrng.name = "n2rng";
-@@ -751,6 +751,11 @@ static const struct of_device_id n2rng_match[] = {
- 		.compatible	= "SUNW,vf-rng",
- 		.data		= (void *) 1,
- 	},
-+	{
-+		.name		= "random-number-generator",
-+		.compatible	= "SUNW,kt-rng",
-+		.data		= (void *) 1,
-+	},
- 	{},
- };
- MODULE_DEVICE_TABLE(of, n2rng_match);
-diff --git a/drivers/char/hw_random/n2rng.h b/drivers/char/hw_random/n2rng.h
-index 4bea07f..f244ac8 100644
---- a/drivers/char/hw_random/n2rng.h
-+++ b/drivers/char/hw_random/n2rng.h
-@@ -68,7 +68,7 @@ struct n2rng {
- 	struct platform_device	*op;
- 
- 	unsigned long		flags;
--#define N2RNG_FLAG_VF		0x00000001 /* Victoria Falls RNG, else N2 */
-+#define N2RNG_FLAG_MULTI	0x00000001 /* Multi-unit capable RNG */
- #define N2RNG_FLAG_CONTROL	0x00000002 /* Operating in control domain */
- #define N2RNG_FLAG_READY	0x00000008 /* Ready for hw-rng layer      */
- #define N2RNG_FLAG_SHUTDOWN	0x00000010 /* Driver unregistering        */
+diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
+index 171e8d8..614da62 100644
+--- a/arch/sparc/kernel/perf_event.c
++++ b/arch/sparc/kernel/perf_event.c
+@@ -1343,7 +1343,8 @@ static bool __init supported_pmu(void)
+ 		sparc_pmu = &niagara1_pmu;
+ 		return true;
+ 	}
+-	if (!strcmp(sparc_pmu_type, "niagara2")) {
++	if (!strcmp(sparc_pmu_type, "niagara2") ||
++	    !strcmp(sparc_pmu_type, "niagara3")) {
+ 		sparc_pmu = &niagara2_pmu;
+ 		return true;
+ 	}
 -- 
 1.7.2.5
 
