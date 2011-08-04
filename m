@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 04 Aug 2011 09:03:21 +0000
-Subject: [PATCH 7/7] sparc: Use popc when possible for ffs/__ffs/ffz.
-Message-Id: <20110804.020321.1930200497933020293.davem@davemloft.net>
+Date: Thu, 04 Aug 2011 09:03:03 +0000
+Subject: [PATCH 3/7] sparc: Use popc if possible for hweight routines.
+Message-Id: <20110804.020303.1515580903578322666.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,242 +9,246 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
+Just like powerpc, we code patch at boot time.
+
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/include/asm/bitops_64.h |    7 ++-
- arch/sparc/kernel/entry.h          |    7 +++
- arch/sparc/kernel/setup_64.c       |   32 +++++++++-----
- arch/sparc/kernel/sparc_ksyms_64.c |    4 ++
- arch/sparc/kernel/vmlinux.lds.S    |    5 ++
+ arch/sparc/include/asm/bitops_64.h |   42 +++--------------------------
+ arch/sparc/kernel/entry.h          |    7 +++++
+ arch/sparc/kernel/setup_64.c       |   27 +++++++++++++++++++
+ arch/sparc/kernel/sparc_ksyms_64.c |    7 +++++
+ arch/sparc/kernel/vmlinux.lds.S    |    6 +++-
  arch/sparc/lib/Makefile            |    2 +-
- arch/sparc/lib/ffs.S               |   84 ++++++++++++++++++++++++++++++++++++
- 7 files changed, 126 insertions(+), 15 deletions(-)
- create mode 100644 arch/sparc/lib/ffs.S
+ arch/sparc/lib/hweight.S           |   51 ++++++++++++++++++++++++++++++++++++
+ 7 files changed, 102 insertions(+), 40 deletions(-)
+ create mode 100644 arch/sparc/lib/hweight.S
 
 diff --git a/arch/sparc/include/asm/bitops_64.h b/arch/sparc/include/asm/bitops_64.h
-index 3588807..29011cc 100644
+index 325e295..3588807 100644
 --- a/arch/sparc/include/asm/bitops_64.h
 +++ b/arch/sparc/include/asm/bitops_64.h
-@@ -26,16 +26,17 @@ extern void change_bit(unsigned long nr, volatile unsigned long *addr);
- #define smp_mb__before_clear_bit()	barrier()
- #define smp_mb__after_clear_bit()	barrier()
+@@ -42,45 +42,11 @@ extern void change_bit(unsigned long nr, volatile unsigned long *addr);
+  * of bits set) of a N-bit word
+  */
  
--#include <asm-generic/bitops/ffz.h>
--#include <asm-generic/bitops/__ffs.h>
- #include <asm-generic/bitops/fls.h>
- #include <asm-generic/bitops/__fls.h>
- #include <asm-generic/bitops/fls64.h>
+-#ifdef ULTRA_HAS_POPULATION_COUNT
++extern unsigned long __arch_hweight64(__u64 w);
++extern unsigned int __arch_hweight32(unsigned int w);
++extern unsigned int __arch_hweight16(unsigned int w);
++extern unsigned int __arch_hweight8(unsigned int w);
  
- #ifdef __KERNEL__
- 
-+extern int ffs(int x);
-+extern unsigned long __ffs(unsigned long);
-+
-+#include <asm-generic/bitops/ffz.h>
- #include <asm-generic/bitops/sched.h>
--#include <asm-generic/bitops/ffs.h>
- 
- /*
-  * hweightN: returns the hamming weight (i.e. the number
+-static inline unsigned int __arch_hweight64(unsigned long w)
+-{
+-	unsigned int res;
+-
+-	__asm__ ("popc %1,%0" : "=r" (res) : "r" (w));
+-	return res;
+-}
+-
+-static inline unsigned int __arch_hweight32(unsigned int w)
+-{
+-	unsigned int res;
+-
+-	__asm__ ("popc %1,%0" : "=r" (res) : "r" (w & 0xffffffff));
+-	return res;
+-}
+-
+-static inline unsigned int __arch_hweight16(unsigned int w)
+-{
+-	unsigned int res;
+-
+-	__asm__ ("popc %1,%0" : "=r" (res) : "r" (w & 0xffff));
+-	return res;
+-}
+-
+-static inline unsigned int __arch_hweight8(unsigned int w)
+-{
+-	unsigned int res;
+-
+-	__asm__ ("popc %1,%0" : "=r" (res) : "r" (w & 0xff));
+-	return res;
+-}
+-
+-#else
+-
+-#include <asm-generic/bitops/arch_hweight.h>
+-
+-#endif
+ #include <asm-generic/bitops/const_hweight.h>
+ #include <asm-generic/bitops/lock.h>
+ #endif /* __KERNEL__ */
 diff --git a/arch/sparc/kernel/entry.h b/arch/sparc/kernel/entry.h
-index 16d1545..e27f8ea 100644
+index d1f1361..16d1545 100644
 --- a/arch/sparc/kernel/entry.h
 +++ b/arch/sparc/kernel/entry.h
-@@ -49,6 +49,13 @@ struct popc_3insn_patch_entry {
- extern struct popc_3insn_patch_entry __popc_3insn_patch,
- 	__popc_3insn_patch_end;
+@@ -42,6 +42,13 @@ extern void fpsave(unsigned long *fpregs, unsigned long *fsr,
+ extern void fpload(unsigned long *fpregs, unsigned long *fsr);
  
-+struct popc_6insn_patch_entry {
+ #else /* CONFIG_SPARC32 */
++struct popc_3insn_patch_entry {
 +	unsigned int	addr;
-+	unsigned int	insns[6];
++	unsigned int	insns[3];
 +};
-+extern struct popc_6insn_patch_entry __popc_6insn_patch,
-+	__popc_6insn_patch_end;
++extern struct popc_3insn_patch_entry __popc_3insn_patch,
++	__popc_3insn_patch_end;
 +
  extern void __init per_cpu_patch(void);
  extern void __init sun4v_patch(void);
  extern void __init boot_cpu_id_too_large(int cpu);
 diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
-index 26d1141..3e9daea 100644
+index 242dbb3..26d1141 100644
 --- a/arch/sparc/kernel/setup_64.c
 +++ b/arch/sparc/kernel/setup_64.c
-@@ -275,24 +275,34 @@ void __init sun4v_patch(void)
- static void __init popc_patch(void)
- {
- 	struct popc_3insn_patch_entry *p3;
-+	struct popc_6insn_patch_entry *p6;
- 
- 	p3 = &__popc_3insn_patch;
- 	while (p3 < &__popc_3insn_patch_end) {
--		unsigned long addr = p3->addr;
-+		unsigned long i, addr = p3->addr;
- 
--		*(unsigned int *) (addr +  0) = p3->insns[0];
--		wmb();
--		__asm__ __volatile__("flush	%0" : : "r" (addr +  0));
-+		for (i = 0; i < 3; i++) {
-+			*(unsigned int *) (addr +  (i * 4)) = p3->insns[i];
-+			wmb();
-+			__asm__ __volatile__("flush	%0"
-+					     : : "r" (addr +  (i * 4)));
-+		}
- 
--		*(unsigned int *) (addr +  4) = p3->insns[1];
--		wmb();
--		__asm__ __volatile__("flush	%0" : : "r" (addr +  4));
-+		p3++;
-+	}
- 
--		*(unsigned int *) (addr +  8) = p3->insns[2];
--		wmb();
--		__asm__ __volatile__("flush	%0" : : "r" (addr +  4));
-+	p6 = &__popc_6insn_patch;
-+	while (p6 < &__popc_6insn_patch_end) {
-+		unsigned long i, addr = p6->addr;
- 
--		p3++;
-+		for (i = 0; i < 6; i++) {
-+			*(unsigned int *) (addr +  (i * 4)) = p6->insns[i];
-+			wmb();
-+			__asm__ __volatile__("flush	%0"
-+					     : : "r" (addr +  (i * 4)));
-+		}
-+
-+		p6++;
- 	}
+@@ -272,6 +272,30 @@ void __init sun4v_patch(void)
+ 	sun4v_hvapi_init();
  }
  
++static void __init popc_patch(void)
++{
++	struct popc_3insn_patch_entry *p3;
++
++	p3 = &__popc_3insn_patch;
++	while (p3 < &__popc_3insn_patch_end) {
++		unsigned long addr = p3->addr;
++
++		*(unsigned int *) (addr +  0) = p3->insns[0];
++		wmb();
++		__asm__ __volatile__("flush	%0" : : "r" (addr +  0));
++
++		*(unsigned int *) (addr +  4) = p3->insns[1];
++		wmb();
++		__asm__ __volatile__("flush	%0" : : "r" (addr +  4));
++
++		*(unsigned int *) (addr +  8) = p3->insns[2];
++		wmb();
++		__asm__ __volatile__("flush	%0" : : "r" (addr +  4));
++
++		p3++;
++	}
++}
++
+ #ifdef CONFIG_SMP
+ void __init boot_cpu_id_too_large(int cpu)
+ {
+@@ -424,6 +448,9 @@ static void __init init_sparc64_elf_hwcap(void)
+ 	sparc64_elf_hwcap = cap | mdesc_caps;
+ 
+ 	report_hwcaps(sparc64_elf_hwcap);
++
++	if (sparc64_elf_hwcap & AV_SPARC_POPC)
++		popc_patch();
+ }
+ 
+ void __init setup_arch(char **cmdline_p)
 diff --git a/arch/sparc/kernel/sparc_ksyms_64.c b/arch/sparc/kernel/sparc_ksyms_64.c
-index d0ee65a..83b47ab 100644
+index 372ad59..d0ee65a 100644
 --- a/arch/sparc/kernel/sparc_ksyms_64.c
 +++ b/arch/sparc/kernel/sparc_ksyms_64.c
-@@ -45,5 +45,9 @@ EXPORT_SYMBOL(__arch_hweight16);
- EXPORT_SYMBOL(__arch_hweight32);
- EXPORT_SYMBOL(__arch_hweight64);
+@@ -8,6 +8,7 @@
+ #include <linux/module.h>
+ #include <linux/pci.h>
+ #include <linux/init.h>
++#include <linux/bitops.h>
  
-+/* from ffs_ffz.S */
-+EXPORT_SYMBOL(ffs);
-+EXPORT_SYMBOL(__ffs);
+ #include <asm/system.h>
+ #include <asm/cpudata.h>
+@@ -38,5 +39,11 @@ EXPORT_SYMBOL(sun4v_niagara_setperf);
+ EXPORT_SYMBOL(sun4v_niagara2_getperf);
+ EXPORT_SYMBOL(sun4v_niagara2_setperf);
+ 
++/* from hweight.S */
++EXPORT_SYMBOL(__arch_hweight8);
++EXPORT_SYMBOL(__arch_hweight16);
++EXPORT_SYMBOL(__arch_hweight32);
++EXPORT_SYMBOL(__arch_hweight64);
 +
  /* Exporting a symbol from /init/main.c */
  EXPORT_SYMBOL(saved_command_line);
 diff --git a/arch/sparc/kernel/vmlinux.lds.S b/arch/sparc/kernel/vmlinux.lds.S
-index de20c14..94a9548 100644
+index c022075..de20c14 100644
 --- a/arch/sparc/kernel/vmlinux.lds.S
 +++ b/arch/sparc/kernel/vmlinux.lds.S
-@@ -112,6 +112,11 @@ SECTIONS
- 		*(.popc_3insn_patch)
- 		__popc_3insn_patch_end = .;
+@@ -107,7 +107,11 @@ SECTIONS
+ 		*(.sun4v_2insn_patch)
+ 		__sun4v_2insn_patch_end = .;
  	}
-+	.popc_6insn_patch : {
-+		__popc_6insn_patch = .;
-+		*(.popc_6insn_patch)
-+		__popc_6insn_patch_end = .;
+-
++	.popc_3insn_patch : {
++		__popc_3insn_patch = .;
++		*(.popc_3insn_patch)
++		__popc_3insn_patch_end = .;
 +	}
  	PERCPU_SECTION(SMP_CACHE_BYTES)
  
  	. = ALIGN(PAGE_SIZE);
 diff --git a/arch/sparc/lib/Makefile b/arch/sparc/lib/Makefile
-index 11c850a..a3fc437 100644
+index c25f94d..11c850a 100644
 --- a/arch/sparc/lib/Makefile
 +++ b/arch/sparc/lib/Makefile
 @@ -37,7 +37,7 @@ lib-$(CONFIG_SPARC64) += GENmemcpy.o GENcopy_from_user.o GENcopy_to_user.o
  lib-$(CONFIG_SPARC64) += GENpatch.o GENpage.o GENbzero.o
  
  lib-$(CONFIG_SPARC64) += copy_in_user.o user_fixup.o memmove.o
--lib-$(CONFIG_SPARC64) += mcount.o ipcsum.o xor.o hweight.o
-+lib-$(CONFIG_SPARC64) += mcount.o ipcsum.o xor.o hweight.o ffs.o
+-lib-$(CONFIG_SPARC64) += mcount.o ipcsum.o xor.o
++lib-$(CONFIG_SPARC64) += mcount.o ipcsum.o xor.o hweight.o
  
  obj-y                 += iomap.o
  obj-$(CONFIG_SPARC32) += atomic32.o
-diff --git a/arch/sparc/lib/ffs.S b/arch/sparc/lib/ffs.S
+diff --git a/arch/sparc/lib/hweight.S b/arch/sparc/lib/hweight.S
 new file mode 100644
-index 0000000..b39389f
+index 0000000..95414e0
 --- /dev/null
-+++ b/arch/sparc/lib/ffs.S
-@@ -0,0 +1,84 @@
++++ b/arch/sparc/lib/hweight.S
+@@ -0,0 +1,51 @@
 +#include <linux/linkage.h>
-+
-+	.register	%g2,#scratch
 +
 +	.text
 +	.align	32
-+
-+ENTRY(ffs)
-+	brnz,pt	%o0, 1f
-+	 mov	1, %o1
-+	retl
-+	 clr	%o0
-+	nop
-+	nop
-+ENTRY(__ffs)
-+	sllx	%o0, 32, %g1		/* 1  */
-+	srlx	%o0, 32, %g2
-+
-+	clr	%o1			/* 2  */
-+	movrz	%g1, %g2, %o0
-+
-+	movrz	%g1, 32, %o1		/* 3  */
-+1:	clr	%o2
-+
-+	sllx	%o0, (64 - 16), %g1	/* 4  */
-+	srlx	%o0, 16, %g2
-+
-+	movrz	%g1, %g2, %o0		/* 5  */
-+	clr	%o3
-+
-+	movrz	%g1, 16, %o2		/* 6  */
-+	clr	%o4
-+
-+	and	%o0, 0xff, %g1		/* 7  */
-+	srlx	%o0, 8, %g2
-+
-+	movrz	%g1, %g2, %o0		/* 8  */
-+	clr	%o5
-+
-+	movrz	%g1, 8, %o3		/* 9  */
-+	add	%o2, %o1, %o2
-+
-+	and	%o0, 0xf, %g1		/* 10 */
-+	srlx	%o0, 4, %g2
-+
-+	movrz	%g1, %g2, %o0		/* 11 */
-+	add	%o2, %o3, %o2
-+
-+	movrz	%g1, 4, %o4		/* 12 */
-+
-+	and	%o0, 0x3, %g1		/* 13 */
-+	srlx	%o0, 2, %g2
-+
-+	movrz	%g1, %g2, %o0		/* 14 */
-+	add	%o2, %o4, %o2
-+
-+	movrz	%g1, 2, %o5		/* 15 */
-+
-+	and	%o0, 0x1, %g1		/* 16 */
-+
-+	add	%o2, %o5, %o2		/* 17 */
-+	xor	%g1, 0x1, %g1
-+
-+	retl				/* 18 */
-+	 add	%o2, %g1, %o0
-+ENDPROC(ffs)
-+ENDPROC(__ffs)
-+
-+	.section	.popc_6insn_patch, "ax"
-+	.word		ffs
-+	brz,pn	%o0, 98f
-+	 neg	%o0, %g1
-+	xnor	%o0, %g1, %o1
-+	popc	%o1, %o0
-+98:	retl
++ENTRY(__arch_hweight8)
++	ba,pt	%xcc, __sw_hweight8
 +	 nop
-+	.word		__ffs
-+	neg	%o0, %g1
-+	xnor	%o0, %g1, %o1
-+	popc	%o1, %o0
++	nop
++ENDPROC(__arch_hweight8)
++	.section	.popc_3insn_patch, "ax"
++	.word		__arch_hweight8
++	sllx		%o0, 64-8, %g1
 +	retl
-+	 sub	%o0, 1, %o0
++	 popc		%g1, %o0
++	.previous
++
++ENTRY(__arch_hweight16)
++	ba,pt	%xcc, __sw_hweight16
++	 nop
++	nop
++ENDPROC(__arch_hweight16)
++	.section	.popc_3insn_patch, "ax"
++	.word		__arch_hweight16
++	sllx		%o0, 64-16, %g1
++	retl
++	 popc		%g1, %o0
++	.previous
++
++ENTRY(__arch_hweight32)
++	ba,pt	%xcc, __sw_hweight32
++	 nop
++	nop
++ENDPROC(__arch_hweight32)
++	.section	.popc_3insn_patch, "ax"
++	.word		__arch_hweight32
++	sllx		%o0, 64-32, %g1
++	retl
++	 popc		%g1, %o0
++	.previous
++
++ENTRY(__arch_hweight64)
++	ba,pt	%xcc, __sw_hweight64
++	 nop
++	nop
++ENDPROC(__arch_hweight64)
++	.section	.popc_3insn_patch, "ax"
++	.word		__arch_hweight64
++	retl
++	 popc		%o0, %o0
 +	nop
 +	.previous
 -- 
