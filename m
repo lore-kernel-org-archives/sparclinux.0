@@ -1,42 +1,261 @@
-From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
-Date: Tue, 09 Aug 2011 14:43:47 +0000
-Subject: Re: [sparc] SunFire480R cassini network driver kernel panic
-Message-Id: <20110809144347.GA2054@lemon.iwr.uni-heidelberg.de>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 04 Aug 2011 09:02:59 +0000
+Subject: [PATCH 2/7] sparc: Minor tweaks to Niagara page copy/clear.
+Message-Id: <20110804.020259.1092484297419986433.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-On Tue, Aug 09, 2011 at 06:16:25AM +0200, Jonathan Nieder wrote:
-> It seems that the pata_cmd64x bug has been fixed.  cassini has received
-> some fixes since 2.6.26, too, so if you get a chance to test 3.0.0-1,
-> that would be interesting.
 
-compiled and tested cassini in vanilla 3.0: Still crashing after ~10 pings 
-with an 
-  ERROR: System Hardware FATAL RESET from  CPU0
+Don't use floating point on Niagara2, use the traditional
+plain Niagara code instead.
 
-The kernel messages while inserting the cassini driver are appendend.
-Please ask if you like to see the complete register dump after the
-crash (or any other things).
+Unroll Niagara loops to 128 bytes for copy, and 256 bytes
+for clear.
 
-Compiling vanilla 3.0.1 with 3.0.0 and will test for completeness. 
-Is 3.0.0-1 already in the sid sparc repo ?
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/kernel/head_64.S |    2 +-
+ arch/sparc/lib/Makefile     |    2 +-
+ arch/sparc/lib/NG2page.S    |   61 -----------------------
+ arch/sparc/lib/NGpage.S     |  114 ++++++++++++++++++++++++++++-----------=
+----
+ 4 files changed, 77 insertions(+), 102 deletions(-)
+ delete mode 100644 arch/sparc/lib/NG2page.S
 
-Thanks for the information and any help,
- Hermann
+diff --git a/arch/sparc/kernel/head_64.S b/arch/sparc/kernel/head_64.S
+index c752603..0eac1b2 100644
+--- a/arch/sparc/kernel/head_64.S
++++ b/arch/sparc/kernel/head_64.S
+@@ -559,7 +559,7 @@ niagara2_patch:
+ 	 nop
+ 	call	niagara_patch_bzero
+ 	 nop
+-	call	niagara2_patch_pageops
++	call	niagara_patch_pageops
+ 	 nop
+=20
+ 	ba,a,pt	%xcc, 80f
+diff --git a/arch/sparc/lib/Makefile b/arch/sparc/lib/Makefile
+index 7f01b8f..c25f94d 100644
+--- a/arch/sparc/lib/Makefile
++++ b/arch/sparc/lib/Makefile
+@@ -31,7 +31,7 @@ lib-$(CONFIG_SPARC64) +=3D NGmemcpy.o NGcopy_from_user.o =
+NGcopy_to_user.o
+ lib-$(CONFIG_SPARC64) +=3D NGpatch.o NGpage.o NGbzero.o
+=20
+ lib-$(CONFIG_SPARC64) +=3D NG2memcpy.o NG2copy_from_user.o NG2copy_to_user=
+.o
+-lib-$(CONFIG_SPARC64) +=3D  NG2patch.o NG2page.o
++lib-$(CONFIG_SPARC64) +=3D  NG2patch.o
+=20
+ lib-$(CONFIG_SPARC64) +=3D GENmemcpy.o GENcopy_from_user.o GENcopy_to_user=
+.o
+ lib-$(CONFIG_SPARC64) +=3D GENpatch.o GENpage.o GENbzero.o
+diff --git a/arch/sparc/lib/NG2page.S b/arch/sparc/lib/NG2page.S
+deleted file mode 100644
+index 73b6b7c..0000000
+--- a/arch/sparc/lib/NG2page.S
++++ /dev/null
+@@ -1,61 +0,0 @@
+-/* NG2page.S: Niagara-2 optimized clear and copy page.
+- *
+- * Copyright (C) 2007 (davem@davemloft.net)
+- */
+-
+-#include <asm/asi.h>
+-#include <asm/page.h>
+-#include <asm/visasm.h>
+-
+-	.text
+-	.align	32
+-
+-	/* This is heavily simplified from the sun4u variants
+-	 * because Niagara-2 does not have any D-cache aliasing issues.
+-	 */
+-NG2copy_user_page:	/* %o0=DEst, %o1=3Dsrc, %o2=3Dvaddr */
+-	prefetch	[%o1 + 0x00], #one_read
+-	prefetch	[%o1 + 0x40], #one_read
+-	VISEntryHalf
+-	set		PAGE_SIZE, %g7
+-	sub		%o0, %o1, %g3
+-1:	stxa		%g0, [%o1 + %g3] ASI_BLK_INIT_QUAD_LDD_P
+-	subcc		%g7, 64, %g7
+-	ldda		[%o1] ASI_BLK_P, %f0
+-	stda		%f0, [%o1 + %g3] ASI_BLK_P
+-	add		%o1, 64, %o1
+-	bne,pt		%xcc, 1b
+-	 prefetch	[%o1 + 0x40], #one_read
+-	membar		#Sync
+-	VISExitHalf
+-	retl
+-	 nop
+-
+-#define BRANCH_ALWAYS	0x10680000
+-#define NOP		0x01000000
+-#define NG_DO_PATCH(OLD, NEW)	\
+-	sethi	%hi(NEW), %g1; \
+-	or	%g1, %lo(NEW), %g1; \
+-	sethi	%hi(OLD), %g2; \
+-	or	%g2, %lo(OLD), %g2; \
+-	sub	%g1, %g2, %g1; \
+-	sethi	%hi(BRANCH_ALWAYS), %g3; \
+-	sll	%g1, 11, %g1; \
+-	srl	%g1, 11 + 2, %g1; \
+-	or	%g3, %lo(BRANCH_ALWAYS), %g3; \
+-	or	%g3, %g1, %g3; \
+-	stw	%g3, [%g2]; \
+-	sethi	%hi(NOP), %g3; \
+-	or	%g3, %lo(NOP), %g3; \
+-	stw	%g3, [%g2 + 0x4]; \
+-	flush	%g2;
+-
+-	.globl	niagara2_patch_pageops
+-	.type	niagara2_patch_pageops,#function
+-niagara2_patch_pageops:
+-	NG_DO_PATCH(copy_user_page, NG2copy_user_page)
+-	NG_DO_PATCH(_clear_page, NGclear_page)
+-	NG_DO_PATCH(clear_user_page, NGclear_user_page)
+-	retl
+-	 nop
+-	.size	niagara2_patch_pageops,.-niagara2_patch_pageops
+diff --git a/arch/sparc/lib/NGpage.S b/arch/sparc/lib/NGpage.S
+index 428920d..b9e790b 100644
+--- a/arch/sparc/lib/NGpage.S
++++ b/arch/sparc/lib/NGpage.S
+@@ -16,55 +16,91 @@
+ 	 */
+=20
+ NGcopy_user_page:	/* %o0=DEst, %o1=3Dsrc, %o2=3Dvaddr */
+-	prefetch	[%o1 + 0x00], #one_read
+-	mov		8, %g1
+-	mov		16, %g2
+-	mov		24, %g3
++	save		%sp, -192, %sp
++	rd		%asi, %g3
++	wr		%g0, ASI_BLK_INIT_QUAD_LDD_P, %asi
+ 	set		PAGE_SIZE, %g7
++	prefetch	[%i1 + 0x00], #one_read
++	prefetch	[%i1 + 0x40], #one_read
+=20
+-1:	ldda		[%o1 + %g0] ASI_BLK_INIT_QUAD_LDD_P, %o2
+-	ldda		[%o1 + %g2] ASI_BLK_INIT_QUAD_LDD_P, %o4
+-	prefetch	[%o1 + 0x40], #one_read
+-	add		%o1, 32, %o1
+-	stxa		%o2, [%o0 + %g0] ASI_BLK_INIT_QUAD_LDD_P
+-	stxa		%o3, [%o0 + %g1] ASI_BLK_INIT_QUAD_LDD_P
+-	ldda		[%o1 + %g0] ASI_BLK_INIT_QUAD_LDD_P, %o2
+-	stxa		%o4, [%o0 + %g2] ASI_BLK_INIT_QUAD_LDD_P
+-	stxa		%o5, [%o0 + %g3] ASI_BLK_INIT_QUAD_LDD_P
+-	ldda		[%o1 + %g2] ASI_BLK_INIT_QUAD_LDD_P, %o4
+-	add		%o1, 32, %o1
+-	add		%o0, 32, %o0
+-	stxa		%o2, [%o0 + %g0] ASI_BLK_INIT_QUAD_LDD_P
+-	stxa		%o3, [%o0 + %g1] ASI_BLK_INIT_QUAD_LDD_P
+-	stxa		%o4, [%o0 + %g2] ASI_BLK_INIT_QUAD_LDD_P
+-	stxa		%o5, [%o0 + %g3] ASI_BLK_INIT_QUAD_LDD_P
+-	subcc		%g7, 64, %g7
++1:	prefetch	[%i1 + 0x80], #one_read
++	prefetch	[%i1 + 0xc0], #one_read
++	ldda		[%i1 + 0x00] %asi, %o2
++	ldda		[%i1 + 0x10] %asi, %o4
++	ldda		[%i1 + 0x20] %asi, %l2
++	ldda		[%i1 + 0x30] %asi, %l4
++	stxa		%o2, [%i0 + 0x00] %asi
++	stxa		%o3, [%i0 + 0x08] %asi
++	stxa		%o4, [%i0 + 0x10] %asi
++	stxa		%o5, [%i0 + 0x18] %asi
++	stxa		%l2, [%i0 + 0x20] %asi
++	stxa		%l3, [%i0 + 0x28] %asi
++	stxa		%l4, [%i0 + 0x30] %asi
++	stxa		%l5, [%i0 + 0x38] %asi
++	ldda		[%i1 + 0x40] %asi, %o2
++	ldda		[%i1 + 0x50] %asi, %o4
++	ldda		[%i1 + 0x60] %asi, %l2
++	ldda		[%i1 + 0x70] %asi, %l4
++	stxa		%o2, [%i0 + 0x40] %asi
++	stxa		%o3, [%i0 + 0x48] %asi
++	stxa		%o4, [%i0 + 0x50] %asi
++	stxa		%o5, [%i0 + 0x58] %asi
++	stxa		%l2, [%i0 + 0x60] %asi
++	stxa		%l3, [%i0 + 0x68] %asi
++	stxa		%l4, [%i0 + 0x70] %asi
++	stxa		%l5, [%i0 + 0x78] %asi
++	add		%i1, 128, %i1
++	subcc		%g7, 128, %g7
+ 	bne,pt		%xcc, 1b
+-	 add		%o0, 32, %o0
++	 add		%i0, 128, %i0
++	wr		%g3, 0x0, %asi
+ 	membar		#Sync
+-	retl
+-	 nop
++	ret
++	 restore
+=20
+-	.globl		NGclear_page, NGclear_user_page
++	.align		32
+ NGclear_page:		/* %o0=DEst */
+ NGclear_user_page:	/* %o0=DEst, %o1=3Dvaddr */
+-	mov		8, %g1
+-	mov		16, %g2
+-	mov		24, %g3
++	rd		%asi, %g3
++	wr		%g0, ASI_BLK_INIT_QUAD_LDD_P, %asi
+ 	set		PAGE_SIZE, %g7
+=20
+-1:	stxa		%g0, [%o0 + %g0] ASI_BLK_INIT_QUAD_LDD_P
+-	stxa		%g0, [%o0 + %g1] ASI_BLK_INIT_QUAD_LDD_P
+-	stxa		%g0, [%o0 + %g2] ASI_BLK_INIT_QUAD_LDD_P
+-	stxa		%g0, [%o0 + %g3] ASI_BLK_INIT_QUAD_LDD_P
+-	add		%o0, 32, %o0
+-	stxa		%g0, [%o0 + %g0] ASI_BLK_INIT_QUAD_LDD_P
+-	stxa		%g0, [%o0 + %g1] ASI_BLK_INIT_QUAD_LDD_P
+-	stxa		%g0, [%o0 + %g2] ASI_BLK_INIT_QUAD_LDD_P
+-	stxa		%g0, [%o0 + %g3] ASI_BLK_INIT_QUAD_LDD_P
+-	subcc		%g7, 64, %g7
++1:	stxa		%g0, [%o0 + 0x00] %asi
++	stxa		%g0, [%o0 + 0x08] %asi
++	stxa		%g0, [%o0 + 0x10] %asi
++	stxa		%g0, [%o0 + 0x18] %asi
++	stxa		%g0, [%o0 + 0x20] %asi
++	stxa		%g0, [%o0 + 0x28] %asi
++	stxa		%g0, [%o0 + 0x30] %asi
++	stxa		%g0, [%o0 + 0x38] %asi
++	stxa		%g0, [%o0 + 0x40] %asi
++	stxa		%g0, [%o0 + 0x48] %asi
++	stxa		%g0, [%o0 + 0x50] %asi
++	stxa		%g0, [%o0 + 0x58] %asi
++	stxa		%g0, [%o0 + 0x60] %asi
++	stxa		%g0, [%o0 + 0x68] %asi
++	stxa		%g0, [%o0 + 0x70] %asi
++	stxa		%g0, [%o0 + 0x78] %asi
++	stxa		%g0, [%o0 + 0x80] %asi
++	stxa		%g0, [%o0 + 0x88] %asi
++	stxa		%g0, [%o0 + 0x90] %asi
++	stxa		%g0, [%o0 + 0x98] %asi
++	stxa		%g0, [%o0 + 0xa0] %asi
++	stxa		%g0, [%o0 + 0xa8] %asi
++	stxa		%g0, [%o0 + 0xb0] %asi
++	stxa		%g0, [%o0 + 0xb8] %asi
++	stxa		%g0, [%o0 + 0xc0] %asi
++	stxa		%g0, [%o0 + 0xc8] %asi
++	stxa		%g0, [%o0 + 0xd0] %asi
++	stxa		%g0, [%o0 + 0xd8] %asi
++	stxa		%g0, [%o0 + 0xe0] %asi
++	stxa		%g0, [%o0 + 0xe8] %asi
++	stxa		%g0, [%o0 + 0xf0] %asi
++	stxa		%g0, [%o0 + 0xf8] %asi
++	subcc		%g7, 256, %g7
+ 	bne,pt		%xcc, 1b
+-	 add		%o0, 32, %o0
++	 add		%o0, 256, %o0
++	wr		%g3, 0x0, %asi
+ 	membar		#Sync
+ 	retl
+ 	 nop
+--=20
+1.7.5.4
 
-Aug  9 16:26:56 tantalus kernel: cassini: cassini.c:v1.6 (21 May 2008)
-Aug  9 16:26:56 tantalus kernel: PCI: Enabling device: (0002:00:02.0), cmd 146
-Aug  9 16:26:56 tantalus kernel: cassini 0002:00:02.0: eth0: Sun Cassini+ (64bit/33MHz PCI/Cu) Ethernet[24] 00:03:ba:29:7c:a0
-Aug  9 16:26:56 tantalus kernel: PCI: Enabling device: (0003:00:01.0), cmd 146
-Aug  9 16:26:57 tantalus kernel: cassini 0003:00:01.0: eth1: Sun Cassini+ (64bit/66MHz PCI/Cu) Ethernet[30] 00:03:ba:29:7c:9f
-Aug  9 16:26:57 tantalus kernel: udev[917]: renamed network interface eth0 to eth19
-Aug  9 16:26:58 tantalus kernel: udev[918]: renamed network interface eth1 to eth20
-
--- 
-Netzwerkadministration/Zentrale Dienste, Interdiziplinaeres 
-Zentrum fuer wissenschaftliches Rechnen der Universitaet Heidelberg
-IWR; INF 368; 69120 Heidelberg; Tel: (06221)54-8236 Fax: -5224
-Email: Hermann.Lauer@iwr.uni-heidelberg.de
