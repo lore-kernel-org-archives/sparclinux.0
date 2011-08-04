@@ -1,128 +1,175 @@
-From: "corentin.labbe" <corentin.labbe@geomatys.fr>
-Date: Thu, 25 Aug 2011 09:32:55 +0000
-Subject: Re: [PATCH][RFC] add SPARC support to i2c-ali1535
-Message-Id: <4E5616C7.1080708@geomatys.fr>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 04 Aug 2011 09:03:16 +0000
+Subject: [PATCH 6/7] sparc: Set reboot-cmd using reboot data hypervisor
+Message-Id: <20110804.020316.123127398928046043.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Le 06/07/2011 17:04, David Miller a =E9crit :
-> From: "corentin.labbe" <corentin.labbe@geomatys.fr>
-> Date: Tue, 14 Jun 2011 14:59:41 +0200
->=20
->> This patch enable i2c-ali1535 to works under SPARC architecture.
->>
->> I wait for your comments/approval before sending it to the lm_sensors ma=
-iling lists.
->=20
-> Implementing this as a PCI driver doesn't make any sense.
->=20
-> It's be better to probe and fetch the register information
-> by using the openfirmware tree driver interfaces,
-> a table of "struct of_device_id", a "platform_driver" that
-> points to that of_device_id table, and a call to
-> platform_device_register() to register that platform_driver.
->=20
-> Also, even if you attach the I2C controller, you won't be
-> able to enumerate the underlying I2C devices properly.
-> The openfirmware device tree will need to be used in order
-> to do that as well.
 
-Hello
-
-It seems that you respond to my first patch and I have sent a second
-patch (much simpler and I resend it with this mail for simplicity).
-
-I agree that this driver could be ported to a platform driver but for
-the moment my simple goal is to make it work under SPARC.
-In a second time, it could be transformed to a platform driver.
-
-Sorry for this very late responce.
-
-Best regards
-
-Signed-off-by: LABBE Corentin <corentin.labbe@geomatys.fr>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
---- linux/drivers/i2c/busses/i2c-ali1535.c.orig	2011-06-15
-18:02:56.000000000 +0200
-+++ linux/drivers/i2c/busses/i2c-ali1535.c	2011-06-15 18:05:26.000000000
-+0200
-@@ -132,7 +132,7 @@
- #define	ALI1535_SMBIO_EN	0x04	/* SMB I/O Space enable		*/
+ arch/sparc/include/asm/hypervisor.h |    7 +++++++
+ arch/sparc/kernel/ds.c              |   30 ++++++++++++++++++++++++++++--
+ arch/sparc/kernel/hvcalls.S         |    7 +++++++
+ arch/sparc/kernel/kernel.h          |    9 +++++++++
+ arch/sparc/kernel/sstate.c          |    9 ++-------
+ 5 files changed, 53 insertions(+), 9 deletions(-)
 
- static struct pci_driver ali1535_driver;
--static unsigned short ali1535_smba;
-+static unsigned long ali1535_smba;
-
- /* Detect whether a ALI1535 can be found, and initialize it, where
-necessary.
-    Note the differences between kernels with the old PCI BIOS interface and
-@@ -142,6 +142,7 @@ static int __devinit ali1535_setup(struc
- {
- 	int retval =3D -ENODEV;
- 	unsigned char temp;
-+	unsigned short offset;
-
- 	/* Check the following things:
- 		- SMB I/O address is initialized
-@@ -149,15 +150,27 @@ static int __devinit ali1535_setup(struc
- 		- We can use the addresses
- 	*/
-
-+	if (pci_enable_device(dev)) {
-+		dev_err(&dev->dev, "ALI1535_smb cant enable device");
-+		goto exit;
-+	}
+diff --git a/arch/sparc/include/asm/hypervisor.h b/arch/sparc/include/asm/hypervisor.h
+index 2b7da27..015a761 100644
+--- a/arch/sparc/include/asm/hypervisor.h
++++ b/arch/sparc/include/asm/hypervisor.h
+@@ -2927,6 +2927,13 @@ extern unsigned long sun4v_ncs_request(unsigned long request,
+ #define HV_FAST_FIRE_GET_PERFREG	0x120
+ #define HV_FAST_FIRE_SET_PERFREG	0x121
+ 
++#define HV_FAST_REBOOT_DATA_SET		0x172
 +
- 	/* Determine the address of the SMBus area */
--	pci_read_config_word(dev, SMBBA, &ali1535_smba);
--	ali1535_smba &=3D (0xffff & ~(ALI1535_SMB_IOSIZE - 1));
--	if (ali1535_smba =3D 0) {
-+	pci_read_config_word(dev, SMBBA, &offset);
-+	dev_dbg(&dev->dev, "ALI1535_smb is at offset 0x%04x", offset);
-+	offset &=3D (0xffff & ~(ALI1535_SMB_IOSIZE - 1));
-+	if (offset =3D 0) {
- 		dev_warn(&dev->dev,
- 			"ALI1535_smb region uninitialized - upgrade BIOS?\n");
- 		goto exit;
- 	}
-
-+	ali1535_smba =3D pci_resource_start(dev, 0) + offset;
-+	if ((pci_resource_flags(dev, 0) & IORESOURCE_IO) =3D 0) {
-+		dev_err(&dev->dev, "ALI1535_smb bar 0 is not IORESOURCE_IO");
-+		goto exit;
-+	}
++#ifndef __ASSEMBLY__
++extern unsigned long sun4v_reboot_data_set(unsigned long ra,
++					   unsigned long len);
++#endif
 +
- 	retval =3D acpi_check_region(ali1535_smba, ALI1535_SMB_IOSIZE,
- 				   ali1535_driver.name);
- 	if (retval)
-@@ -165,7 +178,7 @@ static int __devinit ali1535_setup(struc
-
- 	if (!request_region(ali1535_smba, ALI1535_SMB_IOSIZE,
- 			    ali1535_driver.name)) {
--		dev_err(&dev->dev, "ALI1535_smb region 0x%x already in use!\n",
-+		dev_err(&dev->dev, "ALI1535_smb region 0x%lx already in use!\n",
- 			ali1535_smba);
- 		goto exit;
+ /* Function numbers for HV_CORE_TRAP.  */
+ #define HV_CORE_SET_VER			0x00
+ #define HV_CORE_PUTCHAR			0x01
+diff --git a/arch/sparc/kernel/ds.c b/arch/sparc/kernel/ds.c
+index dd1342c..490e541 100644
+--- a/arch/sparc/kernel/ds.c
++++ b/arch/sparc/kernel/ds.c
+@@ -15,12 +15,15 @@
+ #include <linux/reboot.h>
+ #include <linux/cpu.h>
+ 
++#include <asm/hypervisor.h>
+ #include <asm/ldc.h>
+ #include <asm/vio.h>
+ #include <asm/mdesc.h>
+ #include <asm/head.h>
+ #include <asm/irq.h>
+ 
++#include "kernel.h"
++
+ #define DRV_MODULE_NAME		"ds"
+ #define PFX DRV_MODULE_NAME	": "
+ #define DRV_MODULE_VERSION	"1.0"
+@@ -828,18 +831,32 @@ void ldom_set_var(const char *var, const char *value)
  	}
-@@ -196,7 +209,7 @@ static int __devinit ali1535_setup(struc
- 	*/
- 	pci_read_config_byte(dev, SMBREV, &temp);
- 	dev_dbg(&dev->dev, "SMBREV =3D 0x%X\n", temp);
--	dev_dbg(&dev->dev, "ALI1535_smba =3D 0x%X\n", ali1535_smba);
-+	dev_dbg(&dev->dev, "ALI1535_smba =3D 0x%0lx\n", ali1535_smba);
-
- 	retval =3D 0;
- exit:
-@@ -499,7 +512,7 @@ static int __devinit ali1535_probe(struc
- 	ali1535_adapter.dev.parent =3D &dev->dev;
-
- 	snprintf(ali1535_adapter.name, sizeof(ali1535_adapter.name),
--		"SMBus ALI1535 adapter at %04x", ali1535_smba);
-+		"SMBus ALI1535 adapter at %0lx", ali1535_smba);
- 	return i2c_add_adapter(&ali1535_adapter);
  }
-
+ 
++static char full_boot_str[256] __attribute__((aligned(32)));
++static int reboot_data_supported;
++
+ void ldom_reboot(const char *boot_command)
+ {
+ 	/* Don't bother with any of this if the boot_command
+ 	 * is empty.
+ 	 */
+ 	if (boot_command && strlen(boot_command)) {
+-		char full_boot_str[256];
++		unsigned long len;
+ 
+ 		strcpy(full_boot_str, "boot ");
+ 		strcpy(full_boot_str + strlen("boot "), boot_command);
++		len = strlen(full_boot_str);
+ 
+-		ldom_set_var("reboot-command", full_boot_str);
++		if (reboot_data_supported) {
++			unsigned long ra = kimage_addr_to_ra(full_boot_str);
++			unsigned long hv_ret;
++
++			hv_ret = sun4v_reboot_data_set(ra, len);
++			if (hv_ret != HV_EOK)
++				pr_err("SUN4V: Unable to set reboot data "
++				       "hv_ret=%lu\n", hv_ret);
++		} else {
++			ldom_set_var("reboot-command", full_boot_str);
++		}
+ 	}
+ 	sun4v_mach_sir();
+ }
+@@ -1237,6 +1254,15 @@ static struct vio_driver ds_driver = {
+ 
+ static int __init ds_init(void)
+ {
++	unsigned long hv_ret, major, minor;
++
++	hv_ret = sun4v_get_version(HV_GRP_REBOOT_DATA, &major, &minor);
++	if (hv_ret = HV_EOK) {
++		pr_info("SUN4V: Reboot data supported (maj=%lu,min=%lu).\n",
++			major, minor);
++		reboot_data_supported = 1;
++	}
++
+ 	kthread_run(ds_thread, NULL, "kldomd");
+ 
+ 	return vio_register_driver(&ds_driver);
+diff --git a/arch/sparc/kernel/hvcalls.S b/arch/sparc/kernel/hvcalls.S
+index 8a5f35f..58d60de 100644
+--- a/arch/sparc/kernel/hvcalls.S
++++ b/arch/sparc/kernel/hvcalls.S
+@@ -798,3 +798,10 @@ ENTRY(sun4v_niagara2_setperf)
+ 	retl
+ 	 nop
+ ENDPROC(sun4v_niagara2_setperf)
++
++ENTRY(sun4v_reboot_data_set)
++	mov	HV_FAST_REBOOT_DATA_SET, %o5
++	ta	HV_FAST_TRAP
++	retl
++	 nop
++ENDPROC(sun4v_reboot_data_set)
+diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
+index 8325d77..fd6c36b 100644
+--- a/arch/sparc/kernel/kernel.h
++++ b/arch/sparc/kernel/kernel.h
+@@ -4,6 +4,8 @@
+ #include <linux/interrupt.h>
+ 
+ #include <asm/traps.h>
++#include <asm/head.h>
++#include <asm/io.h>
+ 
+ /* cpu.c */
+ extern const char *sparc_pmu_type;
+@@ -14,6 +16,13 @@ extern int ncpus_probed;
+ /* setup_64.c */
+ struct seq_file;
+ extern void cpucap_info(struct seq_file *);
++
++static inline unsigned long kimage_addr_to_ra(const char *p)
++{
++	unsigned long val = (unsigned long) p;
++
++	return kern_base + (val - KERNBASE);
++}
+ #endif
+ 
+ #ifdef CONFIG_SPARC32
+diff --git a/arch/sparc/kernel/sstate.c b/arch/sparc/kernel/sstate.c
+index 8cdbe59..c59af54 100644
+--- a/arch/sparc/kernel/sstate.c
++++ b/arch/sparc/kernel/sstate.c
+@@ -14,14 +14,9 @@
+ #include <asm/head.h>
+ #include <asm/io.h>
+ 
+-static int hv_supports_soft_state;
+-
+-static unsigned long kimage_addr_to_ra(const char *p)
+-{
+-	unsigned long val = (unsigned long) p;
++#include "kernel.h"
+ 
+-	return kern_base + (val - KERNBASE);
+-}
++static int hv_supports_soft_state;
+ 
+ static void do_set_sstate(unsigned long state, const char *msg)
+ {
+-- 
+1.7.5.4
 
