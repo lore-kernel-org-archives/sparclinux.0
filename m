@@ -1,21 +1,252 @@
-From: "Rose" <william_rose55@yahoo.com>
-Date: Fri, 12 Aug 2011 18:28:04 +0000
-Subject: =?UTF-8?Q?HELLO=20my=20=20=E4=BD=A0=E5=A5=BD=EF=BC=8C=E6=88=91?=
-Message-Id: <20110812202804.2E6C26AA@centrum.sk>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 04 Aug 2011 09:03:21 +0000
+Subject: [PATCH 7/7] sparc: Use popc when possible for ffs/__ffs/ffz.
+Message-Id: <20110804.020321.1930200497933020293.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: linux-sh@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
 
-HELLO
-My name is Rose,i and became intrested in you, i will also like to know you=
- more,and i want you to send an email to my email address so i can give you=
- my picture for you to know whom i am. Here is my email address(william_ros=
-e55@yahoo.com)I believe we can move from here!
-I am waiting for your mail to my email address above..
-(Remeber the distance or colour does not matter but love matters alot in li=
-fe)
-Thanks Rose=C2=A0 please contact me now through my email address
-(william_rose55@yahoo.com)
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/include/asm/bitops_64.h |    7 ++-
+ arch/sparc/kernel/entry.h          |    7 +++
+ arch/sparc/kernel/setup_64.c       |   32 +++++++++-----
+ arch/sparc/kernel/sparc_ksyms_64.c |    4 ++
+ arch/sparc/kernel/vmlinux.lds.S    |    5 ++
+ arch/sparc/lib/Makefile            |    2 +-
+ arch/sparc/lib/ffs.S               |   84 ++++++++++++++++++++++++++++++++++++
+ 7 files changed, 126 insertions(+), 15 deletions(-)
+ create mode 100644 arch/sparc/lib/ffs.S
+
+diff --git a/arch/sparc/include/asm/bitops_64.h b/arch/sparc/include/asm/bitops_64.h
+index 3588807..29011cc 100644
+--- a/arch/sparc/include/asm/bitops_64.h
++++ b/arch/sparc/include/asm/bitops_64.h
+@@ -26,16 +26,17 @@ extern void change_bit(unsigned long nr, volatile unsigned long *addr);
+ #define smp_mb__before_clear_bit()	barrier()
+ #define smp_mb__after_clear_bit()	barrier()
+ 
+-#include <asm-generic/bitops/ffz.h>
+-#include <asm-generic/bitops/__ffs.h>
+ #include <asm-generic/bitops/fls.h>
+ #include <asm-generic/bitops/__fls.h>
+ #include <asm-generic/bitops/fls64.h>
+ 
+ #ifdef __KERNEL__
+ 
++extern int ffs(int x);
++extern unsigned long __ffs(unsigned long);
++
++#include <asm-generic/bitops/ffz.h>
+ #include <asm-generic/bitops/sched.h>
+-#include <asm-generic/bitops/ffs.h>
+ 
+ /*
+  * hweightN: returns the hamming weight (i.e. the number
+diff --git a/arch/sparc/kernel/entry.h b/arch/sparc/kernel/entry.h
+index 16d1545..e27f8ea 100644
+--- a/arch/sparc/kernel/entry.h
++++ b/arch/sparc/kernel/entry.h
+@@ -49,6 +49,13 @@ struct popc_3insn_patch_entry {
+ extern struct popc_3insn_patch_entry __popc_3insn_patch,
+ 	__popc_3insn_patch_end;
+ 
++struct popc_6insn_patch_entry {
++	unsigned int	addr;
++	unsigned int	insns[6];
++};
++extern struct popc_6insn_patch_entry __popc_6insn_patch,
++	__popc_6insn_patch_end;
++
+ extern void __init per_cpu_patch(void);
+ extern void __init sun4v_patch(void);
+ extern void __init boot_cpu_id_too_large(int cpu);
+diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
+index 26d1141..3e9daea 100644
+--- a/arch/sparc/kernel/setup_64.c
++++ b/arch/sparc/kernel/setup_64.c
+@@ -275,24 +275,34 @@ void __init sun4v_patch(void)
+ static void __init popc_patch(void)
+ {
+ 	struct popc_3insn_patch_entry *p3;
++	struct popc_6insn_patch_entry *p6;
+ 
+ 	p3 = &__popc_3insn_patch;
+ 	while (p3 < &__popc_3insn_patch_end) {
+-		unsigned long addr = p3->addr;
++		unsigned long i, addr = p3->addr;
+ 
+-		*(unsigned int *) (addr +  0) = p3->insns[0];
+-		wmb();
+-		__asm__ __volatile__("flush	%0" : : "r" (addr +  0));
++		for (i = 0; i < 3; i++) {
++			*(unsigned int *) (addr +  (i * 4)) = p3->insns[i];
++			wmb();
++			__asm__ __volatile__("flush	%0"
++					     : : "r" (addr +  (i * 4)));
++		}
+ 
+-		*(unsigned int *) (addr +  4) = p3->insns[1];
+-		wmb();
+-		__asm__ __volatile__("flush	%0" : : "r" (addr +  4));
++		p3++;
++	}
+ 
+-		*(unsigned int *) (addr +  8) = p3->insns[2];
+-		wmb();
+-		__asm__ __volatile__("flush	%0" : : "r" (addr +  4));
++	p6 = &__popc_6insn_patch;
++	while (p6 < &__popc_6insn_patch_end) {
++		unsigned long i, addr = p6->addr;
+ 
+-		p3++;
++		for (i = 0; i < 6; i++) {
++			*(unsigned int *) (addr +  (i * 4)) = p6->insns[i];
++			wmb();
++			__asm__ __volatile__("flush	%0"
++					     : : "r" (addr +  (i * 4)));
++		}
++
++		p6++;
+ 	}
+ }
+ 
+diff --git a/arch/sparc/kernel/sparc_ksyms_64.c b/arch/sparc/kernel/sparc_ksyms_64.c
+index d0ee65a..83b47ab 100644
+--- a/arch/sparc/kernel/sparc_ksyms_64.c
++++ b/arch/sparc/kernel/sparc_ksyms_64.c
+@@ -45,5 +45,9 @@ EXPORT_SYMBOL(__arch_hweight16);
+ EXPORT_SYMBOL(__arch_hweight32);
+ EXPORT_SYMBOL(__arch_hweight64);
+ 
++/* from ffs_ffz.S */
++EXPORT_SYMBOL(ffs);
++EXPORT_SYMBOL(__ffs);
++
+ /* Exporting a symbol from /init/main.c */
+ EXPORT_SYMBOL(saved_command_line);
+diff --git a/arch/sparc/kernel/vmlinux.lds.S b/arch/sparc/kernel/vmlinux.lds.S
+index de20c14..94a9548 100644
+--- a/arch/sparc/kernel/vmlinux.lds.S
++++ b/arch/sparc/kernel/vmlinux.lds.S
+@@ -112,6 +112,11 @@ SECTIONS
+ 		*(.popc_3insn_patch)
+ 		__popc_3insn_patch_end = .;
+ 	}
++	.popc_6insn_patch : {
++		__popc_6insn_patch = .;
++		*(.popc_6insn_patch)
++		__popc_6insn_patch_end = .;
++	}
+ 	PERCPU_SECTION(SMP_CACHE_BYTES)
+ 
+ 	. = ALIGN(PAGE_SIZE);
+diff --git a/arch/sparc/lib/Makefile b/arch/sparc/lib/Makefile
+index 11c850a..a3fc437 100644
+--- a/arch/sparc/lib/Makefile
++++ b/arch/sparc/lib/Makefile
+@@ -37,7 +37,7 @@ lib-$(CONFIG_SPARC64) += GENmemcpy.o GENcopy_from_user.o GENcopy_to_user.o
+ lib-$(CONFIG_SPARC64) += GENpatch.o GENpage.o GENbzero.o
+ 
+ lib-$(CONFIG_SPARC64) += copy_in_user.o user_fixup.o memmove.o
+-lib-$(CONFIG_SPARC64) += mcount.o ipcsum.o xor.o hweight.o
++lib-$(CONFIG_SPARC64) += mcount.o ipcsum.o xor.o hweight.o ffs.o
+ 
+ obj-y                 += iomap.o
+ obj-$(CONFIG_SPARC32) += atomic32.o
+diff --git a/arch/sparc/lib/ffs.S b/arch/sparc/lib/ffs.S
+new file mode 100644
+index 0000000..b39389f
+--- /dev/null
++++ b/arch/sparc/lib/ffs.S
+@@ -0,0 +1,84 @@
++#include <linux/linkage.h>
++
++	.register	%g2,#scratch
++
++	.text
++	.align	32
++
++ENTRY(ffs)
++	brnz,pt	%o0, 1f
++	 mov	1, %o1
++	retl
++	 clr	%o0
++	nop
++	nop
++ENTRY(__ffs)
++	sllx	%o0, 32, %g1		/* 1  */
++	srlx	%o0, 32, %g2
++
++	clr	%o1			/* 2  */
++	movrz	%g1, %g2, %o0
++
++	movrz	%g1, 32, %o1		/* 3  */
++1:	clr	%o2
++
++	sllx	%o0, (64 - 16), %g1	/* 4  */
++	srlx	%o0, 16, %g2
++
++	movrz	%g1, %g2, %o0		/* 5  */
++	clr	%o3
++
++	movrz	%g1, 16, %o2		/* 6  */
++	clr	%o4
++
++	and	%o0, 0xff, %g1		/* 7  */
++	srlx	%o0, 8, %g2
++
++	movrz	%g1, %g2, %o0		/* 8  */
++	clr	%o5
++
++	movrz	%g1, 8, %o3		/* 9  */
++	add	%o2, %o1, %o2
++
++	and	%o0, 0xf, %g1		/* 10 */
++	srlx	%o0, 4, %g2
++
++	movrz	%g1, %g2, %o0		/* 11 */
++	add	%o2, %o3, %o2
++
++	movrz	%g1, 4, %o4		/* 12 */
++
++	and	%o0, 0x3, %g1		/* 13 */
++	srlx	%o0, 2, %g2
++
++	movrz	%g1, %g2, %o0		/* 14 */
++	add	%o2, %o4, %o2
++
++	movrz	%g1, 2, %o5		/* 15 */
++
++	and	%o0, 0x1, %g1		/* 16 */
++
++	add	%o2, %o5, %o2		/* 17 */
++	xor	%g1, 0x1, %g1
++
++	retl				/* 18 */
++	 add	%o2, %g1, %o0
++ENDPROC(ffs)
++ENDPROC(__ffs)
++
++	.section	.popc_6insn_patch, "ax"
++	.word		ffs
++	brz,pn	%o0, 98f
++	 neg	%o0, %g1
++	xnor	%o0, %g1, %o1
++	popc	%o1, %o0
++98:	retl
++	 nop
++	.word		__ffs
++	neg	%o0, %g1
++	xnor	%o0, %g1, %o1
++	popc	%o1, %o0
++	retl
++	 sub	%o0, 1, %o0
++	nop
++	.previous
+-- 
+1.7.5.4
+
