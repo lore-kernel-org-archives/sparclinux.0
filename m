@@ -1,261 +1,108 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 04 Aug 2011 09:02:59 +0000
-Subject: [PATCH 2/7] sparc: Minor tweaks to Niagara page copy/clear.
-Message-Id: <20110804.020259.1092484297419986433.davem@davemloft.net>
+Date: Fri, 05 Aug 2011 10:09:42 +0000
+Subject: [PATCH] sparc: Size mondo queues more sanely.
+Message-Id: <20110805.030942.1092674593233364039.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-Don't use floating point on Niagara2, use the traditional
-plain Niagara code instead.
+There is currently no upper limit on the mondo queue sizes we'll use,
+which guarentees that we'll eventually his page allocation limits, and
+thus allocation failures, due to MAX_ORDER.
 
-Unroll Niagara loops to 128 bytes for copy, and 256 bytes
-for clear.
+Cap the sizes sanely, current limits are:
+
+CPU  MONDO	2 * max_possible_cpus
+DEV  MONDO	256 (basically NR_IRQS)
+RES  MONDO	128
+NRES MONDO	4
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/kernel/head_64.S |    2 +-
- arch/sparc/lib/Makefile     |    2 +-
- arch/sparc/lib/NG2page.S    |   61 -----------------------
- arch/sparc/lib/NGpage.S     |  114 ++++++++++++++++++++++++++++-----------=
-----
- 4 files changed, 77 insertions(+), 102 deletions(-)
- delete mode 100644 arch/sparc/lib/NG2page.S
+ arch/sparc/kernel/mdesc.c |   30 +++++++++++++++++++++++-------
+ 1 files changed, 23 insertions(+), 7 deletions(-)
 
-diff --git a/arch/sparc/kernel/head_64.S b/arch/sparc/kernel/head_64.S
-index c752603..0eac1b2 100644
---- a/arch/sparc/kernel/head_64.S
-+++ b/arch/sparc/kernel/head_64.S
-@@ -559,7 +559,7 @@ niagara2_patch:
- 	 nop
- 	call	niagara_patch_bzero
- 	 nop
--	call	niagara2_patch_pageops
-+	call	niagara_patch_pageops
- 	 nop
-=20
- 	ba,a,pt	%xcc, 80f
-diff --git a/arch/sparc/lib/Makefile b/arch/sparc/lib/Makefile
-index 7f01b8f..c25f94d 100644
---- a/arch/sparc/lib/Makefile
-+++ b/arch/sparc/lib/Makefile
-@@ -31,7 +31,7 @@ lib-$(CONFIG_SPARC64) +=3D NGmemcpy.o NGcopy_from_user.o =
-NGcopy_to_user.o
- lib-$(CONFIG_SPARC64) +=3D NGpatch.o NGpage.o NGbzero.o
-=20
- lib-$(CONFIG_SPARC64) +=3D NG2memcpy.o NG2copy_from_user.o NG2copy_to_user=
-.o
--lib-$(CONFIG_SPARC64) +=3D  NG2patch.o NG2page.o
-+lib-$(CONFIG_SPARC64) +=3D  NG2patch.o
-=20
- lib-$(CONFIG_SPARC64) +=3D GENmemcpy.o GENcopy_from_user.o GENcopy_to_user=
-.o
- lib-$(CONFIG_SPARC64) +=3D GENpatch.o GENpage.o GENbzero.o
-diff --git a/arch/sparc/lib/NG2page.S b/arch/sparc/lib/NG2page.S
-deleted file mode 100644
-index 73b6b7c..0000000
---- a/arch/sparc/lib/NG2page.S
-+++ /dev/null
-@@ -1,61 +0,0 @@
--/* NG2page.S: Niagara-2 optimized clear and copy page.
-- *
-- * Copyright (C) 2007 (davem@davemloft.net)
-- */
--
--#include <asm/asi.h>
--#include <asm/page.h>
--#include <asm/visasm.h>
--
--	.text
--	.align	32
--
--	/* This is heavily simplified from the sun4u variants
--	 * because Niagara-2 does not have any D-cache aliasing issues.
--	 */
--NG2copy_user_page:	/* %o0=DEst, %o1=3Dsrc, %o2=3Dvaddr */
--	prefetch	[%o1 + 0x00], #one_read
--	prefetch	[%o1 + 0x40], #one_read
--	VISEntryHalf
--	set		PAGE_SIZE, %g7
--	sub		%o0, %o1, %g3
--1:	stxa		%g0, [%o1 + %g3] ASI_BLK_INIT_QUAD_LDD_P
--	subcc		%g7, 64, %g7
--	ldda		[%o1] ASI_BLK_P, %f0
--	stda		%f0, [%o1 + %g3] ASI_BLK_P
--	add		%o1, 64, %o1
--	bne,pt		%xcc, 1b
--	 prefetch	[%o1 + 0x40], #one_read
--	membar		#Sync
--	VISExitHalf
--	retl
--	 nop
--
--#define BRANCH_ALWAYS	0x10680000
--#define NOP		0x01000000
--#define NG_DO_PATCH(OLD, NEW)	\
--	sethi	%hi(NEW), %g1; \
--	or	%g1, %lo(NEW), %g1; \
--	sethi	%hi(OLD), %g2; \
--	or	%g2, %lo(OLD), %g2; \
--	sub	%g1, %g2, %g1; \
--	sethi	%hi(BRANCH_ALWAYS), %g3; \
--	sll	%g1, 11, %g1; \
--	srl	%g1, 11 + 2, %g1; \
--	or	%g3, %lo(BRANCH_ALWAYS), %g3; \
--	or	%g3, %g1, %g3; \
--	stw	%g3, [%g2]; \
--	sethi	%hi(NOP), %g3; \
--	or	%g3, %lo(NOP), %g3; \
--	stw	%g3, [%g2 + 0x4]; \
--	flush	%g2;
--
--	.globl	niagara2_patch_pageops
--	.type	niagara2_patch_pageops,#function
--niagara2_patch_pageops:
--	NG_DO_PATCH(copy_user_page, NG2copy_user_page)
--	NG_DO_PATCH(_clear_page, NGclear_page)
--	NG_DO_PATCH(clear_user_page, NGclear_user_page)
--	retl
--	 nop
--	.size	niagara2_patch_pageops,.-niagara2_patch_pageops
-diff --git a/arch/sparc/lib/NGpage.S b/arch/sparc/lib/NGpage.S
-index 428920d..b9e790b 100644
---- a/arch/sparc/lib/NGpage.S
-+++ b/arch/sparc/lib/NGpage.S
-@@ -16,55 +16,91 @@
- 	 */
-=20
- NGcopy_user_page:	/* %o0=DEst, %o1=3Dsrc, %o2=3Dvaddr */
--	prefetch	[%o1 + 0x00], #one_read
--	mov		8, %g1
--	mov		16, %g2
--	mov		24, %g3
-+	save		%sp, -192, %sp
-+	rd		%asi, %g3
-+	wr		%g0, ASI_BLK_INIT_QUAD_LDD_P, %asi
- 	set		PAGE_SIZE, %g7
-+	prefetch	[%i1 + 0x00], #one_read
-+	prefetch	[%i1 + 0x40], #one_read
-=20
--1:	ldda		[%o1 + %g0] ASI_BLK_INIT_QUAD_LDD_P, %o2
--	ldda		[%o1 + %g2] ASI_BLK_INIT_QUAD_LDD_P, %o4
--	prefetch	[%o1 + 0x40], #one_read
--	add		%o1, 32, %o1
--	stxa		%o2, [%o0 + %g0] ASI_BLK_INIT_QUAD_LDD_P
--	stxa		%o3, [%o0 + %g1] ASI_BLK_INIT_QUAD_LDD_P
--	ldda		[%o1 + %g0] ASI_BLK_INIT_QUAD_LDD_P, %o2
--	stxa		%o4, [%o0 + %g2] ASI_BLK_INIT_QUAD_LDD_P
--	stxa		%o5, [%o0 + %g3] ASI_BLK_INIT_QUAD_LDD_P
--	ldda		[%o1 + %g2] ASI_BLK_INIT_QUAD_LDD_P, %o4
--	add		%o1, 32, %o1
--	add		%o0, 32, %o0
--	stxa		%o2, [%o0 + %g0] ASI_BLK_INIT_QUAD_LDD_P
--	stxa		%o3, [%o0 + %g1] ASI_BLK_INIT_QUAD_LDD_P
--	stxa		%o4, [%o0 + %g2] ASI_BLK_INIT_QUAD_LDD_P
--	stxa		%o5, [%o0 + %g3] ASI_BLK_INIT_QUAD_LDD_P
--	subcc		%g7, 64, %g7
-+1:	prefetch	[%i1 + 0x80], #one_read
-+	prefetch	[%i1 + 0xc0], #one_read
-+	ldda		[%i1 + 0x00] %asi, %o2
-+	ldda		[%i1 + 0x10] %asi, %o4
-+	ldda		[%i1 + 0x20] %asi, %l2
-+	ldda		[%i1 + 0x30] %asi, %l4
-+	stxa		%o2, [%i0 + 0x00] %asi
-+	stxa		%o3, [%i0 + 0x08] %asi
-+	stxa		%o4, [%i0 + 0x10] %asi
-+	stxa		%o5, [%i0 + 0x18] %asi
-+	stxa		%l2, [%i0 + 0x20] %asi
-+	stxa		%l3, [%i0 + 0x28] %asi
-+	stxa		%l4, [%i0 + 0x30] %asi
-+	stxa		%l5, [%i0 + 0x38] %asi
-+	ldda		[%i1 + 0x40] %asi, %o2
-+	ldda		[%i1 + 0x50] %asi, %o4
-+	ldda		[%i1 + 0x60] %asi, %l2
-+	ldda		[%i1 + 0x70] %asi, %l4
-+	stxa		%o2, [%i0 + 0x40] %asi
-+	stxa		%o3, [%i0 + 0x48] %asi
-+	stxa		%o4, [%i0 + 0x50] %asi
-+	stxa		%o5, [%i0 + 0x58] %asi
-+	stxa		%l2, [%i0 + 0x60] %asi
-+	stxa		%l3, [%i0 + 0x68] %asi
-+	stxa		%l4, [%i0 + 0x70] %asi
-+	stxa		%l5, [%i0 + 0x78] %asi
-+	add		%i1, 128, %i1
-+	subcc		%g7, 128, %g7
- 	bne,pt		%xcc, 1b
--	 add		%o0, 32, %o0
-+	 add		%i0, 128, %i0
-+	wr		%g3, 0x0, %asi
- 	membar		#Sync
--	retl
--	 nop
-+	ret
-+	 restore
-=20
--	.globl		NGclear_page, NGclear_user_page
-+	.align		32
- NGclear_page:		/* %o0=DEst */
- NGclear_user_page:	/* %o0=DEst, %o1=3Dvaddr */
--	mov		8, %g1
--	mov		16, %g2
--	mov		24, %g3
-+	rd		%asi, %g3
-+	wr		%g0, ASI_BLK_INIT_QUAD_LDD_P, %asi
- 	set		PAGE_SIZE, %g7
-=20
--1:	stxa		%g0, [%o0 + %g0] ASI_BLK_INIT_QUAD_LDD_P
--	stxa		%g0, [%o0 + %g1] ASI_BLK_INIT_QUAD_LDD_P
--	stxa		%g0, [%o0 + %g2] ASI_BLK_INIT_QUAD_LDD_P
--	stxa		%g0, [%o0 + %g3] ASI_BLK_INIT_QUAD_LDD_P
--	add		%o0, 32, %o0
--	stxa		%g0, [%o0 + %g0] ASI_BLK_INIT_QUAD_LDD_P
--	stxa		%g0, [%o0 + %g1] ASI_BLK_INIT_QUAD_LDD_P
--	stxa		%g0, [%o0 + %g2] ASI_BLK_INIT_QUAD_LDD_P
--	stxa		%g0, [%o0 + %g3] ASI_BLK_INIT_QUAD_LDD_P
--	subcc		%g7, 64, %g7
-+1:	stxa		%g0, [%o0 + 0x00] %asi
-+	stxa		%g0, [%o0 + 0x08] %asi
-+	stxa		%g0, [%o0 + 0x10] %asi
-+	stxa		%g0, [%o0 + 0x18] %asi
-+	stxa		%g0, [%o0 + 0x20] %asi
-+	stxa		%g0, [%o0 + 0x28] %asi
-+	stxa		%g0, [%o0 + 0x30] %asi
-+	stxa		%g0, [%o0 + 0x38] %asi
-+	stxa		%g0, [%o0 + 0x40] %asi
-+	stxa		%g0, [%o0 + 0x48] %asi
-+	stxa		%g0, [%o0 + 0x50] %asi
-+	stxa		%g0, [%o0 + 0x58] %asi
-+	stxa		%g0, [%o0 + 0x60] %asi
-+	stxa		%g0, [%o0 + 0x68] %asi
-+	stxa		%g0, [%o0 + 0x70] %asi
-+	stxa		%g0, [%o0 + 0x78] %asi
-+	stxa		%g0, [%o0 + 0x80] %asi
-+	stxa		%g0, [%o0 + 0x88] %asi
-+	stxa		%g0, [%o0 + 0x90] %asi
-+	stxa		%g0, [%o0 + 0x98] %asi
-+	stxa		%g0, [%o0 + 0xa0] %asi
-+	stxa		%g0, [%o0 + 0xa8] %asi
-+	stxa		%g0, [%o0 + 0xb0] %asi
-+	stxa		%g0, [%o0 + 0xb8] %asi
-+	stxa		%g0, [%o0 + 0xc0] %asi
-+	stxa		%g0, [%o0 + 0xc8] %asi
-+	stxa		%g0, [%o0 + 0xd0] %asi
-+	stxa		%g0, [%o0 + 0xd8] %asi
-+	stxa		%g0, [%o0 + 0xe0] %asi
-+	stxa		%g0, [%o0 + 0xe8] %asi
-+	stxa		%g0, [%o0 + 0xf0] %asi
-+	stxa		%g0, [%o0 + 0xf8] %asi
-+	subcc		%g7, 256, %g7
- 	bne,pt		%xcc, 1b
--	 add		%o0, 32, %o0
-+	 add		%o0, 256, %o0
-+	wr		%g3, 0x0, %asi
- 	membar		#Sync
- 	retl
- 	 nop
---=20
-1.7.5.4
+diff --git a/arch/sparc/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
+index 42f28c7..acaebb6 100644
+--- a/arch/sparc/kernel/mdesc.c
++++ b/arch/sparc/kernel/mdesc.c
+@@ -508,6 +508,8 @@ const char *mdesc_node_name(struct mdesc_handle *hp, u64 node)
+ }
+ EXPORT_SYMBOL(mdesc_node_name);
+ 
++static u64 max_cpus = 64;
++
+ static void __init report_platform_properties(void)
+ {
+ 	struct mdesc_handle *hp = mdesc_grab();
+@@ -543,8 +545,10 @@ static void __init report_platform_properties(void)
+ 	if (v)
+ 		printk("PLATFORM: watchdog-max-timeout [%llu ms]\n", *v);
+ 	v = mdesc_get_property(hp, pn, "max-cpus", NULL);
+-	if (v)
+-		printk("PLATFORM: max-cpus [%llu]\n", *v);
++	if (v) {
++		max_cpus = *v;
++		printk("PLATFORM: max-cpus [%llu]\n", max_cpus);
++	}
+ 
+ #ifdef CONFIG_SMP
+ 	{
+@@ -715,7 +719,7 @@ static void __cpuinit set_proc_ids(struct mdesc_handle *hp)
+ }
+ 
+ static void __cpuinit get_one_mondo_bits(const u64 *p, unsigned int *mask,
+-					 unsigned char def)
++					 unsigned long def, unsigned long max)
+ {
+ 	u64 val;
+ 
+@@ -726,6 +730,9 @@ static void __cpuinit get_one_mondo_bits(const u64 *p, unsigned int *mask,
+ 	if (!val || val >= 64)
+ 		goto use_default;
+ 
++	if (val > max)
++		val = max;
++
+ 	*mask = ((1U << val) * 64U) - 1U;
+ 	return;
+ 
+@@ -736,19 +743,28 @@ use_default:
+ static void __cpuinit get_mondo_data(struct mdesc_handle *hp, u64 mp,
+ 				     struct trap_per_cpu *tb)
+ {
++	static int printed;
+ 	const u64 *val;
+ 
+ 	val = mdesc_get_property(hp, mp, "q-cpu-mondo-#bits", NULL);
+-	get_one_mondo_bits(val, &tb->cpu_mondo_qmask, 7);
++	get_one_mondo_bits(val, &tb->cpu_mondo_qmask, 7, ilog2(max_cpus * 2));
+ 
+ 	val = mdesc_get_property(hp, mp, "q-dev-mondo-#bits", NULL);
+-	get_one_mondo_bits(val, &tb->dev_mondo_qmask, 7);
++	get_one_mondo_bits(val, &tb->dev_mondo_qmask, 7, 8);
+ 
+ 	val = mdesc_get_property(hp, mp, "q-resumable-#bits", NULL);
+-	get_one_mondo_bits(val, &tb->resum_qmask, 6);
++	get_one_mondo_bits(val, &tb->resum_qmask, 6, 7);
+ 
+ 	val = mdesc_get_property(hp, mp, "q-nonresumable-#bits", NULL);
+-	get_one_mondo_bits(val, &tb->nonresum_qmask, 2);
++	get_one_mondo_bits(val, &tb->nonresum_qmask, 2, 2);
++	if (!printed++) {
++		pr_info("SUN4V: Mondo queue sizes "
++			"[cpu(%u) dev(%u) r(%u) nr(%u)]\n",
++			tb->cpu_mondo_qmask + 1,
++			tb->dev_mondo_qmask + 1,
++			tb->resum_qmask + 1,
++			tb->nonresum_qmask + 1);
++	}
+ }
+ 
+ static void * __cpuinit mdesc_iterate_over_cpus(void *(*func)(struct mdesc_handle *, u64, int, void *), void *arg, cpumask_t *mask)
+-- 
+1.7.6.401.g6a319
 
