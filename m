@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 04 Aug 2011 09:03:16 +0000
-Subject: [PATCH 6/7] sparc: Set reboot-cmd using reboot data hypervisor
-Message-Id: <20110804.020316.123127398928046043.davem@davemloft.net>
+From: lin.huang112@teletu.it
+Date: Sat, 06 Aug 2011 10:51:30 +0000
+Subject: Business Proposition!!
+Message-Id: <54032.1312627890@teletu.it>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,167 +9,14 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/include/asm/hypervisor.h |    7 +++++++
- arch/sparc/kernel/ds.c              |   30 ++++++++++++++++++++++++++++--
- arch/sparc/kernel/hvcalls.S         |    7 +++++++
- arch/sparc/kernel/kernel.h          |    9 +++++++++
- arch/sparc/kernel/sstate.c          |    9 ++-------
- 5 files changed, 53 insertions(+), 9 deletions(-)
+My name is Lin Huang, an attorney at law. A deceased client of mine, that shares the same last name as yours died as the result 
+of a heart-related
+condition in March 12th 2009. I have contacted you to assist in claiming the money left behind by my client(US milliondollars) 
+in the bank.
+Regards
+Lin Huang
+Esq
+(linhuang14@krenar.be)
 
-diff --git a/arch/sparc/include/asm/hypervisor.h b/arch/sparc/include/asm/hypervisor.h
-index 2b7da27..015a761 100644
---- a/arch/sparc/include/asm/hypervisor.h
-+++ b/arch/sparc/include/asm/hypervisor.h
-@@ -2927,6 +2927,13 @@ extern unsigned long sun4v_ncs_request(unsigned long request,
- #define HV_FAST_FIRE_GET_PERFREG	0x120
- #define HV_FAST_FIRE_SET_PERFREG	0x121
- 
-+#define HV_FAST_REBOOT_DATA_SET		0x172
-+
-+#ifndef __ASSEMBLY__
-+extern unsigned long sun4v_reboot_data_set(unsigned long ra,
-+					   unsigned long len);
-+#endif
-+
- /* Function numbers for HV_CORE_TRAP.  */
- #define HV_CORE_SET_VER			0x00
- #define HV_CORE_PUTCHAR			0x01
-diff --git a/arch/sparc/kernel/ds.c b/arch/sparc/kernel/ds.c
-index dd1342c..490e541 100644
---- a/arch/sparc/kernel/ds.c
-+++ b/arch/sparc/kernel/ds.c
-@@ -15,12 +15,15 @@
- #include <linux/reboot.h>
- #include <linux/cpu.h>
- 
-+#include <asm/hypervisor.h>
- #include <asm/ldc.h>
- #include <asm/vio.h>
- #include <asm/mdesc.h>
- #include <asm/head.h>
- #include <asm/irq.h>
- 
-+#include "kernel.h"
-+
- #define DRV_MODULE_NAME		"ds"
- #define PFX DRV_MODULE_NAME	": "
- #define DRV_MODULE_VERSION	"1.0"
-@@ -828,18 +831,32 @@ void ldom_set_var(const char *var, const char *value)
- 	}
- }
- 
-+static char full_boot_str[256] __attribute__((aligned(32)));
-+static int reboot_data_supported;
-+
- void ldom_reboot(const char *boot_command)
- {
- 	/* Don't bother with any of this if the boot_command
- 	 * is empty.
- 	 */
- 	if (boot_command && strlen(boot_command)) {
--		char full_boot_str[256];
-+		unsigned long len;
- 
- 		strcpy(full_boot_str, "boot ");
- 		strcpy(full_boot_str + strlen("boot "), boot_command);
-+		len = strlen(full_boot_str);
- 
--		ldom_set_var("reboot-command", full_boot_str);
-+		if (reboot_data_supported) {
-+			unsigned long ra = kimage_addr_to_ra(full_boot_str);
-+			unsigned long hv_ret;
-+
-+			hv_ret = sun4v_reboot_data_set(ra, len);
-+			if (hv_ret != HV_EOK)
-+				pr_err("SUN4V: Unable to set reboot data "
-+				       "hv_ret=%lu\n", hv_ret);
-+		} else {
-+			ldom_set_var("reboot-command", full_boot_str);
-+		}
- 	}
- 	sun4v_mach_sir();
- }
-@@ -1237,6 +1254,15 @@ static struct vio_driver ds_driver = {
- 
- static int __init ds_init(void)
- {
-+	unsigned long hv_ret, major, minor;
-+
-+	hv_ret = sun4v_get_version(HV_GRP_REBOOT_DATA, &major, &minor);
-+	if (hv_ret = HV_EOK) {
-+		pr_info("SUN4V: Reboot data supported (maj=%lu,min=%lu).\n",
-+			major, minor);
-+		reboot_data_supported = 1;
-+	}
-+
- 	kthread_run(ds_thread, NULL, "kldomd");
- 
- 	return vio_register_driver(&ds_driver);
-diff --git a/arch/sparc/kernel/hvcalls.S b/arch/sparc/kernel/hvcalls.S
-index 8a5f35f..58d60de 100644
---- a/arch/sparc/kernel/hvcalls.S
-+++ b/arch/sparc/kernel/hvcalls.S
-@@ -798,3 +798,10 @@ ENTRY(sun4v_niagara2_setperf)
- 	retl
- 	 nop
- ENDPROC(sun4v_niagara2_setperf)
-+
-+ENTRY(sun4v_reboot_data_set)
-+	mov	HV_FAST_REBOOT_DATA_SET, %o5
-+	ta	HV_FAST_TRAP
-+	retl
-+	 nop
-+ENDPROC(sun4v_reboot_data_set)
-diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
-index 8325d77..fd6c36b 100644
---- a/arch/sparc/kernel/kernel.h
-+++ b/arch/sparc/kernel/kernel.h
-@@ -4,6 +4,8 @@
- #include <linux/interrupt.h>
- 
- #include <asm/traps.h>
-+#include <asm/head.h>
-+#include <asm/io.h>
- 
- /* cpu.c */
- extern const char *sparc_pmu_type;
-@@ -14,6 +16,13 @@ extern int ncpus_probed;
- /* setup_64.c */
- struct seq_file;
- extern void cpucap_info(struct seq_file *);
-+
-+static inline unsigned long kimage_addr_to_ra(const char *p)
-+{
-+	unsigned long val = (unsigned long) p;
-+
-+	return kern_base + (val - KERNBASE);
-+}
- #endif
- 
- #ifdef CONFIG_SPARC32
-diff --git a/arch/sparc/kernel/sstate.c b/arch/sparc/kernel/sstate.c
-index 8cdbe59..c59af54 100644
---- a/arch/sparc/kernel/sstate.c
-+++ b/arch/sparc/kernel/sstate.c
-@@ -14,14 +14,9 @@
- #include <asm/head.h>
- #include <asm/io.h>
- 
--static int hv_supports_soft_state;
--
--static unsigned long kimage_addr_to_ra(const char *p)
--{
--	unsigned long val = (unsigned long) p;
-+#include "kernel.h"
- 
--	return kern_base + (val - KERNBASE);
--}
-+static int hv_supports_soft_state;
- 
- static void do_set_sstate(unsigned long state, const char *msg)
- {
--- 
-1.7.5.4
+
 
