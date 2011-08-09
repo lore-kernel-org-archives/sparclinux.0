@@ -1,35 +1,42 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 04 Aug 2011 09:02:50 +0000
-Subject: [PATCH 0/7] More Niagara T3 related tweaks.
-Message-Id: <20110804.020250.979859235761952341.davem@davemloft.net>
+From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
+Date: Tue, 09 Aug 2011 14:43:47 +0000
+Subject: Re: [sparc] SunFire480R cassini network driver kernel panic
+Message-Id: <20110809144347.GA2054@lemon.iwr.uni-heidelberg.de>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+On Tue, Aug 09, 2011 at 06:16:25AM +0200, Jonathan Nieder wrote:
+> It seems that the pata_cmd64x bug has been fixed.  cassini has received
+> some fixes since 2.6.26, too, so if you get a chance to test 3.0.0-1,
+> that would be interesting.
 
-Report more CPU capabilities in ELF flags, and report them in
-bootup logs and /proc/cpuinfo.  For example my /proc/cpuinfo
-now has a line that reads:
+compiled and tested cassini in vanilla 3.0: Still crashing after ~10 pings 
+with an 
+  ERROR: System Hardware FATAL RESET from  CPU0
 
-cpucaps		: flush,stbar,swap,muldiv,v9,blkinit,n2,mul32,div32,v8plus,popc,vis,vis2,ASIBlkInit,fmaf,vis3,hpc
+The kernel messages while inserting the cassini driver are appendend.
+Please ask if you like to see the complete register dump after the
+crash (or any other things).
 
-Don't use FPU for copies and clears of pages on Niagara T2, T2+, and
-T3.  The Niagara T1 version is fast enough, and doesn't have the
-potential overhead of FPU state save/restore. Unroll the loops a
-little bit and use %asi register to decrease the overall cycle count.
+Compiling vanilla 3.0.1 with 3.0.0 and will test for completeness. 
+Is 3.0.0-1 already in the sid sparc repo ?
 
-If available use 'popc' for hweight*(), ffs(), __ffs(), and ffz().
+Thanks for the information and any help,
+ Hermann
 
-More recent hypervisors have a new way to record the "reboot-cmd"
-variable that is used to setup the boot command that will be used on
-soft resets.  It's done purely via the hypervisor which allows
-parallel boot, and also allows the boot string to propagate properly
-into the next boot even if the service processor is down or in
-degraded mode.
+Aug  9 16:26:56 tantalus kernel: cassini: cassini.c:v1.6 (21 May 2008)
+Aug  9 16:26:56 tantalus kernel: PCI: Enabling device: (0002:00:02.0), cmd 146
+Aug  9 16:26:56 tantalus kernel: cassini 0002:00:02.0: eth0: Sun Cassini+ (64bit/33MHz PCI/Cu) Ethernet[24] 00:03:ba:29:7c:a0
+Aug  9 16:26:56 tantalus kernel: PCI: Enabling device: (0003:00:01.0), cmd 146
+Aug  9 16:26:57 tantalus kernel: cassini 0003:00:01.0: eth1: Sun Cassini+ (64bit/66MHz PCI/Cu) Ethernet[30] 00:03:ba:29:7c:9f
+Aug  9 16:26:57 tantalus kernel: udev[917]: renamed network interface eth0 to eth19
+Aug  9 16:26:58 tantalus kernel: udev[918]: renamed network interface eth1 to eth20
 
-I intend to consolidate the code patching a little bit in the future.
-We don't need all these different patch blob structures.  One with a
-cleverly encoded instruction count will do.  Then we have one central
-patching routine that takes "start_pointer, end_pointer".
+-- 
+Netzwerkadministration/Zentrale Dienste, Interdiziplinaeres 
+Zentrum fuer wissenschaftliches Rechnen der Universitaet Heidelberg
+IWR; INF 368; 69120 Heidelberg; Tel: (06221)54-8236 Fax: -5224
+Email: Hermann.Lauer@iwr.uni-heidelberg.de
