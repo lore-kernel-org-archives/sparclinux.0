@@ -1,30 +1,55 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 29 Aug 2011 16:26:47 +0000
-Subject: Re: [PATCH] sparc32,sun4d: Change IPI IRQ level to prevent
-Message-Id: <20110829.122647.235514630837001271.davem@davemloft.net>
+From: "Roland Vossen" <rvossen@broadcom.com>
+Date: Thu, 11 Aug 2011 12:29:03 +0000
+Subject: Simple piece of code with unexpected behavior
+Message-Id: <4E43CB0F.7050700@broadcom.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.1108282349020.24571@oizys.tordivel.org>
-In-Reply-To: <Pine.LNX.4.64.1108282349020.24571@oizys.tordivel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Kjetil Oftedal <oftedal@gmail.com>
-Date: Mon, 29 Aug 2011 00:16:28 +0200 (CEST)
+Hi,
 
-> On Sun4d systems running in SMP mode, IRQ 14 is used for timer interrupts 
-> and has a specialized interrupt handler. IPI is currently set to use IRQ 14 
-> as well, which causes it to trigger the timer interrupt handler, and not the 
-> IPI interrupt handler. 
-> 
-> The IPI interrupt is therefore changed to IRQ 13, which is the highest 
-> normally handled interrupt. This IRQ is also used for SBUS interrupts, 
-> however there is nothing in the IPI/SBUS interrupt handlers that indicate 
-> that they will not handle sharing the interrupt.
-> (IRQ 13 is indicated as audio interrupt, which is unlikely to be found in a 
-> sun4d system)
-> 
-> Signed-off-by: Kjetil Oftedal <oftedal@gmail.com>
+after compiling and insmodding a module on a Sparc64 machine, the 
+following piece of code:
 
-Applied, thanks a lot!
+	u8 index;
+         for (index = 0; index < 128U; index++) {
+                 if (index=129) {
+                         printk("fishy...\n");
+                         break;
+                 }
+         }
+
+produces the log message: 'fishy...'.
+
+The same piece of code does not produce this message on x86.
+
+Is this a compiler bug, or am I overlooking something ?
+
+Thanks, Roland.
+
+
+--- info on my machine
+
+developer@LB-BUN-44:~/code/brcm80211-next-2.6$ uname -a
+Linux LB-BUN-44.bun.broadcom.com 3.0.0-rc6+ #2 Fri Jul 22 17:00:50 CEST 
+2011 sparc64 GNU/Linux
+
+--- info on my GCC version
+
+developer@LB-BUN-44:~/code/brcm80211-next-2.6$ gcc -v
+Using built-in specs.
+Target: sparc-linux-gnu
+Configured with: ../src/configure -v 
+--enable-languages=c,c++,fortran,objc,obj-c++,treelang --prefix=/usr 
+--enable-shared --with-system-zlib --libexecdir=/usr/lib 
+--without-included-gettext --enable-threads=posix --enable-nls 
+--with-gxx-include-dir=/usr/include/c++/4.2 --program-suffix=-4.2 
+--enable-clocale=gnu --enable-libstdcxx-debug --enable-objc-gc 
+--enable-mpfr --with-cpu=v8 --with-long-double-128 
+--enable-checking=release --build=sparc-linux-gnu --host=sparc-linux-gnu 
+--target=sparc-linux-gnu
+Thread model: posix
+gcc version 4.2.4 (Ubuntu 4.2.4-1ubuntu4)
+
