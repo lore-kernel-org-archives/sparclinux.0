@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Sun, 07 Aug 2011 22:48:02 +0000
+Date: Fri, 12 Aug 2011 01:08:46 +0000
 Subject: [GIT] Sparc
-Message-Id: <20110807.154802.834385239075023278.davem@davemloft.net>
+Message-Id: <20110811.180846.1821152818786929944.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100329.131141.80866523.davem@davemloft.net>
 In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
@@ -12,17 +12,18 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-Please pull to get this build fix, thanks!
+Please pull to get this Sparc bug fix, thanks!
 
-The following changes since commit 4d4487140d34c1b9b321889d2d209321b0da6643:
+The following changes since commit 068ef739127af1faf6f342b56d41ceea89f76c75:
 
-  arm: remove "optimized" SHA1 routines (2011-08-07 14:07:03 -0700)
+  Merge branch 'fixes' of master.kernel.org:/home/rmk/linux-2.6-arm (2011-08-10 17:37:17 -0700)
 
 are available in the git repository at:
+
   master.kernel.org:/pub/scm/linux/kernel/git/davem/sparc.git master
 
 David S. Miller (1):
-      sparc: Fix build with DEBUG_PAGEALLOC enabled.
+      sparc: Don't do hypervisor calls on non-sun4v in DS driver.
 
- arch/sparc/mm/init_64.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+ arch/sparc/kernel/ds.c |   13 +++++++------
+ 1 files changed, 7 insertions(+), 6 deletions(-)
