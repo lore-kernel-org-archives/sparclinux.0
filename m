@@ -1,61 +1,35 @@
-From: Ben Hutchings <ben@decadent.org.uk>
-Date: Mon, 15 Aug 2011 16:29:41 +0000
+From: David Miller <davem@davemloft.net>
+Date: Mon, 15 Aug 2011 19:44:38 +0000
 Subject: Re: About ARCH=sparc and what to pass to recordmcount.pl
-Message-Id: <20110815162941.GN29924@decadent.org.uk>
+Message-Id: <20110815.124438.437817600517741155.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20110815152102.GK11398@pengutronix.de>
 In-Reply-To: <20110815152102.GK11398@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Mon, Aug 15, 2011 at 05:21:02PM +0200, Uwe Kleine-K=F6nig wrote:
-> Hello,
->=20
-> when I enable CONFIG_FUNCTION_TRACER and CONFIG_DYNAMIC_FTRACE for the
-> Debian kernel the build fails with:
->=20
->   CC      init/do_mounts_initrd.o
-> Arch sparc is not supported with CONFIG_FTRACE_MCOUNT_RECORD at .../scrip=
-ts/recordmcount.pl line 368.
->=20
-> This happens because the kernel package build scripts call
->=20
-> 	make ARCH=3Dsparc
->=20
-> $(ARCH) is passed to scripts/recordmcount.pl and the latter only knows
-> about "sparc64".
-=20
-We are currently overriding ARCH and we set it to be the source
-architecture name, so that $(ARCH) is always the same as $(SRCARCH).
+From: Steven Rostedt <rostedt@goodmis.org>
+Date: Mon, 15 Aug 2011 11:40:23 -0400
 
-> There are several options to fix that:
->=20
->  a) let the package pass ARCH=3Dsparc64 instead of ARCH=3Dsparc
->     Then sparc would be the only architecture that doesn't pass the
->     (Debian) arch here.
+> Actually, I think option d) is the best.
+> 
+> d) have sparc support recordmcount.c
 
-This is not the case.  For example. ARCH=3Darm and ARCH=3Dx86 do not match
-the Debian architecture names.
+Maybe you misunderstand what these guys are doing.
 
-[...]
->  b) pass SRCARCH instead of ARCH to recordmcount.pl and do
->     s/sparc64/sparc/ in recordmcount.pl.
-[...]
+The recordmcount.pl script wants to look at the output of the
+architecture of the built kernel.  It's intimitately tied to
+the architecture the kernel was built as, it must therefore
+be invoked with exactly what the kernel was bult with.
 
-This is probably the right thing to do.  As I understand it,
-architecture variants (32- vs 64-bit, big-endian vs litle-endian)
-should be distinguished by CONFIG variables now, not by $(ARCH).
+These guys are building a 64-bit sparc kernel then trying to use
+recordmcount.pl with the 32-bit sparc ARCH set.
 
-However, the names of those CONFIG variables vary between source
-architectures, so how do we decide what to pass to recordmcount.pl?
-$(ARCH) is useful in that it provides all that information in a single
-word.
-=20
-Ben.
+That can't work.
 
---=20
-Ben Hutchings
-We get into the habit of living before acquiring the habit of thinking.
-                                                              - Albert Camus
+Next, recordmcount.pl doesn't have 32-bit sparc support because we
+don't support building the kernel with profiling options enabled for
+that architecture.
+
