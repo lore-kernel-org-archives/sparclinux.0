@@ -1,76 +1,59 @@
-From: Ryan <admin@nayr.net>
-Date: Tue, 30 Aug 2011 07:29:11 +0000
-Subject: Re: 3.0.3 on V120 Panic
-Message-Id: <ED57AE53-1400-4458-A983-4AEF6E58B0AC@nayr.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Apple-Mail=_2575C883-08EE-4535-B596-CF76ECE9F5F8"
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+Date: Mon, 15 Aug 2011 15:21:02 +0000
+Subject: About ARCH=sparc and what to pass to recordmcount.pl
+Message-Id: <20110815152102.GK11398@pengutronix.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <D5A65271-7B45-4B76-AC73-A4F140F1FB11@nayr.net>
-In-Reply-To: <D5A65271-7B45-4B76-AC73-A4F140F1FB11@nayr.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
+Hello,
 
---Apple-Mail=_2575C883-08EE-4535-B596-CF76ECE9F5F8
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain;
-	charset=us-ascii
+when I enable CONFIG_FUNCTION_TRACER and CONFIG_DYNAMIC_FTRACE for the
+Debian kernel the build fails with:
 
-That fixed it, thanks a bunch.. Was a hard day finding out none of the =
-3.x kernels would boot on this machine.
+  CC      init/do_mounts_initrd.o
+Arch sparc is not supported with CONFIG_FTRACE_MCOUNT_RECORD at .../scripts=
+/recordmcount.pl line 368.
 
-Cheers,
--R
+This happens because the kernel package build scripts call
 
-On Aug 29, 2011, at 8:34 PM, David Miller wrote:
+	make ARCH=3Dsparc
 
-> From: Ryan <admin@nayr.net>
-> Date: Mon, 29 Aug 2011 16:58:21 -0600
->=20
->> Built latest stable kernel and it works perfectly fine on a SunFire
->> T1000, tried to install the same kernel on a V120 and this is the
->> result from boot:
->=20
-> I know, I hit this myself earlier today, this should fix it:
->=20
-> diff --git a/arch/sparc/kernel/setup_64.c =
-b/arch/sparc/kernel/setup_64.c
-> index 3e9daea..3c5bb78 100644
-> --- a/arch/sparc/kernel/setup_64.c
-> +++ b/arch/sparc/kernel/setup_64.c
-> @@ -440,8 +440,14 @@ static void __init init_sparc64_elf_hwcap(void)
-> 			cap |=3D AV_SPARC_VIS;
-> 		if (tlb_type =3D=3D cheetah || tlb_type =3D=3D =
-cheetah_plus)
-> 			cap |=3D AV_SPARC_VIS | AV_SPARC_VIS2;
-> -		if (tlb_type =3D=3D cheetah_plus)
-> -			cap |=3D AV_SPARC_POPC;
-> +		if (tlb_type =3D=3D cheetah_plus) {
-> +			unsigned long impl, ver;
-> +
-> +			__asm__ __volatile__("rdpr %%ver, %0" : "=3Dr" =
-(ver));
-> +			impl =3D ((ver >> 32) & 0xffff);
-> +			if (impl =3D=3D PANTHER_IMPL)
-> +				cap |=3D AV_SPARC_POPC;
-> +		}
-> 		if (tlb_type =3D=3D hypervisor) {
-> 			if (sun4v_chip_type =3D=3D SUN4V_CHIP_NIAGARA1)
-> 				cap |=3D AV_SPARC_ASI_BLK_INIT;
+$(ARCH) is passed to scripts/recordmcount.pl and the latter only knows
+about "sparc64".
 
+There are several options to fix that:
 
---Apple-Mail=_2575C883-08EE-4535-B596-CF76ECE9F5F8
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
-	filename=signature.asc
-Content-Type: application/pgp-signature;
-	name=signature.asc
-Content-Description: Message signed with OpenPGP using GPGMail
+ a) let the package pass ARCH=3Dsparc64 instead of ARCH=3Dsparc
+    Then sparc would be the only architecture that doesn't pass the
+    (Debian) arch here. I'm not sure there are other reasons to stick to
+    ARCH=3Dsparc. Bastian?
+    It seems only recordmcount.pl chokes on that because Debian uses
+    ARCH=3Dsparc since at least 2.6.32, probably much longer.
 
------BEGIN PGP SIGNATURE-----
+ b) pass SRCARCH instead of ARCH to recordmcount.pl and do
+    s/sparc64/sparc/ in recordmcount.pl.
 
-iEYEARECAAYFAk5ckUsACgkQIcAiq3SnceEONgCgnWVQmfw5DqNBXHEbuj89U+Jj
-8vUAoJA5A9ryA9JH9qv9vWzLCEb/C/LY
-=d16M
------END PGP SIGNATURE-----
+ c) do the following in recordmcount.pl:
+	if ($arch =3D~ /sparc(32|64)?/) {
+	    if ($bits =3D 64) {
+	        $arch =3D "sparc64";
+	    } else {
+	        $arch =3D "sparc"; # or "sparc32"?
+	    }
+	}
 
---Apple-Mail=_2575C883-08EE-4535-B596-CF76ECE9F5F8--
+    Something like that is already done for x86.
+=20
+Personally I prefer b), but I'm not sure I see all the consequences.
+
+What do you think?
+
+Best regards
+Uwe
+
+--=20
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig            |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
