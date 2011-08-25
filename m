@@ -1,108 +1,128 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 05 Aug 2011 10:09:42 +0000
-Subject: [PATCH] sparc: Size mondo queues more sanely.
-Message-Id: <20110805.030942.1092674593233364039.davem@davemloft.net>
+From: "corentin.labbe" <corentin.labbe@geomatys.fr>
+Date: Thu, 25 Aug 2011 09:32:55 +0000
+Subject: Re: [PATCH][RFC] add SPARC support to i2c-ali1535
+Message-Id: <4E5616C7.1080708@geomatys.fr>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
+Le 06/07/2011 17:04, David Miller a =E9crit :
+> From: "corentin.labbe" <corentin.labbe@geomatys.fr>
+> Date: Tue, 14 Jun 2011 14:59:41 +0200
+>=20
+>> This patch enable i2c-ali1535 to works under SPARC architecture.
+>>
+>> I wait for your comments/approval before sending it to the lm_sensors ma=
+iling lists.
+>=20
+> Implementing this as a PCI driver doesn't make any sense.
+>=20
+> It's be better to probe and fetch the register information
+> by using the openfirmware tree driver interfaces,
+> a table of "struct of_device_id", a "platform_driver" that
+> points to that of_device_id table, and a call to
+> platform_device_register() to register that platform_driver.
+>=20
+> Also, even if you attach the I2C controller, you won't be
+> able to enumerate the underlying I2C devices properly.
+> The openfirmware device tree will need to be used in order
+> to do that as well.
 
-There is currently no upper limit on the mondo queue sizes we'll use,
-which guarentees that we'll eventually his page allocation limits, and
-thus allocation failures, due to MAX_ORDER.
+Hello
 
-Cap the sizes sanely, current limits are:
+It seems that you respond to my first patch and I have sent a second
+patch (much simpler and I resend it with this mail for simplicity).
 
-CPU  MONDO	2 * max_possible_cpus
-DEV  MONDO	256 (basically NR_IRQS)
-RES  MONDO	128
-NRES MONDO	4
+I agree that this driver could be ported to a platform driver but for
+the moment my simple goal is to make it work under SPARC.
+In a second time, it could be transformed to a platform driver.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Sorry for this very late responce.
+
+Best regards
+
+Signed-off-by: LABBE Corentin <corentin.labbe@geomatys.fr>
 ---
- arch/sparc/kernel/mdesc.c |   30 +++++++++++++++++++++++-------
- 1 files changed, 23 insertions(+), 7 deletions(-)
+--- linux/drivers/i2c/busses/i2c-ali1535.c.orig	2011-06-15
+18:02:56.000000000 +0200
++++ linux/drivers/i2c/busses/i2c-ali1535.c	2011-06-15 18:05:26.000000000
++0200
+@@ -132,7 +132,7 @@
+ #define	ALI1535_SMBIO_EN	0x04	/* SMB I/O Space enable		*/
 
-diff --git a/arch/sparc/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
-index 42f28c7..acaebb6 100644
---- a/arch/sparc/kernel/mdesc.c
-+++ b/arch/sparc/kernel/mdesc.c
-@@ -508,6 +508,8 @@ const char *mdesc_node_name(struct mdesc_handle *hp, u64 node)
- }
- EXPORT_SYMBOL(mdesc_node_name);
- 
-+static u64 max_cpus = 64;
-+
- static void __init report_platform_properties(void)
+ static struct pci_driver ali1535_driver;
+-static unsigned short ali1535_smba;
++static unsigned long ali1535_smba;
+
+ /* Detect whether a ALI1535 can be found, and initialize it, where
+necessary.
+    Note the differences between kernels with the old PCI BIOS interface and
+@@ -142,6 +142,7 @@ static int __devinit ali1535_setup(struc
  {
- 	struct mdesc_handle *hp = mdesc_grab();
-@@ -543,8 +545,10 @@ static void __init report_platform_properties(void)
- 	if (v)
- 		printk("PLATFORM: watchdog-max-timeout [%llu ms]\n", *v);
- 	v = mdesc_get_property(hp, pn, "max-cpus", NULL);
--	if (v)
--		printk("PLATFORM: max-cpus [%llu]\n", *v);
-+	if (v) {
-+		max_cpus = *v;
-+		printk("PLATFORM: max-cpus [%llu]\n", max_cpus);
+ 	int retval =3D -ENODEV;
+ 	unsigned char temp;
++	unsigned short offset;
+
+ 	/* Check the following things:
+ 		- SMB I/O address is initialized
+@@ -149,15 +150,27 @@ static int __devinit ali1535_setup(struc
+ 		- We can use the addresses
+ 	*/
+
++	if (pci_enable_device(dev)) {
++		dev_err(&dev->dev, "ALI1535_smb cant enable device");
++		goto exit;
 +	}
- 
- #ifdef CONFIG_SMP
- 	{
-@@ -715,7 +719,7 @@ static void __cpuinit set_proc_ids(struct mdesc_handle *hp)
- }
- 
- static void __cpuinit get_one_mondo_bits(const u64 *p, unsigned int *mask,
--					 unsigned char def)
-+					 unsigned long def, unsigned long max)
- {
- 	u64 val;
- 
-@@ -726,6 +730,9 @@ static void __cpuinit get_one_mondo_bits(const u64 *p, unsigned int *mask,
- 	if (!val || val >= 64)
- 		goto use_default;
- 
-+	if (val > max)
-+		val = max;
 +
- 	*mask = ((1U << val) * 64U) - 1U;
- 	return;
- 
-@@ -736,19 +743,28 @@ use_default:
- static void __cpuinit get_mondo_data(struct mdesc_handle *hp, u64 mp,
- 				     struct trap_per_cpu *tb)
- {
-+	static int printed;
- 	const u64 *val;
- 
- 	val = mdesc_get_property(hp, mp, "q-cpu-mondo-#bits", NULL);
--	get_one_mondo_bits(val, &tb->cpu_mondo_qmask, 7);
-+	get_one_mondo_bits(val, &tb->cpu_mondo_qmask, 7, ilog2(max_cpus * 2));
- 
- 	val = mdesc_get_property(hp, mp, "q-dev-mondo-#bits", NULL);
--	get_one_mondo_bits(val, &tb->dev_mondo_qmask, 7);
-+	get_one_mondo_bits(val, &tb->dev_mondo_qmask, 7, 8);
- 
- 	val = mdesc_get_property(hp, mp, "q-resumable-#bits", NULL);
--	get_one_mondo_bits(val, &tb->resum_qmask, 6);
-+	get_one_mondo_bits(val, &tb->resum_qmask, 6, 7);
- 
- 	val = mdesc_get_property(hp, mp, "q-nonresumable-#bits", NULL);
--	get_one_mondo_bits(val, &tb->nonresum_qmask, 2);
-+	get_one_mondo_bits(val, &tb->nonresum_qmask, 2, 2);
-+	if (!printed++) {
-+		pr_info("SUN4V: Mondo queue sizes "
-+			"[cpu(%u) dev(%u) r(%u) nr(%u)]\n",
-+			tb->cpu_mondo_qmask + 1,
-+			tb->dev_mondo_qmask + 1,
-+			tb->resum_qmask + 1,
-+			tb->nonresum_qmask + 1);
+ 	/* Determine the address of the SMBus area */
+-	pci_read_config_word(dev, SMBBA, &ali1535_smba);
+-	ali1535_smba &=3D (0xffff & ~(ALI1535_SMB_IOSIZE - 1));
+-	if (ali1535_smba =3D 0) {
++	pci_read_config_word(dev, SMBBA, &offset);
++	dev_dbg(&dev->dev, "ALI1535_smb is at offset 0x%04x", offset);
++	offset &=3D (0xffff & ~(ALI1535_SMB_IOSIZE - 1));
++	if (offset =3D 0) {
+ 		dev_warn(&dev->dev,
+ 			"ALI1535_smb region uninitialized - upgrade BIOS?\n");
+ 		goto exit;
+ 	}
+
++	ali1535_smba =3D pci_resource_start(dev, 0) + offset;
++	if ((pci_resource_flags(dev, 0) & IORESOURCE_IO) =3D 0) {
++		dev_err(&dev->dev, "ALI1535_smb bar 0 is not IORESOURCE_IO");
++		goto exit;
 +	}
++
+ 	retval =3D acpi_check_region(ali1535_smba, ALI1535_SMB_IOSIZE,
+ 				   ali1535_driver.name);
+ 	if (retval)
+@@ -165,7 +178,7 @@ static int __devinit ali1535_setup(struc
+
+ 	if (!request_region(ali1535_smba, ALI1535_SMB_IOSIZE,
+ 			    ali1535_driver.name)) {
+-		dev_err(&dev->dev, "ALI1535_smb region 0x%x already in use!\n",
++		dev_err(&dev->dev, "ALI1535_smb region 0x%lx already in use!\n",
+ 			ali1535_smba);
+ 		goto exit;
+ 	}
+@@ -196,7 +209,7 @@ static int __devinit ali1535_setup(struc
+ 	*/
+ 	pci_read_config_byte(dev, SMBREV, &temp);
+ 	dev_dbg(&dev->dev, "SMBREV =3D 0x%X\n", temp);
+-	dev_dbg(&dev->dev, "ALI1535_smba =3D 0x%X\n", ali1535_smba);
++	dev_dbg(&dev->dev, "ALI1535_smba =3D 0x%0lx\n", ali1535_smba);
+
+ 	retval =3D 0;
+ exit:
+@@ -499,7 +512,7 @@ static int __devinit ali1535_probe(struc
+ 	ali1535_adapter.dev.parent =3D &dev->dev;
+
+ 	snprintf(ali1535_adapter.name, sizeof(ali1535_adapter.name),
+-		"SMBus ALI1535 adapter at %04x", ali1535_smba);
++		"SMBus ALI1535 adapter at %0lx", ali1535_smba);
+ 	return i2c_add_adapter(&ali1535_adapter);
  }
- 
- static void * __cpuinit mdesc_iterate_over_cpus(void *(*func)(struct mdesc_handle *, u64, int, void *), void *arg, cpumask_t *mask)
--- 
-1.7.6.401.g6a319
+
 
