@@ -1,29 +1,53 @@
-From: Konrad Eisele <konrad@gaisler.com>
-Date: Fri, 30 Sep 2011 13:47:26 +0000
-Subject: [PATCH 0/4] sparc32,leon: Uart polling support, KGDB with SPARC32 SMP.
-Message-Id: <1317390450-5982-1-git-send-email-konrad@gaisler.com>
+From: Jim Faulkner <jfaulkne@ccs.neu.edu>
+Date: Fri, 02 Sep 2011 01:10:24 +0000
+Subject: Re: bug report: Sun Blade 100 kernel panics during boot under 3.0.3
+Message-Id: <20110902011023.GA6634@alumni-linux.ccs.neu.edu>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1317381862-24939-1-git-send-email-konrad@gaisler.com>
-In-Reply-To: <1317381862-24939-1-git-send-email-konrad@gaisler.com>
+References: <20110822233839.GA7793@alumni-linux.ccs.neu.edu>
+In-Reply-To: <20110822233839.GA7793@alumni-linux.ccs.neu.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Here are the patches again with fixes suggested by Julian Calaby:
+On Wed, Aug 31, 2011 at 03:59:56PM -0400, David Miller wrote:
+> 
+> There is a non-trivial problem with the device tree reported by your
+> firmware, several PCI device nodes are reported multiple times.
+> 
+> If you'll look 'isa' appears twice, and so does 'pmu'.
+> 
+> This is a very serious issue.
+> 
+> And that's what is causing all of these boot failures.
+> 
+> I have two theories, either the Tulip card makes the firmware corrupt
+> the device tree like this.  Or, alternatively, there is some bug in
+> the version of OBP installed on this machine.
+> 
+> This really isn't a kernel bug.  And if it worked in the past, it worked
+> entirely by accident.
 
-0001-apbuart-add-polling-callbacks-to-apbuart-driver.patch adds polling functions
- to apbuart.c
-0002-apbuart-add-support-for-virtual-KGDB-GRMON-channel.patch is a bit special: when
- the user doesnt have a hardware serial device he can use the debug monitor GRMON
- as a tunnel. GRMON will poll a memory region to put/get characters.
- => remove Lindent formating diffs
-0003-sparc32-leon-Add-support-for-KGDB-when-SMP-and-SPARC.patch this adds KGDB when
- SMP is enabled. Inplemented only for SPARC_LEON, on other SPARC32 platforms KGDB
- wont still be enabled.
- => split into 2
-0004-kernel-debug-SPARC-KGDB-stub-strcpy-fix.patch
- strcpy return value error fix
- 
-Greetings Konrad
+Thanks so much for the info!  I finally have 3.0.3 booting normally.
+First thing I did was update to the latest firmware, 4.17.1, which can
+be found at http://ftp.sunet.se (the readme is here:
+http://ftp.sunet.se/pub/security/vendor/sun/patches/all_unsigned/119235-01.README).
+This was a bit of a chore because neither the SILO nor the Solaris
+loader wanted to boot the firmware update.  I had to setup a tftp
+netboot server in order to patch the firmware.
+
+But, that didn't fix the problem.
+
+Next, I yanked the tulip card.  That didn't fix the problem either.
+
+Finally, I reset nvram by typing this at openprom's "ok" prompt:
+set-defaults 
+
+A reset-all and... it works!  I can boot 3.0.3!
+
+Thanks for your patience in helping me get this machine going w/ Linux.
+I'll add this info to the bugzilla report and close the bug.
+
+thanks again,
+Jim Faulkner
 
