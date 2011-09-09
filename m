@@ -1,19 +1,15 @@
-From: "PAY" <mazzoleni@ancestry.com>
-Date: Wed, 21 Sep 2011 00:57:09 +0000
-Subject: Re[2]: Variazioni l'accumulo di pensione
-Message-Id: <00aa01cc77f9$70cdcf80$1400a8c0@server.trusthost.biz>
+From: T H I A <127.0.0.1@xcelco.on.ca>
+Date: Fri, 09 Sep 2011 23:15:18 +0000
+Subject: 
+Message-Id: <1315610118.4e6a9e06ac543@webmail.xcelco.on.ca>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Buongiorno,
-
-Buon pomeriggio, vi ringrazio per l'utilizzo dei nostri servizi.
-http://ilmondodidany.it/servizio/Documento.zip?ClienteIDsparber@camcom.bz.it
 
 
-Tel./Fax.: +39 (6) 793-58-98.
-
-
+I am Mr. Liu Wang, an official with the International bank of Taipei, Taiwan. I
+have a very sensitive and confidential brief for you from the International
+Bank of Taipei
