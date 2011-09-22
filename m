@@ -1,62 +1,64 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 29 Sep 2011 19:30:39 +0000
-Subject: [PATCH] sparc64: Force the execute bit in OpenFirmware's
-Message-Id: <20110929.153039.1434402207559855553.davem@davemloft.net>
+From: Yong Zhang <yong.zhang0@gmail.com>
+Date: Thu, 22 Sep 2011 08:58:45 +0000
+Subject: [PATCH 18/55] sparc: irq: Remove IRQF_DISABLED
+Message-Id: <1316681962-8217-19-git-send-email-yong.zhang0@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1316681962-8217-1-git-send-email-yong.zhang0@gmail.com>
+In-Reply-To: <1316681962-8217-1-git-send-email-yong.zhang0@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
+Cc: tglx@linutronix.de, yong.zhang0@gmail.com, "David S. Miller" <davem@davemloft.net>, Joe Perches <joe@perches.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, sparclinux@vger.kernel.org
 
+Since commit [e58aa3d2: genirq: Run irq handlers with interrupts disabled],
+We run all interrupt handlers with interrupts disabled
+and we even check and yell when an interrupt handler
+returns with interrupts enabled (see commit [b738a50a:
+genirq: Warn when handler enables interrupts]).
 
-In the OF 'translations' property, the template TTEs in the mappings
-never specify the executable bit.  This is the case even though some
-of these mappings are for OF's code segment.
+So now this flag is a NOOP and can be removed.
 
-Therefore, we need to force the execute bit on in every mapping.
-
-This problem can only really trigger on Niagara/sun4v machines and the
-history behind this is a little complicated.
-
-Previous to sun4v, the sun4u TTE entries lacked a hardware execute
-permission bit.  So OF didn't have to ever worry about setting
-anything to handle executable pages.  Any valid TTE loaded into the
-I-TLB would be respected by the chip.
-
-But sun4v Niagara chips have a real hardware enforced executable bit
-in their TTEs.  So it has to be set or else the I-TLB throws an
-instruction access exception with type code 6 (protection violation).
-
-We've been extremely fortunate to not get bitten by this in the past.
-
-The best I can tell is that the OF's mappings for it's executable code
-were mapped using permanent locked mappings on sun4v in the past.
-Therefore, the fact that we didn't have the exec bit set in the OF
-translations we would use did not matter in practice.
-
-Thanks to Greg Onufer for helping me track this down.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Yong Zhang <yong.zhang0@gmail.com>
+Acked-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/mm/init_64.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+ arch/sparc/include/asm/floppy_64.h |    2 +-
+ arch/sparc/kernel/ldc.c            |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 581531d..8e073d8 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -511,6 +511,11 @@ static void __init read_obp_translations(void)
- 		for (i = 0; i < prom_trans_ents; i++)
- 			prom_trans[i].data &= ~0x0003fe0000000000UL;
- 	}
-+
-+	/* Force execute bit on.  */
-+	for (i = 0; i < prom_trans_ents; i++)
-+		prom_trans[i].data |= (tlb_type = hypervisor ?
-+				       _PAGE_EXEC_4V : _PAGE_EXEC_4U);
- }
+diff --git a/arch/sparc/include/asm/floppy_64.h b/arch/sparc/include/asm/floppy_64.h
+index bcef1f5..7f27d2e 100644
+--- a/arch/sparc/include/asm/floppy_64.h
++++ b/arch/sparc/include/asm/floppy_64.h
+@@ -258,7 +258,7 @@ static int sun_fd_request_irq(void)
+ 		once = 1;
  
- static void __init hypervisor_tlb_lock(unsigned long vaddr,
+ 		error = request_irq(FLOPPY_IRQ, sparc_floppy_irq,
+-				    IRQF_DISABLED, "floppy", NULL);
++				    0, "floppy", NULL);
+ 
+ 		return ((error = 0) ? 0 : -1);
+ 	}
+diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
+index 435e406..b96cd54 100644
+--- a/arch/sparc/kernel/ldc.c
++++ b/arch/sparc/kernel/ldc.c
+@@ -1251,13 +1251,13 @@ int ldc_bind(struct ldc_channel *lp, const char *name)
+ 	snprintf(lp->tx_irq_name, LDC_IRQ_NAME_MAX, "%s TX", name);
+ 
+ 	err = request_irq(lp->cfg.rx_irq, ldc_rx,
+-			  IRQF_SAMPLE_RANDOM | IRQF_DISABLED,
++			  IRQF_SAMPLE_RANDOM,
+ 			  lp->rx_irq_name, lp);
+ 	if (err)
+ 		return err;
+ 
+ 	err = request_irq(lp->cfg.tx_irq, ldc_tx,
+-			  IRQF_SAMPLE_RANDOM | IRQF_DISABLED,
++			  IRQF_SAMPLE_RANDOM,
+ 			  lp->tx_irq_name, lp);
+ 	if (err) {
+ 		free_irq(lp->cfg.rx_irq, lp);
 -- 
-1.7.6.401.g6a319
+1.7.4.1
 
