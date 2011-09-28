@@ -1,52 +1,61 @@
-From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Thu, 08 Sep 2011 13:11:15 +0000
-Subject: [PATCH] sparc32,leon: SRMMU MMU Table probe fix
-Message-Id: <1315487475-16690-1-git-send-email-daniel@gaisler.com>
+From: Greg KH <gregkh@suse.de>
+Date: Wed, 28 Sep 2011 22:00:07 +0000
+Subject: [043/244] sparc: fix array bounds error setting up PCIC NMI trap
+Message-Id: <20110928220129.808432871@clark.kroah.org>
 List-Id: <sparclinux.vger.kernel.org>
+In-Reply-To: <20110928220225.GA27128@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@kernel.org
+Cc: stable-review@kernel.org, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, Ian Campbell <ian.campbell@citrix.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-The LEON MMU Model (SRMMU) does not implement MMu Table probing
-in hardware, instead it is implemented in software. However the
-software implementation does not return the PTE as it should which
-always results in INVALID entires and the PROM mappings are not
-inherited as they should during startup. The following patch
-removes the masking of the PTE.
+3.0-stable review patch.  If anyone has any objections, please let us know.
 
-Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
+------------------
+
+From: Ian Campbell <Ian.Campbell@citrix.com>
+
+commit 4a0342ca8e8150bd47e7118a76e300692a1b6b7b upstream.
+
+  CC      arch/sparc/kernel/pcic.o
+arch/sparc/kernel/pcic.c: In function 'pcic_probe':
+arch/sparc/kernel/pcic.c:359:33: error: array subscript is above array bounds [-Werror=array-bounds]
+arch/sparc/kernel/pcic.c:359:8: error: array subscript is above array bounds [-Werror=array-bounds]
+arch/sparc/kernel/pcic.c:360:33: error: array subscript is above array bounds [-Werror=array-bounds]
+arch/sparc/kernel/pcic.c:360:8: error: array subscript is above array bounds [-Werror=array-bounds]
+arch/sparc/kernel/pcic.c:361:33: error: array subscript is above array bounds [-Werror=array-bounds]
+arch/sparc/kernel/pcic.c:361:8: error: array subscript is above array bounds [-Werror=array-bounds]
+cc1: all warnings being treated as errors
+
+I'm not particularly familiar with sparc but t_nmi (defined in head_32.S via
+the TRAP_ENTRY macro) and pcic_nmi_trap_patch (defined in entry.S) both appear
+to be 4 instructions long and I presume from the usage that instructions are
+int sized.
+
+Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
 ---
- arch/sparc/include/asm/pgtsrmmu.h |    2 +-
- arch/sparc/mm/leon_mm.c           |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/sparc/kernel/pcic.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/include/asm/pgtsrmmu.h b/arch/sparc/include/asm/pgtsrmmu.h
-index 1407c07..f6ae2b2 100644
---- a/arch/sparc/include/asm/pgtsrmmu.h
-+++ b/arch/sparc/include/asm/pgtsrmmu.h
-@@ -280,7 +280,7 @@ static inline unsigned long srmmu_hwprobe(unsigned long vaddr)
- 	return retval;
- }
- #else
--#define srmmu_hwprobe(addr) (srmmu_swprobe(addr, 0) & SRMMU_PTE_PMASK)
-+#define srmmu_hwprobe(addr) srmmu_swprobe(addr, 0)
- #endif
+--- a/arch/sparc/kernel/pcic.c
++++ b/arch/sparc/kernel/pcic.c
+@@ -352,8 +352,8 @@ int __init pcic_probe(void)
+ 	strcpy(pbm->prom_name, namebuf);
  
- static inline int
-diff --git a/arch/sparc/mm/leon_mm.c b/arch/sparc/mm/leon_mm.c
-index e485a68..13c2169 100644
---- a/arch/sparc/mm/leon_mm.c
-+++ b/arch/sparc/mm/leon_mm.c
-@@ -162,7 +162,7 @@ ready:
- 		printk(KERN_INFO "swprobe: padde %x\n", paddr_calc);
- 	if (paddr)
- 		*paddr = paddr_calc;
--	return paddrbase;
-+	return pte;
- }
+ 	{
+-		extern volatile int t_nmi[1];
+-		extern int pcic_nmi_trap_patch[1];
++		extern volatile int t_nmi[4];
++		extern int pcic_nmi_trap_patch[4];
  
- void leon_flush_icache_all(void)
--- 
-1.5.4
+ 		t_nmi[0] = pcic_nmi_trap_patch[0];
+ 		t_nmi[1] = pcic_nmi_trap_patch[1];
+
 
