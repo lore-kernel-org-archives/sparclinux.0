@@ -1,61 +1,62 @@
-From: Greg KH <gregkh@suse.de>
-Date: Wed, 28 Sep 2011 22:00:07 +0000
-Subject: [043/244] sparc: fix array bounds error setting up PCIC NMI trap
-Message-Id: <20110928220129.808432871@clark.kroah.org>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 29 Sep 2011 19:30:39 +0000
+Subject: [PATCH] sparc64: Force the execute bit in OpenFirmware's
+Message-Id: <20110929.153039.1434402207559855553.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-In-Reply-To: <20110928220225.GA27128@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, stable@kernel.org
-Cc: stable-review@kernel.org, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, Ian Campbell <ian.campbell@citrix.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-3.0-stable review patch.  If anyone has any objections, please let us know.
 
-------------------
+In the OF 'translations' property, the template TTEs in the mappings
+never specify the executable bit.  This is the case even though some
+of these mappings are for OF's code segment.
 
-From: Ian Campbell <Ian.Campbell@citrix.com>
+Therefore, we need to force the execute bit on in every mapping.
 
-commit 4a0342ca8e8150bd47e7118a76e300692a1b6b7b upstream.
+This problem can only really trigger on Niagara/sun4v machines and the
+history behind this is a little complicated.
 
-  CC      arch/sparc/kernel/pcic.o
-arch/sparc/kernel/pcic.c: In function 'pcic_probe':
-arch/sparc/kernel/pcic.c:359:33: error: array subscript is above array bounds [-Werror=array-bounds]
-arch/sparc/kernel/pcic.c:359:8: error: array subscript is above array bounds [-Werror=array-bounds]
-arch/sparc/kernel/pcic.c:360:33: error: array subscript is above array bounds [-Werror=array-bounds]
-arch/sparc/kernel/pcic.c:360:8: error: array subscript is above array bounds [-Werror=array-bounds]
-arch/sparc/kernel/pcic.c:361:33: error: array subscript is above array bounds [-Werror=array-bounds]
-arch/sparc/kernel/pcic.c:361:8: error: array subscript is above array bounds [-Werror=array-bounds]
-cc1: all warnings being treated as errors
+Previous to sun4v, the sun4u TTE entries lacked a hardware execute
+permission bit.  So OF didn't have to ever worry about setting
+anything to handle executable pages.  Any valid TTE loaded into the
+I-TLB would be respected by the chip.
 
-I'm not particularly familiar with sparc but t_nmi (defined in head_32.S via
-the TRAP_ENTRY macro) and pcic_nmi_trap_patch (defined in entry.S) both appear
-to be 4 instructions long and I presume from the usage that instructions are
-int sized.
+But sun4v Niagara chips have a real hardware enforced executable bit
+in their TTEs.  So it has to be set or else the I-TLB throws an
+instruction access exception with type code 6 (protection violation).
 
-Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
+We've been extremely fortunate to not get bitten by this in the past.
+
+The best I can tell is that the OF's mappings for it's executable code
+were mapped using permanent locked mappings on sun4v in the past.
+Therefore, the fact that we didn't have the exec bit set in the OF
+translations we would use did not matter in practice.
+
+Thanks to Greg Onufer for helping me track this down.
+
 Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-
 ---
- arch/sparc/kernel/pcic.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/sparc/mm/init_64.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
---- a/arch/sparc/kernel/pcic.c
-+++ b/arch/sparc/kernel/pcic.c
-@@ -352,8 +352,8 @@ int __init pcic_probe(void)
- 	strcpy(pbm->prom_name, namebuf);
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index 581531d..8e073d8 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -511,6 +511,11 @@ static void __init read_obp_translations(void)
+ 		for (i = 0; i < prom_trans_ents; i++)
+ 			prom_trans[i].data &= ~0x0003fe0000000000UL;
+ 	}
++
++	/* Force execute bit on.  */
++	for (i = 0; i < prom_trans_ents; i++)
++		prom_trans[i].data |= (tlb_type = hypervisor ?
++				       _PAGE_EXEC_4V : _PAGE_EXEC_4U);
+ }
  
- 	{
--		extern volatile int t_nmi[1];
--		extern int pcic_nmi_trap_patch[1];
-+		extern volatile int t_nmi[4];
-+		extern int pcic_nmi_trap_patch[4];
- 
- 		t_nmi[0] = pcic_nmi_trap_patch[0];
- 		t_nmi[1] = pcic_nmi_trap_patch[1];
-
+ static void __init hypervisor_tlb_lock(unsigned long vaddr,
+-- 
+1.7.6.401.g6a319
 
