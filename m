@@ -1,8 +1,10 @@
 From: Konrad Eisele <konrad@gaisler.com>
-Date: Fri, 30 Sep 2011 11:22:24 +0000
+Date: Fri, 30 Sep 2011 11:24:22 +0000
 Subject: [PATCH 3/4] sparc32,leon: Add support for KGDB when SMP and SPARC_LEON is enabled
-Message-Id: <1317381744-24862-3-git-send-email-konrad@gaisler.com>
+Message-Id: <1317381862-24939-4-git-send-email-konrad@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1317381744-24862-3-git-send-email-konrad@gaisler.com>
+In-Reply-To: <1317381744-24862-3-git-send-email-konrad@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
