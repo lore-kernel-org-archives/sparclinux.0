@@ -1,8 +1,10 @@
 From: Konrad Eisele <konrad@gaisler.com>
-Date: Fri, 30 Sep 2011 11:22:22 +0000
+Date: Fri, 30 Sep 2011 11:24:20 +0000
 Subject: [PATCH 1/4] apbuart: add polling callbacks to apbuart driver
-Message-Id: <1317381744-24862-1-git-send-email-konrad@gaisler.com>
+Message-Id: <1317381862-24939-2-git-send-email-konrad@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1317381744-24862-1-git-send-email-konrad@gaisler.com>
+In-Reply-To: <1317381744-24862-1-git-send-email-konrad@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
