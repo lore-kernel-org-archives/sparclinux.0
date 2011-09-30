@@ -1,7 +1,7 @@
 From: Konrad Eisele <konrad@gaisler.com>
-Date: Fri, 30 Sep 2011 11:24:20 +0000
+Date: Fri, 30 Sep 2011 13:47:27 +0000
 Subject: [PATCH 1/4] apbuart: add polling callbacks to apbuart driver
-Message-Id: <1317381862-24939-2-git-send-email-konrad@gaisler.com>
+Message-Id: <1317390450-5982-2-git-send-email-konrad@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1317381744-24862-1-git-send-email-konrad@gaisler.com>
 In-Reply-To: <1317381744-24862-1-git-send-email-konrad@gaisler.com>
@@ -19,7 +19,7 @@ Signed-off-by: Konrad Eisele <konrad@gaisler.com>
  1 files changed, 32 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/tty/serial/apbuart.c b/drivers/tty/serial/apbuart.c
-index 19a9436..5f40f42 100644
+index 19a9436..153e065 100644
 --- a/drivers/tty/serial/apbuart.c
 +++ b/drivers/tty/serial/apbuart.c
 @@ -39,6 +39,10 @@
@@ -40,7 +40,7 @@ index 19a9436..5f40f42 100644
 +#ifdef CONFIG_CONSOLE_POLL
 +	.poll_get_char	= apbuart_poll_get_char,
 +	.poll_put_char	= apbuart_poll_put_char,
-+#endif		
++#endif
  };
  
  static struct uart_port grlib_apbuart_ports[UART_NR];
