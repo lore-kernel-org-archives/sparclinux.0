@@ -1,28 +1,34 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 21 Sep 2011 17:40:07 +0000
-Subject: Re: [PATCH 18/57] sparc: irq: Remove IRQF_DISABLED
-Message-Id: <20110921.134007.1812828154454173068.davem@davemloft.net>
+From: Konrad Eisele <konrad@gaisler.com>
+Date: Fri, 30 Sep 2011 13:47:30 +0000
+Subject: [PATCH 4/4] kernel,debug: SPARC KGDB stub strcpy fix
+Message-Id: <1317390450-5982-5-git-send-email-konrad@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1316597339-29861-1-git-send-email-yong.zhang0@gmail.com>
-	<1316597339-29861-19-git-send-email-yong.zhang0@gmail.com>
-In-Reply-To: <1316597339-29861-19-git-send-email-yong.zhang0@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: yong.zhang0@gmail.com
-Cc: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, tglx@linutronix.de, joe@perches.com, paul.gortmaker@windriver.com, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Yong Zhang <yong.zhang0@gmail.com>
-Date: Wed, 21 Sep 2011 17:28:19 +0800
+Works aroung the fact that strcpy in SPARC returns 0.
 
-> Since commit [c58543c8: genirq: Run irq handlers with interrupts disabled],
-> We run all interrupt handlers with interrupts disabled
-> and we even check and yell when an interrupt handler
-> returns with interrupts enabled (see commit [b738a50a:
-> genirq: Warn when handler enables interrupts]).
-> 
-> So now this flag is a NOOP and can be removed.
-> 
-> Signed-off-by: Yong Zhang <yong.zhang0@gmail.com>
+Signed-off-by: Konrad Eisele <konrad@gaisler.com>
+---
+ kernel/debug/gdbstub.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-Acked-by: David S. Miller <davem@davemloft.net>
+diff --git a/kernel/debug/gdbstub.c b/kernel/debug/gdbstub.c
+index a11db95..380753e 100644
+--- a/kernel/debug/gdbstub.c
++++ b/kernel/debug/gdbstub.c
+@@ -946,7 +946,8 @@ int gdb_serial_stub(struct kgdb_state *ks)
+ 		ptr = remcom_out_buffer;
+ 		*ptr++ = 'T';
+ 		ptr = pack_hex_byte(ptr, ks->signo);
+-		ptr += strlen(strcpy(ptr, "thread:"));
++		strcpy(ptr, "thread:");
++		ptr += strlen(ptr);
+ 		int_to_threadref(thref, shadow_pid(current->pid));
+ 		ptr = pack_threadid(ptr, thref);
+ 		*ptr++ = ';';
+-- 
+1.6.4.1
+
