@@ -1,53 +1,291 @@
-From: Jim Faulkner <jfaulkne@ccs.neu.edu>
-Date: Fri, 02 Sep 2011 01:10:24 +0000
-Subject: Re: bug report: Sun Blade 100 kernel panics during boot under 3.0.3
-Message-Id: <20110902011023.GA6634@alumni-linux.ccs.neu.edu>
+From: Konrad Eisele <konrad@gaisler.com>
+Date: Fri, 30 Sep 2011 11:22:23 +0000
+Subject: [PATCH 2/4] apbuart: add support for virtual KGDB<->GRMON channel
+Message-Id: <1317381744-24862-2-git-send-email-konrad@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20110822233839.GA7793@alumni-linux.ccs.neu.edu>
-In-Reply-To: <20110822233839.GA7793@alumni-linux.ccs.neu.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Wed, Aug 31, 2011 at 03:59:56PM -0400, David Miller wrote:
-> 
-> There is a non-trivial problem with the device tree reported by your
-> firmware, several PCI device nodes are reported multiple times.
-> 
-> If you'll look 'isa' appears twice, and so does 'pmu'.
-> 
-> This is a very serious issue.
-> 
-> And that's what is causing all of these boot failures.
-> 
-> I have two theories, either the Tulip card makes the firmware corrupt
-> the device tree like this.  Or, alternatively, there is some bug in
-> the version of OBP installed on this machine.
-> 
-> This really isn't a kernel bug.  And if it worked in the past, it worked
-> entirely by accident.
+Add support for a virtual GRMON<->KGDB channel that
+is created using share memory polling by GRMON. Start
+GRMON with the option "-vchannel" to enable polling. This
+feature enables connecting to KGDB without having an hardware
+serial connection, but using GRMON as an tunnel.
+Reorder Makefile addition so that apbuart.o gets inserted
+before kgdboc.o.
+Add Kconfig option SERIAL_GRLIB_GAISLER_APBUART_GRMON_VIRTUAL to enable
+the feature.
 
-Thanks so much for the info!  I finally have 3.0.3 booting normally.
-First thing I did was update to the latest firmware, 4.17.1, which can
-be found at http://ftp.sunet.se (the readme is here:
-http://ftp.sunet.se/pub/security/vendor/sun/patches/all_unsigned/119235-01.README).
-This was a bit of a chore because neither the SILO nor the Solaris
-loader wanted to boot the firmware update.  I had to setup a tftp
-netboot server in order to patch the firmware.
+Signed-off-by: Konrad Eisele <konrad@gaisler.com>
+---
+ drivers/tty/serial/Kconfig   |   12 ++++
+ drivers/tty/serial/Makefile  |    2 +-
+ drivers/tty/serial/apbuart.c |  133 ++++++++++++++++++++++++++++++++++++------
+ 3 files changed, 128 insertions(+), 19 deletions(-)
 
-But, that didn't fix the problem.
-
-Next, I yanked the tulip card.  That didn't fix the problem either.
-
-Finally, I reset nvram by typing this at openprom's "ok" prompt:
-set-defaults 
-
-A reset-all and... it works!  I can boot 3.0.3!
-
-Thanks for your patience in helping me get this machine going w/ Linux.
-I'll add this info to the bugzilla report and close the bug.
-
-thanks again,
-Jim Faulkner
+diff --git a/drivers/tty/serial/Kconfig b/drivers/tty/serial/Kconfig
+index b3692e6..896042b 100644
+--- a/drivers/tty/serial/Kconfig
++++ b/drivers/tty/serial/Kconfig
+@@ -1526,6 +1526,18 @@ config SERIAL_GRLIB_GAISLER_APBUART_CONSOLE
+ 	help
+ 	Support for running a console on the GRLIB APBUART
+ 
++config SERIAL_GRLIB_GAISLER_APBUART_GRMON_VIRTUAL
++	bool "Virtual channel created by GRMON to communicate with KGDB"
++	depends on SERIAL_GRLIB_GAISLER_APBUART=y
++	default y
++	help
++	Add support for a virtual GRMON<->KGDB channel that
++	is created using share memory polling by GRMON. Start
++	GRMON with the option "-vchannel" to enable polling. This
++	feature enables connecting to KGDB without having an hardware
++	serial connection, but using GRMON as an tunnel. Also
++	enable KGDB_SERIAL_CONSOLE to use this feature.
++
+ config SERIAL_ALTERA_JTAGUART
+ 	tristate "Altera JTAG UART support"
+ 	select SERIAL_CORE
+diff --git a/drivers/tty/serial/Makefile b/drivers/tty/serial/Makefile
+index cb2628f..ea3fc05 100644
+--- a/drivers/tty/serial/Makefile
++++ b/drivers/tty/serial/Makefile
+@@ -81,10 +81,10 @@ obj-$(CONFIG_SERIAL_OF_PLATFORM) += of_serial.o
+ obj-$(CONFIG_SERIAL_OF_PLATFORM_NWPSERIAL) += nwpserial.o
+ obj-$(CONFIG_SERIAL_KS8695) += serial_ks8695.o
+ obj-$(CONFIG_SERIAL_OMAP) += omap-serial.o
++obj-$(CONFIG_SERIAL_GRLIB_GAISLER_APBUART) += apbuart.o
+ obj-$(CONFIG_KGDB_SERIAL_CONSOLE) += kgdboc.o
+ obj-$(CONFIG_SERIAL_QE) += ucc_uart.o
+ obj-$(CONFIG_SERIAL_TIMBERDALE)	+= timbuart.o
+-obj-$(CONFIG_SERIAL_GRLIB_GAISLER_APBUART) += apbuart.o
+ obj-$(CONFIG_SERIAL_ALTERA_JTAGUART) += altera_jtaguart.o
+ obj-$(CONFIG_SERIAL_ALTERA_UART) += altera_uart.o
+ obj-$(CONFIG_SERIAL_VT8500) += vt8500_serial.o
+diff --git a/drivers/tty/serial/apbuart.c b/drivers/tty/serial/apbuart.c
+index 5f40f42..38eb8cc 100644
+--- a/drivers/tty/serial/apbuart.c
++++ b/drivers/tty/serial/apbuart.c
+@@ -124,7 +124,6 @@ static void apbuart_rx_chars(struct uart_port *port)
+ 
+ 		uart_insert_char(port, rsr, UART_STATUS_OE, ch, flag);
+ 
+-
+ 	      ignore_char:
+ 		status = UART_GET_STATUS(port);
+ 	}
+@@ -350,11 +349,88 @@ static struct uart_ops grlib_apbuart_ops = {
+ 	.config_port = apbuart_config_port,
+ 	.verify_port = apbuart_verify_port,
+ #ifdef CONFIG_CONSOLE_POLL
+-	.poll_get_char	= apbuart_poll_get_char,
+-	.poll_put_char	= apbuart_poll_put_char,
+-#endif		
++	.poll_get_char = apbuart_poll_get_char,
++	.poll_put_char = apbuart_poll_put_char,
++#endif
++};
++
++#undef CONFIG_SERIAL_GRLIB_GAISLER_APBUART_GRMON_VIRTUAL_HAS
++#if defined(CONFIG_SERIAL_GRLIB_GAISLER_APBUART_GRMON_VIRTUAL) && defined(CONFIG_SPARC_LEON) && defined(CONFIG_CONSOLE_POLL)
++#define CONFIG_SERIAL_GRLIB_GAISLER_APBUART_GRMON_VIRTUAL_HAS
++#include <asm/leon.h>
++
++/*
++ * Use a memory array that is continuously read/written by GRMON
++ * as a communication channel. GRMON will test for the existence
++ * of symbol apbuart_grmon_vchannel. If present the "shared memory"
++ * of apbuart_grmon_vchannel will be used to comunicate with linux.
++ * apbuart_grmon_vchannel is only used for KGDB polling communication.
++ */
++unsigned int apbuart_grmon_vchannel[4] = { 0, 0, 0, 0 };
++
++EXPORT_SYMBOL(apbuart_grmon_vchannel);
++
++static void apbuart_set_termios_v(struct uart_port *port,
++				  struct ktermios *termios,
++				  struct ktermios *old)
++{
++	return;
++}
++
++unsigned char apbuart_poll_get_char_v_b[4];
++unsigned char apbuart_poll_get_char_v_c = 0;
++static int apbuart_poll_get_char_v(struct uart_port *port)
++{
++	int c = NO_POLL_CHAR, cnt, i;
++	if (apbuart_poll_get_char_v_c) {
++		apbuart_poll_get_char_v_c--;
++		c = apbuart_poll_get_char_v_b[0] & 0xff;
++		for (i = 0; i < apbuart_poll_get_char_v_c; i++) {
++			apbuart_poll_get_char_v_b[i] +			    apbuart_poll_get_char_v_b[i + 1];
++		}
++	}
++
++	/*
++	 * poll for new char GRMON from. When grmon has a new char it
++	 * will set write it into apbuart_grmon_vchannel[0] and then
++	 * set apbuart_grmon_vchannel[1]
++	 */
++	else if ((cnt = LEON3_BYPASS_LOAD_PA(__pa(&apbuart_grmon_vchannel[1])))) {
++		unsigned int ar +		    LEON3_BYPASS_LOAD_PA(__pa(&apbuart_grmon_vchannel[0]));
++		LEON_BYPASS_STORE_PA(__pa(&apbuart_grmon_vchannel[1]), 0);
++		c = ar & 0xff;
++		for (i = 1; i < cnt; i++) {
++			apbuart_poll_get_char_v_b[apbuart_poll_get_char_v_c++] +			    (ar >> (8 * i)) & 0xff;
++		}
++	}
++
++	return c;
++}
++static void apbuart_console_putchar_v(struct uart_port *port, unsigned char ch)
++{
++	/*
++	 * poll for GRMON readout. When grmon has read apbuart_grmon_vchannel[3]
++	 * it will clear apbuart_grmon_vchannel[2]
++	 */
++	while (LEON3_BYPASS_LOAD_PA(__pa(&apbuart_grmon_vchannel[2]))) {
++	}
++	LEON_BYPASS_STORE_PA(__pa(&apbuart_grmon_vchannel[3]), ch & 0xff);
++	LEON_BYPASS_STORE_PA(__pa(&apbuart_grmon_vchannel[2]), 1);
++	return;
++}
++
++static struct uart_ops grlib_apbuart_v_ops = {
++	.set_termios = apbuart_set_termios_v,
++	.poll_get_char = apbuart_poll_get_char_v,
++	.poll_put_char = apbuart_console_putchar_v,
+ };
+ 
++static struct uart_port grlib_apbuart_vport;
++#endif
++
+ static struct uart_port grlib_apbuart_ports[UART_NR];
+ static struct device_node *grlib_apbuart_nodes[UART_NR];
+ 
+@@ -423,7 +499,6 @@ static void apbuart_flush_fifo(struct uart_port *port)
+ 		UART_GET_CHAR(port);
+ }
+ 
+-
+ /* ==================================== */
+ /* Console driver, if enabled                                               */
+ /* ==================================== */
+@@ -551,7 +626,6 @@ static struct console grlib_apbuart_console = {
+ 	.data = &grlib_apbuart_driver,
+ };
+ 
+-
+ static int grlib_apbuart_configure(void);
+ 
+ static int __init apbuart_console_init(void)
+@@ -579,7 +653,6 @@ static struct uart_driver grlib_apbuart_driver = {
+ 	.cons = APBUART_CONSOLE,
+ };
+ 
+-
+ /* ==================================== */
+ /* OF Platform Driver                                                       */
+ /* ==================================== */
+@@ -598,12 +671,12 @@ static int __devinit apbuart_probe(struct platform_device *op)
+ 	port->dev = &op->dev;
+ 	port->irq = op->archdata.irqs[0];
+ 
+-	uart_add_one_port(&grlib_apbuart_driver, (struct uart_port *) port);
++	uart_add_one_port(&grlib_apbuart_driver, (struct uart_port *)port);
+ 
+-	apbuart_flush_fifo((struct uart_port *) port);
++	apbuart_flush_fifo((struct uart_port *)port);
+ 
+ 	printk(KERN_INFO "grlib-apbuart at 0x%llx, irq %d\n",
+-	       (unsigned long long) port->mapbase, port->irq);
++	       (unsigned long long)port->mapbase, port->irq);
+ 	return 0;
+ }
+ 
+@@ -620,13 +693,12 @@ static struct of_device_id __initdata apbuart_match[] = {
+ static struct platform_driver grlib_apbuart_of_driver = {
+ 	.probe = apbuart_probe,
+ 	.driver = {
+-		.owner = THIS_MODULE,
+-		.name = "grlib-apbuart",
+-		.of_match_table = apbuart_match,
+-	},
++		   .owner = THIS_MODULE,
++		   .name = "grlib-apbuart",
++		   .of_match_table = apbuart_match,
++		   },
+ };
+ 
+-
+ static int grlib_apbuart_configure(void)
+ {
+ 	struct device_node *np;
+@@ -641,7 +713,7 @@ static int grlib_apbuart_configure(void)
+ 
+ 		ampopts = of_get_property(np, "ampopts", NULL);
+ 		if (ampopts && (*ampopts = 0))
+-			continue; /* Ignore if used by another OS instance */
++			continue;	/* Ignore if used by another OS instance */
+ 		regs = of_get_property(np, "reg", NULL);
+ 		/* Frequency of APB Bus is frequency of UART */
+ 		freq_hz = of_get_property(np, "freq", NULL);
+@@ -656,14 +728,16 @@ static int grlib_apbuart_configure(void)
+ 		port = &grlib_apbuart_ports[line];
+ 
+ 		port->mapbase = addr;
+-		port->membase = ioremap(addr, sizeof(struct grlib_apbuart_regs_map));
++		port->membase +		    ioremap(addr, sizeof(struct grlib_apbuart_regs_map));
+ 		port->irq = 0;
+ 		port->iotype = UPIO_MEM;
+ 		port->ops = &grlib_apbuart_ops;
+ 		port->flags = UPF_BOOT_AUTOCONF;
+ 		port->line = line;
+ 		port->uartclk = *freq_hz;
+-		port->fifosize = apbuart_scan_fifo_size((struct uart_port *) port, line);
++		port->fifosize +		    apbuart_scan_fifo_size((struct uart_port *)port, line);
+ 		line++;
+ 
+ 		/* We support maximum UART_NR uarts ... */
+@@ -671,6 +745,18 @@ static int grlib_apbuart_configure(void)
+ 			break;
+ 	}
+ 
++#ifdef CONFIG_SERIAL_GRLIB_GAISLER_APBUART_GRMON_VIRTUAL_HAS
++	grlib_apbuart_vport.mapbase = 0;
++	grlib_apbuart_vport.membase = 0;
++	grlib_apbuart_vport.irq = 0;
++	grlib_apbuart_vport.iotype = UPIO_MEM;
++	grlib_apbuart_vport.ops = &grlib_apbuart_v_ops;
++	grlib_apbuart_vport.flags = UPF_BOOT_AUTOCONF;
++	grlib_apbuart_vport.line = line;
++	grlib_apbuart_vport.fifosize = 0;
++	line++;
++#endif
++
+ 	grlib_apbuart_driver.nr = grlib_apbuart_port_nr = line;
+ 	return line ? 0 : -ENODEV;
+ }
+@@ -702,6 +788,17 @@ static int __init grlib_apbuart_init(void)
+ 		uart_unregister_driver(&grlib_apbuart_driver);
+ 		return ret;
+ 	}
++#ifdef CONFIG_SERIAL_GRLIB_GAISLER_APBUART_GRMON_VIRTUAL_HAS
++
++	/* register an extra virtual port that is used for
++	 * GRMON<->KGDB communication */
++	uart_add_one_port(&grlib_apbuart_driver,
++			  (struct uart_port *)&grlib_apbuart_vport);
++	printk(KERN_INFO
++	       "apbuart: virtual KGDB channel for grmon, use cmdline arg \"kgdboc=kms,ttyS%d,38400\".\napbuart: Use option \"-vchannel\" when starting GRMON.\napbuart: apbuart_grmon_vchannel at pa:0x%x\n",
++	       grlib_apbuart_vport.line, (int)__pa(&apbuart_grmon_vchannel));
++
++#endif
+ 
+ 	return ret;
+ }
+-- 
+1.6.4.1
 
