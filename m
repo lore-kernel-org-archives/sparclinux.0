@@ -1,62 +1,33 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 13 Oct 2011 20:43:47 +0000
-Subject: [PATCH 2/2] sparc: Avoid calling sigprocmask()
-Message-Id: <20111013.164347.1255892680974257303.davem@davemloft.net>
+From: "Curtis" <curtis@cstudifoligno.it>
+Date: Sat, 01 Oct 2011 15:54:55 +0000
+Subject: Year End Bonus. (Congrats)
+Message-Id: <5d46193537ffc7ee5dc6117a7687da9c@cstudifoligno.it>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
+EMIL/idsorteo.7762020-60=20
 
-Use set_current_blocked() instead.
+ATTN: Lucky Winner,=20
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/kernel/signal32.c  |    2 +-
- arch/sparc/kernel/signal_32.c |    2 +-
- arch/sparc/kernel/signal_64.c |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+We are pleased to announce to you that your email attached to Euro Millones=
+ Int. ticket number 5-15-28-31-44, 1-9 won in the 2nd category balloting he=
+ld 30th September 2011. You are to receive the sum of =E2=82=AC327.043,46 E=
+uro.=20
 
-diff --git a/arch/sparc/kernel/signal32.c b/arch/sparc/kernel/signal32.c
-index 3b3a3fc..2caa556 100644
---- a/arch/sparc/kernel/signal32.c
-+++ b/arch/sparc/kernel/signal32.c
-@@ -874,7 +874,7 @@ void do_signal32(sigset_t *oldset, struct pt_regs * regs,
- 	 */
- 	if (current_thread_info()->status & TS_RESTORE_SIGMASK) {
- 		current_thread_info()->status &= ~TS_RESTORE_SIGMASK;
--		sigprocmask(SIG_SETMASK, &current->saved_sigmask, NULL);
-+		set_current_blocked(&current->saved_sigmask);
- 	}
- }
- 
-diff --git a/arch/sparc/kernel/signal_32.c b/arch/sparc/kernel/signal_32.c
-index 030087a..8ce247a 100644
---- a/arch/sparc/kernel/signal_32.c
-+++ b/arch/sparc/kernel/signal_32.c
-@@ -575,7 +575,7 @@ static void do_signal(struct pt_regs *regs, unsigned long orig_i0)
- 	 */
- 	if (test_thread_flag(TIF_RESTORE_SIGMASK)) {
- 		clear_thread_flag(TIF_RESTORE_SIGMASK);
--		sigprocmask(SIG_SETMASK, &current->saved_sigmask, NULL);
-+		set_current_blocked(&current->saved_sigmask);
- 	}
- }
- 
-diff --git a/arch/sparc/kernel/signal_64.c b/arch/sparc/kernel/signal_64.c
-index f895c40..a2b8159 100644
---- a/arch/sparc/kernel/signal_64.c
-+++ b/arch/sparc/kernel/signal_64.c
-@@ -595,7 +595,7 @@ static void do_signal(struct pt_regs *regs, unsigned long orig_i0)
- 	 */
- 	if (current_thread_info()->status & TS_RESTORE_SIGMASK) {
- 		current_thread_info()->status &= ~TS_RESTORE_SIGMASK;
--		sigprocmask(SIG_SETMASK, &current->saved_sigmask, NULL);
-+		set_current_blocked(&current->saved_sigmask);
- 	}
- }
- 
--- 
-1.7.6.401.g6a319
+View results here: http://www.loteriasyapuestas.es/index.php/mod.sorteos/me=
+m.sorteos/juego.EMIL/idsorteo.776202060=20
+
+Contact the Claims Officer:=20
+Name: Mr. Pedro Dora=20
+Email: online_claims@mixmail.com=20
+Tel: +34-634-031-732=20
+
+Congratulations.=20
+
+Regards,=20
+Mr. Curtis Ortega=20
+Coordinator.
 
