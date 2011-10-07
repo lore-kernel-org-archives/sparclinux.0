@@ -1,22 +1,18 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 16 Oct 2011 20:22:57 +0000
-Subject: Re: [PATCH 03/21] sparc: drop unused Kconfig symbol
-Message-Id: <20111016202257.GA25970@merkur.ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Fri, 07 Oct 2011 18:57:03 +0000
+Subject: moving GIT back to kernel.org...
+Message-Id: <20111007.145703.842130763413648388.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1318595257.6132.59.camel@x61.thuisdomein> <alpine.LNX.2.00.1110150111520.26030@post.netunix.com>
-In-Reply-To: <alpine.LNX.2.00.1110150111520.26030@post.netunix.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: crn@netunix.com
-Cc: Paul Bolle <pebolle@tiscali.nl>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: linux-wireless@vger.kernel.org, netfilter-devel@vger.kernel.org, sparclinux@vger.kernel.org, linux-ide@vger.kernel.org
 
-On Sat, Oct 15, 2011 at 01:14:02AM +0100, crn@netunix.com wrote:
->
-> How does this affect Javastations, ISTR that they need PCI and one
-> (rare) variant has a PCI slot. ??
 
-It was replaced by a more specific CONFIG_SPARC_PCIC symbol
-in commit: cfe3af5dde34a019c1bd2485b1dc0f2d7a326ccd
+I'm about to setup my GIT trees on kernel.org, once that is complete
+I will be solely updating those trees again.
 
-	Sam
+I will notify everyone when this is ready to go.
+
+Just a heads up for everyone...
