@@ -1,35 +1,33 @@
-From: Josip Rodin <joy@entuzijast.net>
-Date: Mon, 24 Oct 2011 21:47:13 +0000
-Subject: Re: 3.0.4 kernel oops in i2c ?
-Message-Id: <20111024214713.GA561@entuzijast.net>
+From: Meelis Roos <mroos@linux.ee>
+Date: Fri, 07 Oct 2011 07:53:57 +0000
+Subject: [PATCH] qlogicpti: increase timeout
+Message-Id: <alpine.SOC.1.00.1110071050080.648@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20111014144345.GB5070@lemon.iwr.uni-heidelberg.de>
-In-Reply-To: <20111014144345.GB5070@lemon.iwr.uni-heidelberg.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org, linux-scsi@vger.kernel.org
 
-On Mon, Oct 24, 2011 at 04:43:06PM +0200, Hermann Lauer wrote:
-> On Mon, Oct 24, 2011 at 03:26:56PM +0200, Josip Rodin wrote:
-> > On Fri, Oct 14, 2011 at 04:43:45PM +0200, Hermann Lauer wrote:
-> > > when starting 3.0.4 on a V880 a non fatal oops happens when loading
-> > > i2c stuff. Proably there is a problem with i2c on the machine,
-> > > as the rsc "env" cmd shows "E880_FSP: ERROR getting FP stats ---> 9"
-> > > errors. An old 2.6.26-2-sparc64-smp (Debian 2.6.26-26lenny2) kernel
-> > > produces no oops.
-> > 
-> > Can you try the stable Debian 2.6.32 kernel at least?
-> > 
-> > Anything that helps you reduce the amount of git bisect...
-> 
-> 2.6.32-5-sparc64-smp (Debian 2.6.32-38) (ben@decadent.org.uk) (gcc version 4.3.5 (Debian 4.3.5-4) ) #1 SMP Mon Oct 3 09:43:44 UTC 2011
-> 
-> is starting fine without oops. Thanks for caring,
+qlogicpti times out for some tape library operations (like mtx 
+inventory). It seems SCSI command timeout is hardcoded into the driver. 
+So let's increase it to some arbitrary higher value that Works For 
+Me(tm).
 
-OK, so if you think a git bisect is still going to be too tedious, do a
-binary search through released kernels to narrow it down to a single
-release, and then a bisect should be quick enough.
+Signed-off-by: Meelis Roos <mroos@linux.ee>
+
+diff --git a/drivers/scsi/qlogicpti.c b/drivers/scsi/qlogicpti.c
+index 9689d41c..4290141 100644
+--- a/drivers/scsi/qlogicpti.c
++++ b/drivers/scsi/qlogicpti.c
+@@ -880,7 +880,7 @@ static inline void cmd_frob(struct Command_Entry *cmd, struct scsi_cmnd *Cmnd,
+ 		cmd->control_flags |= CFLAG_WRITE;
+ 	else
+ 		cmd->control_flags |= CFLAG_READ;
+-	cmd->time_out = 30;
++	cmd->time_out = 120;
+ 	memcpy(cmd->cdb, Cmnd->cmnd, Cmnd->cmd_len);
+ }
+ 
 
 -- 
-     2. That which causes joy or happiness.
+Meelis Roos (mroos@linux.ee)
