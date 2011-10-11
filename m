@@ -1,59 +1,86 @@
-From: Yinglin Sun <yinglin.s@gmail.com>
-Date: Sat, 08 Oct 2011 07:09:24 +0000
-Subject: Re: moving GIT back to kernel.org...
-Message-Id: <CAN17JHUdg2aJmpMOD_hn61eramPPnTr0_tiy3c7w7cKa8FMtsQ@mail.gmail.com>
+From: Konrad Eisele <konrad@gaisler.com>
+Date: Tue, 11 Oct 2011 12:18:03 +0000
+Subject: [PATCH 1/5] apbuart: add polling callbacks to apbuart driver
+Message-Id: <1318335487-25506-2-git-send-email-konrad@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20111007.145703.842130763413648388.davem@davemloft.net>
-	<20111007.155902.916470368193047875.davem@davemloft.net>
-	<CAN17JHUGnAbHJmwybjJVdxq4JOgHfDxChw1P7q1yrkqH6Ci05w@mail.gmail.com>
-	<4E8FF54F.1080306@gmail.com>
-In-Reply-To: <4E8FF54F.1080306@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: jeffrey.t.kirsher@intel.com
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org, sfr@canb.auug.org.au, linux-wireless@vger.kernel.org, netfilter-devel@vger.kernel.org, sparclinux@vger.kernel.org, linux-ide@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
-On Sat, Oct 8, 2011 at 12:01 AM, Jeff Kirsher <tarbal@gmail.com> wrote:
-> On 10/07/2011 11:55 PM, Yinglin Sun wrote:
->> On Fri, Oct 7, 2011 at 12:59 PM, David Miller <davem@davemloft.net> wrote:
->>> From: David Miller <davem@davemloft.net>
->>> Date: Fri, 07 Oct 2011 14:57:03 -0400 (EDT)
->>>
->>>> I'm about to setup my GIT trees on kernel.org, once that is complete
->>>> I will be solely updating those trees again.
->>>>
->>>> I will notify everyone when this is ready to go.
->>>>
->>>> Just a heads up for everyone...
->>> Ok, they are now online, please update your URLs.
->>>
->>> git://git.kernel.org/pub/scm/linux/kernel/git/davem/net.git
->>> git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.git
->>> git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git
->>> git://git.kernel.org/pub/scm/linux/kernel/git/davem/ide.git
->>>
->> I'm still new to net kernel development, so a little confused about these trees.
->> So we should submit patches based on these trees, instead of Linus'?
->> About net and net-next, How to decide which one to use?
->>
->> Thanks!
->>
->> Yinglin
->>
->
-> *If* you have change against the network core/drivers then, you would
-> want to use David Miller's net or net-next trees.
->
-> As a general rule:
->  - net tree is only for fixes/critical fixes
->  - net-next tree is for everything else
->
-> There are always exceptions, but if you stick to the above general rule,
-> you will be fine.
->
->
+Add the 2 callbacks poll_get_char and poll_put_char so
+that the driver can be used as an interface with KGDB.
 
-Got it. Thanks Jeff!
+Signed-off-by: Konrad Eisele <konrad@gaisler.com>
+---
+ drivers/tty/serial/apbuart.c |   33 ++++++++++++++++++++++++++++++++-
+ 1 files changed, 32 insertions(+), 1 deletions(-)
 
-Yinglin
+diff --git a/drivers/tty/serial/apbuart.c b/drivers/tty/serial/apbuart.c
+index 19a9436..153e065 100644
+--- a/drivers/tty/serial/apbuart.c
++++ b/drivers/tty/serial/apbuart.c
+@@ -39,6 +39,10 @@
+ #define UART_DUMMY_RSR_RX	0x8000	/* for ignore all read */
+ 
+ static void apbuart_tx_chars(struct uart_port *port);
++#ifdef CONFIG_CONSOLE_POLL
++static int apbuart_poll_get_char(struct uart_port *port);
++static void apbuart_poll_put_char(struct uart_port *port, unsigned char ch);
++#endif
+ 
+ static void apbuart_stop_tx(struct uart_port *port)
+ {
+@@ -345,6 +349,10 @@ static struct uart_ops grlib_apbuart_ops = {
+ 	.request_port = apbuart_request_port,
+ 	.config_port = apbuart_config_port,
+ 	.verify_port = apbuart_verify_port,
++#ifdef CONFIG_CONSOLE_POLL
++	.poll_get_char	= apbuart_poll_get_char,
++	.poll_put_char	= apbuart_poll_put_char,
++#endif
+ };
+ 
+ static struct uart_port grlib_apbuart_ports[UART_NR];
+@@ -420,7 +428,7 @@ static void apbuart_flush_fifo(struct uart_port *port)
+ /* Console driver, if enabled                                               */
+ /* ==================================== */
+ 
+-#ifdef CONFIG_SERIAL_GRLIB_GAISLER_APBUART_CONSOLE
++#if defined(CONFIG_SERIAL_GRLIB_GAISLER_APBUART_CONSOLE) || defined(CONFIG_CONSOLE_POLL)
+ 
+ static void apbuart_console_putchar(struct uart_port *port, int ch)
+ {
+@@ -431,6 +439,29 @@ static void apbuart_console_putchar(struct uart_port *port, int ch)
+ 	UART_PUT_CHAR(port, ch);
+ }
+ 
++#endif
++
++#ifdef CONFIG_CONSOLE_POLL
++
++static int apbuart_poll_get_char(struct uart_port *port)
++{
++	int c = NO_POLL_CHAR;
++	unsigned int status = UART_GET_STATUS(port);
++	if (status & UART_STATUS_DR) {
++		c = UART_GET_CHAR(port);
++	}
++	return c;
++}
++
++static void apbuart_poll_put_char(struct uart_port *port, unsigned char ch)
++{
++	apbuart_console_putchar(port, ch);
++}
++
++#endif
++
++#ifdef CONFIG_SERIAL_GRLIB_GAISLER_APBUART_CONSOLE
++
+ static void
+ apbuart_console_write(struct console *co, const char *s, unsigned int count)
+ {
+-- 
+1.6.4.1
+
