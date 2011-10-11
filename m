@@ -1,23 +1,41 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 19 Oct 2011 23:29:17 +0000
-Subject: Re: [PATCH] sparc: Add alignment flag to PCI expansion resources
-Message-Id: <20111019.192917.744226914732883492.davem@davemloft.net>
+From: Konrad Eisele <konrad@gaisler.com>
+Date: Tue, 11 Oct 2011 12:18:06 +0000
+Subject: [PATCH 4/5] sparc32: return destination pointer on return from memcpy
+Message-Id: <1318335487-25506-5-git-send-email-konrad@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.1110162056340.25694@oizys.tordivel.org>
-In-Reply-To: <Pine.LNX.4.64.1110162056340.25694@oizys.tordivel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Kjetil Oftedal <oftedal@gmail.com>
-Date: Sun, 16 Oct 2011 21:12:00 +0200 (CEST)
+Gcc can optimize constant strcpy to a memcpy call. However
+the return value of strcpy is used in KGDB. Return the standard return
+value instead of 0
 
-> Currently no type of alignment is specified for PCI expansion roms while 
-> parsing the openfirmware tree. This causes calls to pci_map_rom() to fail.
-> IORESOURCE_SIZEALIGN is the default alignment used for rom resouces in 
-> pci/probe.c, and has been verified to work with various cards on a ultra 10.
-> 
-> Signed-Off-By: Kjetil Oftedal <oftedal@gmail.com>
+Signed-off-by: Konrad Eisele <konrad@gaisler.com>
+---
+ arch/sparc/lib/memcpy.S |    8 ++------
+ 1 files changed, 2 insertions(+), 6 deletions(-)
 
-Applied, thanks.
+diff --git a/arch/sparc/lib/memcpy.S b/arch/sparc/lib/memcpy.S
+index 34fe657..835014b 100644
+--- a/arch/sparc/lib/memcpy.S
++++ b/arch/sparc/lib/memcpy.S
+@@ -19,12 +19,8 @@ x:
+ #undef FASTER_NONALIGNED
+ #define FASTER_ALIGNED
+ 
+-/* In kernel these functions don't return a value.
+- * One should use macros in asm/string.h for that purpose.
+- * We return 0, so that bugs are more apparent.
+- */
+-#define SETUP_RETL
+-#define RETL_INSN	clr	%o0
++#define SETUP_RETL	mov	%o0, %g6
++#define RETL_INSN	mov	%g6, %o0
+ 
+ #else
+ 
+-- 
+1.6.4.1
+
