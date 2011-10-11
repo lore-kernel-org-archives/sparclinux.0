@@ -1,40 +1,31 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 23 Oct 2011 20:35:12 +0000
-Subject: Re: longjmp question
-Message-Id: <20111023.163512.647802693869570811.davem@davemloft.net>
+From: Konrad Eisele <konrad@gaisler.com>
+Date: Tue, 11 Oct 2011 12:18:02 +0000
+Subject: [PATCH 0/4] introduction
+Message-Id: <1318335487-25506-1-git-send-email-konrad@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20111007232209.GA11892@wooyd.org>
-In-Reply-To: <20111007232209.GA11892@wooyd.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Jurij Smakov <jurij@wooyd.org>
-Date: Sun, 23 Oct 2011 14:47:27 +0100
++ 0001-apbuart-add-polling-callbacks-to-apbuart-driver.patch adds polling functions
+    to apbuart.c
+    
++ 0002-apbuart-add-support-for-virtual-KGDB-GRMON-channel.patch add GRMON virtual channel
+    for KGDB
+    
++ The folowing 2 patches address the error that occures in kernel/debug/gdbstub.c:
+    ptr += strlen(strcpy(ptr, "thread:"));
+    Gcc converts strcpy to a memcpy. There are 2 possible patches:
+    
+    possibility 1: 0003-kernel-debug-SPARC-KGDB-stub-strcpy-fix.patch
+     split into 2 aclls in kernel/debug/gdbstub.c
+    possibility 2: 0004-sparc32-return-destination-pointer-on-return-from-me.patch
+     fix memcpy to return destination pointer
 
-> On Sat, Oct 22, 2011 at 06:54:05PM -0400, David Miller wrote:
->>
->> Just let the compiler do it for you, please... the compiler absolutely cannot
->> optimize away a function that uses a volatile asm statement.  And it absolutely
->> cannot make a function that clobbers %o7 a leaf function.
-> 
-> That's not what I see. I tried writing up a patch for Ruby using this, 
-> and here's what I get:
-> 
-> 1. Preprocessed source of cont.c contains flush_register_windows 
-> definition:
-> 
-> # 219 "./include/ruby/defines.h"
-> static void
-> flush_register_windows(void)
-> {
->     asm __volatile__ ("flushw" : : : "o7");
-> }
++ 0005-sparc32-Add-support-for-KGDB-with-SMP-for-leon-and-s.patch Implement
+    KGDB for SMP for Leon and sun4d, for sun4m smp4m_ipi_kgdbcapture is a
+    stub that has to be implemented later.
+ 
+Greetings Konrad
 
-You can't put it in a header file, GCC will inline it.  You have to
-put it in a function in a seperate C file, and this is what I said to
-do the other week in my original email.
-
-You're only other option is to explicitly mark this
-__attribute__((__noinline__))
