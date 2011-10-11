@@ -1,27 +1,35 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 07 Oct 2011 15:13:23 +0000
-Subject: Re: [PATCH v2] qlogicpti: fix timeout
-Message-Id: <20111007.111323.497093696267353976.davem@davemloft.net>
+From: Konrad Eisele <konrad@gaisler.com>
+Date: Tue, 11 Oct 2011 12:18:05 +0000
+Subject: [PATCH 3/5] kernel,debug: SPARC KGDB stub strcpy fix
+Message-Id: <1318335487-25506-4-git-send-email-konrad@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.SOC.1.00.1110071050080.648@math.ut.ee>
-	<alpine.SOC.1.00.1110071800120.29152@math.ut.ee>
-In-Reply-To: <alpine.SOC.1.00.1110071800120.29152@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mroos@linux.ee
-Cc: James.Bottomley@hansenpartnership.com, linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Meelis Roos <mroos@linux.ee>
-Date: Fri, 7 Oct 2011 18:05:08 +0300 (EEST)
+Works aroung the fact that strcpy with a constant string is
+converted to memcpy by gcc and that  memcpy in SPARC returns 0.
 
-> qlogicpti times out for some tape library operations (like mtx 
-> inventory). It seems SCSI command timeout is hardcoded into the driver. 
-> Fix it by propagating the timeout from scsi request to the controller as 
-> suggested by James Bottomley.
-> 
-> Tested on Sun Ultra 1 with Sun StorEdge L8 Autoloader.
-> 
-> Signed-off-by: Meelis Roos <mroos@linux.ee>
+Signed-off-by: Konrad Eisele <konrad@gaisler.com>
+---
+ kernel/debug/gdbstub.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-Acked-by: David S. Miller <davem@davemloft.net>
+diff --git a/kernel/debug/gdbstub.c b/kernel/debug/gdbstub.c
+index a11db95..380753e 100644
+--- a/kernel/debug/gdbstub.c
++++ b/kernel/debug/gdbstub.c
+@@ -946,7 +946,8 @@ int gdb_serial_stub(struct kgdb_state *ks)
+ 		ptr = remcom_out_buffer;
+ 		*ptr++ = 'T';
+ 		ptr = pack_hex_byte(ptr, ks->signo);
+-		ptr += strlen(strcpy(ptr, "thread:"));
++		strcpy(ptr, "thread:");
++		ptr += strlen(ptr);
+ 		int_to_threadref(thref, shadow_pid(current->pid));
+ 		ptr = pack_threadid(ptr, thref);
+ 		*ptr++ = ';';
+-- 
+1.6.4.1
+
