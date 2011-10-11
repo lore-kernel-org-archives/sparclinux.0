@@ -1,8 +1,10 @@
 From: Konrad Eisele <konrad@gaisler.com>
-Date: Tue, 11 Oct 2011 12:18:05 +0000
+Date: Tue, 11 Oct 2011 12:19:59 +0000
 Subject: [PATCH 3/5] kernel,debug: SPARC KGDB stub strcpy fix
-Message-Id: <1318335487-25506-4-git-send-email-konrad@gaisler.com>
+Message-Id: <1318335600-25561-1-git-send-email-konrad@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1318335487-25506-4-git-send-email-konrad@gaisler.com>
+In-Reply-To: <1318335487-25506-4-git-send-email-konrad@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
