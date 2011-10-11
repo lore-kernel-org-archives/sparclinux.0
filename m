@@ -1,8 +1,10 @@
 From: Konrad Eisele <konrad@gaisler.com>
-Date: Tue, 11 Oct 2011 12:18:06 +0000
+Date: Tue, 11 Oct 2011 12:20:00 +0000
 Subject: [PATCH 4/5] sparc32: return destination pointer on return from memcpy
-Message-Id: <1318335487-25506-5-git-send-email-konrad@gaisler.com>
+Message-Id: <1318335600-25561-2-git-send-email-konrad@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1318335487-25506-5-git-send-email-konrad@gaisler.com>
+In-Reply-To: <1318335487-25506-5-git-send-email-konrad@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
