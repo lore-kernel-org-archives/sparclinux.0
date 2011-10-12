@@ -1,61 +1,58 @@
-From: Jurij Smakov <jurij@wooyd.org>
-Date: Wed, 12 Oct 2011 23:21:28 +0000
+From: David Miller <davem@davemloft.net>
+Date: Wed, 12 Oct 2011 23:42:28 +0000
 Subject: Re: longjmp question
-Message-Id: <20111012232128.GA5603@wooyd.org>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="8t9RHnE3ZwKMSgU+"
+Message-Id: <20111012.194228.1134598667227819099.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20111007232209.GA11892@wooyd.org>
 In-Reply-To: <20111007232209.GA11892@wooyd.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+From: Jurij Smakov <jurij@wooyd.org>
+Date: Thu, 13 Oct 2011 00:21:28 +0100
 
---8t9RHnE3ZwKMSgU+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, Oct 12, 2011 at 07:06:17PM -0400, David Miller wrote:
+> On Wed, Oct 12, 2011 at 07:06:17PM -0400, David Miller wrote:
+>> 
+>> Jurij, how do I setup this testcase?
+>> 
+>> I checked out Ruby from SVN and built it, but I can't find this
+>> miniruby thing so that I can run the command line in that Ruby bug
+>> report.
+>> 
+>> Thanks.
 > 
-> Jurij, how do I setup this testcase?
-> 
-> I checked out Ruby from SVN and built it, but I can't find this
-> miniruby thing so that I can run the command line in that Ruby bug
-> report.
-> 
-> Thanks.
+> Thanks for looking at it! Attached is a script which I use to set up 
+> the environment and start gdb for the binary (you probably will need 
+> directory names adjusted, if you are building from directly from svn 
+> and not from Debian package). I'm still in the process of trying to 
+> understand what's Ruby is trying to do with all the machine state 
+> saves and restores, so I was not able to make a lot of progress so 
+> far.
 
-Thanks for looking at it! Attached is a script which I use to set up 
-the environment and start gdb for the binary (you probably will need 
-directory names adjusted, if you are building from directly from svn 
-and not from Debian package). I'm still in the process of trying to 
-understand what's Ruby is trying to do with all the machine state 
-saves and restores, so I was not able to make a lot of progress so 
-far.
+Thanks for the script.
 
-Best regads,
--- 
-Jurij Smakov                                           jurij@wooyd.org
-Key: http://www.wooyd.org/pgpkey/                      KeyID: C99E03CC
+Ruby is too clever for it's own good.  Right before it calls setjmp()
+it copies the stack frame down to the current bottom of the stack
+into a save area.
 
---8t9RHnE3ZwKMSgU+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=run
+Later, right before it longjmp()'s, it copies back to the stack from
+the save area.
 
-#!/bin/sh
-export RUBY=/home/jurij/ruby/ruby1.9.1-1.9.3~preview1+svn33236/ruby1.9.1
-export PATH=/home/jurij/ruby/ruby1.9.1-1.9.3~preview1+svn33236:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games
-export RUBYLIB=/home/jurij/ruby/ruby1.9.1-1.9.3~preview1+svn33236:/home/jurij/ruby/ruby1.9.1-1.9.3~preview1+svn33236/.ext/common:/home/jurij/ruby/ruby1.9.1-1.9.3~preview1+svn33236/.ext/sparc-linux:/home/jurij/ruby/ruby1.9.1-1.9.3~preview1+svn33236/lib
-export LD_LIBRARY_PATH=/home/jurij/ruby/ruby1.9.1-1.9.3~preview1+svn33236
-export LD_PRELOAD=/home/jurij/ruby/ruby1.9.1-1.9.3~preview1+svn33236/libruby-1.9.1.so.1.9.1
+Look at the "workaround" for x86-86 in cont_restore_1(), and all of
+the special case code they need in order to get IA64 right.
 
-cat > script <<EOF
-file ./ruby1.9.1
-set args -rcontinuation -e 'callcc { |c| c.call }'
-set break pending on
-break cont_capture
-run
-EOF
+What a mess.
 
-gdb -x script
+This is only going to get worse when GCC's support for shrink-wrapping
+and other interesting features propagates.  There is no guarentee that
+the stack won't expand further downward between when Ruby saves the
+stack frames and when it does it's setjmp() call, and it very much
+relies upon that such a stack expansion not happening.
 
---8t9RHnE3ZwKMSgU+--
+Anyways I'll see if there is some way to salvage this and make it
+work.  I suspect that Solaris doesn't have the restore loop
+optimization we do in longjmp, and that's why Ruby works there with
+the same compilers on sparc.
+
