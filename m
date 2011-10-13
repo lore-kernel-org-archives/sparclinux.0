@@ -1,191 +1,229 @@
-From: Konrad Eisele <konrad@gaisler.com>
-Date: Tue, 11 Oct 2011 12:18:04 +0000
-Subject: [PATCH 2/5] apbuart: add support for virtual KGDB<->GRMON channel
-Message-Id: <1318335487-25506-3-git-send-email-konrad@gaisler.com>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 13 Oct 2011 20:43:41 +0000
+Subject: [PATCH 1/2] sparc: Use set_current_blocked()
+Message-Id: <20111013.164341.1652323898090353802.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Add support for a virtual GRMON<->KGDB channel that
-is created using share memory polling by GRMON. Start
-GRMON with the option "-vchannel" to enable polling. This
-feature enables connecting to KGDB without having an hardware
-serial connection, but using GRMON as an tunnel.
-Reorder Makefile addition so that apbuart.o gets inserted
-before kgdboc.o.
-Add Kconfig option SERIAL_GRLIB_GAISLER_APBUART_GRMON_VIRTUAL to enable
-the feature.
 
-Signed-off-by: Konrad Eisele <konrad@gaisler.com>
+From: Matt Fleming <matt.fleming@intel.com>
+
+As described in e6fa16ab ("signal: sigprocmask() should do
+retarget_shared_pending()") the modification of current->blocked is
+incorrect as we need to check whether the signal we're about to block
+is pending in the shared queue.
+
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Matt Fleming <matt.fleming@intel.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- drivers/tty/serial/Kconfig   |   12 +++++
- drivers/tty/serial/Makefile  |    2 +-
- drivers/tty/serial/apbuart.c |  100 ++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 113 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/tty/serial/Kconfig b/drivers/tty/serial/Kconfig
-index b3692e6..896042b 100644
---- a/drivers/tty/serial/Kconfig
-+++ b/drivers/tty/serial/Kconfig
-@@ -1526,6 +1526,18 @@ config SERIAL_GRLIB_GAISLER_APBUART_CONSOLE
- 	help
- 	Support for running a console on the GRLIB APBUART
+There was a bug in the originally submitted version of this patch, namely
+one of the set_current_blocked() calls was being passed &set (of type
+old_sigset_t) instead of &blocked.  I fixed them up here.
+
+ arch/sparc/kernel/signal32.c  |   19 ++++++-------------
+ arch/sparc/kernel/signal_32.c |   30 ++++++++++++------------------
+ arch/sparc/kernel/signal_64.c |   30 ++++++++++++------------------
+ 3 files changed, 30 insertions(+), 49 deletions(-)
+
+diff --git a/arch/sparc/kernel/signal32.c b/arch/sparc/kernel/signal32.c
+index 1ba95af..3b3a3fc 100644
+--- a/arch/sparc/kernel/signal32.c
++++ b/arch/sparc/kernel/signal32.c
+@@ -273,10 +273,7 @@ void do_sigreturn32(struct pt_regs *regs)
+ 		case 1: set.sig[0] = seta[0] + (((long)seta[1]) << 32);
+ 	}
+ 	sigdelsetmask(&set, ~_BLOCKABLE);
+-	spin_lock_irq(&current->sighand->siglock);
+-	current->blocked = set;
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	set_current_blocked(&set);
+ 	return;
  
-+config SERIAL_GRLIB_GAISLER_APBUART_GRMON_VIRTUAL
-+	bool "Virtual channel created by GRMON to communicate with KGDB"
-+	depends on SERIAL_GRLIB_GAISLER_APBUART=y
-+	default y
-+	help
-+	Add support for a virtual GRMON<->KGDB channel that
-+	is created using share memory polling by GRMON. Start
-+	GRMON with the option "-vchannel" to enable polling. This
-+	feature enables connecting to KGDB without having an hardware
-+	serial connection, but using GRMON as an tunnel. Also
-+	enable KGDB_SERIAL_CONSOLE to use this feature.
-+
- config SERIAL_ALTERA_JTAGUART
- 	tristate "Altera JTAG UART support"
- 	select SERIAL_CORE
-diff --git a/drivers/tty/serial/Makefile b/drivers/tty/serial/Makefile
-index cb2628f..ea3fc05 100644
---- a/drivers/tty/serial/Makefile
-+++ b/drivers/tty/serial/Makefile
-@@ -81,10 +81,10 @@ obj-$(CONFIG_SERIAL_OF_PLATFORM) += of_serial.o
- obj-$(CONFIG_SERIAL_OF_PLATFORM_NWPSERIAL) += nwpserial.o
- obj-$(CONFIG_SERIAL_KS8695) += serial_ks8695.o
- obj-$(CONFIG_SERIAL_OMAP) += omap-serial.o
-+obj-$(CONFIG_SERIAL_GRLIB_GAISLER_APBUART) += apbuart.o
- obj-$(CONFIG_KGDB_SERIAL_CONSOLE) += kgdboc.o
- obj-$(CONFIG_SERIAL_QE) += ucc_uart.o
- obj-$(CONFIG_SERIAL_TIMBERDALE)	+= timbuart.o
--obj-$(CONFIG_SERIAL_GRLIB_GAISLER_APBUART) += apbuart.o
- obj-$(CONFIG_SERIAL_ALTERA_JTAGUART) += altera_jtaguart.o
- obj-$(CONFIG_SERIAL_ALTERA_UART) += altera_uart.o
- obj-$(CONFIG_SERIAL_VT8500) += vt8500_serial.o
-diff --git a/drivers/tty/serial/apbuart.c b/drivers/tty/serial/apbuart.c
-index 153e065..583f41b 100644
---- a/drivers/tty/serial/apbuart.c
-+++ b/drivers/tty/serial/apbuart.c
-@@ -355,6 +355,83 @@ static struct uart_ops grlib_apbuart_ops = {
- #endif
- };
+ segv:
+@@ -377,10 +374,7 @@ asmlinkage void do_rt_sigreturn32(struct pt_regs *regs)
+ 		case 1: set.sig[0] = seta.sig[0] + (((long)seta.sig[1]) << 32);
+ 	}
+ 	sigdelsetmask(&set, ~_BLOCKABLE);
+-	spin_lock_irq(&current->sighand->siglock);
+-	current->blocked = set;
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	set_current_blocked(&set);
+ 	return;
+ segv:
+ 	force_sig(SIGSEGV, current);
+@@ -782,6 +776,7 @@ static inline int handle_signal32(unsigned long signr, struct k_sigaction *ka,
+ 				  siginfo_t *info,
+ 				  sigset_t *oldset, struct pt_regs *regs)
+ {
++	sigset_t blocked;
+ 	int err;
  
-+#undef CONFIG_SERIAL_GRLIB_GAISLER_APBUART_GRMON_VIRTUAL_HAS
-+#if defined(CONFIG_SERIAL_GRLIB_GAISLER_APBUART_GRMON_VIRTUAL) && defined(CONFIG_SPARC_LEON) && defined(CONFIG_CONSOLE_POLL)
-+#define CONFIG_SERIAL_GRLIB_GAISLER_APBUART_GRMON_VIRTUAL_HAS
-+#include <asm/leon.h>
-+
-+/*
-+ * Use a memory array that is continuously read/written by GRMON
-+ * as a communication channel. GRMON will test for the existence
-+ * of symbol apbuart_grmon_vchannel. If present the "shared memory"
-+ * of apbuart_grmon_vchannel will be used to comunicate with linux.
-+ * apbuart_grmon_vchannel is only used for KGDB polling communication.
-+ */
-+unsigned int apbuart_grmon_vchannel[4] = { 0, 0, 0, 0 };
-+
-+EXPORT_SYMBOL(apbuart_grmon_vchannel);
-+
-+static void apbuart_set_termios_v(struct uart_port *port,
-+				  struct ktermios *termios,
-+				  struct ktermios *old)
-+{
-+	return;
-+}
-+
-+unsigned char apbuart_poll_get_char_v_b[4];
-+unsigned char apbuart_poll_get_char_v_c = 0;
-+static int apbuart_poll_get_char_v(struct uart_port *port)
-+{
-+	int c = NO_POLL_CHAR, cnt, i;
-+	if (apbuart_poll_get_char_v_c) {
-+		apbuart_poll_get_char_v_c--;
-+		c = apbuart_poll_get_char_v_b[0] & 0xff;
-+		for (i = 0; i < apbuart_poll_get_char_v_c; i++) {
-+			apbuart_poll_get_char_v_b[i] +			    apbuart_poll_get_char_v_b[i + 1];
-+		}
-+	}
-+
-+	/*
-+	 * poll for new char GRMON from. When grmon has a new char it
-+	 * will set write it into apbuart_grmon_vchannel[0] and then
-+	 * set apbuart_grmon_vchannel[1]
-+	 */
-+	else if ((cnt = LEON3_BYPASS_LOAD_PA(__pa(&apbuart_grmon_vchannel[1])))) {
-+		unsigned int ar +		    LEON3_BYPASS_LOAD_PA(__pa(&apbuart_grmon_vchannel[0]));
-+		LEON_BYPASS_STORE_PA(__pa(&apbuart_grmon_vchannel[1]), 0);
-+		c = ar & 0xff;
-+		for (i = 1; i < cnt; i++) {
-+			apbuart_poll_get_char_v_b[apbuart_poll_get_char_v_c++] +			    (ar >> (8 * i)) & 0xff;
-+		}
-+	}
-+
-+	return c;
-+}
-+static void apbuart_console_putchar_v(struct uart_port *port, unsigned char ch)
-+{
-+	/*
-+	 * poll for GRMON readout. When grmon has read apbuart_grmon_vchannel[3]
-+	 * it will clear apbuart_grmon_vchannel[2]
-+	 */
-+	while (LEON3_BYPASS_LOAD_PA(__pa(&apbuart_grmon_vchannel[2]))) {
-+	}
-+	LEON_BYPASS_STORE_PA(__pa(&apbuart_grmon_vchannel[3]), ch & 0xff);
-+	LEON_BYPASS_STORE_PA(__pa(&apbuart_grmon_vchannel[2]), 1);
-+	return;
-+}
-+
-+static struct uart_ops grlib_apbuart_v_ops = {
-+	.set_termios = apbuart_set_termios_v,
-+	.poll_get_char = apbuart_poll_get_char_v,
-+	.poll_put_char = apbuart_console_putchar_v,
-+};
-+
-+static struct uart_port grlib_apbuart_vport;
-+#endif
-+
- static struct uart_port grlib_apbuart_ports[UART_NR];
- static struct device_node *grlib_apbuart_nodes[UART_NR];
+ 	if (ka->sa.sa_flags & SA_SIGINFO)
+@@ -792,12 +787,10 @@ static inline int handle_signal32(unsigned long signr, struct k_sigaction *ka,
+ 	if (err)
+ 		return err;
  
-@@ -671,6 +748,18 @@ static int grlib_apbuart_configure(void)
- 			break;
+-	spin_lock_irq(&current->sighand->siglock);
+-	sigorsets(&current->blocked,&current->blocked,&ka->sa.sa_mask);
++	sigorsets(&blocked, &current->blocked, &ka->sa.sa_mask);
+ 	if (!(ka->sa.sa_flags & SA_NOMASK))
+-		sigaddset(&current->blocked,signr);
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++		sigaddset(&blocked, signr);
++	set_current_blocked(&blocked);
+ 
+ 	tracehook_signal_handler(signr, info, ka, regs, 0);
+ 
+diff --git a/arch/sparc/kernel/signal_32.c b/arch/sparc/kernel/signal_32.c
+index 04ede8f..030087a 100644
+--- a/arch/sparc/kernel/signal_32.c
++++ b/arch/sparc/kernel/signal_32.c
+@@ -62,12 +62,13 @@ struct rt_signal_frame {
+ 
+ static int _sigpause_common(old_sigset_t set)
+ {
+-	set &= _BLOCKABLE;
+-	spin_lock_irq(&current->sighand->siglock);
++	sigset_t blocked;
++
+ 	current->saved_sigmask = current->blocked;
+-	siginitset(&current->blocked, set);
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++
++	set &= _BLOCKABLE;
++	siginitset(&blocked, set);
++	set_current_blocked(&blocked);
+ 
+ 	current->state = TASK_INTERRUPTIBLE;
+ 	schedule();
+@@ -139,10 +140,7 @@ asmlinkage void do_sigreturn(struct pt_regs *regs)
+ 		goto segv_and_exit;
+ 
+ 	sigdelsetmask(&set, ~_BLOCKABLE);
+-	spin_lock_irq(&current->sighand->siglock);
+-	current->blocked = set;
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	set_current_blocked(&set);
+ 	return;
+ 
+ segv_and_exit:
+@@ -209,10 +207,7 @@ asmlinkage void do_rt_sigreturn(struct pt_regs *regs)
  	}
  
-+#ifdef CONFIG_SERIAL_GRLIB_GAISLER_APBUART_GRMON_VIRTUAL_HAS
-+	grlib_apbuart_vport.mapbase = 0;
-+	grlib_apbuart_vport.membase = 0;
-+	grlib_apbuart_vport.irq = 0;
-+	grlib_apbuart_vport.iotype = UPIO_MEM;
-+	grlib_apbuart_vport.ops = &grlib_apbuart_v_ops;
-+	grlib_apbuart_vport.flags = UPF_BOOT_AUTOCONF;
-+	grlib_apbuart_vport.line = line;
-+	grlib_apbuart_vport.fifosize = 0;
-+	line++;
-+#endif
-+
- 	grlib_apbuart_driver.nr = grlib_apbuart_port_nr = line;
- 	return line ? 0 : -ENODEV;
- }
-@@ -702,6 +791,17 @@ static int __init grlib_apbuart_init(void)
- 		uart_unregister_driver(&grlib_apbuart_driver);
- 		return ret;
- 	}
-+#ifdef CONFIG_SERIAL_GRLIB_GAISLER_APBUART_GRMON_VIRTUAL_HAS
-+
-+	/* register an extra virtual port that is used for
-+	 * GRMON<->KGDB communication */
-+	uart_add_one_port(&grlib_apbuart_driver,
-+			  (struct uart_port *)&grlib_apbuart_vport);
-+	printk(KERN_INFO
-+	       "apbuart: virtual KGDB channel for grmon, use cmdline arg \"kgdboc=kms,ttyS%d,38400\".\napbuart: Use option \"-vchannel\" when starting GRMON.\napbuart: apbuart_grmon_vchannel at pa:0x%x\n",
-+	       grlib_apbuart_vport.line, (int)__pa(&apbuart_grmon_vchannel));
-+
-+#endif
+ 	sigdelsetmask(&set, ~_BLOCKABLE);
+-	spin_lock_irq(&current->sighand->siglock);
+-	current->blocked = set;
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	set_current_blocked(&set);
+ 	return;
+ segv:
+ 	force_sig(SIGSEGV, current);
+@@ -470,6 +465,7 @@ static inline int
+ handle_signal(unsigned long signr, struct k_sigaction *ka,
+ 	      siginfo_t *info, sigset_t *oldset, struct pt_regs *regs)
+ {
++	sigset_t blocked;
+ 	int err;
  
- 	return ret;
- }
+ 	if (ka->sa.sa_flags & SA_SIGINFO)
+@@ -480,12 +476,10 @@ handle_signal(unsigned long signr, struct k_sigaction *ka,
+ 	if (err)
+ 		return err;
+ 
+-	spin_lock_irq(&current->sighand->siglock);
+-	sigorsets(&current->blocked,&current->blocked,&ka->sa.sa_mask);
++	sigorsets(&blocked, &current->blocked, &ka->sa.sa_mask);
+ 	if (!(ka->sa.sa_flags & SA_NOMASK))
+-		sigaddset(&current->blocked, signr);
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++		sigaddset(&blocked, signr);
++	set_current_blocked(&blocked);
+ 
+ 	tracehook_signal_handler(signr, info, ka, regs, 0);
+ 
+diff --git a/arch/sparc/kernel/signal_64.c b/arch/sparc/kernel/signal_64.c
+index 47509df..f895c40 100644
+--- a/arch/sparc/kernel/signal_64.c
++++ b/arch/sparc/kernel/signal_64.c
+@@ -70,10 +70,7 @@ asmlinkage void sparc64_set_context(struct pt_regs *regs)
+ 				goto do_sigsegv;
+ 		}
+ 		sigdelsetmask(&set, ~_BLOCKABLE);
+-		spin_lock_irq(&current->sighand->siglock);
+-		current->blocked = set;
+-		recalc_sigpending();
+-		spin_unlock_irq(&current->sighand->siglock);
++		set_current_blocked(&set);
+ 	}
+ 	if (test_thread_flag(TIF_32BIT)) {
+ 		pc &= 0xffffffff;
+@@ -242,12 +239,13 @@ struct rt_signal_frame {
+ 
+ static long _sigpause_common(old_sigset_t set)
+ {
+-	set &= _BLOCKABLE;
+-	spin_lock_irq(&current->sighand->siglock);
++	sigset_t blocked;
++
+ 	current->saved_sigmask = current->blocked;
+-	siginitset(&current->blocked, set);
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++
++	set &= _BLOCKABLE;
++	siginitset(&blocked, set);
++	set_current_blocked(&blocked);
+ 
+ 	current->state = TASK_INTERRUPTIBLE;
+ 	schedule();
+@@ -327,10 +325,7 @@ void do_rt_sigreturn(struct pt_regs *regs)
+ 	pt_regs_clear_syscall(regs);
+ 
+ 	sigdelsetmask(&set, ~_BLOCKABLE);
+-	spin_lock_irq(&current->sighand->siglock);
+-	current->blocked = set;
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	set_current_blocked(&set);
+ 	return;
+ segv:
+ 	force_sig(SIGSEGV, current);
+@@ -484,18 +479,17 @@ static inline int handle_signal(unsigned long signr, struct k_sigaction *ka,
+ 				siginfo_t *info,
+ 				sigset_t *oldset, struct pt_regs *regs)
+ {
++	sigset_t blocked;
+ 	int err;
+ 
+ 	err = setup_rt_frame(ka, regs, signr, oldset,
+ 			     (ka->sa.sa_flags & SA_SIGINFO) ? info : NULL);
+ 	if (err)
+ 		return err;
+-	spin_lock_irq(&current->sighand->siglock);
+-	sigorsets(&current->blocked,&current->blocked,&ka->sa.sa_mask);
++	sigorsets(&blocked, &current->blocked, &ka->sa.sa_mask);
+ 	if (!(ka->sa.sa_flags & SA_NOMASK))
+-		sigaddset(&current->blocked,signr);
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++		sigaddset(&blocked, signr);
++	set_current_blocked(&blocked);
+ 
+ 	tracehook_signal_handler(signr, info, ka, regs, 0);
+ 
 -- 
-1.6.4.1
+1.7.6.401.g6a319
 
