@@ -1,44 +1,41 @@
-From: James Bottomley <James.Bottomley@HansenPartnership.com>
-Date: Fri, 07 Oct 2011 14:16:59 +0000
-Subject: Re: [PATCH] qlogicpti: increase timeout
-Message-Id: <1317997019.21544.7.camel@dabdike.int.hansenpartnership.com>
+From: Konrad Eisele <konrad@gaisler.com>
+Date: Thu, 13 Oct 2011 07:00:04 +0000
+Subject: [PATCH 3/4] sparc32: return destination pointer on return from memcpy
+Message-Id: <1318489205-315-4-git-send-email-konrad@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.SOC.1.00.1110071050080.648@math.ut.ee>
-In-Reply-To: <alpine.SOC.1.00.1110071050080.648@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Meelis Roos <mroos@linux.ee>
-Cc: sparclinux@vger.kernel.org, linux-scsi@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Fri, 2011-10-07 at 10:53 +0300, Meelis Roos wrote:
-> qlogicpti times out for some tape library operations (like mtx 
-> inventory). It seems SCSI command timeout is hardcoded into the driver. 
-> So let's increase it to some arbitrary higher value that Works For 
-> Me(tm).
-> 
-> Signed-off-by: Meelis Roos <mroos@linux.ee>
-> 
-> diff --git a/drivers/scsi/qlogicpti.c b/drivers/scsi/qlogicpti.c
-> index 9689d41c..4290141 100644
-> --- a/drivers/scsi/qlogicpti.c
-> +++ b/drivers/scsi/qlogicpti.c
-> @@ -880,7 +880,7 @@ static inline void cmd_frob(struct Command_Entry *cmd, struct scsi_cmnd *Cmnd,
->  		cmd->control_flags |= CFLAG_WRITE;
->  	else
->  		cmd->control_flags |= CFLAG_READ;
-> -	cmd->time_out = 30;
-> +	cmd->time_out = 120;
+Gcc can optimize constant strcpy to a memcpy call. However
+the return value of strcpy is used in KGDB. Return the standard return
+value instead of 0
 
-What about just using the actual command specific timeout:
+Signed-off-by: Konrad Eisele <konrad@gaisler.com>
+---
+ arch/sparc/lib/memcpy.S |    8 ++------
+ 1 files changed, 2 insertions(+), 6 deletions(-)
 
-cmd->time_out = Cmnd->request->timeout/HZ;
-
-?
-
-James
-
-
-James
-
+diff --git a/arch/sparc/lib/memcpy.S b/arch/sparc/lib/memcpy.S
+index 34fe657..835014b 100644
+--- a/arch/sparc/lib/memcpy.S
++++ b/arch/sparc/lib/memcpy.S
+@@ -19,12 +19,8 @@ x:
+ #undef FASTER_NONALIGNED
+ #define FASTER_ALIGNED
+ 
+-/* In kernel these functions don't return a value.
+- * One should use macros in asm/string.h for that purpose.
+- * We return 0, so that bugs are more apparent.
+- */
+-#define SETUP_RETL
+-#define RETL_INSN	clr	%o0
++#define SETUP_RETL	mov	%o0, %g6
++#define RETL_INSN	mov	%g6, %o0
+ 
+ #else
+ 
+-- 
+1.6.4.1
 
