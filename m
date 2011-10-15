@@ -1,39 +1,53 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 31 Oct 2011 08:32:05 +0000
-Subject: [GIT] Sparc
-Message-Id: <20111031.043205.1749829212092506403.davem@davemloft.net>
+From: crn@netunix.com
+Date: Sat, 15 Oct 2011 00:14:02 +0000
+Subject: Re: [PATCH 03/21] sparc: drop unused Kconfig symbol
+Message-Id: <alpine.LNX.2.00.1110150111520.26030@post.netunix.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
+References: <1318595257.6132.59.camel@x61.thuisdomein>
+In-Reply-To: <1318595257.6132.59.camel@x61.thuisdomein>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Paul Bolle <pebolle@tiscali.nl>
+Cc: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-Not very exciting stuff, basically just bug fixes.
+How does this affect Javastations, ISTR that they need PCI and one
+(rare) variant has a PCI slot. ??
 
-1) Make memcpy on sparc32 properly return original dst pointer.
+On Fri, 14 Oct 2011, Paul Bolle wrote:
 
-2) Fix VIS vector comparison instruction emulation.
-
-Please pull, thanks a lot!
-
-The following changes since commit 839d8810747bbf39e0a5a7f223b67bffa7945f8d:
-
-  Merge branch 'i2c-for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/jdelvare/staging (2011-10-30 15:54:59 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
-
-David S. Miller (4):
-      sparc32: Remove non-kernel code from memcpy implementation.
-      sparc32: Remove uses of %g7 in memcpy implementation.
-      sparc32: Correct the return value of memcpy.
-      sparc64: Fix masking and shifting in VIS fpcmp emulation.
-
- arch/sparc/kernel/visemul.c |   32 +-
- arch/sparc/lib/memcpy.S     |  804 ++++++-------------------------------------
- 2 files changed, 115 insertions(+), 721 deletions(-)
+> Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+> ---
+> arch/sparc/Kconfig |    7 +------
+> 1 files changed, 1 insertions(+), 6 deletions(-)
+>
+> diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+> index 1a6f20d..f92602e 100644
+> --- a/arch/sparc/Kconfig
+> +++ b/arch/sparc/Kconfig
+> @@ -560,12 +560,7 @@ config SUN_OPENPROMFS
+> 	  Only choose N if you know in advance that you will not need to modify
+> 	  OpenPROM settings on the running system.
+>
+> -# Makefile helpers
+> -config SPARC32_PCI
+> -	bool
+> -	default y
+> -	depends on SPARC32 && PCI
+> -
+> +# Makefile helper
+> config SPARC64_PCI
+> 	bool
+> 	default y
+> -- 
+> 1.7.4.4
+>
+>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
