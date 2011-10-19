@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 19 Oct 2011 04:07:00 +0000
+From: Konrad Eisele <konrad@gaisler.com>
+Date: Wed, 19 Oct 2011 08:33:25 +0000
 Subject: Re: [PATCH 3/4] sparc32: return destination pointer on return from
-Message-Id: <20111019.000700.1958065818398834929.davem@davemloft.net>
+Message-Id: <4E9E8B55.2060004@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1318489205-315-4-git-send-email-konrad@gaisler.com>
 In-Reply-To: <1318489205-315-4-git-send-email-konrad@gaisler.com>
@@ -10,24 +10,51 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Konrad Eisele <konrad@gaisler.com>
-Date: Thu, 13 Oct 2011 09:00:04 +0200
+David Miller wrote:
+> From: Konrad Eisele <konrad@gaisler.com>
+> Date: Thu, 13 Oct 2011 09:00:04 +0200
+> 
+>> -/* In kernel these functions don't return a value.
+>> - * One should use macros in asm/string.h for that purpose.
+>> - * We return 0, so that bugs are more apparent.
+>> - */
+>> -#define SETUP_RETL
+>> -#define RETL_INSN	clr	%o0
+>> +#define SETUP_RETL	mov	%o0, %g6
+>> +#define RETL_INSN	mov	%g6, %o0
+> 
+> Sigh...
+> 
+> The kernel uses %g6 as the global thread register, see
+> include/asm/thread_info_32.h:
+> 
+> register struct thread_info *current_thread_info_reg asm("g6");
+> 
+> Your kernel would have crashed early in the boot if you actually
+> tested this patch.
+> 
+> 
 
-> -/* In kernel these functions don't return a value.
-> - * One should use macros in asm/string.h for that purpose.
-> - * We return 0, so that bugs are more apparent.
-> - */
-> -#define SETUP_RETL
-> -#define RETL_INSN	clr	%o0
-> +#define SETUP_RETL	mov	%o0, %g6
-> +#define RETL_INSN	mov	%g6, %o0
+Isnt the simplest way to apply the original gdbstub.c patch instead?
 
-Sigh...
+-		ptr += strlen(strcpy(ptr, "thread:"));
++		strcpy(ptr, "thread:");
++		ptr += strlen(ptr);
 
-The kernel uses %g6 as the global thread register, see
-include/asm/thread_info_32.h:
 
-register struct thread_info *current_thread_info_reg asm("g6");
+Or even a simple
 
-Your kernel would have crashed early in the boot if you actually
-tested this patch.
+		strcpy(ptr, "thread:");
+		ptr += 7;
+
+In that case its the
+"[PATCH 4/4] kernel,debug: SPARC KGDB stub strcpy fix" from [09/30/2011 03:47 PM].
+instead of the memcpy patch.
+
+It seems to me that memcpy is tightly programmed. Is saving 2 lines of gdbstub.c
+diff worth a memcpy rewrite?
+
+-- Konrad
+
+
+
