@@ -1,14 +1,64 @@
-From: Chang <y.chang.yahoo.com.hk@[24.196.15.131]>
-Date: Mon, 17 Oct 2011 07:18:54 +0000
-Subject: Re:await your response
-Message-Id: <0LT80099Y5HBKWC0@a-mtaout20.012.net.il>
+From: Yong Zhang <yong.zhang0@gmail.com>
+Date: Sat, 22 Oct 2011 09:56:29 +0000
+Subject: [PATCH 17/49] sparc: irq: Remove IRQF_DISABLED
+Message-Id: <1319277421-9203-18-git-send-email-yong.zhang0@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1319277421-9203-1-git-send-email-yong.zhang0@gmail.com>
+In-Reply-To: <1319277421-9203-1-git-send-email-yong.zhang0@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: tglx@linutronix.de, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-I have a business proposal
-that i will like you to handle 
-with me from my bank worth 
-19.7m USD 
+Since commit [e58aa3d2: genirq: Run irq handlers with interrupts disabled],
+We run all interrupt handlers with interrupts disabled
+and we even check and yell when an interrupt handler
+returns with interrupts enabled (see commit [b738a50a:
+genirq: Warn when handler enables interrupts]).
+
+So now this flag is a NOOP and can be removed.
+
+Signed-off-by: Yong Zhang <yong.zhang0@gmail.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/include/asm/floppy_64.h |    2 +-
+ arch/sparc/kernel/ldc.c            |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/sparc/include/asm/floppy_64.h b/arch/sparc/include/asm/floppy_64.h
+index bcef1f5..7f27d2e 100644
+--- a/arch/sparc/include/asm/floppy_64.h
++++ b/arch/sparc/include/asm/floppy_64.h
+@@ -258,7 +258,7 @@ static int sun_fd_request_irq(void)
+ 		once = 1;
+ 
+ 		error = request_irq(FLOPPY_IRQ, sparc_floppy_irq,
+-				    IRQF_DISABLED, "floppy", NULL);
++				    0, "floppy", NULL);
+ 
+ 		return ((error = 0) ? 0 : -1);
+ 	}
+diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
+index 435e406..b96cd54 100644
+--- a/arch/sparc/kernel/ldc.c
++++ b/arch/sparc/kernel/ldc.c
+@@ -1251,13 +1251,13 @@ int ldc_bind(struct ldc_channel *lp, const char *name)
+ 	snprintf(lp->tx_irq_name, LDC_IRQ_NAME_MAX, "%s TX", name);
+ 
+ 	err = request_irq(lp->cfg.rx_irq, ldc_rx,
+-			  IRQF_SAMPLE_RANDOM | IRQF_DISABLED,
++			  IRQF_SAMPLE_RANDOM,
+ 			  lp->rx_irq_name, lp);
+ 	if (err)
+ 		return err;
+ 
+ 	err = request_irq(lp->cfg.tx_irq, ldc_tx,
+-			  IRQF_SAMPLE_RANDOM | IRQF_DISABLED,
++			  IRQF_SAMPLE_RANDOM,
+ 			  lp->tx_irq_name, lp);
+ 	if (err) {
+ 		free_irq(lp->cfg.rx_irq, lp);
+-- 
+1.7.1
+
