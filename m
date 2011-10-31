@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 20 Oct 2011 09:48:09 +0000
+Date: Mon, 31 Oct 2011 08:32:05 +0000
 Subject: [GIT] Sparc
-Message-Id: <20111020.054809.1247226868115473832.davem@davemloft.net>
+Message-Id: <20111031.043205.1749829212092506403.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100329.131141.80866523.davem@davemloft.net>
 In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
@@ -12,34 +12,28 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-Two signal fixes to mirror that done on x86, and make PCI ROM mapping
-work on sparc64.
+Not very exciting stuff, basically just bug fixes.
 
-Please pull, thanks a lot.
+1) Make memcpy on sparc32 properly return original dst pointer.
 
-The following changes since commit 486cf46f3f9be5f2a966016c1a8fe01e32cde09e:
+2) Fix VIS vector comparison instruction emulation.
 
-  mm: fix race between mremap and removing migration entry (2011-10-19 23:42:58 -0700)
+Please pull, thanks a lot!
+
+The following changes since commit 839d8810747bbf39e0a5a7f223b67bffa7945f8d:
+
+  Merge branch 'i2c-for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/jdelvare/staging (2011-10-30 15:54:59 -0700)
 
 are available in the git repository at:
+
   git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
 
-Daniel Hellstrom (1):
-      sparc32,leon: SRMMU MMU Table probe fix
+David S. Miller (4):
+      sparc32: Remove non-kernel code from memcpy implementation.
+      sparc32: Remove uses of %g7 in memcpy implementation.
+      sparc32: Correct the return value of memcpy.
+      sparc64: Fix masking and shifting in VIS fpcmp emulation.
 
-David S. Miller (1):
-      sparc: Avoid calling sigprocmask()
-
-Kjetil Oftedal (1):
-      sparc: Add alignment flag to PCI expansion resources
-
-Matt Fleming (1):
-      sparc: Use set_current_blocked()
-
- arch/sparc/include/asm/pgtsrmmu.h |    2 +-
- arch/sparc/kernel/pci.c           |    3 ++-
- arch/sparc/kernel/signal32.c      |   21 +++++++--------------
- arch/sparc/kernel/signal_32.c     |   32 +++++++++++++-------------------
- arch/sparc/kernel/signal_64.c     |   32 +++++++++++++-------------------
- arch/sparc/mm/leon_mm.c           |    2 +-
- 6 files changed, 37 insertions(+), 55 deletions(-)
+ arch/sparc/kernel/visemul.c |   32 +-
+ arch/sparc/lib/memcpy.S     |  804 ++++++-------------------------------------
+ 2 files changed, 115 insertions(+), 721 deletions(-)
