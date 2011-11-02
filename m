@@ -1,29 +1,61 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 20 Nov 2011 22:35:49 +0000
-Subject: Re: [PATCH][RFC] add SPARC support to i2c-ali1535
-Message-Id: <20111120.173549.106523432422599342.davem@davemloft.net>
+From: Greg KH <gregkh@suse.de>
+Date: Wed, 02 Nov 2011 22:13:32 +0000
+Subject: [006/107] sparc: fix array bounds error setting up PCIC NMI trap
+Message-Id: <20111102221450.627664236@clark.kroah.org>
 List-Id: <sparclinux.vger.kernel.org>
+In-Reply-To: <20111102221600.GA26650@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, Ian Campbell <ian.campbell@citrix.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-From: "corentin.labbe" <corentin.labbe@geomatys.fr>
-Date: Thu, 25 Aug 2011 11:32:55 +0200
+2.6.32-longterm review patch.  If anyone has any objections, please let us know.
 
-> Signed-off-by: LABBE Corentin <corentin.labbe@geomatys.fr>
-> ---
-> --- linux/drivers/i2c/busses/i2c-ali1535.c.orig	2011-06-15
-> 18:02:56.000000000 +0200
-> +++ linux/drivers/i2c/busses/i2c-ali1535.c	2011-06-15 18:05:26.000000000
-> +0200
-> @@ -132,7 +132,7 @@
+------------------
 
-This seems like a pretty reasonable patch.  But could you please repost it in a way
-such that your email client doesn't break up long lines and otherwise corrupt
-the patch as it has done here?
+From: Ian Campbell <Ian.Campbell@citrix.com>
 
-Please make a fresh, formal, new posting of the patch.  Complete with a sufficiently
-detailed commit log message and appropriate Subject line.
+commit 4a0342ca8e8150bd47e7118a76e300692a1b6b7b upstream.
 
-Thanks.
+  CC      arch/sparc/kernel/pcic.o
+arch/sparc/kernel/pcic.c: In function 'pcic_probe':
+arch/sparc/kernel/pcic.c:359:33: error: array subscript is above array bounds [-Werror=array-bounds]
+arch/sparc/kernel/pcic.c:359:8: error: array subscript is above array bounds [-Werror=array-bounds]
+arch/sparc/kernel/pcic.c:360:33: error: array subscript is above array bounds [-Werror=array-bounds]
+arch/sparc/kernel/pcic.c:360:8: error: array subscript is above array bounds [-Werror=array-bounds]
+arch/sparc/kernel/pcic.c:361:33: error: array subscript is above array bounds [-Werror=array-bounds]
+arch/sparc/kernel/pcic.c:361:8: error: array subscript is above array bounds [-Werror=array-bounds]
+cc1: all warnings being treated as errors
+
+I'm not particularly familiar with sparc but t_nmi (defined in head_32.S via
+the TRAP_ENTRY macro) and pcic_nmi_trap_patch (defined in entry.S) both appear
+to be 4 instructions long and I presume from the usage that instructions are
+int sized.
+
+Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
+---
+ arch/sparc/kernel/pcic.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- a/arch/sparc/kernel/pcic.c
++++ b/arch/sparc/kernel/pcic.c
+@@ -350,8 +350,8 @@ int __init pcic_probe(void)
+ 	strcpy(pbm->prom_name, namebuf);
+ 
+ 	{
+-		extern volatile int t_nmi[1];
+-		extern int pcic_nmi_trap_patch[1];
++		extern volatile int t_nmi[4];
++		extern int pcic_nmi_trap_patch[4];
+ 
+ 		t_nmi[0] = pcic_nmi_trap_patch[0];
+ 		t_nmi[1] = pcic_nmi_trap_patch[1];
+
+
