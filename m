@@ -1,26 +1,40 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 20 Nov 2011 18:14:49 +0000
-Subject: Re: 3.2.0-rc2-00143: kernel BUG at block/blk-core.c:1000! Kernel
-Message-Id: <20111120.131449.1310657431272918602.davem@davemloft.net>
+From: Kjetil Oftedal <oftedal@gmail.com>
+Date: Mon, 07 Nov 2011 21:47:53 +0000
+Subject: [PATCH] sunhme: Allow usage on SBI based SBus systems
+Message-Id: <Pine.LNX.4.64.1111072217540.4069@oizys.tordivel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.SOC.1.00.1111201901250.21968@math.ut.ee>
-In-Reply-To: <alpine.SOC.1.00.1111201901250.21968@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
 
-From: Meelis Roos <mroos@linux.ee>
-Date: Sun, 20 Nov 2011 19:11:39 +0200 (EET)
 
-> This is 3.2.0-rc2-00143-ga767835 on Sun Ultra 10, previously running 
-> 3.1.0 fine. Similar Ultra 5 with ATA disk booted up fine but again, it 
-> has different configuration. config on the U10 also included below.
+To prevent the SBus driver for Sun Happy Meal cards from being loaded for 
+PCI cards utilizing the same chipset, a filter was added to the probe 
+function in commit 0b492fce3d72d982a7981905f85484a1e1ba7fde.
 
-Please don't assume that every crash you encounter on sparc is a sparc
-specific bug.
+The filter was implemented by checking the name of the parent node in 
+the OF tree. This patch extends this filter, so that the driver will 
+load on SBus systems that are based upon SBI SBus Bridges.
 
-Therefore, it's a good idea to report this not just to sparclinux, but
-also to the block layer et al.  maintainers, as well as lkml.
+Signed-off-by: Kjetil Oftedal <oftedal@gmail.com>
+---
+ drivers/net/ethernet/sun/sunhme.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Thanks.
+diff --git a/drivers/net/ethernet/sun/sunhme.c b/drivers/net/ethernet/sun/sunhme.c
+index c517dac..cf14ab9 100644
+--- a/drivers/net/ethernet/sun/sunhme.c
++++ b/drivers/net/ethernet/sun/sunhme.c
+@@ -2637,7 +2637,7 @@ static int __devinit happy_meal_sbus_probe_one(struct platform_device *op, int i
+ 	sbus_dp = op->dev.parent->of_node;
+ 
+ 	/* We can match PCI devices too, do not accept those here. */
+-	if (strcmp(sbus_dp->name, "sbus"))
++	if (strcmp(sbus_dp->name, "sbus") && strcmp(sbus_dp->name, "sbi"))
+ 		return err;
+ 
+ 	if (is_qfe) {
+
+
