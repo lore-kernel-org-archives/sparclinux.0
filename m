@@ -1,30 +1,32 @@
 From: David Miller <davem@davemloft.net>
-Date: Sun, 20 Nov 2011 18:16:54 +0000
-Subject: Re: 3.2.0-rc2+git: possible recursive locking detected in process
-Message-Id: <20111120.131654.558900872365363228.davem@davemloft.net>
+Date: Tue, 08 Nov 2011 20:07:31 +0000
+Subject: [GIT] Sparc
+Message-Id: <20111108.150731.152390752080053131.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.SOC.1.00.1111201817070.20433@math.ut.ee>
-In-Reply-To: <alpine.SOC.1.00.1111201817070.20433@math.ut.ee>
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Meelis Roos <mroos@linux.ee>
-Date: Sun, 20 Nov 2011 18:51:20 +0200 (EET)
 
-> 
-> This todays git kernel on Sun Fire V100. It gives the locking warning on 
-> bootup but seems to work fine otherwise (apt-get dist-upgrade saw no 
-> problems). It did not happen on a very similar Netra X1 but the kernel 
-> conf might have been different there (have not verified).
+This just hooks up the new system calls.
 
-Please report this to the proper block layer maintainers and lkml.
+Please pull, thanks!
 
-There have been no substantial sparc specific changes in the kernel,
-especially not those that could have caused these crashes you are
-seeing.
+The following changes since commit 1ea6b8f48918282bdca0b32a34095504ee65bab5:
 
-Please treat sparc on equal standing as other platforms, and report
-the crashes you encouter the same as if you had seem them on i386
-or x86_64.
+  Linux 3.2-rc1 (2011-11-07 16:16:02 -0800)
+
+are available in the git repository at:
+  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
+
+David S. Miller (1):
+      sparc: Hook up process_vm_{readv,writev} syscalls.
+
+ arch/sparc/include/asm/unistd.h |    4 +++-
+ arch/sparc/kernel/systbls_32.S  |    2 +-
+ arch/sparc/kernel/systbls_64.S  |    4 ++--
+ 3 files changed, 6 insertions(+), 4 deletions(-)
