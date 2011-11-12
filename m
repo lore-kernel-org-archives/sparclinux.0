@@ -1,62 +1,56 @@
-From: Lukas Razik <linux@razik.name>
-Date: Fri, 18 Nov 2011 21:29:54 +0000
-Subject: Re: [BUG] Bad page map in process ibv_devinfo
-Message-Id: <1321651794.93443.YahooMailNeo@web24714.mail.ird.yahoo.com>
+From: Rob Landley <rob@landley.net>
+Date: Sat, 12 Nov 2011 17:22:34 +0000
+Subject: Sparc-32 doesn't work in 3.1.
+Message-Id: <4EBEAB5A.5020809@landley.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20111118.011708.677233058349078554.davem@davemloft.net> <20111118.015519.1069441245022002863.davem@davemloft.net> <1321638150.65099.YahooMailNeo@web24701.mail.ird.yahoo.com> <20111118.141246.1415928404544076848.davem@davemloft.net>
-In-Reply-To: <20111118.141246.1415928404544076848.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Aboriginal Linux <aboriginal@lists.landley.net>, linux-kernel@vger.kernel.org, davem@davemloft.net, tytso@mit.edu, sparclinux@vger.kernel.org
 
-David Miller <davem@davemloft.net> wrote:
-> From: Lukas Razik <linux@razik.name>
+Still trying to ship an Aboriginal Linux release with the 3.1 kernel,
+but the sparc target broke, as in QEMU's OpenBios goes:
 
-> Date: Fri, 18 Nov 2011 17:42:30 +0000 (GMT)
->=20
->>  I could apply also your second patch to linux-2.6.39.4 manually. So
->>  you don't need to write another version.=A0 Now I'll try to test it
->>  with the new OFED drivers...
->=20
-> Thanks for all of your testing so far.
+  Boot time fixup v1.6. 4/Mar/98 Jakub Jelinek (jj@ultra.linux.cz).
+  Patching kernel for srmmu[Fujitsu TurboSparc]/iommu
+  Fixup i f029ddfc doesn't refer to a valid instruction at
+  f00de648[95eea000]
+  halt, power off
 
-Hello David!
+And doesn't even boot Linux.  A sparc-objdump -a on vmlinux says that
+chunk has:
 
-Oh, no! Please don't thank me. That's as if my grandma would have thanked a=
-fter I've eaten her tasty cake... :)
-I thank you and Roland very much for the fast and professional help! You di=
-d a very good job!
-I still can't use OpenMPI over the ConnectX adapter (another error) but tha=
-t's not for the SPARC list I think.
+f00de63c:       84 0b 60 ff     and  %o5, 0xff, %g2
+f00de640:       91 32 20 10     srl  %o0, 0x10, %o0
+f00de644:       85 28 a0 08     sll  %g2, 8, %g2
+f00de648:       98 0a 20 ff     and  %o0, 0xff, %o4
+f00de64c:       03 00 00 3f     sethi  %hi(0xfc00), %g1
+f00de650:       82 10 63 00     or  %g1, 0x300, %g1     ! ff00
+<cputypvallen+0xfef4>
+f00de654:       90 0a 00 01     and  %o0, %g1, %o0
 
-I think you've eliminated the BUG we talk about. :)
-Again: I've applied the patch against 2.6.39.4 manually. I can't say if it =
-also works with linux-3.1.1 because of OFED-1.5.4-rc4 .
+Which means nothing to me.
 
-Now if I run 'ibv_devinfo' I get no kernel BUG messages anymore and my=20
-system doesn't hang if I use one of the ibv_*_pingpong utilities:
----
-cluster1:~# ibv_rc_pingpong -n 1000000
-=A0 local address:=A0 LID 0x0006, QPN 0x04004e, PSN 0x411c25, GID ::
-=A0 remote address: LID 0x0003, QPN 0x0c004a, PSN 0xc6aa3d, GID ::
-8192000000 bytes in 19.59 seconds =3D 3345.20 Mbit/sec
-1000000 iters in 19.59 seconds =3D 19.59 usec/iter
+I bisected it to this:
 
-cluster2:~# ibv_rc_pingpong -n 1000000 cluster1
-=A0 local address:=A0 LID 0x0003, QPN 0x0c004a, PSN 0xc6aa3d, GID ::
-=A0 remote address: LID 0x0006, QPN 0x04004e, PSN 0x411c25, GID ::
-8192000000 bytes in 19.60 seconds =3D 3344.02 Mbit/sec
-1000000 iters in 19.60 seconds =3D 19.60 usec/iter
----
+commit 9933fc0ac1ac14b795819cd63d05ea92112f690a
+Author: Theodore Ts'o <tytso@mit.edu>
+Date:   Mon Aug 1 08:45:02 2011 -0400
 
-BTW: If you need someone in the future for testing a SPARC64 patch - just w=
-rite me!
+    ext4: introduce ext4_kvmalloc(), ext4_kzalloc(), and ext4_kvfree()
 
-Regards and have a nice weekend,
-Lukas
+    Introduce new helper functions which try kmalloc, and then fall back
+   to vmalloc if necessary, and use them for allocating and deallocating
+    s_flex_groups.
 
+    Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
 
-PS: That's the whole conversation:
-http://thread.gmane.org/gmane.linux.drivers.rdma/10157
+The commit before that builds fine, this one doesn't.
+
+I think it's triggering bad behavior in arch/sparc/mm/btfixup.c (at
+least that's where the "valid instruction" error message comes from),
+but I have no idea what this file is doing, and it was last touched in
+2008.  (I'm building with gcc 4.2.1 and binutils 2.17, both of which
+were last touched around 2006, so that's not new either...)
+
+Rob
