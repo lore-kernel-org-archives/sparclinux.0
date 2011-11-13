@@ -1,56 +1,119 @@
 From: Rob Landley <rob@landley.net>
-Date: Sat, 12 Nov 2011 17:22:34 +0000
-Subject: Sparc-32 doesn't work in 3.1.
-Message-Id: <4EBEAB5A.5020809@landley.net>
+Date: Sun, 13 Nov 2011 00:07:01 +0000
+Subject: Re: Sparc-32 doesn't work in 3.1.
+Message-Id: <4EBF0A25.20604@landley.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------040505030708030203030108"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+References: <4EBEAB5A.5020809@landley.net>
+In-Reply-To: <4EBEAB5A.5020809@landley.net>
 To: Aboriginal Linux <aboriginal@lists.landley.net>, linux-kernel@vger.kernel.org, davem@davemloft.net, tytso@mit.edu, sparclinux@vger.kernel.org
 
-Still trying to ship an Aboriginal Linux release with the 3.1 kernel,
-but the sparc target broke, as in QEMU's OpenBios goes:
+This is a multi-part message in MIME format.
+--------------040505030708030203030108
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-  Boot time fixup v1.6. 4/Mar/98 Jakub Jelinek (jj@ultra.linux.cz).
-  Patching kernel for srmmu[Fujitsu TurboSparc]/iommu
-  Fixup i f029ddfc doesn't refer to a valid instruction at
-  f00de648[95eea000]
-  halt, power off
+On 11/12/2011 11:22 AM, Rob Landley wrote:
+> Still trying to ship an Aboriginal Linux release with the 3.1 kernel,
+> but the sparc target broke, as in QEMU's OpenBios goes:
+> 
+>   Boot time fixup v1.6. 4/Mar/98 Jakub Jelinek (jj@ultra.linux.cz).
+>   Patching kernel for srmmu[Fujitsu TurboSparc]/iommu
+>   Fixup i f029ddfc doesn't refer to a valid instruction at
+>   f00de648[95eea000]
+>   halt, power off
 
-And doesn't even boot Linux.  A sparc-objdump -a on vmlinux says that
-chunk has:
+If anyone would like a reproduction sequence for this, the toolchain I use
+(which compiles commit 9933fc0ac1ac14b^1 just fine) is at:
 
-f00de63c:       84 0b 60 ff     and  %o5, 0xff, %g2
-f00de640:       91 32 20 10     srl  %o0, 0x10, %o0
-f00de644:       85 28 a0 08     sll  %g2, 8, %g2
-f00de648:       98 0a 20 ff     and  %o0, 0xff, %o4
-f00de64c:       03 00 00 3f     sethi  %hi(0xfc00), %g1
-f00de650:       82 10 63 00     or  %g1, 0x300, %g1     ! ff00
-<cputypvallen+0xfef4>
-f00de654:       90 0a 00 01     and  %o0, %g1, %o0
+  http://landley.net/aboriginal/downloads/binaries/cross-compiler-sparc.tar.bz2
 
-Which means nothing to me.
+I configure using the attached miniconfig, ala:
 
-I bisected it to this:
+  make allnoconfig KCONFIG_ALLCONFIG=miniconfig.sparc ARCH=sparc
 
-commit 9933fc0ac1ac14b795819cd63d05ea92112f690a
-Author: Theodore Ts'o <tytso@mit.edu>
-Date:   Mon Aug 1 08:45:02 2011 -0400
+And then:
 
-    ext4: introduce ext4_kvmalloc(), ext4_kzalloc(), and ext4_kvfree()
+  PATH=/path/to/cross-compiler-sparc/bin:$PATH make ARCH=sparc \
+    CROSS_COMPILE=sparc- -j 3
 
-    Introduce new helper functions which try kmalloc, and then fall back
-   to vmalloc if necessary, and use them for allocating and deallocating
-    s_flex_groups.
+I then grab the file arch/sparc/boot/image out of the build and run:
 
-    Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+  qemu-system-sparc -nographic -no-reboot -kernel image -hda /dev/null -m 256 \
+    -append "root=/dev/sda rw init=/sbin/init.sh panic=1 PATH=/bin:/sbin console=ttyS0 HOST=sparc"
 
-The commit before that builds fine, this one doesn't.
+If you'd like a working system for comparison (built with the same
+toolchain), download:
 
-I think it's triggering bad behavior in arch/sparc/mm/btfixup.c (at
-least that's where the "valid instruction" error message comes from),
-but I have no idea what this file is doing, and it was last touched in
-2008.  (I'm building with gcc 4.2.1 and binutils 2.17, both of which
-were last touched around 2006, so that's not new either...)
+  http://landley.net/aboriginal/downloads/binaries/system-image-sparc.tar.bz2
+
+And run-emulator.sh out of that.
 
 Rob
+
+--------------040505030708030203030108
+Content-Type: text/plain;
+ name="miniconfig.sparc"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="miniconfig.sparc"
+
+CONFIG_EXPERIMENTAL=y
+CONFIG_NO_HZ=y
+CONFIG_SWAP=y
+CONFIG_SYSVIPC=y
+CONFIG_IKCONFIG=y
+CONFIG_IKCONFIG_PROC=y
+CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+CONFIG_PCI=y
+CONFIG_BINFMT_ELF=y
+CONFIG_NET=y
+CONFIG_PACKET=y
+CONFIG_UNIX=y
+CONFIG_INET=y
+CONFIG_BLK_DEV=y
+CONFIG_BLK_DEV_LOOP=y
+CONFIG_IDE=y
+CONFIG_IDE_GD=y
+CONFIG_IDE_GD_ATA=y
+CONFIG_BLK_DEV_IDECD=y
+CONFIG_SCSI=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_BLK_DEV_SR=y
+CONFIG_SCSI_LOWLEVEL=y
+CONFIG_NETDEVICES=y
+CONFIG_NET_ETHERNET=y
+CONFIG_NET_PCI=y
+CONFIG_8139CP=y
+CONFIG_HW_RANDOM=y
+CONFIG_RTC_CLASS=y
+CONFIG_RTC_HCTOSYS=y
+CONFIG_RTC_INTF_SYSFS=y
+CONFIG_RTC_INTF_DEV=y
+CONFIG_EXT4_FS=y
+CONFIG_EXT4_USE_FOR_EXT23=y
+CONFIG_TMPFS=y
+CONFIG_MISC_FILESYSTEMS=y
+CONFIG_SQUASHFS=y
+CONFIG_SQUASHFS_ZLIB=y
+CONFIG_MAGIC_SYSRQ=y
+CONFIG_DEVTMPFS=y
+
+CONFIG_VIRTUALIZATION=y
+CONFIG_VIRTIO_PCI=y
+CONFIG_VIRTIO_NET=y
+CONFIG_NET_9P=y
+CONFIG_NET_9P_VIRTIO=y
+CONFIG_NETWORK_FILESYSTEMS=y
+CONFIG_9P_FS=y
+CONFIG_9P_FS_POSIX_ACL=y
+
+CONFIG_SCSI_SUNESP=y
+CONFIG_SUNLANCE=y
+CONFIG_SERIAL_SUNZILOG=y
+CONFIG_SERIAL_SUNZILOG_CONSOLE=y
+CONFIG_SUN_MOSTEK_RTC=y
+
+
+--------------040505030708030203030108--
