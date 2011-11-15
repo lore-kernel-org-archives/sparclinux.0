@@ -1,27 +1,94 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 08 Nov 2011 19:01:53 +0000
-Subject: Re: [PATCH] sunhme: Allow usage on SBI based SBus systems
-Message-Id: <20111108.140153.2073990811396907800.davem@davemloft.net>
+From: Roland Dreier <roland@purestorage.com>
+Date: Tue, 15 Nov 2011 18:38:01 +0000
+Subject: Re: [BUG] Bad page map in process ibv_devinfo
+Message-Id: <CAL1RGDXnzQTQuMica3ZsRYbGNhT7GcySQvcAnJ+-5E2P0xw4Ag@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <Pine.LNX.4.64.1111072217540.4069@oizys.tordivel.org>
-In-Reply-To: <Pine.LNX.4.64.1111072217540.4069@oizys.tordivel.org>
+References: <1321110951.99968.YahooMailNeo@web24712.mail.ird.yahoo.com>
+In-Reply-To: <1321110951.99968.YahooMailNeo-06aSuiz6pSvyX4RqAA4FmIglqE1Y4D90QQ4Iyu8u01E@public.gmane.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: oftedal@gmail.com
-Cc: netdev@vger.kernel.org, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Lukas Razik <linux-GLgANOly0l1BDLzU/O5InQ@public.gmane.org>
+Cc: Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-From: Kjetil Oftedal <oftedal@gmail.com>
-Date: Mon, 7 Nov 2011 22:47:53 +0100 (CET)
+On Sat, Nov 12, 2011 at 7:15 AM, Lukas Razik <linux@razik.name> wrote:
+> But I also get this BUG message from the kernel:
+> ---
+> [ 9305.698663] swap_free: Bad swap file entry 100005e000061800
+> [ 9305.698791] BUG: Bad page map in process ibv_devinfo=A0 pte:bc0000c300=
+104848 pmd:00f38054
+> [ 9305.698908] addr:fffff80100114000 vm_flags:000844fa anon_vma:=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0 (null) mapping:fffff807f313a410 index:6180082
+> [ 9305.699087] vma->vm_file->f_op->mmap: ib_uverbs_mmap+0x8/0x38 [ib_uver=
+bs]
+> [ 9305.699135] Call Trace:
+> [ 9305.699174]=A0 [00000000004cd558] unmap_vmas+0x514/0x7f4
+> [ 9305.699302]=A0 [00000000004d1274] unmap_region+0xb4/0x164
+> [ 9305.699383]=A0 [00000000004d22c0] do_munmap+0x2a8/0x31c
+> [ 9305.699467]=A0 [000000000042d350] SyS_64_munmap+0x88/0xa8
+> [ 9305.699550]=A0 [0000000000406154] linux_sparc_syscall+0x34/0x44
 
-> To prevent the SBus driver for Sun Happy Meal cards from being loaded for 
-> PCI cards utilizing the same chipset, a filter was added to the probe 
-> function in commit 0b492fce3d72d982a7981905f85484a1e1ba7fde.
-> 
-> The filter was implemented by checking the name of the parent node in 
-> the OF tree. This patch extends this filter, so that the driver will 
-> load on SBus systems that are based upon SBI SBus Bridges.
-> 
-> Signed-off-by: Kjetil Oftedal <oftedal@gmail.com>
+Hi Sparc Linux hackers!
 
-Applied, thanks.
+This message is coming from someone using a ConnectX (mlx4) adapter on
+a Sun T5120 (SPARC64).
+
+I'm wondering if the bug is in the mlx4 code or in the sparc
+io_remap_pfn_range()
+code.  From the "Bad page map" pte value, if I understand sparc mm correctl=
+y,
+the PTE is seen as not present.
+
+The mapping is coming from the code in drivers/infiniband/hw/mlx4/main.c:
+
+static int mlx4_ib_mmap(struct ib_ucontext *context, struct vm_area_struct =
+*vma)
+{
+	struct mlx4_ib_dev *dev =3D to_mdev(context->device);
+
+	if (vma->vm_end - vma->vm_start !=3D PAGE_SIZE)
+		return -EINVAL;
+
+	if (vma->vm_pgoff =3D 0) {
+		vma->vm_page_prot =3D pgprot_noncached(vma->vm_page_prot);
+
+		if (io_remap_pfn_range(vma, vma->vm_start,
+				       to_mucontext(context)->uar.pfn,
+				       PAGE_SIZE, vma->vm_page_prot))
+			return -EAGAIN;
+	} else if (vma->vm_pgoff =3D 1 && dev->dev->caps.bf_reg_size !=3D 0) {
+		vma->vm_page_prot =3D pgprot_writecombine(vma->vm_page_prot);
+
+		if (io_remap_pfn_range(vma, vma->vm_start,
+				       to_mucontext(context)->uar.pfn +
+				       dev->dev->caps.num_uars,
+				       PAGE_SIZE, vma->vm_page_prot))
+			return -EAGAIN;
+	} else
+		return -EINVAL;
+
+	return 0;
+}
+
+which is just taking one page -- the pfn comes from the PCI BAR
+resource value in
+
+int mlx4_uar_alloc(struct mlx4_dev *dev, struct mlx4_uar *uar)
+{
+	uar->index =3D mlx4_bitmap_alloc(&mlx4_priv(dev)->uar_table.bitmap);
+	if (uar->index =3D -1)
+		return -ENOMEM;
+
+	uar->pfn =3D (pci_resource_start(dev->pdev, 2) >> PAGE_SHIFT) + uar->index;
+	uar->map =3D NULL;
+
+	return 0;
+}
+
+and calling io_remap_pfn_range on it.
+
+Is there some VMA flag we're forgetting to set that only affects sparc?
+Or could this possible be a bug in the sparc handling of PFN maps?
+
+Thanks!
+  Roland
