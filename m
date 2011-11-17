@@ -1,104 +1,39 @@
-From: Lukas Razik <linux@razik.name>
-Date: Wed, 16 Nov 2011 19:22:34 +0000
+From: David Miller <davem@davemloft.net>
+Date: Thu, 17 Nov 2011 21:49:41 +0000
 Subject: Re: [BUG] Bad page map in process ibv_devinfo
-Message-Id: <1321471354.5493.YahooMailNeo@web24714.mail.ird.yahoo.com>
+Message-Id: <20111117.164941.2104520709167256016.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1321110951.99968.YahooMailNeo@web24712.mail.ird.yahoo.com> <CAL1RGDXnzQTQuMica3ZsRYbGNhT7GcySQvcAnJ+-5E2P0xw4Ag@mail.gmail.com>
-In-Reply-To: <CAL1RGDXnzQTQuMica3ZsRYbGNhT7GcySQvcAnJ+-5E2P0xw4Ag@mail.gmail.com>
+References: <1321110951.99968.YahooMailNeo@web24712.mail.ird.yahoo.com>
+	<CAL1RGDXnzQTQuMica3ZsRYbGNhT7GcySQvcAnJ+-5E2P0xw4Ag@mail.gmail.com>
+	<1321471354.5493.YahooMailNeo@web24714.mail.ird.yahoo.com>
+In-Reply-To: <1321471354.5493.YahooMailNeo-tOYT8urs2cbyX4RqAA4FmIglqE1Y4D90QQ4Iyu8u01E@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, Roland Dreier <roland@purestorage.com>
+To: linux-GLgANOly0l1BDLzU/O5InQ@public.gmane.org
+Cc: sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 
-That's a forwarding of Roland's email he sent yesterday to you (the sparcli=
-nux list) because you haven't received it.
-I thank you for any help!
+From: Lukas Razik <linux@razik.name>
+Date: Wed, 16 Nov 2011 19:22:34 +0000 (GMT)
 
+> I'm wondering if the bug is in the mlx4 code or in the sparc
+> io_remap_pfn_range()
+> code.=A0 From the "Bad page map" pte value, if I understand sparc mm corr=
+ectly,
+> the PTE is seen as not present.
 
-That's his original email:
-Roland Dreier <roland@purestorage.com> wrote:
+The not-present test is essentially testing the PTE against zero.
 
-On Sat, Nov 12, 2011 at 7:15 AM, Lukas Razik <linux@...> wrote:
-> But I also get this BUG message from the kernel:
-> ---
-> [ 9305.698663] swap_free: Bad swap file entry 100005e000061800
-> [ 9305.698791] BUG: Bad page map in process ibv_devinfo=A0 pte:bc0000c300=
-104848 pmd:00f38054
-> [ 9305.698908] addr:fffff80100114000 vm_flags:000844fa anon_vma:=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0 (null)
-mapping:fffff807f313a410 index:6180082
-> [ 9305.699087] vma->vm_file->f_op->mmap: ib_uverbs_mmap+0x8/0x38 [ib_uver=
-bs]
-> [ 9305.699135] Call Trace:
-> [ 9305.699174]=A0 [00000000004cd558] unmap_vmas+0x514/0x7f4
-> [ 9305.699302]=A0 [00000000004d1274] unmap_region+0xb4/0x164
-> [ 9305.699383]=A0 [00000000004d22c0] do_munmap+0x2a8/0x31c
-> [ 9305.699467]=A0 [000000000042d350] SyS_64_munmap+0x88/0xa8
-> [ 9305.699550]=A0 [0000000000406154] linux_sparc_syscall+0x34/0x44
+This bug check is making sure that there are not already existing mappings
+at that address when the io_remap_pfn_range() call occurs.
 
+x86 uses remap_pfn_range() as the implementation of it's
+io_remap_pfn_range() and it also has the same exact assertion
+check, in remap_pte_range().
 
-Hi Sparc Linux hackers!
+I can't see any obvious bug in the mlx4 mmap method.
 
-This message is coming from someone using a ConnectX (mlx4) adapter on
-a Sun T5120 (SPARC64).
-
-I'm wondering if the bug is in the mlx4 code or in the sparc
-io_remap_pfn_range()
-code.=A0 From the "Bad page map" pte value, if I understand sparc mm correc=
-tly,
-the PTE is seen as not present.
-
-The mapping is coming from the code in drivers/infiniband/hw/mlx4/main.c:
-
-static int mlx4_ib_mmap(struct ib_ucontext *context, struct vm_area_struct =
-*vma)
-{
-=A0 struct mlx4_ib_dev *dev =3D to_mdev(context->device);
-
-=A0 if (vma->vm_end - vma->vm_start !=3D PAGE_SIZE)
-=A0=A0=A0 return -EINVAL;
-
-=A0 if (vma->vm_pgoff =3D 0) {
-=A0=A0=A0 vma->vm_page_prot =3D pgprot_noncached(vma->vm_page_prot);
-
-=A0=A0=A0 if (io_remap_pfn_range(vma, vma->vm_start,
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 to_mucontext(context)->uar.pfn,
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 PAGE_SIZE, vma->vm_page_prot))
-=A0=A0=A0=A0=A0 return -EAGAIN;
-=A0 } else if (vma->vm_pgoff =3D 1 && dev->dev->caps.bf_reg_size !=3D 0) {
-=A0=A0=A0 vma->vm_page_prot =3D pgprot_writecombine(vma->vm_page_prot);
-
-=A0=A0=A0 if (io_remap_pfn_range(vma, vma->vm_start,
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 to_mucontext(context)->uar.pfn +
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 dev->dev->caps.num_uars,
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 PAGE_SIZE, vma->vm_page_prot))
-=A0=A0=A0=A0=A0 return -EAGAIN;
-=A0 } else
-=A0=A0=A0 return -EINVAL;
-
-=A0 return 0;
-}
-
-which is just taking one page -- the pfn comes from the PCI BAR
-resource value in
-
-int mlx4_uar_alloc(struct mlx4_dev *dev, struct mlx4_uar *uar)
-{
-=A0 uar->index =3D mlx4_bitmap_alloc(&mlx4_priv(dev)->uar_table.bitmap);
-=A0 if (uar->index =3D -1)
-=A0=A0=A0 return -ENOMEM;
-
-=A0 uar->pfn =3D (pci_resource_start(dev->pdev, 2) >> PAGE_SHIFT) + uar->in=
-dex;
-=A0 uar->map =3D NULL;
-
-=A0 return 0;
-}
-
-and calling io_remap_pfn_range on it.
-
-Is there some VMA flag we're forgetting to set that only affects sparc?
-Or could this possible be a bug in the sparc handling of PFN maps?
-
-Thanks!
-=A0 Roland
+The only thing I can come up with is that perhaps there is an assumption
+hiding around somewhere that PAGE_SIZE is 4096.  Such an assumption would
+go undetected on both 32-bit and 64-bit x86 platforms since PAGE_SIZE is
+4096 there.  Whereas on sparc64 it is 8192.
