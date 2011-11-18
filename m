@@ -1,195 +1,66 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 18 Nov 2011 06:55:19 +0000
+From: Lukas Razik <linux@razik.name>
+Date: Fri, 18 Nov 2011 13:07:53 +0000
 Subject: Re: [BUG] Bad page map in process ibv_devinfo
-Message-Id: <20111118.015519.1069441245022002863.davem@davemloft.net>
+Message-Id: <1321621673.76348.YahooMailNeo@web24705.mail.ird.yahoo.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20111117.212847.1778246801048496855.davem@davemloft.net>
-	<1321592577.354.YahooMailNeo@web24712.mail.ird.yahoo.com>
-	<20111118.011708.677233058349078554.davem@davemloft.net>
-In-Reply-To: <20111118.011708.677233058349078554.davem@davemloft.net>
+References: <20111117.212847.1778246801048496855.davem@davemloft.net> <1321592577.354.YahooMailNeo@web24712.mail.ird.yahoo.com> <20111118.011708.677233058349078554.davem@davemloft.net> <20111118.015519.1069441245022002863.davem@davemloft.net>
+In-Reply-To: <20111118.015519.1069441245022002863.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux@razik.name
-Cc: roland@purestorage.com, sparclinux@vger.kernel.org, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: David Miller <davem@davemloft.net>
+Cc: "roland@purestorage.com" <roland@purestorage.com>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Vladimir Sokolovsky <vlad@dev.mellanox.co.il>
 
-From: David Miller <davem@davemloft.net>
-Date: Fri, 18 Nov 2011 01:17:08 -0500 (EST)
+David Miller <davem@davemloft.net> wrote:
+>>  That explains everything.=A0 The problem is that we don't do the sparc64
+>>  PTE handling code patching in modules.=A0 So it's left at the default 4U
+>>  versions.
+> ...
+>>  I'll work on a fix for this.
+>=20
+> Ok, please test this out, thanks!
+>=20
+> --------------------
+> [PATCH] sparc64: Patch sun4v code sequences properly on module load.
+>=20
+> Some of the sun4v code patching occurs in inline functions visible
+> to, and usable by, modules.
+>=20
+> Therefore we have to patch them up during module load.
+>=20
+> Signed-off-by: David S. Miller <davem@davemloft.net>
+> ---
+> arch/sparc/kernel/entry.h=A0 =A0 |=A0 =A0 7 ++++++
+> arch/sparc/kernel/module.c=A0  |=A0  27 +++++++++++++++++++++++
+> arch/sparc/kernel/setup_64.c |=A0  48 +++++++++++++++++++++++++----------=
+------
+> 3 files changed, 63 insertions(+), 19 deletions(-)
+>=20
 
-> That explains everything.  The problem is that we don't do the sparc64
-> PTE handling code patching in modules.  So it's left at the default 4U
-> versions.
- ...
-> I'll work on a fix for this.
+Hi David,
 
-Ok, please test this out, thanks!
+sorry that it took so long but I had to sleep to avoid mistakes - it was 6a=
+m here.
+Thanks again for this fast patch!!!
 
---------------------
-[PATCH] sparc64: Patch sun4v code sequences properly on module load.
+Your first patch I could apply against linux-2.6.39.4. Your second patch I =
+can't.
+I've tried to apply it manually but I've seen too many differences and gave=
+ up.
 
-Some of the sun4v code patching occurs in inline functions visible
-to, and usable by, modules.
+Therefore I applied _both_ patches against linux-3.1.1.
+Then I've tested ibv_devinfo with the builtin mlx drivers from linux-3.1.1 =
+and it seems that the BUG message is away.
 
-Therefore we have to patch them up during module load.
+But I can't do further testing because I would need the mlx modules from OF=
+ED-1.5.4-rc4 (newest version) which doesn't compile with linux-3.1.1:
+http://thread.gmane.org/gmane.linux.drivers.rdma/10192
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/kernel/entry.h    |    7 ++++++
- arch/sparc/kernel/module.c   |   27 +++++++++++++++++++++++
- arch/sparc/kernel/setup_64.c |   48 +++++++++++++++++++++++++----------------
- 3 files changed, 63 insertions(+), 19 deletions(-)
+Hence I would need your patch against 2.6.39.4 to say for sure if it works =
+now. :-/
+Please don't feel forced by me! It would be nice to have a patch but I see =
+that you work on many areas needing improvement. Then I must wait for an OF=
+ED version that is compatible with linux-3.1.1 ...
 
-diff --git a/arch/sparc/kernel/entry.h b/arch/sparc/kernel/entry.h
-index e27f8ea..0c218e4 100644
---- a/arch/sparc/kernel/entry.h
-+++ b/arch/sparc/kernel/entry.h
-@@ -42,6 +42,9 @@ extern void fpsave(unsigned long *fpregs, unsigned long *fsr,
- extern void fpload(unsigned long *fpregs, unsigned long *fsr);
- 
- #else /* CONFIG_SPARC32 */
-+
-+#include <asm/trap_block.h>
-+
- struct popc_3insn_patch_entry {
- 	unsigned int	addr;
- 	unsigned int	insns[3];
-@@ -57,6 +60,10 @@ extern struct popc_6insn_patch_entry __popc_6insn_patch,
- 	__popc_6insn_patch_end;
- 
- extern void __init per_cpu_patch(void);
-+extern void sun4v_patch_1insn_range(struct sun4v_1insn_patch_entry *,
-+				    struct sun4v_1insn_patch_entry *);
-+extern void sun4v_patch_2insn_range(struct sun4v_2insn_patch_entry *,
-+				    struct sun4v_2insn_patch_entry *);
- extern void __init sun4v_patch(void);
- extern void __init boot_cpu_id_too_large(int cpu);
- extern unsigned int dcache_parity_tl1_occurred;
-diff --git a/arch/sparc/kernel/module.c b/arch/sparc/kernel/module.c
-index da0c6c7..e551987 100644
---- a/arch/sparc/kernel/module.c
-+++ b/arch/sparc/kernel/module.c
-@@ -17,6 +17,8 @@
- #include <asm/processor.h>
- #include <asm/spitfire.h>
- 
-+#include "entry.h"
-+
- #ifdef CONFIG_SPARC64
- 
- #include <linux/jump_label.h>
-@@ -203,6 +205,29 @@ int apply_relocate_add(Elf_Shdr *sechdrs,
- }
- 
- #ifdef CONFIG_SPARC64
-+static void do_patch_sections(const Elf_Ehdr *hdr,
-+			      const Elf_Shdr *sechdrs)
-+{
-+	const Elf_Shdr *s, *sun4v_1insn = NULL, *sun4v_2insn = NULL;
-+	char *secstrings = (void *)hdr + sechdrs[hdr->e_shstrndx].sh_offset;
-+
-+	for (s = sechdrs; s < sechdrs + hdr->e_shnum; s++) {
-+		if (!strcmp(".sun4v_1insn_patch", secstrings + s->sh_name))
-+			sun4v_1insn = s;
-+		if (!strcmp(".sun4v_2insn_patch", secstrings + s->sh_name))
-+			sun4v_2insn = s;
-+	}
-+
-+	if (sun4v_1insn && tlb_type = hypervisor) {
-+		void *p = (void *) sun4v_1insn->sh_addr;
-+		sun4v_patch_1insn_range(p, p + sun4v_1insn->sh_size);
-+	}
-+	if (sun4v_2insn && tlb_type = hypervisor) {
-+		void *p = (void *) sun4v_2insn->sh_addr;
-+		sun4v_patch_2insn_range(p, p + sun4v_2insn->sh_size);
-+	}
-+}
-+
- int module_finalize(const Elf_Ehdr *hdr,
- 		    const Elf_Shdr *sechdrs,
- 		    struct module *me)
-@@ -210,6 +235,8 @@ int module_finalize(const Elf_Ehdr *hdr,
- 	/* make jump label nops */
- 	jump_label_apply_nops(me);
- 
-+	do_patch_sections(hdr, sechdrs);
-+
- 	/* Cheetah's I-cache is fully coherent.  */
- 	if (tlb_type = spitfire) {
- 		unsigned long va;
-diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
-index c965595a..a854a1c 100644
---- a/arch/sparc/kernel/setup_64.c
-+++ b/arch/sparc/kernel/setup_64.c
-@@ -234,40 +234,50 @@ void __init per_cpu_patch(void)
- 	}
- }
- 
--void __init sun4v_patch(void)
-+void sun4v_patch_1insn_range(struct sun4v_1insn_patch_entry *start,
-+			     struct sun4v_1insn_patch_entry *end)
- {
--	extern void sun4v_hvapi_init(void);
--	struct sun4v_1insn_patch_entry *p1;
--	struct sun4v_2insn_patch_entry *p2;
--
--	if (tlb_type != hypervisor)
--		return;
-+	while (start < end) {
-+		unsigned long addr = start->addr;
- 
--	p1 = &__sun4v_1insn_patch;
--	while (p1 < &__sun4v_1insn_patch_end) {
--		unsigned long addr = p1->addr;
--
--		*(unsigned int *) (addr +  0) = p1->insn;
-+		*(unsigned int *) (addr +  0) = start->insn;
- 		wmb();
- 		__asm__ __volatile__("flush	%0" : : "r" (addr +  0));
- 
--		p1++;
-+		start++;
- 	}
-+}
- 
--	p2 = &__sun4v_2insn_patch;
--	while (p2 < &__sun4v_2insn_patch_end) {
--		unsigned long addr = p2->addr;
-+void sun4v_patch_2insn_range(struct sun4v_2insn_patch_entry *start,
-+			     struct sun4v_2insn_patch_entry *end)
-+{
-+	while (start < end) {
-+		unsigned long addr = start->addr;
- 
--		*(unsigned int *) (addr +  0) = p2->insns[0];
-+		*(unsigned int *) (addr +  0) = start->insns[0];
- 		wmb();
- 		__asm__ __volatile__("flush	%0" : : "r" (addr +  0));
- 
--		*(unsigned int *) (addr +  4) = p2->insns[1];
-+		*(unsigned int *) (addr +  4) = start->insns[1];
- 		wmb();
- 		__asm__ __volatile__("flush	%0" : : "r" (addr +  4));
- 
--		p2++;
-+		start++;
- 	}
-+}
-+
-+void __init sun4v_patch(void)
-+{
-+	extern void sun4v_hvapi_init(void);
-+
-+	if (tlb_type != hypervisor)
-+		return;
-+
-+	sun4v_patch_1insn_range(&__sun4v_1insn_patch,
-+				&__sun4v_1insn_patch_end);
-+
-+	sun4v_patch_2insn_range(&__sun4v_2insn_patch,
-+				&__sun4v_2insn_patch_end);
- 
- 	sun4v_hvapi_init();
- }
--- 
-1.7.6.401.g6a319
-
+Regards,
+Lukas
