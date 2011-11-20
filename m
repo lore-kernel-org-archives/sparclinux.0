@@ -1,127 +1,30 @@
-From: Jurij Smakov <jurij@wooyd.org>
-Date: Sat, 19 Nov 2011 13:40:57 +0000
-Subject: Kprobes on sparc
-Message-Id: <20111119134057.GA6273@wooyd.org>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Kj7319i9nmIyA2yE"
+From: David Miller <davem@davemloft.net>
+Date: Sun, 20 Nov 2011 21:49:50 +0000
+Subject: Re: Kprobes on sparc
+Message-Id: <20111120.164950.1080737223364080060.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20111119134057.GA6273@wooyd.org>
+In-Reply-To: <20111119134057.GA6273@wooyd.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+From: Jurij Smakov <jurij@wooyd.org>
+Date: Sat, 19 Nov 2011 13:40:57 +0000
 
---Kj7319i9nmIyA2yE
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> I'm debugging a problem for which kprobes may potentially provide 
+> useful information, in particular I would like to examine local 
+> registers at some point in the kernel code. Unfortunately, while 
+> trying to accomplish that I ran into an issue I can't quite explain: 
+> whenever I try to access %fp register (a.k.a. %i6) from kprobe using 
+> regs->u_regs[UREG_FP], I get an unaligned value, which makes me think 
+> that it's incorrect somehow.
 
-Hello,
+On 64-bit sparc, the stack is "biased" by 2047 bytes.
 
-I'm debugging a problem for which kprobes may potentially provide 
-useful information, in particular I would like to examine local 
-registers at some point in the kernel code. Unfortunately, while 
-trying to accomplish that I ran into an issue I can't quite explain: 
-whenever I try to access %fp register (a.k.a. %i6) from kprobe using 
-regs->u_regs[UREG_FP], I get an unaligned value, which makes me think 
-that it's incorrect somehow. Attached is the source for the kernel 
-module I'm trying to use, in particular it does:
+This is so that more of the stack frame is reachable relative to %fp
+using 13-bit signed immediate offsets, which are usable with the address
+of load and store instructions.
 
-        unsigned long i1 = regs->u_regs[UREG_I1];
-        unsigned long fp = regs->u_regs[UREG_FP];
-        unsigned long l1 = ((struct reg_window *)fp)->locals[1];
-
-It produces the following typical output in dmesg:
-
-[ 9266.907644] pre_handler: fp=0xfffff8007f0676a1 i1=0x00000000ff9e38d8 l1=0x          (null)
-[ 9268.820759] pre_handler: fp=0xfffff8007f0676a1 i1=0x00000000ff9e1c40 l1=0x          (null)
-[ 9268.955814] pre_handler: fp=0xfffff8007e46f6a1 i1=0x00000000ff9e18a0 l1=0x00000000910e5800
-[ 9269.088810] pre_handler: fp=0xfffff8007e46f6a1 i1=0x00000000ff9e1930 l1=0x0000000079480000
-[ 9269.220502] pre_handler: fp=0xfffff8007e0bb481 i1=0xfffff8007e0bb5e1 l1=0x0000000079480000
-[ 9269.236789] pre_handler: fp=0xfffff8007f0676a1 i1=0x00000000ff9e1ba8 l1=0x          (null)
-[ 9269.288737] pre_handler: fp=0xfffff8007f0676a1 i1=0x00000000ff9e1c40 l1=0x          (null)
-[ 9269.291008] pre_handler: fp=0xfffff8007ba9f6a1 i1=0x00000000ff9e18a0 l1=0x0000000079480000
-[ 9269.291972] pre_handler: fp=0xfffff8007ba9f6a1 i1=0x00000000ff9e1930 l1=0x0000000079480000
-[ 9269.299812] pre_handler: fp=0xfffff8007f0676a1 i1=0x00000000ff9e1ba8 l1=0x          (null)
-[ 9270.620905] log_unaligned: 9 callbacks suppressed
-[ 9270.710417] Kernel unaligned access at TPC[104be02c] handler_pre+0x1c/0x28 [kprobe_example]
-[ 9270.845112] pre_handler: fp=0xfffff8007f0676a1 i1=0x00000000ff9e1c40 l1=0x          (null)
-[ 9270.982455] Kernel unaligned access at TPC[104be02c] handler_pre+0x1c/0x28 [kprobe_example]
-[ 9271.118699] pre_handler: fp=0xfffff8007f4bb6a1 i1=0x00000000ff9e18a0 l1=0x000000004209d400
-[ 9271.256401] Kernel unaligned access at TPC[104be02c] handler_pre+0x1c/0x28 [kprobe_example]
-[ 9271.394431] pre_handler: fp=0xfffff8007f4bb6a1 i1=0x00000000ff9e1930 l1=0x0000000079480000
-[ 9271.400409] Kernel unaligned access at TPC[104be02c] handler_pre+0x1c/0x28 [kprobe_example]
-[ 9271.400427] pre_handler: fp=0xfffff8007f0676a1 i1=0x00000000ff9e1ba8 l1=0x          (null)
-[ 9271.812270] Kernel unaligned access at TPC[104be02c] handler_pre+0x1c/0x28 [kprobe_example]
-[ 9271.953992] pre_handler: fp=0xfffff8007f0676a1 i1=0x00000000ff9e38d8 l1=0x          (null)
-
-While value of %i1 is believable (in this case it's the stack_start, 
-second argument to sparc_do_fork, and appears to be valid 32-bit 
-userspace address), I can't imagine that %fp can really be unaligned 
-like this, so I have little trust in the %l1 value it's producing. Is 
-it expected and I'm doing something wrong, or do we have an issue with 
-saving %fp value somewhere?
-
-Best regards,
---
-Jurij Smakov                                           jurij@wooyd.org
-Key: http://www.wooyd.org/pgpkey/                      KeyID: C99E03CC
-
---Kj7319i9nmIyA2yE
-Content-Type: text/x-csrc; charset=us-ascii
-Content-Disposition: attachment; filename="kprobe_example.c"
-
-#include <linux/kernel.h>
-#include <linux/module.h>
-#include <linux/kprobes.h>
-
-static struct kprobe kp = {
-	.symbol_name = "sparc_do_fork",
-};
-
-/* kprobe pre_handler: called just before the probed instruction is executed */
-static int handler_pre(struct kprobe *p, struct pt_regs *regs)
-{
-	unsigned long i1 = regs->u_regs[UREG_I1];
-	unsigned long fp = regs->u_regs[UREG_FP];
-	unsigned long l1 = ((struct reg_window *)fp)->locals[1];
-	printk(KERN_INFO "pre_handler: fp=0x%p i1=0x%p l1=0x%p\n", (void *) fp, (void *) i1, (void *) l1);
-	return 0;
-}
-
-static void handler_post(struct kprobe *p, struct pt_regs *regs,
-				unsigned long flags)
-{
-}
-
-static int handler_fault(struct kprobe *p, struct pt_regs *regs, int trapnr)
-{
-	/* printk(KERN_INFO "fault_handler: p->addr = 0x%p, trap #%dn",
-		p->addr, trapnr); */ 
-	/* Return 0 because we don't handle the fault. */
-	return 0;
-}
-
-static int __init kprobe_init(void)
-{
-	int ret;
-	kp.pre_handler = handler_pre;
-	kp.post_handler = handler_post;
-	kp.fault_handler = handler_fault;
-
-	ret = register_kprobe(&kp);
-	if (ret < 0) {
-		printk(KERN_INFO "register_kprobe failed, returned %d\n", ret);
-		return ret;
-	}
-	printk(KERN_INFO "Planted kprobe at %p\n", kp.addr);
-	return 0;
-}
-
-static void __exit kprobe_exit(void)
-{
-	unregister_kprobe(&kp);
-	printk(KERN_INFO "kprobe at %p unregistered\n", kp.addr);
-}
-
-module_init(kprobe_init)
-module_exit(kprobe_exit)
-MODULE_LICENSE("GPL");
-
---Kj7319i9nmIyA2yE--
+Grep for "STACK_BIAS" under arch/sparc
