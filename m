@@ -1,96 +1,96 @@
-From: "corentin.labbe" <corentin.labbe@geomatys.fr>
-Date: Thu, 24 Nov 2011 11:01:36 +0000
-Subject: [PATCH] i2c-ali1535: enable SPARC support
-Message-Id: <4ECE2410.7040608@geomatys.fr>
+From: Meelis Roos <mroos@linux.ee>
+Date: Thu, 24 Nov 2011 15:05:49 +0000
+Subject: Re: [PATCH] i2c-ali1535: enable SPARC support
+Message-Id: <alpine.DEB.2.00.1111241659050.11819@ondatra.cyber.ee>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="-1463810230-1445909040-1322147149=:11819"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+References: <4ECE2410.7040608@geomatys.fr>
+In-Reply-To: <4ECE2410.7040608@geomatys.fr>
 To: sparclinux@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org
 
-Hello
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-The i2c-ali1535 driver don't work on SPARC, this is because it assumes that ioport address are 16bits wide (address stored with an unsigned short).
-But on SPARC arch, ioports are mapped in memory and so are stored with an unsigned long.
+---1463810230-1445909040-1322147149=:11819
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-This patch corrects this by using pci_resource_start for getting IOMEM base address, then reading the SMBBA of the i2c busse and using together for I/O access.
+> The i2c-ali1535 driver don't work on SPARC, this is because it assumes th=
+at ioport address are 16bits wide (address stored with an unsigned short).
+> But on SPARC arch, ioports are mapped in memory and so are stored with an=
+ unsigned long.
+>
+> This patch corrects this by using pci_resource_start for getting IOMEM ba=
+se address, then reading the SMBBA of the i2c busse and using together for =
+I/O access.
 
-I like to thanks Jean DELVARE for reviewing of my patch.
+I tested it on my Sun Blade 100 on top of 3.2-rc3.
 
-Thanks
+It seems to work:
 
-Signed-off-by: LABBE Corentin <corentin.labbe@geomatys.fr>
+# ls /sys/bus/i2c/devices/i2c-0/
+0-0018/        0-0051/        0-0053/        device/        new_device     =
+uevent
+0-0050/        0-0052/        delete_device  name           subsystem/
 
----
---- drivers/i2c/busses/i2c-ali1535.c.orig	2011-06-15 18:02:56.000000000 +0200
-+++ drivers/i2c/busses/i2c-ali1535.c	2011-11-24 12:00:05.000000000 +0100
-@@ -132,7 +132,8 @@
- #define	ALI1535_SMBIO_EN	0x04	/* SMB I/O Space enable		*/
+# sensors
+adm1023-i2c-0-18
+Adapter: SMBus ALI1535 adapter at 0600
+temp1:        +35.0=B0C  (low  =3D -55.0=B0C, high =3D +127.0=B0C)
+temp2:        +75.8=B0C  (low  =3D -55.0=B0C, high =3D +127.0=B0C)
 
- static struct pci_driver ali1535_driver;
--static unsigned short ali1535_smba;
-+static unsigned long ali1535_smba;
-+static unsigned short ali1535_offset;
+and decode-dimms from i2c-tools package displays the SPD eeproms of 0-005*=
+=20
+also fine.
 
- /* Detect whether a ALI1535 can be found, and initialize it, where necessary.
-    Note the differences between kernels with the old PCI BIOS interface and
-@@ -149,15 +150,28 @@ static int __devinit ali1535_setup(struc
- 		- We can use the addresses
- 	*/
+One thing that I noticed was these errors in the dmesg - I think they were=
+=20
+there even before the patch:
 
-+	retval = pci_enable_device(dev);
-+	if (retval) {
-+		dev_err(&dev->dev, "ALI1535_smb can't enable device\n");
-+		goto exit;
-+	}
-+
- 	/* Determine the address of the SMBus area */
--	pci_read_config_word(dev, SMBBA, &ali1535_smba);
--	ali1535_smba &= (0xffff & ~(ALI1535_SMB_IOSIZE - 1));
--	if (ali1535_smba = 0) {
-+	pci_read_config_word(dev, SMBBA, &ali1535_offset);
-+	dev_info(&dev->dev, "ALI1535_smb is at offset 0x%04x\n", ali1535_offset);
-+	ali1535_offset &= (0xffff & ~(ALI1535_SMB_IOSIZE - 1));
-+	if (ali1535_offset = 0) {
- 		dev_warn(&dev->dev,
- 			"ALI1535_smb region uninitialized - upgrade BIOS?\n");
- 		goto exit;
- 	}
+[   64.677130] loop: module loaded
+[   64.763143] i2c i2c-0: Error: command never completed
+[   64.898968] i2c i2c-0: Error: command never completed
+[   64.995848] i2c i2c-0: Error: command never completed
+[   65.066294] i2c i2c-0: Error: command never completed
+[   65.136705] i2c i2c-0: Error: command never completed
+[   65.206817] i2c i2c-0: Error: command never completed
+[   65.276818] i2c i2c-0: Error: command never completed
+[   65.346817] i2c i2c-0: Error: command never completed
+[   65.461240] i2c i2c-0: Error: command never completed
+[   65.562828] i2c i2c-0: Error: command never completed
+[   65.633312] i2c i2c-0: Error: command never completed
+[   65.703706] i2c i2c-0: Error: command never completed
 
-+	if ((pci_resource_flags(dev, 0) & IORESOURCE_IO) = 0) {
-+		dev_err(&dev->dev, "ALI1535_smb bar 0 is not IORESOURCE_IO\n");
-+		goto exit;
-+	}
-+	ali1535_smba = pci_resource_start(dev, 0) + ali1535_offset;
-+	
- 	retval = acpi_check_region(ali1535_smba, ALI1535_SMB_IOSIZE,
- 				   ali1535_driver.name);
- 	if (retval)
-@@ -165,7 +179,7 @@ static int __devinit ali1535_setup(struc
+These only ahppened at bootup, no actual use later seems to trigger it.
 
- 	if (!request_region(ali1535_smba, ALI1535_SMB_IOSIZE,
- 			    ali1535_driver.name)) {
--		dev_err(&dev->dev, "ALI1535_smb region 0x%x already in use!\n",
-+		dev_err(&dev->dev, "ALI1535_smb region 0x%lx already in use!\n",
- 			ali1535_smba);
- 		goto exit;
- 	}
-@@ -196,7 +210,7 @@ static int __devinit ali1535_setup(struc
- 	*/
- 	pci_read_config_byte(dev, SMBREV, &temp);
- 	dev_dbg(&dev->dev, "SMBREV = 0x%X\n", temp);
--	dev_dbg(&dev->dev, "ALI1535_smba = 0x%X\n", ali1535_smba);
-+	dev_dbg(&dev->dev, "ALI1535_smba = 0x%lx\n", ali1535_smba);
+# cat /sys/bus/i2c/devices/i2c-0/name
+SMBus ALI1535 adapter at 0600
 
- 	retval = 0;
- exit:
-@@ -499,7 +513,7 @@ static int __devinit ali1535_probe(struc
- 	ali1535_adapter.dev.parent = &dev->dev;
+# cat /sys/bus/i2c/devices/i2c-1/name
+bt878 #0 [sw]
 
- 	snprintf(ali1535_adapter.name, sizeof(ali1535_adapter.name),
--		"SMBus ALI1535 adapter at %04x", ali1535_smba);
-+		"SMBus ALI1535 adapter at %04x", ali1535_offset);
- 	return i2c_add_adapter(&ali1535_adapter);
- }
+So this is the ALI i2c adapter that emits the errors on startup - some=20
+module load perhaps. loop reference is there because this is the contents=
+=20
+of my /etc/modules:
 
+loop
+adm1021
+eeprom
+
+and lsmod shows these mopdules wer loaded together:
+
+# lsmod|head
+Module                  Size  Used by
+ipv6                  298281  18
+eeprom                  2743  0
+adm1021                 5987  0
+hwmon                   1501  1 adm1021
+loop                   15747  0
+
+So it seems adm1021 module loading causes these messages?
+
+--=20
+Meelis Roos (mroos@linux.ee)
+---1463810230-1445909040-1322147149=:11819--
