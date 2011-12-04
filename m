@@ -1,19 +1,119 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 04 Dec 2011 19:00:26 +0000
-Subject: Re: [PATCH] bbc_i2c: Remove unneeded err variable
-Message-Id: <20111204.140026.2208536339658267828.davem@davemloft.net>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Sun, 04 Dec 2011 14:34:49 +0000
+Subject: [PATCH-RFC v2 10/10] sparc: switch to GENERIC_PCI_IOMAP
+Message-Id: <20111204143448.GA21535@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1321947740.2476.0.camel@phoenix>
-In-Reply-To: <1321947740.2476.0.camel@phoenix>
+In-Reply-To: <63292221aef2eb299e7dba860b3ee38c2ed05eb8.1322163031.git.mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: axel.lin@gmail.com
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: Sam Ravnborg <sam.ravnborg@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>, "Michael S. Tsirkin" <mst@redhat.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Axel Lin <axel.lin@gmail.com>
-Date: Tue, 22 Nov 2011 15:42:20 +0800
+sparc copied pci_iomap from generic code, probably to avoid
+pulling the rest of iomap.c in.  Since that's in
+a separate file now, we can reuse the common implementation.
 
-> Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+---
 
-Applied.
+Changes from v1:
+	remove ifdef __KERNEL__ from files
+	not exported to userspace.
+
+ arch/sparc/Kconfig             |    1 +
+ arch/sparc/include/asm/io_32.h |    2 +-
+ arch/sparc/include/asm/io_64.h |    2 +-
+ arch/sparc/lib/iomap.c         |   23 -----------------------
+ 4 files changed, 3 insertions(+), 25 deletions(-)
+
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index f92602e..a4644f5 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -28,6 +28,7 @@ config SPARC
+ 	select HAVE_GENERIC_HARDIRQS
+ 	select GENERIC_IRQ_SHOW
+ 	select USE_GENERIC_SMP_HELPERS if SMP
++	select GENERIC_PCI_IOMAP
+ 
+ config SPARC32
+ 	def_bool !64BIT
+diff --git a/arch/sparc/include/asm/io_32.h b/arch/sparc/include/asm/io_32.h
+index c2ced21..2006e5d 100644
+--- a/arch/sparc/include/asm/io_32.h
++++ b/arch/sparc/include/asm/io_32.h
+@@ -7,6 +7,7 @@
+ 
+ #include <asm/page.h>      /* IO address mapping routines need this */
+ #include <asm/system.h>
++#include <asm-generic/pci_iomap.h>
+ 
+ #define page_to_phys(page)	(page_to_pfn(page) << PAGE_SHIFT)
+ 
+@@ -324,7 +325,6 @@ extern void ioport_unmap(void __iomem *);
+ 
+ /* Create a virtual mapping cookie for a PCI BAR (memory or IO) */
+ struct pci_dev;
+-extern void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long max);
+ extern void pci_iounmap(struct pci_dev *dev, void __iomem *);
+ 
+ /*
+diff --git a/arch/sparc/include/asm/io_64.h b/arch/sparc/include/asm/io_64.h
+index 9c89654..9481e5a 100644
+--- a/arch/sparc/include/asm/io_64.h
++++ b/arch/sparc/include/asm/io_64.h
+@@ -8,6 +8,7 @@
+ #include <asm/page.h>      /* IO address mapping routines need this */
+ #include <asm/system.h>
+ #include <asm/asi.h>
++#include <asm-generic/pci_iomap.h>
+ 
+ /* PC crapola... */
+ #define __SLOW_DOWN_IO	do { } while (0)
+@@ -514,7 +515,6 @@ extern void ioport_unmap(void __iomem *);
+ 
+ /* Create a virtual mapping cookie for a PCI BAR (memory or IO) */
+ struct pci_dev;
+-extern void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long max);
+ extern void pci_iounmap(struct pci_dev *dev, void __iomem *);
+ 
+ static inline int sbus_can_dma_64bit(void)
+diff --git a/arch/sparc/lib/iomap.c b/arch/sparc/lib/iomap.c
+index 9ef37e1..c4d42a5 100644
+--- a/arch/sparc/lib/iomap.c
++++ b/arch/sparc/lib/iomap.c
+@@ -18,31 +18,8 @@ void ioport_unmap(void __iomem *addr)
+ EXPORT_SYMBOL(ioport_map);
+ EXPORT_SYMBOL(ioport_unmap);
+ 
+-/* Create a virtual mapping cookie for a PCI BAR (memory or IO) */
+-void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long maxlen)
+-{
+-	resource_size_t start = pci_resource_start(dev, bar);
+-	resource_size_t len = pci_resource_len(dev, bar);
+-	unsigned long flags = pci_resource_flags(dev, bar);
+-
+-	if (!len || !start)
+-		return NULL;
+-	if (maxlen && len > maxlen)
+-		len = maxlen;
+-	if (flags & IORESOURCE_IO)
+-		return ioport_map(start, len);
+-	if (flags & IORESOURCE_MEM) {
+-		if (flags & IORESOURCE_CACHEABLE)
+-			return ioremap(start, len);
+-		return ioremap_nocache(start, len);
+-	}
+-	/* What? */
+-	return NULL;
+-}
+-
+ void pci_iounmap(struct pci_dev *dev, void __iomem * addr)
+ {
+ 	/* nothing to do */
+ }
+-EXPORT_SYMBOL(pci_iomap);
+ EXPORT_SYMBOL(pci_iounmap);
+-- 
+1.7.5.53.gc233e
