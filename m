@@ -1,36 +1,23 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 29 Dec 2011 23:12:36 +0000
-Subject: Re: [PATCH 1/2] sparc32: enable different preemptions models
-Message-Id: <20111229.181236.157689724253919194.davem@davemloft.net>
+Date: Sun, 04 Dec 2011 19:00:39 +0000
+Subject: Re: [PATCH] sbus: convert drivers/sbus/char/* to use
+Message-Id: <20111204.140039.171261237123447589.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20111229141508.GA3146@merkur.ravnborg.org>
-In-Reply-To: <20111229141508.GA3146@merkur.ravnborg.org>
+References: <1322370265.2522.5.camel@phoenix>
+In-Reply-To: <1322370265.2522.5.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: axel.lin@gmail.com
+Cc: linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, akpm@linux-foundation.org, sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 29 Dec 2011 15:15:08 +0100
+From: Axel Lin <axel.lin@gmail.com>
+Date: Sun, 27 Nov 2011 13:04:25 +0800
 
-> While chasing following warning from kconfig I noticed that the
-> kconfig preemption model symbols were all dependent on sparc64.
+> This patch converts the drivers in drivers/sbus/char/* to use the
+> module_platform_driver() macro which makes the code smaller and a bit
+> simpler.
 > 
-> warning: (PREEMPT && DEBUG_ATOMIC_SLEEP) selects PREEMPT_COUNT which has unmet direct dependencies (SPARC64)
-> 
->>From arch/sparc/Kconfig:
-> 
->         if SPARC64
->         source "kernel/Kconfig.preempt"
->         endif
-> 
-> But looking a bit closer I see nothing obvious why
-> sparc32 should not support the various preemption models.
-> Drop the "if SPARC64" conditional to enable selection of
-> preemption model on sparc32 too.
-> 
-> Build-tested - but not run-time tested all three models.
-> 
-> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+> Signed-off-by: Axel Lin <axel.lin@gmail.com>
 
 Applied.
