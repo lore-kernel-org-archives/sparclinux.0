@@ -1,18 +1,19 @@
-From: Ralf Baechle <ralf@linux-mips.org>
-Date: Fri, 09 Dec 2011 16:07:22 +0000
-Subject: Re: [PATCH 61/62] highmem: kill all __kmap_atomic()
-Message-Id: <20111209160722.GB30988@linux-mips.org>
+From: David Miller <davem@davemloft.net>
+Date: Sun, 04 Dec 2011 19:00:26 +0000
+Subject: Re: [PATCH] bbc_i2c: Remove unneeded err variable
+Message-Id: <20111204.140026.2208536339658267828.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1322371662-26166-1-git-send-email-amwang@redhat.com>
- <1322371662-26166-62-git-send-email-amwang@redhat.com>
-In-Reply-To: <1322371662-26166-62-git-send-email-amwang@redhat.com>
+References: <1321947740.2476.0.camel@phoenix>
+In-Reply-To: <1321947740.2476.0.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: axel.lin@gmail.com
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-On Sun, Nov 27, 2011 at 01:27:41PM +0800, Cong Wang wrote:
+From: Axel Lin <axel.lin@gmail.com>
+Date: Tue, 22 Nov 2011 15:42:20 +0800
 
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
+> Signed-off-by: Axel Lin <axel.lin@gmail.com>
 
-  Ralf
+Applied.
