@@ -1,35 +1,71 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 29 Dec 2011 23:14:31 +0000
-Subject: Re: [PATCH 2/2] sparc32: fix PAGE_SIZE definition
-Message-Id: <20111229.181431.1400937684235301156.davem@davemloft.net>
+From: Sergei Trofimovich <slyich@gmail.com>
+Date: Sun, 11 Dec 2011 08:17:57 +0000
+Subject: Re: Sparc-32 doesn't work in 3.1.
+Message-Id: <20111211111801.5942ab39@sf.home>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Sig_/pZck.4vr/YOQgm3vTbQyA5A"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20111229141612.GB3146@merkur.ravnborg.org>
-In-Reply-To: <20111229141612.GB3146@merkur.ravnborg.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+References: <4EBEAB5A.5020809@landley.net>
+	<4EBF0A25.20604@landley.net>
+In-Reply-To: <4EBF0A25.20604@landley.net>
+To: Rob Landley <rob@landley.net>
+Cc: Aboriginal Linux <aboriginal@lists.landley.net>, linux-kernel@vger.kernel.org, davem@davemloft.net, tytso@mit.edu, sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 29 Dec 2011 15:16:12 +0100
+--Sig_/pZck.4vr/YOQgm3vTbQyA5A
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
->>From 1076481b278bd14617a544cc20520cfd73f9b12c Mon Sep 17 00:00:00 2001
-> From: Sam Ravnborg <sam@ravnborg.org>
-> Date: Thu, 29 Dec 2011 15:04:38 +0100
-> Subject: [PATCH 2/2] sparc32: fix PAGE_SIZE definition
-> 
-> Use _AC() in definition of PAGE_SIZE so the same definition
-> can be used in C and assembler.
-> Also use PAGE_SIZE in definition of THREAD_SIZE.
-> 
-> This commit kill the following comment:
-> 
->     "I have my suspicions... -DaveM"
-> 
-> I did not find any clue what this referred to anyway.
-> 
-> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+> >   Boot time fixup v1.6. 4/Mar/98 Jakub Jelinek (jj@ultra.linux.cz).
+> >   Patching kernel for srmmu[Fujitsu TurboSparc]/iommu
+> >   Fixup i f029ddfc doesn't refer to a valid instruction at
+> >   f00de648[95eea000]
+> >   halt, power off
+>=20
+> If anyone would like a reproduction sequence for this, the toolchain I use
+> (which compiles commit 9933fc0ac1ac14b^1 just fine) is at:
+>=20
+>   http://landley.net/aboriginal/downloads/binaries/cross-compiler-sparc.t=
+ar.bz2
 
-Applied.
+Tried to build both with your crosscompiler and with gcc-4.5.3/binutils-2.2=
+1.1
+Both boot but don't get to prompt (minimal config I guess).
+(v3.1 works the same as 3.2.0-rc5)
 
-That comment was written by some newbie, ignore him :-)
+Linux version 3.2.0-rc5 (slyfox@sf) (gcc version 4.2.1) #1 Sun Dec 11 11:08=
+:25 FET 2011
+bootconsole [earlyprom0] enabled
+ARCH: SUN4M
+TYPE: SPARCstation 5
+Ethernet address: 52:54:00:12:34:56
+Boot time fixup v1.6. 4/Mar/98 Jakub Jelinek (jj@ultra.linux.cz). Patching =
+kernel for srmmu[Fujitsu TurboSparc]/iommu
+OF stdout device is: /obio/zs@0,100000:a
+PROM: Built device tree with 23073 bytes of memory.
+Booting Linux...
+Power off control detected.
+Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 28018
+...
+mousedev: PS/2 mouse device common for all mice
+rtc-m48t59 rtc-m48t59.0: rtc core: registered m48t08 as rtc0
+turn off boot console earlyprom0
+
+Can you share broken image to drive out qemu bug? (0.14.0 is here)
+
+--=20
+
+  Sergei
+
+--Sig_/pZck.4vr/YOQgm3vTbQyA5A
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.17 (GNU/Linux)
+
+iEYEARECAAYFAk7kZ0EACgkQcaHudmEf86q1mgCfZkl4j/qAzeMMnF9VFDKmrW7H
+028An35PKVamIIN047imIv4RXGJV4Ml9
+=vKyz
+-----END PGP SIGNATURE-----
+
+--Sig_/pZck.4vr/YOQgm3vTbQyA5A--
