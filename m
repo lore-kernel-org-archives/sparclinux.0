@@ -1,12 +1,15 @@
 From: David Howells <dhowells@redhat.com>
-Date: Mon, 12 Dec 2011 15:28:18 +0000
+Date: Tue, 13 Dec 2011 10:03:58 +0000
 Subject: [PATCH 02/17] UAPI: Don't include linux/compat.h in sparc's asm/siginfo.h
-Message-Id: <1323703713-20382-3-git-send-email-dhowells@redhat.com>
+Message-Id: <1323770653-19177-3-git-send-email-dhowells@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1323770653-19177-1-git-send-email-dhowells@redhat.com>
+In-Reply-To: <1323770653-19177-1-git-send-email-dhowells@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: sfr@canb.auug.org.au, torvalds@linux-foundation.org
+Cc: arnd@arndb.de, dhowells@redhat.com, alan@lxorguk.ukuu.org.uk, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
 Don't include linux/compat.h in sparc's asm/siginfo.h as it leads to a circular
 dependency:
