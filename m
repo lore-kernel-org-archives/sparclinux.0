@@ -1,104 +1,179 @@
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Date: Fri, 23 Dec 2011 12:27:22 +0000
-Subject: [PATCH 03/14] MIPS: adapt for dma_map_ops changes
-Message-Id: <1324643253-3024-4-git-send-email-m.szyprowski@samsung.com>
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
+Date: Wed, 14 Dec 2011 08:47:15 +0000
+Subject: Re: mptspi init failure on Sparc SMP in Linux 3.0
+Message-Id: <1323852435.3063.25.camel@dabdike>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1324643253-3024-1-git-send-email-m.szyprowski@samsung.com>
-In-Reply-To: <1324643253-3024-1-git-send-email-m.szyprowski@samsung.com>
+References: <4EB7D137.7090903@univ.rzeszow.pl>
+	 <20111107205409.GG3366@decadent.org.uk> <4EB858E8.6090304@univ.rzeszow.pl>
+	 <1320721518.18929.15.camel@deadeye>
+	 <A6888A6805518E4EA4AF7072A28264A6047262C728@inbmail02.lsi.com>
+	 <4EE5F1F4.3000006@univ.rzeszow.pl>
+	 <A6888A6805518E4EA4AF7072A28264A6047278DE4C@inbmail02.lsi.com>
+	 <A11ADD3877B3C543B65BE8E196B7BDFF0144B0300C@cosmail02.lsi.com>
+	 <4EE85ECE.8080101@univ.rzeszow.pl>
+In-Reply-To: <4EE85ECE.8080101@univ.rzeszow.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Stephen Rothwell <sfr@canb.auug.org.au>, microblaze-uclinux@itee.uq.edu.au, linux-arch@vger.kernel.org, x86@kernel.org, linux-sh@vger.kernel.org, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mips@linux-mips.org, discuss@x86-64.org, linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org, Jonathan Corbet <corbet@lwn.net>, Marek Szyprowski <m.szyprowski@samsung.com>, Kyungmin Park <kyungmin.park@samsung.com>, Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Biblioteka UR <biblio@univ.rzeszow.pl>
+Cc: "Krishnamoorthy, Praveen" <Praveen.Krishnamoorthy@lsi.com>, "Nandigama, Nagalakshmi" <Nagalakshmi.Nandigama@lsi.com>, Ben Hutchings <ben@decadent.org.uk>, "Moore, Eric" <Eric.Moore@lsi.com>, "647900@bugs.debian.org" <647900@bugs.debian.org>, linux-scsi <linux-scsi@vger.kernel.org>, DL-MPT Fusion Linux <DL-MPTFusionLinux@lsi.com>, sparclinux@vger.kernel.org
 
-From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+OK, so rather than try to guess based on x86, lets involve the experts;
+I've cc'd the sparclinux list.
 
-Adapt core MIPS architecture code for dma_map_ops changes: replace
-alloc/free_coherent with generic alloc/free methods.
+Sparc people,
 
-Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- arch/mips/include/asm/dma-mapping.h |   18 ++++++++++++------
- arch/mips/mm/dma-default.c          |    8 ++++----
- 2 files changed, 16 insertions(+), 10 deletions(-)
+The failure alluded to below occurs on an SMP system, but not on a UP
+one.  The symptom appears to indicate the failure of interrupt delivery
+on SMP, which is why the MPT card fails to initialise.  How do we debug
+this on a sparc?
 
-diff --git a/arch/mips/include/asm/dma-mapping.h b/arch/mips/include/asm/dma-mapping.h
-index 7aa37dd..cbd41f5 100644
---- a/arch/mips/include/asm/dma-mapping.h
-+++ b/arch/mips/include/asm/dma-mapping.h
-@@ -57,25 +57,31 @@ dma_set_mask(struct device *dev, u64 mask)
- extern void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
- 	       enum dma_data_direction direction);
- 
--static inline void *dma_alloc_coherent(struct device *dev, size_t size,
--				       dma_addr_t *dma_handle, gfp_t gfp)
-+#define dma_alloc_coherent(d,s,h,f)	dma_alloc_attrs(d,s,h,f,NULL)
-+
-+static inline void *dma_alloc_attrs(struct device *dev, size_t size,
-+				    dma_addr_t *dma_handle, gfp_t gfp,
-+				    struct dma_attrs *attrs)
- {
- 	void *ret;
- 	struct dma_map_ops *ops = get_dma_ops(dev);
- 
--	ret = ops->alloc_coherent(dev, size, dma_handle, gfp);
-+	ret = ops->alloc(dev, size, dma_handle, gfp, NULL);
- 
- 	debug_dma_alloc_coherent(dev, size, *dma_handle, ret);
- 
- 	return ret;
- }
- 
--static inline void dma_free_coherent(struct device *dev, size_t size,
--				     void *vaddr, dma_addr_t dma_handle)
-+#define dma_free_coherent(d,s,c,h) dma_free_attrs(d,s,c,h,NULL)
-+
-+static inline void dma_free_attrs(struct device *dev, size_t size,
-+				  void *vaddr, dma_addr_t dma_handle,
-+				  struct dma_attrs *attrs)
- {
- 	struct dma_map_ops *ops = get_dma_ops(dev);
- 
--	ops->free_coherent(dev, size, vaddr, dma_handle);
-+	ops->free(dev, size, vaddr, dma_handle, NULL);
- 
- 	debug_dma_free_coherent(dev, size, vaddr, dma_handle);
- }
-diff --git a/arch/mips/mm/dma-default.c b/arch/mips/mm/dma-default.c
-index 4608491..3fab204 100644
---- a/arch/mips/mm/dma-default.c
-+++ b/arch/mips/mm/dma-default.c
-@@ -98,7 +98,7 @@ void *dma_alloc_noncoherent(struct device *dev, size_t size,
- EXPORT_SYMBOL(dma_alloc_noncoherent);
- 
- static void *mips_dma_alloc_coherent(struct device *dev, size_t size,
--	dma_addr_t * dma_handle, gfp_t gfp)
-+	dma_addr_t * dma_handle, gfp_t gfp, struct dma_attrs *attrs)
- {
- 	void *ret;
- 
-@@ -132,7 +132,7 @@ void dma_free_noncoherent(struct device *dev, size_t size, void *vaddr,
- EXPORT_SYMBOL(dma_free_noncoherent);
- 
- static void mips_dma_free_coherent(struct device *dev, size_t size, void *vaddr,
--	dma_addr_t dma_handle)
-+	dma_addr_t dma_handle, struct dma_attrs *attrs)
- {
- 	unsigned long addr = (unsigned long) vaddr;
- 	int order = get_order(size);
-@@ -323,8 +323,8 @@ void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
- EXPORT_SYMBOL(dma_cache_sync);
- 
- static struct dma_map_ops mips_default_dma_map_ops = {
--	.alloc_coherent = mips_dma_alloc_coherent,
--	.free_coherent = mips_dma_free_coherent,
-+	.alloc = mips_dma_alloc_coherent,
-+	.free = mips_dma_free_coherent,
- 	.map_page = mips_dma_map_page,
- 	.unmap_page = mips_dma_unmap_page,
- 	.map_sg = mips_dma_map_sg,
--- 
-1.7.1.569.g6f426
+Thanks,
+
+James
+
+
+On Wed, 2011-12-14 at 09:31 +0100, Biblioteka UR wrote:
+> Praveen,
+>=20
+> Thank you for your response.
+>=20
+> This is Sparc server and here is silo, not grub. So I do not know how=20
+> well I tried your suggestions.
+>=20
+> root@fire:/boot# ls -l
+> total 28506
+> lrwxrwxrwx 1 root root        1 Nov  5 08:28 boot -> .
+> -rw-r--r-- 1 root root    88515 Nov 14 16:35 config-3.1.0-1-sparc64
+> -rw-r--r-- 1 root root    88956 Nov 14 16:47 config-3.1.0-1-sparc64-smp
+> lrwxrwxrwx 1 root root        1 Nov  5 08:28 etc -> .
+> -rw-r--r-- 1 root root     1024 Aug 26  2010 fd.b
+> -rw-r--r-- 1 root root      512 Aug 26  2010 first.b
+> -rw-r--r-- 1 root root     1024 Aug 26  2010 generic.b
+> -rw-r--r-- 1 root root      692 Aug 26  2010 ieee32.b
+> lrwxrwxrwx 1 root root       30 Nov 23 08:13 initrd.img ->=20
+> initrd.img-3.1.0-1-sparc64-smp
+> -rw-r--r-- 1 root root 10201990 Nov 23 08:05 initrd.img-3.1.0-1-sparc64
+> -rw-r--r-- 1 root root 10293974 Dec 12 10:34 initrd.img-3.1.0-1-sparc64-s=
+mp
+> lrwxrwxrwx 1 root root       26 Nov 23 08:04 initrd.img.old ->=20
+> initrd.img-3.1.0-1-sparc64
+> -rw-r--r-- 1 root root     7704 Aug 26  2010 isofs.b
+> drwxr-xr-x 2 root root    12288 Nov  5 08:22 lost+found
+> -rw-r--r-- 1 root root     7680 Nov  5 08:28 old.b
+> -rw-r--r-- 1 root root    78336 Nov  5 08:28 second.b
+> -rw-r--r-- 1 root root      199 Dec 14 08:36 silo.conf
+> -rw-r--r-- 1 root root    76387 Aug 26  2010 silotftp.b
+> -rw-r--r-- 1 root root  1629480 Nov 14 16:35 System.map-3.1.0-1-sparc64
+> -rw-r--r-- 1 root root  1676706 Nov 14 16:47 System.map-3.1.0-1-sparc64-s=
+mp
+> -rw-r--r-- 1 root root      512 Aug 26  2010 ultra.b
+> lrwxrwxrwx 1 root root       27 Nov 23 08:13 vmlinuz ->=20
+> vmlinuz-3.1.0-1-sparc64-smp
+> -rw-r--r-- 1 root root  2385979 Nov 14 16:34 vmlinuz-3.1.0-1-sparc64
+> -rw-r--r-- 1 root root  2504212 Nov 14 16:46 vmlinuz-3.1.0-1-sparc64-smp
+> lrwxrwxrwx 1 root root       23 Nov 23 08:04 vmlinuz.old ->=20
+> vmlinuz-3.1.0-1-sparc64
+>=20
+> I tried:
+> root@fire:/boot# cat silo.conf
+> root=3D/dev/sda2
+> partition=3D1
+> default=3DLinuxOLD
+> read-only
+> timeout=100
+>=20
+> image=3D/vmlinuz
+>          label=3DLinux
+>          initrd=3D/initrd.img
+>          append=3D"pci=3Drouteirq"
+>=20
+> image=3D/vmlinuz.old
+>          label=3DLinuxOLD
+>          initrd=3D/initrd.img.old
+>=20
+> and
+>=20
+> root@fire:/boot# cat silo.conf
+> root=3D/dev/sda2
+> partition=3D1
+> default=3DLinuxOLD
+> read-only
+> timeout=100
+>=20
+> image=3D/vmlinuz
+>          label=3DLinux
+>          initrd=3D/initrd.img
+>          append=3D"irqpoll"
+>=20
+> image=3D/vmlinuz.old
+>          label=3DLinuxOLD
+>          initrd=3D/initrd.img.old
+>=20
+>=20
+> These changes have not helped. I have the same error messages.
+>=20
+> Unfortunately I can't collect the kernel messages with smp linux-image.=20
+> I set in rsyslog.conf
+>=20
+> kern.debug                      -/var/log/kern.debug
+>=20
+> I had already set
+>=20
+> *.=DEbug;\
+>          auth,authpriv.none;\
+>          news.none;mail.none     -/var/log/debug
+>=20
+> but there is no log messages from broken boot. I can collect messages=20
+> only from putty.
+>=20
+> Regards,
+> Mariusz
+>=20
+> PS. Sorry for my English. :)
+>=20
+> W dniu 2011-12-13 19:36, Krishnamoorthy, Praveen pisze:
+> > Mariusz,
+> >
+> >>>> [   68.319518] mptbase: ioc0: WARNING - Issuing Reset from
+> >> mpt_config!!, doorbell=3D0x24000000
+> >>>> [   69.175505] mptbase: ioc0: Attempting Retry Config request type
+> >> 0x3, page 0x, action 0
+> >>>> [   84.267524] mptbase: ioc0: WARNING - Issuing Reset from
+> >> mpt_config!!, doorbell=3D0x24000000
+> > As Nagalakshmi pointed out, the series of reset happens because the con=
+fig request for reading the page header fails. This is the first time the m=
+essage queues are used when the card is coming up, therefore taking into ac=
+count, that the same driver and same card works perfectly on non-smp linux =
+kernel,  I am guessing that the config request would have been sent success=
+fully and the firmware would have processed the request and raised an inter=
+rupt through the IRQ line assigned for this card, it is somehow not routed =
+to our driver's interrupt service routine. Therefore could you try the foll=
+owing to check if any of it works?
+> >
+> > 1. add pci=3Drouteirq to the kernel boot parameters in /boot/grub/menu.=
+lst
+> > Eg) =09
+> > title          Debian XYZ
+> > root           (hdX,X)
+> > kernel         /boot/vmlinuz-XYZ root=3DXX ro quiet splash pci=3Droutei=
+rq
+> > initrd         /boot/initrd.img-XYZ
+> >
+> > 2. add irqpoll to the kernel boot parameters in /boot/grub/menu.lst
+> > Eg) =09
+> > title          Debian XYZ
+> > root           (hdX,X)
+> > kernel         /boot/vmlinuz-XYZ root=3DXX ro quiet splash irqpoll
+> > initrd         /boot/initrd.img-XYZ
+> >
+> > Regards,
+> > Praveen
+> >
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-scsi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 
