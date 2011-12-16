@@ -1,25 +1,52 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 27 Dec 2011 19:11:57 +0000
-Subject: Re: [PATCH 1/2] sparc32: drop unused atomic24 support
-Message-Id: <20111227.141157.991212405332277545.davem@davemloft.net>
+Date: Fri, 16 Dec 2011 20:22:29 +0000
+Subject: [GIT] Sparc
+Message-Id: <20111216.152229.161655308008211539.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20111226222916.GA20839@merkur.ravnborg.org>
-In-Reply-To: <20111226222916.GA20839@merkur.ravnborg.org>
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 26 Dec 2011 23:29:16 +0100
 
->>From b3c4924ae2b3bc1a63a297e30822bdd7667986f9 Mon Sep 17 00:00:00 2001
-> From: Sam Ravnborg <sam@ravnborg.org>
-> Date: Mon, 26 Dec 2011 20:57:22 +0100
-> Subject: [PATCH 1/2] sparc32: drop unused atomic24 support
-> 
-> atomic24 support was used to semaphores in the past - but is no longer used.
-> 
-> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+1) Bootup on 32-bit fails because gcc started to emit tail calls more
+   aggressively, so we need to accept 13-bit signed immediation
+   relocations into 'restore' instructions.
 
-Applied.
+2) Kill unused variable in bbc_i2c and module_platform_driver()
+conversion from Axel Lin.
+
+3) Use kmemdup(), from Thomas Meyer.
+
+Please pull, thanks a lot!
+
+The following changes since commit 2cfab8d74ebfbe06ce2947117945c4f45a5915ec:
+
+  Merge branch 'drm-intel-fixes' of git://people.freedesktop.org/~keithp/linux (2011-12-16 11:27:56 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
+
+Axel Lin (2):
+      bbc_i2c: Remove unneeded err variable
+      sbus: convert drivers/sbus/char/* to use module_platform_driver()
+
+David S. Miller (1):
+      sparc32: Be less strict in matching %lo part of relocation.
+
+Thomas Meyer (1):
+      sparc: Use kmemdup rather than duplicating its implementation
+
+ arch/sparc/kernel/ds.c          |    6 ++----
+ arch/sparc/kernel/prom_common.c |    4 +---
+ arch/sparc/mm/btfixup.c         |    3 +--
+ drivers/sbus/char/bbc_i2c.c     |   27 +++++----------------------
+ drivers/sbus/char/display7seg.c |   13 +------------
+ drivers/sbus/char/envctrl.c     |   12 +-----------
+ drivers/sbus/char/flash.c       |   12 +-----------
+ drivers/sbus/char/uctrl.c       |   12 +-----------
+ 8 files changed, 13 insertions(+), 76 deletions(-)
