@@ -1,27 +1,27 @@
 From: David Miller <davem@davemloft.net>
-Date: Sun, 04 Dec 2011 18:07:24 +0000
-Subject: Re: [PATCH-RFC 10/10] sparc: switch to GENERIC_PCI_IOMAP
-Message-Id: <20111204.130724.729202580136553783.davem@davemloft.net>
+Date: Wed, 21 Dec 2011 21:58:05 +0000
+Subject: Re: sparc: __mcount_loc already exists
+Message-Id: <20111221.165805.154231675155275590.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20111204104916.GL15464@redhat.com>
-In-Reply-To: <20111204104916.GL15464@redhat.com>
+References: <CAMuHMdUvnTWvaTndObFjA_pJXNWVpDBqxviyDpYvihc7pDiV3Q@mail.gmail.com>
+In-Reply-To: <CAMuHMdUvnTWvaTndObFjA_pJXNWVpDBqxviyDpYvihc7pDiV3Q@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: geert@linux-m68k.org
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-next@vger.kernel.org
 
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Sun, 4 Dec 2011 12:49:17 +0200
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Wed, 21 Dec 2011 08:59:03 +0100
 
-> On Thu, Nov 24, 2011 at 10:21:27PM +0200, Michael S. Tsirkin wrote:
->> sparc copied pci_iomap from generic code, probably to avoid
->> pulling the rest of iomap.c in.  Since that's in
->> a separate file now, we can reuse the common implementation.
->> 
->> Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+> On Wed, Dec 21, 2011 at 08:51, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
+>> Note that I deleted 5238 lines about "__mcount_loc already exists", to avoid
+>> my email being rejected.
 > 
-> Sorry to nag, any ACKs/NACKs on the sparc changes?
-> I intend to send this to Linus if there are no
-> objections. Thanks!
+> I anyone planning to fix this? It only happens for sparc64/sparc-allmodconfig,
+> and appeared in v3.2-rc3.
+> 
+> linus: http://kisskb.ellerman.id.au/kisskb/buildresult/5167232/
+> linux-next: http://kisskb.ellerman.id.au/kisskb/buildresult/5166753/
 
-Acked-by: David S. Miller <davem@davemloft.net>
+I'll look into this, thanks.
