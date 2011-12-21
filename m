@@ -1,59 +1,397 @@
-From: Jurij Smakov <jurij@wooyd.org>
-Date: Tue, 20 Dec 2011 23:00:40 +0000
-Subject: "BUG: Bad page map in process Xorg" with 3.1 kernel
-Message-Id: <20111220230040.GA4192@wooyd.org>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 21 Dec 2011 20:58:38 +0000
+Subject: Re: "BUG: Bad page map in process Xorg" with 3.1 kernel
+Message-Id: <20111221.155838.202913104911829067.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20111220230040.GA4192@wooyd.org>
+In-Reply-To: <20111220230040.GA4192@wooyd.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hello,
+From: Jurij Smakov <jurij@wooyd.org>
+Date: Tue, 20 Dec 2011 23:00:40 +0000
 
-Today I've tried running Xorg on my SunBlade 1000 with a rather old 
-ATI Mach64 graphics card. When I launch Xorg, messages like these get 
-logged a few times:
+> Today I've tried running Xorg on my SunBlade 1000 with a rather old 
+> ATI Mach64 graphics card. When I launch Xorg, messages like these get 
+> logged a few times:
 
-[  595.437513] BUG: Bad page map in process Xorg  pte:800007fe027fef8a pmd:000f6904
-[  595.437528] addr:00000000f75b6000 vm_flags:000844bb anon_vma:          (null) mapping:fffff8007da94f00 index:3ff013ff
-[  595.437543] vma->vm_ops->fault: bin_fault+0x8/0x5c
-[  595.437553] vma->vm_file->f_op->mmap: mmap+0x8/0xe0
-[  595.437559] Call Trace:
-[  595.437571]  [00000000004f0c74] vm_normal_page+0x80/0x90
-[  595.437581]  [00000000004f1b3c] unmap_vmas+0x218/0x680
-[  595.437592]  [00000000004f5a84] unmap_region+0x6c/0xcc
-[  595.437603]  [00000000004f6900] do_munmap+0x268/0x2d4
-[  595.437613]  [00000000004f6ad8] SyS_munmap+0x24/0x40
-[  595.437625]  [0000000000406194] linux_sparc_syscall32+0x34/0x40
-[  596.716253] BUG: Bad page map in process Xorg  pte:800007fe027fef8a pmd:000f6520
-[  596.803924] addr:00000000f777a000 vm_flags:000844bb anon_vma:          (null) mapping:fffff8007da94f00 index:3ff013ff
-[  596.931006] vma->vm_ops->fault: bin_fault+0x8/0x5c
-[  596.931020] vma->vm_file->f_op->mmap: mmap+0x8/0xe0
-[  596.931027] Call Trace:
-[  596.931041]  [00000000004f0c74] vm_normal_page+0x80/0x90
-[  596.931053]  [00000000004f1b3c] unmap_vmas+0x218/0x680
-[  596.931065]  [00000000004f5a84] unmap_region+0x6c/0xcc
-[  596.931077]  [00000000004f6900] do_munmap+0x268/0x2d4
-[  596.931087]  [00000000004f6ad8] SyS_munmap+0x24/0x40
-[  596.931103]  [0000000000406194] linux_sparc_syscall32+0x34/0x40
+Can you see if reverting this fixes things?
 
-This is with kernel
+--------------------
+commit 3e37fd3153ac95088a74f5e7c569f7567e9f993a
+Author: David S. Miller <davem@davemloft.net>
+Date:   Thu Nov 17 18:17:59 2011 -0800
 
-jurij@debian:~$ uname -a
-Linux debian 3.1.0-1-sparc64-smp #1 SMP Sun Dec 11 22:45:09 UTC 2011 sparc64 GNU/Linux
+    sparc: Kill custom io_remap_pfn_range().
+    
+    To handle the large physical addresses, just make a simple wrapper
+    around remap_pfn_range() like MIPS does.
+    
+    Signed-off-by: David S. Miller <davem@davemloft.net>
 
-I'm also not getting any output on the monitor, even though Xorg 
-appears to start up without any errors in the log, last lines there: 
-
-[    46.160] (II) MACH64: Driver for ATI Mach64 chipsets
-[    46.160] (II) SUNFFB: driver for Creator, Creator 3D and Elite 3D
-[    46.160] (II) FBDEV: driver for framebuffer: fbdev
-[    46.160] (++) using VT number 7
-
-I did confirm that the card is functional by sticking it in a Linux 
-PC.
-
-Best regards,
--- 
-Jurij Smakov                                           jurij@wooyd.org
-Key: http://www.wooyd.org/pgpkey/                      KeyID: C99E03CC
+diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
+index 5b31a8e..a790cc6 100644
+--- a/arch/sparc/include/asm/pgtable_32.h
++++ b/arch/sparc/include/asm/pgtable_32.h
+@@ -431,10 +431,6 @@ extern unsigned long *sparc_valid_addr_bitmap;
+ #define kern_addr_valid(addr) \
+ 	(test_bit(__pa((unsigned long)(addr))>>20, sparc_valid_addr_bitmap))
+ 
+-extern int io_remap_pfn_range(struct vm_area_struct *vma,
+-			      unsigned long from, unsigned long pfn,
+-			      unsigned long size, pgprot_t prot);
+-
+ /*
+  * For sparc32&64, the pfn in io_remap_pfn_range() carries <iospace> in
+  * its high 4 bits.  These macros/functions put it there or get it from there.
+@@ -443,6 +439,22 @@ extern int io_remap_pfn_range(struct vm_area_struct *vma,
+ #define GET_IOSPACE(pfn)		(pfn >> (BITS_PER_LONG - 4))
+ #define GET_PFN(pfn)			(pfn & 0x0fffffffUL)
+ 
++extern int remap_pfn_range(struct vm_area_struct *, unsigned long, unsigned long,
++			   unsigned long, pgprot_t);
++
++static inline int io_remap_pfn_range(struct vm_area_struct *vma,
++				     unsigned long from, unsigned long pfn,
++				     unsigned long size, pgprot_t prot)
++{
++	unsigned long long offset, space, phys_base;
++
++	offset = ((unsigned long long) GET_PFN(pfn)) << PAGE_SHIFT;
++	space = GET_IOSPACE(pfn);
++	phys_base = offset | (space << 32ULL);
++
++	return remap_pfn_range(vma, from, phys_base >> PAGE_SHIFT, size, prot);
++}
++
+ #define __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
+ #define ptep_set_access_flags(__vma, __address, __ptep, __entry, __dirty) \
+ ({									  \
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index adf8932..38ebb2c 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -757,10 +757,6 @@ static inline bool kern_addr_valid(unsigned long addr)
+ 
+ extern int page_in_phys_avail(unsigned long paddr);
+ 
+-extern int io_remap_pfn_range(struct vm_area_struct *vma, unsigned long from,
+-			       unsigned long pfn,
+-			       unsigned long size, pgprot_t prot);
+-
+ /*
+  * For sparc32&64, the pfn in io_remap_pfn_range() carries <iospace> in
+  * its high 4 bits.  These macros/functions put it there or get it from there.
+@@ -769,6 +765,22 @@ extern int io_remap_pfn_range(struct vm_area_struct *vma, unsigned long from,
+ #define GET_IOSPACE(pfn)		(pfn >> (BITS_PER_LONG - 4))
+ #define GET_PFN(pfn)			(pfn & 0x0fffffffffffffffUL)
+ 
++extern int remap_pfn_range(struct vm_area_struct *, unsigned long, unsigned long,
++			   unsigned long, pgprot_t);
++
++static inline int io_remap_pfn_range(struct vm_area_struct *vma,
++				     unsigned long from, unsigned long pfn,
++				     unsigned long size, pgprot_t prot)
++{
++	unsigned long offset = GET_PFN(pfn) << PAGE_SHIFT;
++	int space = GET_IOSPACE(pfn);
++	unsigned long phys_base;
++
++	phys_base = offset | (((unsigned long) space) << 32UL);
++
++	return remap_pfn_range(vma, from, phys_base >> PAGE_SHIFT, size, prot);
++}
++
+ #include <asm-generic/pgtable.h>
+ 
+ /* We provide our own get_unmapped_area to cope with VA holes and
+diff --git a/arch/sparc/mm/Makefile b/arch/sparc/mm/Makefile
+index e3cda21..301421c 100644
+--- a/arch/sparc/mm/Makefile
++++ b/arch/sparc/mm/Makefile
+@@ -8,7 +8,6 @@ obj-$(CONFIG_SPARC64)   += ultra.o tlb.o tsb.o gup.o
+ obj-y                   += fault_$(BITS).o
+ obj-y                   += init_$(BITS).o
+ obj-$(CONFIG_SPARC32)   += loadmmu.o
+-obj-y                   += generic_$(BITS).o
+ obj-$(CONFIG_SPARC32)   += extable.o btfixup.o srmmu.o iommu.o io-unit.o
+ obj-$(CONFIG_SPARC32)   += hypersparc.o viking.o tsunami.o swift.o
+ obj-$(CONFIG_SPARC_LEON)+= leon_mm.o
+diff --git a/arch/sparc/mm/generic_32.c b/arch/sparc/mm/generic_32.c
+deleted file mode 100644
+index 6ca39a6..0000000
+--- a/arch/sparc/mm/generic_32.c
++++ /dev/null
+@@ -1,99 +0,0 @@
+-/*
+- * generic.c: Generic Sparc mm routines that are not dependent upon
+- *            MMU type but are Sparc specific.
+- *
+- * Copyright (C) 1996 David S. Miller (davem@caip.rutgers.edu)
+- */
+-
+-#include <linux/kernel.h>
+-#include <linux/mm.h>
+-#include <linux/swap.h>
+-#include <linux/pagemap.h>
+-#include <linux/export.h>
+-
+-#include <asm/pgalloc.h>
+-#include <asm/pgtable.h>
+-#include <asm/page.h>
+-#include <asm/cacheflush.h>
+-#include <asm/tlbflush.h>
+-
+-/* Remap IO memory, the same way as remap_pfn_range(), but use
+- * the obio memory space.
+- *
+- * They use a pgprot that sets PAGE_IO and does not check the
+- * mem_map table as this is independent of normal memory.
+- */
+-static inline void io_remap_pte_range(struct mm_struct *mm, pte_t * pte, unsigned long address, unsigned long size,
+-	unsigned long offset, pgprot_t prot, int space)
+-{
+-	unsigned long end;
+-
+-	address &= ~PMD_MASK;
+-	end = address + size;
+-	if (end > PMD_SIZE)
+-		end = PMD_SIZE;
+-	do {
+-		set_pte_at(mm, address, pte, mk_pte_io(offset, prot, space));
+-		address += PAGE_SIZE;
+-		offset += PAGE_SIZE;
+-		pte++;
+-	} while (address < end);
+-}
+-
+-static inline int io_remap_pmd_range(struct mm_struct *mm, pmd_t * pmd, unsigned long address, unsigned long size,
+-	unsigned long offset, pgprot_t prot, int space)
+-{
+-	unsigned long end;
+-
+-	address &= ~PGDIR_MASK;
+-	end = address + size;
+-	if (end > PGDIR_SIZE)
+-		end = PGDIR_SIZE;
+-	offset -= address;
+-	do {
+-		pte_t *pte = pte_alloc_map(mm, NULL, pmd, address);
+-		if (!pte)
+-			return -ENOMEM;
+-		io_remap_pte_range(mm, pte, address, end - address, address + offset, prot, space);
+-		address = (address + PMD_SIZE) & PMD_MASK;
+-		pmd++;
+-	} while (address < end);
+-	return 0;
+-}
+-
+-int io_remap_pfn_range(struct vm_area_struct *vma, unsigned long from,
+-		       unsigned long pfn, unsigned long size, pgprot_t prot)
+-{
+-	int error = 0;
+-	pgd_t * dir;
+-	unsigned long beg = from;
+-	unsigned long end = from + size;
+-	struct mm_struct *mm = vma->vm_mm;
+-	int space = GET_IOSPACE(pfn);
+-	unsigned long offset = GET_PFN(pfn) << PAGE_SHIFT;
+-
+-	/* See comment in mm/memory.c remap_pfn_range */
+-	vma->vm_flags |= VM_IO | VM_RESERVED | VM_PFNMAP;
+-	vma->vm_pgoff = (offset >> PAGE_SHIFT) |
+-		((unsigned long)space << 28UL);
+-
+-	offset -= from;
+-	dir = pgd_offset(mm, from);
+-	flush_cache_range(vma, beg, end);
+-
+-	while (from < end) {
+-		pmd_t *pmd = pmd_alloc(mm, dir, from);
+-		error = -ENOMEM;
+-		if (!pmd)
+-			break;
+-		error = io_remap_pmd_range(mm, pmd, from, end - from, offset + from, prot, space);
+-		if (error)
+-			break;
+-		from = (from + PGDIR_SIZE) & PGDIR_MASK;
+-		dir++;
+-	}
+-
+-	flush_tlb_range(vma, beg, end);
+-	return error;
+-}
+-EXPORT_SYMBOL(io_remap_pfn_range);
+diff --git a/arch/sparc/mm/generic_64.c b/arch/sparc/mm/generic_64.c
+deleted file mode 100644
+index 9b357dd..0000000
+--- a/arch/sparc/mm/generic_64.c
++++ /dev/null
+@@ -1,165 +0,0 @@
+-/*
+- * generic.c: Generic Sparc mm routines that are not dependent upon
+- *            MMU type but are Sparc specific.
+- *
+- * Copyright (C) 1996 David S. Miller (davem@caip.rutgers.edu)
+- */
+-
+-#include <linux/kernel.h>
+-#include <linux/mm.h>
+-#include <linux/swap.h>
+-#include <linux/export.h>
+-#include <linux/pagemap.h>
+-
+-#include <asm/pgalloc.h>
+-#include <asm/pgtable.h>
+-#include <asm/page.h>
+-#include <asm/tlbflush.h>
+-
+-/* Remap IO memory, the same way as remap_pfn_range(), but use
+- * the obio memory space.
+- *
+- * They use a pgprot that sets PAGE_IO and does not check the
+- * mem_map table as this is independent of normal memory.
+- */
+-static inline void io_remap_pte_range(struct mm_struct *mm, pte_t * pte,
+-				      unsigned long address,
+-				      unsigned long size,
+-				      unsigned long offset, pgprot_t prot,
+-				      int space)
+-{
+-	unsigned long end;
+-
+-	/* clear hack bit that was used as a write_combine side-effect flag */
+-	offset &= ~0x1UL;
+-	address &= ~PMD_MASK;
+-	end = address + size;
+-	if (end > PMD_SIZE)
+-		end = PMD_SIZE;
+-	do {
+-		pte_t entry;
+-		unsigned long curend = address + PAGE_SIZE;
+-		
+-		entry = mk_pte_io(offset, prot, space, PAGE_SIZE);
+-		if (!(address & 0xffff)) {
+-			if (PAGE_SIZE < (4 * 1024 * 1024) &&
+-			    !(address & 0x3fffff) &&
+-			    !(offset & 0x3ffffe) &&
+-			    end >= address + 0x400000) {
+-				entry = mk_pte_io(offset, prot, space,
+-						  4 * 1024 * 1024);
+-				curend = address + 0x400000;
+-				offset += 0x400000;
+-			} else if (PAGE_SIZE < (512 * 1024) &&
+-				   !(address & 0x7ffff) &&
+-				   !(offset & 0x7fffe) &&
+-				   end >= address + 0x80000) {
+-				entry = mk_pte_io(offset, prot, space,
+-						  512 * 1024 * 1024);
+-				curend = address + 0x80000;
+-				offset += 0x80000;
+-			} else if (PAGE_SIZE < (64 * 1024) &&
+-				   !(offset & 0xfffe) &&
+-				   end >= address + 0x10000) {
+-				entry = mk_pte_io(offset, prot, space,
+-						  64 * 1024);
+-				curend = address + 0x10000;
+-				offset += 0x10000;
+-			} else
+-				offset += PAGE_SIZE;
+-		} else
+-			offset += PAGE_SIZE;
+-
+-		if (pte_write(entry))
+-			entry = pte_mkdirty(entry);
+-		do {
+-			BUG_ON(!pte_none(*pte));
+-			set_pte_at(mm, address, pte, entry);
+-			address += PAGE_SIZE;
+-			pte_val(entry) += PAGE_SIZE;
+-			pte++;
+-		} while (address < curend);
+-	} while (address < end);
+-}
+-
+-static inline int io_remap_pmd_range(struct mm_struct *mm, pmd_t * pmd, unsigned long address, unsigned long size,
+-	unsigned long offset, pgprot_t prot, int space)
+-{
+-	unsigned long end;
+-
+-	address &= ~PGDIR_MASK;
+-	end = address + size;
+-	if (end > PGDIR_SIZE)
+-		end = PGDIR_SIZE;
+-	offset -= address;
+-	do {
+-		pte_t *pte = pte_alloc_map(mm, NULL, pmd, address);
+-		if (!pte)
+-			return -ENOMEM;
+-		io_remap_pte_range(mm, pte, address, end - address, address + offset, prot, space);
+-		pte_unmap(pte);
+-		address = (address + PMD_SIZE) & PMD_MASK;
+-		pmd++;
+-	} while (address < end);
+-	return 0;
+-}
+-
+-static inline int io_remap_pud_range(struct mm_struct *mm, pud_t * pud, unsigned long address, unsigned long size,
+-	unsigned long offset, pgprot_t prot, int space)
+-{
+-	unsigned long end;
+-
+-	address &= ~PUD_MASK;
+-	end = address + size;
+-	if (end > PUD_SIZE)
+-		end = PUD_SIZE;
+-	offset -= address;
+-	do {
+-		pmd_t *pmd = pmd_alloc(mm, pud, address);
+-		if (!pud)
+-			return -ENOMEM;
+-		io_remap_pmd_range(mm, pmd, address, end - address, address + offset, prot, space);
+-		address = (address + PUD_SIZE) & PUD_MASK;
+-		pud++;
+-	} while (address < end);
+-	return 0;
+-}
+-
+-int io_remap_pfn_range(struct vm_area_struct *vma, unsigned long from,
+-		unsigned long pfn, unsigned long size, pgprot_t prot)
+-{
+-	int error = 0;
+-	pgd_t * dir;
+-	unsigned long beg = from;
+-	unsigned long end = from + size;
+-	struct mm_struct *mm = vma->vm_mm;
+-	int space = GET_IOSPACE(pfn);
+-	unsigned long offset = GET_PFN(pfn) << PAGE_SHIFT;
+-	unsigned long phys_base;
+-
+-	phys_base = offset | (((unsigned long) space) << 32UL);
+-
+-	/* See comment in mm/memory.c remap_pfn_range */
+-	vma->vm_flags |= VM_IO | VM_RESERVED | VM_PFNMAP;
+-	vma->vm_pgoff = phys_base >> PAGE_SHIFT;
+-
+-	offset -= from;
+-	dir = pgd_offset(mm, from);
+-	flush_cache_range(vma, beg, end);
+-
+-	while (from < end) {
+-		pud_t *pud = pud_alloc(mm, dir, from);
+-		error = -ENOMEM;
+-		if (!pud)
+-			break;
+-		error = io_remap_pud_range(mm, pud, from, end - from, offset + from, prot, space);
+-		if (error)
+-			break;
+-		from = (from + PGDIR_SIZE) & PGDIR_MASK;
+-		dir++;
+-	}
+-
+-	flush_tlb_range(vma, beg, end);
+-	return error;
+-}
+-EXPORT_SYMBOL(io_remap_pfn_range);
