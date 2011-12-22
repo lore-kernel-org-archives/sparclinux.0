@@ -1,22 +1,49 @@
 From: David Miller <davem@davemloft.net>
-Date: Sun, 04 Dec 2011 19:00:12 +0000
-Subject: Re: [PATCH] sparc: Use kmemdup rather than duplicating its
-Message-Id: <20111204.140012.2039227798298276086.davem@davemloft.net>
+Date: Thu, 22 Dec 2011 22:01:34 +0000
+Subject: [PATCH] sparc64: Fix MSIQ HV call ordering in
+Message-Id: <20111222.170134.996905090615702639.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1321569820.1624.274.camel@localhost.localdomain>
-In-Reply-To: <1321569820.1624.274.camel@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: thomas@m3y3r.de
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Thomas Meyer <thomas@m3y3r.de>
-Date: Thu, 17 Nov 2011 23:43:40 +0100
 
-> The semantic patch that makes this change is available
-> in scripts/coccinelle/api/memdup.cocci.
-> 
-> Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
+This silently was working for many years and stopped working on
+Niagara-T3 machines.
 
-Applied.
+We need to set the MSIQ to VALID before we can set it's state to IDLE.
+
+On Niagara-T3, setting the state to IDLE first was causing HV_EINVAL
+errors.  The hypervisor documentation says, rather ambiguously, that
+the MSIQ must be "initialized" before one can set the state.
+
+I previously understood this to mean merely that a successful setconf()
+operation has been performed on the MSIQ, which we have done at this
+point.  But it seems to also mean that it has been set VALID too.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/kernel/pci_sun4v.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
+index b272cda..af5755d 100644
+--- a/arch/sparc/kernel/pci_sun4v.c
++++ b/arch/sparc/kernel/pci_sun4v.c
+@@ -849,10 +849,10 @@ static int pci_sun4v_msiq_build_irq(struct pci_pbm_info *pbm,
+ 	if (!irq)
+ 		return -ENOMEM;
+ 
+-	if (pci_sun4v_msiq_setstate(pbm->devhandle, msiqid, HV_MSIQSTATE_IDLE))
+-		return -EINVAL;
+ 	if (pci_sun4v_msiq_setvalid(pbm->devhandle, msiqid, HV_MSIQ_VALID))
+ 		return -EINVAL;
++	if (pci_sun4v_msiq_setstate(pbm->devhandle, msiqid, HV_MSIQSTATE_IDLE))
++		return -EINVAL;
+ 
+ 	return irq;
+ }
+-- 
+1.7.6.401.g6a319
+
