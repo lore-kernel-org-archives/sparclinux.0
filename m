@@ -1,7 +1,7 @@
 From: Marek Szyprowski <m.szyprowski@samsung.com>
-Date: Fri, 23 Dec 2011 12:27:25 +0000
-Subject: [PATCH 06/14] SPARC: adapt for dma_map_ops changes
-Message-Id: <1324643253-3024-7-git-send-email-m.szyprowski@samsung.com>
+Date: Fri, 23 Dec 2011 12:27:26 +0000
+Subject: [PATCH 07/14] Alpha: adapt for dma_map_ops changes
+Message-Id: <1324643253-3024-8-git-send-email-m.szyprowski@samsung.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1324643253-3024-1-git-send-email-m.szyprowski@samsung.com>
 In-Reply-To: <1324643253-3024-1-git-send-email-m.szyprowski@samsung.com>
@@ -13,193 +13,121 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@lin
 
 From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 
-Adapt core SPARC architecture code for dma_map_ops changes: replace
+Adapt core Alpha architecture code for dma_map_ops changes: replace
 alloc/free_coherent with generic alloc/free methods.
 
 Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- arch/sparc/include/asm/dma-mapping.h |   18 ++++++++++++------
- arch/sparc/kernel/iommu.c            |   10 ++++++----
- arch/sparc/kernel/ioport.c           |   18 ++++++++++--------
- arch/sparc/kernel/pci_sun4v.c        |    9 +++++----
- 4 files changed, 33 insertions(+), 22 deletions(-)
+ arch/alpha/include/asm/dma-mapping.h |   18 ++++++++++++------
+ arch/alpha/kernel/pci-noop.c         |   10 ++++++----
+ arch/alpha/kernel/pci_iommu.c        |   10 ++++++----
+ 3 files changed, 24 insertions(+), 14 deletions(-)
 
-diff --git a/arch/sparc/include/asm/dma-mapping.h b/arch/sparc/include/asm/dma-mapping.h
-index 8c0e4f7..48a7c65 100644
---- a/arch/sparc/include/asm/dma-mapping.h
-+++ b/arch/sparc/include/asm/dma-mapping.h
-@@ -26,24 +26,30 @@ static inline struct dma_map_ops *get_dma_ops(struct device *dev)
+diff --git a/arch/alpha/include/asm/dma-mapping.h b/arch/alpha/include/asm/dma-mapping.h
+index 4567aca..dfa32f0 100644
+--- a/arch/alpha/include/asm/dma-mapping.h
++++ b/arch/alpha/include/asm/dma-mapping.h
+@@ -12,16 +12,22 @@ static inline struct dma_map_ops *get_dma_ops(struct device *dev)
  
  #include <asm-generic/dma-mapping-common.h>
  
 -static inline void *dma_alloc_coherent(struct device *dev, size_t size,
--				       dma_addr_t *dma_handle, gfp_t flag)
+-				       dma_addr_t *dma_handle, gfp_t gfp)
 +#define dma_alloc_coherent(d,s,h,f)	dma_alloc_attrs(d,s,h,f,NULL)
 +
 +static inline void *dma_alloc_attrs(struct device *dev, size_t size,
-+				    dma_addr_t *dma_handle, gfp_t flag,
++				    dma_addr_t *dma_handle, gfp_t gfp,
 +				    struct dma_attrs *attrs)
  {
- 	struct dma_map_ops *ops = get_dma_ops(dev);
- 	void *cpu_addr;
- 
--	cpu_addr = ops->alloc_coherent(dev, size, dma_handle, flag);
-+	cpu_addr = ops->alloc(dev, size, dma_handle, flag, attrs);
- 	debug_dma_alloc_coherent(dev, size, *dma_handle, cpu_addr);
- 	return cpu_addr;
+-	return get_dma_ops(dev)->alloc_coherent(dev, size, dma_handle, gfp);
++	return get_dma_ops(dev)->alloc(dev, size, dma_handle, gfp, attrs);
  }
  
 -static inline void dma_free_coherent(struct device *dev, size_t size,
--				     void *cpu_addr, dma_addr_t dma_handle)
+-				     void *vaddr, dma_addr_t dma_handle)
 +#define dma_free_coherent(d,s,c,h) dma_free_attrs(d,s,c,h,NULL)
 +
 +static inline void dma_free_attrs(struct device *dev, size_t size,
-+				  void *cpu_addr, dma_addr_t dma_handle,
++				  void *vaddr, dma_addr_t dma_handle,
 +				  struct dma_attrs *attrs)
  {
- 	struct dma_map_ops *ops = get_dma_ops(dev);
- 
- 	debug_dma_free_coherent(dev, size, cpu_addr, dma_handle);
--	ops->free_coherent(dev, size, cpu_addr, dma_handle);
-+	ops->free(dev, size, cpu_addr, dma_handle, attrs);
+-	get_dma_ops(dev)->free_coherent(dev, size, vaddr, dma_handle);
++	get_dma_ops(dev)->free(dev, size, vaddr, dma_handle, attrs);
  }
  
  static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
-diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
-index 4643d68..070ed14 100644
---- a/arch/sparc/kernel/iommu.c
-+++ b/arch/sparc/kernel/iommu.c
-@@ -280,7 +280,8 @@ static inline void iommu_free_ctx(struct iommu *iommu, int ctx)
+diff --git a/arch/alpha/kernel/pci-noop.c b/arch/alpha/kernel/pci-noop.c
+index 246100e..c337fb8 100644
+--- a/arch/alpha/kernel/pci-noop.c
++++ b/arch/alpha/kernel/pci-noop.c
+@@ -108,7 +108,8 @@ sys_pciconfig_write(unsigned long bus, unsigned long dfn,
  }
  
- static void *dma_4u_alloc_coherent(struct device *dev, size_t size,
--				   dma_addr_t *dma_addrp, gfp_t gfp)
-+				   dma_addr_t *dma_addrp, gfp_t gfp,
-+				   struct dma_attrs *attrs)
+ static void *alpha_noop_alloc_coherent(struct device *dev, size_t size,
+-				       dma_addr_t *dma_handle, gfp_t gfp)
++				       dma_addr_t *dma_handle, gfp_t gfp,
++				       struct dma_attrs *attrs)
  {
- 	unsigned long flags, order, first_page;
- 	struct iommu *iommu;
-@@ -330,7 +331,8 @@ static void *dma_4u_alloc_coherent(struct device *dev, size_t size,
+ 	void *ret;
+ 
+@@ -123,7 +124,8 @@ static void *alpha_noop_alloc_coherent(struct device *dev, size_t size,
  }
  
- static void dma_4u_free_coherent(struct device *dev, size_t size,
--				 void *cpu, dma_addr_t dvma)
-+				 void *cpu, dma_addr_t dvma,
-+				 struct dma_attrs *attrs)
+ static void alpha_noop_free_coherent(struct device *dev, size_t size,
+-				     void *cpu_addr, dma_addr_t dma_addr)
++				     void *cpu_addr, dma_addr_t dma_addr,
++				     struct dma_attrs *attrs)
  {
- 	struct iommu *iommu;
- 	unsigned long flags, order, npages;
-@@ -825,8 +827,8 @@ static void dma_4u_sync_sg_for_cpu(struct device *dev,
+ 	free_pages((unsigned long)cpu_addr, get_order(size));
+ }
+@@ -174,8 +176,8 @@ static int alpha_noop_set_mask(struct device *dev, u64 mask)
  }
  
- static struct dma_map_ops sun4u_dma_ops = {
--	.alloc_coherent		= dma_4u_alloc_coherent,
--	.free_coherent		= dma_4u_free_coherent,
-+	.alloc			= dma_4u_alloc_coherent,
-+	.free			= dma_4u_free_coherent,
- 	.map_page		= dma_4u_map_page,
- 	.unmap_page		= dma_4u_unmap_page,
- 	.map_sg			= dma_4u_map_sg,
-diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
-index d0479e2..21bd739 100644
---- a/arch/sparc/kernel/ioport.c
-+++ b/arch/sparc/kernel/ioport.c
-@@ -261,7 +261,8 @@ EXPORT_SYMBOL(sbus_set_sbus64);
-  * CPU may access them without any explicit flushing.
-  */
- static void *sbus_alloc_coherent(struct device *dev, size_t len,
--				 dma_addr_t *dma_addrp, gfp_t gfp)
-+				 dma_addr_t *dma_addrp, gfp_t gfp,
-+				 struct dma_attrs *attrs)
+ struct dma_map_ops alpha_noop_ops = {
+-	.alloc_coherent		= alpha_noop_alloc_coherent,
+-	.free_coherent		= alpha_noop_free_coherent,
++	.alloc			= alpha_noop_alloc_coherent,
++	.free			= alpha_noop_free_coherent,
+ 	.map_page		= alpha_noop_map_page,
+ 	.map_sg			= alpha_noop_map_sg,
+ 	.mapping_error		= alpha_noop_mapping_error,
+diff --git a/arch/alpha/kernel/pci_iommu.c b/arch/alpha/kernel/pci_iommu.c
+index 4361080..cd63479 100644
+--- a/arch/alpha/kernel/pci_iommu.c
++++ b/arch/alpha/kernel/pci_iommu.c
+@@ -434,7 +434,8 @@ static void alpha_pci_unmap_page(struct device *dev, dma_addr_t dma_addr,
+    else DMA_ADDRP is undefined.  */
+ 
+ static void *alpha_pci_alloc_coherent(struct device *dev, size_t size,
+-				      dma_addr_t *dma_addrp, gfp_t gfp)
++				      dma_addr_t *dma_addrp, gfp_t gfp,
++				      struct dma_attrs *attrs)
  {
- 	struct platform_device *op = to_platform_device(dev);
- 	unsigned long len_total = PAGE_ALIGN(len);
-@@ -315,7 +316,7 @@ err_nopages:
- }
+ 	struct pci_dev *pdev = alpha_gendev_to_pci(dev);
+ 	void *cpu_addr;
+@@ -478,7 +479,8 @@ try_again:
+    DMA_ADDR past this call are illegal.  */
  
- static void sbus_free_coherent(struct device *dev, size_t n, void *p,
--			       dma_addr_t ba)
-+			       dma_addr_t ba, struct dma_attrs *attrs)
+ static void alpha_pci_free_coherent(struct device *dev, size_t size,
+-				    void *cpu_addr, dma_addr_t dma_addr)
++				    void *cpu_addr, dma_addr_t dma_addr,
++				    struct dma_attrs *attrs)
  {
- 	struct resource *res;
- 	struct page *pgv;
-@@ -407,8 +408,8 @@ static void sbus_sync_sg_for_device(struct device *dev, struct scatterlist *sg,
+ 	struct pci_dev *pdev = alpha_gendev_to_pci(dev);
+ 	pci_unmap_single(pdev, dma_addr, size, PCI_DMA_BIDIRECTIONAL);
+@@ -952,8 +954,8 @@ static int alpha_pci_set_mask(struct device *dev, u64 mask)
  }
  
- struct dma_map_ops sbus_dma_ops = {
--	.alloc_coherent		= sbus_alloc_coherent,
--	.free_coherent		= sbus_free_coherent,
-+	.alloc			= sbus_alloc_coherent,
-+	.free			= sbus_free_coherent,
- 	.map_page		= sbus_map_page,
- 	.unmap_page		= sbus_unmap_page,
- 	.map_sg			= sbus_map_sg,
-@@ -436,7 +437,8 @@ arch_initcall(sparc_register_ioport);
-  * hwdev should be valid struct pci_dev pointer for PCI devices.
-  */
- static void *pci32_alloc_coherent(struct device *dev, size_t len,
--				  dma_addr_t *pba, gfp_t gfp)
-+				  dma_addr_t *pba, gfp_t gfp,
-+				  struct dma_attrs *attrs)
- {
- 	unsigned long len_total = PAGE_ALIGN(len);
- 	void *va;
-@@ -489,7 +491,7 @@ err_nopages:
-  * past this call are illegal.
-  */
- static void pci32_free_coherent(struct device *dev, size_t n, void *p,
--				dma_addr_t ba)
-+				dma_addr_t ba, struct dma_attrs *attrs)
- {
- 	struct resource *res;
- 
-@@ -645,8 +647,8 @@ static void pci32_sync_sg_for_device(struct device *device, struct scatterlist *
- }
- 
- struct dma_map_ops pci32_dma_ops = {
--	.alloc_coherent		= pci32_alloc_coherent,
--	.free_coherent		= pci32_free_coherent,
-+	.alloc			= pci32_alloc_coherent,
-+	.free			= pci32_free_coherent,
- 	.map_page		= pci32_map_page,
- 	.unmap_page		= pci32_unmap_page,
- 	.map_sg			= pci32_map_sg,
-diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
-index b272cda..a8756e3 100644
---- a/arch/sparc/kernel/pci_sun4v.c
-+++ b/arch/sparc/kernel/pci_sun4v.c
-@@ -128,7 +128,8 @@ static inline long iommu_batch_end(void)
- }
- 
- static void *dma_4v_alloc_coherent(struct device *dev, size_t size,
--				   dma_addr_t *dma_addrp, gfp_t gfp)
-+				   dma_addr_t *dma_addrp, gfp_t gfp,
-+				   struct dma_attrs *attrs)
- {
- 	unsigned long flags, order, first_page, npages, n;
- 	struct iommu *iommu;
-@@ -198,7 +199,7 @@ range_alloc_fail:
- }
- 
- static void dma_4v_free_coherent(struct device *dev, size_t size, void *cpu,
--				 dma_addr_t dvma)
-+				 dma_addr_t dvma, struct dma_attrs *attrs)
- {
- 	struct pci_pbm_info *pbm;
- 	struct iommu *iommu;
-@@ -527,8 +528,8 @@ static void dma_4v_unmap_sg(struct device *dev, struct scatterlist *sglist,
- }
- 
- static struct dma_map_ops sun4v_dma_ops = {
--	.alloc_coherent			= dma_4v_alloc_coherent,
--	.free_coherent			= dma_4v_free_coherent,
-+	.alloc				= dma_4v_alloc_coherent,
-+	.free				= dma_4v_free_coherent,
- 	.map_page			= dma_4v_map_page,
- 	.unmap_page			= dma_4v_unmap_page,
- 	.map_sg				= dma_4v_map_sg,
+ struct dma_map_ops alpha_pci_ops = {
+-	.alloc_coherent		= alpha_pci_alloc_coherent,
+-	.free_coherent		= alpha_pci_free_coherent,
++	.alloc			= alpha_pci_alloc_coherent,
++	.free			= alpha_pci_free_coherent,
+ 	.map_page		= alpha_pci_map_page,
+ 	.unmap_page		= alpha_pci_unmap_page,
+ 	.map_sg			= alpha_pci_map_sg,
 -- 
 1.7.1.569.g6f426
 
