@@ -1,7 +1,7 @@
 From: Marek Szyprowski <m.szyprowski@samsung.com>
-Date: Fri, 23 Dec 2011 12:27:23 +0000
-Subject: [PATCH 04/14] PowerPC: adapt for dma_map_ops changes
-Message-Id: <1324643253-3024-5-git-send-email-m.szyprowski@samsung.com>
+Date: Fri, 23 Dec 2011 12:27:21 +0000
+Subject: [PATCH 02/14] X86: adapt for dma_map_ops changes
+Message-Id: <1324643253-3024-3-git-send-email-m.szyprowski@samsung.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1324643253-3024-1-git-send-email-m.szyprowski@samsung.com>
 In-Reply-To: <1324643253-3024-1-git-send-email-m.szyprowski@samsung.com>
@@ -13,298 +13,412 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@lin
 
 From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 
-Adapt core PowerPC architecture code for dma_map_ops changes: replace
+Adapt core X86 architecture code for dma_map_ops changes: replace
 alloc/free_coherent with generic alloc/free methods.
 
 Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- arch/powerpc/include/asm/dma-mapping.h  |   24 ++++++++++++++++--------
- arch/powerpc/kernel/dma-iommu.c         |   10 ++++++----
- arch/powerpc/kernel/dma-swiotlb.c       |    4 ++--
- arch/powerpc/kernel/dma.c               |   10 ++++++----
- arch/powerpc/kernel/ibmebus.c           |   10 ++++++----
- arch/powerpc/platforms/cell/iommu.c     |   16 +++++++++-------
- arch/powerpc/platforms/ps3/system-bus.c |   13 +++++++------
- 7 files changed, 52 insertions(+), 35 deletions(-)
+ arch/x86/include/asm/dma-mapping.h |   26 ++++++++++++++++----------
+ arch/x86/kernel/amd_gart_64.c      |   11 ++++++-----
+ arch/x86/kernel/pci-calgary_64.c   |    9 +++++----
+ arch/x86/kernel/pci-dma.c          |    3 ++-
+ arch/x86/kernel/pci-nommu.c        |    6 +++---
+ arch/x86/kernel/pci-swiotlb.c      |   12 +++++++-----
+ arch/x86/xen/pci-swiotlb-xen.c     |    4 ++--
+ drivers/iommu/amd_iommu.c          |   10 ++++++----
+ drivers/iommu/intel-iommu.c        |    9 +++++----
+ drivers/xen/swiotlb-xen.c          |    5 +++--
+ include/linux/swiotlb.h            |    6 ++++--
+ include/xen/swiotlb-xen.h          |    6 ++++--
+ lib/swiotlb.c                      |    5 +++--
+ 13 files changed, 66 insertions(+), 46 deletions(-)
 
-diff --git a/arch/powerpc/include/asm/dma-mapping.h b/arch/powerpc/include/asm/dma-mapping.h
-index dd70fac..62678e3 100644
---- a/arch/powerpc/include/asm/dma-mapping.h
-+++ b/arch/powerpc/include/asm/dma-mapping.h
-@@ -22,9 +22,11 @@
+diff --git a/arch/x86/include/asm/dma-mapping.h b/arch/x86/include/asm/dma-mapping.h
+index ed3065f..4b4331d 100644
+--- a/arch/x86/include/asm/dma-mapping.h
++++ b/arch/x86/include/asm/dma-mapping.h
+@@ -59,7 +59,8 @@ extern int dma_supported(struct device *hwdev, u64 mask);
+ extern int dma_set_mask(struct device *dev, u64 mask);
  
- /* Some dma direct funcs must be visible for use in other dma_ops */
- extern void *dma_direct_alloc_coherent(struct device *dev, size_t size,
--				       dma_addr_t *dma_handle, gfp_t flag);
-+				       dma_addr_t *dma_handle, gfp_t flag,
-+				       struct dma_attrs *attrs);
- extern void dma_direct_free_coherent(struct device *dev, size_t size,
--				     void *vaddr, dma_addr_t dma_handle);
-+				     void *vaddr, dma_addr_t dma_handle,
-+				     struct dma_attrs *attrs);
+ extern void *dma_generic_alloc_coherent(struct device *dev, size_t size,
+-					dma_addr_t *dma_addr, gfp_t flag);
++					dma_addr_t *dma_addr, gfp_t flag,
++					struct dma_attrs *attrs);
  
+ static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
+ {
+@@ -111,9 +112,11 @@ static inline gfp_t dma_alloc_coherent_gfp_flags(struct device *dev, gfp_t gfp)
+        return gfp;
+ }
  
- #ifdef CONFIG_NOT_COHERENT_CACHE
-@@ -130,23 +132,29 @@ static inline int dma_supported(struct device *dev, u64 mask)
- 
- extern int dma_set_mask(struct device *dev, u64 dma_mask);
- 
--static inline void *dma_alloc_coherent(struct device *dev, size_t size,
--				       dma_addr_t *dma_handle, gfp_t flag)
 +#define dma_alloc_coherent(d,s,h,f)	dma_alloc_attrs(d,s,h,f,NULL)
 +
-+static inline void *dma_alloc_attrs(struct device *dev, size_t size,
-+				    dma_addr_t *dma_handle, gfp_t flag,
-+				    struct dma_attrs *attrs)
+ static inline void *
+-dma_alloc_coherent(struct device *dev, size_t size, dma_addr_t *dma_handle,
+-		gfp_t gfp)
++dma_alloc_attrs(struct device *dev, size_t size, dma_addr_t *dma_handle,
++		gfp_t gfp, struct dma_attrs *attrs)
  {
- 	struct dma_map_ops *dma_ops = get_dma_ops(dev);
- 	void *cpu_addr;
+ 	struct dma_map_ops *ops = get_dma_ops(dev);
+ 	void *memory;
+@@ -129,18 +132,21 @@ dma_alloc_coherent(struct device *dev, size_t size, dma_addr_t *dma_handle,
+ 	if (!is_device_dma_capable(dev))
+ 		return NULL;
  
- 	BUG_ON(!dma_ops);
+-	if (!ops->alloc_coherent)
++	if (!ops->alloc)
+ 		return NULL;
  
--	cpu_addr = dma_ops->alloc_coherent(dev, size, dma_handle, flag);
-+	cpu_addr = dma_ops->alloc(dev, size, dma_handle, flag, attrs);
+-	memory = ops->alloc_coherent(dev, size, dma_handle,
+-				     dma_alloc_coherent_gfp_flags(dev, gfp));
++	memory = ops->alloc(dev, size, dma_handle,
++			    dma_alloc_coherent_gfp_flags(dev, gfp), attrs);
+ 	debug_dma_alloc_coherent(dev, size, *dma_handle, memory);
  
- 	debug_dma_alloc_coherent(dev, size, *dma_handle, cpu_addr);
- 
- 	return cpu_addr;
+ 	return memory;
  }
  
 -static inline void dma_free_coherent(struct device *dev, size_t size,
--				     void *cpu_addr, dma_addr_t dma_handle)
+-				     void *vaddr, dma_addr_t bus)
 +#define dma_free_coherent(d,s,c,h) dma_free_attrs(d,s,c,h,NULL)
 +
 +static inline void dma_free_attrs(struct device *dev, size_t size,
-+				  void *cpu_addr, dma_addr_t dma_handle,
++				  void *vaddr, dma_addr_t bus,
 +				  struct dma_attrs *attrs)
  {
- 	struct dma_map_ops *dma_ops = get_dma_ops(dev);
+ 	struct dma_map_ops *ops = get_dma_ops(dev);
  
-@@ -154,7 +162,7 @@ static inline void dma_free_coherent(struct device *dev, size_t size,
+@@ -150,8 +156,8 @@ static inline void dma_free_coherent(struct device *dev, size_t size,
+ 		return;
  
- 	debug_dma_free_coherent(dev, size, cpu_addr, dma_handle);
- 
--	dma_ops->free_coherent(dev, size, cpu_addr, dma_handle);
-+	dma_ops->free(dev, size, cpu_addr, dma_handle, attrs);
+ 	debug_dma_free_coherent(dev, size, vaddr, bus);
+-	if (ops->free_coherent)
+-		ops->free_coherent(dev, size, vaddr, bus);
++	if (ops->free)
++		ops->free(dev, size, vaddr, bus, attrs);
  }
  
- static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
-diff --git a/arch/powerpc/kernel/dma-iommu.c b/arch/powerpc/kernel/dma-iommu.c
-index 3f6464b..bcfdcd2 100644
---- a/arch/powerpc/kernel/dma-iommu.c
-+++ b/arch/powerpc/kernel/dma-iommu.c
-@@ -17,7 +17,8 @@
-  * to the dma address (mapping) of the first page.
-  */
- static void *dma_iommu_alloc_coherent(struct device *dev, size_t size,
--				      dma_addr_t *dma_handle, gfp_t flag)
-+				      dma_addr_t *dma_handle, gfp_t flag,
-+				      struct dma_attrs *attrs)
- {
- 	return iommu_alloc_coherent(dev, get_iommu_table_base(dev), size,
- 				    dma_handle, dev->coherent_dma_mask, flag,
-@@ -25,7 +26,8 @@ static void *dma_iommu_alloc_coherent(struct device *dev, size_t size,
- }
- 
- static void dma_iommu_free_coherent(struct device *dev, size_t size,
--				    void *vaddr, dma_addr_t dma_handle)
-+				    void *vaddr, dma_addr_t dma_handle,
-+				    struct dma_attrs *attrs)
- {
- 	iommu_free_coherent(get_iommu_table_base(dev), size, vaddr, dma_handle);
- }
-@@ -105,8 +107,8 @@ static u64 dma_iommu_get_required_mask(struct device *dev)
- }
- 
- struct dma_map_ops dma_iommu_ops = {
--	.alloc_coherent		= dma_iommu_alloc_coherent,
--	.free_coherent		= dma_iommu_free_coherent,
-+	.alloc			= dma_iommu_alloc_coherent,
-+	.free			= dma_iommu_free_coherent,
- 	.map_sg			= dma_iommu_map_sg,
- 	.unmap_sg		= dma_iommu_unmap_sg,
- 	.dma_supported		= dma_iommu_dma_supported,
-diff --git a/arch/powerpc/kernel/dma-swiotlb.c b/arch/powerpc/kernel/dma-swiotlb.c
-index 1ebc918..4ab88da 100644
---- a/arch/powerpc/kernel/dma-swiotlb.c
-+++ b/arch/powerpc/kernel/dma-swiotlb.c
-@@ -47,8 +47,8 @@ static u64 swiotlb_powerpc_get_required(struct device *dev)
-  * for everything else.
-  */
- struct dma_map_ops swiotlb_dma_ops = {
--	.alloc_coherent = dma_direct_alloc_coherent,
--	.free_coherent = dma_direct_free_coherent,
-+	.alloc = dma_direct_alloc_coherent,
-+	.free = dma_direct_free_coherent,
- 	.map_sg = swiotlb_map_sg_attrs,
- 	.unmap_sg = swiotlb_unmap_sg_attrs,
- 	.dma_supported = swiotlb_dma_supported,
-diff --git a/arch/powerpc/kernel/dma.c b/arch/powerpc/kernel/dma.c
-index 7d0233c..b1ec983 100644
---- a/arch/powerpc/kernel/dma.c
-+++ b/arch/powerpc/kernel/dma.c
-@@ -26,7 +26,8 @@
- 
- 
- void *dma_direct_alloc_coherent(struct device *dev, size_t size,
--				dma_addr_t *dma_handle, gfp_t flag)
-+				dma_addr_t *dma_handle, gfp_t flag,
-+				struct dma_attrs *attrs)
- {
- 	void *ret;
- #ifdef CONFIG_NOT_COHERENT_CACHE
-@@ -54,7 +55,8 @@ void *dma_direct_alloc_coherent(struct device *dev, size_t size,
- }
- 
- void dma_direct_free_coherent(struct device *dev, size_t size,
--			      void *vaddr, dma_addr_t dma_handle)
-+			      void *vaddr, dma_addr_t dma_handle,
-+			      struct dma_attrs *attrs)
- {
- #ifdef CONFIG_NOT_COHERENT_CACHE
- 	__dma_free_coherent(size, vaddr);
-@@ -150,8 +152,8 @@ static inline void dma_direct_sync_single(struct device *dev,
  #endif
- 
- struct dma_map_ops dma_direct_ops = {
--	.alloc_coherent			= dma_direct_alloc_coherent,
--	.free_coherent			= dma_direct_free_coherent,
-+	.alloc				= dma_direct_alloc_coherent,
-+	.free				= dma_direct_free_coherent,
- 	.map_sg				= dma_direct_map_sg,
- 	.unmap_sg			= dma_direct_unmap_sg,
- 	.dma_supported			= dma_direct_dma_supported,
-diff --git a/arch/powerpc/kernel/ibmebus.c b/arch/powerpc/kernel/ibmebus.c
-index d39ae60..716d918 100644
---- a/arch/powerpc/kernel/ibmebus.c
-+++ b/arch/powerpc/kernel/ibmebus.c
-@@ -65,7 +65,8 @@ static struct of_device_id __initdata ibmebus_matches[] = {
- static void *ibmebus_alloc_coherent(struct device *dev,
- 				    size_t size,
- 				    dma_addr_t *dma_handle,
--				    gfp_t flag)
-+				    gfp_t flag,
-+				    struct dma_attrs *attrs)
+diff --git a/arch/x86/kernel/amd_gart_64.c b/arch/x86/kernel/amd_gart_64.c
+index b1e7c7f..e663112 100644
+--- a/arch/x86/kernel/amd_gart_64.c
++++ b/arch/x86/kernel/amd_gart_64.c
+@@ -477,7 +477,7 @@ error:
+ /* allocate and map a coherent mapping */
+ static void *
+ gart_alloc_coherent(struct device *dev, size_t size, dma_addr_t *dma_addr,
+-		    gfp_t flag)
++		    gfp_t flag, struct dma_attrs *attrs)
  {
- 	void *mem;
+ 	dma_addr_t paddr;
+ 	unsigned long align_mask;
+@@ -500,7 +500,8 @@ gart_alloc_coherent(struct device *dev, size_t size, dma_addr_t *dma_addr,
+ 		}
+ 		__free_pages(page, get_order(size));
+ 	} else
+-		return dma_generic_alloc_coherent(dev, size, dma_addr, flag);
++		return dma_generic_alloc_coherent(dev, size, dma_addr, flag,
++						  attrs);
  
-@@ -77,7 +78,8 @@ static void *ibmebus_alloc_coherent(struct device *dev,
- 
- static void ibmebus_free_coherent(struct device *dev,
- 				  size_t size, void *vaddr,
--				  dma_addr_t dma_handle)
-+				  dma_addr_t dma_handle,
-+				  struct dma_attrs *attrs)
+ 	return NULL;
+ }
+@@ -508,7 +509,7 @@ gart_alloc_coherent(struct device *dev, size_t size, dma_addr_t *dma_addr,
+ /* free a coherent mapping */
+ static void
+ gart_free_coherent(struct device *dev, size_t size, void *vaddr,
+-		   dma_addr_t dma_addr)
++		   dma_addr_t dma_addr, struct dma_attrs *attrs)
  {
- 	kfree(vaddr);
- }
-@@ -136,8 +138,8 @@ static u64 ibmebus_dma_get_required_mask(struct device *dev)
- }
- 
- static struct dma_map_ops ibmebus_dma_ops = {
--	.alloc_coherent     = ibmebus_alloc_coherent,
--	.free_coherent      = ibmebus_free_coherent,
-+	.alloc              = ibmebus_alloc_coherent,
-+	.free               = ibmebus_free_coherent,
- 	.map_sg             = ibmebus_map_sg,
- 	.unmap_sg           = ibmebus_unmap_sg,
- 	.dma_supported      = ibmebus_dma_supported,
-diff --git a/arch/powerpc/platforms/cell/iommu.c b/arch/powerpc/platforms/cell/iommu.c
-index 592c3d5..471c955 100644
---- a/arch/powerpc/platforms/cell/iommu.c
-+++ b/arch/powerpc/platforms/cell/iommu.c
-@@ -564,7 +564,8 @@ static struct iommu_table *cell_get_iommu_table(struct device *dev)
- /* A coherent allocation implies strong ordering */
- 
- static void *dma_fixed_alloc_coherent(struct device *dev, size_t size,
--				      dma_addr_t *dma_handle, gfp_t flag)
-+				      dma_addr_t *dma_handle, gfp_t flag,
-+				      struct dma_attrs *attrs)
- {
- 	if (iommu_fixed_is_weak)
- 		return iommu_alloc_coherent(dev, cell_get_iommu_table(dev),
-@@ -572,18 +573,19 @@ static void *dma_fixed_alloc_coherent(struct device *dev, size_t size,
- 					    device_to_mask(dev), flag,
- 					    dev_to_node(dev));
- 	else
--		return dma_direct_ops.alloc_coherent(dev, size, dma_handle,
--						     flag);
-+		return dma_direct_ops.alloc(dev, size, dma_handle, flag,
-+					    attrs);
- }
- 
- static void dma_fixed_free_coherent(struct device *dev, size_t size,
--				    void *vaddr, dma_addr_t dma_handle)
-+				    void *vaddr, dma_addr_t dma_handle,
-+				    struct dma_attrs *attrs)
- {
- 	if (iommu_fixed_is_weak)
- 		iommu_free_coherent(cell_get_iommu_table(dev), size, vaddr,
- 				    dma_handle);
- 	else
--		dma_direct_ops.free_coherent(dev, size, vaddr, dma_handle);
-+		dma_direct_ops.free(dev, size, vaddr, dma_handle, attrs);
- }
- 
- static dma_addr_t dma_fixed_map_page(struct device *dev, struct page *page,
-@@ -642,8 +644,8 @@ static int dma_fixed_dma_supported(struct device *dev, u64 mask)
- static int dma_set_mask_and_switch(struct device *dev, u64 dma_mask);
- 
- struct dma_map_ops dma_iommu_fixed_ops = {
--	.alloc_coherent = dma_fixed_alloc_coherent,
--	.free_coherent  = dma_fixed_free_coherent,
-+	.alloc          = dma_fixed_alloc_coherent,
-+	.free           = dma_fixed_free_coherent,
- 	.map_sg         = dma_fixed_map_sg,
- 	.unmap_sg       = dma_fixed_unmap_sg,
- 	.dma_supported  = dma_fixed_dma_supported,
-diff --git a/arch/powerpc/platforms/ps3/system-bus.c b/arch/powerpc/platforms/ps3/system-bus.c
-index 880eb9c..5606fe3 100644
---- a/arch/powerpc/platforms/ps3/system-bus.c
-+++ b/arch/powerpc/platforms/ps3/system-bus.c
-@@ -515,7 +515,8 @@ core_initcall(ps3_system_bus_init);
-  * to the dma address (mapping) of the first page.
-  */
- static void * ps3_alloc_coherent(struct device *_dev, size_t size,
--				      dma_addr_t *dma_handle, gfp_t flag)
-+				 dma_addr_t *dma_handle, gfp_t flag,
-+				 struct dma_attrs *attrs)
- {
- 	int result;
- 	struct ps3_system_bus_device *dev = ps3_dev_to_system_bus_dev(_dev);
-@@ -552,7 +553,7 @@ clean_none:
- }
- 
- static void ps3_free_coherent(struct device *_dev, size_t size, void *vaddr,
--	dma_addr_t dma_handle)
-+			      dma_addr_t dma_handle, struct dma_attrs *attrs)
- {
- 	struct ps3_system_bus_device *dev = ps3_dev_to_system_bus_dev(_dev);
- 
-@@ -701,8 +702,8 @@ static u64 ps3_dma_get_required_mask(struct device *_dev)
- }
- 
- static struct dma_map_ops ps3_sb_dma_ops = {
--	.alloc_coherent = ps3_alloc_coherent,
--	.free_coherent = ps3_free_coherent,
-+	.alloc = ps3_alloc_coherent,
-+	.free = ps3_free_coherent,
- 	.map_sg = ps3_sb_map_sg,
- 	.unmap_sg = ps3_sb_unmap_sg,
- 	.dma_supported = ps3_dma_supported,
-@@ -712,8 +713,8 @@ static struct dma_map_ops ps3_sb_dma_ops = {
+ 	gart_unmap_page(dev, dma_addr, size, DMA_BIDIRECTIONAL, NULL);
+ 	free_pages((unsigned long)vaddr, get_order(size));
+@@ -700,8 +701,8 @@ static struct dma_map_ops gart_dma_ops = {
+ 	.unmap_sg			= gart_unmap_sg,
+ 	.map_page			= gart_map_page,
+ 	.unmap_page			= gart_unmap_page,
+-	.alloc_coherent			= gart_alloc_coherent,
+-	.free_coherent			= gart_free_coherent,
++	.alloc				= gart_alloc_coherent,
++	.free				= gart_free_coherent,
+ 	.mapping_error			= gart_mapping_error,
  };
  
- static struct dma_map_ops ps3_ioc0_dma_ops = {
--	.alloc_coherent = ps3_alloc_coherent,
--	.free_coherent = ps3_free_coherent,
-+	.alloc = ps3_alloc_coherent,
-+	.free = ps3_free_coherent,
- 	.map_sg = ps3_ioc0_map_sg,
- 	.unmap_sg = ps3_ioc0_unmap_sg,
- 	.dma_supported = ps3_dma_supported,
+diff --git a/arch/x86/kernel/pci-calgary_64.c b/arch/x86/kernel/pci-calgary_64.c
+index 726494b..07b587c 100644
+--- a/arch/x86/kernel/pci-calgary_64.c
++++ b/arch/x86/kernel/pci-calgary_64.c
+@@ -431,7 +431,7 @@ static void calgary_unmap_page(struct device *dev, dma_addr_t dma_addr,
+ }
+ 
+ static void* calgary_alloc_coherent(struct device *dev, size_t size,
+-	dma_addr_t *dma_handle, gfp_t flag)
++	dma_addr_t *dma_handle, gfp_t flag, struct dma_attrs *attrs)
+ {
+ 	void *ret = NULL;
+ 	dma_addr_t mapping;
+@@ -464,7 +464,8 @@ error:
+ }
+ 
+ static void calgary_free_coherent(struct device *dev, size_t size,
+-				  void *vaddr, dma_addr_t dma_handle)
++				  void *vaddr, dma_addr_t dma_handle,
++				  struct dma_attrs *attrs)
+ {
+ 	unsigned int npages;
+ 	struct iommu_table *tbl = find_iommu_table(dev);
+@@ -477,8 +478,8 @@ static void calgary_free_coherent(struct device *dev, size_t size,
+ }
+ 
+ static struct dma_map_ops calgary_dma_ops = {
+-	.alloc_coherent = calgary_alloc_coherent,
+-	.free_coherent = calgary_free_coherent,
++	.alloc = calgary_alloc_coherent,
++	.free = calgary_free_coherent,
+ 	.map_sg = calgary_map_sg,
+ 	.unmap_sg = calgary_unmap_sg,
+ 	.map_page = calgary_map_page,
+diff --git a/arch/x86/kernel/pci-dma.c b/arch/x86/kernel/pci-dma.c
+index 80dc793..b8b9e47 100644
+--- a/arch/x86/kernel/pci-dma.c
++++ b/arch/x86/kernel/pci-dma.c
+@@ -87,7 +87,8 @@ void __init pci_iommu_alloc(void)
+ 	}
+ }
+ void *dma_generic_alloc_coherent(struct device *dev, size_t size,
+-				 dma_addr_t *dma_addr, gfp_t flag)
++				 dma_addr_t *dma_addr, gfp_t flag,
++				 struct dma_attrs *attrs)
+ {
+ 	unsigned long dma_mask;
+ 	struct page *page;
+diff --git a/arch/x86/kernel/pci-nommu.c b/arch/x86/kernel/pci-nommu.c
+index 3af4af8..f960506 100644
+--- a/arch/x86/kernel/pci-nommu.c
++++ b/arch/x86/kernel/pci-nommu.c
+@@ -75,7 +75,7 @@ static int nommu_map_sg(struct device *hwdev, struct scatterlist *sg,
+ }
+ 
+ static void nommu_free_coherent(struct device *dev, size_t size, void *vaddr,
+-				dma_addr_t dma_addr)
++				dma_addr_t dma_addr, struct dma_attrs *attrs)
+ {
+ 	free_pages((unsigned long)vaddr, get_order(size));
+ }
+@@ -96,8 +96,8 @@ static void nommu_sync_sg_for_device(struct device *dev,
+ }
+ 
+ struct dma_map_ops nommu_dma_ops = {
+-	.alloc_coherent		= dma_generic_alloc_coherent,
+-	.free_coherent		= nommu_free_coherent,
++	.alloc			= dma_generic_alloc_coherent,
++	.free			= nommu_free_coherent,
+ 	.map_sg			= nommu_map_sg,
+ 	.map_page		= nommu_map_page,
+ 	.sync_single_for_device = nommu_sync_single_for_device,
+diff --git a/arch/x86/kernel/pci-swiotlb.c b/arch/x86/kernel/pci-swiotlb.c
+index 8f972cb..fa462a3 100644
+--- a/arch/x86/kernel/pci-swiotlb.c
++++ b/arch/x86/kernel/pci-swiotlb.c
+@@ -15,21 +15,23 @@
+ int swiotlb __read_mostly;
+ 
+ static void *x86_swiotlb_alloc_coherent(struct device *hwdev, size_t size,
+-					dma_addr_t *dma_handle, gfp_t flags)
++					dma_addr_t *dma_handle, gfp_t flags,
++					struct dma_attrs *attrs)
+ {
+ 	void *vaddr;
+ 
+-	vaddr = dma_generic_alloc_coherent(hwdev, size, dma_handle, flags);
++	vaddr = dma_generic_alloc_coherent(hwdev, size, dma_handle, flags,
++					   attrs);
+ 	if (vaddr)
+ 		return vaddr;
+ 
+-	return swiotlb_alloc_coherent(hwdev, size, dma_handle, flags);
++	return swiotlb_alloc_coherent(hwdev, size, dma_handle, flags, attrs);
+ }
+ 
+ static struct dma_map_ops swiotlb_dma_ops = {
+ 	.mapping_error = swiotlb_dma_mapping_error,
+-	.alloc_coherent = x86_swiotlb_alloc_coherent,
+-	.free_coherent = swiotlb_free_coherent,
++	.alloc = x86_swiotlb_alloc_coherent,
++	.free = swiotlb_free_coherent,
+ 	.sync_single_for_cpu = swiotlb_sync_single_for_cpu,
+ 	.sync_single_for_device = swiotlb_sync_single_for_device,
+ 	.sync_sg_for_cpu = swiotlb_sync_sg_for_cpu,
+diff --git a/arch/x86/xen/pci-swiotlb-xen.c b/arch/x86/xen/pci-swiotlb-xen.c
+index b480d42..967633a 100644
+--- a/arch/x86/xen/pci-swiotlb-xen.c
++++ b/arch/x86/xen/pci-swiotlb-xen.c
+@@ -12,8 +12,8 @@ int xen_swiotlb __read_mostly;
+ 
+ static struct dma_map_ops xen_swiotlb_dma_ops = {
+ 	.mapping_error = xen_swiotlb_dma_mapping_error,
+-	.alloc_coherent = xen_swiotlb_alloc_coherent,
+-	.free_coherent = xen_swiotlb_free_coherent,
++	.alloc = xen_swiotlb_alloc_coherent,
++	.free = xen_swiotlb_free_coherent,
+ 	.sync_single_for_cpu = xen_swiotlb_sync_single_for_cpu,
+ 	.sync_single_for_device = xen_swiotlb_sync_single_for_device,
+ 	.sync_sg_for_cpu = xen_swiotlb_sync_sg_for_cpu,
+diff --git a/drivers/iommu/amd_iommu.c b/drivers/iommu/amd_iommu.c
+index 4ee277a..fc36f1e 100644
+--- a/drivers/iommu/amd_iommu.c
++++ b/drivers/iommu/amd_iommu.c
+@@ -2335,7 +2335,8 @@ static void unmap_sg(struct device *dev, struct scatterlist *sglist,
+  * The exported alloc_coherent function for dma_ops.
+  */
+ static void *alloc_coherent(struct device *dev, size_t size,
+-			    dma_addr_t *dma_addr, gfp_t flag)
++			    dma_addr_t *dma_addr, gfp_t flag,
++			    struct dma_attrs *attrs)
+ {
+ 	unsigned long flags;
+ 	void *virt_addr;
+@@ -2393,7 +2394,8 @@ out_free:
+  * The exported free_coherent function for dma_ops.
+  */
+ static void free_coherent(struct device *dev, size_t size,
+-			  void *virt_addr, dma_addr_t dma_addr)
++			  void *virt_addr, dma_addr_t dma_addr,
++			  struct dma_attrs *attrs)
+ {
+ 	unsigned long flags;
+ 	struct protection_domain *domain;
+@@ -2463,8 +2465,8 @@ static void prealloc_protection_domains(void)
+ }
+ 
+ static struct dma_map_ops amd_iommu_dma_ops = {
+-	.alloc_coherent = alloc_coherent,
+-	.free_coherent = free_coherent,
++	.alloc = alloc_coherent,
++	.free = free_coherent,
+ 	.map_page = map_page,
+ 	.unmap_page = unmap_page,
+ 	.map_sg = map_sg,
+diff --git a/drivers/iommu/intel-iommu.c b/drivers/iommu/intel-iommu.c
+index bdc447f..22982184 100644
+--- a/drivers/iommu/intel-iommu.c
++++ b/drivers/iommu/intel-iommu.c
+@@ -2925,7 +2925,8 @@ static void intel_unmap_page(struct device *dev, dma_addr_t dev_addr,
+ }
+ 
+ static void *intel_alloc_coherent(struct device *hwdev, size_t size,
+-				  dma_addr_t *dma_handle, gfp_t flags)
++				  dma_addr_t *dma_handle, gfp_t flags,
++				  struct dma_attrs *attrs)
+ {
+ 	void *vaddr;
+ 	int order;
+@@ -2957,7 +2958,7 @@ static void *intel_alloc_coherent(struct device *hwdev, size_t size,
+ }
+ 
+ static void intel_free_coherent(struct device *hwdev, size_t size, void *vaddr,
+-				dma_addr_t dma_handle)
++				dma_addr_t dma_handle, struct dma_attrs *attrs)
+ {
+ 	int order;
+ 
+@@ -3102,8 +3103,8 @@ static int intel_mapping_error(struct device *dev, dma_addr_t dma_addr)
+ }
+ 
+ struct dma_map_ops intel_dma_ops = {
+-	.alloc_coherent = intel_alloc_coherent,
+-	.free_coherent = intel_free_coherent,
++	.alloc = intel_alloc_coherent,
++	.free = intel_free_coherent,
+ 	.map_sg = intel_map_sg,
+ 	.unmap_sg = intel_unmap_sg,
+ 	.map_page = intel_map_page,
+diff --git a/drivers/xen/swiotlb-xen.c b/drivers/xen/swiotlb-xen.c
+index 284798a..6c67ed4 100644
+--- a/drivers/xen/swiotlb-xen.c
++++ b/drivers/xen/swiotlb-xen.c
+@@ -204,7 +204,8 @@ error:
+ 
+ void *
+ xen_swiotlb_alloc_coherent(struct device *hwdev, size_t size,
+-			   dma_addr_t *dma_handle, gfp_t flags)
++			   dma_addr_t *dma_handle, gfp_t flags,
++			   struct dma_attrs *attrs)
+ {
+ 	void *ret;
+ 	int order = get_order(size);
+@@ -253,7 +254,7 @@ EXPORT_SYMBOL_GPL(xen_swiotlb_alloc_coherent);
+ 
+ void
+ xen_swiotlb_free_coherent(struct device *hwdev, size_t size, void *vaddr,
+-			  dma_addr_t dev_addr)
++			  dma_addr_t dev_addr, struct dma_attrs *attrs)
+ {
+ 	int order = get_order(size);
+ 	phys_addr_t phys;
+diff --git a/include/linux/swiotlb.h b/include/linux/swiotlb.h
+index 445702c..769f8bc 100644
+--- a/include/linux/swiotlb.h
++++ b/include/linux/swiotlb.h
+@@ -50,11 +50,13 @@ extern void swiotlb_bounce(phys_addr_t phys, char *dma_addr, size_t size,
+ 
+ extern void
+ *swiotlb_alloc_coherent(struct device *hwdev, size_t size,
+-			dma_addr_t *dma_handle, gfp_t flags);
++			dma_addr_t *dma_handle, gfp_t flags,
++			struct dma_attrs *attrs);
+ 
+ extern void
+ swiotlb_free_coherent(struct device *hwdev, size_t size,
+-		      void *vaddr, dma_addr_t dma_handle);
++		      void *vaddr, dma_addr_t dma_handle,
++		      struct dma_attrs *attrs);
+ 
+ extern dma_addr_t swiotlb_map_page(struct device *dev, struct page *page,
+ 				   unsigned long offset, size_t size,
+diff --git a/include/xen/swiotlb-xen.h b/include/xen/swiotlb-xen.h
+index 2ea2fdc..4f4d449 100644
+--- a/include/xen/swiotlb-xen.h
++++ b/include/xen/swiotlb-xen.h
+@@ -7,11 +7,13 @@ extern void xen_swiotlb_init(int verbose);
+ 
+ extern void
+ *xen_swiotlb_alloc_coherent(struct device *hwdev, size_t size,
+-			    dma_addr_t *dma_handle, gfp_t flags);
++			    dma_addr_t *dma_handle, gfp_t flags,
++			    struct dma_attrs *attrs);
+ 
+ extern void
+ xen_swiotlb_free_coherent(struct device *hwdev, size_t size,
+-			  void *vaddr, dma_addr_t dma_handle);
++			  void *vaddr, dma_addr_t dma_handle,
++			  struct dma_attrs *attrs);
+ 
+ extern dma_addr_t xen_swiotlb_map_page(struct device *dev, struct page *page,
+ 				       unsigned long offset, size_t size,
+diff --git a/lib/swiotlb.c b/lib/swiotlb.c
+index 99093b3..10a4f68 100644
+--- a/lib/swiotlb.c
++++ b/lib/swiotlb.c
+@@ -565,7 +565,8 @@ EXPORT_SYMBOL_GPL(swiotlb_tbl_sync_single);
+ 
+ void *
+ swiotlb_alloc_coherent(struct device *hwdev, size_t size,
+-		       dma_addr_t *dma_handle, gfp_t flags)
++		       dma_addr_t *dma_handle, gfp_t flags,
++		       struct dma_attrs *attrs)
+ {
+ 	dma_addr_t dev_addr;
+ 	void *ret;
+@@ -614,7 +615,7 @@ EXPORT_SYMBOL(swiotlb_alloc_coherent);
+ 
+ void
+ swiotlb_free_coherent(struct device *hwdev, size_t size, void *vaddr,
+-		      dma_addr_t dev_addr)
++		      dma_addr_t dev_addr, struct dma_attrs *attrs)
+ {
+ 	phys_addr_t paddr = dma_to_phys(hwdev, dev_addr);
+ 
 -- 
 1.7.1.569.g6f426
 
