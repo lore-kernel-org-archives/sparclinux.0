@@ -1,97 +1,109 @@
-From: "J. Zakia" <downsyl4@aol.com>
-Date: Tue, 13 Dec 2011 17:11:17 +0000
-Subject: Confirmation from Libyan embassy
-Message-Id: <201112131711.pBDHBrdu028787@ims-m12.mx.aol.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_NextPart_000_0029_01C2A75B.5E90AD74"
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Date: Fri, 23 Dec 2011 12:27:28 +0000
+Subject: [PATCH 09/14] Microblaze: adapt for dma_map_ops changes
+Message-Id: <1324643253-3024-10-git-send-email-m.szyprowski@samsung.com>
 List-Id: <sparclinux.vger.kernel.org>
-To: sparclinux@vger.kernel.org
+References: <1324643253-3024-1-git-send-email-m.szyprowski@samsung.com>
+In-Reply-To: <1324643253-3024-1-git-send-email-m.szyprowski@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Stephen Rothwell <sfr@canb.auug.org.au>, microblaze-uclinux@itee.uq.edu.au, linux-arch@vger.kernel.org, x86@kernel.org, linux-sh@vger.kernel.org, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mips@linux-mips.org, discuss@x86-64.org, linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org, Jonathan Corbet <corbet@lwn.net>, Marek Szyprowski <m.szyprowski@samsung.com>, Kyungmin Park <kyungmin.park@samsung.com>, Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 
-This is a multi-part message in MIME format.
+From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 
-------=_NextPart_000_0029_01C2A75B.5E90AD74
-Content-Type: text/plain; charset="windows-1251"
-Content-Transfer-Encoding: base64
+Adapt core Microblaze architecture code for dma_map_ops changes: replace
+alloc/free_coherent with generic alloc/free methods.
 
-SW4gYSBicmllZiBpbnRyb2R1Y3Rpb24sIEkgYW0gYW4gZW1iYXNzeSBhdHRhY2jpIHdpdGggdGhl
-IExpYnlhbiBHb3Zlcm5tZW50IGluIHRoZSBIYWd1ZSwgTmV0aGVybGFuZHMuClBsZWFzZSBraW5k
-bHkgc2VlIHRoZSBhdHRhY2htZW50IGZvciBtb3JlIGRldGFpbHMgYW5kIHJlc3BvbmQgaW1tZWRp
-YXRlbHkK
+Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ arch/microblaze/include/asm/dma-mapping.h |   18 ++++++++++++------
+ arch/microblaze/kernel/dma.c              |   10 ++++++----
+ 2 files changed, 18 insertions(+), 10 deletions(-)
 
-------=_NextPart_000_0029_01C2A75B.5E90AD74
-Content-Type: application/octet-stream;
-	name="attachment.rtf"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="attachment.rtf"
+diff --git a/arch/microblaze/include/asm/dma-mapping.h b/arch/microblaze/include/asm/dma-mapping.h
+index 3a3e5b8..0ee58d2 100644
+--- a/arch/microblaze/include/asm/dma-mapping.h
++++ b/arch/microblaze/include/asm/dma-mapping.h
+@@ -123,28 +123,34 @@ static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
+ #define dma_alloc_noncoherent(d, s, h, f) dma_alloc_coherent(d, s, h, f)
+ #define dma_free_noncoherent(d, s, v, h) dma_free_coherent(d, s, v, h)
+ 
+-static inline void *dma_alloc_coherent(struct device *dev, size_t size,
+-					dma_addr_t *dma_handle, gfp_t flag)
++#define dma_alloc_coherent(d,s,h,f)	dma_alloc_attrs(d,s,h,f,NULL)
++
++static inline void *dma_alloc_attrs(struct device *dev, size_t size,
++				    dma_addr_t *dma_handle, gfp_t flag,
++				    struct dma_attrs *attrs)
+ {
+ 	struct dma_map_ops *ops = get_dma_ops(dev);
+ 	void *memory;
+ 
+ 	BUG_ON(!ops);
+ 
+-	memory = ops->alloc_coherent(dev, size, dma_handle, flag);
++	memory = ops->alloc(dev, size, dma_handle, flag, attrs);
+ 
+ 	debug_dma_alloc_coherent(dev, size, *dma_handle, memory);
+ 	return memory;
+ }
+ 
+-static inline void dma_free_coherent(struct device *dev, size_t size,
+-				     void *cpu_addr, dma_addr_t dma_handle)
++#define dma_free_coherent(d,s,c,h) dma_free_attrs(d,s,c,h,NULL)
++
++static inline void dma_free_attrs(struct device *dev, size_t size,
++				  void *cpu_addr, dma_addr_t dma_handle,
++				  struct dma_attrs *attrs)
+ {
+ 	struct dma_map_ops *ops = get_dma_ops(dev);
+ 
+ 	BUG_ON(!ops);
+ 	debug_dma_free_coherent(dev, size, cpu_addr, dma_handle);
+-	ops->free_coherent(dev, size, cpu_addr, dma_handle);
++	ops->free(dev, size, cpu_addr, dma_handle, attrs);
+ }
+ 
+ static inline void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
+diff --git a/arch/microblaze/kernel/dma.c b/arch/microblaze/kernel/dma.c
+index 65a4af4..a2bfa2c 100644
+--- a/arch/microblaze/kernel/dma.c
++++ b/arch/microblaze/kernel/dma.c
+@@ -33,7 +33,8 @@ static unsigned long get_dma_direct_offset(struct device *dev)
+ #define NOT_COHERENT_CACHE
+ 
+ static void *dma_direct_alloc_coherent(struct device *dev, size_t size,
+-				dma_addr_t *dma_handle, gfp_t flag)
++				       dma_addr_t *dma_handle, gfp_t flag,
++				       struct dma_attrs *attrs)
+ {
+ #ifdef NOT_COHERENT_CACHE
+ 	return consistent_alloc(flag, size, dma_handle);
+@@ -57,7 +58,8 @@ static void *dma_direct_alloc_coherent(struct device *dev, size_t size,
+ }
+ 
+ static void dma_direct_free_coherent(struct device *dev, size_t size,
+-			      void *vaddr, dma_addr_t dma_handle)
++				     void *vaddr, dma_addr_t dma_handle,
++				     struct dma_attrs *attrs)
+ {
+ #ifdef NOT_COHERENT_CACHE
+ 	consistent_free(size, vaddr);
+@@ -176,8 +178,8 @@ dma_direct_sync_sg_for_device(struct device *dev,
+ }
+ 
+ struct dma_map_ops dma_direct_ops = {
+-	.alloc_coherent	= dma_direct_alloc_coherent,
+-	.free_coherent	= dma_direct_free_coherent,
++	.alloc		= dma_direct_alloc_coherent,
++	.free		= dma_direct_free_coherent,
+ 	.map_sg		= dma_direct_map_sg,
+ 	.unmap_sg	= dma_direct_unmap_sg,
+ 	.dma_supported	= dma_direct_dma_supported,
+-- 
+1.7.1.569.g6f426
 
-e1xydGYxXGFuc2lcYW5zaWNwZzEyNTJcZGVmZjBcZGVmbGFuZzEwMzN7XGZv
-bnR0Ymx7XGYwXGZzd2lzc1xmY2hhcnNldDAgQXJpYWw7fX0NCntcKlxnZW5l
-cmF0b3IgTXNmdGVkaXQgNS40MS4yMS4yNTAwO31cdmlld2tpbmQ0XHVjMVxw
-YXJkXGYwXGZzMjAgSmltbXkgWmFraWEgU2FobGlccGFyDQpFbWJhc3N5IG9m
-IExpYnlhXHBhcg0KUGFya3dlZyAxNSwgMjU4NUpIXHBhcg0KVGhlIEhhZ3Vl
-LCBUaGUgTmV0aGVybGFuZHMgIFxwYXINClxwYXINCjEzdGggRGVjLiAyMDEx
-XHBhcg0KIFxwYXINCkVtYmFzc3kgb2YgTGlieWEsIFRoZSBIYWd1ZSwgTmV0
-aGVybGFuZHM7IEZ1bmQgVHJhbnNmZXIgQXNzaXN0YW5jZVxwYXINCiBccGFy
-DQpEZWFyIFNpcixccGFyDQogXHBhcg0KSSBoYXZlIGRlY2lkZWQgdG8gY29u
-dGFjdCB5b3UgdG8gYXNzaXN0IHVzIHRyYW5zZmVyIGFuZCBkZXBvc2l0IHRo
-aXMgc3VtIG9mIG1vbmV5IG1lbnRpb25lZCBiZWxvdyBpbnRvIHlvdXIgcGVy
-c29uYWwgYWNjb3VudCBvciBhbnkgb3RoZXIgYWNjb3VudCB5b3UgZGVjaWRl
-IHNhZmUuXHBhcg0KIFxwYXINCkluIGEgYnJpZWYgaW50cm9kdWN0aW9uLCBJ
-IGFtIGFuIGVtYmFzc3kgYXR0YWNoXCdlOSB3aXRoIHRoZSBMaWJ5YW4gR292
-ZXJubWVudCBpbiBUaGUgSGFndWUsIE5ldGhlcmxhbmRzLiBXZSBhcmUgY3Vy
-cmVudGx5IGF1ZGl0aW5nIGFuZCByZWN0aWZ5aW5nIHRoZSBhY2NvdW50IG9m
-IG91ciBGb3JlaWduIE1pc3Npb25zIGFuZCBFbWJhc3NpZXMgYWJyb2FkIGFu
-ZCBpbiBwYXJ0aWN1bGFyIGluIEV1cm9wZS4gVGhpcyBleGNpc2UgaXMgbmVj
-ZXNzaXRhdGVkIGJ5IHRoZSBvbi1nb2luZyBwb2xpdGljYWwgY2hhbmdlIGlu
-IG15IGNvdW50cnkgdW5kZXIgdGhlIE5hdGlvbmFsIFRyYW5zaXRpb25hbCBD
-b3VuY2lsIChOVEMpLiBJdCBpcyBleHBlY3RlZCB0aGF0IHRoZXJlIHdpbGwg
-YmUgbmV3IEFtYmFzc2Fkb3JpYWwgcG9zdGluZyBpbiB0aGUgY29taW5nIG1v
-bnRocyB3aGljaCB3aWxsIGRlZmluaXRlbHkgYWZmZWN0IHRoZSBwcmVzZW50
-IEFtYmFzc2Fkb3IgYW5kIGFsbCBzdGFmZiBvZiBMaWJ5YSBFbWJhc3N5IGlu
-IFRoZSBOZXRoZXJsYW5kcy5ccGFyDQogXHBhcg0KSG93ZXZlciwgaW4gdGhl
-IGNvdXJzZSBvZiBvdXIgYXVkaXRpbmcsIHdlIGhhdmUgaHVnZSBzdW0gb2Yg
-ZXhjZXNzIG1vbmV5IGluIHRoZSB0dW5lIG9mIFVTJDgsNTAwLDAwMC4wMCAo
-RWlnaHQgTWlsbGlvbiwgRml2ZSBIdW5kcmVkIFRob3VzYW5kIFUuUyBEb2xs
-YXJzKSB3aGljaCBpcyBseWluZyBsb29zZSBhbmQgdW5jbGFpbWVkIGluIG9u
-ZSBvZiB0aGUgbG9jYWwgYmFua3MgaGVyZSBpbiBUaGUgTmV0aGVybGFuZHMu
-IFdlIGhhdmUgcXVpY2tseSBhbmQgc21hcnRseSBpbiBjb2xsYWJvcmF0aW9u
-IHdpdGggdGhlIEFtYmFzc2Fkb3IgYW5kIHNvbWUgYXV0aG9yaXRpZXMgaW4g
-dGhlIE5hdGlvbmFsIFRyYW5zaXRpb25hbCBDb3VuY2lsIChOVEMpIGRlY2lk
-ZWQgdG8ga2VlcCB0aGlzIG1vbmV5IHRvIG91cnNlbHZlcy4gV2UgYXJlIHRh
-a2luZyBhZHZhbnRhZ2Ugb2Ygb3VyIHBvc2l0aW9uIGFuZCB0aGF0IG9mIHRo
-ZSBwb2xpdGljYWwgaW5zdGFiaWxpdHkgaW4gbXkgY291bnRyeSB0byBkbyB0
-aGlzIGtub3dpbmcgdGhhdCBub2JvZHkgd2lsbCBmaW5kIG91dC4gSG93ZXZl
-ciwgd2Ugd291bGQgbGlrZSB0byBtb3ZlIHRoaXMgbW9uZXkgZnVydGhlciB0
-byBhbm90aGVyIGZvcmVpZ24gYWNjb3VudCwgcHJlZmVyYWJseSBvdXRzaWRl
-IFRoZSBOZXRoZXJsYW5kcy5ccGFyDQogXHBhcg0KVG8gdGhpcyBlZmZlY3Qs
-IGFuZCBmb3IgcmVhc29uIG9mIGFub255bWl0eSwgd2UgaGF2ZSBjaG9zZW4g
-eW91IHRocm91Z2ggdGhlIGludGVybmF0aW9uYWwgc2VhcmNoIGRpcmVjdG9y
-eSB0byBhc3Npc3QgdXMgaW4gdHJhbnNmZXJyaW5nIGFuZCBkZXBvc2l0aW5n
-IHRoaXMgbW9uZXkgaW4geW91ciBwZXJzb25hbCBiYW5rIGFjY291bnQgb3Ig
-YW55IG90aGVyIGFjY291bnQgeW91IGRlZW1lZCBzYWZlci4gVGhpcyByZWNv
-bW1lbmRhdGlvbiBpcyBiYXNlZCBvbiB0aGUgZmFjdCB0aGF0IHlvdSB3aWxs
-IG5vdCBiZXRyYXkgdGhlIHRydXN0IGFuZCBjb25maWRlbmNlIHdlIGFyZSBy
-ZXBvc2luZyBvbiB5b3UuIFdlIGhhdmUgZGVjaWRlZCB0aGVyZWFmdGVyLCB0
-byBnaXZlIHlvdSAzMCUgb2YgdGhlIFVTJDgsNTAwLDAwMC4wMCBmb3IgeW91
-ciBhc3Npc3RhbmNlIGFuZCBjb3Jyb2JvcmF0aW9uIHdoaWxlIHRoZSByZXN0
-IDcwJSB3aWxsIGJlIHNhZmVseSBrZXB0IGZvciB1cy5ccGFyDQogXHBhcg0K
-UGxlYXNlIGtpbmRseSBpbmRpY2F0ZSB5b3VyIGludGVyZXN0IHRvIGFzc2lz
-dCB1cyBrZWVwIHRoaXMgbW9uZXkgaW4geW91ciBhY2NvdW50IGFzIHNvb24g
-YXMgcG9zc2libGUuIEl0IGlzIGFsc28gbXkgcGxlYXN1cmUgdG8gaW5mb3Jt
-IHlvdSB0aGF0IGV2ZXJ5IGFycmFuZ2VtZW50IHRvIHJlbGVhc2UgdGhlIG1v
-bmV5IGZyb20gdGhlIGJhbmsgaGVyZSBoYXMgYmVlbiBjb25jbHVkZWQuIFRo
-aXMgYnVzaW5lc3MgaXMgdG90YWxseSByaXNrIGZyZWUuXHBhcg0KIFxwYXIN
-CkZpbmFsbHksIHdlIGV4cGVjdCB5b3UgaW4gY29uZmlkZW5jZSBhbmQgdHJ1
-c3QgdG8ga2VlcCBldmVyeSBhc3BlY3Qgb2YgdGhpcyB0cmFuc2FjdGlvbiBz
-ZWNyZXQgYW5kIGNvbmZpZGVudGlhbCBhcyBhbnkgbWlzdGFrZSB3aWxsIHB1
-dCBteSBmdXR1cmUgY2FyZWVyIGluIGplb3BhcmR5LiBJIG1heSBpbnZpdGUg
-eW91IG9yIHZpc2l0IHlvdSBmb3Igb25lIG9uIG9uZSBkaXNjdXNzaW9uIGFu
-ZCBwZXJmZWN0aW9uIG9mIHRoZSBkZWFsIGFzIHNvb24gSSBjb25maXJtIHRo
-YXQgeW91IGNhbiBoYW5kbGUgdGhlIHRyYW5zYWN0aW9uLlxwYXINCiBccGFy
-DQpUaGFua3MgZm9yIHlvdXIgYW50aWNpcGF0ZWQgY28tb3BlcmF0aW9uLCB3
-aGlsZSB3YWl0aW5nIGZvciB5b3VyIGFjY2VwdGFuY2UgdG8gYXNzaXN0IHVz
-LiBccGFyDQogXHBhcg0KWW91cnMgc2luY2VyZWx5LFxwYXINCiAgXHBhcg0K
-SmltbXkgWmFraWEgU2FobGlccGFyDQp9DQoA
-
-------=_NextPart_000_0029_01C2A75B.5E90AD74--
