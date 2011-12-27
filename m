@@ -1,81 +1,29 @@
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Date: Fri, 23 Dec 2011 12:27:29 +0000
-Subject: [PATCH 10/14] Unicore32: adapt for dma_map_ops changes
-Message-Id: <1324643253-3024-11-git-send-email-m.szyprowski@samsung.com>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 27 Dec 2011 19:17:59 +0000
+Subject: Re: [PATCH] i2c-ali1535: enable SPARC support
+Message-Id: <20111227.141759.1836372889946924661.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1324643253-3024-1-git-send-email-m.szyprowski@samsung.com>
-In-Reply-To: <1324643253-3024-1-git-send-email-m.szyprowski@samsung.com>
+References: <4ECE2410.7040608@geomatys.fr>
+In-Reply-To: <4ECE2410.7040608-Um+J1D3rkBVWj0EZb7rXcA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Stephen Rothwell <sfr@canb.auug.org.au>, microblaze-uclinux@itee.uq.edu.au, linux-arch@vger.kernel.org, x86@kernel.org, linux-sh@vger.kernel.org, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mips@linux-mips.org, discuss@x86-64.org, linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org, Jonathan Corbet <corbet@lwn.net>, Marek Szyprowski <m.szyprowski@samsung.com>, Kyungmin Park <kyungmin.park@samsung.com>, Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+To: corentin.labbe-Um+J1D3rkBVWj0EZb7rXcA@public.gmane.org
+Cc: sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+From: "corentin.labbe" <corentin.labbe@geomatys.fr>
+Date: Thu, 24 Nov 2011 12:01:36 +0100
 
-Adapt core Unicore32 architecture code for dma_map_ops changes: replace
-alloc/free_coherent with generic alloc/free methods.
+> The i2c-ali1535 driver don't work on SPARC, this is because it assumes that ioport address are 16bits wide (address stored with an unsigned short).
+> But on SPARC arch, ioports are mapped in memory and so are stored with an unsigned long.
+> 
+> This patch corrects this by using pci_resource_start for getting IOMEM base address, then reading the SMBBA of the i2c busse and using together for I/O access.
+> 
+> I like to thanks Jean DELVARE for reviewing of my patch.
+> 
+> Thanks
+> 
+> Signed-off-by: LABBE Corentin <corentin.labbe@geomatys.fr>
 
-Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- arch/unicore32/include/asm/dma-mapping.h |   18 ++++++++++++------
- arch/unicore32/mm/dma-swiotlb.c          |    4 ++--
- 2 files changed, 14 insertions(+), 8 deletions(-)
-
-diff --git a/arch/unicore32/include/asm/dma-mapping.h b/arch/unicore32/include/asm/dma-mapping.h
-index 9258e59..366460a 100644
---- a/arch/unicore32/include/asm/dma-mapping.h
-+++ b/arch/unicore32/include/asm/dma-mapping.h
-@@ -82,20 +82,26 @@ static inline int dma_set_mask(struct device *dev, u64 dma_mask)
- 	return 0;
- }
- 
--static inline void *dma_alloc_coherent(struct device *dev, size_t size,
--				       dma_addr_t *dma_handle, gfp_t flag)
-+#define dma_alloc_coherent(d,s,h,f)	dma_alloc_attrs(d,s,h,f,NULL)
-+
-+static inline void *dma_alloc_attrs(struct device *dev, size_t size,
-+				    dma_addr_t *dma_handle, gfp_t flag,
-+				    struct dma_attrs *attrs)
- {
- 	struct dma_map_ops *dma_ops = get_dma_ops(dev);
- 
--	return dma_ops->alloc_coherent(dev, size, dma_handle, flag);
-+	return dma_ops->alloc(dev, size, dma_handle, flag, attrs);
- }
- 
--static inline void dma_free_coherent(struct device *dev, size_t size,
--				     void *cpu_addr, dma_addr_t dma_handle)
-+#define dma_free_coherent(d,s,c,h) dma_free_attrs(d,s,c,h,NULL)
-+
-+static inline void dma_free_attrs(struct device *dev, size_t size,
-+				  void *cpu_addr, dma_addr_t dma_handle,
-+				  struct dma_attrs *attrs)
- {
- 	struct dma_map_ops *dma_ops = get_dma_ops(dev);
- 
--	dma_ops->free_coherent(dev, size, cpu_addr, dma_handle);
-+	dma_ops->free(dev, size, cpu_addr, dma_handle, attrs);
- }
- 
- #define dma_alloc_noncoherent(d, s, h, f) dma_alloc_coherent(d, s, h, f)
-diff --git a/arch/unicore32/mm/dma-swiotlb.c b/arch/unicore32/mm/dma-swiotlb.c
-index bfa9fbb..ff70c2d 100644
---- a/arch/unicore32/mm/dma-swiotlb.c
-+++ b/arch/unicore32/mm/dma-swiotlb.c
-@@ -18,8 +18,8 @@
- #include <asm/dma.h>
- 
- struct dma_map_ops swiotlb_dma_map_ops = {
--	.alloc_coherent = swiotlb_alloc_coherent,
--	.free_coherent = swiotlb_free_coherent,
-+	.alloc = swiotlb_alloc_coherent,
-+	.free = swiotlb_free_coherent,
- 	.map_sg = swiotlb_map_sg_attrs,
- 	.unmap_sg = swiotlb_unmap_sg_attrs,
- 	.dma_supported = swiotlb_dma_supported,
--- 
-1.7.1.569.g6f426
-
+Jean has asked for some more changes, please follow his suggestions and
+resubmit, thanks.
