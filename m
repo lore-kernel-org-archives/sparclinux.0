@@ -1,39 +1,63 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 21 Dec 2011 22:21:02 +0000
-Subject: Re: sparc: __mcount_loc already exists
-Message-Id: <20111221.172102.547250062564535453.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Tue, 27 Dec 2011 21:22:53 +0000
+Subject: [PATCH 1/1] apbuart: fix section mismatch warning
+Message-Id: <20111227212253.GA8161@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CAMuHMdUvnTWvaTndObFjA_pJXNWVpDBqxviyDpYvihc7pDiV3Q@mail.gmail.com>
-	<20111221.165805.154231675155275590.davem@davemloft.net>
-In-Reply-To: <20111221.165805.154231675155275590.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: geert@linux-m68k.org
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-next@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: David Miller <davem@davemloft.net>
-Date: Wed, 21 Dec 2011 16:58:05 -0500 (EST)
+From b82ccce349dee62fe5acd3167a19490bbe9a7e18 Mon Sep 17 00:00:00 2001
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Tue, 27 Dec 2011 22:07:23 +0100
+Subject: [PATCH] apbuart: fix section mismatch warning
 
-> From: Geert Uytterhoeven <geert@linux-m68k.org>
-> Date: Wed, 21 Dec 2011 08:59:03 +0100
-> 
->> On Wed, Dec 21, 2011 at 08:51, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
->>> Note that I deleted 5238 lines about "__mcount_loc already exists", to avoid
->>> my email being rejected.
->> 
->> I anyone planning to fix this? It only happens for sparc64/sparc-allmodconfig,
->> and appeared in v3.2-rc3.
->> 
->> linus: http://kisskb.ellerman.id.au/kisskb/buildresult/5167232/
->> linux-next: http://kisskb.ellerman.id.au/kisskb/buildresult/5166753/
-> 
-> I'll look into this, thanks.
+Fix following warnings:
 
-I cannot reproduce this with gcc-4.6.2 under Debian.  This might be a problem
-with your 4.4.3 based toolchain.
+WARNING: drivers/tty/serial/built-in.o(.text+0x7370): Section mismatch in reference from the function grlib_apbuart_configure() to the variable .init.data:apbuart_match
+The function grlib_apbuart_configure() references
+the variable __initdata apbuart_match.
+This is often because grlib_apbuart_configure lacks a __initdata
+annotation or the annotation of apbuart_match is wrong.
 
-__mcount_loc is not a symbol, but rather a section that exists in each
-object when certain debugging and tracing features are enabled.  The
-linker should just be merely combining the multiple instances
-together, rather than warning that there is more than one instance.
++ 3 more warnings like this.
+
+There is no guarantee that grlib_apbuart_of_driver.of_match_table
+is only used at __init time - so drop the __initdata annotation.
+
+grlib_apbuart_configure() is only used during __init so add __init
+to this method too.
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Daniel Hellstrom <daniel@gaisler.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+---
+ drivers/tty/serial/apbuart.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/tty/serial/apbuart.c b/drivers/tty/serial/apbuart.c
+index 77554fd..7162f70 100644
+--- a/drivers/tty/serial/apbuart.c
++++ b/drivers/tty/serial/apbuart.c
+@@ -577,7 +577,7 @@ static int __devinit apbuart_probe(struct platform_device *op)
+ 	return 0;
+ }
+ 
+-static struct of_device_id __initdata apbuart_match[] = {
++static struct of_device_id apbuart_match[] = {
+ 	{
+ 	 .name = "GAISLER_APBUART",
+ 	 },
+@@ -597,7 +597,7 @@ static struct platform_driver grlib_apbuart_of_driver = {
+ };
+ 
+ 
+-static int grlib_apbuart_configure(void)
++static int __init grlib_apbuart_configure(void)
+ {
+ 	struct device_node *np;
+ 	int line = 0;
+-- 
+1.6.0.6
+
