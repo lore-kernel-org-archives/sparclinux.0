@@ -1,60 +1,55 @@
-From: Jurij Smakov <jurij@wooyd.org>
-Date: Thu, 22 Dec 2011 23:54:09 +0000
-Subject: Re: "BUG: Bad page map in process Xorg" with 3.1 kernel
-Message-Id: <20111222235409.GA7356@wooyd.org>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Thu, 29 Dec 2011 14:15:08 +0000
+Subject: [PATCH 1/2] sparc32: enable different preemptions models
+Message-Id: <20111229141508.GA3146@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20111220230040.GA4192@wooyd.org>
-In-Reply-To: <20111220230040.GA4192@wooyd.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Wed, Dec 21, 2011 at 04:42:54PM -0500, David Miller wrote:
-> From: Jurij Smakov <jurij@wooyd.org>
-> Date: Wed, 21 Dec 2011 21:34:29 +0000
-> 
-> > On Wed, Dec 21, 2011 at 03:58:38PM -0500, David Miller wrote:
-> >> From: Jurij Smakov <jurij@wooyd.org>
-> >> Date: Tue, 20 Dec 2011 23:00:40 +0000
-> >> 
-> >> > Today I've tried running Xorg on my SunBlade 1000 with a rather old 
-> >> > ATI Mach64 graphics card. When I launch Xorg, messages like these get 
-> >> > logged a few times:
-> >> 
-> >> Can you see if reverting this fixes things?
-> >> 
-> >> --------------------
-> >> commit 3e37fd3153ac95088a74f5e7c569f7567e9f993a
-> >> Author: David S. Miller <davem@davemloft.net>
-> >> Date:   Thu Nov 17 18:17:59 2011 -0800
-> >> 
-> >>     sparc: Kill custom io_remap_pfn_range().
-> >>     
-> >>     To handle the large physical addresses, just make a simple wrapper
-> >>     around remap_pfn_range() like MIPS does.
-> >>     
-> >>     Signed-off-by: David S. Miller <davem@davemloft.net>
-> > 
-> > It does not look like this change made it into 3.1 (where I see these 
-> > errors).
-> 
-> Interesting.... try applying it! :-)
-> 
-> The bug log message is essentially complaining that pte_special() is
-> not true and the PFN is for an area outside of the physical memory
-> range.
-> 
-> The patch I mentioned uses generic code instead of the by-hand sparc
-> stuff, and is likely to fix that kind of problem.
-> 
-> So give it a try and let me know how it goes.
+From 09175e8e5c75d18bb023a26e295c5184241c3b72 Mon Sep 17 00:00:00 2001
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Thu, 29 Dec 2011 14:54:49 +0100
+Subject: [PATCH 1/2] sparc32: enable different preemptions models
 
-Yeah, with this patch applied the messages are no longer there. X 
-still does not work though, but that can be for a variety of 
-reasons...
+While chasing following warning from kconfig I noticed that the
+kconfig preemption model symbols were all dependent on sparc64.
 
-Best regards,
+warning: (PREEMPT && DEBUG_ATOMIC_SLEEP) selects PREEMPT_COUNT which has unmet direct dependencies (SPARC64)
+
+From arch/sparc/Kconfig:
+
+        if SPARC64
+        source "kernel/Kconfig.preempt"
+        endif
+
+But looking a bit closer I see nothing obvious why
+sparc32 should not support the various preemption models.
+Drop the "if SPARC64" conditional to enable selection of
+preemption model on sparc32 too.
+
+Build-tested - but not run-time tested all three models.
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/Kconfig |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
+
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 27060b2..7cb8adf 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -386,9 +386,7 @@ config SCHED_MC
+ 	  making when dealing with multi-core CPU chips at a cost of slightly
+ 	  increased overhead in some places. If unsure say N here.
+ 
+-if SPARC64
+ source "kernel/Kconfig.preempt"
+-endif
+ 
+ config CMDLINE_BOOL
+ 	bool "Default bootloader kernel arguments"
 -- 
-Jurij Smakov                                           jurij@wooyd.org
-Key: http://www.wooyd.org/pgpkey/                      KeyID: C99E03CC
+1.6.0.6
+
