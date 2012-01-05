@@ -1,33 +1,40 @@
-From: "Kasatkin, Dmitry" <dmitry.kasatkin@intel.com>
-Date: Thu, 26 Jan 2012 22:41:59 +0000
-Subject: Re: [PATCH 0/2] Fix the sparc32 mpilib build mess.
-Message-Id: <CALLzPKZbruWK2LFjqOZFimSfryPGJ2c95HhePiQ7+EsU2-jBjA@mail.gmail.com>
+From: Kirill Tkhai <tkhai@yandex.ru>
+Date: Thu, 05 Jan 2012 01:42:18 +0000
+Subject: SPARC32: forced setting of mode of SUN4M per-cpu timers
+Message-Id: <1325727738.1385.3.camel@hp>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20120126.173202.2207050843577467461.davem@davemloft.net>
-In-Reply-To: <20120126.173202.2207050843577467461.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org, viro@zeniv.linux.org.uk, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Fri, Jan 27, 2012 at 12:32 AM, David Miller <davem@davemloft.net> wrote:
->
-> The long and short of it is that the longlong.h header added by
-> the mpilib code is quite old and out of date.
->
-> Here I've solved the clz_tab[] multiple definition problem as
-> well as the outdated udiv_qrnnd() definition, but long term
-> we should probably have a more uptodate longlong.h header
-> provides at include/linux/longlong.h to avoid this kind of
-> stuff in the future.
->
-> It's a part of the libgcc interface and therefore has no
-> business being tucked down deep under lib/foo/ somewhere.
+SPARC32: forced setting of mode of SUN4M per-cpu timers
 
-Hello,
+SUN4M per-cpu timers have two modes of work. These are timer mode and
+counter mode. SPARC32 doesn't write anything to the register, which is
+connected with mode choice. So, the mode is chosen by bootloader. This
+patch forces to use timer mode from the kernel and to be independent of
+bootloader.
 
-There is newer version of longlong.h in libgcrypt.
-I will definitely try it...
+I had this problem with OpenBIOS. Timers don't tick and kernel fails on
+QEMU, when it's compiled with SMP support. The path fixes problem.
 
-- Dmitry
+diff --git a/arch/sparc/kernel/sun4m_irq.c
+b/arch/sparc/kernel/sun4m_irq.c
+index 422c16d..aa0b9df 100644
+--- a/arch/sparc/kernel/sun4m_irq.c
++++ b/arch/sparc/kernel/sun4m_irq.c
+@@ -414,6 +414,10 @@ static void __init sun4m_init_timers(irq_handler_t
+counter_fn)
+ 
+ 	for (i = 0; i < num_cpu_timers; i++)
+ 		sbus_writel(0, &timers_percpu[i]->l14_limit);
++#ifdef CONFIG_SMP
++	/* Timer-mode for every per-cpu timer (bit '0' is timer mode) */
++	sbus_writel(0x00000000, &timers_global->timer_config);
++#endif
+ 	if (num_cpu_timers = 4)
+ 		sbus_writel(SUN4M_INT_E14, &sun4m_irq_global->mask_set);
+ 
+
+
