@@ -1,41 +1,50 @@
-From: =?iso-8859-1?Q?=22=22Tehni&#269@vger.kernel.org,
-Date: Sat, 07 Jan 2012 13:14:15 +0000
-Subject: Obavijest!
-Message-Id: <cda1e952d6d847fdb45ae03218cde68c.squirrel@mail.prismbd.net>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 05 Jan 2012 19:55:10 +0000
+Subject: Re: [PATCH] i2c-ali1535: enable SPARC support
+Message-Id: <20120105.145510.2259110209867964309.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <44847.41.203.64.128.1325941556.squirrel@mail.grameen.com>
-In-Reply-To: <44847.41.203.64.128.1325941556.squirrel@mail.grameen.com>
+References: <4ECE2410.7040608@geomatys.fr>
+	<20111227.141759.1836372889946924661.davem@davemloft.net>
+	<20120105205105.6a2d03b3@endymion.delvare>
+In-Reply-To: <20120105205105.6a2d03b3-R0o5gVi9kd7kN2dkZ6Wm7A@public.gmane.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org
+Cc: corentin.labbe-Um+J1D3rkBVWj0EZb7rXcA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-Dragi vlasnika ra&#269;una
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 5 Jan 2012 20:51:05 +0100
 
-To je obavijestiti vas da smo trenutno obavljaju redovito odr=9Eavanje i
-nadogradnju na=9Aih Webmail usluge i kao rezultat toga, na=9A klijent e-po=
-=9Ate
-je promijenjen i svoj &#8203;&#8203;izvorni lozinka &#263;e ponovno.
+> Hi David,
+> 
+> On Tue, 27 Dec 2011 14:17:59 -0500 (EST), David Miller wrote:
+>> From: "corentin.labbe" <corentin.labbe@geomatys.fr>
+>> Date: Thu, 24 Nov 2011 12:01:36 +0100
+>> 
+>> > The i2c-ali1535 driver don't work on SPARC, this is because it assumes that ioport address are 16bits wide (address stored with an unsigned short).
+>> > But on SPARC arch, ioports are mapped in memory and so are stored with an unsigned long.
+>> > 
+>> > This patch corrects this by using pci_resource_start for getting IOMEM base address, then reading the SMBBA of the i2c busse and using together for I/O access.
+>> > 
+>> > I like to thanks Jean DELVARE for reviewing of my patch.
+>> > 
+>> > Thanks
+>> > 
+>> > Signed-off-by: LABBE Corentin <corentin.labbe@geomatys.fr>
+>> 
+>> Jean has asked for some more changes, please follow his suggestions and
+>> resubmit, thanks.
+> 
+> Actually I ended up doing the changes myself, and the patch is queued
+> for 3.3 already:
+> http://khali.linux-fr.org/devel/linux-3/jdelvare-i2c/i2c-ali1535-enable-sparc-support.patch
+> 
+> Please let me know quickly if you see anything wrong there.
 
-Ispri&#269;avamo se zbog neugodnosti izazvane, ali nemogu&#263;nost potpune
-informacije o obliku u roku od 24 sata sredi=9Ata za razmjenu poruka &#263;e
-uzvratiti Va=9Au e-mail u aktivnom iz na=9Ae baze podataka. Ispunite podatke
-na obrascu klikom na link ispod:
+Using the raw PCI config register value in the non-IO case is always
+wrong and non-portable.  You need to ioremap the thing using the PCI
+resource if it's not IO and therefore MEM.
 
-http://www.my3q.com/survey/415/sesrdw3/23005.phtml
-
-Primit &#263;ete e-mail u roku od 48 sati kada je va=9A po=9Atanski
-sandu&#269;i&#263; ra&#269;un
-preselila u novu bazu podataka, tako&#273;er potvr&#273;uju svoju email
-adresu i
-lozinku u roku od 24hours kasnije, nakon =9Ato ste unijeli nam pojedinosti
-svog ra&#269;una za nadogradnju prijavom na Va=9A korisni&#269;ki ra&#269;un
-web-po=9Atu na
-adresi : / / naziv_domene
-
-Hvala vam za kori=9Atenje na=9Ae webmail ra&#269;una!
-(@) 2012.All prava pridr=9Eana ["Tehni&#269;ka podr=9Aka E-mail Router" &#1=
-74;]
-Copyright &#169;2012
-
-
+More easier, if non-IO is really not expected, would be to fail the
+probe if we don't find IORESOURCE_IO set.
