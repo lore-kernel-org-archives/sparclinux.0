@@ -1,53 +1,40 @@
 From: Kirill Tkhai <tkhai@yandex.ru>
-Date: Fri, 06 Jan 2012 21:18:16 +0000
-Subject: Re: SPARC32: forced setting of mode of SUN4M per-cpu timers
-Message-Id: <1159921325884697@web75.yandex.ru>
+Date: Fri, 06 Jan 2012 21:34:51 +0000
+Subject: [PATCH]sparc32: forced setting of mode of sun4m per-cpu timers
+Message-Id: <1325885691.21461.8.camel@hp>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1325727738.1385.3.camel@hp>
-In-Reply-To: <1325727738.1385.3.camel@hp>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-05.01.2012, 23:27, "David Miller" <davem@davemloft.net>:
-> From: Kirill Tkhai <tkhai@yandex.ru>
-> Date: Thu, 05 Jan 2012 05:42:18 +0400
->
->> =9AI had this problem with OpenBIOS. Timers don't tick and kernel fails =
-on
->> =9AQEMU, when it's compiled with SMP support. The path fixes problem.
->
-> This means that OpenBIOS does not provide the hardware to the client
-> program in the same state that OpenFirmware does, which in my opinion
-> is a bug.
->
-> We can still apply a patch like this, but I'd like to see it tested
-> on real hardware and OpenFirmware machines.
+SUN4M per-cpu timers have two modes of work. These are timer mode and
+counter mode. Kernel doesn't write anything to the register, which is
+connected with mode choice.
+So, the mode is chosen by bootloader. This patch forces to use timer
+mode from the kernel and to be independent of bootloader.
 
-I've just tested it on:
+I had this problem with OpenBIOS. Timers don't tick and kernel fails on
+QEMU, when it's compiled with SMP support. The patch fixes problem.
 
-cpu        : Texas Instruments, Inc. - MicroSparc
-fpu        : SuperSparc on-chip FPU
-promlib        : Version 3 Revision 2
-prom        : 2.12
-type        : sun4m
-ncpus probed    : 4
-ncpus active    : 4
-Cpu0Bogo    : 498.07
-Cpu1Bogo    : 498.07
-Cpu2Bogo    : 498.07
-Cpu3Bogo    : 498.07
-MMU type    : TI Viking/MXCC
-contexts    : 65536
-nocache total    : 5242880
-nocache used    : 1296384
-State:
-CPU0        : online
-CPU1        : online
-CPU2        : online
-CPU3        : online
+Signed-off-by: Tkhai Kirill <tkhai@yandex.ru>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
+---
+diff --git a/arch/sparc/kernel/sun4m_irq.c
+b/arch/sparc/kernel/sun4m_irq.c
+index 422c16d..e611651 100644
+--- a/arch/sparc/kernel/sun4m_irq.c
++++ b/arch/sparc/kernel/sun4m_irq.c
+@@ -399,6 +399,9 @@ static void __init sun4m_init_timers(irq_handler_t
+counter_fn)
+ 	timers_global = (void __iomem *)
+ 		(unsigned long) addr[num_cpu_timers];
+ 
++	/* Every per-cpu timer works in timer mode */
++	sbus_writel(0x00000000, &timers_global->timer_config);
++
+ 	sbus_writel((((1000000/HZ) + 1) << 10), &timers_global->l10_limit);
+ 
+ 	master_l10_counter = &timers_global->l10_count;
 
-It seems that everything is ok.
 
-Kirill
