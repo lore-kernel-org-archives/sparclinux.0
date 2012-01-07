@@ -1,8 +1,10 @@
-From: "Technical Support E-mail Router" "" <info@support.com>
-Date: Sat, 07 Jan 2012 13:05:56 +0000
+From: =?iso-8859-1?Q?=22=22Tehni&#269@vger.kernel.org,
+Date: Sat, 07 Jan 2012 13:14:03 +0000
 Subject: Obavijest!
-Message-Id: <44847.41.203.64.128.1325941556.squirrel@mail.grameen.com>
+Message-Id: <046c5fb1db3149b6c637427baec3fddc.squirrel@mail.prismbd.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <44847.41.203.64.128.1325941556.squirrel@mail.grameen.com>
+In-Reply-To: <44847.41.203.64.128.1325941556.squirrel@mail.grameen.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: quoted-printable
@@ -36,8 +38,4 @@ Hvala vam za kori=9Atenje na=9Ae webmail ra&#269;una!
 74;]
 Copyright &#169;2012
 
---=20
-This message has been scanned for viruses and
-dangerous content by MailScanner, and is
-believed to be clean.
 
