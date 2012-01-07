@@ -1,31 +1,43 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 26 Jan 2012 21:55:21 +0000
-Subject: [GIT] Sparc
-Message-Id: <20120126.165521.1045119684853288263.davem@davemloft.net>
+From: "Technical Support E-mail Router" "" <info@support.com>
+Date: Sat, 07 Jan 2012 13:05:56 +0000
+Subject: Obavijest!
+Message-Id: <44847.41.203.64.128.1325941556.squirrel@mail.grameen.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
+Dragi vlasnika ra&#269;una
 
-Please pull to get this sparc 32-bit timer fix.
+To je obavijestiti vas da smo trenutno obavljaju redovito odr=9Eavanje i
+nadogradnju na=9Aih Webmail usluge i kao rezultat toga, na=9A klijent e-po=
+=9Ate
+je promijenjen i svoj &#8203;&#8203;izvorni lozinka &#263;e ponovno.
 
-Thanks!
+Ispri&#269;avamo se zbog neugodnosti izazvane, ali nemogu&#263;nost potpune
+informacije o obliku u roku od 24 sata sredi=9Ata za razmjenu poruka &#263;e
+uzvratiti Va=9Au e-mail u aktivnom iz na=9Ae baze podataka. Ispunite podatke
+na obrascu klikom na link ispod:
 
-The following changes since commit 87f71ae2dd7471c1b4c94100be1f218e91dc64c3:
+http://www.my3q.com/survey/415/sesrdw3/23005.phtml
 
-  Merge git://git.kernel.org/pub/scm/linux/kernel/git/herbert/crypto-2.6 (2012-01-25 19:28:58 -0800)
+Primit &#263;ete e-mail u roku od 48 sati kada je va=9A po=9Atanski
+sandu&#269;i&#263; ra&#269;un
+preselila u novu bazu podataka, tako&#273;er potvr&#273;uju svoju email
+adresu i
+lozinku u roku od 24hours kasnije, nakon =9Ato ste unijeli nam pojedinosti
+svog ra&#269;una za nadogradnju prijavom na Va=9A korisni&#269;ki ra&#269;un
+web-po=9Atu na
+adresi : / / naziv_domene
 
-are available in the git repository at:
+Hvala vam za kori=9Atenje na=9Ae webmail ra&#269;una!
+(@) 2012.All prava pridr=9Eana ["Tehni&#269;ka podr=9Aka E-mail Router" &#1=
+74;]
+Copyright &#169;2012
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
+--=20
+This message has been scanned for viruses and
+dangerous content by MailScanner, and is
+believed to be clean.
 
-Tkhai Kirill (1):
-      sparc32: forced setting of mode of sun4m per-cpu timers
-
- arch/sparc/kernel/sun4m_irq.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
