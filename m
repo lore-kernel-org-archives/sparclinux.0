@@ -1,42 +1,36 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 05 Jan 2012 19:51:05 +0000
-Subject: Re: [PATCH] i2c-ali1535: enable SPARC support
-Message-Id: <20120105205105.6a2d03b3@endymion.delvare>
+From: David Gibson <david@gibson.dropbear.id.au>
+Date: Mon, 16 Jan 2012 01:57:10 +0000
+Subject: Re: [PATCH 01/14] common: dma-mapping: introduce alloc_attrs and free_attrs methods
+Message-Id: <20120116015710.GD4512@truffala.fritz.box>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4ECE2410.7040608@geomatys.fr>
-	<20111227.141759.1836372889946924661.davem@davemloft.net>
-In-Reply-To: <20111227.141759.1836372889946924661.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+References: <1324643253-3024-1-git-send-email-m.szyprowski@samsung.com>
+ <1324643253-3024-2-git-send-email-m.szyprowski@samsung.com>
+In-Reply-To: <1324643253-3024-2-git-send-email-m.szyprowski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: corentin.labbe-Um+J1D3rkBVWj0EZb7rXcA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Stephen Rothwell <sfr@canb.auug.org.au>, microblaze-uclinux@itee.uq.edu.au, linux-arch@vger.kernel.org, x86@kernel.org, linux-sh@vger.kernel.org, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mips@linux-mips.org, discuss@x86-64.org, linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org, Jonathan Corbet <corbet@lwn.net>, Kyungmin Park <kyungmin.park@samsung.com>, Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 
-Hi David,
-
-On Tue, 27 Dec 2011 14:17:59 -0500 (EST), David Miller wrote:
-> From: "corentin.labbe" <corentin.labbe@geomatys.fr>
-> Date: Thu, 24 Nov 2011 12:01:36 +0100
+On Fri, Dec 23, 2011 at 01:27:20PM +0100, Marek Szyprowski wrote:
+> Introduce new generic alloc and free methods with attributes argument.
 > 
-> > The i2c-ali1535 driver don't work on SPARC, this is because it assumes that ioport address are 16bits wide (address stored with an unsigned short).
-> > But on SPARC arch, ioports are mapped in memory and so are stored with an unsigned long.
-> > 
-> > This patch corrects this by using pci_resource_start for getting IOMEM base address, then reading the SMBBA of the i2c busse and using together for I/O access.
-> > 
-> > I like to thanks Jean DELVARE for reviewing of my patch.
-> > 
-> > Thanks
-> > 
-> > Signed-off-by: LABBE Corentin <corentin.labbe@geomatys.fr>
+> Existing alloc_coherent and free_coherent can be implemented on top of the
+> new calls with NULL attributes argument. Later also dma_alloc_non_coherent
+> can be implemented using DMA_ATTR_NONCOHERENT attribute as well as
+> dma_alloc_writecombine with separate DMA_ATTR_WRITECOMBINE attribute.
 > 
-> Jean has asked for some more changes, please follow his suggestions and
-> resubmit, thanks.
+> This way the drivers will get more generic, platform independent way of
+> allocating dma buffers with specific parameters.
+> 
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 
-Actually I ended up doing the changes myself, and the patch is queued
-for 3.3 already:
-http://khali.linux-fr.org/devel/linux-3/jdelvare-i2c/i2c-ali1535-enable-sparc-support.patch
+Looks sensible to me.
 
-Please let me know quickly if you see anything wrong there.
-
+Reviewed-by: David Gibson <david@gibson.dropbear.ud.au>
 -- 
-Jean Delvare
+David Gibson			| I'll have my music baroque, and my code
+david AT gibson.dropbear.id.au	| minimalist, thank you.  NOT _the_ _other_
+				| _way_ _around_!
+http://www.ozlabs.org/~dgibson
