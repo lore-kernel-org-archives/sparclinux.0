@@ -1,31 +1,163 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Wed, 21 Dec 2011 07:59:03 +0000
-Subject: sparc: __mcount_loc already exists (was: Re: Build
-Message-Id: <CAMuHMdUvnTWvaTndObFjA_pJXNWVpDBqxviyDpYvihc7pDiV3Q@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 26 Jan 2012 22:32:05 +0000
+Subject: [PATCH 1/2] lib: Fix multiple definitions of clz_tab
+Message-Id: <20120126.173205.137498840079872845.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Linux-Next <linux-next@vger.kernel.org>
+Cc: viro@ZenIV.linux.org.uk, dmitry.kasatkin@intel.com, linux-kernel@vger.kernel.org
 
-On Wed, Dec 21, 2011 at 08:51, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
-> Note that I deleted 5238 lines about "__mcount_loc already exists", to avoid
-> my email being rejected.
 
-I anyone planning to fix this? It only happens for sparc64/sparc-allmodconfig,
-and appeared in v3.2-rc3.
+Both sparc 32-bit's software divide assembler and MPILIB provide
+clz_tab[] with identical contents.
 
-linus: http://kisskb.ellerman.id.au/kisskb/buildresult/5167232/
-linux-next: http://kisskb.ellerman.id.au/kisskb/buildresult/5166753/
+Break it out into a seperate object file and select it when
+SPARC32 or MPILIB is set.
 
-Gr{oetje,eeting}s,
+Reported-by: Al Viro <viro@ZenIV.linux.org.uk>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/Kconfig      |    1 +
+ arch/sparc/lib/divdi3.S |   16 +---------------
+ lib/Kconfig             |    4 ++++
+ lib/Makefile            |    2 ++
+ lib/clz_tab.c           |   18 ++++++++++++++++++
+ lib/mpi/mpi-bit.c       |   19 -------------------
+ 6 files changed, 26 insertions(+), 34 deletions(-)
+ create mode 100644 lib/clz_tab.c
 
-                        Geert
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 9665799..ca5580e 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -33,6 +33,7 @@ config SPARC
+ config SPARC32
+ 	def_bool !64BIT
+ 	select GENERIC_ATOMIC64
++	select CLZ_TAB
+ 
+ config SPARC64
+ 	def_bool 64BIT
+diff --git a/arch/sparc/lib/divdi3.S b/arch/sparc/lib/divdi3.S
+index 681b368..d74bc09 100644
+--- a/arch/sparc/lib/divdi3.S
++++ b/arch/sparc/lib/divdi3.S
+@@ -17,23 +17,9 @@ along with GNU CC; see the file COPYING.  If not, write to
+ the Free Software Foundation, 59 Temple Place - Suite 330,
+ Boston, MA 02111-1307, USA.  */
+ 
+-	.data
+-	.align 8
+-	.globl	__clz_tab
+-__clz_tab:
+-	.byte	0,1,2,2,3,3,3,3,4,4,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5
+-	.byte	6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6
+-	.byte	7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7
+-	.byte	7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7
+-	.byte	8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8
+-	.byte	8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8
+-	.byte	8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8
+-	.byte	8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8
+-	.size	 __clz_tab,256
+-	.global .udiv
+-
+ 	.text
+ 	.align 4
++	.global .udiv
+ 	.globl __divdi3
+ __divdi3:
+ 	save %sp,-104,%sp
+diff --git a/lib/Kconfig b/lib/Kconfig
+index 169eb7c..d69d321 100644
+--- a/lib/Kconfig
++++ b/lib/Kconfig
+@@ -279,6 +279,9 @@ config AVERAGE
+ 
+ 	  If unsure, say N.
+ 
++config CLZ_TAB
++	bool
++
+ config CORDIC
+ 	tristate "CORDIC algorithm"
+ 	help
+@@ -287,6 +290,7 @@ config CORDIC
+ 
+ config MPILIB
+ 	tristate
++	select CLZ_TAB
+ 	help
+ 	  Multiprecision maths library from GnuPG.
+ 	  It is used to implement RSA digital signature verification,
+diff --git a/lib/Makefile b/lib/Makefile
+index d71aae1..18515f0 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -121,6 +121,8 @@ obj-$(CONFIG_DQL) += dynamic_queue_limits.o
+ obj-$(CONFIG_MPILIB) += mpi/
+ obj-$(CONFIG_SIGNATURE) += digsig.o
+ 
++obj-$(CONFIG_CLZ_TAB) += clz_tab.o
++
+ hostprogs-y	:= gen_crc32table
+ clean-files	:= crc32table.h
+ 
+diff --git a/lib/clz_tab.c b/lib/clz_tab.c
+new file mode 100644
+index 0000000..7287b4a
+--- /dev/null
++++ b/lib/clz_tab.c
+@@ -0,0 +1,18 @@
++const unsigned char __clz_tab[] = {
++	0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5,
++	    5, 5, 5, 5, 5, 5, 5, 5,
++	6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
++	    6, 6, 6, 6, 6, 6, 6, 6,
++	7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
++	    7, 7, 7, 7, 7, 7, 7, 7,
++	7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
++	    7, 7, 7, 7, 7, 7, 7, 7,
++	8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
++	    8, 8, 8, 8, 8, 8, 8, 8,
++	8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
++	    8, 8, 8, 8, 8, 8, 8, 8,
++	8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
++	    8, 8, 8, 8, 8, 8, 8, 8,
++	8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
++	    8, 8, 8, 8, 8, 8, 8, 8,
++};
+diff --git a/lib/mpi/mpi-bit.c b/lib/mpi/mpi-bit.c
+index 854c9c6..2f52662 100644
+--- a/lib/mpi/mpi-bit.c
++++ b/lib/mpi/mpi-bit.c
+@@ -21,25 +21,6 @@
+ #include "mpi-internal.h"
+ #include "longlong.h"
+ 
+-const unsigned char __clz_tab[] = {
+-	0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5,
+-	    5, 5, 5, 5, 5, 5, 5, 5,
+-	6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+-	    6, 6, 6, 6, 6, 6, 6, 6,
+-	7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+-	    7, 7, 7, 7, 7, 7, 7, 7,
+-	7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+-	    7, 7, 7, 7, 7, 7, 7, 7,
+-	8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+-	    8, 8, 8, 8, 8, 8, 8, 8,
+-	8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+-	    8, 8, 8, 8, 8, 8, 8, 8,
+-	8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+-	    8, 8, 8, 8, 8, 8, 8, 8,
+-	8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+-	    8, 8, 8, 8, 8, 8, 8, 8,
+-};
+-
+ #define A_LIMB_1 ((mpi_limb_t) 1)
+ 
+ /****************
+-- 
+1.7.6.401.g6a319
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
