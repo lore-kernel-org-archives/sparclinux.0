@@ -1,36 +1,81 @@
-From: David Gibson <david@gibson.dropbear.id.au>
-Date: Mon, 16 Jan 2012 01:57:10 +0000
-Subject: Re: [PATCH 01/14] common: dma-mapping: introduce alloc_attrs and free_attrs methods
-Message-Id: <20120116015710.GD4512@truffala.fritz.box>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 26 Jan 2012 22:32:08 +0000
+Subject: [PATCH 2/2] lib: Fix 32-bit sparc udiv_qrnnd() definition in mpilib's longlong.h
+Message-Id: <20120126.173208.1656711368996825513.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1324643253-3024-1-git-send-email-m.szyprowski@samsung.com>
- <1324643253-3024-2-git-send-email-m.szyprowski@samsung.com>
-In-Reply-To: <1324643253-3024-2-git-send-email-m.szyprowski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-kernel@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Stephen Rothwell <sfr@canb.auug.org.au>, microblaze-uclinux@itee.uq.edu.au, linux-arch@vger.kernel.org, x86@kernel.org, linux-sh@vger.kernel.org, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mips@linux-mips.org, discuss@x86-64.org, linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org, Jonathan Corbet <corbet@lwn.net>, Kyungmin Park <kyungmin.park@samsung.com>, Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+To: sparclinux@vger.kernel.org
+Cc: viro@ZenIV.linux.org.uk, dmitry.kasatkin@intel.com, linux-kernel@vger.kernel.org
 
-On Fri, Dec 23, 2011 at 01:27:20PM +0100, Marek Szyprowski wrote:
-> Introduce new generic alloc and free methods with attributes argument.
-> 
-> Existing alloc_coherent and free_coherent can be implemented on top of the
-> new calls with NULL attributes argument. Later also dma_alloc_non_coherent
-> can be implemented using DMA_ATTR_NONCOHERENT attribute as well as
-> dma_alloc_writecombine with separate DMA_ATTR_WRITECOMBINE attribute.
-> 
-> This way the drivers will get more generic, platform independent way of
-> allocating dma buffers with specific parameters.
-> 
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 
-Looks sensible to me.
+This copy of longlong.h is extremely dated and results in compile
+errors on sparc32 when MPILIB is enabled, copy over the more uptodate
+implementation from arch/sparc/math/sfp-util_32.h
 
-Reviewed-by: David Gibson <david@gibson.dropbear.ud.au>
+Reported-by: Al Viro <viro@ZenIV.linux.org.uk>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ lib/mpi/longlong.h |   44 +++++++++++++++++++++++++++++++++-----------
+ 1 files changed, 33 insertions(+), 11 deletions(-)
+
+diff --git a/lib/mpi/longlong.h b/lib/mpi/longlong.h
+index b87487b..29f9862 100644
+--- a/lib/mpi/longlong.h
++++ b/lib/mpi/longlong.h
+@@ -1200,18 +1200,40 @@ do { \
+ 	"r" ((USItype)(v)) \
+ 	: "%g1", "%g2" __AND_CLOBBER_CC)
+ #define UMUL_TIME 39		/* 39 instructions */
+-#endif
+-#ifndef udiv_qrnnd
+-#ifndef LONGLONG_STANDALONE
++/* It's quite necessary to add this much assembler for the sparc.
++   The default udiv_qrnnd (in C) is more than 10 times slower!  */
+ #define udiv_qrnnd(q, r, n1, n0, d) \
+-do { USItype __r; \
+-	(q) = __udiv_qrnnd(&__r, (n1), (n0), (d)); \
+-	(r) = __r; \
+-} while (0)
+-	extern USItype __udiv_qrnnd();
+-#define UDIV_TIME 140
+-#endif /* LONGLONG_STANDALONE */
+-#endif /* udiv_qrnnd */
++  __asm__ ("! Inlined udiv_qrnnd\n\t"					\
++	   "mov	32,%%g1\n\t"						\
++	   "subcc	%1,%2,%%g0\n\t"					\
++	   "1:	bcs	5f\n\t"						\
++	   "addxcc %0,%0,%0	! shift n1n0 and a q-bit in lsb\n\t"	\
++	   "sub	%1,%2,%1	! this kills msb of n\n\t"		\
++	   "addx	%1,%1,%1	! so this can't give carry\n\t"	\
++	   "subcc	%%g1,1,%%g1\n\t"				\
++	   "2:	bne	1b\n\t"						\
++	   "subcc	%1,%2,%%g0\n\t"					\
++	   "bcs	3f\n\t"							\
++	   "addxcc %0,%0,%0	! shift n1n0 and a q-bit in lsb\n\t"	\
++	   "b		3f\n\t"						\
++	   "sub	%1,%2,%1	! this kills msb of n\n\t"		\
++	   "4:	sub	%1,%2,%1\n\t"					\
++	   "5:	addxcc	%1,%1,%1\n\t"					\
++	   "bcc	2b\n\t"							\
++	   "subcc	%%g1,1,%%g1\n\t"				\
++	   "! Got carry from n.  Subtract next step to cancel this carry.\n\t" \
++	   "bne	4b\n\t"							\
++	   "addcc	%0,%0,%0	! shift n1n0 and a 0-bit in lsb\n\t" \
++	   "sub	%1,%2,%1\n\t"						\
++	   "3:	xnor	%0,0,%0\n\t"					\
++	   "! End of inline udiv_qrnnd\n"				\
++	   : "=&r" ((USItype)(q)),					\
++	     "=&r" ((USItype)(r))					\
++	   : "r" ((USItype)(d)),					\
++	     "1" ((USItype)(n1)),					\
++	     "0" ((USItype)(n0)) : "%g1", "cc")
++#define UDIV_TIME (3+7*32)      /* 7 instructions/iteration. 32 iterations.  */
++#endif
+ #endif /* __sparc__ */
+ 
+ /***************************************
 -- 
-David Gibson			| I'll have my music baroque, and my code
-david AT gibson.dropbear.id.au	| minimalist, thank you.  NOT _the_ _other_
-				| _way_ _around_!
-http://www.ozlabs.org/~dgibson
+1.7.6.401.g6a319
+
