@@ -1,26 +1,21 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 28 Feb 2012 21:08:18 +0000
-Subject: Re: [PATCH trivial next 1/9] sparc: Use vsprintf extention %pf with builtin_return_address
-Message-Id: <20120228.160818.1053082393913813758.davem@davemloft.net>
+From: PRIVATE MAIL <elainekc@netvigator.com>
+Date: Wed, 08 Feb 2012 21:16:29 +0000
+Subject: Greetings
+Message-Id: <857644639.401414.1328735789901.JavaMail.root@yzbmbs10>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1330454853.git.joe@perches.com>
-	<5788cc9f8e5e9b3d8d2d7b78b2d1fb71325df773.1330454853.git.joe@perches.com>
-In-Reply-To: <5788cc9f8e5e9b3d8d2d7b78b2d1fb71325df773.1330454853.git.joe@perches.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: joe@perches.com
-Cc: trivial@kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Joe Perches <joe@perches.com>
-Date: Tue, 28 Feb 2012 10:49:30 -0800
 
-> Emit the function name not the address when possible.
-> 
-> builtin_return_address() gives an address.  When building
-> a kernel with CONFIG_KALLSYMS, emit the actual function
-> name not the address.
-> 
-> Signed-off-by: Joe Perches <joe@perches.com>
 
-Applied to sparc-next, thanks Joe.
+Good-day.
+
+This is a personal email directed to you for your consideration alone, I request that it remain and be treated as such only. Please bear with me for now and do not ask my name. I am a banker with HSBC in the Malta. I have an interesting business proposal for you that will be of immense benefit to both of us. Although this may be hard for you to believe, we stand to gain 7.2 million USD between us in a matter of days. Please grant me the benefit of doubt and hear me out. I need you to signify your interest by replying to this email.
+
+Most importantly, I will need you to promise to keep whatever you learn from me between us even if you decide not to go along with me. I will make more details available to you on receipt of a positive response from you. Do contact me only at my private emailaddress:privatepot5@live.co.uk
+
+
+Warm regard from Malta.
+
