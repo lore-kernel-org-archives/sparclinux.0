@@ -1,62 +1,35 @@
-From: David Howells <dhowells@redhat.com>
-Date: Tue, 14 Feb 2012 14:50:34 +0000
-Subject: [PATCH] KEYS: Use the compat keyctl() syscall wrapper on Sparc64 for Sparc32 compat
-Message-Id: <20120214145034.12531.79418.stgit@warthog.procyon.org.uk>
+From: Yinghai Lu <yinghai@kernel.org>
+Date: Sat, 11 Feb 2012 04:06:09 +0000
+Subject: [PATCH 06/22] PCI, sparc: Register busn_res for root buses
+Message-Id: <1328933185-15154-7-git-send-email-yinghai@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1328933185-15154-1-git-send-email-yinghai@kernel.org>
+In-Reply-To: <1328933185-15154-1-git-send-email-yinghai@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: keyrings@linux-nfs.org
-Cc: linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, stable@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Tony Luck <tony.luck@intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Dominik Brodowski <linux@dominikbrodowski.net>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-Use the 32-bit compat keyctl() syscall wrapper on Sparc64 for Sparc32 binary
-compatibility.
-
-Without this, keyctl(KEYCTL_INSTANTIATE_IOV) is liable to malfunction as it
-uses an iovec array read from userspace - though the kernel should survive this
-as it checks pointers and sizes anyway.
-
-I think all the other keyctl() function should just work, provided (a) the top
-32-bits of each 64-bit argument register are cleared prior to invoking the
-syscall routine, and the 32-bit address space is right at the 0-end of the
-64-bit address space.  Most of the arguments are 32-bit anyway, and so for
-those clearing is not required.
-
-Signed-off-by: David Howells <dhowells@redhat.com
-cc: "David S. Miller" <davem@davemloft.net>
-cc: sparclinux@vger.kernel.org
-cc: stable@vger.kernel.org
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
 ---
+ arch/sparc/kernel/pci.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
- arch/sparc/Kconfig             |    3 +++
- arch/sparc/kernel/systbls_64.S |    2 +-
- 2 files changed, 4 insertions(+), 1 deletions(-)
-
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index ca5580e..312fd5f 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -582,6 +582,9 @@ config SYSVIPC_COMPAT
- 	depends on COMPAT && SYSVIPC
- 	default y
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index bb8bc2e..83881df9 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -703,6 +703,7 @@ struct pci_bus * __devinit pci_scan_one_pbm(struct pci_pbm_info *pbm,
+ 	}
+ 	bus->secondary = pbm->pci_first_busno;
+ 	bus->subordinate = pbm->pci_last_busno;
++	pci_bus_insert_busn_res(bus, pbm->pci_first_busno, pbm->pci_last_busno);
  
-+config KEYS_COMPAT
-+	def_bool y if COMPAT && KEYS
-+
- endmenu
- 
- source "net/Kconfig"
-diff --git a/arch/sparc/kernel/systbls_64.S b/arch/sparc/kernel/systbls_64.S
-index db86b1a..3a58e0d 100644
---- a/arch/sparc/kernel/systbls_64.S
-+++ b/arch/sparc/kernel/systbls_64.S
-@@ -74,7 +74,7 @@ sys_call_table32:
- 	.word sys_timer_delete, compat_sys_timer_create, sys_ni_syscall, compat_sys_io_setup, sys_io_destroy
- /*270*/	.word sys32_io_submit, sys_io_cancel, compat_sys_io_getevents, sys32_mq_open, sys_mq_unlink
- 	.word compat_sys_mq_timedsend, compat_sys_mq_timedreceive, compat_sys_mq_notify, compat_sys_mq_getsetattr, compat_sys_waitid
--/*280*/	.word sys32_tee, sys_add_key, sys_request_key, sys_keyctl, compat_sys_openat
-+/*280*/	.word sys32_tee, sys_add_key, sys_request_key, compat_sys_keyctl, compat_sys_openat
- 	.word sys_mkdirat, sys_mknodat, sys_fchownat, compat_sys_futimesat, compat_sys_fstatat64
- /*290*/	.word sys_unlinkat, sys_renameat, sys_linkat, sys_symlinkat, sys_readlinkat
- 	.word sys_fchmodat, sys_faccessat, compat_sys_pselect6, compat_sys_ppoll, sys_unshare
+ 	pci_of_scan_bus(pbm, node, bus);
+ 	pci_bus_add_devices(bus);
+-- 
+1.7.7
 
