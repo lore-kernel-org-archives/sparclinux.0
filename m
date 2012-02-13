@@ -1,7 +1,7 @@
 From: Meelis Roos <mroos@linux.ee>
-Date: Mon, 13 Feb 2012 09:20:36 +0000
+Date: Mon, 13 Feb 2012 09:50:57 +0000
 Subject: Re: OF-related boot crash in 3.3.0-rc3-00188-g3ec1e88
-Message-Id: <alpine.SOC.1.00.1202131119040.1488@math.ut.ee>
+Message-Id: <alpine.SOC.1.00.1202131145590.1488@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
 References: <alpine.SOC.1.00.1202130942030.1488@math.ut.ee> <20120213080618.GA11077@ponder.secretlab.ca>
 In-Reply-To: <20120213080618.GA11077@ponder.secretlab.ca>
@@ -11,79 +11,47 @@ Content-Transfer-Encoding: 7bit
 To: Grant Likely <grant.likely@secretlab.ca>
 Cc: Rob Herring <rob.herring@calxeda.com>, sparclinux@vger.kernel.org, Linux Kernel list <linux-kernel@vger.kernel.org>
 
-> Try the following patch.  I suspect the new of_alias_scan() isn't careful
-> enough about which properties it dereferences:
-> 
-> ---
-> 
-> diff --git a/drivers/of/base.c b/drivers/of/base.c
-> index 133908a..9188caa 100644
-> --- a/drivers/of/base.c
-> +++ b/drivers/of/base.c
-> @@ -1174,6 +1174,10 @@ void of_alias_scan(void * (*dt_alloc)(u64 size, u64 align))
->  		    !strcmp(pp->name, "linux,phandle"))
->  			continue;
->  
-> +		/* Check for null value or non-strings (no null termination) */
-> +		if (!pp->value || strnlen(pp->value, pp->length) = pp->length)
-> +			continue;
-> +
->  		np = of_find_node_by_path(pp->value);
->  		if (!np)
->  			continue;
-> 
 
-Yes, it probably gets past this problem but oopses in a different place:
+Another variation of the crash, without the patch, but backtrace is 
+slightly different (strlen) - maybe fixed by the patch, maybe not.
 
-[    0.000000] PROMLIB: Sun IEEE Boot Prom 'OBP 3.2.30 2002/10/25 14:03'
-[    0.000000] PROMLIB: Root node compatible: 
-[    0.000000] Initializing cgroup subsys cpu
-[    0.000000] Linux version 3.3.0-rc3-00188-g3ec1e88-dirty (mroos@korvits) (gcc version 4.6.2 (Debian 42
-[    0.000000] debug: ignoring loglevel setting.
-[    0.000000] bootconsole [earlyprom0] enabled
-[    0.000000] ARCH: SUN4U
-[    0.000000] Ethernet address: 08:00:20:b6:ee:e2
-[    0.000000] Kernel: Using 4 locked TLB entries for main kernel image.
-[    0.000000] Remapping the kernel... done.
-[    0.000000] Unable to handle kernel NULL pointer dereference
+   0.000000] Unable to handle kernel NULL pointer dereference
 [    0.000000] tsk->{mm,active_mm}->context = 0000000000000000
-[    0.000000] tsk->{mm,active_mm}->pgd = fffff800008c77d0
+[    0.000000] tsk->{mm,active_mm}->pgd = fffff800604ea3a8
 [    0.000000]               \|/ ____ \|/
 [    0.000000]               "@'/ .. \`@"
 [    0.000000]               /_| \__/ |_\
 [    0.000000]                  \__U_/
 [    0.000000] swapper(0): Oops [#1]
-[    0.000000] TSTATE: 0000000080e01606 TPC: 0000000000645810 TNPC: 0000000000645814 Y: 00000037    Not d
-[    0.000000] TPC: <of_find_node_by_phandle+0x30/0x60>
-[    0.000000] g0: 0000000000837b88 g1: 00000000fffff800 g2: 0000000000000000 g3: 0000000000000002
-[    0.000000] g4: 0000000000853fd0 g5: 0000000000000000 g6: 0000000000834000 g7: 0000000000000050
-[    0.000000] o0: 0000000000876cf0 o1: fffff8007fcc0900 o2: 0000000001010101 o3: 0000000080808080
-[    0.000000] o4: 000000000000000e o5: 000000000086c000 sp: 0000000000837301 ret_pc: 00000000006457e8
-[    0.000000] RPC: <of_find_node_by_phandle+0x8/0x60>
-[    0.000000] l0: 0000000000808fd8 l1: 0000000000876d28 l2: 000000000072a800 l3: 0000000000000080
-[    0.000000] l4: 0000000000000013 l5: 0000000000000013 l6: 0000000000000000 l7: 0000000000000281
-[    0.000000] i0: 00000000f005de3c i1: ffffffffffdc1428 i2: 0000000000000100 i3: 0000000000000004
-[    0.000000] i4: 0000000000000050 i5: 0000000000876c00 i6: 00000000008373b1 i7: 000000000088cd10
-[    0.000000] I7: <of_console_init+0xa4/0x144>
+[    0.000000] TSTATE: 0000004480e01606 TPC: 00000000005be460 TNPC: 00000000005be464 Y: 00000037    Not d
+[    0.000000] TPC: <strlen+0x60/0xd4>
+[    0.000000] g0: 000000000000002f g1: 0000000000000001 g2: 0000000000000000 g3: 000000000073a700
+[    0.000000] g4: 000000000085ea50 g5: 0000000000000000 g6: 0000000000854000 g7: 0030a80000000000
+[    0.000000] o0: 0000000000000000 o1: 0000000000000000 o2: 0000000001010101 o3: 0000000080808080
+[    0.000000] o4: 0000000001010000 o5: fffff8006feae140 sp: 00000000008572c1 ret_pc: 0000000000655108
+[    0.000000] RPC: <of_alias_scan+0x68/0x200>
+[    0.000000] l0: 00000000008a4380 l1: fffff8006feae6b5 l2: fffff8006feae140 l3: fffff8006fe98e00
+[    0.000000] l4: 0000000000000000 l5: 0000000000000000 l6: 0000000000000000 l7: 00000000008678d0
+[    0.000000] i0: 00000000008c3f24 i1: 0000000000896ca0 i2: 00000000008268c0 i3: 00000000008268b8
+[    0.000000] i4: 00000000008038c8 i5: fffff8006feae5c0 i6: 0000000000857381 i7: 00000000008c4314
+[    0.000000] I7: <of_pdt_build_devicetree+0x90/0xa0>
 [    0.000000] Call Trace:
-[    0.000000]  [000000000088cd10] of_console_init+0xa4/0x144
-[    0.000000]  [000000000088c548] prom_build_devicetree+0x18/0x3c
-[    0.000000]  [00000000008904d4] paging_init+0x59c/0x6bc
-[    0.000000]  [000000000088bebc] setup_arch+0xf8/0x110
-[    0.000000]  [000000000088a51c] start_kernel+0x8c/0x34c
-[    0.000000]  [00000000006fbf28] tlb_fixup_done+0xa0/0xa8
+[    0.000000]  [00000000008c4314] of_pdt_build_devicetree+0x90/0xa0
+[    0.000000]  [00000000008b0330] prom_build_devicetree+0x10/0x3c
+[    0.000000]  [00000000008b3bb8] paging_init+0xa3c/0xde8
+[    0.000000]  [00000000008af978] setup_arch+0x324/0x688
+[    0.000000]  [00000000008ae4ec] start_kernel+0x80/0x338
+[    0.000000]  [0000000000715b30] tlb_fixup_done+0x88/0x90
 [    0.000000]  [0000000000000000]           (null)
 [    0.000000] Disabling lock debugging due to kernel taint
-[    0.000000] Caller[000000000088cd10]: of_console_init+0xa4/0x144
-[    0.000000] Caller[000000000088c548]: prom_build_devicetree+0x18/0x3c
-[    0.000000] Caller[00000000008904d4]: paging_init+0x59c/0x6bc
-[    0.000000] Caller[000000000088bebc]: setup_arch+0xf8/0x110
-[    0.000000] Caller[000000000088a51c]: start_kernel+0x8c/0x34c
-[    0.000000] Caller[00000000006fbf28]: tlb_fixup_done+0xa0/0xa8
+[    0.000000] Caller[00000000008c4314]: of_pdt_build_devicetree+0x90/0xa0
+[    0.000000] Caller[00000000008b0330]: prom_build_devicetree+0x10/0x3c
+[    0.000000] Caller[00000000008b3bb8]: paging_init+0xa3c/0xde8
+[    0.000000] Caller[00000000008af978]: setup_arch+0x324/0x688
+[    0.000000] Caller[00000000008ae4ec]: start_kernel+0x80/0x338
+[    0.000000] Caller[0000000000715b30]: tlb_fixup_done+0x88/0x90
 [    0.000000] Caller[0000000000000000]:           (null)
-[    0.000000] Instruction DUMP: 901760f0  02c70007  901760f0 <c2072010> 80a04018  324ffffc  f85f2050  9 
-[    0.000000] Kernel panic - not syncing: Attempted to kill the idle task!
-[    0.000000] Press Stop-A (L1-A) to return to the boot prom
+[    0.000000] Instruction DUMP: 96132080  19004040  94132101 <da020000> 9823400a  808b000b  024ffffd  9 
 
 -- 
 Meelis Roos (mroos@linux.ee)
