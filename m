@@ -1,66 +1,51 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Mon, 13 Feb 2012 21:46:23 +0000
+From: David Miller <davem@davemloft.net>
+Date: Tue, 14 Feb 2012 00:58:35 +0000
 Subject: Re: OF-related boot crash in 3.3.0-rc3-00188-g3ec1e88
-Message-Id: <20120213214623.GJ11077@ponder.secretlab.ca>
+Message-Id: <20120213.195835.1573147101037168145.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.SOC.1.00.1202130942030.1488@math.ut.ee>
- <20120213080618.GA11077@ponder.secretlab.ca>
- <alpine.SOC.1.00.1202131119040.1488@math.ut.ee>
-In-Reply-To: <alpine.SOC.1.00.1202131119040.1488@math.ut.ee>
+References: <20120213080618.GA11077@ponder.secretlab.ca>
+	<alpine.SOC.1.00.1202131119040.1488@math.ut.ee>
+	<20120213214623.GJ11077@ponder.secretlab.ca>
+In-Reply-To: <20120213214623.GJ11077@ponder.secretlab.ca>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Meelis Roos <mroos@linux.ee>
-Cc: Rob Herring <rob.herring@calxeda.com>, sparclinux@vger.kernel.org, Linux Kernel list <linux-kernel@vger.kernel.org>
+To: grant.likely@secretlab.ca
+Cc: mroos@linux.ee, rob.herring@calxeda.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Feb 13, 2012 at 11:20:36AM +0200, Meelis Roos wrote:
-> > Try the following patch.  I suspect the new of_alias_scan() isn't careful
-> > enough about which properties it dereferences:
-> > 
-> > ---
-> > 
-> > diff --git a/drivers/of/base.c b/drivers/of/base.c
-> > index 133908a..9188caa 100644
-> > --- a/drivers/of/base.c
-> > +++ b/drivers/of/base.c
-> > @@ -1174,6 +1174,10 @@ void of_alias_scan(void * (*dt_alloc)(u64 size, u64 align))
-> >  		    !strcmp(pp->name, "linux,phandle"))
-> >  			continue;
-> >  
-> > +		/* Check for null value or non-strings (no null termination) */
-> > +		if (!pp->value || strnlen(pp->value, pp->length) = pp->length)
-> > +			continue;
-> > +
-> >  		np = of_find_node_by_path(pp->value);
-> >  		if (!np)
-> >  			continue;
-> > 
-> 
-> Yes, it probably gets past this problem but oopses in a different place:
-> 
-> [    0.000000] PROMLIB: Sun IEEE Boot Prom 'OBP 3.2.30 2002/10/25 14:03'
-> [    0.000000] PROMLIB: Root node compatible: 
-> [    0.000000] Initializing cgroup subsys cpu
-> [    0.000000] Linux version 3.3.0-rc3-00188-g3ec1e88-dirty (mroos@korvits) (gcc version 4.6.2 (Debian 42
-> [    0.000000] debug: ignoring loglevel setting.
-> [    0.000000] bootconsole [earlyprom0] enabled
-> [    0.000000] ARCH: SUN4U
-> [    0.000000] Ethernet address: 08:00:20:b6:ee:e2
-> [    0.000000] Kernel: Using 4 locked TLB entries for main kernel image.
-> [    0.000000] Remapping the kernel... done.
-> [    0.000000] Unable to handle kernel NULL pointer dereference
-> [    0.000000] tsk->{mm,active_mm}->context = 0000000000000000
-> [    0.000000] tsk->{mm,active_mm}->pgd = fffff800008c77d0
-> [    0.000000]               \|/ ____ \|/
-> [    0.000000]               "@'/ .. \`@"
-> [    0.000000]               /_| \__/ |_\
-> [    0.000000]                  \__U_/
-> [    0.000000] swapper(0): Oops [#1]
-> [    0.000000] TSTATE: 0000000080e01606 TPC: 0000000000645810 TNPC: 0000000000645814 Y: 00000037    Not d
-> [    0.000000] TPC: <of_find_node_by_phandle+0x30/0x60>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Mon, 13 Feb 2012 14:46:23 -0700
 
-Ugh; that looks bad.  If it failed there, then the global device node list
-is corrupted.  I hate to ask you this, but would you be able to git bisect to
-narrow down the commit that causes the problem?
+> Ugh; that looks bad.  If it failed there, then the global device node list
+> is corrupted.  I hate to ask you this, but would you be able to git bisect to
+> narrow down the commit that causes the problem?
 
-g.
+Wild guess on all of these bugs, bad OF node reference counting and a
+OF node is free'd up prematurely.
+
+If you look at the sparc code that has been subsumed into the generic
+drivers/of/ stuff over the past few years, you'll see that we never
+consistently did any of the reference counting bits on the sparc side.
+
+I never did it, because I don't anticipate ever having hot-plug
+support for OF nodes.
+
+Anyways, if you now start to mix the drivers/of/ stuff which
+religiously does the reference counting with of_node_{get,put}()
+with the remaining scraps of sparc code that doesn't... it might
+not be pretty.
+
+In the crash dump after your test patch, we are in
+of_find_node_by_phandle() with a 'np' pointer in the allnodes list
+equal to 0x50.
+
+The signature in the original crash dump is identical, except
+that time we were in of_find_node_by_path(), but again the 'np'
+pointer was 0x50.
+
+Something else that might be suspicious were the memblock changes
+that happened this release cycle, so I wouldn't be surprised if
+a bisect turned up something in there.
+
+FWIW I've been running current kernels on my niagara boxes without
+incident for several weeks.
