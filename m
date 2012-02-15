@@ -1,21 +1,43 @@
-From: PRIVATE MAIL <elainekc@netvigator.com>
-Date: Wed, 08 Feb 2012 21:16:29 +0000
-Subject: Greetings
-Message-Id: <857644639.401414.1328735789901.JavaMail.root@yzbmbs10>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Date: Wed, 15 Feb 2012 05:10:04 +0000
+Subject: [PATCH 8/12] arch/sparc: remove references to cpu_*_map.
+Message-Id: <1329281884.6232.rusty@rustcorp.com.au>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
+From: Rusty Russell <rusty@rustcorp.com.au>
 
+This has been obsolescent for a while; time for the final push.
 
-Good-day.
+Also get rid of obsolescent first_cpu().
 
-This is a personal email directed to you for your consideration alone, I request that it remain and be treated as such only. Please bear with me for now and do not ask my name. I am a banker with HSBC in the Malta. I have an interesting business proposal for you that will be of immense benefit to both of us. Although this may be hard for you to believe, we stand to gain 7.2 million USD between us in a matter of days. Please grant me the benefit of doubt and hear me out. I need you to signify your interest by replying to this email.
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+---
+ arch/sparc/kernel/leon_kernel.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Most importantly, I will need you to promise to keep whatever you learn from me between us even if you decide not to go along with me. I will make more details available to you on receipt of a positive response from you. Do contact me only at my private emailaddress:privatepot5@live.co.uk
-
-
-Warm regard from Malta.
+diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
+--- a/arch/sparc/kernel/leon_kernel.c
++++ b/arch/sparc/kernel/leon_kernel.c
+@@ -104,11 +104,11 @@ static int irq_choose_cpu(const struct c
+ {
+ 	cpumask_t mask;
+ 
+-	cpus_and(mask, cpu_online_map, *affinity);
+-	if (cpus_equal(mask, cpu_online_map) || cpus_empty(mask))
++	cpumask_and(&mask, cpu_online_mask, affinity);
++	if (cpumask_equal(&mask, cpu_online_mask) || cpus_empty(mask))
+ 		return boot_cpu_id;
+ 	else
+-		return first_cpu(mask);
++		return cpumask_first(&mask);
+ }
+ #else
+ #define irq_choose_cpu(affinity) boot_cpu_id
 
