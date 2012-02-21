@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 21 Feb 2012 19:50:55 +0000
+Date: Tue, 21 Feb 2012 22:40:55 +0000
 Subject: Re: silo trouble with ext3
-Message-Id: <20120221.145055.999660323832855259.davem@davemloft.net>
+Message-Id: <20120221.174055.384982598871071500.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <alpine.SOC.1.00.1202211523260.24120@math.ut.ee>
 In-Reply-To: <alpine.SOC.1.00.1202211523260.24120@math.ut.ee>
@@ -10,16 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: crn@netunix.com
-Date: Tue, 21 Feb 2012 18:03:12 +0000 (GMT)
+From: Meelis Roos <mroos@linux.ee>
+Date: Tue, 21 Feb 2012 15:43:07 +0200 (EET)
 
-> 
-> I had a similar problem a long time ago, I created a small boot
-> partition at the beginning of the disk, ext2. The problem went away
-> but I did not figure out why.
+> Image not found.... try again
+> boot:
 
-This is totally unrelated.
+Ok, let's try to fix this.  Can you run "dumpe2fs -h $DEV" where $DEV
+is the block device the filesystem resides on, and report the output?
 
-Meelis's problem is due to the complete rewrite of the ext{2,3,4}
-support in SILO which I committed recently, and which propagated into
-Debian way too quickly.
+Using that I'll try to create a partition that resembles your's in
+hopes I can reproduce the bug.
+
+Thanks.
