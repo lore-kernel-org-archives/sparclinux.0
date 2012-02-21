@@ -1,7 +1,7 @@
-From: crn@netunix.com
-Date: Tue, 21 Feb 2012 18:03:12 +0000
+From: David Miller <davem@davemloft.net>
+Date: Tue, 21 Feb 2012 19:36:40 +0000
 Subject: Re: silo trouble with ext3
-Message-Id: <alpine.LNX.2.00.1202211756520.31781@post.netunix.com>
+Message-Id: <20120221.143640.17519868920156239.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <alpine.SOC.1.00.1202211523260.24120@math.ut.ee>
 In-Reply-To: <alpine.SOC.1.00.1202211523260.24120@math.ut.ee>
@@ -10,60 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+From: Meelis Roos <mroos@linux.ee>
+Date: Tue, 21 Feb 2012 15:43:07 +0200 (EET)
 
-I had a similar problem a long time ago, I created a small boot partition
-at the beginning of the disk, ext2. The problem went away but I did not
-figure out why.
-ISTR there were issues with large disks at various times, for example the
-Ultra 5/10 was only sold with 8Gb drives and there were issues at 32Gb.
-But ICBW.
-
-
-On Tue, 21 Feb 2012, Meelis Roos wrote:
-
-> Short summary: silo can not find any files from my ext3. Was this
+> Short summary: silo can not find any files from my ext3. Was this 
 > the problem recently discussed here about silo?
->
-> Debian unstable's silo 1.4.14+git20120127-1 and 110G ext3 filesystem.
-> The same machine worked fine for years, running all the kernels and
-> Debian unstable. Last successful reboot was less than a week ago, and
+> 
+> Debian unstable's silo 1.4.14+git20120127-1 and 110G ext3 filesystem. 
+> The same machine worked fine for years, running all the kernels and 
+> Debian unstable. Last successful reboot was less than a week ago, and 
 > Debian was updated after that (probably updating silo package).
-> Today I compiled 3.3-rc4+git and rebooted to try it, and silo can not
-> find anything. silo itself loads but can not open neither /etc/silo.conf
+> Today I compiled 3.3-rc4+git and rebooted to try it, and silo can not 
+> find anything. silo itself loads but can not open neither /etc/silo.conf 
 > nor any kernel image by direct name:
->
-> Rebooting with command: boot
-> Boot device: disk  File and args:
-> SILO Version 1.4.14
->
-> Cannot find /etc/silo.conf (error: 4294967295)
->
-> Couldn't load /etc/silo.conf
-> No config file loaded, you can boot just from this command line
-> Type [prompath;]part/path_to_image [parameters] on the prompt
-> E.g. /iommu/sbus/espdma/esp/sd@3,0;4/vmlinux root=/dev/sda4
-> or 2/vmlinux.live (to load vmlinux.live from 2nd partition of boot disk)
-> boot: 1/boot/test
-> Allocated 64 Megs of memory at 0x40000000 for kernel
->
-> Cannot find /boot/test (error: 4294967295)
->
-> Image not found.... try again
-> boot:
->
->
-> Tried fsck.ext3 -f, did not help. Re-installed silo from netboot
-> chroot, did not help either.
->
-> This is Ultra 5 with OBP 3.31 (latest available), so should not have any
-> 1G or 2G limits on boot partition?
->
-> Ideas?
->
-> -- 
-> Meelis Roos (mroos@linux.ee)
-> --
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+
+I really wish they hadn't pushed this new SILO into debian without a
+couple months more testing of the new ext{2,3,4} code I wrote.
+
+I knew there would be regressions like this and it's not ready at all
+for mass consumption.
