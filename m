@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 22 Feb 2012 01:27:33 +0000
+From: Meelis Roos <mroos@linux.ee>
+Date: Wed, 22 Feb 2012 07:22:51 +0000
 Subject: Re: silo trouble with ext3
-Message-Id: <20120221.202733.1840554502153600636.davem@davemloft.net>
+Message-Id: <alpine.SOC.1.00.1202220920500.21339@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
 References: <alpine.SOC.1.00.1202211523260.24120@math.ut.ee>
 In-Reply-To: <alpine.SOC.1.00.1202211523260.24120@math.ut.ee>
@@ -10,87 +10,58 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: David Miller <davem@davemloft.net>
-Date: Tue, 21 Feb 2012 18:33:10 -0500 (EST)
+> Ok, let's try to fix this.  Can you run "dumpe2fs -h $DEV" where $DEV
+> is the block device the filesystem resides on, and report the output?
 
-> From: David Miller <davem@davemloft.net>
-> Date: Tue, 21 Feb 2012 18:10:07 -0500 (EST)
-> 
->> For example, I just found a bug with symlink handling in path
->> traversal fixed by the following patch.  So if there are symlinks
->> involved in Meelis's setup that would be the cause rather than not
->> specifically using ext2 for the boot partition.
->> 
->> --------------------
->> ext2: Fix symlink being overwritten.
-> 
-> Ignore me, there is no bug.  All callers specifically use a special
-> on-stack inode buffer to avoid this problem.
+I see you already have a patch for testing but here is the output from 
+mounted filesystem:
 
-Ok, while waiting for the debug dump from Meelis I think I found the
-problem.
+Filesystem volume name:   mandariin-root
+Last mounted on:          <not available>
+Filesystem UUID:          1ff8d6d7-6d17-4bfa-9758-27a879320627
+Filesystem magic number:  0xEF53
+Filesystem revision #:    1 (dynamic)
+Filesystem features:      has_journal ext_attr dir_index filetype 
+sparse_super
+Filesystem flags:         signed_directory_hash 
+Default mount options:    (none)
+Filesystem state:         not clean
+Errors behavior:          Remount read-only
+Filesystem OS type:       Linux
+Inode count:              14446080
+Block count:              28835840
+Reserved block count:     1441792
+Free blocks:              7187096
+Free inodes:              14323802
+First block:              0
+Block size:               4096
+Fragment size:            4096
+Blocks per group:         32768
+Fragments per group:      32768
+Inodes per group:         16416
+Inode blocks per group:   513
+Filesystem created:       Thu Sep 23 17:14:35 2004
+Last mount time:          Tue Feb 21 12:24:06 2012
+Last write time:          Wed Feb 22 09:20:16 2012
+Mount count:              1
+Maximum mount count:      27
+Last checked:             Tue Feb 21 13:32:08 2012
+Check interval:           15552000 (6 months)
+Next check after:         Sun Aug 19 14:32:08 2012
+Reserved blocks uid:      0 (user root)
+Reserved blocks gid:      0 (group root)
+First inode:              11
+Inode size:               128
+Journal inode:            8
+Default directory hash:   tea
+Directory Hash Seed:      4605a528-34b9-4b7c-8455-fdcaf274e145
+Journal backup:           inode blocks
+Journal features:         journal_incompat_revoke
+Journal size:             32M
+Journal length:           8192
+Journal sequence:         0x00917abb
+Journal start:            0
 
-With my test harness I reproduced a case similar to what Meelis saw
-but it has nothing to do with ext3'ness or anything like that.
 
-The block group descriptors were having their location miscalculated.
-It only worked for the first block of group descriptors.
-
-So if an inode is outside of the first several block groups, things
-don't work.  I guess for most /boot partitions, which are relatively
-small, most if not all of the files fit into the working range.
-
-Jurij, can you possibly build a test package for Meelis to see if this
-fixes the reported bug?
-
-It's pushed out to the silo GIT repo as well if that helps any.
-
---------------------
-ext2: Calculate group descriptor location properly.
-
-Calculate the block and offset correctly for group descriptors.
-
-The existing code would work properly only for the first block
-of descriptors.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- second/fs/ext2.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
-
-diff --git a/second/fs/ext2.c b/second/fs/ext2.c
-index 710695a..7eb665f 100644
---- a/second/fs/ext2.c
-+++ b/second/fs/ext2.c
-@@ -57,6 +57,8 @@ struct silo_ext2_state {
- 	__u32			block_size;
- 	__u32			addr_per_block;
- 	__u32			addr_per_block_bits;
-+	__u32			desc_per_block;
-+	__u32			desc_per_block_bits;
- };
- static struct silo_ext2_state *sstate;
- 
-@@ -285,8 +287,8 @@ static void read_group(struct silo_ext2_state *s, __u32 grp_no,
- 	__u32 first = ext2_to_cpu_32(s->super->s_first_data_block);
- 	__u32 blk, offset;
- 
--	blk = first + 1;
--	offset = grp_no * sizeof(*grp);
-+	blk = first + 1 + (grp_no >> s->desc_per_block_bits);
-+	offset = (grp_no & (s->desc_per_block - 1)) * sizeof(*grp);
- 
- 	read_data(s, blk, offset, sizeof(*grp), grp);
- }
-@@ -371,6 +373,8 @@ static int open_ext2(char *device)
- 
- 	s->addr_per_block = s->block_size / sizeof(__u32);
- 	s->addr_per_block_bits = calc_ilog2(s->addr_per_block);
-+	s->desc_per_block = s->block_size / sizeof(struct ext2_group_desc);
-+	s->desc_per_block_bits = calc_ilog2(s->desc_per_block);
- 
- 	s->scratch_block[0] = malloc(s->block_size * 4);
- 	if (!s->scratch_block[0]) {
 -- 
-1.7.7.6
-
+Meelis Roos (mroos@linux.ee)
