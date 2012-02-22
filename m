@@ -1,22 +1,29 @@
-From: Meelis Roos <mroos@linux.ee>
-Date: Wed, 22 Feb 2012 18:25:32 +0000
+From: David Miller <davem@davemloft.net>
+Date: Wed, 22 Feb 2012 20:26:26 +0000
 Subject: Re: OF-related boot crash in 3.3.0-rc3-00188-g3ec1e88
-Message-Id: <alpine.SOC.1.00.1202222025120.20496@math.ut.ee>
+Message-Id: <20120222.152626.1290364413773909040.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.SOC.1.00.1202130942030.1488@math.ut.ee> <20120213080618.GA11077@ponder.secretlab.ca> <alpine.SOC.1.00.1202131119040.1488@math.ut.ee> <20120213214623.GJ11077@ponder.secretlab.ca> <alpine.SOC.1.00.1202162151030.16208@math.ut.ee>
- <alpine.SOC.1.00.1202201109260.467@math.ut.ee> <20120220170603.GC7836@mtj.dyndns.org> <alpine.SOC.1.00.1202210030530.11350@math.ut.ee> <20120221010537.GA15898@dhcp-172-17-108-109.mtv.corp.google.com> <alpine.SOC.1.00.1202220213180.4171@math.ut.ee>
- <20120222174825.GA32694@google.com>
-In-Reply-To: <20120222174825.GA32694@google.com>
+References: <20120221010537.GA15898@dhcp-172-17-108-109.mtv.corp.google.com>
+	<alpine.SOC.1.00.1202220213180.4171@math.ut.ee>
+	<4F45326C.3000408@oldelvet.org.uk>
+In-Reply-To: <4F45326C.3000408@oldelvet.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Tejun Heo <tj@kernel.org>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, sparclinux@vger.kernel.org, Linux Kernel list <linux-kernel@vger.kernel.org>, sam@ravnborg.org, "David S. Miller" <davem@davemloft.net>
+To: richm@oldelvet.org.uk
+Cc: mroos@linux.ee, tj@kernel.org, grant.likely@secretlab.ca, rob.herring@calxeda.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, sam@ravnborg.org
 
-> Can you please try the following patch?  If it still fails to boot,
-> please attach the failing log.  Thank you.
+From: Richard Mortimer <richm@oldelvet.org.uk>
+Date: Wed, 22 Feb 2012 18:22:36 +0000
 
-It works on E3500! Will try other machines tomorrow.
+> memblock reserved: ADD [0x0000007fcc0a40-0x0000007fcc0a4e] node 1
+> memblock reserved: add [0x0000007fcc0a40-000000007fcc0a4e] node 1 @767
 
--- 
-Meelis Roos (mroos@linux.ee)
+These are physical addresses.
+
+> But a similar address in the registers has fffff800 in there.
+> 
+> o4: fffff8007fcc0a4d
+
+All of physical memory is mapped linearly starting at 0xfffff80000000000
+and this is such a virtual address.
