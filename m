@@ -1,33 +1,50 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Wed, 22 Feb 2012 17:21:54 +0000
+From: Meelis Roos <mroos@linux.ee>
+Date: Wed, 22 Feb 2012 17:41:34 +0000
 Subject: Re: OF-related boot crash in 3.3.0-rc3-00188-g3ec1e88
-Message-Id: <20120222172154.GA29641@merkur.ravnborg.org>
+Message-Id: <alpine.SOC.1.00.1202221927300.17363@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20120213080618.GA11077@ponder.secretlab.ca> <alpine.SOC.1.00.1202131119040.1488@math.ut.ee> <20120213214623.GJ11077@ponder.secretlab.ca> <alpine.SOC.1.00.1202162151030.16208@math.ut.ee> <alpine.SOC.1.00.1202201109260.467@math.ut.ee> <20120220170603.GC7836@mtj.dyndns.org> <alpine.SOC.1.00.1202210030530.11350@math.ut.ee> <20120221010537.GA15898@dhcp-172-17-108-109.mtv.corp.google.com> <20120222170330.GA29521@merkur.ravnborg.org> <alpine.SOC.1.00.1202221910420.17363@math.ut.ee>
-In-Reply-To: <alpine.SOC.1.00.1202221910420.17363@math.ut.ee>
+References: <20120213080618.GA11077@ponder.secretlab.ca> <alpine.SOC.1.00.1202131119040.1488@math.ut.ee> <20120213214623.GJ11077@ponder.secretlab.ca> <alpine.SOC.1.00.1202162151030.16208@math.ut.ee> <alpine.SOC.1.00.1202201109260.467@math.ut.ee>
+ <20120220170603.GC7836@mtj.dyndns.org> <alpine.SOC.1.00.1202210030530.11350@math.ut.ee> <20120221010537.GA15898@dhcp-172-17-108-109.mtv.corp.google.com> <20120222170330.GA29521@merkur.ravnborg.org> <alpine.SOC.1.00.1202221910420.17363@math.ut.ee>
+ <20120222172154.GA29641@merkur.ravnborg.org>
+In-Reply-To: <20120222172154.GA29641@merkur.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Meelis Roos <mroos@linux.ee>
+To: Sam Ravnborg <sam@ravnborg.org>
 Cc: Tejun Heo <tj@kernel.org>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, sparclinux@vger.kernel.org, Linux Kernel list <linux-kernel@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>
 
-On Wed, Feb 22, 2012 at 07:12:06PM +0200, Meelis Roos wrote:
-> > Meelis - do the affected boxes have any special memory configurations?
-> 
-> Nothin special to me. E3500 has 2G, V100 has 1G, V210 and V240 have 2G 
-> and 1.5G.
-> 
-> > Could you try to boot with a sensible mem=xxx value to see if limiting the memory
-> > helps.
-> 
-> Like mem%6M? Will try.
-Think just a little more - I do not think this will help.
-I confused myself with some of the sparc32 issues I have hit.
+> > > Could you try to boot with a sensible mem=xxx value to see if limiting the memory
+> > > helps.
+> > 
+> > Like mem%6M? Will try.
+> Think just a little more - I do not think this will help.
 
-I have looked a little at the log files you included.
-The only thing that looked different was that the faulty version
-had a number after "@" which is higher than 1 - where the OK always have 1.
+Tried it on the 2G V210. It changes the picture. With 2G RAM, it 
+just hangs.
 
-This is "idx" in memblock_insert_region() - but I did not look closer.
+With mem%6M it produces a crash in strlen and of_alias_scan like in 
+V100 with 1G.
 
-	Sam
+memQ2M results in the same strlen error.
+
+mem=1G results in a stranger error:
+
+[    0.000000] Kernel panic - not syncing: ERROR: Failed to allocate 0x90 bytes below 0x0.
+[    0.000000] 
+[    0.000000] Call Trace:
+[    0.000000]  [00000000007a6a28] memblock_alloc_base+0x28/0x38
+[    0.000000]  [000000000079ca50] prom_early_alloc+0xc/0x60
+[    0.000000]  [00000000007ae090] of_pdt_create_node.part.0+0x4/0xe0
+[    0.000000]  [00000000007ae250] of_pdt_build_devicetree+0x30/0xa0
+[    0.000000]  [000000000079c4a8] prom_build_devicetree+0x18/0x38
+[    0.000000]  [00000000007a03c0] paging_init+0x59c/0x6bc
+[    0.000000]  [000000000079be50] setup_arch+0xf8/0x108
+[    0.000000]  [000000000079a4e8] start_kernel+0x78/0x30c
+[    0.000000]  [00000000006a3e80] tlb_fixup_done+0x98/0xa0
+[    0.000000]  [0000000000000000]           (null)
+
+The working machines have 512M RAM, 834M RAM and 2G RAM so it's not just 
+the amount of RAM.
+
+-- 
+Meelis Roos (mroos@linux.ee)
