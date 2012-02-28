@@ -1,62 +1,38 @@
-From: "Mr. Charles Adams" <charlesadams04@pfensig-wendorf.de>
-Date: Tue, 28 Feb 2012 13:29:45 +0000
-Subject: From Desk of the Secretary-General
-Message-Id: <g057aco1SD5Uac.RZmta@mo-p00-ob.rzone.de>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_NextPart_000_00A3_01C2A9A6.636BAA70"
+From: Joe Perches <joe@perches.com>
+Date: Tue, 28 Feb 2012 18:49:29 +0000
+Subject: [PATCH trivial next 0/9] treewide: Use vsprintf extention %pf
+Message-Id: <cover.1330454853.git.joe@perches.com>
 List-Id: <sparclinux.vger.kernel.org>
-To: sparclinux@vger.kernel.org
-
-This is a multi-part message in MIME format.
-
-------=_NextPart_000_00A3_01C2A9A6.636BAA70
-Content-Type: text/plain;
-	charset="big5"
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+To: linux-arm-kernel@lists.infradead.org
 
-FIND MAIL ATTACHED 
-NOTE:MESSAGE WAS ATTACHED DUE TO SECURITY REASONS
+Emit the actual function name when possible
 
-------=_NextPart_000_00A3_01C2A9A6.636BAA70
-Content-Type: application/octet-stream;
-	name="From Mr. Charles Adams.txt"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="From Mr. Charles Adams.txt"
+Joe Perches (9):
+  sparc: Use vsprintf extention %pf with builtin_return_address
+  alpha: Use vsprintf extention %pf with builtin_return_address
+  arm: Use vsprintf extention %pf with builtin_return_address
+  microblaze: Use vsprintf extention %pf with builtin_return_address
+  powerpc: Use vsprintf extention %pf with builtin_return_address
+  parisc: Use vsprintf extention %pf with builtin_return_address
+  scsi: Use vsprintf extention %pf with builtin_return_address
+  staging: ramster: Use vsprintf extention %pf with builtin_return_address
+  gadget: Use vsprintf extention %pf with builtin_return_address
 
-DQoNCkZyb20gRGVzayBvZiB0aGUgU2VjcmV0YXJ5LUdlbmVyYWwgDQpXb3Js
-ZCBCYW5rIEdyb3VwLCBMT05ET04sIFVOSVRFRCBLSU5HRE9NIA0KDQogDQpE
-ZWFyIFNpci9NYWRhbSANCg0KIA0KSSBhbSBNci4gQ2hhcmxlcyBBZGFtcywg
-QmlsbCBhbmQgRXhjaGFuZ2UgTWFuYWdlci8gU2VjcmV0YXJ5IEdlbmVyYWws
-IA0KSGVhZCBvZiB0aGUgV29ybGQgQmFuayBGaW5hbmNlIEdyb3VwLCBMb25k
-b24gQnJhbmNoLCBzZXQgdXAgdG8gZmlnaHQgDQphZ2FpbnN0IHNjYW0gYW5k
-IGZyYXVkdWxlbnQgYWN0aXZpdGllcyB3b3JsZHdpZGUuIA0KDQoNCg0KDQpU
-aGlzIEdyb3VwIGlzIHJlc3BvbnNpYmxlIGZvciBpbnZlc3RpZ2F0aW5nIHRo
-ZSBsZWdpdGltYWN5IG9mIHVucGFpZCANCmNvbnRyYWN0LCBpbmhlcml0YW5j
-ZSBhbmQgbG90dG8gd2lubmluZyBjbGFpbXMgYnkgY29tcGFuaWVzIGFuZCAN
-CmluZGl2aWR1YWxzIGFuZCBkaXJlY3RzIHRoZSBwYXlpbmcgYXV0aG9yaXRp
-ZXMgKGJhbmtzKSB3b3JsZHdpZGUgDQp0byBtYWtlIGltbWVkaWF0ZSBwYXlt
-ZW50IG9mIHZlcmlmaWVkIGNsYWltcyB0byB0aGUgYmVuZWZpY2lhcmllcyAN
-CndpdGhvdXQgZnVydGhlciBkZWxheS4gDQoNCg0KDQoNCllvdSBhcmUgYmVp
-bmcgbGVnYWxseSBjb250YWN0ZWQgcmVnYXJkaW5nIHRoZSByZWxlYXNlIG9m
-IHlvdXIgbG9uZyANCmF3YWl0ZWQgZnVuZC4gDQoNCg0KDQoNCkFmdGVyIGEg
-ZGV0YWlsZWQgcmV2aWV3IG9mIHlvdXIgZmlsZSwgdGhlIFdvcmxkIEJhbmsg
-R3JvdXAgaGFzIG1hbmRhdGVkIA0KdGhhdCB5b3VyIGZ1bmQgc2hvdWxkIGJl
-IHJlbGVhc2UgaW1tZWRpYXRlbHkgVGhlIHN1bSBvZiBVUyQxMCw2MjUsMDAw
-LjAwIA0KKFRlbiBNaWxsaW9uIFNpeCBIdW5kcmVkIGFuZCBUd2VudHkgRml2
-ZSBUaG91c2FuZCBVbml0ZWQgU3RhdGVzIERvbGxhcnMpIA0KaGFzIGJlZW4g
-YXBwcm92ZWQgaW4geW91ciBmYXZvciB2aWEgbXkgZGVzay4gDQoNCg0KDQoN
-CkkgdGhlcmVmb3JlIHdpc2ggdG8gaW5mb3JtIHlvdSB0aGF0IHlvdXIgcGF5
-bWVudCBpcyBiZWluZyBwcm9jZXNzZWQgDQphbmQgd2lsbCBiZSByZWxlYXNl
-ZCB0byB5b3UgYXMgc29vbiBhcyB5b3UgcmVzcG9uZCB0byB0aGlzIGxldHRl
-ci4gDQoNCg0KUGxlYXNlIHJlLWNvbmZpcm0gdG8gdXMgdGhlIGZvbGxvd2lu
-ZzogDQoNCiANCigxKSBZb3VyIEZ1bGwgTmFtZTogDQoNCigyKSBQaG9uZSwg
-RmF4IGFuIA0KTW9iaWxlIE51bWJlcjogDQoNCigzKSBDb21wYW55IE5hbWUs
-IEhvbWUgQWRkcmVzczogDQoNCig0KSBQcm9mZXNzaW9uLCBBZ2UgYW5kIE1h
-cml0YWwgc3RhdHVzOiANCiANCiANCk5vdGUgdGhhdCB0aGUgYWJvdmUgZnVu
-ZCBoYXMgYmVlbiBjbGVhcmVkIGZyb20gdGVycm9yaXN0IG9yIA0KZnJhdWQg
-cmVsYXRlZCBhY3Rpdml0aWVzLiANClRoYW5rcyBmb3IgWW91ciBDb29wZXJh
-dGlvbi4gDQoNCiANCiANCk1yLiBDaGFybGVzIEFkYW1zIA0KKFNlY3JldGFy
-eS1HZW5lcmFsKSANCldvcmxkIEJhbmsgR3JvdXAuDQoNCg0KDQo=
+ arch/alpha/kernel/pci_iommu.c               |   20 ++++++++++----------
+ arch/arm/nwfpe/fpmodule.c                   |    2 +-
+ arch/microblaze/mm/pgtable.c                |    2 +-
+ arch/powerpc/mm/pgtable_32.c                |    2 +-
+ arch/sparc/kernel/ds.c                      |    2 +-
+ arch/sparc/mm/srmmu.c                       |    2 +-
+ drivers/parisc/superio.c                    |    2 +-
+ drivers/scsi/esp_scsi.c                     |    2 +-
+ drivers/staging/ramster/cluster/heartbeat.c |    4 ++--
+ drivers/usb/gadget/u_serial.c               |    2 +-
+ 10 files changed, 20 insertions(+), 20 deletions(-)
 
-------=_NextPart_000_00A3_01C2A9A6.636BAA70--
+-- 
+1.7.8.111.gad25c.dirty
+
