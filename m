@@ -1,75 +1,91 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 28 Feb 2012 21:10:23 +0000
+From: Meelis Roos <mroos@linux.ee>
+Date: Tue, 28 Feb 2012 21:36:07 +0000
 Subject: Re: OF-related boot crash in 3.3.0-rc3-00188-g3ec1e88
-Message-Id: <20120228.161023.117381282430807415.davem@davemloft.net>
+Message-Id: <alpine.SOC.1.00.1202282333580.3974@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20120227194341.GA1448@merkur.ravnborg.org>
-	<alpine.SOC.1.00.1202272316280.15067@math.ut.ee>
-	<20120227.163044.2168482307021109001.davem@davemloft.net>
-In-Reply-To: <20120227.163044.2168482307021109001.davem@davemloft.net>
+References: <20120227194341.GA1448@merkur.ravnborg.org> <alpine.SOC.1.00.1202272316280.15067@math.ut.ee> <20120227.163044.2168482307021109001.davem@davemloft.net> <20120228.161023.117381282430807415.davem@davemloft.net>
+In-Reply-To: <20120228.161023.117381282430807415.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mroos@linux.ee
+To: David Miller <davem@davemloft.net>
 Cc: sam@ravnborg.org, tj@kernel.org, grant.likely@secretlab.ca, rob.herring@calxeda.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: David Miller <davem@davemloft.net>
-Date: Mon, 27 Feb 2012 16:30:44 -0500 (EST)
+> Meelis, can you get your tree back into a state where the crash happens
+> and then add the following debugging patch and see what happens?
 
-> I think the issue is that OF writes past the end of the buffer even
-> though the length it reports is smaller than what it writes.
+Tried it, no obvious results in dmesg, except the crash is in a slightly 
+different location.
 
-Meelis, can you get your tree back into a state where the crash happens
-and then add the following debugging patch and see what happens?
+[    0.000000] PROMLIB: Sun IEEE Boot Prom 'OBP 3.2.30 2002/10/25 14:03'
+[    0.000000] PROMLIB: Root node compatible: 
+[    0.000000] Linux version 3.2.0-rc3-00076-g7bd0b0f-dirty (mroos@korvits) (gcc version 4.6.2 (Debian 4.6.2-14) ) #84 SMP Tue Feb 28 23:28:49 EET 2012
+[    0.000000] debug: ignoring loglevel setting.
+[    0.000000] bootconsole [earlyprom0] enabled
+[    0.000000] ARCH: SUN4U
+[    0.000000] Ethernet address: 08:00:20:b6:ee:e2
+[    0.000000] Kernel: Using 4 locked TLB entries for main kernel image.
+[    0.000000] Remapping the kernel... done.
+[    0.000000] Unable to handle kernel paging request at virtual address 000000007fcf2000
+[    0.000000] tsk->{mm,active_mm}->context = 0000000000000000
+[    0.000000] tsk->{mm,active_mm}->pgd = fffff800007db7d0
+[    0.000000]               \|/ ____ \|/
+[    0.000000]               "@'/ .. \`@"
+[    0.000000]               /_| \__/ |_\
+[    0.000000]                  \__U_/
+[    0.000000] swapper(0): Oops [#1]
+[    0.000000] TSTATE: 0000008880e01600 TPC: 000000000057b4c8 TNPC: 000000000057b4cc Y: 00000037    Not tainted
+[    0.000000] TPC: <strcmp+0x8/0x60>
+[    0.000000] g0: 000000000077f7f0 g1: 0000000000000000 g2: 000000000000002f g3: 00000000000000f0
+[    0.000000] g4: 000000000077f350 g5: 0000000000000000 g6: 0000000000760000 g7: 0000000000000050
+[    0.000000] o0: 000000000079dbc8 o1: 0000000000000000 o2: 0000000000000000 o3: 0000000000000002
+[    0.000000] o4: 0000000000000002 o5: 0000000000000000 sp: 0000000000763181 ret_pc: 00000000006a9984
+[    0.000000] RPC: <_raw_read_lock+0x24/0x40>
+[    0.000000] l0: 0000000001028000 l1: fffff8007fcbc380 l2: 8000000000000000 l3: 0800000000000000
+[    0.000000] l4: 0000000000000080 l5: 0000000000000002 l6: 0000000000000000 l7: 0020280000000000
+[    0.000000] i0: 000000007fcf3c80 i1: fffff8007fcec480 i2: 0000000001010101 i3: 0000000080808080
+[    0.000000] i4: fffff8007fcb8ccd i5: 0000000000028337 i6: 0000000000763231 i7: 0000000000606250
+[    0.000000] I7: <of_find_node_by_path+0x30/0x80>
+[    0.000000] Call Trace:
+[    0.000000]  [0000000000606250] of_find_node_by_path+0x30/0x80
+[    0.000000]  [0000000000606e0c] of_alias_scan+0xcc/0x1c0
+[    0.000000]  [00000000007c328c] of_pdt_build_devicetree+0x90/0xa0
+[    0.000000]  [00000000007b0680] prom_build_devicetree+0x10/0x3c
+[    0.000000]  [00000000007b4614] paging_init+0x59c/0x6bc
+[    0.000000]  [00000000007afffc] setup_arch+0xf8/0x110
+[    0.000000]  [00000000007ae514] start_kernel+0x84/0x32c
+[    0.000000]  [00000000006918c8] tlb_fixup_done+0xa0/0xa8
+[    0.000000]  [0000000000000000]           (null)
+[    0.000000] Disabling lock debugging due to kernel taint
+[    0.000000] Caller[0000000000606250]: of_find_node_by_path+0x30/0x80
+[    0.000000] Caller[0000000000606e0c]: of_alias_scan+0xcc/0x1c0
+[    0.000000] Caller[00000000007c328c]: of_pdt_build_devicetree+0x90/0xa0
+[    0.000000] Caller[00000000007b0680]: prom_build_devicetree+0x10/0x3c
+[    0.000000] Caller[00000000007b4614]: paging_init+0x59c/0x6bc
+[    0.000000] Caller[00000000007afffc]: setup_arch+0xf8/0x110
+[    0.000000] Caller[00000000007ae514]: start_kernel+0x84/0x32c
+[    0.000000] Caller[00000000006918c8]: tlb_fixup_done+0xa0/0xa8
+[    0.000000] Caller[0000000000000000]:           (null)
+[    0.000000] Instruction DUMP: 01000000  9de3bf50  82102000 <c40e0001> c60e4001  80a08003  12400008  82006001  80a0a000 
+[    0.000000] Kernel panic - not syncing: Attempted to kill the idle task!
+[    0.000000] Call Trace:
+[    0.000000]  [000000000069c7fc] panic+0x68/0x1e4
+[    0.000000]  [0000000000461a30] do_exit+0x230/0x2c0
+[    0.000000]  [00000000004292c0] die_if_kernel+0x180/0x260
+[    0.000000]  [000000000069c224] unhandled_fault+0x8c/0x98
+[    0.000000]  [0000000000445778] do_kernel_fault+0xd8/0x100
+[    0.000000]  [000000000044584c] do_sparc64_fault+0xac/0x540
+[    0.000000]  [0000000000407948] sparc64_realfault_common+0x10/0x20
+[    0.000000]  [000000000057b4c8] strcmp+0x8/0x60
+[    0.000000]  [0000000000606250] of_find_node_by_path+0x30/0x80
+[    0.000000]  [0000000000606e0c] of_alias_scan+0xcc/0x1c0
+[    0.000000]  [00000000007c328c] of_pdt_build_devicetree+0x90/0xa0
+[    0.000000]  [00000000007b0680] prom_build_devicetree+0x10/0x3c
+[    0.000000]  [00000000007b4614] paging_init+0x59c/0x6bc
+[    0.000000]  [00000000007afffc] setup_arch+0xf8/0x110
+[    0.000000]  [00000000007ae514] start_kernel+0x84/0x32c
+[    0.000000]  [00000000006918c8] tlb_fixup_done+0xa0/0xa8
+[    0.000000] Press Stop-A (L1-A) to return to the boot prom
 
-Thanks!
-
-diff --git a/drivers/of/pdt.c b/drivers/of/pdt.c
-index 07cc1d6..367ef33 100644
---- a/drivers/of/pdt.c
-+++ b/drivers/of/pdt.c
-@@ -125,12 +125,31 @@ static struct property * __init of_pdt_build_one_prop(phandle node, char *prev,
- 		} else {
- 			int len;
- 
-+#if 1
-+			int i;
-+			p->value = prom_early_alloc(p->length + 1 + 64);
-+			for (i = p->length + 1; i < p->length + 1 + 64; i++)
-+				((unsigned char *)p->value)[i] = 0xff;
-+#else
- 			p->value = prom_early_alloc(p->length + 1);
-+#endif
- 			len = of_pdt_prom_ops->getproperty(node, p->name,
- 					p->value, p->length);
--			if (len <= 0)
-+			if (len <= 0) {
-+				pr_info("OF BUG: getproperty(%s, %d) returns %d\n",
-+					p->name, p->length, len);
- 				p->length = 0;
-+			}
- 			((unsigned char *)p->value)[p->length] = '\0';
-+#if 1
-+			for (i = p->length + 1; i < p->length + 1 + 64; i++) {
-+				if (((unsigned char *)p->value)[i] != 0xff) {
-+					pr_info("OF BUG: Write past end of property buffer\n");
-+					pr_info("OF BUG: Property name [%s] length [%d] getprop len [%d]\n",
-+						p->name, p->length, len);
-+				}
-+			}
-+#endif
- 		}
- 	}
- 	return p;
-@@ -161,7 +180,11 @@ static char * __init of_pdt_get_one_property(phandle node, const char *name)
- 
- 	len = of_pdt_prom_ops->getproplen(node, name);
- 	if (len > 0) {
-+#if 1
-+		buf = prom_early_alloc(len + 64);
-+#else
- 		buf = prom_early_alloc(len);
-+#endif
- 		len = of_pdt_prom_ops->getproperty(node, name, buf, len);
- 	}
- 
+-- 
+Meelis Roos (mroos@linux.ee)
