@@ -1,30 +1,54 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 28 Feb 2012 20:49:54 +0000
-Subject: Re: prtconfs repo missing?
-Message-Id: <20120228.154954.1998651275728935689.davem@davemloft.net>
+From: Joe Perches <joe@perches.com>
+Date: Tue, 28 Feb 2012 18:49:30 +0000
+Subject: [PATCH trivial next 1/9] sparc: Use vsprintf extention %pf with builtin_return_address
+Message-Id: <5788cc9f8e5e9b3d8d2d7b78b2d1fb71325df773.1330454853.git.joe@perches.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.SOC.1.00.1202281348290.21067@math.ut.ee>
-In-Reply-To: <alpine.SOC.1.00.1202281348290.21067@math.ut.ee>
+References: <cover.1330454853.git.joe@perches.com>
+In-Reply-To: <cover.1330454853.git.joe@perches.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Jiri Kosina <trivial@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: David Miller <davem@davemloft.net>
-Date: Tue, 28 Feb 2012 14:10:07 -0500 (EST)
+Emit the function name not the address when possible.
 
-> From: Meelis Roos <mroos@linux.ee>
-> Date: Tue, 28 Feb 2012 13:49:30 +0200 (EET)
-> 
->> Trying to pull from 
->> git://git.kernel.org/pub/scm/linux/kernel/git/davem/prtconfs.git tells 
->> fatal: The remote end hung up unexpectedly
->> 
->> Has the repo moved?
-> 
-> No, I just never rebuilt it after the kernel.org downtime, I'll put it
-> back up soon.
+builtin_return_address() gives an address.  When building
+a kernel with CONFIG_KALLSYMS, emit the actual function
+name not the address.
 
-Ok, it's back up at:
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ arch/sparc/kernel/ds.c |    2 +-
+ arch/sparc/mm/srmmu.c  |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-git://git.kernel.org/pub/scm/linux/kernel/git/davem/prtconfs.git
+diff --git a/arch/sparc/kernel/ds.c b/arch/sparc/kernel/ds.c
+index 381edcd..e65b9fc 100644
+--- a/arch/sparc/kernel/ds.c
++++ b/arch/sparc/kernel/ds.c
+@@ -868,7 +868,7 @@ void ldom_power_off(void)
+ 
+ static void ds_conn_reset(struct ds_info *dp)
+ {
+-	printk(KERN_ERR "ds-%llu: ds_conn_reset() from %p\n",
++	printk(KERN_ERR "ds-%llu: ds_conn_reset() from %pf\n",
+ 	       dp->id, __builtin_return_address(0));
+ }
+ 
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index cbef74e..f37fbb2 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -705,7 +705,7 @@ static void swift_update_mmu_cache(struct vm_area_struct * vma, unsigned long ad
+ 		val = srmmu_hwprobe(address);
+ 		if (val != 0 && pte_val(*ptep) != val) {
+ 			printk("swift_update_mmu_cache: "
+-			    "addr %lx put %08x probed %08x from %p\n",
++			    "addr %lx put %08x probed %08x from %pf\n",
+ 			    address, pte_val(*ptep), val,
+ 			    __builtin_return_address(0));
+ 			srmmu_flush_whole_tlb();
+-- 
+1.7.8.111.gad25c.dirty
+
