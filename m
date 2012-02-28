@@ -1,54 +1,26 @@
-From: Joe Perches <joe@perches.com>
-Date: Tue, 28 Feb 2012 18:49:30 +0000
-Subject: [PATCH trivial next 1/9] sparc: Use vsprintf extention %pf with builtin_return_address
-Message-Id: <5788cc9f8e5e9b3d8d2d7b78b2d1fb71325df773.1330454853.git.joe@perches.com>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 28 Feb 2012 21:08:18 +0000
+Subject: Re: [PATCH trivial next 1/9] sparc: Use vsprintf extention %pf with builtin_return_address
+Message-Id: <20120228.160818.1053082393913813758.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <cover.1330454853.git.joe@perches.com>
-In-Reply-To: <cover.1330454853.git.joe@perches.com>
+	<5788cc9f8e5e9b3d8d2d7b78b2d1fb71325df773.1330454853.git.joe@perches.com>
+In-Reply-To: <5788cc9f8e5e9b3d8d2d7b78b2d1fb71325df773.1330454853.git.joe@perches.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jiri Kosina <trivial@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: joe@perches.com
+Cc: trivial@kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Emit the function name not the address when possible.
+From: Joe Perches <joe@perches.com>
+Date: Tue, 28 Feb 2012 10:49:30 -0800
 
-builtin_return_address() gives an address.  When building
-a kernel with CONFIG_KALLSYMS, emit the actual function
-name not the address.
+> Emit the function name not the address when possible.
+> 
+> builtin_return_address() gives an address.  When building
+> a kernel with CONFIG_KALLSYMS, emit the actual function
+> name not the address.
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- arch/sparc/kernel/ds.c |    2 +-
- arch/sparc/mm/srmmu.c  |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/arch/sparc/kernel/ds.c b/arch/sparc/kernel/ds.c
-index 381edcd..e65b9fc 100644
---- a/arch/sparc/kernel/ds.c
-+++ b/arch/sparc/kernel/ds.c
-@@ -868,7 +868,7 @@ void ldom_power_off(void)
- 
- static void ds_conn_reset(struct ds_info *dp)
- {
--	printk(KERN_ERR "ds-%llu: ds_conn_reset() from %p\n",
-+	printk(KERN_ERR "ds-%llu: ds_conn_reset() from %pf\n",
- 	       dp->id, __builtin_return_address(0));
- }
- 
-diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-index cbef74e..f37fbb2 100644
---- a/arch/sparc/mm/srmmu.c
-+++ b/arch/sparc/mm/srmmu.c
-@@ -705,7 +705,7 @@ static void swift_update_mmu_cache(struct vm_area_struct * vma, unsigned long ad
- 		val = srmmu_hwprobe(address);
- 		if (val != 0 && pte_val(*ptep) != val) {
- 			printk("swift_update_mmu_cache: "
--			    "addr %lx put %08x probed %08x from %p\n",
-+			    "addr %lx put %08x probed %08x from %pf\n",
- 			    address, pte_val(*ptep), val,
- 			    __builtin_return_address(0));
- 			srmmu_flush_whole_tlb();
--- 
-1.7.8.111.gad25c.dirty
-
+Applied to sparc-next, thanks Joe.
