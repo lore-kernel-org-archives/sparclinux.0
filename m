@@ -1,258 +1,153 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Date: Wed, 07 Mar 2012 22:34:53 +0000
-Subject: [PATCH v3 33/34] PCI: reimplement P2P bridge 1K I/O windows (Intel P64H2)
-Message-Id: <20120307223453.25669.30797.stgit@bhelgaas.mtv.corp.google.com>
+From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Date: Thu, 01 Mar 2012 08:24:47 +0000
+Subject: Re: [PATCH] cpumask: fix lg_lock/br_lock.
+Message-Id: <4F4F2F7F.5040207@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20120307222436.25669.52282.stgit@bhelgaas.mtv.corp.google.com>
-In-Reply-To: <20120307222436.25669.52282.stgit@bhelgaas.mtv.corp.google.com>
+References: <87ehtf3lqh.fsf@rustcorp.com.au> <20120227155338.7b5110cd.akpm@linux-foundation.org> <20120228084359.GJ21106@elte.hu> <20120228132719.f375071a.akpm@linux-foundation.org> <4F4DBB26.2060907@linux.vnet.ibm.com> <20120229091732.GA11505@elte.hu> <4F4E083A.2080304@linux.vnet.ibm.com>
+In-Reply-To: <4F4E083A.2080304@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: linux-arch@vger.kernel.org, linux-pci@vger.kernel.org, sparclinux@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Rusty Russell <rusty@rustcorp.com.au>, Nick Piggin <npiggin@kernel.dk>, linux-kernel <linux-kernel@vger.kernel.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andi Kleen <ak@linux.intel.com>, linux-fsdevel@vger.kernel.org, Peter Zijlstra <a.p.zijlstra@chello.nl>, Arjan van de Ven <arjan.van.de.ven@intel.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, ppc-dev <linuxppc-dev@lists.ozlabs.org>, "David S. Miller" <davem@davemloft.net>, Paul Gortmaker <paul.gortmaker@windriver.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, sparclinux@vger.kernel.org
 
-9d265124d051 and 15a260d53f7c added quirks for P2P bridges that support
-I/O windows that start/end at 1K boundaries, not just the 4K boundaries
-defined by the PCI spec.  For details, see the IOBL_ADR register and the
-EN1K bit in the CNF register in the Intel 82870P2 (P64H2).
+On 02/29/2012 04:42 PM, Srivatsa S. Bhat wrote:
 
-These quirks complicate the code that reads P2P bridge windows
-(pci_read_bridge_io() and pci_cfg_fake_ranges()) because the bridge
-I/O resource is updated in the HEADER quirk, in pci_read_bridge_io(),
-in pci_setup_bridge(), and again in the FINAL quirk.  This is confusing
-and makes it impossible to reassign the bridge windows after FINAL
-quirks are run.
+> On 02/29/2012 02:47 PM, Ingo Molnar wrote:
+> 
+>>
+>> * Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com> wrote:
+>>
+>>> Hi Andrew,
+>>>
+>>> On 02/29/2012 02:57 AM, Andrew Morton wrote:
+>>>
+>>>> On Tue, 28 Feb 2012 09:43:59 +0100
+>>>> Ingo Molnar <mingo@elte.hu> wrote:
+>>>>
+>>>>> This patch should also probably go upstream through the 
+>>>>> locking/lockdep tree? Mind sending it us once you think it's 
+>>>>> ready?
+>>>>
+>>>> Oh goody, that means you own
+>>>> http://marc.info/?l=linux-kernel&m1419353511653&w=2.
+>>>>
+>>>
+>>>
+>>> That bug got fixed sometime around Dec 2011. See commit e30e2fdf
+>>> (VFS: Fix race between CPU hotplug and lglocks)
+>>
+>> The lglocks code is still CPU-hotplug racy AFAICS, despite the 
+>> ->cpu_lock complication:
+>>
+>> Consider a taken global lock on a CPU:
+>>
+>> 	CPU#1
+>> 	...
+>> 	br_write_lock(vfsmount_lock);
+>>
+>> this takes the lock of all online CPUs: say CPU#1 and CPU#2. Now 
+>> CPU#3 comes online and takes the read lock:
+> 
+> 
+> CPU#3 cannot come online! :-)
+> 
+> No new CPU can come online until that corresponding br_write_unlock()
+> is completed. That is because  br_write_lock acquires &name##_cpu_lock
+> and only br_write_unlock will release it.
+> And, CPU_UP_PREPARE callback tries to acquire that very same spinlock,
+> and hence will keep spinning until br_write_unlock() is run. And hence,
+> the CPU#3 or any new CPU online for that matter will not complete until
+> br_write_unlock() is done.
+> 
+> It is of course debatable as to how good this design really is, but IMHO,
+> the lglocks code is not CPU-hotplug racy now..
+> 
+> Here is the link to the original discussion during the development of
+> that patch: thread.gmane.org/gmane.linux.file-systems/59750/
+> 
+>>
+>> 			CPU#3
+>> 			br_read_lock(vfsmount_lock);
+>>
+>> This will succeed while the br_write_lock() is still active, 
+>> because CPU#1 has only taken the locks of CPU#1 and CPU#2. 
+>>
+>> Crash!
+>>
+>> The proper fix would be for CPU-online to serialize with all 
+>> known lglocks, via the notifier callback, i.e. to do something 
+>> like this:
+>>
+>>         case CPU_UP_PREPARE:                                            
+>> 		for_each_online_cpu(cpu) {
+>> 	                spin_lock(&name##_cpu_lock);                            
+>> 	                spin_unlock(&name##_cpu_lock);
+>> 		}
+>> 	...
+>>
+>> I.e. in essence do:
+>>
+>>         case CPU_UP_PREPARE:                                            
+>> 		name##_global_lock_online();
+>> 		name##_global_unlock_online();
+>>
+>> Another detail I noticed, this bit:
+>>
+>>         register_hotcpu_notifier(&name##_lg_cpu_notifier);              \
+>>         get_online_cpus();                                              \
+>>         for_each_online_cpu(i)                                          \
+>>                 cpu_set(i, name##_cpus);                                \
+>>         put_online_cpus();                                              \
+>>
+>> could be something simpler and loop-less, like:
+>>
+>>         get_online_cpus();
+>> 	cpumask_copy(name##_cpus, cpu_online_mask);
+>> 	register_hotcpu_notifier(&name##_lg_cpu_notifier);
+>> 	put_online_cpus();
+>>
+> 
+> 
+> While the cpumask_copy is definitely better, we can't put the
+> register_hotcpu_notifier() within get/put_online_cpus() because it will
+> lead to ABBA deadlock with a newly initiated CPU Hotplug operation, the
+> 2 locks involved being the cpu_add_remove_lock and the cpu_hotplug lock.
+> 
+> IOW, at the moment there is no "absolutely race-free way" way to do
+> CPU Hotplug callback registration. Some time ago, while going through the
+> asynchronous booting patch by Arjan [1] I had written up a patch to fix
+> that race because that race got transformed from "purely theoretical"
+> to "very real" with the async boot patch, as shown by the powerpc boot
+> failures [2].
+> 
+> But then I stopped short of posting that patch to the lists because I
+> started wondering how important that race would actually turn out to be,
+> in case the async booting design takes a totally different approach
+> altogether.. [And the reason why I didn't post it is also because it
+> would require lots of changes in many parts where CPU Hotplug registration
+> is done, and that wouldn't probably be justified (I don't know..) if the
+> race remained only theoretical, as it is now.]
+> 
+> [1]. http://thread.gmane.org/gmane.linux.kernel/1246209
+> [2]. https://lkml.org/lkml/2012/2/13/383
+>  
 
-This patch adds support for 1K windows in the generic paths, so the
-HEADER quirk only has to enable this support.  The FINAL quirk, which
-used to undo damage done by pci_setup_bridge(), is no longer needed.
 
-Note that the bridge window assignment code, e.g., pbus_size_io(), should
-pay attention to dev->io_window_1k, too, but I didn't fix that.
+Ok, now that I mentioned about my patch, let me as well show it some daylight..
+It is totally untested, incomplete and probably won't even compile.. (given
+that I had abandoned working on it some time ago, since I was not sure in
+what direction the async boot design was headed, which was the original
+motivation for me to try to fix this race)
 
-CC: "David S. Miller" <davem@davemloft.net>
-CC: sparclinux@vger.kernel.org
-Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
----
- arch/sparc/kernel/pci.c  |   25 ++++++++++++++-----------
- drivers/pci/probe.c      |   25 ++++++++++++++-----------
- drivers/pci/quirks.c     |   39 +--------------------------------------
- drivers/pci/setup-bus.c  |   11 +++++++++--
- include/linux/pci.h      |    1 +
- include/linux/pci_regs.h |    3 ++-
- 6 files changed, 41 insertions(+), 63 deletions(-)
+I really hate to post it when it is in such a state, but atleast let me get
+the idea out, now that the discussion is around it, atleast just to get some
+thoughts about whether it is even worth pursuing! 
+(I'll post the patches as a reply to this mail.)
 
-diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index fdaf218..86610de 100644
---- a/arch/sparc/kernel/pci.c
-+++ b/arch/sparc/kernel/pci.c
-@@ -384,15 +384,23 @@ static void __devinit pci_cfg_fake_ranges(struct pci_dev *dev,
- 					  struct pci_pbm_info *pbm)
- {
- 	struct pci_bus_region region;
--	struct resource *res, res2;
-+	struct resource *res;
- 	u8 io_base_lo, io_limit_lo;
- 	u16 mem_base_lo, mem_limit_lo;
--	unsigned long base, limit;
-+	unsigned long io_mask, io_granularity, base, limit;
-+
-+	io_mask = PCI_IO_RANGE_MASK;
-+	io_granularity = 0x1000;
-+	if (dev->io_window_1k) {
-+		/* Support 1K I/O space granularity */
-+		io_mask = PCI_IO_1K_RANGE_MASK;
-+		io_granularity = 0x400;
-+	}
- 
- 	pci_read_config_byte(dev, PCI_IO_BASE, &io_base_lo);
- 	pci_read_config_byte(dev, PCI_IO_LIMIT, &io_limit_lo);
--	base = (io_base_lo & PCI_IO_RANGE_MASK) << 8;
--	limit = (io_limit_lo & PCI_IO_RANGE_MASK) << 8;
-+	base = (io_base_lo & io_mask) << 8;
-+	limit = (io_limit_lo & io_mask) << 8;
- 
- 	if ((io_base_lo & PCI_IO_RANGE_TYPE_MASK) = PCI_IO_RANGE_TYPE_32) {
- 		u16 io_base_hi, io_limit_hi;
-@@ -406,14 +414,9 @@ static void __devinit pci_cfg_fake_ranges(struct pci_dev *dev,
- 	res = bus->resource[0];
- 	if (base <= limit) {
- 		res->flags = (io_base_lo & PCI_IO_RANGE_TYPE_MASK) | IORESOURCE_IO;
--		res2.flags = res->flags;
- 		region.start = base;
--		region.end = limit + 0xfff;
--		pcibios_bus_to_resource(dev, &res2, &region);
--		if (!res->start)
--			res->start = res2.start;
--		if (!res->end)
--			res->end = res2.end;
-+		region.end = limit + io_granularity - 1;
-+		pcibios_bus_to_resource(dev, res, &region);
- 	}
- 
- 	pci_read_config_word(dev, PCI_MEMORY_BASE, &mem_base_lo);
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index b81ec1c..e3bb7a8 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -347,15 +347,23 @@ static void __devinit pci_read_bridge_io(struct pci_bus *child)
- {
- 	struct pci_dev *dev = child->self;
- 	u8 io_base_lo, io_limit_lo;
--	unsigned long base, limit;
-+	unsigned long io_mask, io_granularity, base, limit;
- 	struct pci_bus_region region;
--	struct resource *res, res2;
-+	struct resource *res;
-+
-+	io_mask = PCI_IO_RANGE_MASK;
-+	io_granularity = 0x1000;
-+	if (dev->io_window_1k) {
-+		/* Support 1K I/O space granularity */
-+		io_mask = PCI_IO_1K_RANGE_MASK;
-+		io_granularity = 0x400;
-+	}
- 
- 	res = child->resource[0];
- 	pci_read_config_byte(dev, PCI_IO_BASE, &io_base_lo);
- 	pci_read_config_byte(dev, PCI_IO_LIMIT, &io_limit_lo);
--	base = (io_base_lo & PCI_IO_RANGE_MASK) << 8;
--	limit = (io_limit_lo & PCI_IO_RANGE_MASK) << 8;
-+	base = (io_base_lo & io_mask) << 8;
-+	limit = (io_limit_lo & io_mask) << 8;
- 
- 	if ((io_base_lo & PCI_IO_RANGE_TYPE_MASK) = PCI_IO_RANGE_TYPE_32) {
- 		u16 io_base_hi, io_limit_hi;
-@@ -367,14 +375,9 @@ static void __devinit pci_read_bridge_io(struct pci_bus *child)
- 
- 	if (base <= limit) {
- 		res->flags = (io_base_lo & PCI_IO_RANGE_TYPE_MASK) | IORESOURCE_IO;
--		res2.flags = res->flags;
- 		region.start = base;
--		region.end = limit + 0xfff;
--		pcibios_bus_to_resource(dev, &res2, &region);
--		if (!res->start)
--			res->start = res2.start;
--		if (!res->end)
--			res->end = res2.end;
-+		region.end = limit + io_granularity - 1;
-+		pcibios_bus_to_resource(dev, res, &region);
- 		dev_printk(KERN_DEBUG, &dev->dev, "  bridge window %pR\n", res);
- 	}
- }
-diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
-index fb544d6..aa4e296 100644
---- a/drivers/pci/quirks.c
-+++ b/drivers/pci/quirks.c
-@@ -1997,53 +1997,16 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_NCR, PCI_DEVICE_ID_NCR_53C810, fixup_rev1
- static void __devinit quirk_p64h2_1k_io(struct pci_dev *dev)
- {
- 	u16 en1k;
--	u8 io_base_lo, io_limit_lo;
--	unsigned long base, limit;
--	struct resource *res = dev->resource + PCI_BRIDGE_RESOURCES;
- 
- 	pci_read_config_word(dev, 0x40, &en1k);
- 
- 	if (en1k & 0x200) {
- 		dev_info(&dev->dev, "Enable I/O Space to 1KB granularity\n");
--
--		pci_read_config_byte(dev, PCI_IO_BASE, &io_base_lo);
--		pci_read_config_byte(dev, PCI_IO_LIMIT, &io_limit_lo);
--		base = (io_base_lo & (PCI_IO_RANGE_MASK | 0x0c)) << 8;
--		limit = (io_limit_lo & (PCI_IO_RANGE_MASK | 0x0c)) << 8;
--
--		if (base <= limit) {
--			res->start = base;
--			res->end = limit + 0x3ff;
--		}
-+		dev->io_window_1k = 1;
- 	}
- }
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	0x1460,		quirk_p64h2_1k_io);
- 
--/* Fix the IOBL_ADR for 1k I/O space granularity on the Intel P64H2
-- * The IOBL_ADR gets re-written to 4k boundaries in pci_setup_bridge()
-- * in drivers/pci/setup-bus.c
-- */
--static void __devinit quirk_p64h2_1k_io_fix_iobl(struct pci_dev *dev)
--{
--	u16 en1k, iobl_adr, iobl_adr_1k;
--	struct resource *res = dev->resource + PCI_BRIDGE_RESOURCES;
--
--	pci_read_config_word(dev, 0x40, &en1k);
--
--	if (en1k & 0x200) {
--		pci_read_config_word(dev, PCI_IO_BASE, &iobl_adr);
--
--		iobl_adr_1k = iobl_adr | (res->start >> 8) | (res->end & 0xfc00);
--
--		if (iobl_adr != iobl_adr_1k) {
--			dev_info(&dev->dev, "Fixing P64H2 IOBL_ADR from 0x%x to 0x%x for 1KB granularity\n",
--				iobl_adr,iobl_adr_1k);
--			pci_write_config_word(dev, PCI_IO_BASE, iobl_adr_1k);
--		}
--	}
--}
--DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL,	0x1460,		quirk_p64h2_1k_io_fix_iobl);
--
- /* Under some circumstances, AER is not linked with extended capabilities.
-  * Force it to be linked by setting the corresponding control bit in the
-  * config space.
-diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
-index e241f2f..b2a9f3a 100644
---- a/drivers/pci/setup-bus.c
-+++ b/drivers/pci/setup-bus.c
-@@ -476,16 +476,23 @@ static void pci_setup_bridge_io(struct pci_bus *bus)
- 	struct pci_dev *bridge = bus->self;
- 	struct resource *res;
- 	struct pci_bus_region region;
-+	unsigned long io_mask;
-+	u8 io_base_lo, io_limit_lo;
- 	u32 l, io_upper16;
- 
-+	io_mask = PCI_IO_RANGE_MASK;
-+	if (bridge->io_window_1k)
-+		io_mask = PCI_IO_1K_RANGE_MASK;
-+
- 	/* Set up the top and bottom of the PCI I/O segment for this bus. */
- 	res = bus->resource[0];
- 	pcibios_resource_to_bus(bridge, &region, res);
- 	if (res->flags & IORESOURCE_IO) {
- 		pci_read_config_dword(bridge, PCI_IO_BASE, &l);
- 		l &= 0xffff0000;
--		l |= (region.start >> 8) & 0x00f0;
--		l |= region.end & 0xf000;
-+		io_base_lo = (region.start >> 8) & io_mask;
-+		io_limit_lo = (region.end >> 8) & io_mask;
-+		l |= ((u32) io_limit_lo << 8) | io_base_lo;
- 		/* Set up upper 16 bits of I/O base/limit. */
- 		io_upper16 = (region.end & 0xffff0000) | (region.start >> 16);
- 		dev_info(&bridge->dev, "  bridge window %pR\n", res);
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index be58a51..2db3c8c 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -324,6 +324,7 @@ struct pci_dev {
- 	unsigned int    is_hotplug_bridge:1;
- 	unsigned int    __aer_firmware_first_valid:1;
- 	unsigned int	__aer_firmware_first:1;
-+	unsigned int	io_window_1k:1;	/* Intel P2P bridge 1K I/O windows */
- 	pci_dev_flags_t dev_flags;
- 	atomic_t	enable_cnt;	/* pci_enable_device has been called */
- 
-diff --git a/include/linux/pci_regs.h b/include/linux/pci_regs.h
-index 4b608f5..88c9ea5 100644
---- a/include/linux/pci_regs.h
-+++ b/include/linux/pci_regs.h
-@@ -125,7 +125,8 @@
- #define  PCI_IO_RANGE_TYPE_MASK	0x0fUL	/* I/O bridging type */
- #define  PCI_IO_RANGE_TYPE_16	0x00
- #define  PCI_IO_RANGE_TYPE_32	0x01
--#define  PCI_IO_RANGE_MASK	(~0x0fUL)
-+#define  PCI_IO_RANGE_MASK	(~0x0fUL) /* Standard 4K I/O windows */
-+#define  PCI_IO_1K_RANGE_MASK	(~0x03UL) /* Intel 1K I/O windows */
- #define PCI_SEC_STATUS		0x1e	/* Secondary status register, only bit 14 used */
- #define PCI_MEMORY_BASE		0x20	/* Memory range behind */
- #define PCI_MEMORY_LIMIT	0x22
+By the way, it should solve the powerpc boot failure, atleast in principle,
+considering what the root cause of the failure was..
+
+Regards,
+Srivatsa S. Bhat
 
