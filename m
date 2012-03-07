@@ -1,45 +1,38 @@
-From: Josh Boyer <jwboyer@gmail.com>
-Date: Wed, 07 Mar 2012 14:15:59 +0000
+From: Stephen Warren <swarren@wwwdotorg.org>
+Date: Wed, 07 Mar 2012 17:41:52 +0000
 Subject: Re: [PATCH 1/3] Kbuild: centralize MKIMAGE and cmd_uimage definitions
-Message-Id: <CA+5PVA7PCow=Z7TpPtQYp3ye6uKFSp3XsdH75Pe9BRu9Vyy21g@mail.gmail.com>
+Message-Id: <4F579DE0.3050400@wwwdotorg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1331080238-1524-1-git-send-email-swarren@wwwdotorg.org>
-In-Reply-To: <1331080238-1524-1-git-send-email-swarren@wwwdotorg.org>
+References: <1331080238-1524-1-git-send-email-swarren@wwwdotorg.org> <201203062256.16105.vapier@gentoo.org>
+In-Reply-To: <201203062256.16105.vapier@gentoo.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Michal Marek <mmarek@suse.cz>, Russell King <linux@arm.linux.org.uk>, nico@fluxnic.net, Haavard Skinnemoen <hskinnemoen@gmail.com>, Hans-Christian Egtvedt <egtvedt@samfundet.no>, Mike Frysinger <vapier@gentoo.org>, Michal Simek <monstr@monstr.eu>, Paul Mundt <lethal@linux-sh.org>, "David S. Miller" <davem@davemloft.net>, Guan Xuetao <gxt@mprc.pku.edu.cn>, linux-kernel@vger.kernel.org, linux-kbuild@vger.kernel.org, linux-arm-kernel@lists.infradead.org, uclinux-dist-devel@blackfin.uclinux.org, microblaze-uclinux@itee.uq.edu.au, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Mike Frysinger <vapier@gentoo.org>
+Cc: Michal Marek <mmarek@suse.cz>, Russell King <linux@arm.linux.org.uk>, nico@fluxnic.net, Haavard Skinnemoen <hskinnemoen@gmail.com>, Hans-Christian Egtvedt <egtvedt@samfundet.no>, Michal Simek <monstr@monstr.eu>, Paul Mundt <lethal@linux-sh.org>, "David S. Miller" <davem@davemloft.net>, Guan Xuetao <gxt@mprc.pku.edu.cn>, linux-kernel@vger.kernel.org, linux-kbuild@vger.kernel.org, linux-arm-kernel@lists.infradead.org, uclinux-dist-devel@blackfin.uclinux.org, microblaze-uclinux@itee.uq.edu.au, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org
 
-On Tue, Mar 6, 2012 at 7:30 PM, Stephen Warren <swarren@wwwdotorg.org> wrot=
-e:
-> All ARCHs have the same definition of MKIMAGE. Move it to Makefile.lib
-> to avoid duplication.
->
-> All ARCHs have similar definitions of cmd_uimage. Place a sufficiently
-> parameterized version in Makefile.lib to avoid duplication.
->
-> The centralized cmd_uimage definition will allow the future introduction
-> of a centralized Kconfig option to make cmd_uimage use -T kernel_noload
-> rather than -T kernel.
->
-> Signed-off-by: Stephen Warren <swarren@wwwdotorg.org>
-> ---
-> NOTE: I have not tested this patch in any way at all for architectures
-> other than ARM.
->
-> =A0arch/arm/boot/Makefile =A0 =A0 =A0 =A0 =A0| =A0 23 +++++++++----------=
-----
-> =A0arch/avr32/boot/images/Makefile | =A0 =A09 +++------
-> =A0arch/blackfin/boot/Makefile =A0 =A0 | =A0 19 ++++++++-----------
-> =A0arch/microblaze/boot/Makefile =A0 | =A0 10 +++-------
-> =A0arch/sh/boot/Makefile =A0 =A0 =A0 =A0 =A0 | =A0 =A08 ++------
-> =A0arch/sparc/boot/Makefile =A0 =A0 =A0 =A0| =A0 =A09 +++------
-> =A0arch/unicore32/boot/Makefile =A0 =A0| =A0 12 ++----------
-> =A0scripts/Makefile.lib =A0 =A0 =A0 =A0 =A0 =A0| =A0 24 +++++++++++++++++=
-+++++++
-> =A08 files changed, 54 insertions(+), 60 deletions(-)
+On 03/06/2012 08:56 PM, Mike Frysinger wrote:
+> On Tuesday 06 March 2012 19:30:36 Stephen Warren wrote:
+>> --- a/arch/blackfin/boot/Makefile
+>> +++ b/arch/blackfin/boot/Makefile
+>>
+>> +ifeq ($(CONFIG_RAMKERNEL),y)
+>> +UIMAGE_LOADADDR = $(CONFIG_BOOT_LOAD)
+>> +else # CONFIG_ROMKERNEL must be set
+>> +UIMAGE_LOADADDR = $(CONFIG_BOOT_LOAD)
+>> +endif
+> 
+> this part is wrong :).  the else branch should be $(CONFIG_ROM_BASE).
 
-Is there a reason you skipped powerpc?
+Thanks. I've fixed that locally.
 
-josh
+>> +UIMAGE_ENTRYADDR = $(shell $(NM) vmlinux | awk '$$NF = "__start" {print
+>> $$1}')
+> 
+> i feel like if we tried harder, we could automate the -e arg for all arches.  
+> i understand if you don't want to undertake that though.
+
+Yes, this might be possible. I'd guess the symbol name varies between
+archs, but that can probably be taken care of. This is probably best
+left as a follow-on patch though, since it's a behavioral change,
+whereas this patch is just consolidation.
