@@ -1,61 +1,38 @@
-From: Mike Frysinger <vapier@gentoo.org>
-Date: Wed, 07 Mar 2012 03:56:07 +0000
+From: Hans-Christian Egtvedt <egtvedt@samfundet.no>
+Date: Wed, 07 Mar 2012 09:00:17 +0000
 Subject: Re: [PATCH 1/3] Kbuild: centralize MKIMAGE and cmd_uimage definitions
-Message-Id: <201203062256.16105.vapier@gentoo.org>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="nextPart1729674.9qEmhknEMN"
+Message-Id: <20120307090017.GB17076@samfundet.no>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1331080238-1524-1-git-send-email-swarren@wwwdotorg.org>
 In-Reply-To: <1331080238-1524-1-git-send-email-swarren@wwwdotorg.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Michal Marek <mmarek@suse.cz>, Russell King <linux@arm.linux.org.uk>, nico@fluxnic.net, Haavard Skinnemoen <hskinnemoen@gmail.com>, Hans-Christian Egtvedt <egtvedt@samfundet.no>, Michal Simek <monstr@monstr.eu>, Paul Mundt <lethal@linux-sh.org>, "David S. Miller" <davem@davemloft.net>, Guan Xuetao <gxt@mprc.pku.edu.cn>, linux-kernel@vger.kernel.org, linux-kbuild@vger.kernel.org, linux-arm-kernel@lists.infradead.org, uclinux-dist-devel@blackfin.uclinux.org, microblaze-uclinux@itee.uq.edu.au, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org
+Cc: Michal Marek <mmarek@suse.cz>, Russell King <linux@arm.linux.org.uk>, nico@fluxnic.net, Haavard Skinnemoen <hskinnemoen@gmail.com>, Mike Frysinger <vapier@gentoo.org>, Michal Simek <monstr@monstr.eu>, Paul Mundt <lethal@linux-sh.org>, "David S. Miller" <davem@davemloft.net>, Guan Xuetao <gxt@mprc.pku.edu.cn>, linux-kernel@vger.kernel.org, linux-kbuild@vger.kernel.org, linux-arm-kernel@lists.infradead.org, uclinux-dist-devel@blackfin.uclinux.org, microblaze-uclinux@itee.uq.edu.au, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org
 
---nextPart1729674.9qEmhknEMN
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Around Tue 06 Mar 2012 17:30:36 -0700 or thereabout, Stephen Warren wrote:
+> All ARCHs have the same definition of MKIMAGE. Move it to Makefile.lib
+> to avoid duplication.
+> 
+> All ARCHs have similar definitions of cmd_uimage. Place a sufficiently
+> parameterized version in Makefile.lib to avoid duplication.
+> 
+> The centralized cmd_uimage definition will allow the future introduction
+> of a centralized Kconfig option to make cmd_uimage use -T kernel_noload
+> rather than -T kernel.
+> 
+> Signed-off-by: Stephen Warren <swarren@wwwdotorg.org>
+> ---
+> NOTE: I have not tested this patch in any way at all for architectures
+> other than ARM.
+> 
+>  arch/arm/boot/Makefile          |   23 +++++++++--------------
+>  arch/avr32/boot/images/Makefile |    9 +++------
 
-On Tuesday 06 March 2012 19:30:36 Stephen Warren wrote:
-> --- a/arch/blackfin/boot/Makefile
-> +++ b/arch/blackfin/boot/Makefile
->=20
-> +ifeq ($(CONFIG_RAMKERNEL),y)
-> +UIMAGE_LOADADDR =3D $(CONFIG_BOOT_LOAD)
-> +else # CONFIG_ROMKERNEL must be set
-> +UIMAGE_LOADADDR =3D $(CONFIG_BOOT_LOAD)
-> +endif
+For the AVR32 related changes
 
-this part is wrong :).  the else branch should be $(CONFIG_ROM_BASE).
+Acked-by: Hans-Christian Egtvedt <egtvedt@samfundet.no>
 
-> +UIMAGE_ENTRYADDR =3D $(shell $(NM) vmlinux | awk '$$NF =3D=3D "__start" =
-{print
-> $$1}')
-
-i feel like if we tried harder, we could automate the -e arg for all arches=
-=2E =20
-i understand if you don't want to undertake that though.
-=2Dmike
-
---nextPart1729674.9qEmhknEMN
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.17 (GNU/Linux)
-
-iQIcBAABAgAGBQJPVtxeAAoJEEFjO5/oN/WBSgMP/0NYD9By3hPOuA64150Lzqmz
-hrC87rAQ7WlAXE1SkOrCd8fDvM6Nej/YMVjAN0KuPM+vnRi00hQjMhvt89OPSzdL
-YSsO+DPovsxIBuHMtbMiu6USflqKhRcWQyY5dMtFuBgVH40WYsF6GgseF3TQjr2a
-++VE5TrSN/OJUjJNc4fBcrmEqOjTUqiujAordEx06Fcs4VnYgGGqVpw3wFSq8VbW
-EN316/HfWmhSKi+sNgChAS+g/0xGknhLDo387u8XNajFGKlZmm1wriSRRq75zXep
-Ck+b2K8FUZ3rwABBg2+IHWW89yketoTNY3KujV5GQ6gvFit5HiYzzWFkcRLz26t/
-gpLkU5FoO4SGRvQlXk191pgonzjdq4HEYp6A9BUdvVoCeAJ1lB3v8wufmFJwOGZe
-M78c0DtoeSZLWzcLAXsxKogFQIrueHHXh2qTqUdO25XfB1+V/EHt/fomRvpR6tje
-tnxaGRA/vSJHgR5b1BTwhdbttH6gdisJd3EKzyt+40+51JVlCZQxUVcTvnx9/8aL
-ehCxBbgEAeJ0N9nb78ALpdOo/21mxDL9SABcOLrROMmYJ5cG4Pxdvqleo88YY7EA
-DgOl+klbKDSL4MCxs2+bK0AnDQzdKKGRSqqWO4fZLyLE7sJ68g3V8SwIyouLZF1v
-M6s+4vX5Av0q9kZ+ZCVH
-=Nc9J
------END PGP SIGNATURE-----
-
---nextPart1729674.9qEmhknEMN--
+-- 
+Best regards, Hans-Christian Egtvedt
