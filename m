@@ -1,17 +1,23 @@
-From: "P. D. Soon" <pdsoon11@kimo.com>
-Date: Sun, 11 Mar 2012 23:58:15 +0000
-Subject: Proposal.
-Message-Id: <6fab17a38e1e26803510ce37164b96c3.squirrel@webmail.mag-net.com>
+From: "RICHARD TANG" <tagnrichard@yahoo.com.hk>
+Date: Wed, 07 Mar 2012 15:46:54 +0000
+Subject: MAIL
+Message-Id: <20120307174654.10753aya0pmgq1ny@82.137.248.25>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
 
 
 
-Good day,
+Mail From Tang.
 
-I am Mr. Park Dong Soon, I have a proposal for you. Please reply for
-specifics.
+I work with the hang seng Bank Hong Kong.I have a business proposition  
+for you involving a trade in my bank which I know we will be of mutual  
+benefit to both of us, If interested mail me at:trichad@yahoo.cn
+
+Regards,
+Richard Tang.
+
+----------------------------------------------------------------
+This message was sent using IMP, the Internet Messaging Program.
 
