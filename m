@@ -1,37 +1,38 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 26 Mar 2012 20:11:05 +0000
-Subject: Re: [PATCH 20/20 v3] sparc/mm/fault_64.c: Port OOM changes to do_sparc64_fault
-Message-Id: <20120326.161105.1592652605352070253.davem@davemloft.net>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Date: Tue, 13 Mar 2012 22:39:26 +0000
+Subject: sata_mv change breaks sparc builds?
+Message-Id: <CAP=VYLrzrtJBUdojYos+9L30nNSoboPvfAh0u2tuJSvGX5Ao9Q@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1332775997-2197-1-git-send-email-consul.kautuk@gmail.com>
-In-Reply-To: <1332775997-2197-1-git-send-email-consul.kautuk@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: consul.kautuk@gmail.com
-Cc: paul.gortmaker@windriver.com, mingo@elte.hu, joe@perches.com, a.p.zijlstra@chello.nl, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Kautuk Consul <consul.kautuk@gmail.com>
-Date: Mon, 26 Mar 2012 11:33:17 -0400
+Hi guys,
 
-> +	fault = handle_mm_fault(mm, vma, address,
-> +							flags | ((fault_code & FAULT_CODE_WRITE) ?
-> +									 FAULT_FLAG_WRITE : 0);
+I've not bisected to concretely determine this is true, but at 1st
+glance, it would appear perhaps that the change:
 
-This is so shockingly gross I'm at a loss for words.  Why are you
-tabbing this crap all the way into outer-space?
+-------------
+commit f1e1e148c5cbf62b6db26ae828c1e54e76579dfd
+Author: Michael Walle <michael@walle.cc>
+Date:   Sun Nov 13 22:23:57 2011 +0100
 
-Make the "flags | ..." line up with the first column after the
-openning parenthesis of "handle_mm_fault(".
+    ARM: kirkwood: sata_mv: add device tree binding
 
-> +			perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MAJ,
-> +						  1, regs, address);
+    Based on devicetree work by Michael Walle.  Changed compatible property
+    to "mrvl,orion-sata", simplified retrieving nr_ports from fdt.
 
-Same problem.
+    Signed-off-by: Michael Walle <michael@walle.cc>
+    Signed-off-by: Jason Cooper <jason@lakedaemon.net>
+--------------
 
-> +			perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MIN,
-> +						  1, regs, address);
+might be responsible for these new sparc build failures?
 
-Same problem.
+http://kisskb.ellerman.id.au/kisskb/buildresult/5869562/
+http://kisskb.ellerman.id.au/kisskb/buildresult/5869535/
 
-You're making the coding style worse each iteration, not better.
+If you could confirm or deny, that would be great help.
+
+Thanks,
+Paul.
