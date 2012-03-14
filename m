@@ -1,70 +1,59 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 14 Mar 2012 04:46:09 +0000
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Wed, 14 Mar 2012 05:02:46 +0000
 Subject: Re: New build failures in sparc.
-Message-Id: <20120313.214609.1139946570476396180.davem@davemloft.net>
+Message-Id: <20120314160246.6513bd6b963fc37de4f35d1c@canb.auug.org.au>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Signature=_Wed__14_Mar_2012_16_02_46_+1100_v/qbiDM90bL2j5wD"
 List-Id: <sparclinux.vger.kernel.org>
 References: <20120314102830.aa7b1139bff158d30ac57505@canb.auug.org.au>
 	<20120313.173741.18086192847996966.davem@davemloft.net>
 	<20120314040102.GA26084@thor.bakeyournoodle.com>
-In-Reply-To: <20120314040102.GA26084@thor.bakeyournoodle.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: tony@bakeyournoodle.com
-Cc: sfr@canb.auug.org.au, paul.gortmaker@windriver.com, sparclinux@vger.kernel.org, linux-next@vger.kernel.org
+	<20120313.214609.1139946570476396180.davem@davemloft.net>
+In-Reply-To: <20120313.214609.1139946570476396180.davem@davemloft.net>
+To: David Miller <davem@davemloft.net>
+Cc: tony@bakeyournoodle.com, paul.gortmaker@windriver.com, sparclinux@vger.kernel.org, linux-next@vger.kernel.org
 
-From: Tony Breeds <tony@bakeyournoodle.com>
-Date: Wed, 14 Mar 2012 15:01:02 +1100
+--Signature=_Wed__14_Mar_2012_16_02_46_+1100_v/qbiDM90bL2j5wD
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> On Tue, Mar 13, 2012 at 05:37:41PM -0700, David Miller wrote:
->> From: Stephen Rothwell <sfr@canb.auug.org.au>
->> Date: Wed, 14 Mar 2012 10:28:30 +1100
->> 
->> > Yeah, we updated our sparc64 toolchain yesterday ... Tony says he
->> > will try applying the patch(es) from the bugzilla.
->> 
->> Meanwhile I'll add a workaround to the sparc makefiles, and
->> push that to Linus.  This way it will work no matter what
->> combination of tools someone has.
-> 
-> Thanks Dave, we may be hitting a related but different issue as gcc
-> 4.6.3 seems to have that patch already.
+Hi Dave,
 
-See the patch I sent to Linus which landed in his tree an hour or so
-ago:
+On Tue, 13 Mar 2012 21:46:09 -0700 (PDT) David Miller <davem@davemloft.net>=
+ wrote:
+>
+> See the patch I sent to Linus which landed in his tree an hour or so
+> ago:
+>=20
+> --------------------
+> [PATCH] sparc32: Add -Av8 to assembler command line.
 
---------------------
-[PATCH] sparc32: Add -Av8 to assembler command line.
+I will cherry-pick that onto the end of linux-next today.
 
-Newer version of binutils are more strict about specifying the
-correct options to enable certain classes of instructions.
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
 
-The sparc32 build is done for v7 in order to support sun4c systems
-which lack hardware integer multiply and divide instructions.
+--Signature=_Wed__14_Mar_2012_16_02_46_+1100_v/qbiDM90bL2j5wD
+Content-Type: application/pgp-signature
 
-So we have to pass -Av8 when building the assembler routines that
-use these instructions and get patched into the kernel when we find
-out that we have a v8 capable cpu.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-Reported-by: Paul Gortmaker <paul.gortmaker@windriver.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/Makefile |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+iQIcBAEBCAAGBQJPYCZ2AAoJEECxmPOUX5FESfYP+gNzaoUlBMQ8mlTtXGh7+sVG
+tlpw+s4jtc03z9/Cb0eGBDV2uwrgpVFUGokHGRUUSkhMy5Zbo2YTJZteuQdLSUwK
+AK10FFn7YuFqTBe2zz6xUWdqUDSCbwlGFLi/n3v4d+O+Cr0PwXya01Z+HHBdFXPn
+O2MQ8RS1rs08C7ybdqo8D1SXTTrTtnKQXLjB4X4JCJsEgBTnMGClEStaacl8x5im
+alV77QIceWMSmZAs9/hY01PqEe6t1PwISb6BpOZ1tfZU1Pn0BG7ysb39IrkZlctd
+9u+xmOJad6j70rDEkjYaD4s27tL9VFEViCJcMdb1jBjKSFOD2KVH+IByzRagksnF
+fw6cPwxvUz9UI6j1eYCDob5541D+p/9yn2zTb28MdesV90TkP4Sift6A75cEe2CF
+0ZjprltJn43ABwXPxD1/n7nEk6JhnRfiODO2+f/qqj6JHStCeIqS196qY6+msXC8
+kZebnJAmm6pqJX9geQJtEudzX1JC60aB/rUGp6dKMCftGfSyrPJZAz3hCkqwqsYy
+8Oxtl9DJT4Cf17DNF6XLYy9SEaYkZ7XePEgm7z9ctQSrk4/UvdDo0NG6KMLJsr5I
+NjsHfG1tKgsnaEcJbb2sEQJyJcNgmYtswcSdYDdTpe83LFHAEbaz5iDZ2NOjLvtN
+rU6HMNQjmUrKPMEhkLhf
+=bvYh
+-----END PGP SIGNATURE-----
 
-diff --git a/arch/sparc/Makefile b/arch/sparc/Makefile
-index ad1fb5d..eddcfb3 100644
---- a/arch/sparc/Makefile
-+++ b/arch/sparc/Makefile
-@@ -31,7 +31,7 @@ UTS_MACHINE    := sparc
- 
- #KBUILD_CFLAGS += -g -pipe -fcall-used-g5 -fcall-used-g7
- KBUILD_CFLAGS += -m32 -pipe -mno-fpu -fcall-used-g5 -fcall-used-g7
--KBUILD_AFLAGS += -m32
-+KBUILD_AFLAGS += -m32 -Wa,-Av8
- 
- #LDFLAGS_vmlinux = -N -Ttext 0xf0004000
- #  Since 2.5.40, the first stage is left not btfix-ed.
--- 
-1.7.6.5
-
+--Signature=_Wed__14_Mar_2012_16_02_46_+1100_v/qbiDM90bL2j5wD--
