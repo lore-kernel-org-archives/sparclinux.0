@@ -1,127 +1,124 @@
-From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Date: Thu, 01 Mar 2012 08:28:58 +0000
-Subject: [PATCH 2/3] CPU hotplug, arch/powerpc: Fix CPU hotplug callback registration
-Message-Id: <4F4F307A.7040105@linux.vnet.ibm.com>
+From: David Howells <dhowells@redhat.com>
+Date: Thu, 15 Mar 2012 21:00:38 +0000
+Subject: [PATCH 35/38] Move all declarations of free_initmem() to linux/mm.h [ver #3]
+Message-Id: <20120315210038.28759.5682.stgit@warthog.procyon.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <87ehtf3lqh.fsf@rustcorp.com.au> <20120227155338.7b5110cd.akpm@linux-foundation.org> <20120228084359.GJ21106@elte.hu> <20120228132719.f375071a.akpm@linux-foundation.org> <4F4DBB26.2060907@linux.vnet.ibm.com> <20120229091732.GA11505@elte.hu> <4F4E083A.2080304@linux.vnet.ibm.com> <4F4F2F7F.5040207@linux.vnet.ibm.com>
-In-Reply-To: <4F4F2F7F.5040207@linux.vnet.ibm.com>
+References: <20120315205514.28759.58969.stgit@warthog.procyon.org.uk>
+In-Reply-To: <20120315205514.28759.58969.stgit@warthog.procyon.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ingo Molnar <mingo@elte.hu>
-Cc: sparclinux@vger.kernel.org, Andi Kleen <ak@linux.intel.com>, Nick Piggin <npiggin@kernel.dk>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Rusty Russell <rusty@rustcorp.com.au>, linux-kernel <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Gortmaker <paul.gortmaker@windriver.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Arjan van de Ven <arjan.van.de.ven@intel.com>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, ppc-dev <linuxppc-dev@lists.ozlabs.org>, "David S. Miller" <davem@davemloft.net>, Peter Zijlstra <a.p.zijlstra@chello.nl>
+To: paul.gortmaker@windriver.com
+Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, arnd@arndb.de, David Howells <dhowells@redhat.com>, linux-c6x-dev@linux-c6x.org, microblaze-uclinux@itee.uq.edu.au, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org, linux-mm@kvack.org
 
+Move all declarations of free_initmem() to linux/mm.h so that there's only one
+and it's used by everything.
 
-
-Restructure CPU hotplug setup and callback registration in topology_init
-so as to be race-free.
-
+Signed-off-by: David Howells <dhowells@redhat.com>
+cc: linux-c6x-dev@linux-c6x.org
+cc: microblaze-uclinux@itee.uq.edu.au
+cc: linux-sh@vger.kernel.org
+cc: sparclinux@vger.kernel.org
+cc: x86@kernel.org
+cc: linux-mm@kvack.org
 ---
 
- arch/powerpc/kernel/sysfs.c |   44 +++++++++++++++++++++++++++++++++++--------
- arch/powerpc/mm/numa.c      |   11 ++++++++---
- 2 files changed, 44 insertions(+), 11 deletions(-)
+ arch/c6x/include/asm/system.h        |    1 -
+ arch/frv/include/asm/system.h        |    2 --
+ arch/microblaze/include/asm/system.h |    1 -
+ arch/sh/include/asm/system.h         |    1 -
+ arch/sparc/mm/init_64.h              |    2 --
+ arch/x86/include/asm/page_types.h    |    1 -
+ include/linux/mm.h                   |    2 ++
+ init/main.c                          |    1 -
+ 8 files changed, 2 insertions(+), 9 deletions(-)
 
-diff --git a/arch/powerpc/kernel/sysfs.c b/arch/powerpc/kernel/sysfs.c
-index 883e74c..5838b33 100644
---- a/arch/powerpc/kernel/sysfs.c
-+++ b/arch/powerpc/kernel/sysfs.c
-@@ -496,6 +496,38 @@ ssize_t arch_cpu_release(const char *buf, size_t count)
+diff --git a/arch/c6x/include/asm/system.h b/arch/c6x/include/asm/system.h
+index ccc4f86..0d84f9e 100644
+--- a/arch/c6x/include/asm/system.h
++++ b/arch/c6x/include/asm/system.h
+@@ -4,4 +4,3 @@
+ #include <asm/exec.h>
+ #include <asm/special_insns.h>
+ #include <asm/switch_to.h>
+-extern void free_initmem(void);
+diff --git a/arch/frv/include/asm/system.h b/arch/frv/include/asm/system.h
+index 5c707a2..659bcdb 100644
+--- a/arch/frv/include/asm/system.h
++++ b/arch/frv/include/asm/system.h
+@@ -1,6 +1,4 @@
+-/* FILE TO BE DELETED. DO NOT ADD STUFF HERE! */
+ #include <asm/barrier.h>
+ #include <asm/cmpxchg.h>
+ #include <asm/exec.h>
+ #include <asm/switch_to.h>
+-extern void free_initmem(void);
+diff --git a/arch/microblaze/include/asm/system.h b/arch/microblaze/include/asm/system.h
+index ccc4f86..0d84f9e 100644
+--- a/arch/microblaze/include/asm/system.h
++++ b/arch/microblaze/include/asm/system.h
+@@ -4,4 +4,3 @@
+ #include <asm/exec.h>
+ #include <asm/special_insns.h>
+ #include <asm/switch_to.h>
+-extern void free_initmem(void);
+diff --git a/arch/sh/include/asm/system.h b/arch/sh/include/asm/system.h
+index e2042aa..04268aa 100644
+--- a/arch/sh/include/asm/system.h
++++ b/arch/sh/include/asm/system.h
+@@ -6,4 +6,3 @@
+ #include <asm/exec.h>
+ #include <asm/switch_to.h>
+ #include <asm/traps.h>
+-void free_initmem(void);
+diff --git a/arch/sparc/mm/init_64.h b/arch/sparc/mm/init_64.h
+index 77d1b31..3e1ac8b 100644
+--- a/arch/sparc/mm/init_64.h
++++ b/arch/sparc/mm/init_64.h
+@@ -36,8 +36,6 @@ extern unsigned long kern_locked_tte_data;
  
- #endif /* CONFIG_HOTPLUG_CPU */
+ extern void prom_world(int enter);
  
-+static void cpu_register_helper(struct cpu *c, int cpu)
-+{
-+	register_cpu(c, cpu);
-+	device_create_file(&c->dev, &dev_attr_physical_id);
-+}
+-extern void free_initmem(void);
+-
+ #ifdef CONFIG_SPARSEMEM_VMEMMAP
+ #define VMEMMAP_CHUNK_SHIFT	22
+ #define VMEMMAP_CHUNK		(1UL << VMEMMAP_CHUNK_SHIFT)
+diff --git a/arch/x86/include/asm/page_types.h b/arch/x86/include/asm/page_types.h
+index bce688d..e21fdd1 100644
+--- a/arch/x86/include/asm/page_types.h
++++ b/arch/x86/include/asm/page_types.h
+@@ -55,7 +55,6 @@ extern unsigned long init_memory_mapping(unsigned long start,
+ 					 unsigned long end);
+ 
+ extern void initmem_init(void);
+-extern void free_initmem(void);
+ 
+ #endif	/* !__ASSEMBLY__ */
+ 
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 17b27cd..5fcaeaa 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1253,6 +1253,8 @@ static inline void pgtable_page_dtor(struct page *page)
+ extern void free_area_init(unsigned long * zones_size);
+ extern void free_area_init_node(int nid, unsigned long * zones_size,
+ 		unsigned long zone_start_pfn, unsigned long *zholes_size);
++extern void free_initmem(void);
 +
-+static int __cpuinit sysfs_cpu_notify_first_time(struct notifier_block *self,
-+				      unsigned long action, void *hcpu)
-+{
-+	unsigned int cpu = (unsigned int)(long)hcpu;
-+	struct cpu *c = &per_cpu(cpu_devices, cpu);
-+
-+	if (action = CPU_ONLINE)
-+		if (!c->hotpluggable) /* Avoid duplicate registrations */
-+			cpu_register_helper(c, cpu);
-+		register_cpu_online(cpu);
-+	}
-+	return NOTIFY_OK;
-+}
-+static int __cpuinit sysfs_cpu_notify_setup(void)
-+{
-+	int cpu;
-+
-+	/*
-+	 * We don't race with CPU hotplug because we are called from
-+	 * the CPU hotplug callback registration function.
-+	 */
-+	for_each_online_cpu(cpu)
-+		sysfs_cpu_notify_first_time(NULL, CPU_ONLINE, cpu);
-+
-+	return 0;
-+}
- static int __cpuinit sysfs_cpu_notify(struct notifier_block *self,
- 				      unsigned long action, void *hcpu)
- {
-@@ -637,7 +669,6 @@ static int __init topology_init(void)
- 	int cpu;
- 
- 	register_nodes();
--	register_cpu_notifier(&sysfs_cpu_nb);
- 
- 	for_each_possible_cpu(cpu) {
- 		struct cpu *c = &per_cpu(cpu_devices, cpu);
-@@ -652,15 +683,12 @@ static int __init topology_init(void)
- 		if (ppc_md.cpu_die)
- 			c->hotpluggable = 1;
- 
--		if (cpu_online(cpu) || c->hotpluggable) {
--			register_cpu(c, cpu);
-+		if (c->hotpluggable)
-+			cpu_register_helper(c, cpu);
-+	}
- 
--			device_create_file(&c->dev, &dev_attr_physical_id);
--		}
-+	register_allcpu_notifier(&sysfs_cpu_nb, true, &sysfs_cpu_notify_setup);
- 
--		if (cpu_online(cpu))
--			register_cpu_online(cpu);
--	}
- #ifdef CONFIG_PPC64
- 	sysfs_create_dscr_default();
- #endif /* CONFIG_PPC64 */
-diff --git a/arch/powerpc/mm/numa.c b/arch/powerpc/mm/numa.c
-index 3feefc3..e326455 100644
---- a/arch/powerpc/mm/numa.c
-+++ b/arch/powerpc/mm/numa.c
-@@ -1014,6 +1014,13 @@ static void __init mark_reserved_regions_for_nid(int nid)
- 	}
- }
- 
-+static int __cpuinit cpu_numa_callback_setup(void)
-+{
-+	cpu_numa_callback(&ppc64_numa_nb, CPU_UP_PREPARE,
-+			(void *)(unsigned long)boot_cpuid);
-+	return 0;
-+}
-+
- 
- void __init do_init_bootmem(void)
- {
-@@ -1088,9 +1095,7 @@ void __init do_init_bootmem(void)
- 	 */
- 	setup_node_to_cpumask_map();
- 
--	register_cpu_notifier(&ppc64_numa_nb);
--	cpu_numa_callback(&ppc64_numa_nb, CPU_UP_PREPARE,
--			  (void *)(unsigned long)boot_cpuid);
-+	register_allcpu_notifier(&ppc64_numa_nb, true, &cpu_numa_callback_setup);
- }
- 
- void __init paging_init(void)
-
-
+ #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+ /*
+  * With CONFIG_HAVE_MEMBLOCK_NODE_MAP set, an architecture may initialise its
+diff --git a/init/main.c b/init/main.c
+index ff49a6d..de41307 100644
+--- a/init/main.c
++++ b/init/main.c
+@@ -87,7 +87,6 @@ extern void mca_init(void);
+ extern void sbus_init(void);
+ extern void prio_tree_init(void);
+ extern void radix_tree_init(void);
+-extern void free_initmem(void);
+ #ifndef CONFIG_DEBUG_RODATA
+ static inline void mark_rodata_ro(void) { }
+ #endif
 
