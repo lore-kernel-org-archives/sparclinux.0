@@ -1,103 +1,193 @@
-From: Kautuk Consul <consul.kautuk@gmail.com>
-Date: Sat, 31 Mar 2012 12:07:15 +0000
-Subject: [PATCH 19/19 v2] sparc/mm/fault_64.c: Port OOM changes to do_sparc64_fault
-Message-Id: <1333195635-5558-1-git-send-email-consul.kautuk@gmail.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Date: Fri, 16 Mar 2012 23:48:24 +0000
+Subject: [PATCH v2 6/7] sparc/PCI: convert devtree and arch-probed bus addresses to resource
+Message-Id: <20120316234824.6649.79503.stgit@bhelgaas.mtv.corp.google.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20120316234653.6649.59492.stgit@bhelgaas.mtv.corp.google.com>
+In-Reply-To: <20120316234653.6649.59492.stgit@bhelgaas.mtv.corp.google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, Paul Gortmaker <paul.gortmaker@windriver.com>, Ingo Molnar <mingo@elte.hu>, Joe Perches <joe@perches.com>, Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Kautuk Consul <consul.kautuk@gmail.com>
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: sparclinux@vger.kernel.org, linux-pci@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
 
-Commit d065bd810b6deb67d4897a14bfe21f8eb526ba99
-(mm: retry page fault when blocking on disk transfer) and
-commit 37b23e0525d393d48a7d59f870b3bc061a30ccdb
-(x86,mm: make pagefault killable)
+Normal PCI enumeration via PCI config space uses __pci_read_base(), where
+the PCI core applies any bus-to-resource offset.  But sparc sometimes
+reads PCI config space itself, and sometimes it gets addresses from the
+device tree.
 
-The above commits introduced changes into the x86 pagefault handler
-for making the page fault handler retryable as well as killable.
+In ac1edcc579b6, I converted sparc to use the PCI core bus-to-resource
+conversion, but I missed these sparc-specific paths.  I don't have a way
+to test it, but I think sparc is broken between that commit and this one.
 
-These changes reduce the mmap_sem hold time, which is crucial
-during OOM killer invocation.
+This patch replaces the sparc-specific pci_resource_adjust() with the
+generic pcibios_bus_to_resource() in the following paths:
 
-Port these changes to 64-bit sparc.
+    pci_cfg_fake_ranges()       (addresses read from PCI config)
+    apb_fake_ranges()           (addresses computed based on PCI config)
+    of_scan_pci_bridge()        (addresses from OF "ranges" property)
 
-Signed-off-by: Kautuk Consul <consul.kautuk@gmail.com>
-Reviewed-By: Joe Perches <joe@perches.com>
-Acked-by: David S. Miller <davem@davemloft.net>
+N.B.: Resources of non-P2P bridge devices are set in pci_parse_of_addrs()
+and, as far as I can see, never converted to CPU addresses.  I do not
+understand why these would be treated differently than bridge windows.
+
+CC: "David S. Miller" <davem@davemloft.net>
+CC: sparclinux@vger.kernel.org
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- arch/sparc/mm/fault_64.c |   37 ++++++++++++++++++++++++++++++-------
- 1 files changed, 30 insertions(+), 7 deletions(-)
+ arch/sparc/kernel/pci.c |   60 ++++++++++++++++++++---------------------------
+ 1 files changed, 25 insertions(+), 35 deletions(-)
 
-diff --git a/arch/sparc/mm/fault_64.c b/arch/sparc/mm/fault_64.c
-index 504c062..1fe0429 100644
---- a/arch/sparc/mm/fault_64.c
-+++ b/arch/sparc/mm/fault_64.c
-@@ -279,6 +279,7 @@ asmlinkage void __kprobes do_sparc64_fault(struct pt_regs *regs)
- 	unsigned int insn = 0;
- 	int si_code, fault_code, fault;
- 	unsigned long address, mm_rss;
-+	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index 253e8ac..fdaf218 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -375,13 +375,6 @@ static void __devinit apb_calc_first_last(u8 map, u32 *first_p, u32 *last_p)
+ 	*last_p = last;
+ }
  
- 	fault_code = get_thread_fault_code();
+-static void pci_resource_adjust(struct resource *res,
+-				struct resource *root)
+-{
+-	res->start += root->start;
+-	res->end += root->start;
+-}
+-
+ /* For PCI bus devices which lack a 'ranges' property we interrogate
+  * the config space values to set the resources, just like the generic
+  * Linux PCI probing code does.
+@@ -390,7 +383,8 @@ static void __devinit pci_cfg_fake_ranges(struct pci_dev *dev,
+ 					  struct pci_bus *bus,
+ 					  struct pci_pbm_info *pbm)
+ {
+-	struct resource *res;
++	struct pci_bus_region region;
++	struct resource *res, res2;
+ 	u8 io_base_lo, io_limit_lo;
+ 	u16 mem_base_lo, mem_limit_lo;
+ 	unsigned long base, limit;
+@@ -412,11 +406,14 @@ static void __devinit pci_cfg_fake_ranges(struct pci_dev *dev,
+ 	res = bus->resource[0];
+ 	if (base <= limit) {
+ 		res->flags = (io_base_lo & PCI_IO_RANGE_TYPE_MASK) | IORESOURCE_IO;
++		res2.flags = res->flags;
++		region.start = base;
++		region.end = limit + 0xfff;
++		pcibios_bus_to_resource(dev, &res2, &region);
+ 		if (!res->start)
+-			res->start = base;
++			res->start = res2.start;
+ 		if (!res->end)
+-			res->end = limit + 0xfff;
+-		pci_resource_adjust(res, &pbm->io_space);
++			res->end = res2.end;
+ 	}
  
-@@ -333,6 +334,8 @@ asmlinkage void __kprobes do_sparc64_fault(struct pt_regs *regs)
- 			insn = get_fault_insn(regs, insn);
- 			goto handle_kernel_fault;
+ 	pci_read_config_word(dev, PCI_MEMORY_BASE, &mem_base_lo);
+@@ -428,9 +425,9 @@ static void __devinit pci_cfg_fake_ranges(struct pci_dev *dev,
+ 	if (base <= limit) {
+ 		res->flags = ((mem_base_lo & PCI_MEMORY_RANGE_TYPE_MASK) |
+ 			      IORESOURCE_MEM);
+-		res->start = base;
+-		res->end = limit + 0xfffff;
+-		pci_resource_adjust(res, &pbm->mem_space);
++		region.start = base;
++		region.end = limit + 0xfffff;
++		pcibios_bus_to_resource(dev, res, &region);
+ 	}
+ 
+ 	pci_read_config_word(dev, PCI_PREF_MEMORY_BASE, &mem_base_lo);
+@@ -459,9 +456,9 @@ static void __devinit pci_cfg_fake_ranges(struct pci_dev *dev,
+ 	if (base <= limit) {
+ 		res->flags = ((mem_base_lo & PCI_MEMORY_RANGE_TYPE_MASK) |
+ 			      IORESOURCE_MEM | IORESOURCE_PREFETCH);
+-		res->start = base;
+-		res->end = limit + 0xfffff;
+-		pci_resource_adjust(res, &pbm->mem_space);
++		region.start = base;
++		region.end = limit + 0xfffff;
++		pcibios_bus_to_resource(dev, res, &region);
+ 	}
+ }
+ 
+@@ -472,6 +469,7 @@ static void __devinit apb_fake_ranges(struct pci_dev *dev,
+ 				      struct pci_bus *bus,
+ 				      struct pci_pbm_info *pbm)
+ {
++	struct pci_bus_region region;
+ 	struct resource *res;
+ 	u32 first, last;
+ 	u8 map;
+@@ -479,18 +477,18 @@ static void __devinit apb_fake_ranges(struct pci_dev *dev,
+ 	pci_read_config_byte(dev, APB_IO_ADDRESS_MAP, &map);
+ 	apb_calc_first_last(map, &first, &last);
+ 	res = bus->resource[0];
+-	res->start = (first << 21);
+-	res->end = (last << 21) + ((1 << 21) - 1);
+ 	res->flags = IORESOURCE_IO;
+-	pci_resource_adjust(res, &pbm->io_space);
++	region.start = (first << 21);
++	region.end = (last << 21) + ((1 << 21) - 1);
++	pcibios_bus_to_resource(dev, res, &region);
+ 
+ 	pci_read_config_byte(dev, APB_MEM_ADDRESS_MAP, &map);
+ 	apb_calc_first_last(map, &first, &last);
+ 	res = bus->resource[1];
+-	res->start = (first << 21);
+-	res->end = (last << 21) + ((1 << 21) - 1);
+ 	res->flags = IORESOURCE_MEM;
+-	pci_resource_adjust(res, &pbm->mem_space);
++	region.start = (first << 21);
++	region.end = (last << 21) + ((1 << 21) - 1);
++	pcibios_bus_to_resource(dev, res, &region);
+ }
+ 
+ static void __devinit pci_of_scan_bus(struct pci_pbm_info *pbm,
+@@ -506,6 +504,7 @@ static void __devinit of_scan_pci_bridge(struct pci_pbm_info *pbm,
+ 	struct pci_bus *bus;
+ 	const u32 *busrange, *ranges;
+ 	int len, i, simba;
++	struct pci_bus_region region;
+ 	struct resource *res;
+ 	unsigned int flags;
+ 	u64 size;
+@@ -556,8 +555,6 @@ static void __devinit of_scan_pci_bridge(struct pci_pbm_info *pbm,
+ 	}
+ 	i = 1;
+ 	for (; len >= 32; len -= 32, ranges += 8) {
+-		struct resource *root;
+-
+ 		flags = pci_parse_of_flags(ranges[0]);
+ 		size = GET_64BIT(ranges, 6);
+ 		if (flags = 0 || size = 0)
+@@ -569,7 +566,6 @@ static void __devinit of_scan_pci_bridge(struct pci_pbm_info *pbm,
+ 				       " for bridge %s\n", node->full_name);
+ 				continue;
+ 			}
+-			root = &pbm->io_space;
+ 		} else {
+ 			if (i >= PCI_NUM_RESOURCES - PCI_BRIDGE_RESOURCES) {
+ 				printk(KERN_ERR "PCI: too many memory ranges"
+@@ -578,18 +574,12 @@ static void __devinit of_scan_pci_bridge(struct pci_pbm_info *pbm,
+ 			}
+ 			res = bus->resource[i];
+ 			++i;
+-			root = &pbm->mem_space;
  		}
-+
-+retry:
- 		down_read(&mm->mmap_sem);
- 	}
  
-@@ -423,7 +426,12 @@ good_area:
- 			goto bad_area;
+-		res->start = GET_64BIT(ranges, 1);
+-		res->end = res->start + size - 1;
+ 		res->flags = flags;
+-
+-		/* Another way to implement this would be to add an of_device
+-		 * layer routine that can calculate a resource for a given
+-		 * range property value in a PCI device.
+-		 */
+-		pci_resource_adjust(res, root);
++		region.start = GET_64BIT(ranges, 1);
++		region.end = region.start + size - 1;
++		pcibios_bus_to_resource(dev, res, &region);
  	}
- 
--	fault = handle_mm_fault(mm, vma, address, (fault_code & FAULT_CODE_WRITE) ? FAULT_FLAG_WRITE : 0);
-+	flags |= ((fault_code & FAULT_CODE_WRITE) ? FAULT_FLAG_WRITE : 0);
-+	fault = handle_mm_fault(mm, vma, address, flags);
-+
-+	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
-+		return;
-+
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
- 		if (fault & VM_FAULT_OOM)
- 			goto out_of_memory;
-@@ -431,12 +439,27 @@ good_area:
- 			goto do_sigbus;
- 		BUG();
- 	}
--	if (fault & VM_FAULT_MAJOR) {
--		current->maj_flt++;
--		perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MAJ, 1, regs, address);
--	} else {
--		current->min_flt++;
--		perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MIN, 1, regs, address);
-+
-+	if (flags & FAULT_FLAG_ALLOW_RETRY) {
-+		if (fault & VM_FAULT_MAJOR) {
-+			current->maj_flt++;
-+			perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MAJ,
-+				      1, regs, address);
-+		} else {
-+			current->min_flt++;
-+			perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MIN,
-+				      1, regs, address);
-+		}
-+		if (fault & VM_FAULT_RETRY) {
-+			flags &= ~FAULT_FLAG_ALLOW_RETRY;
-+
-+			/* No need to up_read(&mm->mmap_sem) as we would
-+			 * have already released it in __lock_page_or_retry
-+			 * in mm/filemap.c.
-+			 */
-+
-+			goto retry;
-+		}
- 	}
- 	up_read(&mm->mmap_sem);
- 
--- 
-1.7.5.4
+ after_ranges:
+ 	sprintf(bus->name, "PCI Bus %04x:%02x", pci_domain_nr(bus),
 
