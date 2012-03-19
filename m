@@ -1,17 +1,19 @@
 From: "MR JOHN  T.  ENGLAND" <john0002england@gmail.com>
-Date: Fri, 16 Mar 2012 10:22:55 +0000
+Date: Mon, 19 Mar 2012 10:14:00 +0000
 Subject: kindly view attached document with a better understanding to my proposal
-Message-Id: <1331893375.58540.YahooMailClassic@web1113.biz.mail.sk1.yahoo.com>
+Message-Id: <1332152040.70425.YahooMailClassic@web2805.biz.mail.ne1.yahoo.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="0-2030400304-1331893375=:58540"
+Content-Type: multipart/mixed; boundary="1619178251-96131806-1332152040=:70425"
 List-Id: <sparclinux.vger.kernel.org>
+References: <1331893375.58540.YahooMailClassic@web1113.biz.mail.sk1.yahoo.com>
+In-Reply-To: <1331893375.58540.YahooMailClassic@web1113.biz.mail.sk1.yahoo.com>
 To: sparclinux@vger.kernel.org
 
---0-2030400304-1331893375=:58540
+--1619178251-96131806-1332152040=:70425
 Content-Type: text/plain; charset=us-ascii
 
 
---0-2030400304-1331893375=:58540
+--1619178251-96131806-1332152040=:70425
 Content-Type: application/msword; name=Business
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="Business Proposal.rtf"
@@ -816,4 +818,4 @@ ZmZmZmYwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAw
 MDAwMDAwMDANCjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAw
 MDAwMDAwMDAwMDAwMDAxMDUwMDAwMDAwMDAwMDB9fQ==
 
---0-2030400304-1331893375=:58540--
+--1619178251-96131806-1332152040=:70425--
