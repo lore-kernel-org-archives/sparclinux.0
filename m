@@ -1,46 +1,103 @@
-From: Tony Luck <tony.luck@intel.com>
-Date: Tue, 27 Mar 2012 21:20:05 +0000
-Subject: Re: [PATCH 05/14] IA64: adapt for dma_map_ops changes
-Message-Id: <CA+8MBbLAafFbVwviFmkjD0DNz5RsCbB_TNLL67wEi2k-hyXkXA@mail.gmail.com>
+From: Kautuk Consul <consul.kautuk@gmail.com>
+Date: Tue, 20 Mar 2012 13:28:09 +0000
+Subject: [PATCH 19/20] sparc/mm/fault_32.c: Port OOM changes to do_sparc_fault
+Message-Id: <1332250089-3318-1-git-send-email-consul.kautuk@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1324643253-3024-1-git-send-email-m.szyprowski@samsung.com>
-	<1324643253-3024-6-git-send-email-m.szyprowski@samsung.com>
-In-Reply-To: <1324643253-3024-6-git-send-email-m.szyprowski@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-kernel@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Stephen Rothwell <sfr@canb.auug.org.au>, microblaze-uclinux@itee.uq.edu.au, linux-arch@vger.kernel.org, x86@kernel.org, linux-sh@vger.kernel.org, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mips@linux-mips.org, discuss@x86-64.org, linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org, Jonathan Corbet <corbet@lwn.net>, Kyungmin Park <kyungmin.park@samsung.com>, Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: davem@davemloft.net, Paul Gortmaker <paul.gortmaker@windriver.com>, Ingo Molnar <mingo@elte.hu>, Joe Perches <joe@perches.com>, Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Kautuk Consul <consul.kautuk@gmail.com>
 
-On Fri, Dec 23, 2011 at 4:27 AM, Marek Szyprowski
-<m.szyprowski@samsung.com> wrote:
-> From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
->
-> Adapt core IA64 architecture code for dma_map_ops changes: replace
-> alloc/free_coherent with generic alloc/free methods.
->
-> Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
-> =A0arch/ia64/hp/common/sba_iommu.c =A0 =A0 | =A0 11 ++++++-----
-> =A0arch/ia64/include/asm/dma-mapping.h | =A0 18 ++++++++++++------
-> =A0arch/ia64/kernel/pci-swiotlb.c =A0 =A0 =A0| =A0 =A09 +++++----
-> =A0arch/ia64/sn/pci/pci_dma.c =A0 =A0 =A0 =A0 =A0| =A0 =A09 +++++----
-> =A04 files changed, 28 insertions(+), 19 deletions(-)
+Commit d065bd810b6deb67d4897a14bfe21f8eb526ba99
+(mm: retry page fault when blocking on disk transfer) and
+commit 37b23e0525d393d48a7d59f870b3bc061a30ccdb
+(x86,mm: make pagefault killable)
 
-The series breaks bisection from part 2 (when the x86 part changes
-lib/swiotlb.c)
-until part 5 (when ia64 sees the changes to match).  You could either merge=
- part
-5 into part 2 (to make a combined x86+ia64 piece) ... or try to pull
-the libswiotlb
-changes into their own piece (which would have some of the ia64 and x86 bit=
-s).
-Or at the very least minimize the breakage window by putting ia64
-right after x86
-in the patch sequence.
+The above commits introduced changes into the x86 pagefault handler
+for making the page fault handler retryable as well as killable.
 
-Otherwise seems OK
+These changes reduce the mmap_sem hold time, which is crucial
+during OOM killer invocation.
 
-Acked-by: Tony Luck <tony.luck@intel.com>
+Port these changes to 32-bit sparc.
+
+Signed-off-by: Kautuk Consul <consul.kautuk@gmail.com>
+---
+ arch/sparc/mm/fault_32.c |   38 +++++++++++++++++++++++++++++++-------
+ 1 files changed, 31 insertions(+), 7 deletions(-)
+
+diff --git a/arch/sparc/mm/fault_32.c b/arch/sparc/mm/fault_32.c
+index 8023fd7..6890cde 100644
+--- a/arch/sparc/mm/fault_32.c
++++ b/arch/sparc/mm/fault_32.c
+@@ -226,6 +226,8 @@ asmlinkage void do_sparc_fault(struct pt_regs *regs, int text_fault, int write,
+ 	unsigned long g2;
+ 	int from_user = !(regs->psr & PSR_PS);
+ 	int fault, code;
++	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE |
++						 (write ? FAULT_FLAG_WRITE : 0);
+ 
+ 	if(text_fault)
+ 		address = regs->pc;
+@@ -252,6 +254,7 @@ asmlinkage void do_sparc_fault(struct pt_regs *regs, int text_fault, int write,
+ 
+ 	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, address);
+ 
++retry:
+ 	down_read(&mm->mmap_sem);
+ 
+ 	/*
+@@ -290,7 +293,11 @@ good_area:
+ 	 * make sure we exit gracefully rather than endlessly redo
+ 	 * the fault.
+ 	 */
+-	fault = handle_mm_fault(mm, vma, address, write ? FAULT_FLAG_WRITE : 0);
++	fault = handle_mm_fault(mm, vma, address, flags);
++
++	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
++		return;
++
+ 	if (unlikely(fault & VM_FAULT_ERROR)) {
+ 		if (fault & VM_FAULT_OOM)
+ 			goto out_of_memory;
+@@ -298,13 +305,30 @@ good_area:
+ 			goto do_sigbus;
+ 		BUG();
+ 	}
+-	if (fault & VM_FAULT_MAJOR) {
+-		current->maj_flt++;
+-		perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MAJ, 1, regs, address);
+-	} else {
+-		current->min_flt++;
+-		perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MIN, 1, regs, address);
++
++	if (flags & FAULT_FLAG_ALLOW_RETRY) {
++		if (fault & VM_FAULT_MAJOR) {
++			current->maj_flt++;
++			perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MAJ,
++							1, regs, address);
++		} else {
++			current->min_flt++;
++			perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MIN,
++							1, regs, address);
++		}
++		if (fault & VM_FAULT_RETRY) {
++			flags &= ~FAULT_FLAG_ALLOW_RETRY;
++
++			/*
++			 * No need to up_read(&mm->mmap_sem) as we would
++			 * have already released it in __lock_page_or_retry
++			 * in mm/filemap.c.
++			 */
++
++			goto retry;
++		}
+ 	}
++
+ 	up_read(&mm->mmap_sem);
+ 	return;
+ 
+-- 
+1.7.5.4
+
