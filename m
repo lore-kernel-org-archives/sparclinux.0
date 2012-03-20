@@ -1,7 +1,7 @@
 From: Kautuk Consul <consul.kautuk@gmail.com>
-Date: Tue, 20 Mar 2012 13:28:09 +0000
-Subject: [PATCH 19/20] sparc/mm/fault_32.c: Port OOM changes to do_sparc_fault
-Message-Id: <1332250089-3318-1-git-send-email-consul.kautuk@gmail.com>
+Date: Tue, 20 Mar 2012 13:28:24 +0000
+Subject: [PATCH 20/20] sparc/mm/fault_64.c: Port OOM changes to do_sparc64_fault
+Message-Id: <1332250104-3352-1-git-send-email-consul.kautuk@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -20,40 +20,41 @@ for making the page fault handler retryable as well as killable.
 These changes reduce the mmap_sem hold time, which is crucial
 during OOM killer invocation.
 
-Port these changes to 32-bit sparc.
+Port these changes to 64-bit sparc.
 
 Signed-off-by: Kautuk Consul <consul.kautuk@gmail.com>
 ---
- arch/sparc/mm/fault_32.c |   38 +++++++++++++++++++++++++++++++-------
+ arch/sparc/mm/fault_64.c |   38 +++++++++++++++++++++++++++++++-------
  1 files changed, 31 insertions(+), 7 deletions(-)
 
-diff --git a/arch/sparc/mm/fault_32.c b/arch/sparc/mm/fault_32.c
-index 8023fd7..6890cde 100644
---- a/arch/sparc/mm/fault_32.c
-+++ b/arch/sparc/mm/fault_32.c
-@@ -226,6 +226,8 @@ asmlinkage void do_sparc_fault(struct pt_regs *regs, int text_fault, int write,
- 	unsigned long g2;
- 	int from_user = !(regs->psr & PSR_PS);
- 	int fault, code;
-+	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE |
-+						 (write ? FAULT_FLAG_WRITE : 0);
+diff --git a/arch/sparc/mm/fault_64.c b/arch/sparc/mm/fault_64.c
+index 504c062..899585b 100644
+--- a/arch/sparc/mm/fault_64.c
++++ b/arch/sparc/mm/fault_64.c
+@@ -279,6 +279,7 @@ asmlinkage void __kprobes do_sparc64_fault(struct pt_regs *regs)
+ 	unsigned int insn = 0;
+ 	int si_code, fault_code, fault;
+ 	unsigned long address, mm_rss;
++	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
  
- 	if(text_fault)
- 		address = regs->pc;
-@@ -252,6 +254,7 @@ asmlinkage void do_sparc_fault(struct pt_regs *regs, int text_fault, int write,
+ 	fault_code = get_thread_fault_code();
  
- 	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, address);
- 
+@@ -333,6 +334,8 @@ asmlinkage void __kprobes do_sparc64_fault(struct pt_regs *regs)
+ 			insn = get_fault_insn(regs, insn);
+ 			goto handle_kernel_fault;
+ 		}
++
 +retry:
- 	down_read(&mm->mmap_sem);
+ 		down_read(&mm->mmap_sem);
+ 	}
  
- 	/*
-@@ -290,7 +293,11 @@ good_area:
- 	 * make sure we exit gracefully rather than endlessly redo
- 	 * the fault.
- 	 */
--	fault = handle_mm_fault(mm, vma, address, write ? FAULT_FLAG_WRITE : 0);
-+	fault = handle_mm_fault(mm, vma, address, flags);
+@@ -423,7 +426,12 @@ good_area:
+ 			goto bad_area;
+ 	}
+ 
+-	fault = handle_mm_fault(mm, vma, address, (fault_code & FAULT_CODE_WRITE) ? FAULT_FLAG_WRITE : 0);
++	fault = handle_mm_fault(mm, vma, address,
++	 flags | ((fault_code & FAULT_CODE_WRITE) ? FAULT_FLAG_WRITE : 0);
 +
 +	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
 +		return;
@@ -61,7 +62,7 @@ index 8023fd7..6890cde 100644
  	if (unlikely(fault & VM_FAULT_ERROR)) {
  		if (fault & VM_FAULT_OOM)
  			goto out_of_memory;
-@@ -298,13 +305,30 @@ good_area:
+@@ -431,12 +439,28 @@ good_area:
  			goto do_sigbus;
  		BUG();
  	}
@@ -94,9 +95,7 @@ index 8023fd7..6890cde 100644
 +			goto retry;
 +		}
  	}
-+
  	up_read(&mm->mmap_sem);
- 	return;
  
 -- 
 1.7.5.4
