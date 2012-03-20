@@ -1,59 +1,107 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Wed, 14 Mar 2012 05:02:46 +0000
-Subject: Re: New build failures in sparc.
-Message-Id: <20120314160246.6513bd6b963fc37de4f35d1c@canb.auug.org.au>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Signature=_Wed__14_Mar_2012_16_02_46_+1100_v/qbiDM90bL2j5wD"
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Date: Tue, 20 Mar 2012 07:24:43 +0000
+Subject: [GIT PULL] DMA-mapping framework updates for 3.4
+Message-Id: <1332228283-29077-1-git-send-email-m.szyprowski@samsung.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20120314102830.aa7b1139bff158d30ac57505@canb.auug.org.au>
-	<20120313.173741.18086192847996966.davem@davemloft.net>
-	<20120314040102.GA26084@thor.bakeyournoodle.com>
-	<20120313.214609.1139946570476396180.davem@davemloft.net>
-In-Reply-To: <20120313.214609.1139946570476396180.davem@davemloft.net>
-To: David Miller <davem@davemloft.net>
-Cc: tony@bakeyournoodle.com, paul.gortmaker@windriver.com, sparclinux@vger.kernel.org, linux-next@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>, microblaze-uclinux@itee.uq.edu.au, linux-arch@vger.kernel.org, x86@kernel.org, linux-sh@vger.kernel.org, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mips@linux-mips.org, discuss@x86-64.org, linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org, Jonathan Corbet <corbet@lwn.net>, Marek Szyprowski <m.szyprowski@samsung.com>, Kyungmin Park <kyungmin.park@samsung.com>, Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 
---Signature=_Wed__14_Mar_2012_16_02_46_+1100_v/qbiDM90bL2j5wD
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Linus,
 
-Hi Dave,
+Please pull the dma-mapping framework updates for v3.4 since commit
+c16fa4f2ad19908a47c63d8fa436a1178438c7e7:
 
-On Tue, 13 Mar 2012 21:46:09 -0700 (PDT) David Miller <davem@davemloft.net>=
- wrote:
->
-> See the patch I sent to Linus which landed in his tree an hour or so
-> ago:
->=20
-> --------------------
-> [PATCH] sparc32: Add -Av8 to assembler command line.
+  Linux 3.3
 
-I will cherry-pick that onto the end of linux-next today.
+with the top-most commit e749a9f707f1102735e02338fa564be86be3bb69
 
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
+  common: DMA-mapping: add NON-CONSISTENT attribute
 
---Signature=_Wed__14_Mar_2012_16_02_46_+1100_v/qbiDM90bL2j5wD
-Content-Type: application/pgp-signature
+from the git repository at:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+  git://git.infradead.org/users/kmpark/linux-samsung dma-mapping-next
 
-iQIcBAEBCAAGBQJPYCZ2AAoJEECxmPOUX5FESfYP+gNzaoUlBMQ8mlTtXGh7+sVG
-tlpw+s4jtc03z9/Cb0eGBDV2uwrgpVFUGokHGRUUSkhMy5Zbo2YTJZteuQdLSUwK
-AK10FFn7YuFqTBe2zz6xUWdqUDSCbwlGFLi/n3v4d+O+Cr0PwXya01Z+HHBdFXPn
-O2MQ8RS1rs08C7ybdqo8D1SXTTrTtnKQXLjB4X4JCJsEgBTnMGClEStaacl8x5im
-alV77QIceWMSmZAs9/hY01PqEe6t1PwISb6BpOZ1tfZU1Pn0BG7ysb39IrkZlctd
-9u+xmOJad6j70rDEkjYaD4s27tL9VFEViCJcMdb1jBjKSFOD2KVH+IByzRagksnF
-fw6cPwxvUz9UI6j1eYCDob5541D+p/9yn2zTb28MdesV90TkP4Sift6A75cEe2CF
-0ZjprltJn43ABwXPxD1/n7nEk6JhnRfiODO2+f/qqj6JHStCeIqS196qY6+msXC8
-kZebnJAmm6pqJX9geQJtEudzX1JC60aB/rUGp6dKMCftGfSyrPJZAz3hCkqwqsYy
-8Oxtl9DJT4Cf17DNF6XLYy9SEaYkZ7XePEgm7z9ctQSrk4/UvdDo0NG6KMLJsr5I
-NjsHfG1tKgsnaEcJbb2sEQJyJcNgmYtswcSdYDdTpe83LFHAEbaz5iDZ2NOjLvtN
-rU6HMNQjmUrKPMEhkLhf
-=bvYh
------END PGP SIGNATURE-----
+Those patches introduce a new alloc method (with support for memory
+attributes) in dma_map_ops structure, which will later replace
+dma_alloc_coherent and dma_alloc_writecombine functions.
 
---Signature=_Wed__14_Mar_2012_16_02_46_+1100_v/qbiDM90bL2j5wD--
+Thanks!
+
+Best regards
+Marek Szyprowski
+Samsung Poland R&D Center
+
+Patch summary:
+
+Andrzej Pietrasiewicz (9):
+      X86: adapt for dma_map_ops changes
+      MIPS: adapt for dma_map_ops changes
+      PowerPC: adapt for dma_map_ops changes
+      IA64: adapt for dma_map_ops changes
+      SPARC: adapt for dma_map_ops changes
+      Alpha: adapt for dma_map_ops changes
+      SH: adapt for dma_map_ops changes
+      Microblaze: adapt for dma_map_ops changes
+      Unicore32: adapt for dma_map_ops changes
+
+Marek Szyprowski (6):
+      common: dma-mapping: introduce alloc_attrs and free_attrs methods
+      Hexagon: adapt for dma_map_ops changes
+      common: dma-mapping: remove old alloc_coherent and free_coherent methods
+      common: dma-mapping: introduce mmap method
+      common: DMA-mapping: add WRITE_COMBINE attribute
+      common: DMA-mapping: add NON-CONSISTENT attribute
+
+ Documentation/DMA-attributes.txt          |   19 +++++++++++++++++++
+ arch/alpha/include/asm/dma-mapping.h      |   18 ++++++++++++------
+ arch/alpha/kernel/pci-noop.c              |   10 ++++++----
+ arch/alpha/kernel/pci_iommu.c             |   10 ++++++----
+ arch/hexagon/include/asm/dma-mapping.h    |   18 ++++++++++++------
+ arch/hexagon/kernel/dma.c                 |    9 +++++----
+ arch/ia64/hp/common/sba_iommu.c           |   11 ++++++-----
+ arch/ia64/include/asm/dma-mapping.h       |   18 ++++++++++++------
+ arch/ia64/kernel/pci-swiotlb.c            |    9 +++++----
+ arch/ia64/sn/pci/pci_dma.c                |    9 +++++----
+ arch/microblaze/include/asm/dma-mapping.h |   18 ++++++++++++------
+ arch/microblaze/kernel/dma.c              |   10 ++++++----
+ arch/mips/cavium-octeon/dma-octeon.c      |   16 ++++++++--------
+ arch/mips/include/asm/dma-mapping.h       |   18 ++++++++++++------
+ arch/mips/mm/dma-default.c                |    8 ++++----
+ arch/powerpc/include/asm/dma-mapping.h    |   24 ++++++++++++++++--------
+ arch/powerpc/kernel/dma-iommu.c           |   10 ++++++----
+ arch/powerpc/kernel/dma-swiotlb.c         |    4 ++--
+ arch/powerpc/kernel/dma.c                 |   10 ++++++----
+ arch/powerpc/kernel/ibmebus.c             |   10 ++++++----
+ arch/powerpc/kernel/vio.c                 |   14 ++++++++------
+ arch/powerpc/platforms/cell/iommu.c       |   16 +++++++++-------
+ arch/powerpc/platforms/ps3/system-bus.c   |   13 +++++++------
+ arch/sh/include/asm/dma-mapping.h         |   28 ++++++++++++++++++----------
+ arch/sh/kernel/dma-nommu.c                |    4 ++--
+ arch/sh/mm/consistent.c                   |    6 ++++--
+ arch/sparc/include/asm/dma-mapping.h      |   18 ++++++++++++------
+ arch/sparc/kernel/iommu.c                 |   10 ++++++----
+ arch/sparc/kernel/ioport.c                |   18 ++++++++++--------
+ arch/sparc/kernel/pci_sun4v.c             |    9 +++++----
+ arch/unicore32/include/asm/dma-mapping.h  |   18 ++++++++++++------
+ arch/unicore32/mm/dma-swiotlb.c           |    4 ++--
+ arch/x86/include/asm/dma-mapping.h        |   26 ++++++++++++++++----------
+ arch/x86/kernel/amd_gart_64.c             |   11 ++++++-----
+ arch/x86/kernel/pci-calgary_64.c          |    9 +++++----
+ arch/x86/kernel/pci-dma.c                 |    3 ++-
+ arch/x86/kernel/pci-nommu.c               |    6 +++---
+ arch/x86/kernel/pci-swiotlb.c             |   12 +++++++-----
+ arch/x86/xen/pci-swiotlb-xen.c            |    4 ++--
+ drivers/iommu/amd_iommu.c                 |   10 ++++++----
+ drivers/iommu/intel-iommu.c               |    9 +++++----
+ drivers/xen/swiotlb-xen.c                 |    5 +++--
+ include/linux/dma-attrs.h                 |    2 ++
+ include/linux/dma-mapping.h               |   13 +++++++++----
+ include/linux/swiotlb.h                   |    6 ++++--
+ include/xen/swiotlb-xen.h                 |    6 ++++--
+ lib/swiotlb.c                             |    5 +++--
+ 47 files changed, 338 insertions(+), 206 deletions(-)
+
+
