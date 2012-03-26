@@ -1,32 +1,101 @@
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Date: Fri, 30 Mar 2012 21:56:46 +0000
-Subject: Re: [PATCH] sparc: fix compile failure in kgdb_64.c
-Message-Id: <4F762C1E.2040803@windriver.com>
+From: Kautuk Consul <consul.kautuk@gmail.com>
+Date: Mon, 26 Mar 2012 16:40:49 +0000
+Subject: [PATCH 20/20 v4] sparc/mm/fault_64.c: Port OOM changes to do_sparc64_fault
+Message-Id: <1332780049-2777-1-git-send-email-consul.kautuk@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1333135884-12815-1-git-send-email-paul.gortmaker@windriver.com>
-In-Reply-To: <1333135884-12815-1-git-send-email-paul.gortmaker@windriver.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: davem@davemloft.net, Paul Gortmaker <paul.gortmaker@windriver.com>, Ingo Molnar <mingo@elte.hu>, Joe Perches <joe@perches.com>, Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Kautuk Consul <consul.kautuk@gmail.com>
 
-On 12-03-30 04:47 PM, David Miller wrote:
-> From: Paul Gortmaker <paul.gortmaker@windriver.com>
-> Date: Fri, 30 Mar 2012 15:31:24 -0400
-> 
->> To fix:
->>
->>   CC      arch/sparc/kernel/kgdb_64.o
->>  arch/sparc/kernel/kgdb_64.c: In function 'smp_kgdb_capture_client':
->>  arch/sparc/kernel/kgdb_64.c:121: error: implicit declaration of function 'flushw_all'
->>  make[2]: *** [arch/sparc/kernel/kgdb_64.o] Error 1
->>
->> Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
-> 
-> I already pushed this fix to Linus last night.
+Commit d065bd810b6deb67d4897a14bfe21f8eb526ba99
+(mm: retry page fault when blocking on disk transfer) and
+commit 37b23e0525d393d48a7d59f870b3bc061a30ccdb
+(x86,mm: make pagefault killable)
 
-Sorry for the noise.  One of those moment where you hit enter
-and *then* realize that you forgot to check if it was already
-reported/fixed.
+The above commits introduced changes into the x86 pagefault handler
+for making the page fault handler retryable as well as killable.
 
-P.
+These changes reduce the mmap_sem hold time, which is crucial
+during OOM killer invocation.
+
+Port these changes to 64-bit sparc.
+
+Signed-off-by: Kautuk Consul <consul.kautuk@gmail.com>
+---
+ arch/sparc/mm/fault_64.c |   37 ++++++++++++++++++++++++++++++-------
+ 1 files changed, 30 insertions(+), 7 deletions(-)
+
+diff --git a/arch/sparc/mm/fault_64.c b/arch/sparc/mm/fault_64.c
+index 504c062..d8692e4 100644
+--- a/arch/sparc/mm/fault_64.c
++++ b/arch/sparc/mm/fault_64.c
+@@ -279,6 +279,7 @@ asmlinkage void __kprobes do_sparc64_fault(struct pt_regs *regs)
+ 	unsigned int insn = 0;
+ 	int si_code, fault_code, fault;
+ 	unsigned long address, mm_rss;
++	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
+ 
+ 	fault_code = get_thread_fault_code();
+ 
+@@ -333,6 +334,8 @@ asmlinkage void __kprobes do_sparc64_fault(struct pt_regs *regs)
+ 			insn = get_fault_insn(regs, insn);
+ 			goto handle_kernel_fault;
+ 		}
++
++retry:
+ 		down_read(&mm->mmap_sem);
+ 	}
+ 
+@@ -423,7 +426,12 @@ good_area:
+ 			goto bad_area;
+ 	}
+ 
+-	fault = handle_mm_fault(mm, vma, address, (fault_code & FAULT_CODE_WRITE) ? FAULT_FLAG_WRITE : 0);
++	flags |= ((fault_code & FAULT_CODE_WRITE) ? FAULT_FLAG_WRITE : 0);
++	fault = handle_mm_fault(mm, vma, address, flags);
++
++	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
++		return;
++
+ 	if (unlikely(fault & VM_FAULT_ERROR)) {
+ 		if (fault & VM_FAULT_OOM)
+ 			goto out_of_memory;
+@@ -431,12 +439,27 @@ good_area:
+ 			goto do_sigbus;
+ 		BUG();
+ 	}
+-	if (fault & VM_FAULT_MAJOR) {
+-		current->maj_flt++;
+-		perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MAJ, 1, regs, address);
+-	} else {
+-		current->min_flt++;
+-		perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MIN, 1, regs, address);
++
++	if (flags & FAULT_FLAG_ALLOW_RETRY) {
++		if (fault & VM_FAULT_MAJOR) {
++			current->maj_flt++;
++			perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MAJ,
++				      1, regs, address);
++		} else {
++			current->min_flt++;
++			perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MIN,
++				      1, regs, address);
++		}
++		if (fault & VM_FAULT_RETRY) {
++			flags &= ~FAULT_FLAG_ALLOW_RETRY;
++
++			/* No need to up_read(&mm->mmap_sem) as we would
++			 * have already released it in __lock_page_or_retry
++			 * in mm/filemap.c.
++			 */
++
++			goto retry;
++		}
+ 	}
+ 	up_read(&mm->mmap_sem);
+ 
+-- 
+1.7.5.4
+
