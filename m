@@ -1,27 +1,102 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 15 Mar 2012 16:25:32 +0000
-Subject: Re: [PATCH v3] ipc: provide generic compat versions of IPC syscalls
-Message-Id: <201203151625.32199.arnd@arndb.de>
+From: Kautuk Consul <consul.kautuk@gmail.com>
+Date: Mon, 26 Mar 2012 16:47:54 +0000
+Subject: [PATCH 19/20 v4] sparc/mm/fault_32.c: Port OOM changes to do_sparc_fault
+Message-Id: <1332780474-2881-1-git-send-email-consul.kautuk@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <201112091536.pB9Fa5f7002738@farm-0002.internal.tilera.com> <201112122148.pBCLmPH0023959@farm-0002.internal.tilera.com> <4F6144B8.5010601@tilera.com>
-In-Reply-To: <4F6144B8.5010601@tilera.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Chris Metcalf <cmetcalf@tilera.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux390@de.ibm.com, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Eric W. Biederman" <ebiederm@xmission.com>, Christoph Hellwig <hch@lst.de>, Lucas De Marchi <lucas.demarchi@profusion.mobi>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, "J. Bruce Fields" <bfields@redhat.com>, NeilBrown <neilb@suse.de>, linux-mips@linux-mips.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
+To: davem@davemloft.net, Paul Gortmaker <paul.gortmaker@windriver.com>, Ingo Molnar <mingo@elte.hu>, Joe Perches <joe@perches.com>, Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Kautuk Consul <consul.kautuk@gmail.com>
 
-On Thursday 15 March 2012, Chris Metcalf wrote:
-> 
-> Somewhat belatedly, I'm looking to push this through the "tile" tree. 
-> Andrew Morton has been keeping it in his tree but I figure I should push it
-> since it directly affects "tile" and currently no one else.
+Commit d065bd810b6deb67d4897a14bfe21f8eb526ba99
+(mm: retry page fault when blocking on disk transfer) and
+commit 37b23e0525d393d48a7d59f870b3bc061a30ccdb
+(x86,mm: make pagefault killable)
 
-Sounds good.
+The above commits introduced changes into the x86 pagefault handler
+for making the page fault handler retryable as well as killable.
 
-> However, it would be nice if anyone could provide a Reviewed-by or Acked-by
-> on the patch.  Thanks!
+These changes reduce the mmap_sem hold time, which is crucial
+during OOM killer invocation.
 
-As the main author of ipc/compat.c in its current form,
+Port these changes to 32-bit sparc.
 
-Reviewed-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Kautuk Consul <consul.kautuk@gmail.com>
+---
+ arch/sparc/mm/fault_32.c |   37 ++++++++++++++++++++++++++++++-------
+ 1 files changed, 30 insertions(+), 7 deletions(-)
+
+diff --git a/arch/sparc/mm/fault_32.c b/arch/sparc/mm/fault_32.c
+index 8023fd7..6da1818 100644
+--- a/arch/sparc/mm/fault_32.c
++++ b/arch/sparc/mm/fault_32.c
+@@ -226,6 +226,8 @@ asmlinkage void do_sparc_fault(struct pt_regs *regs, int text_fault, int write,
+ 	unsigned long g2;
+ 	int from_user = !(regs->psr & PSR_PS);
+ 	int fault, code;
++	unsigned int flags = (FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE |
++			      (write ? FAULT_FLAG_WRITE : 0));
+ 
+ 	if(text_fault)
+ 		address = regs->pc;
+@@ -252,6 +254,7 @@ asmlinkage void do_sparc_fault(struct pt_regs *regs, int text_fault, int write,
+ 
+ 	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, address);
+ 
++retry:
+ 	down_read(&mm->mmap_sem);
+ 
+ 	/*
+@@ -290,7 +293,11 @@ good_area:
+ 	 * make sure we exit gracefully rather than endlessly redo
+ 	 * the fault.
+ 	 */
+-	fault = handle_mm_fault(mm, vma, address, write ? FAULT_FLAG_WRITE : 0);
++	fault = handle_mm_fault(mm, vma, address, flags);
++
++	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
++		return;
++
+ 	if (unlikely(fault & VM_FAULT_ERROR)) {
+ 		if (fault & VM_FAULT_OOM)
+ 			goto out_of_memory;
+@@ -298,13 +305,29 @@ good_area:
+ 			goto do_sigbus;
+ 		BUG();
+ 	}
+-	if (fault & VM_FAULT_MAJOR) {
+-		current->maj_flt++;
+-		perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MAJ, 1, regs, address);
+-	} else {
+-		current->min_flt++;
+-		perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MIN, 1, regs, address);
++
++	if (flags & FAULT_FLAG_ALLOW_RETRY) {
++		if (fault & VM_FAULT_MAJOR) {
++			current->maj_flt++;
++			perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MAJ,
++				      1, regs, address);
++		} else {
++			current->min_flt++;
++			perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MIN,
++				      1, regs, address);
++		}
++		if (fault & VM_FAULT_RETRY) {
++			flags &= ~FAULT_FLAG_ALLOW_RETRY;
++
++			/* No need to up_read(&mm->mmap_sem) as we would
++			 * have already released it in __lock_page_or_retry
++			 * in mm/filemap.c.
++			 */
++
++			goto retry;
++		}
+ 	}
++
+ 	up_read(&mm->mmap_sem);
+ 	return;
+ 
+-- 
+1.7.5.4
+
