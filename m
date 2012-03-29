@@ -1,34 +1,15 @@
-From: "Mrs Laora Fernandez" <vgorritti@cgtp.org.pe>
-Date: Wed, 21 Mar 2012 11:52:48 +0000
-Subject: Easter Bonanza Award.(Congratulations)
-Message-Id: <20120321112538.E5FC82549D9D@mail.cgtp.org.pe>
+From: laurarey111@hotmail.com
+Date: Thu, 29 Mar 2012 08:16:11 +0000
+Subject: Hello
+Message-Id: <4f741a4b.91.5808.14984@econetmobile.co.zw>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Sorteo 12, domingo, 18/03/2012
-
-ELGR/idsorteo.793205012
-=20
-ATTN: Lucky Winner,
-=20
-This is to announce to you that your email attached to Elgordo De La Primit=
-iva ticket number 1-13-26-29-54, Clave 4 won in the 2nd category balloting =
-held 18/03/2012. Your category payout is =E2=82=AC295.436,09 Euro. A copy o=
-f the ticket would be forwarded to you as evidence of play.
-=20
-View results here: http://www.loteriasyapuestas.es/index.php/mod.sorteos/me=
-m.sorteos/juego.ELGR/idsorteo.793205012
-=20
-Contact your Claims Officer:
-Name: Mr. David Santiago
-Email: elgordo_processing@aol.com
-Tel: +34-686-902-277
-=20
-Congratulations.
-=20
-Regards,
-Mrs Laora Fernandez
-Coordinator.
+Hello xxxxx,
+ How are you doing over there? My name is Laura, Please let
+me know if i got the right address so we can open
+communication, here is my email address I am waiting for
+your confirmation with care Laura..
