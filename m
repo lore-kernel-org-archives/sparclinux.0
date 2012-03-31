@@ -1,29 +1,44 @@
-From: James Morris <jmorris@namei.org>
-Date: Wed, 28 Mar 2012 11:36:21 +0000
-Subject: Re: [PATCH 1/9] KEYS: Use the compat keyctl() syscall wrapper on Sparc64 for Sparc32 compat
-Message-Id: <alpine.LRH.2.02.1203282233480.30781@tundra.namei.org>
+From: Meelis Roos <mroos@linux.ee>
+Date: Sat, 31 Mar 2012 21:03:05 +0000
+Subject: current 3.3+git compile failure on sparc64: pgd_t
+Message-Id: <alpine.SOC.1.00.1204010001160.11347@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20120328104607.10417.85745.stgit@warthog.procyon.org.uk> <10701.1332931934@redhat.com>
-In-Reply-To: <10701.1332931934@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: David Howells <dhowells@redhat.com>
-Cc: linux-security-module@vger.kernel.org, keyrings@linux-nfs.org, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, stable@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-On Wed, 28 Mar 2012, David Howells wrote:
+system.h removal fallout?
 
-> 
-> Can you push these to Linus in this merge window, please?
+  CC      arch/sparc/kernel/cpu.o
+In file included from /home/mroos/linux/arch/sparc/include/asm/pgtable_64.h=
+:15:0,
+                 from /home/mroos/linux/arch/sparc/include/asm/pgtable.h:4,
+                 from arch/sparc/kernel/cpu.c:15:
+include/asm-generic/pgtable-nopud.h:13:16: error: unknown type name =A1pgd_=
+t=A2
+include/asm-generic/pgtable-nopud.h:25:28: error: unknown type name =A1pgd_=
+t=A2
+include/asm-generic/pgtable-nopud.h:26:27: error: unknown type name =A1pgd_=
+t=A2
+include/asm-generic/pgtable-nopud.h:27:31: error: unknown type name =A1pgd_=
+t=A2
+include/asm-generic/pgtable-nopud.h:28:30: error: unknown type name =A1pgd_=
+t=A2
+include/asm-generic/pgtable-nopud.h:38:34: error: unknown type name =A1pgd_=
+t=A2
+In file included from /home/mroos/linux/arch/sparc/include/asm/pgtable_64.h=
+:783:0,
+                 from /home/mroos/linux/arch/sparc/include/asm/pgtable.h:4,
+                 from arch/sparc/kernel/cpu.c:15:
+include/asm-generic/pgtable.h: In function =A1pgd_none_or_clear_bad=A2:
+include/asm-generic/pgtable.h:258:2: error: implicit declaration of functio=
+n =A1pgd_none=A2 [-Werror=3Dimplicit-function-declaration]
+include/asm-generic/pgtable.h:260:2: error: implicit declaration of functio=
+n =A1pgd_bad=A2 [-Werror=3Dimplicit-function-declaration]
+include/asm-generic/pgtable.h: In function =A1pud_none_or_clear_bad=A2:
+include/asm-generic/pgtable.h:269:6: error: request for member =A1pgd=A2 in=
+ something not a structure or union
 
-Only serious bugs at this point.
-
-Patch #1 seems like the only candidate.  What impact does it have?
-
-If DaveM has patches still to push for Sparc, it could go in those.
-
-
-- James
--- 
-James Morris
-<jmorris@namei.org>
+--=20
+Meelis Roos (mroos@linux.ee)
