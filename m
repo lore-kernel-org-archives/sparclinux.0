@@ -1,124 +1,103 @@
-From: David Howells <dhowells@redhat.com>
-Date: Mon, 12 Mar 2012 23:41:33 +0000
-Subject: [PATCH 32/35] Move all declarations of free_initmem() to linux/mm.h [ver #2]
-Message-Id: <20120312234133.13888.21207.stgit@warthog.procyon.org.uk>
+From: Kautuk Consul <consul.kautuk@gmail.com>
+Date: Sat, 31 Mar 2012 12:07:15 +0000
+Subject: [PATCH 19/19 v2] sparc/mm/fault_64.c: Port OOM changes to do_sparc64_fault
+Message-Id: <1333195635-5558-1-git-send-email-consul.kautuk@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20120312233602.13888.27659.stgit@warthog.procyon.org.uk>
-In-Reply-To: <20120312233602.13888.27659.stgit@warthog.procyon.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: paul.gortmaker@windriver.com, hpa@zytor.com
-Cc: torvalds@linux-foundation.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, arnd@arndb.de, David Howells <dhowells@redhat.com>, linux-c6x-dev@linux-c6x.org, microblaze-uclinux@itee.uq.edu.au, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org, linux-mm@kvack.org
+To: davem@davemloft.net, Paul Gortmaker <paul.gortmaker@windriver.com>, Ingo Molnar <mingo@elte.hu>, Joe Perches <joe@perches.com>, Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Kautuk Consul <consul.kautuk@gmail.com>
 
-Move all declarations of free_initmem() to linux/mm.h so that there's only one
-and it's used by everything.
+Commit d065bd810b6deb67d4897a14bfe21f8eb526ba99
+(mm: retry page fault when blocking on disk transfer) and
+commit 37b23e0525d393d48a7d59f870b3bc061a30ccdb
+(x86,mm: make pagefault killable)
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-cc: linux-c6x-dev@linux-c6x.org
-cc: microblaze-uclinux@itee.uq.edu.au
-cc: linux-sh@vger.kernel.org
-cc: sparclinux@vger.kernel.org
-cc: x86@kernel.org
-cc: linux-mm@kvack.org
+The above commits introduced changes into the x86 pagefault handler
+for making the page fault handler retryable as well as killable.
+
+These changes reduce the mmap_sem hold time, which is crucial
+during OOM killer invocation.
+
+Port these changes to 64-bit sparc.
+
+Signed-off-by: Kautuk Consul <consul.kautuk@gmail.com>
+Reviewed-By: Joe Perches <joe@perches.com>
+Acked-by: David S. Miller <davem@davemloft.net>
 ---
+ arch/sparc/mm/fault_64.c |   37 ++++++++++++++++++++++++++++++-------
+ 1 files changed, 30 insertions(+), 7 deletions(-)
 
- arch/c6x/include/asm/system.h        |    1 -
- arch/frv/include/asm/system.h        |    2 --
- arch/microblaze/include/asm/system.h |    1 -
- arch/sh/include/asm/system.h         |    1 -
- arch/sparc/mm/init_64.h              |    2 --
- arch/x86/include/asm/page_types.h    |    1 -
- include/linux/mm.h                   |    2 ++
- init/main.c                          |    1 -
- 8 files changed, 2 insertions(+), 9 deletions(-)
-
-diff --git a/arch/c6x/include/asm/system.h b/arch/c6x/include/asm/system.h
-index ccc4f86..0d84f9e 100644
---- a/arch/c6x/include/asm/system.h
-+++ b/arch/c6x/include/asm/system.h
-@@ -4,4 +4,3 @@
- #include <asm/exec.h>
- #include <asm/special_insns.h>
- #include <asm/switch_to.h>
--extern void free_initmem(void);
-diff --git a/arch/frv/include/asm/system.h b/arch/frv/include/asm/system.h
-index 5c707a2..659bcdb 100644
---- a/arch/frv/include/asm/system.h
-+++ b/arch/frv/include/asm/system.h
-@@ -1,6 +1,4 @@
--/* FILE TO BE DELETED. DO NOT ADD STUFF HERE! */
- #include <asm/barrier.h>
- #include <asm/cmpxchg.h>
- #include <asm/exec.h>
- #include <asm/switch_to.h>
--extern void free_initmem(void);
-diff --git a/arch/microblaze/include/asm/system.h b/arch/microblaze/include/asm/system.h
-index ccc4f86..0d84f9e 100644
---- a/arch/microblaze/include/asm/system.h
-+++ b/arch/microblaze/include/asm/system.h
-@@ -4,4 +4,3 @@
- #include <asm/exec.h>
- #include <asm/special_insns.h>
- #include <asm/switch_to.h>
--extern void free_initmem(void);
-diff --git a/arch/sh/include/asm/system.h b/arch/sh/include/asm/system.h
-index e2042aa..04268aa 100644
---- a/arch/sh/include/asm/system.h
-+++ b/arch/sh/include/asm/system.h
-@@ -6,4 +6,3 @@
- #include <asm/exec.h>
- #include <asm/switch_to.h>
- #include <asm/traps.h>
--void free_initmem(void);
-diff --git a/arch/sparc/mm/init_64.h b/arch/sparc/mm/init_64.h
-index 77d1b31..3e1ac8b 100644
---- a/arch/sparc/mm/init_64.h
-+++ b/arch/sparc/mm/init_64.h
-@@ -36,8 +36,6 @@ extern unsigned long kern_locked_tte_data;
+diff --git a/arch/sparc/mm/fault_64.c b/arch/sparc/mm/fault_64.c
+index 504c062..1fe0429 100644
+--- a/arch/sparc/mm/fault_64.c
++++ b/arch/sparc/mm/fault_64.c
+@@ -279,6 +279,7 @@ asmlinkage void __kprobes do_sparc64_fault(struct pt_regs *regs)
+ 	unsigned int insn = 0;
+ 	int si_code, fault_code, fault;
+ 	unsigned long address, mm_rss;
++	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
  
- extern void prom_world(int enter);
+ 	fault_code = get_thread_fault_code();
  
--extern void free_initmem(void);
--
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
- #define VMEMMAP_CHUNK_SHIFT	22
- #define VMEMMAP_CHUNK		(1UL << VMEMMAP_CHUNK_SHIFT)
-diff --git a/arch/x86/include/asm/page_types.h b/arch/x86/include/asm/page_types.h
-index bce688d..e21fdd1 100644
---- a/arch/x86/include/asm/page_types.h
-+++ b/arch/x86/include/asm/page_types.h
-@@ -55,7 +55,6 @@ extern unsigned long init_memory_mapping(unsigned long start,
- 					 unsigned long end);
- 
- extern void initmem_init(void);
--extern void free_initmem(void);
- 
- #endif	/* !__ASSEMBLY__ */
- 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 17b27cd..5fcaeaa 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1253,6 +1253,8 @@ static inline void pgtable_page_dtor(struct page *page)
- extern void free_area_init(unsigned long * zones_size);
- extern void free_area_init_node(int nid, unsigned long * zones_size,
- 		unsigned long zone_start_pfn, unsigned long *zholes_size);
-+extern void free_initmem(void);
+@@ -333,6 +334,8 @@ asmlinkage void __kprobes do_sparc64_fault(struct pt_regs *regs)
+ 			insn = get_fault_insn(regs, insn);
+ 			goto handle_kernel_fault;
+ 		}
 +
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- /*
-  * With CONFIG_HAVE_MEMBLOCK_NODE_MAP set, an architecture may initialise its
-diff --git a/init/main.c b/init/main.c
-index ff49a6d..de41307 100644
---- a/init/main.c
-+++ b/init/main.c
-@@ -87,7 +87,6 @@ extern void mca_init(void);
- extern void sbus_init(void);
- extern void prio_tree_init(void);
- extern void radix_tree_init(void);
--extern void free_initmem(void);
- #ifndef CONFIG_DEBUG_RODATA
- static inline void mark_rodata_ro(void) { }
- #endif
++retry:
+ 		down_read(&mm->mmap_sem);
+ 	}
+ 
+@@ -423,7 +426,12 @@ good_area:
+ 			goto bad_area;
+ 	}
+ 
+-	fault = handle_mm_fault(mm, vma, address, (fault_code & FAULT_CODE_WRITE) ? FAULT_FLAG_WRITE : 0);
++	flags |= ((fault_code & FAULT_CODE_WRITE) ? FAULT_FLAG_WRITE : 0);
++	fault = handle_mm_fault(mm, vma, address, flags);
++
++	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
++		return;
++
+ 	if (unlikely(fault & VM_FAULT_ERROR)) {
+ 		if (fault & VM_FAULT_OOM)
+ 			goto out_of_memory;
+@@ -431,12 +439,27 @@ good_area:
+ 			goto do_sigbus;
+ 		BUG();
+ 	}
+-	if (fault & VM_FAULT_MAJOR) {
+-		current->maj_flt++;
+-		perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MAJ, 1, regs, address);
+-	} else {
+-		current->min_flt++;
+-		perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MIN, 1, regs, address);
++
++	if (flags & FAULT_FLAG_ALLOW_RETRY) {
++		if (fault & VM_FAULT_MAJOR) {
++			current->maj_flt++;
++			perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MAJ,
++				      1, regs, address);
++		} else {
++			current->min_flt++;
++			perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MIN,
++				      1, regs, address);
++		}
++		if (fault & VM_FAULT_RETRY) {
++			flags &= ~FAULT_FLAG_ALLOW_RETRY;
++
++			/* No need to up_read(&mm->mmap_sem) as we would
++			 * have already released it in __lock_page_or_retry
++			 * in mm/filemap.c.
++			 */
++
++			goto retry;
++		}
+ 	}
+ 	up_read(&mm->mmap_sem);
+ 
+-- 
+1.7.5.4
 
