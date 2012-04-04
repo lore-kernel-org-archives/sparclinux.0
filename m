@@ -1,31 +1,42 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Date: Mon, 16 Apr 2012 08:26:02 +0000
-Subject: Re: [PATCH] gpiolib/arches: Centralise bolierplate asm/gpio.h
-Message-Id: <CACRpkdb8q4bKSBctBV0V5KrbS-r-P_b_+N75UV58ryxK+jz+8A@mail.gmail.com>
+From: Kautuk Consul <consul.kautuk@gmail.com>
+Date: Wed, 04 Apr 2012 14:42:01 +0000
+Subject: Re: [PATCH 19/20 v4] sparc/mm/fault_32.c: Port OOM changes to do_sparc_fault
+Message-Id: <CAFPAmTQNMMVbE_7csGizhYG0LAHe-LbFHTSXZwfanB2K6HaJEw@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1334483574-3997-1-git-send-email-broonie@opensource.wolfsonmicro.com>
-	<CACRpkdZ8yH1ZSG-nQ9dLm0TipHS-jZDuxwqohUC=LGH9V-5q4w@mail.gmail.com>
-	<20120416081532.GA3238@opensource.wolfsonmicro.com>
-In-Reply-To: <20120416081532.GA3238@opensource.wolfsonmicro.com>
+References: <1332780474-2881-1-git-send-email-consul.kautuk@gmail.com>
+	<20120326.173606.1348576857155624658.davem@davemloft.net>
+In-Reply-To: <20120326.173606.1348576857155624658.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: linux-arch@vger.kernel.org, Grant Likely <grant@secretlab.ca>, linux-ia64@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Chris Zankel <chris@zankel.net>, microblaze-uclinux@itee.uq.edu.au, linux@lists.openrisc.net, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, "linuxppc-dev@lists.ozlabs.org list" <linuxppc-dev@lists.ozlabs.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: David Miller <davem@davemloft.net>
+Cc: paul.gortmaker@windriver.com, mingo@elte.hu, joe@perches.com, a.p.zijlstra@chello.nl, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Apr 16, 2012 at 10:15 AM, Mark Brown
-<broonie@opensource.wolfsonmicro.com> wrote:
-> On Mon, Apr 16, 2012 at 09:21:58AM +0200, Linus Walleij wrote:
+On Tue, Mar 27, 2012 at 3:06 AM, David Miller <davem@davemloft.net> wrote:
+> From: Kautuk Consul <consul.kautuk@gmail.com>
+> Date: Mon, 26 Mar 2012 12:47:54 -0400
 >
->> This looks good but I think we need to page the alpha, ia64, m68k, micro=
-blaze,
->> openrisc etc subarch maintainers on this patch so they have their say.
+>> Commit d065bd810b6deb67d4897a14bfe21f8eb526ba99
+>> (mm: retry page fault when blocking on disk transfer) and
+>> commit 37b23e0525d393d48a7d59f870b3bc061a30ccdb
+>> (x86,mm: make pagefault killable)
+>>
+>> The above commits introduced changes into the x86 pagefault handler
+>> for making the page fault handler retryable as well as killable.
+>>
+>> These changes reduce the mmap_sem hold time, which is crucial
+>> during OOM killer invocation.
+>>
+>> Port these changes to 32-bit sparc.
+>>
+>> Signed-off-by: Kautuk Consul <consul.kautuk@gmail.com>
 >
-> That's why I CCed linux-arch, to get all the architecture maintainers
-> included. =A0vger would get upset if I CCed everyone individually.
+> Acked-by: David S. Miller <davem@davemloft.net>
 
-Oh I missed it. I looped in a few maintainers and arch lists anyway.
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Thanks David.
 
-Thanks!
-Linus Walleij
+Since one or two of my other patches are being taken by the other arch
+owners in their branches,
+can you take this patch and apply it to your branch also ?
+
+Much obliged if you do !
