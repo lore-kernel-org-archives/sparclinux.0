@@ -1,54 +1,42 @@
-From: Julian Calaby <julian.calaby@gmail.com>
-Date: Wed, 04 Apr 2012 23:18:26 +0000
-Subject: Re: sparc32 - keyboard is dead with v3.4-rc1
-Message-Id: <CAGRGNgXCO=c1dMt0sBJjud6i0rroomnkeetr3cxnq78XaOCbbg@mail.gmail.com>
+From: Kautuk Consul <consul.kautuk@gmail.com>
+Date: Wed, 04 Apr 2012 14:41:28 +0000
+Subject: Re: [PATCH 20/20 v4] sparc/mm/fault_64.c: Port OOM changes to do_sparc64_fault
+Message-Id: <CAFPAmTRpB2hzW6=yfX38MkPteb=9ZuNx2k5YL-nF0e+jL8T6uQ@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20120403204455.GA29433@merkur.ravnborg.org>
-In-Reply-To: <20120403204455.GA29433@merkur.ravnborg.org>
+References: <1332780049-2777-1-git-send-email-consul.kautuk@gmail.com>
+	<20120326.173614.1619139899994626442.davem@davemloft.net>
+In-Reply-To: <20120326.173614.1619139899994626442.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: paul.gortmaker@windriver.com, mingo@elte.hu, joe@perches.com, a.p.zijlstra@chello.nl, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Sam,
-
-On Thu, Apr 5, 2012 at 06:21, Sam Ravnborg <sam@ravnborg.org> wrote:
-> On Wed, Apr 04, 2012 at 08:55:48AM +1000, Julian Calaby wrote:
->> Hi Sam,
->>
->> On Wed, Apr 4, 2012 at 06:44, Sam Ravnborg <sam@ravnborg.org> wrote:
->> > Hi all.
->> >
->> > bisect will take some time as my build-machine is not exactly
->> > quick - so I expect no result until sometime tomorrow.
->> > But the good thing is that it is easy to test :-)
->>
->> I'm investigating distcc as a solution for this as part of my latest
->> attempt to get Gentoo Linux onto my SS10. I've read some success
->> stories, however they're on my other computer, if you're interested,
->> I'll send you a link to the "official" Gentoo sparc/distcc guide.
+On Tue, Mar 27, 2012 at 3:06 AM, David Miller <davem@davemloft.net> wrote:
+> From: Kautuk Consul <consul.kautuk@gmail.com>
+> Date: Mon, 26 Mar 2012 12:40:49 -0400
 >
-> distcc require spare computers - for now I do most of my
-> linux stuff on one Intel dual-core Atom based box.
-> I have a quad-core box - but it is seldom powered on.
+>> Commit d065bd810b6deb67d4897a14bfe21f8eb526ba99
+>> (mm: retry page fault when blocking on disk transfer) and
+>> commit 37b23e0525d393d48a7d59f870b3bc061a30ccdb
+>> (x86,mm: make pagefault killable)
+>>
+>> The above commits introduced changes into the x86 pagefault handler
+>> for making the page fault handler retryable as well as killable.
+>>
+>> These changes reduce the mmap_sem hold time, which is crucial
+>> during OOM killer invocation.
+>>
+>> Port these changes to 64-bit sparc.
+>>
+>> Signed-off-by: Kautuk Consul <consul.kautuk@gmail.com>
+>
+> Acked-by: David S. Miller <davem@davemloft.net>
 
-Ok, fair enough, my work environment means that I have at least two
-other computers on when working with my Sparc equipment, one of which
-is a fairly powerful x86 box. Distcc makes sense for my use case as I
-will be doing a lot of compiling.
+Thanks David.
 
-> The quad-core would be fine for bisect etc. but then
-> I have to install a lot....
-> In practice I am much slower than the computer,
-> so it actualy hurts less than one may think.
+Since one or two of my other patches are being taken by the other arch
+owners in their branches,
+can you take this patch and apply it to your branch also ?
 
-Makes sense =)
-
-Thanks,
-
--- 
-Julian Calaby
-
-Email: julian.calaby@gmail.com
-Profile: http://www.google.com/profiles/julian.calaby/
-.Plan: http://sites.google.com/site/juliancalaby/
+Much obliged if you do !
