@@ -1,111 +1,63 @@
-From: =?UTF-8?Q?jameswilliams172?= <jameswilliams172@o2.pl>
-Date: Fri, 13 Apr 2012 18:05:22 +0000
-Subject: =?UTF-8?Q?Your_$5000_payment?=
-Message-Id: <2efb52f0.2bc1b524.4f886ae2.abb44@o2.pl>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="==o2.pl-WebMail-30685d10.62f7b2a9.abb49=="
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 06 Apr 2012 16:06:28 +0000
+Subject: [PATCH 0/2] generic clockevent support for sparc32
+Message-Id: <20120406160628.GA17240@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-This is a multi-part message in MIME format.
+Hi David.
 
---==o2.pl-WebMail-30685d10.62f7b2a9.abb49==
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+We have now support for generic clock events ready for sparc32.
+The initial work was done by Tkhai and Konrad contributed the Leon support.
+
+I have attributed Konrad with a "Tested-by:" - but not a Signed-off-by:.
+I did not find a good way to attributer that he wrote the leon stuff.
+But it is documented in the changelog description.
+
+I consider the patchset ready for sparc-next - in the hope
+that it may see a little more testing until next merge window.
+
+The patch-set is too huge - but as this touches several
+platforms I saw no easy way to further split it up :-(
+
+Please apply.
+
+	Sam
 
 
---==o2.pl-WebMail-30685d10.62f7b2a9.abb49==
-Content-Type: application/msword;
-	name="=?UTF-8?Q?OPEN_YOUR_ATTACHMENT_FILE_FOR_YOUR?=
-	=?UTF-8?Q?_TRANSFER_INFORMATION.rtf?="
-Content-Disposition: attachment;
-	filename="=?UTF-8?Q?OPEN_YOUR_ATTACHMENT_FILE_FOR_YOUR?=
-	=?UTF-8?Q?_TRANSFER_INFORMATION.rtf?="
-Content-Transfer-Encoding: base64
+Sam Ravnborg:
+	sparc32: rename sparc_irq_config to sparc_config
 
-e1xydGYxXGFuc2lcYW5zaWNwZzEyNTJcdWMxXGRlZmYwXHN0c2hmZGJjaDBcc3RzaGZsb2No
-MFxzdHNoZmhpY2gwXHN0c2hmYmkwXGRlZmxhbmcxMDMzXGRlZmxhbmdmZTEwMzN7XGZvbnR0
-Ymx7XGYwXGZyb21hblxmY2hhcnNldDBcZnBycTJ7XCpccGFub3NlIDAyMDIwNjAzMDUwNDA1
-MDIwMzA0fVRpbWVzIE5ldyBSb21hbjt9e1xmMVxmc3dpc3NcZmNoYXJzZXQwXGZwcnEye1wq
-XHBhbm9zZSAwMjBiMDYwNDAyMDIwMjAyMDIwNH1BcmlhbDt9DQp7XGYzN1xmcm9tYW5cZmNo
-YXJzZXQyMzhcZnBycTIgVGltZXMgTmV3IFJvbWFuIENFO317XGYzOFxmcm9tYW5cZmNoYXJz
-ZXQyMDRcZnBycTIgVGltZXMgTmV3IFJvbWFuIEN5cjt9e1xmNDBcZnJvbWFuXGZjaGFyc2V0
-MTYxXGZwcnEyIFRpbWVzIE5ldyBSb21hbiBHcmVlazt9e1xmNDFcZnJvbWFuXGZjaGFyc2V0
-MTYyXGZwcnEyIFRpbWVzIE5ldyBSb21hbiBUdXI7fQ0Ke1xmNDJcZnJvbWFuXGZjaGFyc2V0
-MTc3XGZwcnEyIFRpbWVzIE5ldyBSb21hbiAoSGVicmV3KTt9e1xmNDNcZnJvbWFuXGZjaGFy
-c2V0MTc4XGZwcnEyIFRpbWVzIE5ldyBSb21hbiAoQXJhYmljKTt9e1xmNDRcZnJvbWFuXGZj
-aGFyc2V0MTg2XGZwcnEyIFRpbWVzIE5ldyBSb21hbiBCYWx0aWM7fXtcZjQ1XGZyb21hblxm
-Y2hhcnNldDE2M1xmcHJxMiBUaW1lcyBOZXcgUm9tYW4gKFZpZXRuYW1lc2UpO30NCntcZjQ3
-XGZzd2lzc1xmY2hhcnNldDIzOFxmcHJxMiBBcmlhbCBDRTt9e1xmNDhcZnN3aXNzXGZjaGFy
-c2V0MjA0XGZwcnEyIEFyaWFsIEN5cjt9e1xmNTBcZnN3aXNzXGZjaGFyc2V0MTYxXGZwcnEy
-IEFyaWFsIEdyZWVrO317XGY1MVxmc3dpc3NcZmNoYXJzZXQxNjJcZnBycTIgQXJpYWwgVHVy
-O317XGY1Mlxmc3dpc3NcZmNoYXJzZXQxNzdcZnBycTIgQXJpYWwgKEhlYnJldyk7fQ0Ke1xm
-NTNcZnN3aXNzXGZjaGFyc2V0MTc4XGZwcnEyIEFyaWFsIChBcmFiaWMpO317XGY1NFxmc3dp
-c3NcZmNoYXJzZXQxODZcZnBycTIgQXJpYWwgQmFsdGljO317XGY1NVxmc3dpc3NcZmNoYXJz
-ZXQxNjNcZnBycTIgQXJpYWwgKFZpZXRuYW1lc2UpO319e1xjb2xvcnRibDtccmVkMFxncmVl
-bjBcYmx1ZTA7XHJlZDBcZ3JlZW4wXGJsdWUyNTU7XHJlZDBcZ3JlZW4yNTVcYmx1ZTI1NTtc
-cmVkMFxncmVlbjI1NVxibHVlMDsNClxyZWQyNTVcZ3JlZW4wXGJsdWUyNTU7XHJlZDI1NVxn
-cmVlbjBcYmx1ZTA7XHJlZDI1NVxncmVlbjI1NVxibHVlMDtccmVkMjU1XGdyZWVuMjU1XGJs
-dWUyNTU7XHJlZDBcZ3JlZW4wXGJsdWUxMjg7XHJlZDBcZ3JlZW4xMjhcYmx1ZTEyODtccmVk
-MFxncmVlbjEyOFxibHVlMDtccmVkMTI4XGdyZWVuMFxibHVlMTI4O1xyZWQxMjhcZ3JlZW4w
-XGJsdWUwO1xyZWQxMjhcZ3JlZW4xMjhcYmx1ZTA7XHJlZDEyOFxncmVlbjEyOFxibHVlMTI4
-Ow0KXHJlZDE5MlxncmVlbjE5MlxibHVlMTkyO317XHN0eWxlc2hlZXR7XHFsIFxsaTBccmkw
-XHdpZGN0bHBhclxhc3BhbHBoYVxhc3BudW1cZmFhdXRvXGFkanVzdHJpZ2h0XHJpbjBcbGlu
-MFxpdGFwMCBcZnMyNFxsYW5nMTAzM1xsYW5nZmUxMDMzXGNncmlkXGxhbmducDEwMzNcbGFu
-Z2ZlbnAxMDMzIFxzbmV4dDAgTm9ybWFsO317XCpcY3MxMCBcYWRkaXRpdmUgXHNzZW1paGlk
-ZGVuIERlZmF1bHQgUGFyYWdyYXBoIEZvbnQ7fXtcKg0KXHRzMTFcdHNyb3dkXHRyZnRzV2lk
-dGhCM1x0cnBhZGRsMTA4XHRycGFkZHIxMDhcdHJwYWRkZmwzXHRycGFkZGZ0M1x0cnBhZGRm
-YjNcdHJwYWRkZnIzXHRyY2JwYXQxXHRyY2ZwYXQxXHRzY2VsbHdpZHRoZnRzMFx0c3ZlcnRh
-bHRcdHNicmRydFx0c2JyZHJsXHRzYnJkcmJcdHNicmRyclx0c2JyZHJkZ2xcdHNicmRyZGdy
-XHRzYnJkcmhcdHNicmRydiANClxxbCBcbGkwXHJpMFx3aWRjdGxwYXJcYXNwYWxwaGFcYXNw
-bnVtXGZhYXV0b1xhZGp1c3RyaWdodFxyaW4wXGxpbjBcaXRhcDAgXGZzMjBcbGFuZzEwMjRc
-bGFuZ2ZlMTAyNFxjZ3JpZFxsYW5nbnAxMDI0XGxhbmdmZW5wMTAyNCBcc25leHQxMSBcc3Nl
-bWloaWRkZW4gTm9ybWFsIFRhYmxlO319e1wqXGxhdGVudHN0eWxlc1xsc2RzdGltYXgxNTZc
-bHNkbG9ja2VkZGVmMH17XCpccnNpZHRibCBccnNpZDE0MzE5Nlxyc2lkNzMwMTU3MH0NCntc
-KlxnZW5lcmF0b3IgTWljcm9zb2Z0IFdvcmQgMTEuMC42NTY4O317XGluZm97XGF1dGhvciBV
-U0VSfXtcb3BlcmF0b3IgVVNFUn17XGNyZWF0aW1ceXIyMDEyXG1vNFxkeTExXGhyMTBcbWlu
-NTV9e1xyZXZ0aW1ceXIyMDEyXG1vNFxkeTEyXGhyMTZcbWluMjV9e1x2ZXJzaW9uM317XGVk
-bWluczN9e1xub2ZwYWdlczF9e1xub2Z3b3JkczExNX17XG5vZmNoYXJzNjYyfXtcKlxjb21w
-YW55IDxhcmFiaWFuaG9yc2U+fXtcbm9mY2hhcnN3czc3Nn0NCntcdmVybjI0NTc5fX1cd2lk
-b3djdHJsXGZ0bmJqXGFlbmRkb2Ncbm94bGF0dG95ZW5cZXhwc2hydG5cbm91bHRybHNwY1xk
-bnRibG5zYmRiXG5vc3BhY2Vmb3J1bFxoeXBoY2FwczBcaG9yemRvY1xkZ2hzcGFjZTEyMFxk
-Z3ZzcGFjZTEyMFxkZ2hvcmlnaW4xNzAxXGRndm9yaWdpbjE5ODRcZGdoc2hvdzBcZGd2c2hv
-dzNcamNvbXByZXNzXHZpZXdraW5kNFx2aWV3c2NhbGUxMTBcbm9sbmh0YWRqdGJsXHJzaWRy
-b290MTQzMTk2IFxmZXQwXHNlY3RkIA0KXGxpbmV4MFxzZWN0ZGVmYXVsdGNsXHNmdG5iaiB7
-XCpccG5zZWNsdmwxXHBudWNybVxwbnN0YXJ0MVxwbmluZGVudDcyMFxwbmhhbmcge1xwbnR4
-dGEgLn19e1wqXHBuc2VjbHZsMlxwbnVjbHRyXHBuc3RhcnQxXHBuaW5kZW50NzIwXHBuaGFu
-ZyB7XHBudHh0YSAufX17XCpccG5zZWNsdmwzXHBuZGVjXHBuc3RhcnQxXHBuaW5kZW50NzIw
-XHBuaGFuZyB7XHBudHh0YSAufX17XCpccG5zZWNsdmw0DQpccG5sY2x0clxwbnN0YXJ0MVxw
-bmluZGVudDcyMFxwbmhhbmcge1xwbnR4dGEgKX19e1wqXHBuc2VjbHZsNVxwbmRlY1xwbnN0
-YXJ0MVxwbmluZGVudDcyMFxwbmhhbmcge1xwbnR4dGIgKH17XHBudHh0YSApfX17XCpccG5z
-ZWNsdmw2XHBubGNsdHJccG5zdGFydDFccG5pbmRlbnQ3MjBccG5oYW5nIHtccG50eHRiICh9
-e1xwbnR4dGEgKX19e1wqXHBuc2VjbHZsN1xwbmxjcm1ccG5zdGFydDFccG5pbmRlbnQ3MjBc
-cG5oYW5nIHtccG50eHRiICh9DQp7XHBudHh0YSApfX17XCpccG5zZWNsdmw4XHBubGNsdHJc
-cG5zdGFydDFccG5pbmRlbnQ3MjBccG5oYW5nIHtccG50eHRiICh9e1xwbnR4dGEgKX19e1wq
-XHBuc2VjbHZsOVxwbmxjcm1ccG5zdGFydDFccG5pbmRlbnQ3MjBccG5oYW5nIHtccG50eHRi
-ICh9e1xwbnR4dGEgKX19XHBhcmRccGxhaW4gXHFsIFxsaTBccmkwXG5vd2lkY3RscGFyXGZh
-YXV0b1xyaW4wXGxpbjBcaXRhcDAgDQpcZnMyNFxsYW5nMTAzM1xsYW5nZmUxMDMzXGNncmlk
-XGxhbmducDEwMzNcbGFuZ2ZlbnAxMDMzIHtcZjFcZnMyMFxpbnNyc2lkMTQzMTk2IEhlbGxv
-LA0KXHBhciANClxwYXIgSSBhbSBjb250YWN0aW5nIHlvdSBiZWNhdXNlIEkndmUgc2VudCB5
-b3UgdGhlIGZpcnN0IHBheW1lbnQgb2YgJDUsMDAwLjAwIHRvZGF5IGZyb20geW91ciB3aW5u
-aW5nIGZ1bmRzIHRvdGFsIGFtb3VudCBvZiAkMS41TWlsbGlvbiBVU0QsIFRoZXJlZm9yZSB5
-b3UgbmVlZCB0byBjb250YWN0IFdlc3Rlcm4gVW5pb24gYWdlbnQgTXIuIH17XGYxXGZzMjBc
-aW5zcnNpZDczMDE1NzAgSmVycnkgQ2hpa2EgLH17XGYxXGZzMjBcaW5zcnNpZDE0MzE5NiAN
-CmZvciBoaW0gdG8gZ2l2ZSB5b3UgdGhlIHRyYW5zZmVyIHBheW1lbnQgaW5mb3JtYXRpb24g
-YW5kIE1UQ04uDQpccGFyIA0KXHBhciBXLlUgQWdlbnQ6IE1yLiB9e1xmMVxmczIwXGluc3Jz
-aWQ3MzAxNTcwIEplcnJ5IENoaWthfXtcZjFcZnMyMFxpbnNyc2lkMTQzMTk2IA0KXHBhciB9
-e1xmMVxmczIwXGluc3JzaWQ3MzAxNTcwIEVtYWlsOiAgd2VzdGVybl91bmlvbnRyYW5zZmVy
-OEB5YWhvby5jb20ucGh9e1xmMVxmczIwXGluc3JzaWQxNDMxOTYgDQpccGFyIH17XGYxXGZz
-MjBcaW5zcnNpZDczMDE1NzAgUGhvbmU6ICArMjI5IC05NzgwNDE4M317XGYxXGZzMjBcaW5z
-cnNpZDE0MzE5NiANClxwYXIgDQpccGFyIFBsZWFzZSB0cnkgdG8gY29udGFjdCBoaW0gdG9k
-YXkgZm9yIGhpbSB0byBmdXJuaXNoIHlvdSB3aXRoIHRoZSBwYXltZW50IGluZm9ybWF0aW9u
-IGFsc28gcmVtZQ0KbWJlciB0byBpbmRpY2F0ZSB0aGUgcmVnaXN0cmF0aW9uIGNvZGUgb2Yg
-RUItMjUyMCB0byBoaW0gd2hlbiBlLW1haWxpbmcgb3IgY2FsbGluZyBoaW0sIHBlcmhhcHMg
-aGUgd2lsbCBiZSBzZW5kaW5nIHlvdSAkNSwwMDAuMDAgZGFpbHkgYXMgcGVyIG15IGRpc2N1
-c3Npb24gd2l0aCBoaW0uIFRyeSBhbmQgY29weSBoaXMgZW1haWwgYmVmb3JlIHJlcGx5DQpc
-cGFyIA0KXHBhciBEbyBsZXQgbWUga25vdyBvbmNlIHlvdSBoYXZlIHJlY2VpdmVkIHRoZSB0
-cmFuc2Zlci4NClxwYXIgDQpccGFyIFNpbmNlcmVseQ0KXHBhciBNci4gSmFtZXMgV2lsbGlh
-bXMNClxwYXIgSU1GIE1hbmFnaW5nIERpcmVjdG9yIEJlbmluLg0KXHBhciB9fQ==
+Tkhai Kirill <tkhai@yandex.ru>
+	sparc32: generic clockevent support
 
---==o2.pl-WebMail-30685d10.62f7b2a9.abb49==--
-
+ arch/sparc/kernel/irq.h               |   19 ++
+ arch/sparc/kernel/leon_kernel.c       |   49 +++++++
+ arch/sparc/kernel/pcic.c              |   48 ++++---
+ arch/sparc/kernel/sun4c_irq.c         |   11 +
+ arch/sparc/kernel/sun4d_irq.c         |   18 ++
+ arch/sparc/kernel/sun4m_irq.c         |   22 ++-
+ arch/sparc/kernel/time_32.c           |  216 +++++++++++++++++++++++++++-------
+ b/arch/sparc/Kconfig                  |    7 -
+ b/arch/sparc/include/asm/cpudata_32.h |    1
+ b/arch/sparc/include/asm/leon.h       |    2
+ b/arch/sparc/include/asm/timer_32.h   |   29 ++++
+ b/arch/sparc/include/asm/timex_32.h   |    1
+ b/arch/sparc/kernel/irq.h             |    6
+ b/arch/sparc/kernel/irq_32.c          |    2
+ b/arch/sparc/kernel/kernel.h          |    2
+ b/arch/sparc/kernel/leon_kernel.c     |    4
+ b/arch/sparc/kernel/leon_smp.c        |   34 -----
+ b/arch/sparc/kernel/of_device_32.c    |    4
+ b/arch/sparc/kernel/pcic.c            |    2
+ b/arch/sparc/kernel/smp_32.c          |   21 ---
+ b/arch/sparc/kernel/sun4c_irq.c       |    4
+ b/arch/sparc/kernel/sun4d_irq.c       |    4
+ b/arch/sparc/kernel/sun4d_smp.c       |   34 +----
+ b/arch/sparc/kernel/sun4m_irq.c       |    4
+ b/arch/sparc/kernel/sun4m_smp.c       |   38 ++---
+ b/arch/sparc/kernel/time_32.c         |    3
+ 26 files changed, 378 insertions(+), 207 deletions(-)
