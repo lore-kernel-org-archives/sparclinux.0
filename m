@@ -1,8 +1,10 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Wed, 04 Apr 2012 20:11:33 +0000
+Date: Fri, 06 Apr 2012 16:10:57 +0000
 Subject: [PATCH 2/2] sparc32: generic clockevent support
-Message-Id: <20120404201133.GB16978@merkur.ravnborg.org>
+Message-Id: <20120406161057.GB17299@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20120404201133.GB16978@merkur.ravnborg.org>
+In-Reply-To: <20120404201133.GB16978@merkur.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -31,8 +33,12 @@ sun4d is able to have oneshot mode too, but I haven't
 any way to test it. So code of its percpu timer handler
 is made as much equal to the current code as possible.
 
+The patch is tested on sun4m box in SMP mode by me,
+and tested by Konrad on leon in up mode (leon smp
+is broken atm - due to other reasons).
+
 Signed-off-by: Tkhai Kirill <tkhai@yandex.ru>
-Cc: Konrad Eisele <konrad@gaisler.com>
+Tested-by: Konrad Eisele <konrad@gaisler.com> [leon up]
 [sam: revised patch to provide generic support for leon]
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
