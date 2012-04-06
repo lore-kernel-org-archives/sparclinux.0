@@ -1,8 +1,10 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Wed, 04 Apr 2012 20:10:06 +0000
+Date: Fri, 06 Apr 2012 16:10:03 +0000
 Subject: [PATCH 1/2] sparc32: rename sparc_irq_config to sparc_config
-Message-Id: <20120404201006.GA16978@merkur.ravnborg.org>
+Message-Id: <20120406161002.GA17299@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20120404201006.GA16978@merkur.ravnborg.org>
+In-Reply-To: <20120404201006.GA16978@merkur.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
