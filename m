@@ -1,46 +1,43 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 10 Apr 2012 14:28:38 +0000
+Date: Fri, 13 Apr 2012 19:24:55 +0000
 Subject: [GIT] Sparc
-Message-Id: <20120410.102838.1970905616814782796.davem@davemloft.net>
+Message-Id: <20120413.152455.900761231064979707.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100329.131141.80866523.davem@davemloft.net>
 In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-1) Build fix for LEON, from Sam Ravnborg.
+Please pull to get these two sparc bug fixes.
 
-2) Make the sparc side changes that go along with the infrastructure
-   to retry faults when blocking on a disk transfer.  From Kautuk
-   Consul.
+With special guest sparc64 assembler hacker, Paul E. McKenney.
 
-Please pull, thanks a lot!
+Thanks.
 
-The following changes since commit 64ebe987311853ea857a244439de5b947a4b1b07:
+The following changes since commit 4166fb64593514ad920b7dbd290e0a934b37d24a:
 
-  Merge tag 'pm-for-3.4-part-2' of git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm (2012-04-04 14:26:40 -0700)
+  Merge tag 'srpt-srq-type' of git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband (2012-04-12 18:51:32 -0700)
 
 are available in the git repository at:
 
 
   git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
 
-for you to fetch changes up to d657784b70ef653350d7aa49da90a8484c29da7d:
+for you to fetch changes up to 3d3eeb2ef26112a200785e5fca58ec58dd33bf1e:
 
-  sparc32,leon: fix leon build (2012-04-04 15:44:39 -0700)
+  sparc64: Eliminate obsolete __handle_softirq() function (2012-04-13 11:58:38 -0700)
 
 ----------------------------------------------------------------
-Kautuk Consul (2):
-      sparc/mm/fault_64.c: Port OOM changes to do_sparc64_fault
-      sparc/mm/fault_32.c: Port OOM changes to do_sparc_fault
+David S. Miller (1):
+      sparc64: Fix bootup crash on sun4v.
 
-Sam Ravnborg (1):
-      sparc32,leon: fix leon build
+Paul E. McKenney (1):
+      sparc64: Eliminate obsolete __handle_softirq() function
 
- arch/sparc/kernel/leon_pci.c |   13 -------------
- arch/sparc/mm/fault_32.c     |   37 ++++++++++++++++++++++++++++++-------
- arch/sparc/mm/fault_64.c     |   37 ++++++++++++++++++++++++++++++-------
- 3 files changed, 60 insertions(+), 27 deletions(-)
+ arch/sparc/kernel/ds.c       |    2 +-
+ arch/sparc/kernel/rtrap_64.S |    7 -------
+ 2 files changed, 1 insertion(+), 8 deletions(-)
