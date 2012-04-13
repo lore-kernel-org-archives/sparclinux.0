@@ -1,52 +1,51 @@
-From: Julian Calaby <julian.calaby@gmail.com>
-Date: Thu, 12 Apr 2012 23:04:53 +0000
+From: Kirill Tkhai <tkhai@yandex.ru>
+Date: Fri, 13 Apr 2012 09:55:33 +0000
 Subject: Re: Question about hibernation on sparc64
-Message-Id: <CAGRGNgUBNVFQgWOvOeUO0xQ32cT2qrB0B9oWY1VFP7kkGgxLcA@mail.gmail.com>
+Message-Id: <498741334310934@web83.yandex.ru>
 List-Id: <sparclinux.vger.kernel.org>
 References: <80041334231315@web149.yandex.ru>
 In-Reply-To: <80041334231315@web149.yandex.ru>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Sam,
 
-On Fri, Apr 13, 2012 at 05:26, Sam Ravnborg <sam@ravnborg.org> wrote:
-> On Thu, Apr 12, 2012 at 07:59:57PM +0100, Alex Buell wrote:
->> On Thu, 2012-04-12 at 12:32 -0400, David Miller wrote:
->> > From: Kirill Tkhai <tkhai@yandex.ru>
->> > Date: Thu, 12 Apr 2012 15:48:35 +0400
->> >
->> > > So I want to ask people who know sparc64 deeply. Are there any
->> > > architecture limits which make hibernation on v9 impossible? May be
->> > > anybody has researched this question.
->> >
->> > I can't think of any sparc64 hardware which would support hibernation
->> > in any reasonable way, so I'm quite surprised that you plan on
->> > implementing support for it. =A0Perhaps you can elaborate your plans :=
--)
-
-I would guess that it would be possible to implement it 100% in
-software - it is essentially just dumping ram to disk and powering
-off. That said, I'm not sure what role the hardware, say, on x86 has
-to play in facilitating that.
-
->> http://www.rugged-systems.com/p/mobilesunsolaris/0075.htm is a sparc64
->> laptop :)
+12.04.2012,=9A20:32,=9A"David=9AMiller"=9A<davem@davemloft.net>:
+>=9AFrom:=9AKirill=9ATkhai=9A<tkhai@yandex.ru>
+>=9ADate:=9AThu,=9A12=9AApr=9A2012=9A15:48:35=9A+0400
 >
-> I'm actually tempeted by this:
-> http://www.ebay.de/itm/Tadpole-SparcBook-s3-GX-32-mb-no-HD-or-Battery-3GX=
--free-shipping-/390406182711?pt=DE_Technik_Computer_Peripherieger%C3%A4te_P=
-C_Systeme&hash=3Ditem5ae6059737#ht_3226wt_1064
+>>=9A=9ASo=9AI=9Awant=9Ato=9Aask=9Apeople=9Awho=9Aknow=9Asparc64=9Adeeply.=
+=9AAre=9Athere=9Aany
+>>=9A=9Aarchitecture=9Alimits=9Awhich=9Amake=9Ahibernation=9Aon=9Av9=9Aimpo=
+ssible?=9AMay=9Abe
+>>=9A=9Aanybody=9Ahas=9Aresearched=9Athis=9Aquestion.
+>
+>=9AI=9Acan't=9Athink=9Aof=9Aany=9Asparc64=9Ahardware=9Awhich=9Awould=9Asup=
+port=9Ahibernation
+>=9Ain=9Aany=9Areasonable=9Away,=9Aso=9AI'm=9Aquite=9Asurprised=9Athat=9Ayo=
+u=9Aplan=9Aon
+>=9Aimplementing=9Asupport=9Afor=9Ait.=9A=9APerhaps=9Ayou=9Acan=9Aelaborate=
+=9Ayour=9Aplans=9A:-)
 
-The legendary tadpole! I'd be tempted too =3D)
+1)As=9AI=9Asee=9Ain=9ACONFIG_HIBERNATION=9Acomment:
 
-Thanks,
+"In=9Aprinciple=9Ait=9Adoes=9Anot=9Arequire=9AACPI=9Aor=9AAPM,=9Aalthough=
+=9Afor=9Aexample=9AACPI=9Awill=9Abe=9Aused=9Afor=9Athe=9Afinal=9Asteps=9Awh=
+en=9Ait=9Ais=9Aavailable".
 
---=20
-Julian Calaby
+And=9Ait's=9Aimplemented=9Aon=9Aplatforms=9Aw/o=9AACPI=9Alike=9AMIPS.
 
-Email: julian.calaby@gmail.com
-Profile: http://www.google.com/profiles/julian.calaby/
-.Plan: http://sites.google.com/site/juliancalaby/
+So=9Ait=9Aseems=9Ato=9Ame=9Athat=9Ait=9Adoesn't=9Arequire=9Aspecial=9Ahardw=
+are=9Asupport,=9Abut=9Aexceptions=9Aare=9Apossible..
+
+2)During=9Athe=9Asecond=9Aboot=9Ahibernation=9Adoes=9Athe=9Anormal=9Aboot=
+=9A(it=9Ainitializes=9Ahardware in its normal way - standard initcalls).
+The only exeption is "late_initcall(software_resume)" which resumes the mem=
+ory, but it is executed after hardware is initialized.
+---
+
+We are talking about hibernation, it's different from "suspend to RAM" oper=
+ation. "Suspend to RAM" requires hardware support.
+
+Kirill
