@@ -1,48 +1,66 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 13 Apr 2012 21:34:58 +0000
-Subject: [PATCH] sparc64: Remove trap return code which is now unnecessary.
-Message-Id: <20120413.173458.1551383523426489859.davem@davemloft.net>
+From: Jonas Bonn <jonas@southpole.se>
+Date: Mon, 16 Apr 2012 07:53:42 +0000
+Subject: Re: [ORLinux] [PATCH] gpiolib/arches: Centralise bolierplate asm/gpio.h
+Message-Id: <1334562822.2953.45.camel@crucifix>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1334483574-3997-1-git-send-email-broonie@opensource.wolfsonmicro.com>
+	<CACRpkdZ8yH1ZSG-nQ9dLm0TipHS-jZDuxwqohUC=LGH9V-5q4w@mail.gmail.com>
+In-Reply-To: <CACRpkdZ8yH1ZSG-nQ9dLm0TipHS-jZDuxwqohUC=LGH9V-5q4w@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: linux-arch@vger.kernel.org, Grant Likely <grant@secretlab.ca>, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Chris Zankel <chris@zankel.net>, microblaze-uclinux@itee.uq.edu.au, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, linux@lists.openrisc.net, sparclinux@vger.kernel.org, "linuxppc-dev@lists.ozlabs.org list" <linuxppc-dev@lists.ozlabs.org>
 
 
-Noticed by Linus.
+Acked-by: Jonas Bonn <jonas@southpole.se> (for OpenRISC)
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
+On Mon, 2012-04-16 at 09:21 +0200, Linus Walleij wrote:
+> On Sun, Apr 15, 2012 at 11:52 AM, Mark Brown
+> <broonie@opensource.wolfsonmicro.com> wrote:
+> 
+> > Rather than requiring architectures that use gpiolib but don't have any
+> > need to define anything custom to copy an asm/gpio.h provide a Kconfig
+> > symbol which architectures must select in order to include gpio.h and
+> > for other architectures just provide the trivial implementation directly.
+> >
+> > This makes it much easier to do gpiolib updates and is also a step towards
+> > making gpiolib APIs available on every architecture.
+> >
+> > For architectures with existing boilerplate code leave a stub header in
+> > place which warns on direct inclusion of asm/gpio.h and includes
+> > linux/gpio.h to catch code that's doing this.  Direct inclusion of
+> > asm/gpio.h has long been deprecated.
+> >
+> > Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> > ---
+> >  arch/alpha/include/asm/gpio.h      |   59 ++----------------------------
+> >  arch/arm/Kconfig                   |    1 +
+> >  arch/avr32/Kconfig                 |    1 +
+> >  arch/blackfin/Kconfig              |    1 +
+> >  arch/ia64/include/asm/gpio.h       |   59 ++----------------------------
+> >  arch/m68k/Kconfig.cpu              |    1 +
+> >  arch/microblaze/include/asm/gpio.h |   57 ++---------------------------
+> >  arch/mips/Kconfig                  |    1 +
+> >  arch/openrisc/include/asm/gpio.h   |   69 ++---------------------------------
+> >  arch/powerpc/include/asm/gpio.h    |   57 ++---------------------------
+> >  arch/sh/Kconfig                    |    1 +
+> >  arch/sparc/include/asm/gpio.h      |   40 ++-------------------
+> >  arch/unicore32/Kconfig             |    1 +
+> >  arch/x86/include/asm/gpio.h        |   57 ++---------------------------
+> >  arch/xtensa/include/asm/gpio.h     |   60 ++-----------------------------
+> >  drivers/gpio/Kconfig               |    8 ++++
+> >  include/linux/gpio.h               |   34 +++++++++++++++++
+> >  17 files changed, 81 insertions(+), 426 deletions(-)
+> 
+> This looks good but I think we need to page the alpha, ia64, m68k, microblaze,
+> openrisc etc subarch maintainers on this patch so they have their say.
+> 
+> Yours,
+> Linus Walleij
+> _______________________________________________
+> Linux mailing list
+> Linux@lists.openrisc.net
+> http://lists.openrisc.net/listinfo/linux
 
-Committed to sparc-next
-
- arch/sparc/kernel/rtrap_64.S |   12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
-
-diff --git a/arch/sparc/kernel/rtrap_64.S b/arch/sparc/kernel/rtrap_64.S
-index 9171fc2..afa2a9e 100644
---- a/arch/sparc/kernel/rtrap_64.S
-+++ b/arch/sparc/kernel/rtrap_64.S
-@@ -73,18 +73,8 @@ rtrap_nmi:	ldx			[%sp + PTREGS_OFF + PT_V9_TSTATE], %l1
- 		.globl			rtrap_irq, rtrap, irqsz_patchme, rtrap_xcall
- rtrap_irq:
- rtrap:
--#ifndef CONFIG_SMP
--		sethi			%hi(__cpu_data), %l0
--		lduw			[%l0 + %lo(__cpu_data)], %l1
--#else
--		sethi			%hi(__cpu_data), %l0
--		or			%l0, %lo(__cpu_data), %l0
--		lduw			[%l0 + %g5], %l1
--#endif
--		cmp			%l1, 0
--
- 		/* mm/ultra.S:xcall_report_regs KNOWS about this load. */
--		 ldx			[%sp + PTREGS_OFF + PT_V9_TSTATE], %l1
-+		ldx			[%sp + PTREGS_OFF + PT_V9_TSTATE], %l1
- rtrap_xcall:
- 		sethi			%hi(0xf << 20), %l4
- 		and			%l1, %l4, %l4
--- 
-1.7.9.5
 
