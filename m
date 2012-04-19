@@ -1,7 +1,7 @@
-From: Konrad Eisele <konrad@gaisler.com>
-Date: Thu, 19 Apr 2012 09:34:54 +0000
+From: David Miller <davem@davemloft.net>
+Date: Thu, 19 Apr 2012 17:36:06 +0000
 Subject: Re: failing kthread_create_on_node()
-Message-Id: <4F8FDC3E.9030107@gaisler.com>
+Message-Id: <20120419.133606.625830542453036203.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4F8BED36.7000304@gaisler.com>
 In-Reply-To: <4F8BED36.7000304@gaisler.com>
@@ -11,9 +11,10 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-> When CPU1 comes online it is woken up. Then I end up in
+This is still mysterious, because no other platform sees this problem.
 
-Sorry, I mean:
-When CPU1 comes online "its stopper thread" is woken up.
+You need to first determine why other platforms bootup properly on SMP
+and only sparc32 does not.
 
-
+This is the first question every scheduler hacker is going to ask
+you when you propose that strange patch you just posted.
