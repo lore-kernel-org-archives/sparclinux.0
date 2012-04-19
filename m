@@ -1,24 +1,18 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 19 Apr 2012 15:34:28 +0000
+From: David Miller <davem@davemloft.net>
+Date: Thu, 19 Apr 2012 17:35:13 +0000
 Subject: Re: [PATCH 1/1] sparc: task_cpu() for stopper thread on sparc32 returns 0
-Message-Id: <20120419153428.GB1120@merkur.ravnborg.org>
+Message-Id: <20120419.133513.1487729675877616836.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1334827362-3434-1-git-send-email-konrad@gaisler.com>
 In-Reply-To: <1334827362-3434-1-git-send-email-konrad@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Konrad Eisele <konrad@gaisler.com>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Ingo Molnar <mingo@elte.hu>, lkml <linux-kernel@vger.kernel.org>
-Cc: sparclinux@vger.kernel.org, davem@davemloft.net, daniel@gaisler.com
+To: sparclinux@vger.kernel.org
 
-Added a few more people - as this patch touches a core file.
+From: Konrad Eisele <konrad@gaisler.com>
+Date: Thu, 19 Apr 2012 11:22:42 +0200
 
-I expect we have an issue on sparc32 - that manifest
-in this bug. But I do not know this code at all.
-
-	Sam
-
-On Thu, Apr 19, 2012 at 11:22:42AM +0200, Konrad Eisele wrote:
 > The stopper thread for CPU > 0 (at least in sparc32)
 > has on initialization task_cpu() set to zero even
 > for CPUs > 0. The patch explicitly checks weather the
@@ -26,30 +20,11 @@ On Thu, Apr 19, 2012 at 11:22:42AM +0200, Konrad Eisele wrote:
 > return or changes the return cpu.
 > 
 > Signed-off-by: Konrad Eisele <konrad@gaisler.com>
-> ---
->  kernel/sched/stop_task.c |    9 ++++++++-
->  1 files changed, 8 insertions(+), 1 deletions(-)
-> 
-> diff --git a/kernel/sched/stop_task.c b/kernel/sched/stop_task.c
-> index 7b386e8..9201866 100644
-> --- a/kernel/sched/stop_task.c
-> +++ b/kernel/sched/stop_task.c
-> @@ -13,7 +13,14 @@
->  static int
->  select_task_rq_stop(struct task_struct *p, int sd_flag, int flags)
->  {
-> -	return task_cpu(p); /* stop tasks as never migrate */
-> +	int ccpu, cpu , dcpu;
-> +	ccpu = cpu = task_cpu(p);
-> +	if (unlikely(!cpumask_test_cpu(cpu, tsk_cpus_allowed(p)))) {
-> +		cpu = cpumask_first(tsk_cpus_allowed(p));
-> +		if (cpu >= nr_cpu_ids)
-> +			cpu = ccpu;
-> +	}
-> +	return cpu;
->  }
->  #endif /* CONFIG_SMP */
->  
-> -- 
-> 1.6.1.3
-> 
+
+Posting a patch to generic code like this only to the Sparc
+list isn't going to drive us forward to a solution and will
+not involve the people who need to help you look into this
+problem.
+
+Therefore you need to post this with at least linux-kernel
+and the scheduler maintainer's CC:'d.
