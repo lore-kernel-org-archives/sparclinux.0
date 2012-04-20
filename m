@@ -1,32 +1,47 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 08 Apr 2012 21:49:35 +0000
-Subject: Re: [sparc] BUG: NMI Watchdog detected LOCKUP on CPU0
-Message-Id: <20120408.174935.1422476833112543503.davem@davemloft.net>
+From: Konrad Eisele <konrad@gaisler.com>
+Date: Fri, 20 Apr 2012 06:28:32 +0000
+Subject: [PATCH 1/1] sparc32,leon: add notify_cpu_starting()
+Message-Id: <1334903312-18526-1-git-send-email-konrad@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1333819298.7150.63.camel@deadeye>
-In-Reply-To: <1333819298.7150.63.camel@deadeye>
+References: <20120420033634.GA13068@zhy>
+In-Reply-To: <20120420033634.GA13068@zhy>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: yong.zhang0@gmail.com
+Cc: sam@ravnborg.org, a.p.zijlstra@chello.nl, mingo@elte.hu, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, davem@davemloft.net, daniel@gaisler.com, Yong Zhang <yong.zhang@windriver.com>
 
-From: Ben Hutchings <ben@decadent.org.uk>
-Date: Sun, 08 Apr 2012 22:12:06 +0100
+From: Yong Zhang <yong.zhang@windriver.com>
 
-> Will the recipient NACK if the cross-call interrupt is disabled, or do
-> the processors have a buffer/FIFO for such IRQs?
+Otherwise cpu_active_mask will not set, which lead to other issue.
 
-Recipient's NACK when their incoming cross-call queue is
-full.  A cpu hung with PSTATE_IE clear will not take
-vectorred interrupts and therefore not empty the queue.
+Signed-off-by: Yong Zhang <yong.zhang0@gmail.com>
+Signed-off-by: Konrad Eisele <konrad@gaisler.com>
+---
+ arch/sparc/kernel/leon_smp.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-> Obviously the NMI watchdog is not being disabled, but I was wondering
-> how its timer gets reset.
+diff --git a/arch/sparc/kernel/leon_smp.c b/arch/sparc/kernel/leon_smp.c
+index 1210fde..160cac9 100644
+--- a/arch/sparc/kernel/leon_smp.c
++++ b/arch/sparc/kernel/leon_smp.c
+@@ -23,6 +23,7 @@
+ #include <linux/pm.h>
+ #include <linux/delay.h>
+ #include <linux/gfp.h>
++#include <linux/cpu.h>
+ 
+ #include <asm/cacheflush.h>
+ #include <asm/tlbflush.h>
+@@ -78,6 +79,8 @@ void __cpuinit leon_callin(void)
+ 	local_flush_tlb_all();
+ 	leon_configure_cache_smp();
+ 
++	notify_cpu_starting(cpuid);
++
+ 	/* Get our local ticker going. */
+ 	smp_setup_percpu_timer();
+ 
+-- 
+1.6.1.3
 
-The NMI watchdog is controlled by the performance counter
-infrastructure.
-
-When the performance counters are not being used for 'perf',
-they are used to implement the NMI watchdog.
-
-See arch/sparc/kernel/{pcr,nmi}.c
