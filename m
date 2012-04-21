@@ -1,59 +1,37 @@
-From: Ingo Molnar <mingo@kernel.org>
-Date: Sat, 14 Apr 2012 10:50:49 +0000
-Subject: Re: [GIT] Sparc
-Message-Id: <20120414105049.GA13137@gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 21 Apr 2012 20:58:37 +0000
+Subject: [GIT] Sparc
+Message-Id: <20120421.165837.76978862714579140.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20120413.152455.900761231064979707.davem@davemloft.net>
- <CA+55aFwYWRv6+ix+UjT52UAn1rQeDpUKmbWq5SdHjZ0qHR2Cbg@mail.gmail.com>
- <20120413215012.GA31739@merkur.ravnborg.org>
- <20120414091352.GA15373@gmail.com>
- <20120414102300.GA32120@merkur.ravnborg.org>
-In-Reply-To: <20120414102300.GA32120@merkur.ravnborg.org>
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, David Miller <davem@davemloft.net>, akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-* Sam Ravnborg <sam@ravnborg.org> wrote:
+Please pull to get this sparc32 LEON smp bootup bug fix.
 
-> On Sat, Apr 14, 2012 at 11:13:52AM +0200, Ingo Molnar wrote:
-> > 
-> > * Sam Ravnborg <sam@ravnborg.org> wrote:
-> > 
-> > > On Fri, Apr 13, 2012 at 12:46:34PM -0700, Linus Torvalds wrote:
-> > > > On Fri, Apr 13, 2012 at 12:24 PM, David Miller <davem@davemloft.net> wrote:
-> > > > >
-> > > > > With special guest sparc64 assembler hacker, Paul E. McKenney.
-> > > > 
-> > > > Oh christ.  You're teaching *more* people about sparc64?
-> > > You do not get it...
-> > > 
-> > > How many people are pondering around tweaking every bit of x86
-> > > specific code? A lot! Let them have fun competing :-)
-> > 
-> > I wish it was so! In reality there's really just a handful of 
-> > people looking at actual x86 assembly code. I don't know whether 
-> > I've ever seen a conflict between substantial x86 assembly 
-> > patches, in the last 4 years since I co-maintain the x86 
-> > architecture ...
-> 
-> Hmm...
-> 
->       lines of c files  lines of S files
-> x86   183609            27130
-> sparc 66823             25852
+Thanks!
 
-Yes.
+The following changes since commit 8f4f9d4d3cb84686a75f6195b8f8705376763fc7:
 
-( I have no idea what the 'Hmm...' means - do those numbers 
-  somehow contradict what I said? )
+  Merge tag 'fixes-for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/arm/arm-soc (2012-04-21 12:45:52 -0700)
 
-> There is more than just assembly when dealign with an architecture.
+are available in the git repository at:
 
-Definitely.
 
-Thanks,
+  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
 
-	Ingo
+for you to fetch changes up to e9a5ea1852cd8d7e155d2e3a45e4a6ea25110f7d:
+
+  sparc32,leon: add notify_cpu_starting() (2012-04-21 16:35:06 -0400)
+
+----------------------------------------------------------------
+Yong Zhang (1):
+      sparc32,leon: add notify_cpu_starting()
+
+ arch/sparc/kernel/leon_smp.c |    3 +++
+ 1 file changed, 3 insertions(+)
