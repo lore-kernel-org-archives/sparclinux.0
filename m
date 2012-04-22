@@ -1,22 +1,11 @@
-From: "Cao Lixin" <caolixin@bochk-home.com>
-Date: Tue, 24 Apr 2012 07:20:34 +0000
-Subject: Emergency Email, Please get back.
-Message-Id: <20120424072026.0C81C242BBC6@csmtp3.one.com>
+From: =?iso-8859-1?b?qQ==?= 2012 Microsoft <micro.soft11@w.cn>
+Date: Sun, 22 Apr 2012 18:18:58 +0000
+Subject: 012/03/ZYO12
+Message-Id: <20120422201858.4n8ucxz4ys4oc400@webmail.versatel.nl>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Hello, 
-
-I have a secured business proposal for you worth USD28,350,000.00. Get back for details. 
-
-Email: cao23lixin@live.co.uk
-
-I await your response.
-
-Best Regards. 
-  
-Cao Lixin 
-
+Tu email ha ganado =A3375.000
