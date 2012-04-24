@@ -1,19 +1,22 @@
-From: "Elizabeth Alpass" <office06@ctes.ntpc.edu.tw>
-Date: Thu, 19 Apr 2012 12:36:21 +0000
-Subject: Message From Bank Santander UK
-Message-Id: <20120419123621.M19831@ctes.ntpc.edu.tw>
+From: "Cao Lixin" <caolixin@bochk-home.com>
+Date: Tue, 24 Apr 2012 07:20:34 +0000
+Subject: Emergency Email, Please get back.
+Message-Id: <20120424072026.0C81C242BBC6@csmtp3.one.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Dear Friend,
+Hello, 
 
-I am Elizabeth Alpass of Bank Santander Uk,I have a business proposal for you, 
-do return my mail 
-for details.
+I have a secured business proposal for you worth USD28,350,000.00. Get back for details. 
 
-GodBless You and Your Family.
-Elizabeth Alpass.
-elizabeth.alp26@yahoo.com
+Email: cao23lixin@live.co.uk
+
+I await your response.
+
+Best Regards. 
+  
+Cao Lixin 
+
