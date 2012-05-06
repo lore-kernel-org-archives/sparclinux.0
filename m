@@ -1,7 +1,7 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 06 May 2012 06:37:12 +0000
+From: Julian Calaby <julian.calaby@gmail.com>
+Date: Sun, 06 May 2012 06:52:05 +0000
 Subject: Re: sparc sun4c support - time to drop it?
-Message-Id: <20120506063712.GB15004@merkur.ravnborg.org>
+Message-Id: <CAGRGNgWcCfztNM83zrZpzarj-upyO04=8gx9Pi6u0=5EQrsQ1w@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20120505162104.GA14563@merkur.ravnborg.org>
 In-Reply-To: <20120505162104.GA14563@merkur.ravnborg.org>
@@ -10,20 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sun, May 06, 2012 at 05:01:20AM +0100, Mark Fortescue wrote:
+Hi Mark,
+
+On Sun, May 6, 2012 at 2:01 PM, Mark Fortescue <mark@mtfhpc.demon.co.uk> wrote:
 > On Sat, 5 May 2012, Sam Ravnborg wrote:
 >
->> Is anyone having any sun4c boxes alive and running Linux?
->
-> I have not had much time to do any more work on Linux + sun4c but I do  
-> have a sun4c box waiting for a new external disk to put Linux on (the 
-> last one stopped, I thing due to a ded PSU).
+> I have not had much time to do any more work on Linux + sun4c but I do have
+> a sun4c box waiting for a new external disk to put Linux on (the last one
+> stopped, I thing due to a ded PSU).
 
-I have come a long way using tftpboot.img and a ram-dsik.
-This allows me to keep Solaris on the disk, and booting
-Linux. It is a bit slow as I always fetch the full kernel via the
-network but this is acceptable.
+I have one of the standard Sun 411 external narrow-scsi CD-ROM boxes.
 
-I hacked busybox to support sparc32 - patches are upstream.
+If you're in Australia, I could ship it to you.
 
-	Sam
+I don't need it anymore as I'm finding different solutions to my
+storage issues with my sun4m boxen.
+
+Thanks,
+
+-- 
+Julian Calaby
+
+Email: julian.calaby@gmail.com
+Profile: http://www.google.com/profiles/julian.calaby/
+.Plan: http://sites.google.com/site/juliancalaby/
