@@ -1,7 +1,7 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 07 May 2012 20:50:16 +0000
+From: Julian Calaby <julian.calaby@gmail.com>
+Date: Mon, 07 May 2012 23:07:34 +0000
 Subject: Re: sparc sun4c support - time to drop it?
-Message-Id: <20120507205016.GB10698@merkur.ravnborg.org>
+Message-Id: <CAGRGNgVXtc0C-Y4=Tojoh48Zo8Umb6R1PUm+LGTDqa5SNQbnJA@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20120505162104.GA14563@merkur.ravnborg.org>
 In-Reply-To: <20120505162104.GA14563@merkur.ravnborg.org>
@@ -10,24 +10,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi Tom.
+Hi Sam,
 
-On Mon, May 07, 2012 at 01:59:11PM -0400, Tom Callaway wrote:
-> On 05/07/2012 01:46 PM, Sam Ravnborg wrote:
-> 
-> > There are unsuprisingly some that for sentimental
-> > reasons would like to keep sun4c support in-kernel.
-> > 
-> > But sun4c is outdated and if anyone want to run something
-> > on a sun4c box the *BSD variants has better performance.
-> > 
-> > Also considering that sun4c support has been broken for
-> > some time and there is a few changes pending where sun4c
-> > does not make things simpler we will drop sun4c support.
-> 
-> I haven't powered on any of my sun4c (or older) kit in several years, so
-> I'm also supportive of this change.
+On Tue, May 8, 2012 at 3:46 AM, Sam Ravnborg <sam@ravnborg.org> wrote:
+> On Sat, May 05, 2012 at 06:21:04PM +0200, Sam Ravnborg wrote:
+> Also considering that sun4c support has been broken for
+> some time and there is a few changes pending where sun4c
+> does not make things simpler we will drop sun4c support.
+>
+> I already took a quick look at it and in the process
+> I think I uncovered a bug in NMI handling for sun4m
+> in UP mode. We would call the sun4c nmi trap despite
+> being a sun4m box - this would not go well.
+>
+> When I have something tested I will forward my
+> patches.
 
-Thanks for your feedback!
+Would it be possible to hide sun4c away behind a kconfig variable that
+is marked as BROKEN with a entry in the feature-removal file?
 
-	Sam
+Or is that just too much work for code which has been broken for a long time.
+
+Thanks,
+
+-- 
+Julian Calaby
+
+Email: julian.calaby@gmail.com
+Profile: http://www.google.com/profiles/julian.calaby/
+.Plan: http://sites.google.com/site/juliancalaby/
