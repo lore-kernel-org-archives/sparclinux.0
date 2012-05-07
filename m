@@ -1,7 +1,7 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 07 May 2012 17:46:13 +0000
+From: Tom Callaway <tcallawa@redhat.com>
+Date: Mon, 07 May 2012 17:59:11 +0000
 Subject: Re: sparc sun4c support - time to drop it?
-Message-Id: <20120507174613.GA10350@merkur.ravnborg.org>
+Message-Id: <4FA80D6F.6040604@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20120505162104.GA14563@merkur.ravnborg.org>
 In-Reply-To: <20120505162104.GA14563@merkur.ravnborg.org>
@@ -10,44 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sat, May 05, 2012 at 06:21:04PM +0200, Sam Ravnborg wrote:
-> Is anyone having any sun4c boxes alive and running Linux?
+On 05/07/2012 01:46 PM, Sam Ravnborg wrote:
+
+> There are unsuprisingly some that for sentimental
+> reasons would like to keep sun4c support in-kernel.
 > 
-> I have a nice box myself that does not boot - I do not know why.
-> But we are talking abot slow and old stuff here.
+> But sun4c is outdated and if anyone want to run something
+> on a sun4c box the *BSD variants has better performance.
 > 
-> Is it time to drop support for sun4c - or is anyone still
-> having an interest keeping that platform alive?
-> 
-> Looking into recent history of the kernel only one person
-> (Mark - copied) seems to have contributed
-> solely for the purpose of getting a sun4c box working.
-> 
-> 
-> Sunstuff has a list of boxes based on sun4c here:
-> http://sunstuff.org/hardware/systems/sun4/sun4c/
-> 
-> SPARCstation 1, SLC, IPC, 1+, 2, ELC, IPX
-> SPARCengine 1
+> Also considering that sun4c support has been broken for
+> some time and there is a few changes pending where sun4c
+> does not make things simpler we will drop sun4c support.
 
-To summarize this thread...
+I haven't powered on any of my sun4c (or older) kit in several years, so
+I'm also supportive of this change.
 
-There are unsuprisingly some that for sentimental
-reasons would like to keep sun4c support in-kernel.
+~tom
 
-But sun4c is outdated and if anyone want to run something
-on a sun4c box the *BSD variants has better performance.
-
-Also considering that sun4c support has been broken for
-some time and there is a few changes pending where sun4c
-does not make things simpler we will drop sun4c support.
-
-I already took a quick look at it and in the process
-I think I uncovered a bug in NMI handling for sun4m
-in UP mode. We would call the sun4c nmi trap despite
-being a sun4m box - this would not go well.
-
-When I have something tested I will forward my
-patches.
-
-	Sam
+=
+Fedora Project
