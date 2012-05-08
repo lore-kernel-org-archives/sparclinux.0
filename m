@@ -1,272 +1,148 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 11 May 2012 21:37:20 +0000
-Subject: [PATCH v2 06/14] sparc32: delete pgtsun4c.h
-Message-Id: <20120511213720.GA1598@merkur.ravnborg.org>
+From: Mr Raymond Khumalo <raymondkhumaloo3@hotmail.com>
+Date: Tue, 08 May 2012 10:52:04 +0000
+Subject: Your urgent response is needed
+Message-Id: <1336474324.26562.YahooMailClassic@web2808.biz.mail.ne1.yahoo.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="1502597736-1953942348-1336474324=:26562"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From 6446dc7142c998139d77c8d74699345f2b818b14 Mon Sep 17 00:00:00 2001
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 10 May 2012 23:12:10 +0200
-Subject: [PATCH v2 06/14] sparc32: delete pgtsun4c.h
+--1502597736-1953942348-1336474324=:26562
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
----
+=0AGreetings, Please go through the attached file for details=0A=0A 
+--1502597736-1953942348-1336474324=:26562
+Content-Type: application/msword; name=Raymond
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="Raymond Khumalo.rtf"
 
-Fixed subject - sorry!
+e1xydGYxXGFuc2lcYW5zaWNwZzEyNTJcdWMxXGRlZmYwXHN0c2hmZGJjaDBc
+c3RzaGZsb2NoMFxzdHNoZmhpY2gwXHN0c2hmYmkwXGRlZmxhbmcxMDMzXGRl
+ZmxhbmdmZTEwMzN7XGZvbnR0Ymx7XGYwXGZyb21hblxmY2hhcnNldDBcZnBy
+cTJ7XCpccGFub3NlIDAyMDIwNjAzMDUwNDA1MDIwMzA0fVRpbWVzIE5ldyBS
+b21hbjt9e1xmMVxmc3dpc3NcZmNoYXJzZXQwXGZwcnEye1wqXHBhbm9zZSAw
+MjBiMDYwNDAyMDIwMjAyMDIwNH1BcmlhbDt9DQp7XGYzNlxmcm9tYW5cZmNo
+YXJzZXQyMzhcZnBycTIgVGltZXMgTmV3IFJvbWFuIENFO317XGYzN1xmcm9t
+YW5cZmNoYXJzZXQyMDRcZnBycTIgVGltZXMgTmV3IFJvbWFuIEN5cjt9e1xm
+MzlcZnJvbWFuXGZjaGFyc2V0MTYxXGZwcnEyIFRpbWVzIE5ldyBSb21hbiBH
+cmVlazt9e1xmNDBcZnJvbWFuXGZjaGFyc2V0MTYyXGZwcnEyIFRpbWVzIE5l
+dyBSb21hbiBUdXI7fQ0Ke1xmNDFcZnJvbWFuXGZjaGFyc2V0MTc3XGZwcnEy
+IFRpbWVzIE5ldyBSb21hbiAoSGVicmV3KTt9e1xmNDJcZnJvbWFuXGZjaGFy
+c2V0MTc4XGZwcnEyIFRpbWVzIE5ldyBSb21hbiAoQXJhYmljKTt9e1xmNDNc
+ZnJvbWFuXGZjaGFyc2V0MTg2XGZwcnEyIFRpbWVzIE5ldyBSb21hbiBCYWx0
+aWM7fXtcZjQ0XGZyb21hblxmY2hhcnNldDE2M1xmcHJxMiBUaW1lcyBOZXcg
+Um9tYW4gKFZpZXRuYW1lc2UpO30NCntcZjQ2XGZzd2lzc1xmY2hhcnNldDIz
+OFxmcHJxMiBBcmlhbCBDRTt9e1xmNDdcZnN3aXNzXGZjaGFyc2V0MjA0XGZw
+cnEyIEFyaWFsIEN5cjt9e1xmNDlcZnN3aXNzXGZjaGFyc2V0MTYxXGZwcnEy
+IEFyaWFsIEdyZWVrO317XGY1MFxmc3dpc3NcZmNoYXJzZXQxNjJcZnBycTIg
+QXJpYWwgVHVyO317XGY1MVxmc3dpc3NcZmNoYXJzZXQxNzdcZnBycTIgQXJp
+YWwgKEhlYnJldyk7fQ0Ke1xmNTJcZnN3aXNzXGZjaGFyc2V0MTc4XGZwcnEy
+IEFyaWFsIChBcmFiaWMpO317XGY1M1xmc3dpc3NcZmNoYXJzZXQxODZcZnBy
+cTIgQXJpYWwgQmFsdGljO317XGY1NFxmc3dpc3NcZmNoYXJzZXQxNjNcZnBy
+cTIgQXJpYWwgKFZpZXRuYW1lc2UpO319e1xjb2xvcnRibDtccmVkMFxncmVl
+bjBcYmx1ZTA7XHJlZDBcZ3JlZW4wXGJsdWUyNTU7XHJlZDBcZ3JlZW4yNTVc
+Ymx1ZTI1NTtccmVkMFxncmVlbjI1NVxibHVlMDsNClxyZWQyNTVcZ3JlZW4w
+XGJsdWUyNTU7XHJlZDI1NVxncmVlbjBcYmx1ZTA7XHJlZDI1NVxncmVlbjI1
+NVxibHVlMDtccmVkMjU1XGdyZWVuMjU1XGJsdWUyNTU7XHJlZDBcZ3JlZW4w
+XGJsdWUxMjg7XHJlZDBcZ3JlZW4xMjhcYmx1ZTEyODtccmVkMFxncmVlbjEy
+OFxibHVlMDtccmVkMTI4XGdyZWVuMFxibHVlMTI4O1xyZWQxMjhcZ3JlZW4w
+XGJsdWUwO1xyZWQxMjhcZ3JlZW4xMjhcYmx1ZTA7XHJlZDEyOFxncmVlbjEy
+OFxibHVlMTI4Ow0KXHJlZDE5MlxncmVlbjE5MlxibHVlMTkyO317XHN0eWxl
+c2hlZXR7XHFsIFxsaTBccmkwXHdpZGN0bHBhclxhc3BhbHBoYVxhc3BudW1c
+ZmFhdXRvXGFkanVzdHJpZ2h0XHJpbjBcbGluMFxpdGFwMCBcZnMyNFxsYW5n
+MTAzM1xsYW5nZmUxMDMzXGNncmlkXGxhbmducDEwMzNcbGFuZ2ZlbnAxMDMz
+IFxzbmV4dDAgTm9ybWFsO317XCpcY3MxMCBcYWRkaXRpdmUgXHNzZW1paGlk
+ZGVuIERlZmF1bHQgUGFyYWdyYXBoIEZvbnQ7fXtcKg0KXHRzMTFcdHNyb3dk
+XHRyZnRzV2lkdGhCM1x0cnBhZGRsMTA4XHRycGFkZHIxMDhcdHJwYWRkZmwz
+XHRycGFkZGZ0M1x0cnBhZGRmYjNcdHJwYWRkZnIzXHRyY2JwYXQxXHRyY2Zw
+YXQxXHRzY2VsbHdpZHRoZnRzMFx0c3ZlcnRhbHRcdHNicmRydFx0c2JyZHJs
+XHRzYnJkcmJcdHNicmRyclx0c2JyZHJkZ2xcdHNicmRyZGdyXHRzYnJkcmhc
+dHNicmRydiANClxxbCBcbGkwXHJpMFx3aWRjdGxwYXJcYXNwYWxwaGFcYXNw
+bnVtXGZhYXV0b1xhZGp1c3RyaWdodFxyaW4wXGxpbjBcaXRhcDAgXGZzMjBc
+bGFuZzEwMjRcbGFuZ2ZlMTAyNFxjZ3JpZFxsYW5nbnAxMDI0XGxhbmdmZW5w
+MTAyNCBcc25leHQxMSBcc3NlbWloaWRkZW4gTm9ybWFsIFRhYmxlO319e1wq
+XGxhdGVudHN0eWxlc1xsc2RzdGltYXgxNTZcbHNkbG9ja2VkZGVmMH17XCpc
+cnNpZHRibCBccnNpZDUxMzE3NjR9e1wqXGdlbmVyYXRvciBNaWNybw0Kc29m
+dCBXb3JkIDExLjAuNTYwNDt9e1xpbmZve1x0aXRsZSBNUn17XGF1dGhvciBQ
+QzE0fXtcb3BlcmF0b3IgUEMxNH17XGNyZWF0aW1ceXIyMDEyXG1vNVxkeTNc
+aHIxMFxtaW41fXtccmV2dGltXHlyMjAxMlxtbzVcZHkzXGhyMTBcbWluNX17
+XHZlcnNpb24yfXtcZWRtaW5zMX17XG5vZnBhZ2VzMX17XG5vZndvcmRzMzE3
+fXtcbm9mY2hhcnMxODA5fXtcbm9mY2hhcnN3czIxMjJ9e1x2ZXJuMjQ2ODl9
+fQ0KXHdpZG93Y3RybFxmdG5ialxhZW5kZG9jXG5veGxhdHRveWVuXGV4cHNo
+cnRuXG5vdWx0cmxzcGNcZG50Ymxuc2JkYlxub3NwYWNlZm9ydWxcaHlwaGNh
+cHMwXGhvcnpkb2NcZGdoc3BhY2UxMjBcZGd2c3BhY2UxMjBcZGdob3JpZ2lu
+MTcwMVxkZ3ZvcmlnaW4xOTg0XGRnaHNob3cwXGRndnNob3czXGpjb21wcmVz
+c1x2aWV3a2luZDRcdmlld3NjYWxlMTAwXG5vbG5odGFkanRibFxyc2lkcm9v
+dDUxMzE3NjQgXGZldDBcc2VjdGQgDQpcbGluZXgwXHNlY3RkZWZhdWx0Y2xc
+c2Z0bmJqIHtcKlxwbnNlY2x2bDFccG51Y3JtXHBuc3RhcnQxXHBuaW5kZW50
+NzIwXHBuaGFuZyB7XHBudHh0YSAufX17XCpccG5zZWNsdmwyXHBudWNsdHJc
+cG5zdGFydDFccG5pbmRlbnQ3MjBccG5oYW5nIHtccG50eHRhIC59fXtcKlxw
+bnNlY2x2bDNccG5kZWNccG5zdGFydDFccG5pbmRlbnQ3MjBccG5oYW5nIHtc
+cG50eHRhIC59fXtcKlxwbnNlY2x2bDQNClxwbmxjbHRyXHBuc3RhcnQxXHBu
+aW5kZW50NzIwXHBuaGFuZyB7XHBudHh0YSApfX17XCpccG5zZWNsdmw1XHBu
+ZGVjXHBuc3RhcnQxXHBuaW5kZW50NzIwXHBuaGFuZyB7XHBudHh0YiAofXtc
+cG50eHRhICl9fXtcKlxwbnNlY2x2bDZccG5sY2x0clxwbnN0YXJ0MVxwbmlu
+ZGVudDcyMFxwbmhhbmcge1xwbnR4dGIgKH17XHBudHh0YSApfX17XCpccG5z
+ZWNsdmw3XHBubGNybVxwbnN0YXJ0MVxwbmluZGVudDcyMFxwbmhhbmcge1xw
+bnR4dGIgKH0NCntccG50eHRhICl9fXtcKlxwbnNlY2x2bDhccG5sY2x0clxw
+bnN0YXJ0MVxwbmluZGVudDcyMFxwbmhhbmcge1xwbnR4dGIgKH17XHBudHh0
+YSApfX17XCpccG5zZWNsdmw5XHBubGNybVxwbnN0YXJ0MVxwbmluZGVudDcy
+MFxwbmhhbmcge1xwbnR4dGIgKH17XHBudHh0YSApfX1ccGFyZFxwbGFpbiBc
+cWwgXGxpMFxyaTBcbm93aWRjdGxwYXJcZmFhdXRvXHJpbjBcbGluMFxpdGFw
+MCANClxmczI0XGxhbmcxMDMzXGxhbmdmZTEwMzNcY2dyaWRcbGFuZ25wMTAz
+M1xsYW5nZmVucDEwMzMge1xiXGYxXGZzMjBcaW5zcnNpZDUxMzE3NjQgTVIu
+IFJBWU1PTkQgS0hVTUFMTw0KXHBhciBUZWwgOiArMjctNzMtMTc1OS0xNjEN
+ClxwYXIgRU1BSUw6IHJheW1vbmRraHVtYWxvb0Bob3RtYWlsLmNvbQ0KXHBh
+ciAgDQpccGFyIEdyZWV0aW5ncy4NClxwYXIgIA0KXHBhciBJIGFtLiBNUi4g
+UkFZTU9ORCBLSFVNQUxPLCBIZWFkIEFjY291bnRzIE1hbmFnZW1lbnQgU2Vj
+dGlvbiBvZiBhIHdlbGwta25vd24gQmFuayBoZXJlIGluICBTb3V0aCBBZnJp
+Y2EgLiAgIE9uZSBvZiBvdXIgYWNjb3VudHMgd2l0aCBob2xkaW5nIGJhbGFu
+Y2Ugb2YgVVMkMTAsMDAwLDAwMCAoIFRlbiBNaWxsaW9uIFVuaXRlZCBTdGF0
+ZXMgRG9sbGFyKSBoYXMgYmVlbiBkb3JtYW50IGFuZCBsYXN0IG9wZXJhdGVk
+IGluIHRoZSBwYXN0IGZvdXIgKDQNCikgeWVhcnMuIEZyb20gaW52ZXN0aWdh
+dGlvbnMgYW5kIGNvbmZpcm1hdGlvbnMsIHRoZSBvd25lciBvZiB0aGlzIGFj
+Y291bnQgaXMgYSBIb25nIEtvbmcgRm9yZWlnbmVyIGJ5IG5hbWUgRW5nciBX
+aW5nIENoaXUgTGVlIGRpZWQgb24gdGhlIDR0aCBvZiBKYW51YXJ5IDIwMDMg
+aW4gYW4gYXV0b21vYmlsZSBhY2NpZGVudCBhbG9uZyBQcmV0b3JpYSBOMSBI
+aWdoLVdheS4NClxwYXIgIA0KXHBhciBTaW5jZSB0aGVuIG5vYm9keSBoYXMg
+ZG9uZSBhbnl0aGluZyBhcyByZWdhDQpyZHMgdG8gdGhlIGNsYWltaW5nIG9m
+IHRoaXMgbW9uZXkgYXMgaGUgaGFzIG5vIGZhbWlseSBtZW1iZXIgdGhhdCBp
+cyBhd2FyZSBvZiB0aGUgZXhpc3RlbmNlIG9mIGVpdGhlciB0aGUgYWNjb3Vu
+dCBvciB0aGUgZnVuZC4gU2V2ZXJhbCBhdHRlbXB0IHRvIHRyYWNlIGFueSBv
+ZiBoaXMgcmVsYXRpdmUgcHJvb2YgYWJvcnRpdmUgYW5kIGFsc28gSW5mb3Jt
+YXRpb24gZnJvbSB0aGUgTmF0aW9uYWwgSW1taWdyYXRpb24gb2ZmaWNlIHN0
+YXRlcyB0aGENCnQgbGF0ZSBFbmdyIFdpbmcgQ2hpdSBMZWUgd2FzIHNpbmds
+ZSBvbiBwb2ludCBvZiBlbnRyeSBpbnRvIFNvdXRoIEFmcmljYQ0KXHBhciAu
+DQpccGFyIE91ciBGaW5hbmNpYWwgSW5zdGl0dXRpb24gaXMgcHJlc2VudGx5
+IGFuZCBieSBsYXcgdGhlIGN1c3RvZGlhbiBvZiB0aGUgbW9uZXkgYmVsb25n
+aW5nIHRvIHRoZSBkZWNlYXNlZCwgd2hvc2UgYWNjb3VudCBJIGFtIHJlc3Bv
+bnNpYmxlIGZvciBtb25pdG9yaW5nIGFuZCBvZmZpY2lhdGluZy4gVGhlIHBy
+ZXNlbnQgbWFuDQpkYXRlIEkgaGF2ZSB0byBwcmVzZW50IGEgY3JlZGlibGUg
+YmVuZWZpY2lhcnkgb3BlbnMgdGhlIHdheSBmb3IgdXMgdG8gdGFrZSBhZHZh
+bnRhZ2Ugb2YgdGhlIHNpdHVhdGlvbiBhbmQgdXNlIHRoZSBtb25leSB0byBw
+b3NpdGl2ZWx5IGFmZmVjdCB0aGUgbGl2ZXMgb2YgbWFueSBpbnN0ZWFkIG9m
+IGFsbG93aW5nIHRoZSBmdW5kcyB0byBiZQ0KXHBhciBjb21wbGV0ZWx5IGxv
+c3QsIHNpbmNlIG5vIG9uZSBrbm93cyBhYm91dCB0aGUgbW9uZXkgYW5kIG5v
+IG9uZSB3aWxsIGNvbWUgZm9yd2FyZCB0byBjbGFpbSB0aGUgbW9uZXkgYXMg
+d2UgYWxyZWFkeSBrbm93Lg0KXHBhciAgDQpccGFyIEkgaGF2ZSBjb25maWRl
+bnRpYWxseSBkaXNjdXNzZWQgdGhpcyBpc3N1ZSB3aXRoIHNvbWUgb2YgdGhl
+IGJhbmsgb2ZmaWNpYWxzIGFuZCB3ZSBoYXZlIGFncmVlZCB0byBmaW5kIGEg
+cmVsaWFibGUgZm9yZWlnbiBwYXJ0bmVyIHRvIGRlYWwgd2l0aC4gV2UgdGh1
+cyBwcm9wb3NlIHRvIGRvIGJ1c2luZXNzIHdpdGggeW91LCBzdGFuZGluZyBp
+bg0KIGFzIHRoZSBuZXh0IG9mIGtpbiBvZiB0aGlzIGZ1bmQgZnJvbSB0aGUg
+ZGVjZWFzZWQgYW5kIGZ1bmQgcmVsZWFzZWQgdG8geW91IGFmdGVyIGR1ZSBw
+cm9jZXNzZXMgaGF2ZSBiZWVuIGZvbGxvd2VkLlRoaXMgdHJhbnNhY3Rpb24g
+aXMgdG90YWxseSBmcmVlIG9mIHJpc2sgYW5kIHRyb3VibGVzIGFzIHRoZSBm
+dW5kIGlzIExlZ2l0aW1hdGUgYW5kIGRvZXMgbm90IG9yaWdpbmF0ZSBmcm9t
+IGRydWcgb3IgbW9uZXkgbGF1bmRyeS5PbiB5b3VyIGluDQp0ZXJlc3QsIElm
+IHlvdSBhcmUgaW50ZXJlc3RlZCBpbiB0aGlzIHRyYW5zYWN0aW9uLCBraW5k
+bHkgcHJvdmlkZSBtZSB3aXRoDQpccGFyIA0KXHBhciBZT1VSIEZVTEwgTkFN
+RQ0KXHBhciBDT05UQUNUIEFERFJFU1MNClxwYXIgVEVMRVBIT05FIEFORCBG
+QVgNClxwYXIgT0NDVVBBVElPTg0KXHBhciBBR0UNClxwYXIgDQpccGFyIFBs
+ZWFzZSBkbyBsZXQgbWUga25vdyBpbW1lZGlhdGVseSBzbyB0aGF0IHdlIGNh
+biBwcm9jZWVkLiANClxwYXIgDQpccGFyIFJlZ2FyZHMNClxwYXIgIA0KXHBh
+ciBTaW5jZXJlbHksIA0KXHBhciBNUi5SQVlNT05EIEtIVU1BTE8uDQpccGFy
+IH17XGYxXGZzMjBcaW5zcnNpZDUxMzE3NjQgDQpccGFyIH19
 
-	Sam
-
-
- arch/sparc/include/asm/pgtable_32.h |   11 +--
- arch/sparc/include/asm/pgtsun4c.h   |  172 -----------------------------------
- arch/sparc/kernel/entry.S           |    1 -
- 3 files changed, 2 insertions(+), 182 deletions(-)
- delete mode 100644 arch/sparc/include/asm/pgtsun4c.h
-
-diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
-index 3d71018..225030b 100644
---- a/arch/sparc/include/asm/pgtable_32.h
-+++ b/arch/sparc/include/asm/pgtable_32.h
-@@ -16,7 +16,6 @@
- #include <linux/spinlock.h>
- #include <linux/swap.h>
- #include <asm/types.h>
--#include <asm/pgtsun4c.h>
- #include <asm/pgtsrmmu.h>
- #include <asm/vac-ops.h>
- #include <asm/oplib.h>
-@@ -47,7 +46,7 @@ BTFIXUPDEF_INT(page_copy)
- BTFIXUPDEF_INT(page_readonly)
- BTFIXUPDEF_INT(page_kernel)
- 
--#define PMD_SHIFT		SUN4C_PMD_SHIFT
-+#define PMD_SHIFT		22
- #define PMD_SIZE        	(1UL << PMD_SHIFT)
- #define PMD_MASK        	(~(PMD_SIZE-1))
- #define PMD_ALIGN(__addr) 	(((__addr) + ~PMD_MASK) & PMD_MASK)
-@@ -399,9 +398,6 @@ static inline unsigned long
- __get_phys (unsigned long addr)
- {
- 	switch (sparc_cpu_model){
--	case sun4:
--	case sun4c:
--		return sun4c_get_pte (addr) << PAGE_SHIFT;
- 	case sun4m:
- 	case sun4d:
- 		return ((srmmu_get_pte (addr) & 0xffffff00) << 4);
-@@ -414,9 +410,6 @@ static inline int
- __get_iospace (unsigned long addr)
- {
- 	switch (sparc_cpu_model){
--	case sun4:
--	case sun4c:
--		return -1; /* Don't check iospace on sun4c */
- 	case sun4m:
- 	case sun4d:
- 		return (srmmu_get_pte (addr) >> 28);
-@@ -463,7 +456,7 @@ static inline int io_remap_pfn_range(struct vm_area_struct *vma,
- 		set_pte_at((__vma)->vm_mm, (__address), __ptep, __entry); \
- 		flush_tlb_page(__vma, __address);			  \
- 	}								  \
--	(sparc_cpu_model = sun4c) || __changed;			  \
-+	__changed;							  \
- })
- 
- #include <asm-generic/pgtable.h>
-diff --git a/arch/sparc/include/asm/pgtsun4c.h b/arch/sparc/include/asm/pgtsun4c.h
-deleted file mode 100644
-index aeb25e9..0000000
---- a/arch/sparc/include/asm/pgtsun4c.h
-+++ /dev/null
-@@ -1,172 +0,0 @@
--/*
-- * pgtsun4c.h:  Sun4c specific pgtable.h defines and code.
-- *
-- * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)
-- */
--#ifndef _SPARC_PGTSUN4C_H
--#define _SPARC_PGTSUN4C_H
--
--#include <asm/contregs.h>
--
--/* PMD_SHIFT determines the size of the area a second-level page table can map */
--#define SUN4C_PMD_SHIFT       22
--
--/* PGDIR_SHIFT determines what a third-level page table entry can map */
--#define SUN4C_PGDIR_SHIFT       22
--#define SUN4C_PGDIR_SIZE        (1UL << SUN4C_PGDIR_SHIFT)
--#define SUN4C_PGDIR_MASK        (~(SUN4C_PGDIR_SIZE-1))
--#define SUN4C_PGDIR_ALIGN(addr) (((addr)+SUN4C_PGDIR_SIZE-1)&SUN4C_PGDIR_MASK)
--
--/* To represent how the sun4c mmu really lays things out. */
--#define SUN4C_REAL_PGDIR_SHIFT       18
--#define SUN4C_REAL_PGDIR_SIZE        (1UL << SUN4C_REAL_PGDIR_SHIFT)
--#define SUN4C_REAL_PGDIR_MASK        (~(SUN4C_REAL_PGDIR_SIZE-1))
--#define SUN4C_REAL_PGDIR_ALIGN(addr) (((addr)+SUN4C_REAL_PGDIR_SIZE-1)&SUN4C_REAL_PGDIR_MASK)
--
--/* 16 bit PFN on sun4c */
--#define SUN4C_PFN_MASK 0xffff
--
--/* Don't increase these unless the structures in sun4c.c are fixed */
--#define SUN4C_MAX_SEGMAPS 256
--#define SUN4C_MAX_CONTEXTS 16
--
--/*
-- * To be efficient, and not have to worry about allocating such
-- * a huge pgd, we make the kernel sun4c tables each hold 1024
-- * entries and the pgd similarly just like the i386 tables.
-- */
--#define SUN4C_PTRS_PER_PTE    1024
--#define SUN4C_PTRS_PER_PMD    1
--#define SUN4C_PTRS_PER_PGD    1024
--
--/*
-- * Sparc SUN4C pte fields.
-- */
--#define _SUN4C_PAGE_VALID        0x80000000
--#define _SUN4C_PAGE_SILENT_READ  0x80000000   /* synonym */
--#define _SUN4C_PAGE_DIRTY        0x40000000
--#define _SUN4C_PAGE_SILENT_WRITE 0x40000000   /* synonym */
--#define _SUN4C_PAGE_PRIV         0x20000000   /* privileged page */
--#define _SUN4C_PAGE_NOCACHE      0x10000000   /* non-cacheable page */
--#define _SUN4C_PAGE_PRESENT      0x08000000   /* implemented in software */
--#define _SUN4C_PAGE_IO           0x04000000   /* I/O page */
--#define _SUN4C_PAGE_FILE         0x02000000   /* implemented in software */
--#define _SUN4C_PAGE_READ         0x00800000   /* implemented in software */
--#define _SUN4C_PAGE_WRITE        0x00400000   /* implemented in software */
--#define _SUN4C_PAGE_ACCESSED     0x00200000   /* implemented in software */
--#define _SUN4C_PAGE_MODIFIED     0x00100000   /* implemented in software */
--
--#define _SUN4C_READABLE		(_SUN4C_PAGE_READ|_SUN4C_PAGE_SILENT_READ|\
--				 _SUN4C_PAGE_ACCESSED)
--#define _SUN4C_WRITEABLE	(_SUN4C_PAGE_WRITE|_SUN4C_PAGE_SILENT_WRITE|\
--				 _SUN4C_PAGE_MODIFIED)
--
--#define _SUN4C_PAGE_CHG_MASK	(0xffff|_SUN4C_PAGE_ACCESSED|_SUN4C_PAGE_MODIFIED)
--
--#define SUN4C_PAGE_NONE		__pgprot(_SUN4C_PAGE_PRESENT)
--#define SUN4C_PAGE_SHARED	__pgprot(_SUN4C_PAGE_PRESENT|_SUN4C_READABLE|\
--					 _SUN4C_PAGE_WRITE)
--#define SUN4C_PAGE_COPY		__pgprot(_SUN4C_PAGE_PRESENT|_SUN4C_READABLE)
--#define SUN4C_PAGE_READONLY	__pgprot(_SUN4C_PAGE_PRESENT|_SUN4C_READABLE)
--#define SUN4C_PAGE_KERNEL	__pgprot(_SUN4C_READABLE|_SUN4C_WRITEABLE|\
--					 _SUN4C_PAGE_DIRTY|_SUN4C_PAGE_PRIV)
--
--/* SUN4C swap entry encoding
-- *
-- * We use 5 bits for the type and 19 for the offset.  This gives us
-- * 32 swapfiles of 4GB each.  Encoding looks like:
-- *
-- * RRRRRRRRooooooooooooooooooottttt
-- * fedcba9876543210fedcba9876543210
-- *
-- * The top 8 bits are reserved for protection and status bits, especially
-- * FILE and PRESENT.
-- */
--#define SUN4C_SWP_TYPE_MASK	0x1f
--#define SUN4C_SWP_OFF_MASK	0x7ffff
--#define SUN4C_SWP_OFF_SHIFT	5
--
--#ifndef __ASSEMBLY__
--
--static inline unsigned long sun4c_get_synchronous_error(void)
--{
--	unsigned long sync_err;
--
--	__asm__ __volatile__("lda [%1] %2, %0\n\t" :
--			     "=r" (sync_err) :
--			     "r" (AC_SYNC_ERR), "i" (ASI_CONTROL));
--	return sync_err;
--}
--
--static inline unsigned long sun4c_get_synchronous_address(void)
--{
--	unsigned long sync_addr;
--
--	__asm__ __volatile__("lda [%1] %2, %0\n\t" :
--			     "=r" (sync_addr) :
--			     "r" (AC_SYNC_VA), "i" (ASI_CONTROL));
--	return sync_addr;
--}
--
--/* SUN4C pte, segmap, and context manipulation */
--static inline unsigned long sun4c_get_segmap(unsigned long addr)
--{
--  register unsigned long entry;
--
--  __asm__ __volatile__("\n\tlduba [%1] %2, %0\n\t" : 
--		       "=r" (entry) :
--		       "r" (addr), "i" (ASI_SEGMAP));
--
--  return entry;
--}
--
--static inline void sun4c_put_segmap(unsigned long addr, unsigned long entry)
--{
--
--  __asm__ __volatile__("\n\tstba %1, [%0] %2; nop; nop; nop;\n\t" : :
--		       "r" (addr), "r" (entry),
--		       "i" (ASI_SEGMAP)
--		       : "memory");
--}
--
--static inline unsigned long sun4c_get_pte(unsigned long addr)
--{
--  register unsigned long entry;
--
--  __asm__ __volatile__("\n\tlda [%1] %2, %0\n\t" : 
--		       "=r" (entry) :
--		       "r" (addr), "i" (ASI_PTE));
--  return entry;
--}
--
--static inline void sun4c_put_pte(unsigned long addr, unsigned long entry)
--{
--  __asm__ __volatile__("\n\tsta %1, [%0] %2; nop; nop; nop;\n\t" : :
--		       "r" (addr), 
--		       "r" ((entry & ~(_SUN4C_PAGE_PRESENT))), "i" (ASI_PTE)
--		       : "memory");
--}
--
--static inline int sun4c_get_context(void)
--{
--  register int ctx;
--
--  __asm__ __volatile__("\n\tlduba [%1] %2, %0\n\t" :
--		       "=r" (ctx) :
--		       "r" (AC_CONTEXT), "i" (ASI_CONTROL));
--
--  return ctx;
--}
--
--static inline int sun4c_set_context(int ctx)
--{
--  __asm__ __volatile__("\n\tstba %0, [%1] %2; nop; nop; nop;\n\t" : :
--		       "r" (ctx), "r" (AC_CONTEXT), "i" (ASI_CONTROL)
--		       : "memory");
--
--  return ctx;
--}
--
--#endif /* !(__ASSEMBLY__) */
--
--#endif /* !(_SPARC_PGTSUN4C_H) */
-diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
-index 8abe65d..b7a543c 100644
---- a/arch/sparc/kernel/entry.S
-+++ b/arch/sparc/kernel/entry.S
-@@ -19,7 +19,6 @@
- #include <asm/vaddrs.h>
- #include <asm/page.h>
- #include <asm/pgtable.h>
--#include <asm/pgtsun4c.h>
- #include <asm/winmacro.h>
- #include <asm/signal.h>
- #include <asm/obio.h>
--- 
-1.6.0.6
-
+--1502597736-1953942348-1336474324=:26562--
