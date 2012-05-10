@@ -1,100 +1,84 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 27 May 2012 21:39:02 +0000
-Subject: [PATCH v2 1/4] sparc32: refactor cpu_idle()
-Message-Id: <20120527213902.GA27706@merkur.ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 10 May 2012 18:04:55 +0000
+Subject: Re: 3.4.0-rc4: ksoftirqd crash on sparc64 after IO errors and RCU stalls
+Message-Id: <20120510.140455.1781747924240555033.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <alpine.SOC.1.00.1204222352580.16791@math.ut.ee>
+In-Reply-To: <alpine.SOC.1.00.1204222352580.16791@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: mroos@linux.ee
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-From ceaf359496c21a901127c2d61fcdeecf4bd0155a Mon Sep 17 00:00:00 2001
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 27 May 2012 23:35:16 +0200
-Subject: [PATCH] sparc32: refactor cpu_idle()
+From: Meelis Roos <mroos@linux.ee>
+Date: Mon, 23 Apr 2012 00:33:07 +0300 (EEST)
 
-With the removal of sun4c we can use the same cpu_idle()
-implementation on UP and SMP.
-This also fix it so we use the same version independent on LEON
-enabled or not.
+> [  376.207537] Kernel unaligned access at TPC[42c0dc] arch_trigger_all_cpu_backtrace+0x13c/0x1c0
+> [  376.319655] Unable to handle kernel paging request in mna handler
+> [  376.397504]  at virtual address 000007f300000001
+> [  376.460414] current->{active_,}mm->context = 000000000000086f
+> [  376.535905] current->{active_,}mm->pgd = fffff8101d5d0000
+> [  376.606819]               \|/ ____ \|/
+> [  376.606822]               "@'/ .. \`@"
+> [  376.606825]               /_| \__/ |_\
+> [  376.606828]                  \__U_/
+> [  376.800115] ksoftirqd/1(3): Oops [#1]
+> [  376.848157] TSTATE: 0000009980e01600 TPC: 000000000042c0dc TNPC: 000000000042c0e0 Y: 00000000    Not tainted
+> [  376.977422] TPC: <arch_trigger_all_cpu_backtrace+0x13c/0x1c0>
+> [  377.052999] g0: 0000000000000001 g1: ffffffffffffffff g2: 00000000008f5060 g3: 000007f300000001
+> [  377.167387] g4: fffff8101f071ec0 g5: fffff80000bf8000 g6: fffff8101f08c000 g7: 0000000000000003
+> [  377.281766] o0: 000000000000000c o1: 0000000000000020 o2: 0000000000000000 o3: 0000004411001603
+> [  377.396248] o4: 000000000064e920 o5: 000000000064e924 sp: fffff8101f08e2b1 ret_pc: 000000000042c0a0
+> [  377.515306] RPC: <arch_trigger_all_cpu_backtrace+0x100/0x1c0>
+> [  377.590781] l0: 000000000000000e l1: 00000000008f50b0 l2: 00000000008f50e0 l3: 00000000008f5068
+> [  377.705171] l4: 00000000008f5000 l5: 0000000000a0cfc0 l6: 0000000000000000 l7: 0000000000000000
+> [  377.819550] i0: 0000000000000001 i1: 0000000000983680 i2: 00000000009847bc i3: 000000000098ac00
+> [  377.934032] i4: 0000000000a0cfc0 i5: 0000000000000000 i6: fffff8101f08e381 i7: 00000000004cf3b4
+> [  378.048522] I7: <print_cpu_stall+0x54/0x120>
 
-V2: Fixed whitespace issue pointed out by Josip Rodin.
+The thread pointer stored by one of the cpus is garbage.  It's being
+inspected in %g3 at this point on the cpu which triggered the
+backtrace.  It just tested it for NULL, which passed, so then we trust
+it as a good kernel pointer but it's not, it's 000007f300000001.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Josip Rodin <joy@entuzijast.net>
-Cc: Daniel Hellstrom <daniel@gaisler.com>
-Cc: Konrad Eisele <konrad@gaisler.com>
----
+And we take the unaligned trap when we try to dereference that thing.
 
-I took the opportunity to fix-up the body of cpu_idle
-so we only call "while (!need_resched())" once.
-The diff got uglier but the end result is better.
+Looking at the code which collects these registers, the bug is clear.
+In arch/sparc/mm/ultra.S:xcall_fetch_glob_regs we go:
 
-	Sam
+	sethi		%hi(global_reg_snapshot), %g1
+	or		%g1, %lo(global_reg_snapshot), %g1
+	__GET_CPUID(%g2)
+	sllx		%g2, 6, %g3
+	add		%g1, %g3, %g1
 
- arch/sparc/kernel/process_32.c |   35 +++++------------------------------
- 1 files changed, 5 insertions(+), 30 deletions(-)
+so far so good, %g2 holds the current cpu's number, and %g1 now holds
+a pointer to the global_reg_snapshot entry we'll fill in.
 
-diff --git a/arch/sparc/kernel/process_32.c b/arch/sparc/kernel/process_32.c
-index fe6787c..cb36e82 100644
---- a/arch/sparc/kernel/process_32.c
-+++ b/arch/sparc/kernel/process_32.c
-@@ -65,50 +65,25 @@ extern void fpsave(unsigned long *, unsigned long *, void *, unsigned long *);
- struct task_struct *last_task_used_math = NULL;
- struct thread_info *current_set[NR_CPUS];
- 
--#ifndef CONFIG_SMP
--
- /*
-  * the idle loop on a Sparc... ;)
-  */
- void cpu_idle(void)
- {
--	/* endless idle loop with no priority at all */
--	for (;;) {
--		if (pm_idle) {
--			while (!need_resched())
--				(*pm_idle)();
--		} else {
--			while (!need_resched())
--				cpu_relax();
--		}
--		schedule_preempt_disabled();
--	}
--}
--
--#else
-+	set_thread_flag(TIF_POLLING_NRFLAG);
- 
--/* This is being executed in task 0 'user space'. */
--void cpu_idle(void)
--{
--        set_thread_flag(TIF_POLLING_NRFLAG);
- 	/* endless idle loop with no priority at all */
--	while(1) {
--#ifdef CONFIG_SPARC_LEON
--		if (pm_idle) {
--			while (!need_resched())
-+	for (;;) {
-+		while (!need_resched()) {
-+			if (pm_idle)
- 				(*pm_idle)();
--		} else
--#endif
--		{
--			while (!need_resched())
-+			else
- 				cpu_relax();
- 		}
- 		schedule_preempt_disabled();
- 	}
- }
- 
--#endif
--
- /* XXX cli/sti -> local_irq_xxx here, check this works once SMP is fixed. */
- void machine_halt(void)
- {
--- 
-1.6.0.6
+But later in this routine:
 
+	rdpr		%cwp, %g2
+	sub		%g2, 1, %g7
+	wrpr		%g7, %cwp
+	mov		%i7, %g7
+	wrpr		%g2, %cwp
+	stx		%g7, [%g1 + GR_SNAP_RPC]
+
+which on the surface looks fine, but the problem is we've clobbered
+%g2 and then afterwards we go:
+
+	sethi		%hi(trap_block), %g7
+	or		%g7, %lo(trap_block), %g7
+	sllx		%g2, TRAP_BLOCK_SZ_SHIFT, %g2
+	add		%g7, %g2, %g7
+	ldx		[%g7 + TRAP_PER_CPU_THREAD], %g3
+	stx		%g3, [%g1 + GR_SNAP_THREAD]
+
+This code assumes %g2 still holds the current cpu's number in it, but
+as stated it's been clobbered with the %cwp read above.
+
+That's why we read a garbage thread pointer, the index we use into
+trap_block[] is wrong.
+
+I'll work on a fix for this, thanks for the report.
