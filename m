@@ -1,93 +1,125 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 24 May 2012 20:26:19 +0000
-Subject: [PATCH 2/3 v2] kernel: Move REPEAT_BYTE definition into linux/kernel.h
-Message-Id: <20120524.162619.664806190601525554.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 11 May 2012 21:35:17 +0000
+Subject: [PATCH 14/14] sparc32: use inline versions of pgprot_noncached, pte_to_pgoff and pgoff_to_pte
+Message-Id: <1336772117-1539-14-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arch@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
+We no longer have different versions of these so use a few simple
+static inline functions.
 
-And make sure that everything using it explicitly includes
-that header file.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/lib/usercopy.c             |    3 +--
- arch/x86/include/asm/word-at-a-time.h |    4 ++--
- fs/namei.c                            |    1 +
- include/linux/kernel.h                |    2 ++
- 4 files changed, 6 insertions(+), 4 deletions(-)
+ arch/sparc/include/asm/pgtable_32.h |   20 ++++++++++++++------
+ arch/sparc/kernel/sparc_ksyms_32.c  |    1 -
+ arch/sparc/mm/srmmu.c               |   21 ---------------------
+ 3 files changed, 14 insertions(+), 28 deletions(-)
 
-diff --git a/arch/sparc/lib/usercopy.c b/arch/sparc/lib/usercopy.c
-index f61ed82..0b12e91 100644
---- a/arch/sparc/lib/usercopy.c
-+++ b/arch/sparc/lib/usercopy.c
-@@ -1,5 +1,6 @@
- #include <linux/module.h>
- #include <linux/uaccess.h>
-+#include <linux/kernel.h>
- #include <linux/errno.h>
- #include <linux/bug.h>
+diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
+index 225030b..f451d43 100644
+--- a/arch/sparc/include/asm/pgtable_32.h
++++ b/arch/sparc/include/asm/pgtable_32.h
+@@ -267,13 +267,17 @@ BTFIXUPDEF_CALL_CONST(pte_t, mk_pte, struct page *, pgprot_t)
  
-@@ -11,8 +12,6 @@ void copy_from_user_overflow(void)
- }
- EXPORT_SYMBOL(copy_from_user_overflow);
+ BTFIXUPDEF_CALL_CONST(pte_t, mk_pte_phys, unsigned long, pgprot_t)
+ BTFIXUPDEF_CALL_CONST(pte_t, mk_pte_io, unsigned long, pgprot_t, int)
+-BTFIXUPDEF_CALL_CONST(pgprot_t, pgprot_noncached, pgprot_t)
  
--#define REPEAT_BYTE(x)	((~0ul / 0xff) * (x))
--
- static inline long find_zero(unsigned long mask)
- {
- 	long byte = 0;
-diff --git a/arch/x86/include/asm/word-at-a-time.h b/arch/x86/include/asm/word-at-a-time.h
-index e58f03b..ae03fac 100644
---- a/arch/x86/include/asm/word-at-a-time.h
-+++ b/arch/x86/include/asm/word-at-a-time.h
-@@ -1,6 +1,8 @@
- #ifndef _ASM_WORD_AT_A_TIME_H
- #define _ASM_WORD_AT_A_TIME_H
+ #define mk_pte(page,pgprot) BTFIXUP_CALL(mk_pte)(page,pgprot)
+ #define mk_pte_phys(page,pgprot) BTFIXUP_CALL(mk_pte_phys)(page,pgprot)
+ #define mk_pte_io(page,pgprot,space) BTFIXUP_CALL(mk_pte_io)(page,pgprot,space)
  
-+#include <linux/kernel.h>
-+
+-#define pgprot_noncached(pgprot) BTFIXUP_CALL(pgprot_noncached)(pgprot)
++#define pgprot_noncached pgprot_noncached
++static inline pgprot_t pgprot_noncached(pgprot_t prot)
++{
++	prot &= ~__pgprot(SRMMU_CACHE);
++	return prot;
++}
+ 
+ BTFIXUPDEF_INT(pte_modify_mask)
+ 
+@@ -352,11 +356,15 @@ BTFIXUPDEF_CALL(swp_entry_t, __swp_entry, unsigned long, unsigned long)
+ #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
+ 
+ /* file-offset-in-pte helpers */
+-BTFIXUPDEF_CALL(unsigned long, pte_to_pgoff, pte_t pte);
+-BTFIXUPDEF_CALL(pte_t, pgoff_to_pte, unsigned long pgoff);
++static inline unsigned long pte_to_pgoff(pte_t pte)
++{
++	return pte_val(pte) >> SRMMU_PTE_FILE_SHIFT;
++}
+ 
+-#define pte_to_pgoff(pte) BTFIXUP_CALL(pte_to_pgoff)(pte)
+-#define pgoff_to_pte(off) BTFIXUP_CALL(pgoff_to_pte)(off)
++static inline pte_t pgoff_to_pte(unsigned long pgoff)
++{
++	return __pte((pgoff << SRMMU_PTE_FILE_SHIFT) | SRMMU_FILE);
++}
+ 
  /*
-  * This is largely generic for little-endian machines, but the
-  * optimal byte mask counting is probably going to be something
-@@ -35,8 +37,6 @@ static inline long count_masked_bytes(long mask)
+  * This is made a constant because mm/fremap.c required a constant.
+diff --git a/arch/sparc/kernel/sparc_ksyms_32.c b/arch/sparc/kernel/sparc_ksyms_32.c
+index baeab87..fd38a92 100644
+--- a/arch/sparc/kernel/sparc_ksyms_32.c
++++ b/arch/sparc/kernel/sparc_ksyms_32.c
+@@ -40,7 +40,6 @@ EXPORT_SYMBOL(BTFIXUP_CALL(mmu_get_scsi_sgl));
+ EXPORT_SYMBOL(BTFIXUP_CALL(mmu_get_scsi_one));
+ EXPORT_SYMBOL(BTFIXUP_CALL(mmu_release_scsi_sgl));
+ EXPORT_SYMBOL(BTFIXUP_CALL(mmu_release_scsi_one));
+-EXPORT_SYMBOL(BTFIXUP_CALL(pgprot_noncached));
+ 
+ /* Exporting a symbol from /init/main.c */
+ EXPORT_SYMBOL(saved_command_line);
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index 2663b92..d85da15 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -2144,23 +2144,6 @@ static void smp_flush_page_for_dma(unsigned long page)
  
  #endif
  
--#define REPEAT_BYTE(x)	((~0ul / 0xff) * (x))
+-static pte_t srmmu_pgoff_to_pte(unsigned long pgoff)
+-{
+-	return __pte((pgoff << SRMMU_PTE_FILE_SHIFT) | SRMMU_FILE);
+-}
 -
- /* Return the high bit set in the first byte that is a zero */
- static inline unsigned long has_zero(unsigned long a)
+-static unsigned long srmmu_pte_to_pgoff(pte_t pte)
+-{
+-	return pte_val(pte) >> SRMMU_PTE_FILE_SHIFT;
+-}
+-
+-static pgprot_t srmmu_pgprot_noncached(pgprot_t prot)
+-{
+-	prot &= ~__pgprot(SRMMU_CACHE);
+-
+-	return prot;
+-}
+-
+ /* Load up routines and constants for sun4m and sun4d mmu */
+ void __init ld_mmu_srmmu(void)
  {
-diff --git a/fs/namei.c b/fs/namei.c
-index f9e883c..8d2ba42 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -16,6 +16,7 @@
+@@ -2183,7 +2166,6 @@ void __init ld_mmu_srmmu(void)
+ 	page_kernel = pgprot_val(SRMMU_PAGE_KERNEL);
  
- #include <linux/init.h>
- #include <linux/export.h>
-+#include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/fs.h>
- #include <linux/namei.h>
-diff --git a/include/linux/kernel.h b/include/linux/kernel.h
-index 645231c..fbe9bfa 100644
---- a/include/linux/kernel.h
-+++ b/include/linux/kernel.h
-@@ -38,6 +38,8 @@
+ 	/* Functions */
+-	BTFIXUPSET_CALL(pgprot_noncached, srmmu_pgprot_noncached, BTFIXUPCALL_NORM);
+ #ifndef CONFIG_SMP	
+ 	BTFIXUPSET_CALL(___xchg32, ___xchg32_sun4md, BTFIXUPCALL_SWAPG1G2);
+ #endif
+@@ -2250,9 +2232,6 @@ void __init ld_mmu_srmmu(void)
  
- #define STACK_MAGIC	0xdeadbeef
+ 	BTFIXUPSET_CALL(mmu_info, srmmu_mmu_info, BTFIXUPCALL_NORM);
  
-+#define REPEAT_BYTE(x)	((~0ul / 0xff) * (x))
-+
- #define ALIGN(x, a)		__ALIGN_KERNEL((x), (a))
- #define __ALIGN_MASK(x, mask)	__ALIGN_KERNEL_MASK((x), (mask))
- #define PTR_ALIGN(p, a)		((typeof(p))ALIGN((unsigned long)(p), (a)))
+-	BTFIXUPSET_CALL(pte_to_pgoff, srmmu_pte_to_pgoff, BTFIXUPCALL_NORM);
+-	BTFIXUPSET_CALL(pgoff_to_pte, srmmu_pgoff_to_pte, BTFIXUPCALL_NORM);
+-
+ 	get_srmmu_type();
+ 
+ #ifdef CONFIG_SMP
 -- 
-1.7.10
+1.6.0.6
 
