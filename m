@@ -1,65 +1,37 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 24 May 2012 20:57:28 +0000
-Subject: [PATCH] sparc: Fix user_addr_max() definition.
-Message-Id: <20120524.165728.2124546768664666818.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 11 May 2012 21:35:14 +0000
+Subject: [PATCH 11/14] sparc32: drop test for sun4c in signal_32
+Message-Id: <1336772117-1539-11-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-
-We need to use TASK_SIZE because for 64-bit tasks the value
-of STACK_TOP actually sits in the middle of the address space
-so we'll get false-negatives.
-
-Adjust the TASK_SIZE definition on sparc64 to accomodate this,
-in the context in which user_addr_max() is used we have the
-test_thread_flag() definition available but not the one for
-test_tsk_thread_flag().
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
+ arch/sparc/kernel/signal_32.c |    7 ++-----
+ 1 files changed, 2 insertions(+), 5 deletions(-)
 
-Some glibc testsuite failures for 64-bit showed me that
-STACK_TOP isn't the right thing to use here because of
-how we place the 64-bit process stack in the middle
-of the address space.
-
-Committed to master.
-
- arch/sparc/include/asm/processor_64.h |    4 +++-
- arch/sparc/include/asm/uaccess.h      |    2 +-
- 2 files changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/arch/sparc/include/asm/processor_64.h b/arch/sparc/include/asm/processor_64.h
-index e713db2..6ca7709 100644
---- a/arch/sparc/include/asm/processor_64.h
-+++ b/arch/sparc/include/asm/processor_64.h
-@@ -42,7 +42,9 @@
- #define TASK_SIZE_OF(tsk) \
- 	(test_tsk_thread_flag(tsk,TIF_32BIT) ? \
- 	 (1UL << 32UL) : ((unsigned long)-VPTE_SIZE))
--#define TASK_SIZE	TASK_SIZE_OF(current)
-+#define TASK_SIZE \
-+	(test_thread_flag(TIF_32BIT) ? \
-+	 (1UL << 32UL) : ((unsigned long)-VPTE_SIZE))
- #ifdef __KERNEL__
- 
- #define STACK_TOP32	((1UL << 32UL) - PAGE_SIZE)
-diff --git a/arch/sparc/include/asm/uaccess.h b/arch/sparc/include/asm/uaccess.h
-index 20c2acb..0167d26 100644
---- a/arch/sparc/include/asm/uaccess.h
-+++ b/arch/sparc/include/asm/uaccess.h
-@@ -7,7 +7,7 @@
- #endif
- 
- #define user_addr_max() \
--	(segment_eq(get_fs(), USER_DS) ? STACK_TOP : ~0UL)
-+	(segment_eq(get_fs(), USER_DS) ? TASK_SIZE : ~0UL)
- 
- extern long strncpy_from_user(char *dest, const char __user *src, long count);
+diff --git a/arch/sparc/kernel/signal_32.c b/arch/sparc/kernel/signal_32.c
+index 1e750e4..ac8e66b 100644
+--- a/arch/sparc/kernel/signal_32.c
++++ b/arch/sparc/kernel/signal_32.c
+@@ -217,12 +217,9 @@ segv:
+ /* Checks if the fp is valid */
+ static inline int invalid_frame_pointer(void __user *fp, int fplen)
+ {
+-	if ((((unsigned long) fp) & 7) ||
+-	    !__access_ok((unsigned long)fp, fplen) ||
+-	    ((sparc_cpu_model = sun4 || sparc_cpu_model = sun4c) &&
+-	     ((unsigned long) fp < 0xe0000000 && (unsigned long) fp >= 0x20000000)))
++	if ((((unsigned long) fp) & 7) || !__access_ok((unsigned long)fp, fplen))
+ 		return 1;
+-	
++
+ 	return 0;
+ }
  
 -- 
-1.7.10
+1.6.0.6
 
