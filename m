@@ -1,264 +1,261 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 11 May 2012 21:35:15 +0000
-Subject: [PATCH 12/14] sparc32: drop sun4c bits from head_32.S
-Message-Id: <1336772117-1539-12-git-send-email-sam@ravnborg.org>
+Date: Fri, 11 May 2012 21:35:09 +0000
+Subject: [PATCH 06/14] saprc32: delete pgtsun4c.h
+Message-Id: <1336772117-1539-6-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-As we no longer support sun4c we can remove all the code to
-support remapping the kernel in head_32.S.
-We also try to tell the user that the machine is not support,
-in case someone try to boot the kernel on a sun4c one day
-
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/kernel/head_32.S |  149 ++++++-------------------------------------
- 1 files changed, 19 insertions(+), 130 deletions(-)
+ arch/sparc/include/asm/pgtable_32.h |   11 +--
+ arch/sparc/include/asm/pgtsun4c.h   |  172 -----------------------------------
+ arch/sparc/kernel/entry.S           |    1 -
+ 3 files changed, 2 insertions(+), 182 deletions(-)
+ delete mode 100644 arch/sparc/include/asm/pgtsun4c.h
 
-diff --git a/arch/sparc/kernel/head_32.S b/arch/sparc/kernel/head_32.S
-index 0e23ff3..cb5c3ec 100644
---- a/arch/sparc/kernel/head_32.S
-+++ b/arch/sparc/kernel/head_32.S
-@@ -63,8 +63,8 @@ cputypvar_sun4m:
+diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
+index 3d71018..225030b 100644
+--- a/arch/sparc/include/asm/pgtable_32.h
++++ b/arch/sparc/include/asm/pgtable_32.h
+@@ -16,7 +16,6 @@
+ #include <linux/spinlock.h>
+ #include <linux/swap.h>
+ #include <asm/types.h>
+-#include <asm/pgtsun4c.h>
+ #include <asm/pgtsrmmu.h>
+ #include <asm/vac-ops.h>
+ #include <asm/oplib.h>
+@@ -47,7 +46,7 @@ BTFIXUPDEF_INT(page_copy)
+ BTFIXUPDEF_INT(page_readonly)
+ BTFIXUPDEF_INT(page_kernel)
  
- 	.align 4
+-#define PMD_SHIFT		SUN4C_PMD_SHIFT
++#define PMD_SHIFT		22
+ #define PMD_SIZE        	(1UL << PMD_SHIFT)
+ #define PMD_MASK        	(~(PMD_SIZE-1))
+ #define PMD_ALIGN(__addr) 	(((__addr) + ~PMD_MASK) & PMD_MASK)
+@@ -399,9 +398,6 @@ static inline unsigned long
+ __get_phys (unsigned long addr)
+ {
+ 	switch (sparc_cpu_model){
+-	case sun4:
+-	case sun4c:
+-		return sun4c_get_pte (addr) << PAGE_SHIFT;
+ 	case sun4m:
+ 	case sun4d:
+ 		return ((srmmu_get_pte (addr) & 0xffffff00) << 4);
+@@ -414,9 +410,6 @@ static inline int
+ __get_iospace (unsigned long addr)
+ {
+ 	switch (sparc_cpu_model){
+-	case sun4:
+-	case sun4c:
+-		return -1; /* Don't check iospace on sun4c */
+ 	case sun4m:
+ 	case sun4d:
+ 		return (srmmu_get_pte (addr) >> 28);
+@@ -463,7 +456,7 @@ static inline int io_remap_pfn_range(struct vm_area_struct *vma,
+ 		set_pte_at((__vma)->vm_mm, (__address), __ptep, __entry); \
+ 		flush_tlb_page(__vma, __address);			  \
+ 	}								  \
+-	(sparc_cpu_model = sun4c) || __changed;			  \
++	__changed;							  \
+ })
  
--sun4_notsup:
--	.asciz	"Sparc-Linux sun4 support does no longer exist.\n\n"
-+sun4c_notsup:
-+	.asciz	"Sparc-Linux sun4/sun4c support does no longer exist.\n\n"
- 	.align 4
- 
- sun4e_notsup:
-@@ -520,10 +520,9 @@ copy_prom_lvl14:
- 		ldd	[%g2 + 0x8], %g4
- 		std	%g4, [%g3 + 0x8]	! Copy proms handler
- 
--/* Must determine whether we are on a sun4c MMU, SRMMU, or SUN4/400 MUTANT
-- * MMU so we can remap ourselves properly.  DON'T TOUCH %l0 thru %l5 in these
-- * remapping routines, we need their values afterwards!
+ #include <asm-generic/pgtable.h>
+diff --git a/arch/sparc/include/asm/pgtsun4c.h b/arch/sparc/include/asm/pgtsun4c.h
+deleted file mode 100644
+index aeb25e9..0000000
+--- a/arch/sparc/include/asm/pgtsun4c.h
++++ /dev/null
+@@ -1,172 +0,0 @@
+-/*
+- * pgtsun4c.h:  Sun4c specific pgtable.h defines and code.
+- *
+- * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)
 - */
-+/* DON'T TOUCH %l0 thru %l5 in these remapping routines,
-+ * we need their values afterwards! */
-+
- 		/* Now check whether we are already mapped, if we
- 		 * are we can skip all this garbage coming up.
- 		 */
-@@ -532,26 +531,6 @@ copy_prom_done:
- 		be	go_to_highmem		! this will be a nop then
- 		 nop
- 
--		set	LOAD_ADDR, %g6
--		cmp	%g7, %g6
--		bne	remap_not_a_sun4	! This is not a Sun4
--		 nop
+-#ifndef _SPARC_PGTSUN4C_H
+-#define _SPARC_PGTSUN4C_H
 -
--		or	%g0, 0x1, %g1
--		lduba	[%g1] ASI_CONTROL, %g1	! Only safe to try on Sun4.
--		subcc	%g1, 0x24, %g0		! Is this a mutant Sun4/400???
--		be	sun4_mutant_remap	! Ugh, it is...
--		 nop
+-#include <asm/contregs.h>
 -
--		b	sun4_normal_remap	! regular sun4, 2 level mmu
--		 nop
+-/* PMD_SHIFT determines the size of the area a second-level page table can map */
+-#define SUN4C_PMD_SHIFT       22
 -
--remap_not_a_sun4:
--		lda	[%g0] ASI_M_MMUREGS, %g1 ! same as ASI_PTE on sun4c
--		and	%g1, 0x1, %g1		! Test SRMMU Enable bit ;-)
--		cmp	%g1, 0x0
--		be	sun4c_remap		! A sun4c MMU or normal Sun4
--		 nop
- srmmu_remap:
- 		/* First, check for a viking (TI) module. */
- 		set	0x40000000, %g2
-@@ -657,72 +636,6 @@ srmmu_nviking:
- 		b	go_to_highmem
- 		 nop					! wheee....
- 
--		/* This remaps the kernel on Sun4/4xx machines
--		 * that have the Sun Mutant Three Level MMU.
--		 * It's like a platypus, Sun didn't have the
--		 * SRMMU in conception so they kludged the three
--		 * level logic in the regular Sun4 MMU probably.
--		 *
--		 * Basically, you take each entry in the top level
--		 * directory that maps the low 3MB starting at
--		 * address zero and put the mapping in the KERNBASE
--		 * slots.  These top level pgd's are called regmaps.
--		 */
--sun4_mutant_remap:
--		or	%g0, %g0, %g3		! source base
--		sethi	%hi(KERNBASE), %g4	! destination base
--		or	%g4, %lo(KERNBASE), %g4
--		sethi	%hi(0x300000), %g5
--		or	%g5, %lo(0x300000), %g5	! upper bound 3MB
--		or	%g0, 0x1, %l6
--		sll	%l6, 24, %l6		! Regmap mapping size
--		add	%g3, 0x2, %g3		! Base magic
--		add	%g4, 0x2, %g4		! Base magic
+-/* PGDIR_SHIFT determines what a third-level page table entry can map */
+-#define SUN4C_PGDIR_SHIFT       22
+-#define SUN4C_PGDIR_SIZE        (1UL << SUN4C_PGDIR_SHIFT)
+-#define SUN4C_PGDIR_MASK        (~(SUN4C_PGDIR_SIZE-1))
+-#define SUN4C_PGDIR_ALIGN(addr) (((addr)+SUN4C_PGDIR_SIZE-1)&SUN4C_PGDIR_MASK)
 -
--		/* Main remapping loop on Sun4-Mutant-MMU.
--		 * "I am not an animal..." -Famous Mutant Person
--		 */
--sun4_mutant_loop:
--		lduha	[%g3] ASI_REGMAP, %g2	! Get lower entry
--		stha	%g2, [%g4] ASI_REGMAP	! Store in high entry
--		add	%g4, %l6, %g4		! Move up high memory ptr
--		subcc	%g3, %g5, %g0		! Reached our limit?
--		blu	sun4_mutant_loop	! Nope, loop again
--		 add	%g3, %l6, %g3		! delay, Move up low ptr
--		b	go_to_highmem		! Jump to high memory.
--		 nop
+-/* To represent how the sun4c mmu really lays things out. */
+-#define SUN4C_REAL_PGDIR_SHIFT       18
+-#define SUN4C_REAL_PGDIR_SIZE        (1UL << SUN4C_REAL_PGDIR_SHIFT)
+-#define SUN4C_REAL_PGDIR_MASK        (~(SUN4C_REAL_PGDIR_SIZE-1))
+-#define SUN4C_REAL_PGDIR_ALIGN(addr) (((addr)+SUN4C_REAL_PGDIR_SIZE-1)&SUN4C_REAL_PGDIR_MASK)
 -
--		/* The following is for non-4/4xx sun4 MMU's. */
--sun4_normal_remap:
--		mov	0, %g3			! source base
--		set	KERNBASE, %g4		! destination base
--		set	0x300000, %g5		! upper bound 3MB
--		mov	1, %l6
--		sll	%l6, 18, %l6		! sun4 mmu segmap size
--sun4_normal_loop:
--		lduha	[%g3] ASI_SEGMAP, %g6	! load phys_seg
--		stha	%g6, [%g4] ASI_SEGMAP	! stort new virt mapping
--		add	%g3, %l6, %g3		! increment source pointer
--		subcc	%g3, %g5, %g0		! reached limit?
--		blu	sun4_normal_loop	! nope, loop again
--		 add	%g4, %l6, %g4		! delay, increment dest ptr
--		b	go_to_highmem
--		 nop
+-/* 16 bit PFN on sun4c */
+-#define SUN4C_PFN_MASK 0xffff
 -
--		/* The following works for Sun4c MMU's */
--sun4c_remap:
--		mov	0, %g3			! source base
--		set	KERNBASE, %g4		! destination base
--		set	0x300000, %g5		! upper bound 3MB
--		mov	1, %l6
--		sll	%l6, 18, %l6		! sun4c mmu segmap size
--sun4c_remap_loop:
--		lda	[%g3] ASI_SEGMAP, %g6	! load phys_seg
--		sta	%g6, [%g4] ASI_SEGMAP   ! store new virt mapping
--		add	%g3, %l6, %g3		! Increment source ptr
--		subcc	%g3, %g5, %g0		! Reached limit?
--		bl	sun4c_remap_loop	! Nope, loop again
--		 add	%g4, %l6, %g4		! delay, Increment dest ptr
- 
- /* Now do a non-relative jump so that PC is in high-memory */
- go_to_highmem:
-@@ -759,16 +672,6 @@ execute_in_high_mem:
- 		be	found_version
- 		 nop
- 
--/* Old sun4's pass our load address into %o0 instead of the prom
-- * pointer. On sun4's you have to hard code the romvec pointer into
-- * your code. Sun probably still does that because they don't even
-- * trust their own "OpenBoot" specifications.
+-/* Don't increase these unless the structures in sun4c.c are fixed */
+-#define SUN4C_MAX_SEGMAPS 256
+-#define SUN4C_MAX_CONTEXTS 16
+-
+-/*
+- * To be efficient, and not have to worry about allocating such
+- * a huge pgd, we make the kernel sun4c tables each hold 1024
+- * entries and the pgd similarly just like the i386 tables.
 - */
--		set	LOAD_ADDR, %g6
--		cmp	%o0, %g6		! an old sun4?
--		be	sun4_init
--		 nop
+-#define SUN4C_PTRS_PER_PTE    1024
+-#define SUN4C_PTRS_PER_PMD    1
+-#define SUN4C_PTRS_PER_PGD    1024
 -
- found_version:
- /* Get the machine type via the mysterious romvec node operations. */
- 
-@@ -823,16 +726,16 @@ got_prop:
- 		/* Update boot_cpu_id only on boot cpu */
- 		stub	%g1, [%g2 + %lo(boot_cpu_id)]
- 
--		ba sun4c_continue_boot
-+		ba continue_boot
- 		 nop
- #endif
- 		set	cputypval, %o2
- 		ldub	[%o2 + 0x4], %l1
- 
- 		cmp	%l1, ' '
--		be	1f
-+		be	no_sun4c_here
- 		 cmp	%l1, 'c'
--		be	1f
-+		be	no_sun4c_here
- 		 cmp	%l1, 'm'
- 		be	1f
- 		 cmp	%l1, 's'
-@@ -847,19 +750,12 @@ got_prop:
- 
- 1:		set	cputypval, %l1
- 		ldub	[%l1 + 0x4], %l1
--		cmp	%l1, 'm'		! Test for sun4d, sun4e ?
--		be	sun4m_init
--		 cmp	%l1, 's'		! Treat sun4s as sun4m
--		be	sun4m_init
--		 cmp	%l1, 'd'		! Let us see how the beast will die
-+		cmp	%l1, 'd'		! Let us see how the beast will die
- 		be	sun4d_init
- 		 nop
- 
--		/* Jump into mmu context zero. */
--		set	AC_CONTEXT, %g1
--		stba	%g0, [%g1] ASI_CONTROL
+-/*
+- * Sparc SUN4C pte fields.
+- */
+-#define _SUN4C_PAGE_VALID        0x80000000
+-#define _SUN4C_PAGE_SILENT_READ  0x80000000   /* synonym */
+-#define _SUN4C_PAGE_DIRTY        0x40000000
+-#define _SUN4C_PAGE_SILENT_WRITE 0x40000000   /* synonym */
+-#define _SUN4C_PAGE_PRIV         0x20000000   /* privileged page */
+-#define _SUN4C_PAGE_NOCACHE      0x10000000   /* non-cacheable page */
+-#define _SUN4C_PAGE_PRESENT      0x08000000   /* implemented in software */
+-#define _SUN4C_PAGE_IO           0x04000000   /* I/O page */
+-#define _SUN4C_PAGE_FILE         0x02000000   /* implemented in software */
+-#define _SUN4C_PAGE_READ         0x00800000   /* implemented in software */
+-#define _SUN4C_PAGE_WRITE        0x00400000   /* implemented in software */
+-#define _SUN4C_PAGE_ACCESSED     0x00200000   /* implemented in software */
+-#define _SUN4C_PAGE_MODIFIED     0x00100000   /* implemented in software */
 -
--		b	sun4c_continue_boot
-+		/* If not sun4d assume sun4m */
-+		b	sun4m_init
- 		 nop
- 
- /* CPUID in bootbus can be found at PA 0xff0140000 */
-@@ -959,7 +855,7 @@ sun4m_init:
- 		srl	%o1, 28, %o1		! Get a type of the CPU
- 
- 		subcc	%o1, 4, %g0		! TI: Viking or MicroSPARC
--		be	sun4c_continue_boot
-+		be	continue_boot
- 		 nop
- 
- 		set	AC_M_SFSR, %o0
-@@ -969,7 +865,7 @@ sun4m_init:
- 
- 		/* Fujitsu MicroSPARC-II has no asynchronous flavors of FARs */
- 		subcc	%o1, 0, %g0
--		be	sun4c_continue_boot
-+		be	continue_boot
- 		 nop
- 
- 		set	AC_M_AFSR, %o0
-@@ -979,8 +875,7 @@ sun4m_init:
- 		 nop
- 
- 
--sun4c_continue_boot:
+-#define _SUN4C_READABLE		(_SUN4C_PAGE_READ|_SUN4C_PAGE_SILENT_READ|\
+-				 _SUN4C_PAGE_ACCESSED)
+-#define _SUN4C_WRITEABLE	(_SUN4C_PAGE_WRITE|_SUN4C_PAGE_SILENT_WRITE|\
+-				 _SUN4C_PAGE_MODIFIED)
 -
-+continue_boot:
- 
- /* Aieee, now set PC and nPC, enable traps, give ourselves a stack and it's
-  * show-time!
-@@ -1161,18 +1056,12 @@ sun4c_continue_boot:
- 		/* We should not get here. */
- 		call	halt_me
- 		 nop
+-#define _SUN4C_PAGE_CHG_MASK	(0xffff|_SUN4C_PAGE_ACCESSED|_SUN4C_PAGE_MODIFIED)
 -
--sun4_init:
--		sethi   %hi(SUN4_PROM_VECTOR+0x84), %o1
--		ld      [%o1 + %lo(SUN4_PROM_VECTOR+0x84)], %o1
--		set     sun4_notsup, %o0
--		call    %o1	/* printf */
--		 nop
--		sethi   %hi(SUN4_PROM_VECTOR+0xc4), %o1
--		ld      [%o1 + %lo(SUN4_PROM_VECTOR+0xc4)], %o1
--		call    %o1	/* exittomon */
-+no_sun4c_here:
-+		ld	[%g7 + 0x68], %o1
-+		set	sun4c_notsup, %o0
-+		call	%o1
- 		 nop
--1:		ba      1b                      ! Cannot exit into KMON
-+		b	halt_me
- 		 nop
- 
- no_sun4e_here:
+-#define SUN4C_PAGE_NONE		__pgprot(_SUN4C_PAGE_PRESENT)
+-#define SUN4C_PAGE_SHARED	__pgprot(_SUN4C_PAGE_PRESENT|_SUN4C_READABLE|\
+-					 _SUN4C_PAGE_WRITE)
+-#define SUN4C_PAGE_COPY		__pgprot(_SUN4C_PAGE_PRESENT|_SUN4C_READABLE)
+-#define SUN4C_PAGE_READONLY	__pgprot(_SUN4C_PAGE_PRESENT|_SUN4C_READABLE)
+-#define SUN4C_PAGE_KERNEL	__pgprot(_SUN4C_READABLE|_SUN4C_WRITEABLE|\
+-					 _SUN4C_PAGE_DIRTY|_SUN4C_PAGE_PRIV)
+-
+-/* SUN4C swap entry encoding
+- *
+- * We use 5 bits for the type and 19 for the offset.  This gives us
+- * 32 swapfiles of 4GB each.  Encoding looks like:
+- *
+- * RRRRRRRRooooooooooooooooooottttt
+- * fedcba9876543210fedcba9876543210
+- *
+- * The top 8 bits are reserved for protection and status bits, especially
+- * FILE and PRESENT.
+- */
+-#define SUN4C_SWP_TYPE_MASK	0x1f
+-#define SUN4C_SWP_OFF_MASK	0x7ffff
+-#define SUN4C_SWP_OFF_SHIFT	5
+-
+-#ifndef __ASSEMBLY__
+-
+-static inline unsigned long sun4c_get_synchronous_error(void)
+-{
+-	unsigned long sync_err;
+-
+-	__asm__ __volatile__("lda [%1] %2, %0\n\t" :
+-			     "=r" (sync_err) :
+-			     "r" (AC_SYNC_ERR), "i" (ASI_CONTROL));
+-	return sync_err;
+-}
+-
+-static inline unsigned long sun4c_get_synchronous_address(void)
+-{
+-	unsigned long sync_addr;
+-
+-	__asm__ __volatile__("lda [%1] %2, %0\n\t" :
+-			     "=r" (sync_addr) :
+-			     "r" (AC_SYNC_VA), "i" (ASI_CONTROL));
+-	return sync_addr;
+-}
+-
+-/* SUN4C pte, segmap, and context manipulation */
+-static inline unsigned long sun4c_get_segmap(unsigned long addr)
+-{
+-  register unsigned long entry;
+-
+-  __asm__ __volatile__("\n\tlduba [%1] %2, %0\n\t" : 
+-		       "=r" (entry) :
+-		       "r" (addr), "i" (ASI_SEGMAP));
+-
+-  return entry;
+-}
+-
+-static inline void sun4c_put_segmap(unsigned long addr, unsigned long entry)
+-{
+-
+-  __asm__ __volatile__("\n\tstba %1, [%0] %2; nop; nop; nop;\n\t" : :
+-		       "r" (addr), "r" (entry),
+-		       "i" (ASI_SEGMAP)
+-		       : "memory");
+-}
+-
+-static inline unsigned long sun4c_get_pte(unsigned long addr)
+-{
+-  register unsigned long entry;
+-
+-  __asm__ __volatile__("\n\tlda [%1] %2, %0\n\t" : 
+-		       "=r" (entry) :
+-		       "r" (addr), "i" (ASI_PTE));
+-  return entry;
+-}
+-
+-static inline void sun4c_put_pte(unsigned long addr, unsigned long entry)
+-{
+-  __asm__ __volatile__("\n\tsta %1, [%0] %2; nop; nop; nop;\n\t" : :
+-		       "r" (addr), 
+-		       "r" ((entry & ~(_SUN4C_PAGE_PRESENT))), "i" (ASI_PTE)
+-		       : "memory");
+-}
+-
+-static inline int sun4c_get_context(void)
+-{
+-  register int ctx;
+-
+-  __asm__ __volatile__("\n\tlduba [%1] %2, %0\n\t" :
+-		       "=r" (ctx) :
+-		       "r" (AC_CONTEXT), "i" (ASI_CONTROL));
+-
+-  return ctx;
+-}
+-
+-static inline int sun4c_set_context(int ctx)
+-{
+-  __asm__ __volatile__("\n\tstba %0, [%1] %2; nop; nop; nop;\n\t" : :
+-		       "r" (ctx), "r" (AC_CONTEXT), "i" (ASI_CONTROL)
+-		       : "memory");
+-
+-  return ctx;
+-}
+-
+-#endif /* !(__ASSEMBLY__) */
+-
+-#endif /* !(_SPARC_PGTSUN4C_H) */
+diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
+index 8abe65d..b7a543c 100644
+--- a/arch/sparc/kernel/entry.S
++++ b/arch/sparc/kernel/entry.S
+@@ -19,7 +19,6 @@
+ #include <asm/vaddrs.h>
+ #include <asm/page.h>
+ #include <asm/pgtable.h>
+-#include <asm/pgtsun4c.h>
+ #include <asm/winmacro.h>
+ #include <asm/signal.h>
+ #include <asm/obio.h>
 -- 
 1.6.0.6
 
