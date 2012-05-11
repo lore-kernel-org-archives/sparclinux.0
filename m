@@ -1,97 +1,100 @@
-From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Date: Tue, 29 May 2012 08:42:13 +0000
-Subject: Re: [UPDATED] [RFC PATCH 08/10] SPARC: smp: remove call to ipi_call_lock_irq()/ipi_call_unlock_irq()
-Message-Id: <4FC48915.3000900@linux.vnet.ibm.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 11 May 2012 21:31:44 +0000
+Subject: PATCH [0/14] sparc32: removal of sun4c platform support
+Message-Id: <20120511213143.GA1518@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1338275765-3217-1-git-send-email-yong.zhang0@gmail.com> <1338275765-3217-9-git-send-email-yong.zhang0@gmail.com> <4FC48272.9040904@linux.vnet.ibm.com> <20120529082732.GA4250@zhy>
-In-Reply-To: <20120529082732.GA4250@zhy>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Yong Zhang <yong.zhang0@gmail.com>
-Cc: linux-kernel@vger.kernel.org, ralf@linux-mips.org, sshtylyov@mvista.com, david.daney@cavium.com, nikunj@linux.vnet.ibm.com, paulmck@linux.vnet.ibm.com, axboe@kernel.dk, mingo@kernel.org, tglx@linutronix.de, peterz@infradead.org, akpm@linux-foundation.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On 05/29/2012 01:57 PM, Yong Zhang wrote:
+This is the bulk of the removal of sun4c support.
+I have tried to be careful not to break the build
+during the removal process.
 
-> On Tue, May 29, 2012 at 01:31:54PM +0530, Srivatsa S. Bhat wrote:
->> This looks odd. IRQs must not have been enabled at this point.
->> Just remove the call to local_irq_enable() that is found a few lines above
->> this line and then you won't have to add this call to local_irq_disable().
-> 
-> Yeah, have thought about it. But because I was not sure there is
-> special need to enalbe irq that early (don't know much about sparc),
-> I decided to make minor change :)
-> 
-> Since we have gotten confirmation from David, I'm sending out the
-> new version. Please check it.
-> 
-> Thanks,
-> Yong
-> 
-> ---
-> From: Yong Zhang <yong.zhang@windriver.com>
-> Date: Tue, 29 May 2012 12:56:08 +0800
-> Subject: [UPDATED] [RFC PATCH 8/10] SPARC: smp: remove call to
->  ipi_call_lock_irq()/ipi_call_unlock_irq()
-> 
-> 1) call_function.lock used in smp_call_function_many() is just to protect
->    call_function.queue and &data->refs, cpu_online_mask is outside of the
->    lock. And it's not necessary to protect cpu_online_mask,
->    because data->cpumask is pre-calculate and even if a cpu is brougt up
->    when calling arch_send_call_function_ipi_mask(), it's harmless because
->    validation test in generic_smp_call_function_interrupt() will take care
->    of it.
-> 
-> 2) For cpu down issue, stop_machine() will guarantee that no concurrent
->    smp_call_fuction() is processing.
-> 
-> And also delay irq enable to after set_cpu_online().
-> 
-> Signed-off-by: Yong Zhang <yong.zhang0@gmail.com>
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: sparclinux@vger.kernel.org
+I like the diffstat summary:
 
-> ---
+ 36 files changed, 75 insertions(+), 3726 deletions(-)
+
+The final result is boot tested on my ss5 box.
+I also boot tested a few of the steps.
+
+So all-in-all I feel rather confident about this
+patch-set.
+
+Something noteworthy:
+
+o In patch 1 I redo the nmi handler a bit.
+  I think what I did is OK - but here I would like
+  some extra carefull revieing please.
+
+o In patch 12 I have removed all the sun + sun4c
+  support in head_32.S.
+  Here I did some minor restructuring.
+  I have not tested if the warnings works on a sun4c box,
+  as mine is hidden away right now.
 
 
-Looks good.
-Acked-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+This is not a complete removal - but I will address
+the remaining items later.
+The remaining bits are random cleanups + removal
+of btfixup when no longer needed.
 
->  arch/sparc/kernel/smp_64.c |    7 +------
->  1 files changed, 1 insertions(+), 6 deletions(-)
-> 
-> diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-> index f591598..781bcb1 100644
-> --- a/arch/sparc/kernel/smp_64.c
-> +++ b/arch/sparc/kernel/smp_64.c
-> @@ -103,8 +103,6 @@ void __cpuinit smp_callin(void)
->  	if (cheetah_pcache_forced_on)
->  		cheetah_enable_pcache();
-> 
-> -	local_irq_enable();
-> -
->  	callin_flag = 1;
->  	__asm__ __volatile__("membar #Sync\n\t"
->  			     "flush  %%g6" : : : "memory");
-> @@ -124,9 +122,8 @@ void __cpuinit smp_callin(void)
->  	while (!cpumask_test_cpu(cpuid, &smp_commenced_mask))
->  		rmb();
-> 
-> -	ipi_call_lock_irq();
->  	set_cpu_online(cpuid, true);
-> -	ipi_call_unlock_irq();
-> +	local_irq_enable();
-> 
->  	/* idle thread is expected to have preempt disabled */
->  	preempt_disable();
-> @@ -1308,9 +1305,7 @@ int __cpu_disable(void)
->  	mdelay(1);
->  	local_irq_disable();
-> 
-> -	ipi_call_lock();
->  	set_cpu_online(cpu, false);
-> -	ipi_call_unlock();
-> 
->  	cpu_map_rebuild();
-> 
+Patches are sent to the mailing list only (+ davem).
+
+	Sam
+
+ arch/sparc/include/asm/cpu_type.h       |    4 -
+ arch/sparc/include/asm/elf_32.h         |    5 +-
+ arch/sparc/include/asm/head_32.h        |   14 +-
+ arch/sparc/include/asm/memreg.h         |   51 -
+ arch/sparc/include/asm/oplib_32.h       |    8 -
+ arch/sparc/include/asm/pgtable_32.h     |   31 +-
+ arch/sparc/include/asm/pgtsun4c.h       |  172 ---
+ arch/sparc/include/asm/thread_info_32.h |    7 +-
+ arch/sparc/include/asm/traps.h          |    7 -
+ arch/sparc/kernel/Makefile              |    2 +-
+ arch/sparc/kernel/devices.c             |    4 -
+ arch/sparc/kernel/entry.S               |  269 +----
+ arch/sparc/kernel/etrap_32.S            |   50 +-
+ arch/sparc/kernel/head_32.S             |  162 +--
+ arch/sparc/kernel/irq_32.c              |    5 -
+ arch/sparc/kernel/kernel.h              |    3 -
+ arch/sparc/kernel/process_32.c          |   32 -
+ arch/sparc/kernel/rtrap_32.S            |   76 +-
+ arch/sparc/kernel/setup_32.c            |    9 -
+ arch/sparc/kernel/signal_32.c           |    7 +-
+ arch/sparc/kernel/sparc_ksyms_32.c      |    1 -
+ arch/sparc/kernel/sun4c_irq.c           |  269 ----
+ arch/sparc/kernel/sys_sparc_32.c        |   11 -
+ arch/sparc/kernel/wof.S                 |   72 +-
+ arch/sparc/kernel/wuf.S                 |   60 +-
+ arch/sparc/lib/atomic_32.S              |   20 -
+ arch/sparc/mm/Makefile                  |    6 -
+ arch/sparc/mm/btfixup.c                 |   15 +-
+ arch/sparc/mm/fault_32.c                |   94 +--
+ arch/sparc/mm/init_32.c                 |    8 -
+ arch/sparc/mm/loadmmu.c                 |    5 -
+ arch/sparc/mm/nosun4c.c                 |   77 --
+ arch/sparc/mm/srmmu.c                   |   50 +-
+ arch/sparc/mm/sun4c.c                   | 2166 -------------------------------
+ arch/sparc/prom/Makefile                |    1 -
+ arch/sparc/prom/segment.c               |   28 -
+ 36 files changed, 75 insertions(+), 3726 deletions(-)
+
+Sam Ravnborg (14):
+      sparc32: drop sun4c support
+      sparc32: remove calls to sun4c dummy mm inits functions
+      sparc32: remove sun4c traps
+      sparc32: drop sun4c specific ___xchg32 implementation
+      sparc32: remove all uses of ARCH_SUN4C
+      saprc32: delete pgtsun4c.h
+      sparc32: drop sun4c specific stack validation
+      sparc32: drop sun4c window overflow stack checking routine
+      sparc32: drop sun4c stack checking routine
+      sparc32: drop sun4c user stack checking routine
+      sparc32: drop test for sun4c in signal_32
+      sparc32: drop sun4c bits from head_32.S
+      sparc32: drop btfixup for alloc_thread_info_node/free_thread_info
+      sparc32: use inline versions of pgprot_noncached, pte_to_pgoff and pgoff_to_pte
 
