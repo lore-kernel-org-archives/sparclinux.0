@@ -1,148 +1,167 @@
-From: Mr Raymond Khumalo <raymondkhumaloo3@hotmail.com>
-Date: Tue, 08 May 2012 10:52:04 +0000
-Subject: Your urgent response is needed
-Message-Id: <1336474324.26562.YahooMailClassic@web2808.biz.mail.ne1.yahoo.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="1502597736-1953942348-1336474324=:26562"
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 11 May 2012 21:35:13 +0000
+Subject: [PATCH 10/14] sparc32: drop sun4c user stack checking routine
+Message-Id: <1336772117-1539-10-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
---1502597736-1953942348-1336474324=:26562
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+With this we no longer do any run-time patchings of traps.
+So drop the function + macro to support this.
 
-=0AGreetings, Please go through the attached file for details=0A=0A 
---1502597736-1953942348-1336474324=:26562
-Content-Type: application/msword; name=Raymond
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="Raymond Khumalo.rtf"
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/include/asm/traps.h |    7 ----
+ arch/sparc/kernel/rtrap_32.S   |   76 +++------------------------------------
+ arch/sparc/mm/srmmu.c          |   14 -------
+ 3 files changed, 6 insertions(+), 91 deletions(-)
 
-e1xydGYxXGFuc2lcYW5zaWNwZzEyNTJcdWMxXGRlZmYwXHN0c2hmZGJjaDBc
-c3RzaGZsb2NoMFxzdHNoZmhpY2gwXHN0c2hmYmkwXGRlZmxhbmcxMDMzXGRl
-ZmxhbmdmZTEwMzN7XGZvbnR0Ymx7XGYwXGZyb21hblxmY2hhcnNldDBcZnBy
-cTJ7XCpccGFub3NlIDAyMDIwNjAzMDUwNDA1MDIwMzA0fVRpbWVzIE5ldyBS
-b21hbjt9e1xmMVxmc3dpc3NcZmNoYXJzZXQwXGZwcnEye1wqXHBhbm9zZSAw
-MjBiMDYwNDAyMDIwMjAyMDIwNH1BcmlhbDt9DQp7XGYzNlxmcm9tYW5cZmNo
-YXJzZXQyMzhcZnBycTIgVGltZXMgTmV3IFJvbWFuIENFO317XGYzN1xmcm9t
-YW5cZmNoYXJzZXQyMDRcZnBycTIgVGltZXMgTmV3IFJvbWFuIEN5cjt9e1xm
-MzlcZnJvbWFuXGZjaGFyc2V0MTYxXGZwcnEyIFRpbWVzIE5ldyBSb21hbiBH
-cmVlazt9e1xmNDBcZnJvbWFuXGZjaGFyc2V0MTYyXGZwcnEyIFRpbWVzIE5l
-dyBSb21hbiBUdXI7fQ0Ke1xmNDFcZnJvbWFuXGZjaGFyc2V0MTc3XGZwcnEy
-IFRpbWVzIE5ldyBSb21hbiAoSGVicmV3KTt9e1xmNDJcZnJvbWFuXGZjaGFy
-c2V0MTc4XGZwcnEyIFRpbWVzIE5ldyBSb21hbiAoQXJhYmljKTt9e1xmNDNc
-ZnJvbWFuXGZjaGFyc2V0MTg2XGZwcnEyIFRpbWVzIE5ldyBSb21hbiBCYWx0
-aWM7fXtcZjQ0XGZyb21hblxmY2hhcnNldDE2M1xmcHJxMiBUaW1lcyBOZXcg
-Um9tYW4gKFZpZXRuYW1lc2UpO30NCntcZjQ2XGZzd2lzc1xmY2hhcnNldDIz
-OFxmcHJxMiBBcmlhbCBDRTt9e1xmNDdcZnN3aXNzXGZjaGFyc2V0MjA0XGZw
-cnEyIEFyaWFsIEN5cjt9e1xmNDlcZnN3aXNzXGZjaGFyc2V0MTYxXGZwcnEy
-IEFyaWFsIEdyZWVrO317XGY1MFxmc3dpc3NcZmNoYXJzZXQxNjJcZnBycTIg
-QXJpYWwgVHVyO317XGY1MVxmc3dpc3NcZmNoYXJzZXQxNzdcZnBycTIgQXJp
-YWwgKEhlYnJldyk7fQ0Ke1xmNTJcZnN3aXNzXGZjaGFyc2V0MTc4XGZwcnEy
-IEFyaWFsIChBcmFiaWMpO317XGY1M1xmc3dpc3NcZmNoYXJzZXQxODZcZnBy
-cTIgQXJpYWwgQmFsdGljO317XGY1NFxmc3dpc3NcZmNoYXJzZXQxNjNcZnBy
-cTIgQXJpYWwgKFZpZXRuYW1lc2UpO319e1xjb2xvcnRibDtccmVkMFxncmVl
-bjBcYmx1ZTA7XHJlZDBcZ3JlZW4wXGJsdWUyNTU7XHJlZDBcZ3JlZW4yNTVc
-Ymx1ZTI1NTtccmVkMFxncmVlbjI1NVxibHVlMDsNClxyZWQyNTVcZ3JlZW4w
-XGJsdWUyNTU7XHJlZDI1NVxncmVlbjBcYmx1ZTA7XHJlZDI1NVxncmVlbjI1
-NVxibHVlMDtccmVkMjU1XGdyZWVuMjU1XGJsdWUyNTU7XHJlZDBcZ3JlZW4w
-XGJsdWUxMjg7XHJlZDBcZ3JlZW4xMjhcYmx1ZTEyODtccmVkMFxncmVlbjEy
-OFxibHVlMDtccmVkMTI4XGdyZWVuMFxibHVlMTI4O1xyZWQxMjhcZ3JlZW4w
-XGJsdWUwO1xyZWQxMjhcZ3JlZW4xMjhcYmx1ZTA7XHJlZDEyOFxncmVlbjEy
-OFxibHVlMTI4Ow0KXHJlZDE5MlxncmVlbjE5MlxibHVlMTkyO317XHN0eWxl
-c2hlZXR7XHFsIFxsaTBccmkwXHdpZGN0bHBhclxhc3BhbHBoYVxhc3BudW1c
-ZmFhdXRvXGFkanVzdHJpZ2h0XHJpbjBcbGluMFxpdGFwMCBcZnMyNFxsYW5n
-MTAzM1xsYW5nZmUxMDMzXGNncmlkXGxhbmducDEwMzNcbGFuZ2ZlbnAxMDMz
-IFxzbmV4dDAgTm9ybWFsO317XCpcY3MxMCBcYWRkaXRpdmUgXHNzZW1paGlk
-ZGVuIERlZmF1bHQgUGFyYWdyYXBoIEZvbnQ7fXtcKg0KXHRzMTFcdHNyb3dk
-XHRyZnRzV2lkdGhCM1x0cnBhZGRsMTA4XHRycGFkZHIxMDhcdHJwYWRkZmwz
-XHRycGFkZGZ0M1x0cnBhZGRmYjNcdHJwYWRkZnIzXHRyY2JwYXQxXHRyY2Zw
-YXQxXHRzY2VsbHdpZHRoZnRzMFx0c3ZlcnRhbHRcdHNicmRydFx0c2JyZHJs
-XHRzYnJkcmJcdHNicmRyclx0c2JyZHJkZ2xcdHNicmRyZGdyXHRzYnJkcmhc
-dHNicmRydiANClxxbCBcbGkwXHJpMFx3aWRjdGxwYXJcYXNwYWxwaGFcYXNw
-bnVtXGZhYXV0b1xhZGp1c3RyaWdodFxyaW4wXGxpbjBcaXRhcDAgXGZzMjBc
-bGFuZzEwMjRcbGFuZ2ZlMTAyNFxjZ3JpZFxsYW5nbnAxMDI0XGxhbmdmZW5w
-MTAyNCBcc25leHQxMSBcc3NlbWloaWRkZW4gTm9ybWFsIFRhYmxlO319e1wq
-XGxhdGVudHN0eWxlc1xsc2RzdGltYXgxNTZcbHNkbG9ja2VkZGVmMH17XCpc
-cnNpZHRibCBccnNpZDUxMzE3NjR9e1wqXGdlbmVyYXRvciBNaWNybw0Kc29m
-dCBXb3JkIDExLjAuNTYwNDt9e1xpbmZve1x0aXRsZSBNUn17XGF1dGhvciBQ
-QzE0fXtcb3BlcmF0b3IgUEMxNH17XGNyZWF0aW1ceXIyMDEyXG1vNVxkeTNc
-aHIxMFxtaW41fXtccmV2dGltXHlyMjAxMlxtbzVcZHkzXGhyMTBcbWluNX17
-XHZlcnNpb24yfXtcZWRtaW5zMX17XG5vZnBhZ2VzMX17XG5vZndvcmRzMzE3
-fXtcbm9mY2hhcnMxODA5fXtcbm9mY2hhcnN3czIxMjJ9e1x2ZXJuMjQ2ODl9
-fQ0KXHdpZG93Y3RybFxmdG5ialxhZW5kZG9jXG5veGxhdHRveWVuXGV4cHNo
-cnRuXG5vdWx0cmxzcGNcZG50Ymxuc2JkYlxub3NwYWNlZm9ydWxcaHlwaGNh
-cHMwXGhvcnpkb2NcZGdoc3BhY2UxMjBcZGd2c3BhY2UxMjBcZGdob3JpZ2lu
-MTcwMVxkZ3ZvcmlnaW4xOTg0XGRnaHNob3cwXGRndnNob3czXGpjb21wcmVz
-c1x2aWV3a2luZDRcdmlld3NjYWxlMTAwXG5vbG5odGFkanRibFxyc2lkcm9v
-dDUxMzE3NjQgXGZldDBcc2VjdGQgDQpcbGluZXgwXHNlY3RkZWZhdWx0Y2xc
-c2Z0bmJqIHtcKlxwbnNlY2x2bDFccG51Y3JtXHBuc3RhcnQxXHBuaW5kZW50
-NzIwXHBuaGFuZyB7XHBudHh0YSAufX17XCpccG5zZWNsdmwyXHBudWNsdHJc
-cG5zdGFydDFccG5pbmRlbnQ3MjBccG5oYW5nIHtccG50eHRhIC59fXtcKlxw
-bnNlY2x2bDNccG5kZWNccG5zdGFydDFccG5pbmRlbnQ3MjBccG5oYW5nIHtc
-cG50eHRhIC59fXtcKlxwbnNlY2x2bDQNClxwbmxjbHRyXHBuc3RhcnQxXHBu
-aW5kZW50NzIwXHBuaGFuZyB7XHBudHh0YSApfX17XCpccG5zZWNsdmw1XHBu
-ZGVjXHBuc3RhcnQxXHBuaW5kZW50NzIwXHBuaGFuZyB7XHBudHh0YiAofXtc
-cG50eHRhICl9fXtcKlxwbnNlY2x2bDZccG5sY2x0clxwbnN0YXJ0MVxwbmlu
-ZGVudDcyMFxwbmhhbmcge1xwbnR4dGIgKH17XHBudHh0YSApfX17XCpccG5z
-ZWNsdmw3XHBubGNybVxwbnN0YXJ0MVxwbmluZGVudDcyMFxwbmhhbmcge1xw
-bnR4dGIgKH0NCntccG50eHRhICl9fXtcKlxwbnNlY2x2bDhccG5sY2x0clxw
-bnN0YXJ0MVxwbmluZGVudDcyMFxwbmhhbmcge1xwbnR4dGIgKH17XHBudHh0
-YSApfX17XCpccG5zZWNsdmw5XHBubGNybVxwbnN0YXJ0MVxwbmluZGVudDcy
-MFxwbmhhbmcge1xwbnR4dGIgKH17XHBudHh0YSApfX1ccGFyZFxwbGFpbiBc
-cWwgXGxpMFxyaTBcbm93aWRjdGxwYXJcZmFhdXRvXHJpbjBcbGluMFxpdGFw
-MCANClxmczI0XGxhbmcxMDMzXGxhbmdmZTEwMzNcY2dyaWRcbGFuZ25wMTAz
-M1xsYW5nZmVucDEwMzMge1xiXGYxXGZzMjBcaW5zcnNpZDUxMzE3NjQgTVIu
-IFJBWU1PTkQgS0hVTUFMTw0KXHBhciBUZWwgOiArMjctNzMtMTc1OS0xNjEN
-ClxwYXIgRU1BSUw6IHJheW1vbmRraHVtYWxvb0Bob3RtYWlsLmNvbQ0KXHBh
-ciAgDQpccGFyIEdyZWV0aW5ncy4NClxwYXIgIA0KXHBhciBJIGFtLiBNUi4g
-UkFZTU9ORCBLSFVNQUxPLCBIZWFkIEFjY291bnRzIE1hbmFnZW1lbnQgU2Vj
-dGlvbiBvZiBhIHdlbGwta25vd24gQmFuayBoZXJlIGluICBTb3V0aCBBZnJp
-Y2EgLiAgIE9uZSBvZiBvdXIgYWNjb3VudHMgd2l0aCBob2xkaW5nIGJhbGFu
-Y2Ugb2YgVVMkMTAsMDAwLDAwMCAoIFRlbiBNaWxsaW9uIFVuaXRlZCBTdGF0
-ZXMgRG9sbGFyKSBoYXMgYmVlbiBkb3JtYW50IGFuZCBsYXN0IG9wZXJhdGVk
-IGluIHRoZSBwYXN0IGZvdXIgKDQNCikgeWVhcnMuIEZyb20gaW52ZXN0aWdh
-dGlvbnMgYW5kIGNvbmZpcm1hdGlvbnMsIHRoZSBvd25lciBvZiB0aGlzIGFj
-Y291bnQgaXMgYSBIb25nIEtvbmcgRm9yZWlnbmVyIGJ5IG5hbWUgRW5nciBX
-aW5nIENoaXUgTGVlIGRpZWQgb24gdGhlIDR0aCBvZiBKYW51YXJ5IDIwMDMg
-aW4gYW4gYXV0b21vYmlsZSBhY2NpZGVudCBhbG9uZyBQcmV0b3JpYSBOMSBI
-aWdoLVdheS4NClxwYXIgIA0KXHBhciBTaW5jZSB0aGVuIG5vYm9keSBoYXMg
-ZG9uZSBhbnl0aGluZyBhcyByZWdhDQpyZHMgdG8gdGhlIGNsYWltaW5nIG9m
-IHRoaXMgbW9uZXkgYXMgaGUgaGFzIG5vIGZhbWlseSBtZW1iZXIgdGhhdCBp
-cyBhd2FyZSBvZiB0aGUgZXhpc3RlbmNlIG9mIGVpdGhlciB0aGUgYWNjb3Vu
-dCBvciB0aGUgZnVuZC4gU2V2ZXJhbCBhdHRlbXB0IHRvIHRyYWNlIGFueSBv
-ZiBoaXMgcmVsYXRpdmUgcHJvb2YgYWJvcnRpdmUgYW5kIGFsc28gSW5mb3Jt
-YXRpb24gZnJvbSB0aGUgTmF0aW9uYWwgSW1taWdyYXRpb24gb2ZmaWNlIHN0
-YXRlcyB0aGENCnQgbGF0ZSBFbmdyIFdpbmcgQ2hpdSBMZWUgd2FzIHNpbmds
-ZSBvbiBwb2ludCBvZiBlbnRyeSBpbnRvIFNvdXRoIEFmcmljYQ0KXHBhciAu
-DQpccGFyIE91ciBGaW5hbmNpYWwgSW5zdGl0dXRpb24gaXMgcHJlc2VudGx5
-IGFuZCBieSBsYXcgdGhlIGN1c3RvZGlhbiBvZiB0aGUgbW9uZXkgYmVsb25n
-aW5nIHRvIHRoZSBkZWNlYXNlZCwgd2hvc2UgYWNjb3VudCBJIGFtIHJlc3Bv
-bnNpYmxlIGZvciBtb25pdG9yaW5nIGFuZCBvZmZpY2lhdGluZy4gVGhlIHBy
-ZXNlbnQgbWFuDQpkYXRlIEkgaGF2ZSB0byBwcmVzZW50IGEgY3JlZGlibGUg
-YmVuZWZpY2lhcnkgb3BlbnMgdGhlIHdheSBmb3IgdXMgdG8gdGFrZSBhZHZh
-bnRhZ2Ugb2YgdGhlIHNpdHVhdGlvbiBhbmQgdXNlIHRoZSBtb25leSB0byBw
-b3NpdGl2ZWx5IGFmZmVjdCB0aGUgbGl2ZXMgb2YgbWFueSBpbnN0ZWFkIG9m
-IGFsbG93aW5nIHRoZSBmdW5kcyB0byBiZQ0KXHBhciBjb21wbGV0ZWx5IGxv
-c3QsIHNpbmNlIG5vIG9uZSBrbm93cyBhYm91dCB0aGUgbW9uZXkgYW5kIG5v
-IG9uZSB3aWxsIGNvbWUgZm9yd2FyZCB0byBjbGFpbSB0aGUgbW9uZXkgYXMg
-d2UgYWxyZWFkeSBrbm93Lg0KXHBhciAgDQpccGFyIEkgaGF2ZSBjb25maWRl
-bnRpYWxseSBkaXNjdXNzZWQgdGhpcyBpc3N1ZSB3aXRoIHNvbWUgb2YgdGhl
-IGJhbmsgb2ZmaWNpYWxzIGFuZCB3ZSBoYXZlIGFncmVlZCB0byBmaW5kIGEg
-cmVsaWFibGUgZm9yZWlnbiBwYXJ0bmVyIHRvIGRlYWwgd2l0aC4gV2UgdGh1
-cyBwcm9wb3NlIHRvIGRvIGJ1c2luZXNzIHdpdGggeW91LCBzdGFuZGluZyBp
-bg0KIGFzIHRoZSBuZXh0IG9mIGtpbiBvZiB0aGlzIGZ1bmQgZnJvbSB0aGUg
-ZGVjZWFzZWQgYW5kIGZ1bmQgcmVsZWFzZWQgdG8geW91IGFmdGVyIGR1ZSBw
-cm9jZXNzZXMgaGF2ZSBiZWVuIGZvbGxvd2VkLlRoaXMgdHJhbnNhY3Rpb24g
-aXMgdG90YWxseSBmcmVlIG9mIHJpc2sgYW5kIHRyb3VibGVzIGFzIHRoZSBm
-dW5kIGlzIExlZ2l0aW1hdGUgYW5kIGRvZXMgbm90IG9yaWdpbmF0ZSBmcm9t
-IGRydWcgb3IgbW9uZXkgbGF1bmRyeS5PbiB5b3VyIGluDQp0ZXJlc3QsIElm
-IHlvdSBhcmUgaW50ZXJlc3RlZCBpbiB0aGlzIHRyYW5zYWN0aW9uLCBraW5k
-bHkgcHJvdmlkZSBtZSB3aXRoDQpccGFyIA0KXHBhciBZT1VSIEZVTEwgTkFN
-RQ0KXHBhciBDT05UQUNUIEFERFJFU1MNClxwYXIgVEVMRVBIT05FIEFORCBG
-QVgNClxwYXIgT0NDVVBBVElPTg0KXHBhciBBR0UNClxwYXIgDQpccGFyIFBs
-ZWFzZSBkbyBsZXQgbWUga25vdyBpbW1lZGlhdGVseSBzbyB0aGF0IHdlIGNh
-biBwcm9jZWVkLiANClxwYXIgDQpccGFyIFJlZ2FyZHMNClxwYXIgIA0KXHBh
-ciBTaW5jZXJlbHksIA0KXHBhciBNUi5SQVlNT05EIEtIVU1BTE8uDQpccGFy
-IH17XGYxXGZzMjBcaW5zcnNpZDUxMzE3NjQgDQpccGFyIH19
+diff --git a/arch/sparc/include/asm/traps.h b/arch/sparc/include/asm/traps.h
+index 3aa62dd..5fac90f 100644
+--- a/arch/sparc/include/asm/traps.h
++++ b/arch/sparc/include/asm/traps.h
+@@ -31,13 +31,6 @@ extern struct tt_entry *sparc_ttable;
+ 
+ #define SPARC_MOV_CONST_L3(const) (0xa6102000 | (const&0xfff))
+ 
+-/* The following assumes that the branch lies before the place we
+- * are branching to.  This is the case for a trap vector...
+- * You have been warned.
+- */
+-#define SPARC_BRANCH(dest_addr, inst_addr) \
+-          (0x10800000 | (((dest_addr-inst_addr)>>2)&0x3fffff))
+-
+ #define SPARC_RD_PSR_L0  (0xa1480000)
+ #define SPARC_RD_WIM_L3  (0xa7500000)
+ #define SPARC_NOP (0x01000000)
+diff --git a/arch/sparc/kernel/rtrap_32.S b/arch/sparc/kernel/rtrap_32.S
+index 5f5f74c..7abc24e 100644
+--- a/arch/sparc/kernel/rtrap_32.S
++++ b/arch/sparc/kernel/rtrap_32.S
+@@ -128,13 +128,12 @@ rtrap_patch2:	and	%glob_tmp, 0xff, %glob_tmp
+ 
+ 		wr	%glob_tmp, 0x0, %wim
+ 
+-				/* Here comes the architecture specific 
+-				 * branch to the user stack checking routine
+-				 * for return from traps.
+-				 */
+-				.globl	rtrap_mmu_patchme
+-rtrap_mmu_patchme:	b	sun4c_rett_stackchk
+-				 andcc	%fp, 0x7, %g0	
++	/* Here comes the architecture specific
++	 * branch to the user stack checking routine
++	 * for return from traps.
++	 */
++	b	srmmu_rett_stackchk
++	 andcc	%fp, 0x7, %g0
+ 
+ ret_trap_userwins_ok:
+ 	LOAD_PT_PRIV(sp, t_psr, t_pc, t_npc)
+@@ -225,69 +224,6 @@ ret_trap_user_stack_is_bolixed:
+ 	b	signal_p
+ 	 ld	[%curptr + TI_FLAGS], %g2
+ 
+-sun4c_rett_stackchk:
+-	be	1f
+-	 and	%fp, 0xfff, %g1		! delay slot
+-
+-	b	ret_trap_user_stack_is_bolixed + 0x4
+-	 wr	%t_wim, 0x0, %wim
+-
+-	/* See if we have to check the sanity of one page or two */
+-1:
+-	add	%g1, 0x38, %g1
+-	sra	%fp, 29, %g2
+-	add	%g2, 0x1, %g2
+-	andncc	%g2, 0x1, %g0
+-	be	1f
+-	 andncc	%g1, 0xff8, %g0
+-
+-	/* %sp is in vma hole, yuck */
+-	b	ret_trap_user_stack_is_bolixed + 0x4
+-	 wr	%t_wim, 0x0, %wim
+-
+-1:
+-	be	sun4c_rett_onepage	/* Only one page to check */
+-	 lda	[%fp] ASI_PTE, %g2
+-
+-sun4c_rett_twopages:
+-	add	%fp, 0x38, %g1
+-	sra	%g1, 29, %g2
+-	add	%g2, 0x1, %g2
+-	andncc	%g2, 0x1, %g0
+-	be	1f
+-	 lda	[%g1] ASI_PTE, %g2
+-
+-	/* Second page is in vma hole */
+-	b	ret_trap_user_stack_is_bolixed + 0x4
+-	 wr	%t_wim, 0x0, %wim
+-
+-1:
+-	srl	%g2, 29, %g2
+-	andcc	%g2, 0x4, %g0
+-	bne	sun4c_rett_onepage
+-	 lda	[%fp] ASI_PTE, %g2
+-
+-	/* Second page has bad perms */
+-	b	ret_trap_user_stack_is_bolixed + 0x4
+-	 wr	%t_wim, 0x0, %wim
+-
+-sun4c_rett_onepage:
+-	srl	%g2, 29, %g2
+-	andcc	%g2, 0x4, %g0
+-	bne,a	1f
+-	 restore %g0, %g0, %g0
+-
+-	/* A page had bad page permissions, losing... */
+-	b	ret_trap_user_stack_is_bolixed + 0x4
+-	 wr	%t_wim, 0x0, %wim
+-
+-	/* Whee, things are ok, load the window and continue. */
+-1:
+-	LOAD_WINDOW(sp)
+-
+-	b	ret_trap_userwins_ok
+-	 save	%g0, %g0, %g0
+-
+ 	.globl	srmmu_rett_stackchk
+ srmmu_rett_stackchk:
+ 	bne	ret_trap_user_stack_is_bolixed
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index deb7dd8..a948ee5 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -2134,19 +2134,6 @@ extern unsigned long spwin_mmu_patchme, fwin_mmu_patchme,
+ extern unsigned long spwin_srmmu_stackchk, srmmu_fwin_stackchk,
+ 	tsetup_srmmu_stackchk, srmmu_rett_stackchk;
+ 
+-#define PATCH_BRANCH(insn, dest) do { \
+-		iaddr = &(insn); \
+-		daddr = &(dest); \
+-		*iaddr = SPARC_BRANCH((unsigned long) daddr, (unsigned long) iaddr); \
+-	} while(0)
+-
+-static void __init patch_window_trap_handlers(void)
+-{
+-	unsigned long *iaddr, *daddr;
+-	
+-	PATCH_BRANCH(rtrap_mmu_patchme, srmmu_rett_stackchk);
+-}
+-
+ #ifdef CONFIG_SMP
+ /* Local cross-calls. */
+ static void smp_flush_page_for_dma(unsigned long page)
+@@ -2270,7 +2257,6 @@ void __init ld_mmu_srmmu(void)
+ 	BTFIXUPSET_CALL(pgoff_to_pte, srmmu_pgoff_to_pte, BTFIXUPCALL_NORM);
+ 
+ 	get_srmmu_type();
+-	patch_window_trap_handlers();
+ 
+ #ifdef CONFIG_SMP
+ 	/* El switcheroo... */
+-- 
+1.6.0.6
 
---1502597736-1953942348-1336474324=:26562--
