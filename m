@@ -1,38 +1,29 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 15 May 2012 19:52:43 +0000
-Subject: Re: [RFC PATCH 3/3] sparc: introduce arch/sparc/Kbuild
-Message-Id: <20120515.155243.1334861875661910601.davem@davemloft.net>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Sat, 12 May 2012 00:08:53 +0000
+Subject: Re: [PATCH] gpiolib/arches: Centralise bolierplate asm/gpio.h
+Message-Id: <20120512000853.A96353E0791@localhost>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20120515193651.GC17309@merkur.ravnborg.org>
-In-Reply-To: <20120515193651.GC17309@merkur.ravnborg.org>
+References: <1334483574-3997-1-git-send-email-broonie@opensource.wolfsonmicro.com> <CACRpkdZ8yH1ZSG-nQ9dLm0TipHS-jZDuxwqohUC=LGH9V-5q4w@mail.gmail.com> <20120416081532.GA3238@opensource.wolfsonmicro.com>
+In-Reply-To: <20120416081532.GA3238@opensource.wolfsonmicro.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Linus Walleij <linus.walleij@linaro.org>
+Cc: Grant Likely <grant@secretlab.ca>, Linus Walleij <linus.walleij@stericsson.com>, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, microblaze-uclinux@itee.uq.edu.au, linux@lists.openrisc.net, "linuxppc-dev@lists.ozlabs.org list" <linuxppc-dev@lists.ozlabs.org>, sparclinux@vger.kernel.org, Chris Zankel <chris@zankel.net>
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Tue, 15 May 2012 21:36:51 +0200
+On Mon, 16 Apr 2012 09:15:32 +0100, Mark Brown <broonie@opensource.wolfsonmicro.com> wrote:
+> On Mon, Apr 16, 2012 at 09:21:58AM +0200, Linus Walleij wrote:
+> 
+> > This looks good but I think we need to page the alpha, ia64, m68k, microblaze,
+> > openrisc etc subarch maintainers on this patch so they have their say.
+> 
+> That's why I CCed linux-arch, to get all the architecture maintainers
+> included.  vger would get upset if I CCed everyone individually.
 
->>From 850652644b60709d7eae7d421fa6e18630f2bac8 Mon Sep 17 00:00:00 2001
-> From: Sam Ravnborg <sam@ravnborg.org>
-> Date: Tue, 15 May 2012 21:27:15 +0200
-> Subject: [PATCH 3/3] sparc: introduce arch/sparc/Kbuild
-> 
-> This allows us to do:
-> 
->     make arch/sparc/
-> 
-> to build the core part of the sparc kernel.
-> 
-> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-> ---
-> 
-> This will conflict with the BFP work you have in netdev,
-> but the resolution is trivial.
-> The assignment to core-y shall be moved
-> to Kbuild and the "arch/sparc/" part dropped.
-> 
-> RFC due to this known conflict.
+Meh; it's been long enough.  I'll build the major ones and then throw it into linux-next.
 
-I'll most likely apply this, especially since, as you say, the
-conflict is trivial to resolve.
+g.
+
+-- 
+Grant Likely, B.Sc, P.Eng.
+Secret Lab Technologies, Ltd.
