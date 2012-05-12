@@ -1,18 +1,34 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 22 May 2012 20:24:40 +0000
-Subject: Re: [PATCH 5/5] sparc32: handle leon in irq_32.c
-Message-Id: <20120522.162440.1883271971350063411.davem@davemloft.net>
+Date: Sat, 12 May 2012 22:20:57 +0000
+Subject: [PATCH] sparc32: Pass -mcpu=v7 explicitly to gcc.
+Message-Id: <20120512.182057.119046891010844835.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1337717443-11904-5-git-send-email-sam@ravnborg.org>
-In-Reply-To: <1337717443-11904-5-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Tue, 22 May 2012 22:10:43 +0200
 
-> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+We should be agnostic to what gcc happens to be generating by default.
 
-Also looks fine.
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/sparc/Makefile b/arch/sparc/Makefile
+index eddcfb3..cd2afcc 100644
+--- a/arch/sparc/Makefile
++++ b/arch/sparc/Makefile
+@@ -30,7 +30,7 @@ export BITS    := 32
+ UTS_MACHINE    := sparc
+ 
+ #KBUILD_CFLAGS += -g -pipe -fcall-used-g5 -fcall-used-g7
+-KBUILD_CFLAGS += -m32 -pipe -mno-fpu -fcall-used-g5 -fcall-used-g7
++KBUILD_CFLAGS += -m32 -mcpu=v7 -pipe -mno-fpu -fcall-used-g5 -fcall-used-g7
+ KBUILD_AFLAGS += -m32 -Wa,-Av8
+ 
+ #LDFLAGS_vmlinux = -N -Ttext 0xf0004000
+-- 
+1.7.10
+
