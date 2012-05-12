@@ -1,39 +1,72 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 26 May 2012 07:20:18 +0000
-Subject: [PATCH 14/15] sparc32: drop LEON hack for ASI_M_MMUREGS
-Message-Id: <1338016819-22245-14-git-send-email-sam@ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 12 May 2012 20:52:20 +0000
+Subject: [PATCH] sparc32: Un-btfixup pte_{write,dirty,young}i
+Message-Id: <20120512.165220.1627852169816157089.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-All users of MMUREGS ASI is now LEON/SUN aware,
-so this is no longer required.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Daniel Hellstrom <daniel@gaisler.com>
-Cc: Konrad Eisele <konrad@gaisler.com>
+And we can certainly get rid of the const function attributes, there
+is no way that's needed any longer and no other arch uses this kind
+of annotation here.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/include/asm/asi.h |    4 ----
- 1 files changed, 0 insertions(+), 4 deletions(-)
+ arch/sparc/include/asm/pgtable_32.h |   13 +++----------
+ arch/sparc/mm/srmmu.c               |    3 ---
+ 2 files changed, 3 insertions(+), 13 deletions(-)
 
-diff --git a/arch/sparc/include/asm/asi.h b/arch/sparc/include/asm/asi.h
-index cbb93e5..61ebe74 100644
---- a/arch/sparc/include/asm/asi.h
-+++ b/arch/sparc/include/asm/asi.h
-@@ -40,11 +40,7 @@
- #define ASI_M_UNA01         0x01   /* Same here... */
- #define ASI_M_MXCC          0x02   /* Access to TI VIKING MXCC registers */
- #define ASI_M_FLUSH_PROBE   0x03   /* Reference MMU Flush/Probe; rw, ss */
--#ifndef CONFIG_SPARC_LEON
- #define ASI_M_MMUREGS       0x04   /* MMU Registers; rw, ss */
--#else
--#define ASI_M_MMUREGS       0x19
--#endif /* CONFIG_SPARC_LEON */
- #define ASI_M_TLBDIAG       0x05   /* MMU TLB only Diagnostics */
- #define ASI_M_DIAGS         0x06   /* Reference MMU Diagnostics */
- #define ASI_M_IODIAG        0x07   /* MMU I/O TLB only Diagnostics */
+diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
+index 62e34d9..4b46396 100644
+--- a/arch/sparc/include/asm/pgtable_32.h
++++ b/arch/sparc/include/asm/pgtable_32.h
+@@ -207,26 +207,19 @@ static inline void pgd_clear(pgd_t *pgdp)
+  * The following only work if pte_present() is true.
+  * Undefined behaviour if not..
+  */
+-BTFIXUPDEF_HALF(pte_writei)
+-BTFIXUPDEF_HALF(pte_dirtyi)
+-BTFIXUPDEF_HALF(pte_youngi)
+-
+-static int pte_write(pte_t pte) __attribute_const__;
+ static inline int pte_write(pte_t pte)
+ {
+-	return pte_val(pte) & BTFIXUP_HALF(pte_writei);
++	return pte_val(pte) & SRMMU_WRITE;
+ }
+ 
+-static int pte_dirty(pte_t pte) __attribute_const__;
+ static inline int pte_dirty(pte_t pte)
+ {
+-	return pte_val(pte) & BTFIXUP_HALF(pte_dirtyi);
++	return pte_val(pte) & SRMMU_DIRTY;
+ }
+ 
+-static int pte_young(pte_t pte) __attribute_const__;
+ static inline int pte_young(pte_t pte)
+ {
+-	return pte_val(pte) & BTFIXUP_HALF(pte_youngi);
++	return pte_val(pte) & SRMMU_REF;
+ }
+ 
+ /*
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index 224db00..b01c735 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -2073,9 +2073,6 @@ void __init load_mmu(void)
+ 	BTFIXUPSET_CALL(free_pgd_fast, srmmu_free_pgd_fast, BTFIXUPCALL_NORM);
+ 	BTFIXUPSET_CALL(get_pgd_fast, srmmu_get_pgd_fast, BTFIXUPCALL_NORM);
+ 
+-	BTFIXUPSET_HALF(pte_writei, SRMMU_WRITE);
+-	BTFIXUPSET_HALF(pte_dirtyi, SRMMU_DIRTY);
+-	BTFIXUPSET_HALF(pte_youngi, SRMMU_REF);
+ 	BTFIXUPSET_HALF(pte_filei, SRMMU_FILE);
+ 	BTFIXUPSET_HALF(pte_wrprotecti, SRMMU_WRITE);
+ 	BTFIXUPSET_HALF(pte_mkcleani, SRMMU_DIRTY);
 -- 
-1.6.0.6
+1.7.10
 
