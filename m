@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 25 May 2012 07:37:14 +0000
-Subject: [PATCH] sparc64: Fix several bugs in quad floating point emulation.
-Message-Id: <20120525.033714.2012043475251308239.davem@davemloft.net>
+Date: Sat, 12 May 2012 19:37:25 +0000
+Subject: [PATCH] sparc32: Un-btfixup pmd_page and pte_pfn.
+Message-Id: <20120512.153725.91998100691970749.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,114 +9,117 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-UltraSPARC-T2 and later do not use the fp_exception_other trap and do
-not set the floating point trap type field in the %fsr at all when you
-try to execute an unimplemented FPU operation.
-
-Instead, it uses the illegal_instruction trap and it leaves the
-floating point trap type field clear.
-
-So we should not validate the %fsr trap type field when do_mathemu()
-is invoked from the illegal instruction handler.
-
-Also, the floating point trap type field is 3 bits, not 4 bits.
-
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/kernel/traps_64.c  |   12 +++++++-----
- arch/sparc/math-emu/math_64.c |   20 ++++++++++++++------
- 2 files changed, 21 insertions(+), 11 deletions(-)
+ arch/sparc/include/asm/pgtable_32.h |   31 +++++++++++++++++++++++++------
+ arch/sparc/mm/srmmu.c               |   29 -----------------------------
+ 2 files changed, 25 insertions(+), 35 deletions(-)
 
-diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
-index c72fdf5..3b05e66 100644
---- a/arch/sparc/kernel/traps_64.c
-+++ b/arch/sparc/kernel/traps_64.c
-@@ -2054,7 +2054,7 @@ void do_fpieee(struct pt_regs *regs)
- 	do_fpe_common(regs);
+diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
+index 144ab31..1c31ef1 100644
+--- a/arch/sparc/include/asm/pgtable_32.h
++++ b/arch/sparc/include/asm/pgtable_32.h
+@@ -134,12 +134,20 @@ static inline void srmmu_set_pte(pte_t *ptep, pte_t pteval)
+ 	srmmu_swap((unsigned long *)ptep, pte_val(pteval));
  }
  
--extern int do_mathemu(struct pt_regs *, struct fpustate *);
-+extern int do_mathemu(struct pt_regs *, struct fpustate *, bool);
+-/*
+- */
+-BTFIXUPDEF_CALL_CONST(struct page *, pmd_page, pmd_t)
++static inline int srmmu_device_memory(unsigned long x)
++{
++	return ((x & 0xF0000000) != 0);
++}
++
++static inline struct page *pmd_page(pmd_t pmd)
++{
++	if (srmmu_device_memory(pmd_val(pmd)))
++		BUG();
++	return pfn_to_page((pmd_val(pmd) & SRMMU_PTD_PMASK) >> (PAGE_SHIFT-4));
++}
++
+ BTFIXUPDEF_CALL_CONST(unsigned long, pgd_page_vaddr, pgd_t)
  
- void do_fpother(struct pt_regs *regs)
- {
-@@ -2068,7 +2068,7 @@ void do_fpother(struct pt_regs *regs)
- 	switch ((current_thread_info()->xfsr[0] & 0x1c000)) {
- 	case (2 << 14): /* unfinished_FPop */
- 	case (3 << 14): /* unimplemented_FPop */
--		ret = do_mathemu(regs, f);
-+		ret = do_mathemu(regs, f, false);
- 		break;
- 	}
- 	if (ret)
-@@ -2308,10 +2308,12 @@ void do_illegal_instruction(struct pt_regs *regs)
- 			} else {
- 				struct fpustate *f = FPUSTATE;
+-#define pmd_page(pmd) BTFIXUP_CALL(pmd_page)(pmd)
+ #define pgd_page_vaddr(pgd) BTFIXUP_CALL(pgd_page_vaddr)(pgd)
  
--				/* XXX maybe verify XFSR bits like
--				 * XXX do_fpother() does?
-+				/* On UltraSPARC T2 and later, FPU insns which
-+				 * are not implemented in HW signal an illegal
-+				 * instruction trap and do not set the FP Trap
-+				 * Trap in the %fsr to unimplemented_FPop.
- 				 */
--				if (do_mathemu(regs, f))
-+				if (do_mathemu(regs, f, true))
- 					return;
- 			}
- 		}
-diff --git a/arch/sparc/math-emu/math_64.c b/arch/sparc/math-emu/math_64.c
-index 2bbe2f2..1704068 100644
---- a/arch/sparc/math-emu/math_64.c
-+++ b/arch/sparc/math-emu/math_64.c
-@@ -163,7 +163,7 @@ typedef union {
- 	u64 q[2];
- } *argp;
+ BTFIXUPDEF_CALL_CONST(int, pte_present, pte_t)
+@@ -270,8 +278,19 @@ BTFIXUPDEF_CALL_CONST(pte_t, pte_mkyoung, pte_t)
  
--int do_mathemu(struct pt_regs *regs, struct fpustate *f)
-+int do_mathemu(struct pt_regs *regs, struct fpustate *f, bool illegal_insn_trap)
- {
- 	unsigned long pc = regs->tpc;
- 	unsigned long tstate = regs->tstate;
-@@ -218,7 +218,7 @@ int do_mathemu(struct pt_regs *regs, struct fpustate *f)
- 			case FSQRTS: {
- 				unsigned long x = current_thread_info()->xfsr[0];
+ #define pfn_pte(pfn, prot)		mk_pte(pfn_to_page(pfn), prot)
  
--				x = (x >> 14) & 0xf;
-+				x = (x >> 14) & 0x7;
- 				TYPE(x,1,1,1,1,0,0);
- 				break;
- 			}
-@@ -226,7 +226,7 @@ int do_mathemu(struct pt_regs *regs, struct fpustate *f)
- 			case FSQRTD: {
- 				unsigned long x = current_thread_info()->xfsr[0];
- 
--				x = (x >> 14) & 0xf;
-+				x = (x >> 14) & 0x7;
- 				TYPE(x,2,1,2,1,0,0);
- 				break;
- 			}
-@@ -357,9 +357,17 @@ int do_mathemu(struct pt_regs *regs, struct fpustate *f)
- 	if (type) {
- 		argp rs1 = NULL, rs2 = NULL, rd = NULL;
- 		
--		freg = (current_thread_info()->xfsr[0] >> 14) & 0xf;
--		if (freg != (type >> 9))
--			goto err;
-+		/* Starting with UltraSPARC-T2, the cpu does not set the FP Trap
-+		 * Type field in the %fsr to unimplemented_FPop.  Nor does it
-+		 * use the fp_exception_other trap.  Instead it signals an
-+		 * illegal instruction and leaves the FP trap type field of
-+		 * the %fsr unchanged.
+-BTFIXUPDEF_CALL(unsigned long,	 pte_pfn, pte_t)
+-#define pte_pfn(pte) BTFIXUP_CALL(pte_pfn)(pte)
++static inline unsigned long pte_pfn(pte_t pte)
++{
++	if (srmmu_device_memory(pte_val(pte))) {
++		/* Just return something that will cause
++		 * pfn_valid() to return false.  This makes
++		 * copy_one_pte() to just directly copy to
++		 * PTE over.
 +		 */
-+		if (!illegal_insn_trap) {
-+			int ftt = (current_thread_info()->xfsr[0] >> 14) & 0x7;
-+			if (ftt != (type >> 9))
-+				goto err;
-+		}
- 		current_thread_info()->xfsr[0] &= ~0x1c000;
- 		freg = ((insn >> 14) & 0x1f);
- 		switch (type & 0x3) {
++		return ~0UL;
++	}
++	return (pte_val(pte) & SRMMU_PTE_PMASK) >> (PAGE_SHIFT-4);
++}
++
+ #define pte_page(pte)	pfn_to_page(pte_pfn(pte))
+ 
+ /*
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index 29dfabf..d852962 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -91,12 +91,6 @@ static DEFINE_SPINLOCK(srmmu_context_spinlock);
+ 
+ static int is_hypersparc;
+ 
+-/* The very generic SRMMU page table operations. */
+-static inline int srmmu_device_memory(unsigned long x)
+-{
+-	return ((x & 0xF0000000) != 0);
+-}
+-
+ static int srmmu_cache_pagetables;
+ 
+ /* these will be initialized in srmmu_nocache_calcsize() */
+@@ -113,27 +107,6 @@ void *srmmu_nocache_pool;
+ void *srmmu_nocache_bitmap;
+ static struct bit_map srmmu_nocache_map;
+ 
+-static unsigned long srmmu_pte_pfn(pte_t pte)
+-{
+-	if (srmmu_device_memory(pte_val(pte))) {
+-		/* Just return something that will cause
+-		 * pfn_valid() to return false.  This makes
+-		 * copy_one_pte() to just directly copy to
+-		 * PTE over.
+-		 */
+-		return ~0UL;
+-	}
+-	return (pte_val(pte) & SRMMU_PTE_PMASK) >> (PAGE_SHIFT-4);
+-}
+-
+-static struct page *srmmu_pmd_page(pmd_t pmd)
+-{
+-
+-	if (srmmu_device_memory(pmd_val(pmd)))
+-		BUG();
+-	return pfn_to_page((pmd_val(pmd) & SRMMU_PTD_PMASK) >> (PAGE_SHIFT-4));
+-}
+-
+ static inline unsigned long srmmu_pgd_page(pgd_t pgd)
+ { return srmmu_device_memory(pgd_val(pgd))?~0:(unsigned long)__nocache_va((pgd_val(pgd) & SRMMU_PTD_PMASK) << 4); }
+ 
+@@ -2119,8 +2092,6 @@ void __init ld_mmu_srmmu(void)
+ 
+ 	BTFIXUPSET_CALL(set_pte, srmmu_set_pte, BTFIXUPCALL_SWAPO0O1);
+ 
+-	BTFIXUPSET_CALL(pte_pfn, srmmu_pte_pfn, BTFIXUPCALL_NORM);
+-	BTFIXUPSET_CALL(pmd_page, srmmu_pmd_page, BTFIXUPCALL_NORM);
+ 	BTFIXUPSET_CALL(pgd_page_vaddr, srmmu_pgd_page, BTFIXUPCALL_NORM);
+ 
+ 	BTFIXUPSET_CALL(pte_present, srmmu_pte_present, BTFIXUPCALL_NORM);
 -- 
 1.7.10
 
