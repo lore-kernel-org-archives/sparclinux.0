@@ -1,7 +1,7 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 11 May 2012 21:35:05 +0000
-Subject: [PATCH 02/14] sparc32: remove calls to sun4c dummy mm inits functions
-Message-Id: <1336772117-1539-2-git-send-email-sam@ravnborg.org>
+Date: Sat, 12 May 2012 18:04:13 +0000
+Subject: [PATCH 5/5] sparc32: drop unused type/extern
+Message-Id: <1336845853-30388-5-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,112 +10,46 @@ To: sparclinux@vger.kernel.org
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/mm/fault_32.c |    3 ---
- arch/sparc/mm/init_32.c  |    8 --------
- arch/sparc/mm/loadmmu.c  |    5 -----
- arch/sparc/mm/nosun4c.c  |   23 -----------------------
- 4 files changed, 0 insertions(+), 39 deletions(-)
+ arch/sparc/include/asm/page_32.h    |    6 ------
+ arch/sparc/include/asm/pgtable_32.h |    8 --------
+ 2 files changed, 0 insertions(+), 14 deletions(-)
 
-diff --git a/arch/sparc/mm/fault_32.c b/arch/sparc/mm/fault_32.c
-index df3155a..f3e6921 100644
---- a/arch/sparc/mm/fault_32.c
-+++ b/arch/sparc/mm/fault_32.c
-@@ -60,14 +60,11 @@ unsigned long probe_memory(void)
- 	return total;
- }
+diff --git a/arch/sparc/include/asm/page_32.h b/arch/sparc/include/asm/page_32.h
+index bb5c2ac..2afe1e6 100644
+--- a/arch/sparc/include/asm/page_32.h
++++ b/arch/sparc/include/asm/page_32.h
+@@ -45,12 +45,6 @@ struct sparc_phys_banks {
  
--extern void sun4c_complete_all_stores(void);
--
- /* Whee, a level 15 NMI interrupt memory error.  Let's have fun... */
- asmlinkage void sparc_lvl15_nmi(struct pt_regs *regs, unsigned long serr,
- 				unsigned long svaddr, unsigned long aerr,
- 				unsigned long avaddr)
- {
--	sun4c_complete_all_stores();
- 	printk("FAULT: NMI received\n");
- 	printk("SREGS: Synchronous Error %08lx\n", serr);
- 	printk("       Synchronous Vaddr %08lx\n", svaddr);
-diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
-index c5f9021..15848e7 100644
---- a/arch/sparc/mm/init_32.c
-+++ b/arch/sparc/mm/init_32.c
-@@ -308,7 +308,6 @@ void check_pgt_cache(void)
-  * init routine based upon the Sun model type on the Sparc.
-  *
-  */
--extern void sun4c_paging_init(void);
- extern void srmmu_paging_init(void);
- extern void device_scan(void);
+ extern struct sparc_phys_banks sp_banks[SPARC_PHYS_BANKS+1];
  
-@@ -318,13 +317,6 @@ EXPORT_SYMBOL(PAGE_SHARED);
- void __init paging_init(void)
- {
- 	switch(sparc_cpu_model) {
--	case sun4c:
--	case sun4e:
--	case sun4:
--		sun4c_paging_init();
--		sparc_unmapped_base = 0xe0000000;
--		BTFIXUPSET_SETHI(sparc_unmapped_base, 0xe0000000);
--		break;
- 	case sparc_leon:
- 		leon_init();
- 		/* fall through */
-diff --git a/arch/sparc/mm/loadmmu.c b/arch/sparc/mm/loadmmu.c
-index c5bf2a6..49c396d 100644
---- a/arch/sparc/mm/loadmmu.c
-+++ b/arch/sparc/mm/loadmmu.c
-@@ -20,16 +20,11 @@ struct ctx_list *ctx_list_pool;
- struct ctx_list ctx_free;
- struct ctx_list ctx_used;
+-/* Cache alias structure.  Entry is valid if context != -1. */
+-struct cache_palias {
+-	unsigned long vaddr;
+-	int context;
+-};
+-
+ /* passing structs on the Sparc slow us down tremendously... */
  
--extern void ld_mmu_sun4c(void);
- extern void ld_mmu_srmmu(void);
+ /* #define STRICT_MM_TYPECHECKS */
+diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
+index 9de855c..4a29b05 100644
+--- a/arch/sparc/include/asm/pgtable_32.h
++++ b/arch/sparc/include/asm/pgtable_32.h
+@@ -77,14 +77,6 @@ extern pgd_t swapper_pg_dir[1024];
  
- void __init load_mmu(void)
- {
- 	switch(sparc_cpu_model) {
--	case sun4c:
--	case sun4:
--		ld_mmu_sun4c();
--		break;
- 	case sun4m:
- 	case sun4d:
- 	case sparc_leon:
-diff --git a/arch/sparc/mm/nosun4c.c b/arch/sparc/mm/nosun4c.c
-index 4e62c27..0e0e8cf 100644
---- a/arch/sparc/mm/nosun4c.c
-+++ b/arch/sparc/mm/nosun4c.c
-@@ -29,29 +29,6 @@ static void __init should_not_happen(void)
- 	prom_halt();
- }
+ extern void paging_init(void);
  
--unsigned long __init sun4c_paging_init(unsigned long start_mem, unsigned long end_mem)
--{
--	should_not_happen();
--	return 0;
--}
+-/* Page table for 0-4MB for everybody, on the Sparc this
+- * holds the same as on the i386.
+- */
+-extern pte_t pg0[1024];
+-extern pte_t pg1[1024];
+-extern pte_t pg2[1024];
+-extern pte_t pg3[1024];
 -
--void __init ld_mmu_sun4c(void)
--{
--	should_not_happen();
--}
--
--void sun4c_mapioaddr(unsigned long physaddr, unsigned long virt_addr, int bus_type, int rdonly)
--{
--}
--
--void sun4c_unmapioaddr(unsigned long virt_addr)
--{
--}
--
--void sun4c_complete_all_stores(void)
--{
--}
--
- pte_t *sun4c_pte_offset(pmd_t * dir, unsigned long address)
- {
- 	return NULL;
+ extern unsigned long ptr_in_current_pgd;
+ 
+ /* Here is a trick, since mmap.c need the initializer elements for
 -- 
 1.6.0.6
 
