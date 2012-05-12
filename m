@@ -1,28 +1,38 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Tue, 15 May 2012 18:56:30 +0000
-Subject: Re: [PATCH 2/2] sparc32: Kill off software 32-bit multiply/divide routines.
-Message-Id: <20120515185630.GA31164@merkur.ravnborg.org>
+Date: Sat, 12 May 2012 18:02:25 +0000
+Subject: [PATCH [0/5] sparc32 patches
+Message-Id: <20120512180225.GA30372@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20120515.143748.225092224634923633.davem@davemloft.net>
-In-Reply-To: <20120515.143748.225092224634923633.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, May 15, 2012 at 02:37:48PM -0400, David Miller wrote:
-> 
-> For the explicit calls to .udiv/.umul in assembler, I made a
-> mechanical (read as: safe) transformation.  I didn't attempt
-> to make any simplifications.
-> 
-> In particular, __ndelay and __udelay can be simplified significantly.
-> Some of the %y reads are unnecessary and these routines have no need
-> any longer for allocating a register window, they can be leaf
-> functions.
-> 
-> Signed-off-by: David S. Miller <davem@davemloft.net>
+Random collection of clean-up patches.
 
-This was exactly what I hoped to see with Cypress dropped - great!
+o fix build failue due to warning in floppy.
+o cleanup in floppy glue to please my eyes
+o more btfix drops - and things became much simpler by this
+o drop some unused stuff from the header files
+
+I considered dropping some sun4c definitions in asi.h -
+but thouth it was better to keep the list complete.
 
 	Sam
+
+Sam Ravnborg (5):
+      sparc32: fix warning in floopy glue
+      sparc32: code cleanup in floppy glue
+      sparc32: drop btfixup for switch_mm
+      sparc32: drop btfixup for check_pgt_cache
+      sparc32: drop unused type/extern
+
+ arch/sparc/include/asm/floppy_32.h      |   18 +++++++++---------
+ arch/sparc/include/asm/mmu_context_32.h |    5 ++---
+ arch/sparc/include/asm/page_32.h        |    6 ------
+ arch/sparc/include/asm/pgalloc_32.h     |    4 +---
+ arch/sparc/include/asm/pgtable_32.h     |    8 --------
+ arch/sparc/kernel/process_32.c          |    2 --
+ arch/sparc/mm/init_32.c                 |   16 ----------------
+ arch/sparc/mm/srmmu.c                   |   11 ++---------
+ 8 files changed, 14 insertions(+), 56 deletions(-)
