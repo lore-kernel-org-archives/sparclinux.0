@@ -1,50 +1,84 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 26 May 2012 07:20:15 +0000
-Subject: [PATCH 11/15] sparc32,leon: fix section mismatch warning
-Message-Id: <1338016819-22245-11-git-send-email-sam@ravnborg.org>
+Date: Sat, 12 May 2012 11:43:49 +0000
+Subject: [PATCH 4/4] sparc32: simpler cputype check in head_32.S
+Message-Id: <1336823029-8206-4-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Fix following warning:
-
-WARNING: arch/sparc/kernel/built-in.o(.cpuinit.text+0x9f4): Section mismatch in reference from the function leon_callin() to the function .init.text:leon_configure_cache_smp()
-The function __cpuinit leon_callin() references
-a function __init leon_configure_cache_smp().
-If leon_configure_cache_smp is only used by leon_callin then
-annotate leon_configure_cache_smp with a matching annotation.
+We know this is not a sun4/sun4c - as we checked earlier.
+So no need to repeat the check.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Daniel Hellstrom <daniel@gaisler.com>
-Cc: Konrad Eisele <konrad@gaisler.com>
 ---
- arch/sparc/kernel/leon_smp.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/sparc/kernel/head_32.S |   34 +++++++++-------------------------
+ 1 files changed, 9 insertions(+), 25 deletions(-)
 
-diff --git a/arch/sparc/kernel/leon_smp.c b/arch/sparc/kernel/leon_smp.c
-index 218c2f0..0f3fb6d 100644
---- a/arch/sparc/kernel/leon_smp.c
-+++ b/arch/sparc/kernel/leon_smp.c
-@@ -54,7 +54,7 @@ extern ctxd_t *srmmu_ctx_table_phys;
- static int smp_processors_ready;
- extern volatile unsigned long cpu_callin_map[NR_CPUS];
- extern cpumask_t smp_commenced_mask;
--void __init leon_configure_cache_smp(void);
-+void __cpuinit leon_configure_cache_smp(void);
- static void leon_ipi_init(void);
+diff --git a/arch/sparc/kernel/head_32.S b/arch/sparc/kernel/head_32.S
+index 17e00c1..9b2d43d 100644
+--- a/arch/sparc/kernel/head_32.S
++++ b/arch/sparc/kernel/head_32.S
+@@ -699,35 +699,26 @@ execute_in_high_mem:
+ 		ba continue_boot
+ 		 nop
+ #endif
++
++/* Check to cputype. We may be booted on a sun4u (64 bit box),
++ * and sun4d needs special treatment.
++ */
++
+ 		set	cputypval, %o2
+ 		ldub	[%o2 + 0x4], %l1
  
- /* IRQ number of LEON IPIs */
-@@ -121,7 +121,7 @@ void __cpuinit leon_callin(void)
+-		cmp	%l1, ' '
+-		be	no_sun4c_here
+-		 cmp	%l1, 'c'
+-		be	no_sun4c_here
+-		 cmp	%l1, 'm'
+-		be	1f
++		cmp	%l1, 'm'
++		be	sun4m_init
+ 		 cmp	%l1, 's'
+-		be	1f
++		be	sun4m_init
+ 		 cmp	%l1, 'd'
+-		be	1f
++		be	sun4d_init
+ 		 cmp	%l1, 'e'
+ 		be	no_sun4e_here		! Could be a sun4e.
+ 		 nop
+ 		b	no_sun4u_here		! AIEEE, a V9 sun4u... Get our BIG BROTHER kernel :))
+ 		 nop
  
- extern struct linux_prom_registers smp_penguin_ctable;
+-1:		set	cputypval, %l1
+-		ldub	[%l1 + 0x4], %l1
+-		cmp	%l1, 'd'		! Let us see how the beast will die
+-		be	sun4d_init
+-		 nop
+-
+-		/* If not sun4d assume sun4m */
+-		b	sun4m_init
+-		 nop
+-
+ /* CPUID in bootbus can be found at PA 0xff0140000 */
+ #define SUN4D_BOOTBUS_CPUID     0xf0140000
  
--void __init leon_configure_cache_smp(void)
-+void __cpuinit leon_configure_cache_smp(void)
- {
- 	unsigned long cfg = sparc_leon3_get_dcachecfg();
- 	int me = smp_processor_id();
+@@ -1026,13 +1017,6 @@ continue_boot:
+ 		/* We should not get here. */
+ 		call	halt_me
+ 		 nop
+-no_sun4c_here:
+-		ld	[%g7 + 0x68], %o1
+-		set	sun4c_notsup, %o0
+-		call	%o1
+-		 nop
+-		b	halt_me
+-		 nop
+ 
+ no_sun4e_here:
+ 		ld	[%g7 + 0x68], %o1
 -- 
 1.6.0.6
 
