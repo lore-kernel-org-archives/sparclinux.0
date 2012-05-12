@@ -1,384 +1,178 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 24 May 2012 20:26:31 +0000
-Subject: [PATCH 3/3 v2] lib: Sparc's strncpy_from_user is generic enough, move under lib/
-Message-Id: <20120524.162631.2253252012139157291.davem@davemloft.net>
+Date: Sat, 12 May 2012 07:40:53 +0000
+Subject: [PATCH] sparc32: Trivial removal of sun4c references in comments.
+Message-Id: <20120512.034053.443801685170789037.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arch@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
 
-To use this, an architecture simply needs to:
-
-1) Provide a user_addr_max() implementation via asm/uaccess.h
-
-2) Add "select GENERIC_STRNCPY_FROM_USER" to their arch Kcnfig
-
-3) Remove the existing strncpy_from_user() implementation and symbol
-   exports their architecture had.
+I left some around, like the ones in the openprom headers, since
+we need to think about which pieces of those datastructures and
+code we can completely toss now.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
-Acked-by: David Howells <dhowells@redhat.com>
 ---
- arch/sparc/Kconfig        |    1 +
- arch/sparc/lib/usercopy.c |  144 --------------------------------------------
- lib/Kconfig               |    3 +
- lib/Makefile              |    2 +
- lib/strncpy_from_user.c   |  146 +++++++++++++++++++++++++++++++++++++++++++++
- 5 files changed, 152 insertions(+), 144 deletions(-)
- create mode 100644 lib/strncpy_from_user.c
+ arch/sparc/include/asm/dma.h        |    3 +--
+ arch/sparc/include/asm/machines.h   |    2 +-
+ arch/sparc/include/asm/pgtable_32.h |    6 +-----
+ arch/sparc/kernel/ioport.c          |    5 -----
+ arch/sparc/kernel/irq.h             |    2 +-
+ arch/sparc/kernel/irq_64.c          |    2 +-
+ arch/sparc/mm/fault_32.c            |    4 ----
+ arch/sparc/mm/init_32.c             |    5 ++---
+ arch/sparc/mm/srmmu.c               |    3 +--
+ 9 files changed, 8 insertions(+), 24 deletions(-)
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index 051af37..2247423 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -32,6 +32,7 @@ config SPARC
- 	select HAVE_NMI_WATCHDOG if SPARC64
- 	select HAVE_BPF_JIT
- 	select GENERIC_SMP_IDLE_THREAD
-+	select GENERIC_STRNCPY_FROM_USER
+diff --git a/arch/sparc/include/asm/dma.h b/arch/sparc/include/asm/dma.h
+index b554927..67e017f 100644
+--- a/arch/sparc/include/asm/dma.h
++++ b/arch/sparc/include/asm/dma.h
+@@ -123,8 +123,7 @@ BTFIXUPDEF_CALL(void,  mmu_release_scsi_sgl, struct device *, struct scatterlist
+  * Second mapping is for device visible address, or "bus" address.
+  * The bus address is returned at '*pba'.
+  *
+- * These functions seem distinct, but are hard to split. On sun4c,
+- * at least for now, 'a' is equal to bus address, and retured in *pba.
++ * These functions seem distinct, but are hard to split.
+  * On sun4m, page attributes depend on the CPU type, so we have to
+  * know if we are mapping RAM or I/O, so it has to be an additional argument
+  * to a separate mapping function for CPU visible mappings.
+diff --git a/arch/sparc/include/asm/machines.h b/arch/sparc/include/asm/machines.h
+index 597c478..fd6ddb0 100644
+--- a/arch/sparc/include/asm/machines.h
++++ b/arch/sparc/include/asm/machines.h
+@@ -19,7 +19,7 @@ struct Sun_Machine_Models {
+  * ---------------
+  *  7    4 3    0
+  *
+- * The ARCH field determines the architecture line (sun4, sun4c, etc).
++ * The ARCH field determines the architecture line (sun4m, etc).
+  * The MACH field determines the machine make within that architecture.
+  */
  
- config SPARC32
- 	def_bool !64BIT
-diff --git a/arch/sparc/lib/usercopy.c b/arch/sparc/lib/usercopy.c
-index 0b12e91..5c4284c 100644
---- a/arch/sparc/lib/usercopy.c
-+++ b/arch/sparc/lib/usercopy.c
-@@ -1,153 +1,9 @@
- #include <linux/module.h>
--#include <linux/uaccess.h>
- #include <linux/kernel.h>
--#include <linux/errno.h>
- #include <linux/bug.h>
+diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
+index 9f3ab0a..9de855c 100644
+--- a/arch/sparc/include/asm/pgtable_32.h
++++ b/arch/sparc/include/asm/pgtable_32.h
+@@ -304,8 +304,7 @@ BTFIXUPDEF_CALL(pte_t *, pte_offset_kernel, pmd_t *, unsigned long)
+ #define pte_offset_kernel(dir,addr) BTFIXUP_CALL(pte_offset_kernel)(dir,addr)
  
--#include <asm/byteorder.h>
+ /*
+- * This shortcut works on sun4m (and sun4d) because the nocache area is static,
+- * and sun4c is guaranteed to have no highmem anyway.
++ * This shortcut works on sun4m (and sun4d) because the nocache area is static.
+  */
+ #define pte_offset_map(d, a)		pte_offset_kernel(d,a)
+ #define pte_unmap(pte)		do{}while(0)
+@@ -367,7 +366,6 @@ static inline pte_t pgoff_to_pte(unsigned long pgoff)
+ 
+ /*
+  * This is made a constant because mm/fremap.c required a constant.
+- * Note that layout of these bits is different between sun4c.c and srmmu.c.
+  */
+ #define PTE_FILE_MAX_BITS 24
+ 
+@@ -471,10 +469,8 @@ static inline int io_remap_pfn_range(struct vm_area_struct *vma,
+ #endif /* !(__ASSEMBLY__) */
+ 
+ #define VMALLOC_START           _AC(0xfe600000,UL)
+-/* XXX Alter this when I get around to fixing sun4c - Anton */
+ #define VMALLOC_END             _AC(0xffc00000,UL)
+ 
 -
- void copy_from_user_overflow(void)
+ /* We provide our own get_unmapped_area to cope with VA holes for userland */
+ #define HAVE_ARCH_UNMAPPED_AREA
+ 
+diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
+index 21bd739..9b93da1 100644
+--- a/arch/sparc/kernel/ioport.c
++++ b/arch/sparc/kernel/ioport.c
+@@ -381,11 +381,6 @@ static int sbus_map_sg(struct device *dev, struct scatterlist *sg, int n,
+ 		       enum dma_data_direction dir, struct dma_attrs *attrs)
  {
- 	WARN(1, "Buffer overflow detected!\n");
+ 	mmu_get_scsi_sgl(dev, sg, n);
+-
+-	/*
+-	 * XXX sparc64 can return a partial length here. sun4c should do this
+-	 * but it currently panics if it can't fulfill the request - Anton
+-	 */
+ 	return n;
  }
- EXPORT_SYMBOL(copy_from_user_overflow);
--
--static inline long find_zero(unsigned long mask)
--{
--	long byte = 0;
--
--#ifdef __BIG_ENDIAN
--#ifdef CONFIG_64BIT
--	if (mask >> 32)
--		mask >>= 32;
--	else
--		byte = 4;
--#endif
--	if (mask >> 16)
--		mask >>= 16;
--	else
--		byte += 2;
--	return (mask >> 8) ? byte : byte + 1;
--#else
--#ifdef CONFIG_64BIT
--	if (!((unsigned int) mask)) {
--		mask >>= 32;
--		byte = 4;
--	}
--#endif
--	if (!(mask & 0xffff)) {
--		mask >>= 16;
--		byte += 2;
--	}
--	return (mask & 0xff) ? byte : byte + 1;
--#endif
--}
--
--#ifdef CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
--#define IS_UNALIGNED(src, dst)	0
--#else
--#define IS_UNALIGNED(src, dst)	\
--	(((long) dst | (long) src) & (sizeof(long) - 1))
--#endif
--
--/*
-- * Do a strncpy, return length of string without final '\0'.
-- * 'count' is the user-supplied count (return 'count' if we
-- * hit it), 'max' is the address space maximum (and we return
-- * -EFAULT if we hit it).
-- */
--static inline long do_strncpy_from_user(char *dst, const char __user *src, long count, unsigned long max)
--{
--	const unsigned long high_bits = REPEAT_BYTE(0xfe) + 1;
--	const unsigned long low_bits = REPEAT_BYTE(0x7f);
--	long res = 0;
--
+ 
+diff --git a/arch/sparc/kernel/irq.h b/arch/sparc/kernel/irq.h
+index 8b946b1..593e7a5 100644
+--- a/arch/sparc/kernel/irq.h
++++ b/arch/sparc/kernel/irq.h
+@@ -78,7 +78,7 @@ void handler_irq(unsigned int pil, struct pt_regs *regs);
+ /* Dave Redman (djhr@tadpole.co.uk)
+  * changed these to function pointers.. it saves cycles and will allow
+  * the irq dependencies to be split into different files at a later date
+- * sun4c_irq.c, sun4m_irq.c etc so we could reduce the kernel size.
++ * sun4m_irq.c etc so we could reduce the kernel size.
+  * Jakub Jelinek (jj@sunsite.mff.cuni.cz)
+  * Changed these to btfixup entities... It saves cycles :)
+  */
+diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
+index dff2c3d..9bcbbe2 100644
+--- a/arch/sparc/kernel/irq_64.c
++++ b/arch/sparc/kernel/irq_64.c
+@@ -799,7 +799,7 @@ static void kill_prom_timer(void)
+ 	prom_limit0 = prom_timers->limit0;
+ 	prom_limit1 = prom_timers->limit1;
+ 
+-	/* Just as in sun4c/sun4m PROM uses timer which ticks at IRQ 14.
++	/* Just as in sun4c PROM uses timer which ticks at IRQ 14.
+ 	 * We turn both off here just to be paranoid.
+ 	 */
+ 	prom_timers->limit0 = 0;
+diff --git a/arch/sparc/mm/fault_32.c b/arch/sparc/mm/fault_32.c
+index dd020b2..5d37f1f 100644
+--- a/arch/sparc/mm/fault_32.c
++++ b/arch/sparc/mm/fault_32.c
+@@ -235,10 +235,6 @@ asmlinkage void do_sparc_fault(struct pt_regs *regs, int text_fault, int write,
+ retry:
+ 	down_read(&mm->mmap_sem);
+ 
 -	/*
--	 * Truncate 'max' to the user-specified limit, so that
--	 * we only have one limit we need to check in the loop
+-	 * The kernel referencing a bad kernel pointer can lock up
+-	 * a sun4c machine completely, so we must attempt recovery.
 -	 */
--	if (max > count)
--		max = count;
--
--	if (IS_UNALIGNED(src, dst))
--		goto byte_at_a_time;
--
--	while (max >= sizeof(unsigned long)) {
--		unsigned long c, v, rhs;
--
--		/* Fall back to byte-at-a-time if we get a page fault */
--		if (unlikely(__get_user(c,(unsigned long __user *)(src+res))))
--			break;
--		rhs = c | low_bits;
--		v = (c + high_bits) & ~rhs;
--		*(unsigned long *)(dst+res) = c;
--		if (v) {
--			v = (c & low_bits) + low_bits;
--			v = ~(v | rhs);
--			return res + find_zero(v);
--		}
--		res += sizeof(unsigned long);
--		max -= sizeof(unsigned long);
--	}
--
--byte_at_a_time:
--	while (max) {
--		char c;
--
--		if (unlikely(__get_user(c,src+res)))
--			return -EFAULT;
--		dst[res] = c;
--		if (!c)
--			return res;
--		res++;
--		max--;
--	}
--
--	/*
--	 * Uhhuh. We hit 'max'. But was that the user-specified maximum
--	 * too? If so, that's ok - we got as much as the user asked for.
--	 */
--	if (res >= count)
--		return res;
--
--	/*
--	 * Nope: we hit the address space limit, and we still had more
--	 * characters the caller would have wanted. That's an EFAULT.
--	 */
--	return -EFAULT;
--}
--
--/**
-- * strncpy_from_user: - Copy a NUL terminated string from userspace.
-- * @dst:   Destination address, in kernel space.  This buffer must be at
-- *         least @count bytes long.
-- * @src:   Source address, in user space.
-- * @count: Maximum number of bytes to copy, including the trailing NUL.
-- *
-- * Copies a NUL-terminated string from userspace to kernel space.
-- *
-- * On success, returns the length of the string (not including the trailing
-- * NUL).
-- *
-- * If access to userspace fails, returns -EFAULT (some data may have been
-- * copied).
-- *
-- * If @count is smaller than the length of the string, copies @count bytes
-- * and returns @count.
-- */
--long strncpy_from_user(char *dst, const char __user *src, long count)
--{
--	unsigned long max_addr, src_addr;
--
--	if (unlikely(count <= 0))
--		return 0;
--
--	max_addr = user_addr_max();
--	src_addr = (unsigned long)src;
--	if (likely(src_addr < max_addr)) {
--		unsigned long max = max_addr - src_addr;
--		return do_strncpy_from_user(dst, src, count, max);
--	}
--	return -EFAULT;
--}
--EXPORT_SYMBOL(strncpy_from_user);
-diff --git a/lib/Kconfig b/lib/Kconfig
-index 4a8aba2..49cb463 100644
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -16,6 +16,9 @@ config BITREVERSE
- config RATIONAL
- 	boolean
+ 	if(!from_user && address >= PAGE_OFFSET)
+ 		goto bad_area;
  
-+config GENERIC_STRNCPY_FROM_USER
-+	bool
-+
- config GENERIC_FIND_FIRST_BIT
- 	bool
- 
-diff --git a/lib/Makefile b/lib/Makefile
-index 18515f0..57538b4 100644
---- a/lib/Makefile
-+++ b/lib/Makefile
-@@ -123,6 +123,8 @@ obj-$(CONFIG_SIGNATURE) += digsig.o
- 
- obj-$(CONFIG_CLZ_TAB) += clz_tab.o
- 
-+obj-$(CONFIG_GENERIC_STRNCPY_FROM_USER) += strncpy_from_user.o
-+
- hostprogs-y	:= gen_crc32table
- clean-files	:= crc32table.h
- 
-diff --git a/lib/strncpy_from_user.c b/lib/strncpy_from_user.c
-new file mode 100644
-index 0000000..c4c09b0
---- /dev/null
-+++ b/lib/strncpy_from_user.c
-@@ -0,0 +1,146 @@
-+#include <linux/module.h>
-+#include <linux/uaccess.h>
-+#include <linux/kernel.h>
-+#include <linux/errno.h>
-+
-+#include <asm/byteorder.h>
-+
-+static inline long find_zero(unsigned long mask)
-+{
-+	long byte = 0;
-+
-+#ifdef __BIG_ENDIAN
-+#ifdef CONFIG_64BIT
-+	if (mask >> 32)
-+		mask >>= 32;
-+	else
-+		byte = 4;
-+#endif
-+	if (mask >> 16)
-+		mask >>= 16;
-+	else
-+		byte += 2;
-+	return (mask >> 8) ? byte : byte + 1;
-+#else
-+#ifdef CONFIG_64BIT
-+	if (!((unsigned int) mask)) {
-+		mask >>= 32;
-+		byte = 4;
-+	}
-+#endif
-+	if (!(mask & 0xffff)) {
-+		mask >>= 16;
-+		byte += 2;
-+	}
-+	return (mask & 0xff) ? byte : byte + 1;
-+#endif
-+}
-+
-+#ifdef CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
-+#define IS_UNALIGNED(src, dst)	0
-+#else
-+#define IS_UNALIGNED(src, dst)	\
-+	(((long) dst | (long) src) & (sizeof(long) - 1))
-+#endif
-+
-+/*
-+ * Do a strncpy, return length of string without final '\0'.
-+ * 'count' is the user-supplied count (return 'count' if we
-+ * hit it), 'max' is the address space maximum (and we return
-+ * -EFAULT if we hit it).
-+ */
-+static inline long do_strncpy_from_user(char *dst, const char __user *src, long count, unsigned long max)
-+{
-+	const unsigned long high_bits = REPEAT_BYTE(0xfe) + 1;
-+	const unsigned long low_bits = REPEAT_BYTE(0x7f);
-+	long res = 0;
-+
-+	/*
-+	 * Truncate 'max' to the user-specified limit, so that
-+	 * we only have one limit we need to check in the loop
-+	 */
-+	if (max > count)
-+		max = count;
-+
-+	if (IS_UNALIGNED(src, dst))
-+		goto byte_at_a_time;
-+
-+	while (max >= sizeof(unsigned long)) {
-+		unsigned long c, v, rhs;
-+
-+		/* Fall back to byte-at-a-time if we get a page fault */
-+		if (unlikely(__get_user(c,(unsigned long __user *)(src+res))))
-+			break;
-+		rhs = c | low_bits;
-+		v = (c + high_bits) & ~rhs;
-+		*(unsigned long *)(dst+res) = c;
-+		if (v) {
-+			v = (c & low_bits) + low_bits;
-+			v = ~(v | rhs);
-+			return res + find_zero(v);
-+		}
-+		res += sizeof(unsigned long);
-+		max -= sizeof(unsigned long);
-+	}
-+
-+byte_at_a_time:
-+	while (max) {
-+		char c;
-+
-+		if (unlikely(__get_user(c,src+res)))
-+			return -EFAULT;
-+		dst[res] = c;
-+		if (!c)
-+			return res;
-+		res++;
-+		max--;
-+	}
-+
-+	/*
-+	 * Uhhuh. We hit 'max'. But was that the user-specified maximum
-+	 * too? If so, that's ok - we got as much as the user asked for.
-+	 */
-+	if (res >= count)
-+		return res;
-+
-+	/*
-+	 * Nope: we hit the address space limit, and we still had more
-+	 * characters the caller would have wanted. That's an EFAULT.
-+	 */
-+	return -EFAULT;
-+}
-+
-+/**
-+ * strncpy_from_user: - Copy a NUL terminated string from userspace.
-+ * @dst:   Destination address, in kernel space.  This buffer must be at
-+ *         least @count bytes long.
-+ * @src:   Source address, in user space.
-+ * @count: Maximum number of bytes to copy, including the trailing NUL.
-+ *
-+ * Copies a NUL-terminated string from userspace to kernel space.
-+ *
-+ * On success, returns the length of the string (not including the trailing
-+ * NUL).
-+ *
-+ * If access to userspace fails, returns -EFAULT (some data may have been
-+ * copied).
-+ *
-+ * If @count is smaller than the length of the string, copies @count bytes
-+ * and returns @count.
-+ */
-+long strncpy_from_user(char *dst, const char __user *src, long count)
-+{
-+	unsigned long max_addr, src_addr;
-+
-+	if (unlikely(count <= 0))
-+		return 0;
-+
-+	max_addr = user_addr_max();
-+	src_addr = (unsigned long)src;
-+	if (likely(src_addr < max_addr)) {
-+		unsigned long max = max_addr - src_addr;
-+		return do_strncpy_from_user(dst, src, count, max);
-+	}
-+	return -EFAULT;
-+}
-+EXPORT_SYMBOL(strncpy_from_user);
+diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
+index 21342db..753676c 100644
+--- a/arch/sparc/mm/init_32.c
++++ b/arch/sparc/mm/init_32.c
+@@ -289,9 +289,8 @@ unsigned long __init bootmem_init(unsigned long *pages_avail)
+  * check_pgt_cache
+  *
+  * This is called at the end of unmapping of VMA (zap_page_range),
+- * to rescan the page cache for architecture specific things,
+- * presumably something like sun4/sun4c PMEGs. Most architectures
+- * define check_pgt_cache empty.
++ * to rescan the page cache for architecture specific things.
++ * Most architectures define check_pgt_cache empty.
+  *
+  * We simply copy the 2.4 implementation for now.
+  */
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index d85da15..564269d 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -647,8 +647,7 @@ static void srmmu_unmapiorange(unsigned long virt_addr, unsigned int len)
+  * pool.  As a side effect we are putting a little too much pressure
+  * on the gfp() subsystem.  This setup also makes the logic of the
+  * iommu mapping code a lot easier as we can transparently handle
+- * mappings on the kernel stack without any special code as we did
+- * need on the sun4c.
++ * mappings on the kernel stack without any special code.
+  */
+ struct thread_info *alloc_thread_info_node(struct task_struct *tsk, int node)
+ {
 -- 
 1.7.10
 
