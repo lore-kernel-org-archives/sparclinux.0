@@ -1,228 +1,111 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 26 May 2012 07:20:16 +0000
-Subject: [PATCH 12/15] sparc32: introduce support for run-time patching for all shared assembler code
-Message-Id: <1338016819-22245-12-git-send-email-sam@ravnborg.org>
+Date: Sat, 12 May 2012 18:04:12 +0000
+Subject: [PATCH 4/5] sparc32: drop btfixup for check_pgt_cache
+Message-Id: <1336845853-30388-4-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-All users of MMUREGS ASI in kernel/ now uses run-time patching.
+It is a noop for srmmu - so use a define as sparc64 does.
+And drop all sparc callers - no need to confuse our-self
+be calling a noop function.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Daniel Hellstrom <daniel@gaisler.com>
-Cc: Konrad Eisele <konrad@gaisler.com>
 ---
- arch/sparc/kernel/entry.S    |    7 +++++--
- arch/sparc/kernel/etrap_32.S |   18 +++++++++++++-----
- arch/sparc/kernel/rtrap_32.S |   18 ++++++++++++------
- arch/sparc/kernel/wof.S      |   18 ++++++++++++------
- arch/sparc/kernel/wuf.S      |   27 +++++++++++++++++----------
- 5 files changed, 59 insertions(+), 29 deletions(-)
+ arch/sparc/include/asm/pgalloc_32.h |    4 +---
+ arch/sparc/kernel/process_32.c      |    2 --
+ arch/sparc/mm/init_32.c             |   16 ----------------
+ arch/sparc/mm/srmmu.c               |    6 ------
+ 4 files changed, 1 insertions(+), 27 deletions(-)
 
-diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
-index 8550f10..dcaa1cf 100644
---- a/arch/sparc/kernel/entry.S
-+++ b/arch/sparc/kernel/entry.S
-@@ -767,8 +767,11 @@ srmmu_fault:
- 	mov	0x400, %l5
- 	mov	0x300, %l4
+diff --git a/arch/sparc/include/asm/pgalloc_32.h b/arch/sparc/include/asm/pgalloc_32.h
+index ca2b344..d7ec897 100644
+--- a/arch/sparc/include/asm/pgalloc_32.h
++++ b/arch/sparc/include/asm/pgalloc_32.h
+@@ -21,9 +21,7 @@ extern struct pgtable_cache_struct {
+ #define pgtable_cache_size      (pgt_quicklists.pgtable_cache_sz)
+ #define pgd_cache_size		(pgt_quicklists.pgd_cache_sz)
  
--	lda	[%l5] ASI_M_MMUREGS, %l6	! read sfar first
--	lda	[%l4] ASI_M_MMUREGS, %l5	! read sfsr last
-+LEON_PI(lda	[%l5] ASI_LEON_MMUREGS, %l6)	! read sfar first
-+SUN_PI_(lda	[%l5] ASI_M_MMUREGS, %l6)	! read sfar first
-+
-+LEON_PI(lda	[%l4] ASI_LEON_MMUREGS, %l5)	! read sfsr last
-+SUN_PI_(lda	[%l4] ASI_M_MMUREGS, %l5)	! read sfsr last
+-extern void check_pgt_cache(void);
+-BTFIXUPDEF_CALL(void,	 do_check_pgt_cache, int, int)
+-#define do_check_pgt_cache(low,high) BTFIXUP_CALL(do_check_pgt_cache)(low,high)
++#define check_pgt_cache()	do { } while (0)
  
- 	andn	%l6, 0xfff, %l6
- 	srl	%l5, 6, %l5			! and encode all info into l7
-diff --git a/arch/sparc/kernel/etrap_32.S b/arch/sparc/kernel/etrap_32.S
-index 84b5f0d..e3e80d6 100644
---- a/arch/sparc/kernel/etrap_32.S
-+++ b/arch/sparc/kernel/etrap_32.S
-@@ -234,7 +234,8 @@ tsetup_srmmu_stackchk:
+ BTFIXUPDEF_CALL(pgd_t *, get_pgd_fast, void)
+ #define get_pgd_fast()		BTFIXUP_CALL(get_pgd_fast)()
+diff --git a/arch/sparc/kernel/process_32.c b/arch/sparc/kernel/process_32.c
+index d8e973d..bb23036 100644
+--- a/arch/sparc/kernel/process_32.c
++++ b/arch/sparc/kernel/process_32.c
+@@ -82,7 +82,6 @@ void cpu_idle(void)
+ 				cpu_relax();
+ 		}
+ 		schedule_preempt_disabled();
+-		check_pgt_cache();
+ 	}
+ }
  
- 	cmp	%glob_tmp, %sp
- 	bleu,a	1f
--	 lda	[%g0] ASI_M_MMUREGS, %glob_tmp		! read MMU control
-+LEON_PI( lda	[%g0] ASI_LEON_MMUREGS, %glob_tmp)	! read MMU control
-+SUN_PI_( lda	[%g0] ASI_M_MMUREGS, %glob_tmp)		! read MMU control
+@@ -105,7 +104,6 @@ void cpu_idle(void)
+ 				cpu_relax();
+ 		}
+ 		schedule_preempt_disabled();
+-		check_pgt_cache();
+ 	}
+ }
  
- trap_setup_user_stack_is_bolixed:
- 	/* From user/kernel into invalid window w/bad user
-@@ -249,18 +250,25 @@ trap_setup_user_stack_is_bolixed:
- 1:
- 	/* Clear the fault status and turn on the no_fault bit. */
- 	or	%glob_tmp, 0x2, %glob_tmp		! or in no_fault bit
--	sta	%glob_tmp, [%g0] ASI_M_MMUREGS		! set it
-+LEON_PI(sta	%glob_tmp, [%g0] ASI_LEON_MMUREGS)		! set it
-+SUN_PI_(sta	%glob_tmp, [%g0] ASI_M_MMUREGS)		! set it
+diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
+index 753676c..79b215e 100644
+--- a/arch/sparc/mm/init_32.c
++++ b/arch/sparc/mm/init_32.c
+@@ -286,22 +286,6 @@ unsigned long __init bootmem_init(unsigned long *pages_avail)
+ }
  
- 	/* Dump the registers and cross fingers. */
- 	STORE_WINDOW(sp)
+ /*
+- * check_pgt_cache
+- *
+- * This is called at the end of unmapping of VMA (zap_page_range),
+- * to rescan the page cache for architecture specific things.
+- * Most architectures define check_pgt_cache empty.
+- *
+- * We simply copy the 2.4 implementation for now.
+- */
+-static int pgt_cache_water[2] = { 25, 50 };
+-
+-void check_pgt_cache(void)
+-{
+-	do_check_pgt_cache(pgt_cache_water[0], pgt_cache_water[1]);
+-}
+-
+-/*
+  * paging_init() sets up the page tables: We call the MMU specific
+  * init routine based upon the Sun model type on the Sparc.
+  *
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index 85d7f82..cb18fa8 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -2122,11 +2122,6 @@ static void __init get_srmmu_type(void)
+ 	srmmu_is_bad();
+ }
  
- 	/* Clear the no_fault bit and check the status. */
- 	andn	%glob_tmp, 0x2, %glob_tmp
--	sta	%glob_tmp, [%g0] ASI_M_MMUREGS
-+LEON_PI(sta	%glob_tmp, [%g0] ASI_LEON_MMUREGS)
-+SUN_PI_(sta	%glob_tmp, [%g0] ASI_M_MMUREGS)
-+
- 	mov	AC_M_SFAR, %glob_tmp
--	lda	[%glob_tmp] ASI_M_MMUREGS, %g0
-+LEON_PI(lda	[%glob_tmp] ASI_LEON_MMUREGS, %g0)
-+SUN_PI_(lda	[%glob_tmp] ASI_M_MMUREGS, %g0)
-+
- 	mov	AC_M_SFSR, %glob_tmp
--	lda	[%glob_tmp] ASI_M_MMUREGS, %glob_tmp	! save away status of winstore
-+LEON_PI(lda	[%glob_tmp] ASI_LEON_MMUREGS, %glob_tmp)! save away status of winstore
-+SUN_PI_(lda	[%glob_tmp] ASI_M_MMUREGS, %glob_tmp)	! save away status of winstore
-+
- 	andcc	%glob_tmp, 0x2, %g0			! did we fault?
- 	bne	trap_setup_user_stack_is_bolixed	! failure
- 	 nop
-diff --git a/arch/sparc/kernel/rtrap_32.S b/arch/sparc/kernel/rtrap_32.S
-index 7abc24e..6c34de0 100644
---- a/arch/sparc/kernel/rtrap_32.S
-+++ b/arch/sparc/kernel/rtrap_32.S
-@@ -231,11 +231,14 @@ srmmu_rett_stackchk:
- 	cmp	%g1, %fp
- 	bleu	ret_trap_user_stack_is_bolixed
- 	 mov	AC_M_SFSR, %g1
--	lda	[%g1] ASI_M_MMUREGS, %g0
-+LEON_PI(lda	[%g1] ASI_LEON_MMUREGS, %g0)
-+SUN_PI_(lda	[%g1] ASI_M_MMUREGS, %g0)
+-/* don't laugh, static pagetables */
+-static void srmmu_check_pgt_cache(int low, int high)
+-{
+-}
+-
+ extern unsigned long spwin_mmu_patchme, fwin_mmu_patchme,
+ 	tsetup_mmu_patchme, rtrap_mmu_patchme;
  
--	lda	[%g0] ASI_M_MMUREGS, %g1
-+LEON_PI(lda	[%g0] ASI_LEON_MMUREGS, %g1)
-+SUN_PI_(lda	[%g0] ASI_M_MMUREGS, %g1)
- 	or	%g1, 0x2, %g1
--	sta	%g1, [%g0] ASI_M_MMUREGS
-+LEON_PI(sta	%g1, [%g0] ASI_LEON_MMUREGS)
-+SUN_PI_(sta	%g1, [%g0] ASI_M_MMUREGS)
+@@ -2168,7 +2163,6 @@ void __init ld_mmu_srmmu(void)
+ #ifndef CONFIG_SMP	
+ 	BTFIXUPSET_CALL(___xchg32, ___xchg32_sun4md, BTFIXUPCALL_SWAPG1G2);
+ #endif
+-	BTFIXUPSET_CALL(do_check_pgt_cache, srmmu_check_pgt_cache, BTFIXUPCALL_NOP);
  
- 	restore	%g0, %g0, %g0
+ 	BTFIXUPSET_CALL(set_pte, srmmu_set_pte, BTFIXUPCALL_SWAPO0O1);
  
-@@ -244,13 +247,16 @@ srmmu_rett_stackchk:
- 	save	%g0, %g0, %g0
- 
- 	andn	%g1, 0x2, %g1
--	sta	%g1, [%g0] ASI_M_MMUREGS
-+LEON_PI(sta	%g1, [%g0] ASI_LEON_MMUREGS)
-+SUN_PI_(sta	%g1, [%g0] ASI_M_MMUREGS)
- 
- 	mov	AC_M_SFAR, %g2
--	lda	[%g2] ASI_M_MMUREGS, %g2
-+LEON_PI(lda	[%g2] ASI_LEON_MMUREGS, %g2)
-+SUN_PI_(lda	[%g2] ASI_M_MMUREGS, %g2)
- 
- 	mov	AC_M_SFSR, %g1
--	lda	[%g1] ASI_M_MMUREGS, %g1
-+LEON_PI(lda	[%g1] ASI_LEON_MMUREGS, %g1)
-+SUN_PI_(lda	[%g1] ASI_M_MMUREGS, %g1)
- 	andcc	%g1, 0x2, %g0
- 	be	ret_trap_userwins_ok
- 	 nop
-diff --git a/arch/sparc/kernel/wof.S b/arch/sparc/kernel/wof.S
-index 4c2de3c..28a7bc6 100644
---- a/arch/sparc/kernel/wof.S
-+++ b/arch/sparc/kernel/wof.S
-@@ -332,24 +332,30 @@ spwin_srmmu_stackchk:
- 	 mov	AC_M_SFSR, %glob_tmp
- 
- 	/* Clear the fault status and turn on the no_fault bit. */
--	lda	[%glob_tmp] ASI_M_MMUREGS, %g0		! eat SFSR
-+LEON_PI(lda	[%glob_tmp] ASI_LEON_MMUREGS, %g0)	! eat SFSR
-+SUN_PI_(lda	[%glob_tmp] ASI_M_MMUREGS, %g0)		! eat SFSR
- 
--	lda	[%g0] ASI_M_MMUREGS, %glob_tmp		! read MMU control
-+LEON_PI(lda	[%g0] ASI_LEON_MMUREGS, %glob_tmp)	! read MMU control
-+SUN_PI_(lda	[%g0] ASI_M_MMUREGS, %glob_tmp)		! read MMU control
- 	or	%glob_tmp, 0x2, %glob_tmp		! or in no_fault bit
--	sta	%glob_tmp, [%g0] ASI_M_MMUREGS		! set it
-+LEON_PI(sta	%glob_tmp, [%g0] ASI_LEON_MMUREGS)	! set it
-+SUN_PI_(sta	%glob_tmp, [%g0] ASI_M_MMUREGS)		! set it
- 
- 	/* Dump the registers and cross fingers. */
- 	STORE_WINDOW(sp)
- 
- 	/* Clear the no_fault bit and check the status. */
- 	andn	%glob_tmp, 0x2, %glob_tmp
--	sta	%glob_tmp, [%g0] ASI_M_MMUREGS
-+LEON_PI(sta	%glob_tmp, [%g0] ASI_LEON_MMUREGS)
-+SUN_PI_(sta	%glob_tmp, [%g0] ASI_M_MMUREGS)
- 
- 	mov	AC_M_SFAR, %glob_tmp
--	lda	[%glob_tmp] ASI_M_MMUREGS, %g0
-+LEON_PI(lda	[%glob_tmp] ASI_LEON_MMUREGS, %g0)
-+SUN_PI_(lda	[%glob_tmp] ASI_M_MMUREGS, %g0)
- 
- 	mov	AC_M_SFSR, %glob_tmp
--	lda	[%glob_tmp] ASI_M_MMUREGS, %glob_tmp
-+LEON_PI(lda	[%glob_tmp] ASI_LEON_MMUREGS, %glob_tmp)
-+SUN_PI_(lda	[%glob_tmp] ASI_M_MMUREGS, %glob_tmp)
- 	andcc	%glob_tmp, 0x2, %g0			! did we fault?
- 	be,a	spwin_finish_up + 0x4			! cool beans, success
- 	 restore %g0, %g0, %g0
-diff --git a/arch/sparc/kernel/wuf.S b/arch/sparc/kernel/wuf.S
-index 9fde91a..2c21cc5 100644
---- a/arch/sparc/kernel/wuf.S
-+++ b/arch/sparc/kernel/wuf.S
-@@ -254,16 +254,19 @@ srmmu_fwin_stackchk:
- 	mov	AC_M_SFSR, %l4
- 	cmp	%l5, %sp
- 	bleu	fwin_user_stack_is_bolixed
--	 lda	[%l4] ASI_M_MMUREGS, %g0	! clear fault status
-+LEON_PI( lda	[%l4] ASI_LEON_MMUREGS, %g0)	! clear fault status
-+SUN_PI_( lda	[%l4] ASI_M_MMUREGS, %g0)	! clear fault status
- 
- 	/* The technique is, turn off faults on this processor,
- 	 * just let the load rip, then check the sfsr to see if
- 	 * a fault did occur.  Then we turn on fault traps again
- 	 * and branch conditionally based upon what happened.
- 	 */
--	lda	[%g0] ASI_M_MMUREGS, %l5	! read mmu-ctrl reg
-+LEON_PI(lda	[%g0] ASI_LEON_MMUREGS, %l5)	! read mmu-ctrl reg
-+SUN_PI_(lda	[%g0] ASI_M_MMUREGS, %l5)	! read mmu-ctrl reg
- 	or	%l5, 0x2, %l5			! turn on no-fault bit
--	sta	%l5, [%g0] ASI_M_MMUREGS	! store it
-+LEON_PI(sta	%l5, [%g0] ASI_LEON_MMUREGS)	! store it
-+SUN_PI_(sta	%l5, [%g0] ASI_M_MMUREGS)	! store it
- 
- 	/* Cross fingers and go for it. */
- 	LOAD_WINDOW(sp)
-@@ -275,18 +278,22 @@ srmmu_fwin_stackchk:
- 
- 	/* LOCATION: Window 'T' */
- 
--	lda	[%g0] ASI_M_MMUREGS, %twin_tmp1	! load mmu-ctrl again
--	andn	%twin_tmp1, 0x2, %twin_tmp1	! clear no-fault bit
--	sta	%twin_tmp1, [%g0] ASI_M_MMUREGS	! store it
-+LEON_PI(lda	[%g0] ASI_LEON_MMUREGS, %twin_tmp1)	! load mmu-ctrl again
-+SUN_PI_(lda	[%g0] ASI_M_MMUREGS, %twin_tmp1)	! load mmu-ctrl again
-+	andn	%twin_tmp1, 0x2, %twin_tmp1		! clear no-fault bit
-+LEON_PI(sta	%twin_tmp1, [%g0] ASI_LEON_MMUREGS)	! store it
-+SUN_PI_(sta	%twin_tmp1, [%g0] ASI_M_MMUREGS)	! store it
- 
- 	mov	AC_M_SFAR, %twin_tmp2
--	lda	[%twin_tmp2] ASI_M_MMUREGS, %g0	! read fault address
-+LEON_PI(lda	[%twin_tmp2] ASI_LEON_MMUREGS, %g0)	! read fault address
-+SUN_PI_(lda	[%twin_tmp2] ASI_M_MMUREGS, %g0)	! read fault address
- 
- 	mov	AC_M_SFSR, %twin_tmp2
--	lda	[%twin_tmp2] ASI_M_MMUREGS, %twin_tmp2	! read fault status
--	andcc	%twin_tmp2, 0x2, %g0			! did fault occur?
-+LEON_PI(lda	[%twin_tmp2] ASI_LEON_MMUREGS, %twin_tmp2) ! read fault status
-+SUN_PI_(lda	[%twin_tmp2] ASI_M_MMUREGS, %twin_tmp2)	   ! read fault status
-+	andcc	%twin_tmp2, 0x2, %g0			   ! did fault occur?
- 
--	bne	1f					! yep, cleanup
-+	bne	1f					   ! yep, cleanup
- 	 nop
- 
- 	wr	%t_psr, 0x0, %psr
 -- 
 1.6.0.6
 
