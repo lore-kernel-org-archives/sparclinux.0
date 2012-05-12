@@ -1,31 +1,33 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 22 May 2012 19:07:24 +0000
-Subject: Re: [PATCH] sparc32: use the common implementation of alloc_thread_info_node()
-Message-Id: <20120522.150724.1070224867657733210.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 12 May 2012 11:42:45 +0000
+Subject: [PATCH 0/4] sparc32: addtional cleanup in haed_32.S
+Message-Id: <20120512114245.GA8192@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20120522151123.GA10058@merkur.ravnborg.org>
-	<alpine.LFD.2.02.1205221909540.3231@ionos>
-In-Reply-To: <alpine.LFD.2.02.1205221909540.3231@ionos>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: tglx@linutronix.de
-Cc: sam@ravnborg.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Tue, 22 May 2012 19:10:51 +0200 (CEST)
+Hi David.
 
-> On Tue, 22 May 2012, Sam Ravnborg wrote:
-> 
->> >From 52d8a6d1b81a19e693a09df90275600f44293f43 Mon Sep 17 00:00:00 2001
->> From: Sam Ravnborg <sam@ravnborg.org>
->> Date: Tue, 22 May 2012 16:39:00 +0200
->> Subject: [PATCH] sparc32: use the common implementation of alloc_thread_info_node()
->> 
->> With sun4c removed we can fall-back to the common implementation.
->> 
->> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-> 
-> Acked-by: Thomas Gleixner <tglx@linutronix.de>
+This cleans up the cputype as you suggested.
+While reading the code I found several other
+small items that could be simplified.
 
-Applied, thanks everyone.
+Boot-tested on both UP and SMP on my ss5.
+
+The cleanup the last two days have done wonders to the readability
+of head_32.S :-)
+
+	Sam
+
+
+ arch/sparc/kernel/head_32.S |  108 ++++++++-----------------------------------
+ 1 files changed, 19 insertions(+), 89 deletions(-)
+
+Sam Ravnborg (4):
+      sparc32: remove sun4c specific variables from head_32.S
+      sparc32: drop prom version check in head_32.S
+      sparc32: drop extra getprop call during boot
+      sparc32: simpler cputype check in head_32.S
+
