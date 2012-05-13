@@ -1,75 +1,25 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Tue, 22 May 2012 20:31:59 +0000
-Subject: Re: [PATCH 2/5] sparc32: implement proper LEON support in head_32 (before highmem)
-Message-Id: <20120522203159.GA11963@merkur.ravnborg.org>
+Date: Sun, 13 May 2012 18:49:35 +0000
+Subject: How to learn sparc assembler?
+Message-Id: <20120513184935.GB2434@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1337717443-11904-2-git-send-email-sam@ravnborg.org>
-In-Reply-To: <1337717443-11904-2-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, May 22, 2012 at 04:23:10PM -0400, David Miller wrote:
-> From: Sam Ravnborg <sam@ravnborg.org>
-> Date: Tue, 22 May 2012 22:10:40 +0200
-> 
-> > Use PSR to check if the PCU is LEON and jump to
->                           ^^^
-> 
-> "CPU" :-)
-> 
-> > +		/* Check if this is a LEON CPU */
-> > +		rd	%psr, %g3
-> > +		set	PSR_IMPL, %g2
-> > +		and	%g2, %g3, %g3
-> > +		srl	%g3, PSR_IMPL_SHIFT, %g3
-> > +		cmp	%g3, PSR_IMPL_LEON
-> 
-> I would code this like:
-> 
-> 	rd	%psr, %g3
-> 	srl	%g3, PSR_IMPL_SHIFT, %g3
-> 	and	%g3, 0xf /* PST_IMPL_WHATEVER_MASK */, %g3
-> 	cmp	%g3, PSR_IMPL_LEON
-> 
-> 
-> > +		/* Check for a viking (TI) module. */
-> > +		cmp	%g3, PSR_IMPL_TEXAS
-> > +		bne	srmmu_not_viking
-> >  		 nop
-> 
-> PSR_IMPL_TI is probably a better name fo this macro.
-> 
-> > @@ -313,6 +326,29 @@ srmmu_nviking:
-> >  		 nop					! wheee....
-> >  
-> >  
-> > +leon_remap:
-> > +		/* Sanity-check, is MMU enabled */
-> > +		lda	[%g0] ASI_LEON_MMUREGS, %g1
-> > +		andcc	%g1, 1, %g0
-> > +		be	halt_sun4_or_sun4c
-> > +		 nop
-> 
-> Checking that the MMU is disabled is correct, but branching
-> to the sun4c-not-supported error message is probably not. :-)
+Hi all.
 
-I did not like it either - but this
-was a straight copy from the old code with
-proper replacement of the MMUREGS.
-I actually considered to just drop it.
+I am missing sparc assembler skills.
 
-I will rephrase the text in a separate commit.
+Do you have any good pointer or recommendations
+to learn sparc assembler?
 
-> 
-> Otherwise looks OK.
-> 
+If there is a good sparc book I am also all ears!
+Especially if you have a spare copy...
 
-Thanks for the quick feedback!
-
-I will address it all and get back.
-Will take a couple of days as weather is
-too good to do serious coding ;-)
+I can follow the basic flow in the *.S files
+in arch/sparc/* but I am running short of my
+capabilites when I have to write something myself :-(
 
 	Sam
