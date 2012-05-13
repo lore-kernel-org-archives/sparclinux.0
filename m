@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 28 May 2012 07:12:08 +0000
-Subject: [PATCH] sparc32: Export leon_dma_ops to modules.
-Message-Id: <20120528.031208.779922094210485625.davem@davemloft.net>
+From: "Karl Schmidt" <reglamentos@sag.gob.hn>
+Date: Sun, 13 May 2012 22:55:48 +0000
+Subject: Please revert
+Message-Id: <d7aeac934ed4ba4dd5d7855170949c5f.squirrel@mail.sag.gob.hn>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,26 +9,18 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/kernel/ioport.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Dear friend,
 
-diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
-index f00945b..0f094db 100644
---- a/arch/sparc/kernel/ioport.c
-+++ b/arch/sparc/kernel/ioport.c
-@@ -652,8 +652,9 @@ EXPORT_SYMBOL(pci32_dma_ops);
- 
- /* leon re-uses pci32_dma_ops */
- struct dma_map_ops *leon_dma_ops = &pci32_dma_ops;
--struct dma_map_ops *dma_ops = &sbus_dma_ops;
-+EXPORT_SYMBOL(leon_dma_ops);
- 
-+struct dma_map_ops *dma_ops = &sbus_dma_ops;
- EXPORT_SYMBOL(dma_ops);
- 
- 
--- 
-1.7.10
+This is a private notice directed to you and should be treated as such and kept as
+absolute secret between you and I.
+
+I would like to know if you can handle an investment transaction amounting to millions
+of United States Dollars.  If YES, kindly get back to me urgently with your contact
+details.  However, if you cannot, kindly ignore this mail.
+
+Thank you,
+
+Karl Schmidt
+
+
 
