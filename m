@@ -1,33 +1,67 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 15 May 2012 17:48:23 +0000
-Subject: Re: [PATCH] sparc32: cleanup mm/fault_32.c
-Message-Id: <20120515.134823.2116571767552382436.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 13 May 2012 08:52:16 +0000
+Subject: [PATCH 5/2] sparc32: drop btfixup in page_32.h
+Message-Id: <20120513085216.GC25608@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20120515170434.GA13518@merkur.ravnborg.org>
-In-Reply-To: <20120515170434.GA13518@merkur.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+From 3ae6faacd64842cc4334b53bc31a9156e8bce042 Mon Sep 17 00:00:00 2001
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Tue, 15 May 2012 19:04:34 +0200
+Date: Sun, 13 May 2012 10:45:18 +0200
+Subject: [PATCH 5/2] sparc32: drop btfixup in page_32.h
 
->>From 08f1ed3b3fdf4d25068c457fcf249413f2235f97 Mon Sep 17 00:00:00 2001
-> From: Sam Ravnborg <sam@ravnborg.org>
-> Date: Tue, 15 May 2012 19:02:08 +0200
-> Subject: [PATCH] sparc32: cleanup mm/fault_32.c
-> 
-> - remove unused variables
-> - fix coding style issues that hurts my eyes
-> 
-> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
 
-Applied, thanks Sam.
+I know I cannot count.
+Anyway - this was all the easy ones in include/asm/..
 
-> Noticed a few unused variables and then an "if(" and then...
-> I actually ran checkpatch on the file too - but
-> ignored most of the complaints.
+What left is:
+- all the flush variants
+- all the smp_ipi variants
+- all the dma stuff
+- update_mmu_cache (maybe we could drop it - thefunction are both
+                    empty. But is contains some sample code I do
+                    not know the value of)
+- walk through btfixup and drop the now unused stuff
 
-You'll have to excuse me, as I wrote most of this code before I
-actually knew how to program :-)
+	Sam 
+
+ arch/sparc/include/asm/page_32.h |    5 +----
+ arch/sparc/mm/init_32.c          |    1 -
+ 2 files changed, 1 insertions(+), 5 deletions(-)
+
+diff --git a/arch/sparc/include/asm/page_32.h b/arch/sparc/include/asm/page_32.h
+index 2afe1e6..0c902ae 100644
+--- a/arch/sparc/include/asm/page_32.h
++++ b/arch/sparc/include/asm/page_32.h
+@@ -110,10 +110,7 @@ typedef unsigned long iopgprot_t;
+ typedef struct page *pgtable_t;
+ 
+ extern unsigned long sparc_unmapped_base;
+-
+-BTFIXUPDEF_SETHI(sparc_unmapped_base)
+-
+-#define TASK_UNMAPPED_BASE	BTFIXUP_SETHI(sparc_unmapped_base)
++#define TASK_UNMAPPED_BASE	sparc_unmapped_base
+ 
+ #else /* !(__ASSEMBLY__) */
+ 
+diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
+index 61f9b70..a64b0bb 100644
+--- a/arch/sparc/mm/init_32.c
++++ b/arch/sparc/mm/init_32.c
+@@ -300,7 +300,6 @@ void __init paging_init(void)
+ 	case sun4d:
+ 		srmmu_paging_init();
+ 		sparc_unmapped_base = 0x50000000;
+-		BTFIXUPSET_SETHI(sparc_unmapped_base, 0x50000000);
+ 		break;
+ 	default:
+ 		prom_printf("paging_init: Cannot init paging on this Sparc\n");
+-- 
+1.6.0.6
+
