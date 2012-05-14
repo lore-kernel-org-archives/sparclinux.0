@@ -1,7 +1,7 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 14 May 2012 20:39:43 +0000
+From: David Miller <davem@davemloft.net>
+Date: Mon, 14 May 2012 21:28:38 +0000
 Subject: Re: [PATCH] sparc32: Move cache and TLB flushes over to method ops.
-Message-Id: <20120514203943.GA4500@merkur.ravnborg.org>
+Message-Id: <20120514.172838.512742393144403575.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20120513.235611.828382132525916634.davem@davemloft.net>
 In-Reply-To: <20120513.235611.828382132525916634.davem@davemloft.net>
@@ -10,42 +10,67 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Mon, May 14, 2012 at 04:35:47PM -0400, David Miller wrote:
-> From: Sam Ravnborg <sam@ravnborg.org>
-> Date: Mon, 14 May 2012 12:44:50 +0200
-> 
-> >> [PATCH] sparc32: Implement hard_smp_processor_id() via instruction patching.
-> >> 
-> >> This is the last non-trivial user of btfixup.
-> >> 
-> >> Like sparc64, use a special patch section to resolve the various
-> >> implementations of how to read the current CPU's ID when we don't
-> >> have current_thread_info()->cpu necessarily available.
-> >> 
-> >> Signed-off-by: David S. Miller <davem@davemloft.net>
-> > 
-> > Boot tested UP and SMP builds on my ss5 - works!
-> > 
-> > This variant is much easier to read/understand compared
-> > to the "blackbox" way!
-> 
-> Thanks for testing.
-> 
-> >> +1:	rd		%tbr, %g1
-> >> +	srl		%g1, 12, %o0
-> >> +	and		%o0, 3, %o0
-> >> +	.section	.cpuid_patch, "ax"
-> >> +	/* Instruction location. */
-> >> +	.word		661b
-> > 
-> > You wanted to say:  .word 1b here...
-> 
-> I decided to use 661: to be consistent with the LOAD_CURRENT
-> macro.
-> 
-> Fixed up and pushed out, thanks again Sam.
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Mon, 14 May 2012 14:16:12 +0200
 
-Baah, I am the one thanking here.
-It would have taken me days to cook up this patch myself.
+> There is a bunch of inlines in smp_32.h you miss
+> to kill:
+> 
+> hard_smp4m_processor_id,
+> hard_smp4d_processor_id,
+> hard_smpleon_processor_id
 
-	Sam
+Taken care of, as follows:
+
+--------------------
+[PATCH] sparc32: Kill unused hard_smp{4m,4d,leon}_processor_id() inlined.
+
+Reported-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/include/asm/smp_32.h |   29 -----------------------------
+ 1 file changed, 29 deletions(-)
+
+diff --git a/arch/sparc/include/asm/smp_32.h b/arch/sparc/include/asm/smp_32.h
+index b9cf697..b73da3c 100644
+--- a/arch/sparc/include/asm/smp_32.h
++++ b/arch/sparc/include/asm/smp_32.h
+@@ -103,35 +103,6 @@ static inline int cpu_logical_map(int cpu)
+ 	return cpu;
+ }
+ 
+-static inline int hard_smp4m_processor_id(void)
+-{
+-	int cpuid;
+-
+-	__asm__ __volatile__("rd %%tbr, %0\n\t"
+-			     "srl %0, 12, %0\n\t"
+-			     "and %0, 3, %0\n\t" :
+-			     "=&r" (cpuid));
+-	return cpuid;
+-}
+-
+-static inline int hard_smp4d_processor_id(void)
+-{
+-	int cpuid;
+-
+-	__asm__ __volatile__("lda [%%g0] %1, %0\n\t" :
+-			     "=&r" (cpuid) : "i" (ASI_M_VIKING_TMP1));
+-	return cpuid;
+-}
+-
+-extern inline int hard_smpleon_processor_id(void)
+-{
+-	int cpuid;
+-	__asm__ __volatile__("rd     %%asr17,%0\n\t"
+-			     "srl    %0,28,%0" :
+-			     "=&r" (cpuid) : );
+-	return cpuid;
+-}
+-
+ extern int hard_smp_processor_id(void);
+ 
+ #define raw_smp_processor_id()		(current_thread_info()->cpu)
+-- 
+1.7.10
+
