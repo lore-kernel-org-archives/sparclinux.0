@@ -1,21 +1,26 @@
-From: Dennis Gilmore <dennis@ausil.us>
-Date: Tue, 15 May 2012 07:16:08 +0000
+From: Josip Rodin <joy@entuzijast.net>
+Date: Tue, 15 May 2012 08:41:07 +0000
 Subject: Re: [PATCH] sparc32: Remove cypress cpu support.
-Message-Id: <20120515021608.0c557171@adria.ausil.us>
+Message-Id: <20120515084107.GA24131@entuzijast.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20120515.010944.1681839607025121917.davem@davemloft.net>
 In-Reply-To: <20120515.010944.1681839607025121917.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQ0KSGFzaDogU0hBMQ0KDQpFbCBUdWUs
-IDE1IE1heSAyMDEyIDAxOjA5OjQ0IC0wNDAwIChFRFQpDQpEYXZpZCBNaWxsZXIgPGRhdmVtQGRh
-dmVtbG9mdC5uZXQ+IGVzY3JpYmnDszoNCj4gKwkJCXByb21fcHJpbnRmKCJTcGFyYy1MaW51eCBD
-eXByZXNzIHN1cHBvcnQNCj4gZG9lcyBub3QgbG9uZ2VyIGV4aXQuXG4iKTsNCg0KbWF5YmUgdGhh
-dCBzaG91bGQgc2F5DQoiU3BhcmMtTGludXggQ3lwcmVzcyBzdXBwb3J0IG5vIGxvbmdlciBleGlz
-dHMuXG4iDQoNCkRlbm5pcw0KLS0tLS1CRUdJTiBQR1AgU0lHTkFUVVJFLS0tLS0NClZlcnNpb246
-IEdudVBHIHYyLjAuMTggKEdOVS9MaW51eCkNCg0KaUVZRUFSRUNBQVlGQWsreUFyNEFDZ2tRa1N4
-bTQ3QmFXZmRBblFDZmU4bjk1ZVFmRHBWV1JoQzR0MStDMENnYQ0KZmU4QW9KaXpaeHc0dk9NSlBI
-OWplTFMzWDh4QVcvYncNCj1kV3g2DQotLS0tLUVORCBQR1AgU0lHTkFUVVJFLS0tLS0NCg=
+On Tue, May 15, 2012 at 02:16:08AM -0500, Dennis Gilmore wrote:
+> El Tue, 15 May 2012 01:09:44 -0400 (EDT)
+> David Miller <davem@davemloft.net> escribi=F3:
+> > +			prom_printf("Sparc-Linux Cypress support
+> > does not longer exit.\n");
+>=20
+> maybe that should say
+> "Sparc-Linux Cypress support no longer exists.\n"
+
+Or "You actually run a Cypress SPARC? Please mail sparclinux@vger.kernel.or=
+g\n"
+
+--=20
+     2. That which causes joy or happiness.
