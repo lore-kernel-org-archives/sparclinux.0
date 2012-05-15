@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 15 May 2012 16:58:25 +0000
+Date: Tue, 15 May 2012 17:06:48 +0000
 Subject: Re: [PATCH] sparc32: Remove cypress cpu support.
-Message-Id: <20120515.125825.1601451429241216417.davem@davemloft.net>
+Message-Id: <20120515.130648.766436692264173586.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20120515.010944.1681839607025121917.davem@davemloft.net>
 In-Reply-To: <20120515.010944.1681839607025121917.davem@davemloft.net>
@@ -10,19 +10,29 @@ Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-From: Dennis Gilmore <dennis@ausil.us>
-Date: Tue, 15 May 2012 02:16:08 -0500
+From: Julian Calaby <julian.calaby@gmail.com>
+Date: Tue, 15 May 2012 20:01:01 +1000
 
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
+> Hi,
 >=20
-> El Tue, 15 May 2012 01:09:44 -0400 (EDT)
-> David Miller <davem@davemloft.net> escribi=F3:
->> +			prom_printf("Sparc-Linux Cypress support
->> does not longer exit.\n");
+> On Tue, May 15, 2012 at 6:41 PM, Josip Rodin <joy@entuzijast.net> wrote:
+>> On Tue, May 15, 2012 at 02:16:08AM -0500, Dennis Gilmore wrote:
+>>> El Tue, 15 May 2012 01:09:44 -0400 (EDT)
+>>> David Miller <davem@davemloft.net> escribi=F3:
+>>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 prom_printf("Sparc-Linux Cypres=
+s support
+>>> > does not longer exit.\n");
+>>>
+>>> maybe that should say
+>>> "Sparc-Linux Cypress support no longer exists.\n"
+>>
+>> Or "You actually run a Cypress SPARC? Please mail sparclinux@vger.kernel=
+.org\n"
 >=20
-> maybe that should say
-> "Sparc-Linux Cypress support no longer exists.\n"
+> I think that's a much better message =3D)
 
-I made it match the language used by the sun4/sun4c message
-for consistency.
+I don't, because I have no intention of ever putting the Cypress
+support back into the tree.
+
+They can go use one of the BSDs or a release based upon an older
+kernel instead.
