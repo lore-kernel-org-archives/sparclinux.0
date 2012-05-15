@@ -1,7 +1,7 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Tue, 15 May 2012 15:30:45 +0000
+From: Tom Callaway <tcallawa@redhat.com>
+Date: Tue, 15 May 2012 15:57:45 +0000
 Subject: Re: [PATCH] sparc32: Remove cypress cpu support.
-Message-Id: <20120515153045.GB5499@merkur.ravnborg.org>
+Message-Id: <4FB27CF9.5060207@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20120515.010944.1681839607025121917.davem@davemloft.net>
 In-Reply-To: <20120515.010944.1681839607025121917.davem@davemloft.net>
@@ -10,29 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, May 15, 2012 at 03:16:34PM +1000, Julian Calaby wrote:
-> Hi David,
+On 05/15/2012 01:09 AM, David Miller wrote:
 > 
-> On Tue, May 15, 2012 at 3:09 PM, David Miller <davem@davemloft.net> wrote:
-> >
-> > It's the one aberration in v8, the only cpu that
-> > didn't actually have hardware multiply and divide
-> > instructions.
-> >
-> > Signed-off-by: David S. Miller <davem@davemloft.net>
-> > ---
-> >
-> > I'm tempted to push this.
+> It's the one aberration in v8, the only cpu that
+> didn't actually have hardware multiply and divide
+> instructions.
 > 
-> I would be too.
+> Signed-off-by: David S. Miller <davem@davemloft.net>
+> ---
 > 
-> I was thinking of adding a Kconfig variable for Cypress CPU support
-> since it's status first came up and linking this to the CFLAGS so that
-> we would only generate v7 code if it's enabled, but I haven't had the
-> time.
+> I'm tempted to push this.
+> 
+> Sam, what's your take on it?
 
-If we started doing this we would still have to maintain Cypress support.
-The whole purpose is to trim down the sparc32 kernel to
-the more relevant parts while making the kernel easier to maintain.
+I'm not Sam, but for what its worth, I say push it. In all the years
+that Aurora maintained a sparc32 build, I never once saw one or had a
+user report using one (and we had people trying to run Aurora on
+Javastations).
 
-	Sam
+~tom
+
+=
+Fedora Project
