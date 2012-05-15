@@ -1,38 +1,37 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 15 May 2012 17:06:48 +0000
+Date: Tue, 15 May 2012 17:26:13 +0000
 Subject: Re: [PATCH] sparc32: Remove cypress cpu support.
-Message-Id: <20120515.130648.766436692264173586.davem@davemloft.net>
+Message-Id: <20120515.132613.1143923069007142641.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20120515.010944.1681839607025121917.davem@davemloft.net>
 In-Reply-To: <20120515.010944.1681839607025121917.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Julian Calaby <julian.calaby@gmail.com>
-Date: Tue, 15 May 2012 20:01:01 +1000
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Tue, 15 May 2012 17:28:55 +0200
 
-> Hi,
->=20
-> On Tue, May 15, 2012 at 6:41 PM, Josip Rodin <joy@entuzijast.net> wrote:
->> On Tue, May 15, 2012 at 02:16:08AM -0500, Dennis Gilmore wrote:
->>> El Tue, 15 May 2012 01:09:44 -0400 (EDT)
->>> David Miller <davem@davemloft.net> escribi=F3:
->>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 prom_printf("Sparc-Linux Cypres=
-s support
->>> > does not longer exit.\n");
->>>
->>> maybe that should say
->>> "Sparc-Linux Cypress support no longer exists.\n"
->>
->> Or "You actually run a Cypress SPARC? Please mail sparclinux@vger.kernel=
-.org\n"
->=20
-> I think that's a much better message =3D)
+> On Tue, May 15, 2012 at 01:09:44AM -0400, David Miller wrote:
+>>  arch/sparc/include/asm/cypress.h |   79 ---------
+>>  arch/sparc/include/asm/elf_32.h  |   12 +-
+>>  arch/sparc/include/asm/mbus.h    |    4 -
+>>  arch/sparc/kernel/head_32.S      |   15 --
+>>  arch/sparc/kernel/irq_32.c       |   11 --
+>>  arch/sparc/mm/srmmu.c            |  333 +-------------------------------------
+>>  6 files changed, 5 insertions(+), 449 deletions(-)
+> 
+> I had hoped to see more code gone with Cypress.
+> - kernel/muldiv.c
+> - lib/mul.S/umul.S etc.
+> - PATCH_IT() stuff in head_32.S
+> - "-mcpu=v8" in top-level Makefile
+> 
+> Partly on the todo list I assume.
 
-I don't, because I have no intention of ever putting the Cypress
-support back into the tree.
+It is the next step I planned to make.
 
-They can go use one of the BSDs or a release based upon an older
-kernel instead.
+> Acked-by: Sam Ravnborg <sam@ravnborg.org>
+
+Pushed, thanks Sam.
