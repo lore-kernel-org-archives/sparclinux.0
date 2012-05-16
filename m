@@ -1,7 +1,7 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Wed, 16 May 2012 12:39:46 +0000
+From: Jiri Gaisler <jiri@gaisler.se>
+Date: Wed, 16 May 2012 12:55:48 +0000
 Subject: Re: [RFC PATCH] sparc32,leon: always include leon code in build
-Message-Id: <20120516123946.GA854@merkur.ravnborg.org>
+Message-Id: <4FB3A3D4.7080902@gaisler.se>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20120514202951.GA4439@merkur.ravnborg.org>
 In-Reply-To: <20120514202951.GA4439@merkur.ravnborg.org>
@@ -10,18 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> > 
-> > All other differences looks manageable if we can find a way around
-> > the ASI_M_MMUREGS issue.
-> > 
-> But I think we should resolve the remaining issues that keep LEON
-> builds from working on other cpus first, because the thing you're
-> after will fall transparently out of that.
+
+
+Sam Ravnborg wrote:
+
+> Konrad / Daniel - any inputs on why LEON uses a different ASI?
+> As we uses this in head_32.S this is really annoying...
+
+It is not difficult to change the MMU reg ASI from 0x19 to 0x4
+(as defined in the SRMMU spec). However, all available LEON2/3/4
+chips in production uses 0x19 due to a decision take about 10
+years ago. ASI 4 was used for uncached access in the original
+MMU-less LEON2, hence the choice to use 0x19. In current LEON3/4
+cores, ASI 4 is no longer used, so 0x19 could easily be replaced
+with 4. But removing the use of ASI 0x19 in the kernel will make
+it incompatible with all present chips. I will change the LEON3/4
+IP's to double map the MMU ASI to both 4 and 0x19, but then we have
+to wait an other 10 years until the present chips are out of use
+before we can remove 0x19 from the kernel ...
+
+Jiri.
+
+
 > 
-> For one thing there is no reason in the world to have a different
-> value of ASI_M_MMUREGS.
-
-Konrad / Daniel - any inputs on why LEON uses a different ASI?
-As we uses this in head_32.S this is really annoying...
-
-	Sam
+> 	Sam
+> --
+> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
