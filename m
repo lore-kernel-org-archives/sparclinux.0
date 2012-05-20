@@ -1,45 +1,44 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 20 May 2012 20:39:51 +0000
-Subject: Re: [PATCH 2/2] sparc32: use flushi when run-time patching in per_cpu_patch
-Message-Id: <20120520.163951.1482013956981046721.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 20 May 2012 06:00:09 +0000
+Subject: [PATCH 0/8] diverse sparc32 patches (mostly leon related)
+Message-Id: <20120520060009.GA18477@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20120520153334.GB13857@merkur.ravnborg.org>
-In-Reply-To: <20120520153334.GB13857@merkur.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 20 May 2012 17:33:34 +0200
+I have looked a bit more into proper integration of leon.
+Following is a few random patches as spin-off by this.
 
->>From ddbad389ff8ab3b0c3c2a04fb31c3bffdc8e578f Mon Sep 17 00:00:00 2001
-> From: Sam Ravnborg <sam@ravnborg.org>
-> Date: Sun, 20 May 2012 17:27:53 +0200
-> Subject: [PATCH 2/2] sparc32: use flushi when run-time patching in per_cpu_patch
-> 
-> Davis S. Miller wrote:
-> "
-> The way we do that now is overkill.  We only needed to use the MMU
-> cache ops when we had sun4c around because sun4c lacked support for
-> the "flush" instruction.
-> 
-> But all sun4m and later chips have it so we can use it
-> unconditionally.
-> 
-> So in the per_cpu_patch() code, get rid of the cache ops invocation,
-> and instead execute a "flush %reg" after each of the instruction patch
-> assignments, where %reg is set to the address of the instruction that
-> was stored into.
-> 
-> Perhaps take the flushi() definition from asm/cacheflush_64.h and
-> place it into asm/cacheflush.h, then you can simply use that.
-> "
-> 
-> Implemented as per suggestion.
-> Moved run-time patching before we call paging_init(),
-> so helper methods in paging_init() may utilise run-time patching too.
-> 
-> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+I actually considered creating mm/mmu_viking.c, mm/mmu_turbosparc.c etc.
+But for now I left it all in srmmu.c.
 
-Looks perfect, applied, thanks.
+As I introduced a dedicated traptable file for sparc32, I renamed
+the sparc64 variant.
+This change is not build tested (lacks sparc64 gcc on this box).
+
+	Sam
+
+Sam Ravnborg (8):
+      sparc64: renamed ttable.S to ttable_64.S
+      sparc32: move trap table to a separate file
+      sparc32,leon: move leon ASI definitions to asi.h
+      sparc32,leon: remove duplicate UART register definitions
+      sparc32,leon: remove duplicate definitions in leon.h
+      sparc32,leon: move leon mmu functions to leon_mm.c
+      sparc32: drop unused functions in pgtsrmmu.h
+      sparc32: drop unused inline functions in srmmu.c
+
+ arch/sparc/include/asm/asi.h                |   14 +
+ arch/sparc/include/asm/leon.h               |   55 +----
+ arch/sparc/include/asm/pgtsrmmu.h           |   50 ----
+ arch/sparc/kernel/head_32.S                 |  326 +---------------------
+ arch/sparc/kernel/head_64.S                 |    2 +-
+ arch/sparc/kernel/ttable_32.S               |  418 +++++++++++++++++++++++++++
+ arch/sparc/kernel/{ttable.S => ttable_64.S} |    0
+ arch/sparc/mm/leon_mm.c                     |   96 ++++++-
+ arch/sparc/mm/srmmu.c                       |  109 +-------
+ arch/sparc/mm/srmmu.h                       |    4 +
+ 10 files changed, 537 insertions(+), 537 deletions(-)
+
