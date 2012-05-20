@@ -1,49 +1,43 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 11 May 2012 21:35:07 +0000
-Subject: [PATCH 04/14] sparc32: drop sun4c specific ___xchg32 implementation
-Message-Id: <1336772117-1539-4-git-send-email-sam@ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Sun, 20 May 2012 05:00:34 +0000
+Subject: [PATCH] sparc32: Remove asm/sysen.h header.
+Message-Id: <20120520.010034.1484091469844641207.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
----
- arch/sparc/lib/atomic_32.S |   20 --------------------
- 1 files changed, 0 insertions(+), 20 deletions(-)
 
-diff --git a/arch/sparc/lib/atomic_32.S b/arch/sparc/lib/atomic_32.S
-index eb6c735..e2a9085 100644
---- a/arch/sparc/lib/atomic_32.S
-+++ b/arch/sparc/lib/atomic_32.S
-@@ -13,26 +13,6 @@
- __atomic_begin:
- 
- #ifndef CONFIG_SMP
--	.globl	___xchg32_sun4c
--___xchg32_sun4c:
--	rd	%psr, %g3
--	andcc	%g3, PSR_PIL, %g0
--	bne	1f
--	 nop
--	wr	%g3, PSR_PIL, %psr
--	nop; nop; nop
--1:
--	andcc	%g3, PSR_PIL, %g0
--	ld	[%g1], %g7
--	bne	1f
--	 st	%g2, [%g1]
--	wr	%g3, 0x0, %psr
--	nop; nop; nop
--1:
--	mov	%g7, %g2
--	jmpl	%o7 + 8, %g0
--	 mov	%g4, %o7
+Defines a sun4c register, thus completely unused.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/include/asm/sysen.h |   15 ---------------
+ 1 file changed, 15 deletions(-)
+ delete mode 100644 arch/sparc/include/asm/sysen.h
+
+diff --git a/arch/sparc/include/asm/sysen.h b/arch/sparc/include/asm/sysen.h
+deleted file mode 100644
+index 6af34ab..0000000
+--- a/arch/sparc/include/asm/sysen.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * sysen.h:  Bit fields within the "System Enable" register accessed via
+- *           the ASI_CONTROL address space at address AC_SYSENABLE.
+- *
+- * Copyright (C) 1994 David S. Miller (davem@caip.rutgers.edu)
+- */
 -
- 	.globl	___xchg32_sun4md
- ___xchg32_sun4md:
- 	swap	[%g1], %g2
+-#ifndef _SPARC_SYSEN_H
+-#define _SPARC_SYSEN_H
+-
+-#define SENABLE_DVMA   0x20   /* enable dvma transfers */
+-#define SENABLE_CACHE  0x10   /* enable VAC cache */
+-#define SENABLE_RESET  0x04   /* reset whole machine, danger Will Robinson */
+-
+-#endif /* _SPARC_SYSEN_H */
 -- 
-1.6.0.6
+1.7.10
 
