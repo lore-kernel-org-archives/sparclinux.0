@@ -1,26 +1,29 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 20 May 2012 20:39:33 +0000
-Subject: Re: [PATCH 1/2] sparc32: fix cpuid_patch run-time patching
-Message-Id: <20120520.163933.122907259597206889.davem@davemloft.net>
+From: Meelis Roos <mroos@linux.ee>
+Date: Sun, 20 May 2012 16:07:03 +0000
+Subject: Best userland for sparc32?
+Message-Id: <alpine.SOC.1.00.1205201859120.3202@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20120520153140.GA13857@merkur.ravnborg.org>
-In-Reply-To: <20120520153140.GA13857@merkur.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 20 May 2012 17:31:40 +0200
+I have not tested any sparc32 configs since Debian dropped sparc32. 
+However, I do have some hardware that I'd like to put to good use for 
+testing the sparc32 changes (SS10 SP, SS10 MP, SS10 4x100 Ross, SS20 
+(maybe SMP too), SS5 70 MHz stock CPU, SS5 with 170 MHz Fujitsu(?) CPU), 
+SS4, probably some lunchboxes too if I find some big enough working 
+HDD-s (LX, CLassic), ADEE S10Station (SS10 clone).
 
->>From eecbbe31067e738d4342dee9709f14086cd4fbad Mon Sep 17 00:00:00 2001
-> From: Sam Ravnborg <sam@ravnborg.org>
-> Date: Sun, 20 May 2012 17:24:20 +0200
-> Subject: [PATCH 1/2] sparc32: fix cpuid_patch run-time patching
-> 
-> We hang forever when trying to do run-time patching of instructions
-> identified by the cpuid_patch section
-> 
-> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+That leads to the question, what is the best userland to compile and run 
+sparc32 kernels? This probably means recent gcc & binutils, and that 
+they are routinely updated. I can ocassionally compile a binutils or a 
+gcc if it has been automated by someone else (like in gentoo), or better 
+use binary packages and update these. And I want to compile the kernels 
+on these machines themselves (as all my tect machines do), to have 
+better testing.
 
-Yikes, good catch, applied.
+So, what distros do people suggest?
+
+-- 
+Meelis Roos (mroos@linux.ee)
