@@ -1,45 +1,50 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 16 May 2012 19:09:53 +0000
-Subject: Re: [RFC PATCH] sparc32,leon: always include leon code in build
-Message-Id: <20120516.150953.1352903245682524545.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 20 May 2012 15:31:40 +0000
+Subject: [PATCH 1/2] sparc32: fix cpuid_patch run-time patching
+Message-Id: <20120520153140.GA13857@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20120514202951.GA4439@merkur.ravnborg.org>
-In-Reply-To: <20120514202951.GA4439@merkur.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Jiri Gaisler <jiri@gaisler.se>
-Date: Wed, 16 May 2012 14:55:48 +0200
+From eecbbe31067e738d4342dee9709f14086cd4fbad Mon Sep 17 00:00:00 2001
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 20 May 2012 17:24:20 +0200
+Subject: [PATCH 1/2] sparc32: fix cpuid_patch run-time patching
 
-> 
-> 
-> Sam Ravnborg wrote:
-> 
->> Konrad / Daniel - any inputs on why LEON uses a different ASI?
->> As we uses this in head_32.S this is really annoying...
-> 
-> It is not difficult to change the MMU reg ASI from 0x19 to 0x4
-> (as defined in the SRMMU spec). However, all available LEON2/3/4
-> chips in production uses 0x19 due to a decision take about 10
-> years ago. ASI 4 was used for uncached access in the original
-> MMU-less LEON2, hence the choice to use 0x19. In current LEON3/4
-> cores, ASI 4 is no longer used, so 0x19 could easily be replaced
-> with 4. But removing the use of ASI 0x19 in the kernel will make
-> it incompatible with all present chips. I will change the LEON3/4
-> IP's to double map the MMU ASI to both 4 and 0x19, but then we have
-> to wait an other 10 years until the present chips are out of use
-> before we can remove 0x19 from the kernel ...
+We hang forever when trying to do run-time patching of instructions
+identified by the cpuid_patch section
 
-This is not what we're asking you to do.
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
 
-We're asking you to rearrange the code so that we can set
-ASI_M_MMUREGS to it's proper SRMMU value, and then you change all the
-LEON code to take different paths and use Leon specific code to
-program the MMU.
+I tested this by replacing all sun4d code with sun4m code,
+and I then modified the sun4m code to be wrong.
+With no patching the kernel failed to boot.
+With patching the kernel was able to boot after this little fix.
 
-In that way we can have one kernel image that boots properly
-on all cpu types, rather than the current broken situation where
-a Leon enabled build makes the kernel unbootable on real SRMMU
-chips.
+The bug was found when testing the flushi variant in the
+following patch - but the bug-fix warranted a dedicated patch.
+
+	Sam
+
+ arch/sparc/kernel/setup_32.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/arch/sparc/kernel/setup_32.c b/arch/sparc/kernel/setup_32.c
+index 635df5c..d65b5a1 100644
+--- a/arch/sparc/kernel/setup_32.c
++++ b/arch/sparc/kernel/setup_32.c
+@@ -229,6 +229,8 @@ static void __init per_cpu_patch(void)
+ 		*(unsigned int *) (addr + 0) = insns[0];
+ 		*(unsigned int *) (addr + 4) = insns[1];
+ 		*(unsigned int *) (addr + 8) = insns[2];
++
++		p++;
+ 	}
+ #ifdef CONFIG_SMP
+ 	local_ops->cache_all();
+-- 
+1.6.0.6
+
