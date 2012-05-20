@@ -1,120 +1,60 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Tue, 22 May 2012 15:11:23 +0000
-Subject: [PATCH] sparc32: use the common implementation of alloc_thread_info_node()
-Message-Id: <20120522151123.GA10058@merkur.ravnborg.org>
+Date: Sun, 20 May 2012 06:02:48 +0000
+Subject: [PATCH 5/8] sparc32,leon: remove duplicate definitions in leon.h
+Message-Id: <1337493771-18535-5-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>, sparclinux <sparclinux@vger.kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, lkml <linux-kernel@vger.kernel.org>
-
-From 52d8a6d1b81a19e693a09df90275600f44293f43 Mon Sep 17 00:00:00 2001
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Tue, 22 May 2012 16:39:00 +0200
-Subject: [PATCH] sparc32: use the common implementation of alloc_thread_info_node()
-
-With sun4c removed we can fall-back to the common implementation.
+To: sparclinux@vger.kernel.org
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Konrad Eisele <konrad@gaisler.com>
 ---
+ arch/sparc/include/asm/leon.h |   17 ++---------------
+ 1 files changed, 2 insertions(+), 15 deletions(-)
 
-This is not a "real" bug but I would like it applied anyway.
-Thomas Gleixner <tglx@linutronix.de> consolidated all
-alloc_thread_info_node() implmentations but sparc32 was
-left out due to sun4c weirdness.
-
-With sun4c gone we can align with the rest of the world.
-(and I promised Thomas to follow-up on this when his patch-set was merged).
-
-This patch is on top of:
-bf67f3a5c456a18f2e8d062f7e88506ef2cd9837 ("Merge branch
-'smp-hotplug-for-linus' of
-git://git.kernel.org/pub/scm/linux/kernel/git/tip/tip")
-
-	Sam
-
- arch/sparc/Kconfig                      |    1 -
- arch/sparc/include/asm/thread_info_32.h |   11 ++---------
- arch/sparc/mm/srmmu.c                   |   27 ---------------------------
- 3 files changed, 2 insertions(+), 37 deletions(-)
-
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index b2b9daf..5af013f 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -37,7 +37,6 @@ config SPARC32
- 	def_bool !64BIT
- 	select GENERIC_ATOMIC64
- 	select CLZ_TAB
--	select ARCH_THREAD_INFO_ALLOCATOR
+diff --git a/arch/sparc/include/asm/leon.h b/arch/sparc/include/asm/leon.h
+index 7a66bd9..24f802b 100644
+--- a/arch/sparc/include/asm/leon.h
++++ b/arch/sparc/include/asm/leon.h
+@@ -240,18 +240,11 @@ static inline int sparc_leon3_cpuid(void)
+ #define LEON2_CFG_SSIZE_MASK 0x00007000UL
  
- config SPARC64
- 	def_bool 64BIT
-diff --git a/arch/sparc/include/asm/thread_info_32.h b/arch/sparc/include/asm/thread_info_32.h
-index 21a3894..5af6649 100644
---- a/arch/sparc/include/asm/thread_info_32.h
-+++ b/arch/sparc/include/asm/thread_info_32.h
-@@ -77,18 +77,11 @@ register struct thread_info *current_thread_info_reg asm("g6");
- /*
-  * thread information allocation
-  */
--#define THREAD_INFO_ORDER  1
+ #ifndef __ASSEMBLY__
+-extern unsigned long srmmu_swprobe(unsigned long vaddr, unsigned long *paddr);
+-extern void leon_flush_icache_all(void);
+-extern void leon_flush_dcache_all(void);
+-extern void leon_flush_cache_all(void);
+-extern void leon_flush_tlb_all(void);
+-extern int leon_flush_during_switch;
+-extern int leon_flush_needed(void);
 -
--struct thread_info * alloc_thread_info_node(struct task_struct *tsk, int node);
--void free_thread_info(struct thread_info *);
-+#define THREAD_SIZE_ORDER  1
+ struct vm_area_struct;
++
++extern unsigned long srmmu_swprobe(unsigned long vaddr, unsigned long *paddr);
+ extern void leon_flush_icache_all(void);
+ extern void leon_flush_dcache_all(void);
+-extern void leon_flush_pcache_all(struct vm_area_struct *vma, unsigned long page);
+ extern void leon_flush_cache_all(void);
+ extern void leon_flush_tlb_all(void);
+ extern int leon_flush_during_switch;
+@@ -286,15 +279,9 @@ extern void leon_update_virq_handling(unsigned int virq,
+ extern void leon_init_timers(void);
+ extern void leon_trans_init(struct device_node *dp);
+ extern void leon_node_init(struct device_node *dp, struct device_node ***nextp);
+-extern void leon_init_IRQ(void);
+-extern void leon_init(void);
+-extern unsigned long srmmu_swprobe(unsigned long vaddr, unsigned long *paddr);
+ extern void init_leon(void);
+ extern void poke_leonsparc(void);
+ extern void leon3_getCacheRegs(struct leon3_cacheregs *regs);
+-extern int leon_flush_needed(void);
+-extern void leon_switch_mm(void);
+-extern int srmmu_swprobe_trace;
+ extern int leon3_ticker_irq;
  
- #endif /* __ASSEMBLY__ */
- 
--/*
-- * Size of kernel stack for each process.
-- * Observe the order of get_free_pages() in alloc_thread_info_node().
-- * The sun4 has 8K stack too, because it's short on memory, and 16K is a waste.
-- */
-+/* Size of kernel stack for each process */
- #define THREAD_SIZE		(2 * PAGE_SIZE)
- 
- /*
-diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-index 8e97e03..256db6b 100644
---- a/arch/sparc/mm/srmmu.c
-+++ b/arch/sparc/mm/srmmu.c
-@@ -467,33 +467,6 @@ void srmmu_unmapiorange(unsigned long virt_addr, unsigned int len)
- 	flush_tlb_all();
- }
- 
--/*
-- * On the SRMMU we do not have the problems with limited tlb entries
-- * for mapping kernel pages, so we just take things from the free page
-- * pool.  As a side effect we are putting a little too much pressure
-- * on the gfp() subsystem.  This setup also makes the logic of the
-- * iommu mapping code a lot easier as we can transparently handle
-- * mappings on the kernel stack without any special code.
-- */
--struct thread_info *alloc_thread_info_node(struct task_struct *tsk, int node)
--{
--	struct thread_info *ret;
--
--	ret = (struct thread_info *)__get_free_pages(GFP_KERNEL,
--						     THREAD_INFO_ORDER);
--#ifdef CONFIG_DEBUG_STACK_USAGE
--	if (ret)
--		memset(ret, 0, PAGE_SIZE << THREAD_INFO_ORDER);
--#endif /* DEBUG_STACK_USAGE */
--
--	return ret;
--}
--
--void free_thread_info(struct thread_info *ti)
--{
--	free_pages((unsigned long)ti, THREAD_INFO_ORDER);
--}
--
- /* tsunami.S */
- extern void tsunami_flush_cache_all(void);
- extern void tsunami_flush_cache_mm(struct mm_struct *mm);
+ #ifdef CONFIG_SMP
 -- 
 1.6.0.6
 
