@@ -1,60 +1,64 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 20 May 2012 06:02:48 +0000
-Subject: [PATCH 5/8] sparc32,leon: remove duplicate definitions in leon.h
-Message-Id: <1337493771-18535-5-git-send-email-sam@ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Sun, 20 May 2012 04:26:45 +0000
+Subject: [PATCH] sparc32: Move GET_PROCESSOR*_ID() out of asm/asmmacro.h
+Message-Id: <20120520.002645.365061001770997651.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Konrad Eisele <konrad@gaisler.com>
----
- arch/sparc/include/asm/leon.h |   17 ++---------------
- 1 files changed, 2 insertions(+), 15 deletions(-)
 
-diff --git a/arch/sparc/include/asm/leon.h b/arch/sparc/include/asm/leon.h
-index 7a66bd9..24f802b 100644
---- a/arch/sparc/include/asm/leon.h
-+++ b/arch/sparc/include/asm/leon.h
-@@ -240,18 +240,11 @@ static inline int sparc_leon3_cpuid(void)
- #define LEON2_CFG_SSIZE_MASK 0x00007000UL
+GET_PROCESSOR4D_ID is completely unused, so delete it.
+
+Move GET_PROCESSOR4M_ID to the sun4m specific trap code
+which uses it.
+
+We now no longer need to include asm/asi.h
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/include/asm/asmmacro.h |   10 ----------
+ arch/sparc/kernel/entry.S         |    5 +++++
+ 2 files changed, 5 insertions(+), 10 deletions(-)
+
+diff --git a/arch/sparc/include/asm/asmmacro.h b/arch/sparc/include/asm/asmmacro.h
+index 1d51161..02a172f 100644
+--- a/arch/sparc/include/asm/asmmacro.h
++++ b/arch/sparc/include/asm/asmmacro.h
+@@ -6,16 +6,6 @@
+ #ifndef _SPARC_ASMMACRO_H
+ #define _SPARC_ASMMACRO_H
  
- #ifndef __ASSEMBLY__
--extern unsigned long srmmu_swprobe(unsigned long vaddr, unsigned long *paddr);
--extern void leon_flush_icache_all(void);
--extern void leon_flush_dcache_all(void);
--extern void leon_flush_cache_all(void);
--extern void leon_flush_tlb_all(void);
--extern int leon_flush_during_switch;
--extern int leon_flush_needed(void);
+-#include <asm/asi.h>
 -
- struct vm_area_struct;
-+
-+extern unsigned long srmmu_swprobe(unsigned long vaddr, unsigned long *paddr);
- extern void leon_flush_icache_all(void);
- extern void leon_flush_dcache_all(void);
--extern void leon_flush_pcache_all(struct vm_area_struct *vma, unsigned long page);
- extern void leon_flush_cache_all(void);
- extern void leon_flush_tlb_all(void);
- extern int leon_flush_during_switch;
-@@ -286,15 +279,9 @@ extern void leon_update_virq_handling(unsigned int virq,
- extern void leon_init_timers(void);
- extern void leon_trans_init(struct device_node *dp);
- extern void leon_node_init(struct device_node *dp, struct device_node ***nextp);
--extern void leon_init_IRQ(void);
--extern void leon_init(void);
--extern unsigned long srmmu_swprobe(unsigned long vaddr, unsigned long *paddr);
- extern void init_leon(void);
- extern void poke_leonsparc(void);
- extern void leon3_getCacheRegs(struct leon3_cacheregs *regs);
--extern int leon_flush_needed(void);
--extern void leon_switch_mm(void);
--extern int srmmu_swprobe_trace;
- extern int leon3_ticker_irq;
+-#define GET_PROCESSOR4M_ID(reg) \
+-	rd	%tbr, %reg; \
+-	srl	%reg, 12, %reg; \
+-	and	%reg, 3, %reg;
+-
+-#define GET_PROCESSOR4D_ID(reg) \
+-	lda	[%g0] ASI_M_VIKING_TMP1, %reg;
+-
+ /* All trap entry points _must_ begin with this macro or else you
+  * lose.  It makes sure the kernel has a proper window so that
+  * c-code can be called.
+diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
+index 3f3976e..2dbe180 100644
+--- a/arch/sparc/kernel/entry.S
++++ b/arch/sparc/kernel/entry.S
+@@ -254,6 +254,11 @@ smp4m_ticker:
+ 	WRITE_PAUSE
+ 	RESTORE_ALL
  
- #ifdef CONFIG_SMP
++#define GET_PROCESSOR4M_ID(reg)	\
++	rd	%tbr, %reg;	\
++	srl	%reg, 12, %reg;	\
++	and	%reg, 3, %reg;
++
+ 	/* Here is where we check for possible SMP IPI passed to us
+ 	 * on some level other than 15 which is the NMI and only used
+ 	 * for cross calls.  That has a separate entry point below.
 -- 
-1.6.0.6
+1.7.10
 
