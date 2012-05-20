@@ -1,167 +1,132 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 11 May 2012 21:35:13 +0000
-Subject: [PATCH 10/14] sparc32: drop sun4c user stack checking routine
-Message-Id: <1336772117-1539-10-git-send-email-sam@ravnborg.org>
+Date: Sun, 20 May 2012 06:02:50 +0000
+Subject: [PATCH 7/8] sparc32: drop unused functions in pgtsrmmu.h
+Message-Id: <1337493771-18535-7-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-With this we no longer do any run-time patchings of traps.
-So drop the function + macro to support this.
+One function was only used by leon - move it to a leon specific file.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/include/asm/traps.h |    7 ----
- arch/sparc/kernel/rtrap_32.S   |   76 +++------------------------------------
- arch/sparc/mm/srmmu.c          |   14 -------
- 3 files changed, 6 insertions(+), 91 deletions(-)
+ arch/sparc/include/asm/pgtsrmmu.h |   50 -------------------------------------
+ arch/sparc/mm/leon_mm.c           |   16 ++++++++++-
+ 2 files changed, 14 insertions(+), 52 deletions(-)
 
-diff --git a/arch/sparc/include/asm/traps.h b/arch/sparc/include/asm/traps.h
-index 3aa62dd..5fac90f 100644
---- a/arch/sparc/include/asm/traps.h
-+++ b/arch/sparc/include/asm/traps.h
-@@ -31,13 +31,6 @@ extern struct tt_entry *sparc_ttable;
+diff --git a/arch/sparc/include/asm/pgtsrmmu.h b/arch/sparc/include/asm/pgtsrmmu.h
+index f6ae2b2..cb82870 100644
+--- a/arch/sparc/include/asm/pgtsrmmu.h
++++ b/arch/sparc/include/asm/pgtsrmmu.h
+@@ -173,17 +173,6 @@ static inline void srmmu_set_ctable_ptr(unsigned long paddr)
+ 			     "memory");
+ }
  
- #define SPARC_MOV_CONST_L3(const) (0xa6102000 | (const&0xfff))
- 
--/* The following assumes that the branch lies before the place we
-- * are branching to.  This is the case for a trap vector...
-- * You have been warned.
-- */
--#define SPARC_BRANCH(dest_addr, inst_addr) \
--          (0x10800000 | (((dest_addr-inst_addr)>>2)&0x3fffff))
--
- #define SPARC_RD_PSR_L0  (0xa1480000)
- #define SPARC_RD_WIM_L3  (0xa7500000)
- #define SPARC_NOP (0x01000000)
-diff --git a/arch/sparc/kernel/rtrap_32.S b/arch/sparc/kernel/rtrap_32.S
-index 5f5f74c..7abc24e 100644
---- a/arch/sparc/kernel/rtrap_32.S
-+++ b/arch/sparc/kernel/rtrap_32.S
-@@ -128,13 +128,12 @@ rtrap_patch2:	and	%glob_tmp, 0xff, %glob_tmp
- 
- 		wr	%glob_tmp, 0x0, %wim
- 
--				/* Here comes the architecture specific 
--				 * branch to the user stack checking routine
--				 * for return from traps.
--				 */
--				.globl	rtrap_mmu_patchme
--rtrap_mmu_patchme:	b	sun4c_rett_stackchk
--				 andcc	%fp, 0x7, %g0	
-+	/* Here comes the architecture specific
-+	 * branch to the user stack checking routine
-+	 * for return from traps.
-+	 */
-+	b	srmmu_rett_stackchk
-+	 andcc	%fp, 0x7, %g0
- 
- ret_trap_userwins_ok:
- 	LOAD_PT_PRIV(sp, t_psr, t_pc, t_npc)
-@@ -225,69 +224,6 @@ ret_trap_user_stack_is_bolixed:
- 	b	signal_p
- 	 ld	[%curptr + TI_FLAGS], %g2
- 
--sun4c_rett_stackchk:
--	be	1f
--	 and	%fp, 0xfff, %g1		! delay slot
--
--	b	ret_trap_user_stack_is_bolixed + 0x4
--	 wr	%t_wim, 0x0, %wim
--
--	/* See if we have to check the sanity of one page or two */
--1:
--	add	%g1, 0x38, %g1
--	sra	%fp, 29, %g2
--	add	%g2, 0x1, %g2
--	andncc	%g2, 0x1, %g0
--	be	1f
--	 andncc	%g1, 0xff8, %g0
--
--	/* %sp is in vma hole, yuck */
--	b	ret_trap_user_stack_is_bolixed + 0x4
--	 wr	%t_wim, 0x0, %wim
--
--1:
--	be	sun4c_rett_onepage	/* Only one page to check */
--	 lda	[%fp] ASI_PTE, %g2
--
--sun4c_rett_twopages:
--	add	%fp, 0x38, %g1
--	sra	%g1, 29, %g2
--	add	%g2, 0x1, %g2
--	andncc	%g2, 0x1, %g0
--	be	1f
--	 lda	[%g1] ASI_PTE, %g2
--
--	/* Second page is in vma hole */
--	b	ret_trap_user_stack_is_bolixed + 0x4
--	 wr	%t_wim, 0x0, %wim
--
--1:
--	srl	%g2, 29, %g2
--	andcc	%g2, 0x4, %g0
--	bne	sun4c_rett_onepage
--	 lda	[%fp] ASI_PTE, %g2
--
--	/* Second page has bad perms */
--	b	ret_trap_user_stack_is_bolixed + 0x4
--	 wr	%t_wim, 0x0, %wim
--
--sun4c_rett_onepage:
--	srl	%g2, 29, %g2
--	andcc	%g2, 0x4, %g0
--	bne,a	1f
--	 restore %g0, %g0, %g0
--
--	/* A page had bad page permissions, losing... */
--	b	ret_trap_user_stack_is_bolixed + 0x4
--	 wr	%t_wim, 0x0, %wim
--
--	/* Whee, things are ok, load the window and continue. */
--1:
--	LOAD_WINDOW(sp)
--
--	b	ret_trap_userwins_ok
--	 save	%g0, %g0, %g0
--
- 	.globl	srmmu_rett_stackchk
- srmmu_rett_stackchk:
- 	bne	ret_trap_user_stack_is_bolixed
-diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-index deb7dd8..a948ee5 100644
---- a/arch/sparc/mm/srmmu.c
-+++ b/arch/sparc/mm/srmmu.c
-@@ -2134,19 +2134,6 @@ extern unsigned long spwin_mmu_patchme, fwin_mmu_patchme,
- extern unsigned long spwin_srmmu_stackchk, srmmu_fwin_stackchk,
- 	tsetup_srmmu_stackchk, srmmu_rett_stackchk;
- 
--#define PATCH_BRANCH(insn, dest) do { \
--		iaddr = &(insn); \
--		daddr = &(dest); \
--		*iaddr = SPARC_BRANCH((unsigned long) daddr, (unsigned long) iaddr); \
--	} while(0)
--
--static void __init patch_window_trap_handlers(void)
+-static inline unsigned long srmmu_get_ctable_ptr(void)
 -{
--	unsigned long *iaddr, *daddr;
--	
--	PATCH_BRANCH(rtrap_mmu_patchme, srmmu_rett_stackchk);
+-	unsigned int retval;
+-
+-	__asm__ __volatile__("lda [%1] %2, %0\n\t" :
+-			     "=r" (retval) :
+-			     "r" (SRMMU_CTXTBL_PTR),
+-			     "i" (ASI_M_MMUREGS));
+-	return (retval & SRMMU_CTX_PMASK) << 4;
 -}
 -
- #ifdef CONFIG_SMP
- /* Local cross-calls. */
- static void smp_flush_page_for_dma(unsigned long page)
-@@ -2270,7 +2257,6 @@ void __init ld_mmu_srmmu(void)
- 	BTFIXUPSET_CALL(pgoff_to_pte, srmmu_pgoff_to_pte, BTFIXUPCALL_NORM);
+ static inline void srmmu_set_context(int context)
+ {
+ 	__asm__ __volatile__("sta %0, [%1] %2\n\t" : :
+@@ -231,42 +220,6 @@ static inline void srmmu_flush_whole_tlb(void)
+ }
  
- 	get_srmmu_type();
--	patch_window_trap_handlers();
+ /* These flush types are not available on all chips... */
+-static inline void srmmu_flush_tlb_ctx(void)
+-{
+-	__asm__ __volatile__("sta %%g0, [%0] %1\n\t": :
+-			     "r" (0x300),        /* Flush TLB ctx.. */
+-			     "i" (ASI_M_FLUSH_PROBE) : "memory");
+-
+-}
+-
+-static inline void srmmu_flush_tlb_region(unsigned long addr)
+-{
+-	addr &= SRMMU_PGDIR_MASK;
+-	__asm__ __volatile__("sta %%g0, [%0] %1\n\t": :
+-			     "r" (addr | 0x200), /* Flush TLB region.. */
+-			     "i" (ASI_M_FLUSH_PROBE) : "memory");
+-
+-}
+-
+-
+-static inline void srmmu_flush_tlb_segment(unsigned long addr)
+-{
+-	addr &= SRMMU_REAL_PMD_MASK;
+-	__asm__ __volatile__("sta %%g0, [%0] %1\n\t": :
+-			     "r" (addr | 0x100), /* Flush TLB segment.. */
+-			     "i" (ASI_M_FLUSH_PROBE) : "memory");
+-
+-}
+-
+-static inline void srmmu_flush_tlb_page(unsigned long page)
+-{
+-	page &= PAGE_MASK;
+-	__asm__ __volatile__("sta %%g0, [%0] %1\n\t": :
+-			     "r" (page),        /* Flush TLB page.. */
+-			     "i" (ASI_M_FLUSH_PROBE) : "memory");
+-
+-}
+-
+ #ifndef CONFIG_SPARC_LEON
+ static inline unsigned long srmmu_hwprobe(unsigned long vaddr)
+ {
+@@ -294,9 +247,6 @@ srmmu_get_pte (unsigned long addr)
+ 	return entry;
+ }
  
- #ifdef CONFIG_SMP
- 	/* El switcheroo... */
+-extern unsigned long (*srmmu_read_physical)(unsigned long paddr);
+-extern void (*srmmu_write_physical)(unsigned long paddr, unsigned long word);
+-
+ #endif /* !(__ASSEMBLY__) */
+ 
+ #endif /* !(_SPARC_PGTSRMMU_H) */
+diff --git a/arch/sparc/mm/leon_mm.c b/arch/sparc/mm/leon_mm.c
+index ccbcba4..3062f4d 100644
+--- a/arch/sparc/mm/leon_mm.c
++++ b/arch/sparc/mm/leon_mm.c
+@@ -20,6 +20,18 @@
+ int leon_flush_during_switch = 1;
+ int srmmu_swprobe_trace;
+ 
++static inline unsigned long leon_get_ctable_ptr(void)
++{
++	unsigned int retval;
++
++	__asm__ __volatile__("lda [%1] %2, %0\n\t" :
++			     "=r" (retval) :
++			     "r" (SRMMU_CTXTBL_PTR),
++			     "i" (ASI_LEON_MMUREGS));
++	return (retval & SRMMU_CTX_PMASK) << 4;
++}
++
++
+ unsigned long srmmu_swprobe(unsigned long vaddr, unsigned long *paddr)
+ {
+ 
+@@ -35,10 +47,10 @@ unsigned long srmmu_swprobe(unsigned long vaddr, unsigned long *paddr)
+ 	if (srmmu_swprobe_trace)
+ 		printk(KERN_INFO "swprobe: trace on\n");
+ 
+-	ctxtbl = srmmu_get_ctable_ptr();
++	ctxtbl = leon_get_ctable_ptr();
+ 	if (!(ctxtbl)) {
+ 		if (srmmu_swprobe_trace)
+-			printk(KERN_INFO "swprobe: srmmu_get_ctable_ptr returned 0=>0\n");
++			printk(KERN_INFO "swprobe: leon_get_ctable_ptr returned 0=>0\n");
+ 		return 0;
+ 	}
+ 	if (!_pfn_valid(PFN(ctxtbl))) {
 -- 
 1.6.0.6
 
