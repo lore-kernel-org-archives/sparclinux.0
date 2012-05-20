@@ -1,7 +1,7 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 12 May 2012 18:04:13 +0000
-Subject: [PATCH 5/5] sparc32: drop unused type/extern
-Message-Id: <1336845853-30388-5-git-send-email-sam@ravnborg.org>
+Date: Sun, 20 May 2012 06:02:46 +0000
+Subject: [PATCH 3/8] sparc32,leon: move leon ASI definitions to asi.h
+Message-Id: <1337493771-18535-3-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,47 +9,61 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Konrad Eisele <konrad@gaisler.com>
 ---
- arch/sparc/include/asm/page_32.h    |    6 ------
- arch/sparc/include/asm/pgtable_32.h |    8 --------
- 2 files changed, 0 insertions(+), 14 deletions(-)
+ arch/sparc/include/asm/asi.h  |   14 ++++++++++++++
+ arch/sparc/include/asm/leon.h |   13 -------------
+ 2 files changed, 14 insertions(+), 13 deletions(-)
 
-diff --git a/arch/sparc/include/asm/page_32.h b/arch/sparc/include/asm/page_32.h
-index bb5c2ac..2afe1e6 100644
---- a/arch/sparc/include/asm/page_32.h
-+++ b/arch/sparc/include/asm/page_32.h
-@@ -45,12 +45,6 @@ struct sparc_phys_banks {
+diff --git a/arch/sparc/include/asm/asi.h b/arch/sparc/include/asm/asi.h
+index b2e3db6..cbb93e5 100644
+--- a/arch/sparc/include/asm/asi.h
++++ b/arch/sparc/include/asm/asi.h
+@@ -112,6 +112,20 @@
  
- extern struct sparc_phys_banks sp_banks[SPARC_PHYS_BANKS+1];
+ #define ASI_M_ACTION       0x4c   /* Breakpoint Action Register (GNU/Viking) */
  
--/* Cache alias structure.  Entry is valid if context != -1. */
--struct cache_palias {
--	unsigned long vaddr;
--	int context;
--};
++/* LEON ASI */
++#define ASI_LEON_NOCACHE        0x01
++
++#define ASI_LEON_DCACHE_MISS    0x01
++
++#define ASI_LEON_CACHEREGS      0x02
++#define ASI_LEON_IFLUSH         0x10
++#define ASI_LEON_DFLUSH         0x11
++
++#define ASI_LEON_MMUFLUSH       0x18
++#define ASI_LEON_MMUREGS        0x19
++#define ASI_LEON_BYPASS         0x1c
++#define ASI_LEON_FLUSH_PAGE     0x10
++
+ /* V9 Architecture mandary ASIs. */
+ #define ASI_N			0x04 /* Nucleus				*/
+ #define ASI_NL			0x0c /* Nucleus, little endian		*/
+diff --git a/arch/sparc/include/asm/leon.h b/arch/sparc/include/asm/leon.h
+index 8095be2..ce76f40 100644
+--- a/arch/sparc/include/asm/leon.h
++++ b/arch/sparc/include/asm/leon.h
+@@ -10,19 +10,6 @@
+ 
+ #ifdef CONFIG_SPARC_LEON
+ 
+-#define ASI_LEON_NOCACHE	0x01
 -
- /* passing structs on the Sparc slow us down tremendously... */
- 
- /* #define STRICT_MM_TYPECHECKS */
-diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
-index 9de855c..4a29b05 100644
---- a/arch/sparc/include/asm/pgtable_32.h
-+++ b/arch/sparc/include/asm/pgtable_32.h
-@@ -77,14 +77,6 @@ extern pgd_t swapper_pg_dir[1024];
- 
- extern void paging_init(void);
- 
--/* Page table for 0-4MB for everybody, on the Sparc this
-- * holds the same as on the i386.
-- */
--extern pte_t pg0[1024];
--extern pte_t pg1[1024];
--extern pte_t pg2[1024];
--extern pte_t pg3[1024];
+-#define ASI_LEON_DCACHE_MISS	0x1
 -
- extern unsigned long ptr_in_current_pgd;
- 
- /* Here is a trick, since mmap.c need the initializer elements for
+-#define ASI_LEON_CACHEREGS	0x02
+-#define ASI_LEON_IFLUSH		0x10
+-#define ASI_LEON_DFLUSH		0x11
+-
+-#define ASI_LEON_MMUFLUSH	0x18
+-#define ASI_LEON_MMUREGS	0x19
+-#define ASI_LEON_BYPASS		0x1c
+-#define ASI_LEON_FLUSH_PAGE	0x10
+-
+ /* mmu register access, ASI_LEON_MMUREGS */
+ #define LEON_CNR_CTRL		0x000
+ #define LEON_CNR_CTXP		0x100
 -- 
 1.6.0.6
 
