@@ -1,32 +1,23 @@
-From: Mcckoy Robertson <nbmglobalsupply@gmail.com>
-Date: Sun, 20 May 2012 16:04:04 +0000
-Subject: Order Enquiry
-Message-Id: <20120520160943.DF6BE429FD3@s15434952.onlinehome-server.info>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 21 May 2012 21:15:20 +0000
+Subject: [README] sparc-next merged...
+Message-Id: <20120521.171520.1063606585445461458.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-Hello Sales
-     I went over your contact online and found some items which we have int=
-erest in purchasing to our store in Spain for urgent supply. I will like to=
- know the prices per each items plus the shipping cost. I also want to know=
- if Letter of Credit or T/T is acceptable for payment. I await your quick r=
-esponse asap so i can proceed with my needed items and quantity.
+Linus has pulled in all of the sparc-next changes into his tree.
+I have therefore fast-forwarded both 'sparc' and 'sparc-next' to
+the head of his tree.
 
-Thank you
-mcckoy robertson
+'sparc-next' is now frozen and no developer should occur against it
+until it is reopenned some time after the merge window is over.
 
+All changes should be bug fixes and made against the 'sparc' tree.
 
-N.B.M Global Supply Inc
-Address: Autov=EDa A-5,
-salidas 22 y 26.
-Arroyomolinos,
-28939 Madrid Spain
-Tel: +34 902 26 77 26
-Email: nbmglobalsupply@gmail.com
-Website : http://www.brplastics.com
-
-
+I am going to allow Sam to finish his de-LEON'ization work and will
+merge it in via the 'sparc' tree, because these changes will
+significantly increase the maintainability of the tree.
