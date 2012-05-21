@@ -1,37 +1,33 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Mon, 21 May 2012 18:33:12 +0000
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Mon, 21 May 2012 18:38:07 +0000
 Subject: Re: [GIT] Sparc
-Message-Id: <CA+55aFy4He9X6wQjATaJukzH1FkyhGqnmC4kb+azKuMmjPGbmg@mail.gmail.com>
+Message-Id: <20120521183807.GA6104@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20120521.050300.1434374935904126254.davem@davemloft.net>
- <CA+55aFzag=LfduvHSmE34nEVYOk=MRhUMzK854+icLwthmz5Ng@mail.gmail.com>
- <20120521182400.GA6043@merkur.ravnborg.org> <CA+55aFymRE-_1qzCA_n3xYbMseQrZsjJWWX74S3jn5Qyf9Efjw@mail.gmail.com>
+References: <20120521.050300.1434374935904126254.davem@davemloft.net> <CA+55aFzag=LfduvHSmE34nEVYOk=MRhUMzK854+icLwthmz5Ng@mail.gmail.com> <20120521182400.GA6043@merkur.ravnborg.org> <CA+55aFymRE-_1qzCA_n3xYbMseQrZsjJWWX74S3jn5Qyf9Efjw@mail.gmail.com>
 In-Reply-To: <CA+55aFymRE-_1qzCA_n3xYbMseQrZsjJWWX74S3jn5Qyf9Efjw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Sam Ravnborg <sam@ravnborg.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: David Miller <davem@davemloft.net>, akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, May 21, 2012 at 11:28 AM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
->
+On Mon, May 21, 2012 at 11:28:58AM -0700, Linus Torvalds wrote:
+> On Mon, May 21, 2012 at 11:24 AM, Sam Ravnborg <sam@ravnborg.org> wrote:
+> >
+> > So the "if NET" part in the select is redundant but not strictly wrong.
+> 
+> It's not redundant.
+> 
+> Try doing a "make ARCH=sparc allnoconfig" without it. It will warn.
+> 
 > I didn't bother looking at *why* it warns, but all other architectures
 > have the "if NET" part.
 
-Ok, I looked now, and it's because the definition of HAVE_BPF_JIT is
-inside the "if NET" thing.
+I see. This is because HAVE_BPF_JIT depends on NET, so kconfig
+warns if you select HAVE_BPF_JIT without NET enabled.
+The correct fix is obviously to move HAVE_BPF_JIT so it
+does not depend on NET.
 
-So if NET isn't enabled, then HAVE_BPF_JIT doesn't really *exist* as
-an option. Doing a "select" on it is thus not a good idea.
+Sprinkling "if NET" all over is the wrong fix.
 
-I bet you could just move the two lines
-
-  config HAVE_BPF_JIT
-          bool
-
-up to the top of net/Kconfig (so that HAVE_BPF_JIT is available
-unconditionally), and then remove all the "if NET" from the four
-architectures that support it.
-
-                  Linus
+	Sam
