@@ -1,46 +1,29 @@
-From: Josip Rodin <joy@entuzijast.net>
-Date: Sun, 27 May 2012 21:15:29 +0000
-Subject: Re: [PATCH 1/4] sparc32: refactor cpu_idle()
-Message-Id: <20120527211528.GA509@entuzijast.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Mon, 21 May 2012 16:22:53 +0000
+Subject: How to recognize a LEON CPU?
+Message-Id: <20120521162253.GB5733@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1338043409-6827-1-git-send-email-sam@ravnborg.org>
-In-Reply-To: <1338043409-6827-1-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sat, May 26, 2012 at 04:43:26PM +0200, Sam Ravnborg wrote:
-> With the removal of sun4c we can use the same cpu_idle()
-> implementation on UP and SMP.
-> This also fix it so we use the same version independent on LEON
-> enabled or not.
-> 
-> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-> Cc: Daniel Hellstrom <daniel@gaisler.com>
-> Cc: Konrad Eisele <konrad@gaisler.com>
-> ---
->  arch/sparc/kernel/process_32.c |   28 ++--------------------------
->  1 files changed, 2 insertions(+), 26 deletions(-)
-> 
-> diff --git a/arch/sparc/kernel/process_32.c b/arch/sparc/kernel/process_32.c
-> index fe6787c..7d6f60e 100644
-> --- a/arch/sparc/kernel/process_32.c
-> +++ b/arch/sparc/kernel/process_32.c
-> @@ -65,13 +65,13 @@ extern void fpsave(unsigned long *, unsigned long *, void *, unsigned long *);
->  struct task_struct *last_task_used_math = NULL;
->  struct thread_info *current_set[NR_CPUS];
->  
-> -#ifndef CONFIG_SMP
-> -
->  /*
->   * the idle loop on a Sparc... ;)
->   */
->  void cpu_idle(void)
->  {
-> +        set_thread_flag(TIF_POLLING_NRFLAG);
+Who is the relevant Gaisler contact person these days for Linux stuff?
+I sometimes uses Daniel, sometimes Konrad.
 
-That seems to be 8 spaces instead of a tab there.
+I can just add both of you - this is no problem.
+As I plan to update the LEON integration it would be good
+to have in place.
 
--- 
-     2. That which causes joy or happiness.
+Anyway - the real question..
+
+In head_32.S I need very early on to determine the CPU type,
+so I can distingush between LEON and SUN.
+This is due to LEON using a different ASI for mmuregs
+as discussed in another mail.
+
+I assume this can be determinded from PSR.
+If this is correct - then what values shall I use
+to determine if the relevant cpu is LEON or SUN?
+
+	Sam
