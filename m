@@ -1,29 +1,45 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Sat, 12 May 2012 00:08:53 +0000
-Subject: Re: [PATCH] gpiolib/arches: Centralise bolierplate asm/gpio.h
-Message-Id: <20120512000853.A96353E0791@localhost>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Tue, 22 May 2012 20:06:37 +0000
+Subject: [RFC PATCH 0/5] first batch of leon adaptions
+Message-Id: <20120522200637.GA9804@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1334483574-3997-1-git-send-email-broonie@opensource.wolfsonmicro.com> <CACRpkdZ8yH1ZSG-nQ9dLm0TipHS-jZDuxwqohUC=LGH9V-5q4w@mail.gmail.com> <20120416081532.GA3238@opensource.wolfsonmicro.com>
-In-Reply-To: <20120416081532.GA3238@opensource.wolfsonmicro.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Linus Walleij <linus.walleij@linaro.org>
-Cc: Grant Likely <grant@secretlab.ca>, Linus Walleij <linus.walleij@stericsson.com>, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, microblaze-uclinux@itee.uq.edu.au, linux@lists.openrisc.net, "linuxppc-dev@lists.ozlabs.org list" <linuxppc-dev@lists.ozlabs.org>, sparclinux@vger.kernel.org, Chris Zankel <chris@zankel.net>
+To: sparclinux@vger.kernel.org
 
-On Mon, 16 Apr 2012 09:15:32 +0100, Mark Brown <broonie@opensource.wolfsonmicro.com> wrote:
-> On Mon, Apr 16, 2012 at 09:21:58AM +0200, Linus Walleij wrote:
-> 
-> > This looks good but I think we need to page the alpha, ia64, m68k, microblaze,
-> > openrisc etc subarch maintainers on this patch so they have their say.
-> 
-> That's why I CCed linux-arch, to get all the architecture maintainers
-> included.  vger would get upset if I CCed everyone individually.
+I wanted feedback on the changes in head_32.S and
+decided to send out what I considered ready for now.
 
-Meh; it's been long enough.  I'll build the major ones and then throw it into linux-next.
+This set does not yet include the run-time patching
+as discussed the other day.
+I decided to postpone this until next batch as I have
+not prepared any users of it yet.
 
-g.
+But again - main point here is feedback
+on the head_32.S changes as I do not feel too
+familiar with SPARC assembler just yet.
 
--- 
-Grant Likely, B.Sc, P.Eng.
-Secret Lab Technologies, Ltd.
+At least it boots on my ss5 box :-)
+
+I am btw. utterly confused by the handling of
+secondary cpus for leon.
+For some reason there is a direct call to
+leon_smp_cpu_startup: in trampoline_32.S.
+
+But sun4m does not need such a trick.
+
+	Sam
+
+Sam Ravnborg (5):
+      sparc32: whitespace cleanup in head_32.S
+      sparc32: implement proper LEON support in head_32 (before highmem)
+      sparc32: implement proper LEON support in head_32 (after highmem)
+      sparc32: handle leon in cpu.c
+      sparc32: handle leon in irq_32.c
+
+ arch/sparc/include/asm/psr.h |    6 +++
+ arch/sparc/kernel/cpu.c      |   18 ++++----
+ arch/sparc/kernel/head_32.S  |   96 ++++++++++++++++++++++++++++++++----------
+ arch/sparc/kernel/irq_32.c   |   22 +++++----
+ 4 files changed, 100 insertions(+), 42 deletions(-)
