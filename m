@@ -1,18 +1,38 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 13 May 2012 20:01:43 +0000
-Subject: Re: [PATCH 5/2] sparc32: drop btfixup in page_32.h
-Message-Id: <20120513.160143.1229451677775640856.davem@davemloft.net>
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Tue, 22 May 2012 17:10:51 +0000
+Subject: Re: [PATCH] sparc32: use the common implementation of alloc_thread_info_node()
+Message-Id: <alpine.LFD.2.02.1205221909540.3231@ionos>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20120513085216.GC25608@merkur.ravnborg.org>
-In-Reply-To: <20120513085216.GC25608@merkur.ravnborg.org>
+References: <20120522151123.GA10058@merkur.ravnborg.org>
+In-Reply-To: <20120522151123.GA10058@merkur.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Sam Ravnborg <sam@ravnborg.org>
+Cc: "David S. Miller" <davem@davemloft.net>, sparclinux <sparclinux@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 13 May 2012 10:52:16 +0200
+On Tue, 22 May 2012, Sam Ravnborg wrote:
 
-> Anyway - this was all the easy ones in include/asm/..
+> >From 52d8a6d1b81a19e693a09df90275600f44293f43 Mon Sep 17 00:00:00 2001
+> From: Sam Ravnborg <sam@ravnborg.org>
+> Date: Tue, 22 May 2012 16:39:00 +0200
+> Subject: [PATCH] sparc32: use the common implementation of alloc_thread_info_node()
+> 
+> With sun4c removed we can fall-back to the common implementation.
+> 
+> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 
-All 5 patches applied, thanks Sam.
+Acked-by: Thomas Gleixner <tglx@linutronix.de>
+
+> ---
+> 
+> This is not a "real" bug but I would like it applied anyway.
+> Thomas Gleixner <tglx@linutronix.de> consolidated all
+> alloc_thread_info_node() implmentations but sparc32 was
+> left out due to sun4c weirdness.
+> 
+> With sun4c gone we can align with the rest of the world.
+> (and I promised Thomas to follow-up on this when his patch-set was merged).
+
+Thanks!
+
