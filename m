@@ -1,82 +1,18 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 20 May 2012 04:57:21 +0000
-Subject: [PATCH] sparc32: Delete asm/smpprim.h
-Message-Id: <20120520.005721.1275275281519084961.davem@davemloft.net>
+From: "From Hang Seng Bank" <valerie.neal@guitarra.biz>
+Date: Thu, 24 May 2012 20:47:24 +0000
+Subject: Date: 24/05/2012.
+Message-Id: <201205242052.q4OJoUBe020484@mail.ucla.edu>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-
-Completely unused.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/include/asm/smpprim.h |   54 --------------------------------------
- 1 file changed, 54 deletions(-)
- delete mode 100644 arch/sparc/include/asm/smpprim.h
-
-diff --git a/arch/sparc/include/asm/smpprim.h b/arch/sparc/include/asm/smpprim.h
-deleted file mode 100644
-index eb849d8..0000000
---- a/arch/sparc/include/asm/smpprim.h
-+++ /dev/null
-@@ -1,54 +0,0 @@
--/*
-- *  smpprim.h:  SMP locking primitives on the Sparc
-- *
-- *  God knows we won't be actually using this code for some time
-- *  but I thought I'd write it since I knew how.
-- *
-- *  Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)
-- */
--
--#ifndef __SPARC_SMPPRIM_H
--#define __SPARC_SMPPRIM_H
--
--/* Test and set the unsigned byte at ADDR to 1.  Returns the previous
-- * value.  On the Sparc we use the ldstub instruction since it is
-- * atomic.
-- */
--
--static inline __volatile__ char test_and_set(void *addr)
--{
--	char state = 0;
--
--	__asm__ __volatile__("ldstub [%0], %1         ! test_and_set\n\t"
--			     "=r" (addr), "=r" (state) :
--			     "0" (addr), "1" (state) : "memory");
--
--	return state;
--}
--
--/* Initialize a spin-lock. */
--static inline __volatile__ smp_initlock(void *spinlock)
--{
--	/* Unset the lock. */
--	*((unsigned char *) spinlock) = 0;
--
--	return;
--}
--
--/* This routine spins until it acquires the lock at ADDR. */
--static inline __volatile__ smp_lock(void *addr)
--{
--	while(test_and_set(addr) = 0xff)
--		;
--
--	/* We now have the lock */
--	return;
--}
--
--/* This routine releases the lock at ADDR. */
--static inline __volatile__ smp_unlock(void *addr)
--{
--	*((unsigned char *) addr) = 0;
--}
--
--#endif /* !(__SPARC_SMPPRIM_H) */
--- 
-1.7.10
-
+Dear friend                                 24/05/2012.
+I am Dr Raymond Chien Independent Non-executive Director of Hang Seng
+Bank Hong Kong I have a business transaction of $44.5 million USD
+to share with you,If interested contact me for more details via my
+personal email:  draymndch8@yahoo.co.jp
+Full names:Address:Age:Occupation:Phone/Fax
+Regards: Date: 24/05/2012.
+Dr Raymond Chien Kuo Fung 
