@@ -1,33 +1,122 @@
-From: Christopher Kenna <cjk@cs.unc.edu>
-Date: Tue, 01 May 2012 14:00:56 +0000
-Subject: Re: OpenSPARC T1 Processor L2 Cache Question
-Message-Id: <CACdM24e1B8xBm3QJH2HGmYWuHUGd7Qg8fzfN1RPG11NQUb6rhw@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Fri, 25 May 2012 07:37:14 +0000
+Subject: [PATCH] sparc64: Fix several bugs in quad floating point emulation.
+Message-Id: <20120525.033714.2012043475251308239.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Greetings,
 
-To anyone who might be interested in the answer to this question, it
-looks I was right in that bits [17:8] are used as a cache-set index
-directly, without hashing, according to page 10-3 of [1]. I also found
-some older hypervisor code that uses these bits in order to maks off
-set indices, etc. [2].
+UltraSPARC-T2 and later do not use the fp_exception_other trap and do
+not set the floating point trap type field in the %fsr at all when you
+try to execute an unimplemented FPU operation.
 
-Unfortunately, I still don't know why the L2 data cache read miss
-performance counter (using [LL][OP_READ][RESULT_MISS] from [3])
-registers few if any misses when I intentionally fill a specific cache
-set with more cache lines than it has ways by using the
-vm_insert_page() kernel function to map specific physical memory pages
-into the virtual address space of a process.
+Instead, it uses the illegal_instruction trap and it leaves the
+floating point trap type field clear.
 
-Thanks,
-Christopher Kenna
+So we should not validate the %fsr trap type field when do_mathemu()
+is invoked from the illegal instruction handler.
 
-[1] OpenSPARC T1 Processor Megacell Specification
-http://read.pudn.com/downloads161/ebook/726659/doc/OpenSPARCT1_MegaCell.pdf
-[2] hypervisor-opensparc/src/greatlakes/ontario/include/platform/cache.h
-http://kenai.com/projects/hypervisor/sources/hypervisor-opensparc/content/src/greatlakes/ontario/include/platform/cache.h?rev)
-[3] http://lxr.linux.no/linux+v3.3.4/arch/sparc/kernel/perf_event.c#L293
+Also, the floating point trap type field is 3 bits, not 4 bits.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/kernel/traps_64.c  |   12 +++++++-----
+ arch/sparc/math-emu/math_64.c |   20 ++++++++++++++------
+ 2 files changed, 21 insertions(+), 11 deletions(-)
+
+diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
+index c72fdf5..3b05e66 100644
+--- a/arch/sparc/kernel/traps_64.c
++++ b/arch/sparc/kernel/traps_64.c
+@@ -2054,7 +2054,7 @@ void do_fpieee(struct pt_regs *regs)
+ 	do_fpe_common(regs);
+ }
+ 
+-extern int do_mathemu(struct pt_regs *, struct fpustate *);
++extern int do_mathemu(struct pt_regs *, struct fpustate *, bool);
+ 
+ void do_fpother(struct pt_regs *regs)
+ {
+@@ -2068,7 +2068,7 @@ void do_fpother(struct pt_regs *regs)
+ 	switch ((current_thread_info()->xfsr[0] & 0x1c000)) {
+ 	case (2 << 14): /* unfinished_FPop */
+ 	case (3 << 14): /* unimplemented_FPop */
+-		ret = do_mathemu(regs, f);
++		ret = do_mathemu(regs, f, false);
+ 		break;
+ 	}
+ 	if (ret)
+@@ -2308,10 +2308,12 @@ void do_illegal_instruction(struct pt_regs *regs)
+ 			} else {
+ 				struct fpustate *f = FPUSTATE;
+ 
+-				/* XXX maybe verify XFSR bits like
+-				 * XXX do_fpother() does?
++				/* On UltraSPARC T2 and later, FPU insns which
++				 * are not implemented in HW signal an illegal
++				 * instruction trap and do not set the FP Trap
++				 * Trap in the %fsr to unimplemented_FPop.
+ 				 */
+-				if (do_mathemu(regs, f))
++				if (do_mathemu(regs, f, true))
+ 					return;
+ 			}
+ 		}
+diff --git a/arch/sparc/math-emu/math_64.c b/arch/sparc/math-emu/math_64.c
+index 2bbe2f2..1704068 100644
+--- a/arch/sparc/math-emu/math_64.c
++++ b/arch/sparc/math-emu/math_64.c
+@@ -163,7 +163,7 @@ typedef union {
+ 	u64 q[2];
+ } *argp;
+ 
+-int do_mathemu(struct pt_regs *regs, struct fpustate *f)
++int do_mathemu(struct pt_regs *regs, struct fpustate *f, bool illegal_insn_trap)
+ {
+ 	unsigned long pc = regs->tpc;
+ 	unsigned long tstate = regs->tstate;
+@@ -218,7 +218,7 @@ int do_mathemu(struct pt_regs *regs, struct fpustate *f)
+ 			case FSQRTS: {
+ 				unsigned long x = current_thread_info()->xfsr[0];
+ 
+-				x = (x >> 14) & 0xf;
++				x = (x >> 14) & 0x7;
+ 				TYPE(x,1,1,1,1,0,0);
+ 				break;
+ 			}
+@@ -226,7 +226,7 @@ int do_mathemu(struct pt_regs *regs, struct fpustate *f)
+ 			case FSQRTD: {
+ 				unsigned long x = current_thread_info()->xfsr[0];
+ 
+-				x = (x >> 14) & 0xf;
++				x = (x >> 14) & 0x7;
+ 				TYPE(x,2,1,2,1,0,0);
+ 				break;
+ 			}
+@@ -357,9 +357,17 @@ int do_mathemu(struct pt_regs *regs, struct fpustate *f)
+ 	if (type) {
+ 		argp rs1 = NULL, rs2 = NULL, rd = NULL;
+ 		
+-		freg = (current_thread_info()->xfsr[0] >> 14) & 0xf;
+-		if (freg != (type >> 9))
+-			goto err;
++		/* Starting with UltraSPARC-T2, the cpu does not set the FP Trap
++		 * Type field in the %fsr to unimplemented_FPop.  Nor does it
++		 * use the fp_exception_other trap.  Instead it signals an
++		 * illegal instruction and leaves the FP trap type field of
++		 * the %fsr unchanged.
++		 */
++		if (!illegal_insn_trap) {
++			int ftt = (current_thread_info()->xfsr[0] >> 14) & 0x7;
++			if (ftt != (type >> 9))
++				goto err;
++		}
+ 		current_thread_info()->xfsr[0] &= ~0x1c000;
+ 		freg = ((insn >> 14) & 0x1f);
+ 		switch (type & 0x3) {
+-- 
+1.7.10
+
