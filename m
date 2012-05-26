@@ -1,142 +1,84 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 20 May 2012 04:20:13 +0000
-Subject: [PATCH] sparc32: Remove completely unused code from asm/cache.h
-Message-Id: <20120520.002013.1687696797520339422.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 26 May 2012 07:20:11 +0000
+Subject: [PATCH 07/15] sparc32: handle leon in cpu.c
+Message-Id: <1338016819-22245-7-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+A few hardcoded constant were replaced by symbolic
+versions to improve readability
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Daniel Hellstrom <daniel@gaisler.com>
+Cc: Konrad Eisele <konrad@gaisler.com>
 ---
- arch/sparc/include/asm/cache.h |  114 ----------------------------------------
- 1 file changed, 114 deletions(-)
+ arch/sparc/include/asm/psr.h |    2 ++
+ arch/sparc/kernel/cpu.c      |   18 +++++++++---------
+ 2 files changed, 11 insertions(+), 9 deletions(-)
 
-diff --git a/arch/sparc/include/asm/cache.h b/arch/sparc/include/asm/cache.h
-index 69358b5..5bb6991 100644
---- a/arch/sparc/include/asm/cache.h
-+++ b/arch/sparc/include/asm/cache.h
-@@ -22,118 +22,4 @@
+diff --git a/arch/sparc/include/asm/psr.h b/arch/sparc/include/asm/psr.h
+index c02c735..cee7ed9 100644
+--- a/arch/sparc/include/asm/psr.h
++++ b/arch/sparc/include/asm/psr.h
+@@ -35,7 +35,9 @@
+ #define PSR_VERS    0x0f000000         /* cpu-version field          */
+ #define PSR_IMPL    0xf0000000         /* cpu-implementation field   */
  
- #define __read_mostly __attribute__((__section__(".data..read_mostly")))
++#define PSR_VERS_SHIFT		24
+ #define PSR_IMPL_SHIFT		28
++#define PSR_VERS_SHIFTED_MASK	0xf
+ #define PSR_IMPL_SHIFTED_MASK	0xf
  
--#ifdef CONFIG_SPARC32
--#include <asm/asi.h>
--
--/* Direct access to the instruction cache is provided through and
-- * alternate address space.  The IDC bit must be off in the ICCR on
-- * HyperSparcs for these accesses to work.  The code below does not do
-- * any checking, the caller must do so.  These routines are for
-- * diagnostics only, but could end up being useful.  Use with care.
-- * Also, you are asking for trouble if you execute these in one of the
-- * three instructions following a %asr/%psr access or modification.
-- */
--
--/* First, cache-tag access. */
--static inline unsigned int get_icache_tag(int setnum, int tagnum)
--{
--	unsigned int vaddr, retval;
--
--	vaddr = ((setnum&1) << 12) | ((tagnum&0x7f) << 5);
--	__asm__ __volatile__("lda [%1] %2, %0\n\t" :
--			     "=r" (retval) :
--			     "r" (vaddr), "i" (ASI_M_TXTC_TAG));
--	return retval;
--}
--
--static inline void put_icache_tag(int setnum, int tagnum, unsigned int entry)
--{
--	unsigned int vaddr;
--
--	vaddr = ((setnum&1) << 12) | ((tagnum&0x7f) << 5);
--	__asm__ __volatile__("sta %0, [%1] %2\n\t" : :
--			     "r" (entry), "r" (vaddr), "i" (ASI_M_TXTC_TAG) :
--			     "memory");
--}
--
--/* Second cache-data access.  The data is returned two-32bit quantities
-- * at a time.
-- */
--static inline void get_icache_data(int setnum, int tagnum, int subblock,
--				       unsigned int *data)
--{
--	unsigned int value1, value2, vaddr;
--
--	vaddr = ((setnum&0x1) << 12) | ((tagnum&0x7f) << 5) |
--		((subblock&0x3) << 3);
--	__asm__ __volatile__("ldda [%2] %3, %%g2\n\t"
--			     "or %%g0, %%g2, %0\n\t"
--			     "or %%g0, %%g3, %1\n\t" :
--			     "=r" (value1), "=r" (value2) :
--			     "r" (vaddr), "i" (ASI_M_TXTC_DATA) :
--			     "g2", "g3");
--	data[0] = value1; data[1] = value2;
--}
--
--static inline void put_icache_data(int setnum, int tagnum, int subblock,
--				       unsigned int *data)
--{
--	unsigned int value1, value2, vaddr;
--
--	vaddr = ((setnum&0x1) << 12) | ((tagnum&0x7f) << 5) |
--		((subblock&0x3) << 3);
--	value1 = data[0]; value2 = data[1];
--	__asm__ __volatile__("or %%g0, %0, %%g2\n\t"
--			     "or %%g0, %1, %%g3\n\t"
--			     "stda %%g2, [%2] %3\n\t" : :
--			     "r" (value1), "r" (value2), 
--			     "r" (vaddr), "i" (ASI_M_TXTC_DATA) :
--			     "g2", "g3", "memory" /* no joke */);
--}
--
--/* Different types of flushes with the ICACHE.  Some of the flushes
-- * affect both the ICACHE and the external cache.  Others only clear
-- * the ICACHE entries on the cpu itself.  V8's (most) allow
-- * granularity of flushes on the packet (element in line), whole line,
-- * and entire cache (ie. all lines) level.  The ICACHE only flushes are
-- * ROSS HyperSparc specific and are in ross.h
-- */
--
--/* Flushes which clear out both the on-chip and external caches */
--static inline void flush_ei_page(unsigned int addr)
--{
--	__asm__ __volatile__("sta %%g0, [%0] %1\n\t" : :
--			     "r" (addr), "i" (ASI_M_FLUSH_PAGE) :
--			     "memory");
--}
--
--static inline void flush_ei_seg(unsigned int addr)
--{
--	__asm__ __volatile__("sta %%g0, [%0] %1\n\t" : :
--			     "r" (addr), "i" (ASI_M_FLUSH_SEG) :
--			     "memory");
--}
--
--static inline void flush_ei_region(unsigned int addr)
--{
--	__asm__ __volatile__("sta %%g0, [%0] %1\n\t" : :
--			     "r" (addr), "i" (ASI_M_FLUSH_REGION) :
--			     "memory");
--}
--
--static inline void flush_ei_ctx(unsigned int addr)
--{
--	__asm__ __volatile__("sta %%g0, [%0] %1\n\t" : :
--			     "r" (addr), "i" (ASI_M_FLUSH_CTX) :
--			     "memory");
--}
--
--static inline void flush_ei_user(unsigned int addr)
--{
--	__asm__ __volatile__("sta %%g0, [%0] %1\n\t" : :
--			     "r" (addr), "i" (ASI_M_FLUSH_USER) :
--			     "memory");
--}
--#endif /* CONFIG_SPARC32 */
--
- #endif /* !(_SPARC_CACHE_H) */
+ #define PSR_IMPL_TI		0x4
+diff --git a/arch/sparc/kernel/cpu.c b/arch/sparc/kernel/cpu.c
+index 2d18196..a6c94a2 100644
+--- a/arch/sparc/kernel/cpu.c
++++ b/arch/sparc/kernel/cpu.c
+@@ -121,7 +121,7 @@ static const struct manufacturer_info __initconst manufacturer_info[] = {
+ 		FPU(-1, NULL)
+ 	}
+ },{
+-	4,
++	PSR_IMPL_TI,
+ 	.cpu_info = {
+ 		CPU(0, "Texas Instruments, Inc. - SuperSparc-(II)"),
+ 		/* SparcClassic  --  borned STP1010TAB-50*/
+@@ -191,7 +191,7 @@ static const struct manufacturer_info __initconst manufacturer_info[] = {
+ 		FPU(-1, NULL)
+ 	}
+ },{
+-	0xF,		/* Aeroflex Gaisler */
++	PSR_IMPL_LEON,		/* Aeroflex Gaisler */
+ 	.cpu_info = {
+ 		CPU(3, "LEON"),
+ 		CPU(-1, NULL)
+@@ -440,16 +440,16 @@ static int __init cpu_type_probe(void)
+ 	int psr_impl, psr_vers, fpu_vers;
+ 	int psr;
+ 
+-	psr_impl = ((get_psr() >> 28) & 0xf);
+-	psr_vers = ((get_psr() >> 24) & 0xf);
++	psr_impl = ((get_psr() >> PSR_IMPL_SHIFT) & PSR_IMPL_SHIFTED_MASK);
++	psr_vers = ((get_psr() >> PSR_VERS_SHIFT) & PSR_VERS_SHIFTED_MASK);
+ 
+ 	psr = get_psr();
+ 	put_psr(psr | PSR_EF);
+-#ifdef CONFIG_SPARC_LEON
+-	fpu_vers = get_psr() & PSR_EF ? ((get_fsr() >> 17) & 0x7) : 7;
+-#else
+-	fpu_vers = ((get_fsr() >> 17) & 0x7);
+-#endif
++
++	if (psr_impl = PSR_IMPL_LEON)
++		fpu_vers = get_psr() & PSR_EF ? ((get_fsr() >> 17) & 0x7) : 7;
++	else
++		fpu_vers = ((get_fsr() >> 17) & 0x7);
+ 
+ 	put_psr(psr);
+ 
 -- 
-1.7.10
+1.6.0.6
 
