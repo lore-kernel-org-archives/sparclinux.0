@@ -1,194 +1,204 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 12 May 2012 04:12:07 +0000
-Subject: [PATCH] sparc32: Kill asm/vac-ops.h
-Message-Id: <20120512.001207.1174515841668389615.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 26 May 2012 07:20:17 +0000
+Subject: [PATCH 13/15] sparc32: introduce run-time patching of srmmu access functions
+Message-Id: <1338016819-22245-13-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+LEON uses a different ASI than SUN for MMUREGS
 
-All sun4/sun4c stuff and unused.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Daniel Hellstrom <daniel@gaisler.com>
+Cc: Konrad Eisele <konrad@gaisler.com>
 ---
- arch/sparc/include/asm/pgtable_32.h |    1 -
- arch/sparc/include/asm/uaccess_32.h |    1 -
- arch/sparc/include/asm/vac-ops.h    |  127 -----------------------------------
- arch/sparc/mm/init_32.c             |    1 -
- 4 files changed, 130 deletions(-)
- delete mode 100644 arch/sparc/include/asm/vac-ops.h
+ arch/sparc/include/asm/pgtsrmmu.h |   68 +++---------------------------
+ arch/sparc/mm/Makefile            |    1 +
+ arch/sparc/mm/srmmu_access.S      |   82 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 90 insertions(+), 61 deletions(-)
+ create mode 100644 arch/sparc/mm/srmmu_access.S
 
-diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
-index f451d43..9f3ab0a 100644
---- a/arch/sparc/include/asm/pgtable_32.h
-+++ b/arch/sparc/include/asm/pgtable_32.h
-@@ -17,7 +17,6 @@
- #include <linux/swap.h>
- #include <asm/types.h>
- #include <asm/pgtsrmmu.h>
--#include <asm/vac-ops.h>
- #include <asm/oplib.h>
- #include <asm/btfixup.h>
- #include <asm/cpu_type.h>
-diff --git a/arch/sparc/include/asm/uaccess_32.h b/arch/sparc/include/asm/uaccess_32.h
-index 8303ac4..d50c310 100644
---- a/arch/sparc/include/asm/uaccess_32.h
-+++ b/arch/sparc/include/asm/uaccess_32.h
-@@ -12,7 +12,6 @@
- #include <linux/sched.h>
- #include <linux/string.h>
- #include <linux/errno.h>
--#include <asm/vac-ops.h>
- #endif
+diff --git a/arch/sparc/include/asm/pgtsrmmu.h b/arch/sparc/include/asm/pgtsrmmu.h
+index 394fe25..72f7121 100644
+--- a/arch/sparc/include/asm/pgtsrmmu.h
++++ b/arch/sparc/include/asm/pgtsrmmu.h
+@@ -149,67 +149,13 @@ extern void *srmmu_nocache_pool;
+ #define __nocache_fix(VADDR) __va(__nocache_pa(VADDR))
  
- #ifndef __ASSEMBLY__
-diff --git a/arch/sparc/include/asm/vac-ops.h b/arch/sparc/include/asm/vac-ops.h
-deleted file mode 100644
-index a63e88e..0000000
---- a/arch/sparc/include/asm/vac-ops.h
-+++ /dev/null
-@@ -1,127 +0,0 @@
--#ifndef _SPARC_VAC_OPS_H
--#define _SPARC_VAC_OPS_H
--
--/* vac-ops.h: Inline assembly routines to do operations on the Sparc
-- *            VAC (virtual address cache) for the sun4c.
-- *
-- * Copyright (C) 1994, David S. Miller (davem@caip.rutgers.edu)
-- */
--
--#include <asm/sysen.h>
--#include <asm/contregs.h>
--#include <asm/asi.h>
--
--/* The SUN4C models have a virtually addressed write-through
-- * cache.
-- *
-- * The cache tags are directly accessible through an ASI and
-- * each have the form:
-- *
-- * ------------------------------------------------------------
-- * | MBZ | CONTEXT | WRITE | PRIV | VALID | MBZ | TagID | MBZ |
-- * ------------------------------------------------------------
-- *  31 25  24   22     21     20     19    18 16  15   2  1  0
-- *
-- * MBZ: These bits are either unused and/or reserved and should
-- *      be written as zeroes.
-- *
-- * CONTEXT: Records the context to which this cache line belongs.
-- *
-- * WRITE: A copy of the writable bit from the mmu pte access bits.
-- *
-- * PRIV: A copy of the privileged bit from the pte access bits.
-- *
-- * VALID: If set, this line is valid, else invalid.
-- *
-- * TagID: Fourteen bits of tag ID.
-- *
-- * Every virtual address is seen by the cache like this:
-- *
-- * ----------------------------------------
-- * |  RESV  | TagID | LINE | BYTE-in-LINE |
-- * ----------------------------------------
-- *  31    30 29   16 15   4 3            0
-- *
-- * RESV: Unused/reserved.
-- *
-- * TagID: Used to match the Tag-ID in that vac tags.
-- *
-- * LINE: Which line within the cache
-- *
-- * BYTE-in-LINE: Which byte within the cache line.
-- */
--
--/* Sun4c VAC Tags */
--#define S4CVACTAG_CID      0x01c00000
--#define S4CVACTAG_W        0x00200000
--#define S4CVACTAG_P        0x00100000
--#define S4CVACTAG_V        0x00080000
--#define S4CVACTAG_TID      0x0000fffc
--
--/* Sun4c VAC Virtual Address */
--/* These aren't used, why bother? (Anton) */
--#if 0
--#define S4CVACVA_TID       0x3fff0000
--#define S4CVACVA_LINE      0x0000fff0
--#define S4CVACVA_BIL       0x0000000f
--#endif
--
--/* The indexing of cache lines creates a problem.  Because the line
-- * field of a virtual address extends past the page offset within
-- * the virtual address it is possible to have what are called
-- * 'bad aliases' which will create inconsistencies.  So we must make
-- * sure that within a context that if a physical page is mapped
-- * more than once, that 'extra' line bits are the same.  If this is
-- * not the case, and thus is a 'bad alias' we must turn off the
-- * cacheable bit in the pte's of all such pages.
-- */
--
--#define S4CVAC_BADBITS    0x0000f000
--
--/* The following is true if vaddr1 and vaddr2 would cause
-- * a 'bad alias'.
-- */
--#define S4CVAC_BADALIAS(vaddr1, vaddr2) \
--        ((((unsigned long) (vaddr1)) ^ ((unsigned long) (vaddr2))) & \
--	 (S4CVAC_BADBITS))
--
--/* The following structure describes the characteristics of a sun4c
-- * VAC as probed from the prom during boot time.
-- */
--struct sun4c_vac_props {
--	unsigned int num_bytes;     /* Size of the cache */
--	unsigned int do_hwflushes;  /* Hardware flushing available? */
--	unsigned int linesize;      /* Size of each line in bytes */
--	unsigned int log2lsize;     /* log2(linesize) */
--	unsigned int on;            /* VAC is enabled */
--};
--
--extern struct sun4c_vac_props sun4c_vacinfo;
--
--/* sun4c_enable_vac() enables the sun4c virtual address cache. */
--static inline void sun4c_enable_vac(void)
+ /* Accessing the MMU control register. */
+-static inline unsigned int srmmu_get_mmureg(void)
 -{
--	__asm__ __volatile__("lduba [%0] %1, %%g1\n\t"
--			     "or    %%g1, %2, %%g1\n\t"
--			     "stba  %%g1, [%0] %1\n\t"
--			     : /* no outputs */
--			     : "r" ((unsigned int) AC_SENABLE),
--			     "i" (ASI_CONTROL), "i" (SENABLE_CACHE)
--			     : "g1", "memory");
--	sun4c_vacinfo.on = 1;
+-        unsigned int retval;
+-	__asm__ __volatile__("lda [%%g0] %1, %0\n\t" :
+-			     "=r" (retval) :
+-			     "i" (ASI_M_MMUREGS));
+-	return retval;
 -}
 -
--/* sun4c_disable_vac() disables the virtual address cache. */
--static inline void sun4c_disable_vac(void)
+-static inline void srmmu_set_mmureg(unsigned long regval)
 -{
--	__asm__ __volatile__("lduba [%0] %1, %%g1\n\t"
--			     "andn  %%g1, %2, %%g1\n\t"
--			     "stba  %%g1, [%0] %1\n\t"
--			     : /* no outputs */
--			     : "r" ((unsigned int) AC_SENABLE),
--			     "i" (ASI_CONTROL), "i" (SENABLE_CACHE)
--			     : "g1", "memory");
--	sun4c_vacinfo.on = 0;
+-	__asm__ __volatile__("sta %0, [%%g0] %1\n\t" : :
+-			     "r" (regval), "i" (ASI_M_MMUREGS) : "memory");
+-
 -}
 -
--#endif /* !(_SPARC_VAC_OPS_H) */
-diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
-index 15848e7..21342db 100644
---- a/arch/sparc/mm/init_32.c
-+++ b/arch/sparc/mm/init_32.c
-@@ -27,7 +27,6 @@
- #include <linux/gfp.h>
+-static inline void srmmu_set_ctable_ptr(unsigned long paddr)
+-{
+-	paddr = ((paddr >> 4) & SRMMU_CTX_PMASK);
+-	__asm__ __volatile__("sta %0, [%1] %2\n\t" : :
+-			     "r" (paddr), "r" (SRMMU_CTXTBL_PTR),
+-			     "i" (ASI_M_MMUREGS) :
+-			     "memory");
+-}
+-
+-static inline void srmmu_set_context(int context)
+-{
+-	__asm__ __volatile__("sta %0, [%1] %2\n\t" : :
+-			     "r" (context), "r" (SRMMU_CTX_REG),
+-			     "i" (ASI_M_MMUREGS) : "memory");
+-}
+-
+-static inline int srmmu_get_context(void)
+-{
+-	register int retval;
+-	__asm__ __volatile__("lda [%1] %2, %0\n\t" :
+-			     "=r" (retval) :
+-			     "r" (SRMMU_CTX_REG),
+-			     "i" (ASI_M_MMUREGS));
+-	return retval;
+-}
+-
+-static inline unsigned int srmmu_get_fstatus(void)
+-{
+-	unsigned int retval;
+-
+-	__asm__ __volatile__("lda [%1] %2, %0\n\t" :
+-			     "=r" (retval) :
+-			     "r" (SRMMU_FAULT_STATUS), "i" (ASI_M_MMUREGS));
+-	return retval;
+-}
+-
+-static inline unsigned int srmmu_get_faddr(void)
+-{
+-	unsigned int retval;
+-
+-	__asm__ __volatile__("lda [%1] %2, %0\n\t" :
+-			     "=r" (retval) :
+-			     "r" (SRMMU_FAULT_ADDR), "i" (ASI_M_MMUREGS));
+-	return retval;
+-}
++unsigned int srmmu_get_mmureg(void);
++void srmmu_set_mmureg(unsigned long regval);
++void srmmu_set_ctable_ptr(unsigned long paddr);
++void srmmu_set_context(int context);
++int srmmu_get_context(void);
++unsigned int srmmu_get_fstatus(void);
++unsigned int srmmu_get_faddr(void);
  
- #include <asm/sections.h>
--#include <asm/vac-ops.h>
- #include <asm/page.h>
- #include <asm/pgtable.h>
- #include <asm/vaddrs.h>
+ /* This is guaranteed on all SRMMU's. */
+ static inline void srmmu_flush_whole_tlb(void)
+diff --git a/arch/sparc/mm/Makefile b/arch/sparc/mm/Makefile
+index 389aebd..30c3ecc 100644
+--- a/arch/sparc/mm/Makefile
++++ b/arch/sparc/mm/Makefile
+@@ -8,6 +8,7 @@ obj-$(CONFIG_SPARC64)   += ultra.o tlb.o tsb.o gup.o
+ obj-y                   += fault_$(BITS).o
+ obj-y                   += init_$(BITS).o
+ obj-$(CONFIG_SPARC32)   += extable.o srmmu.o iommu.o io-unit.o
++obj-$(CONFIG_SPARC32)   += srmmu_access.o
+ obj-$(CONFIG_SPARC32)   += hypersparc.o viking.o tsunami.o swift.o
+ obj-$(CONFIG_SPARC32)   += leon_mm.o
+ 
+diff --git a/arch/sparc/mm/srmmu_access.S b/arch/sparc/mm/srmmu_access.S
+new file mode 100644
+index 0000000..d0a67b2
+--- /dev/null
++++ b/arch/sparc/mm/srmmu_access.S
+@@ -0,0 +1,82 @@
++/* Assembler variants of srmmu access functions.
++ * Implemented in assembler to allow run-time patching.
++ * LEON uses a different ASI for MMUREGS than SUN.
++ *
++ * The leon_1insn_patch infrastructure is used
++ * for the run-time patching.
++ */
++
++#include <linux/linkage.h>
++
++#include <asm/asmmacro.h>
++#include <asm/pgtsrmmu.h>
++#include <asm/asi.h>
++
++/* unsigned int srmmu_get_mmureg(void) */
++ENTRY(srmmu_get_mmureg)
++LEON_PI(lda	[%g0] ASI_LEON_MMUREGS, %o0)
++SUN_PI_(lda	[%g0] ASI_M_MMUREGS, %o0)
++	retl
++	 nop
++ENDPROC(srmmu_get_mmureg)
++
++/* void srmmu_set_mmureg(unsigned long regval) */
++ENTRY(srmmu_set_mmureg)
++LEON_PI(sta	%o0, [%g0] ASI_LEON_MMUREGS)
++SUN_PI_(sta	%o0, [%g0] ASI_M_MMUREGS)
++	retl
++	 nop
++ENDPROC(srmmu_set_mmureg)
++
++/* void srmmu_set_ctable_ptr(unsigned long paddr) */
++ENTRY(srmmu_set_ctable_ptr)
++	/* paddr = ((paddr >> 4) & SRMMU_CTX_PMASK); */
++	srl	%o0, 4, %g1
++	and	%g1, SRMMU_CTX_PMASK, %g1
++
++	mov	SRMMU_CTXTBL_PTR, %g2
++LEON_PI(sta	%g1, [%g2] ASI_LEON_MMUREGS)
++SUN_PI_(sta	%g1, [%g2] ASI_M_MMUREGS)
++	retl
++	 nop
++ENDPROC(srmmu_set_ctable_ptr)
++
++
++/* void srmmu_set_context(int context) */
++ENTRY(srmmu_set_context)
++	mov	SRMMU_CTX_REG, %g1
++LEON_PI(sta	%o0, [%g1] ASI_LEON_MMUREGS)
++SUN_PI_(sta	%o0, [%g1] ASI_M_MMUREGS)
++	retl
++	 nop
++ENDPROC(srmmu_set_context)
++
++
++/* int srmmu_get_context(void) */
++ENTRY(srmmu_get_context)
++	mov	SRMMU_CTX_REG, %o0
++LEON_PI(lda     [%o0] ASI_LEON_MMUREGS, %o0)
++SUN_PI_(lda	[%o0] ASI_M_MMUREGS, %o0)
++	retl
++	 nop
++ENDPROC(srmmu_get_context)
++
++
++/* unsigned int srmmu_get_fstatus(void) */
++ENTRY(srmmu_get_fstatus)
++	mov	SRMMU_FAULT_STATUS, %o0
++LEON_PI(lda     [%o0] ASI_LEON_MMUREGS, %o0)
++SUN_PI_(lda	[%o0] ASI_M_MMUREGS, %o0)
++	retl
++	 nop
++ENDPROC(srmmu_get_fstatus)
++
++
++/* unsigned int srmmu_get_faddr(void) */
++ENTRY(srmmu_get_faddr)
++	mov	SRMMU_FAULT_ADDR, %o0
++LEON_PI(lda     [%o0] ASI_LEON_MMUREGS, %o0)
++SUN_PI_(lda	[%o0] ASI_M_MMUREGS, %o0)
++	retl
++	 nop
++ENDPROC(srmmu_get_faddr)
 -- 
-1.7.10
+1.6.0.6
 
