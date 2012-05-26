@@ -1,43 +1,50 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 20 May 2012 05:00:34 +0000
-Subject: [PATCH] sparc32: Remove asm/sysen.h header.
-Message-Id: <20120520.010034.1484091469844641207.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 26 May 2012 07:20:15 +0000
+Subject: [PATCH 11/15] sparc32,leon: fix section mismatch warning
+Message-Id: <1338016819-22245-11-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Fix following warning:
 
-Defines a sun4c register, thus completely unused.
+WARNING: arch/sparc/kernel/built-in.o(.cpuinit.text+0x9f4): Section mismatch in reference from the function leon_callin() to the function .init.text:leon_configure_cache_smp()
+The function __cpuinit leon_callin() references
+a function __init leon_configure_cache_smp().
+If leon_configure_cache_smp is only used by leon_callin then
+annotate leon_configure_cache_smp with a matching annotation.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Daniel Hellstrom <daniel@gaisler.com>
+Cc: Konrad Eisele <konrad@gaisler.com>
 ---
- arch/sparc/include/asm/sysen.h |   15 ---------------
- 1 file changed, 15 deletions(-)
- delete mode 100644 arch/sparc/include/asm/sysen.h
+ arch/sparc/kernel/leon_smp.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/include/asm/sysen.h b/arch/sparc/include/asm/sysen.h
-deleted file mode 100644
-index 6af34ab..0000000
---- a/arch/sparc/include/asm/sysen.h
-+++ /dev/null
-@@ -1,15 +0,0 @@
--/*
-- * sysen.h:  Bit fields within the "System Enable" register accessed via
-- *           the ASI_CONTROL address space at address AC_SYSENABLE.
-- *
-- * Copyright (C) 1994 David S. Miller (davem@caip.rutgers.edu)
-- */
--
--#ifndef _SPARC_SYSEN_H
--#define _SPARC_SYSEN_H
--
--#define SENABLE_DVMA   0x20   /* enable dvma transfers */
--#define SENABLE_CACHE  0x10   /* enable VAC cache */
--#define SENABLE_RESET  0x04   /* reset whole machine, danger Will Robinson */
--
--#endif /* _SPARC_SYSEN_H */
+diff --git a/arch/sparc/kernel/leon_smp.c b/arch/sparc/kernel/leon_smp.c
+index 218c2f0..0f3fb6d 100644
+--- a/arch/sparc/kernel/leon_smp.c
++++ b/arch/sparc/kernel/leon_smp.c
+@@ -54,7 +54,7 @@ extern ctxd_t *srmmu_ctx_table_phys;
+ static int smp_processors_ready;
+ extern volatile unsigned long cpu_callin_map[NR_CPUS];
+ extern cpumask_t smp_commenced_mask;
+-void __init leon_configure_cache_smp(void);
++void __cpuinit leon_configure_cache_smp(void);
+ static void leon_ipi_init(void);
+ 
+ /* IRQ number of LEON IPIs */
+@@ -121,7 +121,7 @@ void __cpuinit leon_callin(void)
+ 
+ extern struct linux_prom_registers smp_penguin_ctable;
+ 
+-void __init leon_configure_cache_smp(void)
++void __cpuinit leon_configure_cache_smp(void)
+ {
+ 	unsigned long cfg = sparc_leon3_get_dcachecfg();
+ 	int me = smp_processor_id();
 -- 
-1.7.10
+1.6.0.6
 
