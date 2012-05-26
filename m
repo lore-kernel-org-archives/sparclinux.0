@@ -1,60 +1,69 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 10 May 2012 19:00:08 +0000
-Subject: [PATCH] sparc64: Do not clobber %g2 in xcall_fetch_glob_regs().
-Message-Id: <20120510.150008.1902269828420021753.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 26 May 2012 07:20:13 +0000
+Subject: [PATCH 09/15] sparc32,leon: always include leon_kernel in build
+Message-Id: <1338016819-22245-9-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-
-%g2 is meant to hold the CPUID number throughout this routine, since
-at the very beginning, and at the very end, we use %g2 to calculate
-indexes into per-cpu arrays.
-
-However we erroneously clobber it in order to hold the %cwp register
-value mid-stream.
-
-Fix this code to use %g3 for the %cwp read and related calulcations
-instead.
-
-Reported-by: Meelis Roos <mroos@linux.ee>
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Daniel Hellstrom <daniel@gaisler.com>
+Cc: Konrad Eisele <konrad@gaisler.com>
 ---
- arch/sparc/kernel/central.c |    2 +-
- arch/sparc/mm/ultra.S       |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ arch/sparc/include/asm/leon.h      |    2 --
+ arch/sparc/include/asm/leon_amba.h |    4 ----
+ arch/sparc/kernel/Makefile         |    2 +-
+ 3 files changed, 1 insertions(+), 7 deletions(-)
 
-diff --git a/arch/sparc/kernel/central.c b/arch/sparc/kernel/central.c
-index 38d48a5..9708851 100644
---- a/arch/sparc/kernel/central.c
-+++ b/arch/sparc/kernel/central.c
-@@ -269,4 +269,4 @@ static int __init sunfire_init(void)
- 	return 0;
- }
+diff --git a/arch/sparc/include/asm/leon.h b/arch/sparc/include/asm/leon.h
+index 00530a5..95fa931 100644
+--- a/arch/sparc/include/asm/leon.h
++++ b/arch/sparc/include/asm/leon.h
+@@ -257,9 +257,7 @@ extern int leon_ipi_irq;
+ #ifndef CONFIG_SPARC_LEON
  
--subsys_initcall(sunfire_init);
-+fs_initcall(sunfire_init);
-diff --git a/arch/sparc/mm/ultra.S b/arch/sparc/mm/ultra.S
-index b57a594..874162a 100644
---- a/arch/sparc/mm/ultra.S
-+++ b/arch/sparc/mm/ultra.S
-@@ -495,11 +495,11 @@ xcall_fetch_glob_regs:
- 	stx		%o7, [%g1 + GR_SNAP_O7]
- 	stx		%i7, [%g1 + GR_SNAP_I7]
- 	/* Don't try this at home kids... */
--	rdpr		%cwp, %g2
--	sub		%g2, 1, %g7
-+	rdpr		%cwp, %g3
-+	sub		%g3, 1, %g7
- 	wrpr		%g7, %cwp
- 	mov		%i7, %g7
--	wrpr		%g2, %cwp
-+	wrpr		%g3, %cwp
- 	stx		%g7, [%g1 + GR_SNAP_RPC]
- 	sethi		%hi(trap_block), %g7
- 	or		%g7, %lo(trap_block), %g7
+ /* nop definitions for !LEON case */
+-#define leon_init() do {} while (0)
+ #define leon_switch_mm() do {} while (0)
+-#define leon_init_IRQ() do {} while (0)
+ #define init_leon() do {} while (0)
+ #define leon_smp_done() do {} while (0)
+ #define leon_boot_cpus() do {} while (0)
+diff --git a/arch/sparc/include/asm/leon_amba.h b/arch/sparc/include/asm/leon_amba.h
+index e50f326..f3034ed 100644
+--- a/arch/sparc/include/asm/leon_amba.h
++++ b/arch/sparc/include/asm/leon_amba.h
+@@ -87,8 +87,6 @@ struct amba_prom_registers {
+ #define LEON3_GPTIMER_CONFIG_NRTIMERS(c) ((c)->config & 0x7)
+ #define LEON3_GPTIMER_CTRL_ISPENDING(r)  (((r)&LEON3_GPTIMER_CTRL_PENDING) ? 1 : 0)
+ 
+-#ifdef CONFIG_SPARC_LEON
+-
+ #ifndef __ASSEMBLY__
+ 
+ struct leon3_irqctrl_regs_map {
+@@ -264,6 +262,4 @@ extern unsigned int sparc_leon_eirq;
+ 
+ #define amba_device(x) (((x) >> 12) & 0xfff)
+ 
+-#endif /* !defined(CONFIG_SPARC_LEON) */
+-
+ #endif
+diff --git a/arch/sparc/kernel/Makefile b/arch/sparc/kernel/Makefile
+index 72308f9..43af0d6 100644
+--- a/arch/sparc/kernel/Makefile
++++ b/arch/sparc/kernel/Makefile
+@@ -51,7 +51,7 @@ obj-y                   += of_device_common.o
+ obj-y                   += of_device_$(BITS).o
+ obj-$(CONFIG_SPARC64)   += prom_irqtrans.o
+ 
+-obj-$(CONFIG_SPARC_LEON)+= leon_kernel.o
++obj-$(CONFIG_SPARC32)   += leon_kernel.o
+ obj-$(CONFIG_SPARC_LEON)+= leon_pmc.o
+ 
+ obj-$(CONFIG_SPARC64)   += reboot.o
 -- 
-1.7.10
+1.6.0.6
 
