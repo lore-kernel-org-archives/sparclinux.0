@@ -1,60 +1,61 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 26 May 2012 07:20:10 +0000
-Subject: [PATCH 06/15] sparc32: handle leon in irq_32.c
-Message-Id: <1338016819-22245-6-git-send-email-sam@ravnborg.org>
+Date: Sun, 27 May 2012 15:04:33 +0000
+Subject: Re: Sparc32: BTFIXUPSET_CALL(pmd_clear, . . .)-related issue in older versions of the kernel
+Message-Id: <20120527150433.GA19538@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <CAK1sNPDMcX=D+=1uxVpX5HOgKyCzXr1EeUx7Eyky2j-2n3q0Ng@mail.gmail.com> <CAK1sNPDNz3E3PLq4mB6VagWu0BsGdhQVcew2YDmaG+JJBup3ug@mail.gmail.com>
+In-Reply-To: <CAK1sNPDNz3E3PLq4mB6VagWu0BsGdhQVcew2YDmaG+JJBup3ug@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Ilya Malakhov <ilmalakhovthefirst@gmail.com>
+Cc: linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux <sparclinux@vger.kernel.org>
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Daniel Hellstrom <daniel@gaisler.com>
-Cc: Konrad Eisele <konrad@gaisler.com>
----
- arch/sparc/kernel/irq_32.c |   22 ++++++++++++----------
- 1 files changed, 12 insertions(+), 10 deletions(-)
+Hi Ilya.
 
-diff --git a/arch/sparc/kernel/irq_32.c b/arch/sparc/kernel/irq_32.c
-index ae04914..c145f6f 100644
---- a/arch/sparc/kernel/irq_32.c
-+++ b/arch/sparc/kernel/irq_32.c
-@@ -241,9 +241,6 @@ int sparc_floppy_request_irq(unsigned int irq, irq_handler_t irq_handler)
- 	unsigned int cpu_irq;
- 	int err;
- 
--#if defined CONFIG_SMP && !defined CONFIG_SPARC_LEON
--	struct tt_entry *trap_table;
--#endif
- 
- 	err = request_irq(irq, irq_handler, 0, "floppy", NULL);
- 	if (err)
-@@ -264,13 +261,18 @@ int sparc_floppy_request_irq(unsigned int irq, irq_handler_t irq_handler)
- 	table[SP_TRAP_IRQ1+(cpu_irq-1)].inst_four = SPARC_NOP;
- 
- 	INSTANTIATE(sparc_ttable)
--#if defined CONFIG_SMP && !defined CONFIG_SPARC_LEON
--	trap_table = &trapbase_cpu1;
--	INSTANTIATE(trap_table)
--	trap_table = &trapbase_cpu2;
--	INSTANTIATE(trap_table)
--	trap_table = &trapbase_cpu3;
--	INSTANTIATE(trap_table)
-+
-+#if defined CONFIG_SMP
-+	if (sparc_cpu_model != sparc_leon) {
-+		struct tt_entry *trap_table;
-+
-+		trap_table = &trapbase_cpu1;
-+		INSTANTIATE(trap_table)
-+		trap_table = &trapbase_cpu2;
-+		INSTANTIATE(trap_table)
-+		trap_table = &trapbase_cpu3;
-+		INSTANTIATE(trap_table)
-+	}
- #endif
- #undef INSTANTIATE
- 	/*
--- 
-1.6.0.6
+Cc: sparclinux + David S. Miller.
 
+On Sun, May 27, 2012 at 04:03:50PM +0400, Ilya Malakhov wrote:
+> =A0Hi.
+>=20
+> =A0While analyzing a rather nasty problem with an application running at
+> sun4m sparc32 hosts with "Fujitsu TurboSparc" and "TI Viking/MXCC"
+> MMUs, I realized, that as a 4Kb "Page Table" was freed, only the first
+> element in the corresponding `pmdv[]' array in
+>=20
+> typedef struct { unsigned long pmdv[16]; } pmd_t;
+>=20
+> was actually cleared, rather than all the 16 ones.
+>=20
+> =A0The reason for that was the use of `BTFIXUPCALL_SWAPO0G0' instead of
+> `BTFIXUPCALL_NORM' for `pmd_clear' in case of "default" SRMMU (except
+> for some specific types of SRMMU) during initialization:
+> =A0. .
+> BTFIXUPSET_CALL(pmd_clear, srmmu_pmd_clear, BTFIXUPCALL_SWAPO0G0);
+> =A0. .
+>=20
+> =A0That would probably be OK if pmd_t were `struct { unsigned long pmd;
+> }' as it used to be ten years ago, but seems to be erroneous nowadays,
+> doesn't it?
+>=20
+> =A0From a user's point of view this leads to poorly diagnosable
+> problems. E.g., after a series of mmaps and munmaps one may find
+> himself in a situation, where different virtual addresses are mapped to
+> the same physical one.
+>=20
+Sounds like a problem that have taken long time to track down!
+
+> =A0A recent commit by David Miller, where pmd_clear() is un-btfixupped,
+> is likely to solve this problem in future versions of the kernel.
+We were very glad to kill off this btfixup thing.
+
+
+> I wonder, if any patches for older ones should be expected.
+
+If someone submits a patch for this it is likely to happen - hint!
+That patch should explicit reference the commit in upstrem
+that fixes the same bug.
+
+Otherwise - no.
+
+	Sam
