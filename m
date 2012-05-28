@@ -1,52 +1,68 @@
-From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Wed, 23 May 2012 12:27:19 +0000
-Subject: Re: Linux on sparc v7
-Message-Id: <4FBCD7A7.5080704@gaisler.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Mon, 28 May 2012 03:43:48 +0000
+Subject: [PATCH] sparc: fix bad merge of sparc Kconfig
+Message-Id: <20120528134348.c934fef7360aa10683fc3a28@canb.auug.org.au>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Signature=_Mon__28_May_2012_13_43_48_+1000_l.JAEKkPijOlMt9W"
 List-Id: <sparclinux.vger.kernel.org>
-References: <4FBA4DBC.9070609@gaisler.com>
-In-Reply-To: <4FBA4DBC.9070609@gaisler.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
-On 05/22/2012 08:28 AM, Daniel Hellstrom wrote:
-> On 05/21/2012 06:16 PM, Sam Ravnborg wrote:
->> On Mon, May 21, 2012 at 04:14:20PM +0200, Daniel Hellstrom wrote:
->>> Hello Dave,
->>>
->>> I am trying to catch up on what has been happening lately with the sparc
->>> port. Have the latest patches removed support for SPARC V7 CPUs?
->> Yes. The sun4c were the only users of v7 so today we tell gcc to generate v8
->> code. This imply support for muldiv&  friends.
->>
->> > From the sparc Makefile:
->>
->>      KBUILD_CFLAGS  += -mcpu=v8
->
-> Does this mean that if we change it to mcpu=v7 or mcpu=cypress (or removing mcpu=v8) the kernel can still be run on a V7 CPU? Or have software routines for making V8 mul/div operations on a V7 CPU 
-> been removed so that V7 CPUs can't run Linux regardless of compiler option?
->
->> As a side-note - we require support for the "flush" instruction now.
->> I assume LEON support this.
-> Yes, flush invalidates all of the instruction cache.
+--Signature=_Mon__28_May_2012_13_43_48_+1000_l.JAEKkPijOlMt9W
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Note that it will also flush the LEON data cache. Flushing on a LEON is normally done:
-  * I-cache, write anywhere using ASI=0x15
-  * D-cache, write anywhere using ASI=0x16
+Fixes this sparc32 defconfig build error:
 
-Daniel
+timekeeping.c:(.text+0x277c4): undefined reference to `arch_gettimeoffset'
 
->
->>> The LEON VHDL model supports both V7 and V8 CPUs,
->>> FPU and non-FPU in any combination.
->> I do not have any overview on the FPU side of things.
-> Thanks,
-> Daniel
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+---
+ arch/sparc/Kconfig |    1 -
+ 1 file changed, 1 deletion(-)
 
+Dave, I have been carrying this merge fix in linux-next for a while and
+now it is needed in Linus' tree.
+
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 9be0dd2..35e08fe 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -39,7 +39,6 @@ config SPARC32
+ 	def_bool !64BIT
+ 	select GENERIC_ATOMIC64
+ 	select CLZ_TAB
+-	select ARCH_USES_GETTIMEOFFSET
+=20
+ config SPARC64
+ 	def_bool 64BIT
+--=20
+1.7.10.280.gaa39
+
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+
+--Signature=_Mon__28_May_2012_13_43_48_+1000_l.JAEKkPijOlMt9W
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBCAAGBQJPwvR0AAoJEECxmPOUX5FEJDYP/3qLmftAmkgtAYym0k4lfoTo
+yNcVe1D/XHVOWg0123+ex5mh90iRmggqiCQkfc1+FOiCPrKNUYg5Ve5A1xEF3bdI
+mm1JKxMFJhUyD0LFBRhbm8rAdMXxxwoswGW4ZBR29NdH8cZ2aPeWJJLiPa3pbcpy
+k9ghz3xVSnQVsXV5a6KaoD+BHnhTx9N6IYKNupe7wdyWWW86wTkieRtgfphmx27X
+VMVHxOOikdxo4vLIqWtReTBDGpKCX/reVJuqO/VAQUJfA2BNcCypWQrNScFzaWnB
+lmqBiLhnTnVpSX5dvENy+JrFExKz/JM/wB9Wte5+xAEnyMh3j3OeSz+6novN1odt
+z4whzbaH6Gt+nlRWFg613sRVm5MfHujJpUpifWdHE1BhqY/BgHjDEV6ve8HWrKYJ
+aNCRAcZ97zjiOTchbudawGyDYtDabEmu8JRzHREkENs5GdphgFVSdLN3uU39rcH8
+gGVRsA/+VU0YYD/VaThUc9RmPMb2NrhIND1GtkPk8yVcalcxNza2hLcrMSKuX6Lz
+BCzGrtYU8ER6BLfCrgSHJz9mfE4WkzxxKFLCyQ1hOUtABHZhBqLQGvsL8VkJ/6yf
+SDqG8tGSfxcRDfiNW5oEo7JD5irYrWl/yS2uwy8AAd4asA3RP80HsofuodVW5M65
+YtSwUW0rTo68ZZcEWSae
+=XC6/
+-----END PGP SIGNATURE-----
+
+--Signature=_Mon__28_May_2012_13_43_48_+1000_l.JAEKkPijOlMt9W--
