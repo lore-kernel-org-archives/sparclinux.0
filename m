@@ -1,21 +1,37 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Wed, 23 May 2012 20:10:38 +0000
-Subject: Re: [RFC PATCH 0/5] first batch of leon adaptions
-Message-Id: <20120523201038.GA23894@merkur.ravnborg.org>
+Date: Tue, 29 May 2012 18:13:00 +0000
+Subject: [PATCH 0/3] sparc32 updates
+Message-Id: <20120529181300.GA697@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20120522200637.GA9804@merkur.ravnborg.org>
-In-Reply-To: <20120522200637.GA9804@merkur.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Wed, May 23, 2012 at 04:32:51PM +0200, Daniel Hellstrom wrote:
-> Hi,
->
-> I havn't tested this patch series yet, however I can report that the current code commited and applied by linus is booting on LEON.
-Great - thanks for testing.
+Hi David.
 
-Chances that I screw up in the coming work is higher...
+This small batch fixes:
+- leon bootup problem as reported by Daniel
+- sparc64 build breakage as reported by Stephen (please verify!)
+
+I was confused by an unused variable - removed.
+
+
+Boot tested on my ss5 box => OK.
+
+I have powered up my ss20 SMP (which uses HyperSparc CPU's)
+box now and will try to reproduce some of the errors
+reported by Marcel & Magnus.
+The ss20 kernel is still building so no preliminary results...
 
 	Sam
+
+Sam Ravnborg (3):
+      sparc32,leon: fix leon bootup
+      sparc32: remove unused variable in head_32.S
+      sparc: fix sparc64 build due to leon.h inclusion
+
+ arch/sparc/include/asm/leon.h   |    1 +
+ arch/sparc/kernel/head_32.S     |   81 ++++++++++++++++++++-------------------
+ arch/sparc/kernel/prom_common.c |    1 -
+ 3 files changed, 42 insertions(+), 41 deletions(-)
