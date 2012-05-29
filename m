@@ -1,123 +1,93 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 30 May 2012 22:38:25 +0000
-Subject: [GIT] Sparc
-Message-Id: <20120530.183825.2036705800447162589.davem@davemloft.net>
+From: Yong Zhang <yong.zhang0@gmail.com>
+Date: Tue, 29 May 2012 08:27:33 +0000
+Subject: [UPDATED] [RFC PATCH 08/10] SPARC: smp: remove call to ipi_call_lock_irq()/ipi_call_unlock_irq()
+Message-Id: <20120529082732.GA4250@zhy>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
+References: <1338275765-3217-1-git-send-email-yong.zhang0@gmail.com>
+ <1338275765-3217-9-git-send-email-yong.zhang0@gmail.com>
+ <4FC48272.9040904@linux.vnet.ibm.com>
+In-Reply-To: <4FC48272.9040904@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Cc: linux-kernel@vger.kernel.org, ralf@linux-mips.org, sshtylyov@mvista.com, david.daney@cavium.com, nikunj@linux.vnet.ibm.com, paulmck@linux.vnet.ibm.com, axboe@kernel.dk, mingo@kernel.org, tglx@linutronix.de, peterz@infradead.org, akpm@linux-foundation.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
+On Tue, May 29, 2012 at 01:31:54PM +0530, Srivatsa S. Bhat wrote:
+> This looks odd. IRQs must not have been enabled at this point.
+> Just remove the call to local_irq_enable() that is found a few lines above
+> this line and then you won't have to add this call to local_irq_disable().
 
-1) Remove the idiotic situation wherein Leon was a special
-   case in all of the TLB/cache handling code.
+Yeah, have thought about it. But because I was not sure there is
+special need to enalbe irq that early (don't know much about sparc),
+I decided to make minor change :)
 
-   The worst side effect of this bogosity is that you couldn't build a
-   kernel with Leon support enabled (to get better build coverage),
-   and test boot it on a non-LEON cpu.
+Since we have gotten confirmation from David, I'm sending out the
+new version. Please check it.
 
-   Leon is, in all core respects, programatically identical to the
-   32-bit SRMMU.  Except that they put the TLB registers in a
-   different alternate address space location.
+Thanks,
+Yong
 
-   Through code patching (for fast paths) and run time checks, this
-   issue is now a thing of the past.
+---
+From: Yong Zhang <yong.zhang@windriver.com>
+Date: Tue, 29 May 2012 12:56:08 +0800
+Subject: [UPDATED] [RFC PATCH 8/10] SPARC: smp: remove call to
+ ipi_call_lock_irq()/ipi_call_unlock_irq()
 
-   From Sam Ravnborg.
+1) call_function.lock used in smp_call_function_many() is just to protect
+   call_function.queue and &data->refs, cpu_online_mask is outside of the
+   lock. And it's not necessary to protect cpu_online_mask,
+   because data->cpumask is pre-calculate and even if a cpu is brougt up
+   when calling arch_send_call_function_ipi_mask(), it's harmless because
+   validation test in generic_smp_call_function_interrupt() will take care
+   of it.
 
-2) There was a mis-merge of arch/sparc/Kconfig for one of the
-   clockevents changes that went in, causing 32-bit sparc to
-   start failing to build.
+2) For cpu down issue, stop_machine() will guarantee that no concurrent
+   smp_call_fuction() is processing.
 
-   I merged in your tree to get those clockevents changes (and
-   added a note to the merge commit) then added Stephen Rothwell's
-   fix for the merge error.
+And also delay irq enable to after set_cpu_online().
 
-3) Software quad floating point emulation was not working properly
-   on more recent Niagara chips, because the way the situation is
-   reported by the cpu has changed.
+Signed-off-by: Yong Zhang <yong.zhang0@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+---
+ arch/sparc/kernel/smp_64.c |    7 +------
+ 1 files changed, 1 insertions(+), 6 deletions(-)
 
-   Nobody noticed because gcc emits calls to software emulation
-   routines in glibc.
+diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
+index f591598..781bcb1 100644
+--- a/arch/sparc/kernel/smp_64.c
++++ b/arch/sparc/kernel/smp_64.c
+@@ -103,8 +103,6 @@ void __cpuinit smp_callin(void)
+ 	if (cheetah_pcache_forced_on)
+ 		cheetah_enable_pcache();
+ 
+-	local_irq_enable();
+-
+ 	callin_flag = 1;
+ 	__asm__ __volatile__("membar #Sync\n\t"
+ 			     "flush  %%g6" : : : "memory");
+@@ -124,9 +122,8 @@ void __cpuinit smp_callin(void)
+ 	while (!cpumask_test_cpu(cpuid, &smp_commenced_mask))
+ 		rmb();
+ 
+-	ipi_call_lock_irq();
+ 	set_cpu_online(cpuid, true);
+-	ipi_call_unlock_irq();
++	local_irq_enable();
+ 
+ 	/* idle thread is expected to have preempt disabled */
+ 	preempt_disable();
+@@ -1308,9 +1305,7 @@ int __cpu_disable(void)
+ 	mdelay(1);
+ 	local_irq_disable();
+ 
+-	ipi_call_lock();
+ 	set_cpu_online(cpu, false);
+-	ipi_call_unlock();
+ 
+ 	cpu_map_rebuild();
+ 
+-- 
+1.7.5.4
 
-Please pull, thanks a lot!
-
-The following changes since commit af56e0aa35f3ae2a4c1a6d1000702df1dd78cb76:
-
-  Merge git://git.kernel.org/pub/scm/linux/kernel/git/sage/ceph-client (2012-05-30 11:17:19 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
-
-David S. Miller (3):
-      sparc64: Fix several bugs in quad floating point emulation.
-      Merge git://git.kernel.org/.../torvalds/linux
-      sparc32: Export leon_dma_ops to modules.
-
-Sam Ravnborg (22):
-      sparc32: string and whitespace cleanup in head_32.S
-      sparc32: implement proper LEON support in head_32 (before highmem)
-      sparc32: implement proper LEON support in head_32 (after highmem)
-      sparc32: introduce sparc32_start_kernel called from head_32.S
-      sparc32: add support for run-time patching of leon/sun single instructions
-      sparc32: handle leon in irq_32.c
-      sparc32: handle leon in cpu.c
-      sparc32,leon: clean up leon.h
-      sparc32,leon: always include leon_kernel in build
-      sparc32,leon: always include leon_smp + leon_mm in build
-      sparc32,leon: fix section mismatch warning
-      sparc32: introduce support for run-time patching for all shared assembler code
-      sparc32: introduce run-time patching of srmmu access functions
-      sparc32: drop LEON hack for ASI_M_MMUREGS
-      sparc32: srmmu_probe now knows about leon too
-      sparc32: refactor cpu_idle()
-      sparc32,leon: always include leon_pmc in build
-      sparc32,leon: always support leon in ioport
-      sparc32: support leon + sun in dma_make_coherent()
-      sparc32,leon: fix leon bootup
-      sparc32: remove unused variable in head_32.S
-      sparc: fix sparc64 build due to leon.h inclusion
-
-Stephen Rothwell (1):
-      sparc: fix bad merge of sparc Kconfig
-
- arch/sparc/Kconfig                   |    1 -
- arch/sparc/include/asm/asi.h         |    4 -
- arch/sparc/include/asm/asmmacro.h    |   22 +++++
- arch/sparc/include/asm/dma-mapping.h |    9 ++-
- arch/sparc/include/asm/leon.h        |   82 +----------------
- arch/sparc/include/asm/leon_amba.h   |    4 -
- arch/sparc/include/asm/pgtsrmmu.h    |   86 ++----------------
- arch/sparc/include/asm/psr.h         |    8 ++
- arch/sparc/include/asm/sections.h    |    3 +
- arch/sparc/kernel/Makefile           |    4 +-
- arch/sparc/kernel/cpu.c              |   18 ++--
- arch/sparc/kernel/entry.S            |   10 +-
- arch/sparc/kernel/etrap_32.S         |   18 +++-
- arch/sparc/kernel/head_32.S          |  168 ++++++++++++++++++++-------------
- arch/sparc/kernel/ioport.c           |   24 ++----
- arch/sparc/kernel/irq_32.c           |   22 +++--
- arch/sparc/kernel/kernel.h           |    3 +
- arch/sparc/kernel/leon_kernel.c      |    1 +
- arch/sparc/kernel/leon_pmc.c         |   15 ++-
- arch/sparc/kernel/leon_smp.c         |    8 +-
- arch/sparc/kernel/process_32.c       |   35 +------
- arch/sparc/kernel/prom_common.c      |    1 -
- arch/sparc/kernel/rtrap_32.S         |   18 +++-
- arch/sparc/kernel/setup_32.c         |   62 ++++++++++---
- arch/sparc/kernel/trampoline_32.S    |    6 +-
- arch/sparc/kernel/traps_64.c         |   12 ++-
- arch/sparc/kernel/vmlinux.lds.S      |    5 +
- arch/sparc/kernel/wof.S              |   18 +++-
- arch/sparc/kernel/wuf.S              |   27 ++++--
- arch/sparc/math-emu/math_64.c        |   20 +++-
- arch/sparc/mm/Makefile               |    3 +-
- arch/sparc/mm/leon_mm.c              |    2 +-
- arch/sparc/mm/srmmu.c                |   25 ++++-
- arch/sparc/mm/srmmu_access.S         |   82 +++++++++++++++++
- 34 files changed, 444 insertions(+), 382 deletions(-)
- create mode 100644 arch/sparc/mm/srmmu_access.S
