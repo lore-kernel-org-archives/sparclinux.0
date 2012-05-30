@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 24 May 2012 21:32:39 +0000
+Date: Wed, 30 May 2012 22:38:25 +0000
 Subject: [GIT] Sparc
-Message-Id: <20120524.173239.1413482842035447647.davem@davemloft.net>
+Message-Id: <20120530.183825.2036705800447162589.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100329.131141.80866523.davem@davemloft.net>
 In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
@@ -9,67 +9,115 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-This has the generic strncpy_from_user() implementation architectures
-can now use, which we've been developing on linux-arch over the past
-few days.
+1) Remove the idiotic situation wherein Leon was a special
+   case in all of the TLB/cache handling code.
 
-For good measure I ran both a 32-bit and a 64-bit glibc testsuite
-run, and the latter of which pointed out an adjustment I needed to
-make to sparc's user_addr_max() definition.  Linus, you were right,
-STACK_TOP was not the right thing to use, even on sparc itself :-)
+   The worst side effect of this bogosity is that you couldn't build a
+   kernel with Leon support enabled (to get better build coverage),
+   and test boot it on a non-LEON cpu.
 
-From Sam Ravnborg, we have a conversion of sparc32 over to the common
-alloc_thread_info_node(), since the aspect which originally blocked
-our doing so (sun4c) has been removed.
+   Leon is, in all core respects, programatically identical to the
+   32-bit SRMMU.  Except that they put the TLB registers in a
+   different alternate address space location.
 
-Please pull, thanks a lot.
+   Through code patching (for fast paths) and run time checks, this
+   issue is now a thing of the past.
 
-The following changes since commit 72c04af9a2d57b7945cf3de8e71461bd80695d50:
+   From Sam Ravnborg.
 
-  fbdev: sh_mobile_lcdc: Don't confuse line size with pitch (2012-05-21 20:59:32 -0700)
+2) There was a mis-merge of arch/sparc/Kconfig for one of the
+   clockevents changes that went in, causing 32-bit sparc to
+   start failing to build.
+
+   I merged in your tree to get those clockevents changes (and
+   added a note to the merge commit) then added Stephen Rothwell's
+   fix for the merge error.
+
+3) Software quad floating point emulation was not working properly
+   on more recent Niagara chips, because the way the situation is
+   reported by the cpu has changed.
+
+   Nobody noticed because gcc emits calls to software emulation
+   routines in glibc.
+
+Please pull, thanks a lot!
+
+The following changes since commit af56e0aa35f3ae2a4c1a6d1000702df1dd78cb76:
+
+  Merge git://git.kernel.org/pub/scm/linux/kernel/git/sage/ceph-client (2012-05-30 11:17:19 -0700)
 
 are available in the git repository at:
 
   git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
 
-for you to fetch changes up to c5389831cda3b38a56606a348a537a1332f2d729:
+David S. Miller (3):
+      sparc64: Fix several bugs in quad floating point emulation.
+      Merge git://git.kernel.org/.../torvalds/linux
+      sparc32: Export leon_dma_ops to modules.
 
-  sparc: Fix user_addr_max() definition. (2012-05-24 13:41:58 -0700)
+Sam Ravnborg (22):
+      sparc32: string and whitespace cleanup in head_32.S
+      sparc32: implement proper LEON support in head_32 (before highmem)
+      sparc32: implement proper LEON support in head_32 (after highmem)
+      sparc32: introduce sparc32_start_kernel called from head_32.S
+      sparc32: add support for run-time patching of leon/sun single instructions
+      sparc32: handle leon in irq_32.c
+      sparc32: handle leon in cpu.c
+      sparc32,leon: clean up leon.h
+      sparc32,leon: always include leon_kernel in build
+      sparc32,leon: always include leon_smp + leon_mm in build
+      sparc32,leon: fix section mismatch warning
+      sparc32: introduce support for run-time patching for all shared assembler code
+      sparc32: introduce run-time patching of srmmu access functions
+      sparc32: drop LEON hack for ASI_M_MMUREGS
+      sparc32: srmmu_probe now knows about leon too
+      sparc32: refactor cpu_idle()
+      sparc32,leon: always include leon_pmc in build
+      sparc32,leon: always support leon in ioport
+      sparc32: support leon + sun in dma_make_coherent()
+      sparc32,leon: fix leon bootup
+      sparc32: remove unused variable in head_32.S
+      sparc: fix sparc64 build due to leon.h inclusion
 
-----------------------------------------------------------------
-David S. Miller (6):
-      sparc: Add full proper error handling to strncpy_from_user().
-      sparc: Optimize strncpy_from_user() zero byte search.
-      sparc: Increase portability of strncpy_from_user() implementation.
-      kernel: Move REPEAT_BYTE definition into linux/kernel.h
-      lib: Sparc's strncpy_from_user is generic enough, move under lib/
-      sparc: Fix user_addr_max() definition.
+Stephen Rothwell (1):
+      sparc: fix bad merge of sparc Kconfig
 
-Sam Ravnborg (1):
-      sparc32: use the common implementation of alloc_thread_info_node()
-
- arch/sparc/Kconfig                      |    2 +-
- arch/sparc/include/asm/processor_64.h   |    4 +-
- arch/sparc/include/asm/thread_info_32.h |   11 +--
- arch/sparc/include/asm/uaccess.h        |    6 ++
- arch/sparc/include/asm/uaccess_32.h     |   10 ---
- arch/sparc/include/asm/uaccess_64.h     |    4 -
- arch/sparc/lib/Makefile                 |    2 +-
- arch/sparc/lib/ksyms.c                  |    3 -
- arch/sparc/lib/strncpy_from_user_32.S   |   47 ----------
- arch/sparc/lib/strncpy_from_user_64.S   |  133 ----------------------------
- arch/sparc/lib/usercopy.c               |    1 +
- arch/sparc/mm/srmmu.c                   |   27 ------
- arch/x86/include/asm/word-at-a-time.h   |    4 +-
- fs/namei.c                              |    1 +
- include/linux/kernel.h                  |    2 +
- lib/Kconfig                             |    3 +
- lib/Makefile                            |    2 +
- lib/strncpy_from_user.c                 |  146 +++++++++++++++++++++++++++++++
- 18 files changed, 170 insertions(+), 238 deletions(-)
- delete mode 100644 arch/sparc/lib/strncpy_from_user_32.S
- delete mode 100644 arch/sparc/lib/strncpy_from_user_64.S
- create mode 100644 lib/strncpy_from_user.c
+ arch/sparc/Kconfig                   |    1 -
+ arch/sparc/include/asm/asi.h         |    4 -
+ arch/sparc/include/asm/asmmacro.h    |   22 +++++
+ arch/sparc/include/asm/dma-mapping.h |    9 ++-
+ arch/sparc/include/asm/leon.h        |   82 +----------------
+ arch/sparc/include/asm/leon_amba.h   |    4 -
+ arch/sparc/include/asm/pgtsrmmu.h    |   86 ++----------------
+ arch/sparc/include/asm/psr.h         |    8 ++
+ arch/sparc/include/asm/sections.h    |    3 +
+ arch/sparc/kernel/Makefile           |    4 +-
+ arch/sparc/kernel/cpu.c              |   18 ++--
+ arch/sparc/kernel/entry.S            |   10 +-
+ arch/sparc/kernel/etrap_32.S         |   18 +++-
+ arch/sparc/kernel/head_32.S          |  168 ++++++++++++++++++++-------------
+ arch/sparc/kernel/ioport.c           |   24 ++----
+ arch/sparc/kernel/irq_32.c           |   22 +++--
+ arch/sparc/kernel/kernel.h           |    3 +
+ arch/sparc/kernel/leon_kernel.c      |    1 +
+ arch/sparc/kernel/leon_pmc.c         |   15 ++-
+ arch/sparc/kernel/leon_smp.c         |    8 +-
+ arch/sparc/kernel/process_32.c       |   35 +------
+ arch/sparc/kernel/prom_common.c      |    1 -
+ arch/sparc/kernel/rtrap_32.S         |   18 +++-
+ arch/sparc/kernel/setup_32.c         |   62 ++++++++++---
+ arch/sparc/kernel/trampoline_32.S    |    6 +-
+ arch/sparc/kernel/traps_64.c         |   12 ++-
+ arch/sparc/kernel/vmlinux.lds.S      |    5 +
+ arch/sparc/kernel/wof.S              |   18 +++-
+ arch/sparc/kernel/wuf.S              |   27 ++++--
+ arch/sparc/math-emu/math_64.c        |   20 +++-
+ arch/sparc/mm/Makefile               |    3 +-
+ arch/sparc/mm/leon_mm.c              |    2 +-
+ arch/sparc/mm/srmmu.c                |   25 ++++-
+ arch/sparc/mm/srmmu_access.S         |   82 +++++++++++++++++
+ 34 files changed, 444 insertions(+), 382 deletions(-)
+ create mode 100644 arch/sparc/mm/srmmu_access.S
