@@ -1,56 +1,40 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 15 May 2012 04:04:01 +0000
-Subject: Re: [PATCH] sparc: Kill mmu_{un,}lockarea().
-Message-Id: <20120515.000401.965386011845784393.davem@davemloft.net>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Date: Thu, 31 May 2012 18:33:35 +0000
+Subject: [PATCH] silo: include stddef.h in stringops.h
+Message-Id: <1338489215-2047-1-git-send-email-aaro.koskinen@iki.fi>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20120513.162832.471802901712883558.davem@davemloft.net>
-In-Reply-To: <20120513.162832.471802901712883558.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Josip Rodin <joy@entuzijast.net>
-Date: Mon, 14 May 2012 09:48:44 +0200
+I recompiled toolchain/glibc/everything from scratch against Linux 3.4
+headers and silo won't compile anymore:
 
-> On Sun, May 13, 2012 at 04:28:32PM -0400, David Miller wrote:
->> --- a/arch/sparc/include/asm/floppy_64.h
->> +++ b/arch/sparc/include/asm/floppy_64.h
->> @@ -194,7 +191,7 @@ static void sun_fd_set_dma_count(int length)
->>  
->>  static void sun_fd_enable_dma(void)
->>  {
->> -	pdma_vaddr = mmu_lockarea(pdma_vaddr, pdma_size);
->> +	pdma_vaddr = pdma_vaddr;
-> 
->> -#define mmu_lockarea(vaddr, len)		(vaddr)
-> 
-> Drop the first changed line entirely? I see it was effectively there before,
-> but still :)
+	file.c:60:5: error: 'NULL' undeclared here (not in a function)
+	fs/ext2.c:401:7: error: 'NULL' undeclared (first use in this function)
+	fs/isofs.c:57:45: error: 'NULL' undeclared (first use in this function)
+	etc.
 
-Yeah that's pretty pointless, fixed thusly :-)
+Fix by including stddef.h.
 
---------------------
-[PATCH] sparc64: Remove pointless assignment in floppy support.
-
-Reported-by: Josip Rodin <joy@entuzijast.net>
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 ---
- arch/sparc/include/asm/floppy_64.h |    1 -
- 1 file changed, 1 deletion(-)
+ include/stringops.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/arch/sparc/include/asm/floppy_64.h b/arch/sparc/include/asm/floppy_64.h
-index d534c27..e204f90 100644
---- a/arch/sparc/include/asm/floppy_64.h
-+++ b/arch/sparc/include/asm/floppy_64.h
-@@ -191,7 +191,6 @@ static void sun_fd_set_dma_count(int length)
+diff --git a/include/stringops.h b/include/stringops.h
+index 9973485..4fca34f 100644
+--- a/include/stringops.h
++++ b/include/stringops.h
+@@ -2,6 +2,7 @@
+ #define __STRINGOPS_H
  
- static void sun_fd_enable_dma(void)
- {
--	pdma_vaddr = pdma_vaddr;
- 	pdma_base = pdma_vaddr;
- 	pdma_areasize = pdma_size;
- }
+ #include <silo.h>
++#include <stddef.h>
+ 
+ /* common */
+ #ifndef __SIZE_TYPE__
 -- 
-1.7.10
+1.7.2.5
 
