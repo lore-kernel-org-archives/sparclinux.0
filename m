@@ -1,27 +1,235 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 11 Jun 2012 21:40:59 +0000
-Subject: Re: [PATCH]: Remove redundant #ifdef CONFIG_SPARC64 check
-Message-Id: <20120611.144059.2233235969165491243.davem@davemloft.net>
+From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Date: Fri, 01 Jun 2012 09:27:09 +0000
+Subject: [PATCH 21/27] sparc32, smpboot: Use generic SMP booting infrastructure
+Message-Id: <20120601091503.31979.52537.stgit@srivatsabhat.in.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <4FD65F3F.3040409@uwaterloo.ca>
-In-Reply-To: <4FD65F3F.3040409@uwaterloo.ca>
+References: <20120601090952.31979.24799.stgit@srivatsabhat.in.ibm.com>
+In-Reply-To: <20120601090952.31979.24799.stgit@srivatsabhat.in.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: peterz@infradead.org, paulmck@linux.vnet.ibm.com
+Cc: rusty@rustcorp.com.au, mingo@kernel.org, yong.zhang0@gmail.com, akpm@linux-foundation.org, vatsa@linux.vnet.ibm.com, rjw@sisk.pl, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, srivatsa.bhat@linux.vnet.ibm.com, nikunj@linux.vnet.ibm.com, "David S. Miller" <davem@davemloft.net>, Sam Ravnborg <sam@ravnborg.org>Andrew Morton <akpm@linux-foundation.org>, Mike Frysinger <vapier@gentoo.org>, Konrad Eisele <konrad@gaisler.com>, Tkhai Kirill <tkhai@yandex.ru>, Thomas Gleixner <tglx@linutronix.de>, sparclinux@vger.kernel.org
 
-From: Sarah Nadi <snadi@uwaterloo.ca>
-Date: Mon, 11 Jun 2012 17:12:31 -0400
+Convert sparc32 to use the generic framework to boot secondary CPUs.
 
-> From: Sarah Nadi<snadi@uwaterloo.ca>
-> 
-> Summary: Unnecessary #ifdef check in arch/sparc/kernel/jump_label.c
-> 
-> Problem description: The #ifdef CONFIG_SPARC64 is unnecessary since
-> the file is only compiled when CONFIG_SPARC64 is selected. Leaving it
-> in makes the
-> #ifdef block always selected while the #else block is never
-> #selected. Suggested patch to remove unneccesary check below.
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: Konrad Eisele <konrad@gaisler.com>
+Cc: Tkhai Kirill <tkhai@yandex.ru>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+---
 
-This is there so that sparc 32-bit support is easy to add for someone
-so inclined, do not remove this.
+ arch/sparc/kernel/leon_smp.c      |   25 +++++++++++++++----------
+ arch/sparc/kernel/sun4d_smp.c     |   26 +++++++++++++-------------
+ arch/sparc/kernel/sun4m_smp.c     |   26 +++++++++++++++-----------
+ arch/sparc/kernel/trampoline_32.S |    1 -
+ 4 files changed, 43 insertions(+), 35 deletions(-)
+
+diff --git a/arch/sparc/kernel/leon_smp.c b/arch/sparc/kernel/leon_smp.c
+index a469090..498ca9b 100644
+--- a/arch/sparc/kernel/leon_smp.c
++++ b/arch/sparc/kernel/leon_smp.c
+@@ -25,6 +25,7 @@
+ #include <linux/gfp.h>
+ #include <linux/cpu.h>
+ #include <linux/clockchips.h>
++#include <linux/smpboot.h>
+ 
+ #include <asm/cacheflush.h>
+ #include <asm/tlbflush.h>
+@@ -73,13 +74,21 @@ static inline unsigned long do_swap(volatile unsigned long *ptr,
+ 
+ void __cpuinit leon_callin(void)
+ {
+-	int cpuid = hard_smp_processor_id();
++	smpboot_start_secondary(NULL);
++}
++
++void __cpuinit __cpu_pre_starting(void *unused)
++{
++	unsigned int cpuid = hard_smp_processor_id();
+ 
+ 	local_ops->cache_all();
+ 	local_ops->tlb_all();
+ 	leon_configure_cache_smp();
++}
+ 
+-	notify_cpu_starting(cpuid);
++void __cpuinit __cpu_pre_online(void *unused)
++{
++	unsigned int cpuid = hard_smp_processor_id();
+ 
+ 	/* Get our local ticker going. */
+ 	register_percpu_ce(cpuid);
+@@ -91,11 +100,10 @@ void __cpuinit leon_callin(void)
+ 	local_ops->tlb_all();
+ 
+ 	/*
+-	 * Unblock the master CPU _only_ when the scheduler state
+-	 * of all secondary CPUs will be up-to-date, so after
+-	 * the SMP initialization the master will be just allowed
+-	 * to call the scheduler code.
+-	 * Allow master to continue.
++	 * Allow master to continue. The master will then give us the
++	 * go-ahead by setting the smp_commenced_mask and will wait without
++	 * timeouts until our setup is completed fully (signified by
++	 * our bit being set in the cpu_online_mask).
+ 	 */
+ 	do_swap(&cpu_callin_map[cpuid], 1);
+ 
+@@ -112,9 +120,6 @@ void __cpuinit leon_callin(void)
+ 
+ 	while (!cpumask_test_cpu(cpuid, &smp_commenced_mask))
+ 		mb();
+-
+-	local_irq_enable();
+-	set_cpu_online(cpuid, true);
+ }
+ 
+ /*
+diff --git a/arch/sparc/kernel/sun4d_smp.c b/arch/sparc/kernel/sun4d_smp.c
+index ddaea31..cd5367a 100644
+--- a/arch/sparc/kernel/sun4d_smp.c
++++ b/arch/sparc/kernel/sun4d_smp.c
+@@ -12,6 +12,7 @@
+ #include <linux/delay.h>
+ #include <linux/sched.h>
+ #include <linux/cpu.h>
++#include <linux/smpboot.h>
+ 
+ #include <asm/cacheflush.h>
+ #include <asm/switch_to.h>
+@@ -52,8 +53,12 @@ static inline void show_leds(int cpuid)
+ 
+ void __cpuinit smp4d_callin(void)
+ {
+-	int cpuid = hard_smp_processor_id();
+-	unsigned long flags;
++	smpboot_start_secondary(NULL);
++}
++
++void __cpuinit __cpu_pre_starting(void *unused)
++{
++	unsigned int cpuid = hard_smp_processor_id();
+ 
+ 	/* Show we are alive */
+ 	cpu_leds[cpuid] = 0x6;
+@@ -64,14 +69,13 @@ void __cpuinit smp4d_callin(void)
+ 
+ 	local_ops->cache_all();
+ 	local_ops->tlb_all();
++}
++
++void __cpuinit __cpu_pre_online(void *unused)
++{
++	unsigned int cpuid = hard_smp_processor_id();
++	unsigned long flags;
+ 
+-	notify_cpu_starting(cpuid);
+-	/*
+-	 * Unblock the master CPU _only_ when the scheduler state
+-	 * of all secondary CPUs will be up-to-date, so after
+-	 * the SMP initialization the master will be just allowed
+-	 * to call the scheduler code.
+-	 */
+ 	/* Get our local ticker going. */
+ 	register_percpu_ce(cpuid);
+ 
+@@ -106,16 +110,12 @@ void __cpuinit smp4d_callin(void)
+ 	local_ops->cache_all();
+ 	local_ops->tlb_all();
+ 
+-	local_irq_enable();	/* We don't allow PIL 14 yet */
+-
+ 	while (!cpumask_test_cpu(cpuid, &smp_commenced_mask))
+ 		barrier();
+ 
+ 	spin_lock_irqsave(&sun4d_imsk_lock, flags);
+ 	cc_set_imsk(cc_get_imsk() & ~0x4000); /* Allow PIL 14 as well */
+ 	spin_unlock_irqrestore(&sun4d_imsk_lock, flags);
+-	set_cpu_online(cpuid, true);
+-
+ }
+ 
+ /*
+diff --git a/arch/sparc/kernel/sun4m_smp.c b/arch/sparc/kernel/sun4m_smp.c
+index 128af73..ed05f54 100644
+--- a/arch/sparc/kernel/sun4m_smp.c
++++ b/arch/sparc/kernel/sun4m_smp.c
+@@ -10,6 +10,7 @@
+ #include <linux/delay.h>
+ #include <linux/sched.h>
+ #include <linux/cpu.h>
++#include <linux/smpboot.h>
+ 
+ #include <asm/cacheflush.h>
+ #include <asm/switch_to.h>
+@@ -36,12 +37,20 @@ swap_ulong(volatile unsigned long *ptr, unsigned long val)
+ 
+ void __cpuinit smp4m_callin(void)
+ {
+-	int cpuid = hard_smp_processor_id();
++	smpboot_start_secondary(NULL);
++}
++
++void __cpuinit __cpu_pre_starting(void *unused)
++{
++	unsigned int cpuid = hard_smp_processor_id();
+ 
+ 	local_ops->cache_all();
+ 	local_ops->tlb_all();
++}
+ 
+-	notify_cpu_starting(cpuid);
++void __cpuinit __cpu_pre_online(void *unused)
++{
++	unsigned int cpuid = hard_smp_processor_id();
+ 
+ 	register_percpu_ce(cpuid);
+ 
+@@ -52,12 +61,11 @@ void __cpuinit smp4m_callin(void)
+ 	local_ops->tlb_all();
+ 
+ 	/*
+-	 * Unblock the master CPU _only_ when the scheduler state
+-	 * of all secondary CPUs will be up-to-date, so after
+-	 * the SMP initialization the master will be just allowed
+-	 * to call the scheduler code.
++	 * Allow master to continue. The master will then give us the
++	 * go-ahead by setting the smp_commenced_mask and will wait without
++	 * timeouts until our setup is completed fully (signified by
++	 * our bit being set in the cpu_online_mask).
+ 	 */
+-	/* Allow master to continue. */
+ 	swap_ulong(&cpu_callin_map[cpuid], 1);
+ 
+ 	/* XXX: What's up with all the flushes? */
+@@ -75,10 +83,6 @@ void __cpuinit smp4m_callin(void)
+ 
+ 	while (!cpumask_test_cpu(cpuid, &smp_commenced_mask))
+ 		mb();
+-
+-	local_irq_enable();
+-
+-	set_cpu_online(cpuid, true);
+ }
+ 
+ /*
+diff --git a/arch/sparc/kernel/trampoline_32.S b/arch/sparc/kernel/trampoline_32.S
+index 7364ddc..20e90ba 100644
+--- a/arch/sparc/kernel/trampoline_32.S
++++ b/arch/sparc/kernel/trampoline_32.S
+@@ -88,7 +88,6 @@ cpu3_startup:
+ 	.align	4
+ 
+ smp_do_cpu_idle:
+-	call	cpu_idle
+ 	 mov	0, %o0
+ 
+ 	call	cpu_panic
+
