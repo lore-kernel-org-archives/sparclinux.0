@@ -1,134 +1,125 @@
-From: Marcel van Nies <morcles@gmail.com>
-Date: Mon, 04 Jun 2012 20:09:42 +0000
+From: David Miller <davem@davemloft.net>
+Date: Mon, 04 Jun 2012 20:32:21 +0000
 Subject: Re: sparc32: some more testing
-Message-Id: <CACEWtaBQ4rW0iBLh-mjJaH80d7F7j9gSa13gEodqTa9U8=sYQQ@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="0016e6da7ade5de94c04c1ab1df9"
+Message-Id: <20120604.163221.2026535893727793130.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <CACEWtaD1kfFocos0EaaZTWodas=YWcM3L-fFJR48JJApTDj2YA@mail.gmail.com>
 In-Reply-To: <CACEWtaD1kfFocos0EaaZTWodas=YWcM3L-fFJR48JJApTDj2YA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
---0016e6da7ade5de94c04c1ab1df9
-Content-Type: text/plain; charset=ISO-8859-1
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Mon, 4 Jun 2012 21:43:25 +0200
 
-Hi,
+> I need to find a way to extend the initial mapping without the need
+> to access allocated memory.
 
-I forgot to attach the patch to revert commit
-4d14a459857bd151ecbd14bcd37b4628da00792b.
+There may be an easy way to do this, depending upon the what we can
+expect when we're loaded into physical memory.
 
-M
+The SRMMU page table allows you to map PTE's at any level of the
+three-level page table hierarchy.  The interpretation of the entries
+is determined by the lowest bits, these are the SRMMU_ET_* values.
 
---0016e6da7ade5de94c04c1ab1df9
-Content-Type: application/octet-stream; name="revert.patch"
-Content-Disposition: attachment; filename="revert.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_h31z3pzu0
+So at the top PGD level, you can encode a 16MB PTE.
 
-ZGlmZiAtdU5yIGEvYXJjaC9zcGFyYy9pbmNsdWRlL2FzbS9zdHJpbmdfMzIuaCBiL2FyY2gvc3Bh
-cmMvaW5jbHVkZS9hc20vc3RyaW5nXzMyLmgKLS0tIGEvYXJjaC9zcGFyYy9pbmNsdWRlL2FzbS9z
-dHJpbmdfMzIuaAorKysgYi9hcmNoL3NwYXJjL2luY2x1ZGUvYXNtL3N0cmluZ18zMi5oCkBAIC0x
-Niw3ICsxNiw5IEBACiAjaWZkZWYgX19LRVJORUxfXwogCiBleHRlcm4gdm9pZCBfX21lbW1vdmUo
-dm9pZCAqLGNvbnN0IHZvaWQgKixfX2tlcm5lbF9zaXplX3QpOwotCitleHRlcm4gX19rZXJuZWxf
-c2l6ZV90IF9fbWVtY3B5KHZvaWQgKixjb25zdCB2b2lkICosX19rZXJuZWxfc2l6ZV90KTsKK2V4
-dGVybiBfX2tlcm5lbF9zaXplX3QgX19tZW1zZXQodm9pZCAqLGludCxfX2tlcm5lbF9zaXplX3Qp
-OworIAogI2lmbmRlZiBFWFBPUlRfU1lNVEFCX1NUUk9QUwogCiAvKiBGaXJzdCB0aGUgbWVtKigp
-IHRoaW5ncy4gKi8KQEAgLTMwLDEwICszMiw4MiBAQAogfSkKIAogI2RlZmluZSBfX0hBVkVfQVJD
-SF9NRU1DUFkKLSNkZWZpbmUgbWVtY3B5KHQsIGYsIG4pIF9fYnVpbHRpbl9tZW1jcHkodCwgZiwg
-bikKKworc3RhdGljIGlubGluZSB2b2lkICpfX2NvbnN0YW50X21lbWNweSh2b2lkICp0bywgY29u
-c3Qgdm9pZCAqZnJvbSwgX19rZXJuZWxfc2l6ZV90IG4pCit7CisgICAgICAgZXh0ZXJuIHZvaWQg
-X19jb3B5XzFwYWdlKHZvaWQgKiwgY29uc3Qgdm9pZCAqKTsKKworICAgICAgIGlmKG4gPD0gMzIp
-IHsKKyAgICAgICAgICAgICAgIF9fYnVpbHRpbl9tZW1jcHkodG8sIGZyb20sIG4pOworICAgICAg
-IH0gZWxzZSBpZiAoKCh1bnNpZ25lZCBpbnQpIHRvICYgNykgIT0gMCkgeworICAgICAgICAgICAg
-ICAgLyogRGVzdGluYXRpb24gaXMgbm90IGFsaWduZWQgb24gdGhlIGRvdWJsZS13b3JkIGJvdW5k
-YXJ5ICovCisgICAgICAgICAgICAgICBfX21lbWNweSh0bywgZnJvbSwgbik7CisgICAgICAgfSBl
-bHNlIHsKKyAgICAgICAgICAgICAgIHN3aXRjaChuKSB7CisgICAgICAgICAgICAgICBjYXNlIFBB
-R0VfU0laRToKKyAgICAgICAgICAgICAgICAgICAgICAgX19jb3B5XzFwYWdlKHRvLCBmcm9tKTsK
-KyAgICAgICAgICAgICAgICAgICAgICAgYnJlYWs7CisgICAgICAgICAgICAgICBkZWZhdWx0Ogor
-ICAgICAgICAgICAgICAgICAgICAgICBfX21lbWNweSh0bywgZnJvbSwgbik7CisgICAgICAgICAg
-ICAgICAgICAgICAgIGJyZWFrOworICAgICAgICAgICAgICAgfQorICAgICAgIH0KKyAgICAgICBy
-ZXR1cm4gdG87Cit9CisKK3N0YXRpYyBpbmxpbmUgdm9pZCAqX19ub25jb25zdGFudF9tZW1jcHko
-dm9pZCAqdG8sIGNvbnN0IHZvaWQgKmZyb20sIF9fa2VybmVsX3NpemVfdCBuKQoreworICAgICAg
-IF9fbWVtY3B5KHRvLCBmcm9tLCBuKTsKKyAgICAgICByZXR1cm4gdG87Cit9CisKKyN1bmRlZiBt
-ZW1jcHkKKyNkZWZpbmUgbWVtY3B5KHQsIGYsIG4pIFwKKyhfX2J1aWx0aW5fY29uc3RhbnRfcChu
-KSA/IFwKKyBfX2NvbnN0YW50X21lbWNweSgodCksKGYpLChuKSkgOiBcCisgX19ub25jb25zdGFu
-dF9tZW1jcHkoKHQpLChmKSwobikpKQogCiAjZGVmaW5lIF9fSEFWRV9BUkNIX01FTVNFVAotI2Rl
-ZmluZSBtZW1zZXQocywgYywgY291bnQpIF9fYnVpbHRpbl9tZW1zZXQocywgYywgY291bnQpCisK
-K3N0YXRpYyBpbmxpbmUgdm9pZCAqX19jb25zdGFudF9jX2FuZF9jb3VudF9tZW1zZXQodm9pZCAq
-cywgY2hhciBjLCBfX2tlcm5lbF9zaXplX3QgY291bnQpCit7CisgICAgICAgZXh0ZXJuIHZvaWQg
-Ynplcm9fMXBhZ2Uodm9pZCAqKTsKKyAgICAgICBleHRlcm4gX19rZXJuZWxfc2l6ZV90IF9fYnpl
-cm8odm9pZCAqLCBfX2tlcm5lbF9zaXplX3QpOworCisgICAgICAgaWYoIWMpIHsKKyAgICAgICAg
-ICAgICAgIGlmKGNvdW50ID09IFBBR0VfU0laRSkKKyAgICAgICAgICAgICAgICAgICAgICAgYnpl
-cm9fMXBhZ2Uocyk7CisgICAgICAgICAgICAgICBlbHNlCisgICAgICAgICAgICAgICAgICAgICAg
-IF9fYnplcm8ocywgY291bnQpOworICAgICAgIH0gZWxzZSB7CisgICAgICAgICAgICAgICBfX21l
-bXNldChzLCBjLCBjb3VudCk7CisgICAgICAgfQorICAgICAgIHJldHVybiBzOworfQorCitzdGF0
-aWMgaW5saW5lIHZvaWQgKl9fY29uc3RhbnRfY19tZW1zZXQodm9pZCAqcywgY2hhciBjLCBfX2tl
-cm5lbF9zaXplX3QgY291bnQpCit7CisgICAgICAgZXh0ZXJuIF9fa2VybmVsX3NpemVfdCBfX2J6
-ZXJvKHZvaWQgKiwgX19rZXJuZWxfc2l6ZV90KTsKKworICAgICAgIGlmKCFjKQorICAgICAgICAg
-ICAgICAgX19iemVybyhzLCBjb3VudCk7CisgICAgICAgZWxzZQorICAgICAgICAgICAgICAgX19t
-ZW1zZXQocywgYywgY291bnQpOworICAgICAgIHJldHVybiBzOworfQorCitzdGF0aWMgaW5saW5l
-IHZvaWQgKl9fbm9uY29uc3RhbnRfbWVtc2V0KHZvaWQgKnMsIGNoYXIgYywgX19rZXJuZWxfc2l6
-ZV90IGNvdW50KQoreworICAgICAgIF9fbWVtc2V0KHMsIGMsIGNvdW50KTsKKyAgICAgICByZXR1
-cm4gczsKK30KKworI3VuZGVmIG1lbXNldAorI2RlZmluZSBtZW1zZXQocywgYywgY291bnQpIFwK
-KyhfX2J1aWx0aW5fY29uc3RhbnRfcChjKSA/IChfX2J1aWx0aW5fY29uc3RhbnRfcChjb3VudCkg
-PyBcCisgICAgICAgICAgICAgICAgICAgICAgICAgICAgX19jb25zdGFudF9jX2FuZF9jb3VudF9t
-ZW1zZXQoKHMpLCAoYyksIChjb3VudCkpIDogXAorICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IF9fY29uc3RhbnRfY19tZW1zZXQoKHMpLCAoYyksIChjb3VudCkpKSBcCisgICAgICAgICAgICAg
-ICAgICAgICAgICAgIDogX19ub25jb25zdGFudF9tZW1zZXQoKHMpLCAoYyksIChjb3VudCkpKQog
-CiAjZGVmaW5lIF9fSEFWRV9BUkNIX01FTVNDQU4KIApkaWZmIC11TnIgYS9hcmNoL3NwYXJjL2lu
-Y2x1ZGUvYXNtL3N0cmluZ182NC5oIGIvYXJjaC9zcGFyYy9pbmNsdWRlL2FzbS9zdHJpbmdfNjQu
-aAotLS0gYS9hcmNoL3NwYXJjL2luY2x1ZGUvYXNtL3N0cmluZ182NC5oCisrKyBiL2FyY2gvc3Bh
-cmMvaW5jbHVkZS9hc20vc3RyaW5nXzY0LmgKQEAgLTE1LDYgKzE1LDggQEAKIAogI2luY2x1ZGUg
-PGFzbS9hc2kuaD4KIAorZXh0ZXJuIHZvaWQgKl9fbWVtc2V0KHZvaWQgKixpbnQsX19rZXJuZWxf
-c2l6ZV90KTsKKwogI2lmbmRlZiBFWFBPUlRfU1lNVEFCX1NUUk9QUwogCiAvKiBGaXJzdCB0aGUg
-bWVtKigpIHRoaW5ncy4gKi8KQEAgLTIyLDEwICsyNCwyOSBAQAogZXh0ZXJuIHZvaWQgKm1lbW1v
-dmUodm9pZCAqLCBjb25zdCB2b2lkICosIF9fa2VybmVsX3NpemVfdCk7CiAKICNkZWZpbmUgX19I
-QVZFX0FSQ0hfTUVNQ1BZCi0jZGVmaW5lIG1lbWNweSh0LCBmLCBuKSBfX2J1aWx0aW5fbWVtY3B5
-KHQsIGYsIG4pCitleHRlcm4gdm9pZCAqbWVtY3B5KHZvaWQgKiwgY29uc3Qgdm9pZCAqLCBfX2tl
-cm5lbF9zaXplX3QpOwogCiAjZGVmaW5lIF9fSEFWRV9BUkNIX01FTVNFVAotI2RlZmluZSBtZW1z
-ZXQocywgYywgY291bnQpIF9fYnVpbHRpbl9tZW1zZXQocywgYywgY291bnQpCitleHRlcm4gdm9p
-ZCAqX19idWlsdGluX21lbXNldCh2b2lkICosaW50LF9fa2VybmVsX3NpemVfdCk7CisKK3N0YXRp
-YyBpbmxpbmUgdm9pZCAqX19jb25zdGFudF9tZW1zZXQodm9pZCAqcywgaW50IGMsIF9fa2VybmVs
-X3NpemVfdCBjb3VudCkKK3sKKyAgICAgICBleHRlcm4gX19rZXJuZWxfc2l6ZV90IF9fYnplcm8o
-dm9pZCAqLCBfX2tlcm5lbF9zaXplX3QpOworCisgICAgICAgaWYgKCFjKSB7CisgICAgICAgICAg
-ICAgICBfX2J6ZXJvKHMsIGNvdW50KTsKKyAgICAgICAgICAgICAgIHJldHVybiBzOworICAgICAg
-IH0gZWxzZQorICAgICAgICAgICAgICAgcmV0dXJuIF9fbWVtc2V0KHMsIGMsIGNvdW50KTsKK30K
-KworI3VuZGVmIG1lbXNldAorI2RlZmluZSBtZW1zZXQocywgYywgY291bnQpIFwKKygoX19idWls
-dGluX2NvbnN0YW50X3AoY291bnQpICYmIChjb3VudCkgPD0gMzIpID8gXAorIF9fYnVpbHRpbl9t
-ZW1zZXQoKHMpLCAoYyksIChjb3VudCkpIDogXAorIChfX2J1aWx0aW5fY29uc3RhbnRfcChjKSA/
-IFwKKyAgX19jb25zdGFudF9tZW1zZXQoKHMpLCAoYyksIChjb3VudCkpIDogXAorICBfX21lbXNl
-dCgocyksIChjKSwgKGNvdW50KSkpKQogCiAjZGVmaW5lIF9fSEFWRV9BUkNIX01FTVNDQU4KIApk
-aWZmIC11TnIgYS9hcmNoL3NwYXJjL2xpYi9iemVyby5TIGIvYXJjaC9zcGFyYy9saWIvYnplcm8u
-UwotLS0gYS9hcmNoL3NwYXJjL2xpYi9iemVyby5TCisrKyBiL2FyY2gvc3BhcmMvbGliL2J6ZXJv
-LlMKQEAgLTcsNiArNywxMCBAQAogI2luY2x1ZGUgPGxpbnV4L2xpbmthZ2UuaD4KIAogCS50ZXh0
-CisKKwkuZ2xvYmwJX19tZW1zZXQKKwkudHlwZQlfX21lbXNldCwgI2Z1bmN0aW9uCitfX21lbXNl
-dDoJCS8qICVvMD1idWYsICVvMT1wYXQsICVvMj1sZW4gKi8KIAogRU5UUlkobWVtc2V0KSAvKiAl
-bzA9YnVmLCAlbzE9cGF0LCAlbzI9bGVuICovCiAJYW5kCQklbzEsIDB4ZmYsICVvMwpAQCAtNzYs
-NiArODAsNyBAQAogX19iemVyb19kb25lOgogCXJldGwKIAkgbW92CQklbzMsICVvMAorCS5zaXpl
-CQlfX21lbXNldCwgLi1fX21lbXNldAogRU5EUFJPQyhfX2J6ZXJvKQogRU5EUFJPQyhtZW1zZXQp
-CgpkaWZmIC11TnIgYS9hcmNoL3NwYXJjL2xpYi9jaGVja3N1bV8zMi5TIGIvYXJjaC9zcGFyYy9s
-aWIvY2hlY2tzdW1fMzIuUwotLS0gYS9hcmNoL3NwYXJjL2xpYi9jaGVja3N1bV8zMi5TCisrKyBi
-L2FyY2gvc3BhcmMvbGliL2NoZWNrc3VtXzMyLlMKQEAgLTU2Niw3ICs1NjYsNyBAQAogCSBtb3YJ
-JWkwLCAlbzEKIAltb3YJJWkxLCAlbzAKIDU6Ci0JY2FsbAltZW1jcHkKKwljYWxsCV9fbWVtY3B5
-CiAJIG1vdgklaTIsICVvMgogCXRzdAklbzAKIAlibmUsYQkyZgpkaWZmIC11TnIgYS9hcmNoL3Nw
-YXJjL2xpYi9rc3ltcy5jIGIvYXJjaC9zcGFyYy9saWIva3N5bXMuYwotLS0gYS9hcmNoL3NwYXJj
-L2xpYi9rc3ltcy5jCisrKyBiL2FyY2gvc3BhcmMvbGliL2tzeW1zLmMKQEAgLTI4LDYgKzI4LDcg
-QEAKIEVYUE9SVF9TWU1CT0wobWVtY21wKTsKIEVYUE9SVF9TWU1CT0wobWVtY3B5KTsKIEVYUE9S
-VF9TWU1CT0wobWVtc2V0KTsKK0VYUE9SVF9TWU1CT0woX19tZW1zZXQpOwogRVhQT1JUX1NZTUJP
-TChtZW1tb3ZlKTsKIEVYUE9SVF9TWU1CT0woX19iemVybyk7CiAKQEAgLTYxLDYgKzYyLDcgQEAK
-IAogLyogU3BlY2lhbCBpbnRlcm5hbCB2ZXJzaW9ucyBvZiBsaWJyYXJ5IGZ1bmN0aW9ucy4gKi8K
-IEVYUE9SVF9TWU1CT0woX19jb3B5XzFwYWdlKTsKK0VYUE9SVF9TWU1CT0woX19tZW1jcHkpOwog
-RVhQT1JUX1NZTUJPTChfX21lbW1vdmUpOwogRVhQT1JUX1NZTUJPTChiemVyb18xcGFnZSk7CiAK
-ZGlmZiAtdU5yIGEvYXJjaC9zcGFyYy9saWIvbWVtY3B5LlMgYi9hcmNoL3NwYXJjL2xpYi9tZW1j
-cHkuUwotLS0gYS9hcmNoL3NwYXJjL2xpYi9tZW1jcHkuUworKysgYi9hcmNoL3NwYXJjL2xpYi9t
-ZW1jcHkuUwpAQCAtMjAxLDYgKzIwMSw5IEBACiAJYgkJM2YKIAkgYWRkCQklbzAsIDIsICVvMAog
-CisjaWZkZWYgX19LRVJORUxfXworRlVOQyhfX21lbWNweSkKKyNlbmRpZgogRlVOQyhtZW1jcHkp
-CS8qICVvMD1kc3QgJW8xPXNyYyAlbzI9bGVuICovCiAKIAlzdWIJCSVvMCwgJW8xLCAlbzQKZGlm
-ZiAtdU5yIGEvYXJjaC9zcGFyYy9saWIvbWVtc2V0LlMgYi9hcmNoL3NwYXJjL2xpYi9tZW1zZXQu
-UwotLS0gYS9hcmNoL3NwYXJjL2xpYi9tZW1zZXQuUworKysgYi9hcmNoL3NwYXJjL2xpYi9tZW1z
-ZXQuUwpAQCAtNjAsMTAgKzYwLDExIEBACiAgICAgICAgIC5nbG9ibCAgX19iemVyb19iZWdpbgog
-X19iemVyb19iZWdpbjoKIAotCS5nbG9ibAlfX2J6ZXJvCisJLmdsb2JsCV9fYnplcm8sCV9fbWVt
-c2V0LAogCS5nbG9ibAltZW1zZXQKIAkuZ2xvYmwJX19tZW1zZXRfc3RhcnQsIF9fbWVtc2V0X2Vu
-ZAogX19tZW1zZXRfc3RhcnQ6CitfX21lbXNldDoKIG1lbXNldDoKIAlhbmQJJW8xLCAweGZmLCAl
-ZzMKIAlzbGwJJWczLCA4LCAlZzIK
---0016e6da7ade5de94c04c1ab1df9--
+At the PMD level, you can encode a 256K PTE.
+
+And of course at the PTE level you can encode a normal 4K PTE.
+
+So let's say that we can determine that we're always mapped using
+a 16MB aligned piece of physical memory, well them you can just
+do something like write a series of 16MB PTEs into the PGD slots
+that correspond go KERNBASE.
+
+You won't need to allocate any ram to do this.  You just write the
+PGD entries which already exist.
+
+The head_32.S code does some of this for you already.  It locates
+the PGD table the prom has mapped us with, and calculates the
+entry for KERNBASE:
+
+		lda	[%g4] ASI_M_BYPASS, %o1		! This is a level 1 ptr
+		srl	%o1, 0x4, %o1			! Clear low 4 bits
+		sll	%o1, 0x8, %o1			! Make physical
+
+Now %o1 contains the physical address of the PGD table that maps the
+kernel.
+
+		/* Ok, pull in the PTD. */
+		lda	[%o1] ASI_M_BYPASS, %o2		! This is the 0x0 16MB pgd
+
+This is loading pgd[0]
+
+		add	%o1, KERNBASE >> (SRMMU_PGDIR_SHIFT - 2), %o3
+
+%o3 now holds "&pgd[KERNBASE >> SRMMU_PGDIR_SHIFT]", entries written
+here influence the translations made for KERNBASE.
+
+		sta	%o2, [%o3] ASI_M_BYPASS
+
+And then this just stores pgd[0] into pgd[KERNBASE >> SRMMU_PGDIR_SHIFT].
+
+So what you might want to try is changing that last store into
+code implementing a different strategy.
+
+First, figure out where we're mapped by chasing the page table chains
+to figure out what physical address the kernel is mapped at.  The
+first level dereference is done by the second load above, so in %o2
+we have the PGD for virtual address 0x0.
+
+		and	%o2, SRMMU_ET_MASK, %g1
+		cmp	%g1, SRMMU_ET_PTE
+		be	have_pte
+		 andn	%o2, SRMMU_ET_MASK, %o2
+		lda	[%o2] ASI_M_BYPASS, %o2		! PMD
+		and	%o2, SRMMU_ET_MASK, %g1
+		cmp	%g1, SRMMU_ET_PTE
+		be	have_pte
+		 andn	%o2, SRMMU_ET_MASK, %o2
+		lda	[%o2] ASI_M_BYPASS, %o2		! PTE
+		and	%o2, SRMMU_ET_MASK, %g1
+		cmp	%g1, SRMMU_ET_PTE
+		be	have_pte
+		 andn	%o2, SRMMU_ET_MASK, %o2
+		ba,a	MAPPING_BUG
+	...
+have_pte:
+		/* Clear non-page bits */
+		srl	%o2, 8, %o2
+		sll	%o2, 8, %o2
+
+And now %o2 is the physical page the kernel was mapped at.
+Now you can try to validate if it is 16MB aligned or not.
+
+		sethi	%hi(1 << 24), %g1
+		andncc	%o2, %g1, %g0
+		bne	MAPPING_NOT_16MB_ALIGNED
+		 nop
+
+Assuming we pass that test, you can then construct the 16MB
+ptes to place info the PGD slots for KERNBASE.
+
+#define KERN_MAP	(SRMMU_ET_PTE | SRMMU_CACHE | SRMMU_PRIV \
+			 SRMMU_DIRTY | SRMMU_REF)
+
+		or	%o2, KERN_MAP, %o2
+		st	%o2, [%o3] ASI_M_BYPASS
+		add	%o2, %g1, %o2
+		add	%o3, 4, %o3
+		st	%o2, [%o3] ASI_M_BYPASS
+		add	%o2, %g1, %o2
+		add	%o3, 4, %o3
+		st	%o2, [%o3] ASI_M_BYPASS
+		add	%o2, %g1, %o2
+		add	%o3, 4, %o3
+		st	%o2, [%o3] ASI_M_BYPASS
+
+That should map the first 64MB at KERNBASE.
+
+Hope this helps.
+
+			      
+		
