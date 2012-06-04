@@ -1,7 +1,7 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 04 Jun 2012 20:44:30 +0000
+Date: Mon, 04 Jun 2012 20:46:10 +0000
 Subject: Re: sparc32: some more testing
-Message-Id: <20120604204430.GA28421@merkur.ravnborg.org>
+Message-Id: <20120604204610.GB28421@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <CACEWtaD1kfFocos0EaaZTWodas=YWcM3L-fFJR48JJApTDj2YA@mail.gmail.com>
 In-Reply-To: <CACEWtaD1kfFocos0EaaZTWodas=YWcM3L-fFJR48JJApTDj2YA@mail.gmail.com>
@@ -10,32 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Mon, Jun 04, 2012 at 10:09:42PM +0200, Marcel van Nies wrote:
-> Hi,
+On Mon, Jun 04, 2012 at 04:32:21PM -0400, David Miller wrote:
+> From: Sam Ravnborg <sam@ravnborg.org>
+> Date: Mon, 4 Jun 2012 21:43:25 +0200
 > 
-> I forgot to attach the patch to revert commit
-> 4d14a459857bd151ecbd14bcd37b4628da00792b.
+> > I need to find a way to extend the initial mapping without the need
+> > to access allocated memory.
+> 
+> There may be an easy way to do this, depending upon the what we can
+> expect when we're loaded into physical memory.
+...
 
-Just a random guess...
-Try to drop the tsunami special blockops to see 
-if that has any effect.
+I need a few cup of coffees and some spare time to dive into this.
+Maybe in the weekend.
 
-Just comment out this line:
-
-	hypersparc_setup_blockops();
-
-in srmmu.c
-
-That function replaces a few functions in lib/blockops
-with hypersparc optimized versions.
-
-I assume the effect is none - but it could be good to know.
-Next step would be to try to be less optimal in the various flush
-functions - but I do not yet feel comfortable enough to provide
-you with a patch to do this.
-
-I had something cooked up myself that just did flush_all for all
-of the operations. But this was not the issue here so I dunno if
-that has any effect or if it worked at all.
+But the outline seems good - and with all the example code you provided
+I may even succeed.
 
 	Sam
