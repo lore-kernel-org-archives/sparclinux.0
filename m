@@ -1,7 +1,7 @@
-From: Marcel van Nies <morcles@gmail.com>
-Date: Sat, 02 Jun 2012 18:12:26 +0000
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Mon, 04 Jun 2012 19:43:25 +0000
 Subject: Re: sparc32: some more testing
-Message-Id: <CACEWtaBCzwVzOb3E4i5jnSTUpvz_CQLygmr4gO+0qBD6nPcyOw@mail.gmail.com>
+Message-Id: <20120604194325.GA28324@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <CACEWtaD1kfFocos0EaaZTWodas=YWcM3L-fFJR48JJApTDj2YA@mail.gmail.com>
 In-Reply-To: <CACEWtaD1kfFocos0EaaZTWodas=YWcM3L-fFJR48JJApTDj2YA@mail.gmail.com>
@@ -10,31 +10,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi,
+On Tue, May 29, 2012 at 04:16:26PM -0400, David Miller wrote:
+> From: Sam Ravnborg <sam@ravnborg.org>
+> Date: Tue, 29 May 2012 20:39:39 +0200
+> 
+> > I gues I have some challenging debugging hours waiting - but that
+> > will wait a little...
+> 
+> When diagnosing these kinds of problems, the first thing you can try
+> to do is make all of the TLB operations flush the entire TLB and
+> failing that also making all the cache operations flush the entire
+> cache.
 
-I tried to revert commit 4d14a459857bd151ecbd14bcd37b4628da00792b.
-We had
+I started playing around with this again.
+I did a lot of things related to flush handling with no success.
+In the end I decided to shrink my kernel-image (I use tftpboot.img).
 
-UP kernel:
-SS20 with SuperSPARC-II 75MHz : boots, but various binaries either
-BUG, give "Illegal instruction", receive signal 4, ...
-SS20 with HyperSPARC 125MHz : boots, INIT segfaults
+When I finally squezed the kernel (including rootfs) to allow
+me to do the initial memory allocations in the memory area
+below 0xa00000 then I could boot.
 
-SMP kernel:
-SS20 with dual SuperSPARC-II 75MHz :  boots, loading INIT is
-slooooooow ... takes like 1 minute or so ... finally system freezes
-SS20 with quad HyperSPARC 125MHz : boots, INIT segfaults
+So the inital mapping is limited to 10MB...
+I need to find a way to extend the initial mapping without the need
+to access allocated memory.
+I have not looked at it yet - this is just a heads-up.
 
-Now, after reverted commit 4d14a459857bd151ecbd14bcd37b4628da00792b we have
+PS. I did not do any test yet on my system as I had selected the wrong
+video driver (it hangs when it was supposed to shift displays).
 
-UP dirty kernel:
-SS20 with SuperSPARC-II 75MHz : boots, but various binaries either
-BUG, give "Illegal instruction", receive signal 4, ...
-SS20 with HyperSPARC 125MHz : works
-
-SMP dirty kernel:
-SS20 with SuperSPARC-II 75MHz : boots, but various binaries either
-BUG, give "Illegal instruction", receive signal 4, ...
-SS20 with quad HyperSPARC 125MHz :  boots, but system freezes shortly after INIT
-
-M
+	Sam
