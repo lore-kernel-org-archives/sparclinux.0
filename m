@@ -1,7 +1,7 @@
-From: Julian Calaby <julian.calaby@gmail.com>
-Date: Mon, 04 Jun 2012 23:28:37 +0000
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 09 Jun 2012 07:41:10 +0000
 Subject: Re: sparc32: some more testing
-Message-Id: <CAGRGNgXfd2J93EMH9eqcQ_1uax79BKjQwqQhpMbfz7PrE4=WEg@mail.gmail.com>
+Message-Id: <20120609074110.GA19828@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <CACEWtaD1kfFocos0EaaZTWodas=YWcM3L-fFJR48JJApTDj2YA@mail.gmail.com>
 In-Reply-To: <CACEWtaD1kfFocos0EaaZTWodas=YWcM3L-fFJR48JJApTDj2YA@mail.gmail.com>
@@ -10,23 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi all,
+On Mon, Jun 04, 2012 at 10:46:10PM +0200, Sam Ravnborg wrote:
+> On Mon, Jun 04, 2012 at 04:32:21PM -0400, David Miller wrote:
+> > From: Sam Ravnborg <sam@ravnborg.org>
+> > Date: Mon, 4 Jun 2012 21:43:25 +0200
+> > 
+> > > I need to find a way to extend the initial mapping without the need
+> > > to access allocated memory.
+> > 
+> > There may be an easy way to do this, depending upon the what we can
+> > expect when we're loaded into physical memory.
+> ...
+> 
+> I need a few cup of coffees and some spare time to dive into this.
+> Maybe in the weekend.
+Nope... The next two weeks booked so far. So silence from me is because
+I need to attend other matters.
+Just to let you know I did not give up on this.
 
-I have a SS10 with a hypersparc CPU that I als can't get to boot. It
-fails with a level 15 interrupt when it loads the image it received
-through TFTP. From what I've read Level 15 = bad ram, but the PROM
-ram checks say it's ok. Incidentally, it boots an old (2.4) Gentoo
-install image just fine, it's only the 3.x kernel that fails like
-this. My next round of tests will be to shrink the kernel image and
-probably drop the ROOTFS just to see if I can make it boot.
-
-Once it boots, I'll be able to test any changes you make.
-
-Thanks,
-
--- 
-Julian Calaby
-
-Email: julian.calaby@gmail.com
-Profile: http://www.google.com/profiles/julian.calaby/
-.Plan: http://sites.google.com/site/juliancalaby/
+	Sam
