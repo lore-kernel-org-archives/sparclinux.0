@@ -1,52 +1,115 @@
-From: Magnus Lindholm <linmag7@gmail.com>
-Date: Sun, 10 Jun 2012 08:49:56 +0000
-Subject: some observations with smp sparc32
-Message-Id: <CA+=Fv5RLfV9fEOTWqYkNb3EkTAMnOegMC-kD-=+5a2CCziebiQ@mail.gmail.com>
+From: "Ming Mui" <sarahmoney5@aol.com>
+Date: Wed, 13 Jun 2012 14:40:05 +0000
+Subject: Greetings
+Message-Id: <201206131441.q5DEfmh3024411@ims-d11.mx.aol.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----=_NextPart_000_0073_01C2A9A6.381C2C14"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi,
+This is a multi-part message in MIME format.
 
-Here are some observations from running linux smp kernels on sparc32 hardware:
-
-linux-2.6.31.9 seems stable on both hypersparc and supersparc, runs
-fine for long periods of time even under quite heavy load.
-linux-2.32.x also runs fine some instability notices with lookups on
-both hypersparc and supersparc but I've had a ss10 dual
- superparc-II running for over 100 days without problems so its fairly
-reliable. Sometimes.
-
-With kernel 2.6.32.46 I see things like:
-
-Jan 20 00:46:23 ss10 kernel: BUG: rwlock wrong CPU on CPU#2, tr/7032, f0234020
-Jan 20 00:46:23 ss10 kernel: [f0038420 : do_exit+0x5b0/0x64c ]
-[f0038768 : do_group_exit+0x88/0xb8 ] [f00387a8 :
-sys_exit_group+0x10/0x1c ] [f001229c : syscall_is_too_hard+0x34/0x40 ]
-[f0011fa0 : srmmu_fault+0x58/0x68 ]  f0234020=tasklist_lock
-
-More recent kernels will run smp but freezes fairly quick under heavy
-load (like building the kernel), The more recent kernel the less
-uptime I get under heavy load.
-On linux 3.4.x I get messages like:
-
-"BUG: scheduling while atomic: swapper/2/0/0x00000000"
-
-These messages are frequent and quickly fills my log files whit the
-same repeated message.
+------=_NextPart_000_0073_01C2A9A6.381C2C14
+Content-Type: text/plain;
+	charset="Windows-1251"
+Content-Transfer-Encoding: 7bit
 
 
-The exception seems to bee 3.5-rc1 (modified for hypersparc) which on
-hypersparc runs fairly stable even i smp. Building a kernel with "make
--j2" is no problem and I can do it over and over again.
-However building a kernel with "make -j4" will cause the system too
-freeze after like 30min. Not a complete lockup though, I can ping the
-machine, I can toggle numlock and if I hit ctlr-alt-del it displays
-a message that the system is about to reboot, but then nothing
-happens. On supersparc-II the modified 3.5-rc1 kernel will freeze alot
-faster than on hypersparc, not sure why but smp on hypersparc seems
-much more stable than with supersparc-II at least on 3.5-rc1.
+I have attached an important proposal of great benefit to this mail.
+Please, ensure you relate back your interest to me urgently after going through it.
 
-Magnus
+Regards,
+Ming Mui
+
+------=_NextPart_000_0073_01C2A9A6.381C2C14
+Content-Type: application/octet-stream;
+	name="my proposal.rtf"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="my proposal.rtf"
+
+e1xydGYxXGFuc2lcYW5zaWNwZzEyNTJcZGVmZjBcZGVmbGFuZzEwMzN7XGZv
+bnR0Ymx7XGYwXGZzd2lzc1xmY2hhcnNldDAgQXJpYWw7fX0NCntcKlxnZW5l
+cmF0b3IgTXNmdGVkaXQgNS40MS4yMS4yNTAwO31cdmlld2tpbmQ0XHVjMVxw
+YXJkXGYwXGZzMjAgTXIuIE1pbmcgTXVpXHBhcg0KVmljZSBQcmVzaWRlbnQg
+JiBCcmFuY2ggTWFuYWdlclxwYXINCkJhbmsgb2YgRWFzdCBBc2lhIFUuUy5B
+IChOQSlccGFyDQpDYW5hbCBTdHJlZXQgTWFpbiBCcmFuY2hccGFyDQpHL0Ys
+IDIwMiBDYW5hbCBTdHJlZXQsXHBhcg0KTmV3IFlvcmssIE5ZIDEwMDEzLCBV
+U0EgXHBhcg0KIFxwYXINCkRlYXIgRnJpZW5kLFxwYXINClxwYXINCkludGVy
+bmV0IHdvdWxkIG5vdCBoYXZlIGJlZW4gdGhlIGJlc3Qgd2F5IHRvIHJlYWNo
+IHlvdSBidXQgc2luY2UgdGhpcyBsZXR0ZXIgaXMgaGlnaGx5IGNvbmZpZGVu
+dGlhbCBhbmQgdGhlIEludGVybmV0IHNlZW1zIHRvIGJlIHRoZSBtb3N0IHNl
+Y3VyZWQgYW5kIGZhc3Rlc3Qgd2F5IG9mIGNvbW11bmljYXRpb24sIEkgZGVj
+aWRlZCB0byByZWFjaCB5b3UgYnkgdGhpcyBtZWFucy4gSSBhbSBNci4gTWlu
+ZyBNdWksIE1hbmFnZXIgYW5kIFZpY2UgUHJlc2lkZW50IG9mIFRoZSBCYW5r
+IG9mIEVhc3QgQXNpYSwgQ2FuYWwgU3RyZWV0IE1haW4gQnJhbmNoLCBOZXcg
+WW9yaywgVW5pdGVkIFN0YXRlIG9mIEFtZXJpY2EuXHBhcg0KXHBhcg0KS2lu
+ZGx5IG5vdGUgdGhhdCB0aGlzIG1lc3NhZ2UgaXMgdW4tb2ZmaWNpYWwgYW5k
+IHBlcnNvbmFsIGFuZCBhcyBzdWNoIHNob3VsZCBiZSBrZXB0IGhpZ2hseSBj
+b25maWRlbnRpYWwgc28gSSBwbGVhZCB3aXRoIHlvdSB0byBraW5kbHkga2Vl
+cCBpdCBhcyBzdWNoLiBJIGFtIGNvbnRhY3RpbmcgeW91IGJhc2Ugb24gYSBy
+ZWNlbnQgbWVldGluZyBoZWxkIGJ5IHRoZSBtYW5hZ2VtZW50IG9mIG15IGJh
+bmsgd2hpY2ggYW4gYWNjb3VudCBvZiBMYXRlIFdJTExJQU0gQVVDT0lOICAo
+RGVjZWFzZWQpIHdobyBkaWVkIE1vbmRheSwgSnVuZSAyOCwgMjAxMCBvZiBw
+cm9zdGF0ZSBjYW5jZXIgIGF0IHRoZSBBdmVudHVyYSBIb3NwaXRhbCBhbmQg
+TWVkaWNhbCBDZW50ZXIgaW4gQXZlbnR1cmEsIEZsb3JpZGEgd2FzIGRlY2xh
+cmVkIGRvcm1hbnQgYW5kIHNob3VsZCBiZSBjb25maXNjYXRlZCBhbmQgdGhl
+IGZ1bmQgc2VudCB0byB0aGUgYmFuayB0cmVhc3VyeS5ccGFyDQpccGFyDQpM
+YXRlIFdJTExJQU0gQVVDT0lOIHdhcyBhbiBhY2NvdW50IGhvbGRlciBpbiBt
+eSBiYW5rIGFuZCBJIHdhcyBoaXMgYWNjb3VudCBvZmZpY2VyLiBIZSBoYXMg
+YSBzZWNyZXQgRG9sbGFyIGFjY291bnQgd29ydGggdGhlIHN1bSBvZiAkNTgs
+MjAwLDAwMC4wMCAoRmlmdHkgRWlnaHQgTWlsbGlvbiwgVHdvIEh1bmRyZWQg
+VGhvdXNhbmQgVW5pdGVkIFN0YXRlcyBEb2xsYXJzKS4gIFNpbmNlIGhpcyBk
+ZWF0aCwgdGhlIG1hbmFnZW1lbnQgb2YgbXkgYmFuayBoYXMgbWFkZSBzZXJp
+ZXMgb2YgZWZmb3J0cyB0byBsb2NhdGUgYW55IG9mIGhpcyBmYW1pbHkgbWVt
+YmVycyBidXQgYWxsIGVmZm9ydHMgd2VyZSB1bnN1Y2Nlc3NmdWwuIExhdGUg
+V0lMTElBTSBBVUNPSU4gYXMgYSBtYXR0ZXIgb2YgZmFjdCB1c2VkIGhpcyB3
+aWZlIGFzIHRoZSBOZXh0IG9mIEtpbiB0byB0aGlzIGFjY291bnQgYnV0IHVu
+Zm9ydHVuYXRlbHksIGhpcyB3aWZlIGRpZWQgeWVhcnMgYmFjayBsZWF2aW5n
+IGhpbSB3aXRoIG5vIGJlbmVmaWNpYXJ5IHRvIHRoaXMgYWNjb3VudC4gVGhp
+cyBpcyB3aGF0IGhhcyByZWFsbHkgbWFkZSBtZSBzYWQgYmVjYXVzZSBpZiB0
+aGUgd2lmZSB3YXMgYWxpdmUsIHNoZSB3b3VsZCBoYXZlIGVhc2lseSBjbGFp
+bWVkIHRoZSBmdW5kIGxvbmcgYWdvIGFuZCB0aGlzIGlzIHdoeSBJIGFtIGNv
+bnRhY3RpbmcgYW5kIHdoZXJlIEkgd2FudCB5b3UgdG8gY29tZSBpbi5ccGFy
+DQpccGFyDQpNeSBiYW5rIGluIGEgc2hvcnQgd2hpbGUgd291bGQgZGVjbGFy
+ZSB0aGUgYWNjb3VudCBkb3JtYW50LCBjb25maXNjYXRlZCBhbmQgdGhlIGZ1
+bmQgd291bGQgYmUgc2VudCB0byB0aGUgYmFuayB0cmVhc3VyeSB3aGljaCBt
+ZWFucyB0aGUgZnVuZCB3b3VsZCBiZSB0YWtlbiBieSB0aGUgYmFuay4gSSB3
+aWxsIG5vdCBsZXQgc3VjaCBoYXBwZW4gYmVjYXVzZSB0aGlzIGZ1bmQgd2Fz
+IGtlcHQgdW5kZXIgbXkgY2FyZSBhcyB0aGUgYWNjb3VudCBvZmZpY2VyIHRv
+IHRoZSBsYXRlIGRlcG9zaXRvci4gSSB3aWxsIG5ldmVyIGZvcmdpdmUgbXlz
+ZWxmIGlmIEkgYWxsb3cgdGhlIGJhbmsgY29uZmlzY2F0ZSB0aGlzIGZ1bmQg
+YmVjYXVzZSBoZSB0b2xkIG1lIGJlZm9yZSBoZSBkaWVkIHRoYXQgaW5jYXNl
+IGhlIGRpZXMsIEkgc2hvdWxkIGRvIGV2ZXJ5dGhpbmcgaW4gbXkgcG93ZXIg
+dG8gZG9uYXRlIHBhcnQgb2YgdGhlIGZ1bmQgdG8gdGhlIGxlc3MgcHJpdmls
+ZWdlZCAgIGFuZCBwYXJ0IG9mIGl0IGdpdmVuIHRvIGFueSBvbmUgSSBjaG9z
+ZSB0byBiZSB0aGUgYmVuZWZpY2lhcnkgdG8gdGhpcyBhY2NvdW50IGFuZCB0
+aGUgcmVtYWluaW5nIHBhcnQgc2hvdWxkIGJlIHRha2VuIGJ5IG1lLlxwYXIN
+ClxwYXINCkkgd2FudCB5b3UgdG8gY29tZSBpbiBhcyB0aGUgTmV4dCBvZiBL
+aW4vQmVuZWZpY2lhcnkgdG8gdGhpcyBhY2NvdW50LiAgSSBoYXZlIGFsbCB0
+aGUgdGl0bGVkIGRvY3VtZW50cyB0byBiYWNrIHlvdXIgY2xhaW0gYW5kIGFz
+IHRoZSBWaWNlIFByZXNpZGVudCBhbmQgTWFuYWdlciBvZiB0aGlzIGJyYW5j
+aCwgaXQgaXMgaW4gbXkgcG93ZXIgdG8gY2Fycnkgb3V0IGFueSBmb3JtIG9m
+IHZlcmlmaWNhdGlvbiBvbiB0aGUgYmVuZWZpY2lhcnkgb2YgdGhlIHNhaWQg
+YWNjb3VudCwgcHJvY2VzcyB0aGUgZnVuZCBhbmQgd2lyZSB3aXRob3V0IGFu
+eSBwcm9ibGVtLiBJIHdhbnQgeW91IHRvIGtub3cgdGhhdCB0aGlzIGlzIGxl
+Z2FsIGFuZCAxMDAlIHJpc2sgZnJlZSBhcyBhbGwgdGhlIHRpdGxlZCBkb2N1
+bWVudHMgd291bGQgYmUgY2hhbmdlZCB0byB5b3VyIG5hbWUgYW5kIHRoZSBm
+dW5kIHdpcmVkIHRvIGFueSBiYW5rIGFjY291bnQgeW91IHdpc2ggdG8gaGF2
+ZSBpdCB0cmFuc2ZlcnJlZC5ccGFyDQpccGFyDQpLaW5kbHkgbm90ZSB0aGF0
+IG15IHdvcmsgYW5kIHBvc2l0aW9uIHdvdWxkIGJlIGF0IHJpc2sgc2hvdWxk
+IGFueXRoaW5nIGdvIHdyb25nIHNvIEkgbmVlZCB5b3UgdG8gdGhpbmsgYWJv
+dXQgdGhpcyBhbmQgZ2V0IGJhY2sgdG8gbWUgYW5kIEkgd2lsbCBnaXZlIHlv
+dSBmdXJ0aGVyIGRldGFpbHMgb24gaG93IHRoaXMgY2FuIGJlIGhhbmRsZWQg
+c3VjY2Vzc2Z1bGx5IGFuZCB3aXRob3V0IGFueSBwcm9ibGVtLiBJIGFtIGFs
+c28gdXNpbmcgdGhpcyBtZWRpdW0gdG8gaW5mb3JtIHlvdSB0aGF0IHRoaXMg
+aXMgdmVyeSBzaW1wbGUgYW5kIGZhc3QgYW5kIEkgd291bGQgYmUgdGhlIG9u
+ZSB0byBoYW5kbGUgZXZlcnl0aGluZyBhbmQgYWxsIEkgd291bGQgbmVlZCBm
+cm9tIHlvdSBpcyBhYnNvbHV0ZSB0cnVzdCBhbmQgY29uZmlkZW50aWFsaXR5
+LlxwYXINClxwYXINCktpbmRseSByZXNwb25kICBhcyBzb29uIGFzIHBvc3Np
+YmxlIHNvIEkgY2FuIGdpdmUgeW91IGZ1cnRoZXIgZGV0YWlscy4gUGxlYXNl
+IHJlcGx5IHRvIHRoaXMgbXkgcHJpdmF0ZSBob21lIGVtYWlsIGFkZHJlc3M6
+IG1tbXVpMDU1NUB5bWFpbC5jb21ccGFyDQpccGFyDQpZb3VycyBUcnVseSxc
+cGFyDQpNci4gTWluZyBNdWlccGFyDQp9DQoA
+
+------=_NextPart_000_0073_01C2A9A6.381C2C14--
