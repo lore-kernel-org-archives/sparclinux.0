@@ -1,29 +1,35 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 01 Jun 2012 18:54:48 +0000
-Subject: Re: [PATCH 21/27] sparc32, smpboot: Use generic SMP booting infrastructure
-Message-Id: <20120601185448.GA19148@merkur.ravnborg.org>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Date: Mon, 18 Jun 2012 18:17:10 +0000
+Subject: [PATCH] sparc/PCI: remove unused pcibios_assign_resource() definition
+Message-Id: <20120618181709.6135.2703.stgit@bhelgaas.mtv.corp.google.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20120601090952.31979.24799.stgit@srivatsabhat.in.ibm.com> <20120601091503.31979.52537.stgit@srivatsabhat.in.ibm.com> <20120601.135612.699120609738854050.davem@davemloft.net>
-In-Reply-To: <20120601.135612.699120609738854050.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: srivatsa.bhat@linux.vnet.ibm.com, tglx@linutronix.de, peterz@infradead.org, paulmck@linux.vnet.ibm.com, rusty@rustcorp.com.au, mingo@kernel.org, yong.zhang0@gmail.com, akpm@linux-foundation.org, vatsa@linux.vnet.ibm.com, rjw@sisk.pl, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, nikunj@linux.vnet.ibm.com, vapier@gentoo.org, konrad@gaisler.com, tkhai@yandex.ru, sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, linux-pci@vger.kernel.org
 
-On Fri, Jun 01, 2012 at 01:56:12PM -0400, David Miller wrote:
-> From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-> Date: Fri, 01 Jun 2012 14:45:09 +0530
-> 
-> >  smp_do_cpu_idle:
-> > -	call	cpu_idle
-> >  	 mov	0, %o0
-> 
-> Just like the sparc64 patch, you need to remove the 'mov'
+pcibios_assign_resource() isn't used anywhere; remove it.
 
-And the other callers of cpu_idle in the same file should
-be updated/removed too.
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+---
+ arch/sparc/kernel/pcic.c |    5 -----
+ 1 files changed, 0 insertions(+), 5 deletions(-)
 
-There is one for sun4m, sun4d and leon.
+diff --git a/arch/sparc/kernel/pcic.c b/arch/sparc/kernel/pcic.c
+index ded3f60..46ba849 100644
+--- a/arch/sparc/kernel/pcic.c
++++ b/arch/sparc/kernel/pcic.c
+@@ -884,11 +884,6 @@ void __init sun4m_pci_init_IRQ(void)
+ 	sparc_config.load_profile_irq = pcic_load_profile_irq;
+ }
+ 
+-int pcibios_assign_resource(struct pci_dev *pdev, int resource)
+-{
+-	return -ENXIO;
+-}
+-
+ /*
+  * This probably belongs here rather than ioport.c because
+  * we do not want this crud linked into SBus kernels.
 
-	Sam
