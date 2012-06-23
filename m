@@ -1,23 +1,27 @@
-From: <petgord34truew@imballaggicavicchioli.it>
-Date: Wed, 20 Jun 2012 19:14:23 +0000
-Subject: Fwd: Informa l'autorita fiscale
-Message-Id: <000201cd4f18$e564a480$0189a8c0@localhost.localdomain>
+From: Jurij Smakov <jurij@wooyd.org>
+Date: Sat, 23 Jun 2012 11:43:56 +0000
+Subject: Failure to detect CD-ROM in T5120
+Message-Id: <20120623114356.GA4452@wooyd.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Hello,
 
+Does anyone on this list run recent kernels on a T5120 (or 
+similar) machine? We have received a report of Debian installation 
+failure on it (http://bugs.debian.org/678264), caused by a failure to 
+detect the CD-ROM drive. Apparently, on these machines CD-ROM is 
+connected via USB, but simply loading usb_storage (USB mass storage) 
+kernel module does not do the trick.
 
+If you have such a machine and CD-ROM is working for you under Linux, 
+I would appreciate if you could post the verbose output of lsusb and 
+lsmod, as well as any udev recipes you might have to get this to work.
 
-         
-Buongiorno 
-          
-Per passare la verifica e necessario andare al seguente indirizzo
-http://cbassistencial.com.br/finance/Consegna.zip?_Message_id_6Pe7vfQiCI3wCt_to_sparclinux@vger.kernel.org
-
-I dati delle transazioni verranno inviati dopo il passaggio di verifica.
-
-
-
+Thanks,
+-- 
+Jurij Smakov                                           jurij@wooyd.org
+Key: http://www.wooyd.org/pgpkey/                      KeyID: C99E03CC
