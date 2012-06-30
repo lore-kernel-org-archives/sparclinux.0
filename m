@@ -1,11 +1,25 @@
-From: Rana Wekenmann <ranawek71hs@yahoo.com>
-Date: Sun, 10 Jun 2012 22:48:55 +0000
-Subject: =?utf-8?B?W0Zvci4uMi02Xea1mOWAgeeouOeIh+WRniBbRW5kRm9yXTs=?=
-Message-Id: <1339368535.63191.YahooMailNeo@web132506.mail.ird.yahoo.com>
+From: "MRS. ASEHUI YUPING" <online2322317@telkomsa.net>
+Date: Sat, 30 Jun 2012 03:51:39 +0000
+Subject: Late Mr. Eric Morgan $21.5M.
+Message-Id: <1352028848.653495.1341028299142.JavaMail.root@zimbra7-vm1.telkomsa.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-獟 认翉翐玮爙 蜊帨薚蠤翇 戠囤鞭 宦諄巆 稐颅鉫並嚍 恉蒭眑 箖惀 內韨维 岊 栶 憬菈啫 毵唥玔 剑嘇趞 炊髾潳 妃芢另茻 菩狰 凥抛恍彿蝶 囋 茳 垶辟韩睚 魥岞右侶阖 嘼 弿.
+Dearest Friend,
+
+It s about a customer that came to our Standard Chartered Bank here in Hong Kong to engage in Private Banking services. 
+
+So, the customer had a financial portfolio of $21.5m USD been deposited without next of kin to his file and then I help turned over in the purchase of securities in the capital markets.
+
+I was the bank adviser assisting the customer in the management of the fund. I have proposal for you as a matter of urgency to late Mr. Eric Morgan from United Kingdom in respect to his unclaimed wealth and unfortunately he died along with his wife and only daughter in the event of terrorist attack on 11th September, 2001 in the World Trade center. 
+
+My proposition is this,I am will prepared and place you in a position to claim the funds as the chief auditor in this Bank and I will instruct my Bank to release the deposit to you as the closest surviving relative and prepare documents in your name. 
+
+If you find yourself able to work with me in this transaction and do contact via my private E-mail: asehui1233@hotmail.com.
+
+If you give me positive signals, I will initiate this process towards conclusion.
+
+Mrs.Asehui Yuping.
+
