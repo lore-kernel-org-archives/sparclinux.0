@@ -1,15 +1,81 @@
-From: Claire Cato <cathiepinedomn@yahoo.com>
-Date: Wed, 04 Jul 2012 23:19:46 +0000
-Subject: Interesting conversation or usual day without something new? I'd rather choose the first one. What d
-Message-Id: <1341443986.82407.YahooMailNeo@web29404.mail.ird.yahoo.com>
+From: "Bin Mohammed Al Maktoum" <momozk@wmconnect.com>
+Date: Mon, 09 Jul 2012 17:09:35 +0000
+Subject: INVESTMENT OPTION
+Message-Id: <201207091711.q69HB9de016856@ims-d11.mx.aol.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----=_NextPart_000_0033_01C2A9A6.27424B34"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hey precious!;)
-It is Claire.
-I am sure u won't be against having some spending some time with great looking and smart woman. Consider it as an invitation.
-Your pics r beautiful, you r great! So I thought that I need write to that beautiful man. You won't hesitate after looking at my pics)
-I'm expecting to get your answer soon! Maybe we could go somewhere for a drink later, who knows)) Maybe I'd invite u to have a drink at my flat;)
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0033_01C2A9A6.27424B34
+Content-Type: text/plain;
+	charset="Windows-1251"
+Content-Transfer-Encoding: 7bit
+
+Pls view the attachment for more details
+
+------=_NextPart_000_0033_01C2A9A6.27424B34
+Content-Type: application/octet-stream;
+	name="INVESTMENT OPTION.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="INVESTMENT OPTION.txt"
+
+U2lyLA0KDQpJIHdyaXRlIHRvIHlvdSBmb2xsb3dpbmcgdGhlIHJlcXVlc3Qg
+b2YgbXkgYm9zcyBhbmQgaGlzIG5lZWQgZm9yIGludmVzdG1lbnQvZnVuZGlu
+ZyBpbiB5b3VyIGNvbXBhbnkuIE15IG5hbWUgaXMgU2hlaWtoIEhhbWRhbiBC
+aW4gTW9oYW1tZWQgQWwgTWFrdG91bSwgYW0gYW4gZXhlY3V0aXZlIGRpcmVj
+dG9yIGluIFNBSUNMLg0KDQpPdXIgY29tcGFueSBtb3N0IHRpbWVzIHJlcHJl
+c2VudHMgdGhlIGludGVyZXN0cyBvZiB2ZXJ5IHdlYWx0aHkgaW52ZXN0b3Jz
+IChISUdIIE5FVC1XT1JUSCBJTkRJVklEVUFMUykgRHVlIHRvIHRoZSBzZW5z
+aXRpdml0eSBvZiB0aGUgcG9zaXRpb24gdGhleSBob2xkIGluIHRoZWlyIHNv
+Y2lldHkgYW5kIHRoZQ0KIHVuc3RhYmxlIGludmVzdG1lbnQgZW52aXJvbm1l
+bnQgb2YgdGhlaXIgY291bnRyeSwgdGhleSBldmFjdWF0ZSBtYWpvcml0eSBv
+ZiB0aGVpciBmdW5kcyBpbnRvIG1vcmUgc3RhYmxlIGVjb25vbWllcw0KIGFu
+ZCBkZXZlbG9wZWQgbmF0aW9ucyB3aGVyZSB0aGV5IGNhbiBnZXQgZ29vZCB5
+aWVsZCBmb3IgdGhlaXIgZnVuZHMuDQoNCiANCk15IGJvc3Mgd2hvbSBJIGhh
+ZCBwZXJzb25hbGx5IHdvcmtlZCB3aXRoIGZvciBtYW55IHllYXJzLCByZWNl
+bnRseSwgYXBwcm9hY2hlZCBtZSB0aGF0IGhlIHdhbnRzIGFuIGluZGl2aWR1
+YWwvY29tcGFueSB0aGF0IHdpbGwgYXNzaXN0IGhpbSB0byBpbnZlc3QgdGhl
+IHN1bSBvZiAoRXVyb3MgNTAwLjAwMC4wMDAuMDApIEZpdmUgSHVuZHJlZCBN
+aWxsaW9uIEV1cm9zIGluIEJhbmsgR3VhcmFudGVlIG9uIGhpcyBiZWhhbGYg
+aW4gYSBnb29kIHByb2ZpdGFibGUgYnVzaW5lc3MgaW4geW91ciBjb21wYW55
+L2NvdW50cnkgZm9yIGEgcGVyaW9kIG9mICAxMCB5ZWFycyBmb3IgYSBzdGFy
+dC4gTXkgQm9zcyBpcyByZXRpcmVkIGFuZCB2ZXJ5IHNpY2sgYXQgdGhpcyB0
+aW1lIGFuZCBoaXMgZmFtaWx5IHdhbnRzIGhpcyBpbnZlc3RtZW50IHJlLWRp
+cmVjdGVkIHRvIGEgcHJvcGVyIEludmVzdG1lbnQgbWFuYWdlci4gTm90ZSB0
+aGF0IG15IGNsaWVudCBoYXMgYWRkaXRpb25hbCBCYW5rIGd1YXJhbnRlZSBv
+ZiB1cCB0byBUZW4gQmlsbGlvbiBFdXJvcyBpbiBzbWFsbGVyIHVuaXRzIGF2
+YWlsYWJsZSBmb3IgeW91ciB0cmFkaW5nIG5lZWQuDQoNCg0KWW91IGFyZSBy
+ZXF1aXJlZCB0byBwcm92aWRlIG1lIHdpdGggeW91ciBjb21wbGV0ZSBpbmZv
+cm1hdGlvbiBpbmNsdWRpbmcgeW91ciBpbnRlcm5hdGlvbmFsIHBhc3Nwb3J0
+IGNvcHkgdG8gZW5hYmxlIG1lIGNvbW1lbmNlIGRvY3VtZW50YXRpb24NCiBi
+ZXR3ZWVuIHlvdSBhbmQgbXkgYm9zcyBmb3IgdGhlIExpcXVpZGF0aW9uIG9m
+IHRoZSBCYW5rIEd1YXJhbnRlZSB2YWx1ZWQgZm9yIEV1cm9zIDUwMG1pbGxp
+b24gb25seS4NCg0KWW91ciBkZXRhaWxzIGFzIHJlcXVlc3RlZCBiZWxvdyBz
+aG91bGQgYmUgcHJvdmlkZWQgc2hvdWxkIHlvdSBiZSByZWFkeSB0byBnbyBp
+bnRvIGEgam9pbnQgdmVudHVyZSB3aXRoIG15IEJvc3MuDQoNCg0KWW91ciBG
+dWxsIE5hbWUNCg0KWW91ciBjb21wbGV0ZSBBZGRyZXNzDQoNCkVtcGxveW1l
+bnQgRGV0YWlscw0KDQpQb3NpdGlvbiBIZWxkDQoNCkNvbXBhbnkgQXJlYSBv
+ZiBCdXNpbmVzcw0KDQpZb3VyIGNvbnRhY3QgdGVsZXBob25lLCBtb2JpbGUg
+YW5kIEZheCBudW1iZXINCg0KWW91ciBuZXh0IG9mIEtpbg0KDQoyIGZvcm0g
+b2YgaWRlbnRpZmljYXRpb24NCg0KIA0KDQpXZSBhbHNvIG9mZmVyIHlvdSAz
+MCUgb2YgdGhlIEV1cm81MDBNaWxsaW9uIGZvciB5b3VyIGFzc2lzdGFuY2Ug
+YXMgaW52ZXN0bWVudCBtYW5hZ2VyLCA2MCUgc2hhbGwgYmUgbWFuYWdlZCAg
+YnkgeW91IGZvciBteSBjbGllbnQgd2hvbSBpcyB2ZXJ5IHNpY2sgaW4gaG9z
+cGl0YWwgZm9yIG92ZXIgM21vbnRocyBub3csIHdoaWxlIHRoZSBiYWxhbmNl
+IDEwJSBzaGFsbCBiZSB1c2UgdG8gcmVpbWJ1cnNlIGFsbCBleHBlbnNlcyBp
+bmN1cnJlZCBieSB0aGUgaW52ZXN0ZWUgaW4gdGhlDQogcHJvY2VzcyBvZiBs
+aXF1aWRhdGluZyB0aGUgQmFuayBHdWFyYW50ZWUgZm9yIGludmVzdG1lbnQg
+cHVycG9zZS4NCg0KV2UgbG9vayBmb3J3YXJkIHRvIGEgY29yZGlhbCBCdXNp
+bmVzcyByZWxhdGlvbnNoaXAgd2l0aCB5b3UgYW5kIEkgZXhwZWN0IHlvdXIg
+ZW1haWwgYWxzbyB0byBteSBkaXJlY3QgZW1haWwgKG1haG1vdWRtb3Vzc2E0
+MDRAaG90bWFpbC5jb20pLiBZb3Ugc2hvdWxkIGFsc28gY2FsbCBtZSBpbW1l
+ZGlhdGVseSBhZnRlciB5b3UgZ2V0IHRoaXMgbWVzc2FnZSBvbiBteSBtb2Jp
+bGU6ICs0NDc3MDAwOTIzMDIgZm9yIGZ1cnRoZXIgY2xhcmlmaWNhdGlvbi4N
+Cg0KDQpCZXN0IHJlZ2FyZHMuDQoNClNoZWlraCBIYW1kYW4gQmluIE1vaGFt
+bWVkIEFsIE1ha3RvdW0=
+
+------=_NextPart_000_0033_01C2A9A6.27424B34--
