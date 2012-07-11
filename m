@@ -1,89 +1,16 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 20 Jul 2012 07:55:37 +0000
-Subject: [PATCH 2/9] sparc32: sort includes in srmmu.c
-Message-Id: <1342770944-17476-2-git-send-email-sam@ravnborg.org>
+From: Toni Oller <robhuddleaabc@yahoo.com>
+Date: Wed, 11 Jul 2012 01:11:02 +0000
+Subject: There is something I wanna share with you.
+Message-Id: <1341969062.4022.YahooMailNeo@web132104.mail.ird.yahoo.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
----
- arch/sparc/mm/srmmu.c |   42 +++++++++++++++++++++---------------------
- 1 files changed, 21 insertions(+), 21 deletions(-)
-
-diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-index b2ba9d1..533143b 100644
---- a/arch/sparc/mm/srmmu.c
-+++ b/arch/sparc/mm/srmmu.c
-@@ -8,45 +8,45 @@
-  * Copyright (C) 1999,2000 Anton Blanchard (anton@samba.org)
-  */
- 
--#include <linux/kernel.h>
--#include <linux/mm.h>
--#include <linux/vmalloc.h>
--#include <linux/pagemap.h>
--#include <linux/init.h>
-+#include <linux/seq_file.h>
- #include <linux/spinlock.h>
- #include <linux/bootmem.h>
--#include <linux/fs.h>
--#include <linux/seq_file.h>
-+#include <linux/pagemap.h>
-+#include <linux/vmalloc.h>
- #include <linux/kdebug.h>
-+#include <linux/kernel.h>
-+#include <linux/init.h>
- #include <linux/log2.h>
- #include <linux/gfp.h>
-+#include <linux/fs.h>
-+#include <linux/mm.h>
- 
--#include <asm/bitext.h>
--#include <asm/page.h>
-+#include <asm/mmu_context.h>
-+#include <asm/cacheflush.h>
-+#include <asm/tlbflush.h>
-+#include <asm/io-unit.h>
- #include <asm/pgalloc.h>
- #include <asm/pgtable.h>
--#include <asm/io.h>
-+#include <asm/bitext.h>
- #include <asm/vaddrs.h>
--#include <asm/traps.h>
--#include <asm/smp.h>
--#include <asm/mbus.h>
- #include <asm/cache.h>
-+#include <asm/traps.h>
- #include <asm/oplib.h>
-+#include <asm/mbus.h>
-+#include <asm/page.h>
- #include <asm/asi.h>
- #include <asm/msi.h>
--#include <asm/mmu_context.h>
--#include <asm/io-unit.h>
--#include <asm/cacheflush.h>
--#include <asm/tlbflush.h>
-+#include <asm/smp.h>
-+#include <asm/io.h>
- 
- /* Now the cpu specific definitions. */
--#include <asm/viking.h>
--#include <asm/mxcc.h>
--#include <asm/ross.h>
-+#include <asm/turbosparc.h>
- #include <asm/tsunami.h>
-+#include <asm/viking.h>
- #include <asm/swift.h>
--#include <asm/turbosparc.h>
- #include <asm/leon.h>
-+#include <asm/mxcc.h>
-+#include <asm/ross.h>
- 
- #include "srmmu.h"
- 
--- 
-1.6.0.6
-
+U haven't got any idea what sexual female is if you have not spent time with me! 
+I'm Toni and I'm sweetie!
+Your profile impressed me and in this mean I decided to write you and chat with you. 
+I wanna know more about you and maybe we could become friends, lovers or maybe even create some serious relations. 
+Information about me: I'm 24 years old and I work as a accountant in insurance company. I am a brunette and got first size of boobs. 
+And now, what's about you, darling?
