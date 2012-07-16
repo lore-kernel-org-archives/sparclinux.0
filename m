@@ -1,103 +1,13 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 26 Jul 2012 23:58:28 +0000
-Subject: [GIT] Sparc
-Message-Id: <20120726.165828.987529619428347919.davem@davemloft.net>
+From: mirian_4568 <mirian_555@yahoo.in>
+Date: Mon, 16 Jul 2012 12:27:43 +0000
+Subject: hi
+Message-Id: <8579416.577541342441663227.JavaMail.defaultUser@defaultHost>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-
-Nothing much this merge window for sparc.
-
-1) Fix FPU state management in sparc32, from Tkhai Kirill.
-
-2) More sparc32 mm layer code cleanups, largely more side effects
-   of the sun4c support removal in the 3.5  From Sam Ravnborg.
-
-3) Remove unused code in sparc64, from Bjorn Helgaas and Kirill Tkhai.
-
-4) Some declaration and comment tidies in PROM support code, from
-   Geert Uytterhoeven.
-
-Please pull, thanks a lot!
-
-The following changes since commit d1346a6cbabf6d377d753f1adc16cb0b305830cc:
-
-  Merge branch 'drm-fixes' of git://people.freedesktop.org/~airlied/linux (2012-06-26 11:26:50 -0700)
-
-are available in the git repository at:
-
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
-
-for you to fetch changes up to 427f23cb3abc21c3784df8ae907c4c3a31d885d1:
-
-  sparc32, copy_thread: Clear TIF_USEDFPU flag of created task instead of current (2012-07-26 16:49:40 -0700)
-
-----------------------------------------------------------------
-Bjorn Helgaas (1):
-      sparc/PCI: remove unused pcibios_assign_resource() definition
-
-David S. Miller (1):
-      sparc64: Consistently use fsrc2 rather than fmovd in optimized asm.
-
-Geert Uytterhoeven (2):
-      sparc: Correct comments about prom_init() return values
-      sparc32: Remove superfluous extern declarations for prom_*() functions
-
-Kirill Tkhai (1):
-      sparc64: remove unused function straddles_64bit_va_hole()
-
-Sam Ravnborg (18):
-      sparc32: define a few srmmu functions __init
-      sparc32: sort includes in srmmu.c
-      sparc32: fix coding-style in srmmu.c
-      sparc32: use void * in nocache get/free
-      sparc32: beautify srmmu_inherit_prom_mappings()
-      sparc32: drop swapper_pg_dir
-      sparc32: drop unused kmap_atomic_to_page
-      sparc32: fixmap.h cleanup
-      sparc32: drop fixmap.h
-      sparc32,leon: drop leon_init()
-      sparc32: drop sparc_unmapped_base
-      sparc32: drop sparc model check in paging_init
-      sparc32: drop quicklist
-      sparc32: centralize all mmu context handling in srmmu.c
-      sparc32: drop unused BAD_PAGE stuff
-      sparc32: move probe_memory() to srmmu.c
-      sparc32: move kmap_init() to highmem.c
-      sparc32: delete dead code in show_mem()
-
-Tkhai Kirill (1):
-      sparc32, copy_thread: Clear TIF_USEDFPU flag of created task instead of current
-
- arch/sparc/include/asm/fixmap.h         | 110 --------------------
- arch/sparc/include/asm/highmem.h        |   3 -
- arch/sparc/include/asm/leon.h           |   1 -
- arch/sparc/include/asm/mmu_context_32.h |   8 +-
- arch/sparc/include/asm/page_32.h        |   3 +-
- arch/sparc/include/asm/pgalloc_32.h     |  29 ++----
- arch/sparc/include/asm/pgtable_32.h     |  44 +-------
- arch/sparc/include/asm/vaddrs.h         |  22 ++++
- arch/sparc/kernel/head_32.S             |   2 -
- arch/sparc/kernel/leon_kernel.c         |  16 ---
- arch/sparc/kernel/pcic.c                |   5 -
- arch/sparc/kernel/process_32.c          |   4 +-
- arch/sparc/kernel/setup_32.c            |   1 -
- arch/sparc/kernel/sys_sparc_64.c        |  17 ---
- arch/sparc/lib/NG2memcpy.S              |  72 ++++++-------
- arch/sparc/lib/U1memcpy.S               |   4 +-
- arch/sparc/lib/copy_page.S              |  56 +++++-----
- arch/sparc/mm/fault_32.c                |  18 ----
- arch/sparc/mm/highmem.c                 |  42 ++++----
- arch/sparc/mm/init_32.c                 |  58 +----------
- arch/sparc/mm/srmmu.c                   | 332 ++++++++++++++++++++++++++++++++++++-----------------------
- arch/sparc/prom/init_32.c               |   7 +-
- arch/sparc/prom/init_64.c               |   4 +-
- 23 files changed, 331 insertions(+), 527 deletions(-)
- delete mode 100644 arch/sparc/include/asm/fixmap.h
+my name is  mirian please
+contant me with my email
+address
