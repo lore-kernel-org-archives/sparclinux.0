@@ -1,7 +1,7 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 26 Jul 2012 21:02:13 +0000
-Subject: [PATCH 03/18] sparc32: fix coding-style in srmmu.c
-Message-Id: <1343336548-3879-3-git-send-email-sam@ravnborg.org>
+Date: Fri, 20 Jul 2012 07:55:38 +0000
+Subject: [PATCH 3/9] sparc32: fix coding-style in srmmu.c
+Message-Id: <1342770944-17476-3-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
