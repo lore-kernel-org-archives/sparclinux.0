@@ -1,101 +1,195 @@
-From: =?ISO-8859-1?Q?Ra=FAl_Porcel?= <armin76@gentoo.org>
-Date: Sun, 29 Jul 2012 11:35:54 +0000
-Subject: SILO fails to read silo.conf from EXT4 FS
-Message-Id: <5015201A.8060309@gentoo.org>
+From: Meelis Roos <mroos@linux.ee>
+Date: Tue, 24 Jul 2012 20:38:37 +0000
+Subject: 3.5: kernel BUG at mm/mmap.c:2313 (on sparc64)
+Message-Id: <alpine.SOC.1.00.1207242330050.16040@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Linux Kernel list <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org
 
-Hi,
+While testing Debian update on fresh 3.5 kernel on Sun Ultra 2 
+(sparc64), got the above BUG during generation of initramfs. The machine 
+last run 3.5-rc7 and some previous rc-s fine, as well as earlier 3.x 
+releases.
 
-With the rewrite of the e2fs part of SILO, its unable to read 
-/etc/silo.conf from an EXT4 FS. It can read from EXT2 and EXT3, though.
+Rerunning this initramfs generation after reboot worked fine, I cannot 
+reproduce the problem.
 
-Dumpe2fs from the partition where silo.conf is located:
+Full dmesg:
 
-dumpe2fs 1.42 (29-Nov-2011)
-Filesystem volume name:   <none>
-Last mounted on:          /
-Filesystem UUID:          6027fece-1dd0-4d2e-8f03-c182f8101ed8
-Filesystem magic number:  0xEF53
-Filesystem revision #:    1 (dynamic)
-Filesystem features:      has_journal ext_attr resize_inode dir_index 
-filetype needs_recovery extent flex_bg sparse_super large_file huge_file 
-uninit_bg dir_nlink extra_isize
-Filesystem flags:         signed_directory_hash
-Default mount options:    user_xattr acl
-Filesystem state:         clean
-Errors behavior:          Continue
-Filesystem OS type:       Linux
-Inode count:              2084880
-Block count:              8334336
-Reserved block count:     416716
-Free blocks:              7654482
-Free inodes:              1844855
-First block:              0
-Block size:               4096
-Fragment size:            4096
-Reserved GDT blocks:      1022
-Blocks per group:         32768
-Fragments per group:      32768
-Inodes per group:         8176
-Inode blocks per group:   511
-Flex block group size:    16
-Filesystem created:       Sun Jul 29 12:49:50 2012
-Last mount time:          Sun Jul 29 13:28:47 2012
-Last write time:          Sun Jul 29 13:27:35 2012
-Mount count:              2
-Maximum mount count:      -1
-Last checked:             Sun Jul 29 12:49:50 2012
-Check interval:           0 (<none>)
-Lifetime writes:          132 MB
-Reserved blocks uid:      0 (user root)
-Reserved blocks gid:      0 (group root)
-First inode:              11
-Inode size:	          256
-Required extra isize:     28
-Desired extra isize:      28
-Journal inode:            8
-Default directory hash:   half_md4
-Directory Hash Seed:      5e059fc0-418d-4c25-b1ce-afbf97717450
-Journal backup:           inode blocks
-Journal features:         journal_incompat_revoke
-Journal size:             128M
-Journal length:           32768
-Journal sequence:         0x000000a3
-Journal start:            1
+[    0.000000] PROMLIB: Sun IEEE Boot Prom 'OBP 3.25.0 1999/12/03 11:35'
+[    0.000000] PROMLIB: Root node compatible: 
+[    0.000000] Linux version 3.5.0 (mroos@u2) (gcc version 4.6.3 (Debian 4.6.3-8) ) #17 SMP Tue Jul 24 02:26:02 EEST 2012
+[    0.000000] debug: ignoring loglevel setting.
+[    0.000000] bootconsole [earlyprom0] enabled
+[    0.000000] ARCH: SUN4U
+[    0.000000] Ethernet address: 08:00:20:89:2a:a0
+[    0.000000] Kernel: Using 2 locked TLB entries for main kernel image.
+[    0.000000] Remapping the kernel... done.
+[    0.000000] OF stdout device is: /sbus@1f,0/zs@f,1100000:a
+[    0.000000] PROM: Built device tree with 41324 bytes of memory.
+[    0.000000] Top of RAM: 0x6ff2c000, Total RAM: 0x37f1a000
+[    0.000000] Memory hole size: 896MB
+[    0.000000] [0000010000000000-fffff8006f800000] page_structs1072 node=0 entry=0/8192
+[    0.000000] [0000010000000000-fffff8006f400000] page_structs1072 node=0 entry=1/8192
+[    0.000000] [0000010000800000-fffff8006f000000] page_structs1072 node=0 entry=2/8192
+[    0.000000] [0000010000800000-fffff8006ec00000] page_structs1072 node=0 entry=3/8192
+[    0.000000] Zone ranges:
+[    0.000000]   Normal   [mem 0x00000000-0x6ff2bfff]
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x00000000-0x0fffffff]
+[    0.000000]   node   0: [mem 0x20000000-0x27ffffff]
+[    0.000000]   node   0: [mem 0x40000000-0x4fffffff]
+[    0.000000]   node   0: [mem 0x60000000-0x6fefdfff]
+[    0.000000]   node   0: [mem 0x6ff00000-0x6ff05fff]
+[    0.000000]   node   0: [mem 0x6ff16000-0x6ff2bfff]
+[    0.000000] On node 0 totalpages: 114573
+[    0.000000]   Normal zone: 1792 pages used for memmap
+[    0.000000]   Normal zone: 0 pages reserved
+[    0.000000]   Normal zone: 112781 pages, LIFO batch:15
+[    0.000000] Booting Linux...
+[    0.000000] CPU CAPS: [flush,stbar,swap,muldiv,v9,mul32,div32,v8plus]
+[    0.000000] CPU CAPS: [vis]
+[    0.000000] PERCPU: Embedded 5 pages/cpu @fffff8006e800000 s11200 r8192 d21568 u2097152
+[    0.000000] pcpu-alloc: s11200 r8192 d21568 u2097152 alloc=1*4194304
+[    0.000000] pcpu-alloc: [0] 0 1 
+[    0.000000] Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 112781
+[    0.000000] Kernel command line: root=/dev/sda2 ro debug ignore_loglevel
+[    0.000000] PID hash table entries: 4096 (order: 2, 32768 bytes)
+[    0.000000] Dentry cache hash table entries: 131072 (order: 7, 1048576 bytes)
+[    0.000000] Inode-cache hash table entries: 65536 (order: 6, 524288 bytes)
+[    0.000000] Memory: 893880k available (2952k kernel code, 976k data, 160k init) [fffff80000000000,000000006ff2c000]
+[    0.000000] SLUB: Genslabs, HWalign2, Order=0-3, MinObjects=0, CPUs=2, Nodes=1
+[    0.000000] Hierarchical RCU implementation.
+[    0.000000] 	Additional per-CPU info printed with stalls.
+[    0.000000] NR_IRQS:255
+[    0.000000] clocksource: mult[360e5a2] shift[24]
+[    0.000000] clockevent: mult[4bc5ef63] shift[32]
+[    0.000000] Console: colour dummy device 80x25
+[    0.000000] console [tty0] enabled, bootconsole disabled
+[   71.667928] Calibrating delay using timer specific routine.. 593.12 BogoMIPS (lpj)65620)
+[   71.667983] pid_max: default: 32768 minimum: 301
+[   71.668573] Mount-cache hash table entries: 512
+[   71.721773] CPU 1: synchronized TICK with master CPU (last diff -11 cycles, maxerr 544 cycles)
+[   71.721934] Brought up 2 CPUs
+[   71.723608] NET: Registered protocol family 16
+[   71.741550] SYSIO: UPA portID ffffffff, at 000001fe00000000
+[   71.768148] bio: create slab <bio-0> at 0
+[   71.771151] SCSI subsystem initialized
+[   71.774974] /sbus@1f,0/eeprom@f,1200000: Mostek regs at 0x1fff1200000
+[   71.776909] AUXIO: Found device at /sbus@1f,0/auxio@f,1900000
+[   71.777270] Switching to clocksource tick
+[   71.810118] NET: Registered protocol family 2
+[   71.810608] IP route cache hash table entries: 8192 (order: 3, 65536 bytes)
+[   71.811819] TCP established hash table entries: 32768 (order: 6, 524288 bytes)
+[   71.814438] TCP bind hash table entries: 32768 (order: 6, 524288 bytes)
+[   71.816949] TCP: Hash tables configured (established 32768 bind 32768)
+[   71.817001] TCP: reno registered
+[   71.817043] UDP hash table entries: 512 (order: 1, 16384 bytes)
+[   71.817177] UDP-Lite hash table entries: 512 (order: 1, 16384 bytes)
+[   71.818995] NET: Registered protocol family 1
+[   71.823115] HugeTLB registered 4 MB page size, pre-allocated 0 pages
+[   71.862789] msgmni has been set to 1745
+[   71.865244] Block layer SCSI generic (bsg) driver version 0.4 loaded (major 253)
+[   71.865330] io scheduler noop registered
+[   71.865377] io scheduler deadline registered
+[   71.865973] io scheduler cfq registered (default)
+[   71.878355] Console: switching to colour frame buffer device 144x56
+[   71.889094] /SUNW,ffb@1e,0: FFB at 000001fc00000000, type 8, DAC pnum[236c] rev[10] manuf_rev[4]
+[   71.890384] /sbus@1f,0/cgsix@1,0: CGsix [TGX sparc] at 0:1ff10000000
+[   71.892870] f005b518: ttyS0 at MMIO 0x1fff1100000 (irq = 9) is a zs
+[   71.892999] Console: ttyS0 (SunZilog zs0)
+[   77.306607] console [ttyS0] enabled
+[   77.348957] f005b518: ttyS1 at MMIO 0x1fff1100004 (irq = 9) is a zs
+[   77.349819] f005c9b8: Keyboard at MMIO 0x1fff1000000 (irq = 9) is a zs
+[   77.349830] f005c9b8: Mouse at MMIO 0x1fff1000004 (irq = 9) is a zs
+[   77.576410] esp: esp0, regs[1ffe8810000:1ffe8800000] irq[10]
+[   77.576422] esp: esp0 is a FASHME, 40 MHz (ccf=0), SCSI ID 7
+[   80.578511] scsi0 : esp
+[   80.609109] scsi 0:0:0:0: Direct-Access     FUJITSU  MAP3367N SUN36G  0401 PQ: 0 ANSI: 4
+[   80.704326] scsi target0:0:0: Beginning Domain Validation
+[   80.774040] scsi target0:0:0: FAST-10 WIDE SCSI 20.0 MB/s ST (100 ns, offset 15)
+[   80.862223] scsi target0:0:0: Domain Validation skipping write tests
+[   80.936748] scsi target0:0:0: Ending Domain Validation
+[   82.178015] scsi 0:0:6:0: CD-ROM            NEC      CD-ROM DRIVE:463 1.05 PQ: 0 ANSI: 2
+[   82.273068] scsi target0:0:6: Beginning Domain Validation
+[   82.341475] scsi target0:0:6: FAST-10 SCSI 10.0 MB/s ST (100 ns, offset 15)
+[   82.425639] scsi target0:0:6: Domain Validation skipping write tests
+[   82.499862] scsi target0:0:6: Ending Domain Validation
+[   84.442608] mousedev: PS/2 mouse device common for all mice
+[   84.507655] sd 0:0:0:0: [sda] 71132959 512-byte logical blocks: (36.4 GB/33.9 GiB)
+[   84.600644] sd 0:0:0:0: [sda] Write Protect is off
+[   84.600836] rtc-m48t59 rtc-m48t59.0: rtc core: registered m48t59 as rtc0
+[   84.603507] TCP: cubic registered
+[   84.603521] NET: Registered protocol family 17
+[   84.603611] Key type dns_resolver registered
+[   84.880103] sd 0:0:0:0: [sda] Mode Sense: b3 00 00 08
+[   84.942084] sd 0:0:0:0: [sda] Write cache: disabled, read cache: enabled, doesn't support DPO or FUA
+[   85.064358]  sda: sda1 sda2 sda3 sda4
+[   85.117273] sd 0:0:0:0: [sda] Attached SCSI disk
+[   85.175012] rtc-m48t59 rtc-m48t59.0: setting system clock to 2012-07-24 19:06:54 UTC (1343156814)
+[   85.589714] input: Sun Mouse as /devices/root/f005abc8/f005c9b8/serio1/input/input0
+[   85.687776] EXT4-fs (sda2): couldn't mount as ext3 due to feature incompatibilities
+[   85.831413] EXT4-fs (sda2): couldn't mount as ext2 due to feature incompatibilities
+[   86.060119] EXT4-fs (sda2): mounted filesystem with ordered data mode. Opts: (null)
+[   86.154382] VFS: Mounted root (ext4 filesystem) readonly on device 8:2.
+[   89.033972] /sbus@1f,0/flashprom@f,0: OBP Flash, RD 1fff0000000[80000] WR 1fff1380000[80000]
+[   89.227691] sunhme.c:v3.10 August 26, 2008 David S. Miller (davem@davemloft.net)
+[   89.330622] sr0: scsi-1 drive
+[   89.330634] cdrom: Uniform CD-ROM driver Revision: 3.20
+[   89.331310] sr 0:0:6:0: Attached scsi CD-ROM sr0
+[   89.321066] eth0: HAPPY MEAL (SBUS) 10/100baseT Ethernet 08:00:20:89:2a:a0
+[   89.568887] eth1: Quattro HME slot 0 (SBUS) 10/100baseT Ethernet 08:00:20:cc:93:40
+[   89.570931] eth2: Quattro HME slot 1 (SBUS) 10/100baseT Ethernet 08:00:20:cc:93:41
+[   89.572972] eth3: Quattro HME slot 2 (SBUS) 10/100baseT Ethernet 08:00:20:cc:93:42
+[   89.662787] eth4: Quattro HME slot 3 (SBUS) 10/100baseT Ethernet 08:00:20:cc:93:43
+[   89.902924] parport0: sunbpp at 0x1ffec800000
+[   91.215862] Adding 722912k swap on /dev/sda4.  Priority:-1 extents:1 across:722912k 
+[   91.452314] EXT4-fs (sda2): re-mounted. Opts: (null)
+[  114.855018] EXT4-fs (sda2): re-mounted. Opts: errors=remount-ro
+[  115.442137] loop: module loaded
+[  118.956300] EXT4-fs (sda1): mounting ext2 file system using the ext4 subsystem
+[  119.058273] EXT4-fs (sda1): mounted filesystem without journal. Opts: (null)
+[  121.004662] NET: Registered protocol family 10
+[  124.903762] eth0: Link is up using internal transceiver at 100Mb/s, Full Duplex.
+[  820.614828] kernel BUG at mm/mmap.c:2313!
+[  820.665386]               \|/ ____ \|/
+[  820.665386]               "@'/ .. \`@"
+[  820.665386]               /_| \__/ |_\
+[  820.665386]                  \__U_/
+[  820.857162] ld-linux.so.2(6567): Kernel bad sw trap 5 [#1]
+[  820.925150] TSTATE: 0000008011001607 TPC: 00000000004c0904 TNPC: 00000000004c0908 Y: 00000000    Not tainted
+[  821.045290] TPC: <exit_mmap+0x144/0x160>
+[  821.094569] g0: 0000000000000005 g1: 0000000000000000 g2: 000000000000000e g3: 0000000000000001
+[  821.201268] g4: fffff8006e3369a0 g5: fffff8006e1fc000 g6: fffff8004bb6c000 g7: fffff8006e0b8000
+[  821.307941] o0: 000000000000001d o1: 0000000000753a88 o2: 0000000000000909 o3: 0000000000000000
+[  821.414586] o4: 0000000000400000 o5: 0000000000753a88 sp: fffff8004bb6f201 ret_pc: 00000000004c08fc
+[  821.525433] RPC: <exit_mmap+0x13c/0x160>
+[  821.574888] l0: 00000000700348a0 l1: 00000000700351c8 l2: 0000000070033dc0 l3: 0000000070034dc8
+[  821.681687] l4: 000000007001ebc8 l5: 0000000000000000 l6: 00000000000001f8 l7: 0000000070034000
+[  821.788578] i0: fffff8006e381220 i1: fffff8006e381270 i2: 00000000007568b0 i3: 0000000000100000
+[  821.895400] i4: 0000000000000020 i5: 0000000000000000 i6: fffff8004bb6f321 i7: 000000000044d82c
+[  822.002370] I7: <mmput.part.57+0xc/0xc0>
+[  822.051791] Call Trace:
+[  822.083520]  [000000000044d82c] mmput.part.57+0xc/0xc0
+[  822.147692]  [0000000000452b34] exit_mm+0xf4/0x160
+[  822.207623]  [00000000004548cc] do_exit+0x22c/0x320
+[  822.268439]  [0000000000454b28] do_group_exit+0x28/0xc0
+[  822.333479]  [0000000000454bd4] SyS_exit_group+0x14/0x20
+[  822.399437]  [0000000000406134] linux_sparc_syscall32+0x34/0x40
+[  822.472848] Disabling lock debugging due to kernel taint
+[  822.538820] Caller[000000000044d82c]: mmput.part.57+0xc/0xc0
+[  822.609026] Caller[0000000000452b34]: exit_mm+0xf4/0x160
+[  822.674979] Caller[00000000004548cc]: do_exit+0x22c/0x320
+[  822.741901] Caller[0000000000454b28]: do_group_exit+0x28/0xc0
+[  822.813052] Caller[0000000000454bd4]: SyS_exit_group+0x14/0x20
+[  822.885145] Caller[0000000000406134]: linux_sparc_syscall32+0x34/0x40
+[  822.964530] Caller[0000000070012248]: 0x70012248
+[  823.021965] Instruction DUMP: 92102909  7ffd9d81  90122288 <91d02005> 30680006  01000000  01000000  01000000  01000000 
+[  823.153374] Fixing recursive fault but reboot is needed!
 
 
-
-Log from boot:
-
-
-Rebooting with command: boot 
-
-Boot device: disk1  File and args: 
-
-SILO Version 1.4.14_git2012226_p1 
-
- 
-
-Cannot find /etc/silo.conf (error: 4294967295) 
-
- 
-
-Couldn't load /etc/silo.conf 
-
-No config file loaded, you can boot just from this command line 
-
-Type [prompath;]part/path_to_image [parameters] on the prompt 
-
-E.g. /iommu/sbus/espdma/esp/sd@3,0;4/vmlinux root=/dev/sda4 
-
-or 2/vmlinux.live (to load vmlinux.live from 2nd partition of boot disk) 
-
-boot:
-
-Obviously the version where it used the e2fsprogs libs works fine.
-
-Thanks
+-- 
+Meelis Roos (mroos@linux.ee)
