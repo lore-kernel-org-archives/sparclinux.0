@@ -1,46 +1,41 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 26 Jul 2012 21:02:22 +0000
-Subject: [PATCH 12/18] sparc32: drop sparc model check in paging_init
-Message-Id: <1343336548-3879-12-git-send-email-sam@ravnborg.org>
+Date: Thu, 26 Jul 2012 21:02:25 +0000
+Subject: [PATCH 15/18] sparc32: drop unused BAD_PAGE stuff
+Message-Id: <1343336548-3879-15-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-We already check the model in head_32.S so no need to
-repeat the check here
-
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/mm/init_32.c |   14 +-------------
- 1 files changed, 1 insertions(+), 13 deletions(-)
+ arch/sparc/include/asm/pgtable_32.h |    7 -------
+ 1 files changed, 0 insertions(+), 7 deletions(-)
 
-diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
-index fc77bb8..6dce086 100644
---- a/arch/sparc/mm/init_32.c
-+++ b/arch/sparc/mm/init_32.c
-@@ -291,19 +291,7 @@ extern void device_scan(void);
+diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
+index 97a4880..6fc1348 100644
+--- a/arch/sparc/include/asm/pgtable_32.h
++++ b/arch/sparc/include/asm/pgtable_32.h
+@@ -87,18 +87,11 @@ extern unsigned long phys_base;
+ extern unsigned long pfn_base;
  
- void __init paging_init(void)
- {
--	switch(sparc_cpu_model) {
--	case sparc_leon:
--	case sun4m:
--	case sun4d:
--		srmmu_paging_init();
--		break;
--	default:
--		prom_printf("paging_init: Cannot init paging on this Sparc\n");
--		prom_printf("paging_init: sparc_cpu_model = %d\n", sparc_cpu_model);
--		prom_printf("paging_init: Halting...\n");
--		prom_halt();
--	}
--
-+	srmmu_paging_init();
- 	prom_build_devicetree();
- 	of_fill_in_cpu_data();
- 	device_scan();
+ /*
+- * BAD_PAGETABLE is used when we need a bogus page-table, while
+- * BAD_PAGE is used for a bogus page.
+- *
+  * ZERO_PAGE is a global shared page that is always zero: used
+  * for zero-mapped memory areas etc..
+  */
+-extern pte_t * __bad_pagetable(void);
+-extern pte_t __bad_page(void);
+ extern unsigned long empty_zero_page;
+ 
+-#define BAD_PAGETABLE __bad_pagetable()
+-#define BAD_PAGE __bad_page()
+ #define ZERO_PAGE(vaddr) (virt_to_page(&empty_zero_page))
+ 
+ /*
 -- 
 1.6.0.6
 
