@@ -1,81 +1,141 @@
-From: "Bin Mohammed Al Maktoum" <momozk@wmconnect.com>
-Date: Mon, 09 Jul 2012 17:09:35 +0000
-Subject: INVESTMENT OPTION
-Message-Id: <201207091711.q69HB9de016856@ims-d11.mx.aol.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_NextPart_000_0033_01C2A9A6.27424B34"
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Thu, 26 Jul 2012 21:02:18 +0000
+Subject: [PATCH 08/18] sparc32: fixmap.h cleanup
+Message-Id: <1343336548-3879-8-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-This is a multi-part message in MIME format.
+Remove all unused stuff from fixmap.h
+It is only used for highmem - sparc32 has no fixmap support.
 
-------=_NextPart_000_0033_01C2A9A6.27424B34
-Content-Type: text/plain;
-	charset="Windows-1251"
-Content-Transfer-Encoding: 7bit
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/include/asm/fixmap.h |   94 ++------------------------------------
+ 1 files changed, 5 insertions(+), 89 deletions(-)
 
-Pls view the attachment for more details
+diff --git a/arch/sparc/include/asm/fixmap.h b/arch/sparc/include/asm/fixmap.h
+index f18fc07..0bdec93 100644
+--- a/arch/sparc/include/asm/fixmap.h
++++ b/arch/sparc/include/asm/fixmap.h
+@@ -1,110 +1,26 @@
+-/*
+- * fixmap.h: compile-time virtual memory allocation
+- *
+- * This file is subject to the terms and conditions of the GNU General Public
+- * License.  See the file "COPYING" in the main directory of this archive
+- * for more details.
+- *
+- * Copyright (C) 1998 Ingo Molnar
+- *
+- * Support of BIGMEM added by Gerhard Wichert, Siemens AG, July 1999
+- */
++/* Highmem related constants */
+ 
+ #ifndef _ASM_FIXMAP_H
+ #define _ASM_FIXMAP_H
+ 
+-#include <linux/kernel.h>
+-#include <asm/page.h>
+-#ifdef CONFIG_HIGHMEM
+-#include <linux/threads.h>
+ #include <asm/kmap_types.h>
+-#endif
+ 
+-/*
+- * Here we define all the compile-time 'special' virtual
+- * addresses. The point is to have a constant address at
+- * compile time, but to set the physical address only
+- * in the boot process. We allocate these special  addresses
+- * from the top of unused virtual memory (0xfd000000 - 1 page) backwards.
+- * Also this lets us do fail-safe vmalloc(), we
+- * can guarantee that these special addresses and
+- * vmalloc()-ed addresses never overlap.
+- *
+- * these 'compile-time allocated' memory buffers are
+- * fixed-size 4k pages. (or larger if used with an increment
+- * highger than 1) use fixmap_set(idx,phys) to associate
+- * physical memory with fixmap indices.
+- *
+- * TLB entries of such buffers will not be flushed across
+- * task switches.
+- */
+-
+-/*
+- * on UP currently we will have no trace of the fixmap mechanism,
+- * no page table allocations, etc. This might change in the
+- * future, say framebuffers for the console driver(s) could be
+- * fix-mapped?
+- */
+ enum fixed_addresses {
+ 	FIX_HOLE,
+ #ifdef CONFIG_HIGHMEM
+ 	FIX_KMAP_BEGIN,
+-	FIX_KMAP_END = FIX_KMAP_BEGIN+(KM_TYPE_NR*NR_CPUS)-1,
++	FIX_KMAP_END = (KM_TYPE_NR * NR_CPUS),
+ #endif
+ 	__end_of_fixed_addresses
+ };
+ 
+-extern void __set_fixmap (enum fixed_addresses idx,
+-					unsigned long phys, pgprot_t flags);
+-
+-#define set_fixmap(idx, phys) \
+-		__set_fixmap(idx, phys, PAGE_KERNEL)
+-/*
+- * Some hardware wants to get fixmapped without caching.
+- */
+-#define set_fixmap_nocache(idx, phys) \
+-		__set_fixmap(idx, phys, PAGE_KERNEL_NOCACHE)
+-/*
+- * used by vmalloc.c.
+- *
+- * Leave one empty page between IO pages at 0xfd000000 and
+- * the start of the fixmap.
++/* Leave one empty page between IO pages at 0xfd000000 and
++ * the top of the fixmap.
+  */
+ #define FIXADDR_TOP	(0xfcfff000UL)
+-#define FIXADDR_SIZE	((__end_of_fixed_addresses) << PAGE_SHIFT)
++#define FIXADDR_SIZE	((FIX_KMAP_END + 1) << PAGE_SHIFT)
+ #define FIXADDR_START	(FIXADDR_TOP - FIXADDR_SIZE)
+ 
+ #define __fix_to_virt(x)	(FIXADDR_TOP - ((x) << PAGE_SHIFT))
+-#define __virt_to_fix(x)	((FIXADDR_TOP - ((x)&PAGE_MASK)) >> PAGE_SHIFT)
+-
+-extern void __this_fixmap_does_not_exist(void);
+-
+-/*
+- * 'index to address' translation. If anyone tries to use the idx
+- * directly without tranlation, we catch the bug with a NULL-deference
+- * kernel oops. Illegal ranges of incoming indices are caught too.
+- */
+-static inline unsigned long fix_to_virt(const unsigned int idx)
+-{
+-	/*
+-	 * this branch gets completely eliminated after inlining,
+-	 * except when someone tries to use fixaddr indices in an
+-	 * illegal way. (such as mixing up address types or using
+-	 * out-of-range indices).
+-	 *
+-	 * If it doesn't get removed, the linker will complain
+-	 * loudly with a reasonably clear error message..
+-	 */
+-	if (idx >= __end_of_fixed_addresses)
+-		__this_fixmap_does_not_exist();
+-
+-        return __fix_to_virt(idx);
+-}
+-
+-static inline unsigned long virt_to_fix(const unsigned long vaddr)
+-{
+-	BUG_ON(vaddr >= FIXADDR_TOP || vaddr < FIXADDR_START);
+-	return __virt_to_fix(vaddr);
+-}
+ 
+ #endif
+-- 
+1.6.0.6
 
-------=_NextPart_000_0033_01C2A9A6.27424B34
-Content-Type: application/octet-stream;
-	name="INVESTMENT OPTION.txt"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="INVESTMENT OPTION.txt"
-
-U2lyLA0KDQpJIHdyaXRlIHRvIHlvdSBmb2xsb3dpbmcgdGhlIHJlcXVlc3Qg
-b2YgbXkgYm9zcyBhbmQgaGlzIG5lZWQgZm9yIGludmVzdG1lbnQvZnVuZGlu
-ZyBpbiB5b3VyIGNvbXBhbnkuIE15IG5hbWUgaXMgU2hlaWtoIEhhbWRhbiBC
-aW4gTW9oYW1tZWQgQWwgTWFrdG91bSwgYW0gYW4gZXhlY3V0aXZlIGRpcmVj
-dG9yIGluIFNBSUNMLg0KDQpPdXIgY29tcGFueSBtb3N0IHRpbWVzIHJlcHJl
-c2VudHMgdGhlIGludGVyZXN0cyBvZiB2ZXJ5IHdlYWx0aHkgaW52ZXN0b3Jz
-IChISUdIIE5FVC1XT1JUSCBJTkRJVklEVUFMUykgRHVlIHRvIHRoZSBzZW5z
-aXRpdml0eSBvZiB0aGUgcG9zaXRpb24gdGhleSBob2xkIGluIHRoZWlyIHNv
-Y2lldHkgYW5kIHRoZQ0KIHVuc3RhYmxlIGludmVzdG1lbnQgZW52aXJvbm1l
-bnQgb2YgdGhlaXIgY291bnRyeSwgdGhleSBldmFjdWF0ZSBtYWpvcml0eSBv
-ZiB0aGVpciBmdW5kcyBpbnRvIG1vcmUgc3RhYmxlIGVjb25vbWllcw0KIGFu
-ZCBkZXZlbG9wZWQgbmF0aW9ucyB3aGVyZSB0aGV5IGNhbiBnZXQgZ29vZCB5
-aWVsZCBmb3IgdGhlaXIgZnVuZHMuDQoNCiANCk15IGJvc3Mgd2hvbSBJIGhh
-ZCBwZXJzb25hbGx5IHdvcmtlZCB3aXRoIGZvciBtYW55IHllYXJzLCByZWNl
-bnRseSwgYXBwcm9hY2hlZCBtZSB0aGF0IGhlIHdhbnRzIGFuIGluZGl2aWR1
-YWwvY29tcGFueSB0aGF0IHdpbGwgYXNzaXN0IGhpbSB0byBpbnZlc3QgdGhl
-IHN1bSBvZiAoRXVyb3MgNTAwLjAwMC4wMDAuMDApIEZpdmUgSHVuZHJlZCBN
-aWxsaW9uIEV1cm9zIGluIEJhbmsgR3VhcmFudGVlIG9uIGhpcyBiZWhhbGYg
-aW4gYSBnb29kIHByb2ZpdGFibGUgYnVzaW5lc3MgaW4geW91ciBjb21wYW55
-L2NvdW50cnkgZm9yIGEgcGVyaW9kIG9mICAxMCB5ZWFycyBmb3IgYSBzdGFy
-dC4gTXkgQm9zcyBpcyByZXRpcmVkIGFuZCB2ZXJ5IHNpY2sgYXQgdGhpcyB0
-aW1lIGFuZCBoaXMgZmFtaWx5IHdhbnRzIGhpcyBpbnZlc3RtZW50IHJlLWRp
-cmVjdGVkIHRvIGEgcHJvcGVyIEludmVzdG1lbnQgbWFuYWdlci4gTm90ZSB0
-aGF0IG15IGNsaWVudCBoYXMgYWRkaXRpb25hbCBCYW5rIGd1YXJhbnRlZSBv
-ZiB1cCB0byBUZW4gQmlsbGlvbiBFdXJvcyBpbiBzbWFsbGVyIHVuaXRzIGF2
-YWlsYWJsZSBmb3IgeW91ciB0cmFkaW5nIG5lZWQuDQoNCg0KWW91IGFyZSBy
-ZXF1aXJlZCB0byBwcm92aWRlIG1lIHdpdGggeW91ciBjb21wbGV0ZSBpbmZv
-cm1hdGlvbiBpbmNsdWRpbmcgeW91ciBpbnRlcm5hdGlvbmFsIHBhc3Nwb3J0
-IGNvcHkgdG8gZW5hYmxlIG1lIGNvbW1lbmNlIGRvY3VtZW50YXRpb24NCiBi
-ZXR3ZWVuIHlvdSBhbmQgbXkgYm9zcyBmb3IgdGhlIExpcXVpZGF0aW9uIG9m
-IHRoZSBCYW5rIEd1YXJhbnRlZSB2YWx1ZWQgZm9yIEV1cm9zIDUwMG1pbGxp
-b24gb25seS4NCg0KWW91ciBkZXRhaWxzIGFzIHJlcXVlc3RlZCBiZWxvdyBz
-aG91bGQgYmUgcHJvdmlkZWQgc2hvdWxkIHlvdSBiZSByZWFkeSB0byBnbyBp
-bnRvIGEgam9pbnQgdmVudHVyZSB3aXRoIG15IEJvc3MuDQoNCg0KWW91ciBG
-dWxsIE5hbWUNCg0KWW91ciBjb21wbGV0ZSBBZGRyZXNzDQoNCkVtcGxveW1l
-bnQgRGV0YWlscw0KDQpQb3NpdGlvbiBIZWxkDQoNCkNvbXBhbnkgQXJlYSBv
-ZiBCdXNpbmVzcw0KDQpZb3VyIGNvbnRhY3QgdGVsZXBob25lLCBtb2JpbGUg
-YW5kIEZheCBudW1iZXINCg0KWW91ciBuZXh0IG9mIEtpbg0KDQoyIGZvcm0g
-b2YgaWRlbnRpZmljYXRpb24NCg0KIA0KDQpXZSBhbHNvIG9mZmVyIHlvdSAz
-MCUgb2YgdGhlIEV1cm81MDBNaWxsaW9uIGZvciB5b3VyIGFzc2lzdGFuY2Ug
-YXMgaW52ZXN0bWVudCBtYW5hZ2VyLCA2MCUgc2hhbGwgYmUgbWFuYWdlZCAg
-YnkgeW91IGZvciBteSBjbGllbnQgd2hvbSBpcyB2ZXJ5IHNpY2sgaW4gaG9z
-cGl0YWwgZm9yIG92ZXIgM21vbnRocyBub3csIHdoaWxlIHRoZSBiYWxhbmNl
-IDEwJSBzaGFsbCBiZSB1c2UgdG8gcmVpbWJ1cnNlIGFsbCBleHBlbnNlcyBp
-bmN1cnJlZCBieSB0aGUgaW52ZXN0ZWUgaW4gdGhlDQogcHJvY2VzcyBvZiBs
-aXF1aWRhdGluZyB0aGUgQmFuayBHdWFyYW50ZWUgZm9yIGludmVzdG1lbnQg
-cHVycG9zZS4NCg0KV2UgbG9vayBmb3J3YXJkIHRvIGEgY29yZGlhbCBCdXNp
-bmVzcyByZWxhdGlvbnNoaXAgd2l0aCB5b3UgYW5kIEkgZXhwZWN0IHlvdXIg
-ZW1haWwgYWxzbyB0byBteSBkaXJlY3QgZW1haWwgKG1haG1vdWRtb3Vzc2E0
-MDRAaG90bWFpbC5jb20pLiBZb3Ugc2hvdWxkIGFsc28gY2FsbCBtZSBpbW1l
-ZGlhdGVseSBhZnRlciB5b3UgZ2V0IHRoaXMgbWVzc2FnZSBvbiBteSBtb2Jp
-bGU6ICs0NDc3MDAwOTIzMDIgZm9yIGZ1cnRoZXIgY2xhcmlmaWNhdGlvbi4N
-Cg0KDQpCZXN0IHJlZ2FyZHMuDQoNClNoZWlraCBIYW1kYW4gQmluIE1vaGFt
-bWVkIEFsIE1ha3RvdW0=
-
-------=_NextPart_000_0033_01C2A9A6.27424B34--
