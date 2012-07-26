@@ -1,59 +1,81 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 20 Jul 2012 07:55:42 +0000
-Subject: [PATCH 7/9] sparc32: drop unused kmap_atomic_to_page
-Message-Id: <1342770944-17476-7-git-send-email-sam@ravnborg.org>
+Date: Thu, 26 Jul 2012 21:02:20 +0000
+Subject: [PATCH 10/18] sparc32,leon: drop leon_init()
+Message-Id: <1343336548-3879-10-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-No users left of this function - drop it.
+This function was only used to set of_pdt_build_more to leon_node_init().
+But the leon_node_init() was a nop as prom_amba_init was never assigned.
 
+Cc: Daniel Hellstrom <daniel@gaisler.com>
+Cc: Konrad Eisele <konrad@gaisler.com>
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/include/asm/highmem.h |    1 -
- arch/sparc/mm/highmem.c          |   18 ------------------
- 2 files changed, 0 insertions(+), 19 deletions(-)
+ arch/sparc/include/asm/leon.h   |    1 -
+ arch/sparc/kernel/leon_kernel.c |   16 ----------------
+ arch/sparc/mm/init_32.c         |    2 --
+ 3 files changed, 0 insertions(+), 19 deletions(-)
 
-diff --git a/arch/sparc/include/asm/highmem.h b/arch/sparc/include/asm/highmem.h
-index 3b6e00d..a31b2a1 100644
---- a/arch/sparc/include/asm/highmem.h
-+++ b/arch/sparc/include/asm/highmem.h
-@@ -72,7 +72,6 @@ static inline void kunmap(struct page *page)
+diff --git a/arch/sparc/include/asm/leon.h b/arch/sparc/include/asm/leon.h
+index 3375c62..15a7169 100644
+--- a/arch/sparc/include/asm/leon.h
++++ b/arch/sparc/include/asm/leon.h
+@@ -82,7 +82,6 @@ static inline unsigned long leon_load_reg(unsigned long paddr)
+ #define LEON_BYPASS_LOAD_PA(x)      leon_load_reg((unsigned long)(x))
+ #define LEON_BYPASS_STORE_PA(x, v)  leon_store_reg((unsigned long)(x), (unsigned long)(v))
  
- extern void *kmap_atomic(struct page *page);
- extern void __kunmap_atomic(void *kvaddr);
--extern struct page *kmap_atomic_to_page(void *vaddr);
+-extern void leon_init(void);
+ extern void leon_switch_mm(void);
+ extern void leon_init_IRQ(void);
  
- #define flush_cache_kmaps()	flush_cache_all()
- 
-diff --git a/arch/sparc/mm/highmem.c b/arch/sparc/mm/highmem.c
-index 055c66c..856432a 100644
---- a/arch/sparc/mm/highmem.c
-+++ b/arch/sparc/mm/highmem.c
-@@ -110,21 +110,3 @@ void __kunmap_atomic(void *kvaddr)
- 	pagefault_enable();
+diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
+index e34e2c4..f8b6eee 100644
+--- a/arch/sparc/kernel/leon_kernel.c
++++ b/arch/sparc/kernel/leon_kernel.c
+@@ -486,17 +486,6 @@ void __init leon_trans_init(struct device_node *dp)
+ 	}
  }
- EXPORT_SYMBOL(__kunmap_atomic);
+ 
+-void __initdata (*prom_amba_init)(struct device_node *dp, struct device_node ***nextp) = 0;
 -
--/* We may be fed a pagetable here by ptep_to_xxx and others. */
--struct page *kmap_atomic_to_page(void *ptr)
+-void __init leon_node_init(struct device_node *dp, struct device_node ***nextp)
 -{
--	unsigned long idx, vaddr = (unsigned long)ptr;
--	pte_t *pte;
--
--	if (vaddr < SRMMU_NOCACHE_VADDR)
--		return virt_to_page(ptr);
--	if (vaddr < PKMAP_BASE)
--		return pfn_to_page(__nocache_pa(vaddr) >> PAGE_SHIFT);
--	BUG_ON(vaddr < FIXADDR_START);
--	BUG_ON(vaddr > FIXADDR_TOP);
--
--	idx = virt_to_fix(vaddr);
--	pte = kmap_pte - (idx - FIX_KMAP_BEGIN);
--	return pte_page(*pte);
+-	if (prom_amba_init &&
+-	    strcmp(dp->type, "ambapp") = 0 &&
+-	    strcmp(dp->name, "ambapp0") = 0) {
+-		prom_amba_init(dp, nextp);
+-	}
 -}
+-
+ #ifdef CONFIG_SMP
+ void leon_clear_profile_irq(int cpu)
+ {
+@@ -522,8 +511,3 @@ void __init leon_init_IRQ(void)
+ 	sparc_config.clear_clock_irq  = leon_clear_clock_irq;
+ 	sparc_config.load_profile_irq = leon_load_profile_irq;
+ }
+-
+-void __init leon_init(void)
+-{
+-	of_pdt_build_more = &leon_node_init;
+-}
+diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
+index ef5c779..e8ea360 100644
+--- a/arch/sparc/mm/init_32.c
++++ b/arch/sparc/mm/init_32.c
+@@ -294,8 +294,6 @@ void __init paging_init(void)
+ {
+ 	switch(sparc_cpu_model) {
+ 	case sparc_leon:
+-		leon_init();
+-		/* fall through */
+ 	case sun4m:
+ 	case sun4d:
+ 		srmmu_paging_init();
 -- 
 1.6.0.6
 
