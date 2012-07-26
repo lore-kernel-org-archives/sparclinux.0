@@ -1,21 +1,68 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 26 Jul 2012 23:54:17 +0000
-Subject: Re: [PATCH] sparc32, copy_thread: Clear TIF_USEDFPU flag of created task instead of current
-Message-Id: <20120726.165417.7078417760147458.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Thu, 26 Jul 2012 21:02:26 +0000
+Subject: [PATCH 16/18] sparc32: move probe_memory() to srmmu.c
+Message-Id: <1343336548-3879-16-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Kirill Tkhai <tkhai@yandex.ru>
-Date: Fri, 29 Jun 2012 16:55:25 +0400
+Only one user so move it to the file using it.
+It had nothing to do in fault_32.
 
-> FPU state is saved into task_struct of created task. Current task continues
-> use of the state, so it needs TIF_USEDFPU flag is not cleared.
-> 
-> Created task receives fresh FPU and cleared TIF_USEFPU flag is required for it.
-> 
-> Signed-off-by: Kirill Tkhai <tkhai@yandex.ru>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/mm/fault_32.c |   12 ------------
+ arch/sparc/mm/srmmu.c    |   12 +++++++++++-
+ 2 files changed, 11 insertions(+), 13 deletions(-)
 
-Applied.
+diff --git a/arch/sparc/mm/fault_32.c b/arch/sparc/mm/fault_32.c
+index e58f9ee..77ac917 100644
+--- a/arch/sparc/mm/fault_32.c
++++ b/arch/sparc/mm/fault_32.c
+@@ -32,18 +32,6 @@
+ 
+ int show_unhandled_signals = 1;
+ 
+-/* Return how much physical memory we have.  */
+-unsigned long probe_memory(void)
+-{
+-	unsigned long total = 0;
+-	int i;
+-
+-	for (i = 0; sp_banks[i].num_bytes; i++)
+-		total += sp_banks[i].num_bytes;
+-
+-	return total;
+-}
+-
+ static void unhandled_fault(unsigned long, struct task_struct *,
+ 		struct pt_regs *) __attribute__ ((noreturn));
+ 
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index ad93d2e..c38bb72 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -228,7 +228,17 @@ void srmmu_free_nocache(void *addr, int size)
+ static void srmmu_early_allocate_ptable_skeleton(unsigned long start,
+ 						 unsigned long end);
+ 
+-extern unsigned long probe_memory(void);	/* in fault.c */
++/* Return how much physical memory we have.  */
++static unsigned long __init probe_memory(void)
++{
++	unsigned long total = 0;
++	int i;
++
++	for (i = 0; sp_banks[i].num_bytes; i++)
++		total += sp_banks[i].num_bytes;
++
++	return total;
++}
+ 
+ /*
+  * Reserve nocache dynamically proportionally to the amount of
+-- 
+1.6.0.6
+
