@@ -1,59 +1,86 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 26 Jul 2012 21:02:17 +0000
-Subject: [PATCH 07/18] sparc32: drop unused kmap_atomic_to_page
-Message-Id: <1343336548-3879-7-git-send-email-sam@ravnborg.org>
+Date: Thu, 26 Jul 2012 21:02:27 +0000
+Subject: [PATCH 17/18] sparc32: move kmap_init() to highmem.c
+Message-Id: <1343336548-3879-17-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-No users left of this function - drop it.
+Try to keep highmem support in a more central place.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
  arch/sparc/include/asm/highmem.h |    1 -
- arch/sparc/mm/highmem.c          |   18 ------------------
- 2 files changed, 0 insertions(+), 19 deletions(-)
+ arch/sparc/mm/highmem.c          |   17 +++++++++++++++++
+ arch/sparc/mm/init_32.c          |   13 -------------
+ 3 files changed, 17 insertions(+), 14 deletions(-)
 
 diff --git a/arch/sparc/include/asm/highmem.h b/arch/sparc/include/asm/highmem.h
-index 3b6e00d..a31b2a1 100644
+index 6393383..4f9e15c 100644
 --- a/arch/sparc/include/asm/highmem.h
 +++ b/arch/sparc/include/asm/highmem.h
-@@ -72,7 +72,6 @@ static inline void kunmap(struct page *page)
+@@ -28,7 +28,6 @@
+ /* declarations for highmem.c */
+ extern unsigned long highstart_pfn, highend_pfn;
  
- extern void *kmap_atomic(struct page *page);
- extern void __kunmap_atomic(void *kvaddr);
--extern struct page *kmap_atomic_to_page(void *vaddr);
- 
- #define flush_cache_kmaps()	flush_cache_all()
+-extern pte_t *kmap_pte;
+ extern pgprot_t kmap_prot;
+ extern pte_t *pkmap_page_table;
  
 diff --git a/arch/sparc/mm/highmem.c b/arch/sparc/mm/highmem.c
-index 055c66c..856432a 100644
+index 4d5f8b3..449f864 100644
 --- a/arch/sparc/mm/highmem.c
 +++ b/arch/sparc/mm/highmem.c
-@@ -110,21 +110,3 @@ void __kunmap_atomic(void *kvaddr)
- 	pagefault_enable();
- }
- EXPORT_SYMBOL(__kunmap_atomic);
+@@ -31,6 +31,23 @@
+ #include <asm/pgalloc.h>
+ #include <asm/vaddrs.h>
+ 
++pgprot_t kmap_prot;
++
++static pte_t *kmap_pte;
++
++void __init kmap_init(void)
++{
++	unsigned long address;
++	pmd_t *dir;
++
++	address = __fix_to_virt(FIX_KMAP_BEGIN);
++	dir = pmd_offset(pgd_offset_k(address), address);
++
++        /* cache the first kmap pte */
++        kmap_pte = pte_offset_kernel(dir, address);
++        kmap_prot = __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE);
++}
++
+ void *kmap_atomic(struct page *page)
+ {
+ 	unsigned long vaddr;
+diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
+index 020d2af..9f1162f 100644
+--- a/arch/sparc/mm/init_32.c
++++ b/arch/sparc/mm/init_32.c
+@@ -52,19 +52,6 @@ extern unsigned int sparc_ramdisk_size;
+ 
+ unsigned long highstart_pfn, highend_pfn;
+ 
+-pte_t *kmap_pte;
+-pgprot_t kmap_prot;
 -
--/* We may be fed a pagetable here by ptep_to_xxx and others. */
--struct page *kmap_atomic_to_page(void *ptr)
+-#define kmap_get_fixmap_pte(vaddr) \
+-	pte_offset_kernel(pmd_offset(pgd_offset_k(vaddr), (vaddr)), (vaddr))
+-
+-void __init kmap_init(void)
 -{
--	unsigned long idx, vaddr = (unsigned long)ptr;
--	pte_t *pte;
--
--	if (vaddr < SRMMU_NOCACHE_VADDR)
--		return virt_to_page(ptr);
--	if (vaddr < PKMAP_BASE)
--		return pfn_to_page(__nocache_pa(vaddr) >> PAGE_SHIFT);
--	BUG_ON(vaddr < FIXADDR_START);
--	BUG_ON(vaddr > FIXADDR_TOP);
--
--	idx = virt_to_fix(vaddr);
--	pte = kmap_pte - (idx - FIX_KMAP_BEGIN);
--	return pte_page(*pte);
+-	/* cache the first kmap pte */
+-	kmap_pte = kmap_get_fixmap_pte(__fix_to_virt(FIX_KMAP_BEGIN));
+-	kmap_prot = __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE);
 -}
+-
+ void show_mem(unsigned int filter)
+ {
+ 	printk("Mem-info:\n");
 -- 
 1.6.0.6
 
