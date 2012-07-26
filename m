@@ -1,86 +1,61 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 26 Jul 2012 21:02:27 +0000
-Subject: [PATCH 17/18] sparc32: move kmap_init() to highmem.c
-Message-Id: <1343336548-3879-17-git-send-email-sam@ravnborg.org>
+Date: Thu, 26 Jul 2012 21:02:23 +0000
+Subject: [PATCH 13/18] sparc32: drop quicklist
+Message-Id: <1343336548-3879-13-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Try to keep highmem support in a more central place.
+The quicklist stuff is not used anymore - drop it.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/include/asm/highmem.h |    1 -
- arch/sparc/mm/highmem.c          |   17 +++++++++++++++++
- arch/sparc/mm/init_32.c          |   13 -------------
- 3 files changed, 17 insertions(+), 14 deletions(-)
+ arch/sparc/include/asm/pgalloc_32.h |   13 -------------
+ arch/sparc/mm/init_32.c             |    2 --
+ 2 files changed, 0 insertions(+), 15 deletions(-)
 
-diff --git a/arch/sparc/include/asm/highmem.h b/arch/sparc/include/asm/highmem.h
-index 6393383..4f9e15c 100644
---- a/arch/sparc/include/asm/highmem.h
-+++ b/arch/sparc/include/asm/highmem.h
-@@ -28,7 +28,6 @@
- /* declarations for highmem.c */
- extern unsigned long highstart_pfn, highend_pfn;
+diff --git a/arch/sparc/include/asm/pgalloc_32.h b/arch/sparc/include/asm/pgalloc_32.h
+index bf20809..9b1c36d 100644
+--- a/arch/sparc/include/asm/pgalloc_32.h
++++ b/arch/sparc/include/asm/pgalloc_32.h
+@@ -11,22 +11,9 @@
  
--extern pte_t *kmap_pte;
- extern pgprot_t kmap_prot;
- extern pte_t *pkmap_page_table;
+ struct page;
  
-diff --git a/arch/sparc/mm/highmem.c b/arch/sparc/mm/highmem.c
-index 4d5f8b3..449f864 100644
---- a/arch/sparc/mm/highmem.c
-+++ b/arch/sparc/mm/highmem.c
-@@ -31,6 +31,23 @@
- #include <asm/pgalloc.h>
- #include <asm/vaddrs.h>
+-extern struct pgtable_cache_struct {
+-	unsigned long *pgd_cache;
+-	unsigned long *pte_cache;
+-	unsigned long pgtable_cache_sz;
+-	unsigned long pgd_cache_sz;
+-} pgt_quicklists;
+-
+ void *srmmu_get_nocache(int size, int align);
+ void srmmu_free_nocache(void *addr, int size);
  
-+pgprot_t kmap_prot;
-+
-+static pte_t *kmap_pte;
-+
-+void __init kmap_init(void)
-+{
-+	unsigned long address;
-+	pmd_t *dir;
-+
-+	address = __fix_to_virt(FIX_KMAP_BEGIN);
-+	dir = pmd_offset(pgd_offset_k(address), address);
-+
-+        /* cache the first kmap pte */
-+        kmap_pte = pte_offset_kernel(dir, address);
-+        kmap_prot = __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE);
-+}
-+
- void *kmap_atomic(struct page *page)
- {
- 	unsigned long vaddr;
+-#define pgd_quicklist           (pgt_quicklists.pgd_cache)
+-#define pmd_quicklist           ((unsigned long *)0)
+-#define pte_quicklist           (pgt_quicklists.pte_cache)
+-#define pgtable_cache_size      (pgt_quicklists.pgtable_cache_sz)
+-#define pgd_cache_size		(pgt_quicklists.pgd_cache_sz)
+-
+ #define check_pgt_cache()	do { } while (0)
+ 
+ pgd_t *get_pgd_fast(void);
 diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
-index 020d2af..9f1162f 100644
+index 6dce086..6d44c2b 100644
 --- a/arch/sparc/mm/init_32.c
 +++ b/arch/sparc/mm/init_32.c
-@@ -52,19 +52,6 @@ extern unsigned int sparc_ramdisk_size;
+@@ -46,8 +46,6 @@ EXPORT_SYMBOL(pfn_base);
  
- unsigned long highstart_pfn, highend_pfn;
+ struct sparc_phys_banks sp_banks[SPARC_PHYS_BANKS+1];
  
--pte_t *kmap_pte;
--pgprot_t kmap_prot;
+-struct pgtable_cache_struct pgt_quicklists;
 -
--#define kmap_get_fixmap_pte(vaddr) \
--	pte_offset_kernel(pmd_offset(pgd_offset_k(vaddr), (vaddr)), (vaddr))
--
--void __init kmap_init(void)
--{
--	/* cache the first kmap pte */
--	kmap_pte = kmap_get_fixmap_pte(__fix_to_virt(FIX_KMAP_BEGIN));
--	kmap_prot = __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE);
--}
--
- void show_mem(unsigned int filter)
- {
- 	printk("Mem-info:\n");
+ /* Initial ramdisk setup */
+ extern unsigned int sparc_ramdisk_image;
+ extern unsigned int sparc_ramdisk_size;
 -- 
 1.6.0.6
 
