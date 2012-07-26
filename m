@@ -1,41 +1,59 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 26 Jul 2012 21:02:25 +0000
-Subject: [PATCH 15/18] sparc32: drop unused BAD_PAGE stuff
-Message-Id: <1343336548-3879-15-git-send-email-sam@ravnborg.org>
+Date: Thu, 26 Jul 2012 21:02:17 +0000
+Subject: [PATCH 07/18] sparc32: drop unused kmap_atomic_to_page
+Message-Id: <1343336548-3879-7-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+No users left of this function - drop it.
+
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/include/asm/pgtable_32.h |    7 -------
- 1 files changed, 0 insertions(+), 7 deletions(-)
+ arch/sparc/include/asm/highmem.h |    1 -
+ arch/sparc/mm/highmem.c          |   18 ------------------
+ 2 files changed, 0 insertions(+), 19 deletions(-)
 
-diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
-index 97a4880..6fc1348 100644
---- a/arch/sparc/include/asm/pgtable_32.h
-+++ b/arch/sparc/include/asm/pgtable_32.h
-@@ -87,18 +87,11 @@ extern unsigned long phys_base;
- extern unsigned long pfn_base;
+diff --git a/arch/sparc/include/asm/highmem.h b/arch/sparc/include/asm/highmem.h
+index 3b6e00d..a31b2a1 100644
+--- a/arch/sparc/include/asm/highmem.h
++++ b/arch/sparc/include/asm/highmem.h
+@@ -72,7 +72,6 @@ static inline void kunmap(struct page *page)
  
- /*
-- * BAD_PAGETABLE is used when we need a bogus page-table, while
-- * BAD_PAGE is used for a bogus page.
-- *
-  * ZERO_PAGE is a global shared page that is always zero: used
-  * for zero-mapped memory areas etc..
-  */
--extern pte_t * __bad_pagetable(void);
--extern pte_t __bad_page(void);
- extern unsigned long empty_zero_page;
+ extern void *kmap_atomic(struct page *page);
+ extern void __kunmap_atomic(void *kvaddr);
+-extern struct page *kmap_atomic_to_page(void *vaddr);
  
--#define BAD_PAGETABLE __bad_pagetable()
--#define BAD_PAGE __bad_page()
- #define ZERO_PAGE(vaddr) (virt_to_page(&empty_zero_page))
+ #define flush_cache_kmaps()	flush_cache_all()
  
- /*
+diff --git a/arch/sparc/mm/highmem.c b/arch/sparc/mm/highmem.c
+index 055c66c..856432a 100644
+--- a/arch/sparc/mm/highmem.c
++++ b/arch/sparc/mm/highmem.c
+@@ -110,21 +110,3 @@ void __kunmap_atomic(void *kvaddr)
+ 	pagefault_enable();
+ }
+ EXPORT_SYMBOL(__kunmap_atomic);
+-
+-/* We may be fed a pagetable here by ptep_to_xxx and others. */
+-struct page *kmap_atomic_to_page(void *ptr)
+-{
+-	unsigned long idx, vaddr = (unsigned long)ptr;
+-	pte_t *pte;
+-
+-	if (vaddr < SRMMU_NOCACHE_VADDR)
+-		return virt_to_page(ptr);
+-	if (vaddr < PKMAP_BASE)
+-		return pfn_to_page(__nocache_pa(vaddr) >> PAGE_SHIFT);
+-	BUG_ON(vaddr < FIXADDR_START);
+-	BUG_ON(vaddr > FIXADDR_TOP);
+-
+-	idx = virt_to_fix(vaddr);
+-	pte = kmap_pte - (idx - FIX_KMAP_BEGIN);
+-	return pte_page(*pte);
+-}
 -- 
 1.6.0.6
 
