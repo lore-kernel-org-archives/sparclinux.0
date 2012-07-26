@@ -1,129 +1,268 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 26 Jul 2012 21:02:19 +0000
-Subject: [PATCH 09/18] sparc32: drop fixmap.h
-Message-Id: <1343336548-3879-9-git-send-email-sam@ravnborg.org>
+Date: Thu, 26 Jul 2012 21:02:24 +0000
+Subject: [PATCH 14/18] sparc32: centralize all mmu context handling in srmmu.c
+Message-Id: <1343336548-3879-14-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-sparc32 does not support fixmaps - so do not pretend so by
-having the fixmap.h file.
-Move relevant parts to vaddrs.h.
-
-I looked at simplifying this even more but failed to understand
-the reasoning behind the extra guard page involved and due to
-missing testing possibilities only the trivial conversion was done.
-
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/include/asm/fixmap.h  |   26 --------------------------
- arch/sparc/include/asm/highmem.h |    1 -
- arch/sparc/include/asm/vaddrs.h  |   22 ++++++++++++++++++++++
- arch/sparc/mm/highmem.c          |    7 ++++---
- 4 files changed, 26 insertions(+), 30 deletions(-)
- delete mode 100644 arch/sparc/include/asm/fixmap.h
+ arch/sparc/include/asm/mmu_context_32.h |    8 +--
+ arch/sparc/include/asm/pgtable_32.h     |   32 --------------
+ arch/sparc/kernel/setup_32.c            |    1 -
+ arch/sparc/mm/fault_32.c                |    6 ---
+ arch/sparc/mm/init_32.c                 |   18 --------
+ arch/sparc/mm/srmmu.c                   |   69 +++++++++++++++++++++++++++----
+ 6 files changed, 63 insertions(+), 71 deletions(-)
 
-diff --git a/arch/sparc/include/asm/fixmap.h b/arch/sparc/include/asm/fixmap.h
-deleted file mode 100644
-index 0bdec93..0000000
---- a/arch/sparc/include/asm/fixmap.h
-+++ /dev/null
-@@ -1,26 +0,0 @@
--/* Highmem related constants */
+diff --git a/arch/sparc/include/asm/mmu_context_32.h b/arch/sparc/include/asm/mmu_context_32.h
+index 01456c9..2df2a9b 100644
+--- a/arch/sparc/include/asm/mmu_context_32.h
++++ b/arch/sparc/include/asm/mmu_context_32.h
+@@ -9,14 +9,12 @@ static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
+ {
+ }
+ 
+-/*
+- * Initialize a new mmu context.  This is invoked when a new
++/* Initialize a new mmu context.  This is invoked when a new
+  * address space instance (unique or shared) is instantiated.
+  */
+-#define init_new_context(tsk, mm) (((mm)->context = NO_CONTEXT), 0)
++int init_new_context(struct task_struct *tsk, struct mm_struct *mm);
+ 
+-/*
+- * Destroy a dead context.  This occurs when mmput drops the
++/* Destroy a dead context.  This occurs when mmput drops the
+  * mm_users count to zero, the mmaps have been released, and
+  * all the page tables have been flushed.  Our job is to destroy
+  * any remaining processor-specific state.
+diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
+index c704f94..97a4880 100644
+--- a/arch/sparc/include/asm/pgtable_32.h
++++ b/arch/sparc/include/asm/pgtable_32.h
+@@ -79,8 +79,6 @@ extern unsigned long ptr_in_current_pgd;
+ #define __S110	PAGE_SHARED
+ #define __S111	PAGE_SHARED
+ 
+-extern int num_contexts;
 -
--#ifndef _ASM_FIXMAP_H
--#define _ASM_FIXMAP_H
--
--#include <asm/kmap_types.h>
--
--enum fixed_addresses {
--	FIX_HOLE,
--#ifdef CONFIG_HIGHMEM
--	FIX_KMAP_BEGIN,
--	FIX_KMAP_END = (KM_TYPE_NR * NR_CPUS),
--#endif
--	__end_of_fixed_addresses
+ /* First physical page can be anywhere, the following is needed so that
+  * va-->pa and vice versa conversions work properly without performance
+  * hit for all __pa()/__va() operations.
+@@ -399,36 +397,6 @@ static inline pte_t pgoff_to_pte(unsigned long pgoff)
+  */
+ #define PTE_FILE_MAX_BITS 24
+ 
+-/*
+- */
+-struct ctx_list {
+-	struct ctx_list *next;
+-	struct ctx_list *prev;
+-	unsigned int ctx_number;
+-	struct mm_struct *ctx_mm;
 -};
 -
--/* Leave one empty page between IO pages at 0xfd000000 and
-- * the top of the fixmap.
-- */
--#define FIXADDR_TOP	(0xfcfff000UL)
--#define FIXADDR_SIZE	((FIX_KMAP_END + 1) << PAGE_SHIFT)
--#define FIXADDR_START	(FIXADDR_TOP - FIXADDR_SIZE)
+-extern struct ctx_list *ctx_list_pool;  /* Dynamically allocated */
+-extern struct ctx_list ctx_free;        /* Head of free list */
+-extern struct ctx_list ctx_used;        /* Head of used contexts list */
 -
--#define __fix_to_virt(x)	(FIXADDR_TOP - ((x) << PAGE_SHIFT))
+-#define NO_CONTEXT     -1
 -
--#endif
-diff --git a/arch/sparc/include/asm/highmem.h b/arch/sparc/include/asm/highmem.h
-index a31b2a1..6393383 100644
---- a/arch/sparc/include/asm/highmem.h
-+++ b/arch/sparc/include/asm/highmem.h
-@@ -21,7 +21,6 @@
- #ifdef __KERNEL__
- 
- #include <linux/interrupt.h>
--#include <asm/fixmap.h>
- #include <asm/vaddrs.h>
- #include <asm/kmap_types.h>
- #include <asm/pgtable.h>
-diff --git a/arch/sparc/include/asm/vaddrs.h b/arch/sparc/include/asm/vaddrs.h
-index da6535d..c3dbcf9 100644
---- a/arch/sparc/include/asm/vaddrs.h
-+++ b/arch/sparc/include/asm/vaddrs.h
-@@ -30,6 +30,28 @@
-  */
- #define SRMMU_NOCACHE_ALCRATIO	64	/* 256 pages per 64MB of system RAM */
- 
-+#ifndef __ASSEMBLY__
-+#include <asm/kmap_types.h>
-+
-+enum fixed_addresses {
-+	FIX_HOLE,
-+#ifdef CONFIG_HIGHMEM
-+	FIX_KMAP_BEGIN,
-+	FIX_KMAP_END = (KM_TYPE_NR * NR_CPUS),
-+#endif
-+	__end_of_fixed_addresses
-+};
-+#endif
-+
-+/* Leave one empty page between IO pages at 0xfd000000 and
-+ * the top of the fixmap.
-+ */
-+#define FIXADDR_TOP		(0xfcfff000UL)
-+#define FIXADDR_SIZE		((FIX_KMAP_END + 1) << PAGE_SHIFT)
-+#define FIXADDR_START		(FIXADDR_TOP - FIXADDR_SIZE)
-+
-+#define __fix_to_virt(x)        (FIXADDR_TOP - ((x) << PAGE_SHIFT))
-+
- #define SUN4M_IOBASE_VADDR	0xfd000000 /* Base for mapping pages */
- #define IOBASE_VADDR		0xfe000000
- #define IOBASE_END		0xfe600000
-diff --git a/arch/sparc/mm/highmem.c b/arch/sparc/mm/highmem.c
-index 856432a..4d5f8b3 100644
---- a/arch/sparc/mm/highmem.c
-+++ b/arch/sparc/mm/highmem.c
-@@ -22,13 +22,14 @@
-  * shared by CPUs, and so precious, and establishing them requires IPI.
-  * Atomic kmaps are lightweight and we may have NCPUS more of them.
-  */
--#include <linux/mm.h>
- #include <linux/highmem.h>
- #include <linux/export.h>
--#include <asm/pgalloc.h>
-+#include <linux/mm.h>
-+
- #include <asm/cacheflush.h>
- #include <asm/tlbflush.h>
--#include <asm/fixmap.h>
-+#include <asm/pgalloc.h>
-+#include <asm/vaddrs.h>
- 
- void *kmap_atomic(struct page *page)
+-static inline void remove_from_ctx_list(struct ctx_list *entry)
+-{
+-	entry->next->prev = entry->prev;
+-	entry->prev->next = entry->next;
+-}
+-
+-static inline void add_to_ctx_list(struct ctx_list *head, struct ctx_list *entry)
+-{
+-	entry->next = head;
+-	(entry->prev = head->prev)->next = entry;
+-	head->prev = entry;
+-}
+-#define add_to_free_ctxlist(entry) add_to_ctx_list(&ctx_free, entry)
+-#define add_to_used_ctxlist(entry) add_to_ctx_list(&ctx_used, entry)
+-
+ static inline unsigned long
+ __get_phys (unsigned long addr)
  {
+diff --git a/arch/sparc/kernel/setup_32.c b/arch/sparc/kernel/setup_32.c
+index efe3e64..38bf80a 100644
+--- a/arch/sparc/kernel/setup_32.c
++++ b/arch/sparc/kernel/setup_32.c
+@@ -371,7 +371,6 @@ void __init setup_arch(char **cmdline_p)
+ 		(*(linux_dbvec->teach_debugger))();
+ 	}
+ 
+-	init_mm.context = (unsigned long) NO_CONTEXT;
+ 	init_task.thread.kregs = &fake_swapper_regs;
+ 
+ 	/* Run-time patch instructions to match the cpu model */
+diff --git a/arch/sparc/mm/fault_32.c b/arch/sparc/mm/fault_32.c
+index f46cf6b..e58f9ee 100644
+--- a/arch/sparc/mm/fault_32.c
++++ b/arch/sparc/mm/fault_32.c
+@@ -32,12 +32,6 @@
+ 
+ int show_unhandled_signals = 1;
+ 
+-/* At boot time we determine these two values necessary for setting
+- * up the segment maps and page table entries (pte's).
+- */
+-
+-int num_contexts;
+-
+ /* Return how much physical memory we have.  */
+ unsigned long probe_memory(void)
+ {
+diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
+index 6d44c2b..020d2af 100644
+--- a/arch/sparc/mm/init_32.c
++++ b/arch/sparc/mm/init_32.c
+@@ -82,24 +82,6 @@ void show_mem(unsigned int filter)
+ #endif
+ }
+ 
+-void __init sparc_context_init(int numctx)
+-{
+-	int ctx;
+-
+-	ctx_list_pool = __alloc_bootmem(numctx * sizeof(struct ctx_list), SMP_CACHE_BYTES, 0UL);
+-
+-	for(ctx = 0; ctx < numctx; ctx++) {
+-		struct ctx_list *clist;
+-
+-		clist = (ctx_list_pool + ctx);
+-		clist->ctx_number = ctx;
+-		clist->ctx_mm = NULL;
+-	}
+-	ctx_free.next = ctx_free.prev = &ctx_free;
+-	ctx_used.next = ctx_used.prev = &ctx_used;
+-	for(ctx = 0; ctx < numctx; ctx++)
+-		add_to_free_ctxlist(ctx_list_pool + ctx);
+-}
+ 
+ extern unsigned long cmdline_memory_size;
+ unsigned long last_valid_pfn;
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index ab62595..ad93d2e 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -55,10 +55,6 @@ static unsigned int hwbug_bitmask;
+ int vac_cache_size;
+ int vac_line_size;
+ 
+-struct ctx_list *ctx_list_pool;
+-struct ctx_list ctx_free;
+-struct ctx_list ctx_used;
+-
+ extern struct resource sparc_iomap;
+ 
+ extern unsigned long last_valid_pfn;
+@@ -355,8 +351,39 @@ void pte_free(struct mm_struct *mm, pgtable_t pte)
+ 	srmmu_free_nocache(__nocache_va(p), PTE_SIZE);
+ }
+ 
+-/*
+- */
++/* context handling - a dynamically sized pool is used */
++#define NO_CONTEXT	-1
++
++struct ctx_list {
++	struct ctx_list *next;
++	struct ctx_list *prev;
++	unsigned int ctx_number;
++	struct mm_struct *ctx_mm;
++};
++
++static struct ctx_list *ctx_list_pool;
++static struct ctx_list ctx_free;
++static struct ctx_list ctx_used;
++
++/* At boot time we determine the number of contexts */
++static int num_contexts;
++
++static inline void remove_from_ctx_list(struct ctx_list *entry)
++{
++	entry->next->prev = entry->prev;
++	entry->prev->next = entry->next;
++}
++
++static inline void add_to_ctx_list(struct ctx_list *head, struct ctx_list *entry)
++{
++	entry->next = head;
++	(entry->prev = head->prev)->next = entry;
++	head->prev = entry;
++}
++#define add_to_free_ctxlist(entry) add_to_ctx_list(&ctx_free, entry)
++#define add_to_used_ctxlist(entry) add_to_ctx_list(&ctx_used, entry)
++
++
+ static inline void alloc_context(struct mm_struct *old_mm, struct mm_struct *mm)
+ {
+ 	struct ctx_list *ctxp;
+@@ -392,6 +419,26 @@ static inline void free_context(int context)
+ 	add_to_free_ctxlist(ctx_old);
+ }
+ 
++static void __init sparc_context_init(int numctx)
++{
++	int ctx;
++	unsigned long size;
++
++	size = numctx * sizeof(struct ctx_list);
++	ctx_list_pool = __alloc_bootmem(size, SMP_CACHE_BYTES, 0UL);
++
++	for (ctx = 0; ctx < numctx; ctx++) {
++		struct ctx_list *clist;
++
++		clist = (ctx_list_pool + ctx);
++		clist->ctx_number = ctx;
++		clist->ctx_mm = NULL;
++	}
++	ctx_free.next = ctx_free.prev = &ctx_free;
++	ctx_used.next = ctx_used.prev = &ctx_used;
++	for (ctx = 0; ctx < numctx; ctx++)
++		add_to_free_ctxlist(ctx_list_pool + ctx);
++}
+ 
+ void switch_mm(struct mm_struct *old_mm, struct mm_struct *mm,
+ 	       struct task_struct *tsk)
+@@ -799,9 +846,6 @@ static void __init map_kernel(void)
+ 	}
+ }
+ 
+-/* Paging initialization on the Sparc Reference MMU. */
+-extern void sparc_context_init(int);
+-
+ void (*poke_srmmu)(void) __cpuinitdata = NULL;
+ 
+ extern unsigned long bootmem_init(unsigned long *pages_avail);
+@@ -816,6 +860,7 @@ void __init srmmu_paging_init(void)
+ 	pte_t *pte;
+ 	unsigned long pages_avail;
+ 
++	init_mm.context = (unsigned long) NO_CONTEXT;
+ 	sparc_iomap.start = SUN4M_IOBASE_VADDR;	/* 16MB of IOSPACE on all sun4m's. */
+ 
+ 	if (sparc_cpu_model = sun4d)
+@@ -918,6 +963,12 @@ void mmu_info(struct seq_file *m)
+ 		   srmmu_nocache_map.used << SRMMU_NOCACHE_BITMAP_SHIFT);
+ }
+ 
++int init_new_context(struct task_struct *tsk, struct mm_struct *mm)
++{
++	mm->context = NO_CONTEXT;
++	return 0;
++}
++
+ void destroy_context(struct mm_struct *mm)
+ {
+ 
 -- 
 1.6.0.6
 
