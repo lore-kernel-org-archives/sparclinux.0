@@ -1,7 +1,7 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 26 Jul 2012 21:02:12 +0000
-Subject: [PATCH 02/18] sparc32: sort includes in srmmu.c
-Message-Id: <1343336548-3879-2-git-send-email-sam@ravnborg.org>
+Date: Thu, 26 Jul 2012 21:02:15 +0000
+Subject: [PATCH 05/18] sparc32: beautify srmmu_inherit_prom_mappings()
+Message-Id: <1343336548-3879-5-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,80 +10,88 @@ To: sparclinux@vger.kernel.org
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/mm/srmmu.c |   42 +++++++++++++++++++++---------------------
- 1 files changed, 21 insertions(+), 21 deletions(-)
+ arch/sparc/mm/srmmu.c |   26 ++++++++++++++++----------
+ 1 files changed, 16 insertions(+), 10 deletions(-)
 
 diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-index b2ba9d1..533143b 100644
+index 146742b..ab62595 100644
 --- a/arch/sparc/mm/srmmu.c
 +++ b/arch/sparc/mm/srmmu.c
-@@ -8,45 +8,45 @@
-  * Copyright (C) 1999,2000 Anton Blanchard (anton@samba.org)
-  */
+@@ -677,44 +677,48 @@ static inline unsigned long srmmu_probe(unsigned long vaddr)
+ static void __init srmmu_inherit_prom_mappings(unsigned long start,
+ 					       unsigned long end)
+ {
++	unsigned long probed;
++	unsigned long addr;
+ 	pgd_t *pgdp;
+ 	pmd_t *pmdp;
+ 	pte_t *ptep;
+-	int what = 0; /* 0 = normal-pte, 1 = pmd-level pte, 2 = pgd-level pte */
+-	unsigned long prompte;
++	int what; /* 0 = normal-pte, 1 = pmd-level pte, 2 = pgd-level pte */
  
--#include <linux/kernel.h>
--#include <linux/mm.h>
--#include <linux/vmalloc.h>
--#include <linux/pagemap.h>
--#include <linux/init.h>
-+#include <linux/seq_file.h>
- #include <linux/spinlock.h>
- #include <linux/bootmem.h>
--#include <linux/fs.h>
--#include <linux/seq_file.h>
-+#include <linux/pagemap.h>
-+#include <linux/vmalloc.h>
- #include <linux/kdebug.h>
-+#include <linux/kernel.h>
-+#include <linux/init.h>
- #include <linux/log2.h>
- #include <linux/gfp.h>
-+#include <linux/fs.h>
-+#include <linux/mm.h>
+ 	while (start <= end) {
+ 		if (start = 0)
+ 			break; /* probably wrap around */
+ 		if (start = 0xfef00000)
+ 			start = KADB_DEBUGGER_BEGVM;
+-		if (!(prompte = srmmu_probe(start))) {
++		probed = srmmu_probe(start);
++		if (!probed) {
++			/* continue probing until we find an entry */
+ 			start += PAGE_SIZE;
+ 			continue;
+ 		}
  
--#include <asm/bitext.h>
--#include <asm/page.h>
-+#include <asm/mmu_context.h>
-+#include <asm/cacheflush.h>
-+#include <asm/tlbflush.h>
-+#include <asm/io-unit.h>
- #include <asm/pgalloc.h>
- #include <asm/pgtable.h>
--#include <asm/io.h>
-+#include <asm/bitext.h>
- #include <asm/vaddrs.h>
--#include <asm/traps.h>
--#include <asm/smp.h>
--#include <asm/mbus.h>
- #include <asm/cache.h>
-+#include <asm/traps.h>
- #include <asm/oplib.h>
-+#include <asm/mbus.h>
-+#include <asm/page.h>
- #include <asm/asi.h>
- #include <asm/msi.h>
--#include <asm/mmu_context.h>
--#include <asm/io-unit.h>
--#include <asm/cacheflush.h>
--#include <asm/tlbflush.h>
-+#include <asm/smp.h>
-+#include <asm/io.h>
+ 		/* A red snapper, see what it really is. */
+ 		what = 0;
++		addr = start - PAGE_SIZE;
  
- /* Now the cpu specific definitions. */
--#include <asm/viking.h>
--#include <asm/mxcc.h>
--#include <asm/ross.h>
-+#include <asm/turbosparc.h>
- #include <asm/tsunami.h>
-+#include <asm/viking.h>
- #include <asm/swift.h>
--#include <asm/turbosparc.h>
- #include <asm/leon.h>
-+#include <asm/mxcc.h>
-+#include <asm/ross.h>
+ 		if (!(start & ~(SRMMU_REAL_PMD_MASK))) {
+-			if (srmmu_probe((start - PAGE_SIZE) + SRMMU_REAL_PMD_SIZE) = prompte)
++			if (srmmu_probe(addr + SRMMU_REAL_PMD_SIZE) = probed)
+ 				what = 1;
+ 		}
  
- #include "srmmu.h"
+ 		if (!(start & ~(SRMMU_PGDIR_MASK))) {
+-			if (srmmu_probe((start-PAGE_SIZE) + SRMMU_PGDIR_SIZE) =
+-			   prompte)
++			if (srmmu_probe(addr + SRMMU_PGDIR_SIZE) = probed)
+ 				what = 2;
+ 		}
  
+ 		pgdp = pgd_offset_k(start);
+ 		if (what = 2) {
+-			*(pgd_t *)__nocache_fix(pgdp) = __pgd(prompte);
++			*(pgd_t *)__nocache_fix(pgdp) = __pgd(probed);
+ 			start += SRMMU_PGDIR_SIZE;
+ 			continue;
+ 		}
+ 		if (pgd_none(*(pgd_t *)__nocache_fix(pgdp))) {
+-			pmdp = __srmmu_get_nocache(SRMMU_PMD_TABLE_SIZE, SRMMU_PMD_TABLE_SIZE);
++			pmdp = __srmmu_get_nocache(SRMMU_PMD_TABLE_SIZE,
++						   SRMMU_PMD_TABLE_SIZE);
+ 			if (pmdp = NULL)
+ 				early_pgtable_allocfail("pmd");
+ 			memset(__nocache_fix(pmdp), 0, SRMMU_PMD_TABLE_SIZE);
+@@ -734,13 +738,15 @@ static void __init srmmu_inherit_prom_mappings(unsigned long start,
+ 			 * good hardware PTE piece. Alternatives seem worse.
+ 			 */
+ 			unsigned int x;	/* Index of HW PMD in soft cluster */
++			unsigned long *val;
+ 			x = (start >> PMD_SHIFT) & 15;
+-			*(unsigned long *)__nocache_fix(&pmdp->pmdv[x]) = prompte;
++			val = &pmdp->pmdv[x];
++			*(unsigned long *)__nocache_fix(val) = probed;
+ 			start += SRMMU_REAL_PMD_SIZE;
+ 			continue;
+ 		}
+ 		ptep = pte_offset_kernel(__nocache_fix(pmdp), start);
+-		*(pte_t *)__nocache_fix(ptep) = __pte(prompte);
++		*(pte_t *)__nocache_fix(ptep) = __pte(probed);
+ 		start += PAGE_SIZE;
+ 	}
+ }
 -- 
 1.6.0.6
 
