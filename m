@@ -1,8 +1,10 @@
 From: "Gerrit Hulze" <hulze.get@postino.net>
-Date: Fri, 27 Jul 2012 01:14:46 +0000
+Date: Fri, 27 Jul 2012 18:42:26 +0000
 Subject: Gerrit Hulze.
-Message-Id: <04D40E89.264402DD@postino.net>
+Message-Id: <10795D49.45924C48@postino.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <04D40E89.264402DD@postino.net>
+In-Reply-To: <04D40E89.264402DD@postino.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
