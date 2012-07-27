@@ -1,26 +1,14 @@
-From: webmail services <ceerea@kpoly.edu.gh>
-Date: Tue, 24 Jul 2012 02:28:17 +0000
-Subject: =?utf-8?Q?WINNER!!!=E2=80=8F?=
-Message-Id: <1110393321.146.1343096897292.JavaMail.root@mail>
+From: Elfreda Boden <cazz00mccaw@yahoo.com>
+Date: Fri, 27 Jul 2012 20:07:31 +0000
+Subject: Here's the thing, I like u
+Message-Id: <1343419651.2536.YahooMailNeo@web132104.mail.ird.yahoo.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-
-
-Dear E-Mail User.
-
-Your Mail quota has reached limit, You might not be able to send or
-receive new mail until you re-validate your mailbox .To re-validate
-your mailbox reply to this notification and fill -......
-
-{E-Mail}
-{Username}
-{Password }
-{Confirm Password}
-
-Technical Support
-192.168.0.1
-
+Hello cutie! 
+Let's be friends. My name is Elfreda.
+I like your appearance (I've seen ur pics) but also I would like to know ur interests.
+Can't wait to see "+1" :)
