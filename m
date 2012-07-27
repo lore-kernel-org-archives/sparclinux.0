@@ -1,30 +1,42 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 09 Jul 2012 21:25:31 +0000
-Subject: Re: [PATCH 3/3] sparc/PCI: replace pci_cfg_fake_ranges() with pci_read_bridge_bases()
-Message-Id: <20120709.142531.1530660875837931629.davem@davemloft.net>
+From: "Gerrit Hulze" <hulze.get@postino.net>
+Date: Fri, 27 Jul 2012 01:14:46 +0000
+Subject: Gerrit Hulze.
+Message-Id: <04D40E89.264402DD@postino.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20120709202308.28178.58942.stgit@bhelgaas.mtv.corp.google.com>
-	<20120709203214.28178.71922.stgit@bhelgaas.mtv.corp.google.com>
-In-Reply-To: <20120709203214.28178.71922.stgit@bhelgaas.mtv.corp.google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: bhelgaas@google.com
-Cc: linux-pci@vger.kernel.org, sparclinux@vger.kernel.org, dan.yeisley@unisys.com, yinghai@kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Bjorn Helgaas <bhelgaas@google.com>
-Date: Mon, 09 Jul 2012 14:32:14 -0600
+Dear 
 
-> The generic code to read P2P bridge windows is functionally equivalent
-> to the sparc-specific pci_cfg_fake_ranges(), so use the generic code.
-> 
-> The "if (!res->start) res->start = ..." removed from the I/O window code
-> here was an artifact of the Intel 1K window support from 9d265124d051 and
-> is no longer necessary (it probably was just cloned from x86 and was never
-> useful on sparc).
-> 
-> CC: "David S. Miller" <davem@davemloft.net>
-> CC: sparclinux@vger.kernel.org
-> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+I hope this letter finds you well. 
+While this email will definitely be coming to you as a surprise, please
+take a moment of your time to read this. 
+It is very important. I am Mr. Gerrit Hulze, working in a Finance house. 
+However I got your address through the International web directory online. 
+During our recent reconciliation and auditing of our Finance house
+accounts, 
+my department discovered an over dormant account with a huge amount that
+belongs to one of our late customers;. 
+He has passed away (dead) leaving no beneficiary to the account. 
+So the funds have been dormant in his account with this Finance house
+without any claim or activity on it for quite some time. 
+Due to our Finance house regulations, It is only a foreigner without / with
+the same surname  that can stand as a next of kin and it is upon this
+discovery that 
+I decided to contact you to collaborate with you to reactivate these
+dormant funds. So to avert any negative development and chance losing these
+funds forever. 
+I want you to stand in as next of kin to our late customer so that the fund
+will be released to you. 
+Further information and confidentiality please contact me on my personal
+email address ( ger.hulze@postino.net ) with the following your data: Full
+names, Address, 
+Telephone number and Fax number.
 
-Acked-by: David S. Miller <davem@davemloft.net>
+I look forward to hearing from you.
+Best Regards,
+Mr.Gerrit Hulze.
+
+
