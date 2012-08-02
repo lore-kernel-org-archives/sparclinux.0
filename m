@@ -1,21 +1,18 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 02 Aug 2012 07:27:59 +0000
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Thu, 02 Aug 2012 16:19:17 +0000
 Subject: Re: [PATCH v2] sparc64: do not clobber personality flags in sys_sparc64_personality()
-Message-Id: <20120802.002759.225229908260811459.davem@davemloft.net>
+Message-Id: <20120802161917.GA5493@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LNX.2.00.1208012204140.14910@pobox.suse.cz>
-	<alpine.LNX.2.00.1208020912130.14910@pobox.suse.cz>
+References: <alpine.LNX.2.00.1208012204140.14910@pobox.suse.cz> <alpine.LNX.2.00.1208020912130.14910@pobox.suse.cz>
 In-Reply-To: <alpine.LNX.2.00.1208020912130.14910@pobox.suse.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: jkosina@suse.cz
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jiri Kosina <jkosina@suse.cz>
+Cc: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Jiri Kosina <jkosina@suse.cz>
-Date: Thu, 2 Aug 2012 09:12:46 +0200 (CEST)
-
-> From 4f000eda5917ceecb03767962026cc6a390b8216 Mon Sep 17 00:00:00 2001
+On Thu, Aug 02, 2012 at 09:12:46AM +0200, Jiri Kosina wrote:
+> >From 4f000eda5917ceecb03767962026cc6a390b8216 Mon Sep 17 00:00:00 2001
 > From: Jiri Kosina <jkosina@suse.cz>
 > Date: Wed, 1 Aug 2012 21:10:51 +0200
 > Subject: [PATCH 4/4] sparc64: do not clobber personality flags in sys_sparc64_personality()
@@ -33,7 +30,13 @@ Date: Thu, 2 Aug 2012 09:12:46 +0200 (CEST)
 > PER_MASK bytes.
 > Fix the second one by setting only the bits that should be set, instead of
 > overwriting the whole value.
-> 
-> Signed-off-by: Jiri Kosina <jkosina@suse.cz>
 
-Applied, thanks a lot Jiri.
+Hi Jiri.
+
+Can you have a quick look at this too:
+arch/sparc/include/asm/elf_32.h:#define SET_PERSONALITY(ex) set_personality(PER_LINUX)
+
+From your other comments it looks wrong. But I have not digged into this.
+
+Thanks,
+	Sam
