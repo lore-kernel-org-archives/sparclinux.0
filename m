@@ -1,36 +1,67 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 20 Aug 2012 22:07:54 +0000
-Subject: Re: [PATCH 0/4] Crytpo hash drivers for sparc64 crypto instructions.
-Message-Id: <20120820.150754.1866106456418899305.davem@davemloft.net>
+From: Jiri Kosina <jkosina@suse.cz>
+Date: Thu, 02 Aug 2012 07:12:46 +0000
+Subject: [PATCH v2] sparc64: do not clobber personality flags in sys_sparc64_personality()
+Message-Id: <alpine.LNX.2.00.1208020912130.14910@pobox.suse.cz>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20120819.221000.1440395237780126787.davem@davemloft.net>
-	<20120820082202.GC22529@gondor.apana.org.au>
-In-Reply-To: <20120820082202.GC22529@gondor.apana.org.au>
+References: <alpine.LNX.2.00.1208012204140.14910@pobox.suse.cz>
+In-Reply-To: <alpine.LNX.2.00.1208012204140.14910@pobox.suse.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: herbert@gondor.apana.org.au
-Cc: sparclinux@vger.kernel.org, linux-crypto@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Date: Mon, 20 Aug 2012 16:22:02 +0800
+From 4f000eda5917ceecb03767962026cc6a390b8216 Mon Sep 17 00:00:00 2001
+From: Jiri Kosina <jkosina@suse.cz>
+Date: Wed, 1 Aug 2012 21:10:51 +0200
+Subject: [PATCH 4/4] sparc64: do not clobber personality flags in sys_sparc64_personality()
 
-> On Sun, Aug 19, 2012 at 10:10:00PM -0700, David Miller wrote:
->> 
->> SPARC-T4 and later support cryptographic instructions.
->> 
->> This patch series adds support for the hash digest algorithms.
->> 
->> This includes md5, sha1, sha224, sha256, sha384, and sha512.
->> 
->> Herbert, this depends upon sparc64 cpu feature detection
->> infrastructure that is going in via the sparc-next tree, so I intend
->> to commit this work there if you don't mind.
->> 
->> Signed-off-by: David S. Miller <davem@davemloft.net>
-> 
-> Acked-by: Herbert Xu <herbert@gondor.apana.org.au>
-> 
-> Thanks! Looks good to me.
+There are multiple errors in how sys_sparc64_personality() handles
+personality flags stored in top three bytes.
 
-Thanks for reviewing.
+- directly comparing current->personality against PER_LINUX32 doesn't work
+  in cases when any of the personality flags stored in the top three bytes
+  are used.
+- directly forcefully setting personality to PER_LINUX32 or PER_LINUX
+  discards any flags stored in the top three bytes
+
+Fix the first one by properly using personality() macro to compare only
+PER_MASK bytes.
+Fix the second one by setting only the bits that should be set, instead of
+overwriting the whole value.
+
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+---
+
+changed since v1: fix the bit ops to reflect the fact that PER_LINUX is 
+actually 0
+
+ arch/sparc/kernel/sys_sparc_64.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/arch/sparc/kernel/sys_sparc_64.c b/arch/sparc/kernel/sys_sparc_64.c
+index 0dc1f57..11c6c96 100644
+--- a/arch/sparc/kernel/sys_sparc_64.c
++++ b/arch/sparc/kernel/sys_sparc_64.c
+@@ -502,12 +502,12 @@ SYSCALL_DEFINE1(sparc64_personality, unsigned long, personality)
+ {
+ 	int ret;
+ 
+-	if (current->personality = PER_LINUX32 &&
+-	    personality = PER_LINUX)
+-		personality = PER_LINUX32;
++	if (personality(current->personality) = PER_LINUX32 &&
++	    personality(personality) = PER_LINUX)
++		personality |= PER_LINUX32;
+ 	ret = sys_personality(personality);
+-	if (ret = PER_LINUX32)
+-		ret = PER_LINUX;
++	if (personality(ret) = PER_LINUX32)
++		ret &= ~PER_LINUX32;
+ 
+ 	return ret;
+ }
+
+-- 
+Jiri Kosina
+SUSE Labs
