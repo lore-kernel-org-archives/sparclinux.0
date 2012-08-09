@@ -1,7 +1,7 @@
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Date: Thu, 09 Aug 2012 15:03:00 +0000
-Subject: [PATCH v2 3/6] THP: Pass real, not rounded, address to clear_huge_page
-Message-Id: <1344524583-1096-4-git-send-email-kirill.shutemov@linux.intel.com>
+Date: Thu, 09 Aug 2012 15:02:58 +0000
+Subject: [PATCH v2 1/6] THP: Use real address for NUMA policy
+Message-Id: <1344524583-1096-2-git-send-email-kirill.shutemov@linux.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1344524583-1096-1-git-send-email-kirill.shutemov@linux.intel.com>
 In-Reply-To: <1344524583-1096-1-git-send-email-kirill.shutemov@linux.intel.com>
@@ -13,46 +13,52 @@ Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Pe
 
 From: Andi Kleen <ak@linux.intel.com>
 
+Use the fault address, not the rounded down hpage address for NUMA
+policy purposes. In some circumstances this can give more exact
+NUMA policy.
+
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 ---
- mm/huge_memory.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+ mm/huge_memory.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index 70737ec..ecd93f8 100644
+index 57c4b93..70737ec 100644
 --- a/mm/huge_memory.c
 +++ b/mm/huge_memory.c
-@@ -633,7 +633,8 @@ static inline pmd_t maybe_pmd_mkwrite(pmd_t pmd, struct vm_area_struct *vma)
+@@ -681,11 +681,11 @@ static inline gfp_t alloc_hugepage_gfpmask(int defrag, gfp_t extra_gfp)
  
- static int __do_huge_pmd_anonymous_page(struct mm_struct *mm,
- 					struct vm_area_struct *vma,
--					unsigned long haddr, pmd_t *pmd,
-+					unsigned long haddr,
-+					unsigned long address, pmd_t *pmd,
- 					struct page *page)
+ static inline struct page *alloc_hugepage_vma(int defrag,
+ 					      struct vm_area_struct *vma,
+-					      unsigned long haddr, int nd,
++					      unsigned long address, int nd,
+ 					      gfp_t extra_gfp)
  {
- 	pgtable_t pgtable;
-@@ -643,7 +644,7 @@ static int __do_huge_pmd_anonymous_page(struct mm_struct *mm,
- 	if (unlikely(!pgtable))
- 		return VM_FAULT_OOM;
+ 	return alloc_pages_vma(alloc_hugepage_gfpmask(defrag, extra_gfp),
+-			       HPAGE_PMD_ORDER, vma, haddr, nd);
++			       HPAGE_PMD_ORDER, vma, address, nd);
+ }
  
--	clear_huge_page(page, haddr, HPAGE_PMD_NR);
-+	clear_huge_page(page, address, HPAGE_PMD_NR);
- 	__SetPageUptodate(page);
+ #ifndef CONFIG_NUMA
+@@ -710,7 +710,7 @@ int do_huge_pmd_anonymous_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		if (unlikely(khugepaged_enter(vma)))
+ 			return VM_FAULT_OOM;
+ 		page = alloc_hugepage_vma(transparent_hugepage_defrag(vma),
+-					  vma, haddr, numa_node_id(), 0);
++					  vma, address, numa_node_id(), 0);
+ 		if (unlikely(!page)) {
+ 			count_vm_event(THP_FAULT_FALLBACK);
+ 			goto out;
+@@ -944,7 +944,7 @@ int do_huge_pmd_wp_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 	if (transparent_hugepage_enabled(vma) &&
+ 	    !transparent_hugepage_debug_cow())
+ 		new_page = alloc_hugepage_vma(transparent_hugepage_defrag(vma),
+-					      vma, haddr, numa_node_id(), 0);
++					      vma, address, numa_node_id(), 0);
+ 	else
+ 		new_page = NULL;
  
- 	spin_lock(&mm->page_table_lock);
-@@ -720,8 +721,8 @@ int do_huge_pmd_anonymous_page(struct mm_struct *mm, struct vm_area_struct *vma,
- 			put_page(page);
- 			goto out;
- 		}
--		if (unlikely(__do_huge_pmd_anonymous_page(mm, vma, haddr, pmd,
--							  page))) {
-+		if (unlikely(__do_huge_pmd_anonymous_page(mm, vma, haddr,
-+						address, pmd, page))) {
- 			mem_cgroup_uncharge_page(page);
- 			put_page(page);
- 			goto out;
 -- 
 1.7.7.6
 
