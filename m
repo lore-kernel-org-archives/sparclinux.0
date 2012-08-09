@@ -1,10 +1,10 @@
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Date: Mon, 20 Aug 2012 13:52:36 +0000
-Subject: [PATCH v4 7/8] x86: switch the 64bit uncached page clear to SSE/AVX v2
-Message-Id: <1345470757-12005-8-git-send-email-kirill.shutemov@linux.intel.com>
+Date: Thu, 09 Aug 2012 15:03:00 +0000
+Subject: [PATCH v2 3/6] THP: Pass real, not rounded, address to clear_huge_page
+Message-Id: <1344524583-1096-4-git-send-email-kirill.shutemov@linux.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1345470757-12005-1-git-send-email-kirill.shutemov@linux.intel.com>
-In-Reply-To: <1345470757-12005-1-git-send-email-kirill.shutemov@linux.intel.com>
+References: <1344524583-1096-1-git-send-email-kirill.shutemov@linux.intel.com>
+In-Reply-To: <1344524583-1096-1-git-send-email-kirill.shutemov@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -13,122 +13,46 @@ Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Pe
 
 From: Andi Kleen <ak@linux.intel.com>
 
-With multiple threads vector stores are more efficient, so use them.
-This will cause the page clear to run non preemptable and add some
-overhead. However on 32bit it was already non preempable (due to
-kmap_atomic) and there is an preemption opportunity every 4K unit.
-
-On a NPB (Nasa Parallel Benchmark) 128GB run on a Westmere this improves
-the performance regression of enabling transparent huge pages
-by ~2% (2.81% to 0.81%), near the runtime variability now.
-On a system with AVX support more is expected.
-
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-[kirill.shutemov@linux.intel.com: Properly save/restore arguments]
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 ---
- arch/x86/lib/clear_page_64.S |   79 ++++++++++++++++++++++++++++++++++--------
- 1 files changed, 64 insertions(+), 15 deletions(-)
+ mm/huge_memory.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/arch/x86/lib/clear_page_64.S b/arch/x86/lib/clear_page_64.S
-index 9d2f3c2..b302cff 100644
---- a/arch/x86/lib/clear_page_64.S
-+++ b/arch/x86/lib/clear_page_64.S
-@@ -73,30 +73,79 @@ ENDPROC(clear_page)
- 			     .Lclear_page_end-clear_page,3b-2b
- 	.previous
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index 70737ec..ecd93f8 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -633,7 +633,8 @@ static inline pmd_t maybe_pmd_mkwrite(pmd_t pmd, struct vm_area_struct *vma)
  
-+#define SSE_UNROLL 128
-+
- /*
-  * Zero a page avoiding the caches
-  * rdi	page
-  */
- ENTRY(clear_page_nocache)
- 	CFI_STARTPROC
--	xorl   %eax,%eax
--	movl   $4096/64,%ecx
-+	pushq_cfi %rdi
-+	call   kernel_fpu_begin
-+	popq_cfi  %rdi
-+	sub    $16,%rsp
-+	CFI_ADJUST_CFA_OFFSET 16
-+	movdqu %xmm0,(%rsp)
-+	xorpd  %xmm0,%xmm0
-+	movl   $4096/SSE_UNROLL,%ecx
- 	.p2align 4
- .Lloop_nocache:
- 	decl	%ecx
--#define PUT(x) movnti %rax,x*8(%rdi)
--	movnti %rax,(%rdi)
--	PUT(1)
--	PUT(2)
--	PUT(3)
--	PUT(4)
--	PUT(5)
--	PUT(6)
--	PUT(7)
--#undef PUT
--	leaq	64(%rdi),%rdi
-+	.set x,0
-+	.rept SSE_UNROLL/16
-+	movntdq %xmm0,x(%rdi)
-+	.set x,x+16
-+	.endr
-+	leaq	SSE_UNROLL(%rdi),%rdi
- 	jnz	.Lloop_nocache
--	nop
--	ret
-+	movdqu (%rsp),%xmm0
-+	addq   $16,%rsp
-+	CFI_ADJUST_CFA_OFFSET -16
-+	jmp   kernel_fpu_end
- 	CFI_ENDPROC
- ENDPROC(clear_page_nocache)
-+
-+#ifdef CONFIG_AS_AVX
-+
-+	.section .altinstr_replacement,"ax"
-+1:	.byte 0xeb					/* jmp <disp8> */
-+	.byte (clear_page_nocache_avx - clear_page_nocache) - (2f - 1b)
-+	/* offset */
-+2:
-+	.previous
-+	.section .altinstructions,"a"
-+	altinstruction_entry clear_page_nocache,1b,X86_FEATURE_AVX,\
-+	                     16, 2b-1b
-+	.previous
-+
-+#define AVX_UNROLL 256 /* TUNE ME */
-+
-+ENTRY(clear_page_nocache_avx)
-+	CFI_STARTPROC
-+	pushq_cfi %rdi
-+	call   kernel_fpu_begin
-+	popq_cfi  %rdi
-+	sub    $32,%rsp
-+	CFI_ADJUST_CFA_OFFSET 32
-+	vmovdqu %ymm0,(%rsp)
-+	vxorpd  %ymm0,%ymm0,%ymm0
-+	movl   $4096/AVX_UNROLL,%ecx
-+	.p2align 4
-+.Lloop_avx:
-+	decl	%ecx
-+	.set x,0
-+	.rept AVX_UNROLL/32
-+	vmovntdq %ymm0,x(%rdi)
-+	.set x,x+32
-+	.endr
-+	leaq	AVX_UNROLL(%rdi),%rdi
-+	jnz	.Lloop_avx
-+	vmovdqu (%rsp),%ymm0
-+	addq   $32,%rsp
-+	CFI_ADJUST_CFA_OFFSET -32
-+	jmp   kernel_fpu_end
-+	CFI_ENDPROC
-+ENDPROC(clear_page_nocache_avx)
-+
-+#endif
+ static int __do_huge_pmd_anonymous_page(struct mm_struct *mm,
+ 					struct vm_area_struct *vma,
+-					unsigned long haddr, pmd_t *pmd,
++					unsigned long haddr,
++					unsigned long address, pmd_t *pmd,
+ 					struct page *page)
+ {
+ 	pgtable_t pgtable;
+@@ -643,7 +644,7 @@ static int __do_huge_pmd_anonymous_page(struct mm_struct *mm,
+ 	if (unlikely(!pgtable))
+ 		return VM_FAULT_OOM;
+ 
+-	clear_huge_page(page, haddr, HPAGE_PMD_NR);
++	clear_huge_page(page, address, HPAGE_PMD_NR);
+ 	__SetPageUptodate(page);
+ 
+ 	spin_lock(&mm->page_table_lock);
+@@ -720,8 +721,8 @@ int do_huge_pmd_anonymous_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			put_page(page);
+ 			goto out;
+ 		}
+-		if (unlikely(__do_huge_pmd_anonymous_page(mm, vma, haddr, pmd,
+-							  page))) {
++		if (unlikely(__do_huge_pmd_anonymous_page(mm, vma, haddr,
++						address, pmd, page))) {
+ 			mem_cgroup_uncharge_page(page);
+ 			put_page(page);
+ 			goto out;
 -- 
 1.7.7.6
 
