@@ -1,7 +1,7 @@
-From: "Jan Beulich" <JBeulich@suse.com>
-Date: Mon, 13 Aug 2012 12:02:57 +0000
+From: Andi Kleen <ak@linux.intel.com>
+Date: Mon, 13 Aug 2012 16:27:53 +0000
 Subject: Re: [PATCH v2 4/6] x86: Add clear_page_nocache
-Message-Id: <502909110200007800094719@nat28.tlf.novell.com>
+Message-Id: <20120813162753.GM2644@tassilo.jf.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1344524583-1096-1-git-send-email-kirill.shutemov@linux.intel.com>
  <1344524583-1096-5-git-send-email-kirill.shutemov@linux.intel.com>
@@ -12,44 +12,14 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Andy Lutomirski <luto@amacapital.net>, Robert Richter <robert.richter@amd.com>, Johannes Weiner <hannes@cmpxchg.org>, Hugh Dickins <hughd@google.com>, Alex Shi <alex.shu@intel.com>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, linux-mips@linux-mips.org, Andi Kleen <ak@linux.intel.com>, Tim Chen <tim.c.chen@linux.intel.com>, linuxppc-dev@lists.ozlabs.org, Andrea Arcangeli <aarcange@redhat.com>, Ingo Molnar <mingo@redhat.com>, Mel Gorman <mgorman@suse.de>, linux-kernel@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>
+Cc: Jan Beulich <JBeulich@suse.com>, Andy Lutomirski <luto@amacapital.net>, Robert Richter <robert.richter@amd.com>, Johannes Weiner <hannes@cmpxchg.org>, Hugh Dickins <hughd@google.com>, Alex Shi <alex.shu@intel.com>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, linux-mips@linux-mips.org, Tim Chen <tim.c.chen@linux.intel.com>, linuxppc-dev@lists.ozlabs.org, Andrea Arcangeli <aarcange@redhat.com>, Ingo Molnar <mingo@redhat.com>, Mel Gorman <mgorman@suse.de>, linux-kernel@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>
 
->>> On 13.08.12 at 13:43, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com> wrote:
-> On Thu, Aug 09, 2012 at 04:22:04PM +0100, Jan Beulich wrote:
->> >>> On 09.08.12 at 17:03, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>  wrote:
-> 
-> ...
-> 
->> > ---
->> >  arch/x86/include/asm/page.h          |    2 ++
->> >  arch/x86/include/asm/string_32.h     |    5 +++++
->> >  arch/x86/include/asm/string_64.h     |    5 +++++
->> >  arch/x86/lib/Makefile                |    1 +
->> >  arch/x86/lib/clear_page_nocache_32.S |   30 ++++++++++++++++++++++++++++++
->> >  arch/x86/lib/clear_page_nocache_64.S |   29 +++++++++++++++++++++++++++++
->> 
->> Couldn't this more reasonably go into clear_page_{32,64}.S?
-> 
-> We don't have clear_page_32.S.
-
-Sure, but you're introducing a file anyway. Fold the new code into
-the existing file for 64-bit, and create a new, similarly named one
-for 32-bit.
-
->> >+	xorl   %eax,%eax
->> >+	movl   $4096/64,%ecx
->> >+	.p2align 4
->> >+.Lloop:
->> >+	decl	%ecx
->> >+#define PUT(x) movnti %eax,x*8(%edi) ; movnti %eax,x*8+4(%edi)
->> 
->> Is doing twice as much unrolling as on 64-bit really worth it?
-> 
 > Moving 64 bytes per cycle is faster on Sandy Bridge, but slower on
 > Westmere. Any preference? ;)
 
-If it's not a clear win, I'd favor the 8-stores-per-cycle variant,
-matching x86-64.
+You have to be careful with these benchmarks.
 
-Jan
+- You need to make sure the data is cache cold, cache hot is misleading.
+- The numbers can change if you have multiple CPUs doing this in parallel.
 
+-Andi
