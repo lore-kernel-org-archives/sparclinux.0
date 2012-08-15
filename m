@@ -1,84 +1,37 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 15 Aug 2012 07:38:47 +0000
-Subject: [PATCH] sparc64: Be less verbose during vmemmap population.
-Message-Id: <20120815.003847.825743633212686022.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Wed, 15 Aug 2012 10:02:00 +0000
+Subject: Re: [PATCH] sparc64: Be less verbose during vmemmap population.
+Message-Id: <20120815100200.GA6154@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20120815.003847.825743633212686022.davem@davemloft.net>
+In-Reply-To: <20120815.003847.825743633212686022.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
+>=20
+> diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+> index 6026fdd..d58edf5 100644
+> --- a/arch/sparc/mm/init_64.c
+> +++ b/arch/sparc/mm/init_64.c
+> +
+> +void __meminit vmemmap_populate_print_last(void)
+> +{
+> +	if (addr_start) {
+> +		printk(KERN_DEBUG " [%lx-%lx] on node %d\n",
+> +		       addr_start, addr_end-1, node_start);
+> +		addr_start =3D 0;
+> +		addr_end =3D 0;
+> +		node_start =3D 0;
+> +	}
+> +}
+This confused me... I saw you added a function wh=EDch was never used.
+include/linux/mm.h had a protoype with no comments at all !?!?
+But then I could see we have a weak version defined in mm/
+and you just add the arch version which overrides the waeak version.
 
-On a 2-node machine with 256GB of ram we get 512 lines of
-console output, which is just too much.
+A small comment would have helped me here.
+But on the other hand you followed the comment style for this anyway :-(
 
-This mimicks Yinghai Lu's x86 commit c2b91e2eec9678dbda274e906cc32ea8f711da3b
-(x86_64/mm: check and print vmemmap allocation continuous) except that
-we aren't ever going to get contiguous block pointers in between calls
-so just print when the virtual address or node changes.
-
-This decreases the output by an order of 16.
-
-Also demote this to KERN_DEBUG.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
-
-Committed to 'sparc'.
-
- arch/sparc/mm/init_64.c |   28 +++++++++++++++++++++++-----
- 1 file changed, 23 insertions(+), 5 deletions(-)
-
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 6026fdd..d58edf5 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -2020,6 +2020,9 @@ EXPORT_SYMBOL(_PAGE_CACHE);
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
- unsigned long vmemmap_table[VMEMMAP_SIZE];
- 
-+static long __meminitdata addr_start, addr_end;
-+static int __meminitdata node_start;
-+
- int __meminit vmemmap_populate(struct page *start, unsigned long nr, int node)
- {
- 	unsigned long vstart = (unsigned long) start;
-@@ -2050,15 +2053,30 @@ int __meminit vmemmap_populate(struct page *start, unsigned long nr, int node)
- 
- 			*vmem_pp = pte_base | __pa(block);
- 
--			printk(KERN_INFO "[%p-%p] page_structs=%lu "
--			       "node=%d entry=%lu/%lu\n", start, block, nr,
--			       node,
--			       addr >> VMEMMAP_CHUNK_SHIFT,
--			       VMEMMAP_SIZE);
-+			/* check to see if we have contiguous blocks */
-+			if (addr_end != addr || node_start != node) {
-+				if (addr_start)
-+					printk(KERN_DEBUG " [%lx-%lx] on node %d\n",
-+					       addr_start, addr_end-1, node_start);
-+				addr_start = addr;
-+				node_start = node;
-+			}
-+			addr_end = addr + VMEMMAP_CHUNK;
- 		}
- 	}
- 	return 0;
- }
-+
-+void __meminit vmemmap_populate_print_last(void)
-+{
-+	if (addr_start) {
-+		printk(KERN_DEBUG " [%lx-%lx] on node %d\n",
-+		       addr_start, addr_end-1, node_start);
-+		addr_start = 0;
-+		addr_end = 0;
-+		node_start = 0;
-+	}
-+}
- #endif /* CONFIG_SPARSEMEM_VMEMMAP */
- 
- static void prot_init_common(unsigned long page_none,
--- 
-1.7.10.4
-
+	Sam - going to grab some coffe to be less grumble
