@@ -1,42 +1,50 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Fri, 31 Aug 2012 20:49:56 +0000
-Subject: Re: [RFC v8 PATCH 00/20] memory-hotplug: hot-remove physical memory
-Message-Id: <20120831134956.fec0f681.akpm@linux-foundation.org>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 15 Aug 2012 07:51:50 +0000
+Subject: [GIT] Sparc
+Message-Id: <20120815.005150.614969789942856064.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
-In-Reply-To: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
+References: <20120815.004457.1075503861038108671.davem@davemloft.net>
+In-Reply-To: <20120815.004457.1075503861038108671.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: wency@cn.fujitsu.com
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, 28 Aug 2012 18:00:07 +0800
-wency@cn.fujitsu.com wrote:
+From: David Miller <davem@davemloft.net>
+Date: Wed, 15 Aug 2012 00:44:57 -0700 (PDT)
 
-> This patch series aims to support physical memory hot-remove.
-
-Have you had much review and testing feedback yet?
-
-> The patches can free/remove the following things:
+> Please pull to get these two bug fixes.
 > 
->   - acpi_memory_info                          : [RFC PATCH 4/19]
->   - /sys/firmware/memmap/X/{end, start, type} : [RFC PATCH 8/19]
->   - iomem_resource                            : [RFC PATCH 9/19]
->   - mem_section and related sysfs files       : [RFC PATCH 10-11, 13-16/19]
->   - page table of removed memory              : [RFC PATCH 12/19]
->   - node and related sysfs files              : [RFC PATCH 18-19/19]
+> Thanks!
+
+Sorry, I botched the original Subject, fixed now.
+
+> The following changes since commit 1a9b4993b70fb1884716902774dc9025b457760d:
 > 
-> If you find lack of function for physical memory hot-remove, please let me
-> know.
-
-I doubt if many people have hardware which permits physical memory
-removal?  How would you suggest that people with regular hardware can
-test these chagnes?
-
-> Known problems:
-> 1. memory can't be offlined when CONFIG_MEMCG is selected.
-
-That's quite a problem!  Do you have a description of why this is the
-case, and a plan for fixing it?
-
+>   Merge branch 'upstream' of git://git.linux-mips.org/pub/scm/ralf/upstream-linus (2012-08-01 16:47:15 -0700)
+> 
+> are available in the git repository at:
+> 
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
+> 
+> for you to fetch changes up to 2856cc2e4d0852c3ddaae9dcb19cb9396512eb08:
+> 
+>   sparc64: Be less verbose during vmemmap population. (2012-08-15 00:37:29 -0700)
+> 
+> ----------------------------------------------------------------
+> David S. Miller (1):
+>       sparc64: Be less verbose during vmemmap population.
+> 
+> Jiri Kosina (1):
+>       sparc64: do not clobber personality flags in sys_sparc64_personality()
+> 
+>  arch/sparc/kernel/sys_sparc_64.c | 10 +++++-----
+>  arch/sparc/mm/init_64.c          | 28 +++++++++++++++++++++++-----
+>  2 files changed, 28 insertions(+), 10 deletions(-)
+> --
+> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
