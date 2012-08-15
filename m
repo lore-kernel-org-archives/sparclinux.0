@@ -1,54 +1,39 @@
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Date: Thu, 09 Aug 2012 15:02:59 +0000
-Subject: [PATCH v2 2/6] mm: make clear_huge_page tolerate non aligned address
-Message-Id: <1344524583-1096-3-git-send-email-kirill.shutemov@linux.intel.com>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 15 Aug 2012 07:44:57 +0000
+Subject: 
+Message-Id: <20120815.004457.1075503861038108671.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1344524583-1096-1-git-send-email-kirill.shutemov@linux.intel.com>
-In-Reply-To: <1344524583-1096-1-git-send-email-kirill.shutemov@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Andi Kleen <ak@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Tim Chen <tim.c.chen@linux.intel.com>, Alex Shi <alex.shu@intel.com>, Jan Beulich <jbeulich@novell.com>, Robert Richter <robert.richter@amd.com>, Andy Lutomirski <luto@amacapital.net>, Andrew Morton <akpm@linux-foundation.org>, Andrea Arcangeli <aarcange@redhat.com>, Johannes Weiner <hannes@cmpxchg.org>, Hugh Dickins <hughd@google.com>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mips@linux-mips.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Andi Kleen <ak@linux.intel.com>
 
-hugetlb does not necessarily pass in an aligned address, so the
-low level address computation is wrong.
+Please pull to get these two bug fixes.
 
-This will fix architectures that actually use the address for flushing
-the cleared address (very few, like xtensa/sparc/...?)
+Thanks!
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
----
- mm/memory.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+The following changes since commit 1a9b4993b70fb1884716902774dc9025b457760d:
 
-diff --git a/mm/memory.c b/mm/memory.c
-index 5736170..b47199a 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -3987,16 +3987,17 @@ void clear_huge_page(struct page *page,
- 		     unsigned long addr, unsigned int pages_per_huge_page)
- {
- 	int i;
-+	unsigned long haddr = addr & HPAGE_PMD_MASK;
- 
- 	if (unlikely(pages_per_huge_page > MAX_ORDER_NR_PAGES)) {
--		clear_gigantic_page(page, addr, pages_per_huge_page);
-+		clear_gigantic_page(page, haddr, pages_per_huge_page);
- 		return;
- 	}
- 
- 	might_sleep();
- 	for (i = 0; i < pages_per_huge_page; i++) {
- 		cond_resched();
--		clear_user_highpage(page + i, addr + i * PAGE_SIZE);
-+		clear_user_highpage(page + i, haddr + i * PAGE_SIZE);
- 	}
- }
- 
--- 
-1.7.7.6
+  Merge branch 'upstream' of git://git.linux-mips.org/pub/scm/ralf/upstream-linus (2012-08-01 16:47:15 -0700)
 
+are available in the git repository at:
+
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
+
+for you to fetch changes up to 2856cc2e4d0852c3ddaae9dcb19cb9396512eb08:
+
+  sparc64: Be less verbose during vmemmap population. (2012-08-15 00:37:29 -0700)
+
+----------------------------------------------------------------
+David S. Miller (1):
+      sparc64: Be less verbose during vmemmap population.
+
+Jiri Kosina (1):
+      sparc64: do not clobber personality flags in sys_sparc64_personality()
+
+ arch/sparc/kernel/sys_sparc_64.c | 10 +++++-----
+ arch/sparc/mm/init_64.c          | 28 +++++++++++++++++++++++-----
+ 2 files changed, 28 insertions(+), 10 deletions(-)
