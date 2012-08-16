@@ -1,90 +1,64 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 19 Aug 2012 06:28:53 +0000
-Subject: [PATCH 17/17] sparc64: Update generic comments in perf event code to match reality.
-Message-Id: <20120818.232853.567792567510779106.davem@davemloft.net>
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Date: Thu, 16 Aug 2012 15:15:48 +0000
+Subject: [PATCH v3 1/7] THP: Use real address for NUMA policy
+Message-Id: <1345130154-9602-2-git-send-email-kirill.shutemov@linux.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1345130154-9602-1-git-send-email-kirill.shutemov@linux.intel.com>
+In-Reply-To: <1345130154-9602-1-git-send-email-kirill.shutemov@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Andi Kleen <ak@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Tim Chen <tim.c.chen@linux.intel.com>, Alex Shi <alex.shu@intel.com>, Jan Beulich <jbeulich@novell.com>, Robert Richter <robert.richter@amd.com>, Andy Lutomirski <luto@amacapital.net>, Andrew Morton <akpm@linux-foundation.org>, Andrea Arcangeli <aarcange@redhat.com>, Johannes Weiner <hannes@cmpxchg.org>, Hugh Dickins <hughd@google.com>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mips@linux-mips.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
 
+From: Andi Kleen <ak@linux.intel.com>
 
-Describe how we support two types of PMU setups, one with a single control
-register and two counters stored in a single register, and another with
-one control register per counter and each counter living in it's own
-register.
+Use the fault address, not the rounded down hpage address for NUMA
+policy purposes. In some circumstances this can give more exact
+NUMA policy.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 ---
- arch/sparc/kernel/perf_event.c |   40 +++++++++++++++++++++++++++-------------
- 1 file changed, 27 insertions(+), 13 deletions(-)
+ mm/huge_memory.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
-index 1885370..e48651d 100644
---- a/arch/sparc/kernel/perf_event.c
-+++ b/arch/sparc/kernel/perf_event.c
-@@ -30,27 +30,39 @@
- #include "kernel.h"
- #include "kstack.h"
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index 57c4b93..70737ec 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -681,11 +681,11 @@ static inline gfp_t alloc_hugepage_gfpmask(int defrag, gfp_t extra_gfp)
  
--/* Sparc64 chips have two performance counters, 32-bits each, with
-- * overflow interrupts generated on transition from 0xffffffff to 0.
-- * The counters are accessed in one go using a 64-bit register.
-+/* Two classes of sparc64 chips currently exist.  All of which have
-+ * 32-bit counters which can generate overflow interrupts on the
-+ * transition from 0xffffffff to 0.
-  *
-- * Both counters are controlled using a single control register.  The
-- * only way to stop all sampling is to clear all of the context (user,
-- * supervisor, hypervisor) sampling enable bits.  But these bits apply
-- * to both counters, thus the two counters can't be enabled/disabled
-- * individually.
-+ * All chips upto and including SPARC-T3 have two performance
-+ * counters.  The two 32-bit counters are accessed in one go using a
-+ * single 64-bit register.
-  *
-- * The control register has two event fields, one for each of the two
-- * counters.  It's thus nearly impossible to have one counter going
-- * while keeping the other one stopped.  Therefore it is possible to
-- * get overflow interrupts for counters not currently "in use" and
-- * that condition must be checked in the overflow interrupt handler.
-+ * On these older chips both counters are controlled using a single
-+ * control register.  The only way to stop all sampling is to clear
-+ * all of the context (user, supervisor, hypervisor) sampling enable
-+ * bits.  But these bits apply to both counters, thus the two counters
-+ * can't be enabled/disabled individually.
-+ *
-+ * Furthermore, the control register on these older chips have two
-+ * event fields, one for each of the two counters.  It's thus nearly
-+ * impossible to have one counter going while keeping the other one
-+ * stopped.  Therefore it is possible to get overflow interrupts for
-+ * counters not currently "in use" and that condition must be checked
-+ * in the overflow interrupt handler.
-  *
-  * So we use a hack, in that we program inactive counters with the
-  * "sw_count0" and "sw_count1" events.  These count how many times
-  * the instruction "sethi %hi(0xfc000), %g0" is executed.  It's an
-  * unusual way to encode a NOP and therefore will not trigger in
-  * normal code.
-+ *
-+ * Starting with SPARC-T4 we have one control register per counter.
-+ * And the counters are stored in individual registers.  The registers
-+ * for the counters are 64-bit but only a 32-bit counter is
-+ * implemented.  The event selections on SPARC-T4 lack any
-+ * restrictions, therefore we can elide all of the complicated
-+ * conflict resolution code we have for SPARC-T3 and earlier chips.
-  */
+ static inline struct page *alloc_hugepage_vma(int defrag,
+ 					      struct vm_area_struct *vma,
+-					      unsigned long haddr, int nd,
++					      unsigned long address, int nd,
+ 					      gfp_t extra_gfp)
+ {
+ 	return alloc_pages_vma(alloc_hugepage_gfpmask(defrag, extra_gfp),
+-			       HPAGE_PMD_ORDER, vma, haddr, nd);
++			       HPAGE_PMD_ORDER, vma, address, nd);
+ }
  
- #define MAX_HWEVENTS			4
-@@ -103,6 +115,8 @@ DEFINE_PER_CPU(struct cpu_hw_events, cpu_hw_events) = { .enabled = 1, };
- /* An event map describes the characteristics of a performance
-  * counter event.  In particular it gives the encoding as well as
-  * a mask telling which counters the event can be measured on.
-+ *
-+ * The mask is unused on SPARC-T4 and later.
-  */
- struct perf_event_map {
- 	u16	encoding;
+ #ifndef CONFIG_NUMA
+@@ -710,7 +710,7 @@ int do_huge_pmd_anonymous_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		if (unlikely(khugepaged_enter(vma)))
+ 			return VM_FAULT_OOM;
+ 		page = alloc_hugepage_vma(transparent_hugepage_defrag(vma),
+-					  vma, haddr, numa_node_id(), 0);
++					  vma, address, numa_node_id(), 0);
+ 		if (unlikely(!page)) {
+ 			count_vm_event(THP_FAULT_FALLBACK);
+ 			goto out;
+@@ -944,7 +944,7 @@ int do_huge_pmd_wp_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 	if (transparent_hugepage_enabled(vma) &&
+ 	    !transparent_hugepage_debug_cow())
+ 		new_page = alloc_hugepage_vma(transparent_hugepage_defrag(vma),
+-					      vma, haddr, numa_node_id(), 0);
++					      vma, address, numa_node_id(), 0);
+ 	else
+ 		new_page = NULL;
+ 
 -- 
-1.7.10.4
+1.7.7.6
 
