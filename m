@@ -1,33 +1,98 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 19 Aug 2012 22:29:59 +0000
-Subject: Re: [PATCH] silo: Don't touch %tick_cmpr on sun4v cpus.
-Message-Id: <20120819.152959.477498039314404709.davem@davemloft.net>
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Date: Thu, 16 Aug 2012 15:15:53 +0000
+Subject: [PATCH v3 6/7] mm: make clear_huge_page cache clear only around the fault address
+Message-Id: <1345130154-9602-7-git-send-email-kirill.shutemov@linux.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20120815.011416.353619816610212386.davem@davemloft.net>
-In-Reply-To: <20120815.011416.353619816610212386.davem@davemloft.net>
+References: <1345130154-9602-1-git-send-email-kirill.shutemov@linux.intel.com>
+In-Reply-To: <1345130154-9602-1-git-send-email-kirill.shutemov@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Andi Kleen <ak@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Tim Chen <tim.c.chen@linux.intel.com>, Alex Shi <alex.shu@intel.com>, Jan Beulich <jbeulich@novell.com>, Robert Richter <robert.richter@amd.com>, Andy Lutomirski <luto@amacapital.net>, Andrew Morton <akpm@linux-foundation.org>, Andrea Arcangeli <aarcange@redhat.com>, Johannes Weiner <hannes@cmpxchg.org>, Hugh Dickins <hughd@google.com>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mips@linux-mips.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
 
-From: Jurij Smakov <jurij@wooyd.org>
-Date: Sun, 19 Aug 2012 23:29:05 +0100
+From: Andi Kleen <ak@linux.intel.com>
 
-> On Sun, Aug 19, 2012 at 03:24:45PM -0700, David Miller wrote:
->> From: Jurij Smakov <jurij@wooyd.org>
->> Date: Sun, 19 Aug 2012 16:41:42 +0100
->> 
->> > I just uploaded a new silo package (1.4.14+git20120819-1) including 
->> > these fixes to unstable, and would encourage everyone to test it (it 
->> > should appear on the mirrors within a few hours). After a grace period 
->> > of 10 days we are going to arrange for its propagation to testing, 
->> > given that no problems are reported.
->> 
->> Thanks a lot Jurij.
->> 
->> Just FYI I also pushed a ext4 fix into the SILO tree yesterday
->> after I received positive feedback from a bug reporter.
-> 
-> This fix is included in the latest uploaded version as well.
+Clearing a 2MB huge page will typically blow away several levels
+of CPU caches. To avoid this only cache clear the 4K area
+around the fault address and use a cache avoiding clears
+for the rest of the 2MB area.
 
-Excellent.
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+---
+ mm/memory.c |   34 +++++++++++++++++++++++++++++-----
+ 1 files changed, 29 insertions(+), 5 deletions(-)
+
+diff --git a/mm/memory.c b/mm/memory.c
+index dfc179b..d4626b9 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -3969,18 +3969,34 @@ EXPORT_SYMBOL(might_fault);
+ #endif
+ 
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) || defined(CONFIG_HUGETLBFS)
++
++#ifndef ARCH_HAS_USER_NOCACHE
++#define ARCH_HAS_USER_NOCACHE 0
++#endif
++
++#if ARCH_HAS_USER_NOCACHE = 0
++#define clear_user_highpage_nocache clear_user_highpage
++#endif
++
+ static void clear_gigantic_page(struct page *page,
+-				unsigned long addr,
+-				unsigned int pages_per_huge_page)
++		unsigned long haddr, unsigned long fault_address,
++		unsigned int pages_per_huge_page)
+ {
+ 	int i;
+ 	struct page *p = page;
++	unsigned long vaddr;
++	int target = (fault_address - haddr) >> PAGE_SHIFT;
+ 
+ 	might_sleep();
++	vaddr = haddr;
+ 	for (i = 0; i < pages_per_huge_page;
+ 	     i++, p = mem_map_next(p, page, i)) {
+ 		cond_resched();
+-		clear_user_highpage(p, addr + i * PAGE_SIZE);
++		vaddr = haddr + i*PAGE_SIZE;
++		if (!ARCH_HAS_USER_NOCACHE  || i = target)
++			clear_user_highpage(p, vaddr);
++		else
++			clear_user_highpage_nocache(p, vaddr);
+ 	}
+ }
+ void clear_huge_page(struct page *page,
+@@ -3988,16 +4004,24 @@ void clear_huge_page(struct page *page,
+ 		     unsigned int pages_per_huge_page)
+ {
+ 	int i;
++	unsigned long vaddr;
++	int target = (fault_address - haddr) >> PAGE_SHIFT;
+ 
+ 	if (unlikely(pages_per_huge_page > MAX_ORDER_NR_PAGES)) {
+-		clear_gigantic_page(page, haddr, pages_per_huge_page);
++		clear_gigantic_page(page, haddr, fault_address,
++				pages_per_huge_page);
+ 		return;
+ 	}
+ 
+ 	might_sleep();
++	vaddr = haddr;
+ 	for (i = 0; i < pages_per_huge_page; i++) {
+ 		cond_resched();
+-		clear_user_highpage(page + i, haddr + i * PAGE_SIZE);
++		vaddr = haddr + i*PAGE_SIZE;
++		if (!ARCH_HAS_USER_NOCACHE || i = target)
++			clear_user_highpage(page + i, vaddr);
++		else
++			clear_user_highpage_nocache(page + i, vaddr);
+ 	}
+ }
+ 
+-- 
+1.7.7.6
+
