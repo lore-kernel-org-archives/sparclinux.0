@@ -1,233 +1,165 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 19 Aug 2012 06:28:46 +0000
-Subject: [PATCH 16/17] sparc64: Add SPARC-T4 perf event support.
-Message-Id: <20120818.232846.492704451528628910.davem@davemloft.net>
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Date: Thu, 16 Aug 2012 15:15:50 +0000
+Subject: [PATCH v3 3/7] hugetlb: pass fault address to hugetlb_no_page()
+Message-Id: <1345130154-9602-4-git-send-email-kirill.shutemov@linux.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1345130154-9602-1-git-send-email-kirill.shutemov@linux.intel.com>
+In-Reply-To: <1345130154-9602-1-git-send-email-kirill.shutemov@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Andi Kleen <ak@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Tim Chen <tim.c.chen@linux.intel.com>, Alex Shi <alex.shu@intel.com>, Jan Beulich <jbeulich@novell.com>, Robert Richter <robert.richter@amd.com>, Andy Lutomirski <luto@amacapital.net>, Andrew Morton <akpm@linux-foundation.org>, Andrea Arcangeli <aarcange@redhat.com>, Johannes Weiner <hannes@cmpxchg.org>, Hugh Dickins <hughd@google.com>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mips@linux-mips.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
 
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 ---
- arch/sparc/kernel/perf_event.c |  189 +++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 187 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |   38 +++++++++++++++++++-------------------
+ 1 files changed, 19 insertions(+), 19 deletions(-)
 
-diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
-index 6441592..1885370 100644
---- a/arch/sparc/kernel/perf_event.c
-+++ b/arch/sparc/kernel/perf_event.c
-@@ -53,8 +53,8 @@
-  * normal code.
-  */
- 
--#define MAX_HWEVENTS			2
--#define MAX_PCRS			1
-+#define MAX_HWEVENTS			4
-+#define MAX_PCRS			4
- #define MAX_PERIOD			((1UL << 32) - 1)
- 
- #define PIC_UPPER_INDEX			0
-@@ -597,6 +597,187 @@ static const struct sparc_pmu niagara2_pmu = {
- 	.num_pic_regs	= 1,
- };
- 
-+static const struct perf_event_map niagara4_perfmon_event_map[] = {
-+	[PERF_COUNT_HW_CPU_CYCLES] = { (26 << 6) },
-+	[PERF_COUNT_HW_INSTRUCTIONS] = { (3 << 6) | 0x3f },
-+	[PERF_COUNT_HW_CACHE_REFERENCES] = { (3 << 6) | 0x04 },
-+	[PERF_COUNT_HW_CACHE_MISSES] = { (16 << 6) | 0x07 },
-+	[PERF_COUNT_HW_BRANCH_INSTRUCTIONS] = { (4 << 6) | 0x01 },
-+	[PERF_COUNT_HW_BRANCH_MISSES] = { (25 << 6) | 0x0f },
-+};
-+
-+static const struct perf_event_map *niagara4_event_map(int event_id)
-+{
-+	return &niagara4_perfmon_event_map[event_id];
-+}
-+
-+static const cache_map_t niagara4_cache_map = {
-+[C(L1D)] = {
-+	[C(OP_READ)] = {
-+		[C(RESULT_ACCESS)] = { (3 << 6) | 0x04 },
-+		[C(RESULT_MISS)] = { (16 << 6) | 0x07 },
-+	},
-+	[C(OP_WRITE)] = {
-+		[C(RESULT_ACCESS)] = { (3 << 6) | 0x08 },
-+		[C(RESULT_MISS)] = { (16 << 6) | 0x07 },
-+	},
-+	[C(OP_PREFETCH)] = {
-+		[C(RESULT_ACCESS)] = { CACHE_OP_UNSUPPORTED },
-+		[C(RESULT_MISS)] = { CACHE_OP_UNSUPPORTED },
-+	},
-+},
-+[C(L1I)] = {
-+	[C(OP_READ)] = {
-+		[C(RESULT_ACCESS)] = { (3 << 6) | 0x3f },
-+		[C(RESULT_MISS)] = { (11 << 6) | 0x03 },
-+	},
-+	[ C(OP_WRITE) ] = {
-+		[ C(RESULT_ACCESS) ] = { CACHE_OP_NONSENSE },
-+		[ C(RESULT_MISS)   ] = { CACHE_OP_NONSENSE },
-+	},
-+	[ C(OP_PREFETCH) ] = {
-+		[ C(RESULT_ACCESS) ] = { CACHE_OP_UNSUPPORTED },
-+		[ C(RESULT_MISS)   ] = { CACHE_OP_UNSUPPORTED },
-+	},
-+},
-+[C(LL)] = {
-+	[C(OP_READ)] = {
-+		[C(RESULT_ACCESS)] = { (3 << 6) | 0x04 },
-+		[C(RESULT_MISS)] = { CACHE_OP_UNSUPPORTED },
-+	},
-+	[C(OP_WRITE)] = {
-+		[C(RESULT_ACCESS)] = { (3 << 6) | 0x08 },
-+		[C(RESULT_MISS)] = { CACHE_OP_UNSUPPORTED },
-+	},
-+	[C(OP_PREFETCH)] = {
-+		[C(RESULT_ACCESS)] = { CACHE_OP_UNSUPPORTED },
-+		[C(RESULT_MISS)] = { CACHE_OP_UNSUPPORTED },
-+	},
-+},
-+[C(DTLB)] = {
-+	[C(OP_READ)] = {
-+		[C(RESULT_ACCESS)] = { CACHE_OP_UNSUPPORTED },
-+		[C(RESULT_MISS)] = { (17 << 6) | 0x3f },
-+	},
-+	[ C(OP_WRITE) ] = {
-+		[ C(RESULT_ACCESS) ] = { CACHE_OP_UNSUPPORTED },
-+		[ C(RESULT_MISS)   ] = { CACHE_OP_UNSUPPORTED },
-+	},
-+	[ C(OP_PREFETCH) ] = {
-+		[ C(RESULT_ACCESS) ] = { CACHE_OP_UNSUPPORTED },
-+		[ C(RESULT_MISS)   ] = { CACHE_OP_UNSUPPORTED },
-+	},
-+},
-+[C(ITLB)] = {
-+	[C(OP_READ)] = {
-+		[C(RESULT_ACCESS)] = { CACHE_OP_UNSUPPORTED },
-+		[C(RESULT_MISS)] = { (6 << 6) | 0x3f },
-+	},
-+	[ C(OP_WRITE) ] = {
-+		[ C(RESULT_ACCESS) ] = { CACHE_OP_UNSUPPORTED },
-+		[ C(RESULT_MISS)   ] = { CACHE_OP_UNSUPPORTED },
-+	},
-+	[ C(OP_PREFETCH) ] = {
-+		[ C(RESULT_ACCESS) ] = { CACHE_OP_UNSUPPORTED },
-+		[ C(RESULT_MISS)   ] = { CACHE_OP_UNSUPPORTED },
-+	},
-+},
-+[C(BPU)] = {
-+	[C(OP_READ)] = {
-+		[C(RESULT_ACCESS)] = { CACHE_OP_UNSUPPORTED },
-+		[C(RESULT_MISS)] = { CACHE_OP_UNSUPPORTED },
-+	},
-+	[ C(OP_WRITE) ] = {
-+		[ C(RESULT_ACCESS) ] = { CACHE_OP_UNSUPPORTED },
-+		[ C(RESULT_MISS)   ] = { CACHE_OP_UNSUPPORTED },
-+	},
-+	[ C(OP_PREFETCH) ] = {
-+		[ C(RESULT_ACCESS) ] = { CACHE_OP_UNSUPPORTED },
-+		[ C(RESULT_MISS)   ] = { CACHE_OP_UNSUPPORTED },
-+	},
-+},
-+[C(NODE)] = {
-+	[C(OP_READ)] = {
-+		[C(RESULT_ACCESS)] = { CACHE_OP_UNSUPPORTED },
-+		[C(RESULT_MISS)  ] = { CACHE_OP_UNSUPPORTED },
-+	},
-+	[ C(OP_WRITE) ] = {
-+		[ C(RESULT_ACCESS) ] = { CACHE_OP_UNSUPPORTED },
-+		[ C(RESULT_MISS)   ] = { CACHE_OP_UNSUPPORTED },
-+	},
-+	[ C(OP_PREFETCH) ] = {
-+		[ C(RESULT_ACCESS) ] = { CACHE_OP_UNSUPPORTED },
-+		[ C(RESULT_MISS)   ] = { CACHE_OP_UNSUPPORTED },
-+	},
-+},
-+};
-+
-+static u32 sparc_vt_read_pmc(int idx)
-+{
-+	u64 val = pcr_ops->read_pic(idx);
-+
-+	return val & 0xffffffff;
-+}
-+
-+static void sparc_vt_write_pmc(int idx, u64 val)
-+{
-+	u64 pcr;
-+
-+	/* There seems to be an internal latch on the overflow event
-+	 * on SPARC-T4 that prevents it from triggering unless you
-+	 * update the PIC exactly as we do here.  The requirement
-+	 * seems to be that you have to turn off event counting in the
-+	 * PCR around the PIC update.
-+	 *
-+	 * For example, after the following sequence:
-+	 *
-+	 * 1) set PIC to -1
-+	 * 2) enable event counting and overflow reporting in PCR
-+	 * 3) overflow triggers, softint 15 handler invoked
-+	 * 4) clear OV bit in PCR
-+	 * 5) write PIC to -1
-+	 *
-+	 * a subsequent overflow event will not trigger.  This
-+	 * sequence works on SPARC-T3 and previous chips.
-+	 */
-+	pcr = pcr_ops->read_pcr(idx);
-+	pcr_ops->write_pcr(idx, PCR_N4_PICNPT);
-+
-+	pcr_ops->write_pic(idx, val & 0xffffffff);
-+
-+	pcr_ops->write_pcr(idx, pcr);
-+}
-+
-+static const struct sparc_pmu niagara4_pmu = {
-+	.event_map	= niagara4_event_map,
-+	.cache_map	= &niagara4_cache_map,
-+	.max_events	= ARRAY_SIZE(niagara4_perfmon_event_map),
-+	.read_pmc	= sparc_vt_read_pmc,
-+	.write_pmc	= sparc_vt_write_pmc,
-+	.upper_shift	= 5,
-+	.lower_shift	= 5,
-+	.event_mask	= 0x7ff,
-+	.user_bit	= PCR_N4_UTRACE,
-+	.priv_bit	= PCR_N4_STRACE,
-+
-+	/* We explicitly don't support hypervisor tracing.  The T4
-+	 * generates the overflow event for precise events via a trap
-+	 * which will not be generated (ie. it's completely lost) if
-+	 * we happen to be in the hypervisor when the event triggers.
-+	 * Essentially, the overflow event reporting is completely
-+	 * unusable when you have hypervisor mode tracing enabled.
-+	 */
-+	.hv_bit		= 0,
-+
-+	.irq_bit	= PCR_N4_TOE,
-+	.upper_nop	= 0,
-+	.lower_nop	= 0,
-+	.flags		= 0,
-+	.max_hw_events	= 4,
-+	.num_pcrs	= 4,
-+	.num_pic_regs	= 4,
-+};
-+
- static const struct sparc_pmu *sparc_pmu __read_mostly;
- 
- static u64 event_encoding(u64 event_id, int idx)
-@@ -1465,6 +1646,10 @@ static bool __init supported_pmu(void)
- 		sparc_pmu = &niagara2_pmu;
- 		return true;
- 	}
-+	if (!strcmp(sparc_pmu_type, "niagara4")) {
-+		sparc_pmu = &niagara4_pmu;
-+		return true;
-+	}
- 	return false;
+diff --git a/mm/hugetlb.c b/mm/hugetlb.c
+index bc72712..3c86d3d 100644
+--- a/mm/hugetlb.c
++++ b/mm/hugetlb.c
+@@ -2672,7 +2672,8 @@ static bool hugetlbfs_pagecache_present(struct hstate *h,
  }
  
+ static int hugetlb_no_page(struct mm_struct *mm, struct vm_area_struct *vma,
+-			unsigned long address, pte_t *ptep, unsigned int flags)
++			unsigned long haddr, unsigned long fault_address,
++			pte_t *ptep, unsigned int flags)
+ {
+ 	struct hstate *h = hstate_vma(vma);
+ 	int ret = VM_FAULT_SIGBUS;
+@@ -2696,7 +2697,7 @@ static int hugetlb_no_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 	}
+ 
+ 	mapping = vma->vm_file->f_mapping;
+-	idx = vma_hugecache_offset(h, vma, address);
++	idx = vma_hugecache_offset(h, vma, haddr);
+ 
+ 	/*
+ 	 * Use page lock to guard against racing truncation
+@@ -2708,7 +2709,7 @@ retry:
+ 		size = i_size_read(mapping->host) >> huge_page_shift(h);
+ 		if (idx >= size)
+ 			goto out;
+-		page = alloc_huge_page(vma, address, 0);
++		page = alloc_huge_page(vma, haddr, 0);
+ 		if (IS_ERR(page)) {
+ 			ret = PTR_ERR(page);
+ 			if (ret = -ENOMEM)
+@@ -2717,7 +2718,7 @@ retry:
+ 				ret = VM_FAULT_SIGBUS;
+ 			goto out;
+ 		}
+-		clear_huge_page(page, address, pages_per_huge_page(h));
++		clear_huge_page(page, haddr, pages_per_huge_page(h));
+ 		__SetPageUptodate(page);
+ 
+ 		if (vma->vm_flags & VM_MAYSHARE) {
+@@ -2763,7 +2764,7 @@ retry:
+ 	 * the spinlock.
+ 	 */
+ 	if ((flags & FAULT_FLAG_WRITE) && !(vma->vm_flags & VM_SHARED))
+-		if (vma_needs_reservation(h, vma, address) < 0) {
++		if (vma_needs_reservation(h, vma, haddr) < 0) {
+ 			ret = VM_FAULT_OOM;
+ 			goto backout_unlocked;
+ 		}
+@@ -2778,16 +2779,16 @@ retry:
+ 		goto backout;
+ 
+ 	if (anon_rmap)
+-		hugepage_add_new_anon_rmap(page, vma, address);
++		hugepage_add_new_anon_rmap(page, vma, haddr);
+ 	else
+ 		page_dup_rmap(page);
+ 	new_pte = make_huge_pte(vma, page, ((vma->vm_flags & VM_WRITE)
+ 				&& (vma->vm_flags & VM_SHARED)));
+-	set_huge_pte_at(mm, address, ptep, new_pte);
++	set_huge_pte_at(mm, haddr, ptep, new_pte);
+ 
+ 	if ((flags & FAULT_FLAG_WRITE) && !(vma->vm_flags & VM_SHARED)) {
+ 		/* Optimization, do the COW without a second fault */
+-		ret = hugetlb_cow(mm, vma, address, ptep, new_pte, page);
++		ret = hugetlb_cow(mm, vma, haddr, ptep, new_pte, page);
+ 	}
+ 
+ 	spin_unlock(&mm->page_table_lock);
+@@ -2813,21 +2814,20 @@ int hugetlb_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 	struct page *pagecache_page = NULL;
+ 	static DEFINE_MUTEX(hugetlb_instantiation_mutex);
+ 	struct hstate *h = hstate_vma(vma);
++	unsigned long haddr = address & huge_page_mask(h);
+ 
+-	address &= huge_page_mask(h);
+-
+-	ptep = huge_pte_offset(mm, address);
++	ptep = huge_pte_offset(mm, haddr);
+ 	if (ptep) {
+ 		entry = huge_ptep_get(ptep);
+ 		if (unlikely(is_hugetlb_entry_migration(entry))) {
+-			migration_entry_wait(mm, (pmd_t *)ptep, address);
++			migration_entry_wait(mm, (pmd_t *)ptep, haddr);
+ 			return 0;
+ 		} else if (unlikely(is_hugetlb_entry_hwpoisoned(entry)))
+ 			return VM_FAULT_HWPOISON_LARGE |
+ 				VM_FAULT_SET_HINDEX(hstate_index(h));
+ 	}
+ 
+-	ptep = huge_pte_alloc(mm, address, huge_page_size(h));
++	ptep = huge_pte_alloc(mm, haddr, huge_page_size(h));
+ 	if (!ptep)
+ 		return VM_FAULT_OOM;
+ 
+@@ -2839,7 +2839,7 @@ int hugetlb_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 	mutex_lock(&hugetlb_instantiation_mutex);
+ 	entry = huge_ptep_get(ptep);
+ 	if (huge_pte_none(entry)) {
+-		ret = hugetlb_no_page(mm, vma, address, ptep, flags);
++		ret = hugetlb_no_page(mm, vma, haddr, address, ptep, flags);
+ 		goto out_mutex;
+ 	}
+ 
+@@ -2854,14 +2854,14 @@ int hugetlb_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 	 * consumed.
+ 	 */
+ 	if ((flags & FAULT_FLAG_WRITE) && !pte_write(entry)) {
+-		if (vma_needs_reservation(h, vma, address) < 0) {
++		if (vma_needs_reservation(h, vma, haddr) < 0) {
+ 			ret = VM_FAULT_OOM;
+ 			goto out_mutex;
+ 		}
+ 
+ 		if (!(vma->vm_flags & VM_MAYSHARE))
+ 			pagecache_page = hugetlbfs_pagecache_page(h,
+-								vma, address);
++								vma, haddr);
+ 	}
+ 
+ 	/*
+@@ -2884,16 +2884,16 @@ int hugetlb_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 
+ 	if (flags & FAULT_FLAG_WRITE) {
+ 		if (!pte_write(entry)) {
+-			ret = hugetlb_cow(mm, vma, address, ptep, entry,
++			ret = hugetlb_cow(mm, vma, haddr, ptep, entry,
+ 							pagecache_page);
+ 			goto out_page_table_lock;
+ 		}
+ 		entry = pte_mkdirty(entry);
+ 	}
+ 	entry = pte_mkyoung(entry);
+-	if (huge_ptep_set_access_flags(vma, address, ptep, entry,
++	if (huge_ptep_set_access_flags(vma, haddr, ptep, entry,
+ 						flags & FAULT_FLAG_WRITE))
+-		update_mmu_cache(vma, address, ptep);
++		update_mmu_cache(vma, haddr, ptep);
+ 
+ out_page_table_lock:
+ 	spin_unlock(&mm->page_table_lock);
 -- 
-1.7.10.4
+1.7.7.6
 
