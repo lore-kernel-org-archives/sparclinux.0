@@ -1,324 +1,232 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 30 Aug 2012 15:46:32 +0000
-Subject: [PATCH 3/5] sparc64: Unroll ECB encryption loops in AES driver.
-Message-Id: <20120830.114632.1559527747457990687.davem@davemloft.net>
+Date: Sun, 19 Aug 2012 06:28:46 +0000
+Subject: [PATCH 16/17] sparc64: Add SPARC-T4 perf event support.
+Message-Id: <20120818.232846.492704451528628910.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
-Cc: linux-crypto@vger.kernel.org, herbert@gondor.apana.org.au
 
-
-The AES opcodes have a 3 cycle latency, so by doing 32-bytes at a
-time we avoid a pipeline bubble in between every round.
-
-For the 256-bit key case, it looks like we're doing more work in
-order to reload the KEY registers during the loop to make space
-for scarce temporaries.  But the load dual issues with the AES
-operations so we get the KEY reloads essentially for free.
-
-Before:
-
-testing speed of ecb(aes) encryption
-test 0 (128 bit key, 16 byte blocks): 1 operation in 264 cycles (16 bytes)
-test 1 (128 bit key, 64 byte blocks): 1 operation in 231 cycles (64 bytes)
-test 2 (128 bit key, 256 byte blocks): 1 operation in 329 cycles (256 bytes)
-test 3 (128 bit key, 1024 byte blocks): 1 operation in 715 cycles (1024 bytes)
-test 4 (128 bit key, 8192 byte blocks): 1 operation in 4248 cycles (8192 bytes)
-test 5 (192 bit key, 16 byte blocks): 1 operation in 221 cycles (16 bytes)
-test 6 (192 bit key, 64 byte blocks): 1 operation in 234 cycles (64 bytes)
-test 7 (192 bit key, 256 byte blocks): 1 operation in 359 cycles (256 bytes)
-test 8 (192 bit key, 1024 byte blocks): 1 operation in 803 cycles (1024 bytes)
-test 9 (192 bit key, 8192 byte blocks): 1 operation in 5366 cycles (8192 bytes)
-test 10 (256 bit key, 16 byte blocks): 1 operation in 209 cycles (16 bytes)
-test 11 (256 bit key, 64 byte blocks): 1 operation in 255 cycles (64 bytes)
-test 12 (256 bit key, 256 byte blocks): 1 operation in 379 cycles (256 bytes)
-test 13 (256 bit key, 1024 byte blocks): 1 operation in 938 cycles (1024 bytes)
-test 14 (256 bit key, 8192 byte blocks): 1 operation in 6041 cycles (8192 bytes)
-
-After:
-
-testing speed of ecb(aes) encryption
-test 0 (128 bit key, 16 byte blocks): 1 operation in 266 cycles (16 bytes)
-test 1 (128 bit key, 64 byte blocks): 1 operation in 256 cycles (64 bytes)
-test 2 (128 bit key, 256 byte blocks): 1 operation in 305 cycles (256 bytes)
-test 3 (128 bit key, 1024 byte blocks): 1 operation in 676 cycles (1024 bytes)
-test 4 (128 bit key, 8192 byte blocks): 1 operation in 3981 cycles (8192 bytes)
-test 5 (192 bit key, 16 byte blocks): 1 operation in 210 cycles (16 bytes)
-test 6 (192 bit key, 64 byte blocks): 1 operation in 233 cycles (64 bytes)
-test 7 (192 bit key, 256 byte blocks): 1 operation in 340 cycles (256 bytes)
-test 8 (192 bit key, 1024 byte blocks): 1 operation in 766 cycles (1024 bytes)
-test 9 (192 bit key, 8192 byte blocks): 1 operation in 5136 cycles (8192 bytes)
-test 10 (256 bit key, 16 byte blocks): 1 operation in 206 cycles (16 bytes)
-test 11 (256 bit key, 64 byte blocks): 1 operation in 268 cycles (64 bytes)
-test 12 (256 bit key, 256 byte blocks): 1 operation in 368 cycles (256 bytes)
-test 13 (256 bit key, 1024 byte blocks): 1 operation in 890 cycles (1024 bytes)
-test 14 (256 bit key, 8192 byte blocks): 1 operation in 5718 cycles (8192 bytes)
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/crypto/aes_asm.S |  166 ++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 148 insertions(+), 18 deletions(-)
+ arch/sparc/kernel/perf_event.c |  189 +++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 187 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/crypto/aes_asm.S b/arch/sparc/crypto/aes_asm.S
-index 7a975d6..33d59c6 100644
---- a/arch/sparc/crypto/aes_asm.S
-+++ b/arch/sparc/crypto/aes_asm.S
-@@ -48,6 +48,10 @@
- 	.word	0x81b0230d;
- #define MOVXTOD_O5_F2		\
- 	.word	0x85b0230d;
-+#define MOVXTOD_G3_F60		\
-+	.word	0xbbb02303;
-+#define MOVXTOD_G7_F62		\
-+	.word	0xbfb02307;
+diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
+index 6441592..1885370 100644
+--- a/arch/sparc/kernel/perf_event.c
++++ b/arch/sparc/kernel/perf_event.c
+@@ -53,8 +53,8 @@
+  * normal code.
+  */
  
- #define ENCRYPT_TWO_ROUNDS(KEY_BASE, I0, I1, T0, T1) \
- 	AES_EROUND01(KEY_BASE +  0, I0, I1, T0) \
-@@ -55,12 +59,32 @@
- 	AES_EROUND01(KEY_BASE +  4, T0, T1, I0) \
- 	AES_EROUND23(KEY_BASE +  6, T0, T1, I1)
+-#define MAX_HWEVENTS			2
+-#define MAX_PCRS			1
++#define MAX_HWEVENTS			4
++#define MAX_PCRS			4
+ #define MAX_PERIOD			((1UL << 32) - 1)
  
-+#define ENCRYPT_TWO_ROUNDS_2(KEY_BASE, I0, I1, I2, I3, T0, T1, T2, T3) \
-+	AES_EROUND01(KEY_BASE +  0, I0, I1, T0) \
-+	AES_EROUND23(KEY_BASE +  2, I0, I1, T1) \
-+	AES_EROUND01(KEY_BASE +  0, I2, I3, T2) \
-+	AES_EROUND23(KEY_BASE +  2, I2, I3, T3) \
-+	AES_EROUND01(KEY_BASE +  4, T0, T1, I0) \
-+	AES_EROUND23(KEY_BASE +  6, T0, T1, I1) \
-+	AES_EROUND01(KEY_BASE +  4, T2, T3, I2) \
-+	AES_EROUND23(KEY_BASE +  6, T2, T3, I3)
+ #define PIC_UPPER_INDEX			0
+@@ -597,6 +597,187 @@ static const struct sparc_pmu niagara2_pmu = {
+ 	.num_pic_regs	= 1,
+ };
+ 
++static const struct perf_event_map niagara4_perfmon_event_map[] = {
++	[PERF_COUNT_HW_CPU_CYCLES] = { (26 << 6) },
++	[PERF_COUNT_HW_INSTRUCTIONS] = { (3 << 6) | 0x3f },
++	[PERF_COUNT_HW_CACHE_REFERENCES] = { (3 << 6) | 0x04 },
++	[PERF_COUNT_HW_CACHE_MISSES] = { (16 << 6) | 0x07 },
++	[PERF_COUNT_HW_BRANCH_INSTRUCTIONS] = { (4 << 6) | 0x01 },
++	[PERF_COUNT_HW_BRANCH_MISSES] = { (25 << 6) | 0x0f },
++};
 +
- #define ENCRYPT_TWO_ROUNDS_LAST(KEY_BASE, I0, I1, T0, T1) \
- 	AES_EROUND01(KEY_BASE +  0, I0, I1, T0) \
- 	AES_EROUND23(KEY_BASE +  2, I0, I1, T1) \
- 	AES_EROUND01_L(KEY_BASE +  4, T0, T1, I0) \
- 	AES_EROUND23_L(KEY_BASE +  6, T0, T1, I1)
- 
-+#define ENCRYPT_TWO_ROUNDS_LAST_2(KEY_BASE, I0, I1, I2, I3, T0, T1, T2, T3) \
-+	AES_EROUND01(KEY_BASE +  0, I0, I1, T0) \
-+	AES_EROUND23(KEY_BASE +  2, I0, I1, T1) \
-+	AES_EROUND01(KEY_BASE +  0, I2, I3, T2) \
-+	AES_EROUND23(KEY_BASE +  2, I2, I3, T3) \
-+	AES_EROUND01_L(KEY_BASE +  4, T0, T1, I0) \
-+	AES_EROUND23_L(KEY_BASE +  6, T0, T1, I1) \
-+	AES_EROUND01_L(KEY_BASE +  4, T2, T3, I2) \
-+	AES_EROUND23_L(KEY_BASE +  6, T2, T3, I3)
++static const struct perf_event_map *niagara4_event_map(int event_id)
++{
++	return &niagara4_perfmon_event_map[event_id];
++}
 +
- 	/* 10 rounds */
- #define ENCRYPT_128(KEY_BASE, I0, I1, T0, T1) \
- 	ENCRYPT_TWO_ROUNDS(KEY_BASE +  0, I0, I1, T0, T1) \
-@@ -69,6 +93,13 @@
- 	ENCRYPT_TWO_ROUNDS(KEY_BASE + 24, I0, I1, T0, T1) \
- 	ENCRYPT_TWO_ROUNDS_LAST(KEY_BASE + 32, I0, I1, T0, T1)
- 
-+#define ENCRYPT_128_2(KEY_BASE, I0, I1, I2, I3, T0, T1, T2, T3) \
-+	ENCRYPT_TWO_ROUNDS_2(KEY_BASE +  0, I0, I1, I2, I3, T0, T1, T2, T3) \
-+	ENCRYPT_TWO_ROUNDS_2(KEY_BASE +  8, I0, I1, I2, I3, T0, T1, T2, T3) \
-+	ENCRYPT_TWO_ROUNDS_2(KEY_BASE + 16, I0, I1, I2, I3, T0, T1, T2, T3) \
-+	ENCRYPT_TWO_ROUNDS_2(KEY_BASE + 24, I0, I1, I2, I3, T0, T1, T2, T3) \
-+	ENCRYPT_TWO_ROUNDS_LAST_2(KEY_BASE + 32, I0, I1, I2, I3, T0, T1, T2, T3)
++static const cache_map_t niagara4_cache_map = {
++[C(L1D)] = {
++	[C(OP_READ)] = {
++		[C(RESULT_ACCESS)] = { (3 << 6) | 0x04 },
++		[C(RESULT_MISS)] = { (16 << 6) | 0x07 },
++	},
++	[C(OP_WRITE)] = {
++		[C(RESULT_ACCESS)] = { (3 << 6) | 0x08 },
++		[C(RESULT_MISS)] = { (16 << 6) | 0x07 },
++	},
++	[C(OP_PREFETCH)] = {
++		[C(RESULT_ACCESS)] = { CACHE_OP_UNSUPPORTED },
++		[C(RESULT_MISS)] = { CACHE_OP_UNSUPPORTED },
++	},
++},
++[C(L1I)] = {
++	[C(OP_READ)] = {
++		[C(RESULT_ACCESS)] = { (3 << 6) | 0x3f },
++		[C(RESULT_MISS)] = { (11 << 6) | 0x03 },
++	},
++	[ C(OP_WRITE) ] = {
++		[ C(RESULT_ACCESS) ] = { CACHE_OP_NONSENSE },
++		[ C(RESULT_MISS)   ] = { CACHE_OP_NONSENSE },
++	},
++	[ C(OP_PREFETCH) ] = {
++		[ C(RESULT_ACCESS) ] = { CACHE_OP_UNSUPPORTED },
++		[ C(RESULT_MISS)   ] = { CACHE_OP_UNSUPPORTED },
++	},
++},
++[C(LL)] = {
++	[C(OP_READ)] = {
++		[C(RESULT_ACCESS)] = { (3 << 6) | 0x04 },
++		[C(RESULT_MISS)] = { CACHE_OP_UNSUPPORTED },
++	},
++	[C(OP_WRITE)] = {
++		[C(RESULT_ACCESS)] = { (3 << 6) | 0x08 },
++		[C(RESULT_MISS)] = { CACHE_OP_UNSUPPORTED },
++	},
++	[C(OP_PREFETCH)] = {
++		[C(RESULT_ACCESS)] = { CACHE_OP_UNSUPPORTED },
++		[C(RESULT_MISS)] = { CACHE_OP_UNSUPPORTED },
++	},
++},
++[C(DTLB)] = {
++	[C(OP_READ)] = {
++		[C(RESULT_ACCESS)] = { CACHE_OP_UNSUPPORTED },
++		[C(RESULT_MISS)] = { (17 << 6) | 0x3f },
++	},
++	[ C(OP_WRITE) ] = {
++		[ C(RESULT_ACCESS) ] = { CACHE_OP_UNSUPPORTED },
++		[ C(RESULT_MISS)   ] = { CACHE_OP_UNSUPPORTED },
++	},
++	[ C(OP_PREFETCH) ] = {
++		[ C(RESULT_ACCESS) ] = { CACHE_OP_UNSUPPORTED },
++		[ C(RESULT_MISS)   ] = { CACHE_OP_UNSUPPORTED },
++	},
++},
++[C(ITLB)] = {
++	[C(OP_READ)] = {
++		[C(RESULT_ACCESS)] = { CACHE_OP_UNSUPPORTED },
++		[C(RESULT_MISS)] = { (6 << 6) | 0x3f },
++	},
++	[ C(OP_WRITE) ] = {
++		[ C(RESULT_ACCESS) ] = { CACHE_OP_UNSUPPORTED },
++		[ C(RESULT_MISS)   ] = { CACHE_OP_UNSUPPORTED },
++	},
++	[ C(OP_PREFETCH) ] = {
++		[ C(RESULT_ACCESS) ] = { CACHE_OP_UNSUPPORTED },
++		[ C(RESULT_MISS)   ] = { CACHE_OP_UNSUPPORTED },
++	},
++},
++[C(BPU)] = {
++	[C(OP_READ)] = {
++		[C(RESULT_ACCESS)] = { CACHE_OP_UNSUPPORTED },
++		[C(RESULT_MISS)] = { CACHE_OP_UNSUPPORTED },
++	},
++	[ C(OP_WRITE) ] = {
++		[ C(RESULT_ACCESS) ] = { CACHE_OP_UNSUPPORTED },
++		[ C(RESULT_MISS)   ] = { CACHE_OP_UNSUPPORTED },
++	},
++	[ C(OP_PREFETCH) ] = {
++		[ C(RESULT_ACCESS) ] = { CACHE_OP_UNSUPPORTED },
++		[ C(RESULT_MISS)   ] = { CACHE_OP_UNSUPPORTED },
++	},
++},
++[C(NODE)] = {
++	[C(OP_READ)] = {
++		[C(RESULT_ACCESS)] = { CACHE_OP_UNSUPPORTED },
++		[C(RESULT_MISS)  ] = { CACHE_OP_UNSUPPORTED },
++	},
++	[ C(OP_WRITE) ] = {
++		[ C(RESULT_ACCESS) ] = { CACHE_OP_UNSUPPORTED },
++		[ C(RESULT_MISS)   ] = { CACHE_OP_UNSUPPORTED },
++	},
++	[ C(OP_PREFETCH) ] = {
++		[ C(RESULT_ACCESS) ] = { CACHE_OP_UNSUPPORTED },
++		[ C(RESULT_MISS)   ] = { CACHE_OP_UNSUPPORTED },
++	},
++},
++};
 +
- 	/* 12 rounds */
- #define ENCRYPT_192(KEY_BASE, I0, I1, T0, T1) \
- 	ENCRYPT_TWO_ROUNDS(KEY_BASE +  0, I0, I1, T0, T1) \
-@@ -78,6 +109,14 @@
- 	ENCRYPT_TWO_ROUNDS(KEY_BASE + 32, I0, I1, T0, T1) \
- 	ENCRYPT_TWO_ROUNDS_LAST(KEY_BASE + 40, I0, I1, T0, T1)
- 
-+#define ENCRYPT_192_2(KEY_BASE, I0, I1, I2, I3, T0, T1, T2, T3) \
-+	ENCRYPT_TWO_ROUNDS_2(KEY_BASE +  0, I0, I1, I2, I3, T0, T1, T2, T3) \
-+	ENCRYPT_TWO_ROUNDS_2(KEY_BASE +  8, I0, I1, I2, I3, T0, T1, T2, T3) \
-+	ENCRYPT_TWO_ROUNDS_2(KEY_BASE + 16, I0, I1, I2, I3, T0, T1, T2, T3) \
-+	ENCRYPT_TWO_ROUNDS_2(KEY_BASE + 24, I0, I1, I2, I3, T0, T1, T2, T3) \
-+	ENCRYPT_TWO_ROUNDS_2(KEY_BASE + 32, I0, I1, I2, I3, T0, T1, T2, T3) \
-+	ENCRYPT_TWO_ROUNDS_LAST_2(KEY_BASE + 40, I0, I1, I2, I3, T0, T1, T2, T3)
++static u32 sparc_vt_read_pmc(int idx)
++{
++	u64 val = pcr_ops->read_pic(idx);
 +
- 	/* 14 rounds */
- #define ENCRYPT_256(KEY_BASE, I0, I1, T0, T1) \
- 	ENCRYPT_TWO_ROUNDS(KEY_BASE +  0, I0, I1, T0, T1) \
-@@ -88,6 +127,34 @@
- 	ENCRYPT_TWO_ROUNDS(KEY_BASE + 40, I0, I1, T0, T1) \
- 	ENCRYPT_TWO_ROUNDS_LAST(KEY_BASE + 48, I0, I1, T0, T1)
- 
-+#define ENCRYPT_256_TWO_ROUNDS_2(KEY_BASE, I0, I1, I2, I3, TMP_BASE) \
-+	ENCRYPT_TWO_ROUNDS_2(KEY_BASE, I0, I1, I2, I3, \
-+			     TMP_BASE + 0, TMP_BASE + 2, TMP_BASE + 4, TMP_BASE + 6)
++	return val & 0xffffffff;
++}
 +
-+#define ENCRYPT_256_2(KEY_BASE, I0, I1, I2, I3) \
-+	ENCRYPT_256_TWO_ROUNDS_2(KEY_BASE +  0, I0, I1, I2, I3, KEY_BASE + 48) \
-+	ldd	[%o0 + 0xd0], %f56; \
-+	ldd	[%o0 + 0xd8], %f58; \
-+	ENCRYPT_256_TWO_ROUNDS_2(KEY_BASE +  8, I0, I1, I2, I3, KEY_BASE +  0) \
-+	ldd	[%o0 + 0xe0], %f60; \
-+	ldd	[%o0 + 0xe8], %f62; \
-+	ENCRYPT_256_TWO_ROUNDS_2(KEY_BASE + 16, I0, I1, I2, I3, KEY_BASE +  0) \
-+	ENCRYPT_256_TWO_ROUNDS_2(KEY_BASE + 24, I0, I1, I2, I3, KEY_BASE +  0) \
-+	ENCRYPT_256_TWO_ROUNDS_2(KEY_BASE + 32, I0, I1, I2, I3, KEY_BASE +  0) \
-+	ENCRYPT_256_TWO_ROUNDS_2(KEY_BASE + 40, I0, I1, I2, I3, KEY_BASE +  0) \
-+	AES_EROUND01(KEY_BASE +  48, I0, I1, KEY_BASE + 0) \
-+	AES_EROUND23(KEY_BASE +  50, I0, I1, KEY_BASE + 2) \
-+	AES_EROUND01(KEY_BASE +  48, I2, I3, KEY_BASE + 4) \
-+	AES_EROUND23(KEY_BASE +  50, I2, I3, KEY_BASE + 6) \
-+	AES_EROUND01_L(KEY_BASE +  52, KEY_BASE + 0, KEY_BASE + 2, I0) \
-+	AES_EROUND23_L(KEY_BASE +  54, KEY_BASE + 0, KEY_BASE + 2, I1) \
-+	ldd	[%o0 + 0x10], %f8; \
-+	ldd	[%o0 + 0x18], %f10; \
-+	AES_EROUND01_L(KEY_BASE +  52, KEY_BASE + 4, KEY_BASE + 6, I2) \
-+	AES_EROUND23_L(KEY_BASE +  54, KEY_BASE + 4, KEY_BASE + 6, I3) \
-+	ldd	[%o0 + 0x20], %f12; \
-+	ldd	[%o0 + 0x28], %f14;
++static void sparc_vt_write_pmc(int idx, u64 val)
++{
++	u64 pcr;
 +
- #define DECRYPT_TWO_ROUNDS(KEY_BASE, I0, I1, T0, T1) \
- 	AES_DROUND23(KEY_BASE +  0, I0, I1, T1) \
- 	AES_DROUND01(KEY_BASE +  2, I0, I1, T0) \
-@@ -832,10 +899,34 @@ ENDPROC(aes_sparc64_load_decrypt_keys_256)
- ENTRY(aes_sparc64_ecb_encrypt_128)
- 	/* %o0=key, %o1=input, %o2=output, %o3=len */
- 	ldx		[%o0 + 0x00], %g1
--	ldx		[%o0 + 0x08], %g2
-+	subcc		%o3, 0x10, %o3
-+	be		10f
-+	 ldx		[%o0 + 0x08], %g2
- 1:	ldx		[%o1 + 0x00], %g3
- 	ldx		[%o1 + 0x08], %g7
--	add		%o1, 0x10, %o1
-+	ldx		[%o1 + 0x10], %o4
-+	ldx		[%o1 + 0x18], %o5
-+	xor		%g1, %g3, %g3
-+	xor		%g2, %g7, %g7
-+	MOVXTOD_G3_F4
-+	MOVXTOD_G7_F6
-+	xor		%g1, %o4, %g3
-+	xor		%g2, %o5, %g7
-+	MOVXTOD_G3_F60
-+	MOVXTOD_G7_F62
-+	ENCRYPT_128_2(8, 4, 6, 60, 62, 0, 2, 56, 58)
-+	std		%f4, [%o2 + 0x00]
-+	std		%f6, [%o2 + 0x08]
-+	std		%f60, [%o2 + 0x10]
-+	std		%f62, [%o2 + 0x18]
-+	sub		%o3, 0x20, %o3
-+	add		%o1, 0x20, %o1
-+	brgz		%o3, 1b
-+	 add		%o2, 0x20, %o2
-+	brlz,pt		%o3, 11f
-+	 nop
-+10:	ldx		[%o1 + 0x00], %g3
-+	ldx		[%o1 + 0x08], %g7
- 	xor		%g1, %g3, %g3
- 	xor		%g2, %g7, %g7
- 	MOVXTOD_G3_F4
-@@ -843,10 +934,7 @@ ENTRY(aes_sparc64_ecb_encrypt_128)
- 	ENCRYPT_128(8, 4, 6, 0, 2)
- 	std		%f4, [%o2 + 0x00]
- 	std		%f6, [%o2 + 0x08]
--	subcc		%o3, 0x10, %o3
--	bne,pt		%xcc, 1b
--	 add		%o2, 0x10, %o2
--	retl
-+11:	retl
- 	 nop
- ENDPROC(aes_sparc64_ecb_encrypt_128)
++	/* There seems to be an internal latch on the overflow event
++	 * on SPARC-T4 that prevents it from triggering unless you
++	 * update the PIC exactly as we do here.  The requirement
++	 * seems to be that you have to turn off event counting in the
++	 * PCR around the PIC update.
++	 *
++	 * For example, after the following sequence:
++	 *
++	 * 1) set PIC to -1
++	 * 2) enable event counting and overflow reporting in PCR
++	 * 3) overflow triggers, softint 15 handler invoked
++	 * 4) clear OV bit in PCR
++	 * 5) write PIC to -1
++	 *
++	 * a subsequent overflow event will not trigger.  This
++	 * sequence works on SPARC-T3 and previous chips.
++	 */
++	pcr = pcr_ops->read_pcr(idx);
++	pcr_ops->write_pcr(idx, PCR_N4_PICNPT);
++
++	pcr_ops->write_pic(idx, val & 0xffffffff);
++
++	pcr_ops->write_pcr(idx, pcr);
++}
++
++static const struct sparc_pmu niagara4_pmu = {
++	.event_map	= niagara4_event_map,
++	.cache_map	= &niagara4_cache_map,
++	.max_events	= ARRAY_SIZE(niagara4_perfmon_event_map),
++	.read_pmc	= sparc_vt_read_pmc,
++	.write_pmc	= sparc_vt_write_pmc,
++	.upper_shift	= 5,
++	.lower_shift	= 5,
++	.event_mask	= 0x7ff,
++	.user_bit	= PCR_N4_UTRACE,
++	.priv_bit	= PCR_N4_STRACE,
++
++	/* We explicitly don't support hypervisor tracing.  The T4
++	 * generates the overflow event for precise events via a trap
++	 * which will not be generated (ie. it's completely lost) if
++	 * we happen to be in the hypervisor when the event triggers.
++	 * Essentially, the overflow event reporting is completely
++	 * unusable when you have hypervisor mode tracing enabled.
++	 */
++	.hv_bit		= 0,
++
++	.irq_bit	= PCR_N4_TOE,
++	.upper_nop	= 0,
++	.lower_nop	= 0,
++	.flags		= 0,
++	.max_hw_events	= 4,
++	.num_pcrs	= 4,
++	.num_pic_regs	= 4,
++};
++
+ static const struct sparc_pmu *sparc_pmu __read_mostly;
  
-@@ -854,10 +942,34 @@ ENDPROC(aes_sparc64_ecb_encrypt_128)
- ENTRY(aes_sparc64_ecb_encrypt_192)
- 	/* %o0=key, %o1=input, %o2=output, %o3=len */
- 	ldx		[%o0 + 0x00], %g1
--	ldx		[%o0 + 0x08], %g2
-+	subcc		%o3, 0x10, %o3
-+	be		10f
-+	 ldx		[%o0 + 0x08], %g2
- 1:	ldx		[%o1 + 0x00], %g3
- 	ldx		[%o1 + 0x08], %g7
--	add		%o1, 0x10, %o1
-+	ldx		[%o1 + 0x10], %o4
-+	ldx		[%o1 + 0x18], %o5
-+	xor		%g1, %g3, %g3
-+	xor		%g2, %g7, %g7
-+	MOVXTOD_G3_F4
-+	MOVXTOD_G7_F6
-+	xor		%g1, %o4, %g3
-+	xor		%g2, %o5, %g7
-+	MOVXTOD_G3_F60
-+	MOVXTOD_G7_F62
-+	ENCRYPT_192_2(8, 4, 6, 60, 62, 0, 2, 56, 58)
-+	std		%f4, [%o2 + 0x00]
-+	std		%f6, [%o2 + 0x08]
-+	std		%f60, [%o2 + 0x10]
-+	std		%f62, [%o2 + 0x18]
-+	sub		%o3, 0x20, %o3
-+	add		%o1, 0x20, %o1
-+	brgz		%o3, 1b
-+	 add		%o2, 0x20, %o2
-+	brlz,pt		%o3, 11f
-+	 nop
-+10:	ldx		[%o1 + 0x00], %g3
-+	ldx		[%o1 + 0x08], %g7
- 	xor		%g1, %g3, %g3
- 	xor		%g2, %g7, %g7
- 	MOVXTOD_G3_F4
-@@ -865,10 +977,7 @@ ENTRY(aes_sparc64_ecb_encrypt_192)
- 	ENCRYPT_192(8, 4, 6, 0, 2)
- 	std		%f4, [%o2 + 0x00]
- 	std		%f6, [%o2 + 0x08]
--	subcc		%o3, 0x10, %o3
--	bne,pt		%xcc, 1b
--	 add		%o2, 0x10, %o2
--	retl
-+11:	retl
- 	 nop
- ENDPROC(aes_sparc64_ecb_encrypt_192)
- 
-@@ -876,10 +985,34 @@ ENDPROC(aes_sparc64_ecb_encrypt_192)
- ENTRY(aes_sparc64_ecb_encrypt_256)
- 	/* %o0=key, %o1=input, %o2=output, %o3=len */
- 	ldx		[%o0 + 0x00], %g1
--	ldx		[%o0 + 0x08], %g2
-+	subcc		%o3, 0x10, %o3
-+	be		10f
-+	 ldx		[%o0 + 0x08], %g2
- 1:	ldx		[%o1 + 0x00], %g3
- 	ldx		[%o1 + 0x08], %g7
--	add		%o1, 0x10, %o1
-+	ldx		[%o1 + 0x10], %o4
-+	ldx		[%o1 + 0x18], %o5
-+	xor		%g1, %g3, %g3
-+	xor		%g2, %g7, %g7
-+	MOVXTOD_G3_F4
-+	MOVXTOD_G7_F6
-+	xor		%g1, %o4, %g3
-+	xor		%g2, %o5, %g7
-+	MOVXTOD_G3_F0
-+	MOVXTOD_G7_F2
-+	ENCRYPT_256_2(8, 4, 6, 0, 2)
-+	std		%f4, [%o2 + 0x00]
-+	std		%f6, [%o2 + 0x08]
-+	std		%f0, [%o2 + 0x10]
-+	std		%f2, [%o2 + 0x18]
-+	sub		%o3, 0x20, %o3
-+	add		%o1, 0x20, %o1
-+	brgz		%o3, 1b
-+	 add		%o2, 0x20, %o2
-+	brlz,pt		%o3, 11f
-+	 nop
-+10:	ldx		[%o1 + 0x00], %g3
-+	ldx		[%o1 + 0x08], %g7
- 	xor		%g1, %g3, %g3
- 	xor		%g2, %g7, %g7
- 	MOVXTOD_G3_F4
-@@ -887,10 +1020,7 @@ ENTRY(aes_sparc64_ecb_encrypt_256)
- 	ENCRYPT_256(8, 4, 6, 0, 2)
- 	std		%f4, [%o2 + 0x00]
- 	std		%f6, [%o2 + 0x08]
--	subcc		%o3, 0x10, %o3
--	bne,pt		%xcc, 1b
--	 add		%o2, 0x10, %o2
--	retl
-+11:	retl
- 	 nop
- ENDPROC(aes_sparc64_ecb_encrypt_256)
+ static u64 event_encoding(u64 event_id, int idx)
+@@ -1465,6 +1646,10 @@ static bool __init supported_pmu(void)
+ 		sparc_pmu = &niagara2_pmu;
+ 		return true;
+ 	}
++	if (!strcmp(sparc_pmu_type, "niagara4")) {
++		sparc_pmu = &niagara4_pmu;
++		return true;
++	}
+ 	return false;
+ }
  
 -- 
 1.7.10.4
