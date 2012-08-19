@@ -1,265 +1,342 @@
-From: wency@cn.fujitsu.com
-Date: Tue, 28 Aug 2012 10:00:24 +0000
-Subject: [RFC v8 PATCH 17/20] memory_hotplug: clear zone when the memory is removed
-Message-Id: <1346148027-24468-18-git-send-email-wency@cn.fujitsu.com>
+From: David Miller <davem@davemloft.net>
+Date: Sun, 19 Aug 2012 06:27:42 +0000
+Subject: [PATCH 04/17] sparc64: Abstract away PIC register accesses.
+Message-Id: <20120818.232742.607516152399184485.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
-In-Reply-To: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
-Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
+To: sparclinux@vger.kernel.org
 
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-When a memory is added, we update zone's and pgdat's start_pfn and spanned_pages
-in the function __add_zone(). So we should revert these when the memory is
-removed. Add a new function __remove_zone() to do this.
+And, like for the PCR, allow indexing of different PIC register
+numbers.
 
-CC: David Rientjes <rientjes@google.com>
-CC: Jiang Liu <liuj97@gmail.com>
-CC: Len Brown <len.brown@intel.com>
-CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-CC: Paul Mackerras <paulus@samba.org>
-CC: Christoph Lameter <cl@linux.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-CC: Andrew Morton <akpm@linux-foundation.org>
-CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+This also removes all of the non-__KERNEL__ bits from asm/perfctr.h,
+nothing kernel side should include it any more.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- mm/memory_hotplug.c |  207 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 207 insertions(+), 0 deletions(-)
+ arch/sparc/include/asm/pcr.h     |    6 +++--
+ arch/sparc/include/asm/perfctr.h |   30 -------------------------
+ arch/sparc/kernel/nmi.c          |   21 +++++++++---------
+ arch/sparc/kernel/pcr.c          |   45 ++++++++++++++++++++++++++++++--------
+ arch/sparc/kernel/perf_event.c   |   23 ++++++++++---------
+ 5 files changed, 61 insertions(+), 64 deletions(-)
 
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 3aa0766..493298f 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -308,10 +308,213 @@ static int __meminit __add_section(int nid, struct zone *zone,
- 	return register_new_memory(nid, __pfn_to_section(phys_start_pfn));
+diff --git a/arch/sparc/include/asm/pcr.h b/arch/sparc/include/asm/pcr.h
+index 55e2341..d53abf7 100644
+--- a/arch/sparc/include/asm/pcr.h
++++ b/arch/sparc/include/asm/pcr.h
+@@ -2,8 +2,10 @@
+ #define __PCR_H
+ 
+ struct pcr_ops {
+-	u64 (*read)(unsigned long);
+-	void (*write)(unsigned long, u64);
++	u64 (*read_pcr)(unsigned long);
++	void (*write_pcr)(unsigned long, u64);
++	u64 (*read_pic)(unsigned long);
++	void (*write_pic)(unsigned long, u64);
+ };
+ extern const struct pcr_ops *pcr_ops;
+ 
+diff --git a/arch/sparc/include/asm/perfctr.h b/arch/sparc/include/asm/perfctr.h
+index 3332d2c..214feef 100644
+--- a/arch/sparc/include/asm/perfctr.h
++++ b/arch/sparc/include/asm/perfctr.h
+@@ -54,11 +54,6 @@ enum perfctr_opcode {
+ 	PERFCTR_GETPCR
+ };
+ 
+-/* I don't want the kernel's namespace to be polluted with this
+- * stuff when this file is included.  --DaveM
+- */
+-#ifndef __KERNEL__
+-
+ #define  PRIV 0x00000001
+ #define  SYS  0x00000002
+ #define  USR  0x00000004
+@@ -168,29 +163,4 @@ struct vcounter_struct {
+   unsigned long long vcnt1;
+ };
+ 
+-#else /* !(__KERNEL__) */
+-
+-#ifndef CONFIG_SPARC32
+-
+-/* Performance counter register access. */
+-#define read_pcr(__p)  __asm__ __volatile__("rd	%%pcr, %0" : "=r" (__p))
+-#define write_pcr(__p) __asm__ __volatile__("wr	%0, 0x0, %%pcr" : : "r" (__p))
+-#define read_pic(__p)  __asm__ __volatile__("rd %%pic, %0" : "=r" (__p))
+-
+-/* Blackbird errata workaround.  See commentary in
+- * arch/sparc64/kernel/smp.c:smp_percpu_timer_interrupt()
+- * for more information.
+- */
+-#define write_pic(__p)  					\
+-	__asm__ __volatile__("ba,pt	%%xcc, 99f\n\t"		\
+-			     " nop\n\t"				\
+-			     ".align	64\n"			\
+-			  "99:wr	%0, 0x0, %%pic\n\t"	\
+-			     "rd	%%pic, %%g0" : : "r" (__p))
+-#define reset_pic()	write_pic(0)
+-
+-#endif /* !CONFIG_SPARC32 */
+-
+-#endif /* !(__KERNEL__) */
+-
+ #endif /* !(PERF_COUNTER_API) */
+diff --git a/arch/sparc/kernel/nmi.c b/arch/sparc/kernel/nmi.c
+index 95df720..ef22b9b 100644
+--- a/arch/sparc/kernel/nmi.c
++++ b/arch/sparc/kernel/nmi.c
+@@ -22,7 +22,6 @@
+ #include <asm/perf_event.h>
+ #include <asm/ptrace.h>
+ #include <asm/pcr.h>
+-#include <asm/perfctr.h>
+ 
+ #include "kstack.h"
+ 
+@@ -109,7 +108,7 @@ notrace __kprobes void perfctr_irq(int irq, struct pt_regs *regs)
+ 		       pt_regs_trap_type(regs), SIGINT) = NOTIFY_STOP)
+ 		touched = 1;
+ 	else
+-		pcr_ops->write(0, PCR_PIC_PRIV);
++		pcr_ops->write_pcr(0, PCR_PIC_PRIV);
+ 
+ 	sum = local_cpu_data().irq0_irqs;
+ 	if (__get_cpu_var(nmi_touch)) {
+@@ -126,8 +125,8 @@ notrace __kprobes void perfctr_irq(int irq, struct pt_regs *regs)
+ 		__this_cpu_write(alert_counter, 0);
+ 	}
+ 	if (__get_cpu_var(wd_enabled)) {
+-		write_pic(picl_value(nmi_hz));
+-		pcr_ops->write(0, pcr_enable);
++		pcr_ops->write_pic(0, picl_value(nmi_hz));
++		pcr_ops->write_pcr(0, pcr_enable);
+ 	}
+ 
+ 	restore_hardirq_stack(orig_sp);
+@@ -166,7 +165,7 @@ static void report_broken_nmi(int cpu, int *prev_nmi_count)
+ 
+ void stop_nmi_watchdog(void *unused)
+ {
+-	pcr_ops->write(0, PCR_PIC_PRIV);
++	pcr_ops->write_pcr(0, PCR_PIC_PRIV);
+ 	__get_cpu_var(wd_enabled) = 0;
+ 	atomic_dec(&nmi_active);
+ }
+@@ -223,10 +222,10 @@ void start_nmi_watchdog(void *unused)
+ 	__get_cpu_var(wd_enabled) = 1;
+ 	atomic_inc(&nmi_active);
+ 
+-	pcr_ops->write(0, PCR_PIC_PRIV);
+-	write_pic(picl_value(nmi_hz));
++	pcr_ops->write_pcr(0, PCR_PIC_PRIV);
++	pcr_ops->write_pic(0, picl_value(nmi_hz));
+ 
+-	pcr_ops->write(0, pcr_enable);
++	pcr_ops->write_pcr(0, pcr_enable);
  }
  
-+/* find the smallest valid pfn in the range [start_pfn, end_pfn) */
-+static int find_smallest_section_pfn(int nid, struct zone *zone,
-+				     unsigned long start_pfn,
-+				     unsigned long end_pfn)
-+{
-+	struct mem_section *ms;
-+
-+	for (; start_pfn < end_pfn; start_pfn += PAGES_PER_SECTION) {
-+		ms = __pfn_to_section(start_pfn);
-+
-+		if (unlikely(!valid_section(ms)))
-+			continue;
-+
-+		if (unlikely(pfn_to_nid(start_pfn)) != nid)
-+			continue;
-+
-+		if (zone && zone != page_zone(pfn_to_page(start_pfn)))
-+			continue;
-+
-+		return start_pfn;
-+	}
-+
-+	return 0;
-+}
-+
-+/* find the biggest valid pfn in the range [start_pfn, end_pfn). */
-+static int find_biggest_section_pfn(int nid, struct zone *zone,
-+				    unsigned long start_pfn,
-+				    unsigned long end_pfn)
-+{
-+	struct mem_section *ms;
-+	unsigned long pfn;
-+
-+	/* pfn is the end pfn of a memory section. */
-+	pfn = end_pfn - 1;
-+	for (; pfn >= start_pfn; pfn -= PAGES_PER_SECTION) {
-+		ms = __pfn_to_section(pfn);
-+
-+		if (unlikely(!valid_section(ms)))
-+			continue;
-+
-+		if (unlikely(pfn_to_nid(pfn)) != nid)
-+			continue;
-+
-+		if (zone && zone != page_zone(pfn_to_page(pfn)))
-+			continue;
-+
-+		return pfn;
-+	}
-+
-+	return 0;
-+}
-+
-+static void shrink_zone_span(struct zone *zone, unsigned long start_pfn,
-+			     unsigned long end_pfn)
-+{
-+	unsigned long zone_start_pfn =  zone->zone_start_pfn;
-+	unsigned long zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
-+	unsigned long pfn;
-+	struct mem_section *ms;
-+	int nid = zone_to_nid(zone);
-+
-+	zone_span_writelock(zone);
-+	if (zone_start_pfn = start_pfn) {
-+		/*
-+		 * If the section is smallest section in the zone, it need
-+		 * shrink zone->zone_start_pfn and zone->zone_spanned_pages.
-+		 * In this case, we find second smallest valid mem_section
-+		 * for shrinking zone.
-+		 */
-+		pfn = find_smallest_section_pfn(nid, zone, end_pfn,
-+						zone_end_pfn);
-+		if (pfn) {
-+			zone->zone_start_pfn = pfn;
-+			zone->spanned_pages = zone_end_pfn - pfn;
-+		}
-+	} else if (zone_end_pfn = end_pfn) {
-+		/*
-+		 * If the section is biggest section in the zone, it need
-+		 * shrink zone->spanned_pages.
-+		 * In this case, we find second biggest valid mem_section for
-+		 * shrinking zone.
-+		 */
-+		pfn = find_biggest_section_pfn(nid, zone, zone_start_pfn,
-+					       start_pfn);
-+		if (pfn)
-+			zone->spanned_pages = pfn - zone_start_pfn + 1;
-+	}
-+
-+	/*
-+	 * The section is not biggest or smallest mem_section in the zone, it
-+	 * only creates a hole in the zone. So in this case, we need not
-+	 * change the zone. But perhaps, the zone has only hole data. Thus
-+	 * it check the zone has only hole or not.
-+	 */
-+	pfn = zone_start_pfn;
-+	for (; pfn < zone_end_pfn; pfn += PAGES_PER_SECTION) {
-+		ms = __pfn_to_section(pfn);
-+
-+		if (unlikely(!valid_section(ms)))
-+			continue;
-+
-+		if (page_zone(pfn_to_page(pfn)) != zone)
-+			continue;
-+
-+		 /* If the section is current section, it continues the loop */
-+		if (start_pfn = pfn)
-+			continue;
-+
-+		/* If we find valid section, we have nothing to do */
-+		zone_span_writeunlock(zone);
-+		return;
-+	}
-+
-+	/* The zone has no valid section */
-+	zone->zone_start_pfn = 0;
-+	zone->spanned_pages = 0;
-+	zone_span_writeunlock(zone);
-+}
-+
-+static void shrink_pgdat_span(struct pglist_data *pgdat,
-+			      unsigned long start_pfn, unsigned long end_pfn)
-+{
-+	unsigned long pgdat_start_pfn =  pgdat->node_start_pfn;
-+	unsigned long pgdat_end_pfn +		pgdat->node_start_pfn + pgdat->node_spanned_pages;
-+	unsigned long pfn;
-+	struct mem_section *ms;
-+	int nid = pgdat->node_id;
-+
-+	if (pgdat_start_pfn = start_pfn) {
-+		/*
-+		 * If the section is smallest section in the pgdat, it need
-+		 * shrink pgdat->node_start_pfn and pgdat->node_spanned_pages.
-+		 * In this case, we find second smallest valid mem_section
-+		 * for shrinking zone.
-+		 */
-+		pfn = find_smallest_section_pfn(nid, NULL, end_pfn,
-+						pgdat_end_pfn);
-+		if (pfn) {
-+			pgdat->node_start_pfn = pfn;
-+			pgdat->node_spanned_pages = pgdat_end_pfn - pfn;
-+		}
-+	} else if (pgdat_end_pfn = end_pfn) {
-+		/*
-+		 * If the section is biggest section in the pgdat, it need
-+		 * shrink pgdat->node_spanned_pages.
-+		 * In this case, we find second biggest valid mem_section for
-+		 * shrinking zone.
-+		 */
-+		pfn = find_biggest_section_pfn(nid, NULL, pgdat_start_pfn,
-+					       start_pfn);
-+		if (pfn)
-+			pgdat->node_spanned_pages = pfn - pgdat_start_pfn + 1;
-+	}
-+
-+	/*
-+	 * If the section is not biggest or smallest mem_section in the pgdat,
-+	 * it only creates a hole in the pgdat. So in this case, we need not
-+	 * change the pgdat.
-+	 * But perhaps, the pgdat has only hole data. Thus it check the pgdat
-+	 * has only hole or not.
-+	 */
-+	pfn = pgdat_start_pfn;
-+	for (; pfn < pgdat_end_pfn; pfn += PAGES_PER_SECTION) {
-+		ms = __pfn_to_section(pfn);
-+
-+		if (unlikely(!valid_section(ms)))
-+			continue;
-+
-+		if (pfn_to_nid(pfn) != nid)
-+			continue;
-+
-+		 /* If the section is current section, it continues the loop */
-+		if (start_pfn = pfn)
-+			continue;
-+
-+		/* If we find valid section, we have nothing to do */
-+		return;
-+	}
-+
-+	/* The pgdat has no valid section */
-+	pgdat->node_start_pfn = 0;
-+	pgdat->node_spanned_pages = 0;
-+}
-+
-+static void __remove_zone(struct zone *zone, unsigned long start_pfn)
-+{
-+	struct pglist_data *pgdat = zone->zone_pgdat;
-+	int nr_pages = PAGES_PER_SECTION;
-+	int zone_type;
-+	unsigned long flags;
-+
-+	zone_type = zone - pgdat->node_zones;
-+
-+	pgdat_resize_lock(zone->zone_pgdat, &flags);
-+	shrink_zone_span(zone, start_pfn, start_pfn + nr_pages);
-+	shrink_pgdat_span(pgdat, start_pfn, start_pfn + nr_pages);
-+	pgdat_resize_unlock(zone->zone_pgdat, &flags);
-+}
-+
- static int __remove_section(struct zone *zone, struct mem_section *ms)
+ static void nmi_adjust_hz_one(void *unused)
+@@ -234,10 +233,10 @@ static void nmi_adjust_hz_one(void *unused)
+ 	if (!__get_cpu_var(wd_enabled))
+ 		return;
+ 
+-	pcr_ops->write(0, PCR_PIC_PRIV);
+-	write_pic(picl_value(nmi_hz));
++	pcr_ops->write_pcr(0, PCR_PIC_PRIV);
++	pcr_ops->write_pic(0, picl_value(nmi_hz));
+ 
+-	pcr_ops->write(0, pcr_enable);
++	pcr_ops->write_pcr(0, pcr_enable);
+ }
+ 
+ void nmi_adjust_hz(unsigned int new_hz)
+diff --git a/arch/sparc/kernel/pcr.c b/arch/sparc/kernel/pcr.c
+index 3d9ab5b..e82ae89 100644
+--- a/arch/sparc/kernel/pcr.c
++++ b/arch/sparc/kernel/pcr.c
+@@ -14,7 +14,6 @@
+ #include <asm/pcr.h>
+ #include <asm/nmi.h>
+ #include <asm/spitfire.h>
+-#include <asm/perfctr.h>
+ 
+ /* This code is shared between various users of the performance
+  * counters.  Users will be oprofile, pseudo-NMI watchdog, and the
+@@ -65,19 +64,45 @@ static u64 direct_pcr_read(unsigned long reg_num)
+ 	u64 val;
+ 
+ 	WARN_ON_ONCE(reg_num != 0);
+-	read_pcr(val);
++	__asm__ __volatile__("rd %%pcr, %0" : "=r" (val));
+ 	return val;
+ }
+ 
+ static void direct_pcr_write(unsigned long reg_num, u64 val)
  {
- 	unsigned long flags;
- 	struct pglist_data *pgdat = zone->zone_pgdat;
-+	unsigned long start_pfn;
-+	int scn_nr;
- 	int ret = -EINVAL;
- 
- 	if (!valid_section(ms))
-@@ -321,6 +524,10 @@ static int __remove_section(struct zone *zone, struct mem_section *ms)
- 	if (ret)
- 		return ret;
- 
-+	scn_nr = __section_nr(ms);
-+	start_pfn = section_nr_to_pfn(scn_nr);
-+	__remove_zone(zone, start_pfn);
+ 	WARN_ON_ONCE(reg_num != 0);
+-	write_pcr(val);
++	__asm__ __volatile__("wr %0, 0x0, %%pcr" : : "r" (val));
++}
 +
- 	pgdat_resize_lock(pgdat, &flags);
- 	sparse_remove_one_section(zone, ms);
- 	pgdat_resize_unlock(pgdat, &flags);
++static u64 direct_pic_read(unsigned long reg_num)
++{
++	u64 val;
++
++	WARN_ON_ONCE(reg_num != 0);
++	__asm__ __volatile__("rd %%pic, %0" : "=r" (val));
++	return val;
++}
++
++static void direct_pic_write(unsigned long reg_num, u64 val)
++{
++	WARN_ON_ONCE(reg_num != 0);
++
++	/* Blackbird errata workaround.  See commentary in
++	 * arch/sparc64/kernel/smp.c:smp_percpu_timer_interrupt()
++	 * for more information.
++	 */
++	__asm__ __volatile__("ba,pt	%%xcc, 99f\n\t"
++			     " nop\n\t"
++			     ".align	64\n"
++			  "99:wr	%0, 0x0, %%pic\n\t"
++			     "rd	%%pic, %%g0" : : "r" (val));
+ }
+ 
+ static const struct pcr_ops direct_pcr_ops = {
+-	.read	= direct_pcr_read,
+-	.write	= direct_pcr_write,
++	.read_pcr	= direct_pcr_read,
++	.write_pcr	= direct_pcr_write,
++	.read_pic	= direct_pic_read,
++	.write_pic	= direct_pic_write,
+ };
+ 
+ static void n2_pcr_write(unsigned long reg_num, u64 val)
+@@ -88,14 +113,16 @@ static void n2_pcr_write(unsigned long reg_num, u64 val)
+ 	if (val & PCR_N2_HTRACE) {
+ 		ret = sun4v_niagara2_setperf(HV_N2_PERF_SPARC_CTL, val);
+ 		if (ret != HV_EOK)
+-			write_pcr(val);
++			direct_pcr_write(reg_num, val);
+ 	} else
+-		write_pcr(val);
++		direct_pcr_write(reg_num, val);
+ }
+ 
+ static const struct pcr_ops n2_pcr_ops = {
+-	.read	= direct_pcr_read,
+-	.write	= n2_pcr_write,
++	.read_pcr	= direct_pcr_read,
++	.write_pcr	= n2_pcr_write,
++	.read_pic	= direct_pic_read,
++	.write_pic	= direct_pic_write,
+ };
+ 
+ static unsigned long perf_hsvc_group;
+diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
+index e1c9848..dd12aa3 100644
+--- a/arch/sparc/kernel/perf_event.c
++++ b/arch/sparc/kernel/perf_event.c
+@@ -25,7 +25,6 @@
+ #include <linux/atomic.h>
+ #include <asm/nmi.h>
+ #include <asm/pcr.h>
+-#include <asm/perfctr.h>
+ #include <asm/cacheflush.h>
+ 
+ #include "kernel.h"
+@@ -564,7 +563,7 @@ static inline void sparc_pmu_enable_event(struct cpu_hw_events *cpuc, struct hw_
+ 	val |= hwc->config;
+ 	cpuc->pcr = val;
+ 
+-	pcr_ops->write(0, cpuc->pcr);
++	pcr_ops->write_pcr(0, cpuc->pcr);
+ }
+ 
+ static inline void sparc_pmu_disable_event(struct cpu_hw_events *cpuc, struct hw_perf_event *hwc, int idx)
+@@ -578,14 +577,14 @@ static inline void sparc_pmu_disable_event(struct cpu_hw_events *cpuc, struct hw
+ 	val |= nop;
+ 	cpuc->pcr = val;
+ 
+-	pcr_ops->write(0, cpuc->pcr);
++	pcr_ops->write_pcr(0, cpuc->pcr);
+ }
+ 
+ static u32 read_pmc(int idx)
+ {
+ 	u64 val;
+ 
+-	read_pic(val);
++	val = pcr_ops->read_pic(0);
+ 	if (idx = PIC_UPPER_INDEX)
+ 		val >>= 32;
+ 
+@@ -603,10 +602,10 @@ static void write_pmc(int idx, u64 val)
+ 	mask = ((u64) 0xffffffff) << shift;
+ 	val <<= shift;
+ 
+-	read_pic(pic);
++	pic = pcr_ops->read_pic(0);
+ 	pic &= ~mask;
+ 	pic |= val;
+-	write_pic(pic);
++	pcr_ops->write_pic(0, pic);
+ }
+ 
+ static u64 sparc_perf_event_update(struct perf_event *event,
+@@ -736,7 +735,7 @@ static void sparc_pmu_enable(struct pmu *pmu)
+ 		cpuc->pcr = pcr | cpuc->event[0]->hw.config_base;
+ 	}
+ 
+-	pcr_ops->write(0, cpuc->pcr);
++	pcr_ops->write_pcr(0, cpuc->pcr);
+ }
+ 
+ static void sparc_pmu_disable(struct pmu *pmu)
+@@ -755,7 +754,7 @@ static void sparc_pmu_disable(struct pmu *pmu)
+ 		 sparc_pmu->hv_bit | sparc_pmu->irq_bit);
+ 	cpuc->pcr = val;
+ 
+-	pcr_ops->write(0, cpuc->pcr);
++	pcr_ops->write_pcr(0, cpuc->pcr);
+ }
+ 
+ static int active_event_index(struct cpu_hw_events *cpuc,
+@@ -856,7 +855,7 @@ static void perf_stop_nmi_watchdog(void *unused)
+ 	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
+ 
+ 	stop_nmi_watchdog(NULL);
+-	cpuc->pcr = pcr_ops->read(0);
++	cpuc->pcr = pcr_ops->read_pcr(0);
+ }
+ 
+ void perf_event_grab_pmc(void)
+@@ -1264,8 +1263,8 @@ void perf_event_print_debug(void)
+ 
+ 	cpu = smp_processor_id();
+ 
+-	pcr = pcr_ops->read(0);
+-	read_pic(pic);
++	pcr = pcr_ops->read_pcr(0);
++	pic = pcr_ops->read_pic(0);
+ 
+ 	pr_info("\n");
+ 	pr_info("CPU#%d: PCR[%016llx] PIC[%016llx]\n",
+@@ -1306,7 +1305,7 @@ static int __kprobes perf_event_nmi_handler(struct notifier_block *self,
+ 	 * overflow so we don't lose any events.
+ 	 */
+ 	if (sparc_pmu->irq_bit)
+-		pcr_ops->write(0, cpuc->pcr);
++		pcr_ops->write_pcr(0, cpuc->pcr);
+ 
+ 	for (i = 0; i < cpuc->n_events; i++) {
+ 		struct perf_event *event = cpuc->event[i];
 -- 
-1.7.1
+1.7.10.4
 
