@@ -1,60 +1,50 @@
-From: wency@cn.fujitsu.com
-Date: Tue, 28 Aug 2012 10:00:10 +0000
-Subject: [RFC v8 PATCH 03/20] memory-hotplug: store the node id in acpi_memory_device
-Message-Id: <1346148027-24468-4-git-send-email-wency@cn.fujitsu.com>
+From: David Miller <davem@davemloft.net>
+Date: Sun, 19 Aug 2012 06:28:33 +0000
+Subject: [PATCH 13/17] sparc64: Rework sparc_pmu_enable() so that the side effects are clearer.
+Message-Id: <20120818.232833.1014846262877017501.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
-In-Reply-To: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
-Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
+To: sparclinux@vger.kernel.org
 
-From: Wen Congyang <wency@cn.fujitsu.com>
 
-The memory device has only one node id. Store the node id when
-enable the memory device, and we can reuse it when removing the
-memory device.
+When cpuc->n_events is zero, we actually don't do anything and we just
+write the cpuc->pcr[0] value as-is without any modifications.
 
-CC: David Rientjes <rientjes@google.com>
-CC: Jiang Liu <liuj97@gmail.com>
-CC: Len Brown <len.brown@intel.com>
-CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-CC: Paul Mackerras <paulus@samba.org>
-CC: Christoph Lameter <cl@linux.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-CC: Andrew Morton <akpm@linux-foundation.org>
-CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
-Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+The "pcr = 0;" assignment there was just useless and confusing.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- drivers/acpi/acpi_memhotplug.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+ arch/sparc/kernel/perf_event.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index 2a7beac..7873832 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -83,6 +83,7 @@ struct acpi_memory_info {
- struct acpi_memory_device {
- 	struct acpi_device * device;
- 	unsigned int state;	/* State of the memory device */
-+	int nid;
- 	struct list_head res_list;
- };
+diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
+index 9be089a..197c79e 100644
+--- a/arch/sparc/kernel/perf_event.c
++++ b/arch/sparc/kernel/perf_event.c
+@@ -752,7 +752,6 @@ out:
+ static void sparc_pmu_enable(struct pmu *pmu)
+ {
+ 	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
+-	u64 pcr;
  
-@@ -256,6 +257,9 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
- 		info->enabled = 1;
- 		num_enabled++;
- 	}
-+
-+	mem_device->nid = node;
-+
- 	if (!num_enabled) {
- 		printk(KERN_ERR PREFIX "add_memory failed\n");
- 		mem_device->state = MEMORY_INVALID_STATE;
+ 	if (cpuc->enabled)
+ 		return;
+@@ -760,11 +759,8 @@ static void sparc_pmu_enable(struct pmu *pmu)
+ 	cpuc->enabled = 1;
+ 	barrier();
+ 
+-	pcr = cpuc->pcr[0];
+-	if (!cpuc->n_events) {
+-		pcr = 0;
+-	} else {
+-		pcr = maybe_change_configuration(cpuc, pcr);
++	if (cpuc->n_events) {
++		u64 pcr = maybe_change_configuration(cpuc, cpuc->pcr[0]);
+ 
+ 		/* We require that all of the events have the same
+ 		 * configuration, so just fetch the settings from the
 -- 
-1.7.1
+1.7.10.4
 
