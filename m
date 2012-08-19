@@ -1,154 +1,90 @@
-From: wency@cn.fujitsu.com
-Date: Tue, 28 Aug 2012 10:00:08 +0000
-Subject: [RFC v8 PATCH 01/20] memory-hotplug: rename remove_memory() to offline_memory()/offline_pages()
-Message-Id: <1346148027-24468-2-git-send-email-wency@cn.fujitsu.com>
+From: David Miller <davem@davemloft.net>
+Date: Sun, 19 Aug 2012 06:28:53 +0000
+Subject: [PATCH 17/17] sparc64: Update generic comments in perf event code to match reality.
+Message-Id: <20120818.232853.567792567510779106.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
-In-Reply-To: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
-Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
+To: sparclinux@vger.kernel.org
 
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-remove_memory() only try to offline pages. It is called in two cases:
-1. hot remove a memory device
-2. echo offline >/sys/devices/system/memory/memoryXX/state
+Describe how we support two types of PMU setups, one with a single control
+register and two counters stored in a single register, and another with
+one control register per counter and each counter living in it's own
+register.
 
-In the 1st case, we should also change memory block's state, and notify
-the userspace that the memory block's state is changed after offlining
-pages.
-
-So rename remove_memory() to offline_memory()/offline_pages(). And in
-the 1st case, offline_memory() will be used. The function offline_memory()
-is not implemented. In the 2nd case, offline_pages() will be used.
-
-CC: David Rientjes <rientjes@google.com>
-CC: Jiang Liu <liuj97@gmail.com>
-CC: Len Brown <len.brown@intel.com>
-CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-CC: Paul Mackerras <paulus@samba.org>
-CC: Christoph Lameter <cl@linux.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-CC: Andrew Morton <akpm@linux-foundation.org>
-CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- drivers/acpi/acpi_memhotplug.c |    2 +-
- drivers/base/memory.c          |    9 +++------
- include/linux/memory_hotplug.h |    3 ++-
- mm/memory_hotplug.c            |   22 ++++++++++++++--------
- 4 files changed, 20 insertions(+), 16 deletions(-)
+ arch/sparc/kernel/perf_event.c |   40 +++++++++++++++++++++++++++-------------
+ 1 file changed, 27 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index 24c807f..2a7beac 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -318,7 +318,7 @@ static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
- 	 */
- 	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
- 		if (info->enabled) {
--			result = remove_memory(info->start_addr, info->length);
-+			result = offline_memory(info->start_addr, info->length);
- 			if (result)
- 				return result;
- 		}
-diff --git a/drivers/base/memory.c b/drivers/base/memory.c
-index 7dda4f7..44e7de6 100644
---- a/drivers/base/memory.c
-+++ b/drivers/base/memory.c
-@@ -248,26 +248,23 @@ static bool pages_correctly_reserved(unsigned long start_pfn,
- static int
- memory_block_action(unsigned long phys_index, unsigned long action)
- {
--	unsigned long start_pfn, start_paddr;
-+	unsigned long start_pfn;
- 	unsigned long nr_pages = PAGES_PER_SECTION * sections_per_block;
- 	struct page *first_page;
- 	int ret;
+diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
+index 1885370..e48651d 100644
+--- a/arch/sparc/kernel/perf_event.c
++++ b/arch/sparc/kernel/perf_event.c
+@@ -30,27 +30,39 @@
+ #include "kernel.h"
+ #include "kstack.h"
  
- 	first_page = pfn_to_page(phys_index << PFN_SECTION_SHIFT);
-+	start_pfn = page_to_pfn(first_page);
+-/* Sparc64 chips have two performance counters, 32-bits each, with
+- * overflow interrupts generated on transition from 0xffffffff to 0.
+- * The counters are accessed in one go using a 64-bit register.
++/* Two classes of sparc64 chips currently exist.  All of which have
++ * 32-bit counters which can generate overflow interrupts on the
++ * transition from 0xffffffff to 0.
+  *
+- * Both counters are controlled using a single control register.  The
+- * only way to stop all sampling is to clear all of the context (user,
+- * supervisor, hypervisor) sampling enable bits.  But these bits apply
+- * to both counters, thus the two counters can't be enabled/disabled
+- * individually.
++ * All chips upto and including SPARC-T3 have two performance
++ * counters.  The two 32-bit counters are accessed in one go using a
++ * single 64-bit register.
+  *
+- * The control register has two event fields, one for each of the two
+- * counters.  It's thus nearly impossible to have one counter going
+- * while keeping the other one stopped.  Therefore it is possible to
+- * get overflow interrupts for counters not currently "in use" and
+- * that condition must be checked in the overflow interrupt handler.
++ * On these older chips both counters are controlled using a single
++ * control register.  The only way to stop all sampling is to clear
++ * all of the context (user, supervisor, hypervisor) sampling enable
++ * bits.  But these bits apply to both counters, thus the two counters
++ * can't be enabled/disabled individually.
++ *
++ * Furthermore, the control register on these older chips have two
++ * event fields, one for each of the two counters.  It's thus nearly
++ * impossible to have one counter going while keeping the other one
++ * stopped.  Therefore it is possible to get overflow interrupts for
++ * counters not currently "in use" and that condition must be checked
++ * in the overflow interrupt handler.
+  *
+  * So we use a hack, in that we program inactive counters with the
+  * "sw_count0" and "sw_count1" events.  These count how many times
+  * the instruction "sethi %hi(0xfc000), %g0" is executed.  It's an
+  * unusual way to encode a NOP and therefore will not trigger in
+  * normal code.
++ *
++ * Starting with SPARC-T4 we have one control register per counter.
++ * And the counters are stored in individual registers.  The registers
++ * for the counters are 64-bit but only a 32-bit counter is
++ * implemented.  The event selections on SPARC-T4 lack any
++ * restrictions, therefore we can elide all of the complicated
++ * conflict resolution code we have for SPARC-T3 and earlier chips.
+  */
  
- 	switch (action) {
- 		case MEM_ONLINE:
--			start_pfn = page_to_pfn(first_page);
--
- 			if (!pages_correctly_reserved(start_pfn, nr_pages))
- 				return -EBUSY;
- 
- 			ret = online_pages(start_pfn, nr_pages);
- 			break;
- 		case MEM_OFFLINE:
--			start_paddr = page_to_pfn(first_page) << PAGE_SHIFT;
--			ret = remove_memory(start_paddr,
--					    nr_pages << PAGE_SHIFT);
-+			ret = offline_pages(start_pfn, nr_pages);
- 			break;
- 		default:
- 			WARN(1, KERN_WARNING "%s(%ld, %ld) unknown action: "
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index 910550f..c183f39 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -233,7 +233,8 @@ static inline int is_mem_section_removable(unsigned long pfn,
- extern int mem_online_node(int nid);
- extern int add_memory(int nid, u64 start, u64 size);
- extern int arch_add_memory(int nid, u64 start, u64 size);
--extern int remove_memory(u64 start, u64 size);
-+extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
-+extern int offline_memory(u64 start, u64 size);
- extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
- 								int nr_pages);
- extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms);
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 3ad25f9..c182c76 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -866,7 +866,7 @@ check_pages_isolated(unsigned long start_pfn, unsigned long end_pfn)
- 	return offlined;
- }
- 
--static int __ref offline_pages(unsigned long start_pfn,
-+static int __ref __offline_pages(unsigned long start_pfn,
- 		  unsigned long end_pfn, unsigned long timeout)
- {
- 	unsigned long pfn, nr_pages, expire;
-@@ -994,18 +994,24 @@ out:
- 	return ret;
- }
- 
--int remove_memory(u64 start, u64 size)
-+int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
- {
--	unsigned long start_pfn, end_pfn;
-+	return __offline_pages(start_pfn, start_pfn + nr_pages, 120 * HZ);
-+}
- 
--	start_pfn = PFN_DOWN(start);
--	end_pfn = start_pfn + PFN_DOWN(size);
--	return offline_pages(start_pfn, end_pfn, 120 * HZ);
-+int offline_memory(u64 start, u64 size)
-+{
-+	return -EINVAL;
- }
- #else
--int remove_memory(u64 start, u64 size)
-+int offline_pages(u64 start, u64 size)
-+{
-+	return -EINVAL;
-+}
-+
-+int offline_memory(u64 start, u64 size)
- {
- 	return -EINVAL;
- }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
--EXPORT_SYMBOL_GPL(remove_memory);
-+EXPORT_SYMBOL_GPL(offline_memory);
+ #define MAX_HWEVENTS			4
+@@ -103,6 +115,8 @@ DEFINE_PER_CPU(struct cpu_hw_events, cpu_hw_events) = { .enabled = 1, };
+ /* An event map describes the characteristics of a performance
+  * counter event.  In particular it gives the encoding as well as
+  * a mask telling which counters the event can be measured on.
++ *
++ * The mask is unused on SPARC-T4 and later.
+  */
+ struct perf_event_map {
+ 	u16	encoding;
 -- 
-1.7.1
+1.7.10.4
 
