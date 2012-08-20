@@ -1,50 +1,98 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 19 Aug 2012 06:28:33 +0000
-Subject: [PATCH 13/17] sparc64: Rework sparc_pmu_enable() so that the side effects are clearer.
-Message-Id: <20120818.232833.1014846262877017501.davem@davemloft.net>
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Date: Mon, 20 Aug 2012 13:52:35 +0000
+Subject: [PATCH v4 6/8] mm: make clear_huge_page cache clear only around the fault address
+Message-Id: <1345470757-12005-7-git-send-email-kirill.shutemov@linux.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1345470757-12005-1-git-send-email-kirill.shutemov@linux.intel.com>
+In-Reply-To: <1345470757-12005-1-git-send-email-kirill.shutemov@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Andi Kleen <ak@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Tim Chen <tim.c.chen@linux.intel.com>, Alex Shi <alex.shu@intel.com>, Jan Beulich <jbeulich@novell.com>, Robert Richter <robert.richter@amd.com>, Andy Lutomirski <luto@amacapital.net>, Andrew Morton <akpm@linux-foundation.org>, Andrea Arcangeli <aarcange@redhat.com>, Johannes Weiner <hannes@cmpxchg.org>, Hugh Dickins <hughd@google.com>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mips@linux-mips.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
 
+From: Andi Kleen <ak@linux.intel.com>
 
-When cpuc->n_events is zero, we actually don't do anything and we just
-write the cpuc->pcr[0] value as-is without any modifications.
+Clearing a 2MB huge page will typically blow away several levels
+of CPU caches. To avoid this only cache clear the 4K area
+around the fault address and use a cache avoiding clears
+for the rest of the 2MB area.
 
-The "pcr = 0;" assignment there was just useless and confusing.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 ---
- arch/sparc/kernel/perf_event.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ mm/memory.c |   37 +++++++++++++++++++++++++++++--------
+ 1 files changed, 29 insertions(+), 8 deletions(-)
 
-diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
-index 9be089a..197c79e 100644
---- a/arch/sparc/kernel/perf_event.c
-+++ b/arch/sparc/kernel/perf_event.c
-@@ -752,7 +752,6 @@ out:
- static void sparc_pmu_enable(struct pmu *pmu)
+diff --git a/mm/memory.c b/mm/memory.c
+index dfc179b..625ca33 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -3969,18 +3969,32 @@ EXPORT_SYMBOL(might_fault);
+ #endif
+ 
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) || defined(CONFIG_HUGETLBFS)
++
++#ifndef ARCH_HAS_USER_NOCACHE
++#define ARCH_HAS_USER_NOCACHE 0
++#endif
++
++#if ARCH_HAS_USER_NOCACHE = 0
++#define clear_user_highpage_nocache clear_user_highpage
++#endif
++
+ static void clear_gigantic_page(struct page *page,
+-				unsigned long addr,
+-				unsigned int pages_per_huge_page)
++		unsigned long haddr, unsigned long fault_address,
++		unsigned int pages_per_huge_page)
  {
- 	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
--	u64 pcr;
+ 	int i;
+ 	struct page *p = page;
++	unsigned long vaddr;
++	int target = (fault_address - haddr) >> PAGE_SHIFT;
  
- 	if (cpuc->enabled)
+ 	might_sleep();
+-	for (i = 0; i < pages_per_huge_page;
+-	     i++, p = mem_map_next(p, page, i)) {
++	for (i = 0, vaddr = haddr; i < pages_per_huge_page;
++			i++, p = mem_map_next(p, page, i), vaddr += PAGE_SIZE) {
+ 		cond_resched();
+-		clear_user_highpage(p, addr + i * PAGE_SIZE);
++		if (!ARCH_HAS_USER_NOCACHE  || i = target)
++			clear_user_highpage(p, vaddr);
++		else
++			clear_user_highpage_nocache(p, vaddr);
+ 	}
+ }
+ void clear_huge_page(struct page *page,
+@@ -3988,16 +4002,23 @@ void clear_huge_page(struct page *page,
+ 		     unsigned int pages_per_huge_page)
+ {
+ 	int i;
++	unsigned long vaddr;
++	int target = (fault_address - haddr) >> PAGE_SHIFT;
+ 
+ 	if (unlikely(pages_per_huge_page > MAX_ORDER_NR_PAGES)) {
+-		clear_gigantic_page(page, haddr, pages_per_huge_page);
++		clear_gigantic_page(page, haddr, fault_address,
++				pages_per_huge_page);
  		return;
-@@ -760,11 +759,8 @@ static void sparc_pmu_enable(struct pmu *pmu)
- 	cpuc->enabled = 1;
- 	barrier();
+ 	}
  
--	pcr = cpuc->pcr[0];
--	if (!cpuc->n_events) {
--		pcr = 0;
--	} else {
--		pcr = maybe_change_configuration(cpuc, pcr);
-+	if (cpuc->n_events) {
-+		u64 pcr = maybe_change_configuration(cpuc, cpuc->pcr[0]);
+ 	might_sleep();
+-	for (i = 0; i < pages_per_huge_page; i++) {
++	for (i = 0, vaddr = haddr; i < pages_per_huge_page;
++			i++, page++, vaddr += PAGE_SIZE) {
+ 		cond_resched();
+-		clear_user_highpage(page + i, haddr + i * PAGE_SIZE);
++		if (!ARCH_HAS_USER_NOCACHE || i = target)
++			clear_user_highpage(page, vaddr);
++		else
++			clear_user_highpage_nocache(page, vaddr);
+ 	}
+ }
  
- 		/* We require that all of the events have the same
- 		 * configuration, so just fetch the settings from the
 -- 
-1.7.10.4
+1.7.7.6
 
