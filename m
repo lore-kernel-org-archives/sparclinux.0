@@ -1,91 +1,94 @@
-From: wency@cn.fujitsu.com
-Date: Tue, 28 Aug 2012 10:00:12 +0000
-Subject: [RFC v8 PATCH 05/20] memory-hotplug: check whether memory is present or not
-Message-Id: <1346148027-24468-6-git-send-email-wency@cn.fujitsu.com>
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Date: Mon, 20 Aug 2012 13:52:33 +0000
+Subject: [PATCH v4 4/8] mm: pass fault address to clear_huge_page()
+Message-Id: <1345470757-12005-5-git-send-email-kirill.shutemov@linux.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
-In-Reply-To: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
+References: <1345470757-12005-1-git-send-email-kirill.shutemov@linux.intel.com>
+In-Reply-To: <1345470757-12005-1-git-send-email-kirill.shutemov@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
-Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
+To: linux-mm@kvack.org
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Andi Kleen <ak@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Tim Chen <tim.c.chen@linux.intel.com>, Alex Shi <alex.shu@intel.com>, Jan Beulich <jbeulich@novell.com>, Robert Richter <robert.richter@amd.com>, Andy Lutomirski <luto@amacapital.net>, Andrew Morton <akpm@linux-foundation.org>, Andrea Arcangeli <aarcange@redhat.com>, Johannes Weiner <hannes@cmpxchg.org>, Hugh Dickins <hughd@google.com>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mips@linux-mips.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
 
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 
-If system supports memory hot-remove, online_pages() may online removed pages.
-So online_pages() need to check whether onlining pages are present or not.
-
-CC: David Rientjes <rientjes@google.com>
-CC: Jiang Liu <liuj97@gmail.com>
-CC: Len Brown <len.brown@intel.com>
-CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-CC: Paul Mackerras <paulus@samba.org>
-CC: Christoph Lameter <cl@linux.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-CC: Andrew Morton <akpm@linux-foundation.org>
-CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-CC: Wen Congyang <wency@cn.fujitsu.com>
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 ---
- include/linux/mmzone.h |   19 +++++++++++++++++++
- mm/memory_hotplug.c    |   13 +++++++++++++
- 2 files changed, 32 insertions(+), 0 deletions(-)
+ include/linux/mm.h |    2 +-
+ mm/huge_memory.c   |    2 +-
+ mm/hugetlb.c       |    3 ++-
+ mm/memory.c        |    7 ++++---
+ 4 files changed, 8 insertions(+), 6 deletions(-)
 
-diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-index 2daa54f..ac3ae30 100644
---- a/include/linux/mmzone.h
-+++ b/include/linux/mmzone.h
-@@ -1180,6 +1180,25 @@ void sparse_init(void);
- #define sparse_index_init(_sec, _nid)  do {} while (0)
- #endif /* CONFIG_SPARSEMEM */
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 311be90..2858723 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1638,7 +1638,7 @@ extern void dump_page(struct page *page);
  
-+#ifdef CONFIG_SPARSEMEM
-+static inline int pfns_present(unsigned long pfn, unsigned long nr_pages)
-+{
-+	int i;
-+	for (i = 0; i < nr_pages; i++) {
-+		if (pfn_present(pfn + i))
-+			continue;
-+		else
-+			return -EINVAL;
-+	}
-+	return 0;
-+}
-+#else
-+static inline int pfns_present(unsigned long pfn, unsigned long nr_pages)
-+{
-+	return 0;
-+}
-+#endif /* CONFIG_SPARSEMEM*/
-+
- #ifdef CONFIG_NODES_SPAN_OTHER_NODES
- bool early_pfn_in_nid(unsigned long pfn, int nid);
- #else
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 80cded7..3f1d7c5 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -467,6 +467,19 @@ int __ref online_pages(unsigned long pfn, unsigned long nr_pages)
- 	struct memory_notify arg;
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) || defined(CONFIG_HUGETLBFS)
+ extern void clear_huge_page(struct page *page,
+-			    unsigned long addr,
++			    unsigned long haddr, unsigned long fault_address,
+ 			    unsigned int pages_per_huge_page);
+ extern void copy_user_huge_page(struct page *dst, struct page *src,
+ 				unsigned long addr, struct vm_area_struct *vma,
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index 6f0825b611..070bf89 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -644,7 +644,7 @@ static int __do_huge_pmd_anonymous_page(struct mm_struct *mm,
+ 	if (unlikely(!pgtable))
+ 		return VM_FAULT_OOM;
  
- 	lock_memory_hotplug();
-+	/*
-+	 * If system supports memory hot-remove, the memory may have been
-+	 * removed. So we check whether the memory has been removed or not.
-+	 *
-+	 * Note: When CONFIG_SPARSEMEM is defined, pfns_present() become
-+	 *       effective. If CONFIG_SPARSEMEM is not defined, pfns_present()
-+	 *       always returns 0.
-+	 */
-+	ret = pfns_present(pfn, nr_pages);
-+	if (ret) {
-+		unlock_memory_hotplug();
-+		return ret;
-+	}
- 	arg.start_pfn = pfn;
- 	arg.nr_pages = nr_pages;
- 	arg.status_change_nid = -1;
+-	clear_huge_page(page, haddr, HPAGE_PMD_NR);
++	clear_huge_page(page, haddr, address, HPAGE_PMD_NR);
+ 	__SetPageUptodate(page);
+ 
+ 	spin_lock(&mm->page_table_lock);
+diff --git a/mm/hugetlb.c b/mm/hugetlb.c
+index 3c86d3d..5182192 100644
+--- a/mm/hugetlb.c
++++ b/mm/hugetlb.c
+@@ -2718,7 +2718,8 @@ retry:
+ 				ret = VM_FAULT_SIGBUS;
+ 			goto out;
+ 		}
+-		clear_huge_page(page, haddr, pages_per_huge_page(h));
++		clear_huge_page(page, haddr, fault_address,
++				pages_per_huge_page(h));
+ 		__SetPageUptodate(page);
+ 
+ 		if (vma->vm_flags & VM_MAYSHARE) {
+diff --git a/mm/memory.c b/mm/memory.c
+index 5736170..dfc179b 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -3984,19 +3984,20 @@ static void clear_gigantic_page(struct page *page,
+ 	}
+ }
+ void clear_huge_page(struct page *page,
+-		     unsigned long addr, unsigned int pages_per_huge_page)
++		     unsigned long haddr, unsigned long fault_address,
++		     unsigned int pages_per_huge_page)
+ {
+ 	int i;
+ 
+ 	if (unlikely(pages_per_huge_page > MAX_ORDER_NR_PAGES)) {
+-		clear_gigantic_page(page, addr, pages_per_huge_page);
++		clear_gigantic_page(page, haddr, pages_per_huge_page);
+ 		return;
+ 	}
+ 
+ 	might_sleep();
+ 	for (i = 0; i < pages_per_huge_page; i++) {
+ 		cond_resched();
+-		clear_user_highpage(page + i, addr + i * PAGE_SIZE);
++		clear_user_highpage(page + i, haddr + i * PAGE_SIZE);
+ 	}
+ }
+ 
 -- 
-1.7.1
+1.7.7.6
 
