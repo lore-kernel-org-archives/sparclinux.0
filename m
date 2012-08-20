@@ -1,38 +1,24 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 23 Aug 2012 16:20:43 +0000
-Subject: Re: [PATCH] sparc64: Add CRC32C driver making use of the new crc32c opcode.
-Message-Id: <20120823.092043.1156875617277157051.davem@davemloft.net>
+Date: Mon, 20 Aug 2012 05:10:00 +0000
+Subject: [PATCH 0/4] Crytpo hash drivers for sparc64 crypto instructions.
+Message-Id: <20120819.221000.1440395237780126787.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20120822.143111.2226960299830142976.davem@davemloft.net>
-	<20120822.205231.113785660704668571.davem@davemloft.net>
-	<20120823083654.GA13395@gondor.apana.org.au>
-In-Reply-To: <20120823083654.GA13395@gondor.apana.org.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: herbert@gondor.apana.org.au
-Cc: sparclinux@vger.kernel.org, linux-crypto@vger.kernel.org
+To: sparclinux@vger.kernel.org
+Cc: linux-crypto@vger.kernel.org, herbert@gondor.apana.org.au
 
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Date: Thu, 23 Aug 2012 16:36:54 +0800
 
-> On Wed, Aug 22, 2012 at 08:52:31PM -0700, David Miller wrote:
->> 
->> Signed-off-by: David S. Miller <davem@davemloft.net>
-> 
-> Looks good to me.
+SPARC-T4 and later support cryptographic instructions.
 
-Thanks for reviewing.
+This patch series adds support for the hash digest algorithms.
 
->> This was largely straightforward, except for two things.
->> 
->> 1) The tests assume that the 32-bit crc is stored in the context in
->>    cpu endian.  The sparc64 crc32c opcode wants to work with a little
->>    endian mode, but sparc64 is big-endian.
-> 
-> We can still change this as nothing outside the kernel relies
-> on the format of the context.  For the time being all that's
-> required is that it be identical between software and hardware
-> implementations.
+This includes md5, sha1, sha224, sha256, sha384, and sha512.
 
-Ok, let's just leave it alone for now :-)
+Herbert, this depends upon sparc64 cpu feature detection
+infrastructure that is going in via the sparc-next tree, so I intend
+to commit this work there if you don't mind.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+
