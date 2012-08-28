@@ -1,162 +1,71 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 19 Aug 2012 06:28:42 +0000
-Subject: [PATCH 15/17] sparc64: Support perf event encoding for multi-PCR PMUs.
-Message-Id: <20120818.232842.1202917155920134747.davem@davemloft.net>
+From: wency@cn.fujitsu.com
+Date: Tue, 28 Aug 2012 10:00:13 +0000
+Subject: [RFC v8 PATCH 06/20] memory-hotplug: export the function acpi_bus_remove()
+Message-Id: <1346148027-24468-7-git-send-email-wency@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
+In-Reply-To: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
 
+From: Wen Congyang <wency@cn.fujitsu.com>
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+The function acpi_bus_remove() can remove a acpi device from acpi device.
+When a acpi device is removed, we need to call this function to remove
+the acpi device from acpi bus. So export this function.
+
+CC: David Rientjes <rientjes@google.com>
+CC: Jiang Liu <liuj97@gmail.com>
+CC: Len Brown <len.brown@intel.com>
+CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+CC: Paul Mackerras <paulus@samba.org>
+CC: Christoph Lameter <cl@linux.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+CC: Andrew Morton <akpm@linux-foundation.org>
+CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
 ---
- arch/sparc/kernel/perf_event.c |   98 ++++++++++++++++++++++++++++++----------
- 1 file changed, 75 insertions(+), 23 deletions(-)
+ drivers/acpi/scan.c     |    3 ++-
+ include/acpi/acpi_bus.h |    1 +
+ 2 files changed, 3 insertions(+), 1 deletions(-)
 
-diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
-index c3ad637..6441592 100644
---- a/arch/sparc/kernel/perf_event.c
-+++ b/arch/sparc/kernel/perf_event.c
-@@ -710,18 +710,10 @@ static int sparc_perf_event_set_period(struct perf_event *event,
- 	return ret;
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index d1ecca2..1cefc34 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1224,7 +1224,7 @@ static int acpi_device_set_context(struct acpi_device *device)
+ 	return -ENODEV;
  }
  
--/* If performance event entries have been added, move existing
-- * events around (if necessary) and then assign new entries to
-- * counters.
-- */
--static u64 maybe_change_configuration(struct cpu_hw_events *cpuc, u64 pcr)
-+static void read_in_all_counters(struct cpu_hw_events *cpuc)
+-static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
++int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
  {
- 	int i;
+ 	if (!dev)
+ 		return -EINVAL;
+@@ -1246,6 +1246,7 @@ static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
  
--	if (!cpuc->n_added)
--		goto out;
--
--	/* Read in the counters which are moving.  */
- 	for (i = 0; i < cpuc->n_events; i++) {
- 		struct perf_event *cp = cpuc->event[i];
- 
-@@ -732,6 +724,20 @@ static u64 maybe_change_configuration(struct cpu_hw_events *cpuc, u64 pcr)
- 			cpuc->current_idx[i] = PIC_NO_INDEX;
- 		}
- 	}
-+}
-+
-+/* On this PMU all PICs are programmed using a single PCR.  Calculate
-+ * the combined control register value.
-+ *
-+ * For such chips we require that all of the events have the same
-+ * configuration, so just fetch the settings from the first entry.
-+ */
-+static void calculate_single_pcr(struct cpu_hw_events *cpuc)
-+{
-+	int i;
-+
-+	if (!cpuc->n_added)
-+		goto out;
- 
- 	/* Assign to counters all unassigned events.  */
- 	for (i = 0; i < cpuc->n_events; i++) {
-@@ -747,19 +753,71 @@ static u64 maybe_change_configuration(struct cpu_hw_events *cpuc, u64 pcr)
- 		cpuc->current_idx[i] = idx;
- 
- 		enc = perf_event_get_enc(cpuc->events[i]);
--		pcr &= ~mask_for_index(idx);
-+		cpuc->pcr[0] &= ~mask_for_index(idx);
- 		if (hwc->state & PERF_HES_STOPPED)
--			pcr |= nop_for_index(idx);
-+			cpuc->pcr[0] |= nop_for_index(idx);
- 		else
--			pcr |= event_encoding(enc, idx);
-+			cpuc->pcr[0] |= event_encoding(enc, idx);
- 	}
- out:
--	return pcr;
-+	cpuc->pcr[0] |= cpuc->event[0]->hw.config_base;
-+}
-+
-+/* On this PMU each PIC has it's own PCR control register.  */
-+static void calculate_multiple_pcrs(struct cpu_hw_events *cpuc)
-+{
-+	int i;
-+
-+	if (!cpuc->n_added)
-+		goto out;
-+
-+	for (i = 0; i < cpuc->n_events; i++) {
-+		struct perf_event *cp = cpuc->event[i];
-+		struct hw_perf_event *hwc = &cp->hw;
-+		int idx = hwc->idx;
-+		u64 enc;
-+
-+		if (cpuc->current_idx[i] != PIC_NO_INDEX)
-+			continue;
-+
-+		sparc_perf_event_set_period(cp, hwc, idx);
-+		cpuc->current_idx[i] = idx;
-+
-+		enc = perf_event_get_enc(cpuc->events[i]);
-+		cpuc->pcr[idx] &= ~mask_for_index(idx);
-+		if (hwc->state & PERF_HES_STOPPED)
-+			cpuc->pcr[idx] |= nop_for_index(idx);
-+		else
-+			cpuc->pcr[idx] |= event_encoding(enc, idx);
-+	}
-+out:
-+	for (i = 0; i < cpuc->n_events; i++) {
-+		struct perf_event *cp = cpuc->event[i];
-+		int idx = cp->hw.idx;
-+
-+		cpuc->pcr[idx] |= cp->hw.config_base;
-+	}
-+}
-+
-+/* If performance event entries have been added, move existing events
-+ * around (if necessary) and then assign new entries to counters.
-+ */
-+static void update_pcrs_for_enable(struct cpu_hw_events *cpuc)
-+{
-+	if (cpuc->n_added)
-+		read_in_all_counters(cpuc);
-+
-+	if (sparc_pmu->num_pcrs = 1) {
-+		calculate_single_pcr(cpuc);
-+	} else {
-+		calculate_multiple_pcrs(cpuc);
-+	}
+ 	return 0;
  }
++EXPORT_SYMBOL(acpi_bus_remove);
  
- static void sparc_pmu_enable(struct pmu *pmu)
- {
- 	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
-+	int i;
- 
- 	if (cpuc->enabled)
- 		return;
-@@ -767,17 +825,11 @@ static void sparc_pmu_enable(struct pmu *pmu)
- 	cpuc->enabled = 1;
- 	barrier();
- 
--	if (cpuc->n_events) {
--		u64 pcr = maybe_change_configuration(cpuc, cpuc->pcr[0]);
--
--		/* We require that all of the events have the same
--		 * configuration, so just fetch the settings from the
--		 * first entry.
--		 */
--		cpuc->pcr[0] = pcr | cpuc->event[0]->hw.config_base;
--	}
-+	if (cpuc->n_events)
-+		update_pcrs_for_enable(cpuc);
- 
--	pcr_ops->write_pcr(0, cpuc->pcr[0]);
-+	for (i = 0; i < sparc_pmu->num_pcrs; i++)
-+		pcr_ops->write_pcr(i, cpuc->pcr[i]);
- }
- 
- static void sparc_pmu_disable(struct pmu *pmu)
+ static int acpi_add_single_object(struct acpi_device **child,
+ 				  acpi_handle handle, int type,
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index bde976e..2ccf109 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -360,6 +360,7 @@ bool acpi_bus_power_manageable(acpi_handle handle);
+ bool acpi_bus_can_wakeup(acpi_handle handle);
+ int acpi_power_resource_register_device(struct device *dev, acpi_handle handle);
+ void acpi_power_resource_unregister_device(struct device *dev, acpi_handle handle);
++int acpi_bus_remove(struct acpi_device *dev, int rmdevice);
+ #ifdef CONFIG_ACPI_PROC_EVENT
+ int acpi_bus_generate_proc_event(struct acpi_device *device, u8 type, int data);
+ int acpi_bus_generate_proc_event4(const char *class, const char *bid, u8 type, int data);
 -- 
-1.7.10.4
+1.7.1
 
