@@ -1,82 +1,63 @@
-From: "Kirill A. Shutemov" <kirill@shutemov.name>
-Date: Mon, 13 Aug 2012 19:07:43 +0000
-Subject: Re: [PATCH v2 4/6] x86: Add clear_page_nocache
-Message-Id: <20120813190743.GA10584@shutemov.name>
+From: wency@cn.fujitsu.com
+Date: Tue, 28 Aug 2012 10:00:20 +0000
+Subject: [RFC v8 PATCH 13/20] memory-hotplug: check page type in get_page_bootmem
+Message-Id: <1346148027-24468-14-git-send-email-wency@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1344524583-1096-1-git-send-email-kirill.shutemov@linux.intel.com>
- <1344524583-1096-5-git-send-email-kirill.shutemov@linux.intel.com>
- <5023F1BC0200007800093EF0@nat28.tlf.novell.com>
- <20120813114334.GA21855@otc-wbsnb-06>
- <20120813170402.GB15530@x1.osrc.amd.com>
-In-Reply-To: <20120813170402.GB15530@x1.osrc.amd.com>
+References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
+In-Reply-To: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Borislav Petkov <bp@alien8.de>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Jan Beulich <JBeulich@suse.com>, Andi Kleen <ak@linux.intel.com>, Andy Lutomirski <luto@amacapital.net>, Robert Richter <robert.richter@amd.com>, Johannes Weiner <hannes@cmpxchg.org>, Hugh Dickins <hughd@google.com>, Alex Shi <alex.shu@intel.com>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, linux-mips@linux-mips.org, Tim Chen <tim.c.chen@linux.intel.com>, linuxppc-dev@lists.ozlabs.org, Andrea Arcangeli <aarcange@redhat.com>, Ingo Molnar <mingo@redhat.com>, Mel Gorman <mgorman@suse.de>, linux-kernel@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>
+To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
 
-On Mon, Aug 13, 2012 at 07:04:02PM +0200, Borislav Petkov wrote:
-> On Mon, Aug 13, 2012 at 02:43:34PM +0300, Kirill A. Shutemov wrote:
-> > $ cat test.c
-> > #include <stdio.h>
-> > #include <sys/mman.h>
-> > 
-> > #define SIZE 1024*1024*1024
-> > 
-> > void clear_page_nocache_sse2(void *page) __attribute__((regparm(1)));
-> > 
-> > int main(int argc, char** argv)
-> > {
-> >         char *p;
-> >         unsigned long i, j;
-> > 
-> >         p = mmap(NULL, SIZE, PROT_WRITE|PROT_READ,
-> >                         MAP_PRIVATE|MAP_ANONYMOUS|MAP_POPULATE, -1, 0);
-> >         for(j = 0; j < 100; j++) {
-> >                 for(i = 0; i < SIZE; i += 4096) {
-> >                         clear_page_nocache_sse2(p + i);
-> >                 }
-> >         }
-> > 
-> >         return 0;
-> > }
-> > $ cat clear_page_nocache_unroll32.S
-> > .globl clear_page_nocache_sse2
-> > .align 4,0x90
-> > clear_page_nocache_sse2:
-> > .cfi_startproc
-> >         mov    %eax,%edx
-> >         xorl   %eax,%eax
-> >         movl   $4096/32,%ecx
-> >         .p2align 4
-> > .Lloop_sse2:
-> >         decl    %ecx
-> > #define PUT(x) movnti %eax,x*4(%edx)
-> >         PUT(0)
-> >         PUT(1)
-> >         PUT(2)
-> >         PUT(3)
-> >         PUT(4)
-> >         PUT(5)
-> >         PUT(6)
-> >         PUT(7)
-> > #undef PUT
-> >         lea     32(%edx),%edx
-> >         jnz     .Lloop_sse2
-> >         nop
-> >         ret
-> > .cfi_endproc
-> > .type clear_page_nocache_sse2, @function
-> > .size clear_page_nocache_sse2, .-clear_page_nocache_sse2
-> > $ cat clear_page_nocache_unroll64.S
-> > .globl clear_page_nocache_sse2
-> > .align 4,0x90
-> > clear_page_nocache_sse2:
-> > .cfi_startproc
-> >         mov    %eax,%edx
-> 
-> This must still be the 32-bit version becaue it segfaults here.
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-Yes, it's test for 32-bit version.
+There is a possibility that get_page_bootmem() is called to the same page many
+times. So when get_page_bootmem is called to the same page, the function only
+increments page->_count.
 
+CC: David Rientjes <rientjes@google.com>
+CC: Jiang Liu <liuj97@gmail.com>
+CC: Len Brown <len.brown@intel.com>
+CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+CC: Paul Mackerras <paulus@samba.org>
+CC: Christoph Lameter <cl@linux.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+CC: Andrew Morton <akpm@linux-foundation.org>
+CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+CC: Wen Congyang <wency@cn.fujitsu.com>
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+---
+ mm/memory_hotplug.c |   15 +++++++++++----
+ 1 files changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 5f9f8c7..d85af6d 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -95,10 +95,17 @@ static void release_memory_resource(struct resource *res)
+ static void get_page_bootmem(unsigned long info,  struct page *page,
+ 			     unsigned long type)
+ {
+-	page->lru.next = (struct list_head *) type;
+-	SetPagePrivate(page);
+-	set_page_private(page, info);
+-	atomic_inc(&page->_count);
++	unsigned long page_type;
++
++	page_type = (unsigned long) page->lru.next;
++	if (page_type < MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE ||
++	    page_type > MEMORY_HOTPLUG_MAX_BOOTMEM_TYPE){
++		page->lru.next = (struct list_head *) type;
++		SetPagePrivate(page);
++		set_page_private(page, info);
++		atomic_inc(&page->_count);
++	} else
++		atomic_inc(&page->_count);
+ }
+ 
+ /* reference to __meminit __free_pages_bootmem is valid
 -- 
- Kirill A. Shutemov
+1.7.1
+
