@@ -1,7 +1,7 @@
 From: wency@cn.fujitsu.com
-Date: Tue, 28 Aug 2012 10:00:13 +0000
-Subject: [RFC v8 PATCH 06/20] memory-hotplug: export the function acpi_bus_remove()
-Message-Id: <1346148027-24468-7-git-send-email-wency@cn.fujitsu.com>
+Date: Tue, 28 Aug 2012 10:00:10 +0000
+Subject: [RFC v8 PATCH 03/20] memory-hotplug: store the node id in acpi_memory_device
+Message-Id: <1346148027-24468-4-git-send-email-wency@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
 In-Reply-To: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
@@ -13,9 +13,9 @@ Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.cras
 
 From: Wen Congyang <wency@cn.fujitsu.com>
 
-The function acpi_bus_remove() can remove a acpi device from acpi device.
-When a acpi device is removed, we need to call this function to remove
-the acpi device from acpi bus. So export this function.
+The memory device has only one node id. Store the node id when
+enable the memory device, and we can reuse it when removing the
+memory device.
 
 CC: David Rientjes <rientjes@google.com>
 CC: Jiang Liu <liuj97@gmail.com>
@@ -28,44 +28,33 @@ CC: Andrew Morton <akpm@linux-foundation.org>
 CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 ---
- drivers/acpi/scan.c     |    3 ++-
- include/acpi/acpi_bus.h |    1 +
- 2 files changed, 3 insertions(+), 1 deletions(-)
+ drivers/acpi/acpi_memhotplug.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index d1ecca2..1cefc34 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1224,7 +1224,7 @@ static int acpi_device_set_context(struct acpi_device *device)
- 	return -ENODEV;
- }
+diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+index 2a7beac..7873832 100644
+--- a/drivers/acpi/acpi_memhotplug.c
++++ b/drivers/acpi/acpi_memhotplug.c
+@@ -83,6 +83,7 @@ struct acpi_memory_info {
+ struct acpi_memory_device {
+ 	struct acpi_device * device;
+ 	unsigned int state;	/* State of the memory device */
++	int nid;
+ 	struct list_head res_list;
+ };
  
--static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
-+int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
- {
- 	if (!dev)
- 		return -EINVAL;
-@@ -1246,6 +1246,7 @@ static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
- 
- 	return 0;
- }
-+EXPORT_SYMBOL(acpi_bus_remove);
- 
- static int acpi_add_single_object(struct acpi_device **child,
- 				  acpi_handle handle, int type,
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index bde976e..2ccf109 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -360,6 +360,7 @@ bool acpi_bus_power_manageable(acpi_handle handle);
- bool acpi_bus_can_wakeup(acpi_handle handle);
- int acpi_power_resource_register_device(struct device *dev, acpi_handle handle);
- void acpi_power_resource_unregister_device(struct device *dev, acpi_handle handle);
-+int acpi_bus_remove(struct acpi_device *dev, int rmdevice);
- #ifdef CONFIG_ACPI_PROC_EVENT
- int acpi_bus_generate_proc_event(struct acpi_device *device, u8 type, int data);
- int acpi_bus_generate_proc_event4(const char *class, const char *bid, u8 type, int data);
+@@ -256,6 +257,9 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
+ 		info->enabled = 1;
+ 		num_enabled++;
+ 	}
++
++	mem_device->nid = node;
++
+ 	if (!num_enabled) {
+ 		printk(KERN_ERR PREFIX "add_memory failed\n");
+ 		mem_device->state = MEMORY_INVALID_STATE;
 -- 
 1.7.1
 
