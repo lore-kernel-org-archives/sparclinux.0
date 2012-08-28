@@ -1,82 +1,89 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 19 Aug 2012 06:28:26 +0000
-Subject: [PATCH 11/17] sparc64: Specify user and supervisor trace PCR bits in sparc_pmu.
-Message-Id: <20120818.232826.1183283157401221064.davem@davemloft.net>
+From: wency@cn.fujitsu.com
+Date: Tue, 28 Aug 2012 10:00:26 +0000
+Subject: [RFC v8 PATCH 19/20] memory-hotplug: remove sysfs file of node
+Message-Id: <1346148027-24468-20-git-send-email-wency@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
+In-Reply-To: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
 
+From: Wen Congyang <wency@cn.fujitsu.com>
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+This patch introduces a new function try_offline_node() to
+remove sysfs file of node when all memory sections of this
+node are removed. If some memory sections of this node are
+not removed, this function does nothing.
+
+CC: David Rientjes <rientjes@google.com>
+CC: Jiang Liu <liuj97@gmail.com>
+CC: Len Brown <len.brown@intel.com>
+CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+CC: Paul Mackerras <paulus@samba.org>
+CC: Christoph Lameter <cl@linux.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+CC: Andrew Morton <akpm@linux-foundation.org>
+CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
 ---
- arch/sparc/kernel/perf_event.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ mm/memory_hotplug.c |   33 +++++++++++++++++++++++++++++++++
+ 1 files changed, 33 insertions(+), 0 deletions(-)
 
-diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
-index fbd8029..1ab676b 100644
---- a/arch/sparc/kernel/perf_event.c
-+++ b/arch/sparc/kernel/perf_event.c
-@@ -146,6 +146,8 @@ struct sparc_pmu {
- 	int				upper_shift;
- 	int				lower_shift;
- 	int				event_mask;
-+	int				user_bit;
-+	int				priv_bit;
- 	int				hv_bit;
- 	int				irq_bit;
- 	int				upper_nop;
-@@ -306,6 +308,8 @@ static const struct sparc_pmu ultra3_pmu = {
- 	.upper_shift	= 11,
- 	.lower_shift	= 4,
- 	.event_mask	= 0x3f,
-+	.user_bit	= PCR_UTRACE,
-+	.priv_bit	= PCR_STRACE,
- 	.upper_nop	= 0x1c,
- 	.lower_nop	= 0x14,
- 	.flags		= (SPARC_PMU_ALL_EXCLUDES_SAME |
-@@ -440,6 +444,8 @@ static const struct sparc_pmu niagara1_pmu = {
- 	.upper_shift	= 0,
- 	.lower_shift	= 4,
- 	.event_mask	= 0x7,
-+	.user_bit	= PCR_UTRACE,
-+	.priv_bit	= PCR_STRACE,
- 	.upper_nop	= 0x0,
- 	.lower_nop	= 0x0,
- 	.flags		= (SPARC_PMU_ALL_EXCLUDES_SAME |
-@@ -571,7 +577,9 @@ static const struct sparc_pmu niagara2_pmu = {
- 	.upper_shift	= 19,
- 	.lower_shift	= 6,
- 	.event_mask	= 0xfff,
--	.hv_bit		= 0x8,
-+	.user_bit	= PCR_UTRACE,
-+	.priv_bit	= PCR_STRACE,
-+	.hv_bit		= PCR_N2_HTRACE,
- 	.irq_bit	= 0x30,
- 	.upper_nop	= 0x220,
- 	.lower_nop	= 0x220,
-@@ -771,7 +779,7 @@ static void sparc_pmu_disable(struct pmu *pmu)
- 	cpuc->n_added = 0;
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 493298f..fb8af64 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -1286,6 +1286,37 @@ int offline_memory(u64 start, u64 size)
+ 	return 0;
+ }
  
- 	val = cpuc->pcr;
--	val &= ~(PCR_UTRACE | PCR_STRACE |
-+	val &= ~(sparc_pmu->user_bit | sparc_pmu->priv_bit |
- 		 sparc_pmu->hv_bit | sparc_pmu->irq_bit);
- 	cpuc->pcr = val;
++/* offline the node if all memory sections of this node are removed */
++static void try_offline_node(int nid)
++{
++	unsigned long start_pfn = NODE_DATA(nid)->node_start_pfn;
++	unsigned long end_pfn = start_pfn + NODE_DATA(nid)->node_spanned_pages;
++	unsigned long pfn;
++
++	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
++		unsigned long section_nr = pfn_to_section_nr(pfn);
++
++		if (!present_section_nr(section_nr))
++			continue;
++
++		if (pfn_to_nid(pfn) != nid)
++			continue;
++
++		/*
++		 * some memory sections of this node are not removed, and we
++		 * can't offline node now.
++		 */
++		return;
++	}
++
++	/*
++	 * all memory sections of this node are removed, we can offline this
++	 * node now.
++	 */
++	node_set_offline(nid);
++	unregister_one_node(nid);
++}
++
+ int __ref remove_memory(int nid, u64 start, u64 size)
+ {
+ 	int ret = 0;
+@@ -1306,6 +1337,8 @@ int __ref remove_memory(int nid, u64 start, u64 size)
+ 	firmware_map_remove(start, start + size, "System RAM");
  
-@@ -1177,9 +1185,9 @@ static int sparc_pmu_event_init(struct perf_event *event)
- 	/* We save the enable bits in the config_base.  */
- 	hwc->config_base = sparc_pmu->irq_bit;
- 	if (!attr->exclude_user)
--		hwc->config_base |= PCR_UTRACE;
-+		hwc->config_base |= sparc_pmu->user_bit;
- 	if (!attr->exclude_kernel)
--		hwc->config_base |= PCR_STRACE;
-+		hwc->config_base |= sparc_pmu->priv_bit;
- 	if (!attr->exclude_hv)
- 		hwc->config_base |= sparc_pmu->hv_bit;
- 
+ 	arch_remove_memory(start, size);
++
++	try_offline_node(nid);
+ out:
+ 	unlock_memory_hotplug();
+ 	return ret;
 -- 
-1.7.10.4
+1.7.1
 
