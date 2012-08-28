@@ -1,83 +1,154 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 29 Aug 2012 03:59:23 +0000
-Subject: [PATCH] sparc64: Use fsrc2 instead of fsrc1 in sparc64 hash crypto drivers.
-Message-Id: <20120828.235923.1470366001549013400.davem@davemloft.net>
+From: wency@cn.fujitsu.com
+Date: Tue, 28 Aug 2012 10:00:08 +0000
+Subject: [RFC v8 PATCH 01/20] memory-hotplug: rename remove_memory() to offline_memory()/offline_pages()
+Message-Id: <1346148027-24468-2-git-send-email-wency@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
+In-Reply-To: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
 
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-On SPARC-T4 fsrc2 has 1 cycle of latency, whereas fsrc1 has 11 cycles.
+remove_memory() only try to offline pages. It is called in two cases:
+1. hot remove a memory device
+2. echo offline >/sys/devices/system/memory/memoryXX/state
 
-True story.
+In the 1st case, we should also change memory block's state, and notify
+the userspace that the memory block's state is changed after offlining
+pages.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+So rename remove_memory() to offline_memory()/offline_pages(). And in
+the 1st case, offline_memory() will be used. The function offline_memory()
+is not implemented. In the 2nd case, offline_pages() will be used.
+
+CC: David Rientjes <rientjes@google.com>
+CC: Jiang Liu <liuj97@gmail.com>
+CC: Len Brown <len.brown@intel.com>
+CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+CC: Paul Mackerras <paulus@samba.org>
+CC: Christoph Lameter <cl@linux.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+CC: Andrew Morton <akpm@linux-foundation.org>
+CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
 ---
+ drivers/acpi/acpi_memhotplug.c |    2 +-
+ drivers/base/memory.c          |    9 +++------
+ include/linux/memory_hotplug.h |    3 ++-
+ mm/memory_hotplug.c            |   22 ++++++++++++++--------
+ 4 files changed, 20 insertions(+), 16 deletions(-)
 
-I noticed this while fine-tuning the AES driver.  Actually, I turned
-out to be disappointed, since AES was one of the drivers that didn't
-make this mistake :-)
-
- arch/sparc/crypto/md5_asm.S    |    2 +-
- arch/sparc/crypto/sha1_asm.S   |    2 +-
- arch/sparc/crypto/sha256_asm.S |    2 +-
- arch/sparc/crypto/sha512_asm.S |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/arch/sparc/crypto/md5_asm.S b/arch/sparc/crypto/md5_asm.S
-index 220b73b..ff90903 100644
---- a/arch/sparc/crypto/md5_asm.S
-+++ b/arch/sparc/crypto/md5_asm.S
-@@ -62,7 +62,7 @@ ENTRY(md5_sparc64_transform)
- 	.word	0x81b02800
+diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+index 24c807f..2a7beac 100644
+--- a/drivers/acpi/acpi_memhotplug.c
++++ b/drivers/acpi/acpi_memhotplug.c
+@@ -318,7 +318,7 @@ static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
+ 	 */
+ 	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
+ 		if (info->enabled) {
+-			result = remove_memory(info->start_addr, info->length);
++			result = offline_memory(info->start_addr, info->length);
+ 			if (result)
+ 				return result;
+ 		}
+diff --git a/drivers/base/memory.c b/drivers/base/memory.c
+index 7dda4f7..44e7de6 100644
+--- a/drivers/base/memory.c
++++ b/drivers/base/memory.c
+@@ -248,26 +248,23 @@ static bool pages_correctly_reserved(unsigned long start_pfn,
+ static int
+ memory_block_action(unsigned long phys_index, unsigned long action)
+ {
+-	unsigned long start_pfn, start_paddr;
++	unsigned long start_pfn;
+ 	unsigned long nr_pages = PAGES_PER_SECTION * sections_per_block;
+ 	struct page *first_page;
+ 	int ret;
  
- 	subcc	%o2, 1, %o2
--	fsrc1	%f26, %f10
-+	fsrc2	%f26, %f10
- 	bne,pt	%xcc, 1b
- 	 add	%o1, 0x40, %o1
+ 	first_page = pfn_to_page(phys_index << PFN_SECTION_SHIFT);
++	start_pfn = page_to_pfn(first_page);
  
-diff --git a/arch/sparc/crypto/sha1_asm.S b/arch/sparc/crypto/sha1_asm.S
-index d2147eb..3cd218a 100644
---- a/arch/sparc/crypto/sha1_asm.S
-+++ b/arch/sparc/crypto/sha1_asm.S
-@@ -64,7 +64,7 @@ ENTRY(sha1_sparc64_transform)
- 	.word	0x81b02820
+ 	switch (action) {
+ 		case MEM_ONLINE:
+-			start_pfn = page_to_pfn(first_page);
+-
+ 			if (!pages_correctly_reserved(start_pfn, nr_pages))
+ 				return -EBUSY;
  
- 	subcc	%o2, 1, %o2
--	fsrc1	%f26, %f10
-+	fsrc2	%f26, %f10
- 	bne,pt	%xcc, 1b
- 	 add	%o1, 0x40, %o1
+ 			ret = online_pages(start_pfn, nr_pages);
+ 			break;
+ 		case MEM_OFFLINE:
+-			start_paddr = page_to_pfn(first_page) << PAGE_SHIFT;
+-			ret = remove_memory(start_paddr,
+-					    nr_pages << PAGE_SHIFT);
++			ret = offline_pages(start_pfn, nr_pages);
+ 			break;
+ 		default:
+ 			WARN(1, KERN_WARNING "%s(%ld, %ld) unknown action: "
+diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+index 910550f..c183f39 100644
+--- a/include/linux/memory_hotplug.h
++++ b/include/linux/memory_hotplug.h
+@@ -233,7 +233,8 @@ static inline int is_mem_section_removable(unsigned long pfn,
+ extern int mem_online_node(int nid);
+ extern int add_memory(int nid, u64 start, u64 size);
+ extern int arch_add_memory(int nid, u64 start, u64 size);
+-extern int remove_memory(u64 start, u64 size);
++extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
++extern int offline_memory(u64 start, u64 size);
+ extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
+ 								int nr_pages);
+ extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms);
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 3ad25f9..c182c76 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -866,7 +866,7 @@ check_pages_isolated(unsigned long start_pfn, unsigned long end_pfn)
+ 	return offlined;
+ }
  
-diff --git a/arch/sparc/crypto/sha256_asm.S b/arch/sparc/crypto/sha256_asm.S
-index 771ce26..9da84f5 100644
---- a/arch/sparc/crypto/sha256_asm.S
-+++ b/arch/sparc/crypto/sha256_asm.S
-@@ -70,7 +70,7 @@ ENTRY(sha256_sparc64_transform)
- 	.word	0x81b02840
+-static int __ref offline_pages(unsigned long start_pfn,
++static int __ref __offline_pages(unsigned long start_pfn,
+ 		  unsigned long end_pfn, unsigned long timeout)
+ {
+ 	unsigned long pfn, nr_pages, expire;
+@@ -994,18 +994,24 @@ out:
+ 	return ret;
+ }
  
- 	subcc	%o2, 1, %o2
--	fsrc1	%f26, %f10
-+	fsrc2	%f26, %f10
- 	bne,pt	%xcc, 1b
- 	 add	%o1, 0x40, %o1
+-int remove_memory(u64 start, u64 size)
++int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
+ {
+-	unsigned long start_pfn, end_pfn;
++	return __offline_pages(start_pfn, start_pfn + nr_pages, 120 * HZ);
++}
  
-diff --git a/arch/sparc/crypto/sha512_asm.S b/arch/sparc/crypto/sha512_asm.S
-index 04244da..650ba57 100644
---- a/arch/sparc/crypto/sha512_asm.S
-+++ b/arch/sparc/crypto/sha512_asm.S
-@@ -94,7 +94,7 @@ ENTRY(sha512_sparc64_transform)
- 	.word	0x81b02860
- 
- 	subcc	%o2, 1, %o2
--	fsrc1	%f50, %f18
-+	fsrc2	%f50, %f18
- 	bne,pt	%xcc, 1b
- 	 add	%o1, 0x80, %o1
- 
+-	start_pfn = PFN_DOWN(start);
+-	end_pfn = start_pfn + PFN_DOWN(size);
+-	return offline_pages(start_pfn, end_pfn, 120 * HZ);
++int offline_memory(u64 start, u64 size)
++{
++	return -EINVAL;
+ }
+ #else
+-int remove_memory(u64 start, u64 size)
++int offline_pages(u64 start, u64 size)
++{
++	return -EINVAL;
++}
++
++int offline_memory(u64 start, u64 size)
+ {
+ 	return -EINVAL;
+ }
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
+-EXPORT_SYMBOL_GPL(remove_memory);
++EXPORT_SYMBOL_GPL(offline_memory);
 -- 
-1.7.10.4
+1.7.1
 
