@@ -1,259 +1,312 @@
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Date: Thu, 16 Aug 2012 15:15:52 +0000
-Subject: [PATCH v3 5/7] x86: Add clear_page_nocache
-Message-Id: <1345130154-9602-6-git-send-email-kirill.shutemov@linux.intel.com>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 30 Aug 2012 15:46:44 +0000
+Subject: [PATCH 5/5] sparc64: Unroll CTR crypt loops in AES driver.
+Message-Id: <20120830.114644.1460036275187406714.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1345130154-9602-1-git-send-email-kirill.shutemov@linux.intel.com>
-In-Reply-To: <1345130154-9602-1-git-send-email-kirill.shutemov@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Andi Kleen <ak@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Tim Chen <tim.c.chen@linux.intel.com>, Alex Shi <alex.shu@intel.com>, Jan Beulich <jbeulich@novell.com>, Robert Richter <robert.richter@amd.com>, Andy Lutomirski <luto@amacapital.net>, Andrew Morton <akpm@linux-foundation.org>, Andrea Arcangeli <aarcange@redhat.com>, Johannes Weiner <hannes@cmpxchg.org>, Hugh Dickins <hughd@google.com>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mips@linux-mips.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
+Cc: linux-crypto@vger.kernel.org, herbert@gondor.apana.org.au
 
-From: Andi Kleen <ak@linux.intel.com>
 
-Add a cache avoiding version of clear_page. Straight forward integer variant
-of the existing 64bit clear_page, for both 32bit and 64bit.
+Before:
 
-Also add the necessary glue for highmem including a layer that non cache
-coherent architectures that use the virtual address for flushing can
-hook in. This is not needed on x86 of course.
+testing speed of ctr(aes) encryption
+test 0 (128 bit key, 16 byte blocks): 1 operation in 206 cycles (16 bytes)
+test 1 (128 bit key, 64 byte blocks): 1 operation in 244 cycles (64 bytes)
+test 2 (128 bit key, 256 byte blocks): 1 operation in 360 cycles (256 bytes)
+test 3 (128 bit key, 1024 byte blocks): 1 operation in 814 cycles (1024 bytes)
+test 4 (128 bit key, 8192 byte blocks): 1 operation in 5021 cycles (8192 bytes)
+test 5 (192 bit key, 16 byte blocks): 1 operation in 206 cycles (16 bytes)
+test 6 (192 bit key, 64 byte blocks): 1 operation in 240 cycles (64 bytes)
+test 7 (192 bit key, 256 byte blocks): 1 operation in 378 cycles (256 bytes)
+test 8 (192 bit key, 1024 byte blocks): 1 operation in 939 cycles (1024 bytes)
+test 9 (192 bit key, 8192 byte blocks): 1 operation in 6395 cycles (8192 bytes)
+test 10 (256 bit key, 16 byte blocks): 1 operation in 209 cycles (16 bytes)
+test 11 (256 bit key, 64 byte blocks): 1 operation in 249 cycles (64 bytes)
+test 12 (256 bit key, 256 byte blocks): 1 operation in 414 cycles (256 bytes)
+test 13 (256 bit key, 1024 byte blocks): 1 operation in 1073 cycles (1024 bytes)
+test 14 (256 bit key, 8192 byte blocks): 1 operation in 7110 cycles (8192 bytes)
 
-If an architecture wants to provide cache avoiding version of clear_page
-it should to define ARCH_HAS_USER_NOCACHE to 1 and implement
-clear_page_nocache() and clear_user_highpage_nocache().
+testing speed of ctr(aes) decryption
+test 0 (128 bit key, 16 byte blocks): 1 operation in 225 cycles (16 bytes)
+test 1 (128 bit key, 64 byte blocks): 1 operation in 233 cycles (64 bytes)
+test 2 (128 bit key, 256 byte blocks): 1 operation in 344 cycles (256 bytes)
+test 3 (128 bit key, 1024 byte blocks): 1 operation in 810 cycles (1024 bytes)
+test 4 (128 bit key, 8192 byte blocks): 1 operation in 5021 cycles (8192 bytes)
+test 5 (192 bit key, 16 byte blocks): 1 operation in 206 cycles (16 bytes)
+test 6 (192 bit key, 64 byte blocks): 1 operation in 240 cycles (64 bytes)
+test 7 (192 bit key, 256 byte blocks): 1 operation in 376 cycles (256 bytes)
+test 8 (192 bit key, 1024 byte blocks): 1 operation in 938 cycles (1024 bytes)
+test 9 (192 bit key, 8192 byte blocks): 1 operation in 6380 cycles (8192 bytes)
+test 10 (256 bit key, 16 byte blocks): 1 operation in 214 cycles (16 bytes)
+test 11 (256 bit key, 64 byte blocks): 1 operation in 251 cycles (64 bytes)
+test 12 (256 bit key, 256 byte blocks): 1 operation in 411 cycles (256 bytes)
+test 13 (256 bit key, 1024 byte blocks): 1 operation in 1070 cycles (1024 bytes)
+test 14 (256 bit key, 8192 byte blocks): 1 operation in 7114 cycles (8192 bytes)
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+After:
+
+testing speed of ctr(aes) encryption
+test 0 (128 bit key, 16 byte blocks): 1 operation in 211 cycles (16 bytes)
+test 1 (128 bit key, 64 byte blocks): 1 operation in 246 cycles (64 bytes)
+test 2 (128 bit key, 256 byte blocks): 1 operation in 344 cycles (256 bytes)
+test 3 (128 bit key, 1024 byte blocks): 1 operation in 799 cycles (1024 bytes)
+test 4 (128 bit key, 8192 byte blocks): 1 operation in 4975 cycles (8192 bytes)
+test 5 (192 bit key, 16 byte blocks): 1 operation in 210 cycles (16 bytes)
+test 6 (192 bit key, 64 byte blocks): 1 operation in 236 cycles (64 bytes)
+test 7 (192 bit key, 256 byte blocks): 1 operation in 365 cycles (256 bytes)
+test 8 (192 bit key, 1024 byte blocks): 1 operation in 888 cycles (1024 bytes)
+test 9 (192 bit key, 8192 byte blocks): 1 operation in 6055 cycles (8192 bytes)
+test 10 (256 bit key, 16 byte blocks): 1 operation in 209 cycles (16 bytes)
+test 11 (256 bit key, 64 byte blocks): 1 operation in 255 cycles (64 bytes)
+test 12 (256 bit key, 256 byte blocks): 1 operation in 404 cycles (256 bytes)
+test 13 (256 bit key, 1024 byte blocks): 1 operation in 1010 cycles (1024 bytes)
+test 14 (256 bit key, 8192 byte blocks): 1 operation in 6669 cycles (8192 bytes)
+
+testing speed of ctr(aes) decryption
+test 0 (128 bit key, 16 byte blocks): 1 operation in 210 cycles (16 bytes)
+test 1 (128 bit key, 64 byte blocks): 1 operation in 233 cycles (64 bytes)
+test 2 (128 bit key, 256 byte blocks): 1 operation in 340 cycles (256 bytes)
+test 3 (128 bit key, 1024 byte blocks): 1 operation in 818 cycles (1024 bytes)
+test 4 (128 bit key, 8192 byte blocks): 1 operation in 4956 cycles (8192 bytes)
+test 5 (192 bit key, 16 byte blocks): 1 operation in 206 cycles (16 bytes)
+test 6 (192 bit key, 64 byte blocks): 1 operation in 239 cycles (64 bytes)
+test 7 (192 bit key, 256 byte blocks): 1 operation in 361 cycles (256 bytes)
+test 8 (192 bit key, 1024 byte blocks): 1 operation in 888 cycles (1024 bytes)
+test 9 (192 bit key, 8192 byte blocks): 1 operation in 5996 cycles (8192 bytes)
+test 10 (256 bit key, 16 byte blocks): 1 operation in 214 cycles (16 bytes)
+test 11 (256 bit key, 64 byte blocks): 1 operation in 248 cycles (64 bytes)
+test 12 (256 bit key, 256 byte blocks): 1 operation in 395 cycles (256 bytes)
+test 13 (256 bit key, 1024 byte blocks): 1 operation in 1010 cycles (1024 bytes)
+test 14 (256 bit key, 8192 byte blocks): 1 operation in 6664 cycles (8192 bytes)
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/x86/include/asm/page.h      |    2 +
- arch/x86/include/asm/string_32.h |    5 +++
- arch/x86/include/asm/string_64.h |    5 +++
- arch/x86/lib/Makefile            |    3 +-
- arch/x86/lib/clear_page_32.S     |   72 ++++++++++++++++++++++++++++++++++++++
- arch/x86/lib/clear_page_64.S     |   29 +++++++++++++++
- arch/x86/mm/fault.c              |    7 ++++
- 7 files changed, 122 insertions(+), 1 deletions(-)
- create mode 100644 arch/x86/lib/clear_page_32.S
+ arch/sparc/crypto/aes_asm.S |  142 +++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 118 insertions(+), 24 deletions(-)
 
-diff --git a/arch/x86/include/asm/page.h b/arch/x86/include/asm/page.h
-index 8ca8283..aa83a1b 100644
---- a/arch/x86/include/asm/page.h
-+++ b/arch/x86/include/asm/page.h
-@@ -29,6 +29,8 @@ static inline void copy_user_page(void *to, void *from, unsigned long vaddr,
- 	copy_page(to, from);
- }
+diff --git a/arch/sparc/crypto/aes_asm.S b/arch/sparc/crypto/aes_asm.S
+index 0bd3e04..0fadad0 100644
+--- a/arch/sparc/crypto/aes_asm.S
++++ b/arch/sparc/crypto/aes_asm.S
+@@ -48,6 +48,10 @@
+ 	.word	0x81b0230d;
+ #define MOVXTOD_O5_F2		\
+ 	.word	0x85b0230d;
++#define MOVXTOD_O5_F4		\
++	.word	0x89b0230d;
++#define MOVXTOD_O5_F6		\
++	.word	0x8db0230d;
+ #define MOVXTOD_G3_F60		\
+ 	.word	0xbbb02303;
+ #define MOVXTOD_G7_F62		\
+@@ -1400,8 +1404,10 @@ ENTRY(aes_sparc64_ctr_crypt_128)
+ 	/* %o0=key, %o1=input, %o2=output, %o3=len, %o4=IV */
+ 	ldx		[%o4 + 0x00], %g3
+ 	ldx		[%o4 + 0x08], %g7
++	subcc		%o3, 0x10, %o3
+ 	ldx		[%o0 + 0x00], %g1
+-	ldx		[%o0 + 0x08], %g2
++	be		10f
++	 ldx		[%o0 + 0x08], %g2
+ 1:	xor		%g1, %g3, %o5
+ 	MOVXTOD_O5_F0
+ 	xor		%g2, %g7, %o5
+@@ -1409,6 +1415,39 @@ ENTRY(aes_sparc64_ctr_crypt_128)
+ 	add		%g7, 1, %g7
+ 	add		%g3, 1, %o5
+ 	movrz		%g7, %o5, %g3
++	xor		%g1, %g3, %o5
++	MOVXTOD_O5_F4
++	xor		%g2, %g7, %o5
++	MOVXTOD_O5_F6
++	add		%g7, 1, %g7
++	add		%g3, 1, %o5
++	movrz		%g7, %o5, %g3
++	ENCRYPT_128_2(8, 0, 2, 4, 6, 56, 58, 60, 62)
++	ldd		[%o1 + 0x00], %f56
++	ldd		[%o1 + 0x08], %f58
++	ldd		[%o1 + 0x10], %f60
++	ldd		[%o1 + 0x18], %f62
++	fxor		%f56, %f0, %f56
++	fxor		%f58, %f2, %f58
++	fxor		%f60, %f4, %f60
++	fxor		%f62, %f6, %f62
++	std		%f56, [%o2 + 0x00]
++	std		%f58, [%o2 + 0x08]
++	std		%f60, [%o2 + 0x10]
++	std		%f62, [%o2 + 0x18]
++	subcc		%o3, 0x20, %o3
++	add		%o1, 0x20, %o1
++	brgz		%o3, 1b
++	 add		%o2, 0x20, %o2
++	brlz,pt		%o3, 11f
++	 nop
++10:	xor		%g1, %g3, %o5
++	MOVXTOD_O5_F0
++	xor		%g2, %g7, %o5
++	MOVXTOD_O5_F2
++	add		%g7, 1, %g7
++	add		%g3, 1, %o5
++	movrz		%g7, %o5, %g3
+ 	ENCRYPT_128(8, 0, 2, 4, 6)
+ 	ldd		[%o1 + 0x00], %f4
+ 	ldd		[%o1 + 0x08], %f6
+@@ -1416,14 +1455,9 @@ ENTRY(aes_sparc64_ctr_crypt_128)
+ 	fxor		%f6, %f2, %f6
+ 	std		%f4, [%o2 + 0x00]
+ 	std		%f6, [%o2 + 0x08]
+-	subcc		%o3, 0x10, %o3
+-	add		%o1, 0x10, %o1
+-	bne,pt		%xcc, 1b
+-	 add		%o2, 0x10, %o2
+-	stx		%g3, [%o4 + 0x00]
+-	stx		%g7, [%o4 + 0x08]
++11:	stx		%g3, [%o4 + 0x00]
+ 	retl
+-	 nop
++	 stx		%g7, [%o4 + 0x08]
+ ENDPROC(aes_sparc64_ctr_crypt_128)
  
-+void clear_user_highpage_nocache(struct page *page, unsigned long vaddr);
-+
- #define __alloc_zeroed_user_highpage(movableflags, vma, vaddr) \
- 	alloc_page_vma(GFP_HIGHUSER | __GFP_ZERO | movableflags, vma, vaddr)
- #define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE
-diff --git a/arch/x86/include/asm/string_32.h b/arch/x86/include/asm/string_32.h
-index 3d3e835..3f2fbcf 100644
---- a/arch/x86/include/asm/string_32.h
-+++ b/arch/x86/include/asm/string_32.h
-@@ -3,6 +3,8 @@
+ 	.align		32
+@@ -1431,8 +1465,10 @@ ENTRY(aes_sparc64_ctr_crypt_192)
+ 	/* %o0=key, %o1=input, %o2=output, %o3=len, %o4=IV */
+ 	ldx		[%o4 + 0x00], %g3
+ 	ldx		[%o4 + 0x08], %g7
++	subcc		%o3, 0x10, %o3
+ 	ldx		[%o0 + 0x00], %g1
+-	ldx		[%o0 + 0x08], %g2
++	be		10f
++	 ldx		[%o0 + 0x08], %g2
+ 1:	xor		%g1, %g3, %o5
+ 	MOVXTOD_O5_F0
+ 	xor		%g2, %g7, %o5
+@@ -1440,6 +1476,39 @@ ENTRY(aes_sparc64_ctr_crypt_192)
+ 	add		%g7, 1, %g7
+ 	add		%g3, 1, %o5
+ 	movrz		%g7, %o5, %g3
++	xor		%g1, %g3, %o5
++	MOVXTOD_O5_F4
++	xor		%g2, %g7, %o5
++	MOVXTOD_O5_F6
++	add		%g7, 1, %g7
++	add		%g3, 1, %o5
++	movrz		%g7, %o5, %g3
++	ENCRYPT_192_2(8, 0, 2, 4, 6, 56, 58, 60, 62)
++	ldd		[%o1 + 0x00], %f56
++	ldd		[%o1 + 0x08], %f58
++	ldd		[%o1 + 0x10], %f60
++	ldd		[%o1 + 0x18], %f62
++	fxor		%f56, %f0, %f56
++	fxor		%f58, %f2, %f58
++	fxor		%f60, %f4, %f60
++	fxor		%f62, %f6, %f62
++	std		%f56, [%o2 + 0x00]
++	std		%f58, [%o2 + 0x08]
++	std		%f60, [%o2 + 0x10]
++	std		%f62, [%o2 + 0x18]
++	subcc		%o3, 0x20, %o3
++	add		%o1, 0x20, %o1
++	brgz		%o3, 1b
++	 add		%o2, 0x20, %o2
++	brlz,pt		%o3, 11f
++	 nop
++10:	xor		%g1, %g3, %o5
++	MOVXTOD_O5_F0
++	xor		%g2, %g7, %o5
++	MOVXTOD_O5_F2
++	add		%g7, 1, %g7
++	add		%g3, 1, %o5
++	movrz		%g7, %o5, %g3
+ 	ENCRYPT_192(8, 0, 2, 4, 6)
+ 	ldd		[%o1 + 0x00], %f4
+ 	ldd		[%o1 + 0x08], %f6
+@@ -1447,14 +1516,9 @@ ENTRY(aes_sparc64_ctr_crypt_192)
+ 	fxor		%f6, %f2, %f6
+ 	std		%f4, [%o2 + 0x00]
+ 	std		%f6, [%o2 + 0x08]
+-	subcc		%o3, 0x10, %o3
+-	add		%o1, 0x10, %o1
+-	bne,pt		%xcc, 1b
+-	 add		%o2, 0x10, %o2
+-	stx		%g3, [%o4 + 0x00]
+-	stx		%g7, [%o4 + 0x08]
++11:	stx		%g3, [%o4 + 0x00]
+ 	retl
+-	 nop
++	 stx		%g7, [%o4 + 0x08]
+ ENDPROC(aes_sparc64_ctr_crypt_192)
  
- #ifdef __KERNEL__
- 
-+#include <linux/linkage.h>
-+
- /* Let gcc decide whether to inline or use the out of line functions */
- 
- #define __HAVE_ARCH_STRCPY
-@@ -337,6 +339,9 @@ void *__constant_c_and_count_memset(void *s, unsigned long pattern,
- #define __HAVE_ARCH_MEMSCAN
- extern void *memscan(void *addr, int c, size_t size);
- 
-+#define ARCH_HAS_USER_NOCACHE 1
-+asmlinkage void clear_page_nocache(void *page);
-+
- #endif /* __KERNEL__ */
- 
- #endif /* _ASM_X86_STRING_32_H */
-diff --git a/arch/x86/include/asm/string_64.h b/arch/x86/include/asm/string_64.h
-index 19e2c46..ca23d1d 100644
---- a/arch/x86/include/asm/string_64.h
-+++ b/arch/x86/include/asm/string_64.h
-@@ -3,6 +3,8 @@
- 
- #ifdef __KERNEL__
- 
-+#include <linux/linkage.h>
-+
- /* Written 2002 by Andi Kleen */
- 
- /* Only used for special circumstances. Stolen from i386/string.h */
-@@ -63,6 +65,9 @@ char *strcpy(char *dest, const char *src);
- char *strcat(char *dest, const char *src);
- int strcmp(const char *cs, const char *ct);
- 
-+#define ARCH_HAS_USER_NOCACHE 1
-+asmlinkage void clear_page_nocache(void *page);
-+
- #endif /* __KERNEL__ */
- 
- #endif /* _ASM_X86_STRING_64_H */
-diff --git a/arch/x86/lib/Makefile b/arch/x86/lib/Makefile
-index b00f678..14e47a2 100644
---- a/arch/x86/lib/Makefile
-+++ b/arch/x86/lib/Makefile
-@@ -23,6 +23,7 @@ lib-y += memcpy_$(BITS).o
- lib-$(CONFIG_SMP) += rwlock.o
- lib-$(CONFIG_RWSEM_XCHGADD_ALGORITHM) += rwsem.o
- lib-$(CONFIG_INSTRUCTION_DECODER) += insn.o inat.o
-+lib-y += clear_page_$(BITS).o
- 
- obj-y += msr.o msr-reg.o msr-reg-export.o
- 
-@@ -40,7 +41,7 @@ endif
- else
-         obj-y += iomap_copy_64.o
-         lib-y += csum-partial_64.o csum-copy_64.o csum-wrappers_64.o
--        lib-y += thunk_64.o clear_page_64.o copy_page_64.o
-+        lib-y += thunk_64.o copy_page_64.o
-         lib-y += memmove_64.o memset_64.o
-         lib-y += copy_user_64.o copy_user_nocache_64.o
- 	lib-y += cmpxchg16b_emu.o
-diff --git a/arch/x86/lib/clear_page_32.S b/arch/x86/lib/clear_page_32.S
-new file mode 100644
-index 0000000..9592161
---- /dev/null
-+++ b/arch/x86/lib/clear_page_32.S
-@@ -0,0 +1,72 @@
-+#include <linux/linkage.h>
-+#include <asm/alternative-asm.h>
-+#include <asm/cpufeature.h>
-+#include <asm/dwarf2.h>
-+
-+/*
-+ * Fallback version if SSE2 is not avaible.
-+ */
-+ENTRY(clear_page_nocache)
-+	CFI_STARTPROC
-+	mov    %eax,%edx
-+	xorl   %eax,%eax
-+	movl   $4096/32,%ecx
-+	.p2align 4
-+.Lloop:
-+	decl	%ecx
-+#define PUT(x) mov %eax,x*4(%edx)
-+	PUT(0)
-+	PUT(1)
-+	PUT(2)
-+	PUT(3)
-+	PUT(4)
-+	PUT(5)
-+	PUT(6)
-+	PUT(7)
-+#undef PUT
-+	lea	32(%edx),%edx
-+	jnz	.Lloop
-+	nop
-+	ret
-+	CFI_ENDPROC
-+ENDPROC(clear_page_nocache)
-+
-+	.section .altinstr_replacement,"ax"
-+1:      .byte 0xeb /* jmp <disp8> */
-+	.byte (clear_page_nocache_sse2 - clear_page_nocache) - (2f - 1b)
-+	/* offset */
-+2:
-+	.previous
-+	.section .altinstructions,"a"
-+	altinstruction_entry clear_page_nocache,1b,X86_FEATURE_XMM2,\
-+				16, 2b-1b
-+	.previous
-+
-+/*
-+ * Zero a page avoiding the caches
-+ * eax	page
-+ */
-+ENTRY(clear_page_nocache_sse2)
-+	CFI_STARTPROC
-+	mov    %eax,%edx
-+	xorl   %eax,%eax
-+	movl   $4096/32,%ecx
-+	.p2align 4
-+.Lloop_sse2:
-+	decl	%ecx
-+#define PUT(x) movnti %eax,x*4(%edx)
-+	PUT(0)
-+	PUT(1)
-+	PUT(2)
-+	PUT(3)
-+	PUT(4)
-+	PUT(5)
-+	PUT(6)
-+	PUT(7)
-+#undef PUT
-+	lea	32(%edx),%edx
-+	jnz	.Lloop_sse2
-+	nop
-+	ret
-+	CFI_ENDPROC
-+ENDPROC(clear_page_nocache_sse2)
-diff --git a/arch/x86/lib/clear_page_64.S b/arch/x86/lib/clear_page_64.S
-index f2145cf..9d2f3c2 100644
---- a/arch/x86/lib/clear_page_64.S
-+++ b/arch/x86/lib/clear_page_64.S
-@@ -40,6 +40,7 @@ ENTRY(clear_page)
- 	PUT(5)
- 	PUT(6)
- 	PUT(7)
-+#undef PUT
- 	leaq	64(%rdi),%rdi
- 	jnz	.Lloop
- 	nop
-@@ -71,3 +72,31 @@ ENDPROC(clear_page)
- 	altinstruction_entry clear_page,2b,X86_FEATURE_ERMS,   \
- 			     .Lclear_page_end-clear_page,3b-2b
- 	.previous
-+
-+/*
-+ * Zero a page avoiding the caches
-+ * rdi	page
-+ */
-+ENTRY(clear_page_nocache)
-+	CFI_STARTPROC
-+	xorl   %eax,%eax
-+	movl   $4096/64,%ecx
-+	.p2align 4
-+.Lloop_nocache:
-+	decl	%ecx
-+#define PUT(x) movnti %rax,x*8(%rdi)
-+	movnti %rax,(%rdi)
-+	PUT(1)
-+	PUT(2)
-+	PUT(3)
-+	PUT(4)
-+	PUT(5)
-+	PUT(6)
-+	PUT(7)
-+#undef PUT
-+	leaq	64(%rdi),%rdi
-+	jnz	.Lloop_nocache
-+	nop
-+	ret
-+	CFI_ENDPROC
-+ENDPROC(clear_page_nocache)
-diff --git a/arch/x86/mm/fault.c b/arch/x86/mm/fault.c
-index 76dcd9d..d8cf231 100644
---- a/arch/x86/mm/fault.c
-+++ b/arch/x86/mm/fault.c
-@@ -1209,3 +1209,10 @@ good_area:
- 
- 	up_read(&mm->mmap_sem);
- }
-+
-+void clear_user_highpage_nocache(struct page *page, unsigned long vaddr)
-+{
-+	void *p = kmap_atomic(page);
-+	clear_page_nocache(p);
-+	kunmap_atomic(p);
-+}
+ 	.align		32
+@@ -1462,8 +1526,10 @@ ENTRY(aes_sparc64_ctr_crypt_256)
+ 	/* %o0=key, %o1=input, %o2=output, %o3=len, %o4=IV */
+ 	ldx		[%o4 + 0x00], %g3
+ 	ldx		[%o4 + 0x08], %g7
++	subcc		%o3, 0x10, %o3
+ 	ldx		[%o0 + 0x00], %g1
+-	ldx		[%o0 + 0x08], %g2
++	be		10f
++	 ldx		[%o0 + 0x08], %g2
+ 1:	xor		%g1, %g3, %o5
+ 	MOVXTOD_O5_F0
+ 	xor		%g2, %g7, %o5
+@@ -1471,6 +1537,39 @@ ENTRY(aes_sparc64_ctr_crypt_256)
+ 	add		%g7, 1, %g7
+ 	add		%g3, 1, %o5
+ 	movrz		%g7, %o5, %g3
++	xor		%g1, %g3, %o5
++	MOVXTOD_O5_F4
++	xor		%g2, %g7, %o5
++	MOVXTOD_O5_F6
++	add		%g7, 1, %g7
++	add		%g3, 1, %o5
++	movrz		%g7, %o5, %g3
++	ENCRYPT_256_2(8, 0, 2, 4, 6)
++	ldd		[%o1 + 0x00], %f56
++	ldd		[%o1 + 0x08], %f58
++	ldd		[%o1 + 0x10], %f60
++	ldd		[%o1 + 0x18], %f62
++	fxor		%f56, %f0, %f56
++	fxor		%f58, %f2, %f58
++	fxor		%f60, %f4, %f60
++	fxor		%f62, %f6, %f62
++	std		%f56, [%o2 + 0x00]
++	std		%f58, [%o2 + 0x08]
++	std		%f60, [%o2 + 0x10]
++	std		%f62, [%o2 + 0x18]
++	subcc		%o3, 0x20, %o3
++	add		%o1, 0x20, %o1
++	brgz		%o3, 1b
++	 add		%o2, 0x20, %o2
++	brlz,pt		%o3, 11f
++	 nop
++10:	xor		%g1, %g3, %o5
++	MOVXTOD_O5_F0
++	xor		%g2, %g7, %o5
++	MOVXTOD_O5_F2
++	add		%g7, 1, %g7
++	add		%g3, 1, %o5
++	movrz		%g7, %o5, %g3
+ 	ENCRYPT_256(8, 0, 2, 4, 6)
+ 	ldd		[%o1 + 0x00], %f4
+ 	ldd		[%o1 + 0x08], %f6
+@@ -1478,12 +1577,7 @@ ENTRY(aes_sparc64_ctr_crypt_256)
+ 	fxor		%f6, %f2, %f6
+ 	std		%f4, [%o2 + 0x00]
+ 	std		%f6, [%o2 + 0x08]
+-	subcc		%o3, 0x10, %o3
+-	add		%o1, 0x10, %o1
+-	bne,pt		%xcc, 1b
+-	 add		%o2, 0x10, %o2
+-	stx		%g3, [%o4 + 0x00]
+-	stx		%g7, [%o4 + 0x08]
++11:	stx		%g3, [%o4 + 0x00]
+ 	retl
+-	 nop
++	 stx		%g7, [%o4 + 0x08]
+ ENDPROC(aes_sparc64_ctr_crypt_256)
 -- 
-1.7.7.6
+1.7.10.4
 
