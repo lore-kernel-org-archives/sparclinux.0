@@ -1,229 +1,424 @@
 From: David Miller <davem@davemloft.net>
-Date: Sun, 19 Aug 2012 06:28:30 +0000
-Subject: [PATCH 12/17] sparc64: Prepare perf event layer for handling multiple PCR registers.
-Message-Id: <20120818.232830.1330376124979585013.davem@davemloft.net>
+Date: Fri, 31 Aug 2012 19:15:50 +0000
+Subject: [PATCH] sparc64: Avoid code duplication in crypto assembler.
+Message-Id: <20120831.151550.218836635608049682.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
 
-Make the per-cpu pcr save area an array instead of one u64.
-
-Describe how many PCR and PIC registers the chip has in the sparc_pmu
-descriptor.
+Put the opcode macros in a common header
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/kernel/perf_event.c |   72 +++++++++++++++++++++++++---------------
- 1 file changed, 45 insertions(+), 27 deletions(-)
+ arch/sparc/crypto/aes_asm.S      |   56 +---------------------
+ arch/sparc/crypto/camellia_asm.S |   22 +--------
+ arch/sparc/crypto/crc32c_asm.S   |   11 +----
+ arch/sparc/crypto/des_asm.S      |   24 +---------
+ arch/sparc/crypto/md5_asm.S      |    8 ++--
+ arch/sparc/crypto/opcodes.h      |   97 ++++++++++++++++++++++++++++++++++=
+++++
+ arch/sparc/crypto/sha1_asm.S     |    8 ++--
+ arch/sparc/crypto/sha256_asm.S   |    8 ++--
+ arch/sparc/crypto/sha512_asm.S   |    8 ++--
+ 9 files changed, 117 insertions(+), 125 deletions(-)
+ create mode 100644 arch/sparc/crypto/opcodes.h
 
-diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
-index 1ab676b..9be089a 100644
---- a/arch/sparc/kernel/perf_event.c
-+++ b/arch/sparc/kernel/perf_event.c
-@@ -54,6 +54,7 @@
-  */
- 
- #define MAX_HWEVENTS			2
-+#define MAX_PCRS			1
- #define MAX_PERIOD			((1UL << 32) - 1)
- 
- #define PIC_UPPER_INDEX			0
-@@ -89,8 +90,8 @@ struct cpu_hw_events {
- 	 */
- 	int			current_idx[MAX_HWEVENTS];
- 
--	/* Software copy of %pcr register on this cpu.  */
--	u64			pcr;
-+	/* Software copy of %pcr register(s) on this cpu.  */
-+	u64			pcr[MAX_HWEVENTS];
- 
- 	/* Enabled/disable state.  */
- 	int			enabled;
-@@ -156,6 +157,8 @@ struct sparc_pmu {
- #define SPARC_PMU_ALL_EXCLUDES_SAME	0x00000001
- #define SPARC_PMU_HAS_CONFLICTS		0x00000002
- 	int				max_hw_events;
-+	int				num_pcrs;
-+	int				num_pic_regs;
- };
- 
- static u32 sparc_default_read_pmc(int idx)
-@@ -315,6 +318,8 @@ static const struct sparc_pmu ultra3_pmu = {
- 	.flags		= (SPARC_PMU_ALL_EXCLUDES_SAME |
- 			   SPARC_PMU_HAS_CONFLICTS),
- 	.max_hw_events	= 2,
-+	.num_pcrs	= 1,
-+	.num_pic_regs	= 1,
- };
- 
- /* Niagara1 is very limited.  The upper PIC is hard-locked to count
-@@ -451,6 +456,8 @@ static const struct sparc_pmu niagara1_pmu = {
- 	.flags		= (SPARC_PMU_ALL_EXCLUDES_SAME |
- 			   SPARC_PMU_HAS_CONFLICTS),
- 	.max_hw_events	= 2,
-+	.num_pcrs	= 1,
-+	.num_pic_regs	= 1,
- };
- 
- static const struct perf_event_map niagara2_perfmon_event_map[] = {
-@@ -586,6 +593,8 @@ static const struct sparc_pmu niagara2_pmu = {
- 	.flags		= (SPARC_PMU_ALL_EXCLUDES_SAME |
- 			   SPARC_PMU_HAS_CONFLICTS),
- 	.max_hw_events	= 2,
-+	.num_pcrs	= 1,
-+	.num_pic_regs	= 1,
- };
- 
- static const struct sparc_pmu *sparc_pmu __read_mostly;
-@@ -615,12 +624,12 @@ static inline void sparc_pmu_enable_event(struct cpu_hw_events *cpuc, struct hw_
- {
- 	u64 val, mask = mask_for_index(idx);
- 
--	val = cpuc->pcr;
-+	val = cpuc->pcr[0];
- 	val &= ~mask;
- 	val |= hwc->config;
--	cpuc->pcr = val;
-+	cpuc->pcr[0] = val;
- 
--	pcr_ops->write_pcr(0, cpuc->pcr);
-+	pcr_ops->write_pcr(0, cpuc->pcr[0]);
- }
- 
- static inline void sparc_pmu_disable_event(struct cpu_hw_events *cpuc, struct hw_perf_event *hwc, int idx)
-@@ -629,12 +638,12 @@ static inline void sparc_pmu_disable_event(struct cpu_hw_events *cpuc, struct hw
- 	u64 nop = nop_for_index(idx);
- 	u64 val;
- 
--	val = cpuc->pcr;
-+	val = cpuc->pcr[0];
- 	val &= ~mask;
- 	val |= nop;
--	cpuc->pcr = val;
-+	cpuc->pcr[0] = val;
- 
--	pcr_ops->write_pcr(0, cpuc->pcr);
-+	pcr_ops->write_pcr(0, cpuc->pcr[0]);
- }
- 
- static u64 sparc_perf_event_update(struct perf_event *event,
-@@ -751,7 +760,7 @@ static void sparc_pmu_enable(struct pmu *pmu)
- 	cpuc->enabled = 1;
- 	barrier();
- 
--	pcr = cpuc->pcr;
-+	pcr = cpuc->pcr[0];
- 	if (!cpuc->n_events) {
- 		pcr = 0;
- 	} else {
-@@ -761,16 +770,16 @@ static void sparc_pmu_enable(struct pmu *pmu)
- 		 * configuration, so just fetch the settings from the
- 		 * first entry.
- 		 */
--		cpuc->pcr = pcr | cpuc->event[0]->hw.config_base;
-+		cpuc->pcr[0] = pcr | cpuc->event[0]->hw.config_base;
- 	}
- 
--	pcr_ops->write_pcr(0, cpuc->pcr);
-+	pcr_ops->write_pcr(0, cpuc->pcr[0]);
- }
- 
- static void sparc_pmu_disable(struct pmu *pmu)
- {
- 	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
--	u64 val;
-+	int i;
- 
- 	if (!cpuc->enabled)
- 		return;
-@@ -778,12 +787,14 @@ static void sparc_pmu_disable(struct pmu *pmu)
- 	cpuc->enabled = 0;
- 	cpuc->n_added = 0;
- 
--	val = cpuc->pcr;
--	val &= ~(sparc_pmu->user_bit | sparc_pmu->priv_bit |
--		 sparc_pmu->hv_bit | sparc_pmu->irq_bit);
--	cpuc->pcr = val;
-+	for (i = 0; i < sparc_pmu->num_pcrs; i++) {
-+		u64 val = cpuc->pcr[i];
- 
--	pcr_ops->write_pcr(0, cpuc->pcr);
-+		val &= ~(sparc_pmu->user_bit | sparc_pmu->priv_bit |
-+			 sparc_pmu->hv_bit | sparc_pmu->irq_bit);
-+		cpuc->pcr[i] = val;
-+		pcr_ops->write_pcr(i, cpuc->pcr[i]);
-+	}
- }
- 
- static int active_event_index(struct cpu_hw_events *cpuc,
-@@ -882,9 +893,11 @@ static DEFINE_MUTEX(pmc_grab_mutex);
- static void perf_stop_nmi_watchdog(void *unused)
- {
- 	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
-+	int i;
- 
- 	stop_nmi_watchdog(NULL);
--	cpuc->pcr = pcr_ops->read_pcr(0);
-+	for (i = 0; i < sparc_pmu->num_pcrs; i++)
-+		cpuc->pcr[i] = pcr_ops->read_pcr(i);
- }
- 
- void perf_event_grab_pmc(void)
-@@ -1293,8 +1306,7 @@ static struct pmu pmu = {
- void perf_event_print_debug(void)
- {
- 	unsigned long flags;
--	u64 pcr, pic;
--	int cpu;
-+	int cpu, i;
- 
- 	if (!sparc_pmu)
- 		return;
-@@ -1303,12 +1315,13 @@ void perf_event_print_debug(void)
- 
- 	cpu = smp_processor_id();
- 
--	pcr = pcr_ops->read_pcr(0);
--	pic = pcr_ops->read_pic(0);
+diff --git a/arch/sparc/crypto/aes_asm.S b/arch/sparc/crypto/aes_asm.S
+index 0fadad0..2086088 100644
+--- a/arch/sparc/crypto/aes_asm.S
++++ b/arch/sparc/crypto/aes_asm.S
+@@ -1,61 +1,7 @@
+ #include <linux/linkage.h>
+ #include <asm/visasm.h>
+=20
+-#define F3F(x,y,z)	(((x)<<30)|((y)<<19)|((z)<<5))
 -
- 	pr_info("\n");
--	pr_info("CPU#%d: PCR[%016llx] PIC[%016llx]\n",
--		cpu, pcr, pic);
-+	for (i = 0; i < sparc_pmu->num_pcrs; i++)
-+		pr_info("CPU#%d: PCR%d[%016llx]\n",
-+			cpu, i, pcr_ops->read_pcr(i));
-+	for (i = 0; i < sparc_pmu->num_pic_regs; i++)
-+		pr_info("CPU#%d: PIC%d[%016llx]\n",
-+			cpu, i, pcr_ops->read_pic(i));
- 
- 	local_irq_restore(flags);
- }
-@@ -1344,8 +1357,9 @@ static int __kprobes perf_event_nmi_handler(struct notifier_block *self,
- 	 * Do this before we peek at the counters to determine
- 	 * overflow so we don't lose any events.
- 	 */
--	if (sparc_pmu->irq_bit)
--		pcr_ops->write_pcr(0, cpuc->pcr);
-+	if (sparc_pmu->irq_bit &&
-+	    sparc_pmu->num_pcrs = 1)
-+		pcr_ops->write_pcr(0, cpuc->pcr[0]);
- 
- 	for (i = 0; i < cpuc->n_events; i++) {
- 		struct perf_event *event = cpuc->event[i];
-@@ -1353,6 +1367,10 @@ static int __kprobes perf_event_nmi_handler(struct notifier_block *self,
- 		struct hw_perf_event *hwc;
- 		u64 val;
- 
-+		if (sparc_pmu->irq_bit &&
-+		    sparc_pmu->num_pcrs > 1)
-+			pcr_ops->write_pcr(idx, cpuc->pcr[idx]);
+-#define FPD_ENCODE(x)	(((x) >> 5) | ((x) & ~(0x20)))
+-
+-#define RS1(x)		(FPD_ENCODE(x) << 14)
+-#define RS2(x)		(FPD_ENCODE(x) <<  0)
+-#define RS3(x)		(FPD_ENCODE(x) <<  9)
+-#define RD(x)		(FPD_ENCODE(x) << 25)
+-#define IMM5(x)		((x)           <<  9)
+-
+-#define AES_EROUND01(a,b,c,d)	\
+-	.word	(F3F(2, 0x19, 0)|RS1(a)|RS2(b)|RS3(c)|RD(d));
+-#define AES_EROUND23(a,b,c,d)	\
+-	.word	(F3F(2, 0x19, 1)|RS1(a)|RS2(b)|RS3(c)|RD(d));
+-#define AES_DROUND01(a,b,c,d)	\
+-	.word	(F3F(2, 0x19, 2)|RS1(a)|RS2(b)|RS3(c)|RD(d));
+-#define AES_DROUND23(a,b,c,d)	\
+-	.word	(F3F(2, 0x19, 3)|RS1(a)|RS2(b)|RS3(c)|RD(d));
+-#define AES_EROUND01_L(a,b,c,d)	\
+-	.word	(F3F(2, 0x19, 4)|RS1(a)|RS2(b)|RS3(c)|RD(d));
+-#define AES_EROUND23_L(a,b,c,d)	\
+-	.word	(F3F(2, 0x19, 5)|RS1(a)|RS2(b)|RS3(c)|RD(d));
+-#define AES_DROUND01_L(a,b,c,d)	\
+-	.word	(F3F(2, 0x19, 6)|RS1(a)|RS2(b)|RS3(c)|RD(d));
+-#define AES_DROUND23_L(a,b,c,d)	\
+-	.word	(F3F(2, 0x19, 7)|RS1(a)|RS2(b)|RS3(c)|RD(d));
+-#define AES_KEXPAND1(a,b,c,d)	\
+-	.word	(F3F(2, 0x19, 8)|RS1(a)|RS2(b)|IMM5(c)|RD(d));
+-#define AES_KEXPAND0(a,b,c)	\
+-	.word	(F3F(2, 0x36, 0x130)|RS1(a)|RS2(b)|RD(c));
+-#define AES_KEXPAND2(a,b,c)	\
+-	.word	(F3F(2, 0x36, 0x131)|RS1(a)|RS2(b)|RD(c));
+-
+-#define MOVXTOD_G3_F4		\
+-	.word	0x89b02303;
+-#define MOVXTOD_G7_F6		\
+-	.word	0x8db02307;
+-#define MOVXTOD_G3_F0		\
+-	.word	0x81b02303;
+-#define MOVXTOD_G7_F2		\
+-	.word	0x85b02307;
+-#define MOVXTOD_O0_F0		\
+-	.word	0x81b02308;
+-#define MOVXTOD_O5_F0		\
+-	.word	0x81b0230d;
+-#define MOVXTOD_O5_F2		\
+-	.word	0x85b0230d;
+-#define MOVXTOD_O5_F4		\
+-	.word	0x89b0230d;
+-#define MOVXTOD_O5_F6		\
+-	.word	0x8db0230d;
+-#define MOVXTOD_G3_F60		\
+-	.word	0xbbb02303;
+-#define MOVXTOD_G7_F62		\
+-	.word	0xbfb02307;
++#include "opcodes.h"
+=20
+ #define ENCRYPT_TWO_ROUNDS(KEY_BASE, I0, I1, T0, T1) \
+ 	AES_EROUND01(KEY_BASE +  0, I0, I1, T0) \
+diff --git a/arch/sparc/crypto/camellia_asm.S b/arch/sparc/crypto/camellia_=
+asm.S
+index b0ddb5b..d3ef9c7 100644
+--- a/arch/sparc/crypto/camellia_asm.S
++++ b/arch/sparc/crypto/camellia_asm.S
+@@ -1,27 +1,7 @@
+ #include <linux/linkage.h>
+ #include <asm/visasm.h>
+=20
+-#define F3F(x,y,z)	(((x)<<30)|((y)<<19)|((z)<<5))
+-
+-#define FPD_ENCODE(x)	(((x) >> 5) | ((x) & ~(0x20)))
+-
+-#define RS1(x)		(FPD_ENCODE(x) << 14)
+-#define RS2(x)		(FPD_ENCODE(x) <<  0)
+-#define RS3(x)		(FPD_ENCODE(x) <<  9)
+-#define RD(x)		(FPD_ENCODE(x) << 25)
+-#define IMM5(x)		((x)           <<  0)
+-
+-#define CAMELLIA_F(a,b,c,d)		\
+-	.word		(F3F(2, 0x19, 0x00c)|RS1(a)|RS2(b)|RS3(c)|RD(d));
+-#define CAMELLIA_FL(a,b,c)		\
+-	.word		(F3F(2, 0x36, 0x13c)|RS1(a)|RS2(b)|RD(c));
+-#define CAMELLIA_FLI(a,b,c)		\
+-	.word		(F3F(2, 0x36, 0x13d)|RS1(a)|RS2(b)|RD(c));
+-
+-#define MOVDTOX_F0_O4	\
+-	.word	0x99b02200
+-#define MOVDTOX_F2_O5	\
+-	.word	0x9bb02202
++#include "opcodes.h"
+=20
+ #define CAMELLIA_6ROUNDS(KEY_BASE, I0, I1) \
+ 	CAMELLIA_F(KEY_BASE +  0, I1, I0, I1) \
+diff --git a/arch/sparc/crypto/crc32c_asm.S b/arch/sparc/crypto/crc32c_asm.S
+index cb479ec..2b1976e 100644
+--- a/arch/sparc/crypto/crc32c_asm.S
++++ b/arch/sparc/crypto/crc32c_asm.S
+@@ -2,16 +2,7 @@
+ #include <asm/visasm.h>
+ #include <asm/asi.h>
+=20
+-#define F3F(x,y,z)	(((x)<<30)|((y)<<19)|((z)<<5))
+-
+-#define FPD_ENCODE(x)	(((x) >> 5) | ((x) & ~(0x20)))
+-
+-#define RS1(x)		(FPD_ENCODE(x) << 14)
+-#define RS2(x)		(FPD_ENCODE(x) <<  0)
+-#define RD(x)		(FPD_ENCODE(x) << 25)
+-
+-#define CRC32C(a,b,c)	\
+-	.word		(F3F(2,0x36,0x147)|RS1(a)|RS2(b)|RD(c));
++#include "opcodes.h"
+=20
+ ENTRY(crc32c_sparc64)
+ 	/* %o0=3Dcrc32p, %o1=DAta_ptr, %o2=3Dlen */
+diff --git a/arch/sparc/crypto/des_asm.S b/arch/sparc/crypto/des_asm.S
+index 589481e..a7da935 100644
+--- a/arch/sparc/crypto/des_asm.S
++++ b/arch/sparc/crypto/des_asm.S
+@@ -1,29 +1,7 @@
+ #include <linux/linkage.h>
+ #include <asm/visasm.h>
+=20
+-#define F3F(x,y,z)	(((x)<<30)|((y)<<19)|((z)<<5))
+-
+-#define FPD_ENCODE(x)	(((x) >> 5) | ((x) & ~(0x20)))
+-
+-#define RS1(x)		(FPD_ENCODE(x) << 14)
+-#define RS2(x)		(FPD_ENCODE(x) <<  0)
+-#define RS3(x)		(FPD_ENCODE(x) <<  9)
+-#define RD(x)		(FPD_ENCODE(x) << 25)
+-#define IMM5(x)		((x)           <<  0)
+-
+-#define DES_IP(a,b)		\
+-	.word		(F3F(2, 0x36, 0x134)|RS1(a)|RD(b));
+-#define DES_IIP(a,b)		\
+-	.word		(F3F(2, 0x36, 0x135)|RS1(a)|RD(b));
+-#define DES_KEXPAND(a,b,c)	\
+-	.word		(F3F(2, 0x36, 0x136)|RS1(a)|IMM5(b)|RD(c));
+-#define DES_ROUND(a,b,c,d)	\
+-	.word		(F3F(2, 0x19, 0x009)|RS1(a)|RS2(b)|RS3(c)|RD(d));
+-
+-#define MOVXTOD_G1_F60 \
+-	.word		0xbbb02301
+-#define MOVXTOD_G1_F62 \
+-	.word		0xbfb02301
++#include "opcodes.h"
+=20
+ 	.align	32
+ ENTRY(des_sparc64_key_expand)
+diff --git a/arch/sparc/crypto/md5_asm.S b/arch/sparc/crypto/md5_asm.S
+index ff90903..3150404 100644
+--- a/arch/sparc/crypto/md5_asm.S
++++ b/arch/sparc/crypto/md5_asm.S
+@@ -1,6 +1,8 @@
+ #include <linux/linkage.h>
+ #include <asm/visasm.h>
+=20
++#include "opcodes.h"
 +
- 		hwc = &event->hw;
- 		val = sparc_perf_event_update(event, hwc, idx);
- 		if (val & (1ULL << 31))
--- 
+ ENTRY(md5_sparc64_transform)
+ 	/* %o0 =3D digest, %o1 =3D data, %o2 =3D rounds */
+ 	VISEntryHalf
+@@ -21,8 +23,7 @@ ENTRY(md5_sparc64_transform)
+ 	ldd	[%o1 + 0x30], %f20
+ 	ldd	[%o1 + 0x38], %f22
+=20
+-	/* md5 */
+-	.word	0x81b02800
++	MD5
+=20
+ 	subcc	%o2, 1, %o2
+ 	bne,pt	%xcc, 1b
+@@ -58,8 +59,7 @@ ENTRY(md5_sparc64_transform)
+ 	faligndata %f22, %f24, %f20
+ 	faligndata %f24, %f26, %f22
+=20
+-	/* md5 */
+-	.word	0x81b02800
++	MD5
+=20
+ 	subcc	%o2, 1, %o2
+ 	fsrc2	%f26, %f10
+diff --git a/arch/sparc/crypto/opcodes.h b/arch/sparc/crypto/opcodes.h
+new file mode 100644
+index 0000000..b6c4a15
+--- /dev/null
++++ b/arch/sparc/crypto/opcodes.h
+@@ -0,0 +1,97 @@
++#ifndef _OPCODES_H
++#define _OPCODES_H
++
++#define F3F(x,y,z)	(((x)<<30)|((y)<<19)|((z)<<5))
++
++#define FPD_ENCODE(x)	(((x) >> 5) | ((x) & ~(0x20)))
++
++#define RS1(x)		(FPD_ENCODE(x) << 14)
++#define RS2(x)		(FPD_ENCODE(x) <<  0)
++#define RS3(x)		(FPD_ENCODE(x) <<  9)
++#define RD(x)		(FPD_ENCODE(x) << 25)
++#define IMM5_0(x)	((x)           <<  0)
++#define IMM5_9(x)	((x)           <<  9)
++
++#define CRC32C(a,b,c)	\
++	.word		(F3F(2,0x36,0x147)|RS1(a)|RS2(b)|RD(c));
++
++#define MD5		\
++	.word	0x81b02800;
++#define SHA1		\
++	.word	0x81b02820;
++#define SHA256		\
++	.word	0x81b02840;
++#define SHA512		\
++	.word	0x81b02860;
++
++#define AES_EROUND01(a,b,c,d)	\
++	.word	(F3F(2, 0x19, 0)|RS1(a)|RS2(b)|RS3(c)|RD(d));
++#define AES_EROUND23(a,b,c,d)	\
++	.word	(F3F(2, 0x19, 1)|RS1(a)|RS2(b)|RS3(c)|RD(d));
++#define AES_DROUND01(a,b,c,d)	\
++	.word	(F3F(2, 0x19, 2)|RS1(a)|RS2(b)|RS3(c)|RD(d));
++#define AES_DROUND23(a,b,c,d)	\
++	.word	(F3F(2, 0x19, 3)|RS1(a)|RS2(b)|RS3(c)|RD(d));
++#define AES_EROUND01_L(a,b,c,d)	\
++	.word	(F3F(2, 0x19, 4)|RS1(a)|RS2(b)|RS3(c)|RD(d));
++#define AES_EROUND23_L(a,b,c,d)	\
++	.word	(F3F(2, 0x19, 5)|RS1(a)|RS2(b)|RS3(c)|RD(d));
++#define AES_DROUND01_L(a,b,c,d)	\
++	.word	(F3F(2, 0x19, 6)|RS1(a)|RS2(b)|RS3(c)|RD(d));
++#define AES_DROUND23_L(a,b,c,d)	\
++	.word	(F3F(2, 0x19, 7)|RS1(a)|RS2(b)|RS3(c)|RD(d));
++#define AES_KEXPAND1(a,b,c,d)	\
++	.word	(F3F(2, 0x19, 8)|RS1(a)|RS2(b)|IMM5_9(c)|RD(d));
++#define AES_KEXPAND0(a,b,c)	\
++	.word	(F3F(2, 0x36, 0x130)|RS1(a)|RS2(b)|RD(c));
++#define AES_KEXPAND2(a,b,c)	\
++	.word	(F3F(2, 0x36, 0x131)|RS1(a)|RS2(b)|RD(c));
++
++#define DES_IP(a,b)		\
++	.word		(F3F(2, 0x36, 0x134)|RS1(a)|RD(b));
++#define DES_IIP(a,b)		\
++	.word		(F3F(2, 0x36, 0x135)|RS1(a)|RD(b));
++#define DES_KEXPAND(a,b,c)	\
++	.word		(F3F(2, 0x36, 0x136)|RS1(a)|IMM5_0(b)|RD(c));
++#define DES_ROUND(a,b,c,d)	\
++	.word		(F3F(2, 0x19, 0x009)|RS1(a)|RS2(b)|RS3(c)|RD(d));
++
++#define CAMELLIA_F(a,b,c,d)		\
++	.word		(F3F(2, 0x19, 0x00c)|RS1(a)|RS2(b)|RS3(c)|RD(d));
++#define CAMELLIA_FL(a,b,c)		\
++	.word		(F3F(2, 0x36, 0x13c)|RS1(a)|RS2(b)|RD(c));
++#define CAMELLIA_FLI(a,b,c)		\
++	.word		(F3F(2, 0x36, 0x13d)|RS1(a)|RS2(b)|RD(c));
++
++#define MOVDTOX_F0_O4		\
++	.word	0x99b02200
++#define MOVDTOX_F2_O5		\
++	.word	0x9bb02202
++#define MOVXTOD_G1_F60 		\
++	.word	0xbbb02301
++#define MOVXTOD_G1_F62 		\
++	.word	0xbfb02301
++#define MOVXTOD_G3_F4		\
++	.word	0x89b02303;
++#define MOVXTOD_G7_F6		\
++	.word	0x8db02307;
++#define MOVXTOD_G3_F0		\
++	.word	0x81b02303;
++#define MOVXTOD_G7_F2		\
++	.word	0x85b02307;
++#define MOVXTOD_O0_F0		\
++	.word	0x81b02308;
++#define MOVXTOD_O5_F0		\
++	.word	0x81b0230d;
++#define MOVXTOD_O5_F2		\
++	.word	0x85b0230d;
++#define MOVXTOD_O5_F4		\
++	.word	0x89b0230d;
++#define MOVXTOD_O5_F6		\
++	.word	0x8db0230d;
++#define MOVXTOD_G3_F60		\
++	.word	0xbbb02303;
++#define MOVXTOD_G7_F62		\
++	.word	0xbfb02307;
++
++#endif /* _OPCODES_H */
+diff --git a/arch/sparc/crypto/sha1_asm.S b/arch/sparc/crypto/sha1_asm.S
+index 3cd218a..219d10c 100644
+--- a/arch/sparc/crypto/sha1_asm.S
++++ b/arch/sparc/crypto/sha1_asm.S
+@@ -1,6 +1,8 @@
+ #include <linux/linkage.h>
+ #include <asm/visasm.h>
+=20
++#include "opcodes.h"
++
+ ENTRY(sha1_sparc64_transform)
+ 	/* %o0 =3D digest, %o1 =3D data, %o2 =3D rounds */
+ 	VISEntryHalf
+@@ -22,8 +24,7 @@ ENTRY(sha1_sparc64_transform)
+ 	ldd	[%o1 + 0x30], %f20
+ 	ldd	[%o1 + 0x38], %f22
+=20
+-	/* sha1 */
+-	.word	0x81b02820
++	SHA1
+=20
+ 	subcc	%o2, 1, %o2
+ 	bne,pt	%xcc, 1b
+@@ -60,8 +61,7 @@ ENTRY(sha1_sparc64_transform)
+ 	faligndata %f22, %f24, %f20
+ 	faligndata %f24, %f26, %f22
+=20
+-	/* sha1 */
+-	.word	0x81b02820
++	SHA1
+=20
+ 	subcc	%o2, 1, %o2
+ 	fsrc2	%f26, %f10
+diff --git a/arch/sparc/crypto/sha256_asm.S b/arch/sparc/crypto/sha256_asm.S
+index 9da84f5..b5f3d58 100644
+--- a/arch/sparc/crypto/sha256_asm.S
++++ b/arch/sparc/crypto/sha256_asm.S
+@@ -1,6 +1,8 @@
+ #include <linux/linkage.h>
+ #include <asm/visasm.h>
+=20
++#include "opcodes.h"
++
+ ENTRY(sha256_sparc64_transform)
+ 	/* %o0 =3D digest, %o1 =3D data, %o2 =3D rounds */
+ 	VISEntryHalf
+@@ -25,8 +27,7 @@ ENTRY(sha256_sparc64_transform)
+ 	ldd	[%o1 + 0x30], %f20
+ 	ldd	[%o1 + 0x38], %f22
+=20
+-	/* sha256 */
+-	.word	0x81b02840
++	SHA256
+=20
+ 	subcc	%o2, 1, %o2
+ 	bne,pt	%xcc, 1b
+@@ -66,8 +67,7 @@ ENTRY(sha256_sparc64_transform)
+ 	faligndata %f22, %f24, %f20
+ 	faligndata %f24, %f26, %f22
+=20
+-	/* sha256 */
+-	.word	0x81b02840
++	SHA256
+=20
+ 	subcc	%o2, 1, %o2
+ 	fsrc2	%f26, %f10
+diff --git a/arch/sparc/crypto/sha512_asm.S b/arch/sparc/crypto/sha512_asm.S
+index 650ba57..54bfba7 100644
+--- a/arch/sparc/crypto/sha512_asm.S
++++ b/arch/sparc/crypto/sha512_asm.S
+@@ -1,6 +1,8 @@
+ #include <linux/linkage.h>
+ #include <asm/visasm.h>
+=20
++#include "opcodes.h"
++
+ ENTRY(sha512_sparc64_transform)
+ 	/* %o0 =3D digest, %o1 =3D data, %o2 =3D rounds */
+ 	VISEntry
+@@ -33,8 +35,7 @@ ENTRY(sha512_sparc64_transform)
+ 	ldd	[%o1 + 0x70], %f44
+ 	ldd	[%o1 + 0x78], %f46
+=20
+-	/* sha512 */
+-	.word	0x81b02860
++	SHA512
+=20
+ 	subcc	%o2, 1, %o2
+ 	bne,pt	%xcc, 1b
+@@ -90,8 +91,7 @@ ENTRY(sha512_sparc64_transform)
+ 	faligndata %f46, %f48, %f44
+ 	faligndata %f48, %f50, %f46
+=20
+-	/* sha512 */
+-	.word	0x81b02860
++	SHA512
+=20
+ 	subcc	%o2, 1, %o2
+ 	fsrc2	%f50, %f18
+--=20
 1.7.10.4
 
