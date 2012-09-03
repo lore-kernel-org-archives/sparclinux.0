@@ -1,61 +1,51 @@
-From: Meelis Roos <mroos@linux.ee>
-Date: Wed, 05 Sep 2012 14:21:32 +0000
-Subject: Re: PCI resource allocation problem on Sun Ultra 10
-Message-Id: <alpine.SOC.1.00.1208241617540.6161@math.ut.ee>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Date: Mon, 03 Sep 2012 01:30:51 +0000
+Subject: Re: [RFC v8 PATCH 04/20] memory-hotplug: offline and remove memory when removing the memory device
+Message-Id: <5044084B.3050705@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.SOC.1.00.1208161813240.11061@math.ut.ee> <20120816.132557.173944271888805402.davem@davemloft.net> <alpine.SOC.1.00.1208170001370.93@math.ut.ee> <20120817.002443.1165562804832527200.davem@davemloft.net>
-In-Reply-To: <20120817.002443.1165562804832527200.davem@davemloft.net>
+References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>	<1346148027-24468-5-git-send-email-wency@cn.fujitsu.com> <20120831135514.2a2dc0d4.akpm@linux-foundation.org>
+In-Reply-To: <20120831135514.2a2dc0d4.akpm@linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org, linux-pci@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com
 
-> > There are 2 different onboard grpahics "cards" on U5/U10 mainboard, PGX 
-> > that is ATI Mach 64 with 2M SGRAM and PGX24 that has 4M SGRAM. I have 
-> > the latter. And these do not seem to need this reservation.
+At 09/01/2012 04:55 AM, Andrew Morton Wrote:
+> On Tue, 28 Aug 2012 18:00:11 +0800
+> wency@cn.fujitsu.com wrote:
 > 
-> Any VGA capable device can silently decode the VGA region.
+>> +int remove_memory(int nid, u64 start, u64 size)
+>> +{
+>> +	int ret = -EBUSY;
+>> +	lock_memory_hotplug();
+>> +	/*
+>> +	 * The memory might become online by other task, even if you offine it.
+>> +	 * So we check whether the cpu has been onlined or not.
 > 
-> It is unconditionally reserved on x86 and other platforms as well.
+> I think you meant "memory", not "cpu".
+
+Yes. I will fix it.
+
+Thanks
+Wen Congyang
+
 > 
-> > Maybe Sun does not support legacy VGA cards in PCI slots (only 
-> > PCI-assigned areas)?
+> Actually, "check whether any part of this memory range has been
+> onlined" would be better.  If that is accurate ;)
 > 
-> It doesn't matter if the video card is "PCI assigned", if the chip is
-> put into VGA mode (which both MACH64 and PGX24 fully support) it will
-> start responding to accesses to the VGA region.
+>> +	 */
+>> +	if (!is_memblk_offline(start, size)) {
+>> +		pr_warn("memory removing [mem %#010llx-%#010llx] failed, "
+>> +			"because the memmory range is online\n",
+>> +			start, start + size);
+>> +		ret = -EAGAIN;
+>> +	}
+>> +
+>> +	unlock_memory_hotplug();
+>> +	return ret;
+>> +
+>> +}
+>> +EXPORT_SYMBOL_GPL(remove_memory);
+> 
 
-OK, I did some tests. Removed Video ROM reservation and put different 
-VGA cards into slots 2 and 3 (2 PC VGA cards in many combinations, 1 PC 
-and 1 Sun, 2 different Sun F-code ROM cards: mach64 and radeon). What 
-happens is that tg3 BARs change if there is a VGA on bus, like this:
-
-1fc00400000-1fc0040000f : ffb dac
-1fc00600000-1fc00600983 : ffb fbc
-1ff00000000-1ffffffffff : /pci@1f,0
-  1ff00002000-1ff00002fff : aic7xxx
-  1ff000a0000-1ff000bffff : Video RAM area
-  1ff000f0000-1ff000fffff : System ROM
-  1ff01000000-1ff01ffffff : atyfb
-  1ff02040000-1ff0204ffff : tg3
-  1ffc0000000-1ffdfffffff : IOMMU
-  1ffe0000000-1ffe000701f : sunhme
-  1ffe1000000-1ffe1ffffff : atyfb
-  1fff1000000-1fff1001fff : eeprom
-  1fff1200000-1fff120000f : cs4231
-  1fff13062f8-1fff13062ff : su
-  1fff13083f8-1fff13083ff : su
-  1fff1400000-1fff140003f : sab
-  1fff1400040-1fff140007f : sab
-  1fff1702000-1fff170200f : cs4231_pdma
-  1fff1704000-1fff170400f : cs4231_cdma
-  1fff1724000-1fff1724003 : power
-  1fff1726000-1fff1726003 : auxio
-
-So OBP seems to know what it is doing. On U10. I can also test on E220R, 
-E250, E450, E3500, V240, Blade 100. I suspect anything newer has not 
-gotten worse in this sense...
-
--- 
-Meelis Roos (mroos@linux.ee)
