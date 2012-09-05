@@ -1,37 +1,70 @@
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-Date: Wed, 12 Sep 2012 17:03:11 +0000
-Subject: [PATCH 5/15] arch/sparc/kernel/pci_sun4v.c: removes unnecessary semicolon
-Message-Id: <1347469402-27557-4-git-send-email-peter.senna@gmail.com>
+From: wency@cn.fujitsu.com
+Date: Wed, 05 Sep 2012 09:25:52 +0000
+Subject: [RFC v9 PATCH 18/21] memory-hotplug: add node_device_release
+Message-Id: <1346837155-534-19-git-send-email-wency@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
+In-Reply-To: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>
-Cc: trivial@kernel.org, kernel-janitors@vger.kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
 
-From: Peter Senna Tschudin <peter.senna@gmail.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-removes unnecessary semicolon
+When calling unregister_node(), the function shows following message at
+device_release().
 
-Found by Coccinelle: http://coccinelle.lip6.fr/
+Device 'node2' does not have a release() function, it is broken and must be
+fixed.
 
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+So the patch implements node_device_release()
 
+CC: David Rientjes <rientjes@google.com>
+CC: Jiang Liu <liuj97@gmail.com>
+CC: Len Brown <len.brown@intel.com>
+CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+CC: Paul Mackerras <paulus@samba.org>
+CC: Christoph Lameter <cl@linux.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+CC: Andrew Morton <akpm@linux-foundation.org>
+CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
 ---
- arch/sparc/kernel/pci_sun4v.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/base/node.c |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
 
-diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
-index 7661e84..051b69c 100644
---- a/arch/sparc/kernel/pci_sun4v.c
-+++ b/arch/sparc/kernel/pci_sun4v.c
-@@ -594,7 +594,7 @@ static int __devinit pci_sun4v_iommu_init(struct pci_pbm_info *pbm)
- 		printk(KERN_ERR PFX "Strange virtual-dma[%08x:%08x].\n",
- 		       vdma[0], vdma[1]);
- 		return -EINVAL;
--	};
-+	}
+diff --git a/drivers/base/node.c b/drivers/base/node.c
+index af1a177..07523fb 100644
+--- a/drivers/base/node.c
++++ b/drivers/base/node.c
+@@ -252,6 +252,16 @@ static inline void hugetlb_register_node(struct node *node) {}
+ static inline void hugetlb_unregister_node(struct node *node) {}
+ #endif
  
- 	dma_mask = (roundup_pow_of_two(vdma[1]) - 1UL);
- 	num_tsb_entries = vdma[1] / IO_PAGE_SIZE;
++static void node_device_release(struct device *dev)
++{
++	struct node *node_dev = to_node(dev);
++
++#if defined(CONFIG_MEMORY_HOTPLUG_SPARSE) && defined(CONFIG_HUGETLBFS)
++	flush_work(&node_dev->node_work);
++#endif
++
++	memset(node_dev, 0, sizeof(struct node));
++}
+ 
+ /*
+  * register_node - Setup a sysfs device for a node.
+@@ -265,6 +275,7 @@ int register_node(struct node *node, int num, struct node *parent)
+ 
+ 	node->dev.id = num;
+ 	node->dev.bus = &node_subsys;
++	node->dev.release = node_device_release;
+ 	error = device_register(&node->dev);
+ 
+ 	if (!error){
+-- 
+1.7.1
 
