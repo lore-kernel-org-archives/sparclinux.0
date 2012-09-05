@@ -1,7 +1,7 @@
 From: wency@cn.fujitsu.com
-Date: Wed, 05 Sep 2012 09:25:40 +0000
-Subject: [RFC v9 PATCH 06/21] memory-hotplug: export the function acpi_bus_remove()
-Message-Id: <1346837155-534-7-git-send-email-wency@cn.fujitsu.com>
+Date: Wed, 05 Sep 2012 09:25:54 +0000
+Subject: [RFC v9 PATCH 20/21] memory-hotplug: clear hwpoisoned flag when onlining pages
+Message-Id: <1346837155-534-21-git-send-email-wency@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
 In-Reply-To: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
@@ -13,9 +13,12 @@ Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.cras
 
 From: Wen Congyang <wency@cn.fujitsu.com>
 
-The function acpi_bus_remove() can remove a acpi device from acpi device.
-When a acpi device is removed, we need to call this function to remove
-the acpi device from acpi bus. So export this function.
+hwpoisoned may set when we offline a page by the sysfs interface
+/sys/devices/system/memory/soft_offline_page or
+/sys/devices/system/memory/hard_offline_page. If we don't clear
+this flag when onlining pages, this page can't be freed, and will
+not in free list. So we can't offline these pages again. So we
+should clear this flag when onlining pages.
 
 CC: David Rientjes <rientjes@google.com>
 CC: Jiang Liu <liuj97@gmail.com>
@@ -29,43 +32,25 @@ CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
 ---
- drivers/acpi/scan.c     |    3 ++-
- include/acpi/acpi_bus.h |    1 +
- 2 files changed, 3 insertions(+), 1 deletions(-)
+ mm/memory_hotplug.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index d1ecca2..1cefc34 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1224,7 +1224,7 @@ static int acpi_device_set_context(struct acpi_device *device)
- 	return -ENODEV;
- }
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 270c249..140c080 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -661,6 +661,11 @@ EXPORT_SYMBOL_GPL(__online_page_increment_counters);
  
--static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
-+int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
+ void __online_page_free(struct page *page)
  {
- 	if (!dev)
- 		return -EINVAL;
-@@ -1246,6 +1246,7 @@ static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
- 
- 	return 0;
- }
-+EXPORT_SYMBOL(acpi_bus_remove);
- 
- static int acpi_add_single_object(struct acpi_device **child,
- 				  acpi_handle handle, int type,
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index bde976e..2ccf109 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -360,6 +360,7 @@ bool acpi_bus_power_manageable(acpi_handle handle);
- bool acpi_bus_can_wakeup(acpi_handle handle);
- int acpi_power_resource_register_device(struct device *dev, acpi_handle handle);
- void acpi_power_resource_unregister_device(struct device *dev, acpi_handle handle);
-+int acpi_bus_remove(struct acpi_device *dev, int rmdevice);
- #ifdef CONFIG_ACPI_PROC_EVENT
- int acpi_bus_generate_proc_event(struct acpi_device *device, u8 type, int data);
- int acpi_bus_generate_proc_event4(const char *class, const char *bid, u8 type, int data);
++#ifdef CONFIG_MEMORY_FAILURE
++	/* The page may be marked HWPoisoned by soft/hard offline page */
++	ClearPageHWPoison(page);
++#endif
++
+ 	ClearPageReserved(page);
+ 	init_page_count(page);
+ 	__free_page(page);
 -- 
 1.7.1
 
