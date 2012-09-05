@@ -1,45 +1,91 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 21 Sep 2012 19:48:45 +0000
-Subject: [GIT] Sparc
-Message-Id: <20120921.154845.354229641603611101.davem@davemloft.net>
+From: wency@cn.fujitsu.com
+Date: Wed, 05 Sep 2012 09:25:39 +0000
+Subject: [RFC v9 PATCH 05/21] memory-hotplug: check whether memory is present or not
+Message-Id: <1346837155-534-6-git-send-email-wency@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
+References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
+In-Reply-To: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
 
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-1) Debugging builds on 32-bit sparc need to handle the R_SPARC_DISP32
-   relocation, not just 64-bit sparc.  From Andreas Larsson.
+If system supports memory hot-remove, online_pages() may online removed pages.
+So online_pages() need to check whether onlining pages are present or not.
 
-2) Wei Yongjun noticed that module_alloc() on sparc can return an
-   error pointer, but that's not allowed.  module_alloc() should
-   return only a valid pointer, or NULL.
+CC: David Rientjes <rientjes@google.com>
+CC: Jiang Liu <liuj97@gmail.com>
+CC: Len Brown <len.brown@intel.com>
+CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+CC: Paul Mackerras <paulus@samba.org>
+CC: Christoph Lameter <cl@linux.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+CC: Andrew Morton <akpm@linux-foundation.org>
+CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+CC: Wen Congyang <wency@cn.fujitsu.com>
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+---
+ include/linux/mmzone.h |   19 +++++++++++++++++++
+ mm/memory_hotplug.c    |   13 +++++++++++++
+ 2 files changed, 32 insertions(+), 0 deletions(-)
 
-Please pull, thanks a lot!
+diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+index 2daa54f..ac3ae30 100644
+--- a/include/linux/mmzone.h
++++ b/include/linux/mmzone.h
+@@ -1180,6 +1180,25 @@ void sparse_init(void);
+ #define sparse_index_init(_sec, _nid)  do {} while (0)
+ #endif /* CONFIG_SPARSEMEM */
+ 
++#ifdef CONFIG_SPARSEMEM
++static inline int pfns_present(unsigned long pfn, unsigned long nr_pages)
++{
++	int i;
++	for (i = 0; i < nr_pages; i++) {
++		if (pfn_present(pfn + i))
++			continue;
++		else
++			return -EINVAL;
++	}
++	return 0;
++}
++#else
++static inline int pfns_present(unsigned long pfn, unsigned long nr_pages)
++{
++	return 0;
++}
++#endif /* CONFIG_SPARSEMEM*/
++
+ #ifdef CONFIG_NODES_SPAN_OTHER_NODES
+ bool early_pfn_in_nid(unsigned long pfn, int nid);
+ #else
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 49f7747..299747d 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -467,6 +467,19 @@ int __ref online_pages(unsigned long pfn, unsigned long nr_pages)
+ 	struct memory_notify arg;
+ 
+ 	lock_memory_hotplug();
++	/*
++	 * If system supports memory hot-remove, the memory may have been
++	 * removed. So we check whether the memory has been removed or not.
++	 *
++	 * Note: When CONFIG_SPARSEMEM is defined, pfns_present() become
++	 *       effective. If CONFIG_SPARSEMEM is not defined, pfns_present()
++	 *       always returns 0.
++	 */
++	ret = pfns_present(pfn, nr_pages);
++	if (ret) {
++		unlock_memory_hotplug();
++		return ret;
++	}
+ 	arg.start_pfn = pfn;
+ 	arg.nr_pages = nr_pages;
+ 	arg.status_change_nid = -1;
+-- 
+1.7.1
 
-The following changes since commit c46de2263f42fb4bbde411b9126f471e9343cb22:
-
-  Merge branch 'for-linus' of git://git.kernel.dk/linux-block (2012-09-19 11:04:34 -0700)
-
-are available in the git repository at:
-
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
-
-for you to fetch changes up to a9e8d1a6b87167116e5779378f1d25ffed2e833b:
-
-  sparc: fix the return value of module_alloc() (2012-09-21 12:14:20 -0700)
-
-----------------------------------------------------------------
-Andreas Larsson (1):
-      sparc32: Enable the relocation target R_SPARC_DISP32 for sparc32
-
-Wei Yongjun (1):
-      sparc: fix the return value of module_alloc()
-
- arch/sparc/kernel/module.c | 13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
