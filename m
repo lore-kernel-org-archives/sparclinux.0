@@ -1,75 +1,269 @@
-From: Andrea Arcangeli <aarcange@redhat.com>
-Date: Tue, 25 Sep 2012 19:33:57 +0000
-Subject: Re: [PATCH v4 0/8] Avoid cache trashing on clearing huge/gigantic page
-Message-Id: <20120925193356.GX7620@redhat.com>
+From: wency@cn.fujitsu.com
+Date: Wed, 05 Sep 2012 09:25:38 +0000
+Subject: [RFC v9 PATCH 04/21] memory-hotplug: offline and remove memory when removing the memory device
+Message-Id: <1346837155-534-5-git-send-email-wency@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1345470757-12005-1-git-send-email-kirill.shutemov@linux.intel.com>
- <20120913160506.d394392a.akpm@linux-foundation.org>
- <20120914055210.GC9043@gmail.com>
- <20120925142703.GA1598@otc-wbsnb-06>
-In-Reply-To: <20120925142703.GA1598@otc-wbsnb-06>
+References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
+In-Reply-To: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Ingo Molnar <mingo@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Andi Kleen <ak@linux.intel.com>, Tim Chen <tim.c.chen@linux.intel.com>, Alex Shi <alex.shu@intel.com>, Jan Beulich <jbeulich@novell.com>, Robert Richter <robert.richter@amd.com>, Andy Lutomirski <luto@amacapital.net>, Johannes Weiner <hannes@cmpxchg.org>, Hugh Dickins <hughd@google.com>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mips@linux-mips.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
+To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
 
-Hi Kirill,
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-On Tue, Sep 25, 2012 at 05:27:03PM +0300, Kirill A. Shutemov wrote:
-> On Fri, Sep 14, 2012 at 07:52:10AM +0200, Ingo Molnar wrote:
-> > Without repeatable hard numbers such code just gets into the 
-> > kernel and bitrots there as new CPU generations come in - a few 
-> > years down the line the original decisions often degrade to pure 
-> > noise. We've been there, we've done that, we don't want to 
-> > repeat it.
-> 
-> <sorry, for late answer..>
-> 
-> Hard numbers are hard.
-> I've checked some workloads: Mosbench, NPB, specjvm2008. Most of time the
-> patchset doesn't show any difference (within run-to-run deviation).
-> On NPB it recovers THP regression, but it's probably not enough to make
-> decision.
-> 
-> It would be nice if somebody test the patchset on other system or
-> workload. Especially, if the configuration shows regression with
-> THP enabled.
+We should offline and remove memory when removing the memory device.
+The memory device can be removed by 2 ways:
+1. send eject request by SCI
+2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
 
-If the only workload that gets a benefit is NPB then we've the proof
-this is too hardware dependend to be a conclusive result.
+In the 1st case, acpi_memory_disable_device() will be called. In the 2nd
+case, acpi_memory_device_remove() will be called. acpi_memory_device_remove()
+will also be called when we unbind the memory device from the driver
+acpi_memhotplug. If the type is ACPI_BUS_REMOVAL_EJECT, it means
+that the user wants to eject the memory device, and we should offline
+and remove memory in acpi_memory_device_remove().
 
-It may have been slower by an accident, things like cache
-associativity off by one bit, combined with the implicit coloring
-provided to the lowest 512 colors could hurts more if the cache
-associativity is low.
+The function remove_memory() is not implemeted now. It only check whether
+all memory has been offllined now.
 
-I'm saying this because NPB on a thinkpad (Intel CPU I assume) is the
-benchmark that shows the most benefit among all benchmarks run on that
-hardware.
+CC: David Rientjes <rientjes@google.com>
+CC: Jiang Liu <liuj97@gmail.com>
+CC: Len Brown <len.brown@intel.com>
+CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+CC: Paul Mackerras <paulus@samba.org>
+CC: Christoph Lameter <cl@linux.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+CC: Andrew Morton <akpm@linux-foundation.org>
+CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+---
+ drivers/acpi/acpi_memhotplug.c |   45 +++++++++++++++++++++++++++++++++------
+ drivers/base/memory.c          |   39 ++++++++++++++++++++++++++++++++++
+ include/linux/memory.h         |    5 ++++
+ include/linux/memory_hotplug.h |    5 ++++
+ mm/memory_hotplug.c            |   22 +++++++++++++++++++
+ 5 files changed, 109 insertions(+), 7 deletions(-)
 
-http://www.phoronix.com/scan.php?page=article&item=linux_transparent_hugepages&num=2
+diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+index 7873832..9d47458 100644
+--- a/drivers/acpi/acpi_memhotplug.c
++++ b/drivers/acpi/acpi_memhotplug.c
+@@ -29,6 +29,7 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
++#include <linux/memory.h>
+ #include <linux/memory_hotplug.h>
+ #include <linux/slab.h>
+ #include <acpi/acpi_drivers.h>
+@@ -310,25 +311,44 @@ static int acpi_memory_powerdown_device(struct acpi_memory_device *mem_device)
+ 	return 0;
+ }
+ 
+-static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
++static int
++acpi_memory_device_remove_memory(struct acpi_memory_device *mem_device)
+ {
+ 	int result;
+ 	struct acpi_memory_info *info, *n;
++	int node = mem_device->nid;
+ 
+-
+-	/*
+-	 * Ask the VM to offline this memory range.
+-	 * Note: Assume that this function returns zero on success
+-	 */
+ 	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
+ 		if (info->enabled) {
+ 			result = offline_memory(info->start_addr, info->length);
+ 			if (result)
+ 				return result;
++
++			result = remove_memory(node, info->start_addr,
++					       info->length);
++			if (result)
++				return result;
+ 		}
++
++		list_del(&info->list);
+ 		kfree(info);
+ 	}
+ 
++	return 0;
++}
++
++static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
++{
++	int result;
++
++	/*
++	 * Ask the VM to offline this memory range.
++	 * Note: Assume that this function returns zero on success
++	 */
++	result = acpi_memory_device_remove_memory(mem_device);
++	if (result)
++		return result;
++
+ 	/* Power-off and eject the device */
+ 	result = acpi_memory_powerdown_device(mem_device);
+ 	if (result) {
+@@ -477,12 +497,23 @@ static int acpi_memory_device_add(struct acpi_device *device)
+ static int acpi_memory_device_remove(struct acpi_device *device, int type)
+ {
+ 	struct acpi_memory_device *mem_device = NULL;
+-
++	int result;
+ 
+ 	if (!device || !acpi_driver_data(device))
+ 		return -EINVAL;
+ 
+ 	mem_device = acpi_driver_data(device);
++
++	if (type = ACPI_BUS_REMOVAL_EJECT) {
++		/*
++		 * offline and remove memory only when the memory device is
++		 * ejected.
++		 */
++		result = acpi_memory_device_remove_memory(mem_device);
++		if (result)
++			return result;
++	}
++
+ 	kfree(mem_device);
+ 
+ 	return 0;
+diff --git a/drivers/base/memory.c b/drivers/base/memory.c
+index 86c8821..038be73 100644
+--- a/drivers/base/memory.c
++++ b/drivers/base/memory.c
+@@ -70,6 +70,45 @@ void unregister_memory_isolate_notifier(struct notifier_block *nb)
+ }
+ EXPORT_SYMBOL(unregister_memory_isolate_notifier);
+ 
++bool is_memblk_offline(unsigned long start, unsigned long size)
++{
++	struct memory_block *mem = NULL;
++	struct mem_section *section;
++	unsigned long start_pfn, end_pfn;
++	unsigned long pfn, section_nr;
++
++	start_pfn = PFN_DOWN(start);
++	end_pfn = PFN_UP(start + size);
++
++	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
++		section_nr = pfn_to_section_nr(pfn);
++		if (!present_section_nr(section_nr))
++			continue;
++
++		section = __nr_to_section(section_nr);
++		/* same memblock? */
++		if (mem)
++			if ((section_nr >= mem->start_section_nr) &&
++			    (section_nr <= mem->end_section_nr))
++				continue;
++
++		mem = find_memory_block_hinted(section, mem);
++		if (!mem)
++			continue;
++		if (mem->state = MEM_OFFLINE)
++			continue;
++
++		kobject_put(&mem->dev.kobj);
++		return false;
++	}
++
++	if (mem)
++		kobject_put(&mem->dev.kobj);
++
++	return true;
++}
++EXPORT_SYMBOL(is_memblk_offline);
++
+ /*
+  * register_memory - Setup a sysfs device for a memory block
+  */
+diff --git a/include/linux/memory.h b/include/linux/memory.h
+index 1ac7f6e..7c66126 100644
+--- a/include/linux/memory.h
++++ b/include/linux/memory.h
+@@ -106,6 +106,10 @@ static inline int memory_isolate_notify(unsigned long val, void *v)
+ {
+ 	return 0;
+ }
++static inline bool is_memblk_offline(unsigned long start, unsigned long size)
++{
++	return false;
++}
+ #else
+ extern int register_memory_notifier(struct notifier_block *nb);
+ extern void unregister_memory_notifier(struct notifier_block *nb);
+@@ -120,6 +124,7 @@ extern int memory_isolate_notify(unsigned long val, void *v);
+ extern struct memory_block *find_memory_block_hinted(struct mem_section *,
+ 							struct memory_block *);
+ extern struct memory_block *find_memory_block(struct mem_section *);
++extern bool is_memblk_offline(unsigned long start, unsigned long size);
+ #define CONFIG_MEM_BLOCK_SIZE	(PAGES_PER_SECTION<<PAGE_SHIFT)
+ enum mem_add_context { BOOT, HOTPLUG };
+ #endif /* CONFIG_MEMORY_HOTPLUG_SPARSE */
+diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+index 0b040bb..fd84ea9 100644
+--- a/include/linux/memory_hotplug.h
++++ b/include/linux/memory_hotplug.h
+@@ -222,6 +222,7 @@ static inline void unlock_memory_hotplug(void) {}
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ 
+ extern int is_mem_section_removable(unsigned long pfn, unsigned long nr_pages);
++extern int remove_memory(int nid, u64 start, u64 size);
+ 
+ #else
+ static inline int is_mem_section_removable(unsigned long pfn,
+@@ -229,6 +230,10 @@ static inline int is_mem_section_removable(unsigned long pfn,
+ {
+ 	return 0;
+ }
++static inline int remove_memory(int nid, u64 start, u64 size)
++{
++	return -EBUSY;
++}
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
+ 
+ extern int mem_online_node(int nid);
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 6fc1908..49f7747 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -1038,6 +1038,28 @@ int offline_memory(u64 start, u64 size)
+ 
+ 	return 0;
+ }
++
++int remove_memory(int nid, u64 start, u64 size)
++{
++	int ret = -EBUSY;
++	lock_memory_hotplug();
++	/*
++	 * The memory might become online by other task, even if you offine it.
++	 * So we check whether the memory has been onlined or not.
++	 */
++	if (!is_memblk_offline(start, size)) {
++		pr_warn("memory removing [mem %#010llx-%#010llx] failed, "
++			"because the memmory range is online\n",
++			start, start + size);
++		ret = -EAGAIN;
++	}
++
++	unlock_memory_hotplug();
++	return ret;
++
++}
++EXPORT_SYMBOL_GPL(remove_memory);
++
+ #else
+ int offline_pages(unsigned long start, unsigned long size)
+ {
+-- 
+1.7.1
 
-I've once seen certain computations that run much slower with perfect
-cache coloring but most others runs much faster with the page
-coloring. Doesn't mean page coloring is bad per se. So the NPB on that
-specific hardware may have been the exception and not the interesting
-case. Especially considering the effect of cache-copying is opposite
-on slightly different hw.
-
-I think the the static_key should be off by default whenever the CPU
-L2 cache size is >= the size of the copy (2*HPAGE_PMD_SIZE). Now the
-cache does random replacement so maybe we could also allow cache
-copies for twice the size of the copy (L2size >4*HPAGE_PMD_SIZE). Current CPUs have caches much larger than 2*2MB...
-
-It would make a whole lot more sense for hugetlbfs giga pages than for
-THP (unlike for THP, cache trashing with giga pages is guaranteed),
-but even with giga pages, it's not like they're allocated frequently
-(maybe once per OS reboot) so that's also sure totally lost in the
-noise as it only saves a few accesses after the cache copy is
-finished.
-
-It's good to have tested it though.
-
-Thanks,
-Andrea
