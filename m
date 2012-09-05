@@ -1,69 +1,100 @@
-From: Thierry Reding <thierry.reding@avionic-design.de>
-Date: Sat, 15 Sep 2012 07:57:37 +0000
-Subject: Re: [PATCH 1/2] PCI: Annotate pci_fixup_irqs with __devinit
-Message-Id: <20120915075737.GA31258@avionic-0098.mockup.avionic-design.de>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="+QahgC5+KEYLbs62"
+From: wency@cn.fujitsu.com
+Date: Wed, 05 Sep 2012 09:25:48 +0000
+Subject: [RFC v9 PATCH 14/21] memory-hotplug: move register_page_bootmem_info_node and put_page_bootmem for s
+Message-Id: <1346837155-534-15-git-send-email-wency@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1347655456-2542-1-git-send-email-thierry.reding@avionic-design.de>
- <CAErSpo6BqPUEpMmh2+FuEi-mHFK0U1XCmdCpJfo6V2XcNxzMNg@mail.gmail.com>
- <20120914223531.GA8771@kroah.com>
-In-Reply-To: <20120914223531.GA8771@kroah.com>
-To: linux-arm-kernel@lists.infradead.org
+References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
+In-Reply-To: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
 
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
---+QahgC5+KEYLbs62
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+For implementing register_page_bootmem_info_node of sparse-vmemmap,
+register_page_bootmem_info_node and put_page_bootmem are moved to
+memory_hotplug.c
 
-On Fri, Sep 14, 2012 at 03:35:31PM -0700, Greg Kroah-Hartman wrote:
-> On Fri, Sep 14, 2012 at 02:53:11PM -0600, Bjorn Helgaas wrote:
-> > +cc Greg KH
-> >=20
-> > On Fri, Sep 14, 2012 at 2:44 PM, Thierry Reding
-> > <thierry.reding@avionic-design.de> wrote:
-> > > In order to keep pci_fixup_irqs() around after init (e.g. for hotplug=
-),
-> > > mark it __devinit instead of __init. This requires the same change for
-> > > the implementation of the pcibios_update_irq() function on all
-> > > architectures.
-> > >
-> > > Signed-off-by: Thierry Reding <thierry.reding@avionic-design.de>
-> > > ---
-> > > Note: Ideally these annotations should go away completely in order to
-> > > be independent of the HOTPLUG symbol. However, there is work underway
-> > > to get rid of HOTPLUG altogether, so I've kept the __devinit for now.
->=20
-> No, just take away the __init marking completly.  For 3.7,
-> CONFIG_HOTPLUG will always be enabled, making it be the same thing.
-> That way this saves me the time and energy from deleting the __devinit
-> markings when I get to that point in the patch series :)
+CC: David Rientjes <rientjes@google.com>
+CC: Jiang Liu <liuj97@gmail.com>
+CC: Len Brown <len.brown@intel.com>
+CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+CC: Paul Mackerras <paulus@samba.org>
+CC: Christoph Lameter <cl@linux.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+CC: Andrew Morton <akpm@linux-foundation.org>
+CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+CC: Wen Congyang <wency@cn.fujitsu.com>
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+---
+ include/linux/memory_hotplug.h |    9 ---------
+ mm/memory_hotplug.c            |    8 ++++++--
+ 2 files changed, 6 insertions(+), 11 deletions(-)
 
-Done. I'll give other people some time to comment before sending the
-updated series.
+diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+index cdbbd79..1133e63 100644
+--- a/include/linux/memory_hotplug.h
++++ b/include/linux/memory_hotplug.h
+@@ -162,17 +162,8 @@ static inline void arch_refresh_nodedata(int nid, pg_data_t *pgdat)
+ #endif /* CONFIG_NUMA */
+ #endif /* CONFIG_HAVE_ARCH_NODEDATA_EXTENSION */
+ 
+-#ifdef CONFIG_SPARSEMEM_VMEMMAP
+-static inline void register_page_bootmem_info_node(struct pglist_data *pgdat)
+-{
+-}
+-static inline void put_page_bootmem(struct page *page)
+-{
+-}
+-#else
+ extern void register_page_bootmem_info_node(struct pglist_data *pgdat);
+ extern void put_page_bootmem(struct page *page);
+-#endif
+ 
+ /*
+  * Lock for memory hotplug guarantees 1) all callbacks for memory hotplug
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 26a5012..df6857b 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -91,7 +91,6 @@ static void release_memory_resource(struct resource *res)
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
+-#ifndef CONFIG_SPARSEMEM_VMEMMAP
+ static void get_page_bootmem(unsigned long info,  struct page *page,
+ 			     unsigned long type)
+ {
+@@ -127,6 +126,7 @@ void __ref put_page_bootmem(struct page *page)
+ 
+ }
+ 
++#ifndef CONFIG_SPARSEMEM_VMEMMAP
+ static void register_page_bootmem_info_section(unsigned long start_pfn)
+ {
+ 	unsigned long *usemap, mapsize, section_nr, i;
+@@ -163,6 +163,11 @@ static void register_page_bootmem_info_section(unsigned long start_pfn)
+ 		get_page_bootmem(section_nr, page, MIX_SECTION_INFO);
+ 
+ }
++#else
++static inline void register_page_bootmem_info_section(unsigned long start_pfn)
++{
++}
++#endif
+ 
+ void register_page_bootmem_info_node(struct pglist_data *pgdat)
+ {
+@@ -198,7 +203,6 @@ void register_page_bootmem_info_node(struct pglist_data *pgdat)
+ 		register_page_bootmem_info_section(pfn);
+ 
+ }
+-#endif /* !CONFIG_SPARSEMEM_VMEMMAP */
+ 
+ static void grow_zone_span(struct zone *zone, unsigned long start_pfn,
+ 			   unsigned long end_pfn)
+-- 
+1.7.1
 
-Thierry
-
---+QahgC5+KEYLbs62
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQVDTxAAoJEN0jrNd/PrOhY84P/1V6CjM7bTnYamaHDOKyZQUc
-IyLN3mZRN6AbMMO8awcN6B4BDXuB6ua8nN7ozdlqRnFSUgSXVwWwrezZnrpc+Sws
-yO4Axr8IOBxpG2IDX+d2bGWRV5W34kzty5WsZhlPEJxOBSQH0MiNJCgTojSIIf5n
-9a6+7fF5qsSamGnmtWKwe01nwvlAsJg0i3sxyguWlFuBqd1IyQMCptCWsSBzMQVc
-1EeCDtWdLTKzxNHhkl97rWcQYi3ov8LTK76zUutTSDlpc2+HhX0nu73Tz34fLs9m
-k4Z1mw2VLHRUorvFCptwhvB72LR2hssTZxGDt3xbPLERUECtV3wwpFTDT8J4jZj0
-bzHCpbfj11K1Y7/Ku/1FBWBXjFPh1+YS0lA39V00WnHBx9Xv2DX6Ytm8FwGCtqEN
-wfV+VGyR+tvIWI6oA8vIgc/1xuMuDlrK4Ldn2uwZBHZfq28ghCiKFHasHA5RW+D/
-kTA2p4Yvuujuvh6PbsvJv2h4A9Sudko6rzwlclnv7OGxsxCa624yF8YN+rqLVU9C
-7Sq/vSCmpj1E3AQ9TKcnYyFYP1sUsc9BnslLNEHNly+MFRJoAMOAx3M6s/30vRJp
-FKyDyeWTzkjnlCYDiH/ebSQRk1tO9h6HJXnzrAAU55iJYHDxCGQ15I2emj8v/bqT
-3iUVzezeZpRhZ0IPIxbq
-=Q8MZ
------END PGP SIGNATURE-----
-
---+QahgC5+KEYLbs62--
