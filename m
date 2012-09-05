@@ -1,7 +1,7 @@
 From: wency@cn.fujitsu.com
-Date: Wed, 05 Sep 2012 09:25:53 +0000
-Subject: [RFC v9 PATCH 19/21] memory-hotplug: remove sysfs file of node
-Message-Id: <1346837155-534-20-git-send-email-wency@cn.fujitsu.com>
+Date: Wed, 05 Sep 2012 09:25:55 +0000
+Subject: [RFC v9 PATCH 21/21] memory-hotplug: auto offline page_cgroup when onlining memory block failed
+Message-Id: <1346837155-534-22-git-send-email-wency@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
 In-Reply-To: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
@@ -13,10 +13,14 @@ Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.cras
 
 From: Wen Congyang <wency@cn.fujitsu.com>
 
-This patch introduces a new function try_offline_node() to
-remove sysfs file of node when all memory sections of this
-node are removed. If some memory sections of this node are
-not removed, this function does nothing.
+When a memory block is onlined, we will try allocate memory on that node
+to store page_cgroup. If onlining the memory block failed, we don't
+offline the page cgroup, and we have no chance to offline this page cgroup
+unless the memory block is onlined successfully again. It will cause
+that we can't hot-remove the memory device on that node, because some
+memory is used to store page cgroup. If onlining the memory block
+is failed, there is no need to stort page cgroup for this memory. So
+auto offline page_cgroup when onlining memory block failed.
 
 CC: David Rientjes <rientjes@google.com>
 CC: Jiang Liu <liuj97@gmail.com>
@@ -30,88 +34,23 @@ CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
 ---
- mm/memory_hotplug.c |   54 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 54 insertions(+), 0 deletions(-)
+ mm/page_cgroup.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index afda7e9..270c249 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -29,6 +29,7 @@
- #include <linux/suspend.h>
- #include <linux/mm_inline.h>
- #include <linux/firmware-map.h>
-+#include <linux/stop_machine.h>
- 
- #include <asm/tlbflush.h>
- 
-@@ -1285,6 +1286,57 @@ int offline_memory(u64 start, u64 size)
- 	return 0;
- }
- 
-+static int check_cpu_on_node(void *data)
-+{
-+	struct pglist_data *pgdat = data;
-+	int cpu;
-+
-+	for_each_online_cpu(cpu) {
-+		if (cpu_to_node(cpu) = pgdat->node_id)
-+			/*
-+			 * the cpu on this node is onlined, and we can't
-+			 * offline this node.
-+			 */
-+			return -EBUSY;
-+	}
-+
-+	return 0;
-+}
-+
-+/* offline the node if all memory sections of this node are removed */
-+static void try_offline_node(int nid)
-+{
-+	unsigned long start_pfn = NODE_DATA(nid)->node_start_pfn;
-+	unsigned long end_pfn = start_pfn + NODE_DATA(nid)->node_spanned_pages;
-+	unsigned long pfn;
-+
-+	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
-+		unsigned long section_nr = pfn_to_section_nr(pfn);
-+
-+		if (!present_section_nr(section_nr))
-+			continue;
-+
-+		if (pfn_to_nid(pfn) != nid)
-+			continue;
-+
-+		/*
-+		 * some memory sections of this node are not removed, and we
-+		 * can't offline node now.
-+		 */
-+		return;
-+	}
-+
-+	if (stop_machine(check_cpu_on_node, NODE_DATA(nid), NULL))
-+		return;
-+
-+	/*
-+	 * all memory sections of this node are removed, we can offline this
-+	 * node now.
-+	 */
-+	node_set_offline(nid);
-+	unregister_one_node(nid);
-+}
-+
- int __ref remove_memory(int nid, u64 start, u64 size)
- {
- 	int ret = 0;
-@@ -1305,6 +1357,8 @@ int __ref remove_memory(int nid, u64 start, u64 size)
- 	firmware_map_remove(start, start + size, "System RAM");
- 
- 	arch_remove_memory(start, size);
-+
-+	try_offline_node(nid);
- out:
- 	unlock_memory_hotplug();
- 	return ret;
+diff --git a/mm/page_cgroup.c b/mm/page_cgroup.c
+index 5ddad0c..44db00e 100644
+--- a/mm/page_cgroup.c
++++ b/mm/page_cgroup.c
+@@ -251,6 +251,9 @@ static int __meminit page_cgroup_callback(struct notifier_block *self,
+ 				mn->nr_pages, mn->status_change_nid);
+ 		break;
+ 	case MEM_CANCEL_ONLINE:
++		offline_page_cgroup(mn->start_pfn,
++				mn->nr_pages, mn->status_change_nid);
++		break;
+ 	case MEM_GOING_OFFLINE:
+ 		break;
+ 	case MEM_ONLINE:
 -- 
 1.7.1
 
