@@ -1,139 +1,253 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 07 Sep 2012 05:34:22 +0000
-Subject: [PATCH 2/3] sparc64: Probe cpu page size support more portably.
-Message-Id: <20120907.013422.96143223190317989.davem@davemloft.net>
+From: wency@cn.fujitsu.com
+Date: Wed, 05 Sep 2012 09:25:49 +0000
+Subject: [RFC v9 PATCH 15/21] memory-hotplug: implement register_page_bootmem_info_section of sparse-vmemmap
+Message-Id: <1346837155-534-16-git-send-email-wency@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
+In-Reply-To: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
 
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-On sun4v, interrogate the machine description.  This code is extremely
-defensive in nature, and a lot of the checks can probably be removed.
+For removing memmap region of sparse-vmemmap which is allocated bootmem,
+memmap region of sparse-vmemmap needs to be registered by get_page_bootmem().
+So the patch searches pages of virtual mapping and registers the pages by
+get_page_bootmem().
 
-On sun4u things are a lot simpler.  There are the page sizes all chips
-support, and then Panther adds 32MB and 256MB pages.
+Note: register_page_bootmem_memmap() is not implemented for ia64, ppc, s390,
+and sparc.
 
-Report the probed value in /proc/cpuinfo
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+CC: David Rientjes <rientjes@google.com>
+CC: Jiang Liu <liuj97@gmail.com>
+CC: Len Brown <len.brown@intel.com>
+CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+CC: Paul Mackerras <paulus@samba.org>
+CC: Christoph Lameter <cl@linux.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+CC: Andrew Morton <akpm@linux-foundation.org>
+CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
 ---
- arch/sparc/include/asm/mdesc.h |    1 +
- arch/sparc/kernel/mdesc.c      |   24 ++++++++++++++++++++++++
- arch/sparc/mm/init_64.c        |   31 +++++++++++++++++++++++++++++++
- 3 files changed, 56 insertions(+)
+ arch/ia64/mm/discontig.c       |    6 ++++
+ arch/powerpc/mm/init_64.c      |    6 ++++
+ arch/s390/mm/vmem.c            |    6 ++++
+ arch/sparc/mm/init_64.c        |    6 ++++
+ arch/x86/mm/init_64.c          |   52 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/memory_hotplug.h |    2 +
+ include/linux/mm.h             |    3 +-
+ mm/memory_hotplug.c            |   31 +++++++++++++++++++++--
+ 8 files changed, 108 insertions(+), 4 deletions(-)
 
-diff --git a/arch/sparc/include/asm/mdesc.h b/arch/sparc/include/asm/mdesc.h
-index 9faa046..139097f 100644
---- a/arch/sparc/include/asm/mdesc.h
-+++ b/arch/sparc/include/asm/mdesc.h
-@@ -73,6 +73,7 @@ extern void mdesc_register_notifier(struct mdesc_notifier_client *client);
+diff --git a/arch/ia64/mm/discontig.c b/arch/ia64/mm/discontig.c
+index c641333..33943db 100644
+--- a/arch/ia64/mm/discontig.c
++++ b/arch/ia64/mm/discontig.c
+@@ -822,4 +822,10 @@ int __meminit vmemmap_populate(struct page *start_page,
+ {
+ 	return vmemmap_populate_basepages(start_page, size, node);
+ }
++
++void register_page_bootmem_memmap(unsigned long section_nr,
++				  struct page *start_page, unsigned long size)
++{
++	/* TODO */
++}
+ #endif
+diff --git a/arch/powerpc/mm/init_64.c b/arch/powerpc/mm/init_64.c
+index 620b7ac..3690c44 100644
+--- a/arch/powerpc/mm/init_64.c
++++ b/arch/powerpc/mm/init_64.c
+@@ -298,5 +298,11 @@ int __meminit vmemmap_populate(struct page *start_page,
  
- extern void mdesc_fill_in_cpu_data(cpumask_t *mask);
- extern void mdesc_populate_present_mask(cpumask_t *mask);
-+extern void mdesc_get_page_sizes(cpumask_t *mask, unsigned long *pgsz_mask);
+ 	return 0;
+ }
++
++void register_page_bootmem_memmap(unsigned long section_nr,
++				  struct page *start_page, unsigned long size)
++{
++	/* TODO */
++}
+ #endif /* CONFIG_SPARSEMEM_VMEMMAP */
  
- extern void sun4v_mdesc_init(void);
- 
-diff --git a/arch/sparc/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
-index 6dc7962..831c001 100644
---- a/arch/sparc/kernel/mdesc.c
-+++ b/arch/sparc/kernel/mdesc.c
-@@ -817,6 +817,30 @@ void __cpuinit mdesc_populate_present_mask(cpumask_t *mask)
- 	mdesc_iterate_over_cpus(record_one_cpu, NULL, mask);
+diff --git a/arch/s390/mm/vmem.c b/arch/s390/mm/vmem.c
+index 6f896e7..eda55cd 100644
+--- a/arch/s390/mm/vmem.c
++++ b/arch/s390/mm/vmem.c
+@@ -227,6 +227,12 @@ out:
+ 	return ret;
  }
  
-+static void * __init check_one_pgsz(struct mdesc_handle *hp, u64 mp, int cpuid, void *arg)
++void register_page_bootmem_memmap(unsigned long section_nr,
++				  struct page *start_page, unsigned long size)
 +{
-+	const u64 *pgsz_prop = mdesc_get_property(hp, mp, "mmu-page-size-list", NULL);
-+	unsigned long *pgsz_mask = arg;
-+	u64 val;
-+
-+	val = (HV_PGSZ_MASK_8K | HV_PGSZ_MASK_64K |
-+	       HV_PGSZ_MASK_512K | HV_PGSZ_MASK_4MB);
-+	if (pgsz_prop)
-+		val = *pgsz_prop;
-+
-+	if (!*pgsz_mask)
-+		*pgsz_mask = val;
-+	else
-+		*pgsz_mask &= val;
-+	return NULL;
++	/* TODO */
 +}
 +
-+void __init mdesc_get_page_sizes(cpumask_t *mask, unsigned long *pgsz_mask)
-+{
-+	*pgsz_mask = 0;
-+	mdesc_iterate_over_cpus(check_one_pgsz, pgsz_mask, mask);
-+}
-+
- static void * __cpuinit fill_in_one_cpu(struct mdesc_handle *hp, u64 mp, int cpuid, void *arg)
- {
- 	const u64 *cfreq = mdesc_get_property(hp, mp, "clock-frequency", NULL);
+ /*
+  * Add memory segment to the segment list if it doesn't overlap with
+  * an already present segment.
 diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index c0fc25b..4453691 100644
+index d58edf5..add1cc7 100644
 --- a/arch/sparc/mm/init_64.c
 +++ b/arch/sparc/mm/init_64.c
-@@ -83,6 +83,8 @@ unsigned long kpte_linear_bitmap[KPTE_BITMAP_BYTES / sizeof(unsigned long)];
- extern struct tsb swapper_4m_tsb[KERNEL_TSB4M_NENTRIES];
- #endif
- 
-+static unsigned long cpu_pgsz_mask;
+@@ -2077,6 +2077,12 @@ void __meminit vmemmap_populate_print_last(void)
+ 		node_start = 0;
+ 	}
+ }
 +
- #define MAX_BANKS	32
++void register_page_bootmem_memmap(unsigned long section_nr,
++				  struct page *start_page, unsigned long size)
++{
++	/* TODO */
++}
+ #endif /* CONFIG_SPARSEMEM_VMEMMAP */
  
- static struct linux_prom64_registers pavail[MAX_BANKS] __devinitdata;
-@@ -419,6 +421,12 @@ EXPORT_SYMBOL(flush_icache_range);
+ static void prot_init_common(unsigned long page_none,
+diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+index e0d88ba..0075592 100644
+--- a/arch/x86/mm/init_64.c
++++ b/arch/x86/mm/init_64.c
+@@ -1138,6 +1138,58 @@ vmemmap_populate(struct page *start_page, unsigned long size, int node)
+ 	return 0;
+ }
  
- void mmu_info(struct seq_file *m)
- {
-+	static const char *pgsz_strings[] = {
-+		"8K", "64K", "512K", "4MB", "32MB",
-+		"256MB", "2GB", "16GB",
-+	};
-+	int i, printed;
++void register_page_bootmem_memmap(unsigned long section_nr,
++				  struct page *start_page, unsigned long size)
++{
++	unsigned long addr = (unsigned long)start_page;
++	unsigned long end = (unsigned long)(start_page + size);
++	unsigned long next;
++	pgd_t *pgd;
++	pud_t *pud;
++	pmd_t *pmd;
 +
- 	if (tlb_type = cheetah)
- 		seq_printf(m, "MMU Type\t: Cheetah\n");
- 	else if (tlb_type = cheetah_plus)
-@@ -430,6 +438,17 @@ void mmu_info(struct seq_file *m)
- 	else
- 		seq_printf(m, "MMU Type\t: ???\n");
- 
-+	seq_printf(m, "MMU PGSZs\t: ");
-+	printed = 0;
-+	for (i = 0; i < ARRAY_SIZE(pgsz_strings); i++) {
-+		if (cpu_pgsz_mask & (1UL << i)) {
-+			seq_printf(m, "%s%s",
-+				   printed ? "," : "", pgsz_strings[i]);
-+			printed++;
++	for (; addr < end; addr = next) {
++		pte_t *pte = NULL;
++
++		pgd = pgd_offset_k(addr);
++		if (pgd_none(*pgd)) {
++			next = (addr + PAGE_SIZE) & PAGE_MASK;
++			continue;
++		}
++		get_page_bootmem(section_nr, pgd_page(*pgd), MIX_SECTION_INFO);
++
++		pud = pud_offset(pgd, addr);
++		if (pud_none(*pud)) {
++			next = (addr + PAGE_SIZE) & PAGE_MASK;
++			continue;
++		}
++		get_page_bootmem(section_nr, pud_page(*pud), MIX_SECTION_INFO);
++
++		if (!cpu_has_pse) {
++			next = (addr + PAGE_SIZE) & PAGE_MASK;
++			pmd = pmd_offset(pud, addr);
++			if (pmd_none(*pmd))
++				continue;
++			get_page_bootmem(section_nr, pmd_page(*pmd),
++					 MIX_SECTION_INFO);
++
++			pte = pte_offset_kernel(pmd, addr);
++			if (pte_none(*pte))
++				continue;
++			get_page_bootmem(section_nr, pte_page(*pte),
++					 SECTION_INFO);
++		} else {
++			next = pmd_addr_end(addr, end);
++
++			pmd = pmd_offset(pud, addr);
++			if (pmd_none(*pmd))
++				continue;
++			get_page_bootmem(section_nr, pmd_page(*pmd),
++					 SECTION_INFO);
 +		}
 +	}
-+	seq_putc(m, '\n');
++}
 +
- #ifdef CONFIG_DEBUG_DCFLUSH
- 	seq_printf(m, "DCPageFlushes\t: %d\n",
- 		   atomic_read(&dcpage_flushes));
-@@ -1803,6 +1822,18 @@ void __init paging_init(void)
- #ifndef CONFIG_SMP
- 		mdesc_fill_in_cpu_data(cpu_all_mask);
- #endif
-+		mdesc_get_page_sizes(cpu_all_mask, &cpu_pgsz_mask);
-+	} else {
-+		unsigned long impl, ver;
-+
-+		cpu_pgsz_mask = (HV_PGSZ_MASK_8K | HV_PGSZ_MASK_64K |
-+				 HV_PGSZ_MASK_512K | HV_PGSZ_MASK_4MB);
-+
-+		__asm__ __volatile__("rdpr %%ver, %0" : "=r" (ver));
-+		impl = ((ver >> 32) & 0xffff);
-+		if (impl = PANTHER_IMPL)
-+			cpu_pgsz_mask |= (HV_PGSZ_MASK_32MB |
-+					  HV_PGSZ_MASK_256MB);
- 	}
+ void __meminit vmemmap_populate_print_last(void)
+ {
+ 	if (p_start) {
+diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+index 1133e63..2d18235 100644
+--- a/include/linux/memory_hotplug.h
++++ b/include/linux/memory_hotplug.h
+@@ -164,6 +164,8 @@ static inline void arch_refresh_nodedata(int nid, pg_data_t *pgdat)
  
- 	/* Setup bootmem... */
+ extern void register_page_bootmem_info_node(struct pglist_data *pgdat);
+ extern void put_page_bootmem(struct page *page);
++extern void get_page_bootmem(unsigned long ingo, struct page *page,
++			     unsigned long type);
+ 
+ /*
+  * Lock for memory hotplug guarantees 1) all callbacks for memory hotplug
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 311be90..c607913 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1618,7 +1618,8 @@ int vmemmap_populate_basepages(struct page *start_page,
+ 						unsigned long pages, int node);
+ int vmemmap_populate(struct page *start_page, unsigned long pages, int node);
+ void vmemmap_populate_print_last(void);
+-
++void register_page_bootmem_memmap(unsigned long section_nr, struct page *map,
++				  unsigned long size);
+ 
+ enum mf_flags {
+ 	MF_COUNT_INCREASED = 1 << 0,
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index df6857b..647a7f2 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -91,8 +91,8 @@ static void release_memory_resource(struct resource *res)
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
+-static void get_page_bootmem(unsigned long info,  struct page *page,
+-			     unsigned long type)
++void get_page_bootmem(unsigned long info,  struct page *page,
++		      unsigned long type)
+ {
+ 	unsigned long page_type;
+ 
+@@ -164,8 +164,33 @@ static void register_page_bootmem_info_section(unsigned long start_pfn)
+ 
+ }
+ #else
+-static inline void register_page_bootmem_info_section(unsigned long start_pfn)
++static void register_page_bootmem_info_section(unsigned long start_pfn)
+ {
++	unsigned long *usemap, mapsize, section_nr, i;
++	struct mem_section *ms;
++	struct page *page, *memmap;
++
++	if (!pfn_valid(start_pfn))
++		return;
++
++	section_nr = pfn_to_section_nr(start_pfn);
++	ms = __nr_to_section(section_nr);
++
++	memmap = sparse_decode_mem_map(ms->section_mem_map, section_nr);
++
++	page = virt_to_page(memmap);
++	mapsize = sizeof(struct page) * PAGES_PER_SECTION;
++	mapsize = PAGE_ALIGN(mapsize) >> PAGE_SHIFT;
++
++	register_page_bootmem_memmap(section_nr, memmap, PAGES_PER_SECTION);
++
++	usemap = __nr_to_section(section_nr)->pageblock_flags;
++	page = virt_to_page(usemap);
++
++	mapsize = PAGE_ALIGN(usemap_size()) >> PAGE_SHIFT;
++
++	for (i = 0; i < mapsize; i++, page++)
++		get_page_bootmem(section_nr, page, MIX_SECTION_INFO);
+ }
+ #endif
+ 
 -- 
-1.7.10.4
+1.7.1
 
