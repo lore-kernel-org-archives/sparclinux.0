@@ -1,27 +1,47 @@
-From: mroos@linux.ee
-Date: Wed, 19 Sep 2012 07:51:52 +0000
-Subject: Re: PCI Radeon RV100 detection hang on sparc64
-Message-Id: <alpine.SOC.1.00.1209191049200.13066@math.ut.ee>
+From: Jurij Smakov <jurij@wooyd.org>
+Date: Fri, 07 Sep 2012 08:33:58 +0000
+Subject: Re: [PATCH] silo: Don't touch %tick_cmpr on sun4v cpus.
+Message-Id: <20120907083358.GA6551@wooyd.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.SOC.1.00.1209061032360.371@math.ut.ee> <1346950551.30263.196.camel@thor.local> <20120906.141823.13429356729572330.davem@davemloft.net> <CAPM=9ty87-kP1QJjgJKQUVkJxg8yN6ZQ5qy+pVYRnrDoa_VqBQ@mail.gmail.com>
-In-Reply-To: <CAPM=9ty87-kP1QJjgJKQUVkJxg8yN6ZQ5qy+pVYRnrDoa_VqBQ@mail.gmail.com>
+References: <20120815.011416.353619816610212386.davem@davemloft.net>
+In-Reply-To: <20120815.011416.353619816610212386.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dave Airlie <airlied@gmail.com>
-Cc: David Miller <davem@davemloft.net>, michel@daenzer.net, sparclinux@vger.kernel.org, dri-devel@lists.freedesktop.org
+To: sparclinux@vger.kernel.org
 
-> we should just skip the igp reading function on not-x86, since IGP on
-> not x86 makes no sense.
+On Sun, Aug 19, 2012 at 03:29:59PM -0700, David Miller wrote:
+> From: Jurij Smakov <jurij@wooyd.org>
+> Date: Sun, 19 Aug 2012 23:29:05 +0100
+> 
+> > On Sun, Aug 19, 2012 at 03:24:45PM -0700, David Miller wrote:
+> >> From: Jurij Smakov <jurij@wooyd.org>
+> >> Date: Sun, 19 Aug 2012 16:41:42 +0100
+> >> 
+> >> > I just uploaded a new silo package (1.4.14+git20120819-1) including 
+> >> > these fixes to unstable, and would encourage everyone to test it (it 
+> >> > should appear on the mirrors within a few hours). After a grace period 
+> >> > of 10 days we are going to arrange for its propagation to testing, 
+> >> > given that no problems are reported.
+> >> 
+> >> Thanks a lot Jurij.
+> >> 
+> >> Just FYI I also pushed a ext4 fix into the SILO tree yesterday
+> >> after I received positive feedback from a bug reporter.
+> > 
+> > This fix is included in the latest uploaded version as well.
+> 
+> Excellent.
 
-I #ifdef'ed out the igp part with CONFIG_X86. This time it got to
-[drm] radeon: ring at 0x000001FF0C002000
-and stopped here. Some printks showed the actual hang happens in
-radeon_ring_commit() with the line
+The new silo has propagated to testing and should be used in this 
+installer image:
 
-(void)RREG32(ring->wptr_reg);
+http://cdimage.debian.org/cdimage/daily-builds/daily/arch-latest/sparc/iso-cd/debian-testing-sparc-netinst.iso
 
-Any ideas where to continue here?
+If you could give it a try to confirm that it now boots successfully 
+on your machine, it would be appreciated.
 
+Thanks.
 -- 
-Meelis Roos (mroos@linux.ee)
+Jurij Smakov                                           jurij@wooyd.org
+Key: http://www.wooyd.org/pgpkey/                      KeyID: C99E03CC
