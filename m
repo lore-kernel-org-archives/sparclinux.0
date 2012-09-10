@@ -1,63 +1,60 @@
-From: Ni zhan Chen <nizhan.chen@gmail.com>
-Date: Fri, 28 Sep 2012 03:21:37 +0000
-Subject: Re: [RFC v9 PATCH 03/21] memory-hotplug: store the node id in acpi_memory_device
-Message-Id: <506517C1.7050909@gmail.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Date: Mon, 10 Sep 2012 01:46:37 +0000
+Subject: Re: [RFC v8 PATCH 00/20] memory-hotplug: hot-remove physical memory
+Message-Id: <504D467D.2080201@jp.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com> <1346837155-534-4-git-send-email-wency@cn.fujitsu.com>
-In-Reply-To: <1346837155-534-4-git-send-email-wency@cn.fujitsu.com>
+References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com> <20120831134956.fec0f681.akpm@linux-foundation.org>
+In-Reply-To: <20120831134956.fec0f681.akpm@linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: wency@cn.fujitsu.com
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com
+Cc: Andrew Morton <akpm@linux-foundation.org>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com
 
-On 09/05/2012 05:25 PM, wency@cn.fujitsu.com wrote:
-> From: Wen Congyang <wency@cn.fujitsu.com>
->
-> The memory device has only one node id. Store the node id when
-> enable the memory device, and we can reuse it when removing the
-> memory device.
+Hi Wen,
 
-one question:
-if use numa emulation, memory device will associated to one node or ...?
+2012/09/01 5:49, Andrew Morton wrote:
+> On Tue, 28 Aug 2012 18:00:07 +0800
+> wency@cn.fujitsu.com wrote:
+>
+>> This patch series aims to support physical memory hot-remove.
+>
+> Have you had much review and testing feedback yet?
+>
+>> The patches can free/remove the following things:
+>>
+>>    - acpi_memory_info                          : [RFC PATCH 4/19]
+>>    - /sys/firmware/memmap/X/{end, start, type} : [RFC PATCH 8/19]
+>>    - iomem_resource                            : [RFC PATCH 9/19]
+>>    - mem_section and related sysfs files       : [RFC PATCH 10-11, 13-16/19]
+>>    - page table of removed memory              : [RFC PATCH 12/19]
+>>    - node and related sysfs files              : [RFC PATCH 18-19/19]
+>>
+>> If you find lack of function for physical memory hot-remove, please let me
+>> know.
+>
+
+> I doubt if many people have hardware which permits physical memory
+> removal?  How would you suggest that people with regular hardware can
+> test these chagnes?
+
+How do you test the patch? As Andrew says, for hot-removing memory,
+we need a particular hardware. I think so too. So many people may want
+to know how to test the patch.
+If we apply following patch to kvm guest, can we hot-remove memory on
+kvm guest?
+
+http://lists.gnu.org/archive/html/qemu-devel/2012-07/msg01389.html
+
+Thanks,
+Yasuaki Ishimatsu
 
 >
-> CC: David Rientjes <rientjes@google.com>
-> CC: Jiang Liu <liuj97@gmail.com>
-> CC: Len Brown <len.brown@intel.com>
-> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> CC: Paul Mackerras <paulus@samba.org>
-> CC: Christoph Lameter <cl@linux.com>
-> Cc: Minchan Kim <minchan.kim@gmail.com>
-> CC: Andrew Morton <akpm@linux-foundation.org>
-> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-> CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
-> Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> ---
->   drivers/acpi/acpi_memhotplug.c |    4 ++++
->   1 files changed, 4 insertions(+), 0 deletions(-)
+>> Known problems:
+>> 1. memory can't be offlined when CONFIG_MEMCG is selected.
 >
-> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-> index 2a7beac..7873832 100644
-> --- a/drivers/acpi/acpi_memhotplug.c
-> +++ b/drivers/acpi/acpi_memhotplug.c
-> @@ -83,6 +83,7 @@ struct acpi_memory_info {
->   struct acpi_memory_device {
->   	struct acpi_device * device;
->   	unsigned int state;	/* State of the memory device */
-> +	int nid;
->   	struct list_head res_list;
->   };
->   
-> @@ -256,6 +257,9 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
->   		info->enabled = 1;
->   		num_enabled++;
->   	}
-> +
-> +	mem_device->nid = node;
-> +
->   	if (!num_enabled) {
->   		printk(KERN_ERR PREFIX "add_memory failed\n");
->   		mem_device->state = MEMORY_INVALID_STATE;
+> That's quite a problem!  Do you have a description of why this is the
+> case, and a plan for fixing it?
+>
+
 
