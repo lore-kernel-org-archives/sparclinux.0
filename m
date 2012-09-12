@@ -1,16 +1,101 @@
-From: Berneice Seaman <chr0011lupkes@yahoo.com>
-Date: Wed, 12 Sep 2012 12:31:01 +0000
-Subject: Hi!:) I'm Berneice!:)
-Message-Id: <1347453061.9975.YahooMailNeo@web132101.mail.ird.yahoo.com>
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+Date: Wed, 12 Sep 2012 17:03:12 +0000
+Subject: [PATCH 4/15] drivers/sbus/char: removes unnecessary semicolon
+Message-Id: <1347469402-27557-5-git-send-email-peter.senna@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: trivial@kernel.org, kernel-janitors@vger.kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-You haven't got an imagination what playful woman is all about if you have not seen me! 
-I am Berneice and I am really cool!
-Ur personal page became my mouth water and in this mean I decided to write u and chat with u. 
-We should know more about each other and maybe we would become friends, lovers or maybe even create some serious relations. 
-Information about me: I'm 26 yo and I work as a seller in a firm. I'm a redhead and got first size of boobs. 
-And what is about u?
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+
+removes unnecessary semicolon
+
+Found by Coccinelle: http://coccinelle.lip6.fr/
+
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+
+---
+ drivers/sbus/char/display7seg.c |    2 +-
+ drivers/sbus/char/envctrl.c     |    8 ++++----
+ drivers/sbus/char/openprom.c    |    4 ++--
+ 3 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/sbus/char/display7seg.c b/drivers/sbus/char/display7seg.c
+index 4b99397..b160073 100644
+--- a/drivers/sbus/char/display7seg.c
++++ b/drivers/sbus/char/display7seg.c
+@@ -150,7 +150,7 @@ static long d7s_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 			regs |= D7S_FLIP;
+ 		writeb(regs, p->regs);
+ 		break;
+-	};
++	}
+ 	mutex_unlock(&d7s_mutex);
+ 
+ 	return error;
+diff --git a/drivers/sbus/char/envctrl.c b/drivers/sbus/char/envctrl.c
+index 339fd6f..0bc1856 100644
+--- a/drivers/sbus/char/envctrl.c
++++ b/drivers/sbus/char/envctrl.c
+@@ -353,7 +353,7 @@ static int envctrl_i2c_data_translate(unsigned char data, int translate_type,
+ 
+ 	default:
+ 		break;
+-	};
++	}
+ 
+ 	return len;
+ }
+@@ -644,7 +644,7 @@ envctrl_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
+ 	default:
+ 		break;
+ 
+-	};
++	}
+ 
+ 	return ret;
+ }
+@@ -687,7 +687,7 @@ envctrl_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 
+ 	default:
+ 		return -EINVAL;
+-	};
++	}
+ 
+ 	return 0;
+ }
+@@ -947,7 +947,7 @@ static void envctrl_init_i2c_child(struct device_node *dp,
+ 
+ 		default:
+ 			break;
+-		};
++		}
+ 	}
+ }
+ 
+diff --git a/drivers/sbus/char/openprom.c b/drivers/sbus/char/openprom.c
+index 2236aea..5843288 100644
+--- a/drivers/sbus/char/openprom.c
++++ b/drivers/sbus/char/openprom.c
+@@ -222,7 +222,7 @@ static int opromnext(void __user *argp, unsigned int cmd, struct device_node *dp
+ 		case OPROMSETCUR:
+ 		default:
+ 			break;
+-		};
++		}
+ 	} else {
+ 		/* Sibling of node zero is the root node.  */
+ 		if (cmd != OPROMNEXT)
+@@ -588,7 +588,7 @@ static int openprom_bsd_ioctl(struct file * file,
+ 	default:
+ 		err = -EINVAL;
+ 		break;
+-	};
++	}
+ 	mutex_unlock(&openprom_mutex);
+ 
+ 	return err;
+
