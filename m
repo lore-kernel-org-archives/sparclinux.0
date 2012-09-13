@@ -1,48 +1,32 @@
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Date: Wed, 12 Sep 2012 10:09:41 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Thu, 13 Sep 2012 23:05:06 +0000
 Subject: Re: [PATCH v4 0/8] Avoid cache trashing on clearing huge/gigantic page
-Message-Id: <20120912100941.GA26582@otc-wbsnb-06>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="9amGYk9869ThD9tj"
+Message-Id: <20120913160506.d394392a.akpm@linux-foundation.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1345470757-12005-1-git-send-email-kirill.shutemov@linux.intel.com>
 In-Reply-To: <1345470757-12005-1-git-send-email-kirill.shutemov@linux.intel.com>
-To: linux-mm@kvack.org
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Andi Kleen <ak@linux.intel.com>, Tim Chen <tim.c.chen@linux.intel.com>, Alex Shi <alex.shu@intel.com>, Jan Beulich <jbeulich@novell.com>, Robert Richter <robert.richter@amd.com>, Andy Lutomirski <luto@amacapital.net>, Andrew Morton <akpm@linux-foundation.org>, Andrea Arcangeli <aarcange@redhat.com>, Johannes Weiner <hannes@cmpxchg.org>, Hugh Dickins <hughd@google.com>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mips@linux-mips.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: linux-mm@kvack.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Andi Kleen <ak@linux.intel.com>, Tim Chen <tim.c.chen@linux.intel.com>, Alex Shi <alex.shu@intel.com>, Jan Beulich <jbeulich@novell.com>, Robert Richter <robert.richter@amd.com>, Andy Lutomirski <luto@amacapital.net>, Andrea Arcangeli <aarcange@redhat.com>, Johannes Weiner <hannes@cmpxchg.org>, Hugh Dickins <hughd@google.com>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mips@linux-mips.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
+
+On Mon, 20 Aug 2012 16:52:29 +0300
+"Kirill A. Shutemov" <kirill.shutemov@linux.intel.com> wrote:
+
+> Clearing a 2MB huge page will typically blow away several levels of CPU
+> caches.  To avoid this only cache clear the 4K area around the fault
+> address and use a cache avoiding clears for the rest of the 2MB area.
+> 
+> This patchset implements cache avoiding version of clear_page only for
+> x86. If an architecture wants to provide cache avoiding version of
+> clear_page it should to define ARCH_HAS_USER_NOCACHE to 1 and implement
+> clear_page_nocache() and clear_user_highpage_nocache().
+
+Patchset looks nice to me, but the changelogs are terribly short of
+performance measurements.  For this sort of change I do think it is
+important that pretty exhaustive testing be performed, and that the
+results (or a readable summary of them) be shown.  And that testing
+should be designed to probe for slowdowns, not just the speedups!
 
 
---9amGYk9869ThD9tj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-Any feedback?
-
---=20
- Kirill A. Shutemov
-
---9amGYk9869ThD9tj
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQUF9lAAoJEAd+omnVudOMqvgP/A9oBD+NU+NuFlm6b32IkUIR
-2jlEFuSzAp3dAS+aQWVcjLz88pNu7ZjD2m9dTWwVr03UKSlfc/UUcHctWmjrhj+B
-trkuGQ7qVadFTaunqj1z1NZGCrXwGTdw2f+soGtJ+cmwmOqxrqyDJlbJyyOfpiJe
-iYyOU522V7Rc/cnyjY+OxOkaHDBy3RIpo6DhVpSC4Ws6wH6bkuiM2ZYAx+fiRDnj
-Ii60Iel88rjQ0uSeTQ+Jznu16czL4q4bRB9IeT24jUQRgTp7kYKNyjzgy4/zrjOL
-Dlkck9VihPQhZ3QxAjqcxQQCwclB0GctZDFUIrP97+REFlvd3u7yVzgxpeVuqtsz
-K6aXJDcPqfTGyEe0OgOGVb+M6ylvIvsXjNXkym85PTCZNnw9smem1S2HY5689bH+
-ELP9ruYagr1yb+LTX3CQmFuvmoCyuzES/tgw97AJbFP3prkt0K44WhBsJCaflJjl
-efJg6qWTwTrIK8hq0ulcWnwa2oi9zbNwV2SVgDdVQmOfwtzKAp69ijF0Rd4lwpZf
-47ch8oZDVcn8Fv2nhv9FrFr8JiAZ07eIwzeAGiSfpIRpcKXoKUp8y950i++mlxNq
-xoGPDY1odKCKoVsbwYtW/E9l/tmUhTljqExfn9pzcHqMz4YUMGob7xnZOP0ljY5y
-ikNOztWkQPhLD2Cj1nLx
-=p8ME
------END PGP SIGNATURE-----
-
---9amGYk9869ThD9tj--
