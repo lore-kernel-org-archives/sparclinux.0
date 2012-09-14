@@ -1,254 +1,301 @@
-From: Ni zhan Chen <nizhan.chen@gmail.com>
-Date: Sat, 29 Sep 2012 08:19:38 +0000
-Subject: Re: [RFC v9 PATCH 00/21] memory-hotplug: hot-remove physical memory
-Message-Id: <5066AF1A.4090509@gmail.com>
+From: Thierry Reding <thierry.reding@avionic-design.de>
+Date: Fri, 14 Sep 2012 20:44:16 +0000
+Subject: [PATCH 2/2] PCI: Provide a default pcibios_update_irq()
+Message-Id: <1347655456-2542-2-git-send-email-thierry.reding@avionic-design.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
-In-Reply-To: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
+References: <1347655456-2542-1-git-send-email-thierry.reding@avionic-design.de>
+In-Reply-To: <1347655456-2542-1-git-send-email-thierry.reding@avionic-design.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: wency@cn.fujitsu.com
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com
+To: linux-arm-kernel@lists.infradead.org
 
-On 09/05/2012 05:25 PM, wency@cn.fujitsu.com wrote:
-> From: Wen Congyang <wency@cn.fujitsu.com>
->
-> This patch series aims to support physical memory hot-remove.
->
-> The patches can free/remove the following things:
->
->    - acpi_memory_info                          : [RFC PATCH 4/19]
->    - /sys/firmware/memmap/X/{end, start, type} : [RFC PATCH 8/19]
->    - iomem_resource                            : [RFC PATCH 9/19]
->    - mem_section and related sysfs files       : [RFC PATCH 10-11, 13-16/19]
->    - page table of removed memory              : [RFC PATCH 12/19]
->    - node and related sysfs files              : [RFC PATCH 18-19/19]
->
-> If you find lack of function for physical memory hot-remove, please let me
-> know.
->
-> How to test this patchset?
-> 1. apply this patchset and build the kernel. MEMORY_HOTPLUG, MEMORY_HOTREMOVE,
->     ACPI_HOTPLUG_MEMORY must be selected.
-> 2. load the module acpi_memhotplug
+Most architectures implement this in exactly the same way. Instead of
+having each architecture duplicate this function, provide a single
+implementation in the core and make it a weak symbol so that it can be
+overridden on architectures where it is required.
 
-Hi Yasuaki,
+Signed-off-by: Thierry Reding <thierry.reding@avionic-design.de>
+---
+Note: ARM and Unicore32 did use a debug_pci variable to check whether or
+not to output a debug message in pcibios_update_irq(). SPARC/LEON checks
+for CONFIG_PCI_DEBUG instead. I've adopted the SPARC variant in this
+patch. I assumed that in the interest of unification this would be a
+good compromise. If not, please let me know.
 
-where is the acpi_memhotplug module?
+Also, SPARC64 had an empty pcibios_update_irq(). I've opted to drop it
+in favour of the default implementation, which just writes a single byte
+in the device's configuration space. I assumed that this should still
+work but perhaps was just not used on SPARC64. If this is known to break
+SPARC64 I can keep the noop implementation.
 
-> 3. hotplug the memory device(it depends on your hardware)
->     You will see the memory device under the directory /sys/bus/acpi/devices/.
->     Its name is PNP0C80:XX.
-> 4. online/offline pages provided by this memory device
->     You can write online/offline to /sys/devices/system/memory/memoryX/state to
->     online/offline pages provided by this memory device
-> 5. hotremove the memory device
->     You can hotremove the memory device by the hardware, or writing 1 to
->     /sys/bus/acpi/devices/PNP0C80:XX/eject.
->
-> Note: if the memory provided by the memory device is used by the kernel, it
-> can't be offlined. It is not a bug.
->
-> Known problems:
-> 1. memory can't be offlined when CONFIG_MEMCG is selected.
->     For example: there is a memory device on node 1. The address range
->     is [1G, 1.5G). You will find 4 new directories memory8, memory9, memory10,
->     and memory11 under the directory /sys/devices/system/memory/.
->     If CONFIG_MEMCG is selected, we will allocate memory to store page cgroup
->     when we online pages. When we online memory8, the memory stored page cgroup
->     is not provided by this memory device. But when we online memory9, the memory
->     stored page cgroup may be provided by memory8. So we can't offline memory8
->     now. We should offline the memory in the reversed order.
->     When the memory device is hotremoved, we will auto offline memory provided
->     by this memory device. But we don't know which memory is onlined first, so
->     offlining memory may fail. In such case, you should offline the memory by
->     hand before hotremoving the memory device.
-> 2. hotremoving memory device may cause kernel panicked
->     This bug will be fixed by Liu Jiang's patch:
->     https://lkml.org/lkml/2012/7/3/1
->
-> change log of v9:
->   [RFC PATCH v9 8/21]
->     * add a lock to protect the list map_entries
->     * add an indicator to firmware_map_entry to remember whether the memory
->       is allocated from bootmem
->   [RFC PATCH v9 10/21]
->     * change the macro to inline function
->   [RFC PATCH v9 19/21]
->     * don't offline the node if the cpu on the node is onlined
->   [RFC PATCH v9 21/21]
->     * create new patch: auto offline page_cgroup when onlining memory block
->       failed
->
-> change log of v8:
->   [RFC PATCH v8 17/20]
->     * Fix problems when one node's range include the other nodes
->   [RFC PATCH v8 18/20]
->     * fix building error when CONFIG_MEMORY_HOTPLUG_SPARSE or CONFIG_HUGETLBFS
->       is not defined.
->   [RFC PATCH v8 19/20]
->     * don't offline node when some memory sections are not removed
->   [RFC PATCH v8 20/20]
->     * create new patch: clear hwpoisoned flag when onlining pages
->
-> change log of v7:
->   [RFC PATCH v7 4/19]
->     * do not continue if acpi_memory_device_remove_memory() fails.
->   [RFC PATCH v7 15/19]
->     * handle usemap in register_page_bootmem_info_section() too.
->
-> change log of v6:
->   [RFC PATCH v6 12/19]
->     * fix building error on other archtitectures than x86
->
->   [RFC PATCH v6 15-16/19]
->     * fix building error on other archtitectures than x86
->
-> change log of v5:
->   * merge the patchset to clear page table and the patchset to hot remove
->     memory(from ishimatsu) to one big patchset.
->
->   [RFC PATCH v5 1/19]
->     * rename remove_memory() to offline_memory()/offline_pages()
->
->   [RFC PATCH v5 2/19]
->     * new patch: implement offline_memory(). This function offlines pages,
->       update memory block's state, and notify the userspace that the memory
->       block's state is changed.
->
->   [RFC PATCH v5 4/19]
->     * offline and remove memory in acpi_memory_disable_device() too.
->
->   [RFC PATCH v5 17/19]
->     * new patch: add a new function __remove_zone() to revert the things done
->       in the function __add_zone().
->
->   [RFC PATCH v5 18/19]
->     * flush work befor reseting node device.
->
-> change log of v4:
->   * remove "memory-hotplug : unify argument of firmware_map_add_early/hotplug"
->     from the patch series, since the patch is a bugfix. It is being disccussed
->     on other thread. But for testing the patch series, the patch is needed.
->     So I added the patch as [PATCH 0/13].
->
->   [RFC PATCH v4 2/13]
->     * check memory is online or not at remove_memory()
->     * add memory_add_physaddr_to_nid() to acpi_memory_device_remove() for
->       getting node id
->   
->   [RFC PATCH v4 3/13]
->     * create new patch : check memory is online or not at online_pages()
->
->   [RFC PATCH v4 4/13]
->     * add __ref section to remove_memory()
->     * call firmware_map_remove_entry() before remove_sysfs_fw_map_entry()
->
->   [RFC PATCH v4 11/13]
->     * rewrite register_page_bootmem_memmap() for removing page used as PT/PMD
->
-> change log of v3:
->   * rebase to 3.5.0-rc6
->
->   [RFC PATCH v2 2/13]
->     * remove extra kobject_put()
->
->     * The patch was commented by Wen. Wen's comment is
->       "acpi_memory_device_remove() should ignore a return value of
->       remove_memory() since caller does not care the return value".
->       But I did not change it since I think caller should care the
->       return value. And I am trying to fix it as follow:
->
->       https://lkml.org/lkml/2012/7/5/624
->
->   [RFC PATCH v2 4/13]
->     * remove a firmware_memmap_entry allocated by kzmalloc()
->
-> change log of v2:
->   [RFC PATCH v2 2/13]
->     * check whether memory block is offline or not before calling offline_memory()
->     * check whether section is valid or not in is_memblk_offline()
->     * call kobject_put() for each memory_block in is_memblk_offline()
->
->   [RFC PATCH v2 3/13]
->     * unify the end argument of firmware_map_add_early/hotplug
->
->   [RFC PATCH v2 4/13]
->     * add release_firmware_map_entry() for freeing firmware_map_entry
->
->   [RFC PATCH v2 6/13]
->    * add release_memory_block() for freeing memory_block
->
->   [RFC PATCH v2 11/13]
->    * fix wrong arguments of free_pages()
->
->
-> Wen Congyang (8):
->    memory-hotplug: implement offline_memory()
->    memory-hotplug: store the node id in acpi_memory_device
->    memory-hotplug: export the function acpi_bus_remove()
->    memory-hotplug: call acpi_bus_remove() to remove memory device
->    memory-hotplug: introduce new function arch_remove_memory()
->    memory-hotplug: remove sysfs file of node
->    memory-hotplug: clear hwpoisoned flag when onlining pages
->    memory-hotplug: auto offline page_cgroup when onlining memory block
->      failed
->
-> Yasuaki Ishimatsu (13):
->    memory-hotplug: rename remove_memory() to
->      offline_memory()/offline_pages()
->    memory-hotplug: offline and remove memory when removing the memory
->      device
->    memory-hotplug: check whether memory is present or not
->    memory-hotplug: remove /sys/firmware/memmap/X sysfs
->    memory-hotplug: does not release memory region in PAGES_PER_SECTION
->      chunks
->    memory-hotplug: add memory_block_release
->    memory-hotplug: remove_memory calls __remove_pages
->    memory-hotplug: check page type in get_page_bootmem
->    memory-hotplug: move register_page_bootmem_info_node and
->      put_page_bootmem for sparse-vmemmap
->    memory-hotplug: implement register_page_bootmem_info_section of
->      sparse-vmemmap
->    memory-hotplug: free memmap of sparse-vmemmap
->    memory_hotplug: clear zone when the memory is removed
->    memory-hotplug: add node_device_release
->
->   arch/ia64/mm/discontig.c                        |   14 +
->   arch/ia64/mm/init.c                             |   16 +
->   arch/powerpc/mm/init_64.c                       |   14 +
->   arch/powerpc/mm/mem.c                           |   14 +
->   arch/powerpc/platforms/pseries/hotplug-memory.c |   16 +-
->   arch/s390/mm/init.c                             |   12 +
->   arch/s390/mm/vmem.c                             |   14 +
->   arch/sh/mm/init.c                               |   15 +
->   arch/sparc/mm/init_64.c                         |   14 +
->   arch/tile/mm/init.c                             |    8 +
->   arch/x86/include/asm/pgtable_types.h            |    1 +
->   arch/x86/mm/init_32.c                           |   10 +
->   arch/x86/mm/init_64.c                           |  331 ++++++++++++++++++
->   arch/x86/mm/pageattr.c                          |   47 ++--
->   drivers/acpi/acpi_memhotplug.c                  |   54 +++-
->   drivers/acpi/scan.c                             |    3 +-
->   drivers/base/memory.c                           |   88 ++++-
->   drivers/base/node.c                             |   11 +
->   drivers/firmware/memmap.c                       |   98 +++++-
->   include/acpi/acpi_bus.h                         |    1 +
->   include/linux/firmware-map.h                    |    6 +
->   include/linux/memory.h                          |    5 +
->   include/linux/memory_hotplug.h                  |   25 +-
->   include/linux/mm.h                              |    5 +-
->   include/linux/mmzone.h                          |   19 +
->   mm/memory_hotplug.c                             |  424 +++++++++++++++++++++--
->   mm/page_cgroup.c                                |    3 +
->   mm/sparse.c                                     |    5 +-
->   28 files changed, 1181 insertions(+), 92 deletions(-)
->
-> --
-> To unsubscribe, send a message with 'unsubscribe linux-mm' in
-> the body to majordomo@kvack.org.  For more info on Linux MM,
-> see: http://www.linux-mm.org/ .
-> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
->
+ arch/alpha/kernel/pci.c      | 6 ------
+ arch/arm/kernel/bios32.c     | 9 ---------
+ arch/ia64/pci/pci.c          | 8 --------
+ arch/m68k/kernel/pcibios.c   | 5 -----
+ arch/mips/pci/pci.c          | 6 ------
+ arch/sh/drivers/pci/pci.c    | 5 -----
+ arch/sparc/kernel/leon_pci.c | 9 ---------
+ arch/sparc/kernel/pci.c      | 4 ----
+ arch/tile/kernel/pci.c       | 8 --------
+ arch/tile/kernel/pci_gx.c    | 8 --------
+ arch/unicore32/kernel/pci.c  | 8 --------
+ arch/x86/pci/visws.c         | 5 -----
+ arch/xtensa/kernel/pci.c     | 8 --------
+ drivers/pci/setup-irq.c      | 8 ++++++++
+ 14 files changed, 8 insertions(+), 89 deletions(-)
+
+diff --git a/arch/alpha/kernel/pci.c b/arch/alpha/kernel/pci.c
+index 6192b35..ef75714 100644
+--- a/arch/alpha/kernel/pci.c
++++ b/arch/alpha/kernel/pci.c
+@@ -256,12 +256,6 @@ pcibios_fixup_bus(struct pci_bus *bus)
+ 	}
+ }
+ 
+-void __devinit
+-pcibios_update_irq(struct pci_dev *dev, int irq)
+-{
+-	pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq);
+-}
+-
+ int
+ pcibios_enable_device(struct pci_dev *dev, int mask)
+ {
+diff --git a/arch/arm/kernel/bios32.c b/arch/arm/kernel/bios32.c
+index 2b2f25e..9cf16b8 100644
+--- a/arch/arm/kernel/bios32.c
++++ b/arch/arm/kernel/bios32.c
+@@ -270,15 +270,6 @@ static void __devinit pci_fixup_it8152(struct pci_dev *dev)
+ }
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_ITE, PCI_DEVICE_ID_ITE_8152, pci_fixup_it8152);
+ 
+-
+-
+-void __devinit pcibios_update_irq(struct pci_dev *dev, int irq)
+-{
+-	if (debug_pci)
+-		printk("PCI: Assigning IRQ %02d to %s\n", irq, pci_name(dev));
+-	pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq);
+-}
+-
+ /*
+  * If the bus contains any of these devices, then we must not turn on
+  * parity checking of any kind.  Currently this is CyberPro 20x0 only.
+diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
+index 81acc7a..a7ebe94 100644
+--- a/arch/ia64/pci/pci.c
++++ b/arch/ia64/pci/pci.c
+@@ -461,14 +461,6 @@ void pcibios_set_master (struct pci_dev *dev)
+ 	/* No special bus mastering setup handling */
+ }
+ 
+-void __devinit
+-pcibios_update_irq (struct pci_dev *dev, int irq)
+-{
+-	pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq);
+-
+-	/* ??? FIXME -- record old value for shutdown.  */
+-}
+-
+ int
+ pcibios_enable_device (struct pci_dev *dev, int mask)
+ {
+diff --git a/arch/m68k/kernel/pcibios.c b/arch/m68k/kernel/pcibios.c
+index b2988aa..73fa0b5 100644
+--- a/arch/m68k/kernel/pcibios.c
++++ b/arch/m68k/kernel/pcibios.c
+@@ -87,11 +87,6 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
+ 	return 0;
+ }
+ 
+-void pcibios_update_irq(struct pci_dev *dev, int irq)
+-{
+-	pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq);
+-}
+-
+ void __devinit pcibios_fixup_bus(struct pci_bus *bus)
+ {
+ 	struct pci_dev *dev;
+diff --git a/arch/mips/pci/pci.c b/arch/mips/pci/pci.c
+index af3dc05..04e35bc 100644
+--- a/arch/mips/pci/pci.c
++++ b/arch/mips/pci/pci.c
+@@ -313,12 +313,6 @@ void __devinit pcibios_fixup_bus(struct pci_bus *bus)
+ 	}
+ }
+ 
+-void __devinit
+-pcibios_update_irq(struct pci_dev *dev, int irq)
+-{
+-	pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq);
+-}
+-
+ #ifdef CONFIG_HOTPLUG
+ EXPORT_SYMBOL(PCIBIOS_MIN_IO);
+ EXPORT_SYMBOL(PCIBIOS_MIN_MEM);
+diff --git a/arch/sh/drivers/pci/pci.c b/arch/sh/drivers/pci/pci.c
+index d16fabe..a7e078f 100644
+--- a/arch/sh/drivers/pci/pci.c
++++ b/arch/sh/drivers/pci/pci.c
+@@ -192,11 +192,6 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
+ 	return pci_enable_resources(dev, mask);
+ }
+ 
+-void __devinit pcibios_update_irq(struct pci_dev *dev, int irq)
+-{
+-	pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq);
+-}
+-
+ static void __init
+ pcibios_bus_report_status_early(struct pci_channel *hose,
+ 				int top_bus, int current_bus,
+diff --git a/arch/sparc/kernel/leon_pci.c b/arch/sparc/kernel/leon_pci.c
+index 21dcda7..fc05211 100644
+--- a/arch/sparc/kernel/leon_pci.c
++++ b/arch/sparc/kernel/leon_pci.c
+@@ -102,15 +102,6 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
+ 	return pci_enable_resources(dev, mask);
+ }
+ 
+-void __devinit pcibios_update_irq(struct pci_dev *dev, int irq)
+-{
+-#ifdef CONFIG_PCI_DEBUG
+-	printk(KERN_DEBUG "LEONPCI: Assigning IRQ %02d to %s\n", irq,
+-		pci_name(dev));
+-#endif
+-	pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq);
+-}
+-
+ /* in/out routines taken from pcic.c
+  *
+  * This probably belongs here rather than ioport.c because
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index 065b88c..acc8c83 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -622,10 +622,6 @@ void __devinit pcibios_fixup_bus(struct pci_bus *pbus)
+ {
+ }
+ 
+-void pcibios_update_irq(struct pci_dev *pdev, int irq)
+-{
+-}
+-
+ resource_size_t pcibios_align_resource(void *data, const struct resource *res,
+ 				resource_size_t size, resource_size_t align)
+ {
+diff --git a/arch/tile/kernel/pci.c b/arch/tile/kernel/pci.c
+index 33c1086..dbdab34 100644
+--- a/arch/tile/kernel/pci.c
++++ b/arch/tile/kernel/pci.c
+@@ -404,14 +404,6 @@ void pcibios_set_master(struct pci_dev *dev)
+ }
+ 
+ /*
+- * This is called from the generic Linux layer.
+- */
+-void __devinit pcibios_update_irq(struct pci_dev *dev, int irq)
+-{
+-	pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq);
+-}
+-
+-/*
+  * Enable memory and/or address decoding, as appropriate, for the
+  * device described by the 'dev' struct.
+  *
+diff --git a/arch/tile/kernel/pci_gx.c b/arch/tile/kernel/pci_gx.c
+index 0e213e3..2ba6d05 100644
+--- a/arch/tile/kernel/pci_gx.c
++++ b/arch/tile/kernel/pci_gx.c
+@@ -1034,14 +1034,6 @@ char __devinit *pcibios_setup(char *str)
+ }
+ 
+ /*
+- * This is called from the generic Linux layer.
+- */
+-void __devinit pcibios_update_irq(struct pci_dev *dev, int irq)
+-{
+-	pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq);
+-}
+-
+-/*
+  * Enable memory address decoding, as appropriate, for the
+  * device described by the 'dev' struct. The I/O decoding
+  * is disabled, though the TILE-Gx supports I/O addressing.
+diff --git a/arch/unicore32/kernel/pci.c b/arch/unicore32/kernel/pci.c
+index 46cb6c9..b0056f6 100644
+--- a/arch/unicore32/kernel/pci.c
++++ b/arch/unicore32/kernel/pci.c
+@@ -154,14 +154,6 @@ void __init puv3_pci_adjust_zones(unsigned long *zone_size,
+ 	zhole_size[0] = 0;
+ }
+ 
+-void __devinit pcibios_update_irq(struct pci_dev *dev, int irq)
+-{
+-	if (debug_pci)
+-		printk(KERN_DEBUG "PCI: Assigning IRQ %02d to %s\n",
+-				irq, pci_name(dev));
+-	pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq);
+-}
+-
+ /*
+  * If the bus contains any of these devices, then we must not turn on
+  * parity checking of any kind.
+diff --git a/arch/x86/pci/visws.c b/arch/x86/pci/visws.c
+index 15bdfbf..3e6d2a6 100644
+--- a/arch/x86/pci/visws.c
++++ b/arch/x86/pci/visws.c
+@@ -62,11 +62,6 @@ out:
+ 	return irq;
+ }
+ 
+-void __devinit pcibios_update_irq(struct pci_dev *dev, int irq)
+-{
+-	pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq);
+-}
+-
+ int __init pci_visws_init(void)
+ {
+ 	pcibios_enable_irq = &pci_visws_enable_irq;
+diff --git a/arch/xtensa/kernel/pci.c b/arch/xtensa/kernel/pci.c
+index efc3369..54354de 100644
+--- a/arch/xtensa/kernel/pci.c
++++ b/arch/xtensa/kernel/pci.c
+@@ -210,14 +210,6 @@ void pcibios_set_master(struct pci_dev *dev)
+ 	/* No special bus mastering setup handling */
+ }
+ 
+-/* the next one is stolen from the alpha port... */
+-
+-void __devinit
+-pcibios_update_irq(struct pci_dev *dev, int irq)
+-{
+-	pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq);
+-}
+-
+ int pcibios_enable_device(struct pci_dev *dev, int mask)
+ {
+ 	u16 cmd, old_cmd;
+diff --git a/drivers/pci/setup-irq.c b/drivers/pci/setup-irq.c
+index f0bcd56..2d39268 100644
+--- a/drivers/pci/setup-irq.c
++++ b/drivers/pci/setup-irq.c
+@@ -17,6 +17,14 @@
+ #include <linux/ioport.h>
+ #include <linux/cache.h>
+ 
++void __devinit __weak pcibios_update_irq(struct pci_dev *dev, int irq)
++{
++#ifdef CONFIG_PCI_DEBUG
++	printk(KERN_DEBUG "PCI: Assigning IRQ %02d to %s\n", irq,
++	       pci_name(dev));
++#endif
++	pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq);
++}
+ 
+ static void __devinit
+ pdev_fixup_irq(struct pci_dev *dev,
+-- 
+1.7.12
 
