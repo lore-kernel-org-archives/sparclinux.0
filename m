@@ -1,7 +1,7 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Date: Sat, 15 Sep 2012 22:22:11 +0000
+Date: Sat, 15 Sep 2012 22:23:33 +0000
 Subject: Re: [PATCH 2/2] PCI: Provide a default pcibios_update_irq()
-Message-Id: <CAErSpo7q9fvtjatfKqtb8SP3UOJdEXpbvFC_qMBTc6mAoRTQuA@mail.gmail.com>
+Message-Id: <CAErSpo6WaFv=CXtiWeDDvThjZRBRJKfJMgovuMjjZRpQGK-WJA@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1347655456-2542-1-git-send-email-thierry.reding@avionic-design.de>
  <1347655456-2542-2-git-send-email-thierry.reding@avionic-design.de>
@@ -36,3 +36,11 @@ On Sat, Sep 15, 2012 at 1:53 AM, Thierry Reding
 > The problem with pr_debug() and dev_dbg() is that they will be compiled
 > out if DEBUG is not defined. Perhaps we should pass -DDEBUG if PCI_DEBUG
 > is configured and make this dev_dbg()?
+
+Sorry, fat-fingered the previous empty response.
+
+We already have this in drivers/pci/Makefile:
+
+    ccflags-$(CONFIG_PCI_DEBUG) := -DDEBUG
+
+so dev_dbg() should be perfect.
