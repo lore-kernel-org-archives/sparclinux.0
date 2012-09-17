@@ -1,331 +1,302 @@
-From: wency@cn.fujitsu.com
-Date: Wed, 05 Sep 2012 09:25:50 +0000
-Subject: [RFC v9 PATCH 16/21] memory-hotplug: free memmap of sparse-vmemmap
-Message-Id: <1346837155-534-17-git-send-email-wency@cn.fujitsu.com>
+From: Thierry Reding <thierry.reding@avionic-design.de>
+Date: Mon, 17 Sep 2012 11:22:54 +0000
+Subject: [PATCH v2 2/2] PCI: Provide a default pcibios_update_irq()
+Message-Id: <1347880974-13615-2-git-send-email-thierry.reding@avionic-design.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
-In-Reply-To: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
+References: <1347880974-13615-1-git-send-email-thierry.reding@avionic-design.de>
+In-Reply-To: <1347880974-13615-1-git-send-email-thierry.reding@avionic-design.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
-Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
+To: linux-arm-kernel@lists.infradead.org
 
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Most architectures implement this in exactly the same way. Instead of
+having each architecture duplicate this function, provide a single
+implementation in the core and make it a weak symbol so that it can be
+overridden on architectures where it is required.
 
-All pages of virtual mapping in removed memory cannot be freed, since some pages
-used as PGD/PUD includes not only removed memory but also other memory. So the
-patch checks whether page can be freed or not.
-
-How to check whether page can be freed or not?
- 1. When removing memory, the page structs of the revmoved memory are filled
-    with 0FD.
- 2. All page structs are filled with 0xFD on PT/PMD, PT/PMD can be cleared.
-    In this case, the page used as PT/PMD can be freed.
-
-Applying patch, __remove_section() of CONFIG_SPARSEMEM_VMEMMAP is integrated
-into one. So __remove_section() of CONFIG_SPARSEMEM_VMEMMAP is deleted.
-
-Note:  vmemmap_kfree() and vmemmap_free_bootmem() are not implemented for ia64,
-ppc, s390, and sparc.
-
-CC: David Rientjes <rientjes@google.com>
-CC: Jiang Liu <liuj97@gmail.com>
-CC: Len Brown <len.brown@intel.com>
-CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-CC: Paul Mackerras <paulus@samba.org>
-CC: Christoph Lameter <cl@linux.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-CC: Andrew Morton <akpm@linux-foundation.org>
-CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-CC: Wen Congyang <wency@cn.fujitsu.com>
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Thierry Reding <thierry.reding@avionic-design.de>
 ---
- arch/ia64/mm/discontig.c  |    8 +++
- arch/powerpc/mm/init_64.c |    8 +++
- arch/s390/mm/vmem.c       |    8 +++
- arch/sparc/mm/init_64.c   |    8 +++
- arch/x86/mm/init_64.c     |  119 +++++++++++++++++++++++++++++++++++++++++++++
- include/linux/mm.h        |    2 +
- mm/memory_hotplug.c       |   17 +------
- mm/sparse.c               |    5 +-
- 8 files changed, 158 insertions(+), 17 deletions(-)
+Note: ARM and Unicore32 did use a debug_pci variable to check whether or
+not to output a debug message in pcibios_update_irq(). SPARC/LEON checks
+for CONFIG_PCI_DEBUG instead. I've adopted the SPARC variant in this
+patch. I assumed that in the interest of unification this would be a
+good compromise. If not, please let me know.
 
-diff --git a/arch/ia64/mm/discontig.c b/arch/ia64/mm/discontig.c
-index 33943db..0d23b69 100644
---- a/arch/ia64/mm/discontig.c
-+++ b/arch/ia64/mm/discontig.c
-@@ -823,6 +823,14 @@ int __meminit vmemmap_populate(struct page *start_page,
- 	return vmemmap_populate_basepages(start_page, size, node);
- }
- 
-+void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
-+{
-+}
-+
-+void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
-+{
-+}
-+
- void register_page_bootmem_memmap(unsigned long section_nr,
- 				  struct page *start_page, unsigned long size)
- {
-diff --git a/arch/powerpc/mm/init_64.c b/arch/powerpc/mm/init_64.c
-index 3690c44..835a2b3 100644
---- a/arch/powerpc/mm/init_64.c
-+++ b/arch/powerpc/mm/init_64.c
-@@ -299,6 +299,14 @@ int __meminit vmemmap_populate(struct page *start_page,
- 	return 0;
- }
- 
-+void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
-+{
-+}
-+
-+void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
-+{
-+}
-+
- void register_page_bootmem_memmap(unsigned long section_nr,
- 				  struct page *start_page, unsigned long size)
- {
-diff --git a/arch/s390/mm/vmem.c b/arch/s390/mm/vmem.c
-index eda55cd..4b42b0b 100644
---- a/arch/s390/mm/vmem.c
-+++ b/arch/s390/mm/vmem.c
-@@ -227,6 +227,14 @@ out:
- 	return ret;
- }
- 
-+void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
-+{
-+}
-+
-+void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
-+{
-+}
-+
- void register_page_bootmem_memmap(unsigned long section_nr,
- 				  struct page *start_page, unsigned long size)
- {
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index add1cc7..1384826 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -2078,6 +2078,14 @@ void __meminit vmemmap_populate_print_last(void)
+Also, SPARC64 had an empty pcibios_update_irq(). I've opted to drop it
+in favour of the default implementation, which just writes a single byte
+in the device's configuration space. I assumed that this should still
+work but perhaps was just not used on SPARC64. If this is known to break
+SPARC64 I can keep the noop implementation.
+
+Changes in v2:
+- drop __devinit annotation
+- use dev_dbg()
+
+ arch/alpha/kernel/pci.c      | 6 ------
+ arch/arm/kernel/bios32.c     | 9 ---------
+ arch/ia64/pci/pci.c          | 8 --------
+ arch/m68k/kernel/pcibios.c   | 5 -----
+ arch/mips/pci/pci.c          | 6 ------
+ arch/sh/drivers/pci/pci.c    | 5 -----
+ arch/sparc/kernel/leon_pci.c | 9 ---------
+ arch/sparc/kernel/pci.c      | 4 ----
+ arch/tile/kernel/pci.c       | 8 --------
+ arch/tile/kernel/pci_gx.c    | 8 --------
+ arch/unicore32/kernel/pci.c  | 8 --------
+ arch/x86/pci/visws.c         | 5 -----
+ arch/xtensa/kernel/pci.c     | 8 --------
+ drivers/pci/setup-irq.c      | 5 +++++
+ 14 files changed, 5 insertions(+), 89 deletions(-)
+
+diff --git a/arch/alpha/kernel/pci.c b/arch/alpha/kernel/pci.c
+index 920392f..ef75714 100644
+--- a/arch/alpha/kernel/pci.c
++++ b/arch/alpha/kernel/pci.c
+@@ -256,12 +256,6 @@ pcibios_fixup_bus(struct pci_bus *bus)
  	}
  }
  
-+void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
-+{
-+}
-+
-+void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
-+{
-+}
-+
- void register_page_bootmem_memmap(unsigned long section_nr,
- 				  struct page *start_page, unsigned long size)
+-void
+-pcibios_update_irq(struct pci_dev *dev, int irq)
+-{
+-	pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq);
+-}
+-
+ int
+ pcibios_enable_device(struct pci_dev *dev, int mask)
  {
-diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
-index 0075592..4e8f8a4 100644
---- a/arch/x86/mm/init_64.c
-+++ b/arch/x86/mm/init_64.c
-@@ -1138,6 +1138,125 @@ vmemmap_populate(struct page *start_page, unsigned long size, int node)
+diff --git a/arch/arm/kernel/bios32.c b/arch/arm/kernel/bios32.c
+index 0174fe6..9cf16b8 100644
+--- a/arch/arm/kernel/bios32.c
++++ b/arch/arm/kernel/bios32.c
+@@ -270,15 +270,6 @@ static void __devinit pci_fixup_it8152(struct pci_dev *dev)
+ }
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_ITE, PCI_DEVICE_ID_ITE_8152, pci_fixup_it8152);
+ 
+-
+-
+-void pcibios_update_irq(struct pci_dev *dev, int irq)
+-{
+-	if (debug_pci)
+-		printk("PCI: Assigning IRQ %02d to %s\n", irq, pci_name(dev));
+-	pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq);
+-}
+-
+ /*
+  * If the bus contains any of these devices, then we must not turn on
+  * parity checking of any kind.  Currently this is CyberPro 20x0 only.
+diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
+index 27db6a8..a7ebe94 100644
+--- a/arch/ia64/pci/pci.c
++++ b/arch/ia64/pci/pci.c
+@@ -461,14 +461,6 @@ void pcibios_set_master (struct pci_dev *dev)
+ 	/* No special bus mastering setup handling */
+ }
+ 
+-void
+-pcibios_update_irq (struct pci_dev *dev, int irq)
+-{
+-	pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq);
+-
+-	/* ??? FIXME -- record old value for shutdown.  */
+-}
+-
+ int
+ pcibios_enable_device (struct pci_dev *dev, int mask)
+ {
+diff --git a/arch/m68k/kernel/pcibios.c b/arch/m68k/kernel/pcibios.c
+index b2988aa..73fa0b5 100644
+--- a/arch/m68k/kernel/pcibios.c
++++ b/arch/m68k/kernel/pcibios.c
+@@ -87,11 +87,6 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
  	return 0;
  }
  
-+#define PAGE_INUSE 0xFD
-+
-+unsigned long find_and_clear_pte_page(unsigned long addr, unsigned long end,
-+			    struct page **pp, int *page_size)
-+{
-+	pgd_t *pgd;
-+	pud_t *pud;
-+	pmd_t *pmd;
-+	pte_t *pte;
-+	void *page_addr;
-+	unsigned long next;
-+
-+	*pp = NULL;
-+
-+	pgd = pgd_offset_k(addr);
-+	if (pgd_none(*pgd))
-+		return pgd_addr_end(addr, end);
-+
-+	pud = pud_offset(pgd, addr);
-+	if (pud_none(*pud))
-+		return pud_addr_end(addr, end);
-+
-+	if (!cpu_has_pse) {
-+		next = (addr + PAGE_SIZE) & PAGE_MASK;
-+		pmd = pmd_offset(pud, addr);
-+		if (pmd_none(*pmd))
-+			return next;
-+
-+		pte = pte_offset_kernel(pmd, addr);
-+		if (pte_none(*pte))
-+			return next;
-+
-+		*page_size = PAGE_SIZE;
-+		*pp = pte_page(*pte);
-+	} else {
-+		next = pmd_addr_end(addr, end);
-+
-+		pmd = pmd_offset(pud, addr);
-+		if (pmd_none(*pmd))
-+			return next;
-+
-+		*page_size = PMD_SIZE;
-+		*pp = pmd_page(*pmd);
-+	}
-+
-+	/*
-+	 * Removed page structs are filled with 0xFD.
-+	 */
-+	memset((void *)addr, PAGE_INUSE, next - addr);
-+
-+	page_addr = page_address(*pp);
-+
-+	/*
-+	 * Check the page is filled with 0xFD or not.
-+	 * memchr_inv() returns the address. In this case, we cannot
-+	 * clear PTE/PUD entry, since the page is used by other.
-+	 * So we cannot also free the page.
-+	 *
-+	 * memchr_inv() returns NULL. In this case, we can clear
-+	 * PTE/PUD entry, since the page is not used by other.
-+	 * So we can also free the page.
-+	 */
-+	if (memchr_inv(page_addr, PAGE_INUSE, *page_size)) {
-+		*pp = NULL;
-+		return next;
-+	}
-+
-+	if (!cpu_has_pse)
-+		pte_clear(&init_mm, addr, pte);
-+	else
-+		pmd_clear(pmd);
-+
-+	return next;
-+}
-+
-+void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
-+{
-+	unsigned long addr = (unsigned long)memmap;
-+	unsigned long end = (unsigned long)(memmap + nr_pages);
-+	unsigned long next;
-+	struct page *page;
-+	int page_size;
-+
-+	for (; addr < end; addr = next) {
-+		page = NULL;
-+		page_size = 0;
-+		next = find_and_clear_pte_page(addr, end, &page, &page_size);
-+		if (!page)
-+			continue;
-+
-+		free_pages((unsigned long)page_address(page),
-+			    get_order(page_size));
-+		__flush_tlb_one(addr);
-+	}
-+}
-+
-+void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
-+{
-+	unsigned long addr = (unsigned long)memmap;
-+	unsigned long end = (unsigned long)(memmap + nr_pages);
-+	unsigned long next;
-+	struct page *page;
-+	int page_size;
-+	unsigned long magic;
-+
-+	for (; addr < end; addr = next) {
-+		page = NULL;
-+		page_size = 0;
-+		next = find_and_clear_pte_page(addr, end, &page, &page_size);
-+		if (!page)
-+			continue;
-+
-+		magic = (unsigned long) page->lru.next;
-+		if (magic = SECTION_INFO)
-+			put_page_bootmem(page);
-+		flush_tlb_kernel_range(addr, end);
-+	}
-+}
-+
- void register_page_bootmem_memmap(unsigned long section_nr,
- 				  struct page *start_page, unsigned long size)
- {
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index c607913..fb0d1fc 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1620,6 +1620,8 @@ int vmemmap_populate(struct page *start_page, unsigned long pages, int node);
- void vmemmap_populate_print_last(void);
- void register_page_bootmem_memmap(unsigned long section_nr, struct page *map,
- 				  unsigned long size);
-+void vmemmap_kfree(struct page *memmpa, unsigned long nr_pages);
-+void vmemmap_free_bootmem(struct page *memmpa, unsigned long nr_pages);
- 
- enum mf_flags {
- 	MF_COUNT_INCREASED = 1 << 0,
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 647a7f2..c54922c 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -308,19 +308,6 @@ static int __meminit __add_section(int nid, struct zone *zone,
- 	return register_new_memory(nid, __pfn_to_section(phys_start_pfn));
- }
- 
--#ifdef CONFIG_SPARSEMEM_VMEMMAP
--static int __remove_section(struct zone *zone, struct mem_section *ms)
+-void pcibios_update_irq(struct pci_dev *dev, int irq)
 -{
--	int ret = -EINVAL;
--
--	if (!valid_section(ms))
--		return ret;
--
--	ret = unregister_memory_section(ms);
--
--	return ret;
+-	pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq);
 -}
--#else
- static int __remove_section(struct zone *zone, struct mem_section *ms)
+-
+ void __devinit pcibios_fixup_bus(struct pci_bus *bus)
  {
- 	unsigned long flags;
-@@ -337,9 +324,9 @@ static int __remove_section(struct zone *zone, struct mem_section *ms)
- 	pgdat_resize_lock(pgdat, &flags);
- 	sparse_remove_one_section(zone, ms);
- 	pgdat_resize_unlock(pgdat, &flags);
--	return 0;
-+
-+	return ret;
+ 	struct pci_dev *dev;
+diff --git a/arch/mips/pci/pci.c b/arch/mips/pci/pci.c
+index 64f0419..04e35bc 100644
+--- a/arch/mips/pci/pci.c
++++ b/arch/mips/pci/pci.c
+@@ -313,12 +313,6 @@ void __devinit pcibios_fixup_bus(struct pci_bus *bus)
+ 	}
  }
+ 
+-void
+-pcibios_update_irq(struct pci_dev *dev, int irq)
+-{
+-	pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq);
+-}
+-
+ #ifdef CONFIG_HOTPLUG
+ EXPORT_SYMBOL(PCIBIOS_MIN_IO);
+ EXPORT_SYMBOL(PCIBIOS_MIN_MEM);
+diff --git a/arch/sh/drivers/pci/pci.c b/arch/sh/drivers/pci/pci.c
+index 1bd3e08..a7e078f 100644
+--- a/arch/sh/drivers/pci/pci.c
++++ b/arch/sh/drivers/pci/pci.c
+@@ -192,11 +192,6 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
+ 	return pci_enable_resources(dev, mask);
+ }
+ 
+-void pcibios_update_irq(struct pci_dev *dev, int irq)
+-{
+-	pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq);
+-}
+-
+ static void __init
+ pcibios_bus_report_status_early(struct pci_channel *hose,
+ 				int top_bus, int current_bus,
+diff --git a/arch/sparc/kernel/leon_pci.c b/arch/sparc/kernel/leon_pci.c
+index 404621b..fc05211 100644
+--- a/arch/sparc/kernel/leon_pci.c
++++ b/arch/sparc/kernel/leon_pci.c
+@@ -102,15 +102,6 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
+ 	return pci_enable_resources(dev, mask);
+ }
+ 
+-void pcibios_update_irq(struct pci_dev *dev, int irq)
+-{
+-#ifdef CONFIG_PCI_DEBUG
+-	printk(KERN_DEBUG "LEONPCI: Assigning IRQ %02d to %s\n", irq,
+-		pci_name(dev));
 -#endif
+-	pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq);
+-}
+-
+ /* in/out routines taken from pcic.c
+  *
+  * This probably belongs here rather than ioport.c because
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index 065b88c..acc8c83 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -622,10 +622,6 @@ void __devinit pcibios_fixup_bus(struct pci_bus *pbus)
+ {
+ }
+ 
+-void pcibios_update_irq(struct pci_dev *pdev, int irq)
+-{
+-}
+-
+ resource_size_t pcibios_align_resource(void *data, const struct resource *res,
+ 				resource_size_t size, resource_size_t align)
+ {
+diff --git a/arch/tile/kernel/pci.c b/arch/tile/kernel/pci.c
+index 6245bba..dbdab34 100644
+--- a/arch/tile/kernel/pci.c
++++ b/arch/tile/kernel/pci.c
+@@ -404,14 +404,6 @@ void pcibios_set_master(struct pci_dev *dev)
+ }
  
  /*
-  * Reasonably generic function for adding memory.  It is
-diff --git a/mm/sparse.c b/mm/sparse.c
-index fac95f2..ab9d755 100644
---- a/mm/sparse.c
-+++ b/mm/sparse.c
-@@ -613,12 +613,13 @@ static inline struct page *kmalloc_section_memmap(unsigned long pnum, int nid,
- 	/* This will make the necessary allocations eventually. */
- 	return sparse_mem_map_populate(pnum, nid);
+- * This is called from the generic Linux layer.
+- */
+-void pcibios_update_irq(struct pci_dev *dev, int irq)
+-{
+-	pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq);
+-}
+-
+-/*
+  * Enable memory and/or address decoding, as appropriate, for the
+  * device described by the 'dev' struct.
+  *
+diff --git a/arch/tile/kernel/pci_gx.c b/arch/tile/kernel/pci_gx.c
+index 5faad0b..2ba6d05 100644
+--- a/arch/tile/kernel/pci_gx.c
++++ b/arch/tile/kernel/pci_gx.c
+@@ -1034,14 +1034,6 @@ char __devinit *pcibios_setup(char *str)
  }
--static void __kfree_section_memmap(struct page *memmap, unsigned long nr_pages)
-+static void __kfree_section_memmap(struct page *page, unsigned long nr_pages)
+ 
+ /*
+- * This is called from the generic Linux layer.
+- */
+-void pcibios_update_irq(struct pci_dev *dev, int irq)
+-{
+-	pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq);
+-}
+-
+-/*
+  * Enable memory address decoding, as appropriate, for the
+  * device described by the 'dev' struct. The I/O decoding
+  * is disabled, though the TILE-Gx supports I/O addressing.
+diff --git a/arch/unicore32/kernel/pci.c b/arch/unicore32/kernel/pci.c
+index c07ecc5..b0056f6 100644
+--- a/arch/unicore32/kernel/pci.c
++++ b/arch/unicore32/kernel/pci.c
+@@ -154,14 +154,6 @@ void __init puv3_pci_adjust_zones(unsigned long *zone_size,
+ 	zhole_size[0] = 0;
+ }
+ 
+-void pcibios_update_irq(struct pci_dev *dev, int irq)
+-{
+-	if (debug_pci)
+-		printk(KERN_DEBUG "PCI: Assigning IRQ %02d to %s\n",
+-				irq, pci_name(dev));
+-	pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq);
+-}
+-
+ /*
+  * If the bus contains any of these devices, then we must not turn on
+  * parity checking of any kind.
+diff --git a/arch/x86/pci/visws.c b/arch/x86/pci/visws.c
+index 9d736e7..3e6d2a6 100644
+--- a/arch/x86/pci/visws.c
++++ b/arch/x86/pci/visws.c
+@@ -62,11 +62,6 @@ out:
+ 	return irq;
+ }
+ 
+-void pcibios_update_irq(struct pci_dev *dev, int irq)
+-{
+-	pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq);
+-}
+-
+ int __init pci_visws_init(void)
  {
--	return; /* XXX: Not implemented yet */
-+	vmemmap_kfree(page, nr_pages);
+ 	pcibios_enable_irq = &pci_visws_enable_irq;
+diff --git a/arch/xtensa/kernel/pci.c b/arch/xtensa/kernel/pci.c
+index 6f9b40c..54354de 100644
+--- a/arch/xtensa/kernel/pci.c
++++ b/arch/xtensa/kernel/pci.c
+@@ -210,14 +210,6 @@ void pcibios_set_master(struct pci_dev *dev)
+ 	/* No special bus mastering setup handling */
  }
- static void free_map_bootmem(struct page *page, unsigned long nr_pages)
+ 
+-/* the next one is stolen from the alpha port... */
+-
+-void
+-pcibios_update_irq(struct pci_dev *dev, int irq)
+-{
+-	pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq);
+-}
+-
+ int pcibios_enable_device(struct pci_dev *dev, int mask)
  {
-+	vmemmap_free_bootmem(page, nr_pages);
- }
- #else
- static struct page *__kmalloc_section_memmap(unsigned long nr_pages)
+ 	u16 cmd, old_cmd;
+diff --git a/drivers/pci/setup-irq.c b/drivers/pci/setup-irq.c
+index 270ae7b..3d61ce3 100644
+--- a/drivers/pci/setup-irq.c
++++ b/drivers/pci/setup-irq.c
+@@ -17,6 +17,11 @@
+ #include <linux/ioport.h>
+ #include <linux/cache.h>
+ 
++void __weak pcibios_update_irq(struct pci_dev *dev, int irq)
++{
++	dev_dbg(&dev->dev, "Assigning IRQ %02d\n", irq);
++	pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq);
++}
+ 
+ static void
+ pdev_fixup_irq(struct pci_dev *dev,
 -- 
-1.7.1
+1.7.12
 
