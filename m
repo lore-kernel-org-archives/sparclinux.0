@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Mon, 17 Sep 2012 16:27:22 +0000
+Date: Mon, 17 Sep 2012 17:28:16 +0000
 Subject: Re: [PATCH] sparc32: Enable the relocation target R_SPARC_DISP32 for sparc32
-Message-Id: <20120917.122722.2202914693352843309.davem@davemloft.net>
+Message-Id: <20120917.132816.1266775693642269884.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1347895348-24728-1-git-send-email-andreas@gaisler.com>
 In-Reply-To: <1347895348-24728-1-git-send-email-andreas@gaisler.com>
@@ -30,4 +30,6 @@ Date: Mon, 17 Sep 2012 17:22:28 +0200
 >  		switch (ELF_R_TYPE(rel[i].r_info) & 0xff) {
 > +
 
-Please get rid of the empty line and resubmit, thanks.
+I said to get rid of this empty line, please follow the feedback you
+were given.  If you continue to ignore my feedback, I will completely
+ignore your submissions.
