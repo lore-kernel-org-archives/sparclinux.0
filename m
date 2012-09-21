@@ -1,32 +1,41 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Date: Wed, 19 Sep 2012 16:57:15 +0000
-Subject: Re: [PATCH v2 1/2] PCI: Keep pci_fixup_irqs() around after init
-Message-Id: <CAErSpo4q7KYn3bvNQ0wAXV=+PRAFH_c=MgOLOTDKgaNCjE_aXg@mail.gmail.com>
+From: Wei Yongjun <weiyj.lk@gmail.com>
+Date: Fri, 21 Sep 2012 04:57:51 +0000
+Subject: [PATCH] sparc: fix the return value of module_alloc()
+Message-Id: <CAPgLHd-ND_itgeVLvvqFZEU1peMuCk=dAfFhkH68KFV7biHhzA@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1347880974-13615-1-git-send-email-thierry.reding@avionic-design.de>
- <20120917113423.GA28759@kroah.com>
-In-Reply-To: <20120917113423.GA28759@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-On Mon, Sep 17, 2012 at 5:34 AM, Greg Kroah-Hartman
-<gregkh@linuxfoundation.org> wrote:
-> On Mon, Sep 17, 2012 at 01:22:53PM +0200, Thierry Reding wrote:
->> Remove the __init annotations in order to keep pci_fixup_irqs() around
->> after init (e.g. for hotplug). This requires the same change for the
->> implementation of pcibios_update_irq() on all architectures. While at
->> it, all __devinit annotations are removed as well, since they will be
->> useless now that HOTPLUG is always on.
->>
->> Signed-off-by: Thierry Reding <thierry.reding@avionic-design.de>
->> ---
->> Changes in v2:
->> - remove __init and __devinit annotations altogether
->
-> Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-I applied these (both 1/2 and 2/2) to my "next" branch.  Thanks!
+In case of error, function module_alloc() in other platform never
+returns ERR_PTR(), and all of the user only check for NULL, so
+we'd better return NULL instead of ERR_PTR().
 
-Bjorn
+dpatch engine is used to auto generated this patch.
+(https://github.com/weiyj/dpatch)
+
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+---
+ arch/sparc/kernel/module.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/arch/sparc/kernel/module.c b/arch/sparc/kernel/module.c
+index 15e0a16..df7e16c 100644
+--- a/arch/sparc/kernel/module.c
++++ b/arch/sparc/kernel/module.c
+@@ -48,9 +48,7 @@ void *module_alloc(unsigned long size)
+ 		return NULL;
+ 
+ 	ret = module_map(size);
+-	if (!ret)
+-		ret = ERR_PTR(-ENOMEM);
+-	else
++	if (ret)
+ 		memset(ret, 0, size);
+ 
+ 	return ret;
+
+
