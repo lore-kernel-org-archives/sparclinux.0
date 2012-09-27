@@ -1,129 +1,182 @@
-From: wency@cn.fujitsu.com
-Date: Wed, 05 Sep 2012 09:25:45 +0000
-Subject: [RFC v9 PATCH 11/21] memory-hotplug: remove_memory calls __remove_pages
-Message-Id: <1346837155-534-12-git-send-email-wency@cn.fujitsu.com>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 27 Sep 2012 08:12:10 +0000
+Subject: [PATCH] sparc64: Fix return value of Niagara-2 memcpy.
+Message-Id: <20120927.041210.2193850545094055315.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
-In-Reply-To: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
-Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
+To: sparclinux@vger.kernel.org
 
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-The patch adds __remove_pages() to remove_memory(). Then the range of
-phys_start_pfn argument and nr_pages argument in __remove_pagse() may
-have different zone. So zone argument is removed from __remove_pages()
-and __remove_pages() caluculates zone in each section.
+It gets clobbered by the kernel's VISEntryHalf, so we have to save it
+in a different register than the set clobbered by that macro.
 
-When CONFIG_SPARSEMEM_VMEMMAP is defined, there is no way to remove a memmap.
-So __remove_section only calls unregister_memory_section().
+The instance in glibc is OK and doesn't have this problem.
 
-CC: David Rientjes <rientjes@google.com>
-CC: Jiang Liu <liuj97@gmail.com>
-CC: Len Brown <len.brown@intel.com>
-CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-CC: Paul Mackerras <paulus@samba.org>
-CC: Christoph Lameter <cl@linux.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-CC: Andrew Morton <akpm@linux-foundation.org>
-CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-CC: Wen Congyang <wency@cn.fujitsu.com>
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/powerpc/platforms/pseries/hotplug-memory.c |    5 +----
- include/linux/memory_hotplug.h                  |    3 +--
- mm/memory_hotplug.c                             |   17 ++++++++++-------
- 3 files changed, 12 insertions(+), 13 deletions(-)
+ arch/sparc/lib/NG2memcpy.S |   46 ++++++++++++++++++++++----------------------
+ 1 file changed, 23 insertions(+), 23 deletions(-)
 
-diff --git a/arch/powerpc/platforms/pseries/hotplug-memory.c b/arch/powerpc/platforms/pseries/hotplug-memory.c
-index dc0a035..cc14da4 100644
---- a/arch/powerpc/platforms/pseries/hotplug-memory.c
-+++ b/arch/powerpc/platforms/pseries/hotplug-memory.c
-@@ -76,7 +76,6 @@ unsigned long memory_block_size_bytes(void)
- static int pseries_remove_memblock(unsigned long base, unsigned int memblock_size)
- {
- 	unsigned long start, start_pfn;
--	struct zone *zone;
- 	int i, ret;
- 	int sections_to_remove;
- 
-@@ -87,8 +86,6 @@ static int pseries_remove_memblock(unsigned long base, unsigned int memblock_siz
- 		return 0;
- 	}
- 
--	zone = page_zone(pfn_to_page(start_pfn));
--
- 	/*
- 	 * Remove section mappings and sysfs entries for the
- 	 * section of the memory we are removing.
-@@ -101,7 +98,7 @@ static int pseries_remove_memblock(unsigned long base, unsigned int memblock_siz
- 	sections_to_remove = (memblock_size >> PAGE_SHIFT) / PAGES_PER_SECTION;
- 	for (i = 0; i < sections_to_remove; i++) {
- 		unsigned long pfn = start_pfn + i * PAGES_PER_SECTION;
--		ret = __remove_pages(zone, start_pfn,  PAGES_PER_SECTION);
-+		ret = __remove_pages(start_pfn,  PAGES_PER_SECTION);
- 		if (ret)
- 			return ret;
- 	}
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index fd84ea9..8bf820d 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -90,8 +90,7 @@ extern bool is_pageblock_removable_nolock(struct page *page);
- /* reasonably generic interface to expand the physical pages in a zone  */
- extern int __add_pages(int nid, struct zone *zone, unsigned long start_pfn,
- 	unsigned long nr_pages);
--extern int __remove_pages(struct zone *zone, unsigned long start_pfn,
--	unsigned long nr_pages);
-+extern int __remove_pages(unsigned long start_pfn, unsigned long nr_pages);
- 
- #ifdef CONFIG_NUMA
- extern int memory_add_physaddr_to_nid(u64 start);
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 2353887..7fbfc9f 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -275,11 +275,14 @@ static int __meminit __add_section(int nid, struct zone *zone,
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
- static int __remove_section(struct zone *zone, struct mem_section *ms)
- {
--	/*
--	 * XXX: Freeing memmap with vmemmap is not implement yet.
--	 *      This should be removed later.
--	 */
--	return -EBUSY;
-+	int ret = -EINVAL;
-+
-+	if (!valid_section(ms))
-+		return ret;
-+
-+	ret = unregister_memory_section(ms);
-+
-+	return ret;
- }
+diff --git a/arch/sparc/lib/NG2memcpy.S b/arch/sparc/lib/NG2memcpy.S
+index 03eadf6..2c20ad6 100644
+--- a/arch/sparc/lib/NG2memcpy.S
++++ b/arch/sparc/lib/NG2memcpy.S
+@@ -14,7 +14,7 @@
+ #define FPRS_FEF  0x04
+ #ifdef MEMCPY_DEBUG
+ #define VISEntryHalf rd %fprs, %o5; wr %g0, FPRS_FEF, %fprs; \
+-		     clr %g1; clr %g2; clr %g3; subcc %g0, %g0, %g0;
++		     clr %g1; clr %g2; clr %g3; clr %g5; subcc %g0, %g0, %g0;
+ #define VISExitHalf and %o5, FPRS_FEF, %o5; wr %o5, 0x0, %fprs
  #else
- static int __remove_section(struct zone *zone, struct mem_section *ms)
-@@ -346,8 +349,7 @@ EXPORT_SYMBOL_GPL(__add_pages);
-  * sure that pages are marked reserved and zones are adjust properly by
-  * calling offline_pages().
-  */
--int __remove_pages(struct zone *zone, unsigned long phys_start_pfn,
--		 unsigned long nr_pages)
-+int __remove_pages(unsigned long phys_start_pfn, unsigned long nr_pages)
- {
- 	unsigned long i, ret = 0;
- 	int sections_to_remove;
-@@ -363,6 +365,7 @@ int __remove_pages(struct zone *zone, unsigned long phys_start_pfn,
- 	sections_to_remove = nr_pages / PAGES_PER_SECTION;
- 	for (i = 0; i < sections_to_remove; i++) {
- 		unsigned long pfn = phys_start_pfn + i*PAGES_PER_SECTION;
-+		struct zone *zone = page_zone(pfn_to_page(pfn));
- 		ret = __remove_section(zone, __pfn_to_section(pfn));
- 		if (ret)
- 			break;
+ #define VISEntryHalf rd %fprs, %o5; wr %g0, FPRS_FEF, %fprs
+@@ -182,13 +182,13 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
+ 	cmp		%g2, 0
+ 	tne		%xcc, 5
+ 	PREAMBLE
+-	mov		%o0, GLOBAL_SPARE
++	mov		%o0, %o3
+ 	cmp		%o2, 0
+ 	be,pn		%XCC, 85f
+-	 or		%o0, %o1, %o3
++	 or		%o0, %o1, GLOBAL_SPARE
+ 	cmp		%o2, 16
+ 	blu,a,pn	%XCC, 80f
+-	 or		%o3, %o2, %o3
++	 or		GLOBAL_SPARE, %o2, GLOBAL_SPARE
+ 
+ 	/* 2 blocks (128 bytes) is the minimum we can do the block
+ 	 * copy with.  We need to ensure that we'll iterate at least
+@@ -202,7 +202,7 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
+ 	 */
+ 	cmp		%o2, (4 * 64)
+ 	blu,pt		%XCC, 75f
+-	 andcc		%o3, 0x7, %g0
++	 andcc		GLOBAL_SPARE, 0x7, %g0
+ 
+ 	/* %o0:	dst
+ 	 * %o1:	src
+@@ -404,13 +404,13 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
+ 	 * over. If anything is left, we copy it one byte at a time.
+ 	 */
+ 	brz,pt		%o2, 85f
+-	 sub		%o0, %o1, %o3
++	 sub		%o0, %o1, GLOBAL_SPARE
+ 	ba,a,pt		%XCC, 90f
+ 
+ 	.align		64
+ 75: /* 16 < len <= 64 */
+ 	bne,pn		%XCC, 75f
+-	 sub		%o0, %o1, %o3
++	 sub		%o0, %o1, GLOBAL_SPARE
+ 
+ 72:
+ 	andn		%o2, 0xf, %o4
+@@ -420,9 +420,9 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
+ 	add		%o1, 0x08, %o1
+ 	EX_LD(LOAD(ldx, %o1, %g1))
+ 	sub		%o1, 0x08, %o1
+-	EX_ST(STORE(stx, %o5, %o1 + %o3))
++	EX_ST(STORE(stx, %o5, %o1 + GLOBAL_SPARE))
+ 	add		%o1, 0x8, %o1
+-	EX_ST(STORE(stx, %g1, %o1 + %o3))
++	EX_ST(STORE(stx, %g1, %o1 + GLOBAL_SPARE))
+ 	bgu,pt		%XCC, 1b
+ 	 add		%o1, 0x8, %o1
+ 73:	andcc		%o2, 0x8, %g0
+@@ -430,14 +430,14 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
+ 	 nop
+ 	sub		%o2, 0x8, %o2
+ 	EX_LD(LOAD(ldx, %o1, %o5))
+-	EX_ST(STORE(stx, %o5, %o1 + %o3))
++	EX_ST(STORE(stx, %o5, %o1 + GLOBAL_SPARE))
+ 	add		%o1, 0x8, %o1
+ 1:	andcc		%o2, 0x4, %g0
+ 	be,pt		%XCC, 1f
+ 	 nop
+ 	sub		%o2, 0x4, %o2
+ 	EX_LD(LOAD(lduw, %o1, %o5))
+-	EX_ST(STORE(stw, %o5, %o1 + %o3))
++	EX_ST(STORE(stw, %o5, %o1 + GLOBAL_SPARE))
+ 	add		%o1, 0x4, %o1
+ 1:	cmp		%o2, 0
+ 	be,pt		%XCC, 85f
+@@ -454,11 +454,11 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
+ 
+ 1:	subcc		%g1, 1, %g1
+ 	EX_LD(LOAD(ldub, %o1, %o5))
+-	EX_ST(STORE(stb, %o5, %o1 + %o3))
++	EX_ST(STORE(stb, %o5, %o1 + GLOBAL_SPARE))
+ 	bgu,pt		%icc, 1b
+ 	 add		%o1, 1, %o1
+ 
+-2:	add		%o1, %o3, %o0
++2:	add		%o1, GLOBAL_SPARE, %o0
+ 	andcc		%o1, 0x7, %g1
+ 	bne,pt		%icc, 8f
+ 	 sll		%g1, 3, %g1
+@@ -468,16 +468,16 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
+ 	 nop
+ 	ba,a,pt		%xcc, 73b
+ 
+-8:	mov		64, %o3
++8:	mov		64, GLOBAL_SPARE
+ 	andn		%o1, 0x7, %o1
+ 	EX_LD(LOAD(ldx, %o1, %g2))
+-	sub		%o3, %g1, %o3
++	sub		GLOBAL_SPARE, %g1, GLOBAL_SPARE
+ 	andn		%o2, 0x7, %o4
+ 	sllx		%g2, %g1, %g2
+ 1:	add		%o1, 0x8, %o1
+ 	EX_LD(LOAD(ldx, %o1, %g3))
+ 	subcc		%o4, 0x8, %o4
+-	srlx		%g3, %o3, %o5
++	srlx		%g3, GLOBAL_SPARE, %o5
+ 	or		%o5, %g2, %o5
+ 	EX_ST(STORE(stx, %o5, %o0))
+ 	add		%o0, 0x8, %o0
+@@ -489,32 +489,32 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
+ 	be,pn		%icc, 85f
+ 	 add		%o1, %g1, %o1
+ 	ba,pt		%xcc, 90f
+-	 sub		%o0, %o1, %o3
++	 sub		%o0, %o1, GLOBAL_SPARE
+ 
+ 	.align		64
+ 80: /* 0 < len <= 16 */
+-	andcc		%o3, 0x3, %g0
++	andcc		GLOBAL_SPARE, 0x3, %g0
+ 	bne,pn		%XCC, 90f
+-	 sub		%o0, %o1, %o3
++	 sub		%o0, %o1, GLOBAL_SPARE
+ 
+ 1:
+ 	subcc		%o2, 4, %o2
+ 	EX_LD(LOAD(lduw, %o1, %g1))
+-	EX_ST(STORE(stw, %g1, %o1 + %o3))
++	EX_ST(STORE(stw, %g1, %o1 + GLOBAL_SPARE))
+ 	bgu,pt		%XCC, 1b
+ 	 add		%o1, 4, %o1
+ 
+ 85:	retl
+-	 mov		EX_RETVAL(GLOBAL_SPARE), %o0
++	 mov		EX_RETVAL(%o3), %o0
+ 
+ 	.align		32
+ 90:
+ 	subcc		%o2, 1, %o2
+ 	EX_LD(LOAD(ldub, %o1, %g1))
+-	EX_ST(STORE(stb, %g1, %o1 + %o3))
++	EX_ST(STORE(stb, %g1, %o1 + GLOBAL_SPARE))
+ 	bgu,pt		%XCC, 90b
+ 	 add		%o1, 1, %o1
+ 	retl
+-	 mov		EX_RETVAL(GLOBAL_SPARE), %o0
++	 mov		EX_RETVAL(%o3), %o0
+ 
+ 	.size		FUNC_NAME, .-FUNC_NAME
 -- 
-1.7.1
+1.7.10.4
 
