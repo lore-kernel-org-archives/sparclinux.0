@@ -1,33 +1,19 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 21 Sep 2012 19:11:53 +0000
-Subject: [PATCH] sparc64: Fix function argument comment in camellia_sparc64_key_expand asm.
-Message-Id: <20120921.151153.933298048729949049.davem@davemloft.net>
+From: Magnus Lindholm <linmag7@gmail.com>
+Date: Fri, 28 Sep 2012 17:09:47 +0000
+Subject: next-20120928 on sparcstation 4
+Message-Id: <CA+=Fv5SqGLOic4wxs=Lx0QeuQA6_gO=+RPnZ1a2iygK03yr_yw@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Hi,
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/crypto/camellia_asm.S |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I've installed kernel 3.6.0-rc7-00071-g6399413 built today from
+git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git on
+my sparcstation 4. It seems to run fine, it been up a few hours with
+quite heavy cpu load, no problems so far, I'll keep testing on my ss10
+as well.
 
-diff --git a/arch/sparc/crypto/camellia_asm.S b/arch/sparc/crypto/camellia_=
-asm.S
-index d3ef9c7..cc39553 100644
---- a/arch/sparc/crypto/camellia_asm.S
-+++ b/arch/sparc/crypto/camellia_asm.S
-@@ -30,7 +30,7 @@ SIGMA:	.xword	0xA09E667F3BCC908B
-=20
- 	.align	32
- ENTRY(camellia_sparc64_key_expand)
--	/* %o0=3Din_key, %o1=3Dout_key, %o2=3Dkey_len */
-+	/* %o0=3Din_key, %o1=3Dencrypt_key, %o2=3Dkey_len, %o3=DEcrypt_key */
- 	VISEntry
- 	ld	[%o0 + 0x00], %f0	! i0, k[0]
- 	ld	[%o0 + 0x04], %f1	! i1, k[1]
---=20
-1.7.10.4
-
+/Magnus
