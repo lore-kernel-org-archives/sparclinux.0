@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 02 Oct 2012 22:27:04 +0000
-Subject: [PATCH 5/8] mm: Add and use update_mmu_cache_pmd() in transparent huge page code.
-Message-Id: <20121002.182704.2007474245835123971.davem@davemloft.net>
+Date: Tue, 02 Oct 2012 22:26:15 +0000
+Subject: [PATCH 1/8] sparc64: Only support 4MB huge pages.
+Message-Id: <20121002.182615.926279426545688173.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,79 +10,132 @@ To: linux-mm@kvack.org
 Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, akpm@linux-foundation.org, aarcange@redhat.com, hannes@cmpxchg.org
 
 
-The transparent huge page code passes a PMD in as the third
-argument of update_mmu_cache(), which expects a PTE pointer.
+Narrowing the scope of huge page support will make the transparent
+hugepage changes much simpler.
 
-This never got noticed because X86 implements update_mmu_cache() as a
-macro and thus we don't get any type checking, and X86 is the only
-architecture which supports transparent huge pages currently.
-
-Before oter architectures can support transparent huge pages properly
-we need to add a new interface which will take a PMD as the third
-argument rather than a PTE pointer.
+In the end what we really want to do is have the kernel support
+multiple huge page sizes and use whatever is appropriate as the
+context dictactes.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/x86/include/asm/pgtable_32.h |    1 +
- arch/x86/include/asm/pgtable_64.h |    1 +
- mm/huge_memory.c                  |    6 +++---
- 3 files changed, 5 insertions(+), 3 deletions(-)
+ arch/sparc/Kconfig                  |   17 -----------------
+ arch/sparc/include/asm/mmu_64.h     |    9 +--------
+ arch/sparc/include/asm/page_64.h    |    6 ------
+ arch/sparc/include/asm/pgtable_64.h |    8 --------
+ arch/sparc/mm/tsb.c                 |   10 ----------
+ 5 files changed, 1 insertion(+), 49 deletions(-)
 
-diff --git a/arch/x86/include/asm/pgtable_32.h b/arch/x86/include/asm/pgtable_32.h
-index 0c92113..8faa215 100644
---- a/arch/x86/include/asm/pgtable_32.h
-+++ b/arch/x86/include/asm/pgtable_32.h
-@@ -71,6 +71,7 @@ do {						\
-  * tables contain all the necessary information.
-  */
- #define update_mmu_cache(vma, address, ptep) do { } while (0)
-+#define update_mmu_cache_pmd(vma, address, pmd) do { } while (0)
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 67f1f6f..8bd3b12 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -316,23 +316,6 @@ config GENERIC_LOCKBREAK
+ 	default y
+ 	depends on SPARC64 && SMP && PREEMPT
  
- #endif /* !__ASSEMBLY__ */
+-choice
+-	prompt "SPARC64 Huge TLB Page Size"
+-	depends on SPARC64 && HUGETLB_PAGE
+-	default HUGETLB_PAGE_SIZE_4MB
+-
+-config HUGETLB_PAGE_SIZE_4MB
+-	bool "4MB"
+-
+-config HUGETLB_PAGE_SIZE_512K
+-	bool "512K"
+-
+-config HUGETLB_PAGE_SIZE_64K
+-	depends on !SPARC64_PAGE_SIZE_64KB
+-	bool "64K"
+-
+-endchoice
+-
+ config NUMA
+ 	bool "NUMA support"
+ 	depends on SPARC64 && SMP
+diff --git a/arch/sparc/include/asm/mmu_64.h b/arch/sparc/include/asm/mmu_64.h
+index 9067dc5..b4d685d 100644
+--- a/arch/sparc/include/asm/mmu_64.h
++++ b/arch/sparc/include/asm/mmu_64.h
+@@ -38,14 +38,7 @@
+ #error No page size specified in kernel configuration
+ #endif
  
-diff --git a/arch/x86/include/asm/pgtable_64.h b/arch/x86/include/asm/pgtable_64.h
-index 8251be0..47356f9 100644
---- a/arch/x86/include/asm/pgtable_64.h
-+++ b/arch/x86/include/asm/pgtable_64.h
-@@ -143,6 +143,7 @@ static inline int pgd_large(pgd_t pgd) { return 0; }
- #define pte_unmap(pte) ((void)(pte))/* NOP */
+-#if defined(CONFIG_HUGETLB_PAGE_SIZE_4MB)
+-#define CTX_PGSZ_HUGE		CTX_PGSZ_4MB
+-#elif defined(CONFIG_HUGETLB_PAGE_SIZE_512K)
+-#define CTX_PGSZ_HUGE		CTX_PGSZ_512KB
+-#elif defined(CONFIG_HUGETLB_PAGE_SIZE_64K)
+-#define CTX_PGSZ_HUGE		CTX_PGSZ_64KB
+-#endif
+-
++#define CTX_PGSZ_HUGE	CTX_PGSZ_4MB
+ #define CTX_PGSZ_KERN	CTX_PGSZ_4MB
  
- #define update_mmu_cache(vma, address, ptep) do { } while (0)
-+#define update_mmu_cache_pmd(vma, address, pmd) do { } while (0)
+ /* Thus, when running on UltraSPARC-III+ and later, we use the following
+diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
+index f0d09b4..08bb5f7 100644
+--- a/arch/sparc/include/asm/page_64.h
++++ b/arch/sparc/include/asm/page_64.h
+@@ -21,13 +21,7 @@
+ #define DCACHE_ALIASING_POSSIBLE
+ #endif
  
- /* Encode and de-code a swap entry */
- #if _PAGE_BIT_FILE < _PAGE_BIT_PROTNONE
-diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index 57c4b93..29414c1 100644
---- a/mm/huge_memory.c
-+++ b/mm/huge_memory.c
-@@ -934,7 +934,7 @@ int do_huge_pmd_wp_page(struct mm_struct *mm, struct vm_area_struct *vma,
- 		entry = pmd_mkyoung(orig_pmd);
- 		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
- 		if (pmdp_set_access_flags(vma, haddr, pmd, entry,  1))
--			update_mmu_cache(vma, address, entry);
-+			update_mmu_cache_pmd(vma, address, entry);
- 		ret |= VM_FAULT_WRITE;
- 		goto out_unlock;
- 	}
-@@ -986,7 +986,7 @@ int do_huge_pmd_wp_page(struct mm_struct *mm, struct vm_area_struct *vma,
- 		pmdp_clear_flush_notify(vma, haddr, pmd);
- 		page_add_new_anon_rmap(new_page, vma, haddr);
- 		set_pmd_at(mm, haddr, pmd, entry);
--		update_mmu_cache(vma, address, entry);
-+		update_mmu_cache_pmd(vma, address, entry);
- 		page_remove_rmap(page);
- 		put_page(page);
- 		ret |= VM_FAULT_WRITE;
-@@ -1989,7 +1989,7 @@ static void collapse_huge_page(struct mm_struct *mm,
- 	BUG_ON(!pmd_none(*pmd));
- 	page_add_new_anon_rmap(new_page, vma, address);
- 	set_pmd_at(mm, address, pmd, _pmd);
--	update_mmu_cache(vma, address, _pmd);
-+	update_mmu_cache_pmd(vma, address, _pmd);
- 	prepare_pmd_huge_pte(pgtable, mm);
- 	spin_unlock(&mm->page_table_lock);
+-#if defined(CONFIG_HUGETLB_PAGE_SIZE_4MB)
+ #define HPAGE_SHIFT		22
+-#elif defined(CONFIG_HUGETLB_PAGE_SIZE_512K)
+-#define HPAGE_SHIFT		19
+-#elif defined(CONFIG_HUGETLB_PAGE_SIZE_64K)
+-#define HPAGE_SHIFT		16
+-#endif
  
+ #ifdef CONFIG_HUGETLB_PAGE
+ #define HPAGE_SIZE		(_AC(1,UL) << HPAGE_SHIFT)
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 61210db..51be4a1 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -170,16 +170,8 @@
+ #error Wrong PAGE_SHIFT specified
+ #endif
+ 
+-#if defined(CONFIG_HUGETLB_PAGE_SIZE_4MB)
+ #define _PAGE_SZHUGE_4U	_PAGE_SZ4MB_4U
+ #define _PAGE_SZHUGE_4V	_PAGE_SZ4MB_4V
+-#elif defined(CONFIG_HUGETLB_PAGE_SIZE_512K)
+-#define _PAGE_SZHUGE_4U	_PAGE_SZ512K_4U
+-#define _PAGE_SZHUGE_4V	_PAGE_SZ512K_4V
+-#elif defined(CONFIG_HUGETLB_PAGE_SIZE_64K)
+-#define _PAGE_SZHUGE_4U	_PAGE_SZ64K_4U
+-#define _PAGE_SZHUGE_4V	_PAGE_SZ64K_4V
+-#endif
+ 
+ /* These are actually filled in at boot time by sun4{u,v}_pgprot_init() */
+ #define __P000	__pgprot(0)
+diff --git a/arch/sparc/mm/tsb.c b/arch/sparc/mm/tsb.c
+index c52add7..e6b04a4 100644
+--- a/arch/sparc/mm/tsb.c
++++ b/arch/sparc/mm/tsb.c
+@@ -101,18 +101,8 @@ void flush_tsb_user(struct tlb_batch *tb)
+ #endif
+ 
+ #ifdef CONFIG_HUGETLB_PAGE
+-#if defined(CONFIG_HUGETLB_PAGE_SIZE_64K)
+-#define HV_PGSZ_IDX_HUGE	HV_PGSZ_IDX_64K
+-#define HV_PGSZ_MASK_HUGE	HV_PGSZ_MASK_64K
+-#elif defined(CONFIG_HUGETLB_PAGE_SIZE_512K)
+-#define HV_PGSZ_IDX_HUGE	HV_PGSZ_IDX_512K
+-#define HV_PGSZ_MASK_HUGE	HV_PGSZ_MASK_512K
+-#elif defined(CONFIG_HUGETLB_PAGE_SIZE_4MB)
+ #define HV_PGSZ_IDX_HUGE	HV_PGSZ_IDX_4MB
+ #define HV_PGSZ_MASK_HUGE	HV_PGSZ_MASK_4MB
+-#else
+-#error Broken huge page size setting...
+-#endif
+ #endif
+ 
+ static void setup_tsb_params(struct mm_struct *mm, unsigned long tsb_idx, unsigned long tsb_bytes)
 -- 
 1.7.10.4
 
