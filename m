@@ -1,41 +1,109 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 09 Oct 2012 17:12:56 +0000
-Subject: Re: [GIT PULL] Disintegrate UAPI for sparc [ver #2]
-Message-Id: <20121009.131256.607485133133230904.davem@davemloft.net>
+Date: Tue, 02 Oct 2012 22:27:18 +0000
+Subject: [PATCH 6/8] mm: Make transparent huge code not depend upon the details of pgtable_t
+Message-Id: <20121002.182718.250164928532772411.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <21204.1349774160@warthog.procyon.org.uk>
-In-Reply-To: <21204.1349774160@warthog.procyon.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: dhowells@redhat.com
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, akpm@linux-foundation.org, aarcange@redhat.com, hannes@cmpxchg.org
 
-From: David Howells <dhowells@redhat.com>
-Date: Tue, 09 Oct 2012 10:16:00 +0100
 
-> Can you merge the following branch into the sparc tree please.
-> 
-> This is to complete part of the UAPI disintegration for which the preparatory
-> patches were pulled recently.
-> 
-> Now that the fixups and the asm-generic chunk have been merged, I've
-> regenerated the patches to get rid of those dependencies and to take account of
-> any changes made so far in the merge window.  If you have already pulled the
-> older version of the branch aimed at you, then please feel free to ignore this
-> request.
-> 
-> The following changes since commit 9e2d8656f5e8aa214e66b462680cf86b210b74a8:
-> 
->   Merge branch 'akpm' (Andrew's patch-bomb) (2012-10-09 16:23:15 +0900)
-> 
-> are available in the git repository at:
-> 
-> 
->   git://git.infradead.org/users/dhowells/linux-headers.git tags/disintegrate-sparc-20121009
-> 
-> for you to fetch changes up to 5457982641fb3f5fb08ce22a853dd5474645c66d:
-> 
->   UAPI: (Scripted) Disintegrate arch/sparc/include/asm (2012-10-09 09:47:43 +0100)
+The code currently assumes that pgtable_t is a struct page pointer.
 
-Pulled, thanks David.
+Fix this by pushing pgtable management behind arch helper functions.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/x86/include/asm/pgalloc.h |   26 ++++++++++++++++++++++++++
+ mm/huge_memory.c               |   22 ++--------------------
+ 2 files changed, 28 insertions(+), 20 deletions(-)
+
+diff --git a/arch/x86/include/asm/pgalloc.h b/arch/x86/include/asm/pgalloc.h
+index b4389a4..f2a12e9 100644
+--- a/arch/x86/include/asm/pgalloc.h
++++ b/arch/x86/include/asm/pgalloc.h
+@@ -136,4 +136,30 @@ static inline void __pud_free_tlb(struct mmu_gather *tlb, pud_t *pud,
+ #endif	/* PAGETABLE_LEVELS > 3 */
+ #endif	/* PAGETABLE_LEVELS > 2 */
+ 
++static inline void pmd_huge_pte_insert(struct mm_struct *mm, pgtable_t pgtable)
++{
++	/* FIFO */
++	if (!mm->pmd_huge_pte)
++		INIT_LIST_HEAD(&pgtable->lru);
++	else
++		list_add(&pgtable->lru, &mm->pmd_huge_pte->lru);
++	mm->pmd_huge_pte = pgtable;
++}
++
++static inline pgtable_t pmd_huge_pte_remove(struct mm_struct *mm)
++{
++	pgtable_t pgtable;
++
++	/* FIFO */
++	pgtable = mm->pmd_huge_pte;
++	if (list_empty(&pgtable->lru))
++		mm->pmd_huge_pte = NULL;
++	else {
++		mm->pmd_huge_pte = list_entry(pgtable->lru.next,
++					      struct page, lru);
++		list_del(&pgtable->lru);
++	}
++	return pgtable;
++}
++
+ #endif /* _ASM_X86_PGALLOC_H */
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index 29414c1..5d44785 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -616,12 +616,7 @@ static void prepare_pmd_huge_pte(pgtable_t pgtable,
+ {
+ 	assert_spin_locked(&mm->page_table_lock);
+ 
+-	/* FIFO */
+-	if (!mm->pmd_huge_pte)
+-		INIT_LIST_HEAD(&pgtable->lru);
+-	else
+-		list_add(&pgtable->lru, &mm->pmd_huge_pte->lru);
+-	mm->pmd_huge_pte = pgtable;
++	pmd_huge_pte_insert(mm, pgtable);
+ }
+ 
+ static inline pmd_t maybe_pmd_mkwrite(pmd_t pmd, struct vm_area_struct *vma)
+@@ -805,20 +800,9 @@ out:
+ /* no "address" argument so destroys page coloring of some arch */
+ pgtable_t get_pmd_huge_pte(struct mm_struct *mm)
+ {
+-	pgtable_t pgtable;
+-
+ 	assert_spin_locked(&mm->page_table_lock);
+ 
+-	/* FIFO */
+-	pgtable = mm->pmd_huge_pte;
+-	if (list_empty(&pgtable->lru))
+-		mm->pmd_huge_pte = NULL;
+-	else {
+-		mm->pmd_huge_pte = list_entry(pgtable->lru.next,
+-					      struct page, lru);
+-		list_del(&pgtable->lru);
+-	}
+-	return pgtable;
++	return pmd_huge_pte_remove(mm);
+ }
+ 
+ static int do_huge_pmd_wp_page_fallback(struct mm_struct *mm,
+@@ -1971,8 +1955,6 @@ static void collapse_huge_page(struct mm_struct *mm,
+ 	pte_unmap(pte);
+ 	__SetPageUptodate(new_page);
+ 	pgtable = pmd_pgtable(_pmd);
+-	VM_BUG_ON(page_count(pgtable) != 1);
+-	VM_BUG_ON(page_mapcount(pgtable) != 0);
+ 
+ 	_pmd = mk_pmd(new_page, vma->vm_page_prot);
+ 	_pmd = maybe_pmd_mkwrite(pmd_mkdirty(_pmd), vma);
+-- 
+1.7.10.4
+
