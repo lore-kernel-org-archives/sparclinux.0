@@ -1,37 +1,64 @@
 From: David Miller <davem@davemloft.net>
-Date: Mon, 08 Oct 2012 19:29:15 +0000
-Subject: Re: [RESEND PATCH 1/2] sparc64: Rearrange thread info to cheaply clear syscall noerror state.
-Message-Id: <20121008.152915.535321336835140449.davem@davemloft.net>
+Date: Tue, 02 Oct 2012 22:27:41 +0000
+Subject: [PATCH 7/8] mm: thp: Use more portable PMD clearing sequenece in zap_huge_pmd().
+Message-Id: <20121002.182741.650740858374403508.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20121004.174812.706050126936137696.davem@davemloft.net>
-In-Reply-To: <20121004.174812.706050126936137696.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, akpm@linux-foundation.org, aarcange@redhat.com, hannes@cmpxchg.org
 
-From: Al Viro <viro@ZenIV.linux.org.uk>
-Date: Sat, 6 Oct 2012 07:06:09 +0100
 
-> -		set_fs((mm_segment_t) { get_thread_current_ds() });
-> +		__asm__ __volatile__ ("wr %%g0, %0, %%asi" : :
-> +			"r" (current_thread_info()->current_ds ));
+Invalidation sequences are handled in various ways on various
+architectures.
 
-Please use set_fs() or create a __set_fs() if you're trying to avoid
-the weird cast.  This is also indented improperly, should be:
+One way, which sparc64 uses, is to let the set_*_at() functions
+accumulate pending flushes into a per-cpu array.  Then the
+flush_tlb_range() et al. calls process the pending TLB flushes.
 
-		__asm__ __volatile__ ("wr %%g0, %0, %%asi" : :
-				      "r" (current_thread_info()->current_ds ));
+In this regime, the __tlb_remove_*tlb_entry() implementations are
+essentially NOPs.
 
-Also, this whole bit about rearranging thead flags is an enormous,
-unnecessary, and hard to audit distraction from fixing the syscall
-tracing bug.
+The canonical PTE zap in mm/memory.c is:
 
-I've decided that I don't want to keep reviewing this risky
-rearrangement change, it's bitten us once already.  We can do
-this in sparc-next if you want next cycle.
+			ptent = ptep_get_and_clear_full(mm, addr, pte,
+							tlb->fullmm);
+			tlb_remove_tlb_entry(tlb, pte, addr);
 
-Could you please, instead, just rearrange the order of operations in
-ret_sys_call, as needed, to purely fix the strace bug?
+With a subsequent tlb_flush_mmu() if needed.
 
-Thanks.
+Mirror this in the THP PMD zapping using:
+
+		orig_pmd = pmdp_get_and_clear(tlb->mm, addr, pmd);
+		page = pmd_page(orig_pmd);
+		tlb_remove_pmd_tlb_entry(tlb, pmd, addr);
+
+And we properly accomodate TLB flush mechanims like the one described
+above.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ mm/huge_memory.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index 5d44785..f9d8461 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -1025,9 +1025,10 @@ int zap_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
+ 	if (__pmd_trans_huge_lock(pmd, vma) = 1) {
+ 		struct page *page;
+ 		pgtable_t pgtable;
++		pmd_t orig_pmd;
+ 		pgtable = get_pmd_huge_pte(tlb->mm);
+-		page = pmd_page(*pmd);
+-		pmd_clear(pmd);
++		orig_pmd = pmdp_get_and_clear(tlb->mm, addr, pmd);
++		page = pmd_page(orig_pmd);
+ 		tlb_remove_pmd_tlb_entry(tlb, pmd, addr);
+ 		page_remove_rmap(page);
+ 		VM_BUG_ON(page_mapcount(page) < 0);
+-- 
+1.7.10.4
+
