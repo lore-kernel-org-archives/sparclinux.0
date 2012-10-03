@@ -1,168 +1,89 @@
-From: wency@cn.fujitsu.com
-Date: Tue, 23 Oct 2012 10:30:49 +0000
-Subject: [PATCH v2 11/12] memory-hotplug: remove sysfs file of node
-Message-Id: <1350988250-31294-12-git-send-email-wency@cn.fujitsu.com>
+From: Jan Kiszka <jan.kiszka@web.de>
+Date: Wed, 03 Oct 2012 11:21:31 +0000
+Subject: [PATCH 00/13] Add gdb python scripts as kernel debugging helpers
+Message-Id: <cover.1349263293.git.jan.kiszka@web.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1350988250-31294-1-git-send-email-wency@cn.fujitsu.com>
-In-Reply-To: <1350988250-31294-1-git-send-email-wency@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
-Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
+To: linux-kernel@vger.kernel.org
+Cc: Jason Wessel <jason.wessel@windriver.com>, kgdb-bugreport@lists.sourceforge.net, "David S. Miller" <davem@davemloft.net>, Fenghua Yu <fenghua.yu@intel.com>, Kay Sievers <kay@vrfy.org>, linux-ia64@vger.kernel.org, linux-kbuild@vger.kernel.org, Michal Marek <mmarek@suse.cz>, sparclinux@vger.kernel.org, Tony Luck <tony.luck@intel.com>
 
-From: Wen Congyang <wency@cn.fujitsu.com>
+I'm sitting too long on this stuff, time to finally role it out:
 
-This patch introduces a new function try_offline_node() to
-remove sysfs file of node when all memory sections of this
-node are removed. If some memory sections of this node are
-not removed, this function does nothing.
+This adds the infrastructure and first tools that make kernel debugging
+through gdb more comfortable. Since 7.0, gdb supports python scripting.
+And this opens the doors to automate steps like the tedious loading of
+module symbols at the right address, resolving per-cpu variables or even
+retrieving the current kernel log without resuming an stopped target.
 
-CC: David Rientjes <rientjes@google.com>
-CC: Jiang Liu <liuj97@gmail.com>
-CC: Len Brown <len.brown@intel.com>
-CC: Christoph Lameter <cl@linux.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-CC: Andrew Morton <akpm@linux-foundation.org>
-CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
----
- drivers/acpi/acpi_memhotplug.c |    8 +++++-
- include/linux/memory_hotplug.h |    2 +-
- mm/memory_hotplug.c            |   58 ++++++++++++++++++++++++++++++++++++++-
- 3 files changed, 64 insertions(+), 4 deletions(-)
+Many of the helpers naturally depend on the layout of structures or
+internal mechanics of the kernel. So the best place to maintain such
+things, keeping them consistent with the corresponding kernel is, well,
+the kernel itself.
 
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index 24c807f..0780f99 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -310,7 +310,9 @@ static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
- {
- 	int result;
- 	struct acpi_memory_info *info, *n;
-+	int node;
- 
-+	node = acpi_get_node(mem_device->device->handle);
- 
- 	/*
- 	 * Ask the VM to offline this memory range.
-@@ -318,7 +320,11 @@ static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
- 	 */
- 	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
- 		if (info->enabled) {
--			result = remove_memory(info->start_addr, info->length);
-+			if (node < 0)
-+				node = memory_add_physaddr_to_nid(
-+					info->start_addr);
-+			result = remove_memory(node, info->start_addr,
-+				info->length);
- 			if (result)
- 				return result;
- 		}
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index d4c4402..7b4cfe6 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -231,7 +231,7 @@ extern int arch_add_memory(int nid, u64 start, u64 size);
- extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
- extern int offline_memory_block(struct memory_block *mem);
- extern bool is_memblock_offlined(struct memory_block *mem);
--extern int remove_memory(u64 start, u64 size);
-+extern int remove_memory(int node, u64 start, u64 size);
- extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
- 								int nr_pages);
- extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms);
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 55a228d..b1fe41d 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -29,6 +29,7 @@
- #include <linux/suspend.h>
- #include <linux/mm_inline.h>
- #include <linux/firmware-map.h>
-+#include <linux/stop_machine.h>
- 
- #include <asm/tlbflush.h>
- 
-@@ -1299,7 +1300,58 @@ static int is_memblock_offlined_cb(struct memory_block *mem, void *arg)
- 	return ret;
- }
- 
--int __ref remove_memory(u64 start, u64 size)
-+static int check_cpu_on_node(void *data)
-+{
-+	struct pglist_data *pgdat = data;
-+	int cpu;
-+
-+	for_each_present_cpu(cpu) {
-+		if (cpu_to_node(cpu) = pgdat->node_id)
-+			/*
-+			 * the cpu on this node isn't removed, and we can't
-+			 * offline this node.
-+			 */
-+			return -EBUSY;
-+	}
-+
-+	return 0;
-+}
-+
-+/* offline the node if all memory sections of this node are removed */
-+static void try_offline_node(int nid)
-+{
-+	unsigned long start_pfn = NODE_DATA(nid)->node_start_pfn;
-+	unsigned long end_pfn = start_pfn + NODE_DATA(nid)->node_spanned_pages;
-+	unsigned long pfn;
-+
-+	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
-+		unsigned long section_nr = pfn_to_section_nr(pfn);
-+
-+		if (!present_section_nr(section_nr))
-+			continue;
-+
-+		if (pfn_to_nid(pfn) != nid)
-+			continue;
-+
-+		/*
-+		 * some memory sections of this node are not removed, and we
-+		 * can't offline node now.
-+		 */
-+		return;
-+	}
-+
-+	if (stop_machine(check_cpu_on_node, NODE_DATA(nid), NULL))
-+		return;
-+
-+	/*
-+	 * all memory/cpu of this node are removed, we can offline this
-+	 * node now.
-+	 */
-+	node_set_offline(nid);
-+	unregister_one_node(nid);
-+}
-+
-+int __ref remove_memory(int nid, u64 start, u64 size)
- {
- 	unsigned long start_pfn, end_pfn;
- 	int ret = 0;
-@@ -1346,6 +1398,8 @@ repeat:
- 
- 	arch_remove_memory(start, size);
- 
-+	try_offline_node(nid);
-+
- 	unlock_memory_hotplug();
- 
- 	return 0;
-@@ -1355,7 +1409,7 @@ int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
- {
- 	return -EINVAL;
- }
--int remove_memory(u64 start, u64 size)
-+int remove_memory(int nid, u64 start, u64 size)
- {
- 	return -EINVAL;
- }
+While these scripts have been originally developed for debugging via
+QEMU/KVM, I've now also added the required bits for KGDB. Works fine,
+but as QEMU/KVM tends to outperform KGDB it remains the recommendation
+- when available.
+
+There are two architecture dependencies so far, one regarding per-cpu,
+the other regarding thread_info calculation. None of them I was able to
+test on a target, so I'm counting on review/testing by the corresponding
+communities.
+
+This series should be considered the foundation of much more kernel
+state exploration helper, e.g. around tasks, timers, locks, sockets -
+I guess people will have even more ideas.
+
+Hope it's useful!
+
+PS: Also available via git://git.kiszka.org/linux.git queues/gdb-scripts
+
+CC: "David S. Miller" <davem@davemloft.net>
+CC: Fenghua Yu <fenghua.yu@intel.com>
+CC: Kay Sievers <kay@vrfy.org>
+CC: linux-ia64@vger.kernel.org
+CC: linux-kbuild@vger.kernel.org
+CC: Michal Marek <mmarek@suse.cz>
+CC: sparclinux@vger.kernel.org
+CC: Tony Luck <tony.luck@intel.com>
+
+Jan Kiszka (13):
+  scripts/gdb: Add infrastructure
+  scripts/gdb: Add container_of helper and convenience function
+  scripts/gdb: Add lx-symbols command
+  scripts/gdb: Add get_target_endianness helper
+  scripts/gdb: Add read_u16/32/64 helpers
+  scripts/gdb: Add lx-dmesg command
+  scripts/gdb: Add task iteration helper
+  scripts/gdb: Add helper and convenience function to look up tasks
+  scripts/gdb: Add is_target_arch helper
+  scripts/gdb: Add internal helper and convenience function to retrieve
+    thread_info
+  scripts/gdb: Add get_gdbserver_type helper
+  scripts/gdb: Add internal helper and convenience function for per-cpu
+    lookup
+  scripts/gdb: Add lx_current convenience function
+
+ Makefile                   |    6 ++-
+ scripts/Makefile           |    3 +-
+ scripts/gdb/Makefile       |    9 +++
+ scripts/gdb/dmesg.py       |   63 +++++++++++++++++++++
+ scripts/gdb/percpu.py      |   76 +++++++++++++++++++++++++
+ scripts/gdb/symbols.py     |   88 +++++++++++++++++++++++++++++
+ scripts/gdb/task.py        |  108 +++++++++++++++++++++++++++++++++++
+ scripts/gdb/utils.py       |  134 ++++++++++++++++++++++++++++++++++++++++++++
+ scripts/gdb/vmlinux-gdb.py |   26 +++++++++
+ 9 files changed, 511 insertions(+), 2 deletions(-)
+ create mode 100644 scripts/gdb/Makefile
+ create mode 100644 scripts/gdb/dmesg.py
+ create mode 100644 scripts/gdb/percpu.py
+ create mode 100644 scripts/gdb/symbols.py
+ create mode 100644 scripts/gdb/task.py
+ create mode 100644 scripts/gdb/utils.py
+ create mode 100644 scripts/gdb/vmlinux-gdb.py
+
 -- 
-1.7.1
+1.7.3.4
 
