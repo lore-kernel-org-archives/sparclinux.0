@@ -1,45 +1,25 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Tue, 02 Oct 2012 22:55:44 +0000
+From: David Miller <davem@davemloft.net>
+Date: Wed, 03 Oct 2012 00:53:18 +0000
 Subject: Re: [PATCH 0/8] THP support for Sparc64
-Message-Id: <20121002155544.2c67b1e8.akpm@linux-foundation.org>
+Message-Id: <20121002.205318.1484512119234167322.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20121002.182601.845433592794197720.davem@davemloft.net>
-In-Reply-To: <20121002.182601.845433592794197720.davem@davemloft.net>
+	<20121002155544.2c67b1e8.akpm@linux-foundation.org>
+In-Reply-To: <20121002155544.2c67b1e8.akpm@linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: linux-mm@kvack.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, aarcange@redhat.com, hannes@cmpxchg.org, Gerald Schaefer <gerald.schaefer@de.ibm.com>
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, aarcange@redhat.com, hannes@cmpxchg.org, gerald.schaefer@de.ibm.com
 
-On Tue, 02 Oct 2012 18:26:01 -0400 (EDT)
-David Miller <davem@davemloft.net> wrote:
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Tue, 2 Oct 2012 15:55:44 -0700
 
-> Here is a set of patches that add THP support for sparc64.
-> 
-> A few of them are relatively minor portability issues I ran into.
-> Like the MIPS guys I hit the update_mmu_cache() typing issue so I have
-> a patch for that here.
-> 
-> It is very likely that I need the ACCESSED bit handling fix the
-> ARM folks have been posting recently as well.
-> 
-> On the sparc64 side the biggest issue was moving to only supporting
-> 4MB pages and then realigning the page tables so that the PMDs map 4MB
-> (instead of 8MB as they do now).
-> 
-> The rest was just trial and error, running tests, and fixing bugs.
-> 
-> A familiar test case that makes 5 million random accesses to a 1GB
-> memory area goes from 20 seconds down to 0.43 seconds with THP enabled
-> on my SPARC T4-2 box.
+> I had a shot at integrating all this onto the pending stuff in linux-next. 
+> "mm: Add and use update_mmu_cache_pmd() in transparent huge page code."
+> needed minor massaging in huge_memory.c.  But as Andrea mentioned, we
+> ran aground on Gerald's
+> http://ozlabs.org/~akpm/mmotm/broken-out/thp-remove-assumptions-on-pgtable_t-type.patch,
+> part of the thp-for-s390 work.
 
-Hardly worth bothering about ;)
-
-I had a shot at integrating all this onto the pending stuff in linux-next. 
-"mm: Add and use update_mmu_cache_pmd() in transparent huge page code."
-needed minor massaging in huge_memory.c.  But as Andrea mentioned, we
-ran aground on Gerald's
-http://ozlabs.org/~akpm/mmotm/broken-out/thp-remove-assumptions-on-pgtable_t-type.patch,
-part of the thp-for-s390 work.
-
-
+I'll rebase my work against that stuff, looks fine to me.
