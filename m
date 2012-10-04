@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 03 Oct 2012 00:53:18 +0000
+Date: Thu, 04 Oct 2012 02:00:27 +0000
 Subject: Re: [PATCH 0/8] THP support for Sparc64
-Message-Id: <20121002.205318.1484512119234167322.davem@davemloft.net>
+Message-Id: <20121003.220027.1636081487098835868.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20121002.182601.845433592794197720.davem@davemloft.net>
 	<20121002155544.2c67b1e8.akpm@linux-foundation.org>
@@ -22,4 +22,12 @@ Date: Tue, 2 Oct 2012 15:55:44 -0700
 > http://ozlabs.org/~akpm/mmotm/broken-out/thp-remove-assumptions-on-pgtable_t-type.patch,
 > part of the thp-for-s390 work.
 
-I'll rebase my work against that stuff, looks fine to me.
+While working on a rebase relative to this work, I noticed that the
+s390 patches don't even compile.
+
+It's because of that pmd_pgprot() change from Peter Z. which arrives
+asynchonously via the linux-next tree.  It makes THP start using
+pmd_pgprot() (a new interface) which the s390 patches don't provide.
+
+It's going to require that I do new work for my sparc64 THP changes as
+well.
