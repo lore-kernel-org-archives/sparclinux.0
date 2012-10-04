@@ -1,304 +1,252 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Date: Thu, 11 Oct 2012 07:06:58 +0000
-Subject: Re: [PATCH 2/10] memory-hotplug : remove /sys/firmware/memmap/X sysfs
-Message-Id: <50767012.5080306@jp.fujitsu.com>
+From: David Howells <dhowells@redhat.com>
+Date: Thu, 04 Oct 2012 19:51:52 +0000
+Subject: [GIT PULL] Disintegrate UAPI for sparc
+Message-Id: <17438.1349380312@warthog.procyon.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <506E43E0.70507@jp.fujitsu.com> <506E4571.4090608@jp.fujitsu.com> <CAHGf_=rc9z7OmuH-pamQmPE=dpy3zPX3fXab=-APo2_NX7=KpQ@mail.gmail.com>
-In-Reply-To: <CAHGf_=rc9z7OmuH-pamQmPE=dpy3zPX3fXab=-APo2_NX7=KpQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, wency@cn.fujitsu.com
+To: davem@davemloft.net
+Cc: dhowells@redhat.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-2012/10/06 4:36, KOSAKI Motohiro wrote:
-> On Thu, Oct 4, 2012 at 10:26 PM, Yasuaki Ishimatsu
-> <isimatu.yasuaki@jp.fujitsu.com> wrote:
->> When (hot)adding memory into system, /sys/firmware/memmap/X/{end, start, type}
->> sysfs files are created. But there is no code to remove these files. The patch
->> implements the function to remove them.
->>
->> Note : The code does not free firmware_map_entry since there is no way to free
->>         memory which is allocated by bootmem.
->
-> You have to explain why this is ok. I guess the unfreed
-> firmware_map_entry is reused
-> at next online memory and don't make memory leak, right?
+Can you merge the following branch into the sparc tree please.
 
-Unfortunately, it is no. It makes memory leak about firmware_map_entry size.
-If we hot add memory, slab allocater prepares a other memory for
-firmware_map_entry.
+This is to complete part of the UAPI disintegration for which the preparatory
+patches were pulled recently.
 
-In my understanding, if the memory is allocated by bootmem allocator,
-the memory is not managed by slab allocator. So we can not use kfree()
-against the memory.
-On the other hand, the page of the memory may have various data allocalted
-by bootmem allocater with the exception of the firmware_map_entry. Thus we
-cannot free the page.
+Note that there are some fixup patches which are at the base of the branch
+aimed at you, plus all arches get the asm-generic branch merged in too.
 
-So the patch makes memory leak. But I think the memory leak size is
-very samll. And it does not affect the system.
+The following changes since commit 612a9aab56a93533e76e3ad91642db7033e03b69:
 
->
->
->
->>
->> CC: David Rientjes <rientjes@google.com>
->> CC: Jiang Liu <liuj97@gmail.com>
->> CC: Len Brown <len.brown@intel.com>
->> CC: Christoph Lameter <cl@linux.com>
->> Cc: Minchan Kim <minchan.kim@gmail.com>
->> CC: Andrew Morton <akpm@linux-foundation.org>
->> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
->> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
->> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>
->> ---
->>   drivers/firmware/memmap.c    |   98 ++++++++++++++++++++++++++++++++++++++++++-
->>   include/linux/firmware-map.h |    6 ++
->>   mm/memory_hotplug.c          |    7 ++-
->>   3 files changed, 108 insertions(+), 3 deletions(-)
->>
->> Index: linux-3.6/drivers/firmware/memmap.c
->> =================================>> --- linux-3.6.orig/drivers/firmware/memmap.c    2012-10-04 18:27:05.195500420 +0900
->> +++ linux-3.6/drivers/firmware/memmap.c 2012-10-04 18:27:18.901514330 +0900
->> @@ -21,6 +21,7 @@
->>   #include <linux/types.h>
->>   #include <linux/bootmem.h>
->>   #include <linux/slab.h>
->> +#include <linux/mm.h>
->>
->>   /*
->>    * Data types ------------------------------------------------------------------
->> @@ -41,6 +42,7 @@ struct firmware_map_entry {
->>          const char              *type;  /* type of the memory range */
->>          struct list_head        list;   /* entry for the linked list */
->>          struct kobject          kobj;   /* kobject for each entry */
->> +       unsigned int            bootmem:1; /* allocated from bootmem */
->
-> Use bool.
+  Merge branch 'drm-next' of git://people.freedesktop.org/~airlied/linux (2012-10-03 23:29:23 -0700)
 
-We'll update it.
-
->
->>   };
->>
->>   /*
->> @@ -79,7 +81,26 @@ static const struct sysfs_ops memmap_att
->>          .show = memmap_attr_show,
->>   };
->>
->> +
->> +static inline struct firmware_map_entry *
->> +to_memmap_entry(struct kobject *kobj)
->> +{
->> +       return container_of(kobj, struct firmware_map_entry, kobj);
->> +}
->> +
->> +static void release_firmware_map_entry(struct kobject *kobj)
->> +{
->> +       struct firmware_map_entry *entry = to_memmap_entry(kobj);
->> +
->> +       if (entry->bootmem)
->> +               /* There is no way to free memory allocated from bootmem */
->> +               return;
->> +
->> +       kfree(entry);
->> +}
->> +
->>   static struct kobj_type memmap_ktype = {
->> +       .release        = release_firmware_map_entry,
->>          .sysfs_ops      = &memmap_attr_ops,
->>          .default_attrs  = def_attrs,
->>   };
->> @@ -94,6 +115,7 @@ static struct kobj_type memmap_ktype = {
->>    * in firmware initialisation code in one single thread of execution.
->>    */
->>   static LIST_HEAD(map_entries);
->> +static DEFINE_SPINLOCK(map_entries_lock);
->>
->>   /**
->>    * firmware_map_add_entry() - Does the real work to add a firmware memmap entry.
->> @@ -118,11 +140,25 @@ static int firmware_map_add_entry(u64 st
->>          INIT_LIST_HEAD(&entry->list);
->>          kobject_init(&entry->kobj, &memmap_ktype);
->>
->> +       spin_lock(&map_entries_lock);
->>          list_add_tail(&entry->list, &map_entries);
->> +       spin_unlock(&map_entries_lock);
->>
->>          return 0;
->>   }
->>
->> +/**
->> + * firmware_map_remove_entry() - Does the real work to remove a firmware
->> + * memmap entry.
->> + * @entry: removed entry.
->> + **/
->> +static inline void firmware_map_remove_entry(struct firmware_map_entry *entry)
->
-> Don't use inline in *.c file. gcc is wise than you.
-
-We'll update it.
-
->> +{
->> +       spin_lock(&map_entries_lock);
->> +       list_del(&entry->list);
->> +       spin_unlock(&map_entries_lock);
->> +}
->> +
->>   /*
->>    * Add memmap entry on sysfs
->>    */
->> @@ -144,6 +180,35 @@ static int add_sysfs_fw_map_entry(struct
->>          return 0;
->>   }
->>
->> +/*
->> + * Remove memmap entry on sysfs
->> + */
->> +static inline void remove_sysfs_fw_map_entry(struct firmware_map_entry *entry)
->> +{
->> +       kobject_put(&entry->kobj);
->> +}
->> +
->> +/*
->> + * Search memmap entry
->> + */
->> +
->> +static struct firmware_map_entry * __meminit
->> +firmware_map_find_entry(u64 start, u64 end, const char *type)
->> +{
->> +       struct firmware_map_entry *entry;
->> +
->> +       spin_lock(&map_entries_lock);
->> +       list_for_each_entry(entry, &map_entries, list)
->> +               if ((entry->start = start) && (entry->end = end) &&
->> +                   (!strcmp(entry->type, type))) {
->> +                       spin_unlock(&map_entries_lock);
->> +                       return entry;
->> +               }
->> +
->> +       spin_unlock(&map_entries_lock);
->> +       return NULL;
->> +}
->> +
->>   /**
->>    * firmware_map_add_hotplug() - Adds a firmware mapping entry when we do
->>    * memory hotplug.
->> @@ -193,9 +258,36 @@ int __init firmware_map_add_early(u64 st
->>          if (WARN_ON(!entry))
->>                  return -ENOMEM;
->>
->> +       entry->bootmem = 1;
->>          return firmware_map_add_entry(start, end, type, entry);
->>   }
->>
->> +/**
->> + * firmware_map_remove() - remove a firmware mapping entry
->> + * @start: Start of the memory range.
->> + * @end:   End of the memory range.
->> + * @type:  Type of the memory range.
->> + *
->> + * removes a firmware mapping entry.
->> + *
->> + * Returns 0 on success, or -EINVAL if no entry.
->> + **/
->> +int __meminit firmware_map_remove(u64 start, u64 end, const char *type)
->
-> Remove type argument if this is always passed "System RAM".
-
-Probably, the type is always "System RAM". But we need to check whether
-that the range of start and end variables are "System RAM" or not.
-So I want to keep it.
-
-Thanks,
-Yasuaki Ishimatsu
-
->
->> +{
->> +       struct firmware_map_entry *entry;
->> +
->> +       entry = firmware_map_find_entry(start, end - 1, type);
->> +       if (!entry)
->> +               return -EINVAL;
->> +
->> +       firmware_map_remove_entry(entry);
->> +
->> +       /* remove the memmap entry */
->> +       remove_sysfs_fw_map_entry(entry);
->> +
->> +       return 0;
->> +}
->> +
->>   /*
->>    * Sysfs functions -------------------------------------------------------------
->>    */
->> @@ -217,8 +309,10 @@ static ssize_t type_show(struct firmware
->>          return snprintf(buf, PAGE_SIZE, "%s\n", entry->type);
->>   }
->>
->> -#define to_memmap_attr(_attr) container_of(_attr, struct memmap_attribute, attr)
->> -#define to_memmap_entry(obj) container_of(obj, struct firmware_map_entry, kobj)
->> +static inline struct memmap_attribute *to_memmap_attr(struct attribute *attr)
->> +{
->> +       return container_of(attr, struct memmap_attribute, attr);
->> +}
->>
->>   static ssize_t memmap_attr_show(struct kobject *kobj,
->>                                  struct attribute *attr, char *buf)
->> Index: linux-3.6/include/linux/firmware-map.h
->> =================================>> --- linux-3.6.orig/include/linux/firmware-map.h 2012-10-04 18:27:05.197500422 +0900
->> +++ linux-3.6/include/linux/firmware-map.h      2012-10-04 18:27:18.904514333 +0900
->> @@ -25,6 +25,7 @@
->>
->>   int firmware_map_add_early(u64 start, u64 end, const char *type);
->>   int firmware_map_add_hotplug(u64 start, u64 end, const char *type);
->> +int firmware_map_remove(u64 start, u64 end, const char *type);
->>
->>   #else /* CONFIG_FIRMWARE_MEMMAP */
->>
->> @@ -38,6 +39,11 @@ static inline int firmware_map_add_hotpl
->>          return 0;
->>   }
->>
->> +static inline int firmware_map_remove(u64 start, u64 end, const char *type)
->> +{
->> +       return 0;
->> +}
->> +
->>   #endif /* CONFIG_FIRMWARE_MEMMAP */
->>
->>   #endif /* _LINUX_FIRMWARE_MAP_H */
->> Index: linux-3.6/mm/memory_hotplug.c
->> =================================>> --- linux-3.6.orig/mm/memory_hotplug.c  2012-10-04 18:27:03.000000000 +0900
->> +++ linux-3.6/mm/memory_hotplug.c       2012-10-04 18:28:42.851599524 +0900
->> @@ -1043,7 +1043,7 @@ int offline_memory(u64 start, u64 size)
->>          return 0;
->>   }
->>
->> -int remove_memory(int nid, u64 start, u64 size)
->> +int __ref remove_memory(int nid, u64 start, u64 size)
->>   {
->>          int ret = 0;
->>          lock_memory_hotplug();
->> @@ -1056,8 +1056,13 @@ int remove_memory(int nid, u64 start, u6
->>                          "because the memmory range is online\n",
->>                          start, start + size);
->>                  ret = -EAGAIN;
->> +               goto out;
->>          }
->>
->> +       /* remove memmap entry */
->> +       firmware_map_remove(start, start + size, "System RAM");
->> +
->> +out:
->>          unlock_memory_hotplug();
->>          return ret;
->>   }
->
->
-> Other than that, looks ok to me.
->
+are available in the git repository at:
 
 
+  git://git.infradead.org/users/dhowells/linux-headers.git disintegrate-sparc
+
+for you to fetch changes up to d4ae6a1549e06de45a1c8a4fb596a2874f5f83e5:
+
+  UAPI: (Scripted) Disintegrate arch/sparc/include/asm (2012-10-04 18:21:32 +0100)
+
+----------------------------------------------------------------
+David Howells (6):
+      UAPI: Fix the guards on various asm/unistd.h files
+      UAPI: Split compound conditionals containing __KERNEL__ in Arm64
+      Merge remote-tracking branch 'c6x/for-linux-next' into uapi-prep
+      UAPI: Fix conditional header installation handling (notably kvm_para.h on m68k)
+      UAPI: (Scripted) Disintegrate include/asm-generic
+      UAPI: (Scripted) Disintegrate arch/sparc/include/asm
+
+Mark Salter (2):
+      c6x: make dsk6455 the default config
+      c6x: remove c6x signal.h
+
+ arch/arm64/include/asm/hwcap.h                  |   4 +-
+ arch/arm64/include/asm/stat.h                   |   4 +-
+ arch/arm64/include/asm/unistd.h                 |   8 +-
+ arch/arm64/include/asm/unistd32.h               |   4 -
+ arch/c6x/Makefile                               |   2 +
+ arch/c6x/include/asm/Kbuild                     |   1 +
+ arch/c6x/include/asm/signal.h                   |  17 -
+ arch/c6x/include/asm/unistd.h                   |   4 -
+ arch/hexagon/include/asm/unistd.h               |   5 -
+ arch/openrisc/include/asm/unistd.h              |   5 -
+ arch/score/include/asm/unistd.h                 |   5 -
+ arch/sparc/include/asm/Kbuild                   |  16 -
+ arch/sparc/include/asm/fbio.h                   | 260 +------
+ arch/sparc/include/asm/ioctls.h                 | 129 +---
+ arch/sparc/include/asm/mman.h                   |  25 +-
+ arch/sparc/include/asm/psr.h                    |  36 +-
+ arch/sparc/include/asm/ptrace.h                 | 347 +--------
+ arch/sparc/include/asm/setup.h                  |  10 +-
+ arch/sparc/include/asm/sigcontext.h             |   4 +-
+ arch/sparc/include/asm/siginfo.h                |  24 +-
+ arch/sparc/include/asm/signal.h                 | 185 +----
+ arch/sparc/include/asm/termbits.h               | 260 +------
+ arch/sparc/include/asm/termios.h                |  41 +-
+ arch/sparc/include/asm/traps.h                  | 111 +--
+ arch/sparc/include/asm/unistd.h                 | 412 +----------
+ arch/sparc/include/uapi/asm/Kbuild              |  46 ++
+ arch/sparc/include/{ => uapi}/asm/apc.h         |   0
+ arch/sparc/include/{ => uapi}/asm/asi.h         |   0
+ arch/sparc/include/{ => uapi}/asm/auxvec.h      |   0
+ arch/sparc/include/{ => uapi}/asm/bitsperlong.h |   0
+ arch/sparc/include/{ => uapi}/asm/byteorder.h   |   0
+ arch/sparc/include/{ => uapi}/asm/display7seg.h |   0
+ arch/sparc/include/{ => uapi}/asm/envctrl.h     |   0
+ arch/sparc/include/{ => uapi}/asm/errno.h       |   0
+ arch/sparc/include/uapi/asm/fbio.h              | 259 +++++++
+ arch/sparc/include/{ => uapi}/asm/fcntl.h       |   0
+ arch/sparc/include/{ => uapi}/asm/ioctl.h       |   0
+ arch/sparc/include/uapi/asm/ioctls.h            | 131 ++++
+ arch/sparc/include/{ => uapi}/asm/ipcbuf.h      |   0
+ arch/sparc/include/{ => uapi}/asm/jsflash.h     |   0
+ arch/sparc/include/{ => uapi}/asm/kvm_para.h    |   0
+ arch/sparc/include/uapi/asm/mman.h              |  27 +
+ arch/sparc/include/{ => uapi}/asm/msgbuf.h      |   0
+ arch/sparc/include/{ => uapi}/asm/openpromio.h  |   0
+ arch/sparc/include/{ => uapi}/asm/param.h       |   0
+ arch/sparc/include/{ => uapi}/asm/perfctr.h     |   0
+ arch/sparc/include/{ => uapi}/asm/poll.h        |   0
+ arch/sparc/include/{ => uapi}/asm/posix_types.h |   0
+ arch/sparc/include/uapi/asm/psr.h               |  47 ++
+ arch/sparc/include/{ => uapi}/asm/psrcompat.h   |   0
+ arch/sparc/include/{ => uapi}/asm/pstate.h      |   0
+ arch/sparc/include/uapi/asm/ptrace.h            | 352 +++++++++
+ arch/sparc/include/{ => uapi}/asm/resource.h    |   0
+ arch/sparc/include/{ => uapi}/asm/sembuf.h      |   0
+ arch/sparc/include/uapi/asm/setup.h             |  15 +
+ arch/sparc/include/{ => uapi}/asm/shmbuf.h      |   0
+ arch/sparc/include/uapi/asm/siginfo.h           |  26 +
+ arch/sparc/include/uapi/asm/signal.h            | 185 +++++
+ arch/sparc/include/{ => uapi}/asm/socket.h      |   0
+ arch/sparc/include/{ => uapi}/asm/sockios.h     |   0
+ arch/sparc/include/{ => uapi}/asm/stat.h        |   0
+ arch/sparc/include/{ => uapi}/asm/statfs.h      |   0
+ arch/sparc/include/{ => uapi}/asm/swab.h        |   0
+ arch/sparc/include/uapi/asm/termbits.h          | 263 +++++++
+ arch/sparc/include/uapi/asm/termios.h           |  43 ++
+ arch/sparc/include/uapi/asm/traps.h             | 120 ++++
+ arch/sparc/include/{ => uapi}/asm/types.h       |   0
+ arch/sparc/include/{ => uapi}/asm/uctx.h        |   0
+ arch/sparc/include/uapi/asm/unistd.h            | 422 +++++++++++
+ arch/sparc/include/{ => uapi}/asm/utrap.h       |   0
+ arch/sparc/include/{ => uapi}/asm/watchdog.h    |   0
+ arch/tile/include/asm/unistd.h                  |   5 -
+ arch/unicore32/include/asm/unistd.h             |   4 -
+ include/asm-generic/Kbuild                      |  35 -
+ include/asm-generic/bitsperlong.h               |  13 +-
+ include/asm-generic/int-l64.h                   |  26 +-
+ include/asm-generic/int-ll64.h                  |  31 +-
+ include/asm-generic/ioctl.h                     |  95 +--
+ include/asm-generic/kvm_para.h                  |   5 +-
+ include/asm-generic/param.h                     |  17 +-
+ include/asm-generic/resource.h                  |  66 +-
+ include/asm-generic/siginfo.h                   | 297 +-------
+ include/asm-generic/signal.h                    | 117 +--
+ include/asm-generic/statfs.h                    |  81 +--
+ include/asm-generic/termios.h                   |  49 +-
+ include/asm-generic/unistd.h                    | 911 +-----------------------
+ include/linux/Kbuild                            |   9 +-
+ include/uapi/asm-generic/Kbuild                 |  35 +
+ include/{ => uapi}/asm-generic/auxvec.h         |   0
+ include/uapi/asm-generic/bitsperlong.h          |  15 +
+ include/{ => uapi}/asm-generic/errno-base.h     |   0
+ include/{ => uapi}/asm-generic/errno.h          |   0
+ include/{ => uapi}/asm-generic/fcntl.h          |   0
+ include/uapi/asm-generic/int-l64.h              |  34 +
+ include/uapi/asm-generic/int-ll64.h             |  39 +
+ include/uapi/asm-generic/ioctl.h                |  98 +++
+ include/{ => uapi}/asm-generic/ioctls.h         |   0
+ include/{ => uapi}/asm-generic/ipcbuf.h         |   0
+ include/{ => uapi}/asm-generic/mman-common.h    |   0
+ include/{ => uapi}/asm-generic/mman.h           |   0
+ include/{ => uapi}/asm-generic/msgbuf.h         |   0
+ include/uapi/asm-generic/param.h                |  19 +
+ include/{ => uapi}/asm-generic/poll.h           |   0
+ include/{ => uapi}/asm-generic/posix_types.h    |   0
+ include/uapi/asm-generic/resource.h             |  68 ++
+ include/{ => uapi}/asm-generic/sembuf.h         |   0
+ include/{ => uapi}/asm-generic/setup.h          |   0
+ include/{ => uapi}/asm-generic/shmbuf.h         |   0
+ include/{ => uapi}/asm-generic/shmparam.h       |   0
+ include/uapi/asm-generic/siginfo.h              | 298 ++++++++
+ include/{ => uapi}/asm-generic/signal-defs.h    |   0
+ include/uapi/asm-generic/signal.h               | 123 ++++
+ include/{ => uapi}/asm-generic/socket.h         |   0
+ include/{ => uapi}/asm-generic/sockios.h        |   0
+ include/{ => uapi}/asm-generic/stat.h           |   0
+ include/uapi/asm-generic/statfs.h               |  83 +++
+ include/{ => uapi}/asm-generic/swab.h           |   0
+ include/{ => uapi}/asm-generic/termbits.h       |   0
+ include/uapi/asm-generic/termios.h              |  50 ++
+ include/{ => uapi}/asm-generic/types.h          |   0
+ include/{ => uapi}/asm-generic/ucontext.h       |   0
+ include/uapi/asm-generic/unistd.h               | 902 +++++++++++++++++++++++
+ security/apparmor/Makefile                      |   2 +-
+ 123 files changed, 3745 insertions(+), 3637 deletions(-)
+ delete mode 100644 arch/c6x/include/asm/signal.h
+ rename arch/sparc/include/{ => uapi}/asm/apc.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/asi.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/auxvec.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/bitsperlong.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/byteorder.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/display7seg.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/envctrl.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/errno.h (100%)
+ create mode 100644 arch/sparc/include/uapi/asm/fbio.h
+ rename arch/sparc/include/{ => uapi}/asm/fcntl.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/ioctl.h (100%)
+ create mode 100644 arch/sparc/include/uapi/asm/ioctls.h
+ rename arch/sparc/include/{ => uapi}/asm/ipcbuf.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/jsflash.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/kvm_para.h (100%)
+ create mode 100644 arch/sparc/include/uapi/asm/mman.h
+ rename arch/sparc/include/{ => uapi}/asm/msgbuf.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/openpromio.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/param.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/perfctr.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/poll.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/posix_types.h (100%)
+ create mode 100644 arch/sparc/include/uapi/asm/psr.h
+ rename arch/sparc/include/{ => uapi}/asm/psrcompat.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/pstate.h (100%)
+ create mode 100644 arch/sparc/include/uapi/asm/ptrace.h
+ rename arch/sparc/include/{ => uapi}/asm/resource.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/sembuf.h (100%)
+ create mode 100644 arch/sparc/include/uapi/asm/setup.h
+ rename arch/sparc/include/{ => uapi}/asm/shmbuf.h (100%)
+ create mode 100644 arch/sparc/include/uapi/asm/sigcontext.h
+ create mode 100644 arch/sparc/include/uapi/asm/siginfo.h
+ create mode 100644 arch/sparc/include/uapi/asm/signal.h
+ rename arch/sparc/include/{ => uapi}/asm/socket.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/sockios.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/stat.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/statfs.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/swab.h (100%)
+ create mode 100644 arch/sparc/include/uapi/asm/termbits.h
+ create mode 100644 arch/sparc/include/uapi/asm/termios.h
+ create mode 100644 arch/sparc/include/uapi/asm/traps.h
+ rename arch/sparc/include/{ => uapi}/asm/types.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/uctx.h (100%)
+ create mode 100644 arch/sparc/include/uapi/asm/unistd.h
+ rename arch/sparc/include/{ => uapi}/asm/utrap.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/watchdog.h (100%)
+ rename include/{ => uapi}/asm-generic/auxvec.h (100%)
+ create mode 100644 include/uapi/asm-generic/bitsperlong.h
+ rename include/{ => uapi}/asm-generic/errno-base.h (100%)
+ rename include/{ => uapi}/asm-generic/errno.h (100%)
+ rename include/{ => uapi}/asm-generic/fcntl.h (100%)
+ create mode 100644 include/uapi/asm-generic/int-l64.h
+ create mode 100644 include/uapi/asm-generic/int-ll64.h
+ create mode 100644 include/uapi/asm-generic/ioctl.h
+ rename include/{ => uapi}/asm-generic/ioctls.h (100%)
+ rename include/{ => uapi}/asm-generic/ipcbuf.h (100%)
+ create mode 100644 include/uapi/asm-generic/kvm_para.h
+ rename include/{ => uapi}/asm-generic/mman-common.h (100%)
+ rename include/{ => uapi}/asm-generic/mman.h (100%)
+ rename include/{ => uapi}/asm-generic/msgbuf.h (100%)
+ create mode 100644 include/uapi/asm-generic/param.h
+ rename include/{ => uapi}/asm-generic/poll.h (100%)
+ rename include/{ => uapi}/asm-generic/posix_types.h (100%)
+ create mode 100644 include/uapi/asm-generic/resource.h
+ rename include/{ => uapi}/asm-generic/sembuf.h (100%)
+ rename include/{ => uapi}/asm-generic/setup.h (100%)
+ rename include/{ => uapi}/asm-generic/shmbuf.h (100%)
+ rename include/{ => uapi}/asm-generic/shmparam.h (100%)
+ create mode 100644 include/uapi/asm-generic/siginfo.h
+ rename include/{ => uapi}/asm-generic/signal-defs.h (100%)
+ create mode 100644 include/uapi/asm-generic/signal.h
+ rename include/{ => uapi}/asm-generic/socket.h (100%)
+ rename include/{ => uapi}/asm-generic/sockios.h (100%)
+ rename include/{ => uapi}/asm-generic/stat.h (100%)
+ create mode 100644 include/uapi/asm-generic/statfs.h
+ rename include/{ => uapi}/asm-generic/swab.h (100%)
+ rename include/{ => uapi}/asm-generic/termbits.h (100%)
+ create mode 100644 include/uapi/asm-generic/termios.h
+ rename include/{ => uapi}/asm-generic/types.h (100%)
+ rename include/{ => uapi}/asm-generic/ucontext.h (100%)
+ create mode 100644 include/uapi/asm-generic/unistd.h
+.
