@@ -1,108 +1,89 @@
-From: Jan Kiszka <jan.kiszka@web.de>
-Date: Wed, 03 Oct 2012 11:21:43 +0000
-Subject: [PATCH 12/13] scripts/gdb: Add internal helper and convenience function for per-cpu lookup
-Message-Id: <f728c9c94781719585d7514a5ac748df702b5a50.1349263293.git.jan.kiszka@web.de>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 04 Oct 2012 21:22:35 +0000
+Subject: [PATCH 2/2] sparc64: Fix strace hiccups when force_successful_syscall() triggers.
+Message-Id: <20121004.172235.9779511592641673.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1349263293.git.jan.kiszka@web.de>
-In-Reply-To: <cover.1349263293.git.jan.kiszka@web.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Jason Wessel <jason.wessel@windriver.com>, kgdb-bugreport@lists.sourceforge.net, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Jan Kiszka <jan.kiszka@siemens.com>
 
-This function allows to obtain a per-cpu variable, either of the current
-or an explicitly specified CPU.
+From: Al Viro <viro@zeniv.linux.org.uk>
 
-Note: sparc64 version is untested.
+When force_successful_syscall() triggers, the syscall return status
+reported the ptrace applications gets garbled.
 
-CC: "David S. Miller" <davem@davemloft.net>
-CC: sparclinux@vger.kernel.org
-Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
+Fix this by reordering the events and tests in the ret_sys_call path.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- scripts/gdb/percpu.py      |   61 ++++++++++++++++++++++++++++++++++++++++++++
- scripts/gdb/vmlinux-gdb.py |    1 +
- 2 files changed, 62 insertions(+), 0 deletions(-)
- create mode 100644 scripts/gdb/percpu.py
+ arch/sparc/kernel/syscalls.S |   31 +++++++++++++------------------
+ 1 file changed, 13 insertions(+), 18 deletions(-)
 
-diff --git a/scripts/gdb/percpu.py b/scripts/gdb/percpu.py
-new file mode 100644
-index 0000000..6e24400
---- /dev/null
-+++ b/scripts/gdb/percpu.py
-@@ -0,0 +1,61 @@
-+#
-+# gdb helper commands and functions for Linux kernel debugging
-+#
-+#  per-cpu tools
-+#
-+# Copyright (c) 2011, 2012 Siemens AG
-+#
-+# Authors:
-+#  Jan Kiszka <jan.kiszka@siemens.com>
-+#
-+# This work is licensed under the terms of the GNU GPL version 2.
-+#
+diff --git a/arch/sparc/kernel/syscalls.S b/arch/sparc/kernel/syscalls.S
+index ed277e2..b0ac103 100644
+--- a/arch/sparc/kernel/syscalls.S
++++ b/arch/sparc/kernel/syscalls.S
+@@ -212,24 +212,19 @@ linux_sparc_syscall:
+ 3:	stx	%o0, [%sp + PTREGS_OFF + PT_V9_I0]
+ ret_sys_call:
+ 	ldx	[%sp + PTREGS_OFF + PT_V9_TSTATE], %g3
+-	ldx	[%sp + PTREGS_OFF + PT_V9_TNPC], %l1 ! pc = npc
+ 	sra	%o0, 0, %o0
+ 	mov	%ulo(TSTATE_XCARRY | TSTATE_ICARRY), %g2
+ 	sllx	%g2, 32, %g2
+ 
+-	/* Check if force_successful_syscall_return()
+-	 * was invoked.
+-	 */
+-	ldub	[%g6 + TI_SYS_NOERROR], %l2
+-	brnz,pn %l2, 80f
+-	 nop
+-
+ 	cmp	%o0, -ERESTART_RESTARTBLOCK
+ 	bgeu,pn	%xcc, 1f
+-	 andcc	%l0, (_TIF_SYSCALL_TRACE|_TIF_SECCOMP|_TIF_SYSCALL_AUDIT|_TIF_SYSCALL_TRACEPOINT), %l6
+-80:
++	 andcc	%l0, (_TIF_SYSCALL_TRACE|_TIF_SECCOMP|_TIF_SYSCALL_AUDIT|_TIF_SYSCALL_TRACEPOINT), %g0
++	ldx	[%sp + PTREGS_OFF + PT_V9_TNPC], %l1 ! pc = npc
 +
-+import gdb
-+
-+from utils import *
-+from task import *
-+
-+MAX_CPUS = 4096
-+
-+def get_current_cpu():
-+	if get_gdbserver_type() = GDBSERVER_QEMU:
-+		return gdb.selected_thread().num - 1
-+	elif get_gdbserver_type() = GDBSERVER_KGDB:
-+		tid = gdb.selected_thread().ptid[2]
-+		if tid > (0x100000000 - MAX_CPUS - 2):
-+			return 0x100000000 - tid - 2
-+		else:
-+			return get_thread_info(get_task_by_pid(tid))['cpu']
-+	else:
-+		raise gdb.GdbError("Sorry, obtaining the current CPU is "
-+				   "not yet supported with this gdb server.")
-+
-+def per_cpu(var_name, cpu):
-+	var = gdb.parse_and_eval("&" + var_name)
-+	if cpu = -1:
-+		cpu = get_current_cpu()
-+	if is_target_arch("sparc:v9"):
-+		offset = gdb.parse_and_eval("trap_block[" + str(cpu) +
-+					    "].__per_cpu_base")
-+	else:
-+		offset = gdb.parse_and_eval("__per_cpu_offset[" + str(cpu) +
-+					    "]")
-+	pointer = var.cast(get_long_type()) + offset
-+	return pointer.cast(var.type).dereference()
-+
-+
-+class PerCpu(gdb.Function):
-+	__doc__ = "Return per-cpu variable.\n" \
-+		  "\n" \
-+		  "$lx_per_cpu(\"VAR\"[, CPU]): Return the per-cpu variable called VAR for the\n" \
-+		  "given CPU number. If CPU is omitted, the CPU of the current context is used.\n" \
-+		  "Note that VAR has to be quoted as string."
-+
-+	def __init__(self):
-+		super(PerCpu, self).__init__("lx_per_cpu")
-+
-+	def invoke(self, var_name, cpu = -1):
-+		return per_cpu(var_name.string(), cpu)
-+
-+PerCpu()
-diff --git a/scripts/gdb/vmlinux-gdb.py b/scripts/gdb/vmlinux-gdb.py
-index deaf652..1d952b5 100644
---- a/scripts/gdb/vmlinux-gdb.py
-+++ b/scripts/gdb/vmlinux-gdb.py
-@@ -23,3 +23,4 @@ else:
- 	import symbols
- 	import dmesg
- 	import task
-+	import percpu
++2:
+ 	/* System call success, clear Carry condition code. */
+ 	andn	%g3, %g2, %g3
++3:
+ 	stx	%g3, [%sp + PTREGS_OFF + PT_V9_TSTATE]	
+ 	bne,pn	%icc, linux_syscall_trace2
+ 	 add	%l1, 0x4, %l2			! npc = npc+4
+@@ -238,20 +233,20 @@ ret_sys_call:
+ 	 stx	%l2, [%sp + PTREGS_OFF + PT_V9_TNPC]
+ 
+ 1:
++	/* Check if force_successful_syscall_return()
++	 * was invoked.
++	 */
++	ldub	[%g6 + TI_SYS_NOERROR], %l2
++	brnz,pn %l2, 2b
++	 ldx	[%sp + PTREGS_OFF + PT_V9_TNPC], %l1 ! pc = npc
+ 	/* System call failure, set Carry condition code.
+ 	 * Also, get abs(errno) to return to the process.
+ 	 */
+-	andcc	%l0, (_TIF_SYSCALL_TRACE|_TIF_SECCOMP|_TIF_SYSCALL_AUDIT|_TIF_SYSCALL_TRACEPOINT), %l6	
+ 	sub	%g0, %o0, %o0
+-	or	%g3, %g2, %g3
+ 	stx	%o0, [%sp + PTREGS_OFF + PT_V9_I0]
+-	stx	%g3, [%sp + PTREGS_OFF + PT_V9_TSTATE]
+-	bne,pn	%icc, linux_syscall_trace2
+-	 add	%l1, 0x4, %l2			! npc = npc+4
+-	stx	%l1, [%sp + PTREGS_OFF + PT_V9_TPC]
++	ba,pt	%xcc, 3b
++	 or	%g3, %g2, %g3
+ 
+-	b,pt	%xcc, rtrap
+-	 stx	%l2, [%sp + PTREGS_OFF + PT_V9_TNPC]
+ linux_syscall_trace2:
+ 	call	syscall_trace_leave
+ 	 add	%sp, PTREGS_OFF, %o0
 -- 
-1.7.3.4
+1.7.10.4
 
