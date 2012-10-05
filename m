@@ -1,28 +1,289 @@
-From: Al Viro <viro@ZenIV.linux.org.uk>
-Date: Thu, 04 Oct 2012 22:37:29 +0000
-Subject: Re: [RESEND PATCH 2/2] sparc64: Fix strace hiccups when force_successful_syscall() triggers.
-Message-Id: <20121004223729.GL23473@ZenIV.linux.org.uk>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Date: Fri, 05 Oct 2012 02:36:09 +0000
+Subject: [PATCH 8/10] memory-hotplug : remove page table of x86_64 architecture
+Message-Id: <506E4799.30407@jp.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20121004.174854.48578929410140312.davem@davemloft.net>
-In-Reply-To: <20121004.174854.48578929410140312.davem@davemloft.net>
+References: <506E43E0.70507@jp.fujitsu.com>
+In-Reply-To: <506E43E0.70507@jp.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
 
-On Thu, Oct 04, 2012 at 05:48:54PM -0400, David Miller wrote:
-> 
-> [ Again, resending hoping it actually hits the list this time. ]
-> 
-> From: Al Viro <viro@zeniv.linux.org.uk>
-> 
-> When force_successful_syscall() triggers, the syscall return status
-> reported the ptrace applications gets garbled.
-> 
-> Fix this by reordering the events and tests in the ret_sys_call path.
-> 
-> Signed-off-by: David S. Miller <davem@davemloft.net>
+From: Wen Congyang <wency@cn.fujitsu.com>
 
-... and my s-o-b as well -
+For hot removing memory, we sholud remove page table about the memory.
+So the patch searches a page table about the removed memory, and clear
+page table.
 
-Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+CC: David Rientjes <rientjes@google.com>
+CC: Jiang Liu <liuj97@gmail.com>
+CC: Len Brown <len.brown@intel.com>
+CC: Christoph Lameter <cl@linux.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+CC: Andrew Morton <akpm@linux-foundation.org>
+CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+---
+ arch/x86/include/asm/pgtable_types.h |    1 
+ arch/x86/mm/init_64.c                |  147 +++++++++++++++++++++++++++++++++++
+ arch/x86/mm/pageattr.c               |   47 +++++------
+ 3 files changed, 173 insertions(+), 22 deletions(-)
+
+Index: linux-3.6/arch/x86/mm/init_64.c
+=================================--- linux-3.6.orig/arch/x86/mm/init_64.c	2012-10-04 18:30:21.171698416 +0900
++++ linux-3.6/arch/x86/mm/init_64.c	2012-10-04 18:30:27.317704652 +0900
+@@ -675,6 +675,151 @@ int arch_add_memory(int nid, u64 start, 
+ }
+ EXPORT_SYMBOL_GPL(arch_add_memory);
+ 
++static void __meminit
++phys_pte_remove(pte_t *pte_page, unsigned long addr, unsigned long end)
++{
++	unsigned pages = 0;
++	int i = pte_index(addr);
++
++	pte_t *pte = pte_page + pte_index(addr);
++
++	for (; i < PTRS_PER_PTE; i++, addr += PAGE_SIZE, pte++) {
++
++		if (addr >= end)
++			break;
++
++		if (!pte_present(*pte))
++			continue;
++
++		pages++;
++		set_pte(pte, __pte(0));
++	}
++
++	update_page_count(PG_LEVEL_4K, -pages);
++}
++
++static void __meminit
++phys_pmd_remove(pmd_t *pmd_page, unsigned long addr, unsigned long end)
++{
++	unsigned long pages = 0, next;
++	int i = pmd_index(addr);
++
++	for (; i < PTRS_PER_PMD; i++, addr = next) {
++		unsigned long pte_phys;
++		pmd_t *pmd = pmd_page + pmd_index(addr);
++		pte_t *pte;
++
++		if (addr >= end)
++			break;
++
++		next = (addr & PMD_MASK) + PMD_SIZE;
++
++		if (!pmd_present(*pmd))
++			continue;
++
++		if (pmd_large(*pmd)) {
++			if ((addr & ~PMD_MASK) = 0 && next <= end) {
++				set_pmd(pmd, __pmd(0));
++				pages++;
++				continue;
++			}
++
++			/*
++			 * We use 2M page, but we need to remove part of them,
++			 * so split 2M page to 4K page.
++			 */
++			pte = alloc_low_page(&pte_phys);
++			__split_large_page((pte_t *)pmd, addr, pte);
++
++			spin_lock(&init_mm.page_table_lock);
++			pmd_populate_kernel(&init_mm, pmd, __va(pte_phys));
++			spin_unlock(&init_mm.page_table_lock);
++		}
++
++		spin_lock(&init_mm.page_table_lock);
++		pte = map_low_page((pte_t *)pmd_page_vaddr(*pmd));
++		phys_pte_remove(pte, addr, end);
++		unmap_low_page(pte);
++		spin_unlock(&init_mm.page_table_lock);
++	}
++	update_page_count(PG_LEVEL_2M, -pages);
++}
++
++static void __meminit
++phys_pud_remove(pud_t *pud_page, unsigned long addr, unsigned long end)
++{
++	unsigned long pages = 0, next;
++	int i = pud_index(addr);
++
++	for (; i < PTRS_PER_PUD; i++, addr = next) {
++		unsigned long pmd_phys;
++		pud_t *pud = pud_page + pud_index(addr);
++		pmd_t *pmd;
++
++		if (addr >= end)
++			break;
++
++		next = (addr & PUD_MASK) + PUD_SIZE;
++
++		if (!pud_present(*pud))
++			continue;
++
++		if (pud_large(*pud)) {
++			if ((addr & ~PUD_MASK) = 0 && next <= end) {
++				set_pud(pud, __pud(0));
++				pages++;
++				continue;
++			}
++
++			/*
++			 * We use 1G page, but we need to remove part of them,
++			 * so split 1G page to 2M page.
++			 */
++			pmd = alloc_low_page(&pmd_phys);
++			__split_large_page((pte_t *)pud, addr, (pte_t *)pmd);
++
++			spin_lock(&init_mm.page_table_lock);
++			pud_populate(&init_mm, pud, __va(pmd_phys));
++			spin_unlock(&init_mm.page_table_lock);
++		}
++
++		pmd = map_low_page(pmd_offset(pud, 0));
++		phys_pmd_remove(pmd, addr, end);
++		unmap_low_page(pmd);
++		__flush_tlb_all();
++	}
++	__flush_tlb_all();
++
++	update_page_count(PG_LEVEL_1G, -pages);
++}
++
++void __meminit
++kernel_physical_mapping_remove(unsigned long start, unsigned long end)
++{
++	unsigned long next;
++
++	start = (unsigned long)__va(start);
++	end = (unsigned long)__va(end);
++
++	for (; start < end; start = next) {
++		pgd_t *pgd = pgd_offset_k(start);
++		pud_t *pud;
++
++		next = (start + PGDIR_SIZE) & PGDIR_MASK;
++		if (next > end)
++			next = end;
++
++		if (!pgd_present(*pgd))
++			continue;
++
++		pud = map_low_page((pud_t *)pgd_page_vaddr(*pgd));
++		phys_pud_remove(pud, __pa(start), __pa(end));
++		unmap_low_page(pud);
++	}
++
++	__flush_tlb_all();
++}
++
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ int __ref arch_remove_memory(u64 start, u64 size)
+ {
+@@ -687,6 +832,8 @@ int __ref arch_remove_memory(u64 start, 
+ 	ret = __remove_pages(zone, start_pfn, nr_pages);
+ 	WARN_ON_ONCE(ret);
+ 
++	kernel_physical_mapping_remove(start, start + size);
++
+ 	return ret;
+ }
+ #endif
+Index: linux-3.6/arch/x86/include/asm/pgtable_types.h
+=================================--- linux-3.6.orig/arch/x86/include/asm/pgtable_types.h	2012-10-04 18:26:51.925486954 +0900
++++ linux-3.6/arch/x86/include/asm/pgtable_types.h	2012-10-04 18:30:27.322704656 +0900
+@@ -334,6 +334,7 @@ static inline void update_page_count(int
+  * as a pte too.
+  */
+ extern pte_t *lookup_address(unsigned long address, unsigned int *level);
++extern int __split_large_page(pte_t *kpte, unsigned long address, pte_t *pbase);
+ 
+ #endif	/* !__ASSEMBLY__ */
+ 
+Index: linux-3.6/arch/x86/mm/pageattr.c
+=================================--- linux-3.6.orig/arch/x86/mm/pageattr.c	2012-10-04 18:26:51.923486952 +0900
++++ linux-3.6/arch/x86/mm/pageattr.c	2012-10-04 18:30:27.328704662 +0900
+@@ -501,21 +501,13 @@ out_unlock:
+ 	return do_split;
+ }
+ 
+-static int split_large_page(pte_t *kpte, unsigned long address)
++int __split_large_page(pte_t *kpte, unsigned long address, pte_t *pbase)
+ {
+ 	unsigned long pfn, pfninc = 1;
+ 	unsigned int i, level;
+-	pte_t *pbase, *tmp;
++	pte_t *tmp;
+ 	pgprot_t ref_prot;
+-	struct page *base;
+-
+-	if (!debug_pagealloc)
+-		spin_unlock(&cpa_lock);
+-	base = alloc_pages(GFP_KERNEL | __GFP_NOTRACK, 0);
+-	if (!debug_pagealloc)
+-		spin_lock(&cpa_lock);
+-	if (!base)
+-		return -ENOMEM;
++	struct page *base = virt_to_page(pbase);
+ 
+ 	spin_lock(&pgd_lock);
+ 	/*
+@@ -523,10 +515,11 @@ static int split_large_page(pte_t *kpte,
+ 	 * up for us already:
+ 	 */
+ 	tmp = lookup_address(address, &level);
+-	if (tmp != kpte)
+-		goto out_unlock;
++	if (tmp != kpte) {
++		spin_unlock(&pgd_lock);
++		return 1;
++	}
+ 
+-	pbase = (pte_t *)page_address(base);
+ 	paravirt_alloc_pte(&init_mm, page_to_pfn(base));
+ 	ref_prot = pte_pgprot(pte_clrhuge(*kpte));
+ 	/*
+@@ -579,17 +572,27 @@ static int split_large_page(pte_t *kpte,
+ 	 * going on.
+ 	 */
+ 	__flush_tlb_all();
++	spin_unlock(&pgd_lock);
+ 
+-	base = NULL;
++	return 0;
++}
+ 
+-out_unlock:
+-	/*
+-	 * If we dropped out via the lookup_address check under
+-	 * pgd_lock then stick the page back into the pool:
+-	 */
+-	if (base)
++static int split_large_page(pte_t *kpte, unsigned long address)
++{
++	pte_t *pbase;
++	struct page *base;
++
++	if (!debug_pagealloc)
++		spin_unlock(&cpa_lock);
++	base = alloc_pages(GFP_KERNEL | __GFP_NOTRACK, 0);
++	if (!debug_pagealloc)
++		spin_lock(&cpa_lock);
++	if (!base)
++		return -ENOMEM;
++
++	pbase = (pte_t *)page_address(base);
++	if (__split_large_page(kpte, address, pbase))
+ 		__free_page(base);
+-	spin_unlock(&pgd_lock);
+ 
+ 	return 0;
+ }
+
