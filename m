@@ -1,48 +1,81 @@
-From: Shuah Khan <shuah.khan@hp.com>
-Date: Fri, 26 Oct 2012 21:40:24 +0000
-Subject: Re: [PATCH RFT RESEND linux-next] sparc: dma-mapping: support debug_dma_mapping_error
-Message-Id: <1351287624.6885.4.camel@lorien2>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Date: Fri, 05 Oct 2012 02:20:16 +0000
+Subject: [PATCH 0/10] memory-hotplug: hot-remove physical memory
+Message-Id: <506E43E0.70507@jp.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1351211909.6851.26.camel@lorien2>
-	 <1351267989.4013.20.camel@lorien2>
-	 <20121026.150153.1335892148865957561.davem@davemloft.net>
-	 <20121026.151055.328093458246032481.davem@davemloft.net>
-In-Reply-To: <20121026.151055.328093458246032481.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: kyungmin.park@samsung.com, arnd@arndb.de, m.szyprowski@samsung.com, sam@ravnborg.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, shuahkhan@gmail.com
+To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com
 
-On Fri, 2012-10-26 at 15:10 -0400, David Miller wrote:
-> From: David Miller <davem@davemloft.net>
-> Date: Fri, 26 Oct 2012 15:01:53 -0400 (EDT)
-> 
-> > From: Shuah Khan <shuah.khan@hp.com>
-> > Date: Fri, 26 Oct 2012 10:13:09 -0600
-> > 
-> >> Add support for debug_dma_mapping_error() call to avoid warning from
-> >> debug_dma_unmap() interface when it checks for mapping error checked
-> >> status. Without this patch, device driver failed to check map error
-> >> warning is generated.
-> >> 
-> >> Signed-off-by: Shuah Khan <shuah.khan@hp.com>
-> > 
-> > Why are you resending this?
-> > 
-> > When you resend patches, you have to give a reason.  Did the patch
-> > change?  Are you updating the CC: list of the patch posting? Are
-> > you correcting something else?
-> 
-> In fact you sent this _3_ times.  Please, don't do this, or at least
-> explain why you are reposting something each time.
+The patch-set was divided from following thread's patch-set.
 
-I am really sorry for the noise. I forgot to mark this explicitly for
-linux-next the first time and this patch depends on a patch that went
-into linux-next. I sent a few patches for several architectures and lost
-track. I meant to add explanation before I hit send. The reason for
-resend is to tag it for linux-next. 
+https://lkml.org/lkml/2012/9/5/201
 
--- Shuah
+If you want to know the reason, please read following thread.
+
+https://lkml.org/lkml/2012/10/2/83
+
+The patch-set has only the function of kernel core side for physical
+memory hot remove. So if you use the patch, please apply following
+patches.
+
+- bug fix for memory hot remove
+  https://lkml.org/lkml/2012/9/27/39
+  https://lkml.org/lkml/2012/10/2/83
+  http://www.spinics.net/lists/linux-mm/msg42982.html
+  
+- acpi framework
+  https://lkml.org/lkml/2012/10/3/126
+  https://lkml.org/lkml/2012/10/3/641
+
+The patches can free/remove the following things:
+
+  - /sys/firmware/memmap/X/{end, start, type} : [PATCH 2/10]
+  - mem_section and related sysfs files       : [PATCH 3-4/10]
+  - memmap of sparse-vmemmap                  : [PATCH 5-7/10]
+  - page table of removed memory              : [RFC PATCH 8/10]
+  - node and related sysfs files              : [RFC PATCH 9-10/10]
+
+* [PATCH 1/10] checks whether the memory can be removed or not.
+
+If you find lack of function for physical memory hot-remove, please let me
+know.
+
+How to test this patchset?
+1. apply this patchset and build the kernel. MEMORY_HOTPLUG, MEMORY_HOTREMOVE,
+   ACPI_HOTPLUG_MEMORY must be selected.
+2. load the module acpi_memhotplug
+3. hotplug the memory device(it depends on your hardware)
+   You will see the memory device under the directory /sys/bus/acpi/devices/.
+   Its name is PNP0C80:XX.
+4. online/offline pages provided by this memory device
+   You can write online/offline to /sys/devices/system/memory/memoryX/state to
+   online/offline pages provided by this memory device
+5. hotremove the memory device
+   You can hotremove the memory device by the hardware, or writing 1 to
+   /sys/bus/acpi/devices/PNP0C80:XX/eject.
+
+Note: if the memory provided by the memory device is used by the kernel, it
+can't be offlined. It is not a bug.
+
+Known problems:
+1. memory can't be offlined when CONFIG_MEMCG is selected.
+   For example: there is a memory device on node 1. The address range
+   is [1G, 1.5G). You will find 4 new directories memory8, memory9, memory10,
+   and memory11 under the directory /sys/devices/system/memory/.
+   If CONFIG_MEMCG is selected, we will allocate memory to store page cgroup
+   when we online pages. When we online memory8, the memory stored page cgroup
+   is not provided by this memory device. But when we online memory9, the memory
+   stored page cgroup may be provided by memory8. So we can't offline memory8
+   now. We should offline the memory in the reversed order.
+   When the memory device is hotremoved, we will auto offline memory provided
+   by this memory device. But we don't know which memory is onlined first, so
+   offlining memory may fail. In such case, you should offline the memory by
+   hand before hotremoving the memory device.
+2. hotremoving memory device may cause kernel panicked
+   This bug will be fixed by Liu Jiang's patch:
+   https://lkml.org/lkml/2012/7/3/1
 
 
