@@ -1,82 +1,58 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 28 Oct 2012 07:13:32 +0000
-Subject: Re: [PATCH 1/2] sparc64: Fix cpu strand yielding.
-Message-Id: <20121028071332.GA3856@merkur.ravnborg.org>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Date: Fri, 05 Oct 2012 02:32:22 +0000
+Subject: [PATCH 5/10] memory-hotplug : memory-hotplug: check page type in get_page_bootmem
+Message-Id: <506E46B6.3060502@jp.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20121028.021333.1563327700655419230.davem@davemloft.net>
-In-Reply-To: <20121028.021333.1563327700655419230.davem@davemloft.net>
+References: <506E43E0.70507@jp.fujitsu.com>
+In-Reply-To: <506E43E0.70507@jp.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
 
-Hi Davem.
+The function get_page_bootmem() may be called more than one time to the same
+page. There is no need to set page's type, private if the function is not
+the first time called to the page.
 
-Nitpick only.
+Note: the patch is just optimization and does not fix any problem.
 
-On Sun, Oct 28, 2012 at 02:13:33AM -0400, David Miller wrote:
-> 
-> For atomic backoff, we just loop over an exponentially backed off
-> counter.  This is extremely ineffective as it doesn't actually yield
-> the cpu strand so that other competing strands can use the cpu core.
-> 
-> In cpus previous to SPARC-T4 we have to do this in a slightly hackish
-> way, by doing an operation with no side effects that also happens to
-> mark the strand as unavailable.
-> 
-> The mechanism we choose for this is three reads of the %ccr
-> (condition-code) register into %g0 (the zero register).
-> 
-> SPARC-T4 has an explicit "pause" instruction, and we'll make use of
-> that in a subsequent commit.
-> 
-> Yield strands also in cpu_relax().  We really should have done this a
-> very long time ago.
-> 
-> Signed-off-by: David S. Miller <davem@davemloft.net>
-> ---
->  arch/sparc/include/asm/backoff.h      | 5 ++++-
->  arch/sparc/include/asm/processor_64.h | 5 ++++-
->  2 files changed, 8 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/sparc/include/asm/backoff.h b/arch/sparc/include/asm/backoff.h
-> index db3af0d..64b077b 100644
-> --- a/arch/sparc/include/asm/backoff.h
-> +++ b/arch/sparc/include/asm/backoff.h
-> @@ -13,7 +13,10 @@
->  
+CC: David Rientjes <rientjes@google.com>
+CC: Jiang Liu <liuj97@gmail.com>
+CC: Len Brown <len.brown@intel.com>
+CC: Christoph Lameter <cl@linux.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+CC: Andrew Morton <akpm@linux-foundation.org>
+CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+CC: Wen Congyang <wency@cn.fujitsu.com>
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+---
+ mm/memory_hotplug.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-A small comment would be nice:
+Index: linux-3.6/mm/memory_hotplug.c
+=================================--- linux-3.6.orig/mm/memory_hotplug.c	2012-10-04 18:29:58.284676075 +0900
++++ linux-3.6/mm/memory_hotplug.c	2012-10-04 18:30:03.454680542 +0900
+@@ -95,10 +95,17 @@ static void release_memory_resource(stru
+ static void get_page_bootmem(unsigned long info,  struct page *page,
+ 			     unsigned long type)
+ {
+-	page->lru.next = (struct list_head *) type;
+-	SetPagePrivate(page);
+-	set_page_private(page, info);
+-	atomic_inc(&page->_count);
++	unsigned long page_type;
++
++	page_type = (unsigned long)page->lru.next;
++	if (page_type < MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE ||
++	    page_type > MEMORY_HOTPLUG_MAX_BOOTMEM_TYPE){
++		page->lru.next = (struct list_head *)type;
++		SetPagePrivate(page);
++		set_page_private(page, info);
++		atomic_inc(&page->_count);
++	} else
++		atomic_inc(&page->_count);
+ }
+ 
+ /* reference to __meminit __free_pages_bootmem is valid
 
-/* For atomic backoff, loop over an exponentially backed off
- * counter.
- */
-
->  #define BACKOFF_SPIN(reg, tmp, label)	\
->  	mov	reg, tmp; \
-> -88:	brnz,pt	tmp, 88b; \
-> +88:	rd	%ccr, %g0; \
-> +	rd	%ccr, %g0; \
-> +	rd	%ccr, %g0; \
-> +	brnz,pt	tmp, 88b; \
->  	 sub	tmp, 1, tmp; \
->  	set	BACKOFF_LIMIT, tmp; \
->  	cmp	reg, tmp; \
-> diff --git a/arch/sparc/include/asm/processor_64.h b/arch/sparc/include/asm/processor_64.h
-> index 4e5a483..9865634 100644
-> --- a/arch/sparc/include/asm/processor_64.h
-> +++ b/arch/sparc/include/asm/processor_64.h
-> @@ -196,7 +196,10 @@ extern unsigned long get_wchan(struct task_struct *task);
->  #define KSTK_EIP(tsk)  (task_pt_regs(tsk)->tpc)
->  #define KSTK_ESP(tsk)  (task_pt_regs(tsk)->u_regs[UREG_FP])
->  
-> -#define cpu_relax()	barrier()
-> +#define cpu_relax()	asm volatile("rd	%%ccr, %%g0\n\t" \
-> +				     "rd	%%ccr, %%g0\n\t" \
-> +				     "rd	%%ccr, %%g0" \
-> +				     ::: "memory")
-
-You could have cared to let the formatting match next patch so
-we saw less changes in the follow-up patch.
-
-	Sam
