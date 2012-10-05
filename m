@@ -1,333 +1,252 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Date: Tue, 09 Oct 2012 08:11:31 +0000
-Subject: Re: [RFC v9 PATCH 00/21] memory-hotplug: hot-remove physical memory
-Message-Id: <5073DC33.10404@cn.fujitsu.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Date: Fri, 05 Oct 2012 02:26:57 +0000
+Subject: [PATCH 2/10] memory-hotplug : remove /sys/firmware/memmap/X sysfs
+Message-Id: <506E4571.4090608@jp.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com> <20120926164649.GA7559@dhcp-192-168-178-175.profitbricks.localdomain>
-In-Reply-To: <20120926164649.GA7559@dhcp-192-168-178-175.profitbricks.localdomain>
+References: <506E43E0.70507@jp.fujitsu.com>
+In-Reply-To: <506E43E0.70507@jp.fujitsu.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
 
-At 09/27/2012 12:46 AM, Vasilis Liaskovitis Wrote:
-> Hi,
->=20
-> I am testing 3.6.0-rc7 with this v9 patchset plus more recent fixes [1],[=
-2],[3]
-> Running in a guest (qemu+seabios from [4]).=20
-> CONFIG_SLAB=3Dy
-> CONFIG_DEBUG_SLAB=3Dy
->=20
-> After succesfull hot-add and online, I am doing a hot-remove with "echo 1=
- > /sys/bus/acpi/devices/PNP/eject"
-> When I do the OSPM-eject, I often get slab corruption in "acpi-state" cac=
-he, or in other caches
+When (hot)adding memory into system, /sys/firmware/memmap/X/{end, start, type}
+sysfs files are created. But there is no code to remove these files. The patch
+implements the function to remove them.
 
-The following patch can fix this problem:
-https://lkml.org/lkml/2012/7/12/186
+Note : The code does not free firmware_map_entry since there is no way to free
+       memory which is allocated by bootmem.
 
-Thanks
-Wen Congyang
+CC: David Rientjes <rientjes@google.com>
+CC: Jiang Liu <liuj97@gmail.com>
+CC: Len Brown <len.brown@intel.com>
+CC: Christoph Lameter <cl@linux.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+CC: Andrew Morton <akpm@linux-foundation.org>
+CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com> 
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
->=20
-> [  170.566995] Slab corruption (Not tainted): Acpi-State start=FFff88009f=
-c1e548, len=80
-> [  170.567265] Redzone: 0x0/0x0.
-> [  170.567399] Last user: [<          (null)>](0x0)
-> [  170.567667] 000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ....=
-............
-> [  170.568078] 010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ....=
-............
-> [  170.568487] 020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ....=
-............
-> [  170.568894] 030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ....=
-............
-> [  170.569302] 040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ....=
-............
-> [  170.569712] Prev obj: start=000000009fc1e4d0, len=80
-> [  170.569869] BUG: unable to handle kernel paging request at 000000009fc=
-1e520
-> [  170.570171] IP: [<ffffffff8112803c>] print_objinfo+0x9c/0x110
-> [  170.570397] PGD 7cf37067 PUD 0=20
-> [  170.570619] Oops: 0000 [#1] SMP=20
-> [  170.570843] Modules linked in: netconsole acpiphp pci_hotplug acpi_mem=
-hotplug loop kvm_amd kvm tpm_tis microcode tpm tpm_bios psmouse parport_pc =
-serio_raw evdev parport i2c_piix4 processor thermal_sys i2c_core button ext=
-3 jbd mbcache sg sr_mod cdrom ata_generic virtio_net virtio_blk ata_piix li=
-bata scsi_mod virtio_pci virtio_ring virtio
-> [  170.573474] CPU 0=20
-> [  170.573568] Pid: 29, comm: kworker/0:1 Not tainted 3.6.0-rc7-guest #12=
- Bochs Bochs
-> [  170.573830] RIP: 0010:[<ffffffff8112803c>]  [<ffffffff8112803c>] print=
-_objinfo+0x9c/0x110
-> [  170.574106] RSP: 0018:ffff88003eaf3a70  EFLAGS: 00010202
-> [  170.574268] RAX: 000000009fc1e4c8 RBX: 0000000000000002 RCX: 000000000=
-00024b8
-> [  170.574468] RDX: 000000009fc1e4c8 RSI: 000000009fc1e4c8 RDI: ffff88003=
-e9bb980
-> [  170.574668] RBP: ffff88003e9bb980 R08: ffff880037964078 R09: 000000000=
-0000000
-> [  170.574870] R10: 000000000000021e R11: 0000000000000002 R12: 000000009=
-fc1e4c8
-> [  170.575070] R13: 000000009fc1e520 R14: 000000000000004f R15: 00000000f=
-fffffa5
-> [  170.575274] FS:  00007fc6b7530700(0000) GS:ffff88003fc00000(0000) knlG=
-S:0000000000000000
-> [  170.575494] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-> [  170.575665] CR2: 000000009fc1e520 CR3: 000000007c9c1000 CR4: 000000000=
-00006f0
-> [  170.575870] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 000000000=
-0000000
-> [  170.576075] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 000000000=
-0000400
-> [  170.576276] Process kworker/0:1 (pid: 29, threadinfo ffff88003eaf2000,=
- task ffff88003ea941c0)
-> [  170.576507] Stack:
-> [  170.576599]  0000000000000010 0000000001893fbe ffff88009fc1e000 000000=
-0000000050
-> [  170.576938]  000000009fc1e4c8 000000000000004f 00000000ffffffa5 ffffff=
-ff8112899f
-> [  170.576938]  ffff88003eb309d8 ffffffff81712d6d ffff88003e9bb980 ffff88=
-009fc1e540
-> [  170.576938] Call Trace:
-> [  170.576938]  [<ffffffff8112899f>] ? check_poison_obj+0x1df/0x1f0
-> [  170.576938]  [<ffffffff813047d0>] ? acpi_ut_create_generic_state+0x2f/=
-0x4c
-> [  170.576938]  [<ffffffff813047d0>] ? acpi_ut_create_generic_state+0x2f/=
-0x4c
-> [  170.576938]  [<ffffffff81128a9d>] ? cache_alloc_debugcheck_after.isra.=
-52+0xed/0x220
-> [  170.576938]  [<ffffffff813047d0>] ? acpi_ut_create_generic_state+0x2f/=
-0x4c
-> [  170.576938]  [<ffffffff8112beb5>] ? kmem_cache_alloc+0xb5/0x1e0
-> [  170.576938]  [<ffffffff813047d0>] ? acpi_ut_create_generic_state+0x2f/=
-0x4c
-> [  170.576938]  [<ffffffff812edf2d>] ? acpi_ds_result_push+0x5d/0x12e
-> [  170.576938]  [<ffffffff812ed127>] ? acpi_ds_exec_end_op+0x28e/0x3d3
-> [  170.576938]  [<ffffffff812fd86a>] ? acpi_ps_parse_loop+0x79f/0x931
-> [  170.576938]  [<ffffffff812fdd6c>] ? acpi_ps_parse_aml+0x89/0x261
-> [  170.576938]  [<ffffffff812fe50c>] ? acpi_ps_execute_method+0x1be/0x266
-> [  170.576938]  [<ffffffff812f91f7>] ? acpi_ns_evaluate+0xd3/0x19a
-> [  170.576938]  [<ffffffff812fb93e>] ? acpi_evaluate_object+0xf3/0x1f4
-> [  170.576938]  [<ffffffff812e1104>] ? acpi_os_wait_events_complete+0x1b/=
-0x1b
-> [  170.576938]  [<ffffffff812e4782>] ? acpi_bus_hot_remove_device+0xeb/0x=
-123
-> [  170.576938]  [<ffffffff812e1121>] ? acpi_os_execute_deferred+0x1d/0x29
-> [  170.576938]  [<ffffffff81058ec5>] ? process_one_work+0x125/0x560
-> [  170.576938]  [<ffffffff81059e7a>] ? worker_thread+0x16a/0x4e0
-> [  170.576938]  [<ffffffff81059d10>] ? manage_workers+0x310/0x310
-> [  170.576938]  [<ffffffff8105e6c5>] ? kthread+0x85/0x90
-> [  170.576938]  [<ffffffff814eb2c4>] ? kernel_thread_helper+0x4/0x10
-> [  170.576938]  [<ffffffff8105e640>] ? flush_kthread_worker+0xa0/0xa0
-> [  170.576938]  [<ffffffff814eb2c0>] ? gs_change+0x13/0x13
-> [  170.576938] Code: cb 75 dc 48 83 c4 08 5b 5d 41 5c 41 5d 41 5e 41 5f c=
-3 8b 7f 0c 4c 89 e2 e8 02 fd ff ff 4c 89 e6 49 89 c5 48 89 ef e8 d4 fc ff f=
-f <49> 8b 55 00 48 8b 30 48 c7 c7 8c 39 6f 81 31 c0 e8 3e 34 3b 00=20
->=20
-> Other times, the problem happens on a slab object free:
->=20
-> [   52.313366] Offlined Pages 32768
-> [   52.800232] slab error in verify_redzone_free(): cache `Acpi-ParseExt'=
-: memory outside object was overwritten
-> [   52.801298] Pid: 29, comm: kworker/0:1 Not tainted 3.6.0-rc7-guest #12
-> [   52.802039] Call Trace:
-> [   52.802443]  [<ffffffff811280cb>] ? __slab_error.isra.46+0x1b/0x30
-> [   52.803199]  [<ffffffff811287b6>] ? cache_free_debugcheck+0x256/0x260
-> [   52.803940]  [<ffffffff812e1b0e>] ? acpi_os_release_object+0x7/0xc
-> [   52.804645]  [<ffffffff81128fe3>] ? kmem_cache_free+0x63/0x260
-> [   52.805321]  [<ffffffff812e1b0e>] ? acpi_os_release_object+0x7/0xc
-> [   52.806023]  [<ffffffff812fe298>] ? acpi_ps_delete_parse_tree+0x34/0x58
-> [   52.806762]  [<ffffffff812fe517>] ? acpi_ps_execute_method+0x1c9/0x266
-> [   52.807499]  [<ffffffff812f91f7>] ? acpi_ns_evaluate+0xd3/0x19a
-> [   52.808183]  [<ffffffff812fb93e>] ? acpi_evaluate_object+0xf3/0x1f4
-> [   52.808897]  [<ffffffff812e1104>] ? acpi_os_wait_events_complete+0x1b/=
-0x1b
-> [   52.809659]  [<ffffffff812e4782>] ? acpi_bus_hot_remove_device+0xeb/0x=
-123
-> [   52.810032]  [<ffffffff812e1121>] ? acpi_os_execute_deferred+0x1d/0x29
-> [   52.810032]  [<ffffffff81058ec5>] ? process_one_work+0x125/0x560
-> [   52.810032]  [<ffffffff81059e7a>] ? worker_thread+0x16a/0x4e0
-> [   52.810032]  [<ffffffff81059d10>] ? manage_workers+0x310/0x310
-> [   52.810032]  [<ffffffff8105e6c5>] ? kthread+0x85/0x90
-> [   52.810032]  [<ffffffff814eb2c4>] ? kernel_thread_helper+0x4/0x10
-> [   52.810032]  [<ffffffff8105e640>] ? flush_kthread_worker+0xa0/0xa0
-> [   52.810032]  [<ffffffff814eb2c0>] ? gs_change+0x13/0x13
-> [   52.810032] ffff88008f809670: redzone 1:0x0, redzone 2:0x0.
-> [   52.810032] ------------[ cut here ]------------
-> [   52.810032] kernel BUG at mm/slab.c:3125!
-> [   52.810032] invalid opcode: 0000 [#1] SMP=20
-> [   52.810032] Modules linked in: netconsole acpiphp pci_hotplug acpi_mem=
-hotplug loop kvm_amd kvm tpm_tis tpm tpm_bios microcode parport_pc parport =
-evdev processor thermal_sys psmouse i2c_piix4 serio_raw i2c_core button ext=
-3 jbd mbcache sg sr_mod cdrom virtio_net ata_generic virtio_blk virtio_pci =
-virtio_ring virtio ata_piix libata scsi_mod
-> [   52.810032] CPU 0=20
-> [   52.810032] Pid: 29, comm: kworker/0:1 Not tainted 3.6.0-rc7-guest #12=
- Bochs Bochs
-> [   52.810032] RIP: 0010:[<ffffffff81128733>]  [<ffffffff81128733>] cache=
-_free_debugcheck+0x1d3/0x260
-> [   52.810032] RSP: 0018:ffff88003eaf3bc0  EFLAGS: 00010093
-> [   52.810032] RAX: 00000000017eac3c RBX: ffff88003e9bb700 RCX: 000000000=
-2aaaaab
-> [   52.810032] RDX: 0000000000000000 RSI: 0000000000010000 RDI: 000000000=
-0000060
-> [   52.810032] RBP: ffff88008f809670 R08: 09f911029d74e35b R09: 000000000=
-0000000
-> [   52.810032] R10: 00000000000001d3 R11: 0000000000000002 R12: ffff88008=
-f809000
-> [   52.810032] R13: ffffffff812e1b0e R14: 0000000000000000 R15: 000000000=
-0010c00
-> [   52.810032] FS:  00007f63fc263700(0000) GS:ffff88003fc00000(0000) knlG=
-S:0000000000000000
-> [   52.810032] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-> [   52.810032] CR2: 00007fff8d895b78 CR3: 000000007c866000 CR4: 000000000=
-00006f0
-> [   52.810032] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 000000000=
-0000000
-> [   52.810032] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 000000000=
-0000400
-> [   52.810032] Process kworker/0:1 (pid: 29, threadinfo ffff88003eaf2000,=
- task ffff88003ea941c0)
-> [   52.810032] Stack:
-> [   52.810032]  ffff88003e9bb980 ffff88008f809670 ffff880037ba8e18 ffff88=
-008f809678
-> [   52.810032]  ffff88003e9bb700 0000000000000282 ffff88003e9bf270 ffffff=
-ff812e1b0e
-> [   52.810032]  0000000000000001 ffffffff81128fe3 ffff88003e80f5e8 ffff88=
-003eb31748
-> [   52.810032] Call Trace:
-> [   52.810032]  [<ffffffff812e1b0e>] ? acpi_os_release_object+0x7/0xc
-> [   52.810032]  [<ffffffff81128fe3>] ? kmem_cache_free+0x63/0x260
-> [   52.810032]  [<ffffffff812e1b0e>] ? acpi_os_release_object+0x7/0xc
-> [   52.810032]  [<ffffffff812fe298>] ? acpi_ps_delete_parse_tree+0x34/0x58
-> [   52.810032]  [<ffffffff812fe517>] ? acpi_ps_execute_method+0x1c9/0x266
-> [   52.810032]  [<ffffffff812f91f7>] ? acpi_ns_evaluate+0xd3/0x19a
-> [   52.810032]  [<ffffffff812fb93e>] ? acpi_evaluate_object+0xf3/0x1f4
-> [   52.810032]  [<ffffffff812e1104>] ? acpi_os_wait_events_complete+0x1b/=
-0x1b
-> [   52.810032]  [<ffffffff812e4782>] ? acpi_bus_hot_remove_device+0xeb/0x=
-123
-> [   52.810032]  [<ffffffff812e1121>] ? acpi_os_execute_deferred+0x1d/0x29
-> [   52.810032]  [<ffffffff81058ec5>] ? process_one_work+0x125/0x560
-> [   52.810032]  [<ffffffff81059e7a>] ? worker_thread+0x16a/0x4e0
-> [   52.810032]  [<ffffffff81059d10>] ? manage_workers+0x310/0x310
-> [   52.810032]  [<ffffffff8105e6c5>] ? kthread+0x85/0x90
-> [   52.810032]  [<ffffffff814eb2c4>] ? kernel_thread_helper+0x4/0x10
-> [   52.810032]  [<ffffffff8105e640>] ? flush_kthread_worker+0xa0/0xa0
-> [   52.810032]  [<ffffffff814eb2c0>] ? gs_change+0x13/0x13
-> [   52.810032] Code: 89 ea 49 89 38 8b 73 14 8b 7b 0c e8 18 f6 ff ff 49 b=
-8 5b e3 74 9d 02 11 f9 09 4c 89 00 44 8b 7b 14 44 89 f8 e9 fa fe ff ff 0f 0=
-b <0f> 0b 48 8b 40 30 e9 d9 fe ff ff e8 c6 43 3b 00 0f 0b 48 8b 40=20
-> [   52.810032] RIP  [<ffffffff81128733>] cache_free_debugcheck+0x1d3/0x260
-> [   52.810032]  RSP <ffff88003eaf3bc0>
-> [   52.810032] ---[ end trace c699c8cecd5870a3 ]---
->=20
->=20
-> And other times, I see a filesystem related slab corruption when doing th=
-e eject.
-> Here I have also seen a bad rss-counter state message.=20
->=20
-> [  232.114232] BUG: Bad rss-counter state mm:ffff88007d9c1f80 idx:0 val:1
-> [  232.115214] BUG: unable to handle kernel NULL pointer dereference at  =
-         (null)
-> [  232.115807] IP: [<ffffffffa00cfce3>] do_get_write_access+0x43/0x480 [j=
-bd]
-> [  232.116186] PGD 7cdec067 PUD 7c946067 PMD 0=20
-> [  232.116627] Oops: 0000 [#3] SMP=20
-> [  232.116990] Modules linked in: netconsole acpiphp pci_hotplug acpi_mem=
-hotplug loop kvm_amd kvm microcode tpm_tis tpm tpm_bios evdev psmouse serio=
-_raw i2c_piix4 i2c_core parport_pc parport processor thermal_sys button ext=
-3 jbd mbcache virtio_net sg sr_mod cdrom virtio_blk ata_generic virtio_pci =
-virtio_ring virtio ata_piix libata scsi_mod
-> [  232.120013] CPU 2=20
-> [  232.120013] Pid: 880, comm: dhclient Tainted: G      D      3.6.0-rc7-=
-guest #1 Bochs Bochs
-> [  232.120013] RIP: 0010:[<ffffffffa00cfce3>]  [<ffffffffa00cfce3>] do_ge=
-t_write_access+0x43/0x480 [jbd]
-> [  232.120013] RSP: 0018:ffff88007cd6fab8  EFLAGS: 00010246
-> [  232.120013] RAX: ffff88003e513f50 RBX: ffff88003e513f50 RCX: 000000000=
-0000000
-> [  232.120013] RDX: 0000000000000000 RSI: ffff88003e513f50 RDI: ffff88009=
-7800000
-> [  232.120013] RBP: ffff88003e513f50 R08: 000000003e513f01 R09: 000000018=
-0240024
-> [  232.120013] R10: ffff88003e513f50 R11: 00000000000198e0 R12: 000000000=
-0000000
-> [  232.120013] R13: ffffffffa00eb437 R14: ffff880097800000 R15: 000000000=
-000027a
-> [  232.120013] FS:  00007f082638d700(0000) GS:ffff88003ec80000(0000) knlG=
-S:0000000000000000
-> [  232.120013] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> [  232.120013] CR2: 0000000000000000 CR3: 000000007c94c000 CR4: 000000000=
-00006e0
-> [  232.120013] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 000000000=
-0000000
-> [  232.120013] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 000000000=
-0000400
-> [  232.120013] Process dhclient (pid: 880, threadinfo ffff88007cd6e000, t=
-ask ffff88007ca46800)
-> [  232.120013] Stack:
-> [  232.120013]  ffff88007dc205b0 ffffffff8116645f ffff88007dc205b0 ffff88=
-007dc205b0
-> [  232.120013]  ffff88007cf58800 0000000000000000 000000000000000e 000000=
-0000000000
-> [  232.120013]  000000000000027a ffffffff8112b934 0000005000000003 000000=
-0000000fff
-> [  232.120013] Call Trace:
-> [  232.120013]  [<ffffffff8116645f>] ? __find_get_block+0x7f/0x200
-> [  232.120013]  [<ffffffff8112b934>] ? kmem_cache_alloc+0xe4/0x140
-> [  232.120013]  [<ffffffffa00eb437>] ? ext3_dirty_inode+0x57/0xb0 [ext3]
-> [  232.120013]  [<ffffffffa00d0279>] ? journal_get_write_access+0x29/0x50=
- [jbd]
-> [  232.120013]  [<ffffffffa00eaeef>] ? __ext3_get_inode_loc+0xcf/0x360 [e=
-xt3]
-> [  232.120013]  [<ffffffffa0101317>] ? __ext3_journal_get_write_access+0x=
-27/0x60 [ext3]
-> [  232.120013]  [<ffffffffa00eb213>] ? ext3_reserve_inode_write+0x73/0xa0=
- [ext3]
-> [  232.120013]  [<ffffffffa00eb27b>] ? ext3_mark_inode_dirty+0x3b/0xa0 [e=
-xt3]
-> [  232.120013]  [<ffffffffa00eb437>] ? ext3_dirty_inode+0x57/0xb0 [ext3]
-> [  232.120013]  [<ffffffff8115ded6>] ? __mark_inode_dirty+0x36/0x230
-> [  232.120013]  [<ffffffff811504a1>] ? update_time+0x71/0xb0
-> [  232.120013]  [<ffffffff811536c9>] ? mnt_clone_write+0x9/0x20
-> [  232.120013]  [<ffffffff81150581>] ? file_update_time+0xa1/0xf0
-> [  232.120013]  [<ffffffff8103385c>] ? ptep_set_access_flags+0x6c/0x70
-> [  232.120013]  [<ffffffff810e3f30>] ? __generic_file_aio_write+0x1a0/0x3=
-c0
-> [  232.120013]  [<ffffffff811396fb>] ? __sb_start_write+0x6b/0x130
-> [  232.120013]  [<ffffffff810e41ce>] ? generic_file_aio_write+0x7e/0x100
-> [  232.120013]  [<ffffffff81137484>] ? do_sync_write+0x94/0xd0
-> [  232.120013]  [<ffffffff81137caa>] ? vfs_write+0xaa/0x160
-> [  232.120013]  [<ffffffff81137f87>] ? sys_write+0x47/0x90
-> [  232.120013]  [<ffffffff814e5765>] ? async_page_fault+0x25/0x30
-> [  232.120013]  [<ffffffff814eca79>] ? system_call_fastpath+0x16/0x1b
-> [  232.120013] Code: 54 24 2c f6 47 14 04 74 1f 41 bc e2 ff ff ff 48 81 c=
-4 98 00 00 00 44 89 e0 5b 5d 41 5c 41 5d 41 5e 41 5f c3 0f 1f 40 00 4c 8b 2=
-7 <4d> 8b 3c 24 41 f6 07 02 75 d4 65 48 8b 04 25 80 b9 00 00 48 89=20
->=20
-> Is this a known issue? If yes, can you point me to any relevant patches?
->=20
-> When I do an SCI(hardware) eject, I have not seen corruptions. The acpi d=
-river is
-> evaluating fewer objects in this path I think, but I don't see why corrup=
-tion can't
-> happen here as well.
->=20
-> I have seen similar problems with CONFIG_SLUB (I did not have debug_optio=
-ns
-> there but I can also provide those if helpful)
->=20
-> [1] https://lkml.org/lkml/2012/9/6/635
-> [2] https://lkml.org/lkml/2012/9/11/542
-> [3] https://lkml.org/lkml/2012/9/20/37
-> [4] http://permalink.gmane.org/gmane.comp.emulators.kvm.devel/98691
->=20
-> thanks,
->=20
-> - Vasilis
->=20
+---
+ drivers/firmware/memmap.c    |   98 ++++++++++++++++++++++++++++++++++++++++++-
+ include/linux/firmware-map.h |    6 ++
+ mm/memory_hotplug.c          |    7 ++-
+ 3 files changed, 108 insertions(+), 3 deletions(-)
+
+Index: linux-3.6/drivers/firmware/memmap.c
+=================================--- linux-3.6.orig/drivers/firmware/memmap.c	2012-10-04 18:27:05.195500420 +0900
++++ linux-3.6/drivers/firmware/memmap.c	2012-10-04 18:27:18.901514330 +0900
+@@ -21,6 +21,7 @@
+ #include <linux/types.h>
+ #include <linux/bootmem.h>
+ #include <linux/slab.h>
++#include <linux/mm.h>
+ 
+ /*
+  * Data types ------------------------------------------------------------------
+@@ -41,6 +42,7 @@ struct firmware_map_entry {
+ 	const char		*type;	/* type of the memory range */
+ 	struct list_head	list;	/* entry for the linked list */
+ 	struct kobject		kobj;   /* kobject for each entry */
++	unsigned int		bootmem:1; /* allocated from bootmem */
+ };
+ 
+ /*
+@@ -79,7 +81,26 @@ static const struct sysfs_ops memmap_att
+ 	.show = memmap_attr_show,
+ };
+ 
++
++static inline struct firmware_map_entry *
++to_memmap_entry(struct kobject *kobj)
++{
++	return container_of(kobj, struct firmware_map_entry, kobj);
++}
++
++static void release_firmware_map_entry(struct kobject *kobj)
++{
++	struct firmware_map_entry *entry = to_memmap_entry(kobj);
++
++	if (entry->bootmem)
++		/* There is no way to free memory allocated from bootmem */
++		return;
++
++	kfree(entry);
++}
++
+ static struct kobj_type memmap_ktype = {
++	.release	= release_firmware_map_entry,
+ 	.sysfs_ops	= &memmap_attr_ops,
+ 	.default_attrs	= def_attrs,
+ };
+@@ -94,6 +115,7 @@ static struct kobj_type memmap_ktype = {
+  * in firmware initialisation code in one single thread of execution.
+  */
+ static LIST_HEAD(map_entries);
++static DEFINE_SPINLOCK(map_entries_lock);
+ 
+ /**
+  * firmware_map_add_entry() - Does the real work to add a firmware memmap entry.
+@@ -118,11 +140,25 @@ static int firmware_map_add_entry(u64 st
+ 	INIT_LIST_HEAD(&entry->list);
+ 	kobject_init(&entry->kobj, &memmap_ktype);
+ 
++	spin_lock(&map_entries_lock);
+ 	list_add_tail(&entry->list, &map_entries);
++	spin_unlock(&map_entries_lock);
+ 
+ 	return 0;
+ }
+ 
++/**
++ * firmware_map_remove_entry() - Does the real work to remove a firmware
++ * memmap entry.
++ * @entry: removed entry.
++ **/
++static inline void firmware_map_remove_entry(struct firmware_map_entry *entry)
++{
++	spin_lock(&map_entries_lock);
++	list_del(&entry->list);
++	spin_unlock(&map_entries_lock);
++}
++
+ /*
+  * Add memmap entry on sysfs
+  */
+@@ -144,6 +180,35 @@ static int add_sysfs_fw_map_entry(struct
+ 	return 0;
+ }
+ 
++/*
++ * Remove memmap entry on sysfs
++ */
++static inline void remove_sysfs_fw_map_entry(struct firmware_map_entry *entry)
++{
++	kobject_put(&entry->kobj);
++}
++
++/*
++ * Search memmap entry
++ */
++
++static struct firmware_map_entry * __meminit
++firmware_map_find_entry(u64 start, u64 end, const char *type)
++{
++	struct firmware_map_entry *entry;
++
++	spin_lock(&map_entries_lock);
++	list_for_each_entry(entry, &map_entries, list)
++		if ((entry->start = start) && (entry->end = end) &&
++		    (!strcmp(entry->type, type))) {
++			spin_unlock(&map_entries_lock);
++			return entry;
++		}
++
++	spin_unlock(&map_entries_lock);
++	return NULL;
++}
++
+ /**
+  * firmware_map_add_hotplug() - Adds a firmware mapping entry when we do
+  * memory hotplug.
+@@ -193,9 +258,36 @@ int __init firmware_map_add_early(u64 st
+ 	if (WARN_ON(!entry))
+ 		return -ENOMEM;
+ 
++	entry->bootmem = 1;
+ 	return firmware_map_add_entry(start, end, type, entry);
+ }
+ 
++/**
++ * firmware_map_remove() - remove a firmware mapping entry
++ * @start: Start of the memory range.
++ * @end:   End of the memory range.
++ * @type:  Type of the memory range.
++ *
++ * removes a firmware mapping entry.
++ *
++ * Returns 0 on success, or -EINVAL if no entry.
++ **/
++int __meminit firmware_map_remove(u64 start, u64 end, const char *type)
++{
++	struct firmware_map_entry *entry;
++
++	entry = firmware_map_find_entry(start, end - 1, type);
++	if (!entry)
++		return -EINVAL;
++
++	firmware_map_remove_entry(entry);
++
++	/* remove the memmap entry */
++	remove_sysfs_fw_map_entry(entry);
++
++	return 0;
++}
++
+ /*
+  * Sysfs functions -------------------------------------------------------------
+  */
+@@ -217,8 +309,10 @@ static ssize_t type_show(struct firmware
+ 	return snprintf(buf, PAGE_SIZE, "%s\n", entry->type);
+ }
+ 
+-#define to_memmap_attr(_attr) container_of(_attr, struct memmap_attribute, attr)
+-#define to_memmap_entry(obj) container_of(obj, struct firmware_map_entry, kobj)
++static inline struct memmap_attribute *to_memmap_attr(struct attribute *attr)
++{
++	return container_of(attr, struct memmap_attribute, attr);
++}
+ 
+ static ssize_t memmap_attr_show(struct kobject *kobj,
+ 				struct attribute *attr, char *buf)
+Index: linux-3.6/include/linux/firmware-map.h
+=================================--- linux-3.6.orig/include/linux/firmware-map.h	2012-10-04 18:27:05.197500422 +0900
++++ linux-3.6/include/linux/firmware-map.h	2012-10-04 18:27:18.904514333 +0900
+@@ -25,6 +25,7 @@
+ 
+ int firmware_map_add_early(u64 start, u64 end, const char *type);
+ int firmware_map_add_hotplug(u64 start, u64 end, const char *type);
++int firmware_map_remove(u64 start, u64 end, const char *type);
+ 
+ #else /* CONFIG_FIRMWARE_MEMMAP */
+ 
+@@ -38,6 +39,11 @@ static inline int firmware_map_add_hotpl
+ 	return 0;
+ }
+ 
++static inline int firmware_map_remove(u64 start, u64 end, const char *type)
++{
++	return 0;
++}
++
+ #endif /* CONFIG_FIRMWARE_MEMMAP */
+ 
+ #endif /* _LINUX_FIRMWARE_MAP_H */
+Index: linux-3.6/mm/memory_hotplug.c
+=================================--- linux-3.6.orig/mm/memory_hotplug.c	2012-10-04 18:27:03.000000000 +0900
++++ linux-3.6/mm/memory_hotplug.c	2012-10-04 18:28:42.851599524 +0900
+@@ -1043,7 +1043,7 @@ int offline_memory(u64 start, u64 size)
+ 	return 0;
+ }
+ 
+-int remove_memory(int nid, u64 start, u64 size)
++int __ref remove_memory(int nid, u64 start, u64 size)
+ {
+ 	int ret = 0;
+ 	lock_memory_hotplug();
+@@ -1056,8 +1056,13 @@ int remove_memory(int nid, u64 start, u6
+ 			"because the memmory range is online\n",
+ 			start, start + size);
+ 		ret = -EAGAIN;
++		goto out;
+ 	}
+ 
++	/* remove memmap entry */
++	firmware_map_remove(start, start + size, "System RAM");
++
++out:
+ 	unlock_memory_hotplug();
+ 	return ret;
+ }
 
