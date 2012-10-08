@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 03 Oct 2012 06:14:04 +0000
+Date: Mon, 08 Oct 2012 20:18:06 +0000
 Subject: [GIT] Sparc
-Message-Id: <20121003.021404.571541314643591174.davem@davemloft.net>
+Message-Id: <20121008.161806.2146082252793236167.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100329.131141.80866523.davem@davemloft.net>
 In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
@@ -12,50 +12,47 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-Some quick fixes after today's merge-window pull.
+There is an attempt to fix a bad interaction between syscall tracing
+and force_successful_syscall() from Al Viro, but it needs to be redone
+as it introduced regressions and thus had to be reverted for now.
 
-1) Add missing dependency on Sparc DES driver, oops.
-   From Dave Jones.
+Al is working on an updated version.
 
-2) Tell GCC that prom_printf() is printf-like and fix the few
-   resultiing warnings.  From Akinobu Mita.
-
-3) Niagara-2 memcpy doesn't provide it's return value correctly
-   in some circumstances.
+But what we do have here are some significant bzero/memset
+improvements for Niagara-4.  An 8K page can be cleared in around 600
+cycles, because we essentially have a store that behaves like
+powerpc's dcbz that we can actually make real use of.
 
 Please pull, thanks a lot.
 
-The following changes since commit 7fe0b14b725d6d09a1d9e1409bd465cb88b587f9:
+The following changes since commit ecefbd94b834fa32559d854646d777c56749ef1c:
 
-  Merge tag 'spi-3.7' of git://git.kernel.org/pub/scm/linux/kernel/git/broonie/misc (2012-10-02 17:26:42 -0700)
+  Merge tag 'kvm-3.7-1' of git://git.kernel.org/pub/scm/virt/kvm/kvm (2012-10-04 09:30:33 -0700)
 
 are available in the git repository at:
 
-
   git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
 
-for you to fetch changes up to 5da444aae54f64575a60f1d596ed7706e3089fb0:
+for you to fetch changes up to 2863bc54ec03df7a6e2c48cff0477d7e2384efc9:
 
-  sparc: fix format string argument for prom_printf() (2012-10-02 23:20:34 -0400)
+  Revert strace hiccups fix. (2012-10-05 20:39:04 -0700)
 
 ----------------------------------------------------------------
-Akinobu Mita (1):
-      sparc: fix format string argument for prom_printf()
-
-Dave Jones (1):
-      crypto: Build SPARC DES algorithms on SPARC only.
+Al Viro (2):
+      sparc64: Rearrange thread info to cheaply clear syscall noerror state.
+      sparc64: Fix strace hiccups when force_successful_syscall() triggers.
 
 David S. Miller (2):
-      sparc64: Fix return value of Niagara-2 memcpy.
-      Merge git://git.kernel.org/.../torvalds/linux
+      sparc64: Niagara-4 bzero/memset, plus use MRU stores in page copy.
+      Revert strace hiccups fix.
 
- arch/sparc/include/asm/oplib_32.h |  2 +-
- arch/sparc/include/asm/oplib_64.h |  2 +-
- arch/sparc/kernel/hvapi.c         |  2 +-
- arch/sparc/kernel/prom_64.c       |  2 +-
- arch/sparc/kernel/traps_64.c      |  2 +-
- arch/sparc/lib/NG2memcpy.S        | 46 +++++++++++++++++++++++-----------------------
- arch/sparc/mm/init_64.c           |  7 ++++---
- arch/sparc/mm/iommu.c             |  4 ++--
- crypto/Kconfig                    |  1 +
- 9 files changed, 35 insertions(+), 33 deletions(-)
+ arch/sparc/include/asm/asi.h   |  19 +++++++++++++++++
+ arch/sparc/kernel/head_64.S    |   2 +-
+ arch/sparc/lib/Makefile        |   2 +-
+ arch/sparc/lib/NG4clear_page.S |  29 ++++++++++++++++++++++++++
+ arch/sparc/lib/NG4copy_page.S  |  16 +++++++--------
+ arch/sparc/lib/NG4memset.S     | 105 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ arch/sparc/lib/NG4patch.S      |  15 ++++++++++++--
+ 7 files changed, 176 insertions(+), 12 deletions(-)
+ create mode 100644 arch/sparc/lib/NG4clear_page.S
+ create mode 100644 arch/sparc/lib/NG4memset.S
