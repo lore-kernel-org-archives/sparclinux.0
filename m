@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Mon, 08 Oct 2012 20:18:06 +0000
+Date: Wed, 10 Oct 2012 01:26:55 +0000
 Subject: [GIT] Sparc
-Message-Id: <20121008.161806.2146082252793236167.davem@davemloft.net>
+Message-Id: <20121009.212655.1737552557576450658.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100329.131141.80866523.davem@davemloft.net>
 In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
@@ -12,47 +12,134 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-There is an attempt to fix a bad interaction between syscall tracing
-and force_successful_syscall() from Al Viro, but it needs to be redone
-as it introduced regressions and thus had to be reverted for now.
+This is just the UAPI commits for sparc via David Howells.
 
-Al is working on an updated version.
+Please pull, thanks a lot!
 
-But what we do have here are some significant bzero/memset
-improvements for Niagara-4.  An 8K page can be cleared in around 600
-cycles, because we essentially have a store that behaves like
-powerpc's dcbz that we can actually make real use of.
+The following changes since commit 547b1e81afe3119f7daf702cc03b158495535a25:
 
-Please pull, thanks a lot.
-
-The following changes since commit ecefbd94b834fa32559d854646d777c56749ef1c:
-
-  Merge tag 'kvm-3.7-1' of git://git.kernel.org/pub/scm/virt/kvm/kvm (2012-10-04 09:30:33 -0700)
+  Fix staging driver use of VM_RESERVED (2012-10-09 21:06:41 +0900)
 
 are available in the git repository at:
 
   git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
 
-for you to fetch changes up to 2863bc54ec03df7a6e2c48cff0477d7e2384efc9:
+for you to fetch changes up to 9836d3458cde82626f2828ca6bd44c4a02b56e63:
 
-  Revert strace hiccups fix. (2012-10-05 20:39:04 -0700)
+  Merge tag 'disintegrate-sparc-20121009' of git://git.infradead.org/users/dhowells/linux-headers (2012-10-09 09:54:30 -0700)
 
 ----------------------------------------------------------------
-Al Viro (2):
-      sparc64: Rearrange thread info to cheaply clear syscall noerror state.
-      sparc64: Fix strace hiccups when force_successful_syscall() triggers.
 
-David S. Miller (2):
-      sparc64: Niagara-4 bzero/memset, plus use MRU stores in page copy.
-      Revert strace hiccups fix.
+David Howells (1):
+      UAPI: (Scripted) Disintegrate arch/sparc/include/asm
 
- arch/sparc/include/asm/asi.h   |  19 +++++++++++++++++
- arch/sparc/kernel/head_64.S    |   2 +-
- arch/sparc/lib/Makefile        |   2 +-
- arch/sparc/lib/NG4clear_page.S |  29 ++++++++++++++++++++++++++
- arch/sparc/lib/NG4copy_page.S  |  16 +++++++--------
- arch/sparc/lib/NG4memset.S     | 105 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- arch/sparc/lib/NG4patch.S      |  15 ++++++++++++--
- 7 files changed, 176 insertions(+), 12 deletions(-)
- create mode 100644 arch/sparc/lib/NG4clear_page.S
- create mode 100644 arch/sparc/lib/NG4memset.S
+David S. Miller (1):
+      Merge tag 'disintegrate-sparc-20121009' of git://git.infradead.org/users/dhowells/linux-headers
+
+ arch/sparc/include/asm/Kbuild                   |  16 ---
+ arch/sparc/include/asm/fbio.h                   | 260 +---------------------------------
+ arch/sparc/include/asm/ioctls.h                 | 129 +----------------
+ arch/sparc/include/asm/mman.h                   |  25 +---
+ arch/sparc/include/asm/psr.h                    |  36 +----
+ arch/sparc/include/asm/ptrace.h                 | 347 +---------------------------------------------
+ arch/sparc/include/asm/setup.h                  |  10 +-
+ arch/sparc/include/asm/sigcontext.h             |   4 +-
+ arch/sparc/include/asm/siginfo.h                |  23 +--
+ arch/sparc/include/asm/signal.h                 | 185 +------------------------
+ arch/sparc/include/asm/termbits.h               | 260 +---------------------------------
+ arch/sparc/include/asm/termios.h                |  41 +-----
+ arch/sparc/include/asm/traps.h                  | 111 +--------------
+ arch/sparc/include/asm/unistd.h                 | 412 +-----------------------------------------------------
+ arch/sparc/include/uapi/asm/Kbuild              |  46 ++++++
+ arch/sparc/include/{ => uapi}/asm/apc.h         |   0
+ arch/sparc/include/{ => uapi}/asm/asi.h         |   0
+ arch/sparc/include/{ => uapi}/asm/auxvec.h      |   0
+ arch/sparc/include/{ => uapi}/asm/bitsperlong.h |   0
+ arch/sparc/include/{ => uapi}/asm/byteorder.h   |   0
+ arch/sparc/include/{ => uapi}/asm/display7seg.h |   0
+ arch/sparc/include/{ => uapi}/asm/envctrl.h     |   0
+ arch/sparc/include/{ => uapi}/asm/errno.h       |   0
+ arch/sparc/include/uapi/asm/fbio.h              | 259 ++++++++++++++++++++++++++++++++++
+ arch/sparc/include/{ => uapi}/asm/fcntl.h       |   0
+ arch/sparc/include/{ => uapi}/asm/ioctl.h       |   0
+ arch/sparc/include/uapi/asm/ioctls.h            | 131 ++++++++++++++++++
+ arch/sparc/include/{ => uapi}/asm/ipcbuf.h      |   0
+ arch/sparc/include/{ => uapi}/asm/jsflash.h     |   0
+ arch/sparc/include/{ => uapi}/asm/kvm_para.h    |   0
+ arch/sparc/include/uapi/asm/mman.h              |  27 ++++
+ arch/sparc/include/{ => uapi}/asm/msgbuf.h      |   0
+ arch/sparc/include/{ => uapi}/asm/openpromio.h  |   0
+ arch/sparc/include/{ => uapi}/asm/param.h       |   0
+ arch/sparc/include/{ => uapi}/asm/perfctr.h     |   0
+ arch/sparc/include/{ => uapi}/asm/poll.h        |   0
+ arch/sparc/include/{ => uapi}/asm/posix_types.h |   0
+ arch/sparc/include/uapi/asm/psr.h               |  47 +++++++
+ arch/sparc/include/{ => uapi}/asm/psrcompat.h   |   0
+ arch/sparc/include/{ => uapi}/asm/pstate.h      |   0
+ arch/sparc/include/uapi/asm/ptrace.h            | 352 ++++++++++++++++++++++++++++++++++++++++++++++
+ arch/sparc/include/{ => uapi}/asm/resource.h    |   0
+ arch/sparc/include/{ => uapi}/asm/sembuf.h      |   0
+ arch/sparc/include/uapi/asm/setup.h             |  15 ++
+ arch/sparc/include/{ => uapi}/asm/shmbuf.h      |   0
+ arch/sparc/include/uapi/asm/siginfo.h           |  25 ++++
+ arch/sparc/include/uapi/asm/signal.h            | 185 +++++++++++++++++++++++++
+ arch/sparc/include/{ => uapi}/asm/socket.h      |   0
+ arch/sparc/include/{ => uapi}/asm/sockios.h     |   0
+ arch/sparc/include/{ => uapi}/asm/stat.h        |   0
+ arch/sparc/include/{ => uapi}/asm/statfs.h      |   0
+ arch/sparc/include/{ => uapi}/asm/swab.h        |   0
+ arch/sparc/include/uapi/asm/termbits.h          | 263 +++++++++++++++++++++++++++++++++++
+ arch/sparc/include/uapi/asm/termios.h           |  43 ++++++
+ arch/sparc/include/uapi/asm/traps.h             | 120 ++++++++++++++++
+ arch/sparc/include/{ => uapi}/asm/types.h       |   0
+ arch/sparc/include/{ => uapi}/asm/uctx.h        |   0
+ arch/sparc/include/uapi/asm/unistd.h            | 422 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ arch/sparc/include/{ => uapi}/asm/utrap.h       |   0
+ arch/sparc/include/{ => uapi}/asm/watchdog.h    |   0
+ 60 files changed, 1951 insertions(+), 1843 deletions(-)
+ rename arch/sparc/include/{ => uapi}/asm/apc.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/asi.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/auxvec.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/bitsperlong.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/byteorder.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/display7seg.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/envctrl.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/errno.h (100%)
+ create mode 100644 arch/sparc/include/uapi/asm/fbio.h
+ rename arch/sparc/include/{ => uapi}/asm/fcntl.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/ioctl.h (100%)
+ create mode 100644 arch/sparc/include/uapi/asm/ioctls.h
+ rename arch/sparc/include/{ => uapi}/asm/ipcbuf.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/jsflash.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/kvm_para.h (100%)
+ create mode 100644 arch/sparc/include/uapi/asm/mman.h
+ rename arch/sparc/include/{ => uapi}/asm/msgbuf.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/openpromio.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/param.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/perfctr.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/poll.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/posix_types.h (100%)
+ create mode 100644 arch/sparc/include/uapi/asm/psr.h
+ rename arch/sparc/include/{ => uapi}/asm/psrcompat.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/pstate.h (100%)
+ create mode 100644 arch/sparc/include/uapi/asm/ptrace.h
+ rename arch/sparc/include/{ => uapi}/asm/resource.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/sembuf.h (100%)
+ create mode 100644 arch/sparc/include/uapi/asm/setup.h
+ rename arch/sparc/include/{ => uapi}/asm/shmbuf.h (100%)
+ create mode 100644 arch/sparc/include/uapi/asm/sigcontext.h
+ create mode 100644 arch/sparc/include/uapi/asm/siginfo.h
+ create mode 100644 arch/sparc/include/uapi/asm/signal.h
+ rename arch/sparc/include/{ => uapi}/asm/socket.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/sockios.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/stat.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/statfs.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/swab.h (100%)
+ create mode 100644 arch/sparc/include/uapi/asm/termbits.h
+ create mode 100644 arch/sparc/include/uapi/asm/termios.h
+ create mode 100644 arch/sparc/include/uapi/asm/traps.h
+ rename arch/sparc/include/{ => uapi}/asm/types.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/uctx.h (100%)
+ create mode 100644 arch/sparc/include/uapi/asm/unistd.h
+ rename arch/sparc/include/{ => uapi}/asm/utrap.h (100%)
+ rename arch/sparc/include/{ => uapi}/asm/watchdog.h (100%)
