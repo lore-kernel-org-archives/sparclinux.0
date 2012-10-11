@@ -1,288 +1,391 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 04 Oct 2012 19:47:00 +0000
-Subject: [PATCH 3/7] sparc64: Eliminate PTE table memory wastage.
-Message-Id: <20121004.154700.403187278233940887.davem@davemloft.net>
+Date: Thu, 11 Oct 2012 00:26:29 +0000
+Subject: [PATCH] sparc64: Fix deficiencies in sun4v error reporting.
+Message-Id: <20121010.202629.483316787777960261.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, akpm@linux-foundation.org, aarcange@redhat.com, hannes@cmpxchg.org
+To: sparclinux@vger.kernel.org
 
 
-We've split up the PTE tables so that they take up half a page instead
-of a full page.  This is in order to facilitate transparent huge page
-support, which works much better if our PMDs cover 4MB instead of 8MB.
+Missing error types, attributes, and report fields.  Pad out
+to 64-bytes.
 
-What we do is have a one-behind cache for PTE table allocations in the
-mm struct.
+Make string reporting cleaner and easier to extend in the future using
+"const char *" arrays that index by either bit position, or absolute
+field value.
 
-This logic triggers only on allocations.  For example, we don't try to
-keep track of free'd up page table blocks in the style that the s390
-port does.
+Report the raw 64-byte error report as a sequence of u64s before the
+annotated version.
 
-There were only two slightly annoying aspects to this change:
+Only report fields which are valid, given the context and the
+attribute bits which are set.
 
-1) Changing pgtable_t to be a "pte_t *".  There's all of this special
-   logic in the TLB free paths that needed adjustments, as did the
-   PMD populate interfaces.
+For shutdown requests, use the local copy of the error report not the
+one we just freed up back to the queue.  Also, use orderly_poweroff()
+just like the Domain Services shutdown request code does.
 
-2) init_new_context() needs to zap the pointer, since the mm struct
-   just gets copied from the parent on fork.
+If the real-address reported is "-1" (unknown) try to disassemble the
+instruction to report the effective address of the access.  Only do
+this in privileged mode.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/include/asm/mmu_64.h     |    1 +
- arch/sparc/include/asm/page_64.h    |    2 +-
- arch/sparc/include/asm/pgalloc_64.h |   54 ++++---------------
- arch/sparc/mm/init_64.c             |  101 +++++++++++++++++++++++++++++++++++
- arch/sparc/mm/tsb.c                 |    9 ++++
- 5 files changed, 123 insertions(+), 44 deletions(-)
+ arch/sparc/include/asm/uaccess_64.h |   5 +
+ arch/sparc/kernel/traps_64.c        | 263 +++++++++++++++++++++++++++---------
+ arch/sparc/mm/fault_64.c            |   2 -
+ 3 files changed, 207 insertions(+), 63 deletions(-)
 
-diff --git a/arch/sparc/include/asm/mmu_64.h b/arch/sparc/include/asm/mmu_64.h
-index 5fb97e1..31977c8 100644
---- a/arch/sparc/include/asm/mmu_64.h
-+++ b/arch/sparc/include/asm/mmu_64.h
-@@ -93,6 +93,7 @@ typedef struct {
- 	spinlock_t		lock;
- 	unsigned long		sparc64_ctx_val;
- 	unsigned long		huge_pte_count;
-+	struct page		*pgtable_page;
- 	struct tsb_config	tsb_block[MM_NUM_TSBS];
- 	struct hv_tsb_descr	tsb_descr[MM_NUM_TSBS];
- } mm_context_t;
-diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
-index b2df9b8..087a5c5 100644
---- a/arch/sparc/include/asm/page_64.h
-+++ b/arch/sparc/include/asm/page_64.h
-@@ -86,7 +86,7 @@ typedef unsigned long pgprot_t;
+diff --git a/arch/sparc/include/asm/uaccess_64.h b/arch/sparc/include/asm/uaccess_64.h
+index 7c831d8..73083e1 100644
+--- a/arch/sparc/include/asm/uaccess_64.h
++++ b/arch/sparc/include/asm/uaccess_64.h
+@@ -265,6 +265,11 @@ extern __must_check long strnlen_user(const char __user *str, long n);
+ #define __copy_to_user_inatomic ___copy_to_user
+ #define __copy_from_user_inatomic ___copy_from_user
  
- #endif /* (STRICT_MM_TYPECHECKS) */
- 
--typedef struct page *pgtable_t;
-+typedef pte_t *pgtable_t;
- 
- #define TASK_UNMAPPED_BASE	(test_thread_flag(TIF_32BIT) ? \
- 				 (_AC(0x0000000070000000,UL)) : \
-diff --git a/arch/sparc/include/asm/pgalloc_64.h b/arch/sparc/include/asm/pgalloc_64.h
-index 40b2d7a..0ebca93 100644
---- a/arch/sparc/include/asm/pgalloc_64.h
-+++ b/arch/sparc/include/asm/pgalloc_64.h
-@@ -38,51 +38,20 @@ static inline void pmd_free(struct mm_struct *mm, pmd_t *pmd)
- 	kmem_cache_free(pgtable_cache, pmd);
- }
- 
--static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
--					  unsigned long address)
--{
--	return (pte_t *)__get_free_page(GFP_KERNEL | __GFP_REPEAT | __GFP_ZERO);
--}
--
--static inline pgtable_t pte_alloc_one(struct mm_struct *mm,
--					unsigned long address)
--{
--	struct page *page;
--	pte_t *pte;
--
--	pte = pte_alloc_one_kernel(mm, address);
--	if (!pte)
--		return NULL;
--	page = virt_to_page(pte);
--	pgtable_page_ctor(page);
--	return page;
--}
--
--static inline void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
--{
--	free_page((unsigned long)pte);
--}
--
--static inline void pte_free(struct mm_struct *mm, pgtable_t ptepage)
--{
--	pgtable_page_dtor(ptepage);
--	__free_page(ptepage);
--}
-+extern pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
-+				   unsigned long address);
-+extern pgtable_t pte_alloc_one(struct mm_struct *mm,
-+			       unsigned long address);
-+extern void pte_free_kernel(struct mm_struct *mm, pte_t *pte);
-+extern void pte_free(struct mm_struct *mm, pgtable_t ptepage);
- 
- #define pmd_populate_kernel(MM, PMD, PTE)	pmd_set(PMD, PTE)
--#define pmd_populate(MM,PMD,PTE_PAGE)		\
--	pmd_populate_kernel(MM,PMD,page_address(PTE_PAGE))
--#define pmd_pgtable(pmd) pmd_page(pmd)
-+#define pmd_populate(MM, PMD, PTE)		pmd_set(PMD, PTE)
-+#define pmd_pgtable(PMD)			((pte_t *)__pmd_page(PMD))
- 
- #define check_pgt_cache()	do { } while (0)
- 
--static inline void pgtable_free(void *table, bool is_page)
--{
--	if (is_page)
--		free_page((unsigned long)table);
--	else
--		kmem_cache_free(pgtable_cache, table);
--}
-+extern void pgtable_free(void *table, bool is_page);
- 
- #ifdef CONFIG_SMP
- 
-@@ -113,11 +82,10 @@ static inline void pgtable_free_tlb(struct mmu_gather *tlb, void *table, bool is
- }
- #endif /* !CONFIG_SMP */
- 
--static inline void __pte_free_tlb(struct mmu_gather *tlb, struct page *ptepage,
-+static inline void __pte_free_tlb(struct mmu_gather *tlb, pte_t *pte,
- 				  unsigned long address)
- {
--	pgtable_page_dtor(ptepage);
--	pgtable_free_tlb(tlb, page_address(ptepage), true);
-+	pgtable_free_tlb(tlb, pte, true);
- }
- 
- #define __pmd_free_tlb(tlb, pmd, addr)		      \
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 809eecf..12ef4ea 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -2467,3 +2467,104 @@ void __flush_tlb_all(void)
- 	__asm__ __volatile__("wrpr	%0, 0, %%pstate"
- 			     : : "r" (pstate));
- }
++struct pt_regs;
++extern unsigned long compute_effective_address(struct pt_regs *,
++					       unsigned int insn,
++					       unsigned int rd);
 +
-+static pte_t *get_from_cache(struct mm_struct *mm)
+ #endif  /* __ASSEMBLY__ */
+ 
+ #endif /* _ASM_UACCESS_H */
+diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
+index fa1f1d3..b66a779 100644
+--- a/arch/sparc/kernel/traps_64.c
++++ b/arch/sparc/kernel/traps_64.c
+@@ -1,6 +1,6 @@
+ /* arch/sparc64/kernel/traps.c
+  *
+- * Copyright (C) 1995,1997,2008,2009 David S. Miller (davem@davemloft.net)
++ * Copyright (C) 1995,1997,2008,2009,2012 David S. Miller (davem@davemloft.net)
+  * Copyright (C) 1997,1999,2000 Jakub Jelinek (jakub@redhat.com)
+  */
+ 
+@@ -18,6 +18,7 @@
+ #include <linux/init.h>
+ #include <linux/kdebug.h>
+ #include <linux/ftrace.h>
++#include <linux/reboot.h>
+ #include <linux/gfp.h>
+ 
+ #include <asm/smp.h>
+@@ -1760,85 +1761,223 @@ void cheetah_plus_parity_error(int type, struct pt_regs *regs)
+ }
+ 
+ struct sun4v_error_entry {
+-	u64		err_handle;
+-	u64		err_stick;
++	/* Unique error handle */
++/*0x00*/u64		err_handle;
+ 
+-	u32		err_type;
++	/* %stick value at the time of the error */
++/*0x08*/u64		err_stick;
++
++/*0x10*/u8		reserved_1[3];
++
++	/* Error type */
++/*0x13*/u8		err_type;
+ #define SUN4V_ERR_TYPE_UNDEFINED	0
+ #define SUN4V_ERR_TYPE_UNCORRECTED_RES	1
+ #define SUN4V_ERR_TYPE_PRECISE_NONRES	2
+ #define SUN4V_ERR_TYPE_DEFERRED_NONRES	3
+-#define SUN4V_ERR_TYPE_WARNING_RES	4
++#define SUN4V_ERR_TYPE_SHUTDOWN_RQST	4
++#define SUN4V_ERR_TYPE_DUMP_CORE	5
++#define SUN4V_ERR_TYPE_SP_STATE_CHANGE	6
++#define SUN4V_ERR_TYPE_NUM		7
+ 
+-	u32		err_attrs;
++	/* Error attributes */
++/*0x14*/u32		err_attrs;
+ #define SUN4V_ERR_ATTRS_PROCESSOR	0x00000001
+ #define SUN4V_ERR_ATTRS_MEMORY		0x00000002
+ #define SUN4V_ERR_ATTRS_PIO		0x00000004
+ #define SUN4V_ERR_ATTRS_INT_REGISTERS	0x00000008
+ #define SUN4V_ERR_ATTRS_FPU_REGISTERS	0x00000010
+-#define SUN4V_ERR_ATTRS_USER_MODE	0x01000000
+-#define SUN4V_ERR_ATTRS_PRIV_MODE	0x02000000
++#define SUN4V_ERR_ATTRS_SHUTDOWN_RQST	0x00000020
++#define SUN4V_ERR_ATTRS_ASR		0x00000040
++#define SUN4V_ERR_ATTRS_ASI		0x00000080
++#define SUN4V_ERR_ATTRS_PRIV_REG	0x00000100
++#define SUN4V_ERR_ATTRS_SPSTATE_MSK	0x00000600
++#define SUN4V_ERR_ATTRS_SPSTATE_SHFT	9
++#define SUN4V_ERR_ATTRS_MODE_MSK	0x03000000
++#define SUN4V_ERR_ATTRS_MODE_SHFT	24
+ #define SUN4V_ERR_ATTRS_RES_QUEUE_FULL	0x80000000
+ 
+-	u64		err_raddr;
+-	u32		err_size;
+-	u16		err_cpu;
+-	u16		err_pad;
++#define SUN4V_ERR_SPSTATE_FAULTED	0
++#define SUN4V_ERR_SPSTATE_AVAILABLE	1
++#define SUN4V_ERR_SPSTATE_NOT_PRESENT	2
++
++#define SUN4V_ERR_MODE_USER		1
++#define SUN4V_ERR_MODE_PRIV		2
++
++	/* Real address of the memory region or PIO transaction */
++/*0x18*/u64		err_raddr;
++
++	/* Size of the operation triggering the error, in bytes */
++/*0x20*/u32		err_size;
++
++	/* ID of the CPU */
++/*0x24*/u16		err_cpu;
++
++	/* Grace periof for shutdown, in seconds */
++/*0x26*/u16		err_secs;
++
++	/* Value of the %asi register */
++/*0x28*/u8		err_asi;
++
++/*0x29*/u8		reserved_2;
++
++	/* Value of the ASR register number */
++/*0x2a*/u16		err_asr;
++#define SUN4V_ERR_ASR_VALID		0x8000
++
++/*0x2c*/u32		reserved_3;
++/*0x30*/u64		reserved_4;
++/*0x38*/u64		reserved_5;
+ };
+ 
+ static atomic_t sun4v_resum_oflow_cnt = ATOMIC_INIT(0);
+ static atomic_t sun4v_nonresum_oflow_cnt = ATOMIC_INIT(0);
+ 
+-static const char *sun4v_err_type_to_str(u32 type)
+-{
+-	switch (type) {
+-	case SUN4V_ERR_TYPE_UNDEFINED:
+-		return "undefined";
+-	case SUN4V_ERR_TYPE_UNCORRECTED_RES:
+-		return "uncorrected resumable";
+-	case SUN4V_ERR_TYPE_PRECISE_NONRES:
+-		return "precise nonresumable";
+-	case SUN4V_ERR_TYPE_DEFERRED_NONRES:
+-		return "deferred nonresumable";
+-	case SUN4V_ERR_TYPE_WARNING_RES:
+-		return "warning resumable";
+-	default:
+-		return "unknown";
++static const char *sun4v_err_type_to_str(u8 type)
 +{
-+	struct page *page;
-+	pte_t *ret;
++	static const char *types[SUN4V_ERR_TYPE_NUM] = {
++		"undefined",
++		"uncorrected resumable",
++		"precise nonresumable",
++		"deferred nonresumable",
++		"shutdown request",
++		"dump core",
++		"SP state change",
++	};
 +
-+	spin_lock(&mm->page_table_lock);
-+	page = mm->context.pgtable_page;
-+	ret = NULL;
-+	if (page) {
-+		void *p = page_address(page);
++	if (type < SUN4V_ERR_TYPE_NUM)
++		return types[type];
 +
-+		mm->context.pgtable_page = NULL;
-+
-+		ret = (pte_t *) (p + (PAGE_SIZE / 2));
-+	}
-+	spin_unlock(&mm->page_table_lock);
-+
-+	return ret;
++	return "unknown";
 +}
 +
-+static struct page *__alloc_for_cache(struct mm_struct *mm)
++static void sun4v_emit_err_attr_strings(u32 attrs)
 +{
-+	struct page *page = alloc_page(GFP_KERNEL | __GFP_NOTRACK |
-+				       __GFP_REPEAT | __GFP_ZERO);
++	static const char *attr_names[] = {
++		"processor",
++		"memory",
++		"PIO",
++		"int-registers",
++		"fpu-registers",
++		"shutdown-request",
++		"ASR",
++		"ASI",
++		"priv-reg",
++	};
++	static const char *sp_states[] = {
++		"sp-faulted",
++		"sp-available",
++		"sp-not-present",
++		"sp-state-reserved",
++	};
++	static const char *modes[] = {
++		"mode-reserved0",
++		"user",
++		"priv",
++		"mode-reserved1",
++	};
++	u32 sp_state, mode;
++	int i;
 +
-+	if (page) {
-+		spin_lock(&mm->page_table_lock);
-+		if (!mm->context.pgtable_page) {
-+			atomic_set(&page->_count, 2);
-+			mm->context.pgtable_page = page;
++	for (i = 0; i < ARRAY_SIZE(attr_names); i++) {
++		if (attrs & (1U << i)) {
++			const char *s = attr_names[i];
++
++			pr_cont("%s ", s);
 +		}
-+		spin_unlock(&mm->page_table_lock);
-+	}
-+	return page;
-+}
+ 	}
 +
-+pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
-+			    unsigned long address)
-+{
-+	struct page *page;
-+	pte_t *pte;
++	sp_state = ((attrs & SUN4V_ERR_ATTRS_SPSTATE_MSK) >>
++		    SUN4V_ERR_ATTRS_SPSTATE_SHFT);
++	pr_cont("%s ", sp_states[sp_state]);
 +
-+	pte = get_from_cache(mm);
-+	if (pte)
-+		return pte;
++	mode = ((attrs & SUN4V_ERR_ATTRS_MODE_MSK) >>
++		SUN4V_ERR_ATTRS_MODE_SHFT);
++	pr_cont("%s ", modes[mode]);
 +
-+	page = __alloc_for_cache(mm);
-+	if (page)
-+		pte = (pte_t *) page_address(page);
-+
-+	return pte;
-+}
-+
-+pgtable_t pte_alloc_one(struct mm_struct *mm,
-+			unsigned long address)
-+{
-+	struct page *page;
-+	pte_t *pte;
-+
-+	pte = get_from_cache(mm);
-+	if (pte)
-+		return pte;
-+
-+	page = __alloc_for_cache(mm);
-+	if (page) {
-+		pgtable_page_ctor(page);
-+		pte = (pte_t *) page_address(page);
-+	}
-+
-+	return pte;
-+}
-+
-+void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
-+{
-+	struct page *page = virt_to_page(pte);
-+	if (put_page_testzero(page))
-+		free_hot_cold_page(page, 0);
-+}
-+
-+static void __pte_free(pgtable_t pte)
-+{
-+	struct page *page = virt_to_page(pte);
-+	if (put_page_testzero(page)) {
-+		pgtable_page_dtor(page);
-+		free_hot_cold_page(page, 0);
-+	}
-+}
-+
-+void pte_free(struct mm_struct *mm, pgtable_t pte)
-+{
-+	__pte_free(pte);
-+}
-+
-+void pgtable_free(void *table, bool is_page)
-+{
-+	if (is_page)
-+		__pte_free(table);
-+	else
-+		kmem_cache_free(pgtable_cache, table);
-+}
-diff --git a/arch/sparc/mm/tsb.c b/arch/sparc/mm/tsb.c
-index 70e50ea..a35ee83 100644
---- a/arch/sparc/mm/tsb.c
-+++ b/arch/sparc/mm/tsb.c
-@@ -445,6 +445,8 @@ int init_new_context(struct task_struct *tsk, struct mm_struct *mm)
- 	mm->context.huge_pte_count = 0;
- #endif
++	if (attrs & SUN4V_ERR_ATTRS_RES_QUEUE_FULL)
++		pr_cont("res-queue-full ");
+ }
  
-+	mm->context.pgtable_page = NULL;
-+
- 	/* copy_mm() copies over the parent's mm_struct before calling
- 	 * us, so we need to zero out the TSB pointer or else tsb_grow()
- 	 * will be confused and think there is an older TSB to free up.
-@@ -483,10 +485,17 @@ static void tsb_destroy_one(struct tsb_config *tp)
- void destroy_context(struct mm_struct *mm)
+-static void sun4v_log_error(struct pt_regs *regs, struct sun4v_error_entry *ent, int cpu, const char *pfx, atomic_t *ocnt)
++/* When the report contains a real-address of "-1" it means that the
++ * hardware did not provide the address.  So we compute the effective
++ * address of the load or store instruction at regs->tpc and report
++ * that.  Usually when this happens it's a PIO and in such a case we
++ * are using physical addresses with bypass ASIs anyways, so what we
++ * report here is exactly what we want.
++ */
++static void sun4v_report_real_raddr(const char *pfx, struct pt_regs *regs)
  {
- 	unsigned long flags, i;
-+	struct page *page;
++	unsigned int insn;
++	u64 addr;
++
++	if (!(regs->tstate & TSTATE_PRIV))
++		return;
++
++	insn = *(unsigned int *) regs->tpc;
++
++	addr = compute_effective_address(regs, insn, 0);
++
++	printk("%s: insn effective address [0x%016llx]\n",
++	       pfx, addr);
++}
++
++static void sun4v_log_error(struct pt_regs *regs, struct sun4v_error_entry *ent,
++			    int cpu, const char *pfx, atomic_t *ocnt)
++{
++	u64 *raw_ptr = (u64 *) ent;
++	u32 attrs;
+ 	int cnt;
  
- 	for (i = 0; i < MM_NUM_TSBS; i++)
- 		tsb_destroy_one(&mm->context.tsb_block[i]);
- 
-+	page = mm->context.pgtable_page;
-+	if (page && put_page_testzero(page)) {
-+		pgtable_page_dtor(page);
-+		free_hot_cold_page(page, 0);
+ 	printk("%s: Reporting on cpu %d\n", pfx, cpu);
+-	printk("%s: err_handle[%llx] err_stick[%llx] err_type[%08x:%s]\n",
+-	       pfx,
+-	       ent->err_handle, ent->err_stick,
+-	       ent->err_type,
+-	       sun4v_err_type_to_str(ent->err_type));
+-	printk("%s: err_attrs[%08x:%s %s %s %s %s %s %s %s]\n",
+-	       pfx,
+-	       ent->err_attrs,
+-	       ((ent->err_attrs & SUN4V_ERR_ATTRS_PROCESSOR) ?
+-		"processor" : ""),
+-	       ((ent->err_attrs & SUN4V_ERR_ATTRS_MEMORY) ?
+-		"memory" : ""),
+-	       ((ent->err_attrs & SUN4V_ERR_ATTRS_PIO) ?
+-		"pio" : ""),
+-	       ((ent->err_attrs & SUN4V_ERR_ATTRS_INT_REGISTERS) ?
+-		"integer-regs" : ""),
+-	       ((ent->err_attrs & SUN4V_ERR_ATTRS_FPU_REGISTERS) ?
+-		"fpu-regs" : ""),
+-	       ((ent->err_attrs & SUN4V_ERR_ATTRS_USER_MODE) ?
+-		"user" : ""),
+-	       ((ent->err_attrs & SUN4V_ERR_ATTRS_PRIV_MODE) ?
+-		"privileged" : ""),
+-	       ((ent->err_attrs & SUN4V_ERR_ATTRS_RES_QUEUE_FULL) ?
+-		"queue-full" : ""));
+-	printk("%s: err_raddr[%016llx] err_size[%u] err_cpu[%u]\n",
+-	       pfx,
+-	       ent->err_raddr, ent->err_size, ent->err_cpu);
++	printk("%s: TPC [0x%016lx] <%pS>\n",
++	       pfx, regs->tpc, (void *) regs->tpc);
++
++	printk("%s: RAW [%016llx:%016llx:%016llx:%016llx\n",
++	       pfx, raw_ptr[0], raw_ptr[1], raw_ptr[2], raw_ptr[3]);
++	printk("%s:      %016llx:%016llx:%016llx:%016llx]\n",
++	       pfx, raw_ptr[4], raw_ptr[5], raw_ptr[6], raw_ptr[7]);
++
++	printk("%s: handle [0x%016llx] stick [0x%016llx]\n",
++	       pfx, ent->err_handle, ent->err_stick);
++
++	printk("%s: type [%s]\n", pfx, sun4v_err_type_to_str(ent->err_type));
++
++	attrs = ent->err_attrs;
++	printk("%s: attrs [0x%08x] < ", pfx, attrs);
++	sun4v_emit_err_attr_strings(attrs);
++	pr_cont(">\n");
++
++	/* Various fields in the error report are only valid if
++	 * certain attribute bits are set.
++	 */
++	if (attrs & (SUN4V_ERR_ATTRS_MEMORY |
++		     SUN4V_ERR_ATTRS_PIO |
++		     SUN4V_ERR_ATTRS_ASI)) {
++		printk("%s: raddr [0x%016llx]\n", pfx, ent->err_raddr);
++
++		if (ent->err_raddr = ~(u64)0)
++			sun4v_report_real_raddr(pfx, regs);
 +	}
 +
- 	spin_lock_irqsave(&ctx_alloc_lock, flags);
++	if (attrs & (SUN4V_ERR_ATTRS_MEMORY | SUN4V_ERR_ATTRS_ASI))
++		printk("%s: size [0x%x]\n", pfx, ent->err_size);
++
++	if (attrs & (SUN4V_ERR_ATTRS_PROCESSOR |
++		     SUN4V_ERR_ATTRS_INT_REGISTERS |
++		     SUN4V_ERR_ATTRS_FPU_REGISTERS |
++		     SUN4V_ERR_ATTRS_PRIV_REG))
++		printk("%s: cpu[%u]\n", pfx, ent->err_cpu);
++
++	if (attrs & SUN4V_ERR_ATTRS_ASI)
++		printk("%s: asi [0x%02x]\n", pfx, ent->err_asi);
++
++	if ((attrs & (SUN4V_ERR_ATTRS_INT_REGISTERS |
++		      SUN4V_ERR_ATTRS_FPU_REGISTERS |
++		      SUN4V_ERR_ATTRS_PRIV_REG)) &&
++	    (ent->err_asr & SUN4V_ERR_ASR_VALID) != 0)
++		printk("%s: reg [0x%04x]\n",
++		       pfx, ent->err_asr & ~SUN4V_ERR_ASR_VALID);
  
- 	if (CTX_VALID(mm->context)) {
+ 	show_regs(regs);
+ 
+@@ -1874,13 +2013,15 @@ void sun4v_resum_error(struct pt_regs *regs, unsigned long offset)
+ 
+ 	put_cpu();
+ 
+-	if (ent->err_type = SUN4V_ERR_TYPE_WARNING_RES) {
+-		/* If err_type is 0x4, it's a powerdown request.  Do
+-		 * not do the usual resumable error log because that
+-		 * makes it look like some abnormal error.
++	if (local_copy.err_type = SUN4V_ERR_TYPE_SHUTDOWN_RQST) {
++		/* We should really take the seconds field of
++		 * the error report and use it for the shutdown
++		 * invocation, but for now do the same thing we
++		 * do for a DS shutdown request.
+ 		 */
+-		printk(KERN_INFO "Power down request...\n");
+-		kill_cad_pid(SIGINT, 1);
++		pr_info("Shutdown request, %u seconds...\n",
++			local_copy.err_secs);
++		orderly_poweroff(true);
+ 		return;
+ 	}
+ 
+diff --git a/arch/sparc/mm/fault_64.c b/arch/sparc/mm/fault_64.c
+index 2976dba..097aee7 100644
+--- a/arch/sparc/mm/fault_64.c
++++ b/arch/sparc/mm/fault_64.c
+@@ -151,8 +151,6 @@ show_signal_msg(struct pt_regs *regs, int sig, int code,
+ 	printk(KERN_CONT "\n");
+ }
+ 
+-extern unsigned long compute_effective_address(struct pt_regs *, unsigned int, unsigned int);
+-
+ static void do_fault_siginfo(int code, int sig, struct pt_regs *regs,
+ 			     unsigned int insn, int fault_code)
+ {
 -- 
-1.7.10.4
+1.7.12.2.dirty
 
