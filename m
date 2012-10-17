@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 12 Oct 2012 19:26:17 +0000
+Date: Wed, 17 Oct 2012 05:05:24 +0000
 Subject: [GIT] Sparc
-Message-Id: <20121012.152617.102293507587771934.davem@davemloft.net>
+Message-Id: <20121017.010524.778858011941892565.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100329.131141.80866523.davem@davemloft.net>
 In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
@@ -12,34 +12,35 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-1) Updated syscall tracing fix from Al Viro.
+Two sparc64 perf bug fixes and add a sysrq facility so I can diagnose
+these kinds of problems more quickly in the future.
 
-2) SUN4V error reporting was deficient in several areas.
+Please pull, thanks a lot.
 
-Please pull, thanks a lot!
+The following changes since commit ddffeb8c4d0331609ef2581d84de4d763607bd37:
 
-The following changes since commit 2474542f64432398f503373f53bdf620491bcfa8:
-
-  Merge tag 'for-3.7-rc1' of git://gitorious.org/linux-pwm/linux-pwm (2012-10-10 20:15:24 +0900)
+  Linux 3.7-rc1 (2012-10-14 14:41:04 -0700)
 
 are available in the git repository at:
 
-
   git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
 
-for you to fetch changes up to 55c2770e413e96871147b9406a9c41fe9bc5209c:
+for you to fetch changes up to e793d8c6740f8fe704fa216e95685f4d92c4c4b9:
 
-  sparc64: fix ptrace interaction with force_successful_syscall_return() (2012-10-10 17:25:00 -0700)
+  sparc64: Fix bit twiddling in sparc_pmu_enable_event(). (2012-10-16 13:05:25 -0700)
 
 ----------------------------------------------------------------
-Al Viro (1):
-      sparc64: fix ptrace interaction with force_successful_syscall_return()
+David S. Miller (3):
+      sparc64: Like x86 we should check current->mm during perf backtrace generation.
+      sparc64: Add global PMU register dumping via sysrq.
+      sparc64: Fix bit twiddling in sparc_pmu_enable_event().
 
-David S. Miller (1):
-      sparc64: Fix deficiencies in sun4v error reporting.
-
- arch/sparc/include/asm/uaccess_64.h |   5 ++
- arch/sparc/kernel/syscalls.S        |  32 ++++++------
- arch/sparc/kernel/traps_64.c        | 263 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----------------------
- arch/sparc/mm/fault_64.c            |   2 -
- 4 files changed, 221 insertions(+), 81 deletions(-)
+ Documentation/sysrq.txt         |   1 +
+ arch/sparc/include/asm/ptrace.h |  13 +++++++-
+ arch/sparc/include/asm/smp_64.h |   2 ++
+ arch/sparc/kernel/perf_event.c  |  15 +++++----
+ arch/sparc/kernel/process_64.c  | 120 +++++++++++++++++++++++++++++++++++++++++++++++++++++++------------
+ arch/sparc/kernel/smp_64.c      |  11 +++++++
+ arch/sparc/mm/ultra.S           |  64 ++++++++++++++++++++++++++++++++++--
+ drivers/tty/sysrq.c             |   1 +
+ 8 files changed, 198 insertions(+), 29 deletions(-)
