@@ -1,113 +1,133 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 04 Oct 2012 19:46:49 +0000
-Subject: [PATCH v2 2/7] sparc64: Halve the size of PTE tables.
-Message-Id: <20121004.154649.2206336946126738090.davem@davemloft.net>
+From: wency@cn.fujitsu.com
+Date: Tue, 23 Oct 2012 10:30:40 +0000
+Subject: [PATCH v2 02/12] memory-hotplug: check whether all memory blocks are offlined or not when removing m
+Message-Id: <1350988250-31294-3-git-send-email-wency@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1350988250-31294-1-git-send-email-wency@cn.fujitsu.com>
+In-Reply-To: <1350988250-31294-1-git-send-email-wency@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, akpm@linux-foundation.org, aarcange@redhat.com, hannes@cmpxchg.org
+To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
 
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-The reason we want to do this is to facilitate transparent huge page
-support.
+We remove the memory like this:
+1. lock memory hotplug
+2. offline a memory block
+3. unlock memory hotplug
+4. repeat 1-3 to offline all memory blocks
+5. lock memory hotplug
+6. remove memory(TODO)
+7. unlock memory hotplug
 
-Right now PMD's cover 8MB of address space, and our huge page size is
-4MB.  The current transparent hugepage support is not able to handle
-HPAGE_SIZE != PMD_SIZE.
+All memory blocks must be offlined before removing memory. But we don't hold
+the lock in the whole operation. So we should check whether all memory blocks
+are offlined before step6. Otherwise, kernel maybe panicked.
 
-So make PTE tables be sized to half of a page instead of a full page.
-
-We can still map properly the whole supported virtual address range
-which on sparc64 requires 44 bits.  Add a compile time CPP test which
-ensures that this requirement is always met.
-
-There is a minor inefficiency added by this change.  We only use half
-of the page for PTE tables.  It's not trivial to use only half of the
-page yet still get all of the pgtable_page_{ctor,dtor}() stuff working
-properly.  It is doable, and that will come in a subsequent change.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+CC: David Rientjes <rientjes@google.com>
+CC: Jiang Liu <liuj97@gmail.com>
+CC: Len Brown <len.brown@intel.com>
+CC: Christoph Lameter <cl@linux.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+CC: Andrew Morton <akpm@linux-foundation.org>
+CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 ---
- arch/sparc/include/asm/pgtable_64.h |   24 +++++++-----------------
- arch/sparc/include/asm/tsb.h        |    4 ++--
- 2 files changed, 9 insertions(+), 19 deletions(-)
+ drivers/base/memory.c          |    6 +++++
+ include/linux/memory_hotplug.h |    1 +
+ mm/memory_hotplug.c            |   47 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 54 insertions(+), 0 deletions(-)
 
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 387d484..a7b5091 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -45,40 +45,30 @@
+diff --git a/drivers/base/memory.c b/drivers/base/memory.c
+index 86c8821..badb025 100644
+--- a/drivers/base/memory.c
++++ b/drivers/base/memory.c
+@@ -675,6 +675,12 @@ int offline_memory_block(struct memory_block *mem)
+ 	return ret;
+ }
  
- #define vmemmap			((struct page *)VMEMMAP_BASE)
- 
--/* XXX All of this needs to be rethought so we can take advantage
-- * XXX cheetah's full 64-bit virtual address space, ie. no more hole
-- * XXX in the middle like on spitfire. -DaveM
-- */
--/*
-- * Given a virtual address, the lowest PAGE_SHIFT bits determine offset
-- * into the page; the next higher PAGE_SHIFT-3 bits determine the pte#
-- * in the proper pagetable (the -3 is from the 8 byte ptes, and each page
-- * table is a single page long). The next higher PMD_BITS determine pmd#
-- * in the proper pmdtable (where we must have PMD_BITS <= (PAGE_SHIFT-2)
-- * since the pmd entries are 4 bytes, and each pmd page is a single page
-- * long). Finally, the higher few bits determine pgde#.
-- */
--
- /* PMD_SHIFT determines the size of the area a second-level page
-  * table can map
-  */
--#define PMD_SHIFT	(PAGE_SHIFT + (PAGE_SHIFT-3))
-+#define PMD_SHIFT	(PAGE_SHIFT + (PAGE_SHIFT-4))
- #define PMD_SIZE	(_AC(1,UL) << PMD_SHIFT)
- #define PMD_MASK	(~(PMD_SIZE-1))
- #define PMD_BITS	(PAGE_SHIFT - 2)
- 
- /* PGDIR_SHIFT determines what a third-level page table entry can map */
--#define PGDIR_SHIFT	(PAGE_SHIFT + (PAGE_SHIFT-3) + PMD_BITS)
-+#define PGDIR_SHIFT	(PAGE_SHIFT + (PAGE_SHIFT-4) + PMD_BITS)
- #define PGDIR_SIZE	(_AC(1,UL) << PGDIR_SHIFT)
- #define PGDIR_MASK	(~(PGDIR_SIZE-1))
- #define PGDIR_BITS	(PAGE_SHIFT - 2)
- 
-+#if (PGDIR_SHIFT + PGDIR_BITS) != 44
-+#error Page table parameters do not cover virtual address space properly.
-+#endif
++/* return true if the memory block is offlined, otherwise, return false */
++bool is_memblock_offlined(struct memory_block *mem)
++{
++	return mem->state = MEM_OFFLINE;
++}
 +
- #ifndef __ASSEMBLY__
+ /*
+  * Initialize the sysfs support for memory devices...
+  */
+diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+index 95573ec..38675e9 100644
+--- a/include/linux/memory_hotplug.h
++++ b/include/linux/memory_hotplug.h
+@@ -236,6 +236,7 @@ extern int add_memory(int nid, u64 start, u64 size);
+ extern int arch_add_memory(int nid, u64 start, u64 size);
+ extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+ extern int offline_memory_block(struct memory_block *mem);
++extern bool is_memblock_offlined(struct memory_block *mem);
+ extern int remove_memory(u64 start, u64 size);
+ extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
+ 								int nr_pages);
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 600e200..f4fdedd 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -1061,6 +1061,53 @@ repeat:
+ 		goto repeat;
+ 	}
  
- #include <linux/sched.h>
- 
- /* Entries per page directory level. */
--#define PTRS_PER_PTE	(1UL << (PAGE_SHIFT-3))
-+#define PTRS_PER_PTE	(1UL << (PAGE_SHIFT-4))
- #define PTRS_PER_PMD	(1UL << PMD_BITS)
- #define PTRS_PER_PGD	(1UL << PGDIR_BITS)
- 
-diff --git a/arch/sparc/include/asm/tsb.h b/arch/sparc/include/asm/tsb.h
-index 1a8afd1..6435924 100644
---- a/arch/sparc/include/asm/tsb.h
-+++ b/arch/sparc/include/asm/tsb.h
-@@ -152,7 +152,7 @@ extern struct tsb_phys_patch_entry __tsb_phys_patch, __tsb_phys_patch_end;
- 	lduwa		[REG1 + REG2] ASI_PHYS_USE_EC, REG1; \
- 	brz,pn		REG1, FAIL_LABEL; \
- 	 sllx		VADDR, 64 - PMD_SHIFT, REG2; \
--	srlx		REG2, 64 - PAGE_SHIFT, REG2; \
-+	srlx		REG2, 64 - (PAGE_SHIFT - 1), REG2; \
- 	sllx		REG1, 11, REG1; \
- 	andn		REG2, 0x7, REG2; \
- 	add		REG1, REG2, REG1;
-@@ -177,7 +177,7 @@ extern struct tsb_phys_patch_entry __tsb_phys_patch, __tsb_phys_patch_end;
- 	lduwa		[REG1 + REG2] ASI_PHYS_USE_EC, REG1; \
- 	brz,pn		REG1, FAIL_LABEL; \
- 	 sllx		VADDR, 64 - PMD_SHIFT, REG2; \
--	srlx		REG2, 64 - PAGE_SHIFT, REG2; \
-+	srlx		REG2, 64 - (PAGE_SHIFT - 1), REG2; \
- 	sllx		REG1, 11, REG1; \
- 	andn		REG2, 0x7, REG2; \
- 	add		REG1, REG2, REG1;
++	lock_memory_hotplug();
++
++	/*
++	 * we have offlined all memory blocks like this:
++	 *   1. lock memory hotplug
++	 *   2. offline a memory block
++	 *   3. unlock memory hotplug
++	 *
++	 * repeat step1-3 to offline the memory block. All memory blocks
++	 * must be offlined before removing memory. But we don't hold the
++	 * lock in the whole operation. So we should check whether all
++	 * memory blocks are offlined.
++	 */
++
++	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
++		section_nr = pfn_to_section_nr(pfn);
++		if (!present_section_nr(section_nr))
++			continue;
++
++		section = __nr_to_section(section_nr);
++		/* same memblock? */
++		if (mem)
++			if ((section_nr >= mem->start_section_nr) &&
++			    (section_nr <= mem->end_section_nr))
++				continue;
++
++		mem = find_memory_block_hinted(section, mem);
++		if (!mem)
++			continue;
++
++		ret = is_memblock_offlined(mem);
++		if (!ret) {
++			pr_warn("removing memory fails, because memory "
++				"[%#010llx-%#010llx] is onlined\n",
++				PFN_PHYS(section_nr_to_pfn(mem->start_section_nr)),
++				PFN_PHYS(section_nr_to_pfn(mem->end_section_nr + 1)) - 1);
++
++			kobject_put(&mem->dev.kobj);
++			unlock_memory_hotplug();
++			return ret;
++		}
++	}
++
++	if (mem)
++		kobject_put(&mem->dev.kobj);
++	unlock_memory_hotplug();
++
+ 	return 0;
+ }
+ #else
 -- 
-1.7.10.4
+1.7.1
 
