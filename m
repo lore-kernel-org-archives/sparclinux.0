@@ -1,64 +1,60 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 04 Oct 2012 19:47:47 +0000
-Subject: [PATCH v2 6/7] mm: thp: Use more portable PMD clearing sequenece in zap_huge_pmd().
-Message-Id: <20121004.154747.650416442352280556.davem@davemloft.net>
+From: wency@cn.fujitsu.com
+Date: Tue, 23 Oct 2012 10:30:44 +0000
+Subject: [PATCH v2 06/12] memory-hotplug: unregister memory section on SPARSEMEM_VMEMMAP
+Message-Id: <1350988250-31294-7-git-send-email-wency@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1350988250-31294-1-git-send-email-wency@cn.fujitsu.com>
+In-Reply-To: <1350988250-31294-1-git-send-email-wency@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, akpm@linux-foundation.org, aarcange@redhat.com, hannes@cmpxchg.org
+To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
 
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-Invalidation sequences are handled in various ways on various
-architectures.
+Currently __remove_section for SPARSEMEM_VMEMMAP does nothing. But even if
+we use SPARSEMEM_VMEMMAP, we can unregister the memory_section.
 
-One way, which sparc64 uses, is to let the set_*_at() functions
-accumulate pending flushes into a per-cpu array.  Then the
-flush_tlb_range() et al. calls process the pending TLB flushes.
+So the patch add unregister_memory_section() into __remove_section().
 
-In this regime, the __tlb_remove_*tlb_entry() implementations are
-essentially NOPs.
-
-The canonical PTE zap in mm/memory.c is:
-
-			ptent = ptep_get_and_clear_full(mm, addr, pte,
-							tlb->fullmm);
-			tlb_remove_tlb_entry(tlb, pte, addr);
-
-With a subsequent tlb_flush_mmu() if needed.
-
-Mirror this in the THP PMD zapping using:
-
-		orig_pmd = pmdp_get_and_clear(tlb->mm, addr, pmd);
-		page = pmd_page(orig_pmd);
-		tlb_remove_pmd_tlb_entry(tlb, pmd, addr);
-
-And we properly accomodate TLB flush mechanims like the one described
-above.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+CC: David Rientjes <rientjes@google.com>
+CC: Jiang Liu <liuj97@gmail.com>
+CC: Len Brown <len.brown@intel.com>
+CC: Christoph Lameter <cl@linux.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+CC: Andrew Morton <akpm@linux-foundation.org>
+CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+CC: Wen Congyang <wency@cn.fujitsu.com>
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 ---
- mm/huge_memory.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/memory_hotplug.c |   13 ++++++++-----
+ 1 files changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index 20eeb2b..2fa0c59 100644
---- a/mm/huge_memory.c
-+++ b/mm/huge_memory.c
-@@ -996,9 +996,10 @@ int zap_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
- 	if (__pmd_trans_huge_lock(pmd, vma) = 1) {
- 		struct page *page;
- 		pgtable_t pgtable;
-+		pmd_t orig_pmd;
- 		pgtable = pgtable_trans_huge_withdraw(tlb->mm);
--		page = pmd_page(*pmd);
--		pmd_clear(pmd);
-+		orig_pmd = pmdp_get_and_clear(tlb->mm, addr, pmd);
-+		page = pmd_page(orig_pmd);
- 		tlb_remove_pmd_tlb_entry(tlb, pmd, addr);
- 		page_remove_rmap(page);
- 		VM_BUG_ON(page_mapcount(page) < 0);
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index ca07433..66a79a7 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -286,11 +286,14 @@ static int __meminit __add_section(int nid, struct zone *zone,
+ #ifdef CONFIG_SPARSEMEM_VMEMMAP
+ static int __remove_section(struct zone *zone, struct mem_section *ms)
+ {
+-	/*
+-	 * XXX: Freeing memmap with vmemmap is not implement yet.
+-	 *      This should be removed later.
+-	 */
+-	return -EBUSY;
++	int ret = -EINVAL;
++
++	if (!valid_section(ms))
++		return ret;
++
++	ret = unregister_memory_section(ms);
++
++	return ret;
+ }
+ #else
+ static int __remove_section(struct zone *zone, struct mem_section *ms)
 -- 
-1.7.10.4
+1.7.1
 
