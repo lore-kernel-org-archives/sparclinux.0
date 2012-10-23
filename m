@@ -1,7 +1,7 @@
 From: wency@cn.fujitsu.com
-Date: Tue, 23 Oct 2012 10:30:39 +0000
-Subject: [PATCH v2 01/12] memory-hotplug: try to offline the memory twice to avoid dependence
-Message-Id: <1350988250-31294-2-git-send-email-wency@cn.fujitsu.com>
+Date: Tue, 23 Oct 2012 10:30:50 +0000
+Subject: [PATCH v2 12/12] memory-hotplug: free node_data when a node is offlined
+Message-Id: <1350988250-31294-13-git-send-email-wency@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1350988250-31294-1-git-send-email-wency@cn.fujitsu.com>
 In-Reply-To: <1350988250-31294-1-git-send-email-wency@cn.fujitsu.com>
@@ -13,28 +13,14 @@ Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.cras
 
 From: Wen Congyang <wency@cn.fujitsu.com>
 
-memory can't be offlined when CONFIG_MEMCG is selected.
-For example: there is a memory device on node 1. The address range
-is [1G, 1.5G). You will find 4 new directories memory8, memory9, memory10,
-and memory11 under the directory /sys/devices/system/memory/.
-
-If CONFIG_MEMCG is selected, we will allocate memory to store page cgroup
-when we online pages. When we online memory8, the memory stored page cgroup
-is not provided by this memory device. But when we online memory9, the memory
-stored page cgroup may be provided by memory8. So we can't offline memory8
-now. We should offline the memory in the reversed order.
-
-When the memory device is hotremoved, we will auto offline memory provided
-by this memory device. But we don't know which memory is onlined first, so
-offlining memory may fail. In such case, iterate twice to offline the memory.
-1st iterate: offline every non primary memory block.
-2nd iterate: offline primary (i.e. first added) memory block.
-
-This idea is suggested by KOSAKI Motohiro.
+We call hotadd_new_pgdat() to allocate memory to store node_data. So we
+should free it when removing a node.
 
 CC: David Rientjes <rientjes@google.com>
 CC: Jiang Liu <liuj97@gmail.com>
 CC: Len Brown <len.brown@intel.com>
+CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+CC: Paul Mackerras <paulus@samba.org>
 CC: Christoph Lameter <cl@linux.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
 CC: Andrew Morton <akpm@linux-foundation.org>
@@ -42,53 +28,49 @@ CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
 ---
- mm/memory_hotplug.c |   16 ++++++++++++++--
- 1 files changed, 14 insertions(+), 2 deletions(-)
+ mm/memory_hotplug.c |   20 +++++++++++++++++++-
+ 1 files changed, 19 insertions(+), 1 deletions(-)
 
 diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 56b758a..600e200 100644
+index b1fe41d..6b4cd53 100644
 --- a/mm/memory_hotplug.c
 +++ b/mm/memory_hotplug.c
-@@ -1019,10 +1019,13 @@ int remove_memory(u64 start, u64 size)
- 	unsigned long start_pfn, end_pfn;
- 	unsigned long pfn, section_nr;
- 	int ret;
-+	int return_on_error = 0;
-+	int retry = 0;
+@@ -1320,9 +1320,12 @@ static int check_cpu_on_node(void *data)
+ /* offline the node if all memory sections of this node are removed */
+ static void try_offline_node(int nid)
+ {
++	pg_data_t *pgdat = NODE_DATA(nid);
+ 	unsigned long start_pfn = NODE_DATA(nid)->node_start_pfn;
+-	unsigned long end_pfn = start_pfn + NODE_DATA(nid)->node_spanned_pages;
++	unsigned long end_pfn = start_pfn + pgdat->node_spanned_pages;
+ 	unsigned long pfn;
++	struct page *pgdat_page = virt_to_page(pgdat);
++	int i;
  
- 	start_pfn = PFN_DOWN(start);
- 	end_pfn = start_pfn + PFN_DOWN(size);
- 
-+repeat:
  	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
- 		section_nr = pfn_to_section_nr(pfn);
- 		if (!present_section_nr(section_nr))
-@@ -1041,14 +1044,23 @@ int remove_memory(u64 start, u64 size)
- 
- 		ret = offline_memory_block(mem);
- 		if (ret) {
--			kobject_put(&mem->dev.kobj);
--			return ret;
-+			if (return_on_error) {
-+				kobject_put(&mem->dev.kobj);
-+				return ret;
-+			} else {
-+				retry = 1;
-+			}
- 		}
- 	}
- 
- 	if (mem)
- 		kobject_put(&mem->dev.kobj);
- 
-+	if (retry) {
-+		return_on_error = 1;
-+		goto repeat;
+ 		unsigned long section_nr = pfn_to_section_nr(pfn);
+@@ -1349,6 +1352,21 @@ static void try_offline_node(int nid)
+ 	 */
+ 	node_set_offline(nid);
+ 	unregister_one_node(nid);
++
++	if (!PageSlab(pgdat_page) && !PageCompound(pgdat_page))
++		/* node data is allocated from boot memory */
++		return;
++
++	/* free waittable in each zone */
++	for (i = 0; i < MAX_NR_ZONES; i++) {
++		struct zone *zone = pgdat->node_zones + i;
++
++		if (zone->wait_table)
++			vfree(zone->wait_table);
 +	}
 +
- 	return 0;
++	arch_refresh_nodedata(nid, NULL);
++	arch_free_nodedata(pgdat);
  }
- #else
+ 
+ int __ref remove_memory(int nid, u64 start, u64 size)
 -- 
 1.7.1
 
