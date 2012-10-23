@@ -1,314 +1,329 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 04 Oct 2012 19:46:38 +0000
-Subject: [PATCH v2 1/7] sparc64: Only support 4MB huge pages and 8KB base pages.
-Message-Id: <20121004.154638.1706593979706946289.davem@davemloft.net>
+From: wency@cn.fujitsu.com
+Date: Tue, 23 Oct 2012 10:30:46 +0000
+Subject: [PATCH v2 08/12] memory-hotplug: remove memmap of sparse-vmemmap
+Message-Id: <1350988250-31294-9-git-send-email-wency@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1350988250-31294-1-git-send-email-wency@cn.fujitsu.com>
+In-Reply-To: <1350988250-31294-1-git-send-email-wency@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, akpm@linux-foundation.org, aarcange@redhat.com, hannes@cmpxchg.org
+To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
 
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-Narrowing the scope of the page size configurations will make the
-transparent hugepage changes much simpler.
+All pages of virtual mapping in removed memory cannot be freed, since some pages
+used as PGD/PUD includes not only removed memory but also other memory. So the
+patch checks whether page can be freed or not.
 
-In the end what we really want to do is have the kernel support
-multiple huge page sizes and use whatever is appropriate as the
-context dictactes.
+How to check whether page can be freed or not?
+ 1. When removing memory, the page structs of the revmoved memory are filled
+    with 0FD.
+ 2. All page structs are filled with 0xFD on PT/PMD, PT/PMD can be cleared.
+    In this case, the page used as PT/PMD can be freed.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Applying patch, __remove_section() of CONFIG_SPARSEMEM_VMEMMAP is integrated
+into one. So __remove_section() of CONFIG_SPARSEMEM_VMEMMAP is deleted.
+
+Note:  vmemmap_kfree() and vmemmap_free_bootmem() are not implemented for ia64,
+ppc, s390, and sparc.
+
+CC: David Rientjes <rientjes@google.com>
+CC: Jiang Liu <liuj97@gmail.com>
+CC: Len Brown <len.brown@intel.com>
+CC: Christoph Lameter <cl@linux.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+CC: Andrew Morton <akpm@linux-foundation.org>
+CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+CC: Wen Congyang <wency@cn.fujitsu.com>
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 ---
- arch/sparc/Kconfig                  |   36 -------------------------------
- arch/sparc/include/asm/mmu_64.h     |   16 +-------------
- arch/sparc/include/asm/page_64.h    |   12 -----------
- arch/sparc/include/asm/pgtable_64.h |   40 ++++++-----------------------------
- arch/sparc/mm/init_64.c             |    9 ++------
- arch/sparc/mm/tsb.c                 |   17 ---------------
- 6 files changed, 9 insertions(+), 121 deletions(-)
+ arch/ia64/mm/discontig.c  |    8 +++
+ arch/powerpc/mm/init_64.c |    8 +++
+ arch/s390/mm/vmem.c       |    8 +++
+ arch/sparc/mm/init_64.c   |    8 +++
+ arch/x86/mm/init_64.c     |  119 +++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/mm.h        |    2 +
+ mm/memory_hotplug.c       |   17 +------
+ mm/sparse.c               |    5 +-
+ 8 files changed, 158 insertions(+), 17 deletions(-)
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index 67f1f6f..030f77f 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -226,25 +226,6 @@ config EARLYFB
- 	help
- 	  Say Y here to enable a faster early framebuffer boot console.
+diff --git a/arch/ia64/mm/discontig.c b/arch/ia64/mm/discontig.c
+index 33943db..0d23b69 100644
+--- a/arch/ia64/mm/discontig.c
++++ b/arch/ia64/mm/discontig.c
+@@ -823,6 +823,14 @@ int __meminit vmemmap_populate(struct page *start_page,
+ 	return vmemmap_populate_basepages(start_page, size, node);
+ }
  
--choice
--	prompt "Kernel page size" if SPARC64
--	default SPARC64_PAGE_SIZE_8KB
--
--config SPARC64_PAGE_SIZE_8KB
--	bool "8KB"
--	help
--	  This lets you select the page size of the kernel.
--
--	  8KB and 64KB work quite well, since SPARC ELF sections
--	  provide for up to 64KB alignment.
--
--	  If you don't know what to do, choose 8KB.
--
--config SPARC64_PAGE_SIZE_64KB
--	bool "64KB"
--
--endchoice
--
- config SECCOMP
- 	bool "Enable seccomp to safely compute untrusted bytecode"
- 	depends on SPARC64 && PROC_FS
-@@ -316,23 +297,6 @@ config GENERIC_LOCKBREAK
- 	default y
- 	depends on SPARC64 && SMP && PREEMPT
- 
--choice
--	prompt "SPARC64 Huge TLB Page Size"
--	depends on SPARC64 && HUGETLB_PAGE
--	default HUGETLB_PAGE_SIZE_4MB
--
--config HUGETLB_PAGE_SIZE_4MB
--	bool "4MB"
--
--config HUGETLB_PAGE_SIZE_512K
--	bool "512K"
--
--config HUGETLB_PAGE_SIZE_64K
--	depends on !SPARC64_PAGE_SIZE_64KB
--	bool "64K"
--
--endchoice
--
- config NUMA
- 	bool "NUMA support"
- 	depends on SPARC64 && SMP
-diff --git a/arch/sparc/include/asm/mmu_64.h b/arch/sparc/include/asm/mmu_64.h
-index 9067dc5..5fb97e1 100644
---- a/arch/sparc/include/asm/mmu_64.h
-+++ b/arch/sparc/include/asm/mmu_64.h
-@@ -30,22 +30,8 @@
- #define CTX_PGSZ_MASK		((CTX_PGSZ_BITS << CTX_PGSZ0_SHIFT) | \
- 				 (CTX_PGSZ_BITS << CTX_PGSZ1_SHIFT))
- 
--#if defined(CONFIG_SPARC64_PAGE_SIZE_8KB)
- #define CTX_PGSZ_BASE	CTX_PGSZ_8KB
--#elif defined(CONFIG_SPARC64_PAGE_SIZE_64KB)
--#define CTX_PGSZ_BASE	CTX_PGSZ_64KB
--#else
--#error No page size specified in kernel configuration
--#endif
--
--#if defined(CONFIG_HUGETLB_PAGE_SIZE_4MB)
--#define CTX_PGSZ_HUGE		CTX_PGSZ_4MB
--#elif defined(CONFIG_HUGETLB_PAGE_SIZE_512K)
--#define CTX_PGSZ_HUGE		CTX_PGSZ_512KB
--#elif defined(CONFIG_HUGETLB_PAGE_SIZE_64K)
--#define CTX_PGSZ_HUGE		CTX_PGSZ_64KB
--#endif
--
-+#define CTX_PGSZ_HUGE	CTX_PGSZ_4MB
- #define CTX_PGSZ_KERN	CTX_PGSZ_4MB
- 
- /* Thus, when running on UltraSPARC-III+ and later, we use the following
-diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
-index f0d09b4..b2df9b8 100644
---- a/arch/sparc/include/asm/page_64.h
-+++ b/arch/sparc/include/asm/page_64.h
-@@ -3,13 +3,7 @@
- 
- #include <linux/const.h>
- 
--#if defined(CONFIG_SPARC64_PAGE_SIZE_8KB)
- #define PAGE_SHIFT   13
--#elif defined(CONFIG_SPARC64_PAGE_SIZE_64KB)
--#define PAGE_SHIFT   16
--#else
--#error No page size specified in kernel configuration
--#endif
- 
- #define PAGE_SIZE    (_AC(1,UL) << PAGE_SHIFT)
- #define PAGE_MASK    (~(PAGE_SIZE-1))
-@@ -21,13 +15,7 @@
- #define DCACHE_ALIASING_POSSIBLE
- #endif
- 
--#if defined(CONFIG_HUGETLB_PAGE_SIZE_4MB)
- #define HPAGE_SHIFT		22
--#elif defined(CONFIG_HUGETLB_PAGE_SIZE_512K)
--#define HPAGE_SHIFT		19
--#elif defined(CONFIG_HUGETLB_PAGE_SIZE_64K)
--#define HPAGE_SHIFT		16
--#endif
- 
- #ifdef CONFIG_HUGETLB_PAGE
- #define HPAGE_SIZE		(_AC(1,UL) << HPAGE_SHIFT)
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 61210db..387d484 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -160,26 +160,11 @@
- #define _PAGE_SZ8K_4V	  _AC(0x0000000000000000,UL) /* 8K Page              */
- #define _PAGE_SZALL_4V	  _AC(0x0000000000000007,UL) /* All pgsz bits        */
- 
--#if PAGE_SHIFT = 13
- #define _PAGE_SZBITS_4U	_PAGE_SZ8K_4U
- #define _PAGE_SZBITS_4V	_PAGE_SZ8K_4V
--#elif PAGE_SHIFT = 16
--#define _PAGE_SZBITS_4U	_PAGE_SZ64K_4U
--#define _PAGE_SZBITS_4V	_PAGE_SZ64K_4V
--#else
--#error Wrong PAGE_SHIFT specified
--#endif
- 
--#if defined(CONFIG_HUGETLB_PAGE_SIZE_4MB)
- #define _PAGE_SZHUGE_4U	_PAGE_SZ4MB_4U
- #define _PAGE_SZHUGE_4V	_PAGE_SZ4MB_4V
--#elif defined(CONFIG_HUGETLB_PAGE_SIZE_512K)
--#define _PAGE_SZHUGE_4U	_PAGE_SZ512K_4U
--#define _PAGE_SZHUGE_4V	_PAGE_SZ512K_4V
--#elif defined(CONFIG_HUGETLB_PAGE_SIZE_64K)
--#define _PAGE_SZHUGE_4U	_PAGE_SZ64K_4U
--#define _PAGE_SZHUGE_4V	_PAGE_SZ64K_4V
--#endif
- 
- /* These are actually filled in at boot time by sun4{u,v}_pgprot_init() */
- #define __P000	__pgprot(0)
-@@ -218,7 +203,6 @@ extern unsigned long _PAGE_CACHE;
- 
- extern unsigned long pg_iobits;
- extern unsigned long _PAGE_ALL_SZ_BITS;
--extern unsigned long _PAGE_SZBITS;
- 
- extern struct page *mem_map_zero;
- #define ZERO_PAGE(vaddr)	(mem_map_zero)
-@@ -231,22 +215,9 @@ extern struct page *mem_map_zero;
- static inline pte_t pfn_pte(unsigned long pfn, pgprot_t prot)
- {
- 	unsigned long paddr = pfn << PAGE_SHIFT;
--	unsigned long sz_bits;
--
--	sz_bits = 0UL;
--	if (_PAGE_SZBITS_4U != 0UL || _PAGE_SZBITS_4V != 0UL) {
--		__asm__ __volatile__(
--		"\n661:	sethi		%%uhi(%1), %0\n"
--		"	sllx		%0, 32, %0\n"
--		"	.section	.sun4v_2insn_patch, \"ax\"\n"
--		"	.word		661b\n"
--		"	mov		%2, %0\n"
--		"	nop\n"
--		"	.previous\n"
--		: "=r" (sz_bits)
--		: "i" (_PAGE_SZBITS_4U), "i" (_PAGE_SZBITS_4V));
--	}
--	return __pte(paddr | sz_bits | pgprot_val(prot));
++void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
++{
++}
 +
-+	BUILD_BUG_ON(_PAGE_SZBITS_4U != 0UL || _PAGE_SZBITS_4V != 0UL);
-+	return __pte(paddr | pgprot_val(prot));
++void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
++{
++}
++
+ void register_page_bootmem_memmap(unsigned long section_nr,
+ 				  struct page *start_page, unsigned long size)
+ {
+diff --git a/arch/powerpc/mm/init_64.c b/arch/powerpc/mm/init_64.c
+index 6466440..df7d155 100644
+--- a/arch/powerpc/mm/init_64.c
++++ b/arch/powerpc/mm/init_64.c
+@@ -298,6 +298,14 @@ int __meminit vmemmap_populate(struct page *start_page,
+ 	return 0;
  }
- #define mk_pte(page, pgprot)	pfn_pte(page_to_pfn(page), (pgprot))
  
-@@ -286,6 +257,7 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t prot)
- 	 * Note: We encode this into 3 sun4v 2-insn patch sequences.
- 	 */
- 
-+	BUILD_BUG_ON(_PAGE_SZBITS_4U != 0UL || _PAGE_SZBITS_4V != 0UL);
- 	__asm__ __volatile__(
- 	"\n661:	sethi		%%uhi(%2), %1\n"
- 	"	sethi		%%hi(%2), %0\n"
-@@ -307,10 +279,10 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t prot)
- 	: "=r" (mask), "=r" (tmp)
- 	: "i" (_PAGE_PADDR_4U | _PAGE_MODIFIED_4U | _PAGE_ACCESSED_4U |
- 	       _PAGE_CP_4U | _PAGE_CV_4U | _PAGE_E_4U | _PAGE_PRESENT_4U |
--	       _PAGE_SZBITS_4U | _PAGE_SPECIAL),
-+	       _PAGE_SPECIAL),
- 	  "i" (_PAGE_PADDR_4V | _PAGE_MODIFIED_4V | _PAGE_ACCESSED_4V |
- 	       _PAGE_CP_4V | _PAGE_CV_4V | _PAGE_E_4V | _PAGE_PRESENT_4V |
--	       _PAGE_SZBITS_4V | _PAGE_SPECIAL));
-+	       _PAGE_SPECIAL));
- 
- 	return __pte((pte_val(pte) & mask) | (pgprot_val(prot) & ~mask));
++void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
++{
++}
++
++void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
++{
++}
++
+ void register_page_bootmem_memmap(unsigned long section_nr,
+ 				  struct page *start_page, unsigned long size)
+ {
+diff --git a/arch/s390/mm/vmem.c b/arch/s390/mm/vmem.c
+index 4f4803a..ab69c34 100644
+--- a/arch/s390/mm/vmem.c
++++ b/arch/s390/mm/vmem.c
+@@ -236,6 +236,14 @@ out:
+ 	return ret;
  }
+ 
++void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
++{
++}
++
++void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
++{
++}
++
+ void register_page_bootmem_memmap(unsigned long section_nr,
+ 				  struct page *start_page, unsigned long size)
+ {
 diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 7a9b788..809eecf 100644
+index 75a984b..546855d 100644
 --- a/arch/sparc/mm/init_64.c
 +++ b/arch/sparc/mm/init_64.c
-@@ -276,7 +276,6 @@ static inline void tsb_insert(struct tsb *ent, unsigned long tag, unsigned long
+@@ -2232,6 +2232,14 @@ void __meminit vmemmap_populate_print_last(void)
+ 	}
  }
  
- unsigned long _PAGE_ALL_SZ_BITS __read_mostly;
--unsigned long _PAGE_SZBITS __read_mostly;
- 
- static void flush_dcache(unsigned long pfn)
++void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
++{
++}
++
++void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
++{
++}
++
+ void register_page_bootmem_memmap(unsigned long section_nr,
+ 				  struct page *start_page, unsigned long size)
  {
-@@ -2275,8 +2274,7 @@ static void __init sun4u_pgprot_init(void)
- 		     __ACCESS_BITS_4U | _PAGE_E_4U);
- 
- #ifdef CONFIG_DEBUG_PAGEALLOC
--	kern_linear_pte_xor[0] = (_PAGE_VALID | _PAGE_SZBITS_4U) ^
--		0xfffff80000000000UL;
-+	kern_linear_pte_xor[0] = _PAGE_VALID ^ 0xfffff80000000000UL;
- #else
- 	kern_linear_pte_xor[0] = (_PAGE_VALID | _PAGE_SZ4MB_4U) ^
- 		0xfffff80000000000UL;
-@@ -2287,7 +2285,6 @@ static void __init sun4u_pgprot_init(void)
- 	for (i = 1; i < 4; i++)
- 		kern_linear_pte_xor[i] = kern_linear_pte_xor[0];
- 
--	_PAGE_SZBITS = _PAGE_SZBITS_4U;
- 	_PAGE_ALL_SZ_BITS =  (_PAGE_SZ4MB_4U | _PAGE_SZ512K_4U |
- 			      _PAGE_SZ64K_4U | _PAGE_SZ8K_4U |
- 			      _PAGE_SZ32MB_4U | _PAGE_SZ256MB_4U);
-@@ -2324,8 +2321,7 @@ static void __init sun4v_pgprot_init(void)
- 	_PAGE_CACHE = _PAGE_CACHE_4V;
- 
- #ifdef CONFIG_DEBUG_PAGEALLOC
--	kern_linear_pte_xor[0] = (_PAGE_VALID | _PAGE_SZBITS_4V) ^
--		0xfffff80000000000UL;
-+	kern_linear_pte_xor[0] = _PAGE_VALID ^ 0xfffff80000000000UL;
- #else
- 	kern_linear_pte_xor[0] = (_PAGE_VALID | _PAGE_SZ4MB_4V) ^
- 		0xfffff80000000000UL;
-@@ -2339,7 +2335,6 @@ static void __init sun4v_pgprot_init(void)
- 	pg_iobits = (_PAGE_VALID | _PAGE_PRESENT_4V | __DIRTY_BITS_4V |
- 		     __ACCESS_BITS_4V | _PAGE_E_4V);
- 
--	_PAGE_SZBITS = _PAGE_SZBITS_4V;
- 	_PAGE_ALL_SZ_BITS = (_PAGE_SZ16GB_4V | _PAGE_SZ2GB_4V |
- 			     _PAGE_SZ256MB_4V | _PAGE_SZ32MB_4V |
- 			     _PAGE_SZ4MB_4V | _PAGE_SZ512K_4V |
-diff --git a/arch/sparc/mm/tsb.c b/arch/sparc/mm/tsb.c
-index c52add7..70e50ea 100644
---- a/arch/sparc/mm/tsb.c
-+++ b/arch/sparc/mm/tsb.c
-@@ -90,29 +90,12 @@ void flush_tsb_user(struct tlb_batch *tb)
- 	spin_unlock_irqrestore(&mm->context.lock, flags);
+diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+index f1e2c21..73b1b6a 100644
+--- a/arch/x86/mm/init_64.c
++++ b/arch/x86/mm/init_64.c
+@@ -993,6 +993,125 @@ vmemmap_populate(struct page *start_page, unsigned long size, int node)
+ 	return 0;
  }
  
--#if defined(CONFIG_SPARC64_PAGE_SIZE_8KB)
- #define HV_PGSZ_IDX_BASE	HV_PGSZ_IDX_8K
- #define HV_PGSZ_MASK_BASE	HV_PGSZ_MASK_8K
--#elif defined(CONFIG_SPARC64_PAGE_SIZE_64KB)
--#define HV_PGSZ_IDX_BASE	HV_PGSZ_IDX_64K
--#define HV_PGSZ_MASK_BASE	HV_PGSZ_MASK_64K
++#define PAGE_INUSE 0xFD
++
++unsigned long find_and_clear_pte_page(unsigned long addr, unsigned long end,
++			    struct page **pp, int *page_size)
++{
++	pgd_t *pgd;
++	pud_t *pud;
++	pmd_t *pmd;
++	pte_t *pte = NULL;
++	void *page_addr;
++	unsigned long next;
++
++	*pp = NULL;
++
++	pgd = pgd_offset_k(addr);
++	if (pgd_none(*pgd))
++		return pgd_addr_end(addr, end);
++
++	pud = pud_offset(pgd, addr);
++	if (pud_none(*pud))
++		return pud_addr_end(addr, end);
++
++	if (!cpu_has_pse) {
++		next = (addr + PAGE_SIZE) & PAGE_MASK;
++		pmd = pmd_offset(pud, addr);
++		if (pmd_none(*pmd))
++			return next;
++
++		pte = pte_offset_kernel(pmd, addr);
++		if (pte_none(*pte))
++			return next;
++
++		*page_size = PAGE_SIZE;
++		*pp = pte_page(*pte);
++	} else {
++		next = pmd_addr_end(addr, end);
++
++		pmd = pmd_offset(pud, addr);
++		if (pmd_none(*pmd))
++			return next;
++
++		*page_size = PMD_SIZE;
++		*pp = pmd_page(*pmd);
++	}
++
++	/*
++	 * Removed page structs are filled with 0xFD.
++	 */
++	memset((void *)addr, PAGE_INUSE, next - addr);
++
++	page_addr = page_address(*pp);
++
++	/*
++	 * Check the page is filled with 0xFD or not.
++	 * memchr_inv() returns the address. In this case, we cannot
++	 * clear PTE/PUD entry, since the page is used by other.
++	 * So we cannot also free the page.
++	 *
++	 * memchr_inv() returns NULL. In this case, we can clear
++	 * PTE/PUD entry, since the page is not used by other.
++	 * So we can also free the page.
++	 */
++	if (memchr_inv(page_addr, PAGE_INUSE, *page_size)) {
++		*pp = NULL;
++		return next;
++	}
++
++	if (!cpu_has_pse)
++		pte_clear(&init_mm, addr, pte);
++	else
++		pmd_clear(pmd);
++
++	return next;
++}
++
++void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
++{
++	unsigned long addr = (unsigned long)memmap;
++	unsigned long end = (unsigned long)(memmap + nr_pages);
++	unsigned long next;
++	struct page *page;
++	int page_size;
++
++	for (; addr < end; addr = next) {
++		page = NULL;
++		page_size = 0;
++		next = find_and_clear_pte_page(addr, end, &page, &page_size);
++		if (!page)
++			continue;
++
++		free_pages((unsigned long)page_address(page),
++			    get_order(page_size));
++		__flush_tlb_one(addr);
++	}
++}
++
++void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
++{
++	unsigned long addr = (unsigned long)memmap;
++	unsigned long end = (unsigned long)(memmap + nr_pages);
++	unsigned long next;
++	struct page *page;
++	int page_size;
++	unsigned long magic;
++
++	for (; addr < end; addr = next) {
++		page = NULL;
++		page_size = 0;
++		next = find_and_clear_pte_page(addr, end, &page, &page_size);
++		if (!page)
++			continue;
++
++		magic = (unsigned long) page->lru.next;
++		if (magic = SECTION_INFO)
++			put_page_bootmem(page);
++		flush_tlb_kernel_range(addr, end);
++	}
++}
++
+ void register_page_bootmem_memmap(unsigned long section_nr,
+ 				  struct page *start_page, unsigned long size)
+ {
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 8e5a56f..42b8723 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1642,6 +1642,8 @@ int vmemmap_populate(struct page *start_page, unsigned long pages, int node);
+ void vmemmap_populate_print_last(void);
+ void register_page_bootmem_memmap(unsigned long section_nr, struct page *map,
+ 				  unsigned long size);
++void vmemmap_kfree(struct page *memmpa, unsigned long nr_pages);
++void vmemmap_free_bootmem(struct page *memmpa, unsigned long nr_pages);
+ 
+ enum mf_flags {
+ 	MF_COUNT_INCREASED = 1 << 0,
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index db9806c..03153cf 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -312,19 +312,6 @@ static int __meminit __add_section(int nid, struct zone *zone,
+ 	return register_new_memory(nid, __pfn_to_section(phys_start_pfn));
+ }
+ 
+-#ifdef CONFIG_SPARSEMEM_VMEMMAP
+-static int __remove_section(struct zone *zone, struct mem_section *ms)
+-{
+-	int ret = -EINVAL;
+-
+-	if (!valid_section(ms))
+-		return ret;
+-
+-	ret = unregister_memory_section(ms);
+-
+-	return ret;
+-}
 -#else
--#error Broken base page size setting...
+ static int __remove_section(struct zone *zone, struct mem_section *ms)
+ {
+ 	unsigned long flags;
+@@ -341,9 +328,9 @@ static int __remove_section(struct zone *zone, struct mem_section *ms)
+ 	pgdat_resize_lock(pgdat, &flags);
+ 	sparse_remove_one_section(zone, ms);
+ 	pgdat_resize_unlock(pgdat, &flags);
+-	return 0;
++
++	return ret;
+ }
 -#endif
  
- #ifdef CONFIG_HUGETLB_PAGE
--#if defined(CONFIG_HUGETLB_PAGE_SIZE_64K)
--#define HV_PGSZ_IDX_HUGE	HV_PGSZ_IDX_64K
--#define HV_PGSZ_MASK_HUGE	HV_PGSZ_MASK_64K
--#elif defined(CONFIG_HUGETLB_PAGE_SIZE_512K)
--#define HV_PGSZ_IDX_HUGE	HV_PGSZ_IDX_512K
--#define HV_PGSZ_MASK_HUGE	HV_PGSZ_MASK_512K
--#elif defined(CONFIG_HUGETLB_PAGE_SIZE_4MB)
- #define HV_PGSZ_IDX_HUGE	HV_PGSZ_IDX_4MB
- #define HV_PGSZ_MASK_HUGE	HV_PGSZ_MASK_4MB
--#else
--#error Broken huge page size setting...
--#endif
- #endif
- 
- static void setup_tsb_params(struct mm_struct *mm, unsigned long tsb_idx, unsigned long tsb_bytes)
+ /*
+  * Reasonably generic function for adding memory.  It is
+diff --git a/mm/sparse.c b/mm/sparse.c
+index fac95f2..ab9d755 100644
+--- a/mm/sparse.c
++++ b/mm/sparse.c
+@@ -613,12 +613,13 @@ static inline struct page *kmalloc_section_memmap(unsigned long pnum, int nid,
+ 	/* This will make the necessary allocations eventually. */
+ 	return sparse_mem_map_populate(pnum, nid);
+ }
+-static void __kfree_section_memmap(struct page *memmap, unsigned long nr_pages)
++static void __kfree_section_memmap(struct page *page, unsigned long nr_pages)
+ {
+-	return; /* XXX: Not implemented yet */
++	vmemmap_kfree(page, nr_pages);
+ }
+ static void free_map_bootmem(struct page *page, unsigned long nr_pages)
+ {
++	vmemmap_free_bootmem(page, nr_pages);
+ }
+ #else
+ static struct page *__kmalloc_section_memmap(unsigned long nr_pages)
 -- 
-1.7.10.4
+1.7.1
 
