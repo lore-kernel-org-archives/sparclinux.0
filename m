@@ -1,55 +1,40 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Date: Fri, 05 Oct 2012 02:31:07 +0000
-Subject: [PATCH 4/10] memory-hotplug : unregister memory section on SPARSEMEM_VMEMMAP
-Message-Id: <506E466B.4050903@jp.fujitsu.com>
+From: Shuah Khan <shuah@fc.hp.com>
+Date: Fri, 26 Oct 2012 00:38:29 +0000
+Subject: [PATCH RFT RESEND] sparc: dma-mapping: support debug_dma_mapping_error
+Message-Id: <1351211909.6851.26.camel@lorien2>
 List-Id: <sparclinux.vger.kernel.org>
-References: <506E43E0.70507@jp.fujitsu.com>
-In-Reply-To: <506E43E0.70507@jp.fujitsu.com>
+References: <1351211773.6851.24.camel@lorien2>
+In-Reply-To: <1351211773.6851.24.camel@lorien2>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
+To: davem@davemloft.net, kyungmin.park@samsung.com, sam@ravnborg.org, arnd@arndb.de, m.szyprowski@samsung.com
+Cc: sparclinux@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, shuahkhan@gmail.com
 
-Currently __remove_section for SPARSEMEM_VMEMMAP does nothing. But even if
-we use SPARSEMEM_VMEMMAP, we can unregister the memory_section.
+Add support for debug_dma_mapping_error() call to avoid warning from
+debug_dma_unmap() interface when it checks for mapping error checked
+status. Without this patch, device driver failed to check map error
+warning is generated.
 
-So the patch add unregister_memory_section() into __remove_section().
-
-CC: David Rientjes <rientjes@google.com>
-CC: Jiang Liu <liuj97@gmail.com>
-CC: Len Brown <len.brown@intel.com>
-CC: Christoph Lameter <cl@linux.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-CC: Andrew Morton <akpm@linux-foundation.org>
-CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com> 
-CC: Wen Congyang <wency@cn.fujitsu.com>
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Shuah Khan <shuah.khan@hp.com>
 ---
- mm/memory_hotplug.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ arch/sparc/include/asm/dma-mapping.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-Index: linux-3.6/mm/memory_hotplug.c
-=================================--- linux-3.6.orig/mm/memory_hotplug.c	2012-10-04 18:29:50.577668254 +0900
-+++ linux-3.6/mm/memory_hotplug.c	2012-10-04 18:29:58.284676075 +0900
-@@ -279,11 +279,14 @@ static int __meminit __add_section(int n
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
- static int __remove_section(struct zone *zone, struct mem_section *ms)
+diff --git a/arch/sparc/include/asm/dma-mapping.h b/arch/sparc/include/asm/dma-mapping.h
+index 8493fd3..05fe53f 100644
+--- a/arch/sparc/include/asm/dma-mapping.h
++++ b/arch/sparc/include/asm/dma-mapping.h
+@@ -59,6 +59,7 @@ static inline void dma_free_attrs(struct device *dev, size_t size,
+ 
+ static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
  {
--	/*
--	 * XXX: Freeing memmap with vmemmap is not implement yet.
--	 *      This should be removed later.
--	 */
--	return -EBUSY;
-+	int ret = -EINVAL;
-+
-+	if (!valid_section(ms))
-+		return ret;
-+
-+	ret = unregister_memory_section(ms);
-+
-+	return ret;
++	debug_dma_mapping_error(dev, dma_addr);
+ 	return (dma_addr = DMA_ERROR_CODE);
  }
- #else
- static int __remove_section(struct zone *zone, struct mem_section *ms)
+ 
+-- 
+1.7.9.5
+
+
 
