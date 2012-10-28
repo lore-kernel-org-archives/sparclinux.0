@@ -1,38 +1,69 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Fri, 05 Oct 2012 22:00:36 +0000
-Subject: Re: [PATCH v2 0/8] THP support for Sparc64
-Message-Id: <20121005150036.edd3be21.akpm@linux-foundation.org>
+From: David Miller <davem@davemloft.net>
+Date: Sun, 28 Oct 2012 06:13:33 +0000
+Subject: [PATCH 1/2] sparc64: Fix cpu strand yielding.
+Message-Id: <20121028.021333.1563327700655419230.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20121004.154624.923241475790311926.davem@davemloft.net>
-	<20121005143644.abb14c2b.akpm@linux-foundation.org>
-	<20121005.174508.1624534294642226949.davem@davemloft.net>
-In-Reply-To: <20121005.174508.1624534294642226949.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: linux-mm@kvack.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, aarcange@redhat.com, hannes@cmpxchg.org, mingo@elte.hu, a.p.zijlstra@chello.nl, torvalds@linux-foundation.org
+To: sparclinux@vger.kernel.org
 
-On Fri, 05 Oct 2012 17:45:08 -0400 (EDT)
-David Miller <davem@davemloft.net> wrote:
 
-> From: Andrew Morton <akpm@linux-foundation.org>
-> Date: Fri, 5 Oct 2012 14:36:44 -0700
-> 
-> > David, I don't know what to do until there's some clarity on the
-> > numa/sched changes.  Andrea has a new autonuma patchset, Peter's code
-> > is in -next and I don't know if it's planned for 3.7 merging.  And I
-> > suspect (hope) that it won't be merged if that is indeed planned.
-> 
-> It doesn't matter from a sparc64 perspective.
-> 
-> If you remove the autonuma patch, I'll still compile and work.
-> I just provide an unused interface. 
+For atomic backoff, we just loop over an exponentially backed off
+counter.  This is extremely ineffective as it doesn't actually yield
+the cpu strand so that other competing strands can use the cpu core.
 
-ah, OK.
+In cpus previous to SPARC-T4 we have to do this in a slightly hackish
+way, by doing an operation with no side effects that also happens to
+mark the strand as unavailable.
 
-> Please do something instead of stalling these changes further.
+The mechanism we choose for this is three reads of the %ccr
+(condition-code) register into %g0 (the zero register).
 
-OK, I'll add it all to the pile and will restage it against mainline on
-Monday.
+SPARC-T4 has an explicit "pause" instruction, and we'll make use of
+that in a subsequent commit.
+
+Yield strands also in cpu_relax().  We really should have done this a
+very long time ago.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/include/asm/backoff.h      | 5 ++++-
+ arch/sparc/include/asm/processor_64.h | 5 ++++-
+ 2 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/arch/sparc/include/asm/backoff.h b/arch/sparc/include/asm/backoff.h
+index db3af0d..64b077b 100644
+--- a/arch/sparc/include/asm/backoff.h
++++ b/arch/sparc/include/asm/backoff.h
+@@ -13,7 +13,10 @@
+ 
+ #define BACKOFF_SPIN(reg, tmp, label)	\
+ 	mov	reg, tmp; \
+-88:	brnz,pt	tmp, 88b; \
++88:	rd	%ccr, %g0; \
++	rd	%ccr, %g0; \
++	rd	%ccr, %g0; \
++	brnz,pt	tmp, 88b; \
+ 	 sub	tmp, 1, tmp; \
+ 	set	BACKOFF_LIMIT, tmp; \
+ 	cmp	reg, tmp; \
+diff --git a/arch/sparc/include/asm/processor_64.h b/arch/sparc/include/asm/processor_64.h
+index 4e5a483..9865634 100644
+--- a/arch/sparc/include/asm/processor_64.h
++++ b/arch/sparc/include/asm/processor_64.h
+@@ -196,7 +196,10 @@ extern unsigned long get_wchan(struct task_struct *task);
+ #define KSTK_EIP(tsk)  (task_pt_regs(tsk)->tpc)
+ #define KSTK_ESP(tsk)  (task_pt_regs(tsk)->u_regs[UREG_FP])
+ 
+-#define cpu_relax()	barrier()
++#define cpu_relax()	asm volatile("rd	%%ccr, %%g0\n\t" \
++				     "rd	%%ccr, %%g0\n\t" \
++				     "rd	%%ccr, %%g0" \
++				     ::: "memory")
+ 
+ /* Prefetch support.  This is tuned for UltraSPARC-III and later.
+  * UltraSPARC-I will treat these as nops, and UltraSPARC-II has
+-- 
+1.7.12.2.dirty
 
