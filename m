@@ -1,43 +1,49 @@
-From: Shuah Khan <shuah.khan@hp.com>
-Date: Fri, 26 Oct 2012 00:36:13 +0000
-Subject: [PATCH RFT] sparc: dma-mapping: support debug_dma_mapping_error
-Message-Id: <1351211773.6851.24.camel@lorien2>
+From: Andreas Larsson <andreas@gaisler.com>
+Date: Tue, 30 Oct 2012 09:26:56 +0000
+Subject: [PATCH v3] sparc: Add sparc support for platform_get_irq()
+Message-Id: <1351589216-15076-1-git-send-email-andreas@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <0b77f2a2dd52bc39c770491689efc752@gaisler.com>
+In-Reply-To: <0b77f2a2dd52bc39c770491689efc752@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, kyungmin.park@samsung.com, m.szyprowski@samsung.com, sam@ravnborg.org, arnd@arndb.de
-Cc: sparclinux@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, shuahkhan@gmail.com
+To: davem@davemloft.net, sparclinux@vger.kernel.org
+Cc: software@gaisler.com, sam@ravnborg.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org
 
-From 9e8feb61482288c5a5dd609e0dd17c1a262a48a3 Mon Sep 17 00:00:00 2001
-From: Shuah Khan <shuahkhan@gmail.com>
-Date: Thu, 25 Oct 2012 18:31:42 -0600
-Subject: [PATCH RFT] sparc: dma-mapping: support debug_dma_mapping_error
+This adds sparc support for platform_get_irq that in the normal case use
+platform_get_resource() to get an irq. This standard approach fails for sparc as
+there are no resources of type IORESOURCE_IRQ for irqs for sparc.
 
-Add support for debug_dma_mapping_error() call to avoid warning from
-debug_dma_unmap() interface when it checks for mapping error checked
-status. Without this patch, device driver failed to check map error
-warning is generated.
+Cross platform drivers can then use this standard platform function and work on
+sparc instead of having to have a special case for sparc.
 
-Signed-off-by: Shuah Khan <shuah.khan@hp.com>
+Signed-off-by: Andreas Larsson <andreas@gaisler.com>
 ---
- arch/sparc/include/asm/dma-mapping.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/base/platform.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
 
-diff --git a/arch/sparc/include/asm/dma-mapping.h b/arch/sparc/include/asm/dma-mapping.h
-index 8493fd3..05fe53f 100644
---- a/arch/sparc/include/asm/dma-mapping.h
-+++ b/arch/sparc/include/asm/dma-mapping.h
-@@ -59,6 +59,7 @@ static inline void dma_free_attrs(struct device *dev, size_t size,
- 
- static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
+diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+index ddeca14..9c2f828 100644
+--- a/drivers/base/platform.c
++++ b/drivers/base/platform.c
+@@ -82,9 +82,16 @@ EXPORT_SYMBOL_GPL(platform_get_resource);
+  */
+ int platform_get_irq(struct platform_device *dev, unsigned int num)
  {
-+	debug_dma_mapping_error(dev, dma_addr);
- 	return (dma_addr = DMA_ERROR_CODE);
++#ifdef CONFIG_SPARC
++	/* sparc does not have irqs represented as IORESOURCE_IRQ resources */
++	if (!dev || num >= dev->archdata.num_irqs)
++		return -ENXIO;
++	return dev->archdata.irqs[num];
++#else
+ 	struct resource *r = platform_get_resource(dev, IORESOURCE_IRQ, num);
+ 
+ 	return r ? r->start : -ENXIO;
++#endif
  }
+ EXPORT_SYMBOL_GPL(platform_get_irq);
  
 -- 
-1.7.9.5
-
-
+1.7.0.4
 
