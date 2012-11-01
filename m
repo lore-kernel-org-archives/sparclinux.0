@@ -1,55 +1,67 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 06 Nov 2012 17:41:33 +0000
-Subject: Re: [PATCH 15/16] mm: use vm_unmapped_area() on sparc32 architecture
-Message-Id: <20121106.124133.1287008316099748150.davem@davemloft.net>
+From: Meelis Roos <mroos@linux.ee>
+Date: Thu, 01 Nov 2012 19:22:19 +0000
+Subject: sparc64 crypto static linking problem
+Message-Id: <alpine.SOC.1.00.1211012117400.16377@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1352155633-8648-16-git-send-email-walken@google.com>
- <20121105.202501.1246122770431623794.davem@davemloft.net>
- <5098BC7F.7090702@redhat.com>
-In-Reply-To: <5098BC7F.7090702@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-From: Rik van Riel <riel@redhat.com>
-Date: Tue, 06 Nov 2012 02:30:07 -0500
+While trying 3.7.0-rc3-00075-g1e207eb on sparc64, I configured sparc64 
+versionis of the ciphers. Modular where my original cipher was modular 
+and static where my original cipher was static (config snippet below). 
+This results in linking error when multiple thing are static:
 
-> On 11/05/2012 08:25 PM, David Miller wrote:
->> From: Michel Lespinasse <walken@google.com>
->> Date: Mon,  5 Nov 2012 14:47:12 -0800
->>
->>> Update the sparc32 arch_get_unmapped_area function to make use of
->>> vm_unmapped_area() instead of implementing a brute force search.
->>>
->>> Signed-off-by: Michel Lespinasse <walken@google.com>
->>
->> Hmmm...
->>
->>> -	if (flags & MAP_SHARED)
->>> -		addr = COLOUR_ALIGN(addr);
->>> -	else
->>> -		addr = PAGE_ALIGN(addr);
->>
->> What part of vm_unmapped_area() is going to duplicate this special
->> aligning logic we need on sparc?
->>
-> 
-> That would be this part:
-> 
-> +found:
-> + /* We found a suitable gap. Clip it with the original low_limit. */
-> +	if (gap_start < info->low_limit)
-> +		gap_start = info->low_limit;
-> +
-> +	/* Adjust gap address to the desired alignment */
-> + gap_start += (info->align_offset - gap_start) & info->align_mask;
-> +
-> +	VM_BUG_ON(gap_start + info->length > info->high_limit);
-> +	VM_BUG_ON(gap_start + info->length > gap_end);
-> +	return gap_start;
-> +}
+ LD      arch/sparc/crypto/built-in.o
+arch/sparc/crypto/aes-sparc64.o:(.rodata+0x0): multiple definition of `__mod_of_device_table'
+arch/sparc/crypto/md5-sparc64.o:(.rodata+0x0): first defined here
+arch/sparc/crypto/crc32c-sparc64.o:(.rodata+0x0): multiple definition of `__mod_of_device_table'
+arch/sparc/crypto/md5-sparc64.o:(.rodata+0x0): first defined here
 
-Ok, now I understand.  Works for me:
 
-Acked-by: David S. Miller <davem@davemloft.net>
+CONFIG_CRYPTO_CRC32C=y
+CONFIG_CRYPTO_CRC32C_SPARC64=y
+# CONFIG_CRYPTO_GHASH is not set
+CONFIG_CRYPTO_MD4=m
+CONFIG_CRYPTO_MD5=y
+CONFIG_CRYPTO_MD5_SPARC64=y
+# CONFIG_CRYPTO_MICHAEL_MIC is not set
+# CONFIG_CRYPTO_RMD128 is not set
+# CONFIG_CRYPTO_RMD160 is not set
+# CONFIG_CRYPTO_RMD256 is not set
+# CONFIG_CRYPTO_RMD320 is not set
+CONFIG_CRYPTO_SHA1=m
+CONFIG_CRYPTO_SHA1_SPARC64=m
+CONFIG_CRYPTO_SHA256=m
+CONFIG_CRYPTO_SHA256_SPARC64=m
+# CONFIG_CRYPTO_SHA512 is not set
+# CONFIG_CRYPTO_SHA512_SPARC64 is not set
+# CONFIG_CRYPTO_TGR192 is not set
+# CONFIG_CRYPTO_WP512 is not set
+
+#
+# Ciphers
+#
+CONFIG_CRYPTO_AES=y
+CONFIG_CRYPTO_AES_SPARC64=y
+# CONFIG_CRYPTO_ANUBIS is not set
+CONFIG_CRYPTO_ARC4=m
+# CONFIG_CRYPTO_BLOWFISH is not set
+# CONFIG_CRYPTO_CAMELLIA is not set
+# CONFIG_CRYPTO_CAMELLIA_SPARC64 is not set
+# CONFIG_CRYPTO_CAST5 is not set
+# CONFIG_CRYPTO_CAST6 is not set
+CONFIG_CRYPTO_DES=m
+CONFIG_CRYPTO_DES_SPARC64=m
+# CONFIG_CRYPTO_FCRYPT is not set
+# CONFIG_CRYPTO_KHAZAD is not set
+# CONFIG_CRYPTO_SALSA20 is not set
+# CONFIG_CRYPTO_SEED is not set
+# CONFIG_CRYPTO_SERPENT is not set
+# CONFIG_CRYPTO_TEA is not set
+# CONFIG_CRYPTO_TWOFISH is not set
+
+
+-- 
+Meelis Roos (mroos@linux.ee)
