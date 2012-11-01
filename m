@@ -1,68 +1,74 @@
-From: Michel Lespinasse <walken@google.com>
-Date: Mon, 05 Nov 2012 22:47:01 +0000
-Subject: [PATCH 04/16] mm: rearrange vm_area_struct for fewer cache misses
-Message-Id: <1352155633-8648-5-git-send-email-walken@google.com>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Date: Thu, 01 Nov 2012 09:44:43 +0000
+Subject: [PATCH v3 12/12] memory-hotplug: free node_data when a node is offlined
+Message-Id: <1351763083-7905-13-git-send-email-wency@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1352155633-8648-1-git-send-email-walken@google.com>
-In-Reply-To: <1352155633-8648-1-git-send-email-walken@google.com>
+References: <1351763083-7905-1-git-send-email-wency@cn.fujitsu.com>
+In-Reply-To: <1351763083-7905-1-git-send-email-wency@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+Cc: David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jianguo Wu <wujianguo@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>
 
-From: Rik van Riel <riel@surriel.com>
+We call hotadd_new_pgdat() to allocate memory to store node_data. So we
+should free it when removing a node.
 
-The kernel walks the VMA rbtree in various places, including
-the page fault path.  However, the vm_rb node spanned two
-cache lines, on 64 bit systems with 64 byte cache lines (most
-x86 systems).
-
-Rearrange vm_area_struct a little, so all the information we
-need to do a VMA tree walk is in the first cache line.
-
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Signed-off-by: Rik van Riel <riel@redhat.com>
-
+CC: David Rientjes <rientjes@google.com>
+CC: Jiang Liu <liuj97@gmail.com>
+CC: Len Brown <len.brown@intel.com>
+CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+CC: Paul Mackerras <paulus@samba.org>
+CC: Christoph Lameter <cl@linux.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+CC: Andrew Morton <akpm@linux-foundation.org>
+CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
 ---
- include/linux/mm_types.h |   12 ++++++++----
- 1 files changed, 8 insertions(+), 4 deletions(-)
+ mm/memory_hotplug.c | 20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
-index 94fa52b28ee8..528da4abf8ee 100644
---- a/include/linux/mm_types.h
-+++ b/include/linux/mm_types.h
-@@ -224,7 +224,8 @@ struct vm_region {
-  * library, the executable area etc).
-  */
- struct vm_area_struct {
--	struct mm_struct * vm_mm;	/* The address space we belong to. */
-+	/* The first cache line has the info for VMA tree walking. */
-+
- 	unsigned long vm_start;		/* Our start address within vm_mm. */
- 	unsigned long vm_end;		/* The first byte after our end address
- 					   within vm_mm. */
-@@ -232,9 +233,6 @@ struct vm_area_struct {
- 	/* linked list of VM areas per task, sorted by address */
- 	struct vm_area_struct *vm_next, *vm_prev;
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index d965da3..e281c31 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -1320,9 +1320,12 @@ static int check_cpu_on_node(void *data)
+ /* offline the node if all memory sections of this node are removed */
+ static void try_offline_node(int nid)
+ {
++	pg_data_t *pgdat = NODE_DATA(nid);
+ 	unsigned long start_pfn = NODE_DATA(nid)->node_start_pfn;
+-	unsigned long end_pfn = start_pfn + NODE_DATA(nid)->node_spanned_pages;
++	unsigned long end_pfn = start_pfn + pgdat->node_spanned_pages;
+ 	unsigned long pfn;
++	struct page *pgdat_page = virt_to_page(pgdat);
++	int i;
  
--	pgprot_t vm_page_prot;		/* Access permissions of this VMA. */
--	unsigned long vm_flags;		/* Flags, see mm.h. */
--
- 	struct rb_node vm_rb;
- 
- 	/*
-@@ -245,6 +243,12 @@ struct vm_area_struct {
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
+ 		unsigned long section_nr = pfn_to_section_nr(pfn);
+@@ -1349,6 +1352,21 @@ static void try_offline_node(int nid)
  	 */
- 	unsigned long rb_subtree_gap;
+ 	node_set_offline(nid);
+ 	unregister_one_node(nid);
++
++	if (!PageSlab(pgdat_page) && !PageCompound(pgdat_page))
++		/* node data is allocated from boot memory */
++		return;
++
++	/* free waittable in each zone */
++	for (i = 0; i < MAX_NR_ZONES; i++) {
++		struct zone *zone = pgdat->node_zones + i;
++
++		if (zone->wait_table)
++			vfree(zone->wait_table);
++	}
++
++	arch_refresh_nodedata(nid, NULL);
++	arch_free_nodedata(pgdat);
+ }
  
-+	/* Second cache line starts here. */
-+
-+	struct mm_struct * vm_mm;	/* The address space we belong to. */
-+	pgprot_t vm_page_prot;		/* Access permissions of this VMA. */
-+	unsigned long vm_flags;		/* Flags, see mm.h. */
-+
- 	/*
- 	 * For areas with an address space and backing store,
- 	 * linkage into the address_space->i_mmap interval tree, or
+ int __ref remove_memory(int nid, u64 start, u64 size)
 -- 
-1.7.7.3
+1.8.0
+
