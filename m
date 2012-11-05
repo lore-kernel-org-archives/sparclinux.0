@@ -1,105 +1,68 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 10 Nov 2012 03:47:29 +0000
-Subject: [PATCH] sparc: Support atomic64_dec_if_positive properly.
-Message-Id: <20121109.224729.1209663931097733465.davem@davemloft.net>
+From: Michel Lespinasse <walken@google.com>
+Date: Mon, 05 Nov 2012 22:47:01 +0000
+Subject: [PATCH 04/16] mm: rearrange vm_area_struct for fewer cache misses
+Message-Id: <1352155633-8648-5-git-send-email-walken@google.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1352155633-8648-1-git-send-email-walken@google.com>
+In-Reply-To: <1352155633-8648-1-git-send-email-walken@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
+From: Rik van Riel <riel@surriel.com>
 
-Sparc32 already supported it, as a consequence of using the
-generic atomic64 implementation.  And the sparc64 implementation
-is rather trivial.
+The kernel walks the VMA rbtree in various places, including
+the page fault path.  However, the vm_rb node spanned two
+cache lines, on 64 bit systems with 64 byte cache lines (most
+x86 systems).
 
-This allows us to set ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE for all
-of sparc, and avoid the annoying warning from lib/atomic64_test.c
+Rearrange vm_area_struct a little, so all the information we
+need to do a VMA tree walk is in the first cache line.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Michel Lespinasse <walken@google.com>
+Signed-off-by: Rik van Riel <riel@redhat.com>
+
 ---
- arch/sparc/Kconfig                 |  1 +
- arch/sparc/include/asm/atomic_64.h |  4 +++-
- arch/sparc/lib/atomic_64.S         | 16 +++++++++++++++-
- arch/sparc/lib/ksyms.c             |  1 +
- 4 files changed, 20 insertions(+), 2 deletions(-)
+ include/linux/mm_types.h |   12 ++++++++----
+ 1 files changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index b6b442b..9f2edb5 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -20,6 +20,7 @@ config SPARC
- 	select HAVE_ARCH_TRACEHOOK
- 	select SYSCTL_EXCEPTION_TRACE
- 	select ARCH_WANT_OPTIONAL_GPIOLIB
-+	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select RTC_CLASS
- 	select RTC_DRV_M48T59
- 	select HAVE_IRQ_WORK
-diff --git a/arch/sparc/include/asm/atomic_64.h b/arch/sparc/include/asm/atomic_64.h
-index ce35a1c..be56a24 100644
---- a/arch/sparc/include/asm/atomic_64.h
-+++ b/arch/sparc/include/asm/atomic_64.h
-@@ -1,7 +1,7 @@
- /* atomic.h: Thankfully the V9 is at least reasonable for this
-  *           stuff.
-  *
-- * Copyright (C) 1996, 1997, 2000 David S. Miller (davem@redhat.com)
-+ * Copyright (C) 1996, 1997, 2000, 2012 David S. Miller (davem@redhat.com)
+diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
+index 94fa52b28ee8..528da4abf8ee 100644
+--- a/include/linux/mm_types.h
++++ b/include/linux/mm_types.h
+@@ -224,7 +224,8 @@ struct vm_region {
+  * library, the executable area etc).
   */
- 
- #ifndef __ARCH_SPARC64_ATOMIC__
-@@ -106,6 +106,8 @@ static inline long atomic64_add_unless(atomic64_t *v, long a, long u)
- 
- #define atomic64_inc_not_zero(v) atomic64_add_unless((v), 1, 0)
- 
-+extern long atomic64_dec_if_positive(atomic64_t *v);
+ struct vm_area_struct {
+-	struct mm_struct * vm_mm;	/* The address space we belong to. */
++	/* The first cache line has the info for VMA tree walking. */
 +
- /* Atomic operations are already serializing */
- #define smp_mb__before_atomic_dec()	barrier()
- #define smp_mb__after_atomic_dec()	barrier()
-diff --git a/arch/sparc/lib/atomic_64.S b/arch/sparc/lib/atomic_64.S
-index 4d502da..85c233d 100644
---- a/arch/sparc/lib/atomic_64.S
-+++ b/arch/sparc/lib/atomic_64.S
-@@ -1,6 +1,6 @@
- /* atomic.S: These things are too big to do inline.
-  *
-- * Copyright (C) 1999, 2007 David S. Miller (davem@davemloft.net)
-+ * Copyright (C) 1999, 2007 2012 David S. Miller (davem@davemloft.net)
-  */
+ 	unsigned long vm_start;		/* Our start address within vm_mm. */
+ 	unsigned long vm_end;		/* The first byte after our end address
+ 					   within vm_mm. */
+@@ -232,9 +233,6 @@ struct vm_area_struct {
+ 	/* linked list of VM areas per task, sorted by address */
+ 	struct vm_area_struct *vm_next, *vm_prev;
  
- #include <linux/linkage.h>
-@@ -117,3 +117,17 @@ ENTRY(atomic64_sub_ret) /* %o0 = decrement, %o1 = atomic_ptr */
- 	 sub	%g1, %o0, %o0
- 2:	BACKOFF_SPIN(%o2, %o3, 1b)
- ENDPROC(atomic64_sub_ret)
+-	pgprot_t vm_page_prot;		/* Access permissions of this VMA. */
+-	unsigned long vm_flags;		/* Flags, see mm.h. */
+-
+ 	struct rb_node vm_rb;
+ 
+ 	/*
+@@ -245,6 +243,12 @@ struct vm_area_struct {
+ 	 */
+ 	unsigned long rb_subtree_gap;
+ 
++	/* Second cache line starts here. */
 +
-+ENTRY(atomic64_dec_if_positive) /* %o0 = atomic_ptr */
-+	BACKOFF_SETUP(%o2)
-+1:	ldx	[%o0], %g1
-+	brlez,pn %g1, 3f
-+	 sub	%g1, 1, %g7
-+	casx	[%o0], %g1, %g7
-+	cmp	%g1, %g7
-+	bne,pn	%xcc, BACKOFF_LABEL(2f, 1b)
-+	 nop
-+3:	retl
-+	 sub	%g1, 1, %o0
-+2:	BACKOFF_SPIN(%o2, %o3, 1b)
-+ENDPROC(atomic64_dec_if_positive)
-diff --git a/arch/sparc/lib/ksyms.c b/arch/sparc/lib/ksyms.c
-index ee31b88..0c4e35e 100644
---- a/arch/sparc/lib/ksyms.c
-+++ b/arch/sparc/lib/ksyms.c
-@@ -116,6 +116,7 @@ EXPORT_SYMBOL(atomic64_add);
- EXPORT_SYMBOL(atomic64_add_ret);
- EXPORT_SYMBOL(atomic64_sub);
- EXPORT_SYMBOL(atomic64_sub_ret);
-+EXPORT_SYMBOL(atomic64_dec_if_positive);
- 
- /* Atomic bit operations. */
- EXPORT_SYMBOL(test_and_set_bit);
++	struct mm_struct * vm_mm;	/* The address space we belong to. */
++	pgprot_t vm_page_prot;		/* Access permissions of this VMA. */
++	unsigned long vm_flags;		/* Flags, see mm.h. */
++
+ 	/*
+ 	 * For areas with an address space and backing store,
+ 	 * linkage into the address_space->i_mmap interval tree, or
 -- 
-1.7.12.2.dirty
-
+1.7.7.3
