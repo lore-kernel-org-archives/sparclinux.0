@@ -1,92 +1,98 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Date: Thu, 01 Nov 2012 09:44:32 +0000
-Subject: [PATCH v3 01/12] memory-hotplug: try to offline the memory twice to avoid dependence
-Message-Id: <1351763083-7905-2-git-send-email-wency@cn.fujitsu.com>
+From: Jan Kiszka <jan.kiszka@siemens.com>
+Date: Mon, 05 Nov 2012 16:08:53 +0000
+Subject: [PATCH 00/13] Add gdb python scripts as kernel debugging helpers
+Message-Id: <cover.1352131729.git.jan.kiszka@siemens.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1351763083-7905-1-git-send-email-wency@cn.fujitsu.com>
-In-Reply-To: <1351763083-7905-1-git-send-email-wency@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
-Cc: David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jianguo Wu <wujianguo@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>
+To: linux-kernel@vger.kernel.org
+Cc: Jason Wessel <jason.wessel@windriver.com>, kgdb-bugreport@lists.sourceforge.net, Andi Kleen <andi@firstfloor.org>, "David S. Miller" <davem@davemloft.net>, Fenghua Yu <fenghua.yu@intel.com>, Kay Sievers <kay@vrfy.org>, linux-ia64@vger.kernel.org, linux-kbuild@vger.kernel.org, Michal Marek <mmarek@suse.cz>, sparclinux@vger.kernel.org, Tony Luck <tony.luck@intel.com>
 
-memory can't be offlined when CONFIG_MEMCG is selected.
-For example: there is a memory device on node 1. The address range
-is [1G, 1.5G). You will find 4 new directories memory8, memory9, memory10,
-and memory11 under the directory /sys/devices/system/memory/.
+Version 2 of this series is a rebase over 3.7-rc4 to resolve some minor
+collision in the top-level makefile. Moreover, this implements automatic
+symbol loading for kernel modules using silent breakpoints. See patch 3
+for details.
 
-If CONFIG_MEMCG is selected, we will allocate memory to store page cgroup
-when we online pages. When we online memory8, the memory stored page cgroup
-is not provided by this memory device. But when we online memory9, the memory
-stored page cgroup may be provided by memory8. So we can't offline memory8
-now. We should offline the memory in the reversed order.
+Unless someone complains over this series or suggests a better workflow,
+I'm planning to send a pull to Linus during the next merge window.
 
-When the memory device is hotremoved, we will auto offline memory provided
-by this memory device. But we don't know which memory is onlined first, so
-offlining memory may fail. In such case, iterate twice to offline the memory.
-1st iterate: offline every non primary memory block.
-2nd iterate: offline primary (i.e. first added) memory block.
 
-This idea is suggested by KOSAKI Motohiro.
+Here is the original intro for reference:
 
-CC: David Rientjes <rientjes@google.com>
-CC: Jiang Liu <liuj97@gmail.com>
-CC: Len Brown <len.brown@intel.com>
-CC: Christoph Lameter <cl@linux.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-CC: Andrew Morton <akpm@linux-foundation.org>
-CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
----
- mm/memory_hotplug.c | 16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+This adds the infrastructure and first tools that make kernel debugging
+through gdb more comfortable. Since 7.0, gdb supports python scripting.
+And this opens the doors to automate steps like the tedious loading of
+module symbols at the right address, resolving per-cpu variables or even
+retrieving the current kernel log without resuming an stopped target.
 
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 56b758a..600e200 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -1019,10 +1019,13 @@ int remove_memory(u64 start, u64 size)
- 	unsigned long start_pfn, end_pfn;
- 	unsigned long pfn, section_nr;
- 	int ret;
-+	int return_on_error = 0;
-+	int retry = 0;
- 
- 	start_pfn = PFN_DOWN(start);
- 	end_pfn = start_pfn + PFN_DOWN(size);
- 
-+repeat:
- 	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
- 		section_nr = pfn_to_section_nr(pfn);
- 		if (!present_section_nr(section_nr))
-@@ -1041,14 +1044,23 @@ int remove_memory(u64 start, u64 size)
- 
- 		ret = offline_memory_block(mem);
- 		if (ret) {
--			kobject_put(&mem->dev.kobj);
--			return ret;
-+			if (return_on_error) {
-+				kobject_put(&mem->dev.kobj);
-+				return ret;
-+			} else {
-+				retry = 1;
-+			}
- 		}
- 	}
- 
- 	if (mem)
- 		kobject_put(&mem->dev.kobj);
- 
-+	if (retry) {
-+		return_on_error = 1;
-+		goto repeat;
-+	}
-+
- 	return 0;
- }
- #else
+Many of the helpers naturally depend on the layout of structures or
+internal mechanics of the kernel. So the best place to maintain such
+things, keeping them consistent with the corresponding kernel is, well,
+the kernel itself.
+
+While these scripts have been originally developed for debugging via
+QEMU/KVM, I've now also added the required bits for KGDB. Works fine,
+but as QEMU/KVM tends to outperform KGDB it remains the recommendation
+- when available.
+
+There are two architecture dependencies so far, one regarding per-cpu,
+the other regarding thread_info calculation. None of them I was able to
+test on a target, so I'm counting on review/testing by the corresponding
+communities.
+
+This series should be considered the foundation of much more kernel
+state exploration helper, e.g. around tasks, timers, locks, sockets -
+I guess people will have even more ideas.
+
+Hope it's useful!
+
+PS: Also available via git://git.kiszka.org/linux.git queues/gdb-scripts
+
+CC: "David S. Miller" <davem@davemloft.net>
+CC: Fenghua Yu <fenghua.yu@intel.com>
+CC: Kay Sievers <kay@vrfy.org>
+CC: linux-ia64@vger.kernel.org
+CC: linux-kbuild@vger.kernel.org
+CC: Michal Marek <mmarek@suse.cz>
+CC: sparclinux@vger.kernel.org
+CC: Tony Luck <tony.luck@intel.com>
+
+Jan Kiszka (13):
+  scripts/gdb: Add infrastructure
+  scripts/gdb: Add container_of helper and convenience function
+  scripts/gdb: Add lx-symbols command
+  scripts/gdb: Add get_target_endianness helper
+  scripts/gdb: Add read_u16/32/64 helpers
+  scripts/gdb: Add lx-dmesg command
+  scripts/gdb: Add task iteration helper
+  scripts/gdb: Add helper and convenience function to look up tasks
+  scripts/gdb: Add is_target_arch helper
+  scripts/gdb: Add internal helper and convenience function to retrieve
+    thread_info
+  scripts/gdb: Add get_gdbserver_type helper
+  scripts/gdb: Add internal helper and convenience function for per-cpu
+    lookup
+  scripts/gdb: Add lx_current convenience function
+
+ Makefile                   |    5 +-
+ scripts/Makefile           |    3 +-
+ scripts/gdb/Makefile       |    9 +++
+ scripts/gdb/dmesg.py       |   63 +++++++++++++++++++++
+ scripts/gdb/percpu.py      |   76 +++++++++++++++++++++++++
+ scripts/gdb/symbols.py     |  133 +++++++++++++++++++++++++++++++++++++++++++
+ scripts/gdb/task.py        |  108 +++++++++++++++++++++++++++++++++++
+ scripts/gdb/utils.py       |  134 ++++++++++++++++++++++++++++++++++++++++++++
+ scripts/gdb/vmlinux-gdb.py |   26 +++++++++
+ 9 files changed, 555 insertions(+), 2 deletions(-)
+ create mode 100644 scripts/gdb/Makefile
+ create mode 100644 scripts/gdb/dmesg.py
+ create mode 100644 scripts/gdb/percpu.py
+ create mode 100644 scripts/gdb/symbols.py
+ create mode 100644 scripts/gdb/task.py
+ create mode 100644 scripts/gdb/utils.py
+ create mode 100644 scripts/gdb/vmlinux-gdb.py
+
 -- 
-1.8.0
+1.7.3.4
 
