@@ -1,378 +1,269 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Date: Thu, 01 Nov 2012 09:44:40 +0000
-Subject: [PATCH v3 09/12] memory-hotplug: remove page table of x86_64 architecture
-Message-Id: <1351763083-7905-10-git-send-email-wency@cn.fujitsu.com>
+From: Michel Lespinasse <walken@google.com>
+Date: Mon, 05 Nov 2012 22:46:59 +0000
+Subject: [PATCH 02/16] mm: augment vma rbtree with rb_subtree_gap
+Message-Id: <1352155633-8648-3-git-send-email-walken@google.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1351763083-7905-1-git-send-email-wency@cn.fujitsu.com>
-In-Reply-To: <1351763083-7905-1-git-send-email-wency@cn.fujitsu.com>
+References: <1352155633-8648-1-git-send-email-walken@google.com>
+In-Reply-To: <1352155633-8648-1-git-send-email-walken@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
-Cc: David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jianguo Wu <wujianguo@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>
+To: linux-arm-kernel@lists.infradead.org
 
-For hot removing memory, we sholud remove page table about the memory.
-So the patch searches a page table about the removed memory, and clear
-page table.
+Define vma->rb_subtree_gap as the largest gap between any vma in the
+subtree rooted at that vma, and their predecessor. Or, for a recursive
+definition, vma->rb_subtree_gap is the max of:
+- vma->vm_start - vma->vm_prev->vm_end
+- rb_subtree_gap fields of the vmas pointed by vma->rb.rb_left and
+  vma->rb.rb_right
 
-CC: David Rientjes <rientjes@google.com>
-CC: Jiang Liu <liuj97@gmail.com>
-CC: Len Brown <len.brown@intel.com>
-CC: Christoph Lameter <cl@linux.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-CC: Andrew Morton <akpm@linux-foundation.org>
-CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
-Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
-Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+This will allow get_unmapped_area_* to find a free area of the right
+size in O(log(N)) time, instead of potentially having to do a linear
+walk across all the VMAs.
+
+Also define mm->highest_vm_end as the vm_end field of the highest vma,
+so that we can easily check if the following gap is suitable.
+
+This does have the potential to make unmapping VMAs more expensive,
+especially for processes with very large numbers of VMAs, where the
+VMA rbtree can grow quite deep.
+
+Signed-off-by: Michel Lespinasse <walken@google.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+
 ---
- arch/x86/include/asm/pgtable_types.h |   1 +
- arch/x86/mm/init_64.c                | 231 +++++++++++++++++++++++++++++++++++
- arch/x86/mm/pageattr.c               |  47 +++----
- 3 files changed, 257 insertions(+), 22 deletions(-)
+ include/linux/mm_types.h |    9 ++++
+ mm/mmap.c                |  114 ++++++++++++++++++++++++++++++++++++++++++----
+ 2 files changed, 114 insertions(+), 9 deletions(-)
 
-diff --git a/arch/x86/include/asm/pgtable_types.h b/arch/x86/include/asm/pgtable_types.h
-index ec8a1fc..fb0c24d 100644
---- a/arch/x86/include/asm/pgtable_types.h
-+++ b/arch/x86/include/asm/pgtable_types.h
-@@ -332,6 +332,7 @@ static inline void update_page_count(int level, unsigned long pages) { }
-  * as a pte too.
-  */
- extern pte_t *lookup_address(unsigned long address, unsigned int *level);
-+extern int __split_large_page(pte_t *kpte, unsigned long address, pte_t *pbase);
+diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
+index 31f8a3af7d94..94fa52b28ee8 100644
+--- a/include/linux/mm_types.h
++++ b/include/linux/mm_types.h
+@@ -238,6 +238,14 @@ struct vm_area_struct {
+ 	struct rb_node vm_rb;
  
- #endif	/* !__ASSEMBLY__ */
- 
-diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
-index e85626d..23d932a 100644
---- a/arch/x86/mm/init_64.c
-+++ b/arch/x86/mm/init_64.c
-@@ -680,6 +680,235 @@ int arch_add_memory(int nid, u64 start, u64 size)
- }
- EXPORT_SYMBOL_GPL(arch_add_memory);
- 
-+static inline void free_pagetable(struct page *page)
-+{
-+	struct zone *zone;
-+	bool bootmem = false;
-+
-+	/* bootmem page has reserved flag */
-+	if (PageReserved(page)) {
-+		__ClearPageReserved(page);
-+		bootmem = true;
-+	}
-+
-+	__free_page(page);
-+
-+	if (bootmem) {
-+		zone = page_zone(page);
-+		zone_span_writelock(zone);
-+		zone->present_pages++;
-+		zone_span_writeunlock(zone);
-+		totalram_pages++;
-+	}
-+}
-+
-+static void free_pte_table(pte_t *pte_start, pmd_t *pmd)
-+{
-+	pte_t *pte;
-+	int i;
-+
-+	for (i = 0; i < PTRS_PER_PTE; i++) {
-+		pte = pte_start + i;
-+		if (pte_val(*pte))
-+			return;
-+	}
-+
-+	/* free a pte talbe */
-+	free_pagetable(pmd_page(*pmd));
-+	pmd_clear(pmd);
-+}
-+
-+static void free_pmd_table(pmd_t *pmd_start, pud_t *pud)
-+{
-+	pmd_t *pmd;
-+	int i;
-+
-+	for (i = 0; i < PTRS_PER_PMD; i++) {
-+		pmd = pmd_start + i;
-+		if (pmd_val(*pmd))
-+			return;
-+	}
-+
-+	/* free a pmd talbe */
-+	free_pagetable(pud_page(*pud));
-+	pud_clear(pud);
-+}
-+
-+/* return true if pgd is changed, otherwise return false */
-+static bool free_pud_table(pud_t *pud_start, pgd_t *pgd)
-+{
-+	pud_t *pud;
-+	int i;
-+
-+	for (i = 0; i < PTRS_PER_PUD; i++) {
-+		pud = pud_start + i;
-+		if (pud_val(*pud))
-+			return false;
-+	}
-+
-+	/* free a pud table */
-+	free_pagetable(pgd_page(*pgd));
-+	pgd_clear(pgd);
-+
-+	return true;
-+}
-+
-+static void __meminit
-+phys_pte_remove(pte_t *pte_page, unsigned long addr, unsigned long end)
-+{
-+	unsigned pages = 0;
-+	int i = pte_index(addr);
-+
-+	pte_t *pte = pte_page + pte_index(addr);
-+
-+	for (; i < PTRS_PER_PTE; i++, addr += PAGE_SIZE, pte++) {
-+
-+		if (addr >= end)
-+			break;
-+
-+		if (!pte_present(*pte))
-+			continue;
-+
-+		pages++;
-+		set_pte(pte, __pte(0));
-+	}
-+
-+	update_page_count(PG_LEVEL_4K, -pages);
-+}
-+
-+static void __meminit
-+phys_pmd_remove(pmd_t *pmd_page, unsigned long addr, unsigned long end)
-+{
-+	unsigned long pages = 0, next;
-+	int i = pmd_index(addr);
-+
-+	for (; i < PTRS_PER_PMD && addr < end; i++, addr = next) {
-+		unsigned long pte_phys;
-+		pmd_t *pmd = pmd_page + pmd_index(addr);
-+		pte_t *pte;
-+
-+		next = pmd_addr_end(addr, end);
-+
-+		if (!pmd_present(*pmd))
-+			continue;
-+
-+		if (pmd_large(*pmd)) {
-+			if (IS_ALIGNED(addr, PMD_SIZE) &&
-+			    IS_ALIGNED(next, PMD_SIZE)) {
-+				set_pmd(pmd, __pmd(0));
-+				pages++;
-+				continue;
-+			}
-+
-+			/*
-+			 * We use 2M page, but we need to remove part of them,
-+			 * so split 2M page to 4K page.
-+			 */
-+			pte = alloc_low_page(&pte_phys);
-+			BUG_ON(!pte);
-+			__split_large_page((pte_t *)pmd,
-+					   (unsigned long)__va(addr), pte);
-+
-+			spin_lock(&init_mm.page_table_lock);
-+			pmd_populate_kernel(&init_mm, pmd, __va(pte_phys));
-+			spin_unlock(&init_mm.page_table_lock);
-+
-+			/* Do a global flush tlb after splitting a large page */
-+			flush_tlb_all();
-+		}
-+
-+		spin_lock(&init_mm.page_table_lock);
-+		pte = map_low_page((pte_t *)pmd_page_vaddr(*pmd));
-+		phys_pte_remove(pte, addr, next);
-+		free_pte_table(pte, pmd);
-+		unmap_low_page(pte);
-+		spin_unlock(&init_mm.page_table_lock);
-+	}
-+	update_page_count(PG_LEVEL_2M, -pages);
-+}
-+
-+static void __meminit
-+phys_pud_remove(pud_t *pud_page, unsigned long addr, unsigned long end)
-+{
-+	unsigned long pages = 0, next;
-+	int i = pud_index(addr);
-+
-+	for (; i < PTRS_PER_PUD && addr < end; i++, addr = next) {
-+		unsigned long pmd_phys;
-+		pud_t *pud = pud_page + pud_index(addr);
-+		pmd_t *pmd;
-+
-+		next = pud_addr_end(addr, end);
-+
-+		if (!pud_present(*pud))
-+			continue;
-+
-+		if (pud_large(*pud)) {
-+			if (IS_ALIGNED(addr, PUD_SIZE) &&
-+			    IS_ALIGNED(next, PUD_SIZE)) {
-+				set_pud(pud, __pud(0));
-+				pages++;
-+				continue;
-+			}
-+
-+			/*
-+			 * We use 1G page, but we need to remove part of them,
-+			 * so split 1G page to 2M page.
-+			 */
-+			pmd = alloc_low_page(&pmd_phys);
-+			BUG_ON(!pmd);
-+			__split_large_page((pte_t *)pud,
-+					   (unsigned long)__va(addr),
-+					   (pte_t *)pmd);
-+
-+			spin_lock(&init_mm.page_table_lock);
-+			pud_populate(&init_mm, pud, __va(pmd_phys));
-+			spin_unlock(&init_mm.page_table_lock);
-+
-+			/* Do a global flush tlb after splitting a large page */
-+			flush_tlb_all();
-+		}
-+
-+		pmd = map_low_page((pmd_t *)pud_page_vaddr(*pud));
-+		phys_pmd_remove(pmd, addr, next);
-+		free_pmd_table(pmd, pud);
-+		unmap_low_page(pmd);
-+	}
-+
-+	update_page_count(PG_LEVEL_1G, -pages);
-+}
-+
-+void __meminit
-+kernel_physical_mapping_remove(unsigned long start, unsigned long end)
-+{
-+	unsigned long next;
-+	bool pgd_changed = false;
-+
-+	start = (unsigned long)__va(start);
-+	end = (unsigned long)__va(end);
-+
-+	for (; start < end; start = next) {
-+		pgd_t *pgd = pgd_offset_k(start);
-+		pud_t *pud;
-+
-+		next = pgd_addr_end(start, end);
-+
-+		if (!pgd_present(*pgd))
-+			continue;
-+
-+		pud = map_low_page((pud_t *)pgd_page_vaddr(*pgd));
-+		phys_pud_remove(pud, __pa(start), __pa(next));
-+		if (free_pud_table(pud, pgd))
-+			pgd_changed = true;
-+		unmap_low_page(pud);
-+	}
-+
-+	if (pgd_changed)
-+		sync_global_pgds(start, end - 1);
-+
-+	flush_tlb_all();
-+}
-+
- #ifdef CONFIG_MEMORY_HOTREMOVE
- int __ref arch_remove_memory(u64 start, u64 size)
- {
-@@ -692,6 +921,8 @@ int __ref arch_remove_memory(u64 start, u64 size)
- 	ret = __remove_pages(zone, start_pfn, nr_pages);
- 	WARN_ON_ONCE(ret);
- 
-+	kernel_physical_mapping_remove(start, start + size);
-+
- 	return ret;
- }
- #endif
-diff --git a/arch/x86/mm/pageattr.c b/arch/x86/mm/pageattr.c
-index a718e0d..7dcb6f9 100644
---- a/arch/x86/mm/pageattr.c
-+++ b/arch/x86/mm/pageattr.c
-@@ -501,21 +501,13 @@ out_unlock:
- 	return do_split;
- }
- 
--static int split_large_page(pte_t *kpte, unsigned long address)
-+int __split_large_page(pte_t *kpte, unsigned long address, pte_t *pbase)
- {
- 	unsigned long pfn, pfninc = 1;
- 	unsigned int i, level;
--	pte_t *pbase, *tmp;
-+	pte_t *tmp;
- 	pgprot_t ref_prot;
--	struct page *base;
--
--	if (!debug_pagealloc)
--		spin_unlock(&cpa_lock);
--	base = alloc_pages(GFP_KERNEL | __GFP_NOTRACK, 0);
--	if (!debug_pagealloc)
--		spin_lock(&cpa_lock);
--	if (!base)
--		return -ENOMEM;
-+	struct page *base = virt_to_page(pbase);
- 
- 	spin_lock(&pgd_lock);
  	/*
-@@ -523,10 +515,11 @@ static int split_large_page(pte_t *kpte, unsigned long address)
- 	 * up for us already:
- 	 */
- 	tmp = lookup_address(address, &level);
--	if (tmp != kpte)
--		goto out_unlock;
-+	if (tmp != kpte) {
-+		spin_unlock(&pgd_lock);
-+		return 1;
-+	}
- 
--	pbase = (pte_t *)page_address(base);
- 	paravirt_alloc_pte(&init_mm, page_to_pfn(base));
- 	ref_prot = pte_pgprot(pte_clrhuge(*kpte));
- 	/*
-@@ -579,17 +572,27 @@ static int split_large_page(pte_t *kpte, unsigned long address)
- 	 * going on.
- 	 */
- 	__flush_tlb_all();
-+	spin_unlock(&pgd_lock);
- 
--	base = NULL;
-+	return 0;
-+}
- 
--out_unlock:
--	/*
--	 * If we dropped out via the lookup_address check under
--	 * pgd_lock then stick the page back into the pool:
--	 */
--	if (base)
-+static int split_large_page(pte_t *kpte, unsigned long address)
-+{
-+	pte_t *pbase;
-+	struct page *base;
++	 * Largest free memory gap in bytes to the left of this VMA.
++	 * Either between this VMA and vma->vm_prev, or between one of the
++	 * VMAs below us in the VMA rbtree and its ->vm_prev. This helps
++	 * get_unmapped_area find a free area of the right size.
++	 */
++	unsigned long rb_subtree_gap;
 +
-+	if (!debug_pagealloc)
-+		spin_unlock(&cpa_lock);
-+	base = alloc_pages(GFP_KERNEL | __GFP_NOTRACK, 0);
-+	if (!debug_pagealloc)
-+		spin_lock(&cpa_lock);
-+	if (!base)
-+		return -ENOMEM;
-+
-+	pbase = (pte_t *)page_address(base);
-+	if (__split_large_page(kpte, address, pbase))
- 		__free_page(base);
--	spin_unlock(&pgd_lock);
++	/*
+ 	 * For areas with an address space and backing store,
+ 	 * linkage into the address_space->i_mmap interval tree, or
+ 	 * linkage of vma in the address_space->i_mmap_nonlinear list.
+@@ -322,6 +330,7 @@ struct mm_struct {
+ 	unsigned long task_size;		/* size of task vm space */
+ 	unsigned long cached_hole_size; 	/* if non-zero, the largest hole below free_area_cache */
+ 	unsigned long free_area_cache;		/* first hole of size cached_hole_size or larger */
++	unsigned long highest_vm_end;		/* highest vma end address */
+ 	pgd_t * pgd;
+ 	atomic_t mm_users;			/* How many users with user space? */
+ 	atomic_t mm_count;			/* How many references to "struct mm_struct" (users count as 1) */
+diff --git a/mm/mmap.c b/mm/mmap.c
+index cf18502e75c6..2de8bcfe859d 100644
+--- a/mm/mmap.c
++++ b/mm/mmap.c
+@@ -31,6 +31,7 @@
+ #include <linux/audit.h>
+ #include <linux/khugepaged.h>
+ #include <linux/uprobes.h>
++#include <linux/rbtree_augmented.h>
  
- 	return 0;
+ #include <asm/uaccess.h>
+ #include <asm/cacheflush.h>
+@@ -297,6 +298,70 @@ out:
+ 	return retval;
  }
+ 
++static long vma_compute_subtree_gap(struct vm_area_struct *vma)
++{
++	unsigned long max, subtree_gap;
++	max = vma->vm_start;
++	if (vma->vm_prev)
++		max -= vma->vm_prev->vm_end;
++	if (vma->vm_rb.rb_left) {
++		subtree_gap = rb_entry(vma->vm_rb.rb_left,
++				struct vm_area_struct, vm_rb)->rb_subtree_gap;
++		if (subtree_gap > max)
++			max = subtree_gap;
++	}
++	if (vma->vm_rb.rb_right) {
++		subtree_gap = rb_entry(vma->vm_rb.rb_right,
++				struct vm_area_struct, vm_rb)->rb_subtree_gap;
++		if (subtree_gap > max)
++			max = subtree_gap;
++	}
++	return max;
++}
++
++RB_DECLARE_CALLBACKS(static, vma_gap_callbacks, struct vm_area_struct, vm_rb,
++		     unsigned long, rb_subtree_gap, vma_compute_subtree_gap)
++
++/*
++ * Update augmented rbtree rb_subtree_gap values after vma->vm_start or
++ * vma->vm_prev->vm_end values changed, without modifying the vma's position
++ * in the rbtree.
++ */
++static void vma_gap_update(struct vm_area_struct *vma)
++{
++	/*
++	 * As it turns out, RB_DECLARE_CALLBACKS() already created a callback
++	 * function that does exacltly what we want.
++	 */
++	vma_gap_callbacks_propagate(&vma->vm_rb, NULL);
++}
++
++static inline void vma_rb_insert(struct vm_area_struct *vma,
++				 struct rb_root *root)
++{
++	/*
++	 * vma->vm_prev wasn't known when we followed the rbtree to find the
++	 * correct insertion point for that vma. As a result, we could not
++	 * update the vma vm_rb parents rb_subtree_gap values on the way down.
++	 * So, we first insert the vma with a zero rb_subtree_gap value
++	 * (to be consistent with what we did on the way down), and then
++	 * immediately update the gap to the correct value.
++	 */
++	vma->rb_subtree_gap = 0;
++	rb_insert_augmented(&vma->vm_rb, root, &vma_gap_callbacks);
++	vma_gap_update(vma);
++}
++
++static void vma_rb_erase(struct vm_area_struct *vma, struct rb_root *root)
++{
++	/*
++	 * Note rb_erase_augmented is a fairly large inline function,
++	 * so make sure we instantiate it only once with our desired
++	 * augmented rbtree callbacks.
++	 */
++	rb_erase_augmented(&vma->vm_rb, root, &vma_gap_callbacks);
++}
++
+ #ifdef CONFIG_DEBUG_VM_RB
+ static int browse_rb(struct rb_root *root)
+ {
+@@ -422,7 +487,11 @@ void __vma_link_rb(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		struct rb_node **rb_link, struct rb_node *rb_parent)
+ {
+ 	rb_link_node(&vma->vm_rb, rb_parent, rb_link);
+-	rb_insert_color(&vma->vm_rb, &mm->mm_rb);
++	vma_rb_insert(vma, &mm->mm_rb);
++	if (vma->vm_next)
++		vma_gap_update(vma->vm_next);
++	else
++		mm->highest_vm_end = vma->vm_end;
+ }
+ 
+ static void __vma_link_file(struct vm_area_struct *vma)
+@@ -503,7 +572,7 @@ __vma_unlink(struct mm_struct *mm, struct vm_area_struct *vma,
+ 	prev->vm_next = next;
+ 	if (next)
+ 		next->vm_prev = prev;
+-	rb_erase(&vma->vm_rb, &mm->mm_rb);
++	vma_rb_erase(vma, &mm->mm_rb);
+ 	if (mm->mmap_cache = vma)
+ 		mm->mmap_cache = prev;
+ }
+@@ -525,6 +594,7 @@ int vma_adjust(struct vm_area_struct *vma, unsigned long start,
+ 	struct rb_root *root = NULL;
+ 	struct anon_vma *anon_vma = NULL;
+ 	struct file *file = vma->vm_file;
++	bool start_changed = false, end_changed = false;
+ 	long adjust_next = 0;
+ 	int remove_next = 0;
+ 
+@@ -615,8 +685,14 @@ again:			remove_next = 1 + (end > next->vm_end);
+ 			vma_interval_tree_remove(next, root);
+ 	}
+ 
+-	vma->vm_start = start;
+-	vma->vm_end = end;
++	if (start != vma->vm_start) {
++		vma->vm_start = start;
++		start_changed = true;
++	}
++	if (end != vma->vm_end) {
++		vma->vm_end = end;
++		end_changed = true;
++	}
+ 	vma->vm_pgoff = pgoff;
+ 	if (adjust_next) {
+ 		next->vm_start += adjust_next << PAGE_SHIFT;
+@@ -645,6 +721,15 @@ again:			remove_next = 1 + (end > next->vm_end);
+ 		 * (it may either follow vma or precede it).
+ 		 */
+ 		__insert_vm_struct(mm, insert);
++	} else {
++		if (start_changed)
++			vma_gap_update(vma);
++		if (end_changed) {
++			if (!next)
++				mm->highest_vm_end = end;
++			else if (!adjust_next)
++				vma_gap_update(next);
++		}
+ 	}
+ 
+ 	if (anon_vma) {
+@@ -678,10 +763,13 @@ again:			remove_next = 1 + (end > next->vm_end);
+ 		 * we must remove another next too. It would clutter
+ 		 * up the code too much to do both in one go.
+ 		 */
+-		if (remove_next = 2) {
+-			next = vma->vm_next;
++		next = vma->vm_next;
++		if (remove_next = 2)
+ 			goto again;
+-		}
++		else if (next)
++			vma_gap_update(next);
++		else
++			mm->highest_vm_end = end;
+ 	}
+ 	if (insert && file)
+ 		uprobe_mmap(insert);
+@@ -1783,6 +1871,10 @@ int expand_upwards(struct vm_area_struct *vma, unsigned long address)
+ 				anon_vma_interval_tree_pre_update_vma(vma);
+ 				vma->vm_end = address;
+ 				anon_vma_interval_tree_post_update_vma(vma);
++				if (vma->vm_next)
++					vma_gap_update(vma->vm_next);
++				else
++					mm->highest_vm_end = address;
+ 				perf_event_mmap(vma);
+ 			}
+ 		}
+@@ -1837,6 +1929,7 @@ int expand_downwards(struct vm_area_struct *vma,
+ 				vma->vm_start = address;
+ 				vma->vm_pgoff -= grow;
+ 				anon_vma_interval_tree_post_update_vma(vma);
++				vma_gap_update(vma);
+ 				perf_event_mmap(vma);
+ 			}
+ 		}
+@@ -1959,14 +2052,17 @@ detach_vmas_to_be_unmapped(struct mm_struct *mm, struct vm_area_struct *vma,
+ 	insertion_point = (prev ? &prev->vm_next : &mm->mmap);
+ 	vma->vm_prev = NULL;
+ 	do {
+-		rb_erase(&vma->vm_rb, &mm->mm_rb);
++		vma_rb_erase(vma, &mm->mm_rb);
+ 		mm->map_count--;
+ 		tail_vma = vma;
+ 		vma = vma->vm_next;
+ 	} while (vma && vma->vm_start < end);
+ 	*insertion_point = vma;
+-	if (vma)
++	if (vma) {
+ 		vma->vm_prev = prev;
++		vma_gap_update(vma);
++	} else
++		mm->highest_vm_end = prev ? prev->vm_end : 0;
+ 	tail_vma->vm_next = NULL;
+ 	if (mm->unmap_area = arch_unmap_area)
+ 		addr = prev ? prev->vm_end : mm->mmap_base;
 -- 
-1.8.0
-
+1.7.7.3
