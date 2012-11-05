@@ -1,17 +1,21 @@
 From: Thierry Reding <thierry.reding@avionic-design.de>
-Date: Mon, 05 Nov 2012 09:22:19 +0000
+Date: Mon, 05 Nov 2012 09:53:15 +0000
 Subject: SPARC and OF_GPIO
-Message-Id: <20121105092218.GC5847@avionic-0098.mockup.avionic-design.de>
+Message-Id: <20121105095315.GG5847@avionic-0098.mockup.avionic-design.de>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="2/5bycvrmDh4d1IB"
+Content-Type: multipart/mixed; boundary="IuhbYIxU28t+Kd57"
 List-Id: <sparclinux.vger.kernel.org>
-To: "David S. Miller" <davm@davemloft.net>
+References: <20121105092218.GC5847@avionic-0098.mockup.avionic-design.de>
+In-Reply-To: <20121105092218.GC5847@avionic-0098.mockup.avionic-design.de>
+To: "David S. Miller" <davem@davemloft.net>
 Cc: sparclinux@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, linux-kernel@vger.kernel.org
 
 
---2/5bycvrmDh4d1IB
+--IuhbYIxU28t+Kd57
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+
+[resending with David's correct email address]
 
 Hi David,
 
@@ -38,25 +42,25 @@ nowadays?
 
 Thierry
 
---2/5bycvrmDh4d1IB
+--IuhbYIxU28t+Kd57
 Content-Type: application/pgp-signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.19 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQl4VKAAoJEN0jrNd/PrOhSwMQAK5hcpHzexhkfrD2MKvh4Sy6
-Bz2wtVn8LpjBczKmYD9cAK7jz674I8Tl9OfpaJ4U8cZcpYAbZJSj0mTx11Uef8yO
-MSsdS5yLP6Wfy1CFNV5C+sArcXkhuyhnce9gpMKIZRoZOQF77sueb+8OQcNFNwIW
-wxR6lnH+Jj+v4j/9KLRsw45I4WmwJVLuqlWUyfAFbEQwHx0nOekcXVTzz/jUbnFu
-mH0y58RcyrGCzHa9w3EaZrZO178pH2y/yAkNbCcLkSb7urRigcA3dO2Y4jq6OGqU
-v/WFgcDftPzETOpYTBy8FxXWDadIfbJwNgfptayenD6XJMasbsUtYcduxVOiF9WJ
-cvcelarHSFsTxzE9rrNv85R9KlF0WtiKC8Fgb7UIgfFxFhfiB28EK7h+HgUTO+Pw
-GpNQWiaWrVtTAZBjX2CUBPGlGbHfS6frvE8fvUVoeib9t5r47H18cEbGZm2hLcIH
-T7VigvvX8nqutsXjB2jU2kMWWRsriIQdTqzlfC8szBq6fiQ9iKdy/VrH5u9RkHtz
-VOvyKGQHoIdixrw9ZCefNyErDE6J3IYJnRuMcJd1Jb2D6MVcb7Z+/7wDMIVBelIT
-tsl8qRyGUASM0M4BSAeizoHV86DrLFSIt3bVRbgFxLCi5OHz7dI6wMrfIKugkSJs
-nK2mXtBf/s5HQoH9A1jJ
-=CyMA
+iQIcBAEBAgAGBQJQl4yLAAoJEN0jrNd/PrOhXygP/jGMHlQziQqKLTiAjztsBcJ+
+35EAeHeU30ygMpJ9sVBuKbTkj3qPtkSyEYJ/W8QQxQAxvf9qJYcXEIZr5K9QtXnX
+03ZpN7qFdeJJWyduC1SbT1X+xKuMnpbbGHMYCHyeR9SZG4SVRxneyTkkzP+8He5t
+hfVqA0p1YbvplfYoDPHNdXYNWjZsiFQVKmoAcEz+SmuLCfm5A82mnhGhl+V0gANT
+ALKJQeIPL0UwoUEsjQPKE2KWhRj1I2FRXdz2MUk4UJi+bzFgSvu1YNupMyG5RPO9
+qrKM4FR88/iIm661QbQCHr92N2ifm03Yij/2U7rg8Ep9689NmmH46xk8u/OtIrXw
+Y4dsp4HV0Pjt5fgNyHO5dAEq/rnXayezKSamyBXCdlgK04ALHqfm5iLUn31w/ftF
+26A8b2NLiMNl4JcEZuwmQ6y/d0VNAhoTykRcfBiaPbO7yPbN3ddgyk+z88/mB+h9
+i11nHnNKSYdL2Wx3GyuXcjzpu2aoUvFjo8jpH0GBQvG4VMWguNUctJ7RCU4C8Bp7
+eKc5zHv2pzGwIJgQaN7dCNfSUtSAgIf1WJGdgTx22YIGWrKpoNKtw46pDvhaaAZB
+GkFncassQ9rh359byZJEe8GXYu7Tkdyrh4dNJCbEcpcDn5fJJLeHQBmIG47RTDPq
+kVtlIh6ds+YTlRw/Zm28
+=Dxcz
 -----END PGP SIGNATURE-----
 
---2/5bycvrmDh4d1IB--
+--IuhbYIxU28t+Kd57--
