@@ -1,40 +1,62 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Tue, 06 Nov 2012 22:38:19 +0000
-Subject: Re: [PATCH 07/16] mm: fix cache coloring on x86_64 architecture
-Message-Id: <20121106143819.4309031c.akpm@linux-foundation.org>
+From: Thierry Reding <thierry.reding@avionic-design.de>
+Date: Mon, 05 Nov 2012 09:22:19 +0000
+Subject: SPARC and OF_GPIO
+Message-Id: <20121105092218.GC5847@avionic-0098.mockup.avionic-design.de>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="2/5bycvrmDh4d1IB"
 List-Id: <sparclinux.vger.kernel.org>
-References: <1352155633-8648-1-git-send-email-walken@google.com>
- <1352155633-8648-8-git-send-email-walken@google.com>
-In-Reply-To: <1352155633-8648-8-git-send-email-walken@google.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: "David S. Miller" <davm@davemloft.net>
+Cc: sparclinux@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, linux-kernel@vger.kernel.org
 
-On Mon,  5 Nov 2012 14:47:04 -0800
-Michel Lespinasse <walken@google.com> wrote:
 
-> Fix the x86-64 cache alignment code to take pgoff into account.
-> Use the x86 and MIPS cache alignment code as the basis for a generic
-> cache alignment function.
-> 
-> The old x86 code will always align the mmap to aliasing boundaries,
-> even if the program mmaps the file with a non-zero pgoff.
-> 
-> If program A mmaps the file with pgoff 0, and program B mmaps the
-> file with pgoff 1. The old code would align the mmaps, resulting in
-> misaligned pages:
-> 
-> A:  0123
-> B:  123
-> 
-> After this patch, they are aligned so the pages line up:
-> 
-> A: 0123
-> B:  123
+--2/5bycvrmDh4d1IB
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-We have a bit of a history of fiddling with coloring and finding that
-the changes made at best no improvement.  Or at least, that's my
-perhaps faulty memory of it.
+Hi David,
 
-This one needs pretty careful testing, please.
+There have been a number of reports that Linux kernel builds fail on
+SPARC because it doesn't support OF_GPIO, which provides the of_node
+field of the struct gpio_chip.
+
+One of the drivers I wrote (gpio-adnp) accesses this unconditionally but
+only depends on OF and not OF_GPIO, so it fails to build on SPARC. A
+similar problem happens with the gpio-fan driver, which defines the OF
+match table only if OF_GPIO is selected, but uses it even if only OF but
+not OF_GPIO is selected.
+
+While it is clearly the drivers which are at fault here it still raises
+the question as to why SPARC still conflicts with OF_GPIO. Over two
+years ago, commit 5ab5fc7 made most of the OF symbols available to all
+platforms except SPARC. The commit message explicitly states that this
+should probably be re-evaluated.
+
+Are you aware of any reasons why this conflict would still be necessary?
+This is not only the case for OF_GPIO but likely also for OF_SPI,
+OF_I2C, OF_IRQ and OF_ADDRESS. Shouldn't those all work even on SPARC
+nowadays?
+
+Thierry
+
+--2/5bycvrmDh4d1IB
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQl4VKAAoJEN0jrNd/PrOhSwMQAK5hcpHzexhkfrD2MKvh4Sy6
+Bz2wtVn8LpjBczKmYD9cAK7jz674I8Tl9OfpaJ4U8cZcpYAbZJSj0mTx11Uef8yO
+MSsdS5yLP6Wfy1CFNV5C+sArcXkhuyhnce9gpMKIZRoZOQF77sueb+8OQcNFNwIW
+wxR6lnH+Jj+v4j/9KLRsw45I4WmwJVLuqlWUyfAFbEQwHx0nOekcXVTzz/jUbnFu
+mH0y58RcyrGCzHa9w3EaZrZO178pH2y/yAkNbCcLkSb7urRigcA3dO2Y4jq6OGqU
+v/WFgcDftPzETOpYTBy8FxXWDadIfbJwNgfptayenD6XJMasbsUtYcduxVOiF9WJ
+cvcelarHSFsTxzE9rrNv85R9KlF0WtiKC8Fgb7UIgfFxFhfiB28EK7h+HgUTO+Pw
+GpNQWiaWrVtTAZBjX2CUBPGlGbHfS6frvE8fvUVoeib9t5r47H18cEbGZm2hLcIH
+T7VigvvX8nqutsXjB2jU2kMWWRsriIQdTqzlfC8szBq6fiQ9iKdy/VrH5u9RkHtz
+VOvyKGQHoIdixrw9ZCefNyErDE6J3IYJnRuMcJd1Jb2D6MVcb7Z+/7wDMIVBelIT
+tsl8qRyGUASM0M4BSAeizoHV86DrLFSIt3bVRbgFxLCi5OHz7dI6wMrfIKugkSJs
+nK2mXtBf/s5HQoH9A1jJ
+=CyMA
+-----END PGP SIGNATURE-----
+
+--2/5bycvrmDh4d1IB--
