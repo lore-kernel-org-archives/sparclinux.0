@@ -1,36 +1,114 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 23 Nov 2012 19:48:31 +0000
-Subject: [GIT] Sparc
-Message-Id: <20121123.144831.453731602280182518.davem@davemloft.net>
+From: Michel Lespinasse <walken@google.com>
+Date: Mon, 05 Nov 2012 22:46:57 +0000
+Subject: [PATCH 00/16] mm: use augmented rbtrees for finding unmapped areas
+Message-Id: <1352155633-8648-1-git-send-email-walken@google.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
+Earlier this year, Rik proposed using augmented rbtrees to optimize
+our search for a suitable unmapped area during mmap(). This prompted
+my work on improving the augmented rbtree code. Rik doesn't seem to
+have time to follow up on his idea at this time, so I'm sending this
+series to revive the idea.
 
-Please pull in this bug fix from Al Viro.
+These changes are against v3.7-rc4. I have not converted all applicable
+architectuers yet, but we don't necessarily need to get them all onboard
+at once - the series is fully bisectable and additional architectures
+can be added later on. I am confident enough in my tests for patches 1-8;
+however the second half of the series basically didn't get tested as
+I don't have access to all the relevant architectures.
 
-Thanks!
+Change log  since the previous (RFC) send:
+- Added bug fix in validate_mm(), noticed by Sasha Levin and figured
+  out by Bob Liu, which sometimes caused NULL pointer dereference when
+  running with CONFIG_DEBUG_VM_RB=y
+- Fixed generic and x86_64 arch_get_unmapped_area_topdown to avoid
+  allocating new areas at addr=0 as suggested by Rik Van Riel
+- Converted more architectures to use the new vm_unmapped_area()
+  search function
+- Converted hugetlbfs (generic / i386 / sparc64 / tile) to use the new
+  vm_unmapped_area() search function as well.
 
-The following changes since commit 3587b1b097d70c2eb9fee95ea7995d13c05f66e5:
+In this resend, I have kept Rik's Reviewed-by tags from the original
+RFC submission for patches that haven't been updated other than applying
+his suggestions.
 
-  fanotify: fix FAN_Q_OVERFLOW case of fanotify_read() (2012-11-18 09:30:00 -1000)
+Patch 1 is the validate_mm() fix from Bob Liu (+ fixed-the-fix from me :)
 
-are available in the git repository at:
+Patch 2 augments the VMA rbtree with a new rb_subtree_gap field,
+indicating the length of the largest gap immediately preceding any
+VMAs in a subtree.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc master
+Patch 3 adds new checks to CONFIG_DEBUG_VM_RB to verify the above
+information is correctly maintained.
 
-for you to fetch changes up to fae2ae2a900a5c7bb385fe4075f343e7e2d5daa2:
+Patch 4 rearranges the vm_area_struct layout so that rbtree searches only
+need data that is contained in the first cacheline (this one is from
+Rik's original patch series)
 
-  sparc64: not any error from do_sigaltstack() should fail rt_sigreturn() (2012-11-18 22:27:03 -0500)
+Patch 5 adds a generic vm_unmapped_area() search function, which
+allows for searching for an address space of any desired length,
+within [low; high[ address constraints, with any desired alignment.
+The generic arch_get_unmapped_area[_topdown] functions are also converted
+to use this.
 
-----------------------------------------------------------------
-Al Viro (1):
-      sparc64: not any error from do_sigaltstack() should fail rt_sigreturn()
+Patch 6 converts the x86_64 arch_get_unmapped_area[_topdown] functions
+to use vm_unmapped_area() as well.
 
- arch/sparc/kernel/signal_64.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+Patch 7 fixes cache coloring on x86_64, as suggested by Rik in his
+previous series.
+
+Patch 8 and 9 convert the generic and i386 hugetlbfs code to use
+vm_unmapped_area()
+
+Patches 10-16 convert extra architectures to use vm_unmapped_area()
+
+I'm happy that this series removes more code than it adds, as calling
+vm_unmapped_area() with the desired arguments is quite shorter than
+duplicating the brute force algorithm all over the place. There is
+still a bit of repetition between various implementations of
+arch_get_unmapped_area[_topdown] functions that could probably be
+simplified somehow, but I feel we can keep that for a later step...
+
+Michel Lespinasse (15):
+  mm: add anon_vma_lock to validate_mm()
+  mm: augment vma rbtree with rb_subtree_gap
+  mm: check rb_subtree_gap correctness
+  mm: vm_unmapped_area() lookup function
+  mm: use vm_unmapped_area() on x86_64 architecture
+  mm: fix cache coloring on x86_64 architecture
+  mm: use vm_unmapped_area() in hugetlbfs
+  mm: use vm_unmapped_area() in hugetlbfs on i386 architecture
+  mm: use vm_unmapped_area() on mips architecture
+  mm: use vm_unmapped_area() on arm architecture
+  mm: use vm_unmapped_area() on sh architecture
+  mm: use vm_unmapped_area() on sparc64 architecture
+  mm: use vm_unmapped_area() in hugetlbfs on sparc64 architecture
+  mm: use vm_unmapped_area() on sparc32 architecture
+  mm: use vm_unmapped_area() in hugetlbfs on tile architecture
+
+Rik van Riel (1):
+  mm: rearrange vm_area_struct for fewer cache misses
+
+ arch/arm/mm/mmap.c               |  119 ++--------
+ arch/mips/mm/mmap.c              |   99 ++-------
+ arch/sh/mm/mmap.c                |  126 ++---------
+ arch/sparc/kernel/sys_sparc_32.c |   24 +--
+ arch/sparc/kernel/sys_sparc_64.c |  132 +++---------
+ arch/sparc/mm/hugetlbpage.c      |  123 +++--------
+ arch/tile/mm/hugetlbpage.c       |  139 ++----------
+ arch/x86/include/asm/elf.h       |    6 +-
+ arch/x86/kernel/sys_x86_64.c     |  151 +++----------
+ arch/x86/mm/hugetlbpage.c        |  130 ++---------
+ arch/x86/vdso/vma.c              |    2 +-
+ fs/hugetlbfs/inode.c             |   42 +---
+ include/linux/mm.h               |   31 +++
+ include/linux/mm_types.h         |   19 ++-
+ mm/mmap.c                        |  452 +++++++++++++++++++++++++++++---------
+ 15 files changed, 616 insertions(+), 979 deletions(-)
+
+-- 
+1.7.7.3
