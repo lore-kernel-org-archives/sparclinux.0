@@ -1,281 +1,270 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Date: Thu, 01 Nov 2012 09:44:38 +0000
-Subject: [PATCH v3 07/12] memory-hotplug: implement register_page_bootmem_info_section of sparse-vmemmap
-Message-Id: <1351763083-7905-8-git-send-email-wency@cn.fujitsu.com>
+From: Michel Lespinasse <walken@google.com>
+Date: Mon, 05 Nov 2012 22:47:03 +0000
+Subject: [PATCH 06/16] mm: use vm_unmapped_area() on x86_64 architecture
+Message-Id: <1352155633-8648-7-git-send-email-walken@google.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1351763083-7905-1-git-send-email-wency@cn.fujitsu.com>
-In-Reply-To: <1351763083-7905-1-git-send-email-wency@cn.fujitsu.com>
+References: <1352155633-8648-1-git-send-email-walken@google.com>
+In-Reply-To: <1352155633-8648-1-git-send-email-walken@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
-Cc: David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jianguo Wu <wujianguo@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>
+To: linux-arm-kernel@lists.infradead.org
 
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Update the x86_64 arch_get_unmapped_area[_topdown] functions to make
+use of vm_unmapped_area() instead of implementing a brute force search.
 
-For removing memmap region of sparse-vmemmap which is allocated bootmem,
-memmap region of sparse-vmemmap needs to be registered by get_page_bootmem().
-So the patch searches pages of virtual mapping and registers the pages by
-get_page_bootmem().
+Signed-off-by: Michel Lespinasse <walken@google.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
 
-Note: register_page_bootmem_memmap() is not implemented for ia64, ppc, s390,
-and sparc.
-
-CC: David Rientjes <rientjes@google.com>
-CC: Jiang Liu <liuj97@gmail.com>
-CC: Len Brown <len.brown@intel.com>
-CC: Christoph Lameter <cl@linux.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-CC: Andrew Morton <akpm@linux-foundation.org>
-CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 ---
- arch/ia64/mm/discontig.c       |  6 +++++
- arch/powerpc/mm/init_64.c      |  6 +++++
- arch/s390/mm/vmem.c            |  6 +++++
- arch/sparc/mm/init_64.c        |  6 +++++
- arch/x86/mm/init_64.c          | 52 ++++++++++++++++++++++++++++++++++++++++++
- include/linux/memory_hotplug.h | 11 ++-------
- include/linux/mm.h             |  3 ++-
- mm/memory_hotplug.c            | 37 ++++++++++++++++++++++++++----
- 8 files changed, 113 insertions(+), 14 deletions(-)
+ arch/x86/include/asm/elf.h   |    6 +-
+ arch/x86/kernel/sys_x86_64.c |  151 ++++++++---------------------------------
+ arch/x86/vdso/vma.c          |    2 +-
+ 3 files changed, 33 insertions(+), 126 deletions(-)
 
-diff --git a/arch/ia64/mm/discontig.c b/arch/ia64/mm/discontig.c
-index c641333..33943db 100644
---- a/arch/ia64/mm/discontig.c
-+++ b/arch/ia64/mm/discontig.c
-@@ -822,4 +822,10 @@ int __meminit vmemmap_populate(struct page *start_page,
- {
- 	return vmemmap_populate_basepages(start_page, size, node);
- }
-+
-+void register_page_bootmem_memmap(unsigned long section_nr,
-+				  struct page *start_page, unsigned long size)
-+{
-+	/* TODO */
-+}
- #endif
-diff --git a/arch/powerpc/mm/init_64.c b/arch/powerpc/mm/init_64.c
-index 95a4529..6466440 100644
---- a/arch/powerpc/mm/init_64.c
-+++ b/arch/powerpc/mm/init_64.c
-@@ -297,5 +297,11 @@ int __meminit vmemmap_populate(struct page *start_page,
- 
- 	return 0;
- }
-+
-+void register_page_bootmem_memmap(unsigned long section_nr,
-+				  struct page *start_page, unsigned long size)
-+{
-+	/* TODO */
-+}
- #endif /* CONFIG_SPARSEMEM_VMEMMAP */
- 
-diff --git a/arch/s390/mm/vmem.c b/arch/s390/mm/vmem.c
-index 387c7c6..4f4803a 100644
---- a/arch/s390/mm/vmem.c
-+++ b/arch/s390/mm/vmem.c
-@@ -236,6 +236,12 @@ out:
- 	return ret;
- }
- 
-+void register_page_bootmem_memmap(unsigned long section_nr,
-+				  struct page *start_page, unsigned long size)
-+{
-+	/* TODO */
-+}
-+
- /*
-  * Add memory segment to the segment list if it doesn't overlap with
-  * an already present segment.
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 9e28a11..75a984b 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -2231,6 +2231,12 @@ void __meminit vmemmap_populate_print_last(void)
- 		node_start = 0;
- 	}
- }
-+
-+void register_page_bootmem_memmap(unsigned long section_nr,
-+				  struct page *start_page, unsigned long size)
-+{
-+	/* TODO */
-+}
- #endif /* CONFIG_SPARSEMEM_VMEMMAP */
- 
- static void prot_init_common(unsigned long page_none,
-diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
-index 5675335..795dae3 100644
---- a/arch/x86/mm/init_64.c
-+++ b/arch/x86/mm/init_64.c
-@@ -998,6 +998,58 @@ vmemmap_populate(struct page *start_page, unsigned long size, int node)
+diff --git a/arch/x86/include/asm/elf.h b/arch/x86/include/asm/elf.h
+index 5939f44fe0c0..9c999c1674fa 100644
+--- a/arch/x86/include/asm/elf.h
++++ b/arch/x86/include/asm/elf.h
+@@ -354,12 +354,10 @@ static inline int mmap_is_ia32(void)
  	return 0;
  }
  
-+void register_page_bootmem_memmap(unsigned long section_nr,
-+				  struct page *start_page, unsigned long size)
-+{
-+	unsigned long addr = (unsigned long)start_page;
-+	unsigned long end = (unsigned long)(start_page + size);
-+	unsigned long next;
-+	pgd_t *pgd;
-+	pud_t *pud;
-+	pmd_t *pmd;
-+
-+	for (; addr < end; addr = next) {
-+		pte_t *pte = NULL;
-+
-+		pgd = pgd_offset_k(addr);
-+		if (pgd_none(*pgd)) {
-+			next = (addr + PAGE_SIZE) & PAGE_MASK;
-+			continue;
-+		}
-+		get_page_bootmem(section_nr, pgd_page(*pgd), MIX_SECTION_INFO);
-+
-+		pud = pud_offset(pgd, addr);
-+		if (pud_none(*pud)) {
-+			next = (addr + PAGE_SIZE) & PAGE_MASK;
-+			continue;
-+		}
-+		get_page_bootmem(section_nr, pud_page(*pud), MIX_SECTION_INFO);
-+
-+		if (!cpu_has_pse) {
-+			next = (addr + PAGE_SIZE) & PAGE_MASK;
-+			pmd = pmd_offset(pud, addr);
-+			if (pmd_none(*pmd))
-+				continue;
-+			get_page_bootmem(section_nr, pmd_page(*pmd),
-+					 MIX_SECTION_INFO);
-+
-+			pte = pte_offset_kernel(pmd, addr);
-+			if (pte_none(*pte))
-+				continue;
-+			get_page_bootmem(section_nr, pte_page(*pte),
-+					 SECTION_INFO);
-+		} else {
-+			next = pmd_addr_end(addr, end);
-+
-+			pmd = pmd_offset(pud, addr);
-+			if (pmd_none(*pmd))
-+				continue;
-+			get_page_bootmem(section_nr, pmd_page(*pmd),
-+					 SECTION_INFO);
-+		}
-+	}
-+}
-+
- void __meminit vmemmap_populate_print_last(void)
- {
- 	if (p_start) {
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index 191b2d9..d4c4402 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -163,17 +163,10 @@ static inline void arch_refresh_nodedata(int nid, pg_data_t *pgdat)
- #endif /* CONFIG_NUMA */
- #endif /* CONFIG_HAVE_ARCH_NODEDATA_EXTENSION */
+-/* The first two values are special, do not change. See align_addr() */
++/* Do not change the values. See get_align_mask() */
+ enum align_flags {
+ 	ALIGN_VA_32	= BIT(0),
+ 	ALIGN_VA_64	= BIT(1),
+-	ALIGN_VDSO	= BIT(2),
+-	ALIGN_TOPDOWN	= BIT(3),
+ };
  
--#ifdef CONFIG_SPARSEMEM_VMEMMAP
--static inline void register_page_bootmem_info_node(struct pglist_data *pgdat)
--{
--}
--static inline void put_page_bootmem(struct page *page)
--{
--}
--#else
- extern void register_page_bootmem_info_node(struct pglist_data *pgdat);
- extern void put_page_bootmem(struct page *page);
--#endif
-+extern void get_page_bootmem(unsigned long ingo, struct page *page,
-+			     unsigned long type);
+ struct va_alignment {
+@@ -368,5 +366,5 @@ struct va_alignment {
+ } ____cacheline_aligned;
+ 
+ extern struct va_alignment va_align;
+-extern unsigned long align_addr(unsigned long, struct file *, enum align_flags);
++extern unsigned long align_vdso_addr(unsigned long);
+ #endif /* _ASM_X86_ELF_H */
+diff --git a/arch/x86/kernel/sys_x86_64.c b/arch/x86/kernel/sys_x86_64.c
+index b4d3c3927dd8..f00d006d60fd 100644
+--- a/arch/x86/kernel/sys_x86_64.c
++++ b/arch/x86/kernel/sys_x86_64.c
+@@ -21,37 +21,23 @@
  
  /*
-  * Lock for memory hotplug guarantees 1) all callbacks for memory hotplug
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index fa06804..8e5a56f 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1640,7 +1640,8 @@ int vmemmap_populate_basepages(struct page *start_page,
- 						unsigned long pages, int node);
- int vmemmap_populate(struct page *start_page, unsigned long pages, int node);
- void vmemmap_populate_print_last(void);
+  * Align a virtual address to avoid aliasing in the I$ on AMD F15h.
+- *
+- * @flags denotes the allocation direction - bottomup or topdown -
+- * or vDSO; see call sites below.
+  */
+-unsigned long align_addr(unsigned long addr, struct file *filp,
+-			 enum align_flags flags)
++static unsigned long get_align_mask(void)
+ {
+-	unsigned long tmp_addr;
 -
-+void register_page_bootmem_memmap(unsigned long section_nr, struct page *map,
-+				  unsigned long size);
+ 	/* handle 32- and 64-bit case with a single conditional */
+ 	if (va_align.flags < 0 || !(va_align.flags & (2 - mmap_is_ia32())))
+-		return addr;
++		return 0;
  
- enum mf_flags {
- 	MF_COUNT_INCREASED = 1 << 0,
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 66a79a7..db9806c 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -91,9 +91,8 @@ static void release_memory_resource(struct resource *res)
- }
+ 	if (!(current->flags & PF_RANDOMIZE))
+-		return addr;
+-
+-	if (!((flags & ALIGN_VDSO) || filp))
+-		return addr;
+-
+-	tmp_addr = addr;
+-
+-	/*
+-	 * We need an address which is <= than the original
+-	 * one only when in topdown direction.
+-	 */
+-	if (!(flags & ALIGN_TOPDOWN))
+-		tmp_addr += va_align.mask;
++		return 0;
  
- #ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
--#ifndef CONFIG_SPARSEMEM_VMEMMAP
--static void get_page_bootmem(unsigned long info,  struct page *page,
--			     unsigned long type)
-+void get_page_bootmem(unsigned long info,  struct page *page,
-+		      unsigned long type)
- {
- 	page->lru.next = (struct list_head *) type;
- 	SetPagePrivate(page);
-@@ -127,6 +126,7 @@ void __ref put_page_bootmem(struct page *page)
- 
- }
- 
-+#ifndef CONFIG_SPARSEMEM_VMEMMAP
- static void register_page_bootmem_info_section(unsigned long start_pfn)
- {
- 	unsigned long *usemap, mapsize, section_nr, i;
-@@ -160,6 +160,36 @@ static void register_page_bootmem_info_section(unsigned long start_pfn)
- 		get_page_bootmem(section_nr, page, MIX_SECTION_INFO);
- 
- }
-+#else
-+static void register_page_bootmem_info_section(unsigned long start_pfn)
-+{
-+	unsigned long *usemap, mapsize, section_nr, i;
-+	struct mem_section *ms;
-+	struct page *page, *memmap;
-+
-+	if (!pfn_valid(start_pfn))
-+		return;
-+
-+	section_nr = pfn_to_section_nr(start_pfn);
-+	ms = __nr_to_section(section_nr);
-+
-+	memmap = sparse_decode_mem_map(ms->section_mem_map, section_nr);
-+
-+	page = virt_to_page(memmap);
-+	mapsize = sizeof(struct page) * PAGES_PER_SECTION;
-+	mapsize = PAGE_ALIGN(mapsize) >> PAGE_SHIFT;
-+
-+	register_page_bootmem_memmap(section_nr, memmap, PAGES_PER_SECTION);
-+
-+	usemap = __nr_to_section(section_nr)->pageblock_flags;
-+	page = virt_to_page(usemap);
-+
-+	mapsize = PAGE_ALIGN(usemap_size()) >> PAGE_SHIFT;
-+
-+	for (i = 0; i < mapsize; i++, page++)
-+		get_page_bootmem(section_nr, page, MIX_SECTION_INFO);
+-	tmp_addr &= ~va_align.mask;
++	return va_align.mask;
 +}
-+#endif
  
- void register_page_bootmem_info_node(struct pglist_data *pgdat)
- {
-@@ -202,7 +232,6 @@ void register_page_bootmem_info_node(struct pglist_data *pgdat)
- 			register_page_bootmem_info_section(pfn);
- 	}
+-	return tmp_addr;
++unsigned long align_vdso_addr(unsigned long addr)
++{
++	unsigned long align_mask = get_align_mask();
++	return (addr + align_mask) & ~align_mask;
  }
--#endif /* !CONFIG_SPARSEMEM_VMEMMAP */
  
- static void grow_zone_span(struct zone *zone, unsigned long start_pfn,
- 			   unsigned long end_pfn)
+ static int __init control_va_addr_alignment(char *str)
+@@ -126,7 +112,7 @@ arch_get_unmapped_area(struct file *filp, unsigned long addr,
+ {
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma;
+-	unsigned long start_addr;
++	struct vm_unmapped_area_info info;
+ 	unsigned long begin, end;
+ 
+ 	if (flags & MAP_FIXED)
+@@ -144,50 +130,16 @@ arch_get_unmapped_area(struct file *filp, unsigned long addr,
+ 		    (!vma || addr + len <= vma->vm_start))
+ 			return addr;
+ 	}
+-	if (((flags & MAP_32BIT) || test_thread_flag(TIF_ADDR32))
+-	    && len <= mm->cached_hole_size) {
+-		mm->cached_hole_size = 0;
+-		mm->free_area_cache = begin;
+-	}
+-	addr = mm->free_area_cache;
+-	if (addr < begin)
+-		addr = begin;
+-	start_addr = addr;
+-
+-full_search:
+-
+-	addr = align_addr(addr, filp, 0);
+-
+-	for (vma = find_vma(mm, addr); ; vma = vma->vm_next) {
+-		/* At this point:  (!vma || addr < vma->vm_end). */
+-		if (end - len < addr) {
+-			/*
+-			 * Start a new search - just in case we missed
+-			 * some holes.
+-			 */
+-			if (start_addr != begin) {
+-				start_addr = addr = begin;
+-				mm->cached_hole_size = 0;
+-				goto full_search;
+-			}
+-			return -ENOMEM;
+-		}
+-		if (!vma || addr + len <= vma->vm_start) {
+-			/*
+-			 * Remember the place where we stopped the search:
+-			 */
+-			mm->free_area_cache = addr + len;
+-			return addr;
+-		}
+-		if (addr + mm->cached_hole_size < vma->vm_start)
+-			mm->cached_hole_size = vma->vm_start - addr;
+ 
+-		addr = vma->vm_end;
+-		addr = align_addr(addr, filp, 0);
+-	}
++	info.flags = 0;
++	info.length = len;
++	info.low_limit = begin;
++	info.high_limit = end;
++	info.align_mask = filp ? get_align_mask() : 0;
++	info.align_offset = 0;
++	return vm_unmapped_area(&info);
+ }
+ 
+-
+ unsigned long
+ arch_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
+ 			  const unsigned long len, const unsigned long pgoff,
+@@ -195,7 +147,8 @@ arch_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
+ {
+ 	struct vm_area_struct *vma;
+ 	struct mm_struct *mm = current->mm;
+-	unsigned long addr = addr0, start_addr;
++	unsigned long addr = addr0;
++	struct vm_unmapped_area_info info;
+ 
+ 	/* requested length too big for entire address space */
+ 	if (len > TASK_SIZE)
+@@ -217,51 +170,16 @@ arch_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
+ 			return addr;
+ 	}
+ 
+-	/* check if free_area_cache is useful for us */
+-	if (len <= mm->cached_hole_size) {
+-		mm->cached_hole_size = 0;
+-		mm->free_area_cache = mm->mmap_base;
+-	}
+-
+-try_again:
+-	/* either no address requested or can't fit in requested address hole */
+-	start_addr = addr = mm->free_area_cache;
+-
+-	if (addr < len)
+-		goto fail;
+-
+-	addr -= len;
+-	do {
+-		addr = align_addr(addr, filp, ALIGN_TOPDOWN);
+-
+-		/*
+-		 * Lookup failure means no vma is above this address,
+-		 * else if new region fits below vma->vm_start,
+-		 * return with success:
+-		 */
+-		vma = find_vma(mm, addr);
+-		if (!vma || addr+len <= vma->vm_start)
+-			/* remember the address as a hint for next time */
+-			return mm->free_area_cache = addr;
+-
+-		/* remember the largest hole we saw so far */
+-		if (addr + mm->cached_hole_size < vma->vm_start)
+-			mm->cached_hole_size = vma->vm_start - addr;
+-
+-		/* try just below the current vma->vm_start */
+-		addr = vma->vm_start-len;
+-	} while (len < vma->vm_start);
+-
+-fail:
+-	/*
+-	 * if hint left us with no space for the requested
+-	 * mapping then try again:
+-	 */
+-	if (start_addr != mm->mmap_base) {
+-		mm->free_area_cache = mm->mmap_base;
+-		mm->cached_hole_size = 0;
+-		goto try_again;
+-	}
++	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
++	info.length = len;
++	info.low_limit = PAGE_SIZE;
++	info.high_limit = mm->mmap_base;
++	info.align_mask = filp ? get_align_mask() : 0;
++	info.align_offset = 0;
++	addr = vm_unmapped_area(&info);
++	if (!(addr & ~PAGE_MASK))
++		return addr;
++	VM_BUG_ON(addr != -ENOMEM);
+ 
+ bottomup:
+ 	/*
+@@ -270,14 +188,5 @@ bottomup:
+ 	 * can happen with large stack limits and large mmap()
+ 	 * allocations.
+ 	 */
+-	mm->cached_hole_size = ~0UL;
+-	mm->free_area_cache = TASK_UNMAPPED_BASE;
+-	addr = arch_get_unmapped_area(filp, addr0, len, pgoff, flags);
+-	/*
+-	 * Restore the topdown base:
+-	 */
+-	mm->free_area_cache = mm->mmap_base;
+-	mm->cached_hole_size = ~0UL;
+-
+-	return addr;
++	return arch_get_unmapped_area(filp, addr0, len, pgoff, flags);
+ }
+diff --git a/arch/x86/vdso/vma.c b/arch/x86/vdso/vma.c
+index 00aaf047b39f..431e87544411 100644
+--- a/arch/x86/vdso/vma.c
++++ b/arch/x86/vdso/vma.c
+@@ -141,7 +141,7 @@ static unsigned long vdso_addr(unsigned long start, unsigned len)
+ 	 * unaligned here as a result of stack start randomization.
+ 	 */
+ 	addr = PAGE_ALIGN(addr);
+-	addr = align_addr(addr, NULL, ALIGN_VDSO);
++	addr = align_vdso_addr(addr);
+ 
+ 	return addr;
+ }
 -- 
-1.8.0
-
+1.7.7.3
