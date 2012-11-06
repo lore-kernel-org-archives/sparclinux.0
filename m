@@ -1,66 +1,53 @@
-From: Thierry Reding <thierry.reding@avionic-design.de>
-Date: Mon, 05 Nov 2012 09:53:15 +0000
-Subject: SPARC and OF_GPIO
-Message-Id: <20121105095315.GG5847@avionic-0098.mockup.avionic-design.de>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="IuhbYIxU28t+Kd57"
+From: David Miller <davem@davemloft.net>
+Date: Tue, 06 Nov 2012 23:40:58 +0000
+Subject: Re: SPARC and OF_GPIO
+Message-Id: <20121106.184058.636480855516538607.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20121105092218.GC5847@avionic-0098.mockup.avionic-design.de>
-In-Reply-To: <20121105092218.GC5847@avionic-0098.mockup.avionic-design.de>
-To: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, linux-kernel@vger.kernel.org
+References: <20121105095315.GG5847@avionic-0098.mockup.avionic-design.de>
+In-Reply-To: <20121105095315.GG5847@avionic-0098.mockup.avionic-design.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: thierry.reding@avionic-design.de
+Cc: sparclinux@vger.kernel.org, linus.walleij@linaro.org, grant.likely@secretlab.ca, linux-kernel@vger.kernel.org
 
+From: Thierry Reding <thierry.reding@avionic-design.de>
+Date: Mon, 5 Nov 2012 10:53:15 +0100
 
---IuhbYIxU28t+Kd57
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> Are you aware of any reasons why this conflict would still be necessary?
 
-[resending with David's correct email address]
+No reason that I can see, I'll push something like the patch below
+via the sparc tree.
 
-Hi David,
+> This is not only the case for OF_GPIO but likely also for OF_SPI,
+> OF_I2C, OF_IRQ and OF_ADDRESS. Shouldn't those all work even on SPARC
+> nowadays?
 
-There have been a number of reports that Linux kernel builds fail on
-SPARC because it doesn't support OF_GPIO, which provides the of_node
-field of the struct gpio_chip.
+Those also would need to be tested on an individual basis, but
+there are no fundamental problems that I am aware of.
 
-One of the drivers I wrote (gpio-adnp) accesses this unconditionally but
-only depends on OF and not OF_GPIO, so it fails to build on SPARC. A
-similar problem happens with the gpio-fan driver, which defines the OF
-match table only if OF_GPIO is selected, but uses it even if only OF but
-not OF_GPIO is selected.
-
-While it is clearly the drivers which are at fault here it still raises
-the question as to why SPARC still conflicts with OF_GPIO. Over two
-years ago, commit 5ab5fc7 made most of the OF symbols available to all
-platforms except SPARC. The commit message explicitly states that this
-should probably be re-evaluated.
-
-Are you aware of any reasons why this conflict would still be necessary?
-This is not only the case for OF_GPIO but likely also for OF_SPI,
-OF_I2C, OF_IRQ and OF_ADDRESS. Shouldn't those all work even on SPARC
-nowadays?
-
-Thierry
-
---IuhbYIxU28t+Kd57
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQl4yLAAoJEN0jrNd/PrOhXygP/jGMHlQziQqKLTiAjztsBcJ+
-35EAeHeU30ygMpJ9sVBuKbTkj3qPtkSyEYJ/W8QQxQAxvf9qJYcXEIZr5K9QtXnX
-03ZpN7qFdeJJWyduC1SbT1X+xKuMnpbbGHMYCHyeR9SZG4SVRxneyTkkzP+8He5t
-hfVqA0p1YbvplfYoDPHNdXYNWjZsiFQVKmoAcEz+SmuLCfm5A82mnhGhl+V0gANT
-ALKJQeIPL0UwoUEsjQPKE2KWhRj1I2FRXdz2MUk4UJi+bzFgSvu1YNupMyG5RPO9
-qrKM4FR88/iIm661QbQCHr92N2ifm03Yij/2U7rg8Ep9689NmmH46xk8u/OtIrXw
-Y4dsp4HV0Pjt5fgNyHO5dAEq/rnXayezKSamyBXCdlgK04ALHqfm5iLUn31w/ftF
-26A8b2NLiMNl4JcEZuwmQ6y/d0VNAhoTykRcfBiaPbO7yPbN3ddgyk+z88/mB+h9
-i11nHnNKSYdL2Wx3GyuXcjzpu2aoUvFjo8jpH0GBQvG4VMWguNUctJ7RCU4C8Bp7
-eKc5zHv2pzGwIJgQaN7dCNfSUtSAgIf1WJGdgTx22YIGWrKpoNKtw46pDvhaaAZB
-GkFncassQ9rh359byZJEe8GXYu7Tkdyrh4dNJCbEcpcDn5fJJLeHQBmIG47RTDPq
-kVtlIh6ds+YTlRw/Zm28
-=Dxcz
------END PGP SIGNATURE-----
-
---IuhbYIxU28t+Kd57--
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index b6b442b..f0a5391 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -14,6 +14,7 @@ config SPARC
+ 	default y
+ 	select OF
+ 	select OF_PROMTREE
++	select OF_GPIO
+ 	select HAVE_IDE
+ 	select HAVE_OPROFILE
+ 	select HAVE_ARCH_KGDB if !SMP || SPARC64
+diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
+index d055cee..f11d8e3 100644
+--- a/drivers/gpio/Kconfig
++++ b/drivers/gpio/Kconfig
+@@ -47,7 +47,7 @@ if GPIOLIB
+ 
+ config OF_GPIO
+ 	def_bool y
+-	depends on OF && !SPARC
++	depends on OF
+ 
+ config DEBUG_GPIO
+ 	bool "Debug GPIO calls"
