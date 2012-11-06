@@ -1,7 +1,7 @@
-From: Michel Lespinasse <walken@google.com>
-Date: Tue, 06 Nov 2012 03:13:19 +0000
+From: Rik van Riel <riel@redhat.com>
+Date: Tue, 06 Nov 2012 07:30:07 +0000
 Subject: Re: [PATCH 15/16] mm: use vm_unmapped_area() on sparc32 architecture
-Message-Id: <CANN689Gt2mG8xfkVkFtOHDFxkoZZAL-p-8yMSw=qvy5zaGs1ag@mail.gmail.com>
+Message-Id: <5098BC7F.7090702@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1352155633-8648-1-git-send-email-walken@google.com>
  <1352155633-8648-16-git-send-email-walken@google.com>
@@ -12,7 +12,7 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-On Mon, Nov 5, 2012 at 5:25 PM, David Miller <davem@davemloft.net> wrote:
+On 11/05/2012 08:25 PM, David Miller wrote:
 > From: Michel Lespinasse <walken@google.com>
 > Date: Mon,  5 Nov 2012 14:47:12 -0800
 >
@@ -23,21 +23,26 @@ On Mon, Nov 5, 2012 at 5:25 PM, David Miller <davem@davemloft.net> wrote:
 >
 > Hmmm...
 >
->> -     if (flags & MAP_SHARED)
->> -             addr = COLOUR_ALIGN(addr);
->> -     else
->> -             addr = PAGE_ALIGN(addr);
+>> -	if (flags & MAP_SHARED)
+>> -		addr = COLOUR_ALIGN(addr);
+>> -	else
+>> -		addr = PAGE_ALIGN(addr);
 >
 > What part of vm_unmapped_area() is going to duplicate this special
 > aligning logic we need on sparc?
+>
 
-The idea there is that you can specify the desired alignment mask and
-offset using info.align_mask and info.align_offset.
+That would be this part:
 
-Now, I just noticed that the old code actually always uses an
-alignment offset of 0 instead of basing it on pgoff. I'm not sure why
-that is, but it looks like this may be an issue ?
-
--- 
-Michel "Walken" Lespinasse
-A program is never fully debugged until the last user dies.
++found:
++	/* We found a suitable gap. Clip it with the original low_limit. */
++	if (gap_start < info->low_limit)
++		gap_start = info->low_limit;
++
++	/* Adjust gap address to the desired alignment */
++	gap_start += (info->align_offset - gap_start) & info->align_mask;
++
++	VM_BUG_ON(gap_start + info->length > info->high_limit);
++	VM_BUG_ON(gap_start + info->length > gap_end);
++	return gap_start;
++}
