@@ -1,114 +1,49 @@
-From: Michel Lespinasse <walken@google.com>
-Date: Mon, 05 Nov 2012 22:46:57 +0000
-Subject: [PATCH 00/16] mm: use augmented rbtrees for finding unmapped areas
-Message-Id: <1352155633-8648-1-git-send-email-walken@google.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Tue, 06 Nov 2012 22:11:37 +0000
+Subject: Re: [PATCH 00/16] mm: use augmented rbtrees for finding unmapped areas
+Message-Id: <20121106141137.68bbd4ea.akpm@linux-foundation.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1352155633-8648-1-git-send-email-walken@google.com>
+In-Reply-To: <1352155633-8648-1-git-send-email-walken@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-Earlier this year, Rik proposed using augmented rbtrees to optimize
-our search for a suitable unmapped area during mmap(). This prompted
-my work on improving the augmented rbtree code. Rik doesn't seem to
-have time to follow up on his idea at this time, so I'm sending this
-series to revive the idea.
+On Mon,  5 Nov 2012 14:46:57 -0800
+Michel Lespinasse <walken@google.com> wrote:
 
-These changes are against v3.7-rc4. I have not converted all applicable
-architectuers yet, but we don't necessarily need to get them all onboard
-at once - the series is fully bisectable and additional architectures
-can be added later on. I am confident enough in my tests for patches 1-8;
-however the second half of the series basically didn't get tested as
-I don't have access to all the relevant architectures.
+> Earlier this year, Rik proposed using augmented rbtrees to optimize
+> our search for a suitable unmapped area during mmap(). This prompted
+> my work on improving the augmented rbtree code. Rik doesn't seem to
+> have time to follow up on his idea at this time, so I'm sending this
+> series to revive the idea.
 
-Change log  since the previous (RFC) send:
-- Added bug fix in validate_mm(), noticed by Sasha Levin and figured
-  out by Bob Liu, which sometimes caused NULL pointer dereference when
-  running with CONFIG_DEBUG_VM_RB=y
-- Fixed generic and x86_64 arch_get_unmapped_area_topdown to avoid
-  allocating new areas at addr=0 as suggested by Rik Van Riel
-- Converted more architectures to use the new vm_unmapped_area()
-  search function
-- Converted hugetlbfs (generic / i386 / sparc64 / tile) to use the new
-  vm_unmapped_area() search function as well.
+Well, the key word here is "optimize".  Some quantitative testing
+results would be nice, please!
 
-In this resend, I have kept Rik's Reviewed-by tags from the original
-RFC submission for patches that haven't been updated other than applying
-his suggestions.
+People do occasionally see nasty meltdowns in the get_unmapped_area()
+vicinity.  There was one case 2-3 years ago which was just ghastly, but
+I can't find the email (it's on linux-mm somewhere).  This one might be
+another case:
+http://lkml.indiana.edu/hypermail/linux/kernel/1101.1/00896.html
 
-Patch 1 is the validate_mm() fix from Bob Liu (+ fixed-the-fix from me :)
+If you can demonstrate that this patchset fixes some of all of the bad
+search complexity scenarios then that's quite a win?
 
-Patch 2 augments the VMA rbtree with a new rb_subtree_gap field,
-indicating the length of the largest gap immediately preceding any
-VMAs in a subtree.
+> These changes are against v3.7-rc4. I have not converted all applicable
+> architectuers yet, but we don't necessarily need to get them all onboard
+> at once - the series is fully bisectable and additional architectures
+> can be added later on. I am confident enough in my tests for patches 1-8;
+> however the second half of the series basically didn't get tested as
+> I don't have access to all the relevant architectures.
 
-Patch 3 adds new checks to CONFIG_DEBUG_VM_RB to verify the above
-information is correctly maintained.
+Yes, I'll try to get these into -next so that the thousand monkeys at
+least give us some compilation coverage testing.  Hopefully the
+relevant arch maintainers will find time to perform a runtime test.
 
-Patch 4 rearranges the vm_area_struct layout so that rbtree searches only
-need data that is contained in the first cacheline (this one is from
-Rik's original patch series)
+> Patch 1 is the validate_mm() fix from Bob Liu (+ fixed-the-fix from me :)
 
-Patch 5 adds a generic vm_unmapped_area() search function, which
-allows for searching for an address space of any desired length,
-within [low; high[ address constraints, with any desired alignment.
-The generic arch_get_unmapped_area[_topdown] functions are also converted
-to use this.
+I grabbed this one separately, as a post-3.6 fix.
 
-Patch 6 converts the x86_64 arch_get_unmapped_area[_topdown] functions
-to use vm_unmapped_area() as well.
 
-Patch 7 fixes cache coloring on x86_64, as suggested by Rik in his
-previous series.
-
-Patch 8 and 9 convert the generic and i386 hugetlbfs code to use
-vm_unmapped_area()
-
-Patches 10-16 convert extra architectures to use vm_unmapped_area()
-
-I'm happy that this series removes more code than it adds, as calling
-vm_unmapped_area() with the desired arguments is quite shorter than
-duplicating the brute force algorithm all over the place. There is
-still a bit of repetition between various implementations of
-arch_get_unmapped_area[_topdown] functions that could probably be
-simplified somehow, but I feel we can keep that for a later step...
-
-Michel Lespinasse (15):
-  mm: add anon_vma_lock to validate_mm()
-  mm: augment vma rbtree with rb_subtree_gap
-  mm: check rb_subtree_gap correctness
-  mm: vm_unmapped_area() lookup function
-  mm: use vm_unmapped_area() on x86_64 architecture
-  mm: fix cache coloring on x86_64 architecture
-  mm: use vm_unmapped_area() in hugetlbfs
-  mm: use vm_unmapped_area() in hugetlbfs on i386 architecture
-  mm: use vm_unmapped_area() on mips architecture
-  mm: use vm_unmapped_area() on arm architecture
-  mm: use vm_unmapped_area() on sh architecture
-  mm: use vm_unmapped_area() on sparc64 architecture
-  mm: use vm_unmapped_area() in hugetlbfs on sparc64 architecture
-  mm: use vm_unmapped_area() on sparc32 architecture
-  mm: use vm_unmapped_area() in hugetlbfs on tile architecture
-
-Rik van Riel (1):
-  mm: rearrange vm_area_struct for fewer cache misses
-
- arch/arm/mm/mmap.c               |  119 ++--------
- arch/mips/mm/mmap.c              |   99 ++-------
- arch/sh/mm/mmap.c                |  126 ++---------
- arch/sparc/kernel/sys_sparc_32.c |   24 +--
- arch/sparc/kernel/sys_sparc_64.c |  132 +++---------
- arch/sparc/mm/hugetlbpage.c      |  123 +++--------
- arch/tile/mm/hugetlbpage.c       |  139 ++----------
- arch/x86/include/asm/elf.h       |    6 +-
- arch/x86/kernel/sys_x86_64.c     |  151 +++----------
- arch/x86/mm/hugetlbpage.c        |  130 ++---------
- arch/x86/vdso/vma.c              |    2 +-
- fs/hugetlbfs/inode.c             |   42 +---
- include/linux/mm.h               |   31 +++
- include/linux/mm_types.h         |   19 ++-
- mm/mmap.c                        |  452 +++++++++++++++++++++++++++++---------
- 15 files changed, 616 insertions(+), 979 deletions(-)
-
--- 
-1.7.7.3
