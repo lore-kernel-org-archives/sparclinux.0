@@ -1,38 +1,50 @@
-From: Shuah Khan <shuah.khan@hp.com>
-Date: Fri, 23 Nov 2012 21:32:55 +0000
-Subject: [PATCH 3/9] ia64: dma_debug: add debug_dma_mapping_error support
-Message-Id: <1353706375.5270.98.camel@lorien2>
+From: Mr Robin Shepherd <robinshepherdd@hotmail.co.uk>
+Date: Thu, 08 Nov 2012 05:58:49 +0000
+Subject: Investment Proposal
+Message-Id: <20121108115849.34252792s7go56vs@mail.bpc.bt>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-Add dma-debug interface debug_dma_mapping_error() to debug drivers that fail
-to check dma mapping errors on addresses returned by dma_map_single() and
-dma_map_page() interfaces.
 
-Signed-off-by: Shuah Khan <shuah.khan@hp.com>
----
- arch/ia64/include/asm/dma-mapping.h |    1 +
- 1 file changed, 1 insertion(+)
 
-diff --git a/arch/ia64/include/asm/dma-mapping.h b/arch/ia64/include/asm/dma-mapping.h
-index 4f5e814..cf3ab7e 100644
---- a/arch/ia64/include/asm/dma-mapping.h
-+++ b/arch/ia64/include/asm/dma-mapping.h
-@@ -58,6 +58,7 @@ static inline void dma_free_attrs(struct device *dev, size_t size,
- static inline int dma_mapping_error(struct device *dev, dma_addr_t daddr)
- {
- 	struct dma_map_ops *ops = platform_dma_get_ops(dev);
-+	debug_dma_mapping_error(dev, daddr);
- 	return ops->mapping_error(dev, daddr);
- }
- 
+City of London Investment Group Plc
+77 Gracechurch Street
+London
+EC3V 0AS
+www.citlon.co.uk
+Direct Tel:+447700088730
+
+
+RE:Proposition:
+
+I am Robin Shepherd, Fund manager of City of London Investment Group  
+Plc, The World Largest Funds Management Company with Huge Capital  
+Investment Funds. I am currently seeking for a trustworthy partner in  
+the assistance of establishing a joint business interest abroad in the  
+following sectors: Oil/Gas, Real Estate, Stock Speculation,Shipping  
+and Logistics sector,Mining,Agricultural services,Education sector and  
+others.
+
+In View of this, l am soliciting for your noble idea of making good  
+profit in any of the mentioned business sectors or any other business  
+interest in your country, Please write me for possible business  
+co-operation.
+
+Should in case you are interested, please do reply back or contact me  
+on my direct phone number:+447700088730
+
+Regards
+Mr Robin Shepherd
+
+----------------------------------------------------------------
+This message was sent using IMP, the Internet Messaging Program.
+
+
 -- 
-1.7.9.5
-
-
-
-
+This message has been scanned for viruses and
+dangerous content by MailScanner, and is
+believed to be clean.
 
