@@ -1,35 +1,19 @@
-From: Chen Gang <gang.chen@asianux.com>
-Date: Fri, 09 Nov 2012 03:15:27 +0000
+From: David Miller <davem@davemloft.net>
+Date: Fri, 09 Nov 2012 03:16:08 +0000
 Subject: Re: [PATCH] arch/sparc: additional len check in loop for prom_getbootargs
-Message-Id: <509C754F.20101@asianux.com>
+Message-Id: <20121108.221608.1619801803545372550.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <509B29F3.2040006@asianux.com>
 In-Reply-To: <509B29F3.2040006@asianux.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-SGVsbCBEYXZpZCBNaWxsZXI6CgoxKSBJcyB0aGlzIHBhdGNoIGFwcGxpZWQgPyAgb3IgbmVlZCBz
-b21lIGRpc2N1c3Npb24gPyAgb3Igc3VzcGVuZGVkID8KCjIpIElmIHBvc3NpYmxlOiAKICAgQSkg
-Y2FuIHlvdSB0ZWxsIG1lIGFib3V0IG91ciBwYXRjaCBwcm9jZXNzaW5nIHdvcmsgZmxvdyAiCiAg
-IEIpIG9yIHNvbWUgcmVmZXJlbmNlIGxpbmtzIChvciBkb2N1bWVudCBsb2NhdGlvbikgPwoKdGhh
-bmtzLgoKCtPaIDIwMTLE6jEx1MIwOMjVIDExOjQxLCBDaGVuIEdhbmcg0LS1wDoKPiAKPiAgIHdo
-ZW4gY3AgPj0gYmFyZ19idWYgKyBCQVJHX0xFTi0yLCBpdCBvbmx5IGJyZWFrIGludGVybmVsIGxv
-b3AgKHdoaWxlKQo+ICAgYnV0IG91dHNpZGUgbG9vcCAoZm9yKSBzdGlsbCBoYXMgZWZmZWN0LCBh
-bmQgIipjcCsrID0gJyAnIiByZXBlYXRpbmcKPiAgIHNvIG5lZWQgYWRkaXRpb25hbCBjaGVja2lu
-ZyBmb3IgaXQuCj4gCj4gCj4gU2lnbmVkLW9mZi1ieTogQ2hlbiBHYW5nIDxnYW5nLmNoZW5AYXNp
-YW51eC5jb20+Cj4gLS0tCj4gIGFyY2gvc3BhcmMvcHJvbS9ib290c3RyXzMyLmMgfCAgICA0ICsr
-KysKPiAgMSBmaWxlIGNoYW5nZWQsIDQgaW5zZXJ0aW9ucygrKQo+IAo+IGRpZmYgLS1naXQgYS9h
-cmNoL3NwYXJjL3Byb20vYm9vdHN0cl8zMi5jIGIvYXJjaC9zcGFyYy9wcm9tL2Jvb3RzdHJfMzIu
-Ywo+IGluZGV4IGY1ZWMzMmUuLjI1Y2RhMWMgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9zcGFyYy9wcm9t
-L2Jvb3RzdHJfMzIuYwo+ICsrKyBiL2FyY2gvc3BhcmMvcHJvbS9ib290c3RyXzMyLmMKPiBAQCAt
-NDAsNiArNDAsMTAgQEAgcHJvbV9nZXRib290YXJncyh2b2lkKQo+ICAJCQkJKmNwKysgPSAqYXJn
-Kys7Cj4gIAkJCX0KPiAgCQkJKmNwKysgPSAnICc7Cj4gKwkJCWlmKGNwID49IGJhcmdfYnVmICsg
-QkFSR19MRU4tMSl7Cj4gKwkJCQkvKiBXZSBtaWdodCBpc3N1ZSBhIHdhcm5pbmcgaGVyZS4gKi8K
-PiArCQkJCWJyZWFrOwo+ICsJCQl9Cj4gIAkJfQo+ICAJCSpjcCA9IDA7Cj4gIAkJYnJlYWs7Cj4g
-CgoKLS0gCkNoZW4gR2FuZwoKQXNpYW51eCBDb3Jwb3JhdGlvbgotLQpUbyB1bnN1YnNjcmliZSBm
-cm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgc3BhcmNsaW51eCIgaW4K
-dGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcKTW9yZSBt
-YWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5o
-dG1s
+
+I'm backlogged and often without internet access, and therefore
+concentrating my limited time on kernel networking and much more
+important sparc changes such as bug fixes for problems people will
+actually hit.
+
+So you'll just need to be very patient.
