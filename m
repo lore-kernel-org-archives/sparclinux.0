@@ -1,61 +1,35 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 08 Nov 2012 16:33:48 +0000
+From: Chen Gang <gang.chen@asianux.com>
+Date: Fri, 09 Nov 2012 03:15:27 +0000
 Subject: Re: [PATCH] arch/sparc: additional len check in loop for prom_getbootargs
-Message-Id: <20121108163348.GA7729@merkur.ravnborg.org>
+Message-Id: <509C754F.20101@asianux.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <509B29F3.2040006@asianux.com>
 In-Reply-To: <509B29F3.2040006@asianux.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 To: sparclinux@vger.kernel.org
 
-Hi Cheng.
-On Thu, Nov 08, 2012 at 11:41:39AM +0800, Chen Gang wrote:
-> 
->   when cp >= barg_buf + BARG_LEN-2, it only break internel loop (while)
->   but outside loop (for) still has effect, and "*cp++ = ' '" repeating
->   so need additional checking for it.
-> 
-> 
-> Signed-off-by: Chen Gang <gang.chen@asianux.com>
-
-I wonder how you found this bug?!?!
-Anyway please consider this alternative fix:
-
-diff --git a/arch/sparc/prom/bootstr_32.c b/arch/sparc/prom/bootstr_32.c
-index f5ec32e..4ce602f 100644
---- a/arch/sparc/prom/bootstr_32.c
-+++ b/arch/sparc/prom/bootstr_32.c
-@@ -31,14 +31,10 @@ prom_getbootargs(void)
- 			arg = (*(romvec->pv_v0bootargs))->argv[iter];
- 			if (arg = NULL)
- 				break;
--			while(*arg != 0) {
--				/* Leave place for space and null. */
--				if(cp >= barg_buf + BARG_LEN-2){
--					/* We might issue a warning here. */
--					break;
--				}
-+			while (*arg != 0 && cp < (barg_buf + BARG_LEN - 2))
- 				*cp++ = *arg++;
--			}
-+
-+			/* Append trailing space + null */
- 			*cp++ = ' ';
- 		}
- 		*cp = 0;
-
-
-Adding the conditional inside the while loop makes
-the logic simpler. And the patch actually deletes more lines than it adds.
-And please take care to follow coding style too. In particular spaces around operators.
-
-The old code does not follow coding style - but this is no excuse.
-
-Note - the above is not even build tested!
-
-If you use the above code-snippet you can add my:
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
-
-	Sam
+SGVsbCBEYXZpZCBNaWxsZXI6CgoxKSBJcyB0aGlzIHBhdGNoIGFwcGxpZWQgPyAgb3IgbmVlZCBz
+b21lIGRpc2N1c3Npb24gPyAgb3Igc3VzcGVuZGVkID8KCjIpIElmIHBvc3NpYmxlOiAKICAgQSkg
+Y2FuIHlvdSB0ZWxsIG1lIGFib3V0IG91ciBwYXRjaCBwcm9jZXNzaW5nIHdvcmsgZmxvdyAiCiAg
+IEIpIG9yIHNvbWUgcmVmZXJlbmNlIGxpbmtzIChvciBkb2N1bWVudCBsb2NhdGlvbikgPwoKdGhh
+bmtzLgoKCtPaIDIwMTLE6jEx1MIwOMjVIDExOjQxLCBDaGVuIEdhbmcg0LS1wDoKPiAKPiAgIHdo
+ZW4gY3AgPj0gYmFyZ19idWYgKyBCQVJHX0xFTi0yLCBpdCBvbmx5IGJyZWFrIGludGVybmVsIGxv
+b3AgKHdoaWxlKQo+ICAgYnV0IG91dHNpZGUgbG9vcCAoZm9yKSBzdGlsbCBoYXMgZWZmZWN0LCBh
+bmQgIipjcCsrID0gJyAnIiByZXBlYXRpbmcKPiAgIHNvIG5lZWQgYWRkaXRpb25hbCBjaGVja2lu
+ZyBmb3IgaXQuCj4gCj4gCj4gU2lnbmVkLW9mZi1ieTogQ2hlbiBHYW5nIDxnYW5nLmNoZW5AYXNp
+YW51eC5jb20+Cj4gLS0tCj4gIGFyY2gvc3BhcmMvcHJvbS9ib290c3RyXzMyLmMgfCAgICA0ICsr
+KysKPiAgMSBmaWxlIGNoYW5nZWQsIDQgaW5zZXJ0aW9ucygrKQo+IAo+IGRpZmYgLS1naXQgYS9h
+cmNoL3NwYXJjL3Byb20vYm9vdHN0cl8zMi5jIGIvYXJjaC9zcGFyYy9wcm9tL2Jvb3RzdHJfMzIu
+Ywo+IGluZGV4IGY1ZWMzMmUuLjI1Y2RhMWMgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9zcGFyYy9wcm9t
+L2Jvb3RzdHJfMzIuYwo+ICsrKyBiL2FyY2gvc3BhcmMvcHJvbS9ib290c3RyXzMyLmMKPiBAQCAt
+NDAsNiArNDAsMTAgQEAgcHJvbV9nZXRib290YXJncyh2b2lkKQo+ICAJCQkJKmNwKysgPSAqYXJn
+Kys7Cj4gIAkJCX0KPiAgCQkJKmNwKysgPSAnICc7Cj4gKwkJCWlmKGNwID49IGJhcmdfYnVmICsg
+QkFSR19MRU4tMSl7Cj4gKwkJCQkvKiBXZSBtaWdodCBpc3N1ZSBhIHdhcm5pbmcgaGVyZS4gKi8K
+PiArCQkJCWJyZWFrOwo+ICsJCQl9Cj4gIAkJfQo+ICAJCSpjcCA9IDA7Cj4gIAkJYnJlYWs7Cj4g
+CgoKLS0gCkNoZW4gR2FuZwoKQXNpYW51eCBDb3Jwb3JhdGlvbgotLQpUbyB1bnN1YnNjcmliZSBm
+cm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgc3BhcmNsaW51eCIgaW4K
+dGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcKTW9yZSBt
+YWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5o
+dG1s
