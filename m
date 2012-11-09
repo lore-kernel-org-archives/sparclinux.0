@@ -1,40 +1,57 @@
-From: Chen Gang <gang.chen@asianux.com>
-Date: Fri, 09 Nov 2012 03:25:39 +0000
+From: Julian Calaby <julian.calaby@gmail.com>
+Date: Fri, 09 Nov 2012 05:06:02 +0000
 Subject: Re: [PATCH] arch/sparc: additional len check in loop for prom_getbootargs
-Message-Id: <509C77B3.7090601@asianux.com>
+Message-Id: <CAGRGNgWCMXHaxVUs-hNgcBYNf-0DabZiVVyKqppoKNHbp-S7GQ@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <509B29F3.2040006@asianux.com>
 In-Reply-To: <509B29F3.2040006@asianux.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-于 2012年11月09日 11:16, David Miller 写道:
-> 
-> I'm backlogged and often without internet access, and therefore
-> concentrating my limited time on kernel networking and much more
-> important sparc changes such as bug fixes for problems people will
-> actually hit.
-> 
-> So you'll just need to be very patient.
-> 
-> 
+Hi Chen,
 
-ok, thanks, that is truly what I shall be.
+On Fri, Nov 9, 2012 at 2:15 PM, Chen Gang <gang.chen@asianux.com> wrote:
+> Hell David Miller:
+>
+> 1) Is this patch applied ?  or need some discussion ?  or suspended ?
+>
+> 2) If possible:
+>    A) can you tell me about our patch processing work flow "
+>    B) or some reference links (or document location) ?
 
-and I suggest:
+In regards to patches, you should assume that maintainers are:
+1. grumpy
+2. overworked
+3. looking at your patch as you email them about it.
 
-1) can write a document for patch work flow and time waiting document
+(Note that only #2 is true, but it saves everyone time and aggravation
+if you assume the rest)
 
-2) put it in a suitable location (can be easily found by new members).
+11 hours is not long enough for David to get to your patch, review it
+and apply it. I don't believe that there are any maintainers which
+would get to a patch that quickly.
 
-3) I think this document is useful for the new members.
+If David hadn't applied the patch within a few days of it being
+posted, then you might want to gently ask what's up. However, as Sam
+reviewed the patch and had some comments about it, it's unlikely that
+David will even look at it until you've addressed Sam's feedback.
 
+The best way to get a patch into the kernel is to follow the rules in
+Documentation/SubmittingPatches which you have, respond quickly to any
+feedback, be patient, be prepared to explain why you're doing what
+you're doing, and be prepared to change and resubmit your patch many
+times until everyone is happy with it.
 
-thanks
+I'm sure that this is all written down in a document somewhere, but I
+can't recall what or where it is.
+
+Thanks,
 
 -- 
-Chen Gang
+Julian Calaby
 
-Asianux Corporation
+Email: julian.calaby@gmail.com
+Profile: http://www.google.com/profiles/julian.calaby/
+.Plan: http://sites.google.com/site/juliancalaby/
