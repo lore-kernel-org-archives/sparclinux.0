@@ -1,44 +1,39 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Tue, 06 Nov 2012 22:38:35 +0000
-Subject: Re: [PATCH 11/16] mm: use vm_unmapped_area() on arm architecture
-Message-Id: <20121106143835.3e321da4.akpm@linux-foundation.org>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 10 Nov 2012 00:38:49 +0000
+Subject: Re: [PATCH RFT RESEND linux-next] sparc: dma-mapping: support debug_dma_mapping_error
+Message-Id: <20121109.193849.458704479891559672.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1352155633-8648-1-git-send-email-walken@google.com>
- <1352155633-8648-12-git-send-email-walken@google.com>
-In-Reply-To: <1352155633-8648-12-git-send-email-walken@google.com>
+References: <1351211773.6851.24.camel@lorien2>
+	<1351211909.6851.26.camel@lorien2>
+	<1351267989.4013.20.camel@lorien2>
+In-Reply-To: <1351267989.4013.20.camel@lorien2>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: shuah.khan@hp.com
+Cc: kyungmin.park@samsung.com, arnd@arndb.de, m.szyprowski@samsung.com, sam@ravnborg.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, shuahkhan@gmail.com
 
-On Mon,  5 Nov 2012 14:47:08 -0800
-Michel Lespinasse <walken@google.com> wrote:
+From: Shuah Khan <shuah.khan@hp.com>
+Date: Fri, 26 Oct 2012 10:13:09 -0600
 
-> Update the arm arch_get_unmapped_area[_topdown] functions to make
-> use of vm_unmapped_area() instead of implementing a brute force search.
+> Add support for debug_dma_mapping_error() call to avoid warning from
+> debug_dma_unmap() interface when it checks for mapping error checked
+> status. Without this patch, device driver failed to check map error
+> warning is generated.
+> 
+> Signed-off-by: Shuah Khan <shuah.khan@hp.com>
 
-Again,
+This doesn't even compile:
 
---- a/arch/arm/mm/mmap.c~mm-use-vm_unmapped_area-on-arm-architecture-fix
-+++ a/arch/arm/mm/mmap.c
-@@ -11,18 +11,6 @@
- #include <linux/random.h>
- #include <asm/cachetype.h>
- 
--static inline unsigned long COLOUR_ALIGN_DOWN(unsigned long addr,
--					      unsigned long pgoff)
--{
--	unsigned long base = addr & ~(SHMLBA-1);
--	unsigned long off = (pgoff << PAGE_SHIFT) & (SHMLBA-1);
--
--	if (base + off <= addr)
--		return base + off;
--
--	return base - off;
--}
--
- #define COLOUR_ALIGN(addr,pgoff)		\
- 	((((addr)+SHMLBA-1)&~(SHMLBA-1)) +	\
- 	 (((pgoff)<<PAGE_SHIFT) & (SHMLBA-1)))
-_
-
+/home/davem/src/GIT/sparc/arch/sparc/include/asm/dma-mapping.h: In function 'dma_mapping_error':
+/home/davem/src/GIT/sparc/arch/sparc/include/asm/dma-mapping.h:62:2: error: implicit declaration of function 'debug_dma
+_mapping_error' [-Werror=implicit-function-declaration]
+cc1: some warnings being treated as errors
+In file included from include/linux/dma-mapping.h:76:0,
+                 from include/linux/skbuff.h:33,
+                 from include/linux/icmpv6.h:4,
+                 from include/linux/ipv6.h:58,
+                 from include/net/ipv6.h:16,
+                 from include/linux/sunrpc/clnt.h:26,
+                 from include/linux/nfs_fs.h:30,
+                 from init/do_mounts.c:30:
