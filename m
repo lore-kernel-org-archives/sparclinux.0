@@ -1,60 +1,15 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Date: Tue, 27 Nov 2012 10:00:16 +0000
-Subject: [Patch v4 06/12] memory-hotplug: unregister memory section on SPARSEMEM_VMEMMAP
-Message-Id: <1354010422-19648-7-git-send-email-wency@cn.fujitsu.com>
+From: "Sotelsek Salem Daniel F." <daniel.sotelsek@uah.es>
+Date: Mon, 12 Nov 2012 17:56:15 +0000
+Subject: Hello!.
+Message-Id: <FC521D178B8DDA4184F7C85F1B39069B0700104A@X-EVS-01.uah.es>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1354010422-19648-1-git-send-email-wency@cn.fujitsu.com>
-In-Reply-To: <1354010422-19648-1-git-send-email-wency@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
-Cc: David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jianguo Wu <wujianguo@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>
+To: sparclinux@vger.kernel.org
 
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-
-Currently __remove_section for SPARSEMEM_VMEMMAP does nothing. But even if
-we use SPARSEMEM_VMEMMAP, we can unregister the memory_section.
-
-So the patch add unregister_memory_section() into __remove_section().
-
-CC: David Rientjes <rientjes@google.com>
-CC: Jiang Liu <liuj97@gmail.com>
-CC: Len Brown <len.brown@intel.com>
-CC: Christoph Lameter <cl@linux.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-CC: Andrew Morton <akpm@linux-foundation.org>
-CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
----
- mm/memory_hotplug.c | 13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
-
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index e741732..171610d 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -279,11 +279,14 @@ static int __meminit __add_section(int nid, struct zone *zone,
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
- static int __remove_section(struct zone *zone, struct mem_section *ms)
- {
--	/*
--	 * XXX: Freeing memmap with vmemmap is not implement yet.
--	 *      This should be removed later.
--	 */
--	return -EBUSY;
-+	int ret = -EINVAL;
-+
-+	if (!valid_section(ms))
-+		return ret;
-+
-+	ret = unregister_memory_section(ms);
-+
-+	return ret;
- }
- #else
- static int __remove_section(struct zone *zone, struct mem_section *ms)
--- 
-1.8.0
-
+Hello!. 
+I have to resend this mail to you because I have sent it to you several times without respond. You Have Been Left An Inheritance Under A Will. Contact me via  mail ( ferrandode@aol.com ) for further information.
+ 
+Sincerely 
+Barrister.Ferrando.
