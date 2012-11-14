@@ -1,141 +1,140 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 02 Oct 2012 22:26:15 +0000
-Subject: [PATCH 1/8] sparc64: Only support 4MB huge pages.
-Message-Id: <20121002.182615.926279426545688173.davem@davemloft.net>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Wed, 14 Nov 2012 22:28:27 +0000
+Subject: [PATCH] drivers/of: Constify device_node->name and ->path_component_name
+Message-Id: <1352932107-14782-1-git-send-email-grant.likely@secretlab.ca>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, akpm@linux-foundation.org, aarcange@redhat.com, hannes@cmpxchg.org
+To: linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+Cc: sparclinux@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, "David S. Miller" <davem@davemloft.net>
 
+Neither of these should ever be changed once set. Make them const
 
-Narrowing the scope of huge page support will make the transparent
-hugepage changes much simpler.
+Build tested with defconfigs on ARM, PowerPC, Sparc, MIPS, x86 among
+others.
 
-In the end what we really want to do is have the kernel support
-multiple huge page sizes and use whatever is appropriate as the
-context dictactes.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 ---
- arch/sparc/Kconfig                  |   17 -----------------
- arch/sparc/include/asm/mmu_64.h     |    9 +--------
- arch/sparc/include/asm/page_64.h    |    6 ------
- arch/sparc/include/asm/pgtable_64.h |    8 --------
- arch/sparc/mm/tsb.c                 |   10 ----------
- 5 files changed, 1 insertion(+), 49 deletions(-)
+ arch/powerpc/platforms/powermac/pfunc_core.c |    2 +-
+ arch/powerpc/platforms/pseries/reconfig.c    |    3 +--
+ arch/powerpc/sysdev/fsl_pci.c                |    2 +-
+ arch/sparc/kernel/pci_impl.h                 |    2 +-
+ drivers/of/fdt.c                             |   10 +++++-----
+ include/linux/of.h                           |    4 ++--
+ 6 files changed, 11 insertions(+), 12 deletions(-)
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index 67f1f6f..8bd3b12 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -316,23 +316,6 @@ config GENERIC_LOCKBREAK
- 	default y
- 	depends on SPARC64 && SMP && PREEMPT
+diff --git a/arch/powerpc/platforms/powermac/pfunc_core.c b/arch/powerpc/platforms/powermac/pfunc_core.c
+index b0c3777..d588e48 100644
+--- a/arch/powerpc/platforms/powermac/pfunc_core.c
++++ b/arch/powerpc/platforms/powermac/pfunc_core.c
+@@ -686,7 +686,7 @@ static int pmf_add_functions(struct pmf_device *dev, void *driverdata)
+ 	int count = 0;
  
--choice
--	prompt "SPARC64 Huge TLB Page Size"
--	depends on SPARC64 && HUGETLB_PAGE
--	default HUGETLB_PAGE_SIZE_4MB
--
--config HUGETLB_PAGE_SIZE_4MB
--	bool "4MB"
--
--config HUGETLB_PAGE_SIZE_512K
--	bool "512K"
--
--config HUGETLB_PAGE_SIZE_64K
--	depends on !SPARC64_PAGE_SIZE_64KB
--	bool "64K"
--
--endchoice
--
- config NUMA
- 	bool "NUMA support"
- 	depends on SPARC64 && SMP
-diff --git a/arch/sparc/include/asm/mmu_64.h b/arch/sparc/include/asm/mmu_64.h
-index 9067dc5..b4d685d 100644
---- a/arch/sparc/include/asm/mmu_64.h
-+++ b/arch/sparc/include/asm/mmu_64.h
-@@ -38,14 +38,7 @@
- #error No page size specified in kernel configuration
+ 	for (pp = dev->node->properties; pp != 0; pp = pp->next) {
+-		char *name;
++		const char *name;
+ 		if (strncmp(pp->name, PP_PREFIX, plen) != 0)
+ 			continue;
+ 		name = pp->name + plen;
+diff --git a/arch/powerpc/platforms/pseries/reconfig.c b/arch/powerpc/platforms/pseries/reconfig.c
+index 39f71fb..2f46681 100644
+--- a/arch/powerpc/platforms/pseries/reconfig.c
++++ b/arch/powerpc/platforms/pseries/reconfig.c
+@@ -281,12 +281,11 @@ static struct property *new_property(const char *name, const int length,
+ 	if (!new)
+ 		return NULL;
+ 
+-	if (!(new->name = kmalloc(strlen(name) + 1, GFP_KERNEL)))
++	if (!(new->name = kstrdup(name, GFP_KERNEL)))
+ 		goto cleanup;
+ 	if (!(new->value = kmalloc(length + 1, GFP_KERNEL)))
+ 		goto cleanup;
+ 
+-	strcpy(new->name, name);
+ 	memcpy(new->value, value, length);
+ 	*(((char *)new->value) + length) = 0;
+ 	new->length = length;
+diff --git a/arch/powerpc/sysdev/fsl_pci.c b/arch/powerpc/sysdev/fsl_pci.c
+index ffb93ae..01b62a6 100644
+--- a/arch/powerpc/sysdev/fsl_pci.c
++++ b/arch/powerpc/sysdev/fsl_pci.c
+@@ -136,7 +136,7 @@ static void __init setup_pci_atmu(struct pci_controller *hose,
+ 	u32 pcicsrbar = 0, pcicsrbar_sz;
+ 	u32 piwar = PIWAR_EN | PIWAR_PF | PIWAR_TGI_LOCAL |
+ 			PIWAR_READ_SNOOP | PIWAR_WRITE_SNOOP;
+-	char *name = hose->dn->full_name;
++	const char *name = hose->dn->full_name;
+ 	const u64 *reg;
+ 	int len;
+ 
+diff --git a/arch/sparc/kernel/pci_impl.h b/arch/sparc/kernel/pci_impl.h
+index 918a203..5f68853 100644
+--- a/arch/sparc/kernel/pci_impl.h
++++ b/arch/sparc/kernel/pci_impl.h
+@@ -88,7 +88,7 @@ struct pci_pbm_info {
+ 	int				chip_revision;
+ 
+ 	/* Name used for top-level resources. */
+-	char				*name;
++	const char			*name;
+ 
+ 	/* OBP specific information. */
+ 	struct platform_device		*op;
+diff --git a/drivers/of/fdt.c b/drivers/of/fdt.c
+index 91a375f..4aded3b 100644
+--- a/drivers/of/fdt.c
++++ b/drivers/of/fdt.c
+@@ -198,10 +198,10 @@ static unsigned long unflatten_dt_node(struct boot_param_header *blob,
+ 	np = unflatten_dt_alloc(&mem, sizeof(struct device_node) + allocl,
+ 				__alignof__(struct device_node));
+ 	if (allnextpp) {
++		char *fn;
+ 		memset(np, 0, sizeof(*np));
+-		np->full_name = ((char *)np) + sizeof(struct device_node);
++		np->full_name = fn = ((char *)np) + sizeof(*np);
+ 		if (new_format) {
+-			char *fn = np->full_name;
+ 			/* rebuild full path for new format */
+ 			if (dad && dad->parent) {
+ 				strcpy(fn, dad->full_name);
+@@ -215,9 +215,9 @@ static unsigned long unflatten_dt_node(struct boot_param_header *blob,
+ 				fn += strlen(fn);
+ 			}
+ 			*(fn++) = '/';
+-			memcpy(fn, pathp, l);
+-		} else
+-			memcpy(np->full_name, pathp, l);
++		}
++		memcpy(fn, pathp, l);
++
+ 		prev_pp = &np->properties;
+ 		**allnextpp = np;
+ 		*allnextpp = &np->allnext;
+diff --git a/include/linux/of.h b/include/linux/of.h
+index b4e50d5..857dde9 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -46,7 +46,7 @@ struct device_node {
+ 	const char *name;
+ 	const char *type;
+ 	phandle phandle;
+-	char	*full_name;
++	const char *full_name;
+ 
+ 	struct	property *properties;
+ 	struct	property *deadprops;	/* removed properties */
+@@ -60,7 +60,7 @@ struct device_node {
+ 	unsigned long _flags;
+ 	void	*data;
+ #if defined(CONFIG_SPARC)
+-	char	*path_component_name;
++	const char *path_component_name;
+ 	unsigned int unique_id;
+ 	struct of_irq_controller *irq_trans;
  #endif
- 
--#if defined(CONFIG_HUGETLB_PAGE_SIZE_4MB)
--#define CTX_PGSZ_HUGE		CTX_PGSZ_4MB
--#elif defined(CONFIG_HUGETLB_PAGE_SIZE_512K)
--#define CTX_PGSZ_HUGE		CTX_PGSZ_512KB
--#elif defined(CONFIG_HUGETLB_PAGE_SIZE_64K)
--#define CTX_PGSZ_HUGE		CTX_PGSZ_64KB
--#endif
--
-+#define CTX_PGSZ_HUGE	CTX_PGSZ_4MB
- #define CTX_PGSZ_KERN	CTX_PGSZ_4MB
- 
- /* Thus, when running on UltraSPARC-III+ and later, we use the following
-diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
-index f0d09b4..08bb5f7 100644
---- a/arch/sparc/include/asm/page_64.h
-+++ b/arch/sparc/include/asm/page_64.h
-@@ -21,13 +21,7 @@
- #define DCACHE_ALIASING_POSSIBLE
- #endif
- 
--#if defined(CONFIG_HUGETLB_PAGE_SIZE_4MB)
- #define HPAGE_SHIFT		22
--#elif defined(CONFIG_HUGETLB_PAGE_SIZE_512K)
--#define HPAGE_SHIFT		19
--#elif defined(CONFIG_HUGETLB_PAGE_SIZE_64K)
--#define HPAGE_SHIFT		16
--#endif
- 
- #ifdef CONFIG_HUGETLB_PAGE
- #define HPAGE_SIZE		(_AC(1,UL) << HPAGE_SHIFT)
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 61210db..51be4a1 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -170,16 +170,8 @@
- #error Wrong PAGE_SHIFT specified
- #endif
- 
--#if defined(CONFIG_HUGETLB_PAGE_SIZE_4MB)
- #define _PAGE_SZHUGE_4U	_PAGE_SZ4MB_4U
- #define _PAGE_SZHUGE_4V	_PAGE_SZ4MB_4V
--#elif defined(CONFIG_HUGETLB_PAGE_SIZE_512K)
--#define _PAGE_SZHUGE_4U	_PAGE_SZ512K_4U
--#define _PAGE_SZHUGE_4V	_PAGE_SZ512K_4V
--#elif defined(CONFIG_HUGETLB_PAGE_SIZE_64K)
--#define _PAGE_SZHUGE_4U	_PAGE_SZ64K_4U
--#define _PAGE_SZHUGE_4V	_PAGE_SZ64K_4V
--#endif
- 
- /* These are actually filled in at boot time by sun4{u,v}_pgprot_init() */
- #define __P000	__pgprot(0)
-diff --git a/arch/sparc/mm/tsb.c b/arch/sparc/mm/tsb.c
-index c52add7..e6b04a4 100644
---- a/arch/sparc/mm/tsb.c
-+++ b/arch/sparc/mm/tsb.c
-@@ -101,18 +101,8 @@ void flush_tsb_user(struct tlb_batch *tb)
- #endif
- 
- #ifdef CONFIG_HUGETLB_PAGE
--#if defined(CONFIG_HUGETLB_PAGE_SIZE_64K)
--#define HV_PGSZ_IDX_HUGE	HV_PGSZ_IDX_64K
--#define HV_PGSZ_MASK_HUGE	HV_PGSZ_MASK_64K
--#elif defined(CONFIG_HUGETLB_PAGE_SIZE_512K)
--#define HV_PGSZ_IDX_HUGE	HV_PGSZ_IDX_512K
--#define HV_PGSZ_MASK_HUGE	HV_PGSZ_MASK_512K
--#elif defined(CONFIG_HUGETLB_PAGE_SIZE_4MB)
- #define HV_PGSZ_IDX_HUGE	HV_PGSZ_IDX_4MB
- #define HV_PGSZ_MASK_HUGE	HV_PGSZ_MASK_4MB
--#else
--#error Broken huge page size setting...
--#endif
- #endif
- 
- static void setup_tsb_params(struct mm_struct *mm, unsigned long tsb_idx, unsigned long tsb_bytes)
 -- 
 1.7.10.4
 
