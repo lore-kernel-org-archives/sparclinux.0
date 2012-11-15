@@ -1,7 +1,7 @@
 From: Shuah Khan <shuah.khan@hp.com>
-Date: Sat, 10 Nov 2012 01:21:56 +0000
+Date: Thu, 15 Nov 2012 17:39:29 +0000
 Subject: Re: [PATCH RFT RESEND linux-next] sparc: dma-mapping: support debug_dma_mapping_error
-Message-Id: <1352510516.7611.1.camel@lorien2>
+Message-Id: <1353001169.2532.24.camel@lorien2>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1351267989.4013.20.camel@lorien2>
 	 <20121109.193849.458704479891559672.davem@davemloft.net>
@@ -11,8 +11,8 @@ In-Reply-To: <20121109.195417.1781257873335425911.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>, Joerg Roedel <joro@8bytes.org>
-Cc: kyungmin.park@samsung.com, arnd@arndb.de, m.szyprowski@samsung.com, sam@ravnborg.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, shuahkhan@gmail.com
+To: David Miller <davem@davemloft.net>, m.szyprowski@samsung.com
+Cc: kyungmin.park@samsung.com, arnd@arndb.de, sam@ravnborg.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, shuahkhan@gmail.com
 
 On Fri, 2012-11-09 at 19:54 -0500, David Miller wrote:
 > From: Shuah Khan <shuah.khan@hp.com>
@@ -52,7 +52,11 @@ On Fri, 2012-11-09 at 19:54 -0500, David Miller wrote:
 > 
 > Acked-by: David S. Miller <davem@davemloft.net>
 
-Thanks
+Marek,
+
+This is for sparc to go through your tree.
+
+Thanks,
 -- Shuah
 
 
