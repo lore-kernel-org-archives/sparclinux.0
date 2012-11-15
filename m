@@ -1,432 +1,343 @@
-From: Michel Lespinasse <walken@google.com>
-Date: Mon, 05 Nov 2012 22:47:02 +0000
-Subject: [PATCH 05/16] mm: vm_unmapped_area() lookup function
-Message-Id: <1352155633-8648-6-git-send-email-walken@google.com>
+From: Chen Gang <gang.chen@asianux.com>
+Date: Thu, 15 Nov 2012 03:22:39 +0000
+Subject: [Suggestion] arch/sparc: memory overflow by using strcpy in function ldom_set_var
+Message-Id: <50A45FFF.60600@asianux.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1352155633-8648-1-git-send-email-walken@google.com>
-In-Reply-To: <1352155633-8648-1-git-send-email-walken@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-Implement vm_unmapped_area() using the rb_subtree_gap and highest_vm_end
-information to look up for suitable virtual address space gaps.
+Hello Sam, David
 
-struct vm_unmapped_area_info is used to define the desired allocation
-request:
-- lowest or highest possible address matching the remaining constraints
-- desired gap length
-- low/high address limits that the gap must fit into
-- alignment mask and offset
 
-Also update the generic arch_get_unmapped_area[_topdown] functions to
-make use of vm_unmapped_area() instead of implementing a brute force search.
+in arch/sparc/kernel/ds.c: ldom_set_var function
 
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
+  according to line 781, the dest memory len is less than 512.
+  and the src memory len can be more than 512.
+  line 793 strcpy cause issue.
 
----
- include/linux/mm.h |   31 +++++
- mm/mmap.c          |  312 +++++++++++++++++++++++++++++++++++++---------------
- 2 files changed, 253 insertions(+), 90 deletions(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index fa0680402738..441dfe8ea24d 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1456,6 +1456,37 @@ extern unsigned long vm_mmap(struct file *, unsigned long,
-         unsigned long, unsigned long,
-         unsigned long, unsigned long);
- 
-+struct vm_unmapped_area_info {
-+#define VM_UNMAPPED_AREA_TOPDOWN 1
-+	unsigned long flags;
-+	unsigned long length;
-+	unsigned long low_limit;
-+	unsigned long high_limit;
-+	unsigned long align_mask;
-+	unsigned long align_offset;
-+};
-+
-+extern unsigned long unmapped_area(struct vm_unmapped_area_info *info);
-+extern unsigned long unmapped_area_topdown(struct vm_unmapped_area_info *info);
-+
-+/*
-+ * Search for an unmapped address range.
-+ *
-+ * We are looking for a range that:
-+ * - does not intersect with any VMA;
-+ * - is contained within the [low_limit, high_limit) interval;
-+ * - is at least the desired size.
-+ * - satisfies (begin_addr & align_mask) = (align_offset & align_mask)
-+ */
-+static inline unsigned long
-+vm_unmapped_area(struct vm_unmapped_area_info *info)
-+{
-+	if (!(info->flags & VM_UNMAPPED_AREA_TOPDOWN))
-+		return unmapped_area(info);
-+	else
-+		return unmapped_area_topdown(info);
-+}
-+
- /* truncate.c */
- extern void truncate_inode_pages(struct address_space *, loff_t);
- extern void truncate_inode_pages_range(struct address_space *,
-diff --git a/mm/mmap.c b/mm/mmap.c
-index 769a09cc71af..aa748988cd54 100644
---- a/mm/mmap.c
-+++ b/mm/mmap.c
-@@ -1496,6 +1496,206 @@ unacct_error:
- 	return error;
- }
- 
-+unsigned long unmapped_area(struct vm_unmapped_area_info *info)
-+{
-+	/*
-+	 * We implement the search by looking for an rbtree node that
-+	 * immediately follows a suitable gap. That is,
-+	 * - gap_start = vma->vm_prev->vm_end <= info->high_limit - length;
-+	 * - gap_end   = vma->vm_start        >= info->low_limit  + length;
-+	 * - gap_end - gap_start >= length
-+	 */
-+
-+	struct mm_struct *mm = current->mm;
-+	struct vm_area_struct *vma;
-+	unsigned long length, low_limit, high_limit, gap_start, gap_end;
-+
-+	/* Adjust search length to account for worst case alignment overhead */
-+	length = info->length + info->align_mask;
-+	if (length < info->length)
-+		return -ENOMEM;
-+
-+	/* Adjust search limits by the desired length */
-+	if (info->high_limit < length)
-+		return -ENOMEM;
-+	high_limit = info->high_limit - length;
-+
-+	if (info->low_limit > high_limit)
-+		return -ENOMEM;
-+	low_limit = info->low_limit + length;
-+
-+	/* Check if rbtree root looks promising */
-+	if (RB_EMPTY_ROOT(&mm->mm_rb))
-+		goto check_highest;
-+	vma = rb_entry(mm->mm_rb.rb_node, struct vm_area_struct, vm_rb);
-+	if (vma->rb_subtree_gap < length)
-+		goto check_highest;
-+
-+	while (true) {
-+		/* Visit left subtree if it looks promising */
-+		gap_end = vma->vm_start;
-+		if (gap_end >= low_limit && vma->vm_rb.rb_left) {
-+			struct vm_area_struct *left +				rb_entry(vma->vm_rb.rb_left,
-+					 struct vm_area_struct, vm_rb);
-+			if (left->rb_subtree_gap >= length) {
-+				vma = left;
-+				continue;
-+			}
-+		}
-+
-+		gap_start = vma->vm_prev ? vma->vm_prev->vm_end : 0;
-+	check_current:
-+		/* Check if current node has a suitable gap */
-+		if (gap_start > high_limit)
-+			return -ENOMEM;
-+		if (gap_end >= low_limit && gap_end - gap_start >= length)
-+			goto found;
-+
-+		/* Visit right subtree if it looks promising */
-+		if (vma->vm_rb.rb_right) {
-+			struct vm_area_struct *right +				rb_entry(vma->vm_rb.rb_right,
-+					 struct vm_area_struct, vm_rb);
-+			if (right->rb_subtree_gap >= length) {
-+				vma = right;
-+				continue;
-+			}
-+		}
-+
-+		/* Go back up the rbtree to find next candidate node */
-+		while (true) {
-+			struct rb_node *prev = &vma->vm_rb;
-+			if (!rb_parent(prev))
-+				goto check_highest;
-+			vma = rb_entry(rb_parent(prev),
-+				       struct vm_area_struct, vm_rb);
-+			if (prev = vma->vm_rb.rb_left) {
-+				gap_start = vma->vm_prev->vm_end;
-+				gap_end = vma->vm_start;
-+				goto check_current;
-+			}
-+		}
-+	}
-+
-+check_highest:
-+	/* Check highest gap, which does not precede any rbtree node */
-+	gap_start = mm->highest_vm_end;
-+	gap_end = ULONG_MAX;  /* Only for VM_BUG_ON below */
-+	if (gap_start > high_limit)
-+		return -ENOMEM;
-+
-+found:
-+	/* We found a suitable gap. Clip it with the original low_limit. */
-+	if (gap_start < info->low_limit)
-+		gap_start = info->low_limit;
-+
-+	/* Adjust gap address to the desired alignment */
-+	gap_start += (info->align_offset - gap_start) & info->align_mask;
-+
-+	VM_BUG_ON(gap_start + info->length > info->high_limit);
-+	VM_BUG_ON(gap_start + info->length > gap_end);
-+	return gap_start;
-+}
-+
-+unsigned long unmapped_area_topdown(struct vm_unmapped_area_info *info)
-+{
-+	struct mm_struct *mm = current->mm;
-+	struct vm_area_struct *vma;
-+	unsigned long length, low_limit, high_limit, gap_start, gap_end;
-+
-+	/* Adjust search length to account for worst case alignment overhead */
-+	length = info->length + info->align_mask;
-+	if (length < info->length)
-+		return -ENOMEM;
-+
-+	/*
-+	 * Adjust search limits by the desired length.
-+	 * See implementation comment at top of unmapped_area().
-+	 */
-+	gap_end = info->high_limit;
-+	if (gap_end < length)
-+		return -ENOMEM;
-+	high_limit = gap_end - length;
-+
-+	if (info->low_limit > high_limit)
-+		return -ENOMEM;
-+	low_limit = info->low_limit + length;
-+
-+	/* Check highest gap, which does not precede any rbtree node */
-+	gap_start = mm->highest_vm_end;
-+	if (gap_start <= high_limit)
-+		goto found_highest;
-+
-+	/* Check if rbtree root looks promising */
-+	if (RB_EMPTY_ROOT(&mm->mm_rb))
-+		return -ENOMEM;
-+	vma = rb_entry(mm->mm_rb.rb_node, struct vm_area_struct, vm_rb);
-+	if (vma->rb_subtree_gap < length)
-+		return -ENOMEM;
-+
-+	while (true) {
-+		/* Visit right subtree if it looks promising */
-+		gap_start = vma->vm_prev ? vma->vm_prev->vm_end : 0;
-+		if (gap_start <= high_limit && vma->vm_rb.rb_right) {
-+			struct vm_area_struct *right +				rb_entry(vma->vm_rb.rb_right,
-+					 struct vm_area_struct, vm_rb);
-+			if (right->rb_subtree_gap >= length) {
-+				vma = right;
-+				continue;
-+			}
-+		}
-+
-+	check_current:
-+		/* Check if current node has a suitable gap */
-+		gap_end = vma->vm_start;
-+		if (gap_end < low_limit)
-+			return -ENOMEM;
-+		if (gap_start <= high_limit && gap_end - gap_start >= length)
-+			goto found;
-+
-+		/* Visit left subtree if it looks promising */
-+		if (vma->vm_rb.rb_left) {
-+			struct vm_area_struct *left +				rb_entry(vma->vm_rb.rb_left,
-+					 struct vm_area_struct, vm_rb);
-+			if (left->rb_subtree_gap >= length) {
-+				vma = left;
-+				continue;
-+			}
-+		}
-+
-+		/* Go back up the rbtree to find next candidate node */
-+		while (true) {
-+			struct rb_node *prev = &vma->vm_rb;
-+			if (!rb_parent(prev))
-+				return -ENOMEM;
-+			vma = rb_entry(rb_parent(prev),
-+				       struct vm_area_struct, vm_rb);
-+			if (prev = vma->vm_rb.rb_right) {
-+				gap_start = vma->vm_prev ?
-+					vma->vm_prev->vm_end : 0;
-+				goto check_current;
-+			}
-+		}
-+	}
-+
-+found:
-+	/* We found a suitable gap. Clip it with the original high_limit. */
-+	if (gap_end > info->high_limit)
-+		gap_end = info->high_limit;
-+
-+found_highest:
-+	/* Compute highest gap address at the desired alignment */
-+	gap_end -= info->length;
-+	gap_end -= (gap_end - info->align_offset) & info->align_mask;
-+
-+	VM_BUG_ON(gap_end < info->low_limit);
-+	VM_BUG_ON(gap_end < gap_start);
-+	return gap_end;
-+}
-+
- /* Get an address range which is currently unmapped.
-  * For shmat() with addr=0.
-  *
-@@ -1514,7 +1714,7 @@ arch_get_unmapped_area(struct file *filp, unsigned long addr,
- {
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma;
--	unsigned long start_addr;
-+	struct vm_unmapped_area_info info;
- 
- 	if (len > TASK_SIZE)
- 		return -ENOMEM;
-@@ -1529,40 +1729,13 @@ arch_get_unmapped_area(struct file *filp, unsigned long addr,
- 		    (!vma || addr + len <= vma->vm_start))
- 			return addr;
- 	}
--	if (len > mm->cached_hole_size) {
--	        start_addr = addr = mm->free_area_cache;
--	} else {
--	        start_addr = addr = TASK_UNMAPPED_BASE;
--	        mm->cached_hole_size = 0;
--	}
- 
--full_search:
--	for (vma = find_vma(mm, addr); ; vma = vma->vm_next) {
--		/* At this point:  (!vma || addr < vma->vm_end). */
--		if (TASK_SIZE - len < addr) {
--			/*
--			 * Start a new search - just in case we missed
--			 * some holes.
--			 */
--			if (start_addr != TASK_UNMAPPED_BASE) {
--				addr = TASK_UNMAPPED_BASE;
--			        start_addr = addr;
--				mm->cached_hole_size = 0;
--				goto full_search;
--			}
--			return -ENOMEM;
--		}
--		if (!vma || addr + len <= vma->vm_start) {
--			/*
--			 * Remember the place where we stopped the search:
--			 */
--			mm->free_area_cache = addr + len;
--			return addr;
--		}
--		if (addr + mm->cached_hole_size < vma->vm_start)
--		        mm->cached_hole_size = vma->vm_start - addr;
--		addr = vma->vm_end;
--	}
-+	info.flags = 0;
-+	info.length = len;
-+	info.low_limit = TASK_UNMAPPED_BASE;
-+	info.high_limit = TASK_SIZE;
-+	info.align_mask = 0;
-+	return vm_unmapped_area(&info);
- }
- #endif	
- 
-@@ -1587,7 +1760,8 @@ arch_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
- {
- 	struct vm_area_struct *vma;
- 	struct mm_struct *mm = current->mm;
--	unsigned long addr = addr0, start_addr;
-+	unsigned long addr = addr0;
-+	struct vm_unmapped_area_info info;
- 
- 	/* requested length too big for entire address space */
- 	if (len > TASK_SIZE)
-@@ -1605,53 +1779,12 @@ arch_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
- 			return addr;
- 	}
- 
--	/* check if free_area_cache is useful for us */
--	if (len <= mm->cached_hole_size) {
-- 	        mm->cached_hole_size = 0;
-- 		mm->free_area_cache = mm->mmap_base;
-- 	}
--
--try_again:
--	/* either no address requested or can't fit in requested address hole */
--	start_addr = addr = mm->free_area_cache;
--
--	if (addr < len)
--		goto fail;
--
--	addr -= len;
--	do {
--		/*
--		 * Lookup failure means no vma is above this address,
--		 * else if new region fits below vma->vm_start,
--		 * return with success:
--		 */
--		vma = find_vma(mm, addr);
--		if (!vma || addr+len <= vma->vm_start)
--			/* remember the address as a hint for next time */
--			return (mm->free_area_cache = addr);
--
-- 		/* remember the largest hole we saw so far */
-- 		if (addr + mm->cached_hole_size < vma->vm_start)
-- 		        mm->cached_hole_size = vma->vm_start - addr;
--
--		/* try just below the current vma->vm_start */
--		addr = vma->vm_start-len;
--	} while (len < vma->vm_start);
--
--fail:
--	/*
--	 * if hint left us with no space for the requested
--	 * mapping then try again:
--	 *
--	 * Note: this is different with the case of bottomup
--	 * which does the fully line-search, but we use find_vma
--	 * here that causes some holes skipped.
--	 */
--	if (start_addr != mm->mmap_base) {
--		mm->free_area_cache = mm->mmap_base;
--		mm->cached_hole_size = 0;
--		goto try_again;
--	}
-+	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
-+	info.length = len;
-+	info.low_limit = PAGE_SIZE;
-+	info.high_limit = mm->mmap_base;
-+	info.align_mask = 0;
-+	addr = vm_unmapped_area(&info);
- 
- 	/*
- 	 * A failed mmap() very likely causes application failure,
-@@ -1659,14 +1792,13 @@ fail:
- 	 * can happen with large stack limits and large mmap()
- 	 * allocations.
- 	 */
--	mm->cached_hole_size = ~0UL;
--  	mm->free_area_cache = TASK_UNMAPPED_BASE;
--	addr = arch_get_unmapped_area(filp, addr0, len, pgoff, flags);
--	/*
--	 * Restore the topdown base:
--	 */
--	mm->free_area_cache = mm->mmap_base;
--	mm->cached_hole_size = ~0UL;
-+	if (addr & ~PAGE_MASK) {
-+		VM_BUG_ON(addr != -ENOMEM);
-+		info.flags = 0;
-+		info.low_limit = TASK_UNMAPPED_BASE;
-+		info.high_limit = TASK_SIZE;
-+		addr = vm_unmapped_area(&info);
-+	}
- 
- 	return addr;
- }
--- 
-1.7.7.3
+the proof flow is below (total 7 Steps)
+
+
+--------------------------------------------------------------------------
+Step 1:
+
+arch/sparc/include/uapi/asm/openpromio.h:19:
+
+#define	OPROMMAXPARAM	4096		/* Maximum size of oprom_array. */
+
+
+--------------------------------------------------------------------------
+Step 2:
+
+drivers/sbus/char/openprom.c: getstrings
+
+  use OPROMMAXPARAM as memory limitition
+  the bufsize is less than 4096, but can be more than 512
+
+103 static int getstrings(struct openpromio __user *info, struct openpromio **opp_p)
+104 {
+105         int n, bufsize;
+106         char c;
+107 
+108         if (!info || !opp_p)
+109                 return -EFAULT;
+110 
+111         if (!(*opp_p = kzalloc(sizeof(int) + OPROMMAXPARAM + 1, GFP_KERNEL)))
+112                 return -ENOMEM;
+113 
+114         (*opp_p)->oprom_size = 0;
+115 
+116         n = bufsize = 0;
+117         while ((n < 2) && (bufsize < OPROMMAXPARAM)) {
+118                 if (get_user(c, &info->oprom_array[bufsize])) {
+119                         kfree(*opp_p);
+120                         return -EFAULT;
+121                 }
+122                 if (c = '\0')
+123                         n++;
+124                 (*opp_p)->oprom_array[bufsize++] = c;
+125         }
+126         if (!n) {
+127                 kfree(*opp_p);
+128                 return -EINVAL;
+129         }
+130         return bufsize;
+131 }
+
+
+--------------------------------------------------------------------------
+Step 3:
+
+drivers/sbus/char/openprom.c: openprom_sunos_ioctl:
+
+if (cmd = OPROMSETOPT)
+  it will call getstrings to get parameters (at line 312)
+  bufsize is less than 4096, but can be more than 512
+  and then call opromsetopt at line 334
+
+301 static long openprom_sunos_ioctl(struct file * file,
+302                                  unsigned int cmd, unsigned long arg,
+303                                  struct device_node *dp)
+304 {
+305         DATA *data = file->private_data;
+306         struct openpromio *opp = NULL;
+307         int bufsize, error = 0;
+308         static int cnt;
+309         void __user *argp = (void __user *)arg;
+310 
+311         if (cmd = OPROMSETOPT)
+312                 bufsize = getstrings(argp, &opp);
+313         else
+314                 bufsize = copyin(argp, &opp);
+315 
+316         if (bufsize < 0)
+317                 return bufsize;
+318 
+319         mutex_lock(&openprom_mutex);
+320 
+321         switch (cmd) {
+322         case OPROMGETOPT:
+323         case OPROMGETPROP:
+324                 error = opromgetprop(argp, dp, opp, bufsize);
+325                 break;
+326 
+327         case OPROMNXTOPT:
+328         case OPROMNXTPROP:
+329                 error = opromnxtprop(argp, dp, opp, bufsize);
+330                 break;
+331 
+332         case OPROMSETOPT:
+333         case OPROMSETOPT2:
+334                 error = opromsetopt(dp, opp, bufsize);
+335                 break;
+336 
+337         case OPROMNEXT:
+338         case OPROMCHILD:
+339         case OPROMSETCUR:
+340                 error = opromnext(argp, cmd, dp, opp, bufsize, data);
+341                 break;
+342 
+343         case OPROMPCI2NODE:
+344                 error = oprompci2node(argp, dp, opp, bufsize, data);
+345                 break;
+346 
+347         case OPROMPATH2NODE:
+348                 error = oprompath2node(argp, dp, opp, bufsize, data);
+349                 break;
+350 
+351         case OPROMGETBOOTARGS:
+352                 error = opromgetbootargs(argp, opp, bufsize);
+353                 break;
+354 
+355         case OPROMU2P:
+356         case OPROMGETCONS:
+357         case OPROMGETFBNAME:
+358                 if (cnt++ < 10)
+359                         printk(KERN_INFO "openprom_sunos_ioctl: unimplemented ioctl\n");
+360                 error = -EINVAL;
+361                 break;
+362         default:
+363                 if (cnt++ < 10)
+364                         printk(KERN_INFO "openprom_sunos_ioctl: cmd 0x%X, arg 0x%lX\n", cmd, arg);
+365                 error = -EINVAL;
+366                 break;
+367         }
+368 
+369         kfree(opp);
+370         mutex_unlock(&openprom_mutex);
+371 
+372         return error;
+373 }
+
+
+--------------------------------------------------------------------------
+Step 4:
+
+drivers/sbus/char/openprom.c: in opromsetopt:
+
+  it devides the strings to name (op->oprom_array) and value (buf),
+  the len is less than 4096, but may be more than 512
+
+190 static int opromsetopt(struct device_node *dp, struct openpromio *op, int bufsize)
+191 {
+192         char *buf = op->oprom_array + strlen(op->oprom_array) + 1;
+193         int len = op->oprom_array + bufsize - buf;
+194 
+195         return of_set_property(options_node, op->oprom_array, buf, len);
+196 }
+
+
+--------------------------------------------------------------------------
+Step 5:
+
+arch/sparc/kernel/prom_common.c: of_set_property
+
+  line 76 call prom_setprop,
+  the val len may be larger than 512
+
+
+54 int of_set_property(struct device_node *dp, const char *name, void *val, int len)
+55 {
+56         struct property **prevp;
+57         void *new_val;
+58         int err;
+59 
+60         new_val = kmemdup(val, len, GFP_KERNEL);
+61         if (!new_val)
+62                 return -ENOMEM;
+63 
+64         err = -ENODEV;
+65 
+66         mutex_lock(&of_set_property_mutex);
+67         write_lock(&devtree_lock);
+68         prevp = &dp->properties;
+69         while (*prevp) {
+70                 struct property *prop = *prevp;
+71 
+72                 if (!strcasecmp(prop->name, name)) {
+73                         void *old_val = prop->value;
+74                         int ret;
+75 
+76                         ret = prom_setprop(dp->phandle, name, val, len);
+77 
+78                         err = -EINVAL;
+79                         if (ret >= 0) {
+80                                 prop->value = new_val;
+81                                 prop->length = len;
+82 
+83                                 if (OF_IS_DYNAMIC(prop))
+84                                         kfree(old_val);
+85 
+86                                 OF_MARK_DYNAMIC(prop);
+87 
+88                                 err = 0;
+89                         }
+90                         break;
+91                 }
+92                 prevp = &(*prevp)->next;
+93         }
+94         write_unlock(&devtree_lock);
+95         mutex_unlock(&of_set_property_mutex);
+96 
+97         /* XXX Upate procfs if necessary... */
+98 
+99         return err;
+100 }
+101 EXPORT_SYMBOL(of_set_property);
+
+
+
+--------------------------------------------------------------------------
+Step 6:
+
+arch/sparc/prom/tree_64.c: prom_setprop
+
+  line 339, may call ldom_set_var
+  not check value len (maybe larger than 512 )
+
+327 int
+328 prom_setprop(phandle node, const char *pname, char *value, int size)
+329 {
+330         unsigned long args[8];
+331 
+332         if (size = 0)
+333                 return 0;
+334         if ((pname = 0) || (value = 0))
+335                 return 0;
+336 
+337 #ifdef CONFIG_SUN_LDOMS
+338         if (ldom_domaining_enabled) {
+339                 ldom_set_var(pname, value);
+340                 return 0;
+341         }
+342 #endif
+343         args[0] = (unsigned long) "setprop";
+344         args[1] = 4;
+345         args[2] = 1;
+346         args[3] = (unsigned int) node;
+347         args[4] = (unsigned long) pname;
+348         args[5] = (unsigned long) value;
+349         args[6] = size;
+350         args[7] = (unsigned long) -1;
+351 
+352         p1275_cmd_direct(args);
+353 
+354         return (int) args[7];
+355 }
+356 EXPORT_SYMBOL(prom_setprop);
+
+
+--------------------------------------------------------------------------
+Step 7:
+
+arch/sparc/kernel/ds.c: ldom_set_var
+
+  according to line 781, the dest memory len is less than 512.
+  and the src memory len can be more than 512.
+  line 793 strcpy cause issue.
+
+
+745 void ldom_set_var(const char *var, const char *value)
+746 {
+747         struct ds_cap_state *cp;
+748         struct ds_info *dp;
+749         unsigned long flags;
+750 
+751         spin_lock_irqsave(&ds_lock, flags);
+752         cp = NULL;
+753         for (dp = ds_info_list; dp; dp = dp->next) {
+754                 struct ds_cap_state *tmp;
+755 
+756                 tmp = find_cap_by_string(dp, "var-config");
+757                 if (tmp && tmp->state = CAP_STATE_REGISTERED) {
+758                         cp = tmp;
+759                         break;
+760                 }
+761         }
+762         if (!cp) {
+763                 for (dp = ds_info_list; dp; dp = dp->next) {
+764                         struct ds_cap_state *tmp;
+765 
+766                         tmp = find_cap_by_string(dp, "var-config-backup");
+767                         if (tmp && tmp->state = CAP_STATE_REGISTERED) {
+768                                 cp = tmp;
+769                                 break;
+770                         }
+771                 }
+772         }
+773         spin_unlock_irqrestore(&ds_lock, flags);
+774 
+775         if (cp) {
+776                 union {
+777                         struct {
+778                                 struct ds_data          data;
+779                                 struct ds_var_set_msg   msg;
+780                         } header;
+781                         char                    all[512];
+782                 } pkt;
+783                 char  *base, *p;
+784                 int msg_len, loops;
+785 
+786                 memset(&pkt, 0, sizeof(pkt));
+787                 pkt.header.data.tag.type = DS_DATA;
+788                 pkt.header.data.handle = cp->handle;
+789                 pkt.header.msg.hdr.type = DS_VAR_SET_REQ;
+790                 base = p = &pkt.header.msg.name_and_value[0];
+791                 strcpy(p, var);
+792                 p += strlen(var) + 1;
+793                 strcpy(p, value);
+794                 p += strlen(value) + 1;
+795 
+796                 msg_len = (sizeof(struct ds_data) +
+797                            sizeof(struct ds_var_set_msg) +
+798                            (p - base));
+799                 msg_len = (msg_len + 3) & ~3;
+800                 pkt.header.data.tag.len = msg_len - sizeof(struct ds_msg_tag);
+801 
+
+
+
+
