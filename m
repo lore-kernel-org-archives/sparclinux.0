@@ -1,82 +1,66 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Date: Wed, 28 Nov 2012 21:47:55 +0000
-Subject: [PATCH v9 44/46] sparc, mm: Remove calling of free_all_bootmem_node()
-Message-Id: <1354139277-17376-45-git-send-email-yinghai@kernel.org>
+From: Bill Pemberton <wfp5p@virginia.edu>
+Date: Mon, 19 Nov 2012 18:27:16 +0000
+Subject: [PATCH 487/493] sparc: remove use of __devexit
+Message-Id: <1353349642-3677-487-git-send-email-wfp5p@virginia.edu>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1354139277-17376-1-git-send-email-yinghai@kernel.org>
-In-Reply-To: <1354139277-17376-1-git-send-email-yinghai@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Jacob Shin <jacob.shin@amd.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Now NO_BOOTMEM version free_all_bootmem_node() does not really
-do free_bootmem at all, and it only call
-register_page_bootmem_info_node instead.
+CONFIG_HOTPLUG is going away as an option so __devexit is no
+longer needed.
 
-That is confusing, try to kill that free_all_bootmem_node().
-
-Before that, this patch will remove calling of free_all_bootmem_node()
-
-We add register_page_bootmem_info() to call register_page_bootmem_info_node
-directly.
-
-Also could use free_all_bootmem() for numa case, and it is just
-the same as free_low_memory_core_early().
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: sparclinux@vger.kernel.org
-Acked-by: "David S. Miller" <davem@davemloft.net>
-Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Signed-off-by: Bill Pemberton <wfp5p@virginia.edu>
+Cc: "David S. Miller" <davem@davemloft.net> 
+Cc: sparclinux@vger.kernel.org 
 ---
- arch/sparc/mm/init_64.c |   24 +++++++++++-------------
- 1 files changed, 11 insertions(+), 13 deletions(-)
+ arch/sparc/include/asm/parport.h | 2 +-
+ arch/sparc/kernel/chmc.c         | 6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 9e28a11..b24bac2 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -2021,6 +2021,16 @@ static void __init patch_tlb_miss_handler_bitmap(void)
- 	flushi(&valid_addr_bitmap_insn[0]);
+diff --git a/arch/sparc/include/asm/parport.h b/arch/sparc/include/asm/parport.h
+index 65cabfd..c55291e 100644
+--- a/arch/sparc/include/asm/parport.h
++++ b/arch/sparc/include/asm/parport.h
+@@ -192,7 +192,7 @@ out_err:
+ 	return err;
  }
  
-+static void __init register_page_bootmem_info(void)
-+{
-+#ifdef CONFIG_NEED_MULTIPLE_NODES
-+	int i;
-+
-+	for_each_online_node(i)
-+		if (NODE_DATA(i)->node_spanned_pages)
-+			register_page_bootmem_info_node(NODE_DATA(i));
-+#endif
-+}
- void __init mem_init(void)
+-static int __devexit ecpp_remove(struct platform_device *op)
++static int ecpp_remove(struct platform_device *op)
  {
- 	unsigned long codepages, datapages, initpages;
-@@ -2038,20 +2048,8 @@ void __init mem_init(void)
+ 	struct parport *p = dev_get_drvdata(&op->dev);
+ 	int slot = p->dma;
+diff --git a/arch/sparc/kernel/chmc.c b/arch/sparc/kernel/chmc.c
+index 4087a77..5097781 100644
+--- a/arch/sparc/kernel/chmc.c
++++ b/arch/sparc/kernel/chmc.c
+@@ -772,21 +772,21 @@ static int us3mc_probe(struct platform_device *op)
+ 	return -ENODEV;
+ }
  
- 	high_memory = __va(last_valid_pfn << PAGE_SHIFT);
+-static void __devexit chmc_destroy(struct platform_device *op, struct chmc *p)
++static void chmc_destroy(struct platform_device *op, struct chmc *p)
+ {
+ 	list_del(&p->list);
+ 	of_iounmap(&op->resource[0], p->regs, 0x48);
+ 	kfree(p);
+ }
  
--#ifdef CONFIG_NEED_MULTIPLE_NODES
--	{
--		int i;
--		for_each_online_node(i) {
--			if (NODE_DATA(i)->node_spanned_pages != 0) {
--				totalram_pages +-					free_all_bootmem_node(NODE_DATA(i));
--			}
--		}
--		totalram_pages += free_low_memory_core_early(MAX_NUMNODES);
--	}
--#else
-+	register_page_bootmem_info();
- 	totalram_pages = free_all_bootmem();
--#endif
+-static void __devexit jbusmc_destroy(struct platform_device *op, struct jbusmc *p)
++static void jbusmc_destroy(struct platform_device *op, struct jbusmc *p)
+ {
+ 	mc_list_del(&p->list);
+ 	of_iounmap(&op->resource[0], p->regs, JBUSMC_REGS_SIZE);
+ 	kfree(p);
+ }
  
- 	/* We subtract one to account for the mem_map_zero page
- 	 * allocated below.
+-static int __devexit us3mc_remove(struct platform_device *op)
++static int us3mc_remove(struct platform_device *op)
+ {
+ 	void *p = dev_get_drvdata(&op->dev);
+ 
 -- 
-1.7.7
+1.8.0
 
