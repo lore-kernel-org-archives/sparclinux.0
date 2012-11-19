@@ -1,38 +1,92 @@
-From: willims gebrel <willims.gebrel@9y.com>
-Date: Fri, 16 Nov 2012 12:58:27 +0000
-Subject: Williams
-Message-Id: <1353070707.32476.YahooMailClassic@web171701.mail.ir2.yahoo.com>
+From: Bill Pemberton <wfp5p@virginia.edu>
+Date: Mon, 19 Nov 2012 18:23:15 +0000
+Subject: [PATCH 246/493] sbus: remove use of __devinit
+Message-Id: <1353349642-3677-246-git-send-email-wfp5p@virginia.edu>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-sh@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
+CONFIG_HOTPLUG is going away as an option so __devinit is no longer
+needed.
 
-My Dear,
+Signed-off-by: Bill Pemberton <wfp5p@virginia.edu>
+Cc: "David S. Miller" <davem@davemloft.net> 
+Cc: sparclinux@vger.kernel.org 
+---
+ drivers/sbus/char/bbc_i2c.c     | 2 +-
+ drivers/sbus/char/display7seg.c | 2 +-
+ drivers/sbus/char/envctrl.c     | 2 +-
+ drivers/sbus/char/flash.c       | 2 +-
+ drivers/sbus/char/uctrl.c       | 2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
+diff --git a/drivers/sbus/char/bbc_i2c.c b/drivers/sbus/char/bbc_i2c.c
+index e844bb2..8ccaa79 100644
+--- a/drivers/sbus/char/bbc_i2c.c
++++ b/drivers/sbus/char/bbc_i2c.c
+@@ -355,7 +355,7 @@ fail:
+ extern int bbc_envctrl_init(struct bbc_i2c_bus *bp);
+ extern void bbc_envctrl_cleanup(struct bbc_i2c_bus *bp);
  
-
-I'm happy to inform you about my success in getting those funds transferred under the cooperation of my new partner from Canada based business man; presently I'm in Bahamas for investment projects with my own share of the total sum. Meanwhile, I didn't forget your past efforts and attempts to assist me in transferring those funds despite that it failed us somehow.
-
+-static int __devinit bbc_i2c_probe(struct platform_device *op)
++static int bbc_i2c_probe(struct platform_device *op)
+ {
+ 	struct bbc_i2c_bus *bp;
+ 	int err, index = 0;
+diff --git a/drivers/sbus/char/display7seg.c b/drivers/sbus/char/display7seg.c
+index 7694e5a..9f4c285 100644
+--- a/drivers/sbus/char/display7seg.c
++++ b/drivers/sbus/char/display7seg.c
+@@ -171,7 +171,7 @@ static struct miscdevice d7s_miscdev = {
+ 	.fops		= &d7s_fops
+ };
  
-
-Now contact my patina personal adviser in Togo, his name is HON REV.PETER SMITH of church embassy ministry Togo, E-mail: fortbendlawlegal@gmail.com
-
+-static int __devinit d7s_probe(struct platform_device *op)
++static int d7s_probe(struct platform_device *op)
+ {
+ 	struct device_node *opts;
+ 	int err = -EINVAL;
+diff --git a/drivers/sbus/char/envctrl.c b/drivers/sbus/char/envctrl.c
+index 6f36638..e1cbbc2 100644
+--- a/drivers/sbus/char/envctrl.c
++++ b/drivers/sbus/char/envctrl.c
+@@ -1028,7 +1028,7 @@ static int kenvctrld(void *__unused)
+ 	return 0;
+ }
  
-
-Ask him to send you the official Draft check of $500.000.00 or by cash which I gave him as order to kept for your compensation for all the past efforts and attempts to assist me in this matter before. I appreciated your collective efforts at that time, so feel free and get in touch with my patina adviser HON.REV. PETER SMITH and instruct him where to send the amount to you. Please do let me know immediately you receive it so that we can share the joy after all the sufferings at that time.
-
+-static int __devinit envctrl_probe(struct platform_device *op)
++static int envctrl_probe(struct platform_device *op)
+ {
+ 	struct device_node *dp;
+ 	int index, err;
+diff --git a/drivers/sbus/char/flash.c b/drivers/sbus/char/flash.c
+index fa918c6..733f492 100644
+--- a/drivers/sbus/char/flash.c
++++ b/drivers/sbus/char/flash.c
+@@ -159,7 +159,7 @@ static const struct file_operations flash_fops = {
  
-
-in the moment, I am very busy here In Bahamas because of the investment projects which myself and the new partner are having at hand without confrontations, finally, remember that I had forwarded instruction to the REV.PETER SMITH on your behalf to send you the check or by cash as my patina deposited to him on your name before he left to Canada where he based.
-
+ static struct miscdevice flash_dev = { FLASH_MINOR, "flash", &flash_fops };
  
-
-So feel free to get in touch with HON REV.PETER SMITH he will send the amount to you without any delay.
-
+-static int __devinit flash_probe(struct platform_device *op)
++static int flash_probe(struct platform_device *op)
+ {
+ 	struct device_node *dp = op->dev.of_node;
+ 	struct device_node *parent;
+diff --git a/drivers/sbus/char/uctrl.c b/drivers/sbus/char/uctrl.c
+index 7b8bd4e..2484633 100644
+--- a/drivers/sbus/char/uctrl.c
++++ b/drivers/sbus/char/uctrl.c
+@@ -347,7 +347,7 @@ static void uctrl_get_external_status(struct uctrl_driver *driver)
+ 	
+ }
  
+-static int __devinit uctrl_probe(struct platform_device *op)
++static int uctrl_probe(struct platform_device *op)
+ {
+ 	struct uctrl_driver *p;
+ 	int err = -ENOMEM;
+-- 
+1.8.0
 
-With best regards,
-
-Williams
