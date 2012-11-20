@@ -1,74 +1,60 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Date: Thu, 01 Nov 2012 09:44:43 +0000
-Subject: [PATCH v3 12/12] memory-hotplug: free node_data when a node is offlined
-Message-Id: <1351763083-7905-13-git-send-email-wency@cn.fujitsu.com>
+From: Chen Gang <gang.chen@asianux.com>
+Date: Tue, 20 Nov 2012 02:45:10 +0000
+Subject: [Suggestion]  arch/sparc: change full_boot_str[256] to full_boot_str[COMMAND_LINE_SIZE + sizeof ("bo
+Message-Id: <50AAEEB6.9070704@asianux.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1351763083-7905-1-git-send-email-wency@cn.fujitsu.com>
-In-Reply-To: <1351763083-7905-1-git-send-email-wency@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
-Cc: David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jianguo Wu <wujianguo@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>
+To: sparclinux@vger.kernel.org
 
-We call hotadd_new_pgdat() to allocate memory to store node_data. So we
-should free it when removing a node.
+Hello Sam and David:
 
-CC: David Rientjes <rientjes@google.com>
-CC: Jiang Liu <liuj97@gmail.com>
-CC: Len Brown <len.brown@intel.com>
-CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-CC: Paul Mackerras <paulus@samba.org>
-CC: Christoph Lameter <cl@linux.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-CC: Andrew Morton <akpm@linux-foundation.org>
-CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
----
- mm/memory_hotplug.c | 20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+Excuse me, my English is truly not quite well, maybe what I said is not politeness, originally.
 
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index d965da3..e281c31 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -1320,9 +1320,12 @@ static int check_cpu_on_node(void *data)
- /* offline the node if all memory sections of this node are removed */
- static void try_offline_node(int nid)
- {
-+	pg_data_t *pgdat = NODE_DATA(nid);
- 	unsigned long start_pfn = NODE_DATA(nid)->node_start_pfn;
--	unsigned long end_pfn = start_pfn + NODE_DATA(nid)->node_spanned_pages;
-+	unsigned long end_pfn = start_pfn + pgdat->node_spanned_pages;
- 	unsigned long pfn;
-+	struct page *pgdat_page = virt_to_page(pgdat);
-+	int i;
- 
- 	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
- 		unsigned long section_nr = pfn_to_section_nr(pfn);
-@@ -1349,6 +1352,21 @@ static void try_offline_node(int nid)
- 	 */
- 	node_set_offline(nid);
- 	unregister_one_node(nid);
-+
-+	if (!PageSlab(pgdat_page) && !PageCompound(pgdat_page))
-+		/* node data is allocated from boot memory */
-+		return;
-+
-+	/* free waittable in each zone */
-+	for (i = 0; i < MAX_NR_ZONES; i++) {
-+		struct zone *zone = pgdat->node_zones + i;
-+
-+		if (zone->wait_table)
-+			vfree(zone->wait_table);
-+	}
-+
-+	arch_refresh_nodedata(nid, NULL);
-+	arch_free_nodedata(pgdat);
- }
- 
- int __ref remove_memory(int nid, u64 start, u64 size)
+I am scanning strcpy for whole kernel, and currently at arch/sparc/kernel/ds.c:904:
+I suggest the full_boot_str[256] changes to full_boot_str[COMMAND_LINE_SIZE + sizeof ("boot ")] at line 834
+for strcpy at line 846
+   arch/sparc/include/uapi/asm/setup.h:  boot command parameter's length should be within COMMAND_LINE_SIZE (2048, or 256)
+   kernel/sys.c:377:  call machine_restart (the command length is less than 256, maybe 255 + '\0')
+   so full_boot_str need be COMMAND_LINE_SIZE + sizeof ("boot "), at least. 
+
+hope the suggestion is useful for you.
+
+thanks.
+
+
+ 834 static char full_boot_str[256] __attribute__((aligned(32)));
+ 835 static int reboot_data_supported;
+ 836 
+ 837 void ldom_reboot(const char *boot_command)
+ 838 {
+ 839         /* Don't bother with any of this if the boot_command
+ 840          * is empty.
+ 841          */
+ 842         if (boot_command && strlen(boot_command)) {
+ 843                 unsigned long len;
+ 844 
+ 845                 strcpy(full_boot_str, "boot ");
+ 846                 strcpy(full_boot_str + strlen("boot "), boot_command);
+ 847                 len = strlen(full_boot_str);
+ 848 
+ 849                 if (reboot_data_supported) {
+ 850                         unsigned long ra = kimage_addr_to_ra(full_boot_str);
+ 851                         unsigned long hv_ret;
+ 852 
+ 853                         hv_ret = sun4v_reboot_data_set(ra, len);
+ 854                         if (hv_ret != HV_EOK)
+ 855                                 pr_err("SUN4V: Unable to set reboot data "
+ 856                                        "hv_ret=%lu\n", hv_ret);
+ 857                 } else {
+ 858                         ldom_set_var("reboot-command", full_boot_str);
+ 859                 }
+ 860         }
+ 861         sun4v_mach_sir();
+ 862 }
+
 -- 
-1.8.0
+Chen Gang
 
+Asianux Corporation
