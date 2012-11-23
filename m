@@ -1,82 +1,38 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Date: Mon, 12 Nov 2012 21:18:40 +0000
-Subject: [PATCH 44/46] sparc, mm: Remove calling of free_all_bootmem_node()
-Message-Id: <1352755122-25660-45-git-send-email-yinghai@kernel.org>
+From: Shuah Khan <shuah.khan@hp.com>
+Date: Fri, 23 Nov 2012 21:37:22 +0000
+Subject: [PATCH 8/9] sparc: dma_debug: add debug_dma_mapping_error support
+Message-Id: <1353706642.5270.104.camel@lorien2>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20121112193044.GA11615@phenom.dumpdata.com>
- <1352755122-25660-1-git-send-email-yinghai@kernel.org>
-In-Reply-To: <1352755122-25660-1-git-send-email-yinghai@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Jacob Shin <jacob.shin@amd.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-Now NO_BOOTMEM version free_all_bootmem_node() does not really
-do free_bootmem at all, and it only call
-register_page_bootmem_info_node instead.
+Add dma-debug interface debug_dma_mapping_error() to debug drivers that fail
+to check dma mapping errors on addresses returned by dma_map_single() and
+dma_map_page() interfaces.
 
-That is confusing, try to kill that free_all_bootmem_node().
-
-Before that, this patch will remove calling of free_all_bootmem_node()
-
-We add register_page_bootmem_info() to call register_page_bootmem_info_node
-directly.
-
-Also could use free_all_bootmem() for numa case, and it is just
-the same as free_low_memory_core_early().
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: sparclinux@vger.kernel.org
-Acked-by: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Shuah Khan <shuah.khan@hp.com>
+Acked-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/mm/init_64.c |   24 +++++++++++-------------
- 1 files changed, 11 insertions(+), 13 deletions(-)
+ arch/sparc/include/asm/dma-mapping.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 9e28a11..b24bac2 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -2021,6 +2021,16 @@ static void __init patch_tlb_miss_handler_bitmap(void)
- 	flushi(&valid_addr_bitmap_insn[0]);
+diff --git a/arch/sparc/include/asm/dma-mapping.h b/arch/sparc/include/asm/dma-mapping.h
+index 8493fd3..05fe53f 100644
+--- a/arch/sparc/include/asm/dma-mapping.h
++++ b/arch/sparc/include/asm/dma-mapping.h
+@@ -59,6 +59,7 @@ static inline void dma_free_attrs(struct device *dev, size_t size,
+ 
+ static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
+ {
++	debug_dma_mapping_error(dev, dma_addr);
+ 	return (dma_addr = DMA_ERROR_CODE);
  }
  
-+static void __init register_page_bootmem_info(void)
-+{
-+#ifdef CONFIG_NEED_MULTIPLE_NODES
-+	int i;
-+
-+	for_each_online_node(i)
-+		if (NODE_DATA(i)->node_spanned_pages)
-+			register_page_bootmem_info_node(NODE_DATA(i));
-+#endif
-+}
- void __init mem_init(void)
- {
- 	unsigned long codepages, datapages, initpages;
-@@ -2038,20 +2048,8 @@ void __init mem_init(void)
- 
- 	high_memory = __va(last_valid_pfn << PAGE_SHIFT);
- 
--#ifdef CONFIG_NEED_MULTIPLE_NODES
--	{
--		int i;
--		for_each_online_node(i) {
--			if (NODE_DATA(i)->node_spanned_pages != 0) {
--				totalram_pages +-					free_all_bootmem_node(NODE_DATA(i));
--			}
--		}
--		totalram_pages += free_low_memory_core_early(MAX_NUMNODES);
--	}
--#else
-+	register_page_bootmem_info();
- 	totalram_pages = free_all_bootmem();
--#endif
- 
- 	/* We subtract one to account for the mem_map_zero page
- 	 * allocated below.
 -- 
-1.7.7
+1.7.9.5
+
+
+
 
