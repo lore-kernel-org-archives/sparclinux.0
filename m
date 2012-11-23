@@ -1,106 +1,37 @@
-From: Jan Kiszka <jan.kiszka@siemens.com>
-Date: Mon, 05 Nov 2012 16:09:05 +0000
-Subject: [PATCH 12/13] scripts/gdb: Add internal helper and convenience function for per-cpu lookup
-Message-Id: <58adfd22c32ae200ead1e0e0d602fc38be33ccaa.1352131731.git.jan.kiszka@siemens.com>
+From: Shuah Khan <shuah.khan@hp.com>
+Date: Fri, 23 Nov 2012 21:36:33 +0000
+Subject: [PATCH 7/9] sh: dma_debug: add debug_dma_mapping_error support
+Message-Id: <1353706593.5270.103.camel@lorien2>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1352131729.git.jan.kiszka@siemens.com>
-In-Reply-To: <cover.1352131729.git.jan.kiszka@siemens.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Jason Wessel <jason.wessel@windriver.com>, kgdb-bugreport@lists.sourceforge.net, Andi Kleen <andi@firstfloor.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-This function allows to obtain a per-cpu variable, either of the current
-or an explicitly specified CPU.
+Add dma-debug interface debug_dma_mapping_error() to debug drivers that fail
+to check dma mapping errors on addresses returned by dma_map_single() and
+dma_map_page() interfaces.
 
-Note: sparc64 version is untested.
-
-CC: "David S. Miller" <davem@davemloft.net>
-CC: sparclinux@vger.kernel.org
-Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
+Signed-off-by: Shuah Khan <shuah.khan@hp.com>
 ---
- scripts/gdb/percpu.py      |   61 ++++++++++++++++++++++++++++++++++++++++++++
- scripts/gdb/vmlinux-gdb.py |    1 +
- 2 files changed, 62 insertions(+), 0 deletions(-)
- create mode 100644 scripts/gdb/percpu.py
+ arch/sh/include/asm/dma-mapping.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/scripts/gdb/percpu.py b/scripts/gdb/percpu.py
-new file mode 100644
-index 0000000..6e24400
---- /dev/null
-+++ b/scripts/gdb/percpu.py
-@@ -0,0 +1,61 @@
-+#
-+# gdb helper commands and functions for Linux kernel debugging
-+#
-+#  per-cpu tools
-+#
-+# Copyright (c) 2011, 2012 Siemens AG
-+#
-+# Authors:
-+#  Jan Kiszka <jan.kiszka@siemens.com>
-+#
-+# This work is licensed under the terms of the GNU GPL version 2.
-+#
-+
-+import gdb
-+
-+from utils import *
-+from task import *
-+
-+MAX_CPUS = 4096
-+
-+def get_current_cpu():
-+	if get_gdbserver_type() = GDBSERVER_QEMU:
-+		return gdb.selected_thread().num - 1
-+	elif get_gdbserver_type() = GDBSERVER_KGDB:
-+		tid = gdb.selected_thread().ptid[2]
-+		if tid > (0x100000000 - MAX_CPUS - 2):
-+			return 0x100000000 - tid - 2
-+		else:
-+			return get_thread_info(get_task_by_pid(tid))['cpu']
-+	else:
-+		raise gdb.GdbError("Sorry, obtaining the current CPU is "
-+				   "not yet supported with this gdb server.")
-+
-+def per_cpu(var_name, cpu):
-+	var = gdb.parse_and_eval("&" + var_name)
-+	if cpu = -1:
-+		cpu = get_current_cpu()
-+	if is_target_arch("sparc:v9"):
-+		offset = gdb.parse_and_eval("trap_block[" + str(cpu) +
-+					    "].__per_cpu_base")
-+	else:
-+		offset = gdb.parse_and_eval("__per_cpu_offset[" + str(cpu) +
-+					    "]")
-+	pointer = var.cast(get_long_type()) + offset
-+	return pointer.cast(var.type).dereference()
-+
-+
-+class PerCpu(gdb.Function):
-+	__doc__ = "Return per-cpu variable.\n" \
-+		  "\n" \
-+		  "$lx_per_cpu(\"VAR\"[, CPU]): Return the per-cpu variable called VAR for the\n" \
-+		  "given CPU number. If CPU is omitted, the CPU of the current context is used.\n" \
-+		  "Note that VAR has to be quoted as string."
-+
-+	def __init__(self):
-+		super(PerCpu, self).__init__("lx_per_cpu")
-+
-+	def invoke(self, var_name, cpu = -1):
-+		return per_cpu(var_name.string(), cpu)
-+
-+PerCpu()
-diff --git a/scripts/gdb/vmlinux-gdb.py b/scripts/gdb/vmlinux-gdb.py
-index deaf652..1d952b5 100644
---- a/scripts/gdb/vmlinux-gdb.py
-+++ b/scripts/gdb/vmlinux-gdb.py
-@@ -23,3 +23,4 @@ else:
- 	import symbols
- 	import dmesg
- 	import task
-+	import percpu
+diff --git a/arch/sh/include/asm/dma-mapping.h b/arch/sh/include/asm/dma-mapping.h
+index 8bd965e..b437f2c 100644
+--- a/arch/sh/include/asm/dma-mapping.h
++++ b/arch/sh/include/asm/dma-mapping.h
+@@ -46,6 +46,7 @@ static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
+ {
+ 	struct dma_map_ops *ops = get_dma_ops(dev);
+ 
++	debug_dma_mapping_error(dev, dma_addr);
+ 	if (ops->mapping_error)
+ 		return ops->mapping_error(dev, dma_addr);
+ 
 -- 
-1.7.3.4
+1.7.9.5
+
+
+
 
