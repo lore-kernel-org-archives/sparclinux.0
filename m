@@ -1,10 +1,10 @@
 From: Wen Congyang <wency@cn.fujitsu.com>
-Date: Thu, 01 Nov 2012 09:44:36 +0000
-Subject: [PATCH v3 05/12] memory-hotplug: introduce new function arch_remove_memory() for removing page table
-Message-Id: <1351763083-7905-6-git-send-email-wency@cn.fujitsu.com>
+Date: Tue, 27 Nov 2012 09:59:25 +0000
+Subject: [Patch v4 05/12] memory-hotplug: introduce new function arch_remove_memory() for removing page table
+Message-Id: <1354010422-19648-6-git-send-email-wency@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1351763083-7905-1-git-send-email-wency@cn.fujitsu.com>
-In-Reply-To: <1351763083-7905-1-git-send-email-wency@cn.fujitsu.com>
+References: <1354010422-19648-1-git-send-email-wency@cn.fujitsu.com>
+In-Reply-To: <1354010422-19648-1-git-send-email-wency@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -42,10 +42,10 @@ Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
  9 files changed, 97 insertions(+)
 
 diff --git a/arch/ia64/mm/init.c b/arch/ia64/mm/init.c
-index acd5b68..1d36ba2 100644
+index 082e383..e333822 100644
 --- a/arch/ia64/mm/init.c
 +++ b/arch/ia64/mm/init.c
-@@ -690,6 +690,24 @@ int arch_add_memory(int nid, u64 start, u64 size)
+@@ -689,6 +689,24 @@ int arch_add_memory(int nid, u64 start, u64 size)
  
  	return ret;
  }
@@ -221,10 +221,10 @@ index 38675e9..191b2d9 100644
  
  /* reasonably generic interface to expand the physical pages in a zone  */
 diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 050ddb0..ca07433 100644
+index 63d5388..e741732 100644
 --- a/mm/memory_hotplug.c
 +++ b/mm/memory_hotplug.c
-@@ -1118,6 +1118,8 @@ repeat:
+@@ -1111,6 +1111,8 @@ repeat:
  	/* remove memmap entry */
  	firmware_map_remove(start, start + size, "System RAM");
  
