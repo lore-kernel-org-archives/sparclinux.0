@@ -1,74 +1,106 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Date: Tue, 27 Nov 2012 09:59:08 +0000
-Subject: [Patch v4 12/12] memory-hotplug: free node_data when a node is offlined
-Message-Id: <1354010422-19648-13-git-send-email-wency@cn.fujitsu.com>
+From: Jan Kiszka <jan.kiszka@siemens.com>
+Date: Tue, 27 Nov 2012 10:11:43 +0000
+Subject: [PATCH v3 12/13] scripts/gdb: Add internal helper and convenience function for per-cpu lookup
+Message-Id: <00ab9e8af1c5131ad20462253766b14d2eb2144a.1354011091.git.jan.kiszka@siemens.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1354010422-19648-1-git-send-email-wency@cn.fujitsu.com>
-In-Reply-To: <1354010422-19648-1-git-send-email-wency@cn.fujitsu.com>
+References: <cover.1354011091.git.jan.kiszka@siemens.com>
+In-Reply-To: <cover.1354011091.git.jan.kiszka@siemens.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
-Cc: David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jianguo Wu <wujianguo@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>
+To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
+Cc: Jason Wessel <jason.wessel@windriver.com>, kgdb-bugreport@lists.sourceforge.net, Andi Kleen <andi@firstfloor.org>, Tom Tromey <tromey@redhat.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-We call hotadd_new_pgdat() to allocate memory to store node_data. So we
-should free it when removing a node.
+This function allows to obtain a per-cpu variable, either of the current
+or an explicitly specified CPU.
 
-CC: David Rientjes <rientjes@google.com>
-CC: Jiang Liu <liuj97@gmail.com>
-CC: Len Brown <len.brown@intel.com>
-CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-CC: Paul Mackerras <paulus@samba.org>
-CC: Christoph Lameter <cl@linux.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-CC: Andrew Morton <akpm@linux-foundation.org>
-CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+Note: sparc64 version is untested.
+
+CC: "David S. Miller" <davem@davemloft.net>
+CC: sparclinux@vger.kernel.org
+Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
 ---
- mm/memory_hotplug.c | 20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ scripts/gdb/percpu.py      |   61 ++++++++++++++++++++++++++++++++++++++++++++
+ scripts/gdb/vmlinux-gdb.py |    1 +
+ 2 files changed, 62 insertions(+), 0 deletions(-)
+ create mode 100644 scripts/gdb/percpu.py
 
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 449663e..d1451ab 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -1309,9 +1309,12 @@ static int check_cpu_on_node(void *data)
- /* offline the node if all memory sections of this node are removed */
- static void try_offline_node(int nid)
- {
-+	pg_data_t *pgdat = NODE_DATA(nid);
- 	unsigned long start_pfn = NODE_DATA(nid)->node_start_pfn;
--	unsigned long end_pfn = start_pfn + NODE_DATA(nid)->node_spanned_pages;
-+	unsigned long end_pfn = start_pfn + pgdat->node_spanned_pages;
- 	unsigned long pfn;
-+	struct page *pgdat_page = virt_to_page(pgdat);
-+	int i;
- 
- 	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
- 		unsigned long section_nr = pfn_to_section_nr(pfn);
-@@ -1338,6 +1341,21 @@ static void try_offline_node(int nid)
- 	 */
- 	node_set_offline(nid);
- 	unregister_one_node(nid);
+diff --git a/scripts/gdb/percpu.py b/scripts/gdb/percpu.py
+new file mode 100644
+index 0000000..6e24400
+--- /dev/null
++++ b/scripts/gdb/percpu.py
+@@ -0,0 +1,61 @@
++#
++# gdb helper commands and functions for Linux kernel debugging
++#
++#  per-cpu tools
++#
++# Copyright (c) 2011, 2012 Siemens AG
++#
++# Authors:
++#  Jan Kiszka <jan.kiszka@siemens.com>
++#
++# This work is licensed under the terms of the GNU GPL version 2.
++#
 +
-+	if (!PageSlab(pgdat_page) && !PageCompound(pgdat_page))
-+		/* node data is allocated from boot memory */
-+		return;
++import gdb
 +
-+	/* free waittable in each zone */
-+	for (i = 0; i < MAX_NR_ZONES; i++) {
-+		struct zone *zone = pgdat->node_zones + i;
++from utils import *
++from task import *
 +
-+		if (zone->wait_table)
-+			vfree(zone->wait_table);
-+	}
++MAX_CPUS = 4096
 +
-+	arch_refresh_nodedata(nid, NULL);
-+	arch_free_nodedata(pgdat);
- }
- 
- int __ref remove_memory(int nid, u64 start, u64 size)
++def get_current_cpu():
++	if get_gdbserver_type() = GDBSERVER_QEMU:
++		return gdb.selected_thread().num - 1
++	elif get_gdbserver_type() = GDBSERVER_KGDB:
++		tid = gdb.selected_thread().ptid[2]
++		if tid > (0x100000000 - MAX_CPUS - 2):
++			return 0x100000000 - tid - 2
++		else:
++			return get_thread_info(get_task_by_pid(tid))['cpu']
++	else:
++		raise gdb.GdbError("Sorry, obtaining the current CPU is "
++				   "not yet supported with this gdb server.")
++
++def per_cpu(var_name, cpu):
++	var = gdb.parse_and_eval("&" + var_name)
++	if cpu = -1:
++		cpu = get_current_cpu()
++	if is_target_arch("sparc:v9"):
++		offset = gdb.parse_and_eval("trap_block[" + str(cpu) +
++					    "].__per_cpu_base")
++	else:
++		offset = gdb.parse_and_eval("__per_cpu_offset[" + str(cpu) +
++					    "]")
++	pointer = var.cast(get_long_type()) + offset
++	return pointer.cast(var.type).dereference()
++
++
++class PerCpu(gdb.Function):
++	__doc__ = "Return per-cpu variable.\n" \
++		  "\n" \
++		  "$lx_per_cpu(\"VAR\"[, CPU]): Return the per-cpu variable called VAR for the\n" \
++		  "given CPU number. If CPU is omitted, the CPU of the current context is used.\n" \
++		  "Note that VAR has to be quoted as string."
++
++	def __init__(self):
++		super(PerCpu, self).__init__("lx_per_cpu")
++
++	def invoke(self, var_name, cpu = -1):
++		return per_cpu(var_name.string(), cpu)
++
++PerCpu()
+diff --git a/scripts/gdb/vmlinux-gdb.py b/scripts/gdb/vmlinux-gdb.py
+index 1a9b293..0243304 100644
+--- a/scripts/gdb/vmlinux-gdb.py
++++ b/scripts/gdb/vmlinux-gdb.py
+@@ -25,3 +25,4 @@ else:
+ 	import symbols
+ 	import dmesg
+ 	import task
++	import percpu
 -- 
-1.8.0
+1.7.3.4
 
