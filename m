@@ -1,35 +1,174 @@
-From: Tobias Klauser <tklauser@distanz.ch>
-Date: Tue, 20 Nov 2012 09:44:12 +0000
-Subject: Re: [PATCH 145/493] tty: serial: remove use of __devexit_p
-Message-Id: <20121120094412.GF25445@distanz.ch>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Date: Tue, 27 Nov 2012 10:00:13 +0000
+Subject: [Patch v4 03/12] memory-hotplug: remove redundant codes
+Message-Id: <1354010422-19648-4-git-send-email-wency@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
- <1353349642-3677-145-git-send-email-wfp5p@virginia.edu>
-In-Reply-To: <1353349642-3677-145-git-send-email-wfp5p@virginia.edu>
+References: <1354010422-19648-1-git-send-email-wency@cn.fujitsu.com>
+In-Reply-To: <1354010422-19648-1-git-send-email-wency@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+Cc: David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jianguo Wu <wujianguo@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>
 
-On 2012-11-19 at 19:21:34 +0100, Bill Pemberton <wfp5p@virginia.edu> wrote:
-> CONFIG_HOTPLUG is going away as an option so __devexit_p is no longer
-> needed.
-> 
-> Signed-off-by: Bill Pemberton <wfp5p@virginia.edu>
-> Cc: Alan Cox <alan@linux.intel.com> 
-> Cc: Tobias Klauser <tklauser@distanz.ch> 
-> Cc: Lucas Tavares <lucaskt@linux.vnet.ibm.com> 
-> Cc: "David S. Miller" <davem@davemloft.net> 
-> Cc: Peter Korsgaard <jacmet@sunsite.dk> 
-> Cc: Tony Prisk <linux@prisktech.co.nz> 
-> Cc: linux-serial@vger.kernel.org 
-> Cc: nios2-dev@sopc.et.ntust.edu.tw 
-> Cc: uclinux-dist-devel@blackfin.uclinux.org 
-> Cc: sparclinux@vger.kernel.org 
-> Cc: linux-arm-kernel@lists.infradead.org 
-> ---
-[...]
->  drivers/tty/serial/altera_jtaguart.c |  2 +-
->  drivers/tty/serial/altera_uart.c     |  2 +-
+offlining memory blocks and checking whether memory blocks are offlined
+are very similar. This patch introduces a new function to remove
+redundant codes.
 
-Acked-by: Tobias Klauser <tklauser@distanz.ch>
+CC: David Rientjes <rientjes@google.com>
+CC: Jiang Liu <liuj97@gmail.com>
+CC: Len Brown <len.brown@intel.com>
+CC: Christoph Lameter <cl@linux.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+CC: Andrew Morton <akpm@linux-foundation.org>
+CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+---
+ mm/memory_hotplug.c | 101 ++++++++++++++++++++++++++++------------------------
+ 1 file changed, 55 insertions(+), 46 deletions(-)
+
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index b6d1101..6d06488 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -1005,20 +1005,14 @@ int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
+ 	return __offline_pages(start_pfn, start_pfn + nr_pages, 120 * HZ);
+ }
+ 
+-int remove_memory(u64 start, u64 size)
++static int walk_memory_range(unsigned long start_pfn, unsigned long end_pfn,
++		void *arg, int (*func)(struct memory_block *, void *))
+ {
+ 	struct memory_block *mem = NULL;
+ 	struct mem_section *section;
+-	unsigned long start_pfn, end_pfn;
+ 	unsigned long pfn, section_nr;
+ 	int ret;
+-	int return_on_error = 0;
+-	int retry = 0;
+-
+-	start_pfn = PFN_DOWN(start);
+-	end_pfn = start_pfn + PFN_DOWN(size);
+ 
+-repeat:
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
+ 		section_nr = pfn_to_section_nr(pfn);
+ 		if (!present_section_nr(section_nr))
+@@ -1035,22 +1029,61 @@ repeat:
+ 		if (!mem)
+ 			continue;
+ 
+-		ret = offline_memory_block(mem);
++		ret = func(mem, arg);
+ 		if (ret) {
+-			if (return_on_error) {
+-				kobject_put(&mem->dev.kobj);
+-				return ret;
+-			} else {
+-				retry = 1;
+-			}
++			kobject_put(&mem->dev.kobj);
++			return ret;
+ 		}
+ 	}
+ 
+ 	if (mem)
+ 		kobject_put(&mem->dev.kobj);
+ 
+-	if (retry) {
+-		return_on_error = 1;
++	return 0;
++}
++
++static int offline_memory_block_cb(struct memory_block *mem, void *arg)
++{
++	int *ret = arg;
++	int error = offline_memory_block(mem);
++
++	if (error != 0 && *ret = 0)
++		*ret = error;
++
++	return 0;
++}
++
++static int is_memblock_offlined_cb(struct memory_block *mem, void *arg)
++{
++	int ret = !is_memblock_offlined(mem);
++
++	if (unlikely(ret))
++		pr_warn("removing memory fails, because memory "
++			"[%#010llx-%#010llx] is onlined\n",
++			PFN_PHYS(section_nr_to_pfn(mem->start_section_nr)),
++			PFN_PHYS(section_nr_to_pfn(mem->end_section_nr + 1))-1);
++
++	return ret;
++}
++
++int remove_memory(u64 start, u64 size)
++{
++	unsigned long start_pfn, end_pfn;
++	int ret = 0;
++	int retry = 1;
++
++	start_pfn = PFN_DOWN(start);
++	end_pfn = start_pfn + PFN_DOWN(size);
++
++repeat:
++	walk_memory_range(start_pfn, end_pfn, &ret,
++			  offline_memory_block_cb);
++	if (ret) {
++		if (!retry)
++			return ret;
++
++		retry = 0;
++		ret = 0;
+ 		goto repeat;
+ 	}
+ 
+@@ -1068,37 +1101,13 @@ repeat:
+ 	 * memory blocks are offlined.
+ 	 */
+ 
+-	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
+-		section_nr = pfn_to_section_nr(pfn);
+-		if (!present_section_nr(section_nr))
+-			continue;
+-
+-		section = __nr_to_section(section_nr);
+-		/* same memblock? */
+-		if (mem)
+-			if ((section_nr >= mem->start_section_nr) &&
+-			    (section_nr <= mem->end_section_nr))
+-				continue;
+-
+-		mem = find_memory_block_hinted(section, mem);
+-		if (!mem)
+-			continue;
+-
+-		ret = is_memblock_offlined(mem);
+-		if (!ret) {
+-			pr_warn("removing memory fails, because memory "
+-				"[%#010llx-%#010llx] is onlined\n",
+-				PFN_PHYS(section_nr_to_pfn(mem->start_section_nr)),
+-				PFN_PHYS(section_nr_to_pfn(mem->end_section_nr + 1)) - 1);
+-
+-			kobject_put(&mem->dev.kobj);
+-			unlock_memory_hotplug();
+-			return ret;
+-		}
++	ret = walk_memory_range(start_pfn, end_pfn, NULL,
++				is_memblock_offlined_cb);
++	if (ret) {
++		unlock_memory_hotplug();
++		return ret;
+ 	}
+ 
+-	if (mem)
+-		kobject_put(&mem->dev.kobj);
+ 	unlock_memory_hotplug();
+ 
+ 	return 0;
+-- 
+1.8.0
+
