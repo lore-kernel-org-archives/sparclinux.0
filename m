@@ -1,38 +1,52 @@
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Date: Mon, 03 Dec 2012 08:51:53 +0000
-Subject: Re: [PATCH 0/9] dma_debug: add debug_dma_mapping_error support to architectures that support DMA_DEB
-Message-Id: <50BC6829.4060205@samsung.com>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 03 Dec 2012 20:33:56 +0000
+Subject: [GIT] Sparc
+Message-Id: <20121203.153356.1912477920174640312.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1353706142.5270.93.camel@lorien2> <50B34B0F.3080204@samsung.com>
- <20121202140644.GP30633@8bytes.org>
-In-Reply-To: <20121202140644.GP30633@8bytes.org>
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-On 12/2/2012 3:06 PM, Joerg Roedel wrote:
-> Hi Marek,
->   
-> On Mon, Nov 26, 2012 at 11:57:19AM +0100, Marek Szyprowski wrote:
->
-> > I've took all the patches to the next-dma-debug branch in my tree, I sorry
-> > that You have to wait so long for it. My branch is based on Joerg's
-> > dma-debug branch and I've included it for testing in linux-next branch.
->
-> The patches are now two times in next. One version from my tree and one
-> from yours. Please remove the version from your tree, the patches should
-> go upstream via my dma-debug branch.
+Two small fixes for Sparc, nobody uses sparc, so these are
+low risk :-)
 
-Ok, I've removed them from my dma-mapping-next tree. Please add/cherry-pick
-the missing patch for ARM architecture, which I've accidentally already
-pushed to mainline some time ago and then reverted. See commit
-871ae57adc5ed092 (and 697575896670ba).
+1) Piggyback is too picky about the symbol types that _start
+   and _end have in the final kernel image, and it thus breaks
+   with newer binutils.  Future proof by getting rid of the
+   symbol type checks.
 
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
+2) exit_group() should kill register windows on sparc64 the same
+   way we do for plain exit().  Thanks to Al Viro for spotting
+   this.
 
+Please pull, thanks a lot!
+
+The following changes since commit 7e5530af11be68f3109672aed59243f82e1272f0:
+
+  Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/net (2012-12-02 16:39:00 -0800)
+
+are available in the git repository at:
+
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
+
+for you to fetch changes up to 0032c857454581510de1ca12615de5e38e543c92:
+
+  sparc: Fix piggyback with newer binutils. (2012-12-03 11:24:25 -0800)
+
+----------------------------------------------------------------
+David S. Miller (2):
+      sparc64: exit_group should kill register windows just like plain exit.
+      sparc: Fix piggyback with newer binutils.
+
+ arch/sparc/boot/piggyback.c    | 12 ++++++------
+ arch/sparc/kernel/sys32.S      |  2 +-
+ arch/sparc/kernel/syscalls.S   | 14 ++++++++++++--
+ arch/sparc/kernel/systbls_64.S |  2 +-
+ 4 files changed, 20 insertions(+), 10 deletions(-)
 
