@@ -1,55 +1,34 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Date: Mon, 24 Dec 2012 12:09:21 +0000
-Subject: [PATCH v5 11/14] memory-hotplug: Integrated __remove_section() of CONFIG_SPARSEMEM_VMEMMAP.
-Message-Id: <1356350964-13437-12-git-send-email-tangchen@cn.fujitsu.com>
+From: Andreas Larsson <andreas@gaisler.com>
+Date: Tue, 04 Dec 2012 14:09:38 +0000
+Subject: [PATCH 2/2] spi: sparc: Allow of_register_spi_devices for sparc
+Message-Id: <1354630178-25387-3-git-send-email-andreas@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1356350964-13437-1-git-send-email-tangchen@cn.fujitsu.com>
-In-Reply-To: <1356350964-13437-1-git-send-email-tangchen@cn.fujitsu.com>
+References: <1354630178-25387-1-git-send-email-andreas@gaisler.com>
+In-Reply-To: <1354630178-25387-1-git-send-email-andreas@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: akpm@linux-foundation.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, tangchen@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+To: davem@davemloft.net
+Cc: grant.likely@secretlab.ca, w.sang@pengutronix.de, sam@ravnborg.org, sparclinux@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, spi-devel-general@lists.sourceforge.net, linux-i2c@vger.kernel.org, software@gaisler.com
 
-Currently __remove_section for SPARSEMEM_VMEMMAP does nothing. But even if
-we use SPARSEMEM_VMEMMAP, we can unregister the memory_section.
-
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Signed-off-by: Andreas Larsson <andreas@gaisler.com>
 ---
- mm/memory_hotplug.c |   11 -----------
- 1 files changed, 0 insertions(+), 11 deletions(-)
+ drivers/spi/spi.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index c12bd55..71cb656 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -430,16 +430,6 @@ static int __meminit __add_section(int nid, struct zone *zone,
- 	return register_new_memory(nid, __pfn_to_section(phys_start_pfn));
- }
+diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+index c4f7d71..d8339fe 100644
+--- a/drivers/spi/spi.c
++++ b/drivers/spi/spi.c
+@@ -812,7 +812,7 @@ err_init_queue:
  
--#ifdef CONFIG_SPARSEMEM_VMEMMAP
--static int __remove_section(struct zone *zone, struct mem_section *ms)
--{
--	/*
--	 * XXX: Freeing memmap with vmemmap is not implement yet.
--	 *      This should be removed later.
--	 */
--	return -EBUSY;
--}
--#else
- static int __remove_section(struct zone *zone, struct mem_section *ms)
- {
- 	int ret = -EINVAL;
-@@ -454,7 +444,6 @@ static int __remove_section(struct zone *zone, struct mem_section *ms)
- 	sparse_remove_one_section(zone, ms);
- 	return 0;
- }
--#endif
+ /*-------------------------------------------------------------------------*/
  
- /*
-  * Reasonably generic function for adding memory.  It is
+-#if defined(CONFIG_OF) && !defined(CONFIG_SPARC)
++#if defined(CONFIG_OF)
+ /**
+  * of_register_spi_devices() - Register child devices onto the SPI bus
+  * @master:	Pointer to spi_master device
 -- 
-1.7.1
+1.7.0.4
 
