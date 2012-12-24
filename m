@@ -1,98 +1,86 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 03 Dec 2012 19:36:25 +0000
-Subject: Re: SPARC kernel build (piggyback) fails with binutils 2.23.1
-Message-Id: <20121203.143625.1586841025228957280.davem@davemloft.net>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Date: Mon, 24 Dec 2012 12:09:11 +0000
+Subject: [PATCH v5 01/14] memory-hotplug: try to offline the memory twice to avoid dependence
+Message-Id: <1356350964-13437-2-git-send-email-tangchen@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20121202165004.GA3091@blackmetal.musicnaut.iki.fi>
-In-Reply-To: <20121202165004.GA3091@blackmetal.musicnaut.iki.fi>
+References: <1356350964-13437-1-git-send-email-tangchen@cn.fujitsu.com>
+In-Reply-To: <1356350964-13437-1-git-send-email-tangchen@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: akpm@linux-foundation.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, tangchen@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org
+Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
 
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Date: Mon, 3 Dec 2012 15:10:23 +0200
+From: Wen Congyang <wency@cn.fujitsu.com>
 
-> Yes, I tried the hack below, and it produces a bootable TFTP image.
-> 
-> diff --git a/arch/sparc/boot/piggyback.c b/arch/sparc/boot/piggyback.c
-> index c0a798f..9eb1264 100644
-> --- a/arch/sparc/boot/piggyback.c
-> +++ b/arch/sparc/boot/piggyback.c
-> @@ -90,9 +90,9 @@ static int start_line(const char *line)
->  
->  static int end_line(const char *line)
->  {
-> -	if (strcmp(line + 8, " A _end\n") = 0)
-> +	if (strcmp(line + 10, " _end\n") = 0)
->  		return 1;
-> -	else if (strcmp (line + 16, " A _end\n") = 0)
-> +	else if (strcmp (line + 18, " _end\n") = 0)
->  		return 1;
->  	return 0;
->  }
+memory can't be offlined when CONFIG_MEMCG is selected.
+For example: there is a memory device on node 1. The address range
+is [1G, 1.5G). You will find 4 new directories memory8, memory9, memory10,
+and memory11 under the directory /sys/devices/system/memory/.
 
-Thanks for the report and the testing.
+If CONFIG_MEMCG is selected, we will allocate memory to store page cgroup
+when we online pages. When we online memory8, the memory stored page cgroup
+is not provided by this memory device. But when we online memory9, the memory
+stored page cgroup may be provided by memory8. So we can't offline memory8
+now. We should offline the memory in the reversed order.
 
-In order to future proof both _start and _end, I've committed the
-fix as follows:
+When the memory device is hotremoved, we will auto offline memory provided
+by this memory device. But we don't know which memory is onlined first, so
+offlining memory may fail. In such case, iterate twice to offline the memory.
+1st iterate: offline every non primary memory block.
+2nd iterate: offline primary (i.e. first added) memory block.
 
---------------------
-[PATCH] sparc: Fix piggyback with newer binutils.
+This idea is suggested by KOSAKI Motohiro.
 
-Newer versions of binutils mark '_end' as 'B' instead of 'A' for
-whatever reason.
-
-To be honest, the piggyback code doesn't actually care what kind
-of symbol _start and _end are, it just wants to find them and
-record the address.
-
-So remove the type from the match strings.
-
-Reported-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
 ---
- arch/sparc/boot/piggyback.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/memory_hotplug.c |   16 ++++++++++++++--
+ 1 files changed, 14 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/boot/piggyback.c b/arch/sparc/boot/piggyback.c
-index c0a798f..bb7c951 100644
---- a/arch/sparc/boot/piggyback.c
-+++ b/arch/sparc/boot/piggyback.c
-@@ -81,18 +81,18 @@ static void usage(void)
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index d04ed87..62e04c9 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -1388,10 +1388,13 @@ int remove_memory(u64 start, u64 size)
+ 	unsigned long start_pfn, end_pfn;
+ 	unsigned long pfn, section_nr;
+ 	int ret;
++	int return_on_error = 0;
++	int retry = 0;
  
- static int start_line(const char *line)
- {
--	if (strcmp(line + 8, " T _start\n") = 0)
-+	if (strcmp(line + 10, " _start\n") = 0)
- 		return 1;
--	else if (strcmp(line + 16, " T _start\n") = 0)
-+	else if (strcmp(line + 18, " _start\n") = 0)
- 		return 1;
+ 	start_pfn = PFN_DOWN(start);
+ 	end_pfn = start_pfn + PFN_DOWN(size);
+ 
++repeat:
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
+ 		section_nr = pfn_to_section_nr(pfn);
+ 		if (!present_section_nr(section_nr))
+@@ -1410,14 +1413,23 @@ int remove_memory(u64 start, u64 size)
+ 
+ 		ret = offline_memory_block(mem);
+ 		if (ret) {
+-			kobject_put(&mem->dev.kobj);
+-			return ret;
++			if (return_on_error) {
++				kobject_put(&mem->dev.kobj);
++				return ret;
++			} else {
++				retry = 1;
++			}
+ 		}
+ 	}
+ 
+ 	if (mem)
+ 		kobject_put(&mem->dev.kobj);
+ 
++	if (retry) {
++		return_on_error = 1;
++		goto repeat;
++	}
++
  	return 0;
  }
- 
- static int end_line(const char *line)
- {
--	if (strcmp(line + 8, " A _end\n") = 0)
-+	if (strcmp(line + 10, " _end\n") = 0)
- 		return 1;
--	else if (strcmp (line + 16, " A _end\n") = 0)
-+	else if (strcmp (line + 18, " _end\n") = 0)
- 		return 1;
- 	return 0;
- }
-@@ -100,8 +100,8 @@ static int end_line(const char *line)
- /*
-  * Find address for start and end in System.map.
-  * The file looks like this:
-- * f0004000 T _start
-- * f0379f79 A _end
-+ * f0004000 ... _start
-+ * f0379f79 ... _end
-  * 1234567890123456
-  * ^coloumn 1
-  * There is support for 64 bit addresses too.
+ #else
 -- 
-1.7.12.2.dirty
+1.7.1
 
