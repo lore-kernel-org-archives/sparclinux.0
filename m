@@ -1,65 +1,127 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 29 Dec 2012 06:39:26 +0000
-Subject: [PATCH] sparc: Hook up finit_module syscall.
-Message-Id: <20121228.223926.27304080587848765.davem@davemloft.net>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Date: Mon, 24 Dec 2012 12:09:10 +0000
+Subject: [PATCH v5 00/14] memory-hotplug: hot-remove physical memory
+Message-Id: <1356350964-13437-1-git-send-email-tangchen@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: akpm@linux-foundation.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, tangchen@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org
+Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+
+Hi Andrew,
+
+Here is the physical memory hot-remove patch-set based on 3.8rc-1.
+
+This patch-set aims to implement physical memory hot-removing.
+
+The patches can free/remove the following things:
+
+  - /sys/firmware/memmap/X/{end, start, type} : [PATCH 4/14]
+  - memmap of sparse-vmemmap                  : [PATCH 6,7,8,10/14]
+  - page table of removed memory              : [RFC PATCH 7,8,10/14]
+  - node and related sysfs files              : [RFC PATCH 13-14/14]
 
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/include/uapi/asm/unistd.h |    3 ++-
- arch/sparc/kernel/systbls_32.S       |    2 +-
- arch/sparc/kernel/systbls_64.S       |    4 ++--
- 3 files changed, 5 insertions(+), 4 deletions(-)
+How to test this patchset?
+1. apply this patchset and build the kernel. MEMORY_HOTPLUG, MEMORY_HOTREMOVE,
+   ACPI_HOTPLUG_MEMORY must be selected.
+2. load the module acpi_memhotplug
+3. hotplug the memory device(it depends on your hardware)
+   You will see the memory device under the directory /sys/bus/acpi/devices/.
+   Its name is PNP0C80:XX.
+4. online/offline pages provided by this memory device
+   You can write online/offline to /sys/devices/system/memory/memoryX/state to
+   online/offline pages provided by this memory device
+5. hotremove the memory device
+   You can hotremove the memory device by the hardware, or writing 1 to
+   /sys/bus/acpi/devices/PNP0C80:XX/eject.
 
-diff --git a/arch/sparc/include/uapi/asm/unistd.h b/arch/sparc/include/uapi/asm/unistd.h
-index cac719d..62ced58 100644
---- a/arch/sparc/include/uapi/asm/unistd.h
-+++ b/arch/sparc/include/uapi/asm/unistd.h
-@@ -407,8 +407,9 @@
- #define __NR_process_vm_writev	339
- #define __NR_kern_features	340
- #define __NR_kcmp		341
-+#define __NR_finit_module	342
- 
--#define NR_syscalls		342
-+#define NR_syscalls		343
- 
- /* Bitmask values returned from kern_features system call.  */
- #define KERN_FEATURE_MIXED_MODE_STACK	0x00000001
-diff --git a/arch/sparc/kernel/systbls_32.S b/arch/sparc/kernel/systbls_32.S
-index 5147f57..6ac43c3 100644
---- a/arch/sparc/kernel/systbls_32.S
-+++ b/arch/sparc/kernel/systbls_32.S
-@@ -85,4 +85,4 @@ sys_call_table:
- /*325*/	.long sys_pwritev, sys_rt_tgsigqueueinfo, sys_perf_event_open, sys_recvmmsg, sys_fanotify_init
- /*330*/	.long sys_fanotify_mark, sys_prlimit64, sys_name_to_handle_at, sys_open_by_handle_at, sys_clock_adjtime
- /*335*/	.long sys_syncfs, sys_sendmmsg, sys_setns, sys_process_vm_readv, sys_process_vm_writev
--/*340*/	.long sys_ni_syscall, sys_kcmp
-+/*340*/	.long sys_ni_syscall, sys_kcmp, sys_finit_module
-diff --git a/arch/sparc/kernel/systbls_64.S b/arch/sparc/kernel/systbls_64.S
-index cdbd9b8..1009ecb 100644
---- a/arch/sparc/kernel/systbls_64.S
-+++ b/arch/sparc/kernel/systbls_64.S
-@@ -86,7 +86,7 @@ sys_call_table32:
- 	.word compat_sys_pwritev, compat_sys_rt_tgsigqueueinfo, sys_perf_event_open, compat_sys_recvmmsg, sys_fanotify_init
- /*330*/	.word sys32_fanotify_mark, sys_prlimit64, sys_name_to_handle_at, compat_sys_open_by_handle_at, compat_sys_clock_adjtime
- 	.word sys_syncfs, compat_sys_sendmmsg, sys_setns, compat_sys_process_vm_readv, compat_sys_process_vm_writev
--/*340*/	.word sys_kern_features, sys_kcmp
-+/*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module
- 
- #endif /* CONFIG_COMPAT */
- 
-@@ -164,4 +164,4 @@ sys_call_table:
- 	.word sys_pwritev, sys_rt_tgsigqueueinfo, sys_perf_event_open, sys_recvmmsg, sys_fanotify_init
- /*330*/	.word sys_fanotify_mark, sys_prlimit64, sys_name_to_handle_at, sys_open_by_handle_at, sys_clock_adjtime
- 	.word sys_syncfs, sys_sendmmsg, sys_setns, sys_process_vm_readv, sys_process_vm_writev
--/*340*/	.word sys_kern_features, sys_kcmp
-+/*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module
--- 
-1.7.10.4
+Note: if the memory provided by the memory device is used by the kernel, it
+can't be offlined. It is not a bug.
+
+
+Changelogs from v4 to v5:
+ Patch7: new patch, move pgdat_resize_lock into sparse_remove_one_section() to
+         avoid disabling irq because we need flush tlb when free pagetables.
+ Patch8: new patch, pick up some common APIs that are used to free direct mapping
+         and vmemmap pagetables.
+ Patch9: free direct mapping pagetables on x86_64 arch.
+ Patch10: free vmemmap pagetables.
+ Patch11: since freeing memmap with vmemmap has been implemented, the config
+          macro CONFIG_SPARSEMEM_VMEMMAP when defining __remove_section() is
+          no longer needed.
+ Patch13: no need to modify acpi_memory_disable_device() since it was removed,
+          and add nid parameter when calling remove_memory().
+
+Changelogs from v3 to v4:
+ Patch7: remove unused codes.
+ Patch8: fix nr_pages that is passed to free_map_bootmem()
+
+Changelogs from v2 to v3:
+ Patch9: call sync_global_pgds() if pgd is changed
+ Patch10: fix a problem int the patch
+
+Changelogs from v1 to v2:
+ Patch1: new patch, offline memory twice. 1st iterate: offline every non primary
+         memory block. 2nd iterate: offline primary (i.e. first added) memory
+         block.
+
+ Patch3: new patch, no logical change, just remove reduntant codes.
+
+ Patch9: merge the patch from wujianguo into this patch. flush tlb on all cpu
+         after the pagetable is changed.
+
+ Patch12: new patch, free node_data when a node is offlined.
+
+
+Tang Chen (5):
+  memory-hotplug: move pgdat_resize_lock into
+    sparse_remove_one_section()
+  memory-hotplug: remove page table of x86_64 architecture
+  memory-hotplug: remove memmap of sparse-vmemmap
+  memory-hotplug: Integrated __remove_section() of
+    CONFIG_SPARSEMEM_VMEMMAP.
+  memory-hotplug: remove sysfs file of node
+
+Wen Congyang (5):
+  memory-hotplug: try to offline the memory twice to avoid dependence
+  memory-hotplug: remove redundant codes
+  memory-hotplug: introduce new function arch_remove_memory() for
+    removing page table depends on architecture
+  memory-hotplug: Common APIs to support page tables hot-remove
+  memory-hotplug: free node_data when a node is offlined
+
+Yasuaki Ishimatsu (4):
+  memory-hotplug: check whether all memory blocks are offlined or not
+    when removing memory
+  memory-hotplug: remove /sys/firmware/memmap/X sysfs
+  memory-hotplug: implement register_page_bootmem_info_section of
+    sparse-vmemmap
+  memory-hotplug: memory_hotplug: clear zone when removing the memory
+
+ arch/arm64/mm/mmu.c                  |    3 +
+ arch/ia64/mm/discontig.c             |   10 +
+ arch/ia64/mm/init.c                  |   18 ++
+ arch/powerpc/mm/init_64.c            |   10 +
+ arch/powerpc/mm/mem.c                |   12 +
+ arch/s390/mm/init.c                  |   12 +
+ arch/s390/mm/vmem.c                  |   10 +
+ arch/sh/mm/init.c                    |   17 ++
+ arch/sparc/mm/init_64.c              |   10 +
+ arch/tile/mm/init.c                  |    8 +
+ arch/x86/include/asm/pgtable_types.h |    1 +
+ arch/x86/mm/init_32.c                |   12 +
+ arch/x86/mm/init_64.c                |  382 ++++++++++++++++++++++++++++++++
+ arch/x86/mm/pageattr.c               |   47 ++--
+ drivers/acpi/acpi_memhotplug.c       |    8 +-
+ drivers/base/memory.c                |    6 +
+ drivers/firmware/memmap.c            |   98 ++++++++-
+ include/linux/bootmem.h              |    1 +
+ include/linux/firmware-map.h         |    6 +
+ include/linux/memory_hotplug.h       |   15 +-
+ include/linux/mm.h                   |    4 +-
+ mm/memory_hotplug.c                  |  406 ++++++++++++++++++++++++++++++++--
+ mm/sparse.c                          |    8 +-
+ 23 files changed, 1043 insertions(+), 61 deletions(-)
 
