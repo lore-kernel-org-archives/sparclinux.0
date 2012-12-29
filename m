@@ -1,135 +1,65 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Date: Tue, 04 Dec 2012 09:22:01 +0000
-Subject: Re: [Patch v4 02/12] memory-hotplug: check whether all memory blocks are offlined or not when removi
-Message-Id: <50BDC0B9.50007@cn.fujitsu.com>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 29 Dec 2012 06:39:26 +0000
+Subject: [PATCH] sparc: Hook up finit_module syscall.
+Message-Id: <20121228.223926.27304080587848765.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1354010422-19648-1-git-send-email-wency@cn.fujitsu.com> <1354010422-19648-3-git-send-email-wency@cn.fujitsu.com>
-In-Reply-To: <1354010422-19648-3-git-send-email-wency@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Wen Congyang <wency@cn.fujitsu.com>
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jianguo Wu <wujianguo@huawei.com>
+To: sparclinux@vger.kernel.org
 
-On 11/27/2012 06:00 PM, Wen Congyang wrote:
-> From: Yasuaki Ishimatsu<isimatu.yasuaki@jp.fujitsu.com>
->
-> We remove the memory like this:
-> 1. lock memory hotplug
-> 2. offline a memory block
-> 3. unlock memory hotplug
-> 4. repeat 1-3 to offline all memory blocks
-> 5. lock memory hotplug
-> 6. remove memory(TODO)
-> 7. unlock memory hotplug
->
-> All memory blocks must be offlined before removing memory. But we don't hold
-> the lock in the whole operation. So we should check whether all memory blocks
-> are offlined before step6. Otherwise, kernel maybe panicked.
->
-> CC: David Rientjes<rientjes@google.com>
-> CC: Jiang Liu<liuj97@gmail.com>
-> CC: Len Brown<len.brown@intel.com>
-> CC: Christoph Lameter<cl@linux.com>
-> Cc: Minchan Kim<minchan.kim@gmail.com>
-> CC: Andrew Morton<akpm@linux-foundation.org>
-> CC: KOSAKI Motohiro<kosaki.motohiro@jp.fujitsu.com>
-> Signed-off-by: Wen Congyang<wency@cn.fujitsu.com>
-> Signed-off-by: Yasuaki Ishimatsu<isimatu.yasuaki@jp.fujitsu.com>
 
-Reviewed-by: Tang Chen <tangchen@cn.fujitsu.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/include/uapi/asm/unistd.h |    3 ++-
+ arch/sparc/kernel/systbls_32.S       |    2 +-
+ arch/sparc/kernel/systbls_64.S       |    4 ++--
+ 3 files changed, 5 insertions(+), 4 deletions(-)
 
-> ---
->   drivers/base/memory.c          |  6 ++++++
->   include/linux/memory_hotplug.h |  1 +
->   mm/memory_hotplug.c            | 47 ++++++++++++++++++++++++++++++++++++++++++
->   3 files changed, 54 insertions(+)
->
-> diff --git a/drivers/base/memory.c b/drivers/base/memory.c
-> index 86c8821..badb025 100644
-> --- a/drivers/base/memory.c
-> +++ b/drivers/base/memory.c
-> @@ -675,6 +675,12 @@ int offline_memory_block(struct memory_block *mem)
->   	return ret;
->   }
->
-> +/* return true if the memory block is offlined, otherwise, return false */
-> +bool is_memblock_offlined(struct memory_block *mem)
-> +{
-> +	return mem->state = MEM_OFFLINE;
-> +}
-> +
->   /*
->    * Initialize the sysfs support for memory devices...
->    */
-> diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-> index 95573ec..38675e9 100644
-> --- a/include/linux/memory_hotplug.h
-> +++ b/include/linux/memory_hotplug.h
-> @@ -236,6 +236,7 @@ extern int add_memory(int nid, u64 start, u64 size);
->   extern int arch_add_memory(int nid, u64 start, u64 size);
->   extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
->   extern int offline_memory_block(struct memory_block *mem);
-> +extern bool is_memblock_offlined(struct memory_block *mem);
->   extern int remove_memory(u64 start, u64 size);
->   extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
->   								int nr_pages);
-> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-> index b825dbc..b6d1101 100644
-> --- a/mm/memory_hotplug.c
-> +++ b/mm/memory_hotplug.c
-> @@ -1054,6 +1054,53 @@ repeat:
->   		goto repeat;
->   	}
->
-> +	lock_memory_hotplug();
-> +
-> +	/*
-> +	 * we have offlined all memory blocks like this:
-> +	 *   1. lock memory hotplug
-> +	 *   2. offline a memory block
-> +	 *   3. unlock memory hotplug
-> +	 *
-> +	 * repeat step1-3 to offline the memory block. All memory blocks
-> +	 * must be offlined before removing memory. But we don't hold the
-> +	 * lock in the whole operation. So we should check whether all
-> +	 * memory blocks are offlined.
-> +	 */
-> +
-> +	for (pfn = start_pfn; pfn<  end_pfn; pfn += PAGES_PER_SECTION) {
-> +		section_nr = pfn_to_section_nr(pfn);
-> +		if (!present_section_nr(section_nr))
-> +			continue;
-> +
-> +		section = __nr_to_section(section_nr);
-> +		/* same memblock? */
-> +		if (mem)
-> +			if ((section_nr>= mem->start_section_nr)&&
-> +			    (section_nr<= mem->end_section_nr))
-> +				continue;
-> +
-> +		mem = find_memory_block_hinted(section, mem);
-> +		if (!mem)
-> +			continue;
-> +
-> +		ret = is_memblock_offlined(mem);
-> +		if (!ret) {
-> +			pr_warn("removing memory fails, because memory "
-> +				"[%#010llx-%#010llx] is onlined\n",
-> +				PFN_PHYS(section_nr_to_pfn(mem->start_section_nr)),
-> +				PFN_PHYS(section_nr_to_pfn(mem->end_section_nr + 1)) - 1);
-> +
-> +			kobject_put(&mem->dev.kobj);
-> +			unlock_memory_hotplug();
-> +			return ret;
-> +		}
-> +	}
-> +
-> +	if (mem)
-> +		kobject_put(&mem->dev.kobj);
-> +	unlock_memory_hotplug();
-> +
->   	return 0;
->   }
->   #else
+diff --git a/arch/sparc/include/uapi/asm/unistd.h b/arch/sparc/include/uapi/asm/unistd.h
+index cac719d..62ced58 100644
+--- a/arch/sparc/include/uapi/asm/unistd.h
++++ b/arch/sparc/include/uapi/asm/unistd.h
+@@ -407,8 +407,9 @@
+ #define __NR_process_vm_writev	339
+ #define __NR_kern_features	340
+ #define __NR_kcmp		341
++#define __NR_finit_module	342
+ 
+-#define NR_syscalls		342
++#define NR_syscalls		343
+ 
+ /* Bitmask values returned from kern_features system call.  */
+ #define KERN_FEATURE_MIXED_MODE_STACK	0x00000001
+diff --git a/arch/sparc/kernel/systbls_32.S b/arch/sparc/kernel/systbls_32.S
+index 5147f57..6ac43c3 100644
+--- a/arch/sparc/kernel/systbls_32.S
++++ b/arch/sparc/kernel/systbls_32.S
+@@ -85,4 +85,4 @@ sys_call_table:
+ /*325*/	.long sys_pwritev, sys_rt_tgsigqueueinfo, sys_perf_event_open, sys_recvmmsg, sys_fanotify_init
+ /*330*/	.long sys_fanotify_mark, sys_prlimit64, sys_name_to_handle_at, sys_open_by_handle_at, sys_clock_adjtime
+ /*335*/	.long sys_syncfs, sys_sendmmsg, sys_setns, sys_process_vm_readv, sys_process_vm_writev
+-/*340*/	.long sys_ni_syscall, sys_kcmp
++/*340*/	.long sys_ni_syscall, sys_kcmp, sys_finit_module
+diff --git a/arch/sparc/kernel/systbls_64.S b/arch/sparc/kernel/systbls_64.S
+index cdbd9b8..1009ecb 100644
+--- a/arch/sparc/kernel/systbls_64.S
++++ b/arch/sparc/kernel/systbls_64.S
+@@ -86,7 +86,7 @@ sys_call_table32:
+ 	.word compat_sys_pwritev, compat_sys_rt_tgsigqueueinfo, sys_perf_event_open, compat_sys_recvmmsg, sys_fanotify_init
+ /*330*/	.word sys32_fanotify_mark, sys_prlimit64, sys_name_to_handle_at, compat_sys_open_by_handle_at, compat_sys_clock_adjtime
+ 	.word sys_syncfs, compat_sys_sendmmsg, sys_setns, compat_sys_process_vm_readv, compat_sys_process_vm_writev
+-/*340*/	.word sys_kern_features, sys_kcmp
++/*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module
+ 
+ #endif /* CONFIG_COMPAT */
+ 
+@@ -164,4 +164,4 @@ sys_call_table:
+ 	.word sys_pwritev, sys_rt_tgsigqueueinfo, sys_perf_event_open, sys_recvmmsg, sys_fanotify_init
+ /*330*/	.word sys_fanotify_mark, sys_prlimit64, sys_name_to_handle_at, sys_open_by_handle_at, sys_clock_adjtime
+ 	.word sys_syncfs, sys_sendmmsg, sys_setns, sys_process_vm_readv, sys_process_vm_writev
+-/*340*/	.word sys_kern_features, sys_kcmp
++/*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module
+-- 
+1.7.10.4
 
