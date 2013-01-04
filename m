@@ -1,277 +1,74 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Date: Wed, 09 Jan 2013 09:32:30 +0000
-Subject: [PATCH v6 06/15] memory-hotplug: implement register_page_bootmem_info_section of sparse-vmemmap
-Message-Id: <1357723959-5416-7-git-send-email-tangchen@cn.fujitsu.com>
+From: Srivatsa Vaddagiri <vatsa@codeaurora.org>
+Date: Fri, 04 Jan 2013 02:58:10 +0000
+Subject: [PATCH 0/2] cpuhotplug/nohz: Fix issue of "negative" idle time
+Message-Id: <1357268290-7956-1-git-send-email-vatsa@codeaurora.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1357723959-5416-1-git-send-email-tangchen@cn.fujitsu.com>
-In-Reply-To: <1357723959-5416-1-git-send-email-tangchen@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: akpm@linux-foundation.org, rientjes@google.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, tangchen@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, glommer@parallels.com
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+On most architectures (arm, mips, s390, sh and x86) idle thread of a cpu does
+not cleanly exit nohz state before dying upon hot-remove. As a result,
+offline cpu is seen to be in nohz mode (ts->idle_active = 1) and its offline
+time can potentially be included in total idle time reported via /proc/stat.
+When the same cpu later comes online, its offline time however is not included
+in its idle time statistics, thus causing a rollback in total idle time to be
+observed by applications like top.
 
-For removing memmap region of sparse-vmemmap which is allocated bootmem,
-memmap region of sparse-vmemmap needs to be registered by get_page_bootmem().
-So the patch searches pages of virtual mapping and registers the pages by
-get_page_bootmem().
+Example output from Android top command highlighting this issue is below:
 
-Note: register_page_bootmem_memmap() is not implemented for ia64, ppc, s390,
-and sparc.
+User 232%, System 70%, IOW 46%, IRQ 1%
+User 1322 + Nice 0 + Sys 399 + Idle -1423 + IOW 264 + IRQ 0 + SIRQ 7 = 569
 
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Reviewed-by: Wu Jianguo <wujianguo@huawei.com>
+top is reporting system to be idle for -1423 ticks over some sampling period.
+This happens as total idle time reported in cpu line of /proc/stat *dropped*
+from the last value observed (cached) by top command.
+
+While this was originally seen on a ARM platform running 3.4 based kernel, I
+could easily recreate it on my x86 desktop running latest tip/master kernel
+(HEAD 3a7bfcad). Online/offline a cpu in a tight loop and in another loop read
+/proc/stat and observe if total idle time drops from previously read value.
+
+Although commit 7386cdbf (nohz: Fix idle ticks in cpu summary line of
+/proc/stat) aims to avoid this bug, its not preemption proof. A
+thread could get preempted after the cpu_online() check in get_idle_time(), thus
+potentially leading to get_cpu_idle_time_us() being invoked on a offline cpu.
+
+One potential fix is to serialize hotplug with /proc/stat read operation (via
+use of get/put_online_cpus()), which I disliked in favor of the other
+solution proposed in this series.
+
+In this patch series:
+
+- Patch 1/2 modifies idle loop on architectures arm, mips, s390, sh and x86 to
+  exit nohz state before the associated idle thread dies upon hotremove. This
+  fixes the idle time accounting bug.
+
+  Patch 1/2 also modifies idle loop on all architectures supporting cpu hotplug
+  to have idle thread of a dying cpu die immediately after schedule() returns
+  control to it. I see no point in wasting time via calls to *_enter()/*_exit()
+  before noticing the need to die and dying.
+
+- Patch 2/2 reverts commit 7386cdbf (nohz: Fix idle ticks in cpu summary line of
+  /proc/stat). The cpu_online() check introduced by it is no longer necessary
+  with Patch 1/2 applied. Having fewer code sites worry about online status of
+  cpus is a good thing!
+
 ---
- arch/ia64/mm/discontig.c       |    6 ++++
- arch/powerpc/mm/init_64.c      |    6 ++++
- arch/s390/mm/vmem.c            |    6 ++++
- arch/sparc/mm/init_64.c        |    6 ++++
- arch/x86/mm/init_64.c          |   58 ++++++++++++++++++++++++++++++++++++++++
- include/linux/memory_hotplug.h |   11 +------
- include/linux/mm.h             |    3 +-
- mm/memory_hotplug.c            |   33 ++++++++++++++++++++---
- 8 files changed, 115 insertions(+), 14 deletions(-)
 
-diff --git a/arch/ia64/mm/discontig.c b/arch/ia64/mm/discontig.c
-index c641333..33943db 100644
---- a/arch/ia64/mm/discontig.c
-+++ b/arch/ia64/mm/discontig.c
-@@ -822,4 +822,10 @@ int __meminit vmemmap_populate(struct page *start_page,
- {
- 	return vmemmap_populate_basepages(start_page, size, node);
- }
-+
-+void register_page_bootmem_memmap(unsigned long section_nr,
-+				  struct page *start_page, unsigned long size)
-+{
-+	/* TODO */
-+}
- #endif
-diff --git a/arch/powerpc/mm/init_64.c b/arch/powerpc/mm/init_64.c
-index 95a4529..6466440 100644
---- a/arch/powerpc/mm/init_64.c
-+++ b/arch/powerpc/mm/init_64.c
-@@ -297,5 +297,11 @@ int __meminit vmemmap_populate(struct page *start_page,
- 
- 	return 0;
- }
-+
-+void register_page_bootmem_memmap(unsigned long section_nr,
-+				  struct page *start_page, unsigned long size)
-+{
-+	/* TODO */
-+}
- #endif /* CONFIG_SPARSEMEM_VMEMMAP */
- 
-diff --git a/arch/s390/mm/vmem.c b/arch/s390/mm/vmem.c
-index 6ed1426..2c14bc2 100644
---- a/arch/s390/mm/vmem.c
-+++ b/arch/s390/mm/vmem.c
-@@ -272,6 +272,12 @@ out:
- 	return ret;
- }
- 
-+void register_page_bootmem_memmap(unsigned long section_nr,
-+				  struct page *start_page, unsigned long size)
-+{
-+	/* TODO */
-+}
-+
- /*
-  * Add memory segment to the segment list if it doesn't overlap with
-  * an already present segment.
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index c3b7242..1f30db3 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -2231,6 +2231,12 @@ void __meminit vmemmap_populate_print_last(void)
- 		node_start = 0;
- 	}
- }
-+
-+void register_page_bootmem_memmap(unsigned long section_nr,
-+				  struct page *start_page, unsigned long size)
-+{
-+	/* TODO */
-+}
- #endif /* CONFIG_SPARSEMEM_VMEMMAP */
- 
- static void prot_init_common(unsigned long page_none,
-diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
-index f78509c..9ac1723 100644
---- a/arch/x86/mm/init_64.c
-+++ b/arch/x86/mm/init_64.c
-@@ -1000,6 +1000,64 @@ vmemmap_populate(struct page *start_page, unsigned long size, int node)
- 	return 0;
- }
- 
-+void register_page_bootmem_memmap(unsigned long section_nr,
-+				  struct page *start_page, unsigned long size)
-+{
-+	unsigned long addr = (unsigned long)start_page;
-+	unsigned long end = (unsigned long)(start_page + size);
-+	unsigned long next;
-+	pgd_t *pgd;
-+	pud_t *pud;
-+	pmd_t *pmd;
-+	unsigned int nr_pages;
-+	struct page *page;
-+
-+	for (; addr < end; addr = next) {
-+		pte_t *pte = NULL;
-+
-+		pgd = pgd_offset_k(addr);
-+		if (pgd_none(*pgd)) {
-+			next = (addr + PAGE_SIZE) & PAGE_MASK;
-+			continue;
-+		}
-+		get_page_bootmem(section_nr, pgd_page(*pgd), MIX_SECTION_INFO);
-+
-+		pud = pud_offset(pgd, addr);
-+		if (pud_none(*pud)) {
-+			next = (addr + PAGE_SIZE) & PAGE_MASK;
-+			continue;
-+		}
-+		get_page_bootmem(section_nr, pud_page(*pud), MIX_SECTION_INFO);
-+
-+		if (!cpu_has_pse) {
-+			next = (addr + PAGE_SIZE) & PAGE_MASK;
-+			pmd = pmd_offset(pud, addr);
-+			if (pmd_none(*pmd))
-+				continue;
-+			get_page_bootmem(section_nr, pmd_page(*pmd),
-+					 MIX_SECTION_INFO);
-+
-+			pte = pte_offset_kernel(pmd, addr);
-+			if (pte_none(*pte))
-+				continue;
-+			get_page_bootmem(section_nr, pte_page(*pte),
-+					 SECTION_INFO);
-+		} else {
-+			next = pmd_addr_end(addr, end);
-+
-+			pmd = pmd_offset(pud, addr);
-+			if (pmd_none(*pmd))
-+				continue;
-+
-+			nr_pages = 1 << (get_order(PMD_SIZE));
-+			page = pmd_page(*pmd);
-+			while (nr_pages--)
-+				get_page_bootmem(section_nr, page++,
-+						 SECTION_INFO);
-+		}
-+	}
-+}
-+
- void __meminit vmemmap_populate_print_last(void)
- {
- 	if (p_start) {
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index 31a563b..2441f36 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -174,17 +174,10 @@ static inline void arch_refresh_nodedata(int nid, pg_data_t *pgdat)
- #endif /* CONFIG_NUMA */
- #endif /* CONFIG_HAVE_ARCH_NODEDATA_EXTENSION */
- 
--#ifdef CONFIG_SPARSEMEM_VMEMMAP
--static inline void register_page_bootmem_info_node(struct pglist_data *pgdat)
--{
--}
--static inline void put_page_bootmem(struct page *page)
--{
--}
--#else
- extern void register_page_bootmem_info_node(struct pglist_data *pgdat);
- extern void put_page_bootmem(struct page *page);
--#endif
-+extern void get_page_bootmem(unsigned long ingo, struct page *page,
-+			     unsigned long type);
- 
- /*
-  * Lock for memory hotplug guarantees 1) all callbacks for memory hotplug
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 6320407..1eca498 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1709,7 +1709,8 @@ int vmemmap_populate_basepages(struct page *start_page,
- 						unsigned long pages, int node);
- int vmemmap_populate(struct page *start_page, unsigned long pages, int node);
- void vmemmap_populate_print_last(void);
--
-+void register_page_bootmem_memmap(unsigned long section_nr, struct page *map,
-+				  unsigned long size);
- 
- enum mf_flags {
- 	MF_COUNT_INCREASED = 1 << 0,
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index f6724c2..0682d2a 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -91,9 +91,8 @@ static void release_memory_resource(struct resource *res)
- }
- 
- #ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
--#ifndef CONFIG_SPARSEMEM_VMEMMAP
--static void get_page_bootmem(unsigned long info,  struct page *page,
--			     unsigned long type)
-+void get_page_bootmem(unsigned long info,  struct page *page,
-+		      unsigned long type)
- {
- 	page->lru.next = (struct list_head *) type;
- 	SetPagePrivate(page);
-@@ -128,6 +127,7 @@ void __ref put_page_bootmem(struct page *page)
- 
- }
- 
-+#ifndef CONFIG_SPARSEMEM_VMEMMAP
- static void register_page_bootmem_info_section(unsigned long start_pfn)
- {
- 	unsigned long *usemap, mapsize, section_nr, i;
-@@ -161,6 +161,32 @@ static void register_page_bootmem_info_section(unsigned long start_pfn)
- 		get_page_bootmem(section_nr, page, MIX_SECTION_INFO);
- 
- }
-+#else
-+static void register_page_bootmem_info_section(unsigned long start_pfn)
-+{
-+	unsigned long *usemap, mapsize, section_nr, i;
-+	struct mem_section *ms;
-+	struct page *page, *memmap;
-+
-+	if (!pfn_valid(start_pfn))
-+		return;
-+
-+	section_nr = pfn_to_section_nr(start_pfn);
-+	ms = __nr_to_section(section_nr);
-+
-+	memmap = sparse_decode_mem_map(ms->section_mem_map, section_nr);
-+
-+	register_page_bootmem_memmap(section_nr, memmap, PAGES_PER_SECTION);
-+
-+	usemap = __nr_to_section(section_nr)->pageblock_flags;
-+	page = virt_to_page(usemap);
-+
-+	mapsize = PAGE_ALIGN(usemap_size()) >> PAGE_SHIFT;
-+
-+	for (i = 0; i < mapsize; i++, page++)
-+		get_page_bootmem(section_nr, page, MIX_SECTION_INFO);
-+}
-+#endif
- 
- void register_page_bootmem_info_node(struct pglist_data *pgdat)
- {
-@@ -203,7 +229,6 @@ void register_page_bootmem_info_node(struct pglist_data *pgdat)
- 			register_page_bootmem_info_section(pfn);
- 	}
- }
--#endif /* !CONFIG_SPARSEMEM_VMEMMAP */
- 
- static void grow_zone_span(struct zone *zone, unsigned long start_pfn,
- 			   unsigned long end_pfn)
+ arch/arm/kernel/process.c      |    9 ++++-----
+ arch/arm/kernel/smp.c          |    2 +-
+ arch/blackfin/kernel/process.c |    8 ++++----
+ arch/mips/kernel/process.c     |    6 +++---
+ arch/powerpc/kernel/idle.c     |    2 +-
+ arch/s390/kernel/process.c     |    4 ++--
+ arch/sh/kernel/idle.c          |    5 ++---
+ arch/sparc/kernel/process_64.c |    3 ++-
+ arch/x86/kernel/process.c      |    5 ++---
+ fs/proc/stat.c                 |   14 ++++----------
+ 10 files changed, 25 insertions(+), 33 deletions(-)
 -- 
-1.7.1
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+hosted by The Linux Foundation
 
