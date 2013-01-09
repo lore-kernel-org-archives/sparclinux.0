@@ -1,37 +1,63 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Date: Mon, 07 Jan 2013 16:18:03 +0000
-Subject: Built-in initramfs not recognized
-Message-Id: <alpine.LNX.2.01.1301071707210.23886@nerf07.vanv.qr>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Wed, 09 Jan 2013 20:35:25 +0000
+Subject: [ 30/47] sparc: huge_ptep_set_* functions need to call set_huge_pte_at()
+Message-Id: <20130109201732.957700447@linuxfoundation.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20130109201729.435233560@linuxfoundation.org>
+In-Reply-To: <20130109201729.435233560@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, alan@lxorguk.ukuu.org.uk, Dave Kleikamp <dave.kleikamp@oracle.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-Hello,
+3.0-stable review patch.  If anyone has any objections, please let me know.
 
-I was trying to use CONFIG_INITRAMFS_SOURCE to specify the initramfs 
-contents, but this seems to be ignored for sparc64 in the following way.
-
-1. Use CONFIG_INITRAMFS_SOURCE. This causes generation of 
-$(obj)/usr/initramfs_data.cpio.xz (I am using 
-CONFIG_INITRAMFS_COMPRESSION_XZ=y as well), and 
-$(obj)/usr/initramfs_data.o.
-
-initramfs_data.o is placed into vmlinux - verified with looking 
-for some bytes of initramfs_data.o in the hexdump of vmlinux.
-
-2. Running elftoaout on vmlinux. The initramfs xz data seems retained, 
-again by looking for it in a hexdump.
-
-3. Executing the so-produced vmlinux.aout via the OBP TFTP mechanism 
-does not print "Unpacking initramfs" anywhere, and does not execute 
-/init either.
+------------------
 
 
-Using the piggyback tool by means of
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
 
-1. not using CONFIG_INITRAMFS_SOURCE
-2. make tftpboot.img ROOT_IMG=/mystuff.cpio.xz
+[ Upstream commit 6cb9c3697585c47977c42c5cc1b9fc49247ac530 ]
 
-does however make the kernel recognize the initramfs environment.
+Modifying the huge pte's requires that all the underlying pte's be
+modified.
+
+Version 2: added missing flush_tlb_page()
+
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ arch/sparc/include/asm/hugetlb.h |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+--- a/arch/sparc/include/asm/hugetlb.h
++++ b/arch/sparc/include/asm/hugetlb.h
+@@ -58,14 +58,20 @@ static inline pte_t huge_pte_wrprotect(p
+ static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
+ 					   unsigned long addr, pte_t *ptep)
+ {
+-	ptep_set_wrprotect(mm, addr, ptep);
++	pte_t old_pte = *ptep;
++	set_huge_pte_at(mm, addr, ptep, pte_wrprotect(old_pte));
+ }
+ 
+ static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
+ 					     unsigned long addr, pte_t *ptep,
+ 					     pte_t pte, int dirty)
+ {
+-	return ptep_set_access_flags(vma, addr, ptep, pte, dirty);
++	int changed = !pte_same(*ptep, pte);
++	if (changed) {
++		set_huge_pte_at(vma->vm_mm, addr, ptep, pte);
++		flush_tlb_page(vma, addr);
++	}
++	return changed;
+ }
+ 
+ static inline pte_t huge_ptep_get(pte_t *ptep)
+
+
