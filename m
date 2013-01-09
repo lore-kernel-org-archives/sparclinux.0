@@ -1,45 +1,55 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Date: Sun, 27 Jan 2013 05:36:34 +0000
-Subject: [PATCH v2 13/22] PCI, sparc: Kill pci_find_next_bus
-Message-Id: <1359265003-16166-14-git-send-email-yinghai@kernel.org>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Date: Wed, 09 Jan 2013 09:32:33 +0000
+Subject: [PATCH v6 09/15] memory-hotplug: remove page table of x86_64 architecture
+Message-Id: <1357723959-5416-10-git-send-email-tangchen@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CAE9FiQUhrVPNKcdWbiqHLa5PzH7Dg-uduVc9BP-OjM-eCqSXdw@mail.gmail.com>
- <1359265003-16166-1-git-send-email-yinghai@kernel.org>
-In-Reply-To: <1359265003-16166-1-git-send-email-yinghai@kernel.org>
+References: <1357723959-5416-1-git-send-email-tangchen@cn.fujitsu.com>
+In-Reply-To: <1357723959-5416-1-git-send-email-tangchen@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <jiang.liu@huawei.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: akpm@linux-foundation.org, rientjes@google.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, tangchen@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, glommer@parallels.com
+Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Acked-by: David S. Miller <davem@davemloft.net>
+This patch searches a page table about the removed memory, and clear
+page table for x86_64 architecture.
+
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 ---
- arch/sparc/kernel/pci.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/x86/mm/init_64.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index 75b31bc..403f6e0 100644
---- a/arch/sparc/kernel/pci.c
-+++ b/arch/sparc/kernel/pci.c
-@@ -997,11 +997,13 @@ static void __devinit pci_bus_slot_names(struct device_node *node,
+diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+index fe01116..d950f9b 100644
+--- a/arch/x86/mm/init_64.c
++++ b/arch/x86/mm/init_64.c
+@@ -981,6 +981,15 @@ remove_pagetable(unsigned long start, unsigned long end, bool direct)
+ 	flush_tlb_all();
+ }
  
- static int __init of_pci_slot_init(void)
++void __meminit
++kernel_physical_mapping_remove(unsigned long start, unsigned long end)
++{
++	start = (unsigned long)__va(start);
++	end = (unsigned long)__va(end);
++
++	remove_pagetable(start, end, true);
++}
++
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ int __ref arch_remove_memory(u64 start, u64 size)
  {
--	struct pci_bus *pbus = NULL;
-+	struct pci_host_bridge *host_bridge = NULL;
-+	struct pci_bus *pbus;
+@@ -990,6 +999,7 @@ int __ref arch_remove_memory(u64 start, u64 size)
+ 	int ret;
  
--	while ((pbus = pci_find_next_bus(pbus)) != NULL) {
-+	for_each_pci_host_bridge(host_bridge) {
- 		struct device_node *node;
+ 	zone = page_zone(pfn_to_page(start_pfn));
++	kernel_physical_mapping_remove(start, start + size);
+ 	ret = __remove_pages(zone, start_pfn, nr_pages);
+ 	WARN_ON_ONCE(ret);
  
-+		pbus = host_bridge->bus;
- 		if (pbus->self) {
- 			/* PCI->PCI bridge */
- 			node = pbus->self->dev.of_node;
 -- 
-1.7.10.4
+1.7.1
 
