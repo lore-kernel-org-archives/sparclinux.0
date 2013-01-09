@@ -1,74 +1,158 @@
-From: Srivatsa Vaddagiri <vatsa@codeaurora.org>
-Date: Fri, 04 Jan 2013 02:58:10 +0000
-Subject: [PATCH 0/2] cpuhotplug/nohz: Fix issue of "negative" idle time
-Message-Id: <1357268290-7956-1-git-send-email-vatsa@codeaurora.org>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Date: Wed, 09 Jan 2013 09:32:34 +0000
+Subject: [PATCH v6 10/15] memory-hotplug: remove memmap of sparse-vmemmap
+Message-Id: <1357723959-5416-11-git-send-email-tangchen@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1357723959-5416-1-git-send-email-tangchen@cn.fujitsu.com>
+In-Reply-To: <1357723959-5416-1-git-send-email-tangchen@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: akpm@linux-foundation.org, rientjes@google.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, tangchen@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, glommer@parallels.com
+Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
 
-On most architectures (arm, mips, s390, sh and x86) idle thread of a cpu does
-not cleanly exit nohz state before dying upon hot-remove. As a result,
-offline cpu is seen to be in nohz mode (ts->idle_active = 1) and its offline
-time can potentially be included in total idle time reported via /proc/stat.
-When the same cpu later comes online, its offline time however is not included
-in its idle time statistics, thus causing a rollback in total idle time to be
-observed by applications like top.
+This patch introduces a new API vmemmap_free() to free and remove
+vmemmap pagetables. Since pagetable implements are different, each
+architecture has to provide its own version of vmemmap_free(), just
+like vmemmap_populate().
 
-Example output from Android top command highlighting this issue is below:
+Note:  vmemmap_free() are not implemented for ia64, ppc, s390, and sparc.
 
-User 232%, System 70%, IOW 46%, IRQ 1%
-User 1322 + Nice 0 + Sys 399 + Idle -1423 + IOW 264 + IRQ 0 + SIRQ 7 = 569
-
-top is reporting system to be idle for -1423 ticks over some sampling period.
-This happens as total idle time reported in cpu line of /proc/stat *dropped*
-from the last value observed (cached) by top command.
-
-While this was originally seen on a ARM platform running 3.4 based kernel, I
-could easily recreate it on my x86 desktop running latest tip/master kernel
-(HEAD 3a7bfcad). Online/offline a cpu in a tight loop and in another loop read
-/proc/stat and observe if total idle time drops from previously read value.
-
-Although commit 7386cdbf (nohz: Fix idle ticks in cpu summary line of
-/proc/stat) aims to avoid this bug, its not preemption proof. A
-thread could get preempted after the cpu_online() check in get_idle_time(), thus
-potentially leading to get_cpu_idle_time_us() being invoked on a offline cpu.
-
-One potential fix is to serialize hotplug with /proc/stat read operation (via
-use of get/put_online_cpus()), which I disliked in favor of the other
-solution proposed in this series.
-
-In this patch series:
-
-- Patch 1/2 modifies idle loop on architectures arm, mips, s390, sh and x86 to
-  exit nohz state before the associated idle thread dies upon hotremove. This
-  fixes the idle time accounting bug.
-
-  Patch 1/2 also modifies idle loop on all architectures supporting cpu hotplug
-  to have idle thread of a dying cpu die immediately after schedule() returns
-  control to it. I see no point in wasting time via calls to *_enter()/*_exit()
-  before noticing the need to die and dying.
-
-- Patch 2/2 reverts commit 7386cdbf (nohz: Fix idle ticks in cpu summary line of
-  /proc/stat). The cpu_online() check introduced by it is no longer necessary
-  with Patch 1/2 applied. Having fewer code sites worry about online status of
-  cpus is a good thing!
-
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 ---
+ arch/arm64/mm/mmu.c       |    3 +++
+ arch/ia64/mm/discontig.c  |    4 ++++
+ arch/powerpc/mm/init_64.c |    4 ++++
+ arch/s390/mm/vmem.c       |    4 ++++
+ arch/sparc/mm/init_64.c   |    4 ++++
+ arch/x86/mm/init_64.c     |    8 ++++++++
+ include/linux/mm.h        |    1 +
+ mm/sparse.c               |    3 ++-
+ 8 files changed, 30 insertions(+), 1 deletions(-)
 
- arch/arm/kernel/process.c      |    9 ++++-----
- arch/arm/kernel/smp.c          |    2 +-
- arch/blackfin/kernel/process.c |    8 ++++----
- arch/mips/kernel/process.c     |    6 +++---
- arch/powerpc/kernel/idle.c     |    2 +-
- arch/s390/kernel/process.c     |    4 ++--
- arch/sh/kernel/idle.c          |    5 ++---
- arch/sparc/kernel/process_64.c |    3 ++-
- arch/x86/kernel/process.c      |    5 ++---
- fs/proc/stat.c                 |   14 ++++----------
- 10 files changed, 25 insertions(+), 33 deletions(-)
+diff --git a/arch/arm64/mm/mmu.c b/arch/arm64/mm/mmu.c
+index a6885d8..9834886 100644
+--- a/arch/arm64/mm/mmu.c
++++ b/arch/arm64/mm/mmu.c
+@@ -392,4 +392,7 @@ int __meminit vmemmap_populate(struct page *start_page,
+ 	return 0;
+ }
+ #endif	/* CONFIG_ARM64_64K_PAGES */
++void vmemmap_free(struct page *memmap, unsigned long nr_pages)
++{
++}
+ #endif	/* CONFIG_SPARSEMEM_VMEMMAP */
+diff --git a/arch/ia64/mm/discontig.c b/arch/ia64/mm/discontig.c
+index 33943db..882a0fd 100644
+--- a/arch/ia64/mm/discontig.c
++++ b/arch/ia64/mm/discontig.c
+@@ -823,6 +823,10 @@ int __meminit vmemmap_populate(struct page *start_page,
+ 	return vmemmap_populate_basepages(start_page, size, node);
+ }
+ 
++void vmemmap_free(struct page *memmap, unsigned long nr_pages)
++{
++}
++
+ void register_page_bootmem_memmap(unsigned long section_nr,
+ 				  struct page *start_page, unsigned long size)
+ {
+diff --git a/arch/powerpc/mm/init_64.c b/arch/powerpc/mm/init_64.c
+index 6466440..2969591 100644
+--- a/arch/powerpc/mm/init_64.c
++++ b/arch/powerpc/mm/init_64.c
+@@ -298,6 +298,10 @@ int __meminit vmemmap_populate(struct page *start_page,
+ 	return 0;
+ }
+ 
++void vmemmap_free(struct page *memmap, unsigned long nr_pages)
++{
++}
++
+ void register_page_bootmem_memmap(unsigned long section_nr,
+ 				  struct page *start_page, unsigned long size)
+ {
+diff --git a/arch/s390/mm/vmem.c b/arch/s390/mm/vmem.c
+index 2c14bc2..81e6ba3 100644
+--- a/arch/s390/mm/vmem.c
++++ b/arch/s390/mm/vmem.c
+@@ -272,6 +272,10 @@ out:
+ 	return ret;
+ }
+ 
++void vmemmap_free(struct page *memmap, unsigned long nr_pages)
++{
++}
++
+ void register_page_bootmem_memmap(unsigned long section_nr,
+ 				  struct page *start_page, unsigned long size)
+ {
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index 1f30db3..5afe21a 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -2232,6 +2232,10 @@ void __meminit vmemmap_populate_print_last(void)
+ 	}
+ }
+ 
++void vmemmap_free(struct page *memmap, unsigned long nr_pages)
++{
++}
++
+ void register_page_bootmem_memmap(unsigned long section_nr,
+ 				  struct page *start_page, unsigned long size)
+ {
+diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+index d950f9b..e829113 100644
+--- a/arch/x86/mm/init_64.c
++++ b/arch/x86/mm/init_64.c
+@@ -1309,6 +1309,14 @@ vmemmap_populate(struct page *start_page, unsigned long size, int node)
+ 	return 0;
+ }
+ 
++void __ref vmemmap_free(struct page *memmap, unsigned long nr_pages)
++{
++	unsigned long start = (unsigned long)memmap;
++	unsigned long end = (unsigned long)(memmap + nr_pages);
++
++	remove_pagetable(start, end, false);
++}
++
+ void register_page_bootmem_memmap(unsigned long section_nr,
+ 				  struct page *start_page, unsigned long size)
+ {
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 1eca498..31d5e5d 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1709,6 +1709,7 @@ int vmemmap_populate_basepages(struct page *start_page,
+ 						unsigned long pages, int node);
+ int vmemmap_populate(struct page *start_page, unsigned long pages, int node);
+ void vmemmap_populate_print_last(void);
++void vmemmap_free(struct page *memmap, unsigned long nr_pages);
+ void register_page_bootmem_memmap(unsigned long section_nr, struct page *map,
+ 				  unsigned long size);
+ 
+diff --git a/mm/sparse.c b/mm/sparse.c
+index 05ca73a..cff9796 100644
+--- a/mm/sparse.c
++++ b/mm/sparse.c
+@@ -615,10 +615,11 @@ static inline struct page *kmalloc_section_memmap(unsigned long pnum, int nid,
+ }
+ static void __kfree_section_memmap(struct page *memmap, unsigned long nr_pages)
+ {
+-	return; /* XXX: Not implemented yet */
++	vmemmap_free(memmap, nr_pages);
+ }
+ static void free_map_bootmem(struct page *memmap, unsigned long nr_pages)
+ {
++	vmemmap_free(memmap, nr_pages);
+ }
+ #else
+ static struct page *__kmalloc_section_memmap(unsigned long nr_pages)
 -- 
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-hosted by The Linux Foundation
+1.7.1
 
