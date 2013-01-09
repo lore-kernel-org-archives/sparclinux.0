@@ -1,53 +1,160 @@
-From: Chen Gang <gang.chen@asianux.com>
-Date: Sun, 13 Jan 2013 09:48:42 +0000
-Subject: [Regression] arch/arch: about pach and suggestions for strcpy
-Message-Id: <50F282FA.5030309@asianux.com>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Date: Wed, 09 Jan 2013 09:32:37 +0000
+Subject: [PATCH v6 13/15] memory-hotplug: remove sysfs file of node
+Message-Id: <1357723959-5416-14-git-send-email-tangchen@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1357723959-5416-1-git-send-email-tangchen@cn.fujitsu.com>
+In-Reply-To: <1357723959-5416-1-git-send-email-tangchen@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: akpm@linux-foundation.org, rientjes@google.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, tangchen@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, glommer@parallels.com
+Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
 
-Hello Sam Ravnborg:
+This patch introduces a new function try_offline_node() to
+remove sysfs file of node when all memory sections of this
+node are removed. If some memory sections of this node are
+not removed, this function does nothing.
 
-  firstly, I make an apology for the original impolite mails.
-    mutual respect is the base for communicating with each other,
-    so I should understand that get non-reply for original mails.
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+---
+ drivers/acpi/acpi_memhotplug.c |    8 ++++-
+ include/linux/memory_hotplug.h |    2 +-
+ mm/memory_hotplug.c            |   58 ++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 63 insertions(+), 5 deletions(-)
 
-  since I am in upstream (start Nov 2012):
-    I have made some patches and suggestions successful.
-    but I also made some technical faults which noted below:
+diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+index eb30e5a..9c53cc6 100644
+--- a/drivers/acpi/acpi_memhotplug.c
++++ b/drivers/acpi/acpi_memhotplug.c
+@@ -295,9 +295,11 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
+ 
+ static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
+ {
+-	int result = 0;
++	int result = 0, nid;
+ 	struct acpi_memory_info *info, *n;
+ 
++	nid = acpi_get_node(mem_device->device->handle);
++
+ 	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
+ 		if (info->failed)
+ 			/* The kernel does not use this memory block */
+@@ -310,7 +312,9 @@ static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
+ 			 */
+ 			return -EBUSY;
+ 
+-		result = remove_memory(info->start_addr, info->length);
++		if (nid < 0)
++			nid = memory_add_physaddr_to_nid(info->start_addr);
++		result = remove_memory(nid, info->start_addr, info->length);
+ 		if (result)
+ 			return result;
+ 
+diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+index 2441f36..f60e728 100644
+--- a/include/linux/memory_hotplug.h
++++ b/include/linux/memory_hotplug.h
+@@ -242,7 +242,7 @@ extern int arch_add_memory(int nid, u64 start, u64 size);
+ extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+ extern int offline_memory_block(struct memory_block *mem);
+ extern bool is_memblock_offlined(struct memory_block *mem);
+-extern int remove_memory(u64 start, u64 size);
++extern int remove_memory(int nid, u64 start, u64 size);
+ extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
+ 								int nr_pages);
+ extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms);
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index da20c14..a8703f7 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -29,6 +29,7 @@
+ #include <linux/suspend.h>
+ #include <linux/mm_inline.h>
+ #include <linux/firmware-map.h>
++#include <linux/stop_machine.h>
+ 
+ #include <asm/tlbflush.h>
+ 
+@@ -1678,7 +1679,58 @@ static int is_memblock_offlined_cb(struct memory_block *mem, void *arg)
+ 	return ret;
+ }
+ 
+-int __ref remove_memory(u64 start, u64 size)
++static int check_cpu_on_node(void *data)
++{
++	struct pglist_data *pgdat = data;
++	int cpu;
++
++	for_each_present_cpu(cpu) {
++		if (cpu_to_node(cpu) = pgdat->node_id)
++			/*
++			 * the cpu on this node isn't removed, and we can't
++			 * offline this node.
++			 */
++			return -EBUSY;
++	}
++
++	return 0;
++}
++
++/* offline the node if all memory sections of this node are removed */
++static void try_offline_node(int nid)
++{
++	unsigned long start_pfn = NODE_DATA(nid)->node_start_pfn;
++	unsigned long end_pfn = start_pfn + NODE_DATA(nid)->node_spanned_pages;
++	unsigned long pfn;
++
++	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
++		unsigned long section_nr = pfn_to_section_nr(pfn);
++
++		if (!present_section_nr(section_nr))
++			continue;
++
++		if (pfn_to_nid(pfn) != nid)
++			continue;
++
++		/*
++		 * some memory sections of this node are not removed, and we
++		 * can't offline node now.
++		 */
++		return;
++	}
++
++	if (stop_machine(check_cpu_on_node, NODE_DATA(nid), NULL))
++		return;
++
++	/*
++	 * all memory/cpu of this node are removed, we can offline this
++	 * node now.
++	 */
++	node_set_offline(nid);
++	unregister_one_node(nid);
++}
++
++int __ref remove_memory(int nid, u64 start, u64 size)
+ {
+ 	unsigned long start_pfn, end_pfn;
+ 	int ret = 0;
+@@ -1733,6 +1785,8 @@ repeat:
+ 
+ 	arch_remove_memory(start, size);
+ 
++	try_offline_node(nid);
++
+ 	unlock_memory_hotplug();
+ 
+ 	return 0;
+@@ -1742,7 +1796,7 @@ int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
+ {
+ 	return -EINVAL;
+ }
+-int remove_memory(u64 start, u64 size)
++int remove_memory(int nid, u64 start, u64 size)
+ {
+ 	return -EINVAL;
+ }
+-- 
+1.7.1
 
-      A) net/atm:  "%pM means format this pointer as a mac address", thank Chas Williams
-      B) net/tipc: "TIPC_MAX_IF_NAME is not TIPC_MAX_LINK_NAME", thank Xue Ying
-      C) net/core: "not see 'if (PAGE_SIZE - len < 3)' ", find by myself
-      D) MAINTAINER: "tty != serial",  thank Jiri Slaby and Joe Perches
-      E) drvers/staging/telephony: "torvalds' tree is different with next tree", thank devendra.aaru
-      F) drivers/staging/telephony: "we should probably fix it for older kernels", thank Dan Carpenter
-      G) drivers/usb/core: "doing DMA on the stack violates the DMA rules", thank Oliver Neukum
-      H) arch/blackfin/kernel: "%8s is used to take up the same space", thank Mike Frysinger and Steven Miao
-      I) drivers/usb/host: "usb_hcd_giveback_urb set urb->hcpriv to NULL", thank Alan Stern
-      J) net/atm:  "the max return value of snsprintf is the 2nd param - 1 or 0", find by myself
-      K) fs/ext3:  "on-disk encoding does not include e_id, if not ACL_USER, ACL_GROUP", thank Theodore Ts'o
-      L) fs/ext3:  "ACL_USER_OBJ ACL_USER*[1] ACL_GROUP_OBJ ACL_GROUP*[1] ACL_MASK[2] ACL_OTHER"
-                   [1] Where * is the regexp sense of "0 or more times"
-                   [2] Only if there is at least one ACL_USER or ACL_GROUP tag; otherwise skip ACL_MASK.
-                         thank Theodore Ts'o
-                   [2] If ACL_USER or ACL_GROUP is present, then ACL_MASK must be present.
-               	         thank Jan Kara
-      M) drivers/net/wireless/ipw2x00: "duplicate buffer to print different contents, at the same time"; find by myself
-
-     I will still continue, since we are all improving, and our goal is to provide contributes to outside.
-
-   I understand you are really busy:
-     I still suggest you to help checking the original patch and suggestions, when you have free time.
-     it is my fault, but they are innocence.
-
-
-   at last, sorry again for my original impolite mails.
-
-   :-)
-
-   Regards
-
-gchen
