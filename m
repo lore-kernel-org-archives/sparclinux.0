@@ -1,55 +1,136 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Date: Thu, 10 Jan 2013 01:38:10 +0000
-Subject: Re: [PATCH v5 01/14] memory-hotplug: try to offline the memory twice to avoid dependence
-Message-Id: <50EE1B82.4090601@cn.fujitsu.com>
+From: Jan Engelhardt <jengelh@inai.de>
+Date: Wed, 09 Jan 2013 22:58:46 +0000
+Subject: niu interface automatically goes up then down
+Message-Id: <alpine.LNX.2.01.1301092342290.21351@nerf07.vanv.qr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1356350964-13437-1-git-send-email-tangchen@cn.fujitsu.com> <1356350964-13437-2-git-send-email-tangchen@cn.fujitsu.com> <50D96543.6010903@parallels.com> <50DFD7F7.5090408@cn.fujitsu.com> <50ED8834.1090804@parallels.com>
-In-Reply-To: <50ED8834.1090804@parallels.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Glauber Costa <glommer@parallels.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>, akpm@linux-foundation.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+To: Linux Networking Developer Mailing List <netdev@vger.kernel.org>
+Cc: sparclinux@vger.kernel.org
 
-Hi Glauber,
+Hi,
 
-On 01/09/2013 11:09 PM, Glauber Costa wrote:
->>
->> We try to make all page_cgroup allocations local to the node they are describing
->> now. If the memory is the first memory onlined in this node, we will allocate
->> it from the other node.
->>
->> For example, node1 has 4 memory blocks: 8-11, and we online it from 8 to 11
->> 1. memory block 8, page_cgroup allocations are in the other nodes
->> 2. memory block 9, page_cgroup allocations are in memory block 8
->>
->> So we should offline memory block 9 first. But we don't know in which order
->> the user online the memory block.
->>
->> I think we can modify memcg like this:
->> allocate the memory from the memory block they are describing
->>
->> I am not sure it is OK to do so.
->
-> I don't see a reason why not.
+I am observing that a machine with a niu card/driver automatically
+enables itself and then goes dormant again.
 
-I'm not sure, but if we do this, we could bring in a fragment for each
-memory block (a memory section, 128MB, right?). Is this a problem when
-we use large page (such as 1GB page) ?
+[ 4410.930078] niu 0000:10:00.0 eth4: Link is up at 100Mbit/sec, full duplex
+[ 4410.930137] br0: port 4(eth4) entered forwarding state
+[ 4410.930156] br0: port 4(eth4) entered forwarding state
+[ 4420.957745] niu 0000:10:00.0 eth4: Link is down
 
-Even if not, will these fragments make any bad effects ?
+The interface itself is marked UP, and is part of a bridge,
+if that matters. The kernel version is 3.7.1 on sparc64.
 
-Thank. :)
+6: eth4: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500
+qdisc mq master br0 state DOWN qlen 1000
+    link/ether 00:21:28:71:32:5a brd ff:ff:ff:ff:ff:ff
+    inet6 fe80::221:28ff:fe71:325a/64 scope link 
+       valid_lft forever preferred_lft forever
 
->
-> You would have to tweak a bit the lookup function for page_cgroup, but
-> assuming you will always have the pfns and limits, it should be easy to do.
->
-> I think the only tricky part is that today we have a single
-> node_page_cgroup, and we would of course have to have one per memory
-> block. My assumption is that the number of memory blocks is limited and
-> likely not very big. So even a static array would do.
->
-> Kamezawa, do you have any input in here?
->
+At the same time, eth5, to which a cable+machine _is_ connected,
+randomly goes out. At first I thought it might be the connected peer,
+but seeing that eth4 randomly does a up-down cycle leads me to assume
+that niu is doing a cycle here rather than the peer.
 
+[ 3839.724721] niu 0000:10:00.1 eth5: Link is down
+[ 3839.725077] br0: port 5(eth5) entered disabled state
+[ 3840.725016] niu 0000:10:00.1 eth5: Link is up at 100Mbit/sec, half duplex
+[ 3840.725195] br0: port 5(eth5) entered forwarding state
+[ 3840.725327] br0: port 5(eth5) entered forwarding state
+[ 3855.762171] br0: port 5(eth5) entered forwarding state
+
+dmesg for niu:
+
+[   60.158957] niu: niu.c:v1.1 (Apr 22, 2010)
+[   60.160457] niu: niu0: Found PHY 002060b1 type MII at phy_port 10
+[   60.160887] niu: niu0: Found PHY 002060b1 type MII at phy_port 11
+[   60.161314] niu: niu0: Found PHY 002060b1 type MII at phy_port 12
+[   60.161739] niu: niu0: Found PHY 002060b1 type MII at phy_port 13
+[   60.168250] niu: niu0: Port 0 [4 RX chans] [6 TX chans]
+[   60.168319] niu: niu0: Port 1 [4 RX chans] [6 TX chans]
+[   60.168386] niu: niu0: Port 2 [4 RX chans] [6 TX chans]
+[   60.168452] niu: niu0: Port 3 [4 RX chans] [6 TX chans]
+[   60.168519] niu: niu0: Port 0 RDC tbl(0) [ 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 ]
+[   60.168913] niu: niu0: Port 0 RDC tbl(1) [ 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 ]
+[   60.169213] niu: niu0: Port 1 RDC tbl(2) [ 4 5 6 7 4 5 6 7 4 5 6 7 4 5 6 7 ]
+[   60.169503] niu: niu0: Port 1 RDC tbl(3) [ 4 5 6 7 4 5 6 7 4 5 6 7 4 5 6 7 ]
+[   60.169790] niu: niu0: Port 2 RDC tbl(4) [ 8 9 10 11 8 9 10 11 8 9 10 11 8 9 10 11 ]
+[   60.170078] niu: niu0: Port 2 RDC tbl(5) [ 8 9 10 11 8 9 10 11 8 9 10 11 8 9 10 11 ]
+[   60.170366] niu: niu0: Port 3 RDC tbl(6) [ 12 13 14 15 12 13 14 15 12 13 14 15 12 13 14 15 ]
+[   60.170657] niu: niu0: Port 3 RDC tbl(7) [ 12 13 14 15 12 13 14 15 12 13 14 15 12 13 14 15 ]
+[   60.416607] niu: eth4: NIU Ethernet 00:21:28:71:32:5a
+[   60.416679] niu: eth4: Port type[XMAC] mode[1G:COPPER] XCVR[MII] phy[mif]
+[   60.624669] niu: eth5: NIU Ethernet 00:21:28:71:32:5b
+[   60.624741] niu: eth5: Port type[XMAC] mode[1G:COPPER] XCVR[MII] phy[mif]
+[   60.832774] niu: eth6: NIU Ethernet 00:21:28:71:32:5c
+[   60.832845] niu: eth6: Port type[BMAC] mode[1G:COPPER] XCVR[MII] phy[mif]
+[   61.040806] niu: eth7: NIU Ethernet 00:21:28:71:32:5d
+[   61.040877] niu: eth7: Port type[BMAC] mode[1G:COPPER] XCVR[MII] phy[mif]
+
+lspci:
+10:00.0 Ethernet controller: Sun Microsystems Computer Corp. Multithreaded 10-Gigabit Ethernet Network Controller (rev 01)
+        Subsystem: Sun Microsystems Computer Corp. Device 0000
+        Flags: bus master, fast devsel, latency 0, IRQ 00000015
+        Memory at 01000000 (64-bit, non-prefetchable) [sizeM]
+        Memory at 00d00000 (64-bit, non-prefetchable) [size2K]
+        Memory at 00d08000 (64-bit, non-prefetchable) [size2K]
+        Expansion ROM at 00e00000 [disabled] [size=1M]
+        Capabilities: [40] Power Management version 2
+        Capabilities: [50] MSI: Enable- Count=1/32 Maskable+ 64bit+
+        Capabilities: [70] MSI-X: Enable+ Count2 Masked-
+        Capabilities: [80] Express Endpoint, MSI 00
+        Capabilities: [94] Vendor Specific Information: Len <?>
+        Capabilities: [9c] Vendor Specific Information: Len@ <?>
+        Capabilities: [100] Advanced Error Reporting
+        Kernel driver in use: niu
+
+10:00.1 Ethernet controller: Sun Microsystems Computer Corp. Multithreaded 10-Gigabit Ethernet Network Controller (rev 01)
+        Subsystem: Sun Microsystems Computer Corp. Device 0000
+        Flags: bus master, fast devsel, latency 0, IRQ 00000016
+        Memory at 02000000 (64-bit, non-prefetchable) [sizeM]
+        Memory at 00d10000 (64-bit, non-prefetchable) [size2K]
+        Memory at 00d18000 (64-bit, non-prefetchable) [size2K]
+        Expansion ROM at 00f00000 [disabled] [size=1M]
+        Capabilities: [40] Power Management version 2
+        Capabilities: [50] MSI: Enable- Count=1/32 Maskable+ 64bit+
+        Capabilities: [70] MSI-X: Enable+ Count2 Masked-
+        Capabilities: [80] Express Endpoint, MSI 00
+        Capabilities: [94] Vendor Specific Information: Len <?>
+        Capabilities: [9c] Vendor Specific Information: Len@ <?>
+        Capabilities: [100] Advanced Error Reporting
+        Kernel driver in use: niu
+
+10:00.2 Ethernet controller: Sun Microsystems Computer Corp. Multithreaded 10-Gigabit Ethernet Network Controller (rev 01)
+        Subsystem: Sun Microsystems Computer Corp. Device 0000
+        Flags: bus master, fast devsel, latency 0, IRQ 00000017
+        Memory at 03000000 (64-bit, non-prefetchable) [sizeM]
+        Memory at 00d20000 (64-bit, non-prefetchable) [size2K]
+        Memory at 00d28000 (64-bit, non-prefetchable) [size2K]
+        Expansion ROM at 04000000 [disabled] [size=1M]
+        Capabilities: [40] Power Management version 2
+        Capabilities: [50] MSI: Enable- Count=1/32 Maskable+ 64bit+
+        Capabilities: [70] MSI-X: Enable+ Count2 Masked-
+        Capabilities: [80] Express Endpoint, MSI 00
+        Capabilities: [94] Vendor Specific Information: Len <?>
+        Capabilities: [9c] Vendor Specific Information: Len@ <?>
+        Capabilities: [100] Advanced Error Reporting
+        Kernel driver in use: niu
+
+10:00.3 Ethernet controller: Sun Microsystems Computer Corp. Multithreaded 10-Gigabit Ethernet Network Controller (rev 01)
+        Subsystem: Sun Microsystems Computer Corp. Device 0000
+        Flags: bus master, fast devsel, latency 0, IRQ 00000014
+        Memory at 05000000 (64-bit, non-prefetchable) [sizeM]
+        Memory at 00d30000 (64-bit, non-prefetchable) [size2K]
+        Memory at 00d38000 (64-bit, non-prefetchable) [size2K]
+        Expansion ROM at 04100000 [disabled] [size=1M]
+        Capabilities: [40] Power Management version 2
+        Capabilities: [50] MSI: Enable- Count=1/32 Maskable+ 64bit+
+        Capabilities: [70] MSI-X: Enable+ Count2 Masked-
+        Capabilities: [80] Express Endpoint, MSI 00
+        Capabilities: [94] Vendor Specific Information: Len <?>
+        Capabilities: [9c] Vendor Specific Information: Len@ <?>
+        Capabilities: [100] Advanced Error Reporting
+        Kernel driver in use: niu
+
+Any other info needed?
