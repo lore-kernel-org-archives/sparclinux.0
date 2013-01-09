@@ -1,7 +1,7 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Date: Wed, 09 Jan 2013 09:32:27 +0000
-Subject: [PATCH v6 03/15] memory-hotplug: remove redundant codes
-Message-Id: <1357723959-5416-4-git-send-email-tangchen@cn.fujitsu.com>
+Date: Wed, 09 Jan 2013 09:32:38 +0000
+Subject: [PATCH v6 14/15] memory-hotplug: free node_data when a node is offlined
+Message-Id: <1357723959-5416-15-git-send-email-tangchen@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1357723959-5416-1-git-send-email-tangchen@cn.fujitsu.com>
 In-Reply-To: <1357723959-5416-1-git-send-email-tangchen@cn.fujitsu.com>
@@ -13,186 +13,71 @@ Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-d
 
 From: Wen Congyang <wency@cn.fujitsu.com>
 
-offlining memory blocks and checking whether memory blocks are offlined
-are very similar. This patch introduces a new function to remove
-redundant codes.
+We call hotadd_new_pgdat() to allocate memory to store node_data. So we
+should free it when removing a node.
 
 Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 Reviewed-by: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 ---
- mm/memory_hotplug.c |  129 ++++++++++++++++++++++++++++++++------------------
- 1 files changed, 82 insertions(+), 47 deletions(-)
+ mm/memory_hotplug.c |   30 +++++++++++++++++++++++++++---
+ 1 files changed, 27 insertions(+), 3 deletions(-)
 
 diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 5808045..69d62eb 100644
+index a8703f7..8b67752 100644
 --- a/mm/memory_hotplug.c
 +++ b/mm/memory_hotplug.c
-@@ -1381,20 +1381,26 @@ int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
- 	return __offline_pages(start_pfn, start_pfn + nr_pages, 120 * HZ);
- }
- 
--int remove_memory(u64 start, u64 size)
-+/**
-+ * walk_memory_range - walks through all mem sections in [start_pfn, end_pfn)
-+ * @start_pfn: start pfn of the memory range
-+ * @end_pfn: end pft of the memory range
-+ * @arg: argument passed to func
-+ * @func: callback for each memory section walked
-+ *
-+ * This function walks through all present mem sections in range
-+ * [start_pfn, end_pfn) and call func on each mem section.
-+ *
-+ * Returns the return value of func.
-+ */
-+static int walk_memory_range(unsigned long start_pfn, unsigned long end_pfn,
-+		void *arg, int (*func)(struct memory_block *, void *))
+@@ -1699,9 +1699,12 @@ static int check_cpu_on_node(void *data)
+ /* offline the node if all memory sections of this node are removed */
+ static void try_offline_node(int nid)
  {
- 	struct memory_block *mem = NULL;
- 	struct mem_section *section;
--	unsigned long start_pfn, end_pfn;
- 	unsigned long pfn, section_nr;
- 	int ret;
--	int return_on_error = 0;
--	int retry = 0;
--
--	start_pfn = PFN_DOWN(start);
--	end_pfn = start_pfn + PFN_DOWN(size);
+-	unsigned long start_pfn = NODE_DATA(nid)->node_start_pfn;
+-	unsigned long end_pfn = start_pfn + NODE_DATA(nid)->node_spanned_pages;
++	pg_data_t *pgdat = NODE_DATA(nid);
++	unsigned long start_pfn = pgdat->node_start_pfn;
++	unsigned long end_pfn = start_pfn + pgdat->node_spanned_pages;
+ 	unsigned long pfn;
++	struct page *pgdat_page = virt_to_page(pgdat);
++	int i;
  
--repeat:
  	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
- 		section_nr = pfn_to_section_nr(pfn);
- 		if (!present_section_nr(section_nr))
-@@ -1411,22 +1417,76 @@ repeat:
- 		if (!mem)
- 			continue;
- 
--		ret = offline_memory_block(mem);
-+		ret = func(mem, arg);
- 		if (ret) {
--			if (return_on_error) {
--				kobject_put(&mem->dev.kobj);
--				return ret;
--			} else {
--				retry = 1;
--			}
-+			kobject_put(&mem->dev.kobj);
-+			return ret;
- 		}
+ 		unsigned long section_nr = pfn_to_section_nr(pfn);
+@@ -1719,7 +1722,7 @@ static void try_offline_node(int nid)
+ 		return;
  	}
  
- 	if (mem)
- 		kobject_put(&mem->dev.kobj);
+-	if (stop_machine(check_cpu_on_node, NODE_DATA(nid), NULL))
++	if (stop_machine(check_cpu_on_node, pgdat, NULL))
+ 		return;
  
--	if (retry) {
--		return_on_error = 1;
-+	return 0;
-+}
+ 	/*
+@@ -1728,6 +1731,27 @@ static void try_offline_node(int nid)
+ 	 */
+ 	node_set_offline(nid);
+ 	unregister_one_node(nid);
 +
-+/**
-+ * offline_memory_block_cb - callback function for offlining memory block
-+ * @mem: the memory block to be offlined
-+ * @arg: buffer to hold error msg
-+ *
-+ * Always return 0, and put the error msg in arg if any.
-+ */
-+static int offline_memory_block_cb(struct memory_block *mem, void *arg)
-+{
-+	int *ret = arg;
-+	int error = offline_memory_block(mem);
++	if (!PageSlab(pgdat_page) && !PageCompound(pgdat_page))
++		/* node data is allocated from boot memory */
++		return;
 +
-+	if (error != 0 && *ret = 0)
-+		*ret = error;
++	/* free waittable in each zone */
++	for (i = 0; i < MAX_NR_ZONES; i++) {
++		struct zone *zone = pgdat->node_zones + i;
 +
-+	return 0;
-+}
-+
-+static int is_memblock_offlined_cb(struct memory_block *mem, void *arg)
-+{
-+	int ret = !is_memblock_offlined(mem);
-+
-+	if (unlikely(ret))
-+		pr_warn("removing memory fails, because memory "
-+			"[%#010llx-%#010llx] is onlined\n",
-+			PFN_PHYS(section_nr_to_pfn(mem->start_section_nr)),
-+			PFN_PHYS(section_nr_to_pfn(mem->end_section_nr + 1))-1);
-+
-+	return ret;
-+}
-+
-+int remove_memory(u64 start, u64 size)
-+{
-+	unsigned long start_pfn, end_pfn;
-+	int ret = 0;
-+	int retry = 1;
-+
-+	start_pfn = PFN_DOWN(start);
-+	end_pfn = start_pfn + PFN_DOWN(size);
++		if (zone->wait_table)
++			vfree(zone->wait_table);
++	}
 +
 +	/*
-+	 * When CONFIG_MEMCG is on, one memory block may be used by other
-+	 * blocks to store page cgroup when onlining pages. But we don't know
-+	 * in what order pages are onlined. So we iterate twice to offline
-+	 * memory:
-+	 * 1st iterate: offline every non primary memory block.
-+	 * 2nd iterate: offline primary (i.e. first added) memory block.
++	 * Since there is no way to guarentee the address of pgdat/zone is not
++	 * on stack of any kernel threads or used by other kernel objects
++	 * without reference counting or other symchronizing method, do not
++	 * reset node_data and free pgdat here. Just reset it to 0 and reuse
++	 * the memory when the node is online again.
 +	 */
-+repeat:
-+	walk_memory_range(start_pfn, end_pfn, &ret,
-+			  offline_memory_block_cb);
-+	if (ret) {
-+		if (!retry)
-+			return ret;
-+
-+		retry = 0;
-+		ret = 0;
- 		goto repeat;
- 	}
++	memset(pgdat, 0, sizeof(*pgdat));
+ }
  
-@@ -1444,38 +1504,13 @@ repeat:
- 	 * memory blocks are offlined.
- 	 */
- 
--	mem = NULL;
--	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
--		section_nr = pfn_to_section_nr(pfn);
--		if (!present_section_nr(section_nr))
--			continue;
--
--		section = __nr_to_section(section_nr);
--		/* same memblock? */
--		if (mem)
--			if ((section_nr >= mem->start_section_nr) &&
--			    (section_nr <= mem->end_section_nr))
--				continue;
--
--		mem = find_memory_block_hinted(section, mem);
--		if (!mem)
--			continue;
--
--		ret = is_memblock_offlined(mem);
--		if (!ret) {
--			pr_warn("removing memory fails, because memory "
--				"[%#010llx-%#010llx] is onlined\n",
--				PFN_PHYS(section_nr_to_pfn(mem->start_section_nr)),
--				PFN_PHYS(section_nr_to_pfn(mem->end_section_nr + 1)) - 1);
--
--			kobject_put(&mem->dev.kobj);
--			unlock_memory_hotplug();
--			return ret;
--		}
-+	ret = walk_memory_range(start_pfn, end_pfn, NULL,
-+				is_memblock_offlined_cb);
-+	if (ret) {
-+		unlock_memory_hotplug();
-+		return ret;
- 	}
- 
--	if (mem)
--		kobject_put(&mem->dev.kobj);
- 	unlock_memory_hotplug();
- 
- 	return 0;
+ int __ref remove_memory(int nid, u64 start, u64 size)
 -- 
 1.7.1
 
