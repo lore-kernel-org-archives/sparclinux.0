@@ -1,52 +1,79 @@
-From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Date: Tue, 08 Jan 2013 06:58:07 +0000
-Subject: Re: [PATCH 1/2] cpuhotplug/nohz: Remove offline cpus from nohz-idle state
-Message-Id: <50EBC2F9.70303@linux.vnet.ibm.com>
+From: Glauber Costa <glommer@parallels.com>
+Date: Wed, 09 Jan 2013 15:09:40 +0000
+Subject: Re: [PATCH v5 01/14] memory-hotplug: try to offline the memory twice to avoid dependence
+Message-Id: <50ED8834.1090804@parallels.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1357268318-7993-1-git-send-email-vatsa@codeaurora.org>
- <20130105103627.GU2631@n2100.arm.linux.org.uk>
-In-Reply-To: <20130105103627.GU2631@n2100.arm.linux.org.uk>
+References: <1356350964-13437-1-git-send-email-tangchen@cn.fujitsu.com> <1356350964-13437-2-git-send-email-tangchen@cn.fujitsu.com> <50D96543.6010903@parallels.com> <50DFD7F7.5090408@cn.fujitsu.com>
+In-Reply-To: <50DFD7F7.5090408@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>, akpm@linux-foundation.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-On 01/05/2013 04:06 PM, Russell King - ARM Linux wrote:
-> On Thu, Jan 03, 2013 at 06:58:38PM -0800, Srivatsa Vaddagiri wrote:
->> I also think that the
->> wait_for_completion() based wait in ARM's __cpu_die() can be replaced with a
->> busy-loop based one, as the wait there in general should be terminated within
->> few cycles.
+On 12/30/2012 09:58 AM, Wen Congyang wrote:
+> At 12/25/2012 04:35 PM, Glauber Costa Wrote:
+>> On 12/24/2012 04:09 PM, Tang Chen wrote:
+>>> From: Wen Congyang <wency@cn.fujitsu.com>
+>>>
+>>> memory can't be offlined when CONFIG_MEMCG is selected.
+>>> For example: there is a memory device on node 1. The address range
+>>> is [1G, 1.5G). You will find 4 new directories memory8, memory9, memory10,
+>>> and memory11 under the directory /sys/devices/system/memory/.
+>>>
+>>> If CONFIG_MEMCG is selected, we will allocate memory to store page cgroup
+>>> when we online pages. When we online memory8, the memory stored page cgroup
+>>> is not provided by this memory device. But when we online memory9, the memory
+>>> stored page cgroup may be provided by memory8. So we can't offline memory8
+>>> now. We should offline the memory in the reversed order.
+>>>
+>>> When the memory device is hotremoved, we will auto offline memory provided
+>>> by this memory device. But we don't know which memory is onlined first, so
+>>> offlining memory may fail. In such case, iterate twice to offline the memory.
+>>> 1st iterate: offline every non primary memory block.
+>>> 2nd iterate: offline primary (i.e. first added) memory block.
+>>>
+>>> This idea is suggested by KOSAKI Motohiro.
+>>>
+>>> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+>>
+>> Maybe there is something here that I am missing - I admit that I came
+>> late to this one, but this really sounds like a very ugly hack, that
+>> really has no place in here.
+>>
+>> Retrying, of course, may make sense, if we have reasonable belief that
+>> we may now succeed. If this is the case, you need to document - in the
+>> code - while is that.
+>>
+>> The memcg argument, however, doesn't really cut it. Why can't we make
+>> all page_cgroup allocations local to the node they are describing? If
+>> memcg is the culprit here, we should fix it, and not retry. If there is
+>> still any benefit in retrying, then we retry being very specific about why.
 > 
-> Why open-code this stuff when we have infrastructure already in the kernel
-> for waiting for stuff to happen?  I chose to use the standard infrastructure
-> because its better tested, and avoids having to think about whether we need
-> CPU barriers and such like to ensure that updates are seen in a timely
-> manner.
+> We try to make all page_cgroup allocations local to the node they are describing
+> now. If the memory is the first memory onlined in this node, we will allocate
+> it from the other node.
 > 
-> My stance on a lot of this idle/cpu dying code is that much of it can
-> probably be cleaned up and merged into a single common implementation -
-> in which case the use of standard infrastructure for things like waiting
-> for other CPUs do stuff is even more justified.
+> For example, node1 has 4 memory blocks: 8-11, and we online it from 8 to 11
+> 1. memory block 8, page_cgroup allocations are in the other nodes
+> 2. memory block 9, page_cgroup allocations are in memory block 8
+> 
+> So we should offline memory block 9 first. But we don't know in which order
+> the user online the memory block.
+> 
+> I think we can modify memcg like this:
+> allocate the memory from the memory block they are describing
+> 
+> I am not sure it is OK to do so.
 
-On similar lines, Nikunj (in CC) and I had posted a patchset sometime ago to
-consolidate some of the CPU hotplug related code in the various architectures
-into a common standard implementation [1].
+I don't see a reason why not.
 
-However, we ended up hitting a problem with Xen, because its existing code
-was unlike the other arch/ pieces [2]. At that time, we decided that we will
-first make the CPU online and offline paths symmetric in the generic code and
-then provide a common implementation of the duplicated bits in arch/, for the
-new CPU hotplug model [3].
+You would have to tweak a bit the lookup function for page_cgroup, but
+assuming you will always have the pfns and limits, it should be easy to do.
 
-I guess we should probably revisit it sometime, consolidating the code in
-incremental steps if not all at a time...
+I think the only tricky part is that today we have a single
+node_page_cgroup, and we would of course have to have one per memory
+block. My assumption is that the number of memory blocks is limited and
+likely not very big. So even a static array would do.
 
---
-[1]. http://lwn.net/Articles/500185/
-[2]. http://thread.gmane.org/gmane.linux.kernel.cross-arch/14342/focus430
-[3]. http://thread.gmane.org/gmane.linux.kernel.cross-arch/14342/focus567
-
-Regards,
-Srivatsa S. Bhat
-
+Kamezawa, do you have any input in here?
