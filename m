@@ -1,94 +1,63 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Date: Tue, 15 Jan 2013 10:54:23 +0000
-Subject: [BUG Fix Patch 2/6] Bug fix: Do not calculate direct mapping pages when freeing vmemmap pagetables.
-Message-Id: <1358247267-18089-3-git-send-email-tangchen@cn.fujitsu.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Wed, 09 Jan 2013 20:35:48 +0000
+Subject: [ 56/80] sparc: huge_ptep_set_* functions need to call set_huge_pte_at()
+Message-Id: <20130109201507.629452294@linuxfoundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1358247267-18089-1-git-send-email-tangchen@cn.fujitsu.com>
-In-Reply-To: <1358247267-18089-1-git-send-email-tangchen@cn.fujitsu.com>
+References: <20130109201500.410171651@linuxfoundation.org>
+In-Reply-To: <20130109201500.410171651@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: akpm@linux-foundation.org, rientjes@google.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, tangchen@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, glommer@parallels.com, jiang.liu@huawei.com
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, alan@lxorguk.ukuu.org.uk, Dave Kleikamp <dave.kleikamp@oracle.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-We only need to update direct_pages_count[level] when we freeing direct mapped
-pagetables.
+3.4-stable review patch.  If anyone has any objections, please let me know.
 
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+------------------
+
+
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
+
+[ Upstream commit 6cb9c3697585c47977c42c5cc1b9fc49247ac530 ]
+
+Modifying the huge pte's requires that all the underlying pte's be
+modified.
+
+Version 2: added missing flush_tlb_page()
+
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/x86/mm/init_64.c |   17 +++++++----------
- 1 files changed, 7 insertions(+), 10 deletions(-)
+ arch/sparc/include/asm/hugetlb.h |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
-index e829113..368cc3f 100644
---- a/arch/x86/mm/init_64.c
-+++ b/arch/x86/mm/init_64.c
-@@ -804,14 +804,13 @@ remove_pte_table(pte_t *pte_start, unsigned long addr, unsigned long end,
+--- a/arch/sparc/include/asm/hugetlb.h
++++ b/arch/sparc/include/asm/hugetlb.h
+@@ -58,14 +58,20 @@ static inline pte_t huge_pte_wrprotect(p
+ static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
+ 					   unsigned long addr, pte_t *ptep)
+ {
+-	ptep_set_wrprotect(mm, addr, ptep);
++	pte_t old_pte = *ptep;
++	set_huge_pte_at(mm, addr, ptep, pte_wrprotect(old_pte));
+ }
  
- 		if (IS_ALIGNED(addr, PAGE_SIZE) &&
- 		    IS_ALIGNED(next, PAGE_SIZE)) {
--			if (!direct) {
-+			if (!direct)
- 				free_pagetable(pte_page(*pte), 0);
--				pages++;
--			}
+ static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
+ 					     unsigned long addr, pte_t *ptep,
+ 					     pte_t pte, int dirty)
+ {
+-	return ptep_set_access_flags(vma, addr, ptep, pte, dirty);
++	int changed = !pte_same(*ptep, pte);
++	if (changed) {
++		set_huge_pte_at(vma->vm_mm, addr, ptep, pte);
++		flush_tlb_page(vma, addr);
++	}
++	return changed;
+ }
  
- 			spin_lock(&init_mm.page_table_lock);
- 			pte_clear(&init_mm, addr, pte);
- 			spin_unlock(&init_mm.page_table_lock);
-+			pages++;
- 		} else {
- 			/*
- 			 * If we are not removing the whole page, it means
-@@ -824,11 +823,11 @@ remove_pte_table(pte_t *pte_start, unsigned long addr, unsigned long end,
- 
- 			if (!memchr_inv(page_addr, PAGE_INUSE, PAGE_SIZE)) {
- 				free_pagetable(pte_page(*pte), 0);
--				pages++;
- 
- 				spin_lock(&init_mm.page_table_lock);
- 				pte_clear(&init_mm, addr, pte);
- 				spin_unlock(&init_mm.page_table_lock);
-+				pages++;
- 			}
- 		}
- 	}
-@@ -857,15 +856,14 @@ remove_pmd_table(pmd_t *pmd_start, unsigned long addr, unsigned long end,
- 		if (pmd_large(*pmd)) {
- 			if (IS_ALIGNED(addr, PMD_SIZE) &&
- 			    IS_ALIGNED(next, PMD_SIZE)) {
--				if (!direct) {
-+				if (!direct)
- 					free_pagetable(pmd_page(*pmd),
- 						       get_order(PMD_SIZE));
--					pages++;
--				}
- 
- 				spin_lock(&init_mm.page_table_lock);
- 				pmd_clear(pmd);
- 				spin_unlock(&init_mm.page_table_lock);
-+				pages++;
- 				continue;
- 			}
- 
-@@ -914,15 +912,14 @@ remove_pud_table(pud_t *pud_start, unsigned long addr, unsigned long end,
- 		if (pud_large(*pud)) {
- 			if (IS_ALIGNED(addr, PUD_SIZE) &&
- 			    IS_ALIGNED(next, PUD_SIZE)) {
--				if (!direct) {
-+				if (!direct)
- 					free_pagetable(pud_page(*pud),
- 						       get_order(PUD_SIZE));
--					pages++;
--				}
- 
- 				spin_lock(&init_mm.page_table_lock);
- 				pud_clear(pud);
- 				spin_unlock(&init_mm.page_table_lock);
-+				pages++;
- 				continue;
- 			}
- 
--- 
-1.7.1
+ static inline pte_t huge_ptep_get(pte_t *ptep)
+
 
