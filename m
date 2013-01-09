@@ -1,54 +1,91 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Date: Tue, 15 Jan 2013 10:54:24 +0000
-Subject: [BUG Fix Patch 3/6] Bug fix: Do not free direct mapping pages twice.
-Message-Id: <1358247267-18089-4-git-send-email-tangchen@cn.fujitsu.com>
+Date: Wed, 09 Jan 2013 09:32:39 +0000
+Subject: [PATCH v6 15/15] memory-hotplug: Do not allocate pdgat if it was not freed when offline.
+Message-Id: <1357723959-5416-16-git-send-email-tangchen@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1358247267-18089-1-git-send-email-tangchen@cn.fujitsu.com>
-In-Reply-To: <1358247267-18089-1-git-send-email-tangchen@cn.fujitsu.com>
+References: <1357723959-5416-1-git-send-email-tangchen@cn.fujitsu.com>
+In-Reply-To: <1357723959-5416-1-git-send-email-tangchen@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: akpm@linux-foundation.org, rientjes@google.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, tangchen@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, glommer@parallels.com, jiang.liu@huawei.com
+To: akpm@linux-foundation.org, rientjes@google.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, tangchen@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, glommer@parallels.com
 Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
 
-Direct mapped pages were freed when they were offlined, or they were
-not allocated. So we only need to free vmemmap pages, no need to free
-direct mapped pages.
+Since there is no way to guarentee the address of pgdat/zone is not
+on stack of any kernel threads or used by other kernel objects
+without reference counting or other symchronizing method, we cannot
+reset node_data and free pgdat when offlining a node. Just reset pgdat
+to 0 and reuse the memory when the node is online again.
+
+The problem is suggested by Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+The idea is from Wen Congyang <wency@cn.fujitsu.com>
+
+NOTE: If we don't reset pgdat to 0, the WARN_ON in free_area_init_node()
+      will be triggered.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Reviewed-by: Wen Congyang <wency@cn.fujitsu.com>
 ---
- arch/x86/mm/init_64.c |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
+ mm/memory_hotplug.c |   20 ++++++++++++--------
+ 1 files changed, 12 insertions(+), 8 deletions(-)
 
-diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
-index 368cc3f..e77d312 100644
---- a/arch/x86/mm/init_64.c
-+++ b/arch/x86/mm/init_64.c
-@@ -804,6 +804,10 @@ remove_pte_table(pte_t *pte_start, unsigned long addr, unsigned long end,
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 8b67752..8aa2b56 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -1015,11 +1015,14 @@ static pg_data_t __ref *hotadd_new_pgdat(int nid, u64 start)
+ 	unsigned long zholes_size[MAX_NR_ZONES] = {0};
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
  
- 		if (IS_ALIGNED(addr, PAGE_SIZE) &&
- 		    IS_ALIGNED(next, PAGE_SIZE)) {
-+			/*
-+			 * Do not free direct mapping pages since they were
-+			 * freed when offlining.
-+			 */
- 			if (!direct)
- 				free_pagetable(pte_page(*pte), 0);
+-	pgdat = arch_alloc_nodedata(nid);
+-	if (!pgdat)
+-		return NULL;
++	pgdat = NODE_DATA(nid);
++	if (!pgdat) {
++		pgdat = arch_alloc_nodedata(nid);
++		if (!pgdat)
++			return NULL;
  
-@@ -819,10 +823,11 @@ remove_pte_table(pte_t *pte_start, unsigned long addr, unsigned long end,
- 			 * remove the page when it is wholly filled with 0xFD.
- 			 */
- 			memset((void *)addr, PAGE_INUSE, next - addr);
--			page_addr = page_address(pte_page(*pte));
+-	arch_refresh_nodedata(nid, pgdat);
++		arch_refresh_nodedata(nid, pgdat);
++	}
  
-+			page_addr = page_address(pte_page(*pte));
- 			if (!memchr_inv(page_addr, PAGE_INUSE, PAGE_SIZE)) {
--				free_pagetable(pte_page(*pte), 0);
-+				if (!direct)
-+					free_pagetable(pte_page(*pte), 0);
+ 	/* we can use NODE_DATA(nid) from here */
  
- 				spin_lock(&init_mm.page_table_lock);
- 				pte_clear(&init_mm, addr, pte);
+@@ -1072,7 +1075,7 @@ out:
+ int __ref add_memory(int nid, u64 start, u64 size)
+ {
+ 	pg_data_t *pgdat = NULL;
+-	int new_pgdat = 0;
++	int new_pgdat = 0, new_node = 0;
+ 	struct resource *res;
+ 	int ret;
+ 
+@@ -1083,12 +1086,13 @@ int __ref add_memory(int nid, u64 start, u64 size)
+ 	if (!res)
+ 		goto out;
+ 
+-	if (!node_online(nid)) {
++	new_pgdat = NODE_DATA(nid) ? 0 : 1;
++	new_node = node_online(nid) ? 0 : 1;
++	if (new_node) {
+ 		pgdat = hotadd_new_pgdat(nid, start);
+ 		ret = -ENOMEM;
+ 		if (!pgdat)
+ 			goto error;
+-		new_pgdat = 1;
+ 	}
+ 
+ 	/* call arch's memory hotadd */
+@@ -1100,7 +1104,7 @@ int __ref add_memory(int nid, u64 start, u64 size)
+ 	/* we online node here. we can't roll back from here. */
+ 	node_set_online(nid);
+ 
+-	if (new_pgdat) {
++	if (new_node) {
+ 		ret = register_one_node(nid);
+ 		/*
+ 		 * If sysfs file of new node can't create, cpu on the node
 -- 
 1.7.1
 
