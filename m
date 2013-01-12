@@ -1,70 +1,65 @@
-From: Cong Ding <dinggnu@gmail.com>
-Date: Thu, 17 Jan 2013 13:16:04 +0000
-Subject: Re: [PATCH v2] sparc: kernel/sbus.c: fix memory leakage
-Message-Id: <20130117131604.GC25615@gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 12 Jan 2013 23:56:53 +0000
+Subject: [GIT] Sparc
+Message-Id: <20130112.155653.29239994621684430.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1358199372-11976-1-git-send-email-dinggnu@gmail.com>
- <20130116211309.GA13993@merkur.ravnborg.org>
- <20130116211725.GC18593@gmail.com>
- <20130116220018.GA14063@merkur.ravnborg.org>
- <20130116220153.GD18593@gmail.com>
- <50F7D577.8010506@oldelvet.org.uk>
- <20130117115637.GB25615@gmail.com>
- <50F7EED3.1050309@oldelvet.org.uk>
-In-Reply-To: <50F7EED3.1050309@oldelvet.org.uk>
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Richard Mortimer <richm@oldelvet.org.uk>
-Cc: Sam Ravnborg <sam@ravnborg.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Thu, Jan 17, 2013 at 12:30:11PM +0000, Richard Mortimer wrote:
-> 
-> 
-> On 17/01/2013 11:56, Cong Ding wrote:
-> >On Thu, Jan 17, 2013 at 10:41:59AM +0000, Richard Mortimer wrote:
-> >>
-> >>
-> >>On 16/01/2013 22:01, Cong Ding wrote:
-> >>>the variable iommu and strbuf are not freed if it goes to error.
-> >>>
-> >>>Signed-off-by: Cong Ding <dinggnu@gmail.com>
-> >>>---
-> >>>  arch/sparc/kernel/sbus.c |    2 ++
-> >>>  1 file changed, 2 insertions(+)
-> >>>
-> >>>diff --git a/arch/sparc/kernel/sbus.c b/arch/sparc/kernel/sbus.c
-> >>>index 1271b3a..78aa26b 100644
-> >>>--- a/arch/sparc/kernel/sbus.c
-> >>>+++ b/arch/sparc/kernel/sbus.c
-> >>>@@ -656,6 +656,8 @@ static void __init sbus_iommu_init(struct platform_device *op)
-> >>>  	return;
-> >>>
-> >>>  fatal_memory_error:
-> >>>+	kfree(strbuf);
-> >>
-> >>strbuf will be uninitialized if the iommu allocation fails. I don't
-> >>have a particular preference for how to fix this but tend to dislike
-> >>initial assignment with NULL because it hides other control flow
-> >>issues.
-> >Sorry I didn't notice strbuf will be uninitialized here. But if we don't
-> >initially assign a NULL value to strbuf, I cannot find a way to handle it
-> >besides the first version patch. Did you have any suggestions? For me, I like
-> >the first version.
-> 
-> Two thoughts...
-> 
-> 1 - just use a goto target for the iommu allocation failure and make
-> that skip the strbuf free call. The others use the existing
-> fatal_memory_error label.
-this looks ugly. If we do in this way, why not version 1?
-> 
-> 2 - Move the strbuf kzalloc up 2 lines so that it occurs before the
-> test for iommu.
-> 
-> 2b - In case (2) above the failure test could be changed to
-> if (!iommu || !strbuf)
-> to remove duplication of goto.
-I will send a new version by using this solution.
-Thanks, - cong
 
+1) Add finit_module syscall entry.
+
+2) Remove stray __dev{init,exit} references, from Sam Ravnborg.
+
+Please pull, thanks a lot!
+
+The following changes since commit c4271c6e37c32105492cbbed35f45330cb327b94:
+
+  NFS: Kill fscache warnings when mounting without -ofsc (2012-12-21 08:32:09 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc master
+
+for you to fetch changes up to b7c13f76fda994284521f6ef996119c25282bdeb:
+
+  sparc: remove __devinit, __devexit annotations (2013-01-12 15:28:45 -0800)
+
+----------------------------------------------------------------
+David S. Miller (1):
+      sparc: Hook up finit_module syscall.
+
+Sam Ravnborg (1):
+      sparc: remove __devinit, __devexit annotations
+
+ arch/sparc/include/asm/parport.h     |  6 +++---
+ arch/sparc/include/asm/timer_64.h    |  2 +-
+ arch/sparc/include/uapi/asm/unistd.h |  3 ++-
+ arch/sparc/kernel/apc.c              |  4 ++--
+ arch/sparc/kernel/auxio_64.c         |  2 +-
+ arch/sparc/kernel/central.c          |  6 +++---
+ arch/sparc/kernel/chmc.c             | 34 +++++++++++++++++-----------------
+ arch/sparc/kernel/ds.c               |  5 ++---
+ arch/sparc/kernel/ldc.c              |  2 +-
+ arch/sparc/kernel/leon_pci.c         |  2 +-
+ arch/sparc/kernel/leon_pci_grpci2.c  |  2 +-
+ arch/sparc/kernel/pci.c              | 37 ++++++++++++++++++-------------------
+ arch/sparc/kernel/pci_fire.c         |  6 +++---
+ arch/sparc/kernel/pci_psycho.c       | 12 ++++++------
+ arch/sparc/kernel/pci_sabre.c        |  9 ++++-----
+ arch/sparc/kernel/pci_schizo.c       | 16 +++++++---------
+ arch/sparc/kernel/pci_sun4v.c        | 15 +++++++--------
+ arch/sparc/kernel/pcic.c             |  5 ++---
+ arch/sparc/kernel/pmc.c              |  2 +-
+ arch/sparc/kernel/power.c            |  4 ++--
+ arch/sparc/kernel/smp_64.c           |  4 ++--
+ arch/sparc/kernel/systbls_32.S       |  2 +-
+ arch/sparc/kernel/systbls_64.S       |  4 ++--
+ arch/sparc/kernel/time_32.c          |  2 +-
+ arch/sparc/kernel/time_64.c          | 10 +++++-----
+ arch/sparc/mm/init_64.c              |  6 +++---
+ 26 files changed, 98 insertions(+), 104 deletions(-)
