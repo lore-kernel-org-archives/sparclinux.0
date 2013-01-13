@@ -1,65 +1,53 @@
-From: Herton Ronaldo Krzesinski <herton.krzesinski@canonical.com>
-Date: Wed, 16 Jan 2013 15:56:21 +0000
-Subject: [PATCH 181/222] sparc: huge_ptep_set_* functions need to call set_huge_pte_at()
-Message-Id: <1358351822-7675-182-git-send-email-herton.krzesinski@canonical.com>
+From: Chen Gang <gang.chen@asianux.com>
+Date: Sun, 13 Jan 2013 09:48:42 +0000
+Subject: [Regression] arch/arch: about pach and suggestions for strcpy
+Message-Id: <50F282FA.5030309@asianux.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1358351822-7675-1-git-send-email-herton.krzesinski@canonical.com>
-In-Reply-To: <1358351822-7675-1-git-send-email-herton.krzesinski@canonical.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org, kernel-team@lists.ubuntu.com
-Cc: Dave Kleikamp <dave.kleikamp@oracle.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Herton Ronaldo Krzesinski <herton.krzesinski@canonical.com>
+To: sparclinux@vger.kernel.org
 
-3.5.7.3 -stable review patch.  If anyone has any objections, please let me know.
+Hello Sam Ravnborg:
 
-------------------
+  firstly, I make an apology for the original impolite mails.
+    mutual respect is the base for communicating with each other,
+    so I should understand that get non-reply for original mails.
 
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
+  since I am in upstream (start Nov 2012):
+    I have made some patches and suggestions successful.
+    but I also made some technical faults which noted below:
 
-commit 6cb9c3697585c47977c42c5cc1b9fc49247ac530 upstream.
+      A) net/atm:  "%pM means format this pointer as a mac address", thank Chas Williams
+      B) net/tipc: "TIPC_MAX_IF_NAME is not TIPC_MAX_LINK_NAME", thank Xue Ying
+      C) net/core: "not see 'if (PAGE_SIZE - len < 3)' ", find by myself
+      D) MAINTAINER: "tty != serial",  thank Jiri Slaby and Joe Perches
+      E) drvers/staging/telephony: "torvalds' tree is different with next tree", thank devendra.aaru
+      F) drivers/staging/telephony: "we should probably fix it for older kernels", thank Dan Carpenter
+      G) drivers/usb/core: "doing DMA on the stack violates the DMA rules", thank Oliver Neukum
+      H) arch/blackfin/kernel: "%8s is used to take up the same space", thank Mike Frysinger and Steven Miao
+      I) drivers/usb/host: "usb_hcd_giveback_urb set urb->hcpriv to NULL", thank Alan Stern
+      J) net/atm:  "the max return value of snsprintf is the 2nd param - 1 or 0", find by myself
+      K) fs/ext3:  "on-disk encoding does not include e_id, if not ACL_USER, ACL_GROUP", thank Theodore Ts'o
+      L) fs/ext3:  "ACL_USER_OBJ ACL_USER*[1] ACL_GROUP_OBJ ACL_GROUP*[1] ACL_MASK[2] ACL_OTHER"
+                   [1] Where * is the regexp sense of "0 or more times"
+                   [2] Only if there is at least one ACL_USER or ACL_GROUP tag; otherwise skip ACL_MASK.
+                         thank Theodore Ts'o
+                   [2] If ACL_USER or ACL_GROUP is present, then ACL_MASK must be present.
+               	         thank Jan Kara
+      M) drivers/net/wireless/ipw2x00: "duplicate buffer to print different contents, at the same time"; find by myself
 
-Modifying the huge pte's requires that all the underlying pte's be
-modified.
+     I will still continue, since we are all improving, and our goal is to provide contributes to outside.
 
-Version 2: added missing flush_tlb_page()
+   I understand you are really busy:
+     I still suggest you to help checking the original patch and suggestions, when you have free time.
+     it is my fault, but they are innocence.
 
-Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Herton Ronaldo Krzesinski <herton.krzesinski@canonical.com>
----
- arch/sparc/include/asm/hugetlb.h |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/include/asm/hugetlb.h b/arch/sparc/include/asm/hugetlb.h
-index 1770610..f368cef 100644
---- a/arch/sparc/include/asm/hugetlb.h
-+++ b/arch/sparc/include/asm/hugetlb.h
-@@ -58,14 +58,20 @@ static inline pte_t huge_pte_wrprotect(pte_t pte)
- static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
- 					   unsigned long addr, pte_t *ptep)
- {
--	ptep_set_wrprotect(mm, addr, ptep);
-+	pte_t old_pte = *ptep;
-+	set_huge_pte_at(mm, addr, ptep, pte_wrprotect(old_pte));
- }
- 
- static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
- 					     unsigned long addr, pte_t *ptep,
- 					     pte_t pte, int dirty)
- {
--	return ptep_set_access_flags(vma, addr, ptep, pte, dirty);
-+	int changed = !pte_same(*ptep, pte);
-+	if (changed) {
-+		set_huge_pte_at(vma->vm_mm, addr, ptep, pte);
-+		flush_tlb_page(vma, addr);
-+	}
-+	return changed;
- }
- 
- static inline pte_t huge_ptep_get(pte_t *ptep)
--- 
-1.7.9.5
+   at last, sorry again for my original impolite mails.
 
+   :-)
+
+   Regards
+
+gchen
