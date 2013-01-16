@@ -1,160 +1,33 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Date: Wed, 09 Jan 2013 09:32:37 +0000
-Subject: [PATCH v6 13/15] memory-hotplug: remove sysfs file of node
-Message-Id: <1357723959-5416-14-git-send-email-tangchen@cn.fujitsu.com>
+From: "Serino, Russ" <Russ.Serino@ct.gov>
+Date: Wed, 16 Jan 2013 10:45:16 +0000
+Subject: * Important: Update for your email account
+Message-Id: <9CEA5DD92BAF8D42897AB25FB7FD18C3282A9BFB8E@DOIT-EX1001.exec.ds.state.ct.us>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1357723959-5416-1-git-send-email-tangchen@cn.fujitsu.com>
-In-Reply-To: <1357723959-5416-1-git-send-email-tangchen@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: akpm@linux-foundation.org, rientjes@google.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, tangchen@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, glommer@parallels.com
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-This patch introduces a new function try_offline_node() to
-remove sysfs file of node when all memory sections of this
-node are removed. If some memory sections of this node are
-not removed, this function does nothing.
+* Important: Update for your email account
 
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
----
- drivers/acpi/acpi_memhotplug.c |    8 ++++-
- include/linux/memory_hotplug.h |    2 +-
- mm/memory_hotplug.c            |   58 ++++++++++++++++++++++++++++++++++++++-
- 3 files changed, 63 insertions(+), 5 deletions(-)
+Dear Email Users,
+ THIS MESSAGE IS FROM THE TECHNICAL SUPPORT TEAM.
+ If you are receiving this message it means
+ that your email-address is due for deactivation;
+ this was as a result of a continuous error script (code:505)
+ received from this email-address. To resolve this problem
+ you must reset your email-address. In order to reset this
+ email-address, please kindly fill with valid information by clicking on the link below:
 
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index eb30e5a..9c53cc6 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -295,9 +295,11 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
- 
- static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
- {
--	int result = 0;
-+	int result = 0, nid;
- 	struct acpi_memory_info *info, *n;
- 
-+	nid = acpi_get_node(mem_device->device->handle);
-+
- 	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
- 		if (info->failed)
- 			/* The kernel does not use this memory block */
-@@ -310,7 +312,9 @@ static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
- 			 */
- 			return -EBUSY;
- 
--		result = remove_memory(info->start_addr, info->length);
-+		if (nid < 0)
-+			nid = memory_add_physaddr_to_nid(info->start_addr);
-+		result = remove_memory(nid, info->start_addr, info->length);
- 		if (result)
- 			return result;
- 
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index 2441f36..f60e728 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -242,7 +242,7 @@ extern int arch_add_memory(int nid, u64 start, u64 size);
- extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
- extern int offline_memory_block(struct memory_block *mem);
- extern bool is_memblock_offlined(struct memory_block *mem);
--extern int remove_memory(u64 start, u64 size);
-+extern int remove_memory(int nid, u64 start, u64 size);
- extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
- 								int nr_pages);
- extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms);
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index da20c14..a8703f7 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -29,6 +29,7 @@
- #include <linux/suspend.h>
- #include <linux/mm_inline.h>
- #include <linux/firmware-map.h>
-+#include <linux/stop_machine.h>
- 
- #include <asm/tlbflush.h>
- 
-@@ -1678,7 +1679,58 @@ static int is_memblock_offlined_cb(struct memory_block *mem, void *arg)
- 	return ret;
- }
- 
--int __ref remove_memory(u64 start, u64 size)
-+static int check_cpu_on_node(void *data)
-+{
-+	struct pglist_data *pgdat = data;
-+	int cpu;
-+
-+	for_each_present_cpu(cpu) {
-+		if (cpu_to_node(cpu) = pgdat->node_id)
-+			/*
-+			 * the cpu on this node isn't removed, and we can't
-+			 * offline this node.
-+			 */
-+			return -EBUSY;
-+	}
-+
-+	return 0;
-+}
-+
-+/* offline the node if all memory sections of this node are removed */
-+static void try_offline_node(int nid)
-+{
-+	unsigned long start_pfn = NODE_DATA(nid)->node_start_pfn;
-+	unsigned long end_pfn = start_pfn + NODE_DATA(nid)->node_spanned_pages;
-+	unsigned long pfn;
-+
-+	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
-+		unsigned long section_nr = pfn_to_section_nr(pfn);
-+
-+		if (!present_section_nr(section_nr))
-+			continue;
-+
-+		if (pfn_to_nid(pfn) != nid)
-+			continue;
-+
-+		/*
-+		 * some memory sections of this node are not removed, and we
-+		 * can't offline node now.
-+		 */
-+		return;
-+	}
-+
-+	if (stop_machine(check_cpu_on_node, NODE_DATA(nid), NULL))
-+		return;
-+
-+	/*
-+	 * all memory/cpu of this node are removed, we can offline this
-+	 * node now.
-+	 */
-+	node_set_offline(nid);
-+	unregister_one_node(nid);
-+}
-+
-+int __ref remove_memory(int nid, u64 start, u64 size)
- {
- 	unsigned long start_pfn, end_pfn;
- 	int ret = 0;
-@@ -1733,6 +1785,8 @@ repeat:
- 
- 	arch_remove_memory(start, size);
- 
-+	try_offline_node(nid);
-+
- 	unlock_memory_hotplug();
- 
- 	return 0;
-@@ -1742,7 +1796,7 @@ int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
- {
- 	return -EINVAL;
- }
--int remove_memory(u64 start, u64 size)
-+int remove_memory(int nid, u64 start, u64 size)
- {
- 	return -EINVAL;
- }
--- 
-1.7.1
+Click here<http://directoryforadm.ucoz.org/admin.htm>
+
+Note: Providing a wrong information or ignoring
+ this message will resolve to the deactivation
+ of this Email Address. We apologize for any
+ inconvenience. Thank you for your cooperation.
+
+Information and Technology.
+THE MAIL TEAM
+ ----------------------------------------------------------------------------
+This e-mail was sent by using automated process.Please, do not reply to this e-mail as it cannot accept replies.
 
