@@ -1,67 +1,57 @@
-From: Jan Kiszka <jan.kiszka@siemens.com>
-Date: Tue, 29 Jan 2013 14:25:55 +0000
-Subject: Re: [PATCH v5 16/20] scripts/gdb: Add internal helper and convenience function for per-cpu lookup
-Message-Id: <5107DBF3.6000802@siemens.com>
+From: Lin Feng <linfeng@cn.fujitsu.com>
+Date: Wed, 16 Jan 2013 08:14:17 +0000
+Subject: [PATCH v3 0/2] memory-hotplug: introduce CONFIG_HAVE_BOOTMEM_INFO_NODE and revert register_page_boot
+Message-Id: <1358324059-9608-1-git-send-email-linfeng@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1359463075.git.jan.kiszka@siemens.com> <04960fa208fbd9c0962eb4f70aa45d28aec59e8d.1359463075.git.jan.kiszka@siemens.com> <20130129135109.GF14302@pd.tnic> <5107D528.2010305@siemens.com> <20130129141202.GH14302@pd.tnic>
-In-Reply-To: <20130129141202.GH14302@pd.tnic>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: Borislav Petkov <bp@alien8.de>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Jason Wessel <jason.wessel@windriver.com>, kgdb-bugreport@lists.sourceforge.net, Andi Kleen <andi@firstfloor.org>, Tom Tromey <tromey@redhat.com>, Ben Widawsky <ben@bwidawsk.net>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: akpm@linux-foundation.org, mhocko@suse.cz, linux-mm@kvack.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, jbeulich@suse.com, dhowells@redhat.com, wency@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, paul.gortmaker@windriver.com, laijs@cn.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, minchan@kernel.org, aquini@redhat.com, jiang.liu@huawei.com, tony.luck@intel.com, fenghua.yu@intel.com, benh@kernel.crashing.org, paulus@samba.org, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, davem@davemloft.net, michael@ellerman.id.au, gerald.schaefer@de.ibm.com, gregkh@linuxfoundation.org
+Cc: x86@kernel.org, linux390@de.ibm.com, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, linfeng@cn.fujitsu.com, tangchen@cn.fujitsu.com
 
-On 2013-01-29 15:12, Borislav Petkov wrote:
-> On Tue, Jan 29, 2013 at 02:56:56PM +0100, Jan Kiszka wrote:
->> Let me guess: You are dumping a weird QEMU/KVM CPU, right?
->=20
-> Nah, I actually have the silicon! :-)
->=20
-> Joking, of course. I wish. I'm booting the guest with -cpu phenom (it
-> has been like that since forever in my boot-kernel-in-kvm script) but
-> the host is Intel.
->=20
-> If I do this on an AMD host, all is ok:
->=20
-> (gdb) p $lx_per_cpu("cpu_info").x86_vendor_id
-> $1 =3D "AuthenticAMD\000\000\000"
-> (gdb) p $lx_per_cpu("cpu_info").x86_model_id
-> $2 =3D "AMD Phenom(tm) 9550 Quad-Core Processor", '\000' <repeats 24 time=
-s>
-> (gdb)
+Memory-hotplug codes for x86_64 have been implemented by patchset:
+https://lkml.org/lkml/2013/1/9/124
+While other platforms haven't been completely implemented yet.
 
-Remains a bug of QEMU, though possibly a minor one.
+If we enable both CONFIG_MEMORY_HOTPLUG_SPARSE and CONFIG_SPARSEMEM_VMEMMAP,
+register_page_bootmem_info_node() may be buggy, which is a hotplug generic
+function but falling back to call platform related function
+register_page_bootmem_memmap().
 
->=20
-> [ =E2=80=A6 ]
->=20
->>>> +class PerCpu(gdb.Function):
->>>> +	__doc__ =3D "Return per-cpu variable.\n" \
->>>> +		  "\n" \
->>>> +		  "$lx_per_cpu(\"VAR\"[, CPU]): Return the per-cpu variable called =
-VAR for the\n" \
->>>> +		  "given CPU number. If CPU is omitted, the CPU of the current cont=
-ext is used.\n" \
->>>> +		  "Note that VAR has to be quoted as string."
->>>
->>>
->>> Ok, seriously now:
->>>
->>> apropos shows the "Return per-cpu... " line above. Have you found out
->>> which gdb command shows the rest? help and info both say "Undefined
->>> command".
->>
->> help function lx_...
->>
->> It took me a while to find this, too.
->=20
-> Maybe worth documenting it then at the end of gdb-kernel-debugging.txt?
->=20
+Other platforms such as powerpc it's not implemented, so on such platforms,
+revert them to empty as they were before.
 
-Done. Will come with v6 (if needed), otherwise as an add-on patch.
+It's implemented by adding a new Kconfig option named
+CONFIG_HAVE_BOOTMEM_INFO_NODE, which will be automatically selected by
+memory-hotplug supported archs(currently only on x86_64).
 
-Thanks,
-Jan
+changeLog v2->v3:
+1) patch 1/2:
+- Rename the patch title to conform it's content.
+- Update memory_hotplug.h and remove the misleading TODO pointed out by Michal.
+2) patch 2/2:
+- New added, remove unimplemented functions suggested by Michal.
 
---=20
-Siemens AG, Corporate Technology, CT RTC ITP SDP-DE
-Corporate Competence Center Embedded Linux
+ChangeLog v1->v2:
+1) patch 1/2:
+- Add a Kconfig option named HAVE_BOOTMEM_INFO_NODE suggested by Michal, which
+  will be automatically selected by supported archs(currently only on x86_64).
+
+Lin Feng (1):
+  memory-hotplug: revert register_page_bootmem_info_node() to empty
+    when platform related code is not implemented
+
+Michal Hocko (1):
+  memory-hotplug: cleanup: removing the arch specific functions without
+    any implementation
+
+ arch/ia64/mm/discontig.c       |    5 -----
+ arch/powerpc/mm/init_64.c      |    5 -----
+ arch/s390/mm/vmem.c            |    6 ------
+ arch/sparc/mm/init_64.c        |    5 -----
+ arch/x86/mm/init_64.c          |    2 +-
+ include/linux/memory_hotplug.h |    6 ++++++
+ mm/Kconfig                     |    8 ++++++++
+ mm/memory_hotplug.c            |    2 ++
+ 8 files changed, 17 insertions(+), 22 deletions(-)
+
