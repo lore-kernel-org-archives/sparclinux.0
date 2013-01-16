@@ -1,106 +1,65 @@
-From: Jan Kiszka <jan.kiszka@siemens.com>
-Date: Mon, 21 Jan 2013 17:06:19 +0000
-Subject: [PATCH v4 12/13] scripts/gdb: Add internal helper and convenience function for per-cpu lookup
-Message-Id: <e913509a1d1aa0e28cd118fb3fdd4dd277f8592b.1358787929.git.jan.kiszka@siemens.com>
+From: Herton Ronaldo Krzesinski <herton.krzesinski@canonical.com>
+Date: Wed, 16 Jan 2013 15:56:21 +0000
+Subject: [PATCH 181/222] sparc: huge_ptep_set_* functions need to call set_huge_pte_at()
+Message-Id: <1358351822-7675-182-git-send-email-herton.krzesinski@canonical.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1358787929.git.jan.kiszka@siemens.com>
-In-Reply-To: <cover.1358787929.git.jan.kiszka@siemens.com>
+References: <1358351822-7675-1-git-send-email-herton.krzesinski@canonical.com>
+In-Reply-To: <1358351822-7675-1-git-send-email-herton.krzesinski@canonical.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
-Cc: Jason Wessel <jason.wessel@windriver.com>, kgdb-bugreport@lists.sourceforge.net, Andi Kleen <andi@firstfloor.org>, Tom Tromey <tromey@redhat.com>, Ben Widawsky <ben@bwidawsk.net>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org, kernel-team@lists.ubuntu.com
+Cc: Dave Kleikamp <dave.kleikamp@oracle.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Herton Ronaldo Krzesinski <herton.krzesinski@canonical.com>
 
-This function allows to obtain a per-cpu variable, either of the current
-or an explicitly specified CPU.
+3.5.7.3 -stable review patch.  If anyone has any objections, please let me know.
 
-Note: sparc64 version is untested.
+------------------
 
-CC: "David S. Miller" <davem@davemloft.net>
-CC: sparclinux@vger.kernel.org
-Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
+
+commit 6cb9c3697585c47977c42c5cc1b9fc49247ac530 upstream.
+
+Modifying the huge pte's requires that all the underlying pte's be
+modified.
+
+Version 2: added missing flush_tlb_page()
+
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Herton Ronaldo Krzesinski <herton.krzesinski@canonical.com>
 ---
- scripts/gdb/percpu.py      |   61 ++++++++++++++++++++++++++++++++++++++++++++
- scripts/gdb/vmlinux-gdb.py |    1 +
- 2 files changed, 62 insertions(+), 0 deletions(-)
- create mode 100644 scripts/gdb/percpu.py
+ arch/sparc/include/asm/hugetlb.h |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/scripts/gdb/percpu.py b/scripts/gdb/percpu.py
-new file mode 100644
-index 0000000..e2556919
---- /dev/null
-+++ b/scripts/gdb/percpu.py
-@@ -0,0 +1,61 @@
-+#
-+# gdb helper commands and functions for Linux kernel debugging
-+#
-+#  per-cpu tools
-+#
-+# Copyright (c) Siemens AG, 2011, 2012
-+#
-+# Authors:
-+#  Jan Kiszka <jan.kiszka@siemens.com>
-+#
-+# This work is licensed under the terms of the GNU GPL version 2.
-+#
-+
-+import gdb
-+
-+from utils import *
-+from task import *
-+
-+MAX_CPUS = 4096
-+
-+def get_current_cpu():
-+	if get_gdbserver_type() = GDBSERVER_QEMU:
-+		return gdb.selected_thread().num - 1
-+	elif get_gdbserver_type() = GDBSERVER_KGDB:
-+		tid = gdb.selected_thread().ptid[2]
-+		if tid > (0x100000000 - MAX_CPUS - 2):
-+			return 0x100000000 - tid - 2
-+		else:
-+			return get_thread_info(get_task_by_pid(tid))['cpu']
-+	else:
-+		raise gdb.GdbError("Sorry, obtaining the current CPU is "
-+				   "not yet supported with this gdb server.")
-+
-+def per_cpu(var_name, cpu):
-+	var = gdb.parse_and_eval("&" + var_name)
-+	if cpu = -1:
-+		cpu = get_current_cpu()
-+	if is_target_arch("sparc:v9"):
-+		offset = gdb.parse_and_eval("trap_block[" + str(cpu) +
-+					    "].__per_cpu_base")
-+	else:
-+		offset = gdb.parse_and_eval("__per_cpu_offset[" + str(cpu) +
-+					    "]")
-+	pointer = var.cast(get_long_type()) + offset
-+	return pointer.cast(var.type).dereference()
-+
-+
-+class PerCpu(gdb.Function):
-+	__doc__ = "Return per-cpu variable.\n" \
-+		  "\n" \
-+		  "$lx_per_cpu(\"VAR\"[, CPU]): Return the per-cpu variable called VAR for the\n" \
-+		  "given CPU number. If CPU is omitted, the CPU of the current context is used.\n" \
-+		  "Note that VAR has to be quoted as string."
-+
-+	def __init__(self):
-+		super(PerCpu, self).__init__("lx_per_cpu")
-+
-+	def invoke(self, var_name, cpu = -1):
-+		return per_cpu(var_name.string(), cpu)
-+
-+PerCpu()
-diff --git a/scripts/gdb/vmlinux-gdb.py b/scripts/gdb/vmlinux-gdb.py
-index e78b353..6606247 100644
---- a/scripts/gdb/vmlinux-gdb.py
-+++ b/scripts/gdb/vmlinux-gdb.py
-@@ -25,3 +25,4 @@ else:
- 	import symbols
- 	import dmesg
- 	import task
-+	import percpu
+diff --git a/arch/sparc/include/asm/hugetlb.h b/arch/sparc/include/asm/hugetlb.h
+index 1770610..f368cef 100644
+--- a/arch/sparc/include/asm/hugetlb.h
++++ b/arch/sparc/include/asm/hugetlb.h
+@@ -58,14 +58,20 @@ static inline pte_t huge_pte_wrprotect(pte_t pte)
+ static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
+ 					   unsigned long addr, pte_t *ptep)
+ {
+-	ptep_set_wrprotect(mm, addr, ptep);
++	pte_t old_pte = *ptep;
++	set_huge_pte_at(mm, addr, ptep, pte_wrprotect(old_pte));
+ }
+ 
+ static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
+ 					     unsigned long addr, pte_t *ptep,
+ 					     pte_t pte, int dirty)
+ {
+-	return ptep_set_access_flags(vma, addr, ptep, pte, dirty);
++	int changed = !pte_same(*ptep, pte);
++	if (changed) {
++		set_huge_pte_at(vma->vm_mm, addr, ptep, pte);
++		flush_tlb_page(vma, addr);
++	}
++	return changed;
+ }
+ 
+ static inline pte_t huge_ptep_get(pte_t *ptep)
 -- 
-1.7.3.4
+1.7.9.5
 
