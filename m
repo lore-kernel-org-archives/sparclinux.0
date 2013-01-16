@@ -1,63 +1,96 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Date: Wed, 09 Jan 2013 20:35:16 +0000
-Subject: [ 077/123] sparc: huge_ptep_set_* functions need to call set_huge_pte_at()
-Message-Id: <20130109201508.487031855@linuxfoundation.org>
+From: Lin Feng <linfeng@cn.fujitsu.com>
+Date: Wed, 16 Jan 2013 08:14:19 +0000
+Subject: [PATCH 2/2] memory-hotplug: cleanup: removing the arch specific functions without any implementation
+Message-Id: <1358324059-9608-3-git-send-email-linfeng@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20130109201458.392601412@linuxfoundation.org>
-In-Reply-To: <20130109201458.392601412@linuxfoundation.org>
+References: <1358324059-9608-1-git-send-email-linfeng@cn.fujitsu.com>
+In-Reply-To: <1358324059-9608-1-git-send-email-linfeng@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, alan@lxorguk.ukuu.org.uk, Dave Kleikamp <dave.kleikamp@oracle.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@suse.cz, linux-mm@kvack.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, jbeulich@suse.com, dhowells@redhat.com, wency@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, paul.gortmaker@windriver.com, laijs@cn.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, minchan@kernel.org, aquini@redhat.com, jiang.liu@huawei.com, tony.luck@intel.com, fenghua.yu@intel.com, benh@kernel.crashing.org, paulus@samba.org, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, davem@davemloft.net, michael@ellerman.id.au, gerald.schaefer@de.ibm.com, gregkh@linuxfoundation.org
+Cc: x86@kernel.org, linux390@de.ibm.com, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, linfeng@cn.fujitsu.com, tangchen@cn.fujitsu.com
 
-3.7-stable review patch.  If anyone has any objections, please let me know.
+From: Michal Hocko <mhocko@suse.cz>
 
-------------------
+After introducing CONFIG_HAVE_BOOTMEM_INFO_NODE Kconfig option, the related arch
+specific functions become confusing, remove them.
 
+Guys who want to implement memory-hotplug feature on such archs for this part
+should look into register_page_bootmem_info_node() and flesh out from top to
+end.
 
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-
-[ Upstream commit 6cb9c3697585c47977c42c5cc1b9fc49247ac530 ]
-
-Modifying the huge pte's requires that all the underlying pte's be
-modified.
-
-Version 2: added missing flush_tlb_page()
-
-Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Lin Feng <linfeng@cn.fujitsu.com>
 ---
- arch/sparc/include/asm/hugetlb.h |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ arch/ia64/mm/discontig.c  |    5 -----
+ arch/powerpc/mm/init_64.c |    5 -----
+ arch/s390/mm/vmem.c       |    6 ------
+ arch/sparc/mm/init_64.c   |    5 -----
+ 4 files changed, 0 insertions(+), 21 deletions(-)
 
---- a/arch/sparc/include/asm/hugetlb.h
-+++ b/arch/sparc/include/asm/hugetlb.h
-@@ -61,14 +61,20 @@ static inline pte_t huge_pte_wrprotect(p
- static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
- 					   unsigned long addr, pte_t *ptep)
+diff --git a/arch/ia64/mm/discontig.c b/arch/ia64/mm/discontig.c
+index 882a0fd..cb5e1ff 100644
+--- a/arch/ia64/mm/discontig.c
++++ b/arch/ia64/mm/discontig.c
+@@ -827,9 +827,4 @@ void vmemmap_free(struct page *memmap, unsigned long nr_pages)
  {
--	ptep_set_wrprotect(mm, addr, ptep);
-+	pte_t old_pte = *ptep;
-+	set_huge_pte_at(mm, addr, ptep, pte_wrprotect(old_pte));
  }
  
- static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
- 					     unsigned long addr, pte_t *ptep,
- 					     pte_t pte, int dirty)
+-void register_page_bootmem_memmap(unsigned long section_nr,
+-				  struct page *start_page, unsigned long size)
+-{
+-	/* TODO */
+-}
+ #endif
+diff --git a/arch/powerpc/mm/init_64.c b/arch/powerpc/mm/init_64.c
+index 2969591..7e2246f 100644
+--- a/arch/powerpc/mm/init_64.c
++++ b/arch/powerpc/mm/init_64.c
+@@ -302,10 +302,5 @@ void vmemmap_free(struct page *memmap, unsigned long nr_pages)
  {
--	return ptep_set_access_flags(vma, addr, ptep, pte, dirty);
-+	int changed = !pte_same(*ptep, pte);
-+	if (changed) {
-+		set_huge_pte_at(vma->vm_mm, addr, ptep, pte);
-+		flush_tlb_page(vma, addr);
-+	}
-+	return changed;
  }
  
- static inline pte_t huge_ptep_get(pte_t *ptep)
-
+-void register_page_bootmem_memmap(unsigned long section_nr,
+-				  struct page *start_page, unsigned long size)
+-{
+-	/* TODO */
+-}
+ #endif /* CONFIG_SPARSEMEM_VMEMMAP */
+ 
+diff --git a/arch/s390/mm/vmem.c b/arch/s390/mm/vmem.c
+index 81e6ba3..fa09c2f 100644
+--- a/arch/s390/mm/vmem.c
++++ b/arch/s390/mm/vmem.c
+@@ -276,12 +276,6 @@ void vmemmap_free(struct page *memmap, unsigned long nr_pages)
+ {
+ }
+ 
+-void register_page_bootmem_memmap(unsigned long section_nr,
+-				  struct page *start_page, unsigned long size)
+-{
+-	/* TODO */
+-}
+-
+ /*
+  * Add memory segment to the segment list if it doesn't overlap with
+  * an already present segment.
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index 5afe21a..76ac544 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -2236,11 +2236,6 @@ void vmemmap_free(struct page *memmap, unsigned long nr_pages)
+ {
+ }
+ 
+-void register_page_bootmem_memmap(unsigned long section_nr,
+-				  struct page *start_page, unsigned long size)
+-{
+-	/* TODO */
+-}
+ #endif /* CONFIG_SPARSEMEM_VMEMMAP */
+ 
+ static void prot_init_common(unsigned long page_none,
+-- 
+1.7.1
 
