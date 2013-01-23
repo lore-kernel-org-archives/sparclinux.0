@@ -1,7 +1,7 @@
-From: Joris van Rantwijk <jorisvr@sron.nl>
-Date: Wed, 23 Jan 2013 22:01:28 +0000
+From: Julian Calaby <julian.calaby@gmail.com>
+Date: Wed, 23 Jan 2013 22:02:41 +0000
 Subject: Re: Kernel panic on FPU instruction without FPU present
-Message-Id: <20130123230128.6d1cd1a9@bever>
+Message-Id: <CAGRGNgXRimjiaZnh-sFGgddCEaa4=iZP5RjjCp+oV0nFv-ijBw@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20130123203325.1e330a9a@bever>
 In-Reply-To: <20130123203325.1e330a9a@bever>
@@ -10,23 +10,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 2013-01-23, David Miller wrote:
+Hi David,
+
+On Thu, Jan 24, 2013 at 7:50 AM, David Miller <davem@davemloft.net> wrote:
+>
 > I don't think we're going to support chips that lack an FPU,
 > sorry.
-
-Ok, fair enough.
-The kernel has explicit support for the LEON3 in several places, and I
-automatically assumed that it would aim to support all possible
-configurations. But I guess it makes sense to draw the line somewhere,
-especially if all other SPARC variants have built-in FPUs.
-
+>
 > You can't even run the simplest things like the python interpreter
 > without FPU support, the first thing it does during initialization
 > is do a floating point square root.
 
-You can of course still run such things as long as all of userland is
-compiled with a toolchain that emulates floating point on compiler
-level (i.e. GCC --with-float=soft). This is a fairly normal way to
-build software for LEON3.
+As Joris said, you can compile software to do their floating point
+calculations in software - I believe the option is --no-fpu in gcc -
+however the entire toolchain needs to be compiled with support for
+this.
+ - http://gcc.gnu.org/wiki/Software_floating_point
+ - http://gcc.gnu.org/onlinedocs/gcc/SPARC-Options.html
+ - http://stackoverflow.com/questions/1018638/using-software-floating-point-on-x86-linux
 
-Thanks, Joris.
+Also, ignoring the massive amount of work this would take, would it be
+possible to handle the trap by hooking into the kernel's soft float
+implementation instead?
+
+Personally, I don't see any issue with printing a scary message and
+killing the task if it tries to do floating point on a system without
+it.
+
+Thanks,
+
+-- 
+Julian Calaby
+
+Email: julian.calaby@gmail.com
+Profile: http://www.google.com/profiles/julian.calaby/
+.Plan: http://sites.google.com/site/juliancalaby/
