@@ -1,44 +1,62 @@
-From: Christoph Lameter <cl@linux.com>
-Date: Wed, 02 Jan 2013 14:24:17 +0000
-Subject: Re: [PATCH v5 04/14] memory-hotplug: remove /sys/firmware/memmap/X sysfs
-Message-Id: <0000013bfba5f7f2-ba70da31-0707-48fd-949e-0bad11ba0e10-000000@email.amazonses.com>
+From: Joris van Rantwijk <jorisvr@sron.nl>
+Date: Wed, 23 Jan 2013 19:33:25 +0000
+Subject: Kernel panic on FPU instruction without FPU present
+Message-Id: <20130123203325.1e330a9a@bever>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1356350964-13437-1-git-send-email-tangchen@cn.fujitsu.com> <1356350964-13437-5-git-send-email-tangchen@cn.fujitsu.com> <50DA6F5A.2070601@jp.fujitsu.com> <50DBBBEF.70701@cn.fujitsu.com>
-In-Reply-To: <50DBBBEF.70701@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, akpm@linux-foundation.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Thu, 27 Dec 2012, Tang Chen wrote:
+Hello,
 
-> On 12/26/2012 11:30 AM, Kamezawa Hiroyuki wrote:
-> >> @@ -41,6 +42,7 @@ struct firmware_map_entry {
-> >>    	const char		*type;	/* type of the memory range */
-> >>    	struct list_head	list;	/* entry for the linked list */
-> >>    	struct kobject		kobj;   /* kobject for each entry */
-> >> +	unsigned int		bootmem:1; /* allocated from bootmem */
-> >>    };
-> >
-> > Can't we detect from which the object is allocated from, slab or bootmem ?
-> >
-> > Hm, for example,
-> >
-> >      PageReserved(virt_to_page(address_of_obj)) ?
-> >      PageSlab(virt_to_page(address_of_obj)) ?
-> >
->
-> Hi Kamezawa-san,
->
-> I think we can detect it without a new member. I think bootmem:1 member
-> is just for convenience. I think I can remove it. :)
+I'm running Linux on a LEON3 SparcV8 without floating point unit
+present (the PSR_EF bit is hardwired to 0).
 
-Larger size slab allocations may fall back to the page allocator but then
-the slabs do not track this allocation. That memory can be freed using the
-page allocator.
+I noticed that I can easily cause a kernel panic by running a
+user-mode application with an FPU instruction in it.
 
-If you see pageslab then you can always remove using the slab allocator.
-Otherwise the page allocator should work (unless it was some
-special case bootmem allocation).
+The FPU instruction traps to do_fpd_trap().
+The kernel then tries to enable the FPU by setting PSR_EF and performs
+an FPU context switch. During the FPU context switch, the kernel itself
+executes an FPU instruction, which jumps to do_fpd_trap() and then the
+system dies.
 
+I prepared a patch which modifies do_fpd_trap() to be more graceful
+on machines that can not enable PSR_EF.
+Tested on Linux 3.7.1 and Linux 3.8-rc4.
+
+Can anyone here decide if this is the right approach and help me to
+get this fixed in the kernel?
+
+Thanks, Joris.
+
+
+diff -U 5 -urN linux-3.7.1/arch/sparc/kernel/traps_32.c linux-3.7.1-sparcfp/arch/sparc/kernel/traps_32.c
+--- linux-3.7.1/arch/sparc/kernel/traps_32.c	2012-12-17 20:14:54.000000000 +0100
++++ linux-3.7.1-sparcfp/arch/sparc/kernel/traps_32.c	2013-01-20 19:38:02.616017770 +0100
+@@ -183,10 +183,24 @@
+ 	/* Sanity check... */
+ 	if(psr & PSR_PS)
+ 		die_if_kernel("Kernel gets FloatingPenguinUnit disabled trap", regs);
+ 
+ 	put_psr(get_psr() | PSR_EF);    /* Allow FPU ops. */
++
++	if ((get_psr() & PSR_EF) = 0) {
++		/* No FPU present. Do not kill the kernel in this case. */
++		siginfo_t info;
++		printk(KERN_INFO "%s[%d]: no FPU present PC=%08lx\n", current->comm, task_pid_nr(current), pc);
++		info.si_signo = SIGFPE;
++		info.si_errno = 0;
++		info.si_addr = (void __user *)pc;
++		info.si_trapno = 0;
++		info.si_code = __SI_FAULT;
++		force_sig_info(SIGFPE, &info, current);
++		return;
++	}
++
+ 	regs->psr |= PSR_EF;
+ #ifndef CONFIG_SMP
+ 	if(last_task_used_math = current)
+ 		return;
+ 	if(last_task_used_math) {
