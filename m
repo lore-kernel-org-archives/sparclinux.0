@@ -1,63 +1,16 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Date: Wed, 09 Jan 2013 20:35:48 +0000
-Subject: [ 56/80] sparc: huge_ptep_set_* functions need to call set_huge_pte_at()
-Message-Id: <20130109201507.629452294@linuxfoundation.org>
+From: "Trallero Sanz Antonio Miguel" <antonio.trallero@uah.es>
+Date: Thu, 24 Jan 2013 14:09:29 +0000
+Subject: Re: Helpdesk Require Your Quick Response
+Message-Id: <A57D6F5061C32E45801CEB118121C03708038D58@X-EVS-01.uah.es>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20130109201500.410171651@linuxfoundation.org>
-In-Reply-To: <20130109201500.410171651@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, alan@lxorguk.ukuu.org.uk, Dave Kleikamp <dave.kleikamp@oracle.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-3.4-stable review patch.  If anyone has any objections, please let me know.
+Attention;
+There've been an automatic security update on your email address. 
 
-------------------
+Click Here <http://ow.ly/h5xe4> 
 
-
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-
-[ Upstream commit 6cb9c3697585c47977c42c5cc1b9fc49247ac530 ]
-
-Modifying the huge pte's requires that all the underlying pte's be
-modified.
-
-Version 2: added missing flush_tlb_page()
-
-Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
----
- arch/sparc/include/asm/hugetlb.h |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
-
---- a/arch/sparc/include/asm/hugetlb.h
-+++ b/arch/sparc/include/asm/hugetlb.h
-@@ -58,14 +58,20 @@ static inline pte_t huge_pte_wrprotect(p
- static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
- 					   unsigned long addr, pte_t *ptep)
- {
--	ptep_set_wrprotect(mm, addr, ptep);
-+	pte_t old_pte = *ptep;
-+	set_huge_pte_at(mm, addr, ptep, pte_wrprotect(old_pte));
- }
- 
- static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
- 					     unsigned long addr, pte_t *ptep,
- 					     pte_t pte, int dirty)
- {
--	return ptep_set_access_flags(vma, addr, ptep, pte, dirty);
-+	int changed = !pte_same(*ptep, pte);
-+	if (changed) {
-+		set_huge_pte_at(vma->vm_mm, addr, ptep, pte);
-+		flush_tlb_page(vma, addr);
-+	}
-+	return changed;
- }
- 
- static inline pte_t huge_ptep_get(pte_t *ptep)
-
-
+Please note that you have within 24 hours to complete this update. because you might lose acess to your email box
