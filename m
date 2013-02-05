@@ -1,20 +1,20 @@
 From: "From Mrs. Doris Kula" <mrsdoriskula@gmail.com>
-Date: Tue, 05 Feb 2013 07:45:41 +0000
+Date: Tue, 05 Feb 2013 14:07:13 +0000
 Subject: From Mrs. Doris Kula
-Message-Id: <1360050341.56924.YahooMailClassic@web5719.biz.mail.ne1.yahoo.com>
+Message-Id: <1360073233.30269.YahooMailClassic@web5702.biz.mail.ne1.yahoo.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="-1772018104-1878228017-1360050342=:56924"
+Content-Type: multipart/mixed; boundary="-1206156689-399449869-1360073233=:30269"
 List-Id: <sparclinux.vger.kernel.org>
 References: <1359972837.72405.YahooMailClassic@web5709.biz.mail.ne1.yahoo.com>
 In-Reply-To: <1359972837.72405.YahooMailClassic@web5709.biz.mail.ne1.yahoo.com>
 To: sparclinux@vger.kernel.org
 
----1772018104-1878228017-1360050342=:56924
+---1206156689-399449869-1360073233=:30269
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
 PLEASE OPEN ATTACHMENT FOR MY LETTER TO YOU
----1772018104-1878228017-1360050342=:56924
+---1206156689-399449869-1360073233=:30269
 Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document; name=From
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="From DORIS KULA.docx"
@@ -305,4 +305,4 @@ AABZJAAAZG9jUHJvcHMvY29yZS54bWxQSwECLQAUAAYACAAAACEAUwz3t/YH
 AADiPQAADwAAAAAAAAAAAAAAAAACJwAAd29yZC9zdHlsZXMueG1sUEsFBgAA
 AAALAAsAwQIAACUvAAAAAA==
 
----1772018104-1878228017-1360050342=:56924--
+---1206156689-399449869-1360073233=:30269--
