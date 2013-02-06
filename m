@@ -1,36 +1,29 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 14 Feb 2013 20:12:33 +0000
-Subject: [PATCH] sunvdc: Fix off-by-one in generic_request().
-Message-Id: <20130214.151233.851123821156758130.davem@davemloft.net>
+From: Renato Sison <dedesam2@gmail.com>
+Date: Wed, 06 Feb 2013 10:14:26 +0000
+Subject: CONTACT ME.
+Message-Id: <CAN4RwSR6Jv-Q=bLBo1NzjfZJscrU5xtd1RqOyOMQprJwfABEoQ@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Madam,
 
-The 'operations' bitmap corresponds one-for-one with the operation
-codes, no adjustment is necessary.
+I understand your health situation right now and I am so sorry about
+it. I really do hope you recover quickly because we have work to do. I
+agree we have to do everything by email but I need you to confirm to
+me if you received the the re-validation form I emailed to you again
+on the 9th of January that you asked me to resend to you. Did you see
+it in your inbox? If you have the forms, I dont know how long it will
+take before you can talk and write again, so you fill out the forms,
+sign off on it and provide the amount required to process the forms
+which you assured me will be ready on the 3rd of January but because
+of the funeral you had and you needed to be out of town, I decided to
+wait till you get back so you fill out the forms and return it with
+the stated amount (2,150 Pounds). I am waiting for your quick response
+to this email.
 
-Reported-by: Mark Kettenis <mark.kettenis@xs4all.nl>
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- drivers/block/sunvdc.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/block/sunvdc.c b/drivers/block/sunvdc.c
-index 564156a..5814deb 100644
---- a/drivers/block/sunvdc.c
-+++ b/drivers/block/sunvdc.c
-@@ -461,7 +461,7 @@ static int generic_request(struct vdc_port *port, u8 op, void *buf, int len)
- 	int op_len, err;
- 	void *req_buf;
- 
--	if (!(((u64)1 << ((u64)op - 1)) & port->operations))
-+	if (!(((u64)1 << (u64)op) & port->operations))
- 		return -EOPNOTSUPP;
- 
- 	switch (op) {
--- 
-1.7.11.7
-
+Yours faithfully,
+Renato Sison-Esq.
+D-Line: 44 (703) 198 3411
