@@ -1,46 +1,95 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Date: Thu, 07 Feb 2013 07:56:35 +0000
-Subject: Re: [PATCH v5 01/14] memory-hotplug: try to offline the memory twice to avoid dependence
-Message-Id: <51135E33.4060508@cn.fujitsu.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Date: Mon, 11 Feb 2013 21:15:32 +0000
+Subject: [PATCH] of: fix recursive locking in of_get_next_available_child()
+Message-Id: <1360617332-2738-1-git-send-email-swarren@wwwdotorg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1356350964-13437-1-git-send-email-tangchen@cn.fujitsu.com> <1356350964-13437-2-git-send-email-tangchen@cn.fujitsu.com> <50D96543.6010903@parallels.com> <50DFD7F7.5090408@cn.fujitsu.com> <50ED8834.1090804@parallels.com> <5111C8EB.6090805@cn.fujitsu.com> <51121FB7.1070205@cn.fujitsu.com> <51122C1D.5020002@cn.fujitsu.com> <5112679A.7080600@parallels.com>
-In-Reply-To: <5112679A.7080600@parallels.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Glauber Costa <glommer@parallels.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>, akpm@linux-foundation.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Miao Xie <miaox@cn.fujitsu.com>
+To: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, Thomas Gleixner <tglx@linutronix.de>, linux-rt-users@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>, linux-next@vger.kernel.org, Stephen Warren <swarren@nvidia.com>
 
-On 02/06/2013 10:24 PM, Glauber Costa wrote:
->>>> And one more question, a memory section is 128MB in Linux. If we reserve
->>>> part of the them for page_cgroup,
->>>> then anyone who wants to allocate a contiguous memory larger than 128MB,
->>>> it will fail, right ?
->>>> Is it OK ?
-> No, it is not.
->
-> Another take on this: Can't we free all the page_cgroup structure before
-> we actually start removing the sections ? If we do this, we would be
-> basically left with no problem at all, since when your code starts
-> running we would no longer have any page_cgroup allocated.
->
-> All you have to guarantee is that it happens after the memory block is
-> already isolated and allocations no longer can reach it.
->
-> What do you think ?
+From: Stephen Warren <swarren@nvidia.com>
 
-Hi Glauber,
+of_get_next_available_child() acquires devtree_lock, then calls
+of_device_is_available() which calls of_get_property() which calls
+of_find_property() which tries to re-acquire devtree_lock, thus causing
+deadlock.
 
-I don't think so. We can offline some of the sections and leave the 
-reset online.
+To avoid this, create a new __of_device_is_available() which calls
+__of_get_property() instead, which calls __of_find_property(), which
+does not take the lock,. Update of_get_next_available_child() to call
+the new __of_device_is_available() since it already owns the lock.
 
-For example, we store page_cgroups of memory9~11 in memory8. So when we 
-offline memory8,
-we free memory8's page_cgroup storing on other section, but we cannot 
-free the page_cgroups
-being stored in memory8 if memory9~11 are left online.
+Signed-off-by: Stephen Warren <swarren@nvidia.com>
+---
+ drivers/of/base.c |   30 +++++++++++++++++++++++++-----
+ 1 file changed, 25 insertions(+), 5 deletions(-)
 
-So we still need to offline memory9~11, and then offline memory8, right ?
-I think it makes no difference.
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index e8d65af..f7a87ce 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -290,19 +290,19 @@ int of_machine_is_compatible(const char *compat)
+ EXPORT_SYMBOL(of_machine_is_compatible);
+ 
+ /**
+- *  of_device_is_available - check if a device is available for use
++ *  __of_device_is_available - check if a device is available for use
+  *
+- *  @device: Node to check for availability
++ *  @device: Node to check for availability, with locks already held
+  *
+  *  Returns 1 if the status property is absent or set to "okay" or "ok",
+  *  0 otherwise
+  */
+-int of_device_is_available(const struct device_node *device)
++static int __of_device_is_available(const struct device_node *device)
+ {
+ 	const char *status;
+ 	int statlen;
+ 
+-	status = of_get_property(device, "status", &statlen);
++	status = __of_get_property(device, "status", &statlen);
+ 	if (status = NULL)
+ 		return 1;
+ 
+@@ -313,6 +313,26 @@ int of_device_is_available(const struct device_node *device)
+ 
+ 	return 0;
+ }
++
++/**
++ *  of_device_is_available - check if a device is available for use
++ *
++ *  @device: Node to check for availability
++ *
++ *  Returns 1 if the status property is absent or set to "okay" or "ok",
++ *  0 otherwise
++ */
++int of_device_is_available(const struct device_node *device)
++{
++	unsigned long flags;
++	int res;
++
++	raw_spin_lock_irqsave(&devtree_lock, flags);
++	res = __of_device_is_available(device);
++	raw_spin_unlock_irqrestore(&devtree_lock, flags);
++	return res;
++
++}
+ EXPORT_SYMBOL(of_device_is_available);
+ 
+ /**
+@@ -404,7 +424,7 @@ struct device_node *of_get_next_available_child(const struct device_node *node,
+ 	raw_spin_lock(&devtree_lock);
+ 	next = prev ? prev->sibling : node->child;
+ 	for (; next; next = next->sibling) {
+-		if (!of_device_is_available(next))
++		if (!__of_device_is_available(next))
+ 			continue;
+ 		if (of_node_get(next))
+ 			break;
+-- 
+1.7.10.4
 
-Thanks. :)
