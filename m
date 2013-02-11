@@ -1,56 +1,83 @@
-From: James Hogan <james.hogan@imgtec.com>
-Date: Tue, 12 Feb 2013 12:04:18 +0000
-Subject: Re: [PATCH] Centralise CONFIG_ARCH_NO_VIRT_TO_BUS
-Message-Id: <511A2FC2.7010909@imgtec.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Mon, 11 Feb 2013 07:34:09 +0000
+Subject: linux-next: build failure after merge of the final tree (acpi tree related)
+Message-Id: <20130211183409.7519b73ca320baeac5ec886f@canb.auug.org.au>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------enigCD18698F87994248FE52F0D9"
+Content-Type: multipart/mixed; boundary="Signature=_Mon__11_Feb_2013_18_34_09_+1100_fSZSOVNmThUvLVOt"
 List-Id: <sparclinux.vger.kernel.org>
-References: <ADE657CA350FB648AAC2C43247A983F00206B25884B1@AUSP01VMBX24.collaborationhost.net> <CAErSpo6WG2R_8sa=rOmAOci-3iFpDs2NFzNkZYxDnD2oTiMQJg@mail.gmail.com> <20121113082615.2f482eb8835daf46e1f27947@canb.auug.org.au> <5118DCA8.1030905@imgtec.com> <20130212154010.3f8b88da4756c7cf04e28a04@canb.auug.org.au> <20130212224729.5e60d0303bda923bebcc1185@canb.auug.org.au>
-In-Reply-To: <20130212224729.5e60d0303bda923bebcc1185@canb.auug.org.au>
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Bjorn Helgaas <bhelgaas@google.com>, H Hartley Sweeten <hartleys@visionengravers.com>, linux-kernel@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, Paul Mundt <lethal@linux-sh.org>, linux-sh@vger.kernel.org, Vineet Gupta <Vineet.Gupta1@synopsys.com>
+References: <BANLkTim5dYNmTMJo-Wa3LYCTi4vxPGMNeQ@mail.gmail.com>
+In-Reply-To: <BANLkTim5dYNmTMJo-Wa3LYCTi4vxPGMNeQ@mail.gmail.com>
+To: Len Brown <len.brown@intel.com>
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
---------------enigCD18698F87994248FE52F0D9
-Content-Type: text/plain; charset=ISO-8859-1
+--Signature=_Mon__11_Feb_2013_18_34_09_+1100_fSZSOVNmThUvLVOt
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On 12/02/13 11:47, Stephen Rothwell wrote:
-> Change it to CONFIG_HAVE_VIRT_TO_BUS and set it in all architecures
+Hi all,
 
-nit: typo in "architecures"
+After merging the final tree, today's linux-next build (sparc64 defconfig)
+failed like this:
 
-> that already provide virt_to_bus().
->=20
-> Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+arch/sparc/include/asm/processor.h: Assembler messages:
+arch/sparc/include/asm/processor.h:10: Error: Unknown opcode: `extern'
 
-Reviewed-by: James Hogan <james.hogan@imgtec.com>
+Caused by commit 3a242f58a5f4 ("sparc idle: rename pm_idle to
+sparc_idle") from the acpi tree.
 
-Cheers
-James
+I have applied this patch for today:
 
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Mon, 11 Feb 2013 18:30:19 +1100
+Subject: [PATCH] sparc idle: protect variable declarations against the asse=
+mbler
 
---------------enigCD18698F87994248FE52F0D9
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+---
+ arch/sparc/include/asm/processor.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/sparc/include/asm/processor.h b/arch/sparc/include/asm/pr=
+ocessor.h
+index 34baa35..622cfa5 100644
+--- a/arch/sparc/include/asm/processor.h
++++ b/arch/sparc/include/asm/processor.h
+@@ -7,6 +7,8 @@
+ #endif
+=20
+ #define nop() 		__asm__ __volatile__ ("nop")
++#ifndef __ASSEMBLY__
+ extern void (*sparc_idle)(void);
++#endif
+=20
+ #endif
+--=20
+1.8.1
+
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+
+--Signature=_Mon__11_Feb_2013_18_34_09_+1100_fSZSOVNmThUvLVOt
+Content-Type: application/pgp-signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.13 (GNU/Linux)
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRGi/CAAoJEKHZs+irPybfbLoQAJcwSYD3NK1dOp1OC8OUY4tF
-SA0WEPGCHUY0ewKfTfJAxzxeiKBL0/v0EigmMktkMmg/BauiT/75q4/EG8SxjnD7
-Tf/pZ0IlTU9xM5dYeqSNEeimxZv8gXp5DEJ56+UV8pSZ0PhtNowKCTnePA71DtO6
-mFNYP9GcjSxNYHfYTzHxLEhp0xfSTVWrOpW0ak+y97XMQOS3Yxff8wSizq7LhBcG
-H+t5J8paEWs73BJsZKzVtkdDyp4Tv5shjHhl4TeGv7doxcYykX5yIlWxgZLFRRI+
-3o1JACl75gmFDxGi/2cYK+mkp24SupVYNGw/teRrsKGOoGO6k30XLG3COlYQCSOb
-mslGyP1DFryONBNcRJ3gT8dkyv9zsoL0vwMj6TN1e36MnAAlKoAnziJZ/kpscR4F
-IOuEPBtOjothoEgA9e+X/BdkGBh3kLztZvFE72wWYIX/r9+ynrWi85SZDcxMG/o+
-f/uvRaOIRI5E8nPyapat75veiw7GWNl5ZxvCRzHl8e1xEWUb/PWlJma+fd7sAZLn
-fFlCPQ53QG//t2t1Y6OjiNbzOJsj+1yMI/EHULbeSVALUyvYPzaH+yfCvHwIBNTx
-vbb0JQKEB+syLW5QNYIBOpBCkyMYrEW+TUHj3MUIXJ2JZgB6e9P+HUKwQXb7PW4F
-6gotw7qwQEz9aNx36fBk
-=69Xu
+iQIcBAEBCAAGBQJRGJ7xAAoJEECxmPOUX5FEnLwP/04K30fHki/U5509xh0MtwVU
+MMSdyrFsDrU3q+KIEQCbwjZb++jTL7B9p+siGvneG929VXzzsws9eRpoAXg6YJox
+WNnYLAeuTEkIyfw+GmRbBY1ROOXJBEMNVs9Tnl5qhHxEt7IVmMDGjtV20JHgRfIY
+CuVVfouVA1wf1WlwHwQudULtuna2lraq7DGjh1CXOkgYWmtZoifmfwQqHo63GSKF
+IsWU+G8pqOhCxyyEIURHi/6yD/2rXMpHEOSxuXMFyjHFVXO5hBF94NVGEchRUTY5
+puOWhKf6XfdwZpxvaSi3YUPpuXW+hBvyEFd0ovXhv63bMnAnUsBHWY69vp1yXol6
+wb8z79Xxj4137f84gyaDgE/Xd+0NtyxFrX7k94hzf93WX5jl9PvwMrXtUhrt6Je5
+Xtg3ZcYIQcwkFxVpvEaTpjCm6dbST7HzJug6N238QJn1emZwjepoefUzX0bamppX
+qC+/e4zqirlR45i4E9rItTJWCAU4At8G5MfdhrK9FHC6DXtUkFHjCSyqWZ8H+CrC
+co1ZjtF8YQ0ljIJx9yFDgol8JnaH29rH4JAERoNQjxmmP4bOG410W2VGA5HD0+9a
+Z+MyIf8wERhF/72W0QZqqPORUxNnR4H0Lp1yboQOW1qMMEAqIKgF3JI+K8/ibBMn
+QNY7htU6kVfiJuPdxge2
+=J7fR
 -----END PGP SIGNATURE-----
 
---------------enigCD18698F87994248FE52F0D9--
-
+--Signature=_Mon__11_Feb_2013_18_34_09_+1100_fSZSOVNmThUvLVOt--
