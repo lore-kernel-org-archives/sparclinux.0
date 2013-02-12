@@ -1,58 +1,67 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 14 Feb 2013 20:14:45 +0000
-Subject: [GIT] Sparc
-Message-Id: <20130214.151445.2165581579573329189.davem@davemloft.net>
+From: Len Brown <lenb@kernel.org>
+Date: Tue, 12 Feb 2013 18:01:31 +0000
+Subject: Should SPARC use cpuidle? (was: linux-next: build failure after merge of the final tree (acpi tree r
+Message-Id: <511A837B.8020804@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
+References: <20130211183409.7519b73ca320baeac5ec886f@canb.auug.org.au> <51197D8B.6010407@kernel.org> <20130212173505.GA2155@merkur.ravnborg.org>
+In-Reply-To: <20130212173505.GA2155@merkur.ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Sam Ravnborg <sam@ravnborg.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Len Brown <len.brown@intel.com>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Linux PM list <linux-pm@vger.kernel.org>
+
+On 02/12/2013 12:35 PM, Sam Ravnborg wrote:
+>>> Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+>>> ---
+>>>  arch/sparc/include/asm/processor.h | 2 ++
+>>>  1 file changed, 2 insertions(+)
+>>>
+>>> diff --git a/arch/sparc/include/asm/processor.h b/arch/sparc/include/asm/processor.h
+>>> index 34baa35..622cfa5 100644
+>>> --- a/arch/sparc/include/asm/processor.h
+>>> +++ b/arch/sparc/include/asm/processor.h
+>>> @@ -7,6 +7,8 @@
+>>>  #endif
+>>>  
+>>>  #define nop() 		__asm__ __volatile__ ("nop")
+>>> +#ifndef __ASSEMBLY__
+>>>  extern void (*sparc_idle)(void);
+>>> +#endif
+>>>  
+>>>  #endif
+>>>
+>>
+>> Thank you Stephen!
+>>
+>> The last time I compiled a sparc kernel was in 1993:-)
+>>
+>> I've added your fix and Dave's Ack to this patch,
+>> and updated it in my next branch.
+> 
+> Hi Len.
+> 
+> Can you please move the definition of sparc_idle to processor_32.h
+> It is sparc32 specific - and then we do not need the __ASSEMBLY__ guards
+> as the sparc32 variant are not used from assembler.
+
+sure, let me know if attached works.
+
+> Do you btw. have any hints how I can convert to the cpu_idle thing you hinted?
+
+If you have exactly 1 idle state, then cpuidle isn't that interesting,
+except, perhaps the standard residency counters.  If you have multiple
+states to choose from, cpuidle becomes more valuable.
+
+There are lots of cpuidle users now, including x86's intel_idle,
+processor_idle, and the entire ARM tree.
+
+In my tree right now is a patch to convert APM to cpuidle --
+though as nobody has tested it yet I can't guarantee it is correct.
+
+patches/issues related to idle should to to linux-pm@vger.kernel.org (on cc)
+
+thanks,
+-Len
 
 
-A couple small fixes for sparc including some THP brown-paper-bag
-material:
-
-1) During the merging of all the THP support for various architectures,
-   sparc missed adding a HAVE_ARCH_TRANSPARENT_HUGEPAGE to it's Kconfig,
-   oops.
-
-2) Sparc needs to be mindful of hugepages in get_user_pages_fast().
-
-3) Fix memory leak in SBUS probe, from Cong Ding.
-
-4) The sunvdc virtual disk client driver has a test of the bitmask of
-   vdisk server supported operations which was off by one bit.
-
-Please pull, thanks a lot!
-
-The following changes since commit 9a9284153d965a57edc7162a8e57c14c97f3a935:
-
-  Merge branch 'drm-fixes' of git://people.freedesktop.org/~airlied/linux (2013-01-20 20:55:49 -0800)
-
-are available in the git repository at:
-
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
-
-for you to fetch changes up to f4d9605434c0fd4cc8639bf25cfc043418c52362:
-
-  sunvdc: Fix off-by-one in generic_request(). (2013-02-14 11:49:01 -0800)
-
-----------------------------------------------------------------
-Cong Ding (1):
-      sparc: kernel/sbus.c: fix memory leakage
-
-David S. Miller (3):
-      sparc64: Add missing HAVE_ARCH_TRANSPARENT_HUGEPAGE.
-      sparc64: Fix get_user_pages_fast() wrt. THP.
-      sunvdc: Fix off-by-one in generic_request().
-
- arch/sparc/Kconfig                  |  1 +
- arch/sparc/include/asm/pgtable_64.h | 14 ++++++--------
- arch/sparc/kernel/sbus.c            |  6 +++---
- arch/sparc/mm/gup.c                 | 59 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++--
- drivers/block/sunvdc.c              |  2 +-
- 5 files changed, 68 insertions(+), 14 deletions(-)
