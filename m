@@ -1,452 +1,168 @@
-From: Rob Herring <robherring2@gmail.com>
-Date: Wed, 06 Feb 2013 16:04:14 +0000
-Subject: Re: [PATCH next] OF: convert devtree lock from rw_lock to raw spinlock
-Message-Id: <51127EFE.4030209@gmail.com>
+From: Len Brown <lenb@kernel.org>
+Date: Tue, 12 Feb 2013 18:03:04 +0000
+Subject: Re: Should SPARC use cpuidle?
+Message-Id: <511A83D8.7020202@kernel.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------000404040702020705030902"
 List-Id: <sparclinux.vger.kernel.org>
-References: <1359993921-18145-1-git-send-email-paul.gortmaker@windriver.com>
-In-Reply-To: <1359993921-18145-1-git-send-email-paul.gortmaker@windriver.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+References: <20130211183409.7519b73ca320baeac5ec886f@canb.auug.org.au> <51197D8B.6010407@kernel.org> <20130212173505.GA2155@merkur.ravnborg.org> <511A837B.8020804@kernel.org>
+In-Reply-To: <511A837B.8020804@kernel.org>
+To: Sam Ravnborg <sam@ravnborg.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Len Brown <len.brown@intel.com>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Linux PM list <linux-pm@vger.kernel.org>
+
+This is a multi-part message in MIME format.
+--------------000404040702020705030902
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-To: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Rob Herring <rob.herring@calxeda.com>, linux-rt-users@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Sam Ravnborg <sam@ravnborg.org>
 
-On 02/04/2013 10:05 AM, Paul Gortmaker wrote:
-> From: Thomas Gleixner <tglx@linutronix.de>
-> 
-> With the locking cleanup in place (from "OF: Fixup resursive
-> locking code paths"), we can now do the conversion from the
-> rw_lock to a raw spinlock as required for preempt-rt.
-> 
-> The previous cleanup and the this conversion were originally
-> separate since they predated when mainline got raw spinlock (in
-> commit c2f21ce2e31286a "locking: Implement new raw_spinlock").
-> 
-> So, at that point in time, the cleanup was considered plausible
-> for mainline, but not this conversion.  In any case, we've kept
-> them separate as it makes for easier review and better bisection.
-> 
-> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-> [PG: taken from preempt-rt, update subject & add a commit log]
-> Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
-> ---
-> 
-> [ Patch against linux-next of Feb4, where the recursive
->   locking cleanup currently is.  Boot tested on ppc 8548,
->   compile tested for sparc and arm defconfigs ]
-> 
 
-Applied.
-
-Rob
-
->  arch/sparc/kernel/prom_common.c |  4 +-
->  drivers/of/base.c               | 96 +++++++++++++++++++++++------------------
->  include/linux/of.h              |  2 +-
->  3 files changed, 57 insertions(+), 45 deletions(-)
+>> Can you please move the definition of sparc_idle to processor_32.h
+>> It is sparc32 specific - and then we do not need the __ASSEMBLY__ guards
+>> as the sparc32 variant are not used from assembler.
 > 
-> diff --git a/arch/sparc/kernel/prom_common.c b/arch/sparc/kernel/prom_common.c
-> index 1303021..9f20566 100644
-> --- a/arch/sparc/kernel/prom_common.c
-> +++ b/arch/sparc/kernel/prom_common.c
-> @@ -64,7 +64,7 @@ int of_set_property(struct device_node *dp, const char *name, void *val, int len
->  	err = -ENODEV;
->  
->  	mutex_lock(&of_set_property_mutex);
-> -	write_lock(&devtree_lock);
-> +	raw_spin_lock(&devtree_lock);
->  	prevp = &dp->properties;
->  	while (*prevp) {
->  		struct property *prop = *prevp;
-> @@ -91,7 +91,7 @@ int of_set_property(struct device_node *dp, const char *name, void *val, int len
->  		}
->  		prevp = &(*prevp)->next;
->  	}
-> -	write_unlock(&devtree_lock);
-> +	raw_spin_unlock(&devtree_lock);
->  	mutex_unlock(&of_set_property_mutex);
->  
->  	/* XXX Upate procfs if necessary... */
-> diff --git a/drivers/of/base.c b/drivers/of/base.c
-> index 16ee7a0..4a2f58b 100644
-> --- a/drivers/of/base.c
-> +++ b/drivers/of/base.c
-> @@ -55,7 +55,7 @@ static DEFINE_MUTEX(of_aliases_mutex);
->  /* use when traversing tree through the allnext, child, sibling,
->   * or parent members of struct device_node.
->   */
-> -DEFINE_RWLOCK(devtree_lock);
-> +DEFINE_RAW_SPINLOCK(devtree_lock);
->  
->  int of_n_addr_cells(struct device_node *np)
->  {
-> @@ -188,10 +188,11 @@ struct property *of_find_property(const struct device_node *np,
->  				  int *lenp)
->  {
->  	struct property *pp;
-> +	unsigned long flags;
->  
-> -	read_lock(&devtree_lock);
-> +	raw_spin_lock_irqsave(&devtree_lock, flags);
->  	pp = __of_find_property(np, name, lenp);
-> -	read_unlock(&devtree_lock);
-> +	raw_spin_unlock_irqrestore(&devtree_lock, flags);
->  
->  	return pp;
->  }
-> @@ -209,13 +210,13 @@ struct device_node *of_find_all_nodes(struct device_node *prev)
->  {
->  	struct device_node *np;
->  
-> -	read_lock(&devtree_lock);
-> +	raw_spin_lock(&devtree_lock);
->  	np = prev ? prev->allnext : of_allnodes;
->  	for (; np != NULL; np = np->allnext)
->  		if (of_node_get(np))
->  			break;
->  	of_node_put(prev);
-> -	read_unlock(&devtree_lock);
-> +	raw_spin_unlock(&devtree_lock);
->  	return np;
->  }
->  EXPORT_SYMBOL(of_find_all_nodes);
-> @@ -274,11 +275,12 @@ static int __of_device_is_compatible(const struct device_node *device,
->  int of_device_is_compatible(const struct device_node *device,
->  		const char *compat)
->  {
-> +	unsigned long flags;
->  	int res;
->  
-> -	read_lock(&devtree_lock);
-> +	raw_spin_lock_irqsave(&devtree_lock, flags);
->  	res = __of_device_is_compatible(device, compat);
-> -	read_unlock(&devtree_lock);
-> +	raw_spin_unlock_irqrestore(&devtree_lock, flags);
->  	return res;
->  }
->  EXPORT_SYMBOL(of_device_is_compatible);
-> @@ -340,13 +342,14 @@ EXPORT_SYMBOL(of_device_is_available);
->  struct device_node *of_get_parent(const struct device_node *node)
->  {
->  	struct device_node *np;
-> +	unsigned long flags;
->  
->  	if (!node)
->  		return NULL;
->  
-> -	read_lock(&devtree_lock);
-> +	raw_spin_lock_irqsave(&devtree_lock, flags);
->  	np = of_node_get(node->parent);
-> -	read_unlock(&devtree_lock);
-> +	raw_spin_unlock_irqrestore(&devtree_lock, flags);
->  	return np;
->  }
->  EXPORT_SYMBOL(of_get_parent);
-> @@ -365,14 +368,15 @@ EXPORT_SYMBOL(of_get_parent);
->  struct device_node *of_get_next_parent(struct device_node *node)
->  {
->  	struct device_node *parent;
-> +	unsigned long flags;
->  
->  	if (!node)
->  		return NULL;
->  
-> -	read_lock(&devtree_lock);
-> +	raw_spin_lock_irqsave(&devtree_lock, flags);
->  	parent = of_node_get(node->parent);
->  	of_node_put(node);
-> -	read_unlock(&devtree_lock);
-> +	raw_spin_unlock_irqrestore(&devtree_lock, flags);
->  	return parent;
->  }
->  
-> @@ -388,14 +392,15 @@ struct device_node *of_get_next_child(const struct device_node *node,
->  	struct device_node *prev)
->  {
->  	struct device_node *next;
-> +	unsigned long flags;
->  
-> -	read_lock(&devtree_lock);
-> +	raw_spin_lock_irqsave(&devtree_lock, flags);
->  	next = prev ? prev->sibling : node->child;
->  	for (; next; next = next->sibling)
->  		if (of_node_get(next))
->  			break;
->  	of_node_put(prev);
-> -	read_unlock(&devtree_lock);
-> +	raw_spin_unlock_irqrestore(&devtree_lock, flags);
->  	return next;
->  }
->  EXPORT_SYMBOL(of_get_next_child);
-> @@ -413,7 +418,7 @@ struct device_node *of_get_next_available_child(const struct device_node *node,
->  {
->  	struct device_node *next;
->  
-> -	read_lock(&devtree_lock);
-> +	raw_spin_lock(&devtree_lock);
->  	next = prev ? prev->sibling : node->child;
->  	for (; next; next = next->sibling) {
->  		if (!of_device_is_available(next))
-> @@ -422,7 +427,7 @@ struct device_node *of_get_next_available_child(const struct device_node *node,
->  			break;
->  	}
->  	of_node_put(prev);
-> -	read_unlock(&devtree_lock);
-> +	raw_spin_unlock(&devtree_lock);
->  	return next;
->  }
->  EXPORT_SYMBOL(of_get_next_available_child);
-> @@ -460,14 +465,15 @@ EXPORT_SYMBOL(of_get_child_by_name);
->  struct device_node *of_find_node_by_path(const char *path)
->  {
->  	struct device_node *np = of_allnodes;
-> +	unsigned long flags;
->  
-> -	read_lock(&devtree_lock);
-> +	raw_spin_lock_irqsave(&devtree_lock, flags);
->  	for (; np; np = np->allnext) {
->  		if (np->full_name && (of_node_cmp(np->full_name, path) = 0)
->  		    && of_node_get(np))
->  			break;
->  	}
-> -	read_unlock(&devtree_lock);
-> +	raw_spin_unlock_irqrestore(&devtree_lock, flags);
->  	return np;
->  }
->  EXPORT_SYMBOL(of_find_node_by_path);
-> @@ -487,15 +493,16 @@ struct device_node *of_find_node_by_name(struct device_node *from,
->  	const char *name)
->  {
->  	struct device_node *np;
-> +	unsigned long flags;
->  
-> -	read_lock(&devtree_lock);
-> +	raw_spin_lock_irqsave(&devtree_lock, flags);
->  	np = from ? from->allnext : of_allnodes;
->  	for (; np; np = np->allnext)
->  		if (np->name && (of_node_cmp(np->name, name) = 0)
->  		    && of_node_get(np))
->  			break;
->  	of_node_put(from);
-> -	read_unlock(&devtree_lock);
-> +	raw_spin_unlock_irqrestore(&devtree_lock, flags);
->  	return np;
->  }
->  EXPORT_SYMBOL(of_find_node_by_name);
-> @@ -516,15 +523,16 @@ struct device_node *of_find_node_by_type(struct device_node *from,
->  	const char *type)
->  {
->  	struct device_node *np;
-> +	unsigned long flags;
->  
-> -	read_lock(&devtree_lock);
-> +	raw_spin_lock_irqsave(&devtree_lock, flags);
->  	np = from ? from->allnext : of_allnodes;
->  	for (; np; np = np->allnext)
->  		if (np->type && (of_node_cmp(np->type, type) = 0)
->  		    && of_node_get(np))
->  			break;
->  	of_node_put(from);
-> -	read_unlock(&devtree_lock);
-> +	raw_spin_unlock_irqrestore(&devtree_lock, flags);
->  	return np;
->  }
->  EXPORT_SYMBOL(of_find_node_by_type);
-> @@ -547,8 +555,9 @@ struct device_node *of_find_compatible_node(struct device_node *from,
->  	const char *type, const char *compatible)
->  {
->  	struct device_node *np;
-> +	unsigned long flags;
->  
-> -	read_lock(&devtree_lock);
-> +	raw_spin_lock_irqsave(&devtree_lock, flags);
->  	np = from ? from->allnext : of_allnodes;
->  	for (; np; np = np->allnext) {
->  		if (type
-> @@ -559,7 +568,7 @@ struct device_node *of_find_compatible_node(struct device_node *from,
->  			break;
->  	}
->  	of_node_put(from);
-> -	read_unlock(&devtree_lock);
-> +	raw_spin_unlock_irqrestore(&devtree_lock, flags);
->  	return np;
->  }
->  EXPORT_SYMBOL(of_find_compatible_node);
-> @@ -581,8 +590,9 @@ struct device_node *of_find_node_with_property(struct device_node *from,
->  {
->  	struct device_node *np;
->  	struct property *pp;
-> +	unsigned long flags;
->  
-> -	read_lock(&devtree_lock);
-> +	raw_spin_lock_irqsave(&devtree_lock, flags);
->  	np = from ? from->allnext : of_allnodes;
->  	for (; np; np = np->allnext) {
->  		for (pp = np->properties; pp; pp = pp->next) {
-> @@ -594,7 +604,7 @@ struct device_node *of_find_node_with_property(struct device_node *from,
->  	}
->  out:
->  	of_node_put(from);
-> -	read_unlock(&devtree_lock);
-> +	raw_spin_unlock_irqrestore(&devtree_lock, flags);
->  	return np;
->  }
->  EXPORT_SYMBOL(of_find_node_with_property);
-> @@ -635,10 +645,11 @@ const struct of_device_id *of_match_node(const struct of_device_id *matches,
->  					 const struct device_node *node)
->  {
->  	const struct of_device_id *match;
-> +	unsigned long flags;
->  
-> -	read_lock(&devtree_lock);
-> +	raw_spin_lock_irqsave(&devtree_lock, flags);
->  	match = __of_match_node(matches, node);
-> -	read_unlock(&devtree_lock);
-> +	raw_spin_unlock_irqrestore(&devtree_lock, flags);
->  	return match;
->  }
->  EXPORT_SYMBOL(of_match_node);
-> @@ -662,11 +673,12 @@ struct device_node *of_find_matching_node_and_match(struct device_node *from,
->  {
->  	struct device_node *np;
->  	const struct of_device_id *m;
-> +	unsigned long flags;
->  
->  	if (match)
->  		*match = NULL;
->  
-> -	read_lock(&devtree_lock);
-> +	raw_spin_lock_irqsave(&devtree_lock, flags);
->  	np = from ? from->allnext : of_allnodes;
->  	for (; np; np = np->allnext) {
->  		m = __of_match_node(matches, np);
-> @@ -677,7 +689,7 @@ struct device_node *of_find_matching_node_and_match(struct device_node *from,
->  		}
->  	}
->  	of_node_put(from);
-> -	read_unlock(&devtree_lock);
-> +	raw_spin_unlock_irqrestore(&devtree_lock, flags);
->  	return np;
->  }
->  EXPORT_SYMBOL(of_find_matching_node_and_match);
-> @@ -720,12 +732,12 @@ struct device_node *of_find_node_by_phandle(phandle handle)
->  {
->  	struct device_node *np;
->  
-> -	read_lock(&devtree_lock);
-> +	raw_spin_lock(&devtree_lock);
->  	for (np = of_allnodes; np; np = np->allnext)
->  		if (np->phandle = handle)
->  			break;
->  	of_node_get(np);
-> -	read_unlock(&devtree_lock);
-> +	raw_spin_unlock(&devtree_lock);
->  	return np;
->  }
->  EXPORT_SYMBOL(of_find_node_by_phandle);
-> @@ -1197,18 +1209,18 @@ int of_add_property(struct device_node *np, struct property *prop)
->  		return rc;
->  
->  	prop->next = NULL;
-> -	write_lock_irqsave(&devtree_lock, flags);
-> +	raw_spin_lock_irqsave(&devtree_lock, flags);
->  	next = &np->properties;
->  	while (*next) {
->  		if (strcmp(prop->name, (*next)->name) = 0) {
->  			/* duplicate ! don't insert it */
-> -			write_unlock_irqrestore(&devtree_lock, flags);
-> +			raw_spin_unlock_irqrestore(&devtree_lock, flags);
->  			return -1;
->  		}
->  		next = &(*next)->next;
->  	}
->  	*next = prop;
-> -	write_unlock_irqrestore(&devtree_lock, flags);
-> +	raw_spin_unlock_irqrestore(&devtree_lock, flags);
->  
->  #ifdef CONFIG_PROC_DEVICETREE
->  	/* try to add to proc as well if it was initialized */
-> @@ -1238,7 +1250,7 @@ int of_remove_property(struct device_node *np, struct property *prop)
->  	if (rc)
->  		return rc;
->  
-> -	write_lock_irqsave(&devtree_lock, flags);
-> +	raw_spin_lock_irqsave(&devtree_lock, flags);
->  	next = &np->properties;
->  	while (*next) {
->  		if (*next = prop) {
-> @@ -1251,7 +1263,7 @@ int of_remove_property(struct device_node *np, struct property *prop)
->  		}
->  		next = &(*next)->next;
->  	}
-> -	write_unlock_irqrestore(&devtree_lock, flags);
-> +	raw_spin_unlock_irqrestore(&devtree_lock, flags);
->  
->  	if (!found)
->  		return -ENODEV;
-> @@ -1291,7 +1303,7 @@ int of_update_property(struct device_node *np, struct property *newprop)
->  	if (!oldprop)
->  		return of_add_property(np, newprop);
->  
-> -	write_lock_irqsave(&devtree_lock, flags);
-> +	raw_spin_lock_irqsave(&devtree_lock, flags);
->  	next = &np->properties;
->  	while (*next) {
->  		if (*next = oldprop) {
-> @@ -1305,7 +1317,7 @@ int of_update_property(struct device_node *np, struct property *newprop)
->  		}
->  		next = &(*next)->next;
->  	}
-> -	write_unlock_irqrestore(&devtree_lock, flags);
-> +	raw_spin_unlock_irqrestore(&devtree_lock, flags);
->  
->  	if (!found)
->  		return -ENODEV;
-> @@ -1378,12 +1390,12 @@ int of_attach_node(struct device_node *np)
->  	if (rc)
->  		return rc;
->  
-> -	write_lock_irqsave(&devtree_lock, flags);
-> +	raw_spin_lock_irqsave(&devtree_lock, flags);
->  	np->sibling = np->parent->child;
->  	np->allnext = of_allnodes;
->  	np->parent->child = np;
->  	of_allnodes = np;
-> -	write_unlock_irqrestore(&devtree_lock, flags);
-> +	raw_spin_unlock_irqrestore(&devtree_lock, flags);
->  
->  	of_add_proc_dt_entry(np);
->  	return 0;
-> @@ -1426,7 +1438,7 @@ int of_detach_node(struct device_node *np)
->  	if (rc)
->  		return rc;
->  
-> -	write_lock_irqsave(&devtree_lock, flags);
-> +	raw_spin_lock_irqsave(&devtree_lock, flags);
->  
->  	if (of_node_check_flag(np, OF_DETACHED)) {
->  		/* someone already detached it */
-> @@ -1463,7 +1475,7 @@ int of_detach_node(struct device_node *np)
->  	}
->  
->  	of_node_set_flag(np, OF_DETACHED);
-> -	write_unlock_irqrestore(&devtree_lock, flags);
-> +	raw_spin_unlock_irqrestore(&devtree_lock, flags);
->  
->  	of_remove_proc_dt_entry(np);
->  	return rc;
-> diff --git a/include/linux/of.h b/include/linux/of.h
-> index 5ebcc5c..bb35c42 100644
-> --- a/include/linux/of.h
-> +++ b/include/linux/of.h
-> @@ -92,7 +92,7 @@ static inline void of_node_put(struct device_node *node) { }
->  extern struct device_node *of_allnodes;
->  extern struct device_node *of_chosen;
->  extern struct device_node *of_aliases;
-> -extern rwlock_t devtree_lock;
-> +extern raw_spinlock_t devtree_lock;
->  
->  static inline bool of_have_populated_dt(void)
->  {
-> 
+> sure, let me know if attached works.
 
+ugh, not accustomed to sending patches via thunderbird.
+hopefully this attachment works...
+
+
+--------------000404040702020705030902
+Content-Type: text/x-patch;
+ name="0001-sparc-idle-rename-pm_idle-to-sparc_idle.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="0001-sparc-idle-rename-pm_idle-to-sparc_idle.patch"
+
+From 358ca5d7e02c4559ad3fbf8135421e4a3753e979 Mon Sep 17 00:00:00 2001
+From: Len Brown <len.brown@intel.com>
+Date: Sat, 9 Feb 2013 23:27:26 -0500
+Subject: [PATCH] sparc idle: rename pm_idle to sparc_idle
+Reply-To: Len Brown <lenb@kernel.org>
+Organization: Intel Open Source Technology Center
+
+(pm_idle)() is being removed from linux/pm.h
+because Linux does not have such a cross-architecture concept.
+
+sparc uses an idle function pointer in its architecture
+specific code.  So we re-name sparc use of pm_idle to sparc_idle.
+
+Maybe some day, SPARC will cut over to cpuidle...
+
+Signed-off-by: Len Brown <len.brown@intel.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/include/asm/processor_32.h | 1 +
+ arch/sparc/kernel/apc.c               | 3 ++-
+ arch/sparc/kernel/leon_pmc.c          | 5 +++--
+ arch/sparc/kernel/pmc.c               | 3 ++-
+ arch/sparc/kernel/process_32.c        | 7 +++----
+ 5 files changed, 11 insertions(+), 8 deletions(-)
+
+diff --git a/arch/sparc/include/asm/processor_32.h b/arch/sparc/include/asm/processor_32.h
+index c1e0191..2c7baa4 100644
+--- a/arch/sparc/include/asm/processor_32.h
++++ b/arch/sparc/include/asm/processor_32.h
+@@ -118,6 +118,7 @@ extern unsigned long get_wchan(struct task_struct *);
+ extern struct task_struct *last_task_used_math;
+ 
+ #define cpu_relax()	barrier()
++extern void (*sparc_idle)(void);
+ 
+ #endif
+ 
+diff --git a/arch/sparc/kernel/apc.c b/arch/sparc/kernel/apc.c
+index 348fa1a..eefda32 100644
+--- a/arch/sparc/kernel/apc.c
++++ b/arch/sparc/kernel/apc.c
+@@ -20,6 +20,7 @@
+ #include <asm/uaccess.h>
+ #include <asm/auxio.h>
+ #include <asm/apc.h>
++#include <asm/processor.h>
+ 
+ /* Debugging
+  * 
+@@ -158,7 +159,7 @@ static int apc_probe(struct platform_device *op)
+ 
+ 	/* Assign power management IDLE handler */
+ 	if (!apc_no_idle)
+-		pm_idle = apc_swift_idle;	
++		sparc_idle = apc_swift_idle;
+ 
+ 	printk(KERN_INFO "%s: power management initialized%s\n", 
+ 	       APC_DEVNAME, apc_no_idle ? " (CPU idle disabled)" : "");
+diff --git a/arch/sparc/kernel/leon_pmc.c b/arch/sparc/kernel/leon_pmc.c
+index 4e17432..708bca4 100644
+--- a/arch/sparc/kernel/leon_pmc.c
++++ b/arch/sparc/kernel/leon_pmc.c
+@@ -9,6 +9,7 @@
+ #include <asm/leon_amba.h>
+ #include <asm/cpu_type.h>
+ #include <asm/leon.h>
++#include <asm/processor.h>
+ 
+ /* List of Systems that need fixup instructions around power-down instruction */
+ unsigned int pmc_leon_fixup_ids[] = {
+@@ -69,9 +70,9 @@ static int __init leon_pmc_install(void)
+ 	if (sparc_cpu_model == sparc_leon) {
+ 		/* Assign power management IDLE handler */
+ 		if (pmc_leon_need_fixup())
+-			pm_idle = pmc_leon_idle_fixup;
++			sparc_idle = pmc_leon_idle_fixup;
+ 		else
+-			pm_idle = pmc_leon_idle;
++			sparc_idle = pmc_leon_idle;
+ 
+ 		printk(KERN_INFO "leon: power management initialized\n");
+ 	}
+diff --git a/arch/sparc/kernel/pmc.c b/arch/sparc/kernel/pmc.c
+index dcbb62f..8b7297f 100644
+--- a/arch/sparc/kernel/pmc.c
++++ b/arch/sparc/kernel/pmc.c
+@@ -17,6 +17,7 @@
+ #include <asm/oplib.h>
+ #include <asm/uaccess.h>
+ #include <asm/auxio.h>
++#include <asm/processor.h>
+ 
+ /* Debug
+  *
+@@ -63,7 +64,7 @@ static int pmc_probe(struct platform_device *op)
+ 
+ #ifndef PMC_NO_IDLE
+ 	/* Assign power management IDLE handler */
+-	pm_idle = pmc_swift_idle;
++	sparc_idle = pmc_swift_idle;
+ #endif
+ 
+ 	printk(KERN_INFO "%s: power management initialized\n", PMC_DEVNAME);
+diff --git a/arch/sparc/kernel/process_32.c b/arch/sparc/kernel/process_32.c
+index be8e862..62eede1 100644
+--- a/arch/sparc/kernel/process_32.c
++++ b/arch/sparc/kernel/process_32.c
+@@ -43,8 +43,7 @@
+  * Power management idle function 
+  * Set in pm platform drivers (apc.c and pmc.c)
+  */
+-void (*pm_idle)(void);
+-EXPORT_SYMBOL(pm_idle);
++void (*sparc_idle)(void);
+ 
+ /* 
+  * Power-off handler instantiation for pm.h compliance
+@@ -75,8 +74,8 @@ void cpu_idle(void)
+ 	/* endless idle loop with no priority at all */
+ 	for (;;) {
+ 		while (!need_resched()) {
+-			if (pm_idle)
+-				(*pm_idle)();
++			if (sparc_idle)
++				(*sparc_idle)();
+ 			else
+ 				cpu_relax();
+ 		}
+-- 
+1.8.1.3.535.ga923c31
+
+
+--------------000404040702020705030902--
