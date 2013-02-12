@@ -1,162 +1,63 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 28 Feb 2013 21:22:38 +0000
-Subject: Re: [PATCH] sparc,leon: support for GRPCI1 PCI host bridge controller
-Message-Id: <20130228212237.GA28182@merkur.ravnborg.org>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Tue, 12 Feb 2013 04:40:10 +0000
+Subject: Re: [PATCH] Centralise CONFIG_ARCH_NO_VIRT_TO_BUS
+Message-Id: <20130212154010.3f8b88da4756c7cf04e28a04@canb.auug.org.au>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Signature=_Tue__12_Feb_2013_15_40_10_+1100_/tP3R2cmcOMVcqGq"
 List-Id: <sparclinux.vger.kernel.org>
-References: <1362061978-1964-1-git-send-email-daniel@gaisler.com>
-In-Reply-To: <1362061978-1964-1-git-send-email-daniel@gaisler.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+References: <ADE657CA350FB648AAC2C43247A983F00206B25884B1@AUSP01VMBX24.collaborationhost.net>
+	<CAErSpo6WG2R_8sa=rOmAOci-3iFpDs2NFzNkZYxDnD2oTiMQJg@mail.gmail.com>
+	<20121113082615.2f482eb8835daf46e1f27947@canb.auug.org.au>
+	<5118DCA8.1030905@imgtec.com>
+In-Reply-To: <5118DCA8.1030905@imgtec.com>
+To: James Hogan <james.hogan@imgtec.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Bjorn Helgaas <bhelgaas@google.com>, H Hartley Sweeten <hartleys@visionengravers.com>, linux-kernel@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, Paul Mundt <lethal@linux-sh.org>, linux-sh@vger.kernel.org, Vineet Gupta <Vineet.Gupta1@synopsys.com>
 
-Hi Daniel.
+--Signature=_Tue__12_Feb_2013_15_40_10_+1100_/tP3R2cmcOMVcqGq
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-some nitpicks.
+Hi James,
 
-On Thu, Feb 28, 2013 at 03:32:58PM +0100, Daniel Hellstrom wrote:
-> Some of the GRPCI1 cores does not support detection of all PCI
-> errors, the default is therefore limited PCI error handling.
-> The property all_pci_errors my be set by the boot loader to
-> enable interrupt on all PCI errors.
-> 
-> Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
-> ---
->  arch/sparc/Kconfig                  |   11 +
->  arch/sparc/kernel/Makefile          |    1 +
->  arch/sparc/kernel/leon_pci_grpci1.c |  725 +++++++++++++++++++++++++++++++++++
->  3 files changed, 737 insertions(+), 0 deletions(-)
->  create mode 100644 arch/sparc/kernel/leon_pci_grpci1.c
-> 
-> diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-> index 9bff3db..7f02f72 100644
-> --- a/arch/sparc/Kconfig
-> +++ b/arch/sparc/Kconfig
-> @@ -500,6 +500,17 @@ config LEON_PCI
->  	depends on PCI && SPARC_LEON
->  	default y
->  
-> +config GRPCI1
+On Mon, 11 Feb 2013 11:57:28 +0000 James Hogan <james.hogan@imgtec.com> wro=
+te:
+>
+> On 12/11/12 21:26, Stephen Rothwell wrote:
+> > Make if easier for more architectures to select it and thus disable
+> > drivers that use virt_to_bus().
+> >=20
+> > Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+>=20
+> I was just wondering what the status of this patch is? It was in -next
+> for a while but seems to have disappeared.
 
-I see we do not do so with GRPCI2 - but please prefix
-all SPARC specific kconfig symbols with SPARC_
+Yeah, I think Andrew dropped it in favour of a more complete solution
+which I haven't written yet.   Let me dig out the emails and have a shot.
 
-A follow-up patch that fixes GRPCI2 would be nice!
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
 
-> diff --git a/arch/sparc/kernel/leon_pci_grpci1.c b/arch/sparc/kernel/leon_pci_grpci1.c
-> new file mode 100644
-> index 0000000..0ae4670
-> --- /dev/null
-> +++ b/arch/sparc/kernel/leon_pci_grpci1.c
-> @@ -0,0 +1,725 @@
-> +/*
-> + * leon_pci_grpci1.c: GRPCI1 Host PCI driver
-> + *
-> + * Copyright (C) 2013 Aeroflex Gaisler AB
-> + *
-> + * This GRPCI1 driver does not support PCI interrupts taken from
-> + * GPIO pins.
-> + *
-> + * Contributors: Daniel Hellstrom <daniel@gaisler.com>
-> + */
-> +
-> +#include <linux/of_device.h>
-> +#include <linux/kernel.h>
-> +#include <linux/pci.h>
-> +#include <linux/delay.h>
-> +#include <linux/export.h>
-> +#include <linux/of_irq.h>
+--Signature=_Tue__12_Feb_2013_15_40_10_+1100_/tP3R2cmcOMVcqGq
+Content-Type: application/pgp-signature
 
-Sort using inverse christmas tree.
-Longest lines at top - equal length lines alphabetically.
-And add an empty line between <linux/...> and <asm/...> includes.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-> +#include <asm/io.h>
-> +#include <asm/leon.h>
-> +#include <asm/vaddrs.h>
-> +#include <asm/sections.h>
-> +#include <asm/leon_pci.h>
-> +
-> +#include "irq.h"
-> +
-> +/* Enable/Disable Debugging Configuration Space Access */
-> +#undef GRPCI1_DEBUG_CFGACCESS
-> +
-> +/*
-> + * GRPCI1 APB Register MAP
-> + */
-> +struct grpci1_regs {
-> +	unsigned int cfg_stat;		/* 0x00 Configuration / Status */
-> +	unsigned int bar0;		/* 0x04 BAR0 (RO) */
-> +	unsigned int page0;		/* 0x08 PAGE0 (RO) */
-> +	unsigned int bar1;		/* 0x0C BAR1 (RO) */
-> +	unsigned int page1;		/* 0x10 PAGE1 */
-> +	unsigned int iomap;		/* 0x14 IO Map */
-> +	unsigned int stat_cmd;		/* 0x18 PCI Status & Command (RO) */
-> +	unsigned int irq;		/* 0x1C Interrupt register */
-> +};
-> +
-> +#define REGLOAD(a)	(be32_to_cpu(__raw_readl(&(a))))
-> +#define REGSTORE(a, v)	(__raw_writel(cpu_to_be32(v), &(a)))
-> +
-> +#define PAGE0_BTEN_BIT    0
-> +#define PAGE0_BTEN        (1 << PAGE0_BTEN_BIT)
-> +
-> +#define CFGSTAT_HOST_BIT  13
-> +#define CFGSTAT_CTO_BIT   8
-> +#define CFGSTAT_HOST      (1 << CFGSTAT_HOST_BIT)
-> +#define CFGSTAT_CTO       (1 << CFGSTAT_CTO_BIT)
-> +
-> +#define IRQ_DPE (1 << 9)
-> +#define IRQ_SSE (1 << 8)
-> +#define IRQ_RMA (1 << 7)
-> +#define IRQ_RTA (1 << 6)
-> +#define IRQ_STA (1 << 5)
-> +#define IRQ_DPED (1 << 4)
-> +#define IRQ_INTD (1 << 3)
-> +#define IRQ_INTC (1 << 2)
-> +#define IRQ_INTB (1 << 1)
-> +#define IRQ_INTA (1 << 0)
-> +#define IRQ_DEF_ERRORS (IRQ_RMA | IRQ_RTA | IRQ_STA)
-> +#define IRQ_ALL_ERRORS (IRQ_DPED | IRQ_DEF_ERRORS | IRQ_SSE | IRQ_DPE)
-> +#define IRQ_INTX (IRQ_INTA | IRQ_INTB | IRQ_INTC | IRQ_INTD)
-> +#define IRQ_MASK_BIT 16
-> +
-> +#define DEF_PCI_ERRORS (PCI_STATUS_SIG_TARGET_ABORT | \
-> +			PCI_STATUS_REC_TARGET_ABORT | \
-> +			PCI_STATUS_REC_MASTER_ABORT)
-> +#define ALL_PCI_ERRORS (PCI_STATUS_PARITY | PCI_STATUS_DETECTED_PARITY | \
-> +			PCI_STATUS_SIG_SYSTEM_ERROR | DEF_PCI_ERRORS)
-> +
-> +#define TGT 256
-> +
-> +struct grpci1_priv {
-> +	struct leon_pci_info	info; /* must be on top of this structure */
-> +	struct grpci1_regs	*regs;
-> +	struct device		*dev;
-> +	int			pci_err_mask;
-> +	int			irq;
-> +	unsigned char		irq_map[4];
-> +
-> +	/* Virtual IRQ numbers */
-> +	unsigned int		virq_err;
+iQIcBAEBCAAGBQJRGceqAAoJEECxmPOUX5FEFmMP/0Ij7tkBNzHsx4SV440XKPZA
+D1dk7h3RiqyQnN6PR3EXOyRq8bqAOZvo45qor94ToZjleK8c2/qJP1cPlhJ4FQg1
+d8tQ/0ZElEnpwfAXTL20FZL38vz3OivQWW4Bg/NR8eIMK1HXkQWSjTeAQEYXY+4a
+ImIHecJd5bigDctCIuBnSgur9Ojso/sUHnk6vlin5pW5PjYeEucGoYPjjP84MY+6
+L8KbTarTQdLwS3U2mNmpnuJYjLcykJqrmjj+RP6O6qUmcSE5/Gc8KnrPWIMEQ7Yq
+QGijkjTJcoAoDTZ/lv0hY5UDFoqFFvjBnLmmcbpdzK0WfB46jP0WRz7pfatvxfP1
+/QwGED65JR5nuwMmD2KVIJwF/X4jv8f+qi/yMFk3xvFESLx4MJwVESU5N/VjH091
+Fo3xjohM+YzujERv7CGLTT5ncgQHaxi/7KpynIOfIUEOiAAgZH/v2Z6kYSR7hfVS
+vjXmTicgCv6/5B2lSQ3bstq0uOD0dS2H9KLw42V3zvqJNXkMR4R/uPoefKyVENTt
+8kReuHcDAa/bfBuTCdzn97xH3sxYxs/QCMNlJHdeH41Hya4KEtR4Q4sa2O2/zg2Z
+upTJ/uRiJnzQ4UW6XNPPPXpnD3eq+y/PrtDmCcJvHy1S9i4U14ztqgYqy0WKlJWt
+28ClCvTZEJqz7XzYWvNm
+=9W1/
+-----END PGP SIGNATURE-----
 
-In all new code I add I use "irq" for the irq numbers.
-This mathces the generic irq code.
-
-But I know that a lot of sparc code uses virq.
-
-> +	/* AHB PCI Windows */
-> +	unsigned long		pci_area;	/* MEMORY */
-> +	unsigned long		pci_area_end;
-> +	unsigned long		pci_io;		/* I/O */
-> +	unsigned long		pci_conf;	/* CONFIGURATION */
-> +	unsigned long		pci_conf_end;
-> +	unsigned long		pci_io_va;
-> +};
-> +
-> +DEFINE_SPINLOCK(grpci1_dev_lock);
-> +struct grpci1_priv *grpci1priv;
-static?
-
-	Sam
+--Signature=_Tue__12_Feb_2013_15_40_10_+1100_/tP3R2cmcOMVcqGq--
