@@ -1,29 +1,155 @@
-From: Renato Sison <dedesam2@gmail.com>
-Date: Wed, 06 Feb 2013 10:14:26 +0000
-Subject: CONTACT ME.
-Message-Id: <CAN4RwSR6Jv-Q=bLBo1NzjfZJscrU5xtd1RqOyOMQprJwfABEoQ@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 13 Feb 2013 20:28:29 +0000
+Subject: [PATCH 2/2] sparc64: Fix get_user_pages_fast() wrt. THP.
+Message-Id: <20130213.152829.989641040093237545.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Madam,
 
-I understand your health situation right now and I am so sorry about
-it. I really do hope you recover quickly because we have work to do. I
-agree we have to do everything by email but I need you to confirm to
-me if you received the the re-validation form I emailed to you again
-on the 9th of January that you asked me to resend to you. Did you see
-it in your inbox? If you have the forms, I dont know how long it will
-take before you can talk and write again, so you fill out the forms,
-sign off on it and provide the amount required to process the forms
-which you assured me will be ready on the 3rd of January but because
-of the funeral you had and you needed to be out of town, I decided to
-wait till you get back so you fill out the forms and return it with
-the stated amount (2,150 Pounds). I am waiting for your quick response
-to this email.
+Mostly mirrors the s390 logic, as unlike x86 we don't need the
+SetPageReferenced() bits.
 
-Yours faithfully,
-Renato Sison-Esq.
-D-Line: 44 (703) 198 3411
+On sparc64 we also lack a user/privileged bit in the huge PMDs.
+
+In order to make this work for THP and non-THP builds, some header
+file adjustments were necessary.  Namely, provide the PMD_HUGE_* bit
+defines and the pmd_large() inline unconditionally rather than
+protected by TRANSPARENT_HUGEPAGE.
+
+Reported-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/include/asm/pgtable_64.h | 14 ++++-----
+ arch/sparc/mm/gup.c                 | 59 +++++++++++++++++++++++++++++++++++--
+ 2 files changed, 63 insertions(+), 10 deletions(-)
+
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 7870be0..08fcce9 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -71,7 +71,6 @@
+ #define PMD_PADDR	_AC(0xfffffffe,UL)
+ #define PMD_PADDR_SHIFT	_AC(11,UL)
+ 
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ #define PMD_ISHUGE	_AC(0x00000001,UL)
+ 
+ /* This is the PMD layout when PMD_ISHUGE is set.  With 4MB huge
+@@ -86,7 +85,6 @@
+ #define PMD_HUGE_ACCESSED	_AC(0x00000080,UL)
+ #define PMD_HUGE_EXEC		_AC(0x00000040,UL)
+ #define PMD_HUGE_SPLITTING	_AC(0x00000020,UL)
+-#endif
+ 
+ /* PGDs point to PMD tables which are 8K aligned.  */
+ #define PGD_PADDR	_AC(0xfffffffc,UL)
+@@ -628,6 +626,12 @@ static inline unsigned long pte_special(pte_t pte)
+ 	return pte_val(pte) & _PAGE_SPECIAL;
+ }
+ 
++static inline int pmd_large(pmd_t pmd)
++{
++	return (pmd_val(pmd) & (PMD_ISHUGE | PMD_HUGE_PRESENT)) =
++		(PMD_ISHUGE | PMD_HUGE_PRESENT);
++}
++
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ static inline int pmd_young(pmd_t pmd)
+ {
+@@ -646,12 +650,6 @@ static inline unsigned long pmd_pfn(pmd_t pmd)
+ 	return val >> (PAGE_SHIFT - PMD_PADDR_SHIFT);
+ }
+ 
+-static inline int pmd_large(pmd_t pmd)
+-{
+-	return (pmd_val(pmd) & (PMD_ISHUGE | PMD_HUGE_PRESENT)) =
+-		(PMD_ISHUGE | PMD_HUGE_PRESENT);
+-}
+-
+ static inline int pmd_trans_splitting(pmd_t pmd)
+ {
+ 	return (pmd_val(pmd) & (PMD_ISHUGE|PMD_HUGE_SPLITTING)) =
+diff --git a/arch/sparc/mm/gup.c b/arch/sparc/mm/gup.c
+index 42c55df..01ee23d 100644
+--- a/arch/sparc/mm/gup.c
++++ b/arch/sparc/mm/gup.c
+@@ -66,6 +66,56 @@ static noinline int gup_pte_range(pmd_t pmd, unsigned long addr,
+ 	return 1;
+ }
+ 
++static int gup_huge_pmd(pmd_t *pmdp, pmd_t pmd, unsigned long addr,
++			unsigned long end, int write, struct page **pages,
++			int *nr)
++{
++	struct page *head, *page, *tail;
++	u32 mask;
++	int refs;
++
++	mask = PMD_HUGE_PRESENT;
++	if (write)
++		mask |= PMD_HUGE_WRITE;
++	if ((pmd_val(pmd) & mask) != mask)
++		return 0;
++
++	refs = 0;
++	head = pmd_page(pmd);
++	page = head + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
++	tail = page;
++	do {
++		VM_BUG_ON(compound_head(page) != head);
++		pages[*nr] = page;
++		(*nr)++;
++		page++;
++		refs++;
++	} while (addr += PAGE_SIZE, addr != end);
++
++	if (!page_cache_add_speculative(head, refs)) {
++		*nr -= refs;
++		return 0;
++	}
++
++	if (unlikely(pmd_val(pmd) != pmd_val(*pmdp))) {
++		*nr -= refs;
++		while (refs--)
++			put_page(head);
++		return 0;
++	}
++
++	/* Any tail page need their mapcount reference taken before we
++	 * return.
++	 */
++	while (refs--) {
++		if (PageTail(tail))
++			get_huge_page_tail(tail);
++		tail++;
++	}
++
++	return 1;
++}
++
+ static int gup_pmd_range(pud_t pud, unsigned long addr, unsigned long end,
+ 		int write, struct page **pages, int *nr)
+ {
+@@ -77,9 +127,14 @@ static int gup_pmd_range(pud_t pud, unsigned long addr, unsigned long end,
+ 		pmd_t pmd = *pmdp;
+ 
+ 		next = pmd_addr_end(addr, end);
+-		if (pmd_none(pmd))
++		if (pmd_none(pmd) || pmd_trans_splitting(pmd))
+ 			return 0;
+-		if (!gup_pte_range(pmd, addr, next, write, pages, nr))
++		if (unlikely(pmd_large(pmd))) {
++			if (!gup_huge_pmd(pmdp, pmd, addr, next,
++					  write, pages, nr))
++				return 0;
++		} else if (!gup_pte_range(pmd, addr, next, write,
++					  pages, nr))
+ 			return 0;
+ 	} while (pmdp++, addr = next, addr != end);
+ 
+-- 
+1.8.1.2
+
