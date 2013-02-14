@@ -1,33 +1,58 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Mon, 11 Feb 2013 22:39:07 +0000
-Subject: Re: [PATCH] of: fix recursive locking in of_get_next_available_child()
-Message-Id: <20130211223907.271653E3530@localhost>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 14 Feb 2013 20:14:45 +0000
+Subject: [GIT] Sparc
+Message-Id: <20130214.151445.2165581579573329189.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1360617332-2738-1-git-send-email-swarren@wwwdotorg.org>
-In-Reply-To: <1360617332-2738-1-git-send-email-swarren@wwwdotorg.org>
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Stephen Warren <swarren@wwwdotorg.org>, Rob Herring <rob.herring@calxeda.com>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, Thomas Gleixner <tglx@linutronix.de>, linux-rt-users@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>, linux-next@vger.kernel.org, Stephen Warren <swarren@nvidia.com>
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, 11 Feb 2013 14:15:32 -0700, Stephen Warren <swarren@wwwdotorg.org> wrote:
-> From: Stephen Warren <swarren@nvidia.com>
-> 
-> of_get_next_available_child() acquires devtree_lock, then calls
-> of_device_is_available() which calls of_get_property() which calls
-> of_find_property() which tries to re-acquire devtree_lock, thus causing
-> deadlock.
-> 
-> To avoid this, create a new __of_device_is_available() which calls
-> __of_get_property() instead, which calls __of_find_property(), which
-> does not take the lock,. Update of_get_next_available_child() to call
-> the new __of_device_is_available() since it already owns the lock.
-> 
-> Signed-off-by: Stephen Warren <swarren@nvidia.com>
 
-Thanks for looking at this Stephen. I ended up applying my version of
-this patch though just because it was more convenient to do so. It was
-pretty much identical anyway.
+A couple small fixes for sparc including some THP brown-paper-bag
+material:
 
-g.
+1) During the merging of all the THP support for various architectures,
+   sparc missed adding a HAVE_ARCH_TRANSPARENT_HUGEPAGE to it's Kconfig,
+   oops.
+
+2) Sparc needs to be mindful of hugepages in get_user_pages_fast().
+
+3) Fix memory leak in SBUS probe, from Cong Ding.
+
+4) The sunvdc virtual disk client driver has a test of the bitmask of
+   vdisk server supported operations which was off by one bit.
+
+Please pull, thanks a lot!
+
+The following changes since commit 9a9284153d965a57edc7162a8e57c14c97f3a935:
+
+  Merge branch 'drm-fixes' of git://people.freedesktop.org/~airlied/linux (2013-01-20 20:55:49 -0800)
+
+are available in the git repository at:
+
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
+
+for you to fetch changes up to f4d9605434c0fd4cc8639bf25cfc043418c52362:
+
+  sunvdc: Fix off-by-one in generic_request(). (2013-02-14 11:49:01 -0800)
+
+----------------------------------------------------------------
+Cong Ding (1):
+      sparc: kernel/sbus.c: fix memory leakage
+
+David S. Miller (3):
+      sparc64: Add missing HAVE_ARCH_TRANSPARENT_HUGEPAGE.
+      sparc64: Fix get_user_pages_fast() wrt. THP.
+      sunvdc: Fix off-by-one in generic_request().
+
+ arch/sparc/Kconfig                  |  1 +
+ arch/sparc/include/asm/pgtable_64.h | 14 ++++++--------
+ arch/sparc/kernel/sbus.c            |  6 +++---
+ arch/sparc/mm/gup.c                 | 59 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++--
+ drivers/block/sunvdc.c              |  2 +-
+ 5 files changed, 68 insertions(+), 14 deletions(-)
