@@ -1,55 +1,46 @@
-From: Kirill Tkhai <tkhai@yandex.ru>
-Date: Mon, 25 Feb 2013 13:05:18 +0000
-Subject: Re:[PATCH]sparc32: Fix lost pte_present() state while mprotect() system call
-Message-Id: <1180701361797518@web8g.yandex.ru>
+From: Meelis Roos <mroos@ut.ee>
+Date: Tue, 19 Feb 2013 12:05:42 +0000
+Subject: Re: THP bug and crash on sparc64 3.8
+Message-Id: <alpine.SOC.1.00.1302191405140.10147@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1123991361539147@web6h.yandex.ru>
-In-Reply-To: <1123991361539147@web6h.yandex.ru>
+References: <alpine.SOC.1.00.1302191350280.10147@math.ut.ee>
+In-Reply-To: <alpine.SOC.1.00.1302191350280.10147@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-mm@vger.kernel.org
+Cc: Linux Kernel list <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org
 
+	
+(Resent to correct cparclinux address)
 
+> I am receiving this with 3.8.0 on Sun E420R (4G RAM, 4 CPUs). System 
+> hangs after logging this to syslog. It was busy  running ap at the 
+> moment of crash.
+> 
+> CONFIG_TRANSPARENT_HUGEPAGE=y
+> CONFIG_TRANSPARENT_HUGEPAGE_ALWAYS=y
+> # CONFIG_TRANSPARENT_HUGEPAGE_MADVISE is not set
+> 
+> BUG: sleeping function called from invalid context at mm/slub.c:925
+> in_atomic(): 1, irqs_disabled(): 0, pid: 327, name: khugepaged
+> 2 locks held by khugepaged/327:
+>  #0:  (&mm->mmap_sem){++++++}, at: [<0000000000516964>] 
+> khugepaged+0x624/0xf80
+>  #1:  (&(&mm->page_table_lock)->rlock){+.+.+.}, at: [<0000000000517078>] 
+> khugepaged+0xd38/0xf
+> 
+> Call Trace:
+>  [0000000000488d9c] __might_sleep+0x13c/0x240
+>  [000000000051204c] kmem_cache_alloc+0xcc/0x120
+>  [000000000044bfc0] tsb_grow+0x80/0x480
+>  [000000000044e814] hugetlb_setup+0x14/0xc0
+>  [000000000044bcb0] set_pmd_at+0x110/0x120
+>  [00000000005170b8] khugepaged+0xd78/0xf80
+>  [000000000047e508] kthread+0x88/0xa0
+>  [00000000004060a4] ret_from_syscall+0x1c/0x2c
+>  [0000000000000000]           (null)
+> 
 
-> From: Kirill Tkhai <tkhai@yandex.ru>
-> Date: Fri, 22 Feb 2013 17:19:07 +0400
-> 
->> If pte is present before change_pte_range() works on it, the state will be
->> lost after it. pte_modify() zeroes every 0xff bit including SRMMU_ET_MASK
->> while it adds new protection. I receive the stack after this (on a slightly
->> modified kernel):
->>
->> So, add SRMMU_ET_MASK to SRMMU_CHG_MASK.
->>
->> Signed-off-by: Kirill V Tkhai <tkhai@yandex.ru>
-> 
-> ...
-> 
->> -#define SRMMU_CHG_MASK (0xffffff00 | SRMMU_REF | SRMMU_DIRTY)
->> +#define SRMMU_CHG_MASK (0xffffff00 | SRMMU_REF | SRMMU_DIRTY | SRMMU_ET_MASK)
-> 
-> I don't think this is correct, the state is not lost, it must be
-> contained fully in the pgprot_t protections we are changing to.
-> 
-> What if we are trying to change the protections from PAGE_COPY (which
-> has the valid bit set) to PAGE_NONE (which lacks the valid bit)? That
-> no longer works after your change, as we'll leave the valid bit set.
-> 
-> In fact, I think the bug you triggered is exactly this situation, and
-> your patch therefore breaks PAGE_NONE completely.
-> 
-> Present and Valid are two seperate pieces of state, so the bug might
-> really be that the SRMMU code tries to handle them as one. And your
-> trace seems to confirm this, actually. PROT_NONE can be for a present
-> page, but it must have the valid bit cleared.
-
-Thanks for the explanation, David!
-
-Should we account none pages in pte_present instead of above like this?
-
-static inline int srmmu_pte_present(pte_t pte)
-{ return ((pte_val(pte) & SRMMU_ET_MASK) = SRMMU_ET_PTE) ||
-          ((pte_val(pte) & SRMMU_PAGE_NONE) = SRMMU_PAGE_NONE); }
-
- -- 
+-- 
+Meelis Roos (mroos@ut.ee)      http://www.cs.ut.ee/~mroos/
