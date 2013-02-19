@@ -1,46 +1,21 @@
-From: Meelis Roos <mroos@ut.ee>
-Date: Tue, 19 Feb 2013 12:05:42 +0000
+From: David Miller <davem@davemloft.net>
+Date: Tue, 19 Feb 2013 18:17:39 +0000
 Subject: Re: THP bug and crash on sparc64 3.8
-Message-Id: <alpine.SOC.1.00.1302191405140.10147@math.ut.ee>
+Message-Id: <20130219.131739.1337370562046840058.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <alpine.SOC.1.00.1302191350280.10147@math.ut.ee>
-In-Reply-To: <alpine.SOC.1.00.1302191350280.10147@math.ut.ee>
+	<alpine.SOC.1.00.1302191405140.10147@math.ut.ee>
+In-Reply-To: <alpine.SOC.1.00.1302191405140.10147@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@vger.kernel.org
-Cc: Linux Kernel list <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org
+To: mroos@ut.ee
+Cc: linux-mm@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-	
-(Resent to correct cparclinux address)
+From: Meelis Roos <mroos@ut.ee>
+Date: Tue, 19 Feb 2013 14:05:42 +0200 (EET)
 
-> I am receiving this with 3.8.0 on Sun E420R (4G RAM, 4 CPUs). System 
-> hangs after logging this to syslog. It was busy  running ap at the 
-> moment of crash.
-> 
-> CONFIG_TRANSPARENT_HUGEPAGE=y
-> CONFIG_TRANSPARENT_HUGEPAGE_ALWAYS=y
-> # CONFIG_TRANSPARENT_HUGEPAGE_MADVISE is not set
-> 
-> BUG: sleeping function called from invalid context at mm/slub.c:925
-> in_atomic(): 1, irqs_disabled(): 0, pid: 327, name: khugepaged
-> 2 locks held by khugepaged/327:
->  #0:  (&mm->mmap_sem){++++++}, at: [<0000000000516964>] 
-> khugepaged+0x624/0xf80
->  #1:  (&(&mm->page_table_lock)->rlock){+.+.+.}, at: [<0000000000517078>] 
-> khugepaged+0xd38/0xf
-> 
-> Call Trace:
->  [0000000000488d9c] __might_sleep+0x13c/0x240
->  [000000000051204c] kmem_cache_alloc+0xcc/0x120
->  [000000000044bfc0] tsb_grow+0x80/0x480
->  [000000000044e814] hugetlb_setup+0x14/0xc0
->  [000000000044bcb0] set_pmd_at+0x110/0x120
->  [00000000005170b8] khugepaged+0xd78/0xf80
->  [000000000047e508] kthread+0x88/0xa0
->  [00000000004060a4] ret_from_syscall+0x1c/0x2c
->  [0000000000000000]           (null)
-> 
+> 	
+> (Resent to correct cparclinux address)
 
--- 
-Meelis Roos (mroos@ut.ee)      http://www.cs.ut.ee/~mroos/
+Thanks for the report, I'll look into this.
