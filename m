@@ -1,41 +1,45 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 20 Mar 2013 19:09:49 +0000
-Subject: [PATCH] sparc64: Kill __ARCH_WANT_UNLOCKED_CTXSW
-Message-Id: <20130320.150949.311835128213660395.davem@davemloft.net>
+Date: Fri, 01 Mar 2013 21:35:46 +0000
+Subject: Re: [PATCH]sunsu: Fix panic in case of nonexistent port at "console=ttySY" cmdline option
+Message-Id: <20130301.163546.1850683352032837734.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+From: Kirill Tkhai <tkhai@yandex.ru>
+Date: Sun, 24 Feb 2013 13:01:15 +0400
 
-As Peter Z. explained at:
+> If a machine has X (X < 4) sunsu ports and cmdline
+> option "console=ttySY" is passed, where X < Y <= 4,
+> than the following panic happens:
+> 
+> Unable to handle kernel NULL pointer dereference
+> TPC: <sunsu_console_setup+0x78/0xe0>
+> RPC: <sunsu_console_setup+0x74/0xe0>
+> I7: <register_console+0x378/0x3e0>
+> Call Trace:
+>  [0000000000453a38] register_console+0x378/0x3e0
+>  [0000000000576fa0] uart_add_one_port+0x2e0/0x340
+>  [000000000057af40] su_probe+0x160/0x2e0
+>  [00000000005b8a4c] platform_drv_probe+0xc/0x20
+>  [00000000005b6c2c] driver_probe_device+0x12c/0x220
+>  [00000000005b6da8] __driver_attach+0x88/0xa0
+>  [00000000005b4df4] bus_for_each_dev+0x54/0xa0
+>  [00000000005b5a54] bus_add_driver+0x154/0x260
+>  [00000000005b7190] driver_register+0x50/0x180
+>  [00000000006d250c] sunsu_init+0x18c/0x1e0
+>  [00000000006c2668] do_one_initcall+0xe8/0x160
+>  [00000000006c282c] kernel_init_freeable+0x12c/0x1e0
+>  [0000000000603764] kernel_init+0x4/0x100
+>  [0000000000405f64] ret_from_syscall+0x1c/0x2c
+>  [0000000000000000]           (null)
+> 
+> 1)Fix the panic;
+> 2)Increment registered port number every successful
+> probe.
+> 
+> Signed-off-by: Kirill Tkhai <tkhai@yandex.ru>
 
-https://lkml.org/lkml/2011/12/12/268
-
-it's not needed at all and I even tested it back then.
-This patch just got lost in the shuffle for some reason.
-
-Reported-by: Kirill Tkhai <tkhai@yandex.ru>
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/include/asm/processor_64.h | 3 ---
- 1 file changed, 3 deletions(-)
-
-diff --git a/arch/sparc/include/asm/processor_64.h b/arch/sparc/include/asm/processor_64.h
-index cce72ce..4c3f7f0 100644
---- a/arch/sparc/include/asm/processor_64.h
-+++ b/arch/sparc/include/asm/processor_64.h
-@@ -18,9 +18,6 @@
- #include <asm/ptrace.h>
- #include <asm/page.h>
- 
--/* Don't hold the runqueue lock over context switch */
--#define __ARCH_WANT_UNLOCKED_CTXSW
--
- /* The sparc has no problems with write protection */
- #define wp_works_ok 1
- #define wp_works_ok__is_a_macro /* for versions in ksyms.c */
--- 
-1.7.11.7
-
+Applied and queued up for -stable, thanks.
