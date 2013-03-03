@@ -1,40 +1,29 @@
 From: David Miller <davem@davemloft.net>
-Date: Sat, 23 Mar 2013 23:49:03 +0000
-Subject: Re: [PATCH] sparc64: Move offset calculation of several structures to asm-offset.c
-Message-Id: <20130323.194903.518532142246973253.davem@davemloft.net>
+Date: Sun, 03 Mar 2013 06:41:35 +0000
+Subject: Re: [PATCH]sparc32: Fix lost pte_present() state while mprotect() system call
+Message-Id: <20130303.014135.1820903343472159760.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1631521364039095@web14d.yandex.ru>
-In-Reply-To: <1631521364039095@web14d.yandex.ru>
+References: <1123991361539147@web6h.yandex.ru>
+In-Reply-To: <1123991361539147@web6h.yandex.ru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 From: Kirill Tkhai <tkhai@yandex.ru>
-Date: Sat, 23 Mar 2013 15:44:55 +0400
+Date: Mon, 25 Feb 2013 17:05:18 +0400
 
-> 1)Calculate offset of members of thread_info, trap_per_cpu and tsb_config
-> in asm-offset.c
-> 2)Replace DEFINE(*, offsetof(...)) with OFFSET(...)
-> 3)Inify using of asm-offset.h in header files
+> Should we account none pages in pte_present instead of above like this?
 > 
-> Signed-off-by: Kirill Tkhai <tkhai@yandex.ru>
+> static inline int srmmu_pte_present(pte_t pte)
+> { return ((pte_val(pte) & SRMMU_ET_MASK) = SRMMU_ET_PTE) ||
+>           ((pte_val(pte) & SRMMU_PAGE_NONE) = SRMMU_PAGE_NONE); }
 
-Things are done this way on purpose.
+No, I don't think that is what we should do.
 
-When the offsets change, I don't want the code to just automatically
-adjust the assembler offset defines.
+Instead, we should use the SRMMU_NOREAD bit to encode SRMMU_PAGE_NONE
+pte's.  Then you make SRMMU_PAGE_NONE set SRMMU_ET_PTE but also
+SRMMU_NOREAD.
 
-Instead, I want whoever changes things in this area to carefully
-analyze the side effects.
-
-For example, if anyone adds members, it now makes the trap block
-larger than the power of 2 it currently is, and that means the
-shift used to compute a cpu number to a trap block offset no
-longer works.
-
-Also, if members are moved, cache alignment of adjoining members
-means that rearrangement must be done carefully.
-
-This means, overall, nothing should happen automatically when
-people make changes to the trap block.
+Then you'll need no changes at all to srmmu_pte_present() or
+SRMMU_CHG_MASK.
