@@ -1,65 +1,45 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Date: Tue, 26 Mar 2013 17:21:00 +0000
-Subject: [PATCH 01/86] sparc: huge_ptep_set_* functions need to call set_huge_pte_at()
-Message-Id: <20130326173600.053205698@goodmis.org>
+From: Daniel Hellstrom <daniel@gaisler.com>
+Date: Mon, 04 Mar 2013 10:26:13 +0000
+Subject: [PATCH v2] sparc,leon: updated GRPCI2 config name
+Message-Id: <1362392773-27889-1-git-send-email-daniel@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20130326172059.136127374@goodmis.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Dave Kleikamp <dave.kleikamp@oracle.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-3.6.11.1 stable review patch.
-If anyone has any objections, please let me know.
-
-------------------
-
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-
-[ Upstream commit 6cb9c3697585c47977c42c5cc1b9fc49247ac530 ]
-
-Modifying the huge pte's requires that all the underlying pte's be
-modified.
-
-Version 2: added missing flush_tlb_page()
-
-Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
 ---
- arch/sparc/include/asm/hugetlb.h |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ arch/sparc/Kconfig         |    2 +-
+ arch/sparc/kernel/Makefile |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/include/asm/hugetlb.h b/arch/sparc/include/asm/hugetlb.h
-index 1770610..f368cef 100644
---- a/arch/sparc/include/asm/hugetlb.h
-+++ b/arch/sparc/include/asm/hugetlb.h
-@@ -58,14 +58,20 @@ static inline pte_t huge_pte_wrprotect(pte_t pte)
- static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
- 					   unsigned long addr, pte_t *ptep)
- {
--	ptep_set_wrprotect(mm, addr, ptep);
-+	pte_t old_pte = *ptep;
-+	set_huge_pte_at(mm, addr, ptep, pte_wrprotect(old_pte));
- }
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 9aa2cb8..e6e6065 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -511,7 +511,7 @@ config SPARC32_GRPCI1
+ 	  from the bootloader that makes the GRPCI to generate interrupts
+ 	  on detected PCI Parity and System errors.
  
- static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
- 					     unsigned long addr, pte_t *ptep,
- 					     pte_t pte, int dirty)
- {
--	return ptep_set_access_flags(vma, addr, ptep, pte, dirty);
-+	int changed = !pte_same(*ptep, pte);
-+	if (changed) {
-+		set_huge_pte_at(vma->vm_mm, addr, ptep, pte);
-+		flush_tlb_page(vma, addr);
-+	}
-+	return changed;
- }
+-config GRPCI2
++config SPARC32_GRPCI2
+ 	bool "GRPCI2 Host Bridge Support"
+ 	depends on LEON_PCI
+ 	default y
+diff --git a/arch/sparc/kernel/Makefile b/arch/sparc/kernel/Makefile
+index 992be44..5e5ad34 100644
+--- a/arch/sparc/kernel/Makefile
++++ b/arch/sparc/kernel/Makefile
+@@ -74,7 +74,7 @@ obj-y                     += dma.o
  
- static inline pte_t huge_ptep_get(pte_t *ptep)
+ obj-$(CONFIG_PCIC_PCI)    += pcic.o
+ obj-$(CONFIG_LEON_PCI)    += leon_pci.o
+-obj-$(CONFIG_GRPCI2)      += leon_pci_grpci2.o
++obj-$(CONFIG_SPARC32_GRPCI2) += leon_pci_grpci2.o
+ obj-$(CONFIG_SPARC32_GRPCI1) += leon_pci_grpci1.o
+ 
+ obj-$(CONFIG_SMP)         += trampoline_$(BITS).o smp_$(BITS).o
 -- 
-1.7.10.4
-
+1.7.0.4
 
