@@ -1,118 +1,99 @@
-From: Kirill Tkhai <tkhai@yandex.ru>
-Date: Sun, 24 Feb 2013 09:01:15 +0000
-Subject: [PATCH]sunsu: Fix panic in case of nonexistent port at "console=ttySY" cmdline option
-Message-Id: <115351361696475@web28d.yandex.ru>
+From: Mario Caruso <caruso@tiscali.com>
+Date: Mon, 04 Mar 2013 08:39:59 +0000
+Subject: Kernel Panic sunfire v210
+Message-Id: <20130304093959.773c094f@uptheirons.ws.tiscali.sys>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Sig_/8nEBXvXMdWmGcyMMYGCD4yB"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-If a machine has X (X < 4) sunsu ports and cmdline
-option "console=ttySY" is passed, where X < Y <= 4,
-than the following panic happens:
+--Sig_/8nEBXvXMdWmGcyMMYGCD4yB
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Unable to handle kernel NULL pointer dereference
-TPC: <sunsu_console_setup+0x78/0xe0>
-RPC: <sunsu_console_setup+0x74/0xe0>
-I7: <register_console+0x378/0x3e0>
-Call Trace:
- [0000000000453a38] register_console+0x378/0x3e0
- [0000000000576fa0] uart_add_one_port+0x2e0/0x340
- [000000000057af40] su_probe+0x160/0x2e0
- [00000000005b8a4c] platform_drv_probe+0xc/0x20
- [00000000005b6c2c] driver_probe_device+0x12c/0x220
- [00000000005b6da8] __driver_attach+0x88/0xa0
- [00000000005b4df4] bus_for_each_dev+0x54/0xa0
- [00000000005b5a54] bus_add_driver+0x154/0x260
- [00000000005b7190] driver_register+0x50/0x180
- [00000000006d250c] sunsu_init+0x18c/0x1e0
- [00000000006c2668] do_one_initcall+0xe8/0x160
- [00000000006c282c] kernel_init_freeable+0x12c/0x1e0
- [0000000000603764] kernel_init+0x4/0x100
- [0000000000405f64] ret_from_syscall+0x1c/0x2c
- [0000000000000000]           (null)
+Hello,
+I'm experiencing a weird kernel panic on a sun fire v210=20
+running debian squeeze and kernel 3.2.35 from backports,
+from time to time the machine hangs and on the console=20
+I get the following report :=20
 
-1)Fix the panic;
-2)Increment registered port number every successful
-probe.
+Contents of run buffer:
 
-Signed-off-by: Kirill Tkhai <tkhai@yandex.ru>
-CC: David Miller <davem@davemloft.net>
----
- drivers/tty/serial/sunsu.c |   21 +++++++++------------
- 1 file changed, 9 insertions(+), 12 deletions(-)
-diff --git a/drivers/tty/serial/sunsu.c b/drivers/tty/serial/sunsu.c
-index e343d66..451687c 100644
---- a/drivers/tty/serial/sunsu.c
-+++ b/drivers/tty/serial/sunsu.c
-@@ -968,6 +968,7 @@ static struct uart_ops sunsu_pops = {
- #define UART_NR	4
- 
- static struct uart_sunsu_port sunsu_ports[UART_NR];
-+static int nr_inst; /* Number of already registered ports */
- 
- #ifdef CONFIG_SERIO
- 
-@@ -1337,13 +1338,8 @@ static int __init sunsu_console_setup(struct console *co, char *options)
- 	printk("Console: ttyS%d (SU)\n",
- 	       (sunsu_reg.minor - 64) + co->index);
- 
--	/*
--	 * Check whether an invalid uart number has been specified, and
--	 * if so, search for the first available port that does have
--	 * console support.
--	 */
--	if (co->index >= UART_NR)
--		co->index = 0;
-+	if (co->index > nr_inst)
-+		return -ENODEV;
- 	port = &sunsu_ports[co->index].port;
- 
- 	/*
-@@ -1408,7 +1404,6 @@ static enum su_type su_get_type(struct device_node *dp)
- 
- static int su_probe(struct platform_device *op)
- {
--	static int inst;
- 	struct device_node *dp = op->dev.of_node;
- 	struct uart_sunsu_port *up;
- 	struct resource *rp;
-@@ -1418,16 +1413,16 @@ static int su_probe(struct platform_device *op)
- 
- 	type = su_get_type(dp);
- 	if (type = SU_PORT_PORT) {
--		if (inst >= UART_NR)
-+		if (nr_inst >= UART_NR)
- 			return -EINVAL;
--		up = &sunsu_ports[inst];
-+		up = &sunsu_ports[nr_inst];
- 	} else {
- 		up = kzalloc(sizeof(*up), GFP_KERNEL);
- 		if (!up)
- 			return -ENOMEM;
- 	}
- 
--	up->port.line = inst;
-+	up->port.line = nr_inst;
- 
- 	spin_lock_init(&up->port.lock);
- 
-@@ -1461,6 +1456,8 @@ static int su_probe(struct platform_device *op)
- 		}
- 		dev_set_drvdata(&op->dev, up);
- 
-+		nr_inst++;
-+
- 		return 0;
- 	}
- 
-@@ -1488,7 +1485,7 @@ static int su_probe(struct platform_device *op)
- 
- 	dev_set_drvdata(&op->dev, up);
- 
--	inst++;
-+	nr_inst++;
- 
- 	return 0;
- 
+[404832.601822] ERROR(0): M_SYND(0),  E_SYND(0), Privileged
+[404832.671592] ERROR(0): Highest priority error (0000100000000000) "Unmapp=
+ed error from system bus"
+[404832.788259] ERROR(0): D-cache idx[0] tag[0000000000000000] utag[0000000=
+000000000]
+stag[0000000000000000] [404832.914069] ERROR(0): D-cache data0[000000000000=
+0000]
+data1[0000000000000000] data2[0000000000000000] data3[0000000000000000] [40=
+4833.063900] ERROR(0):
+I-cache idx[0] tag[0000000000000000] utag[0000000000000000] stag[0000000000=
+000000]
+u[0000000000000000] l[0000000000000000] [404833.235461] ERROR(0): I-cache I=
+NSN0[0000000000000000]
+INSN1[0000000000000000] INSN2[0000000000000000] INSN3[0000000000000000] [40=
+4833.385286] ERROR(0):
+I-cache INSN4[0000000000000000] INSN5[0000000000000000] INSN6[0000000000000=
+000]
+INSN7[0000000000000000] [404833.535114] ERROR(0): E-cache idx[40000000] tag=
+[0000000006008ef2]
+[404833.616314] ERROR(0): E-cache data0[00477b0000000000] data1[00000000000=
+00000]
+data2[0000000000000000] data3[0000000000000000] [404833.766149] Kernel pani=
+c - not syncing:
+Irrecoverable deferred error trap. [404833.766153] [404833.878222] Call Tra=
+ce: [404833.911398]
+[0000000000429b74] cheetah_deferred_handler+0x4b0/0x4e8 [404833.996036]  [0=
+000000000405e50]
+c_deferred+0x18/0x24 [404834.062365]  [0000000000407bb0] copy_tsb+0x30/0x80
+[404834.126421]  [00000000007acc58] do_sparc64_fault+0x588/0x780
+[404834.201902]  [00000000004079a8] sparc64_realfault_common+0x10/0x20
+[404834.284257]  [000000000045de44] schedule_tail+0x78/0x88
+[404834.354018]  [0000000000406050] ret_from_syscall+0x8/0x18
+[404834.426079] Press Stop-A (L1-A) to return to the boot prom
+
+the machine has 1 CPU shown as below :=20
+
+cat /proc/cpuinfo
+cpu             : TI UltraSparc IIIi (Jalapeno)
+fpu             : UltraSparc IIIi integrated FPU
+pmu             : ultra3i
+prom            : OBP 4.30.4.a 2010/01/06 14:48
+type            : sun4u
+ncpus probed    : 1
+ncpus active    : 1
+D$ parity tl1   : 0
+I$ parity tl1   : 0
+cpucaps         : flush,stbar,swap,muldiv,v9,ultra3,mul32,div32,v8plus,vis,=
+vis2
+Cpu0ClkTck      : 000000004fa1be00
+MMU Type        : Cheetah+
+State:
+CPU0:           online
+
+can anybody suggest a way to debug this issue ?=20
+
+tnx
+
+M.
+---------------------------
+  () ASCII Ribbon Campaign
+  /\ Against HTML E-Mail
+---------------------------
+This mail is ubuntu Hostile
+---------------------------
+
+--Sig_/8nEBXvXMdWmGcyMMYGCD4yB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAlE0Xd8ACgkQ9XYbM7TdPPsXQgCgnyinA7gVQqkkkXRyjMXqjbFl
+KgoAnieK9gm/V+44hQCU6HqkTfJiJIkL
+=Ntx9
+-----END PGP SIGNATURE-----
+
+--Sig_/8nEBXvXMdWmGcyMMYGCD4yB--
