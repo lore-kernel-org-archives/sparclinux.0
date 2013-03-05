@@ -1,32 +1,45 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 04 Mar 2013 19:19:06 +0000
-Subject: Re: [PATCH 1/1] [SPARC64] correctly recognize SPARC64-X chips
-Message-Id: <20130304.141906.799827980400249123.davem@davemloft.net>
+From: Daniel Hellstrom <daniel@gaisler.com>
+Date: Tue, 05 Mar 2013 17:04:21 +0000
+Subject: [PATCH v3] sparc,leon: updated GRPCI2 config name
+Message-Id: <1362503061-31756-1-git-send-email-daniel@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <51343DA4.5090902@oracle.com>
-In-Reply-To: <51343DA4.5090902@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Allen Pais <allen.pais@oracle.com>
-Date: Mon, 04 Mar 2013 11:52:28 +0530
+Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
+---
+ arch/sparc/Kconfig         |    2 +-
+ arch/sparc/kernel/Makefile |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-> 
-> The following patch adds support for correctly
-> recognizing SPARC-X chips.
-> 
-> cpu : Unknown SUN4V CPU
-> fpu : Unknown SUN4V FPU
-> pmu : Unknown SUN4V PMU
-> 
-> Signed-off-by: Katayama Yoshihiro <kata1@jp.fujitsu.com>
-> Signed-off-by: Allen Pais <allen.pais@oracle.com>
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index ad5ad8f..dbc7082 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -511,7 +511,7 @@ config SPARC_GRPCI1
+ 	  from the bootloader that makes the GRPCI to generate interrupts
+ 	  on detected PCI Parity and System errors.
+ 
+-config GRPCI2
++config SPARC_GRPCI2
+ 	bool "GRPCI2 Host Bridge Support"
+ 	depends on LEON_PCI
+ 	default y
+diff --git a/arch/sparc/kernel/Makefile b/arch/sparc/kernel/Makefile
+index c90a2a0..d2936d0 100644
+--- a/arch/sparc/kernel/Makefile
++++ b/arch/sparc/kernel/Makefile
+@@ -74,7 +74,7 @@ obj-y                     += dma.o
+ 
+ obj-$(CONFIG_PCIC_PCI)    += pcic.o
+ obj-$(CONFIG_LEON_PCI)    += leon_pci.o
+-obj-$(CONFIG_GRPCI2)      += leon_pci_grpci2.o
++obj-$(CONFIG_SPARC_GRPCI2)+= leon_pci_grpci2.o
+ obj-$(CONFIG_SPARC_GRPCI1)+= leon_pci_grpci1.o
+ 
+ obj-$(CONFIG_SMP)         += trampoline_$(BITS).o smp_$(BITS).o
+-- 
+1.7.0.4
 
-Your email client has corrupted your patch, please read
-Documentation/email-clients.txt from the kernel tree, then email the
-patch to yourself, and only resubmit this patch to the list once you
-can successfully apply the patch you receive in that test email.
-
-Thanks.
