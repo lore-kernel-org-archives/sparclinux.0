@@ -1,42 +1,59 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Wed, 20 Mar 2013 14:35:17 +0000
-Subject: Re: [PATCH -next] sparc32/sparc64: Provide cmpxchg64()
-Message-Id: <CAMuHMdUuOeh3YK1XcveB_5OoNKHLHzyNOgF8mysicSnkfMa7_Q@mail.gmail.com>
+From: Jiang Liu <liuj97@gmail.com>
+Date: Sun, 10 Mar 2013 08:01:08 +0000
+Subject: [PATCH v2, part2 08/10] mm/SPARC: use free_highmem_page() to free highmem pages into buddy system
+Message-Id: <1362902470-25787-9-git-send-email-jiang.liu@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1363290128-21247-1-git-send-email-geert@linux-m68k.org>
-	<20130319.162000.1936616024625986095.davem@davemloft.net>
-	<CAMuHMdXHuT16xuw3-5rwL2WY7ZRzfweB7jKVyoi-xnqT4B0pBg@mail.gmail.com>
-	<20130320.101102.2237935685619866372.davem@davemloft.net>
-In-Reply-To: <20130320.101102.2237935685619866372.davem@davemloft.net>
+References: <1362902470-25787-1-git-send-email-jiang.liu@huawei.com>
+In-Reply-To: <1362902470-25787-1-git-send-email-jiang.liu@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org, linux-next@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>, David Rientjes <rientjes@google.com>
+Cc: Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Michal Hocko <mhocko@suse.cz>, Jianguo Wu <wujianguo@huawei.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Sam Ravnborg <sam@ravnborg.org>, sparclinux@vger.kernel.org
 
-On Wed, Mar 20, 2013 at 3:11 PM, David Miller <davem@davemloft.net> wrote:
-> From: Geert Uytterhoeven <geert@linux-m68k.org>
-> Date: Wed, 20 Mar 2013 09:05:19 +0100
->
->> The sparc64 part is still OK as it eventually calls __cmpxchg_u64(),
->> isn't it?
->
-> Yes, that part is OK.
->
->> Do you want me to send a new patch for that part only, or will you just
->> remove the sparc32 part?
->
-> Please send a new patch, thank you.
+Use helper function free_highmem_page() to free highmem pages into
+the buddy system.
 
-OK, done.
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: sparclinux@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+---
+ arch/sparc/mm/init_32.c |   12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
-Gr{oetje,eeting}s,
+diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
+index 13d6fee..6a7eb68 100644
+--- a/arch/sparc/mm/init_32.c
++++ b/arch/sparc/mm/init_32.c
+@@ -282,14 +282,8 @@ static void map_high_region(unsigned long start_pfn, unsigned long end_pfn)
+ 	printk("mapping high region %08lx - %08lx\n", start_pfn, end_pfn);
+ #endif
+ 
+-	for (tmp = start_pfn; tmp < end_pfn; tmp++) {
+-		struct page *page = pfn_to_page(tmp);
+-
+-		ClearPageReserved(page);
+-		init_page_count(page);
+-		__free_page(page);
+-		totalhigh_pages++;
+-	}
++	for (tmp = start_pfn; tmp < end_pfn; tmp++)
++		free_higmem_page(pfn_to_page(tmp));
+ }
+ 
+ void __init mem_init(void)
+@@ -347,8 +341,6 @@ void __init mem_init(void)
+ 		map_high_region(start_pfn, end_pfn);
+ 	}
+ 	
+-	totalram_pages += totalhigh_pages;
+-
+ 	codepages = (((unsigned long) &_etext) - ((unsigned long)&_start));
+ 	codepages = PAGE_ALIGN(codepages) >> PAGE_SHIFT;
+ 	datapages = (((unsigned long) &_edata) - ((unsigned long)&_etext));
+-- 
+1.7.9.5
 
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
