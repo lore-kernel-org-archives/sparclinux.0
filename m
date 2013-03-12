@@ -1,26 +1,45 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 11 Mar 2013 13:53:01 +0000
-Subject: Re: [PATCH v1] [SPARC64] correctly recognize SPARC64-X chips
-Message-Id: <20130311.095301.2076849957894483247.davem@davemloft.net>
+From: Paul Bolle <pebolle@tiscali.nl>
+Date: Tue, 12 Mar 2013 20:35:19 +0000
+Subject: [PATCH] sparc: delete "if !ULTRA_HAS_POPULATION_COUNT"
+Message-Id: <1363120519.3137.148.camel@x61.thuisdomein>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1362563279-23839-1-git-send-email-allen.pais@oracle.com>
-In-Reply-To: <1362563279-23839-1-git-send-email-allen.pais@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Allen Pais <allen.pais@oracle.com>
-Date: Wed,  6 Mar 2013 15:17:59 +0530
+Commit 2d78d4beb64eb07d50665432867971c481192ebf ("[PATCH] bitops:
+sparc64: use generic bitops") made the default of GENERIC_HWEIGHT depend
+on !ULTRA_HAS_POPULATION_COUNT. But since there's no Kconfig symbol with
+that name, this always evaluates to true. Delete this dependency.
 
-> The following patch adds support for correctly
-> recognizing SPARC-X chips.
-> 
-> cpu : Unknown SUN4V CPU
-> fpu : Unknown SUN4V FPU
-> pmu : Unknown SUN4V PMU
-> 
-> Signed-off-by: Katayama Yoshihiro <kata1@jp.fujitsu.com>
-> Signed-off-by: Allen Pais <allen.pais@oracle.com>
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+---
+0) Tested with "make ARCH=sparc menuconfig" (before and after this
+patch).
 
-Applied, thanks.
+1) There apparently is an (obscure) preprocessor macro
+ULTRA_HAS_POPULATION_COUNT. But the check for it got removed in commit
+ef7c4d4675d2a9206f913f26ca1a5cd41bff9d41 ("sparc: Use popc if possible
+for hweight routines."). 
+
+ arch/sparc/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 289127d..7fcd4b4 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -197,7 +197,7 @@ config RWSEM_XCHGADD_ALGORITHM
+ 
+ config GENERIC_HWEIGHT
+ 	bool
+-	default y if !ULTRA_HAS_POPULATION_COUNT
++	default y
+ 
+ config GENERIC_CALIBRATE_DELAY
+ 	bool
+-- 
+1.7.11.7
+
