@@ -1,28 +1,53 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 29 Mar 2013 16:17:31 +0000
-Subject: Re: [PATCH v3, part4 32/39] mm/SPARC: prepare for removing num_physpages and simplify mem_init()
-Message-Id: <20130329161731.GB6201@merkur.ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 19 Mar 2013 21:18:40 +0000
+Subject: [GIT] Sparc
+Message-Id: <20130319.171840.1173928147955486660.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1364313298-17336-1-git-send-email-jiang.liu@huawei.com> <1364313298-17336-33-git-send-email-jiang.liu@huawei.com>
-In-Reply-To: <1364313298-17336-33-git-send-email-jiang.liu@huawei.com>
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jiang Liu <liuj97@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, David Rientjes <rientjes@google.com>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Michal Hocko <mhocko@suse.cz>, James Bottomley <James.Bottomley@HansenPartnership.com>, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, David Howells <dhowells@redhat.com>, Mark Salter <msalter@redhat.com>, Jianguo Wu <wujianguo@huawei.com>, linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, sparclinux@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Mar 26, 2013 at 11:54:51PM +0800, Jiang Liu wrote:
-> Prepare for removing num_physpages and simplify mem_init().
-> 
-> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: Sam Ravnborg <sam@ravnborg.org>
-> Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> Cc: Tang Chen <tangchen@cn.fujitsu.com>
-> Cc: sparclinux@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
 
-Looks good!
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
+Just some minor fixups, a sunsu console setup panic cure, and
+recognition of a Fujitsu sun4v cpu.
 
-	Sam
+Please pull, thanks a lot!
+
+The following changes since commit b0af9cd9aab60ceb17d3ebabb9fdf4ff0a99cf50:
+
+  Merge tag 'lzo-update-signature-20130226' of git://github.com/markus-oberhumer/linux (2013-02-28 20:45:52 -0800)
+
+are available in the git repository at:
+
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
+
+for you to fetch changes up to f58b20bd6bad48d6fc5633f003c3651115273fb2:
+
+  sparc: remove unused "config BITS" (2013-03-19 16:23:51 -0400)
+
+----------------------------------------------------------------
+Allen Pais (1):
+      sparc64: correctly recognize SPARC64-X chips
+
+Daniel Hellstrom (1):
+      sparc,leon: fix GRPCI2 device0 PCI config space access
+
+Paul Bolle (2):
+      sparc: delete "if !ULTRA_HAS_POPULATION_COUNT"
+      sparc: remove unused "config BITS"
+
+Tkhai Kirill (1):
+      sunsu: Fix panic in case of nonexistent port at "console=ttySY" cmdline option
+
+ arch/sparc/Kconfig                  |  8 +-------
+ arch/sparc/include/asm/spitfire.h   |  1 +
+ arch/sparc/kernel/cpu.c             |  6 ++++++
+ arch/sparc/kernel/head_64.S         | 25 +++++++++++++++++++++++--
+ arch/sparc/kernel/leon_pci_grpci2.c | 41 ++++++++++++++++++++++++++---------------
+ drivers/tty/serial/sunsu.c          | 21 +++++++++------------
+ 6 files changed, 66 insertions(+), 36 deletions(-)
