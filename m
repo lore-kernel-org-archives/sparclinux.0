@@ -1,45 +1,41 @@
-From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Mon, 04 Mar 2013 10:26:13 +0000
-Subject: [PATCH v2] sparc,leon: updated GRPCI2 config name
-Message-Id: <1362392773-27889-1-git-send-email-daniel@gaisler.com>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 20 Mar 2013 19:09:49 +0000
+Subject: [PATCH] sparc64: Kill __ARCH_WANT_UNLOCKED_CTXSW
+Message-Id: <20130320.150949.311835128213660395.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
----
- arch/sparc/Kconfig         |    2 +-
- arch/sparc/kernel/Makefile |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index 9aa2cb8..e6e6065 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -511,7 +511,7 @@ config SPARC32_GRPCI1
- 	  from the bootloader that makes the GRPCI to generate interrupts
- 	  on detected PCI Parity and System errors.
+As Peter Z. explained at:
+
+https://lkml.org/lkml/2011/12/12/268
+
+it's not needed at all and I even tested it back then.
+This patch just got lost in the shuffle for some reason.
+
+Reported-by: Kirill Tkhai <tkhai@yandex.ru>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/include/asm/processor_64.h | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/arch/sparc/include/asm/processor_64.h b/arch/sparc/include/asm/processor_64.h
+index cce72ce..4c3f7f0 100644
+--- a/arch/sparc/include/asm/processor_64.h
++++ b/arch/sparc/include/asm/processor_64.h
+@@ -18,9 +18,6 @@
+ #include <asm/ptrace.h>
+ #include <asm/page.h>
  
--config GRPCI2
-+config SPARC32_GRPCI2
- 	bool "GRPCI2 Host Bridge Support"
- 	depends on LEON_PCI
- 	default y
-diff --git a/arch/sparc/kernel/Makefile b/arch/sparc/kernel/Makefile
-index 992be44..5e5ad34 100644
---- a/arch/sparc/kernel/Makefile
-+++ b/arch/sparc/kernel/Makefile
-@@ -74,7 +74,7 @@ obj-y                     += dma.o
- 
- obj-$(CONFIG_PCIC_PCI)    += pcic.o
- obj-$(CONFIG_LEON_PCI)    += leon_pci.o
--obj-$(CONFIG_GRPCI2)      += leon_pci_grpci2.o
-+obj-$(CONFIG_SPARC32_GRPCI2) += leon_pci_grpci2.o
- obj-$(CONFIG_SPARC32_GRPCI1) += leon_pci_grpci1.o
- 
- obj-$(CONFIG_SMP)         += trampoline_$(BITS).o smp_$(BITS).o
+-/* Don't hold the runqueue lock over context switch */
+-#define __ARCH_WANT_UNLOCKED_CTXSW
+-
+ /* The sparc has no problems with write protection */
+ #define wp_works_ok 1
+ #define wp_works_ok__is_a_macro /* for versions in ksyms.c */
 -- 
-1.7.0.4
+1.7.11.7
 
