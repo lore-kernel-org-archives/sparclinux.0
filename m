@@ -1,26 +1,57 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 19 Mar 2013 20:20:00 +0000
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Wed, 20 Mar 2013 08:05:19 +0000
 Subject: Re: [PATCH -next] sparc32/sparc64: Provide cmpxchg64()
-Message-Id: <20130319.162000.1936616024625986095.davem@davemloft.net>
+Message-Id: <CAMuHMdXHuT16xuw3-5rwL2WY7ZRzfweB7jKVyoi-xnqT4B0pBg@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1363290128-21247-1-git-send-email-geert@linux-m68k.org>
-In-Reply-To: <1363290128-21247-1-git-send-email-geert@linux-m68k.org>
+	<20130319.162000.1936616024625986095.davem@davemloft.net>
+In-Reply-To: <20130319.162000.1936616024625986095.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: geert@linux-m68k.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: David Miller <davem@davemloft.net>
 Cc: sparclinux@vger.kernel.org, linux-next@vger.kernel.org
 
-RnJvbTogR2VlcnQgVXl0dGVyaG9ldmVuIDxnZWVydEBsaW51eC1tNjhrLm9yZz4NCkRhdGU6IFRo
-dSwgMTQgTWFyIDIwMTMgMjA6NDI6MDggKzAxMDANCg0KPiBzcGFyYy9zcGFyYzY0IGFsbG1vZGNv
-bmZpZzoNCj4gDQo+IGRyaXZlcnMvYmxvY2svYmxvY2tjb25zb2xlLmM6IEluIGZ1bmN0aW9uIKFi
-Y29uX2FkdmFuY2VfY29uc29sZV9ieXRlc6I6DQo+IGRyaXZlcnMvYmxvY2svYmxvY2tjb25zb2xl
-LmM6MTY0OiBlcnJvcjogaW1wbGljaXQgZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24NCj4goWNtcHhj
-aGc2NKINCj4gDQo+IE1hcCBjbXB4Y2hnNjQgdG8gY21weGNoZzY0X2xvY2FsIHRvIGZpeCB0aGlz
-Lg0KPiANCj4gU2lnbmVkLW9mZi1ieTogR2VlcnQgVXl0dGVyaG9ldmVuIDxnZWVydEBsaW51eC1t
-NjhrLm9yZz4NCg0KQnV0LCBpbiB0aGUgc3BhcmMgMzItYml0IGNhc2UsIHRoZSBfbG9jYWwoKSB2
-YXJpYW50cyBhcmUgb25seSBhdG9taWMNCmZyb20gdGhlIHBlcnNwZWN0aXZlIG9mIHRoZSBjdXJy
-ZW50IGNwdSwgdGhleSBhcmUgbm90IGdsb2JhbGx5IGF0b21pYy4NCg0KVGhpcyBpcyB0cnVlIGJl
-Y2F1c2UgdGhlIHNwYXJjIDMyLWJpdCBjYXNlcyB1c2UgdGhlDQphc20tZ2VuZXJpYy9jbXB4Y2hn
-LWxvY2FsLmggaGVscGVycy4NCg0KSSByZWFsbHkgY2FuJ3QgYXBwbHkgdGhpcywgaXQgaXNuJ3Qg
-Y29ycmVjdCwgc29ycnkuDQo
+Hi David,
+
+On Tue, Mar 19, 2013 at 9:20 PM, David Miller <davem@davemloft.net> wrote:
+> From: Geert Uytterhoeven <geert@linux-m68k.org>
+> Date: Thu, 14 Mar 2013 20:42:08 +0100
+>
+>> sparc/sparc64 allmodconfig:
+>>
+>> drivers/block/blockconsole.c: In function ‘bcon_advance_console_bytes’:
+>> drivers/block/blockconsole.c:164: error: implicit declaration of function
+>> ‘cmpxchg64’
+>>
+>> Map cmpxchg64 to cmpxchg64_local to fix this.
+>>
+>> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+>
+> But, in the sparc 32-bit case, the _local() variants are only atomic
+> from the perspective of the current cpu, they are not globally atomic.
+>
+> This is true because the sparc 32-bit cases use the
+> asm-generic/cmpxchg-local.h helpers.
+>
+> I really can't apply this, it isn't correct, sorry.
+
+You're right, sorry for that.
+
+The sparc64 part is still OK as it eventually calls __cmpxchg_u64(), isn't it?
+
+Do you want me to send a new patch for that part only, or will you just
+remove the sparc32 part?
+
+Thanks!
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
