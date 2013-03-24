@@ -1,35 +1,55 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 19 Mar 2013 20:30:21 +0000
-Subject: Re: [PATCH] sparc: remove unused "config BITS"
-Message-Id: <20130319.163021.554696658570846637.davem@davemloft.net>
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Date: Sun, 24 Mar 2013 08:55:05 +0000
+Subject: [PATCH 2/3] sparc/iommu: use BITS_TO_LONGS() to calculate bitmap size
+Message-Id: <1364115306-17716-2-git-send-email-akinobu.mita@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1363712807.1390.26.camel@x61.thuisdomein>
-	<20130319201454.GA25072@merkur.ravnborg.org>
-	<1363724768.1390.36.camel@x61.thuisdomein>
-In-Reply-To: <1363724768.1390.36.camel@x61.thuisdomein>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: pebolle@tiscali.nl
-Cc: sam@ravnborg.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Paul Bolle <pebolle@tiscali.nl>
-Date: Tue, 19 Mar 2013 21:26:08 +0100
+The size of bitmaps which is accessed by bitops must be a multiple of
+the sizeof(long).  So it would be better to use BITS_TO_LONGS() to
+calculate the bitmap size although IOMMU_NPTES is a multiple of
+BITS_PER_LONG.
 
-> On Tue, 2013-03-19 at 21:14 +0100, Sam Ravnborg wrote:
->> On Tue, Mar 19, 2013 at 06:06:47PM +0100, Paul Bolle wrote:
->> > So $(BITS) is set depending on whether CONFIG_SPARC32 is set or not.
->> > Using $(BITS) in sparc's Makefiles is not using CONFIG_BITS. That
->> > doesn't count as usage of "config BITS". 
->> Just double checked - you are right.
-> 
-> Thanks.
-> 
->> Maybe send a v2 with this info in changelog and add my:
->> 
->> Acked-by: Sam Ravnborg <sam@ravnborg.org>
-> 
-> David: should I send a second version with a line or two on the
-> (non-related) use of BITS in the Makefiles and Sam's ACK?
+This also fixes typo in the comment for IOMMU_NPTES.
 
-Like I replied to Sam, no need, I took care of this.
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+---
+ arch/sparc/mm/iommu.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/arch/sparc/mm/iommu.c b/arch/sparc/mm/iommu.c
+index 0f4f719..f9027fd 100644
+--- a/arch/sparc/mm/iommu.c
++++ b/arch/sparc/mm/iommu.c
+@@ -34,7 +34,7 @@
+ #define IOMMU_RNGE	IOMMU_RNGE_256MB
+ #define IOMMU_START	0xF0000000
+ #define IOMMU_WINSIZE	(256*1024*1024U)
+-#define IOMMU_NPTES	(IOMMU_WINSIZE/PAGE_SIZE)	/* 64K PTEs, 265KB */
++#define IOMMU_NPTES	(IOMMU_WINSIZE/PAGE_SIZE)	/* 64K PTEs, 256KB */
+ #define IOMMU_ORDER	6				/* 4096 * (1<<6) */
+ 
+ /* srmmu.c */
+@@ -103,10 +103,11 @@ static void __init sbus_iommu_init(struct platform_device *op)
+ 	iommu->regs->base = __pa((unsigned long) iommu->page_table) >> 4;
+ 	iommu_invalidate(iommu->regs);
+ 
+-	bitmap = kmalloc(IOMMU_NPTES>>3, GFP_KERNEL);
++	bitmap = kmalloc(BITS_TO_LONGS(IOMMU_NPTES) * sizeof(unsigned long),
++			GFP_KERNEL);
+ 	if (!bitmap) {
+-		prom_printf("Unable to allocate iommu bitmap [%d]\n",
+-			    (int)(IOMMU_NPTES>>3));
++		prom_printf("Unable to allocate iommu bitmap [%ld]\n",
++			BITS_TO_LONGS(IOMMU_NPTES) * sizeof(unsigned long));
+ 		prom_halt();
+ 	}
+ 	bit_map_init(&iommu->usemap, bitmap, IOMMU_NPTES);
+-- 
+1.8.1.4
+
