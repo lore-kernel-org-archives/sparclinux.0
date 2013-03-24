@@ -1,37 +1,46 @@
-From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Mon, 04 Mar 2013 07:30:20 +0000
-Subject: Re: [PATCH] sparc,leon: support for GRPCI1 PCI host bridge controller
-Message-Id: <51344D8C.7080403@gaisler.com>
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Date: Sun, 24 Mar 2013 08:55:04 +0000
+Subject: [PATCH 1/3] sparc: clear bitmap correctly in bit_map_init()
+Message-Id: <1364115306-17716-1-git-send-email-akinobu.mita@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1362061978-1964-1-git-send-email-daniel@gaisler.com>
-In-Reply-To: <1362061978-1964-1-git-send-email-daniel@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 03/01/2013 10:39 PM, David Miller wrote:
-> From: Sam Ravnborg <sam@ravnborg.org>
-> Date: Fri, 1 Mar 2013 19:51:46 +0100
->
->>>>>    	default y
->>>>>    +config GRPCI1
->>>> I see we do not do so with GRPCI2 - but please prefix
->>>> all SPARC specific kconfig symbols with SPARC_
->>> I can only see SPARC_LED and SPARC_LEON in arch/sparc/Kconfig following that naming convention.
->>>   Would it be more correct to call it LEON_GRPCI1? I see there are some SUN_ and US3_ names.
->> sparc is not a good example here :-(
->> For the new architectures I have reviewed recently all their arch specific symbols
->> has been prefixed with the abbreviated arch name.
->> And sparc specific symbols we add shall follow the same rule.
->>
->> I may fix up the other sparc specific symbols one day too, but it is low on
->> my todo list.
->> On the other hand using the name SPARC_LEON_xxx is too specific.
->> We already should know what it is from the SPARC_GRPCI part of the name.
-> I agree with Sam, prefix all your new Kconfig symbols with SPARC_*, thanks.
+In bit_map_init(), it attempts to clear all bits in the bitmap by memset(),
+but if the size of bitmap is not a multiple of the sizeof(long), it can't
+clear the trailing edge of bitmap properly on big-endian architecture.
+So it should use bitmap_clear() instead of memset().
 
-Ok, that makes sense. I will update the two patches and resend.
+There are only two users of bit_map_init(), and both of them don't cause
+the issue described above.  But it would be better to fix it now for
+future changes.
 
-Thanks,
-Daniel
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+---
+ arch/sparc/lib/bitext.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/arch/sparc/lib/bitext.c b/arch/sparc/lib/bitext.c
+index d516fda..04d8bad 100644
+--- a/arch/sparc/lib/bitext.c
++++ b/arch/sparc/lib/bitext.c
+@@ -111,11 +111,7 @@ void bit_map_clear(struct bit_map *t, int offset, int len)
+ 
+ void bit_map_init(struct bit_map *t, unsigned long *map, int size)
+ {
+-
+-	if ((size & 07) != 0)
+-		BUG();
+-	memset(map, 0, size>>3);
+-
++	bitmap_zero(map, size);
+ 	memset(t, 0, sizeof *t);
+ 	spin_lock_init(&t->lock);
+ 	t->map = map;
+-- 
+1.8.1.4
+
