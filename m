@@ -1,45 +1,133 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 01 Mar 2013 21:35:46 +0000
-Subject: Re: [PATCH]sunsu: Fix panic in case of nonexistent port at "console=ttySY" cmdline option
-Message-Id: <20130301.163546.1850683352032837734.davem@davemloft.net>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Date: Mon, 25 Mar 2013 16:57:14 +0000
+Subject: [PATCH 8/9] spark: cpufreq:  move cpufreq driver to drivers/cpufreq
+Message-Id: <2641a3f059f1698ee6825c7b6bfe25a3937e1474.1364229828.git.viresh.kumar@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <cover.1364229828.git.viresh.kumar@linaro.org>
+In-Reply-To: <cover.1364229828.git.viresh.kumar@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: rjw@sisk.pl
+Cc: arvind.chauhan@arm.com, robin.randhawa@arm.com, Steve.Bannister@arm.com, Liviu.Dudau@arm.com, charles.garcia-tobin@arm.com, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-kernel@lists.linaro.org, arnd.bergmann@linaro.org, Viresh Kumar <viresh.kumar@linaro.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-From: Kirill Tkhai <tkhai@yandex.ru>
-Date: Sun, 24 Feb 2013 13:01:15 +0400
+This patch moves cpufreq driver of SPARK architecture to drivers/cpufreq.
 
-> If a machine has X (X < 4) sunsu ports and cmdline
-> option "console=ttySY" is passed, where X < Y <= 4,
-> than the following panic happens:
-> 
-> Unable to handle kernel NULL pointer dereference
-> TPC: <sunsu_console_setup+0x78/0xe0>
-> RPC: <sunsu_console_setup+0x74/0xe0>
-> I7: <register_console+0x378/0x3e0>
-> Call Trace:
->  [0000000000453a38] register_console+0x378/0x3e0
->  [0000000000576fa0] uart_add_one_port+0x2e0/0x340
->  [000000000057af40] su_probe+0x160/0x2e0
->  [00000000005b8a4c] platform_drv_probe+0xc/0x20
->  [00000000005b6c2c] driver_probe_device+0x12c/0x220
->  [00000000005b6da8] __driver_attach+0x88/0xa0
->  [00000000005b4df4] bus_for_each_dev+0x54/0xa0
->  [00000000005b5a54] bus_add_driver+0x154/0x260
->  [00000000005b7190] driver_register+0x50/0x180
->  [00000000006d250c] sunsu_init+0x18c/0x1e0
->  [00000000006c2668] do_one_initcall+0xe8/0x160
->  [00000000006c282c] kernel_init_freeable+0x12c/0x1e0
->  [0000000000603764] kernel_init+0x4/0x100
->  [0000000000405f64] ret_from_syscall+0x1c/0x2c
->  [0000000000000000]           (null)
-> 
-> 1)Fix the panic;
-> 2)Increment registered port number every successful
-> probe.
-> 
-> Signed-off-by: Kirill Tkhai <tkhai@yandex.ru>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+---
+ arch/sparc/Kconfig                                 | 23 ----------------------
+ arch/sparc/kernel/Makefile                         |  3 ---
+ drivers/cpufreq/Kconfig                            | 23 ++++++++++++++++++++++
+ drivers/cpufreq/Makefile                           |  2 ++
+ .../cpufreq/spark-us2e-cpufreq.c                   |  0
+ .../cpufreq/spark-us3-cpufreq.c                    |  0
+ 6 files changed, 25 insertions(+), 26 deletions(-)
+ rename arch/sparc/kernel/us2e_cpufreq.c => drivers/cpufreq/spark-us2e-cpufreq.c (100%)
+ rename arch/sparc/kernel/us3_cpufreq.c => drivers/cpufreq/spark-us3-cpufreq.c (100%)
 
-Applied and queued up for -stable, thanks.
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 289127d..52e7680 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -260,29 +260,6 @@ config HOTPLUG_CPU
+ 
+ if SPARC64
+ source "drivers/cpufreq/Kconfig"
+-
+-config US3_FREQ
+-	tristate "UltraSPARC-III CPU Frequency driver"
+-	depends on CPU_FREQ
+-	select CPU_FREQ_TABLE
+-	help
+-	  This adds the CPUFreq driver for UltraSPARC-III processors.
+-
+-	  For details, take a look at <file:Documentation/cpu-freq>.
+-
+-	  If in doubt, say N.
+-
+-config US2E_FREQ
+-	tristate "UltraSPARC-IIe CPU Frequency driver"
+-	depends on CPU_FREQ
+-	select CPU_FREQ_TABLE
+-	help
+-	  This adds the CPUFreq driver for UltraSPARC-IIe processors.
+-
+-	  For details, take a look at <file:Documentation/cpu-freq>.
+-
+-	  If in doubt, say N.
+-
+ endif
+ 
+ config US3_MC
+diff --git a/arch/sparc/kernel/Makefile b/arch/sparc/kernel/Makefile
+index 6cf591b..5276fd4 100644
+--- a/arch/sparc/kernel/Makefile
++++ b/arch/sparc/kernel/Makefile
+@@ -102,9 +102,6 @@ obj-$(CONFIG_PCI_MSI)        += pci_msi.o
+ 
+ obj-$(CONFIG_COMPAT)         += sys32.o sys_sparc32.o signal32.o
+ 
+-# sparc64 cpufreq
+-obj-$(CONFIG_US3_FREQ)  += us3_cpufreq.o
+-obj-$(CONFIG_US2E_FREQ) += us2e_cpufreq.o
+ obj-$(CONFIG_US3_MC)    += chmc.o
+ 
+ obj-$(CONFIG_KPROBES)   += kprobes.o
+diff --git a/drivers/cpufreq/Kconfig b/drivers/cpufreq/Kconfig
+index 602d5db..5b2c312 100644
+--- a/drivers/cpufreq/Kconfig
++++ b/drivers/cpufreq/Kconfig
+@@ -258,6 +258,29 @@ depends on PPC32 || PPC64
+ source "drivers/cpufreq/Kconfig.powerpc"
+ endmenu
+ 
++menu "SPARK CPU frequency scaling drivers"
++depends on SPARC64
++config SPARK_US3_CPUFREQ
++	tristate "UltraSPARC-III CPU Frequency driver"
++	select CPU_FREQ_TABLE
++	help
++	  This adds the CPUFreq driver for UltraSPARC-III processors.
++
++	  For details, take a look at <file:Documentation/cpu-freq>.
++
++	  If in doubt, say N.
++
++config SPARK_US2E_CPUFREQ
++	tristate "UltraSPARC-IIe CPU Frequency driver"
++	select CPU_FREQ_TABLE
++	help
++	  This adds the CPUFreq driver for UltraSPARC-IIe processors.
++
++	  For details, take a look at <file:Documentation/cpu-freq>.
++
++	  If in doubt, say N.
++endmenu
++
+ menu "SH CPU Frequency scaling"
+ depends on SUPERH
+ config SH_CPU_FREQ
+diff --git a/drivers/cpufreq/Makefile b/drivers/cpufreq/Makefile
+index ab3a054..0203a06 100644
+--- a/drivers/cpufreq/Makefile
++++ b/drivers/cpufreq/Makefile
+@@ -85,4 +85,6 @@ obj-$(CONFIG_ETRAXFS)			+= cris-etraxfs-cpufreq.o
+ obj-$(CONFIG_IA64_ACPI_CPUFREQ)		+= ia64-acpi-cpufreq.o
+ obj-$(CONFIG_LOONGSON2_CPUFREQ)		+= loongson2_cpufreq.o
+ obj-$(CONFIG_SH_CPU_FREQ)		+= sh-cpufreq.o
++obj-$(CONFIG_SPARK_US2E_CPUFREQ)	+= spark-us2e-cpufreq.o
++obj-$(CONFIG_SPARK_US3_CPUFREQ)		+= spark-us3-cpufreq.o
+ obj-$(CONFIG_UNICORE32)			+= unicore2-cpufreq.o
+diff --git a/arch/sparc/kernel/us2e_cpufreq.c b/drivers/cpufreq/spark-us2e-cpufreq.c
+similarity index 100%
+rename from arch/sparc/kernel/us2e_cpufreq.c
+rename to drivers/cpufreq/spark-us2e-cpufreq.c
+diff --git a/arch/sparc/kernel/us3_cpufreq.c b/drivers/cpufreq/spark-us3-cpufreq.c
+similarity index 100%
+rename from arch/sparc/kernel/us3_cpufreq.c
+rename to drivers/cpufreq/spark-us3-cpufreq.c
+-- 
+1.7.12.rc2.18.g61b472e
+
