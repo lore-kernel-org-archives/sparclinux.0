@@ -1,32 +1,22 @@
-From: "Chia-Juch Chang" <chiajuchchang@nokiamail.com>
-Date: Tue, 12 Mar 2013 01:02:08 +0000
-Subject: Introduction
-Message-Id: <SERVONBASERc0JFaTij000013e4@mail.coraasan.gov.do>
+From: e639@humv.es
+Date: Tue, 26 Mar 2013 07:27:54 +0000
+Subject: 
+Message-Id: <54770.82.128.15.135.1364282874.squirrel@correo.humv.es>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-China Steel Corporation (CSC).
-HEAD OFFICE 1 Chung-Kang Road,
-Siaogang District, Kaohsiung 
-81233, Taiwan, R.O.C.
-REF: CSC/REP/887
 
-i. Introduction.
-My Name is Chia-Juch Chang. I am the Chief Executive Officer of China Steel Cooperation (CSC). We need a reputable company/firm to serve as our payment collection agent in North America, Europe, and Asia. You shall earn 12% of every payment issued to you on behalf of China Steel Cooperation.
 
-ii. Requirement (Contact Information):
-1. Full Names:
-2. Company Name:
-3. Full Contact Address:
-4. Tel and Fax Numbers:
 
-If interested, please email us immediately at (csgtrep@kimo.com)
+--=20
+Ich bin Barrister Werner Erich Zeller, ich brauche eure aufrichtige
+Partnerschaft intransferring die Summe von 15.000.000,00 EUR auf Ihr
+Bankkonto in dieser Woche f=FCr den Nutzen der beiden von uns 50% each.It
+ist 100% legal, legitim und sicher! f=FCr Details, schreiben Sie mir auf
+dieser meiner privaten E-Mail statt: Dies ist dringende und ernste Sie
+m=FCssen bereit sein und bereit, bevor Sie mich kontaktieren.
 
-Contact Person: Chia-Juch Chang
-Chief Executive Officer
-Tel: +886-7-802-1111
-Email: (csgtrep@kimo.com)
-Website: www.csc.com.tw
+bitte! Rufen Sie +44 702 409 0820 (B=FCro)
