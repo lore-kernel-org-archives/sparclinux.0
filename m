@@ -1,198 +1,116 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Date: Wed, 27 Mar 2013 15:51:34 +0000
+From: Fengguang Wu <fengguang.wu@intel.com>
+Date: Wed, 27 Mar 2013 16:15:05 +0000
 Subject: Re: usr/include/linux/types.h:27:1: error: unknown type name '__u16'
-Message-Id: <20130327155134.GA24155@kroah.com>
+Message-Id: <20130327161505.GA5045@localhost>
 List-Id: <sparclinux.vger.kernel.org>
 References: <5152d3ed.vW9X0QzDTVkW7Gck%fengguang.wu@intel.com>
  <20130327154453.GA27576@localhost>
-In-Reply-To: <20130327154453.GA27576@localhost>
+ <20130327155134.GA24155@kroah.com>
+In-Reply-To: <20130327155134.GA24155@kroah.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Fengguang Wu <fengguang.wu@intel.com>
-Cc: sparclinux@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: sparclinux@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Alan Ott <alan@signal11.us>, Jiri Kosina <jkosina@suse.cz>, David Howells <dhowells@redhat.com>
 
-On Wed, Mar 27, 2013 at 11:44:53PM +0800, Fengguang Wu wrote:
-> Greetings,
+> As you are getting errors when building Documentation files, I don't
+> think this is a staging tree specific issue, as I haven't changed
+> anything in that directory that I can see.
 > 
-> The below errors show up in both upstream and linux-next.
-> 
->    make ARCH=sparc allyesconfig
->    make ARCH=sparc
-> 
->    In file included from usr/include/linux/genetlink.h:4:0,
->                     from Documentation/accounting/getdelays.c:27:
-> >> usr/include/linux/types.h:27:1: error: unknown type name '__u16'
-> >> usr/include/linux/types.h:28:1: error: unknown type name '__u16'
-> >> usr/include/linux/types.h:29:1: error: unknown type name '__u32'
-> >> usr/include/linux/types.h:30:1: error: unknown type name '__u32'
-> >> usr/include/linux/types.h:31:1: error: unknown type name '__u64'
-> >> usr/include/linux/types.h:32:1: error: unknown type name '__u64'
-> >> usr/include/linux/types.h:34:1: error: unknown type name '__u16'
-> >> usr/include/linux/types.h:35:1: error: unknown type name '__u32'
->    In file included from usr/include/linux/genetlink.h:5:0,
->                     from Documentation/accounting/getdelays.c:27:
-> >> usr/include/linux/netlink.h:37:2: error: unknown type name '__u32'
-> >> usr/include/linux/netlink.h:38:9: error: unknown type name '__u32'
-> >> usr/include/linux/netlink.h:42:2: error: unknown type name '__u32'
-> >> usr/include/linux/netlink.h:43:2: error: unknown type name '__u16'
-> >> usr/include/linux/netlink.h:44:2: error: unknown type name '__u16'
-> >> usr/include/linux/netlink.h:45:2: error: unknown type name '__u32'
-> >> usr/include/linux/netlink.h:46:2: error: unknown type name '__u32'
-> >> usr/include/linux/netlink.h:110:2: error: unknown type name '__u32'
-> >> usr/include/linux/netlink.h:130:2: error: unknown type name '__u16'
-> >> usr/include/linux/netlink.h:131:2: error: unknown type name '__u16'
->    In file included from Documentation/accounting/getdelays.c:27:0:
-> >> usr/include/linux/genetlink.h:13:2: error: unknown type name '__u8'
-> >> usr/include/linux/genetlink.h:14:2: error: unknown type name '__u8'
-> --
->    In file included from usr/include/linux/netlink.h:5:0,
->                     from Documentation/connector/ucon.c:28:
-> >> usr/include/linux/types.h:27:1: error: unknown type name '__u16'
-> >> usr/include/linux/types.h:28:1: error: unknown type name '__u16'
-> >> usr/include/linux/types.h:29:1: error: unknown type name '__u32'
-> >> usr/include/linux/types.h:30:1: error: unknown type name '__u32'
-> >> usr/include/linux/types.h:31:1: error: unknown type name '__u64'
-> >> usr/include/linux/types.h:32:1: error: unknown type name '__u64'
-> >> usr/include/linux/types.h:34:1: error: unknown type name '__u16'
-> >> usr/include/linux/types.h:35:1: error: unknown type name '__u32'
->    In file included from Documentation/connector/ucon.c:28:0:
-> >> usr/include/linux/netlink.h:37:2: error: unknown type name '__u32'
-> >> usr/include/linux/netlink.h:38:9: error: unknown type name '__u32'
-> >> usr/include/linux/netlink.h:42:2: error: unknown type name '__u32'
-> >> usr/include/linux/netlink.h:43:2: error: unknown type name '__u16'
-> >> usr/include/linux/netlink.h:44:2: error: unknown type name '__u16'
-> >> usr/include/linux/netlink.h:45:2: error: unknown type name '__u32'
-> >> usr/include/linux/netlink.h:46:2: error: unknown type name '__u32'
-> >> usr/include/linux/netlink.h:110:2: error: unknown type name '__u32'
-> >> usr/include/linux/netlink.h:130:2: error: unknown type name '__u16'
-> >> usr/include/linux/netlink.h:131:2: error: unknown type name '__u16'
->    In file included from usr/include/linux/rtnetlink.h:6:0,
->                     from Documentation/connector/ucon.c:29:
-> >> usr/include/linux/if_link.h:9:2: error: unknown type name '__u32'
-> >> usr/include/linux/if_link.h:10:2: error: unknown type name '__u32'
-> --
->    In file included from usr/include/linux/uuid.h:24:0,
->                     from usr/include/linux/mei.h:70,
->                     from Documentation/misc-devices/mei/mei-amt-version.c:77:
-> >> usr/include/linux/types.h:27:1: error: unknown type name '__u16'
-> >> usr/include/linux/types.h:28:1: error: unknown type name '__u16'
-> >> usr/include/linux/types.h:29:1: error: unknown type name '__u32'
-> >> usr/include/linux/types.h:30:1: error: unknown type name '__u32'
-> >> usr/include/linux/types.h:31:1: error: unknown type name '__u64'
-> >> usr/include/linux/types.h:32:1: error: unknown type name '__u64'
-> >> usr/include/linux/types.h:34:1: error: unknown type name '__u16'
-> >> usr/include/linux/types.h:35:1: error: unknown type name '__u32'
->    In file included from usr/include/linux/mei.h:70:0,
->                     from Documentation/misc-devices/mei/mei-amt-version.c:77:
-> >> usr/include/linux/uuid.h:28:2: error: unknown type name '__u8'
-> >> usr/include/linux/uuid.h:32:2: error: unknown type name '__u8'
->    In file included from Documentation/misc-devices/mei/mei-amt-version.c:77:0:
-> >> usr/include/linux/mei.h:95:2: error: unknown type name '__u32'
-> >> usr/include/linux/mei.h:96:2: error: unknown type name '__u8'
-> >> usr/include/linux/mei.h:97:2: error: unknown type name '__u8'
-> --
->    In file included from usr/include/linux/if.h:22:0,
->                     from Documentation/networking/ifenslave.c:161:
-> >> usr/include/linux/types.h:27:1: error: unknown type name '__u16'
-> >> usr/include/linux/types.h:28:1: error: unknown type name '__u16'
-> >> usr/include/linux/types.h:29:1: error: unknown type name '__u32'
-> >> usr/include/linux/types.h:30:1: error: unknown type name '__u32'
-> >> usr/include/linux/types.h:31:1: error: unknown type name '__u64'
-> >> usr/include/linux/types.h:32:1: error: unknown type name '__u64'
-> >> usr/include/linux/types.h:34:1: error: unknown type name '__u16'
-> >> usr/include/linux/types.h:35:1: error: unknown type name '__u32'
->    In file included from Documentation/networking/ifenslave.c:164:0:
-> >> usr/include/linux/if_bonding.h:96:2: error: unknown type name '__s32'
-> >> usr/include/linux/if_bonding.h:97:2: error: unknown type name '__s32'
-> >> usr/include/linux/if_bonding.h:98:2: error: unknown type name '__s32'
-> >> usr/include/linux/if_bonding.h:102:2: error: unknown type name '__s32'
-> >> usr/include/linux/if_bonding.h:104:2: error: unknown type name '__s8'
-> >> usr/include/linux/if_bonding.h:105:2: error: unknown type name '__s8'
-> >> usr/include/linux/if_bonding.h:106:2: error: unknown type name '__u32'
-> >> usr/include/linux/if_bonding.h:110:2: error: unknown type name '__u16'
-> >> usr/include/linux/if_bonding.h:111:2: error: unknown type name '__u16'
-> >> usr/include/linux/if_bonding.h:112:2: error: unknown type name '__u16'
-> >> usr/include/linux/if_bonding.h:113:2: error: unknown type name '__u16'
-> >> usr/include/linux/if_bonding.h:114:2: error: unknown type name '__u8'
->    In file included from Documentation/networking/ifenslave.c:171:0:
-> --
->    In file included from Documentation/spi/spidev_test.c:21:0:
-> >> usr/include/linux/types.h:27:1: error: unknown type name '__u16'
-> >> usr/include/linux/types.h:28:1: error: unknown type name '__u16'
-> >> usr/include/linux/types.h:29:1: error: unknown type name '__u32'
-> >> usr/include/linux/types.h:30:1: error: unknown type name '__u32'
-> >> usr/include/linux/types.h:31:1: error: unknown type name '__u64'
-> >> usr/include/linux/types.h:32:1: error: unknown type name '__u64'
-> >> usr/include/linux/types.h:34:1: error: unknown type name '__u16'
-> >> usr/include/linux/types.h:35:1: error: unknown type name '__u32'
->    In file included from Documentation/spi/spidev_test.c:22:0:
-> >> usr/include/linux/spi/spidev.h:86:2: error: unknown type name '__u64'
-> >> usr/include/linux/spi/spidev.h:87:2: error: unknown type name '__u64'
-> >> usr/include/linux/spi/spidev.h:89:2: error: unknown type name '__u32'
-> >> usr/include/linux/spi/spidev.h:90:2: error: unknown type name '__u32'
-> >> usr/include/linux/spi/spidev.h:92:2: error: unknown type name '__u16'
-> >> usr/include/linux/spi/spidev.h:93:2: error: unknown type name '__u8'
-> >> usr/include/linux/spi/spidev.h:94:2: error: unknown type name '__u8'
-> >> usr/include/linux/spi/spidev.h:95:2: error: unknown type name '__u32'
->    Documentation/spi/spidev_test.c: In function 'main':
-> >> Documentation/spi/spidev_test.c:171:18: error: '__u8' undeclared (first use in this function)
->    Documentation/spi/spidev_test.c:171:18: note: each undeclared identifier is reported only once for each function it appears in
-> >> Documentation/spi/spidev_test.c:193:18: error: '__u32' undeclared (first use in this function)
-> --
->    In file included from Documentation/spi/spidev_fdx.c:11:0:
-> >> usr/include/linux/types.h:27:1: error: unknown type name '__u16'
-> >> usr/include/linux/types.h:28:1: error: unknown type name '__u16'
-> >> usr/include/linux/types.h:29:1: error: unknown type name '__u32'
-> >> usr/include/linux/types.h:30:1: error: unknown type name '__u32'
-> >> usr/include/linux/types.h:31:1: error: unknown type name '__u64'
-> >> usr/include/linux/types.h:32:1: error: unknown type name '__u64'
-> >> usr/include/linux/types.h:34:1: error: unknown type name '__u16'
-> >> usr/include/linux/types.h:35:1: error: unknown type name '__u32'
->    In file included from Documentation/spi/spidev_fdx.c:12:0:
-> >> usr/include/linux/spi/spidev.h:86:2: error: unknown type name '__u64'
-> >> usr/include/linux/spi/spidev.h:87:2: error: unknown type name '__u64'
-> >> usr/include/linux/spi/spidev.h:89:2: error: unknown type name '__u32'
-> >> usr/include/linux/spi/spidev.h:90:2: error: unknown type name '__u32'
-> >> usr/include/linux/spi/spidev.h:92:2: error: unknown type name '__u16'
-> >> usr/include/linux/spi/spidev.h:93:2: error: unknown type name '__u8'
-> >> usr/include/linux/spi/spidev.h:94:2: error: unknown type name '__u8'
-> >> usr/include/linux/spi/spidev.h:95:2: error: unknown type name '__u32'
->    Documentation/spi/spidev_fdx.c: In function 'dumpstat':
-> >> Documentation/spi/spidev_fdx.c:81:2: error: unknown type name '__u8'
-> >> Documentation/spi/spidev_fdx.c:82:2: error: unknown type name '__u32'
-> >> Documentation/spi/spidev_fdx.c:84:16: error: '__u8' undeclared (first use in this function)
->    Documentation/spi/spidev_fdx.c:84:16: note: each undeclared identifier is reported only once for each function it appears in
-> >> Documentation/spi/spidev_fdx.c:96:16: error: '__u32' undeclared (first use in this function)
-> --
->    In file included from usr/include/linux/errqueue.h:4:0,
->                     from Documentation/networking/timestamping/timestamping.c:46:
-> >> usr/include/linux/types.h:27:1: error: unknown type name '__u16'
-> >> usr/include/linux/types.h:28:1: error: unknown type name '__u16'
-> >> usr/include/linux/types.h:29:1: error: unknown type name '__u32'
-> >> usr/include/linux/types.h:30:1: error: unknown type name '__u32'
-> >> usr/include/linux/types.h:31:1: error: unknown type name '__u64'
-> >> usr/include/linux/types.h:32:1: error: unknown type name '__u64'
-> >> usr/include/linux/types.h:34:1: error: unknown type name '__u16'
-> >> usr/include/linux/types.h:35:1: error: unknown type name '__u32'
->    In file included from Documentation/networking/timestamping/timestamping.c:46:0:
-> >> usr/include/linux/errqueue.h:7:2: error: unknown type name '__u32'
-> >> usr/include/linux/errqueue.h:8:2: error: unknown type name '__u8'
-> >> usr/include/linux/errqueue.h:9:2: error: unknown type name '__u8'
-> >> usr/include/linux/errqueue.h:10:2: error: unknown type name '__u8'
-> >> usr/include/linux/errqueue.h:11:2: error: unknown type name '__u8'
-> >> usr/include/linux/errqueue.h:12:2: error: unknown type name '__u32'
-> >> usr/include/linux/errqueue.h:13:2: error: unknown type name '__u32'
-> 
-> It's bisected down to upstream commit b87fc3e6e2e ("Merge tag 'staging-3.8-rc3' of
-> git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/staging). However
-> it's possibly a wrong bisect because there are other build errors in
-> the parent commits and they may hide these errors.
+> So it's probably something else.
 
-As you are getting errors when building Documentation files, I don't
-think this is a staging tree specific issue, as I haven't changed
-anything in that directory that I can see.
+It's not a Documentation build, even though many of the errors are
+related to Documentation/*.
 
-So it's probably something else.
+Here is another build. This time the errors are triggered from
+samples/hidraw/hid-example.c.
 
-greg k-h
+Add CC to hidraw authors and David who is very good at the header stuffs.
+
+Thanks,
+Fengguang
+---
+
+/usr/bin/make -C source O=/home/wfg/sound/obj-compiletest ARCH=sparc CROSS_COMPILE=/usr/local/gcc-4.6.3-nolibc/sparc-linux/bin/sparc-linux- -j32
+make: Entering directory `/c/wfg/sound'
+  GEN     /cc/wfg/sound-compiletest/Makefile
+  CHK     include/generated/uapi/linux/version.h
+  CC      scripts/mod/devicetable-offsets.s
+  GEN     scripts/mod/devicetable-offsets.h
+  HOSTCC  scripts/mod/file2alias.o
+  HOSTLD  scripts/mod/modpost
+  Using /c/wfg/sound as source for kernel
+  CHK     include/generated/utsrelease.h
+  CALL    /c/wfg/sound/scripts/checksyscalls.sh
+  CHK     include/generated/compile.h
+  CHK     kernel/config_data.h
+  CHK     include/generated/uapi/linux/version.h
+  HOSTCC  samples/hidraw/hid-example
+In file included from /c/wfg/sound/samples/hidraw/hid-example.c:13:0:
+/cc/wfg/sound-compiletest/usr/include/linux/types.h:27:1: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/types.h:28:1: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/types.h:29:1: error: unknown type name ‘__u32’
+/cc/wfg/sound-compiletest/usr/include/linux/types.h:30:1: error: unknown type name ‘__u32’
+/cc/wfg/sound-compiletest/usr/include/linux/types.h:31:1: error: unknown type name ‘__u64’
+/cc/wfg/sound-compiletest/usr/include/linux/types.h:32:1: error: unknown type name ‘__u64’
+/cc/wfg/sound-compiletest/usr/include/linux/types.h:34:1: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/types.h:35:1: error: unknown type name ‘__u32’
+In file included from /c/wfg/sound/samples/hidraw/hid-example.c:14:0:
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:24:2: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:25:2: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:26:2: error: unknown type name ‘__s32’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:40:2: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:41:2: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:42:2: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:43:2: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:66:2: error: unknown type name ‘__s32’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:67:2: error: unknown type name ‘__s32’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:68:2: error: unknown type name ‘__s32’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:69:2: error: unknown type name ‘__s32’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:70:2: error: unknown type name ‘__s32’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:71:2: error: unknown type name ‘__s32’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:91:2: error: unknown type name ‘__u8’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:92:2: error: unknown type name ‘__u8’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:93:2: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:94:2: error: unknown type name ‘__u32’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:95:2: error: unknown type name ‘__u8’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:958:2: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:959:2: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:968:2: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:969:2: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:985:2: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:986:2: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:987:2: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:988:2: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:997:2: error: unknown type name ‘__s16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:1008:2: error: unknown type name ‘__s16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:1009:2: error: unknown type name ‘__s16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:1024:2: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:1025:2: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:1027:2: error: unknown type name ‘__s16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:1028:2: error: unknown type name ‘__s16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:1030:2: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:1031:2: error: unknown type name ‘__s16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:1053:2: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:1054:2: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:1055:2: error: unknown type name ‘__s16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:1056:2: error: unknown type name ‘__s16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:1057:2: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:1061:2: error: unknown type name ‘__u32’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:1062:2: error: unknown type name ‘__s16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:1074:2: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:1075:2: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:1102:2: error: unknown type name ‘__u16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:1103:2: error: unknown type name ‘__s16’
+/cc/wfg/sound-compiletest/usr/include/linux/input.h:1104:2: error: unknown type name ‘__u16’
+In file included from /c/wfg/sound/samples/hidraw/hid-example.c:15:0:
+/cc/wfg/sound-compiletest/usr/include/linux/hidraw.h:22:2: error: unknown type name ‘__u32’
+/cc/wfg/sound-compiletest/usr/include/linux/hidraw.h:23:2: error: unknown type name ‘__u8’
+/cc/wfg/sound-compiletest/usr/include/linux/hidraw.h:27:2: error: unknown type name ‘__u32’
+/cc/wfg/sound-compiletest/usr/include/linux/hidraw.h:28:2: error: unknown type name ‘__s16’
+/cc/wfg/sound-compiletest/usr/include/linux/hidraw.h:29:2: error: unknown type name ‘__s16’
+make[3]: *** [samples/hidraw/hid-example] Error 1
+make[2]: *** [samples/hidraw] Error 2
+make[1]: *** [vmlinux] Error 2
+make: *** [sub-make] Error 2
+make: Leaving directory `/c/wfg/sound'
