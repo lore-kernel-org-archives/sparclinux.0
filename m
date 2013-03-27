@@ -1,20 +1,34 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 31 Mar 2013 23:31:41 +0000
-Subject: Re: [PATCH 1/5] sparc: use generic headers
-Message-Id: <20130331.193141.1323721829710705845.davem@davemloft.net>
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Date: Wed, 27 Mar 2013 12:20:45 +0000
+Subject: [PATCH] sparc:remove unused declaration smp_boot_cpus()
+Message-Id: <5152E41D.2030901@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1364679866-29982-1-git-send-email-sam@ravnborg.org>
-In-Reply-To: <1364679866-29982-1-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 30 Mar 2013 22:44:22 +0100
+smp_boot_cpus() was replaced smp_prepare_cpus() long ago, and it no
+longer needed, so delete it.
 
-> Use "generic-y" to add generic headers where possible
-> 
-> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+---
+ arch/sparc/include/asm/smp_32.h |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-Applied.
+diff --git a/arch/sparc/include/asm/smp_32.h b/arch/sparc/include/asm/smp_32.h
+index b73da3c..68503d3 100644
+--- a/arch/sparc/include/asm/smp_32.h
++++ b/arch/sparc/include/asm/smp_32.h
+@@ -46,7 +46,6 @@ void sun4m_init_smp(void);
+ void sun4d_init_smp(void);
+
+ void smp_callin(void);
+-void smp_boot_cpus(void);
+ void smp_store_cpu_info(int);
+
+ void smp_resched_interrupt(void);
+-- 
+1.6.0.2
+
