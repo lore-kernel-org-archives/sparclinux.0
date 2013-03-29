@@ -1,34 +1,29 @@
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Date: Wed, 27 Mar 2013 12:20:45 +0000
-Subject: [PATCH] sparc:remove unused declaration smp_boot_cpus()
-Message-Id: <5152E41D.2030901@huawei.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 29 Mar 2013 11:09:04 +0000
+Subject: Re: [PATCH] sparc:remove unused declaration smp_boot_cpus()
+Message-Id: <20130329110904.GA2765@merkur.ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <5152E41D.2030901@huawei.com>
+In-Reply-To: <5152E41D.2030901@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: davem@davemloft.net, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-smp_boot_cpus() was replaced smp_prepare_cpus() long ago, and it no
-longer needed, so delete it.
+On Wed, Mar 27, 2013 at 08:20:45PM +0800, Kefeng Wang wrote:
+> smp_boot_cpus() was replaced smp_prepare_cpus() long ago, and it no
+> longer needed, so delete it.
+> 
+> Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
 
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
----
- arch/sparc/include/asm/smp_32.h |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+But when looking at the same file it looks like we have
+more candidates for removal:
+smp4m_irq_rotate,
+prof_multiplier,
+prof_counter,
 
-diff --git a/arch/sparc/include/asm/smp_32.h b/arch/sparc/include/asm/smp_32.h
-index b73da3c..68503d3 100644
---- a/arch/sparc/include/asm/smp_32.h
-+++ b/arch/sparc/include/asm/smp_32.h
-@@ -46,7 +46,6 @@ void sun4m_init_smp(void);
- void sun4d_init_smp(void);
+Care to send a follow-up patch that remvoe these also.
 
- void smp_callin(void);
--void smp_boot_cpus(void);
- void smp_store_cpu_info(int);
-
- void smp_resched_interrupt(void);
--- 
-1.6.0.2
-
+	Sam
