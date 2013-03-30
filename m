@@ -1,33 +1,47 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Wed, 20 Mar 2013 20:14:47 +0000
-Subject: Re: [PATCH v2 1/1]sparc64: Do not change num_physpages during initmem freeing
-Message-Id: <20130320201447.GA26322@merkur.ravnborg.org>
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Date: Sat, 30 Mar 2013 10:28:26 +0000
+Subject: [PATCH] sparc:cleanup unused code in smp_32.h
+Message-Id: <5156BE4A.2030400@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <757251363741928@web15e.yandex.ru>
-In-Reply-To: <757251363741928@web15e.yandex.ru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: sam@ravnborg.org, davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, wangyijing@huawei.com
 
-On Wed, Mar 20, 2013 at 02:42:07PM -0400, David Miller wrote:
-> From: Kirill Tkhai <tkhai@yandex.ru>
-> Date: Wed, 20 Mar 2013 05:12:08 +0400
-> 
-> > Common hibernation code looks at num_physpages during suspend and restore.
-> > Restore is able to be called from initcall, which is before initmem freeing.
-> > This case leads to restore fail.
-> > 
-> > Signed-off-by: Kirill Tkhai <tkhai@yandex.ru>
-> 
-> Applied.
+After genirq and generic clockevent support at sparc32,
+smp4m_irq_rotate(), prof_multiplier() and prof_counter()
+are no longer used and should be removed.
 
-Btw. I expect this patch to introduce some trivial conflict with a patch
-in Andrew's queue which cleans up some memory management stuff.
+Find more info from commit 6baa9b20 & 62f08283.
 
-This: "mm/SPARC: use common help functions to free reserved pages"
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+---
+ arch/sparc/include/asm/smp_32.h |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
 
-Just so we are prepared when it happens.
-Stephen will tell us...
+diff --git a/arch/sparc/include/asm/smp_32.h b/arch/sparc/include/asm/smp_32.h
+index 68503d3..3c8917f 100644
+--- a/arch/sparc/include/asm/smp_32.h
++++ b/arch/sparc/include/asm/smp_32.h
+@@ -36,7 +36,6 @@ typedef void (*smpfunc_t)(unsigned long, unsigned long, unsigned long,
+ 		       unsigned long, unsigned long);
 
-	Sam
+ void cpu_panic(void);
+-extern void smp4m_irq_rotate(int cpu);
+
+ /*
+  *	General functions that each host system must provide.
+@@ -106,9 +105,6 @@ extern int hard_smp_processor_id(void);
+
+ #define raw_smp_processor_id()		(current_thread_info()->cpu)
+
+-#define prof_multiplier(__cpu)		cpu_data(__cpu).multiplier
+-#define prof_counter(__cpu)		cpu_data(__cpu).counter
+-
+ void smp_setup_cpu_possible_map(void);
+
+ #endif /* !(__ASSEMBLY__) */
+-- 
+1.6.0.2
+
