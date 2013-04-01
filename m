@@ -1,36 +1,29 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 25 Apr 2013 00:08:47 +0000
-Subject: [GIT] Sparc
-Message-Id: <20130424.200847.935084813305667292.davem@davemloft.net>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Date: Mon, 01 Apr 2013 04:53:31 +0000
+Subject: Re: [PATCH 8/9] spark: cpufreq: move cpufreq driver to drivers/cpufreq
+Message-Id: <CAKohpok2Da4BFcKHu_yMZRNcvOGV1fNx0_shRwkrJwu0o77e=Q@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
+References: <CAKohpomnOaVG1xktDL=YGz6yM2vFoYVF2Un-9_zL7owiJVG6gw@mail.gmail.com>
+	<CAKohponJJKDcFXK-Zs-eCS2=v3=-CrkEqF1FaHz64D-kq888BA@mail.gmail.com>
+	<CAKohpokGRPJGPh8e_NjpZQRTWOxk=SGzhcNbjkHWAKE-Gfig9g@mail.gmail.com>
+	<20130331.124040.1451284849991873230.davem@davemloft.net>
+In-Reply-To: <20130331.124040.1451284849991873230.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: rjw@sisk.pl, arvind.chauhan@arm.com, robin.randhawa@arm.com, Steve.Bannister@arm.com, Liviu.Dudau@arm.com, charles.garcia-tobin@arm.com, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-kernel@lists.linaro.org, arnd.bergmann@linaro.org, sparclinux@vger.kernel.org
 
+On 31 March 2013 22:10, David Miller <davem@davemloft.net> wrote:
+>> On 26 March 2013 09:55, Viresh Kumar <viresh.kumar@linaro.org> wrote:
+>>> From: Viresh Kumar <viresh.kumar@linaro.org>
+>>> Date: Mon, 25 Mar 2013 11:20:23 +0530
+>>> Subject: [PATCH] sparc: cpufreq:  move cpufreq driver to drivers/cpufreq
 
-Please pull to get this brown paper bag fix for sparc64.
+> Subject line still has the "spark" typo.
 
-Thanks!
+Your mail was scary, really... HOW can i do it??
 
-The following changes since commit 60d509fa6a9c4653a86ad830e4c4b30360b23f0e:
-
-  Linux 3.9-rc8 (2013-04-21 14:38:45 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
-
-for you to fetch changes up to f0af97070acbad5d6a361f485828223a4faaa0ee:
-
-  sparc64: Fix missing put_cpu_var() in tlb_batch_add_one() when not batching. (2013-04-24 16:52:18 -0700)
-
-----------------------------------------------------------------
-David S. Miller (1):
-      sparc64: Fix missing put_cpu_var() in tlb_batch_add_one() when not batching.
-
- arch/sparc/mm/tlb.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+And then i saw how you got it wrong. I haven't sent a new mail, so mails subject
+remains the same... I copied V2 in the same mail.. Check above, subject looks
+fine :)
