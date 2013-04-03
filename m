@@ -1,56 +1,11 @@
-From: "zhangwei(Jovi)" <jovi.zhangwei@huawei.com>
-Date: Mon, 22 Apr 2013 09:19:21 +0000
-Subject: [PATCH RESEND] sparc/sysrq: fix inconstistent help message of sysrq key
-Message-Id: <51750099.7020107@huawei.com>
+From: guillermocha1@aol.com
+Date: Wed, 03 Apr 2013 21:59:39 +0000
+Subject: Response to your email.
+Message-Id: <20130403220014.276791AC2C090@mail.factum.hk>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: sparclinux@vger.kernel.org
 
-Currently help message of /proc/sysrq-trigger highlight its
-upper-case characters, like below:
-
-      SysRq : HELP : loglevel(0-9) reBoot Crash terminate-all-tasks(E)
-      memory-full-oom-kill(F) kill-all-tasks(I) ...
-
-this would confuse user trigger sysrq by upper-case character, which is
-inconsistent with the real lower-case character registed key.
-
-This inconsistent help message will also lead more confused when
-26 upper-case letters put into use in future.
-
-This patch fix sparc sysrq key: "global-regs(y)" and "global-pmu(x)"
-
-Signed-off-by: zhangwei(Jovi) <jovi.zhangwei@huawei.com>
-Acked-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/kernel/process_64.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/arch/sparc/kernel/process_64.c b/arch/sparc/kernel/process_64.c
-index cdb80b2..a0705ba 100644
---- a/arch/sparc/kernel/process_64.c
-+++ b/arch/sparc/kernel/process_64.c
-@@ -315,7 +315,7 @@ static void sysrq_handle_globreg(int key)
-
- static struct sysrq_key_op sparc_globalreg_op = {
- 	.handler	= sysrq_handle_globreg,
--	.help_msg	= "global-regs(Y)",
-+	.help_msg	= "global-regs(y)",
- 	.action_msg	= "Show Global CPU Regs",
- };
-
-@@ -385,7 +385,7 @@ static void sysrq_handle_globpmu(int key)
-
- static struct sysrq_key_op sparc_globalpmu_op = {
- 	.handler	= sysrq_handle_globpmu,
--	.help_msg	= "global-pmu(X)",
-+	.help_msg	= "global-pmu(x)",
- 	.action_msg	= "Show Global PMU Regs",
- };
-
--- 
-1.7.9.7
-
-
+Mr name is Mr Guillermo Chavez and am writing you to kindly reply me once you get this message it is about one of my late friend who died in the ongoing war in SYRIA he was in the engineering oil legal dealer who was also my client and i his legal Lawyer to his business, i will explain further if you show your interest by responding to me through this my personal email (gchavez2013@aim.com)
