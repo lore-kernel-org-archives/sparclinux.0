@@ -1,17 +1,21 @@
-From: Dr@vger.kernel.org, Mark@vger.kernel.org, Cobell@vger.kernel.org (fan@suval.com.
-Date: Tue, 09 Apr 2013 15:19:17 +0000
-Subject: ATTENTION
-Message-Id: <20130409151931.426551B29B190@mail.factum.hk>
+From: "Barr Guillermo Chavez Esq" <guillermocha1@aol.com>
+Date: Tue, 09 Apr 2013 19:19:40 +0000
+Subject: Re:Just read your email and this is my response.
+Message-Id: <da7bce453ea03e4a2c1c58b3b77723a3.squirrel@dzlnx02.cloudapp.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hello, 
-I never referred to your business as a joke nordid I intend to. You will understand that our organization requires certain basic steps to be followed with every new client. Therefore, please provide me with as much information you are entitled to disclose on the mutual transaction you mentioned, plus your contact information, and we will contact you.
 
 
-Thanks very much
 
-Dr Mark Cobell
+Kindly bear with me for contacting you this way.Mr name is Mr Guillermo
+Chavez and am writing you to kindly reply me once you get this message it
+is about one of my late friend who died in the ongoing war in SYRIA he was
+in the engineering an oil legal dealer who was also my client and i his
+legal Lawyer to his business, i will explain further if you show your
+interest by responding to me through this my personal email
+(gchavez2013@aim.com)
+
