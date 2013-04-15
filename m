@@ -1,102 +1,42 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Thu, 18 Apr 2013 09:50:08 +0000
-Subject: Re: [PATCH 1/2] lib: Add lz4 compressor module
-Message-Id: <CAMuHMdXXoaQjb9sRK=X3gEDwqQBJcJQtaJbUGB8cJmteHSN3vQ@mail.gmail.com>
+From: Federico Vaga <federico.vaga@gmail.com>
+Date: Mon, 15 Apr 2013 14:42:52 +0000
+Subject: [RFC PATCH] sparc/kernel/vio.c: add put_device() after device_find_child()
+Message-Id: <1366036972-9240-1-git-send-email-federico.vaga@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CAOAMb1D8rokZpQpp6mEJw6KXcQq8fJUWBJoC5+ZfkNaE6WvAZA@mail.gmail.com>
-In-Reply-To: <CAOAMb1D8rokZpQpp6mEJw6KXcQq8fJUWBJoC5+ZfkNaE6WvAZA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Chanho Min <chanho.min@lge.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, "Darrick J. Wong" <djwong@us.ibm.com>, Bob Pearson <rpearson@systemfabricworks.com>, Richard Weinberger <richard@nod.at>, Herbert Xu <herbert@gondor.apana.org.au>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-crypto@vger.kernel.org, Yann Collet <yann.collet.73@gmail.com>, Kyungsik Lee <kyungsik.lee@lge.com>, Chanho Min <chanho0207@gmail.com>, Linux/m68k <linux-m68k@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, Linux-Next <linux-next@vger.kernel.org>
+To: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Federico Vaga <federico.vaga@gmail.com>
 
-On Thu, Mar 14, 2013 at 10:48 AM, Chanho Min <chanho.min@lge.com> wrote:
-> +#ifdef __BIG_ENDIAN
-> +#define LZ4_NBCOMMONBYTES(val) (__builtin_clzll(val) >> 3)
-> +#else
-> +#define LZ4_NBCOMMONBYTES(val) (__builtin_ctzll(val) >> 3)
-> +#endif
->
->  #else  /* 32-bit */
->  #define STEPSIZE 4
-> @@ -83,6 +130,14 @@ typedef struct _U64_S { u64 v; } U64_S;
->         } while (0)
->
->  #define LZ4_SECURECOPY LZ4_WILDCOPY
-> +#define HTYPE const u8*
-> +
-> +#ifdef __BIG_ENDIAN
-> +#define LZ4_NBCOMMONBYTES(val) (__builtin_clz(val) >> 3)
-> +#else
-> +#define LZ4_NBCOMMONBYTES(val) (__builtin_ctz(val) >> 3)
-> +#endif
+The vio_remove() function uses device_find_child() but it does not drop
+the reference of the retrieved child.
 
-It seems at least m68k and sparc don't have the __builtin_clz() functions:
+Signed-off-by: Federico Vaga <federico.vaga@gmail.com>
+---
 
-m68k-allmodconfig (http://kisskb.ellerman.id.au/kisskb/buildresult/8572593/):
+I do not have a SPARC system (and I do not know it), so I cannot test this
+patch. Please test it.
+If I'm right, the device_unregister() does not work properly because,
+device_find_child() did get_device() on dev. In essence, the release method
+associated to the device will never be invoked because there is a reference
+to the device that is not dropped.
 
-ERROR: "__clzsi2" [lib/lz4/lz4hc_compress.ko] undefined!
-ERROR: "__clzsi2" [lib/lz4/lz4_compress.ko] undefined!
+ arch/sparc/kernel/vio.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-sparc64-allmodconfig (http://kisskb.ellerman.id.au/kisskb/buildresult/8572790/):
+diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
+index 3e244f3..8647fcc 100644
+--- a/arch/sparc/kernel/vio.c
++++ b/arch/sparc/kernel/vio.c
+@@ -342,6 +342,7 @@ static void vio_remove(struct mdesc_handle *hp, u64 node)
+ 		printk(KERN_INFO "VIO: Removing device %s\n", dev_name(dev));
+ 
+ 		device_unregister(dev);
++		put_device(dev);
+ 	}
+ }
+ 
+-- 
+1.8.1.4
 
-ERROR: "__clzdi2" [lib/lz4/lz4hc_compress.ko] undefined!
-ERROR: "__clzdi2" [lib/lz4/lz4_compress.ko] undefined!
-
-sparc-allmodconfig (http://kisskb.ellerman.id.au/kisskb/buildresult/8572795/):
-
-ERROR: "__clzdi2" [lib/lz4/lz4hc_compress.ko] undefined!
-ERROR: "__clzdi2" [lib/lz4/lz4_compress.ko] undefined!
-
-There may be more, hidden by build errors before reaching the link or modpost
-phases.
-
-The gmail-whitespace-damaged patch below fixes the m68k and sparc builds
-for me, does this look acceptable?
-
-diff --git a/lib/lz4/lz4defs.h b/lib/lz4/lz4defs.h
-index abcecdc..81d3251 100644
---- a/lib/lz4/lz4defs.h
-+++ b/lib/lz4/lz4defs.h
-@@ -107,12 +107,6 @@ typedef struct _U64_S { u64 v; } U64_S;
-  } while (0)
- #define HTYPE u32
-
--#ifdef __BIG_ENDIAN
--#define LZ4_NBCOMMONBYTES(val) (__builtin_clzll(val) >> 3)
--#else
--#define LZ4_NBCOMMONBYTES(val) (__builtin_ctzll(val) >> 3)
--#endif
--
- #else /* 32-bit */
- #define STEPSIZE 4
-
-@@ -132,12 +126,12 @@ typedef struct _U64_S { u64 v; } U64_S;
- #define LZ4_SECURECOPY LZ4_WILDCOPY
- #define HTYPE const u8*
-
--#ifdef __BIG_ENDIAN
--#define LZ4_NBCOMMONBYTES(val) (__builtin_clz(val) >> 3)
--#else
--#define LZ4_NBCOMMONBYTES(val) (__builtin_ctz(val) >> 3)
- #endif
-
-+#ifdef __BIG_ENDIAN
-+#define LZ4_NBCOMMONBYTES(val) (((STEPSIZE * 8) - 1 - __fls(val)) >> 3)
-+#else
-+#define LZ4_NBCOMMONBYTES(val) (__ffs(val) >> 3)
- #endif
-
- #define LZ4_READ_LITTLEENDIAN_16(d, s, p) \
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
