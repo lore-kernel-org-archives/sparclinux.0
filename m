@@ -1,50 +1,171 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Tue, 30 Apr 2013 21:46:05 +0000
-Subject: Re: [PATCH] lib: add weak __clzsi2()/__clzdi2() functions
-Message-Id: <20130430144605.1a99a7397702b332ee818fc8@linux-foundation.org>
+From: David Howells <dhowells@redhat.com>
+Date: Tue, 16 Apr 2013 18:25:54 +0000
+Subject: [PATCH 01/28] Include missing linux/slab.h inclusions [RFC]
+Message-Id: <20130416182554.27773.86004.stgit@warthog.procyon.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1367214005-14302-1-git-send-email-chanho.min@lge.com>
-	<CAMuHMdWk4oi_KCmZv7hLZ7JSwy=meziKPBMQ1HJiJR9W8AdrDg@mail.gmail.com>
-In-Reply-To: <CAMuHMdWk4oi_KCmZv7hLZ7JSwy=meziKPBMQ1HJiJR9W8AdrDg@mail.gmail.com>
+References: <20130416182550.27773.89310.stgit@warthog.procyon.org.uk>
+In-Reply-To: <20130416182550.27773.89310.stgit@warthog.procyon.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Chanho Min <chanho.min@lge.com>, Kyungsik Lee <kyungsik.lee@lge.com>, Yann Collet <yann.collet.73@gmail.com>, Bob Pearson <rpearson@systemfabricworks.com>, Richard Weinberger <richard@nod.at>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, Linux/m68k <linux-m68k@vger.kernel.org>, Linux-Next <linux-next@vger.kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, linux-efi@vger.kernel.org, x86@kernel.org, linux-fsdevel@vger.kernel.org, linux-mtd@lists.infradead.org, viro@zeniv.linux.org.uk, sparclinux@vger.kernel.org
 
-On Mon, 29 Apr 2013 09:20:25 +0200 Geert Uytterhoeven <geert@linux-m68k.org> wrote:
+Include missing linux/slab.h inclusions where the source file is currently
+expecting to get kmalloc() and co. through linux/proc_fs.h.
 
-> On Mon, Apr 29, 2013 at 7:40 AM, Chanho Min <chanho.min@lge.com> wrote:
-> > Some architectures need __clzsi2() or __clzdi2() for __builtin_clz and
-> > It causes build failure. They can be implemented using the fls() and
-> > overridden by linking arch-specific versions may not be implemented yet.
-> >
-> > Reference: https://lkml.org/lkml/2013/4/18/603
-> > Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
-> > Signed-off-by: Chanho Min <chanho.min@lge.com>
-> 
-> Thanks, this fixes the link error on m68k, so
-> 
-> Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: David Howells <dhowells@redhat.com>
+cc: linux-s390@vger.kernel.org
+cc: sparclinux@vger.kernel.org
+cc: linux-efi@vger.kernel.org
+cc: linux-mtd@lists.infradead.org
+cc: devel@driverdev.osuosl.org
+cc: x86@kernel.org
+---
 
-It doesn't work for alpha (gcc-4.4.4):
+ arch/s390/kernel/os_info.c           |    1 +
+ arch/sparc/kernel/sun4d_irq.c        |    1 +
+ arch/x86/platform/efi/efi.c          |    1 +
+ arch/x86/platform/efi/efi_64.c       |    1 +
+ drivers/mtd/mtdcore.c                |    1 +
+ drivers/pps/clients/pps_parport.c    |    1 +
+ drivers/staging/dgrp/dgrp_dpa_ops.c  |    1 +
+ drivers/staging/dgrp/dgrp_mon_ops.c  |    1 +
+ drivers/staging/dgrp/dgrp_net_ops.c  |    2 +-
+ drivers/staging/dgrp/dgrp_specproc.c |    1 +
+ fs/proc/self.c                       |    1 +
+ 11 files changed, 11 insertions(+), 1 deletion(-)
 
-ERROR: "__ctzdi2" [lib/lz4/lz4hc_compress.ko] undefined!
-ERROR: "__ctzdi2" [lib/lz4/lz4_compress.ko] undefined!
+diff --git a/arch/s390/kernel/os_info.c b/arch/s390/kernel/os_info.c
+index 46480d8..d112fc6 100644
+--- a/arch/s390/kernel/os_info.c
++++ b/arch/s390/kernel/os_info.c
+@@ -10,6 +10,7 @@
+ 
+ #include <linux/crash_dump.h>
+ #include <linux/kernel.h>
++#include <linux/slab.h>
+ #include <asm/checksum.h>
+ #include <asm/lowcore.h>
+ #include <asm/os_info.h>
+diff --git a/arch/sparc/kernel/sun4d_irq.c b/arch/sparc/kernel/sun4d_irq.c
+index e490ac9..f8933be 100644
+--- a/arch/sparc/kernel/sun4d_irq.c
++++ b/arch/sparc/kernel/sun4d_irq.c
+@@ -6,6 +6,7 @@
+  */
+ 
+ #include <linux/kernel_stat.h>
++#include <linux/slab.h>
+ #include <linux/seq_file.h>
+ 
+ #include <asm/timer.h>
+diff --git a/arch/x86/platform/efi/efi.c b/arch/x86/platform/efi/efi.c
+index 5f2ecaf..55ea7df 100644
+--- a/arch/x86/platform/efi/efi.c
++++ b/arch/x86/platform/efi/efi.c
+@@ -34,6 +34,7 @@
+ #include <linux/efi-bgrt.h>
+ #include <linux/export.h>
+ #include <linux/bootmem.h>
++#include <linux/slab.h>
+ #include <linux/memblock.h>
+ #include <linux/spinlock.h>
+ #include <linux/uaccess.h>
+diff --git a/arch/x86/platform/efi/efi_64.c b/arch/x86/platform/efi/efi_64.c
+index 2b20038..39a0e7f 100644
+--- a/arch/x86/platform/efi/efi_64.c
++++ b/arch/x86/platform/efi/efi_64.c
+@@ -27,6 +27,7 @@
+ #include <linux/uaccess.h>
+ #include <linux/io.h>
+ #include <linux/reboot.h>
++#include <linux/slab.h>
+ 
+ #include <asm/setup.h>
+ #include <asm/page.h>
+diff --git a/drivers/mtd/mtdcore.c b/drivers/mtd/mtdcore.c
+index 61d5f56..322ca65 100644
+--- a/drivers/mtd/mtdcore.c
++++ b/drivers/mtd/mtdcore.c
+@@ -36,6 +36,7 @@
+ #include <linux/idr.h>
+ #include <linux/backing-dev.h>
+ #include <linux/gfp.h>
++#include <linux/slab.h>
+ 
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/partitions.h>
+diff --git a/drivers/pps/clients/pps_parport.c b/drivers/pps/clients/pps_parport.c
+index e1b4705..38a8bbe 100644
+--- a/drivers/pps/clients/pps_parport.c
++++ b/drivers/pps/clients/pps_parport.c
+@@ -32,6 +32,7 @@
+ #include <linux/init.h>
+ #include <linux/irqnr.h>
+ #include <linux/time.h>
++#include <linux/slab.h>
+ #include <linux/parport.h>
+ #include <linux/pps_kernel.h>
+ 
+diff --git a/drivers/staging/dgrp/dgrp_dpa_ops.c b/drivers/staging/dgrp/dgrp_dpa_ops.c
+index 43209c1..1fc13de 100644
+--- a/drivers/staging/dgrp/dgrp_dpa_ops.c
++++ b/drivers/staging/dgrp/dgrp_dpa_ops.c
+@@ -40,6 +40,7 @@
+ #include <linux/cred.h>
+ #include <linux/sched.h>
+ #include <linux/ratelimit.h>
++#include <linux/slab.h>
+ #include <asm/unaligned.h>
+ 
+ #include "dgrp_common.h"
+diff --git a/drivers/staging/dgrp/dgrp_mon_ops.c b/drivers/staging/dgrp/dgrp_mon_ops.c
+index 6edbbf0..d18be41 100644
+--- a/drivers/staging/dgrp/dgrp_mon_ops.c
++++ b/drivers/staging/dgrp/dgrp_mon_ops.c
+@@ -37,6 +37,7 @@
+ #include <linux/tty.h>
+ #include <linux/sched.h>
+ #include <asm/unaligned.h>
++#include <linux/slab.h>
+ #include <linux/proc_fs.h>
+ #include <linux/uaccess.h>
+ 
+diff --git a/drivers/staging/dgrp/dgrp_net_ops.c b/drivers/staging/dgrp/dgrp_net_ops.c
+index 5448fc7..9914f1c 100644
+--- a/drivers/staging/dgrp/dgrp_net_ops.c
++++ b/drivers/staging/dgrp/dgrp_net_ops.c
+@@ -35,7 +35,7 @@
+ 
+ #include <linux/module.h>
+ #include <linux/proc_fs.h>
+-#include <linux/types.h>
++#include <linux/slab.h>
+ #include <linux/string.h>
+ #include <linux/device.h>
+ #include <linux/tty.h>
+diff --git a/drivers/staging/dgrp/dgrp_specproc.c b/drivers/staging/dgrp/dgrp_specproc.c
+index b990b26..205d80e 100644
+--- a/drivers/staging/dgrp/dgrp_specproc.c
++++ b/drivers/staging/dgrp/dgrp_specproc.c
+@@ -37,6 +37,7 @@
+ #include <linux/sched.h>
+ #include <linux/cred.h>
+ #include <linux/proc_fs.h>
++#include <linux/slab.h>
+ #include <linux/ctype.h>
+ #include <linux/seq_file.h>
+ #include <linux/uaccess.h>
+diff --git a/fs/proc/self.c b/fs/proc/self.c
+index 21940d8..6b6a993 100644
+--- a/fs/proc/self.c
++++ b/fs/proc/self.c
+@@ -1,5 +1,6 @@
+ #include <linux/sched.h>
+ #include <linux/namei.h>
++#include <linux/slab.h>
+ #include <linux/pid_namespace.h>
+ #include "internal.h"
+ 
 
-akpm3:/usr/src/25> nm vmlinux|grep ctzd
-akpm3:/usr/src/25> 
-
-I assume the linker threw the code away.
-
-
-How's about we stop using __builtin_ctz[ll]() altogether?  Use N-fls()?
-
-btw, this:
-
-int __weak __clzsi2(int val)
-{
-       return BITS_PER_LONG - fls(val);
-}
-
-looks wrong.  It will give a different result for 32- and 64-bit.
