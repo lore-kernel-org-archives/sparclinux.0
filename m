@@ -1,171 +1,29 @@
-From: David Howells <dhowells@redhat.com>
-Date: Tue, 16 Apr 2013 18:25:54 +0000
-Subject: [PATCH 01/28] Include missing linux/slab.h inclusions [RFC]
-Message-Id: <20130416182554.27773.86004.stgit@warthog.procyon.org.uk>
+From: Greg KH <gregkh@linuxfoundation.org>
+Date: Wed, 17 Apr 2013 00:56:53 +0000
+Subject: Re: [PATCH 01/28] Include missing linux/slab.h inclusions [RFC]
+Message-Id: <20130417005653.GA11541@kroah.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20130416182550.27773.89310.stgit@warthog.procyon.org.uk>
-In-Reply-To: <20130416182550.27773.89310.stgit@warthog.procyon.org.uk>
+ <20130416182554.27773.86004.stgit@warthog.procyon.org.uk>
+In-Reply-To: <20130416182554.27773.86004.stgit-S6HVgzuS8uM4Awkfq6JHfwNdhmdF6hFW@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, linux-efi@vger.kernel.org, x86@kernel.org, linux-fsdevel@vger.kernel.org, linux-mtd@lists.infradead.org, viro@zeniv.linux.org.uk, sparclinux@vger.kernel.org
+To: David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-Include missing linux/slab.h inclusions where the source file is currently
-expecting to get kmalloc() and co. through linux/proc_fs.h.
+On Tue, Apr 16, 2013 at 07:25:54PM +0100, David Howells wrote:
+> Include missing linux/slab.h inclusions where the source file is currently
+> expecting to get kmalloc() and co. through linux/proc_fs.h.
+> 
+> Signed-off-by: David Howells <dhowells@redhat.com>
+> cc: linux-s390@vger.kernel.org
+> cc: sparclinux@vger.kernel.org
+> cc: linux-efi@vger.kernel.org
+> cc: linux-mtd@lists.infradead.org
+> cc: devel@driverdev.osuosl.org
+> cc: x86@kernel.org
+> ---
+>
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-cc: linux-s390@vger.kernel.org
-cc: sparclinux@vger.kernel.org
-cc: linux-efi@vger.kernel.org
-cc: linux-mtd@lists.infradead.org
-cc: devel@driverdev.osuosl.org
-cc: x86@kernel.org
----
-
- arch/s390/kernel/os_info.c           |    1 +
- arch/sparc/kernel/sun4d_irq.c        |    1 +
- arch/x86/platform/efi/efi.c          |    1 +
- arch/x86/platform/efi/efi_64.c       |    1 +
- drivers/mtd/mtdcore.c                |    1 +
- drivers/pps/clients/pps_parport.c    |    1 +
- drivers/staging/dgrp/dgrp_dpa_ops.c  |    1 +
- drivers/staging/dgrp/dgrp_mon_ops.c  |    1 +
- drivers/staging/dgrp/dgrp_net_ops.c  |    2 +-
- drivers/staging/dgrp/dgrp_specproc.c |    1 +
- fs/proc/self.c                       |    1 +
- 11 files changed, 11 insertions(+), 1 deletion(-)
-
-diff --git a/arch/s390/kernel/os_info.c b/arch/s390/kernel/os_info.c
-index 46480d8..d112fc6 100644
---- a/arch/s390/kernel/os_info.c
-+++ b/arch/s390/kernel/os_info.c
-@@ -10,6 +10,7 @@
- 
- #include <linux/crash_dump.h>
- #include <linux/kernel.h>
-+#include <linux/slab.h>
- #include <asm/checksum.h>
- #include <asm/lowcore.h>
- #include <asm/os_info.h>
-diff --git a/arch/sparc/kernel/sun4d_irq.c b/arch/sparc/kernel/sun4d_irq.c
-index e490ac9..f8933be 100644
---- a/arch/sparc/kernel/sun4d_irq.c
-+++ b/arch/sparc/kernel/sun4d_irq.c
-@@ -6,6 +6,7 @@
-  */
- 
- #include <linux/kernel_stat.h>
-+#include <linux/slab.h>
- #include <linux/seq_file.h>
- 
- #include <asm/timer.h>
-diff --git a/arch/x86/platform/efi/efi.c b/arch/x86/platform/efi/efi.c
-index 5f2ecaf..55ea7df 100644
---- a/arch/x86/platform/efi/efi.c
-+++ b/arch/x86/platform/efi/efi.c
-@@ -34,6 +34,7 @@
- #include <linux/efi-bgrt.h>
- #include <linux/export.h>
- #include <linux/bootmem.h>
-+#include <linux/slab.h>
- #include <linux/memblock.h>
- #include <linux/spinlock.h>
- #include <linux/uaccess.h>
-diff --git a/arch/x86/platform/efi/efi_64.c b/arch/x86/platform/efi/efi_64.c
-index 2b20038..39a0e7f 100644
---- a/arch/x86/platform/efi/efi_64.c
-+++ b/arch/x86/platform/efi/efi_64.c
-@@ -27,6 +27,7 @@
- #include <linux/uaccess.h>
- #include <linux/io.h>
- #include <linux/reboot.h>
-+#include <linux/slab.h>
- 
- #include <asm/setup.h>
- #include <asm/page.h>
-diff --git a/drivers/mtd/mtdcore.c b/drivers/mtd/mtdcore.c
-index 61d5f56..322ca65 100644
---- a/drivers/mtd/mtdcore.c
-+++ b/drivers/mtd/mtdcore.c
-@@ -36,6 +36,7 @@
- #include <linux/idr.h>
- #include <linux/backing-dev.h>
- #include <linux/gfp.h>
-+#include <linux/slab.h>
- 
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/partitions.h>
-diff --git a/drivers/pps/clients/pps_parport.c b/drivers/pps/clients/pps_parport.c
-index e1b4705..38a8bbe 100644
---- a/drivers/pps/clients/pps_parport.c
-+++ b/drivers/pps/clients/pps_parport.c
-@@ -32,6 +32,7 @@
- #include <linux/init.h>
- #include <linux/irqnr.h>
- #include <linux/time.h>
-+#include <linux/slab.h>
- #include <linux/parport.h>
- #include <linux/pps_kernel.h>
- 
-diff --git a/drivers/staging/dgrp/dgrp_dpa_ops.c b/drivers/staging/dgrp/dgrp_dpa_ops.c
-index 43209c1..1fc13de 100644
---- a/drivers/staging/dgrp/dgrp_dpa_ops.c
-+++ b/drivers/staging/dgrp/dgrp_dpa_ops.c
-@@ -40,6 +40,7 @@
- #include <linux/cred.h>
- #include <linux/sched.h>
- #include <linux/ratelimit.h>
-+#include <linux/slab.h>
- #include <asm/unaligned.h>
- 
- #include "dgrp_common.h"
-diff --git a/drivers/staging/dgrp/dgrp_mon_ops.c b/drivers/staging/dgrp/dgrp_mon_ops.c
-index 6edbbf0..d18be41 100644
---- a/drivers/staging/dgrp/dgrp_mon_ops.c
-+++ b/drivers/staging/dgrp/dgrp_mon_ops.c
-@@ -37,6 +37,7 @@
- #include <linux/tty.h>
- #include <linux/sched.h>
- #include <asm/unaligned.h>
-+#include <linux/slab.h>
- #include <linux/proc_fs.h>
- #include <linux/uaccess.h>
- 
-diff --git a/drivers/staging/dgrp/dgrp_net_ops.c b/drivers/staging/dgrp/dgrp_net_ops.c
-index 5448fc7..9914f1c 100644
---- a/drivers/staging/dgrp/dgrp_net_ops.c
-+++ b/drivers/staging/dgrp/dgrp_net_ops.c
-@@ -35,7 +35,7 @@
- 
- #include <linux/module.h>
- #include <linux/proc_fs.h>
--#include <linux/types.h>
-+#include <linux/slab.h>
- #include <linux/string.h>
- #include <linux/device.h>
- #include <linux/tty.h>
-diff --git a/drivers/staging/dgrp/dgrp_specproc.c b/drivers/staging/dgrp/dgrp_specproc.c
-index b990b26..205d80e 100644
---- a/drivers/staging/dgrp/dgrp_specproc.c
-+++ b/drivers/staging/dgrp/dgrp_specproc.c
-@@ -37,6 +37,7 @@
- #include <linux/sched.h>
- #include <linux/cred.h>
- #include <linux/proc_fs.h>
-+#include <linux/slab.h>
- #include <linux/ctype.h>
- #include <linux/seq_file.h>
- #include <linux/uaccess.h>
-diff --git a/fs/proc/self.c b/fs/proc/self.c
-index 21940d8..6b6a993 100644
---- a/fs/proc/self.c
-+++ b/fs/proc/self.c
-@@ -1,5 +1,6 @@
- #include <linux/sched.h>
- #include <linux/namei.h>
-+#include <linux/slab.h>
- #include <linux/pid_namespace.h>
- #include "internal.h"
- 
-
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
