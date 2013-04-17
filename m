@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 17 Apr 2013 21:24:34 +0000
+Date: Wed, 17 Apr 2013 21:31:27 +0000
 Subject: Re: [PATCH] sparc64: Don't pass a pointer to xcall_flush_tlb_pending
-Message-Id: <20130417.172434.2006642220441293410.davem@davemloft.net>
+Message-Id: <20130417.173127.1051335998167836570.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <516F0B8A.5070407@oracle.com>
 In-Reply-To: <516F0B8A.5070407@oracle.com>
@@ -10,42 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-Date: Wed, 17 Apr 2013 15:52:26 -0500
 
-> +	else if (nr < 17) {
-> +		int i;
-> +		unsigned long vaddr2;
-> +		for(i = 0; i < nr; i+=2) {
+I also don't agree with this approach to fix the bug.
 
-Order the local variables from longest line to shortest.
+I'd much rather we properly synchronize.  One idea is to have
+a pendulum which sways every time a remove batch flush is
+performed.
 
-Put an empty line between the last local variable and the
-first statement.
+The pendulum is a pointer, which points to one of two per-cpu batch
+datastructures.  A remote flush is issued by setting an atomic counter
+to the number of remote cpus doing the flush in the per-cpu batch
+area, each remote cpu decrements the atomic counter.
 
-"for" is C primitive, therefor you put a space between it
-and the openning parenthesis.
+The submitter also "sways the pendulum" by adjusting the pointer to
+other per-cpu batch datastructure.
 
-> +			vaddr2 = i + 1 < nr ? vaddrs[i + 1] : 0;
-> +			smp_cross_call_masked(&xcall_flush_tlb_pending,
-> +					      ctx, vaddrs[i], vaddr2,
-> +					      mm_cpumask(mm));
-> +		}
-> +	} else
-> +		/*
-> +		 * At some point it is probably cheaper to flush the whole
-> +		 * context rather than make too many cross calls
-> +		 */
-> +		smp_cross_call_masked(&xcall_flush_tlb_mm, ctx, 0, 0,
->  				      mm_cpumask(mm));
->  
-> +
+If a submitter sees that there is a reference count on the per-cpu
+batch the pendulum points to, it waits until the counter hits zero.
 
-Format comments:
-
-	/* Like
-	 * this.
-	 */
-
-Multi-line basic blocks need to be enclosed in braces, even if it is
-more than one line because of comments.
