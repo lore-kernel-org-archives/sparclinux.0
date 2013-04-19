@@ -1,7 +1,7 @@
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-Date: Fri, 19 Apr 2013 17:40:51 +0000
+From: David Miller <davem@davemloft.net>
+Date: Fri, 19 Apr 2013 17:41:17 +0000
 Subject: Re: [PATCH] sparc64: Don't pass a pointer to xcall_flush_tlb_pending
-Message-Id: <517181A3.5090905@oracle.com>
+Message-Id: <20130419.134117.1688991666354600582.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <516F0B8A.5070407@oracle.com>
 In-Reply-To: <516F0B8A.5070407@oracle.com>
@@ -10,28 +10,113 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Here's a lightly-tested incremental patch to yours that limits
-smp_flush_tlb_page's  cross calls to the mm's active set.
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
+Date: Fri, 19 Apr 2013 09:46:26 -0500
 
-Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+> Why not pass mm into smp_flush_tlb_page() and use mm_cpumask(mm) as is
+> done in smp_flush_tlb_pending()? I don't see why we wouldn't want to
+> duplicate that logic to avoid cross calls to every cpu for every
+> non-batched flush.
 
+Yes, I noticed that too when doing some tests and fixed that last night.
+
+I also noticed that 2 out of every 3 batch flushes are singletons, so
+I optimized that case.  That took a few seconds off of a parallel
+kernel build.
+
+We should probably annotate the sparc specific transparent hugepage
+pte loops in arch/sparc/mm/tlb.c with some lazy mmu calls, but I'll
+leave that for another time.
+
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 08fcce9..7619f2f 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -915,6 +915,7 @@ static inline int io_remap_pfn_range(struct vm_area_struct *vma,
+ 	return remap_pfn_range(vma, from, phys_base >> PAGE_SHIFT, size, prot);
+ }
+ 
++#include <asm/tlbflush.h>
+ #include <asm-generic/pgtable.h>
+ 
+ /* We provide our own get_unmapped_area to cope with VA holes and
+diff --git a/arch/sparc/include/asm/switch_to_64.h b/arch/sparc/include/asm/switch_to_64.h
+index cad36f5..c7de332 100644
+--- a/arch/sparc/include/asm/switch_to_64.h
++++ b/arch/sparc/include/asm/switch_to_64.h
+@@ -18,8 +18,7 @@ do {						\
+ 	 * and 2 stores in this critical code path.  -DaveM
+ 	 */
+ #define switch_to(prev, next, last)					\
+-do {	flush_tlb_pending();						\
+-	save_and_clear_fpu();						\
++do {	save_and_clear_fpu();						\
+ 	/* If you are tempted to conditionalize the following */	\
+ 	/* so that ASI is only written if it changes, think again. */	\
+ 	__asm__ __volatile__("wr %%g0, %0, %%asi"			\
 diff --git a/arch/sparc/include/asm/tlbflush_64.h b/arch/sparc/include/asm/tlbflush_64.h
-index d4b56bb..f3c8a0f 100644
+index 2ef4634..f0d6a97 100644
 --- a/arch/sparc/include/asm/tlbflush_64.h
 +++ b/arch/sparc/include/asm/tlbflush_64.h
-@@ -54,21 +54,21 @@ do {	flush_tsb_kernel_range(start,end); \
+@@ -11,24 +11,40 @@
+ struct tlb_batch {
+ 	struct mm_struct *mm;
+ 	unsigned long tlb_nr;
++	unsigned long active;
+ 	unsigned long vaddrs[TLB_BATCH_NR];
+ };
+ 
+ extern void flush_tsb_kernel_range(unsigned long start, unsigned long end);
+ extern void flush_tsb_user(struct tlb_batch *tb);
++extern void flush_tsb_user_page(struct mm_struct *mm, unsigned long vaddr);
+ 
+ /* TLB flush operations. */
+ 
+-extern void flush_tlb_pending(void);
++static inline void flush_tlb_mm(struct mm_struct *mm)
++{
++}
++
++static inline void flush_tlb_page(struct vm_area_struct *vma,
++				  unsigned long vmaddr)
++{
++}
++
++static inline void flush_tlb_range(struct vm_area_struct *vma,
++				   unsigned long start, unsigned long end)
++{
++}
++
++#define __HAVE_ARCH_ENTER_LAZY_MMU_MODE
+ 
+-#define flush_tlb_range(vma,start,end)	\
+-	do { (void)(start); flush_tlb_pending(); } while (0)
+-#define flush_tlb_page(vma,addr)	flush_tlb_pending()
+-#define flush_tlb_mm(mm)		flush_tlb_pending()
++extern void flush_tlb_pending(void);
++extern void arch_enter_lazy_mmu_mode(void);
++extern void arch_leave_lazy_mmu_mode(void);
++#define arch_flush_lazy_mmu_mode()      do {} while (0)
+ 
+ /* Local cpu only.  */
+ extern void __flush_tlb_all(void);
+-
++extern void __flush_tlb_page(unsigned long context, unsigned long vaddr);
+ extern void __flush_tlb_kernel_range(unsigned long start, unsigned long end);
+ 
+ #ifndef CONFIG_SMP
+@@ -38,15 +54,24 @@ do {	flush_tsb_kernel_range(start,end); \
  	__flush_tlb_kernel_range(start,end); \
  } while (0)
  
--#define global_flush_tlb_page(context, vaddr) \
--	__flush_tlb_page(context, vaddr)
-+#define global_flush_tlb_page(mm, vaddr) \
-+	__flush_tlb_page(CTX_HWBITS((mm)->context), vaddr)
- 
++static inline void global_flush_tlb_page(struct mm_struct *mm, unsigned long vaddr)
++{
++	__flush_tlb_page(CTX_HWBITS(mm->context), vaddr);
++}
++
  #else /* CONFIG_SMP */
  
  extern void smp_flush_tlb_kernel_range(unsigned long start, unsigned long end);
--extern void smp_flush_tlb_page(unsigned long context, unsigned long vaddr);
 +extern void smp_flush_tlb_page(struct mm_struct *mm, unsigned long vaddr);
  
  #define flush_tlb_kernel_range(start, end) \
@@ -39,47 +124,445 @@ index d4b56bb..f3c8a0f 100644
  	smp_flush_tlb_kernel_range(start, end); \
  } while (0)
  
--#define global_flush_tlb_page(context, vaddr) \
--	smp_flush_tlb_page(context, vaddr)
 +#define global_flush_tlb_page(mm, vaddr) \
 +	smp_flush_tlb_page(mm, vaddr)
- 
++
  #endif /* ! CONFIG_SMP */
  
+ #endif /* _SPARC64_TLBFLUSH_H */
 diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-index 33bd996..1dee6e9 100644
+index 537eb66..ca64d2a 100644
 --- a/arch/sparc/kernel/smp_64.c
 +++ b/arch/sparc/kernel/smp_64.c
-@@ -1108,10 +1108,16 @@ void smp_flush_tlb_pending(struct mm_struct *mm, unsigned long nr, unsigned long
+@@ -849,7 +849,7 @@ void smp_tsb_sync(struct mm_struct *mm)
+ }
+ 
+ extern unsigned long xcall_flush_tlb_mm;
+-extern unsigned long xcall_flush_tlb_pending;
++extern unsigned long xcall_flush_tlb_page;
+ extern unsigned long xcall_flush_tlb_kernel_range;
+ extern unsigned long xcall_fetch_glob_regs;
+ extern unsigned long xcall_fetch_glob_pmu;
+@@ -1074,23 +1074,56 @@ local_flush_and_out:
  	put_cpu();
  }
  
--void smp_flush_tlb_page(unsigned long context, unsigned long vaddr)
-+void smp_flush_tlb_page(struct mm_struct *mm, unsigned long vaddr)
++struct tlb_pending_info {
++	unsigned long ctx;
++	unsigned long nr;
++	unsigned long *vaddrs;
++};
++
++static void tlb_pending_func(void *info)
++{
++	struct tlb_pending_info *t = info;
++
++	__flush_tlb_pending(t->ctx, t->nr, t->vaddrs);
++}
++
+ void smp_flush_tlb_pending(struct mm_struct *mm, unsigned long nr, unsigned long *vaddrs)
  {
--	smp_cross_call(&xcall_flush_tlb_page,
--		       context, vaddr, 0);
+ 	u32 ctx = CTX_HWBITS(mm->context);
++	struct tlb_pending_info info;
+ 	int cpu = get_cpu();
+ 
++	info.ctx = ctx;
++	info.nr = nr;
++	info.vaddrs = vaddrs;
++
+ 	if (mm = current->mm && atomic_read(&mm->mm_users) = 1)
+ 		cpumask_copy(mm_cpumask(mm), cpumask_of(cpu));
+ 	else
+-		smp_cross_call_masked(&xcall_flush_tlb_pending,
+-				      ctx, nr, (unsigned long) vaddrs,
+-				      mm_cpumask(mm));
++		smp_call_function_many(mm_cpumask(mm), tlb_pending_func,
++				       &info, 1);
+ 
+ 	__flush_tlb_pending(ctx, nr, vaddrs);
+ 
+ 	put_cpu();
+ }
+ 
++void smp_flush_tlb_page(struct mm_struct *mm, unsigned long vaddr)
++{
 +	unsigned long context = CTX_HWBITS(mm->context);
 +	int cpu = get_cpu();
 +
 +	if (mm = current->mm && atomic_read(&mm->mm_users) = 1)
 +		cpumask_copy(mm_cpumask(mm), cpumask_of(cpu));
 +	else
-+		smp_cross_call(&xcall_flush_tlb_page, context, vaddr, 0);
++		smp_cross_call_masked(&xcall_flush_tlb_page,
++				      context, vaddr, 0,
++				      mm_cpumask(mm));
++	__flush_tlb_page(context, vaddr);
 +
- 	__flush_tlb_page(context, vaddr);
- }
- 
++	put_cpu();
++}
++
+ void smp_flush_tlb_kernel_range(unsigned long start, unsigned long end)
+ {
+ 	start &= PAGE_MASK;
 diff --git a/arch/sparc/mm/tlb.c b/arch/sparc/mm/tlb.c
-index 26ddb58..1e31b30 100644
+index ba6ae7f..272aa4f 100644
 --- a/arch/sparc/mm/tlb.c
 +++ b/arch/sparc/mm/tlb.c
-@@ -77,7 +77,7 @@ static void tlb_batch_add_one(struct mm_struct *mm, unsigned long vaddr,
+@@ -24,11 +24,17 @@ static DEFINE_PER_CPU(struct tlb_batch, tlb_batch);
+ void flush_tlb_pending(void)
+ {
+ 	struct tlb_batch *tb = &get_cpu_var(tlb_batch);
++	struct mm_struct *mm = tb->mm;
+ 
+-	if (tb->tlb_nr) {
+-		flush_tsb_user(tb);
++	if (!tb->tlb_nr)
++		goto out;
+ 
+-		if (CTX_VALID(tb->mm->context)) {
++	flush_tsb_user(tb);
++
++	if (CTX_VALID(mm->context)) {
++		if (tb->tlb_nr = 1) {
++			global_flush_tlb_page(mm, tb->vaddrs[0]);
++		} else {
+ #ifdef CONFIG_SMP
+ 			smp_flush_tlb_pending(tb->mm, tb->tlb_nr,
+ 					      &tb->vaddrs[0]);
+@@ -37,12 +43,30 @@ void flush_tlb_pending(void)
+ 					    tb->tlb_nr, &tb->vaddrs[0]);
+ #endif
+ 		}
+-		tb->tlb_nr = 0;
  	}
  
- 	if (!tb->active) {
--		global_flush_tlb_page(CTX_HWBITS(mm->context), vaddr);
-+		global_flush_tlb_page(mm, vaddr);
- 		flush_tsb_user_page(mm, vaddr);
- 		return;
++	tb->tlb_nr = 0;
++
++out:
+ 	put_cpu_var(tlb_batch);
+ }
+ 
++void arch_enter_lazy_mmu_mode(void)
++{
++	struct tlb_batch *tb = &__get_cpu_var(tlb_batch);
++
++	tb->active = 1;
++}
++
++void arch_leave_lazy_mmu_mode(void)
++{
++	struct tlb_batch *tb = &__get_cpu_var(tlb_batch);
++
++	if (tb->tlb_nr)
++		flush_tlb_pending();
++	tb->active = 0;
++}
++
+ static void tlb_batch_add_one(struct mm_struct *mm, unsigned long vaddr,
+ 			      bool exec)
+ {
+@@ -60,6 +84,12 @@ static void tlb_batch_add_one(struct mm_struct *mm, unsigned long vaddr,
+ 		nr = 0;
  	}
+ 
++	if (!tb->active) {
++		global_flush_tlb_page(mm, vaddr);
++		flush_tsb_user_page(mm, vaddr);
++		return;
++	}
++
+ 	if (nr = 0)
+ 		tb->mm = mm;
+ 
+diff --git a/arch/sparc/mm/tsb.c b/arch/sparc/mm/tsb.c
+index 428982b..2cc3bce 100644
+--- a/arch/sparc/mm/tsb.c
++++ b/arch/sparc/mm/tsb.c
+@@ -7,11 +7,10 @@
+ #include <linux/preempt.h>
+ #include <linux/slab.h>
+ #include <asm/page.h>
+-#include <asm/tlbflush.h>
+-#include <asm/tlb.h>
+-#include <asm/mmu_context.h>
+ #include <asm/pgtable.h>
++#include <asm/mmu_context.h>
+ #include <asm/tsb.h>
++#include <asm/tlb.h>
+ #include <asm/oplib.h>
+ 
+ extern struct tsb swapper_tsb[KERNEL_TSB_NENTRIES];
+@@ -46,23 +45,27 @@ void flush_tsb_kernel_range(unsigned long start, unsigned long end)
+ 	}
+ }
+ 
+-static void __flush_tsb_one(struct tlb_batch *tb, unsigned long hash_shift,
+-			    unsigned long tsb, unsigned long nentries)
++static void __flush_tsb_one_entry(unsigned long tsb, unsigned long v,
++				  unsigned long hash_shift,
++				  unsigned long nentries)
+ {
+-	unsigned long i;
++	unsigned long tag, ent, hash;
+ 
+-	for (i = 0; i < tb->tlb_nr; i++) {
+-		unsigned long v = tb->vaddrs[i];
+-		unsigned long tag, ent, hash;
++	v &= ~0x1UL;
++	hash = tsb_hash(v, hash_shift, nentries);
++	ent = tsb + (hash * sizeof(struct tsb));
++	tag = (v >> 22UL);
+ 
+-		v &= ~0x1UL;
++	tsb_flush(ent, tag);
++}
+ 
+-		hash = tsb_hash(v, hash_shift, nentries);
+-		ent = tsb + (hash * sizeof(struct tsb));
+-		tag = (v >> 22UL);
++static void __flush_tsb_one(struct tlb_batch *tb, unsigned long hash_shift,
++			    unsigned long tsb, unsigned long nentries)
++{
++	unsigned long i;
+ 
+-		tsb_flush(ent, tag);
+-	}
++	for (i = 0; i < tb->tlb_nr; i++)
++		__flush_tsb_one_entry(tsb, tb->vaddrs[i], hash_shift, nentries);
+ }
+ 
+ void flush_tsb_user(struct tlb_batch *tb)
+@@ -90,6 +93,30 @@ void flush_tsb_user(struct tlb_batch *tb)
+ 	spin_unlock_irqrestore(&mm->context.lock, flags);
+ }
+ 
++void flush_tsb_user_page(struct mm_struct *mm, unsigned long vaddr)
++{
++	unsigned long nentries, base, flags;
++
++	spin_lock_irqsave(&mm->context.lock, flags);
++
++	base = (unsigned long) mm->context.tsb_block[MM_TSB_BASE].tsb;
++	nentries = mm->context.tsb_block[MM_TSB_BASE].tsb_nentries;
++	if (tlb_type = cheetah_plus || tlb_type = hypervisor)
++		base = __pa(base);
++	__flush_tsb_one_entry(base, vaddr, PAGE_SHIFT, nentries);
++
++#if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
++	if (mm->context.tsb_block[MM_TSB_HUGE].tsb) {
++		base = (unsigned long) mm->context.tsb_block[MM_TSB_HUGE].tsb;
++		nentries = mm->context.tsb_block[MM_TSB_HUGE].tsb_nentries;
++		if (tlb_type = cheetah_plus || tlb_type = hypervisor)
++			base = __pa(base);
++		__flush_tsb_one_entry(base, vaddr, HPAGE_SHIFT, nentries);
++	}
++#endif
++	spin_unlock_irqrestore(&mm->context.lock, flags);
++}
++
+ #define HV_PGSZ_IDX_BASE	HV_PGSZ_IDX_8K
+ #define HV_PGSZ_MASK_BASE	HV_PGSZ_MASK_8K
+ 
+diff --git a/arch/sparc/mm/ultra.S b/arch/sparc/mm/ultra.S
+index f8e13d4..432aa0c 100644
+--- a/arch/sparc/mm/ultra.S
++++ b/arch/sparc/mm/ultra.S
+@@ -53,6 +53,33 @@ __flush_tlb_mm:		/* 18 insns */
+ 	nop
+ 
+ 	.align		32
++	.globl		__flush_tlb_page
++__flush_tlb_page:	/* 22 insns */
++	/* %o0 = context, %o1 = vaddr */
++	rdpr		%pstate, %g7
++	andn		%g7, PSTATE_IE, %g2
++	wrpr		%g2, %pstate
++	mov		SECONDARY_CONTEXT, %o4
++	ldxa		[%o4] ASI_DMMU, %g2
++	stxa		%o0, [%o4] ASI_DMMU
++	andcc		%o1, 1, %g0
++	andn		%o1, 1, %o3
++	be,pn		%icc, 1f
++	 or		%o3, 0x10, %o3
++	stxa		%g0, [%o3] ASI_IMMU_DEMAP
++1:	stxa		%g0, [%o3] ASI_DMMU_DEMAP
++	membar		#Sync
++	stxa		%g2, [%o4] ASI_DMMU
++	sethi		%hi(KERNBASE), %o4
++	flush		%o4
++	retl
++	 wrpr		%g7, 0x0, %pstate
++	nop
++	nop
++	nop
++	nop
++
++	.align		32
+ 	.globl		__flush_tlb_pending
+ __flush_tlb_pending:	/* 26 insns */
+ 	/* %o0 = context, %o1 = nr, %o2 = vaddrs[] */
+@@ -203,6 +230,31 @@ __cheetah_flush_tlb_mm: /* 19 insns */
+ 	retl
+ 	 wrpr		%g7, 0x0, %pstate
+ 
++__cheetah_flush_tlb_page:	/* 22 insns */
++	/* %o0 = context, %o1 = vaddr */
++	rdpr		%pstate, %g7
++	andn		%g7, PSTATE_IE, %g2
++	wrpr		%g2, 0x0, %pstate
++	wrpr		%g0, 1, %tl
++	mov		PRIMARY_CONTEXT, %o4
++	ldxa		[%o4] ASI_DMMU, %g2
++	srlx		%g2, CTX_PGSZ1_NUC_SHIFT, %o3
++	sllx		%o3, CTX_PGSZ1_NUC_SHIFT, %o3
++	or		%o0, %o3, %o0	/* Preserve nucleus page size fields */
++	stxa		%o0, [%o4] ASI_DMMU
++	andcc		%o1, 1, %g0
++	be,pn		%icc, 1f
++	 andn		%o1, 1, %o3
++	stxa		%g0, [%o3] ASI_IMMU_DEMAP
++1:	stxa		%g0, [%o3] ASI_DMMU_DEMAP	
++	membar		#Sync
++	stxa		%g2, [%o4] ASI_DMMU
++	sethi		%hi(KERNBASE), %o4
++	flush		%o4
++	wrpr		%g0, 0, %tl
++	retl
++	 wrpr		%g7, 0x0, %pstate
++
+ __cheetah_flush_tlb_pending:	/* 27 insns */
+ 	/* %o0 = context, %o1 = nr, %o2 = vaddrs[] */
+ 	rdpr		%pstate, %g7
+@@ -269,6 +321,20 @@ __hypervisor_flush_tlb_mm: /* 10 insns */
+ 	retl
+ 	 nop
+ 
++__hypervisor_flush_tlb_page: /* 11 insns */
++	/* %o0 = context, %o1 = vaddr */
++	mov		%o0, %g2
++	mov		%o1, %o0              /* ARG0: vaddr + IMMU-bit */
++	mov		%g2, %o1	      /* ARG1: mmu context */
++	mov		HV_MMU_ALL, %o2	      /* ARG2: flags */
++	srlx		%o0, PAGE_SHIFT, %o0
++	sllx		%o0, PAGE_SHIFT, %o0
++	ta		HV_MMU_UNMAP_ADDR_TRAP
++	brnz,pn		%o0, __hypervisor_tlb_tl0_error
++	 mov		HV_MMU_UNMAP_ADDR_TRAP, %o1
++	retl
++	 nop
++
+ __hypervisor_flush_tlb_pending: /* 16 insns */
+ 	/* %o0 = context, %o1 = nr, %o2 = vaddrs[] */
+ 	sllx		%o1, 3, %g1
+@@ -339,6 +405,13 @@ cheetah_patch_cachetlbops:
+ 	call		tlb_patch_one
+ 	 mov		19, %o2
+ 
++	sethi		%hi(__flush_tlb_page), %o0
++	or		%o0, %lo(__flush_tlb_page), %o0
++	sethi		%hi(__cheetah_flush_tlb_page), %o1
++	or		%o1, %lo(__cheetah_flush_tlb_page), %o1
++	call		tlb_patch_one
++	 mov		22, %o2
++
+ 	sethi		%hi(__flush_tlb_pending), %o0
+ 	or		%o0, %lo(__flush_tlb_pending), %o0
+ 	sethi		%hi(__cheetah_flush_tlb_pending), %o1
+@@ -397,10 +470,9 @@ xcall_flush_tlb_mm:	/* 21 insns */
+ 	nop
+ 	nop
+ 
+-	.globl		xcall_flush_tlb_pending
+-xcall_flush_tlb_pending:	/* 21 insns */
+-	/* %g5=context, %g1=nr, %g7=vaddrs[] */
+-	sllx		%g1, 3, %g1
++	.globl		xcall_flush_tlb_page
++xcall_flush_tlb_page:	/* 17 insns */
++	/* %g5=context, %g1=vaddr */
+ 	mov		PRIMARY_CONTEXT, %g4
+ 	ldxa		[%g4] ASI_DMMU, %g2
+ 	srlx		%g2, CTX_PGSZ1_NUC_SHIFT, %g4
+@@ -408,20 +480,16 @@ xcall_flush_tlb_pending:	/* 21 insns */
+ 	or		%g5, %g4, %g5
+ 	mov		PRIMARY_CONTEXT, %g4
+ 	stxa		%g5, [%g4] ASI_DMMU
+-1:	sub		%g1, (1 << 3), %g1
+-	ldx		[%g7 + %g1], %g5
+-	andcc		%g5, 0x1, %g0
++	andcc		%g1, 0x1, %g0
+ 	be,pn		%icc, 2f
+-
+-	 andn		%g5, 0x1, %g5
++	 andn		%g1, 0x1, %g5
+ 	stxa		%g0, [%g5] ASI_IMMU_DEMAP
+ 2:	stxa		%g0, [%g5] ASI_DMMU_DEMAP
+ 	membar		#Sync
+-	brnz,pt		%g1, 1b
+-	 nop
+ 	stxa		%g2, [%g4] ASI_DMMU
+ 	retry
+ 	nop
++	nop
+ 
+ 	.globl		xcall_flush_tlb_kernel_range
+ xcall_flush_tlb_kernel_range:	/* 25 insns */
+@@ -656,15 +724,13 @@ __hypervisor_xcall_flush_tlb_mm: /* 21 insns */
+ 	membar		#Sync
+ 	retry
+ 
+-	.globl		__hypervisor_xcall_flush_tlb_pending
+-__hypervisor_xcall_flush_tlb_pending: /* 21 insns */
+-	/* %g5=ctx, %g1=nr, %g7=vaddrs[], %g2,%g3,%g4,g6=scratch */
+-	sllx		%g1, 3, %g1
++	.globl		__hypervisor_xcall_flush_tlb_page
++__hypervisor_xcall_flush_tlb_page: /* 17 insns */
++	/* %g5=ctx, %g1=vaddr */
+ 	mov		%o0, %g2
+ 	mov		%o1, %g3
+ 	mov		%o2, %g4
+-1:	sub		%g1, (1 << 3), %g1
+-	ldx		[%g7 + %g1], %o0	/* ARG0: virtual address */
++	mov		%g1, %o0	        /* ARG0: virtual address */
+ 	mov		%g5, %o1		/* ARG1: mmu context */
+ 	mov		HV_MMU_ALL, %o2		/* ARG2: flags */
+ 	srlx		%o0, PAGE_SHIFT, %o0
+@@ -673,8 +739,6 @@ __hypervisor_xcall_flush_tlb_pending: /* 21 insns */
+ 	mov		HV_MMU_UNMAP_ADDR_TRAP, %g6
+ 	brnz,a,pn	%o0, __hypervisor_tlb_xcall_error
+ 	 mov		%o0, %g5
+-	brnz,pt		%g1, 1b
+-	 nop
+ 	mov		%g2, %o0
+ 	mov		%g3, %o1
+ 	mov		%g4, %o2
+@@ -757,6 +821,13 @@ hypervisor_patch_cachetlbops:
+ 	call		tlb_patch_one
+ 	 mov		10, %o2
+ 
++	sethi		%hi(__flush_tlb_page), %o0
++	or		%o0, %lo(__flush_tlb_page), %o0
++	sethi		%hi(__hypervisor_flush_tlb_page), %o1
++	or		%o1, %lo(__hypervisor_flush_tlb_page), %o1
++	call		tlb_patch_one
++	 mov		11, %o2
++
+ 	sethi		%hi(__flush_tlb_pending), %o0
+ 	or		%o0, %lo(__flush_tlb_pending), %o0
+ 	sethi		%hi(__hypervisor_flush_tlb_pending), %o1
+@@ -788,12 +859,12 @@ hypervisor_patch_cachetlbops:
+ 	call		tlb_patch_one
+ 	 mov		21, %o2
+ 
+-	sethi		%hi(xcall_flush_tlb_pending), %o0
+-	or		%o0, %lo(xcall_flush_tlb_pending), %o0
+-	sethi		%hi(__hypervisor_xcall_flush_tlb_pending), %o1
+-	or		%o1, %lo(__hypervisor_xcall_flush_tlb_pending), %o1
++	sethi		%hi(xcall_flush_tlb_page), %o0
++	or		%o0, %lo(xcall_flush_tlb_page), %o0
++	sethi		%hi(__hypervisor_xcall_flush_tlb_page), %o1
++	or		%o1, %lo(__hypervisor_xcall_flush_tlb_page), %o1
+ 	call		tlb_patch_one
+-	 mov		21, %o2
++	 mov		17, %o2
+ 
+ 	sethi		%hi(xcall_flush_tlb_kernel_range), %o0
+ 	or		%o0, %lo(xcall_flush_tlb_kernel_range), %o0
