@@ -1,42 +1,56 @@
-From: Federico Vaga <federico.vaga@gmail.com>
-Date: Mon, 15 Apr 2013 14:42:52 +0000
-Subject: [RFC PATCH] sparc/kernel/vio.c: add put_device() after device_find_child()
-Message-Id: <1366036972-9240-1-git-send-email-federico.vaga@gmail.com>
+From: "zhangwei(Jovi)" <jovi.zhangwei@huawei.com>
+Date: Mon, 22 Apr 2013 09:19:21 +0000
+Subject: [PATCH RESEND] sparc/sysrq: fix inconstistent help message of sysrq key
+Message-Id: <51750099.7020107@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Federico Vaga <federico.vaga@gmail.com>
+To: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-The vio_remove() function uses device_find_child() but it does not drop
-the reference of the retrieved child.
+Currently help message of /proc/sysrq-trigger highlight its
+upper-case characters, like below:
 
-Signed-off-by: Federico Vaga <federico.vaga@gmail.com>
+      SysRq : HELP : loglevel(0-9) reBoot Crash terminate-all-tasks(E)
+      memory-full-oom-kill(F) kill-all-tasks(I) ...
+
+this would confuse user trigger sysrq by upper-case character, which is
+inconsistent with the real lower-case character registed key.
+
+This inconsistent help message will also lead more confused when
+26 upper-case letters put into use in future.
+
+This patch fix sparc sysrq key: "global-regs(y)" and "global-pmu(x)"
+
+Signed-off-by: zhangwei(Jovi) <jovi.zhangwei@huawei.com>
+Acked-by: David S. Miller <davem@davemloft.net>
 ---
+ arch/sparc/kernel/process_64.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-I do not have a SPARC system (and I do not know it), so I cannot test this
-patch. Please test it.
-If I'm right, the device_unregister() does not work properly because,
-device_find_child() did get_device() on dev. In essence, the release method
-associated to the device will never be invoked because there is a reference
-to the device that is not dropped.
+diff --git a/arch/sparc/kernel/process_64.c b/arch/sparc/kernel/process_64.c
+index cdb80b2..a0705ba 100644
+--- a/arch/sparc/kernel/process_64.c
++++ b/arch/sparc/kernel/process_64.c
+@@ -315,7 +315,7 @@ static void sysrq_handle_globreg(int key)
 
- arch/sparc/kernel/vio.c | 1 +
- 1 file changed, 1 insertion(+)
+ static struct sysrq_key_op sparc_globalreg_op = {
+ 	.handler	= sysrq_handle_globreg,
+-	.help_msg	= "global-regs(Y)",
++	.help_msg	= "global-regs(y)",
+ 	.action_msg	= "Show Global CPU Regs",
+ };
 
-diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
-index 3e244f3..8647fcc 100644
---- a/arch/sparc/kernel/vio.c
-+++ b/arch/sparc/kernel/vio.c
-@@ -342,6 +342,7 @@ static void vio_remove(struct mdesc_handle *hp, u64 node)
- 		printk(KERN_INFO "VIO: Removing device %s\n", dev_name(dev));
- 
- 		device_unregister(dev);
-+		put_device(dev);
- 	}
- }
- 
+@@ -385,7 +385,7 @@ static void sysrq_handle_globpmu(int key)
+
+ static struct sysrq_key_op sparc_globalpmu_op = {
+ 	.handler	= sysrq_handle_globpmu,
+-	.help_msg	= "global-pmu(X)",
++	.help_msg	= "global-pmu(x)",
+ 	.action_msg	= "Show Global PMU Regs",
+ };
+
 -- 
-1.8.1.4
+1.7.9.7
+
 
