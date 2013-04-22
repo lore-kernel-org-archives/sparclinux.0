@@ -1,70 +1,51 @@
-From: Brian King <brking@linux.vnet.ibm.com>
-Date: Mon, 08 Apr 2013 13:07:38 +0000
-Subject: Re: [PATCH 2/3] powerpc: Enable boot_vga sysfs attribute for graphics adapters on Power
-Message-Id: <5162C11A.8040201@linux.vnet.ibm.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Mon, 22 Apr 2013 09:24:21 +0000
+Subject: Re: [PATCH 1/2] lib: Add lz4 compressor module
+Message-Id: <CAMuHMdUv=GR6s=BYXHR7KyaKCUSxmkJO8dzZJMRktu3cUCTbsw@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <201304042158.r34LwEOV010607@d03av02.boulder.ibm.com> <CAErSpo5ReUcSPvyBs_u0HLh=90anEREZn4p6EUX4yO52bDBaeg@mail.gmail.com> <20130408052522.GB9550@concordia>
-In-Reply-To: <20130408052522.GB9550@concordia>
+References: <CAOAMb1D8rokZpQpp6mEJw6KXcQq8fJUWBJoC5+ZfkNaE6WvAZA@mail.gmail.com>
+	<CAMuHMdXXoaQjb9sRK=X3gEDwqQBJcJQtaJbUGB8cJmteHSN3vQ@mail.gmail.com>
+	<51750159.07d70e0a.5461.ffffec64SMTPIN_ADDED_BROKEN@mx.google.com>
+In-Reply-To: <51750159.07d70e0a.5461.ffffec64SMTPIN_ADDED_BROKEN@mx.google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michael Ellerman <michael@ellerman.id.au>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, klebers@linux.vnet.ibm.com, sparclinux@vger.kernel.org, Lucas Kannebley Tavares <lucaskt@linux.vnet.ibm.com>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
+To: Chanho Min <chanho.min@lge.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, "Darrick J. Wong" <djwong@us.ibm.com>, Bob Pearson <rpearson@systemfabricworks.com>, Richard Weinberger <richard@nod.at>, Herbert Xu <herbert@gondor.apana.org.au>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-crypto@vger.kernel.org, Yann Collet <yann.collet.73@gmail.com>, Kyungsik Lee <kyungsik.lee@lge.com>, Linux/m68k <linux-m68k@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, Linux-Next <linux-next@vger.kernel.org>
 
-On 04/08/2013 12:25 AM, Michael Ellerman wrote:
-> On Fri, Apr 05, 2013 at 02:11:01PM -0600, Bjorn Helgaas wrote:
->> On Thu, Apr 4, 2013 at 3:58 PM, Brian King <brking@linux.vnet.ibm.com> wrote:
->>>
->>> Initialize dev->dev.type such that the PCI group attributes for boot_vga
->>> and SR-IOV can be displayed if appropriate. This fixes an issue seen on
->>> Power preventing X from auto initializing a graphics adapter when using KMS.
->>>
->>> Signed-off-by: Brian King <brking@linux.vnet.ibm.com>
->>> ---
->>>
->>>  arch/powerpc/kernel/pci_of_scan.c |    1 +
->>>  1 file changed, 1 insertion(+)
->>>
->>> diff -puN arch/powerpc/kernel/pci_of_scan.c~powerpc_set_pci_dev_type arch/powerpc/kernel/pci_of_scan.c
->>> --- linux/arch/powerpc/kernel/pci_of_scan.c~powerpc_set_pci_dev_type    2013-04-03 09:43:19.000000000 -0500
->>> +++ linux-bjking1/arch/powerpc/kernel/pci_of_scan.c     2013-04-03 09:43:19.000000000 -0500
->>> @@ -141,6 +141,7 @@ struct pci_dev *of_create_pci_dev(struct
->>>         dev->dev.of_node = of_node_get(node);
->>>         dev->dev.parent = bus->bridge;
->>>         dev->dev.bus = &pci_bus_type;
->>> +       dev->dev.type = &pci_dev_type;
->>>         dev->devfn = devfn;
->>>         dev->multifunction = 0;         /* maybe a lie? */
->>>         dev->needs_freset = 0;          /* pcie fundamental reset required */
+On Mon, Apr 22, 2013 at 11:22 AM, Chanho Min <chanho.min@lge.com> wrote:
+>>> +#define HTYPE const u8*
+>>> +
+>>> +#ifdef __BIG_ENDIAN
+>>> +#define LZ4_NBCOMMONBYTES(val) (__builtin_clz(val) >> 3)
+>>> +#else
+>>> +#define LZ4_NBCOMMONBYTES(val) (__builtin_ctz(val) >> 3)
+>>> +#endif
 >>
->> I think sparc has the same issue in its own copy of of_create_pci_dev().
+>>It seems at least m68k and sparc don't have the __builtin_clz() functions:
 >>
->> Of course, both of_create_pci_dev() implementations are basically
->> copies of the generic pci_setup_device() that most arches use.  That's
->> the reason why I wish sparc and powerpc had used config space
->> accessors that hid the OF mangling internally so they could use the
->> generic pci_setup_device() instead of cloning it.
+>>m68k-allmodconfig (http://kisskb.ellerman.id.au/kisskb/buildresult/8572593/):
 >>
->> Of course, they don't, and that's too much work for fixing this issue,
->> but if anybody wanted to work on that, I think it would be an
->> interesting project.
->>
->> But what if you set dev->dev.type in alloc_pci_dev()?  I think if you
->> did that, you wouldn't need to export "pci_dev_type," and  it should
->> fix this for both powerpc and sparc.
-> 
-> That sounds good, Brian can you confirm that works and send a new series
-> using that technique.
+>>ERROR: "__clzsi2" [lib/lz4/lz4hc_compress.ko] undefined!
+>>ERROR: "__clzsi2" [lib/lz4/lz4_compress.ko] undefined!
+>
+> gcc seems to define __builtin_clz as __clzsi2 in some architecture.
+> But, kernel doesn't link libgcc.a.
+> If kernel should use gcc's built-in function without libgcc.a,
+> do we need to port __clzsi2 to 'arch/*/lib/*'?
 
-It does indeed work. I've sent a new series using this technique.
+That's another option.
 
-Thanks,
+So far no one used __builtin_c[lt]z in generic code. We always used
+__fls and __ffs.
 
-Brian
+Gr{oetje,eeting}s,
 
--- 
-Brian King
-Power Linux I/O
-IBM Linux Technology Center
+                        Geert
 
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
