@@ -1,35 +1,52 @@
-From: Meelis Roos <mroos@linux.ee>
-Date: Mon, 08 Apr 2013 08:15:50 +0000
-Subject: WARNING: at mm/mmap.c:2702 exit_mmap+0x134/0x160() (SIGILL on sparc64)
-Message-Id: <alpine.SOC.1.00.1304081109080.17009@math.ut.ee>
+From: Andreas Larsson <andreas@gaisler.com>
+Date: Mon, 22 Apr 2013 07:23:06 +0000
+Subject: [PATCH] sparc32, leon: Do not overwrite previously set irq flow handlers
+Message-Id: <1366615386-3490-1-git-send-email-andreas@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linux Kernel list <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-While compiling 3.9-5rc6 on sparc64 (Ultrasparc-II Netra X1), I got the 
-following error:
+This is needed because when scan_of_devices finds the GAISLER_GPTIMER
+core that corresponds to the SMP "ticker" timer, the previously set
+proper irq flow handler gets overwritten with an incorrect one. This
+leads to very flaky timer interrupt handling on some hardware. Proper
+updates to handlers can still be done using leon_update_virq_handling.
 
-[604143.245710] WARNING: at mm/mmap.c:2702 exit_mmap+0x134/0x160()
-[604143.323469] Modules linked in: ipv6 loop ohci_hcd i2c_ali15x3 usbcore i2c_ali1535 usb_common i2c_core
-[604143.445845] Call Trace:
-[604143.479021]  [00000000004b7f54] exit_mmap+0x134/0x160
-[604143.546570]  [00000000004516ec] mmput+0x2c/0xc0
-[604143.607248]  [000000000045676c] exit_mm+0xec/0x120
-[604143.671352]  [000000000045802c] do_exit+0xec/0x360
-[604143.735468]  [00000000004583e4] do_group_exit+0x24/0xc0
-[604143.805295]  [0000000000463424] get_signal_to_deliver+0x1a4/0x320
-[604143.886545]  [0000000000443d34] do_signal32+0x14/0x220
-[604143.955249]  [000000000042c640] do_signal+0x2c0/0x520
-[604144.022774]  [000000000042d0a0] do_notify_resume+0x40/0x60
-[604144.096054]  [0000000000404ac4] __handle_signal+0xc/0x2c
-[604144.167063] ---[ end trace 485ee697b10175b2 ]---
-[604144.228837] BUG: Bad rss-counter state mm:fffff8006e5123c0 idx:1 val:1
+Signed-off-by: Andreas Larsson <andreas@gaisler.com>
+---
+ arch/sparc/kernel/leon_kernel.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-This is not reproducible. The machine has been stable for long and I 
-have seen no other errors. Rerunning the same "make" produced no errors.
-
-
+diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
+index 87f60ee..7c0231d 100644
+--- a/arch/sparc/kernel/leon_kernel.c
++++ b/arch/sparc/kernel/leon_kernel.c
+@@ -213,6 +213,7 @@ unsigned int leon_build_device_irq(unsigned int real_irq,
+ {
+ 	unsigned int irq;
+ 	unsigned long mask;
++	struct irq_desc *desc;
+ 
+ 	irq = 0;
+ 	mask = leon_get_irqmask(real_irq);
+@@ -226,9 +227,12 @@ unsigned int leon_build_device_irq(unsigned int real_irq,
+ 	if (do_ack)
+ 		mask |= LEON_DO_ACK_HW;
+ 
+-	irq_set_chip_and_handler_name(irq, &leon_irq,
+-				      flow_handler, name);
+-	irq_set_chip_data(irq, (void *)mask);
++	desc = irq_to_desc(irq);
++	if (!desc || !desc->handle_irq || desc->handle_irq = handle_bad_irq) {
++		irq_set_chip_and_handler_name(irq, &leon_irq,
++					      flow_handler, name);
++		irq_set_chip_data(irq, (void *)mask);
++	}
+ 
+ out:
+ 	return irq;
 -- 
-Meelis Roos (mroos@linux.ee)
+1.7.10.4
+
