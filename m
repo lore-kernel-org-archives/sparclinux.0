@@ -1,12 +1,12 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 23 Apr 2013 07:34:30 +0000
+Date: Tue, 23 Apr 2013 20:17:51 +0000
 Subject: Re: sparc64, mm BUG in 3.9-rc8
-Message-Id: <20130423.033430.807606126530680062.davem@davemloft.net>
+Message-Id: <20130423.161751.2116707386990845036.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.SOC.1.00.1304230947380.27055@math.ut.ee>
-	<20130423.030721.841236427967286989.davem@davemloft.net>
-	<alpine.SOC.1.00.1304231020550.28316@math.ut.ee>
-In-Reply-To: <alpine.SOC.1.00.1304231020550.28316@math.ut.ee>
+References: <alpine.SOC.1.00.1304221601370.4328@math.ut.ee>
+	<20130422.152741.652969183920758931.davem@davemloft.net>
+	<alpine.SOC.1.00.1304230019030.12820@math.ut.ee>
+In-Reply-To: <alpine.SOC.1.00.1304230019030.12820@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -14,19 +14,23 @@ To: mroos@linux.ee
 Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
 From: Meelis Roos <mroos@linux.ee>
-Date: Tue, 23 Apr 2013 10:21:31 +0300 (EEST)
+Date: Tue, 23 Apr 2013 00:19:49 +0300 (EEST)
 
->> From: Meelis Roos <mroos@linux.ee>
->> Date: Tue, 23 Apr 2013 09:47:54 +0300 (EEST)
+>> > Hello, I got a non-booting Sun E420R (sparc64) with 3.9-rc8: BUG-s in 
+>> > mm/slub.c:925 and mm/memory.c:1267 (the latter keeps scrolling until 
+>> > other things break and panic comes from trying to kill init). This is 
+>> > reproducible. Same machine runs 3.9.0-rc7-00004-gbb33db7 successfully.
+>> > Configuration is below.
 >> 
->> >> Thanks, could you post a prtconf dump from this machine?  I'll
->> >> add it to the prtconf GIT repo as well.
->> > 
->> > Attached.
+>> It's certainly a bug in the TLB shootdown fix, please verify that
+>> reverting the following fixes things:
 >> 
->> Thanks a lot.
+>> >From f36391d2790d04993f48da6a45810033a2cdf847 Mon Sep 17 00:00:00 2001
+>> From: "David S. Miller" <davem@davemloft.net>
+>> Date: Fri, 19 Apr 2013 17:26:26 -0400
+>> Subject: [PATCH] sparc64: Fix race in TLB batch processing.
 > 
-> Actually, it was Fire 480R, not Enterprise, so the e in e420r filename 
-> is wrong...
+> Yes, reverting that makes it work again.
 
-I've renamed the file to just plain '480r', thanks.
+Just an update, using your config I was able to make one that boots on my
+machine and reproduces the problem.
