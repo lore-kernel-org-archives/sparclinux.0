@@ -1,82 +1,50 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Date: Tue, 30 Apr 2013 19:47:50 +0000
+Date: Tue, 30 Apr 2013 21:46:05 +0000
 Subject: Re: [PATCH] lib: add weak __clzsi2()/__clzdi2() functions
-Message-Id: <20130430124750.bf5655264e637bbcb82c9693@linux-foundation.org>
+Message-Id: <20130430144605.1a99a7397702b332ee818fc8@linux-foundation.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1367214005-14302-1-git-send-email-chanho.min@lge.com>
-In-Reply-To: <1367214005-14302-1-git-send-email-chanho.min@lge.com>
+	<CAMuHMdWk4oi_KCmZv7hLZ7JSwy=meziKPBMQ1HJiJR9W8AdrDg@mail.gmail.com>
+In-Reply-To: <CAMuHMdWk4oi_KCmZv7hLZ7JSwy=meziKPBMQ1HJiJR9W8AdrDg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Chanho Min <chanho.min@lge.com>
-Cc: Kyungsik Lee <kyungsik.lee@lge.com>, Yann Collet <yann.collet.73@gmail.com>, Bob Pearson <rpearson@systemfabricworks.com>, Richard Weinberger <richard@nod.at>, Geert Uytterhoeven <geert.uytterhoeven@gmail.com>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-m68k@vger.kernel.org, linux-next@vger.kernel.org
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Chanho Min <chanho.min@lge.com>, Kyungsik Lee <kyungsik.lee@lge.com>, Yann Collet <yann.collet.73@gmail.com>, Bob Pearson <rpearson@systemfabricworks.com>, Richard Weinberger <richard@nod.at>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, Linux/m68k <linux-m68k@vger.kernel.org>, Linux-Next <linux-next@vger.kernel.org>
 
-On Mon, 29 Apr 2013 14:40:05 +0900 Chanho Min <chanho.min@lge.com> wrote:
+On Mon, 29 Apr 2013 09:20:25 +0200 Geert Uytterhoeven <geert@linux-m68k.org> wrote:
 
-> Some architectures need __clzsi2() or __clzdi2() for __builtin_clz and
-> It causes build failure. They can be implemented using the fls() and
-> overridden by linking arch-specific versions may not be implemented yet.
+> On Mon, Apr 29, 2013 at 7:40 AM, Chanho Min <chanho.min@lge.com> wrote:
+> > Some architectures need __clzsi2() or __clzdi2() for __builtin_clz and
+> > It causes build failure. They can be implemented using the fls() and
+> > overridden by linking arch-specific versions may not be implemented yet.
+> >
+> > Reference: https://lkml.org/lkml/2013/4/18/603
+> > Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+> > Signed-off-by: Chanho Min <chanho.min@lge.com>
 > 
-> Reference: https://lkml.org/lkml/2013/4/18/603
-> Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
-> Signed-off-by: Chanho Min <chanho.min@lge.com>
->
-> ...
->
-> --- a/lib/Makefile
-> +++ b/lib/Makefile
-> @@ -23,7 +23,7 @@ lib-y	+= kobject.o klist.o
->  
->  obj-y += bcd.o div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
->  	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o scatterlist.o \
-> -	 gcd.o lcm.o list_sort.o uuid.o flex_array.o \
-> +	 gcd.o lcm.o list_sort.o uuid.o flex_array.o clz.o\
->  	 bsearch.o find_last_bit.o find_next_bit.o llist.o memweight.o kfifo.o
->  obj-y += string_helpers.o
->  obj-$(CONFIG_TEST_STRING_HELPERS) += test-string_helpers.o
-> diff --git a/lib/clz.c b/lib/clz.c
-> new file mode 100644
-> index 0000000..5222b2d
-> --- /dev/null
-> +++ b/lib/clz.c
-> @@ -0,0 +1,36 @@
-> +/*
-> + * lib/clz.c
-> + *
-> + * Copyright (C) 2013 Chanho Min <chanho.min@lge.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * __clzsi2/_clzdi2() can be overridden by linking arch-specific versions.
-> + */
-> +
-> +#include <linux/export.h>
-> +#include <linux/kernel.h>
-> +
-> +int __weak __clzsi2(int val)
-> +{
-> +	return BITS_PER_LONG - fls(val);
-> +}
-> +EXPORT_SYMBOL(__clzsi2);
-> +
-> +#if BITS_PER_LONG = 32
-> +int __weak __clzdi2(long val)
-> +{
-> +	return BITS_PER_LONG - fls((int)val);
-> +}
-> +EXPORT_SYMBOL(__clzdi2);
-> +#elif BITS_PER_LONG = 64
-> +int __weak __clzdi2i(long val)
+> Thanks, this fixes the link error on m68k, so
+> 
+> Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 
-This is a typo, surely?  I'll switch it to __clzdi2.
+It doesn't work for alpha (gcc-4.4.4):
 
-> +{
-> +	return BITS_PER_LONG - fls64((u64)val);
-> +}
-> +EXPORT_SYMBOL(__clzdi2);
-> +#else
-> +#error BITS_PER_LONG not 32 or 64
-> +#endif
+ERROR: "__ctzdi2" [lib/lz4/lz4hc_compress.ko] undefined!
+ERROR: "__ctzdi2" [lib/lz4/lz4_compress.ko] undefined!
 
+akpm3:/usr/src/25> nm vmlinux|grep ctzd
+akpm3:/usr/src/25> 
+
+I assume the linker threw the code away.
+
+
+How's about we stop using __builtin_ctz[ll]() altogether?  Use N-fls()?
+
+btw, this:
+
+int __weak __clzsi2(int val)
+{
+       return BITS_PER_LONG - fls(val);
+}
+
+looks wrong.  It will give a different result for 32- and 64-bit.
