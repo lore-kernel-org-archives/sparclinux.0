@@ -1,30 +1,69 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 26 May 2013 04:25:03 +0000
-Subject: Re: [sparc64] QEMU emulation
-Message-Id: <20130525.212503.2061673629807494310.davem@davemloft.net>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Wed, 01 May 2013 07:35:35 +0000
+Subject: Re: [PATCH] lib: add weak __clzsi2()/__clzdi2() functions
+Message-Id: <CAMuHMdXJaZTSNavsPxQQ8df+J=Rfyn6mKjP2g7xoDXnW5PiF3Q@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <890661369305059@web30d.yandex.ru>
-In-Reply-To: <890661369305059@web30d.yandex.ru>
+References: <1367214005-14302-1-git-send-email-chanho.min@lge.com>
+	<CAMuHMdWk4oi_KCmZv7hLZ7JSwy=meziKPBMQ1HJiJR9W8AdrDg@mail.gmail.com>
+	<20130430144605.1a99a7397702b332ee818fc8@linux-foundation.org>
+In-Reply-To: <20130430144605.1a99a7397702b332ee818fc8@linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Chanho Min <chanho.min@lge.com>, Kyungsik Lee <kyungsik.lee@lge.com>, Yann Collet <yann.collet.73@gmail.com>, Bob Pearson <rpearson@systemfabricworks.com>, Richard Weinberger <richard@nod.at>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, Linux/m68k <linux-m68k@vger.kernel.org>, Linux-Next <linux-next@vger.kernel.org>
 
-From: Kirill Tkhai <tkhai@yandex.ru>
-Date: Thu, 23 May 2013 14:30:59 +0400
+On Tue, Apr 30, 2013 at 11:46 PM, Andrew Morton
+<akpm@linux-foundation.org> wrote:
+> On Mon, 29 Apr 2013 09:20:25 +0200 Geert Uytterhoeven <geert@linux-m68k.org> wrote:
+>> On Mon, Apr 29, 2013 at 7:40 AM, Chanho Min <chanho.min@lge.com> wrote:
+>> > Some architectures need __clzsi2() or __clzdi2() for __builtin_clz and
+>> > It causes build failure. They can be implemented using the fls() and
+>> > overridden by linking arch-specific versions may not be implemented yet.
+>> >
+>> > Reference: https://lkml.org/lkml/2013/4/18/603
+>> > Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+>> > Signed-off-by: Chanho Min <chanho.min@lge.com>
+>>
+>> Thanks, this fixes the link error on m68k, so
+>>
+>> Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+>
+> It doesn't work for alpha (gcc-4.4.4):
+>
+> ERROR: "__ctzdi2" [lib/lz4/lz4hc_compress.ko] undefined!
+> ERROR: "__ctzdi2" [lib/lz4/lz4_compress.ko] undefined!
+>
+> akpm3:/usr/src/25> nm vmlinux|grep ctzd
+> akpm3:/usr/src/25>
+>
+> I assume the linker threw the code away.
 
-> Artyom Tarasenko, QEMU developer, has just fixed last known functional bug of sparc64 emulation:
-> 
-> http://wiki.qemu.org/ChangeLog/1.5
-> 
-> Now it's possible to use QEMU to test and develop kernel. It's possible to use instruction trace and
-> other useful functions.
-> 
-> The only exception is the fact hard disks are not supported (by openbios?), so it's necessary to use
-> virtual disks (CONFIG_VIRTIO_PCI and CONFIG_VIRTIO_BLK). Instruction to do this:
-> 
-> http://tyom.blogspot.ru/2013/03/debiansparc64-wheezy-under-qemu-how-to.html
+No, the link errors are for __ctzdi2, not __clzdi2.
+__ctzdi2 can be implemented using __ffs().
 
-This is great news!
+> How's about we stop using __builtin_ctz[ll]() altogether?  Use N-fls()?
 
-Awesome work to everyone who worked on that.
+That was my first suggestion ;-)
+
+> btw, this:
+>
+> int __weak __clzsi2(int val)
+> {
+>        return BITS_PER_LONG - fls(val);
+> }
+>
+> looks wrong.  It will give a different result for 32- and 64-bit.
+
+Indeed. It should be hardcoded 32.
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
