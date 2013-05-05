@@ -1,93 +1,22 @@
-From: Denis Efremov <yefremov.denis@gmail.com>
-Date: Thu, 09 May 2013 10:36:54 +0000
-Subject: [PATCH 16/21] sparc: remove inline marking of EXPORT_SYMBOL functions
-Message-Id: <1368095819-11011-5-git-send-email-yefremov.denis@gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Sun, 05 May 2013 01:32:14 +0000
+Subject: Re: [RFC PATCH] sparc/kernel/vio.c: add put_device() after device_find_child()
+Message-Id: <20130504.213214.284834179118895616.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1368086241-9357-1-git-send-email-yefremov.denis@gmail.com>
-In-Reply-To: <1368086241-9357-1-git-send-email-yefremov.denis@gmail.com>
+References: <1366036972-9240-1-git-send-email-federico.vaga@gmail.com>
+In-Reply-To: <1366036972-9240-1-git-send-email-federico.vaga@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>
-Cc: Denis Efremov <yefremov.denis@gmail.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, trivial@kernel.org, ldv-project@linuxtesting.org
+To: federico.vaga@gmail.com
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-EXPORT_SYMBOL and inline directives are contradictory to each other.
-The patch fixes this inconsistency.
+From: Federico Vaga <federico.vaga@gmail.com>
+Date: Mon, 15 Apr 2013 16:42:52 +0200
 
-Found by Linux Driver Verification project (linuxtesting.org).
+> The vio_remove() function uses device_find_child() but it does not drop
+> the reference of the retrieved child.
+> 
+> Signed-off-by: Federico Vaga <federico.vaga@gmail.com>
 
-Signed-off-by: Denis Efremov <yefremov.denis@gmail.com>
----
- arch/sparc/prom/tree_64.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
-
-diff --git a/arch/sparc/prom/tree_64.c b/arch/sparc/prom/tree_64.c
-index 92204c3..75e4c44 100644
---- a/arch/sparc/prom/tree_64.c
-+++ b/arch/sparc/prom/tree_64.c
-@@ -39,7 +39,7 @@ inline phandle __prom_getchild(phandle node)
- 	return prom_node_to_node("child", node);
- }
- 
--inline phandle prom_getchild(phandle node)
-+phandle prom_getchild(phandle node)
- {
- 	phandle cnode;
- 
-@@ -72,7 +72,7 @@ inline phandle __prom_getsibling(phandle node)
- 	return prom_node_to_node(prom_peer_name, node);
- }
- 
--inline phandle prom_getsibling(phandle node)
-+phandle prom_getsibling(phandle node)
- {
- 	phandle sibnode;
- 
-@@ -89,7 +89,7 @@ EXPORT_SYMBOL(prom_getsibling);
- /* Return the length in bytes of property 'prop' at node 'node'.
-  * Return -1 on error.
-  */
--inline int prom_getproplen(phandle node, const char *prop)
-+int prom_getproplen(phandle node, const char *prop)
- {
- 	unsigned long args[6];
- 
-@@ -113,7 +113,7 @@ EXPORT_SYMBOL(prom_getproplen);
-  * 'buffer' which has a size of 'bufsize'.  If the acquisition
-  * was successful the length will be returned, else -1 is returned.
-  */
--inline int prom_getproperty(phandle node, const char *prop,
-+int prom_getproperty(phandle node, const char *prop,
- 			    char *buffer, int bufsize)
- {
- 	unsigned long args[8];
-@@ -141,7 +141,7 @@ EXPORT_SYMBOL(prom_getproperty);
- /* Acquire an integer property and return its value.  Returns -1
-  * on failure.
-  */
--inline int prom_getint(phandle node, const char *prop)
-+int prom_getint(phandle node, const char *prop)
- {
- 	int intprop;
- 
-@@ -235,7 +235,7 @@ static const char *prom_nextprop_name = "nextprop";
- /* Return the first property type for node 'node'.
-  * buffer should be at least 32B in length
-  */
--inline char *prom_firstprop(phandle node, char *buffer)
-+char *prom_firstprop(phandle node, char *buffer)
- {
- 	unsigned long args[7];
- 
-@@ -261,7 +261,7 @@ EXPORT_SYMBOL(prom_firstprop);
-  * at node 'node' .  Returns NULL string if no more
-  * property types for this node.
-  */
--inline char *prom_nextprop(phandle node, const char *oprop, char *buffer)
-+char *prom_nextprop(phandle node, const char *oprop, char *buffer)
- {
- 	unsigned long args[7];
- 	char buf[32];
--- 
-1.8.1.4
-
+Applied.
