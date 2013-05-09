@@ -1,45 +1,93 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Tue, 07 May 2013 09:55:55 +0000
-Subject: [PATCH 1/3] sparc: Switch to asm-generic/linkage.h
-Message-Id: <1367920555-18544-1-git-send-email-geert@linux-m68k.org>
+From: Denis Efremov <yefremov.denis@gmail.com>
+Date: Thu, 09 May 2013 10:36:54 +0000
+Subject: [PATCH 16/21] sparc: remove inline marking of EXPORT_SYMBOL functions
+Message-Id: <1368095819-11011-5-git-send-email-yefremov.denis@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1368086241-9357-1-git-send-email-yefremov.denis@gmail.com>
+In-Reply-To: <1368086241-9357-1-git-send-email-yefremov.denis@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Denis Efremov <yefremov.denis@gmail.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, trivial@kernel.org, ldv-project@linuxtesting.org
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+EXPORT_SYMBOL and inline directives are contradictory to each other.
+The patch fixes this inconsistency.
+
+Found by Linux Driver Verification project (linuxtesting.org).
+
+Signed-off-by: Denis Efremov <yefremov.denis@gmail.com>
 ---
- arch/sparc/include/asm/Kbuild    |    1 +
- arch/sparc/include/asm/linkage.h |    6 ------
- 2 files changed, 1 insertions(+), 6 deletions(-)
- delete mode 100644 arch/sparc/include/asm/linkage.h
+ arch/sparc/prom/tree_64.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/arch/sparc/include/asm/Kbuild b/arch/sparc/include/asm/Kbuild
-index ff18e3c..7e4a97f 100644
---- a/arch/sparc/include/asm/Kbuild
-+++ b/arch/sparc/include/asm/Kbuild
-@@ -6,6 +6,7 @@ generic-y += cputime.h
- generic-y += div64.h
- generic-y += emergency-restart.h
- generic-y += exec.h
-+generic-y += linkage.h
- generic-y += local64.h
- generic-y += mutex.h
- generic-y += irq_regs.h
-diff --git a/arch/sparc/include/asm/linkage.h b/arch/sparc/include/asm/linkage.h
-deleted file mode 100644
-index 291c2d0..0000000
---- a/arch/sparc/include/asm/linkage.h
-+++ /dev/null
-@@ -1,6 +0,0 @@
--#ifndef __ASM_LINKAGE_H
--#define __ASM_LINKAGE_H
--
--/* Nothing to see here... */
--
--#endif
+diff --git a/arch/sparc/prom/tree_64.c b/arch/sparc/prom/tree_64.c
+index 92204c3..75e4c44 100644
+--- a/arch/sparc/prom/tree_64.c
++++ b/arch/sparc/prom/tree_64.c
+@@ -39,7 +39,7 @@ inline phandle __prom_getchild(phandle node)
+ 	return prom_node_to_node("child", node);
+ }
+ 
+-inline phandle prom_getchild(phandle node)
++phandle prom_getchild(phandle node)
+ {
+ 	phandle cnode;
+ 
+@@ -72,7 +72,7 @@ inline phandle __prom_getsibling(phandle node)
+ 	return prom_node_to_node(prom_peer_name, node);
+ }
+ 
+-inline phandle prom_getsibling(phandle node)
++phandle prom_getsibling(phandle node)
+ {
+ 	phandle sibnode;
+ 
+@@ -89,7 +89,7 @@ EXPORT_SYMBOL(prom_getsibling);
+ /* Return the length in bytes of property 'prop' at node 'node'.
+  * Return -1 on error.
+  */
+-inline int prom_getproplen(phandle node, const char *prop)
++int prom_getproplen(phandle node, const char *prop)
+ {
+ 	unsigned long args[6];
+ 
+@@ -113,7 +113,7 @@ EXPORT_SYMBOL(prom_getproplen);
+  * 'buffer' which has a size of 'bufsize'.  If the acquisition
+  * was successful the length will be returned, else -1 is returned.
+  */
+-inline int prom_getproperty(phandle node, const char *prop,
++int prom_getproperty(phandle node, const char *prop,
+ 			    char *buffer, int bufsize)
+ {
+ 	unsigned long args[8];
+@@ -141,7 +141,7 @@ EXPORT_SYMBOL(prom_getproperty);
+ /* Acquire an integer property and return its value.  Returns -1
+  * on failure.
+  */
+-inline int prom_getint(phandle node, const char *prop)
++int prom_getint(phandle node, const char *prop)
+ {
+ 	int intprop;
+ 
+@@ -235,7 +235,7 @@ static const char *prom_nextprop_name = "nextprop";
+ /* Return the first property type for node 'node'.
+  * buffer should be at least 32B in length
+  */
+-inline char *prom_firstprop(phandle node, char *buffer)
++char *prom_firstprop(phandle node, char *buffer)
+ {
+ 	unsigned long args[7];
+ 
+@@ -261,7 +261,7 @@ EXPORT_SYMBOL(prom_firstprop);
+  * at node 'node' .  Returns NULL string if no more
+  * property types for this node.
+  */
+-inline char *prom_nextprop(phandle node, const char *oprop, char *buffer)
++char *prom_nextprop(phandle node, const char *oprop, char *buffer)
+ {
+ 	unsigned long args[7];
+ 	char buf[32];
 -- 
-1.7.0.4
+1.8.1.4
 
