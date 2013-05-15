@@ -1,67 +1,39 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Date: Wed, 15 May 2013 21:52:23 +0000
+From: Liu Jiang <liuj97@gmail.com>
+Date: Wed, 15 May 2013 23:46:57 +0000
 Subject: Re: [PATCH v2, part 1 3/9] PCI: Convert alloc_pci_dev(void) to pci_alloc_dev(bus) instead
-Message-Id: <CAE9FiQUrzCR4=9_=QyZipQZ584ucSpin6BOYD7t-9Y9Gq8tLFg@mail.gmail.com>
+Message-Id: <51941E71.8010309@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1368461313-4371-1-git-send-email-jiang.liu@huawei.com>
-	<1368461313-4371-4-git-send-email-jiang.liu@huawei.com>
-	<CAE9FiQVKKKmZRQ8CcKCzU8Gqzwb5SjWYagVB2OZiRqbSWXVpiw@mail.gmail.com>
-	<5191F53E.4000305@cn.fujitsu.com>
-	<51925136.5050302@gmail.com>
-	<CAE9FiQWO-jR5y35kKiW0m6gVR54ZyRsBsdhP4BmFLSsDzCS3rA@mail.gmail.com>
-	<51926CF6.1050706@gmail.com>
-	<CAE9FiQWXN_ETRFPb5oFx-6LXyuHviX3h3NXCQKjcxtv2Uma-JA@mail.gmail.com>
-	<51939E16.9090105@gmail.com>
-	<CAE9FiQUXrOmN0rkvOwE1G_acEGY3-gouzaXjBMT7EE6uAqvuZA@mail.gmail.com>
-	<51939FB1.20203@gmail.com>
-	<CAE9FiQVCSm14S0A1sVWewc7UX-dyOmu9aq1UwqdPZK6qSmbFxQ@mail.gmail.com>
-	<1368653557.9603.21.camel@pasglop>
-In-Reply-To: <1368653557.9603.21.camel@pasglop>
+References: <1368461313-4371-1-git-send-email-jiang.liu@huawei.com> <1368461313-4371-4-git-send-email-jiang.liu@huawei.com> <CAE9FiQVKKKmZRQ8CcKCzU8Gqzwb5SjWYagVB2OZiRqbSWXVpiw@mail.gmail.com> <5191F53E.4000305@cn.fujitsu.com> <51925136.5050302@gmail.com> <CAE9FiQWO-jR5y35kKiW0m6gVR54ZyRsBsdhP4BmFLSsDzCS3rA@mail.gmail.com> <51926CF6.1050706@gmail.com> <CAE9FiQWXN_ETRFPb5oFx-6LXyuHviX3h3NXCQKjcxtv2Uma-JA@mail.gmail.com> <51939E16.9090105@gmail.com> <CAE9FiQUXrOmN0rkvOwE1G_acEGY3-gouzaXjBMT7EE6uAqvuZA@mail.gmail.com> <51939FB1.20203@gmail.com> <1368653371.9603.18.camel@pasglop>
+In-Reply-To: <1368653371.9603.18.camel@pasglop>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Liu Jiang <liuj97@gmail.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, linuxppc-dev@lists.ozlabs.org, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Gu Zheng <guz.fnst@cn.fujitsu.com>, Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Myron Stowe <myron.stowe@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Paul Mackerras <paulus@samba.org>
+Cc: Yinghai Lu <yinghai@kernel.org>, Gu Zheng <guz.fnst@cn.fujitsu.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, Yijing Wang <wangyijing@huawei.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, David Airlie <airlied@linux.ie>, Neela Syam Kolli <megaraidlinux@lsi.com>, "James E.J. Bottomley" <jbottomley@parallels.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, Linux-Scsi <linux-scsi@vger.kernel.org>, Jiang Liu <jiang.liu@huawei.com>
 
-On Wed, May 15, 2013 at 2:32 PM, Benjamin Herrenschmidt
-<benh@kernel.crashing.org> wrote:
-> On Wed, 2013-05-15 at 07:58 -0700, Yinghai Lu wrote:
+On Thu 16 May 2013 05:29:31 AM CST, Benjamin Herrenschmidt wrote:
+> On Wed, 2013-05-15 at 22:46 +0800, Liu Jiang wrote:
+>>         I don't know any OF exports, could you please help to CC
+>> some OF experts?
 >
->> Ben,
->>
->> in drivers/pci/probe.c::pci_scan_device() there is
->>
->>         pci_set_of_node(dev);
->>
->>         if (pci_setup_device(dev)) {
->>                 kfree(dev);
->>                 return NULL;
->>         }
->>
->> so if pci_setup_device fails, there is one dev reference is not release.
->>
->> please check you can just move down pci_set_of_node down after that
->> failing path, like
->>
->>
->>         if (pci_setup_device(dev)) {
->>                 kfree(dev);
->>                 return NULL;
->>         }
->>
->>         pci_set_of_node(dev);
+> I wrote that code I think. Sorry, I've missed the beginning of the
+> thread, what is the problem ?
 >
-> No, we want the OF node set when we run the quirks, we intentionally do
-> that early, the right thing to do is to to call pci_release_of_node()
-> in the error path (it's safe to call even if the node is NULL).
+> Cheers,
+> Ben.
 >
+>
+Hi,
+     Just found a little memory leak issue that we should call 
+pci_release_of_node()
+on error recovery path in function pci_scan_device().
+        pci_set_of_node(dev);
 
-Good.
+        if (pci_setup_device(dev)) {
+                kfree(dev);
+                return NULL;
+        }
 
-We have two options.
-1. can you please submit one complete patch, and get it merged into v3.10.
-2. put it together with pci_alloc_dev patchset towards to v3.11?
+Regards!
+Gerry
 
-Thanks
-
-Yinghai
