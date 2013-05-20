@@ -1,23 +1,34 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 26 May 2013 17:11:49 +0000
-Subject: Re: [PATCH v3, part2 11/20] PCI, SPARC: use hotplug-safe iterators to walk PCI buses
-Message-Id: <20130526.101149.1610187533096408265.davem@davemloft.net>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Date: Mon, 20 May 2013 23:19:09 +0000
+Subject: [PATCH 1/2] powerpc/PCI: Use PCI_UNKNOWN for unknown power state
+Message-Id: <20130520231909.32416.81752.stgit@bhelgaas-glaptop>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1369583597-3801-1-git-send-email-jiang.liu@huawei.com>
-	<1369583597-3801-12-git-send-email-jiang.liu@huawei.com>
-In-Reply-To: <1369583597-3801-12-git-send-email-jiang.liu@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: liuj97@gmail.com
-Cc: bhelgaas@google.com, yinghai@kernel.org, jiang.liu@huawei.com, rjw@sisk.pl, gregkh@linuxfoundation.org, guz.fnst@cn.fujitsu.com, toshi.kani@hp.com, myron.stowe@redhat.com, wangyijing@huawei.com, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org, sparclinux@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org
 
-From: Jiang Liu <liuj97@gmail.com>
-Date: Sun, 26 May 2013 23:53:08 +0800
+Previously we initialized dev->current_state to 4 (PCI_D3cold), but I think
+we wanted PCI_UNKNOWN (5) here based on the comment and the fact that the
+generic version of this code, pci_setup_device(), uses PCI_UNKNOWN.
 
-> Enhance SPARC architecture specific code to use hotplug-safe iterators
-> to walk PCI buses.
-> 
-> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+---
+ arch/powerpc/kernel/pci_of_scan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Acked-by: David S. Miller <davem@davemloft.net>
+diff --git a/arch/powerpc/kernel/pci_of_scan.c b/arch/powerpc/kernel/pci_of_scan.c
+index 2a67e9b..d2d407d 100644
+--- a/arch/powerpc/kernel/pci_of_scan.c
++++ b/arch/powerpc/kernel/pci_of_scan.c
+@@ -165,7 +165,7 @@ struct pci_dev *of_create_pci_dev(struct device_node *node,
+ 	pr_debug("    class: 0x%x\n", dev->class);
+ 	pr_debug("    revision: 0x%x\n", dev->revision);
+ 
+-	dev->current_state = 4;		/* unknown power state */
++	dev->current_state = PCI_UNKNOWN;	/* unknown power state */
+ 	dev->error_state = pci_channel_io_normal;
+ 	dev->dma_mask = 0xffffffff;
+ 
+
