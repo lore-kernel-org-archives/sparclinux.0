@@ -1,63 +1,36 @@
-From: Chen Gang <gang.chen@asianux.com>
-Date: Thu, 30 May 2013 03:35:22 +0000
-Subject: [PATCH] arch: sparc: prom: looping issue, need additional length check in the outside looping
-Message-Id: <51A6C8FA.3080408@asianux.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Date: Mon, 20 May 2013 23:19:16 +0000
+Subject: [PATCH 2/2] sparc/PCI: Use PCI_UNKNOWN for unknown power state
+Message-Id: <20130520231916.32416.7318.stgit@bhelgaas-glaptop>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20130520231909.32416.81752.stgit@bhelgaas-glaptop>
+In-Reply-To: <20130520231909.32416.81752.stgit@bhelgaas-glaptop>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-Arch <linux-arch@vger.kernel.org>, Sam Ravnborg <sam@ravnborg.org>
-Cc: sparclinux@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org
 
+Previously we initialized dev->current_state to 4 (PCI_D3cold), but I think
+we wanted PCI_UNKNOWN (5) here based on the comment and the fact that the
+generic version of this code, pci_setup_device(), uses PCI_UNKNOWN.
 
-When "cp >= barg_buf + BARG_LEN-2", it breaks internel looping 'while',
-but outside loop 'for' still has effect, so "*cp++ = ' '" will continue
-repeating which may cause memory overflow.
-
-So need additional length check for it in the outside looping.
-
-Also beautify the related code which found by "./scripts/checkpatch.pl"
-
-
-Signed-off-by: Chen Gang <gang.chen@asianux.com>
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- arch/sparc/prom/bootstr_32.c |   12 +++++++-----
- 1 files changed, 7 insertions(+), 5 deletions(-)
+ arch/sparc/kernel/pci.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/sparc/prom/bootstr_32.c b/arch/sparc/prom/bootstr_32.c
-index f5ec32e..d2b49d2 100644
---- a/arch/sparc/prom/bootstr_32.c
-+++ b/arch/sparc/prom/bootstr_32.c
-@@ -23,23 +23,25 @@ prom_getbootargs(void)
- 		return barg_buf;
- 	}
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index baf4366..972892a 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -327,7 +327,7 @@ static struct pci_dev *of_create_pci_dev(struct pci_pbm_info *pbm,
+ 	if ((dev->class >> 8) = PCI_CLASS_STORAGE_IDE)
+ 		pci_set_master(dev);
  
--	switch(prom_vers) {
-+	switch (prom_vers) {
- 	case PROM_V0:
- 		cp = barg_buf;
- 		/* Start from 1 and go over fd(0,0,0)kernel */
--		for(iter = 1; iter < 8; iter++) {
-+		for (iter = 1; iter < 8; iter++) {
- 			arg = (*(romvec->pv_v0bootargs))->argv[iter];
- 			if (arg = NULL)
- 				break;
--			while(*arg != 0) {
-+			while (*arg != 0) {
- 				/* Leave place for space and null. */
--				if(cp >= barg_buf + BARG_LEN-2){
-+				if (cp >= barg_buf + BARG_LEN - 2)
- 					/* We might issue a warning here. */
- 					break;
--				}
- 				*cp++ = *arg++;
- 			}
- 			*cp++ = ' ';
-+			if (cp >= barg_buf + BARG_LEN - 1)
-+				/* We might issue a warning here. */
-+				break;
- 		}
- 		*cp = 0;
- 		break;
--- 
-1.7.7.6
+-	dev->current_state = 4;		/* unknown power state */
++	dev->current_state = PCI_UNKNOWN;	/* unknown power state */
+ 	dev->error_state = pci_channel_io_normal;
+ 	dev->dma_mask = 0xffffffff;
+ 
+
