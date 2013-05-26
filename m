@@ -1,39 +1,47 @@
-From: Liu Jiang <liuj97@gmail.com>
-Date: Wed, 15 May 2013 23:46:57 +0000
-Subject: Re: [PATCH v2, part 1 3/9] PCI: Convert alloc_pci_dev(void) to pci_alloc_dev(bus) instead
-Message-Id: <51941E71.8010309@gmail.com>
+From: Jiang Liu <liuj97@gmail.com>
+Date: Sun, 26 May 2013 15:53:08 +0000
+Subject: [PATCH v3, part2 11/20] PCI, SPARC: use hotplug-safe iterators to walk PCI buses
+Message-Id: <1369583597-3801-12-git-send-email-jiang.liu@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1368461313-4371-1-git-send-email-jiang.liu@huawei.com> <1368461313-4371-4-git-send-email-jiang.liu@huawei.com> <CAE9FiQVKKKmZRQ8CcKCzU8Gqzwb5SjWYagVB2OZiRqbSWXVpiw@mail.gmail.com> <5191F53E.4000305@cn.fujitsu.com> <51925136.5050302@gmail.com> <CAE9FiQWO-jR5y35kKiW0m6gVR54ZyRsBsdhP4BmFLSsDzCS3rA@mail.gmail.com> <51926CF6.1050706@gmail.com> <CAE9FiQWXN_ETRFPb5oFx-6LXyuHviX3h3NXCQKjcxtv2Uma-JA@mail.gmail.com> <51939E16.9090105@gmail.com> <CAE9FiQUXrOmN0rkvOwE1G_acEGY3-gouzaXjBMT7EE6uAqvuZA@mail.gmail.com> <51939FB1.20203@gmail.com> <1368653371.9603.18.camel@pasglop>
-In-Reply-To: <1368653371.9603.18.camel@pasglop>
+References: <1369583597-3801-1-git-send-email-jiang.liu@huawei.com>
+In-Reply-To: <1369583597-3801-1-git-send-email-jiang.liu@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Yinghai Lu <yinghai@kernel.org>, Gu Zheng <guz.fnst@cn.fujitsu.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, Yijing Wang <wangyijing@huawei.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, David Airlie <airlied@linux.ie>, Neela Syam Kolli <megaraidlinux@lsi.com>, "James E.J. Bottomley" <jbottomley@parallels.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, Linux-Scsi <linux-scsi@vger.kernel.org>, Jiang Liu <jiang.liu@huawei.com>
+To: Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
+Cc: Jiang Liu <jiang.liu@huawei.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Gu Zheng <guz.fnst@cn.fujitsu.com>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Andrew Morton <akpm@linux-foundation.org>, sparclinux@vger.kernel.org
 
-On Thu 16 May 2013 05:29:31 AM CST, Benjamin Herrenschmidt wrote:
-> On Wed, 2013-05-15 at 22:46 +0800, Liu Jiang wrote:
->>         I don't know any OF exports, could you please help to CC
->> some OF experts?
->
-> I wrote that code I think. Sorry, I've missed the beginning of the
-> thread, what is the problem ?
->
-> Cheers,
-> Ben.
->
->
-Hi,
-     Just found a little memory leak issue that we should call 
-pci_release_of_node()
-on error recovery path in function pci_scan_device().
-        pci_set_of_node(dev);
+Enhance SPARC architecture specific code to use hotplug-safe iterators
+to walk PCI buses.
 
-        if (pci_setup_device(dev)) {
-                kfree(dev);
-                return NULL;
-        }
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Jiang Liu <jiang.liu@huawei.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: sparclinux@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+---
+ arch/sparc/kernel/pci.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Regards!
-Gerry
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index b16f624..ed84a97 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -995,9 +995,9 @@ static void pci_bus_slot_names(struct device_node *node, struct pci_bus *bus)
+ 
+ static int __init of_pci_slot_init(void)
+ {
+-	struct pci_bus *pbus = NULL;
++	struct pci_bus *pbus;
+ 
+-	while ((pbus = pci_find_next_bus(pbus)) != NULL) {
++	for_each_pci_root_bus(pbus) {
+ 		struct device_node *node;
+ 
+ 		if (pbus->self) {
+-- 
+1.8.1.2
 
