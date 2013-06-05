@@ -1,57 +1,40 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Date: Mon, 17 Jun 2013 05:58:39 +0000
-Subject: Re: sparc64 WARNING: at mm/mmap.c:2757 exit_mmap+0x13c/0x160()
-Message-Id: <20130617055839.GB3073@blackmetal.musicnaut.iki.fi>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Date: Wed, 05 Jun 2013 20:07:18 +0000
+Subject: Re: [PATCH v3, part1 03/10] PCI: Convert alloc_pci_dev(void) to pci_alloc_dev(bus) instead
+Message-Id: <CAErSpo6C-QMFCbMMivBE5TN4sEOFR_EyPmtN=OUNo8eN-+t=GQ@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.SOC.1.00.1306162346340.23595@math.ut.ee>
- <20130617053225.GA3073@blackmetal.musicnaut.iki.fi>
-In-Reply-To: <20130617053225.GA3073@blackmetal.musicnaut.iki.fi>
+References: <1369489718-25869-1-git-send-email-jiang.liu@huawei.com> <1369489718-25869-4-git-send-email-jiang.liu@huawei.com>
+In-Reply-To: <1369489718-25869-4-git-send-email-jiang.liu@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Meelis Roos <mroos@linux.ee>
-Cc: sparclinux@vger.kernel.org, Linux Kernel list <linux-kernel@vger.kernel.org>
+To: Jiang Liu <liuj97@gmail.com>
+Cc: Yinghai Lu <yinghai@kernel.org>, Gu Zheng <guz.fnst@cn.fujitsu.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, Yijing Wang <wangyijing@huawei.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, David Airlie <airlied@linux.ie>, Neela Syam Kolli <megaraidlinux@lsi.com>, "James E.J. Bottomley" <JBottomley@parallels.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, sparclinux@vger.kernel.org, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>
 
-Hi,
+On Sat, May 25, 2013 at 7:48 AM, Jiang Liu <liuj97@gmail.com> wrote:
+> From: Gu Zheng <guz.fnst@cn.fujitsu.com>
+>
+> Use the new pci_alloc_dev(bus) to replace the existing using of
+> alloc_pci_dev(void).
+> ...
 
-On Mon, Jun 17, 2013 at 08:32:25AM +0300, Aaro Koskinen wrote:
-> On Mon, Jun 17, 2013 at 12:06:00AM +0300, Meelis Roos wrote:
-> > Got this in 3.10-rc6 whil testing debian unstable upgrade with aptitude. 
-> > 3.10-rc5 did not exhibit this (nor any other kernel recently tried, 
-> > including most -rc's). Does not seem to be reproducible.
-> 
-> I get this regularly on Ultrasparc during long compilations. It's been
-> there with all recent kernels (probably at least since 3.8). Latest I
-> saw with 3.10-rc5.
+> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+> index 26df9c8..d5d18a0 100644
+> --- a/drivers/pci/probe.c
+> +++ b/drivers/pci/probe.c
+> @@ -1130,6 +1130,7 @@ static void pci_release_dev(struct device *dev)
+>         struct pci_dev *pci_dev;
+>
+>         pci_dev = to_pci_dev(dev);
+> +       pci_bus_put(pci_dev->bus);
+>         pci_release_capabilities(pci_dev);
+>         pci_release_of_node(pci_dev);
+>         kfree(pci_dev);
 
-Two examples:
+I think we should drop the pci_bus reference *last* (before the
+kfree).  Otherwise, we have to audit pci_release_capabilities() and
+pci_release_of_node() to make sure they don't use pci_dev->bus.
 
-[  417.006586] ------------[ cut here ]------------
-[  417.065813] WARNING: at /home/aaro/los/work/shared/linux-v3.10-rc5/mm/mmap.c:2757 exit_mmap+0x134/0x160()
-[  417.189209] Modules linked in:
-[  417.229203] CPU: 0 PID: 1787 Comm: ld Not tainted 3.10.0-rc5-ultra #1
-[  417.310031] Call Trace:
-[  417.342875]  [00000000004b5ef4] exit_mmap+0x134/0x160
-[  417.406941]  [000000000044ef40] mmput+0x40/0xe0
-[  417.464591]  [0000000000454b38] do_exit+0x1b8/0x800
-[  417.526429]  [0000000000455d6c] do_group_exit+0x2c/0xa0
-[  417.592383]  [0000000000455df4] SyS_exit_group+0x14/0x20
-[  417.659257]  [0000000000406074] linux_sparc_syscall32+0x34/0x40
-[  417.733400] ---[ end trace b92a93fbf6d0204a ]---
-[  417.791913] BUG: Bad rss-counter state mm:fffff8001ebbb740 idx:1 val:1
+I made this change on my branch already; just let me know if you object.
 
-[ 1674.164634] ------------[ cut here ]------------
-[ 1674.218933] WARNING: at /home/aaro/los/work/shared/linux-v3.10-rc5/mm/mmap.c:2757 exit_mmap+0x134/0x160()
-[ 1674.333505] Modules linked in:
-[ 1674.369872] CPU: 0 PID: 26306 Comm: date Not tainted 3.10.0-rc5-ultra #1
-[ 1674.450075] Call Trace:
-[ 1674.479245]  [00000000004b5ef4] exit_mmap+0x134/0x160
-[ 1674.539661]  [000000000044ef40] mmput+0x40/0xe0
-[ 1674.593827]  [0000000000454b38] do_exit+0x1b8/0x800
-[ 1674.652140]  [0000000000455d6c] do_group_exit+0x2c/0xa0
-[ 1674.714630]  [0000000000455df4] SyS_exit_group+0x14/0x20
-[ 1674.778172]  [0000000000406074] linux_sparc_syscall32+0x34/0x40
-[ 1674.848993] ---[ end trace 77928f0ca6684101 ]---
-[ 1674.904199] BUG: Bad rss-counter state mm:fffff8000f0c9d40 idx:0 val:1
-
-A.
+Bjorn
