@@ -1,51 +1,56 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Date: Sat, 29 Jun 2013 20:08:13 +0000
-Subject: Re: [PATCH] WIP: HACK: LPAE, BOOTMEM and NO_BOOTMEM
-Message-Id: <CAE9FiQUoVNvWmmTV2+ZkU_nMxFToTHw6QLwp_Z_EjwMzqdLwuA@mail.gmail.com>
+From: Andreas Larsson <andreas@gaisler.com>
+Date: Mon, 10 Jun 2013 06:56:41 +0000
+Subject: [PATCH] sparc32, leon: Enable interrupts before going idle to avoid getting stuck
+Message-Id: <1370847401-766-1-git-send-email-andreas@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1372467663-31425-1-git-send-email-santosh.shilimkar@ti.com>
-	<20130629152959.GB31339@mtj.dyndns.org>
-	<20130629172123.GA3353@n2100.arm.linux.org.uk>
-	<20130629175743.GA382@mtj.dyndns.org>
-	<CAE9FiQXHuP-n0eZ9wN73V4nSvE+XEExDsx1t50_=YaW+V=LGLg@mail.gmail.com>
-	<20130629195549.GE3353@n2100.arm.linux.org.uk>
-In-Reply-To: <20130629195549.GE3353@n2100.arm.linux.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tejun Heo <tj@kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Nicolas Pitre <nicolas.pitre@linaro.org>, Ingo Molnar <mingo@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, "H. Peter Anvin" <hpa@zytor.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, Sam Ravnborg <sam@ravnborg.org>, linux-arch@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Sat, Jun 29, 2013 at 12:55 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Sat, Jun 29, 2013 at 12:29:55PM -0700, Yinghai Lu wrote:
->> >> On these SoCs which Santosh is working on, the main physical memory
->> >> mapping is above 4GB, with just a small alias below 4GB to allow the
->> >> system to boot without the MMU being on, as they may have more than
->> >> 4GB of RAM.  As I understand it, the small alias below 4GB is not
->> >> suitable for use as a "lowmem" mapping.
->>
->> is that 32bit ARM or 64bit ARM?
->
-> Only 32-bit has LPAE.  Such things don't make sense on 64-bit CPUs.
+This enables interrupts for Leon before having the CPU enter power-down mode.
 
-32bit ARM does not support NO_BOOTMEM yet.
+Commit 87fa05aeb3a5e8e21b1a5510eef6983650eff092, "sparc: Use generic idle loop",
+gets the CPU stuck on idle for Leon systems. On Leon, disabling interrupts and
+powering down the processor will get the processor stuck waiting for an
+interrupt that will never be reacted to.
 
-arch/arc/Kconfig:       select NO_BOOTMEM
-arch/arm64/Kconfig:     select NO_BOOTMEM
-arch/sparc/Kconfig:     select NO_BOOTMEM
-arch/x86/Kconfig:config NO_BOOTMEM
+Signed-off-by: Andreas Larsson <andreas@gaisler.com>
+---
 
+I assume that going idle with interrupts disabled is the right thing to
+do for the other users of the sparc_idle function pointer. Otherwise,
+the right way to go is probably to enable interrupts in the 32-bit
+arch_cpu_idle before calling the idle function instead.
 
-so may need to
-1. make 32bit ARM to use NO_BOOTMEM at first.
+ arch/sparc/kernel/leon_pmc.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-2 .we can add alloc_memblock as MACRO or inline for bootmem arches,
+diff --git a/arch/sparc/kernel/leon_pmc.c b/arch/sparc/kernel/leon_pmc.c
+index bdf53d9..b0b3967 100644
+--- a/arch/sparc/kernel/leon_pmc.c
++++ b/arch/sparc/kernel/leon_pmc.c
+@@ -47,6 +47,10 @@ void pmc_leon_idle_fixup(void)
+ 	 * MMU does not get a TLB miss here by using the MMU BYPASS ASI.
+ 	 */
+ 	register unsigned int address = (unsigned int)leon3_irqctrl_regs;
++
++	/* Interrupts need to be enabled to not hang the CPU */
++	local_irq_enable();
++
+ 	__asm__ __volatile__ (
+ 		"wr	%%g0, %%asr19\n"
+ 		"lda	[%0] %1, %%g0\n"
+@@ -60,6 +64,9 @@ void pmc_leon_idle_fixup(void)
+  */
+ void pmc_leon_idle(void)
+ {
++	/* Interrupts need to be enabled to not hang the CPU */
++	local_irq_enable();
++
+ 	/* For systems without power-down, this will be no-op */
+ 	__asm__ __volatile__ ("wr	%g0, %asr19\n\t");
+ }
+-- 
+1.7.10.4
 
-3. NO_BOOTMEM arches will have alloc_memblock in nobootmem.c
-
-4. replace alloc_bootmem calling with alloc_memblock calling in core code.
-
-Thanks
-
-Yinghai
