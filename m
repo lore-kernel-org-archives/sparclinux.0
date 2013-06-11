@@ -1,8 +1,10 @@
-From: "System Administrator" <sbirici@firat.edu.tr>
-Date: Tue, 11 Jun 2013 09:54:43 +0000
+From: Sec Capital Loan <ncatalbas@firat.edu.tr>
+Date: Tue, 11 Jun 2013 15:30:21 +0000
 Subject: Your mailbox
-Message-Id: <20130611094256.3767D28F94C2@mail.ekon.go.id>
+Message-Id: <6ad6329f-ed3a-494e-abe0-bae5b903e45a@FIRAT-CAS2.firat.edu.tr>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20130611094256.3767D28F94C2@mail.ekon.go.id>
+In-Reply-To: <20130611094256.3767D28F94C2@mail.ekon.go.id>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
