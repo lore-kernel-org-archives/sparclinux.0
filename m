@@ -1,7 +1,7 @@
-From: Sec Capital Loan <sri_sunarjono@ums.ac.id>
-Date: Mon, 17 Jun 2013 05:39:03 +0000
+From: Sec Capital Loan <alucero@ciudaddemendoza.gov.ar>
+Date: Mon, 17 Jun 2013 11:01:58 +0000
 Subject: Quick Loans
-Message-Id: <1705854646.737920.1371447543751.JavaMail.root@ums.ac.id>
+Message-Id: <1888657881.143005.1371466918367.JavaMail.root@ciudaddemendoza.gov.ar>
 List-Id: <sparclinux.vger.kernel.org>
 References: <3c152bcf-9deb-4025-b919-fe316589e05f@novo.ifam.edu.br>
 In-Reply-To: <3c152bcf-9deb-4025-b919-fe316589e05f@novo.ifam.edu.br>
