@@ -1,7 +1,7 @@
-From: Sec Capital Loan <jose_carlos@mp.ro.gov.br>
-Date: Mon, 17 Jun 2013 04:13:20 +0000
+From: Sec Capital Loan <sri_sunarjono@ums.ac.id>
+Date: Mon, 17 Jun 2013 05:39:03 +0000
 Subject: Quick Loans
-Message-Id: <c6898d10-15e6-4d2d-94cd-9d5d390eada4@DTI-APL-036.mpro.gov>
+Message-Id: <1705854646.737920.1371447543751.JavaMail.root@ums.ac.id>
 List-Id: <sparclinux.vger.kernel.org>
 References: <3c152bcf-9deb-4025-b919-fe316589e05f@novo.ifam.edu.br>
 In-Reply-To: <3c152bcf-9deb-4025-b919-fe316589e05f@novo.ifam.edu.br>
