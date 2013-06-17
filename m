@@ -1,19 +1,76 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 19 Jun 2013 09:08:35 +0000
-Subject: Re: [PATCH 1/3] sparc: Switch to asm-generic/linkage.h
-Message-Id: <20130619.020835.1966828230232438649.davem@davemloft.net>
+From: "AFG GTBANK LOAN" <turnos-escuelas@ifir-conicet.gov.ar>
+Date: Mon, 17 Jun 2013 19:44:19 +0000
+Subject: 
+Message-Id: <32163f885d76af45a6ae525fb69126ba.squirrel@ifir-conicet.gov.ar>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1367920555-18544-1-git-send-email-geert@linux-m68k.org>
-In-Reply-To: <1367920555-18544-1-git-send-email-geert@linux-m68k.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: geert@linux-m68k.org
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Tue,  7 May 2013 11:55:55 +0200
 
-> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 
-Applied, thanks.
+
+Loan Syndicacion
+
+Am AFG Guaranty Trust Bank, zu strukturieren wir Kreditlinien treffen Sie
+unsere
+Kunden spezifischen gesch=E4ftlichen Anforderungen und einen deutlichen
+Mehrwert f=FCr unsere
+Kunden Unternehmen.
+eine Division der AFG Finance und Private Bank plc.
+
+Wenn Sie erw=E4gen, eine gro=DFe Akquisition oder ein Gro=DFprojekt sind, k=
+=F6nnen
+Sie
+brauchen eine erhebliche Menge an Kredit. AFG Guaranty Trust Bank setzen
+k=F6nnen
+zusammen das Syndikat, das die gesamte Kredit schn=FCrt f=FCr
+Sie.
+
+
+Als Bank mit internationaler Reichweite, sind wir gekommen, um Darlehen zu
+identifizieren
+Syndizierungen als Teil unseres Kerngesch=E4fts und durch spitzte diese Zei=
+le
+aggressiv sind wir an einem Punkt, wo wir kommen, um als erkannt haben
+Hauptakteur in diesem Bereich.
+
+
+=F6ffnen Sie ein Girokonto heute mit einem Minimum Bankguthaben von 500 =A3=
+ und
+Getup zu =A3 10.000 als Darlehen und auch den Hauch einer Chance und gewann
+die Sterne
+Preis von =A3 500.000 in die sparen und gewinnen promo in may.aply jetzt.
+
+
+mit dem Folowing Informationen =FCber Rechtsanwalt steven lee das Konto
+Offizier.
+
+
+FULL NAME;
+
+
+Wohnadresse;
+
+
+E-MAIL-ADRESSE;
+
+Telefonnummer;
+
+N=E4chsten KINS;
+
+MUTTER MAIDEN NAME;
+
+
+Familienstand;
+
+
+B=DCROADRESSE;
+
+ALTERNATIVE Telefonnummer;
+
+TO @ yahoo.com bar.stevenlee
+NOTE; ALLE Darlehen sind f=FCr 10JAHRE RATE VALID
+ANGEBOT ENDET BALD SO JETZT HURRY
+
