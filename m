@@ -1,57 +1,61 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Tue, 30 Jul 2013 13:08:43 +0000
-Subject: Re: [PATCH 0/2] Make PPC macro spin_event_timeout() architecture independent
-Message-Id: <CAMuHMdXP3-uKbftP-2UeZdE6X_iTi1podNDh0aVF3bJwDYssdg@mail.gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Date: Mon, 01 Jul 2013 14:10:02 +0000
+Subject: Re: [PATCH] WIP: HACK: LPAE, BOOTMEM and NO_BOOTMEM
+Message-Id: <51D18DBA.6090608@ti.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1375187900-17582-1-git-send-email-B44344@freescale.com>
-In-Reply-To: <1375187900-17582-1-git-send-email-B44344@freescale.com>
+References: <1372467663-31425-1-git-send-email-santosh.shilimkar@ti.com> <20130629152959.GB31339@mtj.dyndns.org> <20130629172123.GA3353@n2100.arm.linux.org.uk> <20130629175743.GA382@mtj.dyndns.org> <CAE9FiQXHuP-n0eZ9wN73V4nSvE+XEExDsx1t50_=YaW+V=LGLg@mail.gmail.com> <20130629195549.GE3353@n2100.arm.linux.org.uk> <CAE9FiQUoVNvWmmTV2+ZkU_nMxFToTHw6QLwp_Z_EjwMzqdLwuA@mail.gmail.com>
+In-Reply-To: <CAE9FiQUoVNvWmmTV2+ZkU_nMxFToTHw6QLwp_Z_EjwMzqdLwuA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: Yinghai Lu <yinghai@kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tejun Heo <tj@kernel.org>
+Cc: linux-arm-kernel@lists.infradead.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Nicolas Pitre <nicolas.pitre@linaro.org>, Ingo Molnar <mingo@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, "H. Peter Anvin" <hpa@zytor.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, Sam Ravnborg <sam@ravnborg.org>, linux-arch@vger.kernel.org
 
-On Tue, Jul 30, 2013 at 2:38 PM, Arpit Goel <B44344@freescale.com> wrote:
-> This patch-set moves USECS_PER_JIFFY to architecture timex.h from architecture
-> specific C files. Patch-set further uses this to make PPC macro
-> spin_event_timeout() architecture independent. This change enables drivers to
-> use spin_event_timeout() even in non-PowerPC based SoC's.
->
-> This patchset has been compiled for ARM, PowerPC and x86.
->
-> Patch[1/2] : Moves USECS_PER_JIFFY to architecture specific timex.h files from
->              architecture specific C files.
+On Saturday 29 June 2013 04:08 PM, Yinghai Lu wrote:
+> On Sat, Jun 29, 2013 at 12:55 PM, Russell King - ARM Linux
+> <linux@arm.linux.org.uk> wrote:
+>> On Sat, Jun 29, 2013 at 12:29:55PM -0700, Yinghai Lu wrote:
+>>>>> On these SoCs which Santosh is working on, the main physical memory
+>>>>> mapping is above 4GB, with just a small alias below 4GB to allow the
+>>>>> system to boot without the MMU being on, as they may have more than
+>>>>> 4GB of RAM.  As I understand it, the small alias below 4GB is not
+>>>>> suitable for use as a "lowmem" mapping.
+>>>
+>>> is that 32bit ARM or 64bit ARM?
+>>
+>> Only 32-bit has LPAE.  Such things don't make sense on 64-bit CPUs.
+> 
+Thanks Russell for clarifying the issue on the thread. Another major
+reason of not being to use 32 bit alias address space for lowmem
+is that address space isn't coherent on the SOC am dealing with.
 
->  arch/arm/include/asm/timex.h      |  2 ++
->  arch/arm/kernel/time.c            |  3 ---
->  arch/m32r/include/asm/timex.h     |  2 ++
->  arch/m32r/kernel/time.c           |  3 ---
->  arch/m68k/hp300/time.c            |  4 +---
->  arch/m68k/include/asm/timex.h     |  2 ++
->  arch/s390/include/asm/timex.h     |  2 ++
->  arch/s390/kernel/time.c           |  2 --
->  arch/sparc/include/asm/timex_32.h |  2 ++
->  arch/sparc/include/asm/timex_64.h |  2 ++
->  arch/sparc/kernel/pcic.c          |  1 -
+> 32bit ARM does not support NO_BOOTMEM yet.
+> 
+> arch/arc/Kconfig:       select NO_BOOTMEM
+> arch/arm64/Kconfig:     select NO_BOOTMEM
+> arch/sparc/Kconfig:     select NO_BOOTMEM
+> arch/x86/Kconfig:config NO_BOOTMEM
+> 
+> 
+> so may need to
+> 1. make 32bit ARM to use NO_BOOTMEM at first.
+> 
+Sorry. I should have mentioned that in the change-log. 
+I have been carrying some WIP patches for ARM. Will post them
+on ARM list after finishing remainder of the testing.
 
-As the definition is the same on all architectures, why not move it to
-<linux/delay.h>?
+> 2 .we can add alloc_memblock as MACRO or inline for bootmem arches,
+> 
+> 3. NO_BOOTMEM arches will have alloc_memblock in nobootmem.c
+> 
+> 4. replace alloc_bootmem calling with alloc_memblock calling in core code.
+> 
+Great that we all agree to see back of nobootmem.c and have a direct
+memblock API. Will be happy to help in conversion to proposed new interfaces
+if I can get the alloc_memblock API and core related changes.
 
-> Patch[2/2] : Converts PPC macro spin_event_timeout() in architecture independent
->              macro.
+Will be good to know who is going to create proposed memblock API
+so that we all can collaborate in conversion.
 
->  include/linux/delay.h             | 40 +++++++++++++++++++++++++++++++++++++++
-
-After your first patch, USECS_PER_JIFFY is still available only on
-arm/m32r/m68k/s390/sparc. What about other architectures?
-If anyone uses spin_event_timeout() on e.g. x86, it will fail to compile.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Regards,
+Santosh 
