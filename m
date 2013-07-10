@@ -1,208 +1,30 @@
-From: Olivier Danet <odanet@caramail.com>
-Date: Fri, 05 Jul 2013 22:16:12 +0000
-Subject: [PATCH] SPARC32 : vm_area_struct access for old Sun SPARCs
-Message-Id: <51D745AC.5020607@caramail.com>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 10 Jul 2013 20:49:45 +0000
+Subject: Re: [PATCH] SPARC32 : vm_area_struct access for old Sun SPARCs
+Message-Id: <20130710.134945.2233713889634072023.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <51D745AC.5020607@caramail.com>
+In-Reply-To: <51D745AC.5020607@caramail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi !
+From: Olivier Danet <odanet@caramail.com>
+Date: Sat, 06 Jul 2013 00:16:12 +0200
 
-Here is a fix for a problem signalled by Rob Landley on the QEMU mailing 
-list :
+> Here is a fix for a problem signalled by Rob Landley on the QEMU
+> mailing list :
+> 
+> http://lists.nongnu.org/archive/html/qemu-devel/2013-06/msg05013.html
+> 
+> The bug is present since Linux 3.8.
 
-http://lists.nongnu.org/archive/html/qemu-devel/2013-06/msg05013.html
+Your patch was severely corrupted by your email client, amongst other
+things it turned all TAB characters into spaces.  It also chopped up
+long line.
 
-The bug is present since Linux 3.8.
+I applied the patch by hand, but next time I'm going to push this patch
+back to you and you will need to properly submit it unmolested.
 
-Regards
-Olivier
-[temlib.org]
-
-=====================================[PATCH] SPARC32 : vm_area_struct access for old Sun SPARCs.
-Commit e4c6bfd2d79d063017ab19a18915f0bc759f32d9 changed the layout of 
-the vm_area_struct structure, it broke several SPARC32 assembly routines 
-which used numerical constants for accessing the vm_mm field.
-
-This patch defines the VMA_VM_MM constant to replace the immediate values.
-
-Signed-off-by: Olivier DANET <odanet@caramail.com>
-
-=====================================diff -rup linux_prev/arch/sparc/kernel/asm-offsets.c 
-linux/arch/sparc/kernel/asm-offsets.c
---- linux_prev/arch/sparc/kernel/asm-offsets.c    2013-07-04 
-23:16:37.741273224 +0200
-+++ linux/arch/sparc/kernel/asm-offsets.c    2013-07-05 
-12:02:37.600058515 +0200
-@@ -34,6 +34,8 @@ int foo(void)
-      DEFINE(AOFF_task_thread, offsetof(struct task_struct, thread));
-      BLANK();
-      DEFINE(AOFF_mm_context, offsetof(struct mm_struct, context));
-+    BLANK();
-+    DEFINE(VMA_VM_MM,    offsetof(struct vm_area_struct, vm_mm));
-
-      /* DEFINE(NUM_USER_SEGMENTS, TASK_SIZE>>28); */
-      return 0;
-diff -rup linux_prev/arch/sparc/mm/hypersparc.S 
-linux/arch/sparc/mm/hypersparc.S
---- linux_prev/arch/sparc/mm/hypersparc.S    2013-07-04 
-23:16:37.785273225 +0200
-+++ linux/arch/sparc/mm/hypersparc.S    2013-07-05 12:11:20.507081068 +0200
-@@ -74,7 +74,7 @@ hypersparc_flush_cache_mm_out:
-
-      /* The things we do for performance... */
-  hypersparc_flush_cache_range:
--    ld    [%o0 + 0x0], %o0        /* XXX vma->vm_mm, GROSS XXX */
-+    ld    [%o0 + VMA_VM_MM], %o0
-  #ifndef CONFIG_SMP
-      ld    [%o0 + AOFF_mm_context], %g1
-      cmp    %g1, -1
-@@ -163,7 +163,7 @@ hypersparc_flush_cache_range_out:
-       */
-      /* Verified, my ass... */
-  hypersparc_flush_cache_page:
--    ld    [%o0 + 0x0], %o0        /* XXX vma->vm_mm, GROSS XXX */
-+    ld    [%o0 + VMA_VM_MM], %o0
-      ld    [%o0 + AOFF_mm_context], %g2
-  #ifndef CONFIG_SMP
-      cmp    %g2, -1
-@@ -284,7 +284,7 @@ hypersparc_flush_tlb_mm_out:
-       sta    %g5, [%g1] ASI_M_MMUREGS
-
-  hypersparc_flush_tlb_range:
--    ld    [%o0 + 0x00], %o0    /* XXX vma->vm_mm GROSS XXX */
-+    ld    [%o0 + VMA_VM_MM], %o0
-      mov    SRMMU_CTX_REG, %g1
-      ld    [%o0 + AOFF_mm_context], %o3
-      lda    [%g1] ASI_M_MMUREGS, %g5
-@@ -307,7 +307,7 @@ hypersparc_flush_tlb_range_out:
-       sta    %g5, [%g1] ASI_M_MMUREGS
-
-  hypersparc_flush_tlb_page:
--    ld    [%o0 + 0x00], %o0    /* XXX vma->vm_mm GROSS XXX */
-+    ld    [%o0 + VMA_VM_MM], %o0
-      mov    SRMMU_CTX_REG, %g1
-      ld    [%o0 + AOFF_mm_context], %o3
-      andn    %o1, (PAGE_SIZE - 1), %o1
-diff -rup linux_prev/arch/sparc/mm/swift.S linux/arch/sparc/mm/swift.S
---- linux_prev/arch/sparc/mm/swift.S    2013-07-04 23:16:37.785273225 +0200
-+++ linux/arch/sparc/mm/swift.S    2013-07-05 12:04:10.116062505 +0200
-@@ -105,7 +105,7 @@ swift_flush_cache_mm_out:
-
-      .globl    swift_flush_cache_range
-  swift_flush_cache_range:
--    ld    [%o0 + 0x0], %o0        /* XXX vma->vm_mm, GROSS XXX */
-+    ld    [%o0 + VMA_VM_MM], %o0
-      sub    %o2, %o1, %o2
-      sethi    %hi(4096), %o3
-      cmp    %o2, %o3
-@@ -116,7 +116,7 @@ swift_flush_cache_range:
-
-      .globl    swift_flush_cache_page
-  swift_flush_cache_page:
--    ld    [%o0 + 0x0], %o0        /* XXX vma->vm_mm, GROSS XXX */
-+    ld    [%o0 + VMA_VM_MM], %o0
-  70:
-      ld    [%o0 + AOFF_mm_context], %g2
-      cmp    %g2, -1
-@@ -219,7 +219,7 @@ swift_flush_sig_insns:
-      .globl    swift_flush_tlb_range
-      .globl    swift_flush_tlb_all
-  swift_flush_tlb_range:
--    ld    [%o0 + 0x00], %o0    /* XXX vma->vm_mm GROSS XXX */
-+    ld    [%o0 + VMA_VM_MM], %o0
-  swift_flush_tlb_mm:
-      ld    [%o0 + AOFF_mm_context], %g2
-      cmp    %g2, -1
-@@ -233,7 +233,7 @@ swift_flush_tlb_all_out:
-
-      .globl    swift_flush_tlb_page
-  swift_flush_tlb_page:
--    ld    [%o0 + 0x00], %o0    /* XXX vma->vm_mm GROSS XXX */
-+    ld    [%o0 + VMA_VM_MM], %o0
-      mov    SRMMU_CTX_REG, %g1
-      ld    [%o0 + AOFF_mm_context], %o3
-      andn    %o1, (PAGE_SIZE - 1), %o1
-diff -rup linux_prev/arch/sparc/mm/tsunami.S linux/arch/sparc/mm/tsunami.S
---- linux_prev/arch/sparc/mm/tsunami.S    2013-07-04 23:16:37.787273226 
-+0200
-+++ linux/arch/sparc/mm/tsunami.S    2013-07-05 12:09:00.534075031 +0200
-@@ -24,7 +24,7 @@
-      /* Sliiick... */
-  tsunami_flush_cache_page:
-  tsunami_flush_cache_range:
--    ld    [%o0 + 0x0], %o0    /* XXX vma->vm_mm, GROSS XXX */
-+    ld    [%o0 + VMA_VM_MM], %o0
-  tsunami_flush_cache_mm:
-      ld    [%o0 + AOFF_mm_context], %g2
-      cmp    %g2, -1
-@@ -46,7 +46,7 @@ tsunami_flush_sig_insns:
-
-      /* More slick stuff... */
-  tsunami_flush_tlb_range:
--    ld    [%o0 + 0x00], %o0    /* XXX vma->vm_mm GROSS XXX */
-+    ld    [%o0 + VMA_VM_MM], %o0
-  tsunami_flush_tlb_mm:
-      ld    [%o0 + AOFF_mm_context], %g2
-      cmp    %g2, -1
-@@ -65,7 +65,7 @@ tsunami_flush_tlb_out:
-
-      /* This one can be done in a fine grained manner... */
-  tsunami_flush_tlb_page:
--    ld    [%o0 + 0x00], %o0    /* XXX vma->vm_mm GROSS XXX */
-+    ld    [%o0 + VMA_VM_MM], %o0
-      mov    SRMMU_CTX_REG, %g1
-      ld    [%o0 + AOFF_mm_context], %o3
-      andn    %o1, (PAGE_SIZE - 1), %o1
-diff -rup linux_prev/arch/sparc/mm/viking.S linux/arch/sparc/mm/viking.S
---- linux_prev/arch/sparc/mm/viking.S    2013-07-04 23:16:37.786273226 +0200
-+++ linux/arch/sparc/mm/viking.S    2013-07-05 23:44:20.533261397 +0200
-@@ -108,7 +108,7 @@ viking_mxcc_flush_page:
-  viking_flush_cache_page:
-  viking_flush_cache_range:
-  #ifndef CONFIG_SMP
--    ld    [%o0 + 0x0], %o0        /* XXX vma->vm_mm, GROSS XXX */
-+    ld    [%o0 + VMA_VM_MM], %o0
-  #endif
-  viking_flush_cache_mm:
-  #ifndef CONFIG_SMP
-@@ -148,7 +148,7 @@ viking_flush_tlb_mm:
-  #endif
-
-  viking_flush_tlb_range:
--    ld    [%o0 + 0x00], %o0    /* XXX vma->vm_mm GROSS XXX */
-+    ld    [%o0 + VMA_VM_MM], %o0
-      mov    SRMMU_CTX_REG, %g1
-      ld    [%o0 + AOFF_mm_context], %o3
-      lda    [%g1] ASI_M_MMUREGS, %g5
-@@ -173,7 +173,7 @@ viking_flush_tlb_range:
-  #endif
-
-  viking_flush_tlb_page:
--    ld    [%o0 + 0x00], %o0    /* XXX vma->vm_mm GROSS XXX */
-+    ld    [%o0 + VMA_VM_MM], %o0
-      mov    SRMMU_CTX_REG, %g1
-      ld    [%o0 + AOFF_mm_context], %o3
-      lda    [%g1] ASI_M_MMUREGS, %g5
-@@ -239,7 +239,7 @@ sun4dsmp_flush_tlb_range:
-      tst    %g5
-      bne    3f
-       mov    SRMMU_CTX_REG, %g1
--    ld    [%o0 + 0x00], %o0    /* XXX vma->vm_mm GROSS XXX */
-+    ld    [%o0 + VMA_VM_MM], %o0
-      ld    [%o0 + AOFF_mm_context], %o3
-      lda    [%g1] ASI_M_MMUREGS, %g5
-      sethi    %hi(~((1 << SRMMU_PGDIR_SHIFT) - 1)), %o4
-@@ -265,7 +265,7 @@ sun4dsmp_flush_tlb_page:
-      tst    %g5
-      bne    2f
-       mov    SRMMU_CTX_REG, %g1
--    ld    [%o0 + 0x00], %o0    /* XXX vma->vm_mm GROSS XXX */
-+    ld    [%o0 + VMA_VM_MM], %o0
-      ld    [%o0 + AOFF_mm_context], %o3
-      lda    [%g1] ASI_M_MMUREGS, %g5
-      and    %o1, PAGE_MASK, %o1
-=====================================
-
+Thanks.
