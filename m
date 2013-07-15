@@ -1,188 +1,176 @@
-From: Arpit Goel <B44344@freescale.com>
-Date: Tue, 30 Jul 2013 12:50:19 +0000
-Subject: [PATCH 1/2] Make USECS_PER_JIFFY available for generic use
-Message-Id: <1375187900-17582-2-git-send-email-B44344@freescale.com>
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Date: Mon, 15 Jul 2013 11:52:39 +0000
+Subject: [PATCHv5 03/11] PCI: remove ARCH_SUPPORTS_MSI kconfig option
+Message-Id: <1373889167-27878-4-git-send-email-thomas.petazzoni@free-electrons.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1375187900-17582-1-git-send-email-B44344@freescale.com>
-In-Reply-To: <1375187900-17582-1-git-send-email-B44344@freescale.com>
+References: <1373889167-27878-1-git-send-email-thomas.petazzoni@free-electrons.com>
+In-Reply-To: <1373889167-27878-1-git-send-email-thomas.petazzoni@free-electrons.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-USECS_PER_JIFFY is used in several ARCHITECTURE C files.Now USECS_PER_JIFFY
-has been moved from architecture specific C files to architecture specific
-timex.h. This enables users to include timex.h and make use of USECS_PER_JIFFY.
+Now that we have weak versions for each of the PCI MSI architecture
+functions, we can actually build the MSI support for all platforms,
+regardless of whether they provide or not architecture-specific
+versions of those functions. For this reason, the ARCH_SUPPORTS_MSI
+hidden kconfig boolean becomes useless, and this patch gets rid of it.
 
-Signed-off-by: Arpit Goel <B44344@freescale.com>
+Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: linux390@de.ibm.com
+Cc: linux-s390@vger.kernel.org
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: x86@kernel.org
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: linux-ia64@vger.kernel.org
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: linux-mips@linux-mips.org
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Cc: Chris Metcalf <cmetcalf@tilera.com>
 ---
- arch/arm/include/asm/timex.h      | 2 ++
- arch/arm/kernel/time.c            | 3 ---
- arch/m32r/include/asm/timex.h     | 2 ++
- arch/m32r/kernel/time.c           | 3 ---
- arch/m68k/hp300/time.c            | 4 +---
- arch/m68k/include/asm/timex.h     | 2 ++
- arch/s390/include/asm/timex.h     | 2 ++
- arch/s390/kernel/time.c           | 2 --
- arch/sparc/include/asm/timex_32.h | 2 ++
- arch/sparc/include/asm/timex_64.h | 2 ++
- arch/sparc/kernel/pcic.c          | 1 -
- 11 files changed, 13 insertions(+), 12 deletions(-)
+ arch/arm/Kconfig     | 1 -
+ arch/ia64/Kconfig    | 1 -
+ arch/mips/Kconfig    | 2 --
+ arch/powerpc/Kconfig | 1 -
+ arch/s390/Kconfig    | 1 -
+ arch/sparc/Kconfig   | 1 -
+ arch/tile/Kconfig    | 1 -
+ arch/x86/Kconfig     | 1 -
+ drivers/pci/Kconfig  | 4 ----
+ 9 files changed, 13 deletions(-)
 
-diff --git a/arch/arm/include/asm/timex.h b/arch/arm/include/asm/timex.h
-index 83f2aa8..55a4f34 100644
---- a/arch/arm/include/asm/timex.h
-+++ b/arch/arm/include/asm/timex.h
-@@ -18,6 +18,8 @@
- #include <mach/timex.h>
- #endif
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index ba412e0..b173c1d 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -441,7 +441,6 @@ config ARCH_NETX
+ config ARCH_IOP13XX
+ 	bool "IOP13xx-based"
+ 	depends on MMU
+-	select ARCH_SUPPORTS_MSI
+ 	select CPU_XSC3
+ 	select NEED_MACH_MEMORY_H
+ 	select NEED_RET_TO_USER
+diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
+index 5a768ad..098602b 100644
+--- a/arch/ia64/Kconfig
++++ b/arch/ia64/Kconfig
+@@ -9,7 +9,6 @@ config IA64
+ 	select PCI if (!IA64_HP_SIM)
+ 	select ACPI if (!IA64_HP_SIM)
+ 	select PM if (!IA64_HP_SIM)
+-	select ARCH_SUPPORTS_MSI
+ 	select HAVE_UNSTABLE_SCHED_CLOCK
+ 	select HAVE_IDE
+ 	select HAVE_OPROFILE
+diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
+index 4758a8f..00b2698 100644
+--- a/arch/mips/Kconfig
++++ b/arch/mips/Kconfig
+@@ -726,7 +726,6 @@ config CAVIUM_OCTEON_SOC
+ 	select SYS_HAS_CPU_CAVIUM_OCTEON
+ 	select SWAP_IO_SPACE
+ 	select HW_HAS_PCI
+-	select ARCH_SUPPORTS_MSI
+ 	select ZONE_DMA32
+ 	select USB_ARCH_HAS_OHCI
+ 	select USB_ARCH_HAS_EHCI
+@@ -762,7 +761,6 @@ config NLM_XLR_BOARD
+ 	select CEVT_R4K
+ 	select CSRC_R4K
+ 	select IRQ_CPU
+-	select ARCH_SUPPORTS_MSI
+ 	select ZONE_DMA32 if 64BIT
+ 	select SYNC_R4K
+ 	select SYS_HAS_EARLY_PRINTK
+diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
+index 3bf72cd..183a165 100644
+--- a/arch/powerpc/Kconfig
++++ b/arch/powerpc/Kconfig
+@@ -727,7 +727,6 @@ config PCI
+ 	default y if !40x && !CPM2 && !8xx && !PPC_83xx \
+ 		&& !PPC_85xx && !PPC_86xx && !GAMECUBE_COMMON
+ 	default PCI_QSPAN if !4xx && !CPM2 && 8xx
+-	select ARCH_SUPPORTS_MSI
+ 	select GENERIC_PCI_IOMAP
+ 	help
+ 	  Find out whether your system includes a PCI bus. PCI is the name of
+diff --git a/arch/s390/Kconfig b/arch/s390/Kconfig
+index 22f75b5..e9982a3 100644
+--- a/arch/s390/Kconfig
++++ b/arch/s390/Kconfig
+@@ -428,7 +428,6 @@ menuconfig PCI
+ 	bool "PCI support"
+ 	default n
+ 	depends on 64BIT
+-	select ARCH_SUPPORTS_MSI
+ 	select PCI_MSI
+ 	help
+ 	  Enable PCI support.
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index a00cbd3..1570ad2 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -52,7 +52,6 @@ config SPARC32
  
-+/* change this if you have some constant time drift */
-+#define USECS_PER_JIFFY	(1000000/HZ)
- typedef unsigned long cycles_t;
- #define get_cycles()	({ cycles_t c; read_current_timer(&c) ? 0 : c; })
- 
-diff --git a/arch/arm/kernel/time.c b/arch/arm/kernel/time.c
-index 98aee32..7aaead4 100644
---- a/arch/arm/kernel/time.c
-+++ b/arch/arm/kernel/time.c
-@@ -38,9 +38,6 @@ DEFINE_SPINLOCK(rtc_lock);
- EXPORT_SYMBOL(rtc_lock);
- #endif	/* pc-style 'CMOS' RTC support */
- 
--/* change this if you have some constant time drift */
--#define USECS_PER_JIFFY	(1000000/HZ)
+ config SPARC64
+ 	def_bool 64BIT
+-	select ARCH_SUPPORTS_MSI
+ 	select HAVE_FUNCTION_TRACER
+ 	select HAVE_FUNCTION_GRAPH_TRACER
+ 	select HAVE_FUNCTION_GRAPH_FP_TEST
+diff --git a/arch/tile/Kconfig b/arch/tile/Kconfig
+index 24565a7..74dff90 100644
+--- a/arch/tile/Kconfig
++++ b/arch/tile/Kconfig
+@@ -380,7 +380,6 @@ config PCI
+ 	select PCI_DOMAINS
+ 	select GENERIC_PCI_IOMAP
+ 	select TILE_GXIO_TRIO if TILEGX
+-	select ARCH_SUPPORTS_MSI if TILEGX
+ 	select PCI_MSI if TILEGX
+ 	---help---
+ 	  Enable PCI root complex support, so PCIe endpoint devices can
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index b32ebf9..5db62ef 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -2014,7 +2014,6 @@ menu "Bus options (PCI etc.)"
+ config PCI
+ 	bool "PCI support"
+ 	default y
+-	select ARCH_SUPPORTS_MSI if (X86_LOCAL_APIC && X86_IO_APIC)
+ 	---help---
+ 	  Find out whether you have a PCI motherboard. PCI is the name of a
+ 	  bus system, i.e. the way the CPU talks to the other stuff inside
+diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
+index 81944fb..b6a99f7 100644
+--- a/drivers/pci/Kconfig
++++ b/drivers/pci/Kconfig
+@@ -1,13 +1,9 @@
+ #
+ # PCI configuration
+ #
+-config ARCH_SUPPORTS_MSI
+-	bool
 -
- #ifdef CONFIG_SMP
- unsigned long profile_pc(struct pt_regs *regs)
- {
-diff --git a/arch/m32r/include/asm/timex.h b/arch/m32r/include/asm/timex.h
-index bb9fe4f..ff8e6b1 100644
---- a/arch/m32r/include/asm/timex.h
-+++ b/arch/m32r/include/asm/timex.h
-@@ -9,6 +9,8 @@
- 
- #define CLOCK_TICK_RATE	(CONFIG_BUS_CLOCK / CONFIG_TIMER_DIVIDE)
- #define CLOCK_TICK_FACTOR	20	/* Factor of both 1000000 and CLOCK_TICK_RATE */
-+/* change this if you have some constant time drift */
-+#define USECS_PER_JIFFY	(1000000/HZ)
- 
- #ifdef __KERNEL__
- /*
-diff --git a/arch/m32r/kernel/time.c b/arch/m32r/kernel/time.c
-index 1a15f81..0608e02 100644
---- a/arch/m32r/kernel/time.c
-+++ b/arch/m32r/kernel/time.c
-@@ -52,9 +52,6 @@ extern void smp_local_timer_interrupt(void);
-  * Change this if you have some constant time drift
-  */
- 
--/* This is for machines which generate the exact clock. */
--#define USECS_PER_JIFFY (1000000/HZ)
--
- static unsigned long latch;
- 
- static u32 m32r_gettimeoffset(void)
-diff --git a/arch/m68k/hp300/time.c b/arch/m68k/hp300/time.c
-index 749543b..9d751d3 100644
---- a/arch/m68k/hp300/time.c
-+++ b/arch/m68k/hp300/time.c
-@@ -12,6 +12,7 @@
- #include <linux/sched.h>
- #include <linux/kernel_stat.h>
- #include <linux/interrupt.h>
-+#include <linux/time.h>
- #include <asm/machdep.h>
- #include <asm/irq.h>
- #include <asm/io.h>
-@@ -30,9 +31,6 @@
- #define	CLKMSB2		0x9
- #define	CLKMSB3		0xD
- 
--/* This is for machines which generate the exact clock. */
--#define USECS_PER_JIFFY (1000000/HZ)
--
- #define INTVAL ((10000 / 4) - 1)
- 
- static irqreturn_t hp300_tick(int irq, void *dev_id)
-diff --git a/arch/m68k/include/asm/timex.h b/arch/m68k/include/asm/timex.h
-index 6759dad..44f2603 100644
---- a/arch/m68k/include/asm/timex.h
-+++ b/arch/m68k/include/asm/timex.h
-@@ -21,6 +21,8 @@
- #define CLOCK_TICK_RATE	1193180 /* Underlying HZ */
- #endif
- 
-+/* change this if you have some constant time drift */
-+#define USECS_PER_JIFFY	(1000000/HZ)
- typedef unsigned long cycles_t;
- 
- static inline cycles_t get_cycles(void)
-diff --git a/arch/s390/include/asm/timex.h b/arch/s390/include/asm/timex.h
-index 8ad8af9..91175c9 100644
---- a/arch/s390/include/asm/timex.h
-+++ b/arch/s390/include/asm/timex.h
-@@ -13,6 +13,8 @@
- 
- /* The value of the TOD clock for 1.1.1970. */
- #define TOD_UNIX_EPOCH 0x7d91048bca000000ULL
-+/* change this if you have some constant time drift */
-+#define USECS_PER_JIFFY	(1000000/HZ)
- 
- /* Inline functions for clock register access. */
- static inline int set_tod_clock(__u64 time)
-diff --git a/arch/s390/kernel/time.c b/arch/s390/kernel/time.c
-index 876546b..eb659b6 100644
---- a/arch/s390/kernel/time.c
-+++ b/arch/s390/kernel/time.c
-@@ -49,8 +49,6 @@
- #include <asm/cio.h>
- #include "entry.h"
- 
--/* change this if you have some constant time drift */
--#define USECS_PER_JIFFY     ((unsigned long) 1000000/HZ)
- #define CLK_TICKS_PER_JIFFY ((unsigned long) USECS_PER_JIFFY << 12)
- 
- u64 sched_clock_base_cc = -1;	/* Force to data section. */
-diff --git a/arch/sparc/include/asm/timex_32.h b/arch/sparc/include/asm/timex_32.h
-index b6ccdb0..cb7f412 100644
---- a/arch/sparc/include/asm/timex_32.h
-+++ b/arch/sparc/include/asm/timex_32.h
-@@ -7,6 +7,8 @@
- #define _ASMsparc_TIMEX_H
- 
- #define CLOCK_TICK_RATE	1193180 /* Underlying HZ */
-+/* change this if you have some constant time drift */
-+#define USECS_PER_JIFFY	(1000000/HZ)
- 
- /* XXX Maybe do something better at some point... -DaveM */
- typedef unsigned long cycles_t;
-diff --git a/arch/sparc/include/asm/timex_64.h b/arch/sparc/include/asm/timex_64.h
-index 18b30bc..1a5738a 100644
---- a/arch/sparc/include/asm/timex_64.h
-+++ b/arch/sparc/include/asm/timex_64.h
-@@ -9,6 +9,8 @@
- #include <asm/timer.h>
- 
- #define CLOCK_TICK_RATE	1193180 /* Underlying HZ */
-+/* change this if you have some constant time drift */
-+#define USECS_PER_JIFFY	(1000000/HZ)
- 
- /* Getting on the cycle counter on sparc64. */
- typedef unsigned long cycles_t;
-diff --git a/arch/sparc/kernel/pcic.c b/arch/sparc/kernel/pcic.c
-index 09f4fdd..2a62932 100644
---- a/arch/sparc/kernel/pcic.c
-+++ b/arch/sparc/kernel/pcic.c
-@@ -703,7 +703,6 @@ static void pcic_clear_clock_irq(void)
- }
- 
- /* CPU frequency is 100 MHz, timer increments every 4 CPU clocks */
--#define USECS_PER_JIFFY  (1000000 / HZ)
- #define TICK_TIMER_LIMIT ((100 * 1000000 / 4) / HZ)
- 
- static unsigned int pcic_cycles_offset(void)
+ config PCI_MSI
+ 	bool "Message Signaled Interrupts (MSI and MSI-X)"
+ 	depends on PCI
+-	depends on ARCH_SUPPORTS_MSI
+ 	help
+ 	   This allows device drivers to enable MSI (Message Signaled
+ 	   Interrupts).  Message Signaled Interrupts enable a device to
 -- 
-1.8.1.4
-
+1.8.1.2
 
