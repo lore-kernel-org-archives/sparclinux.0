@@ -1,30 +1,58 @@
-From: Kirill Tkhai <tkhai@yandex.ru>
-Date: Thu, 25 Jul 2013 21:00:53 +0000
-Subject: [PATCH]sparc64: Fix wrong syscall return value passed to trace_sys_exit()
-Message-Id: <164021374786053@web9g.yandex.ru>
+From: Allen Pais <allen.pais@oracle.com>
+Date: Tue, 23 Jul 2013 11:32:38 +0000
+Subject: [PATCH 1/2] [sparc64] cpu hw caps support for sparc64x
+Message-Id: <1374578438-2861-1-git-send-email-allen.pais@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Syscall number is passed instead of return value. Fix that.
 
-Signed-off-by: Kirill Tkhai <tkhai@yandex.ru>
-CC: David Miller <davem@davemloft.net>
+Signed-off-by: Allen Pais <allen.pais@oracle.com>
 ---
- arch/sparc/kernel/ptrace_64.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-diff --git a/arch/sparc/kernel/ptrace_64.c b/arch/sparc/kernel/ptrace_64.c
-index 7ff45e4..a348330 100644
---- a/arch/sparc/kernel/ptrace_64.c
-+++ b/arch/sparc/kernel/ptrace_64.c
-@@ -1087,7 +1087,7 @@ asmlinkage void syscall_trace_leave(struct pt_regs *regs)
- 	audit_syscall_exit(regs);
+ arch/sparc/kernel/setup_64.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
+index 1378554..3fdb455 100644
+--- a/arch/sparc/kernel/setup_64.c
++++ b/arch/sparc/kernel/setup_64.c
+@@ -499,12 +499,14 @@ static void __init init_sparc64_elf_hwcap(void)
+ 		    sun4v_chip_type = SUN4V_CHIP_NIAGARA2 ||
+ 		    sun4v_chip_type = SUN4V_CHIP_NIAGARA3 ||
+ 		    sun4v_chip_type = SUN4V_CHIP_NIAGARA4 ||
+-		    sun4v_chip_type = SUN4V_CHIP_NIAGARA5)
++		    sun4v_chip_type = SUN4V_CHIP_NIAGARA5 ||
++		    sun4v_chip_type = SUN4V_CHIP_SPARC64X)
+ 			cap |= HWCAP_SPARC_BLKINIT;
+ 		if (sun4v_chip_type = SUN4V_CHIP_NIAGARA2 ||
+ 		    sun4v_chip_type = SUN4V_CHIP_NIAGARA3 ||
+ 		    sun4v_chip_type = SUN4V_CHIP_NIAGARA4 ||
+-		    sun4v_chip_type = SUN4V_CHIP_NIAGARA5)
++		    sun4v_chip_type = SUN4V_CHIP_NIAGARA5 ||
++		    sun4v_chip_type = SUN4V_CHIP_SPARC64X)
+ 			cap |= HWCAP_SPARC_N2;
+ 	}
  
- 	if (unlikely(test_thread_flag(TIF_SYSCALL_TRACEPOINT)))
--		trace_sys_exit(regs, regs->u_regs[UREG_G1]);
-+		trace_sys_exit(regs, regs->u_regs[UREG_I0]);
- 
- 	if (test_thread_flag(TIF_SYSCALL_TRACE))
- 		tracehook_report_syscall_exit(regs, 0);
+@@ -530,13 +532,15 @@ static void __init init_sparc64_elf_hwcap(void)
+ 			if (sun4v_chip_type = SUN4V_CHIP_NIAGARA2 ||
+ 			    sun4v_chip_type = SUN4V_CHIP_NIAGARA3 ||
+ 			    sun4v_chip_type = SUN4V_CHIP_NIAGARA4 ||
+-			    sun4v_chip_type = SUN4V_CHIP_NIAGARA5)
++			    sun4v_chip_type = SUN4V_CHIP_NIAGARA5 ||
++			    sun4v_chip_type = SUN4V_CHIP_SPARC64X)
+ 				cap |= (AV_SPARC_VIS | AV_SPARC_VIS2 |
+ 					AV_SPARC_ASI_BLK_INIT |
+ 					AV_SPARC_POPC);
+ 			if (sun4v_chip_type = SUN4V_CHIP_NIAGARA3 ||
+ 			    sun4v_chip_type = SUN4V_CHIP_NIAGARA4 ||
+-			    sun4v_chip_type = SUN4V_CHIP_NIAGARA5)
++			    sun4v_chip_type = SUN4V_CHIP_NIAGARA5 ||
++			    sun4v_chip_type = SUN4V_CHIP_SPARC64X)
+ 				cap |= (AV_SPARC_VIS3 | AV_SPARC_HPC |
+ 					AV_SPARC_FMAF);
+ 		}
+-- 
+1.7.10.4
+
