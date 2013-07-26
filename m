@@ -1,30 +1,30 @@
-From: Timur Tabi <timur@tabi.org>
-Date: Wed, 31 Jul 2013 23:44:58 +0000
-Subject: Re: [PATCH 2/2] Convert PowerPC macro spin_event_timeout() to architecture independent macro
-Message-Id: <CAOZdJXVvNBR-qf7LXNOHZVstH_Rebxwn-wAkSaBS53Wn55mYCw@mail.gmail.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Fri, 26 Jul 2013 10:23:26 +0000
+Subject: kisskb: sparc-allmodconfig is actually sparc64
+Message-Id: <CAMuHMdUjaGRnHZpxs1j4VkYgTUXQNXvqu8LstpxLe8tYdf1oVw@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1375187900-17582-1-git-send-email-B44344@freescale.com>
- <1375187900-17582-3-git-send-email-B44344@freescale.com>
- <20130731071630.GI8868@codeaurora.org>
-In-Reply-To: <20130731071630.GI8868@codeaurora.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>, Michael Ellerman <michael@ellerman.id.au>
+Cc: sparclinux <sparclinux@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-kbuild <linux-kbuild@vger.kernel.org>
 
-On Wed, Jul 31, 2013 at 2:16 AM, Stephen Boyd <sboyd@codeaurora.org> wrote:
->
-> What do you do here if jiffies aren't incrementing (i.e
-> interrupts are disabled). The time_before() check won't work
-> there and it would be nice if we were able to use this in such
-> situations. I think powerpc gets around this by reading the
-> hardware timer directly?
+Hi Michael, Stephen,
 
-I believe that jiffies is always a global variable.  It should behave
-the same on PowerPC as on other architectures.
+The sparc-allmodconfig builds on http://kisskb.ellerman.id.au/kisskb/matrix/
+seem to be sparc64, not sparc32, allmodconfig builds.
+The sparc-allnoconfig builds are sparc32.
 
-The answer to your question is that you should not use
-spin_event_timeout() in interrupt context, because it yields.
+BTW, what's the simplest way to make an all*config build with fixed sparc32 or
+sparc64?
 
-(FYI, I'm the author of spin_event_timeout(), so please CC: me on all
-changes to it)
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
