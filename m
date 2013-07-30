@@ -1,17 +1,17 @@
-From: Kamal Mostafa <kamal@canonical.com>
-Date: Tue, 30 Jul 2013 18:44:48 +0000
-Subject: [PATCH 44/75] sparc64 address-congruence property
-Message-Id: <1375209919-1768-11-git-send-email-kamal@canonical.com>
+From: Luis Henriques <luis.henriques@canonical.com>
+Date: Tue, 30 Jul 2013 09:31:25 +0000
+Subject: [PATCH 066/106] sparc64 address-congruence property
+Message-Id: <1375176725-5825-67-git-send-email-luis.henriques@canonical.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1375197464-27962-1-git-send-email-kamal@canonical.com>
-In-Reply-To: <1375197464-27962-1-git-send-email-kamal@canonical.com>
+References: <1375176725-5825-1-git-send-email-luis.henriques@canonical.com>
+In-Reply-To: <1375176725-5825-1-git-send-email-luis.henriques@canonical.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org, kernel-team@lists.ubuntu.com
-Cc: Bob Picco <bob.picco@oracle.com>, sparclinux@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Kamal Mostafa <kamal@canonical.com>
+Cc: Bob Picco <bob.picco@oracle.com>, sparclinux@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Luis Henriques <luis.henriques@canonical.com>
 
-3.8.13.6 -stable review patch.  If anyone has any objections, please let me know.
+3.5.7.18 -stable review patch.  If anyone has any objections, please let me know.
 
 ------------------
 
@@ -26,16 +26,16 @@ not present. This caused early boot failure on T5.
 Signed-off-by: Bob Picco <bob.picco@oracle.com>
 CC: sparclinux@vger.kernel.org
 Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Kamal Mostafa <kamal@canonical.com>
+Signed-off-by: Luis Henriques <luis.henriques@canonical.com>
 ---
  arch/sparc/mm/init_64.c | 9 ++++++++-
  1 file changed, 8 insertions(+), 1 deletion(-)
 
 diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 82bbf04..c57da7f 100644
+index d58edf5..f2ace29 100644
 --- a/arch/sparc/mm/init_64.c
 +++ b/arch/sparc/mm/init_64.c
-@@ -1099,7 +1099,14 @@ static int __init grab_mblocks(struct mdesc_handle *md)
+@@ -1049,7 +1049,14 @@ static int __init grab_mblocks(struct mdesc_handle *md)
  		m->size = *val;
  		val = mdesc_get_property(md, node,
  					 "address-congruence-offset", NULL);
@@ -52,5 +52,5 @@ index 82bbf04..c57da7f 100644
  		numadbg("MBLOCK[%d]: base[%llx] size[%llx] offset[%llx]\n",
  			count - 1, m->base, m->size, m->offset);
 -- 
-1.8.1.2
+1.8.3.2
 
