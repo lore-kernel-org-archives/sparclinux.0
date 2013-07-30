@@ -1,7 +1,7 @@
 From: Michael Ellerman <michael@ellerman.id.au>
-Date: Sat, 27 Jul 2013 13:38:27 +0000
+Date: Tue, 30 Jul 2013 02:04:43 +0000
 Subject: Re: kisskb: sparc-allmodconfig is actually sparc64
-Message-Id: <1374932307.7730.3.camel@concordia>
+Message-Id: <1375149883.8313.3.camel@concordia>
 List-Id: <sparclinux.vger.kernel.org>
 References: <CAMuHMdUjaGRnHZpxs1j4VkYgTUXQNXvqu8LstpxLe8tYdf1oVw@mail.gmail.com>
 In-Reply-To: <CAMuHMdUjaGRnHZpxs1j4VkYgTUXQNXvqu8LstpxLe8tYdf1oVw@mail.gmail.com>
@@ -18,15 +18,24 @@ On Fri, 2013-07-26 at 12:23 +0200, Geert Uytterhoeven wrote:
 > seem to be sparc64, not sparc32, allmodconfig builds.
 > The sparc-allnoconfig builds are sparc32.
 
-Ah right, we seem to have sparc and sparc64 builds, but there is only
-arch/sparc now.
+OK this should be fixed.
 
-We'll have to sort that out next week.
+See http://kisskb.ellerman.id.au/kisskb/buildresult/9234872/
 
-> BTW, what's the simplest way to make an all*config build with fixed sparc32 or
-> sparc64?
+In particular the config at http://kisskb.ellerman.id.au/kisskb/buildresult/9234872/config/
 
-I think you can do it with KCONFIG_ALLCONFIG.
+Shows:
+
+CONFIG_SPARC=y
+CONFIG_SPARC32=y
+# CONFIG_SPARC64 is not set
+
+vs an older result (http://kisskb.ellerman.id.au/kisskb/buildresult/9195810/config/)
+
+CONFIG_64BIT=y
+CONFIG_SPARC=y
+# CONFIG_SPARC32 is not set
+
 
 cheers
 
