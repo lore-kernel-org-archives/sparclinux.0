@@ -1,21 +1,46 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 10 Jul 2013 20:42:36 +0000
-Subject: Re: [PATCH] sunvnet: vnet_port_remove must call unregister_netdev
-Message-Id: <20130710.134236.1858860840226789075.davem@davemloft.net>
+From: Arpit Goel <B44344@freescale.com>
+Date: Tue, 30 Jul 2013 12:50:18 +0000
+Subject: [PATCH 0/2] Make PPC macro spin_event_timeout() architecture independent
+Message-Id: <1375187900-17582-1-git-send-email-B44344@freescale.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <51D1F962.1020409@oracle.com>
-In-Reply-To: <51D1F962.1020409@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-Date: Mon, 01 Jul 2013 16:49:22 -0500
+This patch-set moves USECS_PER_JIFFY to architecture timex.h from architecture
+specific C files. Patch-set further uses this to make PPC macro
+spin_event_timeout() architecture independent. This change enables drivers to
+use spin_event_timeout() even in non-PowerPC based SoC's.
 
-> The missing call to unregister_netdev() leaves the interface active
-> after the driver is unloaded by rmmod.
-> 
-> Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+This patchset has been compiled for ARM, PowerPC and x86.
 
-Applied.
+Patch[1/2] : Moves USECS_PER_JIFFY to architecture specific timex.h files from
+	     architecture specific C files.
+
+Patch[2/2] : Converts PPC macro spin_event_timeout() in architecture independent
+	     macro.
+
+Arpit Goel (2):
+  Make USECS_PER_JIFFY available for generic use
+  Convert PowerPC macro spin_event_timeout() to architecture independent
+        macro
+
+ arch/arm/include/asm/timex.h      |  2 ++
+ arch/arm/kernel/time.c            |  3 ---
+ arch/m32r/include/asm/timex.h     |  2 ++
+ arch/m32r/kernel/time.c           |  3 ---
+ arch/m68k/hp300/time.c            |  4 +---
+ arch/m68k/include/asm/timex.h     |  2 ++
+ arch/s390/include/asm/timex.h     |  2 ++
+ arch/s390/kernel/time.c           |  2 --
+ arch/sparc/include/asm/timex_32.h |  2 ++
+ arch/sparc/include/asm/timex_64.h |  2 ++
+ arch/sparc/kernel/pcic.c          |  1 -
+ include/linux/delay.h             | 40 +++++++++++++++++++++++++++++++++++++++
+ 12 files changed, 53 insertions(+), 12 deletions(-)
+
+-- 
+1.8.1.4
+
+
