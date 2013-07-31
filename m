@@ -1,72 +1,53 @@
-From: Kirill Tkhai <tkhai@yandex.ru>
-Date: Fri, 26 Jul 2013 12:42:39 +0000
-Subject: [PATCH]sparc64: cleanup: Rename ret_from_syscall to ret_from_fork
-Message-Id: <63481374842559@web28d.yandex.ru>
+From: Ben Hutchings <ben@decadent.org.uk>
+Date: Wed, 31 Jul 2013 13:23:09 +0000
+Subject: [24/84] sparc64 address-congruence property
+Message-Id: <lsq.1375276989.298370057@decadent.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
+In-Reply-To: <lsq.1375276989.251749228@decadent.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, Bob Picco <bob.picco@oracle.com>, bob picco <bpicco@meloft.net>, "David S. Miller" <davem@davemloft.net>
 
-Rename to make the function name better conform to its goal.
+3.2.50-rc1 review patch.  If anyone has any objections, please let me know.
 
-Signed-off-by: Kirill Tkhai <tkhai@yandex.ru>
-CC: David Miller <davem@davemloft.net>
+------------------
+
+From: bob picco <bpicco@meloft.net>
+
+commit 771a37ff4d80b80db3b0df3e7696f14b298c67b7 upstream.
+
+The Machine Description (MD) property "address-congruence-offset" is
+optional. According to the MD specification the value is assumed 0UL when
+not present. This caused early boot failure on T5.
+
+Signed-off-by: Bob Picco <bob.picco@oracle.com>
+CC: sparclinux@vger.kernel.org
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
-(Of course, if there is no historical reason...)
- arch/sparc/include/asm/switch_to_64.h |    4 ++--
- arch/sparc/kernel/kgdb_64.c           |    4 ++--
- arch/sparc/kernel/syscalls.S          |    4 ++--
- 3 files changed, 6 insertions(+), 6 deletions(-)
-diff --git a/arch/sparc/include/asm/switch_to_64.h b/arch/sparc/include/asm/switch_to_64.h
-index c7de332..8d28480 100644
---- a/arch/sparc/include/asm/switch_to_64.h
-+++ b/arch/sparc/include/asm/switch_to_64.h
-@@ -48,8 +48,8 @@ do {	save_and_clear_fpu();						\
- 	"wrpr	%%g0, 14, %%pil\n\t"					\
- 	"brz,pt %%o7, switch_to_pc\n\t"					\
- 	" mov	%%g7, %0\n\t"						\
--	"sethi	%%hi(ret_from_syscall), %%g1\n\t"			\
--	"jmpl	%%g1 + %%lo(ret_from_syscall), %%g0\n\t"		\
-+	"sethi	%%hi(ret_from_fork), %%g1\n\t"				\
-+	"jmpl	%%g1 + %%lo(ret_from_fork), %%g0\n\t"			\
- 	" nop\n\t"							\
- 	".globl switch_to_pc\n\t"					\
- 	"switch_to_pc:\n\t"						\
-diff --git a/arch/sparc/kernel/kgdb_64.c b/arch/sparc/kernel/kgdb_64.c
-index c875955..53c0a82 100644
---- a/arch/sparc/kernel/kgdb_64.c
-+++ b/arch/sparc/kernel/kgdb_64.c
-@@ -42,7 +42,7 @@ void sleeping_thread_to_gdb_regs(unsigned long *gdb_regs, struct task_struct *p)
- {
- 	struct thread_info *t = task_thread_info(p);
- 	extern unsigned int switch_to_pc;
--	extern unsigned int ret_from_syscall;
-+	extern unsigned int ret_from_fork;
- 	struct reg_window *win;
- 	unsigned long pc, cwp;
- 	int i;
-@@ -66,7 +66,7 @@ void sleeping_thread_to_gdb_regs(unsigned long *gdb_regs, struct task_struct *p)
- 		gdb_regs[i] = 0;
+ arch/sparc/mm/init_64.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index 6ff4d78..b4989f9 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -1071,7 +1071,14 @@ static int __init grab_mblocks(struct mdesc_handle *md)
+ 		m->size = *val;
+ 		val = mdesc_get_property(md, node,
+ 					 "address-congruence-offset", NULL);
+-		m->offset = *val;
++
++		/* The address-congruence-offset property is optional.
++		 * Explicity zero it be identifty this.
++		 */
++		if (val)
++			m->offset = *val;
++		else
++			m->offset = 0UL;
  
- 	if (t->new_child)
--		pc = (unsigned long) &ret_from_syscall;
-+		pc = (unsigned long) &ret_from_fork;
- 	else
- 		pc = (unsigned long) &switch_to_pc;
- 
-diff --git a/arch/sparc/kernel/syscalls.S b/arch/sparc/kernel/syscalls.S
-index 22a1098..868ed22 100644
---- a/arch/sparc/kernel/syscalls.S
-+++ b/arch/sparc/kernel/syscalls.S
-@@ -98,8 +98,8 @@ sys_clone:
- 	ba,pt	%xcc, sparc_do_fork
- 	 add	%sp, PTREGS_OFF, %o2
- 
--	.globl	ret_from_syscall
--ret_from_syscall:
-+	.globl	ret_from_fork
-+ret_from_fork:
- 	/* Clear current_thread_info()->new_child. */
- 	stb	%g0, [%g6 + TI_NEW_CHILD]
- 	call	schedule_tail
+ 		numadbg("MBLOCK[%d]: base[%llx] size[%llx] offset[%llx]\n",
+ 			count - 1, m->base, m->size, m->offset);
+
