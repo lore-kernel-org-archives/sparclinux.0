@@ -1,74 +1,16 @@
-From: Arpit Goel <B44344@freescale.com>
-Date: Wed, 14 Aug 2013 07:15:55 +0000
-Subject: [PATCH v2 2/2] Convert PowerPC macro spin_event_timeout() to architecture independent macro
-Message-Id: <1376463835-13040-3-git-send-email-B44344@freescale.com>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 01 Aug 2013 02:10:20 +0000
+Subject: Re: [PATCH 1/2] [sparc64] cpu hw caps support for sparc64x
+Message-Id: <20130731.191020.1553042517137699800.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1376463835-13040-1-git-send-email-B44344@freescale.com>
-In-Reply-To: <1376463835-13040-1-git-send-email-B44344@freescale.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-This patch ports PowerPC implementation of spin_event_timeout() for generic
-use. Architecture specific implementation can be added to asm/delay.h, which
-will override the generic linux implementation.
+From: Allen Pais <allen.pais@oracle.com>
+Date: Tue, 23 Jul 2013 16:50:38 +0530
 
-Signed-off-by: Arpit Goel <B44344@freescale.com>
----
- include/linux/delay.h | 40 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+> Signed-off-by: Allen Pais <allen.pais@oracle.com>
 
-diff --git a/include/linux/delay.h b/include/linux/delay.h
-index a6ecb34..2ee7fa8 100644
---- a/include/linux/delay.h
-+++ b/include/linux/delay.h
-@@ -52,4 +52,44 @@ static inline void ssleep(unsigned int seconds)
- 	msleep(seconds * 1000);
- }
- 
-+#ifndef spin_event_timeout
-+/**
-+ * spin_event_timeout - spin until a condition gets true or a timeout elapses
-+ * @condition: a C expression to evalate
-+ * @timeout: timeout, in microseconds
-+ * @delay: the number of microseconds to delay between each evaluation of
-+ *         @condition
-+ *
-+ * The process spins until the condition evaluates to true (non-zero) or the
-+ * timeout elapses.  The return value of this macro is the value of
-+ * @condition when the loop terminates. This allows you to determine the cause
-+ * of the loop terminates.  If the return value is zero, then you know a
-+ * timeout has occurred.
-+ *
-+ * This primary purpose of this macro is to poll on a hardware register
-+ * until a status bit changes.  The timeout ensures that the loop still
-+ * terminates even if the bit never changes.  The delay is for devices that
-+ * need a delay in between successive reads.
-+ *
-+ * gcc will optimize out the if-statement if @delay is a constant.
-+ *
-+ * This is copied from PowerPC based spin_event_timeout() implementation
-+ * and modified for generic usecase.
-+ */
-+#define spin_event_timeout(condition, timeout, delay)		\
-+({								\
-+	typeof(condition) __ret;				\
-+	unsigned long __loops = usecs_to_jiffies(timeout);	\
-+	unsigned long __start = jiffies;			\
-+	while (!(__ret = (condition)) &&			\
-+		time_before(jiffies, __start + __loops + 1))	\
-+		if (delay)					\
-+			udelay(delay);				\
-+		else						\
-+			schedule();				\
-+	if (!__ret)						\
-+		__ret = (condition);				\
-+	__ret;							\
-+})
-+#endif
- #endif /* defined(_LINUX_DELAY_H) */
--- 
-1.8.1.4
-
-
+Applied.
