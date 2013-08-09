@@ -1,10 +1,10 @@
 From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Date: Thu, 01 Aug 2013 13:25:05 +0000
-Subject: [PATCHv6 02/13] PCI: remove ARCH_SUPPORTS_MSI kconfig option
-Message-Id: <1375363516-2620-3-git-send-email-thomas.petazzoni@free-electrons.com>
+Date: Fri, 09 Aug 2013 20:27:07 +0000
+Subject: [PATCHv9 02/10] PCI: remove ARCH_SUPPORTS_MSI kconfig option
+Message-Id: <1376080035-29344-3-git-send-email-thomas.petazzoni@free-electrons.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1375363516-2620-1-git-send-email-thomas.petazzoni@free-electrons.com>
-In-Reply-To: <1375363516-2620-1-git-send-email-thomas.petazzoni@free-electrons.com>
+References: <1376080035-29344-1-git-send-email-thomas.petazzoni@free-electrons.com>
+In-Reply-To: <1376080035-29344-1-git-send-email-thomas.petazzoni@free-electrons.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -17,6 +17,10 @@ versions of those functions. For this reason, the ARCH_SUPPORTS_MSI
 hidden kconfig boolean becomes useless, and this patch gets rid of it.
 
 Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Tested-by: Daniel Price <daniel.price@gmail.com>
+Tested-by: Thierry Reding <thierry.reding@gmail.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: linuxppc-dev@lists.ozlabs.org
