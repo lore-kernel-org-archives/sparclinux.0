@@ -1,47 +1,138 @@
 From: Viresh Kumar <viresh.kumar@linaro.org>
-Date: Tue, 13 Aug 2013 04:49:34 +0000
-Subject: Re: [PATCH 00/31] CPUFreq: Implement light weight ->target(): for 3.13
-Message-Id: <CAKohpokOkWMo4UAcpXYzUMBz4rUn3253GFkdi+YtqRbmqFOm3Q@mail.gmail.com>
+Date: Mon, 12 Aug 2013 17:53:10 +0000
+Subject: [PATCH 28/31] cpufreq: sparc: Covert to light weight ->target() routine
+Message-Id: <36eec7d0f42117c867940f15cf994551de378dd6.1376329128.git.viresh.kumar@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <cover.1376329128.git.viresh.kumar@linaro.org>
-	<1391342.M2Jbj3t5qy@vostro.rjw.lan>
-In-Reply-To: <1391342.M2Jbj3t5qy@vostro.rjw.lan>
+In-Reply-To: <cover.1376329128.git.viresh.kumar@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linaro-kernel@lists.linaro.org, patches@linaro.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Andrew Lunn <andrew@lunn.ch>, "David S. Miller" <davem@davemloft.net>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Eric Miao <eric.y.miao@gmail.com>, Jesper Nilsson <jesper.nilsson@axis.com>, John Crispin <blogic@openwrt.org>, Kukjin Kim <kgene.kim@samsung.com>, Linus Walleij <linus.walleij@linaro.org>, linux-cris-kernel@axis.com, Mikael Starvik <starvik@axis.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Sekhar Nori <nsekhar@ti.com>, Shawn Guo <shawn.guo@linaro.org>, sparclinux@vger.kernel.org, Stephen Warren <swarren@nvidia.com>, Steven Miao <realmz6@gmail.com>, Tony Luck <tony.luck@intel.com>
+To: rjw@sisk.pl
+Cc: linaro-kernel@lists.linaro.org, patches@linaro.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Viresh Kumar <viresh.kumar@linaro.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-On 13 August 2013 04:17, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Monday, August 12, 2013 11:18:36 PM Viresh Kumar wrote:
->> Currently prototype of cpufreq_drivers target routines is:
->>
->> int target(struct cpufreq_policy *policy, unsigned int target_freq,
->>       unsigned int relation);
->>
->> And most of the drivers call cpufreq_frequency_table_target() to get a valid
->> index of their frequency table which is closest to the target_freq. And they
->> don't use target_freq and relation after it.
->>
->> So, it makes sense to just do this work in cpufreq core before calling
->> cpufreq_frequency_table_target() and simply pass index instead. But this can be
->> done only with drivers which expose their frequency table with cpufreq core. For
->> others we need to stick with the old prototype of target() until those drivers
->> are converted to expose frequency tables.
->>
->> So, in order not to break those special drivers first patch renames ->target() to
->> ->target_old() and the following patches will define the new prototype and
->> convert existing drivers one by one.
->
-> Super-ugly.
+This patch converts existing .target_old() to newly defined light weight
+.target() routine for this driver.
 
-Thanks. I expected something similar.. :)
+CPUFreq core will call cpufreq_frequency_table_target() before calling this
+routine and will pass index to it.
 
-> Please just keep the old .target() as is, add a new callback and switch the
-> suitable drivers to using it.  You may call the new one .target_index() or
-> something along these lines.
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+---
+ drivers/cpufreq/sparc-us2e-cpufreq.c | 21 +++------------------
+ drivers/cpufreq/sparc-us3-cpufreq.c  | 23 +++--------------------
+ 2 files changed, 6 insertions(+), 38 deletions(-)
 
-I thought of implementing with this name but then thought maybe earlier name
-is good enough and can be kept and so went for the *Super-ugly* solution..
+diff --git a/drivers/cpufreq/sparc-us2e-cpufreq.c b/drivers/cpufreq/sparc-us2e-cpufreq.c
+index 95db9c1..8ee1c19 100644
+--- a/drivers/cpufreq/sparc-us2e-cpufreq.c
++++ b/drivers/cpufreq/sparc-us2e-cpufreq.c
+@@ -245,8 +245,7 @@ static unsigned int us2e_freq_get(unsigned int cpu)
+ 	return clock_tick / estar_to_divisor(estar);
+ }
+ 
+-static void us2e_set_cpu_divider_index(struct cpufreq_policy *policy,
+-		unsigned int index)
++static int us2e_freq_target(struct cpufreq_policy *policy, unsigned int index)
+ {
+ 	unsigned int cpu = policy->cpu;
+ 	unsigned long new_bits, new_freq;
+@@ -277,20 +276,6 @@ static void us2e_set_cpu_divider_index(struct cpufreq_policy *policy,
+ 	cpufreq_notify_transition(policy, &freqs, CPUFREQ_POSTCHANGE);
+ 
+ 	set_cpus_allowed_ptr(current, &cpus_allowed);
+-}
+-
+-static int us2e_freq_target(struct cpufreq_policy *policy,
+-			  unsigned int target_freq,
+-			  unsigned int relation)
+-{
+-	unsigned int new_index = 0;
+-
+-	if (cpufreq_frequency_table_target(policy,
+-					   &us2e_freq_table[policy->cpu].table[0],
+-					   target_freq, relation, &new_index))
+-		return -EINVAL;
+-
+-	us2e_set_cpu_divider_index(policy, new_index);
+ 
+ 	return 0;
+ }
+@@ -325,7 +310,7 @@ static int us2e_freq_cpu_exit(struct cpufreq_policy *policy)
+ {
+ 	if (cpufreq_us2e_driver) {
+ 		cpufreq_frequency_table_put_attr(policy->cpu);
+-		us2e_set_cpu_divider_index(policy, 0);
++		us2e_freq_target(policy, 0);
+ 	}
+ 
+ 	return 0;
+@@ -358,7 +343,7 @@ static int __init us2e_freq_init(void)
+ 
+ 		driver->init = us2e_freq_cpu_init;
+ 		driver->verify = cpufreq_generic_frequency_table_verify;
+-		driver->target_old = us2e_freq_target;
++		driver->target = us2e_freq_target;
+ 		driver->get = us2e_freq_get;
+ 		driver->exit = us2e_freq_cpu_exit;
+ 		strcpy(driver->name, "UltraSPARC-IIe");
+diff --git a/drivers/cpufreq/sparc-us3-cpufreq.c b/drivers/cpufreq/sparc-us3-cpufreq.c
+index 75f58c0..2a54011 100644
+--- a/drivers/cpufreq/sparc-us3-cpufreq.c
++++ b/drivers/cpufreq/sparc-us3-cpufreq.c
+@@ -93,8 +93,7 @@ static unsigned int us3_freq_get(unsigned int cpu)
+ 	return ret;
+ }
+ 
+-static void us3_set_cpu_divider_index(struct cpufreq_policy *policy,
+-		unsigned int index)
++static int us3_freq_target(struct cpufreq_policy *policy, unsigned int index)
+ {
+ 	unsigned int cpu = policy->cpu;
+ 	unsigned long new_bits, new_freq, reg;
+@@ -136,22 +135,6 @@ static void us3_set_cpu_divider_index(struct cpufreq_policy *policy,
+ 	cpufreq_notify_transition(policy, &freqs, CPUFREQ_POSTCHANGE);
+ 
+ 	set_cpus_allowed_ptr(current, &cpus_allowed);
+-}
+-
+-static int us3_freq_target(struct cpufreq_policy *policy,
+-			  unsigned int target_freq,
+-			  unsigned int relation)
+-{
+-	unsigned int new_index = 0;
+-
+-	if (cpufreq_frequency_table_target(policy,
+-					   &us3_freq_table[policy->cpu].table[0],
+-					   target_freq,
+-					   relation,
+-					   &new_index))
+-		return -EINVAL;
+-
+-	us3_set_cpu_divider_index(policy, new_index);
+ 
+ 	return 0;
+ }
+@@ -182,7 +165,7 @@ static int us3_freq_cpu_exit(struct cpufreq_policy *policy)
+ {
+ 	if (cpufreq_us3_driver) {
+ 		cpufreq_frequency_table_put_attr(policy->cpu);
+-		us3_set_cpu_divider_index(policy, 0);
++		us3_freq_target(policy, 0);
+ 	}
+ 
+ 	return 0;
+@@ -219,7 +202,7 @@ static int __init us3_freq_init(void)
+ 
+ 		driver->init = us3_freq_cpu_init;
+ 		driver->verify = cpufreq_generic_frequency_table_verify;
+-		driver->target_old = us3_freq_target;
++		driver->target = us3_freq_target;
+ 		driver->get = us3_freq_get;
+ 		driver->exit = us3_freq_cpu_exit;
+ 		strcpy(driver->name, "UltraSPARC-III");
+-- 
+1.7.12.rc2.18.g61b472e
 
-Will be fixed :)
