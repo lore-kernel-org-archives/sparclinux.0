@@ -1,22 +1,26 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Date: Tue, 13 Aug 2013 12:12:21 +0000
-Subject: broken PCI mmap confession
-Message-Id: <CACVxJT_vFSQUuRQG6-ZGw6oeD60Q9fAZUp1AWvVGVxv=FJHLzA@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 13 Aug 2013 19:07:41 +0000
+Subject: Re: broken PCI mmap confession
+Message-Id: <20130813.120741.1456436973036093068.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <CACVxJT_vFSQUuRQG6-ZGw6oeD60Q9fAZUp1AWvVGVxv=FJHLzA@mail.gmail.com>
+In-Reply-To: <CACVxJT_vFSQUuRQG6-ZGw6oeD60Q9fAZUp1AWvVGVxv=FJHLzA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-I'm sure I broke mmap(2) of PCI device proc file on sparc long ago. See:
-"Fix rmmod/read/write races in /proc entries"
-786d7e1612f0b0adb6046f19b906609e4fe8b1ba
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Date: Tue, 13 Aug 2013 15:08:14 +0300
 
-Notice how it adds proxy code for ->mmap but doesn't do it for
-->get_unmapped_area.
+> 6 years passed, code still the same, noone complained (at least to me).
+> What should I do?
 
-It wasn't particularly evident (read: didn't break compilation) until now
-that I started to shrink /proc portion of file_operations to something smaller.
+Fix it?
 
-6 years passed, code still the same, noone complained (at least to me).
-What should I do?
+The only major user is the graphics card MMAP'ing done by the X server.
+And not to many people use sparc as a desktop any more, that's why it
+hasn't been noticed.
+
+I used to keep making sure it kept working, but I'm on an x86 desktop
+these days so haven't been doing so lately.
