@@ -1,179 +1,137 @@
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Date: Thu, 08 Aug 2013 22:17:40 +0000
-Subject: [PATCHv8 02/10] PCI: remove ARCH_SUPPORTS_MSI kconfig option
-Message-Id: <1376000268-18397-3-git-send-email-thomas.petazzoni@free-electrons.com>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Date: Tue, 13 Aug 2013 13:44:45 +0000
+Subject: [PATCH V2 32/35] cpufreq: sparc: Covert to light weight ->target_index() routine
+Message-Id: <52d940a4df28344f273481e209dd60a71fd51ed7.1376392602.git.viresh.kumar@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1376000268-18397-1-git-send-email-thomas.petazzoni@free-electrons.com>
-In-Reply-To: <1376000268-18397-1-git-send-email-thomas.petazzoni@free-electrons.com>
+References: <cover.1376392602.git.viresh.kumar@linaro.org>
+In-Reply-To: <cover.1376392602.git.viresh.kumar@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-Now that we have weak versions for each of the PCI MSI architecture
-functions, we can actually build the MSI support for all platforms,
-regardless of whether they provide or not architecture-specific
-versions of those functions. For this reason, the ARCH_SUPPORTS_MSI
-hidden kconfig boolean becomes useless, and this patch gets rid of it.
+This patch converts existing .target() to newly defined light weight
+.target_index() routine for this driver.
 
-Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-Tested-by: Daniel Price <daniel.price@gmail.com>
-Tested-by: Thierry Reding <thierry.reding@gmail.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: linux390@de.ibm.com
-Cc: linux-s390@vger.kernel.org
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: x86@kernel.org
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: linux-ia64@vger.kernel.org
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: linux-mips@linux-mips.org
+CPUFreq core will call cpufreq_frequency_table_target() before calling this
+routine and will pass index to it.
+
 Cc: David S. Miller <davem@davemloft.net>
 Cc: sparclinux@vger.kernel.org
-Cc: Chris Metcalf <cmetcalf@tilera.com>
+Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
 ---
- arch/arm/Kconfig     | 1 -
- arch/ia64/Kconfig    | 1 -
- arch/mips/Kconfig    | 2 --
- arch/powerpc/Kconfig | 1 -
- arch/s390/Kconfig    | 1 -
- arch/sparc/Kconfig   | 1 -
- arch/tile/Kconfig    | 1 -
- arch/x86/Kconfig     | 1 -
- drivers/pci/Kconfig  | 4 ----
- 9 files changed, 13 deletions(-)
+ drivers/cpufreq/sparc-us2e-cpufreq.c | 21 +++------------------
+ drivers/cpufreq/sparc-us3-cpufreq.c  | 23 +++--------------------
+ 2 files changed, 6 insertions(+), 38 deletions(-)
 
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index 37c0f4e..41b6c96 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -441,7 +441,6 @@ config ARCH_NETX
- config ARCH_IOP13XX
- 	bool "IOP13xx-based"
- 	depends on MMU
--	select ARCH_SUPPORTS_MSI
- 	select CPU_XSC3
- 	select NEED_MACH_MEMORY_H
- 	select NEED_RET_TO_USER
-diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
-index 5a768ad..098602b 100644
---- a/arch/ia64/Kconfig
-+++ b/arch/ia64/Kconfig
-@@ -9,7 +9,6 @@ config IA64
- 	select PCI if (!IA64_HP_SIM)
- 	select ACPI if (!IA64_HP_SIM)
- 	select PM if (!IA64_HP_SIM)
--	select ARCH_SUPPORTS_MSI
- 	select HAVE_UNSTABLE_SCHED_CLOCK
- 	select HAVE_IDE
- 	select HAVE_OPROFILE
-diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
-index c3abed3..01b5f5a 100644
---- a/arch/mips/Kconfig
-+++ b/arch/mips/Kconfig
-@@ -726,7 +726,6 @@ config CAVIUM_OCTEON_SOC
- 	select SYS_HAS_CPU_CAVIUM_OCTEON
- 	select SWAP_IO_SPACE
- 	select HW_HAS_PCI
--	select ARCH_SUPPORTS_MSI
- 	select ZONE_DMA32
- 	select USB_ARCH_HAS_OHCI
- 	select USB_ARCH_HAS_EHCI
-@@ -762,7 +761,6 @@ config NLM_XLR_BOARD
- 	select CEVT_R4K
- 	select CSRC_R4K
- 	select IRQ_CPU
--	select ARCH_SUPPORTS_MSI
- 	select ZONE_DMA32 if 64BIT
- 	select SYNC_R4K
- 	select SYS_HAS_EARLY_PRINTK
-diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index 3bf72cd..183a165 100644
---- a/arch/powerpc/Kconfig
-+++ b/arch/powerpc/Kconfig
-@@ -727,7 +727,6 @@ config PCI
- 	default y if !40x && !CPM2 && !8xx && !PPC_83xx \
- 		&& !PPC_85xx && !PPC_86xx && !GAMECUBE_COMMON
- 	default PCI_QSPAN if !4xx && !CPM2 && 8xx
--	select ARCH_SUPPORTS_MSI
- 	select GENERIC_PCI_IOMAP
- 	help
- 	  Find out whether your system includes a PCI bus. PCI is the name of
-diff --git a/arch/s390/Kconfig b/arch/s390/Kconfig
-index 22f75b5..e9982a3 100644
---- a/arch/s390/Kconfig
-+++ b/arch/s390/Kconfig
-@@ -428,7 +428,6 @@ menuconfig PCI
- 	bool "PCI support"
- 	default n
- 	depends on 64BIT
--	select ARCH_SUPPORTS_MSI
- 	select PCI_MSI
- 	help
- 	  Enable PCI support.
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index a00cbd3..1570ad2 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -52,7 +52,6 @@ config SPARC32
+diff --git a/drivers/cpufreq/sparc-us2e-cpufreq.c b/drivers/cpufreq/sparc-us2e-cpufreq.c
+index 291688c..3bf5b8f 100644
+--- a/drivers/cpufreq/sparc-us2e-cpufreq.c
++++ b/drivers/cpufreq/sparc-us2e-cpufreq.c
+@@ -245,8 +245,7 @@ static unsigned int us2e_freq_get(unsigned int cpu)
+ 	return clock_tick / estar_to_divisor(estar);
+ }
  
- config SPARC64
- 	def_bool 64BIT
--	select ARCH_SUPPORTS_MSI
- 	select HAVE_FUNCTION_TRACER
- 	select HAVE_FUNCTION_GRAPH_TRACER
- 	select HAVE_FUNCTION_GRAPH_FP_TEST
-diff --git a/arch/tile/Kconfig b/arch/tile/Kconfig
-index 24565a7..74dff90 100644
---- a/arch/tile/Kconfig
-+++ b/arch/tile/Kconfig
-@@ -380,7 +380,6 @@ config PCI
- 	select PCI_DOMAINS
- 	select GENERIC_PCI_IOMAP
- 	select TILE_GXIO_TRIO if TILEGX
--	select ARCH_SUPPORTS_MSI if TILEGX
- 	select PCI_MSI if TILEGX
- 	---help---
- 	  Enable PCI root complex support, so PCIe endpoint devices can
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index b32ebf9..5db62ef 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -2014,7 +2014,6 @@ menu "Bus options (PCI etc.)"
- config PCI
- 	bool "PCI support"
- 	default y
--	select ARCH_SUPPORTS_MSI if (X86_LOCAL_APIC && X86_IO_APIC)
- 	---help---
- 	  Find out whether you have a PCI motherboard. PCI is the name of a
- 	  bus system, i.e. the way the CPU talks to the other stuff inside
-diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
-index 81944fb..b6a99f7 100644
---- a/drivers/pci/Kconfig
-+++ b/drivers/pci/Kconfig
-@@ -1,13 +1,9 @@
- #
- # PCI configuration
- #
--config ARCH_SUPPORTS_MSI
--	bool
+-static void us2e_set_cpu_divider_index(struct cpufreq_policy *policy,
+-		unsigned int index)
++static int us2e_freq_target(struct cpufreq_policy *policy, unsigned int index)
+ {
+ 	unsigned int cpu = policy->cpu;
+ 	unsigned long new_bits, new_freq;
+@@ -277,20 +276,6 @@ static void us2e_set_cpu_divider_index(struct cpufreq_policy *policy,
+ 	cpufreq_notify_transition(policy, &freqs, CPUFREQ_POSTCHANGE);
+ 
+ 	set_cpus_allowed_ptr(current, &cpus_allowed);
+-}
 -
- config PCI_MSI
- 	bool "Message Signaled Interrupts (MSI and MSI-X)"
- 	depends on PCI
--	depends on ARCH_SUPPORTS_MSI
- 	help
- 	   This allows device drivers to enable MSI (Message Signaled
- 	   Interrupts).  Message Signaled Interrupts enable a device to
+-static int us2e_freq_target(struct cpufreq_policy *policy,
+-			  unsigned int target_freq,
+-			  unsigned int relation)
+-{
+-	unsigned int new_index = 0;
+-
+-	if (cpufreq_frequency_table_target(policy,
+-					   &us2e_freq_table[policy->cpu].table[0],
+-					   target_freq, relation, &new_index))
+-		return -EINVAL;
+-
+-	us2e_set_cpu_divider_index(policy, new_index);
+ 
+ 	return 0;
+ }
+@@ -325,7 +310,7 @@ static int us2e_freq_cpu_exit(struct cpufreq_policy *policy)
+ {
+ 	if (cpufreq_us2e_driver) {
+ 		cpufreq_frequency_table_put_attr(policy->cpu);
+-		us2e_set_cpu_divider_index(policy, 0);
++		us2e_freq_target(policy, 0);
+ 	}
+ 
+ 	return 0;
+@@ -358,7 +343,7 @@ static int __init us2e_freq_init(void)
+ 
+ 		driver->init = us2e_freq_cpu_init;
+ 		driver->verify = cpufreq_generic_frequency_table_verify;
+-		driver->target = us2e_freq_target;
++		driver->target_index = us2e_freq_target;
+ 		driver->get = us2e_freq_get;
+ 		driver->exit = us2e_freq_cpu_exit;
+ 		strcpy(driver->name, "UltraSPARC-IIe");
+diff --git a/drivers/cpufreq/sparc-us3-cpufreq.c b/drivers/cpufreq/sparc-us3-cpufreq.c
+index 9b3dbd3..2e54d55 100644
+--- a/drivers/cpufreq/sparc-us3-cpufreq.c
++++ b/drivers/cpufreq/sparc-us3-cpufreq.c
+@@ -93,8 +93,7 @@ static unsigned int us3_freq_get(unsigned int cpu)
+ 	return ret;
+ }
+ 
+-static void us3_set_cpu_divider_index(struct cpufreq_policy *policy,
+-		unsigned int index)
++static int us3_freq_target(struct cpufreq_policy *policy, unsigned int index)
+ {
+ 	unsigned int cpu = policy->cpu;
+ 	unsigned long new_bits, new_freq, reg;
+@@ -136,22 +135,6 @@ static void us3_set_cpu_divider_index(struct cpufreq_policy *policy,
+ 	cpufreq_notify_transition(policy, &freqs, CPUFREQ_POSTCHANGE);
+ 
+ 	set_cpus_allowed_ptr(current, &cpus_allowed);
+-}
+-
+-static int us3_freq_target(struct cpufreq_policy *policy,
+-			  unsigned int target_freq,
+-			  unsigned int relation)
+-{
+-	unsigned int new_index = 0;
+-
+-	if (cpufreq_frequency_table_target(policy,
+-					   &us3_freq_table[policy->cpu].table[0],
+-					   target_freq,
+-					   relation,
+-					   &new_index))
+-		return -EINVAL;
+-
+-	us3_set_cpu_divider_index(policy, new_index);
+ 
+ 	return 0;
+ }
+@@ -182,7 +165,7 @@ static int us3_freq_cpu_exit(struct cpufreq_policy *policy)
+ {
+ 	if (cpufreq_us3_driver) {
+ 		cpufreq_frequency_table_put_attr(policy->cpu);
+-		us3_set_cpu_divider_index(policy, 0);
++		us3_freq_target(policy, 0);
+ 	}
+ 
+ 	return 0;
+@@ -219,7 +202,7 @@ static int __init us3_freq_init(void)
+ 
+ 		driver->init = us3_freq_cpu_init;
+ 		driver->verify = cpufreq_generic_frequency_table_verify;
+-		driver->target = us3_freq_target;
++		driver->target_index = us3_freq_target;
+ 		driver->get = us3_freq_get;
+ 		driver->exit = us3_freq_cpu_exit;
+ 		strcpy(driver->name, "UltraSPARC-III");
 -- 
-1.8.1.2
+1.7.12.rc2.18.g61b472e
 
