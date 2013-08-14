@@ -1,101 +1,74 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Date: Fri, 16 Aug 2013 02:37:28 +0000
-Subject: [PATCH 31/34] cpufreq: sparc: remove calls to cpufreq_notify_transition()
-Message-Id: <a1899648402480a75183174ad084fb21fea78065.1376619363.git.viresh.kumar@linaro.org>
+From: Arpit Goel <B44344@freescale.com>
+Date: Wed, 14 Aug 2013 07:15:55 +0000
+Subject: [PATCH v2 2/2] Convert PowerPC macro spin_event_timeout() to architecture independent macro
+Message-Id: <1376463835-13040-3-git-send-email-B44344@freescale.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1376619363.git.viresh.kumar@linaro.org>
-In-Reply-To: <cover.1376619363.git.viresh.kumar@linaro.org>
+References: <1376463835-13040-1-git-send-email-B44344@freescale.com>
+In-Reply-To: <1376463835-13040-1-git-send-email-B44344@freescale.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-Most of the drivers do following in their ->target_index() routines:
+This patch ports PowerPC implementation of spin_event_timeout() for generic
+use. Architecture specific implementation can be added to asm/delay.h, which
+will override the generic linux implementation.
 
-	struct cpufreq_freqs freqs;
-	freqs.old = old freq...
-	freqs.new = new freq...
-
-	cpufreq_notify_transition(policy, &freqs, CPUFREQ_PRECHANGE);
-
-	/* Change rate here */
-
-	cpufreq_notify_transition(policy, &freqs, CPUFREQ_POSTCHANGE);
-
-This is replicated over all cpufreq drivers today and there doesn't exists a
-good enough reason why this shouldn't be moved to cpufreq core instead.
-
-Earlier patches have added support in cpufreq core to do cpufreq notification on
-frequency change, this one removes it from this driver.
-
-Some related minor cleanups are also done along with it.
-
-Cc: David S. Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+Signed-off-by: Arpit Goel <B44344@freescale.com>
 ---
- drivers/cpufreq/sparc-us2e-cpufreq.c | 7 -------
- drivers/cpufreq/sparc-us3-cpufreq.c  | 7 -------
- 2 files changed, 14 deletions(-)
+ include/linux/delay.h | 40 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 40 insertions(+)
 
-diff --git a/drivers/cpufreq/sparc-us2e-cpufreq.c b/drivers/cpufreq/sparc-us2e-cpufreq.c
-index 3bf5b8f..62aa23e 100644
---- a/drivers/cpufreq/sparc-us2e-cpufreq.c
-+++ b/drivers/cpufreq/sparc-us2e-cpufreq.c
-@@ -251,7 +251,6 @@ static int us2e_freq_target(struct cpufreq_policy *policy, unsigned int index)
- 	unsigned long new_bits, new_freq;
- 	unsigned long clock_tick, divisor, old_divisor, estar;
- 	cpumask_t cpus_allowed;
--	struct cpufreq_freqs freqs;
+diff --git a/include/linux/delay.h b/include/linux/delay.h
+index a6ecb34..2ee7fa8 100644
+--- a/include/linux/delay.h
++++ b/include/linux/delay.h
+@@ -52,4 +52,44 @@ static inline void ssleep(unsigned int seconds)
+ 	msleep(seconds * 1000);
+ }
  
- 	cpumask_copy(&cpus_allowed, tsk_cpus_allowed(current));
- 	set_cpus_allowed_ptr(current, cpumask_of(cpu));
-@@ -265,16 +264,10 @@ static int us2e_freq_target(struct cpufreq_policy *policy, unsigned int index)
- 
- 	old_divisor = estar_to_divisor(estar);
- 
--	freqs.old = clock_tick / old_divisor;
--	freqs.new = new_freq;
--	cpufreq_notify_transition(policy, &freqs, CPUFREQ_PRECHANGE);
--
- 	if (old_divisor != divisor)
- 		us2e_transition(estar, new_bits, clock_tick * 1000,
- 				old_divisor, divisor);
- 
--	cpufreq_notify_transition(policy, &freqs, CPUFREQ_POSTCHANGE);
--
- 	set_cpus_allowed_ptr(current, &cpus_allowed);
- 
- 	return 0;
-diff --git a/drivers/cpufreq/sparc-us3-cpufreq.c b/drivers/cpufreq/sparc-us3-cpufreq.c
-index 2e54d55..724ffbd 100644
---- a/drivers/cpufreq/sparc-us3-cpufreq.c
-+++ b/drivers/cpufreq/sparc-us3-cpufreq.c
-@@ -98,7 +98,6 @@ static int us3_freq_target(struct cpufreq_policy *policy, unsigned int index)
- 	unsigned int cpu = policy->cpu;
- 	unsigned long new_bits, new_freq, reg;
- 	cpumask_t cpus_allowed;
--	struct cpufreq_freqs freqs;
- 
- 	cpumask_copy(&cpus_allowed, tsk_cpus_allowed(current));
- 	set_cpus_allowed_ptr(current, cpumask_of(cpu));
-@@ -124,16 +123,10 @@ static int us3_freq_target(struct cpufreq_policy *policy, unsigned int index)
- 
- 	reg = read_safari_cfg();
- 
--	freqs.old = get_current_freq(cpu, reg);
--	freqs.new = new_freq;
--	cpufreq_notify_transition(policy, &freqs, CPUFREQ_PRECHANGE);
--
- 	reg &= ~SAFARI_CFG_DIV_MASK;
- 	reg |= new_bits;
- 	write_safari_cfg(reg);
- 
--	cpufreq_notify_transition(policy, &freqs, CPUFREQ_POSTCHANGE);
--
- 	set_cpus_allowed_ptr(current, &cpus_allowed);
- 
- 	return 0;
++#ifndef spin_event_timeout
++/**
++ * spin_event_timeout - spin until a condition gets true or a timeout elapses
++ * @condition: a C expression to evalate
++ * @timeout: timeout, in microseconds
++ * @delay: the number of microseconds to delay between each evaluation of
++ *         @condition
++ *
++ * The process spins until the condition evaluates to true (non-zero) or the
++ * timeout elapses.  The return value of this macro is the value of
++ * @condition when the loop terminates. This allows you to determine the cause
++ * of the loop terminates.  If the return value is zero, then you know a
++ * timeout has occurred.
++ *
++ * This primary purpose of this macro is to poll on a hardware register
++ * until a status bit changes.  The timeout ensures that the loop still
++ * terminates even if the bit never changes.  The delay is for devices that
++ * need a delay in between successive reads.
++ *
++ * gcc will optimize out the if-statement if @delay is a constant.
++ *
++ * This is copied from PowerPC based spin_event_timeout() implementation
++ * and modified for generic usecase.
++ */
++#define spin_event_timeout(condition, timeout, delay)		\
++({								\
++	typeof(condition) __ret;				\
++	unsigned long __loops = usecs_to_jiffies(timeout);	\
++	unsigned long __start = jiffies;			\
++	while (!(__ret = (condition)) &&			\
++		time_before(jiffies, __start + __loops + 1))	\
++		if (delay)					\
++			udelay(delay);				\
++		else						\
++			schedule();				\
++	if (!__ret)						\
++		__ret = (condition);				\
++	__ret;							\
++})
++#endif
+ #endif /* defined(_LINUX_DELAY_H) */
 -- 
-1.7.12.rc2.18.g61b472e
+1.8.1.4
+
 
