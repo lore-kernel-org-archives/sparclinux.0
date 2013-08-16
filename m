@@ -1,314 +1,101 @@
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Date: Fri, 09 Aug 2013 20:27:06 +0000
-Subject: [PATCHv9 01/10] PCI: use weak functions for MSI arch-specific functions
-Message-Id: <1376080035-29344-2-git-send-email-thomas.petazzoni@free-electrons.com>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Date: Fri, 16 Aug 2013 02:37:28 +0000
+Subject: [PATCH 31/34] cpufreq: sparc: remove calls to cpufreq_notify_transition()
+Message-Id: <a1899648402480a75183174ad084fb21fea78065.1376619363.git.viresh.kumar@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1376080035-29344-1-git-send-email-thomas.petazzoni@free-electrons.com>
-In-Reply-To: <1376080035-29344-1-git-send-email-thomas.petazzoni@free-electrons.com>
+References: <cover.1376619363.git.viresh.kumar@linaro.org>
+In-Reply-To: <cover.1376619363.git.viresh.kumar@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-Until now, the MSI architecture-specific functions could be overloaded
-using a fairly complex set of #define and compile-time
-conditionals. In order to prepare for the introduction of the msi_chip
-infrastructure, it is desirable to switch all those functions to use
-the 'weak' mechanism. This commit converts all the architectures that
-were overidding those MSI functions to use the new strategy.
+Most of the drivers do following in their ->target_index() routines:
 
-Note that we keep two separate, non-weak, functions
-default_teardown_msi_irqs() and default_restore_msi_irqs() for the
-default behavior of the arch_teardown_msi_irqs() and
-arch_restore_msi_irqs(), as the default behavior is needed by x86 PCI
-code.
+	struct cpufreq_freqs freqs;
+	freqs.old = old freq...
+	freqs.new = new freq...
 
-Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Tested-by: Daniel Price <daniel.price@gmail.com>
-Tested-by: Thierry Reding <thierry.reding@gmail.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: linux390@de.ibm.com
-Cc: linux-s390@vger.kernel.org
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: x86@kernel.org
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: linux-ia64@vger.kernel.org
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: linux-mips@linux-mips.org
+	cpufreq_notify_transition(policy, &freqs, CPUFREQ_PRECHANGE);
+
+	/* Change rate here */
+
+	cpufreq_notify_transition(policy, &freqs, CPUFREQ_POSTCHANGE);
+
+This is replicated over all cpufreq drivers today and there doesn't exists a
+good enough reason why this shouldn't be moved to cpufreq core instead.
+
+Earlier patches have added support in cpufreq core to do cpufreq notification on
+frequency change, this one removes it from this driver.
+
+Some related minor cleanups are also done along with it.
+
 Cc: David S. Miller <davem@davemloft.net>
 Cc: sparclinux@vger.kernel.org
-Cc: Chris Metcalf <cmetcalf@tilera.com>
+Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
 ---
- arch/mips/include/asm/pci.h    |  5 -----
- arch/powerpc/include/asm/pci.h |  5 -----
- arch/s390/include/asm/pci.h    |  4 ----
- arch/x86/include/asm/pci.h     | 30 --------------------------
- arch/x86/kernel/x86_init.c     | 24 +++++++++++++++++++++
- drivers/pci/msi.c              | 48 +++++++++++++++++++++---------------------
- include/linux/msi.h            |  8 ++++++-
- 7 files changed, 55 insertions(+), 69 deletions(-)
+ drivers/cpufreq/sparc-us2e-cpufreq.c | 7 -------
+ drivers/cpufreq/sparc-us3-cpufreq.c  | 7 -------
+ 2 files changed, 14 deletions(-)
 
-diff --git a/arch/mips/include/asm/pci.h b/arch/mips/include/asm/pci.h
-index fa8e0aa..f194c08 100644
---- a/arch/mips/include/asm/pci.h
-+++ b/arch/mips/include/asm/pci.h
-@@ -136,11 +136,6 @@ static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
- 	return channel ? 15 : 14;
- }
+diff --git a/drivers/cpufreq/sparc-us2e-cpufreq.c b/drivers/cpufreq/sparc-us2e-cpufreq.c
+index 3bf5b8f..62aa23e 100644
+--- a/drivers/cpufreq/sparc-us2e-cpufreq.c
++++ b/drivers/cpufreq/sparc-us2e-cpufreq.c
+@@ -251,7 +251,6 @@ static int us2e_freq_target(struct cpufreq_policy *policy, unsigned int index)
+ 	unsigned long new_bits, new_freq;
+ 	unsigned long clock_tick, divisor, old_divisor, estar;
+ 	cpumask_t cpus_allowed;
+-	struct cpufreq_freqs freqs;
  
--#ifdef CONFIG_CPU_CAVIUM_OCTEON
--/* MSI arch hook for OCTEON */
--#define arch_setup_msi_irqs arch_setup_msi_irqs
--#endif
+ 	cpumask_copy(&cpus_allowed, tsk_cpus_allowed(current));
+ 	set_cpus_allowed_ptr(current, cpumask_of(cpu));
+@@ -265,16 +264,10 @@ static int us2e_freq_target(struct cpufreq_policy *policy, unsigned int index)
+ 
+ 	old_divisor = estar_to_divisor(estar);
+ 
+-	freqs.old = clock_tick / old_divisor;
+-	freqs.new = new_freq;
+-	cpufreq_notify_transition(policy, &freqs, CPUFREQ_PRECHANGE);
 -
- extern char * (*pcibios_plat_setup)(char *str);
+ 	if (old_divisor != divisor)
+ 		us2e_transition(estar, new_bits, clock_tick * 1000,
+ 				old_divisor, divisor);
  
- #ifdef CONFIG_OF
-diff --git a/arch/powerpc/include/asm/pci.h b/arch/powerpc/include/asm/pci.h
-index 6653f27..95145a1 100644
---- a/arch/powerpc/include/asm/pci.h
-+++ b/arch/powerpc/include/asm/pci.h
-@@ -113,11 +113,6 @@ extern int pci_domain_nr(struct pci_bus *bus);
- /* Decide whether to display the domain number in /proc */
- extern int pci_proc_domain(struct pci_bus *bus);
- 
--/* MSI arch hooks */
--#define arch_setup_msi_irqs arch_setup_msi_irqs
--#define arch_teardown_msi_irqs arch_teardown_msi_irqs
--#define arch_msi_check_device arch_msi_check_device
+-	cpufreq_notify_transition(policy, &freqs, CPUFREQ_POSTCHANGE);
 -
- struct vm_area_struct;
- /* Map a range of PCI memory or I/O space for a device into user space */
- int pci_mmap_page_range(struct pci_dev *pdev, struct vm_area_struct *vma,
-diff --git a/arch/s390/include/asm/pci.h b/arch/s390/include/asm/pci.h
-index 6e577ba..262b91b 100644
---- a/arch/s390/include/asm/pci.h
-+++ b/arch/s390/include/asm/pci.h
-@@ -21,10 +21,6 @@ void pci_iounmap(struct pci_dev *, void __iomem *);
- int pci_domain_nr(struct pci_bus *);
- int pci_proc_domain(struct pci_bus *);
- 
--/* MSI arch hooks */
--#define arch_setup_msi_irqs	arch_setup_msi_irqs
--#define arch_teardown_msi_irqs	arch_teardown_msi_irqs
--
- #define ZPCI_BUS_NR			0	/* default bus number */
- #define ZPCI_DEVFN			0	/* default device number */
- 
-diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
-index d9e9e6c..7d74432 100644
---- a/arch/x86/include/asm/pci.h
-+++ b/arch/x86/include/asm/pci.h
-@@ -100,29 +100,6 @@ static inline void early_quirks(void) { }
- extern void pci_iommu_alloc(void);
- 
- #ifdef CONFIG_PCI_MSI
--/* MSI arch specific hooks */
--static inline int x86_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
--{
--	return x86_msi.setup_msi_irqs(dev, nvec, type);
--}
--
--static inline void x86_teardown_msi_irqs(struct pci_dev *dev)
--{
--	x86_msi.teardown_msi_irqs(dev);
--}
--
--static inline void x86_teardown_msi_irq(unsigned int irq)
--{
--	x86_msi.teardown_msi_irq(irq);
--}
--static inline void x86_restore_msi_irqs(struct pci_dev *dev, int irq)
--{
--	x86_msi.restore_msi_irqs(dev, irq);
--}
--#define arch_setup_msi_irqs x86_setup_msi_irqs
--#define arch_teardown_msi_irqs x86_teardown_msi_irqs
--#define arch_teardown_msi_irq x86_teardown_msi_irq
--#define arch_restore_msi_irqs x86_restore_msi_irqs
- /* implemented in arch/x86/kernel/apic/io_apic. */
- struct msi_desc;
- int native_setup_msi_irqs(struct pci_dev *dev, int nvec, int type);
-@@ -130,16 +107,9 @@ void native_teardown_msi_irq(unsigned int irq);
- void native_restore_msi_irqs(struct pci_dev *dev, int irq);
- int setup_msi_irq(struct pci_dev *dev, struct msi_desc *msidesc,
- 		  unsigned int irq_base, unsigned int irq_offset);
--/* default to the implementation in drivers/lib/msi.c */
--#define HAVE_DEFAULT_MSI_TEARDOWN_IRQS
--#define HAVE_DEFAULT_MSI_RESTORE_IRQS
--void default_teardown_msi_irqs(struct pci_dev *dev);
--void default_restore_msi_irqs(struct pci_dev *dev, int irq);
- #else
- #define native_setup_msi_irqs		NULL
- #define native_teardown_msi_irq		NULL
--#define default_teardown_msi_irqs	NULL
--#define default_restore_msi_irqs	NULL
- #endif
- 
- #define PCI_DMA_BUS_IS_PHYS (dma_ops->is_phys)
-diff --git a/arch/x86/kernel/x86_init.c b/arch/x86/kernel/x86_init.c
-index 5f24c71..8ce0072 100644
---- a/arch/x86/kernel/x86_init.c
-+++ b/arch/x86/kernel/x86_init.c
-@@ -107,6 +107,8 @@ struct x86_platform_ops x86_platform = {
- };
- 
- EXPORT_SYMBOL_GPL(x86_platform);
-+
-+#if defined(CONFIG_PCI_MSI)
- struct x86_msi_ops x86_msi = {
- 	.setup_msi_irqs		= native_setup_msi_irqs,
- 	.compose_msi_msg	= native_compose_msi_msg,
-@@ -116,6 +118,28 @@ struct x86_msi_ops x86_msi = {
- 	.setup_hpet_msi		= default_setup_hpet_msi,
- };
- 
-+/* MSI arch specific hooks */
-+int arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
-+{
-+	return x86_msi.setup_msi_irqs(dev, nvec, type);
-+}
-+
-+void arch_teardown_msi_irqs(struct pci_dev *dev)
-+{
-+	x86_msi.teardown_msi_irqs(dev);
-+}
-+
-+void arch_teardown_msi_irq(unsigned int irq)
-+{
-+	x86_msi.teardown_msi_irq(irq);
-+}
-+
-+void arch_restore_msi_irqs(struct pci_dev *dev, int irq)
-+{
-+	x86_msi.restore_msi_irqs(dev, irq);
-+}
-+#endif
-+
- struct x86_io_apic_ops x86_io_apic_ops = {
- 	.init			= native_io_apic_init_mappings,
- 	.read			= native_io_apic_read,
-diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
-index aca7578..823c386 100644
---- a/drivers/pci/msi.c
-+++ b/drivers/pci/msi.c
-@@ -30,20 +30,21 @@ static int pci_msi_enable = 1;
- 
- /* Arch hooks */
- 
--#ifndef arch_msi_check_device
--int arch_msi_check_device(struct pci_dev *dev, int nvec, int type)
-+int __weak arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc)
- {
--	return 0;
-+	return -EINVAL;
- }
--#endif
- 
--#ifndef arch_setup_msi_irqs
--# define arch_setup_msi_irqs default_setup_msi_irqs
--# define HAVE_DEFAULT_MSI_SETUP_IRQS
--#endif
-+void __weak arch_teardown_msi_irq(unsigned int irq)
-+{
-+}
- 
--#ifdef HAVE_DEFAULT_MSI_SETUP_IRQS
--int default_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
-+int __weak arch_msi_check_device(struct pci_dev *dev, int nvec, int type)
-+{
-+	return 0;
-+}
-+
-+int __weak arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
- {
- 	struct msi_desc *entry;
- 	int ret;
-@@ -65,14 +66,11 @@ int default_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
+ 	set_cpus_allowed_ptr(current, &cpus_allowed);
  
  	return 0;
- }
--#endif
+diff --git a/drivers/cpufreq/sparc-us3-cpufreq.c b/drivers/cpufreq/sparc-us3-cpufreq.c
+index 2e54d55..724ffbd 100644
+--- a/drivers/cpufreq/sparc-us3-cpufreq.c
++++ b/drivers/cpufreq/sparc-us3-cpufreq.c
+@@ -98,7 +98,6 @@ static int us3_freq_target(struct cpufreq_policy *policy, unsigned int index)
+ 	unsigned int cpu = policy->cpu;
+ 	unsigned long new_bits, new_freq, reg;
+ 	cpumask_t cpus_allowed;
+-	struct cpufreq_freqs freqs;
+ 
+ 	cpumask_copy(&cpus_allowed, tsk_cpus_allowed(current));
+ 	set_cpus_allowed_ptr(current, cpumask_of(cpu));
+@@ -124,16 +123,10 @@ static int us3_freq_target(struct cpufreq_policy *policy, unsigned int index)
+ 
+ 	reg = read_safari_cfg();
+ 
+-	freqs.old = get_current_freq(cpu, reg);
+-	freqs.new = new_freq;
+-	cpufreq_notify_transition(policy, &freqs, CPUFREQ_PRECHANGE);
 -
--#ifndef arch_teardown_msi_irqs
--# define arch_teardown_msi_irqs default_teardown_msi_irqs
--# define HAVE_DEFAULT_MSI_TEARDOWN_IRQS
--#endif
+ 	reg &= ~SAFARI_CFG_DIV_MASK;
+ 	reg |= new_bits;
+ 	write_safari_cfg(reg);
  
--#ifdef HAVE_DEFAULT_MSI_TEARDOWN_IRQS
-+/*
-+ * We have a default implementation available as a separate non-weak
-+ * function, as it is used by the Xen x86 PCI code
-+ */
- void default_teardown_msi_irqs(struct pci_dev *dev)
- {
- 	struct msi_desc *entry;
-@@ -89,14 +87,12 @@ void default_teardown_msi_irqs(struct pci_dev *dev)
- 			arch_teardown_msi_irq(entry->irq + i);
- 	}
- }
--#endif
+-	cpufreq_notify_transition(policy, &freqs, CPUFREQ_POSTCHANGE);
+-
+ 	set_cpus_allowed_ptr(current, &cpus_allowed);
  
--#ifndef arch_restore_msi_irqs
--# define arch_restore_msi_irqs default_restore_msi_irqs
--# define HAVE_DEFAULT_MSI_RESTORE_IRQS
--#endif
-+void __weak arch_teardown_msi_irqs(struct pci_dev *dev)
-+{
-+	return default_teardown_msi_irqs(dev);
-+}
- 
--#ifdef HAVE_DEFAULT_MSI_RESTORE_IRQS
- void default_restore_msi_irqs(struct pci_dev *dev, int irq)
- {
- 	struct msi_desc *entry;
-@@ -114,7 +110,11 @@ void default_restore_msi_irqs(struct pci_dev *dev, int irq)
- 	if (entry)
- 		write_msi_msg(irq, &entry->msg);
- }
--#endif
-+
-+void __weak arch_restore_msi_irqs(struct pci_dev *dev, int irq)
-+{
-+	return default_restore_msi_irqs(dev, irq);
-+}
- 
- static void msi_set_enable(struct pci_dev *dev, int enable)
- {
-diff --git a/include/linux/msi.h b/include/linux/msi.h
-index ee66f3a..271dfd1 100644
---- a/include/linux/msi.h
-+++ b/include/linux/msi.h
-@@ -51,12 +51,18 @@ struct msi_desc {
- };
- 
- /*
-- * The arch hook for setup up msi irqs
-+ * The arch hooks to setup up msi irqs. Those functions are
-+ * implemented as weak symbols so that they /can/ be overriden by
-+ * architecture specific code if needed.
-  */
- int arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc);
- void arch_teardown_msi_irq(unsigned int irq);
- int arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type);
- void arch_teardown_msi_irqs(struct pci_dev *dev);
- int arch_msi_check_device(struct pci_dev* dev, int nvec, int type);
-+void arch_restore_msi_irqs(struct pci_dev *dev, int irq);
-+
-+void default_teardown_msi_irqs(struct pci_dev *dev);
-+void default_restore_msi_irqs(struct pci_dev *dev, int irq);
- 
- #endif /* LINUX_MSI_H */
+ 	return 0;
 -- 
-1.8.1.2
+1.7.12.rc2.18.g61b472e
 
