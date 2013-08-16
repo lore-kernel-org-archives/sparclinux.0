@@ -1,53 +1,74 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Date: Thu, 01 Aug 2013 01:36:13 +0000
-Subject: Re: [PATCH 2/2] Convert PowerPC macro spin_event_timeout() to architecture independent macro
-Message-Id: <51F9BB8D.6060907@codeaurora.org>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 16 Aug 2013 08:31:18 +0000
+Subject: Re: [PATCH] dm cache: Avoid conflicting remove_mapping() in mq policy
+Message-Id: <520DE356.9060506@roeck-us.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1375187900-17582-1-git-send-email-B44344@freescale.com>
- <1375187900-17582-3-git-send-email-B44344@freescale.com>
- <20130731071630.GI8868@codeaurora.org>
- <CAOZdJXVvNBR-qf7LXNOHZVstH_Rebxwn-wAkSaBS53Wn55mYCw@mail.gmail.com>
- <51F9A5FE.8030608@codeaurora.org> <51F9A80E.5010307@tabi.org>
- <51F9A8F1.9020704@codeaurora.org> <51F9A9CD.1040804@tabi.org>
-In-Reply-To: <51F9A9CD.1040804@tabi.org>
+References: <1374825451-30463-1-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1374825451-30463-1-git-send-email-geert@linux-m68k.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Alasdair Kergon <agk@redhat.com>, Joe Thornber <ejt@redhat.com>, Mike Snitzer <snitzer@redhat.com>, dm-devel@redhat.com, sparclinux@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-On 07/31/13 17:20, Timur Tabi wrote:
-> On 07/31/2013 07:16 PM, Stephen Boyd wrote:
->> cpu_relax() is usually just a compiler barrier or an instruction hint to
->> the cpu that it should cool down because we're spinning in a tight loop.
->> It certainly shouldn't be calling into the  scheduler.
-> Ah yes, I remember now.  So it does seem that if we can fix the problem
-> of non-incrementing 'jiffies', then this macro can be used in interrupts.
-
-That's encouraging. It looks like you introduced it to use in interrupt
-context but then it got shot down[1]? I lost track in all the versions.
-
+On 07/26/2013 12:57 AM, Geert Uytterhoeven wrote:
+> On sparc32, which includes <linux/swap.h> from <asm/pgtable_32.h>:
 >
-> Of course, that assumes that spinning in interrupt context is a good
-> idea to begin with.  Maybe we shouldn't be encouraging it?
-
-I read through the v5 discussion and it seems I'm about to walk through
-some tall grass on the way to Cerulean City.
-
-Andrew Morton, I choose you! Use your mind-power move to convince
-everyone that having a macro for spinning on a register in interrupt
-context is a good thing. At least it will be more obvious.
-
+> drivers/md/dm-cache-policy-mq.c:962:13: error: conflicting types for 'remove_mapping'
+> include/linux/swap.h:285:12: note: previous declaration of 'remove_mapping' was here
 >
->>>> FYI, you might want to look at the code reviews for spin_event_timeout()
->>>> on the linuxppc-dev mailing list, back in March 2009.
->>>>
->> Sure. Any pointers? Otherwise I'll go digging around the archives.
-> https://lists.ozlabs.org/pipermail/linuxppc-dev/2009-March/thread.html
+> As mq_remove_mapping() already exists, and the local remove_mapping() is
+> used only once, inline it manually to avoid the conflict.
 >
+> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 
-[1] https://lists.ozlabs.org/pipermail/linuxppc-dev/2009-May/072521.html
+Is this patch going anyhere ? The problem breaks the sparc32:allmodconfig build,
+so it would be useful to get it fixed.
 
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-hosted by The Linux Foundation
+Thanks,
+Guenter
+
+> ---
+> I think this is also needed on hexagon, which includes <linux/swap.h> from
+> <asm/pgtable.h>.
+>
+>   drivers/md/dm-cache-policy-mq.c |   16 +++++++---------
+>   1 file changed, 7 insertions(+), 9 deletions(-)
+>
+> diff --git a/drivers/md/dm-cache-policy-mq.c b/drivers/md/dm-cache-policy-mq.c
+> index dc112a7..4296155 100644
+> --- a/drivers/md/dm-cache-policy-mq.c
+> +++ b/drivers/md/dm-cache-policy-mq.c
+> @@ -959,23 +959,21 @@ out:
+>   	return r;
+>   }
+>
+> -static void remove_mapping(struct mq_policy *mq, dm_oblock_t oblock)
+> +static void mq_remove_mapping(struct dm_cache_policy *p, dm_oblock_t oblock)
+>   {
+> -	struct entry *e = hash_lookup(mq, oblock);
+> +	struct mq_policy *mq = to_mq_policy(p);
+> +	struct entry *e;
+> +
+> +	mutex_lock(&mq->lock);
+> +
+> +	e = hash_lookup(mq, oblock);
+>
+>   	BUG_ON(!e || !e->in_cache);
+>
+>   	del(mq, e);
+>   	e->in_cache = false;
+>   	push(mq, e);
+> -}
+>
+> -static void mq_remove_mapping(struct dm_cache_policy *p, dm_oblock_t oblock)
+> -{
+> -	struct mq_policy *mq = to_mq_policy(p);
+> -
+> -	mutex_lock(&mq->lock);
+> -	remove_mapping(mq, oblock);
+>   	mutex_unlock(&mq->lock);
+>   }
+>
+>
 
