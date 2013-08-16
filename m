@@ -1,51 +1,134 @@
-From: Arpit Goel <B44344@freescale.com>
-Date: Wed, 14 Aug 2013 07:15:53 +0000
-Subject: [PATCH v2 0/2] Make PPC macro spin_event_timeout() architecture independent
-Message-Id: <1376463835-13040-1-git-send-email-B44344@freescale.com>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Date: Fri, 16 Aug 2013 02:36:58 +0000
+Subject: [PATCH 01/34] cpufreq: move freq change notifications to cpufreq core
+Message-Id: <8d083bb5c2d167aa0b52f48c3f17a1320b3e0249.1376619363.git.viresh.kumar@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <cover.1376619363.git.viresh.kumar@linaro.org>
+In-Reply-To: <cover.1376619363.git.viresh.kumar@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-This patch-set moves USECS_PER_JIFFY to architecture timex.h from architecture
-specific C files. Patch-set further uses this to make PPC macro
-spin_event_timeout() architecture independent. This change enables drivers to
-use spin_event_timeout() even in non-PowerPC based SoC's.
+Most of the drivers do following in their ->target_index() routines:
 
-This patchset has been compiled for ARM, PowerPC and x86.
+	struct cpufreq_freqs freqs;
+	freqs.old = old freq...
+	freqs.new = new freq...
 
-Patch[1/2] : Moves USECS_PER_JIFFY to architecture specific timex.h files from
-	     architecture specific C files.
+	cpufreq_notify_transition(policy, &freqs, CPUFREQ_PRECHANGE);
 
-Patch[2/2] : Converts PPC macro spin_event_timeout() in architecture independent
-	     macro.
+	/* Change rate here */
 
-Changes in v2:
-	Patch[1/2] Adds USEC_PER_JIFFY to linux/timex.h
-	Patch[2/2] uses usecs_to_jiffies for conversion
+	cpufreq_notify_transition(policy, &freqs, CPUFREQ_POSTCHANGE);
 
-Arpit Goel (2):
-  Make USECS_PER_JIFFY available for generic use
-  Convert PowerPC macro spin_event_timeout() to architecture independent
-    macro
+This is replicated over all cpufreq drivers today and there doesn't exists a
+good enough reason why this shouldn't be moved to cpufreq core instead.
 
- arch/arm/include/asm/timex.h      |  2 ++
- arch/arm/kernel/time.c            |  3 ---
- arch/m32r/include/asm/timex.h     |  2 ++
- arch/m32r/kernel/time.c           |  3 ---
- arch/m68k/hp300/time.c            |  4 +---
- arch/m68k/include/asm/timex.h     |  2 ++
- arch/s390/include/asm/timex.h     |  2 ++
- arch/s390/kernel/time.c           |  2 --
- arch/sparc/include/asm/timex_32.h |  2 ++
- arch/sparc/include/asm/timex_64.h |  2 ++
- arch/sparc/kernel/pcic.c          |  1 -
- include/linux/delay.h             | 40 +++++++++++++++++++++++++++++++++++++++
- include/linux/timex.h             |  5 +++++
- 13 files changed, 58 insertions(+), 12 deletions(-)
+There are few special cases though, like exynos5440, which doesn't do everything
+on the call to ->target_index() routine and call some kind of bottom halves for
+doing this work, work/tasklet/etc..
 
+They may continue doing notification from their own code and so this patch
+introduces another flag: CPUFREQ_NO_NOTIFICATION, which will be set by such
+drivers.
+
+Cc: Andrew Lunn <andrew@lunn.ch>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
+Cc: Eric Miao <eric.y.miao@gmail.com>
+Cc: Hans-Christian Egtvedt <egtvedt@samfundet.no>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: John Crispin <blogic@openwrt.org>
+Cc: Kukjin Kim <kgene.kim@samsung.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: linux-cris-kernel@axis.com
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Sekhar Nori <nsekhar@ti.com>
+Cc: Shawn Guo <shawn.guo@linaro.org>
+Cc: sparclinux@vger.kernel.org
+Cc: spear-devel@list.st.com
+Cc: Stephen Warren <swarren@nvidia.com>
+Cc: Steven Miao <realmz6@gmail.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+---
+ drivers/cpufreq/cpufreq.c | 34 ++++++++++++++++++++++++++++++++++
+ include/linux/cpufreq.h   |  6 ++++++
+ 2 files changed, 40 insertions(+)
+
+diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
+index a7a1d3e..2782949 100644
+--- a/drivers/cpufreq/cpufreq.c
++++ b/drivers/cpufreq/cpufreq.c
+@@ -1673,6 +1673,9 @@ int __cpufreq_driver_target(struct cpufreq_policy *policy,
+ 		retval = cpufreq_driver->target(policy, target_freq, relation);
+ 	else if (cpufreq_driver->target_index) {
+ 		struct cpufreq_frequency_table *freq_table;
++		struct cpufreq_freqs freqs;
++		unsigned long flags;
++		bool notify;
+ 		int index;
+ 
+ 		freq_table = cpufreq_frequency_get_table(policy->cpu);
+@@ -1691,7 +1694,38 @@ int __cpufreq_driver_target(struct cpufreq_policy *policy,
+ 		if (freq_table[index].frequency = policy->cur)
+ 			return 0;
+ 
++		read_lock_irqsave(&cpufreq_driver_lock, flags);
++		notify = !(cpufreq_driver->flags | CPUFREQ_NO_NOTIFICATION);
++		read_unlock_irqrestore(&cpufreq_driver_lock, flags);
++
++		if (notify) {
++			freqs.old = policy->cur;
++			freqs.new = freq_table[index].frequency;
++
++			pr_debug("%s: cpu: %d, oldfreq: %u, new freq: %u\n",
++					__func__, policy->cpu, freqs.old,
++					freqs.new);
++
++			cpufreq_notify_transition(policy, &freqs,
++					CPUFREQ_PRECHANGE);
++		}
++
+ 		retval = cpufreq_driver->target_index(policy, index);
++		if (retval)
++			pr_err("%s: Failed to change cpu frequency: %d\n",
++					__func__, retval);
++
++		if (notify) {
++			/*
++			 * Notify with old freq in case we failed to change
++			 * frequency
++			 */
++			if (retval)
++				freqs.new = freqs.old;
++
++			cpufreq_notify_transition(policy, &freqs,
++					CPUFREQ_POSTCHANGE);
++		}
+ 	}
+ 
+ 	return retval;
+diff --git a/include/linux/cpufreq.h b/include/linux/cpufreq.h
+index ff9c8df..62ce478 100644
+--- a/include/linux/cpufreq.h
++++ b/include/linux/cpufreq.h
+@@ -221,6 +221,12 @@ struct cpufreq_driver {
+ 					 * frequency transitions */
+ #define CPUFREQ_PM_NO_WARN	0x04	/* don't warn on suspend/resume speed
+ 					 * mismatches */
++/*
++ * Driver will call cpufreq_notify_transition() in its target_index() routine
++ * and so cpufreq core must not call it. Only useful for drivers that implement
++ * target_index(), unused otherwise.
++ */
++#define CPUFREQ_NO_NOTIFICATION	0x08
+ 
+ int cpufreq_register_driver(struct cpufreq_driver *driver_data);
+ int cpufreq_unregister_driver(struct cpufreq_driver *driver_data);
 -- 
-1.8.1.4
-
+1.7.12.rc2.18.g61b472e
 
