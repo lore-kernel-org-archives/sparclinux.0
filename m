@@ -1,29 +1,118 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 02 Aug 2013 01:07:48 +0000
-Subject: Re: sparc ESP SCSI error handling BUG+hang
-Message-Id: <20130801.180748.905410067616601949.davem@davemloft.net>
+From: Jianguo Wu <wujianguo@huawei.com>
+Date: Fri, 30 Aug 2013 02:06:51 +0000
+Subject: [PATCH 4/4] mm/arch: use NUMA_NODE
+Message-Id: <521FFE3B.7040801@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20130729.153223.2291945302397524459.davem@davemloft.net>
-	<20130729.161532.1928549790091477295.davem@davemloft.net>
-	<alpine.SOC.1.00.1307301257120.260@math.ut.ee>
-In-Reply-To: <alpine.SOC.1.00.1307301257120.260@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mroos@linux.ee
-Cc: sparclinux@vger.kernel.org, linux-scsi@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-From: Meelis Roos <mroos@linux.ee>
-Date: Tue, 30 Jul 2013 12:58:44 +0300 (EEST)
+Use more appropriate NUMA_NO_NODE instead of -1 in some archs' module_alloc()
 
->> > Therefore I think the fix is going to involve adding a member to
->> > "struct esp_cmd_entry" called "->orig_tag[]" so that we can see what
->> > the original tag[] values were at esp_alloc_lun_tag() time.
->> 
->> Please try this patch:
-> 
-> It works on 3 consecutive boots, thank you!
-> 
-> Tested-by: Meelis Roos <mroos@linux.ee>
+Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
+---
+ arch/arm/kernel/module.c    |    2 +-
+ arch/arm64/kernel/module.c  |    2 +-
+ arch/mips/kernel/module.c   |    2 +-
+ arch/parisc/kernel/module.c |    2 +-
+ arch/s390/kernel/module.c   |    2 +-
+ arch/sparc/kernel/module.c  |    2 +-
+ arch/x86/kernel/module.c    |    2 +-
+ 7 files changed, 7 insertions(+), 7 deletions(-)
 
-Thanks for testing, I'll push this to Linus via the sparc tree.
+diff --git a/arch/arm/kernel/module.c b/arch/arm/kernel/module.c
+index 85c3fb6..8f4cff3 100644
+--- a/arch/arm/kernel/module.c
++++ b/arch/arm/kernel/module.c
+@@ -40,7 +40,7 @@
+ void *module_alloc(unsigned long size)
+ {
+ 	return __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
+-				GFP_KERNEL, PAGE_KERNEL_EXEC, -1,
++				GFP_KERNEL, PAGE_KERNEL_EXEC, NUMA_NO_NODE,
+ 				__builtin_return_address(0));
+ }
+ #endif
+diff --git a/arch/arm64/kernel/module.c b/arch/arm64/kernel/module.c
+index ca0e3d5..8f898bd 100644
+--- a/arch/arm64/kernel/module.c
++++ b/arch/arm64/kernel/module.c
+@@ -29,7 +29,7 @@
+ void *module_alloc(unsigned long size)
+ {
+ 	return __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
+-				    GFP_KERNEL, PAGE_KERNEL_EXEC, -1,
++				    GFP_KERNEL, PAGE_KERNEL_EXEC, NUMA_NO_NODE,
+ 				    __builtin_return_address(0));
+ }
+ 
+diff --git a/arch/mips/kernel/module.c b/arch/mips/kernel/module.c
+index 977a623..b507e07 100644
+--- a/arch/mips/kernel/module.c
++++ b/arch/mips/kernel/module.c
+@@ -46,7 +46,7 @@ static DEFINE_SPINLOCK(dbe_lock);
+ void *module_alloc(unsigned long size)
+ {
+ 	return __vmalloc_node_range(size, 1, MODULE_START, MODULE_END,
+-				GFP_KERNEL, PAGE_KERNEL, -1,
++				GFP_KERNEL, PAGE_KERNEL, NUMA_NO_NODE,
+ 				__builtin_return_address(0));
+ }
+ #endif
+diff --git a/arch/parisc/kernel/module.c b/arch/parisc/kernel/module.c
+index 2a625fb..50dfafc 100644
+--- a/arch/parisc/kernel/module.c
++++ b/arch/parisc/kernel/module.c
+@@ -219,7 +219,7 @@ void *module_alloc(unsigned long size)
+ 	 * init_data correctly */
+ 	return __vmalloc_node_range(size, 1, VMALLOC_START, VMALLOC_END,
+ 				    GFP_KERNEL | __GFP_HIGHMEM,
+-				    PAGE_KERNEL_RWX, -1,
++				    PAGE_KERNEL_RWX, NUMA_NO_NODE,
+ 				    __builtin_return_address(0));
+ }
+ 
+diff --git a/arch/s390/kernel/module.c b/arch/s390/kernel/module.c
+index 7845e15..b89b591 100644
+--- a/arch/s390/kernel/module.c
++++ b/arch/s390/kernel/module.c
+@@ -50,7 +50,7 @@ void *module_alloc(unsigned long size)
+ 	if (PAGE_ALIGN(size) > MODULES_LEN)
+ 		return NULL;
+ 	return __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
+-				    GFP_KERNEL, PAGE_KERNEL, -1,
++				    GFP_KERNEL, PAGE_KERNEL, NUMA_NO_NODE,
+ 				    __builtin_return_address(0));
+ }
+ #endif
+diff --git a/arch/sparc/kernel/module.c b/arch/sparc/kernel/module.c
+index 4435488..97655e0 100644
+--- a/arch/sparc/kernel/module.c
++++ b/arch/sparc/kernel/module.c
+@@ -29,7 +29,7 @@ static void *module_map(unsigned long size)
+ 	if (PAGE_ALIGN(size) > MODULES_LEN)
+ 		return NULL;
+ 	return __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
+-				GFP_KERNEL, PAGE_KERNEL, -1,
++				GFP_KERNEL, PAGE_KERNEL, NUMA_NO_NODE,
+ 				__builtin_return_address(0));
+ }
+ #else
+diff --git a/arch/x86/kernel/module.c b/arch/x86/kernel/module.c
+index 216a4d7..18be189 100644
+--- a/arch/x86/kernel/module.c
++++ b/arch/x86/kernel/module.c
+@@ -49,7 +49,7 @@ void *module_alloc(unsigned long size)
+ 		return NULL;
+ 	return __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
+ 				GFP_KERNEL | __GFP_HIGHMEM, PAGE_KERNEL_EXEC,
+-				-1, __builtin_return_address(0));
++				NUMA_NO_NODE, __builtin_return_address(0));
+ }
+ 
+ #ifdef CONFIG_X86_32
+-- 
+1.7.1
+
+
