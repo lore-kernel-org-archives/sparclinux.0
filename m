@@ -1,58 +1,62 @@
-From: Kirill Tkhai <tkhai@yandex.ru>
-Date: Mon, 09 Sep 2013 21:44:40 +0000
-Subject: Re: [RFC] sparc64: Duplicate kernel text on every NUMA node
-Message-Id: <7901378763080@web17g.yandex.ru>
+From: Magnus Damm <magnus.damm@gmail.com>
+Date: Wed, 04 Sep 2013 07:27:37 +0000
+Subject: Re: [Query] CPUFreq: Does these machines have separate clock domains for CPUs?
+Message-Id: <CANqRtoQF8-W=EFcV+LEPGbJf=h_yfyjVg=+0F5Sif15jB8XjBg@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <8311377178790@web14g.yandex.ru>
-In-Reply-To: <8311377178790@web14g.yandex.ru>
+References: <CAKohponWn-RN7-6sdhghd6RGCOd357G+TKLsxHfqnSCuMD7xxw@mail.gmail.com>
+ <CANqRtoTSO2yyP35naDe4y6a7rL99=cSs4-bJAWOxR5HL2gbpuw@mail.gmail.com>
+ <CAKohpom06N4DNZxrQcey-73o1jpQkNpCce2=-Wn+mDHLG9r-3g@mail.gmail.com>
+In-Reply-To: <CAKohpom06N4DNZxrQcey-73o1jpQkNpCce2=-Wn+mDHLG9r-3g@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-arm-kernel@lists.infradead.org
 
+Hi Viresh,
 
-
-09.09.2013, 21:31, "David Miller" <davem@davemloft.net>:
-> From: Kirill Tkhai <tkhai@yandex.ru>
-> Date: Mon, 09 Sep 2013 18:50:00 +0400
+On Fri, Aug 30, 2013 at 4:33 PM, Viresh Kumar <viresh.kumar@linaro.org> wrote:
+> On 30 August 2013 12:18, Magnus Damm <magnus.damm@gmail.com> wrote:
+>> Hi Viresh,
+>>
+>> On Thu, Aug 29, 2013 at 7:15 PM, Viresh Kumar <viresh.kumar@linaro.org> wrote:
+>>> Hi,
+>>>
+>>> I have been doing some CPUFreq cleanup work and
+>>> wanted to know if the below mentioned machines have separate
+>>> clock domains for their CPUs or all share the same domain?
+>>>
+>>> So, that we can use some generic routines for these drivers which
+>>> would eventually do:
+>>>
+>>> cpumask_setall(policy->cpus);
+>>>
+>>> And I wanted to make sure that this doesn't break them.. :)
+>>>
+>>> ......
+>>>
+>>> The drivers are:
+>> ...
+>>> drivers/cpufreq/sh-cpufreq.c
+>> ...
+>>
+>> The above SH cpufreq driver seems to be written with SMP in mind, but
+>> I would say SMP is a very rare case for SH. So I believe it can be
+>> considered as UP-only at this point. If Paul disagrees I'm quite sure
+>> he will tell us.
 >
->> =9ABefore:
->>
->> =9Areal =9A=9A=9A=9A7m58.466s
->> =9Auser =9A60m49.660s
->> =9Asys =9A=9A=9A47m40.030s
->>
->> =9AAfter:
->>
->> =9Areal =9A=9A=9A=9A7m55.562s
->> =9Auser =9A60m20.900s
->> =9Asys =9A=9A=9A46m36.040s
->>
->> =9ASo, the real profit (system time) is whole 2.2%. I thought, it would =
-be more :)
->> =9AIt seems, it's not big enough to really implement this feature. Pract=
-ice checks
->> =9Aa hypothesis.
+> Okay.. The problem isn't really SMP but different clock domains for CPUs
+> in a SMP system..
 >
-> You are juding the suitability of your optimization using one
-> statistical sample of a benchmark involving trillions of memory
-> accesses?
-> Please at least run it 3 or 4 times so you can see how much variation
-> occurs between runs in the same configuration. :-)
+> So, even if we have a SMP SH machine, will it have same clock line for
+> all CPUs?
 
-Yes, I compiled kernel 3 times for every case. Two above are middle results.
-Another cases are a little different, but tendency is like above.=20
-The low bound of difference is 2.0+%
+Yeah, I understand your question but I'm afraid that I don't know the
+answer myself.
 
-I did every test after cold start (and even took ethernet cable out). So, t=
-he result
-is honest :)
+> I will go with the change anyway..
 
-(For comparison: Plain memory access time ratio between own node and its
-neighbour is about 1.4 on the tested machine. It looks like instruction cac=
-he
-has the influence on above result. I don't know what is its influence on ma=
-chines
-of another type, maybe anywhere it is smaller).
+Good plan. Thanks for cleaning up the cpufreq bits.
 
-Kirill
+Cheers,
+
+/ magnus
