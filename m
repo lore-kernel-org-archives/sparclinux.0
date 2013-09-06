@@ -1,42 +1,21 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Thu, 05 Sep 2013 09:08:29 +0000
-Subject: [PATCH] sparc64: Export flush_ptrace_access() (needed by lustre)
-Message-Id: <1378372110-19094-1-git-send-email-geert@linux-m68k.org>
+From: Christoph Hellwig <hch@infradead.org>
+Date: Fri, 06 Sep 2013 12:56:13 +0000
+Subject: Re: [PATCH] sparc64: Export flush_ptrace_access() (needed by lustre)
+Message-Id: <20130906125613.GA6396@infradead.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1378372110-19094-1-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1378372110-19094-1-git-send-email-geert@linux-m68k.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Geert Uytterhoeven <geert@linux-m68k.org>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-ERROR: "flush_ptrace_access" [drivers/staging/lustre/lustre/libcfs/libcfs.ko]
-undefined!
+On Thu, Sep 05, 2013 at 11:08:29AM +0200, Geert Uytterhoeven wrote:
+> ERROR: "flush_ptrace_access" [drivers/staging/lustre/lustre/libcfs/libcfs.ko]
+> undefined!
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
----
- arch/sparc/kernel/ptrace_64.c |    2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/arch/sparc/kernel/ptrace_64.c b/arch/sparc/kernel/ptrace_64.c
-index 7ff45e4..8e7e2f9 100644
---- a/arch/sparc/kernel/ptrace_64.c
-+++ b/arch/sparc/kernel/ptrace_64.c
-@@ -14,6 +14,7 @@
- #include <linux/sched.h>
- #include <linux/mm.h>
- #include <linux/errno.h>
-+#include <linux/export.h>
- #include <linux/ptrace.h>
- #include <linux/user.h>
- #include <linux/smp.h>
-@@ -116,6 +117,7 @@ void flush_ptrace_access(struct vm_area_struct *vma, struct page *page,
- 
- 	preempt_enable();
- }
-+EXPORT_SYMBOL(flush_ptrace_access);
- 
- static int get_from_target(struct task_struct *target, unsigned long uaddr,
- 			   void *kbuf, int len)
--- 
-1.7.9.5
+This seems to be more copy_to_user_page fallout, so instead of all these
+arch patches we should figure out why lustre absolutely wants to use
+this API that so far has been for core MM code only.
 
