@@ -1,47 +1,55 @@
-From: Thierry Reding <thierry.reding@gmail.com>
-Date: Wed, 18 Sep 2013 13:24:52 +0000
-Subject: [PATCH v2 10/10] gpio: tegra: Use module_platform_driver()
-Message-Id: <1379510692-32435-11-git-send-email-treding@nvidia.com>
+From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Date: Sat, 07 Sep 2013 07:38:09 +0000
+Subject: [PATCH] sparc: remove deprecated IRQF_DISABLED
+Message-Id: <1378539489-7607-1-git-send-email-michael.opdenacker@free-electrons.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1379510692-32435-1-git-send-email-treding@nvidia.com>
-In-Reply-To: <1379510692-32435-1-git-send-email-treding@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Michael Opdenacker <michael.opdenacker@free-electrons.com>
 
-With the driver core now resolving interrupt references at probe time,
-it is no longer necessary to force explicit probe ordering using
-initcalls.
+This patch proposes to remove the IRQF_DISABLED flag from sparc architecture
+code. It's a NOOP since 2.6.35 and it will be removed one day.
 
-Signed-off-by: Thierry Reding <treding@nvidia.com>
+Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
 ---
-Note that there are potentially many more drivers that can be switched
-to the generic module_*_driver() interfaces now that interrupts can be
-resolved later and deferred probe should be able to handle all the
-ordering issues.
+ arch/sparc/include/asm/floppy_64.h | 2 +-
+ arch/sparc/kernel/ldc.c            | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
- drivers/gpio/gpio-tegra.c | 7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
-
-diff --git a/drivers/gpio/gpio-tegra.c b/drivers/gpio/gpio-tegra.c
-index 9a62672..766e6ef 100644
---- a/drivers/gpio/gpio-tegra.c
-+++ b/drivers/gpio/gpio-tegra.c
-@@ -513,12 +513,7 @@ static struct platform_driver tegra_gpio_driver = {
- 	},
- 	.probe		= tegra_gpio_probe,
- };
--
--static int __init tegra_gpio_init(void)
--{
--	return platform_driver_register(&tegra_gpio_driver);
--}
--postcore_initcall(tegra_gpio_init);
-+module_platform_driver(tegra_gpio_driver);
+diff --git a/arch/sparc/include/asm/floppy_64.h b/arch/sparc/include/asm/floppy_64.h
+index e204f90..7c90c50 100644
+--- a/arch/sparc/include/asm/floppy_64.h
++++ b/arch/sparc/include/asm/floppy_64.h
+@@ -254,7 +254,7 @@ static int sun_fd_request_irq(void)
+ 		once = 1;
  
- #ifdef	CONFIG_DEBUG_FS
+ 		error = request_irq(FLOPPY_IRQ, sparc_floppy_irq,
+-				    IRQF_DISABLED, "floppy", NULL);
++				    0, "floppy", NULL);
  
+ 		return ((error = 0) ? 0 : -1);
+ 	}
+diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
+index 54df554..e01d75d 100644
+--- a/arch/sparc/kernel/ldc.c
++++ b/arch/sparc/kernel/ldc.c
+@@ -1249,12 +1249,12 @@ int ldc_bind(struct ldc_channel *lp, const char *name)
+ 	snprintf(lp->rx_irq_name, LDC_IRQ_NAME_MAX, "%s RX", name);
+ 	snprintf(lp->tx_irq_name, LDC_IRQ_NAME_MAX, "%s TX", name);
+ 
+-	err = request_irq(lp->cfg.rx_irq, ldc_rx, IRQF_DISABLED,
++	err = request_irq(lp->cfg.rx_irq, ldc_rx, 0,
+ 			  lp->rx_irq_name, lp);
+ 	if (err)
+ 		return err;
+ 
+-	err = request_irq(lp->cfg.tx_irq, ldc_tx, IRQF_DISABLED,
++	err = request_irq(lp->cfg.tx_irq, ldc_tx, 0,
+ 			  lp->tx_irq_name, lp);
+ 	if (err) {
+ 		free_irq(lp->cfg.rx_irq, lp);
 -- 
-1.8.4
+1.8.1.2
 
