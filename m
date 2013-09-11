@@ -1,174 +1,309 @@
-From: Bob Picco <bpicco@meloft.net>
-Date: Mon, 16 Sep 2013 13:46:36 +0000
-Subject: [PATCH 1/4] sparc64 expand linear mapping region
-Message-Id: <1379339199-9388-2-git-send-email-bpicco@meloft.net>
+From: Jiang Liu <liuj97@gmail.com>
+Date: Wed, 11 Sep 2013 16:07:23 +0000
+Subject: [RFC PATCH v2 19/25] smp, sparc: kill SMP single function call interrupt
+Message-Id: <1378915649-16395-20-git-send-email-liuj97@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1378915649-16395-1-git-send-email-liuj97@gmail.com>
+In-Reply-To: <1378915649-16395-1-git-send-email-liuj97@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>, "David S. Miller" <davem@davemloft.net>, Sam Ravnborg <sam@ravnborg.org>, Shaohua Li <shli@kernel.org>
+Cc: liuj97@gmail.com, Jiang Liu <jiang.liu@huawei.com>, Ingo Molnar <mingo@elte.hu>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Steven Rostedt <rostedt@goodmis.org>, Jiri Kosina <trivial@kernel.org>, Wang YanQing <udknight@gmail.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
 
-From: bob picco <bpicco@meloft.net>
+From: Jiang Liu <jiang.liu@huawei.com>
 
-This prepares for four level page table support in sparc64. It expands
-the identity mapped region to 47 bits. It also identifies pieces of
-code which are impacted by the changes.
+Commit 9a46ad6d6df3b54 "smp: make smp_call_function_many() use logic
+similar to smp_call_function_single()" has unified the way to handle
+single and multiple cross-CPU function calls. Now only one interrupt
+is needed for architecture specific code to support generic SMP function
+call interfaces, so kill the redundant single function call interrupt.
 
-This patch introduces a new config option which isn't available until later
-in the patch series.
-
-Signed-off-by: Bob Picco <bob.picco@oracle.com>
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Cc: Jiang Liu <liuj97@gmail.com>
 ---
- arch/sparc/include/asm/page_64.h   |   10 +++++++++-
- arch/sparc/include/asm/sparsemem.h |    5 +++++
- arch/sparc/kernel/ktlb.S           |   12 +++++++-----
- arch/sparc/mm/init_64.c            |   11 +++++------
- arch/sparc/mm/init_64.h            |    4 ++++
- 5 files changed, 30 insertions(+), 12 deletions(-)
+ arch/sparc/include/asm/smp_32.h |  4 +---
+ arch/sparc/kernel/entry.S       | 10 ++--------
+ arch/sparc/kernel/leon_smp.c    | 31 +++++++------------------------
+ arch/sparc/kernel/smp_32.c      | 14 ++------------
+ arch/sparc/kernel/sun4d_smp.c   | 31 +++++++------------------------
+ arch/sparc/kernel/sun4m_smp.c   | 11 ++---------
+ 6 files changed, 21 insertions(+), 80 deletions(-)
 
-diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
-index e155388..f4e7adf 100644
---- a/arch/sparc/include/asm/page_64.h
-+++ b/arch/sparc/include/asm/page_64.h
-@@ -104,7 +104,15 @@ typedef pte_t *pgtable_t;
- /* We used to stick this into a hard-coded global register (%g4)
-  * but that does not make sense anymore.
-  */
--#define PAGE_OFFSET		_AC(0xFFFFF80000000000,UL)
-+#ifdef CONFIG_SPARC_PGTABLE_LEVEL4
-+#define	PO_LOWBITS		_AC(47,UL)
-+#define	PO_DELTA		_AC(0, UL)
-+#else
-+#define	PO_LOWBITS		_AC(43,UL)
-+#define	PO_DELTA		_AC(2, UL)
-+#endif
-+#define	PO_HIBITS		(BITS_PER_LONG - PO_LOWBITS)
-+#define	PAGE_OFFSET		(-(_AC(1,UL) << PO_LOWBITS))
+diff --git a/arch/sparc/include/asm/smp_32.h b/arch/sparc/include/asm/smp_32.h
+index 3c8917f..6aec01a 100644
+--- a/arch/sparc/include/asm/smp_32.h
++++ b/arch/sparc/include/asm/smp_32.h
+@@ -48,7 +48,6 @@ void smp_callin(void);
+ void smp_store_cpu_info(int);
  
- #ifndef __ASSEMBLY__
+ void smp_resched_interrupt(void);
+-void smp_call_function_single_interrupt(void);
+ void smp_call_function_interrupt(void);
  
-diff --git a/arch/sparc/include/asm/sparsemem.h b/arch/sparc/include/asm/sparsemem.h
-index b99d4e4..e147bb1 100644
---- a/arch/sparc/include/asm/sparsemem.h
-+++ b/arch/sparc/include/asm/sparsemem.h
-@@ -4,8 +4,13 @@
- #ifdef __KERNEL__
+ struct seq_file;
+@@ -60,8 +59,7 @@ struct sparc32_ipi_ops {
+ 			   unsigned long arg2, unsigned long arg3,
+ 			   unsigned long arg4);
+ 	void (*resched)(int cpu);
+-	void (*single)(int cpu);
+-	void (*mask_one)(int cpu);
++	void (*func_call)(int cpu);
+ };
+ extern const struct sparc32_ipi_ops *sparc32_ipi_ops;
  
- #define SECTION_SIZE_BITS       30
-+#ifdef CONFIG_SPARC_PGTABLE_LEVEL4
-+#define MAX_PHYSADDR_BITS       47
-+#define MAX_PHYSMEM_BITS        47
-+#else
- #define MAX_PHYSADDR_BITS       42
- #define MAX_PHYSMEM_BITS        42
-+#endif
- 
- #endif /* !(__KERNEL__) */
- 
-diff --git a/arch/sparc/kernel/ktlb.S b/arch/sparc/kernel/ktlb.S
-index fde5a41..ddb77b6 100644
---- a/arch/sparc/kernel/ktlb.S
-+++ b/arch/sparc/kernel/ktlb.S
-@@ -153,14 +153,16 @@
- 	/* Clear the PAGE_OFFSET top virtual bits, shift
- 	 * down to get PFN, and make sure PFN is in range.
+diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
+index e2a0300..80cc772 100644
+--- a/arch/sparc/kernel/entry.S
++++ b/arch/sparc/kernel/entry.S
+@@ -263,7 +263,7 @@ smp4m_ticker:
+ 	 * on some level other than 15 which is the NMI and only used
+ 	 * for cross calls.  That has a separate entry point below.
+ 	 *
+-	 * IPIs are sent on Level 12, 13 and 14. See IRQ_IPI_*.
++	 * IPIs are sent on Level 13 and 14. See IRQ_IPI_*.
  	 */
--	sllx		%g4, 21, %g5
-+	sllx		%g4, PO_HIBITS, %g5
+ maybe_smp4m_msg:
+ 	GET_PROCESSOR4M_ID(o3)
+@@ -287,14 +287,8 @@ maybe_smp4m_msg:
+ 	wr	%l4, PSR_ET, %psr
+ 	WRITE_PAUSE
+ 	srl	%o3, 28, %o2		! shift for simpler checks below
+-maybe_smp4m_msg_check_single:
+-	andcc	%o2, 0x1, %g0
+-	beq,a	maybe_smp4m_msg_check_mask
+-	 andcc	%o2, 0x2, %g0
+-	call	smp_call_function_single_interrupt
+-	 nop
+-	andcc	%o2, 0x2, %g0
+ maybe_smp4m_msg_check_mask:
++	andcc	%o2, 0x2, %g0
+ 	beq,a	maybe_smp4m_msg_check_resched
+ 	 andcc	%o2, 0x4, %g0
+ 	call	smp_call_function_interrupt
+diff --git a/arch/sparc/kernel/leon_smp.c b/arch/sparc/kernel/leon_smp.c
+index 6edf955..396b71d 100644
+--- a/arch/sparc/kernel/leon_smp.c
++++ b/arch/sparc/kernel/leon_smp.c
+@@ -271,8 +271,7 @@ void leon_irq_rotate(int cpu)
+ }
  
-+#ifndef CONFIG_SPARC_PGTABLE_LEVEL4
- 	/* Check to see if we know about valid memory at the 4MB
- 	 * chunk this physical address will reside within.
- 	 */
--	srlx		%g5, 21 + 41, %g2
-+	srlx		%g5, PO_HIBITS + PO_LOWBITS - PO_DELTA, %g2
- 	brnz,pn		%g2, kvmap_dtlb_longpath
- 	 nop
-+#endif
+ struct leon_ipi_work {
+-	int single;
+-	int msk;
++	int func_call;
+ 	int resched;
+ };
  
- 	/* This unconditional branch and delay-slot nop gets patched
- 	 * by the sethi sequence once the bitmap is properly setup.
-@@ -176,7 +178,7 @@
- 	or		%g7, %lo(sparc64_valid_addr_bitmap), %g7
- 	.previous
+@@ -308,7 +307,7 @@ static void __init leon_ipi_init(void)
  
--	srlx		%g5, 21 + 22, %g2
-+	srlx		%g5, PO_HIBITS + 22, %g2
- 	srlx		%g2, 6, %g5
- 	and		%g2, 63, %g2
- 	sllx		%g5, 3, %g5
-@@ -189,9 +191,9 @@
- 2:	 sethi		%hi(kpte_linear_bitmap), %g2
+ 	for_each_possible_cpu(cpu) {
+ 		work = &per_cpu(leon_ipi_work, cpu);
+-		work->single = work->msk = work->resched = 0;
++		work->func_call = work->resched = 0;
+ 	}
+ }
  
- 	/* Get the 256MB physical address index. */
--	sllx		%g4, 21, %g5
-+	sllx            %g4, PO_HIBITS, %g5
- 	or		%g2, %lo(kpte_linear_bitmap), %g2
--	srlx		%g5, 21 + 28, %g5
-+	srlx            %g5, PO_HIBITS + 28, %g5
- 	and		%g5, (32 - 1), %g7
+@@ -319,23 +318,12 @@ static void leon_send_ipi(int cpu, int level)
+ 	LEON3_BYPASS_STORE_PA(&leon3_irqctrl_regs->force[cpu], mask);
+ }
  
- 	/* Divide by 32 to get the offset into the bitmask.  */
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index ed82eda..3aebec9 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -1722,7 +1722,7 @@ static void __init sun4v_linear_pte_xor_finalize(void)
- #ifndef CONFIG_DEBUG_PAGEALLOC
- 	if (cpu_pgsz_mask & HV_PGSZ_MASK_256MB) {
- 		kern_linear_pte_xor[1] = (_PAGE_VALID | _PAGE_SZ256MB_4V) ^
--			0xfffff80000000000UL;
-+			PAGE_OFFSET;
- 		kern_linear_pte_xor[1] |= (_PAGE_CP_4V | _PAGE_CV_4V |
- 					   _PAGE_P_4V | _PAGE_W_4V);
- 	} else {
-@@ -1731,7 +1731,7 @@ static void __init sun4v_linear_pte_xor_finalize(void)
+-static void leon_ipi_single(int cpu)
++static void leon_ipi_func_call(int cpu)
+ {
+ 	struct leon_ipi_work *work = &per_cpu(leon_ipi_work, cpu);
  
- 	if (cpu_pgsz_mask & HV_PGSZ_MASK_2GB) {
- 		kern_linear_pte_xor[2] = (_PAGE_VALID | _PAGE_SZ2GB_4V) ^
--			0xfffff80000000000UL;
-+			PAGE_OFFSET;
- 		kern_linear_pte_xor[2] |= (_PAGE_CP_4V | _PAGE_CV_4V |
- 					   _PAGE_P_4V | _PAGE_W_4V);
- 	} else {
-@@ -1740,7 +1740,7 @@ static void __init sun4v_linear_pte_xor_finalize(void)
+ 	/* Mark work */
+-	work->single = 1;
+-
+-	/* Generate IRQ on the CPU */
+-	leon_send_ipi(cpu, leon_ipi_irq);
+-}
+-
+-static void leon_ipi_mask_one(int cpu)
+-{
+-	struct leon_ipi_work *work = &per_cpu(leon_ipi_work, cpu);
+-
+-	/* Mark work */
+-	work->msk = 1;
++	work->func_call = 1;
  
- 	if (cpu_pgsz_mask & HV_PGSZ_MASK_16GB) {
- 		kern_linear_pte_xor[3] = (_PAGE_VALID | _PAGE_SZ16GB_4V) ^
--			0xfffff80000000000UL;
-+			PAGE_OFFSET;
- 		kern_linear_pte_xor[3] |= (_PAGE_CP_4V | _PAGE_CV_4V |
- 					   _PAGE_P_4V | _PAGE_W_4V);
- 	} else {
-@@ -2308,10 +2308,9 @@ static void __init sun4v_pgprot_init(void)
- 	_PAGE_CACHE = _PAGE_CACHE_4V;
+ 	/* Generate IRQ on the CPU */
+ 	leon_send_ipi(cpu, leon_ipi_irq);
+@@ -356,12 +344,8 @@ void leonsmp_ipi_interrupt(void)
+ {
+ 	struct leon_ipi_work *work = &__get_cpu_var(leon_ipi_work);
  
- #ifdef CONFIG_DEBUG_PAGEALLOC
--	kern_linear_pte_xor[0] = _PAGE_VALID ^ 0xfffff80000000000UL;
-+	kern_linear_pte_xor[0] = _PAGE_VALID ^ PAGE_OFFSET;
- #else
--	kern_linear_pte_xor[0] = (_PAGE_VALID | _PAGE_SZ4MB_4V) ^
--		0xfffff80000000000UL;
-+	kern_linear_pte_xor[0] = (_PAGE_VALID | _PAGE_SZ4MB_4V) ^ PAGE_OFFSET;
- #endif
- 	kern_linear_pte_xor[0] |= (_PAGE_CP_4V | _PAGE_CV_4V |
- 				   _PAGE_P_4V | _PAGE_W_4V);
-diff --git a/arch/sparc/mm/init_64.h b/arch/sparc/mm/init_64.h
-index 0661aa6..0753ac6 100644
---- a/arch/sparc/mm/init_64.h
-+++ b/arch/sparc/mm/init_64.h
-@@ -5,7 +5,11 @@
-  * marked non-static so that assembler code can get at them.
-  */
+-	if (work->single) {
+-		work->single = 0;
+-		smp_call_function_single_interrupt();
+-	}
+-	if (work->msk) {
+-		work->msk = 0;
++	if (work->func_call) {
++		work->func_call = 0;
+ 		smp_call_function_interrupt();
+ 	}
+ 	if (work->resched) {
+@@ -467,8 +451,7 @@ void leon_cross_call_irq(void)
+ static const struct sparc32_ipi_ops leon_ipi_ops = {
+ 	.cross_call = leon_cross_call,
+ 	.resched    = leon_ipi_resched,
+-	.single     = leon_ipi_single,
+-	.mask_one   = leon_ipi_mask_one,
++	.func_call   = leon_ipi_func_call,
+ };
  
-+#ifdef CONFIG_SPARC_PGTABLE_LEVEL4
-+#define MAX_PHYS_ADDRESS	(1UL << 47UL)
-+#else
- #define MAX_PHYS_ADDRESS	(1UL << 41UL)
-+#endif
- #define KPTE_BITMAP_CHUNK_SZ		(256UL * 1024UL * 1024UL)
- #define KPTE_BITMAP_BYTES	\
- 	((MAX_PHYS_ADDRESS / KPTE_BITMAP_CHUNK_SZ) / 4)
+ void __init leon_init_smp(void)
+diff --git a/arch/sparc/kernel/smp_32.c b/arch/sparc/kernel/smp_32.c
+index a102bfb..0530d67 100644
+--- a/arch/sparc/kernel/smp_32.c
++++ b/arch/sparc/kernel/smp_32.c
+@@ -138,17 +138,15 @@ void smp_send_stop(void)
+ 
+ void arch_send_call_function_single_ipi(int cpu)
+ {
+-	/* trigger one IPI single call on one CPU */
+-	sparc32_ipi_ops->single(cpu);
++	sparc32_ipi_ops->func_call(cpu);
+ }
+ 
+ void arch_send_call_function_ipi_mask(const struct cpumask *mask)
+ {
+ 	int cpu;
+ 
+-	/* trigger IPI mask call on each CPU */
+ 	for_each_cpu(cpu, mask)
+-		sparc32_ipi_ops->mask_one(cpu);
++		sparc32_ipi_ops->func_call(cpu);
+ }
+ 
+ void smp_resched_interrupt(void)
+@@ -160,14 +158,6 @@ void smp_resched_interrupt(void)
+ 	/* re-schedule routine called by interrupt return code. */
+ }
+ 
+-void smp_call_function_single_interrupt(void)
+-{
+-	irq_enter();
+-	generic_smp_call_function_single_interrupt();
+-	local_cpu_data().irq_call_count++;
+-	irq_exit();
+-}
+-
+ void smp_call_function_interrupt(void)
+ {
+ 	irq_enter();
+diff --git a/arch/sparc/kernel/sun4d_smp.c b/arch/sparc/kernel/sun4d_smp.c
+index d5c3195..72f3797 100644
+--- a/arch/sparc/kernel/sun4d_smp.c
++++ b/arch/sparc/kernel/sun4d_smp.c
+@@ -181,8 +181,7 @@ void __init smp4d_smp_done(void)
+ 
+ /* Memory structure giving interrupt handler information about IPI generated */
+ struct sun4d_ipi_work {
+-	int single;
+-	int msk;
++	int func_call;
+ 	int resched;
+ };
+ 
+@@ -198,7 +197,7 @@ static void __init smp4d_ipi_init(void)
+ 
+ 	for_each_possible_cpu(cpu) {
+ 		work = &per_cpu(sun4d_ipi_work, cpu);
+-		work->single = work->msk = work->resched = 0;
++		work->func_call = work->resched = 0;
+ 	}
+ }
+ 
+@@ -206,12 +205,8 @@ void sun4d_ipi_interrupt(void)
+ {
+ 	struct sun4d_ipi_work *work = &__get_cpu_var(sun4d_ipi_work);
+ 
+-	if (work->single) {
+-		work->single = 0;
+-		smp_call_function_single_interrupt();
+-	}
+-	if (work->msk) {
+-		work->msk = 0;
++	if (work->func_call) {
++		work->func_call = 0;
+ 		smp_call_function_interrupt();
+ 	}
+ 	if (work->resched) {
+@@ -233,23 +228,12 @@ static void sun4d_send_ipi(int cpu, int level)
+ 	cc_set_igen(IGEN_MESSAGE(0, cpu << 3, 6 + ((level >> 1) & 7), 1 << (level - 1)));
+ }
+ 
+-static void sun4d_ipi_single(int cpu)
+-{
+-	struct sun4d_ipi_work *work = &per_cpu(sun4d_ipi_work, cpu);
+-
+-	/* Mark work */
+-	work->single = 1;
+-
+-	/* Generate IRQ on the CPU */
+-	sun4d_send_ipi(cpu, SUN4D_IPI_IRQ);
+-}
+-
+-static void sun4d_ipi_mask_one(int cpu)
++static void sun4d_ipi_func_call(int cpu)
+ {
+ 	struct sun4d_ipi_work *work = &per_cpu(sun4d_ipi_work, cpu);
+ 
+ 	/* Mark work */
+-	work->msk = 1;
++	work->func_call = 1;
+ 
+ 	/* Generate IRQ on the CPU */
+ 	sun4d_send_ipi(cpu, SUN4D_IPI_IRQ);
+@@ -392,8 +376,7 @@ void smp4d_percpu_timer_interrupt(struct pt_regs *regs)
+ static const struct sparc32_ipi_ops sun4d_ipi_ops = {
+ 	.cross_call = sun4d_cross_call,
+ 	.resched    = sun4d_ipi_resched,
+-	.single     = sun4d_ipi_single,
+-	.mask_one   = sun4d_ipi_mask_one,
++	.func_call   = sun4d_ipi_func_call,
+ };
+ 
+ void __init sun4d_init_smp(void)
+diff --git a/arch/sparc/kernel/sun4m_smp.c b/arch/sparc/kernel/sun4m_smp.c
+index d3408e7..d4b7d01 100644
+--- a/arch/sparc/kernel/sun4m_smp.c
++++ b/arch/sparc/kernel/sun4m_smp.c
+@@ -20,7 +20,6 @@
+ #include "irq.h"
+ #include "kernel.h"
+ 
+-#define IRQ_IPI_SINGLE		12
+ #define IRQ_IPI_MASK		13
+ #define IRQ_IPI_RESCHED		14
+ #define IRQ_CROSS_CALL		15
+@@ -145,12 +144,7 @@ static void sun4m_ipi_resched(int cpu)
+ 	sun4m_send_ipi(cpu, IRQ_IPI_RESCHED);
+ }
+ 
+-static void sun4m_ipi_single(int cpu)
+-{
+-	sun4m_send_ipi(cpu, IRQ_IPI_SINGLE);
+-}
+-
+-static void sun4m_ipi_mask_one(int cpu)
++static void sun4m_ipi_func_call(int cpu)
+ {
+ 	sun4m_send_ipi(cpu, IRQ_IPI_MASK);
+ }
+@@ -262,8 +256,7 @@ void smp4m_percpu_timer_interrupt(struct pt_regs *regs)
+ static const struct sparc32_ipi_ops sun4m_ipi_ops = {
+ 	.cross_call = sun4m_cross_call,
+ 	.resched    = sun4m_ipi_resched,
+-	.single     = sun4m_ipi_single,
+-	.mask_one   = sun4m_ipi_mask_one,
++	.func_call   = sun4m_ipi_func_call,
+ };
+ 
+ void __init sun4m_init_smp(void)
 -- 
-1.7.10.4
+1.8.1.2
 
