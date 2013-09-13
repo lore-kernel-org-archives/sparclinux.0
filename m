@@ -1,87 +1,137 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 30 Sep 2013 16:31:38 +0000
-Subject: [PATCH 1/9] sparc64: Clean up 64-bit mmap exclusion defines.
-Message-Id: <20130930.123138.632741318510402547.davem@davemloft.net>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Date: Fri, 13 Sep 2013 13:14:03 +0000
+Subject: [PATCH 177/228] cpufreq: sparc: Convert to light weight ->target_index() routine
+Message-Id: <b062bbe668243a5d093830096eda9d7f2e410e05.1379063063.git.viresh.kumar@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <cover.1379063063.git.viresh.kumar@linaro.org>
+In-Reply-To: <cover.1379063063.git.viresh.kumar@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
+This patch converts existing .target() to newly defined light weight
+.target_index() routine for this driver.
 
-Older UltraSPARC chips had an address space hole due to the MMU only
-supporting 44-bit virtual addresses.
+CPUFreq core will call cpufreq_frequency_table_target() before calling this
+routine and will pass index to it.
 
-The top end of this hole also has the same value as the current
-definition of PAGE_OFFSET, so this can be confusing.
-
-Consolidate the defines for the userspace mmap exclusion range into
-page_64.h and use them in sys_sparc_64.c and hugetlbpage.c
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Acked-by: Bob Picco <bob.picco@oracle.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
 ---
- arch/sparc/include/asm/page_64.h | 17 +++++++++++++++--
- arch/sparc/kernel/sys_sparc_64.c |  3 ---
- arch/sparc/mm/hugetlbpage.c      |  2 --
- 3 files changed, 15 insertions(+), 7 deletions(-)
+ drivers/cpufreq/sparc-us2e-cpufreq.c | 21 +++------------------
+ drivers/cpufreq/sparc-us3-cpufreq.c  | 23 +++--------------------
+ 2 files changed, 6 insertions(+), 38 deletions(-)
 
-diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
-index e155388..d959312 100644
---- a/arch/sparc/include/asm/page_64.h
-+++ b/arch/sparc/include/asm/page_64.h
-@@ -93,9 +93,22 @@ typedef unsigned long pgprot_t;
- 
- typedef pte_t *pgtable_t;
- 
-+/* These two values define the virtual address space range in which we
-+ * must forbid 64-bit user processes from making mappings.  It
-+ * represents the virtual address space hole present in most early
-+ * sparc64 chips including UltraSPARC-I.  The next two defines specify
-+ * the actual exclusion region we enforce, wherein we use a 4GB red
-+ * zone on each side of the VA hole.
-+ */
-+#define SPARC64_VA_HOLE_TOP	_AC(0xfffff80000000000,UL)
-+#define SPARC64_VA_HOLE_BOTTOM	_AC(0x0000080000000000,UL)
-+
-+#define VA_EXCLUDE_START (SPARC64_VA_HOLE_BOTTOM - (1UL << 32UL))
-+#define VA_EXCLUDE_END   (SPARC64_VA_HOLE_TOP + (1UL << 32UL))
-+
- #define TASK_UNMAPPED_BASE	(test_thread_flag(TIF_32BIT) ? \
--				 (_AC(0x0000000070000000,UL)) : \
--				 (_AC(0xfffff80000000000,UL) + (1UL << 32UL)))
-+				 _AC(0x0000000070000000,UL) : \
-+				 VA_EXCLUDE_END)
- 
- #include <asm-generic/memory_model.h>
- 
-diff --git a/arch/sparc/kernel/sys_sparc_64.c b/arch/sparc/kernel/sys_sparc_64.c
-index 51561b8..d05eb9c 100644
---- a/arch/sparc/kernel/sys_sparc_64.c
-+++ b/arch/sparc/kernel/sys_sparc_64.c
-@@ -39,9 +39,6 @@ asmlinkage unsigned long sys_getpagesize(void)
- 	return PAGE_SIZE;
+diff --git a/drivers/cpufreq/sparc-us2e-cpufreq.c b/drivers/cpufreq/sparc-us2e-cpufreq.c
+index 291688c..3bf5b8f 100644
+--- a/drivers/cpufreq/sparc-us2e-cpufreq.c
++++ b/drivers/cpufreq/sparc-us2e-cpufreq.c
+@@ -245,8 +245,7 @@ static unsigned int us2e_freq_get(unsigned int cpu)
+ 	return clock_tick / estar_to_divisor(estar);
  }
  
--#define VA_EXCLUDE_START (0x0000080000000000UL - (1UL << 32UL))
--#define VA_EXCLUDE_END   (0xfffff80000000000UL + (1UL << 32UL))
--
- /* Does addr --> addr+len fall within 4GB of the VA-space hole or
-  * overflow past the end of the 64-bit address space?
-  */
-diff --git a/arch/sparc/mm/hugetlbpage.c b/arch/sparc/mm/hugetlbpage.c
-index 9639964..3096317 100644
---- a/arch/sparc/mm/hugetlbpage.c
-+++ b/arch/sparc/mm/hugetlbpage.c
-@@ -21,8 +21,6 @@
- /* Slightly simplified from the non-hugepage variant because by
-  * definition we don't have to worry about any page coloring stuff
-  */
--#define VA_EXCLUDE_START (0x0000080000000000UL - (1UL << 32UL))
--#define VA_EXCLUDE_END   (0xfffff80000000000UL + (1UL << 32UL))
+-static void us2e_set_cpu_divider_index(struct cpufreq_policy *policy,
+-		unsigned int index)
++static int us2e_freq_target(struct cpufreq_policy *policy, unsigned int index)
+ {
+ 	unsigned int cpu = policy->cpu;
+ 	unsigned long new_bits, new_freq;
+@@ -277,20 +276,6 @@ static void us2e_set_cpu_divider_index(struct cpufreq_policy *policy,
+ 	cpufreq_notify_transition(policy, &freqs, CPUFREQ_POSTCHANGE);
  
- static unsigned long hugetlb_get_unmapped_area_bottomup(struct file *filp,
- 							unsigned long addr,
+ 	set_cpus_allowed_ptr(current, &cpus_allowed);
+-}
+-
+-static int us2e_freq_target(struct cpufreq_policy *policy,
+-			  unsigned int target_freq,
+-			  unsigned int relation)
+-{
+-	unsigned int new_index = 0;
+-
+-	if (cpufreq_frequency_table_target(policy,
+-					   &us2e_freq_table[policy->cpu].table[0],
+-					   target_freq, relation, &new_index))
+-		return -EINVAL;
+-
+-	us2e_set_cpu_divider_index(policy, new_index);
+ 
+ 	return 0;
+ }
+@@ -325,7 +310,7 @@ static int us2e_freq_cpu_exit(struct cpufreq_policy *policy)
+ {
+ 	if (cpufreq_us2e_driver) {
+ 		cpufreq_frequency_table_put_attr(policy->cpu);
+-		us2e_set_cpu_divider_index(policy, 0);
++		us2e_freq_target(policy, 0);
+ 	}
+ 
+ 	return 0;
+@@ -358,7 +343,7 @@ static int __init us2e_freq_init(void)
+ 
+ 		driver->init = us2e_freq_cpu_init;
+ 		driver->verify = cpufreq_generic_frequency_table_verify;
+-		driver->target = us2e_freq_target;
++		driver->target_index = us2e_freq_target;
+ 		driver->get = us2e_freq_get;
+ 		driver->exit = us2e_freq_cpu_exit;
+ 		strcpy(driver->name, "UltraSPARC-IIe");
+diff --git a/drivers/cpufreq/sparc-us3-cpufreq.c b/drivers/cpufreq/sparc-us3-cpufreq.c
+index 9b3dbd3..2e54d55 100644
+--- a/drivers/cpufreq/sparc-us3-cpufreq.c
++++ b/drivers/cpufreq/sparc-us3-cpufreq.c
+@@ -93,8 +93,7 @@ static unsigned int us3_freq_get(unsigned int cpu)
+ 	return ret;
+ }
+ 
+-static void us3_set_cpu_divider_index(struct cpufreq_policy *policy,
+-		unsigned int index)
++static int us3_freq_target(struct cpufreq_policy *policy, unsigned int index)
+ {
+ 	unsigned int cpu = policy->cpu;
+ 	unsigned long new_bits, new_freq, reg;
+@@ -136,22 +135,6 @@ static void us3_set_cpu_divider_index(struct cpufreq_policy *policy,
+ 	cpufreq_notify_transition(policy, &freqs, CPUFREQ_POSTCHANGE);
+ 
+ 	set_cpus_allowed_ptr(current, &cpus_allowed);
+-}
+-
+-static int us3_freq_target(struct cpufreq_policy *policy,
+-			  unsigned int target_freq,
+-			  unsigned int relation)
+-{
+-	unsigned int new_index = 0;
+-
+-	if (cpufreq_frequency_table_target(policy,
+-					   &us3_freq_table[policy->cpu].table[0],
+-					   target_freq,
+-					   relation,
+-					   &new_index))
+-		return -EINVAL;
+-
+-	us3_set_cpu_divider_index(policy, new_index);
+ 
+ 	return 0;
+ }
+@@ -182,7 +165,7 @@ static int us3_freq_cpu_exit(struct cpufreq_policy *policy)
+ {
+ 	if (cpufreq_us3_driver) {
+ 		cpufreq_frequency_table_put_attr(policy->cpu);
+-		us3_set_cpu_divider_index(policy, 0);
++		us3_freq_target(policy, 0);
+ 	}
+ 
+ 	return 0;
+@@ -219,7 +202,7 @@ static int __init us3_freq_init(void)
+ 
+ 		driver->init = us3_freq_cpu_init;
+ 		driver->verify = cpufreq_generic_frequency_table_verify;
+-		driver->target = us3_freq_target;
++		driver->target_index = us3_freq_target;
+ 		driver->get = us3_freq_get;
+ 		driver->exit = us3_freq_cpu_exit;
+ 		strcpy(driver->name, "UltraSPARC-III");
 -- 
-1.8.1.2
+1.7.12.rc2.18.g61b472e
 
