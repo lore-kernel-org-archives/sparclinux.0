@@ -1,69 +1,101 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Date: Sun, 22 Sep 2013 19:33:04 +0000
-Subject: [PATCH 2/2] silo: compile host-side tools with HOSTCC
-Message-Id: <1379878384-26476-3-git-send-email-aaro.koskinen@iki.fi>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Date: Fri, 13 Sep 2013 13:14:34 +0000
+Subject: [PATCH 208/228] cpufreq: sparc: remove calls to cpufreq_notify_transition()
+Message-Id: <e9a2b8127585439a3428ebc222b3df1dbe88924e.1379063063.git.viresh.kumar@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <cover.1379063063.git.viresh.kumar@linaro.org>
+In-Reply-To: <cover.1379063063.git.viresh.kumar@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-Compile host-side tools with HOSTCC/HOSTCFLAGS.
+Most of the drivers do following in their ->target_index() routines:
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+	struct cpufreq_freqs freqs;
+	freqs.old = old freq...
+	freqs.new = new freq...
+
+	cpufreq_notify_transition(policy, &freqs, CPUFREQ_PRECHANGE);
+
+	/* Change rate here */
+
+	cpufreq_notify_transition(policy, &freqs, CPUFREQ_POSTCHANGE);
+
+This is replicated over all cpufreq drivers today and there doesn't exists a
+good enough reason why this shouldn't be moved to cpufreq core instead.
+
+Earlier patches have added support in cpufreq core to do cpufreq notification on
+frequency change, this one removes it from this driver.
+
+Some related minor cleanups are also done along with it.
+
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
 ---
- Rules.make      | 2 ++
- common/Makefile | 3 +++
- second/Makefile | 2 +-
- 3 files changed, 6 insertions(+), 1 deletion(-)
+ drivers/cpufreq/sparc-us2e-cpufreq.c | 7 -------
+ drivers/cpufreq/sparc-us3-cpufreq.c  | 7 -------
+ 2 files changed, 14 deletions(-)
 
-diff --git a/Rules.make b/Rules.make
-index 4e722f9..0f176db 100644
---- a/Rules.make
-+++ b/Rules.make
-@@ -4,6 +4,7 @@ SHELL=/bin/bash
- RM=rm -f
- # We want to force 32-bit builds
- CC=gcc -m32
-+HOSTCC=gcc
- LD=ld -m elf32_sparc
- AS=as
- STRIP=strip
-@@ -20,6 +21,7 @@ cc-option-yn = $(shell if $(CC) $(CFLAGS) $(1) -S -o /dev/null -xc /dev/null \
- CFLAGS = -Os -Wall -I. -I../include -fomit-frame-pointer \
- 	-fno-strict-aliasing -DSMALL_RELOC=$(SMALL_RELOC) \
- 	-DLARGE_RELOC=$(LARGE_RELOC)
-+HOSTCFLAGS = -O2 -Wall
+diff --git a/drivers/cpufreq/sparc-us2e-cpufreq.c b/drivers/cpufreq/sparc-us2e-cpufreq.c
+index 3bf5b8f..62aa23e 100644
+--- a/drivers/cpufreq/sparc-us2e-cpufreq.c
++++ b/drivers/cpufreq/sparc-us2e-cpufreq.c
+@@ -251,7 +251,6 @@ static int us2e_freq_target(struct cpufreq_policy *policy, unsigned int index)
+ 	unsigned long new_bits, new_freq;
+ 	unsigned long clock_tick, divisor, old_divisor, estar;
+ 	cpumask_t cpus_allowed;
+-	struct cpufreq_freqs freqs;
  
- ifeq ($(call cc-option-yn, -fno-stack-protector),y)
- CFLAGS += -fno-stack-protector
-diff --git a/common/Makefile b/common/Makefile
-index f931af2..4c6f116 100644
---- a/common/Makefile
-+++ b/common/Makefile
-@@ -16,6 +16,9 @@ PROGRAMS = bin2h
+ 	cpumask_copy(&cpus_allowed, tsk_cpus_allowed(current));
+ 	set_cpus_allowed_ptr(current, cpumask_of(cpu));
+@@ -265,16 +264,10 @@ static int us2e_freq_target(struct cpufreq_policy *policy, unsigned int index)
  
- all: $(OBJS) $(PROGRAMS)
+ 	old_divisor = estar_to_divisor(estar);
  
-+bin2h: bin2h.c
-+	$(HOSTCC) $(HOSTCFLAGS) -o $@ $<
-+
- prom.o: prom.c
- 	$(CC) $(CFLAGS) -c -Wa,-Av9 -o prom.o prom.c
+-	freqs.old = clock_tick / old_divisor;
+-	freqs.new = new_freq;
+-	cpufreq_notify_transition(policy, &freqs, CPUFREQ_PRECHANGE);
+-
+ 	if (old_divisor != divisor)
+ 		us2e_transition(estar, new_bits, clock_tick * 1000,
+ 				old_divisor, divisor);
  
-diff --git a/second/Makefile b/second/Makefile
-index 75f9c20..1b504f3 100644
---- a/second/Makefile
-+++ b/second/Makefile
-@@ -85,7 +85,7 @@ malloc.o: ../common/malloc.c
- 	$(CC) $(CFLAGS) -c -o $@ $<
+-	cpufreq_notify_transition(policy, &freqs, CPUFREQ_POSTCHANGE);
+-
+ 	set_cpus_allowed_ptr(current, &cpus_allowed);
  
- util:	util.c
--	$(CC) -DSMALL_RELOC=$(SMALL_RELOC) -DLARGE_RELOC=$(LARGE_RELOC) -o $@ $<
-+	$(HOSTCC) $(HOSTCFLAGS) -DSMALL_RELOC=$(SMALL_RELOC) -DLARGE_RELOC=$(LARGE_RELOC) -o $@ $<
+ 	return 0;
+diff --git a/drivers/cpufreq/sparc-us3-cpufreq.c b/drivers/cpufreq/sparc-us3-cpufreq.c
+index 2e54d55..724ffbd 100644
+--- a/drivers/cpufreq/sparc-us3-cpufreq.c
++++ b/drivers/cpufreq/sparc-us3-cpufreq.c
+@@ -98,7 +98,6 @@ static int us3_freq_target(struct cpufreq_policy *policy, unsigned int index)
+ 	unsigned int cpu = policy->cpu;
+ 	unsigned long new_bits, new_freq, reg;
+ 	cpumask_t cpus_allowed;
+-	struct cpufreq_freqs freqs;
  
- clean:
- 	$(RM) *.o fs/*.o second* silotftp* util fs/libfs.a
+ 	cpumask_copy(&cpus_allowed, tsk_cpus_allowed(current));
+ 	set_cpus_allowed_ptr(current, cpumask_of(cpu));
+@@ -124,16 +123,10 @@ static int us3_freq_target(struct cpufreq_policy *policy, unsigned int index)
+ 
+ 	reg = read_safari_cfg();
+ 
+-	freqs.old = get_current_freq(cpu, reg);
+-	freqs.new = new_freq;
+-	cpufreq_notify_transition(policy, &freqs, CPUFREQ_PRECHANGE);
+-
+ 	reg &= ~SAFARI_CFG_DIV_MASK;
+ 	reg |= new_bits;
+ 	write_safari_cfg(reg);
+ 
+-	cpufreq_notify_transition(policy, &freqs, CPUFREQ_POSTCHANGE);
+-
+ 	set_cpus_allowed_ptr(current, &cpus_allowed);
+ 
+ 	return 0;
 -- 
-1.8.4.rc3
+1.7.12.rc2.18.g61b472e
 
