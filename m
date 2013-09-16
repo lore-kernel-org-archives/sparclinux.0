@@ -1,7 +1,7 @@
 From: Bob Picco <bpicco@meloft.net>
-Date: Mon, 16 Sep 2013 13:46:38 +0000
-Subject: [PATCH 3/4] sparc64 four level page table support
-Message-Id: <1379339199-9388-4-git-send-email-bpicco@meloft.net>
+Date: Mon, 16 Sep 2013 13:46:37 +0000
+Subject: [PATCH 2/4] sparc64 move three level page table scheme
+Message-Id: <1379339199-9388-3-git-send-email-bpicco@meloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,450 +10,392 @@ To: sparclinux@vger.kernel.org
 
 From: bob picco <bpicco@meloft.net>
 
-This patch adds the code required for the remaining parts of the four
-page table scheme. We allow enable utilization of this code in a subsequent
-patch.
+The three level page table scheme to handle unsigned int of pgd_t and pmd_t
+is moved to files identifying specifically three level (lvl3) page table.
 
 Signed-off-by: Bob Picco <bob.picco@oracle.com>
 ---
- arch/sparc/include/asm/page_64_lvl4.h    |   21 ++++
- arch/sparc/include/asm/pgalloc_64.h      |   16 +++
- arch/sparc/include/asm/pgtable_64.h      |    2 +-
- arch/sparc/include/asm/pgtable_64_lvl4.h |  191 ++++++++++++++++++++++++++++++
- arch/sparc/include/asm/tsb.h             |   55 +++++++++
- arch/sparc/kernel/smp_64.c               |    7 ++
- arch/sparc/mm/init_64.c                  |   25 +++-
- 7 files changed, 315 insertions(+), 2 deletions(-)
+ arch/sparc/include/asm/page_64.h         |   10 ++-
+ arch/sparc/include/asm/page_64_lvl3.h    |   15 ++++
+ arch/sparc/include/asm/pgtable_64.h      |  133 ++++--------------------------
+ arch/sparc/include/asm/pgtable_64_lvl3.h |  118 ++++++++++++++++++++++++++
+ 4 files changed, 154 insertions(+), 122 deletions(-)
 
-diff --git a/arch/sparc/include/asm/page_64_lvl4.h b/arch/sparc/include/asm/page_64_lvl4.h
+diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
+index f4e7adf..6226e9b 100644
+--- a/arch/sparc/include/asm/page_64.h
++++ b/arch/sparc/include/asm/page_64.h
+@@ -49,12 +49,16 @@ extern void copy_user_page(void *to, void *from, unsigned long vaddr, struct pag
+ 
+ #define STRICT_MM_TYPECHECKS
+ 
++#ifdef CONFIG_SPARC_PGTABLE_LEVEL4
++#include "page_64_lvl4.h"
++#else
++#include "page_64_lvl3.h"
++#endif
++
+ #ifdef STRICT_MM_TYPECHECKS
+ /* These are used to make use of C type-checking.. */
+ typedef struct { unsigned long pte; } pte_t;
+ typedef struct { unsigned long iopte; } iopte_t;
+-typedef struct { unsigned int pmd; } pmd_t;
+-typedef struct { unsigned int pgd; } pgd_t;
+ typedef struct { unsigned long pgprot; } pgprot_t;
+ 
+ #define pte_val(x)	((x).pte)
+@@ -73,8 +77,6 @@ typedef struct { unsigned long pgprot; } pgprot_t;
+ /* .. while these make it easier on the compiler */
+ typedef unsigned long pte_t;
+ typedef unsigned long iopte_t;
+-typedef unsigned int pmd_t;
+-typedef unsigned int pgd_t;
+ typedef unsigned long pgprot_t;
+ 
+ #define pte_val(x)	(x)
+diff --git a/arch/sparc/include/asm/page_64_lvl3.h b/arch/sparc/include/asm/page_64_lvl3.h
 new file mode 100644
-index 0000000..39bbf88
+index 0000000..a9619a0
 --- /dev/null
-+++ b/arch/sparc/include/asm/page_64_lvl4.h
-@@ -0,0 +1,21 @@
-+#ifndef _SPARC64_PAGE_LVL4_H
-+#define _SPARC64_PAGE_LVL4_H
++++ b/arch/sparc/include/asm/page_64_lvl3.h
+@@ -0,0 +1,15 @@
++#ifndef _SPARC64_PAGE_LVL3_H
++#define _SPARC64_PAGE_LVL3_H
 +
 +#ifdef STRICT_MM_TYPECHECKS
 +/* These are used to make use of C type-checking.. */
-+typedef struct { unsigned long pmd; } pmd_t;
-+typedef struct { unsigned long pud; } pud_t;
-+typedef struct { unsigned long pgd; } pgd_t;
-+
-+#define	__pud(x)	((pud_t) { (x) } )
++typedef struct { unsigned int pmd; } pmd_t;
++typedef struct { unsigned int pgd; } pgd_t;
 +
 +#else
-+typedef unsigned long pmd_t;
-+typedef unsigned long pud_t;
-+typedef unsigned long pgd_t;
-+
-+#define	__pud(x)	(x)
++typedef unsigned int pmd_t;
++typedef unsigned int pgd_t;
 +
 +#endif /* (STRICT_MM_TYPECHECKS) */
 +
-+#endif /* !_SPARC64_PAGE_LVL4_H */
-diff --git a/arch/sparc/include/asm/pgalloc_64.h b/arch/sparc/include/asm/pgalloc_64.h
-index bcfe063..355acdb 100644
---- a/arch/sparc/include/asm/pgalloc_64.h
-+++ b/arch/sparc/include/asm/pgalloc_64.h
-@@ -27,6 +27,18 @@ static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
- 
- #define pud_populate(MM, PUD, PMD)	pud_set(PUD, PMD)
- 
-+#ifdef CONFIG_SPARC_PGTABLE_LEVEL4
-+static inline pud_t *pud_alloc_one(struct mm_struct *mm, unsigned long addr)
-+{
-+	return kmem_cache_alloc(pgtable_cache, GFP_KERNEL|__GFP_REPEAT);
-+}
-+
-+static inline void pud_free(struct mm_struct *mm, pud_t *pud)
-+{
-+	kmem_cache_free(pgtable_cache, pud);
-+}
-+#endif
-+
- static inline pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long addr)
- {
- 	return kmem_cache_alloc(pgtable_cache,
-@@ -91,4 +103,8 @@ static inline void __pte_free_tlb(struct mmu_gather *tlb, pte_t *pte,
- #define __pmd_free_tlb(tlb, pmd, addr)		      \
- 	pgtable_free_tlb(tlb, pmd, false)
- 
-+#ifdef CONFIG_SPARC_PGTABLE_LEVEL4
-+#define	__pud_free_tlb(tlb, pud, addr)			\
-+	pgtable_free_tlb(tlb, pud, false)
-+#endif
- #endif /* _SPARC64_PGALLOC_H */
++#endif /* !_SPARC64_PAGE_LVL3_H */
 diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 785ead5..5ed8fb1 100644
+index 3676031..785ead5 100644
 --- a/arch/sparc/include/asm/pgtable_64.h
 +++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -688,7 +688,7 @@ static inline pmd_t pmdp_get_and_clear(struct mm_struct *mm,
- 				       pmd_t *pmdp)
- {
- 	pmd_t pmd = *pmdp;
--	set_pmd_at(mm, addr, pmdp, __pmd(0U));
-+	set_pmd_at(mm, addr, pmdp, __pmd(0UL));
- 	return pmd;
+@@ -20,9 +20,7 @@
+ #include <asm/page.h>
+ #include <asm/processor.h>
+ 
+-#include <asm-generic/pgtable-nopud.h>
+-
+-/* The kernel image occupies 0x4000000 to 0x6000000 (4MB --> 96MB).
++/* The kernel image occupies 0x400000 to 0x6000000 (4MB --> 96MB).
+  * The page copy blockops can use 0x6000000 to 0x8000000.
+  * The TSB is mapped in the 0x8000000 to 0xa000000 range.
+  * The PROM resides in an area spanning 0xf0000000 to 0x100000000.
+@@ -45,39 +43,12 @@
+ 
+ #define vmemmap			((struct page *)VMEMMAP_BASE)
+ 
+-/* PMD_SHIFT determines the size of the area a second-level page
+- * table can map
+- */
+-#define PMD_SHIFT	(PAGE_SHIFT + (PAGE_SHIFT-4))
+-#define PMD_SIZE	(_AC(1,UL) << PMD_SHIFT)
+-#define PMD_MASK	(~(PMD_SIZE-1))
+-#define PMD_BITS	(PAGE_SHIFT - 2)
+-
+-/* PGDIR_SHIFT determines what a third-level page table entry can map */
+-#define PGDIR_SHIFT	(PAGE_SHIFT + (PAGE_SHIFT-4) + PMD_BITS)
+-#define PGDIR_SIZE	(_AC(1,UL) << PGDIR_SHIFT)
+-#define PGDIR_MASK	(~(PGDIR_SIZE-1))
+-#define PGDIR_BITS	(PAGE_SHIFT - 2)
+-
+-#if (PGDIR_SHIFT + PGDIR_BITS) != 44
+-#error Page table parameters do not cover virtual address space properly.
+-#endif
+-
+-#if (PMD_SHIFT != HPAGE_SHIFT)
+-#error PMD_SHIFT must equal HPAGE_SHIFT for transparent huge pages.
+-#endif
+-
+-/* PMDs point to PTE tables which are 4K aligned.  */
+-#define PMD_PADDR	_AC(0xfffffffe,UL)
+-#define PMD_PADDR_SHIFT	_AC(11,UL)
+-
+ #define PMD_ISHUGE	_AC(0x00000001,UL)
+ 
+ /* This is the PMD layout when PMD_ISHUGE is set.  With 4MB huge
+  * pages, this frees up a bunch of bits in the layout that we can
+  * use for the protection settings and software metadata.
+  */
+-#define PMD_HUGE_PADDR		_AC(0xfffff800,UL)
+ #define PMD_HUGE_PROTBITS	_AC(0x000007ff,UL)
+ #define PMD_HUGE_PRESENT	_AC(0x00000400,UL)
+ #define PMD_HUGE_WRITE		_AC(0x00000200,UL)
+@@ -86,28 +57,23 @@
+ #define PMD_HUGE_EXEC		_AC(0x00000040,UL)
+ #define PMD_HUGE_SPLITTING	_AC(0x00000020,UL)
+ 
+-/* PGDs point to PMD tables which are 8K aligned.  */
+-#define PGD_PADDR	_AC(0xfffffffc,UL)
+-#define PGD_PADDR_SHIFT	_AC(11,UL)
+-
+-#ifndef __ASSEMBLY__
++#define pte_ERROR(e)	__builtin_trap()
++#define pmd_ERROR(e)	__builtin_trap()
++#define pgd_ERROR(e)	__builtin_trap()
+ 
+-#include <linux/sched.h>
++#ifdef CONFIG_SPARC_PGTABLE_LEVEL4
++#include "pgtable_64_lvl4.h"
++#else
++#include "pgtable_64_lvl3.h"
++#endif
+ 
+-/* Entries per page directory level. */
+-#define PTRS_PER_PTE	(1UL << (PAGE_SHIFT-4))
+-#define PTRS_PER_PMD	(1UL << PMD_BITS)
+-#define PTRS_PER_PGD	(1UL << PGDIR_BITS)
++#if (PMD_SHIFT != HPAGE_SHIFT)
++#error PMD_SHIFT must equal HPAGE_SHIFT for transparent huge pages.
++#endif
+ 
+ /* Kernel has a separate 44bit address space. */
+ #define FIRST_USER_ADDRESS	0
+ 
+-#define pte_ERROR(e)	__builtin_trap()
+-#define pmd_ERROR(e)	__builtin_trap()
+-#define pgd_ERROR(e)	__builtin_trap()
+-
+-#endif /* !(__ASSEMBLY__) */
+-
+ /* PTE bits which are the same in SUN4U and SUN4V format.  */
+ #define _PAGE_VALID	  _AC(0x8000000000000000,UL) /* Valid TTE            */
+ #define _PAGE_R	  	  _AC(0x8000000000000000,UL) /* Keep ref bit uptodate*/
+@@ -643,13 +609,6 @@ static inline int pmd_write(pmd_t pmd)
+ 	return pmd_val(pmd) & PMD_HUGE_WRITE;
  }
  
-diff --git a/arch/sparc/include/asm/pgtable_64_lvl4.h b/arch/sparc/include/asm/pgtable_64_lvl4.h
+-static inline unsigned long pmd_pfn(pmd_t pmd)
+-{
+-	unsigned long val = pmd_val(pmd) & PMD_HUGE_PADDR;
+-
+-	return val >> (PAGE_SHIFT - PMD_PADDR_SHIFT);
+-}
+-
+ static inline int pmd_trans_splitting(pmd_t pmd)
+ {
+ 	return (pmd_val(pmd) & (PMD_ISHUGE|PMD_HUGE_SPLITTING)) =
+@@ -708,12 +667,9 @@ static inline pmd_t pmd_mksplitting(pmd_t pmd)
+ extern pgprot_t pmd_pgprot(pmd_t entry);
+ #endif
+ 
+-static inline int pmd_present(pmd_t pmd)
+-{
+-	return pmd_val(pmd) != 0U;
+-}
+-
+-#define pmd_none(pmd)			(!pmd_val(pmd))
++/* Actual page table PTE updates.  */
++extern void tlb_batch_add(struct mm_struct *mm, unsigned long vaddr,
++			  pte_t *ptep, pte_t orig, int fullmm);
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ extern void set_pmd_at(struct mm_struct *mm, unsigned long addr,
+@@ -726,63 +682,6 @@ static inline void set_pmd_at(struct mm_struct *mm, unsigned long addr,
+ }
+ #endif
+ 
+-static inline void pmd_set(struct mm_struct *mm, pmd_t *pmdp, pte_t *ptep)
+-{
+-	unsigned long val = __pa((unsigned long) (ptep)) >> PMD_PADDR_SHIFT;
+-
+-	pmd_val(*pmdp) = val;
+-}
+-
+-#define pud_set(pudp, pmdp)	\
+-	(pud_val(*(pudp)) = (__pa((unsigned long) (pmdp)) >> PGD_PADDR_SHIFT))
+-static inline unsigned long __pmd_page(pmd_t pmd)
+-{
+-	unsigned long paddr = (unsigned long) pmd_val(pmd);
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	if (pmd_val(pmd) & PMD_ISHUGE)
+-		paddr &= PMD_HUGE_PADDR;
+-#endif
+-	paddr <<= PMD_PADDR_SHIFT;
+-	return ((unsigned long) __va(paddr));
+-}
+-#define pmd_page(pmd) 			virt_to_page((void *)__pmd_page(pmd))
+-#define pud_page_vaddr(pud)		\
+-	((unsigned long) __va((((unsigned long)pud_val(pud))<<PGD_PADDR_SHIFT)))
+-#define pud_page(pud) 			virt_to_page((void *)pud_page_vaddr(pud))
+-#define pmd_bad(pmd)			(0)
+-#define pmd_clear(pmdp)			(pmd_val(*(pmdp)) = 0U)
+-#define pud_none(pud)			(!pud_val(pud))
+-#define pud_bad(pud)			(0)
+-#define pud_present(pud)		(pud_val(pud) != 0U)
+-#define pud_clear(pudp)			(pud_val(*(pudp)) = 0U)
+-
+-/* Same in both SUN4V and SUN4U.  */
+-#define pte_none(pte) 			(!pte_val(pte))
+-
+-/* to find an entry in a page-table-directory. */
+-#define pgd_index(address)	(((address) >> PGDIR_SHIFT) & (PTRS_PER_PGD - 1))
+-#define pgd_offset(mm, address)	((mm)->pgd + pgd_index(address))
+-
+-/* to find an entry in a kernel page-table-directory */
+-#define pgd_offset_k(address) pgd_offset(&init_mm, address)
+-
+-/* Find an entry in the second-level page table.. */
+-#define pmd_offset(pudp, address)	\
+-	((pmd_t *) pud_page_vaddr(*(pudp)) + \
+-	 (((address) >> PMD_SHIFT) & (PTRS_PER_PMD-1)))
+-
+-/* Find an entry in the third-level page table.. */
+-#define pte_index(dir, address)	\
+-	((pte_t *) __pmd_page(*(dir)) + \
+-	 ((address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1)))
+-#define pte_offset_kernel		pte_index
+-#define pte_offset_map			pte_index
+-#define pte_unmap(pte)			do { } while (0)
+-
+-/* Actual page table PTE updates.  */
+-extern void tlb_batch_add(struct mm_struct *mm, unsigned long vaddr,
+-			  pte_t *ptep, pte_t orig, int fullmm);
+-
+ #define __HAVE_ARCH_PMDP_GET_AND_CLEAR
+ static inline pmd_t pmdp_get_and_clear(struct mm_struct *mm,
+ 				       unsigned long addr,
+@@ -837,8 +736,6 @@ static inline void __set_pte_at(struct mm_struct *mm, unsigned long addr,
+ })
+ #endif
+ 
+-extern pgd_t swapper_pg_dir[2048];
+-extern pmd_t swapper_low_pmd_dir[2048];
+ 
+ extern void paging_init(void);
+ extern unsigned long find_ecache_flush_span(unsigned long size);
+diff --git a/arch/sparc/include/asm/pgtable_64_lvl3.h b/arch/sparc/include/asm/pgtable_64_lvl3.h
 new file mode 100644
-index 0000000..dce0b04
+index 0000000..b762f0b
 --- /dev/null
-+++ b/arch/sparc/include/asm/pgtable_64_lvl4.h
-@@ -0,0 +1,191 @@
-+/* This is for a four level sparc64 software pagetable scheme.
-+ * Large parts gratefully taken from x86.
++++ b/arch/sparc/include/asm/pgtable_64_lvl3.h
+@@ -0,0 +1,118 @@
++#ifndef _SPARC64_PGTABLE_LVL3_H
++#define _SPARC64_PGTABLE_LVL3_H
++/* This is for a three level page table scheme.
 + */
 +
-+#ifndef _SPARC64_PGTABLE_LVL4_H
-+#define _SPARC64_PGTABLE_LVL4_H
++#include <asm-generic/pgtable-nopud.h>
 +
-+/* Unlike the three level page table scheme for sparc64, the four level
-+ * scheme doesn't compress the page frame within an unsigned int. It leaves
-+ * the pfn in its pte (TTE data part) form. Though only the first level
-+ * is ever actually loaded into the TSB.
++/* PMD_SHIFT determines the size of the area a second-level page
++ * table can map
 + */
-+#define PMD_PADDR_SHIFT _AC(0,UL)
++#define PMD_SHIFT	(PAGE_SHIFT + (PAGE_SHIFT-4))
++#define PMD_SIZE	(_AC(1,UL) << PMD_SHIFT)
++#define PMD_MASK	(~(PMD_SIZE-1))
++#define PMD_BITS	(PAGE_SHIFT - 2)
 +
-+/* PGDIR_SHIFT determines what a top-level page table entry can map
-+ */
-+#define PGDIR_SHIFT	42
-+#define PTRS_PER_PGD	1024
++/* PGDIR_SHIFT determines what a third-level page table entry can map */
++#define PGDIR_SHIFT	(PAGE_SHIFT + (PAGE_SHIFT-4) + PMD_BITS)
++#define PGDIR_SIZE	(_AC(1,UL) << PGDIR_SHIFT)
++#define PGDIR_MASK	(~(PGDIR_SIZE-1))
++#define PGDIR_BITS	(PAGE_SHIFT - 2)
 +
-+/* 3rd level page
-+ */
-+#define PUD_SHIFT	32
-+#define PTRS_PER_PUD	1024
++#if (PGDIR_SHIFT + PGDIR_BITS) != 44
++#error Page table parameters do not cover virtual address space properly.
++#endif
 +
-+/* PMD_SHIFT determines the size of the area a middle-level
-+ * page table can map
-+ */
-+#define PMD_SHIFT	22
-+#define PTRS_PER_PMD	1024
++/* PMDs point to PTE tables which are 4K aligned.  */
++#define PMD_PADDR	_AC(0xfffffffe,UL)
++#define PMD_PADDR_SHIFT	_AC(11,UL)
 +
-+#define PMD_SIZE	(_AC(1, UL) << PMD_SHIFT)
-+#define PMD_MASK	(~(PMD_SIZE - 1))
-+#define PUD_SIZE	(_AC(1, UL) << PUD_SHIFT)
-+#define PUD_MASK	(~(PUD_SIZE - 1))
-+#define PGDIR_SIZE	(_AC(1, UL) << PGDIR_SHIFT)
-+#define PGDIR_MASK	(~(PGDIR_SIZE - 1))
-+
-+#define PTRS_PER_PTE	(1UL << (PAGE_SHIFT-4))
-+
-+#define pmd_set(mm, pmdp, ptep)				\
-+		(pmd_val(*(pmdp)) = __pa((unsigned long) (ptep)))
-+#define pmd_clear(pmdp)		(pmd_val(*(pmdp)) = 0UL)
-+#define pud_set(pudp, pmdp) (pud_val(*(pudp)) = __pa((unsigned long) (pmdp)))
-+#define pud_page(pud)	    pfn_to_page(pud_val(pud) >> PAGE_SHIFT)
-+#define pud_val(x)		((x).pud)
-+#define pud_ERROR		pgd_ERROR
-+#define pgd_set(pgdp, pudp) (pgd_val(*(pgdp)) = __pa((unsigned long) (pudp)))
-+#define	pgd_bad(pgd)		(0)
-+#define pgd_val(x)		((x).pgd)
-+#define pgd_index(address)  (((address) >> PGDIR_SHIFT) & (PTRS_PER_PGD - 1))
-+#define pgd_offset(mm, address)	((mm)->pgd + pgd_index((address)))
-+#define pgd_offset_k(address)	pgd_offset(&init_mm, address)
-+#define pte_offset_map(dir, address) pte_offset_kernel((dir), (address))
-+#define	pte_unmap(pte)		do { } while (0)
++#define PMD_HUGE_PADDR		_AC(0xfffff800,UL)
++/* PGDs point to PMD tables which are 8K aligned.  */
++#define PGD_PADDR	_AC(0xfffffffc,UL)
++#define PGD_PADDR_SHIFT	_AC(11,UL)
 +
 +#ifndef __ASSEMBLY__
-+struct mm_struct;
++
 +#include <linux/sched.h>
 +
-+/* This fills in the lds slot.
-+ */
-+extern unsigned int swapper_low_pmd_dir[2048];
++/* Entries per page directory level. */
++#define PTRS_PER_PTE	(1UL << (PAGE_SHIFT-4))
++#define PTRS_PER_PMD	(1UL << PMD_BITS)
++#define PTRS_PER_PGD	(1UL << PGDIR_BITS)
 +
-+extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
-+
-+static inline void pgd_clear(pgd_t *pgd)
++static inline unsigned long pmd_pfn(pmd_t pmd)
 +{
-+	pgd_val(*(pgd)) = 0UL;
-+}
++	unsigned long val = pmd_val(pmd) & PMD_HUGE_PADDR;
 +
-+static inline void pud_clear(pud_t *pud)
-+{
-+	pud_val((*pud)) = 0UL;
-+}
-+
-+static inline void pgd_populate(struct mm_struct *mm, pgd_t *pgd, pud_t *pud)
-+{
-+	pgd_set(pgd, pud);
-+}
-+
-+static inline int pgd_present(pgd_t pgd)
-+{
-+	return pgd_val(pgd);
-+}
-+
-+static inline unsigned long pud_page_vaddr(pud_t pud)
-+{
-+	return (unsigned long)__va((unsigned long)pud_val(pud));
++	return val >> (PAGE_SHIFT - PMD_PADDR_SHIFT);
 +}
 +
 +static inline int pmd_present(pmd_t pmd)
 +{
-+	return pmd_val(pmd) != 0UL;
++	return pmd_val(pmd) != 0U;
 +}
 +
-+static inline int pmd_none(pmd_t pmd)
++#define pmd_none(pmd)			(!pmd_val(pmd))
++
++static inline void pmd_set(struct mm_struct *mm, pmd_t *pmdp, pte_t *ptep)
 +{
-+	return pmd_val(pmd) = 0;
++	unsigned long val = __pa((unsigned long) (ptep)) >> PMD_PADDR_SHIFT;
++
++	pmd_val(*pmdp) = val;
 +}
 +
-+static inline unsigned long pmd_index(unsigned long address)
-+{
-+	return (address >> PMD_SHIFT) & (PTRS_PER_PMD - 1);
-+}
-+
-+static inline pmd_t *pmd_offset(pud_t *pud, unsigned long address)
-+{
-+	return (pmd_t *) pud_page_vaddr(*pud) + pmd_index(address);
-+}
-+
-+static inline unsigned long pmd_page_vaddr(pmd_t pmd)
-+{
-+	return (unsigned long) __va(pmd_val(pmd));
-+}
-+
++#define pud_set(pudp, pmdp)	\
++	(pud_val(*(pudp)) = (__pa((unsigned long) (pmdp)) >> PGD_PADDR_SHIFT))
 +static inline unsigned long __pmd_page(pmd_t pmd)
 +{
-+	unsigned long pmdaddr = pmd_val(pmd);
-+
-+	pmdaddr &= ~PMD_HUGE_PROTBITS;
-+
-+	return (unsigned long) __va(pmdaddr);
++	unsigned long paddr = (unsigned long) pmd_val(pmd);
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	if (pmd_val(pmd) & PMD_ISHUGE)
++		paddr &= PMD_HUGE_PADDR;
++#endif
++	paddr <<= PMD_PADDR_SHIFT;
++	return ((unsigned long) __va(paddr));
 +}
++#define pmd_page(pmd) 			virt_to_page((void *)__pmd_page(pmd))
++#define pud_page_vaddr(pud)		\
++	((unsigned long) __va((((unsigned long)pud_val(pud))<<PGD_PADDR_SHIFT)))
++#define pud_page(pud) 			virt_to_page((void *)pud_page_vaddr(pud))
++#define pmd_bad(pmd)			(0)
++#define pmd_clear(pmdp)			(pmd_val(*(pmdp)) = 0U)
++#define pud_none(pud)			(!pud_val(pud))
++#define pud_bad(pud)			(0)
++#define pud_present(pud)		(pud_val(pud) != 0U)
++#define pud_clear(pudp)			(pud_val(*(pudp)) = 0U)
 +
-+#define pmd_page(pmd)	virt_to_page((void *)__pmd_page(pmd))
++/* Same in both SUN4V and SUN4U.  */
++#define pte_none(pte) 			(!pte_val(pte))
 +
-+static inline unsigned long pmd_pfn(pmd_t pmd)
-+{
-+	unsigned long pmdaddr = (unsigned long) pmd_val(pmd);
++/* to find an entry in a page-table-directory. */
++#define pgd_index(address)	(((address) >> PGDIR_SHIFT) & (PTRS_PER_PGD - 1))
++#define pgd_offset(mm, address)	((mm)->pgd + pgd_index(address))
 +
-+	pmdaddr &= PAGE_MASK;
++/* to find an entry in a kernel page-table-directory */
++#define pgd_offset_k(address) pgd_offset(&init_mm, address)
 +
-+	return pmdaddr >> PAGE_SHIFT;
-+}
++/* Find an entry in the second-level page table.. */
++#define pmd_offset(pudp, address)	\
++	((pmd_t *) pud_page_vaddr(*(pudp)) + \
++	 (((address) >> PMD_SHIFT) & (PTRS_PER_PMD-1)))
 +
-+static inline unsigned long pte_index(unsigned long address)
-+{
-+	return (address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1);
-+}
++/* Find an entry in the third-level page table.. */
++#define pte_index(dir, address)	\
++	((pte_t *) __pmd_page(*(dir)) + \
++	 ((address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1)))
++#define pte_offset_kernel		pte_index
++#define pte_offset_map			pte_index
++#define pte_unmap(pte)			do { } while (0)
 +
-+static inline pte_t *pte_offset_kernel(pmd_t *pmd, unsigned long address)
-+{
-+	return (pte_t *)pmd_page_vaddr(*pmd) + pte_index(address);
-+}
++#endif /* !(__ASSEMBLY__) */
 +
-+static inline int pmd_bad(pmd_t pmd)
-+{
-+	return 0;
-+}
-+
-+static inline int pud_present(pud_t pud)
-+{
-+	return pud_val(pud) != 0UL;
-+}
-+
-+static inline unsigned long pgd_page_vaddr(pgd_t pgd)
-+{
-+	return (unsigned long)__va(pgd_val(pgd));
-+}
-+
-+static inline unsigned long pud_index(unsigned long address)
-+{
-+	return (address >> PUD_SHIFT) & (PTRS_PER_PUD - 1);
-+}
-+
-+static inline pud_t *pud_offset(pgd_t *pgd, unsigned long address)
-+{
-+	return (pud_t *) pgd_page_vaddr(*pgd) + pud_index(address);
-+}
-+
-+static inline int pgd_none(pgd_t pgd)
-+{
-+	return !pgd_val(pgd);
-+}
-+
-+static inline int pud_none(pud_t pud)
-+{
-+	return !pud_val(pud);
-+}
-+
-+static inline int pud_bad(pud_t pud)
-+{
-+	return pud_val(pud) = 0UL;
-+}
-+
-+static inline int pte_none(pte_t pte)
-+{
-+	return !pte_val(pte);
-+}
++#ifndef __ASSEMBLY__
++extern pgd_t swapper_pg_dir[2048];
++extern pmd_t swapper_low_pmd_dir[2048];
 +#endif /* !__ASSEMBLY__ */
-+#endif /* !_SPARC64_PGTABLE_LVL4_H */
-diff --git a/arch/sparc/include/asm/tsb.h b/arch/sparc/include/asm/tsb.h
-index e696432..d8d0fae 100644
---- a/arch/sparc/include/asm/tsb.h
-+++ b/arch/sparc/include/asm/tsb.h
-@@ -137,6 +137,33 @@ extern struct tsb_phys_patch_entry __tsb_phys_patch, __tsb_phys_patch_end;
- 	 * REG1.  Jumps to FAIL_LABEL on early page table walk termination.
- 	 * VADDR will not be clobbered, but REG2 will.
- 	 */
-+#ifdef CONFIG_SPARC_PGTABLE_LEVEL4
-+#define	PTESLOT		0x3ff
-+#define HPTESLOT	0x1ff
-+#define KERN_PGTABLE_WALK(VADDR, REG1, REG2, FAIL_LABEL)	\
-+	sethi		%hi(swapper_pg_dir), REG1; \
-+	or		REG1, %lo(swapper_pg_dir), REG1; \
-+	srlx		VADDR, PGDIR_SHIFT , REG2; \
-+	and		REG2, PTESLOT, REG2; \
-+	sllx		REG2, 3, REG2; \
-+	ldx		[REG1 + REG2], REG2; \
-+	brz,pn          REG2, FAIL_LABEL; \
-+	srlx		VADDR, PUD_SHIFT , REG1; \
-+	and		REG1, PTESLOT, REG1; \
-+	sllx		REG1, 3, REG1; \
-+	ldxa		[REG2 + REG1] ASI_PHYS_USE_EC, REG1; \
-+	brz,pn          REG1, FAIL_LABEL; \
-+	srlx		VADDR, PMD_SHIFT , REG2; \
-+	and		REG2, PTESLOT, REG2; \
-+	sllx		REG2, 3, REG2; \
-+	ldxa		[REG1 + REG2] ASI_PHYS_USE_EC, REG1; \
-+	brz,pn          REG1, FAIL_LABEL; \
-+	srlx		VADDR, PAGE_SHIFT , REG2; \
-+	and		REG2, HPTESLOT, REG2; \
-+	sllx		REG2, 3, REG2; \
-+	add		REG1, REG2, REG1;
 +
-+#else
- #define KERN_PGTABLE_WALK(VADDR, REG1, REG2, FAIL_LABEL)	\
- 	sethi		%hi(swapper_pg_dir), REG1; \
- 	or		REG1, %lo(swapper_pg_dir), REG1; \
-@@ -156,6 +183,7 @@ extern struct tsb_phys_patch_entry __tsb_phys_patch, __tsb_phys_patch_end;
- 	sllx		REG1, PMD_PADDR_SHIFT, REG1; \
- 	andn		REG2, 0x7, REG2; \
- 	add		REG1, REG2, REG1;
-+#endif /* CONFIG_SPARC_PGTABLE_LEVEL4 */
- 
- 	/* These macros exists only to make the PMD translator below
- 	 * easier to read.  It hides the ELF section switch for the
-@@ -250,6 +278,32 @@ extern struct tsb_phys_patch_entry __tsb_phys_patch, __tsb_phys_patch_end;
- 	 *
- 	 * VADDR will not be clobbered, but REG1 and REG2 will.
- 	 */
-+#ifdef CONFIG_SPARC_PGTABLE_LEVEL4
-+#define USER_PGTABLE_WALK_TL1(VADDR, PHYS_PGD, REG1, REG2, FAIL_LABEL)	\
-+	srlx		VADDR, PGDIR_SHIFT , REG2; \
-+	and		REG2, PTESLOT, REG2; \
-+	sllx		REG2, 3, REG2; \
-+	ldxa		[PHYS_PGD + REG2] ASI_PHYS_USE_EC, REG2; \
-+	brz,pn          REG2, FAIL_LABEL; \
-+	srlx		VADDR, PUD_SHIFT , REG1; \
-+	and		REG1, PTESLOT, REG1; \
-+	sllx		REG1, 3, REG1; \
-+	ldxa		[REG2 + REG1] ASI_PHYS_USE_EC, REG1; \
-+	brz,pn          REG1, FAIL_LABEL; \
-+	srlx		VADDR, PMD_SHIFT , REG2; \
-+	and		REG2, PTESLOT, REG2; \
-+	sllx		REG2, 3, REG2; \
-+	ldxa		[REG1 + REG2] ASI_PHYS_USE_EC, REG1; \
-+	USER_PGTABLE_CHECK_PMD_HUGE(VADDR, REG1, REG2, FAIL_LABEL, 800f) \
-+	srlx		VADDR, PAGE_SHIFT , REG2; \
-+	and		REG2, HPTESLOT, REG2; \
-+	sllx		REG2, 3, REG2; \
-+	add		REG1, REG2, REG1; \
-+	ldxa		[REG1] ASI_PHYS_USE_EC, REG1; \
-+	brgez,pn	REG1, FAIL_LABEL; \
-+	 nop; \
-+800:
-+#else
- #define USER_PGTABLE_WALK_TL1(VADDR, PHYS_PGD, REG1, REG2, FAIL_LABEL)	\
- 	sllx		VADDR, 64 - (PGDIR_SHIFT + PGDIR_BITS), REG2; \
- 	srlx		REG2, 64 - PAGE_SHIFT, REG2; \
-@@ -271,6 +325,7 @@ extern struct tsb_phys_patch_entry __tsb_phys_patch, __tsb_phys_patch_end;
- 	brgez,pn	REG1, FAIL_LABEL; \
- 	 nop; \
- 800:
-+#endif	/* CONFIG_SPARC_PGTABLE_LEVEL4 */
- 
- /* Lookup a OBP mapping on VADDR in the prom_trans[] table at TL>0.
-  * If no entry is found, FAIL_LABEL will be branched to.  On success
-diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-index e142545..37e90f7 100644
---- a/arch/sparc/kernel/smp_64.c
-+++ b/arch/sparc/kernel/smp_64.c
-@@ -1474,6 +1474,13 @@ static void __init pcpu_populate_pte(unsigned long addr)
- 	pud_t *pud;
- 	pmd_t *pmd;
- 
-+	if (pgd_none(*pgd)) {
-+		pud_t *pud;
-+
-+		pud = __alloc_bootmem(PAGE_SIZE,  PAGE_SIZE, PAGE_SIZE);
-+		pgd_populate(&init_mm, pgd, pud);
-+	}
-+
- 	pud = pud_offset(pgd, addr);
- 	if (pud_none(*pud)) {
- 		pmd_t *new;
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 3aebec9..7c871a21 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -1376,6 +1376,14 @@ static unsigned long __ref kernel_map_range(unsigned long pstart,
- 		pmd_t *pmd;
- 		pte_t *pte;
- 
-+		if (pgd_none(*pgd)) {
-+			pud_t *pud;
-+
-+			pud = __alloc_bootmem(PAGE_SIZE,  PAGE_SIZE, PAGE_SIZE);
-+			alloc_bytes += PAGE_SIZE;
-+			pgd_populate(&init_mm, pgd, pud);
-+		}
-+
- 		pud = pud_offset(pgd, vstart);
- 		if (pud_none(*pud)) {
- 			pmd_t *new;
-@@ -1752,7 +1760,12 @@ static void __init sun4v_linear_pte_xor_finalize(void)
- /* paging_init() sets up the page tables */
- 
- static unsigned long last_valid_pfn;
-+#ifdef CONFIG_SPARC_PGTABLE_LEVEL4
-+pgd_t swapper_pg_dir[PTRS_PER_PGD];
-+static pud_t swapper_pud_dir[PTRS_PER_PUD];
-+#else
- pgd_t swapper_pg_dir[2048];
-+#endif
- 
- static void sun4u_pgprot_init(void);
- static void sun4v_pgprot_init(void);
-@@ -1853,11 +1866,21 @@ void __init paging_init(void)
- 	 */
- 	init_mm.pgd += ((shift) / (sizeof(pgd_t)));
- 	
-+	/* Now can init the kernel/bad page tables. */
-+#ifdef CONFIG_SPARC_PGTABLE_LEVEL4
-+	{
-+	pud_t *shift_pud = swapper_pud_dir + (shift / sizeof(pud_t));
-+	unsigned long  pgdoffset = pgd_offset(&swapper_pg_dir[0], 0UL);
-+	pgd_t *pgd = &swapper_pg_dir[pgdoffset];
-+
-+	pgd_set(pgd, (unsigned long) shift_pud);
-+	}
-+#else
- 	memset(swapper_low_pmd_dir, 0, sizeof(swapper_low_pmd_dir));
- 
--	/* Now can init the kernel/bad page tables. */
- 	pud_set(pud_offset(&swapper_pg_dir[0], 0),
- 		swapper_low_pmd_dir + (shift / sizeof(pgd_t)));
-+#endif
- 	
- 	inherit_prom_mappings();
- 	
++#endif /* !_SPARC64_PGTABLE_LVL3_H */
 -- 
 1.7.10.4
 
