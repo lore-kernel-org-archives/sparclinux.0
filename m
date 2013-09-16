@@ -1,127 +1,43 @@
-From: Thierry Reding <thierry.reding@gmail.com>
-Date: Wed, 18 Sep 2013 13:24:45 +0000
-Subject: [PATCH v2 03/10] irqdomain: Introduce __irq_create_mapping()
-Message-Id: <1379510692-32435-4-git-send-email-treding@nvidia.com>
+From: Bob Picco <bpicco@meloft.net>
+Date: Mon, 16 Sep 2013 13:46:39 +0000
+Subject: [PATCH 4/4] sparc64 kconfig four level page table
+Message-Id: <1379339199-9388-5-git-send-email-bpicco@meloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1379510692-32435-1-git-send-email-treding@nvidia.com>
-In-Reply-To: <1379510692-32435-1-git-send-email-treding@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-This is a version of irq_create_mapping() that propagates the precise
-error code instead of returning 0 for all errors. It will be used in
-subsequent patches to allow further propagation of error codes.
+From: bob picco <bpicco@meloft.net>
 
-To avoid code duplication, implement irq_create_mapping() as a wrapper
-around the new __irq_create_mapping().
+This patch introduces the option to select either three level page table
+support or four level page table support.
 
-Signed-off-by: Thierry Reding <treding@nvidia.com>
+Signed-off-by: Bob Picco <bob.picco@oracle.com>
 ---
- kernel/irq/irqdomain.c | 59 +++++++++++++++++++++++++++++++++-----------------
- 1 file changed, 39 insertions(+), 20 deletions(-)
+ arch/sparc/Kconfig |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
-index 706724e..d2a3b01 100644
---- a/kernel/irq/irqdomain.c
-+++ b/kernel/irq/irqdomain.c
-@@ -374,30 +374,21 @@ unsigned int irq_create_direct_mapping(struct irq_domain *domain)
- }
- EXPORT_SYMBOL_GPL(irq_create_direct_mapping);
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index a00cbd3..1369dfe 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -264,6 +264,15 @@ config US3_MC
  
--/**
-- * irq_create_mapping() - Map a hardware interrupt into linux irq space
-- * @domain: domain owning this hardware interrupt or NULL for default domain
-- * @hwirq: hardware irq number in that domain space
-- *
-- * Only one mapping per hardware interrupt is permitted. Returns a linux
-- * irq number.
-- * If the sense/trigger is to be specified, set_irq_type() should be called
-- * on the number returned from that call.
-- */
--unsigned int irq_create_mapping(struct irq_domain *domain,
--				irq_hw_number_t hwirq)
-+static int __irq_create_mapping(struct irq_domain *domain,
-+				irq_hw_number_t hwirq, unsigned int *virqp)
- {
--	unsigned int hint;
--	int virq;
-+	unsigned int hint, virq;
-+	int ret;
+ 	  If in doubt, say Y, as this information can be very useful.
  
--	pr_debug("irq_create_mapping(0x%p, 0x%lx)\n", domain, hwirq);
-+	pr_debug("__irq_create_mapping(0x%p, 0x%lx, %p)\n", domain, hwirq,
-+		 virqp);
- 
- 	/* Look for default domain if nececssary */
- 	if (domain = NULL)
- 		domain = irq_default_domain;
- 	if (domain = NULL) {
- 		WARN(1, "%s(, %lx) called with NULL domain\n", __func__, hwirq);
--		return 0;
-+		return -ENODEV;
- 	}
- 	pr_debug("-> using domain @%p\n", domain);
- 
-@@ -405,7 +396,11 @@ unsigned int irq_create_mapping(struct irq_domain *domain,
- 	virq = irq_find_mapping(domain, hwirq);
- 	if (virq) {
- 		pr_debug("-> existing mapping on virq %d\n", virq);
--		return virq;
++config SPARC_PGTABLE_LEVEL4
++	bool "Page Table Level"
++	depends on SPARC64 && SMP
++	help
++	  This enables sparc64 to access large physical memory
++	  configuration. For example consider 45 bits of physical address
++	  space (32 Tb).  This option might impact your performance
++	  in small memory configurations.
 +
-+		if (virqp)
-+			*virqp = virq;
-+
-+		return 0;
- 	}
- 
- 	/* Allocate a virtual interrupt number */
-@@ -417,17 +412,41 @@ unsigned int irq_create_mapping(struct irq_domain *domain,
- 		virq = irq_alloc_desc_from(1, of_node_to_nid(domain->of_node));
- 	if (virq <= 0) {
- 		pr_debug("-> virq allocation failed\n");
--		return 0;
-+		return virq ? : -ENOSPC;
- 	}
- 
--	if (irq_domain_associate(domain, virq, hwirq)) {
-+	ret = irq_domain_associate(domain, virq, hwirq);
-+	if (ret) {
- 		irq_free_desc(virq);
--		return 0;
-+		return ret;
- 	}
- 
- 	pr_debug("irq %lu on domain %s mapped to virtual irq %u\n",
- 		hwirq, of_node_full_name(domain->of_node), virq);
- 
-+	if (virqp)
-+		*virqp = virq;
-+
-+	return 0;
-+}
-+/**
-+ * irq_create_mapping() - Map a hardware interrupt into linux irq space
-+ * @domain: domain owning this hardware interrupt or NULL for default domain
-+ * @hwirq: hardware irq number in that domain space
-+ *
-+ * Only one mapping per hardware interrupt is permitted. Returns a linux
-+ * irq number.
-+ * If the sense/trigger is to be specified, set_irq_type() should be called
-+ * on the number returned from that call.
-+ */
-+unsigned int irq_create_mapping(struct irq_domain *domain,
-+				irq_hw_number_t hwirq)
-+{
-+	unsigned int virq;
-+
-+	if (__irq_create_mapping(domain, hwirq, &virq))
-+		return 0;
-+
- 	return virq;
- }
- EXPORT_SYMBOL_GPL(irq_create_mapping);
+ # Global things across all Sun machines.
+ config GENERIC_LOCKBREAK
+ 	bool
 -- 
-1.8.4
+1.7.10.4
 
