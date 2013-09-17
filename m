@@ -1,24 +1,24 @@
-From: <KurtCarver@robertwill.onmicrosoft.com>
-Date: Sat, 28 Sep 2013 23:47:54 +0000
-Subject: Low prices and discounts
-Message-Id: <fb6fa284-81ca-45e6-98bf-32ce7e75cb00@DB3PR01MB011.eurprd01.prod.exchangelabs.com>
+From: "G.DANIELS" <justin@aristagloves.com>
+Date: Tue, 17 Sep 2013 12:33:09 +0000
+Subject: Mail Back iF You Are Interested!
+Message-Id: <E1VLuTU-0003yk-I6@spfilter-4.secure-dns.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+It is Private
 
-		Dear Customer,
+I am George Daniels, a Banker and credit system programmer (HSBC bank). 
+I saw your email address while browsing through  the bank D.T.C Screen in my 
+office yesterday so I decided to use this very chance to know you. I believe we 
+should use every opportunity to know each other better. However, I am contacting 
+you for obvious reason which you will understand. 
 
-There is a lot of people in this world who spend so much time 
-watching their health that they have not the time to enjoy it.
+I am sending this mail just to know if this email address is OK, reply me back so 
+that I will send  more details to you. I have a very important thing to discuss with 
+you, I look forward to receiving your response at: georgedanielson@matrock.net. Have a pleasant day.
 
-No doctor visits
-Lowest price World Wide 
-Discreet Packaging
+George Daniels
 
-http://translate.googleusercontent.com/translate_c?depth=1&hl=auto&sl=fr&url=www.google.ge&u=http://onlineshop55.yolasite.com/shop&usg=ALkJrhjsEp2wEy6D4p3zB8y4lFpDcS7xmg
-
-Best Regards,
-		
