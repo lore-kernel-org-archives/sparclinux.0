@@ -1,28 +1,88 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 17 Sep 2013 16:13:09 +0000
-Subject: Re: [sparc64] Sparse cpu_possible_mask
-Message-Id: <20130917.121309.1910820573703893030.davem@davemloft.net>
+From: Anoop Thomas Mathew <atm@profoundis.com>
+Date: Wed, 18 Sep 2013 21:15:58 +0000
+Subject: [PATCH] Fixed typo on word accounting in kprobes.c in mutliple architectures
+Message-Id: <20130918210351.GA13811@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <275591379424217@web19h.yandex.ru>
-In-Reply-To: <275591379424217@web19h.yandex.ru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: vgupta@synopsys.com, tony.luck@intel.com, davem@davemloft.net
+Cc: linux-s390@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, akpm@linux-foundation.org, linuxppc-dev@lists.ozlabs.org
 
-From: Kirill Tkhai <tkhai@yandex.ru>
-Date: Tue, 17 Sep 2013 17:23:37 +0400
+Signed-off-by: Anoop Thomas Mathew <atm@profoundis.com>
+---
+ arch/arc/kernel/kprobes.c     |    2 +-
+ arch/ia64/kernel/kprobes.c    |    2 +-
+ arch/powerpc/kernel/kprobes.c |    2 +-
+ arch/s390/kernel/kprobes.c    |    2 +-
+ arch/sparc/kernel/kprobes.c   |    2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
-> I booted recent kernel on Ultra2, while probing CONFIG_RCU_NOCB_CPU_ALL option
-> enabled, and found that cpu_possible_mask is sparse. The cpuinfo is:
-> CPU0:		online
-> CPU2:		online
-> 
-> Other info is:
-> PROMLIB: Sun IEEE Boot Prom 'OBP 3.11.25 1998/01/16 12:22'
-> Sun Ultra 60 UPA/PCI (2 X UltraSPARC-II 296MHz)
-> 
-> Who knows what's the reason of it's sparse?
+diff --git a/arch/arc/kernel/kprobes.c b/arch/arc/kernel/kprobes.c
+index 72f9782..7446c8d 100644
+--- a/arch/arc/kernel/kprobes.c
++++ b/arch/arc/kernel/kprobes.c
+@@ -327,7 +327,7 @@ int __kprobes kprobe_fault_handler(struct pt_regs *regs, unsigned long trapnr)
+ 		 */
+ 
+ 		/* We increment the nmissed count for accounting,
+-		 * we can also use npre/npostfault count for accouting
++		 * we can also use npre/npostfault count for accounting
+ 		 * these specific fault cases.
+ 		 */
+ 		kprobes_inc_nmissed_count(cur);
+diff --git a/arch/ia64/kernel/kprobes.c b/arch/ia64/kernel/kprobes.c
+index f8280a7..074fde4 100644
+--- a/arch/ia64/kernel/kprobes.c
++++ b/arch/ia64/kernel/kprobes.c
+@@ -947,7 +947,7 @@ int __kprobes kprobe_fault_handler(struct pt_regs *regs, int trapnr)
+ 	case KPROBE_HIT_SSDONE:
+ 		/*
+ 		 * We increment the nmissed count for accounting,
+-		 * we can also use npre/npostfault count for accouting
++		 * we can also use npre/npostfault count for accounting
+ 		 * these specific fault cases.
+ 		 */
+ 		kprobes_inc_nmissed_count(cur);
+diff --git a/arch/powerpc/kernel/kprobes.c b/arch/powerpc/kernel/kprobes.c
+index 2156ea9..90fab64 100644
+--- a/arch/powerpc/kernel/kprobes.c
++++ b/arch/powerpc/kernel/kprobes.c
+@@ -429,7 +429,7 @@ int __kprobes kprobe_fault_handler(struct pt_regs *regs, int trapnr)
+ 	case KPROBE_HIT_SSDONE:
+ 		/*
+ 		 * We increment the nmissed count for accounting,
+-		 * we can also use npre/npostfault count for accouting
++		 * we can also use npre/npostfault count for accounting
+ 		 * these specific fault cases.
+ 		 */
+ 		kprobes_inc_nmissed_count(cur);
+diff --git a/arch/s390/kernel/kprobes.c b/arch/s390/kernel/kprobes.c
+index 0ce9fb2..018c1c4 100644
+--- a/arch/s390/kernel/kprobes.c
++++ b/arch/s390/kernel/kprobes.c
+@@ -673,7 +673,7 @@ static int __kprobes kprobe_trap_handler(struct pt_regs *regs, int trapnr)
+ 	case KPROBE_HIT_SSDONE:
+ 		/*
+ 		 * We increment the nmissed count for accounting,
+-		 * we can also use npre/npostfault count for accouting
++		 * we can also use npre/npostfault count for accounting
+ 		 * these specific fault cases.
+ 		 */
+ 		kprobes_inc_nmissed_count(p);
+diff --git a/arch/sparc/kernel/kprobes.c b/arch/sparc/kernel/kprobes.c
+index e722121..d3d5d38 100644
+--- a/arch/sparc/kernel/kprobes.c
++++ b/arch/sparc/kernel/kprobes.c
+@@ -349,7 +349,7 @@ int __kprobes kprobe_fault_handler(struct pt_regs *regs, int trapnr)
+ 	case KPROBE_HIT_SSDONE:
+ 		/*
+ 		 * We increment the nmissed count for accounting,
+-		 * we can also use npre/npostfault count for accouting
++		 * we can also use npre/npostfault count for accounting
+ 		 * these specific fault cases.
+ 		 */
+ 		kprobes_inc_nmissed_count(cur);
+-- 
+1.7.9.5
 
-Because that's how the cpus are numbered physically on these
-systems.
