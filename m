@@ -1,82 +1,127 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 30 Sep 2013 16:31:43 +0000
-Subject: [PATCH 2/9] sparc64: Use PAGE_OFFSET instead of a magic constant.
-Message-Id: <20130930.123143.1113842638319768748.davem@davemloft.net>
+From: Thierry Reding <thierry.reding@gmail.com>
+Date: Wed, 18 Sep 2013 13:24:45 +0000
+Subject: [PATCH v2 03/10] irqdomain: Introduce __irq_create_mapping()
+Message-Id: <1379510692-32435-4-git-send-email-treding@nvidia.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1379510692-32435-1-git-send-email-treding@nvidia.com>
+In-Reply-To: <1379510692-32435-1-git-send-email-treding@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
+This is a version of irq_create_mapping() that propagates the precise
+error code instead of returning 0 for all errors. It will be used in
+subsequent patches to allow further propagation of error codes.
 
-This pertains to all of the computations of the kernel fast
-TLB miss xor values.
+To avoid code duplication, implement irq_create_mapping() as a wrapper
+around the new __irq_create_mapping().
 
-Based upon a patch by Bob Picco.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Acked-by: Bob Picco <bob.picco@oracle.com>
+Signed-off-by: Thierry Reding <treding@nvidia.com>
 ---
- arch/sparc/mm/init_64.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ kernel/irq/irqdomain.c | 59 +++++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 39 insertions(+), 20 deletions(-)
 
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index ed82eda..e295a5b 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -1722,7 +1722,7 @@ static void __init sun4v_linear_pte_xor_finalize(void)
- #ifndef CONFIG_DEBUG_PAGEALLOC
- 	if (cpu_pgsz_mask & HV_PGSZ_MASK_256MB) {
- 		kern_linear_pte_xor[1] = (_PAGE_VALID | _PAGE_SZ256MB_4V) ^
--			0xfffff80000000000UL;
-+			PAGE_OFFSET;
- 		kern_linear_pte_xor[1] |= (_PAGE_CP_4V | _PAGE_CV_4V |
- 					   _PAGE_P_4V | _PAGE_W_4V);
- 	} else {
-@@ -1731,7 +1731,7 @@ static void __init sun4v_linear_pte_xor_finalize(void)
+diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
+index 706724e..d2a3b01 100644
+--- a/kernel/irq/irqdomain.c
++++ b/kernel/irq/irqdomain.c
+@@ -374,30 +374,21 @@ unsigned int irq_create_direct_mapping(struct irq_domain *domain)
+ }
+ EXPORT_SYMBOL_GPL(irq_create_direct_mapping);
  
- 	if (cpu_pgsz_mask & HV_PGSZ_MASK_2GB) {
- 		kern_linear_pte_xor[2] = (_PAGE_VALID | _PAGE_SZ2GB_4V) ^
--			0xfffff80000000000UL;
-+			PAGE_OFFSET;
- 		kern_linear_pte_xor[2] |= (_PAGE_CP_4V | _PAGE_CV_4V |
- 					   _PAGE_P_4V | _PAGE_W_4V);
- 	} else {
-@@ -1740,7 +1740,7 @@ static void __init sun4v_linear_pte_xor_finalize(void)
+-/**
+- * irq_create_mapping() - Map a hardware interrupt into linux irq space
+- * @domain: domain owning this hardware interrupt or NULL for default domain
+- * @hwirq: hardware irq number in that domain space
+- *
+- * Only one mapping per hardware interrupt is permitted. Returns a linux
+- * irq number.
+- * If the sense/trigger is to be specified, set_irq_type() should be called
+- * on the number returned from that call.
+- */
+-unsigned int irq_create_mapping(struct irq_domain *domain,
+-				irq_hw_number_t hwirq)
++static int __irq_create_mapping(struct irq_domain *domain,
++				irq_hw_number_t hwirq, unsigned int *virqp)
+ {
+-	unsigned int hint;
+-	int virq;
++	unsigned int hint, virq;
++	int ret;
  
- 	if (cpu_pgsz_mask & HV_PGSZ_MASK_16GB) {
- 		kern_linear_pte_xor[3] = (_PAGE_VALID | _PAGE_SZ16GB_4V) ^
--			0xfffff80000000000UL;
-+			PAGE_OFFSET;
- 		kern_linear_pte_xor[3] |= (_PAGE_CP_4V | _PAGE_CV_4V |
- 					   _PAGE_P_4V | _PAGE_W_4V);
- 	} else {
-@@ -2261,10 +2261,10 @@ static void __init sun4u_pgprot_init(void)
- 		     __ACCESS_BITS_4U | _PAGE_E_4U);
+-	pr_debug("irq_create_mapping(0x%p, 0x%lx)\n", domain, hwirq);
++	pr_debug("__irq_create_mapping(0x%p, 0x%lx, %p)\n", domain, hwirq,
++		 virqp);
  
- #ifdef CONFIG_DEBUG_PAGEALLOC
--	kern_linear_pte_xor[0] = _PAGE_VALID ^ 0xfffff80000000000UL;
-+	kern_linear_pte_xor[0] = _PAGE_VALID ^ PAGE_OFFSET;
- #else
- 	kern_linear_pte_xor[0] = (_PAGE_VALID | _PAGE_SZ4MB_4U) ^
--		0xfffff80000000000UL;
-+		PAGE_OFFSET;
- #endif
- 	kern_linear_pte_xor[0] |= (_PAGE_CP_4U | _PAGE_CV_4U |
- 				   _PAGE_P_4U | _PAGE_W_4U);
-@@ -2308,10 +2308,10 @@ static void __init sun4v_pgprot_init(void)
- 	_PAGE_CACHE = _PAGE_CACHE_4V;
+ 	/* Look for default domain if nececssary */
+ 	if (domain = NULL)
+ 		domain = irq_default_domain;
+ 	if (domain = NULL) {
+ 		WARN(1, "%s(, %lx) called with NULL domain\n", __func__, hwirq);
+-		return 0;
++		return -ENODEV;
+ 	}
+ 	pr_debug("-> using domain @%p\n", domain);
  
- #ifdef CONFIG_DEBUG_PAGEALLOC
--	kern_linear_pte_xor[0] = _PAGE_VALID ^ 0xfffff80000000000UL;
-+	kern_linear_pte_xor[0] = _PAGE_VALID ^ PAGE_OFFSET;
- #else
- 	kern_linear_pte_xor[0] = (_PAGE_VALID | _PAGE_SZ4MB_4V) ^
--		0xfffff80000000000UL;
-+		PAGE_OFFSET;
- #endif
- 	kern_linear_pte_xor[0] |= (_PAGE_CP_4V | _PAGE_CV_4V |
- 				   _PAGE_P_4V | _PAGE_W_4V);
+@@ -405,7 +396,11 @@ unsigned int irq_create_mapping(struct irq_domain *domain,
+ 	virq = irq_find_mapping(domain, hwirq);
+ 	if (virq) {
+ 		pr_debug("-> existing mapping on virq %d\n", virq);
+-		return virq;
++
++		if (virqp)
++			*virqp = virq;
++
++		return 0;
+ 	}
+ 
+ 	/* Allocate a virtual interrupt number */
+@@ -417,17 +412,41 @@ unsigned int irq_create_mapping(struct irq_domain *domain,
+ 		virq = irq_alloc_desc_from(1, of_node_to_nid(domain->of_node));
+ 	if (virq <= 0) {
+ 		pr_debug("-> virq allocation failed\n");
+-		return 0;
++		return virq ? : -ENOSPC;
+ 	}
+ 
+-	if (irq_domain_associate(domain, virq, hwirq)) {
++	ret = irq_domain_associate(domain, virq, hwirq);
++	if (ret) {
+ 		irq_free_desc(virq);
+-		return 0;
++		return ret;
+ 	}
+ 
+ 	pr_debug("irq %lu on domain %s mapped to virtual irq %u\n",
+ 		hwirq, of_node_full_name(domain->of_node), virq);
+ 
++	if (virqp)
++		*virqp = virq;
++
++	return 0;
++}
++/**
++ * irq_create_mapping() - Map a hardware interrupt into linux irq space
++ * @domain: domain owning this hardware interrupt or NULL for default domain
++ * @hwirq: hardware irq number in that domain space
++ *
++ * Only one mapping per hardware interrupt is permitted. Returns a linux
++ * irq number.
++ * If the sense/trigger is to be specified, set_irq_type() should be called
++ * on the number returned from that call.
++ */
++unsigned int irq_create_mapping(struct irq_domain *domain,
++				irq_hw_number_t hwirq)
++{
++	unsigned int virq;
++
++	if (__irq_create_mapping(domain, hwirq, &virq))
++		return 0;
++
+ 	return virq;
+ }
+ EXPORT_SYMBOL_GPL(irq_create_mapping);
 -- 
-1.8.1.2
+1.8.4
 
