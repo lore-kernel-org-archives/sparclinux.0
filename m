@@ -1,81 +1,111 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Date: Fri, 13 Sep 2013 13:12:32 +0000
-Subject: [PATCH 086/228] cpufreq: sparc: Use generic cpufreq routines
-Message-Id: <5cf8e2c2fb92577ef065fa85abeef68fa52a9b59.1379063063.git.viresh.kumar@linaro.org>
+From: Thierry Reding <thierry.reding@gmail.com>
+Date: Wed, 18 Sep 2013 13:24:48 +0000
+Subject: [PATCH v2 06/10] of/irq: Return errors from of_irq_to_resource()
+Message-Id: <1379510692-32435-7-git-send-email-treding@nvidia.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1379063063.git.viresh.kumar@linaro.org>
-In-Reply-To: <cover.1379063063.git.viresh.kumar@linaro.org>
+References: <1379510692-32435-1-git-send-email-treding@nvidia.com>
+In-Reply-To: <1379510692-32435-1-git-send-email-treding@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-Most of the CPUFreq drivers do similar things in .exit() and .verify() routines
-and .attr. So its better if we have generic routines for them which can be used
-by cpufreq drivers then.
+Update of_irq_to_resource() to return 0 on success and a negative error
+code on failure. This allows the precise nature of the failure to be
+determined in the caller and errors to be propagated appropriately.
 
-This patch uses these generic routines for this driver.
+While at it, make the index parameter unsigned. Accessing negative
+indices is invalid, so we might as well enforce that by using the right
+data type.
 
-Cc: David S. Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+Signed-off-by: Thierry Reding <treding@nvidia.com>
 ---
- drivers/cpufreq/sparc-us2e-cpufreq.c | 8 +-------
- drivers/cpufreq/sparc-us3-cpufreq.c  | 8 +-------
- 2 files changed, 2 insertions(+), 14 deletions(-)
+Changes in v2:
+- convert existing callers instead of using compatible wrapper
 
-diff --git a/drivers/cpufreq/sparc-us2e-cpufreq.c b/drivers/cpufreq/sparc-us2e-cpufreq.c
-index 8db0c18..291688c 100644
---- a/drivers/cpufreq/sparc-us2e-cpufreq.c
-+++ b/drivers/cpufreq/sparc-us2e-cpufreq.c
-@@ -295,12 +295,6 @@ static int us2e_freq_target(struct cpufreq_policy *policy,
- 	return 0;
- }
+ arch/powerpc/platforms/83xx/mpc832x_rdb.c  |  2 +-
+ drivers/net/ethernet/marvell/mv643xx_eth.c |  5 +++--
+ drivers/of/irq.c                           | 14 +++++++++++---
+ include/linux/of_irq.h                     |  2 +-
+ 4 files changed, 16 insertions(+), 7 deletions(-)
+
+diff --git a/arch/powerpc/platforms/83xx/mpc832x_rdb.c b/arch/powerpc/platforms/83xx/mpc832x_rdb.c
+index eff5baa..b198e73 100644
+--- a/arch/powerpc/platforms/83xx/mpc832x_rdb.c
++++ b/arch/powerpc/platforms/83xx/mpc832x_rdb.c
+@@ -89,7 +89,7 @@ static int __init of_fsl_spi_probe(char *type, char *compatible, u32 sysclk,
+ 			goto err;
  
--static int us2e_freq_verify(struct cpufreq_policy *policy)
--{
--	return cpufreq_frequency_table_verify(policy,
--					      &us2e_freq_table[policy->cpu].table[0]);
--}
--
- static int __init us2e_freq_cpu_init(struct cpufreq_policy *policy)
+ 		ret = of_irq_to_resource(np, 0, &res[1]);
+-		if (ret = NO_IRQ)
++		if (ret)
+ 			goto err;
+ 
+ 		pdev = platform_device_alloc("mpc83xx_spi", i);
+diff --git a/drivers/net/ethernet/marvell/mv643xx_eth.c b/drivers/net/ethernet/marvell/mv643xx_eth.c
+index 7fb5677..bd713bd 100644
+--- a/drivers/net/ethernet/marvell/mv643xx_eth.c
++++ b/drivers/net/ethernet/marvell/mv643xx_eth.c
+@@ -2489,9 +2489,10 @@ static int mv643xx_eth_shared_of_add_port(struct platform_device *pdev,
+ 	ppd.shared = pdev;
+ 
+ 	memset(&res, 0, sizeof(res));
+-	if (!of_irq_to_resource(pnp, 0, &res)) {
++	ret = of_irq_to_resource(pnp, 0, &res);
++	if (ret) {
+ 		dev_err(&pdev->dev, "missing interrupt on %s\n", pnp->name);
+-		return -EINVAL;
++		return ret;
+ 	}
+ 
+ 	if (of_property_read_u32(pnp, "reg", &ppd.port_number)) {
+diff --git a/drivers/of/irq.c b/drivers/of/irq.c
+index 6ad46fd..e4f38c0 100644
+--- a/drivers/of/irq.c
++++ b/drivers/of/irq.c
+@@ -341,10 +341,18 @@ EXPORT_SYMBOL_GPL(of_irq_map_one);
+  * @dev: pointer to device tree node
+  * @index: zero-based index of the irq
+  * @r: pointer to resource structure to return result into.
++ *
++ * Returns zero on success or a negative error code on failure.
+  */
+-int of_irq_to_resource(struct device_node *dev, int index, struct resource *r)
++int of_irq_to_resource(struct device_node *dev, unsigned int index,
++		       struct resource *r)
  {
- 	unsigned int cpu = policy->cpu;
-@@ -363,7 +357,7 @@ static int __init us2e_freq_init(void)
- 			goto err_out;
+-	int irq = irq_of_parse_and_map(dev, index);
++	unsigned int irq;
++	int ret;
++
++	ret = __irq_of_parse_and_map(dev, index, &irq);
++	if (ret)
++		return ret;
  
- 		driver->init = us2e_freq_cpu_init;
--		driver->verify = us2e_freq_verify;
-+		driver->verify = cpufreq_generic_frequency_table_verify;
- 		driver->target = us2e_freq_target;
- 		driver->get = us2e_freq_get;
- 		driver->exit = us2e_freq_cpu_exit;
-diff --git a/drivers/cpufreq/sparc-us3-cpufreq.c b/drivers/cpufreq/sparc-us3-cpufreq.c
-index 120a2df..9b3dbd3 100644
---- a/drivers/cpufreq/sparc-us3-cpufreq.c
-+++ b/drivers/cpufreq/sparc-us3-cpufreq.c
-@@ -156,12 +156,6 @@ static int us3_freq_target(struct cpufreq_policy *policy,
- 	return 0;
+ 	/* Only dereference the resource if both the
+ 	 * resource and the irq are valid. */
+@@ -364,7 +372,7 @@ int of_irq_to_resource(struct device_node *dev, int index, struct resource *r)
+ 		r->name = name ? name : dev->full_name;
+ 	}
+ 
+-	return irq;
++	return 0;
  }
+ EXPORT_SYMBOL_GPL(of_irq_to_resource);
  
--static int us3_freq_verify(struct cpufreq_policy *policy)
--{
--	return cpufreq_frequency_table_verify(policy,
--					      &us3_freq_table[policy->cpu].table[0]);
--}
--
- static int __init us3_freq_cpu_init(struct cpufreq_policy *policy)
- {
- 	unsigned int cpu = policy->cpu;
-@@ -224,7 +218,7 @@ static int __init us3_freq_init(void)
- 			goto err_out;
- 
- 		driver->init = us3_freq_cpu_init;
--		driver->verify = us3_freq_verify;
-+		driver->verify = cpufreq_generic_frequency_table_verify;
- 		driver->target = us3_freq_target;
- 		driver->get = us3_freq_get;
- 		driver->exit = us3_freq_cpu_exit;
+diff --git a/include/linux/of_irq.h b/include/linux/of_irq.h
+index 11da949..6d62b73 100644
+--- a/include/linux/of_irq.h
++++ b/include/linux/of_irq.h
+@@ -67,7 +67,7 @@ extern int of_irq_map_one(struct device_node *device, int index,
+ extern int irq_create_of_mapping(struct device_node *controller,
+ 				 const u32 *intspec, unsigned int intsize,
+ 				 unsigned int *virqp);
+-extern int of_irq_to_resource(struct device_node *dev, int index,
++extern int of_irq_to_resource(struct device_node *dev, unsigned int index,
+ 			      struct resource *r);
+ extern int of_irq_count(struct device_node *dev);
+ extern int of_irq_to_resource_table(struct device_node *dev,
 -- 
-1.7.12.rc2.18.g61b472e
+1.8.4
 
