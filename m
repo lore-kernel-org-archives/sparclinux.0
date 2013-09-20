@@ -1,7 +1,7 @@
-From: Bob Picco <bpicco@meloft.net>
-Date: Fri, 20 Sep 2013 15:32:18 +0000
+From: David Miller <davem@davemloft.net>
+Date: Fri, 20 Sep 2013 16:01:42 +0000
 Subject: Re: [PATCH 0/4] sparc64 page table
-Message-Id: <20130920153218.GB29427@zareason>
+Message-Id: <20130920.120142.1125667995485473575.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1379339199-9388-1-git-send-email-bpicco@meloft.net>
 In-Reply-To: <1379339199-9388-1-git-send-email-bpicco@meloft.net>
@@ -10,31 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi,
-David Miller wrote:	[Wed Sep 18 2013, 06:32:08PM EDT]
-> From: Bob Picco <bpicco@meloft.net>
-> Date: Wed, 18 Sep 2013 17:59:59 -0400
-> 
-> > To Summarize:
-> > 	1) Dynamically patch PAGE_OFFSET.
-> > 	2) Remain at three level page table.
-> > . So effectively remain at a single binary for sparc64 without the aid of
-> > a config option. Do I have this correct? 
-> 
-> I don't think remaining at a three level page table for 48 bit
-> physical addresses is feasible.
-> 
-> Let's start one thing at a time, namely dynamic PAGE_OFFSET.  I'm
-> working on that right now.
-This UltraSPARC - older sparc64 - issue will arise in other work that is
-engaged. Would you be willing to suggest an UltraSPARC System which would
-cover most issues? My desire is to avoid burdening you with my future
-efforts.
+From: Bob Picco <bpicco@meloft.net>
+Date: Fri, 20 Sep 2013 11:32:18 -0400
 
-I have this recommendation: http://www.berkcom.com/ for refurbished equipment.
+> This UltraSPARC - older sparc64 - issue will arise in other work that is
+> engaged. Would you be willing to suggest an UltraSPARC System which would
+> cover most issues? My desire is to avoid burdening you with my future
+> efforts.
 
-This would be for home office computer rack.
+I even don't have all UltraSPARC variants available to me at one time,
+you're going to have to cover UltraSPARC-I/II, III, T1/T2, T3, T4, and
+T5.
 
-thanx,
-
-bob
+It's not a burdon for me to take care of this, I know what all of the
+limitations and parameters are of all of these chips, and I should be
+the one doing this kind of core infrastructure work anyways.
