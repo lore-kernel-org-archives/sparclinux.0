@@ -1,26 +1,39 @@
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
-Date: Fri, 20 Sep 2013 14:39:32 +0000
-Subject: Re: [PATCH] Fixed typo on word accounting in kprobes.c in mutliple architectures
-Message-Id: <20130920143932.GA4017@osiris>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 21 Sep 2013 05:16:14 +0000
+Subject: [PATCH 3/6] sparc64: Define PAGE_OFFSET in terms of physical address bits.
+Message-Id: <20130921.011614.966337114725468835.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20130918210351.GA13811@gmail.com>
-In-Reply-To: <20130918210351.GA13811@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Anoop Thomas Mathew <atm@profoundis.com>
-Cc: linux-s390@vger.kernel.org, tony.luck@intel.com, linux-ia64@vger.kernel.org, vgupta@synopsys.com, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Jiri Kosina <trivial@kernel.org>, akpm@linux-foundation.org, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
+To: sparclinux@vger.kernel.org
 
-On Thu, Sep 19, 2013 at 02:33:58AM +0530, Anoop Thomas Mathew wrote:
-> Signed-off-by: Anoop Thomas Mathew <atm@profoundis.com>
-> ---
->  arch/arc/kernel/kprobes.c     |    2 +-
->  arch/ia64/kernel/kprobes.c    |    2 +-
->  arch/powerpc/kernel/kprobes.c |    2 +-
->  arch/s390/kernel/kprobes.c    |    2 +-
->  arch/sparc/kernel/kprobes.c   |    2 +-
->  5 files changed, 5 insertions(+), 5 deletions(-)
 
-Please send trivial typo fixes to Jiri Kosina <trivial@kernel.org>.
-See "TRIVIAL PATCHES" in MAINTAINERS. Thanks!
+This makes clearer the implications for a given choosen
+value.
+
+Based upon patches by Bob Picco.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/include/asm/page_64.h | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
+index d959312..9dd0f73 100644
+--- a/arch/sparc/include/asm/page_64.h
++++ b/arch/sparc/include/asm/page_64.h
+@@ -117,7 +117,9 @@ typedef pte_t *pgtable_t;
+ /* We used to stick this into a hard-coded global register (%g4)
+  * but that does not make sense anymore.
+  */
+-#define PAGE_OFFSET		_AC(0xFFFFF80000000000,UL)
++#define MAX_SUPPORTED_PA_BITS	43
++#define PAGE_OFFSET_BY_BITS(X)	(-(_AC(1,UL) << (X)))
++#define PAGE_OFFSET		PAGE_OFFSET_BY_BITS(MAX_SUPPORTED_PA_BITS)
+ 
+ #ifndef __ASSEMBLY__
+ 
+-- 
+1.8.1.2
 
