@@ -1,26 +1,24 @@
-From: Kirill Tkhai <tkhai@yandex.ru>
-Date: Sat, 21 Sep 2013 15:34:49 +0000
+From: David Miller <davem@davemloft.net>
+Date: Sat, 21 Sep 2013 17:58:35 +0000
 Subject: Re: [PATCH 0/6] Make PAGE_OFFSET variable.
-Message-Id: <4861379777689@web9j.yandex.ru>
+Message-Id: <20130921.135835.687855744978260741.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20130921.011546.399976981566163964.davem@davemloft.net>
 In-Reply-To: <20130921.011546.399976981566163964.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-21.09.2013, 09:16, "David Miller" <davem@davemloft.net>:
-> Basically the first 5 patches deconstruct the whole situation,
-> then the final patch throws the switch and makes PAGE_OFFSET
-> variable based upon cpu type.
->
-> I tested this patch series lightly on a T4. =9AThis obviously
-> isn't enough to fully support 47-bit physical addresses yet,
-> and I'll be looking into the page table issues next to take
-> care of that.
->
-> Signed-off-by: David S. Miller <davem@davemloft.net>
-> --
+From: Kirill Tkhai <tkhai@yandex.ru>
+Date: Sat, 21 Sep 2013 19:34:49 +0400
 
-Boot tested on Sun Ultra 60 UPA/PCI (2 X UltraSPARC-II 296MHz)
+> Boot tested on Sun Ultra 60 UPA/PCI (2 X UltraSPARC-II 296MHz)
+
+Thanks a lot, can you tell me what it said early in bootup?
+
+Specifically this part:
+
+[    0.000000] PAGE_OFFSET is 0xffff800000000000 (max_phys_bits = 47)
+
+Thanks again!
