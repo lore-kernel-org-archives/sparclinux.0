@@ -1,24 +1,29 @@
-From: "G.DANIELS" <justin@aristagloves.com>
-Date: Tue, 17 Sep 2013 12:33:09 +0000
-Subject: Mail Back iF You Are Interested!
-Message-Id: <E1VLuTU-0003yk-I6@spfilter-4.secure-dns.net>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Date: Sun, 22 Sep 2013 19:33:02 +0000
+Subject: [PATCH 0/2] SILO: support cross-compilation
+Message-Id: <1379878384-26476-1-git-send-email-aaro.koskinen@iki.fi>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-It is Private
+Hi,
 
-I am George Daniels, a Banker and credit system programmer (HSBC bank). 
-I saw your email address while browsing through  the bank D.T.C Screen in my 
-office yesterday so I decided to use this very chance to know you. I believe we 
-should use every opportunity to know each other better. However, I am contacting 
-you for obvious reason which you will understand. 
+Here's two simple patches to enable cross-compilation of SILO. The main
+issue is that little-endian host produces a broken binary (only "SIL"
+gets displayed and the boot hangs).
 
-I am sending this mail just to know if this email address is OK, reply me back so 
-that I will send  more details to you. I have a very important thing to discuss with 
-you, I look forward to receiving your response at: georgedanielson@matrock.net. Have a pleasant day.
+Aaro Koskinen (2):
+  second/util: convert data to big endian
+  silo: compile host-side tools with HOSTCC
 
-George Daniels
+ Rules.make      |  2 ++
+ common/Makefile |  3 +++
+ second/Makefile |  2 +-
+ second/util.c   | 11 +++++++----
+ 4 files changed, 13 insertions(+), 5 deletions(-)
+
+-- 
+1.8.4.rc3
 
