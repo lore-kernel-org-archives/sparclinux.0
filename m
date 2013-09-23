@@ -1,8 +1,10 @@
 From: Jianguo Wu <wujianguo@huawei.com>
-Date: Mon, 23 Sep 2013 10:37:04 +0000
-Subject: [Resend with ACK][PATCH] mm/arch: use NUMA_NODE
-Message-Id: <524019D0.9070706@huawei.com>
+Date: Mon, 23 Sep 2013 10:40:50 +0000
+Subject: [Resend with ACK][PATCH] mm/arch: use NUMA_NO_NODE
+Message-Id: <52401AB2.8000605@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <524019D0.9070706@huawei.com>
+In-Reply-To: <524019D0.9070706@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
