@@ -1,233 +1,148 @@
-From: Thierry Reding <thierry.reding@gmail.com>
-Date: Wed, 18 Sep 2013 13:24:50 +0000
-Subject: [PATCH v2 08/10] of/platform: Resolve interrupt references at probe time
-Message-Id: <1379510692-32435-9-git-send-email-treding@nvidia.com>
+From: mroos@linux.ee
+Date: Mon, 23 Sep 2013 13:48:32 +0000
+Subject: Re: PCI Radeon RV100 detection hang on sparc64
+Message-Id: <alpine.SOC.1.00.1309231638330.9952@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1379510692-32435-1-git-send-email-treding@nvidia.com>
-In-Reply-To: <1379510692-32435-1-git-send-email-treding@nvidia.com>
+References: <alpine.SOC.1.00.1209061032360.371@math.ut.ee>
+	<1346950551.30263.196.camel@thor.local>
+	<20120906.141823.13429356729572330.davem@davemloft.net>
+	<CAPM=9ty87-kP1QJjgJKQUVkJxg8yN6ZQ5qy+pVYRnrDoa_VqBQ@mail.gmail.com>
+In-Reply-To: <CAPM=9ty87-kP1QJjgJKQUVkJxg8yN6ZQ5qy+pVYRnrDoa_VqBQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Dave Airlie <airlied@gmail.com>
+Cc: sparclinux@vger.kernel.org, michel@daenzer.net, David Miller <davem@davemloft.net>, dri-devel@lists.freedesktop.org
 
-Interrupt references are currently resolved very early (when a device is
-created). This has the disadvantage that it will fail in cases where the
-interrupt parent hasn't been probed and no IRQ domain for it has been
-registered yet. To work around that various drivers use explicit
-initcall ordering to force interrupt parents to be probed before devices
-that need them are created. That's error prone and doesn't always work.
-If a platform device uses an interrupt line connected to a different
-platform device (such as a GPIO controller), both will be created in the
-same batch, and the GPIO controller won't have been probed by its driver
-when the depending platform device is created. Interrupt resolution will
-fail in that case.
+Resurrecting an old thread...
 
-Another common workaround is for drivers to explicitly resolve interrupt
-references at probe time. This is suboptimal, however, because it will
-require every driver to duplicate the code.
+> On Fri, Sep 7, 2012 at 4:18 AM, David Miller <davem@davemloft.net> wrote:
+> > From: Michel D=E4nzer <michel@daenzer.net>
+> > Date: Thu, 06 Sep 2012 18:55:51 +0200
+> >
+> >> On Don, 2012-09-06 at 17:41 +0300, Meelis Roos wrote:
+> >>> This is with initialyy unmodified 3.6.0-rc4-00101-g0809095 kernel in
+> >>> Ultra 10 (clean, without my "Video RAM" hack that I talked in other
+> >>> sparclinux posts). When I saw that Sun XVR-100 was detected fine by t=
+he
+> >>> kernel, I compiled radeon drm driver with modesetting enabled and tri=
+ed
+> >>> it:
+> >>>
+> >>> [drm] radeon defaulting to kernel modesetting.
+> >>> [drm] radeon kernel modesetting enabled.
+> >>> PCI: Enabling device: (0000:02:02.0), cmd 82
+> >>> [drm] initializing kernel modesetting (RV100 0x1002:0x5159 0x1002:0x0=
+908).
+> >>> [drm] register mmio base: 0x10000000
+> >>> [drm] register mmio size: 32768
+> >>> [drm:radeon_device_init] *ERROR* Unable to find PCI I/O BAR
+> >>>
+> >>> And here the machine hangs. Debugging printk-s reveal that it does not
+> >>> find any active I/O port resources and then continues into initializi=
+ng
+> >>> the card. Down in igp_read_bios_from_vram() it successfully ioremaps
+> >>> memory region 0 (vram_base=1Ff08000000 and size@000) and tries to read
+> >>> 2 bytes from there and hangs on reading bios[0].
+> >>
+> >> Is the card initialized by OpenFirmware? E.g., does it display anything
+> >> before the kernel boots?
+> >
+> > I think Meelis gave you every single detail you need to know to
+> > analyze and fix this bug.
+> >
+> > He says it crashes on reading bios[0].
+> >
+> > If you look at the function he tells you the crash occurs in, you'll
+> > see clearly that bios is an ioremap()'d pointer.
+> >
+> > You cannot dereference ioremap()'d pointers, you must use the proper
+> > accessors such as readl().
+>=20
+> we should just skip the igp reading function on not-x86, since IGP on
+> not x86 makes no sense.
+>=20
+> the other option is to readl out the whole bios from vram instead.
 
-This patch adds support for late interrupt resolution to the platform
-driver core, by resolving the references right before a device driver's
-.probe() function will be called. This not only delays the resolution
-until a much later time (giving interrupt parents a better chance of
-being probed in the meantime), but it also allows the platform driver
-core to queue the device for deferred probing if the interrupt parent
-hasn't registered its IRQ domain yet.
+I made several changes.
 
-Signed-off-by: Thierry Reding <treding@nvidia.com>
----
-Changes in v2:
-- split off IRQ parsing into separate function to make code flow simpler
-- add comments to point out some aspects of the implementation
-- make code idempotent (as pointed out by Grygorii Strashko
+1. In igp_read_bios_from_vram():
 
- drivers/base/platform.c     |   4 ++
- drivers/of/platform.c       | 107 +++++++++++++++++++++++++++++++++++++++++---
- include/linux/of_platform.h |   7 +++
- 3 files changed, 112 insertions(+), 6 deletions(-)
++#ifndef CONFIG_X86
++       /* IGP only exists on X86 (32- and 64-bit) */
++       return false;
++#endif
 
-diff --git a/drivers/base/platform.c b/drivers/base/platform.c
-index 4f8bef3..8dcf835 100644
---- a/drivers/base/platform.c
-+++ b/drivers/base/platform.c
-@@ -481,6 +481,10 @@ static int platform_drv_probe(struct device *_dev)
- 	struct platform_device *dev = to_platform_device(_dev);
- 	int ret;
- 
-+	ret = of_platform_probe(dev);
-+	if (ret)
-+		return ret;
-+
- 	if (ACPI_HANDLE(_dev))
- 		acpi_dev_pm_attach(_dev, true);
- 
-diff --git a/drivers/of/platform.c b/drivers/of/platform.c
-index 9b439ac..df6d56e 100644
---- a/drivers/of/platform.c
-+++ b/drivers/of/platform.c
-@@ -142,7 +142,7 @@ struct platform_device *of_device_alloc(struct device_node *np,
- 				  struct device *parent)
- {
- 	struct platform_device *dev;
--	int rc, i, num_reg = 0, num_irq;
-+	int rc, i, num_reg = 0;
- 	struct resource *res, temp_res;
- 
- 	dev = platform_device_alloc("", -1);
-@@ -153,23 +153,21 @@ struct platform_device *of_device_alloc(struct device_node *np,
- 	if (of_can_translate_address(np))
- 		while (of_address_to_resource(np, num_reg, &temp_res) = 0)
- 			num_reg++;
--	num_irq = of_irq_count(np);
- 
- 	/* Populate the resource table */
--	if (num_irq || num_reg) {
--		res = kzalloc(sizeof(*res) * (num_irq + num_reg), GFP_KERNEL);
-+	if (num_reg) {
-+		res = kzalloc(sizeof(*res) * num_reg, GFP_KERNEL);
- 		if (!res) {
- 			platform_device_put(dev);
- 			return NULL;
- 		}
- 
--		dev->num_resources = num_reg + num_irq;
-+		dev->num_resources = num_reg;
- 		dev->resource = res;
- 		for (i = 0; i < num_reg; i++, res++) {
- 			rc = of_address_to_resource(np, i, res);
- 			WARN_ON(rc);
- 		}
--		WARN_ON(of_irq_to_resource_table(np, res, num_irq) != num_irq);
- 	}
- 
- 	dev->dev.of_node = of_node_get(np);
-@@ -490,4 +488,101 @@ int of_platform_populate(struct device_node *root,
- 	return rc;
- }
- EXPORT_SYMBOL_GPL(of_platform_populate);
-+
-+/**
-+ * of_platform_parse_irq() - parse interrupt resource from device node
-+ * @pdev: pointer to platform device
-+ *
-+ * Returns 0 on success or a negative error code on failure.
-+ */
-+static int of_platform_parse_irq(struct platform_device *pdev)
+This gets me further.
+
+2. Since "bios" is __iomem pointer, changed its dereferences to=20
+readb(bios) and readb(bios+1). Maybe relevant, maybe not.
+
+3. Next it got stuck in radeon_read_bios() trying to do
+kmemdup(bios, size, GFP_KERNEL);
+
+This I changed to mydup for test:
+
++static void *mydup(uint8_t __iomem *src, size_t len, gfp_t gfp)
 +{
-+	struct device_node *np = pdev->dev.of_node;
-+	unsigned int num_res = pdev->num_resources;
-+	struct resource *res = pdev->resource;
-+	unsigned int num_irq, num, c;
-+	int ret = 0;
++       unsigned char *p;
++       int i;
 +
-+	num_irq = of_irq_count(pdev->dev.of_node);
-+	if (!num_irq)
-+		return 0;
-+
-+	/*
-+	 * Deferred probing may cause this function to be called multiple
-+	 * times, so check if all interrupts have been parsed already and
-+	 * return early.
-+	 */
-+	for (c = 0; c < num_irq; c++)
-+		if (platform_get_irq(pdev, c) < 0)
-+			break;
-+
-+	if (c = num_irq)
-+		return 0;
-+
-+	num = num_res + num_irq;
-+
-+	/*
-+	 * Note that in case we're called twice on the same device (due to
-+	 * deferred probing for example) this will simply be a nop because
-+	 * krealloc() returns the input pointer if the size of the memory
-+	 * block that it points to is larger than or equal to the new size
-+	 * being requested.
-+	 */
-+	res = krealloc(res, num * sizeof(*res), GFP_KERNEL);
-+	if (!res)
-+		return -ENOMEM;
-+
-+	pdev->resource = res;
-+	res += num_res;
-+
-+	/*
-+	 * It is possible for this to fail. If so, not that the number of
-+	 * resources is not updated, so that the next call to this function
-+	 * will parse all interrupts again. Otherwise we can't keep track of
-+	 * how many we've parsed so far.
-+	 */
-+	ret = of_irq_to_resource_table(np, res, num_irq);
-+	if (ret < 0)
-+		return ret;
-+
-+	/*
-+	 * All interrupts are guaranteed to have been parsed and stored in
-+	 * the resource table, so the number of resources can now safely be
-+	 * updated.
-+	 */
-+	pdev->num_resources += num_irq;
-+
-+	return 0;
++       p =3D kmalloc(len, gfp);
++       if (p) {
++               for (i=3D0; i<len; i++) {
++                       p[i] =3D readb(src+i);
++               }
++       }
++       return p;
 +}
-+
-+/**
-+ * of_platform_probe() - OF specific initialization at probe time
-+ * @pdev: pointer to a platform device
-+ *
-+ * This function is called by the driver core to perform devicetree-specific
-+ * setup for a given platform device at probe time. If a device's resources
-+ * as specified in the device tree are not available yet, this function can
-+ * return -EPROBE_DEFER and cause the device to be probed again later, when
-+ * other drivers that potentially provide the missing resources have been
-+ * probed in turn.
-+ *
-+ * Note that because of the above, all code executed by this function must
-+ * be prepared to be run multiple times on the same device (i.e. it must be
-+ * idempotent).
-+ *
-+ * Returns 0 on success or a negative error code on failure.
-+ */
-+int of_platform_probe(struct platform_device *pdev)
-+{
-+	int ret;
-+
-+	if (!pdev->dev.of_node)
-+		return 0;
-+
-+	ret = of_platform_parse_irq(pdev);
-+	if (ret < 0)
-+		return ret;
-+
-+	return 0;
-+}
- #endif /* CONFIG_OF_ADDRESS */
-diff --git a/include/linux/of_platform.h b/include/linux/of_platform.h
-index 05cb4a9..92fc4f6 100644
---- a/include/linux/of_platform.h
-+++ b/include/linux/of_platform.h
-@@ -72,6 +72,8 @@ extern int of_platform_populate(struct device_node *root,
- 				const struct of_device_id *matches,
- 				const struct of_dev_auxdata *lookup,
- 				struct device *parent);
-+
-+extern int of_platform_probe(struct platform_device *pdev);
- #else
- static inline int of_platform_populate(struct device_node *root,
- 					const struct of_device_id *matches,
-@@ -80,6 +82,11 @@ static inline int of_platform_populate(struct device_node *root,
- {
- 	return -ENODEV;
- }
-+
-+static inline int of_platform_probe(struct platform_device *pdev)
-+{
-+	return 0;
-+}
- #endif
- 
- #endif	/* _LINUX_OF_PLATFORM_H */
--- 
-1.8.4
 
+And this copying crashes Adaptec scsi driver in different ways.
+
+Investigating this, I found that it makes BAR 6 of the PCI radeon and=20
+gets bios=000001ff00000000 assigned. There is also some "Unable to find=20
+PCI I/O BAR" before - seesm that firmware does not map this ROM...
+To make things worse, the 2 first bytes at 000001ff00000000 actually do=20
+contain the ROM marker, so it goes on to copying.
+
+[drm] radeon kernel modesetting enabled.
+PCI: Enabling device: (0000:02:02.0), cmd 82
+[drm] initializing kernel modesetting (RV100 0x1002:0x5159 0x1002:0x0908).
+[drm] register mmio base: 0x000001FF10000000
+[drm] register mmio size: 32768
+[drm:radeon_device_init] *ERROR* Unable to find PCI I/O BAR
+[drm] radeon_read_bios 1
+radeon 0000:02:02.0: BAR 6: assigned [mem 0x1ff00000000-0x1ff0001ffff]
+[drm] radeon_read_bios: found ROM signature at 000001ff00000000
+[drm] radeon_read_bios 7: bios=000001ff00000000, sizeF592
+
+However, this is where aic7xxx is mapped - /proc/iomem contains this=20
+(yes, the machine has ffb graphics and 2 ATI magc64 graphics heads too):
+
+1fc00400000-1fc0040000f : ffb dac
+1fc00600000-1fc00600983 : ffb fbc
+1ff00000000-1ffffffffff : /pci@1f,0
+  1ff00002000-1ff00002fff : aic7xxx
+  1ff000a0000-1ff000bffff : Video RAM area
+  1ff000c0000-1ff000c7fff : Video ROM
+  1ff000f0000-1ff000fffff : System ROM
+  1ff11000000-1ff11ffffff : atyfb
+  1ffc0000000-1ffdfffffff : IOMMU
+  1ffe0000000-1ffe000701f : sunhme
+  1ffe1000000-1ffe1ffffff : atyfb
+  1fff1000000-1fff1001fff : eeprom
+  1fff1200000-1fff120000f : cs4231
+  1fff13062f8-1fff13062ff : su
+  1fff13083f8-1fff13083ff : su
+  1fff1400000-1fff140003f : sab
+  1fff1400040-1fff140007f : sab
+  1fff1702000-1fff170200f : cs4231_pdma
+  1fff1704000-1fff170400f : cs4231_cdma
+  1fff1724000-1fff1724003 : power
+  1fff1726000-1fff1726003 : auxio
+
+
+Where do I go from here?
+
+--=20
+Meelis Roos (mroos@linux.ee)
