@@ -1,20 +1,28 @@
-From: David Rientjes <rientjes@google.com>
-Date: Wed, 25 Sep 2013 02:35:29 +0000
-Subject: Re: [Resend with ACK][PATCH] mm/arch: use NUMA_NODE
-Message-Id: <alpine.DEB.2.02.1309241935190.26187@chino.kir.corp.google.com>
+From: David Miller <davem@redhat.com>
+Date: Thu, 26 Sep 2013 20:52:42 +0000
+Subject: [PATCH 0/3] Fully support 47-bit physical addresses.
+Message-Id: <20130926.165242.1048533011152185981.davem@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <524019D0.9070706@huawei.com>
-In-Reply-To: <524019D0.9070706@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-On Mon, 23 Sep 2013, Jianguo Wu wrote:
 
-> Use more appropriate NUMA_NO_NODE instead of -1 in all archs' module_alloc()
-> 
-> Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
-> Acked-by: Ralf Baechle <ralf@linux-mips.org>
+Ok, this patch set builds on top of the variable PAGE_OFFSET
+patches.
 
-Acked-by: David Rientjes <rientjes@google.com>
+First we move to 8MB huge pages.  The chips don't really have
+8MB page support, but we fabricate such a thing using 4MB
+PTEs.
+
+Next we move to 64-bit pmd_t and pgd_t entries, which is the
+most trivial of the changes here.
+
+Finally, we encode huge PMDs using the plain PTE encoding of
+huge pages.   All of the ugly huge PMD --> PTE translation
+code disappears, and the TLB miss path is smaller and faster.
+
+I just got this stuff fully working so caveat emptor :-)
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
