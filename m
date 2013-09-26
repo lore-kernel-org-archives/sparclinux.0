@@ -1,309 +1,104 @@
-From: Jiang Liu <liuj97@gmail.com>
-Date: Wed, 11 Sep 2013 16:07:23 +0000
-Subject: [RFC PATCH v2 19/25] smp, sparc: kill SMP single function call interrupt
-Message-Id: <1378915649-16395-20-git-send-email-liuj97@gmail.com>
+From: Rob Herring <robherring2@gmail.com>
+Date: Thu, 26 Sep 2013 18:50:51 +0000
+Subject: [PATCH 16/21] of: move of_address_to_resource and of_iomap declarations from sparc
+Message-Id: <1380221456-11192-17-git-send-email-robherring2@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1378915649-16395-1-git-send-email-liuj97@gmail.com>
-In-Reply-To: <1378915649-16395-1-git-send-email-liuj97@gmail.com>
+References: <1380221456-11192-1-git-send-email-robherring2@gmail.com>
+In-Reply-To: <1380221456-11192-1-git-send-email-robherring2@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>, "David S. Miller" <davem@davemloft.net>, Sam Ravnborg <sam@ravnborg.org>, Shaohua Li <shli@kernel.org>
-Cc: liuj97@gmail.com, Jiang Liu <jiang.liu@huawei.com>, Ingo Molnar <mingo@elte.hu>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Steven Rostedt <rostedt@goodmis.org>, Jiri Kosina <trivial@kernel.org>, Wang YanQing <udknight@gmail.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
+To: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-From: Jiang Liu <jiang.liu@huawei.com>
+From: Rob Herring <rob.herring@calxeda.com>
 
-Commit 9a46ad6d6df3b54 "smp: make smp_call_function_many() use logic
-similar to smp_call_function_single()" has unified the way to handle
-single and multiple cross-CPU function calls. Now only one interrupt
-is needed for architecture specific code to support generic SMP function
-call interfaces, so kill the redundant single function call interrupt.
+Move of_address_to_resource and of_iomap declarations to common code. These
+only differ on sparc, but the declarations are the same and don't need to
+be in arch header.
 
-Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Jiang Liu <liuj97@gmail.com>
+Signed-off-by: Rob Herring <rob.herring@calxeda.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Grant Likely <grant.likely@linaro.org>
+Cc: sparclinux@vger.kernel.org
 ---
- arch/sparc/include/asm/smp_32.h |  4 +---
- arch/sparc/kernel/entry.S       | 10 ++--------
- arch/sparc/kernel/leon_smp.c    | 31 +++++++------------------------
- arch/sparc/kernel/smp_32.c      | 14 ++------------
- arch/sparc/kernel/sun4d_smp.c   | 31 +++++++------------------------
- arch/sparc/kernel/sun4m_smp.c   | 11 ++---------
- 6 files changed, 21 insertions(+), 80 deletions(-)
+ arch/sparc/include/asm/prom.h |  8 --------
+ include/linux/of_address.h    | 30 +++++++++++++++++-------------
+ 2 files changed, 17 insertions(+), 21 deletions(-)
 
-diff --git a/arch/sparc/include/asm/smp_32.h b/arch/sparc/include/asm/smp_32.h
-index 3c8917f..6aec01a 100644
---- a/arch/sparc/include/asm/smp_32.h
-+++ b/arch/sparc/include/asm/smp_32.h
-@@ -48,7 +48,6 @@ void smp_callin(void);
- void smp_store_cpu_info(int);
+diff --git a/arch/sparc/include/asm/prom.h b/arch/sparc/include/asm/prom.h
+index 60c8d7b..11ebd65 100644
+--- a/arch/sparc/include/asm/prom.h
++++ b/arch/sparc/include/asm/prom.h
+@@ -59,13 +59,5 @@ extern char *of_console_options;
+ extern void irq_trans_init(struct device_node *dp);
+ extern char *build_path_component(struct device_node *dp);
  
- void smp_resched_interrupt(void);
--void smp_call_function_single_interrupt(void);
- void smp_call_function_interrupt(void);
- 
- struct seq_file;
-@@ -60,8 +59,7 @@ struct sparc32_ipi_ops {
- 			   unsigned long arg2, unsigned long arg3,
- 			   unsigned long arg4);
- 	void (*resched)(int cpu);
--	void (*single)(int cpu);
--	void (*mask_one)(int cpu);
-+	void (*func_call)(int cpu);
- };
- extern const struct sparc32_ipi_ops *sparc32_ipi_ops;
- 
-diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
-index e2a0300..80cc772 100644
---- a/arch/sparc/kernel/entry.S
-+++ b/arch/sparc/kernel/entry.S
-@@ -263,7 +263,7 @@ smp4m_ticker:
- 	 * on some level other than 15 which is the NMI and only used
- 	 * for cross calls.  That has a separate entry point below.
- 	 *
--	 * IPIs are sent on Level 12, 13 and 14. See IRQ_IPI_*.
-+	 * IPIs are sent on Level 13 and 14. See IRQ_IPI_*.
- 	 */
- maybe_smp4m_msg:
- 	GET_PROCESSOR4M_ID(o3)
-@@ -287,14 +287,8 @@ maybe_smp4m_msg:
- 	wr	%l4, PSR_ET, %psr
- 	WRITE_PAUSE
- 	srl	%o3, 28, %o2		! shift for simpler checks below
--maybe_smp4m_msg_check_single:
--	andcc	%o2, 0x1, %g0
--	beq,a	maybe_smp4m_msg_check_mask
--	 andcc	%o2, 0x2, %g0
--	call	smp_call_function_single_interrupt
--	 nop
--	andcc	%o2, 0x2, %g0
- maybe_smp4m_msg_check_mask:
-+	andcc	%o2, 0x2, %g0
- 	beq,a	maybe_smp4m_msg_check_resched
- 	 andcc	%o2, 0x4, %g0
- 	call	smp_call_function_interrupt
-diff --git a/arch/sparc/kernel/leon_smp.c b/arch/sparc/kernel/leon_smp.c
-index 6edf955..396b71d 100644
---- a/arch/sparc/kernel/leon_smp.c
-+++ b/arch/sparc/kernel/leon_smp.c
-@@ -271,8 +271,7 @@ void leon_irq_rotate(int cpu)
- }
- 
- struct leon_ipi_work {
--	int single;
--	int msk;
-+	int func_call;
- 	int resched;
- };
- 
-@@ -308,7 +307,7 @@ static void __init leon_ipi_init(void)
- 
- 	for_each_possible_cpu(cpu) {
- 		work = &per_cpu(leon_ipi_work, cpu);
--		work->single = work->msk = work->resched = 0;
-+		work->func_call = work->resched = 0;
- 	}
- }
- 
-@@ -319,23 +318,12 @@ static void leon_send_ipi(int cpu, int level)
- 	LEON3_BYPASS_STORE_PA(&leon3_irqctrl_regs->force[cpu], mask);
- }
- 
--static void leon_ipi_single(int cpu)
-+static void leon_ipi_func_call(int cpu)
- {
- 	struct leon_ipi_work *work = &per_cpu(leon_ipi_work, cpu);
- 
- 	/* Mark work */
--	work->single = 1;
+-/* SPARC has local implementations */
+-extern int of_address_to_resource(struct device_node *dev, int index,
+-				  struct resource *r);
+-#define of_address_to_resource of_address_to_resource
 -
--	/* Generate IRQ on the CPU */
--	leon_send_ipi(cpu, leon_ipi_irq);
--}
+-void __iomem *of_iomap(struct device_node *node, int index);
+-#define of_iomap of_iomap
 -
--static void leon_ipi_mask_one(int cpu)
+ #endif /* __KERNEL__ */
+ #endif /* _SPARC_PROM_H */
+diff --git a/include/linux/of_address.h b/include/linux/of_address.h
+index f6fc689..e8a1797 100644
+--- a/include/linux/of_address.h
++++ b/include/linux/of_address.h
+@@ -60,13 +60,6 @@ extern struct of_pci_range *of_pci_range_parser_one(
+ 					struct of_pci_range_parser *parser,
+ 					struct of_pci_range *range);
+ #else /* CONFIG_OF_ADDRESS */
+-#ifndef of_address_to_resource
+-static inline int of_address_to_resource(struct device_node *dev, int index,
+-					 struct resource *r)
 -{
--	struct leon_ipi_work *work = &per_cpu(leon_ipi_work, cpu);
--
--	/* Mark work */
--	work->msk = 1;
-+	work->func_call = 1;
- 
- 	/* Generate IRQ on the CPU */
- 	leon_send_ipi(cpu, leon_ipi_irq);
-@@ -356,12 +344,8 @@ void leonsmp_ipi_interrupt(void)
- {
- 	struct leon_ipi_work *work = &__get_cpu_var(leon_ipi_work);
- 
--	if (work->single) {
--		work->single = 0;
--		smp_call_function_single_interrupt();
--	}
--	if (work->msk) {
--		work->msk = 0;
-+	if (work->func_call) {
-+		work->func_call = 0;
- 		smp_call_function_interrupt();
- 	}
- 	if (work->resched) {
-@@ -467,8 +451,7 @@ void leon_cross_call_irq(void)
- static const struct sparc32_ipi_ops leon_ipi_ops = {
- 	.cross_call = leon_cross_call,
- 	.resched    = leon_ipi_resched,
--	.single     = leon_ipi_single,
--	.mask_one   = leon_ipi_mask_one,
-+	.func_call   = leon_ipi_func_call,
- };
- 
- void __init leon_init_smp(void)
-diff --git a/arch/sparc/kernel/smp_32.c b/arch/sparc/kernel/smp_32.c
-index a102bfb..0530d67 100644
---- a/arch/sparc/kernel/smp_32.c
-+++ b/arch/sparc/kernel/smp_32.c
-@@ -138,17 +138,15 @@ void smp_send_stop(void)
- 
- void arch_send_call_function_single_ipi(int cpu)
- {
--	/* trigger one IPI single call on one CPU */
--	sparc32_ipi_ops->single(cpu);
-+	sparc32_ipi_ops->func_call(cpu);
- }
- 
- void arch_send_call_function_ipi_mask(const struct cpumask *mask)
- {
- 	int cpu;
- 
--	/* trigger IPI mask call on each CPU */
- 	for_each_cpu(cpu, mask)
--		sparc32_ipi_ops->mask_one(cpu);
-+		sparc32_ipi_ops->func_call(cpu);
- }
- 
- void smp_resched_interrupt(void)
-@@ -160,14 +158,6 @@ void smp_resched_interrupt(void)
- 	/* re-schedule routine called by interrupt return code. */
- }
- 
--void smp_call_function_single_interrupt(void)
--{
--	irq_enter();
--	generic_smp_call_function_single_interrupt();
--	local_cpu_data().irq_call_count++;
--	irq_exit();
+-	return -EINVAL;
 -}
--
- void smp_call_function_interrupt(void)
+-#endif
+ static inline struct device_node *of_find_matching_node_by_address(
+ 					struct device_node *from,
+ 					const struct of_device_id *matches,
+@@ -74,12 +67,7 @@ static inline struct device_node *of_find_matching_node_by_address(
  {
- 	irq_enter();
-diff --git a/arch/sparc/kernel/sun4d_smp.c b/arch/sparc/kernel/sun4d_smp.c
-index d5c3195..72f3797 100644
---- a/arch/sparc/kernel/sun4d_smp.c
-+++ b/arch/sparc/kernel/sun4d_smp.c
-@@ -181,8 +181,7 @@ void __init smp4d_smp_done(void)
- 
- /* Memory structure giving interrupt handler information about IPI generated */
- struct sun4d_ipi_work {
--	int single;
--	int msk;
-+	int func_call;
- 	int resched;
- };
- 
-@@ -198,7 +197,7 @@ static void __init smp4d_ipi_init(void)
- 
- 	for_each_possible_cpu(cpu) {
- 		work = &per_cpu(sun4d_ipi_work, cpu);
--		work->single = work->msk = work->resched = 0;
-+		work->func_call = work->resched = 0;
- 	}
+ 	return NULL;
  }
- 
-@@ -206,12 +205,8 @@ void sun4d_ipi_interrupt(void)
- {
- 	struct sun4d_ipi_work *work = &__get_cpu_var(sun4d_ipi_work);
- 
--	if (work->single) {
--		work->single = 0;
--		smp_call_function_single_interrupt();
--	}
--	if (work->msk) {
--		work->msk = 0;
-+	if (work->func_call) {
-+		work->func_call = 0;
- 		smp_call_function_interrupt();
- 	}
- 	if (work->resched) {
-@@ -233,23 +228,12 @@ static void sun4d_send_ipi(int cpu, int level)
- 	cc_set_igen(IGEN_MESSAGE(0, cpu << 3, 6 + ((level >> 1) & 7), 1 << (level - 1)));
- }
- 
--static void sun4d_ipi_single(int cpu)
+-#ifndef of_iomap
+-static inline void __iomem *of_iomap(struct device_node *device, int index)
 -{
--	struct sun4d_ipi_work *work = &per_cpu(sun4d_ipi_work, cpu);
--
--	/* Mark work */
--	work->single = 1;
--
--	/* Generate IRQ on the CPU */
--	sun4d_send_ipi(cpu, SUN4D_IPI_IRQ);
+-	return NULL;
 -}
--
--static void sun4d_ipi_mask_one(int cpu)
-+static void sun4d_ipi_func_call(int cpu)
+-#endif
++
+ static inline const __be32 *of_get_address(struct device_node *dev, int index,
+ 					u64 *size, unsigned int *flags)
  {
- 	struct sun4d_ipi_work *work = &per_cpu(sun4d_ipi_work, cpu);
- 
- 	/* Mark work */
--	work->msk = 1;
-+	work->func_call = 1;
- 
- 	/* Generate IRQ on the CPU */
- 	sun4d_send_ipi(cpu, SUN4D_IPI_IRQ);
-@@ -392,8 +376,7 @@ void smp4d_percpu_timer_interrupt(struct pt_regs *regs)
- static const struct sparc32_ipi_ops sun4d_ipi_ops = {
- 	.cross_call = sun4d_cross_call,
- 	.resched    = sun4d_ipi_resched,
--	.single     = sun4d_ipi_single,
--	.mask_one   = sun4d_ipi_mask_one,
-+	.func_call   = sun4d_ipi_func_call,
- };
- 
- void __init sun4d_init_smp(void)
-diff --git a/arch/sparc/kernel/sun4m_smp.c b/arch/sparc/kernel/sun4m_smp.c
-index d3408e7..d4b7d01 100644
---- a/arch/sparc/kernel/sun4m_smp.c
-+++ b/arch/sparc/kernel/sun4m_smp.c
-@@ -20,7 +20,6 @@
- #include "irq.h"
- #include "kernel.h"
- 
--#define IRQ_IPI_SINGLE		12
- #define IRQ_IPI_MASK		13
- #define IRQ_IPI_RESCHED		14
- #define IRQ_CROSS_CALL		15
-@@ -145,12 +144,7 @@ static void sun4m_ipi_resched(int cpu)
- 	sun4m_send_ipi(cpu, IRQ_IPI_RESCHED);
+@@ -100,6 +88,22 @@ static inline struct of_pci_range *of_pci_range_parser_one(
  }
+ #endif /* CONFIG_OF_ADDRESS */
  
--static void sun4m_ipi_single(int cpu)
--{
--	sun4m_send_ipi(cpu, IRQ_IPI_SINGLE);
--}
--
--static void sun4m_ipi_mask_one(int cpu)
-+static void sun4m_ipi_func_call(int cpu)
- {
- 	sun4m_send_ipi(cpu, IRQ_IPI_MASK);
- }
-@@ -262,8 +256,7 @@ void smp4m_percpu_timer_interrupt(struct pt_regs *regs)
- static const struct sparc32_ipi_ops sun4m_ipi_ops = {
- 	.cross_call = sun4m_cross_call,
- 	.resched    = sun4m_ipi_resched,
--	.single     = sun4m_ipi_single,
--	.mask_one   = sun4m_ipi_mask_one,
-+	.func_call   = sun4m_ipi_func_call,
- };
++#ifdef CONFIG_OF
++extern int of_address_to_resource(struct device_node *dev, int index,
++				  struct resource *r);
++void __iomem *of_iomap(struct device_node *node, int index);
++#else
++static inline int of_address_to_resource(struct device_node *dev, int index,
++					 struct resource *r)
++{
++	return -EINVAL;
++}
++
++static inline void __iomem *of_iomap(struct device_node *device, int index)
++{
++	return NULL;
++}
++#endif
  
- void __init sun4m_init_smp(void)
+ #if defined(CONFIG_OF_ADDRESS) && defined(CONFIG_PCI)
+ extern const __be32 *of_get_pci_address(struct device_node *dev, int bar_no,
 -- 
 1.8.1.2
 
