@@ -1,29 +1,23 @@
-From: "Mr Peter Komo" <peter.komo20@gmail.com>
-Date: Mon, 26 Aug 2013 06:27:43 +0000
-Subject: Investment.
-Message-Id: <f8a29496e63d2f7d9143d16abb3943d0.squirrel@webmail2.idola.net.id>
+From: David Miller <davem@redhat.com>
+Date: Thu, 26 Sep 2013 17:18:21 +0000
+Subject: Re: include/linux/version.h not updated
+Message-Id: <20130926.131821.1371932451518980586.davem@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20130926.002304.2121420558807412031.davem@davemloft.net>
+	<alpine.SOC.1.00.1309261347030.11084@math.ut.ee>
+	<alpine.SOC.1.00.1309261601050.11084@math.ut.ee>
+In-Reply-To: <alpine.SOC.1.00.1309261601050.11084@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: mroos@linux.ee
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
+From: Meelis Roos <mroos@linux.ee>
+Date: Thu, 26 Sep 2013 16:12:55 +0300 (EEST)
 
+> As it happens, 198144 is the value from Aug 10 2012 and it happens to be 
+> 00030600 hex. Here is the culprit, we are not rebuilding 
+> include/linux/version.h.
 
-
-Dear Sir/Madam,
-
-Please note that my client would like to invest in your country and if you
-can assist us to invest in a profitable areas that would yield profits
-kindly get back to me for a detailed information on how to proceed with
-this project.
-
-If you are really interested to assist do reply  through this email
-peter.komo5@gmail.com as soon as you receive this email for more details.
-
-Thank you and waiting for your response.
-
-Regards,
-
-Mr Peter Komo.
-
+That explains everything, thanks for tracking it down.
