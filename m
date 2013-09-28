@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 30 Sep 2013 16:31:47 +0000
-Subject: [PATCH 3/9] sparc64: Define PAGE_OFFSET in terms of physical address bits.
-Message-Id: <20130930.123147.2184661331750783415.davem@davemloft.net>
+From: <KurtCarver@robertwill.onmicrosoft.com>
+Date: Sat, 28 Sep 2013 23:47:54 +0000
+Subject: Low prices and discounts
+Message-Id: <fb6fa284-81ca-45e6-98bf-32ce7e75cb00@DB3PR01MB011.eurprd01.prod.exchangelabs.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,32 +9,16 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-This makes clearer the implications for a given choosen
-value.
+		Dear Customer,
 
-Based upon patches by Bob Picco.
+There is a lot of people in this world who spend so much time 
+watching their health that they have not the time to enjoy it.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Acked-by: Bob Picco <bob.picco@oracle.com>
----
- arch/sparc/include/asm/page_64.h | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+No doctor visits
+Lowest price World Wide 
+Discreet Packaging
 
-diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
-index d959312..9dd0f73 100644
---- a/arch/sparc/include/asm/page_64.h
-+++ b/arch/sparc/include/asm/page_64.h
-@@ -117,7 +117,9 @@ typedef pte_t *pgtable_t;
- /* We used to stick this into a hard-coded global register (%g4)
-  * but that does not make sense anymore.
-  */
--#define PAGE_OFFSET		_AC(0xFFFFF80000000000,UL)
-+#define MAX_SUPPORTED_PA_BITS	43
-+#define PAGE_OFFSET_BY_BITS(X)	(-(_AC(1,UL) << (X)))
-+#define PAGE_OFFSET		PAGE_OFFSET_BY_BITS(MAX_SUPPORTED_PA_BITS)
- 
- #ifndef __ASSEMBLY__
- 
--- 
-1.8.1.2
+http://translate.googleusercontent.com/translate_c?depth=1&hl=auto&sl=fr&url=www.google.ge&u=http://onlineshop55.yolasite.com/shop&usg=ALkJrhjsEp2wEy6D4p3zB8y4lFpDcS7xmg
 
+Best Regards,
+		
