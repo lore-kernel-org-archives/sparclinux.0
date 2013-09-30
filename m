@@ -1,137 +1,41 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Date: Fri, 13 Sep 2013 13:14:03 +0000
-Subject: [PATCH 177/228] cpufreq: sparc: Convert to light weight ->target_index() routine
-Message-Id: <b062bbe668243a5d093830096eda9d7f2e410e05.1379063063.git.viresh.kumar@linaro.org>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 30 Sep 2013 16:31:59 +0000
+Subject: [PATCH 5/9] sparc64: Fix inconsistent max-physical-address defines.
+Message-Id: <20130930.123159.1672122040812945522.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1379063063.git.viresh.kumar@linaro.org>
-In-Reply-To: <cover.1379063063.git.viresh.kumar@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-This patch converts existing .target() to newly defined light weight
-.target_index() routine for this driver.
 
-CPUFreq core will call cpufreq_frequency_table_target() before calling this
-routine and will pass index to it.
+Some parts of the code use '41' others use '42', make them
+all use the same value.
 
-Cc: David S. Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Acked-by: Bob Picco <bob.picco@oracle.com>
 ---
- drivers/cpufreq/sparc-us2e-cpufreq.c | 21 +++------------------
- drivers/cpufreq/sparc-us3-cpufreq.c  | 23 +++--------------------
- 2 files changed, 6 insertions(+), 38 deletions(-)
+ arch/sparc/include/asm/sparsemem.h | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/cpufreq/sparc-us2e-cpufreq.c b/drivers/cpufreq/sparc-us2e-cpufreq.c
-index 291688c..3bf5b8f 100644
---- a/drivers/cpufreq/sparc-us2e-cpufreq.c
-+++ b/drivers/cpufreq/sparc-us2e-cpufreq.c
-@@ -245,8 +245,7 @@ static unsigned int us2e_freq_get(unsigned int cpu)
- 	return clock_tick / estar_to_divisor(estar);
- }
+diff --git a/arch/sparc/include/asm/sparsemem.h b/arch/sparc/include/asm/sparsemem.h
+index b99d4e4..e5e1752 100644
+--- a/arch/sparc/include/asm/sparsemem.h
++++ b/arch/sparc/include/asm/sparsemem.h
+@@ -3,9 +3,11 @@
  
--static void us2e_set_cpu_divider_index(struct cpufreq_policy *policy,
--		unsigned int index)
-+static int us2e_freq_target(struct cpufreq_policy *policy, unsigned int index)
- {
- 	unsigned int cpu = policy->cpu;
- 	unsigned long new_bits, new_freq;
-@@ -277,20 +276,6 @@ static void us2e_set_cpu_divider_index(struct cpufreq_policy *policy,
- 	cpufreq_notify_transition(policy, &freqs, CPUFREQ_POSTCHANGE);
+ #ifdef __KERNEL__
  
- 	set_cpus_allowed_ptr(current, &cpus_allowed);
--}
--
--static int us2e_freq_target(struct cpufreq_policy *policy,
--			  unsigned int target_freq,
--			  unsigned int relation)
--{
--	unsigned int new_index = 0;
--
--	if (cpufreq_frequency_table_target(policy,
--					   &us2e_freq_table[policy->cpu].table[0],
--					   target_freq, relation, &new_index))
--		return -EINVAL;
--
--	us2e_set_cpu_divider_index(policy, new_index);
++#include <asm/page.h>
++
+ #define SECTION_SIZE_BITS       30
+-#define MAX_PHYSADDR_BITS       42
+-#define MAX_PHYSMEM_BITS        42
++#define MAX_PHYSADDR_BITS       MAX_PHYS_ADDRESS_BITS
++#define MAX_PHYSMEM_BITS        MAX_PHYS_ADDRESS_BITS
  
- 	return 0;
- }
-@@ -325,7 +310,7 @@ static int us2e_freq_cpu_exit(struct cpufreq_policy *policy)
- {
- 	if (cpufreq_us2e_driver) {
- 		cpufreq_frequency_table_put_attr(policy->cpu);
--		us2e_set_cpu_divider_index(policy, 0);
-+		us2e_freq_target(policy, 0);
- 	}
+ #endif /* !(__KERNEL__) */
  
- 	return 0;
-@@ -358,7 +343,7 @@ static int __init us2e_freq_init(void)
- 
- 		driver->init = us2e_freq_cpu_init;
- 		driver->verify = cpufreq_generic_frequency_table_verify;
--		driver->target = us2e_freq_target;
-+		driver->target_index = us2e_freq_target;
- 		driver->get = us2e_freq_get;
- 		driver->exit = us2e_freq_cpu_exit;
- 		strcpy(driver->name, "UltraSPARC-IIe");
-diff --git a/drivers/cpufreq/sparc-us3-cpufreq.c b/drivers/cpufreq/sparc-us3-cpufreq.c
-index 9b3dbd3..2e54d55 100644
---- a/drivers/cpufreq/sparc-us3-cpufreq.c
-+++ b/drivers/cpufreq/sparc-us3-cpufreq.c
-@@ -93,8 +93,7 @@ static unsigned int us3_freq_get(unsigned int cpu)
- 	return ret;
- }
- 
--static void us3_set_cpu_divider_index(struct cpufreq_policy *policy,
--		unsigned int index)
-+static int us3_freq_target(struct cpufreq_policy *policy, unsigned int index)
- {
- 	unsigned int cpu = policy->cpu;
- 	unsigned long new_bits, new_freq, reg;
-@@ -136,22 +135,6 @@ static void us3_set_cpu_divider_index(struct cpufreq_policy *policy,
- 	cpufreq_notify_transition(policy, &freqs, CPUFREQ_POSTCHANGE);
- 
- 	set_cpus_allowed_ptr(current, &cpus_allowed);
--}
--
--static int us3_freq_target(struct cpufreq_policy *policy,
--			  unsigned int target_freq,
--			  unsigned int relation)
--{
--	unsigned int new_index = 0;
--
--	if (cpufreq_frequency_table_target(policy,
--					   &us3_freq_table[policy->cpu].table[0],
--					   target_freq,
--					   relation,
--					   &new_index))
--		return -EINVAL;
--
--	us3_set_cpu_divider_index(policy, new_index);
- 
- 	return 0;
- }
-@@ -182,7 +165,7 @@ static int us3_freq_cpu_exit(struct cpufreq_policy *policy)
- {
- 	if (cpufreq_us3_driver) {
- 		cpufreq_frequency_table_put_attr(policy->cpu);
--		us3_set_cpu_divider_index(policy, 0);
-+		us3_freq_target(policy, 0);
- 	}
- 
- 	return 0;
-@@ -219,7 +202,7 @@ static int __init us3_freq_init(void)
- 
- 		driver->init = us3_freq_cpu_init;
- 		driver->verify = cpufreq_generic_frequency_table_verify;
--		driver->target = us3_freq_target;
-+		driver->target_index = us3_freq_target;
- 		driver->get = us3_freq_get;
- 		driver->exit = us3_freq_cpu_exit;
- 		strcpy(driver->name, "UltraSPARC-III");
 -- 
-1.7.12.rc2.18.g61b472e
+1.8.1.2
 
