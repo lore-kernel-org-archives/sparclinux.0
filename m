@@ -1,101 +1,82 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Date: Fri, 13 Sep 2013 13:14:34 +0000
-Subject: [PATCH 208/228] cpufreq: sparc: remove calls to cpufreq_notify_transition()
-Message-Id: <e9a2b8127585439a3428ebc222b3df1dbe88924e.1379063063.git.viresh.kumar@linaro.org>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 30 Sep 2013 16:31:43 +0000
+Subject: [PATCH 2/9] sparc64: Use PAGE_OFFSET instead of a magic constant.
+Message-Id: <20130930.123143.1113842638319768748.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1379063063.git.viresh.kumar@linaro.org>
-In-Reply-To: <cover.1379063063.git.viresh.kumar@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-Most of the drivers do following in their ->target_index() routines:
 
-	struct cpufreq_freqs freqs;
-	freqs.old = old freq...
-	freqs.new = new freq...
+This pertains to all of the computations of the kernel fast
+TLB miss xor values.
 
-	cpufreq_notify_transition(policy, &freqs, CPUFREQ_PRECHANGE);
+Based upon a patch by Bob Picco.
 
-	/* Change rate here */
-
-	cpufreq_notify_transition(policy, &freqs, CPUFREQ_POSTCHANGE);
-
-This is replicated over all cpufreq drivers today and there doesn't exists a
-good enough reason why this shouldn't be moved to cpufreq core instead.
-
-Earlier patches have added support in cpufreq core to do cpufreq notification on
-frequency change, this one removes it from this driver.
-
-Some related minor cleanups are also done along with it.
-
-Cc: David S. Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Acked-by: Bob Picco <bob.picco@oracle.com>
 ---
- drivers/cpufreq/sparc-us2e-cpufreq.c | 7 -------
- drivers/cpufreq/sparc-us3-cpufreq.c  | 7 -------
- 2 files changed, 14 deletions(-)
+ arch/sparc/mm/init_64.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/cpufreq/sparc-us2e-cpufreq.c b/drivers/cpufreq/sparc-us2e-cpufreq.c
-index 3bf5b8f..62aa23e 100644
---- a/drivers/cpufreq/sparc-us2e-cpufreq.c
-+++ b/drivers/cpufreq/sparc-us2e-cpufreq.c
-@@ -251,7 +251,6 @@ static int us2e_freq_target(struct cpufreq_policy *policy, unsigned int index)
- 	unsigned long new_bits, new_freq;
- 	unsigned long clock_tick, divisor, old_divisor, estar;
- 	cpumask_t cpus_allowed;
--	struct cpufreq_freqs freqs;
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index ed82eda..e295a5b 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -1722,7 +1722,7 @@ static void __init sun4v_linear_pte_xor_finalize(void)
+ #ifndef CONFIG_DEBUG_PAGEALLOC
+ 	if (cpu_pgsz_mask & HV_PGSZ_MASK_256MB) {
+ 		kern_linear_pte_xor[1] = (_PAGE_VALID | _PAGE_SZ256MB_4V) ^
+-			0xfffff80000000000UL;
++			PAGE_OFFSET;
+ 		kern_linear_pte_xor[1] |= (_PAGE_CP_4V | _PAGE_CV_4V |
+ 					   _PAGE_P_4V | _PAGE_W_4V);
+ 	} else {
+@@ -1731,7 +1731,7 @@ static void __init sun4v_linear_pte_xor_finalize(void)
  
- 	cpumask_copy(&cpus_allowed, tsk_cpus_allowed(current));
- 	set_cpus_allowed_ptr(current, cpumask_of(cpu));
-@@ -265,16 +264,10 @@ static int us2e_freq_target(struct cpufreq_policy *policy, unsigned int index)
+ 	if (cpu_pgsz_mask & HV_PGSZ_MASK_2GB) {
+ 		kern_linear_pte_xor[2] = (_PAGE_VALID | _PAGE_SZ2GB_4V) ^
+-			0xfffff80000000000UL;
++			PAGE_OFFSET;
+ 		kern_linear_pte_xor[2] |= (_PAGE_CP_4V | _PAGE_CV_4V |
+ 					   _PAGE_P_4V | _PAGE_W_4V);
+ 	} else {
+@@ -1740,7 +1740,7 @@ static void __init sun4v_linear_pte_xor_finalize(void)
  
- 	old_divisor = estar_to_divisor(estar);
+ 	if (cpu_pgsz_mask & HV_PGSZ_MASK_16GB) {
+ 		kern_linear_pte_xor[3] = (_PAGE_VALID | _PAGE_SZ16GB_4V) ^
+-			0xfffff80000000000UL;
++			PAGE_OFFSET;
+ 		kern_linear_pte_xor[3] |= (_PAGE_CP_4V | _PAGE_CV_4V |
+ 					   _PAGE_P_4V | _PAGE_W_4V);
+ 	} else {
+@@ -2261,10 +2261,10 @@ static void __init sun4u_pgprot_init(void)
+ 		     __ACCESS_BITS_4U | _PAGE_E_4U);
  
--	freqs.old = clock_tick / old_divisor;
--	freqs.new = new_freq;
--	cpufreq_notify_transition(policy, &freqs, CPUFREQ_PRECHANGE);
--
- 	if (old_divisor != divisor)
- 		us2e_transition(estar, new_bits, clock_tick * 1000,
- 				old_divisor, divisor);
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+-	kern_linear_pte_xor[0] = _PAGE_VALID ^ 0xfffff80000000000UL;
++	kern_linear_pte_xor[0] = _PAGE_VALID ^ PAGE_OFFSET;
+ #else
+ 	kern_linear_pte_xor[0] = (_PAGE_VALID | _PAGE_SZ4MB_4U) ^
+-		0xfffff80000000000UL;
++		PAGE_OFFSET;
+ #endif
+ 	kern_linear_pte_xor[0] |= (_PAGE_CP_4U | _PAGE_CV_4U |
+ 				   _PAGE_P_4U | _PAGE_W_4U);
+@@ -2308,10 +2308,10 @@ static void __init sun4v_pgprot_init(void)
+ 	_PAGE_CACHE = _PAGE_CACHE_4V;
  
--	cpufreq_notify_transition(policy, &freqs, CPUFREQ_POSTCHANGE);
--
- 	set_cpus_allowed_ptr(current, &cpus_allowed);
- 
- 	return 0;
-diff --git a/drivers/cpufreq/sparc-us3-cpufreq.c b/drivers/cpufreq/sparc-us3-cpufreq.c
-index 2e54d55..724ffbd 100644
---- a/drivers/cpufreq/sparc-us3-cpufreq.c
-+++ b/drivers/cpufreq/sparc-us3-cpufreq.c
-@@ -98,7 +98,6 @@ static int us3_freq_target(struct cpufreq_policy *policy, unsigned int index)
- 	unsigned int cpu = policy->cpu;
- 	unsigned long new_bits, new_freq, reg;
- 	cpumask_t cpus_allowed;
--	struct cpufreq_freqs freqs;
- 
- 	cpumask_copy(&cpus_allowed, tsk_cpus_allowed(current));
- 	set_cpus_allowed_ptr(current, cpumask_of(cpu));
-@@ -124,16 +123,10 @@ static int us3_freq_target(struct cpufreq_policy *policy, unsigned int index)
- 
- 	reg = read_safari_cfg();
- 
--	freqs.old = get_current_freq(cpu, reg);
--	freqs.new = new_freq;
--	cpufreq_notify_transition(policy, &freqs, CPUFREQ_PRECHANGE);
--
- 	reg &= ~SAFARI_CFG_DIV_MASK;
- 	reg |= new_bits;
- 	write_safari_cfg(reg);
- 
--	cpufreq_notify_transition(policy, &freqs, CPUFREQ_POSTCHANGE);
--
- 	set_cpus_allowed_ptr(current, &cpus_allowed);
- 
- 	return 0;
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+-	kern_linear_pte_xor[0] = _PAGE_VALID ^ 0xfffff80000000000UL;
++	kern_linear_pte_xor[0] = _PAGE_VALID ^ PAGE_OFFSET;
+ #else
+ 	kern_linear_pte_xor[0] = (_PAGE_VALID | _PAGE_SZ4MB_4V) ^
+-		0xfffff80000000000UL;
++		PAGE_OFFSET;
+ #endif
+ 	kern_linear_pte_xor[0] |= (_PAGE_CP_4V | _PAGE_CV_4V |
+ 				   _PAGE_P_4V | _PAGE_W_4V);
 -- 
-1.7.12.rc2.18.g61b472e
+1.8.1.2
 
