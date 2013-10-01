@@ -1,31 +1,38 @@
-From: David Howells <dhowells@redhat.com>
-Date: Thu, 03 Oct 2013 08:54:17 +0000
-Subject: Re: [PATCH] Fix generic hugetlb pte check return type.
-Message-Id: <20301.1380790457@warthog.procyon.org.uk>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 01 Oct 2013 17:57:15 +0000
+Subject: [GIT] Sparc
+Message-Id: <20131001.135715.281466689271748264.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20131002.142509.1450460988268165850.davem@davemloft.net>
-In-Reply-To: <20131002.142509.1450460988268165850.davem@davemloft.net>
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: dhowells@redhat.com, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-David Miller <davem@davemloft.net> wrote:
 
-> The include/asm-generic/hugetlb.h stubs that just vector huge_pte_*()
-> calls to the pte_*() implementations won't work in certain situations.
-> 
-> x86 and sparc, for example, return "unsigned long" from the bit
-> checks, and just go "return pte_val(pte) & PTE_BIT_FOO;"
-> 
-> But since huge_pte_*() returns 'int', if any high bits on 64-bit are
-> relevant, they get chopped off.
-> 
-> The net effect is that we can loop forever trying to COW a huge page,
-> because the huge_pte_write() check signals false all the time.
-> 
-> Reported-by: Gurudas Pai <gurudas.pai@oracle.com>
-> Signed-off-by: David S. Miller <davem@davemloft.net>
+Just a single bug fix to a regression added during some strlcpy()
+conversions.
 
-Acked-by: David Howells <dhowells@redhat.com>
+Please pull, thanks a lot!
+
+The following changes since commit 6cac446bd37d9381815fe4c2b0e7b1fd1085000c:
+
+  Merge tag 'hwmon-for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging (2013-09-27 10:07:47 -0700)
+
+are available in the git repository at:
+
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc master
+
+for you to fetch changes up to 2bd161a605f1f84a5fc8a4fe8410113a94f79355:
+
+  sparc64: Fix buggy strlcpy() conversion in ldom_reboot(). (2013-09-27 13:46:04 -0700)
+
+----------------------------------------------------------------
+David S. Miller (1):
+      sparc64: Fix buggy strlcpy() conversion in ldom_reboot().
+
+ arch/sparc/kernel/ds.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
