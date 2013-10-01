@@ -1,29 +1,26 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 18 Oct 2013 17:30:22 +0000
-Subject: Re: [PATCH V2 Resend 31/34] cpufreq: sparc: Convert to light weight ->target_index() routine
-Message-Id: <20131018.133022.2019297928668290643.davem@davemloft.net>
+From: Gurudas Pai <gurudas.pai@oracle.com>
+Date: Tue, 01 Oct 2013 00:42:02 +0000
+Subject: Re: [PATCH v2 0/9] sparc64: Support 47-bit physical addresses.
+Message-Id: <524A1A5A.5030700@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1382104514.git.viresh.kumar@linaro.org>
-	<cover.1382104514.git.viresh.kumar@linaro.org>
-	<f138f2a9b7adeefe0dad222ceda1bea8914a3e6e.1382104515.git.viresh.kumar@linaro.org>
-In-Reply-To: <f138f2a9b7adeefe0dad222ceda1bea8914a3e6e.1382104515.git.viresh.kumar@linaro.org>
+References: <20130930.123130.354302574443157859.davem@davemloft.net>
+In-Reply-To: <20130930.123130.354302574443157859.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: viresh.kumar@linaro.org
-Cc: rjw@sisk.pl, linaro-kernel@lists.linaro.org, patches@linaro.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Date: Fri, 18 Oct 2013 19:29:54 +0530
+On 09/30/2013 04:51 PM, David Miller wrote:
+> From: Gurudas Pai <gurudas.pai@oracle.com>
+> Date: Mon, 30 Sep 2013 16:47:48 -0700
+>
+>> Allocate 10 hugepages, and run a test using tool 'fio' with following
+>> jobfile.
+>> Fio just hangs. Basically issue is with O_DIRECT and hugepages. If you
+>> comment
+>> out "direct=1" from jobfile test works fine.
+> This worked before my changes right?
+No, Just now tried with old kernel, it hangs as well.
 
-> This patch converts existing .target() to newly defined light weight
-> .target_index() routine for this driver.
-> 
-> CPUFreq core will call cpufreq_frequency_table_target() before calling this
-> routine and will pass index to it.
-> 
-> Cc: David S. Miller <davem@davemloft.net>
-> Cc: sparclinux@vger.kernel.org
-> Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
-
-Acked-by: David S. Miller <davem@davemloft.net>
+Thanks,
+-Guru
