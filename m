@@ -1,59 +1,43 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 03 Oct 2013 03:52:06 +0000
-Subject: [GIT] Sparc
-Message-Id: <20131002.235206.2101296729379094715.davem@davemloft.net>
+From: Kees Cook <keescook@chromium.org>
+Date: Wed, 02 Oct 2013 05:13:34 +0000
+Subject: [PATCH] sparc: fix ldom_reboot buffer overflow harder
+Message-Id: <20131002051334.GA2406@www.outflux.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>, Paul Gortmaker <paul.gortmaker@windriver.com>, Zhao Hongjiang <zhaohongjiang@huawei.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, sparclinux@vger.kernel.org, Brad Spengler <spender@grsecurity.net>
+
+The length argument to strlcpy was still wrong. It could overflow the end of
+full_boot_str by 5 bytes. Instead of strcat and strlcpy, just use snprint.
+
+Reported-by: Brad Spengler <spender@grsecurity.net>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+---
+ arch/sparc/kernel/ds.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/arch/sparc/kernel/ds.c b/arch/sparc/kernel/ds.c
+index 4d9ac84..dff60ab 100644
+--- a/arch/sparc/kernel/ds.c
++++ b/arch/sparc/kernel/ds.c
+@@ -849,9 +849,8 @@ void ldom_reboot(const char *boot_command)
+ 	if (boot_command && strlen(boot_command)) {
+ 		unsigned long len;
+ 
+-		strcpy(full_boot_str, "boot ");
+-		strlcpy(full_boot_str + strlen("boot "), boot_command,
+-			sizeof(full_boot_str));
++		snprintf(full_boot_str, sizeof(full_boot_str), "boot %s",
++			 boot_command);
+ 		len = strlen(full_boot_str);
+ 
+ 		if (reboot_data_supported) {
+-- 
+1.7.9.5
 
 
-Couple small bug fixes:
-
-1) strlcpy in ldom_reboot() is still not quite right, use sprintf
-   instead from Kees Cook.
-
-2) Generic hugetlb interface pte checks should use the widest return
-   type, otherwise high bits can get chopped off.
-
-3) Fix build with PCI MSI enabled on 32-bit sparc.
-
-Please pull, thanks a lot!
-
-The following changes since commit c31eeaced22ce8bd61268a3c595d542bb38c0a4f:
-
-  Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/net (2013-10-01 12:58:48 -0700)
-
-are available in the git repository at:
-
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
-
-for you to fetch changes up to a988fb806d72d4e3a0edbeaece3f2f1172ce44b8:
-
-  sparc: fix MSI build failure on Sparc32 (2013-10-02 20:02:35 -0400)
-
-----------------------------------------------------------------
-David Miller (1):
-      mm: Fix generic hugetlb pte check return type.
-
-Kees Cook (1):
-      sparc: fix ldom_reboot buffer overflow harder
-
-Michael Opdenacker (1):
-      sparc: remove deprecated IRQF_DISABLED
-
-Thomas Petazzoni (1):
-      sparc: fix MSI build failure on Sparc32
-
- arch/sparc/Kconfig                 | 7 ++++++-
- arch/sparc/include/asm/floppy_64.h | 2 +-
- arch/sparc/kernel/Makefile         | 3 ++-
- arch/sparc/kernel/ds.c             | 5 ++---
- arch/sparc/kernel/ldc.c            | 4 ++--
- include/asm-generic/hugetlb.h      | 4 ++--
- 6 files changed, 15 insertions(+), 10 deletions(-)
+-- 
+Kees Cook
+Chrome OS Security
