@@ -1,42 +1,24 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 22 Oct 2013 17:54:42 +0000
-Subject: Re: sparc64 WARNING: at mm/mmap.c:2757 exit_mmap+0x13c/0x160()
-Message-Id: <20131022.135442.1072093301788210177.davem@davemloft.net>
+From: <FrankJCullen@robertwill.onmicrosoft.com>
+Date: Thu, 03 Oct 2013 15:21:15 +0000
+Subject: Stop your worries and share again your special moments.
+Message-Id: <26573be5-ad29-4ece-b4fb-4b7fc500e176@DB3PR01MB028.eurprd01.prod.exchangelabs.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20130617055839.GB3073@blackmetal.musicnaut.iki.fi>
-	<20130803.134042.2228681844349448961.davem@davemloft.net>
-	<20131022174612.GC24448@blackmetal.musicnaut.iki.fi>
-In-Reply-To: <20131022174612.GC24448@blackmetal.musicnaut.iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: aaro.koskinen@iki.fi
-Cc: mroos@linux.ee, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Date: Tue, 22 Oct 2013 20:46:12 +0300
 
-> Hi,
-> 
-> On Sat, Aug 03, 2013 at 01:40:42PM -0700, David Miller wrote:
->> > On Mon, Jun 17, 2013 at 08:32:25AM +0300, Aaro Koskinen wrote:
->> >> On Mon, Jun 17, 2013 at 12:06:00AM +0300, Meelis Roos wrote:
->> >> > Got this in 3.10-rc6 whil testing debian unstable upgrade with aptitude. 
->> >> > 3.10-rc5 did not exhibit this (nor any other kernel recently tried, 
->> >> > including most -rc's). Does not seem to be reproducible.
->> >> 
->> >> I get this regularly on Ultrasparc during long compilations. It's been
->> >> there with all recent kernels (probably at least since 3.8). Latest I
->> >> saw with 3.10-rc5.
->> > 
->> > Two examples:
->> 
->> Thanks for the reports, I'm actively looking into this.
-> 
-> Got this again with 3.12-rc5 while doing GCC 4.8.2 bootstrap (during
-> make check phase):
- ...
-> The box didn't die yet... Let's hope it will let GCC testsuite to finish.
+		Dear Customer=20
 
-Thanks for reporting this again, it's in my long TODO list to look into
-still.
+Why missing moments with your loved ones when you have the solution at one =
+click distance?
+
+Never miss a moment again
+
+http://translate.googleusercontent.com/translate_c?depth=3D1&hl=3Dauto&sl=
+=DE&url=3Dwww.google.bf&u=3Dhttp://onlineshop67.yolasite.com/store&usg=3DAL=
+kJrhgFCu9UFdrTRdMCMEiIo6cEQdlF8w
+
+Best Regards,=20
+	=09
