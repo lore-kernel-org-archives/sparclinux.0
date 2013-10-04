@@ -1,7 +1,7 @@
 From: Bob Picco <bpicco@meloft.net>
-Date: Fri, 04 Oct 2013 15:45:55 +0000
+Date: Fri, 04 Oct 2013 16:24:03 +0000
 Subject: Re: [PATCH v2 0/9] sparc64: Support 47-bit physical addresses.
-Message-Id: <20131004154555.GL29427@zareason>
+Message-Id: <20131004162403.GM29427@zareason>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20130930.123130.354302574443157859.davem@davemloft.net>
 In-Reply-To: <20130930.123130.354302574443157859.davem@davemloft.net>
@@ -26,22 +26,17 @@ David Miller wrote:	[Mon Sep 30 2013, 12:31:30PM EDT]
 >    tables can actually provide.
 > 
 > Signed-off-by: David S. Miller <davem@davemloft.net>
-We seem to have our first issue with THP.
 
-I first encountered it with "ld". A THP enabled value of "never" resolved the
-issue.
+This issue I was deflected from by a wind direction change and never returned
+to it. I believe you have been here with winfix_trampoline and collapsed
+THP thrills. A large userspace stack will encounter a
+[ 7603.877098] thp_stack[4583]: segfault at 100758 ip 0000000000100764 (rpc 0000000000100750) sp 000007fefdfff6d1 error 30001 in thp_stack[100000+2000]
+.
 
-Verified no issue on four level page table. Also no issue on x86_64 with
-3.7.x and 3.11 with unmodified test code.
+For THP enabled set to "never", there is no issue. This could be a core
+mm issue but not certain.
 
-I've reviewed most of TT 0x31 paths. I commenced moving up in mm layer. 
-
-Of course the debug code could have a bug :) I did examine some strace
-output to check posix_memalign but not the glibc source.
-
-It is Debian Wheezy and compiled with -m64. This on the T4-2 local to me.
-
-The issue appears to be corruption.
+I'll attempt and find the time to return to this.
 
 thanx,
 
@@ -52,117 +47,58 @@ bob
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <sys/mman.h>
 
-#ifndef MADV_HUGEPAGE
-#define MADV_HUGEPAGE	14
-#endif
-
-#define HPAGE_SHIFT	(22UL)
-#define	HPAGE_SIZE	(1UL << HPAGE_SHIFT)
-#define	PAGE_SHIFT	(13UL)
-#define	NR_PAGES_HPAGE	(HPAGE_SIZE >> PAGE_SHIFT)
-#define __round_mask(x, y) ((__typeof__(x))((y)-1))
-#define round_up(x, y) ((((x)-1) | __round_mask(x, y))+1)
-
-/* Note failure assumes an exit(1).
- */
-void *allocate_thps(size_t sz)
+static unsigned long getfp()
 {
-	int rc;
-	void *addr;
-	size_t align = HPAGE_SIZE;
+	unsigned long fp;
 
-	rc = posix_memalign(&addr, align, sz);
-
-	if (rc)
-		perror("posix_memalign"), exit(1);
-
-	rc = madvise(addr, sz, MADV_HUGEPAGE);
-
-	if (rc)
-		perror("madvise"), exit(1);
-
-	return addr;
+	return  (unsigned long) &fp;
 }
 
-/* Verify the array.
- */
-static void verify_thp(void *addr, void *end, int pagesize, int cnt)
+static void stack_grow(unsigned long start, unsigned long size, int bwait)
 {
-	unsigned long pc;
-	void *p;
+	unsigned long fp = getfp();
+	unsigned long m = start - fp;
+	unsigned long d;
 
-	for (pc = 0, p = addr; p < end; p += pagesize, pc++) {
-		if (*(unsigned long *) p != 0xbeefUL + (pc << 32UL)) {
-			fprintf(stderr, "\n\tcnt = %d pc=0x%lx thp = 0x%lx "
-				" addr=0x%lx *addr=0x%lx\n",
-				cnt, pc, pc >> 9UL, p, *(unsigned long *) p);
-			pc = (pc + NR_PAGES_HPAGE) & ~(NR_PAGES_HPAGE - 1);
-			pc--;
-			p = addr + (pc << PAGE_SHIFT);
-		}
-	}
-
+	if (m > size) {
+		fprintf(stderr, "at limit %lx\n", fp);
+		if (bwait)
+			for (d = 0; getfp() && d < (1UL <<30UL); d++);
+		else
+			sleep(5);
+		return;
+	} else 
+		stack_grow(start, size, bwait);
 }
 
-int main(int argc, char **argv)
+void main(int argc, char **argv)
 {
-	void *addr, *end, *p;
-	size_t sz;
-	int pagesize = getpagesize();
-	int loop, cnt, nthp, rc;
-	int recycle = 1;
-	unsigned long pc;
-	int optind = 0;
+	unsigned long start = getfp();
+	int loop, cnt, rc, bwait;
+	unsigned long stk_sz;
 
-	if (argc = 4 && argv[1][1] = 'a')
-		optind = 1;
-	else if (argc != 3)
-		fprintf(stderr, "%s: -a iterations 4Mb-pages\n",
-			argv[0]), exit(1);
+	if (argc != 4)
+		fprintf(stderr, "%s: stack-mb loop-count bwait\n", argv[0]),
+			exit(1);
 
-	rc = sscanf(argv[optind + 1], "%d", &loop);
+	rc = sscanf(argv[1], "%ld", &stk_sz);
 
 	if (rc != 1)
-		fprintf(stderr, "%s: sscanf (%s) failed\n",
-			argv[0], argv[optind + 1]), exit(1);
+		fprintf(stderr, "%s: stack-mb bad\n", argv[0]), exit(1);
 
-	rc = sscanf(argv[optind + 2], "%d", &nthp);
+	stk_sz <<= 20UL;
+
+	rc = sscanf(argv[2], "%d", &loop);
 
 	if (rc != 1)
-		fprintf(stderr, "%s: sscanf (%s) failed\n",
-			argv[0], argv[optind + 2]), exit(1);
+		fprintf(stderr, "%s: loop count bad \n", argv[0]), exit(1);
 
-	if (optind)
-		recycle = 0;
+	rc = sscanf(argv[3], "%d", &bwait);
 
-	sz = HPAGE_SIZE * nthp;
+	if (rc != 1)
+		fprintf(stderr, "%s: bwait bad\n", argv[0]), exit(1);
 
-	for (cnt = 0; cnt < loop; cnt++) {
-		addr = allocate_thps(sz);
-		end = addr + sz;
-
-		fprintf(stderr, "[0x%lx-0x%lx) ",
-			(unsigned long) addr, (unsigned long) end);
-
-		for (pc = 0, p = addr; p < end; p += pagesize, pc++)
-			*(unsigned long *) p = 0xbeefUL + (pc << 32UL);
-
-		verify_thp(addr, end, pagesize, cnt);
-
-		sleep(cnt % 5);
-
-		verify_thp(addr, end, pagesize, cnt);
-
-		if (recycle)
-			free(addr);
-
-		fprintf(stdout, ".\n");
-		fflush(stdout);
-	}
-
-	fprintf(stderr, "%s: Done! cnt = %d\n", argv[0], cnt);
-
-	return 0;
+	for (cnt = 0; cnt < loop; cnt++)
+		stack_grow(start, stk_sz, bwait);
 }
