@@ -1,27 +1,46 @@
-From: Ralf Baechle <ralf@linux-mips.org>
-Date: Tue, 08 Oct 2013 07:00:54 +0000
-Subject: Re: [PATCH v2 14/14] Kconfig cleanup (PARPORT_PC dependencies)
-Message-Id: <20131008070054.GE1615@linux-mips.org>
+From: salifrasaki22@gmail.com
+Date: Fri, 04 Oct 2013 13:14:42 +0000
+Subject: GREAT BUSINESS OPPORTUNITY.
+Message-Id: <1380892482.93547.YahooMailBasic@web160602.mail.bf1.yahoo.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1381209030-351-1-git-send-email-msalter@redhat.com>
- <1381209030-351-15-git-send-email-msalter@redhat.com>
-In-Reply-To: <1381209030-351-15-git-send-email-msalter@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-On Tue, Oct 08, 2013 at 01:10:30AM -0400, Mark Salter wrote:
 
-> Remove messy dependencies from PARPORT_PC by having it depend on one
-> Kconfig symbol (ARCH_MAY_HAVE_PC_PARPORT) and having architectures
-> which need it, select ARCH_MAY_HAVE_PC_PARPORT in arch/*/Kconfig.
-> New architectures are unlikely to need PARPORT_PC, so this avoids
-> having an ever growing list of architectures to exclude. Those
-> architectures which do select ARCH_MAY_HAVE_PC_PARPORT in this
-> patch are the ones which have an asm/parport.h (or use the generic
-> version).
-
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
-
-  Ralf
+Dear Friend,
+=A0
+Let me start by introducing myself, I am Dr, Salif Rasaki The Bill and Exch=
+ange Manager of Islamic Bank Burkina Faso.=20
+=A0
+I am writing you this letter based on the latest development at my Departme=
+nt which I will like to bring to your personal edification.($18.5 million t=
+ransfer claims).=20
+=A0
+This is a legitimate transaction and I agreed to offer you 40% of this mone=
+y as my foreign partner after confirmation of the fund in your bank account=
+, If you are interested get back to me, for more details of this transactio=
+n.=20
+=A0
+I have to get certain necessary facts about you before we proceed. Such inf=
+ormation I will like to know before we proceed are as follows:=20
+=A0
+(1) Your age=20
+=A0
+(2)Your occupation=20
+=A0
+(3)Your marital status=20
+=A0
+(4)Your full residential address=20
+=A0
+(5)Your private phone and fax number
+=A0and your complete name.=20
+=A0
+As soon as i receive this from you i will send=A0 you the application form =
+which you will fill and send to the bank
+=A0
+=A0
+Waiting to hear from you.
+Thanks
+Dr, Salif Rasaki =A0=A0
