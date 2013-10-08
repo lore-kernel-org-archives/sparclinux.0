@@ -1,44 +1,27 @@
-From: Kjetil Oftedal <oftedal@gmail.com>
-Date: Fri, 18 Oct 2013 20:28:29 +0000
-Subject: [PATCH] sparc: PCI: Fix incorrect address calculation of PCI Bridge windows on Simba-bridges
-Message-Id: <Pine.LNX.4.64.1310182159280.5208@oizys.tordivel.org>
+From: Ralf Baechle <ralf@linux-mips.org>
+Date: Tue, 08 Oct 2013 07:00:54 +0000
+Subject: Re: [PATCH v2 14/14] Kconfig cleanup (PARPORT_PC dependencies)
+Message-Id: <20131008070054.GE1615@linux-mips.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1381209030-351-1-git-send-email-msalter@redhat.com>
+ <1381209030-351-15-git-send-email-msalter@redhat.com>
+In-Reply-To: <1381209030-351-15-git-send-email-msalter@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-The SIMBA APB Bridges lacks the 'ranges' of-property describing the 
-PCI I/O and memory areas located beneath the bridge. Faking this 
-information has been performed by reading range registers in the 
-APB bridge, and calculating the corresponding areas.
+On Tue, Oct 08, 2013 at 01:10:30AM -0400, Mark Salter wrote:
 
-In commit 01f94c4a6ced476ce69b895426fc29bfc48c69bd 
-("Fix sabre pci controllers with new probing scheme.") a bug was 
-introduced into this calculation, causing the PCI memory areas 
-to be calculated incorrectly: The shift size was set to be 
-identical for I/O and MEM ranges, which is incorrect.
+> Remove messy dependencies from PARPORT_PC by having it depend on one
+> Kconfig symbol (ARCH_MAY_HAVE_PC_PARPORT) and having architectures
+> which need it, select ARCH_MAY_HAVE_PC_PARPORT in arch/*/Kconfig.
+> New architectures are unlikely to need PARPORT_PC, so this avoids
+> having an ever growing list of architectures to exclude. Those
+> architectures which do select ARCH_MAY_HAVE_PC_PARPORT in this
+> patch are the ones which have an asm/parport.h (or use the generic
+> version).
 
-This patch set the shift size of the MEM range back to the 
-value used before 01f94c4a6ced476ce69b895426fc29bfc48c69bd.
+Acked-by: Ralf Baechle <ralf@linux-mips.org>
 
-Signed-off-by: Kjetil Oftedal <oftedal@gmail.com>
----
- arch/sparc/kernel/pci.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index bc4d3f5..cb02145 100644
---- a/arch/sparc/kernel/pci.c
-+++ b/arch/sparc/kernel/pci.c
-@@ -398,8 +398,8 @@ static void apb_fake_ranges(struct pci_dev *dev,
- 	apb_calc_first_last(map, &first, &last);
- 	res = bus->resource[1];
- 	res->flags = IORESOURCE_MEM;
--	region.start = (first << 21);
--	region.end = (last << 21) + ((1 << 21) - 1);
-+	region.start = (first << 29);
-+	region.end = (last << 29) + ((1 << 29) - 1);
- 	pcibios_bus_to_resource(dev, res, &region);
- }
- 
+  Ralf
