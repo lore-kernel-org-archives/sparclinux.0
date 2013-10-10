@@ -1,61 +1,39 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Date: Sun, 22 Sep 2013 19:33:03 +0000
-Subject: [PATCH 1/2] second/util: convert data to big endian
-Message-Id: <1379878384-26476-2-git-send-email-aaro.koskinen@iki.fi>
+From: Meelis Roos <mroos@linux.ee>
+Date: Thu, 10 Oct 2013 11:51:36 +0000
+Subject: [PATCH] only try to find radeon IGP ROM on X86
+Message-Id: <alpine.SOC.1.00.1310101444090.15296@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
+References: <alpine.SOC.1.00.1209061032360.371@math.ut.ee> <1346950551.30263.196.camel@thor.local> <20120906.141823.13429356729572330.davem@davemloft.net> <CAPM=9ty87-kP1QJjgJKQUVkJxg8yN6ZQ5qy+pVYRnrDoa_VqBQ@mail.gmail.com> <alpine.SOC.1.00.1309231638330.9952@math.ut.ee>
+ <CALMQjD8ys=rGGQ5BVfAVPZuN8urr6_xTtCEWq9sYubP4+0bPjQ@mail.gmail.com>
+In-Reply-To: <CALMQjD8ys=rGGQ5BVfAVPZuN8urr6_xTtCEWq9sYubP4+0bPjQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Dave Airlie <airlied@gmail.com>, Alex Deucher <alexdeucher@gmail.com>
+Cc: David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, dri-devel@lists.freedesktop.org
 
-If SILO is cross-compiled, the "util" tool will be run in the host system
-and we must ensure the output is big-endian.
+To prevent hangs on non-PC machines (e.g. sparc64), probe Radeon ROM 
+from ATI IGP only on X86. Fixes hang in this place and allows PCI radeon 
+detection to move on to next problem.
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
----
- second/util.c | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+Signed-off-by: Meelis Roos <mroos@linux.ee>
 
-diff --git a/second/util.c b/second/util.c
-index 67c9bca..3346823 100644
---- a/second/util.c
-+++ b/second/util.c
-@@ -21,6 +21,7 @@
- #include <stdlib.h>
- #include <ctype.h>
- #include <string.h>
-+#include <arpa/inet.h>
+diff --git a/drivers/gpu/drm/radeon/radeon_bios.c b/drivers/gpu/drm/radeon/radeon_bios.c
+index 061b227..48ef97c 100644
+--- a/drivers/gpu/drm/radeon/radeon_bios.c
++++ b/drivers/gpu/drm/radeon/radeon_bios.c
+@@ -49,6 +49,11 @@ static bool igp_read_bios_from_vram(struct radeon_device *rdev)
+ 	resource_size_t vram_base;
+ 	resource_size_t size = 256 * 1024; /* ??? */
  
- FILE *f, *e;
- unsigned char buffer[2048];
-@@ -61,11 +62,11 @@ void save(FILE *out, int len, int type)
- 			    goto bad1;
- 			if (k >= prevoff)
- 			    k = prevoff - 1;
--			diffs[type][ndiffs[type]] = k - lastv[type];
-+			diffs[type][ndiffs[type]] = htons(k - lastv[type]);
- 			lastv[type] = k;
- 			ndiffs[type]++;
- 		    }
--		    diffs[type][ndiffs[type]] = curoff + j - lastv[type]; 
-+		    diffs[type][ndiffs[type]] = htons(curoff + j - lastv[type]);
- 		    lastv[type] = curoff + j;
- 		    ndiffs[type]++;
- 		} else if (buffer2[j] = buffer[j] + 16) {
-@@ -77,11 +78,13 @@ void save(FILE *out, int len, int type)
- 			    goto bad2;
- 			if (k >= prevoff)
- 			    k = prevoff - 1;
--			diffs[type+1][ndiffs[type+1]] = k - lastv[type+1];
-+			diffs[type+1][ndiffs[type+1]] +				htons(k - lastv[type+1]);
- 			lastv[type+1] = k;
- 			ndiffs[type+1]++;
- 		    }
--		    diffs[type+1][ndiffs[type+1]] = curoff + j - lastv[type+1]; 
-+		    diffs[type+1][ndiffs[type+1]] +			htons(curoff + j - lastv[type+1]);
- 		    lastv[type+1] = curoff + j;
- 		    ndiffs[type+1]++;
- 		} else {
--- 
-1.8.4.rc3
++#ifndef CONFIG_X86
++	/* IGP only exists on X86 (32- and 64-bit) */
++	return false;
++#endif
++
+ 	if (!(rdev->flags & RADEON_IS_IGP))
+ 		if (!radeon_card_posted(rdev))
+ 			return false;
 
+-- 
+Meelis Roos (mroos@linux.ee)
