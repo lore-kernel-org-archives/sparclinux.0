@@ -1,69 +1,65 @@
-From: Alex Deucher <alexdeucher@gmail.com>
-Date: Thu, 10 Oct 2013 17:10:35 +0000
-Subject: Re: [PATCH] only try to find radeon IGP ROM on X86
-Message-Id: <CADnq5_MQxbH1K82jkNf5GVzPmZ+MeR+L3nFL6K2kWWc5_XEkbg@mail.gmail.com>
+From: Grant Likely <grant.likely@linaro.org>
+Date: Tue, 15 Oct 2013 22:42:44 +0000
+Subject: Re: [PATCH v2 01/10] of/irq: Rework of_irq_count()
+Message-Id: <20131015224245.0B071C40099@trevor.secretlab.ca>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.SOC.1.00.1209061032360.371@math.ut.ee>
-	<1346950551.30263.196.camel@thor.local>
-	<20120906.141823.13429356729572330.davem@davemloft.net>
-	<CAPM=9ty87-kP1QJjgJKQUVkJxg8yN6ZQ5qy+pVYRnrDoa_VqBQ@mail.gmail.com>
-	<alpine.SOC.1.00.1309231638330.9952@math.ut.ee>
-	<CALMQjD8ys=rGGQ5BVfAVPZuN8urr6_xTtCEWq9sYubP4+0bPjQ@mail.gmail.com>
-	<alpine.SOC.1.00.1310101444090.15296@math.ut.ee>
-	<CADnq5_PNU3OvGMqJXVHVCNpRxpd=sO7V9_2uyMT0kaSdj=enpw@mail.gmail.com>
-	<alpine.SOC.1.00.1310101824001.25198@math.ut.ee>
-In-Reply-To: <alpine.SOC.1.00.1310101824001.25198@math.ut.ee>
+References: <1379510692-32435-1-git-send-email-treding@nvidia.com>
+ <1379510692-32435-2-git-send-email-treding@nvidia.com>
+ <CAL_JsqLE8aj511oF-gK7Gu5QfmHsQO3+oJ0KFkv0wmuo7i6eiw@mail.gmail.com>
+In-Reply-To: <CAL_JsqLE8aj511oF-gK7Gu5QfmHsQO3+oJ0KFkv0wmuo7i6eiw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Meelis Roos <mroos@linux.ee>
-Cc: sparclinux@vger.kernel.org, David Miller <davem@davemloft.net>, Maling list - DRI developers <dri-devel@lists.freedesktop.org>
+To: linux-arm-kernel@lists.infradead.org
 
-On Thu, Oct 10, 2013 at 11:26 AM, Meelis Roos <mroos@linux.ee> wrote:
->> On Thu, Oct 10, 2013 at 7:51 AM, Meelis Roos <mroos@linux.ee> wrote:
->> > To prevent hangs on non-PC machines (e.g. sparc64), probe Radeon ROM
->> > from ATI IGP only on X86. Fixes hang in this place and allows PCI radeon
->> > detection to move on to next problem.
->>
->> NACK.  All this function does it attempt to read the rom from the
->> framebuffer PCI BAR.  If you get hangs reading the BAR, then you have
->> larger problems on your platform.  Also, there are non-x86 platforms
->> that IGP chips which this may break.
->
-> OK. But the code seems to just dereference addresses returned from
-> ioremap, but to the best of my knowledge, these are not universally
-> (like on each arch) safe to read without readb/readw/readl. Should I
-> convert these to readb for test?
+On Sun, 22 Sep 2013 16:19:27 -0500, Rob Herring <robherring2@gmail.com> wrote:
+> On Wed, Sep 18, 2013 at 8:24 AM, Thierry Reding
+> <thierry.reding@gmail.com> wrote:
+> > The of_irq_to_resource() helper that is used to implement of_irq_count()
+> > tries to resolve interrupts and in fact creates a mapping for resolved
+> > interrupts. That's pretty heavy lifting for something that claims to
+> > just return the number of interrupts requested by a given device node.
+> >
+> > Instead, use the more lightweight of_irq_map_one(), which, despite the
+> > name, doesn't create an actual mapping. Perhaps a better name would be
+> > of_irq_translate_one().
+> >
+> > Signed-off-by: Thierry Reding <treding@nvidia.com>
+> 
+> Acked-by: Rob Herring <rob.herring@calxeda.com>
 
-Yeah, that would be great.
+Applied (and fixed to match the of_irq_map_one --> of_irq_parse_one
+rename that I'm going to merge in v3.13).
 
-Thanks,
+g.
 
-Alex
+> 
+> > ---
+> >  drivers/of/irq.c | 3 ++-
+> >  1 file changed, 2 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/of/irq.c b/drivers/of/irq.c
+> > index 1752988..5f44388 100644
+> > --- a/drivers/of/irq.c
+> > +++ b/drivers/of/irq.c
+> > @@ -368,9 +368,10 @@ EXPORT_SYMBOL_GPL(of_irq_to_resource);
+> >   */
+> >  int of_irq_count(struct device_node *dev)
+> >  {
+> > +       struct of_irq irq;
+> >         int nr = 0;
+> >
+> > -       while (of_irq_to_resource(dev, nr, NULL))
+> > +       while (of_irq_map_one(dev, nr, &irq) = 0)
+> >                 nr++;
+> >
+> >         return nr;
+> > --
+> > 1.8.4
+> >
+> >
+> > _______________________________________________
+> > linux-arm-kernel mailing list
+> > linux-arm-kernel@lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
->
->> > Signed-off-by: Meelis Roos <mroos@linux.ee>
->> >
->> > diff --git a/drivers/gpu/drm/radeon/radeon_bios.c b/drivers/gpu/drm/radeon/radeon_bios.c
->> > index 061b227..48ef97c 100644
->> > --- a/drivers/gpu/drm/radeon/radeon_bios.c
->> > +++ b/drivers/gpu/drm/radeon/radeon_bios.c
->> > @@ -49,6 +49,11 @@ static bool igp_read_bios_from_vram(struct radeon_device *rdev)
->> >         resource_size_t vram_base;
->> >         resource_size_t size = 256 * 1024; /* ??? */
->> >
->> > +#ifndef CONFIG_X86
->> > +       /* IGP only exists on X86 (32- and 64-bit) */
->> > +       return false;
->> > +#endif
->> > +
->> >         if (!(rdev->flags & RADEON_IS_IGP))
->> >                 if (!radeon_card_posted(rdev))
->> >                         return false;
->> >
->> > --
->> > Meelis Roos (mroos@linux.ee)
->>
->
-> --
-> Meelis Roos (mroos@linux.ee)
