@@ -1,7 +1,7 @@
 From: Grant Likely <grant.likely@linaro.org>
-Date: Tue, 15 Oct 2013 22:42:44 +0000
+Date: Tue, 15 Oct 2013 22:55:23 +0000
 Subject: Re: [PATCH v2 01/10] of/irq: Rework of_irq_count()
-Message-Id: <20131015224245.0B071C40099@trevor.secretlab.ca>
+Message-Id: <20131015225523.2A9C1C40099@trevor.secretlab.ca>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1379510692-32435-1-git-send-email-treding@nvidia.com>
  <1379510692-32435-2-git-send-email-treding@nvidia.com>
@@ -28,8 +28,7 @@ On Sun, 22 Sep 2013 16:19:27 -0500, Rob Herring <robherring2@gmail.com> wrote:
 > 
 > Acked-by: Rob Herring <rob.herring@calxeda.com>
 
-Applied (and fixed to match the of_irq_map_one --> of_irq_parse_one
-rename that I'm going to merge in v3.13).
+Applied, thanks.
 
 g.
 
