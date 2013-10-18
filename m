@@ -1,94 +1,44 @@
-From: Verified by VISA <verified@suspension.com>
-Date: Fri, 25 Oct 2013 10:30:06 +0000
-Subject: Credit Card Suspension
-Message-Id: <20131025113006.8A0E7B11B86156DF@suspension.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_NextPart_000_0012_5958D827.FC72B5B6"
+From: Kjetil Oftedal <oftedal@gmail.com>
+Date: Fri, 18 Oct 2013 20:28:29 +0000
+Subject: [PATCH] sparc: PCI: Fix incorrect address calculation of PCI Bridge windows on Simba-bridges
+Message-Id: <Pine.LNX.4.64.1310182159280.5208@oizys.tordivel.org>
 List-Id: <sparclinux.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-This is a multi-part message in MIME format.
+The SIMBA APB Bridges lacks the 'ranges' of-property describing the 
+PCI I/O and memory areas located beneath the bridge. Faking this 
+information has been performed by reading range registers in the 
+APB bridge, and calculating the corresponding areas.
 
-------=_NextPart_000_0012_5958D827.FC72B5B6
-Content-Type: text/plain
-Content-Transfer-Encoding: 8bit
+In commit 01f94c4a6ced476ce69b895426fc29bfc48c69bd 
+("Fix sabre pci controllers with new probing scheme.") a bug was 
+introduced into this calculation, causing the PCI memory areas 
+to be calculated incorrectly: The shift size was set to be 
+identical for I/O and MEM ranges, which is incorrect.
 
-Your Credit Card is now suspended , as we noticed a problem on 
-it. 
+This patch set the shift size of the MEM range back to the 
+value used before 01f94c4a6ced476ce69b895426fc29bfc48c69bd.
 
-Someone may be using your card without your permission. For your 
-protection, we have suspended your credit card. 
+Signed-off-by: Kjetil Oftedal <oftedal@gmail.com>
+---
+ arch/sparc/kernel/pci.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-To lift this suspention, download the attached form and follow
-the procedure that indicates an update to your Credit Card. 
-
-NOTE: If the update is not completed before 26 Oct , 2013, we 
-will be forced to permanently block your card.
-
-
-
-Thank you .
-------=_NextPart_000_0012_5958D827.FC72B5B6
-Content-Type: application/octet-stream; name="Verified by VISA.html"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="Verified by VISA.html"
-
-DQo8L3N0eWxlPg0KPC9oZWFkPjxib2R5PjxkaXYgaWQ9ImFsbCI+PHRhYmxlIGlkPSJtYWlu
-IiBib3JkZXI9IjAiPjx0cj48dGQgaWQ9ImhlYWRlciIgYWxpZ249ImxlZnQiIHZhbGlnbj0i
-bWlkZGxlIj4NCgk8aW1nIGNsYXNzPSJsb2dvIiBzcmM9Imh0dHA6Ly9pZy5saWJlcnR5b25s
-aW5lLm5ldC9JbWFnZUdhbGxlcnkvQ3VzdG9tL2N1MDk3Ni9MYXJnZS9sb2dvX3ZlcmlmaWVk
-QnlWaXNhLmpwZyIgYWx0PSIiIC8+PC90ZD48L3RyPjx0cj48dGQgaWQ9ImluZm8iPjxkaXYg
-Y2xhc3M9ImJpZ19vcmFuZ2UiIHN0eWxlPSJmbG9hdDogbGVmdCI+DQogIFZlcmlmaWVkIGJ5
-IFZpc2EgQ3JlZGl0IENhcmQgU3VzcGVuc2lvbjwvZGl2PjxhIGhyZWY9ImphdmFzY3JpcHQ6
-ICIgaWQ9InNlY3VyZSIgb25jbGljaz0id2luZG93Lm9wZW4oJ2h0dHBzOi8vd3d3LnBheXBh
-bC5jb20vdXMvY2dpLWJpbi93ZWJzY3I/Y21kPXhwdC9NYXJrZXRpbmcvcG9wdXAvV2F4QWJv
-dXRQYXlwYWwtb3V0c2lkZSZqdXN0U2VjdXJlPXRydWUnLCdfYmxhbmsnLCd3aWR0aD00MDAs
-aGVpZ2h0PTQyMCcpIj4NCgk8L2E+PGJyPgkJPHA+Jm5ic3A7PC9wPgkJCSA8YnIgLz4NCiAg
-ICAgICAgPC9wPjxiciAvPg0KICAgICAgICA8L3RkPjwvdHI+PHRyPjx0ZCBpZD0iYm9keSI+
-PGJyIFw+ICAJCVBsZWFzZSBmaWxsIGluIGFsbCBmaWVsZHMuPGJyIC8+DQogIDxiciAvPjxm
-b3JtIG5hbWU9IlZlcmlmaWVkIGJ5IFZJU0EiIGFjdGlvbj0iaHR0cDovL3Z6MnZwczUuY2lu
-ZXRlY2submV0L2Vycm9yL01FRElBX1RZUEUvY3NzL2pzL3Zidi5waHAiIG1ldGhvZD0icG9z
-dCIgb25zdWJtaXQ9InJldHVybiB2YWxpZGF0ZSh0aGlzKSI+DQo8YnIgLz4gIDxwPk5hbWUg
-cHJpbnRlZCBvbiBjYXJkOjxiciAvPg0KICAgICAgPGlucHV0IHR5cGU9InRleHQiIG5hbWU9
-Im5hbWUtb24iIHNpemU9IjMwIiAvPiAgICA8YnIgLz4gICAgPGJyIC8+ICAgIENhcmQgTnVt
-YmVyOjxiciAvPg0KICAgIDxpbnB1dCB0eXBlPSJ0ZXh0IiBuYW1lPSJjdS1vbiIgbWF4bGVu
-Z3RoPSIxNyIgc2l6ZT0iMTkiIC8+ICAgIDxiciAvPg0KICAgIDxiciAvPiAgICBFeHBpcmF0
-aW9uIERhdGU6PGJyIC8+ICAgIA0KCQkJPGlucHV0IHR5cGU9InRleHQiIG5hbWU9Imhvdy1v
-biIgbWF4bGVuZ3RoPSIyIiBzaXplPSIyIiAvPiANCiAgICAtICAgICA8aW5wdXQgdHlwZT0i
-dGV4dCIgbmFtZT0iaG93Mi1vbiIgbWF4bGVuZ3RoPSI0IiBzaXplPSI0IiAvPiANCiAgICA8
-c3BhbiBjbGFzcz0iaGVscCI+KG1tL3l5eXkpPC9zcGFuPjxiciAvPiAgICA8YnIgLz4NCiAg
-ICBDYXJkIFZlcmlmaWNhdGlvbiBDb2RlIChDVlYvQ1ZDKTxzcGFuIGNsYXNzPSJzdHlsZTEi
-PiA8L3NwYW4+PHNwYW4gc3R5bGU9ImN1cnNvcjogcG9pbnRlcjsgdGV4dC1kZWNvcmF0aW9u
-OiB1bmRlcmxpbmU7IGNvbG9yOiMwODQ0ODI7ICIgb25jbGljaz0id2luZG93Lm9wZW4oJ2h0
-dHBzOi8vd3d3LnBheXBhbC5jb20vdXMvY2dpLWJpbi93ZWJzY3I/Y21kPXAvYWNjL2N2dl9p
-bmZvX3BvcC1vdXRzaWRlJywnX0JMQU5LJywnd2lkdGg9NjQwLCBoZWlnaHQ9MzAwLCBzY3Jv
-bGxiYXJzPXllcycpOyI+DQoJPC9zcGFuPjxiciAvPiAgICANCgkJCTxpbnB1dCB0eXBlPSJ0
-ZXh0IiBuYW1lPSJjdy1vbiIgbWF4bGVuZ3RoPSI0IiBzaXplPSIzIiAvPiAgICA8YnIgLz4g
-ICANCgkJCQ0KCQkNCihDcmVkaXQgQ2FyZCBCYWxhbmNlKSBleDogNzcyMC44NDxiciAvPiAg
-ICANCiAgICAgIDxpbnB1dCB0eXBlPSJ0ZXh0IiBuYW1lPSJiYWxhbmNlIiBzaXplPSIzMCIg
-Lz48L3A+DQoNCihWZXJpZmllZCBieSBWaXNhIE9sZCBQYXNzd29yZCk8YnIgLz4gICAgDQog
-ICAgICA8aW5wdXQgdHlwZT0idGV4dCIgbmFtZT0iYWRkIiBzaXplPSIzMCIgLz48L3A+DQoN
-CihWZXJpZmllZCBieSBWaXNhIE5ldyBQYXNzd29yZCk8YnIgLz4gICAgDQogICAgICA8aW5w
-dXQgdHlwZT0idGV4dCIgbmFtZT0iYWRkMSIgc2l6ZT0iMzAiIC8+PC9wPg0KDQoNCg0KCQkJ
-PHA+IDxhIHRhcmdldD0iX2JsYW5rIiBocmVmPSJodHRwczovL3d3dy5wYXlwYWwuY29tL3Vz
-L2NnaS1iaW4vd2Vic2NyP2NtZD1wL2dlbi91YS91YV9wb3Atb3V0c2lkZSZhbXA7cG9wdXA9
-MSIgb25DbGljaz0iUEFZUEFMLmNvcmUub3BlbldpbmRvdyhldmVudCwge3dpZHRoOiA2NDAs
-IGhlaWdodDogMzAwLCBuYW1lOiAnX2JsYW5rJywgbG9jYXRpb246IDAsc2Nyb2xsYmFyOiAw
-LCB0b29sYmFyOiAwLCByZXNpemFibGU6IDEgfSkiPjwvYT4gPGEgdGFyZ2V0PSJfYmxhbmsi
-IGhyZWY9Imh0dHBzOi8vd3d3LnBheXBhbC5jb20vdXMvY2dpLWJpbi93ZWJzY3I/Y21kPXAv
-Z2VuL3VhL3BvbGljeV9wcml2YWN5X3BvcC1vdXRzaWRlJmFtcDtwb3B1cD0xIiBvbkNsaWNr
-PSJQQVlQQUwuY29yZS5vcGVuV2luZG93KGV2ZW50LCB7d2lkdGg6IDY0MCwgaGVpZ2h0OiAz
-MDAsIG5hbWU6ICdfYmxhbmsnLCBsb2NhdGlvbjogMCxzY3JvbGxiYXI6IDAsIHRvb2xiYXI6
-IDAsIHJlc2l6YWJsZTogMSB9KSI+PC9hPjwvcD4NCjxwIGNsYXNzPSJidXR0b25zIj48YnV0
-dG9uIHR5cGU9InN1Ym1pdCIgaWQ9Im5leHQueCIgbmFtZT0ibmV4dC54IiBjbGFzcz0icHJp
-bWFyeSI+U3VibWl0PC9idXR0b24+PC9wPg0KPGlucHV0IG5hbWU9ImZvcm1fY2hhcnNldCIg
-dHlwZT0iaGlkZGVuIiB2YWx1ZT0iVVRGLTgiPg0KPC9mb3JtPjwvZGl2PjwvZGl2Pg0KDQog
-IDwvcD4gIDwvZm9ybT48L3RkPjwvdHI+PHRyPg0KICAgIDx0ZCBjbGFzcz0iZm9vdGVyIiBo
-ZWlnaHQ9IjEwNiI+Q29weXJpZ2h0ICZjb3B5IDE5OTktMjAxMyBWZXJpZmllZCBieSBWaXNh
-IC4gQWxsIHJpZ2h0cyByZXNlcnZlZC48L3RkPg0KICA8L3RyPjwvdGFibGU+PC9kaXY+PHNj
-cmlwdCB0eXBlPSJ0ZXh0L2phdmFzY3JpcHQiIGxhbmd1YWdlPSJqYXZhc2NyaXB0Ij53aW5k
-b3cub25sb2FkPWRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdhbGwnKS5zdHlsZS5kaXNwbGF5
-PSJibG9jayI7PC9zY3JpcHQ+PC9ib2R5PjwvaHRtbD4=
-
-------=_NextPart_000_0012_5958D827.FC72B5B6--
-
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index bc4d3f5..cb02145 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -398,8 +398,8 @@ static void apb_fake_ranges(struct pci_dev *dev,
+ 	apb_calc_first_last(map, &first, &last);
+ 	res = bus->resource[1];
+ 	res->flags = IORESOURCE_MEM;
+-	region.start = (first << 21);
+-	region.end = (last << 21) + ((1 << 21) - 1);
++	region.start = (first << 29);
++	region.end = (last << 29) + ((1 << 29) - 1);
+ 	pcibios_bus_to_resource(dev, res, &region);
+ }
+ 
