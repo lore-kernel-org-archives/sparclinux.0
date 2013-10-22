@@ -1,48 +1,42 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 23 Oct 2013 05:28:26 +0000
-Subject: Re: [PATCH v2 0/9] sparc64: Support 47-bit physical addresses.
-Message-Id: <20131023.012826.1877421089576243957.davem@davemloft.net>
+Date: Tue, 22 Oct 2013 17:54:42 +0000
+Subject: Re: sparc64 WARNING: at mm/mmap.c:2757 exit_mmap+0x13c/0x160()
+Message-Id: <20131022.135442.1072093301788210177.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20130930.123130.354302574443157859.davem@davemloft.net>
-In-Reply-To: <20130930.123130.354302574443157859.davem@davemloft.net>
+References: <20130617055839.GB3073@blackmetal.musicnaut.iki.fi>
+	<20130803.134042.2228681844349448961.davem@davemloft.net>
+	<20131022174612.GC24448@blackmetal.musicnaut.iki.fi>
+In-Reply-To: <20131022174612.GC24448@blackmetal.musicnaut.iki.fi>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: aaro.koskinen@iki.fi
+Cc: mroos@linux.ee, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Gurudas Pai <gurudas.pai@oracle.com>
-Date: Tue, 22 Oct 2013 18:18:18 -0700
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Date: Tue, 22 Oct 2013 20:46:12 +0300
 
-> On 10/09/2013 12:18 PM, David Miller wrote:
->> From: Gurudas Pai <gurudas.pai@oracle.com>
->> Date: Thu, 03 Oct 2013 19:07:11 -0700
->>
->>> And run echo 1000000 > /proc/sys/vm/nr_hugepages couple of
->>> times.
->> You're running the machine out of memory and stressing the
->> setup path of the hugepage subsystem a lot.
->>
->> This looks entirely different from the other crash/lockup,
->> in that there it looked like a cpu died with interrupts
->> disabled and thus wasn't responding even to cross calls.
->>
->> This really isn't in a format I can look into, sorry.
-> Following change fixes the issue for me, (this was removed by
-> 759496ba6407c6994d6a5ce3a5e74937d7816208), not very sure how.
+> Hi,
 > 
-> diff -Nrup arch/sparc/mm/fault_64.c /tmp/fault_64.c
-> --- arch/sparc/mm/fault_64.c    2013-10-22 20:10:04.302411223 -0400
-> +++ /tmp/fault_64.c    2013-10-22 20:10:19.593410899 -0400
-> @@ -427,6 +427,7 @@ good_area:
->              goto bad_area;
->      }
+> On Sat, Aug 03, 2013 at 01:40:42PM -0700, David Miller wrote:
+>> > On Mon, Jun 17, 2013 at 08:32:25AM +0300, Aaro Koskinen wrote:
+>> >> On Mon, Jun 17, 2013 at 12:06:00AM +0300, Meelis Roos wrote:
+>> >> > Got this in 3.10-rc6 whil testing debian unstable upgrade with aptitude. 
+>> >> > 3.10-rc5 did not exhibit this (nor any other kernel recently tried, 
+>> >> > including most -rc's). Does not seem to be reproducible.
+>> >> 
+>> >> I get this regularly on Ultrasparc during long compilations. It's been
+>> >> there with all recent kernels (probably at least since 3.8). Latest I
+>> >> saw with 3.10-rc5.
+>> > 
+>> > Two examples:
+>> 
+>> Thanks for the reports, I'm actively looking into this.
 > 
-> + flags |= ((fault_code & FAULT_CODE_WRITE) ? FAULT_FLAG_WRITE : 0);
->      fault = handle_mm_fault(mm, vma, address, flags);
-> 
->      if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
+> Got this again with 3.12-rc5 while doing GCC 4.8.2 bootstrap (during
+> make check phase):
+ ...
+> The box didn't die yet... Let's hope it will let GCC testsuite to finish.
 
-The code block right above that sets the write flag when necessary.
-
-I think you're just changing the timing and avoiding a race of some
-sort, it's the only thing that makes any sense.
+Thanks for reporting this again, it's in my long TODO list to look into
+still.
