@@ -1,82 +1,26 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 13 Nov 2013 07:18:02 +0000
-Subject: [PATCH v3 2/9] sparc64: Use PAGE_OFFSET instead of a magic constant.
-Message-Id: <20131113.021802.1219045582684399393.davem@davemloft.net>
+From: "Mrs. Mary Saleh Saville" <pattersonjwilliam@yahoo.com>
+Date: Tue, 05 Nov 2013 18:58:10 +0000
+Subject: Donation Project
+Message-Id: <201311050450.rA54oFuP030120@tx.cpta.com.cn>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Hello,
 
-This pertains to all of the computations of the kernel fast
-TLB miss xor values.
+I am Mrs. Mary Saleh Saville an ageing widow suffering from long time illness. I have some funds I inherited from my late husband, the sum of US$3,500,000.00 and I am in need of a very honest and God fearing person that will use the fund for God's work to help the less privileged out there.
 
-Based upon a patch by Bob Picco.
+I have mapped out$1,200.000.00 for your personal use in this work. While the rest will be for the work.Please if you would be able to use the funds for the Lord's work kindly reply for further details.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Acked-by: Bob Picco <bob.picco@oracle.com>
----
- arch/sparc/mm/init_64.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+Your full name:
+Your full address:
+Your telephone/mobile number:
+Your fax Number:
+Your full company name:
+Your age:
 
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index ed82eda..e295a5b 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -1722,7 +1722,7 @@ static void __init sun4v_linear_pte_xor_finalize(void)
- #ifndef CONFIG_DEBUG_PAGEALLOC
- 	if (cpu_pgsz_mask & HV_PGSZ_MASK_256MB) {
- 		kern_linear_pte_xor[1] = (_PAGE_VALID | _PAGE_SZ256MB_4V) ^
--			0xfffff80000000000UL;
-+			PAGE_OFFSET;
- 		kern_linear_pte_xor[1] |= (_PAGE_CP_4V | _PAGE_CV_4V |
- 					   _PAGE_P_4V | _PAGE_W_4V);
- 	} else {
-@@ -1731,7 +1731,7 @@ static void __init sun4v_linear_pte_xor_finalize(void)
- 
- 	if (cpu_pgsz_mask & HV_PGSZ_MASK_2GB) {
- 		kern_linear_pte_xor[2] = (_PAGE_VALID | _PAGE_SZ2GB_4V) ^
--			0xfffff80000000000UL;
-+			PAGE_OFFSET;
- 		kern_linear_pte_xor[2] |= (_PAGE_CP_4V | _PAGE_CV_4V |
- 					   _PAGE_P_4V | _PAGE_W_4V);
- 	} else {
-@@ -1740,7 +1740,7 @@ static void __init sun4v_linear_pte_xor_finalize(void)
- 
- 	if (cpu_pgsz_mask & HV_PGSZ_MASK_16GB) {
- 		kern_linear_pte_xor[3] = (_PAGE_VALID | _PAGE_SZ16GB_4V) ^
--			0xfffff80000000000UL;
-+			PAGE_OFFSET;
- 		kern_linear_pte_xor[3] |= (_PAGE_CP_4V | _PAGE_CV_4V |
- 					   _PAGE_P_4V | _PAGE_W_4V);
- 	} else {
-@@ -2261,10 +2261,10 @@ static void __init sun4u_pgprot_init(void)
- 		     __ACCESS_BITS_4U | _PAGE_E_4U);
- 
- #ifdef CONFIG_DEBUG_PAGEALLOC
--	kern_linear_pte_xor[0] = _PAGE_VALID ^ 0xfffff80000000000UL;
-+	kern_linear_pte_xor[0] = _PAGE_VALID ^ PAGE_OFFSET;
- #else
- 	kern_linear_pte_xor[0] = (_PAGE_VALID | _PAGE_SZ4MB_4U) ^
--		0xfffff80000000000UL;
-+		PAGE_OFFSET;
- #endif
- 	kern_linear_pte_xor[0] |= (_PAGE_CP_4U | _PAGE_CV_4U |
- 				   _PAGE_P_4U | _PAGE_W_4U);
-@@ -2308,10 +2308,10 @@ static void __init sun4v_pgprot_init(void)
- 	_PAGE_CACHE = _PAGE_CACHE_4V;
- 
- #ifdef CONFIG_DEBUG_PAGEALLOC
--	kern_linear_pte_xor[0] = _PAGE_VALID ^ 0xfffff80000000000UL;
-+	kern_linear_pte_xor[0] = _PAGE_VALID ^ PAGE_OFFSET;
- #else
- 	kern_linear_pte_xor[0] = (_PAGE_VALID | _PAGE_SZ4MB_4V) ^
--		0xfffff80000000000UL;
-+		PAGE_OFFSET;
- #endif
- 	kern_linear_pte_xor[0] |= (_PAGE_CP_4V | _PAGE_CV_4V |
- 				   _PAGE_P_4V | _PAGE_W_4V);
--- 
-1.8.1.2
+Thanks and God bless.
 
+Mrs. Mary Saleh Saville
