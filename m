@@ -1,20 +1,30 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 18 Nov 2013 22:53:49 +0000
-Subject: Re: [PATCH 0/2] SILO: support cross-compilation
-Message-Id: <20131118.175349.1462879454463843630.davem@davemloft.net>
+From: CHEVROLET PROMO <0272@loanoffer121.onmicrosoft.com>
+Date: Wed, 06 Nov 2013 10:59:20 +0000
+Subject: YOUR EMAIL ID HAS WON
+Message-Id: <73c4705d-fb15-46cd-97b2-b71a3d31534c@SINPR04MB042.apcprd04.prod.outlook.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Date: Sun, 22 Sep 2013 22:33:02 +0300
+YOUR EMAIL ID HAS WON =A31000,000.00 GBP AND 2013 CHEVROLET CAPTIVA CAR in =
+the satellite software email lottery.On line Sweepstakes International prog=
+ram Conducted by CHEVROLET LOTTERY BOARD UK in which your e-mail address wa=
+s picking up randomly by software powered by the Internet.
+Forward the following details to enable us clear your file for immediate pa=
+yment and delivery of your winnings:
 
-> Here's two simple patches to enable cross-compilation of SILO. The main
-> issue is that little-endian host produces a broken binary (only "SIL"
-> gets displayed and the boot hangs).
+1.Full Names:
+2.Home Address:
+3.Age:
+4.Sex:
+5.Occupation:
+6.Phone Numbers:
+7.Country:
+8.State:
 
-Sorry for taking so long.
-
-These changes look great, applied, thanks!
+MR. A. ADAMS
+(CLAIMS DIRECTOR)
+MOBILE NUMBER: +448719156689
+CHEVROLET LOTTERY DEPARTMENT
