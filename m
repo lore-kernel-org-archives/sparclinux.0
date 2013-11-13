@@ -1,30 +1,87 @@
-From: CHEVROLET PROMO <0272@loanoffer121.onmicrosoft.com>
-Date: Wed, 06 Nov 2013 10:59:20 +0000
-Subject: YOUR EMAIL ID HAS WON
-Message-Id: <73c4705d-fb15-46cd-97b2-b71a3d31534c@SINPR04MB042.apcprd04.prod.outlook.com>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 13 Nov 2013 07:17:53 +0000
+Subject: [PATCH v3 1/9] sparc64: Clean up 64-bit mmap exclusion defines.
+Message-Id: <20131113.021753.1083669393011228758.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-YOUR EMAIL ID HAS WON =A31000,000.00 GBP AND 2013 CHEVROLET CAPTIVA CAR in =
-the satellite software email lottery.On line Sweepstakes International prog=
-ram Conducted by CHEVROLET LOTTERY BOARD UK in which your e-mail address wa=
-s picking up randomly by software powered by the Internet.
-Forward the following details to enable us clear your file for immediate pa=
-yment and delivery of your winnings:
 
-1.Full Names:
-2.Home Address:
-3.Age:
-4.Sex:
-5.Occupation:
-6.Phone Numbers:
-7.Country:
-8.State:
+Older UltraSPARC chips had an address space hole due to the MMU only
+supporting 44-bit virtual addresses.
 
-MR. A. ADAMS
-(CLAIMS DIRECTOR)
-MOBILE NUMBER: +448719156689
-CHEVROLET LOTTERY DEPARTMENT
+The top end of this hole also has the same value as the current
+definition of PAGE_OFFSET, so this can be confusing.
+
+Consolidate the defines for the userspace mmap exclusion range into
+page_64.h and use them in sys_sparc_64.c and hugetlbpage.c
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Acked-by: Bob Picco <bob.picco@oracle.com>
+---
+ arch/sparc/include/asm/page_64.h | 17 +++++++++++++++--
+ arch/sparc/kernel/sys_sparc_64.c |  3 ---
+ arch/sparc/mm/hugetlbpage.c      |  2 --
+ 3 files changed, 15 insertions(+), 7 deletions(-)
+
+diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
+index e155388..d959312 100644
+--- a/arch/sparc/include/asm/page_64.h
++++ b/arch/sparc/include/asm/page_64.h
+@@ -93,9 +93,22 @@ typedef unsigned long pgprot_t;
+ 
+ typedef pte_t *pgtable_t;
+ 
++/* These two values define the virtual address space range in which we
++ * must forbid 64-bit user processes from making mappings.  It
++ * represents the virtual address space hole present in most early
++ * sparc64 chips including UltraSPARC-I.  The next two defines specify
++ * the actual exclusion region we enforce, wherein we use a 4GB red
++ * zone on each side of the VA hole.
++ */
++#define SPARC64_VA_HOLE_TOP	_AC(0xfffff80000000000,UL)
++#define SPARC64_VA_HOLE_BOTTOM	_AC(0x0000080000000000,UL)
++
++#define VA_EXCLUDE_START (SPARC64_VA_HOLE_BOTTOM - (1UL << 32UL))
++#define VA_EXCLUDE_END   (SPARC64_VA_HOLE_TOP + (1UL << 32UL))
++
+ #define TASK_UNMAPPED_BASE	(test_thread_flag(TIF_32BIT) ? \
+-				 (_AC(0x0000000070000000,UL)) : \
+-				 (_AC(0xfffff80000000000,UL) + (1UL << 32UL)))
++				 _AC(0x0000000070000000,UL) : \
++				 VA_EXCLUDE_END)
+ 
+ #include <asm-generic/memory_model.h>
+ 
+diff --git a/arch/sparc/kernel/sys_sparc_64.c b/arch/sparc/kernel/sys_sparc_64.c
+index 51561b8..d05eb9c 100644
+--- a/arch/sparc/kernel/sys_sparc_64.c
++++ b/arch/sparc/kernel/sys_sparc_64.c
+@@ -39,9 +39,6 @@ asmlinkage unsigned long sys_getpagesize(void)
+ 	return PAGE_SIZE;
+ }
+ 
+-#define VA_EXCLUDE_START (0x0000080000000000UL - (1UL << 32UL))
+-#define VA_EXCLUDE_END   (0xfffff80000000000UL + (1UL << 32UL))
+-
+ /* Does addr --> addr+len fall within 4GB of the VA-space hole or
+  * overflow past the end of the 64-bit address space?
+  */
+diff --git a/arch/sparc/mm/hugetlbpage.c b/arch/sparc/mm/hugetlbpage.c
+index 9639964..3096317 100644
+--- a/arch/sparc/mm/hugetlbpage.c
++++ b/arch/sparc/mm/hugetlbpage.c
+@@ -21,8 +21,6 @@
+ /* Slightly simplified from the non-hugepage variant because by
+  * definition we don't have to worry about any page coloring stuff
+  */
+-#define VA_EXCLUDE_START (0x0000080000000000UL - (1UL << 32UL))
+-#define VA_EXCLUDE_END   (0xfffff80000000000UL + (1UL << 32UL))
+ 
+ static unsigned long hugetlb_get_unmapped_area_bottomup(struct file *filp,
+ 							unsigned long addr,
+-- 
+1.8.1.2
+
