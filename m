@@ -1,25 +1,12 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 14 Nov 2013 22:59:19 +0000
-Subject: Re: [PATCH 1/2] sparc64: Add self-IPI support for smp_send_reschedule()
-Message-Id: <20131114.175919.2281919192963478274.davem@davemloft.net>
+From: Richard Zhu <Hong-Xing.Zhu@freescale.com>
+Date: Wed, 20 Nov 2013 03:23:39 +0000
+Subject: Recall: [PATCH 24/34] PCI: use weak functions for MSI arch-specific functions
+Message-Id: <0E83723C55F66F43A6041464FE31119D446111@039-SN2MPN1-011.039d.mgd.msft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Richard Zhu <Hong-Xing.Zhu@freescale.com>
+Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, "linux390@de.ibm.com" <linux390@de.ibm.com>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, Russell King <linux@arm.linux.org.uk>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, Ralf Baechle <ralf@linux-mips.org>, "linux-mips@linux-mips.org" <linux-mips@linux-mips.org>, "David S. Miller" <davem@davemloft.net>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, Chris Metcalf <cmetcalf@tilera.com>, Jason Cooper <jason@lakedaemon.net>
 
-From: Kirill Tkhai <tkhai@yandex.ru>
-Date: Sat, 14 Sep 2013 16:00:09 +0400
-
-> CONFIG_NO_HZ_FULL requires possibility of smp_send_reschedule()
-> for the calling CPU. Currently, it is used in inc_nr_running()
-> scheduler primitive only.
->     
-> Nobody calls smp_send_reschedule() from preemptible context
-> (furthermore, it looks like it will be save if anybody use it
-> another way in the future). But anyway I add WARN_ON() here
-> just to return here if anything changes.
-> 
-> Signed-off-by: Kirill Tkhai <tkhai@yandex.ru>
-
-Applied.
+Zhu Richard-R65037 would like to recall the message, "[PATCH 24/34] PCI: use weak functions for MSI arch-specific functions".
