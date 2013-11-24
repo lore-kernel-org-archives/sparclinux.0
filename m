@@ -1,59 +1,45 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Date: Sat, 30 Nov 2013 23:07:41 +0000
-Subject: Re: RED state exception (trap type 0x64) on U5 reboot
-Message-Id: <529A6FBD.7030908@hurleysoftware.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Sun, 24 Nov 2013 09:17:18 +0000
+Subject: Re: Build regressions/improvements in v3.13-rc1
+Message-Id: <CAMuHMdVLg9uMh3FCHnE-=Dvd8XN283hvyybVid7ffmJpFNEYow@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.SOC.1.00.1310151347070.902@math.ut.ee>
-In-Reply-To: <alpine.SOC.1.00.1310151347070.902@math.ut.ee>
+References: <1385233105-20026-1-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1385233105-20026-1-git-send-email-geert@linux-m68k.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: sparclinux <sparclinux@vger.kernel.org>, "linux-xtensa@linux-xtensa.org" <linux-xtensa@linux-xtensa.org>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>
 
-On 11/29/2013 02:31 AM, Meelis Roos wrote:
->>>>> First I compared the configurations of working and nonworking machines
->>>>> (there were 2 different machines from the same era with problem), then
->>>>> did some conf bisecting and found that CONFIG_SUN_OPENPROMFS causes the
->>>>> RED problem in 3.12-rc5 when compiled modular and module loaded. It did
->>>>> not happen when it was compiled statically, or modular but module was
->>>>> not loaded. Reduced minimalistic configuration that causes this on Ultra
->>>>> 5 is attached to this mail.
->>
->> Is the problem unique to these 2 machines given this configuration, or is
->> the problem reproduceable on other machines using this configuration?
->
-> Tried it on Sun E3500 with the same minimal config modified to boot
-> there (scsi + console differences), did not trigger. I did get some
-> other warning with all the lockdep config enabled, will investigate them
-> separately.
+On Sat, Nov 23, 2013 at 7:58 PM, Geert Uytterhoeven
+<geert@linux-m68k.org> wrote:
+> 8 regressions:
+>   + /scratch/kisskb/src/arch/sparc/kernel/kgdb_64.c: error: implicit declaration of function 'exception_enter' [-Werror=implicit-function-declaration]:  => 162:7
+>   + /scratch/kisskb/src/arch/sparc/kernel/kgdb_64.c: error: implicit declaration of function 'exception_exit' [-Werror=implicit-function-declaration]:  => 176:2
 
-Is the warning you received this one from your other email?
+sparc64-allmodconfig
 
-------------[ cut here ]------------
-WARNING: CPU: 0 PID: 2826 at kernel/lockdep.c:3535 check_flags+0x7c/0x240()
-DEBUG_LOCKS_WARN_ON(current->hardirqs_enabled)
-Modules linked in: openpromfs
-CPU: 0 PID: 2826 Comm: reboot Tainted: G        W    3.12.0 #133
-Call Trace:
-  [0000000000454b6c] warn_slowpath_common+0x4c/0x80
-  [0000000000454c4c] warn_slowpath_fmt+0x2c/0x40
-  [0000000000499e3c] check_flags+0x7c/0x240
-  [000000000049d000] lock_acquire+0x20/0x80
-  [000000000077afe8] _raw_spin_lock+0x28/0x40
-  [00000000005f8ef4] p1275_cmd_direct+0x14/0x60
-  [00000000005f8980] prom_reboot+0x20/0x40
-  [0000000000434c88] machine_restart+0x48/0x60
-  [000000000047d9cc] kernel_restart+0x4c/0x60
-  [000000000047db34] SyS_reboot+0x134/0x200
-  [00000000004060b4] linux_sparc_syscall32+0x34/0x40
----[ end trace 4759822ebc3658d5 ]---
-possible reason: unannotated irqs-off.
-irq event stamp: 3799
-hardirqs last  enabled at (3799): [<0000000000404b1c>] rtrap_xcall+0x18/0x20
-hardirqs last disabled at (3797): [<0000000000459380>] __do_softirq+0x100/0x180
-softirqs last  enabled at (3798): [<00000000004593dc>] __do_softirq+0x15c/0x180
-softirqs last disabled at (3791): [<000000000042b89c>] do_softirq+0x5c/0xa0
+>   + /scratch/kisskb/src/kernel/bounds.c: error: -mcall-aixdesc must be big endian:  => 1:0
+>   + /scratch/kisskb/src/scripts/mod/devicetable-offsets.c: error: -mcall-aixdesc must be big endian:  => 1:0
+>   + /scratch/kisskb/src/scripts/mod/empty.c: error: -mcall-aixdesc must be big endian:  => 1:0
+>   + <stdin>: error: -mcall-aixdesc must be big endian:  => 1:0
 
+powerpc-allmodconfig
+powerpc-allyesconfig
 
-Regards,
-Peter Hurley
+>   + error: drivers/built-in.o: undefined reference to `i2c_register_driver':  => .init.literal+0xd88)
+>   + error: sram.c: undefined reference to `devm_regmap_init_i2c':  => .text+0x58ef8)
+
+xtensa-allmodconfig
+sparc-allmodconfig
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
