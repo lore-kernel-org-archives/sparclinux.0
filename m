@@ -1,7 +1,7 @@
-From: Meelis Roos <mroos@linux.ee>
-Date: Sun, 01 Dec 2013 01:32:17 +0000
+From: Peter Hurley <peter@hurleysoftware.com>
+Date: Sun, 01 Dec 2013 02:07:08 +0000
 Subject: Re: RED state exception (trap type 0x64) on U5 reboot
-Message-Id: <alpine.SOC.1.00.1312010331110.15816@math.ut.ee>
+Message-Id: <529A99CC.9000804@hurleysoftware.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <alpine.SOC.1.00.1310151347070.902@math.ut.ee>
 In-Reply-To: <alpine.SOC.1.00.1310151347070.902@math.ut.ee>
@@ -10,50 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> > > Is the problem unique to these 2 machines given this configuration, or is
-> > > the problem reproduceable on other machines using this configuration?
-> > 
-> > Tried it on Sun E3500 with the same minimal config modified to boot
-> > there (scsi + console differences), did not trigger. I did get some
-> > other warning with all the lockdep config enabled, will investigate them
-> > separately.
-> 
-> Is the warning you received this one from your other email?
+On 11/30/2013 08:31 PM, Meelis Roos wrote:
+>> Does the RED state exception trigger if you manually break to the prom
+>> command line and issue a boot command?
+>
+> It seems I can not break from running kernel to PROM by sending break
+> from minicom. PROM itself reacts to my break (during memory test for
+> example) so it's Linux not accepting the break. I seem to remember it
+> having worked some time ago, although not when the kergel hung.
 
-That one is from U5 but E3500 got the other similar p1275_cmd_direct one 
-during second CPU bringup, yes.
+Argghh.
 
-> ------------[ cut here ]------------
-> WARNING: CPU: 0 PID: 2826 at kernel/lockdep.c:3535 check_flags+0x7c/0x240()
-> DEBUG_LOCKS_WARN_ON(current->hardirqs_enabled)
-> Modules linked in: openpromfs
-> CPU: 0 PID: 2826 Comm: reboot Tainted: G        W    3.12.0 #133
-> Call Trace:
->  [0000000000454b6c] warn_slowpath_common+0x4c/0x80
->  [0000000000454c4c] warn_slowpath_fmt+0x2c/0x40
->  [0000000000499e3c] check_flags+0x7c/0x240
->  [000000000049d000] lock_acquire+0x20/0x80
->  [000000000077afe8] _raw_spin_lock+0x28/0x40
->  [00000000005f8ef4] p1275_cmd_direct+0x14/0x60
->  [00000000005f8980] prom_reboot+0x20/0x40
->  [0000000000434c88] machine_restart+0x48/0x60
->  [000000000047d9cc] kernel_restart+0x4c/0x60
->  [000000000047db34] SyS_reboot+0x134/0x200
->  [00000000004060b4] linux_sparc_syscall32+0x34/0x40
-> ---[ end trace 4759822ebc3658d5 ]---
-> possible reason: unannotated irqs-off.
-> irq event stamp: 3799
-> hardirqs last  enabled at (3799): [<0000000000404b1c>] rtrap_xcall+0x18/0x20
-> hardirqs last disabled at (3797): [<0000000000459380>]
-> __do_softirq+0x100/0x180
-> softirqs last  enabled at (3798): [<00000000004593dc>]
-> __do_softirq+0x15c/0x180
-> softirqs last disabled at (3791): [<000000000042b89c>] do_softirq+0x5c/0xa0
-> 
-> 
-> Regards,
-> Peter Hurley
-> 
+There were some changes to sunsab.c a couple of versions ago; maybe we
+broke it.
 
--- 
-Meelis Roos (mroos@linux.ee)
+Can you confirm BRKs are being received with
+'sudo cat /proc/tty/driver/serial'
+?
