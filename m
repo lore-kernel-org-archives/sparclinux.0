@@ -1,46 +1,75 @@
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-Date: Mon, 16 Dec 2013 21:01:00 +0000
-Subject: [PATCH] Revert "sparc64: Fix __copy_{to,from}_user_inatomic defines."
-Message-Id: <52AF6A0C.4000400@oracle.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Sun, 01 Dec 2013 09:50:16 +0000
+Subject: Re: Build regressions/improvements in v3.13-rc2
+Message-Id: <CAMuHMdV1hoUnYixPghCAy-LuTaB9JU-BFfBPH06gxhLRAqfp8Q@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1385891092-13266-1-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1385891092-13266-1-git-send-email-geert@linux-m68k.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: sparclinux <sparclinux@vger.kernel.org>, "linux-xtensa@linux-xtensa.org" <linux-xtensa@linux-xtensa.org>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, Linux-sh list <linux-sh@vger.kernel.org>
 
-This reverts commit 145e1c0023585e0e8f6df22316308ec61c5066b2.
+On Sun, Dec 1, 2013 at 10:44 AM, Geert Uytterhoeven
+<geert@linux-m68k.org> wrote:
+> JFYI, when comparing v3.13-rc2[1] to v3.13-rc1[3], the summaries are:
+>   - build errors: +8/-8
+>   - build warnings: +147/-97
 
-This commit broke the behavior of __copy_from_user_inatomic when
-it is only partially successful. Instead of returning the number
-of bytes not copied, it now returns 1. This translates to the
-wrong value being returned by iov_iter_copy_from_user_atomic.
+  + /scratch/kisskb/src/drivers/crypto/caam/jr.c: error: implicit
+declaration of function 'of_iomap'
+[-Werror=implicit-function-declaration]:  => 468:2
 
-xfstests generic/246 and LTP writev01 both fail on btrfs and nfs
-because of this.
+powerpc/mpc85xx_defconfig
 
-Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
----
- arch/sparc/include/asm/uaccess_64.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+  + /scratch/kisskb/src/arch/powerpc/kernel/swsusp_booke.S: Error:
+invalid sprg number:  => 161, 85, 165, 91, 167, 163, 87, 89
 
-diff --git a/arch/sparc/include/asm/uaccess_64.h b/arch/sparc/include/asm/uaccess_64.h
-index e562d3c..ad7e178 100644
---- a/arch/sparc/include/asm/uaccess_64.h
-+++ b/arch/sparc/include/asm/uaccess_64.h
-@@ -262,8 +262,8 @@ extern unsigned long __must_check __clear_user(void __user *, unsigned long);
- extern __must_check long strlen_user(const char __user *str);
- extern __must_check long strnlen_user(const char __user *str, long n);
- 
--#define __copy_to_user_inatomic ___copy_to_user
--#define __copy_from_user_inatomic ___copy_from_user
-+#define __copy_to_user_inatomic __copy_to_user
-+#define __copy_from_user_inatomic __copy_from_user
- 
- struct pt_regs;
- extern unsigned long compute_effective_address(struct pt_regs *,
--- 
-1.8.5.1
+powerpc-randconfig
 
+  + /scratch/kisskb/src/drivers/tty/ehv_bytechan.c: error: type
+defaults to 'int' in declaration of 'console_initcall'
+[-Werror=implicit-int]:  => 363:1
+
+powerpc-allmodconfig
+
+  + /scratch/kisskb/src/arch/sparc/kernel/kgdb_64.c: error: implicit
+declaration of function 'exception_enter'
+[-Werror=implicit-function-declaration]:  => 162:7
+  + /scratch/kisskb/src/arch/sparc/kernel/kgdb_64.c: error: implicit
+declaration of function 'exception_exit'
+[-Werror=implicit-function-declaration]:  => 176:2
+
+sparc64-allmodconfig
+
+  + error: drivers/built-in.o: undefined reference to
+`i2c_register_driver':  => .init.literal+0xd88)
+  + error: sram.c: undefined reference to `devm_regmap_init_i2c':  =>
+.text+0x590dc)
+
+sparc-allmodconfig
+xtensa-allmodconfig
+
+  + /scratch/kisskb/src/drivers/gpu/drm/drm_gem_cma_helper.c: error:
+implicit declaration of function 'dma_alloc_writecombine'
+[-Werror=implicit-function-declaration]:  => 91:2
+  + /scratch/kisskb/src/drivers/gpu/drm/drm_gem_cma_helper.c: error:
+implicit declaration of function 'dma_free_writecombine'
+[-Werror=implicit-function-declaration]:  => 176:3
+
+sh-randconfig
+
+> [1] http://kisskb.ellerman.id.au/kisskb/head/6939/ (119 out of 120 configs)
+> [3] http://kisskb.ellerman.id.au/kisskb/head/6919/ (119 out of 120 configs)
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
