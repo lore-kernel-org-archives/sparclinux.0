@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 01 Dec 2013 19:30:35 +0000
+From: Xose Vazquez Perez <xose.vazquez@gmail.com>
+Date: Sun, 01 Dec 2013 21:37:57 +0000
 Subject: Re: SPARC: 3.13-rc1 and newer: kernel size issue with tftpboot.img
-Message-Id: <20131201.143035.154056199944332076.davem@davemloft.net>
+Message-Id: <529BAC35.4030605@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20131201190220.GC30823@blackmetal.musicnaut.iki.fi>
 In-Reply-To: <20131201190220.GC30823@blackmetal.musicnaut.iki.fi>
@@ -10,23 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Date: Sun, 1 Dec 2013 21:02:20 +0200
+Aaro Koskinen wrote:
 
-> The bloat seems to be coming from arch/sparc/mm/init_64.c:
-> 
-> 	   text    data     bss     dec     hex filename
-> 	  10147   13536 4335264 4358947  428323 arch/sparc/mm/init_64.o
-> 
-> The cause is MAX_PHYS_ADDRESS_BITS changing from 41 to 47. Would it be
-> possible to make this configurable for legacy SPARCs? Manually patching
-> this value back to 41 seems to at least produce a bootable image (no
-> further testing done).
+> Sun Ultra 5/10 (OpenBoot 3.25) seems to have 10 MB limitation for the
+> tftpboot.img. With larger images "boot net" will fail with "Fast Data
+> Access MMU Miss":
 
-That would defeat the whole point of having one kernel image that
-works on all sparc64 systems.
+Latest patchdiag.xref [0] shows that the last OBP for U5/10 was:
+OBP_3.31.0,POST_3.1.0,OBDIAG_P2.9 (106121-18) [1]
 
-This data structure must be locked into the TLB and therefore must
-be in the main kernel image.  I'll try to look into doing things
-differently but it won't be done any time soon as I'm very backlogged
-with just networking patch review after coming home from travelling.
+But I didn't see any bug fix related to that limit.
+
+
+[0] https://getupdates.oracle.com/reports/patchdiag.xref
+[1] https://updates.oracle.com/readme/106121-18
