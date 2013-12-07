@@ -1,66 +1,55 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Mon, 30 Dec 2013 21:03:09 +0000
-Subject: Re: New build failures in v3.13-rc1
-Message-Id: <CAMuHMdU74A9sDcv8B213m8cryiBfTH7BC_8OuzfK020Hq3VV4g@mail.gmail.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Date: Sat, 07 Dec 2013 23:26:50 +0000
+Subject: [PATCH 01/10] tilo: convert data to big endian
+Message-Id: <1386458819-6590-2-git-send-email-aaro.koskinen@iki.fi>
 List-Id: <sparclinux.vger.kernel.org>
-References: <5290F68C.4060900@roeck-us.net>
-	<14411385250870@web21g.yandex.ru>
-In-Reply-To: <14411385250870@web21g.yandex.ru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Kirill Tkhai <tkhai@yandex.ru>, "David S. Miller" <davem@davemloft.net>, sparclinux <sparclinux@vger.kernel.org>
-Cc: Guenter Roeck <linux@roeck-us.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Anton Blanchard <anton@samba.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linus Torvalds <torvalds@linux-foundation.org>
+To: sparclinux@vger.kernel.org
 
-CC davem, sparclinux
+Make sure that data in TILO image is big endian.
 
-On Sun, Nov 24, 2013 at 12:54 AM, Kirill Tkhai <tkhai@yandex.ru> wrote:
-> 23.11.2013, 22:40, "Guenter Roeck" <linux@roeck-us.net>:
->> ===========>> Building sparc64:allmodconfig ... failed
->> --------------
->> Error log:
->> arch/sparc/kernel/kgdb_64.c: In function 'kgdb_trap':
->> arch/sparc/kernel/kgdb_64.c:162:7: error: implicit declaration of function 'exception_enter' [-Werror=implicit-function-declaration]
->> arch/sparc/kernel/kgdb_64.c:176:2: error: implicit declaration of function 'exception_exit' [-Werror=implicit-function-declaration]
->> cc1: all warnings being treated as errors
->> make[2]: *** [arch/sparc/kernel/kgdb_64.o] Error 1
->>
->> Introduced by commit 812cb83a5 (sparc64: Implement HAVE_CONTEXT_TRACKING).
->>
->> Reverting that commit fixes the problem.
->>
->
-> The patch below fixes the problem:
->
-> Signed-off-by: Kirill Tkhai <tkhai@yandex.ru>
-> ---
->  arch/sparc/kernel/kgdb_64.c | 1 +
->  1 file changed, 1 insertion(+)
-> diff --git a/arch/sparc/kernel/kgdb_64.c b/arch/sparc/kernel/kgdb_64.c
-> index 60b19f5..b45fe3f 100644
-> --- a/arch/sparc/kernel/kgdb_64.c
-> +++ b/arch/sparc/kernel/kgdb_64.c
-> @@ -6,6 +6,7 @@
->  #include <linux/kgdb.h>
->  #include <linux/kdebug.h>
->  #include <linux/ftrace.h>
-> +#include <linux/context_tracking.h>
->
->  #include <asm/cacheflush.h>
->  #include <asm/kdebug.h>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+---
+ tilo/maketilo.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-Gr{oetje,eeting}s,
+diff --git a/tilo/maketilo.c b/tilo/maketilo.c
+index b89a4f161769..0a14a96149dc 100644
+--- a/tilo/maketilo.c
++++ b/tilo/maketilo.c
+@@ -28,6 +28,7 @@
+ 
+ #include <stdio.h>
+ #include <sys/stat.h>
++#include <arpa/inet.h>
+ #include <stdlib.h>
+ #include <string.h>
+ #include "b.h"
+@@ -220,7 +221,7 @@ int main (int argc, char **argv)
+ 	output_end = root_image_start + rootlen;
+ 
+ 	/* patch code, data and BSS size in the .out header */
+-	*(unsigned*)(output_buffer+4) = output_end - output_buffer;
++	*(unsigned*)(output_buffer+4) = htonl(output_end - output_buffer);
+ 	*(unsigned*)(output_buffer+8) = 0;
+ 	*(unsigned*)(output_buffer+12) = 0;
+ 
+@@ -268,6 +269,13 @@ int main (int argc, char **argv)
+ 	ii[3].unpacked_len = 0;
+ 	ii[3].root_start = 0;
+ 
++	for (i = 0; i < 4; i++) {
++		ii[i].packed_start = htonl(ii[i].packed_start);
++		ii[i].packed_len   = htonl(ii[i].packed_len);
++		ii[i].unpacked_len = htonl(ii[i].unpacked_len);
++		ii[i].root_start   = htonl(ii[i].root_start);
++	}
++
+ 	f = fopen (output_file, "wb");
+ 	if (!f) {
+ 		fprintf (stderr, "Can't open %s for writing\n", output_file);
+-- 
+1.8.4.4
 
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
