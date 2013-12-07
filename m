@@ -1,51 +1,50 @@
 From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Date: Mon, 23 Dec 2013 19:43:30 +0000
-Subject: [PATCH v2 08/11] tilo: check kernel space limits
-Message-Id: <1387827813-8279-9-git-send-email-aaro.koskinen@iki.fi>
+Date: Sat, 07 Dec 2013 23:26:49 +0000
+Subject: [PATCH 00/10] SILO/TILO/sun4u: support TFTP booting modern kernels
+Message-Id: <1386458819-6590-1-git-send-email-aaro.koskinen@iki.fi>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Sanity check the space available for kernel decompression.
+Hi,
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
----
- tilo/tilo.c | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+Linux 3.13 exposes some limitations on old UltraSPARCs where the PROM
+maps only 10 MB - the standard kernel TFTP boot no longer works very
+well... See e-mail thread <http://marc.info/?t8592472200001&r=1&w=2>.
 
-diff --git a/tilo/tilo.c b/tilo/tilo.c
-index afbd848d9814..dc626efc7b02 100644
---- a/tilo/tilo.c
-+++ b/tilo/tilo.c
-@@ -175,6 +175,7 @@ char *my_main (struct linux_romvec *promvec, void *cifh, void *cifs)
- char *orig_code,*moved_code,*moved_ramdisk,*moved_kernel,*kernel_base;
- unsigned *p,*q = NULL;
- int kernel_number;
-+char *kernel_end, *kernel_limit;
- 
-     prom_init(promvec, cifh, cifs);
-     
-@@ -215,9 +216,16 @@ int kernel_number;
- 
-     gzminp = (unsigned char *)moved_kernel;		/* decompress kernel */
-     kernel_base = (char*) 0x4000;
-+    kernel_end = kernel_base +
-+		 ((image_table[kernel_number].unpacked_len + 0xfff) & ~0xfff);
-+    kernel_limit = moved_kernel;
- 
--    if (decompress (kernel_base, kernel_base + ((image_table[kernel_number].unpacked_len
--		 + 0xfff) & ~0xfff), get_input, unget_input) = -1)
-+    if (kernel_end > kernel_limit) {
-+	printf("No space to decompress the kernel.\n");
-+	prom_halt();
-+    }
-+
-+    if (decompress (kernel_base, kernel_end, get_input, unget_input) = -1)
-     	{
-         printf ("\nKernel decompression error\n");
-         prom_halt();
+This patch set makes some improvements to TILO to help on that. I'm now
+able to boot a bloaty 3.13-rc2 (kernel+initramfs, > 10 MB) on Sun Ultra
+5/10 with an image created with:
+
+	maketilo out=tftpboot.img sun4u=zImage size4u=`zcat zImage|wc -c`
+
+External root/initramfs image does not work at the moment. You need to
+use initramfs embedded into the kernel.
+
+I'm currently using a little-endian host to compile OS images for all
+of my computers, so also some cross-compilation fixes are included.
+
+Aaro Koskinen (10):
+  tilo: convert data to big endian
+  tilo: compile maketilo with host toolchain
+  tilo: support latest binutils
+  tilo: fix typo in tilo.sh
+  tilo: make root image optional
+  tilo: sanity check image sizes
+  tilo: support super large images
+  tilo: check kernel space limits
+  tilo: support ELF binaries
+  tilo: allocate kernel memory dynamically on sun4u
+
+ tilo/Makefile   |  24 +++++-
+ tilo/crt0.S     |   4 +
+ tilo/maketilo.c |  73 +++++++++++++-----
+ tilo/tilo.c     | 236 +++++++++++++++++++++++++++++++++++++++++++++++++++++---
+ tilo/tilo.sh    |  13 ++--
+ 5 files changed, 312 insertions(+), 38 deletions(-)
+
 -- 
-1.8.5.1
+1.8.4.4
 
