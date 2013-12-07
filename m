@@ -1,75 +1,75 @@
-From: Mark Salter <msalter@redhat.com>
-Date: Tue, 17 Dec 2013 15:48:53 +0000
-Subject: [PATCH v2 10/10] Kconfig: cleanup SERIO_I8042 dependencies
-Message-Id: <1387295333-24684-11-git-send-email-msalter@redhat.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Date: Sat, 07 Dec 2013 23:26:55 +0000
+Subject: [PATCH 06/10] tilo: sanity check image sizes
+Message-Id: <1386458819-6590-7-git-send-email-aaro.koskinen@iki.fi>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1387295333-24684-1-git-send-email-msalter@redhat.com>
-In-Reply-To: <1387295333-24684-1-git-send-email-msalter@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-Remove messy dependencies from SERIO_I8042 by having it depend on one
-Kconfig symbol (ARCH_MIGHT_HAVE_PC_SERIO) and having architectures
-which need it select ARCH_MIGHT_HAVE_PC_SERIO in arch/*/Kconfig.
-New architectures are unlikely to need SERIO_I8042, so this avoids
-having an ever growing list of architectures to exclude.
+Sanity check image sizes to prevent buffer overflow.
 
-Signed-off-by: Mark Salter <msalter@redhat.com>
-Acked-by: "H. Peter Anvin" <hpa@zytor.com>
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
-Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-CC: Richard Henderson <rth@twiddle.net>
-CC: linux-alpha@vger.kernel.org
-CC: Russell King <linux@arm.linux.org.uk>
-CC: linux-arm-kernel@lists.infradead.org
-CC: Tony Luck <tony.luck@intel.com>
-CC: Fenghua Yu <fenghua.yu@intel.com>
-CC: linux-ia64@vger.kernel.org
-CC: linux-mips@linux-mips.org
-CC: Paul Mackerras <paulus@samba.org>
-CC: linuxppc-dev@lists.ozlabs.org
-CC: Paul Mundt <lethal@linux-sh.org>
-CC: linux-sh@vger.kernel.org
-CC: "David S. Miller" <davem@davemloft.net>
-CC: sparclinux@vger.kernel.org
-CC: Guan Xuetao <gxt@mprc.pku.edu.cn>
-CC: Ingo Molnar <mingo@redhat.com>
-CC: Thomas Gleixner <tglx@linutronix.de>
-CC: x86@kernel.org
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 ---
- drivers/input/serio/Kconfig | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ tilo/maketilo.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff --git a/drivers/input/serio/Kconfig b/drivers/input/serio/Kconfig
-index 8541f94..1f5cec2 100644
---- a/drivers/input/serio/Kconfig
-+++ b/drivers/input/serio/Kconfig
-@@ -16,14 +16,19 @@ config SERIO
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called serio.
+diff --git a/tilo/maketilo.c b/tilo/maketilo.c
+index 30eaef4c2868..6bc2f767fcb6 100644
+--- a/tilo/maketilo.c
++++ b/tilo/maketilo.c
+@@ -53,6 +53,14 @@ int root_tweak (char *s)
+ 	return p ? (p + 32 + 0x1fff) & ~0x1fff : 0;	/* add 32 bytes and round to 8 KB */
+ }
  
-+config ARCH_MIGHT_HAVE_PC_SERIO
-+	bool
-+	help
-+	  Select this config option from the architecture Kconfig if
-+	  the architecture might use a PC serio device (i8042) to
-+          communicate with keyboard, mouse, etc.
++static void check_size (char const *name, int len, int pos, int max)
++{
++	if (max - pos < len) {
++		fprintf (stderr, "%s will not fit into the image.\n", name);
++		exit (EXIT_FAILURE);
++	}
++}
 +
- if SERIO
- 
- config SERIO_I8042
- 	tristate "i8042 PC Keyboard controller"
- 	default y
--	depends on !PARISC && (!ARM || FOOTBRIDGE_HOST) && \
--		   (!SUPERH || SH_CAYMAN) && !M68K && !BLACKFIN && !S390 && \
--		   !ARC
-+	depends on ARCH_MIGHT_HAVE_PC_SERIO
- 	help
- 	  i8042 is the chip over which the standard AT keyboard and PS/2
- 	  mouse are connected to the computer. If you use these devices,
+ int main (int argc, char **argv)
+ {
+ 	int i,len,rootlen;
+@@ -177,6 +185,8 @@ int main (int argc, char **argv)
+ 		fseek (f, 0, SEEK_END);
+ 		len = ftell (f);
+ 		fseek (f, 0, SEEK_SET);
++		check_size (sun4_kernel, sun4_kernel_start - output_buffer, len,
++			    MAX_BOOT_LEN);
+ 		fread (sun4_kernel_start, 1, len, f);
+ 		fclose (f);
+ 	} else
+@@ -194,6 +204,8 @@ int main (int argc, char **argv)
+ 		fseek (f, 0, SEEK_END);
+ 		len = ftell (f);
+ 		fseek (f, 0, SEEK_SET);
++		check_size (sun4c_kernel, sun4c_kernel_start - output_buffer,
++			    len, MAX_BOOT_LEN);
+ 		fread (sun4c_kernel_start, 1, len, f);
+ 		fclose (f);
+ 	} else
+@@ -211,6 +223,8 @@ int main (int argc, char **argv)
+ 		fseek (f, 0, SEEK_END);
+ 		len = ftell (f);
+ 		fseek (f, 0, SEEK_SET);
++		check_size (sun4u_kernel, sun4u_kernel_start - output_buffer,
++			    len, MAX_BOOT_LEN);
+ 		fread (sun4u_kernel_start, 1, len, f);
+ 		fclose (f);
+ 	} else
+@@ -219,6 +233,8 @@ int main (int argc, char **argv)
+ 	root_image_start = sun4u_kernel_start + len;
+ 	
+ 	if (root_image) {
++		check_size (root_image, root_image_start - output_buffer, len,
++			    MAX_BOOT_LEN);
+ 		fread (root_image_start, 1, rootlen, g);
+ 		fclose (g);
+ 	}
 -- 
-1.8.3.1
+1.8.4.4
 
