@@ -1,31 +1,18 @@
-From: " Peter Ooi Cheng Kin" <info@cnd.org.mz>
-Date: Sun, 29 Dec 2013 09:03:41 +0000
-Subject: INTRODUCTION LETTER
-Message-Id: <5868edf4-292a-4fcb-a512-946229fde914@mail>
+From: "Jack Kofi (ESQ)." <edi@tst.jus.br>
+Date: Sun, 08 Dec 2013 19:52:21 +0000
+Subject: Please Confirm
+Message-Id: <1896132237.50588390.1386532341016.JavaMail.root@tst.jus.br>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Greetings to you, 
 
+I want you to assist me in transferring the sum of US$9.5M left behind by my dead client. I am willing to offer 50% to you as the sole beneficiary after the funds has been transferred to you.
 
-INTRODUCTION LETTER
-Peter Ooi Cheng Kin
-DBS Bank
+Get back to me if you are interested so that i can provide you with more details
 
-Good Day,
-My name is Peter Ooi Cheng Kin I work with DBS BANK .I discovered a huge sum secretly in a high profile  account,on investigation I discovered it belongs to a late President without any administrator.
-
-I want you to partner with me to transfer this funds out into your account.
-We shall share the money in terms that we will both agree .
-Let me know if you are willing to partner with me.
-Please do in your reply email state your:
-1.Full Name
-2.phone number
- PLEASE SEND YOUR REPLY TO MY PERSONAL EMAIL ADDRESS ONLY TO:cheng.kim@aol.com
-
-Yours
-Peter Ooi Cheng Kin
-
-
+Regards,
+Jack Kofi, esq
