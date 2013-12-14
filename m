@@ -1,39 +1,38 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Tue, 03 Dec 2013 21:01:27 +0000
-Subject: Re: Build regressions/improvements in v3.13-rc2
-Message-Id: <CAMuHMdXsn9R6-R5yMCnjEmum5LjBRmL8+v+_ryvRLJyQBg1ZtA@mail.gmail.com>
+From: Mark Salter <msalter@redhat.com>
+Date: Sat, 14 Dec 2013 16:59:33 +0000
+Subject: [PATCH 07/10] sparc: select ARCH_MIGHT_HAVE_PC_SERIO
+Message-Id: <1387040376-26906-8-git-send-email-msalter@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1385891092-13266-1-git-send-email-geert@linux-m68k.org>
- <CAMuHMdV1hoUnYixPghCAy-LuTaB9JU-BFfBPH06gxhLRAqfp8Q@mail.gmail.com>
- <20131203204540.GA4796@roeck-us.net>
-In-Reply-To: <20131203204540.GA4796@roeck-us.net>
+References: <1387040376-26906-1-git-send-email-msalter@redhat.com>
+In-Reply-To: <1387040376-26906-1-git-send-email-msalter@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: sparclinux <sparclinux@vger.kernel.org>, "linux-xtensa@linux-xtensa.org" <linux-xtensa@linux-xtensa.org>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: Mark Salter <msalter@redhat.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-On Tue, Dec 3, 2013 at 9:45 PM, Guenter Roeck <linux@roeck-us.net> wrote:
-> ia64-defconfig:
->
-> arch/ia64/kernel/built-in.o: In function `skip_rbs_switch':
-> (.text+0xef2): undefined reference to `preempt_schedule_irq'
+Architectures which might use an i8042 for serial IO to keyboard,
+mouse, etc should select ARCH_MIGHT_HAVE_PC_SERIO.
 
-Funny, that one was actually introduced in v3.13-rc1, but it fell through
-the cracks of the regex handling in my script.
+Signed-off-by: Mark Salter <msalter@redhat.com>
+CC: "David S. Miller" <davem@davemloft.net>
+CC: sparclinux@vger.kernel.org
+---
+ arch/sparc/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-BTW, my scripts are back online: https://github.com/geertu/linux-scripts.
-linux-log-diff didn't see the ia64 breakage, linux-log-summary did.
-One day I plan to merge linux-log-diff and linux-log-summary, so I have
-to maintain only one regex chain.
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index d4f7a6a..034a680 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -13,6 +13,7 @@ config SPARC
+ 	bool
+ 	default y
+ 	select ARCH_MIGHT_HAVE_PC_PARPORT if SPARC64 && PCI
++	select ARCH_MIGHT_HAVE_PC_SERIO
+ 	select OF
+ 	select OF_PROMTREE
+ 	select HAVE_IDE
+-- 
+1.8.3.1
 
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
