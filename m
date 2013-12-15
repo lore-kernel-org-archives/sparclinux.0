@@ -1,104 +1,316 @@
-From: Rolf Eike Beer <eike-kernel@sf-tec.de>
-Date: Mon, 16 Dec 2013 09:14:12 +0000
-Subject: Re: Lockup on Sun Fire V240 under load
-Message-Id: <46248540.hTgr7HZVB3@caliban.sf-tec.de>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="nextPart1965569.nzJELHxfyE"
+From: Jiang Liu <liuj97@gmail.com>
+Date: Sun, 15 Dec 2013 16:36:35 +0000
+Subject: [PATCH v3 [resend] 13/18] smp, sparc: kill SMP single function call interrupt
+Message-Id: <1387125400-28849-14-git-send-email-liuj97@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <32994976.A7tuLDhD29@devpool02>
-In-Reply-To: <32994976.A7tuLDhD29@devpool02>
-To: sparclinux@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-
-
---nextPart1965569.nzJELHxfyE
-Content-Transfer-Encoding: 7Bit
+References: <1387125400-28849-1-git-send-email-liuj97@gmail.com>
+In-Reply-To: <1387125400-28849-1-git-send-email-liuj97@gmail.com>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Andrew Morton <akpm@linux-foundation.org>, Shaohua Li <shli@kernel.org>, "David S. Miller" <davem@davemloft.net>, Kefeng Wang <wangkefeng.wang@huawei.com>, Sam Ravnborg <sam@ravnborg.org>, Kirill Tkhai <tkhai@yandex.ru>, Al Viro <viro@zeniv.linux.org.uk>, Jiang Liu <jiang.liu@huawei.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Jiang Liu <liuj97@gmail.com>, Ingo Molnar <mingo@elte.hu>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Steven Rostedt <rostedt@goodmis.org>, Jiri Kosina <trivial@kernel.org>, Wang YanQing <udknight@gmail.com>, linux-arch@vger.kernel.org
 
-> I recompiled both binutils and gcc in parallel (independent of each other).
-> Only minutes after I started this the machine locked up. The machine has
-> 8GiB of RAM and was otherwise idle.
+Commit 9a46ad6d6df3b54 "smp: make smp_call_function_many() use logic
+similar to smp_call_function_single()" has unified the way to handle
+single and multiple cross-CPU function calls. Now only one interrupt
+is needed for architecture specific code to support generic SMP function
+call interfaces, so kill the redundant single function call interrupt.
 
-This time it was trying to generate a new OpenSSL cert (qmail-genrsacert from 
-Gentoo):
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Jiri Kosina <trivial@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Jiang Liu <liuj97@gmail.com>
+---
+ arch/sparc/include/asm/smp_32.h |  4 +---
+ arch/sparc/kernel/entry.S       | 10 ++--------
+ arch/sparc/kernel/leon_smp.c    | 31 +++++++------------------------
+ arch/sparc/kernel/smp_32.c      | 14 ++------------
+ arch/sparc/kernel/sun4d_smp.c   | 31 +++++++------------------------
+ arch/sparc/kernel/sun4m_smp.c   | 11 ++---------
+ 6 files changed, 21 insertions(+), 80 deletions(-)
 
-[209482.600816] BUG: NMI Watchdog detected LOCKUP on CPU1, ip 0042f748, registers:
-[209482.696963] CPU: 1 PID: 4612 Comm: qmail-genrsacer Not tainted 3.12.5 #1
-[209482.786173] task: fffff8033a019980 ti: fffff8033c4c4000 task.ti: fffff8033c4c4000
-[209482.885679] TSTATE: 0000009911e01605 TPC: 000000000042f748 TNPC: 000000000042f3c0 Y: 00000000    Not tainted
-[209483.016074] TPC: <__delay+0x28/0x60>
-[209483.064099] g0: fffff8033c9c9458 g1: 000000000042f3c0 g2: 0000000000000002 g3: 000000000001869e
-[209483.179617] g4: fffff8033a019980 g5: fffff8133c59a000 g6: fffff8033c4c4000 g7: 0000000000000000
-[209483.295135] o0: 0000000000000006 o1: fffff8033c4c4400 o2: 000000000043d6fc o3: 0000000000000000
-[209483.410651] o4: 0000000000000000 o5: 00000000f7e58000 sp: fffff8033c4c70f1 ret_pc: 000000000042f744
-[209483.530745] RPC: <__delay+0x24/0x60>
-[209483.578778] l0: 000002494a37a682 l1: 00000000009ce348 l2: 000000000043d6f8 l3: 0000000000000400
-[209483.694301] l4: 000000000000000e l5: 0000000000000001 l6: 0000000000000000 l7: 0000000000000008
-[209483.809820] i0: 0000000000000018 i1: 0000000000000000 i2: 0000000000000001 i3: 0000000000000000
-[209483.925338] i4: 0000000000000000 i5: 0000000000000003 i6: fffff8033c4c71a1 i7: 000000000043d704
-[209484.040864] I7: <cheetah_xcall_deliver+0x184/0x2a0>
-[209484.106041] Call Trace:
-[209484.139211]  [000000000043d704] cheetah_xcall_deliver+0x184/0x2a0
-[209484.220418]  [000000000043d410] xcall_deliver+0x110/0x140
-[209484.292478]  [00000000004960fc] check_preempt_wakeup+0x11c/0x1e0
-[209484.372534]  [000000000048db74] check_preempt_curr+0x94/0xc0
-[209484.448023]  [0000000000490548] wake_up_new_task+0x108/0x1a0
-[209484.523512]  [00000000004608e8] do_fork+0xa8/0x220
-[209484.587557]  [000000000042ca88] sparc_do_fork+0x28/0x60
-[209484.657328]  [0000000000406174] linux_sparc_syscall32+0x34/0x40
-[209484.736242] CPU: 1 PID: 4612 Comm: qmail-genrsacer Not tainted 3.12.5 #1
-[209484.825451] Call Trace:
-[209484.858628]  [0000000000878c28] perfctr_irq+0x2a8/0x360
-[209484.928392]  [00000000004209f4] tl0_irq15+0x14/0x20
-[209484.993583]  [000000000042f748] __delay+0x28/0x60
-[209485.056489]  [000000000043d704] cheetah_xcall_deliver+0x184/0x2a0
-[209485.137693]  [000000000043d410] xcall_deliver+0x110/0x140
-[209485.209750]  [00000000004960fc] check_preempt_wakeup+0x11c/0x1e0
-[209485.289809]  [000000000048db74] check_preempt_curr+0x94/0xc0
-[209485.365297]  [0000000000490548] wake_up_new_task+0x108/0x1a0
-[209485.440782]  [00000000004608e8] do_fork+0xa8/0x220
-[209485.504831]  [000000000042ca88] sparc_do_fork+0x28/0x60
-[209485.574601]  [0000000000406174] linux_sparc_syscall32+0x34/0x40
-[209485.653565] BUG: soft lockup - CPU#1 stuck for 33s! [qmail-genrsacer:4612]
-[209485.745119] Modules linked in: ipv6 openpromfs libcrc32c multipath linear raid456 async_pq async_xor xor async_memcpy async_raid6_recov async_tx raid6_pq dm_snapshot dm_crypt dm_mirror dm_region_hash dm_log usb_storage sg
-[209486.004746] CPU: 1 PID: 4612 Comm: qmail-genrsacer Not tainted 3.12.5 #1
-[209486.093959] task: fffff8033a019980 ti: fffff8033c4c4000 task.ti: fffff8033c4c4000
-[209486.193469] TSTATE: 0000004480001607 TPC: 0000000000878c7c TNPC: 0000000000878c80 Y: 00000000    Not tainted
-[209486.323858] TPC: <perfctr_irq+0x2fc/0x360>
-[209486.378749] g0: 0000000000003f40 g1: 0000000000000000 g2: 0000000100000000 g3: 00000000feff0000
-[209486.494271] g4: fffff8033a019980 g5: fffff8133c59a000 g6: fffff8033c4c4000 g7: 0000000000000720
-[209486.609787] o0: 000000000092ec00 o1: fffff8033c4c7ea0 o2: 000000000042f748 o3: 000000000092b400
-[209486.725304] o4: 0000000000000008 o5: fffff8033c4c7f40 sp: fffff8133fe97741 ret_pc: 0000000000878c54
-[209486.845399] RPC: <perfctr_irq+0x2d4/0x360>
-[209486.900292] l0: fffff8033c4c6ee1 l1: 000000000092ec00 l2: 0000000000000000 l3: fffff81339bca000
-[209487.015813] l4: fffff8033a019980 l5: 0000000000000000 l6: 0000000000000008 l7: 00000000f7d5c000
-[209487.131332] i0: 000000000000000f i1: fffff8033c4c7850 i2: fffff8033c4c7900 i3: 0000000000000000
-[209487.246848] i4: 000000000000004f i5: 0000000000000002 i6: fffff8033c4c6f91 i7: 00000000004209f4
-[209487.362367] I7: <tl0_irq15+0x14/0x20>
-[209487.411537] Call Trace:
-[209487.444708]  [00000000004209f4] tl0_irq15+0x14/0x20
-[209487.509905]  [000000000042f748] __delay+0x28/0x60
-[209487.572809]  [000000000043d704] cheetah_xcall_deliver+0x184/0x2a0
-[209487.654013]  [000000000043d410] xcall_deliver+0x110/0x140
-[209487.726070]  [00000000004960fc] check_preempt_wakeup+0x11c/0x1e0
-[209487.806130]  [000000000048db74] check_preempt_curr+0x94/0xc0
-[209487.881616]  [0000000000490548] wake_up_new_task+0x108/0x1a0
-[209487.957102]  [00000000004608e8] do_fork+0xa8/0x220
-[209488.021151]  [000000000042ca88] sparc_do_fork+0x28/0x60
-[209488.090920]  [0000000000406174] linux_sparc_syscall32+0x34/0x40
-
---nextPart1965569.nzJELHxfyE
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-Content-Transfer-Encoding: 7Bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iEYEABECAAYFAlKuxG4ACgkQXKSJPmm5/E58uQCcC+c/1IphO3JoCuT7lWFMHzI7
-peEAn1+NJuiSZ7dhtXAlei5wCZrRW4zW
-=PBSB
------END PGP SIGNATURE-----
-
---nextPart1965569.nzJELHxfyE--
+diff --git a/arch/sparc/include/asm/smp_32.h b/arch/sparc/include/asm/smp_32.h
+index 3c8917f..6aec01a 100644
+--- a/arch/sparc/include/asm/smp_32.h
++++ b/arch/sparc/include/asm/smp_32.h
+@@ -48,7 +48,6 @@ void smp_callin(void);
+ void smp_store_cpu_info(int);
+ 
+ void smp_resched_interrupt(void);
+-void smp_call_function_single_interrupt(void);
+ void smp_call_function_interrupt(void);
+ 
+ struct seq_file;
+@@ -60,8 +59,7 @@ struct sparc32_ipi_ops {
+ 			   unsigned long arg2, unsigned long arg3,
+ 			   unsigned long arg4);
+ 	void (*resched)(int cpu);
+-	void (*single)(int cpu);
+-	void (*mask_one)(int cpu);
++	void (*func_call)(int cpu);
+ };
+ extern const struct sparc32_ipi_ops *sparc32_ipi_ops;
+ 
+diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
+index 33c02b1..98bacfb 100644
+--- a/arch/sparc/kernel/entry.S
++++ b/arch/sparc/kernel/entry.S
+@@ -263,7 +263,7 @@ smp4m_ticker:
+ 	 * on some level other than 15 which is the NMI and only used
+ 	 * for cross calls.  That has a separate entry point below.
+ 	 *
+-	 * IPIs are sent on Level 12, 13 and 14. See IRQ_IPI_*.
++	 * IPIs are sent on Level 13 and 14. See IRQ_IPI_*.
+ 	 */
+ maybe_smp4m_msg:
+ 	GET_PROCESSOR4M_ID(o3)
+@@ -287,14 +287,8 @@ maybe_smp4m_msg:
+ 	wr	%l4, PSR_ET, %psr
+ 	WRITE_PAUSE
+ 	srl	%o3, 28, %o2		! shift for simpler checks below
+-maybe_smp4m_msg_check_single:
+-	andcc	%o2, 0x1, %g0
+-	beq,a	maybe_smp4m_msg_check_mask
+-	 andcc	%o2, 0x2, %g0
+-	call	smp_call_function_single_interrupt
+-	 nop
+-	andcc	%o2, 0x2, %g0
+ maybe_smp4m_msg_check_mask:
++	andcc	%o2, 0x2, %g0
+ 	beq,a	maybe_smp4m_msg_check_resched
+ 	 andcc	%o2, 0x4, %g0
+ 	call	smp_call_function_interrupt
+diff --git a/arch/sparc/kernel/leon_smp.c b/arch/sparc/kernel/leon_smp.c
+index 6edf955..396b71d 100644
+--- a/arch/sparc/kernel/leon_smp.c
++++ b/arch/sparc/kernel/leon_smp.c
+@@ -271,8 +271,7 @@ void leon_irq_rotate(int cpu)
+ }
+ 
+ struct leon_ipi_work {
+-	int single;
+-	int msk;
++	int func_call;
+ 	int resched;
+ };
+ 
+@@ -308,7 +307,7 @@ static void __init leon_ipi_init(void)
+ 
+ 	for_each_possible_cpu(cpu) {
+ 		work = &per_cpu(leon_ipi_work, cpu);
+-		work->single = work->msk = work->resched = 0;
++		work->func_call = work->resched = 0;
+ 	}
+ }
+ 
+@@ -319,23 +318,12 @@ static void leon_send_ipi(int cpu, int level)
+ 	LEON3_BYPASS_STORE_PA(&leon3_irqctrl_regs->force[cpu], mask);
+ }
+ 
+-static void leon_ipi_single(int cpu)
++static void leon_ipi_func_call(int cpu)
+ {
+ 	struct leon_ipi_work *work = &per_cpu(leon_ipi_work, cpu);
+ 
+ 	/* Mark work */
+-	work->single = 1;
+-
+-	/* Generate IRQ on the CPU */
+-	leon_send_ipi(cpu, leon_ipi_irq);
+-}
+-
+-static void leon_ipi_mask_one(int cpu)
+-{
+-	struct leon_ipi_work *work = &per_cpu(leon_ipi_work, cpu);
+-
+-	/* Mark work */
+-	work->msk = 1;
++	work->func_call = 1;
+ 
+ 	/* Generate IRQ on the CPU */
+ 	leon_send_ipi(cpu, leon_ipi_irq);
+@@ -356,12 +344,8 @@ void leonsmp_ipi_interrupt(void)
+ {
+ 	struct leon_ipi_work *work = &__get_cpu_var(leon_ipi_work);
+ 
+-	if (work->single) {
+-		work->single = 0;
+-		smp_call_function_single_interrupt();
+-	}
+-	if (work->msk) {
+-		work->msk = 0;
++	if (work->func_call) {
++		work->func_call = 0;
+ 		smp_call_function_interrupt();
+ 	}
+ 	if (work->resched) {
+@@ -467,8 +451,7 @@ void leon_cross_call_irq(void)
+ static const struct sparc32_ipi_ops leon_ipi_ops = {
+ 	.cross_call = leon_cross_call,
+ 	.resched    = leon_ipi_resched,
+-	.single     = leon_ipi_single,
+-	.mask_one   = leon_ipi_mask_one,
++	.func_call   = leon_ipi_func_call,
+ };
+ 
+ void __init leon_init_smp(void)
+diff --git a/arch/sparc/kernel/smp_32.c b/arch/sparc/kernel/smp_32.c
+index a102bfb..0530d67 100644
+--- a/arch/sparc/kernel/smp_32.c
++++ b/arch/sparc/kernel/smp_32.c
+@@ -138,17 +138,15 @@ void smp_send_stop(void)
+ 
+ void arch_send_call_function_single_ipi(int cpu)
+ {
+-	/* trigger one IPI single call on one CPU */
+-	sparc32_ipi_ops->single(cpu);
++	sparc32_ipi_ops->func_call(cpu);
+ }
+ 
+ void arch_send_call_function_ipi_mask(const struct cpumask *mask)
+ {
+ 	int cpu;
+ 
+-	/* trigger IPI mask call on each CPU */
+ 	for_each_cpu(cpu, mask)
+-		sparc32_ipi_ops->mask_one(cpu);
++		sparc32_ipi_ops->func_call(cpu);
+ }
+ 
+ void smp_resched_interrupt(void)
+@@ -160,14 +158,6 @@ void smp_resched_interrupt(void)
+ 	/* re-schedule routine called by interrupt return code. */
+ }
+ 
+-void smp_call_function_single_interrupt(void)
+-{
+-	irq_enter();
+-	generic_smp_call_function_single_interrupt();
+-	local_cpu_data().irq_call_count++;
+-	irq_exit();
+-}
+-
+ void smp_call_function_interrupt(void)
+ {
+ 	irq_enter();
+diff --git a/arch/sparc/kernel/sun4d_smp.c b/arch/sparc/kernel/sun4d_smp.c
+index d5c3195..72f3797 100644
+--- a/arch/sparc/kernel/sun4d_smp.c
++++ b/arch/sparc/kernel/sun4d_smp.c
+@@ -181,8 +181,7 @@ void __init smp4d_smp_done(void)
+ 
+ /* Memory structure giving interrupt handler information about IPI generated */
+ struct sun4d_ipi_work {
+-	int single;
+-	int msk;
++	int func_call;
+ 	int resched;
+ };
+ 
+@@ -198,7 +197,7 @@ static void __init smp4d_ipi_init(void)
+ 
+ 	for_each_possible_cpu(cpu) {
+ 		work = &per_cpu(sun4d_ipi_work, cpu);
+-		work->single = work->msk = work->resched = 0;
++		work->func_call = work->resched = 0;
+ 	}
+ }
+ 
+@@ -206,12 +205,8 @@ void sun4d_ipi_interrupt(void)
+ {
+ 	struct sun4d_ipi_work *work = &__get_cpu_var(sun4d_ipi_work);
+ 
+-	if (work->single) {
+-		work->single = 0;
+-		smp_call_function_single_interrupt();
+-	}
+-	if (work->msk) {
+-		work->msk = 0;
++	if (work->func_call) {
++		work->func_call = 0;
+ 		smp_call_function_interrupt();
+ 	}
+ 	if (work->resched) {
+@@ -233,23 +228,12 @@ static void sun4d_send_ipi(int cpu, int level)
+ 	cc_set_igen(IGEN_MESSAGE(0, cpu << 3, 6 + ((level >> 1) & 7), 1 << (level - 1)));
+ }
+ 
+-static void sun4d_ipi_single(int cpu)
+-{
+-	struct sun4d_ipi_work *work = &per_cpu(sun4d_ipi_work, cpu);
+-
+-	/* Mark work */
+-	work->single = 1;
+-
+-	/* Generate IRQ on the CPU */
+-	sun4d_send_ipi(cpu, SUN4D_IPI_IRQ);
+-}
+-
+-static void sun4d_ipi_mask_one(int cpu)
++static void sun4d_ipi_func_call(int cpu)
+ {
+ 	struct sun4d_ipi_work *work = &per_cpu(sun4d_ipi_work, cpu);
+ 
+ 	/* Mark work */
+-	work->msk = 1;
++	work->func_call = 1;
+ 
+ 	/* Generate IRQ on the CPU */
+ 	sun4d_send_ipi(cpu, SUN4D_IPI_IRQ);
+@@ -392,8 +376,7 @@ void smp4d_percpu_timer_interrupt(struct pt_regs *regs)
+ static const struct sparc32_ipi_ops sun4d_ipi_ops = {
+ 	.cross_call = sun4d_cross_call,
+ 	.resched    = sun4d_ipi_resched,
+-	.single     = sun4d_ipi_single,
+-	.mask_one   = sun4d_ipi_mask_one,
++	.func_call   = sun4d_ipi_func_call,
+ };
+ 
+ void __init sun4d_init_smp(void)
+diff --git a/arch/sparc/kernel/sun4m_smp.c b/arch/sparc/kernel/sun4m_smp.c
+index d3408e7..d4b7d01 100644
+--- a/arch/sparc/kernel/sun4m_smp.c
++++ b/arch/sparc/kernel/sun4m_smp.c
+@@ -20,7 +20,6 @@
+ #include "irq.h"
+ #include "kernel.h"
+ 
+-#define IRQ_IPI_SINGLE		12
+ #define IRQ_IPI_MASK		13
+ #define IRQ_IPI_RESCHED		14
+ #define IRQ_CROSS_CALL		15
+@@ -145,12 +144,7 @@ static void sun4m_ipi_resched(int cpu)
+ 	sun4m_send_ipi(cpu, IRQ_IPI_RESCHED);
+ }
+ 
+-static void sun4m_ipi_single(int cpu)
+-{
+-	sun4m_send_ipi(cpu, IRQ_IPI_SINGLE);
+-}
+-
+-static void sun4m_ipi_mask_one(int cpu)
++static void sun4m_ipi_func_call(int cpu)
+ {
+ 	sun4m_send_ipi(cpu, IRQ_IPI_MASK);
+ }
+@@ -262,8 +256,7 @@ void smp4m_percpu_timer_interrupt(struct pt_regs *regs)
+ static const struct sparc32_ipi_ops sun4m_ipi_ops = {
+ 	.cross_call = sun4m_cross_call,
+ 	.resched    = sun4m_ipi_resched,
+-	.single     = sun4m_ipi_single,
+-	.mask_one   = sun4m_ipi_mask_one,
++	.func_call   = sun4m_ipi_func_call,
+ };
+ 
+ void __init sun4m_init_smp(void)
+-- 
+1.8.1.2
 
