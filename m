@@ -1,75 +1,104 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Date: Sat, 07 Dec 2013 23:26:55 +0000
-Subject: [PATCH 06/10] tilo: sanity check image sizes
-Message-Id: <1386458819-6590-7-git-send-email-aaro.koskinen@iki.fi>
+From: Allen Pais <allen.pais@oracle.com>
+Date: Mon, 16 Dec 2013 04:19:33 +0000
+Subject: [PATCH 3/3] sparc64: convert ctx_alloc_lock raw_spinlock_t
+Message-Id: <1387166853-10782-4-git-send-email-allen.pais@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1387166853-10782-1-git-send-email-allen.pais@oracle.com>
+In-Reply-To: <1387166853-10782-1-git-send-email-allen.pais@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: sparclinux@vger.kernel.org, bigeasy@linutronix.de, Allen Pais <allen.pais@oracle.com>
 
-Sanity check image sizes to prevent buffer overflow.
-
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Signed-off-by: Allen Pais <allen.pais@oracle.com>
 ---
- tilo/maketilo.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ arch/sparc/include/asm/mmu_context_64.h |    2 +-
+ arch/sparc/mm/init_64.c                 |   10 +++++-----
+ arch/sparc/mm/tsb.c                     |    4 ++--
+ 3 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/tilo/maketilo.c b/tilo/maketilo.c
-index 30eaef4c2868..6bc2f767fcb6 100644
---- a/tilo/maketilo.c
-+++ b/tilo/maketilo.c
-@@ -53,6 +53,14 @@ int root_tweak (char *s)
- 	return p ? (p + 32 + 0x1fff) & ~0x1fff : 0;	/* add 32 bytes and round to 8 KB */
+diff --git a/arch/sparc/include/asm/mmu_context_64.h b/arch/sparc/include/asm/mmu_context_64.h
+index 3a85624..44e393b 100644
+--- a/arch/sparc/include/asm/mmu_context_64.h
++++ b/arch/sparc/include/asm/mmu_context_64.h
+@@ -13,7 +13,7 @@ static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
+ {
  }
  
-+static void check_size (char const *name, int len, int pos, int max)
-+{
-+	if (max - pos < len) {
-+		fprintf (stderr, "%s will not fit into the image.\n", name);
-+		exit (EXIT_FAILURE);
-+	}
-+}
-+
- int main (int argc, char **argv)
- {
- 	int i,len,rootlen;
-@@ -177,6 +185,8 @@ int main (int argc, char **argv)
- 		fseek (f, 0, SEEK_END);
- 		len = ftell (f);
- 		fseek (f, 0, SEEK_SET);
-+		check_size (sun4_kernel, sun4_kernel_start - output_buffer, len,
-+			    MAX_BOOT_LEN);
- 		fread (sun4_kernel_start, 1, len, f);
- 		fclose (f);
- 	} else
-@@ -194,6 +204,8 @@ int main (int argc, char **argv)
- 		fseek (f, 0, SEEK_END);
- 		len = ftell (f);
- 		fseek (f, 0, SEEK_SET);
-+		check_size (sun4c_kernel, sun4c_kernel_start - output_buffer,
-+			    len, MAX_BOOT_LEN);
- 		fread (sun4c_kernel_start, 1, len, f);
- 		fclose (f);
- 	} else
-@@ -211,6 +223,8 @@ int main (int argc, char **argv)
- 		fseek (f, 0, SEEK_END);
- 		len = ftell (f);
- 		fseek (f, 0, SEEK_SET);
-+		check_size (sun4u_kernel, sun4u_kernel_start - output_buffer,
-+			    len, MAX_BOOT_LEN);
- 		fread (sun4u_kernel_start, 1, len, f);
- 		fclose (f);
- 	} else
-@@ -219,6 +233,8 @@ int main (int argc, char **argv)
- 	root_image_start = sun4u_kernel_start + len;
- 	
- 	if (root_image) {
-+		check_size (root_image, root_image_start - output_buffer, len,
-+			    MAX_BOOT_LEN);
- 		fread (root_image_start, 1, rootlen, g);
- 		fclose (g);
+-extern spinlock_t ctx_alloc_lock;
++extern raw_spinlock_t ctx_alloc_lock;
+ extern unsigned long tlb_context_cache;
+ extern unsigned long mmu_context_bmap[];
+ 
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index bd5253d..ac5ae7a 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -661,7 +661,7 @@ void __flush_dcache_range(unsigned long start, unsigned long end)
+ EXPORT_SYMBOL(__flush_dcache_range);
+ 
+ /* get_new_mmu_context() uses "cache + 1".  */
+-DEFINE_SPINLOCK(ctx_alloc_lock);
++DEFINE_RAW_SPINLOCK(ctx_alloc_lock);
+ unsigned long tlb_context_cache = CTX_FIRST_VERSION - 1;
+ #define MAX_CTX_NR	(1UL << CTX_NR_BITS)
+ #define CTX_BMAP_SLOTS	BITS_TO_LONGS(MAX_CTX_NR)
+@@ -683,7 +683,7 @@ void get_new_mmu_context(struct mm_struct *mm)
+ 	unsigned long orig_pgsz_bits;
+ 	int new_version;
+ 
+-	spin_lock(&ctx_alloc_lock);
++	raw_spin_lock(&ctx_alloc_lock);
+ 	orig_pgsz_bits = (mm->context.sparc64_ctx_val & CTX_PGSZ_MASK);
+ 	ctx = (tlb_context_cache + 1) & CTX_NR_MASK;
+ 	new_ctx = find_next_zero_bit(mmu_context_bmap, 1 << CTX_NR_BITS, ctx);
+@@ -719,7 +719,7 @@ void get_new_mmu_context(struct mm_struct *mm)
+ out:
+ 	tlb_context_cache = new_ctx;
+ 	mm->context.sparc64_ctx_val = new_ctx | orig_pgsz_bits;
+-	spin_unlock(&ctx_alloc_lock);
++	raw_spin_unlock(&ctx_alloc_lock);
+ 
+ 	if (unlikely(new_version))
+ 		smp_new_mmu_context_version();
+@@ -2739,7 +2739,7 @@ void hugetlb_setup(struct pt_regs *regs)
+ 	if (tlb_type = cheetah_plus) {
+ 		unsigned long ctx;
+ 
+-		spin_lock(&ctx_alloc_lock);
++		raw_spin_lock(&ctx_alloc_lock);
+ 		ctx = mm->context.sparc64_ctx_val;
+ 		ctx &= ~CTX_PGSZ_MASK;
+ 		ctx |= CTX_PGSZ_BASE << CTX_PGSZ0_SHIFT;
+@@ -2760,7 +2760,7 @@ void hugetlb_setup(struct pt_regs *regs)
+ 			mm->context.sparc64_ctx_val = ctx;
+ 			on_each_cpu(context_reload, mm, 0);
+ 		}
+-		spin_unlock(&ctx_alloc_lock);
++		raw_spin_unlock(&ctx_alloc_lock);
  	}
+ }
+ #endif
+diff --git a/arch/sparc/mm/tsb.c b/arch/sparc/mm/tsb.c
+index d84d4ea..9eb10b4 100644
+--- a/arch/sparc/mm/tsb.c
++++ b/arch/sparc/mm/tsb.c
+@@ -523,12 +523,12 @@ void destroy_context(struct mm_struct *mm)
+ 		free_hot_cold_page(page, 0);
+ 	}
+ 
+-	spin_lock_irqsave(&ctx_alloc_lock, flags);
++	raw_spin_lock_irqsave(&ctx_alloc_lock, flags);
+ 
+ 	if (CTX_VALID(mm->context)) {
+ 		unsigned long nr = CTX_NRBITS(mm->context);
+ 		mmu_context_bmap[nr>>6] &= ~(1UL << (nr & 63));
+ 	}
+ 
+-	spin_unlock_irqrestore(&ctx_alloc_lock, flags);
++	raw_spin_unlock_irqrestore(&ctx_alloc_lock, flags);
+ }
 -- 
-1.8.4.4
+1.7.10.4
 
