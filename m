@@ -1,31 +1,46 @@
-From: John David Anglin <dave.anglin@bell.net>
-Date: Fri, 27 Dec 2013 20:14:39 +0000
-Subject: Re: [PATCH] remap_file_pages needs to check for cache coherency
-Message-Id: <BLU0-SMTP67B57AF06A5AC44236538A97CD0@phx.gbl>
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
+Date: Mon, 16 Dec 2013 21:01:00 +0000
+Subject: [PATCH] Revert "sparc64: Fix __copy_{to,from}_user_inatomic defines."
+Message-Id: <52AF6A0C.4000400@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20131227180018.GC4945@linux.intel.com> <BLU0-SMTP17D26551261DF285A7E6F497CD0@phx.gbl> <20131227193330.GE4945@linux.intel.com> <BLU0-SMTP15241D603FEB77037F6D1E97CD0@phx.gbl>
-In-Reply-To: <BLU0-SMTP15241D603FEB77037F6D1E97CD0@phx.gbl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: John David Anglin <dave.anglin@bell.net>
-Cc: Matthew Wilcox <willy@linux.intel.com>, linux-mm@kvack.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-parisc@vger.kernel.org, linux-mips@linux-mips.org
+To: sparclinux@vger.kernel.org
 
-On 27-Dec-13, at 2:47 PM, John David Anglin wrote:
+This reverts commit 145e1c0023585e0e8f6df22316308ec61c5066b2.
 
-> It's worth looking at.  The value is supposed to be returned by the  
-> PDC_CACHE PDC
-> call but I know my rp3440 returns a value of 0 indicating that the  
-> aliasing boundary
-> is unknown and may be greater than 16MB.
+This commit broke the behavior of __copy_from_user_inatomic when
+it is only partially successful. Instead of returning the number
+of bytes not copied, it now returns 1. This translates to the
+wrong value being returned by iov_iter_copy_from_user_atomic.
 
-c3750 data cache has an aliasing boundary of 4 MB, so I think we are  
-stuck with large
-SHMLBA.
+xfstests generic/246 and LTP writev01 both fail on btrfs and nfs
+because of this.
 
-Dave
---
-John David Anglin	dave.anglin@bell.net
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+---
+ arch/sparc/include/asm/uaccess_64.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-
+diff --git a/arch/sparc/include/asm/uaccess_64.h b/arch/sparc/include/asm/uaccess_64.h
+index e562d3c..ad7e178 100644
+--- a/arch/sparc/include/asm/uaccess_64.h
++++ b/arch/sparc/include/asm/uaccess_64.h
+@@ -262,8 +262,8 @@ extern unsigned long __must_check __clear_user(void __user *, unsigned long);
+ extern __must_check long strlen_user(const char __user *str);
+ extern __must_check long strnlen_user(const char __user *str, long n);
+ 
+-#define __copy_to_user_inatomic ___copy_to_user
+-#define __copy_from_user_inatomic ___copy_from_user
++#define __copy_to_user_inatomic __copy_to_user
++#define __copy_from_user_inatomic __copy_from_user
+ 
+ struct pt_regs;
+ extern unsigned long compute_effective_address(struct pt_regs *,
+-- 
+1.8.5.1
 
