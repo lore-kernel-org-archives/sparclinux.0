@@ -1,7 +1,7 @@
 From: Allen Pais <allen.pais@oracle.com>
-Date: Mon, 16 Dec 2013 10:59:35 +0000
+Date: Mon, 16 Dec 2013 11:11:59 +0000
 Subject: Re: [PATCH 2/3] sparc64: convert spinlock_t to raw_spinlock_t in mmu_context_t
-Message-Id: <52AEDCFD.9020402@oracle.com>
+Message-Id: <52AEDD2F.8040704@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1387166853-10782-1-git-send-email-allen.pais@oracle.com> <1387166853-10782-3-git-send-email-allen.pais@oracle.com> <52AED5BB.1060002@linutronix.de>
 In-Reply-To: <52AED5BB.1060002@linutronix.de>
@@ -52,7 +52,7 @@ The same goes with 3/3
 [ 2317.606069]  [00000000004060c4] ret_from_syscall+0x1c/0x2c
 [ 2317.606070]  [0000000000000000]           (null)
 
-I did not think it'd be nice to put the call trace in the commit message.
+I am not sure if it'd be nice to put the call trace in the commit message.
 But if needed I can re-send them.
 
 - Allen
