@@ -1,30 +1,208 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Date: Tue, 10 Dec 2013 17:28:01 +0000
-Subject: Re: [PATCH 1/9] PCI: Use dev_is_pci() to check whether it is pci device
-Message-Id: <CAErSpo67ZB_GUrKpLbkfZs4qLe3S0eYy=oLTKg9=MSxZL2h+yw@mail.gmail.com>
+From: Allen Pais <allen.pais@oracle.com>
+Date: Mon, 16 Dec 2013 04:19:32 +0000
+Subject: [PATCH 2/3] sparc64: convert spinlock_t to raw_spinlock_t in mmu_context_t
+Message-Id: <1387166853-10782-3-git-send-email-allen.pais@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1386244373-35796-1-git-send-email-wangyijing@huawei.com>
- <20131210000154.GE4699@google.com> <1386647973.32037.57.camel@pasglop>
-In-Reply-To: <1386647973.32037.57.camel@pasglop>
+References: <1387166853-10782-1-git-send-email-allen.pais@oracle.com>
+In-Reply-To: <1387166853-10782-1-git-send-email-allen.pais@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: linux-kernel@vger.kernel.org
+Cc: sparclinux@vger.kernel.org, bigeasy@linutronix.de, Allen Pais <allen.pais@oracle.com>
 
-On Mon, Dec 9, 2013 at 8:59 PM, Benjamin Herrenschmidt <benh@au1.ibm.com> wrote:
-> On Mon, 2013-12-09 at 17:01 -0700, Bjorn Helgaas wrote:
->> [+cc arch lists]
->>
->> On Thu, Dec 05, 2013 at 07:52:53PM +0800, Yijing Wang wrote:
->> > Use dev_is_pci() instead of directly compare
->> > pci_bus_type to check whether it is pci device.
->> >
->> > Signed-off-by: Yijing Wang <wangyijing@huawei.com>
->>
->> I applied all these to my pci/yijing-dev_is_pci branch for v3.14, thanks!
->>
->> Browse them here: http://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/log/?h=pci/yijing-dev_is_pci
->
-> Ah ok. I also have the powerpc one in powerpc -next, no biggie though
+Issue debugged by Thomas Gleixner <tglx@linutronix.de>
 
-I'll drop the powerpc one.
+Signed-off-by: Allen Pais <allen.pais@oracle.com>
+---
+ arch/sparc/Kconfig                      |    1 +
+ arch/sparc/include/asm/mmu_64.h         |    2 +-
+ arch/sparc/include/asm/mmu_context_64.h |    8 ++++----
+ arch/sparc/kernel/smp_64.c              |    4 ++--
+ arch/sparc/mm/init_64.c                 |    4 ++--
+ arch/sparc/mm/tsb.c                     |   16 ++++++++--------
+ 6 files changed, 18 insertions(+), 17 deletions(-)
+
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 554995d..aae5aa9 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -27,6 +27,7 @@ config SPARC
+ 	select HAVE_DMA_API_DEBUG
+ 	select HAVE_ARCH_JUMP_LABEL
+ 	select HAVE_GENERIC_HARDIRQS
++	select IRQ_FORCED_THREADING
+ 	select GENERIC_IRQ_SHOW
+ 	select ARCH_WANT_IPC_PARSE_VERSION
+ 	select USE_GENERIC_SMP_HELPERS if SMP
+diff --git a/arch/sparc/include/asm/mmu_64.h b/arch/sparc/include/asm/mmu_64.h
+index 76092c4..e945ddb 100644
+--- a/arch/sparc/include/asm/mmu_64.h
++++ b/arch/sparc/include/asm/mmu_64.h
+@@ -90,7 +90,7 @@ struct tsb_config {
+ #endif
+ 
+ typedef struct {
+-	spinlock_t		lock;
++	raw_spinlock_t		lock;
+ 	unsigned long		sparc64_ctx_val;
+ 	unsigned long		huge_pte_count;
+ 	struct page		*pgtable_page;
+diff --git a/arch/sparc/include/asm/mmu_context_64.h b/arch/sparc/include/asm/mmu_context_64.h
+index 3d528f0..3a85624 100644
+--- a/arch/sparc/include/asm/mmu_context_64.h
++++ b/arch/sparc/include/asm/mmu_context_64.h
+@@ -77,7 +77,7 @@ static inline void switch_mm(struct mm_struct *old_mm, struct mm_struct *mm, str
+ 	if (unlikely(mm = &init_mm))
+ 		return;
+ 
+-	spin_lock_irqsave(&mm->context.lock, flags);
++	raw_spin_lock_irqsave(&mm->context.lock, flags);
+ 	ctx_valid = CTX_VALID(mm->context);
+ 	if (!ctx_valid)
+ 		get_new_mmu_context(mm);
+@@ -125,7 +125,7 @@ static inline void switch_mm(struct mm_struct *old_mm, struct mm_struct *mm, str
+ 		__flush_tlb_mm(CTX_HWBITS(mm->context),
+ 			       SECONDARY_CONTEXT);
+ 	}
+-	spin_unlock_irqrestore(&mm->context.lock, flags);
++	raw_spin_unlock_irqrestore(&mm->context.lock, flags);
+ }
+ 
+ #define deactivate_mm(tsk,mm)	do { } while (0)
+@@ -136,7 +136,7 @@ static inline void activate_mm(struct mm_struct *active_mm, struct mm_struct *mm
+ 	unsigned long flags;
+ 	int cpu;
+ 
+-	spin_lock_irqsave(&mm->context.lock, flags);
++	raw_spin_lock_irqsave(&mm->context.lock, flags);
+ 	if (!CTX_VALID(mm->context))
+ 		get_new_mmu_context(mm);
+ 	cpu = smp_processor_id();
+@@ -146,7 +146,7 @@ static inline void activate_mm(struct mm_struct *active_mm, struct mm_struct *mm
+ 	load_secondary_context(mm);
+ 	__flush_tlb_mm(CTX_HWBITS(mm->context), SECONDARY_CONTEXT);
+ 	tsb_context_switch(mm);
+-	spin_unlock_irqrestore(&mm->context.lock, flags);
++	raw_spin_unlock_irqrestore(&mm->context.lock, flags);
+ }
+ 
+ #endif /* !(__ASSEMBLY__) */
+diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
+index 77539ed..f42e1a7 100644
+--- a/arch/sparc/kernel/smp_64.c
++++ b/arch/sparc/kernel/smp_64.c
+@@ -975,12 +975,12 @@ void __irq_entry smp_new_mmu_context_version_client(int irq, struct pt_regs *reg
+ 	if (unlikely(!mm || (mm = &init_mm)))
+ 		return;
+ 
+-	spin_lock_irqsave(&mm->context.lock, flags);
++	raw_spin_lock_irqsave(&mm->context.lock, flags);
+ 
+ 	if (unlikely(!CTX_VALID(mm->context)))
+ 		get_new_mmu_context(mm);
+ 
+-	spin_unlock_irqrestore(&mm->context.lock, flags);
++	raw_spin_unlock_irqrestore(&mm->context.lock, flags);
+ 
+ 	load_secondary_context(mm);
+ 	__flush_tlb_mm(CTX_HWBITS(mm->context),
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index 04fd55a..bd5253d 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -350,7 +350,7 @@ void update_mmu_cache(struct vm_area_struct *vma, unsigned long address, pte_t *
+ 
+ 	mm = vma->vm_mm;
+ 
+-	spin_lock_irqsave(&mm->context.lock, flags);
++	raw_spin_lock_irqsave(&mm->context.lock, flags);
+ 
+ #if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ 	if (mm->context.huge_pte_count && is_hugetlb_pte(pte))
+@@ -361,7 +361,7 @@ void update_mmu_cache(struct vm_area_struct *vma, unsigned long address, pte_t *
+ 		__update_mmu_tsb_insert(mm, MM_TSB_BASE, PAGE_SHIFT,
+ 					address, pte_val(pte));
+ 
+-	spin_unlock_irqrestore(&mm->context.lock, flags);
++	raw_spin_unlock_irqrestore(&mm->context.lock, flags);
+ }
+ 
+ void flush_dcache_page(struct page *page)
+diff --git a/arch/sparc/mm/tsb.c b/arch/sparc/mm/tsb.c
+index 2cc3bce..d84d4ea 100644
+--- a/arch/sparc/mm/tsb.c
++++ b/arch/sparc/mm/tsb.c
+@@ -73,7 +73,7 @@ void flush_tsb_user(struct tlb_batch *tb)
+ 	struct mm_struct *mm = tb->mm;
+ 	unsigned long nentries, base, flags;
+ 
+-	spin_lock_irqsave(&mm->context.lock, flags);
++	raw_spin_lock_irqsave(&mm->context.lock, flags);
+ 
+ 	base = (unsigned long) mm->context.tsb_block[MM_TSB_BASE].tsb;
+ 	nentries = mm->context.tsb_block[MM_TSB_BASE].tsb_nentries;
+@@ -90,14 +90,14 @@ void flush_tsb_user(struct tlb_batch *tb)
+ 		__flush_tsb_one(tb, HPAGE_SHIFT, base, nentries);
+ 	}
+ #endif
+-	spin_unlock_irqrestore(&mm->context.lock, flags);
++	raw_spin_unlock_irqrestore(&mm->context.lock, flags);
+ }
+ 
+ void flush_tsb_user_page(struct mm_struct *mm, unsigned long vaddr)
+ {
+ 	unsigned long nentries, base, flags;
+ 
+-	spin_lock_irqsave(&mm->context.lock, flags);
++	raw_spin_lock_irqsave(&mm->context.lock, flags);
+ 
+ 	base = (unsigned long) mm->context.tsb_block[MM_TSB_BASE].tsb;
+ 	nentries = mm->context.tsb_block[MM_TSB_BASE].tsb_nentries;
+@@ -114,7 +114,7 @@ void flush_tsb_user_page(struct mm_struct *mm, unsigned long vaddr)
+ 		__flush_tsb_one_entry(base, vaddr, HPAGE_SHIFT, nentries);
+ 	}
+ #endif
+-	spin_unlock_irqrestore(&mm->context.lock, flags);
++	raw_spin_unlock_irqrestore(&mm->context.lock, flags);
+ }
+ 
+ #define HV_PGSZ_IDX_BASE	HV_PGSZ_IDX_8K
+@@ -392,7 +392,7 @@ retry_tsb_alloc:
+ 	 * the lock and ask all other cpus running this address space
+ 	 * to run tsb_context_switch() to see the new TSB table.
+ 	 */
+-	spin_lock_irqsave(&mm->context.lock, flags);
++	raw_spin_lock_irqsave(&mm->context.lock, flags);
+ 
+ 	old_tsb = mm->context.tsb_block[tsb_index].tsb;
+ 	old_cache_index @@ -407,7 +407,7 @@ retry_tsb_alloc:
+ 	 */
+ 	if (unlikely(old_tsb &&
+ 		     (rss < mm->context.tsb_block[tsb_index].tsb_rss_limit))) {
+-		spin_unlock_irqrestore(&mm->context.lock, flags);
++		raw_spin_unlock_irqrestore(&mm->context.lock, flags);
+ 
+ 		kmem_cache_free(tsb_caches[new_cache_index], new_tsb);
+ 		return;
+@@ -433,7 +433,7 @@ retry_tsb_alloc:
+ 	mm->context.tsb_block[tsb_index].tsb = new_tsb;
+ 	setup_tsb_params(mm, tsb_index, new_size);
+ 
+-	spin_unlock_irqrestore(&mm->context.lock, flags);
++	raw_spin_unlock_irqrestore(&mm->context.lock, flags);
+ 
+ 	/* If old_tsb is NULL, we're being invoked for the first time
+ 	 * from init_new_context().
+@@ -459,7 +459,7 @@ int init_new_context(struct task_struct *tsk, struct mm_struct *mm)
+ #endif
+ 	unsigned int i;
+ 
+-	spin_lock_init(&mm->context.lock);
++	raw_spin_lock_init(&mm->context.lock);
+ 
+ 	mm->context.sparc64_ctx_val = 0UL;
+ 
+-- 
+1.7.10.4
+
