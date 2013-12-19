@@ -1,33 +1,39 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 01 Dec 2013 22:48:20 +0000
-Subject: Re: SPARC: 3.13-rc1 and newer: kernel size issue with tftpboot.img
-Message-Id: <20131201.174820.1163719194620555703.davem@davemloft.net>
+From: Levente Kurusa <levex@linux.com>
+Date: Thu, 19 Dec 2013 15:03:16 +0000
+Subject: [PATCH 05/38] sparc: kernel: add missing put_device call
+Message-Id: <1387465429-3568-6-git-send-email-levex@linux.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20131201190220.GC30823@blackmetal.musicnaut.iki.fi>
-In-Reply-To: <20131201190220.GC30823@blackmetal.musicnaut.iki.fi>
+References: <1387465429-3568-2-git-send-email-levex@linux.com>
+In-Reply-To: <1387465429-3568-2-git-send-email-levex@linux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Levente Kurusa <levex@linux.com>, "David S. Miller" <davem@davemloft.net>, Federico Vaga <federico.vaga@gmail.com>, sparclinux@vger.kernel.org
 
-From: Xose Vazquez Perez <xose.vazquez@gmail.com>
-Date: Sun, 01 Dec 2013 22:37:57 +0100
+This is required so that we give up the last reference to the device.
+The kfree() has been removed because put_device will set the underlying kref's
+reference count to zero and hence vio_dev_release will get called resulting in
+kfreeing the structure.
 
-> Aaro Koskinen wrote:
-> 
->> Sun Ultra 5/10 (OpenBoot 3.25) seems to have 10 MB limitation for the
->> tftpboot.img. With larger images "boot net" will fail with "Fast Data
->> Access MMU Miss":
-> 
-> Latest patchdiag.xref [0] shows that the last OBP for U5/10 was:
-> OBP_3.31.0,POST_3.1.0,OBDIAG_P2.9 (106121-18) [1]
-> 
-> But I didn't see any bug fix related to that limit.
+Signed-off-by: Levente Kurusa <levex@linux.com>
+---
+ arch/sparc/kernel/vio.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-It's not a bug, and even if they increase the limit we always and
-indefinitely need to support 10MB properly.
+diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
+index 8647fcc..fb0088d 100644
+--- a/arch/sparc/kernel/vio.c
++++ b/arch/sparc/kernel/vio.c
+@@ -307,7 +307,7 @@ static struct vio_dev *vio_create_one(struct mdesc_handle *hp, u64 mp,
+ 	if (err) {
+ 		printk(KERN_ERR "VIO: Could not register device %s, err=%d\n",
+ 		       dev_name(&vdev->dev), err);
+-		kfree(vdev);
++		put_device(&vdev->dev);
+ 		return NULL;
+ 	}
+ 	if (vdev->dp)
+-- 
+1.8.3.1
 
-Therefore, I don't think that talking about the possibility of it
-increasing is worthwhile.
-
-Thanks.
