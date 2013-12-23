@@ -1,34 +1,51 @@
 From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Date: Sat, 07 Dec 2013 23:26:53 +0000
-Subject: [PATCH 04/10] tilo: fix typo in tilo.sh
-Message-Id: <1386458819-6590-5-git-send-email-aaro.koskinen@iki.fi>
+Date: Mon, 23 Dec 2013 19:43:30 +0000
+Subject: [PATCH v2 08/11] tilo: check kernel space limits
+Message-Id: <1387827813-8279-9-git-send-email-aaro.koskinen@iki.fi>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-The name of the script has .sh, so the sed script conversion fails.
-Fix that.
+Sanity check the space available for kernel decompression.
 
 Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 ---
- tilo/tilo.sh | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tilo/tilo.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/tilo/tilo.sh b/tilo/tilo.sh
-index f152e288d967..782a0305646b 100755
---- a/tilo/tilo.sh
-+++ b/tilo/tilo.sh
-@@ -112,7 +112,7 @@ if [ -z "$sun4u" -a -z "$sun4c" ]; then
- 	exit 1
- fi
+diff --git a/tilo/tilo.c b/tilo/tilo.c
+index afbd848d9814..dc626efc7b02 100644
+--- a/tilo/tilo.c
++++ b/tilo/tilo.c
+@@ -175,6 +175,7 @@ char *my_main (struct linux_romvec *promvec, void *cifh, void *cifs)
+ char *orig_code,*moved_code,*moved_ramdisk,*moved_kernel,*kernel_base;
+ unsigned *p,*q = NULL;
+ int kernel_number;
++char *kernel_end, *kernel_limit;
  
--`echo $0 | sed 's/tilo$/maketilo/'` $tilo_args out=$output
-+`echo $0 | sed 's/tilo\.sh$/maketilo/'` $tilo_args out=$output
+     prom_init(promvec, cifh, cifs);
+     
+@@ -215,9 +216,16 @@ int kernel_number;
  
- rm -f $to_remove
+     gzminp = (unsigned char *)moved_kernel;		/* decompress kernel */
+     kernel_base = (char*) 0x4000;
++    kernel_end = kernel_base +
++		 ((image_table[kernel_number].unpacked_len + 0xfff) & ~0xfff);
++    kernel_limit = moved_kernel;
  
+-    if (decompress (kernel_base, kernel_base + ((image_table[kernel_number].unpacked_len
+-		 + 0xfff) & ~0xfff), get_input, unget_input) = -1)
++    if (kernel_end > kernel_limit) {
++	printf("No space to decompress the kernel.\n");
++	prom_halt();
++    }
++
++    if (decompress (kernel_base, kernel_end, get_input, unget_input) = -1)
+     	{
+         printf ("\nKernel decompression error\n");
+         prom_halt();
 -- 
-1.8.4.4
+1.8.5.1
 
