@@ -1,151 +1,46 @@
 From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Date: Mon, 23 Dec 2013 19:43:31 +0000
-Subject: [PATCH v2 09/11] tilo: support ELF binaries
-Message-Id: <1387827813-8279-10-git-send-email-aaro.koskinen@iki.fi>
+Date: Mon, 23 Dec 2013 19:43:22 +0000
+Subject: [PATCH v2 00/11] SILO/TILO/sun4u: support TFTP booting modern kernels
+Message-Id: <1387827813-8279-1-git-send-email-aaro.koskinen@iki.fi>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Support booting ELF and normal a.out binaries, also retain compatiblity
-with the "raw" a.out prepared by tilo.sh.
+Hi,
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
----
- tilo/tilo.c | 105 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 105 insertions(+)
+Linux 3.13 exposes some limitations on old UltraSPARCs where the PROM
+maps only 10 MB - the standard kernel TFTP boot no longer works very
+well... See e-mail thread <http://marc.info/?t8592472200001&r=1&w=2>.
 
-diff --git a/tilo/tilo.c b/tilo/tilo.c
-index dc626efc7b02..d2fcd97b525f 100644
---- a/tilo/tilo.c
-+++ b/tilo/tilo.c
-@@ -18,6 +18,7 @@
-    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
-    USA.  */
- 
-+#include <elf.h>
- #include <silo.h>
- #include <setjmp.h>
- #ifndef NULL
-@@ -170,6 +171,108 @@ extern struct ImageInfo image_table[4];	/* Sun4 kernel, Sun4c/d/m kernel, Sun4u
- 
- #define HDRS_TAG	(('H'<<24) | ('d'<<16) | ('r'<<8) | 'S')
- 
-+void parse_executable(char *base, int image_len)
-+{
-+	union {
-+		char *b;
-+		struct aout_hdr *a;
-+		Elf32_Ehdr *e;
-+		Elf64_Ehdr *f;
-+	} hp;
-+	unsigned off = 0;
-+	int len = 0;
-+
-+	/*
-+	 * Check if the image is an executable file, either an a.out or an elf
-+	 * binary.
-+	 */
-+
-+	hp.b = base;
-+	if (hp.a->magic = 0x01030107) {
-+		off = sizeof (struct aout_hdr);
-+		if (image_len > hp.a->ltext + hp.a->ldata)
-+			len = hp.a->ltext + hp.a->ldata;
-+		else
-+			len = image_len;
-+	} else if (hp.e->e_ident[EI_MAG0] = ELFMAG0 &&
-+		   hp.e->e_ident[EI_MAG1] = ELFMAG1 &&
-+		   hp.e->e_ident[EI_MAG2] = ELFMAG2 &&
-+		   hp.e->e_ident[EI_MAG3] = ELFMAG3) {
-+		if (hp.e->e_ident[EI_DATA] != ELFDATA2MSB) {
-+			printf("Image is not a MSB ELF.\n");
-+			prom_halt();
-+		}
-+		if (hp.e->e_ident[EI_CLASS] = ELFCLASS32) {
-+			Elf32_Phdr *p;
-+			int i;
-+			unsigned long n;
-+			Elf32_Phdr *q;
-+
-+			p = (Elf32_Phdr *) (hp.b + hp.e->e_phoff);
-+			if (p->p_type != PT_LOAD) {
-+				printf("Cannot find a loadable segment in your ELF image.\n");
-+				prom_halt();
-+			}
-+
-+			q = p + 1;
-+			for (i = 1; i < hp.e->e_phnum; i++, q++) {
-+				if (q->p_type != PT_LOAD)
-+				break;
-+				n = q->p_offset - p->p_offset;
-+				if (q->p_vaddr - p->p_vaddr = n &&
-+				    q->p_paddr - p->p_paddr = n &&
-+				    p->p_memsz = p->p_filesz &&
-+				    p->p_memsz <= n) {
-+					p->p_filesz = n + q->p_filesz;
-+					p->p_memsz = n + q->p_memsz;
-+				} else {
-+					printf("Multiple loadable segments in your ELF image.\n");
-+					prom_halt();
-+				}
-+			}
-+			off = p->p_offset + hp.e->e_entry - p->p_vaddr;
-+			len = p->p_filesz;
-+			if (len > image_len)
-+				len = image_len;
-+		} else if (hp.e->e_ident[EI_CLASS] = ELFCLASS64) {
-+			Elf64_Phdr *p;
-+			unsigned long long n;
-+			int i;
-+			Elf64_Phdr *q;
-+
-+			p = (Elf64_Phdr *) (hp.b + hp.f->e_phoff);
-+			if (p->p_type != PT_LOAD) {
-+				printf("Cannot find a loadable segment in your ELF image.\n");
-+				prom_halt();
-+			}
-+			q = p + 1;
-+			for (i = 1; i < hp.f->e_phnum; i++, q++) {
-+				if (q->p_type != PT_LOAD)
-+					break;
-+				n = q->p_offset - p->p_offset;
-+				if (q->p_vaddr - p->p_vaddr = n &&
-+				    q->p_paddr - p->p_paddr = n &&
-+				    p->p_memsz = p->p_filesz &&
-+				    p->p_memsz <= n) {
-+					p->p_filesz = n + q->p_filesz;
-+					p->p_memsz = n + q->p_memsz;
-+				} else {
-+					printf("Multiple loadable segments in your ELF image.\n");
-+					prom_halt();
-+				}
-+			}
-+			off = p->p_offset + hp.f->e_entry - p->p_vaddr;
-+			len = p->p_filesz;
-+			if (len > image_len)
-+				len = image_len;
-+		}
-+	} else {
-+		/* Assume "raw" a.out format prepared by tilo.sh. */
-+		return;
-+	}
-+	memmove(base, base + off, len);
-+}
-+
- char *my_main (struct linux_romvec *promvec, void *cifh, void *cifs)
- {
- char *orig_code,*moved_code,*moved_ramdisk,*moved_kernel,*kernel_base;
-@@ -231,6 +334,8 @@ char *kernel_end, *kernel_limit;
-         prom_halt();
-     	}
- 
-+    parse_executable(kernel_base, kernel_end - kernel_base);
-+
-     switch (kernel_number)
-     	{
-     	case SUN4U_KERNEL:
+This patch set makes some improvements to TILO to help on that. Basically
+it enables to boot a compressed kernel from dynamically allocated
+space. I'm now able to tftpboot a bloaty 3.13-rc5 + initramfs on Sun
+Ultra 5/10 with an image created by tilo.
+
+The patch set also allows to cross-compile and run tilo e.g. on x86.
+
+Aaro Koskinen (11):
+  tilo: convert data to big endian
+  tilo: compile maketilo with host toolchain
+  tilo: support latest binutils
+  tilo: replace sed with dirname in tilo.sh
+  tilo: make root image optional
+  tilo: sanity check image sizes
+  tilo: support super large images
+  tilo: check kernel space limits
+  tilo: support ELF binaries
+  tilo: allocate kernel memory dynamically on sun4u
+  tilo: adjust comments/documentation
+
+ tilo/Makefile   |  24 +++++-
+ tilo/crt0.S     |   4 +
+ tilo/maketilo.c |  88 ++++++++++++++------
+ tilo/tilo.c     | 244 ++++++++++++++++++++++++++++++++++++++++++++++++++++----
+ tilo/tilo.sh    |  13 +--
+ 5 files changed, 327 insertions(+), 46 deletions(-)
+
 -- 
 1.8.5.1
 
