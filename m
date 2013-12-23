@@ -1,32 +1,75 @@
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-Date: Fri, 13 Dec 2013 19:04:55 +0000
-Subject: return value of __copy_from_user_inatomic()
-Message-Id: <52AB5A57.3010405@oracle.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Date: Mon, 23 Dec 2013 19:43:28 +0000
+Subject: [PATCH v2 06/11] tilo: sanity check image sizes
+Message-Id: <1387827813-8279-7-git-send-email-aaro.koskinen@iki.fi>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-We're seeing some failing test cases due to sparc64's
-__copy_from_user_inatomic returning 1 on an incomplete copy rather than
-the number of bytes not copied. This results in
-iov_iter_copy_from_user_atomic returning the wrong value to
-generic_perform_write().
+Sanity check image sizes to prevent buffer overflow.
 
-xfstests generic/246 and LTP writev01 both fail on btrfs and nfs because
-of this.
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+---
+ tilo/maketilo.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-Commit 145e1c00 "sparc64: Fix __copy_{to,from}_user_inatomic defines."
-changed the behavior by removing the call to the fixups in
-__copy_from_user_inatomic and __copy_to_user_inatomic. I found the
-reported problem here: https://lkml.org/lkml/2008/11/1/91 , but I don't
-understand why the fixup is the problem. The bzero (memset in the code)
-is called against the destination, which is a pagecache page, and the
-faulting address is sanity-checked against the boundaries.
+diff --git a/tilo/maketilo.c b/tilo/maketilo.c
+index 30eaef4c2868..6bc2f767fcb6 100644
+--- a/tilo/maketilo.c
++++ b/tilo/maketilo.c
+@@ -53,6 +53,14 @@ int root_tweak (char *s)
+ 	return p ? (p + 32 + 0x1fff) & ~0x1fff : 0;	/* add 32 bytes and round to 8 KB */
+ }
+ 
++static void check_size (char const *name, int len, int pos, int max)
++{
++	if (max - pos < len) {
++		fprintf (stderr, "%s will not fit into the image.\n", name);
++		exit (EXIT_FAILURE);
++	}
++}
++
+ int main (int argc, char **argv)
+ {
+ 	int i,len,rootlen;
+@@ -177,6 +185,8 @@ int main (int argc, char **argv)
+ 		fseek (f, 0, SEEK_END);
+ 		len = ftell (f);
+ 		fseek (f, 0, SEEK_SET);
++		check_size (sun4_kernel, sun4_kernel_start - output_buffer, len,
++			    MAX_BOOT_LEN);
+ 		fread (sun4_kernel_start, 1, len, f);
+ 		fclose (f);
+ 	} else
+@@ -194,6 +204,8 @@ int main (int argc, char **argv)
+ 		fseek (f, 0, SEEK_END);
+ 		len = ftell (f);
+ 		fseek (f, 0, SEEK_SET);
++		check_size (sun4c_kernel, sun4c_kernel_start - output_buffer,
++			    len, MAX_BOOT_LEN);
+ 		fread (sun4c_kernel_start, 1, len, f);
+ 		fclose (f);
+ 	} else
+@@ -211,6 +223,8 @@ int main (int argc, char **argv)
+ 		fseek (f, 0, SEEK_END);
+ 		len = ftell (f);
+ 		fseek (f, 0, SEEK_SET);
++		check_size (sun4u_kernel, sun4u_kernel_start - output_buffer,
++			    len, MAX_BOOT_LEN);
+ 		fread (sun4u_kernel_start, 1, len, f);
+ 		fclose (f);
+ 	} else
+@@ -219,6 +233,8 @@ int main (int argc, char **argv)
+ 	root_image_start = sun4u_kernel_start + len;
+ 	
+ 	if (root_image) {
++		check_size (root_image, root_image_start - output_buffer, len,
++			    MAX_BOOT_LEN);
+ 		fread (root_image_start, 1, rootlen, g);
+ 		fclose (g);
+ 	}
+-- 
+1.8.5.1
 
-reverting commit 145e1c00 fixes those failing test cases, and I wasn't
-able to recreate the dbench failure on tmpfs.
-
-Thanks,
-Dave
