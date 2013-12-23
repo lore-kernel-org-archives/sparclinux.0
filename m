@@ -1,16 +1,33 @@
-From: nkoffi396@gmail.com
-Date: Mon, 30 Dec 2013 18:06:51 +0000
-Subject: Advise to invest in your Country
-Message-Id: <EMAILCKjKTXwsmj3cmo00017e55@email.bec.local>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Date: Mon, 23 Dec 2013 19:43:26 +0000
+Subject: [PATCH v2 04/11] tilo: replace sed with dirname in tilo.sh
+Message-Id: <1387827813-8279-5-git-send-email-aaro.koskinen@iki.fi>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Dear Friend,
+Use dirname to figure out the path of maketilo.
 
-I need someone in your Country I want to invest 30MillionEuros. For more info send me your telephone number for conversation to enable us have a concrete discussion and meeting.
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+---
+ tilo/tilo.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Best Regards
-Mr.Norbert Koffi 
+diff --git a/tilo/tilo.sh b/tilo/tilo.sh
+index f152e288d967..175dacf71f22 100755
+--- a/tilo/tilo.sh
++++ b/tilo/tilo.sh
+@@ -112,7 +112,7 @@ if [ -z "$sun4u" -a -z "$sun4c" ]; then
+ 	exit 1
+ fi
+ 
+-`echo $0 | sed 's/tilo$/maketilo/'` $tilo_args out=$output
++$(dirname $0)/maketilo $tilo_args out=$output
+ 
+ rm -f $to_remove
+ 
+-- 
+1.8.5.1
+
