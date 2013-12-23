@@ -1,94 +1,143 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Tue, 10 Dec 2013 07:10:04 +0000
-Subject: [PATCH v2] sparc/PCI: Use dev_is_pci() to identify PCI devices
-Message-Id: <1386659404-37924-1-git-send-email-wangyijing@huawei.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Date: Mon, 23 Dec 2013 19:43:27 +0000
+Subject: [PATCH v2 05/11] tilo: make root image optional
+Message-Id: <1387827813-8279-6-git-send-email-aaro.koskinen@iki.fi>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-pci@vger.kernel.org, sparclinux@vger.kernel.org, Yijing Wang <wangyijing@huawei.com>, Hanjun Guo <guohanjun@huawei.com>
+To: sparclinux@vger.kernel.org
 
-Use dev_is_pci() instead of checking bus type directly.
+Make root image optional.
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
-Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 ---
+ tilo/maketilo.c | 35 ++++++++++++++++++++---------------
+ tilo/tilo.sh    | 11 +++++++----
+ 2 files changed, 27 insertions(+), 19 deletions(-)
 
-v1->v2: Keep #ifdef CONFIG_PCI code to avoid build error, found by
-		kbuild test.
-
----
- arch/sparc/include/asm/dma-mapping.h |    7 +++----
- arch/sparc/kernel/iommu.c            |    2 +-
- arch/sparc/kernel/ioport.c           |    2 +-
- 3 files changed, 5 insertions(+), 6 deletions(-)
-
-diff --git a/arch/sparc/include/asm/dma-mapping.h b/arch/sparc/include/asm/dma-mapping.h
-index 05fe53f..ab529f1 100644
---- a/arch/sparc/include/asm/dma-mapping.h
-+++ b/arch/sparc/include/asm/dma-mapping.h
-@@ -4,6 +4,7 @@
- #include <linux/scatterlist.h>
- #include <linux/mm.h>
- #include <linux/dma-debug.h>
-+#include <linux/pci.h>
- 
- #define DMA_ERROR_CODE	(~(dma_addr_t)0x0)
- 
-@@ -16,14 +17,12 @@ extern struct dma_map_ops *dma_ops;
- extern struct dma_map_ops *leon_dma_ops;
- extern struct dma_map_ops pci32_dma_ops;
- 
--extern struct bus_type pci_bus_type;
--
- static inline struct dma_map_ops *get_dma_ops(struct device *dev)
+diff --git a/tilo/maketilo.c b/tilo/maketilo.c
+index 0a14a96149dc..30eaef4c2868 100644
+--- a/tilo/maketilo.c
++++ b/tilo/maketilo.c
+@@ -56,7 +56,7 @@ int root_tweak (char *s)
+ int main (int argc, char **argv)
  {
- #if defined(CONFIG_SPARC32) && defined(CONFIG_PCI)
- 	if (sparc_cpu_model = sparc_leon)
- 		return leon_dma_ops;
--	else if (dev->bus = &pci_bus_type)
-+	else if (dev_is_pci(dev))
- 		return &pci32_dma_ops;
- #endif
- 	return dma_ops;
-@@ -66,7 +65,7 @@ static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
- static inline int dma_set_mask(struct device *dev, u64 mask)
- {
- #ifdef CONFIG_PCI
--	if (dev->bus = &pci_bus_type) {
-+	if (dev_is_pci(dev)) {
- 		if (!dev->dma_mask || !dma_supported(dev, mask))
- 			return -EINVAL;
- 		*dev->dma_mask = mask;
-diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
-index 070ed14..76663b0 100644
---- a/arch/sparc/kernel/iommu.c
-+++ b/arch/sparc/kernel/iommu.c
-@@ -854,7 +854,7 @@ int dma_supported(struct device *dev, u64 device_mask)
- 		return 1;
+ 	int i,len,rootlen;
+-	FILE *f, *g;
++	FILE *f, *g = NULL;
+ 	struct ImageInfo *ii;
  
- #ifdef CONFIG_PCI
--	if (dev->bus = &pci_bus_type)
-+	if (dev_is_pci(dev))
- 		return pci64_dma_supported(to_pci_dev(dev), device_mask);
- #endif
+ 	char *sun4_kernel_start;
+@@ -112,26 +112,26 @@ int main (int argc, char **argv)
+ 	
+ 	if (!sun4_kernel) {
+ 		/*fprintf (stderr, "WARNING: Kernel for Sun4 not specified\n");*/
+-	} else if (!sun4_size || !sun4_root) {
++	} else if (!sun4_size || (!sun4_root && root_image)) {
+ 		fprintf (stderr, "WARNING: Original size and root address must be specified for Sun4\n");
+ 		return -1;
+ 	}
+ 	
+ 	if (!sun4c_kernel) {
+ 		fprintf (stderr, "WARNING: Kernel for Sun4c/m/d not specified\n");
+-	} else if (!sun4c_size || !sun4c_root) {
++	} else if (!sun4c_size || (!sun4c_root && root_image)) {
+ 		fprintf (stderr, "ERROR: Original size and root address must be specified for Sun4c\n");
+ 		return -1;
+ 	}
+ 	
+ 	if (!sun4u_kernel) {
+ 		fprintf (stderr, "WARNING: Kernel for Sun4u not specified\n");
+-	} else if (!sun4u_size || !sun4u_root) {
++	} else if (!sun4u_size || (!sun4u_root && root_image)) {
+ 		fprintf (stderr, "ERROR: Original size and root address must be specified for Sun4u\n");
+ 		return -1;
+ 	}
+ 	
+-	if (!root_image) {
++	if (!root_image && (sun4_root || sun4c_root || sun4u_root)) {
+ 		fprintf (stderr, "ERROR: Root image not specified\n");
+ 		return -1;
+ 	}
+@@ -141,16 +141,19 @@ int main (int argc, char **argv)
+ 		return -1;
+ 	}
+ 	
+-	g = fopen (root_image, "rb");
+-	if (!g) {
+-		fprintf (stderr, "Can't load %s\n", root_image);
+-		return -1;
++	if (root_image) {
++		g = fopen (root_image, "rb");
++		if (!g) {
++			fprintf (stderr, "Can't load %s\n", root_image);
++			return -1;
++		}
++		fseek (g, 0, SEEK_END);
++		rootlen = ftell (g);
++		fseek (g, 0, SEEK_SET);
++	} else {
++		rootlen = 0;
+ 	}
+ 	
+-	fseek (g, 0, SEEK_END);
+-	rootlen = ftell (g);
+-	fseek (g, 0, SEEK_SET);
+-	
+ 	if (rootlen + sun4_size + 0x4000 + 0x10000 >= 0x330000 ||
+ 	    rootlen + sun4c_size + 0x4000 + 0x10000 >= 0x330000 ||
+ 	    rootlen + sun4u_size + 0x4000 + 0x10000 >= 0x330000) {
+@@ -215,8 +218,10 @@ int main (int argc, char **argv)
  
-diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
-index 2096468..5b8aab9 100644
---- a/arch/sparc/kernel/ioport.c
-+++ b/arch/sparc/kernel/ioport.c
-@@ -667,7 +667,7 @@ EXPORT_SYMBOL(dma_ops);
- int dma_supported(struct device *dev, u64 mask)
- {
- #ifdef CONFIG_PCI
--	if (dev->bus = &pci_bus_type)
-+	if (dev_is_pci(dev))
- 		return 1;
- #endif
- 	return 0;
+ 	root_image_start = sun4u_kernel_start + len;
+ 	
+-	fread (root_image_start, 1, rootlen, g);
+-	fclose (g);
++	if (root_image) {
++		fread (root_image_start, 1, rootlen, g);
++		fclose (g);
++	}
+ 
+ 	output_end = root_image_start + rootlen;
+ 
+diff --git a/tilo/tilo.sh b/tilo/tilo.sh
+index 175dacf71f22..41e3e6a4e3db 100755
+--- a/tilo/tilo.sh
++++ b/tilo/tilo.sh
+@@ -57,9 +57,11 @@ do_image () {
+ 	echo "  packed size  = $PSIZE"
+ 	echo "  root address = $ROOTA"
+ 	if [ -n "$sun4u" ]; then
+-		tilo_args="$tilo_args sun4u=$KERNEL.gz size4u=$SIZE root4u=$ROOTA"
++		tilo_args="$tilo_args sun4u=$KERNEL.gz size4u=$SIZE"
++		root_addr="$root_addr root4u=$ROOTA"
+ 	else
+-		tilo_args="$tilo_args sun4c=$KERNEL.gz size4c=$SIZE root4c=$ROOTA"
++		tilo_args="$tilo_args sun4c=$KERNEL.gz size4c=$SIZE"
++		root_addr="$root_addr root4c=$ROOTA"
+ 	fi
+ }
+ 
+@@ -80,7 +82,7 @@ do_root () {
+ 	fi
+ 	ROOT_SIZE=`ls -l $rootimg | awk '{print$5}'`
+ 	echo Root image packed size = $ROOT_SIZE
+-	tilo_args="$tilo_args root=$rootimg"
++	root_img="root=$rootimg"
+ }
+ 
+ while [ $# != 0 ]; do
+@@ -112,7 +114,8 @@ if [ -z "$sun4u" -a -z "$sun4c" ]; then
+ 	exit 1
+ fi
+ 
+-$(dirname $0)/maketilo $tilo_args out=$output
++[ -n "$root_img" ] && root_img="$root_img $root_addr"
++$(dirname $0)/maketilo $tilo_args $root_img out=$output
+ 
+ rm -f $to_remove
+ 
 -- 
-1.7.1
-
+1.8.5.1
 
