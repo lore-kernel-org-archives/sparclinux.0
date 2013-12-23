@@ -1,33 +1,34 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Date: Sat, 07 Dec 2013 23:26:51 +0000
-Subject: [PATCH 02/10] tilo: compile maketilo with host toolchain
-Message-Id: <1386458819-6590-3-git-send-email-aaro.koskinen@iki.fi>
+From: Allen Pais <allen.pais@oracle.com>
+Date: Mon, 23 Dec 2013 06:27:51 +0000
+Subject: [PATCH 1/1] sparc64: allow forced irq threading
+Message-Id: <1387779351-18409-1-git-send-email-allen.pais@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: sparclinux@vger.kernel.org, bigeasy@linutronix.de, Allen Pais <allen.pais@oracle.com>
 
-Use HOSTCC to compile maketilo to enable cross-compilation.
+Forced irq threading is a prerequisite for RT.
+The following patch enables this on the sparc architecture.
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Signed-off-by: Allen Pais <allen.pais@oracle.com>
 ---
- tilo/Makefile | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/sparc/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/tilo/Makefile b/tilo/Makefile
-index 89b540fc27a9..800e65f02767 100644
---- a/tilo/Makefile
-+++ b/tilo/Makefile
-@@ -27,7 +27,7 @@ OBJS = crt0.o tilo.o $(OBJS_COMMON) malloc.o
- OBJS2 = crt0l.o tilol.o $(OBJS_COMMON) mallocl.o
- 
- maketilo: maketilo.c b.h b2.h
--	$(CC) $(CFLAGS) maketilo.c -o maketilo
-+	$(HOSTCC) $(HOSTCFLAGS) -g maketilo.c -o maketilo
- 
- b.h : b.out $(BIN2H)
- 	$(BIN2H) -l BOOT_LEN boot_loader $< > $@ || ($(RM) $@; exit 1)
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 554995d..aae5aa9 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -27,6 +27,7 @@ config SPARC
+ 	select HAVE_DMA_API_DEBUG
+ 	select HAVE_ARCH_JUMP_LABEL
+ 	select HAVE_GENERIC_HARDIRQS
++	select IRQ_FORCED_THREADING
+ 	select GENERIC_IRQ_SHOW
+ 	select ARCH_WANT_IPC_PARSE_VERSION
+ 	select USE_GENERIC_SMP_HELPERS if SMP
 -- 
-1.8.4.4
+1.7.10.4
 
