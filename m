@@ -1,26 +1,34 @@
-From: Ralf Baechle <ralf@linux-mips.org>
-Date: Mon, 16 Dec 2013 16:23:47 +0000
-Subject: Re: [PATCH 10/10] Kconfig: cleanup SERIO_I8042 dependencies
-Message-Id: <20131216162346.GA19285@linux-mips.org>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Date: Mon, 23 Dec 2013 19:43:25 +0000
+Subject: [PATCH v2 03/11] tilo: support latest binutils
+Message-Id: <1387827813-8279-4-git-send-email-aaro.koskinen@iki.fi>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1387040376-26906-1-git-send-email-msalter@redhat.com>
- <1387040376-26906-11-git-send-email-msalter@redhat.com>
-In-Reply-To: <1387040376-26906-11-git-send-email-msalter@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-On Sat, Dec 14, 2013 at 11:59:36AM -0500, Mark Salter wrote:
+Latest versions of binutils mark _end with "B" instead of "A".
+Support both of them.
 
-> -	depends on !PARISC && (!ARM || FOOTBRIDGE_HOST) && \
-> -		   (!SUPERH || SH_CAYMAN) && !M68K && !BLACKFIN && !S390 && \
-> -		   !ARC
-> +	depends on ARCH_MIGHT_HAVE_PC_SERIO
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+---
+ tilo/tilo.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Most dependencies on an architecture's kconfig symbol outside arch/
-should probably be treated as a bug.
+diff --git a/tilo/tilo.sh b/tilo/tilo.sh
+index ff60063200b2..f152e288d967 100755
+--- a/tilo/tilo.sh
++++ b/tilo/tilo.sh
+@@ -50,7 +50,7 @@ do_image () {
+ 	to_remove="$to_remove $KERNEL.gz"
+ 	PSIZE=`ls -l $KERNEL.gz | awk '{print$5}'`
+ 	SIZE=`ls -l $KERNEL.raw | awk '{print$5}'`
+-	ROOTA=`nm $KERNEL | awk '/A _end$/{print$1}'`
++	ROOTA=`nm $KERNEL | awk '/[AB] _end$/{print$1}'`
+ 	rm $KERNEL.raw
+ 	echo "Sizes ($tag):"
+ 	echo "  raw size     = $SIZE"
+-- 
+1.8.5.1
 
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
-
-  Ralf
