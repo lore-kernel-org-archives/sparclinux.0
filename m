@@ -1,77 +1,47 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Date: Fri, 06 Dec 2013 15:54:24 +0000
-Subject: Re: RED state exception (trap type 0x64) on U5 reboot
-Message-Id: <52A1F330.5020800@hurleysoftware.com>
+From: Matthew Wilcox <willy@linux.intel.com>
+Date: Fri, 27 Dec 2013 18:00:18 +0000
+Subject: [PATCH] remap_file_pages needs to check for cache coherency
+Message-Id: <20131227180018.GC4945@linux.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.SOC.1.00.1310151347070.902@math.ut.ee>
-In-Reply-To: <alpine.SOC.1.00.1310151347070.902@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-parisc@vger.kernel.org, linux-mips@linux-mips.org
 
-On 12/04/2013 10:35 AM, Meelis Roos wrote:
->>>>>> There were some changes to sunsab.c a couple of versions ago; maybe we
->>>>>> broke it.
->>>>>>
->>>>>> Can you confirm BRKs are being received with
->>>>>> 'sudo cat /proc/tty/driver/serial'
->>>>>
->>>>> In 3.12:
->>>>>
->>>>> # cat /proc/tty/driver/sunsab
->>>>> serinfo:1.0 driver revision:
->>>>> 0: uart:SAB82532 V3.2 mmio:0x1FFF1400000 irq:5 tx:5163 rx:0 CTS|DSR|CD
->>>>> 1: uart:SAB82532 V3.2 mmio:0x1FFF1400040 irq:5 tx:0 rx:
->>>>>
->>>>> cat /proc/sys/kernel/stop-a
->>>>> 1
->>>>>
->>>>> # cat /proc/sys/kernel/reboot-cmd
->>>>>
->>>>> (it was empty, so default "boot" should be used AFAIK)
->>>>
->>>> Meelis,
->>>>
->>>> Would you please re-test trying to break to the PROM with this debug
->>>> patch?  As with the bootpromfs debug patch, the output is in
->>>> '/sys/kernel/debug/trace'.
->>>
->>> Should I activate tracing somehow?
->>
->> You did activate tracing. The lack of output means at that point
->> there is no BRK detected. Can you trigger any sysrq function from
->> that terminal (assuming CONFIG_SERIAL_SUNSAB_CONSOLE && CONFIG_MAGIC_SYSRQ)?
->
-> I can not trigger SysRq by sending a break and then immediately s (or t
-> also tested). Nothing in trace. Magic SysRq is 0x1 like default in
-> kernel conf. This in on the SUNSAB Ultra5 machine.
 
-That's what I thought: just wanted to validate.
+It seems to me that while (for example) on SPARC, it's not possible to
+create a non-coherent mapping with mmap(), after we've done an mmap,
+we can then use remap_file_pages() to create a mapping that no longer
+aliases in the D-cache.
 
-Not sure why no BRK is detected (isr1 & ISR1_BRK = 0). Maybe there is
-an early-out that is ignoring BRK condition. Or the sunsab driver is not
-reading/interpreting the correct register/bits.
+I have only compile-tested this patch.  I don't have any SPARC hardware,
+and my PA-RISC hardware hasn't been turned on in six years ... I noticed
+this while wandering around looking at some other stuff.
 
-You could instrument the irq handler, sunsab_interrupt(), with trace_printk()
-to see if BRK is ever detected.
-
-> E3500 with zs serial console has working break but I do now know how to
-> send SysRq there - Break drops me to prom prompt, I can "go" there but
-> anything after that is inteprreted as normal input.
-
-I'm not sure how BRK is intended to be used for both the PROM console
-and SysRq on a serial console. If you temporarily disable the PROM console,
-the SysRq should work by typing a SysRq command char after sending a break.
-
-[ FWIW, Minicom's break function sends a lot of BRKs because it's designed
-to trigger a modem interrupt. AFAIK there isn't a 'single-char length
-break' supported by minicom. ]
-
-> How shoyukd SysRq
-> over verial console work - have not used it before?
-
-The first input after a BRK is interpreted as a SysRq command (within 5 secs).
-
-Regards,
-Peter Hurley
+diff --git a/mm/fremap.c b/mm/fremap.c
+index 5bff081..01fc2e7 100644
+--- a/mm/fremap.c
++++ b/mm/fremap.c
+@@ -19,6 +19,7 @@
+ 
+ #include <asm/mmu_context.h>
+ #include <asm/cacheflush.h>
++#include <asm/shmparam.h>
+ #include <asm/tlbflush.h>
+ 
+ #include "internal.h"
+@@ -177,6 +178,13 @@ SYSCALL_DEFINE5(remap_file_pages, unsigned long, start, unsigned long, size,
+ 	if (start < vma->vm_start || start + size > vma->vm_end)
+ 		goto out;
+ 
++#ifdef __ARCH_FORCE_SHMLBA
++	/* Is the mapping cache-coherent? */
++	if ((pgoff ^ linear_page_index(vma, start)) &
++	    ((SHMLBA-1) >> PAGE_SHIFT))
++		goto out;
++#endif
++
+ 	/* Must set VM_NONLINEAR before any pages are populated. */
+ 	if (!(vma->vm_flags & VM_NONLINEAR)) {
+ 		/*
