@@ -1,34 +1,31 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Date: Sat, 07 Dec 2013 23:26:52 +0000
-Subject: [PATCH 03/10] tilo: support latest binutils
-Message-Id: <1386458819-6590-4-git-send-email-aaro.koskinen@iki.fi>
+From: " Peter Ooi Cheng Kin" <info@cnd.org.mz>
+Date: Sun, 29 Dec 2013 09:03:41 +0000
+Subject: INTRODUCTION LETTER
+Message-Id: <5868edf4-292a-4fcb-a512-946229fde914@mail>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Latest versions of binutils mark _end with "B" instead of "A".
-Support both of them.
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
----
- tilo/tilo.sh | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/tilo/tilo.sh b/tilo/tilo.sh
-index ff60063200b2..f152e288d967 100755
---- a/tilo/tilo.sh
-+++ b/tilo/tilo.sh
-@@ -50,7 +50,7 @@ do_image () {
- 	to_remove="$to_remove $KERNEL.gz"
- 	PSIZE=`ls -l $KERNEL.gz | awk '{print$5}'`
- 	SIZE=`ls -l $KERNEL.raw | awk '{print$5}'`
--	ROOTA=`nm $KERNEL | awk '/A _end$/{print$1}'`
-+	ROOTA=`nm $KERNEL | awk '/[AB] _end$/{print$1}'`
- 	rm $KERNEL.raw
- 	echo "Sizes ($tag):"
- 	echo "  raw size     = $SIZE"
--- 
-1.8.4.4
+INTRODUCTION LETTER
+Peter Ooi Cheng Kin
+DBS Bank
+
+Good Day,
+My name is Peter Ooi Cheng Kin I work with DBS BANK .I discovered a huge sum secretly in a high profile  account,on investigation I discovered it belongs to a late President without any administrator.
+
+I want you to partner with me to transfer this funds out into your account.
+We shall share the money in terms that we will both agree .
+Let me know if you are willing to partner with me.
+Please do in your reply email state your:
+1.Full Name
+2.phone number
+ PLEASE SEND YOUR REPLY TO MY PERSONAL EMAIL ADDRESS ONLY TO:cheng.kim@aol.com
+
+Yours
+Peter Ooi Cheng Kin
+
 
