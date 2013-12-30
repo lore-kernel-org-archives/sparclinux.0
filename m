@@ -1,28 +1,21 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 27 Dec 2013 17:43:09 +0000
-Subject: Re: [PATCH 05/38] sparc: kernel: add missing put_device call
-Message-Id: <20131227.124309.1704278577980085243.davem@davemloft.net>
+From: <08@ccwcharity.onmicrosoft.com>
+Date: Mon, 30 Dec 2013 22:19:26 +0000
+Subject: DONATION OFFER
+Message-Id: <f47b1136-d4bf-4a42-819c-7e3b532ab72b@BN1PR04MB470.namprd04.prod.outlook.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1387465429-3568-2-git-send-email-levex@linux.com>
-	<1387465429-3568-6-git-send-email-levex@linux.com>
-In-Reply-To: <1387465429-3568-6-git-send-email-levex@linux.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: levex@linux.com
-Cc: linux-kernel@vger.kernel.org, federico.vaga@gmail.com, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-From: Levente Kurusa <levex@linux.com>
-Date: Thu, 19 Dec 2013 16:03:16 +0100
+My wife Christine and I Colin Weir won Jackpot Lottery and Decided to donat=
+e  =A3500,000 Thousand Pounds. Reply back for more details. For Confirmatio=
+n Click on the NEWS link below:=20
+   http://www.dailyrecord.co.uk/news/scottish-news/euromillions-lottery-win=
+ners-chris-and-colin-1585568
 
-> This is required so that we give up the last reference to the device.
-> The kfree() has been removed because put_device will set the underlying kref's
-> reference count to zero and hence vio_dev_release will get called resulting in
-> kfreeing the structure.
-> 
-> Signed-off-by: Levente Kurusa <levex@linux.com>
+---
+This email is free from viruses and malware because avast! Antivirus protec=
+tion is active.
+http://www.avast.com
 
-There is no reference held to vdev->dev at this point, that's why
-we should directly kfree() it and put_device() is not appropriate.
-
-Pretty much all of your patches have this problem.
