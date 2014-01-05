@@ -1,34 +1,27 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 29 Jan 2014 07:39:06 +0000
-Subject: Re: [PATCH] sparc: don't use module_init in non-modular pci.c code
-Message-Id: <20140128.233906.165357673105335071.davem@davemloft.net>
+Date: Sun, 05 Jan 2014 01:32:49 +0000
+Subject: Re: [PATCH 2/3] sparc64: convert spinlock_t to raw_spinlock_t in mmu_context_t
+Message-Id: <20140104.203249.1100084640435359350.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1389550050-17936-1-git-send-email-paul.gortmaker@windriver.com>
-In-Reply-To: <1389550050-17936-1-git-send-email-paul.gortmaker@windriver.com>
+References: <1387166853-10782-3-git-send-email-allen.pais@oracle.com>
+	<52AED5BB.1060002@linutronix.de>
+	<52AEDCFD.9020402@oracle.com>
+In-Reply-To: <52AEDCFD.9020402@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: allen.pais@oracle.com
+Cc: bigeasy@linutronix.de, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Date: Sun, 12 Jan 2014 13:07:30 -0500
+From: Allen Pais <allen.pais@oracle.com>
+Date: Mon, 16 Dec 2013 16:29:09 +0530
 
-> The pci.o is built for SPARC64_PCI -- which is bool, and hence
-> this code is either present or absent.  It will never be modular,
-> so using module_init as an alias for __initcall can be somewhat
-> misleading.
-> 
-> Fix this up now, so that we can relocate module_init from
-> init.h into module.h in the future.  If we don't do this, we'd
-> have to add module.h to obviously non-modular code, and that
-> would be a worse thing.
-> 
-> Note that direct use of __initcall is discouraged, vs. one
-> of the priority categorized subgroups.  As __initcall gets
-> mapped onto device_initcall, our use of device_initcall
-> directly in this change means that the runtime impact is
-> zero -- it will remain at level 6 in initcall ordering.
-> 
-> Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+> I did not think it'd be nice to put the call trace in the commit message.
+> But if needed I can re-send them.
 
-Also applied, thanks Paul.
+The more information you provide in a commit message, the better.
+
+Please add those traces to the commit messages, and then you can add
+my:
+
+Acked-by: David S. Miller <davem@davemloft.net>
