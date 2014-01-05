@@ -1,19 +1,22 @@
-From: Abdul Nasser <abdulnas500@justin.ddo.jp>
-Date: Sun, 26 Jan 2014 22:31:41 +0000
-Subject: Kind Regards
-Message-Id: <SECEXCHANGEwWFLvPOJ00006366@mail.standardelectronics.com>
+From: David Miller <davem@davemloft.net>
+Date: Sun, 05 Jan 2014 02:05:33 +0000
+Subject: Re: [PATCH v3] sparc/PCI: Use dev_is_pci() to identify PCI devices
+Message-Id: <20140104.210533.653844636617320862.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <SECEXCHANGETDRbmA5k00003a45@mail.standardelectronics.com>
-In-Reply-To: <SECEXCHANGETDRbmA5k00003a45@mail.standardelectronics.com>
+References: <1386741626-35744-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1386741626-35744-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: wangyijing@huawei.com
+Cc: bhelgaas@google.com, linux-pci@vger.kernel.org, sparclinux@vger.kernel.org, guohanjun@huawei.com
 
-Greetings,
-My name is Abdul Nasser Sokariah and I am writing you from Syria, I choose to contact you directly as I need a reliable person to trust who can help me handle my huge deposit  with a vault company in EUROPE, and based on my present situation in Syria, I need you urgently to take possession of everything and further modalities/directives will follow.Please reply to my private  Email: nasserabdul190@yahoo.com
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Wed, 11 Dec 2013 14:00:26 +0800
 
-I wait for your response.
+> Use dev_is_pci() instead of checking bus type directly.
+> 
+> Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 
-Yours truly,
-Abdul Nasser Sokariah
+Applied.
