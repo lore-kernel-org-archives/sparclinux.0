@@ -1,33 +1,41 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 07 Jan 2014 19:11:15 +0000
-Subject: Re: [PATCH] sparc: replace __GFP_NOFAIL with GFP_ATOMIC in mdesc_kmalloc()
-Message-Id: <20140107.141115.513158198056746890.davem@davemloft.net>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Date: Mon, 06 Jan 2014 19:51:03 +0000
+Subject: [PATCH] sparc: fix kgdb build failure due to context tracking
+Message-Id: <1389037863-8866-1-git-send-email-paul.gortmaker@windriver.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1389087077-311-1-git-send-email-ethan.kernel@gmail.com>
-In-Reply-To: <1389087077-311-1-git-send-email-ethan.kernel@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: ethan.kernel@gmail.com
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Ethan Zhao <ethan.kernel@gmail.com>
-Date: Tue,  7 Jan 2014 17:31:17 +0800
+The following allmodconfig build failure is seen:
 
-> Has kmalloc() failure checking there, so it is unnecessary to allocate with
-> __GFP_NOFAIL flag that might block forever.
-> 
-> Signed-off-by: Ethan Zhao <ethan.kernel@gmail.com>
+  CC      arch/sparc/kernel/kgdb_64.o
+arch/sparc/kernel/kgdb_64.c: In function 'kgdb_trap':
+arch/sparc/kernel/kgdb_64.c:162:7: error: implicit declaration of function 'exception_enter' [-Werror=implicit-function-declaration]
+arch/sparc/kernel/kgdb_64.c:176:2: error: implicit declaration of function 'exception_exit' [-Werror=implicit-function-declaration]
+cc1: all warnings being treated as errors
 
-This allocation failing borders on catastrophic.  The allocation failure
-handling is just for looks.
+Bisection leads to commit 812cb83a56a908729c453a7db3fb2c262119bc9d
+("sparc64: Implement HAVE_CONTEXT_TRACKING").  This commit failed
+to include the proper header for the above two functions in this file.
 
-This function is triggered when the firmware tells us that new cpus or
-other devices are available.  This memory being allocated will hold
-the machine description that we traverse to find those new devices.
+Cc: Kirill Tkhai <tkhai@yandex.ru>
+Fixes: 812cb83a56a9 ("sparc64: Implement HAVE_CONTEXT_TRACKING")
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
 
-If this allocation is allowed to fail, we will never have any way to
-get the notification again.  It really is __GFP_NOFAIL and must
-succeed.
+diff --git a/arch/sparc/kernel/kgdb_64.c b/arch/sparc/kernel/kgdb_64.c
+index 60b19f50c80a..3860e692fedc 100644
+--- a/arch/sparc/kernel/kgdb_64.c
++++ b/arch/sparc/kernel/kgdb_64.c
+@@ -5,6 +5,7 @@
+ 
+ #include <linux/kgdb.h>
+ #include <linux/kdebug.h>
++#include <linux/context_tracking.h>
+ #include <linux/ftrace.h>
+ 
+ #include <asm/cacheflush.h>
+-- 
+1.8.5.1
 
-I'm not applying this, sorry.
