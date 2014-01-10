@@ -1,44 +1,38 @@
-From: Allen Pais <allen.pais@oracle.com>
-Date: Mon, 06 Jan 2014 03:56:43 +0000
-Subject: [PATCH 1/4] sparc64: use generic rwsem spinlocks rt
-Message-Id: <1388980510-10190-2-git-send-email-allen.pais@oracle.com>
+From: franklinbuthelezi1@yahoo.com
+Date: Fri, 10 Jan 2014 12:29:49 +0000
+Subject: =?UTF-8?Q?DiePresse.com_Mein_Freund,_der_Fahrradh=C3=A4ndler?=
+Message-Id: <43938378.1389356989835.JavaMail.root@dpoportal4.diepresse.apa.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1388980510-10190-1-git-send-email-allen.pais@oracle.com>
-In-Reply-To: <1388980510-10190-1-git-send-email-allen.pais@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: sparclinux@vger.kernel.org, davem@davemloft.net, bigeasy@linutronix.de, Allen Pais <allen.pais@oracle.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: sparclinux@vger.kernel.org
 
-This patch enables the use of generic rwsem spinlocks
-to support RT on sparc64
+Folgender Artikel auf http://diepresse.com wird Ihnen von Franklin Buthelezi empfohlen:
 
-Acked-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Allen Pais <allen.pais@oracle.com>
----
- arch/sparc/Kconfig |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+Mein Freund, der Fahrradhändler
+Manche Dinge verändern sich über die langen Wintermonate hinweg. 
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index 6787bd3..554995d 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -179,12 +179,10 @@ config NR_CPUS
- source kernel/Kconfig.hz
+http://diepresse.com/home/leben/mode/kolumnezumtag/548717/index.do
+
+Notiz:
+Dear friend,
  
- config RWSEM_GENERIC_SPINLOCK
--	bool
--	default y if SPARC32
-+	def_bool PREEMPT_RT_FULL
+I am the international operations manager of ABSA bank South Africa. My name is Franklin Buthelezi. I have a sensitive and private offer from the top executive to seek your partnership in re-profiling some offshore investment funds worth 11.5M U.S.D (Eleven Million five hundred thousand United States Dollars) I am constrained however to withhold most of the details for now. This is a legitimate transaction. 
  
- config RWSEM_XCHGADD_ALGORITHM
--	bool
--	default y if SPARC64
-+	def_bool !RWSEM_GENERIC_SPINLOCK && !PREEMPT_RT_FULL
+If we agree on the terms you will be given 15% of the total funds, if you are interested please write back via email providing me your personal details and phone number for further directives.
  
- config GENERIC_HWEIGHT
- 	bool
--- 
-1.7.10.4
+If you are interested and willing to render your assistance please respond via my private email address stated below.
+ 
+I look forward to your response.
+ 
+Best regards
+Franklin Buthelezi
+Email: franklinbuthelezi1@yahoo.com
+
+
+------------------------------------
+DiePresse.com übernimmt keine Haftung für den Inhalt der persönlichen Nachricht.
+
+© DiePresse.com - http://diepresse.com
 
