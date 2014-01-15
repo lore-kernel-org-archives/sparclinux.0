@@ -1,39 +1,54 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 15 Jan 2014 10:31:50 +0000
+From: David Rientjes <rientjes@google.com>
+Date: Wed, 15 Jan 2014 22:57:56 +0000
 Subject: Re: [PATCH] mm: Make {,set}page_address() static inline if WANT_PAGE_VIRTUAL
-Message-Id: <52D66396.5050104@roeck-us.net>
+Message-Id: <alpine.DEB.2.02.1401151454440.24121@chino.kir.corp.google.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="531381512-692950067-1389826679=:24121"
 List-Id: <sparclinux.vger.kernel.org>
 References: <1389778426-14836-1-git-send-email-geert@linux-m68k.org>
 In-Reply-To: <1389778426-14836-1-git-send-email-geert@linux-m68k.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: Geert Uytterhoeven <geert@linux-m68k.org>, Andrew Morton <akpm@linux-foundation.org>, "Michael S. Tsirkin" <mst@redhat.com>
-Cc: linux-mm@kvack.org, linux-bcache@vger.kernel.org, Vineet Gupta <vgupta@synopsys.com>, sparclinux@vger.kernel.org, linux-m68k@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Guenter Roeck <linux@roeck-us.net>, "Michael S. Tsirkin" <mst@redhat.com>, linux-mm@kvack.org, linux-bcache@vger.kernel.org, Vineet Gupta <vgupta@synopsys.com>, sparclinux@vger.kernel.org, linux-m68k@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 01/15/2014 01:33 AM, Geert Uytterhoeven wrote:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+--531381512-692950067-1389826679=:24121
+Content-Type: TEXT/PLAIN; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+
+On Wed, 15 Jan 2014, Geert Uytterhoeven wrote:
+
 > {,set}page_address() are macros if WANT_PAGE_VIRTUAL.
 > If !WANT_PAGE_VIRTUAL, they're plain C functions.
->
+> 
 > If someone calls them with a void *, this pointer is auto-converted to
 > struct page * if !WANT_PAGE_VIRTUAL, but causes a build failure on
 > architectures using WANT_PAGE_VIRTUAL (arc, m68k and sparc):
->
+
+s/sparc/sparc64/
+
+> 
 > drivers/md/bcache/bset.c: In function ‘__btree_sort’:
 > drivers/md/bcache/bset.c:1190: warning: dereferencing ‘void *’ pointer
 > drivers/md/bcache/bset.c:1190: error: request for member ‘virtual’ in something not a structure or union
->
+> 
 > Convert them to static inline functions to fix this. There are already
 > plenty of  users of struct page members inside <linux/mm.h>, so there's no
 > reason to keep them as macros.
->
+> 
 > Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 
-Tested-by: Guenter Roeck <linux@roeck-us.net>
+Tested-by: David Rientjes <rientjes@google.com>
 
-That also fixes the problem seen in stable-queue for 3.10 and 3.12,
-so it may be a better fix for the problem seen there than the patch
-provided by Michael.
+I'm cringing at the page_address(mempool_alloc(..., GFP_NOIO)) in 
+drivers/md/bcache/bset.c, though.  It's relying on that fact that 
+mempool_alloc() can never return NULL if __GFP_WAIT but I think this could 
+have all been avoided with
 
-Guenter
+	struct page *page = mempool_alloc(state->pool, GFP_NOIO);
+	out = page_address(page);
 
+instead of burying the mempool_alloc() in page_address() for what I think 
+is cleaner code.  Owell, it fixes the issue.
+--531381512-692950067-1389826679=:24121--
