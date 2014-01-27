@@ -1,37 +1,115 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Date: Fri, 31 Jan 2014 13:34:33 +0000
-Subject: [PATCH v3 1/5] can: sja1000: convert printk to use netdev API
-Message-Id: <1391175277-19833-2-git-send-email-florian.vaussard@epfl.ch>
+From: Yann Droneaud <ydroneaud@opteya.com>
+Date: Mon, 27 Jan 2014 21:42:22 +0000
+Subject: Re: [PATCH] arm64: Add pdev_archdata for dmamask
+Message-Id: <1390858942-10904-1-git-send-email-ydroneaud@opteya.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1391175277-19833-1-git-send-email-florian.vaussard@epfl.ch>
-In-Reply-To: <1391175277-19833-1-git-send-email-florian.vaussard@epfl.ch>
+References: <y> <1390845177-2626-1-git-send-email-lauraa@codeaurora.org>
+ <20140127181836.GH26766@pengutronix.de>
+ <1390854331.23180.22.camel@localhost.localdomain>
+ <20140127203635.GA15937@n2100.arm.linux.org.uk>
+In-Reply-To: <20140127203635.GA15937@n2100.arm.linux.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Wolfgang Grandegger <wg@grandegger.com>, Marc Kleine-Budde <mkl@pengutronix.de>
-Cc: Andreas Larsson <andreas@gaisler.com>, linux-can@vger.kernel.org, netdev@vger.kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, florian.vaussard@epfl.ch
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: linux-arm-kernel@lists.infradead.org
 
-Use netdev_* where applicable.
+Hi Russel,
 
-Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+Le lundi 27 janvier 2014 à 20:36 +0000, Russell King - ARM Linux a
+écrit :
+> On Mon, Jan 27, 2014 at 09:25:31PM +0100, Yann Droneaud wrote:
+> > ARM, even AAAAARGH64 [1], doesn't need a special treatement regarding
+> > the infamous dma_mask pointer. So perhaps my solution is better.
+> > 
+> > This solution (adding dma_mask in pdev_archdata) is already in use in
+> > powerpc architecture. See arch/powerpc/kernel/setup-common.c
+> > 
+> > The advantage of this solution is that it makes a dma_mask placeholder
+> > available to statically allocated platform_device struct, while mine
+> > only address the problem for platform_device struct allocated with
+> > platform_device_alloc().
+> 
+> As I've already said in this thread, the basic problem comes from DT's
+> platform device creation.  It's the responsibility of the device creator
+> to set the dma_mask pointer appropriately, and DT doesn't do that.  So,
+> DT needs to be fixed rather than everyone introducing their own
+> workarounds for this.
+>
+
+Sure proliferation of fixes is not what we want.
+
+Note that Uwe added me to the thread not because I tried to address
+the same issue, but I tried to improve platform_device_register_full() to
+not allocate and leak an u64 used to hold the dma mask provided as part of
+platform_device_info. I believe he thought the two issues could be solved
+at the same time.
+
+> > I'm also considering using dma_set_mask_and_coherent() in
+> > platform_device_register_full() and drivers using
+> > platform_device_alloc().
+> 
+> As the one who introduced dma_set_mask_and_coherent, consider this a
+> strong NAK on that.  The reason is dma_set_mask_and_coherent() is
+> for drivers to set their requirements, not for the bus requirements
+> to be set in the first place.
+> 
+> It also means that drivers which need no DMA support are subjected to
+> DMA restrictions (in that dma_set_mask_and_coherent can error out if
+> the platform can't support the DMA mask.)
+> 
+
+I'm not sure to understand your point here. If the driver explicitly set
+a DMA mask in its call to platform_device_register_full(), can't we suppose
+it should be subject to restriction from the platform ?
+
+As I'm not sure to be clear on this particular point, here's the patch I
+was considering, (sorry of being quite out of topic):
+
+                           ---8<---
+
+Subject: [PATCH] driver core/platform: use dma_set_mask_and_coherent() in
+ platform_device_register_full()
+
+dma_set_mask_and_coherent() is a nice function for setting the
+various DMA masks in struct device. Additionnaly, it checks the
+mask value against arch limits.
+
+It may be used to control the validity of the dma_mask given to
+platform_device_register_full() and setting the masks in struct
+platform_device.
+
+Note: as dma_set_mask() does nothing on m68k, or returns -EINVAL
+      on sparc (if PCI support not built), etc. this could break
+      in unpleasant ways I'm not yet able to detail ...
+
+Cc: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: linux-m68k@lists.linux-m68k.org
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Yann Droneaud <ydroneaud@opteya.com>
 ---
- drivers/net/can/sja1000/sja1000.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/base/platform.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/can/sja1000/sja1000.c b/drivers/net/can/sja1000/sja1000.c
-index f17c301..55cce47 100644
---- a/drivers/net/can/sja1000/sja1000.c
-+++ b/drivers/net/can/sja1000/sja1000.c
-@@ -106,8 +106,7 @@ static int sja1000_probe_chip(struct net_device *dev)
- 	struct sja1000_priv *priv = netdev_priv(dev);
+diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+index bc78848dd59a..ada1d366e1b6 100644
+--- a/drivers/base/platform.c
++++ b/drivers/base/platform.c
+@@ -446,8 +446,10 @@ struct platform_device *platform_device_register_full(
+ 		if (!pdev->dev.dma_mask)
+ 			goto err;
  
- 	if (priv->reg_base && sja1000_is_absent(priv)) {
--		printk(KERN_INFO "%s: probing @0x%lX failed\n",
--		       DRV_NAME, dev->base_addr);
-+		netdev_err(dev, "probing failed\n");
- 		return 0;
+-		*pdev->dev.dma_mask = pdevinfo->dma_mask;
+-		pdev->dev.coherent_dma_mask = pdevinfo->dma_mask;
++		ret = dma_set_mask_and_coherent(&pdev->dev,
++						pdevinfo->dma_mask);
++		if (ret)
++			goto err;
  	}
- 	return -1;
+ 
+ 	ret = platform_device_add_resources(pdev,
 -- 
-1.8.1.2
-
+1.8.5.3
