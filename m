@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Sun, 05 Jan 2014 02:04:55 +0000
+Date: Wed, 29 Jan 2014 08:51:02 +0000
 Subject: [GIT] Sparc
-Message-Id: <20140104.210455.997293877557315254.davem@davemloft.net>
+Message-Id: <20140129.005102.504048866066889878.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100329.131141.80866523.davem@davemloft.net>
 In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
@@ -12,48 +12,52 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-Please pull to get these Sparc bug fixes:
-
-1) Missing include can lead to build failure, from Kirill Tkhai.
-
-2) Use dev_is_pci() where applicable, from Yijing Wang.
-
-3) Enable irqs after we enable preemption in cpu startup path,
-   from Kirill Tkhai.
-
-4) Revert a __copy_{to,from}_user_inatomic change that broke
-   iov_iter_copy_from_user_atomic() and thus several tests in
-   xfstests and LTP.  From Dave Kleikamp.
+Two cleanups from Paul Gortmaker and hook up the new scheduler
+system calls.
 
 Please pull, thanks a lot!
 
-The following changes since commit dea4f48a0a301b23c65af8e4fe8ccf360c272fbf:
+The following changes since commit 0e47c969c65e213421450c31043353ebe3c67e0c:
 
-  Merge branch 'leds-fixes-for-3.13' of git://git.kernel.org/pub/scm/linux/kernel/git/cooloney/linux-leds (2013-12-02 12:08:01 -0800)
+  Merge tag 'for-linus-20140127' of git://git.infradead.org/linux-mtd (2014-01-28 18:56:37 -0800)
 
 are available in the git repository at:
 
 
   git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
 
-for you to fetch changes up to 16932237f2978a2265662f8de4af743b1f55a209:
+for you to fetch changes up to a54983ae64b12cf7e098c464c7eaf058752bc9cc:
 
-  Revert "sparc64: Fix __copy_{to,from}_user_inatomic defines." (2014-01-04 17:55:19 -0800)
+  sparc: Hook up sched_setattr and sched_getattr syscalls. (2014-01-29 00:45:06 -0800)
 
 ----------------------------------------------------------------
-Dave Kleikamp (1):
-      Revert "sparc64: Fix __copy_{to,from}_user_inatomic defines."
+David S. Miller (1):
+      sparc: Hook up sched_setattr and sched_getattr syscalls.
 
-Kirill Tkhai (2):
-      sparc64: Fix build regression
-      sparc64: smp_callin: Enable irqs after preemption is disabled
+Paul Gortmaker (2):
+      sparc: delete non-required instances of include <linux/init.h>
+      sparc: don't use module_init in non-modular pci.c code
 
-Yijing Wang (1):
-      sparc/PCI: Use dev_is_pci() to identify PCI devices
-
- arch/sparc/include/asm/uaccess_64.h | 4 ++--
- arch/sparc/kernel/iommu.c           | 2 +-
- arch/sparc/kernel/ioport.c          | 5 ++---
- arch/sparc/kernel/kgdb_64.c         | 1 +
- arch/sparc/kernel/smp_64.c          | 3 ++-
- 5 files changed, 8 insertions(+), 7 deletions(-)
+ arch/sparc/include/uapi/asm/unistd.h | 4 +++-
+ arch/sparc/kernel/cpumap.c           | 1 -
+ arch/sparc/kernel/ebus.c             | 1 -
+ arch/sparc/kernel/hvtramp.S          | 1 -
+ arch/sparc/kernel/of_device_common.c | 1 -
+ arch/sparc/kernel/pci.c              | 3 +--
+ arch/sparc/kernel/pci_common.c       | 1 -
+ arch/sparc/kernel/process_32.c       | 1 -
+ arch/sparc/kernel/sparc_ksyms_32.c   | 1 -
+ arch/sparc/kernel/sparc_ksyms_64.c   | 1 -
+ arch/sparc/kernel/systbls_32.S       | 2 +-
+ arch/sparc/kernel/systbls_64.S       | 4 ++--
+ arch/sparc/kernel/trampoline_32.S    | 1 -
+ arch/sparc/kernel/trampoline_64.S    | 1 -
+ arch/sparc/mm/hugetlbpage.c          | 1 -
+ arch/sparc/mm/tlb.c                  | 1 -
+ arch/sparc/prom/p1275.c              | 1 -
+ drivers/sbus/char/bbc_i2c.c          | 1 -
+ drivers/sbus/char/display7seg.c      | 1 -
+ drivers/sbus/char/envctrl.c          | 1 -
+ drivers/sbus/char/flash.c            | 1 -
+ drivers/sbus/char/uctrl.c            | 1 -
+ 22 files changed, 7 insertions(+), 24 deletions(-)
