@@ -1,28 +1,66 @@
-From: Allen Pais <allen.pais@oracle.com>
-Date: Mon, 06 Jan 2014 03:47:21 +0000
-Subject: Re: [PATCH 2/3] sparc64: convert spinlock_t to raw_spinlock_t in mmu_context_t
-Message-Id: <52CA2479.2070006@oracle.com>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Date: Fri, 31 Jan 2014 13:34:32 +0000
+Subject: [PATCH v3 0/5] can: sja1000: cleanups and new OF property
+Message-Id: <1391175277-19833-1-git-send-email-florian.vaussard@epfl.ch>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1387166853-10782-3-git-send-email-allen.pais@oracle.com> <52AED5BB.1060002@linutronix.de> <52AEDCFD.9020402@oracle.com> <20140104.203249.1100084640435359350.davem@davemloft.net>
-In-Reply-To: <20140104.203249.1100084640435359350.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: bigeasy@linutronix.de, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: Wolfgang Grandegger <wg@grandegger.com>, Marc Kleine-Budde <mkl@pengutronix.de>
+Cc: Andreas Larsson <andreas@gaisler.com>, linux-can@vger.kernel.org, netdev@vger.kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, florian.vaussard@epfl.ch
 
+Hello,
 
-> 
->> I did not think it'd be nice to put the call trace in the commit message.
->> But if needed I can re-send them.
-> 
-> The more information you provide in a commit message, the better.
-> 
-> Please add those traces to the commit messages, and then you can add
-> my:
-> 
-> Acked-by: David S. Miller <davem@davemloft.net>
-Sure. I'll have them re-send now.
+(could someone with a SJA1000 on SPARC perform a functional test
+to see if interrupts are working? it would be great :-)
 
- 
+Changes since v2:
+- Dropped patch 1 "can: sja1000: remove unused defines"
+- Addressed Marc's comments on patch 4 and 6 (now 3 and 5)
+
+Changes since v1:
+- Merge sja1000_of_platform.c into sja1000_platform.c (patch 4)
+
+The first part of this series performs serveral small cleanups
+(patches 1 and 2).
+
+Patch 3 merges sja1000_of_platform.c into sja1000_platform.c.
+Changes are pretty conservatives (mostly copy/paste/move). IRQ
+is treated differently in the OF and non-OF versions, thus this
+is where the fused version differs the most.
+
+The final part introduces the 'reg-io-width' binding (already used
+by some other drivers) to perform a similar job as what was done
+with IORESOURCE_MEM_XXBIT. This is needed on my system to correctly
+take into account the aliasing of the address bus.
+
+All patches were tested using OF boot on my OMAP3 system with a
+memory-mapped SJA1000. Thus, the non-OF path is not tested, as
+I do not have a platform data at hand.
+
+Regards,
+Florian
+
+v1: http://thread.gmane.org/gmane.linux.kernel/1637835
+v2: http://thread.gmane.org/gmane.linux.can/4831
+
+Florian Vaussard (5):
+  can: sja1000: convert printk to use netdev API
+  can: sja1000: platform: use devm_* APIs
+  can: sja1000: fuse of_platform into platform
+  Documentation: devicetree: sja1000: add reg-io-width binding
+  can: sja1000: of: add reg-io-width property for 8, 16 and 32-bit
+    register access
+
+ .../devicetree/bindings/net/can/sja1000.txt        |   4 +
+ drivers/net/can/sja1000/Kconfig                    |  13 +-
+ drivers/net/can/sja1000/Makefile                   |   1 -
+ drivers/net/can/sja1000/sja1000.c                  |   3 +-
+ drivers/net/can/sja1000/sja1000_of_platform.c      | 221 ---------------------
+ drivers/net/can/sja1000/sja1000_platform.c         | 190 ++++++++++++------
+ 6 files changed, 137 insertions(+), 295 deletions(-)
+ delete mode 100644 drivers/net/can/sja1000/sja1000_of_platform.c
+
+-- 
+1.8.1.2
 
