@@ -1,124 +1,104 @@
-From: Allen Pais <allen.pais@oracle.com>
-Date: Mon, 06 Jan 2014 03:56:19 +0000
-Subject: [PATCH 4/4] sparc64: convert ctx_alloc_lock raw_spinlock_t
-Message-Id: <1388980510-10190-5-git-send-email-allen.pais@oracle.com>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Date: Fri, 31 Jan 2014 13:34:34 +0000
+Subject: [PATCH v3 2/5] can: sja1000: platform: use devm_* APIs
+Message-Id: <1391175277-19833-3-git-send-email-florian.vaussard@epfl.ch>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1388980510-10190-1-git-send-email-allen.pais@oracle.com>
-In-Reply-To: <1388980510-10190-1-git-send-email-allen.pais@oracle.com>
+References: <1391175277-19833-1-git-send-email-florian.vaussard@epfl.ch>
+In-Reply-To: <1391175277-19833-1-git-send-email-florian.vaussard@epfl.ch>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: sparclinux@vger.kernel.org, davem@davemloft.net, bigeasy@linutronix.de, Allen Pais <allen.pais@oracle.com>
+To: Wolfgang Grandegger <wg@grandegger.com>, Marc Kleine-Budde <mkl@pengutronix.de>
+Cc: Andreas Larsson <andreas@gaisler.com>, linux-can@vger.kernel.org, netdev@vger.kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, florian.vaussard@epfl.ch
 
-This patch fixes the kernel crash faced while
-trying to attempt linux-stable-rt v3.10.22-rt19
-on sparc64.
+Simplify probe and remove functions by converting most of the resources
+to use devm_* APIs.
 
-[ 2317.606015]  [00000000008072f4] rt_spin_lock_slowlock+0x94/0x300
-[ 2317.606020]  [0000000000451d74] get_new_mmu_context+0x14/0x160
-[ 2317.606026]  [0000000000806394] switch_to_pc+0xd4/0x2a0
-[ 2317.606029]  [00000000008067dc] schedule+0x1c/0xc0
-[ 2317.606031]  [0000000000807364] rt_spin_lock_slowlock+0x104/0x300
-[ 2317.606033]  [0000000000450284] destroy_context+0x84/0x120
-[ 2317.606036]  [000000000045c788] __mmdrop+0x28/0xe0
-[ 2317.606045]  [00000000004bf290] rcu_process_callbacks+0x450/0x760
-[ 2317.606049]  [0000000000466d48] do_current_softirqs+0x208/0x3c0
-[ 2317.606051]  [0000000000466f14] run_ksoftirqd+0x14/0x40
-[ 2317.606057]  [000000000048c64c] smpboot_thread_fn+0x18c/0x2e0
-[ 2317.606061]  [0000000000483b5c] kthread+0x7c/0xa0
-[ 2317.606069]  [00000000004060c4] ret_from_syscall+0x1c/0x2c
-[ 2317.606070]  [0000000000000000]           (null)
-
-Acked-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Allen Pais <allen.pais@oracle.com>
+Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
 ---
- arch/sparc/include/asm/mmu_context_64.h |    2 +-
- arch/sparc/mm/init_64.c                 |   10 +++++-----
- arch/sparc/mm/tsb.c                     |    4 ++--
- 3 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/net/can/sja1000/sja1000_platform.c | 46 ++++++++----------------------
+ 1 file changed, 12 insertions(+), 34 deletions(-)
 
-diff --git a/arch/sparc/include/asm/mmu_context_64.h b/arch/sparc/include/asm/mmu_context_64.h
-index 3a85624..44e393b 100644
---- a/arch/sparc/include/asm/mmu_context_64.h
-+++ b/arch/sparc/include/asm/mmu_context_64.h
-@@ -13,7 +13,7 @@ static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
+diff --git a/drivers/net/can/sja1000/sja1000_platform.c b/drivers/net/can/sja1000/sja1000_platform.c
+index 29f9b63..779679a 100644
+--- a/drivers/net/can/sja1000/sja1000_platform.c
++++ b/drivers/net/can/sja1000/sja1000_platform.c
+@@ -79,34 +79,26 @@ static int sp_probe(struct platform_device *pdev)
+ 	pdata = dev_get_platdata(&pdev->dev);
+ 	if (!pdata) {
+ 		dev_err(&pdev->dev, "No platform data provided!\n");
+-		err = -ENODEV;
+-		goto exit;
++		return -ENODEV;
+ 	}
+ 
+ 	res_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	res_irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+-	if (!res_mem || !res_irq) {
+-		err = -ENODEV;
+-		goto exit;
+-	}
++	if (!res_mem || !res_irq)
++		return -ENODEV;
+ 
+-	if (!request_mem_region(res_mem->start, resource_size(res_mem),
+-				DRV_NAME)) {
+-		err = -EBUSY;
+-		goto exit;
+-	}
++	if (!devm_request_mem_region(&pdev->dev, res_mem->start,
++				     resource_size(res_mem), DRV_NAME))
++		return -EBUSY;
+ 
+-	addr = ioremap_nocache(res_mem->start, resource_size(res_mem));
+-	if (!addr) {
+-		err = -ENOMEM;
+-		goto exit_release;
+-	}
++	addr = devm_ioremap_nocache(&pdev->dev, res_mem->start,
++				    resource_size(res_mem));
++	if (!addr)
++		return -ENOMEM;
+ 
+ 	dev = alloc_sja1000dev(0);
+-	if (!dev) {
+-		err = -ENOMEM;
+-		goto exit_iounmap;
+-	}
++	if (!dev)
++		return -ENOMEM;
+ 	priv = netdev_priv(dev);
+ 
+ 	dev->irq = res_irq->start;
+@@ -151,28 +143,14 @@ static int sp_probe(struct platform_device *pdev)
+ 
+  exit_free:
+ 	free_sja1000dev(dev);
+- exit_iounmap:
+-	iounmap(addr);
+- exit_release:
+-	release_mem_region(res_mem->start, resource_size(res_mem));
+- exit:
+ 	return err;
+ }
+ 
+ static int sp_remove(struct platform_device *pdev)
  {
- }
+ 	struct net_device *dev = platform_get_drvdata(pdev);
+-	struct sja1000_priv *priv = netdev_priv(dev);
+-	struct resource *res;
  
--extern spinlock_t ctx_alloc_lock;
-+extern raw_spinlock_t ctx_alloc_lock;
- extern unsigned long tlb_context_cache;
- extern unsigned long mmu_context_bmap[];
+ 	unregister_sja1000dev(dev);
+-
+-	if (priv->reg_base)
+-		iounmap(priv->reg_base);
+-
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	release_mem_region(res->start, resource_size(res));
+-
+ 	free_sja1000dev(dev);
  
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index bd5253d..ac5ae7a 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -661,7 +661,7 @@ void __flush_dcache_range(unsigned long start, unsigned long end)
- EXPORT_SYMBOL(__flush_dcache_range);
- 
- /* get_new_mmu_context() uses "cache + 1".  */
--DEFINE_SPINLOCK(ctx_alloc_lock);
-+DEFINE_RAW_SPINLOCK(ctx_alloc_lock);
- unsigned long tlb_context_cache = CTX_FIRST_VERSION - 1;
- #define MAX_CTX_NR	(1UL << CTX_NR_BITS)
- #define CTX_BMAP_SLOTS	BITS_TO_LONGS(MAX_CTX_NR)
-@@ -683,7 +683,7 @@ void get_new_mmu_context(struct mm_struct *mm)
- 	unsigned long orig_pgsz_bits;
- 	int new_version;
- 
--	spin_lock(&ctx_alloc_lock);
-+	raw_spin_lock(&ctx_alloc_lock);
- 	orig_pgsz_bits = (mm->context.sparc64_ctx_val & CTX_PGSZ_MASK);
- 	ctx = (tlb_context_cache + 1) & CTX_NR_MASK;
- 	new_ctx = find_next_zero_bit(mmu_context_bmap, 1 << CTX_NR_BITS, ctx);
-@@ -719,7 +719,7 @@ void get_new_mmu_context(struct mm_struct *mm)
- out:
- 	tlb_context_cache = new_ctx;
- 	mm->context.sparc64_ctx_val = new_ctx | orig_pgsz_bits;
--	spin_unlock(&ctx_alloc_lock);
-+	raw_spin_unlock(&ctx_alloc_lock);
- 
- 	if (unlikely(new_version))
- 		smp_new_mmu_context_version();
-@@ -2739,7 +2739,7 @@ void hugetlb_setup(struct pt_regs *regs)
- 	if (tlb_type = cheetah_plus) {
- 		unsigned long ctx;
- 
--		spin_lock(&ctx_alloc_lock);
-+		raw_spin_lock(&ctx_alloc_lock);
- 		ctx = mm->context.sparc64_ctx_val;
- 		ctx &= ~CTX_PGSZ_MASK;
- 		ctx |= CTX_PGSZ_BASE << CTX_PGSZ0_SHIFT;
-@@ -2760,7 +2760,7 @@ void hugetlb_setup(struct pt_regs *regs)
- 			mm->context.sparc64_ctx_val = ctx;
- 			on_each_cpu(context_reload, mm, 0);
- 		}
--		spin_unlock(&ctx_alloc_lock);
-+		raw_spin_unlock(&ctx_alloc_lock);
- 	}
- }
- #endif
-diff --git a/arch/sparc/mm/tsb.c b/arch/sparc/mm/tsb.c
-index d84d4ea..9eb10b4 100644
---- a/arch/sparc/mm/tsb.c
-+++ b/arch/sparc/mm/tsb.c
-@@ -523,12 +523,12 @@ void destroy_context(struct mm_struct *mm)
- 		free_hot_cold_page(page, 0);
- 	}
- 
--	spin_lock_irqsave(&ctx_alloc_lock, flags);
-+	raw_spin_lock_irqsave(&ctx_alloc_lock, flags);
- 
- 	if (CTX_VALID(mm->context)) {
- 		unsigned long nr = CTX_NRBITS(mm->context);
- 		mmu_context_bmap[nr>>6] &= ~(1UL << (nr & 63));
- 	}
- 
--	spin_unlock_irqrestore(&ctx_alloc_lock, flags);
-+	raw_spin_unlock_irqrestore(&ctx_alloc_lock, flags);
- }
+ 	return 0;
 -- 
-1.7.10.4
+1.8.1.2
 
