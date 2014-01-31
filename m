@@ -1,19 +1,17 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Date: Fri, 31 Jan 2014 13:51:19 +0000
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Date: Fri, 31 Jan 2014 14:08:53 +0000
 Subject: Re: [PATCH v3 0/5] can: sja1000: cleanups and new OF property
-Message-Id: <52EBAA57.1030006@pengutronix.de>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Q66oVvLNa2SSR9OQ93aLclqkqo1uSPIxk"
+Message-Id: <52EBAE75.6050803@epfl.ch>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1391175277-19833-1-git-send-email-florian.vaussard@epfl.ch> <52EBA7E2.6090007@pengutronix.de> <52EBAA28.1070307@gaisler.com>
 In-Reply-To: <52EBAA28.1070307@gaisler.com>
-To: Andreas Larsson <andreas@gaisler.com>, Florian Vaussard <florian.vaussard@epfl.ch>, Wolfgang Grandegger <wg@grandegger.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Andreas Larsson <andreas@gaisler.com>, Marc Kleine-Budde <mkl@pengutronix.de>, Wolfgang Grandegger <wg@grandegger.com>
 Cc: linux-can@vger.kernel.org, netdev@vger.kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---Q66oVvLNa2SSR9OQ93aLclqkqo1uSPIxk
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+
 
 On 01/31/2014 02:50 PM, Andreas Larsson wrote:
 > On 2014-01-31 14:40, Marc Kleine-Budde wrote:
@@ -47,34 +45,17 @@ On 01/31/2014 02:50 PM, Andreas Larsson wrote:
 >>> memory-mapped SJA1000. Thus, the non-OF path is not tested, as
 >>> I do not have a platform data at hand.
 >>
->> Nice, looks good now. I'll give Andreas some time to test on sparc and=
-
+>> Nice, looks good now. I'll give Andreas some time to test on sparc and
 >> then apply the patches.
->=20
->=20
+> 
+> 
 > I am on it. I will dig up some hardware for this on Monday to test it.
+> 
 
-\o/
+Many thanks :o)
 
---=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+(be careful to enable CAN_SJA1000_PLATFORM, as I removed
+CAN_SJA1000_PLATFORM_OF)
 
-
---Q66oVvLNa2SSR9OQ93aLclqkqo1uSPIxk
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-Comment: Using GnuPG with Icedove - http://www.enigmail.net/
-
-iEYEARECAAYFAlLrqlcACgkQjTAFq1RaXHMLlwCggtdKRGfRQMoiORcWHmFgy7tp
-OJ0An3YK5gt+UVu+53rkdrFhYsoeUbDQ
-=eKLA
------END PGP SIGNATURE-----
-
---Q66oVvLNa2SSR9OQ93aLclqkqo1uSPIxk--
+Regards,
+Florian
