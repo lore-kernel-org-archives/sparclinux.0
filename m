@@ -1,80 +1,45 @@
-From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Date: Wed, 05 Feb 2014 22:18:42 +0000
-Subject: [PATCH 12/51] sparc, sysfs: Fix CPU hotplug callback registration
-Message-Id: <20140205220641.19080.3349.stgit@srivatsabhat.in.ibm.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Tue, 11 Feb 2014 17:35:49 +0000
+Subject: Re: Build regressions/improvements in v3.14-rc2
+Message-Id: <CAMuHMdWVx3CCgUo0eWNwmghBvwhmmJYjyC0a1XVebO+kfg3DMQ@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20140205220251.19080.92336.stgit@srivatsabhat.in.ibm.com>
-In-Reply-To: <20140205220251.19080.92336.stgit@srivatsabhat.in.ibm.com>
+References: <1392140035-31263-1-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1392140035-31263-1-git-send-email-geert@linux-m68k.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: paulus@samba.org, oleg@redhat.com, rusty@rustcorp.com.au, peterz@infradead.org, tglx@linutronix.de, akpm@linux-foundation.org
-Cc: mingo@kernel.org, paulmck@linux.vnet.ibm.com, tj@kernel.org, walken@google.com, ego@linux.vnet.ibm.com, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, srivatsa.bhat@linux.vnet.ibm.com, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org"Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: Linux-sh list <linux-sh@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>
 
-Subsystems that want to register CPU hotplug callbacks, as well as perform
-initialization for the CPUs that are already online, often do it as shown
-below:
+On Tue, Feb 11, 2014 at 6:33 PM, Geert Uytterhoeven
+<geert@linux-m68k.org> wrote:
+> JFYI, when comparing v3.14-rc2[1]  to v3.14-rc1[3], the summaries are:
+>   - build errors: +3/-2
 
-	get_online_cpus();
+  + /scratch/kisskb/src/drivers/gpu/drm/drm_gem_cma_helper.c: error:
+implicit declaration of function 'dma_alloc_writecombine'
+[-Werror=implicit-function-declaration]:  => 91:2
+  + /scratch/kisskb/src/drivers/gpu/drm/drm_gem_cma_helper.c: error:
+implicit declaration of function 'dma_free_writecombine'
+[-Werror=implicit-function-declaration]:  => 176:3
 
-	for_each_online_cpu(cpu)
-		init_cpu(cpu);
+sh4/sh-randconfig
 
-	register_cpu_notifier(&foobar_cpu_notifier);
+  + error: jump_label.c: undefined reference to
+`arch_jump_label_transform':  => .text+0x85dbc)
 
-	put_online_cpus();
+sparc64/sparc-allmodconfig
 
-This is wrong, since it is prone to ABBA deadlocks involving the
-cpu_add_remove_lock and the cpu_hotplug.lock (when running concurrently
-with CPU hotplug operations).
+> [1] http://kisskb.ellerman.id.au/kisskb/head/7167/ (119 out of 119 configs)
+> [3] http://kisskb.ellerman.id.au/kisskb/head/7145/ (119 out of 119 configs)
 
-Instead, the correct and race-free way of performing the callback
-registration is:
+Gr{oetje,eeting}s,
 
-	cpu_maps_update_begin();
+                        Geert
 
-	for_each_online_cpu(cpu)
-		init_cpu(cpu);
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-	/* Note the use of the double underscored version of the API */
-	__register_cpu_notifier(&foobar_cpu_notifier);
-
-	cpu_maps_update_done();
-
-
-Fix the sysfs code in sparc by using this latter form of callback
-registration.
-
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
----
-
- arch/sparc/kernel/sysfs.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
-
-diff --git a/arch/sparc/kernel/sysfs.c b/arch/sparc/kernel/sysfs.c
-index c21c673..2177b9e 100644
---- a/arch/sparc/kernel/sysfs.c
-+++ b/arch/sparc/kernel/sysfs.c
-@@ -300,7 +300,7 @@ static int __init topology_init(void)
- 
- 	check_mmu_stats();
- 
--	register_cpu_notifier(&sysfs_cpu_nb);
-+	cpu_maps_update_begin();
- 
- 	for_each_possible_cpu(cpu) {
- 		struct cpu *c = &per_cpu(cpu_devices, cpu);
-@@ -310,6 +310,10 @@ static int __init topology_init(void)
- 			register_cpu_online(cpu);
- 	}
- 
-+	__register_cpu_notifier(&sysfs_cpu_nb);
-+
-+	cpu_maps_update_done();
-+
- 	return 0;
- }
- 
-
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
