@@ -1,56 +1,41 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Date: Thu, 06 Feb 2014 14:21:10 +0000
-Subject: Re: [PATCH v3 5/5] can: sja1000: of: add reg-io-width property for 8, 16 and 32-bit register access
-Message-Id: <52F39A56.4050309@epfl.ch>
+From: David Howells <dhowells@redhat.com>
+Date: Wed, 12 Feb 2014 15:45:59 +0000
+Subject: [PATCH 2/4] Sparc: sparc_cpu_model isn't in asm/system.h any more
+Message-Id: <20140212154559.2405.3104.stgit@warthog.procyon.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1391175277-19833-1-git-send-email-florian.vaussard@epfl.ch> <1391175277-19833-6-git-send-email-florian.vaussard@epfl.ch> <52EBAE41.8060403@cogentembedded.com> <52F36AAA.9000704@pengutronix.de>
-In-Reply-To: <52F36AAA.9000704@pengutronix.de>
+References: <20140212154544.2405.2992.stgit@warthog.procyon.org.uk>
+In-Reply-To: <20140212154544.2405.2992.stgit@warthog.procyon.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Marc Kleine-Budde <mkl@pengutronix.de>, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, Wolfgang Grandegger <wg@grandegger.com>
-Cc: Andreas Larsson <andreas@gaisler.com>, linux-can@vger.kernel.org, netdev@vger.kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: linux-arch@vger.kernel.org, arnd@arndb.de, linux-kernel@vger.kernel.org, dhowells@redhat.com, sparclinux@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
 
-Hi,
+sparc_cpu_model isn't in asm/system.h any more, so remove a comment about it.
 
-On 02/06/2014 11:57 AM, Marc Kleine-Budde wrote:
-> On 01/31/2014 03:08 PM, Sergei Shtylyov wrote:
->> Hello.
->>
->> On 31-01-2014 17:34, Florian Vaussard wrote:
->>
->>> Add the 'reg-io-width' property for 8, 16 and 32-bit access, like
->>> what is currently done with IORESOURCE_MEM_{8,16,32}BIT for non-OF
->>> boot.
->>
->>> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
->>> ---
->>>   drivers/net/can/sja1000/sja1000_platform.c | 16 ++++++++++++++--
->>>   1 file changed, 14 insertions(+), 2 deletions(-)
->>
->>> diff --git a/drivers/net/can/sja1000/sja1000_platform.c
->>> b/drivers/net/can/sja1000/sja1000_platform.c
->>> index 50dece8..25122bf 100644
->>> --- a/drivers/net/can/sja1000/sja1000_platform.c
->>> +++ b/drivers/net/can/sja1000/sja1000_platform.c
->>> @@ -102,8 +102,20 @@ static void sp_populate_of(struct sja1000_priv
->>> *priv, struct device_node *of)
->>>       int err;
->>>       u32 prop;
->>>
->>> -    priv->read_reg = sp_read_reg8;
->>> -    priv->write_reg = sp_write_reg8;
->>> +    err = of_property_read_u32(of, "reg-io-width", &prop);
->>> +    if (err)
->>> +        prop = 1;
->>> +
->>> +    if (prop = 4) {
->>
->>    This is asking to be a *switch* statement instead.
-> 
-> Good point, I'll send a v4.
-> 
+Signed-off-by: David Howells <dhowells@redhat.com>
+cc: "David S. Miller" <davem@davemloft.net>
+cc: sparclinux@vger.kernel.org
+---
 
-Thank you!
+ drivers/sbus/char/jsflash.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-Florian
+diff --git a/drivers/sbus/char/jsflash.c b/drivers/sbus/char/jsflash.c
+index 6b4678a..018b64b 100644
+--- a/drivers/sbus/char/jsflash.c
++++ b/drivers/sbus/char/jsflash.c
+@@ -507,11 +507,9 @@ static int jsflash_init(void)
+ 	}
+ 
+ 	/* Let us be really paranoid for modifications to probing code. */
+-	/* extern enum sparc_cpu sparc_cpu_model; */ /* in <asm/system.h> */
+-	if (sparc_cpu_model != sun4m) {
++	if (sparc_cpu_model != sun4m)
+ 		/* We must be on sun4m because we use MMU Bypass ASI. */
+ 		return -ENXIO;
+-	}
+ 
+ 	if (jsf0.base = 0) {
+ 		jsf = &jsf0;
+
