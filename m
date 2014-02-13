@@ -1,46 +1,47 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 20 Feb 2014 00:50:17 +0000
-Subject: Re: [PATCH] sparc32: make copy_to/from_user_page() usable from modular code
-Message-Id: <20140219.195017.88959684259741556.davem@davemloft.net>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Date: Thu, 13 Feb 2014 15:59:18 +0000
+Subject: [PATCH] sparc: fix implicit include of slab.h in leon_pci_grpci2.c
+Message-Id: <1392307158-6932-1-git-send-email-paul.gortmaker@windriver.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1392326101-20388-1-git-send-email-paul.gortmaker@windriver.com>
-In-Reply-To: <1392326101-20388-1-git-send-email-paul.gortmaker@windriver.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: paul.gortmaker@windriver.com
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>, linux-kernel@vger.kernel.org, linux-next@vger.kernel.org, Paul Gortmaker <paul.gortmaker@windriver.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Tejun Heo <tj@kernel.org>
 
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Date: Thu, 13 Feb 2014 16:15:01 -0500
+To fix:
 
-> While copy_to/from_user_page() users are uncommon, there is one in
-> drivers/staging/lustre/lustre/libcfs/linux/linux-curproc.c which leads
-> to the following:
-> 
-> ERROR: "sparc32_cachetlb_ops" [drivers/staging/lustre/lustre/libcfs/libcfs.ko] undefined!
-> 
-> during routine allmodconfig build coverage.  The reason this happens
-> is as follows:
-> 
-> In arch/sparc/include/asm/cacheflush_32.h we have:
-> 
->  #define flush_cache_page(vma,addr,pfn) \
->         sparc32_cachetlb_ops->cache_page(vma, addr)
-> 
->  #define copy_to_user_page(vma, page, vaddr, dst, src, len) \
->         do {                                                    \
->                 flush_cache_page(vma, vaddr, page_to_pfn(page));\
->                 memcpy(dst, src, len);                          \
->         } while (0)
->  #define copy_from_user_page(vma, page, vaddr, dst, src, len) \
->         do {                                                    \
->                 flush_cache_page(vma, vaddr, page_to_pfn(page));\
->                 memcpy(dst, src, len);                          \
->         } while (0)
-> 
-> However, sparc32_cachetlb_ops isn't exported and hence the error.
-> 
-> Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+arch/sparc/kernel/leon_pci_grpci2.c: In function 'grpci2_of_probe':
+arch/sparc/kernel/leon_pci_grpci2.c:720:2: error: implicit declaration of function 'kzalloc' [-Werror=implicit-function-declaration]
+arch/sparc/kernel/leon_pci_grpci2.c:720:20: error: assignment makes pointer from integer without a cast [-Werror]
+arch/sparc/kernel/leon_pci_grpci2.c:882:2: error: implicit declaration of function 'kfree' [-Werror=implicit-function-declaration]
+cc1: all warnings being treated as errors
+make[2]: *** [arch/sparc/kernel/leon_pci_grpci2.o] Error 1
 
-Also applied.
+According to Stephen, these types of failures are caused by
+commit 2bd59d48ebfb ("cgroup: convert to kernfs") which was
+being included implicitly via cgroup.h's inclusion of xattr.h
+(which has now been removed).
+
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+---
+ arch/sparc/kernel/leon_pci_grpci2.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/sparc/kernel/leon_pci_grpci2.c b/arch/sparc/kernel/leon_pci_grpci2.c
+index 5f0402aab7fb..24d6a4446349 100644
+--- a/arch/sparc/kernel/leon_pci_grpci2.c
++++ b/arch/sparc/kernel/leon_pci_grpci2.c
+@@ -8,6 +8,7 @@
+ #include <linux/of_device.h>
+ #include <linux/kernel.h>
+ #include <linux/pci.h>
++#include <linux/slab.h>
+ #include <linux/delay.h>
+ #include <linux/export.h>
+ #include <asm/io.h>
+-- 
+1.8.5.2
+
