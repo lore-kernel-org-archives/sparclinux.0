@@ -1,7 +1,7 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Date: Tue, 18 Feb 2014 09:57:34 +0000
+From: David Miller <davem@davemloft.net>
+Date: Tue, 18 Feb 2014 22:32:59 +0000
 Subject: Re: SPARC tftpboot.img build failure on 64-bit build host
-Message-Id: <20140218095734.GO573@drone.musicnaut.iki.fi>
+Message-Id: <20140218.173259.212759865702662898.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20140217224000.GN573@drone.musicnaut.iki.fi>
 In-Reply-To: <20140217224000.GN573@drone.musicnaut.iki.fi>
@@ -10,9 +10,13 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi,
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Date: Tue, 18 Feb 2014 00:40:01 +0200
 
-On Tue, Feb 18, 2014 at 12:40:01AM +0200, Aaro Koskinen wrote:
+> Last weekend I upgraded my cross-compilation host from 32-bit to
+> 64-bit box, and probably because of this I'm now seeing the following
+> build failure with "tftpboot.img" target with current 3.14-rc:
+> 
 >   CALL    scripts/checksyscalls.sh
 >   CHK     include/generated/compile.h
 >   kernel: arch/sparc/boot/image is ready
@@ -23,8 +27,13 @@ On Tue, Feb 18, 2014 at 12:40:01AM +0200, Aaro Koskinen wrote:
 >   PIGGY   arch/sparc/boot/tftpboot.img
 > lseek: Invalid argument
 > make[5]: *** [arch/sparc/boot/tftpboot.img] Error 1
+> 
+> Since the tftpboot.img for current kernels is no longer usable anyway on
+> old SPARCs due to size limitations, I was wondering should we just delete
+> this code altogether from the kernel tree, or should we try to fix it?
+> People actually needing TFTP images can still use SILO/TILO...
 
-This was actually caused by elftoaout (the source for the tool I have used
-wrong size data types for a.out header when compiled on x86_64).
+I'd like to try and get it working again.
 
-A.
+The trick is figuring out a reliable and clean way to allocate those
+larger tables at run time during early boot, which is non-trivial.
