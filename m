@@ -1,30 +1,37 @@
-From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <joel.bertrand@systella.fr>
-Date: Mon, 10 Feb 2014 13:16:22 +0000
-Subject: Re: [Debian] Kernel 3.12.9
-Message-Id: <52F8D126.7050904@systella.fr>
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Sun, 23 Feb 2014 21:40:15 +0000
+Subject: [patch 13/26] sparc: Use the core irq stats function
+Message-Id: <20140223212737.635609567@linutronix.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <52F7BCE2.9010902@systella.fr>
-In-Reply-To: <52F7BCE2.9010902@systella.fr>
+References: <20140223212703.511977310@linutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>, Peter Zijlstra <peterz@infradead.org>, "David S. Miller" <davem@davemloft.net>, sparc <sparclinux@vger.kernel.org>
 
-BERTRAND Jo=EBl a =E9crit :
-> BERTRAND Jo=EBl a =E9crit :
->>      This kernel is a SMP kernel. Is there any issue with this kernel ?
->
->      With maxcpus=3D1, the same kernel boots fine.
+Let the core do the irq_desc resolution.
 
-	Another strange bug. On one of my T1000, I cannot boot recent kernel.=20
-2.6.30.9 boots fine, 2.6.38 doesn't. I have tried 3.12.9/UP and it hangs=20
-with :
+No functional change.
 
-mptbase: ioc0: WARNING - Issuing Reset from mpt_config!!
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparc <sparclinux@vger.kernel.org>
+---
+ arch/sparc/kernel/time_64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-	I have tried irqpool and pci=3Drouteirq without success. Of course,=20
-hardware is not faulty, I have tested it.
+Index: tip/arch/sparc/kernel/time_64.c
+=================================--- tip.orig/arch/sparc/kernel/time_64.c
++++ tip/arch/sparc/kernel/time_64.c
+@@ -733,7 +733,7 @@ void __irq_entry timer_interrupt(int irq
+ 	irq_enter();
+ 
+ 	local_cpu_data().irq0_irqs++;
+-	kstat_incr_irqs_this_cpu(0, irq_to_desc(0));
++	kstat_incr_irq_this_cpu(0);
+ 
+ 	if (unlikely(!evt->event_handler)) {
+ 		printk(KERN_WARNING
 
-	Regards,
 
-	JB
