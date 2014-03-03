@@ -1,24 +1,76 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 17 Mar 2014 19:56:06 +0000
-Subject: Re: [PATCH 1/1] sparc64:tsb.c:use array size macro rather than number
-Message-Id: <20140317.155606.2293125630270390078.davem@davemloft.net>
+From: Bob Picco <bpicco@meloft.net>
+Date: Mon, 03 Mar 2014 17:00:35 +0000
+Subject: [PATCH] sparc64 - strict devmem
+Message-Id: <1393866035-7939-1-git-send-email-bpicco@meloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1394189943-6012-1-git-send-email-doug.lkml@gmail.com>
-In-Reply-To: <1394189943-6012-1-git-send-email-doug.lkml@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: doug.lkml@gmail.com
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Doug <doug.lkml@gmail.com>
-Date: Fri,  7 Mar 2014 16:29:03 +0530
+From: bob picco <bpicco@meloft.net>
 
-> From: Doug Wilson <doug.lkml@gmail.com>
-> 
->     This is a small patch which uses ARRAY_SIZE macro
->     rather than a number to make code readability better.
-> 
-> Signed-off-by: Doug Wilson <doug.lkml@gmail.com>
+This patch adds support to enable STRICT_DEVMEM for sparc64. By selecting the
+new config option you enable this feature.
 
-Applied, thanks Doug.
+CC: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Bob Picco <bob.picco@oracle.com>
+---
+ arch/sparc/Kconfig.debug         |    8 ++++++++
+ arch/sparc/include/asm/page_64.h |    1 +
+ arch/sparc/mm/init_64.c          |   11 +++++++++++
+ 3 files changed, 20 insertions(+), 0 deletions(-)
+
+diff --git a/arch/sparc/Kconfig.debug b/arch/sparc/Kconfig.debug
+index 6db35fb..92f2388 100644
+--- a/arch/sparc/Kconfig.debug
++++ b/arch/sparc/Kconfig.debug
+@@ -6,6 +6,14 @@ config TRACE_IRQFLAGS_SUPPORT
+ 
+ source "lib/Kconfig.debug"
+ 
++config STRICT_DEVMEM
++	bool "Filter access to /dev/mem"
++	---help---
++	  If this option is disabled, you allow userspace (root) access to all
++	  of memory, including kernel and userspace memory. Accidental
++	  access to this is obviously disastrous, but specific access can
++	  be used by people debugging the kernel.
++
+ config DEBUG_DCFLUSH
+ 	bool "D-cache flush debugging"
+ 	depends on SPARC64 && DEBUG_KERNEL
+diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
+index aac53fc..e54ee50 100644
+--- a/arch/sparc/include/asm/page_64.h
++++ b/arch/sparc/include/asm/page_64.h
+@@ -36,6 +36,7 @@ extern void hugetlb_setup(struct pt_regs *regs);
+ 
+ #define WANT_PAGE_VIRTUAL
+ 
++extern int devmem_is_allowed(unsigned long pagenr);
+ extern void _clear_page(void *page);
+ #define clear_page(X)	_clear_page((void *)(X))
+ struct page;
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index a4a9b69..0a38a42 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -2759,3 +2759,14 @@ static int __init report_memory(void)
+ 	return 0;
+ }
+ device_initcall(report_memory);
++
++#ifdef CONFIG_STRICT_DEVMEM
++int devmem_is_allowed(unsigned long pagenr)
++{
++	unsigned long phys_addr = pagenr << PAGE_SHIFT;
++	unsigned long virt_addr = (unsigned long) __va(phys_addr);
++	int rc = kern_addr_valid(virt_addr);
++
++	return rc;
++}
++#endif /* CONFIG_STRICT_DEVMEM */
+-- 
+1.7.1
+
