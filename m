@@ -1,85 +1,79 @@
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Date: Wed, 26 Mar 2014 14:23:15 +0000
-Subject: Re: [PATCH] sparc32: make copy_to/from_user_page() usable from modular code
-Message-Id: <5332E2D3.8030809@windriver.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Date: Tue, 04 Mar 2014 21:07:44 +0000
+Subject: [PATCH 2/2] sparc64: Remove unused sparc64_multi_core
+Message-Id: <20140304210744.16893.75929.stgit@bhelgaas-glaptop.roam.corp.google.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1392326101-20388-1-git-send-email-paul.gortmaker@windriver.com> <CAMuHMdUNvSahqcHPo9eO44d6opQXTvQq_HbUbFM2qhXTOj7LJQ@mail.gmail.com>
-In-Reply-To: <CAMuHMdUNvSahqcHPo9eO44d6opQXTvQq_HbUbFM2qhXTOj7LJQ@mail.gmail.com>
+References: <20140304210621.16893.8772.stgit@bhelgaas-glaptop.roam.corp.google.com>
+In-Reply-To: <20140304210621.16893.8772.stgit@bhelgaas-glaptop.roam.corp.google.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: sparclinux <sparclinux@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-arm-kernel@lists.infradead.org
 
-On 14-03-26 04:41 AM, Geert Uytterhoeven wrote:
-> On Thu, Feb 13, 2014 at 10:15 PM, Paul Gortmaker
-> <paul.gortmaker@windriver.com> wrote:
->> While copy_to/from_user_page() users are uncommon, there is one in
->> drivers/staging/lustre/lustre/libcfs/linux/linux-curproc.c which leads
->> to the following:
->>
->> ERROR: "sparc32_cachetlb_ops" [drivers/staging/lustre/lustre/libcfs/libc=
-fs.ko] undefined!
->>
->> during routine allmodconfig build coverage.  The reason this happens
->> is as follows:
->>
->> In arch/sparc/include/asm/cacheflush_32.h we have:
->>
->>  #define flush_cache_page(vma,addr,pfn) \
->>         sparc32_cachetlb_ops->cache_page(vma, addr)
->>
->>  #define copy_to_user_page(vma, page, vaddr, dst, src, len) \
->>         do {                                                    \
->>                 flush_cache_page(vma, vaddr, page_to_pfn(page));\
->>                 memcpy(dst, src, len);                          \
->>         } while (0)
->>  #define copy_from_user_page(vma, page, vaddr, dst, src, len) \
->>         do {                                                    \
->>                 flush_cache_page(vma, vaddr, page_to_pfn(page));\
->>                 memcpy(dst, src, len);                          \
->>         } while (0)
->>
->> However, sparc32_cachetlb_ops isn't exported and hence the error.
->>
->> Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
->=20
-> Sorry for only noticing now. A similar fix for pa-risc was reverted:
->=20
-> "Christoph Hellwig <hch@infradead.org> commented:
->  This one shouldn't go in - Geert sent it a bit prematurely, as Lustre
->  shouldn't use it just to reimplement core VM functionality (which it
->  shouldn't use either, but that's a separate story)."
+Remove sparc64_multi_core because it's not used any more.
 
-Generally speaking I agree, and every time I touch lustre, I feel
-like I need to go home and have a shower.  However, in this case,
-lustre wasn't actually directly calling flush_cache_page type core
-VM ops directly, and I couldn't convince myself of an argument
-of why a modular driver should be forbidden from using either
-of copy_to/from_user_page()...
+It was added by a2f9f6bbb30e ("Fix {mc,smt}_capable()"), and the last uses
+were removed by e637d96bf462 ("sched: Remove unused mc_capable() and
+smt_capable()").
 
-Either way is fine with me.  If a revert is desired and we want
-to make lustre depend on CONFIG_BROKEN (okay, a bit harsh) or
-don't allow lustre to be modular, that is also fine.
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+---
+ arch/sparc/include/asm/smp_64.h |    1 -
+ arch/sparc/kernel/mdesc.c       |    4 ----
+ arch/sparc/kernel/prom_64.c     |    3 ---
+ arch/sparc/kernel/smp_64.c      |    2 --
+ 4 files changed, 10 deletions(-)
 
-Paul.
---
+diff --git a/arch/sparc/include/asm/smp_64.h b/arch/sparc/include/asm/smp_64.h
+index dd3bef4b9896..05710393959f 100644
+--- a/arch/sparc/include/asm/smp_64.h
++++ b/arch/sparc/include/asm/smp_64.h
+@@ -32,7 +32,6 @@
+ 
+ DECLARE_PER_CPU(cpumask_t, cpu_sibling_map);
+ extern cpumask_t cpu_core_map[NR_CPUS];
+-extern int sparc64_multi_core;
+ 
+ extern void arch_send_call_function_single_ipi(int cpu);
+ extern void arch_send_call_function_ipi_mask(const struct cpumask *mask);
+diff --git a/arch/sparc/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
+index b90bf23e3aab..a1a4400d4025 100644
+--- a/arch/sparc/kernel/mdesc.c
++++ b/arch/sparc/kernel/mdesc.c
+@@ -896,10 +896,6 @@ void mdesc_fill_in_cpu_data(cpumask_t *mask)
+ 
+ 	mdesc_iterate_over_cpus(fill_in_one_cpu, NULL, mask);
+ 
+-#ifdef CONFIG_SMP
+-	sparc64_multi_core = 1;
+-#endif
+-
+ 	hp = mdesc_grab();
+ 
+ 	set_core_ids(hp);
+diff --git a/arch/sparc/kernel/prom_64.c b/arch/sparc/kernel/prom_64.c
+index 6b39125eb927..9a690d39c01b 100644
+--- a/arch/sparc/kernel/prom_64.c
++++ b/arch/sparc/kernel/prom_64.c
+@@ -555,9 +555,6 @@ static void *fill_in_one_cpu(struct device_node *dp, int cpuid, int arg)
+ 
+ 		cpu_data(cpuid).core_id = portid + 1;
+ 		cpu_data(cpuid).proc_id = portid;
+-#ifdef CONFIG_SMP
+-		sparc64_multi_core = 1;
+-#endif
+ 	} else {
+ 		cpu_data(cpuid).dcache_size  			of_getintprop_default(dp, "dcache-size", 16 * 1024);
+diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
+index b085311dcd0e..9781048161ab 100644
+--- a/arch/sparc/kernel/smp_64.c
++++ b/arch/sparc/kernel/smp_64.c
+@@ -53,8 +53,6 @@
+ 
+ #include "cpumap.h"
+ 
+-int sparc64_multi_core __read_mostly;
+-
+ DEFINE_PER_CPU(cpumask_t, cpu_sibling_map) = CPU_MASK_NONE;
+ cpumask_t cpu_core_map[NR_CPUS] __read_mostly  	{ [0 ... NR_CPUS-1] = CPU_MASK_NONE };
 
->=20
-> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=
-=A446e72bc15c7bfd2c953e56064ace3566c79b0e
->=20
-> Gr{oetje,eeting}s,
->=20
->                         Geert
->=20
-> --
-> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m6=
-8k.org
->=20
-> In personal conversations with technical people, I call myself a hacker. =
-But
-> when I'm talking to journalists I just say "programmer" or something like=
- that.
->                                 -- Linus Torvalds
->=20
