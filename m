@@ -1,27 +1,35 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Date: Fri, 07 Mar 2014 14:29:38 +0000
-Subject: Re: [PATCH 3/4] sparc64: convert spinlock_t to raw_spinlock_t in mmu_context_t
-Message-Id: <20140307142938.GG8637@linutronix.de>
+From: Doug <doug.lkml@gmail.com>
+Date: Tue, 04 Mar 2014 18:16:08 +0000
+Subject: [PATCH 1/1] sparc64:tsb.c:use array size macro rather than number
+Message-Id: <1393956248-9354-1-git-send-email-doug.lkml@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <341392153219@web17g.yandex.ru>
- <52FB2751.2070101@oracle.com>
- <173231392194038@web29j.yandex.ru>
- <20140304.145523.176895354551282596.davem@davemloft.net>
-In-Reply-To: <20140304.145523.176895354551282596.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: tkhai@yandex.ru, allen.pais@oracle.com, linux-rt-users@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Doug <doug.lkml@gmail.com>
 
-* David Miller | 2014-03-04 14:55:23 [-0500]:
+This is a small patch which uses ARRAY_SIZE macro
+rather than a number to make code readability better.
 
->PowerPC does the same exact thing with arch_enter_lazy_mmu_mode(), in
->fact that's where I copied the logic from.  Does PowerPC not work with
->-rt? :-)
+Signed-off-by: Doug <doug.lkml@gmail.com>
+---
+ arch/sparc/mm/tsb.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-It is only PPC64 as far as I can see and I have mostly 32bit book-e
-around. That preempt-lazy stuff also touches PPC64 bits so I assume
-PPC64 works.
+diff --git a/arch/sparc/mm/tsb.c b/arch/sparc/mm/tsb.c
+index 3b3a360..f5d506f 100644
+--- a/arch/sparc/mm/tsb.c
++++ b/arch/sparc/mm/tsb.c
+@@ -273,7 +273,7 @@ void __init pgtable_cache_init(void)
+ 		prom_halt();
+ 	}
+ 
+-	for (i = 0; i < 8; i++) {
++	for (i = 0; i < ARRAY_SIZE(tsb_cache_names); i++) {
+ 		unsigned long size = 8192 << i;
+ 		const char *name = tsb_cache_names[i];
+ 
+-- 
+1.8.1.2
 
-Sebastian
