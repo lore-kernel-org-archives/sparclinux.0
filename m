@@ -1,19 +1,31 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 02 Mar 2014 19:45:50 +0000
-Subject: Re: Ptrace implementation
-Message-Id: <20140302.144550.1825140784401922589.davem@davemloft.net>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Date: Tue, 04 Mar 2014 21:07:31 +0000
+Subject: [PATCH 0/2] sched: Removed unused mc_capable() and smt_capable()
+Message-Id: <20140304210621.16893.8772.stgit@bhelgaas-glaptop.roam.corp.google.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <D37E7164-2F27-4758-AF5A-72173FA4C969@erikkooistra.nl>
-In-Reply-To: <D37E7164-2F27-4758-AF5A-72173FA4C969@erikkooistra.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-From: Erik Kooistra <me@erikkooistra.nl>
-Date: Sun, 2 Mar 2014 15:48:09 +0100
+This is just cleanup of a couple unused interfaces and (for sparc64) a
+supporting variable.
 
-> but from my tests it seems it is stored in G0.
+---
 
-%g0 is the "zero register, writes to it are ignored and all reads give
-zero.
+Bjorn Helgaas (2):
+      sched: Remove unused mc_capable() and smt_capable()
+      sparc64: Remove unused sparc64_multi_core
+
+
+ arch/arm/include/asm/topology.h      |    3 ---
+ arch/ia64/include/asm/topology.h     |    1 -
+ arch/mips/include/asm/topology.h     |    4 ----
+ arch/powerpc/include/asm/topology.h  |    1 -
+ arch/sparc/include/asm/smp_64.h      |    1 -
+ arch/sparc/include/asm/topology_64.h |    2 --
+ arch/sparc/kernel/mdesc.c            |    4 ----
+ arch/sparc/kernel/prom_64.c          |    3 ---
+ arch/sparc/kernel/smp_64.c           |    2 --
+ arch/x86/include/asm/topology.h      |    6 ------
+ 10 files changed, 27 deletions(-)
