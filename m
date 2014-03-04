@@ -1,28 +1,28 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 04 Mar 2014 20:01:00 +0000
+Date: Tue, 04 Mar 2014 20:03:38 +0000
 Subject: Re: [PATCH 3/4] sparc64: convert spinlock_t to raw_spinlock_t in mmu_context_t
-Message-Id: <20140304.150100.26024134985698152.davem@davemloft.net>
+Message-Id: <20140304.150338.542737888922892447.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <52FB65AC.4000808@oracle.com>
-	<268891392209126@web5h.yandex.ru>
-	<53042ACA.6060907@oracle.com>
-In-Reply-To: <53042ACA.6060907@oracle.com>
+References: <259041392800232@web13m.yandex.ru>
+	<530475A8.3060602@oracle.com>
+	<359241392801938@web24j.yandex.ru>
+In-Reply-To: <359241392801938@web24j.yandex.ru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: allen.pais@oracle.com
-Cc: tkhai@yandex.ru, linux-rt-users@vger.kernel.org, sparclinux@vger.kernel.org, bigeasy@linutronix.de
+To: tkhai@yandex.ru
+Cc: allen.pais@oracle.com, linux-rt-users@vger.kernel.org, sparclinux@vger.kernel.org, bigeasy@linutronix.de
 
-From: Allen Pais <allen.pais@oracle.com>
-Date: Wed, 19 Feb 2014 09:23:46 +0530
+From: Kirill Tkhai <tkhai@yandex.ru>
+Date: Wed, 19 Feb 2014 13:25:38 +0400
 
->  I realized locking in tsb is very tricky. My attempts to try and get hackbench run
-> without causing a stall failed. So here's what I tried to fix it, am not sure if it's
-> an appropriate fix, I would love to get comments. I have tested this fix for over 24 hours
-> with hackbench and dd, the system did not stall :)
+> It seems for me it's better to decide the problem not changing protector of tsb like in patch above.
+> You may get good stack without sun4v_data_access_exception error, which was in the first or second
+> message.
 
-If using a local lock fixes your problem, it just means we're being
-preempted during flush_tsb_user() which is absolutely not allowed.
+My suspicion is that what happens when we get the data access error is
+that we sample the tlb batch count as non-zero, preempt, then come
+back from preemption seeing the tlb batch in a completely different state.
 
-The batch is a per-cpu object, and must be forcibly flushed if we
-preempt.
+And that's what leads to the crash, in the one trace I saw the TSB address
+passed to tsb_flush() (register %o0) was some garbage like 0x103.
