@@ -1,62 +1,48 @@
 From: Kirill Tkhai <tkhai@yandex.ru>
-Date: Tue, 04 Mar 2014 20:44:05 +0000
+Date: Tue, 04 Mar 2014 21:26:23 +0000
 Subject: Re: [PATCH 3/4] sparc64: convert spinlock_t to raw_spinlock_t in mmu_context_t
-Message-Id: <53163B15.7060905@yandex.ru>
+Message-Id: <531644FF.30800@yandex.ru>
 List-Id: <sparclinux.vger.kernel.org>
-References: <341392153219@web17g.yandex.ru>	<52FB2751.2070101@oracle.com>	<173231392194038@web29j.yandex.ru> <20140304.145523.176895354551282596.davem@davemloft.net>
-In-Reply-To: <20140304.145523.176895354551282596.davem@davemloft.net>
+References: <259041392800232@web13m.yandex.ru>	<530475A8.3060602@oracle.com>	<359241392801938@web24j.yandex.ru> <20140304.150338.542737888922892447.davem@davemloft.net>
+In-Reply-To: <20140304.150338.542737888922892447.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: David Miller <davem@davemloft.net>
 Cc: allen.pais@oracle.com, linux-rt-users@vger.kernel.org, sparclinux@vger.kernel.org, bigeasy@linutronix.de
 
-On 04.03.2014 23:55, David Miller wrote:
+On 05.03.2014 00:03, David Miller wrote:
 > From: Kirill Tkhai <tkhai@yandex.ru>
-> Date: Wed, 12 Feb 2014 12:33:58 +0400
+> Date: Wed, 19 Feb 2014 13:25:38 +0400
 > 
->> 12.02.2014, 11:48, "Allen Pais" <allen.pais@oracle.com>:
->>
->>>  On Wednesday 12 February 2014 02:43 AM, Kirill Tkhai wrote:
->>>>   06.01.2014, 07:56, "Allen Pais" <allen.pais@oracle.com>:
->>>>>   In the attempt of get PREEMPT_RT working on sparc64 using
->>>>>   linux-stable-rt version 3.10.22-rt19+, the kernel crash
->>>>>   with the following trace:
->>>>>
->>>>>   [ 1487.027884] I7: <rt_mutex_setprio+0x3c/0x2c0>
->>>>>   [ 1487.027885] Call Trace:
->>>>>   [ 1487.027887]  [00000000004967dc] rt_mutex_setprio+0x3c/0x2c0
->>>>>   [ 1487.027892]  [00000000004afe20] task_blocks_on_rt_mutex+0x180/0x200
->>>>>   [ 1487.027895]  [0000000000819114] rt_spin_lock_slowlock+0x94/0x300
->>>>>   [ 1487.027897]  [0000000000817ebc] __schedule+0x39c/0x53c
->>>>>   [ 1487.027899]  [00000000008185fc] schedule+0x1c/0xc0
->>>>>   [ 1487.027908]  [000000000048fff4] smpboot_thread_fn+0x154/0x2e0
->>>>>   [ 1487.027913]  [000000000048753c] kthread+0x7c/0xa0
->>>>>   [ 1487.027920]  [00000000004060c4] ret_from_syscall+0x1c/0x2c
->>>>>   [ 1487.027922]  [0000000000000000]           (null)
->>>  Now, consistently I've been getting sun4v_data_access_exception.
->>>  Here's the trace:
->>>  [ 4673.360121] sun4v_data_access_exception: ADDR[0000080000000000] CTX[0000] TYPE[0004], going.
->>
->> I've never dived at sparc's tlb before, but it seems now I'm understanding.
->>
->> arch_enter_lazy_mmu_mode() makes possible delayed tlb flushing. In !RT kernel
->> you collect flush requests before you really flush all of them.
->>
->> In RT you collect them too, but you are able to be preempted in any moment.
->> So, you may switch to other process with unflushed tlb, which is very bad.
->>
->> Try to not to set tb->active = 1; in arch_enter_lazy_mmu_mode(). Set it to zero.
->> We will look if this robust fix helps.
+>> It seems for me it's better to decide the problem not changing protector of tsb like in patch above.
+>> You may get good stack without sun4v_data_access_exception error, which was in the first or second
+>> message.
 > 
-> Sorry for coming into this discussion so late.
+> My suspicion is that what happens when we get the data access error is
+> that we sample the tlb batch count as non-zero, preempt, then come
+> back from preemption seeing the tlb batch in a completely different state.
 > 
-> Indeed, the pending flushes are per-cpu and we must flush them out in the
-> event of a preemption.
-> 
-> PowerPC does the same exact thing with arch_enter_lazy_mmu_mode(), in
-> fact that's where I copied the logic from.  Does PowerPC not work with
-> -rt? :-)
+> And that's what leads to the crash, in the one trace I saw the TSB address
+> passed to tsb_flush() (register %o0) was some garbage like 0x103.
 > 
 
-It does not work, but we will :)
+I suggested to set tb_active to zero just for experiment. This way
+
+diff --git a/arch/sparc/mm/tlb.c b/arch/sparc/mm/tlb.c
+index b12cb5e..e1d1fd6 100644
+--- a/arch/sparc/mm/tlb.c
++++ b/arch/sparc/mm/tlb.c
+@@ -54,7 +54,7 @@ void arch_enter_lazy_mmu_mode(void)
+ {
+ 	struct tlb_batch *tb = &__get_cpu_var(tlb_batch);
+
+-	tb->active = 1;
++	tb->active = 0;
+ }
+
+ void arch_leave_lazy_mmu_mode(void)
+
+Last Allen's stack (from 26 feb. 11:52) still contains
+flush_tlb_pending(). Strange, why this is so, maybe
+bad initialized per-cpu tlb_batch, and something bad is with BSS...
