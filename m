@@ -1,16 +1,26 @@
-From: <bless20@bless368.onmicrosoft.com>
-Date: Tue, 18 Mar 2014 14:49:42 +0000
-Subject: 
-Message-Id: <505191c1-be04-4f69-a766-9ede48e3f15a@SIXPR03MB045.apcprd03.prod.outlook.com>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 04 Mar 2014 18:57:06 +0000
+Subject: Re: [patch 13/26] sparc: Use the core irq stats function
+Message-Id: <20140304.135706.1524293483444485183.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20140223212703.511977310@linutronix.de>
+	<20140223212737.635609567@linutronix.de>
+In-Reply-To: <20140223212737.635609567@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: tglx@linutronix.de
+Cc: linux-kernel@vger.kernel.org, mingo@elte.hu, peterz@infradead.org, sparclinux@vger.kernel.org
 
-My wife and I have a draft here for you. Please contact us for this God giving opportunity: dave.angela101440@qq.com
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Sun, 23 Feb 2014 21:40:15 -0000
 
----
-This email is free from viruses and malware because avast! Antivirus protection is active.
-http://www.avast.com
+> Let the core do the irq_desc resolution.
+> 
+> No functional change.
+> 
+> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+> Cc: "David S. Miller" <davem@davemloft.net>
+> Cc: sparc <sparclinux@vger.kernel.org>
 
+Acked-by: David S. Miller <davem@davemloft.net>
