@@ -1,31 +1,18 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Date: Tue, 04 Mar 2014 21:07:31 +0000
-Subject: [PATCH 0/2] sched: Removed unused mc_capable() and smt_capable()
-Message-Id: <20140304210621.16893.8772.stgit@bhelgaas-glaptop.roam.corp.google.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Date: Wed, 05 Mar 2014 11:16:15 +0000
+Subject: Re: [PATCH 0/2] sched: Removed unused mc_capable() and smt_capable()
+Message-Id: <20140305111615.GV9987@twins.programming.kicks-ass.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20140304210621.16893.8772.stgit@bhelgaas-glaptop.roam.corp.google.com>
+In-Reply-To: <20140304210621.16893.8772.stgit@bhelgaas-glaptop.roam.corp.google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-This is just cleanup of a couple unused interfaces and (for sparc64) a
-supporting variable.
+On Tue, Mar 04, 2014 at 02:07:31PM -0700, Bjorn Helgaas wrote:
+> This is just cleanup of a couple unused interfaces and (for sparc64) a
+> supporting variable.
+> 
 
----
-
-Bjorn Helgaas (2):
-      sched: Remove unused mc_capable() and smt_capable()
-      sparc64: Remove unused sparc64_multi_core
-
-
- arch/arm/include/asm/topology.h      |    3 ---
- arch/ia64/include/asm/topology.h     |    1 -
- arch/mips/include/asm/topology.h     |    4 ----
- arch/powerpc/include/asm/topology.h  |    1 -
- arch/sparc/include/asm/smp_64.h      |    1 -
- arch/sparc/include/asm/topology_64.h |    2 --
- arch/sparc/kernel/mdesc.c            |    4 ----
- arch/sparc/kernel/prom_64.c          |    3 ---
- arch/sparc/kernel/smp_64.c           |    2 --
- arch/x86/include/asm/topology.h      |    6 ------
- 10 files changed, 27 deletions(-)
+Thanks!
