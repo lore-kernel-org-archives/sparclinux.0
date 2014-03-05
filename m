@@ -1,359 +1,198 @@
-From: Laura Abbott <lauraa@codeaurora.org>
-Date: Fri, 14 Mar 2014 22:58:49 +0000
-Subject: [PATCH 1/2] lib/scatterlist: Make ARCH_HAS_SG_CHAIN an actual Kconfig
-Message-Id: <1394837930-27731-1-git-send-email-lauraa@codeaurora.org>
+From: Richard Guy Briggs <rgb@redhat.com>
+Date: Wed, 05 Mar 2014 21:27:04 +0000
+Subject: [PATCH 3/6][RFC] audit: __audit_syscall_entry: ignore arch arg and call syscall_get_arch() directly
+Message-Id: <fc170f50376a56ea82d25fbf1587f64b76177e0f.1393974970.git.rgb@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <cover.1393974970.git.rgb@redhat.com>
+In-Reply-To: <cover.1393974970.git.rgb@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: linux-audit@redhat.com, linux-kernel@vger.kernel.org
+Cc: Richard Guy Briggs <rgb@redhat.com>, eparis@redhat.com, sgrubb@redhat.com, oleg@redhat.com, linux-arm-kernel@lists.infradead.org, x86@kernel.org, linux-ia64@vger.kernel.org, microblaze-uclinux@itee.uq.edu.au, linux-mips@linux-mips.org, linux@openrisc.net, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, user-mode-linux-devel@lists.sourceforge.net, linux-arch@vger.kernel.org
 
-Rather than have architectures #define ARCH_HAS_SG_CHAIN in an architecture
-specific scatterlist.h, make it a proper Kconfig option and use that
-instead. At same time, remove the header files are are now mostly
-useless and just include asm-generic/scatterlist.h.
+Since all the callers of syscall_get_arch() presently pass "current" and none
+of the arch-specific syscall_get_arch() implementations use the regs parameter,
+ignore the passed in arch parameter to __audit_syscall_entry() and call
+syscall_get_arch() directly.
 
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Paul Mackerras <paulus@samba.org>
-Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
+Change the audit header file from the kernel internal to the user api version
+to get the architecture numbers, but to avoid a circular header reference
+between audit and syscall.h
+
+Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+
 ---
- arch/arm/Kconfig                       |  1 +
- arch/arm/include/asm/Kbuild            |  1 +
- arch/arm/include/asm/scatterlist.h     | 12 ------------
- arch/arm64/Kconfig                     |  1 +
- arch/ia64/Kconfig                      |  1 +
- arch/ia64/include/asm/Kbuild           |  1 +
- arch/ia64/include/asm/scatterlist.h    |  7 -------
- arch/powerpc/Kconfig                   |  1 +
- arch/powerpc/include/asm/Kbuild        |  1 +
- arch/powerpc/include/asm/scatterlist.h | 17 -----------------
- arch/s390/Kconfig                      |  1 +
- arch/s390/include/asm/Kbuild           |  1 +
- arch/s390/include/asm/scatterlist.h    |  3 ---
- arch/sparc/Kconfig                     |  1 +
- arch/sparc/include/asm/Kbuild          |  1 +
- arch/sparc/include/asm/scatterlist.h   |  8 --------
- arch/x86/Kconfig                       |  1 +
- arch/x86/include/asm/Kbuild            |  1 +
- arch/x86/include/asm/scatterlist.h     |  8 --------
- include/linux/scatterlist.h            |  2 +-
- include/scsi/scsi.h                    |  2 +-
- lib/Kconfig                            |  7 +++++++
- lib/scatterlist.c                      |  4 ++--
- 23 files changed, 24 insertions(+), 59 deletions(-)
- delete mode 100644 arch/arm/include/asm/scatterlist.h
- delete mode 100644 arch/ia64/include/asm/scatterlist.h
- delete mode 100644 arch/powerpc/include/asm/scatterlist.h
- delete mode 100644 arch/s390/include/asm/scatterlist.h
- delete mode 100644 arch/sparc/include/asm/scatterlist.h
- delete mode 100644 arch/x86/include/asm/scatterlist.h
+ arch/arm/include/asm/syscall.h        |    2 +-
+ arch/ia64/include/asm/syscall.h       |    2 +-
+ arch/microblaze/include/asm/syscall.h |    2 +-
+ arch/mips/include/asm/syscall.h       |    2 +-
+ arch/openrisc/include/asm/syscall.h   |    2 +-
+ arch/parisc/include/asm/syscall.h     |    2 +-
+ arch/powerpc/include/asm/syscall.h    |    2 +-
+ arch/s390/include/asm/syscall.h       |    2 +-
+ arch/sh/include/asm/syscall.h         |    2 +-
+ arch/sparc/include/asm/syscall.h      |    2 +-
+ arch/x86/include/asm/syscall.h        |    2 +-
+ kernel/auditsc.c                      |    2 +-
+ 12 files changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index 1594945..8122294 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -82,6 +82,7 @@ config ARM
- 	  <http://www.arm.linux.org.uk/>.
+diff --git a/arch/arm/include/asm/syscall.h b/arch/arm/include/asm/syscall.h
+index 73ddd72..a749123 100644
+--- a/arch/arm/include/asm/syscall.h
++++ b/arch/arm/include/asm/syscall.h
+@@ -7,7 +7,7 @@
+ #ifndef _ASM_ARM_SYSCALL_H
+ #define _ASM_ARM_SYSCALL_H
  
- config ARM_HAS_SG_CHAIN
-+	select ARCH_HAS_SG_CHAIN
- 	bool
+-#include <linux/audit.h> /* for AUDIT_ARCH_* */
++#include <uapi/linux/audit.h> /* for AUDIT_ARCH_* */
+ #include <linux/elf.h> /* for ELF_EM */
+ #include <linux/err.h>
+ #include <linux/sched.h>
+diff --git a/arch/ia64/include/asm/syscall.h b/arch/ia64/include/asm/syscall.h
+index 0fd2a7a..9c82767 100644
+--- a/arch/ia64/include/asm/syscall.h
++++ b/arch/ia64/include/asm/syscall.h
+@@ -15,7 +15,7 @@
  
- config NEED_SG_DMA_LENGTH
-diff --git a/arch/arm/include/asm/Kbuild b/arch/arm/include/asm/Kbuild
-index 3278afe..2357ed6 100644
---- a/arch/arm/include/asm/Kbuild
-+++ b/arch/arm/include/asm/Kbuild
-@@ -18,6 +18,7 @@ generic-y += param.h
- generic-y += parport.h
- generic-y += poll.h
- generic-y += resource.h
-+generic-y += scatterlist.h
- generic-y += sections.h
- generic-y += segment.h
- generic-y += sembuf.h
-diff --git a/arch/arm/include/asm/scatterlist.h b/arch/arm/include/asm/scatterlist.h
-deleted file mode 100644
-index cefdb8f..0000000
---- a/arch/arm/include/asm/scatterlist.h
-+++ /dev/null
-@@ -1,12 +0,0 @@
--#ifndef _ASMARM_SCATTERLIST_H
--#define _ASMARM_SCATTERLIST_H
--
--#ifdef CONFIG_ARM_HAS_SG_CHAIN
--#define ARCH_HAS_SG_CHAIN
--#endif
--
--#include <asm/memory.h>
--#include <asm/types.h>
--#include <asm-generic/scatterlist.h>
--
--#endif /* _ASMARM_SCATTERLIST_H */
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 27bbcfc..f2f95f4 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -2,6 +2,7 @@ config ARM64
- 	def_bool y
- 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select ARCH_USE_CMPXCHG_LOCKREF
-+	select ARCH_HAS_SG_CHAIN
- 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
- 	select ARCH_WANT_OPTIONAL_GPIOLIB
- 	select ARCH_WANT_COMPAT_IPC_PARSE_VERSION
-diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
-index 0c8e553..13e2e8b 100644
---- a/arch/ia64/Kconfig
-+++ b/arch/ia64/Kconfig
-@@ -44,6 +44,7 @@ config IA64
- 	select HAVE_MOD_ARCH_SPECIFIC
- 	select MODULES_USE_ELF_RELA
- 	select ARCH_USE_CMPXCHG_LOCKREF
-+	select ARCH_HAS_SG_CHAIN
- 	default y
- 	help
- 	  The Itanium Processor Family is Intel's 64-bit successor to
-diff --git a/arch/ia64/include/asm/Kbuild b/arch/ia64/include/asm/Kbuild
-index 283a831..3906865 100644
---- a/arch/ia64/include/asm/Kbuild
-+++ b/arch/ia64/include/asm/Kbuild
-@@ -2,6 +2,7 @@
- generic-y += clkdev.h
- generic-y += exec.h
- generic-y += kvm_para.h
-+generic-y += scatterlist.h
- generic-y += trace_clock.h
- generic-y += preempt.h
- generic-y += vtime.h
-diff --git a/arch/ia64/include/asm/scatterlist.h b/arch/ia64/include/asm/scatterlist.h
-deleted file mode 100644
-index 08fd93b..0000000
---- a/arch/ia64/include/asm/scatterlist.h
-+++ /dev/null
-@@ -1,7 +0,0 @@
--#ifndef _ASM_IA64_SCATTERLIST_H
--#define _ASM_IA64_SCATTERLIST_H
--
--#include <asm-generic/scatterlist.h>
--#define ARCH_HAS_SG_CHAIN
--
--#endif /* _ASM_IA64_SCATTERLIST_H */
-diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index 957bf34..659aee2 100644
---- a/arch/powerpc/Kconfig
-+++ b/arch/powerpc/Kconfig
-@@ -141,6 +141,7 @@ config PPC
- 	select HAVE_DEBUG_STACKOVERFLOW
- 	select HAVE_IRQ_EXIT_ON_IRQ_STACK
- 	select ARCH_USE_CMPXCHG_LOCKREF if PPC64
-+	select ARCH_HAS_SG_CHAIN
+ #include <linux/sched.h>
+ #include <linux/err.h>
+-#include <linux/audit.h>
++#include <uapi/linux/audit.h>
  
- config GENERIC_CSUM
- 	def_bool CPU_LITTLE_ENDIAN
-diff --git a/arch/powerpc/include/asm/Kbuild b/arch/powerpc/include/asm/Kbuild
-index 6c0a955..ca596ec 100644
---- a/arch/powerpc/include/asm/Kbuild
-+++ b/arch/powerpc/include/asm/Kbuild
-@@ -1,6 +1,7 @@
+ static inline long syscall_get_nr(struct task_struct *task,
+ 				  struct pt_regs *regs)
+diff --git a/arch/microblaze/include/asm/syscall.h b/arch/microblaze/include/asm/syscall.h
+index 06854da..e1acf8a 100644
+--- a/arch/microblaze/include/asm/syscall.h
++++ b/arch/microblaze/include/asm/syscall.h
+@@ -3,7 +3,7 @@
  
- generic-y += clkdev.h
- generic-y += rwsem.h
-+generic-y += scatterlist.h
- generic-y += trace_clock.h
- generic-y += preempt.h
- generic-y += vtime.h
-diff --git a/arch/powerpc/include/asm/scatterlist.h b/arch/powerpc/include/asm/scatterlist.h
-deleted file mode 100644
-index de1f620..0000000
---- a/arch/powerpc/include/asm/scatterlist.h
-+++ /dev/null
-@@ -1,17 +0,0 @@
--#ifndef _ASM_POWERPC_SCATTERLIST_H
--#define _ASM_POWERPC_SCATTERLIST_H
--/*
-- * Copyright (C) 2001 PPC64 Team, IBM Corp
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License
-- * as published by the Free Software Foundation; either version
-- * 2 of the License, or (at your option) any later version.
-- */
--
--#include <asm/dma.h>
--#include <asm-generic/scatterlist.h>
--
--#define ARCH_HAS_SG_CHAIN
--
--#endif /* _ASM_POWERPC_SCATTERLIST_H */
-diff --git a/arch/s390/Kconfig b/arch/s390/Kconfig
-index 65a0775..d6c2059 100644
---- a/arch/s390/Kconfig
-+++ b/arch/s390/Kconfig
-@@ -142,6 +142,7 @@ config S390
- 	select SYSCTL_EXCEPTION_TRACE
- 	select VIRT_CPU_ACCOUNTING
- 	select VIRT_TO_BUS
-+	select ARCH_HAS_SG_CHAIN
+ #include <linux/kernel.h>
+ #include <linux/sched.h>
+-#include <linux/audit.h>
++#include <uapi/linux/audit.h>
+ #include <asm/ptrace.h>
  
- config SCHED_OMIT_FRAME_POINTER
- 	def_bool y
-diff --git a/arch/s390/include/asm/Kbuild b/arch/s390/include/asm/Kbuild
-index 8386a4a..14be6d0 100644
---- a/arch/s390/include/asm/Kbuild
-+++ b/arch/s390/include/asm/Kbuild
-@@ -4,3 +4,4 @@ generic-y += clkdev.h
- generic-y += trace_clock.h
- generic-y += preempt.h
- generic-y += hash.h
-+generic-y += scatterlist.h
-diff --git a/arch/s390/include/asm/scatterlist.h b/arch/s390/include/asm/scatterlist.h
-deleted file mode 100644
-index 6d45ef6..0000000
---- a/arch/s390/include/asm/scatterlist.h
-+++ /dev/null
-@@ -1,3 +0,0 @@
--#include <asm-generic/scatterlist.h>
--
--#define ARCH_HAS_SG_CHAIN
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index 7d8b7e9..7a179fe 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -42,6 +42,7 @@ config SPARC
- 	select MODULES_USE_ELF_RELA
- 	select ODD_RT_SIGACTION
- 	select OLD_SIGSUSPEND
-+	select ARCH_HAS_SG_CHAIN
+ /* The system call number is given by the user in R12 */
+diff --git a/arch/mips/include/asm/syscall.h b/arch/mips/include/asm/syscall.h
+index 41ecde4..a8234f2 100644
+--- a/arch/mips/include/asm/syscall.h
++++ b/arch/mips/include/asm/syscall.h
+@@ -13,7 +13,7 @@
+ #ifndef __ASM_MIPS_SYSCALL_H
+ #define __ASM_MIPS_SYSCALL_H
  
- config SPARC32
- 	def_bool !64BIT
-diff --git a/arch/sparc/include/asm/Kbuild b/arch/sparc/include/asm/Kbuild
-index 4b60a0c..437f0c6 100644
---- a/arch/sparc/include/asm/Kbuild
-+++ b/arch/sparc/include/asm/Kbuild
-@@ -18,3 +18,4 @@ generic-y += types.h
- generic-y += word-at-a-time.h
- generic-y += preempt.h
- generic-y += hash.h
-+generic-y += scatterlist.h
-diff --git a/arch/sparc/include/asm/scatterlist.h b/arch/sparc/include/asm/scatterlist.h
-deleted file mode 100644
-index 92bb638..0000000
---- a/arch/sparc/include/asm/scatterlist.h
-+++ /dev/null
-@@ -1,8 +0,0 @@
--#ifndef _SPARC_SCATTERLIST_H
--#define _SPARC_SCATTERLIST_H
--
--#include <asm-generic/scatterlist.h>
--
--#define ARCH_HAS_SG_CHAIN
--
--#endif /* !(_SPARC_SCATTERLIST_H) */
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 0af5250..76997dc 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -127,6 +127,7 @@ config X86
- 	select HAVE_DEBUG_STACKOVERFLOW
- 	select HAVE_IRQ_EXIT_ON_IRQ_STACK if X86_64
- 	select HAVE_CC_STACKPROTECTOR
-+	select ARCH_HAS_SG_CHAIN
+-#include <linux/audit.h>
++#include <uapi/linux/audit.h>
+ #include <linux/elf-em.h>
+ #include <linux/kernel.h>
+ #include <linux/sched.h>
+diff --git a/arch/openrisc/include/asm/syscall.h b/arch/openrisc/include/asm/syscall.h
+index 534b9c3..2bbe0e9 100644
+--- a/arch/openrisc/include/asm/syscall.h
++++ b/arch/openrisc/include/asm/syscall.h
+@@ -21,7 +21,7 @@
  
- config INSTRUCTION_DECODER
- 	def_bool y
-diff --git a/arch/x86/include/asm/Kbuild b/arch/x86/include/asm/Kbuild
-index 7f66985..9b3d749 100644
---- a/arch/x86/include/asm/Kbuild
-+++ b/arch/x86/include/asm/Kbuild
-@@ -5,3 +5,4 @@ genhdr-y += unistd_64.h
- genhdr-y += unistd_x32.h
+ #include <linux/err.h>
+ #include <linux/sched.h>
+-#include <linux/audit.h>
++#include <uapi/linux/audit.h>
  
- generic-y += clkdev.h
-+generic-y += scatterlist.h
-diff --git a/arch/x86/include/asm/scatterlist.h b/arch/x86/include/asm/scatterlist.h
-deleted file mode 100644
-index 4240878..0000000
---- a/arch/x86/include/asm/scatterlist.h
-+++ /dev/null
-@@ -1,8 +0,0 @@
--#ifndef _ASM_X86_SCATTERLIST_H
--#define _ASM_X86_SCATTERLIST_H
--
--#include <asm-generic/scatterlist.h>
--
--#define ARCH_HAS_SG_CHAIN
--
--#endif /* _ASM_X86_SCATTERLIST_H */
-diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
-index a964f72..4b152c8 100644
---- a/include/linux/scatterlist.h
-+++ b/include/linux/scatterlist.h
-@@ -136,7 +136,7 @@ static inline void sg_set_buf(struct scatterlist *sg, const void *buf,
- static inline void sg_chain(struct scatterlist *prv, unsigned int prv_nents,
- 			    struct scatterlist *sgl)
- {
--#ifndef ARCH_HAS_SG_CHAIN
-+#ifndef CONFIG_ARCH_HAS_SG_CHAIN
- 	BUG();
+ static inline int
+ syscall_get_nr(struct task_struct *task, struct pt_regs *regs)
+diff --git a/arch/parisc/include/asm/syscall.h b/arch/parisc/include/asm/syscall.h
+index b3b604f..2bf23b1 100644
+--- a/arch/parisc/include/asm/syscall.h
++++ b/arch/parisc/include/asm/syscall.h
+@@ -5,7 +5,7 @@
+ 
+ #include <linux/err.h>
+ #include <linux/compat.h>
+-#include <linux/audit.h>
++#include <uapi/linux/audit.h>
+ #include <asm/ptrace.h>
+ 
+ static inline long syscall_get_nr(struct task_struct *tsk,
+diff --git a/arch/powerpc/include/asm/syscall.h b/arch/powerpc/include/asm/syscall.h
+index b824eb2..36bd9ef 100644
+--- a/arch/powerpc/include/asm/syscall.h
++++ b/arch/powerpc/include/asm/syscall.h
+@@ -15,7 +15,7 @@
+ 
+ #include <linux/sched.h>
+ #include <linux/compat.h>
+-#include <linux/audit.h>
++#include <uapi/linux/audit.h>
+ 
+ /* ftrace syscalls requires exporting the sys_call_table */
+ #ifdef CONFIG_FTRACE_SYSCALLS
+diff --git a/arch/s390/include/asm/syscall.h b/arch/s390/include/asm/syscall.h
+index cd29d2f..79d1805 100644
+--- a/arch/s390/include/asm/syscall.h
++++ b/arch/s390/include/asm/syscall.h
+@@ -12,7 +12,7 @@
+ #ifndef _ASM_SYSCALL_H
+ #define _ASM_SYSCALL_H	1
+ 
+-#include <linux/audit.h>
++#include <uapi/linux/audit.h>
+ #include <linux/sched.h>
+ #include <linux/err.h>
+ #include <asm/ptrace.h>
+diff --git a/arch/sh/include/asm/syscall.h b/arch/sh/include/asm/syscall.h
+index f1a79d4..33e60e0 100644
+--- a/arch/sh/include/asm/syscall.h
++++ b/arch/sh/include/asm/syscall.h
+@@ -9,7 +9,7 @@ extern const unsigned long sys_call_table[];
+ # include <asm/syscall_64.h>
  #endif
  
-diff --git a/include/scsi/scsi.h b/include/scsi/scsi.h
-index 0a4edfe..d34cf2d 100644
---- a/include/scsi/scsi.h
-+++ b/include/scsi/scsi.h
-@@ -31,7 +31,7 @@ enum scsi_timeouts {
-  * Like SCSI_MAX_SG_SEGMENTS, but for archs that have sg chaining. This limit
-  * is totally arbitrary, a setting of 2048 will get you at least 8mb ios.
-  */
--#ifdef ARCH_HAS_SG_CHAIN
-+#ifdef CONFIG_ARCH_HAS_SG_CHAIN
- #define SCSI_MAX_SG_CHAIN_SEGMENTS	2048
- #else
- #define SCSI_MAX_SG_CHAIN_SEGMENTS	SCSI_MAX_SG_SEGMENTS
-diff --git a/lib/Kconfig b/lib/Kconfig
-index 991c98b..32c68d3 100644
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -451,4 +451,11 @@ config UCS2_STRING
+-# include <linux/audit.h>
++# include <uapi/linux/audit.h>
  
- source "lib/fonts/Kconfig"
+ static inline int syscall_get_arch(struct task_struct *tsk,
+ 				   struct pt_regs *regs)
+diff --git a/arch/sparc/include/asm/syscall.h b/arch/sparc/include/asm/syscall.h
+index c7a8f75..eddc60e 100644
+--- a/arch/sparc/include/asm/syscall.h
++++ b/arch/sparc/include/asm/syscall.h
+@@ -3,7 +3,7 @@
  
-+#
-+# sg chaining option
-+#
-+
-+config ARCH_HAS_SG_CHAIN
-+	def_bool n
-+
- endmenu
-diff --git a/lib/scatterlist.c b/lib/scatterlist.c
-index 3a8e8e8..4251cbd 100644
---- a/lib/scatterlist.c
-+++ b/lib/scatterlist.c
-@@ -73,7 +73,7 @@ EXPORT_SYMBOL(sg_nents);
-  **/
- struct scatterlist *sg_last(struct scatterlist *sgl, unsigned int nents)
- {
--#ifndef ARCH_HAS_SG_CHAIN
-+#ifndef CONFIG_ARCH_HAS_SG_CHAIN
- 	struct scatterlist *ret = &sgl[nents - 1];
- #else
- 	struct scatterlist *sg, *ret = NULL;
-@@ -251,7 +251,7 @@ int __sg_alloc_table(struct sg_table *table, unsigned int nents,
+ #include <linux/kernel.h>
+ #include <linux/sched.h>
+-#include <linux/audit.h>
++#include <uapi/linux/audit.h>
+ #include <asm/ptrace.h>
  
- 	if (nents = 0)
- 		return -EINVAL;
--#ifndef ARCH_HAS_SG_CHAIN
-+#ifndef CONFIG_ARCH_HAS_SG_CHAIN
- 	if (WARN_ON_ONCE(nents > max_ents))
- 		return -EINVAL;
- #endif
+ /*
+diff --git a/arch/x86/include/asm/syscall.h b/arch/x86/include/asm/syscall.h
+index aea284b..c98e0ec 100644
+--- a/arch/x86/include/asm/syscall.h
++++ b/arch/x86/include/asm/syscall.h
+@@ -13,7 +13,7 @@
+ #ifndef _ASM_X86_SYSCALL_H
+ #define _ASM_X86_SYSCALL_H
+ 
+-#include <linux/audit.h>
++#include <uapi/linux/audit.h>
+ #include <linux/sched.h>
+ #include <linux/err.h>
+ #include <asm/asm-offsets.h>	/* For NR_syscalls */
+diff --git a/kernel/auditsc.c b/kernel/auditsc.c
+index 7317f46..0c9fe06 100644
+--- a/kernel/auditsc.c
++++ b/kernel/auditsc.c
+@@ -1461,7 +1461,7 @@ void __audit_syscall_entry(int arch, int major,
+ 	if (!audit_enabled)
+ 		return;
+ 
+-	context->arch	    = arch;
++	context->arch	    = syscall_get_arch(current, NULL);
+ 	context->major      = major;
+ 	context->argv[0]    = a1;
+ 	context->argv[1]    = a2;
 -- 
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-hosted by The Linux Foundation
+1.7.1
 
