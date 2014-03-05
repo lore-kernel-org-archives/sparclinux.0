@@ -1,7 +1,7 @@
 From: Bob Picco <bpicco@meloft.net>
-Date: Wed, 05 Mar 2014 13:11:08 +0000
+Date: Wed, 05 Mar 2014 20:18:12 +0000
 Subject: Re: [PATCH] sparc64 - strict devmem
-Message-Id: <20140305131108.GZ29427@zareason>
+Message-Id: <20140305201812.GA29427@zareason>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1393866035-7939-1-git-send-email-bpicco@meloft.net>
 In-Reply-To: <1393866035-7939-1-git-send-email-bpicco@meloft.net>
@@ -25,13 +25,9 @@ David Miller wrote:	[Tue Mar 04 2014, 03:46:26PM EST]
 > 
 > Ok, I looked more deeply into this and I'm going to rescind my request
 > to use kern_addr_valid().
-Okay.
 > 
 > This devmem_is_allowed() seems to also want to allow non-RAM MMIO
 > accesses too.
-Yes, this is my bad. I expected this issue to come up in the first round but
-forgot. I wasn't certain general MMIO access via /dev/mem is of value to
-sparc64. One could always turn off the config option.
 > 
 > So using the iomem resource is probably the way to go.
 > 
@@ -43,9 +39,19 @@ sparc64. One could always turn off the config option.
 > 2) Our implementation of devmem_is_allowed() should be aligned as
 >    much as possible with other implementations.  Perhaps powerpc
 >    is the best example to use.
-I'll take a peek at powerpc.
+Alright, hold off on strict_devmem. I realize after looking at powerpc
+that 1 1/2 years ago my exhaustion consumed me. I plugged up bus error
+with strict_devmem by inverting the purpose of strict_devmem. In other words,
+I allow memory access but don't allow MMIO and HOLES. Very sorry about this!
 
-thanx and you're welcome,
+Let me plug up the bus error differently.
+
+Hm, I'm not certain to be all that thrilled with strict_devmem any longer.
+Though I'm certain some security person would be.
+
+This is what happens when your brain is fried which it was 1 1/2 years ago.
+
+thanx,
 
 bob
 > 
