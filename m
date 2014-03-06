@@ -1,35 +1,25 @@
-From: Doug <doug.lkml@gmail.com>
-Date: Tue, 04 Mar 2014 18:16:08 +0000
-Subject: [PATCH 1/1] sparc64:tsb.c:use array size macro rather than number
-Message-Id: <1393956248-9354-1-git-send-email-doug.lkml@gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 06 Mar 2014 21:33:48 +0000
+Subject: Re: [PATCH 1/1] sparc64:tsb.c:use array size macro rather than number
+Message-Id: <20140306.163348.942052862365762404.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1393956248-9354-1-git-send-email-doug.lkml@gmail.com>
+In-Reply-To: <1393956248-9354-1-git-send-email-doug.lkml@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Doug <doug.lkml@gmail.com>
+To: doug.lkml@gmail.com
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-This is a small patch which uses ARRAY_SIZE macro
-rather than a number to make code readability better.
+From: Doug <doug.lkml@gmail.com>
+Date: Tue,  4 Mar 2014 23:34:08 +0530
 
-Signed-off-by: Doug <doug.lkml@gmail.com>
----
- arch/sparc/mm/tsb.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> This is a small patch which uses ARRAY_SIZE macro
+> rather than a number to make code readability better.
+> 
+> Signed-off-by: Doug <doug.lkml@gmail.com>
 
-diff --git a/arch/sparc/mm/tsb.c b/arch/sparc/mm/tsb.c
-index 3b3a360..f5d506f 100644
---- a/arch/sparc/mm/tsb.c
-+++ b/arch/sparc/mm/tsb.c
-@@ -273,7 +273,7 @@ void __init pgtable_cache_init(void)
- 		prom_halt();
- 	}
- 
--	for (i = 0; i < 8; i++) {
-+	for (i = 0; i < ARRAY_SIZE(tsb_cache_names); i++) {
- 		unsigned long size = 8192 << i;
- 		const char *name = tsb_cache_names[i];
- 
--- 
-1.8.1.2
+Doug, please provide your full real-name, including your last
+name, in your From: and Signoff.
 
+Thank you.
