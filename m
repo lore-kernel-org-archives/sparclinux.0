@@ -1,21 +1,39 @@
-From: Doug Wilson <doug.lkml@gmail.com>
-Date: Fri, 07 Mar 2014 10:53:50 +0000
-Subject: Re: [PATCH 1/1] sparc64:tsb.c:use array size macro rather than number
-Message-Id: <CALY8T6p65yPu8vxyhN7kFkOQBpJO0+4u2sG7b8kYJ8Y2QaQC9A@mail.gmail.com>
+From: Doug <doug.lkml@gmail.com>
+Date: Fri, 07 Mar 2014 10:59:35 +0000
+Subject: [PATCH 1/1] sparc64:tsb.c:use array size macro rather than number
+Message-Id: <1394189943-6012-1-git-send-email-doug.lkml@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1393956248-9354-1-git-send-email-doug.lkml@gmail.com>
-	<20140306.163348.942052862365762404.davem@davemloft.net>
-In-Reply-To: <20140306.163348.942052862365762404.davem@davemloft.net>
+In-Reply-To: <1393956248-9354-1-git-send-email-doug.lkml@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Doug Wilson <doug.lkml@gmail.com>
 
->
-> Doug, please provide your full real-name, including your last
-> name, in your From: and Signoff.
+From: Doug Wilson <doug.lkml@gmail.com>
 
-Sorry David. I'll resend the patch.
+    This is a small patch which uses ARRAY_SIZE macro
+    rather than a number to make code readability better.
 
-- Doug
+Signed-off-by: Doug Wilson <doug.lkml@gmail.com>
+---
+ arch/sparc/mm/tsb.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/sparc/mm/tsb.c b/arch/sparc/mm/tsb.c
+index 3b3a360..f5d506f 100644
+--- a/arch/sparc/mm/tsb.c
++++ b/arch/sparc/mm/tsb.c
+@@ -273,7 +273,7 @@ void __init pgtable_cache_init(void)
+ 		prom_halt();
+ 	}
+ 
+-	for (i = 0; i < 8; i++) {
++	for (i = 0; i < ARRAY_SIZE(tsb_cache_names); i++) {
+ 		unsigned long size = 8192 << i;
+ 		const char *name = tsb_cache_names[i];
+ 
+-- 
+1.8.1.2
+
