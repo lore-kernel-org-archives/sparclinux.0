@@ -1,107 +1,18 @@
-From: "GOOGLE Gewinnbenachrichtigung!!!" <gogle.promuk@live.com>
-Date: Tue, 18 Mar 2014 12:53:37 +0000
-Subject: GOOGLE Gewinnbenachrichtigung!!!
-Message-Id: <96d2ee5e1da231c8396fbd62fa8da294.squirrel@23.96.39.92>
+From: Adrian Gillian Bayford <wiltsi@morrisville.edu>
+Date: Mon, 17 Mar 2014 20:31:19 +0000
+Subject: Re Grant Donation!!!
+Message-Id: <60eba054-0edf-45d7-b811-03477c800332@system38.csntprod.morrisville.edu>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-GOOGLE INTERNATIONALE F=F6rderung-GEWINNZUTEILUNG
-           GOOGLE  F=F6rderung
+We are donating 800,000 pounds to you, Send Name, Country, Mobile Number, Sex, Age, Occupation for more details so that we can send your details to our verification department. You can verify this by visiting the web pages below.
 
-GOOGLE Einarbeitung=A9
-UROPA INTERLOTTO/EUROMILLINEN LOTTO BONUS-PROGRAMM
-BEL-GRAVE HOUSE, 76 BUCKINGHAM PALACE ROAD,
-LONDON SW1W 9TQ, UNITED KINGDOM.OFFICE;
-VOM SCHREIBTISCH VON VICE PRESIDENT INTERNATIONAL
-PROMOTION/PREISVERLEIHUNG AKTENZEICHEN: ANA/BCL654560010/ESP.
-OFFIZIELLE GEWINNBENACHRITIGUNG.
-DATUM: 18/03/2014.
+http://www.bbc.co.uk/news/uk-england-19254228
 
-ACHTUNG! DER BEG=DCNSTIGTE,
-
-GOOGLE Gewinnbenachrichtigung!!!
-
-Wir freuen uns,Ihnen noch einmal gratulieren zu dieser Notiz, die Teil
-unserer gl=FCcklichen Gewinner ausgew=E4hlt diesem Jahr. Diese Aktion wurde=
- im
-Anschluss an die aktive Nutzung des Google-Suchmaschine und im
-Google-Hilfsdienste anzukurbeln. Daher machen wir mit Ihren Preis zu
-gewinnen glauben, werden Sie weiterhin aktiv zu sein und Schirmherrschaft
-f=FCr dieses Unternehmen. Google ist heute der weltweit f=FChrende
-Suchmaschine weltweit und in dem Bestreben, sicherzustellen, dass sie die
-am weitesten verbreitete Suchmaschinen bleibt, ein Online-E-Mail
-Stimmabgabe aus wurde am 13/03/2014 ohne Ihr Wissen ausgef=FChrt wurde
-offiziell freigegeben am 18/03/2014. Wir m=F6chten Ihnen f=F6rmlich mitteil=
-en,
-dass Ihre E-Mail-Adresse zu einem Pauschalbetrag von:(=80450,000,00)(VIER
-HUNDERT UND F=DCNFZIG TAUSEND Euro.)Die summe ergibt sich einer
-gewinnausschuttung von.(=8018,000,000:00)(ACHTZEHN MILLIONEN EURO.)Die summe
-wurde durch 40 gewinnern aus der gleichen kategorie geteilt.HERZLICHEN
-GLUCKWUNSCH!!! befestigt war
-
-Wir m=F6chten Ihnen mitteilen, dass Sie erfolgreich den Anforderungen, den
-gesetzlichen Auflagen, =DCberpr=FCfungen und unsere zufriedenstellenden
-Bericht Test f=FCr alle unsere Online-Gewinner durchgef=FChrt weitergegeben.
-Eine gewinnende Scheck wird in Ihrem Namen von Google F=F6rderpreis Team
-erteilt werden, und auch eine Bescheinigung =FCber die Auszeichnung
-Anspr=FCche werden an der Seite Ihrer gewinnenden Scheck zugesandt.
-
-Dies sind Ihre Auszeichnung Details.
-Security Code Nummer: GU/N/3642375G
-Ticket Nr.: GU/K/699/33/2014
-Gewinnzahlen: UK/877/798/2014
-
-Erforderliche Angaben von Ihnen Teil unserer vorsorglich  zu verdoppeln
-behaupten und ungerechtfertigten Missbrauch von diesem  Programm  zu
-vermeiden. Um Ihren Preis gewonnen, bitte, sind die Mittel unserer
-ausl=E4ndischen  Transfer Manager Mr. Audrew C. Nielsen korrekt, Pr=FCfung =
-und
-Genehmigung  gef=FCllt
-
-        Bitte vollst=E4ndige =DCberpr=FCfung und Mittel freizugeben Form
-
-(1) Ihr vollst=E4ndiger Name ...............................
-(2) Kontakt-Adresse ........................................
-(3) Tel. Zahlen ...............................................
-(4) Mobile ......................................................
-(5) Nationalit=E4t / Land .....................................
-(6) Beruf .......................................................
-(7) Sex /Geschlecht........................................
-(8) Alter ........................................................
-(9) jemals gewonnen eine Online-Lotterie? .............
-(10) Mode von Preisgeld nach Hause: Courier Lieferung oder Bank=FCberweisung
-..........
-Die oben genannten Anforderungen sind erforderlich.
-
-Gl=FCckw=FCnsche noch einmal.
-
-    Mode des Geldpreises Transfer
-(1) =DCberweisung / Courier Lieferung Ihrer Certified Winning Scheck Name
-und andere Dokumente, um sicherzustellen, Sie gewinnen. Wir empfehlen,
-dass Ihr ausw=E4rtige Transfer Manager, Mr. Audrew C. Nielsen mit seiner
-privaten E-Mail unten, um unn=F6tige Verz=F6gerungen und Komplikationen:
-***********************************************
-AUSLANDSFORDERUNGEN MANAGER
-Dr. Mrs. ROSALINE CHARLES
-GOOGLE Sicherheitsabteilung [London]
-
-Kontakt E-Mail: gogle.eurolotto@gmail.com
-                Google-Verwaltung@linuxmail.org
-                Google-Verwaltung@planetmail.net
-***********************************************
-Security Code Nummer: GU/N/3642375G
-Ticket Nr.: GU/K/699/33/2014
-Gewinnzahlen: UK/877/798/2014
-***********************************************
-Herzlichen Gl=FCckwunsch noch einmal von Mitgliedern und Personal der
-Lotterie Bord.
-
-Herzlichst,
-Mr. larry Page.
-Chief Executive Officer (C.E.O)
-GOOGLE zonale Koordinator
-LONDON, UNITED KINGDOM.
-
+We anticipate your earliest response.
+God bless you.
+Best of luck,
+Adrian and Gillian Bayford.
