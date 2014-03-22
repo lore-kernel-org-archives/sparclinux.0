@@ -1,7 +1,7 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Sat, 22 Mar 2014 20:44:24 +0000
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
+Date: Sat, 22 Mar 2014 21:31:21 +0000
 Subject: Re: [RESEND][PATCH 1/2] lib/scatterlist: Make ARCH_HAS_SG_CHAIN an actual Kconfig
-Message-Id: <alpine.DEB.2.02.1403222142560.18573@ionos.tec.linutronix.de>
+Message-Id: <1395523881.2143.58.camel@dabdike.int.hansenpartnership.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1395512032-20575-1-git-send-email-lauraa@codeaurora.org>
  <1395512032-20575-2-git-send-email-lauraa@codeaurora.org>
@@ -11,30 +11,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-On Sat, 22 Mar 2014, Laura Abbott wrote:
-
+On Sat, 2014-03-22 at 11:13 -0700, Laura Abbott wrote:
 > Rather than have architectures #define ARCH_HAS_SG_CHAIN in an architecture
 > specific scatterlist.h, make it a proper Kconfig option and use that
 > instead. At same time, remove the header files are are now mostly
 > useless and just include asm-generic/scatterlist.h.
-> 
-> Cc: Russell King <linux@arm.linux.org.uk>
-> Cc: Tony Luck <tony.luck@intel.com>
-> Cc: Fenghua Yu <fenghua.yu@intel.com>
-> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> Cc: Paul Mackerras <paulus@samba.org>
-> Cc: Ingo Molnar <mingo@redhat.com>
-> Cc: "H. Peter Anvin" <hpa@zytor.com>
-> Cc: "James E.J. Bottomley" <JBottomley@parallels.com>
-> Cc: Fenghua Yu <fenghua.yu@intel.com>
-> Cc: Tony Luck <tony.luck@intel.com>
-> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> Cc: Paul Mackerras <paulus@samba.org>
-> Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-> Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
 
-For the x86 part:
+Well, the transformation looks fine.  Perhaps part of the reason for the
+lack of response is that there's no compelling reason in the change log
+above for doing this.  The usual reason for eliminating ARCH_HAS is that
+it's hiding something that would be better expressed a different way
+(that's actually intuitive to grep) or that it's expressing something
+that should be configurable.  Neither of these reasons apply in this
+case, because SG_CHAIN definitely is a property of the architecture not
+the config space and it's not really hiding anything.
 
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
+Perhaps now might be the time to ask which are the remaining
+architectures that cannot do SG chaining and then we can fix them and
+pull the whole thing out.
+
+James
+
+
