@@ -1,91 +1,67 @@
-From: Laura Abbott <lauraa@codeaurora.org>
-Date: Sat, 22 Mar 2014 18:13:50 +0000
-Subject: [RESEND][PATCH 0/2] Cleanup asm/scatterlist.h
-Message-Id: <1395512032-20575-1-git-send-email-lauraa@codeaurora.org>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Wed, 26 Mar 2014 08:41:23 +0000
+Subject: Re: [PATCH] sparc32: make copy_to/from_user_page() usable from modular code
+Message-Id: <CAMuHMdUNvSahqcHPo9eO44d6opQXTvQq_HbUbFM2qhXTOj7LJQ@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1392326101-20388-1-git-send-email-paul.gortmaker@windriver.com>
+In-Reply-To: <1392326101-20388-1-git-send-email-paul.gortmaker@windriver.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: sparclinux <sparclinux@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
+On Thu, Feb 13, 2014 at 10:15 PM, Paul Gortmaker
+<paul.gortmaker@windriver.com> wrote:
+> While copy_to/from_user_page() users are uncommon, there is one in
+> drivers/staging/lustre/lustre/libcfs/linux/linux-curproc.c which leads
+> to the following:
+>
+> ERROR: "sparc32_cachetlb_ops" [drivers/staging/lustre/lustre/libcfs/libcf=
+s.ko] undefined!
+>
+> during routine allmodconfig build coverage.  The reason this happens
+> is as follows:
+>
+> In arch/sparc/include/asm/cacheflush_32.h we have:
+>
+>  #define flush_cache_page(vma,addr,pfn) \
+>         sparc32_cachetlb_ops->cache_page(vma, addr)
+>
+>  #define copy_to_user_page(vma, page, vaddr, dst, src, len) \
+>         do {                                                    \
+>                 flush_cache_page(vma, vaddr, page_to_pfn(page));\
+>                 memcpy(dst, src, len);                          \
+>         } while (0)
+>  #define copy_from_user_page(vma, page, vaddr, dst, src, len) \
+>         do {                                                    \
+>                 flush_cache_page(vma, vaddr, page_to_pfn(page));\
+>                 memcpy(dst, src, len);                          \
+>         } while (0)
+>
+> However, sparc32_cachetlb_ops isn't exported and hence the error.
+>
+> Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
 
+Sorry for only noticing now. A similar fix for pa-risc was reverted:
 
-I haven't gotten many responses so I'm going to try sending again
-(this time with a cover letter which I probably should have done in
-the first place...)
+"Christoph Hellwig <hch@infradead.org> commented:
+ This one shouldn't go in - Geert sent it a bit prematurely, as Lustre
+ shouldn't use it just to reimplement core VM functionality (which it
+ shouldn't use either, but that's a separate story)."
 
-ARCH_HAS_SG_CHAIN is currently defined as needed in asm/scatterlist.h.
-It was suggested[1] that this should probably be a proper Kconfig.
-At the same time, we can clean up most of the asm/scatterlist.h files
-to reduce redundancy. This makes parisc the only architecture that still
-has an asm/scatterlist.h file due to the #define sg_virt_addr (which
-could probably be cleaned up further still)
+http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=
+=A446e72bc15c7bfd2c953e56064ace3566c79b0e
 
-Andrew, once we get a few more Acked-bys can we take this through your tree
-as suggested by Will?
+Gr{oetje,eeting}s,
 
-Thanks,
-Laura
+                        Geert
 
-[1] http://lists.infradead.org/pipermail/linux-arm-kernel/2014-March/240435.html
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
+.org
 
-Laura Abbott (2):
-  lib/scatterlist: Make ARCH_HAS_SG_CHAIN an actual Kconfig
-  Cleanup useless architecture versions of scatterlist.h
-
- arch/alpha/include/asm/Kbuild             |  1 +
- arch/alpha/include/asm/scatterlist.h      |  6 ------
- arch/arm/Kconfig                          |  1 +
- arch/arm/include/asm/Kbuild               |  1 +
- arch/arm/include/asm/scatterlist.h        | 12 ------------
- arch/arm64/Kconfig                        |  1 +
- arch/cris/include/asm/Kbuild              |  1 +
- arch/cris/include/asm/scatterlist.h       |  6 ------
- arch/frv/include/asm/Kbuild               |  1 +
- arch/frv/include/asm/scatterlist.h        |  6 ------
- arch/ia64/Kconfig                         |  1 +
- arch/ia64/include/asm/Kbuild              |  1 +
- arch/ia64/include/asm/scatterlist.h       |  7 -------
- arch/m32r/include/asm/Kbuild              |  1 +
- arch/m32r/include/asm/scatterlist.h       |  6 ------
- arch/microblaze/include/asm/Kbuild        |  1 +
- arch/microblaze/include/asm/scatterlist.h |  1 -
- arch/mn10300/include/asm/Kbuild           |  1 +
- arch/mn10300/include/asm/scatterlist.h    | 16 ----------------
- arch/powerpc/Kconfig                      |  1 +
- arch/powerpc/include/asm/Kbuild           |  1 +
- arch/powerpc/include/asm/scatterlist.h    | 17 -----------------
- arch/s390/Kconfig                         |  1 +
- arch/s390/include/asm/Kbuild              |  1 +
- arch/s390/include/asm/scatterlist.h       |  3 ---
- arch/score/include/asm/Kbuild             |  2 +-
- arch/score/include/asm/scatterlist.h      |  6 ------
- arch/sparc/Kconfig                        |  1 +
- arch/sparc/include/asm/Kbuild             |  1 +
- arch/sparc/include/asm/scatterlist.h      |  8 --------
- arch/x86/Kconfig                          |  1 +
- arch/x86/include/asm/Kbuild               |  1 +
- arch/x86/include/asm/scatterlist.h        |  8 --------
- include/linux/scatterlist.h               |  2 +-
- include/scsi/scsi.h                       |  2 +-
- lib/Kconfig                               |  7 +++++++
- lib/scatterlist.c                         |  4 ++--
- 37 files changed, 31 insertions(+), 107 deletions(-)
- delete mode 100644 arch/alpha/include/asm/scatterlist.h
- delete mode 100644 arch/arm/include/asm/scatterlist.h
- delete mode 100644 arch/cris/include/asm/scatterlist.h
- delete mode 100644 arch/frv/include/asm/scatterlist.h
- delete mode 100644 arch/ia64/include/asm/scatterlist.h
- delete mode 100644 arch/m32r/include/asm/scatterlist.h
- delete mode 100644 arch/microblaze/include/asm/scatterlist.h
- delete mode 100644 arch/mn10300/include/asm/scatterlist.h
- delete mode 100644 arch/powerpc/include/asm/scatterlist.h
- delete mode 100644 arch/s390/include/asm/scatterlist.h
- delete mode 100644 arch/score/include/asm/scatterlist.h
- delete mode 100644 arch/sparc/include/asm/scatterlist.h
- delete mode 100644 arch/x86/include/asm/scatterlist.h
-
--- 
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-hosted by The Linux Foundation
-
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like t=
+hat.
+                                -- Linus Torvalds
