@@ -1,82 +1,79 @@
-From: Kamal Mostafa <kamal@canonical.com>
-Date: Wed, 16 Apr 2014 22:37:51 +0000
-Subject: [3.8.y.z extended stable] Patch "sparc64: don't treat 64-bit syscall return codes as 32-bit" has bee
-Message-Id: <1397687871-17140-1-git-send-email-kamal@canonical.com>
+From: Don Zickus <dzickus@redhat.com>
+Date: Fri, 04 Apr 2014 20:47:08 +0000
+Subject: [PATCH 2/4 v2] x86, nmi: Add more flexible NMI back trace support
+Message-Id: <1396644430-70649-3-git-send-email-dzickus@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1396644430-70649-1-git-send-email-dzickus@redhat.com>
+In-Reply-To: <1396644430-70649-1-git-send-email-dzickus@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: akpm@linux-foundation.org, x86@kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org, mguzik@redhat.com, Aaron Tomlin <atomlin@redhat.com>, Don Zickus <dzickus@redhat.com>
 
-This is a note to let you know that I have just added a patch titled
+From: Aaron Tomlin <atomlin@redhat.com>
 
-    sparc64: don't treat 64-bit syscall return codes as 32-bit
+This patch introduces the x86 specific implementation
+changes to the arch_trigger_all_cpu_backtrace() routine.
+Now users have the ability to choose whether or not to
+issue an NMI back trace which includes current.
 
-to the linux-3.8.y-queue branch of the 3.8.y.z extended stable tree 
-which can be found at:
+[Don't print message in single processor case - dcz]
 
- http://kernel.ubuntu.com/git?p=ubuntu/linux.git;a=shortlog;h=refs/heads/linux-3.8.y-queue
-
-This patch is scheduled to be released in version 3.8.13.22.
-
-If you, or anyone else, feels it should not be added to this tree, please 
-reply to this email.
-
-For more information about the 3.8.y.z tree, see
-https://wiki.ubuntu.com/Kernel/Dev/ExtendedStable
-
-Thanks.
--Kamal
-
-------
-
-From 7bf9d29202571eeece71b70343d69d269b873988 Mon Sep 17 00:00:00 2001
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-Date: Fri, 14 Mar 2014 10:42:01 -0500
-Subject: sparc64: don't treat 64-bit syscall return codes as 32-bit
-
-[ Upstream commit 1535bd8adbdedd60a0ee62e28fd5225d66434371 ]
-
-When checking a system call return code for an error,
-linux_sparc_syscall was sign-extending the lower 32-bit value and
-comparing it to -ERESTART_RESTARTBLOCK. lseek can return valid return
-codes whose lower 32-bits alone would indicate a failure (such as 4G-1).
-Use the whole 64-bit value to check for errors. Only the 32-bit path
-should sign extend the lower 32-bit value.
-
-Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
-Acked-by: Bob Picco <bob.picco@oracle.com>
-Acked-by: Allen Pais <allen.pais@oracle.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Kamal Mostafa <kamal@canonical.com>
+Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
+Signed-off-by: Don Zickus <dzickus@redhat.com>
 ---
- arch/sparc/kernel/syscalls.S | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/include/asm/irq.h    |    2 +-
+ arch/x86/kernel/apic/hw_nmi.c |   16 +++++++++++++---
+ 2 files changed, 14 insertions(+), 4 deletions(-)
 
-diff --git a/arch/sparc/kernel/syscalls.S b/arch/sparc/kernel/syscalls.S
-index dc7b524..d654e9f 100644
---- a/arch/sparc/kernel/syscalls.S
-+++ b/arch/sparc/kernel/syscalls.S
-@@ -195,7 +195,8 @@ linux_sparc_syscall32:
- 	 mov	%i0, %l5				! IEU1
- 5:	call	%l7					! CTI	Group brk forced
- 	 srl	%i5, 0, %o5				! IEU1
--	ba,a,pt	%xcc, 3f
-+	ba,pt	%xcc, 3f
-+	 sra	%o0, 0, %o0
-
- 	/* Linux native system calls enter here... */
- 	.align	32
-@@ -223,7 +224,6 @@ linux_sparc_syscall:
- 3:	stx	%o0, [%sp + PTREGS_OFF + PT_V9_I0]
- ret_sys_call:
- 	ldx	[%sp + PTREGS_OFF + PT_V9_TSTATE], %g3
--	sra	%o0, 0, %o0
- 	mov	%ulo(TSTATE_XCARRY | TSTATE_ICARRY), %g2
- 	sllx	%g2, 32, %g2
-
---
-1.8.3.2
+diff --git a/arch/x86/include/asm/irq.h b/arch/x86/include/asm/irq.h
+index cb6cfcd..a80cbb8 100644
+--- a/arch/x86/include/asm/irq.h
++++ b/arch/x86/include/asm/irq.h
+@@ -43,7 +43,7 @@ extern int vector_used_by_percpu_irq(unsigned int vector);
+ extern void init_ISA_irqs(void);
+ 
+ #ifdef CONFIG_X86_LOCAL_APIC
+-void arch_trigger_all_cpu_backtrace(void);
++void arch_trigger_all_cpu_backtrace(bool);
+ #define arch_trigger_all_cpu_backtrace arch_trigger_all_cpu_backtrace
+ #endif
+ 
+diff --git a/arch/x86/kernel/apic/hw_nmi.c b/arch/x86/kernel/apic/hw_nmi.c
+index a698d71..3614e34 100644
+--- a/arch/x86/kernel/apic/hw_nmi.c
++++ b/arch/x86/kernel/apic/hw_nmi.c
+@@ -33,7 +33,7 @@ static DECLARE_BITMAP(backtrace_mask, NR_CPUS) __read_mostly;
+ /* "in progress" flag of arch_trigger_all_cpu_backtrace */
+ static unsigned long backtrace_flag;
+ 
+-void arch_trigger_all_cpu_backtrace(void)
++void arch_trigger_all_cpu_backtrace(bool include_self)
+ {
+ 	int i;
+ 
+@@ -46,8 +46,18 @@ void arch_trigger_all_cpu_backtrace(void)
+ 
+ 	cpumask_copy(to_cpumask(backtrace_mask), cpu_online_mask);
+ 
+-	printk(KERN_INFO "sending NMI to all CPUs:\n");
+-	apic->send_IPI_all(NMI_VECTOR);
++	if (include_self) {
++		printk(KERN_INFO "sending NMI to all CPUs:\n");
++		apic->send_IPI_all(NMI_VECTOR);
++	} else {
++		cpumask_clear_cpu(smp_processor_id(),
++			to_cpumask(backtrace_mask));
++
++		if (!cpumask_empty(to_cpumask(backtrace_mask))) {
++			printk(KERN_INFO "sending NMI to other CPUs:\n");
++			apic->send_IPI_allbutself(NMI_VECTOR);
++		}
++	}
+ 
+ 	/* Wait for up to 10 seconds for all CPUs to do the backtrace */
+ 	for (i = 0; i < 10 * 1000; i++) {
+-- 
+1.7.1
 
