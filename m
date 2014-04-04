@@ -1,92 +1,32 @@
-From: Don Zickus <dzickus@redhat.com>
-Date: Fri, 04 Apr 2014 20:47:09 +0000
-Subject: [PATCH 3/4 v2] sparc64, nmi: Add more flexible NMI back trace support
-Message-Id: <1396644430-70649-4-git-send-email-dzickus@redhat.com>
+From: David Miller <davem@davemloft.net>
+Date: Fri, 04 Apr 2014 20:53:41 +0000
+Subject: Re: [PATCH 3/4 v2] sparc64, nmi: Add more flexible NMI back trace support
+Message-Id: <20140404.165341.2082003037256406028.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1396644430-70649-1-git-send-email-dzickus@redhat.com>
-In-Reply-To: <1396644430-70649-1-git-send-email-dzickus@redhat.com>
+	<1396644430-70649-4-git-send-email-dzickus@redhat.com>
+In-Reply-To: <1396644430-70649-4-git-send-email-dzickus@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: akpm@linux-foundation.org, x86@kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org, mguzik@redhat.com, Aaron Tomlin <atomlin@redhat.com>, Don Zickus <dzickus@redhat.com>
+To: dzickus@redhat.com
+Cc: linux-kernel@vger.kernel.org, akpm@linux-foundation.org, x86@kernel.org, sparclinux@vger.kernel.org, mguzik@redhat.com, atomlin@redhat.com
 
-From: Aaron Tomlin <atomlin@redhat.com>
+From: Don Zickus <dzickus@redhat.com>
+Date: Fri,  4 Apr 2014 16:47:09 -0400
 
-This patch introduces the sparc specific implementation
-changes to the arch_trigger_all_cpu_backtrace() routine.
-Now users have the ability to choose whether or not to
-issue an NMI back trace which includes current.
+> From: Aaron Tomlin <atomlin@redhat.com>
+> 
+> This patch introduces the sparc specific implementation
+> changes to the arch_trigger_all_cpu_backtrace() routine.
+> Now users have the ability to choose whether or not to
+> issue an NMI back trace which includes current.
+> 
+> Update sysrq_handle_globreg() to use the new interface
+> 
+> [squash two sparc patches, update changelog - dcz]
+> 
+> Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
+> Signed-off-by: Don Zickus <dzickus@redhat.com>
 
-Update sysrq_handle_globreg() to use the new interface
-
-[squash two sparc patches, update changelog - dcz]
-
-Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
-Signed-off-by: Don Zickus <dzickus@redhat.com>
----
- arch/sparc/include/asm/irq_64.h |    2 +-
- arch/sparc/kernel/process_64.c  |   14 +++++++++-----
- 2 files changed, 10 insertions(+), 6 deletions(-)
-
-diff --git a/arch/sparc/include/asm/irq_64.h b/arch/sparc/include/asm/irq_64.h
-index abf6afe..4f072b9 100644
---- a/arch/sparc/include/asm/irq_64.h
-+++ b/arch/sparc/include/asm/irq_64.h
-@@ -89,7 +89,7 @@ static inline unsigned long get_softint(void)
- 	return retval;
- }
- 
--void arch_trigger_all_cpu_backtrace(void);
-+void arch_trigger_all_cpu_backtrace(bool);
- #define arch_trigger_all_cpu_backtrace arch_trigger_all_cpu_backtrace
- 
- extern void *hardirq_stack[NR_CPUS];
-diff --git a/arch/sparc/kernel/process_64.c b/arch/sparc/kernel/process_64.c
-index 32a280e..3d61b98 100644
---- a/arch/sparc/kernel/process_64.c
-+++ b/arch/sparc/kernel/process_64.c
-@@ -237,7 +237,7 @@ static void __global_reg_poll(struct global_reg_snapshot *gp)
- 	}
- }
- 
--void arch_trigger_all_cpu_backtrace(void)
-+void arch_trigger_all_cpu_backtrace(bool include_self)
- {
- 	struct thread_info *tp = current_thread_info();
- 	struct pt_regs *regs = get_irq_regs();
-@@ -249,15 +249,19 @@ void arch_trigger_all_cpu_backtrace(void)
- 
- 	spin_lock_irqsave(&global_cpu_snapshot_lock, flags);
- 
--	memset(global_cpu_snapshot, 0, sizeof(global_cpu_snapshot));
--
- 	this_cpu = raw_smp_processor_id();
- 
--	__global_reg_self(tp, regs, this_cpu);
-+	memset(global_cpu_snapshot, 0, sizeof(global_cpu_snapshot));
-+
-+	if (include_self)
-+		__global_reg_self(tp, regs, this_cpu);
- 
- 	smp_fetch_global_regs();
- 
- 	for_each_online_cpu(cpu) {
-+		if (!include_self && cpu = this_cpu)
-+			continue;
-+
- 		struct global_reg_snapshot *gp = &global_cpu_snapshot[cpu].reg;
- 
- 		__global_reg_poll(gp);
-@@ -290,7 +294,7 @@ void arch_trigger_all_cpu_backtrace(void)
- 
- static void sysrq_handle_globreg(int key)
- {
--	arch_trigger_all_cpu_backtrace();
-+	arch_trigger_all_cpu_backtrace(true);
- }
- 
- static struct sysrq_key_op sparc_globalreg_op = {
--- 
-1.7.1
-
+Acked-by: David S. Miller <davem@davemloft.net>
