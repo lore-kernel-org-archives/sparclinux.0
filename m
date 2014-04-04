@@ -1,47 +1,34 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 30 Apr 2014 21:55:12 +0000
-Subject: [PATCH 05/10] sparc64: Don't use _PAGE_PRESENT in pte_modify() mask.
-Message-Id: <20140430.175512.1166904060807626791.davem@davemloft.net>
+From: Don Zickus <dzickus@redhat.com>
+Date: Fri, 04 Apr 2014 20:47:06 +0000
+Subject: [PATCH 0/4 V2] Print traces on softlockups
+Message-Id: <1396644430-70649-1-git-send-email-dzickus@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: akpm@linux-foundation.org, x86@kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org, mguzik@redhat.com, Don Zickus <dzickus@redhat.com>
 
+Version 2 of this patchset.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/include/asm/pgtable_64.h | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Added more patches to handle the 'uniprocessor' panic case by sending NMIs
+to every cpu but self.  Only affects x86, sparc.
 
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 50b2d78..ac5f708 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -258,8 +258,8 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t prot)
- {
- 	unsigned long mask, tmp;
- 
--	/* SUN4U: 0x630107ffffffecb8 (negated = 0x9cfef80000001347)
--	 * SUN4V: 0x33ffffffffffee17 (negated = 0xcc000000000011e8)
-+	/* SUN4U: 0x630107ffffffec38 (negated = 0x9cfef800000013c7)
-+	 * SUN4V: 0x33ffffffffffee07 (negated = 0xcc000000000011f8)
- 	 *
- 	 * Even if we use negation tricks the result is still a 6
- 	 * instruction sequence, so don't try to play fancy and just
-@@ -289,10 +289,10 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t prot)
- 	"	.previous\n"
- 	: "=r" (mask), "=r" (tmp)
- 	: "i" (_PAGE_PADDR_4U | _PAGE_MODIFIED_4U | _PAGE_ACCESSED_4U |
--	       _PAGE_CP_4U | _PAGE_CV_4U | _PAGE_E_4U | _PAGE_PRESENT_4U |
-+	       _PAGE_CP_4U | _PAGE_CV_4U | _PAGE_E_4U |
- 	       _PAGE_SPECIAL | _PAGE_PMD_HUGE | _PAGE_SZALL_4U),
- 	  "i" (_PAGE_PADDR_4V | _PAGE_MODIFIED_4V | _PAGE_ACCESSED_4V |
--	       _PAGE_CP_4V | _PAGE_CV_4V | _PAGE_E_4V | _PAGE_PRESENT_4V |
-+	       _PAGE_CP_4V | _PAGE_CV_4V | _PAGE_E_4V |
- 	       _PAGE_SPECIAL | _PAGE_PMD_HUGE | _PAGE_SZALL_4V));
- 
- 	return __pte((pte_val(pte) & mask) | (pgprot_val(prot) & ~mask));
--- 
-1.8.1.2
+Aaron Tomlin (4):
+  nmi: Provide the option to issue an NMI back trace to every cpu but
+    current
+  x86, nmi: Add more flexible NMI back trace support
+  sparc64, nmi: Add more flexible NMI back trace support
+  watchdog: Printing traces for all cpus on lockup detection
+
+ Documentation/kernel-parameters.txt |    5 +++++
+ Documentation/sysctl/kernel.txt     |   17 +++++++++++++++++
+ arch/sparc/include/asm/irq_64.h     |    2 +-
+ arch/sparc/kernel/process_64.c      |   14 +++++++++-----
+ arch/x86/include/asm/irq.h          |    2 +-
+ arch/x86/kernel/apic/hw_nmi.c       |   16 +++++++++++++---
+ include/linux/nmi.h                 |   12 +++++++++++-
+ kernel/sysctl.c                     |    9 +++++++++
+ kernel/watchdog.c                   |   32 ++++++++++++++++++++++++++++++++
+ 9 files changed, 98 insertions(+), 11 deletions(-)
 
