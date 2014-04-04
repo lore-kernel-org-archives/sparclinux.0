@@ -1,85 +1,67 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 21 Apr 2014 17:12:22 +0000
-Subject: [PATCH 10/24] sparc: fix sparse warnings in cpu.c
-Message-Id: <1398100356-19794-10-git-send-email-sam@ravnborg.org>
+From: Don Zickus <dzickus@redhat.com>
+Date: Fri, 04 Apr 2014 20:47:07 +0000
+Subject: [PATCH 1/4 v2] nmi: Provide the option to issue an NMI back trace to every cpu but current
+Message-Id: <1396644430-70649-2-git-send-email-dzickus@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1396644430-70649-1-git-send-email-dzickus@redhat.com>
+In-Reply-To: <1396644430-70649-1-git-send-email-dzickus@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: akpm@linux-foundation.org, x86@kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org, mguzik@redhat.com, Aaron Tomlin <atomlin@redhat.com>, Don Zickus <dzickus@redhat.com>
 
-Fix following sparc32 warning:
-cpu.c:430:29: warning: symbol 'cpuinfo_op' was not declared. Should it be static?
+From: Aaron Tomlin <atomlin@redhat.com>
 
-Fix following sparc64 warnings:
-cpu.c:364:14: warning: symbol 'dcache_parity_tl1_occurred' was not declared. Should it be static?
-cpu.c:365:14: warning: symbol 'icache_parity_tl1_occurred' was not declared. Should it be static?
+Some times it is preferred not to use the
+trigger_all_cpu_backtrace() routine when one wants
+to avoid capturing a back trace for current.
+For instance if one was previously captured
+recently.
 
-Rearrange asm/cpu.h to share more stuff between saprc32 and sparc64.
-Added missing include to cpu.c og kernel.h
+This patch provides a new routine namely
+trigger_allbutself_cpu_backtrace() which offers
+the flexibility to issue an NMI to every cpu but
+current and capture a back trace accordingly.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+[Added stub in #else clause - dcz]
+
+Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
+Signed-off-by: Don Zickus <dzickus@redhat.com>
 ---
- arch/sparc/include/asm/cpudata.h    | 10 ++++++++++
- arch/sparc/include/asm/cpudata_64.h |  5 -----
- arch/sparc/kernel/cpu.c             |  1 +
- 3 files changed, 11 insertions(+), 5 deletions(-)
+ include/linux/nmi.h |   11 ++++++++++-
+ 1 files changed, 10 insertions(+), 1 deletions(-)
 
-diff --git a/arch/sparc/include/asm/cpudata.h b/arch/sparc/include/asm/cpudata.h
-index b5976de..128b56b 100644
---- a/arch/sparc/include/asm/cpudata.h
-+++ b/arch/sparc/include/asm/cpudata.h
-@@ -1,5 +1,15 @@
- #ifndef ___ASM_SPARC_CPUDATA_H
- #define ___ASM_SPARC_CPUDATA_H
-+
-+#ifndef __ASSEMBLY__
-+
-+#include <linux/threads.h>
-+#include <linux/percpu.h>
-+
-+extern const struct seq_operations cpuinfo_op;
-+
-+#endif /* !(__ASSEMBLY__) */
-+
- #if defined(__sparc__) && defined(__arch64__)
- #include <asm/cpudata_64.h>
+diff --git a/include/linux/nmi.h b/include/linux/nmi.h
+index 6a45fb5..a17ab63 100644
+--- a/include/linux/nmi.h
++++ b/include/linux/nmi.h
+@@ -32,15 +32,24 @@ static inline void touch_nmi_watchdog(void)
+ #ifdef arch_trigger_all_cpu_backtrace
+ static inline bool trigger_all_cpu_backtrace(void)
+ {
+-	arch_trigger_all_cpu_backtrace();
++	arch_trigger_all_cpu_backtrace(true);
+ 
+ 	return true;
+ }
++static inline bool trigger_allbutself_cpu_backtrace(void)
++{
++	arch_trigger_all_cpu_backtrace(false);
++	return true;
++}
  #else
-diff --git a/arch/sparc/include/asm/cpudata_64.h b/arch/sparc/include/asm/cpudata_64.h
-index 050ef35..0e59407 100644
---- a/arch/sparc/include/asm/cpudata_64.h
-+++ b/arch/sparc/include/asm/cpudata_64.h
-@@ -8,9 +8,6 @@
+ static inline bool trigger_all_cpu_backtrace(void)
+ {
+ 	return false;
+ }
++static inline bool trigger_allbutself_cpu_backtrace(void)
++{
++	return false;
++}
+ #endif
  
- #ifndef __ASSEMBLY__
- 
--#include <linux/percpu.h>
--#include <linux/threads.h>
--
- typedef struct {
- 	/* Dcache line 1 */
- 	unsigned int	__softirq_pending; /* must be 1st, see rtrap.S */
-@@ -35,8 +32,6 @@ DECLARE_PER_CPU(cpuinfo_sparc, __cpu_data);
- #define cpu_data(__cpu)		per_cpu(__cpu_data, (__cpu))
- #define local_cpu_data()	__get_cpu_var(__cpu_data)
- 
--extern const struct seq_operations cpuinfo_op;
--
- #endif /* !(__ASSEMBLY__) */
- 
- #include <asm/trap_block.h>
-diff --git a/arch/sparc/kernel/cpu.c b/arch/sparc/kernel/cpu.c
-index 5c51258..82a3a71 100644
---- a/arch/sparc/kernel/cpu.c
-+++ b/arch/sparc/kernel/cpu.c
-@@ -22,6 +22,7 @@
- #include <asm/cpudata.h>
- 
- #include "kernel.h"
-+#include "entry.h"
- 
- DEFINE_PER_CPU(cpuinfo_sparc, __cpu_data) = { 0 };
- EXPORT_PER_CPU_SYMBOL(__cpu_data);
+ #ifdef CONFIG_LOCKUP_DETECTOR
 -- 
-1.8.3.1
+1.7.1
 
