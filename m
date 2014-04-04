@@ -1,114 +1,129 @@
-From: Don Zickus <dzickus@redhat.com>
-Date: Thu, 24 Apr 2014 13:50:05 +0000
-Subject: Re: [PATCH 2/2 v4] watchdog: Printing traces for all cpus on lockup detection
-Message-Id: <20140424135005.GP5328@redhat.com>
+From: =?ISO-8859-1?Q?Ra=FAl_Porcel?= <armin76@gentoo.org>
+Date: Fri, 04 Apr 2014 11:50:06 +0000
+Subject: Re: [resend] Re: Issue booting Niagara T1 after commit 87fa05aeb3
+Message-Id: <533E9C6E.3090205@gentoo.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1398285605-147082-1-git-send-email-dzickus@redhat.com>
- <1398285605-147082-3-git-send-email-dzickus@redhat.com>
- <20140423141407.6c38ee453d4c88c36fdfb062@linux-foundation.org>
- <20140424134804.GE8488@redhat.com>
-In-Reply-To: <20140424134804.GE8488@redhat.com>
+References: <528B57AF.6020106@fabbione.net>
+In-Reply-To: <528B57AF.6020106@fabbione.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, x86@kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org, mguzik@redhat.com, Aaron Tomlin <atomlin@redhat.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-On Thu, Apr 24, 2014 at 09:48:04AM -0400, Don Zickus wrote:
-> On Wed, Apr 23, 2014 at 02:14:07PM -0700, Andrew Morton wrote:
-> > On Wed, 23 Apr 2014 16:40:05 -0400 Don Zickus <dzickus@redhat.com> wrote:
-> > 
-> > > From: Aaron Tomlin <atomlin@redhat.com>
-> > > 
-> > > A 'softlockup' is defined as a bug that causes the kernel to
-> > > loop in kernel mode for more than a predefined period to
-> > > time, without giving other tasks a chance to run.
-> > > 
-> > > Currently, upon detection of this condition by the per-cpu
-> > > watchdog task, debug information (including a stack trace)
-> > > is sent to the system log.
-> > > 
-> > > On some occasions, we have observed that the "victim" rather
-> > > than the actual "culprit" (i.e. the owner/holder of the
-> > > contended resource) is reported to the user.
-> > > Often this information has proven to be insufficient to
-> > > assist debugging efforts.
-> > > 
-> > > To avoid loss of useful debug information, for architectures
-> > > which support NMI, this patch makes it possible to improve
-> > > soft lockup reporting. This is accomplished by issuing an
-> > > NMI to each cpu to obtain a stack trace.
-> > > 
-> > > If NMI is not supported we just revert back to the old method.
-> > > A sysctl and boot-time parameter is available to toggle this
-> > > feature.
-> > > 
-> > > --- a/include/linux/nmi.h
-> > > +++ b/include/linux/nmi.h
-> > > @@ -57,6 +57,9 @@ int hw_nmi_is_cpu_stuck(struct pt_regs *);
-> > >  u64 hw_nmi_get_sample_period(int watchdog_thresh);
-> > >  extern int watchdog_user_enabled;
-> > >  extern int watchdog_thresh;
-> > > +#ifdef CONFIG_SMP
-> > > +extern int sysctl_softlockup_all_cpu_backtrace;
-> > > +#endif
-> > 
-> > The ifdefs aren't really needed here.  If we omit them then error
-> > reporting happens at link time rather than at compile time, but that's
-> > a small price to pay for cleaning up the code.
-> > 
-> > > +		if (softlockup_all_cpu_backtrace) {
-> > > +			/* Prevent multiple soft-lockup reports if one cpu is already
-> > > +			 * engaged in dumping cpu back traces
-> > > +			 */
-> > > +			if (test_and_set_bit(0, &soft_lockup_nmi_warn)) {
-> > > +				/* Someone else will report us. Let's give up */
-> > > +				__this_cpu_write(soft_watchdog_warn, true);
-> > > +				return HRTIMER_RESTART;
-> > > +			}
-> > > +		}
-> > 
-> > You missed my suggestion here.
-> > 
-> >    text    data     bss     dec     hex filename
-> >    1519     524      24    2067     813 kernel/watchdog.o-before
-> >    1471     520      16    2007     7d7 kernel/watchdog.o-after
-> > 
-> > 
-> > --- a/include/linux/nmi.h~watchdog-printing-traces-for-all-cpus-on-lockup-detection-fix
-> > +++ a/include/linux/nmi.h
-> > @@ -57,9 +57,7 @@ int hw_nmi_is_cpu_stuck(struct pt_regs *
-> >  u64 hw_nmi_get_sample_period(int watchdog_thresh);
-> >  extern int watchdog_user_enabled;
-> >  extern int watchdog_thresh;
-> > -#ifdef CONFIG_SMP
-> >  extern int sysctl_softlockup_all_cpu_backtrace;
-> > -#endif
-> >  struct ctl_table;
-> >  extern int proc_dowatchdog(struct ctl_table *, int ,
-> >  			   void __user *, size_t *, loff_t *);
-> > --- a/kernel/watchdog.c~watchdog-printing-traces-for-all-cpus-on-lockup-detection-fix
-> > +++ a/kernel/watchdog.c
-> > @@ -31,7 +31,12 @@
-> >  
-> >  int watchdog_user_enabled = 1;
-> >  int __read_mostly watchdog_thresh = 10;
-> > +#ifdef CONFIG_SMP
-> >  int __read_mostly sysctl_softlockup_all_cpu_backtrace;
-> > +#else
-> > +#define sysctl_softlockup_all_cpu_backtrace 0
-> > +#endif
-> > +
-> >  static int __read_mostly watchdog_running;
-> >  static u64 __read_mostly sample_period;
-> >  
-> > _
-> 
-> Ah ok.  I will respin the patch with that cleanup.  Thanks!
+Hi,
 
-Or I can just be happy you took care of that for me.  :-)
+Just for the record, commit b3042d609e30e6144024801c89be3925106752b
+fixes it.
 
-/me should read all his email first...
+kernel 3.14 boots fine
 
-Thanks,
-Don
+On 02/10/14 22:23, Fabio M. Di Nitto wrote:
+> HI all,
+>=20
+> another user has reported a similar issue. Anything that I can help with
+> to have a fix?
+>=20
+> Thanks
+> Fabio
+>=20
+> On 11/19/2013 01:21 PM, Fabio M. Di Nitto wrote:
+>> Hi all,
+>>
+>> yes I know.. vintage hardware :) It=B4s running Debian unstable updated =
+to
+>> approx a week ago (yay for tons of rebuilds to bisect ;)).
+>>
+>> fabbione@sunfire:~/linux-2.6$ gcc --version
+>> gcc (Debian 4.6.4-5) 4.6.4
+>>
+>> kernel config is from debian, applied to the various bisect done on
+>> Linus tree.
+>>
+>> sunfire:~# cat /proc/cpuinfo
+>> cpu             : UltraSparc T1 (Niagara)
+>> fpu             : UltraSparc T1 integrated FPU
+>> pmu             : niagara
+>> prom            : OBP 4.28.9 2008/06/30 21:26
+>> type            : sun4v
+>> ncpus probed    : 24
+>> ..
+>>
+>> commit 87fa05aeb3a5e8e21b1a5510eef6983650eff092
+>> Author: Sam Ravnborg <sam@ravnborg.org>
+>> Date:   Thu Apr 11 21:38:50 2013 +0200
+>>
+>>     sparc: Use generic idle loop
+>>
+>>     Add generic cpu_idle support
+>>
+>> appears to be culprit and I can=B4t boot any kernel after that. Reverting
+>> the commit makes the machine boot again (tested up to commit 4fbf888acc
+>> from Linus tree).
+>>
+>> Sorry I really don=B4t know that part of the code well enough to propose=
+ a
+>> fix, but I can either provide access to the machine or test debugging
+>> patches.
+>>
+>> Thanks
+>> Fabio
+>>
+>> Few extra info:
+>>
+>> with this commit applied (head to the commit):
+>>
+>> [SNIP]
+>> [   68.089495] scsi0 : Emulex LPe1150 PCIe Fibre Channel Adapter  on PCI
+>> bus 08 device 00 irq 23
+>> [   68.089495] scsi0 : Emulex LPe1150 PCIe Fibre Channel Adapter  on PCI
+>> bus 08 device 00 irq 23
+>> [   89.429041] INFO: rcu_sched detected stalls on CPUs/tasks:[
+>> 89.429041] INFO: rcu_sched detected stalls on CPUs/tasks: { { 3 3 10 10
+>> 15 15} } (detected by 0, tS42 jiffies, g=18446744073709551328,
+>> c=18446744073709551327, q!64)
+>> (detected by 0, tS42 jiffies, g=18446744073709551328,
+>> c=18446744073709551327, q!64)
+>> [   89.431437] * CPU[  0]: TSTATE[0000000080001603]
+>> TPC[000000000042b9d4] TNPC[000000000042b9d8] TASK[swapper/0:0]
+>> [   89.431437] * CPU[  0]: TSTATE[0000000080001603]
+>> TPC[000000000042b9d4] TNPC[000000000042b9d8] TASK[swapper/0:0]
+>> [   89.431462] BUG: soft lockup - CPU#3 stuck for 23s! [swapper/3:0]
+>> [   89.431462] BUG: soft lockup - CPU#3 stuck for 23s! [swapper/3:0]
+>> [   89.431470] BUG: soft lockup - CPU#1 stuck for 23s! [swapper/1:0]
+>> [   89.431470] BUG: soft lockup - CPU#1 stuck for 23s! [swapper/1:0]
+>> [   89.431479] BUG: soft lockup - CPU#2 stuck for 23s! [swapper/2:0]
+>> [   89.431479] BUG: soft lockup - CPU#2 stuck for 23s! [swapper/2:0]
+>> [   89.431484] Modules linked in:
+>> [SNIP]
+>>
+>> Most kernels in between that commit to 3.12:
+>>
+>> [SNIP]
+>> [   68.392210] UDP hash table entries: 4096 (order: 4, 131072 bytes)
+>> [   68.393319] UDP-Lite hash table entries: 4096 (order: 4, 131072 bytes)
+>> [   68.395425] NET: Registered protocol family 1
+>> [   68.396008] pci 0001:05:02.0: Activating ISA DMA hang workarounds
+>> -- no more output --
+>>
+>> With Linus tree up to commit 4fbf888accb39 (didn=B4t test yet newer tree=
+s):
+>>
+>> [   60.770765] scsi2 : Emulex LPe1150 PCIe Fibre Channel Adapter  on PCI
+>> bus 08 device 00 irq 23
+>>  [   81.923914] INFO: rcu_sched detected stalls on CPUs/tasks: {}
+>> (detected by 4, tR92 jiffies, g=18446744073709551336,
+>> c=18446744073709551335,5)
+>> [   81.924215] INFO: Stall ended before state dump start
+>> [  145.419184] INFO: rcu_sched detected stalls on CPUs/tasks: {}
+>> (detected by 0, t!166 jiffies, g=18446744073709551336,
+>> c=18446744073709551335,7)
+>> [  145.419482] INFO: Stall ended before state dump start
+>>
+>>
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
+
