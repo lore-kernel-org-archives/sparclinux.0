@@ -1,56 +1,92 @@
-From: Josip Rodin <joy@entuzijast.net>
-Date: Tue, 29 Apr 2014 21:19:48 +0000
-Subject: Re: Time to let sun4m + sun4d RIP?
-Message-Id: <20140429211948.GA12619@entuzijast.net>
+From: Don Zickus <dzickus@redhat.com>
+Date: Fri, 04 Apr 2014 20:47:09 +0000
+Subject: [PATCH 3/4 v2] sparc64, nmi: Add more flexible NMI back trace support
+Message-Id: <1396644430-70649-4-git-send-email-dzickus@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20140419114802.GA13716@ravnborg.org>
-In-Reply-To: <20140419114802.GA13716@ravnborg.org>
+References: <1396644430-70649-1-git-send-email-dzickus@redhat.com>
+In-Reply-To: <1396644430-70649-1-git-send-email-dzickus@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: akpm@linux-foundation.org, x86@kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org, mguzik@redhat.com, Aaron Tomlin <atomlin@redhat.com>, Don Zickus <dzickus@redhat.com>
 
-On Tue, Apr 29, 2014 at 09:03:09PM +0200, Sam Ravnborg wrote:
-> On Tue, Apr 29, 2014 at 08:46:11PM +0200, Sam Ravnborg wrote:
-> > On Sat, Apr 19, 2014 at 01:48:02PM +0200, Sam Ravnborg wrote:
-> > > Hi all sparc lovers/users.
-> > > 
-> > > We all know that is is a long time ago that a sun4m or sun4d machine was produced,
-> > > and I wonder if there are anyone using these today.
-> > > The questions pops up as there are still stuff to do before the sparc32 port
-> > > is in good shape.
-> > > 
-> > > So the question to you guys...
-> > > Shall we keep support for sun4d and sun4m?
-> > > If yes then why?
-> > > 
-> > > LEON is in active use in several applications - so the sparc32 port is
-> > > as relevant as ever.
-> > 
-> > Just a fololow-up to my original question.
-> > 
-> > We still have a few brave souls running the kernels on sparc32 based boxes.
-> > On top of this there are templig.org that looks like a one-man show to implment
-> > sparc32 in VHDL. But very impressive!
-> > Then there are qemu that today supports sun4m - if we drop sun4m we also drop
-> > qemu support for sparc.
-> > 
-> > So in total there are still reasons to keep sun4m and sun4d around.
-> > 
-> > Thanks everyone for your responses!
-> 
-> And then I read this on LWN:
-> Debian drops the SPARC architecture - http://lwn.net/Articles/596663/
-> 
-> Which point to: https://bugs.debian.org/cgi-bin/bugreport.cgi?bugt5938
+From: Aaron Tomlin <atomlin@redhat.com>
 
-This simply means that the Debian sparc port will move to the category of
-ports whose serious bugs aren't automatically assumed to be equally as
-serious with regard to the preparation of new Debian releases.
+This patch introduces the sparc specific implementation
+changes to the arch_trigger_all_cpu_backtrace() routine.
+Now users have the ability to choose whether or not to
+issue an NMI back trace which includes current.
 
-That is indeed fair at this point, because even if we assume a generous
-ratio of affected people to bug reporters, the demand just isn't there,
-and hasn't really been there for quite a while now.
+Update sysrq_handle_globreg() to use the new interface
 
+[squash two sparc patches, update changelog - dcz]
+
+Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
+Signed-off-by: Don Zickus <dzickus@redhat.com>
+---
+ arch/sparc/include/asm/irq_64.h |    2 +-
+ arch/sparc/kernel/process_64.c  |   14 +++++++++-----
+ 2 files changed, 10 insertions(+), 6 deletions(-)
+
+diff --git a/arch/sparc/include/asm/irq_64.h b/arch/sparc/include/asm/irq_64.h
+index abf6afe..4f072b9 100644
+--- a/arch/sparc/include/asm/irq_64.h
++++ b/arch/sparc/include/asm/irq_64.h
+@@ -89,7 +89,7 @@ static inline unsigned long get_softint(void)
+ 	return retval;
+ }
+ 
+-void arch_trigger_all_cpu_backtrace(void);
++void arch_trigger_all_cpu_backtrace(bool);
+ #define arch_trigger_all_cpu_backtrace arch_trigger_all_cpu_backtrace
+ 
+ extern void *hardirq_stack[NR_CPUS];
+diff --git a/arch/sparc/kernel/process_64.c b/arch/sparc/kernel/process_64.c
+index 32a280e..3d61b98 100644
+--- a/arch/sparc/kernel/process_64.c
++++ b/arch/sparc/kernel/process_64.c
+@@ -237,7 +237,7 @@ static void __global_reg_poll(struct global_reg_snapshot *gp)
+ 	}
+ }
+ 
+-void arch_trigger_all_cpu_backtrace(void)
++void arch_trigger_all_cpu_backtrace(bool include_self)
+ {
+ 	struct thread_info *tp = current_thread_info();
+ 	struct pt_regs *regs = get_irq_regs();
+@@ -249,15 +249,19 @@ void arch_trigger_all_cpu_backtrace(void)
+ 
+ 	spin_lock_irqsave(&global_cpu_snapshot_lock, flags);
+ 
+-	memset(global_cpu_snapshot, 0, sizeof(global_cpu_snapshot));
+-
+ 	this_cpu = raw_smp_processor_id();
+ 
+-	__global_reg_self(tp, regs, this_cpu);
++	memset(global_cpu_snapshot, 0, sizeof(global_cpu_snapshot));
++
++	if (include_self)
++		__global_reg_self(tp, regs, this_cpu);
+ 
+ 	smp_fetch_global_regs();
+ 
+ 	for_each_online_cpu(cpu) {
++		if (!include_self && cpu = this_cpu)
++			continue;
++
+ 		struct global_reg_snapshot *gp = &global_cpu_snapshot[cpu].reg;
+ 
+ 		__global_reg_poll(gp);
+@@ -290,7 +294,7 @@ void arch_trigger_all_cpu_backtrace(void)
+ 
+ static void sysrq_handle_globreg(int key)
+ {
+-	arch_trigger_all_cpu_backtrace();
++	arch_trigger_all_cpu_backtrace(true);
+ }
+ 
+ static struct sysrq_key_op sparc_globalreg_op = {
 -- 
-     2. That which causes joy or happiness.
+1.7.1
+
