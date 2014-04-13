@@ -1,130 +1,102 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 21 Apr 2014 19:39:19 +0000
-Subject: [PATCH 04/29] sparc32: fix sparse warnings in srmmu.c
-Message-Id: <1398109184-3283-4-git-send-email-sam@ravnborg.org>
+From: "Dr.=?ISO-8859-2?Q?_Nagy_Elem=E9r_K=E1rol?= y" <eknagy@omikk.bme.hu>
+Date: Sun, 13 Apr 2014 18:33:02 +0000
+Subject: Sun V210 Cheetah error trap (kernel problem?)
+Message-Id: <20140413182920.M36664@omikk.bme.hu>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----=OPENWEBMAIL_ATT_0.247048611188429"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Fix following warnings:
-srmmu.c:78:5: warning: symbol 'flush_page_for_dma_global' was not declared. Should it be static?
-srmmu.c:85:5: warning: symbol 'viking_mxcc_present' was not declared. Should it be static?
-srmmu.c:103:6: warning: symbol 'srmmu_nocache_bitmap' was not declared. Should it be static?
-srmmu.c:176:24: warning: Using plain integer as NULL pointer
-srmmu.c:731:46: warning: Using plain integer as NULL pointer
-srmmu.c:731:46: warning: Using plain integer as NULL pointer
-srmmu.c:731:46: warning: Using plain integer as NULL pointer
-srmmu.c:870:13: warning: symbol 'srmmu_paging_init' was not declared. Should it be static?
+This is a multi-part message in MIME format.
 
-Add proper prototypes in mm_32.h and drop local prototype in init_32.c
-Replace 0 with NULL
+------=OPENWEBMAIL_ATT_0.247048611188429
+Content-Type: text/plain;
+	charset=iso-8859-2
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
----
- arch/sparc/mm/init_32.c | 3 ++-
- arch/sparc/mm/iommu.c   | 5 ++---
- arch/sparc/mm/mm_32.h   | 4 ++++
- arch/sparc/mm/srmmu.c   | 6 +++---
- 4 files changed, 11 insertions(+), 7 deletions(-)
+Dear SPARC Kernel Gurus!
 
-diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
-index db69870..cf09e6e 100644
---- a/arch/sparc/mm/init_32.c
-+++ b/arch/sparc/mm/init_32.c
-@@ -35,6 +35,8 @@
- #include <asm/prom.h>
- #include <asm/leon.h>
- 
-+#include "mm_32.h"
-+
- unsigned long *sparc_valid_addr_bitmap;
- EXPORT_SYMBOL(sparc_valid_addr_bitmap);
- 
-@@ -246,7 +248,6 @@ unsigned long __init bootmem_init(unsigned long *pages_avail)
-  * init routine based upon the Sun model type on the Sparc.
-  *
-  */
--extern void srmmu_paging_init(void);
- extern void device_scan(void);
- 
- void __init paging_init(void)
-diff --git a/arch/sparc/mm/iommu.c b/arch/sparc/mm/iommu.c
-index 28f96f2..35384cb 100644
---- a/arch/sparc/mm/iommu.c
-+++ b/arch/sparc/mm/iommu.c
-@@ -27,6 +27,8 @@
- #include <asm/iommu.h>
- #include <asm/dma.h>
- 
-+#include "mm_32.h"
-+
- /*
-  * This can be sized dynamically, but we will do this
-  * only when we have a guidance about actual I/O pressures.
-@@ -37,9 +39,6 @@
- #define IOMMU_NPTES	(IOMMU_WINSIZE/PAGE_SIZE)	/* 64K PTEs, 256KB */
- #define IOMMU_ORDER	6				/* 4096 * (1<<6) */
- 
--/* srmmu.c */
--extern int viking_mxcc_present;
--extern int flush_page_for_dma_global;
- static int viking_flush;
- /* viking.S */
- extern void viking_flush_page(unsigned long page);
-diff --git a/arch/sparc/mm/mm_32.h b/arch/sparc/mm/mm_32.h
-index ee773e4..443e62e 100644
---- a/arch/sparc/mm/mm_32.h
-+++ b/arch/sparc/mm/mm_32.h
-@@ -10,5 +10,9 @@ void window_ret_fault(struct pt_regs *regs);
- 
- /* srmmu.c */
- extern char *srmmu_name;
-+extern int viking_mxcc_present;
-+extern int flush_page_for_dma_global;
- 
- extern void (*poke_srmmu)(void);
-+
-+void __init srmmu_paging_init(void);
-diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-index 54e834c..4639d8e 100644
---- a/arch/sparc/mm/srmmu.c
-+++ b/arch/sparc/mm/srmmu.c
-@@ -100,7 +100,6 @@ static unsigned long srmmu_nocache_end;
- #define SRMMU_NOCACHE_ALIGN_MAX (sizeof(ctxd_t)*SRMMU_MAX_CONTEXTS)
- 
- void *srmmu_nocache_pool;
--void *srmmu_nocache_bitmap;
- static struct bit_map srmmu_nocache_map;
- 
- static inline int srmmu_pmd_none(pmd_t pmd)
-@@ -173,7 +172,7 @@ static void *__srmmu_get_nocache(int size, int align)
- 		printk(KERN_ERR "srmmu: out of nocache %d: %d/%d\n",
- 		       size, (int) srmmu_nocache_size,
- 		       srmmu_nocache_map.used << SRMMU_NOCACHE_BITMAP_SHIFT);
--		return 0;
-+		return NULL;
- 	}
- 
- 	addr = SRMMU_NOCACHE_VADDR + (offset << SRMMU_NOCACHE_BITMAP_SHIFT);
-@@ -269,6 +268,7 @@ static void __init srmmu_nocache_calcsize(void)
- 
- static void __init srmmu_nocache_init(void)
- {
-+	void *srmmu_nocache_bitmap;
- 	unsigned int bitmap_bits;
- 	pgd_t *pgd;
- 	pmd_t *pmd;
-@@ -728,7 +728,7 @@ static inline unsigned long srmmu_probe(unsigned long vaddr)
- 				     "=r" (retval) :
- 				     "r" (vaddr | 0x400), "i" (ASI_M_FLUSH_PROBE));
- 	} else {
--		retval = leon_swprobe(vaddr, 0);
-+		retval = leon_swprobe(vaddr, NULL);
- 	}
- 	return retval;
- }
--- 
-1.8.3.1
+I am SysAdming a Sun V210 iptables firewall and I have a kernel problem (?) on it.
 
+Sometimes the console (both virtual via SSH and serial console via ILOM) dies, syslog to disk is stopping, but iptables
+keeps filtering the packages. There is a "Cheetah error trap" on the console and in the attached syslog snippet.
+
+Kernel version is 3.2.0-4-sparc64-smp (Debian 3.2.54-2 sparc64) (previous Debian 7 kernel versions behaved similarly).
+
+The error happens sporadically, sometimes once in three months, sometimes once a week. There is no obvious way to
+trigger it, IRQ seems to be the best suspect at the moment (iptraf and apt-get upgrade seems to trigger it more often than
+idling).
+
+I can apply patches, recompile kernel and do such stuff but I have no idea how to decode this error.
+
+I can experiment with different patches and settings on the weekends as long as they do not endanger the 12 hour
+mission-critical weekday filtering.
+
+If I can not resolve this issue the machine will be replaced with an inferior performance X86 machine, so I hope you can
+help me - I already tried the Debian Sparc, so you are my last hope.
+
+Thank you:
+Elmar K. Nagy
+
+
+------=OPENWEBMAIL_ATT_0.247048611188429
+Content-Type: application/octet-stream;
+	name="syslog"
+Content-Disposition: attachment; filename="syslog"
+Content-Transfer-Encoding: base64
+
+LS0tLS0tJTwtLS0tLS0lPC0tLS0tLSU8LS0tLS0tJTwtLS0tLS0lPC0tLS0tLSU8LS0tLS0tJTwt
+LS0tLS0lPC0tLS0tLSU8LS0tLS0tCkFwciAxMSAyMzoxNzowMSBzdW4xIC9VU1IvU0JJTi9DUk9O
+Wzg0MzVdOiAocm9vdCkgQ01EICggICBjZCAvICYmIHJ1bi1wYXJ0cyAtLXJlcG9ydCAvZXRjL2Ny
+b24uaG91cmx5KQpBcHIgMTIgMDA6MTU6MDMgc3VuMSBrZXJuZWw6IFsyNjUxMTMuMTk5MDEzXSBF
+UlJPUigxKTogQ2hlZXRhaCBlcnJvciB0cmFwIHRha2VuIGFmc3JbMDAxMDEwMDAwMDAwMDAwMF0g
+YWZhclswMDAwMDAwMDQwMDAwMDAwXSBUTDEoMCkKQXByIDEyIDAwOjE1OjAzIHN1bjEga2VybmVs
+OiBbMjY1MTEzLjMxOTE5OF0gRVJST1IoMSk6IFRQQ1s0MDdiYjBdIFROUENbNDA3YmI0XSBPN1s0
+NDhmZGNdIFRTVEFURVs0ODBlMDE2MDZdCkFwciAxMiAwMDoxNTowMyBzdW4xIGtlcm5lbDogWzI2
+NTExMy40MTE4MjNdIEVSUk9SKDEpOiBUUEM8Y29weV90c2IrMHgzMC8weDgwPgpBcHIgMTIgMDA6
+MTU6MDMgc3VuMSBrZXJuZWw6IFsyNjUxMTMuNDcwMTUzXSBFUlJPUigxKTogTV9TWU5EKDApLCAg
+RV9TWU5EKDApLCBQcml2aWxlZ2VkCkFwciAxMiAwMDoxNTowMyBzdW4xIGtlcm5lbDogWzI2NTEx
+My41Mzk5MjZdIEVSUk9SKDEpOiBIaWdoZXN0IHByaW9yaXR5IGVycm9yICgwMDAwMTAwMDAwMDAw
+MDAwKSAiVW5tYXBwZWQgZXJyb3IgZnJvbSBzeXN0ZW0gYnVzIgpBcHIgMTIgMDA6MTU6MDMgc3Vu
+MSBrZXJuZWw6IFsyNjUxMTMuNjU2NjAxXSBFUlJPUigxKTogRC1jYWNoZSBpZHhbMF0gdGFnWzAw
+MDAwMDAwMDAwMDAwMDBdIHV0YWdbMDAwMDAwMDAwMDAwMDAwMF0gc3RhZ1swMDAwMDAwMDAwMDAw
+MDAwXQpBcHIgMTIgMDA6MTU6MDMgc3VuMSBrZXJuZWw6IFsyNjUxMTMuNzgyNDE0XSBFUlJPUigx
+KTogRC1jYWNoZSBkYXRhMFswMDAwMDAwMDAwMDAwMDAwXSBkYXRhMVswMDAwMDAwMDAwMDAwMDAw
+XSBkYXRhMlswMDAwMDAwMDAwMDAwMDAwXSBkYXRhM1swMDAwMDAwMDAwMDAwMDAwXQpBcHIgMTIg
+MDA6MTU6MDMgc3VuMSBrZXJuZWw6IFsyNjUxMTMuOTMyMjQ5XSBFUlJPUigxKTogSS1jYWNoZSBp
+ZHhbMF0gdGFnWzAwMDAwMDAwMDAwMDAwMDBdIHV0YWdbMDAwMDAwMDAwMDAwMDAwMF0gc3RhZ1sw
+MDAwMDAwMDAwMDAwMDAwXSB1WzAwMDAwMDAwMDAwMDAwMDBdIGxbMDAwMDAwMDAwMDAwMDAwMF0K
+QXByIDEyIDAwOjE1OjAzIHN1bjEga2VybmVsOiBbMjY1MTE0LjEwMzgxMl0gRVJST1IoMSk6IEkt
+Y2FjaGUgSU5TTjBbMDAwMDAwMDAwMDAwMDAwMF0gSU5TTjFbMDAwMDAwMDAwMDAwMDAwMF0gSU5T
+TjJbMDAwMDAwMDAwMDAwMDAwMF0gSU5TTjNbMDAwMDAwMDAwMDAwMDAwMF0KQXByIDEyIDAwOjE1
+OjAzIHN1bjEga2VybmVsOiBbMjY1MTE0LjI1MzY0M10gRVJST1IoMSk6IEktY2FjaGUgSU5TTjRb
+MDAwMDAwMDAwMDAwMDAwMF0gSU5TTjVbMDAwMDAwMDAwMDAwMDAwMF0gSU5TTjZbMDAwMDAwMDAw
+MDAwMDAwMF0gSU5TTjdbMDAwMDAwMDAwMDAwMDAwMF0KQXByIDEyIDAwOjE1OjAzIHN1bjEga2Vy
+bmVsOiBbMjY1MTE0LjQwMzQ3Ml0gRVJST1IoMSk6IEUtY2FjaGUgaWR4WzQwMDAwMDAwXSB0YWdb
+MDAwMDAwMDAxYTAwMGZlZV0KQXByIDEyIDAwOjE1OjAzIHN1bjEga2VybmVsOiBbMjY1MTE0LjQ4
+NDY3Ml0gRVJST1IoMSk6IEUtY2FjaGUgZGF0YTBbODA0NjAwMDAzZmE5MDAxMl0gZGF0YTFbODA0
+MDgwMDAzZmE5MDAxMF0gZGF0YTJbODAwMDAwMTAzZGQxYzAxMl0gZGF0YTNbODAwMDAwMTAzZGQw
+NjAxMl0KQXByIDEyIDAwOjE1OjAzIHN1bjEga2VybmVsOiBbMjY1MTE0LjYzNDUxM10gS2VybmVs
+IHBhbmljIC0gbm90IHN5bmNpbmc6IElycmVjb3ZlcmFibGUgZGVmZXJyZWQgZXJyb3IgdHJhcC4K
+QXByIDEyIDAwOjE1OjAzIHN1bjEga2VybmVsOiBbMjY1MTE0LjYzNDUxOF0gCkFwciAxMiAwMDox
+NTowMyBzdW4xIGtlcm5lbDogWzI2NTExNC43NDY1ODVdIENhbGwgVHJhY2U6CkFwciAxMiAwMDox
+NTowMyBzdW4xIGtlcm5lbDogWzI2NTExNC43Nzk3NjJdICBbMDAwMDAwMDAwMDQyOGUyOF0gY2hl
+ZXRhaF9kZWZlcnJlZF9oYW5kbGVyKzB4MzJjLzB4MzY0CkFwciAxMiAwMDoxNTowMyBzdW4xIGtl
+cm5lbDogWzI2NTExNC44NjQ0MDRdICBbMDAwMDAwMDAwMDQwNWU1MF0gY19kZWZlcnJlZCsweDE4
+LzB4MjQKQXByIDEyIDAwOjE1OjAzIHN1bjEga2VybmVsOiBbMjY1MTE0LjkzMDczNV0gIFswMDAw
+MDAwMDAwNDA3YmIwXSBjb3B5X3RzYisweDMwLzB4ODAKQXByIDEyIDAwOjE1OjAzIHN1bjEga2Vy
+bmVsOiBbMjY1MTE0Ljk5NDc5MF0gIFswMDAwMDAwMDAwNzgzNTA0XSBkb19zcGFyYzY0X2ZhdWx0
+KzB4NWI0LzB4N2E0CkFwciAxMiAwMDoxNTowMyBzdW4xIGtlcm5lbDogWzI2NTExNS4wNzAyNzVd
+ICBbMDAwMDAwMDAwMDQwNzlhOF0gc3BhcmM2NF9yZWFsZmF1bHRfY29tbW9uKzB4MTAvMHgyMApB
+cHIgMTIgMDA6MTU6MDMgc3VuMSBrZXJuZWw6IFsyNjUxMTUuMTUyNjMxXSAgWzAwMDAwMDAwMDA0
+NWQxZjBdIHNjaGVkdWxlX3RhaWwrMHg3OC8weDg4CkFwciAxMiAwMDoxNTowMyBzdW4xIGtlcm5l
+bDogWzI2NTExNS4yMjIzOTVdICBbMDAwMDAwMDAwMDQwNjA1MF0gcmV0X2Zyb21fc3lzY2FsbCsw
+eDgvMHgxOApBcHIgMTIgMDA6MTU6MDMgc3VuMSBrZXJuZWw6IFsyNjUxMTUuMjk0NDU3XSBQcmVz
+cyBTdG9wLUEgKEwxLUEpIHRvIHJldHVybiB0byB0aGUgYm9vdCBwcm9tCkFwciAxMiAwMDoxNzow
+MSBzdW4xIC9VU1IvU0JJTi9DUk9OWzg2MDVdOiAocm9vdCkgQ01EICggICBjZCAvICYmIHJ1bi1w
+YXJ0cyAtLXJlcG9ydCAvZXRjL2Nyb24uaG91cmx5KQpBcHIgMTMgMTE6NDA6MTIgc3VuMSBrZXJu
+ZWw6IGlta2xvZyA1LjguMTEsIGxvZyBzb3VyY2UgPSAvcHJvYy9rbXNnIHN0YXJ0ZWQuCi0tLS0t
+LSU8LS0tLS0tJTwtLS0tLS0lPC0tLS0tLSU8LS0tLS0tJTwtLS0tLS0lPC0tLS0tLSU8LS0tLS0t
+JTwtLS0tLS0lPC0tLS0tLQo=
+
+
+------=OPENWEBMAIL_ATT_0.247048611188429--
