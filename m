@@ -1,61 +1,35 @@
-From: Don Zickus <dzickus@redhat.com>
-Date: Wed, 23 Apr 2014 20:44:11 +0000
-Subject: Re: [PATCH 0/4 V3] Print traces on softlockup
-Message-Id: <20140423204411.GB8488@redhat.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Date: Mon, 14 Apr 2014 18:43:53 +0000
+Subject: Re: sparc64 WARNING: at mm/mmap.c:2757 exit_mmap+0x13c/0x160()
+Message-Id: <20140414184353.GA5630@drone.musicnaut.iki.fi>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1398179848-197479-1-git-send-email-dzickus@redhat.com>
- <20140422112828.ea511cefa17affb99d9aa97f@linux-foundation.org>
- <20140423192228.GY8488@redhat.com>
- <20140423123550.1818553bcdff3ef058efd3f7@linux-foundation.org>
-In-Reply-To: <20140423123550.1818553bcdff3ef058efd3f7@linux-foundation.org>
+References: <20130617055839.GB3073@blackmetal.musicnaut.iki.fi>
+ <20130803.134042.2228681844349448961.davem@davemloft.net>
+ <20131022174612.GC24448@blackmetal.musicnaut.iki.fi>
+ <20131022.135442.1072093301788210177.davem@davemloft.net>
+In-Reply-To: <20131022.135442.1072093301788210177.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, x86@kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org, mguzik@redhat.com
+To: David Miller <davem@davemloft.net>
+Cc: mroos@linux.ee, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Hugh Dickins <hughd@google.com>
 
-On Wed, Apr 23, 2014 at 12:35:50PM -0700, Andrew Morton wrote:
-> On Wed, 23 Apr 2014 15:22:28 -0400 Don Zickus <dzickus@redhat.com> wrote:
-> 
-> > On Tue, Apr 22, 2014 at 11:28:28AM -0700, Andrew Morton wrote:
-> > > On Tue, 22 Apr 2014 11:17:24 -0400 Don Zickus <dzickus@redhat.com> wrote:
-> > > 
-> > > > Added more patches to handle the 'uniprocessor' panic case by sending NMIs
-> > > > to every cpu but self.  Only affects x86, sparc.
-> > > > 
-> > > 
-> > > Looks OK to me.  A couple of things:
-> > > 
-> > > - Patches 1-3 should be combined so we don't create bisection holes
-> > >   due to x86 and sparc build errors.
-> > > 
-> > > - Patch 4 adds stuff which is unusable on uniprocessor, especially
-> > >   the presence of /proc/sys/kernel/softlockup_all_cpu_backtrace.  We
-> > >   already have #ifdef CONFIG_SMP in kern_table, so do more of that?
-> > 
-> > Are you suggesting just add CONFIG_SMP to kern_table entry or all the
-> > pieces in kernel/watchdog.c too?  I wasn't sure how messy I should make
-> > this patch.
-> 
-> Well, don't go nuts and be tasteful. 
-> 
-> /proc/sys/kernel/softlockup_all_cpu_backtrace should disappear.
-> 
-> Look around for existing #ifdef CONFIG_SMP blocks to use.
-> 
-> Making sysctl_softlockup_all_cpu_backtrace evaluate to literal zero
-> will cause the compiler to remove unused code without ifdefs.  This
-> might require that watchdog_timer_fn:softlockup_all_cpu_backtrace (why
-> does this local exist btw) be declared const - check the compiler
+Hi,
 
-The local exists because it was pointed out in a private review that there
-could be a race in which the sysctl value might change in the middle of
-the execution of a softlockup.  This would result in a permanently disable
-softlockup_all_cpu_backtrace because the flag would never be cleared.
+Just for the archives, I got one of these again with 3.14:
 
-Hence the snapshot of the local copy to prevent that race.
+[68674.536190] ------------[ cut here ]------------
+[68674.590467] WARNING: CPU: 0 PID: 14600 at /home/aaro/los/work/shared/linux-v3.14/mm/mmap.c:2738 exit_mmap+0x138/0x160()
+[68674.719635] Modules linked in:
+[68674.756022] CPU: 0 PID: 14600 Comm: rm Not tainted 3.14.0-ultra-los_0a2b #1
+[68674.839349] Call Trace:
+[68674.868507]  [00000000004b9c78] exit_mmap+0x138/0x160
+[68674.928931]  [00000000004503cc] mmput+0x2c/0xc0
+[68674.983103]  [0000000000452e98] do_exit+0x1b8/0x800
+[68675.041409]  [000000000045406c] do_group_exit+0x2c/0xa0
+[68675.103897]  [00000000004540f4] SyS_exit_group+0x14/0x20
+[68675.167439]  [0000000000406074] linux_sparc_syscall32+0x34/0x60
+[68675.238258] ---[ end trace 8a52741fbdb89d8e ]---
+[68675.293470] BUG: Bad rss-counter state mm:ffffff001df3d900 idx:1 val:1
 
-I posted an update of the patchset.
-
-Cheers,
-Don
+A.
