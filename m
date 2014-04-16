@@ -1,105 +1,80 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 25 Apr 2014 19:43:54 +0000
-Subject: [PATCH 3/3] sparc64: Fix bugs in get_user_pages_fast() wrt. THP.
-Message-Id: <20140425.154354.575760952778725388.davem@davemloft.net>
+From: Luis Henriques <luis.henriques@canonical.com>
+Date: Wed, 16 Apr 2014 10:13:58 +0000
+Subject: [3.11.y.z extended stable] Patch "sparc64: don't treat 64-bit syscall return codes as 32-bit" has be
+Message-Id: <1397643238-13108-1-git-send-email-luis.henriques@canonical.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
-Cc: mroos@linux.ee, aaro.koskinen@iki.fi, hughd@google.com, linux-kernel@vger.kernel.org
 
+This is a note to let you know that I have just added a patch titled
 
-First of all, we were blocking the wrong kind of interrupts
-over the page table scan.
+    sparc64: don't treat 64-bit syscall return codes as 32-bit
 
-%pil based interrupts (the ones blocked by local_irq_disable) are not
-the type which are used to deliver remote TLB flushes.  Rather,
-interrupt vectors are used for that.
+to the linux-3.11.y-queue branch of the 3.11.y.z extended stable tree 
+which can be found at:
 
-And interrupt vector delivery can only be blocked by turning off
-PSTATE_IE in the %pstate register.
+ http://kernel.ubuntu.com/git?p=ubuntu/linux.git;a=shortlog;h=refs/heads/linux-3.11.y-queue
 
-So use that instead of local_irq_{disable,enable}().
+If you, or anyone else, feels it should not be added to this tree, please 
+reply to this email.
 
-Secondly, the large PMD path needs to check _PAGE_VALID not
-_PAGE_PRESENT, to decide if it needs to bail and return 0.
+For more information about the 3.11.y.z tree, see
+https://wiki.ubuntu.com/Kernel/Dev/ExtendedStable
 
-pmd_large() should therefore just check _PAGE_PMD_HUGE.
+Thanks.
+-Luis
 
-Calls to gup_huge_pmd() are guarded with a check of pmd_large(), so we
-just need to add a valid bit check.
+------
 
+From 27dcca946c1777ed96f639ea4b2e96342d50e6ba Mon Sep 17 00:00:00 2001
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
+Date: Fri, 14 Mar 2014 10:42:01 -0500
+Subject: sparc64: don't treat 64-bit syscall return codes as 32-bit
+
+commit 1535bd8adbdedd60a0ee62e28fd5225d66434371 upstream.
+
+When checking a system call return code for an error,
+linux_sparc_syscall was sign-extending the lower 32-bit value and
+comparing it to -ERESTART_RESTARTBLOCK. lseek can return valid return
+codes whose lower 32-bits alone would indicate a failure (such as 4G-1).
+Use the whole 64-bit value to check for errors. Only the 32-bit path
+should sign extend the lower 32-bit value.
+
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Acked-by: Bob Picco <bob.picco@oracle.com>
+Acked-by: Allen Pais <allen.pais@oracle.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
 Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Luis Henriques <luis.henriques@canonical.com>
 ---
- arch/sparc/include/asm/pgtable_64.h |  2 +-
- arch/sparc/mm/gup.c                 | 19 +++++++++++++++----
- 2 files changed, 16 insertions(+), 5 deletions(-)
+ arch/sparc/kernel/syscalls.S | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index e3db4b8..1f28103 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -633,7 +633,7 @@ static inline unsigned long pmd_large(pmd_t pmd)
- {
- 	pte_t pte = __pte(pmd_val(pmd));
- 
--	return (pte_val(pte) & _PAGE_PMD_HUGE) && pte_present(pte);
-+	return pte_val(pte) & _PAGE_PMD_HUGE;
- }
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-diff --git a/arch/sparc/mm/gup.c b/arch/sparc/mm/gup.c
-index c4d3da6..97fb4fc 100644
---- a/arch/sparc/mm/gup.c
-+++ b/arch/sparc/mm/gup.c
-@@ -73,7 +73,7 @@ static int gup_huge_pmd(pmd_t *pmdp, pmd_t pmd, unsigned long addr,
- 	struct page *head, *page, *tail;
- 	int refs;
- 
--	if (!pmd_large(pmd))
-+	if (!(pmd_val(pmd) & _PAGE_VALID))
- 		return 0;
- 
- 	if (write && !pmd_write(pmd))
-@@ -165,7 +165,7 @@ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
- {
- 	struct mm_struct *mm = current->mm;
- 	unsigned long addr, len, end;
--	unsigned long next;
-+	unsigned long next, pstate;
- 	pgd_t *pgdp;
- 	int nr = 0;
- 
-@@ -191,7 +191,12 @@ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 	 * So long as we atomically load page table pointers versus teardown,
- 	 * we can follow the address down to the the page and take a ref on it.
- 	 */
--	local_irq_disable();
-+	__asm__ __volatile__(
-+		"rdpr %%pstate, %0\n\t"
-+		"andn %0, %1, %0\n\t"
-+		"wrpr %0, %%g0, %%pstate"
-+		: "=&r" (pstate)
-+		: "i" (PSTATE_IE));
- 
- 	pgdp = pgd_offset(mm, addr);
- 	do {
-@@ -204,7 +209,13 @@ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 			goto slow;
- 	} while (pgdp++, addr = next, addr != end);
- 
--	local_irq_enable();
-+	/* Re-enable interrupts. */
-+	__asm__ __volatile__(
-+		"rdpr %%pstate, %0\n\t"
-+		"or %0, %1, %0\n\t"
-+		"wrpr %0, %%g0, %%pstate"
-+		: "=&r" (pstate)
-+		: "i" (PSTATE_IE));
- 
- 	VM_BUG_ON(nr != (end - start) >> PAGE_SHIFT);
- 	return nr;
--- 
-1.9.0
+diff --git a/arch/sparc/kernel/syscalls.S b/arch/sparc/kernel/syscalls.S
+index 73ec8a7..c79c687 100644
+--- a/arch/sparc/kernel/syscalls.S
++++ b/arch/sparc/kernel/syscalls.S
+@@ -189,7 +189,8 @@ linux_sparc_syscall32:
+ 	 mov	%i0, %l5				! IEU1
+ 5:	call	%l7					! CTI	Group brk forced
+ 	 srl	%i5, 0, %o5				! IEU1
+-	ba,a,pt	%xcc, 3f
++	ba,pt	%xcc, 3f
++	 sra	%o0, 0, %o0
+
+ 	/* Linux native system calls enter here... */
+ 	.align	32
+@@ -217,7 +218,6 @@ linux_sparc_syscall:
+ 3:	stx	%o0, [%sp + PTREGS_OFF + PT_V9_I0]
+ ret_sys_call:
+ 	ldx	[%sp + PTREGS_OFF + PT_V9_TSTATE], %g3
+-	sra	%o0, 0, %o0
+ 	mov	%ulo(TSTATE_XCARRY | TSTATE_ICARRY), %g2
+ 	sllx	%g2, 32, %g2
+
+--
+1.9.1
 
