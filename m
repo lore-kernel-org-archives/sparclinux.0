@@ -1,72 +1,64 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 21 Apr 2014 17:12:19 +0000
-Subject: [PATCH 07/24] sparc32: fix sparse warnings in ioport.c
-Message-Id: <1398100356-19794-7-git-send-email-sam@ravnborg.org>
+From: Luis Henriques <luis.henriques@canonical.com>
+Date: Wed, 16 Apr 2014 10:31:58 +0000
+Subject: [PATCH 3.11 42/46] sparc64: don't treat 64-bit syscall return codes as 32-bit
+Message-Id: <1397644322-13905-43-git-send-email-luis.henriques@canonical.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1397644322-13905-1-git-send-email-luis.henriques@canonical.com>
+In-Reply-To: <1397644322-13905-1-git-send-email-luis.henriques@canonical.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org, kernel-team@lists.ubuntu.com
+Cc: Dave Kleikamp <dave.kleikamp@oracle.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Luis Henriques <luis.henriques@canonical.com>
 
-Fix following warnings:
-ioport.c:189:38: warning: Using plain integer as NULL pointer
-ioport.c:78:25: warning: symbol 'sparc_iomap' was not declared. Should it be static?
-ioport.c:403:20: warning: symbol 'sbus_dma_ops' was not declared. Should it be static?
-ioport.c:684:39: warning: Using plain integer as NULL pointer
+3.11.10.8 -stable review patch.  If anyone has any objections, please let me know.
 
-Add one missing prototype, and use NULL.
-sbus_dma_ops declared static.
+------------------
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
+
+commit 1535bd8adbdedd60a0ee62e28fd5225d66434371 upstream.
+
+When checking a system call return code for an error,
+linux_sparc_syscall was sign-extending the lower 32-bit value and
+comparing it to -ERESTART_RESTARTBLOCK. lseek can return valid return
+codes whose lower 32-bits alone would indicate a failure (such as 4G-1).
+Use the whole 64-bit value to check for errors. Only the 32-bit path
+should sign extend the lower 32-bit value.
+
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Acked-by: Bob Picco <bob.picco@oracle.com>
+Acked-by: Allen Pais <allen.pais@oracle.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Luis Henriques <luis.henriques@canonical.com>
 ---
- arch/sparc/include/asm/pgalloc_32.h | 2 ++
- arch/sparc/kernel/ioport.c          | 6 +++---
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ arch/sparc/kernel/syscalls.S | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/include/asm/pgalloc_32.h b/arch/sparc/include/asm/pgalloc_32.h
-index 9b1c36d..a3890da 100644
---- a/arch/sparc/include/asm/pgalloc_32.h
-+++ b/arch/sparc/include/asm/pgalloc_32.h
-@@ -14,6 +14,8 @@ struct page;
- void *srmmu_get_nocache(int size, int align);
- void srmmu_free_nocache(void *addr, int size);
+diff --git a/arch/sparc/kernel/syscalls.S b/arch/sparc/kernel/syscalls.S
+index 73ec8a7..c79c687 100644
+--- a/arch/sparc/kernel/syscalls.S
++++ b/arch/sparc/kernel/syscalls.S
+@@ -189,7 +189,8 @@ linux_sparc_syscall32:
+ 	 mov	%i0, %l5				! IEU1
+ 5:	call	%l7					! CTI	Group brk forced
+ 	 srl	%i5, 0, %o5				! IEU1
+-	ba,a,pt	%xcc, 3f
++	ba,pt	%xcc, 3f
++	 sra	%o0, 0, %o0
  
-+extern struct resource sparc_iomap;
-+
- #define check_pgt_cache()	do { } while (0)
+ 	/* Linux native system calls enter here... */
+ 	.align	32
+@@ -217,7 +218,6 @@ linux_sparc_syscall:
+ 3:	stx	%o0, [%sp + PTREGS_OFF + PT_V9_I0]
+ ret_sys_call:
+ 	ldx	[%sp + PTREGS_OFF + PT_V9_TSTATE], %g3
+-	sra	%o0, 0, %o0
+ 	mov	%ulo(TSTATE_XCARRY | TSTATE_ICARRY), %g2
+ 	sllx	%g2, 32, %g2
  
- pgd_t *get_pgd_fast(void);
-diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
-index e7e215d..7f08ec8 100644
---- a/arch/sparc/kernel/ioport.c
-+++ b/arch/sparc/kernel/ioport.c
-@@ -186,7 +186,7 @@ static void __iomem *_sparc_alloc_io(unsigned int busno, unsigned long phys,
- 
- 	if (name = NULL) name = "???";
- 
--	if ((xres = xres_alloc()) != 0) {
-+	if ((xres = xres_alloc()) != NULL) {
- 		tack = xres->xname;
- 		res = &xres->xres;
- 	} else {
-@@ -400,7 +400,7 @@ static void sbus_sync_sg_for_device(struct device *dev, struct scatterlist *sg,
- 	BUG();
- }
- 
--struct dma_map_ops sbus_dma_ops = {
-+static struct dma_map_ops sbus_dma_ops = {
- 	.alloc			= sbus_alloc_coherent,
- 	.free			= sbus_free_coherent,
- 	.map_page		= sbus_map_page,
-@@ -681,7 +681,7 @@ static int sparc_io_proc_show(struct seq_file *m, void *v)
- 	const char *nm;
- 
- 	for (r = root->child; r != NULL; r = r->sibling) {
--		if ((nm = r->name) = 0) nm = "???";
-+		if ((nm = r->name) = NULL) nm = "???";
- 		seq_printf(m, "%016llx-%016llx: %s\n",
- 				(unsigned long long)r->start,
- 				(unsigned long long)r->end, nm);
 -- 
-1.8.3.1
+1.9.1
 
